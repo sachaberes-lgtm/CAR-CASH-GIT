@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v985'; /* v985 (2026-10-27, Léo : « les techniques Cloudflare… que mon jeu ne bugge plus du tout ») : LA BOÎTE NOIRE (le jeu note ses erreurs et ses gels, RÉGLAGES › VERSION ou ?erreurs=1) + LA GARDE DU DÉMARRAGE au build */
+const CACHE = 'cashcar-v986'; /* v986 (2026-10-27, chasse aux gels) : plus de programme compilé en course à l'arrivée dans les DUNES (les maillages vides des diables et du mur de tempête ne naissent plus) · v985 (2026-10-27, Léo : « les techniques Cloudflare… que mon jeu ne bugge plus du tout ») : LA BOÎTE NOIRE (le jeu note ses erreurs et ses gels, RÉGLAGES › VERSION ou ?erreurs=1) + LA GARDE DU DÉMARRAGE au build */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
