@@ -375,10 +375,7 @@ function orig10(g,i,E,K,rnd){
     TX(B,K.chrome,[[.40,0],[.38,.10],[.44,.30],[.56,.54]],-1.18,0,0,PI10,32);TX(B,K.glow,[[.001,0],[.36,0],[.36,.02]],-1.20,0,0,0,24);
     ech=[-1.78,0,0];break;}
   case 22:{ // PULSORÉACTEUR — LE CŒUR QUI BAT : une tête hexagonale à pétales-clapets, un tube fin que des ondes de rings élargissent
-    TX(B,K.colD,[[.001,0],[.50,0],[.54,.03],[.54,.34],[.001,.34]],.55,0,0,0,6);
-    B.add(tourX([[.001,0],[.46,0],[.46,.02],[.001,.02]],6),K.noir,.89,0,0,0,0,0);
-    pales10(B,K.or,12,.07,.42,.05,.014,.92,.55,0);pales10(B,K.chrome,12,.10,.44,.05,.014,.935,-.55,PI10/12);
-    B.add(G10.sph,K.chrome,.95,0,0,0,0,0,.09,.09,.09);
+    // (la tête hexagonale et ses pétales-clapets ont cédé la place au CŒUR — voir h4_coeur dans moteurs-themes.js)
     TX(B,K.chrome,[[.13,0],[.13,1.7]],-1.15,0,0,0,24);
     const rk=[.30,.18,.10,.04,-.03,-.09,-.14,-.19,-.23,-.27];
     for(let k=0;k<rk.length;k++){const x=.30-k*.17+.0,R=.19+k*.045;ANN(B,k%2?K.chrome:K.col,R,.04,x,0,0);ANN(B,K.haloF,R,.014,x-.04,0,0);}
@@ -404,50 +401,23 @@ function orig10(g,i,E,K,rnd){
     const bob=new THREE.TorusGeometry(.265,.034,8,24);bob.rotateY(PI10/2);
     for(let k=0;k<14;k++){const t=k/14*2*PI10,p=tl(Math.cos(t)*.66,Math.sin(t)*.66,0),tg=new THREE.Vector3(...tl(-Math.sin(t),Math.cos(t),0));
       vers10(B,bob,K.or,new THREE.Vector3(p[0],p[1],p[2]),tg,1);}
-    B.add(sphN10(.17),K.blanc,0,0,0);B.add(sphN10(.32,16),K.haloF,0,0,0);
-    for(let k=0;k<3;k++){const t=k/3*2*PI10+.5,p=tl(Math.cos(t)*.66,Math.sin(t)*.66,0);BAR(B,croute,.07,-.60,p[0],p[1],p[2]);}
-    TX(B,K.chrome,[[.12,0],[.16,.10],[.30,.40],[.46,.70]],-.55,0,0,PI10,24);
-    ech=[-1.2,0,0];break;}
-  case 25:{ // ANTIMATIÈRE — LE NÉGATIF : une sphère noire dans trois anneaux croisés, douze aiguilles d'or, quatre cristaux
-    B.add(sphN10(.34,26),K.noir,0,0,0);B.add(sphN10(.42,20),K.haloC,0,0,0);
-    const rg=[[.62,0,0],[.74,PI10/3,0],[.86,-PI10/3,PI10/2]];
-    for(let k=0;k<3;k++){const r=rg[k];B.add(new THREE.TorusGeometry(r[0],.036,10,56),k===1?K.or:K.chrome,0,0,0,r[1],PI10/2+r[2]*.5,0);
-      B.add(new THREE.TorusGeometry(r[0],.012,6,56),K.haloF,0,0,0,r[1],PI10/2+r[2]*.5,0);
-      const eu=new THREE.Euler(r[1],PI10/2+r[2]*.5,0,'XYZ');for(const a of [0,PI10]){const v=new THREE.Vector3(Math.cos(a)*r[0],Math.sin(a)*r[0],0).applyEuler(eu),w=v.clone().multiplyScalar(.34/r[0]);
-        B.add(tube10([[w.x,w.y,w.z],[v.x,v.y,v.z]],.014,2,6),K.chrome,0,0,0);B.add(G10.sph,K.glow,v.x,v.y,v.z,0,0,0,.035,.035,.035);}}   // chaque anneau tenu par deux tiges
-    for(const d of dirs10(12))vers10(B,cone10(.034,.52,8),K.or,d.clone().multiplyScalar(.36),d,1);
-    for(let k=0;k<4;k++){const t=k/4*2*PI10+.78;B.add(new THREE.OctahedronGeometry(.13,0),K.verre,0,Math.cos(t)*.98,Math.sin(t)*.98,t,0,0,1,1.8,1);B.add(tube10([[0,Math.cos(t)*.34,Math.sin(t)*.34],[0,Math.cos(t)*.86,Math.sin(t)*.86]],.016,2,6),K.chrome,0,0,0);}
-    TX(B,K.chrome,[[.06,0],[.10,.20],[.22,.70]],-.34,0,0,PI10,18);TX(B,K.haloF,[[.001,0],[.18,.2],[.001,.9]],-.50,0,0,PI10,14);
-    ech=[-1.35,0,0];break;}
-  case 26:{ // MOTEUR À DISTORSION — LE TUNNEL : sept cerceaux dont la taille respire, une hélice de lumière, une nacelle fuselée
-    const R=[.30,.46,.62,.78,.62,.46,.30];
-    for(let k=0;k<7;k++){const x=-1.08+k*.36;B.add(new THREE.TorusGeometry(R[k],.04+.01*(k===3),10,48),k%2?K.chrome:K.col,x,0,0,0,PI10/2,0);
-      B.add(new THREE.TorusGeometry(R[k],.014,6,48),K.haloF,x,0,0,0,PI10/2,0);
-      for(let j=0;j<3;j++){const t=j/3*2*PI10+k*.3;B.add(tube10([[x,Math.cos(t)*.12,Math.sin(t)*.12],[x,Math.cos(t)*R[k],Math.sin(t)*R[k]]],.012,2,5),K.or,0,0,0);}}   // trois rayons : le cerceau tient à l'axe
-    for(let h=0;h<2;h++)B.add(helix10(.50,-1.08,1.08,3.2,h*PI10,.016,6),K.haloF,0,0,0);
-    TX(B,K.chrome,[[.001,0],[.10,.10],[.19,.40],[.20,.80],[.11,1.12],[.04,1.30]],-.72,0,0,0,26);BAR(B,K.chrome,.11,-1.12,1.12,0,0);   // l'axe qui porte tous les cerceaux
-    TX(B,K.glow,[[.001,0],[.10,.04],[.001,.12]],-.74,0,0,PI10,16);
-    for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-.5,0],[.5,0],[.25,.16],[-.5,.07]],.014,.004),K.or,-.15,sd*.20,0,sd>0?0:PI10,0,0);
+    // (l'étoile blanche du centre a cédé la place au masque d'or d'Hélios — h4_helios, moteurs-themes.js)
+    TX(B,K.chrome,[[.12,0],[.16,.10],[.26,.30],[.34,.44]],-.84,0,0,PI10,24);   // le col qui tient l'anneau à la grappe : il entre dans la paroi du tore
+    ech=[-1.75,0,0];break;}
+  case 25:{ // ALIEN — (l'ANTIMATIÈRE d'avant a cédé la place : la soucoupe et son œil, h4_alien dans moteurs-themes.js ; ici seulement l'échappement)
+    ech=[-1.75,0,0];break;}
+  case 26:{ // MOTEUR À DISTORSION → L'OUROBOROS (le nœud-serpent et la nacelle sont dans h4_ouro, moteurs-themes.js ; ici seulement l'échappement)
     ech=[-1.55,0,0];break;}
   case 27:{ // COMÈTE — UN NOYAU DE ROCHE ET SA QUEUE : trois cônes de feu emboîtés, une nuée d'éclats qui se resserre, un anneau d'or
-    const co=new THREE.Mesh(eroder9(new THREE.IcosahedronGeometry(.40,2),.22,2.5,27),croute);co.position.set(.60,0,0);g.add(co);
-    B.add(sphN10(.30,16),K.haloF,.60,0,0);
-    B.add(cone10(.46,2.1,24),K.haloF,.60,0,0,0,PI10,0);B.add(cone10(.34,1.7,24),K.haloC,.60,0,0,0,PI10,0);B.add(cone10(.20,1.3,20),K.halo(0xffffff,.45),.60,0,0,0,PI10,0);
-    for(let k=0;k<26;k++){const x=-.10-rnd()*1.5,rad=(.12+(.60-x)*.12)*rnd(),t=rnd()*6.28;
+    // (le noyau de roche a cédé la place à la tête du renard de glace — h4_comete dans moteurs-themes.js ; le feu part de son cou)
+    B.add(cone10(.62,2.5,24),K.haloF,.14,0,0,0,PI10,0);B.add(cone10(.44,2.0,24),K.haloC,.14,0,0,0,PI10,0);B.add(cone10(.26,1.5,20),K.halo(0xffffff,.45),.14,0,0,0,PI10,0);
+    for(let k=0;k<26;k++){const x=-.20-rnd()*1.5,rad=(.12+(.14-x)*.12)*rnd(),t=rnd()*6.28;
       eclat9(g,croute,rnd,x,Math.cos(t)*rad,Math.sin(t)*rad,.035+rnd()*.06*(1-(.1-x)/1.6));}
     ech=[-1.6,0,0];break;}
-  case 28:{ // SUPERNOVA — L'INSTANT FIGÉ : un cœur blanc, vingt-huit épines polies, trois ondes de choc inclinées, des éclats en orbite
-    B.add(sphN10(.30,22),K.blanc,0,0,0);B.add(sphN10(.46,18),K.haloF,0,0,0);B.add(sphN10(.64,16),K.haloC,0,0,0);
-    const dd=dirs10(44);for(let k=0;k<dd.length;k++)vers10(B,cone10(.07,k%2?.78:1.10,10),k%3?K.or:K.chrome,dd[k].clone().multiplyScalar(.30),dd[k],1);
-    for(let k=0;k<3;k++){B.add(new THREE.TorusGeometry(.88+k*.14,.016,6,56),K.haloF,0,0,0,k*.8,PI10/2+k*.5,0);}
-    ech=[-1.5,0,0];break;}
-  case 29:{ // TROU NOIR — LA SINGULARITÉ : une bille d'encre, un disque d'accrétion à dix anneaux, un anneau de photons, deux jets, une cage
-    B.add(sphN10(.40,30),K.noir,0,0,0);
-    for(let k=0;k<16;k++){const t=k/15,R=.50+t*.80,c=[0xffffff,0xfff8e0,0xfff2c0,0xffe2a0,0xffd780,0xffc060,0xffb050,0xff9a44,0xff8a3c,0xff6a48,0xff5a50,0xf04a80,0xe03ca0,0xb02ac8,0x7a22c8,0x401890][k];
-      B.add(new THREE.TorusGeometry(R,.035+.012*t,6,56),K.halo(c,.62-.25*t),0,0,0,PI10/2,0,0,1,1,.28);}
-    B.add(new THREE.TorusGeometry(.46,.014,6,56),K.blanc,0,0,0,PI10/2,0,0);
-    B.add(cone10(.10,2.1,14),K.haloC,.30,0,0,0,0,0);B.add(cone10(.10,2.1,14),K.haloC,-.30,0,0,0,PI10,0);B.add(cone10(.04,2.3,10),K.blanc,.30,0,0,0,0,0);B.add(cone10(.04,2.3,10),K.blanc,-.30,0,0,0,PI10,0);
-    ech=[-1.6,0,0];break;}
+  case 28:{ // SUPERNOVA → LA NAISSANCE (le lotus de lumière et ses anneaux sont dans h4_naissance, moteurs-themes.js ; ici seulement l'échappement)
+    ech=[-1.55,0,0];break;}
+  case 29:{ // TROU NOIR → L'INFINI (singularité, disque, cage, couronnes et ∞ sont dans h4_infini, moteurs-themes.js ; ici seulement l'échappement)
+    ech=[-2.9,0,0];break;}
   }
   theme30b(B,i,K,g);                                                  // l'identité : sphinx, phénix, Atlantide… l'infini
   const NP={18:4,19:5,20:6,21:6,22:7,23:8,24:8,25:9,26:10};          // la grappe de propulseurs grossit palier après palier
