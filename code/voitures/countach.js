@@ -266,7 +266,7 @@ SHAPES.countach=function(K){
   P.box('k',.07,.004,.045,0,surf(2.12,0)+.003,2.12);
   P.sym(sd=>barre('r',[sd*.06,surf(1.0,sd*.06)+.006,1.0],[sd*.62,surf(1.03,sd*.62)+.006,1.03],.012,.012));
   // LES RÉTROS : un boîtier carré sur son pied
-  P.sym(sd=>{P.box('p',.08,.11,.19,sd*1.015,.815,.73);P.box('p',.05,.05,.08,sd*.955,.765,.77);P.box('k',.082,.09,.01,sd*1.016,.815,.826);});
+  P.sym(sd=>{P.box('p',.08,.11,.19,sd*1.015,.815,.73);P.box('p',.09,.05,.08,sd*.935,.765,.77);   /* (2026-10-27, aucun rétro qui vole) le pied entre 2 cm dans la portière (il s'arrêtait 2 cm à côté) */ P.box('k',.082,.09,.01,sd*1.016,.815,.826);});
   // L'HABITACLE (visible portes levées) : le plancher, les deux sièges, le tableau de bord, le volant (à gauche)
   P.box('e',1.5,.04,1.15,0,.40,.15);
   P.sym(sd=>{P.box('i',.42,.14,.48,sd*.31,.50,.05);P.box('i',.42,.44,.10,sd*.31,.72,-.22,.25,0,0);});

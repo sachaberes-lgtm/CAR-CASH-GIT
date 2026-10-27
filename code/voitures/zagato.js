@@ -52,6 +52,16 @@ SHAPES.zagato=function(K){
       for(let u=0;u<3;u++){const p=v[u],i=(t*3+u)*3;a.P.push(p[0],p[1],p[2]);
         if(Q){const nx=Q[i]/127,ny=Q[i+1]/127,nz=Q[i+2]/127,l=Math.hypot(nx,ny,nz)||1;a.N.push(nx/l,ny/l,nz/l);}else a.N.push(fn[0],fn[1],fn[2]);
         const k9=m.g==='p'?kpY(p[1]):null;for(let c=0;c<3;c++){let x=pal[c];if(k9)x*=k9[c];if(m.f)x/=omb(p[1],c);a.C.push(x);}}}}
+  /* (2026-10-27, Léo : « aucun rétro qui vole ») LES RÉTROS : la poly auto n'avait gardé que leur GLACE — un carré noir (10 × 8 cm) qui flottait à
+     18 cm de la vitre, à hauteur des yeux. On lui rend sa COQUE de laque (un rebord de 5 mm autour de la glace, qui reste à sa place, 1 mm derrière)
+     et sa TIGE, de la même laque, plantée 2 cm dans l'épaule de la portière. Pièces du kit (boîtes), teinte de la tôle × la peinture. */
+  {const gp=A[GP],M=new THREE.Matrix4(),E=new THREE.Euler(),Q=new THREE.Quaternion(),V=new THREE.Vector3(),U1=new THREE.Vector3(1,1,1),pc=PAL[7];
+   const piece=(w,h,d,x,y,z,rz)=>{const g=new THREE.BoxGeometry(w,h,d).toNonIndexed();Q.setFromEuler(E.set(0,0,rz||0));M.compose(V.set(x,y,z),Q,U1);g.applyMatrix4(M);
+     const p=g.attributes.position.array,n=g.attributes.normal.array;
+     for(let i=0;i<p.length;i+=3){gp.P.push(p[i],p[i+1],p[i+2]);gp.N.push(n[i],n[i+1],n[i+2]);const k9=kpY(p[i+1]);for(let c=0;c<3;c++)gp.C.push(pc[c]*k9[c]);}
+     g.dispose();};
+   for(const sd of [-1,1]){piece(.11,.094,.063,sd*.972,.90,.5845,0);
+     const xa=sd*.845,ya=.69,xb=sd*.95,yb=.87;piece(.025,Math.hypot(xb-xa,yb-ya),.025,(xa+xb)/2,(ya+yb)/2,.5845,-Math.atan2(xb-xa,yb-ya));}}
   const gs={};
   for(const g in A){const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(A[g].P,3));
     geo.setAttribute('normal',new THREE.Float32BufferAttribute(A[g].N,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(A[g].C,3));gs[g]=geo;}

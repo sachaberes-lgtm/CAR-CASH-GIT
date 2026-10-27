@@ -155,7 +155,7 @@
   P.sym(sd=>{P.box('c',.30,.20,.03,sd*.74,1.86,ZE+.005);P.box('W',.24,.14,.03,sd*.74,1.86,ZE+.015);
     P.box('O',.12,.06,.02,sd*.74,1.66,ZE+.01);
     P.box('L',.10,.36,.03,sd*.86,1.86,-ZE-.01);
-    P.box('k',.05,.05,.20,sd*.97,2.30,.95);P.box('k',.06,.32,.20,sd*1.06,2.32,.88);
+    P.box('k',.22,.05,.20,sd*.93,2.30,.95);P.box('k',.06,.32,.20,sd*1.06,2.32,.88);   // (2026-10-27, aucun rétro qui vole) le BRAS va de la cabine (2 cm dedans) jusque dans le boîtier : il flottait entre les deux (8 cm et 3,5 cm de jour)
     /* les deux pots qui plongent vers l'arrière */
     P.put('c',new THREE.CylinderGeometry(.06,.06,.84,8),sd*.57,.825,-2.105,.665,0,0);
     P.cyl('K',.045,.02,8,sd*.57,.50,-2.37,'z');
@@ -328,7 +328,7 @@
   //      la POIGNÉE chromée seule dit la porte ; le bouchon d'essence sur l'auvent (le '32 l'a là) ----
   P.sym(sd=>P.box('c',.016,.018,.09,sd*(xW(.12)+.012),.935,.12));
   P.lathe('c',[[.05,0],[.05,.012],[.04,.024],[0,.03]],8,0,yT(.45)-.004,.45,'y');
-  tube('c',[xW(.27)-.01,1.04,.27],[xW(.27)+.09,1.15,.26],.009,5);P.cyl('c',.05,.018,8,xW(.27)+.10,1.16,.255,'z');P.cyl('K',.042,.004,8,xW(.27)+.10,1.16,.245,'z');
+  tube('c',[xW(.27)-.05,.996,.274],[xW(.27)+.09,1.15,.26],.009,5);   /* (2026-10-27, aucun rétro qui vole) la tige part 2 cm DANS l'auvent (elle s'arrêtait 3 cm au-dessus) */ P.cyl('c',.05,.018,8,xW(.27)+.10,1.16,.255,'z');P.cyl('K',.042,.004,8,xW(.27)+.10,1.16,.245,'z');
   // ---- LES FLAMMES, peintes à plat sur l'auvent et les portes : quatre LANGUES (un ruban qui ondule et s'effile, la pointe qui remonte),
   //      orange, et leur cœur jaune par-dessus. Nées au bord du tablier, elles se fondent en un front plein. ----
   {const LG=[[.58,.12,.22,-.09,.16],[1.0,.37,.26,-.12,.24],[.80,.62,.24,-.10,.20],[.46,.86,.18,-.05,.10]],   // [longueur, hauteur de base, épaisseur, ondulation, remontée de la pointe]

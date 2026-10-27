@@ -264,7 +264,8 @@ return function(K){
   {const pts=[[.80,.87,1.02],[.80,1.07,1.02],[.81,1.12,1.075],[.80,1.28,1.045],[.79,1.33,.985],[.80,1.50,1.0]];
    for(let i=0;i<pts.length-1;i++)tige('C',pts[i],pts[i+1],.008);P.put('C',new THREE.SphereGeometry(.024,8,6),.80,1.50,1.0);}
   // le rétro côté conducteur (gauche) seulement
-  tige('s',[.92,.95,.80],[.99,1.00,.80],.012);P.put('s',tour([[0,0],[.055,0],[.06,.02],[0,.025]],12),1.0,1.01,.79,Math.PI,0,0);
+  tige('s',[.814,.8745,.80],[.99,1.00,.80],.012);   // (2026-10-27, aucun rétro qui vole) le bras, prolongé dans son axe, part 2 cm DANS le haut de la portière (il s'arrêtait en l'air, à 5 cm de la tôle)
+  P.put('s',tour([[0,0],[.055,0],[.06,.02],[0,.025]],12),1.0,1.01,.79,Math.PI,0,0);
   // les joues noires des passages de roue (sans elles on voyait le ciel au travers)
   P.sym(sd=>{for(const zw of [ZF,ZR]){const o=[[zw-RA,.28]];for(let i=0;i<=16;i++){const a=Math.PI-i/16*Math.PI;o.push([zw+Math.cos(a)*RA,R+Math.sin(a)*RA]);}o.push([zw+RA,.28]);
     P.prism('k',o,.22,sd*.56);}});

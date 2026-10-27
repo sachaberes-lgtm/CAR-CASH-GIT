@@ -197,6 +197,7 @@
     P.box('J',.02,.006,1.26,sd*.903,.73,1.075,.08);P.box('Jf',.02,.003,1.26,sd*.903,.7345,1.075,.08);   // LA LIGNE DE JOINT de la coquille (la FENTE C : l'ombre et son fil)
     for(const [a,b] of [[-2.10,-1.74],[-.76,.70],[1.68,1.98]]){P.box('p',.03,.03,b-a,sd*.905,.50,(a+b)/2,0,0,Math.PI/4);P.box('k',.012,.01,b-a,sd*.926,.50,(a+b)/2);} // (affinement) le jonc de la C4 : un fin jonc noir de 1 cm sur l'arête d'un PLI de tôle (c'était une bande noire de 4,5 cm collée à plat : un autocollant)
     P.box('k',.06,.07,.14,sd*.93,.92,.36);P.box('k',.06,.02,.04,sd*.88,.90,.36); // rétro
+    P.box('k',.03,.08,.04,sd*.87,.86,.36);   // (2026-10-27, aucun rétro qui vole) son PIED, planté 2,5 cm dans la portière (le bras flottait 4 cm au-dessus)
     P.box('O',.16,.04,.02,sd*.58,.49,2.235);P.box('W',.12,.04,.02,sd*.36,.34,2.235);
     // QUATRE FEUX CARRÉS sur le tableau noir — (17/10, l'arrière v2) ENFONCÉS : un cerclage chromé qui dépasse, la cuvette noire, le verre
     // rouge en retrait, son cœur sombre et ses stries
@@ -413,7 +414,7 @@
   P.sym(sd=>{P.box('c',.08,.07,.22,sd*.91,.40,ZE-.06,0,sd*.5,0);P.box('c',.08,.08,.22,sd*.91,.44,-ZE+.06,0,-sd*.5,0);});
   /* LE BOUCHON DE RÉSERVOIR DE COURSE sur l'aile gauche, le rétro de course côté conducteur */
   P.cyl('c',.08,.03,12,-.95,.86,-1.95,'x');P.cyl('p',.05,.03,10,-.965,.86,-1.95,'x');
-  P.box('c',.03,.06,.03,-.92,1.00,.92);P.cyl('c',.06,.05,10,-.96,1.07,.90,'z');
+  P.box('c',.03,.18,.03,-.92,.94,.92);P.cyl('c',.06,.05,10,-.96,1.07,.90,'z');   // (2026-10-27, aucun rétro qui vole) la tige descend 2 cm DANS la portière (elle s'arrêtait 10 cm au-dessus)
   K.commit(P);
   return {hl:[.60,.63,ZE+.02],tl:[.46,.80,-ZE-.04],wx:.83,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.26,style:'rayons',n:5,jante:0xe2e6ea,accent:0xc9ced6}};

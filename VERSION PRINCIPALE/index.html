@@ -27313,7 +27313,7 @@ const CARS=[
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (2026-10-07) son arc-en-ciel EN FEU DE PIXELS (voir ARC_*) + ses pixels qui scintillent (NY_PIX), à la nitro et en vol — branché par NYAN.on
   desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
  {retire:1,name:'REQUIN'}, /* (2026-10-21, Sacha : « suprime la voiture shark dans la boutique ») RETIRÉ : remplacé en boutique par LE SQUALE (le requin de Léo) ; sa ligne reste (index de sauvegarde) */
- {retire:1,name:'COMÈTE',          shape:'proto',   color:0x0a0a12,accent:0xffd75e,maxKmh:657,accel:75,turn:3.25,h:.36,w:2.08,l:5.05,spoiler:1,glow:0xffffff,rocket:1,
+ {retire:1,name:'COMÈTE',          shape:'proto',   color:0x3c16ae,accent:0xffd75e,maxKmh:657,accel:75,turn:3.25,h:1.2,w:2.08,l:5.05,spoiler:1, /* (2026-10-27, au kit) h = sa vraie hauteur de toit ; ni `glow` (deux traits blancs sur la tôle) ni `rocket` (deux tubes gris génériques) : ses propulseurs sont dans son gabarit */
   desc:'Coin furtif, bulle de verre, dérive dorsale. La reine du ciel, et elle le sait. Personne ne l\'a jamais vue de face.'},
  {retire:1,name:'FORMULE OR'},
  {retire:1,name:'LE MANS 24'},
@@ -32606,7 +32606,7 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  a_mastodonte:{ote:[[0.47,0.42,-2.43,0.67,1.27,-1.74],[-0.67,0.42,-2.43,-0.47,1.27,-1.74]],p:[{t:'cheminee',h:1.35,r:0.075,k:'c',pts:[[0.8,1.62,-0.46],[-0.8,1.62,-0.46]]}]},
  poster:{p:[{t:'rect',w:0.19,h:0.085,k:'c',e:0.014,cloison:1,pts:[[0.4,0.38,-2.15],[-0.4,0.38,-2.15]]}]},
  requin:{p:[{t:'rond',r:0.07,k:'s',kb:'C',dbl:1,k2:'n',lueur:'G',len:0.4,pts:[[0.44,0.43,-2.12],[-0.44,0.43,-2.12]]}]},
- proto:{p:[{t:'cloche',r:0.24,k:'C',kb:'b',lueur:'g',n:12,pts:[[0.54,0.55,-3.4],[-0.54,0.55,-3.4]]}]},
+ proto:{garde:1,enc:0,p:[]}, /* (2026-10-27, LA COMÈTE au kit) ses deux propulseurs SONT ses pots : dessinés par le gabarit (tuyères d'or), déclarés dans `pots` — ici rien à ôter ni à poser ; avant : deux cloches à (±0,54 ; 0,55 ; −3,4) sur les propulseurs génériques */
  e_raie:{p:[{t:'sidepipe',r:0.045,k:'c',kb:'a',pts:[[0.8905,0.3,0.8,-0.78],[-0.8905,0.3,0.8,-0.78]]}]},
  a_eternelle:{p:[{t:'rond',r:0.04,k:'b',kb:'x',dbl:1,k2:'x',pts:[[-0.23,0.47,-2.349],[-0.08,0.47,-2.349],[0.08,0.47,-2.349],[0.23,0.47,-2.349]]}]},
  nuage:{p:[{t:'nuage',r:0.075,pts:[[0.46,0.42,-2.43],[-0.46,0.42,-2.43]]}]},
@@ -33318,6 +33318,10 @@ const SHAPES={
      U(W*.72,H*.06,L*.34,aV,-hT*Math.sin(RT)-c*Math.sin(RR),gl.position.y+hT*Math.cos(RT)+c*Math.cos(RR),-L*.05,{seed:9,rouille:.30,cell:.22,c:.008}).rotation.z=RR;}
     for(const sd of [-1,1]){
       const mir=B(.09,.09,.16,sd<0?RU:K.acc,sd*(W/2+.10),y0+H*.95,L*.12);if(sd<0)mir.rotation.z=-.9;
+      /* (2026-10-27, Léo : « aucun rétro qui vole ») le rétro flottait à 20 cm au-dessus de la caisse, sans rien pour le tenir : sa TIGE, de
+         sa couleur, plantée 3 cm dans le dessus de la caisse (qui penche de ,03 : plus haut à droite) et enfoncée dans le boîtier */
+      {const xa=sd*(W/2-.05),ya=y0+H*.62+sd*.027-.03,xb=sd*(W/2+.09),yb=y0+H*.95-.02,dx=xb-xa,dy=yb-ya;
+       B(.025,Math.hypot(dx,dy),.025,sd<0?RU:K.acc,(xa+xb)/2,(ya+yb)/2,L*.12).rotation.z=-Math.atan2(dx,dy);}
       U(.08,H*.25,L*.62,aV,sd*(W/2+.02),y0+H*.12,0,{seed:5+sd,rouille:.22,c:.012});
     }
     B(W*.55,H*.2,.07,K.dark,0,y0+H*.42,L/2+.10);
@@ -33411,7 +33415,7 @@ const SHAPES={
       for(const x of [.62,.86]){P.lathe('c',[[.097,-.01],[.098,.012],[.09,.024],[.078,.026]],16,sd*x,.75,2.93,'z');P.lathe('W',[[.078,.026],[.064,.034],[.04,.04],[0,.043]],16,sd*x,.75,2.93,'z');}   // (19/10) le cerclage BISEAUTÉ, le verre bombé (des disques plats à 12 pans)
       P.cyl('c',.055,.14,8,sd*.44,.43,-3.06,'z');                           // les pots, à travers le pare-chocs
       // (13/10) le jonc chromé de flanc RETIRÉ
-      P.cyl('c',.009,.07,6,sd*.985,.975,.40,'y');P.lathe('c',[[0,.018],[.044,.018],[.05,.008],[.05,-.006],[.044,-.014],[0,-.014]],12,sd*.99,1.035,.40,'z');P.cyl('g',.04,.004,12,sd*.99,1.035,.384,'z');   // (19/10) le rétro : une TÊTE RONDE chromée sur sa tige, sa glace (un cube chromé avant)
+      P.cyl('c',.009,.13,6,sd*.97,.945,.40,'y');P.lathe('c',[[0,.018],[.044,.018],[.05,.008],[.05,-.006],[.044,-.014],[0,-.014]],12,sd*.99,1.035,.40,'z');P.cyl('g',.04,.004,12,sd*.99,1.035,.384,'z');   // (19/10) le rétro : une TÊTE RONDE chromée sur sa tige, sa glace (un cube chromé avant) — (27/10, aucun rétro qui vole) la tige descend 2 cm DANS la portière (elle s'arrêtait 3 cm au-dessus, au bord arrondi : rentrée de 1,5 cm)
       P.box('c',.02,.03,.14,sd*1.005,.82,-.56);                               // poignée — (17/10) au bout de la portière
     });
     // (17/10) LA CALANDRE DE LA POUPE à bijoux, entre les ailerons (elle était cachée dans la tôle), et les NACELLES des feux de recul
@@ -33591,6 +33595,7 @@ const SHAPES={
       P.box('k',.02,.18,.36,sd*(xw9(-.57)+.002),.72,-.57);                                // prise d'air arrière
       P.box('k',.02,.06,.34,sd*(xw9(.12)+.002),.74,.12);P.box('J',.012,.006,1.40,sd*(xw9(0)-.02),.30,.07);P.box('Jf',.012,.003,1.40,sd*(xw9(0)-.02),.3045,.07);   // NACA de portière, le joint du seuil (affinement : la FENTE C, c'était un trait noir de 4 cm)                                 // NACA de portière
       P.box('p',.12,.08,.16,sd*.84,.95,.52);P.box('k',.10,.03,.04,sd*.77,.92,.52);
+      P.box('k',.025,.13,.035,sd*.765,.86,.52);   // (2026-10-27, aucun rétro qui vole) le PIED noir du bras, planté 2 cm dans l'épaule de la portière (le rétro flottait 8 cm au-dessus)
       for(const x of [.55,.76]){P.cyl('K',.088,.04,14,sd*x,.74,-2.225,'z');   // quatre feux ronds — (17/10, l'arrière v2) EN VOLUME : la cuvette
         P.lathe('L',[[.07,0],[.055,-.017],[0,-.024]],14,sd*x,.74,-2.245,'z');P.cyl('Q',.026,.01,8,sd*x,.74,-2.268,'z');} // le verre bombé, son cœur
       P.cyl('c',.05,.14,8,sd*.44,.43,-2.26,'z');
@@ -33646,6 +33651,7 @@ const SHAPES={
       P.box('L',.44,.10,.02,sd*.74,.68,-2.08);P.box('O',.14,.10,.02,sd*.46,.68,-2.08);
       for(const x of [.40,.49])P.cyl('c',.04,.14,8,sd*x,.40,-2.12,'z');        // quatre sorties
       P.box('p',.12,.07,.14,sd*.86,.86,.50);
+      P.box('p',.025,.11,.04,sd*.85,.78,.50);   // (2026-10-27, aucun rétro qui vole) le rétro flottait 7 cm au-dessus de l'épaule : sa TIGE, de sa couleur, plantée 2,5 cm dans la portière
     });
     for(let i=0;i<5;i++){const z=-1.15-i*.15;P.box('k',1.00,.015,.06,0,yC(z)+.01,z);} // persiennes du capot moteur
     P.box('k',1.60,.05,.10,0,.30,2.05);                                        // la lame avant
@@ -33802,6 +33808,7 @@ const SHAPES={
       P.box('O',.10,.06,.02,sd*.82,.44,2.118);
       P.box('L',.46,.10,.02,sd*.54,.66,-2.118);P.box('O',.12,.10,.02,sd*.20,.66,-2.118);
       P.box('k',.12,.06,.16,sd*.94,.88,.52);                                   // rétro
+      P.box('k',.03,.08,.04,sd*.90,.825,.52);                                   // (2026-10-27, aucun rétro qui vole) son PIED : le boîtier flottait 4 cm au-dessus du jonc de ceinture
       P.cyl('c',.04,.14,8,sd*.38,.34,-2.16,'z');
     });
     P.box('k',1.82,.20,.03,0,.54,2.112);                                      // la face noire
@@ -33837,14 +33844,107 @@ const SHAPES={
   // 10. LA MONOPLACE — roues DEHORS, pontons, aileron biplan. Aucune carrosserie autour des roues.
   // 11. LE PROTOTYPE D'ENDURANCE — dérive dorsale reliée à un aileron de porte-avions,
   //     quatre phares longue portée. Long, bas, et cette ombre de requin sur le dos.
-  // 12. LE FURTIF — coin plat, bulle de verre, dérive. La reine : on ne lui voit aucune ligne droite.
+  // 12. LA COMÈTE — (2026-10-27, refonte totale ; Léo : « aucune forme similaire, elle doit être NOUVELLE », « c'est la voiture d'un CHALLENGE :
+  //     spéciale, mémorable ; en rapport avec une comète sans en faire une », « les deux feux, tu peux faire mieux ») LA FLÈCHE : vue de dessus,
+  //     un DELTA violet cosmique — la pointe porte un CRISTAL de lumière (la tête de la comète), de petites roues avant cachées sous la pointe,
+  //     l'arête s'élargit et MONTE jusqu'aux hanches posées sur les grandes roues arrière ; une bulle de verre en gemme ; un jonc d'or court sur
+  //     l'arête (la trajectoire) ; derrière, DEUX TUYÈRES-TULIPES (fût évasé, lèvre d'or, anneau de lumière, cœur de flamme en facettes — les
+  //     flammes du jeu y naissent) d'où montent deux DÉRIVES au bord d'attaque lumineux (la traîne). `?comete=a` : LA GOUTTE, la proposition A
+  //     (tête large, bulle avancée, queue fine, roues arrière sous des perles), gardée pour comparer.
+  //     Deux lofts : le DESSOUS (avec les coupes des passages de roue) et le DESSUS sur les seules coupes clés — de grands pans plans.
+  //     Repère : x à droite, y en haut, z vers l'avant, mètres.
   proto(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.16*H],[.10*L,.40*H],[-.30*L,.52*H],[-.50*L,.50*H]],W*.94,K.body);
-    K.sph(W*.30,H*.52,L*.20,K.glass,0,y0+H*.42,L*.02);
-    B(.04,H*.42,L*.30,K.acc,0,y0+H*.62,-L*.34);
-    for(const sd of [-1,1])B(.06,H*.20,L*.24,K.dark,sd*(W/2+.01),y0+H*.28,-L*.14);
-    return {hl:[W*.30,y0+H*.30,L*.44],tl:[W*.30,y0+H*.44,-L/2-.06]};
+    const U=LPU,L=(t,z)=>U.lin(t,z),mix=(a,b,t)=>a+(b-a)*t,cl=U.cl;
+    // B (défaut) : LA FLÈCHE — un delta vu de dessus, petites roues avant cachées sous la pointe, hanches hautes sur les grandes roues arrière,
+    //   deux tuyères-tulipes d'où montent deux dérives. A (`?comete=a`) : LA GOUTTE — tête large et ronde, bulle avancée, queue fine et ses deux feux.
+    const VA=(()=>{try{return /[?&]comete=a/i.test(location.search);}catch(e){return false;}})();
+    const VIOLET=0x3c16ae;
+    const P=K.kit({p:{g:'p',c:VIOLET},k:{g:'m',c:0x100f16},s:{g:'s',c:0x24232c},g:{g:'g',c:0x141826},o:{g:'o',c:0xd9a520},
+      W:{g:'l',c:0xf4f7ff},C:{g:'l',c:0x8ff0ff},L:{g:'l',c:0xff2a4a},F:{g:'l',c:0xffa83a},f:{g:'l',c:0xfff1c8}});
+    /* ---- LES COTES ---- [z, ARÊTE xe/ye (le plus large), épaule xs/ys, pied du fuselage xf/yf, ceinture de la bulle xg/yg, bord du dessus xr/yr, milieu yt] */
+    const C=VA?{
+      R:.34,kF:1,ZF:1.50,ZR:-1.45,WX:.84,WXF:.84,XI:[[-2.40,.30],[-1.0,.30],[0.6,.645],[2.55,.645]],
+      KS:[[-2.40,.42,.46, .34,.70, .22,.76, .14,.78, .07,.79, .80],
+          [-1.45,.64,.50, .52,.78, .30,.86, .20,.89, .10,.91, .92],
+          [-0.40,.88,.56, .70,.84, .40,.93, .36,.97, .20,1.02,1.04],
+          [0.40, 1.00,.62,.80,.86, .46,.95, .50,.96, .30,1.10,1.15],
+          [1.20, 1.04,.64,.82,.86, .50,.93, .56,.93, .34,1.13,1.18],
+          [1.50, 1.04,.64,.82,.86, .52,.90, .56,.90, .34,1.08,1.13],
+          [2.05, .96,.60,.74,.78, .46,.80, .48,.80, .28,.90, .93],
+          [2.32, .82,.56,.62,.68, .38,.70, .36,.70, .20,.74, .76],
+          [2.55, .56,.50,.42,.58, .26,.60, .22,.60, .12,.62, .63]],
+      verre:[0.40,2.05],pare:[1.35,2.05],feux:{x:.24,y:.62,r:.21,z0:-2.0,z1:-2.80},derives:[{x:0,cant:0}]}:{
+      R:.36,kF:.71,ZF:1.45,ZR:-1.40,WX:.84,WXF:.42,XI:[[-2.30,.645],[-0.50,.645],[0.90,.28],[2.70,.28]],
+      KS:[[-2.30,1.00,.70, .76,.90, .38,.90, .22,.94, .10,.97, .98],
+          [-1.95,1.04,.71, .80,.91, .38,.91, .22,.95, .10,.99, 1.00],
+          [-1.40,1.04,.70, .80,.91, .40,.92, .26,.97, .12,1.01,1.02],
+          [-0.80,1.02,.64, .78,.86, .42,.92, .32,1.00,.16,1.06,1.08],
+          [0.00, .95,.56, .71,.78, .46,.86, .41,.92, .28,1.14,1.20],
+          [0.60, .88,.50, .65,.72, .44,.80, .39,.86, .26,1.08,1.14],
+          [1.10, .78,.45, .57,.66, .33,.72, .27,.75, .14,.79, .81],
+          [1.45, .68,.42, .50,.62, .28,.66, .20,.675,.10,.69, .70],
+          [1.80, .58,.40, .42,.56, .24,.59, .16,.60, .08,.61, .615],
+          [2.30, .34,.37, .25,.45, .14,.47, .09,.48, .04,.485,.49],
+          [2.70, .03,.34, .02,.36, .015,.365,.01,.37, .005,.372,.373]],
+      verre:[-0.80,1.10],pare:[0.60,1.10],feux:{x:.62,y:.72,r:.25,z0:-1.95,z1:-2.62},derives:[{x:.62,cant:.14}]};
+    const KS=C.KS,ZQ=KS[0][0],ZN=KS[KS.length-1][0],R=C.R,RF=R*C.kF,ZF=C.ZF,ZR=C.ZR;
+    const cle=z=>{let i=0;while(i<KS.length-2&&z>KS[i+1][0])i++;const a=KS[i],b=KS[i+1],t=cl((z-a[0])/(b[0]-a[0]),0,1);return a.map((v,k)=>mix(v,b[k],t));};
+    const ARF=[[0,2*RF+.03],[RF*.62,2*RF-.02],[RF,RF*1.08],[RF+.12,.18]],ARR=[[0,2*R+.03],[R*.62,2*R-.02],[R,R*1.08],[R+.13,.18]];
+    const YB=[[ZQ,.30],[ZQ+.30,.20],[ZN-.40,.20],[ZN,.30]];
+    // LA SECTION (10 points) : plancher, paroi et voûte du passage, dessous, l'ARÊTE, épaule, pied du fuselage, ceinture, bord du dessus, milieu
+    const S=z=>{const [,xe,ye,xs,ys,xf,yf,xg,yg,xr,yr,yt]=cle(z),yb=L(YB,z),
+        ya=Math.max(yb,L(ARF,Math.abs(z-ZF)),VA?yb:L(ARR,Math.abs(z-ZR))),x3=xe-.14,xi=Math.min(L(C.XI,z),x3-.04);   // (A : les roues arrière vivent DEHORS)
+      return [[0,yb],[xi,yb],[xi,ya],[x3,ya],[xe,ye],[xs,ys],[xf,yf],[xg,yg],[xr,yr],[0,yt]];};
+    // deux lofts : le DESSOUS (avec les coupes des passages de roue) et le DESSUS, posé sur les seules coupes clés (de grands pans plans)
+    const zs=KS.map(k=>k[0]);for(const [w,r] of [[ZF,RF],[ZR,R]])for(const d of [0,r*.62,r,r+.12])zs.push(w-d,w+d);
+    zs.sort((a,b)=>a-b);const zz=zs.filter((z,i)=>z>=ZQ&&z<=ZN&&(i===0||z-zs[i-1]>.012));
+    const couv=z=>{const c=cle(z);return [0,Math.min(c[2],c[4],c[11])-.10];};          // le couvercle, caché entre les deux
+    P.loft(zz,z=>S(z).slice(0,5).concat([couv(z)]),(j,z,y)=>j===-2?(y<.40?'k':'p'):j===-1?(y<.30?'k':'p'):(j>=0&&j<=2)?'k':'p');
+    const [V0,V1]=C.verre,[W0,W1]=C.pare;
+    P.loft(KS.map(k=>k[0]),z=>[couv(z)].concat(S(z).slice(4)),
+      (j,z)=>(j===4&&z>V0&&z<V1)||(j===5&&z>W0&&z<W1)?'g':'p');   // j : 1 aile · 2 dos de l'aile · 3 flanc du fuselage · 4 vitre · 5 dessus (le pare-brise)
+    /* ---- POSER SUR LA TÔLE : u = indice de point de la section (fractionnaire) ---- */
+    const surf=(u,z)=>{const s=S(z),i=Math.floor(u),f=u-i;return [mix(s[i][0],s[i+1][0],f),mix(s[i][1],s[i+1][1],f),z];},
+          sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],cro=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+    const ruban=(k,za,zb,w,e)=>{const n=Math.max(2,Math.ceil(Math.abs(za-zb)/.12)),A=[],B=[];
+      for(let i=0;i<=n;i++){const z=mix(za,zb,i/n),[u0,u1]=w(z),a=surf(u0,z),b=surf(u1,z),dz=surf((u0+u1)/2,z+.02),dz0=surf((u0+u1)/2,z-.02);
+        let nn=cro(sub(b,a),sub(dz,dz0));const l=Math.hypot(nn[0],nn[1],nn[2])||1;nn=nn.map(v=>v/l);if(nn[1]<0)nn=nn.map(v=>-v);
+        A.push([a,nn]);B.push([b,nn]);}
+      P.sym(sd=>{const M=(q,d)=>[sd*(q[0][0]+q[1][0]*d),q[0][1]+q[1][1]*d,q[0][2]+q[1][2]*d];
+        for(let i=0;i<n;i++){const a0=M(A[i],e),a1=M(A[i+1],e),b0=M(B[i],e),b1=M(B[i+1],e),c0=M(A[i],-.004),c1=M(A[i+1],-.004),d0=M(B[i],-.004),d1=M(B[i+1],-.004);
+          P.tri(k,a0,b0,b1);P.tri(k,a0,b1,a1);P.tri(k,c0,a0,a1);P.tri(k,c0,a1,c1);P.tri(k,d0,d1,b1);P.tri(k,d0,b1,b0);}});};
+    const tourZ=(k,pts,x,y,n,ph)=>{const g=new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),n||8,ph==null?Math.PI/8:ph);g.rotateX(Math.PI/2);P.put(k,g,x,y,0);};
+    /* ---- LA TÊTE : un cristal de lumière au bout du nez ; les phares : une lame le long de l'arête, vers la pointe ---- */
+    {const c=cle(ZN);tourZ('C',[[0,ZN-.04],[.075,ZN+.04],[0,ZN+.22]],0,c[2]+.015,4,0);}
+    if(VA)ruban('W',2.05,2.50,z=>[4.62,4.80],.010);
+    else{ruban('W',1.70,2.45,z=>{const t=(z-1.70)/.75;return [mix(4.06,4.04,t),mix(4.20,4.12,t)];},.010);
+      ruban('o',-2.10,1.66,z=>[4.0,4.045],.008);}            // LA TRAJECTOIRE : un jonc d'or sur l'arête, de la lame de lumière jusqu'aux feux
+    /* ---- LES DEUX FEUX : des tuyères-tulipes (le fût s'évase), lèvre d'or, un anneau de lumière, le cœur de flamme en facettes qui pointe
+       hors de la bouche — les flammes du jeu naissent là ---- */
+    const F=C.feux,FR=F.r;
+    P.sym(sd=>{const x=sd*F.x;
+      tourZ('p',[[FR*.62,F.z0],[FR*.80,F.z0-.25],[FR,F.z1+.08]],x,F.y);                        // le fût, qui s'évase vers l'arrière
+      tourZ('o',[[FR,F.z1+.08],[FR*1.10,F.z1+.02],[FR*1.06,F.z1]],x,F.y);                      // la lèvre d'or
+      tourZ('k',[[FR*.98,F.z1],[FR*.94,F.z1+.07]],x,F.y);tourZ('k',[[0,F.z1+.07],[FR*.94,F.z1+.07]],x,F.y);   // la bouche, son fond
+      tourZ('C',[[FR*.86,F.z1+.06],[FR*.66,F.z1+.06]],x,F.y);                                  // l'anneau de lumière
+      tourZ('F',[[FR*.52,F.z1+.065],[FR*.30,F.z1-.06],[0,F.z1-.14]],x,F.y,6,0);               // le cœur de flamme, en facettes
+    });
+    /* ---- LES DÉRIVES : des lames en flèche, le bord d'attaque en lumière (la traîne) ---- */
+    for(const d of C.derives){
+      const c0=cle(F.z0+.3),y0=VA?c0[11]-.02:F.y+FR*.55,zA=VA?-0.50:-1.15,zT=ZQ-.02,top=VA?1.30:1.36;
+      const pts=[[zA,y0],[zT,y0],[zT,top],[zT+.24,top]],bord=[[zA,y0],[zT+.24,top],[zT+.24,top-.035],[zA+.04,y0-.02]];
+      const one=sd=>{const rz=-sd*d.cant,xx=sd*(d.x-y0*Math.sin(d.cant));P.prism('p',pts,.06,xx,0,0,rz);P.prism('C',bord,.072,xx,0,0,rz);};
+      if(d.x===0)one(1);else P.sym(one);}
+    // la poupe : un trait rouge entre les feux, le diffuseur dessous
+    {const yl=VA?.86:.83,xl=VA?.10:.32;P.plate('L',[[-xl,yl-.03],[xl,yl-.03],[xl+.03,yl+.02],[-xl-.03,yl+.02]],.012,ZQ-.012);}
+    P.box('k',VA?.70:1.30,.10,.28,0,.25,ZQ+.12);
+    /* ---- A : LES PERLES — les roues arrière vivent dehors, sous une demi-carène à facettes tenue par un bras ---- */
+    if(VA)P.sym(sd=>{const g=new THREE.LatheGeometry([[0,-.58],[.30,-.42],[.42,-.12],[.42,.12],[.30,.42],[0,.58]].map(p=>new THREE.Vector2(p[0],p[1])),8,Math.PI/2,Math.PI);
+      g.rotateX(Math.PI/2);P.put('p',g,sd*C.WX,R,ZR,0,0,0,.55,1,1);
+      P.box('p',.30,.06,.40,sd*(C.WX-.22),R+.26,ZR);});
+    K.commit(P);
+    return {hl:[.30,.45,ZN-.40],tl:[F.x,F.y,ZQ],wx:C.WX,wxF:C.WXF,wzF:ZF,wzR:-ZR,wRF:C.kF,pots:[[F.x,F.y,F.z1],[-F.x,F.y,F.z1]],
+            lpw:{R:R,w:.32,style:'multi',n:10,jante:0xd9a520}};
   },
   /* ============================================================================================
      LES TROIS FANTASTIQUES — d'après les planches de référence. Matières GÉNÉRATIVES (`MATV`).
@@ -34330,6 +34430,7 @@ Object.assign(SHAPES,{
     P.box('R',.10,.03,.012,sd*.58,.40,-1.752);                                 // les catadioptres
     P.plate('r',[[.743,.785],[.758,.796],[.758,.849],[.743,.858]].map(q=>[sd*q[0],q[1]]),3.28,-1.66); // le liseré de livraison : (relief) une MOULURE chanfreinée, plus un trait peint
     P.box('n',.03,.10,.05,sd*.76,.99,.86);P.box('n',.08,.09,.12,sd*.80,1.03,.86); // rétro
+    P.box('n',.08,.03,.05,sd*.735,.955,.86);   // (2026-10-27, aucun rétro qui vole) le pied tombait 2 cm à côté de la caisse : sa SEMELLE, couchée jusque dans le montant
     P.box('n',.012,.03,.12,sd*.75,.89,-.10);                                    // poignée
     P.box('n',.05,.05,.08,sd*.52,1.445,-.18);P.box('n',.05,.05,.08,sd*.52,1.445,-1.08); // pieds de galerie
   });
@@ -34417,6 +34518,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
     P.box('c',.03,.04,1.14,sd*.925,.31,ZR);                                 // le liseré de la jupe (19/10 : il flottait 7 cm hors de la caisse)
     P.box('c',.02,.03,.14,sd*.99,.96,.00);                                  // poignée
     P.box('c',.03,.10,.12,sd*1.02,1.14,.28);P.box('c',.06,.03,.03,sd*.98,1.10,.28); // rétro chromé
+    P.box('c',.03,.065,.03,sd*.965,1.0675,.28);   // (2026-10-27, aucun rétro qui vole) son PIED, planté 1,5 cm dans la portière (le bras flottait 2 cm au-dessus)
     P.box('c',.02,.02,3.08,sd*.862,1.515,-1.19);                            // jonc de pavillon
     for(let i=0;i<11;i++){const z=-.40-i*.105;P.box('q',.012,.40,.03,sd*.906,1.29,z,0,0,sd*.14);} // les plis des rideaux (19/10 : deux fois plus, plus fins)
     P.box('q',.014,.05,1.16,sd*.877,1.475,-.93,0,0,sd*.14);                 // la cantonnière, en haut des rideaux
@@ -34949,6 +35051,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
     P.box('J',.02,.006,1.26,sd*.903,.73,1.075,.08);P.box('Jf',.02,.003,1.26,sd*.903,.7345,1.075,.08);   // LA LIGNE DE JOINT de la coquille (la FENTE C : l'ombre et son fil)
     for(const [a,b] of [[-2.10,-1.74],[-.76,.70],[1.68,1.98]]){P.box('p',.03,.03,b-a,sd*.905,.50,(a+b)/2,0,0,Math.PI/4);P.box('k',.012,.01,b-a,sd*.926,.50,(a+b)/2);} // (affinement) le jonc de la C4 : un fin jonc noir de 1 cm sur l'arête d'un PLI de tôle (c'était une bande noire de 4,5 cm collée à plat : un autocollant)
     P.box('k',.06,.07,.14,sd*.93,.92,.36);P.box('k',.06,.02,.04,sd*.88,.90,.36); // rétro
+    P.box('k',.03,.08,.04,sd*.87,.86,.36);   // (2026-10-27, aucun rétro qui vole) son PIED, planté 2,5 cm dans la portière (le bras flottait 4 cm au-dessus)
     P.box('O',.16,.04,.02,sd*.58,.49,2.235);P.box('W',.12,.04,.02,sd*.36,.34,2.235);
     // QUATRE FEUX CARRÉS sur le tableau noir — (17/10, l'arrière v2) ENFONCÉS : un cerclage chromé qui dépasse, la cuvette noire, le verre
     // rouge en retrait, son cœur sombre et ses stries
@@ -35165,7 +35268,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   P.sym(sd=>{P.box('c',.08,.07,.22,sd*.91,.40,ZE-.06,0,sd*.5,0);P.box('c',.08,.08,.22,sd*.91,.44,-ZE+.06,0,-sd*.5,0);});
   /* LE BOUCHON DE RÉSERVOIR DE COURSE sur l'aile gauche, le rétro de course côté conducteur */
   P.cyl('c',.08,.03,12,-.95,.86,-1.95,'x');P.cyl('p',.05,.03,10,-.965,.86,-1.95,'x');
-  P.box('c',.03,.06,.03,-.92,1.00,.92);P.cyl('c',.06,.05,10,-.96,1.07,.90,'z');
+  P.box('c',.03,.18,.03,-.92,.94,.92);P.cyl('c',.06,.05,10,-.96,1.07,.90,'z');   // (2026-10-27, aucun rétro qui vole) la tige descend 2 cm DANS la portière (elle s'arrêtait 10 cm au-dessus)
   K.commit(P);
   return {hl:[.60,.63,ZE+.02],tl:[.46,.80,-ZE-.04],wx:.83,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.26,style:'rayons',n:5,jante:0xe2e6ea,accent:0xc9ced6}};
@@ -35365,7 +35468,8 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
     for(let k=0;k<6;k++){const z=-.50-k*.06,B9=yB(z)+.03,S9=Math.max(B9+.05,yS(z)),f=.42;   // (13/10) COUCHÉES sur l'arc-boutant (elles sortaient de la tôle en peigne)
       P.box('k',.012,(S9-B9)*.55,.035,sd*(xW(z)-.08-f*.12+.006),B9+f*(S9-B9),z,0,0,sd*Math.atan2(.12,S9-B9));}
     P.box('k',.012,.025,1.50,sd*(xW(0)-.025),.30,.10);                             // le jonc du bas de caisse
-    P.cyl('c',.008,.06,6,sd*.865,.805,.46,'y');P.lathe('p',[[0,.016],[.042,.016],[.047,.006],[.047,-.006],[.042,-.012],[0,-.012]],12,sd*.87,.855,.46,'z');P.cyl('g',.036,.004,12,sd*.87,.855,.446,'z');   // (19/10) le rétro : une tête ronde sur sa tige (un cube avant)
+    {const xa=.755,ya=.665,xb=.866,yb=.84;P.put('c',new THREE.CylinderGeometry(.008,.008,Math.hypot(xb-xa,yb-ya),6),sd*(xa+xb)/2,(ya+yb)/2,.46,0,0,-sd*Math.atan2(xb-xa,yb-ya));}   // (2026-10-27, aucun rétro qui vole) la TIGE part de l'épaule (2,5 cm dedans) : droite, elle tombait à 9 cm à côté de la caisse
+    P.lathe('p',[[0,.016],[.042,.016],[.047,.006],[.047,-.006],[.042,-.012],[0,-.012]],12,sd*.87,.855,.46,'z');P.cyl('g',.036,.004,12,sd*.87,.855,.446,'z');   // (19/10) le rétro : une tête ronde sur sa tige (un cube avant)
     // LA POUPE : feux aux coins, pare-chocs en deux morceaux
     P.box('L',.20,.07,.03,sd*.66,.64,-LF-.01);P.box('O',.10,.07,.03,sd*.49,.64,-LF-.01);
     bulleOutils.tube(P,'c',[[sd*.10,.40,-LF-.022],[sd*.45,.40,-LF-.022],[sd*.66,.40,-LF-.016]].concat([-2.16,-2.13,-2.09].map(z=>[sd*(xW(z)+.005),.40,z])),[[.02,0],[.014,.014],[0,.02],[-.014,.014],[-.02,0],[-.014,-.014],[0,-.02],[.014,-.014]],true);   // (19/10) la barre chromée suit la poupe et tourne au coin (une barre droite qui dépassait)
@@ -35519,6 +35623,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
     // LES FILETS : bleu clair, violet, rouge
     // (13/10, Léo : « les barres chelou ») les trois filets de flanc RETIRÉS
     P.box('p',.10,.07,.14,sd*.90,.98,.60);P.box('k',.08,.03,.04,sd*.85,.95,.60); // rétro de course
+    P.box('k',.03,.08,.04,sd*.83,.90,.60);   // (2026-10-27, aucun rétro qui vole) son PIED, planté 2 cm dans la portière (le bras flottait 5 cm au-dessus)
     // (13/10) le jonc de vitre chromé RETIRÉ
     // L'ÉNORME AILERON : deux grandes flasques qui montent du coffre
     P.prism('p',[[-1.86,.98],[-2.26,.98],[-2.30,1.30],[-1.98,1.30]],.03,sd*.77);
@@ -35803,6 +35908,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
     // flancs : poignée, rétro chromé, la coupe du capot derrière la roue, le jonc de seuil
     P.box('c',.02,.02,.12,sd*(xW(-.48)-.065),.80,-.48);
     P.box('c',.015,.05,.015,sd*.72,.93,.20);P.cyl('c',.042,.03,8,sd*.72,.965,.20,'z');
+    P.box('c',.045,.015,.015,sd*.70,.912,.20);   // (2026-10-27, aucun rétro qui vole) le PIED de la tige, couché jusqu'au bas de la vitre (elle s'arrêtait 2 cm à côté)
     // (19/10) la coupe du capot-coquille et l'arrière de la portière : ce sont désormais les bords des ailes (plus de fil posé)                          // l'arrière de la porte
     // (13/10, Léo : « les barres chelou ») le jonc de seuil chromé RETIRÉ
     // la poupe ronde : petits feux sur les ailes, lames chromées, plaque
@@ -35887,7 +35993,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
     P.box('k',.02,.16,.34,sd*.83,.60,.70);
     // (affinement) L'OUÏE EN GRILLE des C3 de 70-72 : un caisson couleur caisse dans le creux noir (c'étaient trois barres chromées posées)
     for(const y of [.535,.60,.665])P.box('p',.022,.012,.32,sd*.838,y,.70);for(let i=0;i<5;i++)P.box('p',.024,.15,.012,sd*.839,.60,.56+i*.07);
-    P.box('c',.015,.05,.015,sd*.76,.86,.20);P.put('p',new THREE.SphereGeometry(1,8,5),sd*.77,.90,.20,0,0,0,.05,.04,.08);
+    P.box('c',.015,.155,.015,sd*.76,.8075,.20);P.put('p',new THREE.SphereGeometry(1,8,5),sd*.77,.90,.20,0,0,0,.05,.04,.08);   // (2026-10-27, aucun rétro qui vole) la tige descend 2 cm DANS l'aile (elle s'arrêtait 8 cm au-dessus)
     P.box('k',.02,.05,1.20,sd*(xW(-.05)-.04),.34,-.05);
     // la poupe tronquée : QUATRE feux ronds, lames, sorties carrées
     for(const x of [.30,.58]){P.cyl('c',.075,.03,12,sd*x,.68,-2.32,'z');P.cyl('L',.062,.04,12,sd*x,.68,-2.325,'z');}
@@ -36038,7 +36144,8 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
     P.prism('n',[[-.62,.40],[-1.02,.40],[-1.02,.86],[-.70,.80]],.02,sd*(xW(-.82)-.005));
     for(const y of [.50,.60,.70])P.box('a',.012,.012,.32,sd*(xW(-.82)+.002),y,-.84);
     P.box('n',.02,.08,.70,sd*(xW(.3)-.06),.27,.30);                                 // le bas de caisse
-    P.box('p',.05,.07,.15,sd*.97,.92,.70);P.box('n',.12,.02,.03,sd*.90,.88,.72);     // les rétros sur tige
+    P.box('p',.05,.07,.15,sd*.97,.92,.70);P.box('n',.16,.02,.03,sd*.88,.88,.72);     // les rétros sur tige — (2026-10-27) le bras rentre de 4 cm, au-dessus du plat de l'épaule…
+    P.box('n',.025,.145,.035,sd*.82,.8125,.72);                                     // …et la TIGE elle-même, plantée 2 cm dans la portière (aucun rétro qui vole : le bras flottait 8 cm au-dessus)
     // LES PHARES EN GOUTTE au bout des ailes : deux optiques rondes sous une bulle, le clignotant dessous
     P.put('c',new THREE.SphereGeometry(1,8,5),sd*.52,.672,1.86,.30,0,0,.13,.03,.16);   // (affinement) le RÉFLECTEUR chromé sous la bulle (noir, c'étaient deux gros yeux)
     P.put('W',new THREE.SphereGeometry(1,8,5),sd*.565,.688,1.82,.30,0,0,.048,.026,.048);P.put('W',new THREE.SphereGeometry(1,8,5),sd*.475,.682,1.89,.30,0,0,.042,.024,.042);
@@ -36105,6 +36212,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
     P.prism('k',[[-.62,.46],[-1.14,.46],[-1.14,.86],[-.78,.80]],.02,sd*(xW(-.88)+.004));
     P.box('N',.012,.012,2.10,sd*(xW(0)+.012),.30,-.10);
     P.box('n',.10,.07,.16,sd*.98,.84,.78);P.box('k',.05,.03,.08,sd*.93,.81,.80);   // rétros vert néon
+    P.box('k',.03,.07,.04,sd*.915,.78,.80);   // (2026-10-27, aucun rétro qui vole) le PIED du bras, planté 2 cm dans la portière (il flottait 2 cm au-dessus)
     // LE GRAND AILERON sur ses cols de cygne : il pend PAR LE DESSUS, flasques néon
     P.prism('k',[[-1.70,.84],[-1.80,.84],[-1.90,1.02],[-1.98,1.10],[-2.06,1.10],[-2.06,1.06],[-1.99,1.06],[-1.88,.98]],.035,sd*.42);
     P.prism('n',[[-1.86,.94],[-2.18,.94],[-2.20,1.06],[-1.90,1.06]],.02,sd*.86);
@@ -36435,7 +36543,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   P.sym(sd=>{P.box('c',.30,.20,.03,sd*.74,1.86,ZE+.005);P.box('W',.24,.14,.03,sd*.74,1.86,ZE+.015);
     P.box('O',.12,.06,.02,sd*.74,1.66,ZE+.01);
     P.box('L',.10,.36,.03,sd*.86,1.86,-ZE-.01);
-    P.box('k',.05,.05,.20,sd*.97,2.30,.95);P.box('k',.06,.32,.20,sd*1.06,2.32,.88);
+    P.box('k',.22,.05,.20,sd*.93,2.30,.95);P.box('k',.06,.32,.20,sd*1.06,2.32,.88);   // (2026-10-27, aucun rétro qui vole) le BRAS va de la cabine (2 cm dedans) jusque dans le boîtier : il flottait entre les deux (8 cm et 3,5 cm de jour)
     /* les deux pots qui plongent vers l'arrière */
     P.put('c',new THREE.CylinderGeometry(.06,.06,.84,8),sd*.57,.825,-2.105,.665,0,0);
     P.cyl('K',.045,.02,8,sd*.57,.50,-2.37,'z');
@@ -36608,7 +36716,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
   //      la POIGNÉE chromée seule dit la porte ; le bouchon d'essence sur l'auvent (le '32 l'a là) ----
   P.sym(sd=>P.box('c',.016,.018,.09,sd*(xW(.12)+.012),.935,.12));
   P.lathe('c',[[.05,0],[.05,.012],[.04,.024],[0,.03]],8,0,yT(.45)-.004,.45,'y');
-  tube('c',[xW(.27)-.01,1.04,.27],[xW(.27)+.09,1.15,.26],.009,5);P.cyl('c',.05,.018,8,xW(.27)+.10,1.16,.255,'z');P.cyl('K',.042,.004,8,xW(.27)+.10,1.16,.245,'z');
+  tube('c',[xW(.27)-.05,.996,.274],[xW(.27)+.09,1.15,.26],.009,5);   /* (2026-10-27, aucun rétro qui vole) la tige part 2 cm DANS l'auvent (elle s'arrêtait 3 cm au-dessus) */ P.cyl('c',.05,.018,8,xW(.27)+.10,1.16,.255,'z');P.cyl('K',.042,.004,8,xW(.27)+.10,1.16,.245,'z');
   // ---- LES FLAMMES, peintes à plat sur l'auvent et les portes : quatre LANGUES (un ruban qui ondule et s'effile, la pointe qui remonte),
   //      orange, et leur cœur jaune par-dessus. Nées au bord du tablier, elles se fondent en un front plein. ----
   {const LG=[[.58,.12,.22,-.09,.16],[1.0,.37,.26,-.12,.24],[.80,.62,.24,-.10,.20],[.46,.86,.18,-.05,.10]],   // [longueur, hauteur de base, épaisseur, ondulation, remontée de la pointe]
@@ -37942,7 +38050,7 @@ SHAPES.bulle=function(K){
   // LE BOUTON DU CAPOT (rond, sans marque) au bout du nez
   {const h=ici([0,3,1.86],[0,-1,0],[0,.60,1.86]);tour('c',[[.05,0],[.045,.011],[.026,.018],[0,.02]],8,[0,h.p[1]+.001,1.86],h.n);}
   // LES RÉTROS ronds (deux oreilles) sur leur tige
-  P.sym(sd=>{P.box('c',.012,.11,.012,sd*.69,1.07,.655,0,0,-sd*.55);const c=[sd*.735,1.118,.655];
+  P.sym(sd=>{P.box('c',.012,.22,.012,sd*.661,1.023,.655,0,0,-sd*.55);const c=[sd*.735,1.118,.655];   // (2026-10-27, aucun rétro qui vole) la tige descend, dans son axe, 2 cm DANS le flanc (elle s'arrêtait à 5 cm de la caisse)
     tour('c',[[0,-.022],[.044,-.014],[.052,0],[.046,.012]],8,c,[0,0,-1]);tour('K',[[.046,.012],[0,.014]],8,c,[0,0,-1]);});
   // LES POIGNÉES de porte (sur la tôle taillée), les ESSUIE-GLACES couchés au pied du pare-brise
   P.sym(sd=>{const h=ici([sd*1.2,.912,-.115],[-sd,0,0],[sd*.72,.912,-.115]);P.box('c',.018,.016,.19,sd*(Math.abs(h.p[0])+.006),.912,-.115);
@@ -38152,7 +38260,8 @@ SHAPES.cinq=function(K){
     {const z=.60,y=1.085,x=.875,g=new THREE.CylinderGeometry(.036,.056,.13,8);g.rotateY(Math.PI/8);
       D.put('R',g,sd*x,y,z,Math.PI/2,0,0,1.45,1,1);                                  // la coque : une capsule à huit pans, plus fine vers l'avant
       D.put('g',new THREE.CircleGeometry(.05,8).rotateZ(Math.PI/8),sd*x,y,z-.066,0,Math.PI,0,1.4,1,1);   // la glace, derrière
-      D.box('k',.11,.03,.05,sd*.79,1.035,.62,0,0,sd*.45);}
+      D.box('k',.11,.03,.05,sd*.79,1.035,.62,0,0,sd*.45);
+      D.box('k',.03,.085,.04,sd*.745,.9675,.62);}   // (2026-10-27, aucun rétro qui vole) le pied s'arrêtait 3 cm avant la porte : sa BASE, plantée 2 cm dans la ceinture
     // LA POIGNÉE chromée, au bout de la porte, sous le pli d'épaule
     {const z=-.36,y=.835;D.box('c',.02,.028,.15,sd*(xFl(z,y)+.006),y,z,0,0,0);}
     // LA BAGUETTE CHROMÉE du bas de porte (la finition « 1957 »)
@@ -40821,7 +40930,7 @@ return function(K){
     for(const z of [.645,-.455])for(const y of [.88,1.08]){P.box('p',.026,.09,.11,sd*(XW+.013),y,z);P.box('C',.032,.10,.02,sd*(XW+.016),y,z+.055);}
     for(const z of [-.27,-1.00])P.box('k',.03,.04,.17,sd*(XW+.016),1.10,z);
     // LE RÉTROVISEUR : le bras sur la portière, la coque noire, la glace
-    P.box('k',.12,.03,.05,sd*(XW+.06),1.28,.50);P.box('k',.07,.16,.12,sd*(XW+.15),1.34,.49);P.box('g',.05,.13,.006,sd*(XW+.15),1.34,.428);
+    P.box('k',.175,.03,.05,sd*(XW+.0325),1.28,.50);   /* (2026-10-27, aucun rétro qui vole) le bras entre 2 cm dans la portière (il s'arrêtait 3 cm avant) */ P.box('k',.07,.16,.12,sd*(XW+.15),1.34,.49);P.box('g',.05,.13,.006,sd*(XW+.15),1.34,.428);
     // LE MARCHEPIED : une poutre noire entre les élargisseurs
     P.prism('f',[[-.84,.44],[.80,.44],[.84,.48],[.80,.52],[-.84,.52],[-.88,.48]],.13,sd*.865);
   });
@@ -41150,7 +41259,8 @@ return function(K){
   {const pts=[[.80,.87,1.02],[.80,1.07,1.02],[.81,1.12,1.075],[.80,1.28,1.045],[.79,1.33,.985],[.80,1.50,1.0]];
    for(let i=0;i<pts.length-1;i++)tige('C',pts[i],pts[i+1],.008);P.put('C',new THREE.SphereGeometry(.024,8,6),.80,1.50,1.0);}
   // le rétro côté conducteur (gauche) seulement
-  tige('s',[.92,.95,.80],[.99,1.00,.80],.012);P.put('s',tour([[0,0],[.055,0],[.06,.02],[0,.025]],12),1.0,1.01,.79,Math.PI,0,0);
+  tige('s',[.814,.8745,.80],[.99,1.00,.80],.012);   // (2026-10-27, aucun rétro qui vole) le bras, prolongé dans son axe, part 2 cm DANS le haut de la portière (il s'arrêtait en l'air, à 5 cm de la tôle)
+  P.put('s',tour([[0,0],[.055,0],[.06,.02],[0,.025]],12),1.0,1.01,.79,Math.PI,0,0);
   // les joues noires des passages de roue (sans elles on voyait le ciel au travers)
   P.sym(sd=>{for(const zw of [ZF,ZR]){const o=[[zw-RA,.28]];for(let i=0;i<=16;i++){const a=Math.PI-i/16*Math.PI;o.push([zw+Math.cos(a)*RA,R+Math.sin(a)*RA]);}o.push([zw+RA,.28]);
     P.prism('k',o,.22,sd*.56);}});
@@ -41818,7 +41928,7 @@ SHAPES.caid=function(K){
   // ======================= LES FLANCS =======================
   P.sym(sd=>{
     P.box('k',.10,.09,2.10,sd*.98,.66,(ZF-.72+ZR+.72)/2);                         // le marchepied (rock slider)
-    P.box('k',.08,.035,.12,sd*.92,YT+.02,ZC-.16);P.prism('k',[[ZC-.28,YT+.02],[ZC-.06,YT+.03],[ZC-.04,YT+.22],[ZC-.28,YT+.22]],.10,sd*1.02);P.box('g',.08,.17,.012,sd*1.02,YT+.12,ZC-.285); // le rétro : bras, coque au nez fuyant, glace
+    P.box('k',.10,.035,.12,sd*.93,YT+.02,ZC-.16);P.prism('k',[[ZC-.28,YT+.02],[ZC-.06,YT+.03],[ZC-.04,YT+.22],[ZC-.28,YT+.22]],.10,sd*1.02);P.box('g',.08,.17,.012,sd*1.02,YT+.12,ZC-.285); // le rétro : bras, coque au nez fuyant, glace — (2026-10-27, aucun rétro qui vole) le bras entre d'1 cm dans la coque (elle flottait 1 cm au bout du bras)
     for(const z of [ZC-.04,-.05,ZB1])P.box('k',.012,YT-YR-.10,.012,sd*.95,(YT+YR)/2+.02,z);   // les joints de portes
     for(const z of [.24,-.62])P.box('k',.02,.04,.18,sd*.955,1.26,z);              // les poignées
   });
@@ -43433,6 +43543,16 @@ SHAPES.zagato=function(K){
       for(let u=0;u<3;u++){const p=v[u],i=(t*3+u)*3;a.P.push(p[0],p[1],p[2]);
         if(Q){const nx=Q[i]/127,ny=Q[i+1]/127,nz=Q[i+2]/127,l=Math.hypot(nx,ny,nz)||1;a.N.push(nx/l,ny/l,nz/l);}else a.N.push(fn[0],fn[1],fn[2]);
         const k9=m.g==='p'?kpY(p[1]):null;for(let c=0;c<3;c++){let x=pal[c];if(k9)x*=k9[c];if(m.f)x/=omb(p[1],c);a.C.push(x);}}}}
+  /* (2026-10-27, Léo : « aucun rétro qui vole ») LES RÉTROS : la poly auto n'avait gardé que leur GLACE — un carré noir (10 × 8 cm) qui flottait à
+     18 cm de la vitre, à hauteur des yeux. On lui rend sa COQUE de laque (un rebord de 5 mm autour de la glace, qui reste à sa place, 1 mm derrière)
+     et sa TIGE, de la même laque, plantée 2 cm dans l'épaule de la portière. Pièces du kit (boîtes), teinte de la tôle × la peinture. */
+  {const gp=A[GP],M=new THREE.Matrix4(),E=new THREE.Euler(),Q=new THREE.Quaternion(),V=new THREE.Vector3(),U1=new THREE.Vector3(1,1,1),pc=PAL[7];
+   const piece=(w,h,d,x,y,z,rz)=>{const g=new THREE.BoxGeometry(w,h,d).toNonIndexed();Q.setFromEuler(E.set(0,0,rz||0));M.compose(V.set(x,y,z),Q,U1);g.applyMatrix4(M);
+     const p=g.attributes.position.array,n=g.attributes.normal.array;
+     for(let i=0;i<p.length;i+=3){gp.P.push(p[i],p[i+1],p[i+2]);gp.N.push(n[i],n[i+1],n[i+2]);const k9=kpY(p[i+1]);for(let c=0;c<3;c++)gp.C.push(pc[c]*k9[c]);}
+     g.dispose();};
+   for(const sd of [-1,1]){piece(.11,.094,.063,sd*.972,.90,.5845,0);
+     const xa=sd*.845,ya=.69,xb=sd*.95,yb=.87;piece(.025,Math.hypot(xb-xa,yb-ya),.025,(xa+xb)/2,(ya+yb)/2,.5845,-Math.atan2(xb-xa,yb-ya));}}
   const gs={};
   for(const g in A){const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(A[g].P,3));
     geo.setAttribute('normal',new THREE.Float32BufferAttribute(A[g].N,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(A[g].C,3));gs[g]=geo;}
@@ -43731,7 +43851,7 @@ SHAPES.countach=function(K){
   P.box('k',.07,.004,.045,0,surf(2.12,0)+.003,2.12);
   P.sym(sd=>barre('r',[sd*.06,surf(1.0,sd*.06)+.006,1.0],[sd*.62,surf(1.03,sd*.62)+.006,1.03],.012,.012));
   // LES RÉTROS : un boîtier carré sur son pied
-  P.sym(sd=>{P.box('p',.08,.11,.19,sd*1.015,.815,.73);P.box('p',.05,.05,.08,sd*.955,.765,.77);P.box('k',.082,.09,.01,sd*1.016,.815,.826);});
+  P.sym(sd=>{P.box('p',.08,.11,.19,sd*1.015,.815,.73);P.box('p',.09,.05,.08,sd*.935,.765,.77);   /* (2026-10-27, aucun rétro qui vole) le pied entre 2 cm dans la portière (il s'arrêtait 2 cm à côté) */ P.box('k',.082,.09,.01,sd*1.016,.815,.826);});
   // L'HABITACLE (visible portes levées) : le plancher, les deux sièges, le tableau de bord, le volant (à gauche)
   P.box('e',1.5,.04,1.15,0,.40,.15);
   P.sym(sd=>{P.box('i',.42,.14,.48,sd*.31,.50,.05);P.box('i',.42,.44,.10,sd*.31,.72,-.22,.25,0,0);});

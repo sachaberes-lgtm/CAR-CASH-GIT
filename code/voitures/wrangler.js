@@ -139,7 +139,7 @@ return function(K){
     for(const z of [.645,-.455])for(const y of [.88,1.08]){P.box('p',.026,.09,.11,sd*(XW+.013),y,z);P.box('C',.032,.10,.02,sd*(XW+.016),y,z+.055);}
     for(const z of [-.27,-1.00])P.box('k',.03,.04,.17,sd*(XW+.016),1.10,z);
     // LE RÉTROVISEUR : le bras sur la portière, la coque noire, la glace
-    P.box('k',.12,.03,.05,sd*(XW+.06),1.28,.50);P.box('k',.07,.16,.12,sd*(XW+.15),1.34,.49);P.box('g',.05,.13,.006,sd*(XW+.15),1.34,.428);
+    P.box('k',.175,.03,.05,sd*(XW+.0325),1.28,.50);   /* (2026-10-27, aucun rétro qui vole) le bras entre 2 cm dans la portière (il s'arrêtait 3 cm avant) */ P.box('k',.07,.16,.12,sd*(XW+.15),1.34,.49);P.box('g',.05,.13,.006,sd*(XW+.15),1.34,.428);
     // LE MARCHEPIED : une poutre noire entre les élargisseurs
     P.prism('f',[[-.84,.44],[.80,.44],[.84,.48],[.80,.52],[-.84,.52],[-.88,.48]],.13,sd*.865);
   });
