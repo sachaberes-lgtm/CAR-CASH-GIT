@@ -437,7 +437,10 @@ function dnMonumentsTires(seed){
   const D=DN.deco,M9=dnMats(),G9=dnGeos(),G2=dnGeos2(),S=DN.S,K=Math.sqrt(lvPiste()),RH=ROAD_HALF,t0=performance.now(),rg=mulberry32((D.sd^0x7A55D)>>>0),o9={},N={};
   const mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),e9=new THREE.Euler(0,0,0,'YXZ'),v9=new THREE.Vector3(),s9=new THREE.Vector3(),ax=new THREE.Vector3(0,1,0),CU=dnCuiseur();DN.grp.visible=true;
   const cuis=(geo,x,y,z,sx,sy,sz,ry,tx,tz,te)=>{e9.set(tx||0,ry||0,tz||0);q9.setFromEuler(e9);mt.compose(v9.set(x,y,z),q9,s9.set(sx,sy,sz));CU.ajoute(geo,mt,te);};
-  const inst=(geo,mat,L9,nom)=>{if(!L9.length)return null;const im=new THREE.InstancedMesh(geo,mat,L9.length);
+  /* (2026-10-27, chasse aux gels) pas de géométrie, pas d'instance : depuis le 24/10, le dnGeos2 de dunes-embellie.js remplace celui d'ici (buttes et touffes
+     seulement) — G2.tor et G2.mur n'existent plus. Les diables et le mur de tempête étaient des maillages VIDES : rien à l'écran, mais leur matière sans
+     couleur de sommet (« vertexAlphas » de three) compilait un programme EN COURSE à l'arrivée dans les dunes. L'image ne change pas. */
+  const inst=(geo,mat,L9,nom)=>{if(!L9.length||!geo)return null;const im=new THREE.InstancedMesh(geo,mat,L9.length);
     L9.forEach(function(a,k){q9.setFromAxisAngle(ax,a[4]);mt.compose(v9.set(a[0],a[1],a[2]),q9,s9.set(a[3],a[5]!=null?a[5]:a[3],a[6]!=null?a[6]:a[3]));im.setMatrixAt(k,mt);});
     im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;im.name='dunes '+nom;DN.grp.add(im);return im;};
   const libre=(x,z,r)=>{for(const p of DN.pyrs)if(Math.hypot(p.x-x,p.z-z)<p.hw*1.5+r+20)return false;for(const m of DN.mo)if(Math.hypot(m.x-x,m.z-z)<m.r+r+15)return false;
