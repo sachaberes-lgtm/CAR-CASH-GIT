@@ -369,6 +369,36 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       gearTt=performance.now(); gearOpenHandler(e); },{passive:false}); }
   if(gear)gear.addEventListener('click',function(e){ if(performance.now()-gearTt<700){e.stopPropagation();return;} gearOpenHandler(e); }); // au relâcher (voir mHit) : le panneau défile, un glissé n'active rien
   if(pan)pan.addEventListener('click',panTapHandler);
+  /* ===== L'INCLINAISON (2026-10-27, Léo : « c'est trop dur de jouer en maintenant, le rond donne envie de maintenir ») =====
+     Le téléphone se penche comme un volant, sur toutes les poses : droit, couché, retourné. On lit la DIRECTION DU BAS dans le repère de l'écran
+     (deviceorientation → vecteur pesanteur, donc ni angle d'Euler ni signe propre à un système) : l'angle de ce vecteur est le volant, qu'on
+     tourne le téléphone comme une roue (paysage) ou qu'on le bascule sur le côté (portrait). Le neutre est la pose du joueur AU DÉPART de la
+     course (et à chaque rotation de l'écran) : aucune pose à tenir. Plein braquage à 26°, zone morte 2,5°. Le pouce garde l'assiette en vol
+     et la NITRO ; la boucle lit TCTL.inclV à la place du braquage du stick (voir boucle-1). Réglage INCLINAISON, ON/OFF, mémorisé. */
+  const INCL_PLEIN=26*Math.PI/180,INCL_MORT=2.5*Math.PI/180;
+  let inclLis=0,inclOk=false,inclAttache=false;
+  function inclOri(e){
+    if(e.beta==null||e.gamma==null)return;
+    const b=e.beta*Math.PI/180,g=e.gamma*Math.PI/180,dx=Math.sin(g)*Math.cos(b),dy=-Math.sin(b), // le bas du monde dans le repère de l'APPAREIL
+          o=(screen.orientation&&typeof screen.orientation.angle==='number')?screen.orientation.angle:(window.orientation||0),a=((o%360)+360)%360;
+    const dr=a===90?-dy:a===180?-dx:a===270?dy:dx, du=a===90?dx:a===180?-dy:a===270?-dx:dy; // …puis dans celui de l'ÉCRAN : vers la droite / vers le haut
+    if(Math.hypot(dr,du)<.35)return; // téléphone à plat : pas de volant (le vecteur n'a plus de sens)
+    inclOk=true; const ang=Math.atan2(dr,-du);
+    if(TCTL.inclN==null)TCTL.inclN=ang;
+    let rel=ang-TCTL.inclN; if(rel>Math.PI)rel-=2*Math.PI; else if(rel<-Math.PI)rel+=2*Math.PI;
+    inclLis+=(rel-inclLis)*.4; // un peu de lissage : la main tremble, le capteur aussi
+    const m=Math.abs(inclLis); TCTL.inclV=m<INCL_MORT?0:(inclLis<0?1:-1)*Math.pow(Math.min(1,(m-INCL_MORT)/(INCL_PLEIN-INCL_MORT)),1.15); // `rel` > 0 = tourné dans le sens horaire (bord droit en bas) = braquage à DROITE (steer < 0)
+    if(TCTL.incl&&TCTL.play)TCTL.doigt=true; // le lissage rapide du pouce (τ 30 ms), pas celui du clavier
+  }
+  function inclPerm(){ const D=window.DeviceOrientationEvent;
+    if(D&&typeof D.requestPermission==='function'){ try{ D.requestPermission().then(function(r){ if(r!=='granted')toast(pxi('croix')+' '+TR('CAPTEUR REFUSÉ : RÉGLAGES › SAFARI')); }).catch(function(){}); }catch(_){} } }
+  function inclMarche(on){ TCTL.incl=!!on; TCTL.inclV=0; TCTL.inclN=null; inclLis=0;
+    if(on&&!inclAttache){ addEventListener('deviceorientation',inclOri); inclAttache=true; }
+    if(!on&&inclAttache){ removeEventListener('deviceorientation',inclOri); inclAttache=false; } }
+  function inclBascule(){ SAVE.d.incl=TCTL.incl?0:1; SAVE.flush(); inclMarche(SAVE.d.incl); if(TCTL.incl){ inclPerm(); toast(pxi('coche')+' '+TR('PENCHE LE TÉLÉPHONE POUR TOURNER')); } }
+  document.addEventListener('cc:jeu',function(){ TCTL.inclN=null; inclLis=0; }); // le neutre = la pose du joueur au départ de la course
+  addEventListener('orientationchange',function(){ TCTL.inclN=null; inclLis=0; });
+  if(SAVE.d.incl){ inclMarche(true); document.addEventListener('touchend',function f(){ document.removeEventListener('touchend',f); inclPerm(); },{passive:true}); } // au relancement, l'autorisation du capteur se redemande au 1er toucher (iOS l'exige d'un geste)
   // ---- SYNCHRO PARESSEUSE (8 Hz) : apparition des commandes, écran de mort, gel en paysage.
   //      Un petit tick plutôt qu'un branchement dans loop() — et zéro écriture DOM si rien n'a changé.
   function syncJeu(){
@@ -670,6 +700,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvVib',SND.vib?'ON':'OFF',SND.vib);
       sv('mvVolH',TR(volSens()<0?'MONTE':'PLONGE'),true);
       sv('mvVolInv',volInv()<0?'ON':'OFF',volInv()<0);
+      sv('mvIncl',TCTL.incl?'ON':'OFF',TCTL.incl);
       sv('mvFigG',TR(figGlisseOn()?'GLISSER':'2 TAPS'),true); // (2026-10-15) LA FIGURE AU GLISSÉ
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
       sv('mvQ',TR(qLbl()),true);
@@ -745,6 +776,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); try{const v9=document.getElementById('mvVer');if(v9)v9.textContent=TR('VERSION')+' '+CC_VER.replace(/^LOCALE/,TR('LOCALE'));}catch(e9){} }
     else if(a==='volh'){ volhBascule(); mFill(); }
     else if(a==='volinv'){ volInvBascule(); mFill(); }
+    else if(a==='incl'){ inclBascule(); mFill(); }
     else if(a==='figg'){ figGBascule(); mFill(); } // (2026-10-15) FIGURES : 2 TAPS ⇄ GLISSER
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
