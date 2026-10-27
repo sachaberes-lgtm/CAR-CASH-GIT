@@ -11,26 +11,30 @@ const dnF=function(n){const t=String(+n);return /[.e]/.test(t)?t:t+'.';}; /* (un
 const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 uFD,uZD,uSD,uOA,uW,uFin;uniform vec2 uFN,uZN,uSN;uniform vec3 uCam;uniform float uG,uR0,uLam;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying vec2 vGp;varying vec4 vF;','#include <fog_pars_vertex>',DN_TB,
   'float gU,gP,gV,gM,gR;',
+  /* LES SOMMETS ARRONDIS : la même fonction que cyNzS (dunes-1.js) — le bruit (canal r) lu à interpolation douce, sans angle aux nœuds des texels */
+  ...(DN_PTE?['vec4 nzS(vec2 p){vec2 t=p*256.-.5,i=floor(t),f=t-i;f=f*f*(3.-2.*f);return texture2D(uNZ,(i+f+.5)/256.);}']:[]),
+  /* LES SOMMETS ARRONDIS : la même fonction que dnLis (dunes-1.js) — le minimum doux de la montée et de la face d'avalanche, qui arrondit l'arête des crêtes */
+  ...(DN_PTE?['float dnLis(float a,float b){float h=max('+dnF(DN_PK)+'-abs(a-b),0.)/'+dnF(DN_PK)+';return min(a,b)-h*h*'+dnF(DN_PK/4)+';}']:[]),
   'float dnDune(vec2 x){vec2 W=uW.xy;float u=dot(x,W)/uLam,v=dot(x,vec2(-W.y,W.x)),w1=texture2D(uNZ,x/30000.).r-.5,w2=texture2D(uNZ,x/11000.+vec2(.37,.61)).r-.5,w3=texture2D(uNZ,x/5200.+vec2(.83,.17)).r-.5;',
   '  float a=u+1.4*w1+1.05*w2+.34*w3,f=fract(a);',
-  '  float p=f<.72?pow(max(f/.72,1e-5),1.5):pow(max((1.-f)/.28,1e-5),1.15),m=.30+.70*clamp((texture2D(uNZ,vec2(v/9000.+.13,a*.13+.5)).r-.22)*1.9,0.,1.);',
+  '  float p='+(DN_PTE?'dnLis(pow(max(f/.72,1e-5),1.5)*'+dnF(1+DN_PK/8)+',pow(max((1.-f)/.28,1e-5),1.15)*'+dnF(1+DN_PK/8)+')':'f<.72?pow(max(f/.72,1e-5),1.5):pow(max((1.-f)/.28,1e-5),1.15)')+',m=.30+.70*clamp(('+(DN_PTE?'nzS(vec2(v/9000.+.13,a*.13+.5)).r':'texture2D(uNZ,vec2(v/9000.+.13,a*.13+.5)).r')+'-.22)*1.9,0.,1.);',
   '  float a2=dot(x,uW.zw)/(uLam*.40)+1.6*w2+.5*w3,f2=fract(a2);',
   '  float p2=f2<.68?pow(max(f2/.68,1e-5),1.4):pow(max((1.-f2)/.32,1e-5),1.1);',
   '  gU=p*m;float h=p*m+.08*p2*(1.-.75*p);',
   /* LES DUNES ÉTOILÉES : la même fonction que dnDune (dunes-1.js) */
   ...(DN_STAR?['  float ts0=(texture2D(uNZ,x/16000.+vec2(.71,.29)).r-.5-.20)/.14,ts=clamp(ts0,0.,1.);ts=ts*ts*(3.-2.*ts);',
   '  if(ts>0.){float k=6.2832/(uLam*1.9);vec2 d2=vec2(-.5*W.x-.866*W.y,.866*W.x-.5*W.y),d3=vec2(-.5*W.x+.866*W.y,-.866*W.x-.5*W.y);',
-  '    float s1=cos(k*dot(x,W)+9.*w3+5.*w1),s2=cos(k*dot(x,d2)+8.*w2+4.*w3),s3=cos(k*dot(x,d3)+7.*w3+5.*w2);float st=clamp((s1+s2+s3+1.5)/4.5,0.,1.);st=pow(st,2.2);',
+  '    float s1=cos(k*dot(x,W)+9.*w3+5.*w1),s2=cos(k*dot(x,d2)+8.*w2+4.*w3),s3=cos(k*dot(x,d3)+7.*w3+5.*w2);float st=clamp((s1+s2+s3+1.5)/4.5,0.,1.);st=pow(st,2.2);'+(DN_PTE?'st=1.5*st*(1.-st*st/3.);':'')+'',
   '    float hs=st*.95+.05*p2*(1.-.5*st);h+=(hs-h)*ts;gU+=(st-gU)*ts;}']:[]),
   '  return h;}',
   /* LES BUTTES : la même fonction que dnMesa (dunes-1.js) — un seuil du bruit (canal g), le haut par un autre (canal b), rien près de la route (Z.g = la distance à la route) */
   'float dnMesa(vec2 x,float dr){if(uFin.w>.5)return 0.;float n=texture2D(uNZ,x/11000.+vec2(.21,.73)).g,e=clamp((n-.58)/.14,0.,1.),m0=e*e*(3.-2.*e);if(m0<=0.)return 0.;',
-  '  float t=texture2D(uNZ,x/1700.+vec2(.5,.1)).b,f=clamp((dr-260.)/260.,0.,1.),q=clamp((length(x-uFin.xy)-1800.)/1200.,0.,1.);return m0*f*f*(3.-2.*f)*q*q*(3.-2.*q)*(70.+110.*t);}',
+  '  float t='+(DN_PTE?'nzS(x/7200.+vec2(.5,.1)).b':'texture2D(uNZ,x/1700.+vec2(.5,.1)).b')+',f=clamp((dr-260.)/260.,0.,1.),q=clamp((length(x-uFin.xy)-1800.)/1200.,0.,1.);return m0*f*f*(3.-2.*f)*q*q*(3.-2.*q)*(70.+110.*t);}',
   /* L'IMMENSITÉ : la même fonction que dnGeant (dunes-1.js) — les dunes géantes de l'horizon, nées à `r1` m de la route (Z.g), pleines à `r2`, éteintes autour de l'arrivée */
   ...(DN_IMM.on?['float dnGeant(vec2 x,float dr,float mk){float t=clamp((dr-'+dnF(DN_IMM.r1)+')/'+dnF(DN_IMM.r2-DN_IMM.r1)+',0.,1.),rd=t*t*(3.-2.*t);if(rd<=0.)return 0.;',
   '  float s=clamp((length(x-uFin.xy)-'+dnF(DN_IMM.f1)+')/'+dnF(DN_IMM.f2-DN_IMM.f1)+',0.,1.),q=s*s*(3.-2.*s);if(q<=0.)return 0.;',
   '  vec2 W=uW.xy;float n1=texture2D(uNZ,x/30000.+vec2(.19,.43)).r-.5,n2=texture2D(uNZ,x/11000.+vec2(.52,.08)).r-.5,a=dot(x,W)/(uLam*'+dnF(DN_IMM.l)+')+2.2*n1+1.4*n2,f=fract(a);',
-  '  float p=f<.7?pow(max(f/.7,1e-5),1.6):pow(max((1.-f)/.3,1e-5),1.2),v=-x.x*W.y+x.y*W.x,m=.5+.5*clamp((texture2D(uNZ,vec2(v/12000.+.31,a*.11+.2)).r-.15)*1.6,0.,1.);',
+  '  float p='+(DN_PTE?'dnLis(pow(max(f/.7,1e-5),1.6)*'+dnF(1+DN_PK/8)+',pow(max((1.-f)/.3,1e-5),1.2)*'+dnF(1+DN_PK/8)+')':'f<.7?pow(max(f/.7,1e-5),1.6):pow(max((1.-f)/.3,1e-5),1.2)')+',v=-x.x*W.y+x.y*W.x,m=.5+.5*clamp(('+(DN_PTE?'nzS(vec2(v/12000.+.31,a*.11+.2)).r':'texture2D(uNZ,vec2(v/12000.+.31,a*.11+.2)).r')+'-.15)*1.6,0.,1.);',
   '  return '+dnF(DN_IMM.h)+'*(m*p+'+dnF(DN_IMM.b)+')*rd*q*(1.-.92*mk);}']:[]),
   'vec4 dnHt(vec2 x){vec4 Z=tB(uTZ,(x-uZD.xy)*uZD.zw*uZN,uZN);float me=dnMesa(x,Z.g),mk=clamp(me/20.,0.,1.);float h=Z.r+Z.b*(dnDune(x)-.35)*(1.-.85*Z.a)*(1.-.92*mk)+me'+(DN_IMM.on?'+dnGeant(x,Z.g,mk)':'')+';gP=Z.a;gM=mk;gV=0.;gR=Z.g;',
   '  vec2 fp=(x-uFD.xy)*uFD.zw;if(fp.x>0.&&fp.y>0.&&fp.x<1.&&fp.y<1.){vec4 C=tB(uTC,fp*uFN,uFN);h=mix(h,C.r,C.g);}',
@@ -623,6 +627,17 @@ window.dbgDunes=function(k,a,b,c,d){
     for(let i=0;i<n;i++){const an=i/n*6.2832,ux=Math.cos(an),uz=Math.sin(an);let mx=-90,md=0,nb=0,vu=0;for(let d9=150;d9<=12000;d9+=d9<2000?50:100){const e=Math.atan2(dnHauteur(F9.p.x+ux*d9,F9.p.z+uz*d9,H9)-ey,d9)*57.2958;if(e>mx+.05){if(d9>1500&&e>vu+.15&&mx>-89)nb++;mx=e;md=d9;vu=e;}}
       o.push([Math.round(an*57.2958),+mx.toFixed(1),md,nb]);sm9+=mx;pl9+=nb;}
     return {moy:+(sm9/n).toFixed(2),plans:+(pl9/n).toFixed(1),az:o};}
+  if(k==='h'){if(!DN.on)return 'pas de dunes';const H9={};return (a||[]).map(function(q){const hh=dnHauteur(q[0],q[1],H9);if(b===2){const o2={},dd=dnDune(q[0],q[1],DN.vent,DN.lam,o2);return [+dd.toFixed(3),+o2.du.toFixed(3)];}return b?[+hh.toFixed(1),+H9.dun.toFixed(1),+H9.B.toFixed(1)]:+hh.toFixed(1);});} /* (banc) la hauteur du sable aux points [x,z] de a ; avec b : [hauteur, dunes, fond] */
+  if(k==='pointes'){if(!DN.on)return 'pas de dunes';const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},H9={},Z=DN.Z; /* (banc, LES SOMMETS ARRONDIS) la POINTE des sommets : une fenêtre de ±c m (défaut 2500) autour de l'abscisse a (défaut le milieu), maille b m (défaut 30) ; pour chaque maximum local d'au moins 10 m de relief : l'angle moyen (degrés) de la pente à 36 m du sommet (une dune ronde : ~10-18°, une aiguille : 30° et plus) ; `cones` : les sommets qui descendent dans TOUTES les directions (la plus faible descente > 18° = un cône, pas une crête) et le rayon de courbure du sommet (m) ; rend les centiles, le nombre d'aiguilles (> 28°) et les plus pointus */
+    frameAt(Math.max(0,Math.min(L-1,a==null?L/2:+a)),F9);const e=+b||30,R=+c||2500,n=Math.floor(2*R/e)+1,G=new Float32Array(n*n);
+    for(let j=0;j<n;j++)for(let i=0;i<n;i++)G[j*n+i]=dnHauteur(F9.p.x-R+i*e,F9.p.z-R+j*e,H9);
+    const out=[],ds=36;for(let j=2;j<n-2;j++)for(let i=2;i<n-2;i++){const h=G[j*n+i];let top=true;for(let dj=-1;dj<=1&&top;dj++)for(let di=-1;di<=1;di++)if((di||dj)&&G[(j+dj)*n+i+di]>h){top=false;break;}
+      if(!top)continue;const x=F9.p.x-R+i*e,z=F9.p.z-R+j*e;let sm9=0,mn=1e9,dm=1e9;for(let q=0;q<8;q++){const th=q*.7854,hh=dnHauteur(x+Math.cos(th)*ds,z+Math.sin(th)*ds,H9);sm9+=h-hh;if(h-hh<dm)dm=h-hh;const h2=dnHauteur(x+Math.cos(th)*130,z+Math.sin(th)*130,H9);if(h2<mn)mn=h2;}
+      if(h-mn<10)continue;const dr=Z?cyBil(Z.d,Z.nx,Z.nz,4,1,(x-(Z.x0-Z.ts*.5))/Z.ts,(z-(Z.z0-Z.ts*.5))/Z.ts):0,md=sm9/8;out.push({cone:Math.atan(dm/ds)*57.2958,ang:Math.atan(md/ds)*57.2958,R:ds*ds/(2*Math.max(md,.01)),dr:dr,x:Math.round(x),z:Math.round(z),y:Math.round(h)});}
+    const ct=function(v,q){return v.length?+v[Math.min(v.length-1,Math.floor(v.length*q))].toFixed(1):null;},an=out.map(function(o){return o.ang;}).sort(function(u,v){return u-v;}),rr=out.map(function(o){return o.R;}).sort(function(u,v){return u-v;});
+    const bk=[[0,300],[300,900],[900,1e9]].map(function(r){const q=out.filter(function(o){return o.dr>=r[0]&&o.dr<r[1];}),w=q.map(function(o){return o.ang;}).sort(function(u,v){return u-v;});return {dr:r[0]+'-'+(r[1]>1e8?'':r[1]),n:q.length,angP50:ct(w,.5),aig:q.filter(function(o){return o.ang>28;}).length};});
+    const co=out.slice().sort(function(u,v){return v.cone-u.cone;});out.sort(function(u,v){return v.ang-u.ang;});
+    return {cones:{n18:co.filter(function(o){return o.cone>18;}).length,n25:co.filter(function(o){return o.cone>25;}).length,pires:co.slice(0,5).map(function(o){return [Math.round(o.cone),Math.round(o.R),Math.round(o.dr),o.x,o.z,o.y];})},par_dr:bk,n:out.length,angP50:ct(an,.5),angP90:ct(an,.9),angMax:an.length?+an[an.length-1].toFixed(1):null,aiguilles:out.filter(function(o){return o.ang>28;}).length,rayonP10:ct(rr,.1),rayonP50:ct(rr,.5),pires:out.slice(0,5).map(function(o){return [Math.round(o.ang),Math.round(o.R),Math.round(o.dr),o.x,o.z,o.y];})};}
   if(k==='parite'){if(!DN.on||!DN.mat)return 'pas de dunes';const N=+a||64,U=DN.mat.uniforms,Vs=DN.mat.vertexShader,i0=Vs.indexOf('void main(){float S=aN.z;');if(i0<0)return 'prefixe introuvable'; /* (banc, L'IMMENSITÉ) la PARITÉ JS/GLSL : N points du désert lointain, la hauteur lue par la puce (dnHt du vertex shader, rendue dans une cible flottante) contre dnHauteur ; rend l'écart max / moyen (m) et le nombre de points où le géant n'est pas nul */
     const pts=[],Z=DN.Z,H9={};let ng=0;for(let i=0;i<N;i++){const r1=Math.sin(i*12.9898+1.3)*43758.5453,r2=Math.sin(i*78.233+2.1)*24634.6345,u=r1-Math.floor(r1),v=r2-Math.floor(r2),x=Z.x0+u*(Z.nx-1)*Z.ts,z=Z.z0+v*(Z.nz-1)*Z.ts;pts.push(x,z);if(dnGeant(x,z,cyBil(Z.d,Z.nx,Z.nz,4,1,(x-(Z.x0-Z.ts*.5))/Z.ts,(z-(Z.z0-Z.ts*.5))/Z.ts),0)>5)ng++;}
     const g=new THREE.BufferGeometry(),pos=new Float32Array(N*3),px=new Float32Array(N*2);for(let i=0;i<N;i++){pos[i*3]=((i+.5)/N)*2-1;pos[i*3+1]=0;pos[i*3+2]=0;px[i*2]=pts[i*2];px[i*2+1]=pts[i*2+1];}

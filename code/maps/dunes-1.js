@@ -149,10 +149,20 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
    d'onde (m). Rend la hauteur relative (0 au creux, ~1 au sommet) ; o.du (facultatif) = le profil de la grande dune seule (1 sur la crête). */
 const DN_ACTES={on:!/[?&]sans=([^&]*,)?dunesactes(,|&|$)/.test(location.search)}; /* (2026-10-23, Léo : « brouillon… l'organisation et l'harmonie » → un VOYAGE EN ACTES) `?sans=dunesactes` = le tirage d'avant (un peu de tout partout) */
 const DN_STAR=!/[?&]sans=([^&]*,)?dunesetoile(,|&|$)/.test(location.search); /* `?sans=dunesetoile` : le désert d'avant (crêtes parallèles partout) */
+/* ===== LES SOMMETS ARRONDIS (2026-10-27, Léo : « il n'y a aucune pointe aussi pointue ») =====
+   MESURÉ (`dbgDunes('pointes')`, les maxima locaux du désert, pente moyenne à 36 m du sommet) : la MÉDIANE des sommets du désert tenait à ~24° et 1 sommet sur 3 dépassait 28° — des aiguilles. Deux causes dans dnDune : (1) l'ARÊTE de chaque crête est la rencontre
+   de deux courbes (la montée, la face d'avalanche) = un angle vif, et là où `m` (pics et cols) est fort la crête devient une lame conique ; (2) les dunes étoilées : trois cosinus élevés à 2,2 = des pyramides à pointe fine. Ici les deux courbes de la crête se
+   RACCORDENT par un minimum doux (`dnLis`, k = 0,5 : la pente cède sur ~60 m ; un gain de 1+k/8 rend la moitié de la hauteur perdue, le sommet baisse de ~6 % et les flancs montent de ~6 %) et la pointe des étoiles passe par une cubique à sommet PLAT (1,5·x·(1−x²/3) : pente nulle au sommet). Les raideurs d'avalanche, la
+   hauteur des crêtes et les profils prescrits près de la route ne changent que leur arête (dnPf : le même raccord doux, k = la moitié de la hauteur de la colline). Même chose dans le GLSL de la puce (dnLis, dnDune de DN_VS) : toute retouche ici se refait là-bas. `?sans=dunespointes` = les sommets d'avant. */
+const DN_PTE=!/[?&]sans=([^&]*,)?dunespointes(,|&|$)/.test(location.search),DN_PK=.5;
+function cyNzS(u,v,c){ /* cyNz à interpolation DOUCE (Hermite) : la pente du bruit s'annule à chaque texel — l'interpolation bilinéaire fait des TENTES (un angle à chaque nœud, tous les 35 m), et c'est elle qui plantait les pointes dans `m` (les pics et les cols le long des crêtes) */
+  const N=256,x=u*N-.5,y=v*N-.5,i=Math.floor(x),j=Math.floor(y);let fx=x-i,fy=y-j;fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy);const d=CY.nz,i0=((i%N)+N)%N,j0=((j%N)+N)%N,i1=(i0+1)%N,j1=(j0+1)%N;
+  const a=d[(j0*N+i0)*4+c],b=d[(j0*N+i1)*4+c],e=d[(j1*N+i0)*4+c],f=d[(j1*N+i1)*4+c];return ((a+(b-a)*fx)*(1-fy)+(e+(f-e)*fx)*fy)/255;}
+function dnLis(a,b){const h=Math.max(DN_PK-Math.abs(a-b),0)/DN_PK;return Math.min(a,b)-h*h*DN_PK/4;}
 function dnDune(x,z,W,lam,o){ /* (le bruit lu aux SEULES grandes échelles, canal 0 : la 1re version lisait les canaux fins — 3 à 100 m — et faisait de la roche, MESURÉ au relief ombré hors GPU) */
   const u=(x*W[0]+z*W[1])/lam,v=-x*W[1]+z*W[0],w1=cyNz(x/30000,z/30000,0)-.5,w2=cyNz(x/11000+.37,z/11000+.61,0)-.5,w3=cyNz(x/5200+.83,z/5200+.17,0)-.5;
   const a=u+1.4*w1+1.05*w2+.34*w3,f=a-Math.floor(a);                                                       // les crêtes serpentent sur 1 à 7 km
-  const p=f<.72?Math.pow(Math.max(f/.72,1e-5),1.5):Math.pow(Math.max((1-f)/.28,1e-5),1.15),n1=cyNz(v/9000+.13,a*.13+.5,0),m=.30+.70*Math.max(0,Math.min(1,(n1-.22)*1.9)); // face au vent douce, face d'avalanche raide ; pics et cols le long des crêtes
+  const p=DN_PTE?dnLis(Math.pow(Math.max(f/.72,1e-5),1.5)*(1+DN_PK/8),Math.pow(Math.max((1-f)/.28,1e-5),1.15)*(1+DN_PK/8)):f<.72?Math.pow(Math.max(f/.72,1e-5),1.5):Math.pow(Math.max((1-f)/.28,1e-5),1.15),n1=(DN_PTE?cyNzS:cyNz)(v/9000+.13,a*.13+.5,0),m=.30+.70*Math.max(0,Math.min(1,(n1-.22)*1.9)); // face au vent douce, face d'avalanche raide ; pics et cols le long des crêtes
   const a2=(x*W[2]+z*W[3])/(lam*.40)+1.6*w2+.5*w3,f2=a2-Math.floor(a2);
   const p2=f2<.68?Math.pow(Math.max(f2/.68,1e-5),1.4):Math.pow(Math.max((1-f2)/.32,1e-5),1.1);              // la houle en biais, dans les creux surtout
   let h=p*m+.08*p2*(1-.75*p),du=p*m;
@@ -161,13 +171,13 @@ function dnDune(x,z,W,lam,o){ /* (le bruit lu aux SEULES grandes échelles, cana
   if(DN_STAR){const ts0=(cyNz(x/16000+.71,z/16000+.29,0)-.5-.20)/.14,ts=ts0<=0?0:ts0>=1?1:ts0*ts0*(3-2*ts0);
     if(ts>0){const k=6.2832/(lam*1.9),d2x=-.5*W[0]-.866*W[1],d2z=.866*W[0]-.5*W[1],d3x=-.5*W[0]+.866*W[1],d3z=-.866*W[0]-.5*W[1];
       const s1=Math.cos(k*(x*W[0]+z*W[1])+9*w3+5*w1),s2=Math.cos(k*(x*d2x+z*d2z)+8*w2+4*w3),s3=Math.cos(k*(x*d3x+z*d3z)+7*w3+5*w2);
-      let st=(s1+s2+s3+1.5)/4.5;st=st<=0?0:st>=1?1:st;st=Math.pow(st,2.2);const hs=st*.95+.05*p2*(1-.5*st);h+=(hs-h)*ts;du+=(st-du)*ts;}}
+      let st=(s1+s2+s3+1.5)/4.5;st=st<=0?0:st>=1?1:st;st=Math.pow(st,2.2);if(DN_PTE)st=1.5*st*(1-st*st/3);const hs=st*.95+.05*p2*(1-.5*st);h+=(hs-h)*ts;du+=(st-du)*ts;}}
   if(o)o.du=du;return h;}
 /* LES BUTTES (2026-10-22, Léo : « le niveau dune n'est pas au niveau — regarde jade, la grotte, la forêt » : des masses qui dressent l'horizon, comme les pics de jade) — des plateaux de grès à flancs raides, ajoutés
    au sable LOIN de la route (dr = la distance à la route, 260 m → rien, 520 m → plein) : le masque est un seuil du bruit (canal 1, tuile de 6 km), le haut (70 à 180 m) un autre bruit (canal 2). Même
    fonction dans le GLSL de la puce (dnMesa de DN_VS) : toute retouche ici se refait là-bas. */
 function dnMesa(x,z,dr){if(DN.sb)return 0;const n=cyNz(x/11000+.21,z/11000+.73,1),e=Math.max(0,Math.min(1,(n-.58)/.14)),m0=e*e*(3-2*e);if(m0<=0)return 0;
-  const t=cyNz(x/1700+.5,z/1700+.1,2),f=Math.max(0,Math.min(1,(dr-260)/260)),w=f*f*(3-2*f),F9=DN.fin;let fe=1;if(F9){const q=Math.max(0,Math.min(1,(Math.hypot(x-F9.x,z-F9.z)-1800)/1200));fe=q*q*(3-2*q);} // (aucune butte autour de l'arrivée : les pyramides, l'oasis, le portail)
+  const t=DN_PTE?cyNzS(x/7200+.5,z/7200+.1,2):cyNz(x/1700+.5,z/1700+.1,2),f=Math.max(0,Math.min(1,(dr-260)/260)),w=f*f*(3-2*f),F9=DN.fin;let fe=1;if(F9){const q=Math.max(0,Math.min(1,(Math.hypot(x-F9.x,z-F9.z)-1800)/1200));fe=q*q*(3-2*q);} // (aucune butte autour de l'arrivée : les pyramides, l'oasis, le portail)
   return m0*w*fe*(70+110*t);}
 /* ===== L'IMMENSITÉ (2026-10-26, Léo : « je veux vraiment un peu l'immensité, un effet d'immensité ») =====
    Avant : le désert lointain n'était qu'un fond 90 m SOUS la route, orné partout des mêmes dunes de 560 m — aucune crête ne passait au-dessus de l'œil, donc aucun plan derrière le premier, et l'horizon tenait à quelques km. Ici, au-delà de
@@ -181,7 +191,7 @@ function dnGeant(x,z,dr,mk){const I=DN_IMM;if(!I.on||dr<=I.r1)return 0;
   if(F9){const s=Math.max(0,Math.min(1,(Math.hypot(x-F9.x,z-F9.z)-I.f1)/(I.f2-I.f1)));q=s*s*(3-2*s);}  // (aucun géant autour de l'arrivée : les pyramides, l'oasis, le portail)
   if(q<=0)return 0;
   const W=DN.vent,lg=DN.lam*I.l,n1=cyNz(x/30000+.19,z/30000+.43,0)-.5,n2=cyNz(x/11000+.52,z/11000+.08,0)-.5,a=(x*W[0]+z*W[1])/lg+2.2*n1+1.4*n2,f=a-Math.floor(a);
-  const p=f<.7?Math.pow(Math.max(f/.7,1e-5),1.6):Math.pow(Math.max((1-f)/.3,1e-5),1.2),v=-x*W[1]+z*W[0],m=.5+.5*Math.max(0,Math.min(1,(cyNz(v/12000+.31,a*.11+.2,0)-.15)*1.6)); // le profil de la crête, puis ses pics et ses cols le long d'elle
+  const p=DN_PTE?dnLis(Math.pow(Math.max(f/.7,1e-5),1.6)*(1+DN_PK/8),Math.pow(Math.max((1-f)/.3,1e-5),1.2)*(1+DN_PK/8)):f<.7?Math.pow(Math.max(f/.7,1e-5),1.6):Math.pow(Math.max((1-f)/.3,1e-5),1.2),v=-x*W[1]+z*W[0],m=.5+.5*Math.max(0,Math.min(1,((DN_PTE?cyNzS:cyNz)(v/12000+.31,a*.11+.2,0)-.15)*1.6)); // le profil de la crête, puis ses pics et ses cols le long d'elle
   return I.h*(m*p+I.b)*rd*q*(1-.92*mk);}
 const DN_O9={};
 function dnFar(x,z,o){const Z=DN.Z;o=o||DN_O9;
@@ -198,7 +208,9 @@ function dnHauteur(x,z,o){const F=DN.F;o=o||DN_O9;let h=dnFar(x,z,o);
 /* LE PROFIL EN TRAVERS : à dd mètres du bord de la berme, de combien le sable est au-dessus (ou au-dessous : négatif) du niveau de la berme. Hh > 0 : une COLLINE — le sable monte (~10° au bord, 25° au plus),
    arrive à Hh à Wh mètres (la crête), puis retombe à 31° vers le désert ; Hh < 0 : l'ÉPERON — il tombe de |Hh| (17° puis 33°) jusqu'à la mer ; Dn : la profondeur de la mer sous la berme. */
 function dnPf(dd,Hh,Wh,Dn,sh){if(dd<=0)return 0;
-  if(Hh>0){const t=dd/Wh;if(t<1){const dome=.45*t+.275*(1-Math.cos(Math.PI*t));return Hh*(sh>0?dome+(Math.pow(t,1.7)-dome)*sh:dome);} /* sh : 0 = le DÔME (rond, doux), 1 = la CRÊTE (plat près de la route, pointue au sommet) */const q=Hh-.60*(dd-Wh),k=16,hh=Math.max(k-Math.abs(q+Dn),0)/k;return Math.max(q,-Dn)+hh*hh*k/4;}
+  if(Hh>0){const t=dd/Wh;let q=Hh-.60*(dd-Wh);const kk=.5*Hh; /* (LES SOMMETS ARRONDIS) la montée et la face d'avalanche se raccordent par un minimum doux : plus d'arête vive, et plus de cône là où la route tourne autour de la colline (la crête, à distance constante, se resserre en un point) */
+    if(t<1){const dome=.45*t+.275*(1-Math.cos(Math.PI*t)),a9=Hh*(sh>0?dome+(Math.pow(t,1.7)-dome)*sh:dome);if(DN_PTE){const g=Math.max(kk-Math.abs(a9-q),0)/kk;return Math.min(a9,q)-g*g*kk/4;}return a9;} /* sh : 0 = le DÔME (rond, doux), 1 = la CRÊTE (plat près de la route, pointue au sommet) */
+    if(DN_PTE){const g=Math.max(kk-Math.abs(Hh-q),0)/kk;q=Math.min(Hh,q)-g*g*kk/4;}const k=16,hh=Math.max(k-Math.abs(q+Dn),0)/k;return Math.max(q,-Dn)+hh*hh*k/4;}
   const F=-Hh,dr=.30*dd+.36*(dd>26?dd-26:0),k=14,hh=Math.max(k-Math.abs(dr-F),0)/k;return -(Math.min(dr,F)-hh*hh*k/4*(dd<10?dd/10:1));}
 /* le terrain PRESCRIT d'UN bras de route, vu depuis l'échantillon i0 (affiné ±4) : o.H = sa hauteur, o.d = la distance à l'axe, o.w = son poids contre le désert — faux hors de portée.
    La berme : le sable se tient 1,6 m sous le bitume sur 10 m au-delà du bord (la caisse qui décolle ne le voit pas, la dalle n'a qu'un liseré de tranche), puis le profil du côté (hP/wP, hM/wM). */
@@ -465,8 +477,8 @@ function buildDunes(seed,pre){
 }
 /* le travailleur : les fonctions du MONDE recopiées par leur source (une seule écriture : elles servent aussi ici, à la collision) */
 function dnTravailleur(){if(DN.w!==undefined)return DN.w;
-  try{const fns=[mulberry32,cyNz,cyBil,dnDune,dnMesa,dnGeant,dnFar,dnHauteur,dnPf,dnProfil,dnPyr3,dnPrevoir,dnPrevoirDeco,dnOmbre,dnMondeCalc].map(function(f){return f.toString();}).join('\n');
-    const code="'use strict';var CY={},DN={},DN_O9={},DN_STAR="+DN_STAR+",DN_IMM="+JSON.stringify(DN_IMM)+",PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
+  try{const fns=[mulberry32,cyNz,cyNzS,cyBil,dnLis,dnDune,dnMesa,dnGeant,dnFar,dnHauteur,dnPf,dnProfil,dnPyr3,dnPrevoir,dnPrevoirDeco,dnOmbre,dnMondeCalc].map(function(f){return f.toString();}).join('\n');
+    const code="'use strict';var CY={},DN={},DN_O9={},DN_STAR="+DN_STAR+",DN_PTE="+DN_PTE+",DN_PK="+DN_PK+",DN_IMM="+JSON.stringify(DN_IMM)+",PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
       "\nonmessage=function(e){var m=e.data;CY={nz:m.nz};DN={};PAL.B=m.opt.pal;var R=dnMondeCalc(m.S,m.opt);R.job=m.job;"+
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.O.h.buffer]);};";
     const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
