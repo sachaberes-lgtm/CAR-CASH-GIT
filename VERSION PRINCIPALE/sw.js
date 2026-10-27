@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v978'; /* v977 (2026-10-27, Léo : « orque CC0, requin et phénix dessinés » + « l'ouroboros en moteur argenté en boucles infinies ») orque = baleine CC0 Quaternius remodelée ; palier 27 = OUROBOROS D'ARGENT (code/voitures/moteurs-themes.js, moteurs-modeles-cc0.js) */
+const CACHE = 'cashcar-v979'; /* v979 (2026-10-27, Léo : « le moteur EST l'animal, des objets hybrides presque transformeurs ; améliore les formes de tête ») les 29 moteurs refaits en HYBRIDES par quatre artistes (code/voitures/moteurs-themes.js, moteurs-originaux.js) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
