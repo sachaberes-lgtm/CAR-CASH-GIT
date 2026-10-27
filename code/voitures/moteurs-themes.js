@@ -9,7 +9,7 @@ const TH30=[null,
  [0xff6a3c,0xffb070],[0xff5f8a,0xffe0ea],[0x15171c,0xd8f4ff],[0x5f7d3c,0xd8ff90],[0xd8282a,0xffa030],   // 7 étoile de mer · 8 corail · 9 orques · 10 tortue · 11 roquette
  [0x1f4aff,0x9af0ff],[0x4f5f2a,0xffb030],[0x2a3a8a,0xffe08a],[0xffb000,0xfff0a0],[0x1f5a3a,0xff5030],   // 12 électrique · 13 grenade · 14 vitrail · 15 soleil · 16 dragon
  [0xc0201e,0xffd070],[0x3a2a6a,0x6affd8],[0xd9a441,0x5a8aff],[0xff4a1a,0xffc040],[0x13a8a8,0x8affff],   // 17 pagode · 18 kraken · 19 sphinx · 20 phénix · 21 atlantide
- [0x7a8aa0,0x8ad8ff],[0xb81a3a,0xff6a80],[0x16161c,0xff4a14],[0xffc030,0xfff6c0],[0x2adf8a,0xb0ffe0],   // 22 lance d'Odin · 23 cœur battant · 24 dragon cosmique · 25 Hélios · 26 alien
+ [0x7a8aa0,0x8ad8ff],[0xb81a3a,0xff6a80],[0x16161c,0xff4a14],[0xffc030,0xfff6c0],[0x10a86e,0xb0ffe0],   // 22 lance d'Odin · 23 cœur battant · 24 dragon cosmique · 25 Hélios · 26 alien
  [0xb4bccb,0xbfe8ff],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
 function th30Kit(E,i){const t=TH30[i];return t?Object.assign({},E,{col:t[0],flam:t[1]}):E;}
 /* ============ ARTISTE 1 — LES OUTILS DE SCULPTURE (h1_*) : crânes lofts, tubes effilés, plumes posées ============
@@ -298,6 +298,290 @@ function h2_orient(B,geo,mat,p,ex,ez){const X=ex.clone().normalize(),Y=new THREE
   H2_E.setFromRotationMatrix(new THREE.Matrix4().makeBasis(X,Y,Z),'XYZ');B.add(geo,mat,p.x,p.y,p.z,H2_E.x,H2_E.y,H2_E.z,1,1,1);}
 const h2_ANN=(B,m,R,r,x,y,z,rx,ry)=>B.add(new THREE.TorusGeometry(R,r,5,Math.max(16,Math.min(30,Math.round(R*44)))),m,x,y,z,rx||0,ry==null?PI10/2:ry,0);   // un anneau d'axe X, léger (les 40 pans d'ANN coûtaient 640 triangles pièce)
 function h2_poli(c,sh,rf){return new THREE.MeshPhongMaterial({color:c,shininess:sh||220,specular:0xffffff,envMap:envTex,side:THREE.DoubleSide,reflectivity:rf==null?.35:rf,combine:THREE.MixOperation});}
+/* ===== LES OUTILS DE L'ARTISTE 4 (paliers 22-29 : cœur, dragon, Hélios, alien, ouroboros, comète, naissance, l'infini) — préfixe h4_ =====
+   h4_loft : une SCULPTURE par sections — chaque section est un anneau (superellipse) dans le plan YZ à la position x ; reliées, elles
+             donnent un crâne, un museau, un pétale, un fuseau. p = carrure (1 losange · 2 ellipse · 4 presque carré). Fermé aux deux bouts.
+   h4_tubeV: un tube à rayon VARIABLE le long d'une courbe (serpent, corne, veine, aorte) ; rf(t) = rayon de 0 à 1.
+   h4_pose : pose une pièce construite en +x (avant) / +y (haut) sur une direction et un haut donnés. */
+function h4_loft(secs,n,cap){
+  n=n||10;const pos=[],idx=[];
+  for(const s of secs){const p=s.p||2,e=2/p;
+    for(let j=0;j<n;j++){const t=j/n*2*Math.PI,c=Math.cos(t),sn=Math.sin(t);
+      pos.push(s.x,(s.y||0)+Math.sign(sn)*Math.pow(Math.abs(sn),e)*(sn>=0?s.hu:s.hd),(s.z||0)+Math.sign(c)*Math.pow(Math.abs(c),e)*s.w);}}
+  for(let k=0;k<secs.length-1;k++)for(let j=0;j<n;j++){const a=k*n+j,b=k*n+(j+1)%n,c2=(k+1)*n+j,d=(k+1)*n+(j+1)%n;idx.push(a,c2,b,b,c2,d);}
+  if(cap!==false){const s0=secs[0],s1=secs[secs.length-1],i0=pos.length/3;
+    pos.push(s0.x,s0.y||0,s0.z||0);pos.push(s1.x,s1.y||0,s1.z||0);
+    for(let j=0;j<n;j++){idx.push(i0,(j+1)%n,j);const o=(secs.length-1)*n;idx.push(i0+1,o+j,o+(j+1)%n);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();return g;
+}
+function h4_tubeV(pts,rf,seg,rad,cap){
+  const cu=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(p[0],p[1],p[2])),false,'centripetal');seg=seg||24;rad=rad||6;
+  const fr=cu.computeFrenetFrames(seg,false),pos=[],idx=[];
+  for(let i=0;i<=seg;i++){const t=i/seg,P=cu.getPointAt(t),N=fr.normals[i],Bn=fr.binormals[i],r=Math.max(.0008,rf(t));
+    for(let j=0;j<rad;j++){const a=j/rad*2*Math.PI,c=Math.cos(a)*r,s=Math.sin(a)*r;pos.push(P.x+N.x*c+Bn.x*s,P.y+N.y*c+Bn.y*s,P.z+N.z*c+Bn.z*s);}}
+  for(let i=0;i<seg;i++)for(let j=0;j<rad;j++){const a=i*rad+j,b=i*rad+(j+1)%rad,c2=(i+1)*rad+j,d=(i+1)*rad+(j+1)%rad;idx.push(a,c2,b,b,c2,d);}
+  if(cap){const P0=cu.getPointAt(0),P1=cu.getPointAt(1),i0=pos.length/3;pos.push(P0.x,P0.y,P0.z,P1.x,P1.y,P1.z);
+    for(let j=0;j<rad;j++){idx.push(i0,(j+1)%rad,j);const o=seg*rad;idx.push(i0+1,o+j,o+(j+1)%rad);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
+  g.userData.cu=cu;return g;
+}
+function h4_pose(B,geo,mat,p,fw,up,sc){
+  const x=fw.clone().normalize(),z=new THREE.Vector3().crossVectors(x,up).normalize(),y=new THREE.Vector3().crossVectors(z,x),
+    e=new THREE.Euler().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,y,z),'XYZ');
+  B.add(geo,mat,p.x,p.y,p.z,e.x,e.y,e.z,sc||1,sc||1,sc||1);
+}
+
+/* LE DRAGON NOIR v2 : la tête est SCULPTÉE par sections (crâne large, arcades, museau qui s'effile, mâchoire ouverte sur la braise),
+   crocs inégaux (les canines), narines de braise cerclées d'or, deux grandes cornes annelées, fraise d'épines, crête d'or */
+function h4_dragon(K,g){
+  const B=bat10();B.f=true;B.plat();const noir=K.col,or=K.or,P=(x,y,z)=>new THREE.Vector3(x,y,z),D=(x,y,z)=>new THREE.Vector3(x,y,z).normalize();
+  const sec=(x,y,w,hu,hd,p,z)=>({x:x,y:y,w:w,hu:hu,hd:hd,p:p,z:z||0});
+  const crane=[sec(0,.12,.20,.20,.20,2.6),sec(.10,.14,.33,.31,.25,3.2),sec(.36,.14,.37,.34,.24,3.2),sec(.58,.10,.29,.26,.17,3),sec(.82,.08,.22,.18,.13,3),sec(1.06,.06,.20,.15,.11,3),sec(1.22,.06,.22,.14,.10,3),sec(1.31,.06,.13,.08,.06,2.5)];
+  const at=(k,x)=>{for(let j=0;j<crane.length-1;j++){const a=crane[j],b=crane[j+1];if(x>=a.x&&x<=b.x){const t=(x-a.x)/(b.x-a.x);return a[k]+(b[k]-a[k])*t;}}return crane[crane.length-1][k];};
+  B.add(h4_loft(crane,10),noir,0,0,0);
+  // la mâchoire inférieure, ouverte de 24° autour de la charnière
+  const hx=.28,hy=-.10,th=-.42,cs=Math.cos(th),sn=Math.sin(th),jp=(lx,ly,lz)=>P(hx+lx*cs-ly*sn,hy+lx*sn+ly*cs,lz);
+  const mach=[sec(-.10,0,.20,.10,.10,3),sec(.12,0,.30,.09,.12,3),sec(.45,0,.25,.07,.10,3),sec(.80,0,.18,.06,.08,3),sec(1.00,.01,.15,.07,.07,3),sec(1.08,.02,.09,.05,.05,2.5)];
+  const jw=(x)=>{for(let j=0;j<mach.length-1;j++){const a=mach[j],b=mach[j+1];if(x>=a.x&&x<=b.x){const t=(x-a.x)/(b.x-a.x);return {w:a.w+(b.w-a.w)*t,hu:a.hu+(b.hu-a.hu)*t};}}return {w:.1,hu:.05};};
+  B.add(h4_loft(mach,10),noir,hx,hy,0,0,0,th);
+  // le palais et la langue de braise
+  B.add(h4_loft([sec(.55,-.045,.15,.012,.012,2),sec(1.15,-.05,.16,.012,.012,2)],6),K.glow,0,0,0);
+  B.add(h4_loft([sec(.20,.07,.13,.02,.02,2),sec(.80,.075,.10,.02,.02,2)],6),K.glow,hx,hy,0,0,0,th);
+  // les crocs : canines en tête, rangée qui s'use vers le fond
+  const tl=[.09,.10,.17,.12,.10,.085,.07];
+  for(let sd=-1;sd<=1;sd+=2)for(let k=0;k<7;k++){const x=1.16-k*.10,yb=.06-at('hd',x)+.012,zz=sd*at('w',x)*.80,l=tl[k];
+    vers10(B,cone10(.026+l*.12,l,6),K.blanc,P(x,yb,zz),D(.18,-1,sd*.08),1);
+    const lx=.22+k*.115,q=jw(lx),pp=jp(lx,q.hu-.01,sd*q.w*.78);
+    const d2=new THREE.Vector3(-sn,cs,sd*.08).normalize();   // « vers le haut » de la mâchoire, tournée avec elle
+    vers10(B,cone10(.022+(k===5?.015:0),.07+(k%3===1?.05:0),6),K.blanc,pp,d2,1);}
+  // les arcades, les yeux de braise sous leur voûte
+  for(let sd=-1;sd<=1;sd+=2){
+    B.add(h4_loft([sec(.14,.44,.09,.06,.05,2.4,sd*.25),sec(.40,.46,.11,.07,.06,2.4,sd*.29),sec(.66,.36,.07,.045,.035,2.4,sd*.20)],8),K.noir,0,0,0);
+    B.add(G10.box,K.noir,.43,.345,sd*.318,0,0,0,.02,.075,.012);   // la pupille : une fente verticale
+    B.add(G10.sph,K.glow,.42,.33,sd*.305,0,0,0,.07,.034,.03);
+    B.add(h4_loft([sec(.10,.22,.08,.04,.04,2,sd*.32),sec(.30,.18,.10,.05,.05,2,sd*.33),sec(.50,.16,.07,.03,.03,2,sd*.27)],6),K.lame,0,0,0);   // la joue
+    // les cornes : annelées, qui balaient vers l'arrière
+    B.add(h4_tubeV([[.30,.40,sd*.26],[.20,.62,sd*.36],[-.02,.80,sd*.50],[-.34,.86,sd*.66]],t=>(.085*Math.pow(1-t,.85)+.004)*(1+.16*Math.sin(t*44)),36,6,true),or,0,0,0);
+    B.add(h4_tubeV([[.26,.04,sd*.34],[.08,-.02,sd*.50],[-.12,.06,sd*.66]],t=>(.05*(1-t)+.004)*(1+.14*Math.sin(t*30)),20,6,true),noir,0,0,0);
+    corne(P(.55,-.30,sd*.22),D(-.3,-1,sd*.5),.035,.20,noir);
+    const nx=1.20;B.add(G10.sph,K.glow,nx,.17,sd*.09,0,0,0,.032,.022,.032);B.add(new THREE.TorusGeometry(.046,.011,5,10),or,nx,.185,sd*.09,Math.PI/2,0,0);
+    // la fraise : une nageoire d'épines derrière la joue
+    B.add(plan10([[.10,.30],[-.10,.58],[-.02,.30],[-.28,.46],[-.12,.20],[-.36,.20],[-.12,.04],[-.30,-.14],[-.02,-.08],[.10,-.12]],.03,.006),K.lame,.04,0,sd*.26,0,sd*.38,0);
+  }
+  // la crête d'or sur le museau et le crâne, l'arête de l'or sur le nez
+  B.add(h4_tubeV([[.50,.06+at('hu',.50)+.006,0],[.80,.06+at('hu',.80)+.006,0],[1.04,.06+at('hu',1.04)+.006,0],[1.26,.075,0]],t=>.012,12,4),or,0,0,0);
+  for(let k=0;k<5;k++)vers10(B,cone10(.055-k*.006,.26-k*.03,6),or,P(.58-k*.12,.06+.28-k*.012,0),D(-.4,1,0),1);
+  corne(P(1.06,.06+at('hu',1.06)-.02,0),D(-.35,1,0),.05,.20,or);                        // la corne du nez
+  const hg=new THREE.Group();B.fin(hg);hg.scale.setScalar(2.0);hg.position.set(.30,-.02,0);g.add(hg);
+  function corne(p,d,r,l,m){vers10(B,cone10(r,l,8),m,p,d,1);}
+}
+
+/* LE CŒUR BATTANT v2 : le moteur EST un cœur — deux ventricules de rubis facettés (la pointe devant), les oreillettes, l'aorte qui
+   s'arque et plonge dans le tube-colonne, l'artère pulmonaire, la veine cave, les coronaires d'or dans le sillon ; les veines
+   s'enroulent le long des anneaux jusqu'à la tuyère */
+function h4_coeur(K,g){
+  const B=bat10();B.f=true;B.plat();
+  const boule=(m,x,y,z,sx,sy,sz)=>B.add(G10.sph,m,x,y,z,0,0,0,sx,sy||sx,sz||sx),P=(x,y,z)=>new THREE.Vector3(x,y,z),sec=(x,y,w,hu,hd,p,z)=>({x:x,y:y,w:w,hu:hu,hd:hd,p:p,z:z||0});
+  B.add(h4_loft([sec(.20,.06,.28,.32,.30,2.6,.07),sec(.46,.08,.44,.50,.46,2.3,.07),sec(.76,.04,.41,.45,.40,2.3,.06),sec(1.00,-.03,.29,.30,.28,2.3,.05),sec(1.16,-.07,.15,.15,.14,2.2,.04),sec(1.27,-.10,.03,.03,.03,2,.03)],10),K.col,0,0,0);
+  B.add(h4_loft([sec(.22,.10,.24,.32,.30,2.6,-.23),sec(.46,.10,.33,.44,.38,2.3,-.23),sec(.72,.06,.28,.34,.30,2.3,-.22),sec(.94,0,.18,.19,.18,2.2,-.18),sec(1.06,-.04,.05,.05,.05,2,-.15)],10),K.colD,0,0,0);
+  boule(K.col,.30,.46,.32,.22,.12,.16);boule(K.colD,.26,.44,-.36,.26,.14,.18);                         // les deux oreillettes
+  const aorte=t=>.115-.02*t,pulm=t=>.088-.014*t;
+  B.add(h4_tubeV([[.56,.38,.02],[.58,.74,.0],[.40,.98,.0],[.10,.94,0],[-.14,.66,0],[-.28,.32,0],[-.42,.10,0]],aorte,28,8,true),K.col,0,0,0);    // l'aorte : elle s'arque et plonge dans la colonne
+  B.add(h4_tubeV([[.62,.30,-.22],[.52,.62,-.30],[.24,.72,-.32],[-.04,.54,-.26],[-.30,.20,-.10]],pulm,24,7,true),K.colD,0,0,0);                 // l'artère pulmonaire
+  B.add(h4_tubeV([[.40,-.36,-.06],[.16,-.56,-.04],[-.16,-.46,0],[-.44,-.12,0]],t=>.09-.01*t,22,7,true),K.colD,0,0,0);                             // la veine cave
+  B.add(h4_tubeV([[.60,.46,-.02],[.86,.45,-.04],[1.06,.30,-.05],[1.22,.04,-.05]],t=>.016,16,5),K.or,0,0,0);                                          // la coronaire, dans le sillon
+  B.add(h4_tubeV([[.56,.30,.48],[.82,.20,.47],[1.02,.04,.34],[1.14,-.06,.18]],t=>.014,16,5),K.or,0,0,0);
+  B.add(new THREE.TorusGeometry(.53,.022,5,24),K.or,.43,.05,0,0,PI10/2,0);                              // le sillon auriculo-ventriculaire, cerclé d'or
+  boule(K.glow,1.28,-.10,0,.05);                                                                          // la pointe qui bat
+  for(let sd=-1;sd<=1;sd+=2)B.add(G10.box,K.glow,.70,.04,sd*.485,0,0,sd*.18,.46,.014,.014);          // deux filets de braise sur le flanc
+  const hg=new THREE.Group();B.fin(hg);hg.scale.setScalar(1.3);hg.position.set(-.12,0,0);g.add(hg);
+}
+
+/* HÉLIOS v2 : le tokamak devient le SOLEIL-DIEU — un masque d'or aux deux visages (un de chaque côté, le regard braise) tenu dans l'anneau
+   par six rayons, et la couronne héraldique : douze rayons-flammes qui ondulent, entre eux douze lances droites */
+function h4_helios(B,K){
+  const P=(x,y,z)=>new THREE.Vector3(x,y,z),D=(x,y,z)=>new THREE.Vector3(x,y,z).normalize(),TL=.55;
+  B.cadre(0,TL);                                                                                    // tout ce qui suit est dans le plan de l'anneau
+  for(let k=0;k<12;k++){const a=k/12*2*PI10,pts=[],n=9;
+    for(let j=0;j<=n;j++){const x=.82*j/n,c=.075*Math.sin(x*6.2),w=.095*Math.pow(1-j/(n+.6),.85);pts.push([x,c+w]);}
+    for(let j=n;j>=0;j--){const x=.82*j/n,c=.075*Math.sin(x*6.2),w=.095*Math.pow(1-j/(n+.6),.85);pts.push([x,c-w]);}
+    B.add(plan10(pts,.034,.007),K.or,Math.cos(a)*.80,Math.sin(a)*.80,0,0,0,a);                       // une flamme d'or qui ondule
+    const b=a+PI10/12;vers10(B,cone10(.055,.72,6),k%2?K.blanc:K.chrome,P(Math.cos(b)*.82,Math.sin(b)*.82,0),D(Math.cos(b),Math.sin(b),0),1);}   // la lance droite entre deux flammes
+  for(let k=0;k<6;k++){const a=k/6*2*PI10+PI10/6;BXg(B,K.or,Math.cos(a)*.39,Math.sin(a)*.39,0,0,0,a,.24,.05,.055);}   // six rayons qui tiennent le masque à l'anneau
+  for(let sz=-1;sz<=1;sz+=2){const ry=sz>0?-PI10/2:PI10/2;
+    B.add(tourX([[.001,.062],[.14,.074],[.30,.050],[.37,.0]],28),K.or,0,0,0,0,ry,0);                // le disque d'or, bombé
+    B.add(new THREE.TorusGeometry(.355,.018,5,32),K.chrome,0,0,sz*.012);
+    vers10(B,cone10(.050,.15,4),K.or,P(0,-.03,sz*.06),D(0,0,sz),1);                                  // le nez
+    for(let sd=-1;sd<=1;sd+=2){
+      BXg(B,K.noir,sd*.135,.115,sz*.078,0,0,sd*.30,.17,.026,.028);                                     // le sourcil
+      B.add(G10.sph,K.glow,sd*.135,.062,sz*.072,0,0,0,.062,.020,.020);                                   // l'œil de braise
+      BXg(B,K.noir,sd*.062,-.135,sz*.074,0,0,sd*-.45,.075,.020,.024);}                                  // les coins de la bouche
+    BXg(B,K.noir,0,-.150,sz*.074,0,0,0,.13,.022,.026);
+  }
+  B.plat();
+}
+
+/* L'ALIEN v2 — technologie étrangère : la soucoupe est une CRÉATURE. Sa verrière abrite un œil immense (iris de braise, pupille en fente)
+   qui regarde devant ; une écriture inconnue court sur le plateau ; des organes lumineux ceinturent la jante ; sous le ventre un anneau
+   d'aspiration et cinq tentacules à nœuds qui se terminent en bulbes de lumière */
+function h4_alien(B,K){
+  const sec=null,P=(x,y,z)=>new THREE.Vector3(x,y,z);
+  B.add(tourY10([[.001,-.11],[.50,-.07],[.95,-.015],[1.06,0],[.90,.04],[.62,.075],[.34,.10],[.001,.115]],24),K.col,0,-.02,0);             // la coque : une lentille à 24 facettes
+  B.add(new THREE.TorusGeometry(1.05,.034,6,48),K.chrome,0,-.02,0,PI10/2,0,0);                                                          // la jante de chrome
+  for(let k=0;k<12;k++){const a=(k+.5)/12*2*PI10;B.add(G10.sph,k%3?K.glow:K.blanc,Math.cos(a)*1.065,-.02,Math.sin(a)*1.065,0,0,0,.05,.04,.05);}   // les organes de jante
+  // l'écriture : 20 glyphes de 1 à 3 traits qui ceinturent le plateau
+  for(let k=0;k<20;k++){const a=k/20*2*PI10,v=(k*7)%4,c=Math.cos(a),sn=Math.sin(a),r0=.80,y0=.04,rr=-a,tg=-a+PI10/2;
+    const bar=(dr,dt,len,tang)=>BXg(B,K.glow,c*(r0+dr)-sn*dt,y0,sn*(r0+dr)+c*dt,0,tang?tg:rr,0,len,.016,.020);
+    if(v===0){bar(0,0,.12,false);bar(.05,.0,.05,true);}
+    else if(v===1){bar(0,-.03,.10,false);bar(0,.03,.10,false);}
+    else if(v===2){bar(0,0,.12,true);B.add(G10.sph,K.glow,c*(r0+.08)-sn*0,y0,sn*(r0+.08),0,0,0,.02,.016,.02);}
+    else{bar(-.03,0,.07,false);bar(.03,.03,.07,true);bar(.03,-.03,.07,true);}}
+  // la verrière et l'œil (incliné : il regarde devant ET vers le haut, pour se lire de côté comme de dessus)
+  B.add(new THREE.TorusGeometry(.62,.035,6,32),K.chrome,0,.075,0,PI10/2,0,0);
+  const ye=.31,er=.235,tt=.30;                                                                                                            // DEUX yeux, tournés vers l'avant et le dehors : de côté, l'un te regarde toujours
+  for(let sd=-1;sd<=1;sd+=2){const ez=sd*.255,ex=.10,bt=-sd*.85;
+    B.add(G10.sph,K.blanc,ex,ye,ez,0,0,0,er,er,er);
+    B.add(new THREE.SphereGeometry(er*1.012,20,7,0,2*PI10,0,.95).rotateZ(-PI10/2),K.glowC,ex,ye,ez,0,bt,tt);                                  // l'iris
+    B.add(new THREE.SphereGeometry(er*1.03,16,6,0,2*PI10,0,.52).rotateZ(-PI10/2),K.glow,ex,ye,ez,0,bt,tt);                                  // son anneau de braise
+    B.add(new THREE.SphereGeometry(er*1.05,12,5,0,2*PI10,0,.20).rotateZ(-PI10/2),K.noir,ex,ye,ez,0,bt,tt,1,2.4,.5);}                         // la pupille en fente
+  const verre=new THREE.MeshPhongMaterial({color:K.verre.color,transparent:true,opacity:.17,shininess:300,specular:0xffffff,envMap:envTex,reflectivity:.55,combine:THREE.MixOperation,depthWrite:false});   // une vraie verrière claire : on voit l'œil
+  B.add(new THREE.SphereGeometry(.62,24,10,0,PI10*2,0,PI10/2),verre,0,.075,0);
+  // le dessous : l'anneau d'aspiration, ses rayons, et cinq tentacules à nœuds
+  B.add(new THREE.TorusGeometry(.42,.04,6,32),K.chrome,0,-.115,0,PI10/2,0,0);
+  B.add(tourY10([[.001,0],[.38,0]],24),K.glow,0,-.125,0);
+  for(let k=0;k<5;k++){const a=k/5*2*PI10+.3,c=Math.cos(a),sn=Math.sin(a),sg=k%2?1:-1;
+    const pts=[[c*.62,-.08,sn*.62],[c*.82,-.38,sn*.82],[c*.62+sn*.12*sg,-.74,sn*.62-c*.12*sg],[c*.86,-1.0,sn*.86],[c*.74,-1.22,sn*.74]];
+    B.add(h4_tubeV(pts,t=>(.062*(1-t)+.014)*(1+.22*Math.sin(t*34)),34,6,true),K.colD,0,0,0);
+    B.add(G10.sph,K.glow,pts[4][0],pts[4][1]-.02,pts[4][2],0,0,0,.07,.07,.07);}
+}
+
+/* L'OUROBOROS D'ARGENT v2 (Léo : « un moteur argenté en boucles infinies ») — le NŒUD EST le serpent : un trèfle (torus-knot 2,3) de chrome
+   écaillé, qui s'amincit en queue, s'épaissit au cou, et dont la TÊTE sculptée (crâne à arcades, museau effilé, mâchoire ouverte,
+   deux longs crocs, cornes et crête d'or, yeux de glace) mord la pointe de sa propre queue. La nacelle traverse le nœud, tenue par quatre haubans. */
+function h4_ouro(B,K){
+  const V=(x,y,z)=>new THREE.Vector3(x,y,z),R=1.0,r0=.46,tau=.45;
+  const Kt=u=>{const t=u*2*Math.PI,rr=R+r0*Math.cos(3*t),x=r0*1.1*Math.sin(3*t),y=rr*Math.cos(2*t),z=rr*Math.sin(2*t);
+    return V(x*Math.cos(tau)-y*Math.sin(tau),x*Math.sin(tau)+y*Math.cos(tau),z);};
+  const U1=.955,Ph=Kt(U1),Pt=Kt(.012),dv=Pt.clone().sub(Ph),Lh=dv.length()*1.18+.04;
+  // le corps : 0 → .935, écailles (anneaux), queue fine, cou épais
+  const pts=[];for(let k=0;k<=150;k++){const q=Kt(U1*k/150);pts.push([q.x,q.y,q.z]);}
+  const rb=t=>{const base=t<.06?.03+.08*t/.06:.11+.016*Math.sin(t*9);const neck=t>.86?.034*(t-.86)/.14:0;return (base+neck)*(1+.11*Math.sin(t*400));};
+  B.add(h4_tubeV(pts,rb,300,8,true),K.chrome,0,0,0);
+  for(const u of [.14,.26,.38,.50,.62,.74]){const a=Kt(u-.002),b=Kt(u+.002),c=Kt(u),tg=b.clone().sub(a),gg=new THREE.TorusGeometry(.150,.020,5,14).rotateY(PI10/2);   // les bagues d'or du corps
+    h4_pose(B,gg,K.or,c,tg,V(0,c.y,c.z),1);}
+  // la tête, construite en longueur 1 dans son repère (+x devant, +y haut), posée au cou
+  const fw=dv.clone().normalize(),up=V(0,Ph.y,Ph.z).normalize(),sec=(x,y,w,hu,hd,p,z)=>({x:x,y:y,w:w,hu:hu,hd:hd,p:p||2.6,z:z||0});
+  const put=(geo,m,tx,ty,tz,rz)=>{if(rz)geo.rotateZ(rz);geo.translate(tx||0,ty||0,tz||0);h4_pose(B,geo,m,Ph,fw,up,Lh);};
+  const vc=(r,l,m,x,y,z,dx,dy,dz)=>{const g=cone10(r,l,6),q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1,0,0),new THREE.Vector3(dx,dy,dz).normalize());g.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(q));put(g,m,x,y,z);};
+  put(h4_loft([sec(-.04,0,.12,.11,.11),sec(.12,.01,.24,.19,.14),sec(.32,.0,.25,.19,.12),sec(.55,-.01,.18,.13,.09),sec(.80,-.02,.13,.09,.07),sec(.97,-.03,.10,.07,.05),sec(1.04,-.03,.05,.04,.03,2.2)],10),K.chrome,0,0,0);
+  put(h4_loft([sec(.00,-.02,.12,.05,.05),sec(.20,-.05,.15,.05,.06),sec(.55,-.07,.11,.04,.05),sec(.82,-.06,.07,.035,.04),sec(.92,-.05,.04,.03,.03,2.2)],8),K.alu,.05,-.10,0,-.30);   // la mâchoire, ouverte
+  for(let sd=-1;sd<=1;sd+=2){
+    put(new THREE.SphereGeometry(.045,8,6),K.glow,.30,.12,sd*.215);                                                                    // l'œil de glace
+    put(h4_loft([sec(.14,.20,.05,.025,.025,2.4,sd*.20),sec(.34,.205,.06,.03,.03,2.4,sd*.24),sec(.52,.15,.04,.02,.02,2.4,sd*.15)],6),K.or,0,0,0);   // l'arcade d'or
+    vc(.030,.24,K.or,.62,-.05,sd*.07,.20,-1,sd*.06);                                                                                  // les deux longs crocs
+    vc(.026,.10,K.or,.36,-.05,sd*.17,.10,-1,sd*.10);vc(.026,.10,K.or,.50,-.04,sd*.13,.10,-1,sd*.10);
+    vc(.028,.14,K.chrome,.58,-.19,sd*.05,.30,1,sd*.05);                                                                                  // les crocs du bas
+    vc(.045,.42,K.or,.10,.14,sd*.13,-1,.50,sd*.35);                                                                                      // les cornes qui balaient vers l'arrière
+    vc(.028,.20,K.or,.88,.0,sd*.04,1,.15,sd*.15);}                                                                                       // les naseaux : deux pointes
+  for(let k=0;k<4;k++)vc(.035-.005*k,.20-.025*k,K.or,.34-k*.09,.19-k*.006,0,-.45,1,0);                                                    // la crête d'or sur le crâne
+  put(h4_loft([sec(.55,-.052,.035,.012,.012,2),sec(.98,-.06,.04,.012,.012,2)],5),K.glow,.05,-.10,0,-.30);                                  // la langue de braise
+  // la nacelle qui traverse le nœud, ses bandes d'or, son anneau de braise, ses quatre haubans (ils touchent le nœud ET la nacelle)
+  TX(B,K.chrome,[[.001,0],[.16,.04],[.28,.30],[.33,.78],[.28,1.22],[.16,1.58],[.001,1.84]],-.80,0,0,0,18);
+  for(const x of [-.36,.42])B.add(new THREE.TorusGeometry(.30,.032,5,20),K.or,x,0,0,0,PI10/2,0);
+  B.add(new THREE.TorusGeometry(.335,.022,5,20),K.glow,.03,0,0,0,PI10/2,0);
+  B.add(G10.sph,K.blanc,1.06,0,0,0,0,0,.10,.10,.10);
+  for(const u of [.10,.34,.60,.84]){const q=Kt(u);B.add(tube10([[0,0,0],[q.x,q.y,q.z]],.034,1,6),K.chrome,0,0,0);}
+}
+
+/* LA COMÈTE v2 — le noyau est une TÊTE DE RENARD DE GLACE (Léo : « tête de comète / renard de feu ») : crâne facetté, museau long et fin,
+   deux oreilles de cristal à cœur de braise, fraise de joues, crinière d'éclats de glace qui se couche vers la queue, moustaches ;
+   les trois cônes de feu partent de son cou, un anneau d'or le tient, l'ancienne queue d'ions bleue le suit */
+function h4_comete(B,K){
+  const P=(x,y,z)=>new THREE.Vector3(x,y,z),D=(x,y,z)=>new THREE.Vector3(x,y,z).normalize(),k=1.9,x0=.10;
+  const sec=(x,y,w,hu,hd,p,z)=>({x:x0+x*k,y:y*k,w:w*k,hu:hu*k,hd:hd*k,p:p||2.6,z:(z||0)*k});
+  B.add(h4_loft([sec(-.05,0,.28,.28,.26),sec(.15,.0,.42,.34,.28),sec(.40,-.01,.30,.24,.19),sec(.68,-.03,.18,.14,.11),sec(.90,-.05,.11,.09,.07),sec(1.0,-.06,.06,.05,.04,2.2)],8),K.col,0,0,0);
+  B.add(h4_loft([sec(.20,-.15,.20,.05,.07),sec(.55,-.12,.14,.04,.05),sec(.85,-.11,.08,.03,.04,2.2)],6),K.blanc,0,0,0);             // le dessous du museau, clair
+  B.add(G10.sph,K.glow,x0+1.0*k,-.06*k+.01,0,0,0,0,.06,.05,.06);                                                                 // le nez de braise
+  const pk=(x,y,z,d,r,l,m,sg)=>vers10(B,cone10(r*k,l*k,sg||4),m,P(x0+x*k,y*k,z*k),d,1);
+  B.add(h4_loft([sec(.34,.235,.035,.022,.02),sec(.68,.115,.028,.018,.016),sec(.96,.0,.02,.012,.012)],5),K.blanc,0,0,0);              // l'arête du nez, claire
+  for(let sd=-1;sd<=1;sd+=2){
+    pk(.10,.24,sd*.24,D(-.15,1,sd*.60),.17,.85,K.metal);pk(.12,.26,sd*.23,D(-.15,1,sd*.60),.095,.64,K.glow);                       // l'oreille de cristal et son cœur de braise
+    pk(.22,-.02,sd*.34,D(-.55,-.10,sd*1.0),.10,.40,K.col);pk(.20,-.10,sd*.32,D(-.60,-.35,sd*.9),.08,.34,K.col);pk(.18,.07,sd*.34,D(-.45,.25,sd*1.0),.08,.32,K.col);   // la fraise des joues
+    B.add(G10.sph,K.noir,x0+.43*k,.15*k,sd*.19*k,0,0,0,.10*k,.065*k,.045*k);                                                          // l'orbite
+    B.add(G10.box,K.glow,x0+.46*k,.155*k,sd*.222*k,0,sd*-.32,sd*.25,.15*k,.032*k,.020*k);                                           // l'œil : une fente de braise
+    B.add(h4_loft([sec(.28,.215,.075,.034,.026,2.4,sd*.185),sec(.44,.225,.085,.036,.028,2.4,sd*.20),sec(.60,.17,.05,.028,.022,2.4,sd*.13)],6),K.blanc,0,0,0);   // l'arcade
+    for(let j=0;j<3;j++)pk(.72,-.04-j*.02,sd*.10,D(-.9,-.05+j*.14,sd*(.5+j*.3)),.014,.52+j*.08,K.blanc,4);}                       // les moustaches
+  for(let j=0;j<12;j++){const a=j/12*2*Math.PI,c=Math.cos(a),sn=Math.sin(a);pk(-.02,sn*.27,c*.27,D(-1,sn*.45,c*.45),.07,.62+(j%3)*.10,j%2?K.metal:K.col);}   // la crinière : douze éclats couchés vers la queue
+  // l'anneau d'or, penché, tenu au cou par quatre rayons
+  {const tau=.5,Rr=.62*k;B.add(new THREE.TorusGeometry(Rr,.036,6,40).rotateY(PI10/2).rotateZ(tau),K.or,x0-.04,0,0);
+   for(let j=0;j<4;j++){const a=j/4*2*PI10+.4,c=Math.cos(a),sn=Math.sin(a);
+     B.add(tube10([[x0-.04,sn*.27*k,c*.27*k],[x0-.04-Rr*sn*Math.sin(tau),Rr*sn*Math.cos(tau),Rr*c]],.02,1,6),K.or,0,0,0);}}
+  B.add(cone10(.20,3.0,16),K.halo(0x6ab8ff,.40),x0-.02,.05,.05,0,PI10*.97,.06);                                                      // la queue d'ions, bleue
+}
+
+/* LA NAISSANCE v2 — un LOTUS DE LUMIÈRE : trois couronnes de pétales facettés (argent, rose, or) s'ouvrent sur une étoile qui vient de naître,
+   la tige se creuse en tuyère ; derrière lui, les grands anneaux de l'ancienne supernova s'élargissent en reculant, tenus aux
+   pétales et entre eux par des tirants d'or */
+function h4_naissance(B,K){
+  const V=(x,y,z)=>new THREE.Vector3(x,y,z),PI=Math.PI;
+  const cal=[[8,.24,1.60,.20,K.chrome,0,.08],[8,.60,1.38,.22,K.glow,PI/8,.14],[10,1.12,1.04,.22,K.or,PI/10,.18]];   // [nombre, ouverture (rad), longueur, demi-largeur, matière, phase, relevé du bout]
+  for(let L=0;L<3;L++){const c=cal[L];
+    for(let k=0;k<c[0];k++){const f=k/c[0]*2*PI+c[5],cf=Math.cos(f),sf=Math.sin(f),al=c[1],r0=.14+.05*L;
+      h4_pose(B,h4_petale(c[2],c[3],.045,c[6],1.4),c[4],V(-.05+L*.02,r0*cf,r0*sf),V(Math.cos(al),Math.sin(al)*cf,Math.sin(al)*sf),V(0,cf,sf),1);}}
+  for(let k=0;k<6;k++){const f=k/6*2*PI+.3,cf=Math.cos(f),sf=Math.sin(f);                                                  // les sépales : le calice, vers l'arrière
+    h4_pose(B,h4_petale(.62,.12,.035,.2,1.4),K.colD,V(-.12,.16*cf,.16*sf),V(-.8,.6*cf,.6*sf),V(0,cf,sf),1);}
+  // la tige qui se creuse en tuyère
+  TX(B,K.chrome,[[.34,0],[.30,.20],[.22,.55],[.17,.90],[.20,1.05],[.34,1.25]],-.05,0,0,PI,24);
+  for(const d of [.22,.62,.98]){const rr=d<.4?.31:d<.8?.20:.19;B.add(new THREE.TorusGeometry(rr+.02,.026,5,24),K.or,-.05-d,0,0,0,PI/2,0);}
+  TX(B,K.haloF,[[.001,0],[.32,.12],[.001,.46]],-1.30,0,0,PI,16);
+  // l'étoile qui naît au creux de la fleur, son halo, son faisceau
+  B.add(G10.sph,K.blanc,.34,0,0,0,0,0,.30,.30,.30);B.add(new THREE.SphereGeometry(.58,16,12),K.halo(0xffe6a0,.20),.30,0,0);
+  B.add(cone10(.14,1.5,12),K.haloC,.35,0,0,0,0,0);B.add(cone10(.045,1.9,8),K.blanc,.35,0,0,0,0,0);
+  // les grands anneaux de supernova : le premier touche les pointes des pétales, les tirants d'or tiennent les autres
+  const rg=[[1.12,.34,K.or,0xffd780,0],[1.36,.22,K.chrome,0xffffff,.55],[1.60,.10,K.col,0xff8ac0,-.55]];
+  const rp=(r,a)=>{const st=Math.sin(a),sn=Math.sin(r[4]),cs=Math.cos(r[4]);return [r[1]-r[0]*st*sn,r[0]*st*cs,r[0]*Math.cos(a)];};
+  for(const r of rg){B.add(new THREE.TorusGeometry(r[0],.034,6,64).rotateY(PI/2).rotateZ(r[4]),r[2],r[1],0,0);B.add(new THREE.TorusGeometry(r[0],.07,6,64).rotateY(PI/2).rotateZ(r[4]),K.halo(r[3],.30),r[1],0,0);}
+  const dist=(u,v)=>Math.hypot(u[0]-v[0],u[1]-v[1],u[2]-v[2]);
+  for(let q=0;q<2;q++){const A=rg[q],Bq=rg[q+1];                                                                                // les tirants : là où deux anneaux se frôlent (deux endroits par paire)
+    for(let h=0;h<2;h++){let best=9,pa=null,pb=null;
+      for(let i=0;i<72;i++)for(let j=0;j<72;j++){const a=(i/72+h)*PI,b=(j/72+h)*PI,u=rp(A,a),v=rp(Bq,b),d=dist(u,v);if(d<best){best=d;pa=u;pb=v;}}
+      B.add(tube10([pa,pb],.022,1,6),K.or,0,0,0);B.add(G10.sph,K.or,pa[0],pa[1],pa[2],0,0,0,.05,.05,.05);B.add(G10.sph,K.or,pb[0],pb[1],pb[2],0,0,0,.05,.05,.05);}}
+  for(let k=0;k<16;k++){const a=k/16*2*PI,p2=rp(rg[2],a),c=rg[2][1];vers10(B,cone10(.05,.30,5),K.or,V(p2[0],p2[1],p2[2]),V(p2[0]-c,p2[1],p2[2]).normalize(),1);}   // des rayons au bord de l'onde
+}
+
+/* L'INFINI v2 — le sommet : le trou noir À CAGE de l'ancien (Léo : « mieux comme avant »), en grand et dans l'axe du moteur. Une singularité,
+   son disque d'accrétion tout un spectre de lumière (penché, les jets le traversent en son centre), l'anneau de photons, la cage de
+   méridiens (argent et or) qui se rejoignent à deux COURONNES d'or aux pôles (devant : le diadème ; derrière : la tuyère), et le SIGNE ∞ en
+   or massif posé à plat : ses deux boucles enlacent les jets, son croisement est la singularité elle-même */
+function h4_infini(B,K){
+  const V=(x,y,z)=>new THREE.Vector3(x,y,z),PI=Math.PI,R=1.16;
+  B.add(new THREE.SphereGeometry(.44,24,16),new THREE.MeshBasicMaterial({color:0x010106}),0,0,0);   // la singularité : NOIRE (un noir qui ne reflète rien, sans halo additif qui la grise)                  // la singularité et sa lueur
+  // le disque d'accrétion : seize anneaux de lumière, du blanc au violet, penchés sur les jets
+  const sp=[0xffffff,0xfff8e0,0xfff2c0,0xffe2a0,0xffd780,0xffc060,0xffb050,0xff9a44,0xff8a3c,0xff6a48,0xff5a50,0xf04a80,0xe03ca0,0xb02ac8,0x7a22c8,0x401890];
+  for(let k=0;k<16;k++){const t=k/15,r=.60+t*.92;B.add(new THREE.TorusGeometry(r,.036+.013*t,6,48).rotateY(PI/2),K.halo(sp[k],.64-.26*t),0,0,0,0,.52,0,.30,1,1);}
+  B.add(new THREE.TorusGeometry(.49,.016,6,56).rotateY(PI/2),K.blanc,0,0,0,0,.52,0,.9,1,1);                                  // l'anneau de photons
+  // la cage : six grands cercles passant par les pôles (X) = douze méridiens, deux parallèles par hémisphère, l'équateur d'or
+  for(let k=0;k<6;k++){B.add(new THREE.TorusGeometry(R,.028,6,64),k%2?K.or:K.chrome,0,0,0,k/6*PI,0,0);}
+  B.add(new THREE.TorusGeometry(R,.034,6,64).rotateY(PI/2),K.or,0,0,0);
+  for(const sd of [-1,1])for(const fr of [.50,.80]){const rr=R*Math.sqrt(1-fr*fr);B.add(new THREE.TorusGeometry(rr,.020,6,48).rotateY(PI/2),K.chrome,sd*R*fr,0,0);}
+  for(let k=0;k<14;k++){const a=k/14*2*PI+.13,fr=.80,rr=R*Math.sqrt(1-fr*fr);B.add(G10.sph,K.glow,(k%2?1:-1)*R*fr,Math.cos(a)*rr,Math.sin(a)*rr,0,0,0,.04,.04,.04);}   // des braises accrochées aux parallèles
+  // les couronnes d'or des deux pôles : devant le diadème (huit pointes), derrière la tuyère
+  for(const sd of [-1,1]){const x=sd*R;
+    B.add(new THREE.TorusGeometry(.17,.042,6,24).rotateY(PI/2),K.or,x,0,0);
+    for(let k=0;k<8;k++){const a=k/8*2*PI,c=Math.cos(a),sn=Math.sin(a);vers10(B,cone10(.036,sd>0?.46:.26,6),K.or,V(x,c*.17,sn*.17),V(sd,c*.34,sn*.34).normalize(),1);}
+    B.add(G10.sph,K.blanc,x+sd*.04,0,0,0,0,0,.09,.09,.09);}
+  // l'∞ : un lemniscate d'or, à plat, dont le croisement est la singularité (les deux bouts s'y perdent)
+  const pts=[],a0=2.15;for(let k=0;k<=96;k++){const t=PI/2+k/96*2*PI,d=1+Math.sin(t)*Math.sin(t);pts.push([a0*Math.cos(t)/d,0,a0*Math.sin(t)*Math.cos(t)/d*1.18]);}
+  B.add(h4_tubeV(pts,t=>.052+.012*Math.sin(t*2*PI*2),160,8,false),K.or,0,0,0);
+  B.add(h4_tubeV(pts,t=>.020,160,6,false),K.chrome,0,.05,0);                                                                 // un filet d'argent sur le dessus
+  // les deux jets : le trait de lumière dans l'axe — le plus long file en arrière (la poussée)
+  B.add(cone10(.12,1.9,14),K.haloC,.30,0,0,0,0,0);B.add(cone10(.12,2.5,14),K.haloC,-.30,0,0,0,PI,0);
+  B.add(cone10(.045,2.1,10),K.blanc,.30,0,0,0,0,0);B.add(cone10(.045,2.7,10),K.blanc,-.30,0,0,0,PI,0);
+}
+function h4_petale(L,W,T,curl,p){      // un pétale facetté : fuseau plat, relevé en bout (curl), pointu
+  const s=[];for(let k=0;k<=7;k++){const u=k/7;s.push({x:L*u,y:curl*L*u*u,w:W*Math.pow(Math.sin(Math.PI*Math.pow(u,.62)),.9)+.004,hu:T*(1-.5*u)+.003,hd:T*(1-.5*u)+.003,p:p||1.4});}
+  return h4_loft(s,6);
+}
 function theme30(B,i,K,c,g){
   const L=c.L||2,XE=L*.5,top=c.top||.85,tw=c.tw||.18;
   const P=(x,y,z)=>new THREE.Vector3(x,y,z),D=(x,y,z)=>new THREE.Vector3(x,y,z).normalize();
@@ -747,89 +1031,38 @@ function theme30b(B,i,K,g){   // (B est réassignable : le dragon noir bâtit sa
       B.add(h3_tris(h3_prism(A1,B1,T,[.03,0,0])),(k+r)%2?K.colD:K.col,0,0,0);}                                                                                                           // la collerette
     for(let k=0;k<4;k++){const x=-.85+k*.42;for(let j=0;j<6;j++){const a=j/6*2*PI10;B.add(G10.box,K.glow,x+.12,Math.sin(a)*.448,Math.cos(a)*.448,a,0,0,.08,.012,.012);}}
     break;}
-  case 22:{ // LE CŒUR BATTANT — un cœur laqué à la tête, aorte et veines qui courent jusqu'à la tuyère
-    boule(K.col,1.18,.12,.12,.26);boule(K.col,1.18,.12,-.12,.26);corne(P(1.18,0,0),D(0,-1,0),.33,.48,K.col);tige(P(.95,0,0),P(1.10,0,0),.12,K.colD);
-    tige(P(1.18,.32,0),P(1.02,.58,0),.08,K.colD);B.add(new THREE.TorusGeometry(.18,.08,8,16,PI10),K.colD,.84,.58,0,0,0,0);
-    for(let k=0;k<4;k++){const a=k/4*2*PI10;B.add(tube10([[.70,Math.sin(a)*.2,Math.cos(a)*.2],[.2,Math.sin(a)*.27,Math.cos(a)*.27],[-.6,Math.sin(a+.5)*.35,Math.cos(a+.5)*.35],[-1.1,Math.sin(a)*.20,Math.cos(a)*.20]],.02,20,5),K.colD,0,0,0);}
+  case 22:{ // LE CŒUR BATTANT v2 — le réacteur EST un cœur (h4_coeur) : ventricules de rubis, aorte qui plonge dans la colonne, veines le long des anneaux
+    h4_coeur(K,g);
+    for(let j=0;j<5;j++){const pts=[];for(let k=0;k<10;k++){const a=j/5*2*PI10+k*.27,R=.19+k*.045-.03;pts.push([.30-k*.17,Math.cos(a)*R,Math.sin(a)*R]);}
+      pts.unshift([.46,Math.cos(j/5*2*PI10)*.16,Math.sin(j/5*2*PI10)*.16]);
+      B.add(h4_tubeV(pts,t=>.034-.012*t,40,6,true),K.colD,0,0,0);}                                       // une veine par anneau, qui s'enroule jusqu'à la tuyère
     break;}
-  case 23:{ // LE DRAGON NOIR (Léo : « un dragon noir, la tête qui fait la tête du réacteur, pas besoin de corps, une tête de T-rex avec des
-    //   cornes ») — la gueule REMPLACE le dôme : crâne massif, museau long et carré, mâchoire inférieure ouverte sur la braise du cœur,
-    //   rangées de crocs, arcades sourcilières lourdes, yeux de braise, deux grandes cornes qui balaient vers l'arrière, crête de pointes
-    const B0=B;B=bat10();B.f=true;B.plat();                                             // la tête est bâtie à part puis GRANDIE (×1,6) devant le dôme
-    const X0=.62,noir=K.col;
-    BXg(B,noir,X0+.30,.12,0,0,0,-.08,.72,.66,.70);                                      // le crâne
-    BXg(B,noir,X0+.88,.10,0,0,0,-.04,.62,.36,.46);                                      // le museau
-    BXg(B,noir,X0+1.20,.09,0,0,0,0,.18,.30,.40);
-    for(let sd=-1;sd<=1;sd+=2)boule(K.or,X0+1.27,.18,sd*.12,.04);                       // les naseaux cerclés d'or
-    BXg(B,noir,X0+.80,-.36,0,0,0,-.42,.80,.14,.40);                                     // la mâchoire inférieure, ouverte
-    B.add(tourX([[.001,0],[.22,0],[.22,.02],[.001,.02]],12),K.glow,X0+.95,-.12,0,0,0,-.21);   // la braise au fond de la gueule
-    for(let sd=-1;sd<=1;sd+=2)for(let k=0;k<6;k++){const x=X0+.62+k*.11;
-      corne(P(x,-.08,sd*.20),D(0,-1,0),.028,.13-k*.008,K.blanc);                      // crocs du haut
-      corne(P(x-.02,-.40+(k*.11)*.45,sd*.18),D(0,1,0),.024,.10,K.blanc);}              // crocs du bas
-    for(let sd=-1;sd<=1;sd+=2){
-      BXg(B,noir,X0+.52,.44,sd*.24,0,0,-.25,.40,.12,.16);                              // l'arcade sourcilière
-      boule(K.glow,X0+.62,.34,sd*.30,.06,.045,.045);                                   // l'œil de braise
-      const c0=P(X0+.30,.46,sd*.30),c1=P(X0-.05,.85,sd*.55);tige(c0,c1,.08,K.or);       // la grande corne
-      corne(c1,D(-1,.55,sd*.35),.075,.55,K.or);
-      corne(P(X0+.05,.20,sd*.36),D(-1,-.1,sd*.6),.05,.35,noir);                         // les cornes de joue
-      corne(P(X0+.55,-.30,sd*.22),D(-.3,-1,sd*.5),.035,.20,noir);}                      // les épines de mâchoire
-    for(let k=0;k<5;k++)corne(P(X0+.55-k*.16,.46-k*.02,0),D(-.4,1,0),.05,.26-k*.03,K.or);    // la crête
-    {const hg=new THREE.Group();B.fin(hg);hg.scale.setScalar(1.6);hg.position.set(-.45,.02,0);g.add(hg);}B=B0;
+  case 23:{ // LE DRAGON NOIR (Léo : « la tête qui fait la tête du réacteur, pas besoin de corps, une tête de T-rex avec des cornes ») — v2 : la tête
+    //   est SCULPTÉE par sections (h4_dragon) : crâne, arcades, museau, mâchoire ouverte sur la braise, crocs inégaux, cornes annelées
+    h4_dragon(K,g);
     break;}
 
 
-  case 24:{ // HÉLIOS — une couronne de rayons d'or plantés tout autour du tore : le soleil captif
-    const TL=.55,ct=Math.cos(TL),st=Math.sin(TL);
-    for(let k=0;k<28;k++){const a=k/28*2*PI10,cx=Math.cos(a),sy=Math.sin(a),d=D(cx,sy*ct,sy*st);corne(P(cx*.84,sy*.84*ct,sy*.84*st),d,.05,k%2?.30:.55,k%2?K.or:K.blanc);}
+  case 24:{ // HÉLIOS v2 — le soleil-dieu : un masque d'or à deux visages dans l'anneau, douze flammes qui ondulent, douze lances (h4_helios)
+    h4_helios(B,K);
     break;}
-  case 25:{ // L'ALIEN — la soucoupe qui ceinture le noyau, son dôme de verre, ses feux de bord, des glyphes inconnus, trois pattes souples
-    B.add(tourY10([[.001,-.08],[.70,-.03],[1.05,0],[.70,.05],[.30,.10],[.001,.12]],32),K.col,0,-.02,0);
-    B.add(new THREE.TorusGeometry(1.04,.035,6,48),K.chrome,0,-.02,0,PI10/2,0,0);
-    for(let k=0;k<16;k++){const a=k/16*2*PI10;boule(k%2?K.glow:K.blanc,Math.cos(a)*1.04,-.02,Math.sin(a)*1.04,.045);
-      BXg(B,K.glow,Math.cos(a)*.62,.05,Math.sin(a)*.62,0,-a,(k%3)*.5,.12,.012,.03);}
-    B.add(new THREE.SphereGeometry(.46,20,10,0,PI10*2,0,PI10/2),K.verre,0,.10,0);
-    for(let k=0;k<3;k++){const a=k/3*2*PI10+.4,c=Math.cos(a),sn=Math.sin(a);
-      B.add(tube10([[c*.45,-.06,sn*.45],[c*.75,-.40,sn*.75],[c*.60,-.80,sn*.60],[c*.80,-1.0,sn*.80]],.035,16,6),K.colD,0,0,0);boule(K.glow,c*.80,-1.0,sn*.80,.06);}
+  case 25:{ // L'ALIEN v2 — la soucoupe EST la créature : un œil de braise sous la verrière, des glyphes, des organes de jante, cinq tentacules (h4_alien)
+    h4_alien(B,K);
     break;}
-  case 26:{ // L'OUROBOROS D'ARGENT (Léo : « un moteur argenté en boucles infinies ») — trois NŒUDS DE CHROME imbriqués autour de la nacelle (trèfle,
-    //   cinq lobes, anneau), et sur la boucle extérieure un serpent d'argent qui se mord la queue ; un cœur blanc, un rayon de plasma, quatre haubans
-    const R=.90,tk=(p,q,r,rad,m,rx,ry,rz)=>B.add(new THREE.TorusKnotGeometry(r,rad,90,8,p,q),m,0,0,0,rx,ry,rz);
-    tk(2,3,R*.88,.10,K.chrome,0,PI10/2,0);B.add(new THREE.TorusGeometry(R*.40,.045,8,48),K.alu,0,0,0,0,PI10/2,0);   // UN grand trèfle net + son anneau de cœur
-    B.add(new THREE.TorusGeometry(R*1.30,.022,6,64),K.or,0,0,0,0,PI10/2,0);
-    const RS=R*1.30,N=44;for(let k=0;k<N;k++){const t=k/(N-1),a=t*2*PI10*.93,r=.05+.075*Math.sin(Math.min(1,t*1.6)*PI10/2);
-      B.add(G10.sph,K.chrome,0,Math.sin(a)*RS,Math.cos(a)*RS,0,0,0,r,r,r);}
-    {const ah=2*PI10*.955,hp=P(0,Math.sin(ah)*RS,Math.cos(ah)*RS),fw=D(0,Math.cos(ah),-Math.sin(ah)),up=D(0,Math.sin(ah),Math.cos(ah));
-      boule(K.chrome,hp.x,hp.y,hp.z,.13,.10,.10);corne(hp.clone().addScaledVector(fw,.08),fw,.07,.20,K.chrome);
-      for(let sd=-1;sd<=1;sd+=2){boule(K.glow,hp.x+sd*.07,hp.y+up.y*.05,hp.z+up.z*.05,.03);corne(hp.clone().addScaledVector(up,.06).add(P(sd*.06,0,0)),up.clone().addScaledVector(fw,-.7),.025,.2,K.or);}
-      const tl=P(0,Math.sin(2*PI10*.93)*RS,Math.cos(2*PI10*.93)*RS);corne(tl,D(0,Math.cos(2*PI10*.93),-Math.sin(2*PI10*.93)),.04,.12,K.chrome);}
-    TX(B,K.chrome,[[.001,0],[.16,.02],[.20,.22],[.18,.60],[.10,.92],[.001,1.0]],-.60,0,0,0,18);BAR(B,K.chrome,.06,-1.2,1.1,0,0);
-    boule(K.blanc,0,0,0,.14);boule(K.haloF,0,0,0,.26);B.add(cone10(.06,2.4,12),K.haloC,.14,0,0,0,0,0);B.add(cone10(.06,2.4,12),K.haloC,-.14,0,0,0,PI10,0);
-    for(let k=0;k<4;k++){const a=k/4*2*PI10+PI10/4;tige(P(0,0,0),P(0,Math.sin(a)*R,Math.cos(a)*R),.03,K.chrome);}
+  case 26:{ // L'OUROBOROS D'ARGENT v2 — le nœud de chrome EST le serpent, sa tête sculptée mord sa queue (h4_ouro)
+    h4_ouro(B,K);
     break;}
 
 
 
-  case 27:{ // HALLEY — des aiguilles de glace hérissent le noyau, une 2e queue d'ions bleue, et ses deux anneaux (tenus par des rayons)
-    for(const d of dirs10(14))corne(P(.60,0,0).addScaledVector(d,.30),d,.04,.28,K.blanc);
-    B.add(cone10(.16,2.5,16),K.halo(0x6ab8ff,.40),.60,.05,.05,0,PI10*.97,.06);
-    B.add(new THREE.TorusGeometry(.62,.032,8,40),K.or,.60,0,0,.5,PI10/2,0);B.add(new THREE.TorusGeometry(.52,.022,8,40),K.chrome,.32,0,0,0,PI10/2,0);
-    for(let k=0;k<4;k++){const a=k/4*2*PI10;tige(P(.60,Math.sin(a)*.30,Math.cos(a)*.30),P(.60+Math.sin(a)*.62*Math.sin(.5)*0,Math.sin(a)*.62*Math.cos(.5),Math.cos(a)*.62),.012,K.or);
-      tige(P(.45,Math.sin(a)*.25,Math.cos(a)*.25),P(.32,Math.sin(a)*.52,Math.cos(a)*.52),.010,K.chrome);}
+  case 27:{ // LA COMÈTE v2 — un renard de glace dont la queue est le feu (h4_comete)
+    h4_comete(B,K);
     break;}
-  case 28:{ // LA NAISSANCE — la double corolle, et les grands anneaux de l'ancienne supernova, en lumière
-    for(let r=0;r<2;r++)for(let k=0;k<12;k++){const a=k/12*2*PI10+r*.26;
-      B.add(plan10([[0,-.13],[.55+r*.35,-.11],[.85+r*.40,0],[.55+r*.35,.11],[0,.13]],.025,.006),r?K.or:K.blanc,0,Math.sin(a)*.26,Math.cos(a)*.26,a,PI10/2,0);}
-    for(let k=0;k<3;k++){B.add(new THREE.TorusGeometry(1.15+k*.28,.03,6,64),K.halo(k%2?0xffd780:0xff8ac0,.75),-.12*k,0,0,0,PI10/2,0);
-      B.add(new THREE.TorusGeometry(1.15+k*.28,.010,4,64),K.blanc,-.12*k,0,0,0,PI10/2,0);}
+  case 28:{ // LA NAISSANCE v2 — un lotus de lumière sur une étoile qui vient de naître, les anneaux de supernova qui s'élargissent derrière (h4_naissance)
+    h4_naissance(B,K);
     break;}
-  case 29:{ // L'INFINI (Léo : « le trou noir était mieux comme avant… fais encore mieux dans cette version ») — la CAGE de l'ancien,
-    //   en grand : douze méridiens d'acier sombre qui enserrent la bille ET son disque, couronnes d'or aux pôles avec leurs flèches,
-    //   l'anneau de photons blanc bien net au ras du disque, des braises accrochées aux arcs
-    for(let k=0;k<6;k++){const a=k/6*PI10;B.add(new THREE.TorusGeometry(1.0,.026,6,64),k%3?K.noir:K.or,0,0,0,0,a,0);}   // six grands cercles verticaux = douze méridiens
-    for(let sd=-1;sd<=1;sd+=2){B.add(new THREE.TorusGeometry(.12,.035,6,20),K.or,0,sd*1.0,0,PI10/2,0,0);corne(P(0,sd*1.03,0),D(0,sd,0),.06,.55,K.or);
-      B.add(new THREE.TorusGeometry(.70,.018,6,48),K.noir,0,sd*.71,0,PI10/2,0,0);}
-    B.add(new THREE.TorusGeometry(1.0,.024,6,72),K.or,0,0,0,PI10/2,0,0);
-    for(let k=0;k<12;k++){const a=k/12*PI10*2+.13;boule(K.glow,Math.cos(a)*.71,(k%2?1:-1)*.71,Math.sin(a)*.71,.03);}
+  case 29:{ // L'INFINI v2 — le trou noir à cage, en grand : disque penché, méridiens, couronnes d'or aux pôles, le signe ∞ (h4_infini)
+    h4_infini(B,K);
     break;}
 
   }
