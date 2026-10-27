@@ -31,6 +31,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   }
   bindHold($t('tLeft'),'ArrowLeft',start);
   bindHold($t('tRight'),'ArrowRight',start);
+  bindHold($t('tUp'),'ArrowUp',start); bindHold($t('tDown'),'ArrowDown',start); // (2026-10-27) FLÈCHES : l'assiette en vol, et le drift (bas) comme au clavier
   const nitroDown=function(){ if(!figGlisseOn())veqDoigt(true); if(boomSkip())return; start(); // (2026-10-15) en FIGURES › GLISSER, taper NITRO = booster, rien d'autre // (2026-10-14) l'appui compte pour le TONNEAU (double-tap) // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
     if(started&&!gameOver){ const n9=performance.now();
       lastSpaceT=n9; } }; // (double-tap « DÉCOLLAGE » retiré)
@@ -373,9 +374,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      Le téléphone se penche comme un volant, sur toutes les poses : droit, couché, retourné. On lit la DIRECTION DU BAS dans le repère de l'écran
      (deviceorientation → vecteur pesanteur, donc ni angle d'Euler ni signe propre à un système) : l'angle de ce vecteur est le volant, qu'on
      tourne le téléphone comme une roue (paysage) ou qu'on le bascule sur le côté (portrait). Le neutre est la pose du joueur AU DÉPART de la
-     course (et à chaque rotation de l'écran) : aucune pose à tenir. Plein braquage à 26°, zone morte 2,5°. Le pouce garde l'assiette en vol
+     course (et à chaque rotation de l'écran) : aucune pose à tenir. Plein braquage à 22°, zone morte 2,5°. Le pouce garde l'assiette en vol
      et la NITRO ; la boucle lit TCTL.inclV à la place du braquage du stick (voir boucle-1). Réglage INCLINAISON, ON/OFF, mémorisé. */
-  const INCL_PLEIN=26*Math.PI/180,INCL_MORT=2.5*Math.PI/180;
+  const INCL_PLEIN=22*Math.PI/180,INCL_MORT=2.5*Math.PI/180;
   let inclLis=0,inclOk=false,inclAttache=false;
   function inclOri(e){
     if(e.beta==null||e.gamma==null)return;
@@ -387,6 +388,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(TCTL.inclN==null)TCTL.inclN=ang;
     let rel=ang-TCTL.inclN; if(rel>Math.PI)rel-=2*Math.PI; else if(rel<-Math.PI)rel+=2*Math.PI;
     inclLis+=(rel-inclLis)*.4; // un peu de lissage : la main tremble, le capteur aussi
+    if(Math.abs(inclLis)<6*Math.PI/180)TCTL.inclN+=rel*.004; // le NEUTRE suit très lentement la main (le poignet se fatigue, la pose dérive) : jamais sur un vrai virage (> 6°)
     const m=Math.abs(inclLis); TCTL.inclV=m<INCL_MORT?0:(inclLis<0?1:-1)*Math.pow(Math.min(1,(m-INCL_MORT)/(INCL_PLEIN-INCL_MORT)),1.15); // `rel` > 0 = tourné dans le sens horaire (bord droit en bas) = braquage à DROITE (steer < 0)
     if(TCTL.incl&&TCTL.play)TCTL.doigt=true; // le lissage rapide du pouce (τ 30 ms), pas celui du clavier
   }
@@ -399,7 +401,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      VOLANT (le stick qui naît sous le pouce) → FLÈCHES (deux boutons, comme le clavier) → INCLINAISON (le téléphone penché). Mémorisé (`SAVE.d.cmd`). */
   function cmdMode(){ return TCTL.pad?'fleches':TCTL.incl?'incl':'volant'; }
   function cmdSet(m,calme){ TCTL.pad=(m==='fleches'); TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
-    if(sz)sz.classList.remove('act'); keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
+    if(sz)sz.classList.remove('act'); keys.ArrowLeft=keys.ArrowRight=keys.ArrowUp=keys.ArrowDown=false; document.body.classList.toggle('tpad',TCTL.pad);
     inclMarche(m==='incl'); SAVE.d.cmd=m; SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush();
     if(!calme&&m==='incl'){ inclPerm(); toast(pxi('coche')+' '+TR('PENCHE LE TÉLÉPHONE POUR TOURNER')); } }
   document.addEventListener('cc:jeu',function(){ TCTL.inclN=null; inclLis=0; }); // le neutre = la pose du joueur au départ de la course
@@ -414,7 +416,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(play!==TCTL.play){ TCTL.play=play; document.body.classList.toggle('play',play);
       if(gear)gear.innerHTML=pxi(play?'pause':'reglages'); // en jeu c'est un bouton PAUSE, au menu un bouton réglages
       if(!play){ for(const k in keys)keys[k]=false; TCTL.fant=(TCTL.act&&TCTL.id!=='souris')?TCTL.id:null; // (2026-10-14, chasse aux bugs) on retient le doigt encore posé sur le volant (voir le touchmove de #tSteer)
-        try{document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on').forEach(function(b){b.classList.remove('on');});}catch(e){} // (2026-10-14, chasse aux bugs) …et un bouton tenu à la mort ne reste pas DESSINÉ enfoncé à la partie suivante, nitro coupée (comme l'écouteur blur)
+        try{document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on,#tUp.on,#tDown.on').forEach(function(b){b.classList.remove('on');});}catch(e){} // (2026-10-14, chasse aux bugs) …et un bouton tenu à la mort ne reste pas DESSINÉ enfoncé à la partie suivante, nitro coupée (comme l'écouteur blur)
         TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0; if(sz)sz.classList.remove('act'); } }
   }
   document.addEventListener('cc:jeu',syncJeu); // (2026-09-25) les commandes apparaissaient 0 à 140 ms APRÈS le départ, au hasard du tick
@@ -490,7 +492,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   /* (même passe) l'appli passe derrière en plein appui : le volant est lâché plus haut (stUp), la NITRO et les flèches aussi — comme au
      `blur` (voir curseurs), qu'une WebView n'envoie pas toujours. Sans ça, une touche restée « enfoncée » repartait au REPRENDRE. */
   addEventListener('visibilitychange',function(){ if(!document.hidden)return; try{ for(const k in keys)keys[k]=false;
-    document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on').forEach(function(e){e.classList.remove('on');}); }catch(e){} });
+    document.querySelectorAll('#tNitro.on,#tLeft.on,#tRight.on,#tUp.on,#tDown.on').forEach(function(e){e.classList.remove('on');}); }catch(e){} });
   /* (même passe) LE CHAMP DE LA FENÊTRE (#modC : « colle un code de sauvegarde, ou un code secret ») : comme le pseudo (boost-depart) et
      la plaque, iOS pouvait laisser la page remontée après la fermeture du clavier — on la recale, seulement si elle a bougé. */
   try{ const mc9=$t('modC'); if(mc9)mc9.addEventListener('blur',function(){setTimeout(function(){try{if(scrollX||scrollY)scrollTo(0,0);}catch(e){}},60);}); }catch(e){}

@@ -248,6 +248,9 @@ img{-webkit-user-drag:none}
 html body #tLeft,html body #tRight{bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px)}
 html body #tLeft{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 16px)}
 html body #tRight{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + min(84px,21vh) + 30px)}
+html body #tUp,html body #tDown{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + min(84px,21vh)*2 + 48px)}
+html body #tDown{bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px)}
+html body #tUp{bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px + min(64px,16vh) + 10px)}
 /* la saisie du RECORD, couché : dans la case de l'objectif (elle ouvrait une 6e rangée et l'écran débordait) */
 @media (orientation:landscape) and (max-height:540px){html #mDead #nameEntry{grid-area:obj;align-self:start;z-index:2;background:var(--k0)}}
 /* le CONTRASTE des petits textes (8-10 px) : le lavande éteint gagne un cran (≈ 4,7:1 sur les fonds d'écran), les titres de section de la
