@@ -8,7 +8,7 @@ const TH30=[null,
  [0x1f8a6a,0x9affc8],[0x1fb8b0,0xc8a8ff],[0x2a1c14,0xffb030],[0x9a6430,0xffc040],[0x4a6680,0x9ad8ff],   // 2 scarabée · 3 colibri · 4 scorpion · 5 hibou · 6 requin
  [0xff6a3c,0xffb070],[0xff5f8a,0xffe0ea],[0x15171c,0xd8f4ff],[0x5f7d3c,0xd8ff90],[0xd8282a,0xffa030],   // 7 étoile de mer · 8 corail · 9 orques · 10 tortue · 11 roquette
  [0x1f4aff,0x9af0ff],[0x4f5f2a,0xffb030],[0x2a3a8a,0xffe08a],[0xffb000,0xfff0a0],[0x1f5a3a,0xff5030],   // 12 électrique · 13 grenade · 14 vitrail · 15 soleil · 16 dragon
- [0xc0201e,0xffd070],[0x3a2a6a,0x6affd8],[0xd9a441,0x5a8aff],[0xff4a1a,0xffc040],[0x13a8a8,0x8affff],   // 17 pagode · 18 kraken · 19 sphinx · 20 phénix · 21 atlantide
+ [0xc0201e,0xffd070],[0x3a2a6a,0x6affd8],[0xd9a441,0x5a8aff],[0xff4a1a,0xffc040],[0x4b8688,0x8affff],   // 17 pagode · 18 kraken · 19 sphinx · 20 phénix · 21 atlantide
  [0x7a8aa0,0x8ad8ff],[0xb81a3a,0xff6a80],[0x16161c,0xff4a14],[0xffc030,0xfff6c0],[0x10a86e,0xb0ffe0],   // 22 lance d'Odin · 23 cœur battant · 24 dragon cosmique · 25 Hélios · 26 alien
  [0xb4bccb,0xbfe8ff],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
 function th30Kit(E,i){const t=TH30[i];return t?Object.assign({},E,{col:t[0],flam:t[1]}):E;}
@@ -444,8 +444,13 @@ function h4_alien(B,K){
     B.add(new THREE.SphereGeometry(er*1.012,20,7,0,2*PI10,0,.95).rotateZ(-PI10/2),K.glowC,ex,ye,ez,0,bt,tt);                                  // l'iris
     B.add(new THREE.SphereGeometry(er*1.03,16,6,0,2*PI10,0,.52).rotateZ(-PI10/2),K.glow,ex,ye,ez,0,bt,tt);                                  // son anneau de braise
     B.add(new THREE.SphereGeometry(er*1.05,12,5,0,2*PI10,0,.20).rotateZ(-PI10/2),K.noir,ex,ye,ez,0,bt,tt,1,2.4,.5);}                         // la pupille en fente
-  const verre=new THREE.MeshPhongMaterial({color:K.verre.color,transparent:true,opacity:.17,shininess:300,specular:0xffffff,envMap:envTex,reflectivity:.55,combine:THREE.MixOperation,depthWrite:false});   // une vraie verrière claire : on voit l'œil
-  B.add(new THREE.SphereGeometry(.62,24,10,0,PI10*2,0,PI10/2),verre,0,.075,0);
+  // la verrière : une CAGE de nervures de chrome et un chapeau plein (retouche 27/10 : plus aucune matière transparente — les yeux se voient entre les nervures)
+  {const Rd=.62,yd=.075;
+   for(let k=0;k<8;k++){const th=k/8*2*PI10+.2,pts=[];for(let j=0;j<=8;j++){const ph=j/8*PI10/2*.93;pts.push([Rd*Math.cos(ph)*Math.cos(th),yd+Rd*Math.sin(ph),Rd*Math.cos(ph)*Math.sin(th)]);}
+     B.add(h4_tubeV(pts,t=>.026-.008*t,22,5,true),k%2?K.chrome:K.or,0,0,0);}
+   for(const ph of [.38,.80]){const rr=Rd*Math.cos(ph);B.add(new THREE.TorusGeometry(rr,.020,5,24),K.chrome,0,yd+Rd*Math.sin(ph),0,PI10/2,0,0);}
+   B.add(new THREE.SphereGeometry(Rd*1.01,16,4,0,2*PI10,0,.30),K.col,0,yd,0);                                        // le chapeau de la verrière, plein
+   B.add(G10.sph,K.glow,0,yd+Rd*1.0+.03,0,0,0,0,.05,.05,.05);}                                                          // sa lampe de pointe
   // le dessous : l'anneau d'aspiration, ses rayons, et cinq tentacules à nœuds
   B.add(new THREE.TorusGeometry(.42,.04,6,32),K.chrome,0,-.115,0,PI10/2,0,0);
   B.add(tourY10([[.001,0],[.38,0]],24),K.glow,0,-.125,0);
@@ -463,15 +468,30 @@ function h4_ouro(B,K){
   const Kt=u=>{const t=u*2*Math.PI,rr=R+r0*Math.cos(3*t),x=r0*1.1*Math.sin(3*t),y=rr*Math.cos(2*t),z=rr*Math.sin(2*t);
     return V(x*Math.cos(tau)-y*Math.sin(tau),x*Math.sin(tau)+y*Math.cos(tau),z);};
   const U1=.955,Ph=Kt(U1),Pt=Kt(.012),dv=Pt.clone().sub(Ph),Lh=dv.length()*1.18+.04;
-  // le corps : 0 → .935, écailles (anneaux), queue fine, cou épais
-  const pts=[];for(let k=0;k<=150;k++){const q=Kt(U1*k/150);pts.push([q.x,q.y,q.z]);}
-  const rb=t=>{const base=t<.06?.03+.08*t/.06:.11+.016*Math.sin(t*9);const neck=t>.86?.034*(t-.86)/.14:0;return (base+neck)*(1+.11*Math.sin(t*400));};
-  B.add(h4_tubeV(pts,rb,300,8,true),K.chrome,0,0,0);
-  for(const u of [.14,.26,.38,.50,.62,.74]){const a=Kt(u-.002),b=Kt(u+.002),c=Kt(u),tg=b.clone().sub(a),gg=new THREE.TorusGeometry(.150,.020,5,14).rotateY(PI10/2);   // les bagues d'or du corps
-    h4_pose(B,gg,K.or,c,tg,V(0,c.y,c.z),1);}
+  // le corps : une âme d'acier sombre (queue fine, cou épais) sous des PLAQUES DE CHROME qui se chevauchent comme des tuiles (retouche 27/10)
+  // la QUEUE ENTRE DANS LA GUEULE : son bout est repris dans le repère de la tête, glissé entre la mâchoire haute et la basse (retouche 27/10)
+  const hF=dv.clone().normalize(),hU=V(0,Ph.y,Ph.z).normalize(),hZ=new THREE.Vector3().crossVectors(hF,hU).normalize(),hY=new THREE.Vector3().crossVectors(hZ,hF),
+    toW=(a,b,c)=>Ph.clone().addScaledVector(hF,a*Lh).addScaledVector(hY,b*Lh).addScaledVector(hZ,c*Lh);
+  const pts=[];for(const q of [toW(.52,-.27,0),toW(.72,-.28,0),toW(.96,-.31,-.03)])pts.push([q.x,q.y,q.z]);
+  for(let k=7;k<=150;k++){const q=Kt(U1*k/150);pts.push([q.x,q.y,q.z]);}
+  const rb=t=>{const base=t<.06?.03+.08*t/.06:.11+.016*Math.sin(t*9);const neck=t>.86?.034*(t-.86)/.14:0;return (base+neck)*1.35;};
+  B.add(h4_tubeV(pts,t=>rb(t)*.78,150,8,true),K.lame,0,0,0);
+  {const pl=(()=>{const L=1,Wd=1,T=1,v=[[0,0,0],[0,0,0]],g=new THREE.BufferGeometry(),A=[.58,0,0],Bk=[-.5,0,0],Lt=[-.1,0,-.5],Rt=[-.1,0,.5],Tp=[.2,.40,0],Bt=[.0,-.15,0],P=[];
+      for(const [a1,b1] of [[Lt,Tp],[Tp,Rt],[Rt,Bt],[Bt,Lt]]){P.push(...A,...a1,...b1);P.push(...Bk,...b1,...a1);}
+      g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.computeVertexNormals();return g;})();
+   const NS=96,mats=[K.chrome,K.metal,K.chrome,K.alu];
+   for(let row=0;row<3;row++){const rot=row===0?0:(row===1?1.05:-1.05);
+     for(let k=5;k<NS;k++){const t=k/NS,u=U1*t,c=Kt(u),a=Kt(u-.002),b=Kt(u+.002),tg=a.clone().sub(b),rr=rb(t),radial=V(0,c.y,c.z).normalize();
+       const fwv=tg.clone().normalize();                                   // la pointe de chaque plaque regarde la queue, comme une écaille de serpent
+       const upv=radial.clone().applyAxisAngle(fwv,rot*(k%2?1:1));
+       const pos=c.clone().addScaledVector(upv,rr*.66);
+       const e=new THREE.Euler();const x=fwv,zz=new THREE.Vector3().crossVectors(x,upv).normalize(),yy=new THREE.Vector3().crossVectors(zz,x);
+       e.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,yy,zz),'XYZ');
+       B.add(pl,(row===0&&k%9===0)?K.or:mats[(k+row)%4],pos.x,pos.y,pos.z,e.x,e.y,e.z,.34+rr*.9,rr*1.25,rr*1.55);}}}
+  {const c=toW(.84,-.29,-.01),a=toW(.78,-.285,0),b=toW(.90,-.30,-.02);h4_pose(B,new THREE.TorusGeometry(.075,.02,5,14).rotateY(PI10/2),K.or,c,a.clone().sub(b),V(0,c.y,c.z),1);const q=toW(.50,-.27,0);B.add(G10.sph,K.glow,q.x,q.y,q.z,0,0,0,.05,.05,.05);}   // la bague d'or où la queue entre dans la gueule, et la braise de son bout
   // la tête, construite en longueur 1 dans son repère (+x devant, +y haut), posée au cou
   const fw=dv.clone().normalize(),up=V(0,Ph.y,Ph.z).normalize(),sec=(x,y,w,hu,hd,p,z)=>({x:x,y:y,w:w,hu:hu,hd:hd,p:p||2.6,z:z||0});
-  const put=(geo,m,tx,ty,tz,rz)=>{if(rz)geo.rotateZ(rz);geo.translate(tx||0,ty||0,tz||0);h4_pose(B,geo,m,Ph,fw,up,Lh);};
+  const HK=1.45,put=(geo,m,tx,ty,tz,rz)=>{if(rz)geo.rotateZ(rz);geo.scale(1,HK,HK);geo.translate(tx||0,(ty||0)*HK,(tz||0)*HK);h4_pose(B,geo,m,Ph,fw,up,Lh);};   // HK : une tête plus lourde, lisible de loin
   const vc=(r,l,m,x,y,z,dx,dy,dz)=>{const g=cone10(r,l,6),q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1,0,0),new THREE.Vector3(dx,dy,dz).normalize());g.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(q));put(g,m,x,y,z);};
   put(h4_loft([sec(-.04,0,.12,.11,.11),sec(.12,.01,.24,.19,.14),sec(.32,.0,.25,.19,.12),sec(.55,-.01,.18,.13,.09),sec(.80,-.02,.13,.09,.07),sec(.97,-.03,.10,.07,.05),sec(1.04,-.03,.05,.04,.03,2.2)],10),K.chrome,0,0,0);
   put(h4_loft([sec(.00,-.02,.12,.05,.05),sec(.20,-.05,.15,.05,.06),sec(.55,-.07,.11,.04,.05),sec(.82,-.06,.07,.035,.04),sec(.92,-.05,.04,.03,.03,2.2)],8),K.alu,.05,-.10,0,-.30);   // la mâchoire, ouverte
@@ -949,29 +969,7 @@ function theme30b(B,i,K,g){   // (B est réassignable : le dragon noir bâtit sa
     //   fausse barbe) regarde droit devant, les pattes de lion s'allongent sous elle, la poitrine tient tout le corps au rotor
     for(let k=0;k<3;k++){const x=-.52+k*.52;B.add(new THREE.ConeGeometry(.42,.50,4),K.or,x,.86,0,0,PI10/4,0);
       for(let j=0;j<4;j++)B.add(new THREE.TorusGeometry(.64,.025,5,32),j%2?K.or:K.colD,x-.11+j*.075,0,0,0,PI10/2,0);}
-    const HX=1.00,hy=.46;                                                    // le plan arrière du visage, le centre du visage
-    BXg(B,K.colD,HX-.06,hy-.55,0,0,0,0,.60,.90,.62);                          // la poitrine
-    B.add(h3_loft([{x:HX-.30,r:h3_ring({yt:hy+.22,yb:hy-.60,w:.30})},{x:HX+.05,r:h3_ring({yt:hy+.30,yb:hy-.48,w:.30})}],1),K.col,0,0,0);                 // le cou
-    B.add(h3_loft([{x:HX,r:h3_ring({yt:hy+.50,yb:hy-.42,w:.34,yw:hy+.05})},{x:HX+.20,r:h3_ring({yt:hy+.52,yb:hy-.40,w:.33,yw:hy+.05})},{x:HX+.27,r:h3_ring({yt:hy+.44,yb:hy-.36,w:.27,yw:hy+.0,wt:.22})}],1),K.col,0,0,0);   // le visage
-    {const nm=[{x:HX-.52,yt:hy+.72,yb:hy-.66,w:.62,yw:hy-.10,wt:.40,wb:.28},{x:HX-.12,yt:hy+.74,yb:hy-.70,w:.58,yw:hy-.10,wt:.42,wb:.24},{x:HX+.14,yt:hy+.66,yb:hy-.76,w:.46,yw:hy-.15,wt:.34,wb:.20},{x:HX+.20,yt:hy+.60,yb:hy-.78,w:.34,yw:hy-.20,wt:.32,wb:.16}];
-      B.add(h3_loft(nm.map(c=>({x:c.x,r:h3_ring(c)})),1),K.colD,0,0,0);                                 // le NEMÈS : un trapèze sombre qui s'évase derrière le visage
-      const zp=y=>{const d=y-hy;return d>=-.10?.58-(d+.10)/.84*.16:d>=-.46?.51+(d+.46)/.36*.07:.24+(d+.70)/.24*.27;};      // la demi-largeur du nemès à la hauteur y
-      for(let k=0;k<9;k++){const yy=hy-.62+k*.17;for(let sd=-1;sd<=1;sd+=2)BXg(B,k%2?K.glow:K.or,HX-.30,yy,sd*(zp(yy)*1.0+.012),0,0,0,.52,.07,.045);}   // les rayures or et lapis, posées sur les pans
-      BXg(B,K.or,HX-.26,hy+.74,0,0,0,0,.50,.04,.76);}                                                   // le dessus du nemès, un filet d'or
-    for(let sd=-1;sd<=1;sd+=2){BXg(B,K.colD,HX+.04,hy-.64,sd*.42,0,0,0,.12,.84,.24);for(let k=0;k<4;k++)BXg(B,k%2?K.glow:K.or,HX+.105,hy-.30-k*.17,sd*.42,0,0,0,.03,.075,.24);   // les pans du nemès qui tombent sur la poitrine
-      B.add(plan10([[0,-.07],[.20,-.095],[.34,0],[.20,.095],[0,.07]],.025,.004),K.or,HX+.12,hy+.18,sd*.265,0,sd*.18,0);   // l'œil de kohl, en amande
-      B.add(G10.sph,K.glow,HX+.30,hy+.18,sd*.23,0,0,0,.035,.04,.04);
-      B.add(plan10([[0,0],[.46,.04],[.50,.075],[0,.07]],.03,.004),K.or,HX+.10,hy+.31,sd*.265,0,sd*.18,0);                // le sourcil allongé
-      B.add(plan10([[0,0],[.30,-.02],[.36,-.07],[0,-.06]],.02,.004),K.or,HX+.12,hy+.08,sd*.265,0,sd*.18,0);}            // le fard sous l'œil
-    B.add(h3_tris(h3_prism([HX+.20,hy+.14,0],[HX+.34,hy-.08,.075],[HX+.34,hy-.08,-.075],[0,0,0]).concat(h3_prism([HX+.20,hy+.14,0],[HX+.34,hy-.14,.075],[HX+.20,hy-.14,0],[0,0,0]))),K.col,0,0,0);   // le nez
-    BXg(B,K.colD,HX+.27,hy-.24,0,0,0,0,.04,.035,.30);BXg(B,K.or,HX+.28,hy-.31,0,0,0,0,.035,.03,.24);                      // les lèvres
-    B.add(h3_tube([[HX+.25,hy-.40,0],[HX+.31,hy-.62,0],[HX+.30,hy-.92,0],[HX+.44,hy-1.08,0]],.06,.04,{sides:4}),K.or,0,0,0);BXg(B,K.glow,HX+.44,hy-1.10,0,0,0,0,.10,.10,.10);   // la fausse barbe
-    B.add(h3_tube([[HX+.18,hy+.50,0],[HX+.30,hy+.62,0],[HX+.34,hy+.80,0],[HX+.32,hy+.92,0]],.045,.03,{sides:6}),K.or,0,0,0);                 // l'uræus
-    B.add(h3_tris(h3_prism([HX+.30,hy+.84,.0],[HX+.36,hy+.74,.07],[HX+.36,hy+.74,-.07],[0,0,0])),K.or,0,0,0);boule(K.glow,HX+.38,hy+.80,0,.025);
-    for(let sd=-1;sd<=1;sd+=2){
-      BXg(B,K.col,HX+.50,-.52,sd*.30,0,0,0,.72,.20,.22);BXg(B,K.col,HX+.48,-.38,sd*.30,0,0,0,.50,.14,.20);                                         // l'avant-bras et la patte
-      for(let q=0;q<3;q++)corne(P(HX+.86,-.52,sd*.30+(q-1)*.07),D(1,-.1,0),.026,.10,K.blanc);
-      tige(P(.62,-.30,sd*.30),P(HX+.2,-.5,sd*.30),.07,K.or);}
+    h3_sphinx(B,K);
     break;}
   case 19:{ // LE PHÉNIX (artiste 3) — la turbine ouverte est le corps de l'oiseau de feu : une TÊTE sculptée (crête de plumes, bec crochu, œil de braise) remplace le cône d'entrée,
     //   deux ailes de plumes aux couleurs de la flamme jaillissent des longerons, la queue est une gerbe de plumes autour de la tuyère
@@ -999,20 +997,7 @@ function theme30b(B,i,K,g){   // (B est réassignable : le dragon noir bâtit sa
     const HX=1.12;
     for(let k=0;k<4;k++){const a=k/4*2*PI10+PI10/4,y=Math.sin(a)*.42,z=Math.cos(a)*.42;B.add(new THREE.CylinderGeometry(.05,.05,1.6,10).rotateZ(PI10/2),K.or,0,y,z);
       B.add(new THREE.CylinderGeometry(.08,.08,.06,10).rotateZ(PI10/2),K.or,.80,y,z);B.add(new THREE.CylinderGeometry(.08,.08,.06,10).rotateZ(PI10/2),K.or,-.80,y,z);}
-    B.add(h3_loft([{x:HX-.10,r:h3_ring({yt:.54,yb:-.54,w:.48,yw:.08})},{x:HX+.20,r:h3_ring({yt:.58,yb:-.56,w:.50,yw:.10})},{x:HX+.46,r:h3_ring({yt:.54,yb:-.58,w:.46,yw:.04,wt:.30})},{x:HX+.60,r:h3_ring({yt:.44,yb:-.58,w:.36,yw:.0,wt:.26})}],1),K.cu,0,0,0);   // le visage
-    for(let sd=-1;sd<=1;sd+=2){
-      B.add(h3_tube([[HX+.62,.30,sd*.06],[HX+.58,.30,sd*.22],[HX+.46,.34,sd*.36]],.05,.04,{sides:5}),K.or,0,0,0);                                                             // l'arcade
-      B.add(G10.sph,K.glow,HX+.56,.18,sd*.22,0,0,0,.05,.055,.07);B.add(new THREE.TorusGeometry(.085,.02,5,12),K.or,HX+.59,.18,sd*.22,0,PI10/2,0);                              // l'œil de glace
-      B.add(h3_tube([[HX+.62,-.14,sd*.10],[HX+.78,-.30,sd*.34],[HX+.70,-.60,sd*.40],[HX+.82,-.80,sd*.30]],.07,.02,{sides:5}),K.col,0,0,0);                                     // la moustache de vagues
-      for(let k=0;k<4;k++){const z=sd*(.08+k*.11);B.add(h3_tube([[HX+.52,-.50,z],[HX+.74,-.78,z*1.2],[HX+.58,-1.00,z*.9],[HX+.80,-1.20-.06*k,z*.5],[HX+.66,-1.40-.05*k,z*.3]],.08,.012,{sides:5}),k%2?K.col:K.colD,0,0,0);
-        boule(K.glow,HX+.66,-1.42-.05*k,z*.3,.03);}}                                                                                                                               // la barbe : des vagues qui finissent en perles
-    B.add(h3_tris(h3_prism([HX+.62,.16,0],[HX+.78,-.12,.07],[HX+.78,-.12,-.07],[0,0,0]).concat(h3_prism([HX+.62,.16,0],[HX+.78,-.16,.07],[HX+.62,-.16,0],[0,0,0]))),K.cu,0,0,0);   // le nez
-    for(let k=0;k<8;k++){const z=(k-3.5)*.115,w=Math.abs(k-3.5);                                                                                                                    // LES CHEVEUX : des vagues rejetées en arrière
-      B.add(h3_tube([[HX+.50,.46,z*.9],[HX+.15,.70+.1*(3.5-w)/3.5,z*1.3],[HX-.35,.62,z*1.8],[HX-.85,.28,z*2.2]],.08,.012,{sides:5}),k%2?K.col:K.colD,0,0,0);}
-    for(const [x,w] of [[HX+.46,0],[HX+.52,.30],[HX+.52,-.30]]){const hy=w===0?1.55:1.30;                                                                                         // LE TRIDENT : la couronne
-      B.add(h3_tube([[HX+.40,.50,w],[HX+.40,.80,w],[HX+.40,hy-.1,w]],.045,.03,{sides:6}),K.or,0,0,0);corne(P(HX+.40,hy-.12,w),D(0,1,0),.07,.30,K.or);}
-    B.add(h3_tube([[HX+.40,.74,-.34],[HX+.40,.68,0],[HX+.40,.74,.34]],.03,.03,{sides:5}),K.or,0,0,0);
-    for(const w of [-.30,.30])B.add(h3_tube([[HX+.40,.50,w],[HX+.40,.60,w*.0+w*.9],[HX+.40,.64,0]],.03,.03,{sides:4}),K.or,0,0,0);
+    h3_poseidon(B,K);
     break;}
   case 21:{ // LA LANCE D'ODIN (artiste 3) — Munin le corbeau borgne : son bec est la pointe de Gungnir, sa collerette de plumes ceint l'épaule, ses ailes sont les empennages,
     //   les runes brillent sur le fût, l'orbite vide porte une rune
@@ -1056,10 +1041,10 @@ function theme30b(B,i,K,g){   // (B est réassignable : le dragon noir bâtit sa
 
 
   case 27:{ // LA COMÈTE v2 — un renard de glace dont la queue est le feu (h4_comete)
-    h4_comete(B,K);
+    fx3_comete(B,K);
     break;}
   case 28:{ // LA NAISSANCE v2 — un lotus de lumière sur une étoile qui vient de naître, les anneaux de supernova qui s'élargissent derrière (h4_naissance)
-    h4_naissance(B,K);
+    fx3_naissance(B,K);
     break;}
   case 29:{ // L'INFINI v2 — le trou noir à cage, en grand : disque penché, méridiens, couronnes d'or aux pôles, le signe ∞ (h4_infini)
     h4_infini(B,K);
@@ -1114,3 +1099,245 @@ function h3_leaf(B,m,P,wd,o){   // une PLUME PLATE : un ruban qui s'élargit pui
   for(let k=0;k<sg;k++){T.push([A[k],Bq[k],Bq[k+1]],[A[k],Bq[k+1],A[k+1]]);}
   B.add(h3_geo(T),m,0,0,0);B.add(h3_tube(P,(o.rib||.035),.008,{sides:4}),m===K_NULL?m:(o.ribMat||m),0,0,0);}
 const K_NULL=null;
+
+// <<<RETOUCHE3>>>
+function fx3_lerp(T,v){if(v<=T[0][0])return T[0][1];for(let k=0;k<T.length-1;k++){const a=T[k],b=T[k+1];if(v<=b[0])return a[1]+(b[1]-a[1])*(v-a[0])/(b[0]-a[0]);}return T[T.length-1][1];}
+function fx3_loftY(S,n){   // des sections [{y,pts:[[x,z]…]}] reliées : une bande de nemès (normales plates)
+  const T=[];for(let k=0;k<S.length-1;k++){const a=S[k],b=S[k+1];for(let j=0;j<n;j++){const j2=(j+1)%n,
+    A=[a.pts[j][0],a.y,a.pts[j][1]],B=[a.pts[j2][0],a.y,a.pts[j2][1]],C=[b.pts[j2][0],b.y,b.pts[j2][1]],D=[b.pts[j][0],b.y,b.pts[j][1]];T.push([A,B,C],[A,C,D]);}}
+  for(const s of [S[0],S[S.length-1]]){const c=[0,s.y,0];for(const p of s.pts){c[0]+=p[0]/n;c[2]+=p[1]/n;}for(let j=0;j<n;j++){const p=s.pts[j],q=s.pts[(j+1)%n];T.push([c,[p[0],s.y,p[1]],[q[0],s.y,q[1]]]);}}
+  return h3_geo(T);}
+
+/* le relief d'un VISAGE : la profondeur x(y,z) autour du plan FX ; o règle le nez, l'arcade, les lèvres, la mâchoire */
+function fx3_dep(o){
+  const gs=(v,s)=>Math.exp(-v*v/(2*s*s)),sm=(a,b,v)=>{const t=Math.min(1,Math.max(0,(v-a)/(b-a)));return t*t*(3-2*t);},WF=o.WF;
+  return (y,z)=>{const w=fx3_lerp(WF,y),s=Math.min(1,Math.abs(z)/w),az=Math.abs(z);
+    let d=-.10*Math.pow(s,2.2)-(o.fr==null?.09:o.fr)*sm(.12,.42,y)-.07*sm(-.18,-.38,y);
+    const nh=(o.nh||.125)*sm(.19,-.04,y)*(1-sm(-.08,-.125,y)),ns=(o.ns||.020)+.03*sm(.10,-.06,y);
+    d+=nh*gs(z,ns)+.028*gs(y+.07,.02)*gs(az-.055*(o.nw||1),.025)+.02*gs(y+.075,.025)*gs(z,.03);
+    d+=(o.br||.045)*gs(y-.215,.03)*(1-Math.min(1,(az/.30)*(az/.30)))-.04*gs(y-.15,.04)*gs(az-.14,.065);
+    d+=.03*gs(y+.04,.08)*gs(az-.20,.08);
+    d+=(o.lp||1)*(.03*gs(y+.165,.016)*gs(z,.11)+.036*gs(y+.225,.02)*gs(z,.095)-.018*gs(y+.195,.011)*gs(z,.12));
+    d+=(o.ch||.045)*gs(y+.315,.04)*gs(z,.085);
+    return d;};}
+function fx3_mesh(dep,WF,FX,hy,NY,NZ){const G=[],T=[];
+  for(let j=0;j<=NY;j++){const y=-.37+.77*j/NY,w=fx3_lerp(WF,y),row=[];for(let i=0;i<=NZ;i++){const z=(i/NZ*2-1)*w;row.push([FX+dep(y,z),hy+y,z]);}G.push(row);}
+  for(let j=0;j<NY;j++)for(let i=0;i<NZ;i++)T.push([G[j][i],G[j][i+1],G[j+1][i+1]],[G[j][i],G[j+1][i+1],G[j+1][i]]);
+  return h3_geo(T);}
+function fx3_poly(dep,FX,hy,P,sd,off,th){   // un motif POSÉ sur le relief (khôl, œil, sourcil) : un plateau mince qui suit la peau
+  const V=P.map(p=>{const z=sd*p[0];return [FX+dep(p[1],z)+off,hy+p[1],z];}),n=V.length,c=[0,0,0],Tt=[];
+  for(const v of V){c[0]+=v[0]/n;c[1]+=v[1]/n;c[2]+=v[2]/n;}const W2=V.map(v=>[v[0]-th,v[1],v[2]]);
+  for(let k=0;k<n;k++){const a=V[k],b=V[(k+1)%n];Tt.push([c,a,b],[a,b,W2[(k+1)%n]],[a,W2[(k+1)%n],W2[k]]);}return h3_geo(Tt);}
+/* une BANDE : un ruban épais (4 faces) qui suit une courbe, large au milieu, pointu au bout — mèche, vague, nageoire */
+function fx3_band(H,mat,P,wd,th,up,o){
+  o=o||{};const V=q=>new THREE.Vector3(q[0],q[1],q[2]),cv=new THREE.CatmullRomCurve3(P.map(V)),sg=o.seg||14,U=V(up||[1,0,0]),T=[],L=[],R=[];
+  for(let k=0;k<=sg;k++){const t=k/sg,c=cv.getPoint(t),tg=cv.getTangent(t);let sd=new THREE.Vector3().crossVectors(tg,U);if(sd.length()<.05)sd.set(0,0,1);sd.normalize();
+    const nn=new THREE.Vector3().crossVectors(sd,tg).normalize(),w=wd*(o.w0==null?.25:o.w0)+wd*(1-(o.w0==null?.25:o.w0))*Math.pow(Math.sin(Math.PI*Math.min(1,.12+t*.88)),.7)*(1-.35*t),h=th*(1-.3*t);
+    const m=(a,b)=>[c.x+sd.x*w*a+nn.x*h*b,c.y+sd.y*w*a+nn.y*h*b,c.z+sd.z*w*a+nn.z*h*b];L.push([m(1,1),m(1,-1),m(-1,-1),m(-1,1)]);}
+  for(let k=0;k<sg;k++)for(let j=0;j<4;j++){const j2=(j+1)%4,a=L[k][j],b=L[k][j2],c=L[k+1][j2],d=L[k+1][j];T.push([a,b,c],[a,c,d]);}
+  H.add(h3_geo(T),mat,0,0,0);}
+/* une MÈCHE DE VAGUE : une bande qui ondule (amp, nw ondes) le long de dir, et finit en SPIRALE (curl, en radians, dans son plan) */
+function fx3_lock(H,mat,p0,dir,len,amp,nw,wd,o){
+  o=o||{};const V=(a)=>new THREE.Vector3(a[0],a[1],a[2]),d=V(dir).normalize(),w=V(o.w||[0,0,1]).normalize(),g=o.g?V(o.g):new THREE.Vector3(),N=o.n||8,pts=[],P0=V(p0);
+  for(let k=0;k<=N;k++){const t=k/N,q=P0.clone().addScaledVector(d,len*t).addScaledVector(w,amp*Math.sin(2*Math.PI*nw*t)*Math.min(1,t*3)).addScaledVector(g,t*t);pts.push(q);}
+  fx3_curl(pts,d,w,len,o.curl,o.sg);
+  fx3_band(H,mat,pts.map(q=>[q.x,q.y,q.z]),wd,o.th||.035,o.up,{seg:o.seg||16});}
+function fx3_curl(pts,d,w,len,cu,sg){   // prolonge la liste de points par une spirale dans le plan (d,w)
+  if(!cu)return;let e=pts[pts.length-1].clone(),st=len*.11;
+  for(let k=1;k<=3;k++){const a=cu*k/3,dd=d.clone().multiplyScalar(Math.cos(a)).addScaledVector(w,Math.sin(a)*(sg||1));e=e.clone().addScaledVector(dd,st);st*=.8;pts.push(e);}}
+
+/* ================= RETOUCHE 27/10 (retoucheur 3) — LE SPHINX v3 =================
+   La tête est un RELIEF sculpté (grille y×z dont la profondeur suit front, arcades, orbites, nez droit, pommettes, lèvres, menton),
+   le nemès est une pile de BANDES rayées or / lapis qui s'évasent (pas des boîtes posées), les pans tombent sur la poitrine,
+   le collier de perles, la fausse barbe tressée, l'uræus ; les pattes de lion ont coude, poignet, orteils et griffes. */
+function h3_sphinx(B0,K){
+  const PI=Math.PI,HX=1.0,hy=.50,FX=HX+.30,KH=1.32,lap=h2_poli(0x1c3aa0,260,.5),ORF=h2_poli(0xf2b53c,110,.18);
+  const H={add:(g,m,x,y,z,rx,ry,rz,sx,sy,sz)=>B0.add(g,m,HX+KH*((x||0)-HX),hy+KH*((y||0)-hy),KH*(z||0),rx||0,ry||0,rz||0,KH*(sx==null?1:sx),KH*(sy==null?(sx==null?1:sx):sy),KH*(sz==null?(sx==null?1:sx):sz))};   // le groupe TÊTE : tout est mis à l'échelle autour du centre du visage
+  const B=B0;
+  const P=(x,y,z)=>new THREE.Vector3(x,y,z),D=(x,y,z)=>new THREE.Vector3(x,y,z).normalize(),tige=(a,b,r,m)=>B.add(tube10([[a.x,a.y,a.z],[b.x,b.y,b.z]],r,1,8),m,0,0,0),corne=(p,d,r,l,m)=>vers10(B,cone10(r,l,10),m,p,d,1);
+  const gs=(v,s)=>Math.exp(-v*v/(2*s*s)),sm=(a,b,v)=>{const t=Math.min(1,Math.max(0,(v-a)/(b-a)));return t*t*(3-2*t);};
+  // ---- LE VISAGE : un relief sculpté, facettes plates ----
+  const WF=[[-.37,.13],[-.30,.18],[-.20,.255],[-.05,.31],[.14,.325],[.28,.295],[.40,.26]];
+  const dep=(y,z)=>{const w=fx3_lerp(WF,y),s=Math.min(1,Math.abs(z)/w),az=Math.abs(z);
+    let d=-.10*Math.pow(s,2.2)-.09*sm(.12,.42,y)-.07*sm(-.18,-.38,y);
+    const nh=.125*sm(.19,-.04,y)*(1-sm(-.08,-.125,y)),ns=.020+.03*sm(.10,-.06,y);
+    d+=nh*gs(z,ns)+.028*gs(y+.07,.02)*gs(az-.055,.025)+.02*gs(y+.075,.025)*gs(z,.03);
+    d+=.045*gs(y-.215,.03)*(1-Math.min(1,(az/.30)*(az/.30)))-.04*gs(y-.15,.04)*gs(az-.14,.065);
+    d+=.03*gs(y+.04,.08)*gs(az-.20,.08);
+    d+=.03*gs(y+.165,.016)*gs(z,.11)+.036*gs(y+.225,.02)*gs(z,.095)-.018*gs(y+.195,.011)*gs(z,.12);
+    d+=.045*gs(y+.315,.04)*gs(z,.085);
+    return d;};
+  const NY=30,NZ=12,G=[];
+  for(let j=0;j<=NY;j++){const y=-.37+.77*j/NY,w=fx3_lerp(WF,y),row=[];for(let i=0;i<=NZ;i++){const z=(i/NZ*2-1)*w;row.push([FX+dep(y,z),hy+y,z]);}G.push(row);}
+  const T=[];for(let j=0;j<NY;j++)for(let i=0;i<NZ;i++){T.push([G[j][i],G[j][i+1],G[j+1][i+1]],[G[j][i],G[j+1][i+1],G[j+1][i]]);}
+  H.add(h3_geo(T),ORF,0,0,0);
+  const sp=(P,sd,off,th)=>{const V=P.map(p=>{const z=sd*p[0];return [FX+dep(p[1],z)+off,hy+p[1],z];}),n=V.length,c=[0,0,0],Tt=[];
+    for(const v of V){c[0]+=v[0]/n;c[1]+=v[1]/n;c[2]+=v[2]/n;}const W2=V.map(v=>[v[0]-th,v[1],v[2]]);
+    for(let k=0;k<n;k++){const a=V[k],b=V[(k+1)%n];Tt.push([c,a,b],[a,b,W2[(k+1)%n]],[a,W2[(k+1)%n],W2[k]]);}return h3_geo(Tt);};
+  for(let sd=-1;sd<=1;sd+=2){
+    H.add(sp([[.045,.146],[.10,.205],[.18,.206],[.26,.18],[.33,.15],[.23,.112],[.15,.096],[.085,.106]],sd,.016,.016),K.noir,0,0,0);
+    H.add(sp([[.07,.146],[.115,.186],[.18,.188],[.24,.162],[.18,.118],[.115,.118]],sd,.03,.018),K.blanc,0,0,0);
+    const ez=sd*.15,ex=FX+dep(.152,ez);
+    H.add(G10.sph,lap,ex+.04,hy+.152,ez,0,0,0,.036,.038,.018);H.add(G10.sph,K.noir,ex+.056,hy+.152,ez,0,0,0,.017,.018,.010);
+    H.add(sp([[.05,.236],[.12,.276],[.21,.27],[.30,.232],[.30,.21],[.21,.24],[.12,.246],[.05,.212]],sd,.03,.02),lap,0,0,0);
+    H.add(sp([[.17,-.04],[.215,-.075],[.215,-.065],[.17,-.025]],sd,.016,.01),K.col,0,0,0);}
+  // ---- LE NEMÈS : des bandes or / lapis qui s'évasent de la calotte aux épaules ----
+  const WN=[[-.50,.52],[-.30,.50],[-.05,.46],[.20,.42],[.40,.35],[.56,.22]],DN=[[-.50,.50],[-.30,.50],[-.05,.48],[.20,.44],[.40,.34],[.56,.22]];
+  const pol=(t,gro)=>{const W=fx3_lerp(WN,t)+gro,xb=HX-fx3_lerp(DN,t)-gro,xF=(t>-.12?FX-.03:FX-.03+(HX+.0-FX+.03)*sm(-.12,-.34,t)),wF=t>-.08?.33:.33-.12*sm(-.08,-.34,t),dx=xF-xb;
+    const h=[[0,wF],[.20,W],[.58,W*.98],[.86,W*.80],[1,W*.46]],p=[];
+    for(const q of h)p.push([xF-dx*q[0],q[1]]);for(let k=h.length-1;k>=0;k--)p.push([xF-dx*h[k][0],-h[k][1]]);return p;};
+  const NB=10,t0=-.50,t1=.56;
+  for(let k=0;k<NB;k++){const ta=t0+(t1-t0)*k/NB,tb=t0+(t1-t0)*(k+1)/NB,g=k%2?.016:0;
+    H.add(fx3_loftY([{y:hy+ta,pts:pol(ta,g)},{y:hy+tb,pts:pol(tb,g)}],10),k%2?lap:K.col,0,0,0);}
+  H.add(fx3_loftY([{y:hy+t1,pts:pol(t1,0)},{y:hy+t1+.035,pts:pol(t1,-.05)}],10),K.or,0,0,0);
+  // ---- L'URÆUS ----
+  {const ux=FX-.06,uy=hy+.36;H.add(h3_tube([[ux-.02,uy-.02,0],[ux+.06,uy+.02,0],[ux+.07,uy+.10,0],[ux+.05,uy+.15,0]],.036,.03,{sides:5}),ORF,0,0,0);   // le cobra se dresse du front
+   H.add(G10.sph,ORF,ux+.07,uy+.20,0,0,0,0,.03,.075,.065);H.add(G10.sph,lap,ux+.095,uy+.20,0,0,0,0,.012,.05,.04);                                  // le capuchon, son plastron de lapis
+   H.add(G10.sph,ORF,ux+.075,uy+.30,0,0,0,0,.05,.045,.04);H.add(G10.sph,K.noir,ux+.115,uy+.305,0,0,0,0,.014,.014,.018);}
+  // ---- LA BARBE : des tresses ----
+  for(let k=0;k<9;k++){const y=hy-.38-k*.075,x=FX-.07+(k>6?(k-6)*.035:0);H.add(boite10(.10-k*.003,.074,.12-k*.004),k%2?lap:K.or,x,y,0,0,0,0);}
+  // ---- LA POITRINE, LES PANS, LE COLLIER ----
+  const XC=HX+.25;
+  BXg(B,K.col,HX-.05,-.28,0,0,0,0,.60*2*.62,.80,.96);                                                                                       // la poitrine
+  for(let sd=-1;sd<=1;sd+=2){for(let k=0;k<8;k++)BXg(B,k%2?lap:K.col,XC+.06,.12-k*.095,sd*.45,0,0,0,.075,.090,.24);}                          // les pans du nemès
+  for(let r=0;r<4;r++){const R=.20+r*.075;B.add(new THREE.TorusGeometry(R,.026,5,r%2?16:12,PI).rotateY(PI/2).rotateX(PI),r%2?lap:K.or,XC+.09+r*.012,.06,0,0,0,0);}
+  // ---- LES PATTES DE LION ----
+  const yb=-.62;
+  for(let sd=-1;sd<=1;sd+=2){const z0=sd*.36,S=[[.95,-.10,.19],[1.25,-.20,.17],[1.55,-.30,.145],[1.75,-.36,.13],[1.92,-.40,.17],[2.06,-.47,.155],[2.14,-.55,.10]];
+    B.add(h4_loft(S.map(s=>({x:s[0],y:(s[1]+yb)/2,w:s[2],hu:(s[1]-yb)/2,hd:(s[1]-yb)/2,p:2.6,z:z0})),8),K.col,0,0,0);
+    B.add(G10.sph,K.col,1.06,-.30,sd*.40,0,0,0,.19,.19,.16);
+    for(let q=0;q<4;q++){const zz=z0+(q-1.5)*.075;B.add(G10.sph,K.col,2.03,yb+.05,zz,0,0,0,.12,.055,.045);corne(P(2.12,yb+.05,zz),D(1,-.25,0),.024,.12,K.blanc);}
+    tige(P(.60,-.30,sd*.30),P(1.0,-.34,sd*.36),.07,K.or);}
+}
+
+/* ================= RETOUCHE 27/10 (retoucheur 3) — POSÉIDON v3 =================
+   Visage en RELIEF (même sculpteur que le sphinx : arcade lourde, nez large, orbites), cheveux, moustache et barbe en MÈCHES DE VAGUE
+   (rubans plats qui ondulent et finissent en spirale, teal profond / écume / bleu nuit), trident planté dans un diadème d'or. */
+function h3_poseidon(B0,K){
+  const PI=Math.PI,HX=1.12,hy=.02,FX=HX+.28,KH=1.42,bronze=h2_poli(0xc98a5c,120,.2),ecume=h2_poli(0xcfeeea,200,.3),nuit=h2_poli(0x1d4f6e,200,.35),teal=h2_poli(0x2c8f94,180,.3);
+  const H={add:(g,m,x,y,z,rx,ry,rz,sx,sy,sz)=>B0.add(g,m,HX+KH*((x||0)-HX),hy+KH*((y||0)-hy),KH*(z||0),rx||0,ry||0,rz||0,KH*(sx==null?1:sx),KH*(sy==null?(sx==null?1:sx):sy),KH*(sz==null?(sx==null?1:sx):sz))};
+  const WF=[[-.37,.14],[-.30,.20],[-.20,.27],[-.05,.32],[.14,.335],[.28,.31],[.40,.27]];
+  const dep=fx3_dep({WF,nh:.12,ns:.026,nw:1.5,br:.07,lp:.7,ch:.05,fr:.07});
+  H.add(fx3_mesh(dep,WF,FX,hy,30,12),bronze,0,0,0);
+  // le crâne : une calotte sous les cheveux, et la nuque où le tube de plasma entre
+  const sc=(x,y,w,hu,hd,p)=>({x:x,y:y,w:w,hu:hu,hd:hd,p:p||2.4,z:0});
+  H.add(h4_loft([sc(.60,hy+.02,.34,.36,.34),sc(.82,hy+.08,.50,.60,.50),sc(1.08,hy+.12,.54,.68,.54),sc(1.28,hy+.10,.52,.66,.50),sc(FX-.10,hy+.08,.47,.58,.42,2.6)],10),nuit,0,0,0);
+  for(let sd=-1;sd<=1;sd+=2){
+    H.add(fx3_poly(dep,FX,hy,[[.05,.146],[.10,.205],[.18,.205],[.26,.18],[.33,.15],[.23,.112],[.15,.096],[.085,.106]],sd,.016,.016),K.colD,0,0,0);               // le cerne sombre de l'orbite
+    H.add(fx3_poly(dep,FX,hy,[[.07,.146],[.115,.184],[.18,.186],[.24,.160],[.18,.118],[.115,.118]],sd,.03,.018),K.glow,0,0,0);                                  // l'œil de glace
+    const ez=sd*.15,ex=FX+dep(.152,ez);H.add(G10.sph,K.noir,ex+.05,hy+.152,ez,0,0,0,.017,.02,.010);
+    for(let k=0;k<2;k++)fx3_lock(H,k?ecume:teal,[FX-.02-k*.02,hy+.26+.03*k,sd*.06],[0,.35,sd],.30+.04*k,.035,1.2,.05,{w:[1,0,0],up:[0,0,sd],curl:2.4,sg:-1,th:.03,n:6});}   // les sourcils : une vague qui remonte
+  // les cheveux : des mèches qui filent sur le crâne vers la nuque, en vagues, une spirale au bout
+  const top=x=>fx3_lerp([[.55,.30],[.70,.58],[.95,.78],[1.15,.84],[1.30,.74]],x);
+  for(let k=0;k<9;k++){const z=(k-4)*.118,f=Math.sqrt(Math.max(.06,1-(z/.60)*(z/.60))),pts=[];
+    for(let j=0;j<=10;j++){const t=j/10,x=1.34-.70*t;pts.push(new THREE.Vector3(x,hy+top(x)*f+.045+(t>.75?-(t-.75)*.9:0),z*(1+.35*t)+.05*Math.sin(t*9+k)));}
+    fx3_curl(pts,new THREE.Vector3(-1,-.9,0).normalize(),new THREE.Vector3(0,0,1),.7,2.6,z<0?-1:1);
+    fx3_band(H,k%3===0?ecume:(k%2?teal:nuit),pts.map(q=>[q.x,q.y,q.z]),.15,.05,[0,1,0],{seg:20});}
+  for(let sd=-1;sd<=1;sd+=2)for(let k=0;k<3;k++)fx3_lock(H,k===1?ecume:(k?nuit:teal),[FX-.52-k*.08,hy+.26-.06*k,sd*(.47+.02*k)],[-.15-.05*k,-1,sd*.06],.80+.10*k,.05,1.6,.13,{w:[0,0,sd],up:[1,0,sd],curl:2.8,sg:-1,th:.05,n:10});   // les grandes mèches des tempes, qui tombent sur les épaules
+  // la moustache et la barbe
+  for(let sd=-1;sd<=1;sd+=2){for(let k=0;k<2;k++)fx3_lock(H,k?ecume:teal,[FX+.02+k*.015,hy-.10-k*.03,sd*.06],[.28,-.30-.1*k,sd*1],.52+.1*k,.045,1.0,.09,{w:[0,1,0],up:[1,0,0],curl:2.6,sg:1,th:.04,n:8});}
+  for(let k=0;k<9;k++){const z=(k-4)*.062,L=.78-.07*Math.abs(k-4)+(k%2?.06:0);
+    fx3_lock(H,k%3===0?ecume:(k%2?teal:nuit),[FX-.02,hy-.28-.01*Math.abs(k-4),z],[.30-.04*Math.abs(k-4),-1,0],L+.25,.06,1.7,.10,{w:[0,0,1],up:[1,0,0],curl:2.6,sg:k%2?1:-1,th:.05,n:10,g:[.1,0,0]});}
+  // le diadème d'or et le trident
+  H.add(new THREE.TorusGeometry(1,.05,6,28).rotateX(PI/2),K.or,.98,hy+.50,0,0,0,0,.40,1,.52);
+  const tx=1.34,ty=hy+.50;
+  H.add(h3_tube([[tx,ty,0],[tx,ty+.25,0],[tx,ty+.55,0]],.05,.04,{sides:6}),K.or,0,0,0);
+  for(const [w,hh] of [[0,.78],[-.28,.62],[.28,.62]]){
+    if(w!==0)H.add(h3_tube([[tx,ty+.20,0],[tx,ty+.36,w*.7],[tx,ty+.48,w]],.04,.035,{sides:5}),K.or,0,0,0);
+    H.add(h3_tube([[tx,ty+(w?.58:.50),w],[tx,ty+hh-.18,w]],.04,.035,{sides:5}),K.or,0,0,0);
+    vers10(H,cone10(.075,.30,6),K.or,new THREE.Vector3(tx,ty+hh-.20,w),new THREE.Vector3(0,1,0),1);
+    for(const sd of [-1,1])vers10(H,cone10(.03,.16,5),K.or,new THREE.Vector3(tx,ty+hh-.12,w+sd*.07),new THREE.Vector3(0,.7,sd*.5).normalize(),1);}
+}
+
+/* ================= RETOUCHE 27/10 (retoucheur 3) — LA COMÈTE v3 =================
+   Le renard de glace est plus gros et plus sculpté (crête de cristaux, front à gemme d'or, oreilles à cœur de braise, mâchoire basse et crocs) ;
+   la queue n'est plus trois cônes translucides mais une GERBE DE LANGUES DE FEU opaques (sept lobes ondulés, du blanc brûlant au magenta),
+   enfilées dans trois anneaux d'or, hérissées d'éclats de glace. Aucune matière transparente. */
+function fx3_comete(B,K){
+  const PI=Math.PI,P=(x,y,z)=>new THREE.Vector3(x,y,z),D=(x,y,z)=>new THREE.Vector3(x,y,z).normalize(),k=2.3,x0=.05;
+  const mb=c=>new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide});
+  const F={w:mb(0xfffbe8),j:mb(0xffe27a),o:mb(0xffa030),r:mb(0xff4a2a),m:mb(0xd0287a),v:mb(0x7a2a9a)};
+  const sec=(x,y,w,hu,hd,p,z)=>({x:x0+x*k,y:y*k,w:w*k,hu:hu*k,hd:hd*k,p:p||2.6,z:(z||0)*k});
+  // ---- LA TÊTE : crâne, museau, mâchoire ----
+  B.add(h4_loft([sec(-.08,0,.26,.26,.24),sec(.06,.01,.38,.34,.27),sec(.24,.01,.44,.37,.28),sec(.44,-.01,.34,.27,.21),sec(.66,-.03,.22,.17,.13),sec(.86,-.05,.14,.11,.09),sec(1.0,-.065,.08,.06,.05,2.2)],8),K.col,0,0,0);
+  B.add(h4_loft([sec(.22,-.16,.22,.045,.08),sec(.50,-.14,.17,.04,.06),sec(.78,-.115,.10,.03,.045),sec(.93,-.10,.05,.025,.03,2.2)],6),K.blanc,0,0,0);           // la mâchoire basse, claire
+  B.add(h4_loft([sec(.36,.26,.045,.03,.02),sec(.66,.12,.032,.02,.016),sec(.98,.0,.022,.013,.012)],5),K.blanc,0,0,0);                                     // l'arête du nez
+  B.add(G10.sph,K.glow,x0+1.0*k+.02,-.065*k+.02,0,0,0,0,.075,.06,.075);
+  const pk=(x,y,z,d,r,l,m,sg)=>vers10(B,cone10(r*k,l*k,sg||4),m,P(x0+x*k,y*k,z*k),d,1);
+  for(let sd=-1;sd<=1;sd+=2){
+    pk(.12,.30,sd*.22,D(-.18,1,sd*.55),.22,.80,K.metal);pk(.14,.31,sd*.21,D(-.18,1,sd*.55),.12,.64,K.glow);pk(.04,.30,sd*.26,D(-.45,.9,sd*.9),.10,.55,K.or);   // l'oreille de cristal, son cœur de braise, sa corne d'or
+    pk(.26,-.02,sd*.38,D(-.55,-.10,sd*1.0),.11,.46,K.col);pk(.24,-.11,sd*.36,D(-.60,-.35,sd*.9),.09,.40,K.col);pk(.22,.07,sd*.38,D(-.45,.25,sd*1.0),.09,.38,K.blanc);     // la fraise des joues
+    B.add(G10.sph,K.noir,x0+.45*k,.16*k,sd*.20*k,0,0,0,.115*k,.075*k,.052*k);                                                                         // l'orbite
+    B.add(G10.box,K.glow,x0+.49*k,.165*k,sd*.235*k,0,sd*-.32,sd*.25,.17*k,.045*k,.026*k);B.add(G10.sph,K.blanc,x0+.54*k,.165*k,sd*.25*k,0,0,0,.022*k,.022*k,.014*k);   // l'œil : une fente de braise, un éclat
+    B.add(h4_loft([sec(.30,.23,.085,.038,.03,2.4,sd*.20),sec(.46,.245,.095,.04,.032,2.4,sd*.215),sec(.64,.185,.055,.03,.024,2.4,sd*.14)],6),K.blanc,0,0,0);   // l'arcade
+    for(let j=0;j<3;j++)pk(.74,-.045-j*.02,sd*.10,D(-.9,-.05+j*.14,sd*(.5+j*.3)),.014,.56+j*.09,K.blanc,4);                                        // les moustaches
+    pk(.80,-.10,sd*.045,D(.25,-1,sd*.05),.030,.20,K.blanc,5);pk(.62,-.12,sd*.08,D(.2,-1,sd*.1),.026,.16,K.blanc,5);}                                   // les crocs du bas
+  // la crinière : un halo d'éclats couchés vers la queue, trois couleurs
+  for(let j=0;j<18;j++){const a=j/18*2*PI,c=Math.cos(a),sn=Math.sin(a);pk(-.03,sn*.30,c*.30,D(-1,sn*.5,c*.5),.07,.42+(j%3)*.10,j%3===0?K.or:(j%2?K.metal:K.col));}
+  // la crête : cinq grands cristaux balayés vers l'arrière, une gemme d'or au front
+  for(let j=0;j<5;j++)pk(.34-j*.10,.34+.01*j,0,D(-.55-.12*j,1,0),.085-.01*j,.52-.06*j+.0,j%2?K.blanc:K.metal,5);
+  B.add(G10.sph,K.or,x0+.56*k,.265*k,0,0,0,0,.055*k,.075*k,.045*k);
+  // ---- LA QUEUE : sept langues de feu opaques, enfilées dans trois anneaux ----
+  const rad=[[0,0,'w',.16,3.0],[1,0,'j',.17,2.8],[2,0,'o',.17,3.0],[3,0,'r',.18,2.7],[4,0,'m',.17,3.1],[5,0,'o',.16,2.5],[6,0,'v',.17,2.8]];
+  const lobes=[];
+  for(let n=0;n<6;n++){const a=n/6*2*PI+.3,ca=Math.cos(a),sa=Math.sin(a),L=[2.2,2.7,2.4,2.9,2.3,2.6][n];
+    const path=t=>{const x=.02-L*t,r=.24+.40*Math.pow(t,.7),w=Math.sin(t*9+n*1.7)*.07*t;return [x,ca*(r+w),sa*(r+w)+Math.cos(t*7+n)*.06*t];};
+    const pts=[];for(let j=0;j<=14;j++)pts.push(path(j/14));
+    const col=[F.o,F.r,F.j,F.m,F.o,F.r][n];
+    B.add(h4_tubeV(pts,t=>(.43*Math.pow(1-t,.75)+.014)*(1+.22*Math.sin(t*18+n)),44,6,true),col,0,0,0);
+    lobes.push({path,n,ca,sa});
+    for(const t of [.30,.52,.74]){const q=path(t),o=D(-.5,ca,sa);pk2(q,o,.05*(1-t*.5),.34*(1-t*.4),n%2?K.blanc:K.col);}}
+  function pk2(q,d,r,l,m){vers10(B,cone10(r,l,4),m,P(q[0]+x0*0,q[1],q[2]),d,1);}
+  // la langue centrale, la plus longue : du blanc brûlant au magenta, par bandes
+  {const pts=[];for(let j=0;j<=16;j++){const t=j/16;pts.push([.04-3.2*t,Math.sin(t*8)*.05*t,Math.cos(t*6)*.05*t]);}
+   const cu=new THREE.CatmullRomCurve3(pts.map(p=>P(p[0],p[1],p[2])));
+   const bands=[[0,.22,F.w,.30],[.22,.45,F.j,.26],[.45,.68,F.o,.20],[.68,.86,F.r,.13],[.86,1,F.m,.07]];
+   for(const bd of bands){const sub=[];for(let j=0;j<=6;j++){const t=bd[0]+(bd[1]-bd[0])*j/6,q=cu.getPoint(t);sub.push([q.x,q.y,q.z]);}
+     B.add(h4_tubeV(sub,t=>{const T=bd[0]+(bd[1]-bd[0])*t;return bd[3]*(1-.85*Math.pow(T,1.3))*(.9+.1*Math.sin(T*30));},18,6,true),bd[2],0,0,0);}}
+  // trois anneaux d'or : ils passent EN TRAVERS des langues (ils les touchent)
+  for(const [x,R] of [[-.45,.36],[-1.05,.50],[-1.70,.66]]){const t=(.02-x)/2.9,rr=.24+.40*Math.pow(t,.7);
+    B.add(new THREE.TorusGeometry(rr+.02,.034,6,34).rotateY(PI/2),K.or,x,0,0);}
+  // le grand anneau d'or, penché, tenu au cou par quatre rayons (il touche le col ET les langues)
+  {const tau=.38,Rr=1.32,cx=-.10;B.add(new THREE.TorusGeometry(Rr,.085,6,44).rotateY(PI/2).rotateZ(tau),K.or,cx,0,0);
+   for(let j=0;j<4;j++){const a=j/4*2*PI+.4,c=Math.cos(a),sn=Math.sin(a);B.add(tube10([[.04,sn*.2,c*.2],[cx-Rr*sn*Math.sin(tau),Rr*sn*Math.cos(tau),Rr*c]],.05,1,6),K.or,0,0,0);}}
+  // le col : la braise qui lie la tête aux langues
+  B.add(G10.sph,F.j,.04,0,0,0,0,0,.32,.32,.32);B.add(G10.sph,F.w,.20,0,0,0,0,0,.20,.20,.20);
+}
+
+/* ================= RETOUCHE 27/10 (retoucheur 3) — LA NAISSANCE v3 =================
+   Le lotus est plus profond (une coupe qui se lit de côté comme de dessus), ses pétales sont saturés (or, rose vif, perle), le cœur est une étoile
+   incandescente à couronne de flammes, les grands anneaux de supernova ont un liseré lumineux. Plus de halo translucide : tout est opaque. */
+function fx3_naissance(B,K){
+  const V=(x,y,z)=>new THREE.Vector3(x,y,z),PI=Math.PI;
+  const mb=c=>new THREE.MeshBasicMaterial({color:c,side:THREE.DoubleSide}),or2=h2_poli(0xffb21c,210,.35),rose=h2_poli(0xff2a7a,230,.3),rose2=h2_poli(0xc2145a,200,.3),perle=h2_poli(0xfff4ea,300,.55);
+  const Y={w:mb(0xffffff),j:mb(0xffe566),o:mb(0xff9a1c),r:mb(0xff4a3a),p:mb(0xff6aa8)};
+  const cal=[[10,1.20,1.10,.28,or2,0,.20,.034],[8,.70,1.45,.27,rose,PI/8,.15,.04],[8,.28,1.70,.21,perle,PI/16,.08,.034],[6,.10,1.25,.13,Y.j,PI/6,.05,.03]];   // [n, ouverture, longueur, demi-largeur, matière, phase, relevé du bout, épaisseur]
+  for(let L=0;L<cal.length;L++){const c=cal[L];
+    for(let k=0;k<c[0];k++){const f=k/c[0]*2*PI+c[5],cf=Math.cos(f),sf=Math.sin(f),al=c[1],r0=.12+.05*L;
+      h4_pose(B,h4_petale(c[2],c[3],c[7]+.01,c[6],1.4),c[4],V(-.05+L*.03,r0*cf,r0*sf),V(Math.cos(al),Math.sin(al)*cf,Math.sin(al)*sf),V(0,cf,sf),1);
+      if(L===1||L===2){const e=V(-.05+L*.03+Math.cos(al)*c[2],r0*cf+Math.sin(al)*cf*c[2]+cf*c[6]*c[2]*.25,r0*sf+Math.sin(al)*sf*c[2]+sf*c[6]*c[2]*.25);
+        vers10(B,cone10(.06,.20,4),L===1?or2:rose,e.clone().addScaledVector(V(Math.cos(al),Math.sin(al)*cf,Math.sin(al)*sf).normalize(),-.06),V(Math.cos(al),Math.sin(al)*cf,Math.sin(al)*sf).normalize(),1);}}}   // une pointe d'or ou de rose au bout des pétales
+  for(let k=0;k<6;k++){const f=k/6*2*PI+.3,cf=Math.cos(f),sf=Math.sin(f);                                                  // les sépales : le calice, vers l'arrière
+    h4_pose(B,h4_petale(.70,.14,.04,.2,1.4),rose2,V(-.12,.16*cf,.16*sf),V(-.8,.6*cf,.6*sf),V(0,cf,sf),1);}
+  // la tige qui se creuse en tuyère
+  TX(B,K.chrome,[[.36,0],[.31,.20],[.23,.55],[.18,.90],[.21,1.05],[.36,1.25]],-.05,0,0,PI,24);
+  for(const d of [.22,.62,.98]){const rr=d<.4?.32:d<.8?.21:.20;B.add(new THREE.TorusGeometry(rr+.02,.03,5,24),or2,-.05-d,0,0,0,PI/2,0);}
+  TX(B,Y.o,[[.001,0],[.33,.12],[.001,.46]],-1.30,0,0,PI,16);
+  // l'ÉTOILE qui naît au creux de la fleur : un cœur blanc, une couronne de flammes opaques, un faisceau
+  B.add(G10.sph,Y.w,.36,0,0,0,0,0,.30,.30,.30);
+  const fib=dirs10(22);let nf=0;
+  for(const d of fib){if(d.x<-.15)continue;const dd=d.clone().normalize(),m=[Y.j,Y.o,Y.r][nf%3];nf++;vers10(B,cone10(.085,.26+.14*(nf%2),5),m,V(.36+dd.x*.26,dd.y*.26,dd.z*.26),dd,1);}
+  B.add(cone10(.15,1.5,12),Y.j,.50,0,0,0,0,0);B.add(cone10(.055,2.0,8),Y.w,.50,0,0,0,0,0);
+  // les grands anneaux de supernova : le premier touche les pointes des pétales, les tirants d'or tiennent les autres
+  const rg=[[1.12,.34,or2,Y.j,0],[1.36,.22,perle,Y.w,.55],[1.60,.10,rose,Y.p,-.55]];
+  const rp=(r,a)=>{const st=Math.sin(a),sn=Math.sin(r[4]),cs=Math.cos(r[4]);return [r[1]-r[0]*st*sn,r[0]*st*cs,r[0]*Math.cos(a)];};
+  for(const r of rg){B.add(new THREE.TorusGeometry(r[0],.05,6,64).rotateY(PI/2).rotateZ(r[4]),r[2],r[1],0,0);B.add(new THREE.TorusGeometry(r[0],.022,5,64).rotateY(PI/2).rotateZ(r[4]),r[3],r[1]+.055,0,0);}
+  const dist=(u,v)=>Math.hypot(u[0]-v[0],u[1]-v[1],u[2]-v[2]);
+  for(let q=0;q<2;q++){const A=rg[q],Bq=rg[q+1];
+    for(let h=0;h<2;h++){let best=9,pa=null,pb=null;
+      for(let i=0;i<72;i++)for(let j=0;j<72;j++){const a=(i/72+h)*PI,b=(j/72+h)*PI,u=rp(A,a),v=rp(Bq,b),d=dist(u,v);if(d<best){best=d;pa=u;pb=v;}}
+      B.add(tube10([pa,pb],.03,1,6),or2,0,0,0);B.add(G10.sph,or2,pa[0],pa[1],pa[2],0,0,0,.065,.065,.065);B.add(G10.sph,or2,pb[0],pb[1],pb[2],0,0,0,.065,.065,.065);}}
+  for(let k=0;k<16;k++){const a=k/16*2*PI,p2=rp(rg[2],a),c=rg[2][1];vers10(B,cone10(.06,.34,5),k%2?or2:Y.p,V(p2[0],p2[1],p2[2]),V(p2[0]-c,p2[1],p2[2]).normalize(),1);}
+}
+
+// <<<FIN RETOUCHE3>>>
