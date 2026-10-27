@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v983'; /* v982 (2026-10-27, Léo : « fais ce qu'il y a à faire ») retouches des moteurs hybrides : colibri, requin, corail, tortue, orque, roquette, électrique, soleil, sphinx, atlantide, alien (verrière opaque), ouroboros, comète, naissance (code/voitures/moteurs-themes.js, moteurs-originaux.js) */
+const CACHE = 'cashcar-v984'; /* v982 (2026-10-27, Léo : « fais ce qu'il y a à faire ») retouches des moteurs hybrides : colibri, requin, corail, tortue, orque, roquette, électrique, soleil, sphinx, atlantide, alien (verrière opaque), ouroboros, comète, naissance (code/voitures/moteurs-themes.js, moteurs-originaux.js) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
