@@ -3,6 +3,10 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+## L'ORQUE CC0 + L'OUROBOROS D'ARGENT (2026-10-27, v977 — Léo : « essaie les deux (modèles gratuits et dessinés) » puis « le mix que tu conseilles »)
+- **Orques (palier 9)** : la BALEINE du pack « Animals Pack » de Quaternius (licence **CC0**, domaine public — https://opengameart.org/content/5-low-poly-animals), remodelée : noire et blanche, posée sur le moteur par deux jambes de force. Données dans `code/voitures/moteurs-modeles-cc0.js` (17 Ko, aucun fichier chargé à l'exécution) ; `CC0_30=false` rend l'orque dessinée à la main. Le piranha (requin) et l'aigle (phénix) du pack Vol.2 ont été ESSAYÉS puis écartés (poisson-clown, pose d'animation) : requin et phénix restent dessinés.
+- **Ouroboros d'argent (palier 27)** : remplace la porte de distorsion — un grand trèfle de chrome (TorusKnot 2,3 facetté), un anneau de cœur et un serpent d'argent qui se mord la queue sur la boucle extérieure ; cœur blanc, rayon de plasma, quatre haubans.
+
 ## LA PORTE DE DISTORSION (2026-10-26, v971 — Léo : « l'ouroboros donne un peu moins envie… toujours un air de réacteur qui va plus loin, plus vite, plus fort, du sci-fi, de nouvelles technologies, juste l'esthétique »)
 - Palier 27 : l'OUROBOROS est remplacé par une PORTE DE DISTORSION — grand anneau bleu glacé à 24 chevrons lumineux qui pointent vers l'avant (le sens de la vitesse), quatre aimants d'accélération sur le cadre, vortex d'énergie en 10 anneaux dégradés, rayon de plasma qui traverse le tunnel, anneaux de choc, quatre haubans qui la tiennent au moteur.
 

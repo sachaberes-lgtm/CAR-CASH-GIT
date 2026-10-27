@@ -162,6 +162,7 @@ interface/auto-ecole.js              # l'auto-école, la main fantôme
 economie/achat-carte-moteur.js       # carBuy (l'achat), carte moteur, monnaie du moteur
 voitures/matieres-forme.js           # l'atelier de matières, outils de forme, squelette
 voitures/moteurs-originaux.js         # la boîte à formes des moteurs : kit poli + les dessins originaux
+voitures/moteurs-modeles-cc0.js         # les bêtes CC0 (Quaternius) : requin, orque, aigle — données + bete30()
 voitures/moteurs-themes.js           # l'identité de chaque moteur : palette + signature (scarabée → l'infini)
 voitures/constructeur-moteur.js      # le constructeur (mkEngine)
 gameplay/pouvoirs-orbes.js           # les orbes de pouvoir

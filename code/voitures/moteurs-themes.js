@@ -10,7 +10,7 @@ const TH30=[null,
  [0x1f4aff,0x9af0ff],[0x4f5f2a,0xffb030],[0x2a3a8a,0xffe08a],[0xffb000,0xfff0a0],[0x1f5a3a,0xff5030],   // 12 électrique · 13 grenade · 14 vitrail · 15 soleil · 16 dragon
  [0xc0201e,0xffd070],[0x3a2a6a,0x6affd8],[0xd9a441,0x5a8aff],[0xff4a1a,0xffc040],[0x13a8a8,0x8affff],   // 17 pagode · 18 kraken · 19 sphinx · 20 phénix · 21 atlantide
  [0x7a8aa0,0x8ad8ff],[0xb81a3a,0xff6a80],[0x16161c,0xff4a14],[0xffc030,0xfff6c0],[0x2adf8a,0xb0ffe0],   // 22 lance d'Odin · 23 cœur battant · 24 dragon cosmique · 25 Hélios · 26 alien
- [0x1a8ab8,0x9af0ff],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
+ [0xb4bccb,0xbfe8ff],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
 function th30Kit(E,i){const t=TH30[i];return t?Object.assign({},E,{col:t[0],flam:t[1]}):E;}
 function theme30(B,i,K,c,g){
   const L=c.L||2,XE=L*.5,top=c.top||.85,tw=c.tw||.18;
@@ -65,6 +65,10 @@ function theme30(B,i,K,c,g){
     for(let k=0;k<3;k++)br(P((k-1)*L*.30,top-.02,(k-1)*.04),D(0,1,0),.30,3);
     break;}
   case 8:{ // LES ORQUES — deux grands ailerons noirs, les taches blanches de l'œil, une nageoire caudale au bout de sa hampe
+    if(CC0_30){   // VERSION CC0 (Quaternius, baleine) : noire et blanche, sur deux jambes de force
+      bete30(B,'Whale',{'Material.001':K.noir,'Material.002':K.blanc},2.1,0,top+.72,0,0,PI10/2,0);
+      for(const x of [-.40,.40])tige(P(x,top,0),P(x,top+.5,0),.045,K.chrome);
+      break;}
     for(let sd=-1;sd<=1;sd+=2){B.add(plan10([[-.30,0],[.35,0],[.0,.75],[-.15,.70]],.05,.01),K.noir,-L*.12,top+.30,sd*.22,sd*.25,0,0);
       B.add(G10.sph,K.blanc,XE*.50,.62,sd*.30,0,0,0,.18,.08,.03);}
     tige(P(-XE+.05,.10,0),P(-XE-.30,.12,0),.08,K.noir);
@@ -209,22 +213,22 @@ function theme30b(B,i,K,g){   // (B est réassignable : le dragon noir bâtit sa
     for(let k=0;k<3;k++){const a=k/3*2*PI10+.4,c=Math.cos(a),sn=Math.sin(a);
       B.add(tube10([[c*.45,-.06,sn*.45],[c*.75,-.40,sn*.75],[c*.60,-.80,sn*.60],[c*.80,-1.0,sn*.80]],.035,16,6),K.colD,0,0,0);boule(K.glow,c*.80,-1.0,sn*.80,.06);}
     break;}
-  case 26:{ // LA PORTE DE DISTORSION (Léo : « l'ouroboros donne moins envie ; un air de réacteur qui va plus loin, plus vite, plus fort ») —
-    //   un grand anneau de verre-métal à chevrons lumineux qui pointent vers l'avant (le sens de la vitesse), un vortex d'énergie au centre,
-    //   un rayon de plasma qui traverse le tunnel, quatre aimants d'accélération sur le cadre, et des anneaux de choc qui s'écartent
-    const R=.95;
-    B.add(new THREE.TorusGeometry(R,.10,10,56),K.col,0,0,0,0,PI10/2,0);B.add(new THREE.TorusGeometry(R,.035,6,56),K.or,0,0,0,0,PI10/2,0);
-    B.add(new THREE.TorusGeometry(R-.16,.022,6,56),K.chrome,0,0,0,0,PI10/2,0);
-    for(let k=0;k<24;k++){const a=k/24*2*PI10,c=Math.cos(a),sn=Math.sin(a);
-      B.add(plan10([[-.09,-.07],[.09,0],[-.09,.07],[-.03,0]],.03,.006),k%2?K.glow:K.or,0.0,sn*R,c*R,0,PI10/2,a);}                       // chevrons >>> vers l'avant
-    for(let k=0;k<4;k++){const a=k/4*2*PI10+PI10/4,c=Math.cos(a),sn=Math.sin(a);
-      B.add(new THREE.CylinderGeometry(.10,.13,.34,6).rotateZ(PI10/2),K.chrome,0,sn*R,c*R);tige(P(-.2,sn*R,c*R),P(.2,sn*R,c*R),.05,K.noir);
-      boule(K.glow,.22,sn*R,c*R,.045);}
-    for(let k=0;k<10;k++){const t=k/9,r=.78-t*.74;B.add(new THREE.TorusGeometry(Math.max(.05,r),.03,5,40),K.halo([0xffffff,0xd8f4ff,0xa0e8ff,0x70d8ff,0x40c0ff,0x30a0ff,0x3080f0,0x3a60e0,0x4a40d0,0x5a30c0][k],.5-.25*t),0,0,0,0,PI10/2,0);}
-    boule(K.blanc,0,0,0,.12);B.add(cone10(.06,2.4,12),K.haloC,.10,0,0,0,0,0);B.add(cone10(.06,2.4,12),K.haloC,-.10,0,0,0,PI10,0);
-    for(let k=0;k<3;k++)B.add(new THREE.TorusGeometry(R*(1.08+k*.14),.016,5,56),K.halo(0x7ad8ff,.45-k*.12),.22*(k+1),0,0,0,PI10/2,0);
-    for(let k=0;k<4;k++){const a=k/4*2*PI10+PI10/4;tige(P(-.55,0,0),P(0,Math.sin(a)*R,Math.cos(a)*R),.03,K.chrome);}   // la porte tient au moteur par quatre haubans
+  case 26:{ // L'OUROBOROS D'ARGENT (Léo : « un moteur argenté en boucles infinies ») — trois NŒUDS DE CHROME imbriqués autour de la nacelle (trèfle,
+    //   cinq lobes, anneau), et sur la boucle extérieure un serpent d'argent qui se mord la queue ; un cœur blanc, un rayon de plasma, quatre haubans
+    const R=.90,tk=(p,q,r,rad,m,rx,ry,rz)=>B.add(new THREE.TorusKnotGeometry(r,rad,90,8,p,q),m,0,0,0,rx,ry,rz);
+    tk(2,3,R*.88,.10,K.chrome,0,PI10/2,0);B.add(new THREE.TorusGeometry(R*.40,.045,8,48),K.alu,0,0,0,0,PI10/2,0);   // UN grand trèfle net + son anneau de cœur
+    B.add(new THREE.TorusGeometry(R*1.30,.022,6,64),K.or,0,0,0,0,PI10/2,0);
+    const RS=R*1.30,N=44;for(let k=0;k<N;k++){const t=k/(N-1),a=t*2*PI10*.93,r=.05+.075*Math.sin(Math.min(1,t*1.6)*PI10/2);
+      B.add(G10.sph,K.chrome,0,Math.sin(a)*RS,Math.cos(a)*RS,0,0,0,r,r,r);}
+    {const ah=2*PI10*.955,hp=P(0,Math.sin(ah)*RS,Math.cos(ah)*RS),fw=D(0,Math.cos(ah),-Math.sin(ah)),up=D(0,Math.sin(ah),Math.cos(ah));
+      boule(K.chrome,hp.x,hp.y,hp.z,.13,.10,.10);corne(hp.clone().addScaledVector(fw,.08),fw,.07,.20,K.chrome);
+      for(let sd=-1;sd<=1;sd+=2){boule(K.glow,hp.x+sd*.07,hp.y+up.y*.05,hp.z+up.z*.05,.03);corne(hp.clone().addScaledVector(up,.06).add(P(sd*.06,0,0)),up.clone().addScaledVector(fw,-.7),.025,.2,K.or);}
+      const tl=P(0,Math.sin(2*PI10*.93)*RS,Math.cos(2*PI10*.93)*RS);corne(tl,D(0,Math.cos(2*PI10*.93),-Math.sin(2*PI10*.93)),.04,.12,K.chrome);}
+    TX(B,K.chrome,[[.001,0],[.16,.02],[.20,.22],[.18,.60],[.10,.92],[.001,1.0]],-.60,0,0,0,18);BAR(B,K.chrome,.06,-1.2,1.1,0,0);
+    boule(K.blanc,0,0,0,.14);boule(K.haloF,0,0,0,.26);B.add(cone10(.06,2.4,12),K.haloC,.14,0,0,0,0,0);B.add(cone10(.06,2.4,12),K.haloC,-.14,0,0,0,PI10,0);
+    for(let k=0;k<4;k++){const a=k/4*2*PI10+PI10/4;tige(P(0,0,0),P(0,Math.sin(a)*R,Math.cos(a)*R),.03,K.chrome);}
     break;}
+
 
 
   case 27:{ // HALLEY — des aiguilles de glace hérissent le noyau, une 2e queue d'ions bleue, et ses deux anneaux (tenus par des rayons)
