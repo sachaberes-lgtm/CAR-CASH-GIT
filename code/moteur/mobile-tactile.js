@@ -669,6 +669,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvMus',SND.music?'ON':'OFF',SND.music);
       sv('mvVib',SND.vib?'ON':'OFF',SND.vib);
       sv('mvVolH',TR(volSens()<0?'MONTE':'PLONGE'),true);
+      sv('mvVolInv',volInv()<0?'ON':'OFF',volInv()<0);
       sv('mvFigG',TR(figGlisseOn()?'GLISSER':'2 TAPS'),true); // (2026-10-15) LA FIGURE AU GLISSÉ
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
       sv('mvQ',TR(qLbl()),true);
@@ -743,6 +744,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='vib'){ SND.vib=!SND.vib; SAVE.d.vib=SND.vib; SAVE.flush(); if(SND.vib)hap(14); mFill(); } // rallumées : elles se présentent d'une impulsion
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); try{const v9=document.getElementById('mvVer');if(v9)v9.textContent=TR('VERSION')+' '+CC_VER.replace(/^LOCALE/,TR('LOCALE'));}catch(e9){} }
     else if(a==='volh'){ volhBascule(); mFill(); }
+    else if(a==='volinv'){ volInvBascule(); mFill(); }
     else if(a==='figg'){ figGBascule(); mFill(); } // (2026-10-15) FIGURES : 2 TAPS ⇄ GLISSER
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);

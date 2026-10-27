@@ -8988,6 +8988,7 @@ html[data-reduced-motion="1"] :is(.m5Halo,#mDead.m5 .m5Scene .hMotCv,.m5Ombre,#m
             <div class="mLigne" data-m="lang"><i class="pxi pxi-bulle" aria-hidden="true"></i><span class="tpL">LANGUE</span><b id="mvLang" class="valeur">FR</b></div>
             <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT</span><b id="mvVolH" class="valeur">MONTE</b></div><!-- (2026-10-14, charte 6) « POUCE HAUT EN VOL » passait sur deux lignes : l'aile dit déjà « en vol » -->
             <div class="mLigne" data-m="figg"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="FIGURES">FIGURES</span><b id="mvFigG" class="valeur">2 TAPS</b></div><!-- (2026-10-15, Léo) la FIGURE : double-tap NITRO, ou glisser depuis NITRO puis lâcher (GLI) -->
+            <div class="mLigne" data-m="volinv"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">VOL INVERSÉ</span><b id="mvVolInv" class="valeur">OFF</b></div>
           </div>
           <div class="mSec oAide" data-fr="AIDE">AIDE</div>
           <div class="mPanel oAide">
@@ -28324,6 +28325,7 @@ for(const k of Object.keys(I18N)){
   if(m&&!(m[1] in I18N))I18N[m[1]]=String(I18N[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
 }
 Object.assign(I18N,{'TOUS LES REGLAGES':'ALL SETTINGS'}); Object.assign(I18N,{'AIDE':'HELP','Colle un code de sauvegarde, ou un code secret.':'Paste a save code, or a secret code.'}); // (2026-10-14, UX 8) // (2026-10-14, charte 6) la ligne de la pause qui ouvre l'écran complet
+Object.assign(I18N,{"VOL INVERSÉ":"INVERTED FLIGHT"}); /* (2026-10-27, Léo) l'option VOL INVERSÉ des réglages */
 /* ============================================================================================================================
    LA PASSE DES TEXTES (2026-10-14) — un seul mot par rôle dans les trois langues, plus d'anglais dans l'interface française.
    I18N_FR : le FRANÇAIS AFFICHÉ quand il diffère de la clé (la clé reste la phrase d'origine, le code ne bouge pas). Écrire ici avec
@@ -58804,6 +58806,9 @@ const GRAV=9.8*.55,FALL_G=33*GRAV_K,AXIS_Y=new THREE.Vector3(0,1,0),AIR_MAX=6;
 const ORB_G=.5,ORB_AIR=5/6; /* (2026-10-14 soir, Sacha : « dans l'espace 5 secondes de air time ») la jauge de l'espace passe de 10,2 s à 5 s (6 × 5/6) : moins que sur Terre, alors que les sauts y montent deux fois plus haut — voulu */
 function gK(){return (LVL.espaceA>=.5&&!PARK.on)?ORB_G:(DN.gx>1?DN.gx:1);} /* (2026-10-23, DUNES) DN.gx : la pesanteur d'un vol de tremplin, tirée à la vitesse du décollage (voir dnLevre) — plus on va vite, plus la caisse retombe vite : elle se pose sur l'ÉPAULE à toute vitesse */
 function volSens(){return SAVE.d&&SAVE.d.volH==='plonge'?1:-1;} // (2026-10-10) absent = MONTE
+/* ===== VOL INVERSÉ (2026-10-27, Léo : « option inverted, vol inversé haut et bas ») ===== */
+function volInv(){return SAVE.d&&SAVE.d.volInv?-1:1;} // -1 = haut/bas inversés en vol (clavier ET pouce) ; absent = normal
+function volInvBascule(){SAVE.d.volInv=SAVE.d.volInv?0:1;SAVE.flush();}
 function volhBascule(){SAVE.d.volH=volSens()<0?'plonge':'monte';SAVE.flush();} // (2026-09-30, R7-5) LE seul écrivain de « POUCE HAUT EN VOL » : les RÉGLAGES et la PAUSE passent par lui // (2026-09-29) « pouce en HAUT = monte » : l'assiette au pouce s'inverse (le clavier ne change pas)
 function airMax(){return AIR_MAX*(gK()<1?ORB_AIR:1);}
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique
@@ -59883,7 +59888,7 @@ function frVersVol(k){ // (startFall, APRÈS figDepart) le corps de la figure de
    `?fdecolle=0` = sans. Console : `dbgFDecolle()` (l'état), `dbgFDecolle(v)` = le manche forcé à v (null : rend la main au pouce). */
 const FDC={ok:!/[?&]fdecolle=0\b/.test(location.search),arme:.3,seuil:.55,haut:.2,imp:6,a:false,n:0,force:null,dv:0,lift:0};
 function frNez(){if(FDC.force!=null)return FDC.force; // le manche du vol lu sur la route : +1 = le nez en HAUT (le cabré), comme pitT/wPitch en vol
-  if(TCTL.act)return -TCTL.sv*volSens();return (keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.KeyZ||keys.ArrowUp?1:0);}
+  if(TCTL.act)return -TCTL.sv*volSens()*volInv();return volInv()*((keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.KeyZ||keys.ArrowUp?1:0));}
 function frEnvol(){ // (frTick, chaque image du bond) le manche tiré : la caisse quitte la route — true : elle vole
   const u=frNez();if(u<FDC.arme){FDC.a=true;return false;}
   if(!FDC.ok||!FDC.a||u<FDC.seuil||!FR.on||mode!=='drive'||FR.lift<FDC.haut||side<0||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act)return false;
@@ -74619,7 +74624,7 @@ function loop(now){
         // VOLANT TACTILE : l'assiette devient ANALOGIQUE (2026-10-10, Léo : pouce vers le HAUT = MONTE (cabré), vers le BAS =
         // plonge, par défaut ; le réglage PLONGE rend le manche d'avion) — même levier, dosé. Zone morte large : tourner ne doit jamais cabrer par accident.
         const pitT=TCTL.act?TCTL.sv*volSens():0; // (2026-09-29) réglage « POUCE HAUT EN VOL : PLONGE / MONTE »
-        const wPitch=pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // -1 = piqué, +1 = cabré
+        const wPitch=volInv()*(pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0)); // -1 = piqué, +1 = cabré
         // (vol libre, 2026-09-26) plus de plafond à ±65° ni de repli « à l'horizontale » : le manche fait tourner la trajectoire ET le
         // haut de la caisse autour de SA droite (FLY_R) — piqué, cabré, looping : aucune assiette n'est interdite, rien ne se bloque
         // (des vecteurs qui tournent autour d'un axe local : pas d'angle d'Euler, donc pas de gimbal-lock).
@@ -74653,7 +74658,7 @@ function loop(now){
         // (2026-09-27, user : « quand j'essaye de redresser dans les airs sans le nitro ça fait rien ») : cette branche ne lisait que le
         // CLAVIER — sur téléphone le pouce (axe Y du volant) était ignoré sans nitro. Même lecture qu'au réacteur : analogique, zone morte.
         const pitT=TCTL.act?TCTL.sv*volSens():0;
-        const wPitch=pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ piqué · ↓ cabré
+        const wPitch=volInv()*(pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0)); // ↑ piqué · ↓ cabré
         pitchS+=(wPitch-pitchS)*(1-Math.exp(-dtF*(pitT!==0?VOL_LIS_D:VOL_LIS))); // (2026-10-14) τ 30 ms au pouce · (2026-10-09) le même manche lissé (voir le réacteur)
         if(Math.abs(pitchS)>1e-4){const a9=-pitchS*(.85+.85*nk9)*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,85 rad/s : on infléchit, on ne pilote pas — (2026-10-17) l'autorité du réacteur s'éteint en ~80 ms (nk9)
       }
@@ -77553,6 +77558,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvMus',SND.music?'ON':'OFF',SND.music);
       sv('mvVib',SND.vib?'ON':'OFF',SND.vib);
       sv('mvVolH',TR(volSens()<0?'MONTE':'PLONGE'),true);
+      sv('mvVolInv',volInv()<0?'ON':'OFF',volInv()<0);
       sv('mvFigG',TR(figGlisseOn()?'GLISSER':'2 TAPS'),true); // (2026-10-15) LA FIGURE AU GLISSÉ
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
       sv('mvQ',TR(qLbl()),true);
@@ -77627,6 +77633,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='vib'){ SND.vib=!SND.vib; SAVE.d.vib=SND.vib; SAVE.flush(); if(SND.vib)hap(14); mFill(); } // rallumées : elles se présentent d'une impulsion
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); try{const v9=document.getElementById('mvVer');if(v9)v9.textContent=TR('VERSION')+' '+CC_VER.replace(/^LOCALE/,TR('LOCALE'));}catch(e9){} }
     else if(a==='volh'){ volhBascule(); mFill(); }
+    else if(a==='volinv'){ volInvBascule(); mFill(); }
     else if(a==='figg'){ figGBascule(); mFill(); } // (2026-10-15) FIGURES : 2 TAPS ⇄ GLISSER
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);

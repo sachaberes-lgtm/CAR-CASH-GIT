@@ -397,3 +397,4 @@ for(const k of Object.keys(I18N)){
   if(m&&!(m[1] in I18N))I18N[m[1]]=String(I18N[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
 }
 Object.assign(I18N,{'TOUS LES REGLAGES':'ALL SETTINGS'}); Object.assign(I18N,{'AIDE':'HELP','Colle un code de sauvegarde, ou un code secret.':'Paste a save code, or a secret code.'}); // (2026-10-14, UX 8) // (2026-10-14, charte 6) la ligne de la pause qui ouvre l'écran complet
+Object.assign(I18N,{"VOL INVERSÉ":"INVERTED FLIGHT"}); /* (2026-10-27, Léo) l'option VOL INVERSÉ des réglages */
