@@ -12077,6 +12077,7 @@ window.dbgNuVit=function(k,o){o=o||{};if(k!=null)NUVIT.on=!!+k;if(o.fondu!=null)
   if(o.detail&&COTON.vit){const D=[];for(let q=0;q<COTON.vit.length;q++){const V=COTON.vit[q];if(V&&V.ok)D.push([q>>2,q&3,V.c.geometry.index.count/3,V.o.geometry.index.count/3,V.p.geometry.index.count/3,COTON.im[q].userData.tri]);}return D;} // (banc) [gabarit, finesse, écailles, cœur, peau, v8]
   return {on:NUVIT.on,fondu:NUVIT.fondu,lotsPrets:n,tri:COTON.tri,seuls:CLOUDS.filter(function(c){return c.mesh&&c.mesh.userData.vit;}).length,u:Object.keys(NV_U).reduce(function(a,q){a[q]=NV_U[q].value;return a;},{})};};
 window.dbgNet=function(on){FLOU_OK=!on;if(on&&acesPass)acesPass.uniforms.uSpeed.value=0;return !FLOU_OK;}; // (dev) une image NETTE pour les bancs (le flou de vitesse coupé)
+window.dbgTraits=function(v){if(acesPass)acesPass.uniforms.uTL.value.y=v;return v;}; /* (2026-10-27) BANC : force des traits de vitesse, 0 = éteints */
 let FLOU_ON=true;window.dbgFlou=function(o){o=o||{};if(!acesPass)return null;const U=acesPass.uniforms; // (2026-10-14, flou-vitesse) BANC : v = le flou v2/v1 (une recompilation : jamais en course), s = une vitesse d'effet forcée sur l'image figée, fv = [rayon,force,warp,courbe]
   if(o.v!=null&&!!o.v!==FLOU_ON){FLOU_ON=!!o.v;acesPass.material.fragmentShader=flouFS(acesPass.material.fragmentShader,FLOU_ON);acesPass.material.needsUpdate=true;}
   if(o.fv)U.uFv.value.fromArray(o.fv);if(o.s!=null){loop._sfx=+o.s;U.uSpeed.value=+o.s;postCaisse(U);}
