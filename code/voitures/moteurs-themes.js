@@ -5,7 +5,7 @@
    PALETTE (`TH30` remplace la laque et la flamme du palier) et sa SIGNATURE (`theme30`), posée sur le moteur — ⚠ RÈGLE : chaque
    pièce TOUCHE le moteur (aucun bout en l'air), aucune matière transparente hors du verre voulu. */
 const TH30=[null,
- [0x1f8a6a,0x9affc8],[0x1fb8b0,0xc8a8ff],[0x2a1c14,0xffb030],[0x9a6430,0xffc040],[0x4a6680,0x9ad8ff],   // 2 scarabée · 3 colibri · 4 scorpion · 5 hibou · 6 requin
+ [0x1f8a6a,0x9affc8],[0x0e7a54,0xff5ac8],[0x2a1c14,0xffb030],[0x9a6430,0xffc040],[0x4a6680,0x9ad8ff],   // 2 scarabée · 3 colibri · 4 scorpion · 5 hibou · 6 requin
  [0xff6a3c,0xffb070],[0xff5f8a,0xffe0ea],[0x15171c,0xd8f4ff],[0x5f7d3c,0xd8ff90],[0xd8282a,0xffa030],   // 7 étoile de mer · 8 corail · 9 orques · 10 tortue · 11 roquette
  [0x1f4aff,0x9af0ff],[0x4f5f2a,0xffb030],[0x2a3a8a,0xffe08a],[0xffb000,0xfff0a0],[0x1f5a3a,0xff5030],   // 12 électrique · 13 grenade · 14 vitrail · 15 soleil · 16 dragon
  [0xc0201e,0xffd070],[0x3a2a6a,0x6affd8],[0xd9a441,0x5a8aff],[0xff4a1a,0xffc040],[0x13a8a8,0x8affff],   // 17 pagode · 18 kraken · 19 sphinx · 20 phénix · 21 atlantide
@@ -100,27 +100,36 @@ function h1_p1(B,K,L,XE,top){
 }
 /* ===== P2 — LE COLIBRI : tête ronde au long bec d'or, gorge qui brille, ailes en V qui battent, queue en ciseaux ===== */
 function h1_p2(B,K,L,XE,top){
-  B.add(h1_ell(-XE-.22,.32,0,.44,.30,.30,12,8),K.col,0,0,0);                                                                              // la tête
-  B.add(h1_ell(-XE-.20,.54,0,.26,.10,.20,10,6),K.colD,0,0,0);                                                                             // le front, plus sombre
-  B.add(h1_ell(-XE-.05,.50,0,.20,.08,.14,8,5),K.glow,0,0,0);                                                                              // le calot irisé
-  B.add(h1_loft([[-XE-.52,.07,.05,.025],[-XE-.30,.06,.18,.05],[-XE-.02,.05,.24,.07],[-XE+.18,.05,.14,.05]],10,2),K.glow,0,0,0);          // la gorge qui brille
-  B.add(h1_tube([[-XE-.52,.31,0],[-XE-.90,.28,0],[-XE-1.36,.18,0]],[.064,.034,.004],12,6),K.or,0,0,0);                                  // le bec
-  B.add(h1_tube([[-XE-.52,.25,0],[-XE-.86,.21,0],[-XE-1.18,.13,0]],[.05,.022,.004],10,6),K.lame,0,0,0);                                 // la mandibule du bas
-  for(let sd=-1;sd<=1;sd+=2){h1_oeil(B,K,-XE-.36,.42,sd*.245,.055,sd,K.or);
-    B.add(h1_ell(-XE-.14,.18,sd*.26,.18,.10,.07,8,5),K.colD,0,0,0);                                                                       // la joue
-    const sh=h1_v(-XE*.10,top-.02,sd*.20),u=h1_v(-.10,.50,sd*1).normalize(),v=h1_v(1,0,0),nz=new THREE.Vector3().crossVectors(u,v);
-    B.add(G10.sph,K.colD,sh.x,sh.y,sh.z,0,0,0,.11,.10,.11);
-    for(let r=0;r<2;r++)for(let k=0;k<(r?6:8);k++){const f=k/(r?5:7),psi=(r?8+f*65:6+f*88)*H1PI/180,len=(r?.65:.90)+(r?.30:.42)*Math.sin(.4+f*2.5),
-        dir=u.clone().multiplyScalar(Math.cos(psi)).addScaledVector(v,Math.sin(psi));
-      h1_pose(B,h1_plume(len,.17-r*.03,.022),(k+r)%2?K.col:K.colD,sh.clone().addScaledVector(nz,(r*.035+k*.004)*sd),dir,nz);
-      if(!r&&k>=2&&k<7)B.add(G10.sph,K.glow,sh.x+dir.x*len,sh.y+dir.y*len,sh.z+dir.z*len,0,0,0,.03,.03,.03);}
-    B.add(h1_tube([[sh.x,sh.y,sh.z],[sh.x+.10,sh.y+.32,sh.z+sd*.30],[sh.x+.22,sh.y+.56,sh.z+sd*.52]],[.05,.036,.018],6,5),K.or,0,0,0);        // le bras de l'aile
-    for(let q=0;q<2;q++)for(let k=0;k<5;k++)h1_pose(B,h1_plume(.30,.13,.02),(k+q)%2?K.colD:K.col,h1_v(-XE+.20+k*.17+q*.08,top-.07-q*.07,sd*(.20+q*.05)),h1_v(1,-.08,sd*.30),h1_v(0,1,-sd*.20));
-    for(let q=0;q<3;q++)for(let k=0;k<6;k++)h1_pose(B,h1_plume(.30,.15,.02),(k+q)%2?K.colD:K.col,h1_v(-XE+.12+k*(L-.5)/5+q*.07,.20-q*.17,sd*(.33+q*.012)),h1_v(1,-.18,0),h1_v(0,0,sd));
+  /* RETOUCHE 27/10 : le moteur est un VRAI colibri — un torse en fuseau plumeux et irisé qui recouvre le bloc, une gorge qui flambe, un bec fin et net,
+     et DEUX VRAIES AILES : un bras à l'avant-bord, des primaires longues en éventail serré, des secondaires qui raccourcissent vers l'épaule, relevées en V. */
+  const LY=.34,BS=[[.0,.66,-.04,.32],[.35,.94,-.18,.43],[.80,.98,-.20,.46],[1.20,.84,-.18,.40],[1.55,.58,-.04,.25],[1.80,.42,.06,.15]];   // ox, dessus, dessous, demi-largeur
+  const bs=(ox,j)=>{for(let k=0;k<BS.length-1;k++){if(ox>=BS[k][0]&&ox<=BS[k+1][0]){const t=(ox-BS[k][0])/(BS[k+1][0]-BS[k][0]);return BS[k][j]+(BS[k+1][j]-BS[k][j])*t;}}return BS[ox<BS[0][0]?0:BS.length-1][j];};
+  B.add(h1_loft(BS.map(q=>[-XE+q[0],LY,q[3],q[1]-LY,0,.16]),12,2.4),K.col,0,0,0);                                                         // le DOS irisé, qui cache le couvre-culasse
+  B.add(h1_loft(BS.map(q=>[-XE+q[0],LY,q[3]*.994,.04,0,(LY-q[2])/.04]),12,3.4),K.blanc,0,0,0);                                          // le ventre pâle (une demi-coquille : le haut ne dépasse jamais du dos)
+  // la tête : ronde, calot qui luit, joue sombre
+  B.add(h1_ell(-XE-.22,.34,0,.44,.30,.30,12,8),K.col,0,0,0);
+  B.add(h1_ell(-XE-.18,.52,0,.28,.10,.21,10,6),K.colD,0,0,0);                                                                             // le front, plus sombre
+  B.add(h1_ell(-XE-.04,.50,0,.20,.08,.14,8,5),K.glow,0,0,0);                                                                              // le calot irisé
+  B.add(h1_loft([[-XE-.50,.22,.06,.05],[-XE-.30,.20,.28,.14],[-XE-.0,.17,.35,.19],[-XE+.34,.14,.37,.20],[-XE+.60,.12,.26,.12]],10,2),K.glow,0,0,0);   // la GORGE qui flambe
+  B.add(h1_tube([[-XE-.52,.33,0],[-XE-.95,.30,0],[-XE-1.42,.20,0]],[.058,.030,.003],12,6),K.or,0,0,0);                                  // le bec : long, fin, net
+  B.add(h1_tube([[-XE-.52,.28,0],[-XE-.88,.24,0],[-XE-1.22,.16,0]],[.040,.018,.003],10,6),K.lame,0,0,0);                                // la mandibule du bas
+  for(let sd=-1;sd<=1;sd+=2){h1_oeil(B,K,-XE-.36,.44,sd*.245,.055,sd,K.or);
+    B.add(h1_ell(-XE-.14,.20,sd*.27,.18,.10,.07,8,5),K.colD,0,0,0);                                                                      // la joue
+    // L'AILE : bras à l'avant-bord, primaires en éventail, couvertures, relevée en V
+    const S=h1_v(-XE+.42,bs(.42,1)-.10,sd*.30),wd=h1_v(.34,.74,sd*.56).normalize(),ct=h1_v(1,0,0).addScaledVector(wd,-wd.x).normalize(),nz=new THREE.Vector3().crossVectors(wd,ct).multiplyScalar(sd);
+    const AL=.92,T=S.clone().addScaledVector(wd,AL);
+    B.add(G10.sph,K.colD,S.x,S.y,S.z,0,0,0,.13,.11,.12);                                                                                  // l'épaule
+    B.add(h1_tube([[S.x,S.y,S.z],[S.x+wd.x*AL*.5,S.y+wd.y*AL*.5+.03,S.z+wd.z*AL*.5],[T.x,T.y,T.z]],[.062,.040,.010],10,6),K.colD,0,0,0);    // le bras : l'avant-bord de l'aile
+    B.add(h1_tube([[S.x,S.y+.01,S.z],[S.x+wd.x*AL*.5,S.y+wd.y*AL*.5+.04,S.z+wd.z*AL*.5],[T.x,T.y+.005,T.z]],[.012,.010,.004],10,4),K.glow,0,0,0);   // le filet irisé de l'avant-bord
+    for(let r=0;r<2;r++)for(let k=0;k<10;k++){const f=k/9,s0=(r?.06:.10)+f*.84,ph=((1-f)*52+4+r*5)*H1PI/180,len=(r?.40:.48)+(r?.26:.46)*Math.pow(f,.8),
+        dir=wd.clone().multiplyScalar(Math.cos(ph)).addScaledVector(ct,Math.sin(ph)),bp=S.clone().addScaledVector(wd,AL*s0).addScaledVector(nz,(r?.026:-.004));
+      h1_pose(B,h1_plume(len,.15-.045*f+(r?.0:.012),.018),((k+r)%2)?K.colD:K.col,bp,dir,nz);}
+    // le dos plumeux : des rangs de plumes qui se recouvrent, comme des écailles irisées, couchées vers l'arrière
+    for(let q=0;q<3;q++)for(let k=0;k<6;k++){const ox=.36+k*.19+q*.07,zz=sd*(.10+q*.115),w=bs(ox,3),yy=LY+(bs(ox,1)-LY)*Math.pow(Math.max(0,1-Math.pow(Math.abs(zz)/w,2.4)),1/2.4)+.012;
+      h1_pose(B,h1_plume(.30,.16,.016),(k+q)%2?K.col:K.colD,h1_v(-XE+ox,yy,zz),h1_v(1,-.20,sd*.22),h1_v(sd*.0,1,sd*Math.abs(zz)/w*.9));}
   }
-  B.add(h1_loft([[-XE+.10,top-.02,.22,.05],[-XE+.40,top+.03,.30,.17,0,.4],[XE-.30,top+.03,.28,.16,0,.4],[XE+.0,top-.04,.18,.07]],12,2.2),K.col,0,0,0);   // le dos, bombé : le couvre-culasse devient plumage
-  BXg(B,K.glow,0,top+.20,0,0,0,0,L*.55,.012,.05);
-  B.add(h1_loft([[XE-.30,.46,.16,.10],[XE-.05,.46,.17,.10],[XE+.20,.48,.12,.06],[XE+.34,.50,.05,.03]],10,2),K.colD,0,0,0);              // le croupion
+  BXg(B,K.glow,0,bs(.8,1)+.004,0,0,0,0,L*.45,.012,.05);                                                                                   // la raie irisée de l'échine
+  B.add(h1_loft([[XE-.10,.44,.16,.10],[XE+.14,.46,.14,.08],[XE+.30,.48,.09,.05]],10,2),K.colD,0,0,0);                                     // le croupion
   for(let k=0;k<7;k++){const f=(k-3)/3,a=f*.55,len=.70+.60*Math.abs(f),dir=h1_v(Math.cos(a),.10+Math.abs(f)*.10,Math.sin(a));              // la queue en ciseaux, au-dessus de la tuyère
     h1_pose(B,h1_plume(len,.20,.022),k%2?K.col:K.colD,h1_v(XE+.05,.50,f*.06),dir,h1_v(0,1,0));}
 }
@@ -216,20 +225,37 @@ function h1_p5(B,K,L,XE,top){
     B.add(h1_ell(-XE-.30,.445,sd*.335,.27,.045,.075,8,5),K.colD,0,0,0);                                                                  // l'arcade
     // les narines
     BXg(B,K.noir,-XE-.96,.245,sd*.065,0,sd*.5,0,.07,.014,.022);
-    // les cinq ouïes, en courbe
-    for(let k=0;k<5;k++){const ox=.30+k*.09;BXg(B,K.noir,-XE+ox,.16+k*.01,sd*(ia(H,ox,2)*.96+.012),0,0,sd*(.20-k*.02),.022,.40-k*.03,.02);}
-        // la ligne latérale
-    BXg(B,K.glow,.30,.13,sd*.352,0,0,0,L*.30,.012,.012);
-    // les pectorales
-    B.add(plan10([[0,.14],[.34,.04],[.76,-.28],[1.0,-.70],[.64,-.54],[.30,-.36],[0,-.18]],.04,.01),K.col,-XE+.50,.0,sd*.34,sd*.85,0,0);
-    B.add(plan10([[0,0],[.26,-.04],[.34,-.30],[.14,-.22]],.03,.008),K.col,XE-.46,-.16,sd*.26,sd*.8,0,0);
+    // les narines déjà posées plus haut ; le reste du corps est un REVÊTEMENT (voir plus bas)
   }
-  B.add(plan10([[-.50,0],[.55,0],[.42,.22],[.20,.55],[-.05,1.0],[-.22,.76],[-.40,.40]],.05,.012),K.col,-L*.06,top+.01,0);                    // la dorsale
-  B.add(plan10([[0,0],[.34,0],[.22,.34],[.06,.30]],.03,.008),K.col,XE-.46,top+.01,0);
-  // la caudale : deux lobes de part et d'autre de la tuyère
+  /* RETOUCHE 27/10 : LE BLOC DISPARAÎT sous un corps de requin en torpille — dos facetté (K.col), ventre blanc net, ligne latérale, cinq ouïes marquées,
+     pectorales larges, deux dorsales, anale, pédoncule qui file vers la tuyère et la caudale à deux lobes. La tête, elle, n'est pas touchée. */
+  const BS=[[.12,.62,-.30,.37],[.45,.80,-.32,.40],[.85,.99,-.36,.46],[1.25,1.00,-.38,.48],[1.65,.96,-.36,.45],[1.95,.66,-.22,.31],[2.20,.40,-.10,.18],[2.38,.28,-.02,.13]];   // ox, dessus, dessous, demi-largeur
+  const bs=(ox,j)=>{for(let k=0;k<BS.length-1;k++){if(ox>=BS[k][0]&&ox<=BS[k+1][0]){const t=(ox-BS[k][0])/(BS[k+1][0]-BS[k][0]);return BS[k][j]+(BS[k+1][j]-BS[k][j])*t;}}return BS[ox<BS[0][0]?0:BS.length-1][j];};
+  const LY=.12;
+  B.add(h1_loft(BS.map(q=>[-XE+q[0],LY,q[3],q[1]-LY,0,.12]),12,2.5),K.col,0,0,0);                                                       // le DOS et les flancs
+  B.add(h1_loft(BS.map(q=>[-XE+q[0],LY,q[3]*.994,LY-q[2],0,1]),12,2.5),K.blanc,0,0,0);                                                  // le VENTRE blanc
+  for(let sd=-1;sd<=1;sd+=2){
+    // les cinq ouïes : des fentes inclinées, ourlées de chrome, qui s'allongent vers le haut
+    for(let k=0;k<5;k++){const ox=.62+k*.082,w=bs(ox,3)*.985,hh=.50-k*.02;
+      BXg(B,K.noir,-XE+ox,LY+.16,sd*(w+.012),0,0,sd*.20,.020,hh,.022);
+      BXg(B,K.chrome,-XE+ox-.026,LY+.16,sd*(w+.006),0,0,sd*.20,.007,hh+.03,.016);}
+    // la ligne latérale, qui court de l'opercule à la queue
+    {const pts=[];for(const ox of [.80,1.05,1.35,1.65,1.90,2.10])pts.push([-XE+ox,LY,sd*(bs(ox,3)*.99+.008)]);B.add(h1_tube(pts,[.011,.011,.011,.011,.011,.008],16,4),K.glow,0,0,0);}
+    // les plaques du flanc : deux filets chromés qui suivent la torpille (dessus du flanc, limite du ventre)
+    {const pts=[],q2=[];for(const ox of [.80,1.10,1.40,1.70,1.95,2.15]){const w=bs(ox,3);pts.push([-XE+ox,LY+.30*(bs(ox,1)-LY)/.80+.10,sd*(w*.90+.01)]);q2.push([-XE+ox,LY-.12,sd*(w*.96+.008)]);}
+      B.add(h1_tube(pts,[.008,.008,.008,.008,.008,.006],16,4),K.chrome,0,0,0);B.add(h1_tube(q2,[.009,.009,.009,.009,.009,.007],16,4),K.chrome,0,0,0);}
+    // la pectorale : large, en faux, qui part du flanc juste derrière l'ouïe
+    B.add(plan10([[0,.20],[.46,.08],[1.04,-.34],[1.42,-1.02],[.88,-.76],[.40,-.50],[0,-.24]],.05,.012),K.col,-XE+.54,.0,sd*(bs(.56,3)*.92),-sd*1.05,0,0);
+        // la pelvienne
+    B.add(plan10([[0,0],[.30,-.04],[.40,-.34],[.14,-.22]],.03,.008),K.col,-XE+1.46,-.26,sd*bs(1.46,3)*.78,-sd*.8,0,0);
+  }
+  B.add(plan10([[-.50,0],[.60,0],[.44,.22],[.20,.55],[-.05,1.0],[-.24,.76],[-.42,.40]],.05,.012),K.col,-XE+.98,bs(.98,1)-.07,0);   // la dorsale
+  B.add(plan10([[0,0],[.40,0],[.26,.42],[.06,.36]],.03,.008),K.col,-XE+1.38,bs(1.50,1)-.05,0);                                         // la 2e dorsale
+  B.add(plan10([[0,0],[.34,0],[.16,-.30],[.0,-.22]],.03,.008),K.blanc,-XE+1.46,bs(1.6,2)+.04,0);                                       // l'anale, sous la queue
+  {const pts=[];for(const ox of [.52,.85,1.25,1.65,1.95])pts.push([-XE+ox,bs(ox,1)-.012,0]);B.add(h1_tube(pts,[.016,.016,.016,.016,.012],14,4),K.or,0,0,0);}                                                                          // le filet d'or de l'échine
+  // la caudale : deux lobes de part et d'autre de la tuyère, nés du pédoncule
   B.add(plan10([[-.14,.40],[.32,.54],[.66,.70],[.84,.98],[1.02,1.40],[.78,1.02],[.64,.80],[.50,.62],[.24,.50],[-.14,.34]],.05,.012),K.col,XE,0,0);
   B.add(plan10([[-.14,-.06],[.30,-.20],[.52,-.40],[.70,-.80],[.46,-.62],[.30,-.50],[-.14,-.34]],.05,.012),K.col,XE,0,0);
-  BXg(B,K.blanc,0,-.345,0,0,0,0,L*.96,.04,.54);
 }
 /* ===== P6 — L'ÉTOILE DE MER : la face du moteur est la face orale de l'étoile (bouche, cinq bras à sillon et pieds ambulacraires), le dos hérissé de piquants, la tuyère en étoile ===== */
 function h1_p6(B,K,L,XE,top){
@@ -258,17 +284,24 @@ function h1_p6(B,K,L,XE,top){
 }
 /* ===== P7 — LE CORAIL, plus VIVANT (la forme aimée reste intacte : branches roses et perles) : polypes aux tentacules, anémone en proue, colonies encroûtantes, vers de mer ===== */
 function h1_p7(B,K,L,XE,top){
-  // la proue : une anémone-polype — disque rose, deux couronnes de tentacules fins qui ondulent, bouche d'or
-  const xa=-XE+.04,ya=.10;
-  TX(B,K.col,[[.001,.22],[.14,.18],[.22,.08],[.24,.0],[.22,.16],[.001,.22]],xa,ya,0,PI10,14);
-  B.add(new THREE.TorusGeometry(.19,.026,5,16),K.or,xa-.05,ya,0,0,PI10/2,0);
-  for(let k=0;k<10;k++){const t=k/10*2*H1PI,cs=Math.cos(t),sn=Math.sin(t),R=.17+(k%2)*.06,sw=.03*Math.sin(k*2.3);
-    B.add(h1_tube([[xa-.02,ya+cs*R*.8,sn*R*.8],[xa-.18,ya+cs*(R+.10),sn*(R+.10)+sw],[xa-.30-(k%2)*.06,ya+cs*(R+.22),sn*(R+.22)-sw],[xa-.34-(k%2)*.06,ya+cs*(R+.34),sn*(R+.34)]],[.030,.022,.014,.006],10,4),k%2?K.blanc:K.col,0,0,0);
-    B.add(G10.sph,K.or,xa-.34-(k%2)*.06,ya+cs*(R+.34),sn*(R+.34),0,0,0,.02,.02,.02);}
-  B.add(tourX([[.001,.0],[.09,.0],[.09,.04],[.001,.04]],10),K.glow,xa-.14,ya,0,0,PI10,0);
+  // RETOUCHE 27/10 — la proue : un ÉVENTAIL DE GORGONE (le boule rose à tentacules rappelait un oursin) : un pied sur la cloche, un moyeu, sept branches maîtresses qui se divisent
+  // deux fois dans un seul plan, et une DENTELLE de filets qui relie les pointes ; chaque bout porte son polype de nacre
+  {const hx=-XE-.02,hy=.06,hub=[hx-.20,hy+.34,0];
+    B.add(h1_tube([[hx+.06,hy-.02,0],[hx-.08,hy+.12,0],hub],[.070,.055,.040],8,6),K.col,0,0,0);                       // le pied, né de la cloche d'embrayage
+    B.add(new THREE.TorusGeometry(.085,.016,4,10),K.or,hx-.02,hy+.04,0,0,PI10/2,0);
+    const tips=[],L0=.45,P=(u,v)=>[hub[0]-.16*v+u*.64,hub[1]+v,u*.77];                                                         // plan de l'éventail : (u = largeur, v = hauteur), penché vers l'avant
+    const br=(u,v,ang,len,n,r)=>{const u2=u+Math.sin(ang)*len,v2=v+Math.cos(ang)*len;
+      B.add(h1_tube([P(u,v),P((u+u2)/2+Math.cos(ang)*.012,(v+v2)/2),P(u2,v2)],[r,r*.72,r*.55],4,4),K.col,0,0,0);
+      if(n>0){br(u2,v2,ang-.42,len*.70,n-1,r*.62);br(u2,v2,ang+.42,len*.70,n-1,r*.62);}else tips.push([u2,v2,ang]);};
+    for(let k=0;k<6;k++){const ang=(k-2.5)*.40;br(0,0,ang,L0,2,.036);}
+    tips.sort((a,b)=>a[0]-b[0]);
+    for(let k=0;k<tips.length-1;k++){const A=tips[k],C=tips[k+1];if(Math.abs(A[0]-C[0])<.20&&Math.abs(A[1]-C[1])<.2)
+      B.add(h1_tube([P(A[0],A[1]-.012),P((A[0]+C[0])/2,(A[1]+C[1])/2-.05),P(C[0],C[1]-.012)],[.007,.007,.007],3,3),K.blanc,0,0,0);}                // la dentelle
+    for(let k=0;k<tips.length;k+=1){const q=P(tips[k][0],tips[k][1]);B.add(h1_ico(),K.blanc,q[0],q[1],q[2],0,0,0,.028,.028,.028);}             // les polypes de nacre
+  }
   // les colonies encroûtantes sur les flancs
   for(let sd=-1;sd<=1;sd+=2){for(let k=0;k<5;k++){const x=-XE*.62+k*(L*.26),y=-.20+(k%2)*.07;
-      for(let q=0;q<3;q++)B.add(G10.sph,(k+q)%2?K.col:K.blanc,x+(q-1)*.07,y+q*.035,sd*(.33+q*.02),0,0,0,.075-q*.012,.07-q*.01,.06);
+      for(let q=0;q<3;q++)B.add(h1_ico(),(k+q)%2?K.col:K.blanc,x+(q-1)*.07,y+q*.035,sd*(.33+q*.02),0,0,0,.075-q*.012,.07-q*.01,.06);
       h1_dent(B,K.col,h1_v(x,y-.06,sd*.37),h1_v(0,-.2,sd),.03,.12,5);}
     // les vers de mer : un tube et sa couronne spiralée
     for(let k=0;k<2;k++){const x=XE*.32+k*.26,y=-.02+k*.07,d=h1_v(.3,.8,sd*.9).normalize();
@@ -605,7 +638,7 @@ function theme30(B,i,K,c,g){
   case 6:{ // L'ÉTOILE DE MER — HYBRIDE : la face orale de l'étoile, cinq bras à sillon, dos hérissé, tuyère en étoile
     h1_p6(B,K,L,XE,top);break;}
   case 7:{ // LE CORAIL — des branches roses qui poussent au-dessus du vé, perles de nacre au bout
-    const br=(p,d,l,n)=>{const q=p.clone().addScaledVector(d,l);tige(p,q,.022+.016*n,K.col);if(n<=1){boule(K.blanc,q.x,q.y,q.z,.05);for(let u=0;u<5;u++){const a=u/5*2*PI10;corne(q.clone().addScaledVector(D(Math.cos(a)*.6,.5,Math.sin(a)*.6),.04),D(Math.cos(a)*.7,.9,Math.sin(a)*.7),.016,.10,K.col);}return;}
+    const br=(p,d,l,n)=>{const q=p.clone().addScaledVector(d,l);tige(p,q,.022+.016*n,K.col);if(n<=1){B.add(G10.ico||(G10.ico=new THREE.IcosahedronGeometry(1,1)),K.blanc,q.x,q.y,q.z,0,0,0,.05,.05,.05);for(let u=0;u<5;u++){const a=u/5*2*PI10;corne(q.clone().addScaledVector(D(Math.cos(a)*.6,.5,Math.sin(a)*.6),.04),D(Math.cos(a)*.7,.9,Math.sin(a)*.7),.016,.10,K.col);}return;}
       br(q,D(d.x+.35,d.y,d.z+.45),l*.78,n-1);br(q,D(d.x-.35,d.y,d.z-.45),l*.78,n-1);};
     for(let k=0;k<3;k++)br(P((k-1)*L*.30,top-.02,(k-1)*.04),D(0,1,0),.30,3);
     h1_p7(B,K,L,XE,top);
@@ -651,28 +684,36 @@ function theme30(B,i,K,c,g){
   case 9:{ // LA TORTUE (h2) — LE MOTEUR EST la tortue : les deux couvre-culasses du boxer = les écailles marginales de la carapace (dôme + écailles hexagonales),
     //   la cloche d'embrayage = la TÊTE qui sort du carter (crâne, bec, arcade, œil), les quatre nageoires = des bras de piston articulés à l'épaule chromée,
     //   la queue = l'échappement : petite queue d'écailles et tuyère à braise
-    const hx=-XE,DM=[[-XE-.02,.14,.16,.38],[-XE+.22,.17,.42,.82],[-XE+.55,.18,.54,.98],[-.04,.18,.58,1.02],[XE-.32,.18,.52,.98],[XE-.02,.16,.38,.80],[XE+.20,.14,.16,.44]];
+    const hx=-XE,DM=[[-XE+.08,-.08,.26,.40],[-XE+.28,-.08,.56,.88],[-XE+.55,-.08,.68,1.02],[-.04,-.08,.72,1.06],[XE-.32,-.08,.66,1.02],[XE-.02,-.07,.52,.86],[XE+.20,-.06,.28,.48]];
     B.add(h2_loft(DM,16,true,true),K.colD,0,0,0);                                                     // la carapace : un dôme à fond plat
     const sec=x=>{for(let k=0;k<DM.length-1;k++){const a=DM[k],b=DM[k+1];if(x>=a[0]&&x<=b[0]){const t=(x-a[0])/(b[0]-a[0]);return [a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t,a[3]+(b[3]-a[3])*t];}}return DM[DM.length-1].slice(1);};
     const ecaille=(x,z,r)=>{const q=sec(x),yc=q[0],ry=q[1],rz=q[2],f=Math.sqrt(Math.max(0,1-(z/rz)*(z/rz)));if(f<.15)return;const y=yc+ry*f,n=new THREE.Vector3(0,1,z*ry/(rz*rz*f));
       h2_pose(B,G10.cyl6,K.col,P(x,y+.012,z),n,r,.045,r);h2_pose(B,G10.cyl6,K.or,P(x,y+.034,z),n,r*.5,.02,r*.5);};
     for(let k=0;k<4;k++)ecaille(-XE+.35+k*(L-.55)/3,0,.17);                                           // la colonne vertébrale : quatre grandes
     for(let sd=-1;sd<=1;sd+=2){for(let k=0;k<3;k++)ecaille(-XE+.46+k*(L-.74)/2,sd*.42,.15);for(let k=0;k<4;k++)ecaille(-XE+.30+k*(L-.40)/3,sd*.70,.11);}   // les côtes, puis les marginales
-    // la tête : un crâne en plusieurs plans (voûte, arcade, joues, bec) qui sort du carter
-    const H=[[hx+.12,.0,.27,.29,2.4],[hx-.14,.02,.27,.28,2.4],[hx-.36,.06,.23,.28,2.4],[hx-.54,.07,.22,.28,2.3],[hx-.70,.03,.17,.21,2.3],[hx-.82,-.01,.09,.12,2.3]];
-    B.add(h2_loft(H,10),K.col,0,0,0);
-    B.add(h2_loft([[hx-.56,-.10,.08,.19,2.4],[hx-.74,-.09,.06,.12,2.4],[hx-.86,-.06,.03,.06,2.4]],8),K.colD,0,0,0);                    // le bec inférieur
-    vers10(B,cone10(.07,.20,5),K.or,P(hx-.78,.0,0),D(-1,-.55,0),1);                                                             // le crochet du bec, en or
-    B.add(h2_loft([[hx-.32,.23,.05,.22],[hx-.56,.26,.06,.24],[hx-.72,.18,.05,.15]],8),K.colD,0,0,0);                              // l'arcade sourcilière
-    for(let sd=-1;sd<=1;sd+=2){B.add(G10.sph,K.noir,hx-.55,.11,sd*.265,0,0,0,.065,.065,.045);B.add(G10.sph,K.glow,hx-.57,.115,sd*.285,0,0,0,.038,.038,.024);   // l'œil : braise
-      B.add(G10.sph,K.noir,hx-.85,.01,sd*.04,0,0,0,.02,.02,.02);                                                             // la narine
-      B.add(tube10([[hx-.82,-.04,sd*.05],[hx-.60,-.04,sd*.2],[hx-.32,-.02,sd*.29]],.01,8,4),K.noir,0,0,0);                       // la ligne de la bouche
-      // les nageoires : épaule chromée (le turbo), tige de piston, palette en V
-      const ax=sd>0?1:1;
-      for(let r=0;r<2;r++){const xr=r?XE-.20:-XE+.36,big=r?.62:1,z0=sd*.84;
-        B.add(G10.sph,K.chrome,xr,.02,z0,0,0,0,.15*big+.03,.15*big+.03,.15*big+.03);B.add(new THREE.TorusGeometry(.16*big+.03,.016,5,16),K.or,xr,.02,z0,0,PI10/2,0);
-        B.add(plan10(r?[[-.18,0],[-.04,.22],[.12,.52],[.30,.58],[.26,.22],[.18,0]]:[[-.20,0],[-.02,.30],[.30,.68],[.54,.76],[.56,.54],[.40,.24],[.26,0]],.06,.012),K.col,xr,.0,z0,sd*PI10/2,0,r?0:0);
-        tige(P(xr,.02,z0),P(xr+(r?.2:.40),.05,z0+sd*(r?.36:.62)),.032,K.chrome);}}
+    // RETOUCHE 27/10 : la tête devient une VRAIE tête de tortue — cou plissé qui sort de la carapace, crâne bombé aux joues larges, museau court et franc,
+    // bec corné crochu, paupière lourde ; les nageoires sont des PALETTES qui jaillissent sous le bord de la carapace et filent en arrière
+    {const pr=[];for(let k=0;k<DM.length;k++)pr.push([DM[k][0],DM[k][1],-DM[k][3]*.995]);pr.push([DM[DM.length-1][0]+.04,DM[DM.length-1][1],0]);for(let k=DM.length-1;k>=0;k--)pr.push([DM[k][0],DM[k][1],DM[k][3]*.995]);pr.push([DM[0][0]-.03,DM[0][1],0]);pr.push(pr[0]);
+      B.add(h1_tube(pr,[.03,.03],40,6),K.or,0,0,0);}                                                                             // le filet d'or qui ceint le bord de la carapace
+    const HH=[[hx+.30,.0,.29,.31],[hx+.0,.02,.29,.31],[hx-.14,.04,.27,.29],[hx-.24,.07,.29,.33],[hx-.36,.07,.30,.36],[hx-.48,.05,.26,.32],[hx-.58,.02,.20,.24],[hx-.66,-.01,.15,.17],[hx-.72,-.03,.11,.12]];
+    const hT=x=>{for(let k=0;k<HH.length-1;k++){const a=HH[k],b=HH[k+1];if(x<=a[0]&&x>=b[0]){const t=(a[0]-x)/(a[0]-b[0]);return [a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t,a[3]+(b[3]-a[3])*t];}}return HH[HH.length-1].slice(1);};
+    B.add(h2_loft(HH.map(q=>[q[0],q[1],q[2],q[3],2.3]),12),K.col,0,0,0);                                                          // cou + crâne : voûte bombée, joues larges, museau court
+    for(let k=0;k<4;k++){const x=hx+.12-k*.075;B.add(new THREE.TorusGeometry(.316-k*.006,.028,5,12),k%2?K.col:K.colD,x,.02,0,0,PI10/2,0);}   // le cou PLISSÉ : quatre bourrelets
+    [[-.30,.085],[-.45,.075],[-.58,.05]].forEach(q=>{const x=hx+q[0],t=hT(x),y=t[0]+t[1]-.012;h2_pose(B,G10.cyl6,K.colD,P(x,y,0),D(0,1,.02),q[1],.03,q[1]);h2_pose(B,G10.cyl6,K.or,P(x,y+.02,0),D(0,1,.02),q[1]*.45,.018,q[1]*.45);});   // la voûte : trois plaques cornées
+    B.add(h1_tube([[hx-.56,.03,0],[hx-.70,.02,0],[hx-.78,-.04,0],[hx-.80,-.11,0]],[.11,.082,.050,.006],10,8,.95),K.or,0,0,0);        // le bec : le crochet corné
+    B.add(h2_loft([[hx-.44,-.10,.07,.19,2.4],[hx-.62,-.10,.055,.12,2.4],[hx-.74,-.09,.035,.07,2.4]],8),K.colD,0,0,0);              // le bec inférieur
+    B.add(h2_loft([[hx-.12,-.13,.07,.20,2.4],[hx-.34,-.13,.07,.25,2.4],[hx-.50,-.11,.06,.18,2.4]],8),K.glow,0,0,0);                // la gorge claire
+    for(let sd=-1;sd<=1;sd+=2){
+      B.add(G10.sph,K.noir,hx-.47,.10,sd*.272,0,0,0,.075,.075,.05);B.add(G10.sph,K.glow,hx-.485,.105,sd*.296,0,0,0,.034,.034,.02);       // l'œil : braise sur fond noir
+      B.add(new THREE.TorusGeometry(.080,.013,4,12),K.or,hx-.47,.10,sd*.288,0,0,0);                                                       // le bord de la paupière
+      B.add(h1_ell(hx-.47,.145,sd*.262,.095,.034,.06,8,4),K.colD,0,0,0);                                                                 // la PAUPIÈRE : un bourrelet qui retombe sur le haut de l'œil
+      B.add(G10.sph,K.noir,hx-.69,.04,sd*.045,0,0,0,.022,.022,.02);                                                                      // la narine
+      B.add(tube10([[hx-.74,-.02,sd*.05],[hx-.62,-.04,sd*.17],[hx-.46,-.05,sd*.30],[hx-.36,-.02,sd*.32]],.012,8,4),K.noir,0,0,0);        // la ligne de la bouche, relevée au coin
+      B.add(h1_ell(hx-.30,.0,sd*.325,.07,.10,.03,7,4),K.colD,0,0,0);                                                                      // le tympan (la plaque ronde derrière l'œil)
+      for(let r=0;r<2;r++){const xr=r?XE-.22:-XE+.42,z0=sd*.84,big=r?.62:1;
+        B.add(G10.sph,K.chrome,xr,-.10,z0,0,0,0,.15*big+.03,.15*big+.03,.15*big+.03);B.add(new THREE.TorusGeometry(.16*big+.03,.016,5,16),K.or,xr,-.10,z0,0,PI10/2,0);
+        B.add(plan10(r?[[-.12,0],[-.02,.10],[.10,.22],[.26,.28],[.38,.22],[.30,.10],[.24,0]]:[[-.14,0],[-.04,.12],[.08,.26],[.24,.40],[.46,.48],[.58,.40],[.46,.26],[.40,.12],[.32,0]],.06,.012),K.col,xr,-.10,z0,sd*(PI10/2+.5),0,0);
+        tige(P(xr,-.10,z0),P(xr+(r?.14:.24),-.10,z0+sd*(r?.14:.22)),.032,K.chrome);}}
     // la queue et l'échappement : une petite queue d'écailles, la tuyère à braise au bout
     B.add(h2_loft([[XE-.10,.0,.17,.20,2.4],[XE+.18,.02,.12,.14,2.4],[XE+.34,.04,.08,.09,2.4]],8),K.col,0,0,0);
     const tx=XE+.26;TX(B,K.chrome,[[.07,0],[.11,.05],[.19,.18],[.24,.26]],tx,.05,0,0,12);B.add(new THREE.TorusGeometry(.24,.012,4,18),K.or,tx+.28,.05,0,0,PI10/2,0);TX(B,K.glow,[[.001,0],[.18,0],[.18,.02],[.001,.02]],tx+.26,.05,0,0,12);

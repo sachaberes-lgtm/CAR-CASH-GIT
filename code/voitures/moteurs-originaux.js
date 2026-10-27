@@ -131,11 +131,11 @@ function bloc30(g,i,E,KT,rnd,K,S){
   const mine=(i>=8&&i<=14);   // ARTISTE 2 : les 7 paliers HYBRIDES (orque…soleil) — sans couronne, sans faisceau, sans ailes ni persiennes : le thème fait le corps
   const sec=a==='fl'?[[-.30,.20],[.30,.20],[.26,-.10],[.16,-.24],[-.16,-.24],[-.26,-.10]]
     :haut?[[-.24,.50],[.24,.50],[.22,-.50],[-.22,-.50]]:[[-.34,.26],[.34,.26],[.30,-.02],[.20,-.26],[-.20,-.26],[-.30,-.02]];
-  B.add(profX(sec,L,.04),KT.fonte,0,-.02,0);
-  if(!mine)B.add(profX([[-.22,.02],[.22,.02],[.17,-.20],[-.17,-.20]],L*.88,.025),KT.noir,0,-.30,0);
-  B.add(tourX([[.06,0],[.27,0],[.31,.05],[.33,.16],[.27,.22],[.08,.24]],8),KT.noir,-(XE+.02),-.02,0,0,0,0);        // la cloche, à huit pans
+  if(i!==2)B.add(profX(sec,L,.04),KT.fonte,0,-.02,0);   // (colibri : le torse emplumé tient lieu de carter)
+  if(!mine&&i!==5&&i!==2)B.add(profX([[-.22,.02],[.22,.02],[.17,-.20],[-.17,-.20]],L*.88,.025),KT.noir,0,-.30,0);
+  if(i!==9)B.add(tourX([[.06,0],[.27,0],[.31,.05],[.33,.16],[.27,.22],[.08,.24]],8),KT.noir,-(XE+.02),-.02,0,0,0,0);        // la cloche, à huit pans
   B.add(tourX([[.05,0],[.22,0],[.24,.05],[.20,.17]],8),KT.chrome,XE,-.02,0,0,0,0);                                  // la poulie
-  if(!plat)for(let k=0;k<3+Math.floor(L*1.6);k++){const u=(k/(2+Math.floor(L*1.6))-.5)*(L-.34);
+  if(!plat&&i!==2)for(let k=0;k<3+Math.floor(L*1.6);k++){const u=(k/(2+Math.floor(L*1.6))-.5)*(L-.34);
     for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.fonte,u,-.04,sd*.335,0,0,0,.038,.40,.045);}                              // les nervures
   if(i>=11)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.glow,0,.12,sd*.352,0,0,0,L*.70,.014,.014);                   // le filet lumineux du carter
   const tw=.20-.0035*i,ch=.13+.007*i,top=.67+ch;       // le couvre-culasse s'AFFINE et se dresse avec la puissance : de la boîte à la lame
@@ -145,13 +145,14 @@ function bloc30(g,i,E,KT,rnd,K,S){
     B.cadre(et*.28,inc);
     const U=k=>((n>1?k/(n-1):.5)-.5)*(L-.42);
     for(let k=0;k<n;k++){const u=U(k);
-      B.add(tourY10([[.001,0],[.175,.02],[.175,.30],[.21,.33],[.21,.40],[.001,.40]],8),KT.brosse,u,.10,0);                  // le fût, à huit pans
-      if(K.f)for(let j=0;j<K.f+1;j++)B.add(tourY10([[.001,0],[.28,0],[.28,.022],[.001,.022]],8),KT.alu,u,.12+j*.055,0);// les ailettes, plaques à huit pans
+      if(i!==9)B.add(tourY10([[.001,0],[.175,.02],[.175,.30],[.21,.33],[.21,.40],[.001,.40]],8),KT.brosse,u,.10,0);                  // le fût, à huit pans
+      if(K.f&&i!==9)for(let j=0;j<K.f+1;j++)B.add(tourY10([[.001,0],[.28,0],[.28,.022],[.001,.022]],8),KT.alu,u,.12+j*.055,0);// les ailettes, plaques à huit pans
     }
-    B.add(profX([[-.25,0],[.25,0],[.235,.15],[-.235,.15]],L*.93,.03),KT.brosse,0,.52,0);                                    // la culasse
-    B.add(profX([[-.235,0],[.235,0],[tw,ch],[-tw,ch]],L*.97,.035),col,0,.67,0);
+    if(i===9)continue;   // RETOUCHE tortue : sous la carapace il ne reste que les fûts — ni culasse, ni ailettes, ni boulons qui percent le dôme
+    if(i!==5&&i!==2){B.add(profX([[-.25,0],[.25,0],[.235,.15],[-.235,.15]],L*.93,.03),KT.brosse,0,.52,0);                                    // la culasse
+    B.add(profX([[-.235,0],[.235,0],[tw,ch],[-tw,ch]],L*.97,.035),col,0,.67,0);}   // (requin : le revêtement de torpille les recouvre)
     for(let k=0;k<n;k++){const u=U(k);
-      for(let dx=-1.5;dx<=1.5;dx+=1)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.brosse,u+dx*.07,.585,sd*.272,0,0,0,.014,.15,.075);   // les ailettes de refroidissement de la culasse
+      if(i!==5&&i!==2)for(let dx=-1.5;dx<=1.5;dx+=1)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.brosse,u+dx*.07,.585,sd*.272,0,0,0,.014,.15,.075);   // les ailettes de refroidissement de la culasse
       if(!sobre)for(let j=0;j<6;j++){const t=j/6*2*PI10;B.add(G10.cyl6,KT.chrome,u+Math.cos(t)*.19,.315,Math.sin(t)*.19,0,0,0,.018,.03,.018);}         // les six boulons de bride du fût
       if(!sobre){B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.20,0,PI10/2,0,0);B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.26,0,PI10/2,0,0);} // deux rainures usinées
     }
@@ -197,11 +198,11 @@ function bloc30(g,i,E,KT,rnd,K,S){
   }
   B.plat();
   /* LE KIT DE PUISSANCE : des pièces qui s'AJOUTENT palier après palier — c'est ça qui fait qu'on ne revient jamais en arrière */
-  if(!(mine&&a==='fl')&&!sobre)
+  if(!(mine&&a==='fl')&&!sobre&&i!==5&&i!==2)
   for(let sd=-1;sd<=1;sd+=2)for(let k=0;k<5+Math.floor(L*1.5);k++){const x=((k+.5)/(5+Math.floor(L*1.5))-.5)*(L-.3);B.add(G10.cyl6,KT.chrome,x,.52,sd*.275,PI10/2,0,0,.016,.03,.016);}  // la rangée de boulons de culasse
   for(let sd=-1;sd<=1;sd+=2)B.add(G10.axeX8,KT.or,-L*.5,.245,sd*.342,0,0,0,L,.006,.006);   // le filet d'or du plan de joint
-  if(!mine)for(let k=0;k<9;k++)BXg(B,KT.brosse,(k/8-.5)*(L*.8),-.38,0,0,0,0,.014,.10,.34);                                                                            // les ailettes du carter d'huile
-  if(!mine)B.add(G10.cyl6,KT.chrome,-L*.30,-.46,0,0,0,0,.045,.05,.045);                                                                                                        // le bouchon de vidange
+  if(!mine&&i!==5&&i!==2)for(let k=0;k<9;k++)BXg(B,KT.brosse,(k/8-.5)*(L*.8),-.38,0,0,0,0,.014,.10,.34);                                                                            // les ailettes du carter d'huile
+  if(!mine&&i!==5&&i!==2)B.add(G10.cyl6,KT.chrome,-L*.30,-.46,0,0,0,0,.045,.05,.045);                                                                                                        // le bouchon de vidange
   if(i>=3&&!HY){B.add(tourX([[.001,0],[.105,0],[.115,.04],[.115,.30],[.10,.33],[.001,.33]],8),KT.col,XE*.30,-.10,-.45,0,0,0);                                                 // le filtre à huile, à la couleur du palier
     for(let k=0;k<3;k++)B.add(new THREE.TorusGeometry(.118,.014,4,8),KT.chrome,XE*.30+.07+k*.08,-.10,-.45,0,PI10/2,0);
     B.add(G10.cyl6,KT.laiton,XE*.30-.04,-.10,-.45,0,0,PI10/2,.05,.05,.05);}
