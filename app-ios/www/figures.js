@@ -19,18 +19,18 @@
        fait le tour autour de l'axe vertical, le NEZ reste en place (`piv` : le point fixe, en part de la demi-longueur vers le nez — le jeu y
        fixe la rotation) ; une seule explosion, sur le flanc de la POUPE (la queue fouette). Offert d'office ; le TONNEAU s'achète (1 500). */
     {id:'tailwhip',   n:'TAIL WHIP',      en:'TAIL WHIP',     c:'WHIP',    ce:'WHIP',    p:0,     D:.62, aura:50,  dir:['cote'], m:[{a:[0,1,0],t:1}],piv:.92},
-    {id:'tonneau',    n:'TONNEAU',        en:'BARREL ROLL',   c:'TONNEAU', ce:'ROLL',    p:1500,  D:.6,  aura:50,  dir:['cote'], m:[{a:[0,0,1],t:1}]},
-    {id:'toupie',     n:'TOUPIE 360',     en:'FLAT 360',      c:'TOUPIE',  ce:'SPIN',    p:2500,  D:.6,  aura:60,  dir:['cote'], m:[{a:[0,1,0],t:1}]},
-    {id:'shimmy',     n:'SHIMMY',         en:'SHIMMY',        c:'SHIMMY',  ce:'SHIMMY',  p:2000,  D:.6,  aura:40,  dir:['cote'], m:[{a:[0,1,0],b:.06,k:3},{a:[0,0,1],b:.045,k:3}]},
-    {id:'chandelle',  n:'CHANDELLE',      en:'SKY WHEELIE',   c:'CHANDEL', ce:'WHEELIE', p:3500,  D:.8,  aura:45,  dir:['arriere'], m:[{a:[1,0,0],b:-.17,k:1}]},
-    {id:'saltoa',     n:'SALTO ARRIERE',  en:'BACKFLIP',      c:'ARRIERE', ce:'BACK',    p:6000,  D:.7,  aura:90,  dir:['arriere'], m:[{a:[1,0,0],t:-1}]},
-    {id:'saltov',     n:'SALTO AVANT',    en:'FRONTFLIP',     c:'AVANT',   ce:'FRONT',   p:6000,  D:.7,  aura:90,  dir:['avant'], m:[{a:[1,0,0],t:1}]},
-    {id:'double',     n:'DOUBLE TONNEAU', en:'DOUBLE ROLL',   c:'DOUBLE',  ce:'ROLL×2',  p:9000,  D:.8,  aura:110, dir:['cote'], m:[{a:[0,0,1],t:2}]},
-    {id:'tirebouchon',n:'TIRE-BOUCHON',   en:'CORKSCREW',     c:'BOUCHON', ce:'CORK',    p:14000, D:.8,  aura:130, dir:['avant','arriere'], m:[{a:[1,0,0],t:-1},{a:[0,0,1],t:1}]},
-    {id:'helico',     n:'HELICO 720',     en:'HELI 720',      c:'HELICO',  ce:'HELI',    p:18000, D:.85, aura:140, dir:['cote'], m:[{a:[0,1,0],t:2}]},
-    {id:'penche',     n:'VRILLE PENCHEE', en:'OFF-AXIS SPIN', c:'PENCHEE', ce:'OFFAXIS', p:22000, D:.75, aura:120, dir:['cote'], m:[{a:[.7071,.7071,0],t:1}]},
-    {id:'rodeo',      n:'RODEO',          en:'RODEO',         c:'RODEO',   ce:'RODEO',   p:30000, D:.9,  aura:160, dir:['avant','arriere'], m:[{a:[0,1,0],t:1},{a:[1,0,0],t:-1}]},
-    {id:'cosmique',   n:'SALTO COSMIQUE', en:'COSMIC FLIP',   c:'COSMIQ',  ce:'COSMIC',  p:50000, D:1,   aura:220, dir:['avant','arriere'], m:[{a:[1,0,0],t:-2},{a:[0,0,1],t:1}]}];
+    {id:'tonneau',    n:'TONNEAU',        en:'BARREL ROLL',   c:'TONNEAU', ce:'ROLL',    p:15000,  D:.6,  aura:50,  dir:['cote'], m:[{a:[0,0,1],t:1}]},
+    {id:'toupie',     n:'TOUPIE 360',     en:'FLAT 360',      c:'TOUPIE',  ce:'SPIN',    p:25000,  D:.6,  aura:60,  dir:['cote'], m:[{a:[0,1,0],t:1}]},
+    {id:'shimmy',     n:'SHIMMY',         en:'SHIMMY',        c:'SHIMMY',  ce:'SHIMMY',  p:20000,  D:.6,  aura:40,  dir:['cote'], m:[{a:[0,1,0],b:.06,k:3},{a:[0,0,1],b:.045,k:3}]},
+    {id:'chandelle',  n:'CHANDELLE',      en:'SKY WHEELIE',   c:'CHANDEL', ce:'WHEELIE', p:35000,  D:.8,  aura:45,  dir:['arriere'], m:[{a:[1,0,0],b:-.17,k:1}]},
+    {id:'saltoa',     n:'SALTO ARRIERE',  en:'BACKFLIP',      c:'ARRIERE', ce:'BACK',    p:60000,  D:.7,  aura:90,  dir:['arriere'], m:[{a:[1,0,0],t:-1}]},
+    {id:'saltov',     n:'SALTO AVANT',    en:'FRONTFLIP',     c:'AVANT',   ce:'FRONT',   p:60000,  D:.7,  aura:90,  dir:['avant'], r:'commun', /* (2026-10-25, Sacha : « le salto avant, c'est une figure commune ») offert aux nouveaux joueurs : COMMUN partout (boutique, inventaire, HUD) ; `r` passe avant le prix dans cosmRar (les seuils de rareté des figures n'ont pas suivi les prix ×10 de v899) */ m:[{a:[1,0,0],t:1}]},
+    {id:'double',     n:'DOUBLE TONNEAU', en:'DOUBLE ROLL',   c:'DOUBLE',  ce:'ROLL×2',  p:90000,  D:.8,  aura:110, dir:['cote'], m:[{a:[0,0,1],t:2}]},
+    {id:'tirebouchon',n:'TIRE-BOUCHON',   en:'CORKSCREW',     c:'BOUCHON', ce:'CORK',    p:140000, D:.8,  aura:130, dir:['avant','arriere'], m:[{a:[1,0,0],t:-1},{a:[0,0,1],t:1}]},
+    {id:'helico',     n:'HELICO 720',     en:'HELI 720',      c:'HELICO',  ce:'HELI',    p:180000, D:.85, aura:140, dir:['cote'], m:[{a:[0,1,0],t:2}]},
+    {id:'penche',     n:'VRILLE PENCHEE', en:'OFF-AXIS SPIN', c:'PENCHEE', ce:'OFFAXIS', p:220000, D:.75, aura:120, dir:['cote'], m:[{a:[.7071,.7071,0],t:1}]},
+    {id:'rodeo',      n:'RODEO',          en:'RODEO',         c:'RODEO',   ce:'RODEO',   p:300000, D:.9,  aura:160, dir:['avant','arriere'], m:[{a:[0,1,0],t:1},{a:[1,0,0],t:-1}]},
+    {id:'cosmique',   n:'SALTO COSMIQUE', en:'COSMIC FLIP',   c:'COSMIQ',  ce:'COSMIC',  p:500000, D:1,   aura:220, dir:['avant','arriere'], m:[{a:[1,0,0],t:-2},{a:[0,0,1],t:1}]}];
   /* (2026-10-14, LES FIGURES v2) `c` / `ce` : le nom COURT du bouton de vol (8 lettres au plus, police pixel). Une figure générée prend le 1er mot de son nom. */
   /* LES DIRECTIONS D'UNE FIGURE (2026-10-15, Sacha : « séparer les figures qui se font sur les côtés de celles qui se font vers l'avant : les
      tonneaux doivent aller vers la droite ou la gauche, orientés par la direction, alors que le salto avant a juste besoin d'aller vers
@@ -63,7 +63,7 @@
   function perso(){try{var L=JSON.parse(localStorage.getItem(CLE_PERSO)||'[]');return Array.isArray(L)?L.filter(valide).slice(0,40):[];}catch(e){return [];}}
   var LISTE=[],PAR={};
   function rebatit(){LISTE=BASE.slice();PAR={};
-    perso().forEach(function(f){if(!BASE.some(function(b){return b.id===f.id;})){f.perso=1;f.p=f.p>0?f.p:8000;f.D=Math.min(1.2,Math.max(.45,+f.D||.8));f.aura=Math.min(260,Math.max(30,f.aura|0||100));LISTE.push(f);}});
+    perso().forEach(function(f){if(!BASE.some(function(b){return b.id===f.id;})){f.perso=1;f.p=f.p>0?f.p:80000;f.D=Math.min(1.2,Math.max(.45,+f.D||.8));f.aura=Math.min(260,Math.max(30,f.aura|0||100));LISTE.push(f);}});
     LISTE.forEach(function(f){PAR[f.id]=f;});FIG.liste=LISTE;FIG.par=PAR;}
   // ---- quaternions à la main (x,y,z,w) : ce fichier ne dépend de rien, pas même de three ----
   function qAxe(ax,ang,o){var l=Math.hypot(ax[0],ax[1],ax[2])||1,s=Math.sin(ang/2)/l;o[0]=ax[0]*s;o[1]=ax[1]*s;o[2]=ax[2]*s;o[3]=Math.cos(ang/2);return o;}

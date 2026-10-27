@@ -87,6 +87,16 @@ const ACESShader={
     // qui tenait déjà sous .86 ne bouge pas d'un iota — seuls les pixels qui saturaient retrouvent leur dégradé.
     'vec3 roule(vec3 c){float m=max(c.r,max(c.g,c.b));if(m>0.86){float k=0.86+0.14*(1.0-exp(-(m-0.86)/0.14));c*=k/m;}return c;}',
     'vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}',
+    /* (2026-10-27, Léo : « les traits d'effet de vitesse, joue sur le flou des côtés, ultra propre, hypergaming ») LES TRAITS DE VITESSE : des filets FINS (~1 px) qui
+       jaillissent du point de fuite vers les bords, longueurs et opacités variables, naissant après .4 du rayon (le centre et la caisse restent libres), plus vifs
+       vers les bords ; deux couches (fine et rare). Procédural : aucune lecture de texture. uTL = (horloge, force) ; ?traits=0 les éteint. */
+    'uniform vec2 uTL;float h11(float p){p=fract(p*.1031);p*=p+33.33;p*=p+p;return fract(p);}',
+    'float filets(vec2 q,float rn,float N,float sd,float t){float ang=atan(q.y,q.x)*(N/6.2831853)+N*.5,id=floor(ang),f=fract(ang)-.5;',
+    '  float s2=h11(id*1.37+sd+9.1),s3=h11(id*2.11+sd+3.3),ph=s2+t*(.8+s3*1.0),cy=floor(ph),hd=ph-cy,k=id+cy*13.1+sd;',
+    '  float g=step(h11(k+1.7),.38+.35*s3),len=.10+h11(k+4.4)*.30,d=hd*1.15-rn,al=.30+.70*h11(k+6.6);',
+    '  f-=(h11(k+5.5)-.5)*.5; float fw=min(N*.9*uRes.y/(6.2831853*max(length(q),.05)),.45);',
+    '  float lin=1.0-smoothstep(0.0,fw,abs(f)), cola=(d>0.0&&d<len)?pow(1.0-d/len,1.5):0.0;',
+    '  return g*al*lin*cola*smoothstep(.40,.72,rn)*(.55+.45*rn);}',
     'const vec3 LUM=vec3(.2126,.7152,.0722);',
     'void main(){',
     // (tour 2, post) `r` (une racine) ne sert qu'au flou, au tunnel et à la lueur : calculé seulement quand l'un d'eux joue (`fx`, même
@@ -151,6 +161,9 @@ const ACESShader={
     'c+=uHi*smoothstep(0.5,1.0,l2);',                   // split-tone : lumières OR
     'if(fx){',
     'c*=1.0-uSpeed*smoothstep(0.30,0.85,r)*0.55;',      // TUNNEL DE VITESSE : les bords plongent dans le noir, l'œil file au centre
+    '{float kS=smoothstep(.12,.6,uSpeed)*uTL.y;if(kS>0.001){vec2 q=vUv-vec2(.5,.57);float as=uRes.y/uRes.x;q.x*=as;float rn=length(q)/length(vec2(.5*as,.6));',
+    '  float li=filets(q,rn,96.,0.,uTL.x)+0.7*filets(q,rn,150.,41.,uTL.x*1.3);',
+    '  c+=mix(vec3(.80,.92,1.),uNit.rgb*.9+.25,clamp(uNit.a*1.5,0.,1.))*min(li,1.0)*kS*.7;}}',
     // (vague 3, NITRO) LES BORDS S'ALLUMENT DE LA COULEUR DE LA POUSSÉE — une LUEUR ajoutée (pas un voile : un mélange vers l'orange
     // délavait le rose en brun, mesuré), plus forte sur le sombre que sur le clair (elle ne brûle jamais le ciel), + le COUP d'allumage.
     // Le centre (la caisse, la route devant) reste intact : tout se joue au-delà du quart de l'image. Zéro lecture de texture.
@@ -172,6 +185,7 @@ const ACESShader={
     'gl_FragColor=vec4(c,1.0);}}'].join('\n')
 };
 ACESShader.uniforms.uBc={value:null};ACESShader.uniforms.uBa={value:0}; // (posé sur acesPass APRÈS sa création : ShaderPass CLONE les uniforms, une texture clonée serait une autre texture)
+ACESShader.uniforms.uTL={value:new THREE.Vector2(0,/[?&]traits=0\b/.test(location.search)?0:1)}; // (2026-10-27) les traits de vitesse : horloge, force
 ACESShader.uniforms.uSharp={value:0}; // (tour 2) le piqué qui compense la résolution — posé par applyDPR
 ACESShader.uniforms.uTrame={value:1/255}; // (passe graphismes mobile) le tramage de sortie — 0 = l'ancienne sortie, voir dbgGfx
 ACESShader.uniforms.uNit={value:new THREE.Vector4(1,.478,.141,0)};ACESShader.uniforms.uNitF={value:0}; // (vague 3, NITRO) la poussée sur les bords — voir nfxTick

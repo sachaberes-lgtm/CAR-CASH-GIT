@@ -106,13 +106,6 @@ void main(){float f=n3(vP*3.+vec3(0.,-uT*2.2,0.))*.6+n3(vP*6.2+vec3(0.,-uT*3.5,.
   float m=smoothstep(.30,.62,f+vF*.28-uS*.2);
   vec3 c=mix(vec3(.85,.1,.04),vec3(1.,.62,.12),smoothstep(.34,.56,f));c=mix(c,vec3(1.,.96,.66),smoothstep(.56,.78,f));
   float a=m*(.62-.14*uS);if(a<.02)discard;gl_FragColor=vec4(c,a);}`;
-function fauraShell(geo,n){
-  const g=new THREE.Group();
-  for(let i=0;i<(n||3);i++){
-    const m=new THREE.ShaderMaterial({uniforms:{uT:{value:0},uS:{value:i}},vertexShader:FSHELL_VS,fragmentShader:FSHELL_FS,transparent:true,depthWrite:false,side:THREE.DoubleSide});
-    const ms=new THREE.Mesh(geo,m);ms.renderOrder=20+i;ms.frustumCulled=false;g.add(ms);}
-  g.userData.fshell=true;return g;
-}
 function fauraShellTick(g,t){for(const c of g.children)c.material.uniforms.uT.value=t;}
 
 /* ===== LES AURAS EN SHADER SUR LE FRUIT (la version qui va EN JEU) =====
@@ -455,15 +448,6 @@ void main(){vec2 p=vUv;float r=length(p);if(r>1.)discard;float a=atan(p.y,p.x);v
     col=vec4(c,clamp(body*.95+fld*.45*(1.-body),0.,1.));}
   if(col.a<.02)discard;gl_FragColor=col;}`;
 let FSOL_GEO=null,FSOLD_GEO=null;
-function fauraSol(kind){ // kind : 0 piment · 1 citron · 2 dragon · 3 raisin · 4 pomme dorée — dans le repère de la route : +y = le haut, le sol à y = 0
-  const g=new THREE.Group(),R=5.6,H=3.8;
-  const cm=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uKind:{value:kind},uH:{value:H}},vertexShader:FSOL_VS,fragmentShader:FSOL_FS,transparent:true,depthWrite:false,side:THREE.BackSide}); // BackSide : seule la paroi du FOND est dessinée — l'aura est DERRIÈRE et AUTOUR du fruit, jamais devant (on le voit toujours)
-  const c=new THREE.Mesh(FSOL_GEO||(FSOL_GEO=new THREE.CylinderGeometry(R,R*.86,H,40,1,true)),cm);c.position.y=H*.5;c.renderOrder=21;g.add(c);
-  const dm=kind===2?new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uA:{value:.9}},vertexShader:FSOLD_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3})
-    :new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uKind:{value:kind}},vertexShader:FSOLD_VS,fragmentShader:FSOLD_FS,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
-  const d=new THREE.Mesh(FSOLD_GEO||(FSOLD_GEO=new THREE.PlaneGeometry(1,1)),dm);d.rotation.x=-Math.PI/2;d.position.y=.08;d.scale.setScalar(R*2.9);d.renderOrder=20;g.add(d);
-  return g;
-}
 /* banc (dev) : `dbgPwrPhoto(k, t, dist, haut)` — pose le fruit-pouvoir `k` 20 m devant la caisse, EN SITUATION (le vrai mkPower : posé au sol, l'aura qui en sort), place la caméra derrière lui à `dist` m, `haut` m au-dessus,
    fige l'aura au temps `t` et rend UNE image du vrai jeu (pause). Rend la dataURL. */
 window.dbgPwrPhoto=function(k,t,dist,haut){

@@ -159,15 +159,6 @@
       if(avecN){const r2=pt(Math.min(sg.L,d+.004)),r1=pt(Math.max(0,d-.004)),tx=r2[0]-r1[0],ty=r2[1]-r1[1],l=Math.hypot(tx,ty)||1;o.push(-ty/l,tx/l);}}return o;};
     return{p:p,x:q[0],y:q[1],k:1,m:1,len:(d1-d0)*h,s1:tache(sw*h*.7),s2:tache(sw*h*1.6),ech:tache(2.4,true)};
   }
-  function dixMorceaux(Gl,P,h){ /* le nombre en dix morceaux, un par blip : [signe, début, fin] en fraction de la longueur du tracé ; U[n] = l'union des n premiers (le point exclu) */
-    const sg=Gl.signes,sw=Gl.sw,six=sg[2],fh=six.cum[Gl.NH]/six.L,t3=(1-fh)/3,fl=sg[0].cum[7]/sg[0].L;
-    const SP=[[0,0,fl+.12],[0,fl+.12,1],[1,0,1],[2,0,fh],[2,fh,fh+t3],[2,fh+t3,fh+2*t3],[2,fh+2*t3,1],[3,0,fl-.015],[3,fl-.015,.62],[3,.62,1]];
-    const G=SP.map(function(s){const g=sg[s[0]];
-      if(g.pt){const q=P(g.pt.x,g.pt.y),p=new Path2D();p.moveTo(q[0]-.01,q[1]);p.lineTo(q[0]+.01,q[1]);return{p:p,x:q[0],y:q[1],k:g.dr*2/sw,m:3,len:g.dr*h*5,s1:[q[0],q[1]],s2:[q[0],q[1]],ech:[q[0],q[1],0,1]};} /* le point : un trait minuscule, rond, plus gros que le tube (sa lueur est triplée : une seule tache) */
-      return morceau(g,s[1],s[2],P,h,sw);});
-    const U=[];for(let n=0;n<=10;n++){const u=new Path2D();for(let j=0;j<n;j++)if(!sg[SP[j][0]].pt)u.addPath(G[j].p);U.push(u);}
-    return{G:G,U:U};
-  }
   function etoile(c,x,y,r,a){ /* une étoile à quatre branches effilées */
     const v=r*.62,q=r*.07;c.globalAlpha=a;c.fillStyle='#fff';c.beginPath();c.moveTo(x-r,y);c.quadraticCurveTo(x-q,y-q,x,y-v);c.quadraticCurveTo(x+q,y-q,x+r,y);c.quadraticCurveTo(x+q,y+q,x,y+v);c.quadraticCurveTo(x-q,y+q,x-r,y);c.fill();
   }
@@ -175,23 +166,6 @@
     if(t>=.5)return;const L=W*.47*sort3(t/.2),a=1-lisse(.26,.5,t);
     if(a>0){halo(c,SPR.bl,cx,cy,L*1.02,sw*.8,.55*a);c.globalAlpha=a;c.fillStyle='#fff';c.fillRect(cx-L,cy-1,2*L,2);}
     halo(c,SPR.bl,cx,cy,h*.7,h*.7,Math.exp(-t/.09)*.4);
-  }
-  function coupFinal(c,t,cx,cy,sw,h,vg,anneau){ /* le coup final : traînée d'objectif, onde de choc (en addition) */
-    if(t<TL.plein)return;const a=t-TL.plein,k=Math.exp(-a/.2);
-    c.globalCompositeOperation='lighter';c.fillStyle='#fff';
-    halo(c,SPR.bl,cx,cy,W*.5,sw*1.6,.7*k*vg);c.globalAlpha=.8*k*vg;c.fillRect(cx-W*.46,cy-1.5,W*.92,3);
-    if(anneau){c.globalAlpha=Math.max(0,.6-a*1.4)*vg;c.strokeStyle='#fff';c.lineWidth=2*ku;c.beginPath();c.arc(cx,cy,h*.55+a*W*1.05,0,6.2832);c.stroke();}
-    c.globalCompositeOperation='source-over';
-  }
-  function dNombre(c,M,sw,kc,kl,r1f,r2f){ /* un nombre tout allumé : la lueur (des taches de lumière en addition : un dégradé lisse) puis le cœur blanc, d'un seul coup */
-    const r1=sw*r1f,r2=sw*r2f;
-    c.lineCap='round';c.lineJoin='round';c.strokeStyle='#fff';
-    if(kl>.01){c.globalCompositeOperation='lighter';
-      for(const g of M.G){c.globalAlpha=Math.min(1,.14*g.m*kl);for(let i=0;i<g.s1.length;i+=2)c.drawImage(SPR.bl,g.s1[i]-r1,g.s1[i+1]-r1,2*r1,2*r1);
-        c.globalAlpha=Math.min(1,.073*g.m*kl);for(let i=0;i<g.s2.length;i+=2)c.drawImage(SPR.bl,g.s2[i]-r2,g.s2[i+1]-r2,2*r2,2*r2);}
-      c.globalCompositeOperation='source-over';}
-    c.globalAlpha=kc;c.lineWidth=sw;c.stroke(M.U[10]);
-    for(const g of M.G)if(g.k>1){c.lineWidth=sw*g.k;c.stroke(g.p);}
   }
 
   /* ---- 1. NÉON : le tube blanc que les blips allument morceau après morceau, dans le sens de l'écriture ---- */
@@ -205,12 +179,6 @@
      Tout est une fonction de `t` (étincelles et cubes tirés d'avance), une poignée de carrés par image. ---- */
   const PHI=1.6180339887,PAL_FEU=['#fff1cf','#f4d27c','#e3a93c','#ffffff','#8fd4ff','#ff9f8a','#b79cff']; /* blanc chaud, or pâle, or, blanc, glace, corail, lavande */
   const MOTIFS={'1':['..#..','.##..','#.#..','..#..','..#..','..#..','..#..','..#..','.###.'],'.':['#'],'6':['..##.','.#...','#....','#....','####.','#...#','#...#','#...#','.###.']}; /* « 1.61 » en pixels, au trait d'un pixel */
-  function bitmapsNombre(){ /* le nombre posé sur une même ligne de base : les cellules [colonne, ligne] de « 1 . 6 1 » */
-    const G={},cells=[],gaps=[2,2,1],ordre=['1','.','6','1'];let hb=0;
-    for(const ch of ordre){const L=MOTIFS[ch],pts=[];L.forEach(function(s,r){for(let c=0;c<s.length;c++)if(s[c]==='#')pts.push([c,r]);});G[ch]={w:L[0].length,h:L.length,pts:pts};hb=Math.max(hb,L.length);}
-    let x0=0;ordre.forEach(function(ch,i){const gl=G[ch],dy=hb-gl.h;for(const p of gl.pts)cells.push([x0+p[0],dy+p[1]]);x0+=gl.w+(gaps[i]||0);});
-    return{cols:x0,rows:hb,cells:cells};
-  }
 
   /* ---- 3. POUSSIÈRE : des milliers de grains de lumière affluent et se posent au rythme des blips ; au coup final ils se figent en trait plein ; au fondu le nombre repart en poussière ---- */
 
@@ -331,16 +299,6 @@
   }
 
   /* ---- LES FISSURES ET LES ÉCLATS : une toile d'araignée (rais + anneaux, bosselée), clippée à l'écran ---- */
-  function clipRect(P,x0,y0,x1,y1){
-    let out=P;
-    for(const b of [[0,1,x0],[0,-1,-x1],[1,1,y0],[1,-1,-y1]]){ /* garde les points où sens × coordonnée ≥ seuil */
-      const inp=out;out=[];if(!inp.length)break;
-      for(let i=0;i<inp.length;i++){const a=inp[i],c=inp[(i+1)%inp.length],da=b[1]*a[b[0]]-b[2],dc=b[1]*c[b[0]]-b[2];
-        if(da>=0)out.push(a);
-        if((da>=0)!==(dc>=0)){const k=da/(da-dc);out.push([a[0]+(c[0]-a[0])*k,a[1]+(c[1]-a[1])*k]);}}
-    }
-    return out;
-  }
   function fracture(px,py){ /* l'écran se brise en TUILES carrées de tailles inégales (petites près du logo), comme une mosaïque de pixels : le style du jeu */
     const R=hasard(Math.floor(Math.random()*1e9)),cx=Math.round(px!=null?px:W/2),cy=Math.round(py!=null?py:LOGO.cy);
     const dMax=Math.max(Math.hypot(cx,cy),Math.hypot(W-cx,cy),Math.hypot(cx,H-cy),Math.hypot(W-cx,H-cy));
