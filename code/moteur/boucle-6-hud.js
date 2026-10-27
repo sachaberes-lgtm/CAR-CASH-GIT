@@ -122,7 +122,7 @@
       if(feverGlow.className!==(feverArmed?'armed':''))feverGlow.className=feverArmed?'armed':'';}
     if(comboT>0){comboT-=dt;if(comboT<=0)combo=0;}
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
-  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
+  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
   vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||(gameOver&&!!PAL.b('vhdMort',1)&&!PCM_ON)||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn)); // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
   if(garageOn)garageRender(dt);

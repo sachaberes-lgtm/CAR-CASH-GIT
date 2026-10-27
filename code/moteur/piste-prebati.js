@@ -274,7 +274,7 @@ function prebPart(c){ // on commence la piste d'en face
 function prebTravaille(lim){ // une tranche de travail, jusqu'à l'échéance lim (Infinity : jusqu'au bout)
   const W=PREB.W,g=PREB.g,t0=performance.now();let r=null;
   try{prebAvec(W,function(){const l0=JF.lim;JF.lim=lim;try{do{r=g.next();}while(!r.done&&performance.now()<lim);}finally{JF.lim=l0;}});}
-  catch(e){console.warn('pré-bâti',e);window.__prebErr=e;PREB.echecs++;prebAnnule('erreur');return;}
+  catch(e){console.warn('pré-bâti',e);window.__prebErr=e;try{window.__ccNote('panne','pré-bâti · '+(e&&e.message||e));}catch(_){}PREB.echecs++;prebAnnule('erreur');return;}
   PREB.cpu+=performance.now()-t0;PREB.img++;
   if(r&&r.done){PREB.fait=true;PREB.tFin=performance.now();
     if(W.jade&&W.jadeFait){if(JADE_GARDE.m)jadeJette(JADE_GARDE.m);JADE_GARDE.m=W.jade;PREB.jadeM=W.jade;W.jade=null;}}} // la jade bâtie rejoint la CARTE GARDÉE : buildJade la reprendra

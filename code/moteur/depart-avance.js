@@ -448,8 +448,8 @@ function buildTrack(seed){
   try{buildJade(seed);}catch(e){window.__jadeErr=e;console.warn('Jade',e);} // (2026-10-09) LES PICS DE JADE : les piliers, les pins, la brume, la Porte et le Pont du ciel (no-op ailleurs) // (2026-09-28) PARIS LA NUIT : les toits et la Dame de fer (no-op hors Paris)
   try{if(!prebDecor(W,'foret'))buildForet(seed);}catch(e){window.__foretErr=e;console.warn('Forêt',e);} // (2026-10-14) LA FORÊT NOIRE : la vallée, les arbres, les géants du slalom, l'arche, les rochers du loup (no-op ailleurs)
   try{buildCanyon(seed);}catch(e){window.__cyErr=e;console.warn('Canyon',e);} // (2026-10-14) LE CANYON DES GÉANTS : le relief, la rivière, l'ombre de l'heure (no-op ailleurs)
-  try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
-  try{if(!prebDecor(W,'grotte'))buildGrotte(seed);}catch(e){window.__grotteErr=e;console.warn('Grotte',e);} // (2026-10-18) LES PROFONDEURS : la grotte en blocs, ses décors, ses lumières (no-op ailleurs)
+  try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);try{window.__ccNote('panne','dunes · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
+  try{if(!prebDecor(W,'grotte'))buildGrotte(seed);}catch(e){window.__grotteErr=e;console.warn('Grotte',e);try{window.__ccNote('panne','grotte · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES PROFONDEURS : la grotte en blocs, ses décors, ses lumières (no-op ailleurs)
   try{if(!prebDecor(W,'banquise'))buildBanq(seed);}catch(e){window.__banqErr=e;console.warn('Banquise',e);} // (2026-10-14) LA BANQUISE : la neige sous la route, les lacs gelés, les pics de glace, les stalactites (no-op ailleurs)
   try{orbiteBuild(seed);}catch(e){window.__orbErr=e;} // (vague 3) L'ORBITE : les Starlink et les débris autour de la piste (no-op hors orbite)
 }

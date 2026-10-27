@@ -1945,12 +1945,65 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
      erreur tardive (hors du try/catch de la boucle) ou une promesse rejetée — `AC.resume()` au retour d'arrière-plan sur iPhone, un
      `Preferences.set` — posait l'écran plein « N'A PAS PU DÉMARRER » PAR-DESSUS une partie en cours, sans bouton pour en sortir.
      Une fois le jeu démarré (`__gameReady`), l'erreur est notée (`__loopErr`, console) et la partie continue. */
+  /* ===== LA BOÎTE NOIRE (2026-10-27, Léo : « utilise les techniques Cloudflare pour soigner notre jeu, et fais en sorte que mon jeu ne bugge
+     plus du tout » — choisi : « leur méthode anti-bugs ») =====
+     On ne corrige que ce qu'on voit. Une erreur en pleine partie ne laissait qu'une ligne dans une console que personne ne lit sur un
+     téléphone. Le jeu la NOTE désormais lui-même, sur l'appareil (localStorage `cashcarErr`, 30 lignes au plus, une même erreur = une
+     ligne avec son compteur) : erreurs JS, promesses rejetées, panne d'un morceau de la boucle (loopWarn), et les GELS (une image de plus
+     d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
+     quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
+  (function(){
+    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0;
+    var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
+    var ecrit=function(){attente=0;try{localStorage.setItem(CLE,JSON.stringify(L));}catch(_){}};
+    window.__ccNote=function(genre,msg,ou){
+      try{
+        msg=String(msg==null?'?':(msg&&msg.message)||msg).slice(0,240);var cle=genre+'|'+msg,t=Date.now();
+        if(cle===dern&&t-dernT<2000)return;dern=cle;dernT=t; /* une erreur qui revient à chaque image ne coûte qu'une écriture toutes les 2 s */
+        lit();var e=null;for(var i=0;i<L.length;i++)if(L[i].k===cle){e=L[i];break;}
+        var v=(typeof CC_VER==='string'?CC_VER:'?');
+        if(e){e.n++;e.t=t;e.v=v;if(ou)e.o=String(ou).slice(0,160);}
+        else{L.push({k:cle,g:genre,m:msg,o:ou?String(ou).slice(0,160):'',n:1,t0:t,t:t,v:v,d:window.__gameReady?1:0});if(L.length>30)L.splice(0,L.length-30);}
+        if(!attente){attente=1;setTimeout(ecrit,400);}
+        try{var vv=document.getElementById('mvVer');if(vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){}
+      }catch(_){}
+    };
+    window.dbgErreurs=function(vider){lit();if(vider){L=[];ecrit();}return L.slice();};
+    /* LES GELS : une image de plus d'une seconde, onglet visible, hors retour d'arrière-plan (le rAF s'y arrête : ce n'est pas un gel) */
+    var der=0,cache=0;document.addEventListener('visibilitychange',function(){cache=performance.now();});
+    var rf=function(t){if(der&&document.visibilityState==='visible'&&t-der>1000&&t-cache>1500&&window.__gameReady)
+      window.__ccNote('gel',(Math.round((t-der)/100)/10)+' s',document.body&&document.body.className.slice(0,80));der=t;requestAnimationFrame(rf);};
+    requestAnimationFrame(rf);
+    var montre=function(){
+      lit();var en=ccEn(),o=document.getElementById('ccBoite');if(o)o.remove();
+      o=document.createElement('div');o.id='ccBoite';
+      o.setAttribute('style','position:fixed;inset:0;z-index:99998;background:rgba(7,5,15,.97);color:#ffd75e;box-sizing:border-box;overflow:auto;'+
+        'font:8px/1.8 var(--pix);padding:calc(env(safe-area-inset-top,0px) + 20px) 18px calc(env(safe-area-inset-bottom,0px) + 20px);-webkit-user-select:text;user-select:text');
+      var txt=L.length?L.slice().reverse().map(function(e){return '['+e.g+'] ×'+e.n+' · '+new Date(e.t).toLocaleString()+' · v '+e.v+(e.d?'':' · démarrage')+'\n'+e.m+(e.o?'\n  ↳ '+e.o:'');}).join('\n\n')
+        :(en?'Nothing recorded: no error, no freeze.':'Rien de noté : aucune erreur, aucun gel.');
+      var bt='display:inline-block;margin:0 8px 14px 0;padding:12px 14px;border:0;font:10px var(--pix);color:#3a1800;background:linear-gradient(180deg,#ffe78e,#f7ae16);cursor:pointer';
+      o.innerHTML='<div style="font:12px/1.5 var(--pix);color:#fff;margin-bottom:12px">'+(en?'BLACK BOX':'BOÎTE NOIRE')+' · '+L.length+'</div>'+
+        '<button data-b="c" style="'+bt+'">'+(en?'COPY':'COPIER')+'</button><button data-b="v" style="'+bt+'">'+(en?'CLEAR':'VIDER')+'</button><button data-b="f" style="'+bt+'">'+(en?'CLOSE':'FERMER')+'</button>'+
+        '<pre style="white-space:pre-wrap;word-break:break-word;color:#c9bdf0;margin:0">'+esc(txt)+'</pre>';
+      o.addEventListener('click',function(ev){var b=ev.target&&ev.target.getAttribute&&ev.target.getAttribute('data-b');if(!b)return;ev.stopPropagation();
+        if(b==='c'){try{navigator.clipboard.writeText(txt);}catch(_){}ev.target.textContent='OK';}
+        else if(b==='v'){L=[];ecrit();try{var vv=document.getElementById('mvVer');if(vv)vv.textContent=vv.textContent.replace(/ · ⚠.*$/,'');}catch(_){}o.remove();}
+        else o.remove();});
+      document.body.appendChild(o);
+    };
+    window.__ccBoite=montre;
+    document.addEventListener('click',function(ev){var t=ev.target;if(t&&t.id==='mvVer')montre();},true);
+    if(/[?&]erreurs=1/.test(location.search))addEventListener('load',function(){setTimeout(montre,1500);});
+    addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer');if(L.length&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+L.length;}catch(_){}},3000);});
+  })();
   addEventListener('error',function(e){
     if(!e.message)return;
+    try{window.__ccNote('erreur',e.message,(e.filename||'').split('/').pop()+':'+e.lineno+':'+(e.colno||0));}catch(_){}
     if(window.__gameReady){window.__loopErr=e.message+' @'+e.lineno;try{console.error(e.error||e.message);}catch(_){}return;}
     window.__crash(e.message,(ccEn()?'line ':'ligne ')+e.lineno+(e.filename?' · '+e.filename:''));
   });
   addEventListener('unhandledrejection',function(e){
+    try{var r9=e.reason;window.__ccNote('promesse',r9&&r9.message||r9,r9&&r9.stack&&String(r9.stack).split('\n')[1]);}catch(_){}
     if(window.__gameReady){try{console.warn('promesse rejetée',e.reason);e.preventDefault();}catch(_){}return;}
     window.__crash((ccEn()?'unhandled promise: ':'promesse rejetée : ')+(e.reason&&e.reason.message||e.reason));});
   // LE CHIEN DE GARDE : 8 s sans que la boucle ait tourné une seule fois = ce n'est plus un chargement long.
@@ -15164,7 +15217,7 @@ function prebPart(c){ // on commence la piste d'en face
 function prebTravaille(lim){ // une tranche de travail, jusqu'à l'échéance lim (Infinity : jusqu'au bout)
   const W=PREB.W,g=PREB.g,t0=performance.now();let r=null;
   try{prebAvec(W,function(){const l0=JF.lim;JF.lim=lim;try{do{r=g.next();}while(!r.done&&performance.now()<lim);}finally{JF.lim=l0;}});}
-  catch(e){console.warn('pré-bâti',e);window.__prebErr=e;PREB.echecs++;prebAnnule('erreur');return;}
+  catch(e){console.warn('pré-bâti',e);window.__prebErr=e;try{window.__ccNote('panne','pré-bâti · '+(e&&e.message||e));}catch(_){}PREB.echecs++;prebAnnule('erreur');return;}
   PREB.cpu+=performance.now()-t0;PREB.img++;
   if(r&&r.done){PREB.fait=true;PREB.tFin=performance.now();
     if(W.jade&&W.jadeFait){if(JADE_GARDE.m)jadeJette(JADE_GARDE.m);JADE_GARDE.m=W.jade;PREB.jadeM=W.jade;W.jade=null;}}} // la jade bâtie rejoint la CARTE GARDÉE : buildJade la reprendra
@@ -15666,8 +15719,8 @@ function buildTrack(seed){
   try{buildJade(seed);}catch(e){window.__jadeErr=e;console.warn('Jade',e);} // (2026-10-09) LES PICS DE JADE : les piliers, les pins, la brume, la Porte et le Pont du ciel (no-op ailleurs) // (2026-09-28) PARIS LA NUIT : les toits et la Dame de fer (no-op hors Paris)
   try{if(!prebDecor(W,'foret'))buildForet(seed);}catch(e){window.__foretErr=e;console.warn('Forêt',e);} // (2026-10-14) LA FORÊT NOIRE : la vallée, les arbres, les géants du slalom, l'arche, les rochers du loup (no-op ailleurs)
   try{buildCanyon(seed);}catch(e){window.__cyErr=e;console.warn('Canyon',e);} // (2026-10-14) LE CANYON DES GÉANTS : le relief, la rivière, l'ombre de l'heure (no-op ailleurs)
-  try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
-  try{if(!prebDecor(W,'grotte'))buildGrotte(seed);}catch(e){window.__grotteErr=e;console.warn('Grotte',e);} // (2026-10-18) LES PROFONDEURS : la grotte en blocs, ses décors, ses lumières (no-op ailleurs)
+  try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);try{window.__ccNote('panne','dunes · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
+  try{if(!prebDecor(W,'grotte'))buildGrotte(seed);}catch(e){window.__grotteErr=e;console.warn('Grotte',e);try{window.__ccNote('panne','grotte · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES PROFONDEURS : la grotte en blocs, ses décors, ses lumières (no-op ailleurs)
   try{if(!prebDecor(W,'banquise'))buildBanq(seed);}catch(e){window.__banqErr=e;console.warn('Banquise',e);} // (2026-10-14) LA BANQUISE : la neige sous la route, les lacs gelés, les pics de glace, les stalactites (no-op ailleurs)
   try{orbiteBuild(seed);}catch(e){window.__orbErr=e;} // (vague 3) L'ORBITE : les Starlink et les débris autour de la piste (no-op hors orbite)
 }
@@ -73654,7 +73707,7 @@ function ajTick(dt){
   AJ.run0=auraRun;
   volgTick(dt); // les gains qui flottent puis tombent dans leur jauge (la nitro)
 }
-function loopWarn(b,nom,e){if(!((loop._crWarn|0)&b)){console.warn('créatures/musique · '+nom,e);loop._crWarn=(loop._crWarn|0)|b;}} // (2026-09-30) un bit par appel gardé : chaque panne se dit UNE fois, sans masquer celle du voisin
+function loopWarn(b,nom,e){if(!((loop._crWarn|0)&b)){console.warn('créatures/musique · '+nom,e);try{window.__ccNote('panne',nom+' · '+(e&&e.message||e),e&&e.stack&&String(e.stack).split('\n')[1]);}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */loop._crWarn=(loop._crWarn|0)|b;}} // (2026-09-30) un bit par appel gardé : chaque panne se dit UNE fois, sans masquer celle du voisin
 /* (2026-10-13, passe de sortie — perf-iphone7) BANC : LE COÛT D'UNE IMAGE ENTIÈRE. `renderer.info` se remet à zéro à CHAQUE render() du
    compositeur : seul, il ne montre que la dernière passe (l'ACES : 1 appel, 2 triangles). Armé, il additionne TOUTES les passes de l'image
    (ombre, scène, bloom, ACES, vignette moteur) et la puce se chronomètre là où le navigateur le permet (EXT_disjoint_timer_query_webgl2 —
@@ -75415,7 +75468,7 @@ function loop(now){
       if(feverGlow.className!==(feverArmed?'armed':''))feverGlow.className=feverArmed?'armed':'';}
     if(comboT>0){comboT-=dt;if(comboT<=0)combo=0;}
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
-  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
+  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
   vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||(gameOver&&!!PAL.b('vhdMort',1)&&!PCM_ON)||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn)); // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
   if(garageOn)garageRender(dt);
