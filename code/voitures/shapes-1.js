@@ -563,12 +563,105 @@ const SHAPES={
   // 10. LA MONOPLACE — roues DEHORS, pontons, aileron biplan. Aucune carrosserie autour des roues.
   // 11. LE PROTOTYPE D'ENDURANCE — dérive dorsale reliée à un aileron de porte-avions,
   //     quatre phares longue portée. Long, bas, et cette ombre de requin sur le dos.
-  // 12. LE FURTIF — coin plat, bulle de verre, dérive. La reine : on ne lui voit aucune ligne droite.
+  // 12. LA COMÈTE — (2026-10-27, refonte totale ; Léo : « aucune forme similaire, elle doit être NOUVELLE », « c'est la voiture d'un CHALLENGE :
+  //     spéciale, mémorable ; en rapport avec une comète sans en faire une », « les deux feux, tu peux faire mieux ») LA FLÈCHE : vue de dessus,
+  //     un DELTA violet cosmique — la pointe porte un CRISTAL de lumière (la tête de la comète), de petites roues avant cachées sous la pointe,
+  //     l'arête s'élargit et MONTE jusqu'aux hanches posées sur les grandes roues arrière ; une bulle de verre en gemme ; un jonc d'or court sur
+  //     l'arête (la trajectoire) ; derrière, DEUX TUYÈRES-TULIPES (fût évasé, lèvre d'or, anneau de lumière, cœur de flamme en facettes — les
+  //     flammes du jeu y naissent) d'où montent deux DÉRIVES au bord d'attaque lumineux (la traîne). `?comete=a` : LA GOUTTE, la proposition A
+  //     (tête large, bulle avancée, queue fine, roues arrière sous des perles), gardée pour comparer.
+  //     Deux lofts : le DESSOUS (avec les coupes des passages de roue) et le DESSUS sur les seules coupes clés — de grands pans plans.
+  //     Repère : x à droite, y en haut, z vers l'avant, mètres.
   proto(K){
-    const {W,H,L,y0,box:B}=K;
-    K.prof([[-.50*L,0],[.50*L,0],[.50*L,.16*H],[.10*L,.40*H],[-.30*L,.52*H],[-.50*L,.50*H]],W*.94,K.body);
-    K.sph(W*.30,H*.52,L*.20,K.glass,0,y0+H*.42,L*.02);
-    B(.04,H*.42,L*.30,K.acc,0,y0+H*.62,-L*.34);
-    for(const sd of [-1,1])B(.06,H*.20,L*.24,K.dark,sd*(W/2+.01),y0+H*.28,-L*.14);
-    return {hl:[W*.30,y0+H*.30,L*.44],tl:[W*.30,y0+H*.44,-L/2-.06]};
+    const U=LPU,L=(t,z)=>U.lin(t,z),mix=(a,b,t)=>a+(b-a)*t,cl=U.cl;
+    // B (défaut) : LA FLÈCHE — un delta vu de dessus, petites roues avant cachées sous la pointe, hanches hautes sur les grandes roues arrière,
+    //   deux tuyères-tulipes d'où montent deux dérives. A (`?comete=a`) : LA GOUTTE — tête large et ronde, bulle avancée, queue fine et ses deux feux.
+    const VA=(()=>{try{return /[?&]comete=a/i.test(location.search);}catch(e){return false;}})();
+    const VIOLET=0x3c16ae;
+    const P=K.kit({p:{g:'p',c:VIOLET},k:{g:'m',c:0x100f16},s:{g:'s',c:0x24232c},g:{g:'g',c:0x141826},o:{g:'o',c:0xd9a520},
+      W:{g:'l',c:0xf4f7ff},C:{g:'l',c:0x8ff0ff},L:{g:'l',c:0xff2a4a},F:{g:'l',c:0xffa83a},f:{g:'l',c:0xfff1c8}});
+    /* ---- LES COTES ---- [z, ARÊTE xe/ye (le plus large), épaule xs/ys, pied du fuselage xf/yf, ceinture de la bulle xg/yg, bord du dessus xr/yr, milieu yt] */
+    const C=VA?{
+      R:.34,kF:1,ZF:1.50,ZR:-1.45,WX:.84,WXF:.84,XI:[[-2.40,.30],[-1.0,.30],[0.6,.645],[2.55,.645]],
+      KS:[[-2.40,.42,.46, .34,.70, .22,.76, .14,.78, .07,.79, .80],
+          [-1.45,.64,.50, .52,.78, .30,.86, .20,.89, .10,.91, .92],
+          [-0.40,.88,.56, .70,.84, .40,.93, .36,.97, .20,1.02,1.04],
+          [0.40, 1.00,.62,.80,.86, .46,.95, .50,.96, .30,1.10,1.15],
+          [1.20, 1.04,.64,.82,.86, .50,.93, .56,.93, .34,1.13,1.18],
+          [1.50, 1.04,.64,.82,.86, .52,.90, .56,.90, .34,1.08,1.13],
+          [2.05, .96,.60,.74,.78, .46,.80, .48,.80, .28,.90, .93],
+          [2.32, .82,.56,.62,.68, .38,.70, .36,.70, .20,.74, .76],
+          [2.55, .56,.50,.42,.58, .26,.60, .22,.60, .12,.62, .63]],
+      verre:[0.40,2.05],pare:[1.35,2.05],feux:{x:.24,y:.62,r:.21,z0:-2.0,z1:-2.80},derives:[{x:0,cant:0}]}:{
+      R:.36,kF:.71,ZF:1.45,ZR:-1.40,WX:.84,WXF:.42,XI:[[-2.30,.645],[-0.50,.645],[0.90,.28],[2.70,.28]],
+      KS:[[-2.30,1.00,.70, .76,.90, .38,.90, .22,.94, .10,.97, .98],
+          [-1.95,1.04,.71, .80,.91, .38,.91, .22,.95, .10,.99, 1.00],
+          [-1.40,1.04,.70, .80,.91, .40,.92, .26,.97, .12,1.01,1.02],
+          [-0.80,1.02,.64, .78,.86, .42,.92, .32,1.00,.16,1.06,1.08],
+          [0.00, .95,.56, .71,.78, .46,.86, .41,.92, .28,1.14,1.20],
+          [0.60, .88,.50, .65,.72, .44,.80, .39,.86, .26,1.08,1.14],
+          [1.10, .78,.45, .57,.66, .33,.72, .27,.75, .14,.79, .81],
+          [1.45, .68,.42, .50,.62, .28,.66, .20,.675,.10,.69, .70],
+          [1.80, .58,.40, .42,.56, .24,.59, .16,.60, .08,.61, .615],
+          [2.30, .34,.37, .25,.45, .14,.47, .09,.48, .04,.485,.49],
+          [2.70, .03,.34, .02,.36, .015,.365,.01,.37, .005,.372,.373]],
+      verre:[-0.80,1.10],pare:[0.60,1.10],feux:{x:.62,y:.72,r:.25,z0:-1.95,z1:-2.62},derives:[{x:.62,cant:.14}]};
+    const KS=C.KS,ZQ=KS[0][0],ZN=KS[KS.length-1][0],R=C.R,RF=R*C.kF,ZF=C.ZF,ZR=C.ZR;
+    const cle=z=>{let i=0;while(i<KS.length-2&&z>KS[i+1][0])i++;const a=KS[i],b=KS[i+1],t=cl((z-a[0])/(b[0]-a[0]),0,1);return a.map((v,k)=>mix(v,b[k],t));};
+    const ARF=[[0,2*RF+.03],[RF*.62,2*RF-.02],[RF,RF*1.08],[RF+.12,.18]],ARR=[[0,2*R+.03],[R*.62,2*R-.02],[R,R*1.08],[R+.13,.18]];
+    const YB=[[ZQ,.30],[ZQ+.30,.20],[ZN-.40,.20],[ZN,.30]];
+    // LA SECTION (10 points) : plancher, paroi et voûte du passage, dessous, l'ARÊTE, épaule, pied du fuselage, ceinture, bord du dessus, milieu
+    const S=z=>{const [,xe,ye,xs,ys,xf,yf,xg,yg,xr,yr,yt]=cle(z),yb=L(YB,z),
+        ya=Math.max(yb,L(ARF,Math.abs(z-ZF)),VA?yb:L(ARR,Math.abs(z-ZR))),x3=xe-.14,xi=Math.min(L(C.XI,z),x3-.04);   // (A : les roues arrière vivent DEHORS)
+      return [[0,yb],[xi,yb],[xi,ya],[x3,ya],[xe,ye],[xs,ys],[xf,yf],[xg,yg],[xr,yr],[0,yt]];};
+    // deux lofts : le DESSOUS (avec les coupes des passages de roue) et le DESSUS, posé sur les seules coupes clés (de grands pans plans)
+    const zs=KS.map(k=>k[0]);for(const [w,r] of [[ZF,RF],[ZR,R]])for(const d of [0,r*.62,r,r+.12])zs.push(w-d,w+d);
+    zs.sort((a,b)=>a-b);const zz=zs.filter((z,i)=>z>=ZQ&&z<=ZN&&(i===0||z-zs[i-1]>.012));
+    const couv=z=>{const c=cle(z);return [0,Math.min(c[2],c[4],c[11])-.10];};          // le couvercle, caché entre les deux
+    P.loft(zz,z=>S(z).slice(0,5).concat([couv(z)]),(j,z,y)=>j===-2?(y<.40?'k':'p'):j===-1?(y<.30?'k':'p'):(j>=0&&j<=2)?'k':'p');
+    const [V0,V1]=C.verre,[W0,W1]=C.pare;
+    P.loft(KS.map(k=>k[0]),z=>[couv(z)].concat(S(z).slice(4)),
+      (j,z)=>(j===4&&z>V0&&z<V1)||(j===5&&z>W0&&z<W1)?'g':'p');   // j : 1 aile · 2 dos de l'aile · 3 flanc du fuselage · 4 vitre · 5 dessus (le pare-brise)
+    /* ---- POSER SUR LA TÔLE : u = indice de point de la section (fractionnaire) ---- */
+    const surf=(u,z)=>{const s=S(z),i=Math.floor(u),f=u-i;return [mix(s[i][0],s[i+1][0],f),mix(s[i][1],s[i+1][1],f),z];},
+          sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],cro=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+    const ruban=(k,za,zb,w,e)=>{const n=Math.max(2,Math.ceil(Math.abs(za-zb)/.12)),A=[],B=[];
+      for(let i=0;i<=n;i++){const z=mix(za,zb,i/n),[u0,u1]=w(z),a=surf(u0,z),b=surf(u1,z),dz=surf((u0+u1)/2,z+.02),dz0=surf((u0+u1)/2,z-.02);
+        let nn=cro(sub(b,a),sub(dz,dz0));const l=Math.hypot(nn[0],nn[1],nn[2])||1;nn=nn.map(v=>v/l);if(nn[1]<0)nn=nn.map(v=>-v);
+        A.push([a,nn]);B.push([b,nn]);}
+      P.sym(sd=>{const M=(q,d)=>[sd*(q[0][0]+q[1][0]*d),q[0][1]+q[1][1]*d,q[0][2]+q[1][2]*d];
+        for(let i=0;i<n;i++){const a0=M(A[i],e),a1=M(A[i+1],e),b0=M(B[i],e),b1=M(B[i+1],e),c0=M(A[i],-.004),c1=M(A[i+1],-.004),d0=M(B[i],-.004),d1=M(B[i+1],-.004);
+          P.tri(k,a0,b0,b1);P.tri(k,a0,b1,a1);P.tri(k,c0,a0,a1);P.tri(k,c0,a1,c1);P.tri(k,d0,d1,b1);P.tri(k,d0,b1,b0);}});};
+    const tourZ=(k,pts,x,y,n,ph)=>{const g=new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),n||8,ph==null?Math.PI/8:ph);g.rotateX(Math.PI/2);P.put(k,g,x,y,0);};
+    /* ---- LA TÊTE : un cristal de lumière au bout du nez ; les phares : une lame le long de l'arête, vers la pointe ---- */
+    {const c=cle(ZN);tourZ('C',[[0,ZN-.04],[.075,ZN+.04],[0,ZN+.22]],0,c[2]+.015,4,0);}
+    if(VA)ruban('W',2.05,2.50,z=>[4.62,4.80],.010);
+    else{ruban('W',1.70,2.45,z=>{const t=(z-1.70)/.75;return [mix(4.06,4.04,t),mix(4.20,4.12,t)];},.010);
+      ruban('o',-2.10,1.66,z=>[4.0,4.045],.008);}            // LA TRAJECTOIRE : un jonc d'or sur l'arête, de la lame de lumière jusqu'aux feux
+    /* ---- LES DEUX FEUX : des tuyères-tulipes (le fût s'évase), lèvre d'or, un anneau de lumière, le cœur de flamme en facettes qui pointe
+       hors de la bouche — les flammes du jeu naissent là ---- */
+    const F=C.feux,FR=F.r;
+    P.sym(sd=>{const x=sd*F.x;
+      tourZ('p',[[FR*.62,F.z0],[FR*.80,F.z0-.25],[FR,F.z1+.08]],x,F.y);                        // le fût, qui s'évase vers l'arrière
+      tourZ('o',[[FR,F.z1+.08],[FR*1.10,F.z1+.02],[FR*1.06,F.z1]],x,F.y);                      // la lèvre d'or
+      tourZ('k',[[FR*.98,F.z1],[FR*.94,F.z1+.07]],x,F.y);tourZ('k',[[0,F.z1+.07],[FR*.94,F.z1+.07]],x,F.y);   // la bouche, son fond
+      tourZ('C',[[FR*.86,F.z1+.06],[FR*.66,F.z1+.06]],x,F.y);                                  // l'anneau de lumière
+      tourZ('F',[[FR*.52,F.z1+.065],[FR*.30,F.z1-.06],[0,F.z1-.14]],x,F.y,6,0);               // le cœur de flamme, en facettes
+    });
+    /* ---- LES DÉRIVES : des lames en flèche, le bord d'attaque en lumière (la traîne) ---- */
+    for(const d of C.derives){
+      const c0=cle(F.z0+.3),y0=VA?c0[11]-.02:F.y+FR*.55,zA=VA?-0.50:-1.15,zT=ZQ-.02,top=VA?1.30:1.36;
+      const pts=[[zA,y0],[zT,y0],[zT,top],[zT+.24,top]],bord=[[zA,y0],[zT+.24,top],[zT+.24,top-.035],[zA+.04,y0-.02]];
+      const one=sd=>{const rz=-sd*d.cant,xx=sd*(d.x-y0*Math.sin(d.cant));P.prism('p',pts,.06,xx,0,0,rz);P.prism('C',bord,.072,xx,0,0,rz);};
+      if(d.x===0)one(1);else P.sym(one);}
+    // la poupe : un trait rouge entre les feux, le diffuseur dessous
+    {const yl=VA?.86:.83,xl=VA?.10:.32;P.plate('L',[[-xl,yl-.03],[xl,yl-.03],[xl+.03,yl+.02],[-xl-.03,yl+.02]],.012,ZQ-.012);}
+    P.box('k',VA?.70:1.30,.10,.28,0,.25,ZQ+.12);
+    /* ---- A : LES PERLES — les roues arrière vivent dehors, sous une demi-carène à facettes tenue par un bras ---- */
+    if(VA)P.sym(sd=>{const g=new THREE.LatheGeometry([[0,-.58],[.30,-.42],[.42,-.12],[.42,.12],[.30,.42],[0,.58]].map(p=>new THREE.Vector2(p[0],p[1])),8,Math.PI/2,Math.PI);
+      g.rotateX(Math.PI/2);P.put('p',g,sd*C.WX,R,ZR,0,0,0,.55,1,1);
+      P.box('p',.30,.06,.40,sd*(C.WX-.22),R+.26,ZR);});
+    K.commit(P);
+    return {hl:[.30,.45,ZN-.40],tl:[F.x,F.y,ZQ],wx:C.WX,wxF:C.WXF,wzF:ZF,wzR:-ZR,wRF:C.kF,pots:[[F.x,F.y,F.z1],[-F.x,F.y,F.z1]],
+            lpw:{R:R,w:.32,style:'multi',n:10,jante:0xd9a520}};
   },
