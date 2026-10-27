@@ -48,11 +48,20 @@ function theme30(B,i,K,c,g){
       plume(K.colD,-L*.40,top+.05,sd*.12,.48,.12,0,0,1.25);}
     for(let sd=-1;sd<=1;sd+=2)for(let k=0;k<4;k++)plume(k%2?K.col:K.colD,XE*.6,.35-k*.10,sd*.40,L*.75,.13,0,PI10,-.12+k*.04);
     break;}
-  case 5:{ // LE REQUIN — l'aileron dorsal, les cinq ouïes, la nageoire caudale en croissant, et un sourire plein de dents
-    B.add(plan10([[-.35,0],[.40,0],[-.05,.70],[-.25,.62]],.05,.012),K.col,-L*.05,top+.01,0);
-    for(let sd=-1;sd<=1;sd+=2)for(let k=0;k<5;k++)BXg(B,K.noir,XE*.55-k*.09,.10,sd*.355,0,0,0,.022,.32-k*.02,.02);
-    B.add(plan10([[0,-.05],[.12,0],[.0,.05],[-.30,.70],[-.20,.10],[-.24,-.10],[-.22,-.55]],.05,.01),K.col,-XE-.30,.05,0);
-    for(let k=0;k<9;k++){const z=(k/8-.5)*.48;corne(P(XE+.06,-.20,z),D(.4,-1,0),.035,.12,K.blanc);}
+  case 5:{ // LE REQUIN, PILOTE HYBRIDE (Léo : « pas un objet décoré : l'animal doit être l'objet lui-même, presque transformeur ») — LE MOTEUR EST le
+    //   requin : le bloc = le corps, la cloche d'embrayage (-X) = le museau (gueule, dents, yeux), l'échappement (+X) = la queue (deux lames de
+    //   nageoire caudale autour de la tuyère), le ventre blanc = le carter d'huile, l'aileron = sur le dos, les ouïes sur les flancs
+    const yC=.20,hx=-XE-.04;
+    TX(B,K.col,[[.42,0],[.38,.18],[.24,.55],[.08,.92],[.001,1.02]],hx,yC,0,PI10,22);                                   // le museau
+    BXg(B,K.blanc,-XE-.30,yC-.18,0,0,0,.16,.70,.05,.50);                                                              // le dessous du museau, blanc
+    BXg(B,K.noir,-XE-.44,yC-.28,0,0,0,.16,.62,.05,.40);                                                               // la mâchoire inférieure
+    for(let sd=-1;sd<=1;sd+=2){for(let k=0;k<6;k++){const x=-XE-.16-k*.10;corne(P(x,yC-.17,sd*(.20-k*.012)),D(0,-1,0),.032,.13,K.blanc);corne(P(x-.04,yC-.27,sd*(.18-k*.012)),D(0,1,0),.028,.11,K.blanc);}
+      boule(K.noir,-XE-.36,yC+.12,sd*.27,.05);boule(K.glow,-XE-.385,yC+.13,sd*.285,.022);
+      B.add(plan10([[0,0],[.42,-.08],[.14,-.22],[0,-.12]],.03,.006),K.col,-XE+.28,yC-.06,sd*.36,PI10/2,0,-.5*sd);}  // nageoires pectorales
+    B.add(plan10([[-.40,0],[.45,0],[-.02,.80],[-.30,.72]],.05,.012),K.col,-L*.04,top+.01,0);                           // l'aileron dorsal
+    for(let sd=-1;sd<=1;sd+=2)for(let k=0;k<5;k++)BXg(B,K.noir,-XE+.30+k*.09,.10,sd*.355,0,0,0,.022,.32-k*.02,.02);   // les ouïes
+    BXg(B,K.blanc,0,-.345,0,0,0,0,L*.96,.04,.54);                                                                      // le ventre blanc
+    const tx=L*.46+.50;B.add(plan10([[0,0],[.30,.55],[.12,.0],[.30,-.55]],.05,.012),K.col,tx,.30,.50,0,0,0);          // la queue en croissant, autour de la tuyère
     break;}
   case 6:{ // L'ÉTOILE DE MER — cinq bras corail en façade, granuleux, un cœur doré
     const cx=XE+.12,cy=.32;boule(K.or,cx,cy,0,.14,.14,.08);
@@ -64,15 +73,17 @@ function theme30(B,i,K,c,g){
       br(q,D(d.x+.35,d.y,d.z+.45),l*.78,n-1);br(q,D(d.x-.35,d.y,d.z-.45),l*.78,n-1);};
     for(let k=0;k<3;k++)br(P((k-1)*L*.30,top-.02,(k-1)*.04),D(0,1,0),.30,3);
     break;}
-  case 8:{ // LES ORQUES — deux grands ailerons noirs, les taches blanches de l'œil, une nageoire caudale au bout de sa hampe
-    if(CC0_30){   // VERSION CC0 (Quaternius, baleine) : noire et blanche, sur deux jambes de force
-      bete30(B,'Whale',{'Material.001':K.noir,'Material.002':K.blanc},2.1,0,top+.72,0,0,PI10/2,0);
-      for(const x of [-.40,.40])tige(P(x,top,0),P(x,top+.5,0),.045,K.chrome);
-      break;}
-    for(let sd=-1;sd<=1;sd+=2){B.add(plan10([[-.30,0],[.35,0],[.0,.75],[-.15,.70]],.05,.01),K.noir,-L*.12,top+.30,sd*.22,sd*.25,0,0);
-      B.add(G10.sph,K.blanc,XE*.50,.62,sd*.30,0,0,0,.18,.08,.03);}
-    tige(P(-XE+.05,.10,0),P(-XE-.30,.12,0),.08,K.noir);
-    B.add(plan10([[0,-.08],[0,.08],[-.32,.60],[-.20,.05],[-.32,-.60]],.05,.012),K.noir,-XE-.28,.12,0,PI10/2,0,0);
+  case 8:{ // L'ORQUE, PILOTE HYBRIDE — LE MOTEUR EST l'orque : le bloc noir = le corps, la cloche = la tête ronde (melon), les taches blanches sur
+    //   les flancs, le ventre blanc = le carter, le grand aileron au dos, les nageoires larges, et l'échappement (+X) = la queue à nageoires horizontales
+    const yC=.18,hx=-XE-.02;
+    boule(K.col,hx-.14,yC,0,.46,.38,.40);                                                                              // la tête ronde
+    BXg(B,K.blanc,hx-.22,yC-.20,0,0,0,.14,.60,.05,.46);                                                                // la gorge blanche
+    for(let sd=-1;sd<=1;sd+=2){boule(K.blanc,hx-.30,yC+.14,sd*.30,.13,.06,.03);boule(K.noir,hx-.40,yC+.10,sd*.30,.035);   // tache et œil
+      B.add(plan10([[0,0],[.50,-.10],[.46,-.30],[.06,-.24]],.04,.01),K.col,-XE+.20,yC-.06,sd*.36,PI10/2,0,-.4*sd);      // nageoires larges
+      boule(K.blanc,-XE+.60,.60,sd*.265,.20,.07,.02);}                                                                  // taches blanches sur les flancs
+    B.add(plan10([[-.40,0],[.40,0],[.05,.95],[-.20,.80]],.05,.012),K.col,-L*.02,top+.01,0);                            // le grand aileron
+    BXg(B,K.blanc,0,-.345,0,0,0,0,L*.96,.04,.54);                                                                      // le ventre blanc
+    const tx=L*.46+.46;for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[0,0],[.42,.22*sd],[.30,.0],[.42,-.22*sd]],.04,.01),K.col,tx,.30+(sd>0?.16:-.16),.50,PI10/2,0,0);   // flukes horizontales
     break;}
   case 9:{ // LA TORTUE — une carapace d'écailles hexagonales posée sur le boxer, la tête qui sort, quatre nageoires
     B.add(new THREE.SphereGeometry(1,18,8,0,PI10*2,0,PI10/2),K.colD,0,.30,0,0,0,0,L*.52,.38,.62);
