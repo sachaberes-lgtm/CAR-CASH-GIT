@@ -8999,7 +8999,7 @@ html[data-reduced-motion="1"] :is(.m5Halo,#mDead.m5 .m5Scene .hMotCv,.m5Ombre,#m
             <div class="mLigne" data-m="volh"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">POUCE HAUT</span><b id="mvVolH" class="valeur">MONTE</b></div><!-- (2026-10-14, charte 6) « POUCE HAUT EN VOL » passait sur deux lignes : l'aile dit déjà « en vol » -->
             <div class="mLigne" data-m="figg"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="FIGURES">FIGURES</span><b id="mvFigG" class="valeur">2 TAPS</b></div><!-- (2026-10-15, Léo) la FIGURE : double-tap NITRO, ou glisser depuis NITRO puis lâcher (GLI) -->
             <div class="mLigne" data-m="volinv"><i class="pxi pxi-aile" aria-hidden="true"></i><span class="tpL">VOL INVERSÉ</span><b id="mvVolInv" class="valeur">OFF</b></div>
-            <div class="mLigne" data-m="incl"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL">INCLINAISON</span><b id="mvIncl" class="valeur">OFF</b></div><!-- (2026-10-27, Léo) tourner en penchant le téléphone -->
+            <div class="mLigne" data-m="incl"><i class="pxi pxi-rotation" aria-hidden="true"></i><span class="tpL" data-fr="COMMANDES">COMMANDES</span><b id="mvIncl" class="valeur">VOLANT</b></div><!-- (2026-10-27, Léo) tourner en penchant le téléphone -->
           </div>
           <div class="mSec oAide" data-fr="AIDE">AIDE</div>
           <div class="mPanel oAide">
@@ -77396,10 +77396,17 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function inclMarche(on){ TCTL.incl=!!on; TCTL.inclV=0; TCTL.inclN=null; inclLis=0;
     if(on&&!inclAttache){ addEventListener('deviceorientation',inclOri); inclAttache=true; }
     if(!on&&inclAttache){ removeEventListener('deviceorientation',inclOri); inclAttache=false; } }
-  function inclBascule(){ SAVE.d.incl=TCTL.incl?0:1; SAVE.flush(); inclMarche(SAVE.d.incl); if(TCTL.incl){ inclPerm(); toast(pxi('coche')+' '+TR('PENCHE LE TÉLÉPHONE POUR TOURNER')); } }
+  /* LES TROIS COMMANDES (2026-10-27, Léo : « des options de joystick différentes : les flèches, le slide (actuel), et l'inclinaison ») :
+     VOLANT (le stick qui naît sous le pouce) → FLÈCHES (deux boutons, comme le clavier) → INCLINAISON (le téléphone penché). Mémorisé (`SAVE.d.cmd`). */
+  function cmdMode(){ return TCTL.pad?'fleches':TCTL.incl?'incl':'volant'; }
+  function cmdSet(m,calme){ TCTL.pad=(m==='fleches'); TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
+    if(sz)sz.classList.remove('act'); keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
+    inclMarche(m==='incl'); SAVE.d.cmd=m; SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush();
+    if(!calme&&m==='incl'){ inclPerm(); toast(pxi('coche')+' '+TR('PENCHE LE TÉLÉPHONE POUR TOURNER')); } }
   document.addEventListener('cc:jeu',function(){ TCTL.inclN=null; inclLis=0; }); // le neutre = la pose du joueur au départ de la course
   addEventListener('orientationchange',function(){ TCTL.inclN=null; inclLis=0; });
-  if(SAVE.d.incl){ inclMarche(true); document.addEventListener('touchend',function f(){ document.removeEventListener('touchend',f); inclPerm(); },{passive:true}); } // au relancement, l'autorisation du capteur se redemande au 1er toucher (iOS l'exige d'un geste)
+  if(SAVE.d.cmd==='fleches')cmdSet('fleches',true);
+  if(SAVE.d.cmd==='incl'){ inclMarche(true); document.addEventListener('touchend',function f(){ document.removeEventListener('touchend',f); inclPerm(); },{passive:true}); } // au relancement, l'autorisation du capteur se redemande au 1er toucher (iOS l'exige d'un geste)
   // ---- SYNCHRO PARESSEUSE (8 Hz) : apparition des commandes, écran de mort, gel en paysage.
   //      Un petit tick plutôt qu'un branchement dans loop() — et zéro écriture DOM si rien n'a changé.
   function syncJeu(){
@@ -77701,7 +77708,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvVib',SND.vib?'ON':'OFF',SND.vib);
       sv('mvVolH',TR(volSens()<0?'MONTE':'PLONGE'),true);
       sv('mvVolInv',volInv()<0?'ON':'OFF',volInv()<0);
-      sv('mvIncl',TCTL.incl?'ON':'OFF',TCTL.incl);
+      sv('mvIncl',TR(cmdMode()==='incl'?'INCLINAISON':cmdMode()==='fleches'?'FLECHES':'VOLANT'),true);
       sv('mvFigG',TR(figGlisseOn()?'GLISSER':'2 TAPS'),true); // (2026-10-15) LA FIGURE AU GLISSÉ
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
       sv('mvQ',TR(qLbl()),true);
@@ -77777,7 +77784,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); try{const v9=document.getElementById('mvVer');if(v9)v9.textContent=TR('VERSION')+' '+CC_VER.replace(/^LOCALE/,TR('LOCALE'));}catch(e9){} }
     else if(a==='volh'){ volhBascule(); mFill(); }
     else if(a==='volinv'){ volInvBascule(); mFill(); }
-    else if(a==='incl'){ inclBascule(); mFill(); }
+    else if(a==='incl'){ cmdSet(cmdMode()==='volant'?'fleches':cmdMode()==='fleches'?'incl':'volant'); mFill(); }
     else if(a==='figg'){ figGBascule(); mFill(); } // (2026-10-15) FIGURES : 2 TAPS ⇄ GLISSER
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
       keys.ArrowLeft=keys.ArrowRight=false; document.body.classList.toggle('tpad',TCTL.pad);
