@@ -83,7 +83,6 @@ function djTick(dt){ /* m2Tick (chaque image de course, missions allumées) : le
       else toast(pxi('coche')+' '+TR('DÉFI DU JOUR RÉUSSI')+' · +1 '+TR('JETON'),true);}catch(e){}
     try{hap([12,40,18]);}catch(e){}}}
 function djReste(){const t=new Date(),m=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1);return Math.max(0,m-t);} /* ms jusqu'à minuit (l'appareil) */
-function djResteTxt(){const mn=Math.max(1,Math.ceil(djReste()/6e4)),h=Math.floor(mn/60);return h?h+' H':mn+' MIN';}
 
 /* ---- LA SÉRIE DE SEPT JOURS, en carte à côté de la liste des missions ---- */
 /* (2026-10-22, Sacha : « enlève le défi du jour… plus simple ») plus de bloc AUJOURD'HUI ni de ligne de défi : une carte — le titre (la série en

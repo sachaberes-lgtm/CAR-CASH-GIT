@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v839'; // v839 (2026-10-27, Léo : « nettoie sw.js ») : sw.js allégé, les anciennes notes de version retirées (elles restent dans le journal et dans git)
+const CACHE = 'cashcar-v840'; // v840 (2026-10-27, Léo : « enlève tout ce qui ne sert plus à rien ») : 10 fonctions mortes retirées (intro, aura des fruits, boutique, missions, richesse)
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

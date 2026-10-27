@@ -141,7 +141,7 @@
     const volK9=mode==='fall'?.5:mode==='boom'?0:1; // (2026-09-29, passe « jeu pro » — deux critiques : la moitié de l'image étalée en vol, la lune en copies à la mort) : EN VOL on VISE la réception, à la MORT on regarde
     const sfxT=(running&&!gameOver&&!REDUCED_MOTION&&FLOU_OK)?Math.max(ORBFX.warp*.95,Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6+(CAM_HEROS.on&&mode==='drive'?CAM_HEROS.flou*THREE.MathUtils.clamp((speedKmh/Math.max(1,vCroisiere())-.7)/.8,0,1):0))*volK9):0; /* (CAM_HEROS) un voile de flou sur les BORDS en croisière rapide : la vitesse se lit sans ouvrir le champ */ // (2026-09-28) + le TUNNEL de l'orbite // rouler normalement = image nette ; booster = ça FUSE
     loop._sfx=(loop._sfx||0)+(sfxT-(loop._sfx||0))*Math.min(1,dt*(sfxT>(loop._sfx||0)?7:mode==='boom'?9:3)); // montée franche, retombée douce (sèche à l'explosion)
-    acesPass.uniforms.uSpeed.value=loop._sfx;acesPass.uniforms.uJit.value=(acesPass.uniforms.uJit.value+.618034)%1;
+    acesPass.uniforms.uSpeed.value=loop._sfx;acesPass.uniforms.uJit.value=(acesPass.uniforms.uJit.value+.618034)%1;acesPass.uniforms.uTL.value.x=(acesPass.uniforms.uTL.value.x+dt)%300;
     if(loop._sfx>.004)postCaisse(acesPass.uniforms); /* LA CAISSE RESTE NETTE : le centre et le disque net du flou suivent la caisse à l'écran */
     renderer.getDrawingBufferSize(acesPass.uniforms.uRes.value);acesPass.uniforms.uRes.value.set(1/Math.max(1,acesPass.uniforms.uRes.value.x),1/Math.max(1,acesPass.uniforms.uRes.value.y)); // la taille d'un texel pour le FXAA (suit la résolution adaptative)
   }
