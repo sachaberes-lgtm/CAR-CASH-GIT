@@ -359,6 +359,7 @@ if(CAN_POST){ try{
    const U9=acesPass.uniforms,bp9=bloomPass;
    U9.uBc.value=bp9._cRT.texture; // setSize garde le même objet texture : posé une fois
    bp9.fuse=bp9.plie=!/[?&]bloom=ancien/.test(location.search); // `?bloom=ancien&perf=1` : les 13 passes d'origine, pour comparer SUR le téléphone
+   bp9._plieMat=function(){return bp9.fuse&&bp9.plie!==false&&bp9.nMips===5&&bloomPlieMat(bp9);}; /* (2026-10-27, LA LIAISON EN ARRIÈRE-PLAN) les flous pliés fabriqués d'avance : leurs programmes se lient à côté (voir lierPassesPretes) */
    bp9.plie2d=/[?&]bloom=plie2d/.test(location.search); // (tour 2, post) mips 3-4 séparables par défaut (voir PLIAGE) — `?bloom=plie2d` : le flou 2D du tour 1, pour comparer sur le téléphone
    acesPass.render=function(rd,wb,rb){ // (appelle le prototype À CHAQUE FOIS, pas une copie : les bancs qui l'enveloppent continuent de mesurer l'ACES)
      U9.uBa.value=(bp9.enabled&&bp9.fuse)?bp9._a:0; // bloom éteint (réduire les animations, palier ultime) : le halo composé n'est plus à jour — on ne le lit plus
