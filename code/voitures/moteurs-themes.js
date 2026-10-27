@@ -610,36 +610,46 @@ function theme30(B,i,K,c,g){
     for(let k=0;k<3;k++)br(P((k-1)*L*.30,top-.02,(k-1)*.04),D(0,1,0),.30,3);
     h1_p7(B,K,L,XE,top);
     break;}
-  case 8:{ // L'ORQUE (h2) — LE MOTEUR EST l'orque : le bloc = le corps (dos noir laqué, ventre blanc), la cloche d'embrayage = la tête sculptée (melon bombé,
-    //   rostre, ligne de bouche, tache blanche, œil de glace, dents), le grand aileron au dos, les palettes pectorales, et l'échappement = le PÉDONCULE
-    //   qui finit en queue à nageoires horizontales autour de la tuyère à braise
-    const W=h2_poli(0xf4f8ff,160,.28),G=h2_poli(0x8e9aae,200,.4),hx=-XE-.02,T=K.col;
-    // la tête : le melon (front bombé qui monte), puis le rostre court
-    B.add(h2_loft([[hx+.30,.0,.38,.40,2.6],[hx+.04,.04,.42,.43,2.6],[hx-.22,.09,.41,.41,2.5],[hx-.46,.08,.32,.33,2.4],[hx-.66,.02,.20,.23,2.4],[hx-.82,-.03,.09,.13,2.4]],12),T,0,0,0);
-    // la mâchoire inférieure et la gorge : BLANCHES, plus basses que le crâne
-    B.add(h2_loft([[hx+.30,-.23,.17,.34,2.6],[hx+.0,-.24,.16,.35,2.6],[hx-.30,-.22,.13,.30,2.5],[hx-.56,-.17,.10,.21,2.4],[hx-.76,-.12,.05,.11,2.4]],12),W,0,0,0);
-    // le torse noir qui habille le carter, et le ventre blanc qui le déborde par le bas et les flancs
-    B.add(h2_loft([[-XE+.05,.0,.30,.36,2.8],[-L*.3,.08,.35,.43,2.8],[L*.2,.08,.35,.43,2.8],[XE-.02,.04,.30,.36,2.8],[XE+.20,.04,.22,.25,2.5]],12),T,0,0,0);
-    B.add(h2_loft([[-XE+.02,-.22,.26,.34,2.7],[-L*.3,-.22,.30,.455,2.7],[L*.2,-.22,.30,.455,2.7],[XE-.02,-.20,.26,.37,2.7],[XE+.22,-.10,.16,.24,2.5],[XE+.34,-.03,.07,.12,2.4]],12),W,0,0,0);
-    B.add(h2_loft([[hx+.10,.22,.38,.43,2.6],[hx+.50,.44,.50,.52,2.7],[-L*.20,.52,.42,.57,2.9],[L*.25,.52,.42,.57,2.9],[XE+.04,.30,.36,.42,2.6]],12),T,0,0,0);   // la bosse du dos : la nuque monte jusqu'au dos, la culasse en sort comme une armure
-    for(let sd=-1;sd<=1;sd+=2){B.add(G10.sph,W,L*.20,-.02,sd*.43,0,0,sd*.1,.34,.10,.05);}                                                  // la tache blanche de la hanche
+  case 8:{ // L'ORQUE (h2, retouché) — LE MOTEUR EST l'orque : un revêtement NOIR LAQUÉ lisse recouvre tout le dessus du bloc (une vraie ligne d'orque : melon, nuque, dos qui monte
+    //   à l'aileron puis file vers le pédoncule), le ventre BLANC dessous, la selle grise nette derrière l'aileron, les taches d'œil blanches, la cloche d'embrayage = la tête sculptée,
+    //   et l'échappement = le pédoncule qui finit en queue à nageoires horizontales autour de la tuyère à braise
+    const W=h2_poli(0xffffff,150,.22),G=new THREE.MeshPhongMaterial({color:0x5f6b82,shininess:30,specular:0x10141c,side:THREE.DoubleSide}),hx=-XE-.02,
+      T=new THREE.MeshPhongMaterial({color:0x0b0d13,shininess:70,specular:0x2c3444,envMap:envTex,side:THREE.DoubleSide,reflectivity:.12,combine:THREE.MixOperation});   // le noir laqué : un reflet qui accroche, pas un miroir
+    // la ligne du dos : des clés [x, hauteur du sommet, demi-largeur] lissées (Catmull-Rom) — monte de la nuque à l'aileron, s'affine vers le pédoncule
+    const KY=[[-.78,.40,.30],[-.55,.60,.37],[-.30,.68,.41],[0,.75,.42],[.28,.71,.41],[.52,.60,.39],[.74,.47,.35],[.98,.24,.17]];
+    const dos=x=>{let q=0;while(q<KY.length-2&&x>KY[q+1][0])q++;const t=Math.max(0,Math.min(1,(x-KY[q][0])/(KY[q+1][0]-KY[q][0])));
+      const p0=KY[Math.max(0,q-1)],p1=KY[q],p2=KY[q+1],p3=KY[Math.min(KY.length-1,q+2)],cr=(a,b,c,d)=>.5*(2*b+(-a+c)*t+(2*a-5*b+4*c-d)*t*t+(-a+3*b-3*c+d)*t*t*t);
+      return [x,-.04,cr(p0[1],p1[1],p2[1],p3[1]),cr(p0[2],p1[2],p2[2],p3[2])];};
+    // le dos : UNE demi-coque noire laquée (équateur y=-.04), échantillonnée finement
+    const DS=[];for(let x=-.78;x<=.981;x+=.115)DS.push(dos(x));
+    B.add(h2_loft(DS.map(d=>[d[0],d[1],d[2]+.04,d[3]]),14,true,true),T,0,0,0);
+    // le ventre blanc : un fuseau plein, plus étroit que le dos, qui n'apparaît que sous l'équateur
+    B.add(h2_loft([[-.60,-.12,.38,.34],[-XE+.42,-.14,.50,.43],[0,-.16,.54,.44],[L*.20,-.14,.50,.42],[.52,-.12,.42,.39],[.74,-.08,.31,.31],[.98,-.04,.20,.18],[1.15,-.02,.08,.09]],12,true),W,0,0,0);
+    // la tête : le melon qui prolonge la nuque, puis le rostre court
+    B.add(h2_loft([[hx+.34,.10,.50,.39,2.5],[hx+.06,.13,.45,.42,2.5],[hx-.20,.12,.40,.41,2.4],[hx-.44,.09,.31,.33,2.4],[hx-.64,.03,.20,.23,2.4],[hx-.80,-.03,.10,.13,2.4]],12),T,0,0,0);
+    // la mâchoire inférieure et la gorge : BLANCHES
+    B.add(h2_loft([[hx+.30,-.25,.17,.34,2.6],[hx+.0,-.26,.16,.355,2.6],[hx-.30,-.24,.13,.30,2.5],[hx-.56,-.19,.10,.21,2.4],[hx-.76,-.14,.05,.11,2.4]],12),W,0,0,0);
+    // la selle grise derrière l'aileron : une coque fine posée sur le dos (même ligne, plus étroite et un peu plus haute), ses bouts s'enfoncent dans le dos
+    const sad=(x,k,e)=>{const d=dos(x);return [x,-.04,d[2]+.04+e,d[3]*k];};
+    const SX=[[.02,.62,-.08],[.10,1.02,.02],[.24,1.03,.026],[.38,1.03,.026],[.50,1.02,.02],[.62,.66,-.07]];
+    B.add(h2_loft(SX.map(q=>sad(q[0],q[1],q[2])),12,true,true),G,0,0,0);
     for(let sd=-1;sd<=1;sd+=2){
-      // la tache blanche derrière l'œil (oblique, comme l'orque), l'œil de glace, le sourcil
-      B.add(G10.sph,W,hx-.28,.20,sd*.375,0,0,sd*.30,.20,.068,.04);
+      // la tache blanche derrière l'œil (oblique, qui monte vers l'arrière, comme l'orque) — grande, pour qu'elle se lise de loin
+      B.add(G10.sph,W,hx-.25,.20,sd*.385,0,0,.30,.25,.085,.05);
       B.add(G10.sph,K.noir,hx-.47,.11,sd*.315,0,0,0,.045,.045,.034);B.add(G10.sph,K.glow,hx-.475,.115,sd*.332,0,0,0,.026,.026,.022);
       // la ligne de bouche : un trait sombre du rostre aux joues
       B.add(tube10([[hx-.80,-.07,sd*.08],[hx-.56,-.09,sd*.20],[hx-.28,-.10,sd*.35],[hx+.02,-.07,sd*.42]],.012,12,4),K.noir,0,0,0);
       // les dents : une rangée blanche, haut et bas
       for(let k=0;k<6;k++){const x=hx-.12-k*.11,z=sd*(.36-k*.04);vers10(B,cone10(.022,.085,5),W,P(x,-.115,z),D(0,-1,0),1);vers10(B,cone10(.020,.075,5),W,P(x-.03,-.085,z*.96),D(0,1,0),1);}
-      // la selle grise derrière l'aileron
-      B.add(G10.sph,G,L*.22,.80,sd*.34,0,0,sd*.55,.36,.06,.17);
+      // la tache blanche de la hanche, au ras du flanc
+      B.add(G10.sph,W,L*.30,-.02,sd*.405,0,0,sd*.1,.30,.10,.04);
       // la palette pectorale : large, arrondie, qui part du flanc
       B.add(plan10([[0,0],[.20,.40],[.46,.70],[.70,.58],[.62,.24],[.32,-.02]],.05,.01),T,-XE+.50,-.12,sd*.36,sd*PI10/2,0,-.35);
     }
-    B.add(G10.sph,K.noir,hx+.02,.46,0,0,0,0,.08,.016,.035);                                                              // l'évent
-    // le grand aileron dorsal, en faucille, planté dans la vallée du V
-    B.add(plan10([[-.40,0],[-.20,.55],[.14,1.30],[.17,.78],[.52,0]],.07,.012),T,-L*.04,top-.40,0);
-    B.add(plan10([[-.40,.02],[-.20,.55],[.14,1.30],[.125,1.22],[-.17,.55],[-.34,.05]],.09,.004),K.glow,-L*.04,top-.40,0);       // le liseré de glace du bord d'attaque
+    B.add(G10.sph,K.noir,hx+.10,.60,0,0,0,0,.08,.016,.035);                                                              // l'évent
+    // le grand aileron dorsal, en faucille, planté dans le dos
+    B.add(plan10([[-.34,0],[-.14,.36],[.18,.98],[.14,.56],[.42,0]],.07,.012),T,-L*.04,.60,0);
+    B.add(plan10([[-.34,.02],[-.14,.36],[.18,.98],[.145,.92],[-.10,.34],[-.28,.05]],.09,.004),K.glow,-L*.04,.60,0);       // le liseré de glace du bord d'attaque
     // la queue : le pédoncule qui s'affine, les deux nageoires horizontales, la tuyère à braise au milieu
     B.add(h2_loft([[XE-.10,.0,.32,.30,2.6],[XE+.18,.03,.24,.22,2.5],[XE+.42,.05,.13,.14,2.4]],10),T,0,0,0);
     const tx=XE+.40;
@@ -688,6 +698,9 @@ function theme30(B,i,K,c,g){
     B.add(h2_loft([[-XE+.10,yc,.52,.52],[-XE+.35,yc,.60,.60],[0,yc,.62,.62],[XE-.15,yc,.60,.60],[XE+.10,yc,.48,.48]],14),Wh,0,0,0);   // le fuselage blanc
     for(const x of [-XE+.24,-L*.18,L*.14,XE-.12])TX(B,K.col,[[.625,0],[.625,.07]],x,yc,0,0,14);        // les bandes rouges
     for(const x of [-XE+.12,XE+.08])h2_ANN(B,K.or,.56,.014,x,yc,0);
+    // la peau rivetée : deux rangs de rivets d'or de part et d'autre de chaque bande rouge, et le long couturage d'or du dos et du ventre
+    for(const x of [-XE+.24,-L*.18,L*.14,XE-.12])for(const dx of [-.06,.06])for(let k=0;k<16;k++){const a=k/16*2*PI10;B.add(G10.cyl6,K.or,x+dx,yc+Math.cos(a)*.62,Math.sin(a)*.62,a,0,0,.026,.03,.026);}
+    for(const a of [0,PI10/2,PI10,PI10*1.5])B.add(G10.axeX8,K.or,-XE+.14,yc+Math.cos(a)*.625,Math.sin(a)*.625,0,0,0,L-.1,.008,.008);   // quatre coutures d'or : dos, flancs, ventre
     // le visage : yeux-hublots, sourcils, sourire
     for(let sd=-1;sd<=1;sd+=2){const ex=-XE-.30,ey=yc+.12,ez=sd*Math.sqrt(Math.max(.01,rN(ex)*rN(ex)-.0144))+sd*.01;
       B.add(new THREE.TorusGeometry(.115,.022,6,14),K.chrome,ex,ey,ez,0,sd*.30,0);B.add(G10.sph,K.glow,ex,ey,ez+sd*.01,0,0,0,.10,.10,.04);B.add(G10.sph,K.noir,ex-.03,ey-.01,ez+sd*.03,0,0,0,.045,.05,.02);
@@ -708,9 +721,9 @@ function theme30(B,i,K,c,g){
     const tx=XE+.02;TX(B,K.chrome,[[.20,0],[.25,.08],[.38,.34],[.50,.50]],tx,yc,0,0,14);h2_ANN(B,K.or,.50,.018,tx+.50,yc,0);TX(B,K.glow,[[.001,0],[.40,0],[.40,.02],[.001,.02]],tx+.48,yc,0,0,14);
     c.echap=[tx+.54,yc,0];
     break;}
-  case 11:{ // L'ÉLECTRIQUE (h2) — LA BÊTE D'ORAGE : le V8 est son corps (flancs bobinés de cuivre = ses muscles), la cloche d'embrayage = la tête de taureau
-    //   d'orage — deux BOBINES TESLA en guise de cornes, un arc qui claque entre leurs boules, yeux d'éclair, mâchoire à éclateurs — et l'échappement = sa
-    //   queue en éclairs autour de la tuyère
+  case 11:{ // L'ÉLECTRIQUE (h2, retouché) — LA BÊTE D'ORAGE : le V8 est son corps (flancs bobinés de cuivre = ses muscles), la cloche d'embrayage = une TÊTE DE TAUREAU MASSIVE
+    //   (crâne large, arcades en colère, museau carré à anneau de nez d'or, naseaux, yeux d'ÉCLAIR qui brillent, oreilles), deux CORNES-BOBINES qui partent des tempes, courbent vers
+    //   l'extérieur puis montent comme des cornes de taureau, un arc qui claque entre leurs boules — et l'échappement = sa queue en éclairs autour de la tuyère
     const hx=-XE,yc=.30;
     const coil=(p,d,len,r)=>{const pts=[[r*.7,0],[r*.7,.03]];const n=Math.round(len/.075);for(let k=0;k<n;k++){const x=.03+k*.075;pts.push([r*.9,x+.01],[r*1.18,x+.03],[r*1.18,x+.055],[r*.9,x+.07]);}pts.push([r*.7,len]);vers10(B,tourX(pts,10),K.cu,p,d,1);
       const e=p.clone().addScaledVector(d,len);B.add(G10.sph,K.chrome,e.x,e.y,e.z,0,0,0,r*1.7,r*1.7,r*1.7);B.add(G10.sph,K.glow,e.x,e.y,e.z,0,0,0,r*1.0,r*1.0,r*1.0);return e;};
@@ -718,22 +731,42 @@ function theme30(B,i,K,c,g){
     // le corps : le torse laqué, bobiné de cuivre
     B.add(h2_loft([[hx+.10,yc,.36,.40,2.5],[hx+.40,yc,.52,.54,2.5],[-L*.2,yc,.55,.58,2.6],[L*.2,yc,.55,.58,2.6],[XE-.05,yc,.46,.48,2.5],[XE+.25,yc,.30,.32,2.5]],12),K.col,0,0,0);
     for(let k=0;k<8;k++){const x=hx+.38+k*(L-.50)/7;h2_ANN(B,K.cu,.575,.032,x,yc,0);}
-    // la tête de taureau : crâne, arcade, museau large, mâchoire d'acier à éclateurs
-    B.add(h2_loft([[hx+.22,yc+.10,.40,.42,2.5],[hx-.08,yc+.17,.40,.43,2.4],[hx-.34,yc+.19,.34,.40,2.4],[hx-.58,yc+.12,.26,.34,2.4],[hx-.80,yc+.03,.19,.28,2.4],[hx-.93,yc-.02,.13,.21,2.4]],12),K.col,0,0,0);
-    B.add(h2_loft([[hx-.20,yc-.22,.09,.31,2.5],[hx-.50,yc-.19,.08,.28,2.5],[hx-.80,yc-.14,.07,.21,2.5],[hx-.92,yc-.11,.04,.14,2.5]],10),K.chrome,0,0,0);
+    // la tête de taureau : un crâne large et haut (laqué), puis le museau carré d'alu clair qui plonge vers l'avant
+    const HS=1.22,hl=S=>S.map(q=>[q[0],q[1]+.05,q[2]*HS,q[3]*HS,q[4]]);   // la tête est plus grosse que le corps : c'est elle qui fait le taureau
+    B.add(h2_loft(hl([[hx+.24,yc+.10,.54,.52,2.5],[hx-.08,yc+.17,.58,.57,2.4],[hx-.36,yc+.15,.52,.52,2.4],[hx-.60,yc+.06,.43,.45,2.3],[hx-.80,yc-.04,.35,.38,2.3]]),12),K.col,0,0,0);
+    B.add(h2_loft(hl([[hx-.60,yc-.02,.34,.40,2.2],[hx-.90,yc-.08,.30,.35,2.1],[hx-1.08,yc-.11,.27,.32,2.1],[hx-1.20,yc-.12,.23,.28,2.1]]),10),K.alu,0,0,0);
+    // la mâchoire d'acier, profonde, à éclateurs
+    B.add(h2_loft(hl([[hx-.15,yc-.34,.15,.38,2.5],[hx-.50,yc-.35,.15,.35,2.5],[hx-.82,yc-.34,.13,.30,2.4],[hx-1.06,yc-.31,.10,.24,2.4],[hx-1.16,yc-.30,.07,.19,2.4]]),10),K.chrome,0,0,0);
+    // le mufle : la plaque de nez, les naseaux, l'anneau d'or du taureau
+    B.add(G10.sph,K.chrome,hx-1.20,yc-.14,0,0,0,0,.065,.24,.34);
+    for(let sd=-1;sd<=1;sd+=2){B.add(G10.sph,K.noir,hx-1.26,yc-.10,sd*.14,0,0,0,.045,.065,.09);h2_ANN(B,K.or,.07,.016,hx-1.27,yc-.10,sd*.14);}
+    B.add(new THREE.TorusGeometry(.14,.028,6,18),K.or,hx-1.26,yc-.29,0,0,0,0);
     for(let sd=-1;sd<=1;sd+=2){
-      BXg(B,K.colD,hx-.34,yc+.40,sd*.20,0,sd*.28,0,.50,.10,.14);                                          // l'arcade
-      B.add(G10.sph,K.glow,hx-.50,yc+.27,sd*.33,0,sd*.35,-.5*sd,.17,.045,.04);B.add(G10.sph,K.blanc,hx-.52,yc+.27,sd*.345,0,sd*.35,-.5*sd,.095,.02,.025);   // l'œil d'éclair
-      B.add(plan10([[0,0],[.22,.14],[.30,-.02],[.10,-.10]],.03,.006),K.col,hx+.02,yc+.28,sd*.40,sd*PI10/2*.0,sd*.9,0);   // l'oreille
-      h2_ANN(B,K.or,.05,.016,hx-.94,yc-.01,sd*.10);
-      B.add(G10.sph,K.noir,hx-.93,yc-.02,sd*.10,0,0,0,.04,.035,.035);                                    // la narine
-      for(let k=0;k<5;k++){const x=hx-.28-k*.11;vers10(B,cone10(.018,.09,5),K.chrome,P(x,yc-.12,sd*(.28-k*.03)),D(0,1,0),1);}   // les éclateurs : des dents de conducteur
-      const base=P(hx-.08,yc+.50,sd*.22);coil(base,D(-.25,1,sd*.55),.78,.07);                            // la corne : une bobine Tesla
-      B.add(G10.cyl6,K.or,base.x,base.y-.02,base.z,0,0,0,.13,.08,.13);}
-    // l'arc qui claque entre les deux boules, et l'étincelle de la gueule
-    const eL=P(hx-.08,yc+.50,-.22).addScaledVector(D(-.25,1,-.55),.78),eR=P(hx-.08,yc+.50,.22).addScaledVector(D(-.25,1,.55),.78);
-    arc(eL,eR,8,.09,.02);
-    arc(P(hx-.62,yc-.17,-.14),P(hx-.62,yc-.17,.14),4,.04,.012);
+      // l'arcade : une grosse bosse en colère en travers de l'orbite, son bout extérieur plus haut que son bout intérieur
+      BXg(B,K.colD,hx-.46,yc+.43,sd*.31,-sd*.35,0,0,.26,.17,.50);
+      // l'œil d'ÉCLAIR : une fente en zigzag qui luit sous l'arcade, son cœur blanc-chaud
+      B.add(plan10([[-.26,.05],[.18,.12],[.06,.009],[.27,-.018],[-.18,-.105],[-.03,-.009]],.06,.004),K.glow,hx-.66,yc+.22,sd*.475,0,-sd*.55,0);
+      B.add(G10.sph,K.blanc,hx-.675,yc+.225,sd*.49,0,-sd*.55,0,.045,.034,.026);
+      B.add(G10.sph,K.col,hx-.40,yc-.03,sd*.60,0,0,0,.12,.16,.08);     // la pommette
+      // l'oreille : une grande feuille à plat qui part vers l'extérieur et retombe
+      B.add(plan10([[0,0],[.12,.26],[.34,.36],[.46,.16],[.30,.0]],.04,.008),K.col,hx+.02,yc+.26,sd*.60,sd>0?PI10/2:-PI10/2,0,-.25);
+      B.add(plan10([[.04,.02],[.13,.20],[.30,.28],[.38,.14],[.26,.02]],.045,.004),K.cu,hx+.02,yc+.26,sd*.605,sd>0?PI10/2:-PI10/2,0,-.25);     // l'intérieur cuivré
+      for(let k=0;k<6;k++){const x=hx-.22-k*.13;vers10(B,cone10(.018,.09,5),K.chrome,P(x,yc-.18,sd*(.37-k*.03)),D(0,1,0),1);}   // les éclateurs : des dents de conducteur
+      // la corne-bobine : née de la tempe, elle part vers l'extérieur puis monte et s'avance, comme une corne de taureau
+      const hp=t=>P(hx-.04-.50*t*t,yc+.36+.86*(1-Math.cos(t*PI10*.5)),sd*(.50+.60*Math.sin(t*PI10*.5)));
+      const N=13;
+      for(let k=0;k<N;k++){const t0=k/N,t1=(k+1)/N,a=hp(t0),b=hp(t1),dir=b.clone().sub(a),len=dir.length(),r=.16-.09*t0;
+        vers10(B,tourX([[r*.80,0],[r*1.15,len*.15],[r*1.15,len*.55],[r*.80,len*.85],[r*.8,len]],10),k%2?K.cu:K.or,a,dir.normalize(),1);}
+      for(let k=0;k<N;k++){const a=hp(k/N),b=hp((k+1)/N);B.add(tube10([[a.x,a.y,a.z],[b.x,b.y,b.z]],.055,1,6),K.chrome,0,0,0);}   // l'âme chromée de la corne
+      const e=hp(1);B.add(G10.sph,K.chrome,e.x,e.y,e.z,0,0,0,.16,.16,.16);B.add(G10.sph,K.glow,e.x,e.y,e.z,0,0,0,.105,.105,.105);
+      const b0=hp(0);B.add(G10.cyl6,K.or,b0.x,b0.y-.02,b0.z,0,0,sd*.5,.23,.12,.23);     // la collerette d'or de la tempe
+    }
+    // l'arc qui claque entre les deux boules des cornes, et l'étincelle de la gueule
+    const tipL=P(hx-.04-.50,yc+.36+.86,-1.10),tipR=P(hx-.04-.50,yc+.36+.86,1.10);
+    arc(tipL,tipR,10,.12,.02);
+    arc(P(hx-.62,yc-.20,-.14),P(hx-.62,yc-.20,.14),4,.04,.012);
+    // l'éclair d'or gravé sur le front, couché sur la pente du crâne (visible de dessus comme de face)
+    h2_orient(B,plan10([[.17,.50],[-.20,0],[-.03,0],[-.24,-.50],[.24,.07],[.06,.07],[.24,.50]],.05,.008),K.or,P(hx-.47+(-.64)*.07,yc+.78+.77*.07,0),new THREE.Vector3(0,0,1),new THREE.Vector3(-.64,.77,0));
     // l'échine : cinq petites bobines sur le dos, reliées par des arcs
     const tops=[];for(let k=0;k<5;k++){const x=-L*.36+k*L*.20,b=P(x,.86,0);tops.push(coil(b,D(0,1,0),.30+.04*Math.sin(k/4*PI10),.045));}
     for(let k=0;k<4;k++)arc(tops[k],tops[k+1],4,.05,.012);
@@ -806,33 +839,36 @@ function theme30(B,i,K,c,g){
     const tx=XE+.08;TX(B,K.chrome,[[.12,0],[.16,.06],[.22,.34],[.30,.56]],tx,yc,0,0,12);TX(B,K.glow,[[.001,0],[.24,0],[.24,.02],[.001,.02]],tx+.54,yc,0,0,12);
     c.echap=[tx+.58,yc,0];
     break;}
-  case 14:{ // LE SOLEIL (h2) — LE SOLEIL-LION : le W12 est son torse d'ambre, la cloche d'embrayage = le VISAGE d'or du soleil (arcade, yeux blancs-chauds, nez, bouche
-    //   à crocs), et sa crinière EST la couronne : deux rangs de rayons flammés plantés autour de la face ; l'échappement = un petit soleil de queue autour de
-    //   la tuyère à braise
-    const yc=.30,hx=-XE,GOLD=h2_poli(0xf3dc96,240,.45);
-    const ray=(x,R,len,a,m,w,t)=>{const rh=new THREE.Vector3(0,Math.cos(a),Math.sin(a)),d=rh.clone().multiplyScalar(Math.cos(t)).add(new THREE.Vector3(Math.sin(t),0,0)).normalize(),td=new THREE.Vector3(0,-Math.sin(a),Math.cos(a)),n=new THREE.Vector3().crossVectors(d,td);
-      h2_orient(B,plan10([[0,-w],[0,w],[len*.62,w*.55],[len,0],[len*.62,-w*.55]],.045,.008),m,P(x,yc+Math.cos(a)*R,Math.sin(a)*R),d,n);};
+  case 14:{ // LE SOLEIL (h2, retouché) — LE SOLEIL-LION : le W12 est son torse d'ambre, la cloche d'embrayage = le VISAGE d'ivoire et d'or du soleil (arcades, grands yeux blancs aux pupilles
+    //   noires, nez, bouche à crocs) posé sur une LENTILLE épaisse d'ambre sombre ; sa crinière EST la couronne : trois rangs de rayons-pointes plantés sur le bord de la lentille, dans le plan
+    //   et inclinés vers l'avant et vers l'arrière — le soleil se lit de TOUS les côtés ; l'échappement = un petit soleil de queue autour de la tuyère à braise
+    const yc=.30,hx=-XE,GOLD=h2_poli(0xe9b844,240,.45),LENS=h2_poli(0x7c4208,200,.28),IVO=h2_poli(0xfff2cc,200,.2);
+    const ray=(x,R,len,a,m,r,t)=>{const rh=new THREE.Vector3(0,Math.cos(a),Math.sin(a)),d=rh.clone().multiplyScalar(Math.cos(t)).add(new THREE.Vector3(Math.sin(t),0,0)).normalize();
+      vers10(B,cone10(r,len,6),m,P(x,yc+Math.cos(a)*R,Math.sin(a)*R),d,1);};
     // le torse
     B.add(h2_loft([[hx+.06,yc,.42,.46,2.5],[hx+.34,yc,.52,.56,2.5],[-L*.1,yc,.55,.58,2.6],[L*.2,yc,.54,.57,2.6],[XE-.05,yc,.44,.47,2.5],[XE+.22,yc,.27,.28,2.5]],12),K.col,0,0,0);
     for(let k=0;k<7;k++){const x=hx+.42+k*(L-.55)/6;h2_ANN(B,K.or,.58,.022,x,yc,0);}
-    // la couronne : un grand disque d'or gravé de cercles, cerclé de rayons flammés (un long, un court)
-    const cx=hx-.02;
-    B.add(tourX([[.46,.02],[.60,0],[.88,0],[.96,.035],[.88,.07],[.60,.07],[.46,.05]],28),K.col,cx,yc,0,0,0,0);
-    for(const R of [.62,.76,.88])h2_ANN(B,K.or,R,.014,cx-.005,yc,0);h2_ANN(B,K.or,.97,.036,cx+.035,yc,0);
-    for(let k=0;k<28;k++){const a=k/28*2*PI10;ray(cx+.035,.96,k%2?.34:.62,a,k%2?K.col:K.or,k%2?.075:.12,.10);}
-    // le visage : crâne sculpté, arcade, yeux, nez, bouche
-    B.add(h2_loft([[hx+.24,yc,.50,.52,2.4],[hx-.10,yc,.54,.54,2.3],[hx-.34,yc,.50,.50,2.3],[hx-.50,yc-.01,.36,.36,2.3],[hx-.55,yc-.02,.24,.24,2.3]],14),GOLD,0,0,0);
-    const fx=hx-.46;
+    // la lentille : un disque ÉPAIS à deux faces bombées, d'ambre sombre, cerclé d'or — elle se lit de face, de profil et de dessus
+    const cx=hx+.02;
+    B.add(tourX([[.001,-.30],[.30,-.27],[.60,-.18],[.86,-.08],[1.0,.03],[.86,.14],[.60,.23],[.30,.31],[.001,.34]],28),LENS,cx,yc,0,0,0,0);
+    h2_ANN(B,K.or,1.0,.05,cx+.03,yc,0);h2_ANN(B,K.or,.78,.022,cx-.12,yc,0);h2_ANN(B,K.or,.52,.018,cx-.21,yc,0);
+    // la crinière : trois rangs de rayons-pointes — dans le plan (longs et courts, en alternance), inclinés vers l'avant, inclinés vers l'arrière
+    for(let k=0;k<28;k++){const a=k/28*2*PI10;ray(cx+.03,.95,k%2?.40:.72,a,k%2?K.col:K.or,k%2?.09:.115,0);}
+    for(let k=0;k<14;k++){const a=(k+.5)/14*2*PI10;ray(cx+.0,.90,.62,a,K.or,.09,-.62);}
+    for(let k=0;k<14;k++){const a=(k+.5)/14*2*PI10;ray(cx+.07,.90,.52,a,K.col,.085,.62);}
+    // le visage : un dôme d'ivoire sur la face de la lentille, sculpté
+    B.add(h2_loft([[hx+.22,yc,.62,.62,2.4],[hx-.12,yc,.69,.69,2.3],[hx-.36,yc,.64,.64,2.3],[hx-.56,yc-.01,.48,.48,2.3],[hx-.70,yc-.02,.30,.30,2.3]],14),GOLD,0,0,0);
+    const fx=hx-.56;
     for(let sd=-1;sd<=1;sd+=2){
-      BXg(B,K.col,fx-.04,yc+.19,sd*.17,0,0,-sd*.22,.07,.07,.24);                                                                         // l'arcade, en colère
-      B.add(G10.sph,K.blanc,fx-.07,yc+.09,sd*.17,0,0,0,.035,.065,.095);B.add(G10.sph,K.noir,fx-.10,yc+.09,sd*.17,0,0,0,.02,.04,.04);   // l'œil blanc-chaud, sa pupille
-      B.add(G10.sph,K.col,fx-.04,yc-.07,sd*.27,0,0,0,.07,.10,.10);                                                                       // la pommette
-      B.add(tube10([[fx-.08,yc-.19,sd*.02],[fx-.05,yc-.22,sd*.14],[fx+.02,yc-.14,sd*.28]],.014,10,4),K.noir,0,0,0);                         // le sourire
-      for(let k=0;k<3;k++)vers10(B,cone10(.022,.075,5),K.blanc,P(fx-.08+k*.02,yc-.195-k*.012,sd*(.05+k*.07)),D(-.1,-1,0),1);}               // les crocs
-    vers10(B,cone10(.085,.26,5),K.col,P(fx-.04,yc-.03,0),D(-1,-.15,0),1);                                                                   // le nez
+      BXg(B,K.colD,fx-.06,yc+.31,sd*.26,-sd*.30,0,0,.14,.12,.42);                                                                          // l'arcade, épaisse et en colère (bout extérieur plus haut)
+      B.add(G10.sph,IVO,fx-.06,yc+.13,sd*.26,0,0,0,.06,.12,.16);B.add(G10.sph,K.noir,fx-.115,yc+.13,sd*.26,0,0,0,.035,.085,.09);    // le grand œil blanc, sa pupille noire
+      B.add(G10.sph,K.col,fx+.04,yc-.08,sd*.40,0,0,0,.09,.14,.12);                                                                         // la pommette d'ambre
+      B.add(tube10([[fx-.14,yc-.24,sd*.02],[fx-.12,yc-.28,sd*.19],[fx-.03,yc-.20,sd*.38]],.026,10,5),K.noir,0,0,0);                         // le sourire
+      for(let k=0;k<3;k++)vers10(B,cone10(.03,.11,5),IVO,P(fx-.14+k*.02,yc-.255-k*.012,sd*(.07+.10*k)),D(-.1,-1,0),1);}               // les crocs
+    vers10(B,cone10(.14,.34,6),K.col,P(fx-.10,yc-.03,0),D(-1,-.15,0),1);                                                                    // le nez d'ambre
     // la queue : un petit soleil autour de la tuyère
     const tx=XE+.14;h2_ANN(B,K.or,.30,.026,tx,yc,0);
-    for(let k=0;k<12;k++){const a=k/12*2*PI10;B.add(plan10([[-.05,0],[.05,0],[0,.30]],.04,.006),k%2?K.or:K.col,tx,yc+Math.cos(a)*.30,Math.sin(a)*.30,a,PI10/2,0);}
+    for(let k=0;k<12;k++){const a=k/12*2*PI10;vers10(B,cone10(.05,.30,5),k%2?K.or:K.col,P(tx,yc+Math.cos(a)*.30,Math.sin(a)*.30),new THREE.Vector3(0,Math.cos(a),Math.sin(a)),1);}
     for(let k=0;k<4;k++){const a=(k+.5)/4*2*PI10;tige(P(XE-.05,yc+Math.cos(a)*.26,Math.sin(a)*.26),P(tx,yc+Math.cos(a)*.30,Math.sin(a)*.30),.022,K.or);}
     TX(B,K.chrome,[[.10,0],[.14,.05],[.21,.20],[.26,.30]],tx,yc,0,0,12);TX(B,K.glow,[[.001,0],[.20,0],[.20,.02],[.001,.02]],tx+.30,yc,0,0,12);
     c.echap=[tx+.34,yc,0];

@@ -128,40 +128,41 @@ function bloc30(g,i,E,KT,rnd,K,S){
   const B=bat10();B.f=true;B.plat();
   const L=S.L,XE=L/2,a=K.a,pb=S.pb,metal=KT.metal,col=KT.col,plat=(a==='fl'||a==='h'),haut=(a==='h');
   const HY=(i>=1&&i<=6);   // ARTISTE 1 : paliers 2-7 = HYBRIDES (l'animal EST le moteur) : plus de décor de couvre-culasse, de collecteur latéral, de persiennes ni de filtre
+  const peau=(i===8||i===10||i===11||i===14);   // RETOUCHE : l'orque, la roquette, l'électrique, le soleil habillent TOUT le dessus du bloc (le thème pose sa peau : plus de dalle de couvre-culasse)
   const mine=(i>=8&&i<=14);   // ARTISTE 2 : les 7 paliers HYBRIDES (orque…soleil) — sans couronne, sans faisceau, sans ailes ni persiennes : le thème fait le corps
   const sec=a==='fl'?[[-.30,.20],[.30,.20],[.26,-.10],[.16,-.24],[-.16,-.24],[-.26,-.10]]
     :haut?[[-.24,.50],[.24,.50],[.22,-.50],[-.22,-.50]]:[[-.34,.26],[.34,.26],[.30,-.02],[.20,-.26],[-.20,-.26],[-.30,-.02]];
-  B.add(profX(sec,L,.04),KT.fonte,0,-.02,0);
+  if(!peau)B.add(profX(sec,L,.04),KT.fonte,0,-.02,0);
   if(!mine)B.add(profX([[-.22,.02],[.22,.02],[.17,-.20],[-.17,-.20]],L*.88,.025),KT.noir,0,-.30,0);
   B.add(tourX([[.06,0],[.27,0],[.31,.05],[.33,.16],[.27,.22],[.08,.24]],8),KT.noir,-(XE+.02),-.02,0,0,0,0);        // la cloche, à huit pans
   B.add(tourX([[.05,0],[.22,0],[.24,.05],[.20,.17]],8),KT.chrome,XE,-.02,0,0,0,0);                                  // la poulie
-  if(!plat)for(let k=0;k<3+Math.floor(L*1.6);k++){const u=(k/(2+Math.floor(L*1.6))-.5)*(L-.34);
+  if(!plat&&!peau)for(let k=0;k<3+Math.floor(L*1.6);k++){const u=(k/(2+Math.floor(L*1.6))-.5)*(L-.34);
     for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.fonte,u,-.04,sd*.335,0,0,0,.038,.40,.045);}                              // les nervures
-  if(i>=11)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.glow,0,.12,sd*.352,0,0,0,L*.70,.014,.014);                   // le filet lumineux du carter
+  if(i>=11&&!peau)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.glow,0,.12,sd*.352,0,0,0,L*.70,.014,.014);                   // le filet lumineux du carter
   const tw=.20-.0035*i,ch=.13+.007*i,top=.67+ch;       // le couvre-culasse s'AFFINE et se dresse avec la puissance : de la boîte à la lame
   let echap=null;const sobre=(i>=15&&i<=17);   // (artiste 3) les hybrides 16-18 se lisent par leur créature : on retire les boulons, rainures et bobines du bloc
   for(let b=0;b<S.BK.length;b++){
     const inc=S.BK[b][0]*(mine&&a!=='fl'&&a!=='h'?.38:1),et=S.BK[b][1],n=Math.min(pb,K.c-b*pb);if(n<=0)break;
     B.cadre(et*.28,inc);
     const U=k=>((n>1?k/(n-1):.5)-.5)*(L-.42);
-    for(let k=0;k<n;k++){const u=U(k);
+    for(let k=0;k<(peau?0:n);k++){const u=U(k);
       B.add(tourY10([[.001,0],[.175,.02],[.175,.30],[.21,.33],[.21,.40],[.001,.40]],8),KT.brosse,u,.10,0);                  // le fût, à huit pans
       if(K.f)for(let j=0;j<K.f+1;j++)B.add(tourY10([[.001,0],[.28,0],[.28,.022],[.001,.022]],8),KT.alu,u,.12+j*.055,0);// les ailettes, plaques à huit pans
     }
-    B.add(profX([[-.25,0],[.25,0],[.235,.15],[-.235,.15]],L*.93,.03),KT.brosse,0,.52,0);                                    // la culasse
-    B.add(profX([[-.235,0],[.235,0],[tw,ch],[-tw,ch]],L*.97,.035),col,0,.67,0);
+    if(!peau)B.add(profX([[-.25,0],[.25,0],[.235,.15],[-.235,.15]],L*.93,.03),KT.brosse,0,.52,0);                                    // la culasse
+    if(!peau)B.add(profX([[-.235,0],[.235,0],[tw,ch],[-tw,ch]],L*.97,.035),col,0,.67,0);
     for(let k=0;k<n;k++){const u=U(k);
-      for(let dx=-1.5;dx<=1.5;dx+=1)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.brosse,u+dx*.07,.585,sd*.272,0,0,0,.014,.15,.075);   // les ailettes de refroidissement de la culasse
-      if(!sobre)for(let j=0;j<6;j++){const t=j/6*2*PI10;B.add(G10.cyl6,KT.chrome,u+Math.cos(t)*.19,.315,Math.sin(t)*.19,0,0,0,.018,.03,.018);}         // les six boulons de bride du fût
-      if(!sobre){B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.20,0,PI10/2,0,0);B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.26,0,PI10/2,0,0);} // deux rainures usinées
+      if(!peau)for(let dx=-1.5;dx<=1.5;dx+=1)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.brosse,u+dx*.07,.585,sd*.272,0,0,0,.014,.15,.075);   // les ailettes de refroidissement de la culasse
+      if(!sobre&&!peau)for(let j=0;j<6;j++){const t=j/6*2*PI10;B.add(G10.cyl6,KT.chrome,u+Math.cos(t)*.19,.315,Math.sin(t)*.19,0,0,0,.018,.03,.018);}         // les six boulons de bride du fût
+      if(!sobre&&!peau){B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.20,0,PI10/2,0,0);B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.26,0,PI10/2,0,0);} // deux rainures usinées
     }
-    if(!HY)for(let k=0;k<=n;k++){const u=((k/n)-.5)*(L-.40);BXg(B,KT.colD,u,top+.002,0,0,0,0,.028,.022,tw*1.75);}   // les nervures transversales du couvre-culasse                                     // le couvre-culasse laqué
-    if(!HY)BXg(B,KT.lame,0,top+.006,0,0,0,0,L*.78,.010,tw*1.5);
-    if(!HY)for(let k=0;k<n;k++){B.add(tourY10([[.001,0],[.12,0],[.001,.07+.006*i]],4),k%2?KT.or:KT.chrome,U(k),top+.01,0,0,PI10/4,0);}   // des pyramides d'or et de chrome, plus hautes avec le palier                                                              // la bande de MÈCHES de carbone
-    if(i>=7)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.glow,0,.67+ch*.5,sd*(.235-(.235-tw)*.5+.004),0,0,0,L*.90,.010,.010);               // les filets lumineux, dès le 8e
-    if(i>=14)for(let k=0;k<n;k++)BXg(B,KT.glow,U(k),top+.022,0,0,0,0,.05,.012,tw*1.9);                                 // un trait par cylindre
-    if(!HY&&!sobre)for(let k=0;k<n;k++){const u=U(k);B.add(tourY10([[.001,0],[.042,0],[.046,.018],[.046,.095],[.032,.115],[.012,.13],[.001,.13]],12),KT.noir,u+.12,top+.01,0);B.add(new THREE.TorusGeometry(.047,.006,4,16),KT.or,u+.12,top+.06,0,PI10/2,0,0);}   // les bobines, fines, cerclées d'or
-    for(let sd=-1;sd<=1;sd+=2){B.add(G10.axeX8,KT.or,-L*.485,.672,sd*.238,0,0,0,L*.97,.006,.006);B.add(G10.axeX8,KT.or,-L*.465,.522,sd*.252,0,0,0,L*.93,.005,.005);}   // les FILETS D'OR des jointures
+    if(!HY&&!peau)for(let k=0;k<=n;k++){const u=((k/n)-.5)*(L-.40);BXg(B,KT.colD,u,top+.002,0,0,0,0,.028,.022,tw*1.75);}   // les nervures transversales du couvre-culasse                                     // le couvre-culasse laqué
+    if(!HY&&!peau)BXg(B,KT.lame,0,top+.006,0,0,0,0,L*.78,.010,tw*1.5);
+    if(!HY&&!peau)for(let k=0;k<n;k++){B.add(tourY10([[.001,0],[.12,0],[.001,.07+.006*i]],4),k%2?KT.or:KT.chrome,U(k),top+.01,0,0,PI10/4,0);}   // des pyramides d'or et de chrome, plus hautes avec le palier                                                              // la bande de MÈCHES de carbone
+    if(i>=7&&!peau)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.glow,0,.67+ch*.5,sd*(.235-(.235-tw)*.5+.004),0,0,0,L*.90,.010,.010);               // les filets lumineux, dès le 8e
+    if(i>=14&&!peau)for(let k=0;k<n;k++)BXg(B,KT.glow,U(k),top+.022,0,0,0,0,.05,.012,tw*1.9);                                 // un trait par cylindre
+    if(!HY&&!sobre&&!peau)for(let k=0;k<n;k++){const u=U(k);B.add(tourY10([[.001,0],[.042,0],[.046,.018],[.046,.095],[.032,.115],[.012,.13],[.001,.13]],12),KT.noir,u+.12,top+.01,0);B.add(new THREE.TorusGeometry(.047,.006,4,16),KT.or,u+.12,top+.06,0,PI10/2,0,0);}   // les bobines, fines, cerclées d'or
+    if(!peau)for(let sd=-1;sd<=1;sd+=2){B.add(G10.axeX8,KT.or,-L*.485,.672,sd*.238,0,0,0,L*.97,.006,.006);B.add(G10.axeX8,KT.or,-L*.465,.522,sd*.252,0,0,0,L*.93,.005,.005);}   // les FILETS D'OR des jointures
     // L'ÉCHAPPEMENT, lisible : un petit coude par cylindre, UN gros collecteur facetté sur toute la longueur, une tuyère évasée à braise
     if(!mine){
     const clamp=Math.abs(inc)>1,dec=clamp?(inc<0?-1:1)*.62:inc,my=.30,mz=.50;
@@ -197,12 +198,12 @@ function bloc30(g,i,E,KT,rnd,K,S){
   }
   B.plat();
   /* LE KIT DE PUISSANCE : des pièces qui s'AJOUTENT palier après palier — c'est ça qui fait qu'on ne revient jamais en arrière */
-  if(!(mine&&a==='fl')&&!sobre)
+  if(!(mine&&a==='fl')&&!sobre&&!peau)
   for(let sd=-1;sd<=1;sd+=2)for(let k=0;k<5+Math.floor(L*1.5);k++){const x=((k+.5)/(5+Math.floor(L*1.5))-.5)*(L-.3);B.add(G10.cyl6,KT.chrome,x,.52,sd*.275,PI10/2,0,0,.016,.03,.016);}  // la rangée de boulons de culasse
-  for(let sd=-1;sd<=1;sd+=2)B.add(G10.axeX8,KT.or,-L*.5,.245,sd*.342,0,0,0,L,.006,.006);   // le filet d'or du plan de joint
+  if(!peau)for(let sd=-1;sd<=1;sd+=2)B.add(G10.axeX8,KT.or,-L*.5,.245,sd*.342,0,0,0,L,.006,.006);   // le filet d'or du plan de joint
   if(!mine)for(let k=0;k<9;k++)BXg(B,KT.brosse,(k/8-.5)*(L*.8),-.38,0,0,0,0,.014,.10,.34);                                                                            // les ailettes du carter d'huile
   if(!mine)B.add(G10.cyl6,KT.chrome,-L*.30,-.46,0,0,0,0,.045,.05,.045);                                                                                                        // le bouchon de vidange
-  if(i>=3&&!HY){B.add(tourX([[.001,0],[.105,0],[.115,.04],[.115,.30],[.10,.33],[.001,.33]],8),KT.col,XE*.30,-.10,-.45,0,0,0);                                                 // le filtre à huile, à la couleur du palier
+  if(i>=3&&!HY&&!peau){B.add(tourX([[.001,0],[.105,0],[.115,.04],[.115,.30],[.10,.33],[.001,.33]],8),KT.col,XE*.30,-.10,-.45,0,0,0);                                                 // le filtre à huile, à la couleur du palier
     for(let k=0;k<3;k++)B.add(new THREE.TorusGeometry(.118,.014,4,8),KT.chrome,XE*.30+.07+k*.08,-.10,-.45,0,PI10/2,0);
     B.add(G10.cyl6,KT.laiton,XE*.30-.04,-.10,-.45,0,0,PI10/2,.05,.05,.05);}
   if(i>=3&&!HY&&!mine)for(let sd=-1;sd<=1;sd+=2){const nl=2+Math.floor(i/3),rk=.25+.03*i;                                                                       // PERSIENNES : des lames facettées qui s'ouvrent plus largement à chaque palier
