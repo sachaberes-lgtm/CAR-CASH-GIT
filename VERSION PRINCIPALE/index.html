@@ -8644,6 +8644,9 @@ html[data-palier="0"] #gRappel::after,html[data-palier="1"] #gRappel::after,
 html[data-palier="0"] #gmFils path,html[data-palier="1"] #gmFils path,
 html[data-palier="0"] #gInv.on .ivT:not(.flash)::after,html[data-palier="1"] #gInv.on .ivT:not(.flash)::after,
 html[data-palier="0"] .shPhoto img,html[data-palier="1"] .shPhoto img{animation:none!important}
+/* (2026-10-27, Léo : « les petites failles qui empêchent d'être fluide ») EN COURSE aussi, mais un seul geste : le reflet blanc qui balaie la jauge de nitro
+   (3,6 s en boucle, une repeinte du HUD à chaque image au-dessus de la 3D). Image au repos = reflet hors du cadre (fond à 300 %, position 0 %) : rien ne reste affiché. (Pas les barres de frénésie : leur fond est à 100 %, figé le reflet resterait au milieu.) Palier 2 : inchangé. */
+html[data-palier="0"] body.touch #nitroBar::after,html[data-palier="1"] body.touch #nitroBar::after{animation:none!important}
 body.touch #settings{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(6,8,18,.88)} /* un flou de 18 px sur tout l'écran, par-dessus une 3D qui tourne */
 </style>
 <style id="ecransIphone">
