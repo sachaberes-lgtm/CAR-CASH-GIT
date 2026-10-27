@@ -77,7 +77,7 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '  vec4 q1=texture2D(uNZ,pp/3.7+vec2(.31,.77)+(n2.rg-.5)*.55),q2=texture2D(uNZ,mat2(.8,.6,-.6,.8)*pp/1.31+vec2(.13,.53)+(n2.gb-.5)*.5);',
   '  float kg=rm*min(uEx.y,1.)*(uMo.z>.001?1.:0.)*(1.-smoothstep(30.,170.,dist));vec3 Nm=vec3(q1.b-.5+.7*(q2.b-.5),0.,q1.a-.5+.7*(q2.a-.5))*(.46+.60*mc)*kg;',
   '  float stp=clamp(1.-N.y,0.,1.);vec3 NL=N;if(uPoly>.5){vec3 dv=Nf-Ns;NL=normalize(Ns+dv*min(uPl.w,.30/max(length(dv),1e-4))+(N-Ns));}', // (facettes) NL : la normale qui éclaire — la plate + la moitié des rides ; la matière (pente, roche…) lit toujours la lisse
-  '  float tn=clamp(.5+(n0.r-.5)*1.7+(n1.g-.5)*.8+.45*dot(N.xz,Wd),0.,1.);vec3 sa=mix(uSaA,uSaB,tn)*(.94+.10*n2.b+.08*(n2.a-.5))*(1.+.20*hl);sa=mix(sa,sa*vec3(1.,.80,.66)*.92,mc);',
+  '  float tn=clamp(.5+(n0.r-.5)*1.7+(n1.g-.5)*.8+.45*dot(N.xz,Wd),0.,1.);vec3 sa=mix(uSaA,uSaB,tn)*(.94+.10*n2.b+.08*(n2.a-.5))*(1.+.20*hl);sa=mix(sa,sa*vec3(1.,.94,.88)*.97,mc);',
   '  sa=mix(sa,uSaL,smoothstep(.80,1.,du)*.40);', // la crête, plus claire
   '  float cr=texture2D(uNZ,vW.xz/14.).r,cl=pan*smoothstep(.16,.05,stp);vec3 clay=uClay*(.90+.12*n2.g)*(1.-.30*smoothstep(.465,.5,cr)*smoothstep(.535,.5,cr));', // l'argile blanche et ses craquelures
   '  vec3 gv=uVeg*(.74+.38*n2.g)*(.90+.20*texture2D(uNZ,pp/1.9).b);gv=mix(gv,gv*vec3(1.30,1.12,.62),smoothstep(.55,.80,n1.r)*.8);vec3 col=mix(sa,clay,cl);col=mix(col,gv,veg);',
@@ -90,12 +90,12 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '  vec2 wd=uW.xy,wq=vec2(-uW.y,uW.x);float wx=dot(vW.xz,wd),wz=dot(vW.xz,wq),gk=min(uEx.y,1.)*(1.-.85*pan)*(1.-veg)*(1.-wat)*(1.-smoothstep(10.,95.,dist))*(uMo.z>.001?1.:0.);',
   '  col*=1.+gk*(1.+.45*mc)*((q1.a-.5)*.30+(q2.a-.5)*.26);col=mix(col,col*vec3(.78,.66,.62),gk*mc*smoothstep(.60,.80,q1.b)*.20);',
   '  if(uPoly>.5)col*=ftn*vec3(1.+(hs9-.5)*.02,1.,1.-(hs9-.5)*.025);vec3 Ls=normalize(vec3(uSunD.x,min(uSunD.y,uK.w),uSunD.z));float ndl=dot(NL,Ls);vec3 NG=normalize(NL+Nm);float wr=clamp((dot(normalize(NL+Nm*.40),Ls)+uK.z)/(1.+uK.z),0.,1.);', // (uK.w : le soleil de midi est abaissé pour le RELIEF — la lumière de forme ; l'ombre, elle, reste celle du vrai soleil)
-  '  float ao=mix(.62,1.,smoothstep(0.,.5,du));', // le creux d'une dune reçoit moins de ciel
-  '  vec3 Lc=uSunC*wr*lit+mix(uGnd,uSky,NL.y*.5+.5)*1.15*ao*(.72+.28*lit)+uSunC*.10*(1.-lit)*smoothstep(-.8,.4,ndl)+uFillC*max(dot(NL,uFillD),0.)*.5+uSunC*(.10+.16*rk)*(1.-lit)*(.6+.4*NL.y)+uGnd*.28*rk;', /* + le REBOND : le sable à l'ombre reçoit la lumière des dunes au soleil (jamais de creux noir) */
+  '  float ao=mix(.70,1.,smoothstep(0.,.5,du));', // le creux d'une dune reçoit moins de ciel
+  '  vec3 Lc=uSunC*wr*lit+mix(uGnd,uSky,NL.y*.5+.5)*1.15*ao*(.88+.12*lit)+uSunC*.10*(1.-lit)*smoothstep(-.8,.4,ndl)+uFillC*max(dot(NL,uFillD),0.)*.5+uSunC*(.10+.16*rk)*(1.-lit)*(.6+.4*NL.y)+uGnd*.28*rk;', /* + le REBOND : le sable à l'ombre reçoit la lumière des dunes au soleil (jamais de creux noir) */
   '  vec3 c=col*Lc;',
-  '  float shw=1.-lit*smoothstep(-.32,.52,ndl);c=mix(c,c*uShd,shw*.46);',
+  '  float shw=1.-lit*smoothstep(-.32,.52,ndl);c=mix(c,c*uShd,shw*.72);',
   /* LES DEUX TEMPÉRATURES : à l'ombre, le sable ne devient plus un rouge sombre mais un violet-bleu de MÊME valeur (la clé chaude, le remplissage froid) */
-  '  {float ly=dot(c,vec3(.3,.55,.15));c=mix(c,ly*uShd/dot(uShd,vec3(.3,.55,.15)),clamp(shw*.26*uEx.x,0.,.9));}',
+  '  {float ly=dot(c,vec3(.3,.55,.15));c=mix(c,ly*uShd/dot(uShd,vec3(.3,.55,.15)),clamp(shw*.64*uEx.x,0.,.9));}',
   '  float fr=pow(1.-max(dot(NL,V),0.),4.);c+=(uSky*.22+uSunC*.16*max(ndl,0.)*lit)*fr*uK.x*(1.-wat);', // le SATIN du sable au rasant
   '  vec3 Hh=normalize(Ls+V);',
   '  if(wat<.5){float nh=max(dot(NG,Hh),0.),sf=pow(nh,22.)*.12,sc=pow(nh,6.)*.05+pow(nh,48.)*q2.a*kg*.16;c+=mix(uSunC,col*uSunC*1.5,.55)*mix(sf,sc,mc)*lit*(1.-pan*.8)*(1.-veg)*(.4+uK.x)*(1.-smoothstep(200.,900.,dist));}',  /* le LUSTRE : de soie serré sur le sable fin, large et grenu sur le gros (jamais un blanc de plastique : le reflet prend la teinte du sable) */
