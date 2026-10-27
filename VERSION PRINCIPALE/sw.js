@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v988'; /* v988 (2026-10-27, Léo) : option VOL INVERSÉ (haut/bas inversés en vol) */ /* v987 (2026-10-27, Léo : « les petites failles qui empêchent d'être fluide ») : paliers 0 et 1, le reflet de la jauge de nitro ne repeint plus le HUD en boucle */ //  /* v986 (2026-10-27, Léo : traits de vitesse fins vers le point de fuite) */
+const CACHE = 'cashcar-v989'; /* v989 (2026-10-27, Léo : « continue sur les animations du HUD de course, palier 0 et 1 seulement ») : lueur plein écran de la frénésie en opacité (plus de box-shadow repeint), étoile de rang en feu sans filtre qui tourne */ // v988 /* v988 (2026-10-27, Léo) : option VOL INVERSÉ (haut/bas inversés en vol) */ /* v987 (2026-10-27, Léo : « les petites failles qui empêchent d'être fluide ») : paliers 0 et 1, le reflet de la jauge de nitro ne repeint plus le HUD en boucle */ //  /* v986 (2026-10-27, Léo : traits de vitesse fins vers le point de fuite) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

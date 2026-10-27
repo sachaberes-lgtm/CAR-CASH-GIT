@@ -8647,6 +8647,16 @@ html[data-palier="0"] .shPhoto img,html[data-palier="1"] .shPhoto img{animation:
 /* (2026-10-27, Léo : « les petites failles qui empêchent d'être fluide ») EN COURSE aussi, mais un seul geste : le reflet blanc qui balaie la jauge de nitro
    (3,6 s en boucle, une repeinte du HUD à chaque image au-dessus de la 3D). Image au repos = reflet hors du cadre (fond à 300 %, position 0 %) : rien ne reste affiché. (Pas les barres de frénésie : leur fond est à 100 %, figé le reflet resterait au milieu.) Palier 2 : inchangé. */
 html[data-palier="0"] body.touch #nitroBar::after,html[data-palier="1"] body.touch #nitroBar::after{animation:none!important}
+/* (2026-10-27, suite) la LUEUR PLEIN ÉCRAN de la frénésie (#feverGlow) : son `box-shadow` inset de 180 px était REPEINT à chaque image sur tout l'écran, par-dessus la 3D. Ici (paliers 0 et 1)
+   le même halo est peint UNE fois, au niveau fort, et c'est son OPACITÉ qui bat (le compositeur, sans repeindre) : même battement, même couleur. */
+html[data-palier="0"] #feverGlow,html[data-palier="1"] #feverGlow{box-shadow:inset 0 0 180px rgba(255,62,200,.75),inset 0 0 66px rgba(255,215,94,.42);animation:palFeverOp .85s ease-in-out infinite alternate!important}
+html[data-palier="0"] #feverGlow.armed,html[data-palier="1"] #feverGlow.armed{box-shadow:inset 0 0 120px rgba(255,62,200,.52),inset 0 0 28px rgba(255,215,94,.16);animation:palArmOp 1.15s ease-in-out infinite alternate!important}
+@keyframes palFeverOp{from{opacity:.56}to{opacity:1}}
+@keyframes palArmOp{from{opacity:.35}to{opacity:1}}
+/* l'ÉTOILE de rang en feu (#avX.feu) : on garde son battement (avBat, un transform) et l'entrée (avMonte / hmX), on coupe l'arc-en-ciel de filtre (`hue-rotate` + deux `drop-shadow` repeints en boucle) */
+html[data-palier="0"] #avX.feu,html[data-palier="1"] #avX.feu{animation-name:avBat!important}
+html[data-palier="0"] body:not(.touch) #avX.feu.up,html[data-palier="1"] body:not(.touch) #avX.feu.up{animation-name:avMonte,avBat!important}
+html[data-palier="0"] body.touch #avX.feu.up,html[data-palier="1"] body.touch #avX.feu.up{animation-name:hmX,avBat!important}
 body.touch #settings{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(6,8,18,.88)} /* un flou de 18 px sur tout l'écran, par-dessus une 3D qui tourne */
 </style>
 <style id="ecransIphone">
