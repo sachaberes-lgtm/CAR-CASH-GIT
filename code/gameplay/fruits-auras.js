@@ -390,7 +390,7 @@ function fruitsChauffe(){
   try{const g=new THREE.Group();for(const k of ['n','v','x','a','m']){const m=mkPower(k,1);g.add(m);}
     if(!ZAP.grp)zapBuild();if(!DRG_DEC)dragonDecorBuild();
     scene.add(g);ZAP.ring.visible=true;ZAP.grp.visible=true;DRG_DEC.m.visible=true;raisinAiles().visible=true;
-    renderer.compile(scene,camera);
+    compileDoux(scene,camera); /* (2026-10-27, LA LIAISON EN ARRIÈRE-PLAN) les programmes se lient à côté : MESURÉ 1,2 s figées sur l'iPhone, cache froid */
     ZAP.ring.visible=false;ZAP.grp.visible=false;DRG_DEC.m.visible=false;raisinAiles().visible=false;scene.remove(g);}catch(e){}
 }
 setTimeout(fruitsChauffe,9000);
