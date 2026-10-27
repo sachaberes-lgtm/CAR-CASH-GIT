@@ -239,7 +239,7 @@ SHAPES.bulle=function(K){
   // LE BOUTON DU CAPOT (rond, sans marque) au bout du nez
   {const h=ici([0,3,1.86],[0,-1,0],[0,.60,1.86]);tour('c',[[.05,0],[.045,.011],[.026,.018],[0,.02]],8,[0,h.p[1]+.001,1.86],h.n);}
   // LES RÉTROS ronds (deux oreilles) sur leur tige
-  P.sym(sd=>{P.box('c',.012,.11,.012,sd*.69,1.07,.655,0,0,-sd*.55);const c=[sd*.735,1.118,.655];
+  P.sym(sd=>{P.box('c',.012,.22,.012,sd*.661,1.023,.655,0,0,-sd*.55);const c=[sd*.735,1.118,.655];   // (2026-10-27, aucun rétro qui vole) la tige descend, dans son axe, 2 cm DANS le flanc (elle s'arrêtait à 5 cm de la caisse)
     tour('c',[[0,-.022],[.044,-.014],[.052,0],[.046,.012]],8,c,[0,0,-1]);tour('K',[[.046,.012],[0,.014]],8,c,[0,0,-1]);});
   // LES POIGNÉES de porte (sur la tôle taillée), les ESSUIE-GLACES couchés au pied du pare-brise
   P.sym(sd=>{const h=ici([sd*1.2,.912,-.115],[-sd,0,0],[sd*.72,.912,-.115]);P.box('c',.018,.016,.19,sd*(Math.abs(h.p[0])+.006),.912,-.115);

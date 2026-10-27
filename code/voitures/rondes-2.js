@@ -171,7 +171,8 @@ SHAPES.cinq=function(K){
     {const z=.60,y=1.085,x=.875,g=new THREE.CylinderGeometry(.036,.056,.13,8);g.rotateY(Math.PI/8);
       D.put('R',g,sd*x,y,z,Math.PI/2,0,0,1.45,1,1);                                  // la coque : une capsule à huit pans, plus fine vers l'avant
       D.put('g',new THREE.CircleGeometry(.05,8).rotateZ(Math.PI/8),sd*x,y,z-.066,0,Math.PI,0,1.4,1,1);   // la glace, derrière
-      D.box('k',.11,.03,.05,sd*.79,1.035,.62,0,0,sd*.45);}
+      D.box('k',.11,.03,.05,sd*.79,1.035,.62,0,0,sd*.45);
+      D.box('k',.03,.085,.04,sd*.745,.9675,.62);}   // (2026-10-27, aucun rétro qui vole) le pied s'arrêtait 3 cm avant la porte : sa BASE, plantée 2 cm dans la ceinture
     // LA POIGNÉE chromée, au bout de la porte, sous le pli d'épaule
     {const z=-.36,y=.835;D.box('c',.02,.028,.15,sd*(xFl(z,y)+.006),y,z,0,0,0);}
     // LA BAGUETTE CHROMÉE du bas de porte (la finition « 1957 »)

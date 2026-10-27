@@ -125,7 +125,8 @@
     for(let k=0;k<6;k++){const z=-.50-k*.06,B9=yB(z)+.03,S9=Math.max(B9+.05,yS(z)),f=.42;   // (13/10) COUCHÉES sur l'arc-boutant (elles sortaient de la tôle en peigne)
       P.box('k',.012,(S9-B9)*.55,.035,sd*(xW(z)-.08-f*.12+.006),B9+f*(S9-B9),z,0,0,sd*Math.atan2(.12,S9-B9));}
     P.box('k',.012,.025,1.50,sd*(xW(0)-.025),.30,.10);                             // le jonc du bas de caisse
-    P.cyl('c',.008,.06,6,sd*.865,.805,.46,'y');P.lathe('p',[[0,.016],[.042,.016],[.047,.006],[.047,-.006],[.042,-.012],[0,-.012]],12,sd*.87,.855,.46,'z');P.cyl('g',.036,.004,12,sd*.87,.855,.446,'z');   // (19/10) le rétro : une tête ronde sur sa tige (un cube avant)
+    {const xa=.755,ya=.665,xb=.866,yb=.84;P.put('c',new THREE.CylinderGeometry(.008,.008,Math.hypot(xb-xa,yb-ya),6),sd*(xa+xb)/2,(ya+yb)/2,.46,0,0,-sd*Math.atan2(xb-xa,yb-ya));}   // (2026-10-27, aucun rétro qui vole) la TIGE part de l'épaule (2,5 cm dedans) : droite, elle tombait à 9 cm à côté de la caisse
+    P.lathe('p',[[0,.016],[.042,.016],[.047,.006],[.047,-.006],[.042,-.012],[0,-.012]],12,sd*.87,.855,.46,'z');P.cyl('g',.036,.004,12,sd*.87,.855,.446,'z');   // (19/10) le rétro : une tête ronde sur sa tige (un cube avant)
     // LA POUPE : feux aux coins, pare-chocs en deux morceaux
     P.box('L',.20,.07,.03,sd*.66,.64,-LF-.01);P.box('O',.10,.07,.03,sd*.49,.64,-LF-.01);
     bulleOutils.tube(P,'c',[[sd*.10,.40,-LF-.022],[sd*.45,.40,-LF-.022],[sd*.66,.40,-LF-.016]].concat([-2.16,-2.13,-2.09].map(z=>[sd*(xW(z)+.005),.40,z])),[[.02,0],[.014,.014],[0,.02],[-.014,.014],[-.02,0],[-.014,-.014],[0,-.02],[.014,-.014]],true);   // (19/10) la barre chromée suit la poupe et tourne au coin (une barre droite qui dépassait)
@@ -279,6 +280,7 @@
     // LES FILETS : bleu clair, violet, rouge
     // (13/10, Léo : « les barres chelou ») les trois filets de flanc RETIRÉS
     P.box('p',.10,.07,.14,sd*.90,.98,.60);P.box('k',.08,.03,.04,sd*.85,.95,.60); // rétro de course
+    P.box('k',.03,.08,.04,sd*.83,.90,.60);   // (2026-10-27, aucun rétro qui vole) son PIED, planté 2 cm dans la portière (le bras flottait 5 cm au-dessus)
     // (13/10) le jonc de vitre chromé RETIRÉ
     // L'ÉNORME AILERON : deux grandes flasques qui montent du coffre
     P.prism('p',[[-1.86,.98],[-2.26,.98],[-2.30,1.30],[-1.98,1.30]],.03,sd*.77);
@@ -563,6 +565,7 @@
     // flancs : poignée, rétro chromé, la coupe du capot derrière la roue, le jonc de seuil
     P.box('c',.02,.02,.12,sd*(xW(-.48)-.065),.80,-.48);
     P.box('c',.015,.05,.015,sd*.72,.93,.20);P.cyl('c',.042,.03,8,sd*.72,.965,.20,'z');
+    P.box('c',.045,.015,.015,sd*.70,.912,.20);   // (2026-10-27, aucun rétro qui vole) le PIED de la tige, couché jusqu'au bas de la vitre (elle s'arrêtait 2 cm à côté)
     // (19/10) la coupe du capot-coquille et l'arrière de la portière : ce sont désormais les bords des ailes (plus de fil posé)                          // l'arrière de la porte
     // (13/10, Léo : « les barres chelou ») le jonc de seuil chromé RETIRÉ
     // la poupe ronde : petits feux sur les ailes, lames chromées, plaque

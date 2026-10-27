@@ -45,7 +45,7 @@
     P.box('k',.02,.16,.34,sd*.83,.60,.70);
     // (affinement) L'OUÏE EN GRILLE des C3 de 70-72 : un caisson couleur caisse dans le creux noir (c'étaient trois barres chromées posées)
     for(const y of [.535,.60,.665])P.box('p',.022,.012,.32,sd*.838,y,.70);for(let i=0;i<5;i++)P.box('p',.024,.15,.012,sd*.839,.60,.56+i*.07);
-    P.box('c',.015,.05,.015,sd*.76,.86,.20);P.put('p',new THREE.SphereGeometry(1,8,5),sd*.77,.90,.20,0,0,0,.05,.04,.08);
+    P.box('c',.015,.155,.015,sd*.76,.8075,.20);P.put('p',new THREE.SphereGeometry(1,8,5),sd*.77,.90,.20,0,0,0,.05,.04,.08);   // (2026-10-27, aucun rétro qui vole) la tige descend 2 cm DANS l'aile (elle s'arrêtait 8 cm au-dessus)
     P.box('k',.02,.05,1.20,sd*(xW(-.05)-.04),.34,-.05);
     // la poupe tronquée : QUATRE feux ronds, lames, sorties carrées
     for(const x of [.30,.58]){P.cyl('c',.075,.03,12,sd*x,.68,-2.32,'z');P.cyl('L',.062,.04,12,sd*x,.68,-2.325,'z');}
@@ -196,7 +196,8 @@
     P.prism('n',[[-.62,.40],[-1.02,.40],[-1.02,.86],[-.70,.80]],.02,sd*(xW(-.82)-.005));
     for(const y of [.50,.60,.70])P.box('a',.012,.012,.32,sd*(xW(-.82)+.002),y,-.84);
     P.box('n',.02,.08,.70,sd*(xW(.3)-.06),.27,.30);                                 // le bas de caisse
-    P.box('p',.05,.07,.15,sd*.97,.92,.70);P.box('n',.12,.02,.03,sd*.90,.88,.72);     // les rétros sur tige
+    P.box('p',.05,.07,.15,sd*.97,.92,.70);P.box('n',.16,.02,.03,sd*.88,.88,.72);     // les rétros sur tige — (2026-10-27) le bras rentre de 4 cm, au-dessus du plat de l'épaule…
+    P.box('n',.025,.145,.035,sd*.82,.8125,.72);                                     // …et la TIGE elle-même, plantée 2 cm dans la portière (aucun rétro qui vole : le bras flottait 8 cm au-dessus)
     // LES PHARES EN GOUTTE au bout des ailes : deux optiques rondes sous une bulle, le clignotant dessous
     P.put('c',new THREE.SphereGeometry(1,8,5),sd*.52,.672,1.86,.30,0,0,.13,.03,.16);   // (affinement) le RÉFLECTEUR chromé sous la bulle (noir, c'étaient deux gros yeux)
     P.put('W',new THREE.SphereGeometry(1,8,5),sd*.565,.688,1.82,.30,0,0,.048,.026,.048);P.put('W',new THREE.SphereGeometry(1,8,5),sd*.475,.682,1.89,.30,0,0,.042,.024,.042);
@@ -263,6 +264,7 @@
     P.prism('k',[[-.62,.46],[-1.14,.46],[-1.14,.86],[-.78,.80]],.02,sd*(xW(-.88)+.004));
     P.box('N',.012,.012,2.10,sd*(xW(0)+.012),.30,-.10);
     P.box('n',.10,.07,.16,sd*.98,.84,.78);P.box('k',.05,.03,.08,sd*.93,.81,.80);   // rétros vert néon
+    P.box('k',.03,.07,.04,sd*.915,.78,.80);   // (2026-10-27, aucun rétro qui vole) le PIED du bras, planté 2 cm dans la portière (il flottait 2 cm au-dessus)
     // LE GRAND AILERON sur ses cols de cygne : il pend PAR LE DESSUS, flasques néon
     P.prism('k',[[-1.70,.84],[-1.80,.84],[-1.90,1.02],[-1.98,1.10],[-2.06,1.10],[-2.06,1.06],[-1.99,1.06],[-1.88,.98]],.035,sd*.42);
     P.prism('n',[[-1.86,.94],[-2.18,.94],[-2.20,1.06],[-1.90,1.06]],.02,sd*.86);

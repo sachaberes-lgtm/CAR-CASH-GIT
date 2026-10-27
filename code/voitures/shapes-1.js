@@ -37,6 +37,10 @@ const SHAPES={
      U(W*.72,H*.06,L*.34,aV,-hT*Math.sin(RT)-c*Math.sin(RR),gl.position.y+hT*Math.cos(RT)+c*Math.cos(RR),-L*.05,{seed:9,rouille:.30,cell:.22,c:.008}).rotation.z=RR;}
     for(const sd of [-1,1]){
       const mir=B(.09,.09,.16,sd<0?RU:K.acc,sd*(W/2+.10),y0+H*.95,L*.12);if(sd<0)mir.rotation.z=-.9;
+      /* (2026-10-27, Léo : « aucun rétro qui vole ») le rétro flottait à 20 cm au-dessus de la caisse, sans rien pour le tenir : sa TIGE, de
+         sa couleur, plantée 3 cm dans le dessus de la caisse (qui penche de ,03 : plus haut à droite) et enfoncée dans le boîtier */
+      {const xa=sd*(W/2-.05),ya=y0+H*.62+sd*.027-.03,xb=sd*(W/2+.09),yb=y0+H*.95-.02,dx=xb-xa,dy=yb-ya;
+       B(.025,Math.hypot(dx,dy),.025,sd<0?RU:K.acc,(xa+xb)/2,(ya+yb)/2,L*.12).rotation.z=-Math.atan2(dx,dy);}
       U(.08,H*.25,L*.62,aV,sd*(W/2+.02),y0+H*.12,0,{seed:5+sd,rouille:.22,c:.012});
     }
     B(W*.55,H*.2,.07,K.dark,0,y0+H*.42,L/2+.10);
@@ -130,7 +134,7 @@ const SHAPES={
       for(const x of [.62,.86]){P.lathe('c',[[.097,-.01],[.098,.012],[.09,.024],[.078,.026]],16,sd*x,.75,2.93,'z');P.lathe('W',[[.078,.026],[.064,.034],[.04,.04],[0,.043]],16,sd*x,.75,2.93,'z');}   // (19/10) le cerclage BISEAUTÉ, le verre bombé (des disques plats à 12 pans)
       P.cyl('c',.055,.14,8,sd*.44,.43,-3.06,'z');                           // les pots, à travers le pare-chocs
       // (13/10) le jonc chromé de flanc RETIRÉ
-      P.cyl('c',.009,.07,6,sd*.985,.975,.40,'y');P.lathe('c',[[0,.018],[.044,.018],[.05,.008],[.05,-.006],[.044,-.014],[0,-.014]],12,sd*.99,1.035,.40,'z');P.cyl('g',.04,.004,12,sd*.99,1.035,.384,'z');   // (19/10) le rétro : une TÊTE RONDE chromée sur sa tige, sa glace (un cube chromé avant)
+      P.cyl('c',.009,.13,6,sd*.97,.945,.40,'y');P.lathe('c',[[0,.018],[.044,.018],[.05,.008],[.05,-.006],[.044,-.014],[0,-.014]],12,sd*.99,1.035,.40,'z');P.cyl('g',.04,.004,12,sd*.99,1.035,.384,'z');   // (19/10) le rétro : une TÊTE RONDE chromée sur sa tige, sa glace (un cube chromé avant) — (27/10, aucun rétro qui vole) la tige descend 2 cm DANS la portière (elle s'arrêtait 3 cm au-dessus, au bord arrondi : rentrée de 1,5 cm)
       P.box('c',.02,.03,.14,sd*1.005,.82,-.56);                               // poignée — (17/10) au bout de la portière
     });
     // (17/10) LA CALANDRE DE LA POUPE à bijoux, entre les ailerons (elle était cachée dans la tôle), et les NACELLES des feux de recul
@@ -310,6 +314,7 @@ const SHAPES={
       P.box('k',.02,.18,.36,sd*(xw9(-.57)+.002),.72,-.57);                                // prise d'air arrière
       P.box('k',.02,.06,.34,sd*(xw9(.12)+.002),.74,.12);P.box('J',.012,.006,1.40,sd*(xw9(0)-.02),.30,.07);P.box('Jf',.012,.003,1.40,sd*(xw9(0)-.02),.3045,.07);   // NACA de portière, le joint du seuil (affinement : la FENTE C, c'était un trait noir de 4 cm)                                 // NACA de portière
       P.box('p',.12,.08,.16,sd*.84,.95,.52);P.box('k',.10,.03,.04,sd*.77,.92,.52);
+      P.box('k',.025,.13,.035,sd*.765,.86,.52);   // (2026-10-27, aucun rétro qui vole) le PIED noir du bras, planté 2 cm dans l'épaule de la portière (le rétro flottait 8 cm au-dessus)
       for(const x of [.55,.76]){P.cyl('K',.088,.04,14,sd*x,.74,-2.225,'z');   // quatre feux ronds — (17/10, l'arrière v2) EN VOLUME : la cuvette
         P.lathe('L',[[.07,0],[.055,-.017],[0,-.024]],14,sd*x,.74,-2.245,'z');P.cyl('Q',.026,.01,8,sd*x,.74,-2.268,'z');} // le verre bombé, son cœur
       P.cyl('c',.05,.14,8,sd*.44,.43,-2.26,'z');
@@ -365,6 +370,7 @@ const SHAPES={
       P.box('L',.44,.10,.02,sd*.74,.68,-2.08);P.box('O',.14,.10,.02,sd*.46,.68,-2.08);
       for(const x of [.40,.49])P.cyl('c',.04,.14,8,sd*x,.40,-2.12,'z');        // quatre sorties
       P.box('p',.12,.07,.14,sd*.86,.86,.50);
+      P.box('p',.025,.11,.04,sd*.85,.78,.50);   // (2026-10-27, aucun rétro qui vole) le rétro flottait 7 cm au-dessus de l'épaule : sa TIGE, de sa couleur, plantée 2,5 cm dans la portière
     });
     for(let i=0;i<5;i++){const z=-1.15-i*.15;P.box('k',1.00,.015,.06,0,yC(z)+.01,z);} // persiennes du capot moteur
     P.box('k',1.60,.05,.10,0,.30,2.05);                                        // la lame avant
@@ -521,6 +527,7 @@ const SHAPES={
       P.box('O',.10,.06,.02,sd*.82,.44,2.118);
       P.box('L',.46,.10,.02,sd*.54,.66,-2.118);P.box('O',.12,.10,.02,sd*.20,.66,-2.118);
       P.box('k',.12,.06,.16,sd*.94,.88,.52);                                   // rétro
+      P.box('k',.03,.08,.04,sd*.90,.825,.52);                                   // (2026-10-27, aucun rétro qui vole) son PIED : le boîtier flottait 4 cm au-dessus du jonc de ceinture
       P.cyl('c',.04,.14,8,sd*.38,.34,-2.16,'z');
     });
     P.box('k',1.82,.20,.03,0,.54,2.112);                                      // la face noire

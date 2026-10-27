@@ -645,7 +645,7 @@ SHAPES.caid=function(K){
   // ======================= LES FLANCS =======================
   P.sym(sd=>{
     P.box('k',.10,.09,2.10,sd*.98,.66,(ZF-.72+ZR+.72)/2);                         // le marchepied (rock slider)
-    P.box('k',.08,.035,.12,sd*.92,YT+.02,ZC-.16);P.prism('k',[[ZC-.28,YT+.02],[ZC-.06,YT+.03],[ZC-.04,YT+.22],[ZC-.28,YT+.22]],.10,sd*1.02);P.box('g',.08,.17,.012,sd*1.02,YT+.12,ZC-.285); // le rétro : bras, coque au nez fuyant, glace
+    P.box('k',.10,.035,.12,sd*.93,YT+.02,ZC-.16);P.prism('k',[[ZC-.28,YT+.02],[ZC-.06,YT+.03],[ZC-.04,YT+.22],[ZC-.28,YT+.22]],.10,sd*1.02);P.box('g',.08,.17,.012,sd*1.02,YT+.12,ZC-.285); // le rétro : bras, coque au nez fuyant, glace — (2026-10-27, aucun rétro qui vole) le bras entre d'1 cm dans la coque (elle flottait 1 cm au bout du bras)
     for(const z of [ZC-.04,-.05,ZB1])P.box('k',.012,YT-YR-.10,.012,sd*.95,(YT+YR)/2+.02,z);   // les joints de portes
     for(const z of [.24,-.62])P.box('k',.02,.04,.18,sd*.955,1.26,z);              // les poignées
   });
