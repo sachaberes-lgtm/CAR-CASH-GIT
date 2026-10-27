@@ -92,8 +92,9 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '  if(uPoly>.5)col*=ftn*vec3(1.+(hs9-.5)*.02,1.,1.-(hs9-.5)*.025);vec3 Ls=normalize(vec3(uSunD.x,min(uSunD.y,uK.w),uSunD.z));float ndl=dot(NL,Ls);vec3 NG=normalize(NL+Nm);float wr=clamp((dot(normalize(NL+Nm*.40),Ls)+uK.z)/(1.+uK.z),0.,1.);', // (uK.w : le soleil de midi est abaissé pour le RELIEF — la lumière de forme ; l'ombre, elle, reste celle du vrai soleil)
   '  float ao=mix(.70,1.,smoothstep(0.,.5,du));', // le creux d'une dune reçoit moins de ciel
   '  vec3 Lc=uSunC*wr*lit+mix(uGnd,uSky,NL.y*.5+.5)*1.15*ao*(.88+.12*lit)+uSunC*.10*(1.-lit)*smoothstep(-.8,.4,ndl)+uFillC*max(dot(NL,uFillD),0.)*.5+uSunC*(.10+.16*rk)*(1.-lit)*(.6+.4*NL.y)+uGnd*.28*rk;', /* + le REBOND : le sable à l'ombre reçoit la lumière des dunes au soleil (jamais de creux noir) */
+  /* (2026-10-27, Léo : « désature le sable éclairé : plus doré/crème, moins orange vif ») la lumière chaude du biome (uSunC) laisse la couleur du SABLE seul : après l'éclairage, le sable éclairé est tiré vers un or crème à luminance égale (la part baisse dans l'ombre, où le violet reprend la main) ; ni le ciel ni les décors ne bougent */
   '  vec3 c=col*Lc;',
-  '  float shw=1.-lit*smoothstep(-.32,.52,ndl);c=mix(c,c*uShd,shw*.72);',
+  '  float shw=1.-lit*smoothstep(-.32,.52,ndl);c=mix(c,vec3(1.,.84,.58)*dot(c,vec3(.3,.55,.15))/.8405,(.90-.62*shw)*smoothstep(.10,.45,uSunC.r-uSunC.b));c=mix(c,c*uShd,shw*.72);',
   /* LES DEUX TEMPÉRATURES : à l'ombre, le sable ne devient plus un rouge sombre mais un violet-bleu de MÊME valeur (la clé chaude, le remplissage froid) */
   '  {float ly=dot(c,vec3(.3,.55,.15));c=mix(c,ly*uShd/dot(uShd,vec3(.3,.55,.15)),clamp(shw*.64*uEx.x,0.,.9));}',
   '  float fr=pow(1.-max(dot(NL,V),0.),4.);c+=(uSky*.22+uSunC*.16*max(ndl,0.)*lit)*fr*uK.x*(1.-wat);', // le SATIN du sable au rasant
