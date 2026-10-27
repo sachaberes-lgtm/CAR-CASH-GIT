@@ -127,6 +127,7 @@ function guil10(){
 function bloc30(g,i,E,KT,rnd,K,S){
   const B=bat10();B.f=true;B.plat();
   const L=S.L,XE=L/2,a=K.a,pb=S.pb,metal=KT.metal,col=KT.col,plat=(a==='fl'||a==='h'),haut=(a==='h');
+  const HY=(i>=1&&i<=6);   // ARTISTE 1 : paliers 2-7 = HYBRIDES (l'animal EST le moteur) : plus de décor de couvre-culasse, de collecteur latéral, de persiennes ni de filtre
   const sec=a==='fl'?[[-.30,.20],[.30,.20],[.26,-.10],[.16,-.24],[-.16,-.24],[-.26,-.10]]
     :haut?[[-.24,.50],[.24,.50],[.22,-.50],[-.22,-.50]]:[[-.34,.26],[.34,.26],[.30,-.02],[.20,-.26],[-.20,-.26],[-.30,-.02]];
   B.add(profX(sec,L,.04),KT.fonte,0,-.02,0);
@@ -153,17 +154,17 @@ function bloc30(g,i,E,KT,rnd,K,S){
       for(let j=0;j<6;j++){const t=j/6*2*PI10;B.add(G10.cyl6,KT.chrome,u+Math.cos(t)*.19,.315,Math.sin(t)*.19,0,0,0,.018,.03,.018);}         // les six boulons de bride du fût
       B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.20,0,PI10/2,0,0);B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.26,0,PI10/2,0,0); // deux rainures usinées
     }
-    for(let k=0;k<=n;k++){const u=((k/n)-.5)*(L-.40);BXg(B,KT.colD,u,top+.002,0,0,0,0,.028,.022,tw*1.75);}   // les nervures transversales du couvre-culasse                                     // le couvre-culasse laqué
-    BXg(B,KT.lame,0,top+.006,0,0,0,0,L*.78,.010,tw*1.5);
-    for(let k=0;k<n;k++){B.add(tourY10([[.001,0],[.12,0],[.001,.07+.006*i]],4),k%2?KT.or:KT.chrome,U(k),top+.01,0,0,PI10/4,0);}   // des pyramides d'or et de chrome, plus hautes avec le palier                                                              // la bande de MÈCHES de carbone
+    if(!HY)for(let k=0;k<=n;k++){const u=((k/n)-.5)*(L-.40);BXg(B,KT.colD,u,top+.002,0,0,0,0,.028,.022,tw*1.75);}   // les nervures transversales du couvre-culasse                                     // le couvre-culasse laqué
+    if(!HY)BXg(B,KT.lame,0,top+.006,0,0,0,0,L*.78,.010,tw*1.5);
+    if(!HY)for(let k=0;k<n;k++){B.add(tourY10([[.001,0],[.12,0],[.001,.07+.006*i]],4),k%2?KT.or:KT.chrome,U(k),top+.01,0,0,PI10/4,0);}   // des pyramides d'or et de chrome, plus hautes avec le palier                                                              // la bande de MÈCHES de carbone
     if(i>=7)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.glow,0,.67+ch*.5,sd*(.235-(.235-tw)*.5+.004),0,0,0,L*.90,.010,.010);               // les filets lumineux, dès le 8e
     if(i>=14)for(let k=0;k<n;k++)BXg(B,KT.glow,U(k),top+.022,0,0,0,0,.05,.012,tw*1.9);                                 // un trait par cylindre
-    for(let k=0;k<n;k++){const u=U(k);B.add(tourY10([[.001,0],[.042,0],[.046,.018],[.046,.095],[.032,.115],[.012,.13],[.001,.13]],12),KT.noir,u+.12,top+.01,0);B.add(new THREE.TorusGeometry(.047,.006,4,16),KT.or,u+.12,top+.06,0,PI10/2,0,0);}   // les bobines, fines, cerclées d'or // les bobines
+    if(!HY)for(let k=0;k<n;k++){const u=U(k);B.add(tourY10([[.001,0],[.042,0],[.046,.018],[.046,.095],[.032,.115],[.012,.13],[.001,.13]],12),KT.noir,u+.12,top+.01,0);B.add(new THREE.TorusGeometry(.047,.006,4,16),KT.or,u+.12,top+.06,0,PI10/2,0,0);}   // les bobines, fines, cerclées d'or // les bobines
     for(let sd=-1;sd<=1;sd+=2){B.add(G10.axeX8,KT.or,-L*.485,.672,sd*.238,0,0,0,L*.97,.006,.006);B.add(G10.axeX8,KT.or,-L*.465,.522,sd*.252,0,0,0,L*.93,.005,.005);}   // les FILETS D'OR des jointures
     // L'ÉCHAPPEMENT, lisible : un petit coude par cylindre, UN gros collecteur facetté sur toute la longueur, une tuyère évasée à braise
     const clamp=Math.abs(inc)>1,dec=clamp?(inc<0?-1:1)*.62:inc,my=.30,mz=.50;
     if(clamp)B.cadre(et*.28,dec);
-    const faisceau=(i>=10&&i<=15),E0=faisceau?[L*.46+.38,-.38,.44]:[L*.46+.38,my,mz];
+    const faisceau=(i>=10&&i<=15),E0=faisceau?[L*.46+.38,-.38,.44]:HY?[L*.46+.38,.14,0]:[L*.46+.38,my,mz];
     if(faisceau){                                    // LE FAISCEAU (fusion avec l'ancien dessin) : un tube poli par cylindre, qui s'écarte, plonge et se rejoint
       for(let k=0;k<n;k++){const u=U(k),ph=k/Math.max(1,n);
         B.add(tube10([[u,.58,.24],[u*.94,.40+ph*.10,.58+ph*.12],[u*.52,.04-ph*.05,.68+ph*.10],[u*.18,-.24,.57],[0,-.33,.43]],.05,12,7),KT.chrome,0,0,0);
@@ -171,6 +172,9 @@ function bloc30(g,i,E,KT,rnd,K,S){
         BXg(B,KT.chrome,u,.58,.262,0,0,0,.15,.10,.022);}
       B.add(tube10([[0,-.33,.43],[L*.25,-.37,.47],[E0[0]-.02,E0[1],E0[2]]],.10,10,8),KT.soud,0,0,0);
       B.add(new THREE.TorusGeometry(.12,.02,5,18),KT.or,0,-.33,.43,0,PI10/2,0);
+    }else if(HY){                                   // ARTISTE 1 : UNE seule sortie, dans l'axe — la queue ou la tuyère vivante du hybride
+      B.add(tube10([[XE-.30,.14,0],[E0[0]-.02,.14,0]],.115,8,8),KT.soud,0,0,0);
+      for(let k=0;k<2;k++)B.add(new THREE.TorusGeometry(.125,.024,5,10),KT.or,XE+.04+k*.20,.14,0,0,PI10/2,0);
     }else{
       for(let k=0;k<n;k++){const u=U(k);B.add(tube10([[u,.58,.24],[u,.50,.42],[u,my+.06,mz-.02]],.062,8,8),KT.soud,0,0,0);
         BXg(B,KT.chrome,u,.58,.262,0,0,0,.15,.10,.022);
@@ -194,10 +198,10 @@ function bloc30(g,i,E,KT,rnd,K,S){
   for(let sd=-1;sd<=1;sd+=2)B.add(G10.axeX8,KT.or,-L*.5,.245,sd*.342,0,0,0,L,.006,.006);   // le filet d'or du plan de joint
   for(let k=0;k<9;k++)BXg(B,KT.brosse,(k/8-.5)*(L*.8),-.38,0,0,0,0,.014,.10,.34);                                                                            // les ailettes du carter d'huile
   B.add(G10.cyl6,KT.chrome,-L*.30,-.46,0,0,0,0,.045,.05,.045);                                                                                                        // le bouchon de vidange
-  if(i>=3){B.add(tourX([[.001,0],[.105,0],[.115,.04],[.115,.30],[.10,.33],[.001,.33]],8),KT.col,XE*.30,-.10,-.45,0,0,0);                                                 // le filtre à huile, à la couleur du palier
+  if(i>=3&&!HY){B.add(tourX([[.001,0],[.105,0],[.115,.04],[.115,.30],[.10,.33],[.001,.33]],8),KT.col,XE*.30,-.10,-.45,0,0,0);                                                 // le filtre à huile, à la couleur du palier
     for(let k=0;k<3;k++)B.add(new THREE.TorusGeometry(.118,.014,4,8),KT.chrome,XE*.30+.07+k*.08,-.10,-.45,0,PI10/2,0);
     B.add(G10.cyl6,KT.laiton,XE*.30-.04,-.10,-.45,0,0,PI10/2,.05,.05,.05);}
-  if(i>=3)for(let sd=-1;sd<=1;sd+=2){const nl=2+Math.floor(i/3),rk=.25+.03*i;                                                                       // PERSIENNES : des lames facettées qui s'ouvrent plus largement à chaque palier
+  if(i>=3&&!HY)for(let sd=-1;sd<=1;sd+=2){const nl=2+Math.floor(i/3),rk=.25+.03*i;                                                                       // PERSIENNES : des lames facettées qui s'ouvrent plus largement à chaque palier
     for(let k=0;k<nl;k++){const y=-.20+k*(.36/nl);BXg(B,k%2?KT.lame:KT.col,0,y,sd*(.37+k*.012),sd*rk,0,0,L*.68-k*.04,.012,.10);
       if(i>=8)BXg(B,KT.glow,0,y,sd*(.37+.05+k*.012),sd*rk,0,0,L*.66-k*.04,.008,.008);}}
   if(i>=9)for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-L*.40,0],[L*.34,0],[L*.16,.40],[-L*.34,.18]],.025,.006),i%2?KT.col:KT.meche,0,-.22,sd*.46,sd*.5,0,0);   // les ailes
@@ -210,6 +214,7 @@ function bloc30(g,i,E,KT,rnd,K,S){
 
 /* ============ LA PIÈCE UNIQUE DE CHAQUE PALIER : une idée de forme par moteur, de plus en plus grande ============ */
 function crown30(B,K,S,KT,i,E,rnd,g){
+  if(i>=1&&i<=6)return;   // ARTISTE 1 : paliers 2-7 — la couronne est retirée, l'animal (moteurs-themes.js) EST le moteur
   const L=S.L,XE=L*.5,horn=(x,y,z,h,r,rx,rz,m)=>B.add(tourY10([[r*.52,0],[r*.58,h*.04],[r*.68,h*.46],[r*1.0,h*.88],[r*1.16,h]],12),m||KT.chrome,x,y,z,rx||0,0,rz||0);
   let C=B,cg=null;const CS={1:1.12,2:1.30,3:1.22,4:1.28,5:1.12,6:1.35,7:1.35,8:1.18,9:1.18,10:1.35,11:1.30,12:1.35,13:1.45,14:1.7,15:1.30,16:1.7},k2=CS[i];
   if(k2){C=bat10();C.f=true;C.plat();}                     // paliers 11-17 : la couronne est GRANDIE autour de sa base (y .8)
