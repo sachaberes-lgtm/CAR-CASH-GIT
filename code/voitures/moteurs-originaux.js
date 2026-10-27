@@ -414,12 +414,8 @@ function orig10(g,i,E,K,rnd){
     ech=[-1.75,0,0];break;}
   case 26:{ // MOTEUR À DISTORSION → L'OUROBOROS (le nœud-serpent et la nacelle sont dans h4_ouro, moteurs-themes.js ; ici seulement l'échappement)
     ech=[-1.55,0,0];break;}
-  case 27:{ // COMÈTE — UN NOYAU DE ROCHE ET SA QUEUE : trois cônes de feu emboîtés, une nuée d'éclats qui se resserre, un anneau d'or
-    // (le noyau de roche a cédé la place à la tête du renard de glace — h4_comete dans moteurs-themes.js ; le feu part de son cou)
-    B.add(cone10(.62,2.5,24),K.haloF,.14,0,0,0,PI10,0);B.add(cone10(.44,2.0,24),K.haloC,.14,0,0,0,PI10,0);B.add(cone10(.26,1.5,20),K.halo(0xffffff,.45),.14,0,0,0,PI10,0);
-    for(let k=0;k<26;k++){const x=-.20-rnd()*1.5,rad=(.12+(.14-x)*.12)*rnd(),t=rnd()*6.28;
-      eclat9(g,croute,rnd,x,Math.cos(t)*rad,Math.sin(t)*rad,.035+rnd()*.06*(1-(.1-x)/1.6));}
-    ech=[-1.6,0,0];break;}
+  case 27:{ // COMÈTE v3 — tout est dans fx3_comete (moteurs-themes.js) : le renard de glace et sa gerbe de langues de feu ; ici seulement l'échappement
+    ech=[-1.8,0,0];break;}
   case 28:{ // SUPERNOVA → LA NAISSANCE (le lotus de lumière et ses anneaux sont dans h4_naissance, moteurs-themes.js ; ici seulement l'échappement)
     ech=[-1.55,0,0];break;}
   case 29:{ // TROU NOIR → L'INFINI (singularité, disque, cage, couronnes et ∞ sont dans h4_infini, moteurs-themes.js ; ici seulement l'échappement)
