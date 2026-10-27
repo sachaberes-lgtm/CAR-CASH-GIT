@@ -27354,8 +27354,7 @@ const CARS=[
   desc:'Homologuée pour la route, élevée sur circuit. Elle perd patience avant toi.'},
  {retire:1,name:'LA SUÉDOISE TURBO'},
  {retire:1,name:'LE QUATTRO'},
- {name:'LA SILENCIEUSE',color:0xeef0f2,accent:0x121418,maxKmh:290,accel:32,turn:2.7,h:1.45,w:1.96,l:4.97,spoiler:0,shape:'c_silencieuse',rar:'rare',
-  desc:'Zéro bruit, zéro goutte d’essence, zéro excuse : ils ne t’entendent même pas les doubler.'},
+ {retire:1,name:'LA SILENCIEUSE'}, /* (2026-10-27, Léo : « la Silencieuse, on peut la virer du jeu, on n'en veut plus du tout ») RETIRÉE : sa ligne reste (index de sauvegarde), sans gabarit elle ne revient pas ; le défi secret « partie sans son ni musique » (id 'silence') disparaît avec elle (m2Dispo) */
  {retire:1,name:'LE TRIDENT'},
  {retire:1,name:'LA HUIT'},
  {name:'LE SAMOURAÏ',color:0x3b2c4e,accent:0x16181c,maxKmh:300,accel:33,turn:2.9,h:1.36,w:1.79,l:4.6,spoiler:0,shape:'d_samourai',rar:'rare',
@@ -27492,7 +27491,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA CERISE',shape:'mx5na',color:0xc8151d,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'commun', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
+ {name:'LA CERISE',shape:'mx5na',color:0x8c0a14,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'commun', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
   desc:'Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.'},
  /* · */
  /* · */
@@ -39351,13 +39350,206 @@ function japEchelle(P,k){let cx=0,cy=0;for(const p of P){cx+=p[0];cy+=p[1];}cx/=
 function japChauffe(){for(const n of ['mx5rf','mx5na','ae86','corolla','pikes']){const F=typeof SHAPES==='object'&&SHAPES[n];if(!F||F._tole)continue;
     const nA=(typeof BLING==='object'&&BLING&&BLING.anim)?BLING.anim.length:-1;
     try{F({kit:pal=>lpKit(typeof peintPal==='function'?peintPal(pal):pal),commit:kt=>{const gs=kt.done();for(const g in gs)gs[g].dispose();},mats:{},add:o=>o,muet:1});}catch(e){console.warn('japChauffe',n,e);}
+    if(!F._tole)F._tole=1;   /* (27/10) un gabarit taillé à la main (la Lame, la Cerise…) ne pose jamais `_tole` : sans cette marque la préchauffe le rejouait à chaque appel et n'arrivait plus jamais à l'AE86, à la Corolla ni à la Pikes */
     if(nA>=0&&BLING.anim.length>nA)BLING.anim.length=nA;return true;}
   return false;}
 /* LES PHARES ESCAMOTABLES DE LA MX-5 NA : quand ils se lèvent (`mode`, à choisir par Léo) — 'course' (levés en course, baissés au garage et au
    menu, un clin d'œil à l'arrivée au garage), 'nitro' (baissés, ils se lèvent à la nitro), 'toujours'. Console : dbgPhares(1|0|null, mode). */
 var MX5PH={mode:'nitro',force:null}; // (2026-10-18, Léo, sur la planche : « B — à la nitro » : l'appel de phares)
 window.dbgPhares=function(v,m){if(m)MX5PH.mode=m;MX5PH.force=v==null?null:+v;return MX5PH;};
+/* ===== LA CERISE EN POLY (26/10, Léo : « aussi nette que La Honte et la Rosso : grosses facettes planes, détails posés, pas d'arrondi lissé ») =====
+   Redessinée À LA MAIN comme la Rosso : UN loft de ~34 coupes à 10 points (le flanc presque droit, une ARÊTE de caractère à mi-hauteur
+   qui monte en sourcil sur chaque roue, l'épaule qui roule en deux pans, puis le dessus : capot, baquet, housse de capote, malle), le nez
+   ROND en trois pans, la poupe courte, les HANCHES gonflées au-dessus des roues, les passages de roue en OCTOGONE. Le reste est POSÉ :
+   le pare-brise et son cadre, la bouche ovale qui sourit, les clignotants, les feux en trois cases, les rétros, les baquets, le volant.
+   L'ÂME : les PHARES ESCAMOTABLES — deux capots de laque posés sur le capot, qui se lèvent sur leur charnière (`MX5PH`, `CAR_ACTION`).
+   La jante « marguerite » d'origine, en huit pétales plats. `?cerise=plan` rend la caisse découpée au plan d'avant ; `?phares=1` les lève. */
+/* LES CASES PLATES : le loft pose chaque case en deux triangles (a,b,c)(a,c,d) — et leur miroir (−a,−c,−b)(−a,−d,−c) ; sur une tôle qui se tord,
+   les deux ne sont pas dans le même plan et prennent deux lumières (le DAMIER). Ici chaque paire reçoit UNE normale, la moyenne : une case = une facette. */
+function mx5naCases(G){const p=G.attributes.position.array,n=G.attributes.normal.array,eq=(i,j)=>p[i]===p[j]&&p[i+1]===p[j+1]&&p[i+2]===p[j+2];
+  for(let t=0;t+18<=p.length;){const u=t+9;if(eq(t,u)&&(eq(t+6,u+3)||eq(t+3,u+6))){let x=0,y=0,z=0;for(const b of [t,u]){x+=n[b];y+=n[b+1];z+=n[b+2];}
+      const h=Math.hypot(x,y,z)||1;for(let v=t;v<t+18;v+=3){n[v]=x/h;n[v+1]=y/h;n[v+2]=z/h;}t+=18;}else t+=9;}
+  G.attributes.normal.needsUpdate=true;return G;}
+function mx5naPoly(K){
+  const U=LPU,R=.289,ZF=1.165,ZR=-1.115,ZE=1.985,ZB=-1.985;
+  const L=(t,z)=>U.lin(t,z),cl=(v,a,b)=>v<a?a:v>b?b:v,lis=t=>t*t*(3-2*t);
+  if(K.muet){if(typeof SHAPES==='object'&&SHAPES.mx5na)SHAPES.mx5na._tole={};return {};}   // (la préchauffe du menu : plus rien à découper)
+  let FPH=null;try{if(/[?&]phares=1/.test(location.search))FPH=1;}catch(e){}   // (le banc des photos : `?phares=1` les montre levés)
+  const PAL={p:{g:'p',c:0x8c0a14},k:{g:'m',c:0x121316},K:{g:'g',c:0x0b0b0e},g:{g:'g',c:0x16202c},i:{g:'s',c:0x1d1e22},v:{g:'s',c:0x141417},
+    s:{g:'s',c:0x2b2c31},t:{g:'s',c:0x6e4630},W:{g:'l',c:0xf4f7ff},L:{g:'l',c:0xe0141f},c:{g:'c',c:0xd4d8de},d:{g:'m',c:0x0e0f12},
+    O:{g:'l',c:0xf08a12},q:{g:'g',c:0xaeb3bb},w:{g:'l',c:0xe8eaee},G:{g:'s',c:0x172029}};
+  // ---- LES COTES (mètres) : la demi-largeur, le haut (capot, ceinture, pont de malle), le bas hors passages de roue, l'arête ----
+  const XM=[[ZB,.56],[-1.955,.68],[-1.90,.76],[-1.80,.815],[-1.60,.842],[ZR,.862],[-.80,.84],[-.40,.818],[0,.812],[.40,.82],[ZF,.852],[1.40,.845],[1.60,.825],[1.74,.792],[1.86,.735],[1.94,.645],[ZE,.50]],
+        YT=[[ZB,.765],[-1.955,.835],[-1.90,.866],[-1.80,.86],[-1.20,.85],[-.72,.822],[-.40,.805],[0,.80],[.30,.80],[.50,.795],[ZF,.738],[1.80,.612],[1.90,.568],[1.94,.537],[ZE,.478]],   // (le capot en DEUX pans plats, cassés sur l'essieu ; la malle d'un seul, qui se relève en canard au bout)
+        YB=[[ZB,.30],[-1.955,.25],[-1.90,.215],[-1.80,.20],[-1.50,.19],[-.80,.17],[.80,.165],[1.50,.18],[1.80,.19],[1.90,.205],[1.94,.222],[ZE,.25]],
+        YC=[[ZB,.52],[-1.60,.50],[-.80,.47],[.80,.46],[1.60,.475],[ZE,.42]],
+        AR=[[0,.622],[.20,.585],[.29,.51],[.335,.38],[.35,.17]];   // le passage de roue : un OCTOGONE (quatre pans de chaque côté)
+  const xM=z=>L(XM,z),yT=z=>L(YT,z),yB0=z=>L(YB,z),yC=z=>L(YC,z);
+  // les zones du dessus : capot (et l'auvent sous le pare-brise, ZD → ZW), baquet, housse de capote, malle ; YF le plancher
+  const ZD=.30,ZW=.50,ZS=-.72,ZK=-1.20,YF=.36;
+  const zone=z=>z>ZD?'capot':z>ZS?'hab':z>ZK?'capote':'malle';
+  const S0=z=>{const xm=xM(z),y0=yB0(z),yb=U.arch(z,[ZF,ZR],AR,y0),yt=yT(z),kx=Math.min(1,xm/.62),B=Math.max(y0,yb),zo=zone(z),yc=Math.max(yC(z),B+.055);
+    const s=[[0,yb],[xm-.13*kx,yb],[xm-.05*kx,Math.max(B+.03,Math.min(yc-.08,y0+.12))],   // le dessous, le bas de caisse rentré
+      [xm,yc],                                                                         // L'ARÊTE (le plus large) : d'un bouclier à l'autre, en sourcil sur les roues
+      [xm-.024*kx,yc+(yt-yc)*.58],[xm-.062*kx,yt-.032],[xm-.11*kx,yt]];                 // le flanc, puis l'épaule qui roule en deux pans
+    for(let i=2;i<s.length;i++)s[i][1]=Math.max(s[i][1],s[i-1][1]+.002);
+    const y6=s[6][1];
+    if(zo==='capot')s.push([Math.min(.64,xm-.175*kx),y6+.006],[Math.min(.32,xm*.42),y6+.018],[0,y6+.024]);   // la crête de l'aile, le capot à peine bombé (x fixes : des pans PLANS)
+    else if(zo==='hab')s.push([xm-.165*kx,y6-.026],[xm-.20*kx,YF+.15],[0,YF]);        // le bord du baquet qui roule dedans, la contre-porte, le plancher
+    else if(zo==='capote'){const u=cl((ZS-z)/(ZS-ZK),0,1),yo=y6+.012+.055*Math.pow(Math.sin(Math.PI*Math.min(1,u*1.25)),.6);
+      s.push([xm-.16*kx,y6-.004],[xm-.26*kx,yo],[0,yo+.008]);}                          // la capote repliée sous sa housse : une bosse noire
+    else s.push([Math.min(.64,xm-.175*kx),y6+.004],[Math.min(.32,xm*.42),y6+.012],[0,y6+.016]);   // la malle
+    return s;};
+  const SM=new Map(),S=z=>{const k=Math.round(z*4000);let s=SM.get(k);if(!s){s=S0(k/4000);SM.set(k,s);}return s;};
+  const zs0=[ZB,-1.955,-1.90,-1.80,ZK,ZK+.004,ZS-.004,ZS,-.40,-.05,ZD-.004,ZD,ZW,1.66,1.80,1.94,ZE];
+  for(const w of [ZF,ZR])for(const d of [0,.20,.29,.335,.35])zs0.push(w-d,w+d);
+  zs0.sort((a,b)=>a-b);const zs=zs0.filter((z,i)=>i===0||z-zs0[i-1]>.003);
+  const peint=(j,z)=>{if(j<0)return 'p';if(j===0)return 'k';
+    const zo=zone(z);
+    if(j>=7){if(Math.abs(z-ZD+.002)<.003)return 'i';                     // la face de la planche de bord
+      if(Math.abs(z-ZS+.002)<.003)return 'v';                             // le dos de la housse, vu du baquet
+      if(zo==='hab')return j===7?'i':'s';                                  // la contre-porte, le plancher
+      if(zo==='capote')return 'v';
+      if(zo==='capot'&&z<ZW)return 'i';}                                   // l'auvent sous le pare-brise : la planche de bord
+    return 'p';};
+  const PL=K.kit(PAL);PL.loft(zs,S,peint);
+  {const d0=PL.done;PL.done=()=>{const gs=d0();for(const g in gs)mx5naCases(gs[g]);return gs;};}   // chaque case du loft = UNE facette plate (pas de damier)
+  K.commit(PL);
+  // la tôle TELLE QU'ELLE EST : entre deux coupes, les deux sections interpolées — la hauteur du dessus en (x, z), le flanc en (y, z)
+  const SC9=zs.map(z=>S(z)),T=z=>{let i=0,j=zs.length-1;if(z<=zs[0])return SC9[0];if(z>=zs[j])return SC9[j];while(j-i>1){const m=(i+j)>>1;if(zs[m]<=z)i=m;else j=m;}
+    const t=(z-zs[i])/(zs[j]-zs[i]),A=SC9[i],B=SC9[j];return A.map((p,q)=>[p[0]+(B[q][0]-p[0])*t,p[1]+(B[q][1]-p[1])*t]);};
+  const yH=(x,z)=>{const s=T(z);x=Math.abs(x);for(let i=s.length-1;i>6;i--){const a=s[i],b=s[i-1];if((a[0]-x)*(b[0]-x)<=0&&a[0]!==b[0])return a[1]+(b[1]-a[1])*(x-a[0])/(b[0]-a[0]);}return s[6][1];},
+        xF=(y,z)=>{const s=T(z);for(let i=2;i<6;i++){const a=s[i],b=s[i+1];if((a[1]-y)*(b[1]-y)<=0&&a[1]!==b[1])return a[0]+(b[0]-a[0])*(y-a[1])/(b[1]-a[1]);}return s[3][0];},
+        pente=z=>Math.atan((xM(z+.03)-xM(z-.03))/.06);   // l'angle du flanc vu de dessus (pour poser une pièce à plat dessus)
+  // ---- LES DÉTAILS POSÉS ----
+  const P=K.kit(PAL);
+  // LE PARE-BRISE : trois pans de verre sombre (le milieu, deux coins qui reviennent à peine) et sa tranche de verre noir (deux montants, la traverse)
+  const yTop=1.13,zTop=.03;
+  {const B9=[[0,yH(0,ZW+.012)+.004,ZW+.012],[.40,yH(0,ZW+.012)+.004,ZW+.012],[.625,yH(.625,ZW-.02)+.004,ZW-.02]],   // le pied (milieu, cassure, coin)
+         H9=[[0,yTop,zTop],[.37,yTop,zTop],[.578,yTop-.022,zTop-.03]];                                        // la tête
+    for(const sd of [1,-1]){const f=p=>[p[0]*sd,p[1],p[2]];
+      for(let i=0;i<2;i++){const a=f(B9[i]),b=f(B9[i+1]),c=f(H9[i+1]),d=f(H9[i]);P.tri('g',a,b,c);P.tri('g',a,c,d);
+        const r=q=>[q[0],q[1]-.0035,q[2]-.0025];P.tri('G',r(a),r(c),r(b));P.tri('G',r(a),r(d),r(c));}}   // (le revers, vu de la poursuite : un verre bleu-gris mat, il ne renvoie pas le ciel blanc du studio)
+    // la tranche : UN tube carré de verre noir qui suit le bord (montant, traverse, montant), d'onglet en onglet — pas de cadre de couleur
+    const mi=p=>[-p[0],p[1],p[2]],E9=[mi(B9[2]),mi(H9[2]),mi(H9[1]),H9[0],H9[1],H9[2],B9[2]],nE=E9.length,Gc=[0,.97,.27],
+          n3=v=>{const l=Math.hypot(v[0],v[1],v[2])||1;return [v[0]/l,v[1]/l,v[2]/l];},x3=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
+          nP=n3([0,.48,.307]),RG=[];
+    for(let i=0;i<nE;i++){const a=E9[Math.max(0,i-1)],b=E9[Math.min(nE-1,i+1)],t=n3([b[0]-a[0],b[1]-a[1],b[2]-a[2]]);let o=n3(x3(t,nP));
+      const p=E9[i];if(o[0]*(p[0]-Gc[0])+o[1]*(p[1]-Gc[1])+o[2]*(p[2]-Gc[2])<0)o=o.map(v=>-v);
+      const C=[p[0]+o[0]*.01+nP[0]*.003,p[1]+o[1]*.01+nP[1]*.003,p[2]+o[2]*.01+nP[2]*.003],q=(u,v)=>[C[0]+o[0]*u+nP[0]*v,C[1]+o[1]*u+nP[1]*v,C[2]+o[2]*u+nP[2]*v];
+      RG.push([q(.014,.012),q(-.014,.012),q(-.014,-.012),q(.014,-.012)]);}
+    for(let i=0;i<nE-1;i++)for(let k=0;k<4;k++){const k2=(k+1)%4,A=RG[i],B=RG[i+1];P.tri('K',A[k],B[k],B[k2]);P.tri('K',A[k],B[k2],A[k2]);}
+    P.box('k',.20,.05,.025,0,yTop-.075,zTop-.01,-.55,0,0);P.box('k',.02,.05,.02,0,yTop-.03,zTop-.005);}   // le rétroviseur intérieur
+  // LES RÉTROVISEURS : un pied noir sur la portière, une coque de laque taillée en coin, la glace sombre vers l'arrière
+  P.sym(sd=>{const x0=xM(.36)-.085,y0=yT(.36),f=Q=>Q.map(p=>[sd*p[0],p[1]]);
+    P.prism('k',[[.45,y0-.04],[.31,y0-.04],[.33,y0+.045],[.41,y0+.05]],.085,sd*(x0+.035));                     // la voile noire : plantée dans l'épaule, elle porte la coque (jamais de rétro qui vole)
+    P.plate('p',f([[x0+.04,y0+.028],[x0+.19,y0+.036],[x0+.20,y0+.105],[x0+.175,y0+.122],[x0+.055,y0+.118],[x0+.035,y0+.10]]),.08,.29);   // la coque, vue de face un trapèze aux coins coupés
+    P.plate('K',f([[x0+.053,y0+.04],[x0+.18,y0+.046],[x0+.188,y0+.10],[x0+.168,y0+.111],[x0+.065,y0+.108],[x0+.05,y0+.094]]),.006,.284);});   // la glace
+  // L'HABITACLE : deux baquets (cuir cognac), la console, le volant à droite (la japonaise), le levier, la casquette du combiné
+  P.sym(sd=>{const x0=sd*.335;
+    P.prism('t',[[-.16,YF+.03],[-.56,YF+.03],[-.56,YF+.13],[-.50,YF+.155],[-.20,YF+.13]],.44,x0);                // l'assise
+    P.prism('t',[[-.50,YF+.05],[-.64,YF+.05],[-.77,.88],[-.65,.90]],.44,x0);                                      // le dossier
+    P.prism('t',[[-.645,.885],[-.77,.875],[-.80,.985],[-.69,.995]],.25,x0);                                       // l'appui-tête
+    for(const e of [-.205,.205])P.prism('v',[[-.54,YF+.12],[-.66,YF+.12],[-.765,.84],[-.68,.86]],.04,x0+e);});   // les joues du dossier
+  P.box('i',.17,.12,.62,0,YF+.06,-.04);                                                                            // la console
+  P.cyl('k',.012,.16,6,0,YF+.20,.05,'y');P.cyl('c',.024,.035,8,0,YF+.29,.05,'y');                                // le levier et son pommeau
+  P.box('k',.36,.075,.15,-.335,yH(.335,.34)+.03,.36);                                                             // la casquette du combiné
+  {const g=new THREE.TorusGeometry(.17,.017,4,10);g.rotateX(.45);P.put('k',g,-.335,.74,.16);                     // le volant (le haut vers la planche)
+   P.box('k',.30,.026,.03,-.335,.74,.16,.45,0,0);P.cyl('k',.045,.07,8,-.335,.74,.175,'z');}
+  // LA JOUE DES PASSAGES DE ROUE : du noir derrière la roue (on ne voit plus le ciel à travers l'aile)
+  {const joue=w=>{const o=[[w-.35,.17]];for(let i=AR.length-2;i>=0;i--)o.push([w-AR[i][0],AR[i][1]+.005]);for(let i=1;i<AR.length-1;i++)o.push([w+AR[i][0],AR[i][1]+.005]);o.push([w+.35,.17]);return o;};
+   P.sym(sd=>{for(const w of [ZF,ZR])P.prism('d',joue(w),.02,sd*.585);});}
+  // ---- LE NEZ : la BOUCHE ovale qui sourit (le bas plonge au milieu), les clignotants aux coins, la lèvre noire ----
+  P.plate('K',[[-.33,.31],[-.30,.258],[-.14,.238],[.14,.238],[.30,.258],[.33,.31],[.30,.366],[-.30,.366]],.012,ZE-.004);
+  P.plate('k',[[-.29,.307],[-.265,.268],[-.13,.252],[.13,.252],[.265,.268],[.29,.307],[.265,.35],[-.265,.35]],.006,ZE+.006);   // le fond de la bouche
+  P.sym(sd=>{const a=[[.36,.30],[.375,.278],[.44,.278],[.456,.30],[.44,.322],[.375,.322]].map(p=>[sd*p[0],p[1]]);P.plate('O',a,.01,ZE-.003);});
+  P.box('k',.92,.028,.11,0,.205,ZE-.06);                                                                           // la lèvre
+  // LA POIGNÉE de portière (un petit levier chromé, en haut à l'arrière de la portière)
+  P.sym(sd=>{const z=-.47,y=.735,x=xF(y,z);P.box('c',.014,.022,.095,sd*(x+.004),y,z,0,sd*pente(z),0);});
+  // LES REPÈRES DE CÔTÉ (orange devant, rouge derrière), à plat sur le flanc
+  P.sym(sd=>{for(const [z,k] of [[1.68,'O'],[-1.70,'L']]){const y=.44,x=xF(y,z);P.box(k,.012,.03,.11,sd*(x+.002),y,z,0,sd*pente(z),0);}});
+  // ---- LA POUPE : les FEUX en trois cases (le recul rond, le rouge, l'orange au bout), la plaque, le pare-chocs, la jupe noire ----
+  P.sym(sd=>{const f=Q=>Q.map(p=>[sd*p[0],p[1]]),rr=(u0,v0,u1,v1,r)=>[[u0+r,v0],[u1-r,v0],[u1,v0+r],[u1,v1-r],[u1-r,v1],[u0+r,v1],[u0,v1-r],[u0,v0+r]];
+    P.plate('K',f(rr(.19,.565,.555,.735,.035)),.012,ZB-.010);                                                    // le cerclage, laqué noir
+    P.plate('L',f(rr(.205,.58,.455,.72,.026)),.008,ZB-.016);                                                     // le rouge…
+    P.plate('O',f(rr(.463,.58,.54,.72,.024)),.008,ZB-.016);                                                      // …l'orange au bout
+    {const o=[];for(let q=0;q<8;q++){const a=q/8*Math.PI*2+Math.PI/8;o.push([sd*(.262+Math.cos(a)*.038),.65+Math.sin(a)*.038]);}P.plate('q',o,.006,ZB-.020);}});   // le recul, rond
+  P.box('p',1.06,.18,.064,0,.39,ZB-.02);                                                                          // le pare-chocs (une marche sous les feux)
+  P.box('K',.40,.135,.012,0,.40,ZB-.054);P.box('w',.35,.10,.008,0,.40,ZB-.062);                                 // la plaque, dans son logement
+  P.box('k',.96,.055,.12,0,.272,ZB+.02);                                                                            // la jupe noire
+  // LE LOGEMENT des phares (sous les capots : on ne le voit que capots levés)
+  const lid={z0:1.40,z1:1.68,x0:.36,x1:.64};
+  P.sym(sd=>{const a=lid.x0+.012,b=lid.x1-.012,c=lid.z0+.012,e=lid.z1-.012,v=(x,z)=>[sd*x,yH(x,z)+.003,z];P.tri('k',v(a,c),v(b,c),v(b,e));P.tri('k',v(a,c),v(b,e),v(a,e));});
+  K.commit(P);
+  // ---- LES DEUX POTS, sous la jupe ----
+  const pots=[[.33,.272,ZB-.05],[-.33,.272,ZB-.05]];
+  if(typeof ECHP==='object'&&ECHP.rond&&typeof ECH_PAL==='object'){const E=K.kit(ECH_PAL);E.ech=1;ECHP.rond(E,{r:.034,n:8,k:'c',dbl:1,k2:'C',len:.30,pts:pots});K.commit(E);}   // deux sorties à huit pans, comme la Rosso
+  /* ---- LES PHARES ESCAMOTABLES ----
+     Chaque boîtier est un coin fermé : dessus, le CAPOT de laque (posé 12 mm au-dessus du capot, ses bords de laque aussi — fermé, il ne montre
+     aucun trait noir) ; dessous, le boîtier noir et sa FACE (le phare rond cerclé de chrome). Il PIVOTE de 60° autour d'un axe pris DANS la
+     caisse : le pivot est calculé pour que, levé, la face soit droite et que son bas affleure le capot. Fermé, le phare regarde vers le bas. */
+  const TH=60*Math.PI/180,PH=[],PHG=K.add(new THREE.Group());let HL=[.50,.76,1.64];   // HL : le centre du phare LEVÉ (l'ancrage `hl`)
+  {const xm9=(lid.x0+lid.x1)/2,zF=lid.z1-.008,H9=.17,F0=[zF,yH(xm9,zF)],B0=[zF-Math.sin(TH)*H9,F0[1]-Math.cos(TH)*H9],
+         Bp=[lid.z1-.03,yH(xm9,lid.z1-.03)+.045],mz=(B0[0]+Bp[0])/2,my=(B0[1]+Bp[1])/2,dz9=Bp[0]-B0[0],dy9=Bp[1]-B0[1],d9=Math.hypot(dz9,dy9)||1e-6,
+         h9=(d9/2)/Math.tan(TH/2),Pz=mz-dy9/d9*h9,Py=my+dz9/d9*h9;   // le centre de la rotation qui envoie le bas de la face B0 sur Bp
+    for(const sd of [1,-1]){const Q=K.kit(PAL);   // (bâti EN PLACE, dans le repère de la caisse — le fondu de la laque reste celui du capot — puis ramené au pivot)
+      const xa=lid.x0,xb=lid.x1,za=lid.z0,zb=lid.z1,V=(x,y,z)=>[sd*x,y,z],tp=(x,z)=>V(x,yH(x,z)+.012,z),bs=(x,z)=>V(x,yH(x,z)-.014,z);
+      // le capot de laque : le dessus, ses quatre tranches
+      const T4=[tp(xa,za),tp(xb,za),tp(xb,zb)];T4.push([T4[0][0],T4[0][1]+T4[2][1]-T4[1][1],T4[2][2]]);   // le dessus PLAN (un parallélogramme : pas de pli en diagonale)…
+      {const d=Math.max(0,tp(xa,zb)[1]-T4[3][1])+.004;for(const t of T4)t[1]+=d;}                              // …relevé pour que le capot ne le perce jamais
+      Q.tri('p',T4[0],T4[1],T4[2]);Q.tri('p',T4[0],T4[2],T4[3]);
+      for(const [p,q,a,b] of [[[xa,za],[xb,za],0,1],[[xb,za],[xb,zb],1,2],[[xb,zb],[xa,zb],2,3],[[xa,zb],[xa,za],3,0]]){const A=T4[a],B=T4[b],C=bs(q[0],q[1]),D=bs(p[0],p[1]);Q.tri('p',A,B,C);Q.tri('p',A,C,D);}
+      // le boîtier noir : ses joues (le capot dessus, la face devant, le dessous, le dos), la face, le dessous, le dos
+      const fT=x=>bs(x,zb-.008),fB=x=>{const t=fT(x);return [t[0],t[1]-Math.cos(TH)*H9,t[2]-Math.sin(TH)*H9];},r0=x=>{const t=bs(x,za+.01);return [t[0],t[1]-.07,t[2]];};
+      for(const x of [xa+.006,xb-.006]){const poly=[bs(x,za+.01),fT(x),fB(x),r0(x)];Q.tri('K',poly[0],poly[1],poly[2]);Q.tri('K',poly[0],poly[2],poly[3]);}
+      const ia=xa+.006,ib=xb-.006;
+      Q.tri('K',fT(ia),fB(ia),fB(ib));Q.tri('K',fT(ia),fB(ib),fT(ib));          // la face
+      Q.tri('K',fB(ia),r0(ia),r0(ib));Q.tri('K',fB(ia),r0(ib),fB(ib));          // le dessous
+      Q.tri('K',r0(ia),bs(ia,za+.01),bs(ib,za+.01));Q.tri('K',r0(ia),bs(ib,za+.01),r0(ib));   // le dos
+      // le phare rond, dans le plan de la face
+      const A9=fT(ia),B9=fT(ib),Ca=fB(ia),Cb=fB(ib),cen=[(A9[0]+B9[0]+Ca[0]+Cb[0])/4,(A9[1]+B9[1]+Ca[1]+Cb[1])/4,(A9[2]+B9[2]+Ca[2]+Cb[2])/4];
+      const nz3=v=>{const l=Math.hypot(v[0],v[1],v[2])||1;return [v[0]/l,v[1]/l,v[2]/l];},cr3=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+      const ux=nz3([B9[0]-A9[0],B9[1]-A9[1],B9[2]-A9[2]]),vH0=nz3([A9[0]-Ca[0],A9[1]-Ca[1],A9[2]-Ca[2]]);let nn=nz3(cr3(ux,vH0));if(nn[2]-nn[1]<0)nn=nn.map(t=>-t);
+      const vH=nz3(cr3(nn,ux));
+      const disque=(r,k,o2,n,bom)=>{const C3=[cen[0]+nn[0]*o2,cen[1]+nn[1]*o2,cen[2]+nn[2]*o2],Cb3=[C3[0]+nn[0]*(bom||0),C3[1]+nn[1]*(bom||0),C3[2]+nn[2]*(bom||0)];
+        for(let q=0;q<n;q++){const a0=(q+.5)/n*Math.PI*2,a1=(q+1.5)/n*Math.PI*2,pq=a=>[C3[0]+(ux[0]*Math.cos(a)+vH[0]*Math.sin(a))*r,C3[1]+(ux[1]*Math.cos(a)+vH[1]*Math.sin(a))*r,C3[2]+(ux[2]*Math.cos(a)+vH[2]*Math.sin(a))*r];
+          Q.tri(k,Cb3,pq(a0),pq(a1));}};
+      disque(.074,'c',.004,10);disque(.062,'W',.007,10,.010);                    // le cerclage chromé, la glace bombée
+      if(sd>0){const y=cen[1]-Py,z=cen[2]-Pz;HL=[cen[0],Py+y*Math.cos(TH)+z*Math.sin(TH),Pz-y*Math.sin(TH)+z*Math.cos(TH)];}
+      const gs=Q.done(),piv=new THREE.Group(),bras=new THREE.Group();piv.position.set(0,Py,Pz);
+      for(const g in gs){gs[g].translate(0,-Py,-Pz);const m=new THREE.Mesh(gs[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;bras.add(m);}
+      piv.add(bras);PHG.add(piv);PH.push(bras);}}
+  /* QUAND ILS SE LÈVENT (`MX5PH.mode`, le choix de Léo : 'nitro' — baissés, ils se lèvent à la nitro : l'appel de phares) ; 'course', 'toujours'.
+     `dbgPhares(1|0|null)` les force. L'ACTION SPÉCIALE (2026-10-20, Léo) : le TAP sur la caisse lève les deux phares, qui tiennent puis se baissent. */
+  {let k=0,kG=0,gT=0,vu0=false;const anime=dt=>{dt=Math.min(dt||0,.1);
+      let st=false,ni=false;try{st=typeof started!=='undefined'&&started&&!gameOver;ni=typeof nitroOn!=='undefined'&&nitroOn;}catch(_){}
+      const M9=(typeof MX5PH==='object'&&MX5PH)?MX5PH:{mode:'nitro',force:null};
+      let vise=M9.mode==='toujours'?1:M9.mode==='nitro'?(ni?1:0):(st?1:0);
+      if(gT>0)gT-=dt;const cG=gT>0?1:0;kG+=(cG-kG)*Math.min(1,dt*(cG?9:5.5));   // l'action : montée vive, descente posée, jamais un à-coup si on retape
+      const fo=typeof M9.force==='number'?M9.force:FPH;
+      if(fo!=null)vise=fo;
+      k+=(vise-k)*Math.min(1,dt*5.5);if(fo!=null&&!vu0){k=fo;}vu0=true;
+      const kk=lis(cl(k,0,1)),kA=fo==null?Math.max(kk,lis(cl(kG,0,1))):kk;PH[0].rotation.x=-TH*kA;PH[1].rotation.x=-TH*kA;};
+    const action=()=>{gT=.75;return true;};   // les phares restent levés 0,75 s, puis redescendent
+    anime(1/30);
+    PHG.userData.anime=anime;PHG.userData.action=action;
+    if(typeof CAR_ACTION!=='undefined')CAR_ACTION=action;
+    if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);}
+  // ---- LA JANTE « MARGUERITE » (14 pouces) : huit pétales plats en trapèze, le cache-moyeu, le fond noir ; le pneu 185/60 à douze pans ----
+  const JW=.19,hw=JW/2,fx=hw-.03,RJ=.178,J=lpKit({k:{g:'m',c:0x161719},a:{g:'k',c:0xc5c9cf},d:{g:'m',c:0x0f1013}});
+  J.lathe('k',[[RJ,-hw],[R*.90,-hw],[R,-hw*.55],[R,hw*.55],[R*.90,hw],[RJ,hw]],12,0,0,0,'x');
+  J.lathe('a',[[RJ,fx-.012],[RJ+.004,fx+.004],[RJ-.018,fx+.008]],12,0,0,0,'x');                    // le rebord
+  J.lathe('d',[[RJ-.016,fx-.008],[0,fx-.008]],12,0,0,0,'x');                                         // le fond
+  {const sh=new THREE.Shape();sh.moveTo(-.016,.058);sh.lineTo(.016,.058);sh.lineTo(.036,.150);sh.lineTo(0,.162);sh.lineTo(-.036,.150);sh.lineTo(-.016,.058);
+   for(let q=0;q<8;q++){const g=new THREE.ExtrudeGeometry(sh,{depth:.014,bevelEnabled:false,curveSegments:1});g.rotateY(-Math.PI/2);g.rotateX((q+.5)/8*Math.PI*2);g.translate(fx+.006,0,0);J.put('a',g,0,0,0);}}
+  J.lathe('a',[[.064,fx-.004],[.058,fx+.016],[.036,fx+.026],[0,fx+.028]],8,0,0,0,'x');             // le cache-moyeu
+  const JG=J.done();
+  return {hl:HL,tl:[.40,.645,-1.995],wx:.70,wzF:ZF,wzR:-ZR,pots:pots,lamps:0,halos:0,
+          roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],(K.mats&&K.mats[g])||(typeof lpMat==='function'?lpMat(g):null));m.userData.lp=1;w.add(m);}},
+          lpw:{R:R,w:JW,style:'nyan',jante:0xc5c9cf}};
+}
 SHAPES.mx5na=function(K){
+  if(!(typeof location!=='undefined'&&/[?&]cerise=plan/.test(location.search)))return mx5naPoly(K);   // (26/10) LA CERISE EN POLY, taillée à la main ; `?cerise=plan` = la caisse découpée au plan d'avant
   /* LA … — le petit roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 « NA »), ROUGE CLASSIQUE, capote repliée. Tout vient de son
      PLAN COTÉ (quatre vues, 172 px/m, recoupé avec le plan au trait) : la silhouette de côté (capot bas, crête à 0,83 m, portières à 0,77,
      poupe à 0,85), la largeur vue de dessus (nez ROND, 1,70 m aux ailes avant, taille de guêpe aux portières), la coupe vue de face

@@ -87,8 +87,7 @@ const CARS=[
   desc:'Homologuée pour la route, élevée sur circuit. Elle perd patience avant toi.'},
  {retire:1,name:'LA SUÉDOISE TURBO'},
  {retire:1,name:'LE QUATTRO'},
- {name:'LA SILENCIEUSE',color:0xeef0f2,accent:0x121418,maxKmh:290,accel:32,turn:2.7,h:1.45,w:1.96,l:4.97,spoiler:0,shape:'c_silencieuse',rar:'rare',
-  desc:'Zéro bruit, zéro goutte d’essence, zéro excuse : ils ne t’entendent même pas les doubler.'},
+ {retire:1,name:'LA SILENCIEUSE'}, /* (2026-10-27, Léo : « la Silencieuse, on peut la virer du jeu, on n'en veut plus du tout ») RETIRÉE : sa ligne reste (index de sauvegarde), sans gabarit elle ne revient pas ; le défi secret « partie sans son ni musique » (id 'silence') disparaît avec elle (m2Dispo) */
  {retire:1,name:'LE TRIDENT'},
  {retire:1,name:'LA HUIT'},
  {name:'LE SAMOURAÏ',color:0x3b2c4e,accent:0x16181c,maxKmh:300,accel:33,turn:2.9,h:1.36,w:1.79,l:4.6,spoiler:0,shape:'d_samourai',rar:'rare',
@@ -225,7 +224,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA CERISE',shape:'mx5na',color:0xc8151d,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'commun', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
+ {name:'LA CERISE',shape:'mx5na',color:0x8c0a14,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'commun', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
   desc:'Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.'},
  /* · */
  /* · */
