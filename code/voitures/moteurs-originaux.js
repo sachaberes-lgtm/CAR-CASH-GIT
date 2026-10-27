@@ -137,7 +137,7 @@ function bloc30(g,i,E,KT,rnd,K,S){
     for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.fonte,u,-.04,sd*.335,0,0,0,.038,.40,.045);}                              // les nervures
   if(i>=11)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.glow,0,.12,sd*.352,0,0,0,L*.70,.014,.014);                   // le filet lumineux du carter
   const tw=.20-.0035*i,ch=.13+.007*i,top=.67+ch;       // le couvre-culasse s'AFFINE et se dresse avec la puissance : de la boîte à la lame
-  let echap=null;
+  let echap=null;const sobre=(i>=15&&i<=17);   // (artiste 3) les hybrides 16-18 se lisent par leur créature : on retire les boulons, rainures et bobines du bloc
   for(let b=0;b<S.BK.length;b++){
     const inc=S.BK[b][0],et=S.BK[b][1],n=Math.min(pb,K.c-b*pb);if(n<=0)break;
     B.cadre(et*.28,inc);
@@ -150,21 +150,21 @@ function bloc30(g,i,E,KT,rnd,K,S){
     B.add(profX([[-.235,0],[.235,0],[tw,ch],[-tw,ch]],L*.97,.035),col,0,.67,0);
     for(let k=0;k<n;k++){const u=U(k);
       for(let dx=-1.5;dx<=1.5;dx+=1)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.brosse,u+dx*.07,.585,sd*.272,0,0,0,.014,.15,.075);   // les ailettes de refroidissement de la culasse
-      for(let j=0;j<6;j++){const t=j/6*2*PI10;B.add(G10.cyl6,KT.chrome,u+Math.cos(t)*.19,.315,Math.sin(t)*.19,0,0,0,.018,.03,.018);}         // les six boulons de bride du fût
-      B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.20,0,PI10/2,0,0);B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.26,0,PI10/2,0,0); // deux rainures usinées
+      if(!sobre)for(let j=0;j<6;j++){const t=j/6*2*PI10;B.add(G10.cyl6,KT.chrome,u+Math.cos(t)*.19,.315,Math.sin(t)*.19,0,0,0,.018,.03,.018);}         // les six boulons de bride du fût
+      if(!sobre){B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.20,0,PI10/2,0,0);B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.26,0,PI10/2,0,0);} // deux rainures usinées
     }
     for(let k=0;k<=n;k++){const u=((k/n)-.5)*(L-.40);BXg(B,KT.colD,u,top+.002,0,0,0,0,.028,.022,tw*1.75);}   // les nervures transversales du couvre-culasse                                     // le couvre-culasse laqué
     BXg(B,KT.lame,0,top+.006,0,0,0,0,L*.78,.010,tw*1.5);
     for(let k=0;k<n;k++){B.add(tourY10([[.001,0],[.12,0],[.001,.07+.006*i]],4),k%2?KT.or:KT.chrome,U(k),top+.01,0,0,PI10/4,0);}   // des pyramides d'or et de chrome, plus hautes avec le palier                                                              // la bande de MÈCHES de carbone
     if(i>=7)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.glow,0,.67+ch*.5,sd*(.235-(.235-tw)*.5+.004),0,0,0,L*.90,.010,.010);               // les filets lumineux, dès le 8e
     if(i>=14)for(let k=0;k<n;k++)BXg(B,KT.glow,U(k),top+.022,0,0,0,0,.05,.012,tw*1.9);                                 // un trait par cylindre
-    for(let k=0;k<n;k++){const u=U(k);B.add(tourY10([[.001,0],[.042,0],[.046,.018],[.046,.095],[.032,.115],[.012,.13],[.001,.13]],12),KT.noir,u+.12,top+.01,0);B.add(new THREE.TorusGeometry(.047,.006,4,16),KT.or,u+.12,top+.06,0,PI10/2,0,0);}   // les bobines, fines, cerclées d'or // les bobines
+    if(!sobre)for(let k=0;k<n;k++){const u=U(k);B.add(tourY10([[.001,0],[.042,0],[.046,.018],[.046,.095],[.032,.115],[.012,.13],[.001,.13]],12),KT.noir,u+.12,top+.01,0);B.add(new THREE.TorusGeometry(.047,.006,4,16),KT.or,u+.12,top+.06,0,PI10/2,0,0);}   // les bobines, fines, cerclées d'or // les bobines
     for(let sd=-1;sd<=1;sd+=2){B.add(G10.axeX8,KT.or,-L*.485,.672,sd*.238,0,0,0,L*.97,.006,.006);B.add(G10.axeX8,KT.or,-L*.465,.522,sd*.252,0,0,0,L*.93,.005,.005);}   // les FILETS D'OR des jointures
     // L'ÉCHAPPEMENT, lisible : un petit coude par cylindre, UN gros collecteur facetté sur toute la longueur, une tuyère évasée à braise
     const clamp=Math.abs(inc)>1,dec=clamp?(inc<0?-1:1)*.62:inc,my=.30,mz=.50;
     if(clamp)B.cadre(et*.28,dec);
     const faisceau=(i>=10&&i<=15),E0=faisceau?[L*.46+.38,-.38,.44]:[L*.46+.38,my,mz];
-    if(faisceau){                                    // LE FAISCEAU (fusion avec l'ancien dessin) : un tube poli par cylindre, qui s'écarte, plonge et se rejoint
+    if(i===15){}else if(faisceau){                                    // LE FAISCEAU (fusion avec l'ancien dessin) : un tube poli par cylindre, qui s'écarte, plonge et se rejoint
       for(let k=0;k<n;k++){const u=U(k),ph=k/Math.max(1,n);
         B.add(tube10([[u,.58,.24],[u*.94,.40+ph*.10,.58+ph*.12],[u*.52,.04-ph*.05,.68+ph*.10],[u*.18,-.24,.57],[0,-.33,.43]],.05,12,7),KT.chrome,0,0,0);
         B.add(new THREE.TorusGeometry(.056,.008,4,14),KT.or,u*.94,.40+ph*.10,.58+ph*.12,0,0,0);
@@ -180,7 +180,7 @@ function bloc30(g,i,E,KT,rnd,K,S){
     }
     // LES SORTIES SE MULTIPLIENT avec le palier : une, puis deux (palier 9), puis trois (palier 14) — la puissance se compte de loin
     const nt=1+(i>=8?1:0)+(i>=13?1:0);
-    for(let t=0;t<nt;t++){const ty=E0[1]-t*.17,tz=E0[2]+t*.05;
+    for(let t=0;t<(i===15?0:nt);t++){const ty=E0[1]-t*.17,tz=E0[2]+t*.05;
       if(t>0)B.add(tube10([[E0[0]-.34,E0[1],E0[2]],[E0[0]-.14,ty+.04,tz],[E0[0],ty,tz]],.07,10,8),KT.soud,0,0,0);
       B.add(tourX([[.11,0],[.15,.05],[.24,.22],[.30,.32]],12),KT.chrome,E0[0],ty,tz,0,0,0);
       B.add(new THREE.TorusGeometry(.30,.012,4,20),KT.or,E0[0]+.32,ty,tz,0,PI10/2,0);
@@ -190,7 +190,7 @@ function bloc30(g,i,E,KT,rnd,K,S){
   }
   B.plat();
   /* LE KIT DE PUISSANCE : des pièces qui s'AJOUTENT palier après palier — c'est ça qui fait qu'on ne revient jamais en arrière */
-  for(let sd=-1;sd<=1;sd+=2)for(let k=0;k<5+Math.floor(L*1.5);k++){const x=((k+.5)/(5+Math.floor(L*1.5))-.5)*(L-.3);B.add(G10.cyl6,KT.chrome,x,.52,sd*.275,PI10/2,0,0,.016,.03,.016);}  // la rangée de boulons de culasse
+  if(!sobre)for(let sd=-1;sd<=1;sd+=2)for(let k=0;k<5+Math.floor(L*1.5);k++){const x=((k+.5)/(5+Math.floor(L*1.5))-.5)*(L-.3);B.add(G10.cyl6,KT.chrome,x,.52,sd*.275,PI10/2,0,0,.016,.03,.016);}  // la rangée de boulons de culasse
   for(let sd=-1;sd<=1;sd+=2)B.add(G10.axeX8,KT.or,-L*.5,.245,sd*.342,0,0,0,L,.006,.006);   // le filet d'or du plan de joint
   for(let k=0;k<9;k++)BXg(B,KT.brosse,(k/8-.5)*(L*.8),-.38,0,0,0,0,.014,.10,.34);                                                                            // les ailettes du carter d'huile
   B.add(G10.cyl6,KT.chrome,-L*.30,-.46,0,0,0,0,.045,.05,.045);                                                                                                        // le bouchon de vidange
@@ -200,16 +200,17 @@ function bloc30(g,i,E,KT,rnd,K,S){
   if(i>=3)for(let sd=-1;sd<=1;sd+=2){const nl=2+Math.floor(i/3),rk=.25+.03*i;                                                                       // PERSIENNES : des lames facettées qui s'ouvrent plus largement à chaque palier
     for(let k=0;k<nl;k++){const y=-.20+k*(.36/nl);BXg(B,k%2?KT.lame:KT.col,0,y,sd*(.37+k*.012),sd*rk,0,0,L*.68-k*.04,.012,.10);
       if(i>=8)BXg(B,KT.glow,0,y,sd*(.37+.05+k*.012),sd*rk,0,0,L*.66-k*.04,.008,.008);}}
-  if(i>=9)for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-L*.40,0],[L*.34,0],[L*.16,.40],[-L*.34,.18]],.025,.006),i%2?KT.col:KT.meche,0,-.22,sd*.46,sd*.5,0,0);   // les ailes
-  if(i>=15)for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-L*.5,0],[L*.5,0],[L*.30,.5],[-L*.5,.22]],.018,.004),KT.col,0,-.10,sd*.60,sd*.9,0,0);                 // les ailes de lumière
+  if(i>=9&&!(i>=15&&i<=17))for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-L*.40,0],[L*.34,0],[L*.16,.40],[-L*.34,.18]],.025,.006),i%2?KT.col:KT.meche,0,-.22,sd*.46,sd*.5,0,0);   // les ailes
+  if(i>=15&&i!==15&&i!==16&&i!==17)for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-L*.5,0],[L*.5,0],[L*.30,.5],[-L*.5,.22]],.018,.004),KT.col,0,-.10,sd*.60,sd*.9,0,0);                 // les ailes de lumière
   crown30(B,K,S,KT,i,E,rnd,g);
   theme30(B,i,KT,{L:L,top:top,tw:tw},g);   // l'identité du palier : scarabée, colibri, scorpion… (moteurs-themes.js)
   B.fin(g);
-  g.userData.echap={p:echap||[L*.64,-.40,.36],d:[1,0,0]};
+  g.userData.echap={p:(i===15?[L*.5+1.7,.28,0]:echap)||[L*.64,-.40,.36],d:[1,0,0]};
 }
 
 /* ============ LA PIÈCE UNIQUE DE CHAQUE PALIER : une idée de forme par moteur, de plus en plus grande ============ */
 function crown30(B,K,S,KT,i,E,rnd,g){
+  if(i>=15&&i<=17)return;   // (artiste 3) l'hybride de ces paliers bâtit tout dans `theme30` : la couronne d'origine est retirée
   const L=S.L,XE=L*.5,horn=(x,y,z,h,r,rx,rz,m)=>B.add(tourY10([[r*.52,0],[r*.58,h*.04],[r*.68,h*.46],[r*1.0,h*.88],[r*1.16,h]],12),m||KT.chrome,x,y,z,rx||0,0,rz||0);
   let C=B,cg=null;const CS={1:1.12,2:1.30,3:1.22,4:1.28,5:1.12,6:1.35,7:1.35,8:1.18,9:1.18,10:1.35,11:1.30,12:1.35,13:1.45,14:1.7,15:1.30,16:1.7},k2=CS[i];
   if(k2){C=bat10();C.f=true;C.plat();}                     // paliers 11-17 : la couronne est GRANDIE autour de sa base (y .8)
@@ -349,7 +350,6 @@ function orig10(g,i,E,K,rnd){
     for(let k=0;k<6;k++)ANN(B,K.chrome,.58,.035,-1.05+k*.42,0,0);
     for(let k=0;k<6;k++){const t=k/6*2*PI10;BAR(B,K.alu,.026,-1.05,1.05,Math.cos(t)*.58,Math.sin(t)*.58);}
     TX(B,K.chrome,[[.50,0],[.60,.05],[.64,.14],[.56,.21],[.50,.23]],.92,0,0,0,36);
-    TX(B,K.chrome,[[.001,0],[.10,.06],[.16,.22],[.17,.46],[.14,.50]],1.18,0,0,PI10,22);
     const st=[[.50,.20,.52,22,K.alu,.5],[.10,.18,.48,26,K.ti,-.5],[-.30,.16,.44,30,K.col,.5]];
     for(const s2 of st){TX(B,K.noir,[[.001,0],[.20,0],[.20,.07],[.001,.07]],s2[0]-.03,0,0,0,24);pales10(B,s2[4],s2[3],s2[1],s2[2],.075,.016,s2[0],s2[5],0);}
     for(let k=0;k<6;k++){const t=(k+.5)/6*2*PI10;TX(B,K.col,[[.001,0],[.11,0],[.12,.04],[.12,.38],[.09,.44]],-.78,Math.cos(t)*.31,Math.sin(t)*.31,0,16);}
@@ -361,16 +361,12 @@ function orig10(g,i,E,K,rnd){
     TX(B,K.verre,[[.21,0],[.21,2.2]],-1.05,0,0,0,32);
     for(let k=0;k<6;k++){const x=-.80+k*.34,R=.34+(k%2)*.07;ANN(B,k%2?K.chrome:K.or,R,.052,x,0,0);ANN(B,K.haloF,R,.022,x,0,0);}
     for(let h=0;h<4;h++)B.add(helix10(.27,-.95,.95,2.2,h*PI10/2,.014,6),K.haloF,0,0,0);
-    for(let k=0;k<4;k++){const t=k/4*2*PI10+.4;B.add(plan10([[-.9,.40],[.9,.40],[.55,.88],[-.45,.74]],.03,.008),k%2?K.lame:K.col,0,0,0,t,0,0);}
     TX(B,K.chrome,[[.20,0],[.26,.08],[.42,.34],[.58,.54]],-1.05,0,0,PI10,30);TX(B,K.haloF,[[.001,0],[.40,.20],[.001,.60]],-1.10,0,0,PI10,20);
     ech=[-1.72,0,0];break;}
   case 21:{ // STATORÉACTEUR — LE JAVELOT : une pointe de choc facettée, des bagues d'or qui coulent dessus, six dérives, une tuyère étoilée
-    B.add(cone10(.17,1.25,8),K.chrome,.55,0,0,0,0,0);
-    for(let k=0;k<3;k++)ANN(B,K.or,.14-k*.034,.024,.95+k*.2,0,0);
     TX(B,K.chrome,[[.31,0],[.37,.05],[.42,.22],[.44,.34]],.32,0,0,0,32);ANN(B,K.col,.44,.04,.30,0,0);
     TX(B,K.col,[[.44,0],[.44,1.50],[.39,1.60]],-1.18,0,0,0,32);
     for(let k=0;k<4;k++){const x=-.85+k*.42;ANN(B,K.or,.445,.030,x,0,0);ANN(B,K.haloF,.452,.012,x+.12,0,0);}
-    for(let k=0;k<6;k++){const t=k/6*2*PI10;B.add(plan10([[-1.38,.40],[-.40,.44],[-.55,.98],[-1.52,.80]],.036,.008),K.lame,0,0,0,t,0,0);}
     for(let k=0;k<6;k++)BXg(B,K.alu,-1.22,Math.cos(k/6*2*PI10)*.18,Math.sin(k/6*2*PI10)*.18,k/6*2*PI10,0,0,.03,.34,.03);
     TX(B,K.chrome,[[.40,0],[.38,.10],[.44,.30],[.56,.54]],-1.18,0,0,PI10,32);TX(B,K.glow,[[.001,0],[.36,0],[.36,.02]],-1.20,0,0,0,24);
     ech=[-1.78,0,0];break;}
