@@ -326,7 +326,7 @@
         // BORNÉE à ±65° d'assiette → jamais vertical → pas de gimbal-lock, pas de vrille coincée.
         // VOLANT TACTILE : l'assiette devient ANALOGIQUE (2026-10-10, Léo : pouce vers le HAUT = MONTE (cabré), vers le BAS =
         // plonge, par défaut ; le réglage PLONGE rend le manche d'avion) — même levier, dosé. Zone morte large : tourner ne doit jamais cabrer par accident.
-        const pitT=TCTL.act?TCTL.sv*volSens():0; // (2026-09-29) réglage « POUCE HAUT EN VOL : PLONGE / MONTE »
+        const pitT=(TCTL.act||TCTL.incl)?TCTL.sv*volSens():0; // (2026-09-29) réglage « POUCE HAUT EN VOL : PLONGE / MONTE »
         const wPitch=volInv()*(pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0)); // -1 = piqué, +1 = cabré
         // (vol libre, 2026-09-26) plus de plafond à ±65° ni de repli « à l'horizontale » : le manche fait tourner la trajectoire ET le
         // haut de la caisse autour de SA droite (FLY_R) — piqué, cabré, looping : aucune assiette n'est interdite, rien ne se bloque
@@ -360,7 +360,7 @@
       } else { // VOL SANS BOOST : léger pilotage haut/bas — assez pour infléchir la trajectoire, bien moins qu'au réacteur
         // (2026-09-27, user : « quand j'essaye de redresser dans les airs sans le nitro ça fait rien ») : cette branche ne lisait que le
         // CLAVIER — sur téléphone le pouce (axe Y du volant) était ignoré sans nitro. Même lecture qu'au réacteur : analogique, zone morte.
-        const pitT=TCTL.act?TCTL.sv*volSens():0;
+        const pitT=(TCTL.act||TCTL.incl)?TCTL.sv*volSens():0;
         const wPitch=volInv()*(pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0)); // ↑ piqué · ↓ cabré
         pitchS+=(wPitch-pitchS)*(1-Math.exp(-dtF*(pitT!==0?VOL_LIS_D:VOL_LIS))); // (2026-10-14) τ 30 ms au pouce · (2026-10-09) le même manche lissé (voir le réacteur)
         if(Math.abs(pitchS)>1e-4){const a9=-pitchS*(.85+.85*nk9)*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,85 rad/s : on infléchit, on ne pilote pas — (2026-10-17) l'autorité du réacteur s'éteint en ~80 ms (nk9)

@@ -377,24 +377,29 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      course (et à chaque rotation de l'écran) : aucune pose à tenir. Plein braquage à 22°, zone morte 2,5°. Le pouce garde l'assiette en vol
      et la NITRO ; la boucle lit TCTL.inclV à la place du braquage du stick (voir boucle-1). Réglage INCLINAISON, ON/OFF, mémorisé. */
   const INCL_PLEIN=22*Math.PI/180,INCL_MORT=2.5*Math.PI/180;
-  let inclLis=0,inclOk=false,inclAttache=false;
+  const INCL_PPLEIN=14*Math.PI/180,INCL_PMORT=3*Math.PI/180;
+  let inclLis=0,inclPL=0,inclOk=false,inclAttache=false;
   function inclOri(e){
     if(e.beta==null||e.gamma==null)return;
     const b=e.beta*Math.PI/180,g=e.gamma*Math.PI/180,dx=Math.sin(g)*Math.cos(b),dy=-Math.sin(b), // le bas du monde dans le repère de l'APPAREIL
           o=(screen.orientation&&typeof screen.orientation.angle==='number')?screen.orientation.angle:(window.orientation||0),a=((o%360)+360)%360;
     const dr=a===90?-dy:a===180?-dx:a===270?dy:dx, du=a===90?dx:a===180?-dy:a===270?-dx:dy; // …puis dans celui de l'ÉCRAN : vers la droite / vers le haut
     if(Math.hypot(dr,du)<.35)return; // téléphone à plat : pas de volant (le vecteur n'a plus de sens)
-    inclOk=true; const ang=Math.atan2(dr,-du);
+    inclOk=true; const ang=Math.atan2(dr,-du), dz=-Math.cos(g)*Math.cos(b), pit=Math.atan2(-dz,-du); // pit > 0 = haut du téléphone vers l'arrière (écran qui regarde le ciel)
+    if(TCTL.inclPN==null)TCTL.inclPN=pit;
     if(TCTL.inclN==null)TCTL.inclN=ang;
     let rel=ang-TCTL.inclN; if(rel>Math.PI)rel-=2*Math.PI; else if(rel<-Math.PI)rel+=2*Math.PI;
     inclLis+=(rel-inclLis)*.4; // un peu de lissage : la main tremble, le capteur aussi
+    inclPL+=((pit-TCTL.inclPN)-inclPL)*.4; /* LE TANGAGE : le haut du téléphone vers SOI = pouce HAUT (monte/plonge selon le réglage POUCE HAUT), vers l'avant = pouce BAS. Plein à 14°, zone morte 3° ; le pouce posé sur le stick reprend la main */
+    {const mp=Math.abs(inclPL),vp=mp<INCL_PMORT?0:(inclPL<0?1:-1)*Math.min(1,(mp-INCL_PMORT)/(INCL_PPLEIN-INCL_PMORT)); TCTL.inclP=vp; if(TCTL.incl&&!TCTL.act)TCTL.sv=vp;
+      if(mp<5*Math.PI/180)TCTL.inclPN+=(pit-TCTL.inclPN)*.004;}
     if(Math.abs(inclLis)<6*Math.PI/180)TCTL.inclN+=rel*.004; // le NEUTRE suit très lentement la main (le poignet se fatigue, la pose dérive) : jamais sur un vrai virage (> 6°)
     const m=Math.abs(inclLis); TCTL.inclV=m<INCL_MORT?0:(inclLis<0?1:-1)*Math.pow(Math.min(1,(m-INCL_MORT)/(INCL_PLEIN-INCL_MORT)),1.15); // `rel` > 0 = tourné dans le sens horaire (bord droit en bas) = braquage à DROITE (steer < 0)
     if(TCTL.incl&&TCTL.play)TCTL.doigt=true; // le lissage rapide du pouce (τ 30 ms), pas celui du clavier
   }
   function inclPerm(){ const D=window.DeviceOrientationEvent;
     if(D&&typeof D.requestPermission==='function'){ try{ D.requestPermission().then(function(r){ if(r!=='granted')toast(pxi('croix')+' '+TR('CAPTEUR REFUSÉ : RÉGLAGES › SAFARI')); }).catch(function(){}); }catch(_){} } }
-  function inclMarche(on){ TCTL.incl=!!on; TCTL.inclV=0; TCTL.inclN=null; inclLis=0;
+  function inclMarche(on){ TCTL.incl=!!on; TCTL.inclV=0; TCTL.inclP=0; TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; if(!on&&!TCTL.act)TCTL.sv=0;
     if(on&&!inclAttache){ addEventListener('deviceorientation',inclOri); inclAttache=true; }
     if(!on&&inclAttache){ removeEventListener('deviceorientation',inclOri); inclAttache=false; } }
   /* LES TROIS COMMANDES (2026-10-27, Léo : « des options de joystick différentes : les flèches, le slide (actuel), et l'inclinaison ») :
@@ -404,8 +409,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(sz)sz.classList.remove('act'); keys.ArrowLeft=keys.ArrowRight=keys.ArrowUp=keys.ArrowDown=false; document.body.classList.toggle('tpad',TCTL.pad);
     inclMarche(m==='incl'); SAVE.d.cmd=m; SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush();
     if(!calme&&m==='incl'){ inclPerm(); toast(pxi('coche')+' '+TR('PENCHE LE TÉLÉPHONE POUR TOURNER')); } }
-  document.addEventListener('cc:jeu',function(){ TCTL.inclN=null; inclLis=0; }); // le neutre = la pose du joueur au départ de la course
-  addEventListener('orientationchange',function(){ TCTL.inclN=null; inclLis=0; });
+  document.addEventListener('cc:jeu',function(){ TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; }); // le neutre = la pose du joueur au départ de la course
+  addEventListener('orientationchange',function(){ TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; });
   if(SAVE.d.cmd==='fleches')cmdSet('fleches',true);
   if(SAVE.d.cmd==='incl'){ inclMarche(true); document.addEventListener('touchend',function f(){ document.removeEventListener('touchend',f); inclPerm(); },{passive:true}); } // au relancement, l'autorisation du capteur se redemande au 1er toucher (iOS l'exige d'un geste)
   // ---- SYNCHRO PARESSEUSE (8 Hz) : apparition des commandes, écran de mort, gel en paysage.

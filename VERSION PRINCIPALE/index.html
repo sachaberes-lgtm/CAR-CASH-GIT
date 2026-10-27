@@ -60003,7 +60003,8 @@ function frVersVol(k){ // (startFall, APRÈS figDepart) le corps de la figure de
    `?fdecolle=0` = sans. Console : `dbgFDecolle()` (l'état), `dbgFDecolle(v)` = le manche forcé à v (null : rend la main au pouce). */
 const FDC={ok:!/[?&]fdecolle=0\b/.test(location.search),arme:.3,seuil:.55,haut:.2,imp:6,a:false,n:0,force:null,dv:0,lift:0};
 function frNez(){if(FDC.force!=null)return FDC.force; // le manche du vol lu sur la route : +1 = le nez en HAUT (le cabré), comme pitT/wPitch en vol
-  if(TCTL.act)return -TCTL.sv*volSens()*volInv();return volInv()*((keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.KeyZ||keys.ArrowUp?1:0));}
+  if(TCTL.act||TCTL.incl)return -TCTL.sv*volSens()*volInv(); // (2026-10-27) INCLINAISON : TCTL.sv porte le tangage du téléphone
+ return volInv()*((keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.KeyZ||keys.ArrowUp?1:0));}
 function frEnvol(){ // (frTick, chaque image du bond) le manche tiré : la caisse quitte la route — true : elle vole
   const u=frNez();if(u<FDC.arme){FDC.a=true;return false;}
   if(!FDC.ok||!FDC.a||u<FDC.seuil||!FR.on||mode!=='drive'||FR.lift<FDC.haut||side<0||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act)return false;
@@ -74740,7 +74741,7 @@ function loop(now){
         // BORNÉE à ±65° d'assiette → jamais vertical → pas de gimbal-lock, pas de vrille coincée.
         // VOLANT TACTILE : l'assiette devient ANALOGIQUE (2026-10-10, Léo : pouce vers le HAUT = MONTE (cabré), vers le BAS =
         // plonge, par défaut ; le réglage PLONGE rend le manche d'avion) — même levier, dosé. Zone morte large : tourner ne doit jamais cabrer par accident.
-        const pitT=TCTL.act?TCTL.sv*volSens():0; // (2026-09-29) réglage « POUCE HAUT EN VOL : PLONGE / MONTE »
+        const pitT=(TCTL.act||TCTL.incl)?TCTL.sv*volSens():0; // (2026-09-29) réglage « POUCE HAUT EN VOL : PLONGE / MONTE »
         const wPitch=volInv()*(pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0)); // -1 = piqué, +1 = cabré
         // (vol libre, 2026-09-26) plus de plafond à ±65° ni de repli « à l'horizontale » : le manche fait tourner la trajectoire ET le
         // haut de la caisse autour de SA droite (FLY_R) — piqué, cabré, looping : aucune assiette n'est interdite, rien ne se bloque
@@ -74774,7 +74775,7 @@ function loop(now){
       } else { // VOL SANS BOOST : léger pilotage haut/bas — assez pour infléchir la trajectoire, bien moins qu'au réacteur
         // (2026-09-27, user : « quand j'essaye de redresser dans les airs sans le nitro ça fait rien ») : cette branche ne lisait que le
         // CLAVIER — sur téléphone le pouce (axe Y du volant) était ignoré sans nitro. Même lecture qu'au réacteur : analogique, zone morte.
-        const pitT=TCTL.act?TCTL.sv*volSens():0;
+        const pitT=(TCTL.act||TCTL.incl)?TCTL.sv*volSens():0;
         const wPitch=volInv()*(pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0)); // ↑ piqué · ↓ cabré
         pitchS+=(wPitch-pitchS)*(1-Math.exp(-dtF*(pitT!==0?VOL_LIS_D:VOL_LIS))); // (2026-10-14) τ 30 ms au pouce · (2026-10-09) le même manche lissé (voir le réacteur)
         if(Math.abs(pitchS)>1e-4){const a9=-pitchS*(.85+.85*nk9)*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,85 rad/s : on infléchit, on ne pilote pas — (2026-10-17) l'autorité du réacteur s'éteint en ~80 ms (nk9)
@@ -77384,24 +77385,29 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      course (et à chaque rotation de l'écran) : aucune pose à tenir. Plein braquage à 22°, zone morte 2,5°. Le pouce garde l'assiette en vol
      et la NITRO ; la boucle lit TCTL.inclV à la place du braquage du stick (voir boucle-1). Réglage INCLINAISON, ON/OFF, mémorisé. */
   const INCL_PLEIN=22*Math.PI/180,INCL_MORT=2.5*Math.PI/180;
-  let inclLis=0,inclOk=false,inclAttache=false;
+  const INCL_PPLEIN=14*Math.PI/180,INCL_PMORT=3*Math.PI/180;
+  let inclLis=0,inclPL=0,inclOk=false,inclAttache=false;
   function inclOri(e){
     if(e.beta==null||e.gamma==null)return;
     const b=e.beta*Math.PI/180,g=e.gamma*Math.PI/180,dx=Math.sin(g)*Math.cos(b),dy=-Math.sin(b), // le bas du monde dans le repère de l'APPAREIL
           o=(screen.orientation&&typeof screen.orientation.angle==='number')?screen.orientation.angle:(window.orientation||0),a=((o%360)+360)%360;
     const dr=a===90?-dy:a===180?-dx:a===270?dy:dx, du=a===90?dx:a===180?-dy:a===270?-dx:dy; // …puis dans celui de l'ÉCRAN : vers la droite / vers le haut
     if(Math.hypot(dr,du)<.35)return; // téléphone à plat : pas de volant (le vecteur n'a plus de sens)
-    inclOk=true; const ang=Math.atan2(dr,-du);
+    inclOk=true; const ang=Math.atan2(dr,-du), dz=-Math.cos(g)*Math.cos(b), pit=Math.atan2(-dz,-du); // pit > 0 = haut du téléphone vers l'arrière (écran qui regarde le ciel)
+    if(TCTL.inclPN==null)TCTL.inclPN=pit;
     if(TCTL.inclN==null)TCTL.inclN=ang;
     let rel=ang-TCTL.inclN; if(rel>Math.PI)rel-=2*Math.PI; else if(rel<-Math.PI)rel+=2*Math.PI;
     inclLis+=(rel-inclLis)*.4; // un peu de lissage : la main tremble, le capteur aussi
+    inclPL+=((pit-TCTL.inclPN)-inclPL)*.4; /* LE TANGAGE : le haut du téléphone vers SOI = pouce HAUT (monte/plonge selon le réglage POUCE HAUT), vers l'avant = pouce BAS. Plein à 14°, zone morte 3° ; le pouce posé sur le stick reprend la main */
+    {const mp=Math.abs(inclPL),vp=mp<INCL_PMORT?0:(inclPL<0?1:-1)*Math.min(1,(mp-INCL_PMORT)/(INCL_PPLEIN-INCL_PMORT)); TCTL.inclP=vp; if(TCTL.incl&&!TCTL.act)TCTL.sv=vp;
+      if(mp<5*Math.PI/180)TCTL.inclPN+=(pit-TCTL.inclPN)*.004;}
     if(Math.abs(inclLis)<6*Math.PI/180)TCTL.inclN+=rel*.004; // le NEUTRE suit très lentement la main (le poignet se fatigue, la pose dérive) : jamais sur un vrai virage (> 6°)
     const m=Math.abs(inclLis); TCTL.inclV=m<INCL_MORT?0:(inclLis<0?1:-1)*Math.pow(Math.min(1,(m-INCL_MORT)/(INCL_PLEIN-INCL_MORT)),1.15); // `rel` > 0 = tourné dans le sens horaire (bord droit en bas) = braquage à DROITE (steer < 0)
     if(TCTL.incl&&TCTL.play)TCTL.doigt=true; // le lissage rapide du pouce (τ 30 ms), pas celui du clavier
   }
   function inclPerm(){ const D=window.DeviceOrientationEvent;
     if(D&&typeof D.requestPermission==='function'){ try{ D.requestPermission().then(function(r){ if(r!=='granted')toast(pxi('croix')+' '+TR('CAPTEUR REFUSÉ : RÉGLAGES › SAFARI')); }).catch(function(){}); }catch(_){} } }
-  function inclMarche(on){ TCTL.incl=!!on; TCTL.inclV=0; TCTL.inclN=null; inclLis=0;
+  function inclMarche(on){ TCTL.incl=!!on; TCTL.inclV=0; TCTL.inclP=0; TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; if(!on&&!TCTL.act)TCTL.sv=0;
     if(on&&!inclAttache){ addEventListener('deviceorientation',inclOri); inclAttache=true; }
     if(!on&&inclAttache){ removeEventListener('deviceorientation',inclOri); inclAttache=false; } }
   /* LES TROIS COMMANDES (2026-10-27, Léo : « des options de joystick différentes : les flèches, le slide (actuel), et l'inclinaison ») :
@@ -77411,8 +77417,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(sz)sz.classList.remove('act'); keys.ArrowLeft=keys.ArrowRight=keys.ArrowUp=keys.ArrowDown=false; document.body.classList.toggle('tpad',TCTL.pad);
     inclMarche(m==='incl'); SAVE.d.cmd=m; SAVE.d.tctl=TCTL.pad?'pad':'stick'; SAVE.flush();
     if(!calme&&m==='incl'){ inclPerm(); toast(pxi('coche')+' '+TR('PENCHE LE TÉLÉPHONE POUR TOURNER')); } }
-  document.addEventListener('cc:jeu',function(){ TCTL.inclN=null; inclLis=0; }); // le neutre = la pose du joueur au départ de la course
-  addEventListener('orientationchange',function(){ TCTL.inclN=null; inclLis=0; });
+  document.addEventListener('cc:jeu',function(){ TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; }); // le neutre = la pose du joueur au départ de la course
+  addEventListener('orientationchange',function(){ TCTL.inclN=TCTL.inclPN=null; inclLis=inclPL=0; });
   if(SAVE.d.cmd==='fleches')cmdSet('fleches',true);
   if(SAVE.d.cmd==='incl'){ inclMarche(true); document.addEventListener('touchend',function f(){ document.removeEventListener('touchend',f); inclPerm(); },{passive:true}); } // au relancement, l'autorisation du capteur se redemande au 1er toucher (iOS l'exige d'un geste)
   // ---- SYNCHRO PARESSEUSE (8 Hz) : apparition des commandes, écran de mort, gel en paysage.
