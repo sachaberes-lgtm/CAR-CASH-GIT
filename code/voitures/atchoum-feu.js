@@ -360,6 +360,7 @@ const beamTex=(function(){
     c.fillStyle=g;
     c.beginPath();c.moveTo(x0-12,10);c.lineTo(x0+12,10);c.lineTo(x0+sd*14+46*sd+14,238);c.lineTo(x0+sd*14-46*sd-14,238);c.closePath();c.fill();
   }
+  flou2dRepli(c,256,256,7); /* (24/10) Safari n'a pas `ctx.filter` : le même flou, après coup (voir LE FLOU DES TOILES SANS ctx.filter, rendu/soleil-planete.js) */
   return new THREE.CanvasTexture(cv);
 })();
 // ---- PLUME DE RÉACTEUR (façon fusée) : cône incandescent à la tuyère — dégradé + ANNEAUX DE CHOC bakés.

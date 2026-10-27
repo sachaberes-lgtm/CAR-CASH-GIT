@@ -1,4 +1,11 @@
 /* ---- LA MATIÈRE : des CUBES de pierre réaliste ---- */
+/* ===== LA PASSE D'EMBELLISSEMENT DE JADE (2026-10-21, Sacha : « chaque map un peu plus belle, sans que ce soit trop gourmand ») =====
+   Dans la matière des cubes (le même programme, pas un de plus) : des STRATES de grès (bandes horizontales teintées), des VEINES de jade qui
+   courent dans les fissures claires et s'allument la nuit, de rares fils d'OR dans la pierre (le clin d'œil CASH : le kintsugi de la montagne),
+   le REBOND tiède de la mer de brume sur les flancs et les ventres (soir : pêche ; nuit : turquoise), la perspective aérienne en trois plans
+   (le moyen plan bleuit et s'éclaircit avant de se fondre dans la brume). Que de l'arithmétique sur des valeurs déjà lues (fv, st, vAO) :
+   aucune texture, aucun appel de dessin. JMAT par palier : 0 = la matière d'avant · 1 = strates + veines + rebond · 2 = tout (fils d'or, perspective). */
+PAL.B.jadeMatiere=[0,1,2];const JMAT=PAL.b('jadeMatiere',2);
 const JADE_VR_VS=[
   'attribute float aM,aAO;attribute vec4 aJ;varying vec3 vW,vO,vN,vNo;varying float vM,vAO;varying vec4 vJ;',
   '#include <fog_pars_vertex>',
@@ -37,7 +44,7 @@ const JADE_VR_FS=[
   '  vec3 dpx=dFdx(vW),dpy=dFdy(vW);float dhx=dFdx(h),dhy=dFdy(h);',              // ⚠ dérivées hors de toute branche
   '  vec3 r1=cross(dpy,Ng),r2=cross(Ng,dpx);float de=dot(dpx,r1);',
   '  vec3 N=normalize(abs(de)*Ng-sign(de)*(dhx*r1+dhy*r2)*uBump*dF);',
-  '  int m=int(vM+.5);vec3 alb;',
+  '  int m=int(vM+.5);vec3 alb;float ve=0.,au=0.;',
   '  vec3 roc=mix('+('vec3(.45,.55,.51),vec3(.33,.41,.39)')+',rn(p*.011+3.));roc=mix(roc,vec3(.56,.51,.44),smoothstep(.62,.9,rn(vec3(vJ.x*9.,p.y*.03,1.)))*.4);',
   '  roc*=mix(.45,1.,smoothstep(.1,.6,st))*(.93+.14*hC)*uRocT;',
   '  float hv=smoothstep(uMerY-20.,uMerY+380.,vW.y);',
@@ -45,7 +52,12 @@ const JADE_VR_FS=[
   '    if(m==2)alb=mix(alb,vec3(.52,.37,.27)*(.85+.3*rg),.6);',
   '    alb=mix(alb,vec3(.74,.74,.64),step(.935,rn(p*.85))*dF*.4);',               // le lichen
   '    float mo=max(step(.5,Ng.y)*smoothstep(.3,.62,rn(p*.13)),smoothstep(.6,.78,rn(p*.05+11.)*.7+(1.-st)*.3)*hv*(1.-smoothstep(.4,.95,vAO))*.8)*vJ.y;',
-  '    alb=mix(alb,mix(vec3(.09,.16,.07),vec3(.22,.32,.12),rn(p*.4))*uVerT,mo);}',      // la mousse
+  '    alb=mix(alb,mix(vec3(.09,.16,.07),vec3(.22,.32,.12),rn(p*.4))*uVerT,mo);',      // la mousse
+  (JMAT>=1?[
+  '    float sb=smoothstep(.15,.85,.5+.5*sin(p.y*.11+st*4.5+vJ.x*6.));alb=mix(alb,roc*vec3(1.55,1.18,.78),sb*.30*(1.-mo));', // (embellie) les STRATES : des bancs de grès chaud entre les bancs de roche verte
+  '    float vj=smoothstep(.52,.8,st)*(1.-mo);ve=fv*vj*dF;alb=mix(alb,vec3(.16,.74,.52),ve*.8);'].join('\n'):''),               // (embellie) les VEINES de jade, dans les fissures des bandes claires
+  (JMAT>=2?'    au=fv*step(.8,rh(floor(p*.016)+11.))*dF*(1.-mo);alb=mix(alb,vec3(.96,.72,.28),au*.9);':''),                       // (embellie) de RARES fils d or (une région sur cinq, cases de 60 m)
+  '  }',
   '  else if(m==3){vec3 g=mix(vec3(.11,.24,.06),vec3(.25,.40,.10),rn(p*.35))*(.82+.32*rg)*uVerT,r9=roc*mix(.94,.82+.3*rg,dF);', // l HERBE : sur le dessus seulement, en PLAQUES de mousse sur la pierre (la frange sur les côtés et la dalle verte unie, c était le bloc d herbe de Minecraft)
   '    alb=Ng.y>.5?mix(r9,g,smoothstep(.38,.62,rn(p*.09+5.)*.7+rn(p*.5)*.3)):r9;}',
   '  else if(m==4)alb=mix(vec3(.07,.14,.06),vec3(.19,.30,.11),rn(p*.6))*(.7+.45*rn(p*1.9))*uVerT;', // les FEUILLES
@@ -54,6 +66,15 @@ const JADE_VR_FS=[
   '  vec3 V=normalize(cameraPosition-vW);',
   '  float cav=mix(.3,1.,vAO)*mix(.6,1.,smoothstep(.05,.5,h)),dif=max((dot(N,uSunDir)+.12)/1.12,0.);',
   '  vec3 col=alb*(mix(uGnd,uSky,N.y*.5+.5)*cav*.85+uSunC*dif*mix(.5,1.,cav)*.85+uFillC*max(dot(N,-uFillD),0.)*cav);', // (v7) le soleil un cran plus doux : les grandes faces au soleil sortaient crème
+  (JMAT>=1?[
+  '  {float dk9=1.-smoothstep(.35,1.1,dot(uSunC,vec3(.333)));',                                                                        // (embellie) 0 le jour · 1 la nuit
+  '   col+=alb*uMist*vec3(1.05,.84,.72)*(smoothstep(.1,-.7,N.y)*.34+(1.-abs(N.y))*.10)*cav*(1.-smoothstep(120.,900.,vW.y-uMerY));', // le REBOND de la mer de brume : tiède sous les ventres et sur les flancs
+  '   col+=vec3(.10,.62,.44)*ve*(.07+.85*dk9);}'].join('\n'):''),                                                                   // les veines de jade s allument avec la nuit
+  (JMAT>=2?[
+  '  col+=vec3(1.,.74,.32)*au*(.10+.95*pow(max(dot(reflect(-V,N),uSunDir),0.),12.));',                                                   // l or accroche le soleil
+  '#ifdef USE_FOG',
+  '  {float ap9=smoothstep(450.,2000.,fogDepth);col=mix(col,col*vec3(.84,.95,1.13)+vec3(.012,.026,.05),ap9*.55);}', // la PERSPECTIVE AÉRIENNE : le moyen plan bleuit et s éclaircit avant de se fondre dans la brume
+  '#endif'].join('\n'):''),
   // LE VERRE DE JADE (v6, Léo : « je parlais de la transparence des CUBES qui font la montagne ; c est trop clair là ») : chaque bloc est une
   // brique de jade teinté — on voit au travers les blocs de derrière, l autre face de la montagne et ses plans intérieurs (matière 10), assombris
   // et verdis ; les arêtes des cubes absorbent plus (on lit les blocs). Une lueur discrète au contre-jour et dans les joints, rien de plus.
@@ -131,7 +152,7 @@ function jadeGabarits(){if(JADE.geos)return JADE.geos;
   try{const g=jadeFini(it);GAB_FOND.sync=performance.now()-t0;GAB_FOND.ms+=GAB_FOND.sync;g.ms=Math.round(GAB_FOND.ms);JADE.geos=g;}finally{JF.lim=l0;}
   return JADE.geos;}
 function jadeGabFond(){ // une tranche par image, au menu (voir LES GABARITS TAILLÉS AU MENU)
-  if(JADE.geos||GAB_FOND.fini||(started&&!gameOver)||!CHAUFFE_R.fait||ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go))return;
+  if(JADE.geos||GAB_FOND.fini||(started&&!gameOver)||!CHAUFFE_R.fait||ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go)||(PREB.W&&PREB.dep&&!PREB.fait))return; // (2026-10-24, passe perf) le départ d'avance d'une autre map passe d'abord : MESURÉ (×4, MOYEN), il ne commençait qu'à ~65 s du chargement, après les gabarits
   const t=performance.now(),l0=JF.lim;if(!GAB_FOND.it)GAB_FOND.it=jadeGabaritsG();JF.lim=t+PAL.b('gabFondMs',6);chauffeGrace(); // (la qualité auto ne lit pas une tranche comme une faiblesse)
   let r;try{r=GAB_FOND.it.next();}catch(e){GAB_FOND.it=null;GAB_FOND.fini=true;console.warn('gabarits',e);return;}finally{JF.lim=l0;GAB_FOND.ms+=performance.now()-t;GAB_FOND.n++;}
   if(r.done){GAB_FOND.it=null;GAB_FOND.fini=true;r.value.ms=Math.round(GAB_FOND.ms);JADE.geos=r.value;}}
@@ -170,18 +191,21 @@ function jadeArbresTex(){const W=256,cv=document.createElement('canvas');cv.widt
     }else{ // LA TOUFFE : un nuage de feuillage, l'ombre dessous, le soleil dessus
       const cx=W/2,cy=W*.62;for(let q=0;q<900;q++){const a=rg()*6.2832,rr=Math.sqrt(rg()),tx=cx+Math.cos(a)*100*rr,ty=cy+Math.sin(a)*82*rr*(Math.sin(a)>0?.85:1.1);if(ty>W-4)continue;
         const hi=(cy-ty)/82;touche(tx,ty,3+rg()*4.5,vert(hi>.35?4:hi>0?3:hi>-.4?2:1,.75+rg()*.4));}}
+    if(n===5||n===7){c.clearRect(0,0,W,W);jadeCristalPeint(c,W,n===7?1:0);} // (2026-10-21, embellie) les cases 5 et 7 (la 2e touffe, la 2e liane : mêmes dessins que 4 et 6, le sommet les y renvoie) portent les CRISTAUX DE JADE — le pinceau d'avant a tiré ses nombres comme avant : les autres cases n'ont pas bougé
     c.restore();}
   const t=new THREE.CanvasTexture(cv);t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());t.minFilter=THREE.LinearMipmapLinearFilter;return texLibere(t);} // (2026-10-14, passe perf mobile) la planche 1024 × 512, peinte une fois : 2 Mo rendus après l'envoi (paliers 0-1)
-const JADE_ARB_VS=['attribute vec4 aJ;uniform float uTime;varying vec2 vUv,vL;varying vec3 vW;','#include <fog_pars_vertex>',
+const JADE_ARB_VS=['attribute vec4 aJ;uniform float uTime;varying vec2 vUv,vL;varying vec3 vW;varying float vCr;','#include <fog_pars_vertex>',
   'void main(){vec3 c=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz;',
   '  vec3 R=normalize(vec3(viewMatrix[0][0],0.,viewMatrix[2][0])+vec3(1e-4,0.,0.)),U=normalize(vec3(0.,1.,0.)+vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1])*.35);', // face à la caméra (un peu penché vers elle d en haut)
-  '  float y=position.y+.5,sw=sin(uTime*.8+aJ.w*40.)*y*y*.04*aJ.y;',
+  '  float k=aJ.z,cr=step(7.5,k);k=cr>.5?(k<8.5?5.:7.):(abs(k-5.)<.5?4.:(abs(k-7.)<.5?6.:k));vCr=cr;', // (embellie) cases 8-9 = les cristaux (dessinés dans 5 et 7) ; 5 et 7 pour les arbres = 4 et 6
+  '  float y=position.y+.5,sw=sin(uTime*.8+aJ.w*40.)*y*y*.04*aJ.y*(1.-cr);',
   '  vec3 wp=c+R*(position.x*aJ.x+sw)+U*y*aJ.y;vW=wp;',
-  '  float k=aJ.z;vUv=(vec2(mod(k,4.),floor(k/4.))+vec2(position.x+.5,1.-y))*vec2(.25,.5);vUv.y=1.-vUv.y;vL=vec2(y,aJ.w);',
+  '  vUv=(vec2(mod(k,4.),floor(k/4.))+vec2(position.x+.5,1.-y))*vec2(.25,.5);vUv.y=1.-vUv.y;vL=vec2(y,aJ.w);',
   '  vec4 mvPosition=viewMatrix*vec4(wp,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const JADE_ARB_FS=['uniform sampler2D uTex;uniform vec3 uSunC,uSky,uGnd,uMist,uSunDir;uniform float uMerY;varying vec2 vUv,vL;varying vec3 vW;','#include <fog_pars_fragment>',
+const JADE_ARB_FS=['uniform sampler2D uTex;uniform vec3 uSunC,uSky,uGnd,uMist,uSunDir;uniform float uMerY,uTime;varying vec2 vUv,vL;varying vec3 vW;varying float vCr;','#include <fog_pars_fragment>',
   'void main(){vec4 t=texture2D(uTex,vUv);if(t.a<.45||vW.y<uMerY+1.)discard;',
   '  vec3 col=mix(t.rgb,vec3(dot(t.rgb,vec3(.3,.59,.11))),.15)*(.8+.25*vL.y)*(mix(uGnd,uSky,.35+.5*vL.x)*.9+uSunC*(.35+.4*vL.x));',
+  '  col+=t.rgb*vCr*(.20+.60*(1.-smoothstep(.35,1.1,dot(uSunC,vec3(.333)))))*(.82+.18*sin(uTime*1.7+vL.y*50.));', // (embellie) les CRISTAUX luisent (un peu le jour, franchement la nuit) et scintillent chacun à son rythme
   '  float hm=((1.-smoothstep(0.,130.,vW.y-uMerY))*.38);col=mix(col,uMist,hm);gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}'].join('\n');
 /* ---- LES TEMPLES : la PAGODE (octogonale, cinq étages, avant-toits relevés) et le PAVILLON (un toit, huit colonnes) ---- */
 function jadeTempleGeo(etages){const P=[],C=[],add=(g,col)=>{const h=g.index?g.toNonIndexed():g,a=h.attributes.position.array;for(let i=0;i<a.length;i++)P.push(a[i]);for(let i=0;i<a.length/3;i++)C.push(col[0],col[1],col[2]);};

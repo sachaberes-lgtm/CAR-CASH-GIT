@@ -50,6 +50,7 @@ Object.assign(SHAPES,{
     P.box('R',.10,.03,.012,sd*.58,.40,-1.752);                                 // les catadioptres
     P.plate('r',[[.743,.785],[.758,.796],[.758,.849],[.743,.858]].map(q=>[sd*q[0],q[1]]),3.28,-1.66); // le liseré de livraison : (relief) une MOULURE chanfreinée, plus un trait peint
     P.box('n',.03,.10,.05,sd*.76,.99,.86);P.box('n',.08,.09,.12,sd*.80,1.03,.86); // rétro
+    P.box('n',.08,.03,.05,sd*.735,.955,.86);   // (2026-10-27, aucun rétro qui vole) le pied tombait 2 cm à côté de la caisse : sa SEMELLE, couchée jusque dans le montant
     P.box('n',.012,.03,.12,sd*.75,.89,-.10);                                    // poignée
     P.box('n',.05,.05,.08,sd*.52,1.445,-.18);P.box('n',.05,.05,.08,sd*.52,1.445,-1.08); // pieds de galerie
   });
@@ -137,6 +138,7 @@ W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
     P.box('c',.03,.04,1.14,sd*.925,.31,ZR);                                 // le liseré de la jupe (19/10 : il flottait 7 cm hors de la caisse)
     P.box('c',.02,.03,.14,sd*.99,.96,.00);                                  // poignée
     P.box('c',.03,.10,.12,sd*1.02,1.14,.28);P.box('c',.06,.03,.03,sd*.98,1.10,.28); // rétro chromé
+    P.box('c',.03,.065,.03,sd*.965,1.0675,.28);   // (2026-10-27, aucun rétro qui vole) son PIED, planté 1,5 cm dans la portière (le bras flottait 2 cm au-dessus)
     P.box('c',.02,.02,3.08,sd*.862,1.515,-1.19);                            // jonc de pavillon
     for(let i=0;i<11;i++){const z=-.40-i*.105;P.box('q',.012,.40,.03,sd*.906,1.29,z,0,0,sd*.14);} // les plis des rideaux (19/10 : deux fois plus, plus fins)
     P.box('q',.014,.05,1.16,sd*.877,1.475,-.93,0,0,sd*.14);                 // la cantonnière, en haut des rideaux

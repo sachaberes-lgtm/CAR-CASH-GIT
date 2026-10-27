@@ -47,6 +47,7 @@ if(/[?&]garage=(leo|avant)\b/.test(location.search))document.documentElement.cla
 if(/[?&]garjouer=0\b/.test(location.search))document.documentElement.classList.add('sansGarJouer'); /* (2026-10-18) le JOUER de l'inventaire et de la boutique, coupé : voir <style id="jouerGarage"> */
 /* (2026-10-11, Léo : « enlève les intros, tout ça : lance juste la voiture dans la map ») LA BALADE SANS INTRO — la classe est posée
    dès le <head> : ni le logo du chargement, ni le menu ne se montrent (voir baladeDepart). */
+if(/[?&]intro=ancien\b/.test(location.search))document.documentElement.classList.add('introAncien');
 if(/[?&](map=jade|balade=1)\b/.test(location.search)){document.documentElement.classList.add('balade');document.write('<style id="baladeIntro">html.balade #splash,html.balade #overlay,html.balade #garage,html.balade #wipe{visibility:hidden!important}html.balade body{background:#07050f}html.balade:not(.parti) body>canvas{visibility:hidden!important}</style>');}
 /* LES MISSIONS v2 (2026-10-16, Sacha : « on remplace tout le système actuel de défis en carnets / groupes de 3 par des MISSIONS libres ») :
    l'ancien système (CARNETS, la file de trois, les pastilles, la constellation de l'atelier) est RETIRÉ (18/10, allègement) ; la sauvegarde
@@ -69,6 +70,11 @@ const CC_PHOTOS='__CC_PHOTOS__';
 const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b/.test(location.search)?' · SANS CIEL':'');
 (function(){
   var q=location.search,M=window.matchMedia;
+  /* ===== LES ANIMATIONS DU HUD SANS RECALCUL (2026-10-24, passe perf PC, Sacha : « sur la version mobile l'HUD prend trop de capacité, règle ça ») =====
+     Mesuré sur l'iPhone 13 Pro de Sacha (app, palier RÉCENT, 35 s de course) : 63 images > 25 ms ; animations CSS figées : 9. Les animations infinies du HUD
+     sur des propriétés non composées (box-shadow, filter, background-position) sont refaites en transform / opacité, sous `html.han`.
+     `?hudanim=0` = les anciennes animations (A/B). */
+  if(!/[?&]hudanim=0\b/.test(q))document.documentElement.classList.add('han');
   /* L'ÉCRAN NU PAR DÉFAUT (2026-10-01, copie de test de Léo : « je préfère le point de vue de la 1re image » = sans la forme de
      l'iPhone) : sur l'ordi, l'écran du téléphone est un rectangle simple, sans boîtier, sans encoche ni coins arrondis, et le jeu ne
      garde pas les marges de l'encoche. `ENCOCHE_DEFAUT=true` rend le boîtier du 13 Pro par défaut ; dans l'adresse, `?encoche=1` /

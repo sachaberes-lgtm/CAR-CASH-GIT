@@ -16,13 +16,15 @@ function mkEngine(i){
      Le BICYLINDRE est donc en alu brut. ⚠ Mais brut ne veut pas dire NEUF : la finition monte
      avec l'échelle — fonderie mate et terne jusqu'au 4 EN LIGNE, puis alu clair et poli. */
   const ep=i===0;
+  const nv=i<ENG_VAGUE; // la nouvelle main (matières brossées, ridées, soudures, détail assemblé) — voir `ENG_VAGUE`
   const bloc=ep?M9.fonte(E.col):M9.alu(i<4?0x8c96a6:0xa4adba,i<4?100:150); // (vague 2, H7) alu foncé d'un cran (0xbcc3cc / 0xd0d5de) : sous le ciel rose, il renvoyait de la MOUSSE rose
   const sombre=ep?M9.fonte(0x6a6259):M9.noir();
-  const chrome=M9.inox();
+  const chrome=(i===0)?M9.fonte(0xa49c90):M9.inox();   // l'épave n'a PAS de chrome : de la fonte nue
   const chaud=ep?M9.fonte(0x8f7f6c):M9.chaud();                 // les collecteurs, bleuis par la chauffe
   // dès les moteurs de course, le couvre-culasse passe aux SAIGNÉES qui s'allument : c'est ce
   // qui fait lire la montée en gamme d'un coup d'œil, à la taille de la vignette en jeu.
   const habit=ep?M9.fonte(E.col):(i>=12?M9.canaux(E.col):M9.anod(E.col));
+  const carter=null;
   const carbo=M9.carbone();
   const feu=new THREE.MeshBasicMaterial({color:E.flam});
   const lueur=function(c,o){return new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o,
@@ -36,11 +38,14 @@ function mkEngine(i){
      l'échelle : la même recette appliquée aux 30 donnerait trente cailloux. */
   const relique=i>=24;
   const croute=M9.croute(),cristal=M9.cristal(E.col);
-  const MT={bloc:bloc,sombre:sombre,chrome:chrome,habit:habit};
+  const MT={bloc:bloc,sombre:sombre,chrome:chrome,habit:habit,carter:carter};
+  const KT=kit10(th30Kit(E,i));   // la palette de l'IDENTITÉ du palier (moteurs-themes.js)
+  if(i>=1&&i<18){bloc30(g,i,E,KT,rnd,K,S);return g;}   // paliers 2-18 : le bloc facetté commun + la pièce unique du palier (moteurs-originaux.js)
+  if(i>=18){orig10(g,i,E,KT,rnd);return g;}   // paliers 19-30 : dessins entièrement neufs (rotor, turbine, plasma, réacteur, astre…) — voir moteurs-originaux.js
 
   // ---------- LE CORPS, par architecture ----------
   if(piston){
-    corps9(g,K,S,MT,rnd,ep,carbo);
+    corps9(g,K,S,MT,rnd,ep,carbo,0);
     // LA CHAMBRE INCANDESCENTE, sous chaque culasse : à 200 px (la vignette en jeu) c'est ELLE
     // qui dit « ça brûle là-dedans », bien mieux qu'un détail de géométrie.
     if(!ep)for(let b=0;b<S.BK.length;b++){
@@ -71,6 +76,7 @@ function mkEngine(i){
     put9(g,tourX([[.04,0],[.17,.03],[.17,1.44],[.04,1.5]],16),sombre,-.75,0,0);
   }
 
+
   // ---------- AILETTES DE REFROIDISSEMENT ----------
   // ⚠ elles étaient posées à plat SUR le bloc, à ±.30 en Z : donc À L'INTÉRIEUR de son
   // gabarit, donc invisibles au recadrage. Une culasse à air a ses ailettes qui DÉBORDENT —
@@ -94,6 +100,8 @@ function mkEngine(i){
   // ---------- TURBOS : de vrais escargots, répartis sur les flancs ----------
   for(let k=0;k<(K.t||0);k++){
     const s=(k%2)?1:-1,r=Math.floor(k/2);
+    if(nv){const B=bat10();turbo10(B,{alu:bloc,sombre:sombre,chrome:chrome,soudure:chaud},XE-.02-r*.46,.06+r*.18,s*.46,s);B.fin(g);
+      serp9(g,[XE-.32-r*.46,.06+r*.18,s*.46],[0,.62,s*.20],sombre,.045,rnd,.10);continue;}
     turbo9(g,chrome,sombre,XE-.10-r*.46,.06+r*.18,s*.46);
     serp9(g,[XE-.32-r*.46,.06+r*.18,s*.46],[0,.62,s*.20],sombre,.045,rnd,.10);
   }
@@ -116,7 +124,7 @@ function mkEngine(i){
   // ================= LA SIGNATURE DE CHAQUE PALIER =================
   // Volontairement du cas par cas : UNE pièce marquante par moteur, c'est ce qui fait qu'on
   // reconnaît le sien. Ajouter un palier = ajouter un `case`, rien d'autre ne bouge.
-  switch(i){
+  switch(i>=10?-1:i){   // (nouvelle main) à partir du V8, les signatures sont dans moteurs-originaux.js
   case 0:{ // MOTEUR ROUILLÉ — la courroie nue et une durite qui pendouille
     const c=new THREE.Mesh(new THREE.TorusGeometry(.28,.032,7,20),sombre);
     c.position.set(-(XE+.02),.04,0);c.rotation.y=Math.PI/2;c.scale.set(1,1.35,1);g.add(c);
@@ -153,6 +161,7 @@ function mkEngine(i){
       serp9(g,[XE-.10,.06,z*.46],[XE+.22,z*.20,z*.16],chrome,.050,rnd,.05);}
     break;}
   case 6: case 14:{ // 5 CYLINDRES / W12 — le PLÉNUM d'admission, une boîte tournée sur le dessus
+    if(i===6)break;   // (nouvelle main : le plénum est celui de lite10)
     put9(g,tourX([[.06,0],[.19,.03],[.21,.10],[.21,L*.62],[.19,L*.69],[.06,L*.72]],20),
       i===14?carbo:chrome,-L*.36,.92,0);
     break;}

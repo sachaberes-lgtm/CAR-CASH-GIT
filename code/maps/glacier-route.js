@@ -171,7 +171,7 @@ function genBanq(rnd){
        l'autre) passent à moins de 440 m en plan est repris (6 essais au plus) — avant : 455 m au plus près.
      (Les lacets SUPERPOSÉS du 14/10, et leurs raccourcis, ne reviennent pas : Sacha les a ôtés le 15/10 — « sans module bizarre ».) */
     AXE=(rh()-.5)*Math.PI;
-    const TR9=['lacets','courbes','traverse','schuss'],vers9=(h,R)=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=(h-phi)*57.2958;if(Math.abs(d)>2)A(d,R,BK_PENTE4[4]);},
+    const TR9=['lacets','lacets','courbes','traverse','lacets'],vers9=(h,R)=>{phi=Math.atan2(Math.sin(phi),Math.cos(phi));const d=(h-phi)*57.2958;if(Math.abs(d)>2)A(d,R,BK_PENTE4[4]);},
       gV=()=>BK_PENTE4[0]+rh()*BK_PENTE4[1],gD=()=>BK_PENTE4[2]+rh()*BK_PENTE4[3];
     const e0={n:ctrl.length,g:segs.length,m:MODMARK.length,P:P.clone(),phi:phi,sC:sC,sg:sg,bkNext:bkNext,bkLast:bkLast,paq:bkPaq.slice()};
     const pres=()=>{let m=1e9;const S9=[0];for(let k=1;k<ctrl.length;k++)S9.push(S9[k-1]+Math.hypot(ctrl[k].x-ctrl[k-1].x,ctrl[k].z-ctrl[k-1].z)); // le plus près que passent deux bouts de piste (≥ 700 m de piste entre eux)
@@ -180,18 +180,18 @@ function genBanq(rnd){
       if(e){ctrl.length=e0.n;segs.length=e0.g;MODMARK.length=e0.m;P.copy(e0.P);phi=e0.phi;sC=e0.sC;sg=e0.sg;bkNext=e0.bkNext;bkLast=e0.bkLast;bkPaq.length=0;for(const x9 of e0.paq)bkPaq.push(x9);PLAN.length=0;}
       let tP='';
       while(sC<LEN){
-        if(rm&&tP&&sC>bkNext&&sC<LEN-700){const m=bkTire(),i9=ctrl.length-1;bkLast=m;bkJ[m]();MODMARK.push({i0:i9,i1:ctrl.length-1});PLAN.push(['module'+m,0]);bkNext=sC+350+rm()*300;continue;} // LES MODULES DU GLACIER (voir bkSlalom)
-        let t=TR9[(rh()*4)|0];if(t===tP)t=TR9[(TR9.indexOf(t)+1+((rh()*3)|0))%4];tP=t;
-        const s0=sC,lg=Math.min(LEN-sC+120,(420+rh()*560)*Math.sqrt(KR));
+        if(rm&&tP&&sC>bkNext&&sC<LEN-700){const m=bkTire(),i9=ctrl.length-1;bkLast=m;bkJ[m]();MODMARK.push({i0:i9,i1:ctrl.length-1});PLAN.push(['module'+m,0]);bkNext=sC+200+rm()*220;continue;} // LES MODULES DU GLACIER (voir bkSlalom) — plus fréquents (200-420 m au lieu de 350-650)
+        let t=TR9[(rh()*5)|0];if(t===tP)t=TR9[(TR9.indexOf(t)+1+((rh()*4)|0))%5];if(t===tP)t=TR9[0];tP=t; /* (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit, plus de virages, que ça reste fun ») 'lacets' pèse double ; jamais deux fois le même */
+        const s0=sC,lg=Math.min(LEN-sC+120,(160+rh()*240)*Math.sqrt(KR));
         if(t==='lacets'){while(sC-s0<lg&&sC<LEN){if(rh()<.78)sg=-sg;const a=30+rh()*45,R=Math.max(ROAD_HALF*2,(175+rh()*150)*KR*.72);
             let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}A(sg*Math.min(a*1.3+10,125,lib),R,gV());D(.35*(50+rh()*140),gD());}}
-        else if(t==='courbes'){while(sC-s0<lg&&sC<LEN){if(rh()<.85)sg=-sg;const a=45+rh()*50,R=Math.max(ROAD_HALF*2.6,(420+rh()*380)*KR);
-            let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}A(sg*Math.min(a,lib),R,gV());D(60+rh()*100,gD());}}
+        else if(t==='courbes'){while(sC-s0<lg&&sC<LEN){if(rh()<.85)sg=-sg;const a=50+rh()*55,R=Math.max(ROAD_HALF*2.6,(190+rh()*150)*KR); /* des courbes de 250-460 m (c'étaient 420-800 : on les prenait pour des droites) */
+            let lib=(LIB-sg*phi)*57.2958;if(lib<20){sg=-sg;lib=(LIB-sg*phi)*57.2958;}A(sg*Math.min(a,lib),R,gV());D(25+rh()*55,gD());}}
         else if(t==='traverse'){let sd=Math.abs(phi)>.3?-Math.sign(phi):(rh()<.5?-1:1);
-          for(let k=0;k<2&&sC-s0<lg&&sC<LEN;k++){vers9(sd*(44+rh()*14)/57.2958,Math.max(ROAD_HALF*2.6,(260+rh()*80)*KR));D(200+rh()*220,gD());sd=-sd;}}
+          for(let k=0;k<2&&sC-s0<lg&&sC<LEN;k++){vers9(sd*(44+rh()*14)/57.2958,Math.max(ROAD_HALF*2.6,(260+rh()*80)*KR));D(80+rh()*110,gD());sd=-sd;}}
         else{vers9((rh()-.5)*.2,Math.max(ROAD_HALF*2.6,(260+rh()*80)*KR));const n9=1+((rh()*2)|0);
-          for(let k=0;k<n9;k++){D(130+rh()*170,BK_PENTE4[2]+BK_PENTE4[3]);const a=(rh()<.5?-1:1)*(10+rh()*12),lib=(LIB-Math.sign(a)*phi)*57.2958;if(lib>Math.abs(a)+5)A(a,Math.max(ROAD_HALF*3,600*KR),gV());}
-          D(80+rh()*120,BK_PENTE4[2]+BK_PENTE4[3]);}
+          for(let k=0;k<n9;k++){D(60+rh()*90,BK_PENTE4[2]+BK_PENTE4[3]);const a=(rh()<.5?-1:1)*(10+rh()*12),lib=(LIB-Math.sign(a)*phi)*57.2958;if(lib>Math.abs(a)+5)A(a,Math.max(ROAD_HALF*3,600*KR),gV());}
+          D(40+rh()*60,BK_PENTE4[2]+BK_PENTE4[3]);}
         PLAN.push([t,Math.round(sC-s0)]);}
       BANQ.pres=Math.round(pres());BANQ.essais=e+1;if(BANQ.pres>=440)break;}
   }
@@ -312,8 +312,17 @@ function bkSolD(x,z){const S=BANQ.sol;if(!S)return 1e9;const fx=(x-S.x0)/S.C,fz=
    (enterrés), chaque facette (A, Vi, Vi+1) un plan ; la hauteur du cristal en (x, z) = le MIN des plans de ses facettes (le dessus d'un
    polyèdre convexe), la grappe = le MAX de ses cristaux. La physique lit exactement ce que l'on voit : une facette pas trop raide se
    glisse, son arête est un tremplin. */
+/* (2026-10-24, Sacha : « des pics de glace mal imbriqués dans le sol, qui dépassent ») L'ANCRAGE : le plus bas des nœuds de la grille sous un disque de rayon r —
+   le maillage de la neige est fait de triangles entre ces nœuds, il ne descend jamais plus bas. Un pic dont le pied (le cercle de base, enterré) restait AU-DESSUS
+   de ce plancher pendait dans le vide (mesuré au rayon vertical sur le vrai maillage : 7 pics sur 441 flottaient de 1 à 14 m, au bord de la piste et sur les flancs raides). */
+function bkSolMin(x,z,r){const S=BANQ.sol;if(!S)return -1e9;let m=1e9;const i0=Math.max(0,Math.floor((x-r-S.x0)/S.C)),i1=Math.min(S.nx-1,Math.ceil((x+r-S.x0)/S.C)),j0=Math.max(0,Math.floor((z-r-S.z0)/S.C)),j1=Math.min(S.nz-1,Math.ceil((z+r-S.z0)/S.C)),r2=(r+S.C)*(r+S.C);
+  for(let j=j0;j<=j1;j++){const dz=S.z0+j*S.C-z;for(let i=i0;i<=i1;i++){const dx=S.x0+i*S.C-x;if(dx*dx+dz*dz>r2)continue;const h=S.h[i+j*S.nx];if(h<m)m=h;}}
+  return m>1e8?-1e9:m;}
+const BK_ANCRE=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacierancre(,|&|$)/.test(location.search);
 function bkPrim(x,z,yb,H,R,n,lx,lz,rot,rg,fam,prof){
-  const ay=yb+H,by=yb-(prof||Math.max(8,R*.35)),Rb=R*(ay-by)/H,ax=x+lx,az=z+lz,V=[];
+  const ay=yb+H;let by=yb-(prof||Math.max(8,R*.35)),Rb=R*(ay-by)/H;
+  if(BK_ANCRE&&BANQ.sol){for(let it=0;it<6;it++){const g=bkSolMin(x,z,Rb);if(g<-1e8||by<=g-3)break;by=Math.max(g-4,yb-H*4-20);Rb=R*(ay-by)/H;}} /* le pied descend sous le point le plus bas de son emprise (au plus 4 H + 20 m plus bas) ; la pente du cône ne change pas */
+  const ax=x+lx,az=z+lz,V=[];
   for(let i=0;i<n;i++){const th=rot+(i+(rg()-.5)*.38)/n*6.2832;V.push([x+Math.cos(th)*Rb,by,z+Math.sin(th)*Rb]);}
   /* (2026-10-20, LE DÉCOR RECALÉ) chaque sommet de base descend SOUS LA NEIGE QU'IL TOUCHE (6 m), et le milieu de chaque arête de base aussi : la base
      suit la pente (à 45°, le côté aval d'une base plate flottait) ; hors de la neige (les géants de l'horizon), un rayon de base plus bas, dans la brume.
@@ -371,11 +380,11 @@ const BK_SOL_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec2 vS;','#include
   '  col+=alb*uSky*(1.-dif)*vec3(.20,.42,.75)*.55*(1.-roc);',                                                // l'OMBRE BLEUE de la neige (le ciel qu'elle diffuse)
   '  col+=alb*uSunC*pow(1.-max(dot(Np,V),0.),4.)*.10*dif;',                                                  // le lustre rasant
   // les ÉTINCELLES : chaque cristal a sa facette (une normale au hasard) ; il s'allume quand le soleil s'y reflète vers l'œil — elles naissent et meurent quand la caméra bouge
-  '  float sp=0.;if(f2>0.){vec2 g=q*2.2;vec2 c=floor(g);float h=fh2(c);vec3 nj=normalize(vec3(fh2(c+3.1)-.5,.9,fh2(c+7.7)-.5));',
-  '    sp=step(.80,h)*pow(max(dot(reflect(-L,nj),V),0.),70.)*smoothstep(.36,.06,length(fract(g)-.5))*f2;}',
+  '  float sp=0.,spk=0.;if(f2>0.){vec2 g=q*2.2;vec2 c=floor(g);float h=fh2(c);vec3 nj=normalize(vec3(fh2(c+3.1)-.5,.9,fh2(c+7.7)-.5));',
+  '    float s1=step(.80,h)*pow(max(dot(reflect(-L,nj),V),0.),70.)*smoothstep(.36,.06,length(fract(g)-.5))*f2*(.62+.38*sin(uTime*(1.4+h*3.)+h*70.));sp=s1;spk=s1*step(fract(h*53.7),.20);}',
   '  {vec2 g=q*.42;vec2 c=floor(g);float h=fh2(c+5.);vec3 nj=normalize(vec3(fh2(c+1.3)-.5,.8,fh2(c+9.2)-.5));',
-  '   sp+=step(.86,h)*pow(max(dot(reflect(-L,nj),V),0.),60.)*smoothstep(.30,.04,length(fract(g)-.5))*smoothstep(60.,140.,dist)*(1.-smoothstep(300.,650.,dist))*.8;}',
-  '  sp*=(1.-roc)*uSpark;col+=(uSunC*2.2+vec3(.4,.6,1.)*.3)*sp*2.6+uAurC*sp*uAur*1.2;',
+  '   float s2=step(.86,h)*pow(max(dot(reflect(-L,nj),V),0.),60.)*smoothstep(.30,.04,length(fract(g)-.5))*smoothstep(60.,140.,dist)*(1.-smoothstep(300.,650.,dist))*.8;sp+=s2;spk+=s2*step(fract(h*61.3),.20);}',
+  '  sp*=(1.-roc)*uSpark;spk*=(1.-roc)*uSpark;col+=(uSunC*2.2+vec3(.4,.6,1.)*.3)*(sp-spk)*2.6+mix(vec3(1.,.55,.06),vec3(1.,.10,.46),step(.5,fh2(floor(q*1.1)+11.)))*spk*2.2+uAurC*sp*uAur*1.2;', /* (2026-10-21, LE GLACIER EMBELLI) un éclat sur cinq est OR ou ROSE (le clin d'œil CASH) et tous scintillent avec uTime */
   '  col+=alb*uAlpC*uAlp*dif*.40*smoothstep(-40.,120.,vW.y-uMistY);',                                         // l'alpenglow sur les pentes hautes
   '  col+=alb*mix(uAurC,uAurC2,.3)*uAur*.12*(.4+.6*Np.y);',                                                    // le vert des aurores sur la neige
   '  col+=vec3(.10,.55,.80)*cv*(uSky*.35+uSunC*.12)*(.6+.4*fn2(q*.4));',  // le fond de la crevasse : la glace bleue qui luit
@@ -405,6 +414,7 @@ const BK_PIC_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN,vB;varying vec4 vP;','#ifnd
   '  float tr=pow(max(dot(-V,L),0.),3.)*(.6+.4*(1.-th))+.22;',                                                                // la lumière qui TRAVERSE
   '  vec3 col=alb*(uSky*.42+uGnd*.10+uSunC*(.10+.95*dif))+mid*uSunC*tr*(.20+.60*hf)*vec3(.55,.92,1.)+clair*uSunC*hf*hf*.10;',
   '  col+=clair*(fr*.70+bu*.9)*(uSunC*.55+uSky*.45);',
+  '  col=mix(col,col*vec3(.80,.88,1.16),(1.-dif)*.30*(1.-hf*.5));col+=vec3(1.,.78,.46)*uSunC*pow(dif,2.5)*(.04+.11*hf)*(.6+.4*fv);', /* (2026-10-21, LE GLACIER EMBELLI) deux températures : l'ombre des facettes bascule au bleu-violet, la clé chaude se pose sur les pointes éclairées */
   '  col=mix(col,bCiel(R),fres*.55);',
   '  float sr=max(dot(R,L),0.);col+=uSunC*(pow(sr,110.)*2.8+pow(sr,14.)*.16);',                                              // l'ÉCLAT de la facette
   '  float e=min(min(vB.x,vB.y),vB.z),w9=fwidth(e)*1.4;float ar=1.-smoothstep(0.,w9+.010,e);',                                 // les ARÊTES
@@ -437,7 +447,8 @@ const BK_VG_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec4 vV;','#include 
   '  col=mix(col,bCiel(R)*.95,fres*.9);',
   '  float sr=max(dot(R,uSunDir),0.);col+=uSunC*(pow(sr,500.)*6.+pow(sr,35.)*.35);',                               // le chemin du soleil
   '  float gv=smoothstep(e-.32,e-.02,u)*(.45+.55*fn2(q*1.9));col=mix(col,vec3(.88,.94,1.)*(uSky*.6+uSunC*.85),gv*.75);', // le givre des bords (v4 : la frange qui se fond dans la neige)
-  '  {vec2 g=q*2.6;vec2 c=floor(g);float h=fh2(c);col+=(uSunC*1.6+uSky*.4)*step(.93,h)*smoothstep(.30,.05,length(fract(g)-.5))*(1.-smoothstep(25.,90.,dist))*uSpark;}', // les paillettes
+  '  {vec2 g=q*2.6;vec2 c=floor(g);float h=fh2(c);float pk=step(.93,h)*smoothstep(.30,.05,length(fract(g)-.5))*(1.-smoothstep(25.,90.,dist))*uSpark*(.72+.28*sin(uTime*(1.2+h*5.)+h*90.));',
+  '   col+=mix(uSunC*1.6+uSky*.4,mix(vec3(1.,.55,.06),vec3(1.,.10,.46),step(.5,fh2(c+9.1)))*2.0,step(fh2(c+4.3),.18))*pk;}', /* (2026-10-21, LE GLACIER EMBELLI) les paillettes de la glace scintillent (uTime) ; une sur cinq environ est OR ou ROSE : le clin d'œil CASH, aspect seulement */
   '  vec3 hd=normalize(uCarP+vec3(0.,1.,0.)-vW);col+=vec3(.9,.95,1.)*uPhare*pow(max(dot(R,hd),0.),60.)*2.5*(1.-smoothstep(10.,140.,distance(uCarP,vW)));',
   '  col+=bPhare(vW,N)*.3+uFlash*vec3(.8,.85,1.)*.5;',
   '  col=mix(col,uMistC,bBrume(vW,dist));gl_FragColor=vec4(col,al*.9);','  gl_FragColor.a=1.;','#include <fog_fragment>','}'].join('\n');

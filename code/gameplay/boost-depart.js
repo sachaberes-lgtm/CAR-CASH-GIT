@@ -133,6 +133,7 @@ function fireLaunchBoost(){
   if(lg9){lg9.classList.remove('on');void lg9.offsetWidth;lg9.classList.add('on');}
   clearTimeout(fireLaunchBoost._t);fireLaunchBoost._t=setTimeout(function(){
     if(ll9)ll9.classList.remove('on');if(lg9)lg9.classList.remove('on');
+    if(!started||gameOver)return; /* (24/10, relecture) la course est déjà finie ou quittée (QUITTER, mort dans les 1,9 s) : la bannière « NIVEAU n » ne vient plus après coup sur l'écran de fin ou le garage */
     if(TUTO.on&&TUTO.attente&&started&&!gameOver){TUTO.attente=false;tutoAffiche();}else // l'auto-école prend la parole pile quand le logo s'efface
     lvlAnnonce(); // LE LOGO PASSE LE RELAIS : « NIVEAU 1 — … » arrive quand CASH CAR s'efface (au même endroit, jamais par-dessus)
   },1900);
@@ -201,6 +202,9 @@ function ventPose(i,loin){ // (re)nait un trait : un point de l'écran (loin du 
   VENT.wx[i*3]=e[0]*xv+e[4]*yv+e[8]*zv+e[12];VENT.wx[i*3+1]=e[1]*xv+e[5]*yv+e[9]*zv+e[13];VENT.wx[i*3+2]=e[2]*xv+e[6]*yv+e[10]*zv+e[14];
   VENT.lg[i]=.55+Math.random()*.9;VENT.ep[i]=.7+Math.random()*.8;
 }
+/* (2026-10-24, passe perf 2e tour) LE VENT SUR LES VIEUX TÉLÉPHONES : chaque trait est un drawImage tourné, en mélange additif, dans une toile 2D plein écran
+   effacée à chaque image (mesuré : 3,3 % du processeur de la boucle au banc ×4, à grande vitesse nitro tenue). [ANCIEN, MOYEN, RÉCENT] : la moitié, 70 %, tous. */
+PAL.B.ventK=[.5,.7,1];
 function ventDessine(kmh,nitro,dt){
   const W=slCv.width,H=slCv.height;dt=Math.min(dt||.016,.05);
   const vcL=vCroisiere();
@@ -213,7 +217,7 @@ function ventDessine(kmh,nitro,dt){
   if(!VENT.init||jump>160){VENT.init=true;for(let i=0;i<VENT_N;i++){ventPose(i,false);VENT.pal[i]=0;}VENT.vx=VENT.vy=VENT.vz=0;}
   else if(dt>0){const g=1-Math.exp(-dt*10);VENT.vx+=((P.x-VENT.pxP)/dt-VENT.vx)*g;VENT.vy+=((P.y-VENT.pyP)/dt-VENT.vy)*g;VENT.vz+=((P.z-VENT.pzP)/dt-VENT.vz)*g;}
   VENT.pxP=P.x;VENT.pyP=P.y;VENT.pzP=P.z;
-  k=Math.min(1.35,k);const cible=Math.min(VENT_N,k*46+(VENT.pic>0?VENT.pic*18:0));
+  k=Math.min(1.35,k);const cible=Math.min(VENT_N,(k*46+(VENT.pic>0?VENT.pic*18:0))*PAL.b('ventK',1)); // (2026-10-24, passe perf) ventK : moins de traits sur les vieux téléphones
   if(cible<=.05&&!VENT.vivants){if(drawSpeedLines._had){slCtx.clearRect(0,0,W,H);drawSpeedLines._had=false;slCv.style.visibility='hidden';}return;}
   slCtx.clearRect(0,0,W,H);if(!drawSpeedLines._had){drawSpeedLines._had=true;slCv.style.visibility='visible';}
   const spr=VENT.sp||(VENT.sp=ventSprites());
@@ -357,7 +361,7 @@ nameSave.addEventListener('click',function(e){e.stopPropagation();commitName();}
 nameEntry.addEventListener('click',function(e){e.stopPropagation();});
 // ENTRÉE dans le champ nom : 1er appui = valider le nom · 2e appui (nom déjà validé) = REJOUER direct
 nameInput.addEventListener('blur',function(){setTimeout(function(){try{scrollTo(0,0);}catch(e){}},60);}); // (2026-09-29) iOS laissait la page remontée après le clavier : REJOUER coupé en bas
-nameInput.addEventListener('keydown',function(e){e.stopPropagation();if(e.code==='Enter'){e.preventDefault();if(pendingScore!=null)commitName();else if(gameOver)playViaGarage();}});
+nameInput.addEventListener('keydown',function(e){e.stopPropagation();if(e.code==='Enter'||e.key==='Enter'||e.keyCode===13){ /* (24/10, relecture) le clavier logiciel de l'iPhone peut laisser `code` vide : la touche Retour se lit aussi par `key` */e.preventDefault();if(pendingScore!=null)commitName();else if(gameOver)playViaGarage();}});
 // (2026-09-28) le record MONTE en direct pendant la course (voir la boucle : `money>best`), même d'une partie abandonnée
 // (RECOMMENCER/QUITTER) qui n'entre pas au Top 10. L'écraser par `leaders[0]` au chargement faisait redescendre le record
 // après une relance — et « NOUVEAU RECORD ! » revenait à tort. On garde le plus haut des deux, ici comme à la signature.

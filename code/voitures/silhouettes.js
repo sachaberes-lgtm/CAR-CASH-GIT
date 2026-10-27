@@ -292,7 +292,7 @@ function dogeTeteObtient(){ // la tête pour SHAPES.doge : celle de l'ouvrier si
   if(DOGE_OUV.pret){const p=DOGE_OUV.pret;DOGE_OUV.pret=null;DOGE_OUV.etat='servi';return dogeTete(p);}
   if(DOGE_OUV.w){dogeOuvFin();DOGE_OUV.etat='devance';}
   const t0=performance.now(),G=dogeTete();DOGE_OUV.msFil=Math.round(performance.now()-t0);return G;}
-setTimeout(dogeOuvrier,DOGE_OUV_MS);
+if(/[?&]doge=ancien/.test(location.search))setTimeout(dogeOuvrier,DOGE_OUV_MS); // (2026-10-26) le DOGE est redessiné en poly (SHAPES.doge) : la tête sculptée ne sert plus qu'à `?doge=ancien` — l'ouvrier ne la calcule plus pour rien au menu
 window.dbgDoge=function(q){ // (banc) l'OUVRIER DU DOGE — voir plus haut
   const T=SHAPES.doge._tete;
   if(q==='compare'){if(!T)return 'pas encore de tete';const R=dogeTete(),oct=a=>new Uint8Array(a.buffer,a.byteOffset,a.byteLength),

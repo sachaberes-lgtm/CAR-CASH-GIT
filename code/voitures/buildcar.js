@@ -3,6 +3,61 @@
 // garage (GAR.vD, cdx…) passait en NaN et toute l'image 3D sortait NOIRE. Le joueur n'y arrive pas (equippedCar, garageListe et
 // l'inventaire écartent les retirées) : c'est le filet. Une retirée qui garde sa fiche (LA POUPÉE, LA DAYTONA…) se construit comme avant.
 function carFicheOk(s){return !!s&&s.w>0&&s.h>0&&s.l>0;}
+/* LES 29 RÉFÉRENCES DE LÉO (25/10 : « à ne pas toucher », le langage visuel du jeu) : la traduction ci-dessous ne les regroupe jamais. Noms sans accent ni ponctuation.
+   (26/10) + LE COMBI : sa forme « auto-04 » validée par Léo est FIGÉE (voir combi.js) — ~20 600 triangles dont ~8 700 de décor reposé ; la passe ÷2 l'abîmerait. */
+const LANGAGE_REF=new Set(['LE COMBI','LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','LA CERISE','LE SAMOURAI','L ORIGAMI','ROSSO 40','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
+/* LA TRADUCTION AU LANGAGE DU JEU (25/10, Léo : « quand les voitures ont trop de facettes, tu divises par deux le nombre de facettes » ; avant : « les traduire pour que ce soit comme les autres, mais que leur modèle soit toujours ressenti, juste ajusté ») —
+   PAR DÉFAUT depuis la v912 ; `?langage=0` la coupe. Une caisse qui dépasse 12 000 triangles (tes références en font ~5 000) voit sa PEINTURE regroupée en grandes facettes planes : tous les sommets d'une même case de grille n'en font plus qu'un, au centre de leur
+   groupe, les triangles qui s'effondrent disparaissent. La taille de la case est CHERCHÉE (recherche par dichotomie, mémorisée par voiture) pour que la caisse entière tombe à la MOITIÉ de ses triangles, sans dépasser 45 cm. La silhouette reste celle de la
+   voiture, une facette = une couleur (la moyenne de ses sommets). SEULE la peinture (laque 44, nacre 70, métallisé 90) est regroupée : feux, chrome, grilles, plastiques, verre, roues et petites pièces (< 25 cm) gardent leurs détails. Jamais sur tes 29 RÉFÉRENCES
+   (le langage visuel du jeu), ni sur le Baroudeur (sa coque est dans la même pièce que ses détails). Appelée juste avant `caisseSoude()`. */
+const LANG_CACHE=new Map();
+function traduisGroupe(spec,corps,tout){   // corps : le groupe dont les enfants directs sont les pièces de la caisse ; tout : la caisse entière (roues, détails…) — dans le jeu carBody et carGroup, dans la liste des voitures le même groupe
+  let ON=true;try{ON=!/[?&]langage=0/.test(location.search);}catch(e){}
+  if(!ON||!spec||spec.shape==='wrangler')return;   // le Baroudeur : sa coque et ses détails sont dans la même pièce, on n'y touche pas
+  const nm=String(spec.name).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();
+  if(LANGAGE_REF.has(nm))return;
+  tout.updateMatrixWorld(true);
+  let Tc=0;tout.traverse(o=>{if(o.isMesh&&o.geometry&&o.geometry.attributes.position&&!o.userData.sol&&!o.userData.noShadow&&o.material&&!Array.isArray(o.material)&&!o.material.transparent){const g=o.geometry;Tc+=g.index?g.index.count/3:g.attributes.position.count/3;}});
+  if(Tc<=12000)return;
+  const inv=new THREE.Matrix4().copy(corps.matrixWorld).invert(),M=new THREE.Matrix4(),P=new THREE.Vector3(),pein=[];
+  for(const o of corps.children){
+    if(!o.isMesh||!o.geometry||!o.geometry.attributes.position||o.userData.sol||o.userData.noShadow||!o.material||Array.isArray(o.material))continue;
+    {const tg=o.material.userData&&o.material.userData.g;   // matière TAGUÉE (la liste des voitures) : peinture 'p', métallisé 'k', nacre 'n'
+      if(tg!==undefined&&tg!==null){if(!(tg==='p'||tg==='k'||tg==='n'))continue;}
+      else{if(o.material.isMeshBasicMaterial)continue;   // les FEUX (matière émissive) : on n'y touche pas
+        const sh=o.material.shininess;if(!(sh===44||sh===70||sh===90))continue;}}   // SEULE la peinture (laque 44, nacre 70, métallisé 90)
+    const g=o.geometry;g.computeBoundingBox();const bb=g.boundingBox;if(bb.min.distanceTo(bb.max)*Math.max(o.scale.x,o.scale.y,o.scale.z)<.25)continue;   // les petites pièces restent
+    M.multiplyMatrices(inv,o.matrixWorld);const pos=g.attributes.position,n=pos.count,W=new Float32Array(n*3);
+    for(let v=0;v<n;v++){P.fromBufferAttribute(pos,v).applyMatrix4(M);W[v*3]=P.x;W[v*3+1]=P.y;W[v*3+2]=P.z;}
+    pein.push({o:o,W:W,n:n,ix:g.index,col:g.attributes.color,nT:g.index?g.index.count/3:n/3});
+  }
+  if(!pein.length)return;
+  const cluster=(m,cell)=>{const id=new Int32Array(m.n),cl=new Map();let k=0;
+    for(let v=0;v<m.n;v++){const key=((Math.round(m.W[v*3]/cell)+2048)*4096+(Math.round(m.W[v*3+1]/cell)+2048))*4096+(Math.round(m.W[v*3+2]/cell)+2048);let c=cl.get(key);if(c===undefined){c=k++;cl.set(key,c);}id[v]=c;}
+    return {id:id,k:k};};
+  const apres=cell=>{let t=0;for(const m of pein){const {id}=cluster(m,cell);for(let q=0;q<m.nT;q++){const a=id[m.ix?m.ix.getX(q*3):q*3],b=id[m.ix?m.ix.getX(q*3+1):q*3+1],c=id[m.ix?m.ix.getX(q*3+2):q*3+2];if(a!==b&&b!==c&&a!==c)t++;}}return t;};
+  let cell=LANG_CACHE.get(spec.name);
+  if(!cell){let Tp=0;for(const m of pein)Tp+=m.nT;const cible=Tc/2-(Tc-Tp);   // les triangles de peinture qu'il faut garder pour que TOUTE la caisse tombe à la moitié
+    let lo=.05,hi=.45;if(cible<=0){cell=hi;}else{for(let i=0;i<8;i++){const mid=(lo+hi)/2;if(apres(mid)>cible)lo=mid;else hi=mid;}cell=hi;}
+    LANG_CACHE.set(spec.name,cell);}
+  for(const m of pein){
+    const o=m.o,cl=cluster(m,cell),id=cl.id,X=new Float32Array(cl.k*4),C=new Float32Array(cl.k*3);
+    for(let v=0;v<m.n;v++){const c=id[v];X[c*4]+=m.W[v*3];X[c*4+1]+=m.W[v*3+1];X[c*4+2]+=m.W[v*3+2];X[c*4+3]++;}
+    const Pn=[],Cn=[];
+    for(let t=0;t<m.nT;t++){const a=id[m.ix?m.ix.getX(t*3):t*3],b=id[m.ix?m.ix.getX(t*3+1):t*3+1],c=id[m.ix?m.ix.getX(t*3+2):t*3+2];if(a===b||b===c||a===c)continue;
+      let cr=0,cg=0,cb=0;const va=m.ix?m.ix.getX(t*3):t*3,vb=m.ix?m.ix.getX(t*3+1):t*3+1,vc=m.ix?m.ix.getX(t*3+2):t*3+2;
+      for(const q of [a,b,c]){const k=q*4;Pn.push(X[k]/X[k+3],X[k+1]/X[k+3],X[k+2]/X[k+3]);}
+      if(m.col)for(const v of [va,vb,vc]){cr+=m.col.getX(v);cg+=m.col.getY(v);cb+=m.col.getZ(v);}
+      if(m.col)for(let u=0;u<3;u++)Cn.push(cr/3,cg/3,cb/3);   // une facette = UNE couleur (la moyenne de ses trois sommets) : plus de dégradé dans un plan
+    }
+    if(Pn.length<9)continue;
+    const ng=new THREE.BufferGeometry();ng.setAttribute('position',new THREE.Float32BufferAttribute(Pn,3));if(m.col)ng.setAttribute('color',new THREE.Float32BufferAttribute(Cn,3));ng.computeVertexNormals();
+    const nm2=new THREE.Mesh(ng,o.material);nm2.castShadow=o.castShadow;nm2.receiveShadow=o.receiveShadow;nm2.renderOrder=o.renderOrder;nm2.userData=Object.assign({},o.userData);
+    corps.remove(o);corps.add(nm2);
+  }
+}
+function traduisLangage(spec){traduisGroupe(spec,carBody,carGroup);}
 function buildCar(spec){
   if(!carFicheOk(spec)){console.warn('CASH CAR : « '+((spec&&spec.name)||'?')+' » n\'a pas de fiche (caisse retirée) — LA HONTE à la place');spec=CARS[0];}
   // ⚠ LES PIÈCES LOW-POLY SE LIBÈRENT : chaque caisse a SA géométrie (plusieurs milliers de facettes)
@@ -70,7 +125,7 @@ function buildCar(spec){
   // L'ATELIER LOW-POLY : `K.kit(pal)` ouvre un chantier (voir lpKit), `K.commit` le pose — une
   // géométrie par matière, et les matières PARTAGÉES par toute la caisse, roues comprises.
   const lpM={},lpMatC=g=>lpM[g]||(lpM[g]=lpMat(g,FSTU.on)); // (2026-10-20) `?finition=studio` : la tôle en finition studio (voir finition.js)
-  const kit=pal=>lpKit(peintPal(pal)); // la PEINTURE de la boutique passe par la palette (voir `peintPal`)
+  const kit=pal=>{const k9=lpKit(peintPal(pal));k9.forme=spec.shape||'gt';return k9;}; // la PEINTURE de la boutique passe par la palette (voir `peintPal`) · `forme` : le gabarit qui tient le chantier (les facettes larges, voir facettes-larges.js)
   const lpPrims=[];let lpZmin=1e9; // (pots) les pièces simples de la caisse et sa poupe réelle, relevées au passage
   const commit=kt=>{const gs=kt.ech?kt.done():echRetire(kt.done(),kt.prims,spec.shape||'gt');for(const g in gs){gs[g].computeBoundingBox();lpZmin=Math.min(lpZmin,gs[g].boundingBox.min.z);
     if(g!=='l')lpOmbre(gs[g],H9); // (2026-09-26, vague 2) l'ombre cuite (voir lpOmbre) — les feux émettent, ils n'en prennent pas
@@ -355,6 +410,7 @@ function buildCar(spec){
   if(bodyM.userData.mot)carGroup.traverse(function(o9){const m9=o9.material;if(o9.isMesh&&m9&&!Array.isArray(m9)&&m9.userData&&m9.userData.mot&&!MOT_FAIT.has(m9))try{motGreffe(m9,m9.userData.mot);}catch(e){}}); // (2026-10-16) un gabarit qui CLONE la tôle (l'épave : K.body.clone()) : le clone garde la couleur blanche, il reprend le motif
   if(finAreteOk())finCaisse(); // (2026-10-20, FINITION STUDIO) les drapeaux d'arête de la tôle, AVANT la soudure (voir finition.js)
   if(FSTU.on)finLaque(FSTU.garage); // le vernis profond si on est au garage
+  try{traduisLangage(spec);}catch(e){console.warn('langage',e);} // (25/10) ESSAI `?langage=1` : les caisses « hors langage » regroupées en grandes facettes (éteint par défaut)
   caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
   try{feuxLed(spec,hlM,tlM);}catch(e){console.warn('feux',e);} // (2026-10-20) l'étude des feux en LED, `?feux=1|2` (voir FEUXL) — sans paramètre, rien ne change
 }

@@ -41,7 +41,7 @@
     // (20/10) `kick: 12` = le dompteur de grosse caisse (5.) : les 11 morceaux où elle passe 15 dB au-dessus du reste à au moins un moteur (mesuré, 20 morceaux × 11 moteurs).
     'jeu:bleu-1540': { bas: -2, kick: 12 }, 'jeu:bleu-9664': { bas: -2, kick: 12 }, 'jeu:bleu-3392': { bas: -2 }, 'jeu:bleu-8154': { bas: -2 }, 'jeu:bleu-8042': { bas: -2, kick: 12 },
     'jeu:bleu-5095': { bas: -2 }, 'jeu:bleu-6167': { bas: -1, kick: 12 }, 'jeu:bleu-2221': { bas: -.5, kick: 12 }, 'jeu:pal-neon-noir': { sub: -5, bas: -2 }, 'jeu:pal-aura-30': { bas: -2 },
-    'jeu:bleu-6562': { kick: 12 }, 'jeu:bleu-4830': { kick: 12 }, 'jeu:bleu-9688': { kick: 12 }, 'jeu:bleu-1275': { kick: 12 }, 'jeu:bleu-6104': { kick: 12 }, 'jeu:pal-asphalte': { kick: 12 }
+    'jeu:bleu-6562': { kick: 12 }, 'jeu:bleu-4830': { kick: 12 }, 'jeu:bleu-1275': { kick: 12 }, 'jeu:bleu-6104': { kick: 12 }, 'jeu:pal-asphalte': { kick: 12 }
   };
   var KICK_OFF = /[?&]kick=0\b/.test(String((W.location && W.location.search) || ''));   // (20/10) `?kick=0` : le dompteur de grosse caisse n'est pas construit (pour comparer à l'oreille)
   var MB = { PRESETS: PRESETS, FORCE: 1, CREUX: -2 };
@@ -122,7 +122,8 @@
 
   MB.cree = function (ac) {
     var e = ac.createGain(), hp = bq(ac, 'highpass', 22, .7), sub = bq(ac, 'lowshelf', 65, null, 0), bas = bq(ac, 'peaking', 110, .9, 0), cr = bq(ac, 'peaking', 280, 1, 0), rc = ac.createGain(), s = ac.createGain();
-    e.connect(hp); hp.connect(sub); sub.connect(bas); bas.connect(cr); cr.connect(rc); rc.connect(s);
+    var m1 = bq(ac, 'peaking', 850, .9, 0), m2 = bq(ac, 'peaking', 1800, .9, 0);   // (22/10, le MOTEUR VIVANT) les deux creux dynamiques : là où le moteur couvre la musique (mesuré), à 0 dB tant que `moteur()` n'y touche pas
+    e.connect(hp); hp.connect(sub); sub.connect(bas); bas.connect(cr); cr.connect(m1); m1.connect(m2); m2.connect(rc); rc.connect(s);
     var B = { entree: e, sortie: s, cle: '', estBrut: false, enCourse: false, p: { cle: '', sub: 0, bas: 0, kick: 0 } }, K = null, kD = null, kM = null;
     function pose(tau) { var t = ac.currentTime, f = B.estBrut ? 0 : MB.FORCE; vers(sub.gain, B.p.sub * f, t, tau); vers(bas.gain, B.p.bas * f, t, tau);
       if (K) { var on = !!B.p.kick && f > 0; vers(kD.gain, on ? 0 : 1, t, tau); vers(kM.gain, on ? 1 : 0, t, tau); } }   // (le dompteur : en `brut`, le chemin direct d'avant)
@@ -134,6 +135,8 @@
     B.brut = function (b) { B.estBrut = !!b; pose(.08); };
     B.force = function (f) { MB.FORCE = Math.max(0, Math.min(1.5, +f || 0)); pose(.08); };
     B.course = function (on) { on = !!on; if (on === B.enCourse) return; B.enCourse = on; vers(cr.gain, on ? MB.CREUX : 0, ac.currentTime, .1); };
+    /* (22/10, session SON) LE CREUX DU MOTEUR VIVANT : `p` (0..1) = la présence du moteur ; la musique s'efface de `prof` dB à 850 Hz (et 70 % à 1 800 Hz) pendant que le moteur parle — lissé par l'appelant (~250 ms). Mesuré : à moteur = musique − 7 dB, c'est 630-2 500 Hz que le moteur couvre. */
+    B.moteur = function (p, prof) { var t = ac.currentTime, d = (prof == null ? 3.5 : prof) * Math.max(0, Math.min(1, p || 0)); vers(m1.gain, -d, t, .25); vers(m2.gain, -d * .7, t, .25); };
     B.recul = function (db, d) { B.nRecul = (B.nRecul || 0) + 1; var t = ac.currentTime; vers(rc.gain, Math.pow(10, (db || -3) / 20), t, .01); try { rc.gain.setTargetAtTime(1, t + (d || .4), .13); } catch (x) {} };
     B._k = function () { return K; };   // (le banc)
     B.etat = function () { return { cle: B.cle, brut: B.estBrut, force: MB.FORCE, sub: +sub.gain.value.toFixed(2), bas: +bas.gain.value.toFixed(2), kick: K ? { plafond: B.p.kick, actif: kM.gain.value > .5, joue: B.g, seuil: K.teff == null ? null : +K.teff.toFixed(1), pris: +K.dc.reduction.toFixed(1), avant: +K.a.toFixed(1) } : null, course: B.enCourse, creux: +cr.gain.value.toFixed(2), recul: +rc.gain.value.toFixed(2), nRecul: B.nRecul || 0 }; };

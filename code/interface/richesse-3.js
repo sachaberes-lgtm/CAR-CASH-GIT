@@ -25,7 +25,7 @@ function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la mat
   const montreArg=t==='montre'&&Math.random()<.5;m.material=t==='montre'?(montreArg?RICH.M.montreArg:RICH.M.montre):m.material; // la dorée ou l'argentée
   if(t==='champagne'){const k9=Math.floor(Math.random()*RICH.G.vins.length);m.geometry=RICH.G.vins[k9];m.material=RICH.M.vins[k9];} // (2026-10-16) le champagne ou l'un de ses quatre cousins
   if(t==='fleur'){m.geometry=RICH.G.fleurs[Math.floor(Math.random()*RICH.G.fleurs.length)];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige
-  if(t==='billet')m.material=mat||RICH.M.billets[Math.floor(Math.random()*RICH.M.billets.length)]; // (2026-10-10) une valeur, une couleur
+  if(t==='billet'){m.material=mat||RICH.M.billets[Math.floor(Math.random()*RICH.M.billets.length)];o.bi=mat?TC_BIL_100:tcBilTire();o.wr=tcBilWear();} // (2026-10-10) une valeur, une couleur · (2026-10-25) o.bi : sa valeur pour les cubes, tirée comme celle de la traînée
   o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=rr(D.s);o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
   o.fv=.4;o.mode=0;o.ec=t==='liasse'&&Math.random()<.5?.42+Math.random()*.45:0; // une liasse sur deux CRAQUE en vol (richEclate)
   const sp=rr(D.v)*(kv||1);RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();
@@ -172,6 +172,8 @@ function richCoup(P,n,d,mu,combo){
 // ---- CHAQUE IMAGE (appelé par chuteTapeTick) ----
 function richTick(dt,C){
   if(!RICH.pret)return;richChauffeTick(C);
+  if(!RICH.bc){if(!TC_BIL)tcBilBati();RICH.bc=tcPool(960,'s');} // (2026-10-25, Léo : « dans le menu ciel, les mêmes billets que la traînée ») les billets éjectés sont les CUBES de la traînée : la même piscine (même programme : 0 compilé de plus), recomposée à chaque image
+  RICH.bc.n=0;if(RICH.chauffe>0)tcBoxM(RICH.bc,RICH.v2.set(0,-99,0),RICH.q,1e-4,0,0,0,1e-4,1e-4,1e-4,0,0,0); // sous l'écran titre : un cube minuscule, pour que le programme se compile là
   const U=RICH_U,cp=camera.position;U.uT.value+=dt;U.uSunDir.value.copy(SUN_DIR);U.uSunCol.value.copy(sun.color).multiplyScalar(Math.max(.6,sun.intensity));
   U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);U.uEnv.value=envTex;
   // les objets
@@ -196,12 +198,14 @@ function richTick(dt,C){
       if(pp>0&&!o.popS){o.popS=1;for(const f of RICH.fl)if(f.age>=f.vie){f.p.copy(m.position);f.v.set(0,.6,0);f.age=0;f.vie=.22;f.r0=o.s*.3;f.r1=o.s*1.7;f.c.setRGB(1,.78,.9);break;} // un éclat blanc rosé
         const t9=performance.now();if(SONV2&&!(RICH.popT>t9-45)){RICH.popT=t9;try{const i9=RICH.popI=(RICH.popI||0)+1;if(richSon())sfx('riche.coeur',{st:RICH_MEL[(i9-1)%RICH_MEL.length],vol:-4});else sfx('ui.appui',{vol:-7});}catch(e){}}}} // (2026-10-16) et son « plop » : chaque pop prend le degré suivant de la gamme — la nuée qui éclate un à un CHANTE (pas plus d'un tous les 45 ms)
     m.scale.setScalar(Math.max(1e-4,o.s*o.fr*pop*fin*pres*bt));m.visible=pres>0;
+    if(t==='billet'){m.visible=false;if(pres>0)tcBilletMesh(RICH.bc,m,o.bi,TC_PSEQ[((o.age*3+o.ph)|0)%6],o.wr);} // le billet éjecté : ses cubes, posés là où sa physique le met
     if(o.gl){ // LE BLING : une facette qui renvoie le soleil vers l'œil
       RICH.cam.copy(cp).sub(m.position).normalize();RICH.H.copy(SUN_DIR).add(RICH.cam).normalize();let g=0;
       for(const nl of o.nl){RICH.v2.set(nl[0],nl[1],nl[2]).applyQuaternion(m.quaternion);const c=RICH.v2.dot(RICH.H);if(c>0)g=Math.max(g,Math.pow(c,D.gp||(D.gem?60:D.flip==='y'?64:110)));}
       if(D.gem)g=Math.max(g,.18+.18*Math.sin(o.age*23+o.ph)); // la gemme vit toujours un peu
       const s=o.gl.s;g*=pres;if(g>.04){s.visible=true;s.position.copy(m.position).addScaledVector(RICH.cam,o.s*1.1);const sz=o.s*fin*(D.gs||(D.gem?3.4:D.flip==='y'?3.1:2.6))*(.45+g*1.1);s.scale.set(sz,sz,1);s.material.opacity=Math.min(1,g*1.4)*fin;}
       else s.visible=false;}}}
+  tcFinY(RICH.bc);
   richChaineTick(dt,cp); // les chaînes d'or
   // la flamme
   for(const f of RICH.fl){if(f.age>=f.vie){if(f.s.visible)f.s.visible=false;continue;}f.age+=dt;if(f.age<0)continue;const u=f.age/f.vie;if(u>=1){f.s.visible=false;continue;}
@@ -230,6 +234,7 @@ function richTick(dt,C){
 }
 function richRange(){ // on quitte le ciel : tout se range
   if(!RICH.pret)return;for(const t in RICH.libres)for(const o of RICH.libres[t]){o.on=false;o.m.visible=false;if(o.gl){o.gl.s.visible=false;o.gl.o=null;o.gl=null;}}
+  if(RICH.bc){RICH.bc.n=0;tcFinY(RICH.bc);} // les billets en cubes rentrent aussi
   if(RICH.ch)for(const c of RICH.ch){c.on=false;for(const m of c.links)m.visible=false;if(c.gl){c.gl.s.visible=false;c.gl.o=null;c.gl=null;}}
   for(const f of RICH.fl){f.age=f.vie=1;f.s.visible=false;}if(RICH.sp){RICH.sp.L.fill(0);RICH.sp.m.visible=false;RICH.sp.vivant=0;}
 }
@@ -304,36 +309,37 @@ const CHUTE_NU=[
   [ 900,1500,240,0,.6,-760],[1500,1700,260,4,.5,-800],[ 800,2600,330,4,.4,-1150],
   // à gauche et tout autour (l'orbite au doigt ne tombe jamais sur un ciel vide)
   [-600,1300,160,0,1,-700],[-1000,400,140,1,1,-380],[-700,-600,150,3,1,-450],[ 300,-1000,180,0,1,-520],[1200,-400,160,1,1,-330],[-200,-1500,220,4,1,-640],
-  // (titre v5) LES TOURS DE L'HORIZON : de grands cumulus bourgeonnants à 8-9 km, posés sur la mer, immobiles, noyés dans l'air — l'ÉCHELLE
-  // du ciel (essayé : des cumulonimbus à 5 km = des CHAMPIGNONS atomiques qui mangeaient le cadre ; pas d'enclume ici)
-  [ 500,8600,560,4,0,-250],[3000,8200,620,6,0,-300],[-1800,8000,480,5,0,-330],
+  // (titre v5) LES TOURS DE L'HORIZON : de grands cumulus bourgeonnants à 8-9 km, posés sur la mer — (2026-10-25, Sacha : « l'arrière-plan
+  // ne tombe pas du tout, ça fait deux nuages différents ») un TRÈS LÉGER souffle (v .12) au lieu d'un arrêt net : à cette distance la
+  // parallaxe reste presque invisible (coût nul), mais le fond n'a plus l'air FIGÉ à côté du premier plan qui tombe
+  [ 500,8600,560,4,.12,-250],[3000,8200,620,6,.12,-300],[-1800,8000,480,5,.12,-330],
   // (2026-10-07, campagne de debug) deux tours étaient posées à 10,8 et 12,5 km — AU-DELÀ du plan lointain (camera.far 9800) : jamais
   // dessinées, juste payées. Retirées. Le 7e champ (2) rend leurs deux tirages de rotation : la tour de face garde EXACTEMENT sa silhouette.
-  [1500,9100,700,5,0,-200,2],
+  [1500,9100,700,5,.12,-200,2],
   /* (2026-10-20, Léo : « dans le menu ciel, les nuages du fond encore plats ») LES BANCS DU MILIEU : seize cumulus en cubes posés sur la mer entre la caisse et les tours de l'horizon
-     (2,4-6,2 km, tout autour, immobiles) — le tapis ne fait plus seul tout le fond : des volumes à toutes les profondeurs, noyés dans l'air plus ils sont loin. Ajoutés en FIN de liste :
-     les silhouettes d'avant ne changent pas (les tirages de rotation suivent l'ordre). */
-  [-403,5004,362,0,0,-636],
-  [1725,5129,423,1,0,-641],
-  [2334,2328,165,3,0,-619],
-  [2480,968,207,2,0,-597],
-  [2555,164,217,0,0,-678],
-  [4198,-2200,242,1,0,-612],
-  [2009,-2007,236,3,0,-618],
-  [2521,-4895,299,0,0,-708],
-  [50,-4497,278,2,0,-637],
-  [-793,-2414,204,1,0,-597],
-  [-2404,-2100,267,3,0,-703],
-  [-5010,-1724,372,0,0,-676],
-  [-4192,-380,332,1,0,-592],
-  [-5081,2738,371,2,0,-618],
-  [-2765,2701,327,3,0,-621],
-  [-1335,2408,206,0,0,-718]];
+     (2,4-6,2 km, tout autour) — le tapis ne fait plus seul tout le fond : des volumes à toutes les profondeurs, noyés dans l'air plus ils sont loin. Ajoutés en FIN de liste :
+     les silhouettes d'avant ne changent pas (les tirages de rotation suivent l'ordre). (2026-10-25) v .16 : un souffle léger, plus perceptible qu'aux tours (plus proches) mais toujours doux. */
+  [-403,5004,362,0,.16,-636],
+  [1725,5129,423,1,.16,-641],
+  [2334,2328,165,3,.16,-619],
+  [2480,968,207,2,.16,-597],
+  [2555,164,217,0,.16,-678],
+  [4198,-2200,242,1,.16,-612],
+  [2009,-2007,236,3,.16,-618],
+  [2521,-4895,299,0,.16,-708],
+  [50,-4497,278,2,.16,-637],
+  [-793,-2414,204,1,.16,-597],
+  [-2404,-2100,267,3,.16,-703],
+  [-5010,-1724,372,0,.16,-676],
+  [-4192,-380,332,1,.16,-592],
+  [-5081,2738,371,2,.16,-618],
+  [-2765,2701,327,3,.16,-621],
+  [-1335,2408,206,0,.16,-718]];
 /* LES FORMES D'ABORD (titre v3) : les surfaces fines des cinq gabarits du titre sont demandées à l'ouvrier AU CHARGEMENT DU SCRIPT, avant
    les 96 finesses du ciel de coton (cotonInit, au premier newTrack) — sinon elles attendaient 10 à 15 s derrière elles, et le titre
    montrait pendant ce temps des ÉBAUCHES en grappes de boules. Aucune ébauche ici : un cumulus du titre n'existe à l'image que fini. */
 function chuteFormes(){
-  if(CHUTE.geo)return;const rg=mulberry32(0xC4A5),G9=[['mediocris',2],['humilis',2],['humilis',1],['mediocris',1],['congestus',2],['mediocris',2],['congestus',2]],geo=[];
+  if(CHUTE.geo)return;const rg=mulberry32(0xC4A5),G9=[['mediocris',3],['humilis',3],['humilis',2],['mediocris',2],['congestus',3],['mediocris',3],['congestus',3]],geo=[]; /* (2026-10-25, Sacha : « ça manque d'un truc, rajoute les petits carrés particules, qu'il y a dans le niveau nuage de base ») finesse +1 cran : les mêmes voxels que la course de près, pas les blocs plus grossiers d'avant */
   for(const q of G9){const S=cumulus8(q[0],rg);S.seed=Math.floor(rg()*997);const dyU=-(S.base+S.top)*.5,e={g:null};geo.push(e);
     nuage8Async(S,N8_FIN[q[1]],function(r9){const g2=cotonBuf(r9);g2.translate(0,dyU,0);g2.computeBoundingSphere();e.g=g2;
       if(r9.skin&&NUSKIN.on)e.skg=nuSkinGeo(r9.skin,dyU); // (2026-10-21) la PEAU transparente des cumulus du titre aussi
@@ -352,7 +358,34 @@ function chuteCumulus(){
     const e=geo[d[3]],m=new THREE.Mesh(e.g||vide,mT);m.visible=false;m.castShadow=false;m.receiveShadow=false;
     m.scale.set(d[2],d[2],d[2]);m.rotation.y=rg()*6.2832;scene.add(m);const dd=Math.hypot(d[0],d[1]);
     {const c9={m:m,e:e,a:d[0],b:d[1],r:d[2],v:d[4],y:d[5],lo:-(1.2*dd+1.3*d[2]),hi:.1*dd+1.3*d[2]};N.push(c9);if(e.skg)chuteSkinPose(c9);}}
+  for(let i=0,n9=CHUTE_PAS!=null?CHUTE_PAS:([4,6,7][PAL.n]||6);i<n9;i++){const e=geo[CHUTE_PAS_G[i%CHUTE_PAS_G.length]],m=new THREE.Mesh(e.g||vide,mT);m.visible=false;m.castShadow=false;m.receiveShadow=false;scene.add(m); /* LES NUAGES DE PASSAGE (voir plus bas), en fin de liste */
+    const c9={m:m,e:e,pas:true,i:i,a:0,b:0,r:1,v:0,y:0,lo:0,hi:0,D:0,px:0,pz:0,vp:1};N.push(c9);if(e.skg)chuteSkinPose(c9);}
   CHUTE.nu=N;
+}
+/* ===== LES NUAGES DE PASSAGE (2026-10-25, Sacha : « je veux qu'on ait l'impression que la voiture tombe vraiment : il faut que les nuages montent, comme si elle les
+   croisait dans sa chute — un petit générateur de nuages en bas qui génère des nuages ascendants ») =====
+   Les cumulus du titre (CHUTE_NU) tiennent la composition : posés à 330 m et plus, à 14 m/s, ils ne PASSENT pas — on ne sentait pas la chute. Ceux-ci la font :
+   quelques cumulus de plus (4 / 6 / 7 selon le palier du téléphone, 4 au plus debout), nés SOUS le cadre, à 40-380 m derrière la caisse dans l'axe du regard (jamais entre l'objectif et
+   elle), qui montent tous à la vitesse de la chute (CHUTE_P.pasV, 100 m/s par défaut — 65 au premier essai, « plus vite » de Sacha) — les proches traversent l'écran en ~0,7 s, les lointains en ~3 s, la parallaxe fait
+   la profondeur — et renaissent sous le cadre, ailleurs et d'une autre taille, une fois sortis par le haut. Au piqué (JOUER) ils filent comme les autres (vk), sans renaître
+   (l'objectif regarde alors vers le bas : « sous le cadre » serait en plein milieu de l'image). Mêmes formes (les gabarits du titre), même matière (CHUTE.nuM, la lumière
+   de l'heure) : zéro programme de plus, quelques appels de dessin. « Réduire les animations » : ils montent au pas des autres cumulus.
+   `?pas=0` les coupe, `?pas=n` en met n (16 au plus) ; dbgChute({pasV:…}) règle leur vitesse. */
+const CHUTE_PAS=(function(){const m=/[?&]pas=(\d+)/.exec(location.search);return m?Math.min(16,+m[1]):null;})(); // null : le nombre du palier (voir chuteCumulus)
+const CHUTE_PAS_G=[1,0,2,3]; // les gabarits : humilis et mediocris (les congestus, des tours, restent à l'horizon)
+function chutePasNeuf(c,partout){ // (re)naissance d'un nuage de passage, dans le champ de l'objectif : sous le cadre (n'importe où dedans au premier tirage)
+  const cp=camera.position,C0=CHUTE.C,R=Math.random;let fx=C0.x-cp.x,fz=C0.z-cp.z;const fl=Math.hypot(fx,fz)||1;fx/=fl;fz/=fl; // le regard, à plat
+  const tV=Math.tan(camera.fov*Math.PI/360),tH=tV*camera.aspect,D=fl+40+340*R()*R();           // la distance à l'objectif : plus souvent près
+  const a=(R()*2-1)*D*tH,r=D*(.07+.11*R());                                                    // de côté, dans le champ · le rayon : 4 à 10° vus d'ici
+  c.px=cp.x+fx*D-fz*a;c.pz=cp.z+fz*D+fx*a;c.r=r;c.D=D;c.vp=.85+.3*R();c.m.scale.set(r,r,r);c.m.rotation.y=R()*6.2832;
+  const hv=D*tV+1.3*r;c.y=cp.y-C0.y-hv+(partout?2*hv*R():0);                                  // c.y : la hauteur par rapport à l'ancre, comme les autres cumulus
+}
+function chutePasTick(c,dt,vk,go,vis){ // un nuage de passage, chaque image (chuteRender) : il monte ; sorti par le haut, il renaît en bas
+  if(!c.D)chutePasNeuf(c,true);
+  const P=CHUTE_P,lent=document.documentElement.getAttribute('data-reduced-motion')==='1',C0=CHUTE.C;
+  c.y+=(lent?P.vit:(P.pasV||26)*c.vp)*vk*dt;
+  if(!go&&C0.y+c.y-camera.position.y>c.D*Math.tan(camera.fov*Math.PI/360)+1.3*c.r)chutePasNeuf(c,false);
+  c.m.visible=vis&&!c.off&&!!c.e.g&&(camera.aspect>=1||c.i<4);c.m.position.set(c.px,C0.y+c.y,c.pz); /* debout, le champ est étroit : quatre au plus */
 }
 try{if(CHUTE_OK)chuteFormes();}catch(e){} /* (titre v3) au chargement : les formes du titre passent AVANT celles du ciel de coton dans la file de l'ouvrier */
 const CHUTE_RONDS=/[?&]ronds=1\b/.test(location.search); // `?ronds=1` rend les bancs de brume ronds du titre

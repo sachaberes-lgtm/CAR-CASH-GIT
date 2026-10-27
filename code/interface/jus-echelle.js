@@ -57,6 +57,10 @@ function juiceScreen(col,power,n){
   // l'aura restent — le fruit se lit toujours, sans giclée plein cadre.
   if(!juiceCx||REDUCED_MOTION)return;
   const W=juiceCv.width,H=juiceCv.height,cc=new THREE.Color(col),hsl=cc.getHSL({h:0,s:0,l:0}); // le CORPS : le fruit, SATURÉ
+  /* ===== LA TOILE NULLE (24/10, relecture : « toile du jus de largeur nulle pendant une transition iOS ») ===== innerWidth à 0 le temps
+     d'une transition : la goutte aurait un rayon 0, sa toile 0 px de large, et drawImage d'une toile nulle LÈVE dans juiceScreenTick, hors
+     de tout try et avant le rendu — chaque goutte vide figeait l'écran toute sa vie et bloquait les suivantes (preuve-jus-toile-nulle) */
+  if(!(W>0&&H>0))return;
   cc.setHSL(hsl.h,Math.max(hsl.s,.78),Math.min(.6,Math.max(.46,hsl.l)));const k2=cc.clone().lerp(JUS_BLANC,.38); // …et son CŒUR clair
   const cR=cc.r*255|0,cG=cc.g*255|0,cB=cc.b*255|0,kR=k2.r*255|0,kG=k2.g*255|0,kB=k2.b*255|0,corps='rgba('+cR+','+cG+','+cB+',.95)';
   const B9=Math.min(W,H); // (v3) la taille suit la plus petite dimension : même goutte debout ou couché
@@ -214,6 +218,7 @@ function heistFire(){
   showMsg('🚀 DÉCOLLAGE — TOUT ×2 ! ★','#ff3ec8');
 }
 function trickMsg(txt,tier){ // tier: 1 MONSTRE · 2 DOUBLE · 3 TRIPLE (ou true = mis en avant)
+  if(LEFIL.on){filTrick(txt,tier);return;} /* (2026-10-25, LE FIL) plus de verdict ni de carte au centre : la pastille unique le dit */
   if(TCTL.on){verdPousse(txt,tier);return;} // (vague 3) sur téléphone #trickBox est masqué (écran nu) : le verdict monte au COULOIR des annonces (verdSolde)
   // UN temps fort à la fois : un gros verdict (tier≥2) balaie les petits pops en cours ; sinon on plafonne à 2
   if(tier===2||tier===3){while(trickBox.firstChild)trickBox.firstChild.remove();}
@@ -257,6 +262,7 @@ function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteu
   flyV.copy(worldPos).project(camera);
   if(flyV.z>1)return; // derrière la caméra : rien à montrer
   if(SONV2&&!document.body.classList.contains('touch')){const m9=Math.min(4,n|0);for(let k=0;k<m9;k++){const i9=m9>1?Math.round(k*(n-1)/(m9-1)):0;sfx('billet.vole',{t:.58+i9*.045,st:sonPd(k)});}} // (console de son) sur téléphone .bill est masqué (écran nu) : pas de son sans image
+  if(LEFIL.on)return; /* (2026-10-25, LE FIL) le son est joué, mais plus de billets qui traversent l'écran : le compteur d'argent se met à jour seul */
   const x0=(flyV.x*.5+.5)*innerWidth,y0=(-flyV.y*.5+.5)*innerHeight;
   const r=elMoney.getBoundingClientRect(),x1=r.left+r.width/2,y1=r.top+r.height/2;
   for(let i=0;i<n;i++){
@@ -308,6 +314,11 @@ function addTrick(id,txt,val,tier,raw,free){ // raw : échelles qui grimpent dé
 }
 function respawn(){
   dmtCoupe();
+  /* ===== RIEN DE LA PARTIE D'AVANT (24/10, relecture : « une partie arrêtée en pleine figure sur la route ou en pleine descente d'une
+     pose ») ===== pause → RECOMMENCER / QUITTER, ou mort au sol, pendant le bond d'une figure (FR) ou les 0,1-0,5 s où la pose finit sa
+     descente (POSE_F) : la partie suivante finissait et PAYAIT l'ancienne figure au départ, et POSE_F resté posé refusait le saut nitro,
+     le décollage au manche et les figures au sol du GLISSER jusqu'au vol suivant (preuve-reste-figure.cjs). */
+  POSE_F=null;try{frCoupe();}catch(e){}
   try{slideRaz();}catch(e){} // (SLIDE) replacé : le frottement en cours est perdu
   try{bkSkateRaz();BKV.yaw=0;BKV.gl=0;BKV.gk=0;}catch(e){} // (ICE SKATE) la glisse aussi · (2026-10-15 soir) et la glissade sur le verglas
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) replacé : la tension du vol ne survit pas

@@ -152,7 +152,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
   const Q=c=>ancien?'true':c; // (passe perf) chaque saut de calcul : `true` sur l'ANCIEN chemin (le banc compare au même code)
   m.onBeforeCompile=function(sh){sh.uniforms.uT9=CITY.uT;sh.uniforms.uWet9=ROAD_U.uWet;sh.uniforms.uCour9=CITY.uC;sh.uniforms.uPied9=CITY.uPied;sh.uniforms.uPiedC9=CITY.uPiedC;if(!ancien){sh.uniforms.uLum9=CITY.uL;}
     {sh.uniforms.uJ9=CITY.uJ;sh.uniforms.uJHor9=skyU.uJHor;sh.uniforms.uJMid9=skyU.uJMid;} // le jour, et le ciel que le verre renvoie
-    if(GTA9)sh.uniforms.uGta9=CITY.uGta;
+    if(GTA9){sh.uniforms.uGta9=CITY.uGta;sh.uniforms.uAcc9=VV.uAcc;sh.uniforms.uCamE9=VIT.uCam;sh.uniforms.uEmb9=CITY.uEmb;} // (2026-10-20, VILLE EMBELLIE) l'accent de la teinte, l'œil, l'interrupteur des ajouts (voir ville-embellie.js)
     sh.vertexShader=(ancien?'':'#undef USE_SHADOWMAP\n')+sh.vertexShader.replace('#include <common>','#include <common>\n'+DECL+(ancien?'':'\nuniform vec4 uLum9[4];\n#if defined(USE_FOG)&&!defined(FOG_EXP2)\nuniform float fogFar;\n#endif\n'))
       .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\n'+
         'vec3 sc9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));'+
@@ -164,7 +164,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
         'for(int i=0;i<4;i++)if(distance(w9,uLum9[i].xyz)<uLum9[i].w+r9)proche9=true;}\n#else\nbool proche9=true;\n#endif\n'))
       .replace('#include <lights_lambert_vertex>',ancien?'#include <lights_lambert_vertex>':'vLightFront=vec3(0.);vIndirectFront=vec3(0.);\nif(!loin9){\n'+VILLE_LLV+'\n}');
     if(!ancien)sh.fragmentShader='#undef USE_SHADOWMAP\n'+sh.fragmentShader;
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9,uPied9;uniform vec3 uPiedC9;'+DECL+('uniform float uJ9;uniform vec3 uJHor9,uJMid9;')+(GTA9?'uniform float uGta9;':''))
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9,uWet9,uCour9,uPied9;uniform vec3 uPiedC9;'+DECL+('uniform float uJ9;uniform vec3 uJHor9,uJMid9;')+(GTA9?'uniform float uGta9,uEmb9;uniform vec3 uAcc9,uCamE9;':''))
       .replace('#include <fog_fragment>',
         /* LES FENÊTRES v2 (2026-09-26) — chaque tour a sa PERSONNALITÉ, tirée de sa graine : travée 2,6-4,4 m, étage 3,5-4,4 m, taux
            d'allumage 22-62 %, habitation (ambre chaud) ou bureaux (blanc-cyan froid, fenêtres en BANDEAU allumées par plateaux entiers).
@@ -195,7 +195,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
           'float F9=min(.04+.96*pow(1.-max(dot(N9,V9),0.),5.),.5);vec3 R9=reflect(-V9,N9);'+ // (GTA) le VERRE : Fresnel de Schlick
           'vec3 sk9=mix(fo9*1.1+uPiedC9*1.4*uPied9,fo9*.3,smoothstep(-.05,.45,R9.y));'+ // ce qu'il renvoie : la lueur de la ville sur l'horizon, le ciel sombre au-dessus
           'sk9=mix(sk9,fo9*.55+uPiedC9*2.6*uPied9,smoothstep(0.,-.35,R9.y));'+ // … et la rue violette en dessous
-          'vec3 gl9=mix(vec3(.010,.012,.020)*(1.+bur),sk9*.5,F9);float sl9=0.,pr9=1.;':'')+ // pr9 : chaque carreau un peu de travers (le reflet varie) // le verre teinté (les bureaux un peu plus clairs) ; sl9 : la ligne de dalle
+          'vec3 gl9=mix(vec3(.010,.012,.020)*(1.+bur),sk9*.5,F9);'+(PAL.n>=1?VEMB_ECHO:'')+'float sl9=0.,pr9=1.;':'')+ /* (2026-10-20, VILLE EMBELLIE) l'écho des néons dans le verre éteint — paliers MOYEN et RÉCENT (voir VEMB_ECHO) */ // pr9 : chaque carreau un peu de travers (le reflet varie) // le verre teinté (les bureaux un peu plus clairs) ; sl9 : la ligne de dalle
         'if('+Q('fv>0.')+'){vec2 hw='+(GTA9?'mix(vec2(mix(.3,.46,bur),.26),mix(vec2(.32,.28),vec2(.46,.40),bur),G9);':'vec2(mix(.3,.46,bur),.26);')+ // (GTA) logements : le carreau un peu plus grand ; bureaux : le verre de dalle à dalle
         'float tx=.55+.1*s2,far=smoothstep(.3,.75,max(fw.x,fw.y)),avg=tx*4.*hw.x*hw.y;vec3 wv=mix(dom,aut,.2)*avg*1.05;'+ // wv : la lueur MOYENNE (le lointain)
         (GTA9?'wv=mix(wv,vec3(.66,.84,1.)*avg*.62,bur*G9);':'')+ // (GTA) au loin, les bureaux gardent la couleur de leur néon (et leurs 40 % allumés)
@@ -229,6 +229,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
         'gl_FragColor.rgb+=wv*fv*1.3*uCour9'+('*(1.-.9*uJ9)')+';}'+
         (GTA9?'if(G9>0.&&fv>0.){'+
           'if(vSc9.y>150.&&s5<.62){float rr=max(.9,2.2*max(fc9,ft9));float ka=(1.-smoothstep(rr*.5,rr,dc9))*(1.-smoothstep(rr*.5,rr,dt9));gl_FragColor.rgb+=vec3(1.,.07,.04)*ka*step(.55,fract(uT9*.8+s5*3.))*3.5*G9;}'+ // (GTA) les FEUX D'OBSTACLE aux coins du toit (≥ 1 px)
+          VEMB_BANDE+ /* (2026-10-20, VILLE EMBELLIE) LES ÉTAGES TECHNIQUES : une bande de LED tous les 12 à 21 étages sur une tour haute sur deux et demie */
           'if(s4>.8&&vSc9.y>80.){float lw=max(.5,1.8*fc9);float kl=max(1.-smoothstep(lw*.5,lw,dc9),1.-smoothstep(lw*.5,lw,dt9));vec3 lc=s5>.5?vec3(.24,.91,1.):normalize(uPiedC9+1e-4)*1.5;'+
           'gl_FragColor.rgb+=lc*kl*(.75+.45*sin(vLoc9.y*.06-uT9*3.+s5*20.))*1.25*uCour9*G9;}}':'')+ // (GTA) les BANDES LED des arêtes et du toit (une tour sur cinq), la lumière qui monte
         // uCour9 : la PANNE éteint les fenêtres (campagne VILLE, niveau 16) ; (facades-jour) de jour, un reflet à 10 %, pas une lumière
@@ -240,7 +241,7 @@ function villeMatTours(ancien){ // béton du village + fenêtres + pied noyé da
     // Pondéré par uJ9 : la nuit garde ses teintes au bit près (mix(…,0) rend la couleur telle quelle).
     sh.fragmentShader=sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb*=mix(vec3(1.),'+('vec3(1.,1.,.98)')+',uJ9);'); /* (metropole) le béton de jour reste NEUTRE (la teinte jaunâtre beigeait l'acier et le verre) */
   };
-  m.customProgramCacheKey=function(){return ancien?('toursV3j'):('toursV5'+(FIN9?'f':'')+('n')+(GTA9?'g':''));}; // (facades-jour) une clé remplacée, pas un programme de plus
+  m.customProgramCacheKey=function(){return ancien?('toursV3j'):('toursV6'+(FIN9?'f':'')+('n')+(GTA9?'g':'')+(PAL.n>=1?'e':''));}; // (facades-jour) une clé remplacée, pas un programme de plus
   CITY[K]=m;return m;
 }
 /* (2026-10-17, banc) dbgVilleGta(k,a,d,h) : les façades GTA à k (0 = l'image d'avant, 1 = GTA) et UNE image re-rendue — la caméra posée par
@@ -285,6 +286,7 @@ function villeMatNeon(ancien){ // enseignes, couronnes, feux d'antenne — ils R
         '  float q=(an.x>an.z?vL9.z:vL9.x)+(an.x>an.z?vL9.x:vL9.z)*.3,d=fract(q/2.2-uT9*(1.+vS9*2.));'+
         '  float b=smoothstep(.3,.08,abs(d-.5)),lo=smoothstep(.3,.8,(an.x>an.z?fL.z:fL.x)/2.2);'+
         '  k9=mix(.45,mix(.3+1.1*b,.72,lo),fv);}'+
+        'if(sc.y>12.&&min(sc.x,sc.z)<3.&&fract(vS9*37.3+.17)>.9)gl_FragColor.rgb=vec3(1.,.8,.34)*dot(gl_FragColor.rgb,vec3(.3,.5,.2))*1.7;'+ // (2026-10-20, VILLE EMBELLIE) L'OR : une enseigne verticale sur dix passe à l'or sodium — le clin d'œil CASH, rare
         'gl_FragColor.rgb*=fl*k9*mix(.03,1.,uCour9);}}\n#include <fog_fragment>');};
   m.customProgramCacheKey=function(){return ancien?'neonsV2':'neonsV3';};
   CITY[K]=m;return m;
@@ -319,14 +321,17 @@ const PUB_EN={'LA CAISSE QUI PAIE':'THE CAR PAYS','JPEG MILLIONAIRE':'JPEG MILLI
   'VITE VITE':'QUICK QUICK','NUIT BLANCHE':'ALL NIGHTER','CHAUD':'HOT','PLUIE ET LUMIERE':'RAIN AND LIGHT','PLUS VITE':'FASTER','TOUT OU RIEN':'ALL OR NOTHING','OU CREVE':'OR DIE',
   'VITESSE':'SPEED','ILLEGALE':'ILLEGAL','LEVIER MAX':'MAX LEVERAGE','QUEL DIP ?':'WHAT DIP?'};
 function pubLangue(P){if(typeof LANG==='undefined'||LANG==='fr')return;for(const p of P)for(let j=0;j<4;j++)if(PUB_EN[p[j]])p[j]=PUB_EN[p[j]];} // (2026-10-14, textes) peintes une fois, dans la langue du moment
+/* ===== LES RÉCLAMES SUIVENT LA LANGUE (24/10, relecture : « une ville en français, la langue passée en anglais, la ville suivante gardait ses
+   réclames en français ») ===== la clé de l'atlas porte la teinte ET la langue : changée dans les réglages, l'atlas est repeint à la ville suivante
+   (preuve-pubs-langue.cjs). */
 function villePubAtlas(){
-  const T9=vtCur(),te9=T9?LVL.cur.teinte:''; // (2026-10-16) LES TEINTES DE LA VILLE : l'atlas est repeint (une fois, à la construction de la ville) quand la teinte change
+  const T9=vtCur(),te9=(T9?LVL.cur.teinte:'')+'|'+(typeof LANG==='undefined'?'fr':LANG); // (2026-10-16) LES TEINTES DE LA VILLE : l'atlas est repeint (une fois, à la construction de la ville) quand la teinte change
   if(CITY.pub&&CITY.pubT===te9)return CITY.pub;
   const N=512,C=128,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
   const PUB=[['CASH CAR','#ffd75e','#ff2e8e','LA CAISSE QUI PAIE'],['1.61','#fff3be','#b86bff','GAME STUDIO'],['NITRO','#ff8d2e','#ff2e2e','PLEIN GAZ'],['$$$','#ffd75e','#7a1fb0','BANQUE OUVERTE'],
     ['AURA','#ff9ee6','#7a2fd0','BRILLE FORT'],['FLOW','#5ee6ff','#1d63c8','NE LACHE RIEN'],['GO !','#ffffff','#ff5e7a','VITE VITE'],['24/7','#ffe23e','#ff7a14','NUIT BLANCHE'],
     ['RAMEN','#ffb85a','#d8261e','CHAUD'],['NEON','#2ee6ff','#ff3ea5','PLUIE ET LUMIERE'],['TURBO','#ffffff','#ff2e8e','PLUS VITE'],['CASINO','#ffd75e','#b0106a','TOUT OU RIEN'],
-    ['DRIVE','#9fe8ff','#3a2fd0','OU CREVE'],['LUCKY','#7dffec','#ff3ea5','7 7 7'],['SUSHI','#ffffff','#ff5e7a','24 H'],['VITESSE','#ffe23e','#b0102a','ILLEGALE']];
+    ['DRIVE','#9fe8ff','#3a2fd0','OU CREVE'],['LUCKY','#7dffec','#ff3ea5','7 7 7'],['SUSHI','#ffffff','#ff5e7a','24 H'],['\u20bf','#fff0b0','#c08a14','CASH CAR']]; /* (2026-10-20, VILLE EMBELLIE) L'OR : la 16e réclame (VITESSE ILLÉGALE) devient la pièce ₿, dorée — 1 panneau sur 16 */
   pubLangue(PUB); // (2026-10-14, textes) les réclames parlent la langue du joueur
   if(T9)for(const p of PUB){p[1]=vtHex(p[1],T9);p[2]=vtHex(p[2],T9);} // (teintes) le magenta et le violet des réclames → la couleur de la ville
   x.imageSmoothingEnabled=false; // (2026-09-26, vague 2) plus de VERT dans la ville (il n'est nulle part dans la bible) : « $$$ » et « CASINO » passent à l'or sur violet et sur magenta
@@ -334,7 +339,10 @@ function villePubAtlas(){
     const g=x.createLinearGradient(0,oy,0,oy+C);g.addColorStop(0,p[2]);g.addColorStop(1,vtHex('#08061a',T9));x.fillStyle=g;x.fillRect(ox+4,oy+4,C-8,C-8);
     x.strokeStyle=p[1];x.lineWidth=4;x.strokeRect(ox+8,oy+8,C-16,C-16);
     x.fillStyle=p[1];x.textAlign='center';x.textBaseline='middle';
-    const fz=Math.min(26,Math.floor((C-28)/Math.max(3,p[0].length)));x.font=fz+'px "Press Start 2P",monospace';x.fillText(p[0],ox+C/2,oy+C*.44);
+    const fz=Math.min(26,Math.floor((C-28)/Math.max(3,p[0].length)));if(p[0]==='\u20bf'){const u=7,x0=ox+C/2-18,y0=oy+Math.round(C*.42)-24,B9=['11110','10001','10001','11110','10001','10001','11110']; /* le ₿ en pixels, comme le reste de l'atlas (la police n'a pas ce signe) : un B et ses deux barres */
+      for(let r=0;r<7;r++)for(let c=0;c<5;c++)if(B9[r][c]==='1')x.fillRect(x0+c*u,y0+r*u,u,u);
+      x.fillRect(x0+u+2,y0-7,3,7);x.fillRect(x0+3*u-1,y0-7,3,7);x.fillRect(x0+u+2,y0+49,3,7);x.fillRect(x0+3*u-1,y0+49,3,7);}
+    else{x.font=fz+'px "Press Start 2P",monospace';x.fillText(p[0],ox+C/2,oy+C*.44);}
     x.font='8px "Press Start 2P",monospace';x.fillStyle='#ffffff';x.fillText(p[3],ox+C/2,oy+C*.74);
     for(let i=0;i<5;i++){x.fillStyle=p[1];x.globalAlpha=.55;x.fillRect(ox+14+i*20,oy+C-22,12,4);}x.globalAlpha=1;});
   CITY.pubT=te9;if(CITY.pub){CITY.pub.image=cv;CITY.pub.needsUpdate=true;return CITY.pub;} // (teintes) la même texture, sa toile remplacée : la matière des panneaux ne bouge pas

@@ -90,7 +90,7 @@ function nuageChauffe(){ // (2026-09-26) les deux programmes de nuage compilés 
 // FINESSE : à 16×11 les grosses boules (r 200-700) montraient leurs FACETTES — d'où les « formes
 // triangulaires ». On monte la définition sur desktop (mobile reste au gabarit léger).
 const CLOUD_SPH_LO=new THREE.SphereGeometry(1,10,7); // (2026-09-30) l'ÉBAUCHE d'un coussin ou d'une tour, le temps que l'ouvrier rende la forme fine
-const CLOUD_SPH=new THREE.SphereGeometry(1,(IS_MOBILE||IS_LOW_END)?16:20,(IS_MOBILE||IS_LOW_END)?11:14); // gabarit recopié/fusionné (24×16 mangeait 25 fps : 20×14 lisse assez)
+const CLOUD_SPH=new THREE.SphereGeometry(1,(ALLEGE||IS_LOW_END)?16:20,(ALLEGE||IS_LOW_END)?11:14); // gabarit recopié/fusionné (24×16 mangeait 25 fps : 20×14 lisse assez)
 // Fusionne N sphères (x,y,z,rayon en coords locales) en UNE géométrie : un nuage = un draw call.
 function mergeSpheres(blobs,rx,ry,rz){
   const src=CLOUD_SPH, sp=src.attributes.position.array, sn=src.attributes.normal.array, si=src.index.array;
@@ -169,7 +169,7 @@ function cotonPalier(){ // 0 ancien iPhone · 1 moyen · 2 récent — `PAL.n` (
   if(COTON_JADE.force!=null)return COTON_JADE.force;
   try{if(typeof PAL==='object'&&PAL&&typeof PAL.n==='number')return Math.max(0,Math.min(2,PAL.n|0));}catch(e){}
   return QUAL_LOW?0:QUAL_MED?1:2;}
-const N8_FIN=[12,18,26,48]; // (SON, mesuré : de près, en vol, une surface lisse « en plastique ») la finesse du tout près monte à 48 : les petits bourgeons s'y dessinent // (mesuré, banc perf de DEBUGGING : 14/22/32/46 avec des seuils trop fins = 449 k triangles au sol, contre 153 k avant)
+const N8_FIN=(/[?&]nufin=(\d+)/.exec(location.search)||[])[1]==='2'?[12,18,26,48]:PAL.n===0?[10,14,20,32]:PAL.n===1?[12,16,24,40]:[12,18,26,48]; /* (2026-10-24, allègement mobile) la finesse des nuages par palier : ANCIEN 10/14/20/32 · MOYEN 12/16/24/40 · RÉCENT 12/18/26/48 (l'image d'avant) ; `?nufin=2` = celle d'avant sur tous les paliers (essai) */ // (SON, mesuré : de près, en vol, une surface lisse « en plastique ») la finesse du tout près monte à 48 : les petits bourgeons s'y dessinent // (mesuré, banc perf de DEBUGGING : 14/22/32/46 avec des seuils trop fins = 449 k triangles au sol, contre 153 k avant)
 const N8_GENRE6=['mediocris','humilis','congestus','humilis','stratocumulus','mediocris'];
 const N8_GENRE_V={champignon:'congestus'}; // (v8) le « champignon » (une tête sur un cou) se lisait comme un ARBRE de près : un congestus de plus ; l'ENCLUME est réservée aux titans lointains (kind 24) // (v8) le « champignon » (une tête sur un cou) se lisait comme un ARBRE : c'est un congestus de plus // (v8) les six gabarits « classiques » deviennent des cumulus de ces genres
 const N8_OPT={K:5.5,det:.3,fq:1}; // (v8) le champ : netteté des bourgeons, force et finesse du chou-fleur // les quatre finesses de la surface (cellules sur la plus grande dimension du nuage)

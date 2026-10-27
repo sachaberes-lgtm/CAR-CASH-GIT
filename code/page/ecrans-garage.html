@@ -183,7 +183,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
         <!-- (2026-10-05, Léo : « en dessous du play, insère MISSIONS, et le nom du level qui va être lancé, limite collé, de manière stylée, branché énergétiquement ») LA VITRINE : voir gvNiveau -->
         <button id="gvMis" class="pbtn" aria-label="Missions"><s class="gvFx" aria-hidden="true"></s><i class="pxi pxi-cible" aria-hidden="true"></i><span data-fr="MISSIONS">MISSIONS</span><b class="gvPips" aria-hidden="true"><u></u><u></u><u></u></b></button>
         <!-- (2026-10-05, Léo : « l'inventaire va être ajouté à côté du bouton jouer ») le COFFRE : l'inventaire (le doigt tenu sur la caisse lance désormais le BURN-OUT) -->
-        <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-coffre" aria-hidden="true"></i><span data-fr="INVENTAIRE">INVENTAIRE</span></button>
+        <button id="gvCof" class="pbtn" aria-label="Inventaire"><i class="pxi pxi-troisLosanges" aria-hidden="true"></i><span data-fr="INVENTAIRE">INVENTAIRE</span></button>
       </div>
       <!-- (2026-10-19, Léo) LA VITESSE DE DÉPART : six crans posés au-dessus de la rangée INVENTAIRE · MISSIONS · BOUTIQUE (placés par vdepPlace) ;
            l'étiquette du moteur choisi se colle au bord haut du PLAY. Remplis par vdepMaj. -->
@@ -198,11 +198,11 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
     <div id="gInv" role="dialog" aria-label="Inventaire">
       <div class="ivTete"><b data-fr="INVENTAIRE">INVENTAIRE</b><small id="ivCompte"></small><button id="ivFerme" class="pbtn pbCarre" aria-label="Fermer"><i class="pxi pxi-croix" aria-hidden="true"></i></button></div>
       <div class="ivTabs" role="tablist">
-        <button class="ivTab on" data-c="voiture" role="tab"><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="VOITURES">VOITURES</span><em></em></button>
+        <button class="ivTab on" data-c="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span><em></em></button><!-- (2026-10-14) les FIGURES qu'on a (double-tap nitro) ; (2026-10-25, Sacha) en premier -->
+        <button class="ivTab" data-c="voiture" role="tab"><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="VOITURES">VOITURES</span><em></em></button>
         <button class="ivTab" data-c="peinture" role="tab"><i class="pxi pxi-pinceau" aria-hidden="true"></i><span data-fr="PEINTURE">PEINTURE</span><em></em></button>
         <button class="ivTab" data-c="aile" role="tab"><i class="pxi pxi-aile" aria-hidden="true"></i><span data-fr="AILES">AILES</span><em></em></button>
         <button class="ivTab" data-c="trainee" role="tab"><i class="pxi pxi-trainee" aria-hidden="true"></i><span data-fr="TRAÎNÉES">TRAÎNÉES</span><em></em></button>
-        <button class="ivTab" data-c="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span><em></em></button><!-- (2026-10-14) les FIGURES qu'on a (double-tap nitro) -->
       </div>
       <div class="ivProg" aria-hidden="true"><i id="ivProgBarre"></i><b id="ivProgTxt"></b></div>
       <div id="ivGrille"></div>
@@ -285,7 +285,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
        NITRO : l'aile pixel, les secondes dans la typo ombrée du compteur d'aura, et une barre de la même recette que la nitro (cadre
        d'encre, remplissage en quatre bandes, curseur blanc) qui se vide. Il se montre et se cache AVEC #airPie (sélecteur frère) : le
        canvas garde son rôle d'état (display, .danger) — plus rien n'y est dessiné. -->
-  <div id="airHud" aria-hidden="true"><div class="ahTop"><i class="pxi pxi-aile"></i><b class="ahS">6.0</b><em>AIR</em></div><div class="ahBar"><i class="ahF"></i></div></div>
+  <div id="airHud" aria-hidden="true"><div class="ahTop"><i class="pxi pxi-aile"></i><b class="ahS">6.0</b><em>AIR</em></div><div class="ahBar"><i class="hanAhM"></i><i class="ahF"><i class="hanAhR"></i></i></div></div>
   <canvas id="minimap" width="176" height="176"></canvas>
   <div id="survHud"></div>
   <div id="lastAlert"></div>

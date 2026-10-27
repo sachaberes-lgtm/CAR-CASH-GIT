@@ -71,6 +71,7 @@ function shopPop(src){
   shopPopVise(r);
   src.classList.add('spParti');
   try{uiGarde();}catch(e){}try{typeof sfx==='function'&&sfx('ui.modale');}catch(e){}hap(8);
+  setTimeout(function(){if(SPOP.i===i&&el.classList.contains('on'))shopTourne(i,el);},spDuree()+60); /* la vue garage démarre une fois la fenêtre posée */
 }
 function shopPopVise(r){ // pose --dx/--dy/--s : l'écart entre la vignette `r` et la carte posée au centre
   const c=SPOP.el&&SPOP.el.querySelector('.spCarte');if(!c||!r||!(r.width>0))return;
@@ -79,8 +80,33 @@ function shopPopVise(r){ // pose --dx/--dy/--s : l'écart entre la vignette `r` 
   c.style.setProperty('--dy',Math.round(r.top+r.height/2-(f.top+f.height/2))+'px');
   c.style.setProperty('--s',Math.min(1,r.width/f.width).toFixed(3));
 }
+/* LA VUE GARAGE (2026-10-25, Sacha : « quand on clique sur une voiture, il faut qu'elle se mette à tourner, qu'on la voie comme dans le garage ») :
+   la photo de la fenêtre d'achat devient un plateau tournant — STN poses de la même caisse (carPhoto, 4e argument = l'azimut), prises une par une
+   entre deux images, cadrées pour tous les angles ; dès que la première est prête la caisse tourne (une pose manquante est sautée), et on peut
+   la faire pivoter au doigt / à la souris (elle reprend sa ronde au lâcher). Fermer la fenêtre arrête tout (le jeton SPOP.tour). */
+const STN=12;
+function shopTourne(i,el){
+  const host=el.querySelector('.shPhoto.big');if(!host)return;
+  const T=SPOP.tour={i:i,F:[],a:0,v:0,drag:null,shown:-1,t0:performance.now(),stop:false};
+  const vit=function(){return SPOP.tour===T&&!T.stop&&el.classList.contains('on');};
+  const az=function(k){return PHOTO_AZ+k*2*Math.PI/STN;};
+  let k=0;(function suite(){if(!vit()||k>=STN)return;const n=k++;try{carPhoto(i,function(u){if(u)T.F[n]=u;},null,az(n));}catch(e){}setTimeout(suite,90);})();
+  host.style.touchAction='none';host.style.cursor='grab';
+  host.addEventListener('pointerdown',function(e){T.drag={x:e.clientX,a:T.a};T.v=0;try{host.setPointerCapture(e.pointerId);}catch(_){}host.style.cursor='grabbing';});
+  host.addEventListener('pointermove',function(e){if(!T.drag)return;const na=T.drag.a-(e.clientX-T.drag.x)*.012;T.v=(na-T.a);T.a=na;});
+  const lache=function(){T.drag=null;host.style.cursor='grab';};
+  host.addEventListener('pointerup',lache);host.addEventListener('pointercancel',lache);
+  const calme=document.documentElement.getAttribute('data-reduced-motion')==='1';
+  let t9=performance.now();
+  (function tour(t){if(!vit())return;const dt=Math.min(.05,(t-t9)/1000);t9=t;
+    if(!T.drag){if(Math.abs(T.v)>.002){T.a+=T.v;T.v*=.94;}else if(!calme)T.a+=dt*.7;} /* l'élan du lâcher, puis la ronde (un tour en 9 s) */
+    const P=2*Math.PI,n=Math.round(((T.a%P)+P)%P/(P/STN))%STN;let j=n;for(let d=0;d<STN;d++){const a=(n+d)%STN,b=(n-d+STN)%STN;if(T.F[a]){j=a;break;}if(T.F[b]){j=b;break;}}
+    if(T.F[j]&&j!==T.shown){T.shown=j;let im=host.querySelector('img');if(!im){const at=host.querySelector('.shAttente');if(at)at.remove();im=document.createElement('img');im.alt='';host.insertBefore(im,host.firstChild);}if(im.src!==T.F[j])im.src=T.F[j];}
+    requestAnimationFrame(tour);})(t9);
+}
 function shopPopFerme(){
   const el=SPOP.el;if(!el||!el.classList.contains('on')||el.classList.contains('sortant'))return;
+  if(SPOP.tour)SPOP.tour.stop=true;
   try{uiGarde();}catch(e){} // (2026-10-14, chasse aux bugs) la fenêtre qui s'efface a pointer-events:none : le 2e tap d'un double-tap sur ANNULER / ÉQUIPER traversait jusqu'à OFFRES (vignette, RETOUR) — comme à l'ouverture, on avale les clics 320 ms
   const src=SPOP.src;
   if(src&&src.isConnected)shopPopVise(src.getBoundingClientRect()); // la vignette a pu bouger (défilement) : on vise sa place d'ARRIVÉE (la carte est au repos, sa mesure est juste)
@@ -107,53 +133,53 @@ function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if
 const COSM={
   peinture:[
     {id:'usine',   n:'D\'ORIGINE',        p:0,     d:'La teinte du constructeur. Elle a fait ses preuves.'},
-    {id:'menthe',  n:'MENTHE GLACÉE',     p:2500,  c:0x5ff0c6,d:'Fraîche comme un billet qui sort du distributeur.'},
-    {id:'minuit',  n:'BLEU MINUIT',       p:5000,  c:0x2b43c4,d:'Le bleu des néons de la ville, à trois heures du matin.'},
-    {id:'noir',    n:'NOIR MAT',          p:9000,  c:0x202128,g:'s',d:'Pas un reflet. Même la police hésite.'},
-    {id:'couchant',n:'COUCHER DE SOLEIL', p:18000, grad:[0xffc23a,0xff4f8b,0x6b3cff],d:'Du miel en bas, du violet en haut : le ciel de 19 h, en laque.'},
-    {id:'chrome',  n:'CHROME MIROIR',     p:60000, c:0xe9eef5,g:'c',d:'Tu te vois dedans. Les autres aussi.'},
+    {id:'menthe',  n:'MENTHE GLACÉE',     p:25000,  c:0x5ff0c6,d:'Fraîche comme un billet qui sort du distributeur.'},
+    {id:'minuit',  n:'BLEU MINUIT',       p:50000,  c:0x2b43c4,d:'Le bleu des néons de la ville, à trois heures du matin.'},
+    {id:'noir',    n:'NOIR MAT',          p:90000,  c:0x202128,g:'s',d:'Pas un reflet. Même la police hésite.'},
+    {id:'couchant',n:'COUCHER DE SOLEIL', p:180000, grad:[0xffc23a,0xff4f8b,0x6b3cff],d:'Du miel en bas, du violet en haut : le ciel de 19 h, en laque.'},
+    {id:'chrome',  n:'CHROME MIROIR',     p:600000, c:0xe9eef5,g:'c',d:'Tu te vois dedans. Les autres aussi.'},
     {id:'or',      n:'OR MASSIF',         mis:4,   c:0xffc93a,g:'o',d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
     // (2026-10-14) LES PEINTURES POP — la rareté se lit en couleur (`r`), le prix suit la grille de l'équilibrage (rare 5-12 k · exotique 20-45 k · épique 80-180 k · légendaire 300-500 k)
-    {id:'ogre',     n:'VERT OGRE',         p:5000,  r:'rare',      c:0x6f9a2e,g:'s',d:'Le vert des marais. Ça sent un peu, mais c\'est chez toi.'},
-    {id:'poupee',   n:'ROSE POUPÉE',       p:9000,  r:'rare',      c:0xff5fb0,d:'Rose bonbon, laque parfaite. Tu n\'es pas en plastique, tu es en carbone.'},
-    {id:'banana',   n:'BANANA',            p:20000, r:'rare',      grad:[0x2a5cb8,0xffd21f,0xffe45c],d:'Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.'},
-    {id:'gotham',   n:'NUIT DE GOTHAM',    p:32000, r:'rare',      c:0x0d0f15,g:'g',d:'Noir laqué, la ville qui brille dedans. Les toits sont à toi.'},
-    {id:'envers',   n:'MONDE À L\'ENVERS', p:42000, r:'rare',      grad:[0x150709,0x6e0f16,0xe0262f],d:'Noir en bas, rouge sang en haut : cette caisse vient de l\'autre côté. Les guirlandes clignotent.'},
-    {id:'vaporwave',n:'VAPORWAVE',         p:85000, r:'epique',    grad:[0x2bd9e8,0xff5ec8,0x7a2bff],d:'Cyan, rose, violet : un coucher de soleil de 1986 sur une cassette usée.'},
-    {id:'lave',     n:'LAVE',              p:130000,r:'epique',    grad:[0x1a0500,0xd8340a,0xffb21a],d:'Du volcan au toit, la coulée ne refroidit jamais. N\'y jette pas d\'anneau.'},
-    {id:'holo',     n:'HOLOGRAMME',        p:300000,r:'legendaire',grad:[0x9ff2ff,0xf3b4ff,0xfff3ae],g:'c',d:'Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.'},
+    {id:'ogre',     n:'VERT OGRE',         p:50000,  r:'rare',      c:0x6f9a2e,g:'s',d:'Le vert des marais. Ça sent un peu, mais c\'est chez toi.'},
+    {id:'poupee',   n:'ROSE POUPÉE',       p:90000,  r:'rare',      c:0xff5fb0,d:'Rose bonbon, laque parfaite. Tu n\'es pas en plastique, tu es en carbone.'},
+    {id:'banana',   n:'BANANA',            p:200000, r:'rare',      grad:[0x2a5cb8,0xffd21f,0xffe45c],d:'Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.'},
+    {id:'gotham',   n:'NUIT DE GOTHAM',    p:320000, r:'rare',      c:0x0d0f15,g:'g',d:'Noir laqué, la ville qui brille dedans. Les toits sont à toi.'},
+    {id:'envers',   n:'MONDE À L\'ENVERS', p:420000, r:'rare',      grad:[0x150709,0x6e0f16,0xe0262f],d:'Noir en bas, rouge sang en haut : cette caisse vient de l\'autre côté. Les guirlandes clignotent.'},
+    {id:'vaporwave',n:'VAPORWAVE',         p:850000, r:'epique',    grad:[0x2bd9e8,0xff5ec8,0x7a2bff],d:'Cyan, rose, violet : un coucher de soleil de 1986 sur une cassette usée.'},
+    {id:'lave',     n:'LAVE',              p:1300000,r:'epique',    grad:[0x1a0500,0xd8340a,0xffb21a],d:'Du volcan au toit, la coulée ne refroidit jamais. N\'y jette pas d\'anneau.'},
+    {id:'holo',     n:'HOLOGRAMME',        p:3000000,r:'legendaire',grad:[0x9ff2ff,0xf3b4ff,0xfff3ae],g:'c',d:'Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.'},
     {id:'guerrier', n:'SUPER GUERRIER',    mis:12,pk:350000,r:'mythique',grad:[0xff8a00,0xffd23a,0xfff4a8],g:'o',d:'Doré du toit aux pneus. Les cheveux se dressent, le niveau dépasse les 9 000.'}],
   aile:[ /* (2026-10-18, Sacha : « rajoute un zéro pour tous les prix des ailes ») les prix ×10 ; HÉLICES, PLUMES et CHAUVE-SOURIS gardent leur rareté d'avant, écrite en `r` (cosmRar la déduisait du prix) */
     {id:'panneaux',n:'PANNEAUX',          p:0,     d:'Deux planches de planeur, un aileron qui suit tes virages, des feux de position. Au boost, elles tirent deux traînées blanches.'},
-    {id:'helices', n:'HÉLICES',           p:30000, r:'commun',    d:'Quatre rotors qui s\'emballent au boost et piquent du nez pour foncer. Ça ne vole pas mieux, mais ça brasse de l\'air.'},
-    {id:'plumes',  n:'PLUMES D\'ANGE',    p:120000,r:'rare',      d:'De vraies plumes blanches et dorées qui battent lentement et s\'ouvrent en éventail. Au boost, elles sèment de la poussière d\'or.'},
-    {id:'chauve',  n:'CHAUVE-SOURIS',     p:250000,r:'rare',      d:'Membranes veinées de violet, doigts d\'os. Elles battent vite, de travers, et se replient en flèche au boost. Pour les vols de nuit.'},
+    {id:'helices', n:'HÉLICES',           p:300000, r:'commun',    d:'Quatre rotors qui s\'emballent au boost et piquent du nez pour foncer. Ça ne vole pas mieux, mais ça brasse de l\'air.'},
+    {id:'plumes',  n:'PLUMES D\'ANGE',    p:1200000,r:'rare',      d:'De vraies plumes blanches et dorées qui battent lentement et s\'ouvrent en éventail. Au boost, elles sèment de la poussière d\'or.'},
+    {id:'chauve',  n:'CHAUVE-SOURIS',     p:2500000,r:'rare',      d:'Membranes veinées de violet, doigts d\'os. Elles battent vite, de travers, et se replient en flèche au boost. Pour les vols de nuit.'},
     // (2026-10-14) LES AILES POP (voir AILES_POP) — `ico`/`col` : le pictogramme de la vignette et sa couleur
-    {id:'pigeon',   n:'PIGEON',            p:60000, r:'rare',      ico:'ai_pigeon', col:'#b4bac4',d:'Gris, deux barres noires, un cou vert-violet. Il claque des ailes au décollage, bat trop vite et plane sans savoir pourquoi.'},
-    {id:'origami',  n:'AVION EN PAPIER',   p:90000, r:'rare',      ico:'ai_origami',col:'#f4f1ea',d:'Une feuille à grands carreaux pleine de gribouillis, un volet plié. Le pan claque au vent quand tu boostes : c\'est toi qui pilotes.'},
-    {id:'monarque', n:'MONARQUE',          p:120000,r:'rare',      ico:'ai_monarque',col:'#ff8a1a',d:'Orange et noir, nervures et points blancs, comme les vrais. Elles battent, planent, battent encore. Jusqu\'à 900 à l\'heure.'},
-    {id:'pixel',    n:'8-BIT',             p:250000,r:'rare',      ico:'ai_pixel',  col:'#ffd75e',d:'Des ailes d\'ange en gros pixels, animées image par image. Au boost, elles clignotent de toutes les couleurs, comme avec l\'étoile.'},
-    {id:'baron',    n:'BARON ROUGE',       p:380000,r:'rare',      ico:'ai_baron',  col:'#ff4a4e',d:'Toile rouge, haubans, ailerons, et l\'écharpe du pilote qui claque au vent. Un chien sur sa niche en rêve encore.'},
-    {id:'rouages',  n:'ENGRENAGES',        p:1000000,r:'epique',    ico:'ai_rouages',col:'#e0a84a',d:'Les rouages font battre l\'aile, la chaudière crache sa vapeur au boost. Léonard l\'avait dessinée, toi tu la pilotes.'},
-    {id:'xwing',    n:'AILES EN X',        p:1200000,r:'epique',    ico:'ai_xwing',  col:'#e8e4da',d:'Repliées en croisière, elles s\'écartent en X dès que tu boostes, réacteurs à fond. Verrouillez les ailes en position d\'attaque.'},
-    {id:'fee',      n:'FÉE',               p:1600000,r:'epique',    ico:'ai_fee',    col:'#d9b8ff',d:'Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d\'y croire. Et d\'un plein de nitro.'},
-    {id:'dragon',   n:'DRAGON',            p:4500000,r:'legendaire',ico:'ai_dragon', col:'#ff5a2a',d:'Membranes veinées de lave, griffes, grands coups d\'aile. Au boost, la lave flambe et crache des braises.'},
-    {id:'air',      n:'SANS AILES',        p:5000000,r:'legendaire',ico:'ai_air',    col:'#dff1ff',d:'Les ailes, c\'est pour les pigeons. Dix buses à air comprimé planquées dans la carrosserie : elle crache des bouffées blanches, pivote sur elle-même et s\'envole. Bon. Ça a marché.'}, // (2026-10-18, Léo) LA BLAGUE : l'aile la plus chère de la boutique… n'a pas d'aile (voir AILES_POP.air)
+    {id:'pigeon',   n:'PIGEON',            p:600000, r:'rare',      ico:'ai_pigeon', col:'#b4bac4',d:'Gris, deux barres noires, un cou vert-violet. Il claque des ailes au décollage, bat trop vite et plane sans savoir pourquoi.'},
+    {id:'origami',  n:'AVION EN PAPIER',   p:900000, r:'rare',      ico:'ai_origami',col:'#f4f1ea',d:'Une feuille à grands carreaux pleine de gribouillis, un volet plié. Le pan claque au vent quand tu boostes : c\'est toi qui pilotes.'},
+    {id:'monarque', n:'MONARQUE',          p:1200000,r:'rare',      ico:'ai_monarque',col:'#ff8a1a',d:'Orange et noir, nervures et points blancs, comme les vrais. Elles battent, planent, battent encore. Jusqu\'à 900 à l\'heure.'},
+    {id:'pixel',    n:'8-BIT',             p:2500000,r:'rare',      ico:'ai_pixel',  col:'#ffd75e',d:'Des ailes d\'ange en gros pixels, animées image par image. Au boost, elles clignotent de toutes les couleurs, comme avec l\'étoile.'},
+    {id:'baron',    n:'BARON ROUGE',       p:3800000,r:'rare',      ico:'ai_baron',  col:'#ff4a4e',d:'Toile rouge, haubans, ailerons, et l\'écharpe du pilote qui claque au vent. Un chien sur sa niche en rêve encore.'},
+    {id:'rouages',  n:'ENGRENAGES',        p:10000000,r:'epique',    ico:'ai_rouages',col:'#e0a84a',d:'Les rouages font battre l\'aile, la chaudière crache sa vapeur au boost. Léonard l\'avait dessinée, toi tu la pilotes.'},
+    {id:'xwing',    n:'AILES EN X',        p:12000000,r:'epique',    ico:'ai_xwing',  col:'#e8e4da',d:'Repliées en croisière, elles s\'écartent en X dès que tu boostes, réacteurs à fond. Verrouillez les ailes en position d\'attaque.'},
+    {id:'fee',      n:'FÉE',               p:16000000,r:'epique',    ico:'ai_fee',    col:'#d9b8ff',d:'Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d\'y croire. Et d\'un plein de nitro.'},
+    {id:'dragon',   n:'DRAGON',            p:45000000,r:'legendaire',ico:'ai_dragon', col:'#ff5a2a',d:'Membranes veinées de lave, griffes, grands coups d\'aile. Au boost, la lave flambe et crache des braises.'},
+    {id:'air',      n:'SANS AILES',        p:50000000,r:'legendaire',ico:'ai_air',    col:'#dff1ff',d:'Les ailes, c\'est pour les pigeons. Dix buses à air comprimé planquées dans la carrosserie : elle crache des bouffées blanches, pivote sur elle-même et s\'envole. Bon. Ça a marché.'}, // (2026-10-18, Léo) LA BLAGUE : l'aile la plus chère de la boutique… n'a pas d'aile (voir AILES_POP.air)
     {id:'phenix',   n:'PHÉNIX',            mis:10,pk:400000,r:'mythique',ico:'flamme',col:'#ffb02a',d:'Des plumes de feu qui battent en semant des étincelles. Tu exploses ? Tu renais de tes cendres. Au prochain run.'}],
   trainee:[
     {id:'nitro',   n:'NITRO',             p:0,     d:'Orange brûlé. Le classique des tuyères.'},
-    {id:'rose',    n:'ROSE NÉON',         p:4000,  rgb:[1.45,.22,1.05],pop:'neon',sil:{c:1.45,h:.75,f:0,p:.3},d:'Le rose des enseignes. On te suit à la trace.'},
-    {id:'or',      n:'POUDRE D\'OR',      p:15000, rgb:[1.5,1.22,.3],pop:'paillettes',sil:{c:1.3,h:1.05,f:.1,p:1.9},d:'Tu ne laisses pas de la fumée derrière toi. Tu laisses de l\'or.'},
+    {id:'rose',    n:'ROSE NÉON',         p:40000,  rgb:[1.45,.22,1.05],pop:'neon',sil:{c:1.45,h:.75,f:0,p:.3},d:'Le rose des enseignes. On te suit à la trace.'},
+    {id:'or',      n:'POUDRE D\'OR',      p:150000, rgb:[1.5,1.22,.3],pop:'paillettes',sil:{c:1.3,h:1.05,f:.1,p:1.9},d:'Tu ne laisses pas de la fumée derrière toi. Tu laisses de l\'or.'},
     {id:'arcenciel',n:'ARC-EN-CIEL',      mis:5,   rainbow:1,d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
-    {id:'wow',     n:'WOW',               p:30000, wow:1,rgb:[1.45,.35,1.25],d:'Much sillage. Very mots. Wow.'}, // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) — la signature du DOGE
+    {id:'wow',     n:'WOW',               p:300000, wow:1,rgb:[1.45,.35,1.25],d:'Much sillage. Very mots. Wow.'}, // (2026-10-14) LA TRAÎNÉE WOW (voir wowStep) — la signature du DOGE
     // (2026-10-14) LES TRAÎNÉES POP (voir TRX) — `pop` : son moteur · `rgb` : la couleur du ruban qui l'accompagne · `rubOff` : pas de ruban (l'effet EST la traînée)
-    {id:'sakura',   n:'SAKURA',            p:8000,  r:'rare',      pop:'sakura', rgb:[1.35,.6,.9],sil:{c:1.05,h:1.2,f:0,p:.5}, ico:'tr_sakura', col:'#ff9cc4',d:'Des pétales de cerisier, comme dans un générique d\'animé. Le drame, c\'est pour les autres.'},
-    {id:'matrice',  n:'MATRICE',           p:11000, r:'rare',      pop:'matrice',rgb:[.25,1.25,.4],sil:{c:1.3,h:.65,f:0,p:1.8},ico:'tr_matrice',col:'#3dff6a',d:'Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c\'est toi qui la réécris.'},
-    {id:'anneaux',  n:'ANNEAUX D\'OR',     p:22000, r:'rare',      pop:'anneaux',rgb:[1.3,1.05,.25],sil:{c:1.3,h:1,f:.06,p:1.3},ico:'tr_anneaux',col:'#ffd23a',d:'Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.'},
-    {id:'glouton',  n:'GLOUTON',           p:40000, r:'rare',      pop:'glouton',rubOff:1,      ico:'tr_glouton',col:'#ffe14a',d:'Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.'},
-    {id:'hyper',    n:'HYPERESPACE',       p:90000, r:'epique',    pop:'hyper',  rgb:[.42,.98,2.2],sil:{c:1.6,h:.8,f:0,p:2.4},ico:'tr_hyper', col:'#9fd0ff',d:'Les étoiles s\'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.'}, /* (2026-10-18, HYPERESPACE v2) ruban .95,1.15,1.6 (un blanc bleuté, délavé) → bleu ÉLECTRIQUE : le feu de pixels du nitro le prend aussi (nfeuPalTrainee) */
-    {id:'grille',   n:'LA GRILLE',         p:200000,r:'epique',    pop:'grille', rubOff:1,      ico:'tr_grille', col:'#2ee8ff',d:'Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.'}, /* (2026-10-18, Sacha : « the grid doit être epic ») ÉPIQUE, et son prix dans sa famille (350 000 → 200 000 : épique < 250 000, voir cosmRar) */
-    {id:'billets',  n:'FAIS PLEUVOIR',     p:500000,r:'legendaire',pop:'billets',rgb:[.45,1.3,.55],sil:{c:1.15,h:1.05,f:.08,p:1},ico:'tr_billets',col:'#5cd685',d:'Des liasses qui s\'envolent à chaque nitro. Ce n\'est pas du gaspillage, c\'est de la communication.'},
+    {id:'sakura',   n:'SAKURA',            p:80000,  r:'rare',      pop:'sakura', rgb:[1.35,.6,.9],sil:{c:1.05,h:1.2,f:0,p:.5}, ico:'tr_sakura', col:'#ff9cc4',d:'Des pétales de cerisier, comme dans un générique d\'animé. Le drame, c\'est pour les autres.'},
+    {id:'matrice',  n:'MATRICE',           p:110000, r:'rare',      pop:'matrice',rgb:[.25,1.25,.4],sil:{c:1.3,h:.65,f:0,p:1.8},ico:'tr_matrice',col:'#3dff6a',d:'Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c\'est toi qui la réécris.'},
+    {id:'anneaux',  n:'ANNEAUX D\'OR',     p:220000, r:'rare',      pop:'anneaux',rgb:[1.3,1.05,.25],sil:{c:1.3,h:1,f:.06,p:1.3},ico:'tr_anneaux',col:'#ffd23a',d:'Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.'},
+    {id:'glouton',  n:'GLOUTON',           p:400000, r:'rare',      pop:'glouton',rubOff:1,      ico:'tr_glouton',col:'#ffe14a',d:'Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.'},
+    {id:'hyper',    n:'HYPERESPACE',       p:900000, r:'epique',    pop:'hyper',  rgb:[.42,.98,2.2],sil:{c:1.6,h:.8,f:0,p:2.4},ico:'tr_hyper', col:'#9fd0ff',d:'Les étoiles s\'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.'}, /* (2026-10-18, HYPERESPACE v2) ruban .95,1.15,1.6 (un blanc bleuté, délavé) → bleu ÉLECTRIQUE : le feu de pixels du nitro le prend aussi (nfeuPalTrainee) */
+    {id:'grille',   n:'LA GRILLE',         p:2000000,r:'epique',    pop:'grille', rubOff:1,      ico:'tr_grille', col:'#2ee8ff',d:'Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.'}, /* (2026-10-18, Sacha : « the grid doit être epic ») ÉPIQUE, et son prix dans sa famille (350 000 → 200 000 : épique < 250 000, voir cosmRar) */
+    {id:'billets',  n:'FAIS PLEUVOIR',     p:5000000,r:'legendaire',pop:'billets',rgb:[.45,1.3,.55],sil:{c:1.15,h:1.05,f:.08,p:1},ico:'tr_billets',col:'#5cd685',d:'Des liasses qui s\'envolent à chaque nitro. Ce n\'est pas du gaspillage, c\'est de la communication.'},
     {id:'foudre',   n:'FOUDRE DIVINE',     mis:11,pk:450000,r:'legendaire',pop:'foudre',rgb:[.85,.55,1.7],sil:{c:1.3,h:.75,f:0,p:2},ico:'eclair',col:'#b98aff',d:'Des éclairs crépitent derrière toi. Le marteau, tu l\'as laissé au garage.'} /* (2026-10-18, Sacha : « divine ligthing doit etre legendaire ») LÉGENDAIRE (elle était MYTHIQUE) ; son prix `pk` (450 000, Poki) est déjà dans la famille */]
 };
 /* (2026-10-18 soir, Sacha : « enlève la traînée menthe ») LES HABILLAGES RETIRÉS : leur ligne SORT de COSM (la sauvegarde les désigne par leur id,
@@ -377,8 +403,21 @@ if(PEINT_V2){
   for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat]){const id=H9[cat+':'+d.id];
     if(id){d.mis2=id;delete d.mis;delete d.p;delete d.eur;if(/relevant des défis/.test(d.d||''))d.d="Ne s'achète pas : elle se gagne par une mission.";}
     else if(d.mis){delete d.mis;if(d.id==='arcenciel'){d.pack='chat';d.d="Ne s'achète pas : elle vient avec le CHAT POP-TART.";}}}}
-function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;});if(!PEINT_V2)return L; // les indices de COSM.peinture, de la COMMUNE à l'ÉPIQUE (D'ORIGINE en tête ; dans une rareté, l'ordre du catalogue)
-  const rg=function(j){const d=COSM.peinture[j];return d.id==='usine'?-1:(INV_RANG[cosmRar('peinture',d)]|0);};return L.sort(function(a,b){return (rg(a)-rg(b))||(a-b);});}
+/* LE RANGEMENT DES PEINTURES (2026-10-26, Léo : « range toutes ces petites couleurs : les basiques qu'on connaît tous tout en haut ; en dessous les plus originales — un
+   pastel retouché, un mélange, une teinte unie un peu complexe ; en dessous les dégradés vraiment stylés ; tout en dessous ceux à motifs » — puis : « et ordre de famille ») :
+   D'ORIGINE, puis QUATRE familles, et DANS chaque famille les couleurs vont par FAMILLE DE TEINTE : rouges, orangés, jaunes, verts, bleus, violets, roses, puis les neutres
+   (noir, blanc, gris) et les métaux. Une peinture est rangée par ID (les secrètes masquées n'ont ni couleur ni dégradé tant qu'on ne les a pas gagnées : leur place ne doit
+   pas bouger quand elles se dévoilent). L'ordre des listes EST l'ordre à l'écran ; une peinture nouvelle s'ajoute à la bonne liste (sinon : après les dégradés listés ;
+   les motifs, eux, gardent l'ordre du catalogue). */
+const PEINT_BASIQUES=['bolide','azur','billet','taxi','emeute','royal','poupee','fuchsia','minuit','noir','neige'], // (2026-10-26, Léo : « les couleurs de base, rouge, bleu, vert, en haut ; plus on descend, plus c'est spécial ; les brillantes encore plus bas ») les primaires d'abord
+  PEINT_ORIGINALES=['dragee','abricot','vanille','pistache','amande','menthe','ogre','lagon','piscine','lilas','nardo','gotham'],
+  PEINT_BRILLANTES=['cuivre','or','orrose','chrome','fantome'], // les métaux et le nacré : unis mais brillants, sous les originales
+  PEINT_DEGRADES=['lave','envers','couchant','guerrier','banana','prisme','jadeimperial','cameleon','eclair','lampadaire','vaporwave','holo','nacre','orage','lunaire','srBraise','srAurore','srLagon','srEtoile']; // (2026-10-26, Léo : « les derniers épiques, mets-les comme des dégradés, au-dessus des stickers ») les 4 de la SÉRIE ferment les dégradés
+function peintClef(j){const d=COSM.peinture[j];if(d.id==='usine')return -1; // D'ORIGINE en tête, puis 1 basiques · 2 originales · 2,5 brillantes · 3 dégradés · 4 motifs
+  let k=PEINT_BASIQUES.indexOf(d.id);if(k>=0)return 100+k;k=PEINT_ORIGINALES.indexOf(d.id);if(k>=0)return 200+k;k=PEINT_BRILLANTES.indexOf(d.id);if(k>=0)return 250+k;k=PEINT_DEGRADES.indexOf(d.id);if(k>=0)return 300+k;
+  return (d.mot?400:350)+j;} // les motifs (les « stickers ») : l'ordre du catalogue 
+function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;});if(!PEINT_V2)return L; // les indices de COSM.peinture, rangés par famille (voir peintClef)
+  return L.sort(function(a,b){return peintClef(a)-peintClef(b);});}
 /* acheter un habillage EN EUROS (une peinture) : la porte de StoreKit, comme une caisse — rien n'est donné tant qu'Apple n'a pas encaissé */
 function habDonne(cat,id){const o=SAVE.d.shop.own,k=cat+':'+id;if(o.indexOf(k)<0)o.push(k);SAVE.d.shop.eq[cat]=id;SAVE.flush();}
 function habPaye(cat,i,bt){const d=COSM[cat]&&COSM[cat][i];if(!d||!d.eur||shopOwned(cat,d.id)||habPaye.on)return false;habPaye.on=1;uiClic('');hap(12);
@@ -411,7 +450,7 @@ function figDesc(f,lg){const en=lg==='en'||lg==='zh'; // (2026-10-14, textes) BI
 COSM.figure=(window.FIG?FIG.liste:[]).map(function(f){return {id:f.id,n:f.n,p:f.p,d:figDesc(f,'fr'),fig:1};});
 const SHOP_CATS=['voiture','peinture','aile','trainee','figure'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
-function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin())return !!COSM[cat].find(x=>x.id===id); // (2026-10-14) LE CODE COUSIN : tous les habillages
+function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin()){const c9=COSM[cat].find(x=>x.id===id);if(c9&&!c9.eur&&(!c9.pack||c9.sec))return true;} /* (2026-10-14) LE CODE COUSIN : tous les habillages — (2026-10-24) SAUF ce qui se paie en EUROS (peintures en €, packs PALETTE et CHAT), la règle de Sacha du 14/10 (carEuros) ; les secrètes, gagnables par leur défi, restent offertes ; le reste suit la possession réelle */
 const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
   if(d.pack==='chat'&&m2Chat())return true; /* (2026-10-16, missions v2) l'ARC-EN-CIEL vient avec le chat */if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
 function shopEqD(cat){const id=SAVE.d.shop.eq[cat],d=COSM[cat].find(x=>x.id===id);return (d&&shopOwned(cat,d.id))?d:COSM[cat][0];}

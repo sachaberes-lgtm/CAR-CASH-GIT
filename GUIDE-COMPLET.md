@@ -503,7 +503,7 @@ un autre). En `file://` les voix et le décodage WebAudio meurent sans bruit.
   le jeu se met en PAUSE quand l'onglet est caché ; `dbgStep` dans un appel séparé du clic de départ ; le profil Chrome garde le
   service worker → `Network.setBypassServiceWorker`, sinon on photographie une vieille copie ; les `const` du jeu ne se lisent pas
   depuis la page (IIFE) : passer par `dbg*` ou le DOM.
-- **Faux positifs connus** : le 404 de `assets/audio/music/dark-triad.mp3` (repli prévu) ; les avertissements WebGL « READ-usage
+- **Faux positifs connus** : les avertissements WebGL « READ-usage
   buffer » à l'écran de fin ; `#auraV2` à −4 px (son animation d'entrée) ; les chevauchements voulus `#engBig`×`#slam9` et
   `#dolHud`×`#lvlBan` ; +8 nœuds DOM par partie (le TOP 10).
 
@@ -537,6 +537,16 @@ changements ») : `repertoire-maps/index.html` = la liste (photo + nom) des maps
 `voir.html?carte=<id>&meteo=<m>` = le vrai jeu dans un cadre 844 × 390, JOUER touché pour lui, la map gardée armée (`dbgClassique`) aux
 portails et aux relances, météos dans la barre. Liste : `repertoire-maps/maps.js`. Une MAP NOUVELLE dans SF_CARTES → une ligne dans
 maps.js + `python3 repertoire-maps/banc/photos.py <id>` (photos dans le vrai jeu, muet). Servir VERSION PRINCIPALE en http.
+- **LES VOITURES DU JEU** (2026-10-16, Léo : « la liste des voitures sur le jeu, page blanche, claire, lisible, interactive, qui me permet
+  de voir chaque modèle sur le main — checker souvent s'il y a eu des changements pour que la liste dise vraiment ce qu'il y a sur le jeu ») :
+  `repertoire-voitures/` (outil LOCAL, retiré du site par vercel-build.sh). `index.html` = la gamme par familles (les VRAIS gabarits, photos
+  en salle blanche), un toucher = la voiture en grand (doigt, molette, ← →), « VOIR DANS LE JEU » = `voir.html?i=n` (le jeu en ?simu=1,
+  la voiture équipée ; ACCUEIL · GARAGE · ROULER). `moteur.js` (repris de la salle blanche) lit le jeu du MAIN AU COMMIT PRÈS (API GitHub
+  → raw à ce sha ; repli : ../index.html), relu toutes les 2 min ; bloc « CE QUI A CHANGÉ » depuis la dernière visite (nouvelle, retirée,
+  renommée, MODÈLE RETOUCHÉ = empreinte fiche + code du gabarit, prix, famille). LA LECTURE SE RÉPARE SEULE : un nom manquant (« X is not
+  defined ») est cherché dans le jeu et posé devant le morceau qui le réclame, sinon un TROU NOIR (Proxy) — la salle blanche, elle, est
+  cassée depuis le 14/10 (`SANS_CARRIERE` dans le <head>). `python3 repertoire-voitures/serveur.py 9250` (sert le dossier, le remet sur
+  origin/main toutes les 2 min s'il est détaché et propre). Console : `dbgVoitures.etat()` (source, ratées, réparations).
 **Les NOTES DES MAPS** (17/10, Léo : « une page locale sur laquelle je pourrai retoucher chaque map » → « notes seulement ») : dans
 `voir.html`, le panneau NOTES (à droite, ou en bas sur un petit écran) — il écrit ce qu'il veut changer ; chaque note garde la météo et
 l'IMAGE du jeu à cet instant. Servir par `python3 repertoire-maps/serveur.py 9244` (il écrit les notes) ; elles vivent HORS du dépôt dans

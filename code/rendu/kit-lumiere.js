@@ -125,7 +125,7 @@ function svClockDraw(){ // minuteur circulaire PIXEL-ART : 20×20 upscalé net �
   c.fillStyle='#fff';
   for(let r=1.5;r<6;r+=1)c.fillRect(Math.round(9.5+Math.sin(na)*r),Math.round(9.5-Math.cos(na)*r),1,1);
   c.fillStyle='#ffd75e';c.fillRect(9,9,2,2);
-  if(svSecsEl){const sLeft=Math.max(0,Math.ceil(left));svSecsEl.textContent='0:'+String(sLeft).padStart(2,'0');
+  if(svSecsEl){const sLeft=Math.max(0,Math.min(59,Math.ceil(left)));svSecsEl.textContent='0:'+String(sLeft).padStart(2,'0'); /* (24/10, relecture : « 0:60 » toute la première seconde de chaque minute) la minute s'affiche 0:59 → 0:00, jamais 0:60 */
     svSecsEl.style.color=left<10?'#ff5040':'#ffd75e';}
 }
 function botBoom(b){ // une unité saute : gerbe or+bleu, champignon, et le son si c'est proche
@@ -370,7 +370,7 @@ function survTick(dt){
     if(SURV.last&&!gameOver){if(!SURV.alW&&performance.now()-(SURV.alQ||0)>500)SURV.alT=0;SURV.alT-=dt;if(SURV.alT<=0){const r9=Math.max(0,60-SURV.t);SURV.alT=Math.max(.18,Math.min(1.6,r9*.06));sfx('alerte.dernier',{vol:r9<10?2:0});}}
     if(SURV.alW&&!SURV.last)SURV.alQ=performance.now();SURV.alW=SURV.last&&!gameOver;} /* (débogage son 2026-09-29) une seconde place perdue puis reprise en moins de 0,5 s ne relance pas le bip */
   if(SURV.last&&!gameOver&&!TCTL.on){ // (2026-09-30) au téléphone, #lastAlert est masqué : on ne réécrit plus son HTML à chaque image
-    const left=Math.max(0,Math.ceil(60-SURV.t));
+    const left=Math.max(0,Math.min(59,Math.ceil(60-SURV.t))); /* (24/10, relecture) jamais « 00:60 » (voir svClockDraw) */
     lastAlertEl.innerHTML=TR('⚠ ATTENTION !<br>TU ES DERNIER<br>EXPLOSION DANS : 00:')+String(left).padStart(2,'0');
     lastAlertEl.style.display='block';
   }else lastAlertEl.style.display='none';
@@ -388,7 +388,7 @@ function survTick(dt){
       survRender();explode('police');
     }else{
       const low=racers[racers.length-1];
-      if(low&&low.totD<pTot){botBoom(low); // la meute s'ÉNERVE : pas plus vite que toi, mais plus téméraire
+      if(low&&low.alive&&low.totD<pTot){botBoom(low); /* (24/10, relecture : « double explosion d'un policier ») `racers` est figé avant la boucle des policiers : celui qui vient d'y retomber à côté de la route (botBoom) ne resaute pas (preuve-police-double) */ // la meute s'ÉNERVE : pas plus vite que toi, mais plus téméraire
         for(const b of SURV.bots)if(b.alive){b.agro=Math.min(1,b.agro+.08);b.appBoost=Math.min(1.2,b.appBoost+.1);b.marg=Math.min(.97,b.marg+.02);}}
       if(!SURV.bots.some(b=>b.alive)){
         SURV.over=true;if(SONV2)sfx('victoire');else fanfare();

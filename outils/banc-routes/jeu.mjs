@@ -22,7 +22,7 @@ try{
   await cdp('Page.enable');await cdp('Network.enable');await cdp('Network.setBypassServiceWorker',{bypass:true});
   await cdp('Emulation.setDeviceMetricsOverride',{width:844,height:390,deviceScaleFactor:1,mobile:true});
   await cdp('Page.addScriptToEvaluateOnNewDocument',{source:`try{if(!sessionStorage.__p){sessionStorage.__p=1;localStorage.cashcarSave=JSON.stringify({v:2,tuto:1,permis:1,bienv:1,facile:0,sfx:true,mus:false,vox:false,plq:{m:'fr',x:'CC-161-RZ',ok:1}});}}catch(e){}`});
-  await cdp('Page.navigate',{url:`http://127.0.0.1:${PS}/index.html?colonne=0&garde=1&carte=${carte}&meteo=${meteo||'midi'}`});
+  await cdp('Page.navigate',{url:`http://127.0.0.1:${PS}/index.html?colonne=0&garde=1&carte=${carte}&meteo=${meteo||'midi'}${process.env.EXTRA||''}`});
   for(let i=0;i<120;i++){if(await ev('!!window.__gameReady').catch(()=>false))break;await sleep(1000);}
   console.log('prêt',await ev('localStorage.cashcarSave&&localStorage.cashcarSave.slice(0,160)'),await ev('JSON.stringify(Object.keys(localStorage))'));
   for(let i=0;i<12;i++){const vis=await ev(`(function(){var s=document.getElementById('splash');if(!s)return false;var c=getComputedStyle(s);return c.display!=='none'&&c.visibility!=='hidden'&&+c.opacity>.05;})()`).catch(()=>false);if(!vis)break;

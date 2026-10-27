@@ -10,7 +10,7 @@ function frole(c9,dl,k){
   nitroGain((.08+.08*pres)*(k>1?1.5:1),'frole');flowAdd((4+4*pres)*(k>1?1.5:1),'style','n'); // (v4→v5) frôler, c'est un peu de NARCISSE — flowAdd lui verse la part du style // ×1,5 (et non ×2) : la porte paie plus sans gonfler le FLOW
   momT=Math.min(4.3,momT+.6); // (momentum v2) le style NOURRIT la réserve de vitesse
   try{chaineAuraMuette(FROLE.n>=2?'SLALOM ×'+FROLE.n:'FRÔLÉ',20,'frole',false,SONV2);}catch(e){}
-  if(k===1&&FROLE.n>=2)popTexte('SLALOM ×'+FROLE.n,FROLE.n>=3?'#ffd75e':'#7dffec'); // (2026-09-29, Sacha) FRÔLÉ ! et PORTE ! ne s'écrivent plus : seul le SLALOM parle
+  if(k===1&&FROLE.n>=2&&!LEFIL.on)popTexte('SLALOM ×'+FROLE.n,FROLE.n>=3?'#ffd75e':'#7dffec'); // (2026-09-29, Sacha) FRÔLÉ ! et PORTE ! ne s'écrivent plus : seul le SLALOM parle
   try{froleSnd(pres,FROLE.n,c9);}catch(e){} // (2026-10-14, session SON) + l'objet frôlé : le souffle passe de SON côté
   hap(FROLE.n>=3?[8,20,8]:8);fovPunch=Math.max(fovPunch,1.5+2*pres);
   try{sparkBurst(sparkBlue,c9.mesh.position,3+Math.round(3*pres),5);}catch(e){}
@@ -260,6 +260,7 @@ function hautArme(){clearTimeout(HAUT.t);
   let at=n;
   if(c&&n<HAUT.fin&&(b.p<=c.p||c.ferme)){at=c.s+c.min;if(at>=HAUT.fin)at=HAUT.fin+120;} // la voix en place a droit à son temps de lecture (verrouillée : même face à plus fort)
   HAUT.t=setTimeout(function(){
+    if(paused&&started&&!gameOver){HAUT.t=setTimeout(hautArme,250);return;} /* (24/10, relecture : « la file des annonces continue pendant la pause ») en PAUSE la file attend : la carte suivante (défi, moteur, niveau) passait par-dessus le panneau de pause — on regarde de nouveau toutes les 250 ms ; une annonce dont la patience s'épuise se tait comme avant (preuve-annonce-pause) */
     const n2=performance.now(),b2=hautMeilleur(n2);if(!b2)return;
     const c2=HAUT.cur;
     if(hautCede(c2,b2.p,n2)){HAUT.q.splice(HAUT.q.indexOf(b2),1);hautMontre(b2,n2);}else hautArme();

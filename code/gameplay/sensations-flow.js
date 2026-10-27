@@ -127,6 +127,7 @@ function driftTick(dt,on){
 // LE TEXTE QUI JAILLIT au-dessus de la caisse (l'écran est nu sur téléphone : c'est la seule annonce de conduite)
 function popTexte(txt,col,prio){
   // (2026-09-25) une PRIORITÉ : un temps fort (PARFAIT, AU CHEVEU…) ne se fait pas voler la vedette par un palier dans les 650 ms
+  if(LEFIL.on){popTexte._w=0;fil(txt,col,prio);return;} /* (2026-10-25, LE FIL) plus de texte jailli de la caisse : la pastille unique parle (fil.js) */
   prio=prio|0;const n9=performance.now();
   if(prio<(popTexte._p|0)&&n9<(popTexte._t||0))return;
   popTexte._p=prio;popTexte._t=n9+650;popTexte._s=n9;
@@ -350,5 +351,5 @@ function flowVitN(){
   const v=mode==='fall'?Math.sqrt(fallVel.x*fallVel.x+fallVel.z*fallVel.z):Math.abs(vA);
   return v*3.6*SPD/vm;
 }
-const FLOW_COL=['#ffffff','#5ee6ff','#ffd75e','#ff5ec8','#ff2a3d']; // [4] = la FRÉNÉSIE, ROUGE (2026-09-28, Sacha) — elle était violette
-const FLOW_CEL=['#5ee6ff','#ffd75e','#ff5ec8','#b58cff'];            // les quatre cellules de la jauge (la 4e garde son violet : le ROUGE est réservé à la zone)
+const FLOW_COL=['#ffffff','#5ee6ff','#ff5ec8','#ffd75e','#ff2a3d']; // [4] = la FRÉNÉSIE, ROUGE (2026-09-28, Sacha) — elle était violette
+const FLOW_CEL=['#5ee6ff','#ff5ec8','#ffc72a','#fff0a0'];            // les quatre cellules de la jauge (la 4e garde son violet : le ROUGE est réservé à la zone)

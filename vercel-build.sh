@@ -10,6 +10,13 @@ sh garde-burnout.sh
 # (2026-10-14, Sacha) LA GARDE DE LA CHARTE : logo de l'accueil figé par empreinte, police pixel, charte 6 en opt-in (garde-charte.sh ;
 # GARDE_CHARTE=0 la coupe).
 sh garde-charte.sh
+# (2026-10-25, Sacha : « sur PC la version maximum, sur téléphone l'optimisée — que j'aie pas à te le redire ») LA GARDE DE L'ALLÈGEMENT : un allègement du rendu gardé par
+# IS_MOBILE (vrai aussi sur PC) n'est PAS publié (garde-allege.sh ; GARDE_ALLEGE=0 la coupe).
+sh garde-allege.sh
+# (2026-10-27, Léo : « les techniques Cloudflare… que mon jeu ne bugge plus du tout ») LA GARDE DU DÉMARRAGE : une version qui ne peut pas
+# démarrer (index.html ≠ code/, un <script> illisible, un fichier chargé absent) n'est PAS publiée — le site garde la version d'avant
+# (outils/garde-demarrage.cjs ; GARDE_DEMARRAGE=0 la coupe).
+node outils/garde-demarrage.cjs
 rm -rf .vercel-static
 mkdir -p .vercel-static
 cp -R demo/cash-car-demo .vercel-static/demo
@@ -29,6 +36,8 @@ rm -rf .vercel-static/jouer/salle-blanche.html .vercel-static/jouer/salle-blanch
 # (2026-10-15, Léo) LE RÉPERTOIRE DES MAPS (repertoire-maps/ : la page, ses photos, son banc) reste un outil LOCAL — en ligne, il changerait
 # l empreinte du jeu publié (tous les joueurs rechargés)
 rm -rf .vercel-static/jouer/repertoire-maps
+# (2026-10-16, Léo) LES VOITURES DU JEU (repertoire-voitures/ : la liste, la vue dans le jeu, son serveur) : outil LOCAL, même raison
+rm -rf .vercel-static/jouer/repertoire-voitures
 find .vercel-static/jouer -name '*.py' -delete
 # (2026-10-14, pôle SON) L'ATELIER DE LA MUSIQUE reste un outil LOCAL (Léo : « pour toi ») : la page musique-moteur.html (elle fige les
 # morceaux par le serveur de la page) et les sources des morceaux à paliers (paliers/*.html).
@@ -37,8 +46,9 @@ rm -f .vercel-static/jouer/musique-moteur.html .vercel-static/jouer/assets/audio
 # ce que SEULE elle lit : ses catalogues de boucles (boucles/, depart/, petites-musiques/, les *-donnees.js), le lobby du garage que le jeu ne joue
 # plus (lobby/garage-*), GLISSE, le moteur French Touch et les mesures de goûts. Les fichiers restent dans le dépôt. Rien de ce que le jeu peut
 # demander n'est touché : MENU_MUS (lobby/ciel-*), l'auto-école (lobby/chris-matin), les morts et l'argent (death/, fx/), Pouce bleu (le reste de direct/,
-# musique-moteur.json, musique-paliers.js, rendus/). boucles/dark-triad.m4a RESTE : c'est le morceau de la frénésie (MUSIC_FREN le cherche en .mp3 ailleurs).
+# musique-moteur.json, musique-paliers.js, rendus/). boucles/dark-triad.m4a RESTE : c'est le morceau de la frénésie (MUSIC_FREN.f, depuis le 24/10 — avant, le jeu le cherchait en .mp3 ailleurs).
 rm -f .vercel-static/jouer/bibliotheque.html
+rm -f .vercel-static/jouer/test-depart-musique.html   # (2026-10-25) la page de test du palier de départ de la musique de course : outil local de Léo
 rm -rf .vercel-static/jouer/assets/audio/music/depart .vercel-static/jouer/assets/audio/music/petites-musiques
 find .vercel-static/jouer/assets/audio/music/boucles -type f ! -name dark-triad.m4a -delete 2>/dev/null || true
 rm -f .vercel-static/jouer/assets/audio/music/lobby/menu-donnees.js .vercel-static/jouer/assets/audio/music/lobby/chris-donnees.js .vercel-static/jouer/assets/audio/music/lobby/garage-*.m4a
@@ -46,6 +56,9 @@ rm -f .vercel-static/jouer/assets/audio/music/direct/french-touch.html .vercel-s
 # …et ce qui dépend des musiques de POUCE BLEU (musique-moteur.json) est calculé à chaque build, avec la règle du jeu : les dossiers de paliers
 # des morceaux rangés « bleu », les générateurs que les 👍 rejouent, les échantillons vrais/ du rejeu (outils/vrais-jeu.json, tant que sa preuve
 # colle). AVANT publie-allege (l'empreinte de la preuve lit les fichiers tels que le dépôt les a).
+# (2026-10-24, passe perf) LA BANQUE DE SONS EN DEUX MOITIÉS : le 1er lancement ne télécharge d'abord que les sons du début (0,8 Mo sur 7,7) ; le reste arrive
+# après load (sfx.js, CCSON.ajoute). La copie publiée seulement ; en cas d'échec la banque reste entière (outils/scinde-banque.cjs, preuve octet pour octet).
+node outils/scinde-banque.cjs .vercel-static/jouer || echo "⚠ scinde-banque : échec, la banque part entière"
 node outils/publie-audio.cjs .vercel-static/jouer || echo "⚠ publie-audio : échec, la copie part avec tous ses sons"
 # (2026-10-18, Sacha : « retirer les commentaires de la copie mise en ligne » + « les outils de test dbg… ») LA COPIE ALLÉGÉE : la copie
 # publiée perd ses commentaires (index.html 7,6 → 4,5 Mo, ≈ −1 Mo téléchargé par joueur) et les crochets window.dbgX que rien de publié

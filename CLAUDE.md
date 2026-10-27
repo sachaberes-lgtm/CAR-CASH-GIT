@@ -1,6 +1,10 @@
 # CASH CAR — la carte du code (à lire en premier)
 
 CASH CAR est un runner arcade 3D (three.js) pour téléphone : on conduit une caisse sur une route suspendue dans le ciel, on vole, on ramasse de l'argent et on achète des voitures au garage.
+`ROBLOX/` est un autre jeu, le portage Roblox : un commit ROBLOX ne change pas le jeu web.
+**L'APP iOS** (2026-10-13, branche `ios-capacitor`) n'est pas un autre jeu : `app-ios/` = Capacitor 8, appId `com.sachaberes.carcash`.
+Son `www/` est GÉNÉRÉ depuis `VERSION PRINCIPALE/` (`cd app-ios && npm run sync`, jamais à la main) ; la colle native vit dans
+`app-ios/natif/natif.js` (inerte hors de l'app). Mode d'emploi : `app-ios/LISEZ-MOI.md` ; état et décisions : `passation/APP-STORE.md`.
 
 ## Quel fichier fait quoi
 - `VERSION PRINCIPALE/index.html` : le jeu que le navigateur charge. **Fabriqué à partir de `code/` : on ne l'édite pas.**
@@ -14,7 +18,7 @@ CASH CAR est un runner arcade 3D (three.js) pour téléphone : on conduit une ca
 - `code/economie/` : boutique (`SHOP`, `shopBuy`), achat (`carBuy`), contrats, argent de l'atelier, boutique du jour, final spin.
 - `code/gameplay/` : flow, frénésie, pouvoirs, figures, impact, mort, caméra, aura, pose, seconde chance, ramassage.
 - `code/missions/` : la table, le moteur, l'écran, la révélation, les missions de l'atelier.
-- `code/son/` : musique, voix des moteurs, console et graphe audio, mute.
+- `code/son/` : musique, voix des moteurs, console et graphe audio, mute ; `moteur-vivant.js` = le second moteur (?moteurvivant=1, DSP dans `assets/audio/moteur-vivant/`, atelier d'écoute dans `atelier-son/moteur-vivant/`).
 - `code/interface/` : traductions (`I18N`), menus, garage, boutique 3D, inventaire, HUD des figures, auto-école.
 - `code/moteur/` : la boucle `loop()` (6 tranches `boucle-*`), cadence, init, `intro-161.js` (l'intro du studio : cinq « 1.61 » blanc sur noir au choix `?label=neon|or|poussiere|luxe|hype|demo`, noir, logo qui casse l'écran ; l'ancienne est dans `init.js`, `?intro=ancien`), mobile/tactile/PWA.
 - `code/sauvegarde.js` : `SAVE`, la sauvegarde (localStorage `cashcarSave`).
@@ -34,6 +38,7 @@ CASH CAR est un runner arcade 3D (three.js) pour téléphone : on conduit une ca
 - Nouveau morceau : couper un fichier entre deux instructions et l'inscrire à sa place dans `ORDRE.txt`.
 - Tout le JS du jeu est UNE fonction `(function(){'use strict'; … })()`, ouverte dans `interface/icones-fenetre.js` et fermée dans `moteur/desktop-banc.js` : les noms se voient d'un morceau à l'autre, rien n'est global.
 - Noms et commentaires en français. Une section s'ouvre par `/* ===== LE TITRE (date, qui : « la demande ») ===== */`. Jamais de `//` au milieu d'une ligne : `/* … */`.
+- ⚠ DEUX VERSIONS, UN CODE : l'ORDINATEUR (Vercel `/jouer/`) a toujours le MAXIMUM, le TÉLÉPHONE la version optimisée (décision de Sacha, 25/10). Tout ce qui retire de l'image (résolution, ombres, bloom, anticrénelage, densité, cartes ou satellites en moins) se garde sur `ALLEGE` (vrai téléphone ou `?tel=1` ; défini dans `rendu/soleil-planete.js`) ou `TEL_NATIF` — JAMAIS sur `IS_MOBILE`, qui est vrai AUSSI sur l'ordi (édition 'mobile' en cadre téléphone, `FORCE_TEL`) et ne sert qu'à l'interface. `garde-allege.sh` (lancée par `vercel-build.sh`) refuse la publication sinon. Les paliers `PAL.b(...)` sont sûrs (l'ordi = palier 2). Pas de branches mobile/PC : un seul code.
 - Crochets de test : `window.dbgXxx`. Variantes : paramètres d'URL `?x=`.
 - Chaque changement du jeu : `cashcar-vNNN` +1 dans `VERSION PRINCIPALE/sw.js` (le hook pre-push l'exige).
 - Livrer : partir d'`origin/main` à jour, fusionner (jamais de force), pousser sur `main` (Vercel publie https://car-cash-git.vercel.app/jouer/). Règles complètes : « SANS TOUT CASSER » dans `GUIDE-COMPLET.md`.

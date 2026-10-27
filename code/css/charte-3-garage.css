@@ -90,6 +90,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 .gT em{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:flex-end;padding:4px 10px 3px;font-style:normal;font-size:var(--f0);letter-spacing:0;background:rgba(7,5,15,.84)}
 .gT em:empty{display:none}
 .gT em .pxi{--pxs:1;color:var(--neoV)}
+.gT.eq.c-peinture em .pxi{color:var(--neoR)} /* (2026-10-26) la peinture équipée porte une croix (la retoucher la retire) */
 .gT.lock img{filter:brightness(.42) saturate(.35) contrast(1.1)}   /* fermée, mais on la VOIT : l'envie naît là */
 .gT.lock::before{content:'';position:absolute;left:8px;top:10px;width:9px;height:9px;background:var(--tx3);-webkit-mask:var(--pxi-verrou) center/contain no-repeat;mask:var(--pxi-verrou) center/contain no-repeat;z-index:1}
 .gT.eq::after{content:'';position:absolute;left:8px;width:8px;height:8px;background:var(--au2);transform:rotate(45deg);box-shadow:0 0 8px var(--au2)}

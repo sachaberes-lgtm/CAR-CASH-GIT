@@ -83,9 +83,9 @@ html.hub:not(.poki) body #mHome.acc2 .mTitle{filter:drop-shadow(0 0 .3em rgba(25
 #wipe::after{display:none!important}
 #wipe.in::before{animation-duration:150ms!important}
 #wipe.out::before{animation-duration:320ms!important}
-#wipe::before{background:linear-gradient(90deg,var(--au2) 0 8px,transparent 8px 12px,var(--neoC) 12px 18px,transparent 18px 22px,var(--neoM) 22px 30px,transparent 30px 34px,
-  rgba(7,5,15,1) 34px calc(100% - 34px),transparent calc(100% - 34px) calc(100% - 30px),var(--neoM) calc(100% - 30px) calc(100% - 22px),transparent calc(100% - 22px) calc(100% - 18px),
-  var(--neoC) calc(100% - 18px) calc(100% - 12px),transparent calc(100% - 12px) calc(100% - 8px),var(--au2) calc(100% - 8px)),var(--matrice),#07050f!important}
+#wipe::before{background:linear-gradient(90deg,var(--neoC) 0 8px,transparent 8px 12px,var(--neoM) 12px 20px,transparent 20px 24px,var(--au2) 24px 32px,transparent 32px 34px,
+  rgba(7,5,15,1) 34px calc(100% - 34px),transparent calc(100% - 34px) calc(100% - 32px),var(--au2) calc(100% - 32px) calc(100% - 24px),transparent calc(100% - 24px) calc(100% - 20px),
+  var(--neoM) calc(100% - 20px) calc(100% - 12px),transparent calc(100% - 12px) calc(100% - 8px),var(--neoC) calc(100% - 8px)),var(--matrice),#07050f!important}
 /* L'ŒIL : la console s'EFFACE en 200 ms (elle disparaissait d'un coup), pendant que la caméra glisse sur la caisse ; elle revient en fondu */
 /* (2026-10-11) le fondu de la console sous l'œil est retiré avec le garage d'avant : l'œil vit DANS la console, une opacité 0 l'éteindrait aussi */
 </style>
@@ -172,17 +172,21 @@ html body.touch #nitroBar.boost #nitroR::after,html body.touch #nitroBar.inf #ni
 @keyframes nbBout{50%{box-shadow:0 0 14px #fff1c8,0 0 26px #ff8d2e;background:#fff}}
 /* ---- 2. LA JAUGE D'AURA = la barre flow d'origine ---- */
 #ajVols{display:none}
-/* ---- 3. LE FLOW EN TOUT PETIT, juste dessous (toute sa logique intacte) ---- */
+/* ---- 3. LE FLOW, juste dessous (toute sa logique intacte) — (2026-10-24, Sacha : « la barre de flow est trop discrète ») : 11 px au lieu de 6, icône 17 px, nom du palier réaffiché, halo ---- */
 html body.touch #flowHud{right:calc(var(--hudD) + 70px)!important;padding:0 var(--nxV) 0 34px!important;
-  grid-template-rows:6px!important;gap:0!important}
-html body.touch #flowHud .fSeg{height:6px!important;padding:1px!important;gap:1px!important;box-shadow:inset 0 0 0 1px #170f55,0 1px 0 #170f55!important}
-html body.touch #flowHud[data-lv="4"] .fSeg{box-shadow:inset 0 0 0 1px var(--frenN),0 1px 0 var(--frenO),0 0 8px color-mix(in srgb,var(--fren) 70%,transparent)!important}
-html body.touch #flowHud .fSeg s::after,html body.touch #flowHud .fSeg i.cur s::after{width:2px!important}
-html body.touch #flowHud .fSeg::after{inset:1px!important}
-html body.touch #flowHud::before{left:12px!important;top:-3px!important;width:11px!important;height:11px!important}
-html body.touch #flowHud .fL,html body.touch #flowHud .fT{display:none!important}
-html body.touch #flowHud .fM{position:absolute;right:auto;top:-6px;bottom:-6px;width:auto;box-sizing:border-box;padding-left:6px;
-  display:flex!important;align-items:center;justify-content:flex-start;font-size:8px!important}
+  grid-template-rows:11px!important;gap:0!important}
+html body.touch #flowHud .fSeg{height:11px!important;padding:2px!important;gap:2px!important;border-radius:3px!important;
+  box-shadow:inset 0 0 0 2px #170f55,0 2px 0 #170f55,0 0 10px color-mix(in srgb,var(--fc) 55%,transparent),0 4px 8px rgba(0,0,0,.35)!important}
+html body.touch #flowHud[data-lv="0"] .fSeg{box-shadow:inset 0 0 0 2px #170f55,0 2px 0 #170f55,0 4px 8px rgba(0,0,0,.35)!important}
+html body.touch #flowHud[data-lv="4"] .fSeg{box-shadow:inset 0 0 0 2px var(--frenN),0 2px 0 var(--frenO),0 0 14px color-mix(in srgb,var(--fren) 80%,transparent)!important}
+html body.touch #flowHud .fSeg i{background:rgba(255,255,255,.14)!important}
+html body.touch #flowHud .fSeg s::after,html body.touch #flowHud .fSeg i.cur s::after{width:3px!important}
+html body.touch #flowHud .fSeg::after{inset:2px!important}
+html body.touch #flowHud::before{left:8px!important;top:-4px!important;width:17px!important;height:17px!important}
+html body.touch #flowHud .fT{display:none!important}
+html body.touch #flowHud .fL{display:block!important;position:absolute;left:34px;top:13px;font-size:8px!important;line-height:1;letter-spacing:1px}
+html body.touch #flowHud .fM{position:absolute;right:auto;top:-5px;bottom:-5px;width:auto;box-sizing:border-box;padding-left:6px;
+  display:flex!important;align-items:center;justify-content:flex-start;font-size:11px!important}
 html body.touch #flowHud[data-lv="4"]::after{top:-10px!important;height:24px!important}
 /* ---- couché : les barres gardent toute leur longueur, les bouts (MOY, ×CASH) passent À DROITE, sous la vitesse ---- */
 @media (orientation:landscape) and (max-height:540px){

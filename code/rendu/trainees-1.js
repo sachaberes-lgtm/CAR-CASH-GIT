@@ -268,6 +268,52 @@ var TC=null;
 const TC_O=new Float32Array(3),TC_S=new Float32Array(3);
 const TC_PERM=[[0,2,1],[0,1,2],[2,0,1],[2,1,0]]; // (long, court, épaisseur) en axes du monde : à plat · debout face à z · à plat tourné d'un quart · debout face à x
 const TC_SEQ=[0,1,0,2,3,2]; // le billet : à plat, sur la tranche, à plat (le verso), tourné d'un quart…
+/* (2026-10-25, Léo : « ça doit plus ressembler à des EUROS, très précis dans les tailles : le 5 plus petit que le 500, les mêmes couleurs, les mêmes tailles que les vrais ;
+   retravaille la composition pour qu'on reconnaisse un billet d'euros, sans trop de détails ») LES BILLETS EN EUROS, en cubes — UNE seule définition pour la traînée
+   et pour les billets éjectés du menu ciel. Tailles et couleurs de la série Europa (BCE) : 5 gris 120×62 mm · 10 rouge 127×67 · 20 bleu 133×72 · 50 orange 140×77 ·
+   100 vert 147×82 · 200 jaune 153×82 · 500 violet 160×82. Tout est écrit en fraction du 500 (160 mm = 1), donc le 5 fait .75 de long et .39 de haut, le 500 fait 1 × .51.
+   La composition (de gauche à droite, du bas vers le haut) : une BORDURE sombre de la couleur du billet, le CHAMP, un centre plus clair (l'architecture), la FENÊTRE
+   claire en haut à gauche sous trois ÉTOILES d'or (le drapeau), la BANDE argentée de l'hologramme à droite du centre, le GROS CHIFFRE en bas à gauche (un cube sombre par
+   chiffre sur son cartouche clair : 5 → un, 10-50 → deux, 100-500 → trois), et le PONT en bas à droite. */
+var TC_BIL=null;
+const TC_EUR=[['5',120,62,'#aab2b2'],['10',127,67,'#dc5a50'],['20',133,72,'#4d92dc'],['50',140,77,'#f28d2e'],['100',147,82,'#68b866'],['200',153,82,'#e4c24c'],['500',160,82,'#9c6bb2']];
+const TC_BIL_100=4; // la place du 100 € (la liasse qui craque en lâche des verts)
+function tcBilBati(){TC_BIL=TC_EUR.map(function(E,ix){const w=E[1]/160,h=E[2]/160,n=E[0].length,R=parseInt(E[3].substr(1,2),16)/255,G=parseInt(E[3].substr(3,2),16)/255,Bl=parseInt(E[3].substr(5,2),16)/255,
+    col=function(k){return [R*k,G*k,Bl*k];},pal=function(t,k){return [(R+(1-R)*t)*k,(G+(1-G)*t)*k,(Bl+(1-Bl)*t)*k];},k=[], // k : [place sur le long, place sur le court, (0), long, court, épaisseur, r, g, b] — en longueurs du 500 €
+    add=function(x,y,fw,fh,t,c){k.push([x*w,y*h,0,fw*w,fh*h,t,c[0],c[1],c[2]]);};
+  add(0,0,1,1,.045,col(.6));                                  // la bordure
+  add(0,0,.94,.84,.06,pal(.12,1));                           // le champ
+  add(.02,.02,.3,.64,.07,pal(.5,1));                         // le centre clair
+  add(-.29,.2,.19,.36,.075,pal(.72,1.05));                    // la fenêtre
+  for(let i=0;i<3;i++)add(-.36+i*.065,.38,.03,.06,.09,[1.6,1.35,.45]); // les étoiles d'or
+  add(.22,0,.07,.84,.08,[1.35,1.4,1.5]);                      // la bande de l'hologramme
+  add(-.27,-.22,.1+.085*n,.34,.075,pal(.82,1.1));            // le cartouche du chiffre
+  for(let i=0;i<n;i++)add(-.27+(i-(n-1)/2)*.08,-.22,.055,.24,.09,col(.38)); // le chiffre : un cube par chiffre
+  add(.36,.1,.17,.4,.075,pal(.72,1.05));                      // la fenêtre de droite (le portrait d'Europe)
+  add(.05,-.32,.27,.07,.08,col(.45));                         // le pont : le tablier…
+  add(-.015,-.245,.09,.08,.085,col(.45));add(.115,-.245,.09,.08,.085,col(.45)); // …et ses deux arches
+  return {k:k,w:w,h:h,ix:ix,c:{}};});}
+const TC_BIL_W=[22,22,20,16,10,6,4]; // beaucoup de petites coupures, un 500 rare
+function tcBilTire(){if(!TC_BIL)tcBilBati();let r=Math.random()*100,i=0;while(i<6&&r>=TC_BIL_W[i]){r-=TC_BIL_W[i];i++;}return i;}
+/* (2026-10-25, Léo : « ils peuvent se plier, abîmés un peu : là ils sont trop solides ») LE PAPIER SOUPLE ET USÉ. Le billet est taillé en QUATRE TRANCHES dans sa longueur ;
+   chaque tranche se décale dans l'épaisseur selon la POSE (à plat · en U · en arche · en vague · plié en marche) — des marches de cubes, jamais une courbe lisse : le
+   langage pixel de la traînée. Les poses défilent par images (`TC_PSEQ`, trois par seconde, chaque billet sa phase) : le billet FLÉCHIT. L'USURE (`wear`, tirée une fois
+   par billet) : 0 propre · 1 teintes ternies par plaques · 2 le coin haut droit arraché + ternies · 3 le coin bas gauche arraché + ternies. Les listes de cubes
+   (pose × usure) sont calculées une fois par billet et gardées. */
+const TC_SL=[-.5,-.25,0,.25,.5];
+const TC_POSES=[[0,0,0,0],[.055,0,0,.055],[-.055,0,0,-.055],[0,.055,0,-.055],[0,0,.065,.065]]; // décalage de chaque tranche dans l'épaisseur (en longueurs du 500 €)
+const TC_PSEQ=[1,3,0,2,4,3];
+function tcBilWear(){const r=Math.random()*100;return r<30?0:r<60?1:r<82?2:3;}
+function tcBilPose(B,pose,wear){const key=pose*4+wear,C=B.c[key];if(C)return C;
+  const out=[],off=TC_POSES[pose],W=B.w,H=B.h,dech=wear===2?{s:3,top:1}:wear===3?{s:0,top:-1}:null;let rs=(wear*7919+B.ix*131+pose*17+1)|0;
+  for(const e of B.k){const x0=e[0]-e[3]/2,x1=e[0]+e[3]/2;
+    for(let s=0;s<4;s++){const a=Math.max(x0,TC_SL[s]*W),b=Math.min(x1,TC_SL[s+1]*W);if(b-a<1e-4)continue;
+      let y0=e[1]-e[4]/2,y1=e[1]+e[4]/2;
+      if(dech&&s===dech.s){const cut=H*.3;if(dech.top>0){if(y0>=cut)continue;y1=Math.min(y1,cut);}else{if(y1<=-cut)continue;y0=Math.max(y0,-cut);}} // le coin arraché
+      if(y1-y0<1e-4)continue;
+      let kk=1;if(wear>0){rs=(Math.imul(rs,1103515245)+12345)&0x7fffffff;if(((rs>>8)%100)<(wear===1?30:38))kk=.7;} // une plaque ternie
+      out.push([(a+b)/2,(y0+y1)/2,off[s],b-a,y1-y0,e[5],e[6]*kk,e[7]*kk,e[8]*kk]);}}
+  B.c[key]=out;return out;}
 const TC_PET=[[0,0,0],[1,0,1],[0,1,2]]; // les trois cellules du pétale : (a, b, teinte)
 const TC_PETC=[[1.08,.68,.84],[1,.5,.7],[.9,.3,.55]]; // clair · rose · foncé (tops à 1, flancs ombrés par la face)
 function tcPool(N,kind,op){ // kind : 's' plein · 'o' contour · 'g' lueur
@@ -284,7 +330,7 @@ function tcPool(N,kind,op){ // kind : 's' plein · 'o' contour · 'g' lueur
   m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.instanceColor.setUsage(THREE.DynamicDrawUsage);
   m.count=0;m.frustumCulled=false;m.visible=false;if(kind==='g')m.renderOrder=2;scene.add(m);
   return {m:m,M:m.instanceMatrix.array,C:m.instanceColor.array,n:0,N:N};}
-function tcBati(){if(!TC)TC={s:tcPool(1500,'s'),o:tcPool(500,'o'),g:tcPool(900,'g',.2)};return TC;}
+function tcBati(){if(!TC)TC={s:tcPool(2400,'s'),o:tcPool(500,'o'),g:tcPool(900,'g',.2)};return TC;}
 function tcRaz(){if(TC)TC.s.n=TC.o.n=TC.g.n=0;}
 function tcFin(){if(!TC)return;for(const Y of [TC.s,TC.o,TC.g]){const n=Y.n;Y.m.count=n;Y.m.visible=n>0;
   if(n){Y.m.instanceMatrix.updateRange.count=n*16;Y.m.instanceMatrix.needsUpdate=true;Y.m.instanceColor.updateRange.count=n*3;Y.m.instanceColor.needsUpdate=true;}}}
@@ -297,6 +343,13 @@ function tcGlow(x,y,z,s,r,g,b){ // une LUEUR en pixels : trois cubes emboîtés 
 function tcLocal(Y,pm,ox,oy,oz,la,lb,ln,sa,sb,sn,r,g,b){ // un cube dans le repère (long, court, épaisseur) d'une pièce, dont `pm` donne les axes du monde
   TC_O[0]=ox;TC_O[1]=oy;TC_O[2]=oz;TC_O[pm[0]]+=la;TC_O[pm[1]]+=lb;TC_O[pm[2]]+=ln;TC_S[pm[0]]=sa;TC_S[pm[1]]=sb;TC_S[pm[2]]=sn;
   tcBox(Y,TC_O[0],TC_O[1],TC_O[2],TC_S[0],TC_S[1],TC_S[2],r,g,b);}
+const TC_M1=new THREE.Matrix4(),TC_M2=new THREE.Matrix4(),TC_QI=new THREE.Quaternion(),TC_V1=new THREE.Vector3(),TC_V2=new THREE.Vector3();
+function tcBoxM(Y,pos,quat,s,la,lb,ln,sa,sb,sn,r,g,b){ // (2026-10-25) un cube dans le repère d'un BILLET qui tourne (position, quaternion, échelle s ; long = x, court = y, face = z) : la matrice complète. L'épaisseur du cube est son axe y (le dessus clair, le dessous sombre de l'ombrage des cubes) : la FACE du billet est son dessus
+  if(Y.n>=Y.N)return;TC_M1.compose(pos,quat,TC_V1.set(s,s,s));TC_M2.set(sa,0,0,la, 0,0,-sb,lb, 0,sn,0,ln, 0,0,0,1);TC_M1.multiply(TC_M2);
+  const o=Y.n*16,c=Y.n*3,e=TC_M1.elements;for(let i=0;i<16;i++)Y.M[o+i]=e[i];Y.C[c]=r;Y.C[c+1]=g;Y.C[c+2]=b;Y.n++;}
+function tcBilletMesh(Y,m,bi,pose,wear){const B=TC_BIL[bi|0]||TC_BIL[TC_BIL_100],s=m.scale.x; // le billet éjecté : le même billet d'euros que la traînée (même pose, même usure), à l'échelle de son maillage d'avant (1 = le 500 €)
+  for(const c of tcBilPose(B,pose|0,wear|0))tcBoxM(Y,m.position,m.quaternion,s,c[0],c[1],c[2],c[3],c[4],c[5],c[6],c[7],c[8]);}
+function tcFinY(Y){if(!Y)return;const n=Y.n;Y.m.count=n;Y.m.visible=n>0;if(n){Y.m.instanceMatrix.updateRange.count=n*16;Y.m.instanceMatrix.needsUpdate=true;Y.m.instanceColor.updateRange.count=n*3;Y.m.instanceColor.needsUpdate=true;}}
 function tcPart(p,al,E){const T=TC,pv=TRX.C.pv;
   let f=al>=.8?1:al>=.55?.84:al>=.36?.68:al>=.18?.5:0;if(!f)return; // l'ancienne OPACITÉ devient la TAILLE : les cubes fondent par crans
   if(!pv){const c=camera.position,dx=p.x-c.x,dy=p.y-c.y,dz=p.z-c.z,d=Math.sqrt(dx*dx+dy*dy+dz*dz);f*=d<1.8?0:d<2.7?.5:d<3.8?.8:1;if(!f)return;} // près de l'objectif : par crans aussi
@@ -308,9 +361,8 @@ function tcPart(p,al,E){const T=TC,pv=TRX.C.pv;
       tcLocal(T.s,pm,ox,oy,oz,(c[0]-.33)*u0*mir,(c[1]-.33)*u0,0,s,s,s*.42,pc[0]*p.cr,pc[1]*p.cg,pc[2]*p.cb);}
   }else if(k===2){ // LE BILLET : un cadre, un panneau, le médaillon — il se retourne par quarts de tour
     const u=TC_K.bil*E,gq=u*TC_K.pas,ox=Math.round(p.x/gq)*gq,oy=Math.round(p.y/gq)*gq,oz=Math.round(p.z/gq)*gq,pm=TC_PERM[TC_SEQ[((p.a*p.fl*.5+p.fp)|0)%6]],uf=u*f;
-    tcLocal(T.s,pm,ox,oy,oz,0,0,0,4.4*uf,2.4*uf,.5*uf,.12,.46,.26);
-    tcLocal(T.s,pm,ox,oy,oz,0,0,0,3.6*uf,1.5*uf,.8*uf,.28,.8,.46);
-    tcLocal(T.s,pm,ox,oy,oz,0,0,0,1.1*uf,1.1*uf,.98*uf,.8,1.15,.85);
+    const B=TC_BIL[p.bi|0]||TC_BIL[TC_BIL_100],W=4.4*uf,kb=pm[2]===1?1:1.6; // (2026-10-25) le billet d'EUROS (voir TC_EUR) : le 500 fait 4,4 de long, les autres à leur vraie proportion ; debout, sa face reçoit l'ombrage des flancs : on la relève
+    for(const c of tcBilPose(B,TC_PSEQ[((p.a*3+p.fp)|0)%6],p.wr|0))tcLocal(T.s,pm,ox,oy,oz,c[0]*W,c[1]*W,c[2]*W,c[3]*W,c[4]*W,c[5]*W,c[6]*kb,c[7]*kb,c[8]*kb);
   }else if(k===3){ // L'ÉTINCELLE : une croix de cubes, à la couleur de la particule
     const u=p.w*E*.3,gq=u*TC_K.pas*2,x=Math.round(p.x/gq)*gq,y=Math.round(p.y/gq)*gq,z=Math.round(p.z/gq)*gq,s=u*f,a=s*1.5,r=p.cr*1.1,g=p.cg*1.1,b=p.cb*1.1,s7=s*.7,r7=r*.8,g7=g*.8,b7=b*.8;
     tcBox(T.s,x,y,z,s,s,s,r,g,b);tcBox(T.s,x+a,y,z,s7,s7,s7,r7,g7,b7);tcBox(T.s,x-a,y,z,s7,s7,s7,r7,g7,b7);

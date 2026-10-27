@@ -82,6 +82,15 @@ html body #flowHud[data-lv="4"].sc2 .fSeg::before{animation:frGlisse .9s linear 
 @keyframes frEclatB{from{filter:brightness(1.8)}to{filter:none}}
 @keyframes frGlintA{from{background-position:150% 0}to{background-position:-50% 0}}
 @keyframes frGlintB{from{background-position:150% 0}to{background-position:-50% 0}}
+/* ===== LE REFLET DE LA FRÉNÉSIE ET SON ÉCLAT EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») =====
+   iPhone 13 Pro : 58,0 i/s en course contre 59,7 animations CSS figées. Le calque 3W du reflet du flow (voir socle-4-aura, « LE REFLET DU
+   FLOW EN TRANSFORM ») : le reflet rouge (1,6 s) et les éclats .sc1/.sc2 (0,34 s, derniers de la liste : ils gagnent le temps de leur course)
+   passent de background-position 150 % → −50 % à translateX −100 % → +⅓, mêmes durées, mêmes courbes. ===== */
+html.han body:not(.touch) #flowHud[data-lv="4"] .fSeg::after,html.han body.touch #flowHud[data-lv="4"]:not(.monte) .fSeg::after{animation:hanFlowReflet 1.6s var(--ease) infinite}
+html.han body:not(.touch) #flowHud[data-lv="4"].sc1 .fSeg::after,html.han body.touch #flowHud[data-lv="4"].sc1:not(.monte) .fSeg::after{animation:hanFlowReflet 1.6s var(--ease) infinite,hanFlowGlintA .34s var(--ease)}
+html.han body:not(.touch) #flowHud[data-lv="4"].sc2 .fSeg::after,html.han body.touch #flowHud[data-lv="4"].sc2:not(.monte) .fSeg::after{animation:hanFlowReflet 1.6s var(--ease) infinite,hanFlowGlintB .34s var(--ease)}
+@keyframes hanFlowGlintA{from{transform:translateX(-100%)}to{transform:translateX(calc(100% / 3))}}
+@keyframes hanFlowGlintB{from{transform:translateX(-100%)}to{transform:translateX(calc(100% / 3))}}
 @keyframes frPetA{0%,100%{opacity:1}}
 @keyframes frPetB{0%,100%{opacity:1}}
 /* elle FUIT : la marge BRÛLE (hachures qui clignotent), le halo s'éteint à moitié */
@@ -149,6 +158,15 @@ html body #triade.mesure{display:block;visibility:hidden;animation:none}
 #frenTraits i.fl1,#frenTraits i.fl2{filter:brightness(1.6)}
 /* (v4) ARMÉE : la jauge est pleine, la frénésie attend une figure POSÉE — la zone rouge bat (style fin : session UI) */
 html body #flowHud.arme .fSeg .fZ s{animation:frBrule .3s steps(2) infinite}
+/* ===== LA MARGE QUI BRÛLE EN TRANSFORM/OPACITÉ (2026-10-24, passe perf PC : « le HUD prend trop de capacité ») — iPhone 13 Pro : 58,0 i/s
+   en course, 59,7 animations CSS figées. steps(2) sur un 50 % : quatre états (rien, ×1,3, ×1,6, ×1,3). La copie du remplissage
+   (background:inherit) est posée ×1,6, son opacité fait 0 / ½ / 1 / ½ sur la même grille. Exact à 0 et à 1 ; à ½, un canal qui sature
+   (×1,6 > 255 : la ligne claire --frenC du haut, le bas --frenS) donne ≤ 23 niveaux de moins, et le curseur n'est plus éclairci. ===== */
+html.han body #flowHud.arme .fSeg .fZ s,html.han body #flowHud[data-lv="4"].fuit .fSeg .fZ s{animation:none}
+html.han body #flowHud.arme .fSeg .fZ s::before,html.han body #flowHud[data-lv="4"].fuit .fSeg .fZ s::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:inherit;filter:brightness(1.6);opacity:0;will-change:opacity;animation:hanFlowBrule .3s steps(2) infinite}
+html.han body #flowHud[data-lv="4"].fuit .fSeg .fZ s::before{animation-duration:.36s}   /* la frénésie qui fuit gagnait déjà sur l'armée (règle plus forte) */
+@keyframes hanFlowBrule{50%{opacity:1}}
 @keyframes trMeurt{0%{opacity:1;transform:scale(1)}25%{opacity:1;transform:scale(1.12)}100%{opacity:0;transform:scale(.2)}}
 /* la barre du RECORD se contracte pour laisser passer ses pointes (le texte, lui, ne bouge pas) */
 html body.touch.play.hTriade:not(#ccH) #avRec{max-width:calc(100vw - var(--hudD) - var(--frenD) - var(--frenT) - var(--hudG) - 6px)}

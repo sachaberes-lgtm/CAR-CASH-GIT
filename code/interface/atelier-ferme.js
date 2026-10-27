@@ -629,13 +629,13 @@ function homeCielPrise(now){
    (garageAng=3.5), il le fait TOURNER en ~0,9 s par le plus court chemin (garTourneVers, joué dans garageRender, prioritaire sur la rotation
    lente ; le doigt l'interrompt). TRAÎNÉES 3,5 (trois-quarts arrière) · PEINTURE ,42 (trois-quarts avant) · AILES 1,2 (de profil). */
 const GAR_TAB_ANG={trainee:3.5,peinture:.42,aile:1.2,figure:1.25}; // (FIGURES : de profil, on voit les saltos)
-function garTourneVers(a,D){if(!garageOn||GAR.go)return;const a0=garageAng,T=2*Math.PI,d=((a-a0)%T+T*1.5)%T-T/2;if(Math.abs(d)<.02)return;GAR.angTw={a0:a0,d:d,t:0,D:D||.9};}
+function garTourneVers(a,D){if(!garageOn||GAR.go)return;a-=GAR.vA||0; /* (2026-10-24) l'angle se compte depuis la VUE : le regard tourné (jauge, doigt) n'envoie plus la caisse du mauvais côté */const a0=garageAng,T=2*Math.PI,d=((a-a0)%T+T*1.5)%T-T/2;if(Math.abs(d)<.02)return;GAR.angTw={a0:a0,d:d,t:0,D:D||.9};}
 function shopTab(tab){
   if(SHOP_CATS.indexOf(tab)<0)tab='voiture';
   SHOP.tab=tab;
   document.querySelectorAll('#gTabs .gTab').forEach(function(b){const on=b.getAttribute('data-tab')===tab;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
   const gt=$('gTitle');if(gt)gt.textContent=TR('GARAGE'); // la personnalisation fait partie du GARAGE (la BOUTIQUE, c'est le vrai argent)
-  if(gEl){gEl.classList.toggle('shopMode',tab!=='voiture');gEl.classList.toggle('figTab',tab==='figure');}if(tab!=='figure'&&window.GFS)GFS.arme=-1; // (2026-10-15) figTab : le sélecteur des trois figures (#gFigSel) au-dessus de la grille
+  if(gEl){gEl.classList.toggle('shopMode',tab!=='voiture');gEl.classList.toggle('figTab',tab==='figure');}if(tab!=='figure'&&GFS)GFS.arme=-1; /* (24/10) GFS est un var du script, pas de window : `window.GFS` valait toujours undefined */ // (2026-10-15) figTab : le sélecteur des trois figures (#gFigSel) au-dessus de la grille
   if(GAR_TAB_ANG[tab]!=null)garTourneVers(GAR_TAB_ANG[tab]); // TRAÎNÉES : la caméra passe derrière la caisse (trois-quarts arrière) — on regarde ce qui SORT des tuyères ; (2026-10-11) en TOURNANT, et chaque onglet a son angle
   if(tab==='voiture'){SHOP.prev=null;{const bar=$('gRar');if(bar)bar._k=null;}garageShow(garageI);try{gModeCale();}catch(e){}return;}
   SHOP.filtre='tout'; // chaque catégorie s'ouvre sur TOUT
@@ -644,6 +644,7 @@ function shopTab(tab){
 function shopShow(cat,i){
   const L=COSM[cat];i=((i%L.length)+L.length)%L.length;
   SHOP.i[cat]=i;SHOP.prev={cat:cat,i:i};
+  if(GAR_TAB_ANG[cat]!=null)garTourneVers(GAR_TAB_ANG[cat]); // (2026-10-24, Léo : « quand on sélectionne, ça ne tourne pas vers l'autre ») CHAQUE objet touché ramène la caisse face à ce qu'il habille — l'onglet seul le faisait, puis le plateau la laissait dériver
   if(cat==='figure'&&garageOn)try{garFigEssai(L[i].id);}catch(e){} // (2026-10-14) la caisse FAIT la figure qu'on regarde
   const eqC=equippedCar();garageI=eqC;buildCar(CARS[eqC]);
   const d=L[i],a=shopOwned(cat,d.id),eq=shopEqD(cat)===d,Lg=LANG==='en'?1:0;

@@ -33,6 +33,11 @@ const NX3_G=[ // 15 × 20 : la silhouette de l'éclair de la barre (pente, march
   '..##...........',
   '.##............',
   '.#.............'];
+/* (2026-10-24, passe perf 2e tour) LA JAUGE ET L'ANNEAU DE LA NITRO PAR CRANS PLUS LARGES sur les vieux téléphones : nitro tenue, la valeur change à chaque
+   image — et le bouton (#tNitro : 18 règles, 402 déclarations, 16 descendants, un dégradé conique) est l'élément du HUD le plus cher à restyler et à repeindre
+   (mesuré : 331 µs par recalcul à ×1, ~1,3 ms à ×4 ; la barre #nitroBar 542 µs). Crans [ANCIEN, MOYEN, RÉCENT] : l'anneau 2 % · 2 % · 1 % (d'origine), la barre
+   1 % · 1 % · 0,5 % (d'origine) — deux fois moins de recalculs pendant la vidange ; le RÉCENT ne change pas. */
+PAL.B.hudNitroQ=[50,50,100];PAL.B.hudBarQ=[100,100,200];
 const NX3_T=3,NX3_M=3; // l'épaisseur (cases) · la marge autour (lueur 2 + contour 1)
 const NX3={el:null,cv:null,cx:null,img:null,u32:null,vit:null,vN:null,v:-1,vT:0,vc:null,kmh:0,
   W:0,H:0,p:0,pv:0,pF:null,k:0,kF:null,t:0,gl:-1,glT:1.6,cle:'',m:null};
@@ -184,6 +189,7 @@ function volgLance(k,q,src,big){
 }
 // une nitro gagnée : elle vole si elle peut (`r` réservoir orange, `x` réserve bleue) ; sinon la barre bat tout de suite
 function volgNitro(k,q){
+  if(LEFIL.on)return false; /* (2026-10-25, LE FIL) plus d'éclairs qui traversent l'écran : la barre prend son éclat sur place (nbPrend, appelé par le refus) */
   if(!(q>.03)||!VOLG)return false;
   if(volgLance(k,q,ajSource(false),Math.min(1.5,.9+q*.6))){VOLG.n[k]+=q;return true;}
   return false;
@@ -244,7 +250,7 @@ function ajTick(dt){
   AJ.run0=auraRun;
   volgTick(dt); // les gains qui flottent puis tombent dans leur jauge (la nitro)
 }
-function loopWarn(b,nom,e){if(!((loop._crWarn|0)&b)){console.warn('créatures/musique · '+nom,e);loop._crWarn=(loop._crWarn|0)|b;}} // (2026-09-30) un bit par appel gardé : chaque panne se dit UNE fois, sans masquer celle du voisin
+function loopWarn(b,nom,e){if(!((loop._crWarn|0)&b)){console.warn('créatures/musique · '+nom,e);try{window.__ccNote('panne',nom+' · '+(e&&e.message||e),e&&e.stack&&String(e.stack).split('\n')[1]);}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */loop._crWarn=(loop._crWarn|0)|b;}} // (2026-09-30) un bit par appel gardé : chaque panne se dit UNE fois, sans masquer celle du voisin
 /* (2026-10-13, passe de sortie — perf-iphone7) BANC : LE COÛT D'UNE IMAGE ENTIÈRE. `renderer.info` se remet à zéro à CHAQUE render() du
    compositeur : seul, il ne montre que la dernière passe (l'ACES : 1 appel, 2 triangles). Armé, il additionne TOUTES les passes de l'image
    (ombre, scène, bloom, ACES, vignette moteur) et la puce se chronomètre là où le navigateur le permet (EXT_disjoint_timer_query_webgl2 —
@@ -284,7 +290,7 @@ window.dbgCout=function(on){ // (banc) — voir COUT
 PAL.B.mortImg=[4,2,1];
 const MORT_IMG={t:0,i:0,w:0,h:0,n:0,on:false,dt:0}; // dt : le temps des images sautées, rendu aux ticks d'ambiance à l'image dessinée suivante (voir loop)
 function mortSaute(dt){
-  const N=PAL.b('mortImg',1)|0;
+  const N=Math.max(PAL.b('mortImg',1)|0,PFR_ON?2:1); /* (2026-10-24) le téléphone au frais : une image sur deux au moins (voir PFR_ON) */
   if(N<=1)return false;
   if(!(gameOver&&TCTL.on&&!garageOn&&!stallOn&&!MENUV.retour&&overlay.style.display!=='none'&&overlay.getAttribute('data-ecran')==='dead')){MORT_IMG.t=0;MORT_IMG.i=0;MORT_IMG.on=false;return false;}
   MORT_IMG.t+=dt;

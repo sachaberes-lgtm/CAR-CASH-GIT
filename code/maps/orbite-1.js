@@ -55,180 +55,7 @@ const ORB={actif:false,lune:false,peinte:false,sol:new THREE.Vector3(0,1,0),haut
   oeil:new THREE.Vector2(-.5,-.8),oeilC:new THREE.Vector2(-.5,-.8),sac:new THREE.Vector2(),sacT:0,choc:.55,cligT:-9,cligProchain:4,
   pc:new THREE.Vector3(),pm:new THREE.Vector3(),rs:0x5EED1};
 function orbAlea(){ORB.rs=ORB.rs*16807%2147483647;return ORB.rs/2147483647;} // le hasard du REGARD (saccades, clignements) : un flux à lui — Math.random nourrit d'autres tirages du jeu
-const LUNE_D=3000,LUNE_R=640; // à 3 km, ~24° de diamètre (sa place dans le cadre : voir orbiteTick) — 520 → 640 : le visage doit se lire
-/* ===== LA LUNE RETIRÉE DE L'ORBITE (2026-10-22, Léo : « la lune qui suit dans la planète espace, on va la mettre ailleurs ; pour l'instant on l'enlève,
-   on laisse juste la grande planète, et la voiture se promène ») =====
-   Plus d'astre dans l'orbite : la lune n'est ni posée dans la scène, ni peinte au menu, ni compilée (zéro coût). Tout son code reste en place —
-   `?lune=ancien` la rend telle qu'avant (visage, regard, libration) : c'est de là qu'on la reprendra pour la poser ailleurs. Sa DIRECTION, elle, continue
-   de piloter la clé froide (`kick`, le clair de lune faible : voir orbiteLumiere) : l'éclairage de la caisse ne bouge pas d'un poil. */
-const LUNE_ON=/[?&]lune=ancien\b/.test(location.search);
-const LUNE=(function(){
-  const cv=document.createElement('canvas');cv.width=1024;cv.height=512;
-  const tex=new THREE.CanvasTexture(cv); // mipmaps (défaut) : la couture est sur la face cachée, jamais à l'écran
-  /* ⚠ UN CERCLE À L'ÉCRAN, PAS UNE SPHÈRE EN PERSPECTIVE (mesuré : un ŒUF). La caméra de poursuite plonge de ~50° avec un champ de
-     ~130° : à 45° de l'axe, la projection plane étire tout objet de ×1,4 vers le bord — une vraie sphère y devient ovale. Le quad est
-     donc posé en ESPACE ÉCRAN autour du centre projeté, à la taille angulaire qu'elle aurait au centre de l'image : ronde partout.
-     Le repère d'ombrage (vSol, vTer) est celui de l'écran, calculé ici depuis viewMatrix (exact à l'image près), et `vRo` tourne la
-     carte pour qu'elle suive l'horizon du MONDE (la caméra vrille en vol : la lune ne vrille pas avec elle — son visage non plus). */
-  const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,fog:false,extensions:{derivatives:true},
-    uniforms:{uTex:{value:tex},uC:{value:new THREE.Vector3()},uA:{value:new THREE.Vector3(0,0,-1)},uAng:{value:Math.tan(Math.asin(LUNE_R/LUNE_D))},
-      uSol:{value:new THREE.Vector3(0,1,0)},uTerre:{value:new THREE.Vector3(0,-1,0)},uLib:{value:0},uOp:{value:0},
-      uOeil:{value:new THREE.Vector2(-.5,-.8)},uChoc:{value:.55},uCligne:{value:0},uT:{value:0}},
-    vertexShader:['uniform vec3 uC,uA,uSol,uTerre;uniform float uAng;varying vec2 vQ,vRo;varying vec3 vSol,vTer;',
-      'void main(){vQ=position.xy*1.04;', // un poil plus grand que le disque : la frange d anticrénelage y tient
-      '  vec4 cc=projectionMatrix*viewMatrix*vec4(uC,1.);',
-      '  vec3 W=-uA,cr=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]);',          // la droite de l ÉCRAN, dans le monde
-      '  vec3 U=normalize(cr-W*dot(cr,W)+vec3(1e-5)),V=cross(W,U);',
-      '  vSol=vec3(dot(uSol,U),dot(uSol,V),dot(uSol,W));vTer=vec3(dot(uTerre,U),dot(uTerre,V),dot(uTerre,W));',
-      '  vec3 Ut=normalize(cross(uA,vec3(0.,1.,0.))),Vt=cross(Ut,uA);vRo=vec2(dot(U,Ut),dot(U,Vt));', // le roulis écran → monde
-      '  gl_Position=cc+vec4(vQ.x*uAng*projectionMatrix[0][0],vQ.y*uAng*projectionMatrix[1][1],0.,0.)*cc.w;gl_Position.z=gl_Position.w;}'].join('\n'), // le plan lointain, comme le dôme et la Terre
-    fragmentShader:['uniform sampler2D uTex;uniform float uLib,uOp,uChoc,uCligne,uT;uniform vec2 uOeil;varying vec2 vQ,vRo;varying vec3 vSol,vTer;',
-      'vec3 ro(vec3 v){return vec3(v.x*vRo.x-v.y*vRo.y,v.x*vRo.y+v.y*vRo.x,v.z);}',             // écran → carte (l horizon du monde)
-      /* LE VISAGE — des distances signées : ellipses (yeux, pupilles, bouche, langue) et ARCS (sourcils, rides, plis) dont le trait
-         s effile vers les bouts, comme un coup de pinceau. f = la face vue de face, en rayons de lune ; y en haut. */
-      'float trait(float d,float w,float aa){return 1.-smoothstep(w-aa,w+aa,d);}',
-      'float ell(vec2 p,vec2 r){return (length(p/r)-1.)*min(r.x,r.y);}',
-      'float arcD(vec2 p,vec2 c,float R,float am,float hw,out float tp){',                          // centre, rayon, angle du milieu, demi-ouverture
-      '  vec2 q=p-c;float cs=cos(am),sn=sin(am);q=vec2(q.x*cs+q.y*sn,-q.x*sn+q.y*cs);',
-      '  float a=atan(q.y,q.x);tp=clamp(abs(a)/hw,0.,1.);',
-      '  if(abs(a)<hw)return abs(length(q)-R);',
-      '  return length(q-R*vec2(cos(hw),sign(a)*sin(hw)));}',
-      'void visage(vec2 f,vec2 oe,float aa,out float ink,out float blanc,out float noir,out float dent,out float lang,out float refl){',
-      '  float s=uChoc,lw=max(.022,aa*1.05),tp;ink=0.;blanc=0.;noir=0.;dent=0.;lang=0.;refl=0.;',
-      '  for(int i=0;i<2;i++){float sg=i==0?-1.:1.;',                                                 // LES YEUX, écarquillés
-      '    vec2 c=vec2(.29*sg,.21+.012*sg),r=vec2(i==0?.150:.172,(i==0?.162:.186)+.04*s);',
-      '    r.y*=max(.07,1.-uCligne);',                                                                 // la paupière qui tombe
-      '    float d=ell(f-c,r),dans=1.-smoothstep(-aa,aa,d);blanc=max(blanc,dans);',
-      '    ink=max(ink,trait(abs(d),lw*1.3,aa));',
-      '    float pr=max(.060-.010*s,aa*1.6);vec2 pc=c+oe*max(r-vec2(pr+.018),vec2(0.));',                  // la PUPILLE : petite (le choc) mais jamais sous ~3 px — c est ELLE qui dit « je te regarde » ; elle vise la caisse
-      '    noir=max(noir,(1.-smoothstep(pr-aa,pr+aa,length(f-pc)))*dans);',
-      '    refl=max(refl,(1.-smoothstep(.013-aa,.013+aa,length(f-pc-vec2(-.017,.019))))*dans);',       // l étincelle dans l oeil
-      '    ink=max(ink,trait(arcD(f,c+vec2(0.,.22),.44,-1.5708+.06*sg,.30,tp),lw*.75*(1.-tp*.8),aa));', // la POCHE sous l oeil (la signature du troll)
-      '    ink=max(ink,trait(arcD(f,c+vec2(.030*sg,.07+.08*s),r.x*1.62,1.5708-.20*sg,.62,tp),lw*1.55*(1.-tp*.75),aa));}', // le SOURCIL, remonté par la stupeur — le bout INTÉRIEUR plus haut (sinon il a l air fâché)
-      '  for(int i=0;i<3;i++){float fi=float(i);',                                                   // LE FRONT QUI SE PLISSE
-      '    float d=arcD(f,vec2(0.,-.30),.93+.075*fi,1.5708,.34-.05*fi,tp)+.009*sin(f.x*21.+fi*2.1);',
-      '    ink=max(ink,trait(d,lw*.8*(1.-tp*.85),aa)*(.35+.65*s));}',
-      '  ink=max(ink,trait(arcD(f,vec2(.02,.0),.075,-1.25,1.15,tp),lw*.95*(1.-tp*.6),aa));',          // LE NEZ en crochet
-      '  ink=max(ink,trait(arcD(f,vec2(-.03,-.30),.40,2.70,.60,tp),lw*.95*(1.-tp*.8),aa));',          // LES PLIS du nez aux coins de la bouche
-      '  ink=max(ink,trait(arcD(f,vec2(.03,-.30),.40,.44,.60,tp),lw*.95*(1.-tp*.8),aa));',
-      '  float tr=.007*sin(uT*31.)*s;',                                                              // LA BOUCHE BÉANTE — la mâchoire tremble
-      '  vec2 mc=vec2(0.,-.41-.04*s),mr=vec2(.24+.05*s,.13+.12*s+tr),mp=f-mc;',
-      '  mp.x*=1.+.24*clamp(-mp.y/mr.y,-1.,1.);',                                                   // plus large en haut : une bouche qui s effondre
-      '  float md=ell(mp,mr),mi=1.-smoothstep(-aa,aa,md);noir=max(noir,mi);',
-      '  ink=max(ink,trait(abs(md),lw*1.35,aa));',
-      '  float bd=smoothstep(mc.y+mr.y-.078-aa,mc.y+mr.y-.078+aa,f.y)*mi;',                          // les DENTS du haut
-      '  dent=bd*(1.-trait(abs(fract((f.x+.5)/.068)-.5)*.068,lw*.45,aa));',
-      '  lang=(1.-smoothstep(-aa,aa,ell(f-vec2(0.,mc.y-mr.y+.065),vec2(mr.x*.55,.07))))*mi*(1.-bd);',  // la LANGUE au fond
-      '  ink=max(ink,trait(arcD(f,vec2(0.,-.40),.40+.05*s,-1.5708,.40,tp),lw*.8*(1.-tp*.8),aa));',   // LE MENTON, deux plis
-      '  ink=max(ink,trait(arcD(f,vec2(0.,-.47),.42+.05*s,-1.5708,.24,tp),lw*.7*(1.-tp*.8),aa));}',
-      'void main(){',
-      '  float r=length(vQ),al=clamp((1.-r)/max(fwidth(r),1e-4)+.5,0.,1.)*uOp;if(al<=0.)discard;',
-      '  vec2 q=vQ/max(r,1.);vec3 N=ro(vec3(q,sqrt(max(0.,1.-dot(q,q))))),S=ro(vSol),Te=ro(vTer);',  // la sphère : x à droite, y en haut, z vers l oeil
-      '  float la=asin(clamp(N.y,-1.,1.)),lo=atan(N.x,N.z)+uLib;vec2 uv=vec2(lo/6.2831853+.5,la/3.1415927+.5);',
-      '  vec3 tx=texture2D(uTex,uv).rgb;',                                                               // R albédo, G relief, B mers
-      '  float hE=texture2D(uTex,uv+vec2(.0015,0.)).g-texture2D(uTex,uv-vec2(.0015,0.)).g,hN=texture2D(uTex,uv+vec2(0.,.003)).g-texture2D(uTex,uv-vec2(0.,.003)).g;',
-      '  vec3 E=normalize(vec3(N.z,0.,-N.x)+vec3(1e-5,0.,0.)),No=cross(N,E);',
-      '  vec3 Nb=normalize(N-(E*hE/max(cos(la),.3)+No*hN)*1.8);',                                        // LE RELIEF : les cratères prennent la lumière rasante
-      '  float d0=dot(N,S),d=dot(Nb,S),lam=max(d,0.),ls=lam/(lam+max(N.z,.08));',
-      '  float dif=mix(lam,ls*1.7,.4)*smoothstep(-.06,.10,d0);',                                          // terminateur net mais pas tranché
-      '  vec3 alb=tx.r*mix(vec3(1.02,.95,.86),vec3(.70,.77,.95),tx.b);',                                 // hautes terres crème, mers ardoise bleutée
-      // LE VISAGE : la face vise la caisse (elle tourne de ~22° sur la sphère), les traits se posent dans SON repère
-      '  vec2 oe=ro(vec3(uOeil,0.)).xy;vec3 F=normalize(vec3(oe*.40,1.)),Fu=normalize(cross(vec3(0.,1.,0.),F)),Fv=cross(F,Fu);',
-      '  float fz=dot(N,F),fm=smoothstep(.02,.30,fz);vec2 f=vec2(dot(N,Fu),dot(N,Fv))/.88;',
-      '  float aa=(abs(dFdx(f.x))+abs(dFdy(f.x))+abs(dFdx(f.y))+abs(dFdy(f.y)))*.5+1e-4;',
-      '  float ink,blanc,noir,dent,lang,refl;visage(f,oe,aa,ink,blanc,noir,dent,lang,refl);',
-      '  alb=mix(alb,vec3(dot(alb,vec3(.333)))*vec3(1.03,.98,.90),.38*fm);',                           // sous le visage la lune se lisse un peu : les traits passent devant les mers
-      '  vec3 col=alb*vec3(1.,.96,.90)*dif*1.45;',
-      '  float nuit=1.-smoothstep(-.12,.16,d0);',
-      '  col+=alb*vec3(.30,.55,1.)*(.30+.70*max(dot(Nb,Te),0.))*.34*nuit;',                              // le CLAIR DE TERRE : la face de nuit se lit, bleutée, mers comprises
-      '  col+=vec3(.11,.016,.19)*.20*nuit;',                                                             // l ombre à l ENCRE
-      '  float lum=dif*1.25+.10+.25*nuit;',                                                               // ce que voient les yeux : le soleil, et la Terre la nuit
-      '  vec3 cB=vec3(1.,.97,.90)*(dif*1.35+.42);',                                                       // le BLANC DES YEUX garde une lueur propre : le regard ne s éteint jamais
-      '  col=mix(col,cB,blanc*fm);',
-      '  col=mix(col,vec3(.030,.010,.030)*(.4+lum),noir*fm);',                                           // pupilles et gorge : le noir
-      '  col=mix(col,vec3(.96,.93,.84)*(lum*1.1+.22),dent*fm);',
-      '  col=mix(col,vec3(.62,.16,.20)*(lum+.18),lang*fm);',
-      '  col=mix(col,vec3(1.3,1.25,1.15),refl*fm);',                                                     // l étincelle
-      '  col=mix(col,vec3(.035,.025,.055)*(.5+lum*.6),ink*fm*.94);',                                     // l ENCRE du dessin
-      '  float rim=pow(1.-N.z,4.);',
-      '  col+=vec3(1.,.90,.70)*rim*.40*smoothstep(.0,.35,d0)+vec3(.35,.62,1.)*rim*.12*nuit;',             // le LISERÉ : doré côté jour, bleu Terre côté nuit
-      '  gl_FragColor=vec4(col,al);}'].join('\n')});
-  const me=new THREE.Mesh(new THREE.PlaneGeometry(2,2),m);
-  me.frustumCulled=false;me.matrixAutoUpdate=false;me.visible=false;me.renderOrder=-9; // transparent, avant le limbe et le halo de la Terre
-  me.userData.cv=cv;me.userData.tex=tex;if(LUNE_ON)scene.add(me);return me; // retirée du ciel : hors scène, renderer.compile() ne la voit pas non plus
-})();
-/* LA CARTE DE LA LUNE — 1024 × 512, équirectangulaire, peinte UNE fois au menu. ⚠ MESURÉ d'une traite : 140 ms (PC) — une image
-   gelée au menu, bien pire sur iPhone. Le pinceau est donc un GÉNÉRATEUR : une étape par image au menu (`luneAvance`, appelé par la
-   boucle via orbiteTick), chacune de quelques ms ; les toiles de travail restent en mémoire CPU (`willReadFrequently` : les relire
-   n'est plus un aller-retour GPU). `lunePeint()` finit d'une traite si on en a besoin tout de suite (orbite atteinte avant la fin). */
-function lunePeint(){if(ORB.peinte||!LUNE_ON)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();while(!ORB.pinceau.next().done){}ORB.pinceau=null;}
-function luneAvance(){ // une étape du pinceau (au menu) ; la dernière monte la carte au GPU
-  if(ORB.peinte||!LUNE_ON)return;if(!ORB.pinceau)ORB.pinceau=lunePinceau();
-  const t0=performance.now(),fin=ORB.pinceau.next().done;ORB.pireMs=Math.max(ORB.pireMs|0,Math.round(performance.now()-t0));
-  if(fin){renderer.initTexture(LUNE.userData.tex);ORB.pinceau=null;} // (2026-10-14, passe perf mobile) le générateur fini ne retient plus ses toiles ni ses tableaux
-}
-function* lunePinceau(){
-  const W=1024,H=512,R=mulberry32(0x1C0430),D=Math.PI/180;
-  const toile=f=>{const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d',{willReadFrequently:true});x.fillStyle=f;x.fillRect(0,0,W,H);return x;};
-  const xa=toile('#a8a8a8'),xh=toile('#808080'),xm=toile('#000'); // albédo · relief · masque des mers
-  yield;
-  // LES TAMPONS : un profil radial signé (f > 0 = blanc, f < 0 = noir, alpha = |f|), peint UNE fois en pixels puis posé à l'échelle
-  const tampon=f=>{const S=96,c=document.createElement('canvas');c.width=c.height=S;const x=c.getContext('2d'),im=x.createImageData(S,S),d=im.data;
-    for(let j=0;j<S;j++)for(let i=0;i<S;i++){const q=f(Math.hypot((i+.5)/S*2-1,(j+.5)/S*2-1)*1.6),o=(j*S+i)*4; // le tampon couvre 1,6 rayon de cratère
-      d[o]=d[o+1]=d[o+2]=q>0?255:0;d[o+3]=Math.min(255,Math.abs(q)*255);}
-    x.putImageData(im,0,0);return c;};
-  const g=(d,c,w)=>Math.exp(-((d-c)/w)*((d-c)/w));
-  const tBol=tampon(d=>(d<.9?-.62*(1-(d/.9)*(d/.9)):0)+.55*g(d,.97,.11)+.12*g(d,1.22,.25));                     // petit cratère : un bol, une lèvre
-  const tCplx=tampon(d=>(d<.86?-.48*(1-Math.pow(d/.86,6)):0)+.55*g(d,.96,.09)+.52*g(d,0,.14)+.10*g(d,1.2,.3));   // grand : fond plat, pic central
-  const tAlb=tampon(d=>(d<.84?-.14:0)+.46*g(d,.95,.10)+.12*g(d,1.18,.30));                                       // fond un peu sombre, BORD CLAIR, éjectas
-  const tBlanc=tampon(d=>Math.exp(-d*d*1.6)),tNoir=tampon(d=>-Math.exp(-d*d*1.6));                              // taches douces
-  yield;
-  const pose=(x,c,lon,lat,ar,a)=>{const X=(lon/360+.5)*W,Y=(.5-lat/180)*H,ry=ar/180*H*1.6,rx=ry/Math.max(.2,Math.cos(lat*D));
-    x.globalAlpha=a;for(const ox of [0,-W,W]){const X9=X+ox;if(X9+rx>0&&X9-rx<W)x.drawImage(c,X9-rx,Y-ry,rx*2,ry*2);}x.globalAlpha=1;};
-  // LE GRAIN DES HAUTES TERRES
-  for(let i=0;i<700;i++){const lo=R()*360-180,la=Math.asin(R()*2-1)/D,ar=1+R()*R()*9;pose(xa,R()<.5?tBlanc:tNoir,lo,la,ar,.05+R()*.08);}
-  yield;
-  /* LES MERS — la vraie face visible, stylisée (longitude + = à droite vu de chez nous) : Imbrium, Procellarum, Serenitatis,
-     Tranquillitatis, Crisium, Fecunditatis, Nectaris, Nubium, Humorum, Frigoris, Vaporum, Cognitum — [lon, lat, rayon].
-     Un CHAMP (somme de bosses douces sur la sphère) troublé par un bruit fractal 3D (sans couture), seuillé : des côtes
-     déchiquetées qui se rejoignent, pas des taches rondes. Calculé en 256 × 128 puis agrandi (lissé par le canvas). */
-  const MERS=[[-16,34,14],[-55,25,13],[-62,8,12],[-45,-5,9],[-50,40,9],[17,28,9],[30,8,10],[22,3,6],[59,17,7],[50,-5,8],[34,-15,5.5],
-    [-17,-20,9],[-5,-25,6],[-39,-24,5.5],[-20,56,5],[5,57,5],[-40,55,4.5],[25,55,4],[4,13,5],[-25,-8,7],[-28,8,7]].map(m9=>{const lo=m9[0]*D,la=m9[1]*D;
-      return [Math.cos(la)*Math.sin(lo),Math.sin(la),Math.cos(la)*Math.cos(lo),1/((m9[2]*D)*(m9[2]*D))];});
-  const hs=(x,y,z)=>{let h=Math.imul(x,374761393)+Math.imul(y,668265263)+Math.imul(z,1274126177)|0;h=Math.imul(h^(h>>>13),1274126177);return ((h^(h>>>16))>>>0)/4294967296;};
-  const vn=(x,y,z)=>{const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z),xf=x-xi,yf=y-yi,zf=z-zi,u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf),w=zf*zf*(3-2*zf),l=(a,b2,t)=>a+(b2-a)*t;
-    return l(l(l(hs(xi,yi,zi),hs(xi+1,yi,zi),u),l(hs(xi,yi+1,zi),hs(xi+1,yi+1,zi),u),v),l(l(hs(xi,yi,zi+1),hs(xi+1,yi,zi+1),u),l(hs(xi,yi+1,zi+1),hs(xi+1,yi+1,zi+1),u),v),w);};
-  const MW=256,MH=128,mf=new Float32Array(MW*MH),cm=document.createElement('canvas');cm.width=MW;cm.height=MH;const xcm=cm.getContext('2d'),imM=xcm.createImageData(MW,MH);
-  for(let j=0;j<MH;j++){if(j&&!(j%16))yield;for(let i=0;i<MW;i++){const lo=((i+.5)/MW-.5)*6.2832,la=(.5-(j+.5)/MH)*3.1416,x=Math.cos(la)*Math.sin(lo),y=Math.sin(la),z=Math.cos(la)*Math.cos(lo);
-    let f=0;for(const m9 of MERS){const dx=x-m9[0],dy=y-m9[1],dz=z-m9[2];f+=Math.exp(-(dx*dx+dy*dy+dz*dz)*m9[3]*.9);}
-    let n9=0,a9=.5,q=3.2;for(let o=0;o<4;o++){n9+=a9*vn(x*q+7.1,y*q+3.3,z*q+1.9);q*=2.07;a9*=.5;}
-    const t=Math.max(0,Math.min(1,(f+(n9-.47)*1.1-.40)/.16)),m=t*t*(3-2*t);mf[j*MW+i]=m;
-    const n2=vn(x*9+2.7,y*9+8.1,z*9+5.3)*.6+vn(x*19,y*19,z*19)*.4; // les mers ne sont pas des aplats : des coulées plus ou moins sombres
-    const o=(j*MW+i)*4;imM.data[o]=imM.data[o+1]=imM.data[o+2]=Math.round(m*(.62+.38*n2)*255);imM.data[o+3]=255;}}
-  xcm.putImageData(imM,0,0);xm.imageSmoothingEnabled=true;xm.drawImage(cm,0,0,W,H);
-  yield;
-  const mer=(lo,la)=>mf[Math.min(MH-1,Math.max(0,Math.floor((.5-la/180)*MH)))*MW+Math.min(MW-1,Math.max(0,Math.floor((lo/360+.5)*MW)))]>.5;
-  // LES CRATÈRES : loi de puissance (beaucoup de petits, peu de gros), rares dans les mers (elles sont plus jeunes)
-  for(let i=0;i<1900;i++){if(i&&!(i%200))yield;const lo=R()*230-115,la=Math.asin(R()*1.96-.98)/D,ar=Math.min(5,.5*Math.pow(1-R()*.995,-1/1.7));
-    if(mer(lo,la)&&R()<.8)continue;const jeune=R()<.3; // les JEUNES sont nets et clairs ; les vieux, émoussés, se devinent (sinon : un semis de bulles toutes pareilles)
-    pose(xh,ar>2.2?tCplx:tBol,lo,la,ar,jeune?.75+R()*.2:.18+R()*.25);pose(xa,tAlb,lo,la,ar,jeune?.55:.12);}
-  // LES CRATÈRES QU'ON NOMME — Copernic, Tycho, Kepler, Aristarque, Platon (fond sombre), Clavius, Ptolémée, Langrenus, Théophile
-  const NOMS=[[-20,10,2.6,1,9],[-11,-43,2.1,1,12],[-38,8,1.3,1,7],[-47,24,1,1,5],[-9,51,2,-1,0],[-14,-58,3.6,0,0],[-2,-9,3,0,0],[61,-9,2.5,0,0],[26,-11,1.8,0,0]];
-  for(const c9 of NOMS){yield;pose(xh,tCplx,c9[0],c9[1],c9[2],.95);pose(xa,c9[3]<0?tNoir:tAlb,c9[0],c9[1],c9[2]*(c9[3]<0?.8:1),c9[3]<0?.55:.85);
-    if(c9[3]>0){pose(xa,tBlanc,c9[0],c9[1],c9[2]*1.4,.35); // l'auréole d'éjectas
-      const X=(c9[0]/360+.5)*W,Y=(.5-c9[1]/180)*H,px=c9[2]/180*H;
-      for(let k=0;k<c9[4];k++){const a9=R()*6.283,Lr=px*(4+R()*7),gr=xa.createLinearGradient(0,0,Lr,0); // les RAIS : des traînées claires qui filent loin du cratère
-        gr.addColorStop(0,'rgba(255,255,255,.32)');gr.addColorStop(1,'rgba(255,255,255,0)');
-        xa.save();xa.translate(X,Y);xa.scale(1/Math.max(.3,Math.cos(c9[1]*D)),1);xa.rotate(a9);xa.fillStyle=gr;
-        xa.beginPath();xa.moveTo(px*.8,-px*.18);xa.lineTo(Lr,-px*.04);xa.lineTo(Lr,px*.04);xa.lineTo(px*.8,px*.18);xa.fill();xa.restore();}}}
-  yield;
-  const A9=xa.getImageData(0,0,W,H).data;yield;const H9=xh.getImageData(0,0,W,H).data;yield;const M9=xm.getImageData(0,0,W,H).data;yield;
-  const out=LUNE.userData.cv.getContext('2d'),im=out.createImageData(W,H),o=im.data;
-  for(let i=0;i<o.length;i+=4){if(i&&!(i%524288))yield;const m=M9[i]/255;o[i]=A9[i]*(1-.36*m);o[i+1]=H9[i]-m*9;o[i+2]=M9[i];o[i+3]=255;} // les mers : plus sombres, un peu plus basses (en 4 fois)
-  yield;
-  out.putImageData(im,0,0);LUNE.userData.tex.needsUpdate=true;ORB.peinte=true;
-  toileRend(xa.canvas);toileRend(xh.canvas);toileRend(xm.canvas);toileRend(cm);texLibere(LUNE.userData.tex); // (2026-10-14, passe perf mobile) les 3 toiles de travail 1024 × 512 (6,3 Mo, pour tous) + la carte finie (2 Mo, paliers 0-1) : peinte UNE fois
-}
+/* LA LUNE EST SUPPRIMÉE DU CODE (2026-10-24, Sacha : « retire lune ») : plus de toile, de shader, de visage ni de pinceau (≈ 170 lignes ; l'historique git les garde). Sa DIRECTION (`ORB.dm`) continue de piloter la clé froide : voir orbiteTick. */
 /* ---- LES MAILLAGES : des pièces (boîtes, cylindres, prismes) fusionnées en UN tampon, chaque sommet porte sa PIÈCE et sa VARIANTE ----
    Les normales ne sont PAS stockées : le shader les tire des dérivées (des facettes franches, comme les rochers d'avant). */
 const SAT_P={ARRAY:0,COQUE:1,CELL:2,DOS:3,OR:4,ARG:5,BALISE:6,BLANC:7,NOIR:8,TUYERE:9};
@@ -304,8 +131,8 @@ function geoEclat(){ // [2] L'ÉCLAT : un prisme irrégulier ; dessus −1, dess
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
   const A=new Float32Array(36);for(let i=0;i<36;i++)A[i]=i<6?-1:(i<12?-2:-3);
   g.setAttribute('aPart',new THREE.BufferAttribute(A,1));g.setAttribute('aVg',new THREE.BufferAttribute(new Float32Array(36).fill(-1),1));return g;}
-const SAT_MAX=IS_MOBILE?[230,190,1300]:[340,300,2000]; // Starlink (passants + champ + trains) · gros débris · éclats (champ + anneaux) — (2026-09-30, Sacha : « plus de satellites dans l'espace ») 120/140 → 230/190 (téléphone), 204/220 → 340/300 ; le niveau HARDCORE y prend ses obstacles EN PREMIER
-const SAT_PASS=IS_MOBILE?30:44,SAT_TRAINS=IS_MOBILE?[3,20]:[5,26]; // passants au bord de la route ; trains × satellites par train — (2026-09-30) 18/26 → 30/44 passants, 2/3 → 3/5 trains
+const SAT_MAX=ALLEGE?[23,19,130]:[340,300,2000]; // Starlink (passants + champ + trains) · gros débris · éclats (champ + anneaux) — (2026-09-30, Sacha : « plus de satellites dans l'espace ») 120/140 → 230/190 (téléphone), 204/220 → 340/300 ; le niveau HARDCORE y prend ses obstacles EN PREMIER
+const SAT_PASS=ALLEGE?3:44,SAT_TRAINS=ALLEGE?[1,2]:[5,26]; /* (2026-10-25) le vrai téléphone seulement : l'ordi en édition 'mobile' (l'ancien drapeau mobile sans TEL_NATIF) retrouve ses valeurs d'avant le 24/10 */ /* (2026-10-24, Sacha : « 90 % des satellites en moins », téléphone seulement : 230/190/1300, 30 passants, 3 trains de 20) */ // passants au bord de la route ; trains × satellites par train — (2026-09-30) 18/26 → 30/44 passants, 2/3 → 3/5 trains
 const SAT_U={uT:{value:0},uSol:{value:ORB.cle},uTerre:{value:new THREE.Vector3(0,-1,0)},uFog:{value:new THREE.Color(0,0,0)},uOp:{value:0},uForce:{value:0}}; // uForce : (dev) tous les éclats allumés
 const SAT_VS=['attribute vec4 aRot,aVar;uniform float uT;',
   'vec3 rotA(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}',
@@ -383,28 +210,5 @@ const SATS=[geoStarlink(),geoDebris(),geoEclat()].map(function(g,k){
   scene.add(im);return im;});
 /* L'ÉCLAT DU SOLEIL SUR LES PANNEAUX — une étoile par Starlink, qui ne vit QUE pendant le reflet (sinon le sommet est jeté hors champ :
    zéro pixel). Le quad partage les tampons d'instances du maillage [0] (matrices, rotation propre, trains) : il suit son satellite. */
-const GLINT=(function(){
-  const s0=SATS[0].geometry,g=new THREE.PlaneGeometry(2,2);
-  for(const k of ['aRot','aVar','aMov','aTr'])g.setAttribute(k,s0.attributes[k]);
-  const m=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending,fog:false,
-    uniforms:{uT:SAT_U.uT,uSol:SAT_U.uSol,uOp:SAT_U.uOp,uForce:SAT_U.uForce},
-    vertexShader:[SAT_VS,'uniform vec3 uSol;uniform float uOp,uForce;varying vec2 vQ;varying float vG;',
-      'void main(){',
-      '  vec3 off;float sc=trainOff(off);mat3 R=mat3(instanceMatrix);float rad=length(R[0]);',
-      '  vec3 c=instanceMatrix[3].xyz+off,Np=normalize(rotA(R*vec3(0.,1.,0.),aRot.xyz,aVar.y+uT*aRot.w));',
-      '  vec3 V=cameraPosition-c;float dist=length(V);V/=dist;',
-      '  float g=(dot(Np,V)>0.&&dot(Np,uSol)>0.)?pow(max(dot(reflect(-V,Np),uSol),0.),80.):0.;',   // le panneau renvoie le soleil vers l oeil
-      '  if(aMov.w!=0.)g=max(g,.20+.10*sin(uT*1.7+aVar.y));',
-      '  if(aVar.w>.5)g=max(g,.50+.35*sin(uT*5.+aVar.x*6.3));',                                         // (2026-09-30) l OBSTACLE de la pluie de satellites porte une étoile qui PULSE : on le voit venir de loin                                          // un satellite de TRAIN luit toujours un peu : la file se lit en pointillé lumineux (le « collier de perles »)
-      '  g=max(g,uForce);g*=sc*uOp*smoothstep(9000.,2500.,dist);vG=g;vQ=position.xy;',
-      '  if(g<.02){gl_Position=vec4(0.,0.,2.,1.);return;}',
-      '  vec4 mv=viewMatrix*vec4(c,1.);mv.xyz+=normalize(-mv.xyz)*rad*1.15;',                         // devant l aile : l étoile n est pas coupée par son propre panneau
-      '  mv.xy+=position.xy*dist*.050*(.4+.6*g);gl_Position=projectionMatrix*mv;}'].join('\n'),
-    fragmentShader:['varying vec2 vQ;varying float vG;',
-      'void main(){vec2 q=vQ;float r=length(q);',
-      '  float br=exp(-abs(q.y)*34.)*(1.-smoothstep(.0,1.,abs(q.x)))+exp(-abs(q.x)*34.)*(1.-smoothstep(.0,1.,abs(q.y)));', // les quatre branches
-      '  vec2 d=vec2(q.x+q.y,q.x-q.y)*.7071;br+=.32*(exp(-abs(d.y)*50.)*(1.-smoothstep(0.,.7,abs(d.x)))+exp(-abs(d.x)*50.)*(1.-smoothstep(0.,.7,abs(d.y))));',
-      '  float a=(exp(-r*r*60.)*1.8+br+exp(-r*r*7.)*.28)*vG;',
-      '  gl_FragColor=vec4(vec3(1.,.95,.84)*a,1.);}'].join('\n')});
-  const im=new THREE.InstancedMesh(g,m,SAT_MAX[0]);im.instanceMatrix=SATS[0].instanceMatrix; // les MÊMES matrices que les Starlink
-  im.count=0;im.visible=false;im.frustumCulled=false;im.renderOrder=2;scene.add(im);return im;})();
+/* GLINT RETIRÉ (2026-10-24, Sacha : « enlève glint et flare ») : l'étoile à quatre branches sur chaque Starlink n'existe plus ; l'objet reste, vide, pour les lignes qui posent `count`/`visible`. */
+const GLINT={count:0,visible:false};
