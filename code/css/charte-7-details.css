@@ -467,7 +467,7 @@ html body.touch.gaucher #tSteerHint{left:auto!important;right:var(--hudG,24px)!i
    Une vraie CROIX : ▲ au-dessus, ▼ en dessous, ◀ ▶ de part et d'autre d'une case centrale vide. Les quatre touches ne sont plus que l'affichage : le doigt
    est lu par UNE surface (#tPad) qui sait 8 directions — on GLISSE de ◀ à ▲ en passant par la diagonale, sans lever le pouce (voir mobile-tactile.js). */
 html body{--pu:min(60px,15vh);--pg:5px;--px0:calc(var(--ccL,env(safe-area-inset-left,0px)) + 14px);--py0:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 14px)}
-html body #tLeft,html body #tRight,html body #tUp,html body #tDown{width:var(--pu);height:var(--pu);pointer-events:none;font-size:22px}
+html body #tLeft,html body #tRight,html body #tUp,html body #tDown{box-sizing:border-box;width:var(--pu);height:var(--pu);pointer-events:none;font-size:22px}
 html body #tDown{left:calc(var(--px0) + var(--pu) + var(--pg));bottom:var(--py0)}
 html body #tLeft{left:var(--px0);bottom:calc(var(--py0) + var(--pu) + var(--pg))}
 html body #tRight{left:calc(var(--px0) + 2*var(--pu) + 2*var(--pg));bottom:calc(var(--py0) + var(--pu) + var(--pg))}
