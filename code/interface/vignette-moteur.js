@@ -272,7 +272,7 @@ window.dbgChauffe=function(){return {atelier:!!GAR.chaud,divers:CHAUFFE_R.div,mo
    Un JOUER tapé avant : les programmes pas encore liés se compilent EN COURSE, d'un bloc (JOUER à 14 s : 1,4 s figée au départ, la piste bâtie au
    départ ; le reste — canyon, dunes, jade, moteurs — attendait le 1er portail). JOUER à 35 s : rien (pire image 189 ms).
    Désormais le lâcher de l'atelier et le piqué du ciel vont jusqu'au voile comme avant, puis le VOILE TIENT tant que la chauffe n'est pas finie
-   (tout lié) et que le départ d'avance n'est pas bâti : le menu continue de chauffer dessous, le départ d'avance travaille (10 ms par image), la
+   (tout lié) et que le départ d'avance, s'il est en route, n'est pas bâti : le menu continue de chauffer dessous, le départ d'avance travaille (10 ms par image), la
    course part quand tout est prêt — 20 s au plus (MESURÉ à froid : JOUER tapé à 15 s, la chauffe finit vers 27-29 s). Cache chaud ou ordinateur : la chauffe est finie bien avant, rien ne change.
    `?attente=0` : comme avant. `dbgDepart()` : la dernière attente. */
 const DEPART_ATT={n:0,ms:0,sortie:''};
@@ -280,7 +280,7 @@ function departAttend(G){ /* vrai : cette image, la course ne part pas encore (l
   if(!G||/[?&]attente=0\b/.test(location.search))return false;
   const now=performance.now();if(!G.att0)G.att0=now;
   const chaud=engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait&&lierPret();
-  let pb=true;try{pb=!PREB.on||PREB.fait||!prebDepCible();}catch(e){}
+  let pb=true;try{pb=!PREB.on||!PREB.W||PREB.fait||!prebDepCible();}catch(e){} /* le départ d'avance n'est attendu que s'il est DÉJÀ en route (MESURÉ, iPhone à froid : pas commencé avant le JOUER, il ne démarre pas sous le voile — le voile tenait jusqu'aux 20 s pour rien ; la piste se bâtit alors au départ, ~0,6 s de JS, sans compilation) */
   if(chaud&&pb||now-G.att0>20000){if(G.attend){DEPART_ATT.n++;DEPART_ATT.ms=Math.round(now-G.att0);DEPART_ATT.sortie=chaud&&pb?'prêt':'20 s';G.attend=false;}return false;}
   G.attend=true;chauffeGrace();return true;}
 window.dbgDepart=function(){return Object.assign({},DEPART_ATT);};
