@@ -77397,12 +77397,13 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(TCTL.inclPN==null)TCTL.inclPN=pit;
     if(TCTL.inclN==null)TCTL.inclN=ang;
     let rel=ang-TCTL.inclN; if(rel>Math.PI)rel-=2*Math.PI; else if(rel<-Math.PI)rel+=2*Math.PI;
-    inclLis+=(rel-inclLis)*.4; // un peu de lissage : la main tremble, le capteur aussi
+    const pay=(a===90||a===270); /* PAYSAGE (2026-10-28, Léo : « un peu chaud en rotation ») : le téléphone y tourne comme une ROUE, un geste bien plus ample que la bascule du portrait → plein braquage à 36° (22° en portrait), zone morte 4°, lissage plus lourd */
+    inclLis+=(rel-inclLis)*(pay?.28:.4); // un peu de lissage : la main tremble, le capteur aussi
     inclPL+=((pit-TCTL.inclPN)-inclPL)*.4; /* LE TANGAGE : le haut du téléphone vers SOI = pouce HAUT (monte/plonge selon le réglage POUCE HAUT), vers l'avant = pouce BAS. Plein à 14°, zone morte 3° ; le pouce posé sur le stick reprend la main */
-    {const mp=Math.abs(inclPL),vp=mp<INCL_PMORT?0:(inclPL<0?1:-1)*Math.min(1,(mp-INCL_PMORT)/(INCL_PPLEIN-INCL_PMORT)); TCTL.inclP=vp; if(TCTL.incl&&!TCTL.act)TCTL.sv=vp;
+    {const mp=Math.abs(inclPL),pm=pay?4*Math.PI/180:INCL_PMORT,pp=pay?22*Math.PI/180:INCL_PPLEIN,vp=mp<pm?0:(inclPL<0?1:-1)*Math.min(1,(mp-pm)/(pp-pm)); TCTL.inclP=vp; if(TCTL.incl&&!TCTL.act)TCTL.sv=vp;
       if(mp<5*Math.PI/180)TCTL.inclPN+=(pit-TCTL.inclPN)*.004;}
     if(Math.abs(inclLis)<6*Math.PI/180)TCTL.inclN+=rel*.004; // le NEUTRE suit très lentement la main (le poignet se fatigue, la pose dérive) : jamais sur un vrai virage (> 6°)
-    const m=Math.abs(inclLis); TCTL.inclV=m<INCL_MORT?0:(inclLis<0?1:-1)*Math.pow(Math.min(1,(m-INCL_MORT)/(INCL_PLEIN-INCL_MORT)),1.15); // `rel` > 0 = tourné dans le sens horaire (bord droit en bas) = braquage à DROITE (steer < 0)
+    const m=Math.abs(inclLis),mo=pay?4*Math.PI/180:INCL_MORT,pl=pay?36*Math.PI/180:INCL_PLEIN; TCTL.inclV=m<mo?0:(inclLis<0?1:-1)*Math.pow(Math.min(1,(m-mo)/(pl-mo)),1.15); // `rel` > 0 = tourné dans le sens horaire (bord droit en bas) = braquage à DROITE (steer < 0)
     if(TCTL.incl&&TCTL.play)TCTL.doigt=true; // le lissage rapide du pouce (τ 30 ms), pas celui du clavier
   }
   function inclPerm(){ const D=window.DeviceOrientationEvent;
