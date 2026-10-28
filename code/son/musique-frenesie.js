@@ -402,7 +402,7 @@ function musicTick(dt,mvt){
 // hooks console : brancher/tester avant l'arrivée des vrais fichiers
 window.playMusic=playMusic;window.stopMusic=stopMusic;
 window.musicStartRun=musicStartRun;window.musicMenu=musicMenu;window.musicStop=musicStop;
-window.dbgAudio=function(){const g=n=>(n&&n.gain)?+n.gain.value.toFixed(4):null;return{
+window.dbgAudio=function(){const g=n=>(n&&n.gain)?+n.gain.value.toFixed(4):null;return{reveil:Object.assign({etat:AC&&AC.state},AC_REV), /* (2026-10-28) les refus de resume() et les reprises au toucher (acReveil) */
   // LA CHARGE en premier : c'est elle qu'on vient vérifier. À fond en reprise elle doit frôler 1,
   // stabilisé retomber vers .25-.35, et gaz lâchés tomber à 0 pendant que `ovr` monte.
   charge:+charge9.toFixed(2),ovr:+ovr9.toFixed(2),rpm:+engRpm.toFixed(2),gear:engGear,

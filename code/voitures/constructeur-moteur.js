@@ -334,6 +334,7 @@ function mkEngine(i){
      nommé ; à défaut, le feu sort par l'arrière de la pièce. Sans ce filet, la vignette
      retomberait sur une position par défaut et on retrouverait la flamme décrochée. */
   if(!g.userData.echap)g.userData.echap={p:[-(piston?S.L*.5+.12:1.05),0,0],d:[-1,0,0]};
+  if(i===0)lapin30(g,S.L);   /* (2026-10-28, Léo : « le premier moteur, des oreilles de lapin ou un aspect lapin blanc ») */
   return g;
 }
 /* <<<FIN MOTEURS>>> */

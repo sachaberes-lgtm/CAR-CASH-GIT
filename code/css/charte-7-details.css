@@ -454,6 +454,14 @@ html body #tStick::before,html body #tStick::after{content:'';position:absolute;
 html body #tStick::before{left:calc(50% - 76px);transform-origin:100% 50%;transform:scaleX(var(--sl,0));background:linear-gradient(90deg,rgba(0,234,255,.12),rgba(0,234,255,.95))}
 html body #tStick::after{left:50%;transform-origin:0 50%;transform:scaleX(var(--sr,0));background:linear-gradient(90deg,rgba(0,234,255,.95),rgba(0,234,255,.12))}
 html body #tKnob{width:52px;height:52px;margin:-26px 0 0 -26px}
+html body #tStick .skU,html body #tStick .skD{position:absolute;left:50%;transform:translateX(-50%);font-family:var(--pix);font-size:8px;letter-spacing:1px;line-height:1;color:#9fe8ff;white-space:nowrap;text-align:center;pointer-events:none;text-shadow:0 0 8px rgba(0,234,255,.6)}
+html body #tStick .skU{bottom:calc(100% + 30px);opacity:calc(.3 + .7*var(--su,0))}
+html body #tStick .skD{top:calc(100% + 40px);opacity:calc(.3 + .7*var(--sd,0))}
+html body #tStick .skU::before,html body #tStick .skD::before{content:'';display:block;margin:0 auto 4px;border:7px solid transparent}
+html body #tStick .skU::before{border-top:0;border-bottom-color:currentColor}
+html body #tStick .skD{display:flex;flex-direction:column-reverse}
+html body #tStick .skD::before{border-bottom:0;border-top-color:currentColor;margin:4px auto 0}
+html body #tStick .skU:empty{opacity:0}
 
 /* ===== MODE GAUCHER (2026-10-28) ===== le volant à droite, la NITRO et les flèches à gauche (la mécanique est miroitée dans mobile-tactile.js) */
 html body.touch.gaucher #tSteer{left:auto!important;right:0!important}

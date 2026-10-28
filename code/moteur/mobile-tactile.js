@@ -88,9 +88,16 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      MESURÉ (banc node `sensations/banc/volant-sim.cjs`, le vrai stMove joué par des pouces simulés, 5 prises) : même geste → +18 à +22 % de braquage ;
      drifts involontaires en slalom 29 → 6 et 58 → 41 images sur 420 (prises tendues), 0 ailleurs ; butée tenue 1 s : 38 → 0 ; le drift VOULU part toujours
      (12 à 29 px de tirage à droite, comme avant à gauche). */
-  function stSet(h,v,kx,ky){ if(GAU)h=-h; TCTL.st=h; TCTL.sv=v; // kx/ky : la place du POUCE en pixels depuis la base
+  /* (2026-10-28, Léo : « le slide joystick doit visuellement montrer ce que ça fait d'aller en haut et en bas ») DEUX REPÈRES sur la glissière : un chevron
+     AU-DESSUS, un EN DESSOUS, qui s'allument à mesure que le pouce monte ou descend (--su / --sd). En VOL ils disent ce que fait le geste (MONTE / PLONGE,
+     selon les réglages POUCE HAUT et VOL INVERSÉ) ; AU SOL le bas dit DRIFT et le haut s'éteint. */
+  let skU=null,skD=null,skK='';
+  if(stk){skU=document.createElement('div');skU.className='skU';skD=document.createElement('div');skD.className='skD';stk.appendChild(skU);stk.appendChild(skD);}
+  function skMaj(){ if(!skU)return; const vol=(mode==='fall'),sg=volSens()*volInv(),k=(vol?1:0)+'|'+sg; if(k===skK)return; skK=k;
+    skU.textContent=vol?TR(sg<0?'MONTE':'PLONGE'):''; skD.textContent=vol?TR(sg<0?'PLONGE':'MONTE'):TR('DRIFT'); }
+  function stSet(h,v,kx,ky){ skMaj(); if(GAU)h=-h; TCTL.st=h; TCTL.sv=v; // kx/ky : la place du POUCE en pixels depuis la base
     if(knb)knb.style.transform='translate('+(GAU?-(kx||0):(kx||0))+'px,'+(ky||0)+'px)';
-    if(stk){stk.style.setProperty('--sl',Math.max(0,h).toFixed(3));stk.style.setProperty('--sr',Math.max(0,-h).toFixed(3));} } // (2026-10-28) la glissière remplit son trait du côté où l'on braque // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
+    if(stk){stk.style.setProperty('--sl',Math.max(0,h).toFixed(3));stk.style.setProperty('--sr',Math.max(0,-h).toFixed(3));stk.style.setProperty('--su',Math.max(0,v).toFixed(3));stk.style.setProperty('--sd',Math.max(0,-v).toFixed(3));} } // (2026-10-28) la glissière remplit son trait du côté où l'on braque // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
   if(sz){
     /* ⚠ TROIS GESTES NOMMÉS, DEUX ENTRÉES (2026-09-24) : le doigt ET la souris passent par les mêmes
        `stDown/stMove/stUp`. Sans le repli souris, le volant était le seul contrôle du téléphone
@@ -318,13 +325,13 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(!started||gameOver||!paused||(pan.classList.contains('open')&&!pan.classList.contains('sortant'))){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');return;} // la feuille qui DESCEND encore n'annule rien
       if(n===0){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');try{sfx('ui.go');}catch(e){}togglePause();return;} // retirer `on` AUSSI : sinon l'animation normale repart et le « 1 » revient en grand
       slam(String(n),'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');} // un chiffre = 0,3 s : l'entrée doit être lisible tout de suite
-      try{if(SONV2){if(AC&&AC.state!=='running'&&SND.sfx)AC.resume().then(function(){sfx('ui.bip');}).catch(function(){});else sfx('ui.bip');}else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6); // (2026-09-27) ces bips et la vibration étaient avalés par le commentaire ci-dessus
+      try{if(SONV2){if(AC&&AC.state!=='running'&&SND.sfx)acReveil(AC).then(function(){sfx('ui.bip');});else sfx('ui.bip');}else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6); // (2026-09-27) ces bips et la vibration étaient avalés par le commentaire ci-dessus
       n--;repriseCompte.t=setTimeout(pas,300);};
     /* (2026-09-28) LE « 3 » ATTEND QUE LE SON SOIT RÉVEILLÉ. `AC.resume()` est asynchrone : lancé juste avant le compte, le premier
        bip tombait sur un contexte encore suspendu (`sfxOk` le refuse) — on n'entendait que « 2 » et « 1 ». On part à la promesse
        résolue (ou rejetée), avec un filet à 400 ms si elle ne répond jamais (iOS « interrupted ») : la pause ne doit jamais rester coincée. */
     const go=function(){if(parti)return;parti=true;pas();};
-    let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=AC.resume();}catch(e){} // la sortie remonte : les bips du compte s'entendent
+    let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=acReveil(AC);}catch(e){} // la sortie remonte : les bips du compte s'entendent
     if(r9&&r9.then){r9.then(go,go);setTimeout(go,400);}else go(); }
   // ⚠ `click` EN PLUS DE `touchstart` (2026-09-05) — `#tGear`/`#tPanel` s'affichent maintenant sur
   // DESKTOP aussi (voir CSS `body.play #tSet`), or une souris ne déclenche JAMAIS `touchstart` :
@@ -354,10 +361,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         boutons:[{l:q9?'QUITTER':'RECOMMENCER',ic:q9?'quitter':'rejouer',cls:'pb-red',v:1},{l:'CONTINUER',ic:'lecture',v:0}]}) // CONTINUER en DERNIER : Échap clique le dernier bouton
       .then(function(r){ if(!r.v||!started||gameOver)return;
         const f9=function(){ if(!started||gameOver)return; const rc9=mode!=='boom'; if(rc9)feuilleFerme(pan,'open');else panOpen(false); // (2026-10-14, chasse aux bugs) RECOMMENCER ferme la feuille SANS dépauser : panOpen(false) passait par togglePause (« GO ! », musique de la partie abandonnée relancée, jeu qui repart) juste avant resetGame
-          if(q9){if(rc9){paused=false;try{if(AC&&SND.sfx&&AC.state!=='running')AC.resume();}catch(e){}} /* (2026-10-14, chasse aux bugs) QUITTER aussi ferme la feuille SANS togglePause : la musique de la partie abandonnée repartait 0,66 s (play à la seconde où on l'avait laissée) juste pour être étranglée par le tape-stop d'endGame — on sort de la pause à la main, le son se réveille pour l'écran de fin, la musique reste arrêtée (musicStop la range proprement) */ if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;}
+          if(q9){if(rc9){paused=false;try{if(AC&&SND.sfx&&AC.state!=='running')acReveil(AC);}catch(e){}} /* (2026-10-14, chasse aux bugs) QUITTER aussi ferme la feuille SANS togglePause : la musique de la partie abandonnée repartait 0,66 s (play à la seconde où on l'avait laissée) juste pour être étranglée par le tape-stop d'endGame — on sort de la pause à la main, le son se réveille pour l'écran de fin, la musique reste arrêtée (musicStop la range proprement) */ if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;}
           else if(mode==='boom')endGame(); // (2026-10-12, passe qualité) la caisse EXPLOSE déjà : la partie est finie — RECOMMENCER sautait endGame (ni virement, ni aura, ni record, ni écran de fin). On la solde, l'écran de fin et son REJOUER suivent.
           else { /* (2026-10-14, chasse aux bugs) …et passe par le VOLET comme REJOUER : la piste neuve se construisait à l'écran, sous la feuille qui descendait. Le jeu reste gelé sous le voile ; le son (endormi par la pause) se réveille pour le volet — la musique abandonnée, elle, reste en pause : resetGame lance la neuve en fondu */
-            let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=AC.resume();}catch(e){}
+            let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=acReveil(AC);}catch(e){}
             if(ecranWipe._on){resetGame();} // un fondu déjà en cours ignorerait le nôtre : jamais une partie gelée sans feuille
             else{ecranWipe(function(){if(started&&!gameOver){resetGame(); /* ===== RECOMMENCER PUIS ARRIÈRE-PLAN (24/10, relecture : « la course roule sous la PAUSE ») ===== l'appli passée derrière pendant le volet a ROUVERT la feuille (paused encore vrai) ; resetGame remet paused=false : la partie neuve roulait sous la pause ouverte, REPRENDRE ne la gelait plus. La feuille ouverte = la partie neuve part en PAUSE, REPRENDRE sous le pouce (comme un retour d'arrière-plan) */
                 if(pan.classList.contains('open')&&!pan.classList.contains('sortant'))panOpen(true);}});
@@ -479,7 +486,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // ---- iOS : le contexte audio ne démarre QUE sur un geste — on le relance tant qu'il dort ----
   // Il peut être 'suspended' (politique navigateur) MAIS AUSSI 'interrupted' — l'état d'après un
   // appel, Siri ou une alarme. Ne tester que 'suspended' laissait le jeu muet pour toute la partie.
-  function audioKick(){ try{ if(AC&&(SND.sfx||musGraphe())&&!paused&&AC.state!=='running')AC.resume(); }catch(e){} } // (2026-10-14, session SON) musique branchée : un contexte « interrupted » se relance même SON coupé
+  function audioKick(){ try{ if(AC&&(SND.sfx||musGraphe())&&!paused&&AC.state!=='running')acReveil(AC); }catch(e){} } // (2026-10-14, session SON) musique branchée : un contexte « interrupted » se relance même SON coupé
   addEventListener('touchend',audioKick,{passive:true});
   addEventListener('touchstart',audioKick,{passive:true}); // au plus tôt : dès que le doigt se pose
   // ---- retour dans l'appli : l'écran se rendormirait, l'audio resterait suspendu ----

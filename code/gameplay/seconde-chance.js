@@ -12,7 +12,7 @@ const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,sans:/[?&]pub=0\b/.test(loca
 Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});
 function pubSilence(on){try{ // une régie montre SA pub par-dessus le jeu : le jeu se tait (la musique en pause, le contexte audio suspendu), puis reprend
   if(on){PUBR.mus=!!(musicEl&&!musicEl.paused);if(PUBR.mus)musicEl.pause();if(AC&&AC.state==='running')AC.suspend();}
-  else{if(AC&&AC.state==='suspended')AC.resume();if(PUBR.mus&&musicVoulue&&!paused)musicJoue();PUBR.mus=false;}}catch(e){}}
+  else{if(AC&&AC.state==='suspended')acReveil(AC);if(PUBR.mus&&musicVoulue&&!paused)musicJoue();PUBR.mus=false;}}catch(e){}}
 function pubRecompense(nom,fin){
   if(PUBR.on)return false;
   PUBR.on=true;let fait=false;

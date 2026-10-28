@@ -122,7 +122,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
   function introSound(){
     if(!SND.sfx||!(VOL.sfx>0))return; // mute SON : l'intro reste muette aussi — (2026-09-28) et le curseur EFFETS à zéro aussi
     try{iAC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000});}catch(e){return new C();}})();}catch(e){return;}
-    const A=iAC;try{A.resume();}catch(e){}
+    const A=iAC;acReveil(A); /* (2026-10-28) acReveil : un refus d'iOS se réessaie au toucher, sans promesse rejetée */
     const t0=A.currentTime+.05,PHI=1.6180339;
     const phi=k=>110*Math.pow(PHI,k); // l'échelle d'or : 110·φ^k
     const comp=A.createDynamicsCompressor();
@@ -370,7 +370,7 @@ function togglePause(){ if(!started||gameOver)return;
        (busPlein efface la rampe programmée, clearTimeout la suspension). Onglet caché (retour d'appli) : ni son ni délai. */
       let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){}try{instruCoupe(0);}catch(e){} /* (2026-10-07) la phrase du nitro se tait TOUT DE SUITE (le clic ⏸ et la feuille, eux, sonnent jusqu'au bout) */ /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
       if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
-    else{busPlein();if(SND.sfx||musGraphe())AC.resume();} } }catch(e){} // (2026-10-14, session SON) musique branchée : SON coupé, le contexte doit quand même se réveiller (les effets restent fermés par musWaSon)
+    else{busPlein();if(SND.sfx||musGraphe())acReveil(AC);} } }catch(e){} // (2026-10-14, session SON) musique branchée : SON coupé, le contexte doit quand même se réveiller (les effets restent fermés par musWaSon)
   if(paused){fxStop();deathStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
@@ -397,7 +397,7 @@ function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
 // PAUSE AUTO : l'appli passe en arrière-plan (onglet caché, app minimisée) → on gèle + on coupe le son
 addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused&&mode!=='boom')togglePause(); /* (2026-10-14, chasse aux bugs) PAS pendant l'EXPLOSION : la pause figeait la boule de feu, coupait le son de mort et rouvrait le panneau PAUSE au retour sur une partie déjà perdue — l'arrière-plan gèle déjà tout (plus d'images, contexte audio suspendu) ; au retour la mort avance comme au ⏸ (boomSkip, plus bas) */
   // (2026-09-26) au menu, au garage ou sur l'écran de mort, une vingtaine de sources en boucle tournaient encore en arrière-plan
-  try{ if(AC){ if(document.hidden){if(AC.state==='running')AC.suspend();} else if((SND.sfx||musGraphe())&&!paused&&AC.state!=='running')AC.resume(); } }catch(e){} // (2026-10-14, session SON) …et au retour d'arrière-plan aussi
+  try{ if(AC){ if(document.hidden){if(AC.state==='running')AC.suspend();} else if((SND.sfx||musGraphe())&&!paused&&AC.state!=='running')acReveil(AC); } }catch(e){} // (2026-10-14, session SON) …et au retour d'arrière-plan aussi — (2026-10-28) sans geste, iOS refuse souvent (« Failed to start the audio device ») : acReveil réessaie au prochain toucher
   if(document.hidden)try{enCoursPose();SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir · (2026-09-30) et la PARTIE en cours avec (enCoursPose)
   // (2026-09-30) au retour la partie continue : l'instantané part — SAUF contexte 3D perdu, que suit un rechargement (voir webglcontextlost) : il est alors le seul à porter la partie
   if(!document.hidden){let perdu=false;try{perdu=renderer.getContext().isContextLost();}catch(e){}if(!perdu)enCoursRetire();}

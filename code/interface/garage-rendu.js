@@ -245,6 +245,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     if(Math.abs(camera.fov-fovL)>.01){camera.fov=fovL;camera.updateProjectionMatrix();}
     if(!G.voile&&u>.90){G.voile=true;const f=$('gFade');if(f)f.classList.add('on');} // (2026-09-29) .80 → .90 : la caisse ENTRE dans le rideau de flammes (la porte est à cz 13, atteinte à u .875) avant la coupure
     if(u>=1){
+      if(departAttend(G))return; /* (2026-10-28) LE DÉPART ATTEND LA CHAUFFE : à froid, le voile tient tant que la course compilerait (voir departAttend) */
       GAR.go=null;carGroup.rotation.set(0,0,0);
       // ⚠ `resetGame()` fait DÉJÀ tout le travail de relance (piste neuve, meute, `fireLaunchBoost()`)
       // — la caisse a QUITTÉ le garage sur cette piste-menu, une VRAIE course en a besoin d'une autre.
