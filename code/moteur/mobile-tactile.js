@@ -91,15 +91,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   /* (2026-10-28, Léo : « le slide joystick doit visuellement montrer ce que ça fait d'aller en haut et en bas ») DEUX REPÈRES sur la glissière : un chevron
      AU-DESSUS, un EN DESSOUS, qui s'allument à mesure que le pouce monte ou descend (--su / --sd). En VOL ils disent ce que fait le geste (MONTE / PLONGE,
      selon les réglages POUCE HAUT et VOL INVERSÉ) ; AU SOL le bas dit DRIFT et le haut s'éteint. */
-  /* (2026-10-28, Léo : « 1 oui ») LE VOLANT SE SENT : un tic LÉGER quand le pouce (ou le téléphone penché) repasse par le CENTRE, un tic net à la BUTÉE
-     (une fois par aller, ré-armé à 80 % : pas de bourdonnement collé au plein braquage). Jamais plus d'un tic toutes les 70 ms ; `hap` respecte déjà
-     l'interrupteur VIBRATIONS et le limiteur des impulsions fortes. Le Taptic de l'iPhone rend le centre sous le pouce sans regarder. */
-  let hvS=0,hvL=false,hvT=0;
-  function hapVolant(h){ if(!TCTL.play)return; const n=performance.now(),a=Math.abs(h),s=h>.06?1:h<-.06?-1:0;
-    if(n-hvT>=70){
-      if(s===0&&hvS!==0){hvT=n;hap(6);}
-      else if(a>=.97&&!hvL){hvL=true;hvT=n;hap(12);} }
-    if(a<.8)hvL=false; hvS=s; }
   let skU=null,skD=null,skK='';
   if(stk){skU=document.createElement('div');skU.className='skU';skD=document.createElement('div');skD.className='skD';stk.appendChild(skU);stk.appendChild(skD);}
   function skMaj(){ if(!skU)return; const vol=(mode==='fall'),sg=volSens()*volInv(),k=(vol?1:0)+'|'+sg; if(k===skK)return; skK=k;
@@ -184,7 +175,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       TCTL.dyS=pou9&&nx>0?Math.min(ARC_MAX,(TCTL.ar<0?ARC_R0:TCTL.ar)*Math.pow(nx,1.2)+ARC_M):0; // la conduite y ajoute le plancher de 34,9 (DRIFT_PX)
       stSet(-(ax<0?-1:ax>0?1:0)*Math.pow(Math.abs(ax),1.15),   // pouce à GAUCHE = braquage à gauche (steer>0) — (conduite v4) courbe 1,35 → 1,15 : 25 % de pouce = 20 % du cap (15 % avant)
             -ay,px,Math.max(-LOCKU,Math.min(gy,y-TCTL.oy))); // pouce vers le HAUT = sv>0 (en vol, `volSens()` en fait MONTE par défaut depuis le 2026-10-10, PLONGE au réglage) — le bouton reste SOUS le pouce (sans `cr`)
-      hapVolant(TCTL.st);
     };
     const stUp=function(){ TCTL.act=false;TCTL.id=null;stSet(0,0);sz.classList.remove('act'); };
     sz.addEventListener('touchstart',function(e){
@@ -424,7 +414,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(mp<5*Math.PI/180)TCTL.inclPN+=(pit-TCTL.inclPN)*.004;}
     if(Math.abs(inclLis)<6*Math.PI/180)TCTL.inclN+=rel*.004; // le NEUTRE suit très lentement la main (le poignet se fatigue, la pose dérive) : jamais sur un vrai virage (> 6°)
     const m=Math.abs(inclLis),mo=pay?4*Math.PI/180:INCL_MORT,pl=pay?36*Math.PI/180:INCL_PLEIN; TCTL.inclV=m<mo?0:(inclLis<0?1:-1)*Math.pow(Math.min(1,(m-mo)/(pl-mo)),1.15); // `rel` > 0 = tourné dans le sens horaire (bord droit en bas) = braquage à DROITE (steer < 0)
-    hapVolant(TCTL.inclV);
     if(TCTL.incl&&TCTL.play)TCTL.doigt=true; // le lissage rapide du pouce (τ 30 ms), pas celui du clavier
   }
   function inclPerm(){ const D=window.DeviceOrientationEvent;
