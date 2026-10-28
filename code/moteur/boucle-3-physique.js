@@ -536,7 +536,7 @@
             landMark.quaternion.setFromRotationMatrix(mat4.makeBasis(T[bi],B[bi],Nn[bi]));
             LM.vu=true;CAMV.eta=(st2+1)*.12;
             const impP=Math.abs(tmp3.dot(Nn[bi])); // impact PRÉDIT — même unité que le verdict d'atterrissage
-            LM.c.setHex(impP<4.5?0xffd75e:impP>=10?0xff5040:0xffffff);if(LM.a<.05)landMark.material.color.copy(LM.c); // or = fenêtre PARFAIT, rouge = posé lourd — la teinte GLISSE de l'une à l'autre
+            LM.c.setHex(impP<4.5?0xffd75e:impP>=10?0xff3b30:0xff8272);if(landMark.userData.tk)landMark.userData.tk.rotation.z=t*.5;if(LM.a<.05)landMark.material.color.copy(LM.c); // or = fenêtre PARFAIT, rouge = posé lourd — la teinte GLISSE de l'une à l'autre
             landMark.scale.setScalar(impP<4.5?1+Math.sin(t*10)*.12:1); // l'anneau OR pulse : vas-y, c'est maintenant
             // assistance d'atterrissage : recentre doucement (d'autant plus qu'on va vite)
             const asF=AIR_ASSIST*THREE.MathUtils.clamp(fallVel.length()/60,.2,1.4);

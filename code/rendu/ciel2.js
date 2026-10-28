@@ -316,6 +316,16 @@ window.dbgCiel=function(a,e){ // (dev, 2026-10-15) PHOTO DU CIEL : en pause, l'�
 const landMark=new THREE.Mesh(new THREE.TorusGeometry(3,.35,8,24),
   new THREE.MeshBasicMaterial({color:0x62e062,transparent:true,opacity:.85,depthTest:false}));
 landMark.renderOrder=999; // (2026-09-28, nuit) le VISEUR passe PAR-DESSUS tout : la caméra de vol garde la caisse plus grande (le « bras », voir la caméra de vol) — elle ne doit jamais cacher l'endroit où l'on se pose
+/* (2026-10-28, Léo : « un anneau plus joli, rouge c'est visible mais violent ») LE VISEUR D'ATTERRISSAGE, plus fin et plus beau : un anneau mince, un
+   second anneau intérieur plus fin encore et une couronne de 12 graines qui TOURNE lentement (la boucle de vol la fait pivoter), le tout en lumière
+   ajoutée (il brille sans masquer la route). Même matière partagée : la teinte et le fondu de la boucle de vol s'appliquent aux trois d'un coup.
+   Teintes (voir la boucle de vol) : OR = fenêtre PARFAIT, CORAIL = posé normal (visible, pas agressif), ROUGE = posé lourd. */
+{const m9=landMark.material; landMark.geometry.dispose(); landMark.geometry=new THREE.TorusGeometry(3,.15,8,56);
+  m9.blending=THREE.AdditiveBlending; m9.depthWrite=false;
+  const r2=new THREE.Mesh(new THREE.TorusGeometry(2.2,.06,6,48),m9); r2.renderOrder=999; landMark.add(r2);
+  const tk=new THREE.Group(); const gT=new THREE.BoxGeometry(.2,.62,.1);
+  for(let i=0;i<12;i++){const a9=i/12*Math.PI*2,b9=new THREE.Mesh(gT,m9);b9.position.set(Math.cos(a9)*3.75,Math.sin(a9)*3.75,0);b9.rotation.z=a9-Math.PI/2;b9.renderOrder=999;tk.add(b9);}
+  landMark.add(tk); landMark.userData.tk=tk;}
 landMark.visible=false;scene.add(landMark);
 const lmP=new THREE.Vector3(); // (2026-10-20) le pas d'AVANT du viseur : c'est lui qui dit de quel côté de la dalle on arrive (voir le viseur de la boucle de vol)
 const LM={a:0,vu:false,c:new THREE.Color()}; // (2026-09-28) le viseur en FONDU : il surgissait à 1,7 s de la pose, clignotait près des bords, sautait d'or à blanc
