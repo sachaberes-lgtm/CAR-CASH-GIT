@@ -15368,7 +15368,7 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
   const c=prebDepCible();
   if(PREB.W&&(!c||c.t!==PREB.t||c.st!==PREB.ctx||c.eng!==PREB.eng)){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'contexte');return;}
   if(!c||PREB.fait)return;
-  if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go)||CHUTE.go||!CHAUFFE_R.fait||CHAUFFE_R.t||(!JADE.geos&&!GAB_FOND.fini&&c.t.carte==='jade'))return; // ni volet, ni lâcher, ni piqué ; la chauffe d'abord — et les gabarits de la jade, si c'est elle qu'on bâtit (2026-10-24, passe perf : pour une autre map, le départ passe AVANT les gabarits — voir jadeGabFond)
+  if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go&&!GAR.go.attend)||(CHUTE.go&&!CHUTE.go.attend)||!CHAUFFE_R.fait||CHAUFFE_R.t||(!JADE.geos&&!GAB_FOND.fini&&c.t.carte==='jade'))return; // ni volet, ni lâcher, ni piqué ; la chauffe d'abord — et les gabarits de la jade, si c'est elle qu'on bâtit (2026-10-24, passe perf : pour une autre map, le départ passe AVANT les gabarits — voir jadeGabFond)
   const ins9=now-PREB.tNeuf<700||(PREB.fin0&&now-PREB.fin0<800); // le monde neuf (le menu, l'écran de fin) s'installe d'abord
   if(ins9&&!PREB.W)return;
   if(!PREB.W){if(c.t!==PREB.non&&PREB.echecs<3)prebPart(c);return;} // (l'image suivante travaille)
@@ -15379,7 +15379,7 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
      n'avait bâti qu'une petite part du départ suivant. Désormais le travail commence DÈS L'EXPLOSION (prebTick, mode 'boom' : 1,8 s avant l'écran de fin),
      continue à 3 ms pendant que l'écran de fin s'installe (il ne s'arrête plus), puis prend jusqu'à 8 ms par image pendant l'explosion et 10 ms à
      l'écran de fin (rien ne s'y joue) ; au menu, rien ne change (3-6 ms). */
-  const bud9=ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?Math.max(4,Math.min(10,20-tr)):Math.max(3,Math.min(6,14-tr));
+  const bud9=(GAR.go&&GAR.go.attend)||(CHUTE.go&&CHUTE.go.attend)?10:ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?Math.max(4,Math.min(10,20-tr)):Math.max(3,Math.min(6,14-tr));
   prebTravaille(performance.now()+bud9);}
 function prebDepPrend(fn){PREB.depPorte=true;try{fn();}finally{PREB.depPorte=false;PREB.prend=false;}} // c'est le DÉPART qui construit : la piste bâtie d'avance peut servir
 window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule('dbg');}
@@ -45600,6 +45600,25 @@ function lierMenuFin(H){if(H)for(const m of H)m.visible=true;}
 window.dbgLier=function(){return {ext:!!LIER.X,enCours:LIER.att.length,lances:LIER.n,lies:LIER.lies,cachesMenu:LIER.caches,imagesAttendues:LIER.passes,rates:LIER.rates,demarrage:LIER.dem===2?LIER.msDem+' ms':LIER.dem?'en cours':'—',
   attendus:LIER.hors.concat((renderer.info.programs||[]).filter(function(p){return !LIER.vus.has(p);})).map(function(p){return p.name+'#'+p.id+(p.cacheKey?':'+String(p.cacheKey).slice(0,60).replace(/\s+/g,' '):'');})};}; /* attendus : les programmes liés en attendant (hors de la liaison douce) */
 const ENG_GARDE=new Map();let engChaudI=-1;
+window.dbgChauffe=function(){return {atelier:!!GAR.chaud,divers:CHAUFFE_R.div,moteurs:engChaudI,sur:ENGINE_TIERS.length+1,rendu:!!CHAUFFE_R.fait,apres:CHAUFFE_R.ap,lier:LIER.att.length,programmes:(renderer.info.programs||[]).length,appels:CHAUFFE_R.appels,ms:CHAUFFE_R.ms};}; /* (2026-10-28) où en est la chauffe du menu (banc du JOUER à froid) */
+/* ===== LE DÉPART ATTEND LA CHAUFFE (2026-10-28, boîte noire de l'appli de Léo : un gel de 6,5 s au 1er JOUER après un lancement à froid) =====
+   MESURÉ sur son iPhone 15 (appli par câble, cache Metal froid) : la chauffe du menu (l'atelier, les maps, les moteurs, la scène entière, le départ
+   d'avance) dure ~26 s quand Metal n'a rien en cache, et elle S'ARRÊTE dès que la course part (`engChauffe` ne tourne qu'au menu et à l'écran de fin).
+   Un JOUER tapé avant : les programmes pas encore liés se compilent EN COURSE, d'un bloc (JOUER à 14 s : 1,4 s figée au départ, la piste bâtie au
+   départ ; le reste — canyon, dunes, jade, moteurs — attendait le 1er portail). JOUER à 35 s : rien (pire image 189 ms).
+   Désormais le lâcher de l'atelier et le piqué du ciel vont jusqu'au voile comme avant, puis le VOILE TIENT tant que la chauffe n'est pas finie
+   (tout lié) et que le départ d'avance n'est pas bâti : le menu continue de chauffer dessous, le départ d'avance travaille (10 ms par image), la
+   course part quand tout est prêt — 20 s au plus (MESURÉ à froid : JOUER tapé à 15 s, la chauffe finit vers 27-29 s). Cache chaud ou ordinateur : la chauffe est finie bien avant, rien ne change.
+   `?attente=0` : comme avant. `dbgDepart()` : la dernière attente. */
+const DEPART_ATT={n:0,ms:0,sortie:''};
+function departAttend(G){ /* vrai : cette image, la course ne part pas encore (le voile reste) */
+  if(!G||/[?&]attente=0\b/.test(location.search))return false;
+  const now=performance.now();if(!G.att0)G.att0=now;
+  const chaud=engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait&&lierPret();
+  let pb=true;try{pb=!PREB.on||PREB.fait||!prebDepCible();}catch(e){}
+  if(chaud&&pb||now-G.att0>20000){if(G.attend){DEPART_ATT.n++;DEPART_ATT.ms=Math.round(now-G.att0);DEPART_ATT.sortie=chaud&&pb?'prêt':'20 s';G.attend=false;}return false;}
+  G.attend=true;chauffeGrace();return true;}
+window.dbgDepart=function(){return Object.assign({},DEPART_ATT);};
 function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie encore : le menu tourne, la suivante attend ; l'étape compile en doux */
   if(!lierPret())return;
   LIER.doux=true;try{engChauffe1();}finally{LIER.doux=false;}}
@@ -45607,7 +45626,7 @@ function engChauffe1(){
   if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
   if(engChaudI<0){chauffeGrace();const k9=CHAUFFE_R.div;CHAUFFE_R.saute=0;const r9=chauffeDivers(k9);if(CHAUFFE_R.saute&&CHAUFFE_R.rejoue!==k9){CHAUFFE_R.rejoue=k9;return;}CHAUFFE_R.div=k9+1;if(!r9)engChaudI=0;return;} /* (LA LIAISON EN ARRIÈRE-PLAN) une étape dont le dessin a sauté des programmes en cours de liaison est rejouée une fois, liée */ // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
   if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){chauffeGrace();CHAUFFE_R.saute=0;chauffeRendu();if(CHAUFFE_R.saute&&!CHAUFFE_R.refait){CHAUFFE_R.refait=1;return;}CHAUFFE_R.fait=true;CHAUFFE_R.tFait=performance.now();return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
-    if(CHAUFFE_R.ap>=0&&!ecranWipe._on&&(PREB.W?PREB.fait:(!PREB.on||!prebDepCible()||performance.now()-CHAUFFE_R.tFait>15000))){chauffeGrace();if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;} // (2026-10-24) les tôles des voitures, une par image, le départ d'avance prêt (voir chauffeApres)
+    if(CHAUFFE_R.ap>=0&&!ecranWipe._on&&!GAR.go&&!CHUTE.go&&(PREB.W?PREB.fait:(!PREB.on||!prebDepCible()||performance.now()-CHAUFFE_R.tFait>15000))){chauffeGrace();if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;} // (2026-10-24) les tôles des voitures, une par image, le départ d'avance prêt (voir chauffeApres) — (2026-10-28) jamais pendant un lâcher ou un piqué (LE DÉPART ATTEND LA CHAUFFE : une tôle de 1,9 s sous le voile retarderait la course)
     return;}
   chauffeGrace();
   try{
@@ -56535,7 +56554,7 @@ function musicTick(dt,mvt){
 // hooks console : brancher/tester avant l'arrivée des vrais fichiers
 window.playMusic=playMusic;window.stopMusic=stopMusic;
 window.musicStartRun=musicStartRun;window.musicMenu=musicMenu;window.musicStop=musicStop;
-window.dbgAudio=function(){const g=n=>(n&&n.gain)?+n.gain.value.toFixed(4):null;return{
+window.dbgAudio=function(){const g=n=>(n&&n.gain)?+n.gain.value.toFixed(4):null;return{reveil:Object.assign({etat:AC&&AC.state},AC_REV), /* (2026-10-28) les refus de resume() et les reprises au toucher (acReveil) */
   // LA CHARGE en premier : c'est elle qu'on vient vérifier. À fond en reprise elle doit frôler 1,
   // stabilisé retomber vers .25-.35, et gaz lâchés tomber à 0 pendant que `ovr` monte.
   charge:+charge9.toFixed(2),ovr:+ovr9.toFixed(2),rpm:+engRpm.toFixed(2),gear:engGear,
@@ -57528,6 +57547,27 @@ function gomPas(drift,spd3,dk,T){ // à chaque image de course, à la place de l
 }
 window.dbgGomme=function(){const r=function(p,n){return p?+p.value.toFixed(n):null;};return {doux:CRISSE_DOUX,pret:GOM.ok,k:+GOM.k.toFixed(3),souffle:r(GOM.sG&&GOM.sG.gain,4),grain:r(GOM.gG&&GOM.gG.gain,4),passeBas:r(GOM.lp1&&GOM.lp1.frequency,0),grains:r(GOM.gSrc&&GOM.gSrc.playbackRate,2)};};
 /* <<<FIN GOMME DOUCE>>> */
+/* ===== LE SON QUI NE REDÉMARRE PAS (2026-10-28, boîte noire de l'appli de Léo : trois « Failed to start the audio device ») =====
+   Sur iPhone, `resume()` d'un contexte audio REFUSE (promesse rejetée) quand iOS ne rend pas encore la sortie : retour d'arrière-plan sans geste
+   (visibilitychange), appel ou Siri pas finis, appli pas tout à fait au premier plan. Une dizaine d'appels le lançaient sans écouter le refus : la
+   promesse partait rejetée (notée dans la boîte noire) et rien ne disait qu'il fallait réessayer. `acReveil(A)` : le même réveil, partout ; il
+   rend une promesse qui ne rejette JAMAIS (vrai = le son tourne) ; un refus est compté et le PROCHAIN TOUCHER réessaie (un geste : iOS rend la
+   sortie), une fois, sans rallumer un contexte que le jeu a endormi exprès entre-temps (pause, SON coupé, onglet caché). `dbgAudio` : `.reveil`. */
+const AC_REV={rates:0,essais:0,dern:'',arme:false};
+function acVeut(A){ /* ce contexte doit-il tourner maintenant ? (le jeu peut l'avoir endormi exprès depuis le refus) */
+  if(!A||A.state==='running'||A.state==='closed'||document.hidden)return false;
+  if(A===AC)return !paused&&(SND.sfx||musGraphe());
+  return true;}
+function acReveil(A){
+  A=A||AC;if(!A||A.state==='running'||A.state==='closed')return Promise.resolve(!!A&&A.state==='running');
+  let p=null;try{p=A.resume();}catch(e){p=Promise.reject(e);}
+  if(!p||!p.then)return Promise.resolve(A.state==='running');
+  return p.then(function(){return A.state==='running';},function(e){AC_REV.rates++;AC_REV.dern=String(e&&e.message||e).slice(0,80);acReessaie(A);return false;});}
+function acReessaie(A){ /* au prochain toucher (touchend : le geste qu'iOS accepte pour le son ; pointerup pour l'ordinateur) */
+  if(AC_REV.arme)return;AC_REV.arme=true;
+  const f=function(){removeEventListener('touchend',f,true);removeEventListener('pointerup',f,true);AC_REV.arme=false;
+    if(acVeut(A)){AC_REV.essais++;acReveil(A);}};
+  addEventListener('touchend',f,true);addEventListener('pointerup',f,true);}
 function initAudio(){
   AC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000});}catch(e){return new C();}})(); /* (2026-10-25, Sacha/Léo : « sons très aigus chez lui, grésillements chez moi, même lien ») 48 kHz IMPOSÉS : le contexte prenait la cadence de la carte son de chaque ordinateur (44,1 · 48 · 96 kHz, Bluetooth 16-24 kHz) et tout le DSP tournait à une cadence différente d'une machine à l'autre ; le navigateur rééchantillonne vers la sortie. */
   if(!SND.sfx&&!(MUS_WA&&MUS_WA.on)&&!musGraphe())try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage — (2026-10-14, session SON) sauf si la musique passe par WebAudio (MUS_WA) : suspendu, le contexte la rendait MUETTE au lancement (SON coupé, MUSIQUE allumée) ; musWaSon coupe alors les effets par l'entrée du limiteur
@@ -58792,7 +58832,7 @@ const sndBtnEl=document.getElementById('sndBtn'),musBtnEl=document.getElementByI
 function sndRefresh(){
   sndBtnEl.innerHTML=pxi(SND.sfx?'son':'muet')+' <span class="blabel">'+TR('SON')+'</span>';sndBtnEl.classList.toggle('off',!SND.sfx); // garde le span → masquable en icône seule sur mobile ; TR() sinon le libellé revient au français à chaque bascule, même en anglais
   if(musBtnEl){musBtnEl.innerHTML=pxi('musique')+' <span class="blabel">'+TR('MUS')+'</span>';musBtnEl.classList.toggle('off',!SND.music);} // ⚠ plus de « LVL 1 » (radio à morceau unique par niveau supprimée) : ce libellé est RECONSTRUIT à chaque bascule
-  try{if(AC){if(musGraphe())musWaSon();else if(SND.sfx&&!paused)AC.resume();else AC.suspend();}}catch(e){} /* (2026-10-14, session SON) musique branchée : SON ne suspend plus le contexte, il ferme l'entrée des effets (musWaSon) */ // suspend = silence total du moteur audio — ⚠ en PAUSE c'est la reprise qui rallume (sinon le moteur ronronnait sur un jeu figé)
+  try{if(AC){if(musGraphe())musWaSon();else if(SND.sfx&&!paused)acReveil(AC);else AC.suspend();}}catch(e){} /* (2026-10-14, session SON) musique branchée : SON ne suspend plus le contexte, il ferme l'entrée des effets (musWaSon) */ // suspend = silence total du moteur audio — ⚠ en PAUSE c'est la reprise qui rallume (sinon le moteur ronronnait sur un jeu figé)
   if(!SND.sfx){deathStop();fxStop();} // ⚠ les sons de mort sont des HTMLAudio : `AC.suspend()` ne les atteint PAS, il faut les couper à la main
   try{volUI();}catch(e){} // les curseurs se grisent quand leur famille est coupée — et c'est ici qu'on l'apprend
 }
@@ -63786,7 +63826,7 @@ const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,sans:/[?&]pub=0\b/.test(loca
 Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});
 function pubSilence(on){try{ // une régie montre SA pub par-dessus le jeu : le jeu se tait (la musique en pause, le contexte audio suspendu), puis reprend
   if(on){PUBR.mus=!!(musicEl&&!musicEl.paused);if(PUBR.mus)musicEl.pause();if(AC&&AC.state==='running')AC.suspend();}
-  else{if(AC&&AC.state==='suspended')AC.resume();if(PUBR.mus&&musicVoulue&&!paused)musicJoue();PUBR.mus=false;}}catch(e){}}
+  else{if(AC&&AC.state==='suspended')acReveil(AC);if(PUBR.mus&&musicVoulue&&!paused)musicJoue();PUBR.mus=false;}}catch(e){}}
 function pubRecompense(nom,fin){
   if(PUBR.on)return false;
   PUBR.on=true;let fait=false;
@@ -70342,6 +70382,7 @@ function chuteRender(dt){
        (il grossit vers nous, ×1,25 → 1), puis il se DÉCHIRE autour de la caisse (s'ouvre ×1,6 en s'effaçant) — transform/opacity seulement. */
     const v=chuteVoileEl();v.style.transition='none';{const w9=Math.max(0,Math.min(1,(u-.72)/.22)),s9=w9*w9*(3-2*w9);v.style.opacity=String(s9);v.style.transform='scale('+(1.25-.25*s9).toFixed(3)+')';}
     if(u>=1){
+      if(departAttend(G))return; /* (2026-10-28) LE DÉPART ATTEND LA CHAUFFE : le nuage blanc tient tant que la course compilerait (voir departAttend) */
       if(CHUTE.sous){const f9=CHUTE.sous;CHUTE.sous=null;try{f9();}catch(e){console.warn('chute: piste sous le voile',e);}} // (2026-10-15) la piste tirée par JOUER se bâtit ICI, sous le nuage blanc (voir classiqueJouer)
       const wasStarted=started;GAR.go=null;CHUTE.go=null;carGroup.scale.set(1,1,1);
       closeGarage(wasStarted);
@@ -71743,6 +71784,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
     if(Math.abs(camera.fov-fovL)>.01){camera.fov=fovL;camera.updateProjectionMatrix();}
     if(!G.voile&&u>.90){G.voile=true;const f=$('gFade');if(f)f.classList.add('on');} // (2026-09-29) .80 → .90 : la caisse ENTRE dans le rideau de flammes (la porte est à cz 13, atteinte à u .875) avant la coupure
     if(u>=1){
+      if(departAttend(G))return; /* (2026-10-28) LE DÉPART ATTEND LA CHAUFFE : à froid, le voile tient tant que la course compilerait (voir departAttend) */
       GAR.go=null;carGroup.rotation.set(0,0,0);
       // ⚠ `resetGame()` fait DÉJÀ tout le travail de relance (piste neuve, meute, `fireLaunchBoost()`)
       // — la caisse a QUITTÉ le garage sur cette piste-menu, une VRAIE course en a besoin d'une autre.
@@ -75919,7 +75961,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
   function introSound(){
     if(!SND.sfx||!(VOL.sfx>0))return; // mute SON : l'intro reste muette aussi — (2026-09-28) et le curseur EFFETS à zéro aussi
     try{iAC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000});}catch(e){return new C();}})();}catch(e){return;}
-    const A=iAC;try{A.resume();}catch(e){}
+    const A=iAC;acReveil(A); /* (2026-10-28) acReveil : un refus d'iOS se réessaie au toucher, sans promesse rejetée */
     const t0=A.currentTime+.05,PHI=1.6180339;
     const phi=k=>110*Math.pow(PHI,k); // l'échelle d'or : 110·φ^k
     const comp=A.createDynamicsCompressor();
@@ -76167,7 +76209,7 @@ function togglePause(){ if(!started||gameOver)return;
        (busPlein efface la rampe programmée, clearTimeout la suspension). Onglet caché (retour d'appli) : ni son ni délai. */
       let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){}try{instruCoupe(0);}catch(e){} /* (2026-10-07) la phrase du nitro se tait TOUT DE SUITE (le clic ⏸ et la feuille, eux, sonnent jusqu'au bout) */ /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
       if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
-    else{busPlein();if(SND.sfx||musGraphe())AC.resume();} } }catch(e){} // (2026-10-14, session SON) musique branchée : SON coupé, le contexte doit quand même se réveiller (les effets restent fermés par musWaSon)
+    else{busPlein();if(SND.sfx||musGraphe())acReveil(AC);} } }catch(e){} // (2026-10-14, session SON) musique branchée : SON coupé, le contexte doit quand même se réveiller (les effets restent fermés par musWaSon)
   if(paused){fxStop();deathStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
@@ -76194,7 +76236,7 @@ function applyDPR(){ try{ const W=innerWidth,H=innerHeight;
 // PAUSE AUTO : l'appli passe en arrière-plan (onglet caché, app minimisée) → on gèle + on coupe le son
 addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!gameOver&&!paused&&mode!=='boom')togglePause(); /* (2026-10-14, chasse aux bugs) PAS pendant l'EXPLOSION : la pause figeait la boule de feu, coupait le son de mort et rouvrait le panneau PAUSE au retour sur une partie déjà perdue — l'arrière-plan gèle déjà tout (plus d'images, contexte audio suspendu) ; au retour la mort avance comme au ⏸ (boomSkip, plus bas) */
   // (2026-09-26) au menu, au garage ou sur l'écran de mort, une vingtaine de sources en boucle tournaient encore en arrière-plan
-  try{ if(AC){ if(document.hidden){if(AC.state==='running')AC.suspend();} else if((SND.sfx||musGraphe())&&!paused&&AC.state!=='running')AC.resume(); } }catch(e){} // (2026-10-14, session SON) …et au retour d'arrière-plan aussi
+  try{ if(AC){ if(document.hidden){if(AC.state==='running')AC.suspend();} else if((SND.sfx||musGraphe())&&!paused&&AC.state!=='running')acReveil(AC); } }catch(e){} // (2026-10-14, session SON) …et au retour d'arrière-plan aussi — (2026-10-28) sans geste, iOS refuse souvent (« Failed to start the audio device ») : acReveil réessaie au prochain toucher
   if(document.hidden)try{enCoursPose();SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir · (2026-09-30) et la PARTIE en cours avec (enCoursPose)
   // (2026-09-30) au retour la partie continue : l'instantané part — SAUF contexte 3D perdu, que suit un rechargement (voir webglcontextlost) : il est alors le seul à porter la partie
   if(!document.hidden){let perdu=false;try{perdu=renderer.getContext().isContextLost();}catch(e){}if(!perdu)enCoursRetire();}
@@ -76438,7 +76480,7 @@ function goImmersive(){
     sp.addEventListener('pointerdown',function(ev){
       bDown=true;bMove=0;bLx=ev.clientX;bLy=ev.clientY;bLt=performance.now();bVy=0;bVp=0;
       try{if(SON&&filmMuet&&iAC&&!SON.dr){ /* le film partait muet : ce premier geste libère le son, la suite sonne */
-        iAC.resume();filmMuet=false;SON.suite();SON.charge(iAC.currentTime+.05,(performance.now()-tLance)/1000-latV,pretT!==null);}}catch(x){}
+        acReveil(iAC);filmMuet=false;SON.suite();SON.charge(iAC.currentTime+.05,(performance.now()-tLance)/1000-latV,pretT!==null);}}catch(x){}
     },true);
     addEventListener('pointermove',function(ev){
       if(!bDown)return;
@@ -76819,7 +76861,7 @@ function goImmersive(){
     if(SANS_SON||!SND.sfx||!(VOL.sfx>0))return; /* mute SON ou curseur EFFETS à zéro : l'intro reste muette */
     try{iAC=preAC||new (window.AudioContext||window.webkitAudioContext)();}catch(e){iAC=null;preAC=null;return;}
     preAC=null;
-    try{iAC.resume();}catch(e){}
+    try{acReveil(iAC);}catch(e){}
     const vol9=iAC.createGain();vol9.gain.value=(typeof sfxVol==='function'?sfxVol():VOL.sfx);vol9.connect(iAC.destination); /* le curseur EFFETS, après le compresseur */
     if(!geste&&iAC.state!=='running'){ /* le film part SANS toucher et le navigateur refuse le son : il passe muet ; la casse, elle, sonnera au toucher (le contexte attend, déjà construit) */
       filmMuet=true;VOL9=vol9;SON=construitSon(iAC,0,vol9);latV=0;return;}
@@ -76881,7 +76923,7 @@ function goImmersive(){
   function tapBoule(){ /* l'appui, une fois que c'est prêt : la boule explose en CASH CAR, le jeu se prépare dessous, puis le voile fond */
     if(!lance||fini||tapT!==null||pretT===null)return;
     tapT=(performance.now()-tLance)/1000-latV;passee=true;
-    try{if(iAC&&iAC.state!=='running')iAC.resume();}catch(e){}
+    try{if(iAC&&iAC.state!=='running')acReveil(iAC);}catch(e){}
     try{if(SON){SON.suite();SON.boum(iAC.currentTime+.02);}}catch(e){}
     try{ouvrir();}catch(e){}
     setTimeout(function(){window.__introCouvre=false;},150);
@@ -76890,7 +76932,7 @@ function goImmersive(){
   function passer(){
     if(BOULE){tapBoule();return;}
     if(!lance||fini||casse||passee)return;passee=true;
-    try{if(iAC&&iAC.state!=='running')iAC.resume();}catch(e){} /* le toucher libère le son (film muet) : la casse sonne */
+    try{if(iAC&&iAC.state!=='running')acReveil(iAC);}catch(e){} /* le toucher libère le son (film muet) : la casse sonne */
     const t=(performance.now()-tLance)/1000-latV;
     if(!DEMO&&!RM&&t>=TL.slam+.3){programmerCasse(true);casser(t,false);}
     else if(!DEMO&&!RM&&t<TL.noir-.1){passee=false;sauterAuLogo(t);} /* pendant le 1.61 : on saute au noir juste avant le logo */
@@ -76990,7 +77032,7 @@ function goImmersive(){
      Le jeu endort SON contexte audio quand la page est cachée (voir init.js), pas celui de l'intro : la boule attend le toucher indéfiniment,
      son pad tourne en boucle — sur le site (Chrome Android), il continuait de jouer dans la poche. Caché : le contexte de l'intro s'endort ;
      revenu : il se réveille (le film muet, lui, attend toujours son toucher). */
-  function introVis(){try{if(fini||!iAC||iAC.state==='closed')return;if(document.hidden){if(iAC.state==='running')iAC.suspend();}else if(lance&&!filmMuet&&iAC.state!=='running')iAC.resume();}catch(e){}}
+  function introVis(){try{if(fini||!iAC||iAC.state==='closed')return;if(document.hidden){if(iAC.state==='running')iAC.suspend();}else if(lance&&!filmMuet&&iAC.state!=='running')acReveil(iAC);}catch(e){}}
   document.addEventListener('visibilitychange',introVis);
   sp.addEventListener('pointerdown',pose,true);boulePointeur();
   sp.addEventListener('click',function(){
@@ -77347,13 +77389,13 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(!started||gameOver||!paused||(pan.classList.contains('open')&&!pan.classList.contains('sortant'))){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');return;} // la feuille qui DESCEND encore n'annule rien
       if(n===0){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');try{sfx('ui.go');}catch(e){}togglePause();return;} // retirer `on` AUSSI : sinon l'animation normale repart et le « 1 » revient en grand
       slam(String(n),'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');} // un chiffre = 0,3 s : l'entrée doit être lisible tout de suite
-      try{if(SONV2){if(AC&&AC.state!=='running'&&SND.sfx)AC.resume().then(function(){sfx('ui.bip');}).catch(function(){});else sfx('ui.bip');}else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6); // (2026-09-27) ces bips et la vibration étaient avalés par le commentaire ci-dessus
+      try{if(SONV2){if(AC&&AC.state!=='running'&&SND.sfx)acReveil(AC).then(function(){sfx('ui.bip');});else sfx('ui.bip');}else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6); // (2026-09-27) ces bips et la vibration étaient avalés par le commentaire ci-dessus
       n--;repriseCompte.t=setTimeout(pas,300);};
     /* (2026-09-28) LE « 3 » ATTEND QUE LE SON SOIT RÉVEILLÉ. `AC.resume()` est asynchrone : lancé juste avant le compte, le premier
        bip tombait sur un contexte encore suspendu (`sfxOk` le refuse) — on n'entendait que « 2 » et « 1 ». On part à la promesse
        résolue (ou rejetée), avec un filet à 400 ms si elle ne répond jamais (iOS « interrupted ») : la pause ne doit jamais rester coincée. */
     const go=function(){if(parti)return;parti=true;pas();};
-    let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=AC.resume();}catch(e){} // la sortie remonte : les bips du compte s'entendent
+    let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=acReveil(AC);}catch(e){} // la sortie remonte : les bips du compte s'entendent
     if(r9&&r9.then){r9.then(go,go);setTimeout(go,400);}else go(); }
   // ⚠ `click` EN PLUS DE `touchstart` (2026-09-05) — `#tGear`/`#tPanel` s'affichent maintenant sur
   // DESKTOP aussi (voir CSS `body.play #tSet`), or une souris ne déclenche JAMAIS `touchstart` :
@@ -77383,10 +77425,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         boutons:[{l:q9?'QUITTER':'RECOMMENCER',ic:q9?'quitter':'rejouer',cls:'pb-red',v:1},{l:'CONTINUER',ic:'lecture',v:0}]}) // CONTINUER en DERNIER : Échap clique le dernier bouton
       .then(function(r){ if(!r.v||!started||gameOver)return;
         const f9=function(){ if(!started||gameOver)return; const rc9=mode!=='boom'; if(rc9)feuilleFerme(pan,'open');else panOpen(false); // (2026-10-14, chasse aux bugs) RECOMMENCER ferme la feuille SANS dépauser : panOpen(false) passait par togglePause (« GO ! », musique de la partie abandonnée relancée, jeu qui repart) juste avant resetGame
-          if(q9){if(rc9){paused=false;try{if(AC&&SND.sfx&&AC.state!=='running')AC.resume();}catch(e){}} /* (2026-10-14, chasse aux bugs) QUITTER aussi ferme la feuille SANS togglePause : la musique de la partie abandonnée repartait 0,66 s (play à la seconde où on l'avait laissée) juste pour être étranglée par le tape-stop d'endGame — on sort de la pause à la main, le son se réveille pour l'écran de fin, la musique reste arrêtée (musicStop la range proprement) */ if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;}
+          if(q9){if(rc9){paused=false;try{if(AC&&SND.sfx&&AC.state!=='running')acReveil(AC);}catch(e){}} /* (2026-10-14, chasse aux bugs) QUITTER aussi ferme la feuille SANS togglePause : la musique de la partie abandonnée repartait 0,66 s (play à la seconde où on l'avait laissée) juste pour être étranglée par le tape-stop d'endGame — on sort de la pause à la main, le son se réveille pour l'écran de fin, la musique reste arrêtée (musicStop la range proprement) */ if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;}
           else if(mode==='boom')endGame(); // (2026-10-12, passe qualité) la caisse EXPLOSE déjà : la partie est finie — RECOMMENCER sautait endGame (ni virement, ni aura, ni record, ni écran de fin). On la solde, l'écran de fin et son REJOUER suivent.
           else { /* (2026-10-14, chasse aux bugs) …et passe par le VOLET comme REJOUER : la piste neuve se construisait à l'écran, sous la feuille qui descendait. Le jeu reste gelé sous le voile ; le son (endormi par la pause) se réveille pour le volet — la musique abandonnée, elle, reste en pause : resetGame lance la neuve en fondu */
-            let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=AC.resume();}catch(e){}
+            let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=acReveil(AC);}catch(e){}
             if(ecranWipe._on){resetGame();} // un fondu déjà en cours ignorerait le nôtre : jamais une partie gelée sans feuille
             else{ecranWipe(function(){if(started&&!gameOver){resetGame(); /* ===== RECOMMENCER PUIS ARRIÈRE-PLAN (24/10, relecture : « la course roule sous la PAUSE ») ===== l'appli passée derrière pendant le volet a ROUVERT la feuille (paused encore vrai) ; resetGame remet paused=false : la partie neuve roulait sous la pause ouverte, REPRENDRE ne la gelait plus. La feuille ouverte = la partie neuve part en PAUSE, REPRENDRE sous le pouce (comme un retour d'arrière-plan) */
                 if(pan.classList.contains('open')&&!pan.classList.contains('sortant'))panOpen(true);}});
@@ -77508,7 +77550,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   // ---- iOS : le contexte audio ne démarre QUE sur un geste — on le relance tant qu'il dort ----
   // Il peut être 'suspended' (politique navigateur) MAIS AUSSI 'interrupted' — l'état d'après un
   // appel, Siri ou une alarme. Ne tester que 'suspended' laissait le jeu muet pour toute la partie.
-  function audioKick(){ try{ if(AC&&(SND.sfx||musGraphe())&&!paused&&AC.state!=='running')AC.resume(); }catch(e){} } // (2026-10-14, session SON) musique branchée : un contexte « interrupted » se relance même SON coupé
+  function audioKick(){ try{ if(AC&&(SND.sfx||musGraphe())&&!paused&&AC.state!=='running')acReveil(AC); }catch(e){} } // (2026-10-14, session SON) musique branchée : un contexte « interrupted » se relance même SON coupé
   addEventListener('touchend',audioKick,{passive:true});
   addEventListener('touchstart',audioKick,{passive:true}); // au plus tôt : dès que le doigt se pose
   // ---- retour dans l'appli : l'écran se rendormirait, l'audio resterait suspendu ----

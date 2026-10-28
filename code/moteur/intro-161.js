@@ -219,7 +219,7 @@
     sp.addEventListener('pointerdown',function(ev){
       bDown=true;bMove=0;bLx=ev.clientX;bLy=ev.clientY;bLt=performance.now();bVy=0;bVp=0;
       try{if(SON&&filmMuet&&iAC&&!SON.dr){ /* le film partait muet : ce premier geste libère le son, la suite sonne */
-        iAC.resume();filmMuet=false;SON.suite();SON.charge(iAC.currentTime+.05,(performance.now()-tLance)/1000-latV,pretT!==null);}}catch(x){}
+        acReveil(iAC);filmMuet=false;SON.suite();SON.charge(iAC.currentTime+.05,(performance.now()-tLance)/1000-latV,pretT!==null);}}catch(x){}
     },true);
     addEventListener('pointermove',function(ev){
       if(!bDown)return;
@@ -600,7 +600,7 @@
     if(SANS_SON||!SND.sfx||!(VOL.sfx>0))return; /* mute SON ou curseur EFFETS à zéro : l'intro reste muette */
     try{iAC=preAC||new (window.AudioContext||window.webkitAudioContext)();}catch(e){iAC=null;preAC=null;return;}
     preAC=null;
-    try{iAC.resume();}catch(e){}
+    try{acReveil(iAC);}catch(e){}
     const vol9=iAC.createGain();vol9.gain.value=(typeof sfxVol==='function'?sfxVol():VOL.sfx);vol9.connect(iAC.destination); /* le curseur EFFETS, après le compresseur */
     if(!geste&&iAC.state!=='running'){ /* le film part SANS toucher et le navigateur refuse le son : il passe muet ; la casse, elle, sonnera au toucher (le contexte attend, déjà construit) */
       filmMuet=true;VOL9=vol9;SON=construitSon(iAC,0,vol9);latV=0;return;}
@@ -662,7 +662,7 @@
   function tapBoule(){ /* l'appui, une fois que c'est prêt : la boule explose en CASH CAR, le jeu se prépare dessous, puis le voile fond */
     if(!lance||fini||tapT!==null||pretT===null)return;
     tapT=(performance.now()-tLance)/1000-latV;passee=true;
-    try{if(iAC&&iAC.state!=='running')iAC.resume();}catch(e){}
+    try{if(iAC&&iAC.state!=='running')acReveil(iAC);}catch(e){}
     try{if(SON){SON.suite();SON.boum(iAC.currentTime+.02);}}catch(e){}
     try{ouvrir();}catch(e){}
     setTimeout(function(){window.__introCouvre=false;},150);
@@ -671,7 +671,7 @@
   function passer(){
     if(BOULE){tapBoule();return;}
     if(!lance||fini||casse||passee)return;passee=true;
-    try{if(iAC&&iAC.state!=='running')iAC.resume();}catch(e){} /* le toucher libère le son (film muet) : la casse sonne */
+    try{if(iAC&&iAC.state!=='running')acReveil(iAC);}catch(e){} /* le toucher libère le son (film muet) : la casse sonne */
     const t=(performance.now()-tLance)/1000-latV;
     if(!DEMO&&!RM&&t>=TL.slam+.3){programmerCasse(true);casser(t,false);}
     else if(!DEMO&&!RM&&t<TL.noir-.1){passee=false;sauterAuLogo(t);} /* pendant le 1.61 : on saute au noir juste avant le logo */
@@ -771,7 +771,7 @@
      Le jeu endort SON contexte audio quand la page est cachée (voir init.js), pas celui de l'intro : la boule attend le toucher indéfiniment,
      son pad tourne en boucle — sur le site (Chrome Android), il continuait de jouer dans la poche. Caché : le contexte de l'intro s'endort ;
      revenu : il se réveille (le film muet, lui, attend toujours son toucher). */
-  function introVis(){try{if(fini||!iAC||iAC.state==='closed')return;if(document.hidden){if(iAC.state==='running')iAC.suspend();}else if(lance&&!filmMuet&&iAC.state!=='running')iAC.resume();}catch(e){}}
+  function introVis(){try{if(fini||!iAC||iAC.state==='closed')return;if(document.hidden){if(iAC.state==='running')iAC.suspend();}else if(lance&&!filmMuet&&iAC.state!=='running')acReveil(iAC);}catch(e){}}
   document.addEventListener('visibilitychange',introVis);
   sp.addEventListener('pointerdown',pose,true);boulePointeur();
   sp.addEventListener('click',function(){

@@ -265,6 +265,25 @@ function lierMenuFin(H){if(H)for(const m of H)m.visible=true;}
 window.dbgLier=function(){return {ext:!!LIER.X,enCours:LIER.att.length,lances:LIER.n,lies:LIER.lies,cachesMenu:LIER.caches,imagesAttendues:LIER.passes,rates:LIER.rates,demarrage:LIER.dem===2?LIER.msDem+' ms':LIER.dem?'en cours':'—',
   attendus:LIER.hors.concat((renderer.info.programs||[]).filter(function(p){return !LIER.vus.has(p);})).map(function(p){return p.name+'#'+p.id+(p.cacheKey?':'+String(p.cacheKey).slice(0,60).replace(/\s+/g,' '):'');})};}; /* attendus : les programmes liés en attendant (hors de la liaison douce) */
 const ENG_GARDE=new Map();let engChaudI=-1;
+window.dbgChauffe=function(){return {atelier:!!GAR.chaud,divers:CHAUFFE_R.div,moteurs:engChaudI,sur:ENGINE_TIERS.length+1,rendu:!!CHAUFFE_R.fait,apres:CHAUFFE_R.ap,lier:LIER.att.length,programmes:(renderer.info.programs||[]).length,appels:CHAUFFE_R.appels,ms:CHAUFFE_R.ms};}; /* (2026-10-28) où en est la chauffe du menu (banc du JOUER à froid) */
+/* ===== LE DÉPART ATTEND LA CHAUFFE (2026-10-28, boîte noire de l'appli de Léo : un gel de 6,5 s au 1er JOUER après un lancement à froid) =====
+   MESURÉ sur son iPhone 15 (appli par câble, cache Metal froid) : la chauffe du menu (l'atelier, les maps, les moteurs, la scène entière, le départ
+   d'avance) dure ~26 s quand Metal n'a rien en cache, et elle S'ARRÊTE dès que la course part (`engChauffe` ne tourne qu'au menu et à l'écran de fin).
+   Un JOUER tapé avant : les programmes pas encore liés se compilent EN COURSE, d'un bloc (JOUER à 14 s : 1,4 s figée au départ, la piste bâtie au
+   départ ; le reste — canyon, dunes, jade, moteurs — attendait le 1er portail). JOUER à 35 s : rien (pire image 189 ms).
+   Désormais le lâcher de l'atelier et le piqué du ciel vont jusqu'au voile comme avant, puis le VOILE TIENT tant que la chauffe n'est pas finie
+   (tout lié) et que le départ d'avance n'est pas bâti : le menu continue de chauffer dessous, le départ d'avance travaille (10 ms par image), la
+   course part quand tout est prêt — 20 s au plus (MESURÉ à froid : JOUER tapé à 15 s, la chauffe finit vers 27-29 s). Cache chaud ou ordinateur : la chauffe est finie bien avant, rien ne change.
+   `?attente=0` : comme avant. `dbgDepart()` : la dernière attente. */
+const DEPART_ATT={n:0,ms:0,sortie:''};
+function departAttend(G){ /* vrai : cette image, la course ne part pas encore (le voile reste) */
+  if(!G||/[?&]attente=0\b/.test(location.search))return false;
+  const now=performance.now();if(!G.att0)G.att0=now;
+  const chaud=engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait&&lierPret();
+  let pb=true;try{pb=!PREB.on||PREB.fait||!prebDepCible();}catch(e){}
+  if(chaud&&pb||now-G.att0>20000){if(G.attend){DEPART_ATT.n++;DEPART_ATT.ms=Math.round(now-G.att0);DEPART_ATT.sortie=chaud&&pb?'prêt':'20 s';G.attend=false;}return false;}
+  G.attend=true;chauffeGrace();return true;}
+window.dbgDepart=function(){return Object.assign({},DEPART_ATT);};
 function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie encore : le menu tourne, la suivante attend ; l'étape compile en doux */
   if(!lierPret())return;
   LIER.doux=true;try{engChauffe1();}finally{LIER.doux=false;}}
@@ -272,7 +291,7 @@ function engChauffe1(){
   if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
   if(engChaudI<0){chauffeGrace();const k9=CHAUFFE_R.div;CHAUFFE_R.saute=0;const r9=chauffeDivers(k9);if(CHAUFFE_R.saute&&CHAUFFE_R.rejoue!==k9){CHAUFFE_R.rejoue=k9;return;}CHAUFFE_R.div=k9+1;if(!r9)engChaudI=0;return;} /* (LA LIAISON EN ARRIÈRE-PLAN) une étape dont le dessin a sauté des programmes en cours de liaison est rejouée une fois, liée */ // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
   if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){chauffeGrace();CHAUFFE_R.saute=0;chauffeRendu();if(CHAUFFE_R.saute&&!CHAUFFE_R.refait){CHAUFFE_R.refait=1;return;}CHAUFFE_R.fait=true;CHAUFFE_R.tFait=performance.now();return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
-    if(CHAUFFE_R.ap>=0&&!ecranWipe._on&&(PREB.W?PREB.fait:(!PREB.on||!prebDepCible()||performance.now()-CHAUFFE_R.tFait>15000))){chauffeGrace();if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;} // (2026-10-24) les tôles des voitures, une par image, le départ d'avance prêt (voir chauffeApres)
+    if(CHAUFFE_R.ap>=0&&!ecranWipe._on&&!GAR.go&&!CHUTE.go&&(PREB.W?PREB.fait:(!PREB.on||!prebDepCible()||performance.now()-CHAUFFE_R.tFait>15000))){chauffeGrace();if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;} // (2026-10-24) les tôles des voitures, une par image, le départ d'avance prêt (voir chauffeApres) — (2026-10-28) jamais pendant un lâcher ou un piqué (LE DÉPART ATTEND LA CHAUFFE : une tôle de 1,9 s sous le voile retarderait la course)
     return;}
   chauffeGrace();
   try{
