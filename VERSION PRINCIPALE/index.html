@@ -50875,6 +50875,32 @@ const TH30=[null,
  [0x7a8aa0,0x8ad8ff],[0xb81a3a,0xff6a80],[0x16161c,0xff4a14],[0xffc030,0xfff6c0],[0x10a86e,0xb0ffe0],   // 22 lance d'Odin · 23 cœur battant · 24 dragon cosmique · 25 Hélios · 26 alien
  [0xb4bccb,0xbfe8ff],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
 function th30Kit(E,i){const t=TH30[i];return t?Object.assign({},E,{col:t[0],flam:t[1]}):E;}
+
+/* ===== LE LAPIN BLANC (2026-10-28, Léo : « le premier moteur, des oreilles de lapin ou juste un aspect lapin blanc ») =====
+   Le palier 1 reste l'épave rouillée ; le lapin se POSE dessus : deux grandes oreilles plantées dans le dessus du bloc (intérieur rose),
+   une queue-pompon blanche à l'arrière, un museau rose et deux yeux sur la face avant. Tout est mesuré sur la boîte du moteur et ENFONCÉ
+   dans la tôle (rien ne flotte). Le groupe s'appelle 'lapin' (les bancs l'éteignent pour la planche AVANT). */
+function lapin30(g,L){
+  const top=new THREE.Box3().setFromObject(g).max.y,XE=L*.5;      /* le dessus du bloc ; la boîte entière ne sert pas ailleurs (tuyau et cloche dépassent) */
+  const mat=function(col,sh,sp){return new THREE.MeshPhongMaterial({color:col,shininess:sh,specular:sp,side:THREE.DoubleSide,flatShading:true});};
+  const fur=mat(0xf7f4ee,14,0x333333),rose=mat(0xff9fbc,30,0x553344),noir=mat(0x16121a,160,0xffffff),lum=new THREE.MeshBasicMaterial({color:0xffffff});
+  const grp=new THREE.Group();grp.name='lapin';
+  const ell=function(m,x,y,z,rx,ry,rz,ax,az){const e=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),m);e.position.set(x,y,z);e.scale.set(rx,ry,rz);e.rotation.order='ZXY';e.rotation.set(ax||0,0,az||0);grp.add(e);return e;};
+  const eh=.62;
+  [[-1,.16,-.1],[1,-.1,.14]].forEach(function(o){      /* [côté, penché de côté, penché en arrière] : une oreille bien droite, l'autre un peu molle */
+    const zc=o[0]*.14,y0=top-eh*.2;
+    ell(fur,-.04,y0+eh*.86,zc,.085,eh,.17,o[0]*o[1],o[2]);                              /* l'oreille : ellipsoïde haut et large */
+    ell(rose,-.1,y0+eh*.8,zc,.05,eh*.8,.105,o[0]*o[1],o[2]);                             /* l'intérieur rose, un peu en avant */
+  });
+  ell(fur,-.04,top-.04,0,.24,.12,.32);                                                   /* la touffe entre les oreilles */
+  ell(fur,XE+.06,.12,0,.2,.2,.2);                                                        /* la queue-pompon, plantée au bout du bloc (côté échappement) */
+  [-1,1].forEach(function(s){                                                            /* le visage, sur CHAQUE flanc, regard vers l'avant */
+    ell(noir,-.18,.13,s*.33,.07,.085,.045);ell(lum,-.2,.16,s*.355,.02,.025,.012);       /* l'œil + son reflet */
+    ell(rose,-.46,.0,s*.30,.075,.06,.05);                                               /* le museau */
+    ell(fur,-.40,-.1,s*.27,.12,.08,.08);                                                /* la joue */
+  });
+  g.add(grp);
+}
 /* ============ ARTISTE 1 — LES OUTILS DE SCULPTURE (h1_*) : crânes lofts, tubes effilés, plumes posées ============
    h1_loft : un solide balayé le long de X — chaque section [x, cy, demi-largeur z, demi-hauteur y, décalage z, aplat du dessous] ; `pw` > 2 = carré
    h1_tube : un tube EFFILÉ qui suit une courbe (cornes, pattes, tentacules, becs) — rayons [r0,…,rN] le long du chemin, la pointe peut valoir ~0
@@ -52617,6 +52643,7 @@ function mkEngine(i){
      nommé ; à défaut, le feu sort par l'arrière de la pièce. Sans ce filet, la vignette
      retomberait sur une position par défaut et on retrouverait la flamme décrochée. */
   if(!g.userData.echap)g.userData.echap={p:[-(piston?S.L*.5+.12:1.05),0,0],d:[-1,0,0]};
+  if(i===0)lapin30(g,S.L);   /* (2026-10-28, Léo : « le premier moteur, des oreilles de lapin ou un aspect lapin blanc ») */
   return g;
 }
 /* <<<FIN MOTEURS>>> */
@@ -63331,7 +63358,8 @@ function tryLand(dt){
     sideCd=.35;bascOn=false; /* (1/10, soir) la tranche touchée : la bascule est finie */
     // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : une FIGURE de la chaîne (2026-10-15 soir : elle s'additionne aux autres) ----
     bounceN++;runStats.bumps++;secBord(); /* (DÉFIS SECRETS) FANTÔME : la tranche touchée */
-    hap(24);{const nv9=nitroR;nitroGain(nitroBumpDe(bounceN,nitroOn&&pwrNitroT<=0&&!PARK.on),'bump');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.1});}flowAdd(6,'style'); // (LA LOI DU RÉSERVOIR : ,35 puis ×,6 par rebond du même vol, rien au-delà du 4e, rien nitro allumée) LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
+    /* (2026-10-28, Léo : « un système quand tu bounces sur le côté de la route ») LE BUMP SE SENT, et se COMPTE : un coup sec (MOYEN, LOURD si le choc est fort) ; le DOUBLE BUMP le répète, le TRIPLE ajoute un coup de fond — la main compte les rebonds sans regarder */
+    hap(bounceN<=1?[impB>14?45:24]:bounceN===2?[impB>14?45:24,55,24]:[impB>14?45:24,55,24,55,45]);{const nv9=nitroR;nitroGain(nitroBumpDe(bounceN,nitroOn&&pwrNitroT<=0&&!PARK.on),'bump');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.1});}flowAdd(6,'style'); // (LA LOI DU RÉSERVOIR : ,35 puis ×,6 par rebond du même vol, rien au-delà du 4e, rien nitro allumée) LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
     fallT=Math.max(0,fallT-airMax()*.5);fallTR=Math.max(0,fallTR-airMax()*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue (sim + réelle)
     {const bf9=FIGV2.on&&BUMP_FIG_ON,c09=CHA.pts,s09=CHA.sansPop;if(bf9)CHA.sansPop=true; // (2026-10-18, HUD des figures v5) LE BUMP EST UNE FIGURE DU COMBO : son nom s'écrit en haut (plus « BUMP +30 » sur la caisse), il compte au ×
     try{addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
@@ -63451,13 +63479,13 @@ function tryLand(dt){
   if(fallT>.7||chain>0||chainVal>0){ // (2026-09-26) chainVal>0 : le REPORT annoncé au décollage se paie même sur une courte sortie
     // le grade juge tout le vol : pose soyeuse = jackpot, pose écrasée = décote
     let g=1,gTxt='';
-    if(poseRatee){g=.65;gTxt='';} // (v4) de travers ou à contresens : la décote du POSÉ LOURD, et c'est la chute du flow qui parle
-    else if(impact<4.5){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hapV9(15);} // (2026-10-09, Sacha : « plus généreuse ») PARFAIT = douce ET dans l'axe, quelle que soit la durée du vol — `landLoss<.2` l'interdisait au-delà de ~2 s (AIR MONSTRE jamais PARFAIT) ; le remboursement de nitro reste au prorata du vol réacteur coupé
-    else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';hapV9(45);}
+    if(poseRatee){g=.65;gTxt='';hapV9([24,40,24,40,24]);} /* (2026-10-28) POSE RATÉE (de travers, à contresens) : un grésillement, trois coups courts et secs */ // (v4) de travers ou à contresens : la décote du POSÉ LOURD, et c'est la chute du flow qui parle
+    else if(impact<4.5){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hapV9([10,45,24]);} // (2026-10-09, Sacha : « plus généreuse ») PARFAIT = douce ET dans l'axe, quelle que soit la durée du vol — `landLoss<.2` l'interdisait au-delà de ~2 s (AIR MONSTRE jamais PARFAIT) ; le remboursement de nitro reste au prorata du vol réacteur coupé
+    else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';hapV9([60,70,14]);} // (2026-10-28) le choc, puis son écho
     else hapV9(14); // chaque pose se SENT dans la main (la parfaite a son coup sec plus haut, la lourde son choc)
     if(fever>0&&!poseRatee){ // BRAQUAGE : tous les grades montent d'un cran — même la casse pardonne (pas la pose ratée)
-      if(g===1.5){g=2;gTxt='DIVIN !! ';}
-      else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hapV9(15);}
+      if(g===1.5){g=2;gTxt='DIVIN !! ';hapV9([10,40,24,40,40]);} // (2026-10-28) DIVIN : tic, toc, et le coup de fond
+      else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hapV9([10,45,24]);}
       else{g=1;gTxt='';}
     }
     if(g>=1.5){if(SENS&&POSE_F){SCOUP.fp=g>=2?2:1;SCOUP.fh=hitT;hitT=0;}else try{poseParfaiteFx(g>=2);}catch(e){}} // (2026-09-28) coup de zoom + couronne dorée — (2026-10-14, œil · pose) sous SENS, AU CONTACT comme sa vibration : joués par touche9
@@ -75308,11 +75336,6 @@ function loop(now){
     trailLight.position.copy(carGroup.position).addScaledVector(hsF,-9).addScaledVector(hsU,1.1);
     trailLight.intensity=0; // (2026-09-26, audit rendu) son reflet rond sur le bitume derrière la caisse est retiré — la lumière reste en scène à 0 (retirer une lumière recompile tout) // ×1.7→1.5 : le RUBAN garde la vedette, son reflet accompagne sans s'additionner brutalement au reste
     trailLight.color.setRGB(Math.min(1,tcr),Math.min(1,tcg),Math.min(1,tcb));
-    /* ===== LA ROUTE SE SENT (2026-10-28, Léo : les tics du volant « prennent trop sur le gameplay » → « plutôt quand la voiture arrive vite et fort, proprement sur la route ») =====
-       Au sol seulement, le pouce ne sent plus le volant mais le BITUME : un grondement de petits tics LÉGERS qui se resserrent avec la vitesse (un tic /200 ms à 40 %
-       de la vitesse max de la caisse → /80 ms au maximum) ; sous NITRO les tics passent MOYENS. Rien en vol, rien à l'arrêt. L'interrupteur VIBRATIONS des réglages les coupe. */
-    if(TCTL.on&&mode==='drive'&&!paused){const r9=Math.min(1.4,speedKmh/Math.max(60,CARS[level].maxKmh));
-      if(r9>.4){loop._rtT=(loop._rtT||0)-dt;if(loop._rtT<=0){loop._rtT=.2-.12*Math.min(1,(r9-.4)/.8);hap(nitroOn?14:4);}}else loop._rtT=0;}
     // sons continus
     if(AC){
       const spd3=speedKmh;

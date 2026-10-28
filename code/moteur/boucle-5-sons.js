@@ -1,8 +1,3 @@
-    /* ===== LA ROUTE SE SENT (2026-10-28, Léo : les tics du volant « prennent trop sur le gameplay » → « plutôt quand la voiture arrive vite et fort, proprement sur la route ») =====
-       Au sol seulement, le pouce ne sent plus le volant mais le BITUME : un grondement de petits tics LÉGERS qui se resserrent avec la vitesse (un tic /200 ms à 40 %
-       de la vitesse max de la caisse → /80 ms au maximum) ; sous NITRO les tics passent MOYENS. Rien en vol, rien à l'arrêt. L'interrupteur VIBRATIONS des réglages les coupe. */
-    if(TCTL.on&&mode==='drive'&&!paused){const r9=Math.min(1.4,speedKmh/Math.max(60,CARS[level].maxKmh));
-      if(r9>.4){loop._rtT=(loop._rtT||0)-dt;if(loop._rtT<=0){loop._rtT=.2-.12*Math.min(1,(r9-.4)/.8);hap(nitroOn?14:4);}}else loop._rtT=0;}
     // sons continus
     if(AC){
       const spd3=speedKmh;

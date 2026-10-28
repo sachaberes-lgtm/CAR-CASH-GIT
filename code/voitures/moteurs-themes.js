@@ -12,6 +12,32 @@ const TH30=[null,
  [0x7a8aa0,0x8ad8ff],[0xb81a3a,0xff6a80],[0x16161c,0xff4a14],[0xffc030,0xfff6c0],[0x10a86e,0xb0ffe0],   // 22 lance d'Odin · 23 cœur battant · 24 dragon cosmique · 25 Hélios · 26 alien
  [0xb4bccb,0xbfe8ff],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
 function th30Kit(E,i){const t=TH30[i];return t?Object.assign({},E,{col:t[0],flam:t[1]}):E;}
+
+/* ===== LE LAPIN BLANC (2026-10-28, Léo : « le premier moteur, des oreilles de lapin ou juste un aspect lapin blanc ») =====
+   Le palier 1 reste l'épave rouillée ; le lapin se POSE dessus : deux grandes oreilles plantées dans le dessus du bloc (intérieur rose),
+   une queue-pompon blanche à l'arrière, un museau rose et deux yeux sur la face avant. Tout est mesuré sur la boîte du moteur et ENFONCÉ
+   dans la tôle (rien ne flotte). Le groupe s'appelle 'lapin' (les bancs l'éteignent pour la planche AVANT). */
+function lapin30(g,L){
+  const top=new THREE.Box3().setFromObject(g).max.y,XE=L*.5;      /* le dessus du bloc ; la boîte entière ne sert pas ailleurs (tuyau et cloche dépassent) */
+  const mat=function(col,sh,sp){return new THREE.MeshPhongMaterial({color:col,shininess:sh,specular:sp,side:THREE.DoubleSide,flatShading:true});};
+  const fur=mat(0xf7f4ee,14,0x333333),rose=mat(0xff9fbc,30,0x553344),noir=mat(0x16121a,160,0xffffff),lum=new THREE.MeshBasicMaterial({color:0xffffff});
+  const grp=new THREE.Group();grp.name='lapin';
+  const ell=function(m,x,y,z,rx,ry,rz,ax,az){const e=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),m);e.position.set(x,y,z);e.scale.set(rx,ry,rz);e.rotation.order='ZXY';e.rotation.set(ax||0,0,az||0);grp.add(e);return e;};
+  const eh=.62;
+  [[-1,.16,-.1],[1,-.1,.14]].forEach(function(o){      /* [côté, penché de côté, penché en arrière] : une oreille bien droite, l'autre un peu molle */
+    const zc=o[0]*.14,y0=top-eh*.2;
+    ell(fur,-.04,y0+eh*.86,zc,.085,eh,.17,o[0]*o[1],o[2]);                              /* l'oreille : ellipsoïde haut et large */
+    ell(rose,-.1,y0+eh*.8,zc,.05,eh*.8,.105,o[0]*o[1],o[2]);                             /* l'intérieur rose, un peu en avant */
+  });
+  ell(fur,-.04,top-.04,0,.24,.12,.32);                                                   /* la touffe entre les oreilles */
+  ell(fur,XE+.06,.12,0,.2,.2,.2);                                                        /* la queue-pompon, plantée au bout du bloc (côté échappement) */
+  [-1,1].forEach(function(s){                                                            /* le visage, sur CHAQUE flanc, regard vers l'avant */
+    ell(noir,-.18,.13,s*.33,.07,.085,.045);ell(lum,-.2,.16,s*.355,.02,.025,.012);       /* l'œil + son reflet */
+    ell(rose,-.46,.0,s*.30,.075,.06,.05);                                               /* le museau */
+    ell(fur,-.40,-.1,s*.27,.12,.08,.08);                                                /* la joue */
+  });
+  g.add(grp);
+}
 /* ============ ARTISTE 1 — LES OUTILS DE SCULPTURE (h1_*) : crânes lofts, tubes effilés, plumes posées ============
    h1_loft : un solide balayé le long de X — chaque section [x, cy, demi-largeur z, demi-hauteur y, décalage z, aplat du dessous] ; `pw` > 2 = carré
    h1_tube : un tube EFFILÉ qui suit une courbe (cornes, pattes, tentacules, becs) — rayons [r0,…,rN] le long du chemin, la pointe peut valoir ~0
