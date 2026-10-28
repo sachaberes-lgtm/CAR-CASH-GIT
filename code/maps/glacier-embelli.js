@@ -12,7 +12,7 @@
    Paliers : `PAL.B.banqCreteL` (nombre de rangées 1/2/3), `banqCreteN` (facettes par tour), `banqPana` (panaches 0/8/14). `?sans=glacierembelli` = la banquise d'avant (rien de tout ceci).
    Console : `dbgBanq('embelli')` (les comptes), `dbgBanq('embelli',{k:…})`. */
 const BK_EMB=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacierembelli(,|&|$)/.test(location.search);
-try{Object.assign(PAL.B,{banqCreteL:[1,2,3],banqCreteN:[150,230,320],banqPana:[0,14,24]});}catch(e){}
+try{Object.assign(PAL.B,{banqCreteL:[1,2,3],banqCreteN:[150,230,320],banqPana:[0,0,0]});}catch(e){}
 const BK_CRE_LAY=[[8700,1900,.80],[8000,1400,.66],[7300,950,.50]]; /* [rayon (m), hauteur max au-dessus de la caméra (m), part de brume] — du plus loin au plus près */
 const BK_CRE_B=-300; // le pied de l'anneau, sous l'horizon : il fond dans la brume (alpha 0)
 const BK_CRE_VS=['attribute vec4 aK;uniform float uTime,uPl;varying vec3 vW;varying vec4 vK;',

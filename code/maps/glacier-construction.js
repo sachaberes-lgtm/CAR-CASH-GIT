@@ -93,8 +93,8 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
   const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)*100003+bz+dz);if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
   const lat9=i=>{const t=T[i],hl=Math.hypot(t.x,t.z)||1;return [-t.z/hl,t.x/hl];};
   // une grappe ne doit JAMAIS crever la dalle, ni ses bords, ni l'air de la caméra (14 m de chaque côté) : 5 m d'air au moins
-  const libre=L9=>{let cx=0,cz=0,r=0;for(const P of L9){cx+=P.cx;cz+=P.cz;}cx/=L9.length;cz/=L9.length;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-cx,P.cz-cz)+P.r);
-    let ok=true;const W9=ROAD_HALF+14,LAT9=[-W9,-ROAD_HALF,-ROAD_HALF*.5,0,ROAD_HALF*.5,ROAD_HALF,W9];
+  const libre=(L9,Wx)=>{let cx=0,cz=0,r=0;for(const P of L9){cx+=P.cx;cz+=P.cz;}cx/=L9.length;cz/=L9.length;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-cx,P.cz-cz)+P.r);
+    let ok=true;const W9=Wx||ROAD_HALF+14,LAT9=[-W9,-ROAD_HALF,-ROAD_HALF*.5,0,ROAD_HALF*.5,ROAD_HALF,W9];
     if(bkSolD(cx,cz)<r+W9+90)proches(cx,cz,r+W9,function(j){ /* (loin de toute route, rien à vérifier : la distance de la grille suffit, marge 90 m) */if(!ok)return;const p=pts[j],ex=p.x-cx,ez=p.z-cz;if(ex*ex+ez*ez>(r+W9)*(r+W9))return;const l9=lat9(j);
       for(let q=0;q<7;q++){const l=LAT9[q],x=p.x+l9[0]*l,z=p.z+l9[1]*l;if((x-cx)**2+(z-cz)**2>r*r)continue;
         for(const P of L9){if((x-P.cx)**2+(z-P.cz)**2>P.r2)continue;if(bkPrimH(P,x,z)>p.y-THICK-5){ok=false;return;}}}});
@@ -140,6 +140,13 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
       if(libre(L9)){pose(L9,true,false);nM9++;}}}
   BANQ.n.decoNeuf=nM9;
   if(performance.now()>JF.lim)yield;
+  /* ---- 4 ter bis (2026-10-28, Léo : « le principe de la map, c'est de zigzaguer et passer sans cogner les bords… mets juste des pics de glace sur les côtés de la route et laisse la route en verglas ») LES BORDS : deux haies d'aiguilles de glace le long de la dalle, de chaque côté, du départ à l'arrivée (flux à part : rien d'autre ne bouge) ---- */
+  {const rb=mulberry32((seed^0xB07DE5)>>>0),pas=ALLEGE?46:30;let nB=0;
+    for(const sd of [-1,1])for(let s9=90+rb()*pas;s9<L-60;s9+=pas*(.7+rb()*.7)){const i=Math.min(NP-1,Math.round(s9/ds)),l9=lat9(i),p=pts[i];
+      for(let e=0;e<4;e++){const pente=1.9+rb()*1.3,lat0=ROAD_HALF+3+e*7,xa=p.x+l9[0]*sd*(lat0+10),za=p.z+l9[1]*sd*(lat0+10),H=Math.max(14,p.y-bkSolH(xa,za))+22+rb()*70,lat=lat0+H/pente*.45,x=p.x+l9[0]*sd*lat,z=p.z+l9[1]*sd*lat;
+        const L9=bkGrappe(x,z,bkSolH(x,z)-1.5,H,pente,(rb()*2)|0,rb,0);if(libre(L9,ROAD_HALF+2)){pose(L9,true,false);nB++;break;}}}
+    BANQ.n.bords=nB;}
+  if(performance.now()>JF.lim)yield;
   // ---- 4 bis (v4). LA PISTE : LES BECS DE GLACE, puis LES PICS SUR LA PISTE, en figures ----
   BANQ.obst=[];BANQ.kick=[];
   {const fr=mulberry32((seed^0xB0B57AC)>>>0) /* (2026-10-22, DEBUGGING : LA PISTE a SON flux — les multiplicateurs du DÉCOR AU HASARD (pics, séracs, aiguilles, géants, amphithéâtre) changent le NOMBRE de tirages de `fr` des sections 1-4 : MESURÉ, même pistegraine, 16 pics sur la piste avec le décor contre 14 sans (23 contre 15), et les pièces qui les évitent — le décor rebattait les obstacles de la route) */,RH=ROAD_HALF,kRH=RH/61.6,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
@@ -153,7 +160,7 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
        champ 5-7, îlot 2-3) — ~4 × moins de pics ; (« les tremplins doivent être plus beaux, gros et visibles ») un TREMPLIN avant deux figures sur trois,
        et un tremplin seul au milieu d'une longue descente sur deux (voir BK_BEC) */
     let sp=Math.max(560,3*(70+(lvPiste()-1)*100))+fr()*120; /* (2026-10-24, passe perf — Sacha : « tu peux mourir sans voir des obstacles arriver ») la 1re figure à 3 s de croisière du palier au moins (la croisière de la piste, vC9) : à 560 m elle tombait 1,2 à 2 s après le portail en fin de partie, voile compris ; au palier de départ rien ne change (210 m < 560) */
-    while(sp<L-380){const f0=fr(),f=sp<1800?.5+f0*.5:sp>L*.6?f0*.85:f0;gdPic=f<.30||fr()<.3; /* (2026-10-25) la bifurcation, le massif et la fourche (f<.30) gardent leurs pics ; slalom, champ, porte et îlot : 30 % des figures seulement */ /* (2026-10-23, Sacha : « prends des initiatives ») LA COURBE DE DIFFICULTÉ : les 1 800 premiers mètres n'ont que des figures faciles (champ, porte, îlot — on apprend à lire la glace), puis tout arrive ; passé 60 % de la descente le tirage penche vers les grosses figures (bifurcation, massif, fourche, slalom) et les figures se resserrent (voir gap) */
+    while(sp<L-380){const f0=fr(),f=sp<1800?.5+f0*.5:sp>L*.6?f0*.85:f0;gdPic=false; /* (2026-10-28, Léo : « refonte map pics de glace : les obstacles de la route, enlève-les et mets-les sur le côté ») plus AUCUN pic sur la route : la piste reste en verglas, les pics vont sur les bords (LES BORDS, plus haut dans la file) */  /* (2026-10-25) la bifurcation, le massif et la fourche (f<.30) gardent leurs pics ; slalom, champ, porte et îlot : 30 % des figures seulement */ /* (2026-10-23, Sacha : « prends des initiatives ») LA COURBE DE DIFFICULTÉ : les 1 800 premiers mètres n'ont que des figures faciles (champ, porte, îlot — on apprend à lire la glace), puis tout arrive ; passé 60 % de la descente le tirage penche vers les grosses figures (bifurcation, massif, fourche, slalom) et les figures se resserrent (voir gap) */
       if(fr()<.65){const k9=bec(sp,(fr()*2-1)*RH*.45,36+fr()*22),j9=BK_BEC.lg+100+fr()*30;sp=k9!=null&&BK_RETOMBE?Math.max(sp+j9,k9+BK_BEC.retombe):sp+j9;} // un TREMPLIN, le plus souvent juste avant une figure : on peut la survoler — (2026-10-19) elle attend la fin de sa retombée (BK_RETOMBE)
       if(f<.10){ /* (2026-10-23, Sacha : « la route de verglas se sépare en deux routes et on doit choisir un chemin ») LA BIFURCATION : une longue crête (~400 m, jusqu'à 90 m de haut) coupe la
          piste en deux couloirs aux caractères opposés — l'un est LIBRE et finit sur un TREMPLIN (le chemin du plaisir), l'autre est SEMÉ de petits pics (le chemin du risque, pour qui aime

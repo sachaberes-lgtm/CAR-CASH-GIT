@@ -422,7 +422,7 @@ const BK_PIC_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN,vB;varying vec4 vP;','#ifnd
   '  float nv=smoothstep(.70,.90,N.y+(fn3(vW*.018)-.5)*.40)*step(.5,fam)*step(fam,2.5)*smoothstep(.15,.5,hf);',              // la neige des aiguilles et des géants
   '  nv=max(nv,step(1.3,fam)*step(fam,1.5)*smoothstep(.70,.80,hf+(fn3(vW*.08)-.5)*.16));',                                   // (2026-10-17, glacier v4) les pics de la PISTE : une calotte de neige (Sacha : « un peu de neige pour décorer, sur les obstacles »)
   '  float gv=(1.-smoothstep(0.,.14,hf+(fn3(vW*.05)-.5)*.10))*step(fam,2.5);',                                                  // le givre au pied
-  '  vec3 nc=vec3(.82,.88,.97)*(uSky*.55+uGnd*.1+uSunC*(.15+.85*dif));col=mix(col,nc,max(nv,gv*.85));',
+  '  vec3 nc=vec3(.82,.88,.97)*(uSky*.55+uGnd*.1+uSunC*(.15+.85*dif));col=mix(col,nc,gv*.85);',
   '  col+=mix(alb,vec3(1.),.4)*uAlpC*uAlp*smoothstep(.35,1.,hf)*(.25+.75*dif)*.9;',                                           // l'ALPENGLOW : le haut des pics s'embrase
   '  col+=mid*bPhare(vW,N)*1.8+clair*bPhare(vW,N)*ar*.6;col+=uFlash*vec3(.8,.85,1.)*.8;',
   '#ifdef LOIN',
