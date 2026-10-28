@@ -398,4 +398,4 @@ for(const k of Object.keys(I18N)){
 }
 Object.assign(I18N,{'TOUS LES REGLAGES':'ALL SETTINGS'}); Object.assign(I18N,{'AIDE':'HELP','Colle un code de sauvegarde, ou un code secret.':'Paste a save code, or a secret code.'}); // (2026-10-14, UX 8) // (2026-10-14, charte 6) la ligne de la pause qui ouvre l'écran complet
 Object.assign(I18N,{"VOL INVERSÉ":"INVERTED FLIGHT"}); /* (2026-10-27, Léo) l'option VOL INVERSÉ des réglages */
-Object.assign(I18N,{"INCLINAISON":"TILT STEERING"}); /* (2026-10-27, Léo) tourner en penchant le téléphone */
+Object.assign(I18N,{"INCLINAISON":"TILT STEERING","MAIN":"HAND","GAUCHER":"LEFTY","DROITIER":"RIGHTY"}); /* (2026-10-27, Léo) tourner en penchant le téléphone */

@@ -12,6 +12,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   document.body.classList.toggle('tpad',TCTL.pad);
   SANDBOX=BALADE;SAVE.d.sand=false; // ⚠ UN SEUL MODE (2026-09-25, user) : le bac à sable, le parc et le Survivant sont retirés de l'interface — une ancienne sauvegarde ne doit pas en rallumer un en douce
   const $t=function(i){return document.getElementById(i);};
+  /* ===== MODE GAUCHER (2026-10-28, Léo : « une fonction gaucher pour les gauchers en jeu ») ===== le volant passe à DROITE, la NITRO et les flèches à
+     GAUCHE (CSS `body.gaucher`). Le stick garde SA mécanique à l'identique : les x du pouce sont MIROITÉS dans le rectangle du volant (`sL+sR-x`) et le
+     braquage lu est renversé — la place au bord, l'arc du pouce, le drift se retrouvent côté droit, comme une image dans un miroir. */
+  let GAU=!!SAVE.d.gaucher; document.body.classList.toggle('gaucher',GAU);
   const nl=$t('nitroLbl'); if(nl)nl.textContent='NITRO';
   // ⚠ on écrit AUSSI dataset.fr : c'est lui que relit applyLangDOM à chaque bascule de langue —
   // sans ça, changer de langue faisait revenir « molette » sur un écran qui n'en a pas.
@@ -43,7 +47,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      TOUT DE SUITE, sans lâcher (le boost continue) ; un seul par appui. → ET ↓ DE N'IMPORTE OÙ : sur la moitié DROITE de l'écran, hors des
      boutons, un glissé vers la droite ou le bas fait la figure sans passer par NITRO (`GLI.part` : ← ↑ y restent sans effet). */
   const gliDn=function(id,x,y,part){GLI.id=id;GLI.x0=x;GLI.y0=y;GLI.tq=0;GLI.fait=false;GLI.part=!!part;figGVoit(null);},
-    gliDir=function(x,y){const d=figGDir(x-GLI.x0,y-GLI.y0);return d&&(!GLI.part||d==='r'||d==='d')?d:null;},
+    gliDir=function(x,y){const d=figGDir(x-GLI.x0,y-GLI.y0);return d&&(!GLI.part||d===(GAU?'l':'r')||d==='d')?d:null;},
     gliMv=function(id,x,y){if(GLI.id!==id)return;if(!figGlisseOn()||GLI.fait){figGVoit(null);return;}
       const n=performance.now(),dist=Math.hypot(x-GLI.x0,y-GLI.y0),d=gliDir(x,y);if(!GLI.tq&&dist>=12)GLI.tq=n;
       if(d&&GLI.tq&&n-GLI.tq<=GLI.coup&&dist>=GLI.seuil+8){GLI.fait=true;figGVoit(null);GLI.req=d;GLI.reqT=n;GLI.coups=(GLI.coups|0)+1;return;}
@@ -51,7 +55,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     gliUp=function(id,x,y){if(GLI.id!==id)return;GLI.id=null;const d=figGlisseOn()&&!GLI.fait?gliDir(x,y):null;figGVoit(null);
       if(d){GLI.req=d;GLI.reqT=performance.now();}},
     gliCoupe=function(){GLI.id=null;figGVoit(null);},
-    gliLibre=function(x,t){return figGlisseOn()&&started&&!gameOver&&!paused&&GLI.id==null&&x>=(VP.w||innerWidth)*.5&&document.body.classList.contains('play')
+    gliLibre=function(x,t){return figGlisseOn()&&started&&!gameOver&&!paused&&GLI.id==null&&(GAU?x<=(VP.w||innerWidth)*.5:x>=(VP.w||innerWidth)*.5)&&document.body.classList.contains('play')
       &&!!t&&!!t.closest&&!t.closest('#tNitro,#tNitroZone,#tSteer,#tGear,#tSet,#tPanel,#tFig,#mob,#overlay,#garage,#modale,button,input,a,[role=button],.pbtn,.tbtn');};
   [$t('tNitro'),$t('tNitroZone')].forEach(function(el){if(!el)return;
     el.addEventListener('touchstart',function(e){const t=e.changedTouches[0];if(t)gliDn('t'+t.identifier,t.clientX,t.clientY);},{passive:true});
@@ -84,8 +88,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      MESURÉ (banc node `sensations/banc/volant-sim.cjs`, le vrai stMove joué par des pouces simulés, 5 prises) : même geste → +18 à +22 % de braquage ;
      drifts involontaires en slalom 29 → 6 et 58 → 41 images sur 420 (prises tendues), 0 ailleurs ; butée tenue 1 s : 38 → 0 ; le drift VOULU part toujours
      (12 à 29 px de tirage à droite, comme avant à gauche). */
-  function stSet(h,v,kx,ky){ TCTL.st=h; TCTL.sv=v; // kx/ky : la place du POUCE en pixels depuis la base
-    if(knb)knb.style.transform='translate('+(kx||0)+'px,'+(ky||0)+'px)'; } // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
+  function stSet(h,v,kx,ky){ if(GAU)h=-h; TCTL.st=h; TCTL.sv=v; // kx/ky : la place du POUCE en pixels depuis la base
+    if(knb)knb.style.transform='translate('+(GAU?-(kx||0):(kx||0))+'px,'+(ky||0)+'px)';
+    if(stk){stk.style.setProperty('--sl',Math.max(0,h).toFixed(3));stk.style.setProperty('--sr',Math.max(0,-h).toFixed(3));} } // (2026-10-28) la glissière remplit son trait du côté où l'on braque // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
   if(sz){
     /* ⚠ TROIS GESTES NOMMÉS, DEUX ENTRÉES (2026-09-24) : le doigt ET la souris passent par les mêmes
        `stDown/stMove/stUp`. Sans le repli souris, le volant était le seul contrôle du téléphone
@@ -96,17 +101,23 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
        (gx) et le demi-axe BAS (gy) se calent sur la place RÉELLE à la naissance (6 px de marge : un pouce ne pointe pas le dernier pixel
        du verre), planchers 24/20 px pour ne pas faire une gâchette. Loin des bords, rien ne change : gx=54, gy=44. Le rectangle du
        volant est lu UNE fois par appui (sL/sT/sB) : aucune lecture de layout forcée pendant le glissé. */
-    let sL=0,sT=0,sB=0,gx=LOCK,gy=LOCKV;
+    let sL=0,sT=0,sB=0,sR=0,gx=LOCK,gy=LOCKV,fx9=0,fy9=0;
+    const dispL=function(vx){ return (GAU?(sR-sL)-(vx-sL):vx-sL)+'px'; }; // la place AFFICHÉE du stick (le calcul vit dans le monde miroir)
     const stDown=function(id,x,y){
       if(boomSkip())return; // (2026-09-25) un tap passe l'explosion
-      const r=sz.getBoundingClientRect(); sL=r.left; sT=r.top; sB=r.bottom;
+      const r=sz.getBoundingClientRect(); sL=r.left; sT=r.top; sB=r.bottom; sR=r.right; if(GAU)x=sL+sR-x;
+      fx9=x; fy9=y; /* filtre du pouce : voir stMove */
       gx=Math.max(24,Math.min(LOCK,x-sL-6)); gy=Math.max(20,Math.min(LOCKV,sB-y-6));
       TCTL.id=id; TCTL.ox=x; TCTL.oy=y; TCTL.x0=TCTL.lx=x; TCTL.ly=y; TCTL.ab=TCTL.tr=0; TCTL.ar=-1; TCTL.act=true; TCTL.doigt=true; TCTL.dy=0; TCTL.dyS=0; // (le pouce en pixels repart de zéro : un appui immobile ne rejoue pas le dernier glissé)
-      stk.style.left=(x-sL)+'px'; stk.style.top=(y-sT)+'px';
+      stk.style.left=dispL(x); stk.style.top=(y-sT)+'px';
       stSet(0,0); sz.classList.add('act'); sz.classList.add('used'); // la consigne « GLISSE POUR TOURNER » a fait son travail
       start();
     };
     const stMove=function(x,y){
+      if(GAU)x=sL+sR-x;
+      /* (2026-10-28, Léo : « pas très smooth ») LE POUCE FILTRÉ : le capteur tactile tremble de ±1-2 px, soit 2 à 4 % de braquage avec une course de 46 px —
+         c'est ce grain qu'on sentait. Un petit passe-bas (×.55) sur les micro-mouvements (< 4 px par image) ; un vrai glissé, lui, passe tel quel, sans retard. */
+      {const ddx=x-fx9,ddy=y-fy9; fx9+=ddx*(Math.abs(ddx)<4?.55:1); fy9+=ddy*(Math.abs(ddy)<4?.55:1); x=fx9; y=fy9;}
       const ox0=TCTL.ox,oy0=TCTL.oy,rawX=x-ox0,dxm=x-TCTL.lx,dym=y-TCTL.ly; TCTL.lx=x; TCTL.ly=y;
       if(rawX>LOCK){TCTL.ox=x-LOCK;gx=Math.max(gx,Math.min(LOCK,TCTL.ox-sL-6));} // STICK FLOTTANT sur les DEUX axes : la base suit le doigt (en s'écartant du bord, le demi-axe gauche regagne sa place — jamais il ne rétrécit en cours d'appui)
       if(rawX<-gx)TCTL.ox=x+gx;       // au-delà de la butée, donc revenir au centre rend la main
@@ -131,7 +142,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       const pxr=x-TCTL.ox,cr=pxr>0&&TCTL.tr>0?TCTL.ab/TCTL.tr*Math.max(0,TCTL.ox-TCTL.x0)*Math.min(1,pxr/LOCK):0,rawY=y-TCTL.oy-cr;
       if(rawY>gy)TCTL.oy=y-cr-gy;        // IMMÉDIATEMENT (jamais collé au plein braquage)
       if(rawY<-LOCKU){TCTL.oy=y-cr+LOCKU;gy=Math.max(gy,Math.min(LOCKV,sB-TCTL.oy-6));} // (2026-10-14) vers le HAUT le socle flotte dès 38 px (LOCKU)
-      if(TCTL.ox!==ox0||TCTL.oy!==oy0){stk.style.left=(TCTL.ox-sL)+'px';stk.style.top=(TCTL.oy-sT)+'px';} // (2026-09-30) l'ANNEAU suit la base flottante (il restait planté où le pouce s'était posé) — écrit seulement quand la base bouge
+      if(TCTL.ox!==ox0||TCTL.oy!==oy0){stk.style.left=dispL(TCTL.ox);stk.style.top=(TCTL.oy-sT)+'px';} // (2026-09-30) l'ANNEAU suit la base flottante (il restait planté où le pouce s'était posé) — écrit seulement quand la base bouge
       const px=Math.max(-gx,Math.min(LOCK,pxr)),py=Math.max(-LOCKU,Math.min(gy,y-TCTL.oy-cr)),
             nx=px<0?px/gx:px/LOCK,ny=py<0?py/LOCKU:py/gy,
             ax=Math.abs(nx)<.06?0:nx, // zone morte : le pouce tremble, pas la caisse
@@ -218,11 +229,11 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       const n9=performance.now(); let r=null;
       for(let i=0;i<stDoigts.length;i++){ const d=stDoigts[i];
         if(d.id===TCTL.id||!stLibre(d.tg)||!(n9-(stNe[d.id]||0)<450))continue;
-        const dx=d.x-TCTL.lx,dy=d.y-TCTL.ly; if(dx*dx+dy*dy>8100)continue;
+        const dvx=GAU?sL+sR-d.x:d.x,dx=dvx-TCTL.lx,dy=d.y-TCTL.ly; if(dx*dx+dy*dy>8100)continue;
         if(!r)r=sz.getBoundingClientRect();
         if(d.x<r.left||d.x>r.right||d.y<r.top||d.y>r.bottom)continue;
-        TCTL.ox+=dx;TCTL.oy+=dy;TCTL.x0+=dx;TCTL.lx=d.x;TCTL.ly=d.y;TCTL.id=d.id;
-        stk.style.left=(TCTL.ox-sL)+'px';stk.style.top=(TCTL.oy-sT)+'px';
+        TCTL.ox+=dx;TCTL.oy+=dy;TCTL.x0+=dx;TCTL.lx=dvx;TCTL.ly=d.y;TCTL.id=d.id;fx9=dvx;fy9=d.y;
+        stk.style.left=dispL(TCTL.ox);stk.style.top=(TCTL.oy-sT)+'px';
         const k=stIntrus.indexOf(d.id); if(k>=0)stIntrus.splice(k,1);
         TCTL.nHer=(TCTL.nHer||0)+1; stStat(); return true; }
       return false; };
@@ -405,6 +416,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(!on&&inclAttache){ removeEventListener('deviceorientation',inclOri); inclAttache=false; } }
   /* LES TROIS COMMANDES (2026-10-27, Léo : « des options de joystick différentes : les flèches, le slide (actuel), et l'inclinaison ») :
      VOLANT (le stick qui naît sous le pouce) → FLÈCHES (deux boutons, comme le clavier) → INCLINAISON (le téléphone penché). Mémorisé (`SAVE.d.cmd`). */
+  function gauSet(on){ if(TCTL.act){TCTL.act=false;TCTL.id=null;TCTL.st=0;TCTL.sv=0;if(sz)sz.classList.remove('act');} GAU=!!on; SAVE.d.gaucher=GAU?1:0; SAVE.flush(); document.body.classList.toggle('gaucher',GAU); } // (2026-10-28) le MODE GAUCHER
   function cmdMode(){ return TCTL.pad?'fleches':TCTL.incl?'incl':'volant'; }
   function cmdSet(m,calme){ TCTL.pad=(m==='fleches'); TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;
     if(sz)sz.classList.remove('act'); keys.ArrowLeft=keys.ArrowRight=keys.ArrowUp=keys.ArrowDown=false; document.body.classList.toggle('tpad',TCTL.pad);
@@ -715,6 +727,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       sv('mvVib',SND.vib?'ON':'OFF',SND.vib);
       sv('mvVolH',TR(volSens()<0?'MONTE':'PLONGE'),true);
       sv('mvVolInv',volInv()<0?'ON':'OFF',volInv()<0);
+      sv('mvGau',TR(GAU?'GAUCHER':'DROITIER'),true);
       sv('mvIncl',TR(cmdMode()==='incl'?'INCLINAISON':cmdMode()==='fleches'?'FLECHES':'VOLANT'),true);
       sv('mvFigG',TR(figGlisseOn()?'GLISSER':'2 TAPS'),true); // (2026-10-15) LA FIGURE AU GLISSÉ
       sv('mvCtl',TR(TCTL.pad?'FLECHES':'VOLANT'),true);
@@ -791,6 +804,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     else if(a==='lang'){ langNext(); applyLangDOM(); mFill(); try{const v9=document.getElementById('mvVer');if(v9)v9.textContent=TR('VERSION')+' '+CC_VER.replace(/^LOCALE/,TR('LOCALE'));}catch(e9){} }
     else if(a==='volh'){ volhBascule(); mFill(); }
     else if(a==='volinv'){ volInvBascule(); mFill(); }
+    else if(a==='gau'){ gauSet(!GAU); mFill(); }
     else if(a==='incl'){ cmdSet(cmdMode()==='volant'?'fleches':cmdMode()==='fleches'?'incl':'volant'); mFill(); }
     else if(a==='figg'){ figGBascule(); mFill(); } // (2026-10-15) FIGURES : 2 TAPS ⇄ GLISSER
     else if(a==='ctl'){ TCTL.pad=!TCTL.pad; TCTL.act=false; TCTL.id=null; TCTL.st=0; TCTL.sv=0;

@@ -216,7 +216,7 @@ function loop(now){
       :TCTL.incl&&TCTL.play?THREE.MathUtils.clamp(TCTL.inclV+(lf?1:0)-(rt?1:0),-1,1) // (2026-10-27) INCLINAISON : le téléphone penché fait le volant, le pouce n'a plus à tenir le rond
       :TCTL.act?TCTL.st:(lf?1:0)-(rt?1:0); // VOLANT TACTILE : le pouce prend la main sur le tout-ou-rien (même lissage derrière)
     if(lf||rt)TCTL.doigt=false; // (2026-10-14, sensations) une flèche du clavier reprend la main : son lissage à elle (le dernier qui a tenu le volant décide)
-    steer+=(target-steer)*(1-Math.exp(-dt*(TCTL.doigt?VOL_LIS_D:VOL_LIS))); /* (2026-10-14) τ 30 ms au pouce, 47 ms au clavier (voir VOL_LIS_D) · (2026-10-09) exponentielle EXACTE : à 60 i/s c'est l'ancien ×0,3 au millième ; à 30 i/s (l'iPhone bridé) le volant braquait plus sec que sur PC (τ 36 ms au lieu de 47) */
+    steer+=(target-steer)*(1-Math.exp(-dt*(TCTL.doigt&&!TCTL.incl?VOL_LIS_D*(.5+.5*Math.min(1,Math.abs(target-steer)/.4)):TCTL.doigt?VOL_LIS_D:VOL_LIS))); /* (2026-10-28, Léo : « pas très smooth ») AU POUCE le lissage est ADAPTATIF : un petit écart se referme doucement (τ 60 ms : pas de grain, la ligne tient), un grand écart (coup de pouce, contre-braquage) garde les 30 ms du 14/10 — la vivacité d'un slide reste, le tremblement du verre s'efface */ /* (2026-10-14) τ 30 ms au pouce, 47 ms au clavier (voir VOL_LIS_D) · (2026-10-09) exponentielle EXACTE : à 60 i/s c'est l'ancien ×0,3 au millième ; à 30 i/s (l'iPhone bridé) le volant braquait plus sec que sur PC (τ 36 ms au lieu de 47) */
     graceT=Math.max(0,graceT-dt);
     if(CHANCE.inv>0)chanceTick(dt); // (2026-10-14) le bouclier de la SECONDE CHANCE
     sideCd=Math.max(0,sideCd-dt);
