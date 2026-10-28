@@ -1972,7 +1972,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
     window.dbgErreurs=function(vider){lit();if(vider){L=[];ecrit();}return L.slice();};
     /* LES GELS : une image de plus d'une seconde, onglet visible, hors retour d'arrière-plan (le rAF s'y arrête : ce n'est pas un gel) */
     var der=0,cache=0;document.addEventListener('visibilitychange',function(){cache=performance.now();});
-    var rf=function(t){if(der&&document.visibilityState==='visible'&&t-der>1000&&t-cache>1500&&window.__gameReady)
+    var rf=function(t){if(der&&document.visibilityState==='visible'&&t-der>1000&&t-der<20000&&t-cache>1500&&window.__gameReady) /* (2026-10-28) plus de 20 s = l'appli était endormie (écran verrouillé : WKWebView ne dit pas toujours « caché »), pas un gel — la boîte noire de Léo notait 123 à 830 s */
       window.__ccNote('gel',(Math.round((t-der)/100)/10)+' s',document.body&&document.body.className.slice(0,80));der=t;requestAnimationFrame(rf);};
     requestAnimationFrame(rf);
     var montre=function(){
