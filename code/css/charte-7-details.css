@@ -245,12 +245,6 @@ img{-webkit-user-drag:none}
 /* les flèches du garage : 38 px dessinées, 54 × 70 touchables */
 #garage .gNav::after{content:'';position:absolute;inset:-6px -8px}
 /* les flèches du mode PAD : au-dessus de la barre d'accueil, hors de l'encoche en paysage */
-html body #tLeft,html body #tRight{bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px)}
-html body #tLeft{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 16px)}
-html body #tRight{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + min(84px,21vh) + 30px)}
-html body #tUp,html body #tDown{left:calc(var(--ccL,env(safe-area-inset-left,0px)) + min(84px,21vh)*2 + 48px)}
-html body #tDown{bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px)}
-html body #tUp{bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px + min(64px,16vh) + 10px)}
 /* la saisie du RECORD, couché : dans la case de l'objectif (elle ouvrait une 6e rangée et l'écran débordait) */
 @media (orientation:landscape) and (max-height:540px){html #mDead #nameEntry{grid-area:obj;align-self:start;z-index:2;background:var(--k0)}}
 /* le CONTRASTE des petits textes (8-10 px) : le lavande éteint gagne un cran (≈ 4,7:1 sur les fonds d'écran), les titres de section de la
@@ -461,14 +455,30 @@ html body #tStick .skU::before,html body #tStick .skD::before{content:'';display
 html body #tStick .skU::before{border-top:0;border-bottom-color:currentColor}
 html body #tStick .skD{display:flex;flex-direction:column-reverse}
 html body #tStick .skD::before{border-bottom:0;border-top-color:currentColor;margin:4px auto 0}
-html body #tStick .skU:empty{opacity:0}
+html body #tStick .skU:empty,html body #tStick .skD:empty{opacity:0}
+html body.diagPad #tLeft,html body.diagPad #tRight,html body.diagPad #tUp,html body.diagPad #tDown{border-color:rgba(255,215,94,.8);box-shadow:0 0 14px rgba(255,215,94,.4)}
 
 /* ===== MODE GAUCHER (2026-10-28) ===== le volant à droite, la NITRO et les flèches à gauche (la mécanique est miroitée dans mobile-tactile.js) */
 html body.touch.gaucher #tSteer{left:auto!important;right:0!important}
 html body.touch.gaucher #tNitro{right:auto!important;left:calc(var(--hudD,16px) + 8px)!important}
 html body.touch.gaucher #tNitroZone{right:auto!important;left:0!important}
 html body.touch.gaucher #tSteerHint{left:auto!important;right:var(--hudG,24px)!important}
-html body.gaucher #tRight{left:auto;right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 16px)}
-html body.gaucher #tLeft{left:auto;right:calc(var(--ccR,env(safe-area-inset-right,0px)) + min(84px,21vh) + 30px)}
-html body.gaucher #tUp,html body.gaucher #tDown{left:auto;right:calc(var(--ccR,env(safe-area-inset-right,0px)) + min(84px,21vh)*2 + 48px)}
+/* ===== LES FLÈCHES EN CROIX (2026-10-28, Léo : « haut et bas au milieu, pas sur le côté ») =====
+   Une vraie CROIX : ▲ au-dessus, ▼ en dessous, ◀ ▶ de part et d'autre d'une case centrale vide. Les quatre touches ne sont plus que l'affichage : le doigt
+   est lu par UNE surface (#tPad) qui sait 8 directions — on GLISSE de ◀ à ▲ en passant par la diagonale, sans lever le pouce (voir mobile-tactile.js). */
+html body{--pu:min(60px,15vh);--pg:5px;--px0:calc(var(--ccL,env(safe-area-inset-left,0px)) + 14px);--py0:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 14px)}
+html body #tLeft,html body #tRight,html body #tUp,html body #tDown{width:var(--pu);height:var(--pu);pointer-events:none;font-size:22px}
+html body #tDown{left:calc(var(--px0) + var(--pu) + var(--pg));bottom:var(--py0)}
+html body #tLeft{left:var(--px0);bottom:calc(var(--py0) + var(--pu) + var(--pg))}
+html body #tRight{left:calc(var(--px0) + 2*var(--pu) + 2*var(--pg));bottom:calc(var(--py0) + var(--pu) + var(--pg))}
+html body #tUp{left:calc(var(--px0) + var(--pu) + var(--pg));bottom:calc(var(--py0) + 2*var(--pu) + 2*var(--pg))}
+html body #tPad{display:none;position:absolute;left:calc(var(--px0) - 10px);bottom:calc(var(--py0) - 10px);width:calc(3*var(--pu) + 2*var(--pg) + 20px);height:calc(3*var(--pu) + 2*var(--pg) + 20px);touch-action:none;z-index:6}
+html body.tpad #tPad{display:block}
+html body.gaucher{--px0:calc(var(--ccR,env(safe-area-inset-right,0px)) + 14px)}
+html body.gaucher #tDown,html body.gaucher #tLeft,html body.gaucher #tRight,html body.gaucher #tUp,html body.gaucher #tPad{left:auto}
+html body.gaucher #tDown{right:calc(var(--px0) + var(--pu) + var(--pg))}
+html body.gaucher #tLeft{right:calc(var(--px0) + 2*var(--pu) + 2*var(--pg))}
+html body.gaucher #tRight{right:var(--px0)}
+html body.gaucher #tUp{right:calc(var(--px0) + var(--pu) + var(--pg))}
+html body.gaucher #tPad{right:calc(var(--px0) - 10px)}
 </style>

@@ -33,9 +33,23 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     el.addEventListener('touchcancel',up,{passive:false});
     let ms9=false; el.addEventListener('mousedown',function(e){ms9=true;dn(e);}); addEventListener('mouseup',function(e){if(ms9){ms9=false;up(e);}}); // repli souris (test au clic, ?touch=1) — (2026-10-09) le relâcher ne lâche QUE le bouton pris à la souris : chaque fin de glissé du volant coupait la NITRO tenue à ESPACE (seuil de rallumage, impulsion de vol rebrûlée)
   }
-  bindHold($t('tLeft'),'ArrowLeft',start);
-  bindHold($t('tRight'),'ArrowRight',start);
-  bindHold($t('tUp'),'ArrowUp',start); bindHold($t('tDown'),'ArrowDown',start); // (2026-10-27) FLÈCHES : l'assiette en vol, et le drift (bas) comme au clavier
+  /* (2026-10-28, Léo : « les flèches sont mal disposées, haut et bas au milieu ») LE PAVÉ EN CROIX, 8 DIRECTIONS. Une seule surface (#tPad) lit le doigt : sa place dans la croix donne
+     la direction (une case morte au centre, huit secteurs de 45° — la diagonale est un vrai secteur, pas un hasard de deux appuis), et le doigt qui GLISSE change de direction sans
+     se lever (◀ → ◀▲ → ▲). Elle écrit dans le MÊME objet `keys` que le clavier : aucune physique à elle. Les quatre touches ne sont que l'affichage (elles s'enfoncent et virent à l'or). */
+  /* (2026-10-28) LES FLÈCHES : une direction + haut/bas tenues ensemble = une diagonale, et les quatre touches virent à l'OR. */
+  const diagPad=function(){ const d9=!!((keys.ArrowLeft||keys.ArrowRight)&&(keys.ArrowUp||keys.ArrowDown)); if(d9!==diagPad._on){diagPad._on=d9;document.body.classList.toggle('diagPad',d9);} };
+  const pad=$t('tPad'),PADK=[['ArrowLeft','tLeft'],['ArrowRight','tRight'],['ArrowUp','tUp'],['ArrowDown','tDown']]; let padId=null;
+  const padSet=function(l,r,u,d){ const v=[l,r,u,d]; for(let i=0;i<4;i++){const k=PADK[i][0],on=!!v[i]; if(!!keys[k]!==on){keys[k]=on;const b=$t(PADK[i][1]);if(b)b.classList.toggle('on',on);}} diagPad(); };
+  const padLit=function(x,y){ const r=pad.getBoundingClientRect(),dx=x-(r.left+r.width/2),dy=y-(r.top+r.height/2),ax=Math.abs(dx),ay=Math.abs(dy),mort=r.width*.1; // case centrale : 10 % de la largeur
+    if(ax<mort&&ay<mort){padSet(0,0,0,0);return;}
+    const h=ax>ay*.414,v=ay>ax*.414; padSet(h&&dx<0,h&&dx>0,v&&dy<0,v&&dy>0); };
+  if(pad){
+    pad.addEventListener('touchstart',function(e){ if(e.cancelable)e.preventDefault(); e.stopPropagation(); if(padId!==null)return; const t=e.changedTouches[0]; padId=t.identifier; padLit(t.clientX,t.clientY); start(); },{passive:false});
+    pad.addEventListener('touchmove',function(e){ if(e.cancelable)e.preventDefault(); for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];if(t.identifier===padId)padLit(t.clientX,t.clientY);} },{passive:false});
+    const padFin=function(e){ for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===padId){padId=null;padSet(0,0,0,0);} };
+    pad.addEventListener('touchend',padFin,{passive:true}); pad.addEventListener('touchcancel',padFin,{passive:true});
+    let msP=false; pad.addEventListener('mousedown',function(e){msP=true;padLit(e.clientX,e.clientY);start();}); addEventListener('mousemove',function(e){if(msP)padLit(e.clientX,e.clientY);}); addEventListener('mouseup',function(){if(msP){msP=false;padSet(0,0,0,0);}});
+    addEventListener('blur',function(){padId=null;msP=false;padSet(0,0,0,0);}); } // (2026-10-27) FLÈCHES : l'assiette en vol, et le drift (bas) comme au clavier
   const nitroDown=function(){ if(!figGlisseOn())veqDoigt(true); if(boomSkip())return; start(); // (2026-10-15) en FIGURES › GLISSER, taper NITRO = booster, rien d'autre // (2026-10-14) l'appui compte pour le TONNEAU (double-tap) // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
     if(started&&!gameOver){ const n9=performance.now();
       lastSpaceT=n9; } }; // (double-tap « DÉCOLLAGE » retiré)
@@ -56,7 +70,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(d){GLI.req=d;GLI.reqT=performance.now();}},
     gliCoupe=function(){GLI.id=null;figGVoit(null);},
     gliLibre=function(x,t){return figGlisseOn()&&started&&!gameOver&&!paused&&GLI.id==null&&(GAU?x<=(VP.w||innerWidth)*.5:x>=(VP.w||innerWidth)*.5)&&document.body.classList.contains('play')
-      &&!!t&&!!t.closest&&!t.closest('#tNitro,#tNitroZone,#tSteer,#tGear,#tSet,#tPanel,#tFig,#mob,#overlay,#garage,#modale,button,input,a,[role=button],.pbtn,.tbtn');};
+      &&!!t&&!!t.closest&&!t.closest('#tNitro,#tNitroZone,#tPad,#tSteer,#tGear,#tSet,#tPanel,#tFig,#mob,#overlay,#garage,#modale,button,input,a,[role=button],.pbtn,.tbtn');};
   [$t('tNitro'),$t('tNitroZone')].forEach(function(el){if(!el)return;
     el.addEventListener('touchstart',function(e){const t=e.changedTouches[0];if(t)gliDn('t'+t.identifier,t.clientX,t.clientY);},{passive:true});
     el.addEventListener('touchmove',function(e){for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];gliMv('t'+t.identifier,t.clientX,t.clientY);}},{passive:true});
@@ -94,7 +108,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   let skU=null,skD=null,skK='';
   if(stk){skU=document.createElement('div');skU.className='skU';skD=document.createElement('div');skD.className='skD';stk.appendChild(skU);stk.appendChild(skD);}
   function skMaj(){ if(!skU)return; const vol=(mode==='fall'),sg=volSens()*volInv(),k=(vol?1:0)+'|'+sg; if(k===skK)return; skK=k;
-    skU.textContent=vol?TR(sg<0?'MONTE':'PLONGE'):''; skD.textContent=vol?TR(sg<0?'PLONGE':'MONTE'):TR('DRIFT'); }
+    skU.textContent=vol?TR(sg<0?'MONTE':'PLONGE'):''; skD.textContent=vol?TR(sg<0?'PLONGE':'MONTE'):''; }
   function stSet(h,v,kx,ky){ skMaj(); if(GAU)h=-h; TCTL.st=h; TCTL.sv=v; // kx/ky : la place du POUCE en pixels depuis la base
     if(knb)knb.style.transform='translate('+(GAU?-(kx||0):(kx||0))+'px,'+(ky||0)+'px)';
     if(stk){stk.style.setProperty('--sl',Math.max(0,h).toFixed(3));stk.style.setProperty('--sr',Math.max(0,-h).toFixed(3));stk.style.setProperty('--su',Math.max(0,v).toFixed(3));stk.style.setProperty('--sd',Math.max(0,-v).toFixed(3));} } // (2026-10-28) la glissière remplit son trait du côté où l'on braque // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
