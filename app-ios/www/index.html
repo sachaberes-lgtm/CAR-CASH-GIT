@@ -60896,7 +60896,11 @@ const EMI={};
 PAL.B.emiK=[.6,.8,1];
 function emiN(k,dt){const K=PAL.b('emiK',1);if(K>=1){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;}
   const a=(EMI[k]||0)+Math.min(dt,.067)*60*K,n=Math.max(0,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;} // le reste reporté (−0,5 au plus) : 60 par seconde pile à 30, 40 ou 50 i/s ; au-dessus de 60, une émission par image comme avant
+/* (2026-10-28, Léo : « il y a toujours quelques traits moins droits et exacts que ceux autour, trouve-les ») LES ANCIENS TRAITS D'AIR s'effacent : ces points posés dans le monde
+   filent en perspective vers un point de fuite un peu différent de celui des filets de l'écran (shader final) — d'où les quelques traits de travers parmi les droits. Les filets les remplacent ; `?traits=0` rend les deux. */
+const TRAITS_NEUFS=!/[?&]traits=0\b/.test(location.search);
 function nfxVent(dt,dir,kmh){ // `dir` : le sens de la course (cap au sol, vitesse en vol) — sème autour de la caméra, devant elle
+  if(TRAITS_NEUFS)return;
   const v9=Math.max(20,kmh/3.6);NFX.vAcc+=dt*(nitroBlue?52:40)*(1+NFX.ign*NFX.ignK*1.5);
   NFX.cR.setFromMatrixColumn(camera.matrixWorld,0);NFX.cU.setFromMatrixColumn(camera.matrixWorld,1);
   while(NFX.vAcc>=1){NFX.vAcc-=1;
