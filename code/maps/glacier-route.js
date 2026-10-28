@@ -370,7 +370,7 @@ const BK_SOL_FS=[FG_BRUIT,BK_LUM,'varying vec3 vW,vN;varying vec2 vS;','#include
   '  vec3 Np=normalize(N-vec3(gr.x,0.,gr.y));',
   '  float n1=fn2(q*.019),n2=fn2(q*.083),sl=1.-N.y,roc=smoothstep('+(BK_RECALE?'.52,.68':'.40,.56')+',sl+(n1-.5)*.22);', // (2026-10-20) la roche au-delà de ~55° : 45°, c'est la pente même de la montagne
   '  vec3 neige=mix(vec3(.76,.82,.93),vec3(.66,.74,.90),smoothstep(.45,.75,fn2(q*.012)));',                  // la neige soufflée, plus tassée, plus bleue
-  '  vec3 pierre=vec3(.065,.075,.12)*(.65+.7*n2);pierre=mix(pierre,neige*.9,smoothstep(.58,.80,fn2(q*vec2(.05,.21)+n1*2.))*.75);',
+  '  vec3 pierre=vec3(.30,.40,.56)*(.80+.40*n2);pierre=mix(pierre,neige*.9,smoothstep(.58,.80,fn2(q*vec2(.05,.21)+n1*2.))*.75);',
   '  vec3 alb=mix(neige,pierre,roc);',
   '  float cv=0.;{float b=abs(fract(q.y/170.+fn2(q*.0035)*1.8+fn2(q*.011)*.25)-.5),w=.010+.012*fn2(q*.021);',  // les CREVASSES (Steep) : des fentes bleues en travers de la pente (z = la ligne de pente), par plaques, jamais sur la roche ni les pentes raides
   '   cv=(1.-smoothstep(w*.35,w,b))*smoothstep(.52,.70,fn2(q*.0042+3.7))*(1.-roc)*(1.-smoothstep(.30,.45,sl));}',
@@ -512,7 +512,7 @@ function banqMats(){if(BANQ.mats)return BANQ.mats;const U=BK_U,F=THREE.UniformsL
 /* LA FILE DES TRANCHES (2026-10-14, soir — PILOTAGE : « descends la construction sous ~50 ms ») : buildBanq ne bâtit tout de suite que la
    PHYSIQUE (la grille de neige, les cristaux) et le décor à moins de BK_TOUT m du départ ; le reste (morceaux de neige, pics,
    géants) part dans `BANQ.file`, trié du plus proche au plus loin, et banqTick en bâtit ~3 ms par image (8 en pause). */
-const BK_TOUT=600;
+const BK_TOUT=ALLEGE?900:1700; /* (2026-10-28, Léo : « bug d'apparition d'iceberg devant le portail ») le décor bâti avant le départ : à 600 m les pics surgissaient devant la caisse */
 function bkTache(x,z,f){const p0=pts[0];BANQ.file.push({d:Math.hypot(x-p0.x,z-p0.z),f:f});}
 function bkTranches(ms,dMax){const F=BANQ.file;if(!F)return 0;const t0=performance.now();let n=0;
   while(BANQ.fi<F.length){const j=F[BANQ.fi];if(dMax!=null&&j.d>=dMax)break;BANQ.fi++;try{j.f();}catch(e){window.__banqErr=e;}n++;if(performance.now()-t0>ms)break;}

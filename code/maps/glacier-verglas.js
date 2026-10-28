@@ -235,7 +235,7 @@ function banqTick(dt){
   if(!on){banqFxCache();return;}
   const fx=banqFx(),U=BK_U,c=BANQ.cur||(banqMeteo(BANQ.met,.01),BANQ.cur);fx.on=true;
   const vit=!paused;banqPas(dt);if(vit)U.uTime.value+=dt;
-  if(BANQ.file.length)bkTranches(paused||!started?8:3); // LA SUITE DE LA CONSTRUCTION : ~3 ms par image, du plus proche au plus loin
+  if(BANQ.file.length)bkTranches(paused||!started?8:(ALLEGE?3:6)); // LA SUITE DE LA CONSTRUCTION : ~3 ms par image, du plus proche au plus loin
   // LA LUMIÈRE : l'azimut du soleil du ciel, la hauteur de la météo ; la nuit, la LUNE
   {const a=Math.atan2(SUN_DIR.x,SUN_DIR.z),el=c.el*Math.PI/180;BK_V.set(Math.sin(a)*Math.cos(el),Math.sin(el),Math.cos(a)*Math.cos(el));
    U.uSunDir.value.copy(BK_V).lerp(BK_V2.copy(BK_LUNE).setY(Math.max(.45,BK_LUNE.y)).normalize(),c.lune).normalize();}
