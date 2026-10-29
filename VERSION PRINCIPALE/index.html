@@ -50927,29 +50927,22 @@ const TH30=[null,
  [0xb4bccb,0xbfe8ff],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
 function th30Kit(E,i){const t=TH30[i];return t?Object.assign({},E,{col:t[0],flam:t[1]}):E;}
 
-/* ===== LE LAPIN BLANC (2026-10-28, Léo : « le premier moteur, des oreilles de lapin ou juste un aspect lapin blanc ») =====
-   Le palier 1 reste l'épave rouillée ; le lapin se POSE dessus : deux grandes oreilles plantées dans le dessus du bloc (intérieur rose),
-   une queue-pompon blanche à l'arrière, un museau rose et deux yeux sur la face avant. Tout est mesuré sur la boîte du moteur et ENFONCÉ
-   dans la tôle (rien ne flotte). Le groupe s'appelle 'lapin' (les bancs l'éteignent pour la planche AVANT). */
-function lapin30(g,L){
-  const top=new THREE.Box3().setFromObject(g).max.y,XE=L*.5;      /* le dessus du bloc ; la boîte entière ne sert pas ailleurs (tuyau et cloche dépassent) */
-  const mat=function(col,sh,sp){return new THREE.MeshPhongMaterial({color:col,shininess:sh,specular:sp,side:THREE.DoubleSide,flatShading:true});};
-  const fur=mat(0xf7f4ee,14,0x333333),rose=mat(0xff9fbc,30,0x553344),noir=mat(0x16121a,160,0xffffff),lum=new THREE.MeshBasicMaterial({color:0xffffff});
-  const grp=new THREE.Group();grp.name='lapin';
-  const ell=function(m,x,y,z,rx,ry,rz,ax,az){const e=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),m);e.position.set(x,y,z);e.scale.set(rx,ry,rz);e.rotation.order='ZXY';e.rotation.set(ax||0,0,az||0);grp.add(e);return e;};
-  const eh=.62;
-  [[-1,.16,-.1],[1,-.1,.14]].forEach(function(o){      /* [côté, penché de côté, penché en arrière] : une oreille bien droite, l'autre un peu molle */
-    const zc=o[0]*.14,y0=top-eh*.2;
-    ell(fur,-.04,y0+eh*.86,zc,.085,eh,.17,o[0]*o[1],o[2]);                              /* l'oreille : ellipsoïde haut et large */
-    ell(rose,-.1,y0+eh*.8,zc,.05,eh*.8,.105,o[0]*o[1],o[2]);                             /* l'intérieur rose, un peu en avant */
-  });
-  ell(fur,-.04,top-.04,0,.24,.12,.32);                                                   /* la touffe entre les oreilles */
-  ell(fur,XE+.06,.12,0,.2,.2,.2);                                                        /* la queue-pompon, plantée au bout du bloc (côté échappement) */
-  [-1,1].forEach(function(s){                                                            /* le visage, sur CHAQUE flanc, regard vers l'avant */
-    ell(noir,-.18,.13,s*.33,.07,.085,.045);ell(lum,-.2,.16,s*.355,.02,.025,.012);       /* l'œil + son reflet */
-    ell(rose,-.46,.0,s*.30,.075,.06,.05);                                               /* le museau */
-    ell(fur,-.40,-.1,s*.27,.12,.08,.08);                                                /* la joue */
-  });
+/* ===== L'ESCARGOT DE L'ÉPAVE (29/10, Léo : « fais mieux les yeux, pls kawaii ») — le palier 1 est l'épave telle quelle, avec deux YEUX D'ESCARGOT KAWAII : deux courtes tiges de fonte sur le dessus,
+   chacune finie par un grand œil noir luisant à deux reflets blancs ; sur la cloche d'embrayage, deux joues roses et un petit sourire. Le groupe s'appelle 'escargot' ===== */
+function escargot0(g,L,M){
+  const top=new THREE.Box3().setFromObject(g).max.y,grp=new THREE.Group();grp.name='escargot';const XE=L*.5;
+  const ms=function(m,x,y,z,sx,sy,sz){const e=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),m);e.position.set(x,y,z);e.scale.set(sx,sy==null?sx:sy,sz==null?sx:sz);grp.add(e);return e;};
+  const oeilM=new THREE.MeshPhongMaterial({color:0x0c0a14,shininess:300,specular:0xffffff}),luisM=new THREE.MeshBasicMaterial({color:0xffffff}),joue=new THREE.MeshBasicMaterial({color:0xff8fb0}),bouche=new THREE.MeshBasicMaterial({color:0x2a1218});
+  for(let sd=-1;sd<=1;sd+=2){
+    const tige=new THREE.Mesh(new THREE.CylinderGeometry(.04,.055,.50,8),M.pied);tige.position.set(-XE+.02,top-.02,sd*.17);tige.rotation.set(sd*.28,0,.14);grp.add(tige);   /* tige penchée vers l'extérieur */
+    const ex=-XE-.01,ey=top+.26,ez=sd*.31;
+    ms(M.pied,ex,ey,ez,.17,.17,.17);                                                                                    /* le bulbe de la tige */
+    ms(oeilM,ex-.08,ey+.01,ez+sd*.01,.145,.16,.13);                                                                     /* le grand œil luisant */
+    ms(luisM,ex-.16,ey+.07,ez-sd*.02,.05,.055,.05);ms(luisM,ex-.15,ey-.06,ez+sd*.05,.024,.026,.024);                    /* ses deux reflets */
+    const jj=ms(joue,-XE-.04,-.10,sd*.22,.07,.05,.04);                                                                  /* la joue rose, sur la cloche */
+  }
+  /* le petit sourire, sur la cloche : un arc de huit perles */
+  for(let q=0;q<7;q++){const a=(q/6-.5)*1.5;ms(bouche,-XE-.055,-.17+.05*Math.cos(a*1.1)*0-.045*Math.cos(a)+.045,Math.sin(a)*.10,.017,.017,.017);}
   g.add(grp);
 }
 /* ============ ARTISTE 1 — LES OUTILS DE SCULPTURE (h1_*) : crânes lofts, tubes effilés, plumes posées ============
@@ -52694,7 +52687,7 @@ function mkEngine(i){
      nommé ; à défaut, le feu sort par l'arrière de la pièce. Sans ce filet, la vignette
      retomberait sur une position par défaut et on retrouverait la flamme décrochée. */
   if(!g.userData.echap)g.userData.echap={p:[-(piston?S.L*.5+.12:1.05),0,0],d:[-1,0,0]};
-  if(i===0)lapin30(g,S.L);   /* (2026-10-28, Léo : « le premier moteur, des oreilles de lapin ou un aspect lapin blanc ») */
+  if(i===0)escargot0(g,S.L,{pied:bloc,noir:sombre,feu:feu});   /* (2026-10-29, Léo : « escargot au moteur 1 », yeux kawaii) */
   return g;
 }
 /* <<<FIN MOTEURS>>> */
