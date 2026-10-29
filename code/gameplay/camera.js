@@ -27,13 +27,56 @@ const CAM_ROUTE={
   BAS_MAX:24,            // ° — nez piqué au plus (sommet, route qui se dérobe)
   LISSE:.2,              // s — lissage du pivot : ni à-coup ni retard sensible
   TONNEAU:7,             // 1/s — vitesse du tonneau dessus ↔ dessous (l'essentiel en ~0,3 s : un geste franc, la traversée de la dalle ne dure qu'un éclair)
-  RESSORT:4,             // rad/s — raideur du tonneau (ω0 du ressort amorti : 5 ≈ 1 s pour se poser, 7 ≈ 0,7 s) ; ?tonneau=ancien = la décroissance sèche d'avant
+  RESSORT:4,             // rad/s (caméra d'avant, ?camvie=ancien) — raideur du tonneau (ω0 du ressort amorti : 5 ≈ 1 s pour se poser, 7 ≈ 0,7 s) ; ?tonneau=ancien = la décroissance sèche d'avant
   ANCIEN:/[?&]tonneau=ancien/.test(location.search),om:0,
   phi:0,sg:1,vif:false,enCours:false,ax:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Quaternion(),
   FA:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}
 };
+/* ===== LA CAMÉRA VIVANTE (2026-10-29, Léo : « l'animation fait répétitive, elle pourrait être plus naturelle et suivre mieux le mouvement du gameplay / le style de jeu : tout le système de caméra plus fluide et vivant ») =====
+   Le demi-tour d'avant durait toujours pareil, ne partait qu'APRÈS la pose et ne s'engageait qu'au-delà de 60° de roulis. Maintenant :
+   · UN SEUL RESSORT de roulis pour tout redressement de l'écran (de 11° à 180°) : plus de zone morte entre 29° et 60°, plus de départ sec ;
+   · L'ANTICIPATION : le viseur sait déjà sur quelle face on va se poser (dessus ou dessous) — dans la dernière seconde de vol la caméra commence
+     à rouler vers elle (jusqu'à 60 % du chemin), donc à la pose il reste peu à faire et le geste suit la durée réelle du vol ;
+   · LE STYLE DE JEU règle la raideur (CAM_VIE.w0 → w1) : vol long et tranquille = geste ample et lent ; vitesse à fond, sauts enchaînés = plus vif ;
+   · L'IMPACT sous-amortit un peu le ressort (zeta < 1) : une pose lourde laisse un petit rebond d'horizon qui se calme, une pose douce rien ;
+   · le roulis garde sa vitesse en passant du vol au sol (même état `om`), et la caméra de vol ne bascule plus de 180° en UNE image quand
+     l'axe du regard se range sur son « haut » (camVieGarde).
+   `?camvie=ancien` rend la caméra d'avant (le ressort fixe de 1,2 s au-delà de 60°). */
+const CAM_VIE={on:!/[?&]camvie=ancien/.test(location.search),w0:3.4,w1:5.6,ant:.6,r:1,imp:0,air:0,pn:new THREE.Vector3(),pOk:false,up:new THREE.Vector3(0,1,0),d:new THREE.Vector3(),a:new THREE.Vector3()};
+window.dbgCamVie=function(v){if(v!=null)CAM_VIE.on=!!v;return CAM_VIE.on;}; // (banc) la caméra vivante en direct : dbgCamVie(false) = celle d'avant
+function camVieRigidite(){ // 3,4 (geste ample) → 5,6 (geste vif) selon la vitesse du moment et la durée du dernier vol
+  const v=THREE.MathUtils.clamp(CAM_VIE.r-.5,0,1.5)/1.5, air=THREE.MathUtils.clamp(CAM_VIE.air/2.6,0,1);
+  return CAM_VIE.w0+(CAM_VIE.w1-CAM_VIE.w0)*THREE.MathUtils.clamp(.7*v+.3*(1-air),0,1);}
+function camRoulis(tgt,axe,dt){ // fait rouler camUp vers `tgt` autour de l'axe du regard, par un ressort ; pose C.a (roulis avant) et C.r (après) · faux = dégénéré
+  const C=CAM_ROUTE;
+  C.v.copy(camUp).addScaledVector(axe,-camUp.dot(axe));C.w.copy(tgt).addScaledVector(axe,-tgt.dot(axe));
+  if(C.v.lengthSq()<1e-4||C.w.lengthSq()<1e-4){C.om=0;return false;}
+  C.v.normalize();C.w.normalize();
+  let a=Math.atan2(C.ax.crossVectors(C.w,C.v).dot(axe),C.v.dot(C.w)); // de combien la caméra est ROULÉE par rapport à la face visée
+  if(Math.abs(a)>3.05)a=3.05*C.sg;C.sg=a<0?-1:1; // pile à l'opposé : on garde le sens déjà engagé
+  const g=THREE.MathUtils.smoothstep(Math.abs(a),.2,.5); // < 11° : la conduite de tous les jours garde son lissage d'avant ; le ressort prend la main de 11° à 29°
+  const w=camVieRigidite(),z=1-.22*CAM_VIE.imp;CAM_VIE.imp=Math.max(0,CAM_VIE.imp-dt*1.6);
+  const n=Math.max(1,Math.ceil(dt/.0085)),h=dt/n;let om=C.om,x=a;
+  for(let i=0;i<n;i++){om+=(-w*w*x-2*z*w*om)*h;om=THREE.MathUtils.clamp(om,-6.5,6.5);x+=om*h;} // ±6,5 rad/s (≈ 370°/s) : même un vol très court ne fait pas claquer l'horizon
+  const r=a+g*(x-a);C.om=(g>.001&&dt>1e-4)?(r-a)/dt:0;C.a=a;C.r=r;
+  C.q.setFromAxisAngle(axe,r-a);camUp.applyQuaternion(C.q);return true;}
+function camVieVise(out,axe){ // le « haut » visé en vol : celui du décollage, qui glisse vers la face de la pose annoncée dans la dernière seconde
+  out.copy(FLY_U);if(!CAM_VIE.on||!CAM_VIE.pOk)return out;
+  const k=CAM_VIE.ant*(1-THREE.MathUtils.smoothstep(CAMV.eta,.25,1.4));if(!(k>.001))return out;
+  const d=THREE.MathUtils.clamp(FLY_U.dot(CAM_VIE.pn),-1,1),th=Math.acos(d);if(th<.02)return out;
+  CAM_VIE.a.crossVectors(FLY_U,CAM_VIE.pn);if(CAM_VIE.a.lengthSq()<1e-6)CAM_VIE.a.copy(axe);
+  CAM_VIE.a.normalize();CAM_ROUTE.q.setFromAxisAngle(CAM_VIE.a,th*k);return out.applyQuaternion(CAM_ROUTE.q).normalize();}
+function camVieGarde(cx,cy,cz){ // avant lookAt : si le regard se range sur le « haut », on garde celui de l'image d'avant (plus de demi-tour de 180° en une image)
+  if(!CAM_VIE.on)return;const d=CAM_VIE.d.set(cx,cy,cz).sub(camera.position);if(d.lengthSq()<1e-6)return;d.normalize();
+  const k=THREE.MathUtils.smoothstep(Math.abs(d.dot(camera.up)),.9,.985);if(k>0)camera.up.multiplyScalar(1-k).addScaledVector(CAM_VIE.up,k).normalize();}
+function camVieMemo(){CAM_VIE.up.set(0,1,0).applyQuaternion(camera.quaternion);} // le haut réel de l'image qui vient d'être posée
 function camRouteTonneau(cible,axe,dt){ // LE TONNEAU : `cible` = l'écart caisse→caméra voulu, `axe` = l'axe du regard (unitaire)
   const C=CAM_ROUTE;C.vif=false;if(!C.TONNEAU){C.enCours=false;return;} // (TONNEAU:0 = le comportement d'avant, pour comparer)
+  if(CAM_VIE.on){
+    if(!camRoulis(F.n,axe,dt)){C.enCours=false;return;}
+    const aA=Math.abs(C.a);if(aA>.35)C.enCours=true;else if(aA<.09)C.enCours=false;C.vif=C.enCours;
+    C.q.setFromAxisAngle(axe,C.r*THREE.MathUtils.smoothstep(aA,.35,1.05));cible.applyQuaternion(C.q);return; // la place voulue roule avec le haut : la caméra orbite autour de la caisse
+  }
   C.v.copy(camUp).addScaledVector(axe,-camUp.dot(axe));C.w.copy(F.n).addScaledVector(axe,-F.n.dot(axe));
   if(C.v.lengthSq()<1e-4||C.w.lengthSq()<1e-4)return;
   C.v.normalize();C.w.normalize();
@@ -263,7 +306,7 @@ let VOLR_FIGE=!/[?&]sans=([^&]*,)?volfige(,|&|$)/.test(location.search);
 window.dbgVolFige=function(v){if(v!=null)VOLR_FIGE=!!v;return VOLR_FIGE;};
 let VOLR_ON=!/[?&]sans=([^&]*,)?volroute(,|&|$)/.test(location.search);
 window.dbgVolRoute=function(v){if(v!=null)VOLR_ON=!!v;return {on:VOLR_ON,vol:VOLR.on,u:VOLR.u.toArray().map(function(x){return +x.toFixed(3);})};}; // (banc) dbgVolRoute(false) = le vol d'avant pour les vols suivants
-window.dbgCam=function(){const q=camera.quaternion,p=camera.position,c=carGroup.position;return {m:mode,sd:side,ft:+(typeof fallT==='number'?fallT:0),q:[q.x,q.y,q.z,q.w],p:[p.x,p.y,p.z],c:[c.x,c.y,c.z],up:[camUp.x,camUp.y,camUp.z],n:[F.n.x,F.n.y,F.n.z],fov:camera.fov,asp:camera.aspect,por:POR,en:CAM_ROUTE.enCours,ph:CAM_ROUTE.phi};}; /* (banc, 2026-10-29) la caméra de l'image courante, pour mesurer ses sursauts au dbgStep */
+window.dbgCam=function(){const om9=CAM_ROUTE.om;const q=camera.quaternion,p=camera.position,c=carGroup.position;return {m:mode,sd:side,ft:+(typeof fallT==='number'?fallT:0),q:[q.x,q.y,q.z,q.w],p:[p.x,p.y,p.z],c:[c.x,c.y,c.z],up:[camUp.x,camUp.y,camUp.z],n:[F.n.x,F.n.y,F.n.z],fov:camera.fov,asp:camera.aspect,por:POR,en:CAM_ROUTE.enCours,ph:CAM_ROUTE.phi,om:om9,vie:CAM_VIE.on};}; /* (banc, 2026-10-29) la caméra de l'image courante, pour mesurer ses sursauts au dbgStep */
 window.dbgLache=function(o){o=o||{};if(mode!=='drive')return 'pas au sol';startFall(0,1);frameAt(THREE.MathUtils.clamp(s+(o.ds||0),0,L-1),F);const sg=o.face<0?-1:1,nS=THREE.MathUtils.clamp((o.h!=null?o.h:(sg>0?3:-THICK-3)),-60,60);
   fallPos.copy(F.p).addScaledVector(F.b,o.lat||0).addScaledVector(F.n,nS);fallVel.copy(F.t).multiplyScalar(o.vT!=null?o.vT:80).addScaledVector(F.b,o.vB||0).addScaledVector(F.n,o.vN!=null?o.vN:(sg>0?-6:6));fallT=0;
   FLY_U.copy(F.n).multiplyScalar(o.u<0?-1:1);return {h:nS,face:sg};}; /* (banc, 2026-10-29) lâche la caisse à h (repère de la dalle, + = au-dessus) avec vT/vB/vN, face = celle qu'on vise · u:-1 = la caisse part tête en bas */
