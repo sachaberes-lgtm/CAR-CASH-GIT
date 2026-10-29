@@ -27,7 +27,7 @@ const CAM_ROUTE={
   BAS_MAX:24,            // ° — nez piqué au plus (sommet, route qui se dérobe)
   LISSE:.2,              // s — lissage du pivot : ni à-coup ni retard sensible
   TONNEAU:7,             // 1/s — vitesse du tonneau dessus ↔ dessous (l'essentiel en ~0,3 s : un geste franc, la traversée de la dalle ne dure qu'un éclair)
-  RESSORT:6,             // rad/s — raideur du tonneau (ω0 du ressort amorti : 5 ≈ 1 s pour se poser, 7 ≈ 0,7 s) ; ?tonneau=ancien = la décroissance sèche d'avant
+  RESSORT:4,             // rad/s — raideur du tonneau (ω0 du ressort amorti : 5 ≈ 1 s pour se poser, 7 ≈ 0,7 s) ; ?tonneau=ancien = la décroissance sèche d'avant
   ANCIEN:/[?&]tonneau=ancien/.test(location.search),om:0,
   phi:0,sg:1,vif:false,enCours:false,ax:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Quaternion(),
   FA:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}
@@ -263,6 +263,10 @@ let VOLR_FIGE=!/[?&]sans=([^&]*,)?volfige(,|&|$)/.test(location.search);
 window.dbgVolFige=function(v){if(v!=null)VOLR_FIGE=!!v;return VOLR_FIGE;};
 let VOLR_ON=!/[?&]sans=([^&]*,)?volroute(,|&|$)/.test(location.search);
 window.dbgVolRoute=function(v){if(v!=null)VOLR_ON=!!v;return {on:VOLR_ON,vol:VOLR.on,u:VOLR.u.toArray().map(function(x){return +x.toFixed(3);})};}; // (banc) dbgVolRoute(false) = le vol d'avant pour les vols suivants
+window.dbgCam=function(){const q=camera.quaternion,p=camera.position,c=carGroup.position;return {m:mode,sd:side,ft:+(typeof fallT==='number'?fallT:0),q:[q.x,q.y,q.z,q.w],p:[p.x,p.y,p.z],c:[c.x,c.y,c.z],up:[camUp.x,camUp.y,camUp.z],n:[F.n.x,F.n.y,F.n.z],fov:camera.fov,asp:camera.aspect,por:POR,en:CAM_ROUTE.enCours,ph:CAM_ROUTE.phi};}; /* (banc, 2026-10-29) la caméra de l'image courante, pour mesurer ses sursauts au dbgStep */
+window.dbgLache=function(o){o=o||{};if(mode!=='drive')return 'pas au sol';startFall(0,1);frameAt(THREE.MathUtils.clamp(s+(o.ds||0),0,L-1),F);const sg=o.face<0?-1:1,nS=THREE.MathUtils.clamp((o.h!=null?o.h:(sg>0?3:-THICK-3)),-60,60);
+  fallPos.copy(F.p).addScaledVector(F.b,o.lat||0).addScaledVector(F.n,nS);fallVel.copy(F.t).multiplyScalar(o.vT!=null?o.vT:80).addScaledVector(F.b,o.vB||0).addScaledVector(F.n,o.vN!=null?o.vN:(sg>0?-6:6));fallT=0;
+  FLY_U.copy(F.n).multiplyScalar(o.u<0?-1:1);return {h:nS,face:sg};}; /* (banc, 2026-10-29) lâche la caisse à h (repère de la dalle, + = au-dessus) avec vT/vB/vN, face = celle qu'on vise · u:-1 = la caisse part tête en bas */
 const VOLR={on:false,k:12,u:new THREE.Vector3(0,1,0),c:new THREE.Vector3(),a:new THREE.Vector3(),b:new THREE.Vector3(),q:new THREE.Quaternion()}; // k : la vitesse du lissage (1/s) · u : le haut du vol · c, a, b, q : calcul
 function volrOn(){return VOLR_ON&&TORD.on&&!PARK.on;}
 function volVu(v){return VOLR.on?v.dot(VOLR.u):v.y;} // la part de v vers le haut du vol
