@@ -27,6 +27,8 @@ const CAM_ROUTE={
   BAS_MAX:24,            // ° — nez piqué au plus (sommet, route qui se dérobe)
   LISSE:.2,              // s — lissage du pivot : ni à-coup ni retard sensible
   TONNEAU:7,             // 1/s — vitesse du tonneau dessus ↔ dessous (l'essentiel en ~0,3 s : un geste franc, la traversée de la dalle ne dure qu'un éclair)
+  RESSORT:6,             // rad/s — raideur du tonneau (ω0 du ressort amorti : 5 ≈ 1 s pour se poser, 7 ≈ 0,7 s) ; ?tonneau=ancien = la décroissance sèche d'avant
+  ANCIEN:/[?&]tonneau=ancien/.test(location.search),om:0,
   phi:0,sg:1,vif:false,enCours:false,ax:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Quaternion(),
   FA:{p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()}
 };
@@ -38,10 +40,16 @@ function camRouteTonneau(cible,axe,dt){ // LE TONNEAU : `cible` = l'écart caiss
   let a=Math.atan2(C.ax.crossVectors(C.w,C.v).dot(axe),C.v.dot(C.w)); // de combien la caméra est ROULÉE par rapport à la face (autour du regard)
   if(Math.abs(a)>3.05)a=3.05*C.sg;C.sg=a<0?-1:1; // pile à l'opposé : on garde le sens déjà engagé (sinon il hésiterait d'une image à l'autre)
   const aA=Math.abs(a);
-  if(aA>1.05)C.enCours=true;else if(aA<.09)C.enCours=false; // un tonneau s'engage au-delà de 60° de roulis et va jusqu'au bout (< 5°)
+  if(aA>1.05){if(!C.enCours)C.om=0;C.enCours=true;}else if(aA<.09)C.enCours=false; // un tonneau s'engage au-delà de 60° de roulis et va jusqu'au bout (< 5°)
   if(!C.enCours&&aA<.5)return; // la conduite de tous les jours (< 29°) : rien ne change, l'interpolation d'avant s'en charge
   let r=a;
-  if(C.enCours){C.vif=true;r=a*Math.exp(-dt*C.TONNEAU);C.q.setFromAxisAngle(axe,r-a);camUp.applyQuaternion(C.q);} // le haut ROULE (il ne passe plus par zéro)
+  if(C.enCours){C.vif=true;
+    if(C.ANCIEN)r=a*Math.exp(-dt*C.TONNEAU);
+    else{ /* LE TONNEAU A UNE INERTIE (2026-10-29, Léo : « l'écran qui tourne quand j'atterris de l'autre côté… il faut travailler la physique ») : l'exponentielle partait à pleine vitesse dès la 1re image (un coup sec) et finissait en 0,3 s. Maintenant un RESSORT CRITIQUEMENT AMORTI (ω0 = RESSORT) sur le roulis restant : la vitesse angulaire monte d'abord, passe par un pic au milieu du demi-tour, puis s'éteint sans rebond — environ 0,8 s, le monde « se pose » au lieu de claquer */
+      const k9=C.RESSORT*C.RESSORT;C.om+=(-k9*a-2*C.RESSORT*C.om)*dt;r=a+C.om*dt;
+      if(r*a<0){r=0;C.om=0;} /* jamais de dépassement : le monde ne rebondit pas au-delà de l'endroit */ }
+    C.q.setFromAxisAngle(axe,r-a);camUp.applyQuaternion(C.q);} // le haut ROULE (il ne passe plus par zéro)
+  else C.om=0;
   C.q.setFromAxisAngle(axe,r*(C.enCours?1:THREE.MathUtils.smoothstep(aA,.5,1.05)));cible.applyQuaternion(C.q); // la place voulue roule avec lui : la caméra orbite autour de la caisse au lieu de couper la dalle
 }
 /* (2026-10-18, Sacha : « oui : redresse la caméra sur le glacier seulement, pour qu'on voie la pente en roulant ») LA CAMÉRA DU GLACIER.
