@@ -3,6 +3,14 @@
 > Le GUIDE est **`CLAUDE.md`** (même dossier) : à lire d'abord. Ici, une section datée par demande, la plus récente EN HAUT ;
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
+
+## LE LOBBY ENCHAÎNE (2026-10-30, v1012 — Léo : « la musique lobby joue encore deux fois », « elle recommence », à la fin du morceau)
+- Le morceau du menu (un des trois du ciel : nuages, altitude, apesanteur, 2 min 30 à 3 min) BOUCLAIT : à sa fin, le même repartait du début.
+  Vu à chaque essai (navigateur avec le son, simulateur iPhone : `RECULE de 168 → 0`). Désormais il ne boucle plus : à `ended` (mode menu),
+  `musicMenuSuivant()` tire un AUTRE des trois, en fondu depuis zéro (`MENU_MUS.tire.ciel` suit : ciel et garage, même adresse).
+- Un redémarrage « au bout de quelques secondes » n'a PAS été reproduit (intro, menu, garage, partie, sortie de partie ; ordi, simulateur).
+  Piste notée : sur le simulateur le morceau met 8 à 40 s à charger (`stalled`) avant de partir — la lecture muette du 1er toucher attend tout ce temps.
+
 ## LE DÉPART ATTEND LA CHAUFFE + LE SON QUI NE REDÉMARRE PAS (2026-10-28, v1004-1005 — boîte noire de l'appli de Léo : un gel de 6,5 s au 1er JOUER à froid, 3 « Failed to start the audio device »)
 - **Mesuré sur l'iPhone 15 de Léo** (appli de banc fabriquée À PART : worktree de CAR-app dans le dossier temporaire, `natif.js` avec le relevé des gels du 27/10, cache Metal froid simulé — un `discard` impossible au nonce aléatoire dans chaque fragment —, JOUER tapé tout seul via `#mHome [data-m="play"]`, `isIdleTimerDisabled` en local). À froid la chauffe du menu dure **~26-29 s** (atelier, 86 programmes à lier jusqu'à ~11 s, l'orbite 3 s, les maps une étape par ~0,5 s, les moteurs 2 s, la scène entière) et elle **s'arrête dès que la course part** (`engChauffe` ne tourne qu'au menu et à l'écran de fin). JOUER à 35 s : rien (pire image 189 ms). JOUER à 14 s : 1,4 s figée au départ (6 programmes des nuages + la piste bâtie au départ, le départ d'avance pas prêt), et tout le reste (canyon, dunes, jade, moteurs) se serait compilé au 1er portail.
 - **Le remède** (`vignette-moteur.js`, « LE DÉPART ATTEND LA CHAUFFE » ; appelé dans `garage-rendu.js` au bout du lâcher et dans `chute-libre.js` au bout du piqué) : le voile (chaud de l'atelier, ou nuage blanc) TIENT tant que la chauffe n'est pas finie et liée et que le départ d'avance n'est pas bâti ; le menu chauffe dessous, le départ d'avance travaille aussi pendant cette attente (10 ms par image : `depart-avance.js`), les tôles des voitures (`chauffeApres`) attendent la fin du lâcher. 20 s au plus. Cache chaud / ordinateur : la chauffe est finie avant, rien ne change. `?attente=0` = avant · `dbgDepart()` (dernière attente) · `dbgChauffe()` (où en est la chauffe).
