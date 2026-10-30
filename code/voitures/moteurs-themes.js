@@ -13,27 +13,38 @@ const TH30=[null,
  [0xb4bccb,0xbfe8ff],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
 function th30Kit(E,i){const t=TH30[i];return t?Object.assign({},E,{col:t[0],flam:t[1]}):E;}
 
-/* ===== LA COCCINELLE KAWAII DU 3 (30/10, Léo : « remplace le trois escargot pour autre chose » — coccinelle) — le moteur 3 garde sa forme (le bloc facetté du palier) en rouge laqué ; sur le dessus, sept points noirs posés et
-   une raie ; deux antennes à bout rond ; deux grands yeux blancs à pupille luisante, joues roses et petit sourire sur la cloche d'embrayage ===== */
+/* ===== LA COCCINELLE KAWAII DU 3, REFONTE (30/10, Léo : « refonte coccinelle, je veux mieux ») — le moteur 3 garde son bloc ; dessus, DEUX ÉLYTRES rouge laqué qui reflètent le ciel, séparés par une raie noire, trois points
+   noirs chacun ; devant, la tête noire à la vraie marque de coccinelle (deux taches blanches), de grands yeux luisants, joues roses, sourire, deux antennes ; dessous, six pattes noires ===== */
 function h5_coccinelle(B,K,L,XE,top){
-  const noirM=new THREE.MeshPhongMaterial({color:0x0c0a14,shininess:200,specular:0xffffff,flatShading:true}),blancM=new THREE.MeshPhongMaterial({color:0xfdfdfd,shininess:120,specular:0xffffff}),luisM=new THREE.MeshBasicMaterial({color:0xffffff}),joue=new THREE.MeshBasicMaterial({color:0xff8fb0}),bouche=new THREE.MeshBasicMaterial({color:0x2a1218});
-  const sp=function(m,x,y,z,sx,sy,sz){B.add(G10.sph,m,x,y,z,0,0,0,sx,sy==null?sx:sy,sz==null?sx:sz);};
-  const rx=.82,ry=.6,rz=.55,cx=.05,cy=.18,rouge=new THREE.MeshPhongMaterial({color:0xd0201c,shininess:140,specular:0xffd0c0,flatShading:true});
-  B.add(G10.sph,rouge,cx,cy,0,0,0,0,rx,ry,rz);                                                                      // la carapace rouge laquée, posée sur les trois cylindres
-  [[0,0],[.5,.5],[.5,-.5],[-.12,.58],[-.12,-.58],[-.55,.3],[-.55,-.3]].forEach(function(p){   // les sept points : posés SUR la carapace
-    const u=p[0]*rx*.9,v=p[1]*rz*.95,y=cy+ry*Math.sqrt(Math.max(0,1-(u/rx)*(u/rx)-(v/rz)*(v/rz)));
-    sp(noirM,cx+u,y-.01,v,.12,.05,.12);});
-  B.add(G10.box,noirM,cx,cy+ry-.015,0,0,0,0,rx*1.5,.02,.03);                                                     // la raie du milieu
+  const noirM=h2_poli(0x0c0a14,260,.3),rouge=h2_poli(0xe0141a,200,.34),blancM=new THREE.MeshPhongMaterial({color:0xfdfdfd,shininess:140,specular:0xffffff}),luisM=new THREE.MeshBasicMaterial({color:0xffffff}),joue=new THREE.MeshBasicMaterial({color:0xff8fb0}),bouche=new THREE.MeshBasicMaterial({color:0xf8e0e8});
+  const sp=function(m,x,y,z,sx,sy,sz,rx,ry,rz){B.add(G10.sph,m,x,y,z,rx||0,ry||0,rz||0,sx,sy==null?sx:sy,sz==null?sx:sz);};
+  const cx=.08,cy=.42,rx=.78,ry=.48,rz=.28,zo=.6,ou=.95;                                                              // les élytres sont OUVERTS : le moteur (les trois cylindres) se voit entre eux
   for(let sd=-1;sd<=1;sd+=2){
-    B.add(h1_tube([[-.7,.5,sd*.12],[-.8,.7,sd*.2],[-.92,.82,sd*.3]],[.04,.032,.03],6,8),noirM,0,0,0);   // l'antenne
-    sp(noirM,-.92,.84,sd*.3,.07);                                                                          // son bout rond
-    const ex=-.72,ey=.34,ez=sd*.22;
-    sp(blancM,ex-.06,ey,ez,.15,.16,.13);                                                                         // le grand œil blanc
-    sp(noirM,ex-.15,ey-.01,ez+sd*-.005,.085,.1,.085);                                                            // la pupille
-    sp(luisM,ex-.21,ey+.04,ez-sd*.02,.032,.036,.032);                                                            // son reflet
-    sp(joue,-XE-.04,-.14,sd*.3,.07,.05,.04);                                                                     // la joue rose
+    sp(rouge,cx,cy,sd*zo,rx,ry,rz,-sd*ou,0,0);                                                                    // l'élytre
+    [[.0,.7],[.5,.42],[-.45,.3]].forEach(function(p){                                                             // ses trois points : posés SUR l'élytre
+      const u=p[0]*rx*.9,v=p[1]*rz*.95,w=ry*Math.sqrt(Math.max(0,1-(u/rx)*(u/rx)-(v/rz)*(v/rz))),
+      th=-sd*ou,vv=v*sd;
+      sp(noirM,cx+u,cy+(w-.012)*Math.cos(th)-vv*Math.sin(th),sd*zo+(w-.012)*Math.sin(th)+vv*Math.cos(th),.13,.045,.13,th,0,0);});
   }
-  for(let q=0;q<7;q++){const a=(q/6-.5)*1.5;sp(bouche,-XE-.055,-.2-.045*Math.cos(a)+.045,Math.sin(a)*.10,.017);}   // le petit sourire
+  for(let sd=-1;sd<=1;sd+=2){B.add(h1_tube([[.5,.1,sd*.36],[.2,.14,sd*.5],[-.3,.1,sd*.52],[-.62,.02,sd*.4]],[.05,.05,.05,.04],10,8),K.chrome,0,0,0);}   // deux collecteurs chromés le long des flancs
+  const hx=-.8,hy=.3,hr=.32,hz=.44,hh=.31;                                                                        // la tête : noire, un peu écrasée
+  sp(noirM,hx,hy,0,hr,hh,hz);
+  const surf=function(y,z){return hx-hr*Math.sqrt(Math.max(.02,1-((y-hy)/hh)*((y-hy)/hh)-(z/hz)*(z/hz)));};     // où est le devant de la tête, à (y,z)
+  for(let sd=-1;sd<=1;sd+=2){
+    sp(blancM,surf(hy+.2,sd*.3)-.012,hy+.2,sd*.3,.045,.11,.1);                                                    // la tache blanche du front
+    const ex=surf(hy+.02,sd*.19)-.02,ey=hy+.02,ez=sd*.19;
+    sp(blancM,ex,ey,ez,.12,.14,.115);                                                                              // le grand œil
+    sp(noirM,ex-.08,ey-.005,ez,.07,.095,.08);                                                                      // la pupille
+    sp(luisM,ex-.14,ey+.04,ez-sd*.02,.028,.032,.028);sp(luisM,ex-.12,ey-.04,ez+sd*.03,.014,.015,.014);            // ses deux reflets
+    sp(joue,surf(hy-.12,sd*.31)-.012,hy-.12,sd*.31,.04,.055,.075);                                               // la joue rose
+    B.add(h1_tube([[hx-.14,hy+.26,sd*.12],[hx-.24,hy+.5,sd*.2],[hx-.4,hy+.6,sd*.3]],[.034,.028,.026],6,8),noirM,0,0,0);   // l'antenne
+    sp(noirM,hx-.4,hy+.61,sd*.3,.06);                                                                              // son bout rond
+  }
+  for(let q=0;q<7;q++){const a=(q/6-.5)*1.6,y=hy-.13-.04*Math.cos(a)+.04,z=Math.sin(a)*.1;sp(bouche,surf(y,z)-.012,y,z,.014);}   // le sourire
+  [[-.45,-1],[ .05,-1],[ .55,-1],[-.45,1],[.05,1],[.55,1]].forEach(function(p){                                   // les six pattes, du ventre vers le sol
+    const x=cx+p[0],sd=p[1];
+    B.add(h1_tube([[x,.0,sd*.3],[x-.05*(p[0]<0?1:-1)*0-.08*(p[0]<0?1:0)+.08*(p[0]>0?1:0),-.12,sd*.6],[x+(p[0]<0?-.14:p[0]>0?.14:0),-.34,sd*.72]],[.045,.036,.03],6,8),noirM,0,0,0);
+    sp(noirM,x+(p[0]<0?-.14:p[0]>0?.14:0),-.35,sd*.73,.05,.03,.06);});
 }
 /* ===== LE LAPIN BLANC DE L'ÉPAVE (30/10, Léo : « les oreilles lapin je les veux identiques à avant ») — le palier 1 reste l'épave rouillée, avec JUSTE les deux oreilles de la première version
    (celle du 28/10 sur le main) : deux grands ellipsoïdes blancs plantés dans le dessus du bloc, intérieur rose, une bien droite, l'autre un peu molle. Le groupe s'appelle 'lapin' ===== */
