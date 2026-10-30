@@ -327,7 +327,7 @@ function richInit(){
   M.carte=metal(richTexCarte(),130);M.champagne=metal(richTexChampagne(),90);M.vins=[M.champagne].concat(RICH_VINS.map(function(V9){return metal(richTexVin(V9),V9.shin||100);})); // (2026-10-16) les vins : le programme du métal, comme le champagne (0 compilé de plus)M.noir=metal(richTexUni('#16121c'),60);
   M.liasse=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexLiasse()},uSheen:{value:new THREE.Color(.49,1,.62)},uSheenK:{value:.2},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide); // la liasse ne plie pas
   Gm.piece=richPiece();Gm.billet=new THREE.PlaneGeometry(1,.46,16,4);Gm.trefle=new THREE.PlaneGeometry(1,1,6,6);
-  M.coeur=new THREE.ShaderMaterial({uniforms:Object.assign({},RICH_U,{uRouge:{value:new THREE.Color(.86,.015,.08)},uFuch:{value:new THREE.Color(1,.16,.6)},uBlanc:{value:1},uA:{value:.2},uPop:{value:0}}),vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR,
+  M.coeur=new THREE.ShaderMaterial({uniforms:Object.assign({},RICH_U,{uRouge:{value:new THREE.Color(.95,.12,.3)},uFuch:{value:new THREE.Color(1,.38,.74)},uBlanc:{value:1},uA:{value:.2},uPop:{value:0}}),vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR,
     transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}); // (2026-10-16) le cœur fantôme (voir RICH_FS_COEUR) : transparent, prémultiplié
   M.fleur=new THREE.ShaderMaterial({uniforms:RICH_U,vertexShader:RICH_VS_FLEUR,fragmentShader:RICH_FS_FLEUR,transparent:true,depthWrite:true,side:THREE.DoubleSide,
     blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}); // (2026-10-16) les pétales (voir RICH_FS_FLEUR)
@@ -348,7 +348,7 @@ function richInit(){
       else if(t==='crane'){m=new THREE.Group();m.add(new THREE.Mesh(Gm.crane.or,M.cranes[i%M.cranes.length]),new THREE.Mesh(Gm.crane.noir,M.noir)); // le crâne : les os (pastel), les creux (sombres)
         m.traverse(function(c){c.frustumCulled=false;c.castShadow=c.receiveShadow=false;});}
       else if(t==='jeton')m=new THREE.Mesh(Gm.jeton,M.jetons[i%M.jetons.length]);
-      else if(t==='coeur'){m=new THREE.Mesh(Gm.coeur,new THREE.ShaderMaterial({uniforms:Object.assign({},M.coeur.uniforms,{uPop:{value:0}}),vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR, // (2026-10-16) chaque cœur sa matière (son pop à lui) : les mêmes réglages, le même programme
+      else if(t==='coeur'){m=new THREE.Mesh(Gm.coeur,new THREE.ShaderMaterial({uniforms:Object.assign({},M.coeur.uniforms,{uPop:{value:0},uRouge:{value:new THREE.Color(.95,.1+.1*((i*.381)%1),.26+.16*((i*.618)%1))},uFuch:{value:new THREE.Color(1,.34+.12*((i*.447)%1),.7+.1*((i*.231)%1))}}) /* (2026-10-30, Léo : « un peu plus rose ») du rose-rouge au fuchsia clair, chaque cœur sa nuance */,vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR, // (2026-10-16) chaque cœur sa matière (son pop à lui) : les mêmes réglages, le même programme
         transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}));}
       else if(t==='fleur'){m=new THREE.Mesh(Gm.fleurs[i%Gm.fleurs.length],M.fleur);const a9=new THREE.Sprite(M.aura);a9.scale.setScalar(1.6);a9.renderOrder=4;m.add(a9);m.renderOrder=5;} // (2026-10-16) la fleur et son aura
       else{const g=t==='or'?Gm.or[i%3]:t.indexOf('piece')===0||t==='btc'?Gm.piece:t==='rubis'?Gm.diamant:Gm[t];m=new THREE.Mesh(g,M[t]);}
@@ -382,14 +382,14 @@ function richPrechauffe(C){
   if(RICH.preV&&RICH.preV.length){for(const o of RICH.preV)if(!o.on)o.m.visible=false;RICH.preV.length=0;}
   if(!RICH.preQ){RICH.preV=[];RICH.preN=0;const Q=RICH.preQ=[],L=RICH.libres; /* (2026-10-30, 2e passe — « ça fait bugger le début ») UN seul exemplaire par forme, plus les 250 du pool : le chauffage ne charge plus le départ */
     for(const t in L){if(t==='billet')continue;Q.push({o:L[t][0]});}
-    for(let k=1;k<Math.min(4,L.coeur.length);k++)Q.push({o:L.coeur[k]}); /* quelques cœurs : chacun sa matière, un programme partagé */
+    for(let k=1;k<L.coeur.length;k++)Q.push({o:L.coeur[k]}); /* tous les cœurs : chacun sa matière (un programme partagé) */
     for(let k=0;k<RICH.G.fleurs.length;k++)Q.push({o:L.fleur[k%L.fleur.length],g:RICH.G.fleurs[k]});
     for(let k=0;k<RICH.G.vins.length;k++)Q.push({o:L.champagne[k%L.champagne.length],g:RICH.G.vins[k],mt:RICH.M.vins[k]});
     for(let k=0;k<FRUIT_DEFS.length;k++)Q.push({o:L.fruit[k%L.fruit.length],k:k});}
   if(++RICH.preN<300||gap>26)return; /* 5 s de calme au départ ; une image déjà lente ne reçoit rien de plus */
   if(RICH.preN%8)return; /* puis UN objet toutes les 8 images */
-  const w=RICH.preQ.shift();if(!w)return;const o=w.o;if(o.on)return;
-  if(w.k!==undefined){const g=fruitGeo(w.k);if(!g.boundingSphere)g.computeBoundingSphere();o.m.geometry=g;}else if(w.g){o.m.geometry=w.g;if(w.mt)o.m.material=w.mt;}
+  const w=RICH.preQ.shift();if(!w)return;const o=w.o;if(o.on){RICH.preQ.push(w);return;} /* (pris par un lancer : on le repasse plus tard) */
+  if(w.k!==undefined){const g=fruitGeo(w.k);if(!g.boundingSphere)g.computeBoundingSphere();o.m.geometry=g;g.userData.chaud=1;}else if(w.g){o.m.geometry=w.g;w.g.userData.chaud=1;if(w.mt)o.m.material=w.mt;} /* userData.chaud : richLance ne sort que des formes déjà passées au rendu (jamais d'envoi à la carte au milieu d'une gerbe) */
   o.m.position.copy(C);o.m.scale.setScalar(1e-4);o.m.visible=true;RICH.preV.push(o);
 }
 function richChauffeTick(C){

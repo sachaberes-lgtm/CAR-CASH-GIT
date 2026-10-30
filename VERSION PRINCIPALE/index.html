@@ -69264,7 +69264,7 @@ const RICH_T={
   emeraude:{kd:.55,fl:0,s:[.1,.14],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:[[0,1,0],[.55,.55,0],[-.55,.55,0],[0,.5,.7],[0,-.6,.6]],gem:1,gc:[.6,1,.72]},
   champagne:{kd:.7,fl:0,s:[.7,.73],w:[3,7],v:[4,7],vie:[2.6,3.4]},                          // 30 cm → plafonnée à 1,2 m
   crane:{kd:.6,fl:0,s:[.14,.17],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // un crâne de collection, 0,5-0,6 m (Léo : « plus petit ») — face : il part le regard vers la caméra et tourne sur lui-même
-  coeur:{kd:1.25,fl:1.1,s:[.1,.3],w:[1.1,2.4],v:[2.5,6.5],vie:[2.4,3.4],face:1,bat:1,pop:1,nl:[[.32,.55,.77],[-.32,.55,.77],[0,.15,1]],gp:40,gs:1.15,gc:[1,.8,.93]}, // (2026-10-15, Léo) le PETIT CŒUR (s = sa largeur ; 2026-10-16, Léo : « plus petits, plus nombreux, et ils explosent — pas tous en même temps » : 17-25 cm, ils viennent en NUÉE (RICH_NUEE) et chacun ÉCLATE à son heure, pop) : léger, il flotte et papillonne un peu, se balance face à toi et BAT (bat, voir richTick), fait de minuscules cubes qu'on voit au travers (richCoeurCubes, RICH_FS_COEUR), et ses lobes scintillent doucement (gp : un éclat large, gs : une étoile à sa taille)
+  coeur:{kd:1.25,fl:1.1,s:[.07,.34],w:[1.1,2.4],v:[2.5,6.5],vie:[2.4,3.4],face:1,bat:1,pop:1,nl:[[.32,.55,.77],[-.32,.55,.77],[0,.15,1]],gp:40,gs:1.15,gc:[1,.8,.93]}, // (2026-10-15, Léo) le PETIT CŒUR (s = sa largeur ; 2026-10-16, Léo : « plus petits, plus nombreux, et ils explosent — pas tous en même temps » : 17-25 cm, ils viennent en NUÉE (RICH_NUEE) et chacun ÉCLATE à son heure, pop) : léger, il flotte et papillonne un peu, se balance face à toi et BAT (bat, voir richTick), fait de minuscules cubes qu'on voit au travers (richCoeurCubes, RICH_FS_COEUR), et ses lobes scintillent doucement (gp : un éclat large, gs : une étoile à sa taille)
   fleur:{kd:1.3,fl:1.2,s:[.32,.44],w:[1,2],v:[3,6],vie:[3,3.8],fleur:1,nl:[[0,1,0]],gp:22,gs:.9,gc:[1,.92,.96]}, // (2026-10-16, Léo) une PETITE FLEUR (s = sa taille, 42-60 cm) : hibiscus, rose, lilas, lotus, lys ou tulipe — légère, elle flotte, se tourne de trois quarts vers toi et tourne lentement sur sa tige (richTick)
   fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R, par nom : la règle de taille donne rayon = 0,525 m × (diamètre en cm ÷ 15,6)^0,55 — cerise 2,2 cm, kiwi 6,5, pêche 7, orange 8, mangue 11, pomme 8, melon 15, litchi 3,5)
 const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,bague:6,cigare:5,cles:6,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:18,rubis:12,emeraude:12,champagne:8,crane:6,coeur:22,fleur:12,fruit:8};
@@ -69841,7 +69841,7 @@ function richInit(){
   M.carte=metal(richTexCarte(),130);M.champagne=metal(richTexChampagne(),90);M.vins=[M.champagne].concat(RICH_VINS.map(function(V9){return metal(richTexVin(V9),V9.shin||100);})); // (2026-10-16) les vins : le programme du métal, comme le champagne (0 compilé de plus)M.noir=metal(richTexUni('#16121c'),60);
   M.liasse=richMat(RICH_FS_SOUPLE,{uMap:{value:richTexLiasse()},uSheen:{value:new THREE.Color(.49,1,.62)},uSheenK:{value:.2},uBend:{value:0}},{SOUPLE:1},THREE.DoubleSide); // la liasse ne plie pas
   Gm.piece=richPiece();Gm.billet=new THREE.PlaneGeometry(1,.46,16,4);Gm.trefle=new THREE.PlaneGeometry(1,1,6,6);
-  M.coeur=new THREE.ShaderMaterial({uniforms:Object.assign({},RICH_U,{uRouge:{value:new THREE.Color(.86,.015,.08)},uFuch:{value:new THREE.Color(1,.16,.6)},uBlanc:{value:1},uA:{value:.2},uPop:{value:0}}),vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR,
+  M.coeur=new THREE.ShaderMaterial({uniforms:Object.assign({},RICH_U,{uRouge:{value:new THREE.Color(.95,.12,.3)},uFuch:{value:new THREE.Color(1,.38,.74)},uBlanc:{value:1},uA:{value:.2},uPop:{value:0}}),vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR,
     transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}); // (2026-10-16) le cœur fantôme (voir RICH_FS_COEUR) : transparent, prémultiplié
   M.fleur=new THREE.ShaderMaterial({uniforms:RICH_U,vertexShader:RICH_VS_FLEUR,fragmentShader:RICH_FS_FLEUR,transparent:true,depthWrite:true,side:THREE.DoubleSide,
     blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}); // (2026-10-16) les pétales (voir RICH_FS_FLEUR)
@@ -69862,7 +69862,7 @@ function richInit(){
       else if(t==='crane'){m=new THREE.Group();m.add(new THREE.Mesh(Gm.crane.or,M.cranes[i%M.cranes.length]),new THREE.Mesh(Gm.crane.noir,M.noir)); // le crâne : les os (pastel), les creux (sombres)
         m.traverse(function(c){c.frustumCulled=false;c.castShadow=c.receiveShadow=false;});}
       else if(t==='jeton')m=new THREE.Mesh(Gm.jeton,M.jetons[i%M.jetons.length]);
-      else if(t==='coeur'){m=new THREE.Mesh(Gm.coeur,new THREE.ShaderMaterial({uniforms:Object.assign({},M.coeur.uniforms,{uPop:{value:0}}),vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR, // (2026-10-16) chaque cœur sa matière (son pop à lui) : les mêmes réglages, le même programme
+      else if(t==='coeur'){m=new THREE.Mesh(Gm.coeur,new THREE.ShaderMaterial({uniforms:Object.assign({},M.coeur.uniforms,{uPop:{value:0},uRouge:{value:new THREE.Color(.95,.1+.1*((i*.381)%1),.26+.16*((i*.618)%1))},uFuch:{value:new THREE.Color(1,.34+.12*((i*.447)%1),.7+.1*((i*.231)%1))}}) /* (2026-10-30, Léo : « un peu plus rose ») du rose-rouge au fuchsia clair, chaque cœur sa nuance */,vertexShader:RICH_VS_COEUR,fragmentShader:RICH_FS_COEUR, // (2026-10-16) chaque cœur sa matière (son pop à lui) : les mêmes réglages, le même programme
         transparent:true,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneMinusSrcAlphaFactor,fog:false,lights:false}));}
       else if(t==='fleur'){m=new THREE.Mesh(Gm.fleurs[i%Gm.fleurs.length],M.fleur);const a9=new THREE.Sprite(M.aura);a9.scale.setScalar(1.6);a9.renderOrder=4;m.add(a9);m.renderOrder=5;} // (2026-10-16) la fleur et son aura
       else{const g=t==='or'?Gm.or[i%3]:t.indexOf('piece')===0||t==='btc'?Gm.piece:t==='rubis'?Gm.diamant:Gm[t];m=new THREE.Mesh(g,M[t]);}
@@ -69896,14 +69896,14 @@ function richPrechauffe(C){
   if(RICH.preV&&RICH.preV.length){for(const o of RICH.preV)if(!o.on)o.m.visible=false;RICH.preV.length=0;}
   if(!RICH.preQ){RICH.preV=[];RICH.preN=0;const Q=RICH.preQ=[],L=RICH.libres; /* (2026-10-30, 2e passe — « ça fait bugger le début ») UN seul exemplaire par forme, plus les 250 du pool : le chauffage ne charge plus le départ */
     for(const t in L){if(t==='billet')continue;Q.push({o:L[t][0]});}
-    for(let k=1;k<Math.min(4,L.coeur.length);k++)Q.push({o:L.coeur[k]}); /* quelques cœurs : chacun sa matière, un programme partagé */
+    for(let k=1;k<L.coeur.length;k++)Q.push({o:L.coeur[k]}); /* tous les cœurs : chacun sa matière (un programme partagé) */
     for(let k=0;k<RICH.G.fleurs.length;k++)Q.push({o:L.fleur[k%L.fleur.length],g:RICH.G.fleurs[k]});
     for(let k=0;k<RICH.G.vins.length;k++)Q.push({o:L.champagne[k%L.champagne.length],g:RICH.G.vins[k],mt:RICH.M.vins[k]});
     for(let k=0;k<FRUIT_DEFS.length;k++)Q.push({o:L.fruit[k%L.fruit.length],k:k});}
   if(++RICH.preN<300||gap>26)return; /* 5 s de calme au départ ; une image déjà lente ne reçoit rien de plus */
   if(RICH.preN%8)return; /* puis UN objet toutes les 8 images */
-  const w=RICH.preQ.shift();if(!w)return;const o=w.o;if(o.on)return;
-  if(w.k!==undefined){const g=fruitGeo(w.k);if(!g.boundingSphere)g.computeBoundingSphere();o.m.geometry=g;}else if(w.g){o.m.geometry=w.g;if(w.mt)o.m.material=w.mt;}
+  const w=RICH.preQ.shift();if(!w)return;const o=w.o;if(o.on){RICH.preQ.push(w);return;} /* (pris par un lancer : on le repasse plus tard) */
+  if(w.k!==undefined){const g=fruitGeo(w.k);if(!g.boundingSphere)g.computeBoundingSphere();o.m.geometry=g;g.userData.chaud=1;}else if(w.g){o.m.geometry=w.g;w.g.userData.chaud=1;if(w.mt)o.m.material=w.mt;} /* userData.chaud : richLance ne sort que des formes déjà passées au rendu (jamais d'envoi à la carte au milieu d'une gerbe) */
   o.m.position.copy(C);o.m.scale.setScalar(1e-4);o.m.visible=true;RICH.preV.push(o);
 }
 function richChauffeTick(C){
@@ -69932,16 +69932,19 @@ function richSort(t){const L=RICH.libres[t];let best=null;for(const o of L){if(!
 function richFruitK(){const R=RICH;if(!R.sabot||!R.sabot.length){const S=FRUIT_DEFS.map(function(_,i){return i;});for(let i=S.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=S[i];S[i]=S[j];S[j]=t;}
     if(S.length>1&&S[S.length-1]===R.fruitDer){const t=S[0];S[0]=S[S.length-1];S[S.length-1]=t;}R.sabot=S;}
   const k=R.sabot.pop();R.fruitDer=k;return k;}
+function richChaud(A){const c=[];for(let k=0;k<A.length;k++)if(A[k].userData&&A[k].userData.chaud)c.push(k);return c.length?c[Math.floor(Math.random()*c.length)]:-1;} // (2026-10-30, Léo : « enlève tous les freezes du menu ciel ») un indice parmi les formes DÉJÀ chauffées, -1 s'il n'y en a pas
 function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la matière imposée — le billet vert d'une liasse qui craque)
   if(t==='chaine'){richChaine(P,n,d,delai,kv);return null;}
+  let kf=-1,kg=-1;if(t==='fruit'){kf=richFruitK();for(let n9=0;n9<FRUIT_DEFS.length&&!(FRUIT_GEO[kf]&&FRUIT_GEO[kf].userData.chaud);n9++)kf=richFruitK();if(!(FRUIT_GEO[kf]&&FRUIT_GEO[kf].userData.chaud))return null;} // (un fruit dont la forme n'est pas encore bâtie ni envoyée : pas de lancer, plutôt qu'un à-coup)
+  else if(t==='fleur'){kg=richChaud(RICH.G.fleurs);if(kg<0)return null;}else if(t==='champagne'){kg=richChaud(RICH.G.vins);if(kg<0)return null;}
   const o=richSort(t);if(!o)return null;const D=RICH_T[t],rr=(a)=>a[0]+Math.random()*(a[1]-a[0]),m=o.m;
-  if(t==='fruit'){const k9=richFruitK(),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=.8*(RICH_FRUIT_R[FRUIT_DEFS[k9].n]||.35)/Math.max(.05,g9.boundingSphere.radius);} /* (2026-10-30) fruits ×0,8 : tout l'étal rapetisse d'un même cran */else o.fr=1; // chaque fruit à SA taille
+  if(t==='fruit'){const k9=kf,g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=.8*(RICH_FRUIT_R[FRUIT_DEFS[k9].n]||.35)/Math.max(.05,g9.boundingSphere.radius);} /* (2026-10-30) fruits ×0,8 : tout l'étal rapetisse d'un même cran */else o.fr=1; // chaque fruit à SA taille
   if(t==='jeton')m.material=RICH.M.jetons[Math.floor(Math.random()*RICH.M.jetons.length)]; // une couleur, une valeur
   const montreArg=t==='montre'&&Math.random()<.5;m.material=t==='montre'?(montreArg?RICH.M.montreArg:RICH.M.montre):m.material; // la dorée ou l'argentée
-  if(t==='champagne'){const k9=Math.floor(Math.random()*RICH.G.vins.length);m.geometry=RICH.G.vins[k9];m.material=RICH.M.vins[k9];} // (2026-10-16) le champagne ou l'un de ses quatre cousins
-  if(t==='fleur'){m.geometry=RICH.G.fleurs[Math.floor(Math.random()*RICH.G.fleurs.length)];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige
+  if(t==='champagne'){const k9=kg;m.geometry=RICH.G.vins[k9];m.material=RICH.M.vins[k9];} // (2026-10-16) le champagne ou l'un de ses quatre cousins
+  if(t==='fleur'){m.geometry=RICH.G.fleurs[kg];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige
   if(t==='billet'){m.material=mat||RICH.M.billets[Math.floor(Math.random()*RICH.M.billets.length)];o.bi=mat?TC_BIL_100:tcBilTire();o.wr=tcBilWear();} // (2026-10-10) une valeur, une couleur · (2026-10-25) o.bi : sa valeur pour les cubes, tirée comme celle de la traînée
-  o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=D.bat?D.s[0]+(D.s[1]-D.s[0])*Math.pow(Math.random(),1.5):rr(D.s);/* (2026-10-30, Léo : « les cœurs de tailles un peu variées ») beaucoup de petits, quelques gros */o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
+  o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=D.bat?D.s[0]+(D.s[1]-D.s[0])*(Math.random()<.5?Math.random()*.35:.2+Math.random()*.8):rr(D.s);/* (2026-10-30, Léo : « les cœurs de tailles un peu variées ») beaucoup de petits, quelques gros */o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
   o.fv=.4;o.mode=0;o.ec=t==='liasse'&&Math.random()<.5?.42+Math.random()*.45:0; // une liasse sur deux CRAQUE en vol (richEclate)
   const sp=rr(D.v)*(kv||1);RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();
   o.v.copy(n).multiplyScalar(sp).addScaledVector(RICH.v1,sp*.6).addScaledVector(d,-sp*.15);
