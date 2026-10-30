@@ -69242,29 +69242,29 @@ const RICH_U={uLum:{value:0},uSunDir:{value:new THREE.Vector3().copy(SUN_DIR)},u
 const RICH_GEM_NL=[[0,1,0],[.6,.55,.58],[-.7,.5,.3],[.2,.45,-.85],[-.3,-.7,.6]],RICH_OR_NL=[[0,1,0],[.7,.4,.5],[-.6,.5,-.4],[.2,-.6,.7]],RICH_FACE_Y=[[0,1,0],[0,-1,0]];
 const RICH_FRUIT_R={MYRTILLE:.13,CERISE:.18,KIWI:.32,'PÊCHE':.34,'PÊCHE PLATE':.34,ORANGE:.36,MANGUE:.43,POMME:.36,MELON:.51,LITCHI:.23,BANANE:.57,GRENADE:.41,'PASTÈQUE':.6,KAKI:.34,PITAYA:.45,MANGOUSTAN:.30,'FIGUE DE BARBARIE':.36,DATTE:.25,'MELON DU DÉSERT':.46}; // (2026-10-20) PAR NOM, plus par rang : la liste des fruits a été refaite (fruits-nouveaux.js : myrtille, cerise, kiwi, pêche, orange, mangue, pomme, melon, litchi) et l'ancienne table par index donnait à la cerise le rayon de la banane, à l'orange celui de la myrtille, à la mangue celui de la pastèque — Léo : « je n'ai pas l'impression de tous les voir » // le RAYON (m) de chaque fruit, dans l'ordre de FRUIT_DEFS : pêche plate 7 cm, banane 18, grenade 10, orange 8, myrtille 1,2, pastèque 30 (plafonnée)
 const RICH_T={
-  billet:{kd:2.4,fl:5,s:[.88,.96],w:[2,6],v:[3,6],vie:[2.8,3.8],papier:1},                            // 156 × 66 mm → 1,05 m (s = sa longueur) · (2026-10-10, Léo : « un tout petit peu plus petits ») −12 % : 0,92 m — la liasse garde sa taille
-  liasse:{kd:.9,fl:.3,s:[1,1.1],w:[3,7],v:[4,7],vie:[2.6,3.4]},                              // le billet, en paquet
-  carte:{kd:1.5,fl:3,s:[.74,.77],w:[7,14],v:[4,8],vie:[2.6,3.4],flip:'z',nl:[[0,0,1],[0,0,-1]],gc:[1,1,1]}, // 85,6 × 54 mm → 0,75 m
-  trefle:{kd:2.6,fl:4,s:[.44,.5],w:[2,6],v:[3,6],vie:[2.6,3.4],papier:1},                   // 3 cm → 0,42 m · papier : il tombe en feuille (richPapier)
-  piece2:{kd:.8,fl:.6,s:[.193,.2],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y,gc:[.92,.96,1]},  // 2 € : Ø 25,75 mm → 0,39 m (s = son rayon) — l'éclat de l'argent, froid
-  piece1:{kd:.8,fl:.6,s:[.18,.187],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y,gc:[1,.9,.62]}, // 1 € : Ø 23,25 mm → 0,37 m — l'or nordique, chaud
-  piece50:{kd:.8,fl:.6,s:[.185,.192],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y,gc:[1,.86,.55]}, // 50 c : Ø 24,25 mm → 0,38 m
-  jeton:{kd:.85,fl:.6,s:[.24,.25],w:[10,18],v:[4,8],vie:[2.4,3.2],flip:'y'},                 // jeton de casino : Ø 39 mm → 0,49 m
-  btc:{kd:.75,fl:.5,s:[.245,.26],w:[9,17],v:[4,8],vie:[2.6,3.4],flip:'y',nl:RICH_FACE_Y,gc:[1,.8,.5]},    // la pièce-souvenir : Ø 40 mm → 0,5 m
-  montre:{kd:.7,fl:0,s:[.19,.2],w:[3,7],v:[4,8],vie:[2.6,3.4],nl:[[0,1,0],[0,.7,.7],[0,.7,-.7]],gc:[1,.95,.8]}, // la montre fermée : 6,5 cm de tour → 0,65 m
-  or:{kd:.5,fl:0,s:[.11,.21],w:[3,9],v:[5,9],vie:[2.4,3.4],nl:RICH_OR_NL},                   // pépites de 1 à 3 cm → 0,23 à 0,42 m
-  lingot:{kd:.55,fl:0,s:[.56,.88],w:[3,7],v:[4,8],vie:[2.4,3.4],nl:RICH_OR_NL},              // de 100 g (5 cm) à 1 kg (11,6 cm)
-  chaine:{kd:1.1,s:[1.3,1.45],v:[4,7],vie:[2.8,3.6]},                                        // le collier de 50 cm, plafonné (s = sa longueur)
-  cigare:{kd:.9,fl:0,s:[.26,.3],w:[2,5],v:[4,8],vie:[2.6,3.4],nl:[[0,1,0],[1,0,0],[-1,0,0]],gc:[1,.9,.7]}, // (2026-10-21, Léo : « un cigare avec sa bague dorée, des clés tout court ») le CIGARE : feuille brune, bague d'or, cendre grise ; ~15 cm → 0,5 m
-  cles:{kd:.9,fl:0,s:[.3,.34],w:[2,5],v:[4,8],vie:[2.6,3.4],nl:[[0,0,1],[0,0,-1]],gc:[.97,.97,1]}, // le TROUSSEAU : un anneau, une clé d'or, une clé d'acier
-  bague:{kd:.8,fl:0,s:[.3,.34],w:[3,7],v:[4,8],vie:[2.6,3.4],nl:RICH_GEM_NL,gem:1,gc:[.97,.97,1]}, // (2026-10-21, Léo : « ajoute une bague ») un solitaire : jonc d'or + diamant taille brillant ; ~2 cm de diamètre → 0,3 m
-  diamant:{kd:.55,fl:0,s:[.08,.13],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[.95,.97,1]}, // 5 à 12 mm → 0,16 à 0,26 m
+  billet:{kd:2.4,fl:5,s:[.66,.72],w:[2,6],v:[3,6],vie:[2.8,3.8],papier:1},                            // 156 × 66 mm → 1,05 m (s = sa longueur) · (2026-10-10, Léo : « un tout petit peu plus petits ») −12 % : 0,92 m — la liasse garde sa taille
+  liasse:{kd:.9,fl:.3,s:[.72,.8],w:[3,7],v:[4,7],vie:[2.6,3.4]},                              // le billet, en paquet
+  carte:{kd:1.5,fl:3,s:[.58,.6],w:[7,14],v:[4,8],vie:[2.6,3.4],flip:'z',nl:[[0,0,1],[0,0,-1]],gc:[1,1,1]}, // 85,6 × 54 mm → 0,75 m
+  trefle:{kd:2.6,fl:4,s:[.36,.4],w:[2,6],v:[3,6],vie:[2.6,3.4],papier:1},                   // 3 cm → 0,42 m · papier : il tombe en feuille (richPapier)
+  piece2:{kd:.8,fl:.6,s:[.145,.15],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y,gc:[.92,.96,1]},  // 2 € : Ø 25,75 mm → 0,39 m (s = son rayon) — l'éclat de l'argent, froid
+  piece1:{kd:.8,fl:.6,s:[.135,.14],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y,gc:[1,.9,.62]}, // 1 € : Ø 23,25 mm → 0,37 m — l'or nordique, chaud
+  piece50:{kd:.8,fl:.6,s:[.14,.145],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y,gc:[1,.86,.55]}, // 50 c : Ø 24,25 mm → 0,38 m
+  jeton:{kd:.85,fl:.6,s:[.18,.19],w:[10,18],v:[4,8],vie:[2.4,3.2],flip:'y'},                 // jeton de casino : Ø 39 mm → 0,49 m
+  btc:{kd:.75,fl:.5,s:[.185,.195],w:[9,17],v:[4,8],vie:[2.6,3.4],flip:'y',nl:RICH_FACE_Y,gc:[1,.8,.5]},    // la pièce-souvenir : Ø 40 mm → 0,5 m
+  montre:{kd:.7,fl:0,s:[.155,.165],w:[3,7],v:[4,8],vie:[2.6,3.4],nl:[[0,1,0],[0,.7,.7],[0,.7,-.7]],gc:[1,.95,.8]}, // la montre fermée : 6,5 cm de tour → 0,65 m
+  or:{kd:.5,fl:0,s:[.09,.16],w:[3,9],v:[5,9],vie:[2.4,3.4],nl:RICH_OR_NL},                   // pépites de 1 à 3 cm → 0,23 à 0,42 m
+  lingot:{kd:.55,fl:0,s:[.42,.62],w:[3,7],v:[4,8],vie:[2.4,3.4],nl:RICH_OR_NL},              // de 100 g (5 cm) à 1 kg (11,6 cm)
+  chaine:{kd:1.1,s:[1,1.1],v:[4,7],vie:[2.8,3.6]},                                        // le collier de 50 cm, plafonné (s = sa longueur)
+  cigare:{kd:.9,fl:0,s:[.22,.25],w:[2,5],v:[4,8],vie:[2.6,3.4],nl:[[0,1,0],[1,0,0],[-1,0,0]],gc:[1,.9,.7]}, // (2026-10-21, Léo : « un cigare avec sa bague dorée, des clés tout court ») le CIGARE : feuille brune, bague d'or, cendre grise ; ~15 cm → 0,5 m
+  cles:{kd:.9,fl:0,s:[.24,.27],w:[2,5],v:[4,8],vie:[2.6,3.4],nl:[[0,0,1],[0,0,-1]],gc:[.97,.97,1]}, // le TROUSSEAU : un anneau, une clé d'or, une clé d'acier
+  bague:{kd:.8,fl:0,s:[.24,.27],w:[3,7],v:[4,8],vie:[2.6,3.4],nl:RICH_GEM_NL,gem:1,gc:[.97,.97,1]}, // (2026-10-21, Léo : « ajoute une bague ») un solitaire : jonc d'or + diamant taille brillant ; ~2 cm de diamètre → 0,3 m
+  diamant:{kd:.55,fl:0,s:[.085,.13],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[.95,.97,1]}, // 5 à 12 mm → 0,16 à 0,26 m
   rubis:{kd:.55,fl:0,s:[.085,.13],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[1,.5,.58]},
-  emeraude:{kd:.55,fl:0,s:[.12,.17],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:[[0,1,0],[.55,.55,0],[-.55,.55,0],[0,.5,.7],[0,-.6,.6]],gem:1,gc:[.6,1,.72]},
-  champagne:{kd:.7,fl:0,s:[.9,.93],w:[3,7],v:[4,7],vie:[2.6,3.4]},                          // 30 cm → plafonnée à 1,2 m
-  crane:{kd:.6,fl:0,s:[.22,.27],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // un crâne de collection, 0,5-0,6 m (Léo : « plus petit ») — face : il part le regard vers la caméra et tourne sur lui-même
-  coeur:{kd:1.25,fl:1.1,s:[.17,.25],w:[1.1,2.4],v:[2.5,6.5],vie:[2.4,3.4],face:1,bat:1,pop:1,nl:[[.32,.55,.77],[-.32,.55,.77],[0,.15,1]],gp:40,gs:1.15,gc:[1,.8,.93]}, // (2026-10-15, Léo) le PETIT CŒUR (s = sa largeur ; 2026-10-16, Léo : « plus petits, plus nombreux, et ils explosent — pas tous en même temps » : 17-25 cm, ils viennent en NUÉE (RICH_NUEE) et chacun ÉCLATE à son heure, pop) : léger, il flotte et papillonne un peu, se balance face à toi et BAT (bat, voir richTick), fait de minuscules cubes qu'on voit au travers (richCoeurCubes, RICH_FS_COEUR), et ses lobes scintillent doucement (gp : un éclat large, gs : une étoile à sa taille)
-  fleur:{kd:1.3,fl:1.2,s:[.42,.6],w:[1,2],v:[3,6],vie:[3,3.8],fleur:1,nl:[[0,1,0]],gp:22,gs:.9,gc:[1,.92,.96]}, // (2026-10-16, Léo) une PETITE FLEUR (s = sa taille, 42-60 cm) : hibiscus, rose, lilas, lotus, lys ou tulipe — légère, elle flotte, se tourne de trois quarts vers toi et tourne lentement sur sa tige (richTick)
+  emeraude:{kd:.55,fl:0,s:[.1,.14],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:[[0,1,0],[.55,.55,0],[-.55,.55,0],[0,.5,.7],[0,-.6,.6]],gem:1,gc:[.6,1,.72]},
+  champagne:{kd:.7,fl:0,s:[.7,.73],w:[3,7],v:[4,7],vie:[2.6,3.4]},                          // 30 cm → plafonnée à 1,2 m
+  crane:{kd:.6,fl:0,s:[.14,.17],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // un crâne de collection, 0,5-0,6 m (Léo : « plus petit ») — face : il part le regard vers la caméra et tourne sur lui-même
+  coeur:{kd:1.25,fl:1.1,s:[.1,.3],w:[1.1,2.4],v:[2.5,6.5],vie:[2.4,3.4],face:1,bat:1,pop:1,nl:[[.32,.55,.77],[-.32,.55,.77],[0,.15,1]],gp:40,gs:1.15,gc:[1,.8,.93]}, // (2026-10-15, Léo) le PETIT CŒUR (s = sa largeur ; 2026-10-16, Léo : « plus petits, plus nombreux, et ils explosent — pas tous en même temps » : 17-25 cm, ils viennent en NUÉE (RICH_NUEE) et chacun ÉCLATE à son heure, pop) : léger, il flotte et papillonne un peu, se balance face à toi et BAT (bat, voir richTick), fait de minuscules cubes qu'on voit au travers (richCoeurCubes, RICH_FS_COEUR), et ses lobes scintillent doucement (gp : un éclat large, gs : une étoile à sa taille)
+  fleur:{kd:1.3,fl:1.2,s:[.32,.44],w:[1,2],v:[3,6],vie:[3,3.8],fleur:1,nl:[[0,1,0]],gp:22,gs:.9,gc:[1,.92,.96]}, // (2026-10-16, Léo) une PETITE FLEUR (s = sa taille, 42-60 cm) : hibiscus, rose, lilas, lotus, lys ou tulipe — légère, elle flotte, se tourne de trois quarts vers toi et tourne lentement sur sa tige (richTick)
   fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R, par nom : la règle de taille donne rayon = 0,525 m × (diamètre en cm ÷ 15,6)^0,55 — cerise 2,2 cm, kiwi 6,5, pêche 7, orange 8, mangue 11, pomme 8, melon 15, litchi 3,5)
 const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,bague:6,cigare:5,cles:6,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:18,rubis:12,emeraude:12,champagne:8,crane:6,coeur:22,fleur:12,fruit:8};
 const RICH_PD=[0,2,4,7,9,12,14,16,19,21],RICH_MEL=[0,2,4,7,9,12,14,16,14,12,9,7,4,2]; // RICH_MEL : la mélodie des cœurs qui éclatent — elle monte puis redescend (un aller-retour, pas une chute)
@@ -69725,44 +69725,38 @@ function richFleurs(){const F=RICH_FF,V=[],S=function(r){return new THREE.Sphere
    const d=[.38,1,.1],L9=.5;richFlPrim(P,C(.026,.018,L9),richFlM(d[0]*L9*.5/1.08,L9*.5,d[2]*L9*.5/1.08,d[0],d[1],d[2]),[1,.45,.55],1);
    const tx=.38*L9/1.08,ty=L9*.96,tz=.1*L9/1.08;for(let k=0;k<7;k++){const a=k*TAU/7;richFlPrim(P,S(.024),richFlM(tx+Math.cos(a)*.04,ty-.04+(k%2)*.025,tz+Math.sin(a)*.04,0,1,0),[1,.84,.18],1);}
    for(let k=0;k<5;k++){const a=k*TAU/5;richFlPrim(P,S(.02),richFlM(tx+.025+Math.cos(a)*.022,ty+.045,tz+Math.sin(a)*.022,0,1,0),[.85,.02,.12],1);}
-   V.push(richFlFin(P));V[0].userData.vue=1.15;}
+   V.push(richFlFin(P));V[V.length-1].userData.vue=1.15;}
   // 2. LA ROSE : quatre couronnes de pétales ronds qui s'ouvrent de plus en plus (le cœur serré, le bord qui se roule), velours rouge ; cinq sépales verts dessous
   {const P=[],R=[[3,1.45,.25,.15,.13,.9,0,.02],[5,1.22,-.1,.21,.16,.8,.02,.015],[5,.98,-.35,.26,.19,.65,.035,.01],[6,.68,-.6,.3,.21,.5,.05,0]];
    R.forEach(function(r,ri){for(let i=0;i<r[0];i++)richPetale(P,{phi:i*TAU/r[0]+ri*.9,a0:r[1],cu:r[2],L:r[3],W:r[4],f:F.rond,cup:r[5],r0:r[6],y0:r[7],c0:[.36,0,.05],c1:[.86,.03,.13],c2:[.98,.3,.38],k0:0,k1:1,ke:.45,al:.9});});
    for(let i=0;i<5;i++)richPetale(P,{phi:i*TAU/5+.3,a0:-.85,cu:.3,L:.17,W:.045,f:F.pointu,cup:.2,r0:.03,c0:[.12,.38,.12],c1:[.25,.58,.2],al:1,nu:5,nv:2});
-   V.push(richFlFin(P));V[1].userData.vue=0.9;}
-  // 3. LE LILAS : une grappe en cône de petites fleurs à quatre pétales (lilas, du mauve profond au presque blanc), sur sa tige
-  {const P=[];const N=62;for(let i=0;i<N;i++){const t=(i+.5)/N,y=t*.62,R9=.23*(1-t*.82)+.04,a=i*2.39996,cx=Math.cos(a)*R9,cz=Math.sin(a)*R9,h=Math.sin(i*12.9898)*43758.5453,rr=h-Math.floor(h);
-     const M=richFlM(cx,y,cz,cx,.55,cz),c0=rr<.2?[.86,.74,1]:rr<.6?[.62,.4,.9]:[.72,.52,.96],c1=[Math.min(1,c0[0]+.18),Math.min(1,c0[1]+.2),1];
-     for(let j=0;j<4;j++)richPetale(P,{phi:j*TAU/4+a,a0:.28,cu:-.35,L:.058,W:.042,f:F.rond,cup:.3,c0:c0,c1:c1,al:.86,nu:3,nv:2,m:M});}
-   richFlPrim(P,C(.012,.008,.8),richFlM(0,.24,0,0,1,0),[.3,.55,.25],1);
-   for(let k=0;k<4;k++){const a=k*TAU/4+.4;richFlPrim(P,S(.018),richFlM(Math.cos(a)*.025,.66+(k%2)*.03,Math.sin(a)*.025,0,1,0),[.78,.62,.98],1);} // les boutons du sommet
-   V.push(richFlFin(P));V[2].userData.vue=0.35;}
-  // 4. LE LOTUS : trois couronnes de pétales pointus en coupe, blancs au pied, roses à la pointe ; la gousse jaune et sa couronne d'étamines
+   V.push(richFlFin(P));V[V.length-1].userData.vue=0.9;}
+  /* (2026-10-30, Léo : « enlève la fleur violette qui ressemble à une grappe ») le LILAS est retiré : il ne reste que six fleurs */
+  // 3. LE LOTUS : trois couronnes de pétales pointus en coupe, blancs au pied, roses à la pointe ; la gousse jaune et sa couronne d'étamines
   {const P=[],R=[[7,.35,.25,.36,.15,.45,.05],[8,.8,.3,.34,.14,.5,.04],[8,1.18,.2,.28,.12,.6,.03]];
    R.forEach(function(r,ri){for(let i=0;i<r[0];i++)richPetale(P,{phi:i*TAU/r[0]+ri*.4,a0:r[1],cu:r[2],L:r[3],W:r[4],f:F.pointu,cup:r[5],r0:r[6],c0:[1,.96,.97],c1:[1,.4,.66],c2:[1,.78,.9],k0:.3,k1:1,al:.78});});
    richFlPrim(P,C(.07,.078,.06),richFlM(0,.05,0,0,1,0),[.86,.84,.32],1);
    for(let k=0;k<7;k++){const a=k*TAU/7;richFlPrim(P,S(.011),richFlM(Math.cos(a)*.04,.082,Math.sin(a)*.04,0,1,0),[.95,.72,.18],1);}
    for(let k=0;k<18;k++){const a=k*TAU/18;richFlPrim(P,new THREE.BoxGeometry(.008,.07,.008),richFlM(Math.cos(a)*.09,.06,Math.sin(a)*.09,Math.cos(a)*.6,1,Math.sin(a)*.6),[1,.86,.3],1);}
-   V.push(richFlFin(P));V[3].userData.vue=0.8;}
-  // 5. LE LYS : six longs tépales blancs qui se recourbent en arrière, une rougeur rose au fond de la gorge ; six étamines aux anthères orange, le pistil
+   V.push(richFlFin(P));V[V.length-1].userData.vue=0.8;}
+  // 4. LE LYS : six longs tépales blancs qui se recourbent en arrière, une rougeur rose au fond de la gorge ; six étamines aux anthères orange, le pistil
   {const P=[];for(let i=0;i<6;i++)richPetale(P,{phi:i*TAU/6,a0:.92,cu:-1.7,L:.46,W:i%2?.12:.145,f:F.lance,cup:.28,r0:.02,c0:[1,.42,.68],c1:[1,1,1],c2:[1,.97,.98],k0:0,k1:.52,al:.9,nu:10,nv:6});
    for(let k=0;k<6;k++){const a=k*TAU/6+.5,dx=Math.cos(a)*.38,dz=Math.sin(a)*.38,L9=.3;richFlPrim(P,C(.006,.005,L9),richFlM(dx*L9*.5,L9*.46,dz*L9*.5,dx,.92,dz),[.78,.9,.62],1);
      richFlPrim(P,new THREE.BoxGeometry(.065,.022,.026),richFlM(dx*L9,L9*.93,dz*L9,dz,0,-dx),[.86,.38,.1],1);}
    richFlPrim(P,C(.009,.007,.34),richFlM(0,.17,0,0,1,0),[.7,.86,.55],1);richFlPrim(P,S(.02),richFlM(0,.345,0,0,1,0),[.6,.8,.4],1);
-   V.push(richFlFin(P));V[4].userData.vue=0.95;}
-  // 6. LA TULIPE ROSE PÂLE : six pétales en coupe fermée (trois dehors, trois dedans), les bords plus blancs ; sa tige et une feuille
+   V.push(richFlFin(P));V[V.length-1].userData.vue=0.95;}
+  // 5. LA TULIPE ROSE PÂLE : six pétales en coupe fermée (trois dehors, trois dedans), les bords plus blancs ; sa tige et une feuille
   {const P=[];for(let i=0;i<3;i++)richPetale(P,{phi:i*TAU/3,a0:1.45,cu:.5,L:.42,W:.22,f:F.oeuf,cup:.62,r0:.06,c0:[.98,.76,.82],c1:[1,.86,.91],c2:[1,.97,.98],ke:.5,al:.8});
    for(let i=0;i<3;i++)richPetale(P,{phi:i*TAU/3+TAU/6,a0:1.5,cu:.48,L:.4,W:.2,f:F.oeuf,cup:.65,r0:.035,c0:[.96,.72,.8],c1:[1,.84,.9],c2:[1,.96,.97],ke:.5,al:.8});
    richFlPrim(P,C(.018,.015,.36),richFlM(0,-.17,0,0,1,0),[.3,.6,.26],1);
    richPetale(P,{phi:.5,a0:1.15,cu:-.25,L:.3,W:.06,f:F.lance,cup:.4,r0:.02,y0:-.34,c0:[.22,.5,.2],c1:[.38,.7,.3],al:1,nu:7,nv:3});
-   V.push(richFlFin(P));V[5].userData.vue=0.3;}
-  // 7. LA MARGUERITE (2026-10-16) : une vingtaine de pétales blancs en lanière, presque à plat, sur deux rangs ; le cœur jaune bombé
+   V.push(richFlFin(P));V[V.length-1].userData.vue=0.3;}
+  // 6. LA MARGUERITE (2026-10-16) : une vingtaine de pétales blancs en lanière, presque à plat, sur deux rangs ; le cœur jaune bombé
   {const P=[],lan=function(u){return Math.min(1,u*7)*(u>.8?Math.sqrt(Math.max(0,1-Math.pow((u-.8)/.2,2))):1);};
    for(let i=0;i<22;i++)richPetale(P,{phi:i*TAU/22+(i%2)*.07,a0:.14+(i%2)*.12,cu:-.16,L:.42,W:.05,f:lan,cup:.18,r0:.075,c0:[.98,.96,.88],c1:[1,1,1],al:.9,nu:6,nv:2});
    richFlPrim(P,new THREE.SphereGeometry(.095,14,8),richFlM(0,.015,0,0,1,0,1,.5,1),[1,.76,.1],1);
    for(let k=0;k<12;k++){const a=k*2.39996,r9=.02+.05*Math.sqrt((k+.5)/12);richFlPrim(P,S(.012),richFlM(Math.cos(a)*r9,.055-r9*.35,Math.sin(a)*r9,0,1,0),[.92,.55,.05],1);}
-   V.push(richFlFin(P));V[6].userData.vue=1.1;}
+   V.push(richFlFin(P));V[V.length-1].userData.vue=1.1;}
   return V;}
 function richTexMontre(){return richCv(512,512,function(x){ // l'atlas de la MONTRE : le cadran (en haut à gauche), l'or (en haut à droite), le bracelet à maillons (en bas)
   x.fillStyle='#e8b33a';x.fillRect(0,0,512,512);const Go=x.createLinearGradient(256,0,512,256);Go.addColorStop(0,'#ffe9a8');Go.addColorStop(1,'#c58b22');x.fillStyle=Go;x.fillRect(256,0,256,256);
@@ -69893,8 +69887,23 @@ function richInit(){
   RICH.sp={m:sm,pos:pos,col:col,n:N,P:new Float32Array(N*3),V:new Float32Array(N*3),L:new Float32Array(N),L0:new Float32Array(N),Hh:new Float32Array(N),Wd:new Float32Array(N),K:new Uint8Array(N),i:0,vivant:0};
   RICH.chauffe=3; // trois images : un exemplaire de chaque, minuscule, devant la caméra — les programmes se compilent sous l'écran titre
 }
+/* (2026-10-30, Léo : « fluidifie l'éjection, que le menu ciel ne bug plus ») L'ÉCHAUFFEMENT PROGRESSIF : jusqu'ici chaque fruit (sa géométrie se bâtissait au lancer),
+   chaque fleur, chaque vin, chaque cœur (sa matière à lui) n'était envoyé à la carte graphique qu'au PREMIER coup qui le sortait : un à-coup au milieu de la gerbe.
+   Maintenant, sous l'écran titre, trois objets par image — chacun minuscule devant la caméra — passent une fois au rendu, tout est déjà là quand on tape. */
+function richPrechauffe(C){
+  if(RICH.preV)for(const o of RICH.preV)if(!o.on)o.m.visible=false;
+  if(RICH.preV)RICH.preV.length=0;else RICH.preV=[];
+  if(!RICH.preQ){const Q=RICH.preQ=[];
+    for(const t in RICH.libres){if(t==='billet')continue;for(const o of RICH.libres[t])Q.push({o:o});}
+    const L=RICH.libres;for(let k=0;k<FRUIT_DEFS.length;k++)Q.push({o:L.fruit[k%L.fruit.length],k:k});
+    for(let k=0;k<RICH.G.fleurs.length;k++)Q.push({o:L.fleur[k%L.fleur.length],g:RICH.G.fleurs[k]});
+    for(let k=0;k<RICH.G.vins.length;k++)Q.push({o:L.champagne[k%L.champagne.length],g:RICH.G.vins[k],mt:RICH.M.vins[k]});}
+  for(let n=0;n<3&&RICH.preQ.length;n++){const w=RICH.preQ.shift(),o=w.o;if(o.on)continue;
+    if(w.k!==undefined){const g=fruitGeo(w.k);if(!g.boundingSphere)g.computeBoundingSphere();o.m.geometry=g;}else if(w.g){o.m.geometry=w.g;if(w.mt)o.m.material=w.mt;}
+    o.m.position.copy(C);o.m.scale.setScalar(1e-4);o.m.visible=true;RICH.preV.push(o);}
+}
 function richChauffeTick(C){
-  if(!RICH.chauffe)return;RICH.chauffe--;const on=RICH.chauffe>0;
+  if(!RICH.chauffe){richPrechauffe(C);return;}RICH.chauffe--;const on=RICH.chauffe>0;
   for(const t in RICH.libres){const o=RICH.libres[t][0];if(o.on)continue;o.m.visible=on;if(on){o.m.position.copy(C);o.m.scale.setScalar(1e-4);}}
   if(RICH.ch){const c=RICH.ch[0];if(!c.on)for(const m of c.links){m.visible=on;if(on){m.position.copy(C);m.scale.setScalar(1e-4);}}}
   if(RICH.sp){RICH.sp.m.visible=on||RICH.sp.vivant>0;}
@@ -69922,13 +69931,13 @@ function richFruitK(){const R=RICH;if(!R.sabot||!R.sabot.length){const S=FRUIT_D
 function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la matière imposée — le billet vert d'une liasse qui craque)
   if(t==='chaine'){richChaine(P,n,d,delai,kv);return null;}
   const o=richSort(t);if(!o)return null;const D=RICH_T[t],rr=(a)=>a[0]+Math.random()*(a[1]-a[0]),m=o.m;
-  if(t==='fruit'){const k9=richFruitK(),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=(RICH_FRUIT_R[FRUIT_DEFS[k9].n]||.35)/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1; // chaque fruit à SA taille
+  if(t==='fruit'){const k9=richFruitK(),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=.8*(RICH_FRUIT_R[FRUIT_DEFS[k9].n]||.35)/Math.max(.05,g9.boundingSphere.radius);} /* (2026-10-30) fruits ×0,8 : tout l'étal rapetisse d'un même cran */else o.fr=1; // chaque fruit à SA taille
   if(t==='jeton')m.material=RICH.M.jetons[Math.floor(Math.random()*RICH.M.jetons.length)]; // une couleur, une valeur
   const montreArg=t==='montre'&&Math.random()<.5;m.material=t==='montre'?(montreArg?RICH.M.montreArg:RICH.M.montre):m.material; // la dorée ou l'argentée
   if(t==='champagne'){const k9=Math.floor(Math.random()*RICH.G.vins.length);m.geometry=RICH.G.vins[k9];m.material=RICH.M.vins[k9];} // (2026-10-16) le champagne ou l'un de ses quatre cousins
   if(t==='fleur'){m.geometry=RICH.G.fleurs[Math.floor(Math.random()*RICH.G.fleurs.length)];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige
   if(t==='billet'){m.material=mat||RICH.M.billets[Math.floor(Math.random()*RICH.M.billets.length)];o.bi=mat?TC_BIL_100:tcBilTire();o.wr=tcBilWear();} // (2026-10-10) une valeur, une couleur · (2026-10-25) o.bi : sa valeur pour les cubes, tirée comme celle de la traînée
-  o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=rr(D.s);o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
+  o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=D.bat?D.s[0]+(D.s[1]-D.s[0])*Math.pow(Math.random(),1.5):rr(D.s);/* (2026-10-30, Léo : « les cœurs de tailles un peu variées ») beaucoup de petits, quelques gros */o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
   o.fv=.4;o.mode=0;o.ec=t==='liasse'&&Math.random()<.5?.42+Math.random()*.45:0; // une liasse sur deux CRAQUE en vol (richEclate)
   const sp=rr(D.v)*(kv||1);RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();
   o.v.copy(n).multiplyScalar(sp).addScaledVector(RICH.v1,sp*.6).addScaledVector(d,-sp*.15);
