@@ -376,18 +376,21 @@ function richInit(){
 }
 /* (2026-10-30, Léo : « fluidifie l'éjection, que le menu ciel ne bug plus ») L'ÉCHAUFFEMENT PROGRESSIF : jusqu'ici chaque fruit (sa géométrie se bâtissait au lancer),
    chaque fleur, chaque vin, chaque cœur (sa matière à lui) n'était envoyé à la carte graphique qu'au PREMIER coup qui le sortait : un à-coup au milieu de la gerbe.
-   Maintenant, sous l'écran titre, trois objets par image — chacun minuscule devant la caméra — passent une fois au rendu, tout est déjà là quand on tape. */
+   Maintenant, une fois l'écran titre posé (5 s), UN objet toutes les 8 images — minuscule devant la caméra, et jamais sur une image déjà lente — passe une fois au rendu : tout est déjà là quand on tape, sans charger le départ. */
 function richPrechauffe(C){
-  if(RICH.preV)for(const o of RICH.preV)if(!o.on)o.m.visible=false;
-  if(RICH.preV)RICH.preV.length=0;else RICH.preV=[];
-  if(!RICH.preQ){const Q=RICH.preQ=[];
-    for(const t in RICH.libres){if(t==='billet')continue;for(const o of RICH.libres[t])Q.push({o:o});}
-    const L=RICH.libres;for(let k=0;k<FRUIT_DEFS.length;k++)Q.push({o:L.fruit[k%L.fruit.length],k:k});
+  const t9=performance.now(),gap=t9-(RICH.preT||t9);RICH.preT=t9;
+  if(RICH.preV&&RICH.preV.length){for(const o of RICH.preV)if(!o.on)o.m.visible=false;RICH.preV.length=0;}
+  if(!RICH.preQ){RICH.preV=[];RICH.preN=0;const Q=RICH.preQ=[],L=RICH.libres; /* (2026-10-30, 2e passe — « ça fait bugger le début ») UN seul exemplaire par forme, plus les 250 du pool : le chauffage ne charge plus le départ */
+    for(const t in L){if(t==='billet')continue;Q.push({o:L[t][0]});}
+    for(let k=1;k<Math.min(4,L.coeur.length);k++)Q.push({o:L.coeur[k]}); /* quelques cœurs : chacun sa matière, un programme partagé */
     for(let k=0;k<RICH.G.fleurs.length;k++)Q.push({o:L.fleur[k%L.fleur.length],g:RICH.G.fleurs[k]});
-    for(let k=0;k<RICH.G.vins.length;k++)Q.push({o:L.champagne[k%L.champagne.length],g:RICH.G.vins[k],mt:RICH.M.vins[k]});}
-  for(let n=0;n<3&&RICH.preQ.length;n++){const w=RICH.preQ.shift(),o=w.o;if(o.on)continue;
-    if(w.k!==undefined){const g=fruitGeo(w.k);if(!g.boundingSphere)g.computeBoundingSphere();o.m.geometry=g;}else if(w.g){o.m.geometry=w.g;if(w.mt)o.m.material=w.mt;}
-    o.m.position.copy(C);o.m.scale.setScalar(1e-4);o.m.visible=true;RICH.preV.push(o);}
+    for(let k=0;k<RICH.G.vins.length;k++)Q.push({o:L.champagne[k%L.champagne.length],g:RICH.G.vins[k],mt:RICH.M.vins[k]});
+    for(let k=0;k<FRUIT_DEFS.length;k++)Q.push({o:L.fruit[k%L.fruit.length],k:k});}
+  if(++RICH.preN<300||gap>26)return; /* 5 s de calme au départ ; une image déjà lente ne reçoit rien de plus */
+  if(RICH.preN%8)return; /* puis UN objet toutes les 8 images */
+  const w=RICH.preQ.shift();if(!w)return;const o=w.o;if(o.on)return;
+  if(w.k!==undefined){const g=fruitGeo(w.k);if(!g.boundingSphere)g.computeBoundingSphere();o.m.geometry=g;}else if(w.g){o.m.geometry=w.g;if(w.mt)o.m.material=w.mt;}
+  o.m.position.copy(C);o.m.scale.setScalar(1e-4);o.m.visible=true;RICH.preV.push(o);
 }
 function richChauffeTick(C){
   if(!RICH.chauffe){richPrechauffe(C);return;}RICH.chauffe--;const on=RICH.chauffe>0;
