@@ -69,7 +69,18 @@ function camVieVise(out,axe){ // le « haut » visé en vol : celui du décollag
 function camVieGarde(cx,cy,cz){ // avant lookAt : si le regard se range sur le « haut », on garde celui de l'image d'avant (plus de demi-tour de 180° en une image)
   if(!CAM_VIE.on)return;const d=CAM_VIE.d.set(cx,cy,cz).sub(camera.position);if(d.lengthSq()<1e-6)return;d.normalize();
   const k=THREE.MathUtils.smoothstep(Math.abs(d.dot(camera.up)),.9,.985);if(k>0)camera.up.multiplyScalar(1-k).addScaledVector(CAM_VIE.up,k).normalize();}
-function camVieMemo(){CAM_VIE.up.set(0,1,0).applyQuaternion(camera.quaternion);} // le haut réel de l'image qui vient d'être posée
+function camVieMemo(){CAM_VIE.up.set(0,1,0).applyQuaternion(camera.quaternion);if(CAM_VIE.dbg)camVieDbg();} // le haut réel de l'image qui vient d'être posée
+/* LE COMPTEUR `?camdbg=1` (2026-10-30) : en haut à gauche, le pire tour de caméra (°/s), le pire saut de sa place par rapport à la caisse (m/s) et la durée de l'image
+   (ms) sur les 4 dernières secondes — pour juger la caméra sur un vrai iPhone (ou le simulateur) sans console. Rien n'est créé sans le paramètre. */
+CAM_VIE.dbg=/[?&]camdbg=1/.test(location.search);
+function camVieDbg(){const D=CAM_VIE.dg||(CAM_VIE.dg={q:new THREE.Quaternion(),r:new THREE.Vector3(),v:new THREE.Vector3(),t:0,w:[],el:null,tx:0});
+  const n=performance.now();D.v.copy(camera.position).sub(carGroup.position);
+  if(D.t&&n-D.t<400&&D.v.distanceTo(D.r)<40){const dt=Math.max(.001,(n-D.t)/1000);D.w.push({t:n,a:D.q.angleTo(camera.quaternion)*57.2958/dt,p:D.v.distanceTo(D.r)/dt,m:n-D.t,s:mode});while(D.w.length&&n-D.w[0].t>4000)D.w.shift();}
+  D.q.copy(camera.quaternion);D.r.copy(D.v);D.t=n;
+  if(n-D.tx<250)return;D.tx=n;
+  if(!D.el){D.el=document.createElement('div');D.el.style.cssText='position:fixed;left:6px;top:calc(env(safe-area-inset-top,0px) + 4px);z-index:99999;pointer-events:none;font:11px/1.25 monospace;color:#0f0;background:rgba(0,0,0,.6);padding:3px 5px;border-radius:4px;white-space:pre';document.body.appendChild(D.el);}
+  let a=0,p=0,m=0;for(const x of D.w){if(x.a>a)a=x.a;if(x.p>p)p=x.p;if(x.m>m)m=x.m;}
+  D.el.textContent='tour '+(a|0)+'°/s\nplace '+(p|0)+' m/s\nimage max '+(m|0)+' ms\n'+mode+' '+(side<0?'DESSOUS':'dessus')+(CAM_VIE.on?'':' (ancien)');}
 function camRouteTonneau(cible,axe,dt){ // LE TONNEAU : `cible` = l'écart caisse→caméra voulu, `axe` = l'axe du regard (unitaire)
   const C=CAM_ROUTE;C.vif=false;if(!C.TONNEAU){C.enCours=false;return;} // (TONNEAU:0 = le comportement d'avant, pour comparer)
   if(CAM_VIE.on){
