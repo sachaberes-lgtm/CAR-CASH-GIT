@@ -5,7 +5,7 @@
    PALETTE (`TH30` remplace la laque et la flamme du palier) et sa SIGNATURE (`theme30`), posée sur le moteur — ⚠ RÈGLE : chaque
    pièce TOUCHE le moteur (aucun bout en l'air), aucune matière transparente hors du verre voulu. */
 const TH30=[null,
- [0x1f8a6a,0x9affc8],[0xc8863a,0xffd890],[0x2a1c14,0xffb030],[0x9a6430,0xffc040],[0x4a6680,0x9ad8ff],   // 2 scarabée · 3 escargot · 4 scorpion · 5 hibou · 6 requin
+ [0x1f8a6a,0x9affc8],[0xd0201c,0xffd890],[0x2a1c14,0xffb030],[0x9a6430,0xffc040],[0x4a6680,0x9ad8ff],   // 2 scarabée · 3 coccinelle · 4 scorpion · 5 hibou · 6 requin
  [0xff6a3c,0xffb070],[0xff5f8a,0xffe0ea],[0x15171c,0xd8f4ff],[0x5f7d3c,0xd8ff90],[0xd8282a,0xffa030],   // 7 étoile de mer · 8 corail · 9 orques · 10 tortue · 11 roquette
  [0x1f4aff,0x9af0ff],[0x4f5f2a,0xffb030],[0x0e7a54,0xff5ac8],[0xffb000,0xfff0a0],[0x1f5a3a,0xff5030],   // 12 électrique · 13 grenade · 14 colibri · 15 soleil · 16 dragon
  [0xc0201e,0xffd070],[0x3a2a6a,0x6affd8],[0xd9a441,0x5a8aff],[0xff4a1a,0xffc040],[0x4b8688,0x8affff],   // 17 pagode · 18 kraken · 19 sphinx · 20 phénix · 21 atlantide
@@ -13,20 +13,27 @@ const TH30=[null,
  [0xb4bccb,0xbfe8ff],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
 function th30Kit(E,i){const t=TH30[i];return t?Object.assign({},E,{col:t[0],flam:t[1]}):E;}
 
-/* ===== L'ESCARGOT KAWAII DU 3 (30/10, Léo : « laisse le moteur lapin en premier ») — le moteur 3 garde sa forme (le bloc facetté du palier) ; deux courtes tiges portent deux GRANDS ŒILS noirs luisants à
-   deux reflets blancs ; sur la cloche d'embrayage, deux joues roses et un petit sourire ===== */
-function h5_escargot3(B,K,L,XE,top){
-  const oeilM=new THREE.MeshPhongMaterial({color:0x0c0a14,shininess:300,specular:0xffffff}),luisM=new THREE.MeshBasicMaterial({color:0xffffff}),joue=new THREE.MeshBasicMaterial({color:0xff8fb0}),bouche=new THREE.MeshBasicMaterial({color:0x2a1218});
+/* ===== LA COCCINELLE KAWAII DU 3 (30/10, Léo : « remplace le trois escargot pour autre chose » — coccinelle) — le moteur 3 garde sa forme (le bloc facetté du palier) en rouge laqué ; sur le dessus, sept points noirs posés et
+   une raie ; deux antennes à bout rond ; deux grands yeux blancs à pupille luisante, joues roses et petit sourire sur la cloche d'embrayage ===== */
+function h5_coccinelle(B,K,L,XE,top){
+  const noirM=new THREE.MeshPhongMaterial({color:0x0c0a14,shininess:200,specular:0xffffff,flatShading:true}),blancM=new THREE.MeshPhongMaterial({color:0xfdfdfd,shininess:120,specular:0xffffff}),luisM=new THREE.MeshBasicMaterial({color:0xffffff}),joue=new THREE.MeshBasicMaterial({color:0xff8fb0}),bouche=new THREE.MeshBasicMaterial({color:0x2a1218});
   const sp=function(m,x,y,z,sx,sy,sz){B.add(G10.sph,m,x,y,z,0,0,0,sx,sy==null?sx:sy,sz==null?sx:sz);};
+  const rx=.82,ry=.6,rz=.55,cx=.05,cy=.18,rouge=new THREE.MeshPhongMaterial({color:0xd0201c,shininess:140,specular:0xffd0c0,flatShading:true});
+  B.add(G10.sph,rouge,cx,cy,0,0,0,0,rx,ry,rz);                                                                      // la carapace rouge laquée, posée sur les trois cylindres
+  [[0,0],[.5,.5],[.5,-.5],[-.12,.58],[-.12,-.58],[-.55,.3],[-.55,-.3]].forEach(function(p){   // les sept points : posés SUR la carapace
+    const u=p[0]*rx*.9,v=p[1]*rz*.95,y=cy+ry*Math.sqrt(Math.max(0,1-(u/rx)*(u/rx)-(v/rz)*(v/rz)));
+    sp(noirM,cx+u,y-.01,v,.12,.05,.12);});
+  B.add(G10.box,noirM,cx,cy+ry-.015,0,0,0,0,rx*1.5,.02,.03);                                                     // la raie du milieu
   for(let sd=-1;sd<=1;sd+=2){
-    B.add(h1_tube([[-XE+.02,top-.06,sd*.17],[-XE+.0,top+.10,sd*.24],[-XE-.01,top+.26,sd*.31]],[.065,.05,.045],6,8),K.alu,0,0,0);   // la tige
-    const ex=-XE-.01,ey=top+.28,ez=sd*.31;
-    sp(K.alu,ex,ey,ez,.17);                                                                                       // le bulbe
-    sp(oeilM,ex-.08,ey+.01,ez+sd*.01,.145,.16,.13);                                                               // le grand œil luisant
-    sp(luisM,ex-.16,ey+.07,ez-sd*.02,.05,.055,.05);sp(luisM,ex-.15,ey-.06,ez+sd*.05,.024,.026,.024);              // ses deux reflets
-    sp(joue,-XE-.04,-.10,sd*.22,.07,.05,.04);                                                                     // la joue rose, sur la cloche
+    B.add(h1_tube([[-.7,.5,sd*.12],[-.8,.7,sd*.2],[-.92,.82,sd*.3]],[.04,.032,.03],6,8),noirM,0,0,0);   // l'antenne
+    sp(noirM,-.92,.84,sd*.3,.07);                                                                          // son bout rond
+    const ex=-.72,ey=.34,ez=sd*.22;
+    sp(blancM,ex-.06,ey,ez,.15,.16,.13);                                                                         // le grand œil blanc
+    sp(noirM,ex-.15,ey-.01,ez+sd*-.005,.085,.1,.085);                                                            // la pupille
+    sp(luisM,ex-.21,ey+.04,ez-sd*.02,.032,.036,.032);                                                            // son reflet
+    sp(joue,-XE-.04,-.14,sd*.3,.07,.05,.04);                                                                     // la joue rose
   }
-  for(let q=0;q<7;q++){const a=(q/6-.5)*1.5;sp(bouche,-XE-.055,-.17-.045*Math.cos(a)+.045,Math.sin(a)*.10,.017);}   // le petit sourire
+  for(let q=0;q<7;q++){const a=(q/6-.5)*1.5;sp(bouche,-XE-.055,-.2-.045*Math.cos(a)+.045,Math.sin(a)*.10,.017);}   // le petit sourire
 }
 /* ===== LE LAPIN BLANC DE L'ÉPAVE (30/10, Léo : « les oreilles lapin je les veux identiques à avant ») — le palier 1 reste l'épave rouillée, avec JUSTE les deux oreilles de la première version
    (celle du 28/10 sur le main) : deux grands ellipsoïdes blancs plantés dans le dessus du bloc, intérieur rose, une bien droite, l'autre un peu molle. Le groupe s'appelle 'lapin' ===== */
@@ -733,8 +740,8 @@ function theme30(B,i,K,c,g){
   switch(i){
   case 1:{ // LE SCARABÉE — HYBRIDE : élytres = couvre-culasse, corne de rhinocéros, mandibules, pattes
     h1_p1(B,K,L,XE,top);break;}
-  case 2:{ // L'ESCARGOT KAWAII (30/10 : le lapin reste au 1, l'escargot passe au 3) — le bloc du palier garde sa forme, deux grands yeux sur tiges, joues roses et sourire sur la cloche
-    if(COLIB14)h1_p2(B,K,L,XE,top);else h5_escargot3(B,K,L,XE,top);break;}
+  case 2:{ // LA COCCINELLE KAWAII (30/10 : le lapin reste au 1, la coccinelle remplace l'escargot au 3) — le bloc du palier garde sa forme, rouge à points noirs, antennes, grands yeux, joues roses et sourire
+    if(COLIB14)h1_p2(B,K,L,XE,top);else h5_coccinelle(B,K,L,XE,top);break;}
   case 3:{ // LE SCORPION — HYBRIDE : tergites, pinces, huit pattes, la queue née de l'échappement
     h1_p3(B,K,L,XE,top);break;}
   case 4:{ // LE HIBOU — HYBRIDE : le disque facial est la face, ailes repliées, serres, queue en éventail
