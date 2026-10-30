@@ -75,7 +75,7 @@ MENU_MUS.abs=function(u){return this._abs[u]||(this._abs[u]=(function(){try{retu
 function musicMenuSuivant(){
   const c=MENU_MUS.tire.ciel,A=MENU_MUS.ciel.filter(function(u){return u!==c;});if(!A.length)return;
   MENU_MUS.tire.ciel=A[Math.floor(Math.random()*A.length)];
-  playMusic(MENU_MUS.tire.ciel,{loop:true,volume:0});}
+  playMusic(MENU_MUS.tire.ciel,{loop:true,volume:0});menuFonArme();}
 /* LA MUSIQUE SUIT JUSQU'À LA BOUTIQUE (2026-10-16, Sacha : « il faut que la musique puisse suivre le joueur du garage à la boutique ») —
    depuis le 13/10 (Léo : « le sound design est terrifiant, change ou enlève ») la boutique faisait TAIRE le lobby (fondu puis pause, voir
    musicTick) et jouait à sa place sa nappe de verre (bqSon). MESURÉ au banc : au garage le morceau joue, en boutique `paused:true`. Désormais
@@ -270,7 +270,7 @@ function musicElGet(){
     musicEl.setAttribute('playsinline','');musicEl.setAttribute('webkit-playsinline','');musicEl.style.display='none';
     document.body.appendChild(musicEl);
     musicEl.addEventListener('ended',function(){if(musicMode==='run'&&!musicLieu)musicNext();else if(musicMode==='menu')musicMenuSuivant();}); // la radio enchaîne (les morceaux de LIEU bouclent)
-    musicEl.addEventListener('playing',function(){musicOn=true;musicEnAttente=false;musicEl._err=0;musicAnalyse();});
+    musicEl.addEventListener('playing',function(){musicOn=true;musicEnAttente=false;musicEl._err=0;musicAnalyse();if(MENUFON.att&&musicMode==='menu'){MENUFON.att=false;MENUFON.f0=performance.now();musicVolCour=0;}}); /* (LE LOBBY ENTRE EN DOUCEUR) le fondu part au vrai départ du son */
     musicEl.addEventListener('pause',function(){musicOn=false;});
     musicEl.addEventListener('error',function(){if(FRENM.sw){frenMusRate();return;} // le morceau de la TRIADE manque : on repart sur la radio, surmultipliée
       console.warn('musique : fichier illisible',musicEl.currentSrc||musicEl.src);
@@ -402,6 +402,14 @@ function stopMusic(){musicVoulue=false;if(musicEl){try{musicEl.pause();}catch(e)
    voiture booste, pour tous les niveaux ») : le son de transition `depart.envol` (1,55 s de montée AVANT la musique) est RETIRÉ — la
    musique n'attend plus rien. NE PAS remettre de son ni de délai entre le départ et la musique.
    ⚠ iPhone : le volume d'un <audio> y est en lecture seule (VOL_LOCKED) — ni fondu du lobby ni fondu d'entrée. `DEPMUS.on=false` = avant. */
+/* ===== LE LOBBY ENTRE EN DOUCEUR (2026-10-30, Léo : « mtn ça démarre, plus calmement, pas d'un coup ») =====
+   Le lobby montait de 0 au niveau du menu en ~0,4 s (le ressort de musicTick) — et parfois sans fondu du tout : au lancement, le morceau met
+   plusieurs secondes à charger (MESURÉ au simulateur : 8 à 40 s), musicMenu le trouvait « pas en pause » (lecture en cours de chargement)
+   et ne remettait pas le volume à zéro, il partait d'un coup au niveau d'avant. Désormais chaque départ du lobby (menu, retour de course,
+   morceau suivant) arme `MENUFON` ; le fondu part au VRAI départ du son (`playing`) : une courbe en S de `d` secondes. `?lobbyfondu=0` = avant.
+   (iPhone sans MUS_WA : le volume d'un <audio> y est verrouillé, rien ne change.) */
+const MENUFON={on:!/[?&]lobbyfondu=0\b/.test(location.search),d:3,att:false,f0:-1};
+function menuFonArme(){if(!MENUFON.on)return;MENUFON.att=true;MENUFON.f0=-1;musicVolCour=0;if(musicEl&&!musicEl.paused)MENUFON.f0=performance.now();} /* déjà en lecture (et audible) : le fondu part tout de suite */
 const DEPMUS={on:true,fondu:.6,f0:-1,sort:0}; // sort : l'instant du REJOUER (le lobby de l'écran de mort s'efface sous le fondu au noir)
 /* (2026-10-15 soir, Léo : « quand je vais dans les réglages et que je gère la musique, ça fait bugger la musique du jeu ») MUSIQUE RALLUMÉE PENDANT
    LA PAUSE : la musique de course ATTEND LA REPRISE. Mesuré au banc (iPhone simulé) : couper puis rallumer MUSIQUE dans la pause relançait Pouce
@@ -507,7 +515,7 @@ function musicMenu(){
   /* (2026-10-05, Léo : « une musique qui commence très fort ») le lobby partait à .8 × le curseur… et musicTick (mode menu) le ramenait à .5
      dans la demi-seconde : un départ FORT puis un creux de −4 dB, à chaque retour au menu. Il part désormais de zéro et monte en ~0,4 s
      jusqu'au niveau du menu (musicTick, inchangé : c'est celui qu'on entend depuis toujours). (iPhone : volume verrouillé, rien ne change.) */
-  playMusic(musicMenuUrl()||musicPremier(),{loop:true,volume:0,garde:true});
+  playMusic(musicMenuUrl()||musicPremier(),{loop:true,volume:0,garde:true});menuFonArme();
 }
 function musicPlayCurrent(){
   if(musicMode==='run'&&pbjRegne()){stopMusic();return;} // (15/10) POUCE BLEU a l'antenne

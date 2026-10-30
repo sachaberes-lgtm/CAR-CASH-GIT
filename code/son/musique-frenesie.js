@@ -297,7 +297,9 @@ function musicTick(dt,mvt){
     else if(r9<=0||document.hidden||!musicEl||musicEl.paused){MUSAP.joue=false;musicVolCour=c9;try{if(musicEl&&!musicEl.paused)musicEl.pause();}catch(e){}
       if(MUSAP.rev){MUSAP.rev=false;try{if(window.__setPause&&AC&&AC.state==='running')AC.suspend();}catch(e){}}} // (seulement réglages ouverts : jamais pendant le compte 3-2-1, qui réveille le contexte pour ses bips)
     else{musicVolCible=c9*Math.max(0,Math.min(1,(1400-r9)/250,r9/350));musicVolCour=musicVolCible;}}
-  if(musicMode!=='none'){if(!(DEPMUS.f0>=0))musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
+  if(MENUFON.f0>=0){const k9=(performance.now()-MENUFON.f0)/(MENUFON.d*1000); /* (LE LOBBY ENTRE EN DOUCEUR) la courbe en S du départ du lobby */
+    if(k9>=1||musicMode!=='menu')MENUFON.f0=-1;else musicVolCour=musicVolCible*k9*k9*(3-2*k9);}
+  if(musicMode!=='none'){if(!(DEPMUS.f0>=0)&&!(MENUFON.f0>=0))musicVolCour+=(musicVolCible-musicVolCour)*Math.min(1,dt*6);
     if(musWaTient()){try{stt(MUS_WA.g.gain,Math.max(0,Math.min(MUS_WA.MAX,musicVolCour)),AC.currentTime,.03);}catch(e){}try{musWaGarde();}catch(e){}
       if(!VOL_LOCKED&&musicEl&&musicEl.volume!==1)try{musicEl.volume=1;}catch(e){} // (15/10) volume libre : l'élément reste à 1 (le graphe règle)
       if(MUS_WA.bus)MUS_WA.bus.course(musicMode==='run'&&running&&!gameOver);} // (15/10) en course, la musique laisse sa place au moteur (−2 dB vers 280 Hz) // (2026-10-14, session SON) branchée : le volume passe par le gain du graphe (curseur, ciel, fondus, sonie) — et le chien de garde écoute
