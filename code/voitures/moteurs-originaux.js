@@ -373,13 +373,8 @@ function orig10(g,i,E,K,rnd){
     for(let h=0;h<4;h++)B.add(helix10(.27,-.95,.95,2.2,h*PI10/2,.014,6),K.haloF,0,0,0);
     TX(B,K.chrome,[[.20,0],[.26,.08],[.42,.34],[.58,.54]],-1.05,0,0,PI10,30);TX(B,K.haloF,[[.001,0],[.40,.20],[.001,.60]],-1.10,0,0,PI10,20);
     ech=[-1.72,0,0];break;}
-  case 21:{ // STATORÉACTEUR — LE JAVELOT : une pointe de choc facettée, des bagues d'or qui coulent dessus, six dérives, une tuyère étoilée
-    TX(B,K.chrome,[[.31,0],[.37,.05],[.42,.22],[.44,.34]],.32,0,0,0,32);ANN(B,K.col,.44,.04,.30,0,0);
-    TX(B,K.col,[[.44,0],[.44,1.50],[.39,1.60]],-1.18,0,0,0,32);
-    for(let k=0;k<4;k++){const x=-.85+k*.42;ANN(B,K.or,.445,.030,x,0,0);ANN(B,K.haloF,.452,.012,x+.12,0,0);}
-    for(let k=0;k<6;k++)BXg(B,K.alu,-1.22,Math.cos(k/6*2*PI10)*.18,Math.sin(k/6*2*PI10)*.18,k/6*2*PI10,0,0,.03,.34,.03);
-    TX(B,K.chrome,[[.40,0],[.38,.10],[.44,.30],[.56,.54]],-1.18,0,0,PI10,32);TX(B,K.glow,[[.001,0],[.36,0],[.36,.02]],-1.20,0,0,0,24);
-    ech=[-1.78,0,0];break;}
+  case 21:{ // STATORÉACTEUR — (29/10, Léo : « change d'idée ») le javelot a cédé la place au PÉGASE DE FEU : tout le corps est dans h5_pegase (moteurs-themes.js)
+    ech=[-1.80,0,0];break;}
   case 22:{ // PULSORÉACTEUR — LE CŒUR QUI BAT : une tête hexagonale à pétales-clapets, un tube fin que des ondes de rings élargissent
     // (la tête hexagonale et ses pétales-clapets ont cédé la place au CŒUR — voir h4_coeur dans moteurs-themes.js)
     TX(B,K.chrome,[[.13,0],[.13,1.7]],-1.15,0,0,0,24);

@@ -40,6 +40,7 @@ function mkEngine(i){
   const croute=M9.croute(),cristal=M9.cristal(E.col);
   const MT={bloc:bloc,sombre:sombre,chrome:chrome,habit:habit,carter:carter};
   const KT=kit10(th30Kit(E,i));   // la palette de l'IDENTITÉ du palier (moteurs-themes.js)
+  if(i===13){setColib14(true);bloc30(g,2,E,KT,rnd,ENG_LOOK[2],squel9(ENG_LOOK[2]));setColib14(false);return g;}   /* (2026-10-29, Léo : « le colibri 3 d'avant était plus beau ») le palier 14 = le palier 3 d'origine, sur la palette du 14 */
   if(i>=1&&i<18){bloc30(g,i,E,KT,rnd,K,S);return g;}   // paliers 2-18 : le bloc facetté commun + la pièce unique du palier (moteurs-originaux.js)
   if(i>=18){orig10(g,i,E,KT,rnd);return g;}   // paliers 19-30 : dessins entièrement neufs (rotor, turbine, plasma, réacteur, astre…) — voir moteurs-originaux.js
 
@@ -334,7 +335,7 @@ function mkEngine(i){
      nommé ; à défaut, le feu sort par l'arrière de la pièce. Sans ce filet, la vignette
      retomberait sur une position par défaut et on retrouverait la flamme décrochée. */
   if(!g.userData.echap)g.userData.echap={p:[-(piston?S.L*.5+.12:1.05),0,0],d:[-1,0,0]};
-  if(i===0)escargot0(g,S.L,{pied:bloc,noir:sombre,feu:feu});   /* (2026-10-29, Léo : « escargot au moteur 1 », yeux kawaii) */
+  if(i===0)lapin0(g,S.L,{chrome:chrome,noir:sombre});   /* (2026-10-30, Léo : « laisse le moteur lapin en premier ») */
   return g;
 }
 /* <<<FIN MOTEURS>>> */

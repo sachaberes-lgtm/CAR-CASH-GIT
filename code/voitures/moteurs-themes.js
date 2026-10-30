@@ -5,36 +5,49 @@
    PALETTE (`TH30` remplace la laque et la flamme du palier) et sa SIGNATURE (`theme30`), posée sur le moteur — ⚠ RÈGLE : chaque
    pièce TOUCHE le moteur (aucun bout en l'air), aucune matière transparente hors du verre voulu. */
 const TH30=[null,
- [0x1f8a6a,0x9affc8],[0x0e7a54,0xff5ac8],[0x2a1c14,0xffb030],[0x9a6430,0xffc040],[0x4a6680,0x9ad8ff],   // 2 scarabée · 3 colibri · 4 scorpion · 5 hibou · 6 requin
+ [0x1f8a6a,0x9affc8],[0xc8863a,0xffd890],[0x2a1c14,0xffb030],[0x9a6430,0xffc040],[0x4a6680,0x9ad8ff],   // 2 scarabée · 3 escargot · 4 scorpion · 5 hibou · 6 requin
  [0xff6a3c,0xffb070],[0xff5f8a,0xffe0ea],[0x15171c,0xd8f4ff],[0x5f7d3c,0xd8ff90],[0xd8282a,0xffa030],   // 7 étoile de mer · 8 corail · 9 orques · 10 tortue · 11 roquette
- [0x1f4aff,0x9af0ff],[0x4f5f2a,0xffb030],[0x2a3a8a,0xffe08a],[0xffb000,0xfff0a0],[0x1f5a3a,0xff5030],   // 12 électrique · 13 grenade · 14 vitrail · 15 soleil · 16 dragon
+ [0x1f4aff,0x9af0ff],[0x4f5f2a,0xffb030],[0x0e7a54,0xff5ac8],[0xffb000,0xfff0a0],[0x1f5a3a,0xff5030],   // 12 électrique · 13 grenade · 14 colibri · 15 soleil · 16 dragon
  [0xc0201e,0xffd070],[0x3a2a6a,0x6affd8],[0xd9a441,0x5a8aff],[0xff4a1a,0xffc040],[0x4b8688,0x8affff],   // 17 pagode · 18 kraken · 19 sphinx · 20 phénix · 21 atlantide
- [0x7a8aa0,0x8ad8ff],[0xb81a3a,0xff6a80],[0x16161c,0xff4a14],[0xffc030,0xfff6c0],[0x10a86e,0xb0ffe0],   // 22 lance d'Odin · 23 cœur battant · 24 dragon cosmique · 25 Hélios · 26 alien
+ [0x2b2f8f,0x39e6ff],[0xb81a3a,0xff6a80],[0x16161c,0xff4a14],[0xffc030,0xfff6c0],[0x10a86e,0xb0ffe0],   // 22 Raijin · 23 cœur battant · 24 dragon cosmique · 25 Hélios · 26 alien
  [0xb4bccb,0xbfe8ff],[0x9ad8ff,0xff9a40],[0xff6ea0,0xffd0f0],[0xf5f6fa,0xffd780]];                        // 27 ouroboros · 28 Halley · 29 naissance · 30 l'infini
 function th30Kit(E,i){const t=TH30[i];return t?Object.assign({},E,{col:t[0],flam:t[1]}):E;}
 
-/* ===== L'ESCARGOT DE L'ÉPAVE (29/10, Léo : « fais mieux les yeux, pls kawaii ») — le palier 1 est l'épave telle quelle, avec deux YEUX D'ESCARGOT KAWAII : deux courtes tiges de fonte sur le dessus,
-   chacune finie par un grand œil noir luisant à deux reflets blancs ; sur la cloche d'embrayage, deux joues roses et un petit sourire. Le groupe s'appelle 'escargot' ===== */
-function escargot0(g,L,M){
-  const top=new THREE.Box3().setFromObject(g).max.y,grp=new THREE.Group();grp.name='escargot';const XE=L*.5;
-  const ms=function(m,x,y,z,sx,sy,sz){const e=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),m);e.position.set(x,y,z);e.scale.set(sx,sy==null?sx:sy,sz==null?sx:sz);grp.add(e);return e;};
+/* ===== L'ESCARGOT KAWAII DU 3 (30/10, Léo : « laisse le moteur lapin en premier ») — le moteur 3 garde sa forme (le bloc facetté du palier) ; deux courtes tiges portent deux GRANDS ŒILS noirs luisants à
+   deux reflets blancs ; sur la cloche d'embrayage, deux joues roses et un petit sourire ===== */
+function h5_escargot3(B,K,L,XE,top){
   const oeilM=new THREE.MeshPhongMaterial({color:0x0c0a14,shininess:300,specular:0xffffff}),luisM=new THREE.MeshBasicMaterial({color:0xffffff}),joue=new THREE.MeshBasicMaterial({color:0xff8fb0}),bouche=new THREE.MeshBasicMaterial({color:0x2a1218});
+  const sp=function(m,x,y,z,sx,sy,sz){B.add(G10.sph,m,x,y,z,0,0,0,sx,sy==null?sx:sy,sz==null?sx:sz);};
   for(let sd=-1;sd<=1;sd+=2){
-    const tige=new THREE.Mesh(new THREE.CylinderGeometry(.04,.055,.50,8),M.pied);tige.position.set(-XE+.02,top-.02,sd*.17);tige.rotation.set(sd*.28,0,.14);grp.add(tige);   /* tige penchée vers l'extérieur */
-    const ex=-XE-.01,ey=top+.26,ez=sd*.31;
-    ms(M.pied,ex,ey,ez,.17,.17,.17);                                                                                    /* le bulbe de la tige */
-    ms(oeilM,ex-.08,ey+.01,ez+sd*.01,.145,.16,.13);                                                                     /* le grand œil luisant */
-    ms(luisM,ex-.16,ey+.07,ez-sd*.02,.05,.055,.05);ms(luisM,ex-.15,ey-.06,ez+sd*.05,.024,.026,.024);                    /* ses deux reflets */
-    const jj=ms(joue,-XE-.04,-.10,sd*.22,.07,.05,.04);                                                                  /* la joue rose, sur la cloche */
+    B.add(h1_tube([[-XE+.02,top-.06,sd*.17],[-XE+.0,top+.10,sd*.24],[-XE-.01,top+.26,sd*.31]],[.065,.05,.045],6,8),K.alu,0,0,0);   // la tige
+    const ex=-XE-.01,ey=top+.28,ez=sd*.31;
+    sp(K.alu,ex,ey,ez,.17);                                                                                       // le bulbe
+    sp(oeilM,ex-.08,ey+.01,ez+sd*.01,.145,.16,.13);                                                               // le grand œil luisant
+    sp(luisM,ex-.16,ey+.07,ez-sd*.02,.05,.055,.05);sp(luisM,ex-.15,ey-.06,ez+sd*.05,.024,.026,.024);              // ses deux reflets
+    sp(joue,-XE-.04,-.10,sd*.22,.07,.05,.04);                                                                     // la joue rose, sur la cloche
   }
-  /* le petit sourire, sur la cloche : un arc de huit perles */
-  for(let q=0;q<7;q++){const a=(q/6-.5)*1.5;ms(bouche,-XE-.055,-.17+.05*Math.cos(a*1.1)*0-.045*Math.cos(a)+.045,Math.sin(a)*.10,.017,.017,.017);}
+  for(let q=0;q<7;q++){const a=(q/6-.5)*1.5;sp(bouche,-XE-.055,-.17-.045*Math.cos(a)+.045,Math.sin(a)*.10,.017);}   // le petit sourire
+}
+/* ===== LE LAPIN BLANC DE L'ÉPAVE (30/10, Léo : « les oreilles lapin je les veux identiques à avant ») — le palier 1 reste l'épave rouillée, avec JUSTE les deux oreilles de la première version
+   (celle du 28/10 sur le main) : deux grands ellipsoïdes blancs plantés dans le dessus du bloc, intérieur rose, une bien droite, l'autre un peu molle. Le groupe s'appelle 'lapin' ===== */
+function lapin0(g,L,M){
+  const top=new THREE.Box3().setFromObject(g).max.y,grp=new THREE.Group();grp.name='lapin';
+  const mat=function(col,sh,sp){return new THREE.MeshPhongMaterial({color:col,shininess:sh,specular:sp,side:THREE.DoubleSide,flatShading:true});};
+  const fur=mat(0xf7f4ee,14,0x333333),rose=mat(0xff9fbc,30,0x553344);
+  const ell=function(m,x,y,z,rx,ry,rz,ax,az){const e=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),m);e.position.set(x,y,z);e.scale.set(rx,ry,rz);e.rotation.order='ZXY';e.rotation.set(ax||0,0,az||0);grp.add(e);return e;};
+  const eh=.62;
+  [[-1,.16,-.1],[1,-.1,.14]].forEach(function(o){      /* [côté, penché de côté, penché en arrière] */
+    const zc=o[0]*.14,y0=top-eh*.2;
+    ell(fur,-.04,y0+eh*.86,zc,.085,eh,.17,o[0]*o[1],o[2]);                              /* l'oreille : ellipsoïde haut et large */
+    ell(rose,-.1,y0+eh*.8,zc,.05,eh*.8,.105,o[0]*o[1],o[2]);                             /* l'intérieur rose, un peu en avant */
+  });
   g.add(grp);
 }
 /* ============ ARTISTE 1 — LES OUTILS DE SCULPTURE (h1_*) : crânes lofts, tubes effilés, plumes posées ============
    h1_loft : un solide balayé le long de X — chaque section [x, cy, demi-largeur z, demi-hauteur y, décalage z, aplat du dessous] ; `pw` > 2 = carré
    h1_tube : un tube EFFILÉ qui suit une courbe (cornes, pattes, tentacules, becs) — rayons [r0,…,rN] le long du chemin, la pointe peut valoir ~0
    h1_pose : pose une pièce plane (plume, nageoire) selon son axe et la normale de son plan */
+let COLIB14=false;function setColib14(v){COLIB14=v;}   /* (29/10) vrai pendant la fabrication du palier 14 : le palier 3 d'origine (bloc de 3 cylindres + colibri) y est refait tel quel, sur la palette du 14 */
 const H1PI=Math.PI;
 function h1_loft(sc,n,pw){
   n=n||10;const pos=[],idx=[],uv=[],m=sc.length,e=2/(pw||2);
@@ -654,6 +667,60 @@ function h4_petale(L,W,T,curl,p){      // un pétale facetté : fuseau plat, rel
   const s=[];for(let k=0;k<=7;k++){const u=k/7;s.push({x:L*u,y:curl*L*u*u,w:W*Math.pow(Math.sin(Math.PI*Math.pow(u,.62)),.9)+.004,hu:T*(1-.5*u)+.003,hd:T*(1-.5*u)+.003,p:p||1.4});}
   return h4_loft(s,6);
 }
+
+/* ===== RAIJIN (30/10, Léo : « essaye quelque chose de nouveau, plus beau, là c'est toy ») — le dieu japonais du tonnerre, en statoréacteur : un fuselage laqué INDIGO à prise d'air de démon (huit crocs, deux cornes d'or),
+   un cône de choc de chrome, la couronne de HUIT TAMBOURS (bords d'or, peau de foudre) tenue au fuselage par huit rayons d'or, la foudre blanche qui saute de tambour en tambour, une écharpe de rubans qui flotte derrière ===== */
+function h5_raijin(B,K){
+  const PI=H1PI,R=1.08,XR=.10,laque=h2_poli(0x2b2f8f,260,.45),laque2=h2_poli(0x4a52d8,260,.45),peau=new THREE.MeshBasicMaterial({color:0x7fefff}),foudre=new THREE.MeshBasicMaterial({color:0xffffff});
+  // le fuselage et sa tuyère
+  TX(B,laque,[[.32,0],[.44,.45],[.50,1.20],[.42,1.75],[.34,1.90]],-.92,0,0,0,32);
+  TX(B,K.or,[[.52,0],[.52,.05],[.50,.10]],-.30,0,0,0,32);TX(B,K.or,[[.52,0],[.52,.05],[.50,.10]],.62,0,0,0,32);                             // deux bagues d'or
+  TX(B,K.chrome,[[.46,0],[.42,.14],[.50,.40],[.66,.70]],-.92,0,0,PI,32);TX(B,K.glow,[[.001,0],[.46,0],[.46,.02]],-.94,0,0,0,24);ANN(B,K.haloF,.60,.06,-1.30,0,0);   // la tuyère : cloche de chrome, cœur de foudre
+  // la prise d'air de démon : lèvre de chrome, cône de choc, huit crocs, deux cornes d'or
+  TX(B,K.chrome,[[.36,0],[.42,.06],[.40,.20],[.34,.26]],.98,0,0,0,32);
+  vers10(B,cone10(.26,.95,18),K.chrome,new THREE.Vector3(1.05,0,0),new THREE.Vector3(1,0,0),1);                                              // le cône de choc
+  for(let k=0;k<8;k++){const a=k/8*2*PI+.2,c=Math.cos(a),s=Math.sin(a);vers10(B,cone10(.045,.30,5),foudre,new THREE.Vector3(1.20,c*.40,s*.40),new THREE.Vector3(1,c*.10,s*.10),1);}   // les crocs
+  for(let sd=-1;sd<=1;sd+=2)vers10(B,cone10(.07,.70,7),K.or,new THREE.Vector3(.95,.40,sd*.30),new THREE.Vector3(.35,1,sd*.55),1);                // les cornes
+  // la couronne de huit tambours + son anneau d'or
+  B.add(new THREE.TorusGeometry(R,.04,6,48),K.or,XR,0,0,0,PI/2,0);
+  const ctr=[];
+  for(let k=0;k<8;k++){const a=k/8*2*PI,c=Math.cos(a),s=Math.sin(a),y=c*R,z=s*R;ctr.push([XR,y,z]);
+    B.add(new THREE.CylinderGeometry(.21,.21,.30,18),laque2,XR,y,z,0,0,PI/2);                                                                 // le fût du tambour
+    B.add(new THREE.CylinderGeometry(.215,.215,.02,18),K.or,XR+.17,y,z,0,0,PI/2);B.add(new THREE.CylinderGeometry(.215,.215,.02,18),K.or,XR-.17,y,z,0,0,PI/2);   // les cercles d'or
+    B.add(new THREE.CylinderGeometry(.17,.17,.02,18),peau,XR+.175,y,z,0,0,PI/2);                                                              // la peau
+    for(let q=0;q<3;q++){const b=q/3*2*PI+k;B.add(G10.sph,K.or,XR+.19,y+Math.cos(b)*.075,z+Math.sin(b)*.075,0,0,0,.04,.04,.04);}              // les trois virgules d'or (tomoe)
+    B.add(h1_tube([[0,0,0],[XR,c*R*.40,s*R*.40],[XR,c*(R-.22),s*(R-.22)]],[.03,.025,.025],4,4),K.or,0,0,0);                                  // le rayon d'or
+  }
+  // la foudre : un éclair en zigzag entre deux tambours voisins
+  for(let k=0;k<8;k++){const A=ctr[k],Bq=ctr[(k+1)%8],pts=[[A[0]+.16,A[1],A[2]]];
+    for(let q=1;q<5;q++){const f=q/5,o=(q%2?1:-1)*.11;pts.push([XR+.20+Math.sin(k*2.3+q)*.06,A[1]+(Bq[1]-A[1])*f+o*Math.cos((k+.5)/8*2*PI),A[2]+(Bq[2]-A[2])*f+o*Math.sin((k+.5)/8*2*PI)]);}
+    pts.push([Bq[0]+.16,Bq[1],Bq[2]]);
+    B.add(h1_tube(pts,[.012,.016,.012,.016,.012,.012],12,4),foudre,0,0,0);B.add(h1_tube(pts,[.04,.05,.04,.05,.04,.04],12,5),K.haloC,0,0,0);}
+  // l'écharpe : douze rubans qui partent des tambours et flottent vers l'arrière
+  for(let k=0;k<12;k++){const a=k/12*2*PI,c=Math.cos(a),s=Math.sin(a);
+    h3_leaf(B,k%3===0?peau:k%3===1?laque2:K.blanc,[[XR-.10,c*(R+.05),s*(R+.05)],[XR-.80,c*(R+.30)+Math.sin(k)*.12,s*(R+.30)+Math.cos(k)*.12],[XR-1.85,c*(R+.62)+Math.sin(k*1.7)*.2,s*(R+.62)+Math.cos(k*1.7)*.2]],.16,{ribMat:K.or});}
+}
+/* ===== LA COMÈTE v3 (28/10, Léo : « améliore et refonds le moteur 28 » ; la traînée viendra plus tard, pour les paliers 20+) — le renard de glace, étoffé :
+   un cœur de glace brûlant tenu dans l'anneau d'or, deux couronnes d'éclats de crinière, une gueule ouverte à crocs, une gorgerette de cristaux, des éclats d'or aux pointes ===== */
+function h5_comete(B,K){
+  h4_comete(B,K);
+  const k=1.9,x0=.10,P=(x,y,z)=>new THREE.Vector3(x,y,z),D=(x,y,z)=>new THREE.Vector3(x,y,z).normalize();
+  const pk=(x,y,z,d,r,l,m,sg)=>vers10(B,cone10(r*k,l*k,sg||4),m,P(x0+x*k,y*k,z*k),d,1);
+  // la gueule : une mâchoire inférieure entrouverte, quatre crocs, la langue de braise
+  B.add(h4_loft([{x:x0+.62*k,y:-.17*k,w:.07*k,hu:.022*k,hd:.04*k,p:2.4,z:0},{x:x0+.82*k,y:-.20*k,w:.05*k,hu:.018*k,hd:.03*k,p:2.4,z:0},{x:x0+.98*k,y:-.20*k,w:.025*k,hu:.012*k,hd:.02*k,p:2.4,z:0}],6),K.blanc,0,0,0);
+  for(let sd=-1;sd<=1;sd+=2){pk(.90,-.075,sd*.045,D(.2,-1,sd*.15),.018,.17,K.chrome,5);pk(.80,-.19,sd*.04,D(.15,1,sd*.1),.014,.10,K.chrome,5);}
+  B.add(G10.sph,K.glow,x0+.84*k,-.13*k,0,0,0,0,.05*k,.025*k,.04*k);
+  // la crinière : une seconde couronne d'éclats, plus petits et plus nombreux, décalée
+  for(let j=0;j<16;j++){const a=(j+.5)/16*2*PI10,c=Math.cos(a),sn=Math.sin(a);pk(-.14,sn*.36,c*.36,D(-1,sn*.9,c*.9),.045,.50+(j%4)*.07,j%2?K.chrome:K.col);}
+  // la gorgerette : une grappe de cristaux sous le museau
+  for(let j=0;j<5;j++){const a=(j-2)*.42;pk(.16,-.19,Math.sin(a)*.20,D(.30+.1*Math.abs(j-2),-1,Math.sin(a)*.9),.075-.012*Math.abs(j-2),.38-.04*Math.abs(j-2),j%2?K.metal:K.col,5);}
+  // le cœur : une gemme à facettes brûlante, tenue au centre de l'anneau (elle touche le cou)
+  B.add(new THREE.IcosahedronGeometry(.17*k,0),K.glow,x0-.04,0,0);
+  B.add(new THREE.OctahedronGeometry(.26*k,0),K.halo(0xffd0a0,.30),x0-.04,0,0);
+  // l'anneau d'or : douze crans runiques
+  for(let j=0;j<12;j++){const a=j/12*2*PI10,tau=.5,Rr=.62*k,cn=Math.cos(a)*Rr,sn=Math.sin(a)*Rr;
+    B.add(G10.box,K.glow,x0-.04-sn*Math.sin(tau),sn*Math.cos(tau)*0+sn*Math.cos(tau),cn,0,0,tau,.03,.03,.07);}
+}
 function theme30(B,i,K,c,g){
   const L=c.L||2,XE=L*.5,top=c.top||.85,tw=c.tw||.18;
   const P=(x,y,z)=>new THREE.Vector3(x,y,z),D=(x,y,z)=>new THREE.Vector3(x,y,z).normalize();
@@ -666,8 +733,8 @@ function theme30(B,i,K,c,g){
   switch(i){
   case 1:{ // LE SCARABÉE — HYBRIDE : élytres = couvre-culasse, corne de rhinocéros, mandibules, pattes
     h1_p1(B,K,L,XE,top);break;}
-  case 2:{ // LE COLIBRI — HYBRIDE : tête ronde, long bec, gorge qui brille, ailes en V, queue en ciseaux
-    h1_p2(B,K,L,XE,top);break;}
+  case 2:{ // L'ESCARGOT KAWAII (30/10 : le lapin reste au 1, l'escargot passe au 3) — le bloc du palier garde sa forme, deux grands yeux sur tiges, joues roses et sourire sur la cloche
+    if(COLIB14)h1_p2(B,K,L,XE,top);else h5_escargot3(B,K,L,XE,top);break;}
   case 3:{ // LE SCORPION — HYBRIDE : tergites, pinces, huit pattes, la queue née de l'échappement
     h1_p3(B,K,L,XE,top);break;}
   case 4:{ // LE HIBOU — HYBRIDE : le disque facial est la face, ailes repliées, serres, queue en éventail
@@ -885,40 +952,8 @@ function theme30(B,i,K,c,g){
     const tx=XE+.10;TX(B,K.chrome,[[.12,0],[.18,.06],[.30,.22],[.38,.34]],tx,yc,0,0,12);ANN(B,K.or,.38,.014,tx+.35,yc,0);TX(B,K.glow,[[.001,0],[.30,0],[.30,.02],[.001,.02]],tx+.34,yc,0,0,12);
     c.echap=[tx+.38,yc,0];
     break;}
-  case 13:{ // LE VITRAIL (h2) — L'OISEAU-CATHÉDRALE : le V12 est la nef (voûte bleue nervurée d'or), la cloche d'embrayage = la tête d'oiseau (bec d'or, œil de verre rouge,
-    //   huppe de lancettes), les deux ailes = des éventails de lancettes de verre sertis de plomb et d'or, plantés dans les épaules, et l'échappement perce
-    //   la GRANDE ROSACE qui lui sert de queue en roue — tenue au corps par quatre haubans d'or
-    const yc=.30,hx=-XE,V=[0xff3a4a,0x3a6aff,0xffc030,0x2ad08a,0xb04aff,0xff7a2a];
-    const GL=V.map(c=>new THREE.MeshPhongMaterial({color:c,emissive:c,emissiveIntensity:.55,shininess:300,specular:0xffffff,side:THREE.DoubleSide}));
-    const lanc=(l,w)=>[[0,-w],[l*.55,-w*.95],[l*.82,-w*.55],[l,0],[l*.82,w*.55],[l*.55,w*.95],[0,w]];     // une lancette : un arc brisé
-    // le corps : la nef, ses nervures d'or
-    B.add(h2_loft([[hx+.10,yc,.34,.40,2.5],[hx+.40,yc,.52,.56,2.5],[-L*.2,yc,.56,.60,2.6],[L*.2,yc,.56,.60,2.6],[XE-.10,yc,.46,.50,2.5],[XE+.20,yc,.24,.26,2.5]],12),K.col,0,0,0);
-    for(let k=0;k<9;k++){const x=hx+.40+k*(L-.60)/8;h2_ANN(B,K.or,.585,.022,x,yc,0);}
-    // la tête : crâne d'oiseau sculpté, bec d'or, œil de verre, huppe
-    B.add(h2_loft([[hx+.22,yc+.08,.34,.36,2.5],[hx-.10,yc+.14,.34,.34,2.4],[hx-.34,yc+.14,.28,.28,2.4],[hx-.54,yc+.08,.18,.19,2.4],[hx-.66,yc+.02,.09,.10,2.4]],12),K.col,0,0,0);
-    vers10(B,cone10(.13,.34,6),K.or,P(hx-.58,yc+.06,0),D(-1,-.28,0),1);vers10(B,cone10(.10,.26,6),K.or,P(hx-.56,yc-.03,0),D(-1,.18,0),1);        // le bec : mandibule haute et basse
-    for(let sd=-1;sd<=1;sd+=2){B.add(new THREE.TorusGeometry(.085,.022,6,14),K.or,hx-.34,yc+.20,sd*.265,0,sd*.25,0);B.add(G10.sph,GL[0],hx-.34,yc+.20,sd*.275,0,0,0,.07,.07,.03);B.add(G10.sph,K.noir,hx-.36,yc+.20,sd*.29,0,0,0,.032,.032,.02);
-      B.add(G10.sph,K.noir,hx-.70,yc+.10,sd*.05,0,0,0,.018,.018,.018);}
-    for(let k=0;k<5;k++){const rz=.45+k*.20,len=.50-k*.04,x=hx+.0-k*.06,y=yc+.38;
-      B.add(plan10(lanc(len+.05,.075),.05,.006),K.or,x,y,0,0,0,rz);B.add(plan10(lanc(len,.060),.065,.004),GL[(k*2+1)%6],x+.01,y+.008,0,0,0,rz+.01);}   // la huppe de lancettes
-    // les ailes : un éventail de sept lancettes de verre par épaule
-    const tau=.80;
-    for(let sd=-1;sd<=1;sd+=2){const S=P(-.10,.72,sd*.50);
-      B.add(G10.sph,K.or,S.x,S.y,S.z,0,0,0,.13,.13,.13);                                                                          // l'épaule d'or
-      for(let k=0;k<7;k++){const th=.05+k*.20,l=1.45-k*.12,d=new THREE.Vector3(Math.sin(th),Math.sin(tau)*Math.cos(th),sd*Math.cos(tau)*Math.cos(th)).normalize();
-        const n=new THREE.Vector3(0,-sd*Math.cos(tau),Math.sin(tau)).normalize();
-        h2_orient(B,plan10(lanc(l+.05,l*.12),.03,.006),K.or,S,d,n);
-        h2_orient(B,plan10(lanc(l,l*.102),.044,.004),GL[(k+(sd>0?0:3))%6],S.clone().addScaledVector(n,.002*(k%2)),d,n);}}
-    // la rosace-queue : douze secteurs de verre, des rayons de plomb, deux couronnes d'or ; elle est percée par la tuyère
-    const rx=XE+.46,R=.74;
-    for(let k=0;k<12;k++)B.add(new THREE.CircleGeometry(R,5,k/12*2*PI10,2*PI10/12-.025),GL[k%6],rx,yc,0,0,PI10/2,0);
-    for(let k=0;k<12;k++){const a=k/12*2*PI10,ca=Math.cos(a),sa=Math.sin(a);tige(P(rx+.012,yc+sa*.25,ca*.25),P(rx+.012,yc+sa*R,ca*R),.011,K.noir);
-      B.add(G10.sph,K.or,rx+.01,yc+sa*.50,ca*.50,0,0,0,.06,.06,.025);B.add(G10.sph,GL[(k+3)%6],rx+.03,yc+sa*.50,ca*.50,0,0,0,.038,.038,.02);}
-    B.add(new THREE.TorusGeometry(R+.01,.04,6,36),K.or,rx,yc,0,0,PI10/2,0);B.add(new THREE.TorusGeometry(.25,.03,6,24),K.or,rx,yc,0,0,PI10/2,0);
-    for(let k=0;k<4;k++){const a=(k+.5)/4*2*PI10,ca=Math.cos(a),sa=Math.sin(a);tige(P(XE-.12,yc+sa*.40,ca*.40),P(rx,yc+sa*R,ca*R),.026,K.or);}   // les haubans d'or : la rosace tient au corps
-    const tx=XE+.08;TX(B,K.chrome,[[.12,0],[.16,.06],[.22,.34],[.30,.56]],tx,yc,0,0,12);TX(B,K.glow,[[.001,0],[.24,0],[.24,.02],[.001,.02]],tx+.54,yc,0,0,12);
-    c.echap=[tx+.58,yc,0];
-    break;}
+  case 13:{ // LE COLIBRI (29/10, Léo : « le colibri prend la place du moteur 14 ») — HYBRIDE : tête ronde, long bec, gorge qui brille, ailes en V, queue en ciseaux
+    h1_p2(B,K,L,XE,top);break;}
   case 14:{ // LE SOLEIL (h2, retouché) — LE SOLEIL-LION : le W12 est son torse d'ambre, la cloche d'embrayage = le VISAGE d'ivoire et d'or du soleil (arcades, grands yeux blancs aux pupilles
     //   noires, nez, bouche à crocs) posé sur une LENTILLE épaisse d'ambre sombre ; sa crinière EST la couronne : trois rangs de rayons-pointes plantés sur le bord de la lentille, dans le plan
     //   et inclinés vers l'avant et vers l'arrière — le soleil se lit de TOUS les côtés ; l'échappement = un petit soleil de queue autour de la tuyère à braise
@@ -1095,22 +1130,8 @@ function theme30b(B,i,K,g){   // (B est réassignable : le dragon noir bâtit sa
       B.add(new THREE.CylinderGeometry(.08,.08,.06,10).rotateZ(PI10/2),K.or,.80,y,z);B.add(new THREE.CylinderGeometry(.08,.08,.06,10).rotateZ(PI10/2),K.or,-.80,y,z);}
     h3_poseidon(B,K);
     break;}
-  case 21:{ // LA LANCE D'ODIN (artiste 3) — Munin le corbeau borgne : son bec est la pointe de Gungnir, sa collerette de plumes ceint l'épaule, ses ailes sont les empennages,
-    //   les runes brillent sur le fût, l'orbite vide porte une rune
-    B.add(h3_loft([{x:.56,r:h3_ring({yt:.40,yb:-.40,w:.40,yw:.0})},{x:.88,r:h3_ring({yt:.42,yb:-.36,w:.38,yw:.02})},{x:1.14,r:h3_ring({yt:.36,yb:-.22,w:.30,yw:.04,wt:.20})},{x:1.36,r:h3_ring({yt:.24,yb:-.10,w:.18,wt:.12})}],1),K.col,0,0,0);
-    B.add(h3_loft([{x:1.30,r:h3_ring({yt:.20,yb:-.04,w:.14,wt:.10})},{x:1.72,r:h3_ring({yt:.14,yb:-.05,w:.10,wt:.07})},{x:2.10,r:h3_ring({yt:.06,yb:-.07,w:.05,wt:.04})},{x:2.50,r:h3_ring({yt:-.02,yb:-.09,w:.012,wt:.01})}],1),K.chrome,0,0,0);   // le bec = la pointe
-    B.add(h3_loft([{x:1.30,r:h3_ring({yt:-.06,yb:-.20,w:.10,wt:.07})},{x:1.70,r:h3_ring({yt:-.10,yb:-.19,w:.06,wt:.04})},{x:1.96,r:h3_ring({yt:-.12,yb:-.16,w:.012,wt:.01})}],1),K.alu,0,0,0);
-    B.add(new THREE.TorusGeometry(.12,.022,5,12),K.or,1.34,.0,0,0,PI10/2,0);
-    for(let sd=-1;sd<=1;sd+=2){
-      B.add(h3_tube([[1.34,.24,sd*.10],[1.12,.32,sd*.22],[.92,.28,sd*.30]],.05,.03,{sides:5}),K.or,0,0,0);
-      if(sd>0){B.add(G10.sph,K.glow,1.08,.12,.27,0,0,0,.065,.065,.045);B.add(new THREE.TorusGeometry(.08,.018,5,12),K.or,1.09,.12,.27,0,PI10/2,0);}   // l'œil de glace
-      else{B.add(G10.box,K.noir,1.08,.12,-.28,0,0,0,.12,.14,.03);BXg(B,K.glow,1.08,.12,-.30,0,0,0,.02,.12,.012);BXg(B,K.glow,1.08,.14,-.30,0,0,.9,.02,.08,.012);}      // l'orbite vide et sa rune
-      B.add(h3_tube([[.70,.28,sd*.12],[.40,.52,sd*.34],[.10,.70,sd*.40]],.08,.012,{sides:5}),K.colD,0,0,0);                                                                          // les plumes de la nuque
-      for(let k=0;k<7;k++){const t=k/6,rx=.30-k*.20,m=k%2?K.col:K.colD;                                                                                                                 // L'AILE : sept rémiges
-        h3_leaf(B,m,[[rx,.0,sd*.44],[rx-.22,.06+.10*t,sd*(.80+k*.04)],[rx-.62-.1*k,.14-.18*t,sd*(1.20+.55*Math.cos(t*1.5)-k*.07)]],.15,{ribMat:K.chrome});}}
-    for(let r=0;r<3;r++)for(let k=0;k<10;k++){const a=k/10*2*PI10+r*.3,A1=[.62+r*.10,Math.cos(a)*.38,Math.sin(a)*.38],B1=[.62+r*.10,Math.cos(a+.62)*.38,Math.sin(a+.62)*.38],T=[.30+r*.10,Math.cos(a+.31)*(.52+r*.04),Math.sin(a+.31)*(.52+r*.04)];
-      B.add(h3_tris(h3_prism(A1,B1,T,[.03,0,0])),(k+r)%2?K.colD:K.col,0,0,0);}                                                                                                           // la collerette
-    for(let k=0;k<4;k++){const x=-.85+k*.42;for(let j=0;j<6;j++){const a=j/6*2*PI10;B.add(G10.box,K.glow,x+.12,Math.sin(a)*.448,Math.cos(a)*.448,a,0,0,.08,.012,.012);}}
+  case 21:{ // RAIJIN (30/10, Léo : « Pégase : essaye quelque chose de nouveau, plus beau, là c'est toy ») — le dieu du tonnerre : un statoréacteur laqué indigo, la couronne de huit tambours, la foudre qui saute entre eux
+    h5_raijin(B,K);
     break;}
   case 22:{ // LE CŒUR BATTANT v2 — le réacteur EST un cœur (h4_coeur) : ventricules de rubis, aorte qui plonge dans la colonne, veines le long des anneaux
     h4_coeur(K,g);
@@ -1137,7 +1158,7 @@ function theme30b(B,i,K,g){   // (B est réassignable : le dragon noir bâtit sa
 
 
   case 27:{ // LA COMÈTE v2 — un renard de glace dont la queue est le feu (h4_comete)
-    fx3_comete(B,K);
+    h5_comete(B,K);
     break;}
   case 28:{ // LA NAISSANCE v2 — un lotus de lumière sur une étoile qui vient de naître, les anneaux de supernova qui s'élargissent derrière (h4_naissance)
     fx3_naissance(B,K);
