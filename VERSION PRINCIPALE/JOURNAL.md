@@ -4,6 +4,13 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+
+## LE LOBBY ENTRE EN DOUCEUR (2026-10-30, v1019 — Léo : « mtn ça démarre, plus calmement, pas d'un coup »)
+- Le lobby montait au niveau du menu en ~0,4 s (le ressort de musicTick), et parfois sans fondu : au lancement le morceau met plusieurs secondes
+  à charger (simulateur : 8 à 40 s), musicMenu le trouvait « pas en pause » et ne remettait pas le volume à zéro — il partait d'un coup.
+- `MENUFON` (musique.js) : chaque départ du lobby (menu, retour de course, morceau suivant) arme un fondu en S de 3 s qui part au VRAI départ
+  du son (`playing`). Banc : 0 → niveau du menu en 3 s, régulier. `?lobbyfondu=0` = avant. iPhone sans MUS_WA : volume verrouillé, inchangé.
+
 ## LE LOBBY ENCHAÎNE (2026-10-30, v1012 — Léo : « la musique lobby joue encore deux fois », « elle recommence », à la fin du morceau)
 - Le morceau du menu (un des trois du ciel : nuages, altitude, apesanteur, 2 min 30 à 3 min) BOUCLAIT : à sa fin, le même repartait du début.
   Vu à chaque essai (navigateur avec le son, simulateur iPhone : `RECULE de 168 → 0`). Désormais il ne boucle plus : à `ended` (mode menu),
