@@ -81,6 +81,8 @@ function roul10(B,K,x,y,z,R,ax){   // un ROULEMENT À BILLES : deux bagues et un
     if(ax==='y')B.add(G10.ico||(G10.ico=new THREE.IcosahedronGeometry(1,1)),K.chrome,x+a,y,z+b,0,0,0,R*.16,R*.16,R*.16);else B.add(G10.ico||(G10.ico=new THREE.IcosahedronGeometry(1,1)),K.chrome,x,y+a,z+b,0,0,0,R*.16,R*.16,R*.16);}
 }
 function prop10(B,K,x,y,z,R,n,s){  // une GRAPPE de n propulseurs autour de l'axe, tournés vers -x : la puissance se COMPTE
+  /* (30/10, Léo : « les pots multiples, vus de derrière, font plein de cercles qui s'entremêlent pas naturellement ») — les pots ne se touchent plus jamais : la couronne s'élargit (d'un quart au plus) puis les pots rapetissent jusqu'à laisser un vrai jour entre voisins */
+  if(n>1){const sn=Math.sin(PI10/n),r0=.19*s*1.5;R=Math.min(Math.max(R,r0/sn),R*1.25);s=Math.min(s,R*sn/(.19*1.5));}
   TX(B,K.colD,[[.001,0],[R+.18*s,0],[R+.20*s,.03],[R+.18*s,.07],[.001,.07]],x-.02,y,z,0,Math.max(8,n*2));   // la PLATINE qui les porte (aucune tuyère en l'air)
   BAR(B,K.chrome,.09*s,x,x+.75,y,z);B.add(new THREE.TorusGeometry(R+.19*s,.016*s,4,32),K.or,x+.035,y,z,0,PI10/2,0);   // le fût qui la relie au moteur
   for(let k=0;k<n;k++){const t=k/n*2*PI10+.4,yy=y+Math.cos(t)*R,zz=z+Math.sin(t)*R;
