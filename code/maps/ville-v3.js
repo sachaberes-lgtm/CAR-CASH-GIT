@@ -371,12 +371,10 @@ function villeMatPub(){
      0-3 PLACES (trouées de 180-340 m où les deux premiers rangs s'effacent, d'un côté ou des deux : la vue s'ouvre sur la ville), 0-3 TOURS REPÈRES
      (des géantes de 400 à 700 m au-dessus de la route — 1,3 à 1,8 km à la vitrée —, mât et feu d'obstacle, parfois une couronne), les ANTENNES,
      les COURONNES, les TUYAUX ;
-   · LA VILLE (et MINUIT) : les ENSEIGNES verticales (rares · normales · partout), les RÉCLAMES (×0,4 · ×1 · ×1,9), la PALETTE des néons (magenta et cyan ·
-     tout magenta · cyan froid · rouge et or — que la teinte de la ville remappe ensuite), le BÉTON (gris-bleu · acier · brique sombre · bleu nuit),
-     la part de GÉANTES DE VERRE (peu · normale · beaucoup) et lesquelles ;
-   · CRYPTO CITY : 1 à 3 TAUREAUX (à des abscisses tirées), 2 à 5 rangées de BOUGIES (longueur, abscisses, et le marché : bull pur · normal · volatil),
-     les PIÈCES ₿ géantes (6 · 12 · 20), les DIAMANTS (3 · 8 · 14), les DIRIGEABLES (1 · 3 · 5), les bougies du lointain, la PLUIE D'ARGENT (fine · normale ·
-     averse), la cadence des FUSÉES et des FEUX, la palette des néons (comme avant · tout or · vert profit · orange bitcoin) ;
+   · LA VILLE (et MINUIT, et son temps de jour ex-CRYPTOCITY) : les ENSEIGNES verticales (rares · normales · partout), les RÉCLAMES (×0,4 · ×1 · ×1,9),
+     la PALETTE des néons (magenta et cyan · tout magenta · cyan froid · rouge et or — que la teinte de la ville remappe ensuite), le BÉTON
+     (gris-bleu · acier · brique sombre · bleu nuit), la part de GÉANTES DE VERRE (peu · normale · beaucoup) et lesquelles — (2026-10-31) CRYPTO CITY
+     n'a plus son propre tirage : ses quelques bougies, discrètes, sont fixes (voir cryptoPlace, cryptocity.js), le taureau est retiré du code ;
    · LA VILLE VITRÉE : les FORMES des géantes (mixte · vrillées · lames · sobres · rondes — et lesquelles : la graine de position décalée), les MONTANTS
      (alu · champagne · graphite), le DIRIGEABLE (aucun · comme avant · haut · rasant), les NUAGES (dégagé · comme avant · couvert).
    Que des pièces déjà là (le cube des tours, ses matières, les néons, les instances de crypto) : 0 programme de plus. Rien sur la route : les places
@@ -384,11 +382,10 @@ function villeMatPub(){
    (lisible) : `dbgVilleDeco()`, `dbgCrypto().deco`, `dbgVitre().deco`, `dbgVilleGta().deco`. `?sans=villedecor`, `?sans=cryptodecor`, `?sans=vitreedecor` =
    le décor d'avant, au tirage près. */
 const VILLE_DECOR=!/[?&]sans=([^&]*,)?villedecor(,|&|$)/.test(location.search);
-const CRYPTO_DECOR=!/[?&]sans=([^&]*,)?cryptodecor(,|&|$)/.test(location.search);
 const VITREE_DECOR=!/[?&]sans=([^&]*,)?vitreedecor(,|&|$)/.test(location.search);
 function villeDecoGraine(seed,k){let h=Math.imul(((seed>>>0)^k)>>>0,0x85EBCA6B);h^=h>>>13;h=Math.imul(h,0xC2B2AE35);h^=h>>>16;return mulberry32(h>>>0);} // la graine BRASSÉE (des graines voisines ne tirent pas les mêmes choix)
-function villeDecoTire(seed,genre){ // genre : 'ville' (et minuit) · 'crypto' · 'vitree' — null : le décor d'avant
-  if(genre==='ville'?!VILLE_DECOR:genre==='crypto'?!CRYPTO_DECOR:!VITREE_DECOR)return null;
+function villeDecoTire(seed,genre){ // genre : 'ville' (et minuit, et son temps de jour ex-CRYPTOCITY) · 'vitree' — null : le décor d'avant
+  if(genre==='ville'?!VILLE_DECOR:!VITREE_DECOR)return null;
   const dr=villeDecoGraine(seed,0xDEC0C17E),ch=a=>a[(dr()*a.length)|0],D={genre:genre},li=[],pc=x=>Math.round(x*100)+' %';
   {const h=ch([[.72,'basse'],[1,'moyenne'],[1.3,'haute']]);D.haut=h[0];li.push('skyline '+h[1]);}
   {const d=ch([[.7,'aérée'],[1,'normale'],[1.18,'serrée']]);D.dens=d[0];li.push('densité '+d[1]);}
@@ -405,15 +402,6 @@ function villeDecoTire(seed,genre){ // genre : 'ville' (et minuit) · 'crypto' �
     {const n=ch([['magenta et cyan',null],['tout magenta',[0xff3ec8,0xff6ad5,0xff4f9e,0xff2e8e,0xff3ec8]],['cyan froid',[0x3ee8ff,0x52c8ff,0x8fd8ff,0x3ee8ff,0xff3ec8]],['rouge et or',[0xff3b5c,0xffb04a,0xff4f9e,0xffd75e,0xff3b5c]]]);D.neon=n[1];li.push('néons '+n[0]);}
     {const b=ch([['gris-bleu',null],['acier',[.19,.21,.23]],['brique sombre',[.25,.20,.19]],['bleu nuit',[.15,.18,.28]]]);D.bet=b[1];li.push('béton '+b[0]);}
     {const v=ch([[.5,'peu'],[1,'normal'],[1.7,'beaucoup']]);D.verre={k:v[0],ox:dr()*97,oz:dr()*89};li.push('géantes de verre : '+v[1]);}}
-  else if(genre==='crypto'){D.ens=1;D.pub=ch([.5,1,1.6]);li.push('réclames ×'+D.pub);
-    {const n=dr()<.25?1:dr()<.7?2:3,T9=[];for(let k=0;k<n;k++)T9.push(n===1?.3+dr()*.4:(k+.2+dr()*.6)/n);D.tau=T9;li.push(n+' taureau'+(n>1?'x':'')+' : '+T9.map(pc).join(', '));}
-    {const n=2+((dr()*4)|0),B9=[];for(let k=0;k<n;k++)B9.push({f:(k+.1+dr()*.8)/n,n:7+((dr()*10)|0)});D.boug=B9;
-     const m=ch([[0,'bull pur'],[1,'normal'],[2,'volatil']]);D.rouge=m[0];li.push(n+' rangées de bougies ('+B9.map(function(b){return b.n;}).join('/')+'), marché '+m[1]);}
-    D.pie=ch([6,12,20]);D.diam=ch([3,8,14]);D.dir=ch([1,3,5]);li.push(D.pie+' pièces ₿, '+D.diam+' diamants, '+D.dir+' dirigeable'+(D.dir>1?'s':''));
-    D.bfo=ch([.05,.13,.26]);li.push('bougies au loin ×'+(D.bfo/.13).toFixed(1));
-    {const p=ch([[.25,'fine'],[.5,'normale'],[.85,'averse']]);D.pluie=p[0];li.push('pluie d’argent '+p[1]);}
-    D.fus=ch([.6,1,1.7]);D.feu=ch([.6,1,1.7]);li.push('fusées ×'+D.fus+', feux ×'+D.feu);
-    {const n=ch([['comme avant',null],['tout or',[0xffd23e,0xffc63a,0xfff2c8,0xf7931a,0xffd23e]],['vert profit',[0x2bff88,0x6dffc8,0x3dff9a,0xffd23e,0x2bff88]],['orange bitcoin',[0xf7931a,0xffb04a,0xffd23e,0xf7931a,0xfff2c8]]]);D.neon=n[1];li.push('néons '+n[0]);}}
   else{
     {const f=ch([['mixte',[.28,.46,.60,.71,.86]],['vrillées',[.14,.26,.52,.72,.86]],['lames',[.18,.30,.40,.48,.62]],['sobres',[.5,.7,.76,.82,.94]],['rondes',[.2,.32,.42,.52,.86]]]);D.fo={s:f[1],ox:dr()*97,oz:dr()*89};li.push('formes '+f[0]);}
     {const m=ch([['alu',null],['champagne',[1.05,.97,.82]],['graphite',[.5,.52,.56]]]);D.mont=m[1];li.push('montants '+m[0]);}

@@ -97,7 +97,7 @@ function crhTick(t,on){
 function crhChauffe(add){ /* au menu : le programme (opaque et additif) compilé et dessiné une fois hors écran — 0 compilation en course */
   const g=crhGeo([0,0,0,1,0,0,0,1,0],[0,0,0,0,0,0,0,0,0,0,0,0]);for(const a of [false,true]){const o=new THREE.Mesh(g,crhMat(a));o.frustumCulled=false;add(o);}
 }
-(function(){ /* les crochets de banc, posés par-dessus ceux de cryptocity-taureau */
+(function(){ /* les crochets de banc, posés par-dessus ceux de cryptocity.js */
   const d0=window.dbgCrypto;
   window.dbgCrypto=function(k,v){
     if(k==='horizon')return {tours:!!CRH.tours,faisceaux:!!CRH.fais,tris:CRH.n,echelle:CRH.tours?+CRH.tours.scale.x.toFixed(3):null,brume:scene.fog?[Math.round(scene.fog.near),Math.round(scene.fog.far)]:null,nuit:CRYPTO.uNuit.value};

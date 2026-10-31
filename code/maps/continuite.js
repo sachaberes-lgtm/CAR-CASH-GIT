@@ -132,11 +132,11 @@ function sfNiveau(c,m,te){ // le NIVEAU d'un couple map × météo, sous la form
   else if(C.teintes)vtBio(o.bio[0],'violet'); // (le brouillard violet a lui aussi besoin de naître)
   return o;}
 function sfTeinte(c,prev){const L=SF_CARTES[c].teintes;if(!L)return null;let t=L[(Math.random()*L.length)|0];if(prev&&t===prev.teinte)t=L[(Math.random()*L.length)|0];return t;} // (2026-10-16) la TEINTE de la ville, au hasard
-/* (2026-10-25, Léo : « merge crypto city et ville en une map : la journée c'est crypto, la nuit c'est la ville, le nom de la map c'est cryptoville ») UNE MAP AU TIRAGE,
-   DEUX DÉCORS : `SF_FUSION` range CRYPTO CITY (matin, midi, soir) et LA VILLE (pluie, nuit, brouillard, orage — la ville est toujours de nuit) sous un seul nom, CRYPTOVILLE.
-   Les deux cartes gardent leur identifiant (palettes, durées, musiques, sauvegardes… sont indexés dessus) : seul le TIRAGE les réunit — une place pour la map,
-   pas deux ; ses météos sont les sept, au poids de chacune. Sur téléphone Crypto City est hors du tirage (SF_HORS) : CRYPTOVILLE n'y a que ses nuits. */
-const SF_FUSION={crypto:'cryptoville',ville:'cryptoville'};
+/* (2026-10-25, Léo : « merge crypto city et ville en une map ») puis (2026-10-31, Sacha : « Crypto City n'existe plus, tu la fusionnes avec la ville ») —
+   LA FUSION EST COMPLÈTE : il n'y a plus deux cartes à réunir sous un même nom, « ville » porte directement son temps de jour (ex-Crypto City,
+   voir SF_CARTES.ville dans niveaux.js) et son temps de nuit. `SF_FUSION` reste disponible (une MAP au tirage peut encore réunir plusieurs
+   cartes sous un même nom), mais ne range plus personne. */
+const SF_FUSION={};
 function sfMapDe(k){return SF_FUSION[k]||k;} // la MAP du tirage à laquelle appartient une carte
 function sfTire(prev,cF){ // une MAP au hasard (jamais celle d'avant, chaque map a la même chance quel que soit son nombre de météos), puis une MÉTÉO permise dans cette map (pas deux fois la même de suite si on peut l'éviter) — cF : la carte imposée (sa météo tirée)
   let mem;
