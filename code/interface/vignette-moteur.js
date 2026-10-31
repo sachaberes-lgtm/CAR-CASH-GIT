@@ -159,7 +159,21 @@ const engVigFeuMat=new THREE.MeshBasicMaterial({map:engVigFeuTex,color:0xffa855,
   blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
 function engVigTier(){return engVigForce!=null?engVigForce:engTier;}
 let engVigVieux=null;
-function jeteEngin(m){m.traverse(o=>{if(o.isMesh){if(o.geometry&&!(o.geometry.userData&&o.geometry.userData.partage))o.geometry.dispose();if(o.material)o.material.dispose();}});}
+function jeteEngin(m){if(m&&m.userData.garde)return;m.traverse(o=>{if(o.isMesh){if(o.geometry&&!(o.geometry.userData&&o.geometry.userData.partage))o.geometry.dispose();if(o.material)o.material.dispose();}});} /* un moteur GARDÉ (ENG_PRET) ne part jamais */
+/* ===== LES MOTEURS GARDÉS (2026-10-31, Léo : « le jeu lag encore un peu sur mobile, des cuts audio et visuels ») =====
+   MESURÉ (banc iPhone simulé ×4, course de 25 s, pilote auto) : la pire image de course (90 à 185 ms) était la MONTÉE DE PALIER — `engVigBuild` fabriquait
+   le moteur de la carte « NOUVEAU MOTEUR » en pleine course : `mkEngine` coûte 20 à 75 ms ×4 selon le palier (les thèmes du 26/10 : 1 190 ms pour les 30),
+   588 ms en 25 s, d'un bloc à chaque montée. Or la chauffe du menu (`engChauffe1`) fabrique DÉJÀ les 30, une par image, pour compiler leurs programmes…
+   puis jetait tout. Elle les garde désormais (`ENG_PRET[i]`), et la vignette les reprend tels quels : plus aucune fabrication en course (une montée
+   avant la fin de la chauffe fabrique le sien, comme avant, et le garde). Mémoire : ~39 Mo de géométrie pour les 30 (les tôles d'une voiture en font
+   autant). Même image : la pièce est remise à zéro (échelle, place, rotation) avant le cadrage. `?moteurs=jetes` = comme avant. */
+const ENG_PRET=[],ENG_GARDER=!/[?&]moteurs=jetes\b/.test(location.search);
+function engPret(i){
+  if(!ENG_GARDER)return mkEngine(i);
+  let g=ENG_PRET[i];
+  if(!g){g=ENG_PRET[i]=mkEngine(i);g.userData.garde=true;}
+  g.scale.setScalar(1);g.position.set(0,0,0);g.rotation.set(0,0,0);
+  return g;}
 /* LES SHADERS DES MOTEURS SE PRÉPARENT AU MENU (2026-09-26, passe perf, lot 4). MESURÉ : la 1re montée de moteur d'une session
    figeait l'image 180 ms EN PLEINE COURSE (5 shaders compilés pour la scène du moteur — ses 4 lumières font des programmes à part), la
    2e encore 70 ms. Au menu et à l'écran de mort, on construit donc chaque palier HORS écran, une pièce par image, on compile, et on garde
@@ -298,6 +312,7 @@ function engChauffe1(){
     const g=engChaudI<ENGINE_TIERS.length?mkEngine(engChaudI):new THREE.Mesh(engVigFeuGeo,engVigFeuMat); // dernier tour : la flamme
     engChaudI++;
     engVigScene.add(g);renderer.compile(engVigScene,engVigCam);engVigScene.remove(g);
+    if(ENG_GARDER&&engChaudI<=ENGINE_TIERS.length){if(!ENG_PRET[engChaudI-1]){g.userData.garde=true;ENG_PRET[engChaudI-1]=g;}return;} /* (2026-10-31) LES MOTEURS GARDÉS : la course le reprend tel quel (voir ENG_PRET) */
     const vus=new Set(); // ⚠ une matière sert souvent à PLUSIEURS pièces du moteur : on ne la juge qu'une fois (sinon la matière gardée était libérée à la pièce suivante)
     g.traverse(function(o){if(!o.isMesh)return;
       if(o.geometry&&o.geometry!==engVigFeuGeo&&!(o.geometry.userData&&o.geometry.userData.partage))o.geometry.dispose();

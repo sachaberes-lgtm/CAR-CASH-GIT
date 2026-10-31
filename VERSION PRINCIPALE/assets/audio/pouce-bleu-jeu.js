@@ -121,7 +121,13 @@
     const fr = document.createElement('iframe'); fr.src = E.f; fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true');
     fr.style.cssText = 'position:fixed;left:0;bottom:0;width:8px;height:8px;opacity:0;pointer-events:none;border:0;z-index:-1'; document.body.appendChild(fr);
     try { await new Promise((ok, ko) => { fr.onload = ok; fr.onerror = ko; });
-    const prete = new Proxy(ac, { get(t, k) { if (k === 'destination') return dest; if (k === 'close' || k === 'suspend') return () => Promise.resolve();
+    /* (2026-10-31, Léo : « des cuts audio très embêtants sur mobile ») LES PAGES ÉCRITES À LA MAIN PRÉVOIENT 1 s, COMME LE GÉNÉRATEUR. Leur horloge
+       (`while (tNext < ctx.currentTime + 0.4)`, toutes les 60 ms) ne posait la mesure suivante que 0,4 s avant qu'elle sonne : un gel de la page plus
+       long (une montée de palier, un portail, sur iPhone) et la mesure partait EN RETARD, notes tassées ou perdues — le trou dans la musique. Leur
+       texte dit qu'elles ne lisent l'heure du son QUE là (« ni ctx.currentTime » dans le morceau) : le contexte prêté leur donne donc une heure en avance
+       de AVANCE − 0,4 s, et tout le morceau se pose d'autant plus tôt (il démarre 0,6 s plus tard, derrière le filtre de l'intro). `?avance=.35` = avant. */
+    const AV_H = Math.max(0, AVANCE - .4);
+    const prete = new Proxy(ac, { get(t, k) { if (k === 'destination') return dest; if (k === 'close' || k === 'suspend') return () => Promise.resolve(); if (k === 'currentTime') return t.currentTime + AV_H;
       const v = Reflect.get(t, k, t); return typeof v === 'function' ? v.bind(t) : v; } });
     fr.contentWindow.AudioContext = fr.contentWindow.webkitAudioContext = function () { return prete; };
     const d = fr.contentDocument, bt = d.getElementById('play'), jg = d.getElementById('speed'); if (!bt || !jg) throw new Error('page sans #play / #speed');
