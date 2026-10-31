@@ -153,12 +153,14 @@ html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:var(--livree
    1. Le mot des trois tuiles (GARAGE · ACHAT · REGLAGES) : même corps, plus petit, sans espacement ni retrait à gauche, jamais plus large que la tuile
       (REGLAGES, le plus long, mordait le bord). Les tuiles restent À LEUR PLACE, toutes à la même hauteur, sans pente.
    2. TROIS LIGNES, chacune un cran plus à droite que celle du dessus : le logo (recule), les tuiles (place d'origine), JOUER (avance). Rien ne penche.
-      Seulement `translate` (propriété à part) : le `transform:none` des tuiles et l'appui (`translate:0 2px`) restent. */
+      Seulement `translate` (propriété à part) : le `transform:none` des tuiles et l'appui (`translate:0 2px`) restent.
+   3. (2026-10-31, Sacha : « le JOUER un peu plus vers la gauche, meilleure proportion de diagonale ») les trois crans à la même largeur : logo −12,
+      tuiles 0, JOUER +12 (au lieu de +24) — l'escalier descend d'un pas régulier au lieu d'accélérer sur la dernière marche. */
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){padding:0 3px!important;align-items:center!important;justify-content:center!important;overflow:visible}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear)>span{display:block!important;max-width:100%;box-sizing:border-box;font-size:9px!important;letter-spacing:0!important;white-space:nowrap;overflow:hidden;text-overflow:clip;text-align:center;padding:0!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2>.mTitle{translate:-12px 0}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:24px 0}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:12px 0}
 @media (orientation:landscape) and (max-height:540px){
   html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2>.mTitle{translate:-30px 0}
-  html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:56px 0}}
+  html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:30px 0}}
 </style>
