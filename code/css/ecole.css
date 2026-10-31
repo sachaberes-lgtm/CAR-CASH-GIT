@@ -179,6 +179,26 @@ html body:is(.hTp,.setPause,.setPauseSort) #coach.v2.v2,html body:is(.hTp,.setPa
 #modale.on~#coach.v2.v2,#modale.on~#ecMain{visibility:hidden!important;transition:none!important;animation:none!important} /* …et sous la fenêtre QUITTER : #coach et #ecMain naissent en fin de <body>, APRÈS #modale — un voisin, pas un body:has() (la charte) */
 @media (prefers-reduced-motion:reduce){html body #coach.v2.v2,html body #coach.v2 *,#ecMain *{animation:none!important;transition:none!important}html body #coach.v2.v2::before{display:none}}
 html[data-reduced-motion="1"] body #coach.v2.v2 *,html[data-reduced-motion="1"] #ecMain *{animation:none!important}
+/* ===== LA FIORITURE (2026-10-31, Sacha : « rendre le tutoriel encore plus clair, avec plus de florilège, de floriture ») =====
+   Trois petites touches, légères, sur ce qui existe déjà — rien de nouveau en JS, tout est accroché aux classes posées par le code :
+   1) un losange doré qui respire dans le coin biseauté de la carte (le découpage du cadre, enfin souligné) ;
+   2) un éclat radial derrière le mot au moment du BRAVO, en plus des confettis (la réussite claque un peu plus) ;
+   3) une traînée (une ombre floutée qui suit avec un léger retard) derrière le pouce fantôme en GLISSE/POUSSE, pour mieux accrocher l'œil
+      sur le mouvement du geste. */
+html body #coach.v2.v2::after{content:'';position:absolute;left:4px;top:4px;width:9px;height:9px;background:var(--or);
+  transform:rotate(45deg);box-shadow:0 0 8px rgba(255,215,94,.8);animation:ecCoin 1.6s var(--ease) infinite;pointer-events:none}
+@keyframes ecCoin{0%,100%{opacity:.55;transform:rotate(45deg) scale(.8)}50%{opacity:1;transform:rotate(45deg) scale(1.05)}}
+html body #coach.v2.v2.bravo::after{background:#fff;box-shadow:0 0 10px rgba(125,255,155,.9)}
+html body #coach.v2 .ecT::before{content:'';position:absolute;inset:-12px -16px;z-index:-1;border-radius:50%;opacity:0;pointer-events:none;
+  background:radial-gradient(circle,rgba(125,255,155,.55),rgba(125,255,155,0) 60%)}
+html body #coach.v2.bravo .ecT::before{animation:ecFlash .6s var(--ease) both}
+@keyframes ecFlash{0%{opacity:0;transform:scale(.4)}35%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:scale(1.5)}}
+#ecMain.glisse .p::after,#ecMain.pousse .p::after{content:'';position:absolute;inset:0;background:#fff;opacity:.32;filter:blur(2px);z-index:-1;
+  -webkit-mask:var(--pxi-pouce) center/100% 100% no-repeat;mask:var(--pxi-pouce) center/100% 100% no-repeat}
+#ecMain.glisse .p::after{animation:ecMGlisse 1.8s var(--ease) infinite;animation-delay:-.12s}
+#ecMain.pousse .p::after{animation:ecMPousse 1.6s var(--ease) infinite;animation-delay:-.1s}
+@media (prefers-reduced-motion:reduce){html body #coach.v2.v2::after,html body #coach.v2 .ecT::before,#ecMain .p::after{display:none}}
+html[data-reduced-motion="1"] body #coach.v2.v2::after,html[data-reduced-motion="1"] #ecMain .p::after{display:none}
 </style>
 <style id="sansCarriere">
 /* (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » ; la carrière est retirée le 2026-10-18) : sur l'accueil,
