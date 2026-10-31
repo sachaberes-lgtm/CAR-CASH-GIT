@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1028'; /* v1028 (2026-10-31, chasse aux bugs) GARAGE/RÉGLAGES : la lueur sur son propre calque (.mGlow) rendait le texte flou (police système, plus de hinting Press Start 2P) ; moteur de l'écran de mort : résolution du rendu par palier (ENG_RES_W/H) au lieu de 480×321 fixe, net sur les écrans retina. */
+const CACHE = 'cashcar-v1029'; /* v1029 (2026-10-31, chasse aux bugs) DUNES : la pyramide flottait ou s'enfonçait au hasard de la carte — l'ancrage lisait le sol sur un cercle qui sortait de sa base carrée, maintenant sur sa vraie emprise tournée ; + TEMPÊTE DE SABLE branchée au tirage météo (biome et particules déjà bâtis, jamais reliés). */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

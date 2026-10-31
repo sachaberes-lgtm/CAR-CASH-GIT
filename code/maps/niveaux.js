@@ -105,7 +105,8 @@ const SF_CARTES={
   /* (2026-10-18, Sacha : « fais les dunes d'or de manière parfaite ») LES DUNES D'OR : le matin rose, le midi turquoise et or (les mirages), le SOIR (la carte postale :
      un peu plus souvent), la nuit d'argent, le VENT DE SABLE (pas une goutte : `pluie` reste 0), la TEMPÊTE DE SABLE (un orage sec). Voir genDunes, buildDunes. */
   ...(DUNES_OK?{dunes:{nm:"LES DUNES D'OR",base:'dunes',m:{matin:{bio:'dunesMatin'},soir:{bio:'dunesSoir',p:1.3},nuit:{bio:'dunesNuit',nuit:1,pr:'LA LUNE ARGENTE LE SABLE'},
-    pluie:{bio:'dunesVent',mt:'VENT DE SABLE',sheen:.14,pr:'LE VENT SE LEVE'}}}}:{})
+    pluie:{bio:'dunesVent',mt:'VENT DE SABLE',sheen:.14,pr:'LE VENT SE LEVE'},
+    orage:{bio:'dunesTempete',mt:'TEMPETE DE SABLE',orage:1,sheen:.16,pr:'LE SABLE AVALE LA VISIBILITE'}}}}:{}) /* (2026-10-31) la TEMPÊTE DE SABLE existait déjà toute bâtie (BIOMES.dunesTempete, CONTI.cartes.dunes.orage, l'i18n 'SANDSTORM') mais jamais branchée ici : injouable, jamais tirée. `?carte=dunes&meteo=orage` ou dbgClassique('dunes','orage'). */
 };
 /* (2026-10-16, Sacha : « la map ville, elle sera toujours la nuit […] on abandonne toutes les maps ville-jour ») LA VILLE TOUJOURS LA NUIT (voir VTEINTES) :
    plus de matin, de midi ni de soir ; la map de base sous ses quatre temps — la PLUIE (AU-DESSUS DE LA VILLE, telle quelle, un peu plus souvent), la NUIT sèche
