@@ -7035,7 +7035,8 @@ html.hub.hub:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
 #spinM .spBox{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.6vh,16px);transform:translateY(22px) scale(.94);transition:transform var(--t-slow) var(--ease)}
 #spinM.vu .spBox{transform:none}
 /* L'ENSEIGNE : la plaque sombre, le nom en or néon, ses ampoules */
-#spinM .spEnseigne{position:relative;padding:calc(var(--spH)*.2) calc(var(--spH)*.34);background:linear-gradient(180deg,#1b1634,#07050f);
+/* (2026-10-31, Sacha : « le levier passe devant le final spin ») l'enseigne reste TOUJOURS au-dessus du levier (z-index 5) : plus de bras doré ni de boule qui mordent sur le mot FINAL SPIN */
+#spinM .spEnseigne{position:relative;z-index:6;padding:calc(var(--spH)*.2) calc(var(--spH)*.34);background:linear-gradient(180deg,#1b1634,#07050f);
   box-shadow:inset 0 0 0 2px var(--auE),inset 0 0 0 4px var(--k0),0 0 0 3px var(--au2),0 6px 0 var(--k0),0 0 34px rgba(255,62,200,.28)}
 #spinM .spNeon{display:block;font-weight:400;font-size:min(calc(var(--spH)*.42),calc((100vw - var(--sL) - var(--sR) - 96px)/11.5)); /* (banc) debout, l'enseigne débordait de l'écran */line-height:1;letter-spacing:2px;color:var(--au1);white-space:nowrap;
   text-shadow:0 3px 0 var(--auE),0 0 10px var(--au2),0 0 26px rgba(255,62,200,.65)}
@@ -7124,7 +7125,10 @@ html.hub.hub:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
 #spinM .spIco{display:inline-block;flex:none;background-repeat:no-repeat;background-position:center;background-size:contain;image-rendering:pixelated}
 #spinM .spPiece{width:calc(var(--spH)*.42);height:calc(var(--spH)*.42)}
 #spinM .spVole{position:absolute;z-index:6;width:calc(var(--spH)*.42);height:calc(var(--spH)*.42);pointer-events:none}
-#spinM .spTire{width:min(100%,340px);min-height:58px;justify-content:center;font-size:var(--f5)}
+/* (2026-10-31, Sacha : « CONTINUER est plus gros que le bouton ») CONTINUER (9 lettres) dépassait de la touche, héritée des 4px d'espacement
+   et de la taille de « .pbtn.big » taillés pour TIRER (5 lettres) : moins d'espacement ici, et encore un cran plus petit sans jeton (.fin). */
+#spinM .spTire{width:min(100%,340px);min-height:58px;justify-content:center;font-size:var(--f5);letter-spacing:1px}
+#spinM .spTire.fin{font-size:var(--f4);letter-spacing:0}
 #spinM.roule .spTire{opacity:.45;pointer-events:none}
 /* LE JACKPOT : les éclats (3 par seconde au plus, voir spinFlash), la pluie de billets, les pièces */
 #spinM .spFlash{position:absolute;inset:0;background:var(--au0);opacity:0;pointer-events:none;z-index:7}
@@ -26674,8 +26678,12 @@ function* jadePorte(root,i0,jr,M9,pose){ // (LE PRÉ-BÂTI) un générateur : se
 function* jadePont(root,i0,jr,M9,pose,ARB){ // (LE PRÉ-BÂTI) un générateur (voir jadePorte)
   const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),y0=p.y;
   const ec=ROAD_HALF+66,G9=JADE.geos,tp=jadeTplDe(40),Tp=G9.p[tp];
+  /* (2026-10-31, Sacha : « l'arche grise sur une moitié ») ses deux piliers sont loin l'un de l'autre (2×ec) : sans le 10e champ ci-dessous,
+     ils tombent dans deux quartiers différents et peuvent recevoir chacun leur propre niveau de détail — l'un fin, l'autre grossier (gris)
+     au même instant. Un même repère ('pont'+i0) force jadeBatit à les mettre dans UN SEUL quartier : même boîte, même détail. */
+  const qPont='pont'+i0;
   for(const sg of [-1,1]){const cx=Math.round((p.x+b.x*sg*ec)/VX)*VX,cz=Math.round((p.z+b.z*sg*ec)/VX)*VX,yt=Math.floor((y0+205+(sg>0?24:0))/VX)*VX;
-    pose([cx,cz,Tp.rmax*VX,yt-Tp.yTop*VX,yt,tp,(jr()*4)|0,jr(),ec]);}
+    pose([cx,cz,Tp.rmax*VX,yt-Tp.yTop*VX,yt,tp,(jr()*4)|0,jr(),ec,qPont]);}
   const xa=Math.ceil((ec+12)/VXG)*VXG,D=66,PR={b0:72,bC:104,t0:132,tC:150};
   const yB=f=>PR.b0+(PR.bC-PR.b0)*Math.sin(f*Math.PI),yH=f=>PR.t0+(PR.tC-PR.t0)*Math.pow(Math.sin(f*Math.PI),.6);
   const oy=Math.floor((y0+PR.b0-12)/VXG)*VXG,nx=Math.round(2*xa/VXG),nz=Math.round(D/VXG),ny=Math.ceil((y0+PR.tC+20-oy)/VXG),G=voxG(nx,ny,nz);
@@ -30876,9 +30884,12 @@ skyU.uVid={value:1};skyU.uVed={value:PAL.b('orbVed',1)};
   const FOND=['uniform float uVid;',
     'vec3 orbVide(float y){',
     '  float h=1.-clamp(abs(y),0.,1.);',                                                                    /* 1 à l'horizon, 0 au zénith */
-    '  vec3 v=mix(vec3(.014,.009,.046),vec3(.010,.018,.066),smoothstep(0.,.72,h));',                        /* zénith indigo-violet → bleu nuit */
-    '  float yy=(y-.03)/.30;v+=vec3(.024,.062,.210)*exp(-yy*yy);',                                                 /* le voile bleu de la Terre, au ras de l\'horizon */
-    '  v+=vec3(.020,.008,.040)*smoothstep(.55,1.,h)*smoothstep(.0,.3,y);',                                  /* un fond de lilas au-dessus */
+    /* (2026-10-31, Sacha : « l'espace est trop bleu, les versions d'hier étaient plus sombres et plus réalistes — Gravity, Soul »)
+       LE VIDE REDEVIENT PRESQUE NOIR : un noir quasi pur au zénith (à peine une trace froide), la Terre ne jette plus un voile
+       bleu électrique à l'horizon mais une lueur grise très faible — le noir domine, comme un vrai ciel d'orbite. */
+    '  vec3 v=mix(vec3(.004,.004,.009),vec3(.006,.007,.013),smoothstep(0.,.72,h));',                        /* zénith quasi noir → un souffle plus clair sur l\'horizon */
+    '  float yy=(y-.03)/.30;v+=vec3(.009,.013,.028)*exp(-yy*yy);',                                                 /* le voile de la Terre, au ras de l\'horizon : discret */
+    '  v+=vec3(.005,.004,.008)*smoothstep(.55,1.,h)*smoothstep(.0,.3,y);',                                  /* un fond très sombre au-dessus */
     '  return v*uVid;}'].join('\n');
   const VED=['uniform float uVed;',
     'void cielVedettes(inout vec3 col,float y,float az){',
@@ -53475,7 +53486,7 @@ const SPIN={on:!/[?&]spin=0\b/.test(location.search),pZone:.28,max:3,pose:0,ouve
   lots:[{id:'petit',nm:'PETIT SAC',p:.08,cash:6000},
         {id:'sac',nm:"SAC D'ARGENT",p:.04,cash:15000},
         {id:'gros',nm:'GROS SAC',p:.012,cash:50000},
-        {id:'coeur',nm:'SECONDE CHANCE GRATUITE',p:.15,bon:'chanceG',sous:'À TA PROCHAINE CHUTE'},
+        {id:'coeur',nm:'SECONDE CHANCE GRATUITE',p:.19,bon:'chanceG',sous:'À TA PROCHAINE CHUTE'}, // (2026-10-31, Sacha : « augmente un peu la probabilité d'avoir une seconde chance ») ,15 → ,19
         {id:'boost',nm:'DÉPART BOOSTÉ',p:.07,bon:'spinBoost',sous:'NITRO PLEINE · MOTEUR +1'},
         {id:'jeton',nm:'+1 JETON',p:.05,jeton:1,sous:'UN TIRAGE DE PLUS'},
         {id:'sept',nm:'JACKPOT !',p:.012,voiture:'epique',cash:500000}],

@@ -405,8 +405,12 @@ function* jadePorte(root,i0,jr,M9,pose){ // (LE PRÉ-BÂTI) un générateur : se
 function* jadePont(root,i0,jr,M9,pose,ARB){ // (LE PRÉ-BÂTI) un générateur (voir jadePorte)
   const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),y0=p.y;
   const ec=ROAD_HALF+66,G9=JADE.geos,tp=jadeTplDe(40),Tp=G9.p[tp];
+  /* (2026-10-31, Sacha : « l'arche grise sur une moitié ») ses deux piliers sont loin l'un de l'autre (2×ec) : sans le 10e champ ci-dessous,
+     ils tombent dans deux quartiers différents et peuvent recevoir chacun leur propre niveau de détail — l'un fin, l'autre grossier (gris)
+     au même instant. Un même repère ('pont'+i0) force jadeBatit à les mettre dans UN SEUL quartier : même boîte, même détail. */
+  const qPont='pont'+i0;
   for(const sg of [-1,1]){const cx=Math.round((p.x+b.x*sg*ec)/VX)*VX,cz=Math.round((p.z+b.z*sg*ec)/VX)*VX,yt=Math.floor((y0+205+(sg>0?24:0))/VX)*VX;
-    pose([cx,cz,Tp.rmax*VX,yt-Tp.yTop*VX,yt,tp,(jr()*4)|0,jr(),ec]);}
+    pose([cx,cz,Tp.rmax*VX,yt-Tp.yTop*VX,yt,tp,(jr()*4)|0,jr(),ec,qPont]);}
   const xa=Math.ceil((ec+12)/VXG)*VXG,D=66,PR={b0:72,bC:104,t0:132,tC:150};
   const yB=f=>PR.b0+(PR.bC-PR.b0)*Math.sin(f*Math.PI),yH=f=>PR.t0+(PR.tC-PR.t0)*Math.pow(Math.sin(f*Math.PI),.6);
   const oy=Math.floor((y0+PR.b0-12)/VXG)*VXG,nx=Math.round(2*xa/VXG),nz=Math.round(D/VXG),ny=Math.ceil((y0+PR.tC+20-oy)/VXG),G=voxG(nx,ny,nz);

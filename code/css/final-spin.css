@@ -12,7 +12,8 @@
 #spinM .spBox{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.6vh,16px);transform:translateY(22px) scale(.94);transition:transform var(--t-slow) var(--ease)}
 #spinM.vu .spBox{transform:none}
 /* L'ENSEIGNE : la plaque sombre, le nom en or néon, ses ampoules */
-#spinM .spEnseigne{position:relative;padding:calc(var(--spH)*.2) calc(var(--spH)*.34);background:linear-gradient(180deg,#1b1634,#07050f);
+/* (2026-10-31, Sacha : « le levier passe devant le final spin ») l'enseigne reste TOUJOURS au-dessus du levier (z-index 5) : plus de bras doré ni de boule qui mordent sur le mot FINAL SPIN */
+#spinM .spEnseigne{position:relative;z-index:6;padding:calc(var(--spH)*.2) calc(var(--spH)*.34);background:linear-gradient(180deg,#1b1634,#07050f);
   box-shadow:inset 0 0 0 2px var(--auE),inset 0 0 0 4px var(--k0),0 0 0 3px var(--au2),0 6px 0 var(--k0),0 0 34px rgba(255,62,200,.28)}
 #spinM .spNeon{display:block;font-weight:400;font-size:min(calc(var(--spH)*.42),calc((100vw - var(--sL) - var(--sR) - 96px)/11.5)); /* (banc) debout, l'enseigne débordait de l'écran */line-height:1;letter-spacing:2px;color:var(--au1);white-space:nowrap;
   text-shadow:0 3px 0 var(--auE),0 0 10px var(--au2),0 0 26px rgba(255,62,200,.65)}
@@ -101,7 +102,10 @@
 #spinM .spIco{display:inline-block;flex:none;background-repeat:no-repeat;background-position:center;background-size:contain;image-rendering:pixelated}
 #spinM .spPiece{width:calc(var(--spH)*.42);height:calc(var(--spH)*.42)}
 #spinM .spVole{position:absolute;z-index:6;width:calc(var(--spH)*.42);height:calc(var(--spH)*.42);pointer-events:none}
-#spinM .spTire{width:min(100%,340px);min-height:58px;justify-content:center;font-size:var(--f5)}
+/* (2026-10-31, Sacha : « CONTINUER est plus gros que le bouton ») CONTINUER (9 lettres) dépassait de la touche, héritée des 4px d'espacement
+   et de la taille de « .pbtn.big » taillés pour TIRER (5 lettres) : moins d'espacement ici, et encore un cran plus petit sans jeton (.fin). */
+#spinM .spTire{width:min(100%,340px);min-height:58px;justify-content:center;font-size:var(--f5);letter-spacing:1px}
+#spinM .spTire.fin{font-size:var(--f4);letter-spacing:0}
 #spinM.roule .spTire{opacity:.45;pointer-events:none}
 /* LE JACKPOT : les éclats (3 par seconde au plus, voir spinFlash), la pluie de billets, les pièces */
 #spinM .spFlash{position:absolute;inset:0;background:var(--au0);opacity:0;pointer-events:none;z-index:7}
