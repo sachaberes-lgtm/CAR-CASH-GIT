@@ -305,6 +305,10 @@ function prebPrend(seed){ // (buildTrack) la route bâtie d'avance, si c'est ell
 function prebPalier(){ // (newTrack0) la piste bâtie d'avance l'a été à SON palier moteur : son décor se bâtit au même (le temps de buildTrack)
   if(!PREB.prend||PREB.eng===engTier)return null;const e=engTier;engTier=PREB.eng;return e;}
 const PREB_AVANCE=20; // (s) la map d'en face commence quand le portail est à moins de 20 s de route : son palier moteur (l'échelle de la piste) est celui de ce moment-là
+/* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LA GROTTE COMMENCE PLUS TÔT. MESURÉ (banc iPhone ×4, tour de toutes les maps) :
+   sa préparation d'avance dure ~16-22 s de route en tranches fines (la plus lourde de toutes) ; partie à 20 s du portail, elle n'était pas finie au passage
+   et le reste se bâtissait D'UN BLOC dans l'image du portail (3,4-3,8 s figées, au banc ; 1,5 s encore en partant à 45 s). Elle part à 75 s : en pratique dès le début de la map d'avant. */
+const PREB_AVANCE_LOURD={grotte:75};
 function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier, travailler
   PREB.cam=false; // (voir sous9 : resetGame l'a lu dans cette image, ou rien ne l'a lu)
   if(!started||gameOver){prebDepTick(now);return;}
@@ -317,7 +321,7 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   if(mode!=='drive'&&mode!=='fall')return;
   if(now-PREB.tNeuf<700)return; // le monde neuf vient d'entrer : il s'installe d'abord
   const c=prebCible();
-  if(!PREB.W){if(c&&c.t!==PREB.non&&PREB.echecs<3&&(L-s)/Math.max(20,PREB.v||60)<PREB_AVANCE)prebPart(c);return;} // (l'image suivante travaille)
+  if(!PREB.W){if(c&&c.t!==PREB.non&&PREB.echecs<3&&(L-s)/Math.max(20,PREB.v||60)<(PREB_AVANCE_LOURD[c.t.carte]||PREB_AVANCE))prebPart(c);return;} // (l'image suivante travaille)
   if(!c||c.t!==PREB.t||c.z!==PREB.z){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'zone');return;} // (un palier gagné en route ne change rien : la piste garde celui du départ)
   if(PREB.fait)return;
   const tr=typeof QLR!=='undefined'&&QLR.t0?performance.now()-QLR.t0:8;

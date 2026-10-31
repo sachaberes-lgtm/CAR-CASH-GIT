@@ -65,10 +65,13 @@ function buildVoxCity(seed,accC){
     proches(cx,cz,clr,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz;if(dx*dx+dz*dz<=c2&&p.y>t&&p.y<m)m=p.y;});return m;};
   // LES CELLULES : maille SERRÉE près du ruban (le canyon), lâche au large ; chaque cellule retient le point de piste le plus proche
   const R_CAN=330,R_VIL=ALLEGE?1700:2100,SN=ALLEGE?66:54,SF=ALLEGE?230:200; // (2026-09-26) la forêt va jusqu'au brouillard
-  const cellules=(S,R,garde)=>{const m=new Map(),rr=Math.ceil(R/S),pas=Math.max(1,Math.round(S*.6/(L/(NP-1))));
-    for(let i=0;i<NP;i+=pas){const cx0=Math.round(pts[i].x/S),cz0=Math.round(pts[i].z/S);
-      for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>R)continue;
-        const k=(cx0+dx)+','+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
+  /* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») MESURÉ au portail de la ville (banc iPhone ×4) : 218 ms d'un bloc ici —
+     une chaîne neuve 'x,z' par case essayée et un Math.hypot pour chacune. La clé devient un NOMBRE (même case, même ordre d'insertion : la même ville au
+     bit près) et les cases nettement hors du rayon sont écartées sur le carré des distances avant le calcul exact (la marge garde toutes les autres). */
+  const cellules=(S,R,garde)=>{const m=new Map(),rr=Math.ceil(R/S),pas=Math.max(1,Math.round(S*.6/(L/(NP-1)))),R2=R*R*1.000001+1e-6;
+    for(let i=0;i<NP;i+=pas){const px=pts[i].x,pz=pts[i].z,cx0=Math.round(px/S),cz0=Math.round(pz/S);
+      for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,ex=gx-px,ez=gz-pz;if(ex*ex+ez*ez>R2)continue;const d=Math.hypot(ex,ez);if(d>R)continue;
+        const k=(cx0+dx)*1048576+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
     const out=[];for(const v of m.values())if(garde(v[0]))out.push(v);return out;};
   const corps=[],genre=[],neon=[],neonC=[],pubs=[],tqC=[],tqN=[],VTW=[]; // VTW (VILLE VITRÉE) : [1er volume, fin, 1er néon, fin, route, forme] par tour // tqC/tqN (passe perf) : le centre de la TOUR à laquelle appartient chaque volume / néon (son quartier, voir fam)
   // (2026-09-26, vague 2) les ENSEIGNES parlent MAGENTA et CYAN (#ff3ec8 / #3ee8ff et leurs deux voisins) : le jaune, le vert et le violet

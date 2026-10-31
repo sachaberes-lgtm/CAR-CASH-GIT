@@ -15343,6 +15343,10 @@ function prebPrend(seed){ // (buildTrack) la route bâtie d'avance, si c'est ell
 function prebPalier(){ // (newTrack0) la piste bâtie d'avance l'a été à SON palier moteur : son décor se bâtit au même (le temps de buildTrack)
   if(!PREB.prend||PREB.eng===engTier)return null;const e=engTier;engTier=PREB.eng;return e;}
 const PREB_AVANCE=20; // (s) la map d'en face commence quand le portail est à moins de 20 s de route : son palier moteur (l'échelle de la piste) est celui de ce moment-là
+/* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LA GROTTE COMMENCE PLUS TÔT. MESURÉ (banc iPhone ×4, tour de toutes les maps) :
+   sa préparation d'avance dure ~16-22 s de route en tranches fines (la plus lourde de toutes) ; partie à 20 s du portail, elle n'était pas finie au passage
+   et le reste se bâtissait D'UN BLOC dans l'image du portail (3,4-3,8 s figées, au banc ; 1,5 s encore en partant à 45 s). Elle part à 75 s : en pratique dès le début de la map d'avant. */
+const PREB_AVANCE_LOURD={grotte:75};
 function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier, travailler
   PREB.cam=false; // (voir sous9 : resetGame l'a lu dans cette image, ou rien ne l'a lu)
   if(!started||gameOver){prebDepTick(now);return;}
@@ -15355,7 +15359,7 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   if(mode!=='drive'&&mode!=='fall')return;
   if(now-PREB.tNeuf<700)return; // le monde neuf vient d'entrer : il s'installe d'abord
   const c=prebCible();
-  if(!PREB.W){if(c&&c.t!==PREB.non&&PREB.echecs<3&&(L-s)/Math.max(20,PREB.v||60)<PREB_AVANCE)prebPart(c);return;} // (l'image suivante travaille)
+  if(!PREB.W){if(c&&c.t!==PREB.non&&PREB.echecs<3&&(L-s)/Math.max(20,PREB.v||60)<(PREB_AVANCE_LOURD[c.t.carte]||PREB_AVANCE))prebPart(c);return;} // (l'image suivante travaille)
   if(!c||c.t!==PREB.t||c.z!==PREB.z){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'zone');return;} // (un palier gagné en route ne change rien : la piste garde celui du départ)
   if(PREB.fait)return;
   const tr=typeof QLR!=='undefined'&&QLR.t0?performance.now()-QLR.t0:8;
@@ -15418,6 +15422,20 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
      l'écran de fin (rien ne s'y joue) ; au menu, rien ne change (3-6 ms). */
   const bud9=(GAR.go&&GAR.go.attend)||(CHUTE.go&&CHUTE.go.attend)?10:ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?Math.max(4,Math.min(10,20-tr)):Math.max(3,Math.min(6,14-tr));
   prebTravaille(performance.now()+bud9);}
+/* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LE REJOUER FINIT SON DÉPART SOUS LE VOLET. MESURÉ (banc iPhone ×4) : mort, REJOUER
+   tapé tout de suite, la grotte tirée pour le départ suivant — sa préparation (la plus lourde, ~16-22 s de tranches) n'en était qu'au début : resetGame
+   bâtissait le reste D'UN BLOC, 4,2 s d'image figée. Le volet du REJOUER couvre déjà l'écran : il reste baissé, et le départ s'y finit en tranches de
+   30 ms par image (le volet et la musique continuent), puis resetGame le prend comme d'habitude. 12 s au plus (ensuite : le reste d'un trait, comme avant).
+   Rien d'avance en route, ou déjà prêt : tout de suite, comme avant. `?attente=0` : comme avant. */
+function rejoueAttend(){
+  if(/[?&]attente=0\b/.test(location.search)||!PREB.W||!PREB.dep||PREB.fait)return Promise.resolve();
+  const t0=performance.now();REJ_ATT.n++;
+  return new Promise(function(ok){const pas=function(){
+    if(!PREB.W||!PREB.dep||PREB.fait||!(started&&gameOver)||performance.now()-t0>12000){REJ_ATT.ms=Math.round(performance.now()-t0);REJ_ATT.sortie=PREB.fait?'prêt':'12 s ou annulé';ok();return;}
+    try{chauffeGrace();prebTravaille(performance.now()+30);}catch(e){}
+    requestAnimationFrame(pas);};requestAnimationFrame(pas);});}
+const REJ_ATT={n:0,ms:0,sortie:''};
+window.dbgRejoue=function(){return Object.assign({},REJ_ATT);};
 function prebDepPrend(fn){PREB.depPorte=true;try{fn();}finally{PREB.depPorte=false;PREB.prend=false;}} // c'est le DÉPART qui construit : la piste bâtie d'avance peut servir
 window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule('dbg');}
   return {on:PREB.on,etat:PREB.W?(PREB.fait?'pret':'en cours'):'',carte:PREB.carte,graine:PREB.sd,palier:PREB.eng,palierCourse:engTier,reste:+((L-s)/Math.max(20,PREB.v||60)).toFixed(1),v:Math.round(PREB.v||0),ms:PREB.W||PREB.tFin?Math.round((PREB.tFin||performance.now())-PREB.t0):0,
@@ -19575,10 +19593,10 @@ function dnAmb(){const D=DN.deco;if(!D||DN._amb===D.sd)return;DN._amb=D.sd;const
   for(const nm in DN_VAR){const B=BIOMES['dunes'+nm[0].toUpperCase()+nm.slice(1)];if(!B)continue;const o=B.__o||(B.__o={}),V=DN_VAR[nm],ks=Object.keys(V);let v=f&&f[1]==='0'?null:V[ks[h<.5?0:1]];if(f&&V[f[1]])v=V[f[1]];
     const cp=function(x){return Array.isArray(x)?x.slice():x;};for(const k in o)B[k]=cp(o[k]);                          /* d'abord la base */
     if(v)for(const k in v){if(o[k]===undefined)o[k]=cp(B[k]);B[k]=cp(v[k]);}}
-  {const B=BIO.to;if(B&&/^dunes/.test(BIO.name||'')){bioLerp(B,B,1,BIO.cur);bioApply(BIO.cur);paintEnv(B.env,B.eS1,B.eS2);}}} /* l'ambiance courante est recalculée tout de suite */
+  {const B=BIO.to;if(B&&/^dunes/.test(BIO.name||'')){bioLerp(B,B,1,BIO.cur);bioApply(BIO.cur);envPeintAvance(B);}}} /* (2026-10-31) le ciel des reflets de la variante : par le travailleur (voir envPeintAvance) */ /* l'ambiance courante est recalculée tout de suite */
 const DN_NUA=!/[?&]nuages=0\b/.test(location.search); /* (2026-10-23, Léo : « plus de nuages ») `?nuages=0` : le ciel d'avant (peu de nuages, ronds, plats) */
 function dnNuages(){const on=DN.on&&DN_NUA&&!QUAL_LOW&&/^dunes/.test(BIO.name||''),W=skyU.uCyW.value;if(!on){W.set(0,0);return;}W.set(.4,1);if(!DN_NUA&&skyU.uCyK){}} // bandes étirées, nuages modelés
-function dunesTick(dt){dnAmb();dnNuages();
+function dunesTick(dt){dnAmb();envPeintTick();dnNuages();
   if(DN.on&&DN.sunAz!=null&&DN.sunEl!=null&&BIO.cur.cyA&&BIO.cur.cyA[0]<14)BIO.cur.cyA=[DN.sunEl,DN.sunAz,BIO.cur.cyA[2],BIO.cur.cyA[3]]; // le soir : le soleil dans l'axe de l'arrivée (voir buildDunes)
   if(!DN.mat)return;const U=DN.mat.uniforms,c=BIO.cur,k=LVL.dunes||0;
   if(DN.on&&!paused)U.uTime.value=(U.uTime.value+dt)%4096;
@@ -26030,6 +26048,13 @@ const JCH_M=new THREE.Matrix4(),JCH_R=new THREE.Matrix4(),JCH_T=new THREE.Matrix
    horloge était JADE_U.uTime, qui avance aussi en pause (le temps réel) alors que jadeChuteTick n'y tourne pas : au retour, chaque montagne en
    chute avait pris toute la durée de la pause d’un coup (5 s de pause : 140 à 270 m de chute en une image, l’écume partait, sa hitbox avec). JCH.t ne
    compte que le temps joué (preuve-chute-pause.cjs). */
+/* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LA MONTAGNE QUI TOMBE, CUBE PAR CUBE, SANS OBJETS. Chaque image de chute
+   recalculait chaque cube par trois appels (fromArray, premultiply, toArray) : MESURÉ (banc iPhone ×4), jusqu'à 88 ms dans une image. Le même produit
+   M × cube, écrit à la main dans l'ordre exact de three (Matrix4.multiplyMatrices) : la même matrice au bit près, sans copie intermédiaire. */
+function jchMul(ae,be,A,o){
+  for(let j=0;j<4;j++){const b0=be[4*j],b1=be[4*j+1],b2=be[4*j+2],b3=be[4*j+3];
+    A[o+4*j]=ae[0]*b0+ae[4]*b1+ae[8]*b2+ae[12]*b3;A[o+4*j+1]=ae[1]*b0+ae[5]*b1+ae[9]*b2+ae[13]*b3;
+    A[o+4*j+2]=ae[2]*b0+ae[6]*b1+ae[10]*b2+ae[14]*b3;A[o+4*j+3]=ae[3]*b0+ae[7]*b1+ae[11]*b2+ae[15]*b3;}}
 function jadeChuteTick(dt){
   if(!JCH.L.length||!JADE.root||!started||gameOver)return;let chg=false;JCH.t+=dt;const tn=JCH.t;
   for(const c of JCH.L){
@@ -26041,7 +26066,7 @@ function jadeChuteTick(dt){
     if(!c.spl&&q[3]-dy<JADE.eauY+6){c.spl=true;jadeEcume(q[0],JADE.eauY,q[1],q[2]);}
     c.inv.copy(JCH_M).invert(); /* (2026-10-21, Léo : « on traverse les montagnes qui tombent ») la hitbox suit la montagne : le point testé est ramené dans son repère d'origine */
     const out=dy>(q[4]-JADE.eauY)+60;if(out)c.fin=true;
-    for(const o of c.orig){const A=o.F.M;if(out)A.set(JCH_Z,o.si*16);else{JCH_R.fromArray(o.m);JCH_R.premultiply(JCH_M);JCH_R.toArray(A,o.si*16);}}
+    {const me=JCH_M.elements;for(const o of c.orig){const A=o.F.M;if(out)A.set(JCH_Z,o.si*16);else jchMul(me,o.m,A,o.si*16);}}
     if(c.fo){if(out)FIN.mats.set(c.pi,JCH_Z);else{JCH_R.fromArray(c.fo);JCH_R.premultiply(JCH_M);FIN.mats.set(c.pi,new Float32Array(JCH_R.elements));}}}
   if(chg){for(const c of JCH.L)if(c.t0&&c.orig&&(!c.fin||!c.vu)){c.vu=c.fin;for(const o of c.orig)o.F.sale=true;if(c.fo)FIN.sale=true;}JADE.sale=true;}
   // l écume
@@ -27148,10 +27173,13 @@ function buildVoxCity(seed,accC){
     proches(cx,cz,clr,function(i){const p=pts[i],dx=p.x-cx,dz=p.z-cz;if(dx*dx+dz*dz<=c2&&p.y>t&&p.y<m)m=p.y;});return m;};
   // LES CELLULES : maille SERRÉE près du ruban (le canyon), lâche au large ; chaque cellule retient le point de piste le plus proche
   const R_CAN=330,R_VIL=ALLEGE?1700:2100,SN=ALLEGE?66:54,SF=ALLEGE?230:200; // (2026-09-26) la forêt va jusqu'au brouillard
-  const cellules=(S,R,garde)=>{const m=new Map(),rr=Math.ceil(R/S),pas=Math.max(1,Math.round(S*.6/(L/(NP-1))));
-    for(let i=0;i<NP;i+=pas){const cx0=Math.round(pts[i].x/S),cz0=Math.round(pts[i].z/S);
-      for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,d=Math.hypot(gx-pts[i].x,gz-pts[i].z);if(d>R)continue;
-        const k=(cx0+dx)+','+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
+  /* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») MESURÉ au portail de la ville (banc iPhone ×4) : 218 ms d'un bloc ici —
+     une chaîne neuve 'x,z' par case essayée et un Math.hypot pour chacune. La clé devient un NOMBRE (même case, même ordre d'insertion : la même ville au
+     bit près) et les cases nettement hors du rayon sont écartées sur le carré des distances avant le calcul exact (la marge garde toutes les autres). */
+  const cellules=(S,R,garde)=>{const m=new Map(),rr=Math.ceil(R/S),pas=Math.max(1,Math.round(S*.6/(L/(NP-1)))),R2=R*R*1.000001+1e-6;
+    for(let i=0;i<NP;i+=pas){const px=pts[i].x,pz=pts[i].z,cx0=Math.round(px/S),cz0=Math.round(pz/S);
+      for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const gx=(cx0+dx)*S,gz=(cz0+dz)*S,ex=gx-px,ez=gz-pz;if(ex*ex+ez*ez>R2)continue;const d=Math.hypot(ex,ez);if(d>R)continue;
+        const k=(cx0+dx)*1048576+(cz0+dz),o=m.get(k);if(!o||d<o[0])m.set(k,[d,i,gx,gz]);}}
     const out=[];for(const v of m.values())if(garde(v[0]))out.push(v);return out;};
   const corps=[],genre=[],neon=[],neonC=[],pubs=[],tqC=[],tqN=[],VTW=[]; // VTW (VILLE VITRÉE) : [1er volume, fin, 1er néon, fin, route, forme] par tour // tqC/tqN (passe perf) : le centre de la TOUR à laquelle appartient chaque volume / néon (son quartier, voir fam)
   // (2026-09-26, vague 2) les ENSEIGNES parlent MAGENTA et CYAN (#ff3ec8 / #3ee8ff et leurs deux voisins) : le jaune, le vert et le violet
@@ -43804,6 +43832,26 @@ function fstuDirs(S){if(FSTU_DIR&&FSTU_DIR.S===S)return FSTU_DIR;
    comme avant (et gardé). `?envav=0` = sans travailleur ni cache (avant) · `dbgEnvCiel()` = l'état. */
 const ENVC={on:!/[?&]envav=0\b/.test(location.search),cache:new Map(),att:new Map(),w:undefined,id:0,pris:0,calc:0,av:0,ms:0};
 function envCle(stops,s1,s2,sunHalo,sd){return JSON.stringify([stops,s1,s2,sunHalo,sd.x,sd.y,sd.z]);}
+/* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LE CIEL DES REFLETS PRÉPARÉ D'AVANCE SERT MÊME SI LE SOLEIL A BOUGÉ.
+   MESURÉ (banc iPhone ×4, portail vers l'ORBITE) : le travailleur avait bien calculé le ciel de la map d'en face, mais avec la direction du soleil du moment
+   (0,354 / 0,422 / −0,834) ; au portail elle valait 0,351 / 0,438 / −0,827 — la clé ne collait plus et envCielCalc repartait ici, 341 ms d'un bloc dans
+   l'image du portail. Le reflet est de toute façon figé à l'entrée du biome : un ciel du MÊME biome dont le soleil est à moins de ~3° est pris tel quel. */
+/* (2026-10-31) LES DUNES REPEIGNAIENT LEUR CIEL DE REFLETS SUR PLACE. Au portail, dnAmb applique la variante de couleurs tirée (doré, rose, nuageux…) et
+   repeignait aussitôt : un ciel jamais préparé (le travailleur avait calculé celui de la base), envCielCalc ici — MESURÉ 317 ms ×4 dans l'image du portail.
+   `envPeintAvance(B)` : en cache, peint tout de suite ; sinon le travailleur le calcule et `envPeintTick` le peint dès qu'il arrive (le reflet garde
+   l'ancien ciel ~0,1-0,3 s). Sans travailleur : sur place, comme avant. */
+function envPeintAvance(B){const sh=B&&B.sunHalo!=null?B.sunHalo:1;
+  if(!B||!B.env||!ENVC.on||!FSTU.on||!envOuvrier()){if(B)paintEnv(B.env,B.eS1,B.eS2);return;}
+  const cle=envCle(B.env,B.eS1,B.eS2,sh,SUN_DIR);
+  if(ENVC.cache.has(cle)||envProche(B.env,B.eS1,B.eS2,sh,SUN_DIR)){ENVC.attP=null;paintEnv(B.env,B.eS1,B.eS2);return;}
+  envPrepare(B);ENVC.attP={B:B,cle:cle,t:performance.now()};}
+function envPeintTick(){const a=ENVC.attP;if(!a)return;
+  if(ENVC.att.has(a.cle)&&performance.now()-a.t<4000)return; /* (en route chez le travailleur) */
+  ENVC.attP=null;if(BIO.to===a.B)paintEnv(a.B.env,a.B.eS1,a.B.eS2);} /* arrivé (ou perdu : alors sur place, comme avant) — si le biome est toujours celui-là */
+function envProche(stops,s1,s2,sunHalo,sd){const t=JSON.stringify([stops,s1,s2,sunHalo]),pre=t.slice(0,-1)+',';let F=null,dm=.05;
+  for(const [k,v] of ENVC.cache){if(k.indexOf(pre)!==0)continue;let a=null;try{a=JSON.parse(k);}catch(e){continue;}
+    const d=Math.hypot(a[4]-sd.x,a[5]-sd.y,a[6]-sd.z);if(d<dm){dm=d;F=v;}}
+  if(F)ENVC.proche=(ENVC.proche|0)+1;return F;}
 function envGarde(cle,F){ENVC.cache.delete(cle);ENVC.cache.set(cle,F);while(ENVC.cache.size>32)ENVC.cache.delete(ENVC.cache.keys().next().value);} // (le plus récent en dernier)
 function envOuvrier(){if(ENVC.w!==undefined)return ENVC.w;
   try{const src="'use strict';var FSTU_DIR=null;\n"+fstuDirs.toString()+"\n"+envCielCalc.toString()+"\nvar ECL="+JSON.stringify(FSTU_ECL)+";\n"+
@@ -43818,9 +43866,10 @@ function envPrepare(B){ // (le pré-bâti) le ciel d'un biome à venir, calculé
   if(ENVC.cache.has(cle)||ENVC.att.has(cle))return;const W=envOuvrier();if(!W)return;
   const id=++ENVC.id;ENVC.att.set(cle,id);
   try{W.postMessage({id:id,cle:cle,a:[B.env,B.eS1,B.eS2,sh,{x:SUN_DIR.x,y:SUN_DIR.y,z:SUN_DIR.z}]});}catch(e){ENVC.att.delete(cle);}}
-window.dbgEnvCiel=function(){return {on:ENVC.on,cache:ENVC.cache.size,enVol:ENVC.att.size,prisEnCache:ENVC.pris,calculesIci:ENVC.calc,parLeTravailleur:ENVC.av,msDernierCalcul:ENVC.ms,travailleur:!!ENVC.w,rates:ENVC.rates||[],cles:[...ENVC.cache.keys()].map(function(k){return k.slice(-120);})};};
+window.dbgEnvCiel=function(){return {on:ENVC.on,cache:ENVC.cache.size,enVol:ENVC.att.size,prisEnCache:ENVC.pris,prisProche:ENVC.proche|0,calculesIci:ENVC.calc,parLeTravailleur:ENVC.av,msDernierCalcul:ENVC.ms,travailleur:!!ENVC.w,rates:ENVC.rates||[],cles:[...ENVC.cache.keys()].map(function(k){return k.slice(-120);})};};
 function paintEnvCiel(stops,s1,s2,sunHalo){FSTU.env='ciel2';FSTU.envB=null;FSTU.garage=false;FSTU.menuW=1;
   const S=128,cle=ENVC.on?envCle(stops,s1,s2,sunHalo,SUN_DIR):null;let F=cle&&ENVC.cache.get(cle);
+  if(!F&&cle)F=envProche(stops,s1,s2,sunHalo,SUN_DIR); /* (2026-10-31) le même ciel préparé d'avance, le soleil à peine plus loin */
   if(F){envGarde(cle,F);ENVC.pris++;}
   else{if(cle){(ENVC.rates||(ENVC.rates=[])).push(cle.slice(-120));if(ENVC.rates.length>6)ENVC.rates.shift();}const t9=performance.now();F=envCielCalc(stops,s1,s2,sunHalo,{x:SUN_DIR.x,y:SUN_DIR.y,z:SUN_DIR.z},fstuDirs(S).T,FSTU_ECL,S);ENVC.ms=Math.round(performance.now()-t9);ENVC.calc++;if(cle)envGarde(cle,F);}
   envCvs.forEach(function(cv,f){if(cv.width!==S)cv.width=cv.height=S;const c=cv.getContext('2d'),im=c.createImageData(S,S);im.data.set(F[f]);c.putImageData(im,0,0);});
@@ -45572,6 +45621,9 @@ function jeteEngin(m){if(m&&m.userData.garde)return;m.traverse(o=>{if(o.isMesh){
    avant la fin de la chauffe fabrique le sien, comme avant, et le garde). Mémoire : ~39 Mo de géométrie pour les 30 (les tôles d'une voiture en font
    autant). Même image : la pièce est remise à zéro (échelle, place, rotation) avant le cadrage. `?moteurs=jetes` = comme avant. */
 const ENG_PRET=[],ENG_GARDER=!/[?&]moteurs=jetes\b/.test(location.search);
+/* (2026-10-31, 2e tour) …ET SA BOÎTE DE CADRAGE. MESURÉ (tour de toutes les maps, ×4) : la 1re montée à chaque palier calculait encore la boîte du moteur
+   (setFromObject → computeBoundingBox sur toute sa géométrie : ~45 ms ×4). La chauffe la calcule à l'image qui SUIT la fabrication (ENG_BB : la file). */
+const ENG_BB=[];
 function engPret(i){
   if(!ENG_GARDER)return mkEngine(i);
   let g=ENG_PRET[i];
@@ -45706,6 +45758,7 @@ function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie 
   if(!lierPret())return;
   LIER.doux=true;try{engChauffe1();}finally{LIER.doux=false;}}
 function engChauffe1(){
+  if(ENG_BB.length){const g=ENG_BB.shift();try{if(!g.userData.bb&&!g.parent)g.userData.bb=new THREE.Box3().setFromObject(g);}catch(e){}chauffeGrace();return;} /* (2026-10-31) la boîte de cadrage d'un moteur gardé, dans SA propre image (voir ENG_BB) */
   if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
   if(engChaudI<0){chauffeGrace();const k9=CHAUFFE_R.div;CHAUFFE_R.saute=0;const r9=chauffeDivers(k9);if(CHAUFFE_R.saute&&CHAUFFE_R.rejoue!==k9){CHAUFFE_R.rejoue=k9;return;}CHAUFFE_R.div=k9+1;if(!r9)engChaudI=0;return;} /* (LA LIAISON EN ARRIÈRE-PLAN) une étape dont le dessin a sauté des programmes en cours de liaison est rejouée une fois, liée */ // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
   if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){chauffeGrace();CHAUFFE_R.saute=0;chauffeRendu();if(CHAUFFE_R.saute&&!CHAUFFE_R.refait){CHAUFFE_R.refait=1;return;}CHAUFFE_R.fait=true;CHAUFFE_R.tFait=performance.now();return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
@@ -45716,7 +45769,7 @@ function engChauffe1(){
     const g=engChaudI<ENGINE_TIERS.length?mkEngine(engChaudI):new THREE.Mesh(engVigFeuGeo,engVigFeuMat); // dernier tour : la flamme
     engChaudI++;
     engVigScene.add(g);renderer.compile(engVigScene,engVigCam);engVigScene.remove(g);
-    if(ENG_GARDER&&engChaudI<=ENGINE_TIERS.length){if(!ENG_PRET[engChaudI-1]){g.userData.garde=true;ENG_PRET[engChaudI-1]=g;}return;} /* (2026-10-31) LES MOTEURS GARDÉS : la course le reprend tel quel (voir ENG_PRET) */
+    if(ENG_GARDER&&engChaudI<=ENGINE_TIERS.length){if(!ENG_PRET[engChaudI-1]){g.userData.garde=true;ENG_PRET[engChaudI-1]=g;ENG_BB.push(g);}return;} /* (2026-10-31) LES MOTEURS GARDÉS : la course le reprend tel quel (voir ENG_PRET) */
     const vus=new Set(); // ⚠ une matière sert souvent à PLUSIEURS pièces du moteur : on ne la juge qu'une fois (sinon la matière gardée était libérée à la pièce suivante)
     g.traverse(function(o){if(!o.isMesh)return;
       if(o.geometry&&o.geometry!==engVigFeuGeo&&!(o.geometry.userData&&o.geometry.userData.partage))o.geometry.dispose();
@@ -47384,7 +47437,9 @@ function ecranWipe(fn,apres){
   try{uiGarde(520);}catch(e){} // (2026-10-12, passe qualité) le VOLET arme le verrou du double-tap : le 2e tap d'un HOME du garage tombait sur le JOUER de l'accueil (~200-350 ms) et lançait une course
   w.className='in';const px=wipePxOk();if(px)wipePxStart(w,'in');try{if(SONV2)sfx('ui.volet');else noiseBurst(.18,.05,1800);}catch(e){} // (2026-09-28) le son du volet : session SON
   setTimeout(function(){
-    try{fn();}catch(e){console.error(e);}
+    let r9=null;try{r9=fn();}catch(e){console.error(e);}
+    /* (2026-10-31) `fn` peut rendre une PROMESSE : le volet reste baissé jusqu'à ce qu'elle tienne (le REJOUER finit d'y bâtir son départ — voir rejoueAttend) */
+    const suite9=function(){
     let leve=false;
     const lever=function(){ if(leve)return;leve=true;
       w.className='out';if(px)wipePxStart(w,'out');ecranWipe._on=false; // la main revient DÈS que l'écran se redécouvre (le voile qui s'efface ne bloque plus rien)
@@ -47396,6 +47451,8 @@ function ecranWipe(fn,apres){
       setTimeout(function(){if(ecranWipe._id===id){w.className='';wipePxEnd();}},REDUCED_MOTION?160:460); }; // un fondu relancé entre-temps garde son voile
     requestAnimationFrame(function(){requestAnimationFrame(lever);});
     setTimeout(lever,160); // filet : onglet caché = aucune image, le voile ne doit jamais rester collé
+    };
+    if(r9&&typeof r9.then==='function')r9.then(suite9,suite9);else suite9();
   },REDUCED_MOTION?120:160); // (2026-10-11, passe UX) 210 → 160 ms : le volet entre en 150 ms (voir <style id="uxPasse">), l'écran change dès qu'il couvre
 }
 function uiPop(el){ // le rebond d'un bouton relâché (re-déclenchable : on retire, on force un reflow, on remet)
@@ -61833,6 +61890,11 @@ let startBoostT=0;
 // `fireLaunchBoost()` — LE GESTE DU DÉPART, un seul écrivain (2026-09-05) : armé depuis `resetGame`
 // (rejeu direct) ET depuis la fin du LÂCHER du garage (`GAR.go`, prembattre le tout premier départ)
 // pour que le geste soit identique dans les deux cas, sans dupliquer le minuteur du logo.
+/* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») RELANCER UNE ANIMATION SANS MISE EN PAGE INUTILE. `void el.offsetWidth`
+   force le navigateur à recalculer TOUTE la page sur-le-champ : MESURÉ au JOUER (banc iPhone ×4), 238 ms dans l'image du départ, la page venant de changer
+   d'écran (l'atelier se ferme, le HUD arrive). Il ne sert que si la classe est DÉJÀ là (l'animation tourne : il faut la retirer, la faire constater, la
+   remettre) ; au départ elle est partie depuis longtemps (retirée 1,9 s après) : on l'ajoute, l'animation part à la même image, sans lecture forcée. */
+function relanceAnim(el,c){if(el.classList.contains(c)){el.classList.remove(c);void el.offsetWidth;}el.classList.add(c);}
 function fireLaunchBoost(){
   // (2026-09-24) la nitro OFFERTE avait été désarmée à la fusion (« la caisse qui s'arrache toute seule au gaz auto »)…
   // (2026-09-29) …elle REVIENT, comme sur la branche de Léo : c'est la suite du RIDEAU DE FLAMMES du garage.
@@ -61841,8 +61903,8 @@ function fireLaunchBoost(){
   // classe `.on` et le MÊME minuteur — un flash sans le mot, ou le mot sans le flash, ferait deux
   // demi-effets au lieu d'un seul coup net.
   const ll9=$('launchLogo'),lg9=$('launchGlow');
-  if(ll9){ll9.classList.remove('on');void ll9.offsetWidth;ll9.classList.add('on');try{sfx('depart.logo',{vol:-4});}catch(e){}} /* (console de son) le logo CLAQUE : sub + accord d'or — (2026-10-16) −4 dB : il remettait un coup de sub juste après le piqué */
-  if(lg9){lg9.classList.remove('on');void lg9.offsetWidth;lg9.classList.add('on');}
+  if(ll9){relanceAnim(ll9,'on');try{sfx('depart.logo',{vol:-4});}catch(e){}} /* (console de son) le logo CLAQUE : sub + accord d'or — (2026-10-16) −4 dB : il remettait un coup de sub juste après le piqué */
+  if(lg9)relanceAnim(lg9,'on');
   clearTimeout(fireLaunchBoost._t);fireLaunchBoost._t=setTimeout(function(){
     if(ll9)ll9.classList.remove('on');if(lg9)lg9.classList.remove('on');
     if(!started||gameOver)return; /* (24/10, relecture) la course est déjà finie ou quittée (QUITTER, mort dans les 1,9 s) : la bannière « NIVEAU n » ne vient plus après coup sur l'écran de fin ou le garage */
@@ -78122,7 +78184,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function surAccueilCiel(){return MENU_PASSE&&garageOn&&!GAR.go&&!ecranWipe._on&&document.body.classList.contains('garMenuH');}
   function mTap(a,el){
     if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
-    if(a==='replay'&&started&&gameOver){ m2Rejoue(); /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); resetGame(); } }); }; r9(); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
+    if(a==='replay'&&started&&gameOver){ m2Rejoue(); /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); return rejoueAttend().then(function(){ if(started&&gameOver)resetGame(); }); } }); }; r9(); } /* (2026-10-31) rejoueAttend : le départ d'avance pas fini se finit SOUS le volet, en tranches */ // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
     else if(a==='play'&&jadePlayOk()){ const go9=function(){goImmersive();jadeJouer();}; // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE, avec sa musique
       if(SAVE.d.facile==null&&!SAVE.d.tuto)Promise.resolve().then(go9);else go9(); }
     else if(a==='play'&&sfPlayOk()){ const go9=function(){goImmersive();classiqueJouer();}; // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD

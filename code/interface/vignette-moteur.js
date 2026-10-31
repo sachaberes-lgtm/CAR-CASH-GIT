@@ -168,6 +168,9 @@ function jeteEngin(m){if(m&&m.userData.garde)return;m.traverse(o=>{if(o.isMesh){
    avant la fin de la chauffe fabrique le sien, comme avant, et le garde). Mémoire : ~39 Mo de géométrie pour les 30 (les tôles d'une voiture en font
    autant). Même image : la pièce est remise à zéro (échelle, place, rotation) avant le cadrage. `?moteurs=jetes` = comme avant. */
 const ENG_PRET=[],ENG_GARDER=!/[?&]moteurs=jetes\b/.test(location.search);
+/* (2026-10-31, 2e tour) …ET SA BOÎTE DE CADRAGE. MESURÉ (tour de toutes les maps, ×4) : la 1re montée à chaque palier calculait encore la boîte du moteur
+   (setFromObject → computeBoundingBox sur toute sa géométrie : ~45 ms ×4). La chauffe la calcule à l'image qui SUIT la fabrication (ENG_BB : la file). */
+const ENG_BB=[];
 function engPret(i){
   if(!ENG_GARDER)return mkEngine(i);
   let g=ENG_PRET[i];
@@ -302,6 +305,7 @@ function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie 
   if(!lierPret())return;
   LIER.doux=true;try{engChauffe1();}finally{LIER.doux=false;}}
 function engChauffe1(){
+  if(ENG_BB.length){const g=ENG_BB.shift();try{if(!g.userData.bb&&!g.parent)g.userData.bb=new THREE.Box3().setFromObject(g);}catch(e){}chauffeGrace();return;} /* (2026-10-31) la boîte de cadrage d'un moteur gardé, dans SA propre image (voir ENG_BB) */
   if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
   if(engChaudI<0){chauffeGrace();const k9=CHAUFFE_R.div;CHAUFFE_R.saute=0;const r9=chauffeDivers(k9);if(CHAUFFE_R.saute&&CHAUFFE_R.rejoue!==k9){CHAUFFE_R.rejoue=k9;return;}CHAUFFE_R.div=k9+1;if(!r9)engChaudI=0;return;} /* (LA LIAISON EN ARRIÈRE-PLAN) une étape dont le dessin a sauté des programmes en cours de liaison est rejouée une fois, liée */ // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
   if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){chauffeGrace();CHAUFFE_R.saute=0;chauffeRendu();if(CHAUFFE_R.saute&&!CHAUFFE_R.refait){CHAUFFE_R.refait=1;return;}CHAUFFE_R.fait=true;CHAUFFE_R.tFait=performance.now();return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
@@ -312,7 +316,7 @@ function engChauffe1(){
     const g=engChaudI<ENGINE_TIERS.length?mkEngine(engChaudI):new THREE.Mesh(engVigFeuGeo,engVigFeuMat); // dernier tour : la flamme
     engChaudI++;
     engVigScene.add(g);renderer.compile(engVigScene,engVigCam);engVigScene.remove(g);
-    if(ENG_GARDER&&engChaudI<=ENGINE_TIERS.length){if(!ENG_PRET[engChaudI-1]){g.userData.garde=true;ENG_PRET[engChaudI-1]=g;}return;} /* (2026-10-31) LES MOTEURS GARDÉS : la course le reprend tel quel (voir ENG_PRET) */
+    if(ENG_GARDER&&engChaudI<=ENGINE_TIERS.length){if(!ENG_PRET[engChaudI-1]){g.userData.garde=true;ENG_PRET[engChaudI-1]=g;ENG_BB.push(g);}return;} /* (2026-10-31) LES MOTEURS GARDÉS : la course le reprend tel quel (voir ENG_PRET) */
     const vus=new Set(); // ⚠ une matière sert souvent à PLUSIEURS pièces du moteur : on ne la juge qu'une fois (sinon la matière gardée était libérée à la pièce suivante)
     g.traverse(function(o){if(!o.isMesh)return;
       if(o.geometry&&o.geometry!==engVigFeuGeo&&!(o.geometry.userData&&o.geometry.userData.partage))o.geometry.dispose();

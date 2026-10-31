@@ -209,10 +209,10 @@ function dnAmb(){const D=DN.deco;if(!D||DN._amb===D.sd)return;DN._amb=D.sd;const
   for(const nm in DN_VAR){const B=BIOMES['dunes'+nm[0].toUpperCase()+nm.slice(1)];if(!B)continue;const o=B.__o||(B.__o={}),V=DN_VAR[nm],ks=Object.keys(V);let v=f&&f[1]==='0'?null:V[ks[h<.5?0:1]];if(f&&V[f[1]])v=V[f[1]];
     const cp=function(x){return Array.isArray(x)?x.slice():x;};for(const k in o)B[k]=cp(o[k]);                          /* d'abord la base */
     if(v)for(const k in v){if(o[k]===undefined)o[k]=cp(B[k]);B[k]=cp(v[k]);}}
-  {const B=BIO.to;if(B&&/^dunes/.test(BIO.name||'')){bioLerp(B,B,1,BIO.cur);bioApply(BIO.cur);paintEnv(B.env,B.eS1,B.eS2);}}} /* l'ambiance courante est recalculée tout de suite */
+  {const B=BIO.to;if(B&&/^dunes/.test(BIO.name||'')){bioLerp(B,B,1,BIO.cur);bioApply(BIO.cur);envPeintAvance(B);}}} /* (2026-10-31) le ciel des reflets de la variante : par le travailleur (voir envPeintAvance) */ /* l'ambiance courante est recalculée tout de suite */
 const DN_NUA=!/[?&]nuages=0\b/.test(location.search); /* (2026-10-23, Léo : « plus de nuages ») `?nuages=0` : le ciel d'avant (peu de nuages, ronds, plats) */
 function dnNuages(){const on=DN.on&&DN_NUA&&!QUAL_LOW&&/^dunes/.test(BIO.name||''),W=skyU.uCyW.value;if(!on){W.set(0,0);return;}W.set(.4,1);if(!DN_NUA&&skyU.uCyK){}} // bandes étirées, nuages modelés
-function dunesTick(dt){dnAmb();dnNuages();
+function dunesTick(dt){dnAmb();envPeintTick();dnNuages();
   if(DN.on&&DN.sunAz!=null&&DN.sunEl!=null&&BIO.cur.cyA&&BIO.cur.cyA[0]<14)BIO.cur.cyA=[DN.sunEl,DN.sunAz,BIO.cur.cyA[2],BIO.cur.cyA[3]]; // le soir : le soleil dans l'axe de l'arrivée (voir buildDunes)
   if(!DN.mat)return;const U=DN.mat.uniforms,c=BIO.cur,k=LVL.dunes||0;
   if(DN.on&&!paused)U.uTime.value=(U.uTime.value+dt)%4096;
