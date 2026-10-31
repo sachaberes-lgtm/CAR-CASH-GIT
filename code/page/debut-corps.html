@@ -61,12 +61,65 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
      erreur tardive (hors du try/catch de la boucle) ou une promesse rejetée — `AC.resume()` au retour d'arrière-plan sur iPhone, un
      `Preferences.set` — posait l'écran plein « N'A PAS PU DÉMARRER » PAR-DESSUS une partie en cours, sans bouton pour en sortir.
      Une fois le jeu démarré (`__gameReady`), l'erreur est notée (`__loopErr`, console) et la partie continue. */
+  /* ===== LA BOÎTE NOIRE (2026-10-27, Léo : « utilise les techniques Cloudflare pour soigner notre jeu, et fais en sorte que mon jeu ne bugge
+     plus du tout » — choisi : « leur méthode anti-bugs ») =====
+     On ne corrige que ce qu'on voit. Une erreur en pleine partie ne laissait qu'une ligne dans une console que personne ne lit sur un
+     téléphone. Le jeu la NOTE désormais lui-même, sur l'appareil (localStorage `cashcarErr`, 30 lignes au plus, une même erreur = une
+     ligne avec son compteur) : erreurs JS, promesses rejetées, panne d'un morceau de la boucle (loopWarn), et les GELS (une image de plus
+     d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
+     quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
+  (function(){
+    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0;
+    var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
+    var ecrit=function(){attente=0;try{localStorage.setItem(CLE,JSON.stringify(L));}catch(_){}};
+    window.__ccNote=function(genre,msg,ou){
+      try{
+        msg=String(msg==null?'?':(msg&&msg.message)||msg).slice(0,240);var cle=genre+'|'+msg,t=Date.now();
+        if(cle===dern&&t-dernT<2000)return;dern=cle;dernT=t; /* une erreur qui revient à chaque image ne coûte qu'une écriture toutes les 2 s */
+        lit();var e=null;for(var i=0;i<L.length;i++)if(L[i].k===cle){e=L[i];break;}
+        var v=(typeof CC_VER==='string'?CC_VER:'?');
+        if(e){e.n++;e.t=t;e.v=v;if(ou)e.o=String(ou).slice(0,160);}
+        else{L.push({k:cle,g:genre,m:msg,o:ou?String(ou).slice(0,160):'',n:1,t0:t,t:t,v:v,d:window.__gameReady?1:0});if(L.length>30)L.splice(0,L.length-30);}
+        if(!attente){attente=1;setTimeout(ecrit,400);}
+        try{var vv=document.getElementById('mvVer');if(vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){}
+      }catch(_){}
+    };
+    window.dbgErreurs=function(vider){lit();if(vider){L=[];ecrit();}return L.slice();};
+    /* LES GELS : une image de plus d'une seconde, onglet visible, hors retour d'arrière-plan (le rAF s'y arrête : ce n'est pas un gel) */
+    var der=0,cache=0;document.addEventListener('visibilitychange',function(){cache=performance.now();});
+    var rf=function(t){if(der&&document.visibilityState==='visible'&&t-der>1000&&t-der<20000&&t-cache>1500&&window.__gameReady) /* (2026-10-28) plus de 20 s = l'appli était endormie (écran verrouillé : WKWebView ne dit pas toujours « caché »), pas un gel — la boîte noire de Léo notait 123 à 830 s */
+      window.__ccNote('gel',(Math.round((t-der)/100)/10)+' s',document.body&&document.body.className.slice(0,80));der=t;requestAnimationFrame(rf);};
+    requestAnimationFrame(rf);
+    var montre=function(){
+      lit();var en=ccEn(),o=document.getElementById('ccBoite');if(o)o.remove();
+      o=document.createElement('div');o.id='ccBoite';
+      o.setAttribute('style','position:fixed;inset:0;z-index:99998;background:rgba(7,5,15,.97);color:#ffd75e;box-sizing:border-box;overflow:auto;'+
+        'font:8px/1.8 var(--pix);padding:calc(env(safe-area-inset-top,0px) + 20px) 18px calc(env(safe-area-inset-bottom,0px) + 20px);-webkit-user-select:text;user-select:text');
+      var txt=L.length?L.slice().reverse().map(function(e){return '['+e.g+'] ×'+e.n+' · '+new Date(e.t).toLocaleString()+' · v '+e.v+(e.d?'':' · démarrage')+'\n'+e.m+(e.o?'\n  ↳ '+e.o:'');}).join('\n\n')
+        :(en?'Nothing recorded: no error, no freeze.':'Rien de noté : aucune erreur, aucun gel.');
+      var bt='display:inline-block;margin:0 8px 14px 0;padding:12px 14px;border:0;font:10px var(--pix);color:#3a1800;background:linear-gradient(180deg,#ffe78e,#f7ae16);cursor:pointer';
+      o.innerHTML='<div style="font:12px/1.5 var(--pix);color:#fff;margin-bottom:12px">'+(en?'BLACK BOX':'BOÎTE NOIRE')+' · '+L.length+'</div>'+
+        '<button data-b="c" style="'+bt+'">'+(en?'COPY':'COPIER')+'</button><button data-b="v" style="'+bt+'">'+(en?'CLEAR':'VIDER')+'</button><button data-b="f" style="'+bt+'">'+(en?'CLOSE':'FERMER')+'</button>'+
+        '<pre style="white-space:pre-wrap;word-break:break-word;color:#c9bdf0;margin:0">'+esc(txt)+'</pre>';
+      o.addEventListener('click',function(ev){var b=ev.target&&ev.target.getAttribute&&ev.target.getAttribute('data-b');if(!b)return;ev.stopPropagation();
+        if(b==='c'){try{navigator.clipboard.writeText(txt);}catch(_){}ev.target.textContent='OK';}
+        else if(b==='v'){L=[];ecrit();try{var vv=document.getElementById('mvVer');if(vv)vv.textContent=vv.textContent.replace(/ · ⚠.*$/,'');}catch(_){}o.remove();}
+        else o.remove();});
+      document.body.appendChild(o);
+    };
+    window.__ccBoite=montre;
+    document.addEventListener('click',function(ev){var t=ev.target;if(t&&t.id==='mvVer')montre();},true);
+    if(/[?&]erreurs=1/.test(location.search))addEventListener('load',function(){setTimeout(montre,1500);});
+    addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer');if(L.length&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+L.length;}catch(_){}},3000);});
+  })();
   addEventListener('error',function(e){
     if(!e.message)return;
+    try{window.__ccNote('erreur',e.message,(e.filename||'').split('/').pop()+':'+e.lineno+':'+(e.colno||0));}catch(_){}
     if(window.__gameReady){window.__loopErr=e.message+' @'+e.lineno;try{console.error(e.error||e.message);}catch(_){}return;}
     window.__crash(e.message,(ccEn()?'line ':'ligne ')+e.lineno+(e.filename?' · '+e.filename:''));
   });
   addEventListener('unhandledrejection',function(e){
+    try{var r9=e.reason;window.__ccNote('promesse',r9&&r9.message||r9,r9&&r9.stack&&String(r9.stack).split('\n')[1]);}catch(_){}
     if(window.__gameReady){try{console.warn('promesse rejetée',e.reason);e.preventDefault();}catch(_){}return;}
     window.__crash((ccEn()?'unhandled promise: ':'promesse rejetée : ')+(e.reason&&e.reason.message||e.reason));});
   // LE CHIEN DE GARDE : 8 s sans que la boucle ait tourné une seule fois = ce n'est plus un chargement long.

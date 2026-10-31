@@ -104,6 +104,27 @@ function gomPas(drift,spd3,dk,T){ // à chaque image de course, à la place de l
 }
 window.dbgGomme=function(){const r=function(p,n){return p?+p.value.toFixed(n):null;};return {doux:CRISSE_DOUX,pret:GOM.ok,k:+GOM.k.toFixed(3),souffle:r(GOM.sG&&GOM.sG.gain,4),grain:r(GOM.gG&&GOM.gG.gain,4),passeBas:r(GOM.lp1&&GOM.lp1.frequency,0),grains:r(GOM.gSrc&&GOM.gSrc.playbackRate,2)};};
 /* <<<FIN GOMME DOUCE>>> */
+/* ===== LE SON QUI NE REDÉMARRE PAS (2026-10-28, boîte noire de l'appli de Léo : trois « Failed to start the audio device ») =====
+   Sur iPhone, `resume()` d'un contexte audio REFUSE (promesse rejetée) quand iOS ne rend pas encore la sortie : retour d'arrière-plan sans geste
+   (visibilitychange), appel ou Siri pas finis, appli pas tout à fait au premier plan. Une dizaine d'appels le lançaient sans écouter le refus : la
+   promesse partait rejetée (notée dans la boîte noire) et rien ne disait qu'il fallait réessayer. `acReveil(A)` : le même réveil, partout ; il
+   rend une promesse qui ne rejette JAMAIS (vrai = le son tourne) ; un refus est compté et le PROCHAIN TOUCHER réessaie (un geste : iOS rend la
+   sortie), une fois, sans rallumer un contexte que le jeu a endormi exprès entre-temps (pause, SON coupé, onglet caché). `dbgAudio` : `.reveil`. */
+const AC_REV={rates:0,essais:0,dern:'',arme:false};
+function acVeut(A){ /* ce contexte doit-il tourner maintenant ? (le jeu peut l'avoir endormi exprès depuis le refus) */
+  if(!A||A.state==='running'||A.state==='closed'||document.hidden)return false;
+  if(A===AC)return !paused&&(SND.sfx||musGraphe());
+  return true;}
+function acReveil(A){
+  A=A||AC;if(!A||A.state==='running'||A.state==='closed')return Promise.resolve(!!A&&A.state==='running');
+  let p=null;try{p=A.resume();}catch(e){p=Promise.reject(e);}
+  if(!p||!p.then)return Promise.resolve(A.state==='running');
+  return p.then(function(){return A.state==='running';},function(e){AC_REV.rates++;AC_REV.dern=String(e&&e.message||e).slice(0,80);acReessaie(A);return false;});}
+function acReessaie(A){ /* au prochain toucher (touchend : le geste qu'iOS accepte pour le son ; pointerup pour l'ordinateur) */
+  if(AC_REV.arme)return;AC_REV.arme=true;
+  const f=function(){removeEventListener('touchend',f,true);removeEventListener('pointerup',f,true);AC_REV.arme=false;
+    if(acVeut(A)){AC_REV.essais++;acReveil(A);}};
+  addEventListener('touchend',f,true);addEventListener('pointerup',f,true);}
 function initAudio(){
   AC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000});}catch(e){return new C();}})(); /* (2026-10-25, Sacha/Léo : « sons très aigus chez lui, grésillements chez moi, même lien ») 48 kHz IMPOSÉS : le contexte prenait la cadence de la carte son de chaque ordinateur (44,1 · 48 · 96 kHz, Bluetooth 16-24 kHz) et tout le DSP tournait à une cadence différente d'une machine à l'autre ; le navigateur rééchantillonne vers la sortie. */
   if(!SND.sfx&&!(MUS_WA&&MUS_WA.on)&&!musGraphe())try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage — (2026-10-14, session SON) sauf si la musique passe par WebAudio (MUS_WA) : suspendu, le contexte la rendait MUETTE au lancement (SON coupé, MUSIQUE allumée) ; musWaSon coupe alors les effets par l'entrée du limiteur

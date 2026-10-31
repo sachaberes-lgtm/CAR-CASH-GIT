@@ -148,15 +148,29 @@ const DPR_MIN=(IS_MOBILE&&!FORCE_TEL)?.5:.6; // .42 était une bouillie de pixel
 // FOV_K rouvre l'angle, POR (0 paysage → 1 portrait) recadre la caméra. Les deux se règlent ENSEMBLE
 // avec camBack/camH : reculer rapetisse, monter redresse, viser bas remonte la caisse dans le cadre.
 let FOV_K=1,FOV_TK=1,POR=0;
-function fovFit(){ const a=innerWidth/Math.max(1,innerHeight);
-  FOV_K=a<1?Math.min(1.30,Math.max(1,.80/a)):1;
-  FOV_TK=Math.tan(FOV_K*.2*Math.PI)/Math.tan(.2*Math.PI); // 36° = .2π : calé pour que le repos (72°) retombe pile sur 72×FOV_K — le cadrage portrait validé ne bouge pas
-  POR=Math.min(1,Math.max(0,(1-a)/.42)); } // 16:9 → 0 · 9:16 → 1
+function fovFit(snap){ const a=innerWidth/Math.max(1,innerHeight);
+  PORC.k=a<1?Math.min(1.30,Math.max(1,.80/a)):1;
+  PORC.p=Math.min(1,Math.max(0,(1-a)/.42)); // 16:9 → 0 · 9:16 → 1
+  if(snap||PORC.snap){PORC.snap=false;FOV_K=PORC.k;POR=PORC.p;FOV_TK=Math.tan(FOV_K*.2*Math.PI)/Math.tan(.2*Math.PI);return;} // 36° = .2π : calé pour que le repos (72°) retombe pile sur 72×FOV_K — le cadrage portrait validé ne bouge pas
+  porGlisse(); }
+/* ===== LA ROTATION GLISSE (2026-10-29, Léo : « la transition visuelle du sens de l'écran et de la route plus smooth, plus logique ») =====
+   Avant, portrait ↔ paysage faisait SAUTER le cadrage (POR, champ, recul et hauteur de caméra) d'un coup, pile 280 ms après le pivot.
+   Maintenant fovFit ne fixe qu'une CIBLE ; POR, FOV_K et FOV_TK la rejoignent en ~0,6 s (sortie douce), sur leur propre
+   requestAnimationFrame, donc la caméra, la vitrine du garage et le recadrage de l'image suivent le même mouvement.
+   Une fois arrivés, les trois valent EXACTEMENT la cible (au bit près comme avant) ; `?rotation=ancien` = le saut d'avant. */
+const PORC={k:1,p:0,snap:/[?&]rotation=ancien/.test(location.search),t:0,on:false};
+function porGlisse(){ if(PORC.on)return; PORC.on=true; PORC.t=performance.now();
+  (function pas(n){ const dt=Math.min(.05,Math.max(0,(n-PORC.t)/1000));PORC.t=n;
+    const e=1-Math.exp(-dt*7.5),dp=PORC.p-POR,dk=PORC.k-FOV_K;
+    if(Math.abs(dp)<.002&&Math.abs(dk)<.002){POR=PORC.p;FOV_K=PORC.k;PORC.on=false;}
+    else{POR+=dp*e;FOV_K+=dk*e;}
+    FOV_TK=Math.tan(FOV_K*.2*Math.PI)/Math.tan(.2*Math.PI);
+    if(PORC.on)requestAnimationFrame(pas); })(PORC.t); }
 // (2026-09-25) PORTRAIT : on élargit la TANGENTE, pas l'angle. Multiplier l'angle faisait exploser le champ à haute vitesse sur un
 // vrai téléphone (135° en croisière, 162° en nitro, >180° = image retournée). Ici le zoom de vitesse garde le RAPPORT réglé sur PC,
 // plafonné à 150°. Sur PC et en paysage (FOV_TK=1), la somme est identique au bit près.
 function fovPor(d){return FOV_TK===1?d:Math.min(150,Math.atan(Math.tan(Math.min(170,d)*Math.PI/360)*FOV_TK)*360/Math.PI);}
-fovFit(); // RÉSOLUTION ADAPTATIVE — cap desktop 1.5 : sur Retina, 1.75→1.5 = −26 % de pixels, invisible sous bloom+grain (écran 1× : min() ne change rien)
+fovFit(true); // RÉSOLUTION ADAPTATIVE — cap desktop 1.5 : sur Retina, 1.75→1.5 = −26 % de pixels, invisible sous bloom+grain (écran 1× : min() ne change rien)
 renderer.setPixelRatio(curDPR);
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
 let BLOOM_RES=1; // (2026-09-27, passe perf iPhone) part de la résolution du bloom — un cran de l'échelle de qualité (QL) la baisse à ¾

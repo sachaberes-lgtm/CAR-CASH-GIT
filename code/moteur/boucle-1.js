@@ -1,6 +1,7 @@
 function loop(now){
   requestAnimationFrame(loop);
   if(window.__introCouvre){loop._pn=now;last=now;return;} // (2026-10-22, Léo : « ça bug ») l'INTRO DU STUDIO couvre tout l'écran : dessous, le jeu ne calcule ni ne dessine rien (il faisait saccader le film, surtout sur un Mac chargé) — voir moteur/intro-161.js
+  if(lierDemarrage(now)){loop._pn=now;last=now;return;} /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : les programmes de la 1re image se lient à côté, le jeu ne dessine pas encore — voir interface/vignette-moteur.js */
   if(CAD.ok&&cadSaute(now))return; // (2026-10-14, passe perf mobile) LA CADENCE STABLE : cette image d'écran se saute, sans RIEN toucher — voir CAD
   if((CAD.ok||PFR_ON)&&hcSaute(now))return; /* (2026-10-24) le téléphone au frais aussi (voir PFR_ON) */ /* (2026-10-23, audit mobile) hors course (accueil, garage) : 30 i/s sur les vieux paliers — voir HC */
   /* (2026-10-20, Sacha : « Chrome à 94-96 % de CPU ») PLAFOND À 60 i/s : rAF suit la fréquence de l'écran — 120/144/240 Hz = 2 à 4× plus d'images
@@ -212,9 +213,11 @@ function loop(now){
     // sert à mesurer l'économie sur des dizaines de parties sans jouer à la main. Jamais armé en jeu.
     const mA9=DBG_AUTO.on&&mode==='drive'?vitMult():1; // (HAUTE VITESSE, 2026-09-30) le pilote de mesure connaît sa caisse : au sol, le lacet est ×spdMult, et l'écart latéral s'y referme en autant de SECONDES qu'à ×1
     const target=DBG_AUTO.on&&DBG_AUTO.vol&&mode==='fall'?dbgAutoVol(dt):DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD*mA9)*.9),-.4,.4)-(DBG_AUTO.gl?psi-BKV.gl:psi))*3)/(lacetMax(vA)*mA9),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
+      :TCTL.incl&&TCTL.play?THREE.MathUtils.clamp(TCTL.inclV+(lf?1:0)-(rt?1:0),-1,1) // (2026-10-27) INCLINAISON : le téléphone penché fait le volant, le pouce n'a plus à tenir le rond
+      :TCTL.pad?padRampe(dt,(lf?1:0)-(rt?1:0)) // (2026-10-28) FLÈCHES TACTILES : un appui court = une correction fine, un appui tenu = le plein braquage (voir padRampe)
       :TCTL.act?TCTL.st:(lf?1:0)-(rt?1:0); // VOLANT TACTILE : le pouce prend la main sur le tout-ou-rien (même lissage derrière)
     if(lf||rt)TCTL.doigt=false; // (2026-10-14, sensations) une flèche du clavier reprend la main : son lissage à elle (le dernier qui a tenu le volant décide)
-    steer+=(target-steer)*(1-Math.exp(-dt*(TCTL.doigt?VOL_LIS_D:VOL_LIS))); /* (2026-10-14) τ 30 ms au pouce, 47 ms au clavier (voir VOL_LIS_D) · (2026-10-09) exponentielle EXACTE : à 60 i/s c'est l'ancien ×0,3 au millième ; à 30 i/s (l'iPhone bridé) le volant braquait plus sec que sur PC (τ 36 ms au lieu de 47) */
+    steer+=(target-steer)*(1-Math.exp(-dt*(TCTL.doigt&&!TCTL.incl?VOL_LIS_D*(.5+.5*Math.min(1,Math.abs(target-steer)/.4)):TCTL.doigt?VOL_LIS_D:VOL_LIS))); /* (2026-10-28, Léo : « pas très smooth ») AU POUCE le lissage est ADAPTATIF : un petit écart se referme doucement (τ 60 ms : pas de grain, la ligne tient), un grand écart (coup de pouce, contre-braquage) garde les 30 ms du 14/10 — la vivacité d'un slide reste, le tremblement du verre s'efface */ /* (2026-10-14) τ 30 ms au pouce, 47 ms au clavier (voir VOL_LIS_D) · (2026-10-09) exponentielle EXACTE : à 60 i/s c'est l'ancien ×0,3 au millième ; à 30 i/s (l'iPhone bridé) le volant braquait plus sec que sur PC (τ 36 ms au lieu de 47) */
     graceT=Math.max(0,graceT-dt);
     if(CHANCE.inv>0)chanceTick(dt); // (2026-10-14) le bouclier de la SECONDE CHANCE
     sideCd=Math.max(0,sideCd-dt);

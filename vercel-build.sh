@@ -13,6 +13,10 @@ sh garde-charte.sh
 # (2026-10-25, Sacha : « sur PC la version maximum, sur téléphone l'optimisée — que j'aie pas à te le redire ») LA GARDE DE L'ALLÈGEMENT : un allègement du rendu gardé par
 # IS_MOBILE (vrai aussi sur PC) n'est PAS publié (garde-allege.sh ; GARDE_ALLEGE=0 la coupe).
 sh garde-allege.sh
+# (2026-10-27, Léo : « les techniques Cloudflare… que mon jeu ne bugge plus du tout ») LA GARDE DU DÉMARRAGE : une version qui ne peut pas
+# démarrer (index.html ≠ code/, un <script> illisible, un fichier chargé absent) n'est PAS publiée — le site garde la version d'avant
+# (outils/garde-demarrage.cjs ; GARDE_DEMARRAGE=0 la coupe).
+node outils/garde-demarrage.cjs
 rm -rf .vercel-static
 mkdir -p .vercel-static
 cp -R demo/cash-car-demo .vercel-static/demo

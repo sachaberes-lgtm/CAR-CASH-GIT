@@ -268,21 +268,22 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  c_silencieuse:{p:[{t:'rond',r:0.11,sx:1.6,sy:0.72,len:0.6,k:'a',ame:0,bague:0,bouche:0,jeu:.008,jonc:.01,pts:[[0,0.44,-2.535]]},{t:'rond',r:0.03,k:'c',len:0.1,lie:1,pts:[[0,0.44,-2.605]]}]}, // (2026-10-15, les pots encastrés « même les originales ») le silencieux remonte de 24 à 44 cm : son cul ovale dans une encoche du panneau arrière, l'embout devant lui (avant : il pendait dessous)
  d_samourai:{p:[{t:'rond',r:0.078,k:'b',kb:'v',ev:1.1,dbl:1,k2:'x',pts:[[0.42,0.28,-2.44]]}]},
  d_vette:{p:[{t:'rond',r:0.044,k:'c',dbl:1,pts:[[-0.24,0.3,-2.32],[-0.09,0.3,-2.32],[0.09,0.3,-2.32],[0.24,0.3,-2.32]]}]},
- e_anglaise:{p:[{t:'ovale',r:0.05,sx:1.9,sy:0.6,k:'c',dbl:1,pts:[[0.55,0.33,-2.44],[-0.55,0.33,-2.44]]}]},
+ e_anglaise:{p:[{t:'ovale',r:0.06,sx:1.9,sy:0.65,k:'c',dbl:1,pts:[[0.48,0.315,-2.49],[-0.48,0.315,-2.49]]}]}, // (2026-10-26, la v3 poly ; puis la croupe en goutte du coupé : x 0,48) recalé sur le nouveau bouclier arrière (face à z −2,475), un rien plus grosses : « deux grosses sorties ovales »
  d_corbillard:{p:[{t:'reel',r:0.04,k:'s',kc:'f',len:0.3,pts:[[-0.56,0.38,-3.04]]}]}, // (2026-10-15) le pot réel, noir (le corbillard)
  a_chargeur69:{p:[{t:'rond',r:0.045,ev:1.4,k:'c',pts:[[0.32,0.3,-2.66],[-0.32,0.3,-2.66]]}]},
  b_canard:{p:[{t:'rond',r:0.05,k:'C',dbl:1,k2:'c',pts:[[-0.4,0.28,-2.13]]}]},
- e_aigle:{p:[{t:'rond',r:0.034,ev:1.18,k:'c',pts:[[0.36,0.28,-2.502],[0.46,0.28,-2.502],[-0.36,0.28,-2.502],[-0.46,0.28,-2.502]]}]},  // (2026-10-14, passe graphismes · pots) recalé sur la jupe reculée de Léo (rampe du dessous, tôle à z -2,452 au bord haut des bouches) : de -2,60 à -2,502, elles dépassent de 5 cm comme avant
+ e_aigle:{p:[{t:'rond',r:0.036,ev:1.18,k:'c',pts:[[0.20,0.47,-2.41],[-0.20,0.47,-2.41]]}]},  // (2026-10-27, L'AIGLE v5, le rapace) deux sorties dans la jupe noire sous la queue (poupe à z -2,38) — avant : les quatre sorties du muscle car
  d_batmobile:{p:[{t:'rond',r:0.04,k:'C',bague:0,len:0.45,bout:'x',pts:[[-0.34,0.3,-2.435],[-0.44,0.3,-2.435]]}]},
  e_zed:{p:[{t:'rond',r:0.046,ev:1.28,k:'c',pts:[[0.38,0.28,-2.19]]}]},
  b_daytona:{p:[{t:'plaque',k:'s',w:0.27,h:0.1,x:0.32,y:0.35,z:-2.216},{t:'plaque',k:'s',w:0.27,h:0.1,x:-0.32,y:0.35,z:-2.216},{t:'rond',r:0.036,k:'c',dbl:1,pts:[[0.27,0.33,-2.31],[0.37,0.33,-2.31],[-0.27,0.33,-2.31],[-0.37,0.33,-2.31]]}]},  // (2026-10-14, passe graphismes · pots) recalé sur la poupe de Léo : le dessous remonte en rampe sous y 0,30 (la tôle y recule jusqu'à 25 cm) → écrin et bouches montés sur la face verticale (z -2,21), écrin collé à 0,4 cm
  c_taurine:{p:[{t:'rond',n:6,r:0.072,rz:0.5236,k:'a',dbl:1,k2:'C',pts:[[0.1,0.36,-2.26],[-0.1,0.36,-2.26]]}]},
  squale:{ote:[[0.285,0.285,-2.44,0.435,0.435,-2.2],[-0.435,0.285,-2.44,-0.285,0.435,-2.2],[0.477,0.285,-2.44,0.627,0.435,-2.2],[-0.627,0.285,-2.44,-0.477,0.435,-2.2]],p:[{t:'ouies',w:0.16,h:0.022,pas:0.05,k:'C',lueur:'g',pts:[[0.46,0.36,-2.408],[-0.46,0.36,-2.408]]}]},
- tuner:{vieux:1,p:[{t:'rond',r:0.105,ev:1.12,k:'c',dbl:1,k2:'C',lueur:'V',len:0.42,pts:[[0.42,0.33,-2.56]]}]},
+ tuner:{p:[{t:'rond',r:.055,k:'c',dbl:1,k2:'C',kb:'V',lueur:'V',pts:[[.16,.31,-2.15],[-.16,.31,-2.15]]}]}, // (2026-10-26, L'ACIDE sur la forme de la Zagaie e08) la double sortie au milieu du diffuseur ; la bague et le fond luisent d'acide
  c_stratos:{p:[{t:'rond',r:0.056,k:'C',bague:0,len:0.45,bout:'x',pts:[[0.1,0.34,-2.097],[-0.1,0.34,-2.097]]}]},
  atchoum:{ote:[[0.33,0.21,-2.32,0.51,0.39,-1.9],[-0.51,0.21,-2.32,-0.33,0.39,-1.9],[0.9,0.22,-0.85,1.04,0.36,-0.27],[-1.04,0.22,-0.85,-0.9,0.36,-0.27]],p:[{t:'rond',r:0.056,ev:1.2,k:'x',kb:'x',lueur:'g',len:0.25,jeu:.008,jonc:.01,pts:[[0.97,0.47,-0.83,{ry:-1.5708}],[-0.97,0.47,-0.83,{ry:1.5708}]]}]}, // (2026-10-15, les pots encastrés « même les originales ») les sorties de stock-car sortent DROIT du flanc, devant la roue arrière, chacune dans son encoche ; `ote` retire le long tube que son gabarit faisait courir sous le bas de caisse (avant : un tube qui pendait dessous, l'embout en biais)
  origami:{p:[{t:'triangle',w:0.17,h:0.09,k:'a',lueur:'G',pts:[[0.52,0.47,-2.768],[-0.52,0.47,-2.768]]}]},
  rosso:{p:[{t:'rond',r:0.05,k:'C',dbl:1,k2:'c',pts:[[-0.15,0.4,-2.3],[0,0.4,-2.3],[0.15,0.4,-2.3]]}]},
+ zagato:{p:[{t:'rond',r:.05,n:8,k:'C',dbl:1,k2:'k',bague:0,pts:[[.545,.35,-2.075],[.695,.35,-2.075],[-.545,.35,-2.075],[-.695,.35,-2.075]]}]}, // (2026-10-26, LA ZAGAIE figée « juste avant ») les QUATRE sorties d'origine de la 5-95, deux paires aux coins bas de la poupe (la ligne vit ICI : la liste des voitures ne lit que la table)
  abstraite:{p:[{t:'rond',r:0.05,k:'s',kb:'o',len:0.08,lueur:'Y',pts:[[0.22,0.36,-2.22],[-0.22,0.36,-2.22]]}]},
  iceberg:{p:[{t:'cristal',r:0.055,pts:[[0.11,0.31,-2.2681],[-0.11,0.31,-2.3239]]}]},
  e_murduson:{p:[{t:'turbine',r:0.11,n:10,k:'C',kp:'b',aubes:6,lueur:'g',force:1,pts:[[0.48,0.45,-3],[-0.48,0.45,-3]]},{t:'turbine',r:0.235,n:12,k:'C',kp:'b',aubes:0,force:1,pts:[[0.7,0.66,-0.8],[-0.7,0.66,-0.8]]}]},
@@ -293,16 +294,16 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  d_chevalier:{p:[{t:'turbine',r:0.205,n:12,k:'C',kp:'a',aubes:0,pts:[[0,0.8,-2.46]]}]},
  e_dragon:{p:[{t:'gueule',r:0.06,k:'o',ev:1.1,crocs:6,kc:'w',lueur:'g',pts:[[0.46,0.4,-2.41],[-0.46,0.4,-2.41]]}]},
  b_pizza:{p:[{t:'reel',r:0.034,k:'c',rx:0.45,len:0.25,pts:[[0.36,0.24,-1.845]]}]},
- bulle:{p:[{t:'rond',r:0.03,ev:1.45,k:'c',pts:[[-0.26,0.42,-2.185]]}]},
+ bulle:{enc:0,p:[{t:'rond',r:.022,ev:1.3,n:8,k:'c',len:.22,pts:[[.165,.335,-1.985],[-.165,.335,-1.985]]}]}, /* (2026-10-26, LE SCARABÉE en poly) les deux « sarbacanes » de la 1962, sous le pare-chocs, un peu derrière lui — `enc:0` : elles pendent sous la jupe, rien à percer */
  combi:{p:[{t:'reel',r:0.032,k:'C',len:0.42,pts:[[0.32,0.31,-2.42],[-0.32,0.31,-2.42]]}]},
  dolores:{p:[{t:'rect',w:0.12,h:0.05,k:'a',e:0.012,pts:[[0.38,0.3,-2.17],[-0.38,0.3,-2.17]]}]},
  d_puce:{p:[{t:'reel',r:0.026,k:'c',pts:[[-0.045,0.22,-1.55],[0.045,0.22,-1.55],[-0.045,0.3,-1.55],[0.045,0.3,-1.55]]}]},
  b_groupeb:{p:[{t:'rond',r:0.058,k:'C',bague:0,len:0.5,bout:'x',ry:-0.45,pts:[[0.6,0.26,-2.1572]]}]},
- c_hotrod:{p:[{t:'reel',r:.034,k:'C',len:.30,jeu:.006,jonc:.006,pts:[[.32,.29,-1.81],[-.32,.29,-1.81]]}]}, // (2026-10-19, LE HOT ROD v2) deux sorties sous la poupe (les collecteurs du V8 courent sous la caisse ; les cheminées sont parties)
+ c_hotrod:{garde:1,enc:0,p:[{t:'rond',r:.042,n:8,ev:1.12,k:'c',len:.30,pts:[[.30,.30,-1.79],[-.30,.30,-1.79]]}]}, // (2026-10-26, LE HOT ROD v4) deux pots réels sous la poupe, de part et d'autre du pont ; `garde` : aucun vieil embout à ôter, `enc:0` : ils pendent à l'air libre sous le plancher
  a_mastodonte:{ote:[[0.47,0.42,-2.43,0.67,1.27,-1.74],[-0.67,0.42,-2.43,-0.47,1.27,-1.74]],p:[{t:'cheminee',h:1.35,r:0.075,k:'c',pts:[[0.8,1.62,-0.46],[-0.8,1.62,-0.46]]}]},
  poster:{p:[{t:'rect',w:0.19,h:0.085,k:'c',e:0.014,cloison:1,pts:[[0.4,0.38,-2.15],[-0.4,0.38,-2.15]]}]},
  requin:{p:[{t:'rond',r:0.07,k:'s',kb:'C',dbl:1,k2:'n',lueur:'G',len:0.4,pts:[[0.44,0.43,-2.12],[-0.44,0.43,-2.12]]}]},
- proto:{p:[{t:'cloche',r:0.24,k:'C',kb:'b',lueur:'g',n:12,pts:[[0.54,0.55,-3.4],[-0.54,0.55,-3.4]]}]},
+ proto:{garde:1,enc:0,p:[]}, /* (2026-10-27, LA COMÈTE au kit) ses deux propulseurs SONT ses pots : dessinés par le gabarit (tuyères d'or), déclarés dans `pots` — ici rien à ôter ni à poser ; avant : deux cloches à (±0,54 ; 0,55 ; −3,4) sur les propulseurs génériques */
  e_raie:{p:[{t:'sidepipe',r:0.045,k:'c',kb:'a',pts:[[0.8905,0.3,0.8,-0.78],[-0.8905,0.3,0.8,-0.78]]}]},
  a_eternelle:{p:[{t:'rond',r:0.04,k:'b',kb:'x',dbl:1,k2:'x',pts:[[-0.23,0.47,-2.349],[-0.08,0.47,-2.349],[0.08,0.47,-2.349],[0.23,0.47,-2.349]]}]},
  nuage:{p:[{t:'nuage',r:0.075,pts:[[0.46,0.42,-2.43],[-0.46,0.42,-2.43]]}]},

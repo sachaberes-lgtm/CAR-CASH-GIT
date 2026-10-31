@@ -250,7 +250,7 @@ function ajTick(dt){
   AJ.run0=auraRun;
   volgTick(dt); // les gains qui flottent puis tombent dans leur jauge (la nitro)
 }
-function loopWarn(b,nom,e){if(!((loop._crWarn|0)&b)){console.warn('créatures/musique · '+nom,e);loop._crWarn=(loop._crWarn|0)|b;}} // (2026-09-30) un bit par appel gardé : chaque panne se dit UNE fois, sans masquer celle du voisin
+function loopWarn(b,nom,e){if(!((loop._crWarn|0)&b)){console.warn('créatures/musique · '+nom,e);try{window.__ccNote('panne',nom+' · '+(e&&e.message||e),e&&e.stack&&String(e.stack).split('\n')[1]);}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */loop._crWarn=(loop._crWarn|0)|b;}} // (2026-09-30) un bit par appel gardé : chaque panne se dit UNE fois, sans masquer celle du voisin
 /* (2026-10-13, passe de sortie — perf-iphone7) BANC : LE COÛT D'UNE IMAGE ENTIÈRE. `renderer.info` se remet à zéro à CHAQUE render() du
    compositeur : seul, il ne montre que la dernière passe (l'ACES : 1 appel, 2 triangles). Armé, il additionne TOUTES les passes de l'image
    (ombre, scène, bloom, ACES, vignette moteur) et la puce se chronomètre là où le navigateur le permet (EXT_disjoint_timer_query_webgl2 —

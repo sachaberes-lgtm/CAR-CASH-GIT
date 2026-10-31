@@ -17,16 +17,19 @@ function richSort(t){const L=RICH.libres[t];let best=null;for(const o of L){if(!
 function richFruitK(){const R=RICH;if(!R.sabot||!R.sabot.length){const S=FRUIT_DEFS.map(function(_,i){return i;});for(let i=S.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)),t=S[i];S[i]=S[j];S[j]=t;}
     if(S.length>1&&S[S.length-1]===R.fruitDer){const t=S[0];S[0]=S[S.length-1];S[S.length-1]=t;}R.sabot=S;}
   const k=R.sabot.pop();R.fruitDer=k;return k;}
+function richChaud(A){const c=[];for(let k=0;k<A.length;k++)if(A[k].userData&&A[k].userData.chaud)c.push(k);return c.length?c[Math.floor(Math.random()*c.length)]:-1;} // (2026-10-30, Léo : « enlève tous les freezes du menu ciel ») un indice parmi les formes DÉJÀ chauffées, -1 s'il n'y en a pas
 function richLance(t,P,n,d,delai,kv,mat){ // (rend l'objet lancé ; mat : la matière imposée — le billet vert d'une liasse qui craque)
   if(t==='chaine'){richChaine(P,n,d,delai,kv);return null;}
+  let kf=-1,kg=-1;if(t==='fruit'){kf=richFruitK();for(let n9=0;n9<FRUIT_DEFS.length&&!(FRUIT_GEO[kf]&&FRUIT_GEO[kf].userData.chaud);n9++)kf=richFruitK();if(!(FRUIT_GEO[kf]&&FRUIT_GEO[kf].userData.chaud))return null;} // (un fruit dont la forme n'est pas encore bâtie ni envoyée : pas de lancer, plutôt qu'un à-coup)
+  else if(t==='fleur'){kg=richChaud(RICH.G.fleurs);if(kg<0)return null;}else if(t==='champagne'){kg=richChaud(RICH.G.vins);if(kg<0)return null;}
   const o=richSort(t);if(!o)return null;const D=RICH_T[t],rr=(a)=>a[0]+Math.random()*(a[1]-a[0]),m=o.m;
-  if(t==='fruit'){const k9=richFruitK(),g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=(RICH_FRUIT_R[FRUIT_DEFS[k9].n]||.35)/Math.max(.05,g9.boundingSphere.radius);}else o.fr=1; // chaque fruit à SA taille
+  if(t==='fruit'){const k9=kf,g9=fruitGeo(k9);if(!g9.boundingSphere)g9.computeBoundingSphere();m.geometry=g9;o.fr=.8*(RICH_FRUIT_R[FRUIT_DEFS[k9].n]||.35)/Math.max(.05,g9.boundingSphere.radius);} /* (2026-10-30) fruits ×0,8 : tout l'étal rapetisse d'un même cran */else o.fr=1; // chaque fruit à SA taille
   if(t==='jeton')m.material=RICH.M.jetons[Math.floor(Math.random()*RICH.M.jetons.length)]; // une couleur, une valeur
   const montreArg=t==='montre'&&Math.random()<.5;m.material=t==='montre'?(montreArg?RICH.M.montreArg:RICH.M.montre):m.material; // la dorée ou l'argentée
-  if(t==='champagne'){const k9=Math.floor(Math.random()*RICH.G.vins.length);m.geometry=RICH.G.vins[k9];m.material=RICH.M.vins[k9];} // (2026-10-16) le champagne ou l'un de ses quatre cousins
-  if(t==='fleur'){m.geometry=RICH.G.fleurs[Math.floor(Math.random()*RICH.G.fleurs.length)];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige
+  if(t==='champagne'){const k9=kg;m.geometry=RICH.G.vins[k9];m.material=RICH.M.vins[k9];} // (2026-10-16) le champagne ou l'un de ses quatre cousins
+  if(t==='fleur'){m.geometry=RICH.G.fleurs[kg];o.A=(.5+Math.random()*1.1)*(Math.random()<.5?-1:1);} // (2026-10-16) une des six fleurs ; o.A : sa vitesse de rotation sur sa tige
   if(t==='billet'){m.material=mat||RICH.M.billets[Math.floor(Math.random()*RICH.M.billets.length)];o.bi=mat?TC_BIL_100:tcBilTire();o.wr=tcBilWear();} // (2026-10-10) une valeur, une couleur · (2026-10-25) o.bi : sa valeur pour les cubes, tirée comme celle de la traînée
-  o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=rr(D.s);o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
+  o.on=true;o.age=-delai;o.vie=rr(D.vie);o.s=D.bat?D.s[0]+(D.s[1]-D.s[0])*(Math.random()<.5?Math.random()*.35:.2+Math.random()*.8):rr(D.s);/* (2026-10-30, Léo : « les cœurs de tailles un peu variées ») beaucoup de petits, quelques gros */o.ph=Math.random()*6.28;o.fd=Math.random()*6.28;
   o.fv=.4;o.mode=0;o.ec=t==='liasse'&&Math.random()<.5?.42+Math.random()*.45:0; // une liasse sur deux CRAQUE en vol (richEclate)
   const sp=rr(D.v)*(kv||1);RICH.v1.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize();
   o.v.copy(n).multiplyScalar(sp).addScaledVector(RICH.v1,sp*.6).addScaledVector(d,-sp*.15);

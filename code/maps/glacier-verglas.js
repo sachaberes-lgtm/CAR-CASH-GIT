@@ -105,7 +105,7 @@ function bkCongerePose(root){ // les deux rubans de neige du bord, du départ à
   g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeVertexNormals();
   {const Nm=g.attributes.normal.array;for(let i=0;i<Nm.length;i+=3){Nm[i+1]+=.6;const l=Math.hypot(Nm[i],Nm[i+1],Nm[i+2])||1;Nm[i]/=l;Nm[i+1]/=l;Nm[i+2]/=l;}} // (au banc : à 45°, parallèle à la glace, elle restait dans l'ombre bleue — presque la couleur de la glace) la neige du bord regarde un peu le ciel : plus claire, on la distingue
   g.computeBoundingSphere();
-  const m=new THREE.Mesh(g,BANQ.mats.sol);m.name='glacier congere';m.matrixAutoUpdate=false;m.userData.jeter=true;m.frustumCulled=false;root.add(m);BANQ.n.congere=I.length/3;}
+  const m=new THREE.Mesh(g,BANQ.mats.sol);m.name='glacier congere';m.visible=false; /* (2026-10-28, Léo : « plus de neige mousseuse, juste des pics de glace sur les côtés ») le ruban de neige du bord n'est plus dessiné : la dalle de verglas, puis les haies de pics (la physique du bord ne change pas) */m.matrixAutoUpdate=false;m.userData.jeter=true;m.frustumCulled=false;root.add(m);BANQ.n.congere=I.length/3;}
 /* LE TREMPLIN DE GLACE (2026-10-18, Sacha : « les tremplins doivent être plus beaux, gros et visibles ») — le « bec » d'avant était un coin de 8 m
    sur 1,1 m, blanc sur glace blanche : on ne le voyait pas venir. Désormais une RAMPE de BK_BEC.lg m qui monte en courbe (u^1,7 : ~18° à la
    lèvre) jusqu'à BK_BEC.h m, en glace blanche à CHEVRONS ORANGE qui montent vers la lèvre, une LÈVRE blanche qui brille, des flancs bleu
@@ -235,7 +235,7 @@ function banqTick(dt){
   if(!on){banqFxCache();return;}
   const fx=banqFx(),U=BK_U,c=BANQ.cur||(banqMeteo(BANQ.met,.01),BANQ.cur);fx.on=true;
   const vit=!paused;banqPas(dt);if(vit)U.uTime.value+=dt;
-  if(BANQ.file.length)bkTranches(paused||!started?8:3); // LA SUITE DE LA CONSTRUCTION : ~3 ms par image, du plus proche au plus loin
+  if(BANQ.file.length)bkTranches(paused||!started?8:(ALLEGE?3:6)); // LA SUITE DE LA CONSTRUCTION : ~3 ms par image, du plus proche au plus loin
   // LA LUMIÈRE : l'azimut du soleil du ciel, la hauteur de la météo ; la nuit, la LUNE
   {const a=Math.atan2(SUN_DIR.x,SUN_DIR.z),el=c.el*Math.PI/180;BK_V.set(Math.sin(a)*Math.cos(el),Math.sin(el),Math.cos(a)*Math.cos(el));
    U.uSunDir.value.copy(BK_V).lerp(BK_V2.copy(BK_LUNE).setY(Math.max(.45,BK_LUNE.y)).normalize(),c.lune).normalize();}

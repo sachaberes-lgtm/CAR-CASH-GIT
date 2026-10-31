@@ -163,7 +163,7 @@
         dz9=H9?CAM_HEROS.dolly(loop._fovB):1,hz9=H9?1-CAM_HEROS.bas*THREE.MathUtils.clamp(speedKmh/Math.max(1,vCroisiere())-.6,0,1):1, /* (CAM_HEROS) le VERTIGO : la caméra avance quand le champ s'ouvre · elle descend à haute vitesse */ // (2026-09-30) CAM_TAILLE : en portrait la vitesse n'éloigne plus la caméra au-delà de recMax (NITROOO ×2,6 l'envoyait à 9 m de haut)
         camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28)*dz9*(H9?1+(CAM_HEROS.recP-1)*POR:1)*camGlacierM(0), /* (CAM_HEROS) debout, un pas en arrière : le champ resserré suffit à grossir la caisse */ // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
        camH=(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9*camGlacierM(1); // (2026-10-19) ×camGlacierM : la vue qui plonge du glacier
-        camLean=(loop._viseR==null||loop._viseR>=1)?steer*.065:camLean+(steer*.065-camLean)*(1-Math.exp(-dt*10));camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035) — (2026-10-17) à la POSE la penche (éteinte en vol) revient en ~0,1 s au lieu d'une image (jusqu'à 3,7°, volant tenu) ; ensuite elle colle au volant comme avant
+        const lean9=steer*(TCTL.incl?.2:.065); /* (2026-10-27, Léo) INCLINAISON : la caméra penche plus franchement avec le téléphone (≈11° au plein braquage, .065 = 3,7° sinon) : le monde suit la main, on sent le volant */ camLean=(loop._viseR==null||loop._viseR>=1)?lean9:camLean+(lean9-camLean)*(1-Math.exp(-dt*10));camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035) — (2026-10-17) à la POSE la penche (éteinte en vol) revient en ~0,1 s au lieu d'une image (jusqu'à 3,7°, volant tenu) ; ensuite elle colle au volant comme avant
         // (conduite v6) la caméra se place derrière un axe MI-ROUTE MI-CAISSE : avant, elle suivait le cap de la caisse et la clouait au
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
         if(!loop._camD)loop._camD=new THREE.Vector3();
@@ -190,7 +190,7 @@
          camRouteTonneau(cibleOff,loop._camD,dt); // (vague 3) dessus ↔ dessous : la caméra ROULE et orbite (voir CAM_ROUTE)
          if(off.distanceToSquared(cibleOff)>2500)off.copy(cibleOff);           // téléport (respawn, portail) : on ne lisse pas un saut de 50 m
          if(DMT.dc)off.applyAxisAngle(F.n,DMT.dc); /* (LE DEMI-TOUR) l'orbite : la caméra tourne d'un bloc autour de la caisse, puis se recale */
-         {const r9=loop._viseR==null?1:loop._viseR;off.lerp(cibleOff,Math.min(1,dt*(CAM_ROUTE.vif?16:7*(.3+.7*r9*r9))));if(DMT.cam){const l9=cibleOff.length()*.9;if(off.lengthSq()<l9*l9)off.setLength(l9);}} /* (LE DEMI-TOUR) en orbite, la caméra ne coupe pas au plus court à travers la caisse */ /* (2026-10-01, LA POSE) la PLACE de la caméra reprend en douceur, comme sa visée (`_viseR`) : à ×7/s elle faisait 11 % du chemin entre la caméra de vol et celle de route dès la 1re image */ // (vague 3) pendant le tonneau, la caméra colle à son orbite (sinon elle coupe au travers de la dalle)
+         {const r9=loop._viseR==null?1:loop._viseR;off.lerp(cibleOff,Math.min(1,dt*(CAM_ROUTE.vif?(CAM_VIE.on?16*(.3+.7*r9*r9):16):7*(.3+.7*r9*r9))));if(DMT.cam){const l9=cibleOff.length()*.9;if(off.lengthSq()<l9*l9)off.setLength(l9);}} /* (LE DEMI-TOUR) en orbite, la caméra ne coupe pas au plus court à travers la caisse */ /* (2026-10-01, LA POSE) la PLACE de la caméra reprend en douceur, comme sa visée (`_viseR`) : à ×7/s elle faisait 11 % du chemin entre la caméra de vol et celle de route dès la 1re image */ // (vague 3) pendant le tonneau, la caméra colle à son orbite (sinon elle coupe au travers de la dalle)
          camera.position.copy(carGroup.position).add(off);}
         (loop._carPrev||(loop._carPrev=new THREE.Vector3())).copy(carGroup.position);
         camUp.lerp(F.n,Math.min(1,dt*4)).normalize();
@@ -225,9 +225,9 @@
         if(FR.lift>0){FR.cv.copy(F.n).multiplyScalar(-FR.lift*FR_K.cam);camera.position.add(FR.cv);tmp2.add(FR.cv);} // (2026-10-17, LA FIGURE SUR LA ROUTE) la caméra ne suit que 20 % du bond : on voit la caisse quitter le bitume
         camRouteCabrage(dt,camBack,camH);
         {const q9=CAM_ROUTE.q,c9=carGroup.position;camera.position.sub(c9).applyQuaternion(q9).add(c9);tmp2.sub(c9).applyQuaternion(q9).add(c9);camera.up.applyQuaternion(q9);}
-        camera.lookAt(tmp2);
+        camera.lookAt(tmp2);camVieMemo();
         fovPunch=Math.max(0,fovPunch-dt*18);
-        const r9=speedKmh/Math.max(1,vCroisiere()), // (2026-09-25) le champ s'ouvre sur la CROISIÈRE réelle : il continue de réagir au momentum, au pad, au FLOW au lieu d'être collé au plafond
+        const r9=CAM_VIE.r=speedKmh/Math.max(1,vCroisiere()), // (2026-09-25) le champ s'ouvre sur la CROISIÈRE réelle : il continue de réagir au momentum, au pad, au FLOW au lieu d'être collé au plafond
               fb9=H9?(()=>{const H=CAM_HEROS;if(H.v0<0||Math.abs(speedKmh-H.v0)>400)H.v0=speedKmh; /* (CAM_HEROS) « ça pousse » = la PRISE DE VITESSE : l'écart entre la vitesse et sa moyenne lente (≈1,2 s) — un pad, la nitro, une relance ouvrent le champ ; une vitesse stable ou une pente qui accélère doucement le laissent se refermer (la piste descend presque toujours : une accélération brute le tenait ouvert en permanence, mesuré) */
                 H.v0+=(speedKmh-H.v0)*(1-Math.exp(-dt/H.tau));const a9=speedKmh-H.v0;
                 H.acc+=(THREE.MathUtils.clamp(a9/H.accK,0,1)-H.acc)*(1-Math.exp(-dt*(a9>H.acc*H.accK?8:2)));
@@ -326,8 +326,8 @@
         // BORNÉE à ±65° d'assiette → jamais vertical → pas de gimbal-lock, pas de vrille coincée.
         // VOLANT TACTILE : l'assiette devient ANALOGIQUE (2026-10-10, Léo : pouce vers le HAUT = MONTE (cabré), vers le BAS =
         // plonge, par défaut ; le réglage PLONGE rend le manche d'avion) — même levier, dosé. Zone morte large : tourner ne doit jamais cabrer par accident.
-        const pitT=TCTL.act?TCTL.sv*volSens():0; // (2026-09-29) réglage « POUCE HAUT EN VOL : PLONGE / MONTE »
-        const wPitch=pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // -1 = piqué, +1 = cabré
+        const pitT=(TCTL.act||TCTL.incl)?TCTL.sv*volSens():0; // (2026-09-29) réglage « POUCE HAUT EN VOL : PLONGE / MONTE »
+        const wPitch=volInv()*(pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0)); // -1 = piqué, +1 = cabré
         // (vol libre, 2026-09-26) plus de plafond à ±65° ni de repli « à l'horizontale » : le manche fait tourner la trajectoire ET le
         // haut de la caisse autour de SA droite (FLY_R) — piqué, cabré, looping : aucune assiette n'est interdite, rien ne se bloque
         // (des vecteurs qui tournent autour d'un axe local : pas d'angle d'Euler, donc pas de gimbal-lock).
@@ -360,8 +360,8 @@
       } else { // VOL SANS BOOST : léger pilotage haut/bas — assez pour infléchir la trajectoire, bien moins qu'au réacteur
         // (2026-09-27, user : « quand j'essaye de redresser dans les airs sans le nitro ça fait rien ») : cette branche ne lisait que le
         // CLAVIER — sur téléphone le pouce (axe Y du volant) était ignoré sans nitro. Même lecture qu'au réacteur : analogique, zone morte.
-        const pitT=TCTL.act?TCTL.sv*volSens():0;
-        const wPitch=pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0); // ↑ piqué · ↓ cabré
+        const pitT=(TCTL.act||TCTL.incl)?TCTL.sv*volSens():0;
+        const wPitch=volInv()*(pitT!==0?(Math.abs(pitT)<.05?0:-pitT):((keys.KeyW||keys.KeyZ||keys.ArrowUp)?-1:0)+(dn?1:0)); // ↑ piqué · ↓ cabré
         pitchS+=(wPitch-pitchS)*(1-Math.exp(-dtF*(pitT!==0?VOL_LIS_D:VOL_LIS))); // (2026-10-14) τ 30 ms au pouce · (2026-10-09) le même manche lissé (voir le réacteur)
         if(Math.abs(pitchS)>1e-4){const a9=-pitchS*(.85+.85*nk9)*dtF;fallVel.applyAxisAngle(FLY_R,a9);FLY_U.applyAxisAngle(FLY_R,a9);} // (vol libre) même manche, sans plafond — 0,85 rad/s : on infléchit, on ne pilote pas — (2026-10-17) l'autorité du réacteur s'éteint en ~80 ms (nk9)
       }
@@ -474,7 +474,9 @@
          Mesuré : 0,17-0,19 tout le vol (75-85 % du sol) au lieu de 0,12 ; la course et l'atterrissage n'ont pas bougé. */
       {const dMx=volR()/(CAMV.s0*Math.tan(camera.fov*Math.PI/360));CAMV.off.subVectors(camera.position,fallPos);const d9=CAMV.off.length();if(d9>dMx)camera.position.copy(fallPos).addScaledVector(CAMV.off,dMx/d9);}
       (CAMV.p0||(CAMV.p0=new THREE.Vector3())).copy(camera.position);CAMV.p0ok=true; // (2026-10-17) la place du suivi, AVANT secousses et vent (lue à l'image suivante)
-      camUp.lerp(FLY_U,Math.min(1,dt*3)).normalize(); // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
+      {const tg9=CAM_VIE.on?camVieVise(CAM_VIE.tg||(CAM_VIE.tg=new THREE.Vector3()),CAM_VIE.d.subVectors(fallPos,camera.position).normalize()):FLY_U; /* (CAMÉRA VIVANTE) le haut visé glisse vers la face de la pose annoncée */
+       if(CAM_VIE.on)camRoulis(tg9,CAM_VIE.d.subVectors(fallPos,camera.position).normalize(),dt); // le roulis du vol est le même ressort que celui du sol
+       camUp.lerp(tg9,Math.min(1,dt*3)).normalize();} // (vol libre) le haut de l'écran = le haut de la caisse : la caméra ne se remet plus « à l'endroit »
       camera.up.copy(camUp);
       /* (bord v2) LA VISÉE GLISSE — c'était LE « clic » du bord : au sol la caméra vise ~10 m DEVANT la caisse (`loop._vise`, la caisse en
          bas de l'image, décalée du côté où elle file), en vol elle vise la caisse ; le passage se faisait en UNE image. La visée de conduite
@@ -483,7 +485,7 @@
       if(Math.abs(camLean)>.001){camLean*=Math.exp(-dt*5);qTmp2.setFromAxisAngle(tmp,-camLean);camera.up.applyQuaternion(qTmp2);}
       loop._viseR=0;(loop._carPrev||(loop._carPrev=new THREE.Vector3())).copy(fallPos); /* (2026-10-01) à la pose, la visée de conduite repartira en douceur — et la caméra de route, de la caisse de cette image */
       {const v9=loop._vise;if(v9){if(n9Saut(loop))v9.set(0,0,0);else v9.multiplyScalar(Math.exp(-dt*5));}
-       camera.lookAt(fallPos.x+(v9?v9.x:0),fallPos.y+(v9?v9.y:0),fallPos.z+(v9?v9.z:0));}
+       camVieGarde(fallPos.x+(v9?v9.x:0),fallPos.y+(v9?v9.y:0),fallPos.z+(v9?v9.z:0));camera.lookAt(fallPos.x+(v9?v9.x:0),fallPos.y+(v9?v9.y:0),fallPos.z+(v9?v9.z:0));camVieMemo();}
       // LES CHOCS EN VOL SE SENTENT (bump sur la tranche, surf de nuage, catapulte) — un petit déplacement qui décroît ici, le regard reste sur la caisse
       if(shake>0){if(!REDUCED_MOTION&&!window.dbgNoShake){const a9=Math.min(1.3,shake)*.12;
         camera.position.addScaledVector(FLY_R,Math.sin(t*47)*a9).addScaledVector(camUp,Math.sin(t*37+1.3)*a9*.8);}
@@ -510,7 +512,7 @@
       if(nitroOn&&!REDUCED_MOTION&&!window.dbgNoShake)camera.position.addScaledVector(camUp,Math.sin(t*38.7)*(nitroBlue?.05:.036)); // (vague 3) le réacteur GRONDE dans l'image
       if(elTurn.style.opacity!=='0')elTurn.style.opacity=0; // (perf) une fois suffit
       // viseur : où vais-je atterrir ?
-      LM.vu=false; // (la dernière pose trouvée reste en place pendant le fondu de sortie)
+      LM.vu=false; // (la dernière pose trouvée reste en place pendant le fondu de sortie) CAM_VIE.pOk=false;
       tmp2.copy(fallPos);tmp3.copy(fallVel);
       CAMV.eta=99; // (caméra de vol v2) temps avant la réception prédite — 99 = rien en vue
       /* (2026-10-09) LE VISEUR HONNÊTE : il n'intégrait que la gravité pleine — nitro tenue, la vraie chute est 2,5× (orange) à 4× (bleue)
@@ -534,9 +536,9 @@
             const hP9=lmP.sub(pts[bi]).dot(Nn[bi]),dessus9=hP9>-1.2?true:hP9<-THICK+1.2?false:h2>-1.3;
             landMark.position.copy(pts[bi]).addScaledVector(B[bi],l2).addScaledVector(Nn[bi],dessus9?.3:-THICK-.3);
             landMark.quaternion.setFromRotationMatrix(mat4.makeBasis(T[bi],B[bi],Nn[bi]));
-            LM.vu=true;CAMV.eta=(st2+1)*.12;
+            LM.vu=true;CAMV.eta=(st2+1)*.12;CAM_VIE.pn.copy(Nn[bi]);if(!dessus9)CAM_VIE.pn.negate();CAM_VIE.pOk=true; // (CAMÉRA VIVANTE) la normale de la face où l'on va se poser
             const impP=Math.abs(tmp3.dot(Nn[bi])); // impact PRÉDIT — même unité que le verdict d'atterrissage
-            LM.c.setHex(impP<4.5?0xffd75e:impP>=10?0xff5040:0xffffff);if(LM.a<.05)landMark.material.color.copy(LM.c); // or = fenêtre PARFAIT, rouge = posé lourd — la teinte GLISSE de l'une à l'autre
+            LM.c.setHex(impP<4.5?0xffd75e:impP>=10?0xff3b30:0xff8272);if(landMark.userData.tk)landMark.userData.tk.rotation.z=t*.5;if(LM.a<.05)landMark.material.color.copy(LM.c); // or = fenêtre PARFAIT, rouge = posé lourd — la teinte GLISSE de l'une à l'autre
             landMark.scale.setScalar(impP<4.5?1+Math.sin(t*10)*.12:1); // l'anneau OR pulse : vas-y, c'est maintenant
             // assistance d'atterrissage : recentre doucement (d'autant plus qu'on va vite)
             const asF=AIR_ASSIST*THREE.MathUtils.clamp(fallVel.length()/60,.2,1.4);

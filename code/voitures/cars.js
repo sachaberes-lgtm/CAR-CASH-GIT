@@ -32,7 +32,7 @@ const CARS=[
  // carnet de trois missions (voir `CARNETS`). Des silhouettes que tout le monde reconnaît de loin, sans
  // leur nom ni leur logo : la bulle, le combi, l'inox à portes papillon. Ajoutées EN FIN de gamme : les
  // index 0-5 des sauvegardes existantes ne bougent pas.
- {name:'LE SCARABÉE',     shape:'bulle',   color:0x93cfd6,accent:0xf3ead6,maxKmh:215,accel:24,turn:2.75,h:1.55,w:1.57,l:4.07,spoiler:0,rar:'commun', // (2026-10-18, Léo) COMMUNE (était RARE : contrat 1) ; (même jour, Léo, sur la planche) LA BULLE → LE SCARABÉE · (2026-10-18, RONDES) refaite sur le plan coté de la 1962 : cotes réelles, le bleu de l'annonce
+ {name:'LE SCARABÉE',     shape:'bulle',   color:0x5fb4c2,accent:0xf3ead6,maxKmh:215,accel:24,turn:2.75,h:1.55,w:1.57,l:4.07,spoiler:0,rar:'commun', // (2026-10-18, Léo) COMMUNE (était RARE : contrat 1) ; (même jour, Léo, sur la planche) LA BULLE → LE SCARABÉE · (2026-10-18, RONDES) refaite sur le plan coté de la 1962 : cotes réelles, le bleu de l'annonce · (2026-10-26, la V1 figée) 0x93cfd6 → 0x5fb4c2 : le bleu glacé brûlait au blanc sous la lampe, un bleu-vert franc qui tient
   desc:'Ronde comme un sou neuf. Tout le monde lui sourit, même la police.'},
  {name:'LE COMBI',        shape:'combi',   color:0x86c9b1,accent:0xf4ecd8,maxKmh:245,accel:27,turn:2.55,h:1.94,w:1.72,l:4.28,spoiler:0,rar:'commun', // (2026-10-18, Léo : « il est rare actuellement : le passer en commune ») (2026-10-18, BOÎTES) refait au plan coté, façon Fillmore — `yeux:1` = les yeux dans le pare-brise
   desc:'Des fleurs sur la tôle, la paix sur le nez, et 45 chevaux qui font de leur mieux.'},
@@ -46,14 +46,14 @@ const CARS=[
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (2026-10-07) son arc-en-ciel EN FEU DE PIXELS (voir ARC_*) + ses pixels qui scintillent (NY_PIX), à la nitro et en vol — branché par NYAN.on
   desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
  {retire:1,name:'REQUIN'}, /* (2026-10-21, Sacha : « suprime la voiture shark dans la boutique ») RETIRÉ : remplacé en boutique par LE SQUALE (le requin de Léo) ; sa ligne reste (index de sauvegarde) */
- {retire:1,name:'COMÈTE',          shape:'proto',   color:0x0a0a12,accent:0xffd75e,maxKmh:657,accel:75,turn:3.25,h:.36,w:2.08,l:5.05,spoiler:1,glow:0xffffff,rocket:1,
+ {retire:1,name:'COMÈTE',          shape:'proto',   color:0x3c16ae,accent:0xffd75e,maxKmh:657,accel:75,turn:3.25,h:1.2,w:2.08,l:5.05,spoiler:1, /* (2026-10-27, au kit) h = sa vraie hauteur de toit ; ni `glow` (deux traits blancs sur la tôle) ni `rocket` (deux tubes gris génériques) : ses propulseurs sont dans son gabarit */
   desc:'Coin furtif, bulle de verre, dérive dorsale. La reine du ciel, et elle le sait. Personne ne l\'a jamais vue de face.'},
  {retire:1,name:'FORMULE OR'},
  {retire:1,name:'LE MANS 24'},
  {retire:1,name:'EL PATRON'},
- {rar:'epique',name:'ACIDE',           shape:'tuner',   color:0x5cff1e,accent:0x123a08,maxKmh:520,accel:60,turn:3.18,h:.62,w:1.88,l:4.1,spoiler:0,glow:0x8dff2a,
+ {rar:'epique',name:'ACIDE',           shape:'tuner',   color:0x5cff1e,accent:0x123a08,maxKmh:520,accel:60,turn:3.18,h:1.17,w:1.93,l:4.22,spoiler:0,
   fx:{jet:0x7cff28,core:0xe8ffb4,trail:[.52,1.55,.10],light:0x6fe81e},
-  desc:'Compacte japonaise passée au bain d\'acide : capot vitré sur le bloc, aileron de table à repasser, échappement qui crache vert.'},
+  desc:'Un coin des années 80 passé au bain d\'acide : une ampoule qui luit sur le dos, et l\'échappement qui crache vert.'},
 /* ===== LES FICHES DES 50 — DÉBUT ===== */
  /* (2026-10-02, Sacha, capture du garage : « supprimer ces 6 voitures du jeu, elles sont pas intéressantes ») SIX COMMUNES RETIRÉES —
     la pizza, le monospace, le break suédois, la boule, le glacier, le tout-terrain soviétique : `retire:1`. Elles ne sont plus NULLE
@@ -87,8 +87,7 @@ const CARS=[
   desc:'Homologuée pour la route, élevée sur circuit. Elle perd patience avant toi.'},
  {retire:1,name:'LA SUÉDOISE TURBO'},
  {retire:1,name:'LE QUATTRO'},
- {name:'LA SILENCIEUSE',color:0xeef0f2,accent:0x121418,maxKmh:290,accel:32,turn:2.7,h:1.45,w:1.96,l:4.97,spoiler:0,shape:'c_silencieuse',rar:'rare',
-  desc:'Zéro bruit, zéro goutte d’essence, zéro excuse : ils ne t’entendent même pas les doubler.'},
+ {retire:1,name:'LA SILENCIEUSE'}, /* (2026-10-27, Léo : « la Silencieuse, on peut la virer du jeu, on n'en veut plus du tout ») RETIRÉE : sa ligne reste (index de sauvegarde), sans gabarit elle ne revient pas ; le défi secret « partie sans son ni musique » (id 'silence') disparaît avec elle (m2Dispo) */
  {retire:1,name:'LE TRIDENT'},
  {retire:1,name:'LA HUIT'},
  {name:'LE SAMOURAÏ',color:0x3b2c4e,accent:0x16181c,maxKmh:300,accel:33,turn:2.9,h:1.36,w:1.79,l:4.6,spoiler:0,shape:'d_samourai',rar:'rare',
@@ -96,7 +95,7 @@ const CARS=[
  {name:'LA VETTE',color:0xd01a22,accent:0x141414,maxKmh:290,accel:32,turn:2.8,h:1.18,w:1.8,l:4.48,spoiler:0,shape:'d_vette',rar:'rare',
   desc:'Phares cachés, V8 pas caché du tout. Elle se lève pour voir la route, puis elle la mange.'},
  {retire:1,name:'LE CHÂTELAIN'},
- {name:'LA GRANDE ANGLAISE',color:0x1a3d2a,accent:0xe9ecf0,maxKmh:320,accel:35,turn:2.6,h:1.4,w:1.94,l:4.8,spoiler:0,shape:'e_anglaise',rar:'rare',ordre:1e8, /* (10/10, Léo, salle blanche : la DERNIÈRE des RARES, après LA ZED — son prix ne bouge pas) */
+ {name:'LA GRANDE ANGLAISE',color:0x0f4527,accent:0xe9ecf0,maxKmh:320,accel:35,turn:2.6,h:1.4,w:1.94,l:4.8,spoiler:0,shape:'e_anglaise',rar:'rare',ordre:1e8, /* (10/10, Léo, salle blanche : la DERNIÈRE des RARES, après LA ZED — son prix ne bouge pas) */
   desc:'Deux tonnes et demie de cuir, de noyer et de W12. Elle ne dépasse pas : elle congédie.'},
  {name:'LE CHARGEUR 69',color:0x0e0e10,accent:0xe9ecf0,maxKmh:360,accel:40,turn:2.55,h:1.35,w:1.95,l:5.28,spoiler:0,shape:'a_chargeur69',rar:'rare',
   desc:'Phares cachés, intentions aussi. Quand la calandre s\'ouvre dans ton rétro, c\'est déjà trop tard.'},
@@ -115,7 +114,7 @@ const CARS=[
   desc:'Un aileron si grand qu\'on l\'a interdite sur route. Toi, tu roules dans le ciel : personne ne dira rien.'},
  {retire:1,name:'LA PAGODE'},
  {retire:1,name:'LA DÉESSE'},
- {name:'L\'AIGLE DE FEU',color:0x0f0f11,accent:0xd9a520,maxKmh:340,accel:38,turn:2.6,h:1.25,w:1.85,l:5.1,spoiler:0,shape:'e_aigle',rar:'rare', // (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE → RARE
+ {name:'L\'AIGLE DE FEU',color:0x0b1022,accent:0xd9a520,maxKmh:340,accel:38,turn:2.6,h:1.25,w:1.85,l:5.1,spoiler:0,shape:'e_aigle',rar:'rare', // (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE → RARE
   desc:'Un oiseau d\'or sur le capot, un shérif dans le rétro. Le shérif n\'a jamais rattrapé l\'oiseau.'},
  {retire:1,name:'LA ZED'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
  {name:'LA FÉLINE',color:0xeee3c6,accent:0xe9ecf0,maxKmh:320,accel:36,turn:2.8,h:1.22,w:1.66,l:4.45,spoiler:0,shape:'e_feline',rar:'legendaire',
@@ -179,6 +178,7 @@ const CARS=[
  {retire:1,name:'LA MERCURE'},
  // (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») LE DOGE (voir SHAPES.doge) : le mème du
  // shiba en voxels, regard en coin, queue en tire-bouchon, et les phrases du mème qui surgissent autour de lui. Ajoutée EN DERNIER.
+ // (2026-10-26) REDESSINÉ EN POLY (SHAPES.doge v3) : la grosse tête taillée en pans plans, ~2 800 triangles au lieu de 46 000 ; `?doge=ancien` rend la v2.
  {name:'LE DOGE',shape:'doge',color:0xd99545,accent:0xf6e6c6,maxKmh:440,accel:53,turn:3.1,h:2.0,w:2.0,l:2.3,spoiler:0,rar:'epique',
   fx:{jet:0xffc83a,core:0xfff2c0,trail:[1.5,1.1,.3],light:0xffb43a,wow:1}, // sa traînée : les phrases du mème (voir LA TRAÎNÉE WOW)
   desc:'Wow. Très tête. Beaucoup roues. Il te regarde de côté, et il a raison.'},
@@ -209,7 +209,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA DOLCE VITA',shape:'cinq',color:0x8eb2df,accent:0xf3f1ea,maxKmh:200,accel:22,turn:2.9,h:1.50,w:1.63,l:3.57,spoiler:0,rar:'commun', // 80 — discussion RONDES : la 500 (2007) en finition « 1957 » de la photo de Léo — bleu ciel, toit blanc, rétros blancs, jantes à cercle crème (SHAPES.cinq, sur le plan coté)
+ {name:'LA DOLCE VITA',shape:'cinq',color:0x4a7599,accent:0x9d998e,maxKmh:200,accel:22,turn:2.9,h:1.50,w:1.63,l:3.43,spoiler:0,rar:'commun', // 80 — discussion RONDES : la 500 (2007) en finition « 1957 » de la photo de Léo — bleu ciel, toit blanc, rétros blancs, jantes à cercle crème (SHAPES.cinq, sur le plan coté)
   desc:'Toit blanc, robe céleste, moustache chromée. Elle se gare dans un mouchoir de poche, et elle repart avec le mouchoir.'},
  /* · */
  /* · */
@@ -224,12 +224,12 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA CERISE',shape:'mx5na',color:0xc8151d,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'commun', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
+ {name:'LA CERISE',shape:'mx5na',color:0x8c0a14,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'commun', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
   desc:'Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.'},
  /* · */
  /* · */
  /* · */
- {name:'LE ROUGE-GORGE',shape:'robin',color:0x2289dc,accent:0x1a1a1d,maxKmh:230,accel:26,turn:2.6,h:1.35,w:1.42,l:3.37,spoiler:0,rar:'rare', // 84 — discussion RONDES : la Reliant Robin Mk1 (1973-81), trois roues, la roue AVANT seule au milieu (SHAPES.robin, `w1F`)
+ {name:'LE ROUGE-GORGE',shape:'robin',color:0x1d74cc,accent:0x1a1a1d,maxKmh:230,accel:26,turn:2.6,h:1.44,w:1.42,l:3.37,spoiler:0,rar:'rare', // 84 — discussion RONDES : la Reliant Robin Mk1 (1973-81), trois roues, la roue AVANT seule au milieu (SHAPES.robin, `w1F`)
   desc:'Trois roues, de la fibre de verre et une confiance aveugle. Dans les virages, elle penche ; toi, tu pries.'},
  /* · */
  /* · */

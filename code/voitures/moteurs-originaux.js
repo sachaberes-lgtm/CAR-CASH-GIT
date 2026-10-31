@@ -81,6 +81,8 @@ function roul10(B,K,x,y,z,R,ax){   // un ROULEMENT À BILLES : deux bagues et un
     if(ax==='y')B.add(G10.ico||(G10.ico=new THREE.IcosahedronGeometry(1,1)),K.chrome,x+a,y,z+b,0,0,0,R*.16,R*.16,R*.16);else B.add(G10.ico||(G10.ico=new THREE.IcosahedronGeometry(1,1)),K.chrome,x,y+a,z+b,0,0,0,R*.16,R*.16,R*.16);}
 }
 function prop10(B,K,x,y,z,R,n,s){  // une GRAPPE de n propulseurs autour de l'axe, tournés vers -x : la puissance se COMPTE
+  /* (30/10, Léo : « les pots multiples, vus de derrière, font plein de cercles qui s'entremêlent pas naturellement ») — les pots ne se touchent plus jamais : la couronne s'élargit (d'un quart au plus) puis les pots rapetissent jusqu'à laisser un vrai jour entre voisins */
+  if(n>1){const sn=Math.sin(PI10/n),r0=.19*s*1.5;R=Math.min(Math.max(R,r0/sn),R*1.25);s=Math.min(s,R*sn/(.19*1.5));}
   TX(B,K.colD,[[.001,0],[R+.18*s,0],[R+.20*s,.03],[R+.18*s,.07],[.001,.07]],x-.02,y,z,0,Math.max(8,n*2));   // la PLATINE qui les porte (aucune tuyère en l'air)
   BAR(B,K.chrome,.09*s,x,x+.75,y,z);B.add(new THREE.TorusGeometry(R+.19*s,.016*s,4,32),K.or,x+.035,y,z,0,PI10/2,0);   // le fût qui la relie au moteur
   for(let k=0;k<n;k++){const t=k/n*2*PI10+.4,yy=y+Math.cos(t)*R,zz=z+Math.sin(t)*R;
@@ -127,50 +129,58 @@ function guil10(){
 function bloc30(g,i,E,KT,rnd,K,S){
   const B=bat10();B.f=true;B.plat();
   const L=S.L,XE=L/2,a=K.a,pb=S.pb,metal=KT.metal,col=KT.col,plat=(a==='fl'||a==='h'),haut=(a==='h');
+  const HY=(i>=1&&i<=6);   // ARTISTE 1 : paliers 2-7 = HYBRIDES (l'animal EST le moteur) : plus de décor de couvre-culasse, de collecteur latéral, de persiennes ni de filtre
+  const peau=(i===8||i===10||i===11||i===14);   // RETOUCHE : l'orque, la roquette, l'électrique, le soleil habillent TOUT le dessus du bloc (le thème pose sa peau : plus de dalle de couvre-culasse)
+  const mine=(i>=8&&i<=14);   // ARTISTE 2 : les 7 paliers HYBRIDES (orque…soleil) — sans couronne, sans faisceau, sans ailes ni persiennes : le thème fait le corps
   const sec=a==='fl'?[[-.30,.20],[.30,.20],[.26,-.10],[.16,-.24],[-.16,-.24],[-.26,-.10]]
     :haut?[[-.24,.50],[.24,.50],[.22,-.50],[-.22,-.50]]:[[-.34,.26],[.34,.26],[.30,-.02],[.20,-.26],[-.20,-.26],[-.30,-.02]];
-  B.add(profX(sec,L,.04),KT.fonte,0,-.02,0);
-  B.add(profX([[-.22,.02],[.22,.02],[.17,-.20],[-.17,-.20]],L*.88,.025),KT.noir,0,-.30,0);
-  B.add(tourX([[.06,0],[.27,0],[.31,.05],[.33,.16],[.27,.22],[.08,.24]],8),KT.noir,-(XE+.02),-.02,0,0,0,0);        // la cloche, à huit pans
+  if(i!==2&&!peau)B.add(profX(sec,L,.04),KT.fonte,0,-.02,0);   // (colibri : le torse emplumé tient lieu de carter)
+  if(!mine&&i!==5&&i!==2)B.add(profX([[-.22,.02],[.22,.02],[.17,-.20],[-.17,-.20]],L*.88,.025),KT.noir,0,-.30,0);
+  if(i!==9)B.add(tourX([[.06,0],[.27,0],[.31,.05],[.33,.16],[.27,.22],[.08,.24]],8),KT.noir,-(XE+.02),-.02,0,0,0,0);        // la cloche, à huit pans
   B.add(tourX([[.05,0],[.22,0],[.24,.05],[.20,.17]],8),KT.chrome,XE,-.02,0,0,0,0);                                  // la poulie
-  if(!plat)for(let k=0;k<3+Math.floor(L*1.6);k++){const u=(k/(2+Math.floor(L*1.6))-.5)*(L-.34);
+  if(!plat&&i!==2&&!peau)for(let k=0;k<3+Math.floor(L*1.6);k++){const u=(k/(2+Math.floor(L*1.6))-.5)*(L-.34);
     for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.fonte,u,-.04,sd*.335,0,0,0,.038,.40,.045);}                              // les nervures
-  if(i>=11)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.glow,0,.12,sd*.352,0,0,0,L*.70,.014,.014);                   // le filet lumineux du carter
+  if(i>=11&&!peau)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.glow,0,.12,sd*.352,0,0,0,L*.70,.014,.014);                   // le filet lumineux du carter
   const tw=.20-.0035*i,ch=.13+.007*i,top=.67+ch;       // le couvre-culasse s'AFFINE et se dresse avec la puissance : de la boîte à la lame
-  let echap=null;
+  let echap=null;const sobre=(i>=15&&i<=17);   // (artiste 3) les hybrides 16-18 se lisent par leur créature : on retire les boulons, rainures et bobines du bloc
   for(let b=0;b<S.BK.length;b++){
-    const inc=S.BK[b][0],et=S.BK[b][1],n=Math.min(pb,K.c-b*pb);if(n<=0)break;
+    const inc=S.BK[b][0]*(mine&&a!=='fl'&&a!=='h'?.38:1),et=S.BK[b][1],n=Math.min(pb,K.c-b*pb);if(n<=0)break;
     B.cadre(et*.28,inc);
     const U=k=>((n>1?k/(n-1):.5)-.5)*(L-.42);
-    for(let k=0;k<n;k++){const u=U(k);
-      B.add(tourY10([[.001,0],[.175,.02],[.175,.30],[.21,.33],[.21,.40],[.001,.40]],8),KT.brosse,u,.10,0);                  // le fût, à huit pans
-      if(K.f)for(let j=0;j<K.f+1;j++)B.add(tourY10([[.001,0],[.28,0],[.28,.022],[.001,.022]],8),KT.alu,u,.12+j*.055,0);// les ailettes, plaques à huit pans
+    for(let k=0;k<(peau?0:n);k++){const u=U(k);
+      if(i!==9)B.add(tourY10([[.001,0],[.175,.02],[.175,.30],[.21,.33],[.21,.40],[.001,.40]],8),KT.brosse,u,.10,0);                  // le fût, à huit pans
+      if(K.f&&i!==9)for(let j=0;j<K.f+1;j++)B.add(tourY10([[.001,0],[.28,0],[.28,.022],[.001,.022]],8),KT.alu,u,.12+j*.055,0);// les ailettes, plaques à huit pans
     }
-    B.add(profX([[-.25,0],[.25,0],[.235,.15],[-.235,.15]],L*.93,.03),KT.brosse,0,.52,0);                                    // la culasse
-    B.add(profX([[-.235,0],[.235,0],[tw,ch],[-tw,ch]],L*.97,.035),col,0,.67,0);
+    if(i===9)continue;   // RETOUCHE tortue : sous la carapace il ne reste que les fûts — ni culasse, ni ailettes, ni boulons qui percent le dôme
+    if(i!==5&&i!==2&&!peau){B.add(profX([[-.25,0],[.25,0],[.235,.15],[-.235,.15]],L*.93,.03),KT.brosse,0,.52,0);                                    // la culasse
+    B.add(profX([[-.235,0],[.235,0],[tw,ch],[-tw,ch]],L*.97,.035),col,0,.67,0);}   // (requin, colibri : le revêtement les recouvre ; orque, roquette, électrique, soleil : leur peau)
     for(let k=0;k<n;k++){const u=U(k);
-      for(let dx=-1.5;dx<=1.5;dx+=1)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.brosse,u+dx*.07,.585,sd*.272,0,0,0,.014,.15,.075);   // les ailettes de refroidissement de la culasse
-      for(let j=0;j<6;j++){const t=j/6*2*PI10;B.add(G10.cyl6,KT.chrome,u+Math.cos(t)*.19,.315,Math.sin(t)*.19,0,0,0,.018,.03,.018);}         // les six boulons de bride du fût
-      B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.20,0,PI10/2,0,0);B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.26,0,PI10/2,0,0); // deux rainures usinées
+      if(i!==5&&i!==2&&!peau)for(let dx=-1.5;dx<=1.5;dx+=1)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.brosse,u+dx*.07,.585,sd*.272,0,0,0,.014,.15,.075);   // les ailettes de refroidissement de la culasse
+      if(!sobre&&!peau)for(let j=0;j<6;j++){const t=j/6*2*PI10;B.add(G10.cyl6,KT.chrome,u+Math.cos(t)*.19,.315,Math.sin(t)*.19,0,0,0,.018,.03,.018);}         // les six boulons de bride du fût
+      if(!sobre&&!peau){B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.20,0,PI10/2,0,0);B.add(new THREE.TorusGeometry(.176,.008,4,18),KT.chrome,u,.26,0,PI10/2,0,0);} // deux rainures usinées
     }
-    for(let k=0;k<=n;k++){const u=((k/n)-.5)*(L-.40);BXg(B,KT.colD,u,top+.002,0,0,0,0,.028,.022,tw*1.75);}   // les nervures transversales du couvre-culasse                                     // le couvre-culasse laqué
-    BXg(B,KT.lame,0,top+.006,0,0,0,0,L*.78,.010,tw*1.5);
-    for(let k=0;k<n;k++){B.add(tourY10([[.001,0],[.12,0],[.001,.07+.006*i]],4),k%2?KT.or:KT.chrome,U(k),top+.01,0,0,PI10/4,0);}   // des pyramides d'or et de chrome, plus hautes avec le palier                                                              // la bande de MÈCHES de carbone
-    if(i>=7)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.glow,0,.67+ch*.5,sd*(.235-(.235-tw)*.5+.004),0,0,0,L*.90,.010,.010);               // les filets lumineux, dès le 8e
-    if(i>=14)for(let k=0;k<n;k++)BXg(B,KT.glow,U(k),top+.022,0,0,0,0,.05,.012,tw*1.9);                                 // un trait par cylindre
-    for(let k=0;k<n;k++){const u=U(k);B.add(tourY10([[.001,0],[.042,0],[.046,.018],[.046,.095],[.032,.115],[.012,.13],[.001,.13]],12),KT.noir,u+.12,top+.01,0);B.add(new THREE.TorusGeometry(.047,.006,4,16),KT.or,u+.12,top+.06,0,PI10/2,0,0);}   // les bobines, fines, cerclées d'or // les bobines
-    for(let sd=-1;sd<=1;sd+=2){B.add(G10.axeX8,KT.or,-L*.485,.672,sd*.238,0,0,0,L*.97,.006,.006);B.add(G10.axeX8,KT.or,-L*.465,.522,sd*.252,0,0,0,L*.93,.005,.005);}   // les FILETS D'OR des jointures
+    if(!HY&&!peau)for(let k=0;k<=n;k++){const u=((k/n)-.5)*(L-.40);BXg(B,KT.colD,u,top+.002,0,0,0,0,.028,.022,tw*1.75);}   // les nervures transversales du couvre-culasse                                     // le couvre-culasse laqué
+    if(!HY&&!peau)BXg(B,KT.lame,0,top+.006,0,0,0,0,L*.78,.010,tw*1.5);
+    if(!HY&&!peau)for(let k=0;k<n;k++){B.add(tourY10([[.001,0],[.12,0],[.001,.07+.006*i]],4),k%2?KT.or:KT.chrome,U(k),top+.01,0,0,PI10/4,0);}   // des pyramides d'or et de chrome, plus hautes avec le palier                                                              // la bande de MÈCHES de carbone
+    if(i>=7&&!peau)for(let sd=-1;sd<=1;sd+=2)BXg(B,KT.glow,0,.67+ch*.5,sd*(.235-(.235-tw)*.5+.004),0,0,0,L*.90,.010,.010);               // les filets lumineux, dès le 8e
+    if(i>=14&&!peau)for(let k=0;k<n;k++)BXg(B,KT.glow,U(k),top+.022,0,0,0,0,.05,.012,tw*1.9);                                 // un trait par cylindre
+    if(!HY&&!sobre&&!peau)for(let k=0;k<n;k++){const u=U(k);B.add(tourY10([[.001,0],[.042,0],[.046,.018],[.046,.095],[.032,.115],[.012,.13],[.001,.13]],12),KT.noir,u+.12,top+.01,0);B.add(new THREE.TorusGeometry(.047,.006,4,16),KT.or,u+.12,top+.06,0,PI10/2,0,0);}   // les bobines, fines, cerclées d'or
+    if(!peau)for(let sd=-1;sd<=1;sd+=2){B.add(G10.axeX8,KT.or,-L*.485,.672,sd*.238,0,0,0,L*.97,.006,.006);B.add(G10.axeX8,KT.or,-L*.465,.522,sd*.252,0,0,0,L*.93,.005,.005);}   // les FILETS D'OR des jointures
     // L'ÉCHAPPEMENT, lisible : un petit coude par cylindre, UN gros collecteur facetté sur toute la longueur, une tuyère évasée à braise
+    if(!mine){
     const clamp=Math.abs(inc)>1,dec=clamp?(inc<0?-1:1)*.62:inc,my=.30,mz=.50;
     if(clamp)B.cadre(et*.28,dec);
-    const faisceau=(i>=10&&i<=15),E0=faisceau?[L*.46+.38,-.38,.44]:[L*.46+.38,my,mz];
-    if(faisceau){                                    // LE FAISCEAU (fusion avec l'ancien dessin) : un tube poli par cylindre, qui s'écarte, plonge et se rejoint
+    const faisceau=(i>=10&&i<=15&&!mine),E0=faisceau?[L*.46+.38,-.38,.44]:HY?[L*.46+.38,.14,0]:[L*.46+.38,my,mz];
+    if(i===15){}else if(faisceau){                                    // LE FAISCEAU (fusion avec l'ancien dessin) : un tube poli par cylindre, qui s'écarte, plonge et se rejoint
       for(let k=0;k<n;k++){const u=U(k),ph=k/Math.max(1,n);
         B.add(tube10([[u,.58,.24],[u*.94,.40+ph*.10,.58+ph*.12],[u*.52,.04-ph*.05,.68+ph*.10],[u*.18,-.24,.57],[0,-.33,.43]],.05,12,7),KT.chrome,0,0,0);
         B.add(new THREE.TorusGeometry(.056,.008,4,14),KT.or,u*.94,.40+ph*.10,.58+ph*.12,0,0,0);
         BXg(B,KT.chrome,u,.58,.262,0,0,0,.15,.10,.022);}
       B.add(tube10([[0,-.33,.43],[L*.25,-.37,.47],[E0[0]-.02,E0[1],E0[2]]],.10,10,8),KT.soud,0,0,0);
       B.add(new THREE.TorusGeometry(.12,.02,5,18),KT.or,0,-.33,.43,0,PI10/2,0);
+    }else if(HY){                                   // ARTISTE 1 : UNE seule sortie, dans l'axe — la queue ou la tuyère vivante du hybride
+      B.add(tube10([[XE-.30,.14,0],[E0[0]-.02,.14,0]],.115,8,8),KT.soud,0,0,0);
+      for(let k=0;k<2;k++)B.add(new THREE.TorusGeometry(.125,.024,5,10),KT.or,XE+.04+k*.20,.14,0,0,PI10/2,0);
     }else{
       for(let k=0;k<n;k++){const u=U(k);B.add(tube10([[u,.58,.24],[u,.50,.42],[u,my+.06,mz-.02]],.062,8,8),KT.soud,0,0,0);
         BXg(B,KT.chrome,u,.58,.262,0,0,0,.15,.10,.022);
@@ -180,35 +190,39 @@ function bloc30(g,i,E,KT,rnd,K,S){
     }
     // LES SORTIES SE MULTIPLIENT avec le palier : une, puis deux (palier 9), puis trois (palier 14) — la puissance se compte de loin
     const nt=1+(i>=8?1:0)+(i>=13?1:0);
-    for(let t=0;t<nt;t++){const ty=E0[1]-t*.17,tz=E0[2]+t*.05;
+    for(let t=0;t<(i===15?0:nt);t++){const ty=E0[1]-t*.17,tz=E0[2]+t*.05;
       if(t>0)B.add(tube10([[E0[0]-.34,E0[1],E0[2]],[E0[0]-.14,ty+.04,tz],[E0[0],ty,tz]],.07,10,8),KT.soud,0,0,0);
       B.add(tourX([[.11,0],[.15,.05],[.24,.22],[.30,.32]],12),KT.chrome,E0[0],ty,tz,0,0,0);
       B.add(new THREE.TorusGeometry(.30,.012,4,20),KT.or,E0[0]+.32,ty,tz,0,PI10/2,0);
       B.add(tourX([[.001,0],[.22,0],[.22,.02],[.001,.02]],12),KT.glow,E0[0]+.30,ty,tz,0,0,0);}
     if(b===0){const ca=Math.cos(dec),sa=Math.sin(dec),ex=E0[0]+.34,ey=E0[1],ez=E0[2];
       echap=[ex,ey*ca-ez*sa+et*.28,ey*sa+ez*ca];}
+    }   // /!mine : les hybrides bâtissent leur propre échappement (la queue, la tuyère vivante)
   }
   B.plat();
   /* LE KIT DE PUISSANCE : des pièces qui s'AJOUTENT palier après palier — c'est ça qui fait qu'on ne revient jamais en arrière */
+  if(!(mine&&a==='fl')&&!sobre&&i!==5&&i!==2&&!peau)
   for(let sd=-1;sd<=1;sd+=2)for(let k=0;k<5+Math.floor(L*1.5);k++){const x=((k+.5)/(5+Math.floor(L*1.5))-.5)*(L-.3);B.add(G10.cyl6,KT.chrome,x,.52,sd*.275,PI10/2,0,0,.016,.03,.016);}  // la rangée de boulons de culasse
-  for(let sd=-1;sd<=1;sd+=2)B.add(G10.axeX8,KT.or,-L*.5,.245,sd*.342,0,0,0,L,.006,.006);   // le filet d'or du plan de joint
-  for(let k=0;k<9;k++)BXg(B,KT.brosse,(k/8-.5)*(L*.8),-.38,0,0,0,0,.014,.10,.34);                                                                            // les ailettes du carter d'huile
-  B.add(G10.cyl6,KT.chrome,-L*.30,-.46,0,0,0,0,.045,.05,.045);                                                                                                        // le bouchon de vidange
-  if(i>=3){B.add(tourX([[.001,0],[.105,0],[.115,.04],[.115,.30],[.10,.33],[.001,.33]],8),KT.col,XE*.30,-.10,-.45,0,0,0);                                                 // le filtre à huile, à la couleur du palier
+  if(!peau)for(let sd=-1;sd<=1;sd+=2)B.add(G10.axeX8,KT.or,-L*.5,.245,sd*.342,0,0,0,L,.006,.006);   // le filet d'or du plan de joint
+  if(!mine&&i!==5&&i!==2)for(let k=0;k<9;k++)BXg(B,KT.brosse,(k/8-.5)*(L*.8),-.38,0,0,0,0,.014,.10,.34);                                                                            // les ailettes du carter d'huile
+  if(!mine&&i!==5&&i!==2)B.add(G10.cyl6,KT.chrome,-L*.30,-.46,0,0,0,0,.045,.05,.045);                                                                                                        // le bouchon de vidange
+  if(i>=3&&!HY&&!peau){B.add(tourX([[.001,0],[.105,0],[.115,.04],[.115,.30],[.10,.33],[.001,.33]],8),KT.col,XE*.30,-.10,-.45,0,0,0);                                                 // le filtre à huile, à la couleur du palier
     for(let k=0;k<3;k++)B.add(new THREE.TorusGeometry(.118,.014,4,8),KT.chrome,XE*.30+.07+k*.08,-.10,-.45,0,PI10/2,0);
     B.add(G10.cyl6,KT.laiton,XE*.30-.04,-.10,-.45,0,0,PI10/2,.05,.05,.05);}
-  if(i>=3)for(let sd=-1;sd<=1;sd+=2){const nl=2+Math.floor(i/3),rk=.25+.03*i;                                                                       // PERSIENNES : des lames facettées qui s'ouvrent plus largement à chaque palier
+  if(i>=3&&!HY&&!mine)for(let sd=-1;sd<=1;sd+=2){const nl=2+Math.floor(i/3),rk=.25+.03*i;                                                                       // PERSIENNES : des lames facettées qui s'ouvrent plus largement à chaque palier
     for(let k=0;k<nl;k++){const y=-.20+k*(.36/nl);BXg(B,k%2?KT.lame:KT.col,0,y,sd*(.37+k*.012),sd*rk,0,0,L*.68-k*.04,.012,.10);
       if(i>=8)BXg(B,KT.glow,0,y,sd*(.37+.05+k*.012),sd*rk,0,0,L*.66-k*.04,.008,.008);}}
-  if(i>=9)for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-L*.40,0],[L*.34,0],[L*.16,.40],[-L*.34,.18]],.025,.006),i%2?KT.col:KT.meche,0,-.22,sd*.46,sd*.5,0,0);   // les ailes
-  if(i>=15)for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-L*.5,0],[L*.5,0],[L*.30,.5],[-L*.5,.22]],.018,.004),KT.col,0,-.10,sd*.60,sd*.9,0,0);                 // les ailes de lumière
+  if(i>=9&&!mine&&!(i>=15&&i<=17))for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-L*.40,0],[L*.34,0],[L*.16,.40],[-L*.34,.18]],.025,.006),i%2?KT.col:KT.meche,0,-.22,sd*.46,sd*.5,0,0);   // les ailes
+  if(i>=15&&i!==15&&i!==16&&i!==17)for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-L*.5,0],[L*.5,0],[L*.30,.5],[-L*.5,.22]],.018,.004),KT.col,0,-.10,sd*.60,sd*.9,0,0);                 // les ailes de lumière
   crown30(B,K,S,KT,i,E,rnd,g);
+  const TC={L:L,top:top,tw:tw};theme30(B,i,KT,TC,g);   // l'identité du palier : scarabée, colibri, scorpion… (moteurs-themes.js)
   B.fin(g);
-  g.userData.echap={p:echap||[L*.64,-.40,.36],d:[1,0,0]};
+  g.userData.echap={p:(mine&&TC.echap)||(i===15?[L*.5+1.7,.28,0]:echap)||[L*.64,-.40,.36],d:[1,0,0]};
 }
 
 /* ============ LA PIÈCE UNIQUE DE CHAQUE PALIER : une idée de forme par moteur, de plus en plus grande ============ */
 function crown30(B,K,S,KT,i,E,rnd,g){
+  if((i>=1&&i<=6)||(i>=8&&i<=14)||(i>=15&&i<=17))return;   // artistes 1, 2 et 3 : leurs hybrides n'ont plus de couronne — le thème (moteurs-themes.js) EST le corps
   const L=S.L,XE=L*.5,horn=(x,y,z,h,r,rx,rz,m)=>B.add(tourY10([[r*.52,0],[r*.58,h*.04],[r*.68,h*.46],[r*1.0,h*.88],[r*1.16,h]],12),m||KT.chrome,x,y,z,rx||0,0,rz||0);
   let C=B,cg=null;const CS={1:1.12,2:1.30,3:1.22,4:1.28,5:1.12,6:1.35,7:1.35,8:1.18,9:1.18,10:1.35,11:1.30,12:1.35,13:1.45,14:1.7,15:1.30,16:1.7},k2=CS[i];
   if(k2){C=bat10();C.f=true;C.plat();}                     // paliers 11-17 : la couronne est GRANDIE autour de sa base (y .8)
@@ -348,7 +362,6 @@ function orig10(g,i,E,K,rnd){
     for(let k=0;k<6;k++)ANN(B,K.chrome,.58,.035,-1.05+k*.42,0,0);
     for(let k=0;k<6;k++){const t=k/6*2*PI10;BAR(B,K.alu,.026,-1.05,1.05,Math.cos(t)*.58,Math.sin(t)*.58);}
     TX(B,K.chrome,[[.50,0],[.60,.05],[.64,.14],[.56,.21],[.50,.23]],.92,0,0,0,36);
-    TX(B,K.chrome,[[.001,0],[.10,.06],[.16,.22],[.17,.46],[.14,.50]],1.18,0,0,PI10,22);
     const st=[[.50,.20,.52,22,K.alu,.5],[.10,.18,.48,26,K.ti,-.5],[-.30,.16,.44,30,K.col,.5]];
     for(const s2 of st){TX(B,K.noir,[[.001,0],[.20,0],[.20,.07],[.001,.07]],s2[0]-.03,0,0,0,24);pales10(B,s2[4],s2[3],s2[1],s2[2],.075,.016,s2[0],s2[5],0);}
     for(let k=0;k<6;k++){const t=(k+.5)/6*2*PI10;TX(B,K.col,[[.001,0],[.11,0],[.12,.04],[.12,.38],[.09,.44]],-.78,Math.cos(t)*.31,Math.sin(t)*.31,0,16);}
@@ -360,24 +373,12 @@ function orig10(g,i,E,K,rnd){
     TX(B,K.verre,[[.21,0],[.21,2.2]],-1.05,0,0,0,32);
     for(let k=0;k<6;k++){const x=-.80+k*.34,R=.34+(k%2)*.07;ANN(B,k%2?K.chrome:K.or,R,.052,x,0,0);ANN(B,K.haloF,R,.022,x,0,0);}
     for(let h=0;h<4;h++)B.add(helix10(.27,-.95,.95,2.2,h*PI10/2,.014,6),K.haloF,0,0,0);
-    for(let k=0;k<4;k++){const t=k/4*2*PI10+.4;B.add(plan10([[-.9,.40],[.9,.40],[.55,.88],[-.45,.74]],.03,.008),k%2?K.lame:K.col,0,0,0,t,0,0);}
     TX(B,K.chrome,[[.20,0],[.26,.08],[.42,.34],[.58,.54]],-1.05,0,0,PI10,30);TX(B,K.haloF,[[.001,0],[.40,.20],[.001,.60]],-1.10,0,0,PI10,20);
     ech=[-1.72,0,0];break;}
-  case 21:{ // STATORÉACTEUR — LE JAVELOT : une pointe de choc facettée, des bagues d'or qui coulent dessus, six dérives, une tuyère étoilée
-    B.add(cone10(.17,1.25,8),K.chrome,.55,0,0,0,0,0);
-    for(let k=0;k<3;k++)ANN(B,K.or,.14-k*.034,.024,.95+k*.2,0,0);
-    TX(B,K.chrome,[[.31,0],[.37,.05],[.42,.22],[.44,.34]],.32,0,0,0,32);ANN(B,K.col,.44,.04,.30,0,0);
-    TX(B,K.col,[[.44,0],[.44,1.50],[.39,1.60]],-1.18,0,0,0,32);
-    for(let k=0;k<4;k++){const x=-.85+k*.42;ANN(B,K.or,.445,.030,x,0,0);ANN(B,K.haloF,.452,.012,x+.12,0,0);}
-    for(let k=0;k<6;k++){const t=k/6*2*PI10;B.add(plan10([[-1.38,.40],[-.40,.44],[-.55,.98],[-1.52,.80]],.036,.008),K.lame,0,0,0,t,0,0);}
-    for(let k=0;k<6;k++)BXg(B,K.alu,-1.22,Math.cos(k/6*2*PI10)*.18,Math.sin(k/6*2*PI10)*.18,k/6*2*PI10,0,0,.03,.34,.03);
-    TX(B,K.chrome,[[.40,0],[.38,.10],[.44,.30],[.56,.54]],-1.18,0,0,PI10,32);TX(B,K.glow,[[.001,0],[.36,0],[.36,.02]],-1.20,0,0,0,24);
-    ech=[-1.78,0,0];break;}
+  case 21:{ // STATORÉACTEUR — (29/10, Léo : « change d'idée ») le javelot a cédé la place au PÉGASE DE FEU : tout le corps est dans h5_pegase (moteurs-themes.js)
+    ech=[-1.80,0,0];break;}
   case 22:{ // PULSORÉACTEUR — LE CŒUR QUI BAT : une tête hexagonale à pétales-clapets, un tube fin que des ondes de rings élargissent
-    TX(B,K.colD,[[.001,0],[.50,0],[.54,.03],[.54,.34],[.001,.34]],.55,0,0,0,6);
-    B.add(tourX([[.001,0],[.46,0],[.46,.02],[.001,.02]],6),K.noir,.89,0,0,0,0,0);
-    pales10(B,K.or,12,.07,.42,.05,.014,.92,.55,0);pales10(B,K.chrome,12,.10,.44,.05,.014,.935,-.55,PI10/12);
-    B.add(G10.sph,K.chrome,.95,0,0,0,0,0,.09,.09,.09);
+    // (la tête hexagonale et ses pétales-clapets ont cédé la place au CŒUR — voir h4_coeur dans moteurs-themes.js)
     TX(B,K.chrome,[[.13,0],[.13,1.7]],-1.15,0,0,0,24);
     const rk=[.30,.18,.10,.04,-.03,-.09,-.14,-.19,-.23,-.27];
     for(let k=0;k<rk.length;k++){const x=.30-k*.17+.0,R=.19+k*.045;ANN(B,k%2?K.chrome:K.col,R,.04,x,0,0);ANN(B,K.haloF,R,.014,x-.04,0,0);}
@@ -403,51 +404,21 @@ function orig10(g,i,E,K,rnd){
     const bob=new THREE.TorusGeometry(.265,.034,8,24);bob.rotateY(PI10/2);
     for(let k=0;k<14;k++){const t=k/14*2*PI10,p=tl(Math.cos(t)*.66,Math.sin(t)*.66,0),tg=new THREE.Vector3(...tl(-Math.sin(t),Math.cos(t),0));
       vers10(B,bob,K.or,new THREE.Vector3(p[0],p[1],p[2]),tg,1);}
-    B.add(sphN10(.17),K.blanc,0,0,0);B.add(sphN10(.32,16),K.haloF,0,0,0);
-    for(let k=0;k<3;k++){const t=k/3*2*PI10+.5,p=tl(Math.cos(t)*.66,Math.sin(t)*.66,0);BAR(B,croute,.07,-.60,p[0],p[1],p[2]);}
-    TX(B,K.chrome,[[.12,0],[.16,.10],[.30,.40],[.46,.70]],-.55,0,0,PI10,24);
-    ech=[-1.2,0,0];break;}
-  case 25:{ // ANTIMATIÈRE — LE NÉGATIF : une sphère noire dans trois anneaux croisés, douze aiguilles d'or, quatre cristaux
-    B.add(sphN10(.34,26),K.noir,0,0,0);B.add(sphN10(.42,20),K.haloC,0,0,0);
-    const rg=[[.62,0,0],[.74,PI10/3,0],[.86,-PI10/3,PI10/2]];
-    for(let k=0;k<3;k++){const r=rg[k];B.add(new THREE.TorusGeometry(r[0],.036,10,56),k===1?K.or:K.chrome,0,0,0,r[1],PI10/2+r[2]*.5,0);
-      B.add(new THREE.TorusGeometry(r[0],.012,6,56),K.haloF,0,0,0,r[1],PI10/2+r[2]*.5,0);
-      const eu=new THREE.Euler(r[1],PI10/2+r[2]*.5,0,'XYZ');for(const a of [0,PI10]){const v=new THREE.Vector3(Math.cos(a)*r[0],Math.sin(a)*r[0],0).applyEuler(eu),w=v.clone().multiplyScalar(.34/r[0]);
-        B.add(tube10([[w.x,w.y,w.z],[v.x,v.y,v.z]],.014,2,6),K.chrome,0,0,0);B.add(G10.sph,K.glow,v.x,v.y,v.z,0,0,0,.035,.035,.035);}}   // chaque anneau tenu par deux tiges
-    for(const d of dirs10(12))vers10(B,cone10(.034,.52,8),K.or,d.clone().multiplyScalar(.36),d,1);
-    for(let k=0;k<4;k++){const t=k/4*2*PI10+.78;B.add(new THREE.OctahedronGeometry(.13,0),K.verre,0,Math.cos(t)*.98,Math.sin(t)*.98,t,0,0,1,1.8,1);B.add(tube10([[0,Math.cos(t)*.34,Math.sin(t)*.34],[0,Math.cos(t)*.86,Math.sin(t)*.86]],.016,2,6),K.chrome,0,0,0);}
-    TX(B,K.chrome,[[.06,0],[.10,.20],[.22,.70]],-.34,0,0,PI10,18);TX(B,K.haloF,[[.001,0],[.18,.2],[.001,.9]],-.50,0,0,PI10,14);
-    ech=[-1.35,0,0];break;}
-  case 26:{ // MOTEUR À DISTORSION — LE TUNNEL : sept cerceaux dont la taille respire, une hélice de lumière, une nacelle fuselée
-    const R=[.30,.46,.62,.78,.62,.46,.30];
-    for(let k=0;k<7;k++){const x=-1.08+k*.36;B.add(new THREE.TorusGeometry(R[k],.04+.01*(k===3),10,48),k%2?K.chrome:K.col,x,0,0,0,PI10/2,0);
-      B.add(new THREE.TorusGeometry(R[k],.014,6,48),K.haloF,x,0,0,0,PI10/2,0);
-      for(let j=0;j<3;j++){const t=j/3*2*PI10+k*.3;B.add(tube10([[x,Math.cos(t)*.12,Math.sin(t)*.12],[x,Math.cos(t)*R[k],Math.sin(t)*R[k]]],.012,2,5),K.or,0,0,0);}}   // trois rayons : le cerceau tient à l'axe
-    for(let h=0;h<2;h++)B.add(helix10(.50,-1.08,1.08,3.2,h*PI10,.016,6),K.haloF,0,0,0);
-    TX(B,K.chrome,[[.001,0],[.10,.10],[.19,.40],[.20,.80],[.11,1.12],[.04,1.30]],-.72,0,0,0,26);BAR(B,K.chrome,.11,-1.12,1.12,0,0);   // l'axe qui porte tous les cerceaux
-    TX(B,K.glow,[[.001,0],[.10,.04],[.001,.12]],-.74,0,0,PI10,16);
-    for(let sd=-1;sd<=1;sd+=2)B.add(plan10([[-.5,0],[.5,0],[.25,.16],[-.5,.07]],.014,.004),K.or,-.15,sd*.20,0,sd>0?0:PI10,0,0);
+    // (l'étoile blanche du centre a cédé la place au masque d'or d'Hélios — h4_helios, moteurs-themes.js)
+    TX(B,K.chrome,[[.12,0],[.16,.10],[.26,.30],[.34,.44]],-.84,0,0,PI10,24);   // le col qui tient l'anneau à la grappe : il entre dans la paroi du tore
+    ech=[-1.75,0,0];break;}
+  case 25:{ // ALIEN — (l'ANTIMATIÈRE d'avant a cédé la place : la soucoupe et son œil, h4_alien dans moteurs-themes.js ; ici seulement l'échappement)
+    ech=[-1.75,0,0];break;}
+  case 26:{ // MOTEUR À DISTORSION → L'OUROBOROS (le nœud-serpent et la nacelle sont dans h4_ouro, moteurs-themes.js ; ici seulement l'échappement)
     ech=[-1.55,0,0];break;}
-  case 27:{ // COMÈTE — UN NOYAU DE ROCHE ET SA QUEUE : trois cônes de feu emboîtés, une nuée d'éclats qui se resserre, un anneau d'or
-    const co=new THREE.Mesh(eroder9(new THREE.IcosahedronGeometry(.40,2),.22,2.5,27),croute);co.position.set(.60,0,0);g.add(co);
-    B.add(sphN10(.30,16),K.haloF,.60,0,0);
-    B.add(cone10(.46,2.1,24),K.haloF,.60,0,0,0,PI10,0);B.add(cone10(.34,1.7,24),K.haloC,.60,0,0,0,PI10,0);B.add(cone10(.20,1.3,20),K.halo(0xffffff,.45),.60,0,0,0,PI10,0);
-    for(let k=0;k<26;k++){const x=-.10-rnd()*1.5,rad=(.12+(.60-x)*.12)*rnd(),t=rnd()*6.28;
-      eclat9(g,croute,rnd,x,Math.cos(t)*rad,Math.sin(t)*rad,.035+rnd()*.06*(1-(.1-x)/1.6));}
-    ech=[-1.6,0,0];break;}
-  case 28:{ // SUPERNOVA — L'INSTANT FIGÉ : un cœur blanc, vingt-huit épines polies, trois ondes de choc inclinées, des éclats en orbite
-    B.add(sphN10(.30,22),K.blanc,0,0,0);B.add(sphN10(.46,18),K.haloF,0,0,0);B.add(sphN10(.64,16),K.haloC,0,0,0);
-    const dd=dirs10(44);for(let k=0;k<dd.length;k++)vers10(B,cone10(.07,k%2?.78:1.10,10),k%3?K.or:K.chrome,dd[k].clone().multiplyScalar(.30),dd[k],1);
-    for(let k=0;k<3;k++){B.add(new THREE.TorusGeometry(.88+k*.14,.016,6,56),K.haloF,0,0,0,k*.8,PI10/2+k*.5,0);}
-    ech=[-1.5,0,0];break;}
-  case 29:{ // TROU NOIR — LA SINGULARITÉ : une bille d'encre, un disque d'accrétion à dix anneaux, un anneau de photons, deux jets, une cage
-    B.add(sphN10(.40,30),K.noir,0,0,0);
-    for(let k=0;k<16;k++){const t=k/15,R=.50+t*.80,c=[0xffffff,0xfff8e0,0xfff2c0,0xffe2a0,0xffd780,0xffc060,0xffb050,0xff9a44,0xff8a3c,0xff6a48,0xff5a50,0xf04a80,0xe03ca0,0xb02ac8,0x7a22c8,0x401890][k];
-      B.add(new THREE.TorusGeometry(R,.05+.02*t,6,56),K.halo(c,.66-.2*t),0,0,0,1.0,0,0,1,1,.28);}
-    B.add(new THREE.TorusGeometry(.44,.012,6,56),K.blanc,0,0,0,1.0,0,0);
-    B.add(cone10(.10,2.1,14),K.haloC,.30,0,0,0,0,0);B.add(cone10(.10,2.1,14),K.haloC,-.30,0,0,0,PI10,0);B.add(cone10(.04,2.3,10),K.blanc,.30,0,0,0,0,0);B.add(cone10(.04,2.3,10),K.blanc,-.30,0,0,0,PI10,0);
-    ech=[-1.6,0,0];break;}
+  case 27:{ // COMÈTE v3 — tout est dans fx3_comete (moteurs-themes.js) : le renard de glace et sa gerbe de langues de feu ; ici seulement l'échappement
+    ech=[-1.8,0,0];break;}
+  case 28:{ // SUPERNOVA → LA NAISSANCE (le lotus de lumière et ses anneaux sont dans h4_naissance, moteurs-themes.js ; ici seulement l'échappement)
+    ech=[-1.55,0,0];break;}
+  case 29:{ // TROU NOIR → L'INFINI (singularité, disque, cage, couronnes et ∞ sont dans h4_infini, moteurs-themes.js ; ici seulement l'échappement)
+    ech=[-2.9,0,0];break;}
   }
+  theme30b(B,i,K,g);                                                  // l'identité : sphinx, phénix, Atlantide… l'infini
   const NP={18:4,19:5,20:6,21:6,22:7,23:8,24:8,25:9,26:10};          // la grappe de propulseurs grossit palier après palier
   if(NP[i])prop10(B,K,ech[0]+.55,0,0,i>=24?.62:.46,NP[i],i>=24?1.15:.9);
   B.fin(g);

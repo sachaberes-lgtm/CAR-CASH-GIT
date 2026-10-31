@@ -272,7 +272,8 @@
   #tSteer.act #tSteerHint,#tSteer.used #tSteerHint,body.tpad #tSteerHint{opacity:0} /* dit UNE fois : au premier braquage la consigne s'efface pour de bon */
   /* --- flèches : mode PAD, pour qui préfère le tout-ou-rien --- */
   #tLeft,#tRight{display:none;width:min(84px,21vh);height:min(84px,21vh);bottom:20px;font-size:24px}
-  body.tpad #tLeft,body.tpad #tRight{display:flex}
+  body.tpad #tLeft,body.tpad #tRight,body.tpad #tUp,body.tpad #tDown{display:flex}
+  #tUp,#tDown{display:none;width:min(64px,16vh);height:min(64px,16vh);font-size:20px}
   #tLeft{left:16px}
   #tRight{left:calc(min(84px,21vh) + 30px)}
   /* --- pouce DROIT : NITRO énorme. Une VRAIE touche d'arcade : plaque orange, biseau, épaisseur. --- */

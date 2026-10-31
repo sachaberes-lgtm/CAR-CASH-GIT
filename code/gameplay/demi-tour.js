@@ -191,7 +191,8 @@ function tryLand(dt){
     sideCd=.35;bascOn=false; /* (1/10, soir) la tranche touchée : la bascule est finie */
     // ---- BUMP / DOUBLE BUMP / TRIPLE BUMP : une FIGURE de la chaîne (2026-10-15 soir : elle s'additionne aux autres) ----
     bounceN++;runStats.bumps++;secBord(); /* (DÉFIS SECRETS) FANTÔME : la tranche touchée */
-    hap(24);{const nv9=nitroR;nitroGain(nitroBumpDe(bounceN,nitroOn&&pwrNitroT<=0&&!PARK.on),'bump');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.1});}flowAdd(6,'style'); // (LA LOI DU RÉSERVOIR : ,35 puis ×,6 par rebond du même vol, rien au-delà du 4e, rien nitro allumée) LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
+    /* (2026-10-28, Léo : « un système quand tu bounces sur le côté de la route ») LE BUMP SE SENT, et se COMPTE : un coup sec (MOYEN, LOURD si le choc est fort) ; le DOUBLE BUMP le répète, le TRIPLE ajoute un coup de fond — la main compte les rebonds sans regarder */
+    hap(bounceN<=1?[impB>14?45:24]:bounceN===2?[impB>14?45:24,55,24]:[impB>14?45:24,55,24,55,45]);{const nv9=nitroR;nitroGain(nitroBumpDe(bounceN,nitroOn&&pwrNitroT<=0&&!PARK.on),'bump');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.1});}flowAdd(6,'style'); // (LA LOI DU RÉSERVOIR : ,35 puis ×,6 par rebond du même vol, rien au-delà du 4e, rien nitro allumée) LE BUMP RECHARGE (2026-09-25, demande du user) : un quart de cellule… de plus à chaque rebond
     fallT=Math.max(0,fallT-airMax()*.5);fallTR=Math.max(0,fallTR-airMax()*.5);airFlash=.6; // DEMI-JAUGE d'airtime rendue (sim + réelle)
     {const bf9=FIGV2.on&&BUMP_FIG_ON,c09=CHA.pts,s09=CHA.sansPop;if(bf9)CHA.sansPop=true; // (2026-10-18, HUD des figures v5) LE BUMP EST UNE FIGURE DU COMBO : son nom s'écrit en haut (plus « BUMP +30 » sur la caisse), il compte au ×
     try{addTrick('bump',bounceN===1?'BUMP':bounceN===2?'DOUBLE BUMP':bounceN===3?'TRIPLE BUMP — LA DALLE EN PLEURE':'MEGA BUMP x'+bounceN+' 💥',
@@ -248,6 +249,7 @@ function tryLand(dt){
   // ATTERRISSAGE : l'impact ralentit la caisse — d'autant plus que le saut etait gros
   const nPose9=nitroR;{const nv9=nitroR;nitroGain(nitroPoseDe(nitroCap(),NIT.vol,NIT.nit)*veqNitK(),'pose');if(SONV2&&nitroR>nv9+.01)sfx('nitro.plein',{t:.2});} // (2026-09-26, user) TOUTE pose rend 20 % de nitro — parfaite, lourde, à l'arrachée · (2026-10-01, LA LOI DU RÉSERVOIR) au prorata du vol fait NITRO COUPÉE, et pleine à partir de 1,2 s de vol : ce qu'on brûle en l'air ne revient pas à la pose
   const impact=Math.abs(vN);
+  CAM_VIE.imp=Math.min(1,impact/16);CAM_VIE.air=fallT; /* (CAMÉRA VIVANTE) la violence de la pose et la durée du vol règlent le rebond et l'ampleur du demi-tour */
   /* (v4, Sacha : « en cas de mauvais atterrissage, de manière trop obtuse ou à contresens, le flow retourne à zéro ») L'ANGLE DE POSE :
      l'écart entre la trajectoire (à plat dans la dalle — c'est aussi le cap de la caisse, le volant tourne le vol lui-même) et l'axe de
      la route. 0° = axé, 90° = en crabe, 180° = à contresens. Au-delà de FLOW2.pose.angle : pose RATÉE — pas de PARFAIT possible, et le
@@ -311,13 +313,13 @@ function tryLand(dt){
   if(fallT>.7||chain>0||chainVal>0){ // (2026-09-26) chainVal>0 : le REPORT annoncé au décollage se paie même sur une courte sortie
     // le grade juge tout le vol : pose soyeuse = jackpot, pose écrasée = décote
     let g=1,gTxt='';
-    if(poseRatee){g=.65;gTxt='';} // (v4) de travers ou à contresens : la décote du POSÉ LOURD, et c'est la chute du flow qui parle
-    else if(impact<4.5){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hapV9(15);} // (2026-10-09, Sacha : « plus généreuse ») PARFAIT = douce ET dans l'axe, quelle que soit la durée du vol — `landLoss<.2` l'interdisait au-delà de ~2 s (AIR MONSTRE jamais PARFAIT) ; le remboursement de nitro reste au prorata du vol réacteur coupé
-    else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';hapV9(45);}
+    if(poseRatee){g=.65;gTxt='';hapV9([24,40,24,40,24]);} /* (2026-10-28) POSE RATÉE (de travers, à contresens) : un grésillement, trois coups courts et secs */ // (v4) de travers ou à contresens : la décote du POSÉ LOURD, et c'est la chute du flow qui parle
+    else if(impact<4.5){g=1.5;gTxt='PARFAIT ! ';hitT=.08;hapV9([10,45,24]);} // (2026-10-09, Sacha : « plus généreuse ») PARFAIT = douce ET dans l'axe, quelle que soit la durée du vol — `landLoss<.2` l'interdisait au-delà de ~2 s (AIR MONSTRE jamais PARFAIT) ; le remboursement de nitro reste au prorata du vol réacteur coupé
+    else if(impact>=10){g=.65;gTxt='POSÉ LOURD — AÏE… ';hapV9([60,70,14]);} // (2026-10-28) le choc, puis son écho
     else hapV9(14); // chaque pose se SENT dans la main (la parfaite a son coup sec plus haut, la lourde son choc)
     if(fever>0&&!poseRatee){ // BRAQUAGE : tous les grades montent d'un cran — même la casse pardonne (pas la pose ratée)
-      if(g===1.5){g=2;gTxt='DIVIN !! ';}
-      else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hapV9(15);}
+      if(g===1.5){g=2;gTxt='DIVIN !! ';hapV9([10,40,24,40,40]);} // (2026-10-28) DIVIN : tic, toc, et le coup de fond
+      else if(g===1){g=1.5;gTxt='PARFAIT (BOOST ×2) ! ';hitT=.08;hapV9([10,45,24]);}
       else{g=1;gTxt='';}
     }
     if(g>=1.5){if(SENS&&POSE_F){SCOUP.fp=g>=2?2:1;SCOUP.fh=hitT;hitT=0;}else try{poseParfaiteFx(g>=2);}catch(e){}} // (2026-09-28) coup de zoom + couronne dorée — (2026-10-14, œil · pose) sous SENS, AU CONTACT comme sa vibration : joués par touche9

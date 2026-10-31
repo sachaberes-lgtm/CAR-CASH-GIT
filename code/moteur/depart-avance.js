@@ -39,7 +39,7 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
   const c=prebDepCible();
   if(PREB.W&&(!c||c.t!==PREB.t||c.st!==PREB.ctx||c.eng!==PREB.eng)){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'contexte');return;}
   if(!c||PREB.fait)return;
-  if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go)||CHUTE.go||!CHAUFFE_R.fait||CHAUFFE_R.t||(!JADE.geos&&!GAB_FOND.fini&&c.t.carte==='jade'))return; // ni volet, ni lâcher, ni piqué ; la chauffe d'abord — et les gabarits de la jade, si c'est elle qu'on bâtit (2026-10-24, passe perf : pour une autre map, le départ passe AVANT les gabarits — voir jadeGabFond)
+  if(ecranWipe._on||(typeof GAR!=='undefined'&&GAR.go&&!GAR.go.attend)||(CHUTE.go&&!CHUTE.go.attend)||!CHAUFFE_R.fait||CHAUFFE_R.t||(!JADE.geos&&!GAB_FOND.fini&&c.t.carte==='jade'))return; // ni volet, ni lâcher, ni piqué ; la chauffe d'abord — et les gabarits de la jade, si c'est elle qu'on bâtit (2026-10-24, passe perf : pour une autre map, le départ passe AVANT les gabarits — voir jadeGabFond)
   const ins9=now-PREB.tNeuf<700||(PREB.fin0&&now-PREB.fin0<800); // le monde neuf (le menu, l'écran de fin) s'installe d'abord
   if(ins9&&!PREB.W)return;
   if(!PREB.W){if(c.t!==PREB.non&&PREB.echecs<3)prebPart(c);return;} // (l'image suivante travaille)
@@ -50,7 +50,7 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
      n'avait bâti qu'une petite part du départ suivant. Désormais le travail commence DÈS L'EXPLOSION (prebTick, mode 'boom' : 1,8 s avant l'écran de fin),
      continue à 3 ms pendant que l'écran de fin s'installe (il ne s'arrête plus), puis prend jusqu'à 8 ms par image pendant l'explosion et 10 ms à
      l'écran de fin (rien ne s'y joue) ; au menu, rien ne change (3-6 ms). */
-  const bud9=ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?Math.max(4,Math.min(10,20-tr)):Math.max(3,Math.min(6,14-tr));
+  const bud9=(GAR.go&&GAR.go.attend)||(CHUTE.go&&CHUTE.go.attend)?10:ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?Math.max(4,Math.min(10,20-tr)):Math.max(3,Math.min(6,14-tr));
   prebTravaille(performance.now()+bud9);}
 function prebDepPrend(fn){PREB.depPorte=true;try{fn();}finally{PREB.depPorte=false;PREB.prend=false;}} // c'est le DÉPART qui construit : la piste bâtie d'avance peut servir
 window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule('dbg');}
@@ -448,8 +448,8 @@ function buildTrack(seed){
   try{buildJade(seed);}catch(e){window.__jadeErr=e;console.warn('Jade',e);} // (2026-10-09) LES PICS DE JADE : les piliers, les pins, la brume, la Porte et le Pont du ciel (no-op ailleurs) // (2026-09-28) PARIS LA NUIT : les toits et la Dame de fer (no-op hors Paris)
   try{if(!prebDecor(W,'foret'))buildForet(seed);}catch(e){window.__foretErr=e;console.warn('Forêt',e);} // (2026-10-14) LA FORÊT NOIRE : la vallée, les arbres, les géants du slalom, l'arche, les rochers du loup (no-op ailleurs)
   try{buildCanyon(seed);}catch(e){window.__cyErr=e;console.warn('Canyon',e);} // (2026-10-14) LE CANYON DES GÉANTS : le relief, la rivière, l'ombre de l'heure (no-op ailleurs)
-  try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
-  try{if(!prebDecor(W,'grotte'))buildGrotte(seed);}catch(e){window.__grotteErr=e;console.warn('Grotte',e);} // (2026-10-18) LES PROFONDEURS : la grotte en blocs, ses décors, ses lumières (no-op ailleurs)
+  try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);try{window.__ccNote('panne','dunes · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
+  try{if(!prebDecor(W,'grotte'))buildGrotte(seed);}catch(e){window.__grotteErr=e;console.warn('Grotte',e);try{window.__ccNote('panne','grotte · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES PROFONDEURS : la grotte en blocs, ses décors, ses lumières (no-op ailleurs)
   try{if(!prebDecor(W,'banquise'))buildBanq(seed);}catch(e){window.__banqErr=e;console.warn('Banquise',e);} // (2026-10-14) LA BANQUISE : la neige sous la route, les lacs gelés, les pics de glace, les stalactites (no-op ailleurs)
   try{orbiteBuild(seed);}catch(e){window.__orbErr=e;} // (vague 3) L'ORBITE : les Starlink et les débris autour de la piste (no-op hors orbite)
 }

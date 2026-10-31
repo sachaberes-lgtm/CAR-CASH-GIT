@@ -259,6 +259,7 @@ function chuteRender(dt){
        (il grossit vers nous, ×1,25 → 1), puis il se DÉCHIRE autour de la caisse (s'ouvre ×1,6 en s'effaçant) — transform/opacity seulement. */
     const v=chuteVoileEl();v.style.transition='none';{const w9=Math.max(0,Math.min(1,(u-.72)/.22)),s9=w9*w9*(3-2*w9);v.style.opacity=String(s9);v.style.transform='scale('+(1.25-.25*s9).toFixed(3)+')';}
     if(u>=1){
+      if(departAttend(G))return; /* (2026-10-28) LE DÉPART ATTEND LA CHAUFFE : le nuage blanc tient tant que la course compilerait (voir departAttend) */
       if(CHUTE.sous){const f9=CHUTE.sous;CHUTE.sous=null;try{f9();}catch(e){console.warn('chute: piste sous le voile',e);}} // (2026-10-15) la piste tirée par JOUER se bâtit ICI, sous le nuage blanc (voir classiqueJouer)
       const wasStarted=started;GAR.go=null;CHUTE.go=null;carGroup.scale.set(1,1,1);
       closeGarage(wasStarted);

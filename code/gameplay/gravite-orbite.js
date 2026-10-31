@@ -7,6 +7,9 @@
 const ORB_G=.5,ORB_AIR=5/6; /* (2026-10-14 soir, Sacha : « dans l'espace 5 secondes de air time ») la jauge de l'espace passe de 10,2 s à 5 s (6 × 5/6) : moins que sur Terre, alors que les sauts y montent deux fois plus haut — voulu */
 function gK(){return (LVL.espaceA>=.5&&!PARK.on)?ORB_G:(DN.gx>1?DN.gx:1);} /* (2026-10-23, DUNES) DN.gx : la pesanteur d'un vol de tremplin, tirée à la vitesse du décollage (voir dnLevre) — plus on va vite, plus la caisse retombe vite : elle se pose sur l'ÉPAULE à toute vitesse */
 function volSens(){return SAVE.d&&SAVE.d.volH==='plonge'?1:-1;} // (2026-10-10) absent = MONTE
+/* ===== VOL INVERSÉ (2026-10-27, Léo : « option inverted, vol inversé haut et bas ») ===== */
+function volInv(){return SAVE.d&&SAVE.d.volInv?-1:1;} // -1 = haut/bas inversés en vol (clavier ET pouce) ; absent = normal
+function volInvBascule(){SAVE.d.volInv=SAVE.d.volInv?0:1;SAVE.flush();}
 function volhBascule(){SAVE.d.volH=volSens()<0?'plonge':'monte';SAVE.flush();} // (2026-09-30, R7-5) LE seul écrivain de « POUCE HAUT EN VOL » : les RÉGLAGES et la PAUSE passent par lui // (2026-09-29) « pouce en HAUT = monte » : l'assiette au pouce s'inverse (le clavier ne change pas)
 function airMax(){return AIR_MAX*(gK()<1?ORB_AIR:1);}
 // AIR_RATE : le vol se joue PLUS VITE en temps réel — la parabole dans l'espace est identique

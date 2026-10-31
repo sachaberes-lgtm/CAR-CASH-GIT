@@ -46,29 +46,29 @@ const RICH_U={uLum:{value:0},uSunDir:{value:new THREE.Vector3().copy(SUN_DIR)},u
 const RICH_GEM_NL=[[0,1,0],[.6,.55,.58],[-.7,.5,.3],[.2,.45,-.85],[-.3,-.7,.6]],RICH_OR_NL=[[0,1,0],[.7,.4,.5],[-.6,.5,-.4],[.2,-.6,.7]],RICH_FACE_Y=[[0,1,0],[0,-1,0]];
 const RICH_FRUIT_R={MYRTILLE:.13,CERISE:.18,KIWI:.32,'PÊCHE':.34,'PÊCHE PLATE':.34,ORANGE:.36,MANGUE:.43,POMME:.36,MELON:.51,LITCHI:.23,BANANE:.57,GRENADE:.41,'PASTÈQUE':.6,KAKI:.34,PITAYA:.45,MANGOUSTAN:.30,'FIGUE DE BARBARIE':.36,DATTE:.25,'MELON DU DÉSERT':.46}; // (2026-10-20) PAR NOM, plus par rang : la liste des fruits a été refaite (fruits-nouveaux.js : myrtille, cerise, kiwi, pêche, orange, mangue, pomme, melon, litchi) et l'ancienne table par index donnait à la cerise le rayon de la banane, à l'orange celui de la myrtille, à la mangue celui de la pastèque — Léo : « je n'ai pas l'impression de tous les voir » // le RAYON (m) de chaque fruit, dans l'ordre de FRUIT_DEFS : pêche plate 7 cm, banane 18, grenade 10, orange 8, myrtille 1,2, pastèque 30 (plafonnée)
 const RICH_T={
-  billet:{kd:2.4,fl:5,s:[.88,.96],w:[2,6],v:[3,6],vie:[2.8,3.8],papier:1},                            // 156 × 66 mm → 1,05 m (s = sa longueur) · (2026-10-10, Léo : « un tout petit peu plus petits ») −12 % : 0,92 m — la liasse garde sa taille
-  liasse:{kd:.9,fl:.3,s:[1,1.1],w:[3,7],v:[4,7],vie:[2.6,3.4]},                              // le billet, en paquet
-  carte:{kd:1.5,fl:3,s:[.74,.77],w:[7,14],v:[4,8],vie:[2.6,3.4],flip:'z',nl:[[0,0,1],[0,0,-1]],gc:[1,1,1]}, // 85,6 × 54 mm → 0,75 m
-  trefle:{kd:2.6,fl:4,s:[.44,.5],w:[2,6],v:[3,6],vie:[2.6,3.4],papier:1},                   // 3 cm → 0,42 m · papier : il tombe en feuille (richPapier)
-  piece2:{kd:.8,fl:.6,s:[.193,.2],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y,gc:[.92,.96,1]},  // 2 € : Ø 25,75 mm → 0,39 m (s = son rayon) — l'éclat de l'argent, froid
-  piece1:{kd:.8,fl:.6,s:[.18,.187],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y,gc:[1,.9,.62]}, // 1 € : Ø 23,25 mm → 0,37 m — l'or nordique, chaud
-  piece50:{kd:.8,fl:.6,s:[.185,.192],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y,gc:[1,.86,.55]}, // 50 c : Ø 24,25 mm → 0,38 m
-  jeton:{kd:.85,fl:.6,s:[.24,.25],w:[10,18],v:[4,8],vie:[2.4,3.2],flip:'y'},                 // jeton de casino : Ø 39 mm → 0,49 m
-  btc:{kd:.75,fl:.5,s:[.245,.26],w:[9,17],v:[4,8],vie:[2.6,3.4],flip:'y',nl:RICH_FACE_Y,gc:[1,.8,.5]},    // la pièce-souvenir : Ø 40 mm → 0,5 m
-  montre:{kd:.7,fl:0,s:[.19,.2],w:[3,7],v:[4,8],vie:[2.6,3.4],nl:[[0,1,0],[0,.7,.7],[0,.7,-.7]],gc:[1,.95,.8]}, // la montre fermée : 6,5 cm de tour → 0,65 m
-  or:{kd:.5,fl:0,s:[.11,.21],w:[3,9],v:[5,9],vie:[2.4,3.4],nl:RICH_OR_NL},                   // pépites de 1 à 3 cm → 0,23 à 0,42 m
-  lingot:{kd:.55,fl:0,s:[.56,.88],w:[3,7],v:[4,8],vie:[2.4,3.4],nl:RICH_OR_NL},              // de 100 g (5 cm) à 1 kg (11,6 cm)
-  chaine:{kd:1.1,s:[1.3,1.45],v:[4,7],vie:[2.8,3.6]},                                        // le collier de 50 cm, plafonné (s = sa longueur)
-  cigare:{kd:.9,fl:0,s:[.26,.3],w:[2,5],v:[4,8],vie:[2.6,3.4],nl:[[0,1,0],[1,0,0],[-1,0,0]],gc:[1,.9,.7]}, // (2026-10-21, Léo : « un cigare avec sa bague dorée, des clés tout court ») le CIGARE : feuille brune, bague d'or, cendre grise ; ~15 cm → 0,5 m
-  cles:{kd:.9,fl:0,s:[.3,.34],w:[2,5],v:[4,8],vie:[2.6,3.4],nl:[[0,0,1],[0,0,-1]],gc:[.97,.97,1]}, // le TROUSSEAU : un anneau, une clé d'or, une clé d'acier
-  bague:{kd:.8,fl:0,s:[.3,.34],w:[3,7],v:[4,8],vie:[2.6,3.4],nl:RICH_GEM_NL,gem:1,gc:[.97,.97,1]}, // (2026-10-21, Léo : « ajoute une bague ») un solitaire : jonc d'or + diamant taille brillant ; ~2 cm de diamètre → 0,3 m
-  diamant:{kd:.55,fl:0,s:[.08,.13],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[.95,.97,1]}, // 5 à 12 mm → 0,16 à 0,26 m
+  billet:{kd:2.4,fl:5,s:[.66,.72],w:[2,6],v:[3,6],vie:[2.8,3.8],papier:1},                            // 156 × 66 mm → 1,05 m (s = sa longueur) · (2026-10-10, Léo : « un tout petit peu plus petits ») −12 % : 0,92 m — la liasse garde sa taille
+  liasse:{kd:.9,fl:.3,s:[.72,.8],w:[3,7],v:[4,7],vie:[2.6,3.4]},                              // le billet, en paquet
+  carte:{kd:1.5,fl:3,s:[.58,.6],w:[7,14],v:[4,8],vie:[2.6,3.4],flip:'z',nl:[[0,0,1],[0,0,-1]],gc:[1,1,1]}, // 85,6 × 54 mm → 0,75 m
+  trefle:{kd:2.6,fl:4,s:[.36,.4],w:[2,6],v:[3,6],vie:[2.6,3.4],papier:1},                   // 3 cm → 0,42 m · papier : il tombe en feuille (richPapier)
+  piece2:{kd:.8,fl:.6,s:[.145,.15],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y,gc:[.92,.96,1]},  // 2 € : Ø 25,75 mm → 0,39 m (s = son rayon) — l'éclat de l'argent, froid
+  piece1:{kd:.8,fl:.6,s:[.135,.14],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y,gc:[1,.9,.62]}, // 1 € : Ø 23,25 mm → 0,37 m — l'or nordique, chaud
+  piece50:{kd:.8,fl:.6,s:[.14,.145],w:[11,20],v:[4,8],vie:[2.4,3.2],flip:'y',nl:RICH_FACE_Y,gc:[1,.86,.55]}, // 50 c : Ø 24,25 mm → 0,38 m
+  jeton:{kd:.85,fl:.6,s:[.18,.19],w:[10,18],v:[4,8],vie:[2.4,3.2],flip:'y'},                 // jeton de casino : Ø 39 mm → 0,49 m
+  btc:{kd:.75,fl:.5,s:[.185,.195],w:[9,17],v:[4,8],vie:[2.6,3.4],flip:'y',nl:RICH_FACE_Y,gc:[1,.8,.5]},    // la pièce-souvenir : Ø 40 mm → 0,5 m
+  montre:{kd:.7,fl:0,s:[.155,.165],w:[3,7],v:[4,8],vie:[2.6,3.4],nl:[[0,1,0],[0,.7,.7],[0,.7,-.7]],gc:[1,.95,.8]}, // la montre fermée : 6,5 cm de tour → 0,65 m
+  or:{kd:.5,fl:0,s:[.09,.16],w:[3,9],v:[5,9],vie:[2.4,3.4],nl:RICH_OR_NL},                   // pépites de 1 à 3 cm → 0,23 à 0,42 m
+  lingot:{kd:.55,fl:0,s:[.42,.62],w:[3,7],v:[4,8],vie:[2.4,3.4],nl:RICH_OR_NL},              // de 100 g (5 cm) à 1 kg (11,6 cm)
+  chaine:{kd:1.1,s:[1,1.1],v:[4,7],vie:[2.8,3.6]},                                        // le collier de 50 cm, plafonné (s = sa longueur)
+  cigare:{kd:.9,fl:0,s:[.22,.25],w:[2,5],v:[4,8],vie:[2.6,3.4],nl:[[0,1,0],[1,0,0],[-1,0,0]],gc:[1,.9,.7]}, // (2026-10-21, Léo : « un cigare avec sa bague dorée, des clés tout court ») le CIGARE : feuille brune, bague d'or, cendre grise ; ~15 cm → 0,5 m
+  cles:{kd:.9,fl:0,s:[.24,.27],w:[2,5],v:[4,8],vie:[2.6,3.4],nl:[[0,0,1],[0,0,-1]],gc:[.97,.97,1]}, // le TROUSSEAU : un anneau, une clé d'or, une clé d'acier
+  bague:{kd:.8,fl:0,s:[.24,.27],w:[3,7],v:[4,8],vie:[2.6,3.4],nl:RICH_GEM_NL,gem:1,gc:[.97,.97,1]}, // (2026-10-21, Léo : « ajoute une bague ») un solitaire : jonc d'or + diamant taille brillant ; ~2 cm de diamètre → 0,3 m
+  diamant:{kd:.55,fl:0,s:[.085,.13],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[.95,.97,1]}, // 5 à 12 mm → 0,16 à 0,26 m
   rubis:{kd:.55,fl:0,s:[.085,.13],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:RICH_GEM_NL,gem:1,gc:[1,.5,.58]},
-  emeraude:{kd:.55,fl:0,s:[.12,.17],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:[[0,1,0],[.55,.55,0],[-.55,.55,0],[0,.5,.7],[0,-.6,.6]],gem:1,gc:[.6,1,.72]},
-  champagne:{kd:.7,fl:0,s:[.9,.93],w:[3,7],v:[4,7],vie:[2.6,3.4]},                          // 30 cm → plafonnée à 1,2 m
-  crane:{kd:.6,fl:0,s:[.22,.27],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // un crâne de collection, 0,5-0,6 m (Léo : « plus petit ») — face : il part le regard vers la caméra et tourne sur lui-même
-  coeur:{kd:1.25,fl:1.1,s:[.17,.25],w:[1.1,2.4],v:[2.5,6.5],vie:[2.4,3.4],face:1,bat:1,pop:1,nl:[[.32,.55,.77],[-.32,.55,.77],[0,.15,1]],gp:40,gs:1.15,gc:[1,.8,.93]}, // (2026-10-15, Léo) le PETIT CŒUR (s = sa largeur ; 2026-10-16, Léo : « plus petits, plus nombreux, et ils explosent — pas tous en même temps » : 17-25 cm, ils viennent en NUÉE (RICH_NUEE) et chacun ÉCLATE à son heure, pop) : léger, il flotte et papillonne un peu, se balance face à toi et BAT (bat, voir richTick), fait de minuscules cubes qu'on voit au travers (richCoeurCubes, RICH_FS_COEUR), et ses lobes scintillent doucement (gp : un éclat large, gs : une étoile à sa taille)
-  fleur:{kd:1.3,fl:1.2,s:[.42,.6],w:[1,2],v:[3,6],vie:[3,3.8],fleur:1,nl:[[0,1,0]],gp:22,gs:.9,gc:[1,.92,.96]}, // (2026-10-16, Léo) une PETITE FLEUR (s = sa taille, 42-60 cm) : hibiscus, rose, lilas, lotus, lys ou tulipe — légère, elle flotte, se tourne de trois quarts vers toi et tourne lentement sur sa tige (richTick)
+  emeraude:{kd:.55,fl:0,s:[.1,.14],w:[3,8],v:[5,9],vie:[2.6,3.6],nl:[[0,1,0],[.55,.55,0],[-.55,.55,0],[0,.5,.7],[0,-.6,.6]],gem:1,gc:[.6,1,.72]},
+  champagne:{kd:.7,fl:0,s:[.7,.73],w:[3,7],v:[4,7],vie:[2.6,3.4]},                          // 30 cm → plafonnée à 1,2 m
+  crane:{kd:.6,fl:0,s:[.14,.17],w:[2,4],v:[4,7],vie:[3,3.8],nl:[[0,1,0],[.5,.6,.6],[-.5,.6,.6]],face:1}, // un crâne de collection, 0,5-0,6 m (Léo : « plus petit ») — face : il part le regard vers la caméra et tourne sur lui-même
+  coeur:{kd:1.25,fl:1.1,s:[.07,.34],w:[1.1,2.4],v:[2.5,6.5],vie:[2.4,3.4],face:1,bat:1,pop:1,nl:[[.32,.55,.77],[-.32,.55,.77],[0,.15,1]],gp:40,gs:1.15,gc:[1,.8,.93]}, // (2026-10-15, Léo) le PETIT CŒUR (s = sa largeur ; 2026-10-16, Léo : « plus petits, plus nombreux, et ils explosent — pas tous en même temps » : 17-25 cm, ils viennent en NUÉE (RICH_NUEE) et chacun ÉCLATE à son heure, pop) : léger, il flotte et papillonne un peu, se balance face à toi et BAT (bat, voir richTick), fait de minuscules cubes qu'on voit au travers (richCoeurCubes, RICH_FS_COEUR), et ses lobes scintillent doucement (gp : un éclat large, gs : une étoile à sa taille)
+  fleur:{kd:1.3,fl:1.2,s:[.32,.44],w:[1,2],v:[3,6],vie:[3,3.8],fleur:1,nl:[[0,1,0]],gp:22,gs:.9,gc:[1,.92,.96]}, // (2026-10-16, Léo) une PETITE FLEUR (s = sa taille, 42-60 cm) : hibiscus, rose, lilas, lotus, lys ou tulipe — légère, elle flotte, se tourne de trois quarts vers toi et tourne lentement sur sa tige (richTick)
   fruit:{kd:1,fl:.4,s:[.94,1.06],w:[3,7],v:[3,6],vie:[2.4,3.2]}}; // fruit : s = un écart autour de SON rayon (RICH_FRUIT_R, par nom : la règle de taille donne rayon = 0,525 m × (diamètre en cm ÷ 15,6)^0,55 — cerise 2,2 cm, kiwi 6,5, pêche 7, orange 8, mangue 11, pomme 8, melon 15, litchi 3,5)
 const RICH_CAP={billet:30,liasse:6,carte:6,trefle:6,jeton:12,montre:4,bague:6,cigare:5,cles:6,piece2:8,piece1:8,piece50:8,btc:7,or:14,lingot:5,diamant:18,rubis:12,emeraude:12,champagne:8,crane:6,coeur:22,fleur:12,fruit:8};
 const RICH_PD=[0,2,4,7,9,12,14,16,19,21],RICH_MEL=[0,2,4,7,9,12,14,16,14,12,9,7,4,2]; // RICH_MEL : la mélodie des cœurs qui éclatent — elle monte puis redescend (un aller-retour, pas une chute)

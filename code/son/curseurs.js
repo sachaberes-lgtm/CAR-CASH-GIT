@@ -69,7 +69,7 @@ const sndBtnEl=document.getElementById('sndBtn'),musBtnEl=document.getElementByI
 function sndRefresh(){
   sndBtnEl.innerHTML=pxi(SND.sfx?'son':'muet')+' <span class="blabel">'+TR('SON')+'</span>';sndBtnEl.classList.toggle('off',!SND.sfx); // garde le span → masquable en icône seule sur mobile ; TR() sinon le libellé revient au français à chaque bascule, même en anglais
   if(musBtnEl){musBtnEl.innerHTML=pxi('musique')+' <span class="blabel">'+TR('MUS')+'</span>';musBtnEl.classList.toggle('off',!SND.music);} // ⚠ plus de « LVL 1 » (radio à morceau unique par niveau supprimée) : ce libellé est RECONSTRUIT à chaque bascule
-  try{if(AC){if(musGraphe())musWaSon();else if(SND.sfx&&!paused)AC.resume();else AC.suspend();}}catch(e){} /* (2026-10-14, session SON) musique branchée : SON ne suspend plus le contexte, il ferme l'entrée des effets (musWaSon) */ // suspend = silence total du moteur audio — ⚠ en PAUSE c'est la reprise qui rallume (sinon le moteur ronronnait sur un jeu figé)
+  try{if(AC){if(musGraphe())musWaSon();else if(SND.sfx&&!paused)acReveil(AC);else AC.suspend();}}catch(e){} /* (2026-10-14, session SON) musique branchée : SON ne suspend plus le contexte, il ferme l'entrée des effets (musWaSon) */ // suspend = silence total du moteur audio — ⚠ en PAUSE c'est la reprise qui rallume (sinon le moteur ronronnait sur un jeu figé)
   if(!SND.sfx){deathStop();fxStop();} // ⚠ les sons de mort sont des HTMLAudio : `AC.suspend()` ne les atteint PAS, il faut les couper à la main
   try{volUI();}catch(e){} // les curseurs se grisent quand leur famille est coupée — et c'est ici qu'on l'apprend
 }
@@ -87,8 +87,12 @@ let AUTO_GAS=false; // mobile : accélération auto (le doigt sert à tourner et
 // LE VOLANT ANALOGIQUE À DEUX AXES. `st` = braquage (X) · `sv` = assiette en vol (Y, + = pouce vers
 // le HAUT = PIQUÉ, manche d'avion). Un SEUL point d'entrée dans la physique : le tactile écrit dans
 // le même `keys` et le même `steer` que le clavier — aucune équation n'est réécrite pour le doigt.
-const TCTL={on:false,pad:false,act:false,doigt:false,st:0,sv:0,id:null,ox:0,oy:0,dy:0,dyS:0,x0:0,lx:0,ly:0,ab:0,tr:0,ar:-1,play:null,dead:null,ov:null,airTip:false};
+const TCTL={on:false,pad:false,incl:false,inclV:0,inclN:null,act:false,doigt:false,st:0,sv:0,id:null,ox:0,oy:0,dy:0,dyS:0,x0:0,lx:0,ly:0,ab:0,tr:0,ar:-1,play:null,dead:null,ov:null,airTip:false};
 const VOLANT_PX=Math.max(34,Math.min(60,+((/[?&]volant=(\d+)/.exec(location.search)||[])[1])||46)); // (2026-10-14, sensations) la course du pouce pour le braquage plein, en px (54 avant) — `?volant=40` pour en essayer une autre sur le téléphone
+/* (2026-10-28, Léo : « le gameplay le plus naturel pour le doigt ») LA RAMPE DES FLÈCHES TACTILES : un bouton est tout-ou-rien, mais le braquage monte comme une main qui tourne un volant —
+   τ 59 ms à la prise (×17/s : un appui de 80 ms donne ~0,75, pas 1 : on CORRIGE fin), τ 45 ms au contre-braquage (×22/s : la caisse revient vite quand on change de côté), τ 40 ms au lâcher
+   (×25/s). Puis le lissage habituel de la caisse. Le clavier de l'ordinateur ne passe pas par ici. */
+let padS9=0;function padRampe(dt,w){const k=w===0?25:(padS9!==0&&Math.sign(w)!==Math.sign(padS9)?22:17);padS9+=(w-padS9)*(1-Math.exp(-dt*k));if(Math.abs(padS9)<.003&&w===0)padS9=0;return padS9;}
 const VOL_LIS=21.4,VOL_LIS_D=SENS?33.3:21.4; // (2026-10-14, sensations) le lissage du volant et du manche, en 1/s : 21,4 = τ 47 ms (clavier, tout ou rien) · 33,3 = τ 30 ms quand le POUCE tient le stick (`TCTL.doigt`, voir le volant analogique)
 const DRIFT_PX=34.9; // LE GESTE DU DRIFT : pouce tiré de 34,9 px vers le bas (réglé le 28/09 — l'ancien sv < -0,45), lu par la conduite ; pour ENTRER à droite, `TCTL.dyS` (le seuil de l'ARC du pouce, voir stMove) peut le relever
 let SANDBOX=false; // BAC À SABLE : la caisse se replace au lieu de mourir — on s'entraîne, rien n'est enregistré

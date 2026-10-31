@@ -122,7 +122,7 @@
       if(feverGlow.className!==(feverArmed?'armed':''))feverGlow.className=feverArmed?'armed':'';}
     if(comboT>0){comboT-=dt;if(comboT<=0)combo=0;}
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
-  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
+  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
   vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||(gameOver&&!!PAL.b('vhdMort',1)&&!PCM_ON)||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn)); // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
   if(garageOn)garageRender(dt);
@@ -141,7 +141,7 @@
     const volK9=mode==='fall'?.5:mode==='boom'?0:1; // (2026-09-29, passe « jeu pro » — deux critiques : la moitié de l'image étalée en vol, la lune en copies à la mort) : EN VOL on VISE la réception, à la MORT on regarde
     const sfxT=(running&&!gameOver&&!REDUCED_MOTION&&FLOU_OK)?Math.max(ORBFX.warp*.95,Math.min(1,(nitroOn?0.72:0)+Math.min(1,boost)*0.6+(CAM_HEROS.on&&mode==='drive'?CAM_HEROS.flou*THREE.MathUtils.clamp((speedKmh/Math.max(1,vCroisiere())-.7)/.8,0,1):0))*volK9):0; /* (CAM_HEROS) un voile de flou sur les BORDS en croisière rapide : la vitesse se lit sans ouvrir le champ */ // (2026-09-28) + le TUNNEL de l'orbite // rouler normalement = image nette ; booster = ça FUSE
     loop._sfx=(loop._sfx||0)+(sfxT-(loop._sfx||0))*Math.min(1,dt*(sfxT>(loop._sfx||0)?7:mode==='boom'?9:3)); // montée franche, retombée douce (sèche à l'explosion)
-    acesPass.uniforms.uSpeed.value=loop._sfx;acesPass.uniforms.uJit.value=(acesPass.uniforms.uJit.value+.618034)%1;
+    acesPass.uniforms.uSpeed.value=loop._sfx;acesPass.uniforms.uJit.value=(acesPass.uniforms.uJit.value+.618034)%1;acesPass.uniforms.uTL.value.x=(acesPass.uniforms.uTL.value.x+dt)%300;
     if(loop._sfx>.004)postCaisse(acesPass.uniforms); /* LA CAISSE RESTE NETTE : le centre et le disque net du flou suivent la caisse à l'écran */
     renderer.getDrawingBufferSize(acesPass.uniforms.uRes.value);acesPass.uniforms.uRes.value.set(1/Math.max(1,acesPass.uniforms.uRes.value.x),1/Math.max(1,acesPass.uniforms.uRes.value.y)); // la taille d'un texel pour le FXAA (suit la résolution adaptative)
   }
@@ -287,8 +287,9 @@
   try{lumTick(dt,speedKmh);}catch(e){loopWarn(1<<23,'lumières',e);} // (2026-10-17) LES LUMIÈRES DE LA CAISSE v2 : phares, feux, nitro, traînées (voir LUM_GLSL)
   if(mortS9){}else
   if(PCV.fen&&PORTV.att&&!PCV.copie){}else // (2026-10-17, 3e tour) l'image d'attente du passage : l'écran est COUVERT par la fenêtre recopiée — on ne dessine pas l'ancien monde pour rien
+  if((started&&!gameOver)||lierPassesPretes()){ /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : hors course, tant qu'une passe de l'image se lie, l'image d'avant reste (voir interface/vignette-moteur.js) */
   if(POST_ON&&composer)composer.render(); // ACES + bloom
-  else renderer.render(scene,camera);      // repli si le post n'a pas pu se charger
+  else renderer.render(scene,camera);}     // repli si le post n'a pas pu se charger
   if(window.__introPrise){const f9=window.__introPrise;window.__introPrise=null;try{f9(renderer.domElement);}catch(e){}} // (2026-10-22) l'intro du studio demande une photo de la scène 3D, prise ici, juste après son rendu (le tampon est encore plein) : les éclats de l'écran en font des loupes — voir moteur/intro-161.js
   if(PCV.copie&&!mortS9)pcCopie(); // (2026-10-17) LE PASSAGE PAR LA FENÊTRE : l'image qu'on traverse, recopiée APRÈS ce rendu (pas de rendu en plus)
   try{if(!mortS9)homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
