@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1027'; /* v1027 (2026-10-31, Sacha : « le bouton JOUER de l'accueil un peu plus vers la gauche, meilleure proportion de diagonale ») l'escalier JOUER passe de +24px à +12px, au même pas que le logo (−12px). */ /* v1026 (2026-10-31, Sacha : « le Phénix doit être légendaire, pas mythique ; les buses SANS AILES doivent ressembler à la vraie voiture de Elon Musk ») PHÉNIX → rareté légendaire ; les buses à air (AILES_POP.air) passent de simples tubes à de vraies tuyères évasées, collier moteur mat à la base, titane brossé. */ /* v1025 (2026-10-30, Léo : « cœurs plus roses, tailles plus aléatoires mais bornées, enlève tous les freezes du menu ciel ») : cœurs rose-fuchsia (chacun sa nuance), 7 à 34 cm ; la gerbe ne sort que des fruits, fleurs et vins déjà envoyés à la carte graphique */
+const CACHE = 'cashcar-v1028'; /* v1028 (2026-10-31, chasse aux bugs) GARAGE/RÉGLAGES : la lueur sur son propre calque (.mGlow) rendait le texte flou (police système, plus de hinting Press Start 2P) ; moteur de l'écran de mort : résolution du rendu par palier (ENG_RES_W/H) au lieu de 480×321 fixe, net sur les écrans retina. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

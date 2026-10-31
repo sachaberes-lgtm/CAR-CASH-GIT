@@ -33,7 +33,7 @@
   <div id="runStats"></div>
   <!-- LE MOTEUR ATTEINT : on montre la pièce qu'on a réussi à monter, pas seulement son nom.
        Le rendu 3D vient du MÊME moteur que la vignette de course (voir engVigRender). -->
-  <div id="endEng"><canvas id="endEngCv" width="480" height="321"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div>
+  <div id="endEng"><canvas id="endEngCv" width="480" height="321"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div><!-- 480×321 : repli sans JS — affiné à la résolution du palier dès le chargement (voir ENG_RES_W) -->
   <div id="nameEntry"><span><i class="pxi pxi-etoile" aria-hidden="true"></i> NOUVEAU RECORD — TON NOM</span><input id="nameInput" maxlength="8" autocomplete="off" spellcheck="false" placeholder="________"><button id="nameSave">VALIDER</button></div>
   <div id="lbBox"></div>
   <button id="playBtn" aria-label="Jouer">Jouer</button>
@@ -84,7 +84,7 @@
       <div class="mStats" id="mStatsBox"></div>
       <!-- (2026-10-25, Sacha : « enlève les stats, à la place un bouton garage et un bouton réglage ») deux touches de verre, à la place
            des quatre chiffres. Le GARAGE ouvre l'atelier (GAR.aGar), RÉGLAGES la page des réglages. -->
-      <div class="mDuo" id="mDuo"><div class="pbtn mVerre mvGar" data-m="garage" role="button" tabindex="0"><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="GARAGE">GARAGE</span><em class="mBadge" id="bdGar2"></em></div><div class="pbtn mVerre mvSet" data-m="set" role="button" tabindex="0"><i class="pxi pxi-reglages" aria-hidden="true"></i><span data-fr="REGLAGES">REGLAGES</span></div></div>
+      <div class="mDuo" id="mDuo"><div class="pbtn mVerre mvGar" data-m="garage" role="button" tabindex="0"><i class="mGlow" aria-hidden="true"></i><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="GARAGE">GARAGE</span><em class="mBadge" id="bdGar2"></em></div><div class="pbtn mVerre mvSet" data-m="set" role="button" tabindex="0"><i class="mGlow" aria-hidden="true"></i><i class="pxi pxi-reglages" aria-hidden="true"></i><span data-fr="REGLAGES">REGLAGES</span></div></div>
       <div class="mObj" id="mObj"></div>
       <div class="mEsp" aria-hidden="true"></div>
       <!-- (2026-09-28, Sacha : « il manque un bouton pour revenir au menu ») la paire des jeux mobiles : MAISON | REJOUER. Le lingot

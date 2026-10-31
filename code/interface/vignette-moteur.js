@@ -25,6 +25,14 @@ const ENG_PBO={b:null,f:null,ctx:null,ko:false};
    et recopié dans la toile 2D, 30 fois par seconde. La pièce fait un tour en ~10 s : à 10 images/s elle avance de 3,4° par image, ça se lit
    encore comme une rotation. `engVigMs` = l'écart en ms entre deux recopies au téléphone : ANCIEN 100 (10/s), MOYEN 66 (15/s), RÉCENT 33 (comme avant). */
 PAL.B.engVigMs=[100,66,33];
+/* ⚠ LA DÉFINITION DU MOTEUR, PAR PALIER (2026-10-31, chasse aux bugs : « les moteurs sont vachement pixelisés quand ils tournent ») —
+   le tampon 480×321 datait d'avant les écrans retina (DPR 2-3) : affiché à ~300-380 px CSS sur l'écran de mort (`m5Scene .hMotCv`,
+   `height:112%` d'une carte qui peut monter à 230 px), chaque pixel du tampon s'étalait sur 2 à 3 pixels physiques → flou/« grain ».
+   Cette relecture ne tourne JAMAIS pendant la course (voir engVigRender, branche `fin||tel`) : la monter ne coûte rien au jeu, seulement
+   à l'écran de mort, à l'arrêt — mais iPhone 7 reste iPhone 7 (mesure ci-dessus), donc ANCIEN garde l'ancienne taille telle quelle. */
+PAL.B.engRes=[480,576,720];
+const ENG_RES_W=PAL.b('engRes',480),ENG_RES_H=Math.round(ENG_RES_W*321/480);
+if(engEndCv){engEndCv.width=ENG_RES_W;engEndCv.height=ENG_RES_H;} // la balise HTML dit 480×321 (repli sans JS) : on l'affine ici, avant le premier rendu
 function engPose(ctx,w,h){ // l'image lue → le <canvas> de la carte (les lignes arrivent de bas en haut : retournement, une ligne d'un bloc)
   const d=engEndImg.data,l9=w*4;for(let y=0;y<h;y++)d.set(engEndBuf.subarray((h-1-y)*l9,(h-y)*l9),y*l9);ctx.putImageData(engEndImg,0,0);}
 function engLit(w,h,ctx){
@@ -65,7 +73,7 @@ engVigScene.add(new THREE.HemisphereLight(0xd8ecff,0x241c3e,.55));
    nombre de lumières d'une scène change ses programmes), éteinte au repos. La carte MOTEUR l'allume à la couleur néon du moteur : le métal
    accroche un filet de sa couleur sur la tranche, le moteur n'est plus un bloc cuivré terne au-dessus de la caisse. */
 const engRim=new THREE.DirectionalLight(0xffffff,0);engRim.position.set(-4.2,1.2,2.4);engVigScene.add(engRim); // de trois-quarts avant-gauche : il teinte les faces qu'on VOIT
-const engRT=new THREE.WebGLRenderTarget(480,321,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
+const engRT=new THREE.WebGLRenderTarget(ENG_RES_W,ENG_RES_H,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
 // le quad de recollage — caméra ortho en coordonnées NDC (-1..1), donc positionner = convertir un rect DOM
 const engVigQuadScene=new THREE.Scene();
 const engVigQuadCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);

@@ -8843,16 +8843,24 @@ html body #mDead.m5 .mDuo{display:grid;grid-template-columns:1fr 1fr;gap:12px;wi
 html body #mDead.m5 .mVerre{--lk:1;position:relative;isolation:isolate;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;
   min-height:48px;margin:0;padding:0 12px;border:0;border-radius:20px!important;clip-path:none!important;transform:none!important;overflow:visible;
   font-size:var(--f1);letter-spacing:1px;color:var(--tx);
+  background:none!important;box-shadow:none!important;
+  transition:translate var(--t-fast) var(--ease)}
+/* ⚠ LA LUEUR SUR SON PROPRE CALQUE (2026-10-31, chasse aux bugs : « GARAGE/RÉGLAGES pixelisés dans la mauvaise police ») —
+   quand ce dégradé à 4 couches + cette pile d'ombres portées vivaient directement sur `.mVerre`, le navigateur promouvait le
+   bouton sur un calque GPU qui perdait le hinting de Press Start 2P : le texte retombait sur une police système, lisse, bien
+   que `font-family` reste correct (vérifié : même police, même taille que PALIER juste au-dessus, rendu différent). La lueur
+   vit maintenant sur `.mGlow`, un calque dédié EN DESSOUS du texte (`span`, `.pxi` ne sont plus sur le même calque promu) :
+   bouton revérifié blocky après le déplacement. */
+html body #mDead.m5 .mVerre .mGlow{content:'';display:block;position:absolute;inset:0;z-index:-3;pointer-events:none;border-radius:inherit;
   background:
     radial-gradient(120% 95% at 16% -12%,rgba(255,255,255,calc(.62*var(--lk))) 0,rgba(255,255,255,calc(.14*var(--lk))) 36%,transparent 57%),
     linear-gradient(112deg,transparent 0 41%,rgba(255,255,255,calc(.34*var(--lk))) 42% 47%,transparent 48% 54%,rgba(255,255,255,calc(.16*var(--lk))) 55% 58%,transparent 59%),
     radial-gradient(95% 75% at 86% 118%,color-mix(in srgb,var(--nc) calc(46%*var(--lk)),transparent),transparent 62%),
-    linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08))!important;
+    linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08));
   box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.8),inset 0 2px 2px rgba(255,255,255,calc(.85*var(--lk))),
     inset 0 -12px 16px -9px color-mix(in srgb,var(--nc) 60%,transparent),inset 0 0 24px rgba(255,255,255,calc(.22*var(--lk))),
-    0 0 18px color-mix(in srgb,var(--nc) 42%,transparent),0 7px 16px -6px rgba(15,25,70,.32)!important;
-  transition:translate var(--t-fast) var(--ease)}
-html body #mDead.m5 .mVerre::before{content:''!important;display:block!important;position:absolute;inset:5px;z-index:-1;pointer-events:none;border-radius:inherit;
+    0 0 18px color-mix(in srgb,var(--nc) 42%,transparent),0 7px 16px -6px rgba(15,25,70,.32)}
+html body #mDead.m5 .mVerre::before{content:''!important;display:block!important;position:absolute;inset:5px;z-index:-2;pointer-events:none;border-radius:inherit;
   border:1px solid rgba(255,255,255,calc(.34*var(--lk)));box-shadow:inset 0 0 8px rgba(255,255,255,calc(.18*var(--lk)));background:none!important;animation:none!important;transform:none!important}
 html body #mDead.m5 .mVerre::after{content:''!important;display:block!important;position:absolute;left:9%;top:7%;width:30%;height:17%;z-index:-1;pointer-events:none;border-radius:50%;
   background:radial-gradient(ellipse at 40% 40%,rgba(255,255,255,calc(.95*var(--lk))) 0,rgba(255,255,255,calc(.35*var(--lk))) 45%,transparent 72%);transform:rotate(-14deg)!important;animation:none!important;opacity:1!important}
@@ -8919,7 +8927,7 @@ html[data-reduced-motion="1"] :is(.m5Halo,#mDead.m5 .m5Scene .hMotCv,.m5Ombre,#m
   <div id="runStats"></div>
   <!-- LE MOTEUR ATTEINT : on montre la pièce qu'on a réussi à monter, pas seulement son nom.
        Le rendu 3D vient du MÊME moteur que la vignette de course (voir engVigRender). -->
-  <div id="endEng"><canvas id="endEngCv" width="480" height="321"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div>
+  <div id="endEng"><canvas id="endEngCv" width="480" height="321"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div><!-- 480×321 : repli sans JS — affiné à la résolution du palier dès le chargement (voir ENG_RES_W) -->
   <div id="nameEntry"><span><i class="pxi pxi-etoile" aria-hidden="true"></i> NOUVEAU RECORD — TON NOM</span><input id="nameInput" maxlength="8" autocomplete="off" spellcheck="false" placeholder="________"><button id="nameSave">VALIDER</button></div>
   <div id="lbBox"></div>
   <button id="playBtn" aria-label="Jouer">Jouer</button>
@@ -8970,7 +8978,7 @@ html[data-reduced-motion="1"] :is(.m5Halo,#mDead.m5 .m5Scene .hMotCv,.m5Ombre,#m
       <div class="mStats" id="mStatsBox"></div>
       <!-- (2026-10-25, Sacha : « enlève les stats, à la place un bouton garage et un bouton réglage ») deux touches de verre, à la place
            des quatre chiffres. Le GARAGE ouvre l'atelier (GAR.aGar), RÉGLAGES la page des réglages. -->
-      <div class="mDuo" id="mDuo"><div class="pbtn mVerre mvGar" data-m="garage" role="button" tabindex="0"><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="GARAGE">GARAGE</span><em class="mBadge" id="bdGar2"></em></div><div class="pbtn mVerre mvSet" data-m="set" role="button" tabindex="0"><i class="pxi pxi-reglages" aria-hidden="true"></i><span data-fr="REGLAGES">REGLAGES</span></div></div>
+      <div class="mDuo" id="mDuo"><div class="pbtn mVerre mvGar" data-m="garage" role="button" tabindex="0"><i class="mGlow" aria-hidden="true"></i><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="GARAGE">GARAGE</span><em class="mBadge" id="bdGar2"></em></div><div class="pbtn mVerre mvSet" data-m="set" role="button" tabindex="0"><i class="mGlow" aria-hidden="true"></i><i class="pxi pxi-reglages" aria-hidden="true"></i><span data-fr="REGLAGES">REGLAGES</span></div></div>
       <div class="mObj" id="mObj"></div>
       <div class="mEsp" aria-hidden="true"></div>
       <!-- (2026-09-28, Sacha : « il manque un bouton pour revenir au menu ») la paire des jeux mobiles : MAISON | REJOUER. Le lingot
@@ -45406,6 +45414,14 @@ const ENG_PBO={b:null,f:null,ctx:null,ko:false};
    et recopié dans la toile 2D, 30 fois par seconde. La pièce fait un tour en ~10 s : à 10 images/s elle avance de 3,4° par image, ça se lit
    encore comme une rotation. `engVigMs` = l'écart en ms entre deux recopies au téléphone : ANCIEN 100 (10/s), MOYEN 66 (15/s), RÉCENT 33 (comme avant). */
 PAL.B.engVigMs=[100,66,33];
+/* ⚠ LA DÉFINITION DU MOTEUR, PAR PALIER (2026-10-31, chasse aux bugs : « les moteurs sont vachement pixelisés quand ils tournent ») —
+   le tampon 480×321 datait d'avant les écrans retina (DPR 2-3) : affiché à ~300-380 px CSS sur l'écran de mort (`m5Scene .hMotCv`,
+   `height:112%` d'une carte qui peut monter à 230 px), chaque pixel du tampon s'étalait sur 2 à 3 pixels physiques → flou/« grain ».
+   Cette relecture ne tourne JAMAIS pendant la course (voir engVigRender, branche `fin||tel`) : la monter ne coûte rien au jeu, seulement
+   à l'écran de mort, à l'arrêt — mais iPhone 7 reste iPhone 7 (mesure ci-dessus), donc ANCIEN garde l'ancienne taille telle quelle. */
+PAL.B.engRes=[480,576,720];
+const ENG_RES_W=PAL.b('engRes',480),ENG_RES_H=Math.round(ENG_RES_W*321/480);
+if(engEndCv){engEndCv.width=ENG_RES_W;engEndCv.height=ENG_RES_H;} // la balise HTML dit 480×321 (repli sans JS) : on l'affine ici, avant le premier rendu
 function engPose(ctx,w,h){ // l'image lue → le <canvas> de la carte (les lignes arrivent de bas en haut : retournement, une ligne d'un bloc)
   const d=engEndImg.data,l9=w*4;for(let y=0;y<h;y++)d.set(engEndBuf.subarray((h-1-y)*l9,(h-y)*l9),y*l9);ctx.putImageData(engEndImg,0,0);}
 function engLit(w,h,ctx){
@@ -45446,7 +45462,7 @@ engVigScene.add(new THREE.HemisphereLight(0xd8ecff,0x241c3e,.55));
    nombre de lumières d'une scène change ses programmes), éteinte au repos. La carte MOTEUR l'allume à la couleur néon du moteur : le métal
    accroche un filet de sa couleur sur la tranche, le moteur n'est plus un bloc cuivré terne au-dessus de la caisse. */
 const engRim=new THREE.DirectionalLight(0xffffff,0);engRim.position.set(-4.2,1.2,2.4);engVigScene.add(engRim); // de trois-quarts avant-gauche : il teinte les faces qu'on VOIT
-const engRT=new THREE.WebGLRenderTarget(480,321,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
+const engRT=new THREE.WebGLRenderTarget(ENG_RES_W,ENG_RES_H,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
 // le quad de recollage — caméra ortho en coordonnées NDC (-1..1), donc positionner = convertir un rect DOM
 const engVigQuadScene=new THREE.Scene();
 const engVigQuadCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
@@ -78000,14 +78016,14 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
           if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9='<em class="m5Vd rec">'+pxi('etoile')+' '+TR('RECORD !')+'</em>';
           else if(!tq9&&moy0>0&&au>0){const p9=Math.round((au-moy0)/moy0*100);vd9=p9>=1?'<em class="m5Vd up">▲ +'+p9+' % '+TR('VS MOY')+'</em>':p9<=-1?'<em class="m5Vd down">▼ '+p9+' % '+TR('VS MOY')+'</em>':'<em class="m5Vd">= '+TR('MOYENNE')+'</em>';}
           h.className='mHero m5Hero';
-          h.innerHTML='<div class="m5Mot" style="--ec:'+hx+'"><div class="m5Scene"><i class="m5Halo"></i><canvas class="hMotCv" width="480" height="321"></canvas><i class="m5Ombre"></i></div>'
+          h.innerHTML='<div class="m5Mot" style="--ec:'+hx+'"><div class="m5Scene"><i class="m5Halo"></i><canvas class="hMotCv" width="'+ENG_RES_W+'" height="'+ENG_RES_H+'"></canvas><i class="m5Ombre"></i></div>'
             +'<div class="m5Pal'+(eN&&!tq9?' rec':'')+'"><span>'+TR('PALIER')+'</span><b>'+(engTier+1)+'</b></div></div>'
             +'<div class="m5Aura"><div class="m5Tete"><small>'+TR('AURA')+'</small><b id="mAuraV">0</b>'+vd9+'</div>'
             +'<div class="m5Graphe"><i class="m5Ligne" style="--h:'+hP(recV)+'%"></i>'+bg9('P',au,'PARTIE')+bg9('M',moyV,'MOYENNE')+bg9('R',recV,'RECORD')+'</div></div>';
         }
         else if(h){h.className='mHero';h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
             +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em><div class="hNx hNxC6">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>' /* (2026-10-14, charte 6) cartes JUMELLES : la sous-ligne MEILLEUR est toujours là (.hNxC6 = celle que seule la charte 6 montre, quand le badge RECORD ! se tait) */
-          +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR ATTEINT')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
+          +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR ATTEINT')+'</small><canvas class="hMotCv" width="'+ENG_RES_W+'" height="'+ENG_RES_H+'"></canvas>'
             +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN&&!tq9?'<em>'+TR('RECORD !')+'</em>':'')
             +(pr?'<div class="hNx hPres"><span>'+presqueTxt(mq)+'</span><span>'+pxi('haut')+' '+TR(nx.n)+'</span></div>':ci?'<div class="hNx hRec"><span>'+TR('RECORD')+'</span><span>'+TR('PALIER')+' '+(ea+1)+'</span></div>':'' /* (29/09, DEBUGGING) deux morceaux insécables : le chiffre ne tombe plus seul à la ligne */)+'</div>'; // (2026-09-28) « RECORD · PALIER 18 » : le nom du moteur (STATOREACTEUR) cassait la ligne ; la carte parle déjà en paliers
         }
