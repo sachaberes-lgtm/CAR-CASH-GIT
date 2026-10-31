@@ -120,7 +120,7 @@ html:not([lang=fr]) #gBqTete .bqLim::before,html:not([lang=fr]) #gBqNom .bqLim::
 #gBqPan .bqRail .bqSec{flex:0 0 100%;display:flex;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:4px;min-width:0;padding:10px 2px 0;font-family:var(--pix);color:#14171c;scroll-snap-align:start;pointer-events:none;animation:bqSec .38s var(--ease) both}
 @keyframes bqSec{from{opacity:0}to{opacity:1}}
 #gBqPan .bqRail .bqSec:first-child{padding-top:2px}
-#gBqPan .bqRail .bqSec .pxi{--pxs:2;flex:none;color:#3d4bff}
+#gBqPan .bqRail .bqSec .pxi{--pxs:2;flex:none;color:var(--dc,#3d4bff)} /* (2026-10-31, clarté boutique) la couleur de l'EMPLACEMENT (--dc), la même qu'en haut sur son hexagone et sur le badge « aussi » des figures à deux sens */
 #gBqPan .bqRail .bqSec b{font-weight:400;font-size:9px;letter-spacing:2px;white-space:nowrap}
 #gBqPan .bqRail .bqSec em{margin-left:auto;font-style:normal;font-size:7px;letter-spacing:0;color:#8a929c;white-space:nowrap}
 #gBqPan .bqRail .bqSec.bqRarS .pxi{color:var(--rc);filter:drop-shadow(0 0 0 #14171c) drop-shadow(1px 1px 0 rgba(20,23,28,.55))} /* (2026-10-18) l'intertitre d'une RARETÉ : son logo à sa couleur */
@@ -140,6 +140,10 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gBqBtn{displa
   background:#14171c;color:#fff;font-family:var(--pix);font-size:9px;letter-spacing:2px;cursor:pointer;pointer-events:auto;box-shadow:0 10px 24px rgba(20,23,28,.22);transition:background .2s,color .2s,translate .12s}
 #gBqBtn b{font-weight:400;font-size:12px;letter-spacing:1px}
 #gBqBtn .pxi{--pxs:2;color:currentColor}
+/* (2026-10-31, clarté boutique) sur une figure à deux sens, le bouton ÉQUIPER montre l'icône de l'EMPLACEMENT visé (--dc, même couleur que
+   l'hexagone et l'intertitre de la section) : on sait où elle va se ranger avant de toucher, pas seulement une fois équipée (le toast). */
+#gBqBtn .bqBtnDir{display:flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#fff}
+#gBqBtn .bqBtnDir .pxi{--pxs:1;color:var(--dc)}
 #gBqBtn:is(:active,.appui){translate:0 2px}
 html.bqIndus body #garage #gAct>#gBqBtn[data-e="equip"]{background:#3d4bff}
 html.bqIndus body #garage #gAct>#gBqBtn[data-e="desequip"]{background:#fff;color:#14171c;box-shadow:0 0 0 1.5px #14171c}
@@ -171,6 +175,11 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi
 #gBqPan .bqK .bqKp.eur{color:#3d4bff}
 #gBqPan .bqK .bqKp:is(.acq,.defi){color:#8a929c}
 #gBqPan .bqK .bqKl{position:absolute;top:6px;left:6px;padding:4px 6px;background:#3d4bff;color:#fff;font-size:8px;letter-spacing:1px}
+/* (2026-10-31, clarté boutique) LE BADGE « AUSSI » : une figure à deux sens a une carte dans chacune de ses deux sections — sans lui, ça
+   ressemble à un doublon. Coin opposé à .bqKl, teinté de la couleur de l'AUTRE emplacement (--dc, voir FIG_DC) pour qu'on la retrouve. */
+#gBqPan .bqK .bqKd2{position:absolute;top:6px;right:6px;display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--dc);box-shadow:0 0 0 1.5px #fff}
+#gBqPan .bqK .bqKd2 .pxi{--pxs:1;width:10px;height:10px;margin:0;color:#14171c}
+#gBqPan.cote .bqK .bqKd2{top:4px;right:4px;width:15px;height:15px}
 #gBqPan .bqK .bqKl.arc{position:static;margin:0;max-width:none;white-space:normal;overflow:visible;text-align:center;line-height:1.35;letter-spacing:0;padding:3px 4px 2px;background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff);color:#14171c} /* (2026-10-18 soir) le CHAT POP-TART : + ARC-EN-CIEL (voir chatPackI) ; (2026-10-20, Sacha : « plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel ») elle était posée en haut à gauche, SOUS l'étiquette de rareté (LÉGENDAIRE : z-index 1, même coin) : on n'en voyait que les bords. Elle est maintenant une BANDE dans le flux, sous la photo, sur deux lignes : « + TRAÎNÉE / ARC-EN-CIEL » */
 html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKl.arc{font-size:7px}
 #gBqPan .bqK.off{width:148px}

@@ -109,7 +109,7 @@ const NFEU_FIN={taille:.73,taux:1.7,pas:0},NFEU_SOL={det:.45,vent:.9};
    tirées d'elle, comme celles du feu orange (le cœur chauffé à blanc, la couleur pleine, la braise, la fumée). La réserve et l'infini restent lisibles :
    le feu y tire vers le bleu / le violet (le cœur 8 %, la braise et la fumée 30 %). `?trainee=signal` = le feu d'avant. */
 const NFEU_TR={cle:'',pal:null,b:null,v:null};
-function nfeuPalTrainee(){if(TRAINEE_SIGNAL||typeof FX_EFF==='undefined'||!FX_EFF||!FX_EFF.teinte)return null;const c=FX_EFF.teinte,cle=c.join(',');if(NFEU_TR.cle===cle)return NFEU_TR;
+function nfeuPalTrainee(){if(TRAINEE_SIGNAL||typeof FX_EFF==='undefined'||!FX_EFF||!FX_EFF.teinte)return null;const c=FX_EFF.pop==='billets'?billetsTeinte():FX_EFF.teinte,cle=c.join(',');if(NFEU_TR.cle===cle)return NFEU_TR;
   const m=Math.max(c[0],c[1],c[2],.05),n=[c[0]/m,c[1]/m,c[2]/m],LV=[2.4,2.3,2.2,2.05,1.85,1.62,1.38,1.08,.6],W=[.3,.55,.78,.92,1,1,1,1,1],P=[];
   for(let i=0;i<9;i++){const l=LV[i],w=W[i];P.push([l*(1-w+w*n[0]),l*(1-w+w*n[1]),l*(1-w+w*n[2])]);}P.push([.2,.17,.17]);
   const mix=(A,B,k)=>A.map(function(a,i){return [a[0]+(B[i][0]-a[0])*k,a[1]+(B[i][1]-a[1])*k,a[2]+(B[i][2]-a[2])*k];});

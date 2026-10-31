@@ -219,9 +219,10 @@ const BQ_CATS=[['voiture','VOITURES','voiture'],['achat','ACHAT','panier'],['pei
    cosmique) a sa carte dans CHACUNE de ses sections : la carte porte sa direction (`data-dir`), ÉQUIPER la met dans CET emplacement (bqFigDir).
    Dans chaque section, l'ordre du catalogue (du moins cher au plus cher). Un intertitre `.bqSec` (bqFigSec) ouvre chaque section : ce n'est
    pas une carte — ni clic, ni compte (le compte de l'onglet reste celui des figures, une fois chacune : bqListe). */
-function bqFigSec(c){const F=FIG_FAM[c];return '<div class="bqSec" data-fam="'+c+'">'+pxi(F[2])+'<b>'+sansAcc(TR(F[0]))+'</b><em>'+sansAcc(TR(F[1]))+'</em></div>';}
+function bqFigSec(c){const F=FIG_FAM[c];return '<div class="bqSec" data-fam="'+c+'" style="--dc:'+FIG_DC[c]+'">'+pxi(F[2])+'<b>'+sansAcc(TR(F[0]))+'</b><em>'+sansAcc(TR(F[1]))+'</em></div>';}
 function bqFigRail(){const R=[];if(!window.FIG)return R;for(let c=0;c<FIG_NB;c++)FIG.liste.forEach(function(f){if(figPeut(f.id).indexOf(c)>=0)R.push({k:'figure:'+f.id,c:c});});return R;}
 function bqFigDir(id){const P=figPeut(id);return GBQ.figDir!=null&&P.indexOf(GBQ.figDir)>=0?GBQ.figDir:P[0];} // la direction de la carte touchée (sinon la 1re de la figure)
+function bqFigAutres(id,dir){return figPeut(id).filter(function(x){return x!==dir;});} // (2026-10-31, clarté boutique) les AUTRES emplacements où cette même figure joue aussi (le badge « aussi » d'une carte à deux sens)
 /* LES TROIS FIGURES ÉQUIPÉES, EN HAUT DU RAYON FIGURES (2026-10-16, Sacha : « dans la boutique, quand on arrive dans les figures, le truc des
    hexagones que tu avais mis dans l'inventaire, faut que tu le remettes, version adaptée, dans la boutique » · « tout en haut, tu remets les
    hexagones comme tu avais mis, mais en blanc ») — le sélecteur de l'inventaire (#gFigSel, voir gFigSelMaj : l'éclair du NITRO et « ×2 », puis
@@ -233,8 +234,9 @@ function bqFigDir(id){const P=figPeut(id);return GBQ.figDir!=null&&P.indexOf(GBQ
 const BQFS={k:'',S:null};
 function bqFigSelEl(pan){let el=document.getElementById('bqFigSel');if(el)return el;
   el=document.createElement('div');el.id='bqFigSel';el.setAttribute('role','group');
-  el.innerHTML='<div class="fsNitro" aria-hidden="true">'+gFigNitroSvg()+'<b>×2</b></div>'
-    +FIG_FAM.map(function(F,k){return '<button type="button" class="fsHex" data-k="'+k+'"><span class="fsCase"><span class="fsIn"></span></span><i class="fsJoy">'+pxi(F[2])+'</i><b class="fsNom"></b></button>';}).join('');
+  el.innerHTML='<div class="fsTete"><b data-fr="TES 3 EMPLACEMENTS">'+sansAcc(TR('TES 3 EMPLACEMENTS'))+'</b><span data-fr="TOUCHE UNE FIGURE EN DESSOUS POUR L\'ÉQUIPER ICI">'+sansAcc(TR('TOUCHE UNE FIGURE EN DESSOUS POUR L\'ÉQUIPER ICI'))+'</span></div>'
+    +'<div class="fsRow"><div class="fsNitro" aria-hidden="true">'+gFigNitroSvg()+'<b>×2</b></div>'
+    +FIG_FAM.map(function(F,k){return '<button type="button" class="fsHex" data-k="'+k+'" style="--dc:'+FIG_DC[k]+'"><span class="fsCase"><span class="fsIn"></span></span><i class="fsJoy">'+pxi(F[2])+'</i><b class="fsNom"></b></button>';}).join('')+'</div>';
   pan.insertBefore(el,pan.firstChild);
   el.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('.fsHex');if(!b)return;e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;
     const k=+b.getAttribute('data-k'),id=figSlots()[k],rail=pan.querySelector('.bqRail');uiPop(b);if(!rail)return;
@@ -259,8 +261,12 @@ function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?n
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.pack==='chat'){px=sansAcc(TR('PACK CHAT'));c='eur';}else if(d.eur){px=eurTxt(d.eur);c='eur';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';} /* (2026-10-18 soir) l'ARC-EN-CIEL : PACK CHAT (voir chatPackI) */
   if(bqPxLg(px))c+=' lg';
-  return '<div class="bqK'+(sec9?' m2sec':'')+(lim?' off':'')+(vo?'':' hab')+'" data-k="'+k+'"'+(dir!=null?' data-dir="'+dir+'"':'')+' role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+'">'
-    +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':o.cat==='aile'?'<span class="bqKph c-aile" data-pha="'+d.id+'"></span>':o.cat==='figure'?'<span class="bqKph c-figure" data-phf="'+d.id+'|'+FIG_DIR[dir!=null?dir:figPeut(d.id)[0]]+'">'+bqFigHab(k)+'</span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')+(vo&&!a&&i===chatPackI()?'<span class="bqKl arc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</span>':'')
+  /* (2026-10-31, clarté boutique) une figure à DEUX SENS a une carte dans chacune de ses sections : un petit badge dit qu'elle joue AUSSI
+     dans l'autre emplacement (sinon ça ressemble à un doublon) — sa couleur reprend celle de CET autre emplacement (voir FIG_DC) */
+  const autres=(!vo&&o.cat==='figure')?bqFigAutres(d.id,dir!=null?dir:figPeut(d.id)[0]):[];
+  const badgeAutre=autres.map(function(x){return '<span class="bqKd2" style="--dc:'+FIG_DC[x]+'" title="'+sansAcc(TR('AUSSI'))+' : '+sansAcc(TR(FIG_FAM[x][0]))+'">'+pxi(FIG_FAM[x][2])+'</span>';}).join('');
+  return '<div class="bqK'+(sec9?' m2sec':'')+(lim?' off':'')+(vo?'':' hab')+'" data-k="'+k+'"'+(dir!=null?' data-dir="'+dir+'"':'')+' role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+(autres.length?' · '+sansAcc(TR('AUSSI'))+' '+autres.map(function(x){return sansAcc(TR(FIG_FAM[x][0]));}).join(', '):'')+'">'
+    +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':o.cat==='aile'?'<span class="bqKph c-aile" data-pha="'+d.id+'"></span>':o.cat==='figure'?'<span class="bqKph c-figure" data-phf="'+d.id+'|'+FIG_DIR[dir!=null?dir:figPeut(d.id)[0]]+'">'+bqFigHab(k)+'</span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')+(vo&&!a&&i===chatPackI()?'<span class="bqKl arc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</span>':'')+badgeAutre
     +'<span class="bqKr'+(sansAcc(TR(ri.n1)).length>8?' lg':'')+'">'+sansAcc(TR(ri.n1))+'</span><span class="bqKn">'+sansAcc(String(nom))+'</span><span class="bqKp '+c+'">'+px+'</span></div>';} /* (clarté 14/10) la RARETÉ s'écrit sur la carte */
 /* LES PHOTOS DES DEUX BOUTIQUES (2026-10-14, session OPTIMISATION — PILOTAGE : « les photos des cartes de la boutique du jour ne s'affichent
    plus »). `bqPhotos` était déclarée DEUX fois : celle des cartes du bandeau de l'atelier (`.fnC` + `.fnPh`, OFFRES ÉPHÉMÈRES / DU JOUR) et
@@ -387,7 +393,8 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
   const o=bqCos(k),d=o.d;if(!d)return null;
   if(o.cat==='figure'){if(!figPossede(d.id))return {e:'achat',t:'ACHETER',p:bqPxT(d.p)}; // (2026-10-14) une figure : on l'a, ou on l'achète
     if(!FIGV2.on)return {e:'eq',t:'ACQUISE'};
-    return figSlots()[bqFigDir(d.id)]===d.id?{e:'eq',t:'ÉQUIPÉE'}:{e:'figeq',t:'ÉQUIPER'};} // (2026-10-15, les directions) dans la direction de SA carte : on en change en ÉQUIPANT une autre de cette direction, on ne la retire plus
+    const dir9=bqFigDir(d.id); // (2026-10-31, clarté boutique) le bouton montre l'icône de CET emplacement : sur une figure à deux sens, on sait où elle va se ranger avant de toucher
+    return figSlots()[dir9]===d.id?{e:'eq',t:'ÉQUIPÉE',dir:dir9}:{e:'figeq',t:'ÉQUIPER',dir:dir9};} // (2026-10-15, les directions) dans la direction de SA carte : on en change en ÉQUIPANT une autre de cette direction, on ne la retire plus
   const a=shopOwned(o.cat,d.id),eq=shopEqD(o.cat)===d,j=COSM[o.cat].indexOf(d);
   if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉ'};if(a)return {e:'equip',t:'ÉQUIPER'};
   if(d.mis2)return {e:'mis',t:'VOIR LA MISSION',m:d.mis2}; // (2026-10-16) LES MISSIONS v2
@@ -455,10 +462,11 @@ function garFigPas(dt){
 window.dbgFigEssai=function(id,c){garFigEssai(id,c==null?-1:c);return {D:+GFIG.D.toFixed(3),plat:!!GFIG.plat,plan:window.dbgFigPlan?window.dbgFigPlan():null};};
 window.dbgFigEtat=function(){const o=GBQ.omb;return {t:+GFIG.t.toFixed(3),D:+GFIG.D.toFixed(3),plat:!!GFIG.plat,gel:GFIG.gel==null?null:GFIG.gel,omb:o?{vis:!!(o.visible&&GBQ.grp&&GBQ.grp.visible),y:+o.position.y.toFixed(3),x:+o.position.x.toFixed(3),z:+o.position.z.toFixed(3),s:[+o.scale.x.toFixed(2),+o.scale.y.toFixed(2)],o:+o.material.opacity.toFixed(2)}:null};};
 window.dbgFigGel=function(t){GFIG.gel=t==null?null:+t;return GFIG.gel;};
-function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
-  bt.dataset.e=s?s.e:'';bt.innerHTML=s?('<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):(s.e==='mis'||s.e==='chat')?pxi('droite'):s.e==='sec'?pxi('oeil'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
+function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+(s.dir!=null?s.dir:'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
+  bt.dataset.e=s?s.e:'';bt.innerHTML=s?((s.dir!=null?'<i class="bqBtnDir" style="--dc:'+FIG_DC[s.dir]+'">'+pxi(FIG_FAM[s.dir][2])+'</i>':'')+'<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):(s.e==='mis'||s.e==='chat')?pxi('droite'):s.e==='sec'?pxi('oeil'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
 try{Object.assign(I18N,{"VERS L'ARRIÈRE":'BACKWARD','POUCE EN ARRIÈRE':'THUMB BACK',"VERS L'AVANT":'FORWARD','SUR LES CÔTÉS':'SIDEWAYS','POUCE EN AVANT':'THUMB FORWARD','POUCE À GAUCHE OU À DROITE':'THUMB LEFT OR RIGHT'});}catch(e){} // (2026-10-15) les deux familles de figures
 try{Object.assign(I18N,{'ÉQUIPER':'EQUIP','DÉSÉQUIPER':'UNEQUIP','ÉQUIPÉE':'EQUIPPED','ÉQUIPÉ':'EQUIPPED','ACHETER':'BUY','À GAGNER':'TO EARN'});}catch(e){}
+try{Object.assign(I18N,{'TES 3 EMPLACEMENTS':'YOUR 3 SLOTS',"TOUCHE UNE FIGURE EN DESSOUS POUR L'ÉQUIPER ICI":'TAP A TRICK BELOW TO EQUIP IT HERE','AUSSI':'ALSO'});}catch(e){} // (2026-10-31, clarté boutique)
 try{Object.assign(I18N,{'CHOISIS UNE OFFRE':'PICK AN OFFER'});}catch(e){} // (2026-10-14, charte 6, boutique P1)
 function garBqChoc(){if(!GBQ.choc)garBqBatit();GBQ.chocT=0;}
 /* (2026-10-20 soir, Léo : « ces trucs marchent dans la boutique aussi ») LE TAP EN BOUTIQUE : la vitrine capte le doigt à part (voir

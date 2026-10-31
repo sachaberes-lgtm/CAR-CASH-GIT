@@ -55,7 +55,13 @@ html[data-reduced-motion] #chDoigt.on .cdMain{transform:translate(3px,10px) rota
      le joystick de la direction en pastille blanche cerclée d'encre, flèche bleue (le bleu des intertitres VERS L'AVANT…). La case de la figure
      qu'on regarde prend l'anneau d'encre, comme la carte choisie (.sel). Vide : anneau gris, « ? », VIDE. */
 #bqFigSel{display:none}
-#gBqPan.bqFigOn #bqFigSel{display:flex;flex:none;align-items:flex-start;gap:4px;padding:11px 8px 7px 4px;background:#fff;box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.07);pointer-events:auto;font-family:var(--pix);animation:bqSec .38s var(--ease) both}
+#gBqPan.bqFigOn #bqFigSel{display:flex;flex:none;flex-direction:column;gap:6px;padding:10px 8px 8px;background:#fff;box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.07);pointer-events:auto;font-family:var(--pix);animation:bqSec .38s var(--ease) both}
+/* (2026-10-31, clarté boutique, Sacha : « le système du choix des figures est bof, pas assez clair ») LE TITRE, enfin écrit : ce bloc restait
+   muet (un simple aria-label) — « TES 3 EMPLACEMENTS » + la marche à suivre, lues avant même de toucher quoi que ce soit. */
+#bqFigSel .fsTete{display:flex;flex-direction:column;gap:1px;padding:0 2px}
+#bqFigSel .fsTete b{font-weight:400;font-size:9px;letter-spacing:1.5px;color:#14171c}
+#bqFigSel .fsTete span{font-size:7.5px;letter-spacing:.2px;color:#8a929c}
+#bqFigSel .fsRow{display:flex;align-items:flex-start;gap:4px}
 #bqFigSel .fsNitro{flex:none;align-self:center;display:flex;flex-direction:column;align-items:center;gap:3px;width:40px}
 #bqFigSel .fsBolt{display:block;width:26px;height:37px}
 #bqFigSel .fsNitro b{font-weight:400;font-size:9px;line-height:1;color:#14171c}
@@ -69,8 +75,8 @@ html[data-reduced-motion] #chDoigt.on .cdMain{transform:translate(3px,10px) rota
 #bqFigSel .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
 #bqFigSel .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
 #bqFigSel .fsQ{font-weight:400;font-size:14px;color:#a3abb5}
-#bqFigSel .fsJoy{position:absolute;left:calc(50% - 39px);top:-7px;display:flex;align-items:center;justify-content:center;width:22px;height:22px;background:#fff;color:#3d4bff;
-  box-shadow:inset 0 0 0 2px #14171c;clip-path:polygon(6px 0,16px 0,22px 6px,22px 16px,16px 22px,6px 22px,0 16px,0 6px);font-style:normal}
+#bqFigSel .fsJoy{position:absolute;left:calc(50% - 39px);top:-7px;display:flex;align-items:center;justify-content:center;width:22px;height:22px;background:#fff;color:var(--dc,#3d4bff);
+  box-shadow:inset 0 0 0 2px #14171c;clip-path:polygon(6px 0,16px 0,22px 6px,22px 16px,16px 22px,6px 22px,0 16px,0 6px);font-style:normal} /* (2026-10-31) la couleur de l'EMPLACEMENT (--dc), la même que sur l'intertitre de sa section plus bas : l'œil relie les deux sans réfléchir */
 #bqFigSel .fsJoy .pxi{--pxs:1;width:12px;height:12px;margin:0}
 #bqFigSel .fsNom{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-width:100%;overflow:hidden;overflow-wrap:anywhere;text-align:center;font-weight:400;font-size:8px;line-height:10px;letter-spacing:0;color:#14171c}
 #bqFigSel .fsHex.vide .fsCase{background:#d3d8de}

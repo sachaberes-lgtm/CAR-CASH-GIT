@@ -278,6 +278,16 @@ const TC_SEQ=[0,1,0,2,3,2]; // le billet : à plat, sur la tranche, à plat (le 
 var TC_BIL=null;
 const TC_EUR=[['5',120,62,'#aab2b2'],['10',127,67,'#dc5a50'],['20',133,72,'#4d92dc'],['50',140,77,'#f28d2e'],['100',147,82,'#68b866'],['200',153,82,'#e4c24c'],['500',160,82,'#9c6bb2']];
 const TC_BIL_100=4; // la place du 100 € (la liasse qui craque en lâche des verts)
+/* (2026-10-31, Sacha : « même couleur que les billets, donc multicolore — enfin, pas multicolore, mais les mêmes couleurs que les billets
+   d'euros ; là c'est resté sur la couleur dollar avec le vert, je veux que ça soit un peu de toutes les couleurs ») LA TEINTE DE FAIS PLEUVOIR :
+   le feu du nitro, le sillage des feux et le ruban d'aperçu au garage prenaient une seule couleur fixe (le vert billet) alors que les billets
+   qui tombent, eux, portent déjà les 7 couleurs réelles des euros (`TC_EUR`). Ici, la MÊME palette, dérivée des mêmes hex (même pic d'éclat
+   qu'avant, 1,35, pour ne pas assombrir le feu) — et elle TOURNE lentement (une couleur toutes les ~9 s, fondu doux) au lieu de rester figée :
+   un peu de toutes les couleurs, jamais deux fois la même minute. */
+const TC_BIL_TEINTES=TC_EUR.map(function(E){const R=parseInt(E[3].substr(1,2),16)/255,G=parseInt(E[3].substr(3,2),16)/255,Bl=parseInt(E[3].substr(5,2),16)/255,
+  m=Math.max(R,G,Bl,.05),k=1.35/m;return [R*k,G*k,Bl*k];});
+function billetsTeinte(){const t=performance.now()*.001,N=TC_BIL_TEINTES.length,p=(t*.11)%N,i=p|0,j=(i+1)%N,u=p-i,s=u*u*(3-2*u),A=TC_BIL_TEINTES[i],B=TC_BIL_TEINTES[j];
+  return [A[0]+(B[0]-A[0])*s,A[1]+(B[1]-A[1])*s,A[2]+(B[2]-A[2])*s];}
 function tcBilBati(){TC_BIL=TC_EUR.map(function(E,ix){const w=E[1]/160,h=E[2]/160,n=E[0].length,R=parseInt(E[3].substr(1,2),16)/255,G=parseInt(E[3].substr(3,2),16)/255,Bl=parseInt(E[3].substr(5,2),16)/255,
     col=function(k){return [R*k,G*k,Bl*k];},pal=function(t,k){return [(R+(1-R)*t)*k,(G+(1-G)*t)*k,(Bl+(1-Bl)*t)*k];},k=[], // k : [place sur le long, place sur le court, (0), long, court, épaisseur, r, g, b] — en longueurs du 500 €
     add=function(x,y,fw,fh,t,c){k.push([x*w,y*h,0,fw*w,fh*h,t,c[0],c[1],c[2]]);};

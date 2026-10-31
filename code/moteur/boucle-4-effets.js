@@ -120,10 +120,10 @@
     let tcr,tcg,tcb;
     const FXT=FX_EFF||spec9.fx; // la traînée de la boutique a le dernier mot
     const trSig9=TRAINEE_SIGNAL||!FX_EFF; /* (2026-10-15 soir) une traînée ACHETÉE ne se tait plus en réserve bleue ni en nitro infinie (voir TRAINEE_SIGNAL) */
-    if(!trSig9&&FXT&&FXT.trail){tcr=FXT.trail[0];tcg=FXT.trail[1];tcb=FXT.trail[2];}
+    if(!trSig9&&FXT&&FXT.trail){if(FXT.pop==='billets'){const bt9=billetsTeinte();tcr=bt9[0];tcg=bt9[1];tcb=bt9[2];}else{tcr=FXT.trail[0];tcg=FXT.trail[1];tcb=FXT.trail[2];}}
     else if(nitroBlue){tcr=.52;tcg=.72;tcb=1.5;}                       // la réserve bleue reste un SIGNAL — (vague 3) calée sur #5b7dff
     else if(pwrNitroT>0){tcr=NINF.trail[0];tcg=NINF.trail[1];tcb=NINF.trail[2];} // (2026-09-28) la NITRO INFINIE aussi : son ruban est VIOLET, comme sa plume et sa jauge
-    else if(FXT&&FXT.trail){tcr=FXT.trail[0];tcg=FXT.trail[1];tcb=FXT.trail[2];} // la signature de la caisse
+    else if(FXT&&FXT.trail){if(FXT.pop==='billets'){const bt9=billetsTeinte();tcr=bt9[0];tcg=bt9[1];tcb=bt9[2];}else{tcr=FXT.trail[0];tcg=FXT.trail[1];tcb=FXT.trail[2];}} // la signature de la caisse — FAIS PLEUVOIR : les couleurs des euros, pas le vert fixe
     else if(nitroOn){tcr=1.38;tcg=.62;tcb=.17;}else{tcr=1.25;tcg=.9;tcb=.26;} // couleurs FRANCHES : le ruban doit rester orange/bleu, jamais blanc — (vague 2) le pad turbo : OR #ffd75e (il était orange, on ne le distinguait pas de la nitro) — (vague 3) la nitro calée sur le feu #ff7a24 (elle tirait au rouge)
     silBraises.mesh.material.color.setRGB(Math.min(1,tcr*.8),Math.min(1,tcg*.8),Math.min(1,tcb*.8)); // (sillage v6) les braises ont la couleur du feu du sillage
     const tw9=nitroOn?1.3+NFX.ign*NFX.ignK*.7:1; // (vague 3) à la nitro le sillage s'épaissit (et gicle à l'allumage — la tête seulement, voir sillageStep)
