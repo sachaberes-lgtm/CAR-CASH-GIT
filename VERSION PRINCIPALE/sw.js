@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v959'; /* v958 (2026-10-26, Léo : « la Lame, tu peux la valider en e06 sur main ») LA LAME redessinée à la main en poly (loft à grands pans sur les cotes du plan, phares en lames de LED, toit fastback), 4 383 triangles au lieu de ~12 000 ; `?lame=plan` rend l'ancienne. */ /* v957 (2026-10-26, Sacha : « dans la boutique, la voiture doit tourner en vue garage, les photos sont bof, la POSTER 84 : 20 % moins chère que la ROSSO ») fenêtre d'achat = plateau tournant (12 poses, glisser pour pivoter) ; studio photo plus lumineux ; POSTER 84 à 3 200 000 $ au garage, plus premium */
+const CACHE = 'cashcar-v960'; /* v960 (2026-10-31, Sacha : « le Phénix doit être légendaire, pas mythique ; les buses SANS AILES doivent ressembler à la vraie voiture de Elon Musk ») PHÉNIX → rareté légendaire ; les buses à air (AILES_POP.air) passent de simples tubes à de vraies tuyères évasées, collier moteur mat à la base, titane brossé. */ /* v958 (2026-10-26, Léo : « la Lame, tu peux la valider en e06 sur main ») LA LAME redessinée à la main en poly (loft à grands pans sur les cotes du plan, phares en lames de LED, toit fastback), 4 383 triangles au lieu de ~12 000 ; `?lame=plan` rend l'ancienne. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

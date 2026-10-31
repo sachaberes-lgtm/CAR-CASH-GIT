@@ -172,15 +172,18 @@ AILES_POP={
     const dessous=function(z){return tire(new V(sd*W9*.3,y0-3,z),new V(0,1,0),3+H9*.4)||new V(sd*W9*.3,y0+.05,z);};
     let po=null;for(const k of [1,.8,.6]){po=tire(new V(sd*W9*.3*k,y0+H9*.45,-L9*2),new V(0,0,1));if(po)break;}if(!po)po=new V(sd*W9*.3,y0+H9*.45,-L9*.5);
     const X=new V(sd,0,0),B=[{p:flanc(L9*.44),d:X},{p:flanc(-L9*.44),d:X},{p:po,d:new V(0,0,-1)},{p:dessous(L9*.3),d:new V(0,-1,0)},{p:dessous(-L9*.3),d:new V(0,-1,0)}]; // 0 flanc AVANT · 1 flanc ARRIÈRE · 2 POUPE · 3-4 DESSOUS
-    const mBu=ailMat({color:0x30343c,shininess:110,specular:0x9aa0aa}),mTr=new THREE.MeshBasicMaterial({color:0x06070a}),
-      gBu=new THREE.CylinderGeometry(.1,.115,.07,10),gTr=new THREE.CircleGeometry(.064,10),gLe=new THREE.TorusGeometry(.083,.013,4,14),Y=new V(0,1,0),Z=new V(0,0,1),leds=[];
+    const mBu=ailMat({color:0x3c4147,shininess:150,specular:0xd8dce4}),mCol=ailMat({color:0x15171b,shininess:70,specular:0x888c94}),mTr=new THREE.MeshBasicMaterial({color:0x040508}),
+      gBu=new THREE.CylinderGeometry(.088,.125,.11,12),gCol=new THREE.CylinderGeometry(.128,.128,.018,12),gTr=new THREE.CircleGeometry(.072,12),gLe=new THREE.TorusGeometry(.09,.012,4,16),Y=new V(0,1,0),Z=new V(0,0,1),leds=[];
+    // (2026-10-31, Sacha : « ça doit ressembler plus à la vraie voiture de Elon Musk ») LA BUSE à présent en tuyère évasée (titane brossé, pas un simple tube)
+    // avec son collier moteur noir mat à la base (les vraies tuyères à gaz froid de la Roadster/SpaceX) et l'anneau qui vire au bleu électrique quand elle souffle.
     for(const b of B){const o=b.p.clone().sub(P0);b.o=o; // (dans g2 : la caisse, à l'origine du pivot)
-      const c=new THREE.Mesh(gBu,mBu);c.quaternion.setFromUnitVectors(Y,b.d);c.position.copy(o).addScaledVector(b.d,.01);g2.add(c);        // le fût, à moitié dans la tôle
-      const t=new THREE.Mesh(gTr,mTr);t.quaternion.setFromUnitVectors(Z,b.d);t.position.copy(o).addScaledVector(b.d,.047);g2.add(t);       // la bouche
-      const lm=new THREE.MeshBasicMaterial({color:new THREE.Color(.12,.35,.5)}),l=ailB(new THREE.Mesh(gLe,lm));l.quaternion.setFromUnitVectors(Z,b.d);l.position.copy(o).addScaledVector(b.d,.049);g2.add(l);leds.push(lm);} // son anneau
+      const col=new THREE.Mesh(gCol,mCol);col.quaternion.setFromUnitVectors(Y,b.d);col.position.copy(o);g2.add(col);                      // le collier, à fleur de tôle
+      const c=new THREE.Mesh(gBu,mBu);c.quaternion.setFromUnitVectors(Y,b.d);c.position.copy(o).addScaledVector(b.d,.045);g2.add(c);       // la tuyère évasée, qui sort du collier
+      const t=new THREE.Mesh(gTr,mTr);t.quaternion.setFromUnitVectors(Z,b.d);t.position.copy(o).addScaledVector(b.d,.1);g2.add(t);         // la bouche, au bout de l'évasement
+      const lm=new THREE.MeshBasicMaterial({color:new THREE.Color(.12,.35,.5)}),l=ailB(new THREE.Mesh(gLe,lm));l.quaternion.setFromUnitVectors(Z,b.d);l.position.copy(o).addScaledVector(b.d,.102);g2.add(l);leds.push(lm);} // son anneau, sur la lèvre
     const fum=ailEtincelles(g2,150,.25,0xeef5ff,{normal:1,grow:1,op:.82}),E=B.map(function(){return {a:0,f:0};}),nv=[0,0,0,0,0];let e0=0,n0=0,pf=.6;
     const souffle=function(i,n,v,s,vent,vie){const b=B[i],o=b.o,d=b.d,j=v*.35;vie=vie||.3; // (la vie courte de la poupe : sa bouffée ne doit pas monter jusqu'à l'objectif, 7-9 m derrière — MESURÉ au banc : à 20 m/s et 0,45 s elle couvrait le tiers de l'écran)
-      for(let k=0;k<n;k++)fum.pousse(o.x+d.x*.06,o.y+d.y*.06,o.z+d.z*.06,d.x*v+(Math.random()-.5)*j,d.y*v+(Math.random()-.5)*j+.4,d.z*v+(Math.random()-.5)*j-vent,vie+Math.random()*vie,s*(.7+Math.random()*.6));};
+      for(let k=0;k<n;k++)fum.pousse(o.x+d.x*.11,o.y+d.y*.11,o.z+d.z*.11,d.x*v+(Math.random()-.5)*j,d.y*v+(Math.random()-.5)*j+.4,d.z*v+(Math.random()-.5)*j-vent,vie+Math.random()*vie,s*(.7+Math.random()*.6));};
     ailAnime(function(t,e,dt){recale();
       const vol=mode==='fall'&&!garageOn,vent=vol?5:1.2,n=AILV.n,vr=AILV.vir,mo=AILV.mon,cl=function(x){return x<0?0:x>1?1:x;};
       if(AILV.photo){nv[0]=nv[1]=nv[3]=nv[4]=.7;nv[2]=.8;} // LA PHOTO de la boutique : toutes soufflent — la vignette montre l'air, pas l'aile
