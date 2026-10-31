@@ -4083,6 +4083,8 @@ html body.touch.gaucher #tSteer{left:auto!important;right:0!important}
 html body.touch.gaucher #tNitro{right:auto!important;left:calc(var(--hudD,16px) + 8px)!important}
 html body.touch.gaucher #tNitroZone{right:auto!important;left:0!important}
 html body.touch.gaucher #tSteerHint{left:auto!important;right:var(--hudG,24px)!important}
+/* (2026-10-31, Léo : « le slide volant doit être déclenché par le doigt même à droite, tant que c'est pas autour du boost ») LE VOLANT PREND TOUT L'ÉCRAN : un pouce posé n'importe où braque, la zone NITRO (fixe, posée après, donc au-dessus) et les boutons gardent leurs doigts. Hors FIGURES › GLISSER, où la moitié droite est le glissé des figures. */
+html body.touch.play:not(.figGlisse):not(.tpad) #tSteer{width:100%}
 /* ===== LES FLÈCHES EN CROIX (2026-10-28, Léo : « haut et bas au milieu, pas sur le côté ») =====
    Une vraie CROIX : ▲ au-dessus, ▼ en dessous, ◀ ▶ de part et d'autre d'une case centrale vide. Les quatre touches ne sont plus que l'affichage : le doigt
    est lu par UNE surface (#tPad) qui sait 8 directions — on GLISSE de ◀ à ▲ en passant par la diagonale, sans lever le pouce (voir mobile-tactile.js). */
