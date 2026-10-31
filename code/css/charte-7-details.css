@@ -483,4 +483,21 @@ html body.gaucher #tLeft{right:calc(var(--px0) + 2*var(--pu) + 2*var(--pg))}
 html body.gaucher #tRight{right:var(--px0)}
 html body.gaucher #tUp{right:calc(var(--px0) + var(--pu) + var(--pg))}
 html body.gaucher #tPad{right:calc(var(--px0) - 10px)}
+/* ===== LE SLIDE-VOLANT EN VERRE (2026-10-31, Léo : « il y a une sorte de cercle intégré qui entoure pas tout le volant mais laisse comprendre qu'on peut aller en haut, plus luisant et transparent quand ça détecte le doigt, un design original entre le volant et la barre ») =====
+   La glissière reste (le trait qui se remplit de chaque côté), mais le bouton devient une BILLE DE VERRE (translucide, reflet en haut, flou du décor derrière) coiffée d'un ARC OUVERT en bas :
+   un demi-volant qui épouse le dessus de la bille et dit « ça monte par là ». L'arc s'allume avec --su (le pouce monte), la bille s'éclaire dès que le doigt est détecté (.act). */
+html body #tKnob{background:radial-gradient(circle at 36% 24%,rgba(255,255,255,.62) 0,rgba(255,255,255,.12) 30%,transparent 46%),radial-gradient(circle at 50% 62%,rgba(0,234,255,.20),rgba(22,18,52,.30) 72%);
+  -webkit-backdrop-filter:blur(5px) saturate(1.5);backdrop-filter:blur(5px) saturate(1.5);
+  box-shadow:inset 0 0 0 1.5px rgba(190,250,255,.55),inset 0 -7px 12px rgba(0,234,255,.18),0 0 0 1.5px rgba(3,1,9,.45),0 0 16px rgba(0,234,255,.35);
+  transition:box-shadow .16s,background .16s}
+html body #tSteer.act #tKnob{box-shadow:inset 0 0 0 1.5px rgba(220,252,255,.85),inset 0 -8px 14px rgba(0,234,255,.30),0 0 0 1.5px rgba(3,1,9,.4),0 0 26px rgba(0,234,255,.7),0 0 52px rgba(0,234,255,.22)}
+html body #tKnob::before{content:'';position:absolute;inset:-15px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from -112deg,transparent 0deg,rgba(0,234,255,.5) 28deg,rgba(210,252,255,.95) 112deg,rgba(0,234,255,.5) 196deg,transparent 224deg,transparent 360deg);
+  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 5px),#000 calc(100% - 4.5px),#000 calc(100% - .5px),transparent 100%);mask:radial-gradient(closest-side,transparent calc(100% - 5px),#000 calc(100% - 4.5px),#000 calc(100% - .5px),transparent 100%);
+  opacity:calc(.38 + .62*var(--su,0));filter:drop-shadow(0 0 5px rgba(0,234,255,.8));transform:scale(calc(1 + .12*var(--su,0)));transition:opacity .1s}
+html body #tKnob::after{content:'';position:absolute;left:50%;top:-23px;width:12px;height:12px;margin-left:-6px;pointer-events:none;
+  border:solid rgba(220,252,255,.95);border-width:2.5px 0 0 2.5px;transform:rotate(45deg) translate(calc(var(--su,0)*-4px),calc(var(--su,0)*-4px));
+  opacity:calc(.3 + .7*var(--su,0));filter:drop-shadow(0 0 4px rgba(0,234,255,.9))}
+html body #tStick{background:linear-gradient(rgba(159,232,255,.55),rgba(159,232,255,.55)) 50% 50%/2px 22px no-repeat,linear-gradient(180deg,rgba(190,250,255,.14),rgba(6,4,16,.10) 55%,rgba(6,4,16,.2));
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);box-shadow:inset 0 0 0 1.5px rgba(0,234,255,.30),inset 0 2px 0 rgba(255,255,255,.22),0 0 18px rgba(0,234,255,.16)}
 </style>
