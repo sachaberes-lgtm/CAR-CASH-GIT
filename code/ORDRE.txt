@@ -145,6 +145,7 @@ voitures/travail-caisse.js           # le travail d'une caisse : laque qui coule
 voitures/zagato.js                   # la Zagaie : la 5-95 de Zagato (gueule creuse, vitrage noir, nacelle, queue coupée)
 voitures/countach.js                 # le Loup : la Countach blanche du film (coin à arêtes vives, aileron, portes à ciseaux, l'épave)
 voitures/stratos-meteo.js            # LA STRATOS, station météo : anémomètre, manche à air, radars Doppler, gyroscope, barre de prévision (?stratos=ancien)
+voitures/corbillard-mort.js          # LE CORBILLARD de la mort : cercueil, crâne, squelette (?corbillard=ancien)
 voitures/buildcar.js                 # buildCar : construire une voiture
 voitures/plaque.js                   # la plaque d'immatriculation, le profil
 interface/vignette-moteur.js         # vignette moteur, étapes de chauffe
