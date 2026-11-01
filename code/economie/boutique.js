@@ -133,12 +133,10 @@ function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if
 const COSM={
   peinture:[
     {id:'usine',   n:'D\'ORIGINE',        p:0,     d:'La teinte du constructeur. Elle a fait ses preuves.'},
-    {id:'menthe',  n:'MENTHE GLACÉE',     p:25000,  c:0x5ff0c6,d:'Fraîche comme un billet qui sort du distributeur.'},
     {id:'minuit',  n:'BLEU MINUIT',       p:50000,  c:0x2b43c4,d:'Le bleu des néons de la ville, à trois heures du matin.'},
     {id:'noir',    n:'NOIR MAT',          p:90000,  c:0x202128,g:'s',d:'Pas un reflet. Même la police hésite.'},
     {id:'couchant',n:'COUCHER DE SOLEIL', p:180000, grad:[0xffc23a,0xff4f8b,0x6b3cff],d:'Du miel en bas, du violet en haut : le ciel de 19 h, en laque.'},
     {id:'chrome',  n:'CHROME MIROIR',     p:600000, c:0xe9eef5,g:'c',d:'Tu te vois dedans. Les autres aussi.'},
-    {id:'or',      n:'OR MASSIF',         mis:4,   c:0xffc93a,g:'o',d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
     // (2026-10-14) LES PEINTURES POP — la rareté se lit en couleur (`r`), le prix suit la grille de l'équilibrage (rare 5-12 k · exotique 20-45 k · épique 80-180 k · légendaire 300-500 k)
     {id:'ogre',     n:'VERT OGRE',         p:50000,  r:'rare',      c:0x6f9a2e,g:'s',d:'Le vert des marais. Ça sent un peu, mais c\'est chez toi.'},
     {id:'poupee',   n:'ROSE POUPÉE',       p:90000,  r:'rare',      c:0xff5fb0,d:'Rose bonbon, laque parfaite. Tu n\'es pas en plastique, tu es en carbone.'},
@@ -187,7 +185,7 @@ const COSM={
    qui la portait repart avec celle d'origine. `n` = le nom que dit le message de remboursement. (2026-10-18 soir, Sacha : « supprime block rain »)
    PLUIE DE BLOCS aussi. Leurs émetteurs TRX_EMET (bulles, blocs) restent, sans traînée qui les appelle. (2026-10-18 soir, Sacha : « 88 mph enlève »)
    88 MILES À L'HEURE aussi (140 000 $, épique) : sa ligne et son pictogramme tr_88 sortent ; son émetteur TRX_EMET.retour reste. */
-const HAB_RETIRES={'peinture:citron':{p:0},'peinture:argent':{p:0},'peinture:bordeaux':{p:0},'peinture:olive':{p:0},'peinture:abysse':{p:0},'peinture:aubergine':{p:0},'peinture:damier':{p:0},'peinture:ecailles':{p:0},/* (2026-10-22, Sacha : « tableau des peintures » : huit peintures en moins — citron, argent, bordeaux, olive, abysse, aubergine, damier, peau de dragon) */ 'peinture:herisson':{p:7000,n:'LA PEINTURE BLEU HÉRISSON'},'peinture:graphite':{p:0},'peinture:petrole':{p:0},'peinture:anglais':{p:0},'peinture:framboise':{p:0},'peinture:bronze':{p:0},'peinture:ecume':{p:0},'peinture:barbapapa':{p:0},'trainee:menthe':{p:2000,n:'LA TRAÎNÉE MENTHE'},'trainee:blocs':{p:30000,n:'LA TRAÎNÉE PLUIE DE BLOCS'},'trainee:retour':{p:140000,n:'LA TRAÎNÉE 88 MILES À L\'HEURE'}};
+const HAB_RETIRES={'peinture:or':{p:0},/* (2026-11-01, Léo : « enlève or massif ») la mission des 2 M$ paie de l'argent à la place (missions/table.js) */ 'peinture:menthe':{p:0},/* (2026-11-01, Léo : « enlever menthe glacée, garder aurore boréale, la renommer menthe glacée ») la menthe d'origine sort ; AURORE BORÉALE (srAurore) prend son nom */ 'peinture:citron':{p:0},'peinture:argent':{p:0},'peinture:bordeaux':{p:0},'peinture:olive':{p:0},'peinture:abysse':{p:0},'peinture:aubergine':{p:0},'peinture:damier':{p:0},'peinture:ecailles':{p:0},/* (2026-10-22, Sacha : « tableau des peintures » : huit peintures en moins — citron, argent, bordeaux, olive, abysse, aubergine, damier, peau de dragon) */ 'peinture:herisson':{p:7000,n:'LA PEINTURE BLEU HÉRISSON'},'peinture:graphite':{p:0},'peinture:petrole':{p:0},'peinture:anglais':{p:0},'peinture:framboise':{p:0},'peinture:bronze':{p:0},'peinture:ecume':{p:0},'peinture:barbapapa':{p:0},'trainee:menthe':{p:2000,n:'LA TRAÎNÉE MENTHE'},'trainee:blocs':{p:30000,n:'LA TRAÎNÉE PLUIE DE BLOCS'},'trainee:retour':{p:140000,n:'LA TRAÎNÉE 88 MILES À L\'HEURE'}};
 Object.assign(I18N,{"LA TRAÎNÉE 88 MILES À L'HEURE":"THE 88 MPH TRAIL","LA PEINTURE BLEU HÉRISSON":"THE HEDGEHOG BLUE PAINT"}); /* le message de remboursement, en anglais */
 /* (2026-10-18 soir, Sacha : « la trainé rainbow doit etre incluse avec le pack nian cat ») LE PACK DU CHAT : l'ARC-EN-CIEL (`pack:'chat'`, voir LES
    MISSIONS v2 — LES HABILLAGES QUI SE GAGNENT) est à toi avec le CHAT POP-TART (shopOwned → m2Chat). La boutique le DIT enfin : sa carte affichait
@@ -213,14 +211,15 @@ const PAL_MASQUE=0x2a2d36; // la pastille d'une secrète pas encore gagnée : ar
 /* (2026-10-22, Sacha : « tableau des peintures ») QUATRE SECRÈTES PASSENT À L'ACHAT (FANTÔME, NACRE, LAMPADAIRE, CAMÉLÉON) : plus de défi, une peinture ordinaire du pack ; leur drapeau de défi dans defis-moteur.js reste sans effet (secDonne ne trouve plus de `sec`). Défini AVANT la boucle des secrètes (TDZ). */
 const PEINT_ACHAT=['fantome','nacre','lampadaire','cameleon'];
 /* (2026-10-22, Sacha : « tableau des peintures ») SEIZE PEINTURES PASSENT EN SECRÈTES (même système que PRISME, ÉCLAIR… : nom masqué « ? ? ? », indice, drapeau secGagne) — leur condition est écrite dans missions/defis-moteur.js (m2Niveau, m2Fruit, m2Pu, m2Tick). BANANA n'y est PAS : il n'y a plus de banane dans le jeu. */
-const PEINT_DEFIS={menthe:'Dix niveaux sous la neige.',minuit:'Dix niveaux de nuit.',chrome:'Cinq niveaux dans les nuages.',ogre:'Dix niveaux dans la forêt.',gotham:'Dix niveaux dans la ville.',dragee:'Dix niveaux le matin.',abricot:'Dix niveaux en plein jour.',neige:'Dix niveaux sur le glacier.',
+const PEINT_BIENTOT=['neige','dragee','abricot','vanille','pistache','amande','piscine','lilas']; /* les pâles : le nom et la couleur se voient, mais rien ne les donne encore (secDonne refuse) */
+const PEINT_DEFIS={minuit:'Dix niveaux de nuit.',chrome:'Cinq niveaux dans les nuages.',ogre:'Dix niveaux dans la forêt.',gotham:'Dix niveaux dans la ville.',dragee:'Bientôt disponible.',abricot:'Bientôt disponible.',neige:'Bientôt disponible.',vanille:'Bientôt disponible.',piscine:'Bientôt disponible.',lilas:'Bientôt disponible.',pistache:'Bientôt disponible.',amande:'Bientôt disponible.', /* (2026-11-01, Léo : « les pâles : visibles, dans les rares, mais pas débloquables pour l'instant — je te donnerai les missions ») */ 
   bolide:'Croque cinquante cerises.',emeute:'Croque cinquante oranges.',taxi:'Ramasse cinquante citrons.',azur:'Croque cinquante myrtilles.',royal:'Ramasse cinquante raisins.',fuchsia:'Ramasse cinquante fruits du dragon.',envers:'Cent kilomètres sous la dalle.',guerrier:'Le palier vingt-quatre du moteur.'};
 function peintSecrete(d,ind){const n=d.n,desc=d.d,c=d.c,grad=d.grad,g=d.g;delete d.p;delete d.pk;delete d.mis;delete d.eur;d.sec=d.id;d.ind=ind;d.pack='palette';
-  const vu=function(){return !!window.PAL_REVELE||shopOwned('peinture',d.id);};
+  const vu=function(){return !!window.PAL_REVELE||PEINT_BIENTOT.indexOf(d.id)>=0||shopOwned('peinture',d.id);};
   Object.defineProperties(d,{n:{get:function(){return vu()?n:'? ? ?';},enumerable:true},d:{get:function(){return vu()?desc:ind;},enumerable:true},c:{get:function(){return vu()?c:PAL_MASQUE;},enumerable:true},
     grad:{get:function(){return vu()?grad:undefined;},enumerable:true},g:{get:function(){return vu()?g:'s';},enumerable:true}});
   if(PALETTE_PACK.ids.indexOf(d.id)<0)PALETTE_PACK.ids.push(d.id);}
-Object.assign(I18N,{'Dix niveaux sous la neige.':'Ten levels in the snow.','Dix niveaux de nuit.':'Ten levels at night.','Cinq niveaux dans les nuages.':'Five levels in the clouds.','Dix niveaux dans la forêt.':'Ten levels in the forest.','Dix niveaux dans la ville.':'Ten levels in the city.','Dix niveaux le matin.':'Ten levels in the morning.','Dix niveaux en plein jour.':'Ten levels in broad daylight.','Dix niveaux sur le glacier.':'Ten levels on the glacier.','Croque cinquante cerises.':'Eat fifty cherries.','Croque cinquante oranges.':'Eat fifty oranges.','Ramasse cinquante citrons.':'Pick up fifty lemons.','Croque cinquante myrtilles.':'Eat fifty blueberries.','Ramasse cinquante raisins.':'Pick up fifty grapes.','Ramasse cinquante fruits du dragon.':'Pick up fifty dragon fruits.','Cent kilomètres sous la dalle.':'One hundred kilometres on the underside of the road.','Le palier vingt-quatre du moteur.':'Engine tier twenty-four.','Dix niveaux sous la pluie.':'Ten levels in the rain.','Dix niveaux en orbite.':'Ten levels in orbit.'}); /* (2026-10-22, Sacha : « corrige ATCHOUM, traduis les indices, ne rembourse que ce qui a été acheté ») les indices des peintures secrètes, en anglais */
+Object.assign(I18N,{'Dix niveaux sous la neige.':'Ten levels in the snow.','Dix niveaux de nuit.':'Ten levels at night.','Cinq niveaux dans les nuages.':'Five levels in the clouds.','Dix niveaux dans la forêt.':'Ten levels in the forest.','Dix niveaux dans la ville.':'Ten levels in the city.','Dix niveaux le matin.':'Ten levels in the morning.','Dix niveaux en plein jour.':'Ten levels in broad daylight.','Dix niveaux sur le glacier.':'Ten levels on the glacier.','Croque cinquante cerises.':'Eat fifty cherries.','Bientôt disponible.':'Coming soon.','Croque cinquante oranges.':'Eat fifty oranges.','Ramasse cinquante citrons.':'Pick up fifty lemons.','Croque cinquante myrtilles.':'Eat fifty blueberries.','Ramasse cinquante raisins.':'Pick up fifty grapes.','Ramasse cinquante fruits du dragon.':'Pick up fifty dragon fruits.','Cent kilomètres sous la dalle.':'One hundred kilometres on the underside of the road.','Le palier vingt-quatre du moteur.':'Engine tier twenty-four.','Dix niveaux sous la pluie.':'Ten levels in the rain.','Dix niveaux en orbite.':'Ten levels in orbit.'}); /* (2026-10-22, Sacha : « corrige ATCHOUM, traduis les indices, ne rembourse que ce qui a été acheté ») les indices des peintures secrètes, en anglais */
 if(PALETTE_ON){
   for(const e of [ // [id, nom, couleur, finition (rien = laque), rareté, description] — rangée par rangée, dans l'ordre de la grille
     /* (planche du 14/10) valeurs MESURÉES à l'écran : sur la tôle éclairée, le MÉTALLISÉ rend ~×1,8-2 plus clair que la laque (le reflet du ciel teinté par la couleur) — ses entrées sont donc ~÷1,8 de la teinte voulue ; les verts et le sarcelle francs saturaient au fluo (canal vert ×1,4) */
@@ -284,10 +283,10 @@ const PEINT_V2=!/[?&]peintures=avant\b/.test(location.search);
 const PEINT_EUR={commun:'1 €',rare:'3 €',epique:'5 €'};
 /* (2026-10-22, Sacha : « tableau des peintures ») LE PRIX EN EUROS PEINTURE PAR PEINTURE (par-dessus la rareté) : 0,50 € · 1 € · 2 € ; la rareté de FANTÔME est RARE */
 const PEINT_EUR_ID={noir:'0,50 €',poupee:'0,50 €',vanille:'0,50 €',pistache:'0,50 €',amande:'0,50 €',piscine:'0,50 €',lilas:'0,50 €',billet:'0,50 €',lagon:'0,50 €',cuivre:'0,50 €',nardo:'0,50 €',
-  couchant:'1 €',vaporwave:'1 €',lave:'1 €',holo:'1 €',fantome:'1 €',nacre:'1 €',lampadaire:'1 €',cameleon:'1 €',galaxie:'1 €',cash:'1 €',srBraise:'1 €',srAurore:'1 €',srLagon:'1 €',srEtoile:'1 €',
+  couchant:'1 €',vaporwave:'1 €',lave:'1 €',holo:'1 €',fantome:'1 €',nacre:'1 €',lampadaire:'1 €',cameleon:'1 €',galaxie:'1 €',cash:'1 €',mousse:'2 €',srBraise:'1 €',srAurore:'1 €',srLagon:'1 €',srEtoile:'1 €',
   leopard:'2 €',tigre:'2 €',zebre:'2 €',vache:'2 €',fleurs:'2 €',camo:'2 €',coccinelle:'2 €'};
 const PEINT_RAR_ID={fantome:'rare'};
-const PEINT_SEC_R={prisme:'rare',fantome:'commun',orrose:'rare',eclair:'rare',nacre:'rare',orage:'rare',jadeimperial:'rare',lunaire:'rare',lampadaire:'rare',cameleon:'rare'}; // les secrètes : leur vraie matière reste masquée tant qu'on ne les a pas gagnées
+const PEINT_SEC_R={chrome:'epique',/* (2026-11-01, Léo : « chrome miroir en épique ») */ minuit:'commun',ogre:'commun',gotham:'commun',bolide:'commun',emeute:'commun',taxi:'commun',azur:'commun',/* (2026-11-01, Léo : « commun = couleurs banales, les rares = les couleurs cool ») les unies classiques passent en COMMUN ; restent rares : violet royal, fuchsia, chrome, or, dégradés */ prisme:'rare',fantome:'commun',orrose:'rare',eclair:'rare',nacre:'rare',orage:'rare',jadeimperial:'rare',lunaire:'rare',lampadaire:'rare',cameleon:'rare'}; // les secrètes : leur vraie matière reste masquée tant qu'on ne les a pas gagnées
 function peintRegle(d){if(PEINT_RAR_ID[d.id])return PEINT_RAR_ID[d.id];if(d.mot)return 'epique';if(d.sec)return PEINT_SEC_R[d.id]||'rare';return (d.grad||d.g==='o')?'rare':'commun';}
 const MOT_W=512;
 function motAlea(s){return function(){s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
@@ -327,6 +326,14 @@ const MOTIFS={
     for(const p of motGrille(4,R,.9))if(R()<.6)fl(p[0]+64,p[1]+64,14+R()*8,(R()*4)|0,R()*6.28);}},
   camo:{s:.4,c:0x6f7b44,f:function(x,R){x.fillStyle='#6f7b44';x.fillRect(0,0,MOT_W,MOT_W);
     for(const L of [['#45522a',5,46,40],['#86683f',4,38,34],['#24241a',5,22,22]])for(const p of motGrille(L[1],R,1))motPose(x,p[0],p[1],L[2]+R()*L[3],motForme(R,.4),L[0],.75+R()*.5);}},
+  mousse:{s:.4,c:0x3f6a28,mel:1,touffes:1,f:function(x,R){x.fillStyle='#ffffff';x.fillRect(0,0,MOT_W,MOT_W); /* (2026-11-01, Léo : « de la vraie mousse, plus 3D, un truc qui s'ajoute sur la voiture, qui se mélange avec une couleur ») des PLAQUES de mousse sur fond BLANC pur : le blanc laisse voir la couleur de la caisse (`mel`, voir motGreffe) ; les touffes en relief se posent sur les mêmes plaques (`touffes`, voir motTouffes) */
+    const C=[['hsl(104,38%,17%)',1],['hsl(100,40%,26%)',.8],['hsl(94,43%,36%)',.55],['hsl(86,48%,47%)',.3]]; /* du creux sombre à la pointe claire */
+    const plaque=function(cx,cy,r){for(let k=0;k<C.length;k++){const q=C[k],rr=r*q[1],dx=-k*r*.07,dy=-k*r*.09;motPose(x,cx+dx,cy+dy,rr,motForme(R,.3),q[0],.8+R()*.4);}};
+    const G=motGrille(4,R,.9),pl=[];for(const p of G)if(R()<.72){const r=34+R()*34;plaque(p[0],p[1],r);pl.push([p[0],p[1],r]);}
+    for(const q of pl)for(let i=0;i<3;i++){const a=R()*6.28,d=q[2]*(.55+R()*.5);plaque(q[0]+Math.cos(a)*d,q[1]+Math.sin(a)*d,10+R()*13);} /* des rejets autour des plaques */
+    for(const q of pl)for(let i=0;i<90;i++){const a=R()*6.28,d=q[2]*Math.sqrt(R())*.85,cx=q[0]+Math.cos(a)*d,cy=q[1]+Math.sin(a)*d,r=.8+R()*1.2;motTore(x,function(){x.beginPath();x.arc(cx,cy,r,0,6.2832);x.fillStyle='hsla('+(78+((R()*26)|0))+',46%,'+(40+((R()*22)|0))+'%,'+(.35+R()*.4).toFixed(2)+')';x.fill();});} /* le velours */
+    for(const q of pl){if(R()<.5)continue;const a=R()*6.28,cx=q[0]+Math.cos(a)*q[2]*.7,cy=q[1]+Math.sin(a)*q[2]*.7,r=5+R()*3;motTore(x,function(){x.beginPath();x.arc(cx,cy+1.5,r,0,6.2832);x.fillStyle='rgba(10,30,10,.4)';x.fill();x.beginPath();x.arc(cx,cy,r,Math.PI,0);x.closePath();x.fillStyle='#d8322b';x.fill();x.fillStyle='#f6ecd8';x.fillRect(cx-r*.28,cy,r*.56,r*.7);for(const w of [[-.5,-.4],[.1,-.65],[.5,-.25]]){x.beginPath();x.arc(cx+w[0]*r,cy+w[1]*r,r*.16,0,6.2832);x.fillStyle='#fffcf4';x.fill();}});} /* un champignon sur une plaque sur deux */
+    for(const q of pl)for(let i=0;i<4;i++){const a=R()*6.28,d=q[2]*Math.sqrt(R())*.7,cx=q[0]+Math.cos(a)*d,cy=q[1]+Math.sin(a)*d,r=1.4+R()*1.2;motTore(x,function(){x.beginPath();x.arc(cx,cy,r,0,6.2832);x.fillStyle='rgba(225,245,255,.9)';x.fill();});}}}, /* la rosée */
   damier:{s:.42,c:0xf2f2f2,f:function(x){const n=8,c=MOT_W/n;for(let a=0;a<n;a++)for(let b=0;b<n;b++){x.fillStyle=(a+b)&1?'#141414':'#f2f2f2';x.fillRect(a*c,b*c,c,c);}}},
   ecailles:{s:.5,c:0x1a8a55,f:function(x,R){x.fillStyle='#0b3524';x.fillRect(0,0,MOT_W,MOT_W);
     const nc=8,nr=10,cw=MOT_W/nc,rh=MOT_W/nr,r=cw*.62,V=[];for(let j=0;j<nr;j++){V.push([]);for(let i=0;i<nc;i++)V[j].push(R());}
@@ -360,14 +367,45 @@ function motFond(d){const c='#'+((d.c||0)>>>0).toString(16).padStart(6,'0'),u=mo
 const MOT_GLSL='vec3 mN9=normalize(vMotN),mA9=pow(abs(mN9),vec3(12.));mA9/=max(1e-4,mA9.x+mA9.y+mA9.z);vec3 mP9=vMotP*uMotS;\n'+
   'vec3 motC=texture2D(uMot,vec2(mN9.x<0.?mP9.z:-mP9.z,mP9.y)).rgb*mA9.x+texture2D(uMot,vec2(mN9.y<0.?mP9.x:-mP9.x,mP9.z)).rgb*mA9.y+texture2D(uMot,vec2(mN9.z<0.?-mP9.x:mP9.x,mP9.y)).rgb*mA9.z;\n'+
   'diffuseColor.rgb*=motC;\n';
+const MOT_GLSL_MEL='vec3 mN9=normalize(vMotN),mA9=pow(abs(mN9),vec3(12.));mA9/=max(1e-4,mA9.x+mA9.y+mA9.z);vec3 mP9=vMotP*uMotS;\n'+
+  'vec3 motC=texture2D(uMot,vec2(mN9.x<0.?mP9.z:-mP9.z,mP9.y)).rgb*mA9.x+texture2D(uMot,vec2(mN9.y<0.?mP9.x:-mP9.x,mP9.z)).rgb*mA9.y+texture2D(uMot,vec2(mN9.z<0.?-mP9.x:mP9.x,mP9.y)).rgb*mA9.z;\n'+
+  'float motK=1.-smoothstep(.93,.985,min(motC.r,min(motC.g,motC.b)));vec3 motM=mix(vec3(1.),motC,motK);diffuseColor.rgb=mix(diffuseColor.rgb,motC*.72,motK);\n'; /* (2026-11-01) le MÉLANGE : le blanc pur de la toile laisse la couleur de la caisse, le reste (la mousse) la recouvre */
 const MOT_FAIT=new WeakSet(); // les matières déjà greffées (un clone de matière perd la greffe : la fin de buildCar le rattrape)
 function motGreffe(m,id){const T=motTex(id),M=MOTIFS[id];if(!T||!M||MOT_FAIT.has(m))return m;MOT_FAIT.add(m);const prev=m.onBeforeCompile,pk=String(prev),uT={value:T},uS={value:M.s};
   m.onBeforeCompile=function(sh,r){if(prev)prev.call(this,sh,r);sh.uniforms.uMot=uT;sh.uniforms.uMotS=uS;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vMotP;varying vec3 vMotN;').replace('#include <begin_vertex>','#include <begin_vertex>\nvMotP=transformed;vMotN=objectNormal;');
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D uMot;uniform float uMotS;varying vec3 vMotP;varying vec3 vMotN;')
-      .replace('#include <color_fragment>','#include <color_fragment>\n'+MOT_GLSL).replace('vColor*uGlow','vColor*motC*uGlow');}; // le plancher lumineux du kit prend le motif aussi
-  m.customProgramCacheKey=function(){return 'motif|'+pk;}; // ⚠ r128 réutilise un programme d'une matière à l'autre par cette clé : une par greffe d'origine (la laque du kit, le vernis rimify) ; le motif, lui, vit dans un uniform
+      .replace('#include <color_fragment>','#include <color_fragment>\n'+(M.mel?MOT_GLSL_MEL:MOT_GLSL)).replace('vColor*uGlow',M.mel?'vColor*motM*uGlow':'vColor*motC*uGlow');}; // le plancher lumineux du kit prend le motif aussi
+  m.customProgramCacheKey=function(){return 'motif|'+(M.mel?'mel|':'')+pk;}; // ⚠ r128 réutilise un programme d'une matière à l'autre par cette clé : une par greffe d'origine (la laque du kit, le vernis rimify) ; le motif, lui, vit dans un uniform
   m.userData.mot=id;return m;}
+/* LES TOUFFES EN RELIEF (2026-11-01, Léo : « plus 3D, un truc qui s'ajoute sur la voiture ») : un motif à `touffes` (la MOUSSE) pose, sur les faces du dessus de la tôle,
+   de petits dômes à facettes — UNE SEULE pièce (les dômes fondus en une géométrie, couleur par sommet : un seul dessin, ~230 × 20 triangles) — et SEULEMENT là où la toile a de la
+   mousse (même projection que le shader : plan du dessus, (−x, z) × l'échelle du motif) ; le tirage a une graine fixe : la caisse est la même à chaque fois. Posée APRÈS la soudure
+   de la caisse (elle fond les pièces) et dans le repère de la caisse (`carBody`). */
+const MOT_MASQ={};
+function motMasque(id){if(MOT_MASQ[id])return MOT_MASQ[id];const N=64,cv=motToile(id,N),d=cv.getContext('2d').getImageData(0,0,N,N).data,m=new Uint8Array(N*N);for(let i=0;i<N*N;i++)m[i]=Math.min(d[i*4],d[i*4+1],d[i*4+2])<238?1:0;return MOT_MASQ[id]={N:N,m:m};}
+let MOT_TGEO=null,MOT_TMAT=null;
+function motTouffes(grp,id){const M=MOTIFS[id];if(!M||!M.touffes)return;grp.updateWorldMatrix(true,false);const INV=new THREE.Matrix4().copy(grp.matrixWorld).invert(),REL=new THREE.Matrix4();
+  if(!MOT_TGEO){MOT_TGEO=new THREE.IcosahedronGeometry(1,0);MOT_TMAT=new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true});}
+  const MQ=motMasque(id),R=motAlea(20261101),IP=MOT_TGEO.attributes.position,NV=IP.count;
+  grp.traverse(function(o){const m9=o.material;if(!o.isMesh||!m9||Array.isArray(m9)||!m9.userData||m9.userData.mot!==id||o.userData.touffes)return;
+    const g=o.geometry,P=g&&g.attributes.position;if(!P)return;o.updateWorldMatrix(true,false);REL.multiplyMatrices(INV,o.matrixWorld);
+    const ix=g.index,nt=ix?ix.count/3:P.count/3,A=[],cum=[];let tot=0;
+    const a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3(),n=new THREE.Vector3(),e=new THREE.Vector3();
+    for(let t=0;t<nt;t++){const i0=ix?ix.getX(t*3):t*3,i1=ix?ix.getX(t*3+1):t*3+1,i2=ix?ix.getX(t*3+2):t*3+2;a.fromBufferAttribute(P,i0);b.fromBufferAttribute(P,i1);c.fromBufferAttribute(P,i2);
+      n.subVectors(b,a).cross(e.subVectors(c,a));const ar=n.length()*.5;if(ar<1e-7)continue;n.divideScalar(ar*2);if(n.y<.6)continue; // les faces tournées vers le haut seulement
+      tot+=ar;cum.push(tot);A.push([i0,i1,i2,n.x,n.y,n.z]);}
+    if(!A.length||tot<.8)return;const K=Math.min(ALLEGE?120:230,Math.round(tot*80)),pos3=new Float32Array(K*NV*3),col3=new Float32Array(K*NV*3),Mx=new THREE.Matrix4(),q=new THREE.Quaternion(),q2=new THREE.Quaternion(),pos=new THREE.Vector3(),sc=new THREE.Vector3(),col=new THREE.Color(),UP=new THREE.Vector3(0,1,0),nn=new THREE.Vector3(),vv3=new THREE.Vector3();
+    let k=0;for(let it=0;it<2600&&k<K;it++){const w=R()*tot;let lo=0,hi=cum.length-1;while(lo<hi){const mid=(lo+hi)>>1;if(cum[mid]<w)lo=mid+1;else hi=mid;}const T=A[lo];
+      a.fromBufferAttribute(P,T[0]);b.fromBufferAttribute(P,T[1]);c.fromBufferAttribute(P,T[2]);let u=R(),v=R();if(u+v>1){u=1-u;v=1-v;}
+      pos.copy(a).addScaledVector(e.subVectors(b,a),u).addScaledVector(e.subVectors(c,a),v);
+      const uu=-pos.x*M.s,vv=pos.z*M.s,cx=Math.floor((uu-Math.floor(uu))*MQ.N),cy=Math.floor((1-(vv-Math.floor(vv)))*MQ.N);if(!MQ.m[Math.min(MQ.N-1,cy)*MQ.N+Math.min(MQ.N-1,cx)])continue; // pas de mousse sur la toile ici : pas de touffe
+      nn.set(T[3],T[4],T[5]);pos.addScaledVector(nn,.012);q.setFromUnitVectors(UP,nn);q2.setFromAxisAngle(UP,R()*6.28);q.multiply(q2);
+      const s0=.05+R()*.06;sc.set(s0,s0*(.5+R()*.35),s0*(.8+R()*.4));Mx.compose(pos,q,sc);Mx.premultiply(REL);
+      col.setHSL((88+R()*24)/360,.40+R()*.12,.11+R()*.13);
+      for(let vi=0;vi<NV;vi++){vv3.fromBufferAttribute(IP,vi).applyMatrix4(Mx);const o3=(k*NV+vi)*3;pos3[o3]=vv3.x;pos3[o3+1]=vv3.y;pos3[o3+2]=vv3.z;col3[o3]=col.r;col3[o3+1]=col.g;col3[o3+2]=col.b;}k++;}
+    if(!k)return;const G=new THREE.BufferGeometry();G.setAttribute('position',new THREE.BufferAttribute(pos3.subarray(0,k*NV*3),3));G.setAttribute('color',new THREE.BufferAttribute(col3.subarray(0,k*NV*3),3));G.computeVertexNormals();
+    const T2=new THREE.Mesh(G,MOT_TMAT);T2.userData.touffes=1;T2.userData.noShadow=true;grp.add(T2);});}
 if(PEINT_V2){
   for(const e of [ // [id, nom, description] — le motif : MOTIFS[id]
     ["leopard","LÉOPARD","Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles."],
@@ -379,13 +417,14 @@ if(PEINT_V2){
     ["coccinelle","COCCINELLE","Rouge vif, pois noirs. Porte-bonheur, et en plus elle va vite."],
     ["galaxie","GALAXIE","Des nébuleuses et mille étoiles sur la carrosserie. Le ciel de nuit, en laque."],
     ["cash","PLEIN AUX AS","Des dollars d'or sur fond vert billet. Discret ? Non."],
+    ["mousse","MOUSSE","Un coussin de vraie mousse sur toute la carrosserie. Douce, vivante, avec ses petits champignons."],
   ])COSM.peinture.push({id:e[0],n:e[1],mot:e[0],c:MOTIFS[e[0]].c,d:e[2]});
   for(const d of COSM.peinture)if(PEINT_DEFIS[d.id]&&!d.sec)peintSecrete(d,PEINT_DEFIS[d.id]); /* (2026-10-22) les seize secrètes de plus */
   for(const d of COSM.peinture){if(d.id==='usine')continue;const r=peintRegle(d);d.r=r;if(!d.mis&&!d.sec){d.eur=PEINT_EUR_ID[d.id]||PEINT_EUR[r];delete d.p;}} // la rareté ÉCRITE et le prix en euros ; carnets et secrètes se gagnent toujours
   Object.assign(I18N,{"LÉOPARD":"LEOPARD","Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles.":"Black rosettes on gold. You don't hunt: you overtake.",
     "TIGRE":"TIGER","Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.":"Burnt orange, black stripes. The king of the jungle traded his claws for tyres.",
     "ZÈBRE":"ZEBRA","Noir sur blanc ou blanc sur noir ? Personne ne sait. Toi, tu fonces.":"Black on white or white on black? Nobody knows. You just floor it.",
-    "VACHE":"COW","Des taches noires sur fond blanc. Meuh, à 300 à l'heure.":"Black patches on white. Moo, at 300 km/h.",
+    "MOUSSE":"MOSS","Un coussin de vraie mousse sur toute la carrosserie. Douce, vivante, avec ses petits champignons.":"A cushion of real moss all over the body. Soft, alive, with its tiny mushrooms.","VACHE":"COW","Des taches noires sur fond blanc. Meuh, à 300 à l'heure.":"Black patches on white. Moo, at 300 km/h.",
     "FLOWER POWER":"FLOWER POWER","Des marguerites sur fond rose. Peace, love et nitro.":"Daisies on pink. Peace, love and nitro.",
     "CAMOUFLAGE":"CAMO","Kaki, brun, vert sapin. Invisible en forêt. À 900 à l'heure, un peu moins.":"Khaki, brown, pine green. Invisible in the woods. At 900 km/h, a bit less.",
     "DAMIER":"CHEQUERED","Le drapeau d'arrivée peint sur toute la caisse. Tu as déjà gagné.":"The finish flag painted all over the car. You've already won.",
@@ -409,12 +448,13 @@ if(PEINT_V2){
    (noir, blanc, gris) et les métaux. Une peinture est rangée par ID (les secrètes masquées n'ont ni couleur ni dégradé tant qu'on ne les a pas gagnées : leur place ne doit
    pas bouger quand elles se dévoilent). L'ordre des listes EST l'ordre à l'écran ; une peinture nouvelle s'ajoute à la bonne liste (sinon : après les dégradés listés ;
    les motifs, eux, gardent l'ordre du catalogue). */
-const PEINT_BASIQUES=['bolide','azur','billet','taxi','emeute','royal','poupee','fuchsia','minuit','noir','neige'], // (2026-10-26, Léo : « les couleurs de base, rouge, bleu, vert, en haut ; plus on descend, plus c'est spécial ; les brillantes encore plus bas ») les primaires d'abord
-  PEINT_ORIGINALES=['dragee','abricot','vanille','pistache','amande','menthe','ogre','lagon','piscine','lilas','nardo','gotham'],
-  PEINT_BRILLANTES=['cuivre','or','orrose','chrome','fantome'], // les métaux et le nacré : unis mais brillants, sous les originales
+const PEINT_BASIQUES=['bolide','azur','billet','taxi','emeute','royal','poupee','fuchsia','minuit','noir'], // (2026-10-26, Léo : « les couleurs de base, rouge, bleu, vert, en haut ; plus on descend, plus c'est spécial ; les brillantes encore plus bas ») les primaires d'abord
+  PEINT_ORIGINALES=['ogre','lagon','nardo','gotham'],
+  PEINT_PALES=['neige','dragee','abricot','vanille','pistache','amande','piscine','lilas'], // (2026-11-01, Léo : « les couleurs pâles, mets-les à la fin ») tout au bout de la liste, après les motifs
+  PEINT_BRILLANTES=['cuivre','orrose','chrome','fantome'], // les métaux et le nacré : unis mais brillants, sous les originales
   PEINT_DEGRADES=['lave','envers','couchant','guerrier','banana','prisme','jadeimperial','cameleon','eclair','lampadaire','vaporwave','holo','nacre','orage','lunaire','srBraise','srAurore','srLagon','srEtoile']; // (2026-10-26, Léo : « les derniers épiques, mets-les comme des dégradés, au-dessus des stickers ») les 4 de la SÉRIE ferment les dégradés
 function peintClef(j){const d=COSM.peinture[j];if(d.id==='usine')return -1; // D'ORIGINE en tête, puis 1 basiques · 2 originales · 2,5 brillantes · 3 dégradés · 4 motifs
-  let k=PEINT_BASIQUES.indexOf(d.id);if(k>=0)return 100+k;k=PEINT_ORIGINALES.indexOf(d.id);if(k>=0)return 200+k;k=PEINT_BRILLANTES.indexOf(d.id);if(k>=0)return 250+k;k=PEINT_DEGRADES.indexOf(d.id);if(k>=0)return 300+k;
+  let k=PEINT_BASIQUES.indexOf(d.id);if(k>=0)return 100+k;k=PEINT_ORIGINALES.indexOf(d.id);if(k>=0)return 200+k;k=PEINT_BRILLANTES.indexOf(d.id);if(k>=0)return 250+k;k=PEINT_DEGRADES.indexOf(d.id);if(k>=0)return 300+k;k=PEINT_PALES.indexOf(d.id);if(k>=0)return 500+k;
   return (d.mot?400:350)+j;} // les motifs (les « stickers ») : l'ordre du catalogue 
 function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;});if(!PEINT_V2)return L; // les indices de COSM.peinture, rangés par famille (voir peintClef)
   return L.sort(function(a,b){return peintClef(a)-peintClef(b);});}
@@ -429,7 +469,7 @@ function palDonne(){ // APRÈS le succès de shopPaye('palette') (ou une restaur
   SAVE.flush();if(n9){toast(pxi('coche')+' '+TR('LA PALETTE')+' — '+TR('LES 35 COULEURS SONT À TOI'),true);try{hap([20,40,20,40,60]);}catch(e){}}return true;}
 function secDonne(id){ // GAMEPLAY : un DÉFI (secret) réussi → sa couleur. Rien en balade ni au bac à sable ; rien si elle est déjà à toi
   if(!PALETTE_ON||(typeof BALADE!=='undefined'&&BALADE)||(typeof SANDBOX!=='undefined'&&SANDBOX))return false;
-  const d=COSM.peinture.find(function(x){return x.sec===id;});if(!d||shopOwned('peinture',d.id))return false;
+  const d=COSM.peinture.find(function(x){return x.sec===id;});if(!d||PEINT_BIENTOT.indexOf(id)>=0||shopOwned('peinture',d.id))return false;
   SAVE.d.shop.own.push('peinture:'+d.id);SAVE.flush();
   if(!(m2LigneDit('col',sansAcc(TR('COULEUR')+' '+TR(d.n)),''))) /* (2026-10-17) en course : la ligne du bas, pas le toast du haut */
     toast(pxi('coche')+' '+TR('MISSION SECRÈTE')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
@@ -466,6 +506,7 @@ function shopBuy(cat,i){ // ⚠ débit et possession dans la MÊME fonction, com
   return {ok:true,paye:d.p};
 }
 function shopEquip(cat,i){const d=COSM[cat][i];if(!d||!shopOwned(cat,d.id))return false;SAVE.d.shop.eq[cat]=d.id;SAVE.flush();return true;}
+window.dbgPeintures=function(v){if(v==='voitures')return CARS.map(function(c,i){return {i:i,n:c.name,retire:!!c.retire};});const O=peintOrdre();return COSM.peinture.map(function(d,j){return {j:j,o:O.indexOf(j),id:d.id,n:d.n,r:d.r,eur:d.eur||0,sec:!!d.sec,mot:!!d.mot,grad:!!d.grad,g:d.g||'',c:d.c};});}; // (2026-10-30, banc) la liste des peintures pour la planche
 window.dbgHab=function(cat,id){if(!COSM[cat])return null;const i=COSM[cat].findIndex(function(d){return d.id===id;});if(i<0)return 'inconnu'; // (2026-10-14, bancs) PORTER un habillage à l'essai, à toi ou non
   SHOP.prev={cat:cat,i:i};if(garageOn&&cat!=='peinture')SHOP.tab=cat;buildCar(CARS[garageOn?garageI:level]||CARS[0]);
   return {hab:cat+':'+id,rar:cosmRar(cat,COSM[cat][i]),ailes:carWingL?carWingL.children.length:0,anim:BLING.anim.length,fx:FX_EFF?{pop:FX_EFF.pop||null,rubOff:!!FX_EFF.rubOff}:null};};
@@ -474,7 +515,7 @@ window.dbgHab=function(cat,id){if(!COSM[cat])return null;const i=COSM[cat].findI
    hauteur : du bas de caisse au toit. */
 function peintPal(pal){
   const d=cosmSur('peinture');if(!d||d.id==='usine'||!pal||!pal.p)return pal;
-  const o=Object.assign({},pal);o.p=d.mot?{g:'pm:'+d.mot,c:0xffffff,grad:null}:{g:d.g||'p',c:d.c!=null?d.c:d.grad[1],grad:d.grad||null}; // (2026-10-16) un MOTIF : la tôle blanche dans son propre tampon, le motif la colore (voir MOTIFS)
+  const o=Object.assign({},pal);o.p=d.mot?{g:'pm:'+d.mot,c:MOTIFS[d.mot].mel?pal.p.c:0xffffff,grad:null}:{g:d.g||'p',c:d.c!=null?d.c:d.grad[1],grad:d.grad||null}; // (2026-10-16) un MOTIF : la tôle blanche dans son propre tampon, le motif la colore (voir MOTIFS)
   if(pal.p.f===0)o.p.f=0;return o;
 }
 const LPG_A=new THREE.Color(),LPG_B=new THREE.Color();

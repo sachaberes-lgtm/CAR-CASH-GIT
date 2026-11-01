@@ -145,6 +145,7 @@ voitures/travail-caisse.js           # le travail d'une caisse : laque qui coule
 voitures/zagato.js                   # la Zagaie : la 5-95 de Zagato (gueule creuse, vitrage noir, nacelle, queue coupée)
 voitures/countach.js                 # le Loup : la Countach blanche du film (coin à arêtes vives, aileron, portes à ciseaux, l'épave)
 voitures/stratos-meteo.js            # LA STRATOS, station météo : anémomètre, manche à air, radars Doppler, gyroscope, barre de prévision (?stratos=ancien)
+voitures/corbillard-mort.js          # LE CORBILLARD de la mort : cercueil, crâne, squelette (?corbillard=ancien)
 voitures/buildcar.js                 # buildCar : construire une voiture
 voitures/plaque.js                   # la plaque d'immatriculation, le profil
 interface/vignette-moteur.js         # vignette moteur, étapes de chauffe
@@ -237,6 +238,7 @@ interface/bouton-rouge.js            # le bouton rouge et ses outils
 missions/atelier.js                  # les missions dans l'atelier, équiper au toucher, la fiche
 gameplay/ramassage.js                # le ramassage (pickupsTick)
 interface/bouton-nitro-gains.js      # bouton nitro v3, gains qui flottent, remplissage
+interface/boost-icones.js             # ?boost= : icônes en verre du bouton boost (bouteille, chevrons, flamme, anneau)
 moteur/cadence.js                    # la cadence stable (CAD)
 moteur/boucle-1.js                   # loop() : LA BOUCLE DE JEU — début, overdrive, pouvoirs, turbo, pilote auto
 moteur/boucle-2-conduite.js          # loop() — en course : anti-idle, momentum, drift, bord, portail, flaques

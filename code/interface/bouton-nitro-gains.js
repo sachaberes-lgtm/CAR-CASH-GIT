@@ -49,7 +49,12 @@ const NX3_PAL={
   bleu:['#ffffff','#b5c4ff','#e8edff','#4a68f0','#2a44c8','#16247a','#4a68f0','#0b0a2e'],
   vio: ['#ffe0dc','#ff4a3a','#ffb0a8','#ff1a0a','#c40a00','#6e0500','#ff4a3a','#1c0430'],
   vioF:['#ffffff','#ffc8c0','#ffffff','#ff4a3a','#ff1a0a','#6e0500','#ff4a3a','#1c0430'],
-  sec: ['#a49cc4','#6e6890','#8a84aa','#4a4468','#332e50','#211d38','#ff5a6e','#1c0430']};
+  sec: ['#a49cc4','#6e6890','#8a84aa','#4a4468','#332e50','#211d38','#ff5a6e','#1c0430'],
+  /* LA FLAMME (?boost=flamme, voir boost-icones.js) : [cœur, plein, clair, bord, épaisseur haute, épaisseur basse, lueur, contour] — de la braise (repos) au blanc-bleu (tenu longtemps) */
+  f0:  ['#ffe9a0','#ff8f1f','#ffc24a','#d8420a','#a02a00','#4a1200','#ff7a1a','#1c0430'],
+  f1:  ['#fff6c0','#ffb21f','#ffd95a','#ff6a0e','#c43c00','#6e1a00','#ff8d2e','#1c0430'],
+  f2:  ['#ffffff','#ffe066','#fff2a0','#ff9a1a','#ff6a0e','#8a2400','#ffb347','#1c0430'],
+  f3:  ['#ffffff','#fff6d0','#ffffff','#ffb84a','#ff8a1a','#a03000','#aee0ff','#1c0430']};
 const NX3_RGB={};function nx3Rgb(h){let v=NX3_RGB[h];if(v==null){const n=parseInt(h.slice(1),16);v=NX3_RGB[h]=(255<<24|(n&255)<<16|(n>>8&255)<<8|n>>16)>>>0;}return v;} // ABGR (petit-boutiste)
 function nx3Monte(){
   const el=document.getElementById('tNitro'),bar=document.getElementById('nitroBar');if(!el||!bar||NX3.el)return!!NX3.el;NX3.el=el;
@@ -67,6 +72,7 @@ function nx3Monte(){
    g = position du reflet qui balaie (somme x+y, −1 = aucun), clig = contour rouge (à sec). Couches : l'éclair (1), son épaisseur (2), puis
    autour, à 1 case le contour d'encre, à 2 et 3 cases les deux anneaux de lueur. */
 function nx3Dessine(d,pal,a,g,clig){
+  if(NX3.flame)return nxfDessine(d,pal,a,clig);
   const W=NX3.W,H=NX3.H,u=NX3.u32,m=NX3.m,gw=NX3_G[0].length,gh=NX3_G.length,M=NX3_M,T=NX3_T,P=NX3_PAL[pal];u.fill(0);
   const y0=M+d,ep=T-d,B=NX3.B||(NX3.B=new Uint8Array(W*H));
   const forme=function(x,y){x-=M;y-=y0;return x>=0&&y>=0&&x<gw&&y<gh&&m[y*gw+x]===1;};
@@ -99,16 +105,18 @@ function nx3Tick(dt,kmh){
   if(rm){NX3.p=appui;NX3.pv=0;}else{const h=Math.min(dt,.05)/2,w0=30,z=.4;for(let i=0;i<2;i++){NX3.pv+=(w0*w0*(appui-NX3.p)-2*z*w0*NX3.pv)*h;NX3.p+=NX3.pv*h;}
     if(NX3.p<-.34){NX3.p=-.34;NX3.pv=0;}else if(NX3.p>1.05){NX3.p=1.05;NX3.pv=0;}}
   const d=Math.max(-1,Math.min(NX3_T,Math.round(NX3.p*NX3_T)));
+  if(NX3.flame)NX3.heat=Math.max(0,Math.min(1,(NX3.heat||0)+(appui?dt/2.2:-dt/.7))); // (?boost=flamme) la CHALEUR monte tant que le doigt reste (2,2 s au maximum) et retombe vite au lâcher
   // LA LUEUR : la nitro qui brûle (à sec, l'appui ne fait rien briller) ; pleine et au repos, elle respire
   const veut=NX3.kF!=null?NX3.kF:(nitroOn?1:0);NX3.k+=(veut-NX3.k)*Math.min(1,dt*(veut>NX3.k?16:6));
-  const souffle=(plein&&!appui&&!rm)?.18+.16*Math.sin(NX3.t*5.2):0,a=Math.max(NX3.k,souffle);
+  const souffle=(plein&&!appui&&!rm)?.18+.16*Math.sin(NX3.t*5.2):0,fh=NX3.flame?Math.max(NX3.heat,NX3.k*.5):0,a=Math.max(NX3.k,souffle,fh*.95);
   const aQ=Math.round(a*(rm?1:(.85+.15*Math.sin(NX3.t*31)))*6)/6; // la lueur par crans (des cases qui battent, pas un dégradé)
-  const chaud=NX3.k>.5,pal=inf?(chaud?'vioF':'vio'):(chaud?(nitroBlue?'bleu':'feu'):(sec?'sec':'or'));
+  const chaud=NX3.k>.5,pal=NX3.flame?(inf?(chaud?'vioF':'vio'):(sec?'sec':(chaud&&nitroBlue?'bleu':'f'+Math.min(3,Math.floor(fh*4))))):inf?(chaud?'vioF':'vio'):(chaud?(nitroBlue?'bleu':'feu'):(sec?'sec':'or'));
   const clig=sec&&!appui&&(Math.floor(NX3.t/.3)&1)===1;
   // le REFLET blanc qui balaie les cases : toutes les ~3,5 s (1,6 s quand la nitro est pleine)
   NX3.glT-=dt;if(NX3.gl<0&&NX3.glT<=0&&!rm&&!appui&&!sec){NX3.gl=0;}
   let g=-1;if(NX3.gl>=0){NX3.gl+=dt/.5;if(NX3.gl>1){NX3.gl=-1;NX3.glT=plein?1.6:3.5;}else g=Math.floor(-2+NX3.gl*36);}
-  const cle=d+'|'+pal+'|'+aQ+'|'+g+'|'+clig;
+  if(NX3.flame){NX3.fh=Math.round(fh*20)/20;NX3.ft=rm?0:Math.floor(NX3.t*(7+9*fh));}
+  const cle=d+'|'+pal+'|'+aQ+'|'+g+'|'+clig+(NX3.flame?'|'+NX3.fh+'|'+NX3.ft:'');
   if(cle!==NX3.cle){NX3.cle=cle;nx3Dessine(d,pal,aQ,g,clig);}
 }
 window.dbgNitro3=function(a,b){

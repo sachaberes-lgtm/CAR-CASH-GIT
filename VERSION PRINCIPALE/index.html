@@ -4132,6 +4132,36 @@ html body.touch.play #tNitro::before{display:block!important;content:'';position
 html body.touch.play #tNitro:active::before,html body.touch.play #tNitro.on::before{box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),inset 0 -10px 18px color-mix(in srgb,var(--nc,#ff9a3c) 40%,transparent),0 0 28px color-mix(in srgb,var(--nc,#ff9a3c) 60%,transparent),0 6px 20px rgba(0,0,0,.2)!important}
 html body.touch.play #tNitro.plein:not(.on)::before{animation:nxVerrePret 1.6s ease-in-out infinite}
 @keyframes nxVerrePret{50%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.7),0 0 20px color-mix(in srgb,var(--nc,#ff9a3c) 45%,transparent),0 6px 20px rgba(0,0,0,.2)}}
+/* ===== LES ICÔNES DU BOUTON BOOST (2026-11-01, Léo : « change l'éclair par un truc intelligent ou stylé, genre une bouteille nitro, on peut tester plusieurs trucs ») =====
+   ?boost=bouteille | chevrons | flamme | anneau (rien = l'éclair en pixels, comme avant). Chaque icône est un SVG en verre qui LIT la réserve : --nr (nitro) et --nx (réserve bleue)
+   sont déjà posées sur #tNitro par la boucle ; la couleur de la poussée est --nc (orange, bleu en réserve, violet en infinie). Appuyé (.on) : l'icône s'enfonce et s'embrase. */
+html body.bv #tNitro .nx3{display:none!important}
+html body.bv #tNitro .bvIco{position:absolute;left:50%;top:50%;height:64px;width:auto;transform:translate(-50%,-50%);overflow:visible;pointer-events:none;z-index:1;--bc:var(--nc,#ff9a3c);
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.28));transition:transform .12s,filter .15s}
+html body.bv #tNitro .bv-bouteille{height:74px}html body.bv #tNitro .bv-flamme{height:68px}html body.bv #tNitro .bv-anneau{height:72px}
+html body.bv #tNitro:active .bvIco,html body.bv #tNitro.on .bvIco{transform:translate(-50%,calc(-50% + 3px)) scale(.95);filter:drop-shadow(0 0 10px var(--bc)) drop-shadow(0 0 22px color-mix(in srgb,var(--bc) 60%,transparent))}
+html body.bv #tNitro.bleu{--nc:#7d97ff}html body.bv #tNitro.inf{--nc:#ff4a3a}
+.bvIco .bvLn{fill:rgba(255,255,255,.09);stroke:rgba(255,255,255,.88);stroke-width:1.6;stroke-linejoin:round}
+.bvIco .bvBr{fill:none;stroke:rgba(255,255,255,.5);stroke-width:1.2;stroke-linecap:round}
+.bvIco .bvSh{fill:none;stroke:rgba(255,255,255,.7);stroke-width:1.6;stroke-linecap:round}
+.bvIco .bvLq,.bvIco .bvLx{transform-box:fill-box;transform-origin:50% 100%;transition:transform .2s}
+.bvIco .bvLq{fill:var(--bc);opacity:.92;transform:scaleY(var(--nr,.5))}
+.bvIco .bvLx{fill:#7d97ff;opacity:.85;transform:scaleY(min(1,calc(var(--nr,.5) + var(--nx,0))))}
+.bvIco .bvCh{fill:none;stroke:#fff;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s}
+.bvIco.bv-chevrons .c3{opacity:calc(.16 + .84*clamp(0,var(--nr,.5)*6,1));stroke:color-mix(in srgb,#fff 55%,var(--bc))}
+.bvIco.bv-chevrons .c2{opacity:calc(.16 + .84*clamp(0,(var(--nr,.5) - .33)*6,1))}
+.bvIco.bv-chevrons .c1{opacity:calc(.16 + .84*clamp(0,(var(--nr,.5) - .66)*6,1));stroke:#fff}
+html body.bv #tNitro.plein:not(.on) .bv-chevrons .bvCh{animation:bvMonte 1.2s ease-in-out infinite}
+html body.bv #tNitro.plein:not(.on) .bv-chevrons .c2{animation-delay:.12s}html body.bv #tNitro.plein:not(.on) .bv-chevrons .c1{animation-delay:.24s}
+@keyframes bvMonte{50%{transform:translateY(-4px)}}
+.bvIco .bvPi{fill:none;stroke:rgba(255,255,255,.2);stroke-width:4}
+.bvIco .bvRq,.bvIco .bvRx{fill:none;stroke-width:4.5;stroke-linecap:round;stroke-dasharray:100 100;transform:rotate(-90deg);transform-origin:32px 32px;transition:stroke-dashoffset .2s}
+.bvIco .bvRq{stroke:var(--bc);stroke-dashoffset:calc(100 - 100*var(--nr,.5))}
+.bvIco .bvRx{stroke:#7d97ff;stroke-dashoffset:calc(100 - 100*min(1,calc(var(--nr,.5) + var(--nx,0))))}
+.bvIco.bv-anneau .bvCh{stroke-width:3.5}
+.bvIco.bv-anneau .d1{opacity:.95}.bvIco.bv-anneau .d2{opacity:.55}
+html body.bv #tNitro.bas:not(.on) .bvIco{animation:bvSec .6s steps(2) infinite}
+@keyframes bvSec{50%{filter:drop-shadow(0 0 8px #ff5a6e)}}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -44738,6 +44768,93 @@ function stratosMeteo(K,P,G){
   if(F0.avance){for(let i=0,n=Math.round(F0.avance*30);i<n;i++)anime(1/30);}                        // (banc) dbgStratos({avance:s}) : la caisse naît s secondes plus tard
   if(typeof BLING==='object'&&BLING&&BLING.anim)BLING.anim.push(anime);
 }
+/* ===== LE CORBILLARD DE LA MORT (2026-11-01, Léo : « refonte, c pas satisfaisant, ça doit rappeler la mort » — cercueil roulant + crâne à l'avant + squelette apparent) =====
+   La caisse EST un cercueil : vue de dessus, l'hexagone du cercueil (étroit aux pieds, large aux épaules, la tête vers l'avant) ;
+   de profil, le coffre droit, le rebord du couvercle (un jonc de laiton qui fait le tour) et le couvercle à pans coupés.
+   La tête du cercueil est un CRÂNE en os : orbites noires où brillent les phares, cavité du nez, rangée de dents, arcades qui froncent.
+   Le SQUELETTE dépasse : les côtes enserrent le salon (une vitre noire, le vide), la colonne vertébrale court du coccyx au crâne
+   en passant sur le toit et le capot ; un fémur sert de pare-chocs à chaque bout ; trois poignées de cercueil en laiton par flanc.
+   `?corbillard=ancien` = le corbillard d'avant · `dbgCorbillard(1)` le remet à chaud (le banc AVANT | APRÈS). */
+var CORBILLARD_MORT=!/[?&]corbillard=ancien\b/.test(location.search);
+window.dbgCorbillard=function(ancien){CORBILLARD_MORT=!ancien;return CORBILLARD_MORT;};
+{const ancien=SHAPES.d_corbillard;
+SHAPES.d_corbillard=function(K){
+  if(!CORBILLARD_MORT)return ancien(K);
+  const U=LPU,R=.40,ZF=1.76,ZR=-1.98,ZC=2.38;                                 /* ZC : où finit le cercueil et commence le crâne */
+  const P=K.kit({p:{g:'p',c:0x0d0d10},k:{g:'m',c:0x141518},K:{g:'g',c:0x050507},V:{g:'g',c:0x030304},g:{g:'g',c:0x16202a},
+    b:{g:'s',c:0xb0a07e,f:0},B:{g:'s',c:0x6e6048,f:0},N:{g:'m',c:0x0a0806,f:0},A:{g:'c',c:0xc9a45a},c:{g:'c',c:0xe9ecf0},
+    W:{g:'l',c:0xe8f4ff},L:{g:'l',c:0xff1f2e},Q:{g:'l',c:0xffffff}});   /* Q : la place de la plaque (plqDessinee) */                               /* b : l'os, B : l'os dans l'ombre (sutures, dents du fond), A : le laiton du cercueil */
+  const AR=[[0,2*R+.06],[R*.70,2*R+.02],[R+.06,R*1.18],[R+.18,.40]];
+  const FA=2.95,zs=[-2.95,-2.85,-2.60,-.30,.10,1.00,ZC,2.85,FA];   /* FA : la face avant */
+  for(const w of [ZF,ZR])for(const d of [R*.70,R+.06,R+.18])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  const xW=z=>U.lin([[-2.95,.74],[-2.85,.80],[.90,1.00],[1.10,1.00],[2.85,.93],[FA,.88]],z),        /* l'hexagone du cercueil */
+        yC=z=>U.lin([[-2.95,1.20],[-2.85,1.34],[-2.60,1.42],[.10,1.44],[1.00,1.16],[2.85,1.14],[FA,1.10]],z);   /* (v6) le long capot plat de limousine */
+  P.loft(zs,z=>{
+    const yb=U.arch(z,[ZF,ZR],AR,.32),xw=xW(z),c=yC(z);
+    return [[0,yb],[xw-.06,yb],[xw,Math.max(yb+.06,.42)],[xw,Math.max(yb+.10,.98)],[xw+.035,Math.max(yb+.11,1.00)],[xw+.035,1.06],[xw-.01,1.07],
+            [xw*.86,Math.max(1.08,c-.06)],[xw*.70,c],[0,c+.01]];
+  },(j,z)=>{
+    if(j===0)return 'k';
+    if(j===4)return 'A';                                                        /* le jonc de laiton du couvercle */
+    if((j===7||j===8)&&z>.10&&z<1.00)return 'g';                               /* le pare-brise */
+    if(j===6&&z>-.15&&z<.95)return 'g';                                         /* la vitre de portière */
+    if(j===6&&z>-2.55&&z<-.30)return 'V';                                       /* le salon : le vide noir derrière les côtes */
+    return 'p';});
+  const V3=THREE.Vector3,AXZ=new V3(0,0,1);
+  const barre=(k,a,b,t)=>{const v=new V3(b[0]-a[0],b[1]-a[1],b[2]-a[2]),L=v.length();if(L<1e-4)return;     /* une tige carrée d'un point à l'autre */
+    const g=new THREE.BoxGeometry(t,t,L+t*.6);g.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(AXZ,v.normalize())));
+    P.put(k,g,(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2);};
+  const rotule=(k,r,x,y,z)=>P.put(k,new THREE.IcosahedronGeometry(r,0),x,y,z); /* une tête d'os, à facettes */
+  const os=(a,b,t,r)=>{barre('b',a,b,t);for(const p of [a,b])for(const s of [-1,1])rotule('b',r,p[0],p[1]+s*r*.55,p[2]);}; /* un os long : le fût et ses deux têtes doubles */
+  /* L'AVANT DE LIMOUSINE (2026-11-01, Léo : « comme une Rolls-Royce sur le devant… le plus stylé et réussi ») : plus de crâne géant.
+     La haute CALANDRE-TEMPLE en chrome (cadre épais, lames verticales, fronton), deux phares fins en lame, le bouclier à lame chromée ;
+     et la mort en MASCOTTE : un crâne chromé aux ailes déployées, au bout de la colonne vertébrale qui court sur le capot. */
+  {const zf=FA+.002,gx=.34,gb=.44,gh=1.08,gz=.11;
+   P.box('N',gx*2,gh-gb,gz,0,(gb+gh)/2,zf+gz/2-.03);                                                  /* le fond noir de la calandre */
+   for(let i=0;i<11;i++){const x=(i/10-.5)*(gx*2-.12);P.box('c',.022,gh-gb-.04,.05,x,(gb+gh)/2,zf+gz*.55);}  /* les lames verticales */
+   for(const sd of [-1,1])P.box('c',.055,gh-gb+.04,gz+.03,sd*gx,(gb+gh)/2,zf+gz/2);                  /* les montants du cadre */
+   P.box('c',gx*2+.11,.05,gz+.03,0,gb-.005,zf+gz/2);                                                  /* le seuil */
+   P.box('c',gx*2+.13,.06,gz+.05,0,gh+.02,zf+gz/2-.005);P.box('c',gx*2+.05,.03,gz,0,gh+.065,zf+gz/2-.02);  /* le fronton, en deux marches */
+   P.cyl('K',.035,.012,10,0,gh-.06,zf+gz+.01,'z');P.cyl('c',.026,.016,10,0,gh-.06,zf+gz+.012,'z');  /* le médaillon */
+   P.sym(sd=>{
+     P.box('K',.40,.075,.04,sd*.66,.95,FA+.01,0,0,-sd*.04);P.box('W',.36,.022,.045,sd*.66,.945,FA+.012,0,0,-sd*.04);  /* le phare en lame */
+     P.box('W',.20,.012,.045,sd*.68,.885,FA+.012);                                                     /* le feu de jour, dessous */
+     P.box('K',.24,.10,.03,sd*.62,.56,FA+.005);P.box('c',.24,.012,.035,sd*.62,.61,FA+.008);            /* la prise d'air basse */
+   });
+   P.box('c',1.72,.035,.08,0,.47,FA+.03);P.box('K',1.60,.06,.04,0,.40,FA+.01);                        /* la lame chromée du bouclier */
+  }
+  /* LA MASCOTTE : le crâne ailé, en chrome, sur son socle au-dessus du fronton */
+  {const mz=FA-.04,my=1.36,ms=1.9;
+   P.box('c',.10,.04,.10,0,1.13,mz);P.cyl('c',.03,.12,8,0,1.20,mz,'y');
+   P.put('c',new THREE.IcosahedronGeometry(1,1),0,my,mz,0,0,0,.062*ms,.058*ms,.072*ms);                        /* la voûte */
+   P.box('c',.075*ms,.045*ms,.05*ms,0,my-.055*ms,mz+.025*ms);                                                        /* la mâchoire */
+   for(const sd of [-1,1])P.put('N',new THREE.IcosahedronGeometry(.019*ms,0),sd*.026*ms,my-.004*ms,mz+.058*ms);  /* les orbites */
+   P.put('N',new THREE.IcosahedronGeometry(.011*ms,0),0,my-.03*ms,mz+.066*ms);                                 /* le nez */
+   for(const sd of [-1,1]){const pts=[[0,0],[.08,.035],[.16,.085],[.23,.15],[.215,.105],[.19,.10],[.20,.07],[.16,.06],[.17,.035],[.12,.025],[.12,0],[.07,-.005],[.03,-.02]];
+     const sh=new THREE.Shape(pts.map(q=>new THREE.Vector2(sd*q[0]*ms,q[1]*ms))),g=new THREE.ExtrudeGeometry(sh,{depth:.012,bevelEnabled:false,curveSegments:1});
+     g.translate(0,0,-.006);P.put('c',g,sd*.045*ms,my-.01*ms,mz-.02*ms,0,sd*.85,0);}}                          /* les ailes, balayées vers l'arrière */
+  os([-.78,.30,-3.00],[.78,.30,-3.00],.07,.075);P.box('Q',.52,.13,.01,0,.47,-2.955);   /* la plaque se pose sous les os en croix */
+  /* LA COLONNE : du coccyx (la poupe) au crâne, sur le toit, le pare-brise et le capot */
+  for(let z=-2.80;z<FA-.20;z+=.19){const y=yC(z)+.035,pe=z<-2.5?.6:1;
+    P.box('b',.11*pe,.06,.11,0,y,z);P.box('B',.12*pe,.02,.13,0,y-.035,z);                                               /* la vertèbre et son disque */
+    P.box('b',.03,.07*pe,.05,0,y+.06,z-.02,-.5,0,0);                                                                     /* l'épine */
+    if(z<.10&&z>-2.6)P.box('b',.26,.025,.035,0,y+.01,z);}                                                                /* les apophyses */
+  /* LES CÔTES qui enserrent le salon, de la ceinture à la colonne */
+  for(let i=0;i<7;i++){const z=-2.40+i*.30,xw=xW(z),c=yC(z),dz=.10;
+    P.sym(sd=>{const p=[[sd*(xw+.045),1.075,z],[sd*(xw*.90+.03),(1.08+c)/2+.02,z+dz*.4],[sd*(xw*.80+.03),c-.02,z+dz*.7],[sd*(xw*.62),c+.035,z+dz*.9],[sd*.07,c+.04,z+dz]];
+      for(let k=0;k<p.length-1;k++)barre('b',p[k],p[k+1],.05);});}
+  /* LES POIGNÉES DU CERCUEIL, trois par flanc, et la plaque de laiton aux pieds */
+  P.sym(sd=>{
+    for(const z of [-1.15,-.35,.45]){const x=xW(z);P.box('A',.07,.05,.04,sd*(x+.03),.66,z-.13);P.box('A',.07,.05,.04,sd*(x+.03),.66,z+.13);
+      P.cyl('A',.022,.32,6,sd*(x+.07),.62,z,'z');}
+    P.box('K',.08,.40,.03,sd*.64,.80,-2.955);P.box('L',.06,.36,.03,sd*.64,.80,-2.965);                                  /* les feux, deux cierges rouges */
+  });
+  for(const s of [-1,1]){const a=[s*-.42,.64,-2.99],b=[s*.42,1.10,-2.99];barre('b',a,b,.065);for(const p of [a,b])for(const t of [-1,1])rotule('b',.055,p[0]+t*.04,p[1],p[2]);} /* les DEUX OS EN CROIX, aux pieds du cercueil */
+  K.commit(P);
+  return {hl:[.66,.95,2.97],tl:[.64,.80,-2.97],wx:.86,wzF:ZF,wzR:-ZR,
+          lpw:{R:R,w:.27,style:'enjoliveur',jante:0xe6dcc4}};
+};}
 // (2026-10-20) UNE FICHE SANS COTES NE SE CONSTRUIT PAS. Les caisses retirées sont réduites à `{retire:1,name}` (voir cars.js) : montées
 // quand même (dbgEquipe des bancs), le repli `gt` recevait une largeur `undefined` — coque, ancrages et gabarit en NaN, le cadrage du
 // garage (GAR.vD, cdx…) passait en NaN et toute l'image 3D sortait NOIRE. Le joueur n'y arrive pas (equippedCar, garageListe et
@@ -44843,7 +44960,7 @@ function buildCar(spec){
   const chromeM=new THREE.MeshPhongMaterial({color:0xe8ecf0,shininess:280,specular:0xffffff,envMap:envTex,reflectivity:.85,combine:THREE.MixOperation});
   const darkM=new THREE.MeshPhongMaterial({color:0x14161a,shininess:60,specular:0x333333});
   const rustM=new THREE.MeshPhongMaterial({color:0x5a3a20,shininess:5,specular:0x111111});
-  {const pd=cosmSur('peinture');if(pd&&pd.id!=='usine'){const pc=pd.c!=null?pd.c:pd.grad[1];bodyM.color.setHex(pd.mot?0xffffff:pc);bodyM.emissive.setHex(pc);if(pd.mot)bodyM.userData.mot=pd.mot;}} // (2026-10-16) un MOTIF : la tôle blanche, le motif la colore (greffé après rimify)
+  {const pd=cosmSur('peinture');if(pd&&pd.id!=='usine'){const pc=pd.c!=null?pd.c:pd.grad[1];bodyM.color.setHex(pd.mot&&!MOTIFS[pd.mot].mel?0xffffff:pd.mot?spec.color:pc);bodyM.emissive.setHex(pc);if(pd.mot)bodyM.userData.mot=pd.mot;}} // (2026-10-16) un MOTIF : la tôle blanche, le motif la colore (greffé après rimify)
   // le liseré (rim), c'est pour la tôle. (2026-09-26) + LE VERNIS des caisses « classiques » (pop-tart, requin, comète, formule, le
   // mans, patron, acide) : à .45 de reflet FIXE, la FORMULE OR sortait jaune pâle et ses vitres couleur de ciel. Le verre et le chrome
   // prennent le vernis SANS le liseré. L'épave garde l'ancien mélange au bit près (« ne rien changer »).
@@ -45151,7 +45268,7 @@ function buildCar(spec){
   if(finAreteOk())finCaisse(); // (2026-10-20, FINITION STUDIO) les drapeaux d'arête de la tôle, AVANT la soudure (voir finition.js)
   if(FSTU.on)finLaque(FSTU.garage); // le vernis profond si on est au garage
   try{traduisLangage(spec);}catch(e){console.warn('langage',e);} // (25/10) ESSAI `?langage=1` : les caisses « hors langage » regroupées en grandes facettes (éteint par défaut)
-  caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
+  caisseSoude();{const pd9=cosmSur('peinture');if(pd9&&pd9.mot)try{motTouffes(carBody,pd9.mot);}catch(e){console.warn('touffes',e);}} /* (2026-11-01) les touffes de la MOUSSE : du relief sur la tôle, posé APRÈS la soudure (elle fond les pièces de la caisse) */ // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
   try{feuxLed(spec,hlM,tlM);}catch(e){console.warn('feux',e);} // (2026-10-20) l'étude des feux en LED, `?feux=1|2` (voir FEUXL) — sans paramètre, rien ne change
 }
 /* <<<FIN VOITURES>>> */
@@ -47248,7 +47365,7 @@ const M2=[
   {id:'cash100k',f:'argent',k:'gagne',v:100000,u:'$',r:{cash:10000},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'}, /* (2026-10-22, Sacha : « tableau des peintures ») la peinture passe à l'achat (1 €), la mission paie de l'argent — À VALIDER */
   {id:'cash500k',f:'argent',k:'gagne',v:500000,u:'$',r:{cash:25000},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'}, /* (2026-10-22, Sacha : « tableau des peintures ») la peinture passe à l'achat (1 €), la mission paie de l'argent — À VALIDER */
   {id:'cash1m',f:'argent',k:'gagne',v:1000000,u:'$',r:{cash:50000},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'}, /* (2026-10-22, Sacha : « tableau des peintures ») la peinture passe à l'achat (1 €), la mission paie de l'argent — À VALIDER */
-  {id:'cash2m',f:'argent',k:'gagne',v:2000000,u:'$',r:{cat:'peinture',id:'or'},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
+  {id:'cash2m',f:'argent',k:'gagne',v:2000000,u:'$',r:{cash:100000},t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
   // MOTEUR — le record d'une partie (le palier affiché = index + 1)
   {id:'eng10',f:'moteur',k:'eng',v:10,u:'',r:{cash:5000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
   {id:'eng20',f:'moteur',k:'eng',v:20,u:'',r:{cash:15000},t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
@@ -48716,7 +48833,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     carGroup.updateMatrixWorld(true);
     // LA BOÎTE de ce qu'on voit (maillages visibles seulement : les halos cachés gonfleraient le cadre)
     const bx=new THREE.Box3(),b9=new THREE.Box3();
-    carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||o.userData.fx)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
+    carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||o.userData.fx||o.isInstancedMesh)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
       if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();b9.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);bx.union(b9);});
     if(bx.isEmpty())bx.set(new THREE.Vector3(-1,0,-2),new THREE.Vector3(1,1.3,2));
     const EL9=aile?PHOTO_AILE.el:PHOTO_EL,AZ9=aile?PHOTO_AILE.az:(az9!=null?az9:PHOTO_AZ),cam=PHOTO.cam,ctr=bx.getCenter(new THREE.Vector3()),dir=new THREE.Vector3(Math.sin(AZ9)*Math.cos(EL9),Math.sin(EL9),Math.cos(AZ9)*Math.cos(EL9));T9.box=bx.getSize(new THREE.Vector3()).toArray().map(function(v){return +v.toFixed(2);});T9.ailes=!!carWingL;
@@ -49157,12 +49274,10 @@ function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if
 const COSM={
   peinture:[
     {id:'usine',   n:'D\'ORIGINE',        p:0,     d:'La teinte du constructeur. Elle a fait ses preuves.'},
-    {id:'menthe',  n:'MENTHE GLACÉE',     p:25000,  c:0x5ff0c6,d:'Fraîche comme un billet qui sort du distributeur.'},
     {id:'minuit',  n:'BLEU MINUIT',       p:50000,  c:0x2b43c4,d:'Le bleu des néons de la ville, à trois heures du matin.'},
     {id:'noir',    n:'NOIR MAT',          p:90000,  c:0x202128,g:'s',d:'Pas un reflet. Même la police hésite.'},
     {id:'couchant',n:'COUCHER DE SOLEIL', p:180000, grad:[0xffc23a,0xff4f8b,0x6b3cff],d:'Du miel en bas, du violet en haut : le ciel de 19 h, en laque.'},
     {id:'chrome',  n:'CHROME MIROIR',     p:600000, c:0xe9eef5,g:'c',d:'Tu te vois dedans. Les autres aussi.'},
-    {id:'or',      n:'OR MASSIF',         mis:4,   c:0xffc93a,g:'o',d:'Ne s\'achète pas : elle se gagne en relevant des défis.'},
     // (2026-10-14) LES PEINTURES POP — la rareté se lit en couleur (`r`), le prix suit la grille de l'équilibrage (rare 5-12 k · exotique 20-45 k · épique 80-180 k · légendaire 300-500 k)
     {id:'ogre',     n:'VERT OGRE',         p:50000,  r:'rare',      c:0x6f9a2e,g:'s',d:'Le vert des marais. Ça sent un peu, mais c\'est chez toi.'},
     {id:'poupee',   n:'ROSE POUPÉE',       p:90000,  r:'rare',      c:0xff5fb0,d:'Rose bonbon, laque parfaite. Tu n\'es pas en plastique, tu es en carbone.'},
@@ -49211,7 +49326,7 @@ const COSM={
    qui la portait repart avec celle d'origine. `n` = le nom que dit le message de remboursement. (2026-10-18 soir, Sacha : « supprime block rain »)
    PLUIE DE BLOCS aussi. Leurs émetteurs TRX_EMET (bulles, blocs) restent, sans traînée qui les appelle. (2026-10-18 soir, Sacha : « 88 mph enlève »)
    88 MILES À L'HEURE aussi (140 000 $, épique) : sa ligne et son pictogramme tr_88 sortent ; son émetteur TRX_EMET.retour reste. */
-const HAB_RETIRES={'peinture:citron':{p:0},'peinture:argent':{p:0},'peinture:bordeaux':{p:0},'peinture:olive':{p:0},'peinture:abysse':{p:0},'peinture:aubergine':{p:0},'peinture:damier':{p:0},'peinture:ecailles':{p:0},/* (2026-10-22, Sacha : « tableau des peintures » : huit peintures en moins — citron, argent, bordeaux, olive, abysse, aubergine, damier, peau de dragon) */ 'peinture:herisson':{p:7000,n:'LA PEINTURE BLEU HÉRISSON'},'peinture:graphite':{p:0},'peinture:petrole':{p:0},'peinture:anglais':{p:0},'peinture:framboise':{p:0},'peinture:bronze':{p:0},'peinture:ecume':{p:0},'peinture:barbapapa':{p:0},'trainee:menthe':{p:2000,n:'LA TRAÎNÉE MENTHE'},'trainee:blocs':{p:30000,n:'LA TRAÎNÉE PLUIE DE BLOCS'},'trainee:retour':{p:140000,n:'LA TRAÎNÉE 88 MILES À L\'HEURE'}};
+const HAB_RETIRES={'peinture:or':{p:0},/* (2026-11-01, Léo : « enlève or massif ») la mission des 2 M$ paie de l'argent à la place (missions/table.js) */ 'peinture:menthe':{p:0},/* (2026-11-01, Léo : « enlever menthe glacée, garder aurore boréale, la renommer menthe glacée ») la menthe d'origine sort ; AURORE BORÉALE (srAurore) prend son nom */ 'peinture:citron':{p:0},'peinture:argent':{p:0},'peinture:bordeaux':{p:0},'peinture:olive':{p:0},'peinture:abysse':{p:0},'peinture:aubergine':{p:0},'peinture:damier':{p:0},'peinture:ecailles':{p:0},/* (2026-10-22, Sacha : « tableau des peintures » : huit peintures en moins — citron, argent, bordeaux, olive, abysse, aubergine, damier, peau de dragon) */ 'peinture:herisson':{p:7000,n:'LA PEINTURE BLEU HÉRISSON'},'peinture:graphite':{p:0},'peinture:petrole':{p:0},'peinture:anglais':{p:0},'peinture:framboise':{p:0},'peinture:bronze':{p:0},'peinture:ecume':{p:0},'peinture:barbapapa':{p:0},'trainee:menthe':{p:2000,n:'LA TRAÎNÉE MENTHE'},'trainee:blocs':{p:30000,n:'LA TRAÎNÉE PLUIE DE BLOCS'},'trainee:retour':{p:140000,n:'LA TRAÎNÉE 88 MILES À L\'HEURE'}};
 Object.assign(I18N,{"LA TRAÎNÉE 88 MILES À L'HEURE":"THE 88 MPH TRAIL","LA PEINTURE BLEU HÉRISSON":"THE HEDGEHOG BLUE PAINT"}); /* le message de remboursement, en anglais */
 /* (2026-10-18 soir, Sacha : « la trainé rainbow doit etre incluse avec le pack nian cat ») LE PACK DU CHAT : l'ARC-EN-CIEL (`pack:'chat'`, voir LES
    MISSIONS v2 — LES HABILLAGES QUI SE GAGNENT) est à toi avec le CHAT POP-TART (shopOwned → m2Chat). La boutique le DIT enfin : sa carte affichait
@@ -49237,14 +49352,15 @@ const PAL_MASQUE=0x2a2d36; // la pastille d'une secrète pas encore gagnée : ar
 /* (2026-10-22, Sacha : « tableau des peintures ») QUATRE SECRÈTES PASSENT À L'ACHAT (FANTÔME, NACRE, LAMPADAIRE, CAMÉLÉON) : plus de défi, une peinture ordinaire du pack ; leur drapeau de défi dans defis-moteur.js reste sans effet (secDonne ne trouve plus de `sec`). Défini AVANT la boucle des secrètes (TDZ). */
 const PEINT_ACHAT=['fantome','nacre','lampadaire','cameleon'];
 /* (2026-10-22, Sacha : « tableau des peintures ») SEIZE PEINTURES PASSENT EN SECRÈTES (même système que PRISME, ÉCLAIR… : nom masqué « ? ? ? », indice, drapeau secGagne) — leur condition est écrite dans missions/defis-moteur.js (m2Niveau, m2Fruit, m2Pu, m2Tick). BANANA n'y est PAS : il n'y a plus de banane dans le jeu. */
-const PEINT_DEFIS={menthe:'Dix niveaux sous la neige.',minuit:'Dix niveaux de nuit.',chrome:'Cinq niveaux dans les nuages.',ogre:'Dix niveaux dans la forêt.',gotham:'Dix niveaux dans la ville.',dragee:'Dix niveaux le matin.',abricot:'Dix niveaux en plein jour.',neige:'Dix niveaux sur le glacier.',
+const PEINT_BIENTOT=['neige','dragee','abricot','vanille','pistache','amande','piscine','lilas']; /* les pâles : le nom et la couleur se voient, mais rien ne les donne encore (secDonne refuse) */
+const PEINT_DEFIS={minuit:'Dix niveaux de nuit.',chrome:'Cinq niveaux dans les nuages.',ogre:'Dix niveaux dans la forêt.',gotham:'Dix niveaux dans la ville.',dragee:'Bientôt disponible.',abricot:'Bientôt disponible.',neige:'Bientôt disponible.',vanille:'Bientôt disponible.',piscine:'Bientôt disponible.',lilas:'Bientôt disponible.',pistache:'Bientôt disponible.',amande:'Bientôt disponible.', /* (2026-11-01, Léo : « les pâles : visibles, dans les rares, mais pas débloquables pour l'instant — je te donnerai les missions ») */ 
   bolide:'Croque cinquante cerises.',emeute:'Croque cinquante oranges.',taxi:'Ramasse cinquante citrons.',azur:'Croque cinquante myrtilles.',royal:'Ramasse cinquante raisins.',fuchsia:'Ramasse cinquante fruits du dragon.',envers:'Cent kilomètres sous la dalle.',guerrier:'Le palier vingt-quatre du moteur.'};
 function peintSecrete(d,ind){const n=d.n,desc=d.d,c=d.c,grad=d.grad,g=d.g;delete d.p;delete d.pk;delete d.mis;delete d.eur;d.sec=d.id;d.ind=ind;d.pack='palette';
-  const vu=function(){return !!window.PAL_REVELE||shopOwned('peinture',d.id);};
+  const vu=function(){return !!window.PAL_REVELE||PEINT_BIENTOT.indexOf(d.id)>=0||shopOwned('peinture',d.id);};
   Object.defineProperties(d,{n:{get:function(){return vu()?n:'? ? ?';},enumerable:true},d:{get:function(){return vu()?desc:ind;},enumerable:true},c:{get:function(){return vu()?c:PAL_MASQUE;},enumerable:true},
     grad:{get:function(){return vu()?grad:undefined;},enumerable:true},g:{get:function(){return vu()?g:'s';},enumerable:true}});
   if(PALETTE_PACK.ids.indexOf(d.id)<0)PALETTE_PACK.ids.push(d.id);}
-Object.assign(I18N,{'Dix niveaux sous la neige.':'Ten levels in the snow.','Dix niveaux de nuit.':'Ten levels at night.','Cinq niveaux dans les nuages.':'Five levels in the clouds.','Dix niveaux dans la forêt.':'Ten levels in the forest.','Dix niveaux dans la ville.':'Ten levels in the city.','Dix niveaux le matin.':'Ten levels in the morning.','Dix niveaux en plein jour.':'Ten levels in broad daylight.','Dix niveaux sur le glacier.':'Ten levels on the glacier.','Croque cinquante cerises.':'Eat fifty cherries.','Croque cinquante oranges.':'Eat fifty oranges.','Ramasse cinquante citrons.':'Pick up fifty lemons.','Croque cinquante myrtilles.':'Eat fifty blueberries.','Ramasse cinquante raisins.':'Pick up fifty grapes.','Ramasse cinquante fruits du dragon.':'Pick up fifty dragon fruits.','Cent kilomètres sous la dalle.':'One hundred kilometres on the underside of the road.','Le palier vingt-quatre du moteur.':'Engine tier twenty-four.','Dix niveaux sous la pluie.':'Ten levels in the rain.','Dix niveaux en orbite.':'Ten levels in orbit.'}); /* (2026-10-22, Sacha : « corrige ATCHOUM, traduis les indices, ne rembourse que ce qui a été acheté ») les indices des peintures secrètes, en anglais */
+Object.assign(I18N,{'Dix niveaux sous la neige.':'Ten levels in the snow.','Dix niveaux de nuit.':'Ten levels at night.','Cinq niveaux dans les nuages.':'Five levels in the clouds.','Dix niveaux dans la forêt.':'Ten levels in the forest.','Dix niveaux dans la ville.':'Ten levels in the city.','Dix niveaux le matin.':'Ten levels in the morning.','Dix niveaux en plein jour.':'Ten levels in broad daylight.','Dix niveaux sur le glacier.':'Ten levels on the glacier.','Croque cinquante cerises.':'Eat fifty cherries.','Bientôt disponible.':'Coming soon.','Croque cinquante oranges.':'Eat fifty oranges.','Ramasse cinquante citrons.':'Pick up fifty lemons.','Croque cinquante myrtilles.':'Eat fifty blueberries.','Ramasse cinquante raisins.':'Pick up fifty grapes.','Ramasse cinquante fruits du dragon.':'Pick up fifty dragon fruits.','Cent kilomètres sous la dalle.':'One hundred kilometres on the underside of the road.','Le palier vingt-quatre du moteur.':'Engine tier twenty-four.','Dix niveaux sous la pluie.':'Ten levels in the rain.','Dix niveaux en orbite.':'Ten levels in orbit.'}); /* (2026-10-22, Sacha : « corrige ATCHOUM, traduis les indices, ne rembourse que ce qui a été acheté ») les indices des peintures secrètes, en anglais */
 if(PALETTE_ON){
   for(const e of [ // [id, nom, couleur, finition (rien = laque), rareté, description] — rangée par rangée, dans l'ordre de la grille
     /* (planche du 14/10) valeurs MESURÉES à l'écran : sur la tôle éclairée, le MÉTALLISÉ rend ~×1,8-2 plus clair que la laque (le reflet du ciel teinté par la couleur) — ses entrées sont donc ~÷1,8 de la teinte voulue ; les verts et le sarcelle francs saturaient au fluo (canal vert ×1,4) */
@@ -49308,10 +49424,10 @@ const PEINT_V2=!/[?&]peintures=avant\b/.test(location.search);
 const PEINT_EUR={commun:'1 €',rare:'3 €',epique:'5 €'};
 /* (2026-10-22, Sacha : « tableau des peintures ») LE PRIX EN EUROS PEINTURE PAR PEINTURE (par-dessus la rareté) : 0,50 € · 1 € · 2 € ; la rareté de FANTÔME est RARE */
 const PEINT_EUR_ID={noir:'0,50 €',poupee:'0,50 €',vanille:'0,50 €',pistache:'0,50 €',amande:'0,50 €',piscine:'0,50 €',lilas:'0,50 €',billet:'0,50 €',lagon:'0,50 €',cuivre:'0,50 €',nardo:'0,50 €',
-  couchant:'1 €',vaporwave:'1 €',lave:'1 €',holo:'1 €',fantome:'1 €',nacre:'1 €',lampadaire:'1 €',cameleon:'1 €',galaxie:'1 €',cash:'1 €',srBraise:'1 €',srAurore:'1 €',srLagon:'1 €',srEtoile:'1 €',
+  couchant:'1 €',vaporwave:'1 €',lave:'1 €',holo:'1 €',fantome:'1 €',nacre:'1 €',lampadaire:'1 €',cameleon:'1 €',galaxie:'1 €',cash:'1 €',mousse:'2 €',srBraise:'1 €',srAurore:'1 €',srLagon:'1 €',srEtoile:'1 €',
   leopard:'2 €',tigre:'2 €',zebre:'2 €',vache:'2 €',fleurs:'2 €',camo:'2 €',coccinelle:'2 €'};
 const PEINT_RAR_ID={fantome:'rare'};
-const PEINT_SEC_R={prisme:'rare',fantome:'commun',orrose:'rare',eclair:'rare',nacre:'rare',orage:'rare',jadeimperial:'rare',lunaire:'rare',lampadaire:'rare',cameleon:'rare'}; // les secrètes : leur vraie matière reste masquée tant qu'on ne les a pas gagnées
+const PEINT_SEC_R={chrome:'epique',/* (2026-11-01, Léo : « chrome miroir en épique ») */ minuit:'commun',ogre:'commun',gotham:'commun',bolide:'commun',emeute:'commun',taxi:'commun',azur:'commun',/* (2026-11-01, Léo : « commun = couleurs banales, les rares = les couleurs cool ») les unies classiques passent en COMMUN ; restent rares : violet royal, fuchsia, chrome, or, dégradés */ prisme:'rare',fantome:'commun',orrose:'rare',eclair:'rare',nacre:'rare',orage:'rare',jadeimperial:'rare',lunaire:'rare',lampadaire:'rare',cameleon:'rare'}; // les secrètes : leur vraie matière reste masquée tant qu'on ne les a pas gagnées
 function peintRegle(d){if(PEINT_RAR_ID[d.id])return PEINT_RAR_ID[d.id];if(d.mot)return 'epique';if(d.sec)return PEINT_SEC_R[d.id]||'rare';return (d.grad||d.g==='o')?'rare':'commun';}
 const MOT_W=512;
 function motAlea(s){return function(){s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
@@ -49351,6 +49467,14 @@ const MOTIFS={
     for(const p of motGrille(4,R,.9))if(R()<.6)fl(p[0]+64,p[1]+64,14+R()*8,(R()*4)|0,R()*6.28);}},
   camo:{s:.4,c:0x6f7b44,f:function(x,R){x.fillStyle='#6f7b44';x.fillRect(0,0,MOT_W,MOT_W);
     for(const L of [['#45522a',5,46,40],['#86683f',4,38,34],['#24241a',5,22,22]])for(const p of motGrille(L[1],R,1))motPose(x,p[0],p[1],L[2]+R()*L[3],motForme(R,.4),L[0],.75+R()*.5);}},
+  mousse:{s:.4,c:0x3f6a28,mel:1,touffes:1,f:function(x,R){x.fillStyle='#ffffff';x.fillRect(0,0,MOT_W,MOT_W); /* (2026-11-01, Léo : « de la vraie mousse, plus 3D, un truc qui s'ajoute sur la voiture, qui se mélange avec une couleur ») des PLAQUES de mousse sur fond BLANC pur : le blanc laisse voir la couleur de la caisse (`mel`, voir motGreffe) ; les touffes en relief se posent sur les mêmes plaques (`touffes`, voir motTouffes) */
+    const C=[['hsl(104,38%,17%)',1],['hsl(100,40%,26%)',.8],['hsl(94,43%,36%)',.55],['hsl(86,48%,47%)',.3]]; /* du creux sombre à la pointe claire */
+    const plaque=function(cx,cy,r){for(let k=0;k<C.length;k++){const q=C[k],rr=r*q[1],dx=-k*r*.07,dy=-k*r*.09;motPose(x,cx+dx,cy+dy,rr,motForme(R,.3),q[0],.8+R()*.4);}};
+    const G=motGrille(4,R,.9),pl=[];for(const p of G)if(R()<.72){const r=34+R()*34;plaque(p[0],p[1],r);pl.push([p[0],p[1],r]);}
+    for(const q of pl)for(let i=0;i<3;i++){const a=R()*6.28,d=q[2]*(.55+R()*.5);plaque(q[0]+Math.cos(a)*d,q[1]+Math.sin(a)*d,10+R()*13);} /* des rejets autour des plaques */
+    for(const q of pl)for(let i=0;i<90;i++){const a=R()*6.28,d=q[2]*Math.sqrt(R())*.85,cx=q[0]+Math.cos(a)*d,cy=q[1]+Math.sin(a)*d,r=.8+R()*1.2;motTore(x,function(){x.beginPath();x.arc(cx,cy,r,0,6.2832);x.fillStyle='hsla('+(78+((R()*26)|0))+',46%,'+(40+((R()*22)|0))+'%,'+(.35+R()*.4).toFixed(2)+')';x.fill();});} /* le velours */
+    for(const q of pl){if(R()<.5)continue;const a=R()*6.28,cx=q[0]+Math.cos(a)*q[2]*.7,cy=q[1]+Math.sin(a)*q[2]*.7,r=5+R()*3;motTore(x,function(){x.beginPath();x.arc(cx,cy+1.5,r,0,6.2832);x.fillStyle='rgba(10,30,10,.4)';x.fill();x.beginPath();x.arc(cx,cy,r,Math.PI,0);x.closePath();x.fillStyle='#d8322b';x.fill();x.fillStyle='#f6ecd8';x.fillRect(cx-r*.28,cy,r*.56,r*.7);for(const w of [[-.5,-.4],[.1,-.65],[.5,-.25]]){x.beginPath();x.arc(cx+w[0]*r,cy+w[1]*r,r*.16,0,6.2832);x.fillStyle='#fffcf4';x.fill();}});} /* un champignon sur une plaque sur deux */
+    for(const q of pl)for(let i=0;i<4;i++){const a=R()*6.28,d=q[2]*Math.sqrt(R())*.7,cx=q[0]+Math.cos(a)*d,cy=q[1]+Math.sin(a)*d,r=1.4+R()*1.2;motTore(x,function(){x.beginPath();x.arc(cx,cy,r,0,6.2832);x.fillStyle='rgba(225,245,255,.9)';x.fill();});}}}, /* la rosée */
   damier:{s:.42,c:0xf2f2f2,f:function(x){const n=8,c=MOT_W/n;for(let a=0;a<n;a++)for(let b=0;b<n;b++){x.fillStyle=(a+b)&1?'#141414':'#f2f2f2';x.fillRect(a*c,b*c,c,c);}}},
   ecailles:{s:.5,c:0x1a8a55,f:function(x,R){x.fillStyle='#0b3524';x.fillRect(0,0,MOT_W,MOT_W);
     const nc=8,nr=10,cw=MOT_W/nc,rh=MOT_W/nr,r=cw*.62,V=[];for(let j=0;j<nr;j++){V.push([]);for(let i=0;i<nc;i++)V[j].push(R());}
@@ -49384,14 +49508,45 @@ function motFond(d){const c='#'+((d.c||0)>>>0).toString(16).padStart(6,'0'),u=mo
 const MOT_GLSL='vec3 mN9=normalize(vMotN),mA9=pow(abs(mN9),vec3(12.));mA9/=max(1e-4,mA9.x+mA9.y+mA9.z);vec3 mP9=vMotP*uMotS;\n'+
   'vec3 motC=texture2D(uMot,vec2(mN9.x<0.?mP9.z:-mP9.z,mP9.y)).rgb*mA9.x+texture2D(uMot,vec2(mN9.y<0.?mP9.x:-mP9.x,mP9.z)).rgb*mA9.y+texture2D(uMot,vec2(mN9.z<0.?-mP9.x:mP9.x,mP9.y)).rgb*mA9.z;\n'+
   'diffuseColor.rgb*=motC;\n';
+const MOT_GLSL_MEL='vec3 mN9=normalize(vMotN),mA9=pow(abs(mN9),vec3(12.));mA9/=max(1e-4,mA9.x+mA9.y+mA9.z);vec3 mP9=vMotP*uMotS;\n'+
+  'vec3 motC=texture2D(uMot,vec2(mN9.x<0.?mP9.z:-mP9.z,mP9.y)).rgb*mA9.x+texture2D(uMot,vec2(mN9.y<0.?mP9.x:-mP9.x,mP9.z)).rgb*mA9.y+texture2D(uMot,vec2(mN9.z<0.?-mP9.x:mP9.x,mP9.y)).rgb*mA9.z;\n'+
+  'float motK=1.-smoothstep(.93,.985,min(motC.r,min(motC.g,motC.b)));vec3 motM=mix(vec3(1.),motC,motK);diffuseColor.rgb=mix(diffuseColor.rgb,motC*.72,motK);\n'; /* (2026-11-01) le MÉLANGE : le blanc pur de la toile laisse la couleur de la caisse, le reste (la mousse) la recouvre */
 const MOT_FAIT=new WeakSet(); // les matières déjà greffées (un clone de matière perd la greffe : la fin de buildCar le rattrape)
 function motGreffe(m,id){const T=motTex(id),M=MOTIFS[id];if(!T||!M||MOT_FAIT.has(m))return m;MOT_FAIT.add(m);const prev=m.onBeforeCompile,pk=String(prev),uT={value:T},uS={value:M.s};
   m.onBeforeCompile=function(sh,r){if(prev)prev.call(this,sh,r);sh.uniforms.uMot=uT;sh.uniforms.uMotS=uS;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vMotP;varying vec3 vMotN;').replace('#include <begin_vertex>','#include <begin_vertex>\nvMotP=transformed;vMotN=objectNormal;');
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D uMot;uniform float uMotS;varying vec3 vMotP;varying vec3 vMotN;')
-      .replace('#include <color_fragment>','#include <color_fragment>\n'+MOT_GLSL).replace('vColor*uGlow','vColor*motC*uGlow');}; // le plancher lumineux du kit prend le motif aussi
-  m.customProgramCacheKey=function(){return 'motif|'+pk;}; // ⚠ r128 réutilise un programme d'une matière à l'autre par cette clé : une par greffe d'origine (la laque du kit, le vernis rimify) ; le motif, lui, vit dans un uniform
+      .replace('#include <color_fragment>','#include <color_fragment>\n'+(M.mel?MOT_GLSL_MEL:MOT_GLSL)).replace('vColor*uGlow',M.mel?'vColor*motM*uGlow':'vColor*motC*uGlow');}; // le plancher lumineux du kit prend le motif aussi
+  m.customProgramCacheKey=function(){return 'motif|'+(M.mel?'mel|':'')+pk;}; // ⚠ r128 réutilise un programme d'une matière à l'autre par cette clé : une par greffe d'origine (la laque du kit, le vernis rimify) ; le motif, lui, vit dans un uniform
   m.userData.mot=id;return m;}
+/* LES TOUFFES EN RELIEF (2026-11-01, Léo : « plus 3D, un truc qui s'ajoute sur la voiture ») : un motif à `touffes` (la MOUSSE) pose, sur les faces du dessus de la tôle,
+   de petits dômes à facettes — UNE SEULE pièce (les dômes fondus en une géométrie, couleur par sommet : un seul dessin, ~230 × 20 triangles) — et SEULEMENT là où la toile a de la
+   mousse (même projection que le shader : plan du dessus, (−x, z) × l'échelle du motif) ; le tirage a une graine fixe : la caisse est la même à chaque fois. Posée APRÈS la soudure
+   de la caisse (elle fond les pièces) et dans le repère de la caisse (`carBody`). */
+const MOT_MASQ={};
+function motMasque(id){if(MOT_MASQ[id])return MOT_MASQ[id];const N=64,cv=motToile(id,N),d=cv.getContext('2d').getImageData(0,0,N,N).data,m=new Uint8Array(N*N);for(let i=0;i<N*N;i++)m[i]=Math.min(d[i*4],d[i*4+1],d[i*4+2])<238?1:0;return MOT_MASQ[id]={N:N,m:m};}
+let MOT_TGEO=null,MOT_TMAT=null;
+function motTouffes(grp,id){const M=MOTIFS[id];if(!M||!M.touffes)return;grp.updateWorldMatrix(true,false);const INV=new THREE.Matrix4().copy(grp.matrixWorld).invert(),REL=new THREE.Matrix4();
+  if(!MOT_TGEO){MOT_TGEO=new THREE.IcosahedronGeometry(1,0);MOT_TMAT=new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true});}
+  const MQ=motMasque(id),R=motAlea(20261101),IP=MOT_TGEO.attributes.position,NV=IP.count;
+  grp.traverse(function(o){const m9=o.material;if(!o.isMesh||!m9||Array.isArray(m9)||!m9.userData||m9.userData.mot!==id||o.userData.touffes)return;
+    const g=o.geometry,P=g&&g.attributes.position;if(!P)return;o.updateWorldMatrix(true,false);REL.multiplyMatrices(INV,o.matrixWorld);
+    const ix=g.index,nt=ix?ix.count/3:P.count/3,A=[],cum=[];let tot=0;
+    const a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3(),n=new THREE.Vector3(),e=new THREE.Vector3();
+    for(let t=0;t<nt;t++){const i0=ix?ix.getX(t*3):t*3,i1=ix?ix.getX(t*3+1):t*3+1,i2=ix?ix.getX(t*3+2):t*3+2;a.fromBufferAttribute(P,i0);b.fromBufferAttribute(P,i1);c.fromBufferAttribute(P,i2);
+      n.subVectors(b,a).cross(e.subVectors(c,a));const ar=n.length()*.5;if(ar<1e-7)continue;n.divideScalar(ar*2);if(n.y<.6)continue; // les faces tournées vers le haut seulement
+      tot+=ar;cum.push(tot);A.push([i0,i1,i2,n.x,n.y,n.z]);}
+    if(!A.length||tot<.8)return;const K=Math.min(ALLEGE?120:230,Math.round(tot*80)),pos3=new Float32Array(K*NV*3),col3=new Float32Array(K*NV*3),Mx=new THREE.Matrix4(),q=new THREE.Quaternion(),q2=new THREE.Quaternion(),pos=new THREE.Vector3(),sc=new THREE.Vector3(),col=new THREE.Color(),UP=new THREE.Vector3(0,1,0),nn=new THREE.Vector3(),vv3=new THREE.Vector3();
+    let k=0;for(let it=0;it<2600&&k<K;it++){const w=R()*tot;let lo=0,hi=cum.length-1;while(lo<hi){const mid=(lo+hi)>>1;if(cum[mid]<w)lo=mid+1;else hi=mid;}const T=A[lo];
+      a.fromBufferAttribute(P,T[0]);b.fromBufferAttribute(P,T[1]);c.fromBufferAttribute(P,T[2]);let u=R(),v=R();if(u+v>1){u=1-u;v=1-v;}
+      pos.copy(a).addScaledVector(e.subVectors(b,a),u).addScaledVector(e.subVectors(c,a),v);
+      const uu=-pos.x*M.s,vv=pos.z*M.s,cx=Math.floor((uu-Math.floor(uu))*MQ.N),cy=Math.floor((1-(vv-Math.floor(vv)))*MQ.N);if(!MQ.m[Math.min(MQ.N-1,cy)*MQ.N+Math.min(MQ.N-1,cx)])continue; // pas de mousse sur la toile ici : pas de touffe
+      nn.set(T[3],T[4],T[5]);pos.addScaledVector(nn,.012);q.setFromUnitVectors(UP,nn);q2.setFromAxisAngle(UP,R()*6.28);q.multiply(q2);
+      const s0=.05+R()*.06;sc.set(s0,s0*(.5+R()*.35),s0*(.8+R()*.4));Mx.compose(pos,q,sc);Mx.premultiply(REL);
+      col.setHSL((88+R()*24)/360,.40+R()*.12,.11+R()*.13);
+      for(let vi=0;vi<NV;vi++){vv3.fromBufferAttribute(IP,vi).applyMatrix4(Mx);const o3=(k*NV+vi)*3;pos3[o3]=vv3.x;pos3[o3+1]=vv3.y;pos3[o3+2]=vv3.z;col3[o3]=col.r;col3[o3+1]=col.g;col3[o3+2]=col.b;}k++;}
+    if(!k)return;const G=new THREE.BufferGeometry();G.setAttribute('position',new THREE.BufferAttribute(pos3.subarray(0,k*NV*3),3));G.setAttribute('color',new THREE.BufferAttribute(col3.subarray(0,k*NV*3),3));G.computeVertexNormals();
+    const T2=new THREE.Mesh(G,MOT_TMAT);T2.userData.touffes=1;T2.userData.noShadow=true;grp.add(T2);});}
 if(PEINT_V2){
   for(const e of [ // [id, nom, description] — le motif : MOTIFS[id]
     ["leopard","LÉOPARD","Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles."],
@@ -49403,13 +49558,14 @@ if(PEINT_V2){
     ["coccinelle","COCCINELLE","Rouge vif, pois noirs. Porte-bonheur, et en plus elle va vite."],
     ["galaxie","GALAXIE","Des nébuleuses et mille étoiles sur la carrosserie. Le ciel de nuit, en laque."],
     ["cash","PLEIN AUX AS","Des dollars d'or sur fond vert billet. Discret ? Non."],
+    ["mousse","MOUSSE","Un coussin de vraie mousse sur toute la carrosserie. Douce, vivante, avec ses petits champignons."],
   ])COSM.peinture.push({id:e[0],n:e[1],mot:e[0],c:MOTIFS[e[0]].c,d:e[2]});
   for(const d of COSM.peinture)if(PEINT_DEFIS[d.id]&&!d.sec)peintSecrete(d,PEINT_DEFIS[d.id]); /* (2026-10-22) les seize secrètes de plus */
   for(const d of COSM.peinture){if(d.id==='usine')continue;const r=peintRegle(d);d.r=r;if(!d.mis&&!d.sec){d.eur=PEINT_EUR_ID[d.id]||PEINT_EUR[r];delete d.p;}} // la rareté ÉCRITE et le prix en euros ; carnets et secrètes se gagnent toujours
   Object.assign(I18N,{"LÉOPARD":"LEOPARD","Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles.":"Black rosettes on gold. You don't hunt: you overtake.",
     "TIGRE":"TIGER","Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.":"Burnt orange, black stripes. The king of the jungle traded his claws for tyres.",
     "ZÈBRE":"ZEBRA","Noir sur blanc ou blanc sur noir ? Personne ne sait. Toi, tu fonces.":"Black on white or white on black? Nobody knows. You just floor it.",
-    "VACHE":"COW","Des taches noires sur fond blanc. Meuh, à 300 à l'heure.":"Black patches on white. Moo, at 300 km/h.",
+    "MOUSSE":"MOSS","Un coussin de vraie mousse sur toute la carrosserie. Douce, vivante, avec ses petits champignons.":"A cushion of real moss all over the body. Soft, alive, with its tiny mushrooms.","VACHE":"COW","Des taches noires sur fond blanc. Meuh, à 300 à l'heure.":"Black patches on white. Moo, at 300 km/h.",
     "FLOWER POWER":"FLOWER POWER","Des marguerites sur fond rose. Peace, love et nitro.":"Daisies on pink. Peace, love and nitro.",
     "CAMOUFLAGE":"CAMO","Kaki, brun, vert sapin. Invisible en forêt. À 900 à l'heure, un peu moins.":"Khaki, brown, pine green. Invisible in the woods. At 900 km/h, a bit less.",
     "DAMIER":"CHEQUERED","Le drapeau d'arrivée peint sur toute la caisse. Tu as déjà gagné.":"The finish flag painted all over the car. You've already won.",
@@ -49433,12 +49589,13 @@ if(PEINT_V2){
    (noir, blanc, gris) et les métaux. Une peinture est rangée par ID (les secrètes masquées n'ont ni couleur ni dégradé tant qu'on ne les a pas gagnées : leur place ne doit
    pas bouger quand elles se dévoilent). L'ordre des listes EST l'ordre à l'écran ; une peinture nouvelle s'ajoute à la bonne liste (sinon : après les dégradés listés ;
    les motifs, eux, gardent l'ordre du catalogue). */
-const PEINT_BASIQUES=['bolide','azur','billet','taxi','emeute','royal','poupee','fuchsia','minuit','noir','neige'], // (2026-10-26, Léo : « les couleurs de base, rouge, bleu, vert, en haut ; plus on descend, plus c'est spécial ; les brillantes encore plus bas ») les primaires d'abord
-  PEINT_ORIGINALES=['dragee','abricot','vanille','pistache','amande','menthe','ogre','lagon','piscine','lilas','nardo','gotham'],
-  PEINT_BRILLANTES=['cuivre','or','orrose','chrome','fantome'], // les métaux et le nacré : unis mais brillants, sous les originales
+const PEINT_BASIQUES=['bolide','azur','billet','taxi','emeute','royal','poupee','fuchsia','minuit','noir'], // (2026-10-26, Léo : « les couleurs de base, rouge, bleu, vert, en haut ; plus on descend, plus c'est spécial ; les brillantes encore plus bas ») les primaires d'abord
+  PEINT_ORIGINALES=['ogre','lagon','nardo','gotham'],
+  PEINT_PALES=['neige','dragee','abricot','vanille','pistache','amande','piscine','lilas'], // (2026-11-01, Léo : « les couleurs pâles, mets-les à la fin ») tout au bout de la liste, après les motifs
+  PEINT_BRILLANTES=['cuivre','orrose','chrome','fantome'], // les métaux et le nacré : unis mais brillants, sous les originales
   PEINT_DEGRADES=['lave','envers','couchant','guerrier','banana','prisme','jadeimperial','cameleon','eclair','lampadaire','vaporwave','holo','nacre','orage','lunaire','srBraise','srAurore','srLagon','srEtoile']; // (2026-10-26, Léo : « les derniers épiques, mets-les comme des dégradés, au-dessus des stickers ») les 4 de la SÉRIE ferment les dégradés
 function peintClef(j){const d=COSM.peinture[j];if(d.id==='usine')return -1; // D'ORIGINE en tête, puis 1 basiques · 2 originales · 2,5 brillantes · 3 dégradés · 4 motifs
-  let k=PEINT_BASIQUES.indexOf(d.id);if(k>=0)return 100+k;k=PEINT_ORIGINALES.indexOf(d.id);if(k>=0)return 200+k;k=PEINT_BRILLANTES.indexOf(d.id);if(k>=0)return 250+k;k=PEINT_DEGRADES.indexOf(d.id);if(k>=0)return 300+k;
+  let k=PEINT_BASIQUES.indexOf(d.id);if(k>=0)return 100+k;k=PEINT_ORIGINALES.indexOf(d.id);if(k>=0)return 200+k;k=PEINT_BRILLANTES.indexOf(d.id);if(k>=0)return 250+k;k=PEINT_DEGRADES.indexOf(d.id);if(k>=0)return 300+k;k=PEINT_PALES.indexOf(d.id);if(k>=0)return 500+k;
   return (d.mot?400:350)+j;} // les motifs (les « stickers ») : l'ordre du catalogue 
 function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;});if(!PEINT_V2)return L; // les indices de COSM.peinture, rangés par famille (voir peintClef)
   return L.sort(function(a,b){return peintClef(a)-peintClef(b);});}
@@ -49453,7 +49610,7 @@ function palDonne(){ // APRÈS le succès de shopPaye('palette') (ou une restaur
   SAVE.flush();if(n9){toast(pxi('coche')+' '+TR('LA PALETTE')+' — '+TR('LES 35 COULEURS SONT À TOI'),true);try{hap([20,40,20,40,60]);}catch(e){}}return true;}
 function secDonne(id){ // GAMEPLAY : un DÉFI (secret) réussi → sa couleur. Rien en balade ni au bac à sable ; rien si elle est déjà à toi
   if(!PALETTE_ON||(typeof BALADE!=='undefined'&&BALADE)||(typeof SANDBOX!=='undefined'&&SANDBOX))return false;
-  const d=COSM.peinture.find(function(x){return x.sec===id;});if(!d||shopOwned('peinture',d.id))return false;
+  const d=COSM.peinture.find(function(x){return x.sec===id;});if(!d||PEINT_BIENTOT.indexOf(id)>=0||shopOwned('peinture',d.id))return false;
   SAVE.d.shop.own.push('peinture:'+d.id);SAVE.flush();
   if(!(m2LigneDit('col',sansAcc(TR('COULEUR')+' '+TR(d.n)),''))) /* (2026-10-17) en course : la ligne du bas, pas le toast du haut */
     toast(pxi('coche')+' '+TR('MISSION SECRÈTE')+' · '+TR('COULEUR')+' '+TR(d.n),true);try{hap([20,40,20,40,60]);}catch(e){}try{if(typeof SONV2!=='undefined'&&SONV2)sfx('victoire');}catch(e){}return true;}
@@ -49490,6 +49647,7 @@ function shopBuy(cat,i){ // ⚠ débit et possession dans la MÊME fonction, com
   return {ok:true,paye:d.p};
 }
 function shopEquip(cat,i){const d=COSM[cat][i];if(!d||!shopOwned(cat,d.id))return false;SAVE.d.shop.eq[cat]=d.id;SAVE.flush();return true;}
+window.dbgPeintures=function(v){if(v==='voitures')return CARS.map(function(c,i){return {i:i,n:c.name,retire:!!c.retire};});const O=peintOrdre();return COSM.peinture.map(function(d,j){return {j:j,o:O.indexOf(j),id:d.id,n:d.n,r:d.r,eur:d.eur||0,sec:!!d.sec,mot:!!d.mot,grad:!!d.grad,g:d.g||'',c:d.c};});}; // (2026-10-30, banc) la liste des peintures pour la planche
 window.dbgHab=function(cat,id){if(!COSM[cat])return null;const i=COSM[cat].findIndex(function(d){return d.id===id;});if(i<0)return 'inconnu'; // (2026-10-14, bancs) PORTER un habillage à l'essai, à toi ou non
   SHOP.prev={cat:cat,i:i};if(garageOn&&cat!=='peinture')SHOP.tab=cat;buildCar(CARS[garageOn?garageI:level]||CARS[0]);
   return {hab:cat+':'+id,rar:cosmRar(cat,COSM[cat][i]),ailes:carWingL?carWingL.children.length:0,anim:BLING.anim.length,fx:FX_EFF?{pop:FX_EFF.pop||null,rubOff:!!FX_EFF.rubOff}:null};};
@@ -49498,7 +49656,7 @@ window.dbgHab=function(cat,id){if(!COSM[cat])return null;const i=COSM[cat].findI
    hauteur : du bas de caisse au toit. */
 function peintPal(pal){
   const d=cosmSur('peinture');if(!d||d.id==='usine'||!pal||!pal.p)return pal;
-  const o=Object.assign({},pal);o.p=d.mot?{g:'pm:'+d.mot,c:0xffffff,grad:null}:{g:d.g||'p',c:d.c!=null?d.c:d.grad[1],grad:d.grad||null}; // (2026-10-16) un MOTIF : la tôle blanche dans son propre tampon, le motif la colore (voir MOTIFS)
+  const o=Object.assign({},pal);o.p=d.mot?{g:'pm:'+d.mot,c:MOTIFS[d.mot].mel?pal.p.c:0xffffff,grad:null}:{g:d.g||'p',c:d.c!=null?d.c:d.grad[1],grad:d.grad||null}; // (2026-10-16) un MOTIF : la tôle blanche dans son propre tampon, le motif la colore (voir MOTIFS)
   if(pal.p.f===0)o.p.f=0;return o;
 }
 const LPG_A=new THREE.Color(),LPG_B=new THREE.Color();
@@ -60272,11 +60430,12 @@ function figGDir(dx,dy){const ax=Math.abs(dx),ay=Math.abs(dy);if(Math.max(ax,ay)
 function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?(F.tailwhip||F.toupie):d==='u'?F.saltoa:F.saltov):null;} // (2e passe, Léo : « en l'air 360 aussi ») ← → = le 360 à plat — (2026-10-15, Léo par le MANAGER) ← → EN L'AIR = le TAIL WHIP de ce côté (le nez reste, la poupe fait le tour)
 function figGOpts(d){const f=figGFig(d);if(!f)return null;
   return {f:f,sens:f.piv?(d==='l'?-1:d==='r'?1:1):(d==='l'?1:d==='r'?-1:1),empile:true};} // (figLance, toupie : pouce à GAUCHE → sens +1, le nez part à gauche ; un salto garde son sens) — le TAIL WHIP : glissé à GAUCHE → la POUPE part à gauche (sens −1 : le nez tient, la queue fouette du côté du pouce)
-function figGNom(d){if(mode==='drive')return d==='l'||d==='r'?'SLIDE 360':d==='u'?'WHEELIE':'STOPPIE';const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';} // ce que dit la flèche
+function figGNom(d){if(mode==='drive'&&GSOL.v2){if(d==='d'){const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';}return d==='u'?'WHEELIE':'TAIL WHIP';}
+  if(mode==='drive')return d==='l'||d==='r'?'SLIDE 360':d==='u'?'WHEELIE':'STOPPIE';const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';} // ce que dit la flèche
 function figGJoue(d){ // (la boucle) le glissé lâché
   if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte())){GLI.refus++;return false;}
   const o=figGOpts(d);let ok=false;
-  if(o){if(mode==='drive')ok=gsolLance(d);else if(mode==='fall')ok=!!(FIGV2.on?figLance(-1,o):veqFigure());} // (2e passe) AU SOL : la figure se fait AU SOL (voir GSOL)
+  if(o){if(mode==='drive')ok=GSOL.v2&&d==='d'?frLance(o)===true:gsolLance(d);else if(mode==='fall')ok=!!(FIGV2.on?figLance(-1,o):veqFigure());} // (2e passe) AU SOL : la figure se fait AU SOL (voir GSOL)
   if(ok){GLI.n++;GLI.der=d;if(TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;}else GLI.refus++;
   return ok;}
 function figGVoit(d,x,y){ // la flèche du glissé : ce qui partira si on lâche ici
@@ -60306,13 +60465,22 @@ window.dbgGlisse=function(a){if(a==='on'||a==='off'){SAVE.d.figG=a==='on'?'gliss
      coût, attente) et le salto de ce sens, fini en l'air ; la caisse emporte l'angle de l'amorce (figDepart). Sinon elle se repose (coup de
      nez du ressort SCOUP) et c'est payé « WHEELIE » / « STOPPIE ».
    Pose = une rotation de carGroup autour d'un pivot, rejouée à chaque image APRÈS sa pose sur la route (gsolPose) : la physique ne voit rien.
-   Jamais sous la dalle (side < 0), une seule à la fois. */
-const GSOL={k:null,t:0,D:0,s:1,saute:false,k0:false,n:0,sauts:0,ax:new THREE.Vector3(),pv:new THREE.Vector3(),v:new THREE.Vector3(),q:new THREE.Quaternion()};
+   Jamais sous la dalle (side < 0), une seule à la fois.
+   ===== LE GLISSÉ AU SOL, 3e PASSE (2026-11-01, Léo : « les figures du genre salto doivent être déclenchées dès qu'on fait slide ou double
+   clic, ça retombe direct sur la route […] faire des figures roues avant levées et un slide pas 360, tail whip au sol » — au questionnaire :
+   « ↑ wheelie · ↓ salto · ← → tail whip au sol ») :
+   · ↓ = LE SALTO TOUT DE SUITE : la figure sur la route (frLance, le même bond haut que le double-tap), plus d'amorce STOPPIE ni de flèche
+     avant à tenir ; elle retombe sur la route. Décoller : manche haut PUIS boost pendant le bond (voir FDC, figures-route).
+   · ↑ = WHEELIE : les roues avant se lèvent ~1 s, la caisse reste au sol (plus de saut depuis l'amorce).
+   · ← → = TAIL WHIP AU SOL (`'t'`) : le nez tient (pivot sur l'essieu avant), la poupe FOUETTE du côté glissé (~110°) puis revient, la gomme
+     fume — pas un tour complet. Payé « TAIL WHIP ».
+   `?glsol=ancien` = la 2e passe (slide 360, wheelie/stoppie qui sautent au manche). */
+const GSOL={v2:!/[?&]glsol=ancien\b/.test(location.search),k:null,t:0,D:0,s:1,saute:false,k0:false,n:0,sauts:0,ax:new THREE.Vector3(),pv:new THREE.Vector3(),v:new THREE.Vector3(),q:new THREE.Quaternion()};
 function gsolHaut(){return !!(keys.ArrowUp||keys.KeyW||keys.KeyZ);}
 function gsolLance(d){const G=GSOL;
   if(mode!=='drive'||side<0||G.k||hopY>0||POSE_F){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
-  G.k=d==='l'||d==='r'?'p':d==='u'?'w':'s';G.t=0;G.D=G.k==='p'?.72:G.k==='w'?.78:.6;G.s=d==='l'?1:-1;G.saute=false;G.k0=gsolHaut();
-  if(G.k==='p'){try{if(SONV2&&!sfx('fig.toupie',{st:echSt()}))sfx('turbo.mini',{vol:-6});}catch(e){}hap([8,16]);}
+  G.k=d==='l'||d==='r'?(G.v2?'t':'p'):d==='u'?'w':'s';G.t=0;G.D=G.k==='p'?.72:G.k==='t'?.66:G.k==='w'?(G.v2?1.05:.78):.6;G.s=d==='l'?1:-1;G.saute=false;G.k0=gsolHaut();
+  if(G.k==='p'||G.k==='t'){try{if(SONV2&&!sfx('fig.toupie',{st:echSt()}))sfx('turbo.mini',{vol:-6});}catch(e){}hap([8,16]);}
   else{try{if(SONV2)sfx('turbo.mini',{vol:-6});}catch(e){}hap([10,20]);if(typeof sensCoup==='function')sensCoup(0,0,G.k==='w'?1.4:-1.4);}
   return true;}
 function gsolCoupe(){GSOL.k=null;GSOL.t=0;}
@@ -60320,21 +60488,25 @@ function gsolTick(dt){const G=GSOL;if(!G.k)return; // (la boucle, en course)
   if(mode!=='drive'||gameOver||!started){gsolCoupe();return;}
   if(paused)return;
   G.t+=dt;
-  if(G.k==='p'){if(Math.random()<dt*34){const sp=CARS[level]||CARS[0],sd=Math.random()<.5?-1:1; // la gomme fume aux roues arrière pendant le tour
+  if(G.k==='p'||G.k==='t'){if(Math.random()<dt*34){const sp=CARS[level]||CARS[0],sd=Math.random()<.5?-1:1; // la gomme fume aux roues arrière pendant le tour
       G.v.set(sd*sp.w*.45,.25,-sp.l*.38).applyQuaternion(carGroup.quaternion).add(carGroup.position);
       for(let k=0;k<3;k++)spawnP(dust,G.v.x,G.v.y,G.v.z,(Math.random()-.5)*5,1+Math.random()*2,(Math.random()-.5)*5,.35+Math.random()*.3);}}
-  else if(!G.saute&&G.t<G.D*.8){ // FLÈCHE AVANT pendant l'amorce : elle SAUTE et finit le salto en l'air
+  else if(!G.v2&&!G.saute&&G.t<G.D*.8){ // FLÈCHE AVANT pendant l'amorce : elle SAUTE et finit le salto en l'air
     const h=gsolHaut();if(!h)G.k0=false;
     if((TCTL.act&&TCTL.sv>.35)||(h&&!G.k0)){G.saute=true;const o=figGOpts(G.k==='w'?'u':'d');
       if(o&&veqSaut(o)){G.sauts++;gsolCoupe();return;}}} // refusé (attente, nitro à sec) : elle reste au sol, un seul essai
   if(G.t>=G.D){const k=G.k;gsolCoupe();G.n++;
     if(k==='p'){try{chaineAura('SLIDE 360',70,'gslide',false,false);}catch(e){}hap([10,22,10]);}
+    else if(k==='t'){try{chaineAura('TAIL WHIP',70,'gtailwhip',false,false);}catch(e){}hap([10,22,10]);}
     else{try{chaineAura(k==='w'?'WHEELIE':'STOPPIE',40,k==='w'?'gwheelie':'gstoppie',false,false);}catch(e){}
       if(typeof sensCoup==='function')sensCoup(0,k==='w'?2.4:-2,-1.2);hap([8,18]);}}} // elle retombe sur ses roues : le nez claque
 function gsolPose(F){const G=GSOL;if(!G.k||mode!=='drive')return; // (conduite, chaque image, après la pose de la caisse sur la route)
   const x=Math.min(1,G.t/G.D),q=carGroup.quaternion,p=carGroup.position;
   if(G.k==='p'){G.q.setFromAxisAngle(F.n,G.s*6.2832*x*x*(3-2*x));q.premultiply(G.q);return;}
-  const sp=CARS[level]||CARS[0],b=Math.pow(Math.sin(Math.PI*x),.75),a=(G.k==='w'?-.46:.34)*b,zp=(G.k==='w'?-1:1)*(sp.l||4.4)*.36;
+  const sp=CARS[level]||CARS[0];
+  if(G.k==='t'){const a=-G.s*1.92*Math.pow(Math.sin(Math.PI*Math.min(1,x*1.15)),.7); // le TAIL WHIP : la poupe part vite, revient un peu plus lentement ; pivot = l'essieu avant
+    G.pv.set(0,0,(sp.l||4.4)*.36).applyQuaternion(q).add(p);G.q.setFromAxisAngle(F.n,a);q.premultiply(G.q);p.sub(G.pv).applyQuaternion(G.q).add(G.pv);return;}
+  const b=Math.pow(Math.sin(Math.PI*x),G.v2&&G.k==='w'?.45:.75),a=(G.k==='w'?-.46:.34)*b,zp=(G.k==='w'?-1:1)*(sp.l||4.4)*.36;
   G.ax.set(1,0,0).applyQuaternion(q);G.pv.set(0,0,zp).applyQuaternion(q).add(p); // l'axe des roues, le pivot : l'essieu qui reste au sol
   G.q.setFromAxisAngle(G.ax,a);q.premultiply(G.q);p.sub(G.pv).applyQuaternion(G.q).add(G.pv);}
 /* ===== LES FIGURES SUR LA ROUTE (2026-10-17, Sacha : « toutes les figures doivent pouvoir être exécutées sur route, c'est-à-dire sans
@@ -60367,23 +60539,24 @@ function frHaut(f){let H=FR_K.hMin; // le sommet du bond : ce qu'il faut à la f
     for(let k=1;k<=16;k++){FR.dq.setFromAxisAngle(FR.dv2,amp*k/16);H=Math.max(H,frDegage(FR.dq,0)+FR_K.marge);}}
   return Math.min(FR_K.hMax,H);}
 function frDuree(f){return Math.min(FR_K.dMax,Math.max(FR_K.dMin,figDMin(f,true),f.D*FR_K.k));}
-function frLance(){ // le double-tap au sol : la figure de la direction tenue, SUR LA ROUTE — true lancée · false refusée · null rien dans cette direction (le saut nitro)
+function frLance(fo){ // le double-tap au sol : la figure de la direction tenue, SUR LA ROUTE — true lancée · false refusée · null rien dans cette direction (le saut nitro) — fo {f,sens} : la figure imposée (le SALTO du glissé ↓, voir figGJoue)
   if(!FR.ok||!FIGV2.on||!FR.C||!window.FIG||mode!=='drive')return null;
-  const S=figSlots();let s=FDIR.on?figDirSlot():FX2.cyc;
+  let s=-1,f=fo&&fo.f;
+  if(!f){const S=figSlots();s=FDIR.on?figDirSlot():FX2.cyc;
   if(!S[s]){if(FDIR.on&&!TUTO.on)return null;for(let k=1;k<FIG_NB&&!S[s];k++)if(S[(s+k)%FIG_NB])s=(s+k)%FIG_NB;if(!S[s])return null;} // (comme le saut) l'auto-école et ?figdir=0 prennent un emplacement qui existe
-  let f=FIG.par[S[s]];if(f&&FIG.oriente&&s<2)f=FIG.oriente(f,FIG_DIR[s]);if(!f)return null;
+  f=FIG.par[S[s]];if(f&&FIG.oriente&&s<2)f=FIG.oriente(f,FIG_DIR[s]);if(!f)return null;}
   if(FR.on||GSOL.k||DMT.act||performance.now()-VEQ.sautT<VEQ_K.sautCd*1000)return false; // une à la fois ; pas pendant un geste du GLISSER ni le demi-tour ; l'attente du saut
   const libre=pwrNitroT>0||PARK.on||startBoostT>0||TUTO.on,cout=libre?0:NITRO2.figN.cout*nitroCap();
   if(!libre&&nitroR+nitroX<cout){figRefus(s);return false;}
   if(cout>0)figNitPaye(cout);
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
-  const st9=FDIR.on&&Math.abs(FDIR.x)>=.3?FDIR.x:steer,sens=Math.abs(st9)>.25?(ax===2?(st9>0?-1:1):(st9>0?1:-1))*(f.piv?-1:1):(FX2.sensAlt=-FX2.sensAlt); // (comme figLance) elle part du côté du pouce
+  const st9=FDIR.on&&Math.abs(FDIR.x)>=.3?FDIR.x:steer,sens=fo&&fo.sens!=null?fo.sens:Math.abs(st9)>.25?(ax===2?(st9>0?-1:1):(st9>0?1:-1))*(f.piv?-1:1):(FX2.sensAlt=-FX2.sensAlt); // (comme figLance) elle part du côté du pouce
   const D=frDuree(f),C=FR.C;
   FX2.pts=0;FX2.nPay=0;if(FX2.cv.cle!=='fin')figCvRaz();else{FX2.cv.n=0;FX2.cv.dist=0;FX2.cv.ids={};FX2.cv.noms.length=0;}FX2.trio=[];FX2.nitF=0;FX2.nitL=0; // un « vol » neuf, sur la route (voir figDepart)
   C.vide();C.budget=9;C.poseK=0;const r=C.lance(f,sens,D,{douce:true});if(!r)return false; // douce : comme celle du saut — jamais une chute, pas de trio
-  r.nitN=1;FX2.nitL=1;FX2.n++;VEQ.n++;FR.n++;FX2.cyc=(s+1)%FIG_NB;VEQ.sautT=performance.now();
+  r.nitN=1;FX2.nitL=1;FX2.n++;VEQ.n++;FR.n++;if(s>=0)FX2.cyc=(s+1)%FIG_NB;VEQ.sautT=performance.now();
   {const D9=FIG.dirs?FIG.dirs(f):[];r.flD=f.sens==='avant'||(D9.length===1&&D9[0]==='avant')?'haut':f.sens==='arriere'||(D9.length===1&&D9[0]==='arriere')?'bas':((ax===2||f.piv)?(sens<0?'gauche':'droite'):(sens>0?'gauche':'droite'));} // la flèche du HUD (voir figLance)
-  FR.on=true;FR.t=0;FR.D=D;FR.T=D*1.12+FIG.PHY.retT+.08;FR.H=frHaut(f);FR.s=s;FR.r=r;FR.f=f;FR.pivK=0;FR.lift=0;FR.liftMax=0;FDC.a=frNez()<FDC.arme; /* (2026-10-19) LE DÉCOLLAGE AU MANCHE : le pouce qui a CHOISI la figure (en haut) doit revenir avant de faire décoller */
+  FR.on=true;FR.t=0;FR.D=D;FR.T=D*1.12+FIG.PHY.retT+.08;FR.H=frHaut(f);FR.s=s;FR.r=r;FR.f=f;FR.pivK=0;FR.lift=0;FR.liftMax=0;FDC.a=frNez()<FDC.arme;FDC.sp=!!keys.Space;FDC.bT=0; /* (2026-10-19) LE DÉCOLLAGE AU MANCHE : le pouce qui a CHOISI la figure (en haut) doit revenir avant de faire décoller */
   figCoup(Math.hypot(r.imp[0],r.imp[1],r.imp[2])/10,false);fhLance(s,r,{}); // le coup de la figure (son, main, caméra) ; son nom tombe en grand, dans la couleur de son emplacement
   const p9=carGroup.position,sp9=CARS[level]||CARS[0];for(let k=0;k<14;k++){const a=Math.random()*6.2832; // le souffle contre la route, sous la caisse
     spawnP(k%3?flames:flameCore,p9.x+Math.cos(a)*sp9.w*.5,p9.y+.2,p9.z+Math.sin(a)*sp9.l*.4,FR.vel.x*.8+Math.cos(a)*(3+Math.random()*5),-1-Math.random()*2,FR.vel.z*.8+Math.sin(a)*(3+Math.random()*5),.16+Math.random()*.14);}
@@ -60445,19 +60618,26 @@ function frVersVol(k){ // (startFall, APRÈS figDepart) le corps de la figure de
      nitro), ni à l'auto-école, ni pendant un rebond (hopY, la pose qui se tasse), ni pendant le demi-tour.
    · Gratuit (la figure a payé ses 20 %) ; la pose rend la nitro d'un SAUT NITRO (`VEQ.sautF`) ; le volant n'est pas verrouillé.
    `?fdecolle=0` = sans. Console : `dbgFDecolle()` (l'état), `dbgFDecolle(v)` = le manche forcé à v (null : rend la main au pouce). */
-const FDC={ok:!/[?&]fdecolle=0\b/.test(location.search),arme:.3,seuil:.55,haut:.2,imp:6,a:false,n:0,force:null,dv:0,lift:0};
+/* MANCHE HAUT PUIS BOOST (2026-11-01, Léo : « si le joueur veut il doit pouvoir, en mettant flèche en l'air (pour les non inversés et vice
+   versa) puis boost, décoller ; sinon le salto est bien haut comme actuellement… et doit laisser la possibilité de décoller si on a du skill »
+   — au questionnaire : « manche haut PUIS boost »). Le manche seul ne fait plus décoller : il faut AUSSI un appui NITRO NEUF pendant le bond
+   (`FDC.bT`, un appui commencé après le lancement : le 2e tap du double-tap, ou le pouce resté sur NITRO après un coup sec, ne comptent pas).
+   Le manche n'a plus à revenir au neutre (`arme`) : c'est le boost qui décide. `?fdecolle=manche` = le manche seul d'avant. */
+const FDC={ok:!/[?&]fdecolle=0\b/.test(location.search),boost:!/[?&]fdecolle=manche\b/.test(location.search),sp:false,bT:0,arme:.3,seuil:.55,haut:.2,imp:6,a:false,n:0,force:null,dv:0,lift:0};
 function frNez(){if(FDC.force!=null)return FDC.force; // le manche du vol lu sur la route : +1 = le nez en HAUT (le cabré), comme pitT/wPitch en vol
   if(TCTL.act||TCTL.incl)return -TCTL.sv*volSens()*volInv(); // (2026-10-27) INCLINAISON : TCTL.sv porte le tangage du téléphone
  return volInv()*((keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.KeyZ||keys.ArrowUp?1:0));}
 function frEnvol(){ // (frTick, chaque image du bond) le manche tiré : la caisse quitte la route — true : elle vole
-  const u=frNez();if(u<FDC.arme){FDC.a=true;return false;}
-  if(!FDC.ok||!FDC.a||u<FDC.seuil||!FR.on||mode!=='drive'||FR.lift<FDC.haut||side<0||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act)return false;
+  const sp=!!keys.Space;if(sp&&!FDC.sp)FDC.bT=performance.now();FDC.sp=sp; // l'appui NITRO neuf
+  const u=frNez();if(u<FDC.arme){FDC.a=true;if(!FDC.boost)return false;}
+  if(FDC.boost?!(sp&&FDC.bT>0):!FDC.a)return false; // (2026-11-01) manche haut PUIS boost
+  if(!FDC.ok||u<FDC.seuil||!FR.on||mode!=='drive'||FR.lift<FDC.haut||side<0||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act)return false;
   const x=Math.min(1,FR.t/FR.T),vb=FR.H*4*(1-2*x)/Math.max(.1,FR.T)/SPD; // la vitesse du bond, dans les unités du vol (la position avance de fallVel × SPD)
   FDC.dv=Math.max(FDC.imp,vb);FDC.lift=FR.lift;FDC.a=false;FDC.n++;
   startFall(FDC.dv,1);VEQ.sautF=flightId;VEQ.l0=0; // un décollage VOULU : comme le saut nitro, le volant tenu continue de tourner, la pose rend la nitro d'un saut
   return true;}
 window.dbgFDecolle=function(v){if(v!==undefined)FDC.force=v==null?null:+v;
-  return {ok:FDC.ok,arme:FDC.a,nez:+frNez().toFixed(2),force:FDC.force,decolles:FDC.n,dv:+FDC.dv.toFixed(1),liftDecolle:+FDC.lift.toFixed(2),route:FR.on,lift:+FR.lift.toFixed(2),
+  return {ok:FDC.ok,boost:FDC.boost,appui:FDC.bT>0,arme:FDC.a,nez:+frNez().toFixed(2),force:FDC.force,decolles:FDC.n,dv:+FDC.dv.toFixed(1),liftDecolle:+FDC.lift.toFixed(2),route:FR.on,lift:+FR.lift.toFixed(2),
     mode:mode,vol:mode==='fall'?+fallTR.toFixed(2):0,haut:mode==='fall'?+fallPos.y.toFixed(1):null};};
 window.dbgFRoute=function(x,y){if(x!=null){FDIR.force=[+x||0,+y||0];let r;try{r=veqDouble();}finally{setTimeout(function(){FDIR.force=null;},250);}
     return {ok:!!r,route:FR.on,mode:mode,fig:FR.on&&FR.f?FR.f.id:null,saut:!FR.on&&mode==='fall',nit:+(nitroR+nitroX).toFixed(2)};}
@@ -74122,7 +74302,12 @@ const NX3_PAL={
   bleu:['#ffffff','#b5c4ff','#e8edff','#4a68f0','#2a44c8','#16247a','#4a68f0','#0b0a2e'],
   vio: ['#ffe0dc','#ff4a3a','#ffb0a8','#ff1a0a','#c40a00','#6e0500','#ff4a3a','#1c0430'],
   vioF:['#ffffff','#ffc8c0','#ffffff','#ff4a3a','#ff1a0a','#6e0500','#ff4a3a','#1c0430'],
-  sec: ['#a49cc4','#6e6890','#8a84aa','#4a4468','#332e50','#211d38','#ff5a6e','#1c0430']};
+  sec: ['#a49cc4','#6e6890','#8a84aa','#4a4468','#332e50','#211d38','#ff5a6e','#1c0430'],
+  /* LA FLAMME (?boost=flamme, voir boost-icones.js) : [cœur, plein, clair, bord, épaisseur haute, épaisseur basse, lueur, contour] — de la braise (repos) au blanc-bleu (tenu longtemps) */
+  f0:  ['#ffe9a0','#ff8f1f','#ffc24a','#d8420a','#a02a00','#4a1200','#ff7a1a','#1c0430'],
+  f1:  ['#fff6c0','#ffb21f','#ffd95a','#ff6a0e','#c43c00','#6e1a00','#ff8d2e','#1c0430'],
+  f2:  ['#ffffff','#ffe066','#fff2a0','#ff9a1a','#ff6a0e','#8a2400','#ffb347','#1c0430'],
+  f3:  ['#ffffff','#fff6d0','#ffffff','#ffb84a','#ff8a1a','#a03000','#aee0ff','#1c0430']};
 const NX3_RGB={};function nx3Rgb(h){let v=NX3_RGB[h];if(v==null){const n=parseInt(h.slice(1),16);v=NX3_RGB[h]=(255<<24|(n&255)<<16|(n>>8&255)<<8|n>>16)>>>0;}return v;} // ABGR (petit-boutiste)
 function nx3Monte(){
   const el=document.getElementById('tNitro'),bar=document.getElementById('nitroBar');if(!el||!bar||NX3.el)return!!NX3.el;NX3.el=el;
@@ -74140,6 +74325,7 @@ function nx3Monte(){
    g = position du reflet qui balaie (somme x+y, −1 = aucun), clig = contour rouge (à sec). Couches : l'éclair (1), son épaisseur (2), puis
    autour, à 1 case le contour d'encre, à 2 et 3 cases les deux anneaux de lueur. */
 function nx3Dessine(d,pal,a,g,clig){
+  if(NX3.flame)return nxfDessine(d,pal,a,clig);
   const W=NX3.W,H=NX3.H,u=NX3.u32,m=NX3.m,gw=NX3_G[0].length,gh=NX3_G.length,M=NX3_M,T=NX3_T,P=NX3_PAL[pal];u.fill(0);
   const y0=M+d,ep=T-d,B=NX3.B||(NX3.B=new Uint8Array(W*H));
   const forme=function(x,y){x-=M;y-=y0;return x>=0&&y>=0&&x<gw&&y<gh&&m[y*gw+x]===1;};
@@ -74172,16 +74358,18 @@ function nx3Tick(dt,kmh){
   if(rm){NX3.p=appui;NX3.pv=0;}else{const h=Math.min(dt,.05)/2,w0=30,z=.4;for(let i=0;i<2;i++){NX3.pv+=(w0*w0*(appui-NX3.p)-2*z*w0*NX3.pv)*h;NX3.p+=NX3.pv*h;}
     if(NX3.p<-.34){NX3.p=-.34;NX3.pv=0;}else if(NX3.p>1.05){NX3.p=1.05;NX3.pv=0;}}
   const d=Math.max(-1,Math.min(NX3_T,Math.round(NX3.p*NX3_T)));
+  if(NX3.flame)NX3.heat=Math.max(0,Math.min(1,(NX3.heat||0)+(appui?dt/2.2:-dt/.7))); // (?boost=flamme) la CHALEUR monte tant que le doigt reste (2,2 s au maximum) et retombe vite au lâcher
   // LA LUEUR : la nitro qui brûle (à sec, l'appui ne fait rien briller) ; pleine et au repos, elle respire
   const veut=NX3.kF!=null?NX3.kF:(nitroOn?1:0);NX3.k+=(veut-NX3.k)*Math.min(1,dt*(veut>NX3.k?16:6));
-  const souffle=(plein&&!appui&&!rm)?.18+.16*Math.sin(NX3.t*5.2):0,a=Math.max(NX3.k,souffle);
+  const souffle=(plein&&!appui&&!rm)?.18+.16*Math.sin(NX3.t*5.2):0,fh=NX3.flame?Math.max(NX3.heat,NX3.k*.5):0,a=Math.max(NX3.k,souffle,fh*.95);
   const aQ=Math.round(a*(rm?1:(.85+.15*Math.sin(NX3.t*31)))*6)/6; // la lueur par crans (des cases qui battent, pas un dégradé)
-  const chaud=NX3.k>.5,pal=inf?(chaud?'vioF':'vio'):(chaud?(nitroBlue?'bleu':'feu'):(sec?'sec':'or'));
+  const chaud=NX3.k>.5,pal=NX3.flame?(inf?(chaud?'vioF':'vio'):(sec?'sec':(chaud&&nitroBlue?'bleu':'f'+Math.min(3,Math.floor(fh*4))))):inf?(chaud?'vioF':'vio'):(chaud?(nitroBlue?'bleu':'feu'):(sec?'sec':'or'));
   const clig=sec&&!appui&&(Math.floor(NX3.t/.3)&1)===1;
   // le REFLET blanc qui balaie les cases : toutes les ~3,5 s (1,6 s quand la nitro est pleine)
   NX3.glT-=dt;if(NX3.gl<0&&NX3.glT<=0&&!rm&&!appui&&!sec){NX3.gl=0;}
   let g=-1;if(NX3.gl>=0){NX3.gl+=dt/.5;if(NX3.gl>1){NX3.gl=-1;NX3.glT=plein?1.6:3.5;}else g=Math.floor(-2+NX3.gl*36);}
-  const cle=d+'|'+pal+'|'+aQ+'|'+g+'|'+clig;
+  if(NX3.flame){NX3.fh=Math.round(fh*20)/20;NX3.ft=rm?0:Math.floor(NX3.t*(7+9*fh));}
+  const cle=d+'|'+pal+'|'+aQ+'|'+g+'|'+clig+(NX3.flame?'|'+NX3.fh+'|'+NX3.ft:'');
   if(cle!==NX3.cle){NX3.cle=cle;nx3Dessine(d,pal,aQ,g,clig);}
 }
 window.dbgNitro3=function(a,b){
@@ -74376,6 +74564,46 @@ function mortSaute(dt){
   MORT_IMG.n++;return true;
 }
 window.dbgMortImg=function(n){if(n!=null){PAL.B.mortImg[PAL.n]=Math.max(1,n|0);MORT_IMG.i=0;}return {N:PAL.b('mortImg',1),actif:MORT_IMG.on,depuis:+MORT_IMG.t.toFixed(2),sautees:MORT_IMG.n,ecran:overlay.getAttribute('data-ecran'),tel:TCTL.on};}; // (banc)
+/* ===== LES ICÔNES DU BOUTON BOOST (2026-11-01, Léo : « change l'éclair par un truc intelligent ou stylé, genre une bouteille nitro, on peut tester plusieurs trucs ») ===== ?boost=bouteille|chevrons|anneau (SVG) ou flamme (en pixels, voir plus bas) : un SVG en verre dans #tNitro à la place de l'éclair en pixels (le style vit dans charte-7-details.css) ; rien dans l'URL = l'éclair, comme avant. */
+const BV_ICO={"bouteille": "<svg class=\"bvIco bv-bouteille\" viewBox=\"0 0 40 66\" aria-hidden=\"true\"><defs><clipPath id=\"bvCb\"><path d=\"M14 9h12v6q8 2 8 12v27q0 8-8 8H14q-8 0-8-8V27q0-10 8-12z\"/></clipPath></defs><g clip-path=\"url(#bvCb)\"><rect class=\"bvLx\" x=\"0\" y=\"15\" width=\"40\" height=\"52\"/><rect class=\"bvLq\" x=\"0\" y=\"15\" width=\"40\" height=\"52\"/></g><path class=\"bvLn\" d=\"M14 9h12v6q8 2 8 12v27q0 8-8 8H14q-8 0-8-8V27q0-10 8-12z\"/><path class=\"bvLn\" d=\"M11 4h18v5H11z\"/><path class=\"bvBr\" d=\"M10 31h20M10 36h20\"/><path class=\"bvSh\" d=\"M11 22q-2 4-2 10\"/></svg>", "chevrons": "<svg class=\"bvIco bv-chevrons\" viewBox=\"0 0 48 52\" aria-hidden=\"true\"><path class=\"bvCh c3\" d=\"M8 46l16-14 16 14\"/><path class=\"bvCh c2\" d=\"M8 31l16-14 16 14\"/><path class=\"bvCh c1\" d=\"M8 16l16-14 16 14\"/></svg>", "anneau": "<svg class=\"bvIco bv-anneau\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"><circle class=\"bvPi\" cx=\"32\" cy=\"32\" r=\"27\"/><circle class=\"bvRx\" cx=\"32\" cy=\"32\" r=\"27\" pathLength=\"100\"/><circle class=\"bvRq\" cx=\"32\" cy=\"32\" r=\"27\" pathLength=\"100\"/><path class=\"bvCh d2\" d=\"M21 38l11-10 11 10\"/><path class=\"bvCh d1\" d=\"M21 29l11-10 11 10\"/></svg>"};
+{const bv=(/[?&]boost=([a-z]+)/.exec(location.search)||[])[1],bt=document.getElementById('tNitro');
+ if(bv==='flamme')NX3.flame=true;
+ else if(bv&&BV_ICO[bv]&&bt){bt.insertAdjacentHTML('beforeend',BV_ICO[bv]);document.body.classList.add('bv','bv-'+bv);}}
+/* ===== LA FLAMME EN PIXELS (2026-11-01, Léo : « flamme mais plus stylé, qui autour du doigt s'enflamme de plus en plus (couleurs et intensité) quand on maintient, même style que l'éclair actuel mais flamme ») =====
+   Même pipeline que l'éclair (grille de cases, contour d'encre, épaisseur dessous, lueur en cases, enfoncement) — seule la FORME change : une flamme qui vacille (tête qui se balance,
+   flancs qui bougent), dessinée du bord vers le cœur (bord foncé → plein → clair → cœur blanc). NX3.heat (0 → 1 en 2,2 s de doigt posé, retombe en 0,7 s) la fait GRANDIR, lui donne
+   deux langues de chaque côté (> 30 % et > 55 %), des étincelles (> 50 %), un cœur blanc-bleu (> 70 %) et la fait passer de la braise (f0) au blanc brûlant (f3) ; la réserve bleue,
+   la nitro infinie (violet) et le « à sec » (gris) gardent leurs palettes. Redessinée 7 à 16 fois par seconde, pas à chaque image. */
+function nxfMasque(fh,fr){
+  const gw=15,gh=20,m=NX3.fm||(NX3.fm=new Uint8Array(gw*gh));m.fill(0);
+  const fl=function(cx,haut,w,ph,sw){const bas=gh-1;
+    for(let y=bas;y>=Math.max(0,bas-haut);y--){const v=(bas-y)/haut,hw=w*Math.pow(1-v,.7)*(.55+.45*Math.sin(Math.min(1,v*3)*1.5708)),
+      c=cx+sw*Math.pow(v,1.5)*Math.sin(fr*.9+ph+v*3),j=.35*Math.sin(fr*1.3+ph*2+y*1.1);
+      for(let x=0;x<gw;x++)if(Math.abs(x-c)<=hw+j+.35)m[y*gw+x]=1;}};
+  fl(7,Math.round(11+8*fh+1.2*Math.sin(fr*.7)),4+.8*fh,0,1.6+fh);
+  if(fh>.3)fl(2,Math.round(5+7*fh+1.2*Math.sin(fr+1)),2,2,1);
+  if(fh>.55)fl(12,Math.round(5+7*fh+1.2*Math.sin(fr*1.1+4)),2,4,1);
+  return m;
+}
+function nxfDessine(d,pal,a,clig){
+  const W=NX3.W,H=NX3.H,u=NX3.u32,gw=15,gh=20,M=NX3_M,T=NX3_T,P=NX3_PAL[pal],fh=NX3.fh||0,fr=NX3.ft||0,m=nxfMasque(fh,fr);u.fill(0);
+  const y0=M+d,ep=T-d,B=NX3.B||(NX3.B=new Uint8Array(W*H));
+  const forme=function(x,y){x-=M;y-=y0;return x>=0&&y>=0&&x<gw&&y<gh&&m[y*gw+x]===1;};
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){let b=forme(x,y)?1:0;if(!b)for(let k=1;k<=ep;k++)if(forme(x,y-k)){b=2;break;}B[y*W+x]=b;}
+  const pres=function(x,y,r){for(let j=-r;j<=r;j++)for(let i=-r;i<=r;i++){const X=x+i,Y=y+j;if(X>=0&&Y>=0&&X<W&&Y<H&&B[Y*W+X])return true;}return false;};
+  const cE=nx3Rgb(clig?'#ff5a6e':P[7]),g0=nx3Rgb(P[6])&0x00ffffff,cG1=(g0|Math.round(a*.78*255)<<24)>>>0,cG2=(g0|Math.round(a*.36*255)<<24)>>>0;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const b=B[y*W+x],i=y*W+x;
+    if(b===1){let dp=1;while(dp<6&&forme(x-dp,y)&&forme(x+dp,y)&&forme(x,y-dp)&&forme(x,y+dp))dp++;
+      let c=dp===1?P[3]:dp===2?P[1]:dp<5?P[2]:P[0];
+      if(fh>.7&&dp>=3&&y>=y0+gh-5&&Math.abs(x-M-7)<=2)c='#9cc4ff'; // le pied du cœur vire au bleu quand la flamme est blanche
+      u[i]=nx3Rgb(c);}
+    else if(b===2)u[i]=nx3Rgb(forme(x,y-1)?P[4]:P[5]);
+    else if(pres(x,y,1))u[i]=cE;
+    else if(a>.02){if(pres(x,y,2))u[i]=cG1;else if(pres(x,y,3))u[i]=cG2;}
+  }
+  if(fh>.5){const n=Math.round(fh*6),cs=nx3Rgb(P[2]);for(let q=0;q<n;q++){const sx=(q*53+fr*5)%W,sy=(fr*2+q*37)%(H-T-2);if(!B[sy*W+sx])u[sy*W+sx]=cs;}} // les étincelles
+  NX3.cx.putImageData(NX3.img,0,0);
+}
 /* ====================== LA CADENCE STABLE — CAD (2026-10-14, passe perf mobile ; Sacha : « fluide même sur un iPhone 7 », « sans bugger ») ======================
    Un téléphone qui ne tient pas 60 images/s n'en affiche pas « 45 » : il alterne des images de 16,7 ms et de 33,3 ms au hasard, et c'est
    CETTE irrégularité que le joueur appelle « ça bug ». 30 images/s RÉGULIÈRES (une image d'écran sur deux, toujours la même) se lisent
