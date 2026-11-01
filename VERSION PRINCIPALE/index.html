@@ -44696,7 +44696,7 @@ SHAPES.d_corbillard=function(K){
   const U=LPU,R=.40,ZF=1.76,ZR=-1.98,ZC=2.38;                                 /* ZC : où finit le cercueil et commence le crâne */
   const P=K.kit({p:{g:'p',c:0x0d0d10},k:{g:'m',c:0x141518},K:{g:'g',c:0x050507},V:{g:'g',c:0x030304},g:{g:'g',c:0x16202a},
     b:{g:'s',c:0xbfae88,f:0},B:{g:'s',c:0x6e6048,f:0},N:{g:'m',c:0x0a0806,f:0},A:{g:'c',c:0xc9a45a},
-    W:{g:'l',c:0xe8f4ff},L:{g:'l',c:0xff1f2e},Q:{g:'l',c:0xffffff},E:{g:'m',c:0x1a1030},I:{g:'l',c:0xff3f8e}});   /* E, I : l'œil kawaii (le grand noir, le CŒUR rose qui brille) */   /* Q : la place de la plaque (plqDessinee) */                               /* b : l'os, B : l'os dans l'ombre (sutures, dents du fond), A : le laiton du cercueil */
+    W:{g:'l',c:0xe8f4ff},L:{g:'l',c:0xff1f2e},Q:{g:'l',c:0xffffff}});   /* Q : la place de la plaque (plqDessinee) */                               /* b : l'os, B : l'os dans l'ombre (sutures, dents du fond), A : le laiton du cercueil */
   const AR=[[0,2*R+.06],[R*.70,2*R+.02],[R+.06,R*1.18],[R+.18,.40]];
   const zs=[-2.95,-2.85,-2.60,-.30,.10,1.00,ZC-.04,ZC];
   for(const w of [ZF,ZR])for(const d of [R*.70,R+.06,R+.18])zs.push(w-d,w+d);
@@ -44720,53 +44720,48 @@ SHAPES.d_corbillard=function(K){
     P.put(k,g,(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2);};
   const rotule=(k,r,x,y,z)=>P.put(k,new THREE.IcosahedronGeometry(r,0),x,y,z); /* une tête d'os, à facettes */
   const os=(a,b,t,r)=>{barre('b',a,b,t);for(const p of [a,b])for(const s of [-1,1])rotule('b',r,p[0],p[1]+s*r*.55,p[2]);}; /* un os long : le fût et ses deux têtes doubles */
-  /* LE CRÂNE v2 (2026-11-01, Léo : « le crâne ça va pas comparé au reste, refonte ») : un VOLUME sculpté, plus un dessin sur une boîte.
-     Une coque à facettes posée sur la tête du cercueil (z = ZC) : un champ de relief sur une grille (s, y) où la silhouette (wY) fait
-     le crâne de face — voûte ronde, tempes, pommettes larges, mâchoire étroite — et la profondeur (dY) son profil — front, arcades, face, menton.
-     Les orbites, le nez et la bouche sont CREUSÉS dans la coque (vrais creux, os sombre au bord, noir au fond) ; les dents s'y posent. */
-  const ZB=1.90;                                                                                       /* le plan du dos du crâne : la voûte recouvre le bout du capot */
-  const wY=y=>U.lin([[.16,.26],[.24,.38],[.30,.46],[.36,.50],[.42,.50],[.48,.58],[.54,.74],[.62,.78],[.70,.75],[.79,.73],[.97,.78],[1.12,.82],[1.28,.78],[1.40,.66],[1.50,.42],[1.55,.04]],y),   /* (v3, « plus propre, réel ») la mandibule, le maxillaire étroit, les pommettes, les tempes, la voûte */
-        dY=y=>U.lin([[.16,.55],[.24,.92],[.36,1.00],[.48,1.02],[.56,1.05],[.70,.98],[.88,1.00],[1.05,1.05],[1.15,.98],[1.28,.86],[1.40,.64],[1.50,.36],[1.55,0]],y);
-  /* une grille LARGE (les grosses facettes du jeu) dont les lignes tombent sur les bords des orbites, du nez et de la bouche :
-     on creuse en enfonçant les sommets intérieurs — orbites et nez taillés à facettes, nets */
-  const XS=[-.80,-.70,-.62,-.52,-.42,-.32,-.22,-.12,-.05,0,.05,.12,.22,.32,.42,.52,.62,.70,.80],
-        YS=[.16,.24,.30,.36,.42,.48,.54,.62,.70,.79,.88,.97,1.05,1.12,1.20,1.28,1.36,1.44,1.50,1.55];
-  const dans=(v,a,b)=>v>a-1e-6&&v<b+1e-6,ds=(v,a,b)=>v>a+1e-6&&v<b-1e-6;
-  const creux=(x,y)=>{const ax=Math.abs(x);let d=0;
-    if(ds(ax,.12,.52)&&ds(y,.70,1.05))d+=ax===.32&&y===.88?.26:.18;                                 /* l'orbite */
-    if(ax<.42-1e-6&&y===.42)d+=.08;                                                                 /* la bouche */
-    if(ax===.62&&(y===.54||y===.62))d-=.06;                                                         /* la pommette */
-    if(ax===.70&&dans(y,.88,1.05))d+=.05;                                                           /* la tempe */
-    return d;};
-  const relief=(x,y)=>Math.max(0,dY(y)*Math.pow(Math.max(0,1-(x/.80)**2),.42)-creux(x,y));
-  const cle=(x0,x1,y0,y1)=>{const ax=Math.min(Math.abs(x0),Math.abs(x1)),bx=Math.max(Math.abs(x0),Math.abs(x1));
-    if(dans(ax,.12,.52)&&dans(bx,.12,.52)&&dans(y0,.70,1.05)&&dans(y1,.70,1.05)){
-      return 'N';}                          /* l'orbite : noire, ses coins coupés en os d'ombre */
-    if(bx<.43&&dans(y0,.36,.48)&&dans(y1,.36,.48))return 'N';                                        /* la bouche */
-    return 'b';};                                                                                    /* (v3) plus de bande d'ombre sur le tour : la lumière fait le volume */
-  {const pt=(x,y)=>[x*wY(y)/.80,y,ZB+relief(x,y)];
-   for(let r=0;r<YS.length-1;r++)for(let i=0;i<XS.length-1;i++){const y0=YS[r],y1=YS[r+1],x0=XS[i],x1=XS[i+1];
-     const a=pt(x0,y0),b=pt(x1,y0),c=pt(x1,y1),d=pt(x0,y1),k=cle(x0,x1,y0,y1);P.tri(k,a,b,c);P.tri(k,a,c,d);}
-   for(let i=0;i<XS.length-1;i++){const a=pt(XS[i],YS[0]),b=pt(XS[i+1],YS[0]),A2=[a[0],a[1],ZB],B2=[b[0],b[1],ZB];P.tri('B',a,A2,B2);P.tri('B',a,B2,b);}  /* le dessous du menton */
-   const tour=[];for(const y of YS)tour.push([wY(y),y]);for(let r=YS.length-1;r>=0;r--)tour.push([-wY(YS[r]),YS[r]]);
-   const o=[0,.85,ZB];for(let i=0;i<tour.length-1;i++){const a=tour[i],b=tour[i+1];P.tri('B',o,[b[0],b[1],ZB],[a[0],a[1],ZB]);}}  /* le dos du crâne, fermé */
-  {const sur=(x,y)=>[x*wY(y)/.80,y,ZB+relief(x,y)+.008],c9=sur(0,.625),                               /* (v3) le nez : un petit cœur renversé, net, posé sur la face */
-     nz=[[0,.54],[.075,.62],[.07,.67],[.04,.695],[0,.67],[-.04,.695],[-.07,.67],[-.075,.62]].map(p=>sur(p[0],p[1]));
-   for(let i=0;i<nz.length;i++)P.tri('N',c9,nz[i],nz[(i+1)%nz.length]);}
-  /* LES YEUX KAWAII (2026-11-01, Léo : « les yeux du crâne plus kawaii ») : un grand œil rond qui remplit l'orbite, penché comme la face,
-     noir profond, une lueur violette en bas et deux reflets blancs (le gros en haut à gauche, le petit en bas à droite, pareils sur les deux yeux) */
-  P.sym(sd=>{const th=sd*.49,cx=sd*.30,cy=.875,cz=ZB+.86,co=Math.cos(th),si=Math.sin(th);
-    const disque=(k,r,dx,dy,dz)=>{const g=new THREE.CylinderGeometry(r,r,.012,14);g.rotateX(Math.PI/2);
-      P.put(k,g,cx+dx*co+dz*si,cy+dy,cz-dx*si+dz*co,0,th,0);};
-    disque('E',.168,0,0,0);
-    /* (Léo : « avec des cœurs dans les yeux ») le cœur rose à la place de l'iris, et son reflet */
-    {const sh=new THREE.Shape(),n=24;for(let i=0;i<n;i++){const t=i/n*Math.PI*2,x=16*Math.pow(Math.sin(t),3),y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
-       const v=new THREE.Vector2(x*.0072,y*.0072+.012);if(i)sh.lineTo(v.x,v.y);else sh.moveTo(v.x,v.y);}
-     const g=new THREE.ExtrudeGeometry(sh,{depth:.012,bevelEnabled:false,curveSegments:1}),dz=.008;
-     P.put('I',g,cx+dz*si,cy,cz+dz*co,0,th,0);}
-    disque('W',.034,-.055,.05,.024);disque('W',.016,.03,.075,.024);});                     /* au fond des orbites, les yeux qui brillent (les phares) */
-  for(let r=0;r<2;r++)for(let i=0;i<7;i++){const x=(i/6-.5)*.62,y=r?.39:.45,X=x*wY(y)/.80;            /* les dents, posées dans la bouche creusée */
-    P.box(Math.abs(x)>.22?'B':'b',.075,.05,.07,X,y,ZB+relief(x,.42)+.035);}
+  /* LE CRÂNE v3 (2026-11-01, Léo : « creux dans les yeux sans cœur, refonte totale du crâne ») : un ELLIPSOÏDE à facettes déformé
+     — la voûte ronde qui recouvre le bout du capot, la face aplatie, les tempes creusées, les pommettes qui saillent, la mâchoire qui
+     s'affine jusqu'au menton — sur une grille (θ du haut vers le bas, φ autour, 0 = devant) dont les lignes tombent sur les bords des trous.
+     Les orbites et le nez sont de VRAIS CREUX : leurs cases sont ouvertes et un entonnoir noir à facettes plonge du bord vers le fond ;
+     les coins du bord rentrent (l'orbite devient un octogone, le nez une poire renversée). Une fente de bouche, deux rangées de dents. */
+  const CX=0,CY=.92,CZ=2.30,RX=.78,RY=.62,RZ=.66,dg=Math.PI/180;
+  const TH=[0,16,30,44,56,68,80,92,104,116,128,134,142,152,164,180],
+        PH=[-180,-150,-120,-95,-70,-55,-41,-27,-13,-8,0,8,13,27,41,55,70,95,120,150];
+  const NT=TH.length,NP=PH.length,V=[];
+  for(let i=0;i<NT;i++){V.push([]);for(let j=0;j<NP;j++){const t=TH[i]*dg,f=PH[j]*dg,af=Math.abs(PH[j]);
+    let x=Math.sin(t)*Math.sin(f)*RX,y=Math.cos(t)*RY,z=Math.sin(t)*Math.cos(f)*RZ;
+    if(TH[i]>=56&&TH[i]<=134&&af<=70)z=Math.min(z,RZ*.90);                                           /* la face, aplatie */
+    if(af>=70&&af<=120&&TH[i]>=68&&TH[i]<=116)x*=.90;                                                 /* les tempes */
+    if(af>=41&&af<=70&&TH[i]>=104&&TH[i]<=128)x*=1.08;                                                /* les pommettes */
+    if(TH[i]>116){const k=Math.min(1,(TH[i]-116)/50);x*=1-.40*k;if(af<=70)z+=.06*k;}               /* la mâchoire s'affine, le menton avance */
+    if(TH[i]===80&&af>=13&&af<=41)z+=.035;                                                            /* l'arcade au-dessus de l'orbite */
+    V[i].push([CX+x,CY+y,CZ+z]);}}
+  const iT=d=>TH.indexOf(d),iP=d=>PH.indexOf(d),
+        trou=(i,j)=>{const t0=TH[i],t1=TH[i+1],p0=PH[j],p1=PH[(j+1)%NP];if(j===NP-1)return false;
+          if(t0>=80&&t1<=104&&Math.abs(p0)>=13&&Math.abs(p1)>=13&&Math.abs(p0)<=41&&Math.abs(p1)<=41&&p0*p1>0)return true;   /* les orbites */
+          if(t0>=104&&t1<=128&&p0>=-8&&p1<=8)return true;                                             /* le nez */
+          return false;};
+  const rentre=(i,j,c,k)=>{const v=V[i][j];for(let a=0;a<3;a++)v[a]+=(c[a]-v[a])*k;};
+  const creux=(ti,pj,prof,cle9,coins,haut)=>{                                                         /* un trou : 8 sommets autour du centre (ti,pj), l'entonnoir */
+    const c=V[ti][pj].slice(),R=[[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1]];
+    for(const [a,b] of R)if(a&&b)rentre(ti+a,pj+b,c,coins);
+    if(haut)for(const b of [-1,1])rentre(ti-1,pj+b,c,haut);                                           /* la poire du nez : le haut plus étroit */
+    const n=[c[0]-CX,(c[1]-CY)*.3,c[2]-CZ],l=Math.hypot(n[0],n[1],n[2]),fond=[c[0]-n[0]/l*prof,c[1]-n[1]/l*prof,c[2]-n[2]/l*prof];
+    for(let k=0;k<8;k++){const A=V[ti+R[k][0]][pj+R[k][1]],B=V[ti+R[(k+1)%8][0]][pj+R[(k+1)%8][1]];
+      const u=[B[0]-A[0],B[1]-A[1],B[2]-A[2]],w=[fond[0]-A[0],fond[1]-A[1],fond[2]-A[2]],
+            nn=[u[1]*w[2]-u[2]*w[1],u[2]*w[0]-u[0]*w[2],u[0]*w[1]-u[1]*w[0]];
+      if(nn[0]*n[0]+nn[1]*n[1]+nn[2]*n[2]>0)P.tri(cle9,A,B,fond);else P.tri(cle9,A,fond,B);}};
+  creux(iT(92),iP(27),.30,'N',.32,0);creux(iT(92),iP(-27),.30,'N',.32,0);
+  creux(iT(116),iP(0),.20,'N',.10,.55);
+  for(let i=0;i<NT-1;i++)for(let j=0;j<NP;j++){if(trou(i,j))continue;const j2=(j+1)%NP,a=V[i][j],b=V[i][j2],c=V[i+1][j2],d=V[i+1][j];
+    const bouche=TH[i]===134&&Math.abs(PH[j])<41&&Math.abs(PH[j2])<41;
+    P.tri(bouche?'N':'b',a,c,b);P.tri(bouche?'N':'b',a,d,c);}
+  /* les dents : une rangée sur chaque lèvre de la fente, posées sur la courbe de la mâchoire */
+  for(const [t9,dy] of [[133,-.028],[143,.028]])for(let f9=-33;f9<=33;f9+=11){
+    const t=t9*dg,f=f9*dg,k=Math.min(1,(t9-116)/50),x=Math.sin(t)*Math.sin(f)*RX*(1-.40*k),y=Math.cos(t)*RY+dy,
+          z=Math.min(Math.sin(t)*Math.cos(f)*RZ,RZ*.90)+.06*k;
+    P.box(Math.abs(f9)>22?'B':'b',.075,.06,.05,CX+x,CY+y,CZ+z-.01,0,f,0);}
     /* LES OS EN CROIX derrière le crâne : leurs têtes dépassent de chaque côté */
   for(const s9 of [-1,1]){const a=[s9*-1.04,.22,ZC+.14],b=[s9*1.04,.98,ZC+.14];barre('b',a,b,.075);for(const p9 of [a,b])for(const t of [-1,1])rotule('b',.065,p9[0],p9[1]+t*.045,p9[2]);}
   os([-.78,.30,-3.00],[.78,.30,-3.00],.07,.075);P.box('Q',.52,.13,.01,0,.47,-2.955);   /* la plaque se pose sous les os en croix */
@@ -44787,7 +44782,7 @@ SHAPES.d_corbillard=function(K){
   });
   for(const s of [-1,1]){const a=[s*-.42,.64,-2.99],b=[s*.42,1.10,-2.99];barre('b',a,b,.065);for(const p of [a,b])for(const t of [-1,1])rotule('b',.055,p[0]+t*.04,p[1],p[2]);} /* les DEUX OS EN CROIX, aux pieds du cercueil */
   K.commit(P);
-  return {hl:[.30,.88,2.70],tl:[.64,.80,-2.97],wx:.86,wzF:ZF,wzR:-ZR,
+  return {hl:[.28,.86,2.80],tl:[.64,.80,-2.97],wx:.86,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.27,style:'enjoliveur',jante:0xe6dcc4}};
 };}
 // (2026-10-20) UNE FICHE SANS COTES NE SE CONSTRUIT PAS. Les caisses retirées sont réduites à `{retire:1,name}` (voir cars.js) : montées
