@@ -4132,6 +4132,36 @@ html body.touch.play #tNitro::before{display:block!important;content:'';position
 html body.touch.play #tNitro:active::before,html body.touch.play #tNitro.on::before{box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),inset 0 -10px 18px color-mix(in srgb,var(--nc,#ff9a3c) 40%,transparent),0 0 28px color-mix(in srgb,var(--nc,#ff9a3c) 60%,transparent),0 6px 20px rgba(0,0,0,.2)!important}
 html body.touch.play #tNitro.plein:not(.on)::before{animation:nxVerrePret 1.6s ease-in-out infinite}
 @keyframes nxVerrePret{50%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.7),0 0 20px color-mix(in srgb,var(--nc,#ff9a3c) 45%,transparent),0 6px 20px rgba(0,0,0,.2)}}
+/* ===== LES ICÔNES DU BOUTON BOOST (2026-11-01, Léo : « change l'éclair par un truc intelligent ou stylé, genre une bouteille nitro, on peut tester plusieurs trucs ») =====
+   ?boost=bouteille | chevrons | flamme | anneau (rien = l'éclair en pixels, comme avant). Chaque icône est un SVG en verre qui LIT la réserve : --nr (nitro) et --nx (réserve bleue)
+   sont déjà posées sur #tNitro par la boucle ; la couleur de la poussée est --nc (orange, bleu en réserve, violet en infinie). Appuyé (.on) : l'icône s'enfonce et s'embrase. */
+html body.bv #tNitro .nx3{display:none!important}
+html body.bv #tNitro .bvIco{position:absolute;left:50%;top:50%;height:64px;width:auto;transform:translate(-50%,-50%);overflow:visible;pointer-events:none;z-index:1;--bc:var(--nc,#ff9a3c);
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.28));transition:transform .12s,filter .15s}
+html body.bv #tNitro .bv-bouteille{height:74px}html body.bv #tNitro .bv-flamme{height:68px}html body.bv #tNitro .bv-anneau{height:72px}
+html body.bv #tNitro:active .bvIco,html body.bv #tNitro.on .bvIco{transform:translate(-50%,calc(-50% + 3px)) scale(.95);filter:drop-shadow(0 0 10px var(--bc)) drop-shadow(0 0 22px color-mix(in srgb,var(--bc) 60%,transparent))}
+html body.bv #tNitro.bleu{--nc:#7d97ff}html body.bv #tNitro.inf{--nc:#ff4a3a}
+.bvIco .bvLn{fill:rgba(255,255,255,.09);stroke:rgba(255,255,255,.88);stroke-width:1.6;stroke-linejoin:round}
+.bvIco .bvBr{fill:none;stroke:rgba(255,255,255,.5);stroke-width:1.2;stroke-linecap:round}
+.bvIco .bvSh{fill:none;stroke:rgba(255,255,255,.7);stroke-width:1.6;stroke-linecap:round}
+.bvIco .bvLq,.bvIco .bvLx{transform-box:fill-box;transform-origin:50% 100%;transition:transform .2s}
+.bvIco .bvLq{fill:var(--bc);opacity:.92;transform:scaleY(var(--nr,.5))}
+.bvIco .bvLx{fill:#7d97ff;opacity:.85;transform:scaleY(min(1,calc(var(--nr,.5) + var(--nx,0))))}
+.bvIco .bvCh{fill:none;stroke:#fff;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s}
+.bvIco.bv-chevrons .c3{opacity:calc(.16 + .84*clamp(0,var(--nr,.5)*6,1));stroke:color-mix(in srgb,#fff 55%,var(--bc))}
+.bvIco.bv-chevrons .c2{opacity:calc(.16 + .84*clamp(0,(var(--nr,.5) - .33)*6,1))}
+.bvIco.bv-chevrons .c1{opacity:calc(.16 + .84*clamp(0,(var(--nr,.5) - .66)*6,1));stroke:#fff}
+html body.bv #tNitro.plein:not(.on) .bv-chevrons .bvCh{animation:bvMonte 1.2s ease-in-out infinite}
+html body.bv #tNitro.plein:not(.on) .bv-chevrons .c2{animation-delay:.12s}html body.bv #tNitro.plein:not(.on) .bv-chevrons .c1{animation-delay:.24s}
+@keyframes bvMonte{50%{transform:translateY(-4px)}}
+.bvIco .bvPi{fill:none;stroke:rgba(255,255,255,.2);stroke-width:4}
+.bvIco .bvRq,.bvIco .bvRx{fill:none;stroke-width:4.5;stroke-linecap:round;stroke-dasharray:100 100;transform:rotate(-90deg);transform-origin:32px 32px;transition:stroke-dashoffset .2s}
+.bvIco .bvRq{stroke:var(--bc);stroke-dashoffset:calc(100 - 100*var(--nr,.5))}
+.bvIco .bvRx{stroke:#7d97ff;stroke-dashoffset:calc(100 - 100*min(1,calc(var(--nr,.5) + var(--nx,0))))}
+.bvIco.bv-anneau .bvCh{stroke-width:3.5}
+.bvIco.bv-anneau .d1{opacity:.95}.bvIco.bv-anneau .d2{opacity:.55}
+html body.bv #tNitro.bas:not(.on) .bvIco{animation:bvSec .6s steps(2) infinite}
+@keyframes bvSec{50%{filter:drop-shadow(0 0 8px #ff5a6e)}}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -74331,6 +74361,10 @@ function mortSaute(dt){
   MORT_IMG.n++;return true;
 }
 window.dbgMortImg=function(n){if(n!=null){PAL.B.mortImg[PAL.n]=Math.max(1,n|0);MORT_IMG.i=0;}return {N:PAL.b('mortImg',1),actif:MORT_IMG.on,depuis:+MORT_IMG.t.toFixed(2),sautees:MORT_IMG.n,ecran:overlay.getAttribute('data-ecran'),tel:TCTL.on};}; // (banc)
+/* ===== LES ICÔNES DU BOUTON BOOST (2026-11-01, Léo : « change l'éclair par un truc intelligent ou stylé, genre une bouteille nitro, on peut tester plusieurs trucs ») ===== ?boost=bouteille|chevrons|flamme|anneau : un SVG en verre dans #tNitro à la place de l'éclair en pixels (le style vit dans charte-7-details.css) ; rien dans l'URL = l'éclair, comme avant. */
+const BV_ICO={"bouteille": "<svg class=\"bvIco bv-bouteille\" viewBox=\"0 0 40 66\" aria-hidden=\"true\"><defs><clipPath id=\"bvCb\"><path d=\"M14 9h12v6q8 2 8 12v27q0 8-8 8H14q-8 0-8-8V27q0-10 8-12z\"/></clipPath></defs><g clip-path=\"url(#bvCb)\"><rect class=\"bvLx\" x=\"0\" y=\"15\" width=\"40\" height=\"52\"/><rect class=\"bvLq\" x=\"0\" y=\"15\" width=\"40\" height=\"52\"/></g><path class=\"bvLn\" d=\"M14 9h12v6q8 2 8 12v27q0 8-8 8H14q-8 0-8-8V27q0-10 8-12z\"/><path class=\"bvLn\" d=\"M11 4h18v5H11z\"/><path class=\"bvBr\" d=\"M10 31h20M10 36h20\"/><path class=\"bvSh\" d=\"M11 22q-2 4-2 10\"/></svg>", "chevrons": "<svg class=\"bvIco bv-chevrons\" viewBox=\"0 0 48 52\" aria-hidden=\"true\"><path class=\"bvCh c3\" d=\"M8 46l16-14 16 14\"/><path class=\"bvCh c2\" d=\"M8 31l16-14 16 14\"/><path class=\"bvCh c1\" d=\"M8 16l16-14 16 14\"/></svg>", "flamme": "<svg class=\"bvIco bv-flamme\" viewBox=\"0 0 40 56\" aria-hidden=\"true\"><defs><clipPath id=\"bvCf\"><path d=\"M20 2c2 9 12 14 12 28 0 9-5 15-12 15S8 39 8 30c0-5 2-8 4-11 1 4 3 5 4 5 0-8 1-14 4-22z\"/></clipPath></defs><g clip-path=\"url(#bvCf)\"><rect class=\"bvLx\" x=\"0\" y=\"2\" width=\"40\" height=\"44\"/><rect class=\"bvLq\" x=\"0\" y=\"2\" width=\"40\" height=\"44\"/></g><path class=\"bvLn\" d=\"M20 2c2 9 12 14 12 28 0 9-5 15-12 15S8 39 8 30c0-5 2-8 4-11 1 4 3 5 4 5 0-8 1-14 4-22z\"/></svg>", "anneau": "<svg class=\"bvIco bv-anneau\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"><circle class=\"bvPi\" cx=\"32\" cy=\"32\" r=\"27\"/><circle class=\"bvRx\" cx=\"32\" cy=\"32\" r=\"27\" pathLength=\"100\"/><circle class=\"bvRq\" cx=\"32\" cy=\"32\" r=\"27\" pathLength=\"100\"/><path class=\"bvCh d2\" d=\"M21 38l11-10 11 10\"/><path class=\"bvCh d1\" d=\"M21 29l11-10 11 10\"/></svg>"};
+{const bv=(/[?&]boost=([a-z]+)/.exec(location.search)||[])[1],bt=document.getElementById('tNitro');
+ if(bv&&BV_ICO[bv]&&bt){bt.insertAdjacentHTML('beforeend',BV_ICO[bv]);document.body.classList.add('bv','bv-'+bv);}}
 /* ====================== LA CADENCE STABLE — CAD (2026-10-14, passe perf mobile ; Sacha : « fluide même sur un iPhone 7 », « sans bugger ») ======================
    Un téléphone qui ne tient pas 60 images/s n'en affiche pas « 45 » : il alterne des images de 16,7 ms et de 33,3 ms au hasard, et c'est
    CETTE irrégularité que le joueur appelle « ça bug ». 30 images/s RÉGULIÈRES (une image d'écran sur deux, toujours la même) se lisent
