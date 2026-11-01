@@ -15327,7 +15327,9 @@ function* prebJob(sd,W){yield* pisteRoute(sd,W);if(PARK.on)return;
   else if(W.piste==='banquise')yield* prebDecorG(W,'banquise',BANQ,function(){return buildBanqG(sd);});
   else if(W.piste==='grotte')yield* prebDecorG(W,'grotte',GROTTE,function(){return buildGrotteG(sd);}); // (2026-10-18) LES PROFONDEURS
   else if(W.piste==='canyon')yield* cyBatitG(sd,W); // (2026-10-23) LE CANYON D'AVANCE : son monde part au travailleur pendant l'approche (voir cyAvPart)
-  else if(W.piste==='dunes'){W.dunes=prebDunes(sd,W);const a=W.dunes;if(a){yield;while(!a.R){if(JF.lim===Infinity||!DN.w)break;yield;}}}} // (2026-10-24) LES DUNES D'AVANCE : la préparation puis le calcul du monde chez le travailleur, attendu image après image (voir prebDunes)
+  else if(W.piste==='dunes'){W.dunes=prebDunes(sd,W);const a=W.dunes;if(a){yield;const K9=DN_AV_MON?Object.keys(DN_MOD):[];let k9=0;
+    while(!a.R){if(JF.lim===Infinity||!DN.w)break;while(k9<K9.length&&performance.now()<JF.lim)dnMod(K9[k9++]);yield;} /* (2026-11-01) en attendant le travailleur : les modèles des monuments, un par un */
+    if(a.R)while(!dnMonuPas(a))yield;}}} /* (2026-11-01) puis LES MONUMENTS D'AVANCE (voir dnMonuAvanceG) */ // (2026-10-24) LES DUNES D'AVANCE : la préparation puis le calcul du monde chez le travailleur, attendu image après image (voir prebDunes)
 const PREB_PISTES=['','jade','foret','canyon','banquise','grotte','dunes']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
 function prebPart(c){ // on commence la piste d'en face
   const W=pisteTravail(c);
@@ -15352,6 +15354,7 @@ function prebAnnule(r){ // le travail en cours est jeté (la map d'en face a cha
   for(const m of W.tab.trackMeshes||[])if(m.geometry)m.geometry.dispose(); // jamais dessinées ; leurs matières non plus (et certaines sont partagées : on n'y touche pas)
   if(W.jade&&W.jade.J)try{jadeJette(W.jade);}catch(e){}
   if(PREB.jadeM&&JADE_GARDE.m===PREB.jadeM){jadeJette(JADE_GARDE.m);JADE_GARDE.m=null;}
+  if(W.dunes)try{dnMonuJette(W.dunes);}catch(e){}
   PREB.jadeM=null;CY.av=null;} // (le canyon d'avance : son monde ne servira plus)
 function prebPorte(fn){PREB.porte=true;try{fn();}finally{PREB.porte=false;PREB.prend=false;}} // c'est le PORTAIL qui construit : la piste bâtie d'avance peut servir
 function prebGraine(niv){ // (newTrack0, après lvlChoisir) la piste d'en face est-elle celle qu'on a bâtie d'avance ? → sa graine
@@ -19303,7 +19306,7 @@ function buildDunes(seed,pre){
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='dunes'||!(NP>1)||!DUNES_OK)return;
   if(pre&&!av){const a=pre;
     if(a.cle===[seed,L,NP,lvPiste(),ROAD_HALF].join('|')){Object.assign(DN,a.chg);DN.t0=performance.now();cyBruits();dnTerrain();
-      if(a.R){DN.ms.avance='pret';dnMondePose(a.R);return;}
+      if(a.R){DN.ms.avance='pret';if(a.it)while(!dnMonuPas(a));dnMondePose(a.R,a.mon);return;} /* (2026-11-01) les monuments bâtis d'avance (dnMonuPas : d'un trait si le pré-bâti ne les a pas finis) */
       const W9=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null; // pas revenu : on le lui redemande, comme avant
       if(W9){const job=DN.job;DN.attente={job:job,S:a.S,opt:a.opt};try{W9.postMessage({job:job,S:a.S,opt:a.opt,nz:CY.nz});return;}catch(e){DN.attente=null;}}
       dnMondePose(dnMondeCalc(a.S,a.opt));return;}}
@@ -19396,13 +19399,42 @@ const DN_SOL=!/[?&]sans=([^&]*,)?dunessoleil(,|&|$)/.test(location.search);
    bas de son emprise (au plus 40 % de la hauteur pour un obélisque, 25 % pour une pyramide). `?sans=dunesancre` = comme avant. */
 const DN_ANCRE=typeof location==='undefined'||!/[?&]sans=([^&]*,)?dunesancre(,|&|$)/.test(location.search);
 function dnPlancher(x,z,r){let lo=1e9;for(const f of [0,.5,1])for(let a=0;a<(f?16:1);a++){const th=a/16*6.2832,g=dnHauteur(x+Math.cos(th)*r*f,z+Math.sin(th)*r*f);if(g<lo)lo=g;}return lo;}
+/* ===== LES MONUMENTS DES DUNES D'AVANCE (2026-11-01, Léo : « règle ce qui reste ») =====
+   MESURÉ (banc iPhone ×4) : au portail des dunes, dnMondePose posait tous les monuments d'un bloc (dnMonuments : les modèles, les scènes, les ruines
+   ensablées, le décor cuit) — 170 à 730 ms selon le décor tiré, dans l'image du portail. Dès que le travailleur a rendu le monde d'avance (W.dunes.R),
+   le pré-bâti bâtit les monuments dans un ÉTAT FANTÔME des dunes (a.G, échangé avec DN le temps d'un pas : prebObj), en pas (dnMonumentsTiresG) :
+   le groupe et les champs écrits (a.mon) attendent ; au passage, dnMondePose ne fait que les poser (dnMonuPose). Pendant l'attente du travailleur,
+   les 49 modèles (dnMod) se fabriquent un par un. Même tirage, même ordre : le même décor. `?dnmon=0` = avant (posés au passage). */
+const DN_AV_MON=!/[?&]dnmon=0\b/.test(location.search);
+function* dnMonuAvanceG(a){const R=a.R; /* (DN est ici l'état fantôme) ce que dnMondePose pose avant les monuments, puis les monuments */
+  DN.Z=R.Z;DN.F=R.F;DN.O=R.O;DN.ob=R.ob;DN.pyr=R.pyr||null;DN.pyrs=R.pyrs;DN.mo=R.mo;DN.yMin=R.yMin;DN.yMax=R.yMax;
+  dnAncreDecors();R.ancre=true;DN.on=true;DN.grp=new THREE.Group();DN.tor=[];DN.torIm=null;DN.decoN=null;
+  const base=Object.assign({},DN);
+  yield* dnMonumentsTiresG(DN.job);
+  const chg={};for(const k of Object.keys(DN))if(k!=='grp'&&DN[k]!==base[k])chg[k]=DN[k];
+  a.mon={grp:DN.grp,chg:chg};}
+function dnMonuPas(a){ /* un pas des monuments d'avance — vrai : fini (ou impossible : posés au passage, comme avant) */
+  if(!a.it){if(a.mon||a.ko)return true;const R=a.R,deco='deco' in a.chg?a.chg.deco:DN.deco;
+    if(!DN_AV_MON||!R||!deco||!DN.mat||!DN.grp){a.ko=true;return true;}
+    R.ob=R.ob||[];R.mo=R.mo||[];R.pyrs=R.pyrs||(R.pyr?[R.pyr]:[]); /* les MÊMES tableaux au passage (dnScenes ajoute ses monuments qui tuent à DN.mo) */
+    a.G=Object.assign({},DN,{on:false,lev:[],oa:null},a.chg); /* l'état des dunes au passage, juste avant leurs monuments (dnEteindre, puis les champs préparés) */
+    a.it=dnMonuAvanceG(a);}
+  prebObj(DN,a.G);let r;
+  try{r=a.it.next();}catch(e){console.warn('dunes : monuments d\'avance',e);r={done:true};a.mon=null;a.ko=true;}
+  finally{prebObj(DN,a.G);}
+  if(r.done){a.it=null;a.G=null;return true;}return false;}
+function dnMonuPose(A){ /* (dnMondePose, au passage) les monuments bâtis d'avance entrent dans le groupe des dunes */
+  if(DN.grp){for(const o of DN.grp.children.slice()){DN.grp.remove(o);if(o.userData.jeter&&o.geometry)o.geometry.dispose();}}
+  for(const o of A.grp.children.slice()){A.grp.remove(o);DN.grp.add(o);}
+  Object.assign(DN,A.chg);DN.grp.visible=true;DN.grp.updateMatrixWorld(true);}
+function dnMonuJette(a){if(!a||!a.mon)return;for(const o of a.mon.grp.children)if(o.userData.jeter&&o.geometry)o.geometry.dispose();a.mon=null;} /* (un pré-bâti annulé) */
 function dnAncreDecors(){if(!DN_ANCRE||!DN.Z||!DN.F)return;
   for(const b of DN.ob||[]){const lo=dnPlancher(b.x,b.z,b.r*1.42);if(b.y>lo-.6)b.y=Math.max(lo-.6,b.y-Math.max(6,b.h*.4));}
   for(const P of DN.pyrs||[]){const lo=dnPlancher(P.x,P.z,P.hw*1.4142);if(P.y>lo-3)P.y=Math.max(lo-3,P.y-P.h*.25);}
   for(const m of DN.mo||[]){const lo=dnPlancher(m.x,m.z,m.r);if(m.y>lo-1)m.y=Math.max(lo-1,m.y-Math.max(6,m.h*.3));}}
-function dnMondePose(R){
+function dnMondePose(R,mon){
   if(!DN.mat||!(LVL.cur&&LVL.cur.piste==='dunes'))return;const t4=performance.now();
-  DN.Z=R.Z;DN.F=R.F;DN.O=R.O;DN.ob=R.ob||[];DN.pyr=R.pyr||null;DN.pyrs=R.pyrs||(DN.pyr?[DN.pyr]:[]);DN.mo=R.mo||[];DN.yMin=R.yMin;DN.yMax=R.yMax;Object.assign(DN.ms,R.ms);dnAncreDecors();
+  DN.Z=R.Z;DN.F=R.F;DN.O=R.O;DN.ob=R.ob||[];DN.pyr=R.pyr||null;DN.pyrs=R.pyrs||(DN.pyr?[DN.pyr]:[]);DN.mo=R.mo||[];DN.yMin=R.yMin;DN.yMax=R.yMax;Object.assign(DN.ms,R.ms);if(!R.ancre)dnAncreDecors(); /* (déjà fait au pré-bâti avec ses monuments : R.ancre) */
   const F=R.F,Z=R.Z,O=R.O;
   const dt=(d,w,h,fmt,typ,inf)=>{const t=new THREE.DataTexture(d,w,h,fmt,typ);if(inf)t.internalFormat=inf;t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.needsUpdate=true;return t;};
   for(const k of ['tC','tZ','tS'])if(DN[k])DN[k].dispose();
@@ -19415,7 +19447,7 @@ function dnMondePose(R){
   U.uW.value.fromArray(DN.vent);U.uLam.value=DN.lam;if(DN.fin)U.uFin.value.set(DN.fin.x,DN.fin.z,0,DN.sb?1:0);const oa=DN.oa;if(oa)U.uOA.value.set(oa.x,oa.z,oa.r,oa.y);else U.uOA.value.set(0,0,0,0);
   if(DN.sunAz!=null&&DN.pyrs&&DN.pyrs[2]&&DN.S){const P=DN.pyrs[2],S9=DN.S,e=S9.n-1,d=Math.hypot(P.x-S9.x[e],P.z-S9.z[e]);DN.sunEl=Math.max(2.5,Math.min(21,Math.atan2(P.y+P.h-(S9.y[e]+4),d)*57.29578-3.2));} /* le soleil juste sous le sommet : caché par la pyramide, son halo la couronne */
   DN.on=true;DN.mesh.visible=true;
-  try{dnMonuments(DN.job);}catch(e){console.warn('dunes : décors',e);}
+  try{if(mon)dnMonuPose(mon);else dnMonuments(DN.job);}catch(e){console.warn('dunes : décors',e);}
   DN.ms.pose=Math.round(performance.now()-t4);DN.ms.total=Math.round(performance.now()-(DN.t0||t4));
 }
 /* ===== LES DUNES EN FACETTES (2026-10-23, Léo : « rends-les en mode poly comme les voitures, toute la map, inspiré par la technique de la forêt » · « un effet de lumière, encore plus réaliste sur le sable ») =====
@@ -19853,7 +19885,10 @@ function dnMonuments(seed){
    style, les grands monuments (dnPrevoirDeco les a posés : ils ombrent et tuent), puis — à la pose, ici, sur le sable relu — le village, les campements,
    les caravanes, la flore, les diables de sable, le mur de tempête, les squelettes, les épaves. Les pièces neuves sont CUITES dans UNE géométrie (une
    instance, M9.t) : un seul appel de dessin de plus, aucun programme neuf. Son hasard : `D.sd` (rien de `rnd`, rien du tracé). */
-function dnMonumentsTires(seed){
+function dnMonumentsTires(seed){return jadeFini(dnMonumentsTiresG(seed));}
+/* (2026-11-01, Léo : « règle ce qui reste ») LES MONUMENTS EN PAS : des rendez-vous JF.lim entre les familles et dans les longues boucles, AVANT tout tirage
+   (le hasard rg tombe dans le même ordre : le même décor) — d'un trait au passage (JF.lim infini), en pas au pré-bâti (dnMonuAvanceG, dunes-1.js). */
+function* dnMonumentsTiresG(seed){
   const D=DN.deco,M9=dnMats(),G9=dnGeos(),G2=dnGeos2(),S=DN.S,K=Math.sqrt(lvPiste()),RH=ROAD_HALF,t0=performance.now(),rg=mulberry32((D.sd^0x7A55D)>>>0),o9={},N={};
   const mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),e9=new THREE.Euler(0,0,0,'YXZ'),v9=new THREE.Vector3(),s9=new THREE.Vector3(),ax=new THREE.Vector3(0,1,0),CU=dnCuiseur();DN.grp.visible=true;
   const cuis=(geo,x,y,z,sx,sy,sz,ry,tx,tz,te)=>{e9.set(tx||0,ry||0,tz||0);q9.setFromEuler(e9);mt.compose(v9.set(x,y,z),q9,s9.set(sx,sy,sz));CU.ajoute(geo,mt,te);};
@@ -19875,13 +19910,15 @@ function dnMonumentsTires(seed){
    for(const b of DN.ob){if(!b.br)continue;const an=rg()*6.28,fl=(30+rg()*26)*K*.7,x0=b.x+Math.sin(an)*b.r*1.8,z0=b.z+Math.cos(an)*b.r*1.8,x1=x0+Math.sin(an)*fl,z1=z0+Math.cos(an)*fl;
       const y=Math.min(dnHauteur(x0,z0),dnHauteur((x0+x1)/2,(z0+z1)/2),dnHauteur(x1,z1))+b.r*.25;if(dnPresRoute(x1,z1,RH+b.r+6,y+b.r)||dnPresRoute((x0+x1)/2,(z0+z1)/2,RH+b.r+6,y+b.r))continue;
       cuis(MO,x0,y,z0,b.r*.85/4,fl/64,b.r*.85/4,an,Math.PI/2,0);N.troncons=(N.troncons|0)+1;}}
+  if(performance.now()>JF.lim)yield;
   // LES PYRAMIDES : à gradins, lisses de calcaire, à degrés — pierre en assises, coiffe d'or, une porte sombre au pied
   for(const P of DN.pyrs)cuis(dnMod(P.st==='giza'?'pyrGiza':P.st==='cap'?'pyrCap':P.st==='rouge'?'pyrRouge':P.st==='lisse'?'pyrLisse':P.st==='etagee'?'pyrDegres':'pyrGradins'),P.x,P.y,P.z,P.hw,P.h,P.hw,P.a);
+  if(performance.now()>JF.lim)yield;
   // LES PYRAMIDES DES REINES (2026-10-23, Léo : « des séries de pyramides, comme la photo ») : trois petites pyramides à gradins alignées au pied de chacune des deux premières grandes
   if(DN_ACTES.on)for(let k=0;k<Math.min(2,DN.pyrs.length);k++){const P=DN.pyrs[k],ca=Math.cos(P.a),sa=Math.sin(P.a);for(let j=0;j<3;j++){const hq=P.hw*(.15-.025*j),lx=P.hw*(1.32+.12*j),lz=(j-1)*P.hw*.62,x=P.x+ca*lx+sa*lz,z=P.z-sa*lx+ca*lz,h0=dnHauteur(x,z,o9);
     if(o9.eau||dnPresRoute(x,z,RH+hq*1.4+10,h0+hq*1.2))continue;cuis(dnMod('pyrGradins'),x,h0-2,z,hq,hq*1.15,hq,P.a+(j-1)*.05);N.reines=(N.reines|0)+1;}}
   // LES GRANDS MONUMENTS : le sphinx, les colosses et la porte regardent la route ; le temple s'aligne sur elle (colonnes, architraves, tambours tombés)
-  for(const m of DN.mo){
+  for(const m of DN.mo){if(performance.now()>JF.lim)yield;
     if(m.k==='sphinx'){const l=m.r/.55;cuis(dnMod(dnLegNom(m)),m.x,m.y,m.z,l,l,l,m.a);}
     else if(m.k==='colosse')cuis(dnMod(dnLegNom(m)),m.x,m.y,m.z,m.h,m.h,m.h,m.a);
     else if(m.k==='porte'){const sc=m.h/30;cuis(dnMod('porte'),m.x,m.y,m.z,sc,sc,sc,m.a);}
@@ -19891,15 +19928,17 @@ function dnMonumentsTires(seed){
         cuis(dnMod('colonne'),p[0],y0,p[1],H/22,hy/22,H/22,m.t);
         if(br&&rg()<.6){const an=rg()*6.28,d=H*.3+rg()*H*.4,q=[p[0]+Math.sin(an)*d,p[1]+Math.cos(an)*d];cuis(dnMod('colonne'),q[0],dnHauteur(q[0],q[1])+H*.05,q[1],H*.9/22,H*(.2+rg()*.25)/22,H*.9/22,an,Math.PI/2,0);}
         if(!br&&prec!=null){const zm=(prec+lz)/2,c=W(sx*l*.19,zm);cuis(dnMod('bloc'),c[0],y0+H,c[1],H*.3,H*.11,lz-prec+H*.28,m.t,0,0,[.93,.88,.78]);}prec=br?null:lz;}}}}
+  if(performance.now()>JF.lim)yield;
   // LE VILLAGE DE TERRE en ruine : des maisons cubes, des murs bas
   if(D.village){const c=site(70,210,50,10,60,.08,.9);if(c){const n=8+((rg()*8)|0);N.maisons=0;
     for(let k=0;k<n+4;k++){const an=rg()*6.28,d=rg()*48*K,x=c.x+Math.sin(an)*d,z=c.z+Math.cos(an)*d,h0=dnHauteur(x,z,o9),mur=k>=n,w=mur?(12+rg()*18):(5+rg()*5),dp=mur?.9:(5+rg()*5),hh=mur?(1.4+rg()*1.6):(rg()<.35?1.2+rg()*1.5:3+rg()*3);
       if(o9.eau||dnPresRoute(x,z,RH+10,h0+hh+2))continue;cuis(dnMod('bloc'),x,h0-.8,z,w,hh+.8,dp,c.t+(rg()<.6?0:Math.PI/2)+(rg()-.5)*.2,0,0,tch([.82,.60,.42],.08));N.maisons++;}}}
   // LES CAMPEMENTS : des tentes en rond, le feu au milieu, des chameaux couchés
-  N.camps=0;for(let k=0;k<D.camps;k++){const c=site(40,170,30,6,30,.05,.92);if(!c)continue;N.camps++;const nt=3+((rg()*4)|0);
+  N.camps=0;for(let k=0;k<D.camps;k++){if(performance.now()>JF.lim)yield;const c=site(40,170,30,6,30,.05,.92);if(!c)continue;N.camps++;const nt=3+((rg()*4)|0);
     for(let j=0;j<nt;j++){const an=j/nt*6.28+rg()*.5,d=(10+rg()*10)*K,x=c.x+Math.sin(an)*d,z=c.z+Math.cos(an)*d,w=(8+rg()*4)*K;cuis(G2.tente,x,dnHauteur(x,z)-.3,z,w,w*(.8+rg()*.4),w*(.7+rg()*.3),an+Math.PI/2,0,0,tch([1,1,1],.1));}
     cuis(G2.feu,c.x,c.h-.1,c.z,2.4*K,2.6*K,2.4*K,rg()*6);
     for(let j=0;j<2+((rg()*4)|0);j++){const an=rg()*6.28,d=(22+rg()*14)*K,x=c.x+Math.sin(an)*d,z=c.z+Math.cos(an)*d;cuis(dnMod('chameau'),x,dnHauteur(x,z)-1.75,z,3.4,3.4,3.4,rg()*6.28);}}
+  if(performance.now()>JF.lim)yield;
   // LES CARAVANES : 1 à 4, de 4 à 11 bêtes, sur une crête tirée, dans un sens tiré
   DN.car=[];DN.carIm=null;
   {const L9=[];for(const C9 of D.caravanes){const c=site(46,120,40,8,12,.04,.9);if(!c)continue;const dir=c.t+(rg()<.5?0:Math.PI)+(rg()-.5)*.8;
@@ -19907,16 +19946,18 @@ function dnMonumentsTires(seed){
    if(L9.length){DN.carIm=inst(dnMod('chameau'),M9.t,L9,'caravanes');if(DN.carIm){DN.carIm.instanceMatrix.setUsage(THREE.DynamicDrawUsage);DN.carT=0;dnCaravane(0,true);}}}
   // LA FLORE : les acacias morts (la vallée, et épars), les palmiers (l'oasis, les palmeraies), les touffes, les cactus
   {const L9=[],N9=Math.round(PAL.b('dnArbres',140)*D.flore.acacias),a0=DN.sQ.vlei0,a1=DN.sQ.vlei1;
-   if(a0!=null&&a1!=null)for(let k=0;k<N9*8&&L9.length<N9;k++){const s0=a0-200+rg()*(a1-a0+400),i=Math.max(0,Math.min(S.n-1,Math.round(s0/S.ds))),sg=rg()<.5?-1:1,lat=RH+14+rg()*rg()*380*K;
+   if(a0!=null&&a1!=null)for(let k=0;k<N9*8&&L9.length<N9;k++){if((k&15)===15&&performance.now()>JF.lim)yield;const s0=a0-200+rg()*(a1-a0+400),i=Math.max(0,Math.min(S.n-1,Math.round(s0/S.ds))),sg=rg()<.5?-1:1,lat=RH+14+rg()*rg()*380*K;
      const x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,h=dnHauteur(x,z,o9),ht=(6+rg()*7)*(1+.3*rg());if(o9.eau||dnPresRoute(x,z,RH+10,h+ht+3))continue;L9.push([x,h-.4,z,ht,rg()*6.28]);}
-   for(let k=0;k<D.flore.epars*4&&L9.length<N9+D.flore.epars;k++){const c=site(14,200,10,14,4,.03,.97);if(c)L9.push([c.x,c.h-.4,c.z,(6+rg()*8)*(1+.3*rg()),rg()*6.28]);}
+   for(let k=0;k<D.flore.epars*4&&L9.length<N9+D.flore.epars;k++){if(performance.now()>JF.lim)yield;const c=site(14,200,10,14,4,.03,.97);if(c)L9.push([c.x,c.h-.4,c.z,(6+rg()*8)*(1+.3*rg()),rg()*6.28]);}
    inst(G9.arb,M9.t,L9,'acacias');DN.nArb=L9.length;}
+  if(performance.now()>JF.lim)yield;
   {const L9=[],A9=DN.oa;
    if(A9){const N9=Math.round(PAL.b('dnPalmes',48)*Math.min(1.5,D.oasis.k));for(let k=0;k<N9*10&&L9.length<N9;k++){const an=rg()*6.2832,rr=(1.03+rg()*.42)*A9.r,x=A9.x+Math.cos(an)*rr,z=A9.z+Math.sin(an)*rr,h=dnHauteur(x,z,o9),ht=(13+rg()*10)*(1+.2*rg());
      if(o9.eau||dnPresRoute(x,z,RH+10,h+ht+3))continue;L9.push([x,h-.5,z,ht,rg()*6.28]);}}
-   for(let g9=0;g9<D.flore.palmeraies;g9++){const c=site(50,220,30,25,50,.05,.9);if(!c)continue;const n=10+((rg()*16)|0);
+   for(let g9=0;g9<D.flore.palmeraies;g9++){if(performance.now()>JF.lim)yield;const c=site(50,220,30,25,50,.05,.9);if(!c)continue;const n=10+((rg()*16)|0);
      for(let k=0;k<n*3&&n>0;k++){const an=rg()*6.28,d=rg()*45*K,x=c.x+Math.sin(an)*d,z=c.z+Math.cos(an)*d,h=dnHauteur(x,z,o9),ht=(11+rg()*10)*(1+.2*rg());if(o9.eau||dnPresRoute(x,z,RH+10,h+ht+3))continue;L9.push([x,h-.5,z,ht,rg()*6.28]);}}
    inst(dnMod('palmier'),M9.t,L9,'palmiers');DN.nPal=L9.length;}
+  if(performance.now()>JF.lim)yield;
   // L'OASIS VIVANTE (2026-10-22) : des touffes de PAPYRUS au bord de l'eau, des LOTUS BLEUS qui flottent, des FELOUQUES sur le lac
   {const A9=DN.oa;if(A9){const Lp=[],Ll=[],nP=Math.round(70*Math.min(1.5,D.oasis.k)),nL=Math.round(26*Math.min(1.5,D.oasis.k));
     for(let k=0;k<nP*14&&Lp.length<nP;k++){const an=rg()*6.2832,rr=(.94+rg()*.16)*A9.r,x=A9.x+Math.cos(an)*rr,z=A9.z+Math.sin(an)*rr,h=dnHauteur(x,z,o9),d=h-A9.y,ht=1.8+rg()*1.9;
@@ -19925,19 +19966,21 @@ function dnMonumentsTires(seed){
     inst(dnMod('papyrus'),M9.t,Lp,'papyrus');inst(dnMod('lotus'),M9.t,Ll,'lotus');N.papyrus=Lp.length;N.lotus=Ll.length;
     const nb=1+((rg()*2.4)|0);N.bateaux=0;for(let k=0;k<nb*8&&N.bateaux<nb;k++){const an=rg()*6.2832,rr=(.25+rg()*.5)*A9.r,x=A9.x+Math.cos(an)*rr,z=A9.z+Math.sin(an)*rr;dnHauteur(x,z,o9);if(!o9.eau)continue;
       const l=(9+rg()*5)*Math.min(1.3,K);cuis(dnMod('felouque'),x,A9.y-.35*l*.2,z,l,l,l,rg()*6.28);N.bateaux++;}}}
-  N.touffes=0;for(let k=0;k<D.flore.touffes*2&&N.touffes<D.flore.touffes;k++){const i=Math.floor(rg()*(S.n-1)),sg=rg()<.5?-1:1,lat=RH+6+rg()*rg()*150*K,x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,h=dnHauteur(x,z,o9),ht=1.3+rg()*1.6;
+  if(performance.now()>JF.lim)yield;N.touffes=0;for(let k=0;k<D.flore.touffes*2&&N.touffes<D.flore.touffes;k++){if((k&7)===7&&performance.now()>JF.lim)yield;const i=Math.floor(rg()*(S.n-1)),sg=rg()<.5?-1:1,lat=RH+6+rg()*rg()*150*K,x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,h=dnHauteur(x,z,o9),ht=1.3+rg()*1.6;
     if(o9.eau||S.gd[i]>.01||dnPresRoute(x,z,RH+4,h+ht+1))continue;cuis(G2.touffe,x,h-.2,z,ht*1.4,ht,ht*1.4,rg()*6.28,0,0,tch([1,1,1],.12));N.touffes++;}
-  N.cactus=0;for(let k=0;k<D.flore.cactus;k++){const c=site(10,220,8,14,4,.03,.97);if(!c)continue;const ht=(6+rg()*7)*K;cuis(G2.cactus,c.x,c.h-.3,c.z,ht,ht,ht,rg()*6.28);N.cactus++;}
+  N.cactus=0;for(let k=0;k<D.flore.cactus;k++){if(performance.now()>JF.lim)yield;const c=site(10,220,8,14,4,.03,.97);if(!c)continue;const ht=(6+rg()*7)*K;cuis(G2.cactus,c.x,c.h-.3,c.z,ht,ht,ht,rg()*6.28);N.cactus++;}
+  if(performance.now()>JF.lim)yield;
   // LES DIABLES DE SABLE (ils tournent, dnTornades), LE MUR DE TEMPÊTE au loin, LES SQUELETTES, LES ÉPAVES
   DN.tor=[];DN.torIm=null;
   {const L9=[];for(let k=0;k<D.tornades;k++){const c=site(180,620,160,400,40,.05,.95);if(!c)continue;const h=(120+rg()*170)*K;DN.tor.push({x:c.x,y:c.h-4,z:c.z,h:h,a:rg()*6.28,w:1.2+rg()*1.6,p:rg()*6.28});L9.push([c.x,c.h-4,c.z,h*.34,0,h,h*.34]);}
    if(L9.length){DN.torIm=inst(G2.tor,M9.d,L9,'diables');if(DN.torIm)DN.torIm.instanceMatrix.setUsage(THREE.DynamicDrawUsage);}}
   if(D.tempete){const b=S.bb,cx=(b[0]+b[1])/2,cz=(b[2]+b[3])/2,R9=Math.max(5200,Math.hypot(b[1]-b[0],b[3]-b[2])*.5+3600);let ym=1e9;for(let i=0;i<S.n;i+=8)ym=Math.min(ym,S.y[i]);inst(G2.mur,M9.d,[[cx,ym-420,cz,R9,D.tempete.a,1500,R9]],'mur');N.tempete=Math.round(R9);}
-  N.os=0;for(let k=0;k<D.os;k++){const c=site(15,110,10,3,15,.05,.95);if(!c)continue;const l=(16+rg()*24)*K;cuis(G2.os,c.x,c.h-.6,c.z,l,l,l,rg()*6.28,(rg()-.5)*.1);N.os++;}
+  if(performance.now()>JF.lim)yield;N.os=0;for(let k=0;k<D.os;k++){const c=site(15,110,10,3,15,.05,.95);if(!c)continue;const l=(16+rg()*24)*K;cuis(G2.os,c.x,c.h-.6,c.z,l,l,l,rg()*6.28,(rg()-.5)*.1);N.os++;}
   if(D.avion){const c=site(40,160,25,12,25,.05,.9);if(c){const l=(30+rg()*10)*K;cuis(G2.avion,c.x,c.h-.03*l,c.z,l,l,l,rg()*6.28,.16+rg()*.1,.25);N.avion=1;}}
   if(D.bateau){const c=site(40,170,25,12,25,.05,.9);if(c){const l=(24+rg()*12)*K;cuis(G2.bateau,c.x,c.h-.06*l,c.z,l,l,l,rg()*6.28,-.06,.28);N.bateau=1;}}
-  try{dnScenes({rg:rg,cuis:cuis,K:K,RH:RH,N:N});}catch(e){console.warn('dunes : scènes',e);} // (2026-10-22) les scènes le long de la route (dunes-4.js)
-  try{dnRuinesEns({CU:CU,N:N});}catch(e){console.warn('dunes : ruines ensablées',e);} /* (2026-10-26) les ruines à moitié avalées par le sable : voir dunes-ruines.js */
+  try{yield* dnScenesG({rg:rg,cuis:cuis,K:K,RH:RH,N:N});}catch(e){console.warn('dunes : scènes',e);} // (2026-10-22) les scènes le long de la route (dunes-4.js)
+  try{yield* dnRuinesEnsG({CU:CU,N:N});}catch(e){console.warn('dunes : ruines ensablées',e);} /* (2026-10-26) les ruines à moitié avalées par le sable : voir dunes-ruines.js */
+  if(performance.now()>JF.lim)yield;
   if(CU.n()){const g=CU.fin(),im=new THREE.InstancedMesh(g,M9.t,1);im.setMatrixAt(0,mt.identity());im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;
     im.userData.jeter=1;im.name='dunes décor tiré';DN.grp.add(im);N.sommets=CU.n();}
   DN.grp.updateMatrixWorld(true);N.ms=Math.round(performance.now()-t0);DN.decoN=N;}
@@ -20548,7 +20591,8 @@ function dnPlanScenes(S,K,RH,D){
 const o9s={};
 function dnAssise(cuis,x,z,yr,larg,rot){const h=dnHauteur(x,z,o9s);if(o9s.eau)return null;const yb=Math.max(h-.3,yr-1.2);if(yb-h>26)return null;
   if(yb-h>1.2){const w9=larg*1.15+(yb-h)*.12;cuis(dnMod('bloc'),x,h-2,z,w9,yb-h+2,w9,rot,0,0,[.90,.80,.62]);cuis(dnMod('bloc'),x,yb-.5,z,w9*1.08,.9,w9*1.08,rot,0,0,[.96,.86,.68]);}return yb;}
-function dnScenes(X){
+function dnScenes(X){return jadeFini(dnScenesG(X));}
+function* dnScenesG(X){ /* (2026-11-01) en pas : voir dnMonumentsTiresG */
   if(!DN_SCN.on||!DN.S||!DN.scn||!DN.scn.length)return;const S=DN.S,rg=X.rg,cuis=X.cuis,K=X.K,RH=X.RH,N=X.N,mo=DN.mo,M=n=>dnMod(n);N.sc=[];
   const kill=(k,x,y,z,r,h)=>{mo.push({k:k,x:x,y:y,z:z,r:r,h:h,a:0,t:0});};
   // LA COLONNADE : deux files de colonnes (une tous les ~26 m × l'échelle), un architrave entre deux colonnes voisines, des brisées, des tambours à terre
@@ -20585,11 +20629,11 @@ function dnScenes(X){
   const braise=(s,lat0,h)=>{for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat0);if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,h*.5,q.t);if(yb==null)continue;cuis(M('brasero'),q.x,yb,q.z,h,h,h,q.t);N.braseros=(N.braseros|0)+1;}};
   // LES PORTES DU CIEL (2026-10-22, Léo : « le joueur peut piquer en bas ou décoller ») : à chaque crête, deux obélisques de part et d'autre de la route, juste avant l'apex — le tremplin se lit de loin (l'Akhet, le signe de
   // l'horizon : le soleil se lève entre deux monts)
-  {let n=0;for(const v of DN.lev||[]){if(v.tag==='bosse')continue;if(DN_ACTES.on&&v.tag!=='grande'){braise(v.s-40,RH+5,3.4);continue;}for(const sg of [-1,1]){const q=dnPos(S,v.s-12,sg*(RH+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,9,q.t);if(yb==null)continue;
+  {let n=0;for(const v of DN.lev||[]){if(performance.now()>JF.lim)yield;if(v.tag==='bosse')continue;if(DN_ACTES.on&&v.tag!=='grande'){braise(v.s-40,RH+5,3.4);continue;}for(const sg of [-1,1]){const q=dnPos(S,v.s-12,sg*(RH+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,9,q.t);if(yb==null)continue;
       const hs=(26+rg()*8)*Math.min(1.2,K);cuis(M('obelisque'),q.x,yb,q.z,hs/64*1.1,hs/64,hs/64*1.1,q.t);kill('obelisque',q.x,yb,q.z,4.6,hs);n++;}braise(v.s-40,RH+5,3.4);braise(v.s+30,RH+5,3.4);}N.portiques=n;}
-  for(const c of DN.scn){if(c.k==='porte')porte((c.a+c.b)/2,c.H);else if(c.k==='allee')allee(c.a,c.b,c.len);else if(c.k==='colonnade')colonnade(c.a,c.b,c.H);else if(c.k==='colosses')colosses(c.a,c.H);else if(c.k==='sphinx')sphinx(c);}
+  for(const c of DN.scn){if(performance.now()>JF.lim)yield;if(c.k==='porte')porte((c.a+c.b)/2,c.H);else if(c.k==='allee')allee(c.a,c.b,c.len);else if(c.k==='colonnade')colonnade(c.a,c.b,c.H);else if(c.k==='colosses')colosses(c.a,c.H);else if(c.k==='sphinx')sphinx(c);}
   // LES RUINES : des tambours, des têtes, des blocs, de part et d'autre, à 10-70 m du bord, sur chaque tronçon
-  const seg=dnTroncons();let nr=0;for(const q of seg){const n9=Math.round((q.b-q.a)/38*PAL.b('dnRuines',1)*(DN_ACTES.on?((q.sp==='vlei'||q.sp==='avenue')?.6:0):1));for(let k=0;k<n9;k++){const s=q.a+rg()*(q.b-q.a),sg=rg()<.5?-1:1,lat=RH+10+rg()*rg()*60,p=dnPos(S,s,sg*lat);if(S.gd[p.i]>.01)continue;const g=dnHauteur(p.x,p.z,o9s);if(o9s.eau)continue;
+  const seg=dnTroncons();let nr=0;for(const q of seg){if(performance.now()>JF.lim)yield;const n9=Math.round((q.b-q.a)/38*PAL.b('dnRuines',1)*(DN_ACTES.on?((q.sp==='vlei'||q.sp==='avenue')?.6:0):1));for(let k=0;k<n9;k++){if((k&7)===7&&performance.now()>JF.lim)yield;const s=q.a+rg()*(q.b-q.a),sg=rg()<.5?-1:1,lat=RH+10+rg()*rg()*60,p=dnPos(S,s,sg*lat);if(S.gd[p.i]>.01)continue;const g=dnHauteur(p.x,p.z,o9s);if(o9s.eau)continue;
       const r=rg();if(r<.45){const sc=(1.4+rg()*1.6)*K*.8;cuis(M('tambour'),p.x,g+.25*sc,p.z,sc,sc*(1.2+rg()*.8),sc,rg()*6.28,Math.PI/2,rg()*2);}
       else if(r<.62){const sc=(4+rg()*5)*K*.8;cuis(M(dnTeteNom(p)),p.x,g-sc*.42,p.z,sc,sc,sc,Math.atan2(S.x[p.i]-p.x,S.z[p.i]-p.z)+(rg()-.5)*.8,(rg()-.5)*.5,(rg()-.4)*.4);}
       else{const sc=(2+rg()*4)*K*.8;cuis(M('bloc'),p.x,g-.4,p.z,sc*(1+rg()),sc*(.6+rg()*.6),sc*(1+rg()),rg()*6.28,(rg()-.5)*.4,(rg()-.5)*.4,[.88,.76,.58]);}nr++;}}N.ruines=nr;}
@@ -20689,7 +20733,8 @@ Object.assign(DN_ECH,{ruMur:1,ruColonnes:1,ruArche:1,ruEscalier:1,ruChapiteau:1}
 /* LES PIÈCES : le modèle, la demi-emprise (x, z) et la hauteur (en unités du modèle), la part enterrée [min, max] (de la hauteur), `tk` : combien la pièce suit la pente du sable (0 : à plat, 1 : parallèle) */
 const DN_RUP={mur:{m:'ruMur',hx:12.8,hz:2.2,H:10.7,f:[.58,.8],tk:.3},col:{m:'ruColonnes',hx:15.5,hz:3.8,H:14.4,f:[.58,.82],tk:.3},arc:{m:'ruArche',hx:7.6,hz:5,H:11.6,f:[.5,.74],tk:.3},
   esc:{m:'ruEscalier',hx:7.8,hz:14.3,H:16.5,f:[.5,.7],tk:.8},cha:{m:'ruChapiteau',hx:7.3,hz:4.4,H:7,f:[.3,.6],tk:.5},tet:{m:null,u:7,hx:.75,hz:.75,H:1.35,f:[.35,.55],tk:.3},obe:{m:'obelisque',u:.42,hx:9.2,hz:32,H:9.2,f:[-.05,.25],tk:.8}};
-function dnRuinesEns(X){
+function dnRuinesEns(X){return jadeFini(dnRuinesEnsG(X));}
+function* dnRuinesEnsG(X){ /* (2026-11-01) en pas : voir dnMonumentsTiresG */
   DN.ruEns=null;if(!DN_RUE.on||!DN.S||!DN.Z)return;X=X||{};const t0=performance.now(),S=DN.S,RH=ROAD_HALF,Ks=Math.min(1.25,Math.sqrt(lvPiste())),L9=(S.n-1)*S.ds,mult=PAL.b('dnRuinesEns',1),propre=!X.CU,CU=X.CU||dnCuiseur(),v0=CU.n(),
     capT=Math.round(8000*mult),nS=Math.max(4,Math.min(Math.round(L9/700*mult),Math.floor(capT/640))),o9={},o1={},o2={},
     mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),e9=new THREE.Euler(0,0,0,'YXZ'),v9=new THREE.Vector3(),s9=new THREE.Vector3(),PI=Math.PI;
@@ -20738,9 +20783,9 @@ function dnRuinesEns(X){
     for(let q=1;q<n*.92;q++){const t=q/n,h=dnHauteur(ex+(x-ex)*t,ez+(z-ez)*t,o1);if(h>ey+(yt-ey)*t-1.5)return false;}return true;};
   const poids=(L9a)=>{let t=0;for(const e of L9a)t+=e[1];let u=r()*t;for(const e of L9a){u-=e[1];if(u<=0)return e[0];}return L9a[0][0];};
   const step=(L9-380-420)/Math.max(1,nS-1);let nP=0;const sites=[];
-  for(let k=0;k<nS;k++){
+  for(let k=0;k<nS;k++){if(performance.now()>JF.lim)yield;
     const sB=k?380+(k-1+r()*.8)*step:90+r()*470;let best=null,nOk=0;
-    for(let pass=0;pass<(k?1:2)&&!best;pass++)for(let e=0;e<(k?90:130);e++){ /* le 1er site : s'il n'y a rien de visible, on prend le meilleur emplacement quand même (2e passe) */
+    for(let pass=0;pass<(k?1:2)&&!best;pass++)for(let e=0;e<(k?90:130);e++){if(performance.now()>JF.lim)yield; /* le 1er site : s'il n'y a rien de visible, on prend le meilleur emplacement quand même (2e passe) */
       const s0=Math.max(40,Math.min(L9-320,sB+(k?(r()-.5)*300:(r()-.5)*60))),i=Math.max(0,Math.min(S.n-1,Math.round(s0/S.ds))),sg=r()<.5?-1:1,u=r(),lat0=k===0?(u<.5?110+r()*150:260+r()*170):u<.5?42+r()*190:u<.85?230+r()*300:520+r()*380;
       const x=S.x[i]-S.tz[i]*sg*(RH+lat0),z=S.z[i]+S.tx[i]*sg*(RH+lat0),ar=Math.atan2(S.x[i]-x,S.z[i]-z),far=lat0>260,ia=Math.max(0,i-Math.round(130/S.ds)),dd=Math.hypot(x-S.x[ia],z-S.z[ia],dnHauteur(x,z,o1)-S.y[ia]),
         ss=Ks*(k%2===0?1.2:1)*Math.max(k===0?4.6:1.3,Math.min(9,1.4+dd/(52+25*r())));

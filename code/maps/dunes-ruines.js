@@ -42,7 +42,8 @@ Object.assign(DN_ECH,{ruMur:1,ruColonnes:1,ruArche:1,ruEscalier:1,ruChapiteau:1}
 /* LES PIÈCES : le modèle, la demi-emprise (x, z) et la hauteur (en unités du modèle), la part enterrée [min, max] (de la hauteur), `tk` : combien la pièce suit la pente du sable (0 : à plat, 1 : parallèle) */
 const DN_RUP={mur:{m:'ruMur',hx:12.8,hz:2.2,H:10.7,f:[.58,.8],tk:.3},col:{m:'ruColonnes',hx:15.5,hz:3.8,H:14.4,f:[.58,.82],tk:.3},arc:{m:'ruArche',hx:7.6,hz:5,H:11.6,f:[.5,.74],tk:.3},
   esc:{m:'ruEscalier',hx:7.8,hz:14.3,H:16.5,f:[.5,.7],tk:.8},cha:{m:'ruChapiteau',hx:7.3,hz:4.4,H:7,f:[.3,.6],tk:.5},tet:{m:null,u:7,hx:.75,hz:.75,H:1.35,f:[.35,.55],tk:.3},obe:{m:'obelisque',u:.42,hx:9.2,hz:32,H:9.2,f:[-.05,.25],tk:.8}};
-function dnRuinesEns(X){
+function dnRuinesEns(X){return jadeFini(dnRuinesEnsG(X));}
+function* dnRuinesEnsG(X){ /* (2026-11-01) en pas : voir dnMonumentsTiresG */
   DN.ruEns=null;if(!DN_RUE.on||!DN.S||!DN.Z)return;X=X||{};const t0=performance.now(),S=DN.S,RH=ROAD_HALF,Ks=Math.min(1.25,Math.sqrt(lvPiste())),L9=(S.n-1)*S.ds,mult=PAL.b('dnRuinesEns',1),propre=!X.CU,CU=X.CU||dnCuiseur(),v0=CU.n(),
     capT=Math.round(8000*mult),nS=Math.max(4,Math.min(Math.round(L9/700*mult),Math.floor(capT/640))),o9={},o1={},o2={},
     mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),e9=new THREE.Euler(0,0,0,'YXZ'),v9=new THREE.Vector3(),s9=new THREE.Vector3(),PI=Math.PI;
@@ -91,9 +92,9 @@ function dnRuinesEns(X){
     for(let q=1;q<n*.92;q++){const t=q/n,h=dnHauteur(ex+(x-ex)*t,ez+(z-ez)*t,o1);if(h>ey+(yt-ey)*t-1.5)return false;}return true;};
   const poids=(L9a)=>{let t=0;for(const e of L9a)t+=e[1];let u=r()*t;for(const e of L9a){u-=e[1];if(u<=0)return e[0];}return L9a[0][0];};
   const step=(L9-380-420)/Math.max(1,nS-1);let nP=0;const sites=[];
-  for(let k=0;k<nS;k++){
+  for(let k=0;k<nS;k++){if(performance.now()>JF.lim)yield;
     const sB=k?380+(k-1+r()*.8)*step:90+r()*470;let best=null,nOk=0;
-    for(let pass=0;pass<(k?1:2)&&!best;pass++)for(let e=0;e<(k?90:130);e++){ /* le 1er site : s'il n'y a rien de visible, on prend le meilleur emplacement quand même (2e passe) */
+    for(let pass=0;pass<(k?1:2)&&!best;pass++)for(let e=0;e<(k?90:130);e++){if(performance.now()>JF.lim)yield; /* le 1er site : s'il n'y a rien de visible, on prend le meilleur emplacement quand même (2e passe) */
       const s0=Math.max(40,Math.min(L9-320,sB+(k?(r()-.5)*300:(r()-.5)*60))),i=Math.max(0,Math.min(S.n-1,Math.round(s0/S.ds))),sg=r()<.5?-1:1,u=r(),lat0=k===0?(u<.5?110+r()*150:260+r()*170):u<.5?42+r()*190:u<.85?230+r()*300:520+r()*380;
       const x=S.x[i]-S.tz[i]*sg*(RH+lat0),z=S.z[i]+S.tx[i]*sg*(RH+lat0),ar=Math.atan2(S.x[i]-x,S.z[i]-z),far=lat0>260,ia=Math.max(0,i-Math.round(130/S.ds)),dd=Math.hypot(x-S.x[ia],z-S.z[ia],dnHauteur(x,z,o1)-S.y[ia]),
         ss=Ks*(k%2===0?1.2:1)*Math.max(k===0?4.6:1.3,Math.min(9,1.4+dd/(52+25*r())));
