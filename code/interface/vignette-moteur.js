@@ -307,7 +307,7 @@ function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie 
 function engChauffe1(){
   if(ENG_BB.length){const g=ENG_BB.shift();try{if(!g.userData.bb&&!g.parent)g.userData.bb=new THREE.Box3().setFromObject(g);}catch(e){}chauffeGrace();return;} /* (2026-10-31) la boîte de cadrage d'un moteur gardé, dans SA propre image (voir ENG_BB) */
   if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
-  if(engChaudI<0){chauffeGrace();const k9=CHAUFFE_R.div;CHAUFFE_R.saute=0;const r9=chauffeDivers(k9);if(CHAUFFE_R.saute&&CHAUFFE_R.rejoue!==k9){CHAUFFE_R.rejoue=k9;return;}CHAUFFE_R.div=k9+1;if(!r9)engChaudI=0;return;} /* (LA LIAISON EN ARRIÈRE-PLAN) une étape dont le dessin a sauté des programmes en cours de liaison est rejouée une fois, liée */ // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
+  if(engChaudI<0){chauffeGrace();const k9=CHAUFFE_R.div;CHAUFFE_R.saute=0;const r9=chauffeDivers(k9);if(CHAUFFE_R.encore){CHAUFFE_R.encore=0;return;} /* (2026-11-01) une étape en plusieurs images : rejouée tant qu'il en reste */if(CHAUFFE_R.saute&&CHAUFFE_R.rejoue!==k9){CHAUFFE_R.rejoue=k9;return;}CHAUFFE_R.div=k9+1;if(!r9)engChaudI=0;return;} /* (LA LIAISON EN ARRIÈRE-PLAN) une étape dont le dessin a sauté des programmes en cours de liaison est rejouée une fois, liée */ // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
   if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){chauffeGrace();CHAUFFE_R.saute=0;chauffeRendu();if(CHAUFFE_R.saute&&!CHAUFFE_R.refait){CHAUFFE_R.refait=1;return;}CHAUFFE_R.fait=true;CHAUFFE_R.tFait=performance.now();return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
     if(CHAUFFE_R.ap>=0&&!ecranWipe._on&&!GAR.go&&!CHUTE.go&&(PREB.W?PREB.fait:(!PREB.on||!prebDepCible()||performance.now()-CHAUFFE_R.tFait>15000))){chauffeGrace();if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;} // (2026-10-24) les tôles des voitures, une par image, le départ d'avance prêt (voir chauffeApres) — (2026-10-28) jamais pendant un lâcher ou un piqué (LE DÉPART ATTEND LA CHAUFFE : une tôle de 1,9 s sous le voile retarderait la course)
     return;}
@@ -386,11 +386,13 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){orbiteChauffe();}, // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
   function(){if(!CITY.chaud){CITY.chaud=true;villeChauffe();}},
   function(){if(SPIN.on){const m9=mkJeton(1);scene.add(m9);chauffeRendu([m9]);scene.remove(m9);}}, /* (2026-10-14) LE JETON DU FINAL SPIN : texture et matières montées au menu */
+  function(){try{if(cyBruitsPas())CHAUFFE_R.encore=1;}catch(e){}}, /* (2026-11-01) les bruits du canyon et des dunes, un canal par image (voir cyBruitsPas) */
   function(){try{canyonChauffe();}catch(e){console.warn('canyonChauffe',e);}}, // (2026-10-14) LE CANYON DES GÉANTS : le relief et son ciel compilés au menu
   function(){try{dunesChauffe();}catch(e){console.warn('dunesChauffe',e);}}, // (2026-10-18) LES DUNES D'OR : le sable et ses décors compilés au menu
   function(){campChauffe();},
   function(){try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
   function(){try{vitreChauffe();}catch(e){console.warn('vitreChauffe',e);}}, // (2026-10-17) LA VILLE VITRÉE : le verre, ses tours au loin, la couche de nuages
+  function(){try{if(foretProtosPas())CHAUFFE_R.encore=1;}catch(e){}}, /* (2026-11-01) les essences de la forêt, une par image (voir foretProtosPas) */
   function(){try{foretChauffe();}catch(e){console.warn('foretChauffe',e);}}, // (2026-10-14) LA FORÊT NOIRE : arbres, sol, torrent, fleurs, papillons, lucioles, rayons, brume, feux follets, lune, loup — compilés au menu
   function(){try{grotteChauffe();}catch(e){console.warn('grotteChauffe',e);}}, // (2026-10-18) LES PROFONDEURS : la roche en blocs (un programme) et les poussières, compilées au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu

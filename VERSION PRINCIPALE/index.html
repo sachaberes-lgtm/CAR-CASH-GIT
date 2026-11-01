@@ -16519,10 +16519,17 @@ function foretLoin(k,K,rg){const H=k==='epicea'?37:33,o=FOR_LOIN[k];
   if(!o){fbTube(K,[[0,3,0],[0,H*.55,0],[0,H+.5,0]],[k==='epicea'?6.6:6,k==='epicea'?3.3:3.4,.15],6,{col:FC[k],ec:0,ytop:H,rg:rg,part:2});return;}
   fbTouffe(K,[0,o[0],0],o[1],0,{rg:rg,cc:[0,o[0],0],cr:o[1],col:FC[k],ytop:o[0]+o[1],bos:.12,sq:o[2]});}
 /* LES PROTOTYPES (une fois par session : la géométrie ne dépend pas de la piste) */
-function foretProtos(){if(FORET.protos)return FORET.protos;const t0=performance.now(),P={esp:{},geant:{}};
-  for(const k of FOR_ESP_N){P.esp[k]=[];for(let l=0;l<2;l++){let K=fbNew();const rg=mulberry32(0xF0E5+k.length*977+l*31);let m;if(l===2){foretLoin(k,K,rg);m=P.esp[k][0].m;}else m=FOR_ESP[k](K,l,rg);
-    P.esp[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}}
-  for(const k of FOR_GEANTS_N.concat(FOR_GEANTS_PL)){P.geant[k]=[];for(let l=0;l<2;l++){let K=fbNew();const m=FOR_GEANTS[k](K,l,mulberry32(0x6EA7+k.length*131));P.geant[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}} // même graine aux deux détails : mêmes branches, mêmes collisions
+/* (2026-11-01, Léo : « règle les petits à-coups ») LES MODÈLES EN PAS : au menu, la chauffe (foretProtosPas) bâtit UNE essence par image — d'un bloc,
+   MESURÉ 182 ms ×4. Chaque essence a sa graine à elle et elles sont bâties dans le même ordre : les mêmes modèles. foretProtos finit ce qui reste. */
+function foretProtosPas(){if(FORET.protos)return false;let T=FORET.protoT;
+  if(!T){const P={esp:{},geant:{}},J=[];
+    for(const k of FOR_ESP_N)J.push(function(){P.esp[k]=[];for(let l=0;l<2;l++){let K=fbNew();const rg=mulberry32(0xF0E5+k.length*977+l*31);let m;if(l===2){foretLoin(k,K,rg);m=P.esp[k][0].m;}else m=FOR_ESP[k](K,l,rg);
+      P.esp[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}});
+    for(const k of FOR_GEANTS_N.concat(FOR_GEANTS_PL))J.push(function(){P.geant[k]=[];for(let l=0;l<2;l++){let K=fbNew();const m=FOR_GEANTS[k](K,l,mulberry32(0x6EA7+k.length*131));P.geant[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}}); // même graine aux deux détails : mêmes branches, mêmes collisions
+    T=FORET.protoT={P:P,J:J,i:0,ms:0};}
+  if(T.i<T.J.length){const t0=performance.now();T.J[T.i++]();T.ms+=performance.now()-t0;}
+  return T.i<T.J.length;}
+function foretProtos(){if(FORET.protos)return FORET.protos;while(foretProtosPas());const T=FORET.protoT,t0=performance.now()-T.ms,P=T.P;FORET.protoT=null;
   // LE LOIN, EN DEUX FAMILLES SEULEMENT (toutes essences) : une boule unité (feuillus) et un cône unité (conifères), blancs — l'albédo de
   // chaque arbre voyage dans son exemplaire (aI.yzw, voir FOR_ARB_VS) : 2 appels de dessin au lieu de 6
   {let K=fbNew();const rg=mulberry32(0x10A1);fbTouffe(K,[0,0,0],1,0,{rg:rg,cc:[0,0,0],cr:1,col:[1,1,1],ytop:1,bos:.12,sq:1});P.boule={g:fbGeo(K),tri:K.I.length/3};}
@@ -17823,15 +17830,19 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
 }
 /* LES BRUITS PARTAGÉS (une fois par session) — deux textures RGBA8 256², et les MÊMES octets côté processeur : `CY.rnd` (des tirages bruts,
    lus au texel près : les buttes) et `CY.nz` (quatre bruits fbm qui se répètent, lus en bilinéaire : les corniches, le grain). */
-function cyBruits(){ if(CY.nz)return;
-  const N=256,rd=new Uint8Array(N*N*4),r=mulberry32(0xC4A170);for(let i=0;i<rd.length;i++)rd[i]=(r()*256)|0;
-  const nz=new Uint8Array(N*N*4),g=mulberry32(0x5A4D);
-  for(let c=0;c<4;c++){const F=[4,8,16,32][c],lat=[];for(let o=0;o<4;o++){const f=F<<o,a=new Float32Array(f*f);for(let i=0;i<a.length;i++)a[i]=g();lat.push([f,a]);}
+/* (2026-11-01, Léo : « règle les petits à-coups ») LES BRUITS EN PAS : au menu, la chauffe (cyBruitsPas) en fait un canal par image — d'un bloc,
+   MESURÉ 91 ms ×4. Les mêmes tirages dans le même ordre (g passe d'un canal au suivant) : les mêmes octets. cyBruits finit ce qui reste. */
+function cyBruitsPas(){if(CY.nz)return false;const N=256;let Z=CY.bz;
+  if(!Z){const rd=new Uint8Array(N*N*4),r=mulberry32(0xC4A170);for(let i=0;i<rd.length;i++)rd[i]=(r()*256)|0;Z=CY.bz={rd:rd,nz:new Uint8Array(N*N*4),g:mulberry32(0x5A4D),c:0};return true;}
+  if(Z.c<4){const c=Z.c++,nz=Z.nz,g=Z.g,F=[4,8,16,32][c],lat=[];for(let o=0;o<4;o++){const f=F<<o,a=new Float32Array(f*f);for(let i=0;i<a.length;i++)a[i]=g();lat.push([f,a]);}
     for(let y=0;y<N;y++)for(let x=0;x<N;x++){let v=0,am=.5,tt=0;
       for(const L9 of lat){const f=L9[0],a=L9[1],u=x/N*f,w=y/N*f,i=Math.floor(u),j=Math.floor(w),fu=u-i,fw=w-j,su=fu*fu*(3-2*fu),sw=fw*fw*(3-2*fw);
         const A=a[(j%f)*f+(i%f)],B9=a[(j%f)*f+((i+1)%f)],C9=a[((j+1)%f)*f+(i%f)],D9=a[((j+1)%f)*f+((i+1)%f)];
         v+=am*(A+(B9-A)*su+(C9-A)*sw+(A-B9-C9+D9)*su*sw);tt+=am;am*=.5;}
       nz[(y*N+x)*4+c]=Math.max(0,Math.min(255,Math.round(((v/tt-.5)*1.7+.5)*255)));}}
+  return Z.c<4;}
+function cyBruits(){ if(CY.nz)return;
+  while(cyBruitsPas());const N=256,rd=CY.bz.rd,nz=CY.bz.nz;CY.bz=null;
   const mk=(d,lin)=>{const t=new THREE.DataTexture(d,N,N,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;
     t.magFilter=t.minFilter=lin?THREE.LinearFilter:THREE.NearestFilter;t.generateMipmaps=false;if(lin){t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;}t.needsUpdate=true;return t;};
   CY.rnd=rd;CY.nz=nz;CY.tRnd=mk(rd,false);CY.tNz=mk(nz,true);
@@ -45963,7 +45974,7 @@ function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie 
 function engChauffe1(){
   if(ENG_BB.length){const g=ENG_BB.shift();try{if(!g.userData.bb&&!g.parent)g.userData.bb=new THREE.Box3().setFromObject(g);}catch(e){}chauffeGrace();return;} /* (2026-10-31) la boîte de cadrage d'un moteur gardé, dans SA propre image (voir ENG_BB) */
   if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
-  if(engChaudI<0){chauffeGrace();const k9=CHAUFFE_R.div;CHAUFFE_R.saute=0;const r9=chauffeDivers(k9);if(CHAUFFE_R.saute&&CHAUFFE_R.rejoue!==k9){CHAUFFE_R.rejoue=k9;return;}CHAUFFE_R.div=k9+1;if(!r9)engChaudI=0;return;} /* (LA LIAISON EN ARRIÈRE-PLAN) une étape dont le dessin a sauté des programmes en cours de liaison est rejouée une fois, liée */ // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
+  if(engChaudI<0){chauffeGrace();const k9=CHAUFFE_R.div;CHAUFFE_R.saute=0;const r9=chauffeDivers(k9);if(CHAUFFE_R.encore){CHAUFFE_R.encore=0;return;} /* (2026-11-01) une étape en plusieurs images : rejouée tant qu'il en reste */if(CHAUFFE_R.saute&&CHAUFFE_R.rejoue!==k9){CHAUFFE_R.rejoue=k9;return;}CHAUFFE_R.div=k9+1;if(!r9)engChaudI=0;return;} /* (LA LIAISON EN ARRIÈRE-PLAN) une étape dont le dessin a sauté des programmes en cours de liaison est rejouée une fois, liée */ // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
   if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){chauffeGrace();CHAUFFE_R.saute=0;chauffeRendu();if(CHAUFFE_R.saute&&!CHAUFFE_R.refait){CHAUFFE_R.refait=1;return;}CHAUFFE_R.fait=true;CHAUFFE_R.tFait=performance.now();return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
     if(CHAUFFE_R.ap>=0&&!ecranWipe._on&&!GAR.go&&!CHUTE.go&&(PREB.W?PREB.fait:(!PREB.on||!prebDepCible()||performance.now()-CHAUFFE_R.tFait>15000))){chauffeGrace();if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;} // (2026-10-24) les tôles des voitures, une par image, le départ d'avance prêt (voir chauffeApres) — (2026-10-28) jamais pendant un lâcher ou un piqué (LE DÉPART ATTEND LA CHAUFFE : une tôle de 1,9 s sous le voile retarderait la course)
     return;}
@@ -46042,11 +46053,13 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){orbiteChauffe();}, // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
   function(){if(!CITY.chaud){CITY.chaud=true;villeChauffe();}},
   function(){if(SPIN.on){const m9=mkJeton(1);scene.add(m9);chauffeRendu([m9]);scene.remove(m9);}}, /* (2026-10-14) LE JETON DU FINAL SPIN : texture et matières montées au menu */
+  function(){try{if(cyBruitsPas())CHAUFFE_R.encore=1;}catch(e){}}, /* (2026-11-01) les bruits du canyon et des dunes, un canal par image (voir cyBruitsPas) */
   function(){try{canyonChauffe();}catch(e){console.warn('canyonChauffe',e);}}, // (2026-10-14) LE CANYON DES GÉANTS : le relief et son ciel compilés au menu
   function(){try{dunesChauffe();}catch(e){console.warn('dunesChauffe',e);}}, // (2026-10-18) LES DUNES D'OR : le sable et ses décors compilés au menu
   function(){campChauffe();},
   function(){try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
   function(){try{vitreChauffe();}catch(e){console.warn('vitreChauffe',e);}}, // (2026-10-17) LA VILLE VITRÉE : le verre, ses tours au loin, la couche de nuages
+  function(){try{if(foretProtosPas())CHAUFFE_R.encore=1;}catch(e){}}, /* (2026-11-01) les essences de la forêt, une par image (voir foretProtosPas) */
   function(){try{foretChauffe();}catch(e){console.warn('foretChauffe',e);}}, // (2026-10-14) LA FORÊT NOIRE : arbres, sol, torrent, fleurs, papillons, lucioles, rayons, brume, feux follets, lune, loup — compilés au menu
   function(){try{grotteChauffe();}catch(e){console.warn('grotteChauffe',e);}}, // (2026-10-18) LES PROFONDEURS : la roche en blocs (un programme) et les poussières, compilées au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
@@ -50742,19 +50755,31 @@ function bat10(){
     plat(){M0.identity();return o;},
     add(geo,mat,x,y,z,rx,ry,rz,sx,sy,sz){
       if(o.f&&geo.index){geo=geo.toNonIndexed();geo.computeVertexNormals();}   // `f` : FACETTES — normales plates, comme les voitures (`facetteCaisse`)
-      let e=L.get(mat);if(!e){e={p:[],n:[],u:[],i:[],c:0};L.set(mat,e);}
+      let e=L.get(mat);if(!e){e={p:new Float32Array(3072),n:new Float32Array(3072),u:new Float32Array(2048),i:[],c:0};L.set(mat,e);}
       E.set(rx||0,ry||0,rz||0,'XYZ');Q.setFromEuler(E);P.set(x||0,y||0,z||0);Sc.set(sx==null?1:sx,sy==null?1:sy,sz==null?1:sz);
       Mf.compose(P,Q,Sc);M.multiplyMatrices(M0,Mf);N.getNormalMatrix(M);
       const pa=geo.attributes.position,na=geo.attributes.normal,ua=geo.attributes.uv,n=pa.count;
-      for(let k=0;k<n;k++){V.set(pa.getX(k),pa.getY(k),pa.getZ(k)).applyMatrix4(M);e.p.push(V.x,V.y,V.z);
-        V.set(na.getX(k),na.getY(k),na.getZ(k)).applyMatrix3(N).normalize();e.n.push(V.x,V.y,V.z);
-        if(ua)e.u.push(ua.getX(k),ua.getY(k));else e.u.push(0,0);}
-      if(geo.index){const ix=geo.index.array;for(let k=0;k<ix.length;k++)e.i.push(ix[k]+e.c);}
-      else for(let k=0;k<n;k++)e.i.push(k+e.c);
-      e.c+=n;return o;},
+      /* (2026-11-01, Léo : « règle les petits à-coups ») L'ASSEMBLEUR SANS OBJET PAR SOMMET : MESURÉ (banc iPhone ×4), add + fin faisaient 66 % de la
+         fabrication des 30 moteurs (776 ms sur 1 170) — getX/applyMatrix4/normalize et trois push par sommet, puis la recopie en tableaux typés. Les
+         sommets vont droit dans des tableaux typés qui grandissent par doublement, par les MÊMES opérations que three (applyMatrix4 avec son w,
+         applyMatrix3, normalize = ×1/longueur) : les mêmes nombres au bit près. Les attributs entrelacés ou normalisés gardent le chemin d'avant. */
+      const c0=e.c,c1=c0+n;if(c1*3>e.p.length){let m=e.p.length;while(c1*3>m)m*=2;const P9=new Float32Array(m),N9=new Float32Array(m),U9=new Float32Array(m/3*2);P9.set(e.p);N9.set(e.n);U9.set(e.u);e.p=P9;e.n=N9;e.u=U9;}
+      const ep=e.p,en=e.n,eu=e.u,me=M.elements,ne=N.elements,dir=(a,t)=>a&&!a.isInterleavedBufferAttribute&&!a.normalized&&a.itemSize===t;
+      if(dir(pa,3)&&dir(na,3)&&(!ua||dir(ua,2))){const A=pa.array,B9=na.array,U=ua?ua.array:null;
+        for(let k=0;k<n;k++){const j=k*3,o3=(c0+k)*3,o2=(c0+k)*2;let x=A[j],y=A[j+1],z=A[j+2];const w=1/(me[3]*x+me[7]*y+me[11]*z+me[15]);
+          ep[o3]=(me[0]*x+me[4]*y+me[8]*z+me[12])*w;ep[o3+1]=(me[1]*x+me[5]*y+me[9]*z+me[13])*w;ep[o3+2]=(me[2]*x+me[6]*y+me[10]*z+me[14])*w;
+          x=B9[j];y=B9[j+1];z=B9[j+2];const nx=ne[0]*x+ne[3]*y+ne[6]*z,ny=ne[1]*x+ne[4]*y+ne[7]*z,nz=ne[2]*x+ne[5]*y+ne[8]*z,s9=1/(Math.sqrt(nx*nx+ny*ny+nz*nz)||1);
+          en[o3]=nx*s9;en[o3+1]=ny*s9;en[o3+2]=nz*s9;
+          if(U){eu[o2]=U[k*2];eu[o2+1]=U[k*2+1];}else{eu[o2]=0;eu[o2+1]=0;}}}
+      else for(let k=0;k<n;k++){const o3=(c0+k)*3,o2=(c0+k)*2;V.set(pa.getX(k),pa.getY(k),pa.getZ(k)).applyMatrix4(M);ep[o3]=V.x;ep[o3+1]=V.y;ep[o3+2]=V.z;
+        V.set(na.getX(k),na.getY(k),na.getZ(k)).applyMatrix3(N).normalize();en[o3]=V.x;en[o3+1]=V.y;en[o3+2]=V.z;
+        if(ua){eu[o2]=ua.getX(k);eu[o2+1]=ua.getY(k);}else{eu[o2]=0;eu[o2+1]=0;}}
+      if(geo.index){const ix=geo.index.array;for(let k=0;k<ix.length;k++)e.i.push(ix[k]+c0);}
+      else for(let k=0;k<n;k++)e.i.push(k+c0);
+      e.c=c1;return o;},
     fin(g){L.forEach((e,mat)=>{const bg=new THREE.BufferGeometry();
-      bg.setAttribute('position',new THREE.Float32BufferAttribute(e.p,3));bg.setAttribute('normal',new THREE.Float32BufferAttribute(e.n,3));
-      bg.setAttribute('uv',new THREE.Float32BufferAttribute(e.u,2));bg.setIndex(e.i);bg.computeBoundingSphere();
+      bg.setAttribute('position',new THREE.BufferAttribute(e.p.slice(0,e.c*3),3));bg.setAttribute('normal',new THREE.BufferAttribute(e.n.slice(0,e.c*3),3));
+      bg.setAttribute('uv',new THREE.BufferAttribute(e.u.slice(0,e.c*2),2));bg.setIndex(e.i);bg.computeBoundingSphere();
       g.add(new THREE.Mesh(bg,mat));});L.clear();return o;}
   };
   return o;

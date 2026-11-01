@@ -113,10 +113,17 @@ function foretLoin(k,K,rg){const H=k==='epicea'?37:33,o=FOR_LOIN[k];
   if(!o){fbTube(K,[[0,3,0],[0,H*.55,0],[0,H+.5,0]],[k==='epicea'?6.6:6,k==='epicea'?3.3:3.4,.15],6,{col:FC[k],ec:0,ytop:H,rg:rg,part:2});return;}
   fbTouffe(K,[0,o[0],0],o[1],0,{rg:rg,cc:[0,o[0],0],cr:o[1],col:FC[k],ytop:o[0]+o[1],bos:.12,sq:o[2]});}
 /* LES PROTOTYPES (une fois par session : la géométrie ne dépend pas de la piste) */
-function foretProtos(){if(FORET.protos)return FORET.protos;const t0=performance.now(),P={esp:{},geant:{}};
-  for(const k of FOR_ESP_N){P.esp[k]=[];for(let l=0;l<2;l++){let K=fbNew();const rg=mulberry32(0xF0E5+k.length*977+l*31);let m;if(l===2){foretLoin(k,K,rg);m=P.esp[k][0].m;}else m=FOR_ESP[k](K,l,rg);
-    P.esp[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}}
-  for(const k of FOR_GEANTS_N.concat(FOR_GEANTS_PL)){P.geant[k]=[];for(let l=0;l<2;l++){let K=fbNew();const m=FOR_GEANTS[k](K,l,mulberry32(0x6EA7+k.length*131));P.geant[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}} // même graine aux deux détails : mêmes branches, mêmes collisions
+/* (2026-11-01, Léo : « règle les petits à-coups ») LES MODÈLES EN PAS : au menu, la chauffe (foretProtosPas) bâtit UNE essence par image — d'un bloc,
+   MESURÉ 182 ms ×4. Chaque essence a sa graine à elle et elles sont bâties dans le même ordre : les mêmes modèles. foretProtos finit ce qui reste. */
+function foretProtosPas(){if(FORET.protos)return false;let T=FORET.protoT;
+  if(!T){const P={esp:{},geant:{}},J=[];
+    for(const k of FOR_ESP_N)J.push(function(){P.esp[k]=[];for(let l=0;l<2;l++){let K=fbNew();const rg=mulberry32(0xF0E5+k.length*977+l*31);let m;if(l===2){foretLoin(k,K,rg);m=P.esp[k][0].m;}else m=FOR_ESP[k](K,l,rg);
+      P.esp[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}});
+    for(const k of FOR_GEANTS_N.concat(FOR_GEANTS_PL))J.push(function(){P.geant[k]=[];for(let l=0;l<2;l++){let K=fbNew();const m=FOR_GEANTS[k](K,l,mulberry32(0x6EA7+k.length*131));P.geant[k].push({g:fbGeo(K),m:m,tri:K.I.length/3});}}); // même graine aux deux détails : mêmes branches, mêmes collisions
+    T=FORET.protoT={P:P,J:J,i:0,ms:0};}
+  if(T.i<T.J.length){const t0=performance.now();T.J[T.i++]();T.ms+=performance.now()-t0;}
+  return T.i<T.J.length;}
+function foretProtos(){if(FORET.protos)return FORET.protos;while(foretProtosPas());const T=FORET.protoT,t0=performance.now()-T.ms,P=T.P;FORET.protoT=null;
   // LE LOIN, EN DEUX FAMILLES SEULEMENT (toutes essences) : une boule unité (feuillus) et un cône unité (conifères), blancs — l'albédo de
   // chaque arbre voyage dans son exemplaire (aI.yzw, voir FOR_ARB_VS) : 2 appels de dessin au lieu de 6
   {let K=fbNew();const rg=mulberry32(0x10A1);fbTouffe(K,[0,0,0],1,0,{rg:rg,cc:[0,0,0],cr:1,col:[1,1,1],ytop:1,bos:.12,sq:1});P.boule={g:fbGeo(K),tri:K.I.length/3};}

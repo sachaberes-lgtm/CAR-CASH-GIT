@@ -235,15 +235,19 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
 }
 /* LES BRUITS PARTAGÉS (une fois par session) — deux textures RGBA8 256², et les MÊMES octets côté processeur : `CY.rnd` (des tirages bruts,
    lus au texel près : les buttes) et `CY.nz` (quatre bruits fbm qui se répètent, lus en bilinéaire : les corniches, le grain). */
-function cyBruits(){ if(CY.nz)return;
-  const N=256,rd=new Uint8Array(N*N*4),r=mulberry32(0xC4A170);for(let i=0;i<rd.length;i++)rd[i]=(r()*256)|0;
-  const nz=new Uint8Array(N*N*4),g=mulberry32(0x5A4D);
-  for(let c=0;c<4;c++){const F=[4,8,16,32][c],lat=[];for(let o=0;o<4;o++){const f=F<<o,a=new Float32Array(f*f);for(let i=0;i<a.length;i++)a[i]=g();lat.push([f,a]);}
+/* (2026-11-01, Léo : « règle les petits à-coups ») LES BRUITS EN PAS : au menu, la chauffe (cyBruitsPas) en fait un canal par image — d'un bloc,
+   MESURÉ 91 ms ×4. Les mêmes tirages dans le même ordre (g passe d'un canal au suivant) : les mêmes octets. cyBruits finit ce qui reste. */
+function cyBruitsPas(){if(CY.nz)return false;const N=256;let Z=CY.bz;
+  if(!Z){const rd=new Uint8Array(N*N*4),r=mulberry32(0xC4A170);for(let i=0;i<rd.length;i++)rd[i]=(r()*256)|0;Z=CY.bz={rd:rd,nz:new Uint8Array(N*N*4),g:mulberry32(0x5A4D),c:0};return true;}
+  if(Z.c<4){const c=Z.c++,nz=Z.nz,g=Z.g,F=[4,8,16,32][c],lat=[];for(let o=0;o<4;o++){const f=F<<o,a=new Float32Array(f*f);for(let i=0;i<a.length;i++)a[i]=g();lat.push([f,a]);}
     for(let y=0;y<N;y++)for(let x=0;x<N;x++){let v=0,am=.5,tt=0;
       for(const L9 of lat){const f=L9[0],a=L9[1],u=x/N*f,w=y/N*f,i=Math.floor(u),j=Math.floor(w),fu=u-i,fw=w-j,su=fu*fu*(3-2*fu),sw=fw*fw*(3-2*fw);
         const A=a[(j%f)*f+(i%f)],B9=a[(j%f)*f+((i+1)%f)],C9=a[((j+1)%f)*f+(i%f)],D9=a[((j+1)%f)*f+((i+1)%f)];
         v+=am*(A+(B9-A)*su+(C9-A)*sw+(A-B9-C9+D9)*su*sw);tt+=am;am*=.5;}
       nz[(y*N+x)*4+c]=Math.max(0,Math.min(255,Math.round(((v/tt-.5)*1.7+.5)*255)));}}
+  return Z.c<4;}
+function cyBruits(){ if(CY.nz)return;
+  while(cyBruitsPas());const N=256,rd=CY.bz.rd,nz=CY.bz.nz;CY.bz=null;
   const mk=(d,lin)=>{const t=new THREE.DataTexture(d,N,N,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;
     t.magFilter=t.minFilter=lin?THREE.LinearFilter:THREE.NearestFilter;t.generateMipmaps=false;if(lin){t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;}t.needsUpdate=true;return t;};
   CY.rnd=rd;CY.nz=nz;CY.tRnd=mk(rd,false);CY.tNz=mk(nz,true);
