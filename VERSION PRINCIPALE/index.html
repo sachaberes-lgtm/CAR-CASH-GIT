@@ -74257,7 +74257,12 @@ const NX3_PAL={
   bleu:['#ffffff','#b5c4ff','#e8edff','#4a68f0','#2a44c8','#16247a','#4a68f0','#0b0a2e'],
   vio: ['#ffe0dc','#ff4a3a','#ffb0a8','#ff1a0a','#c40a00','#6e0500','#ff4a3a','#1c0430'],
   vioF:['#ffffff','#ffc8c0','#ffffff','#ff4a3a','#ff1a0a','#6e0500','#ff4a3a','#1c0430'],
-  sec: ['#a49cc4','#6e6890','#8a84aa','#4a4468','#332e50','#211d38','#ff5a6e','#1c0430']};
+  sec: ['#a49cc4','#6e6890','#8a84aa','#4a4468','#332e50','#211d38','#ff5a6e','#1c0430'],
+  /* LA FLAMME (?boost=flamme, voir boost-icones.js) : [cœur, plein, clair, bord, épaisseur haute, épaisseur basse, lueur, contour] — de la braise (repos) au blanc-bleu (tenu longtemps) */
+  f0:  ['#ffe9a0','#ff8f1f','#ffc24a','#d8420a','#a02a00','#4a1200','#ff7a1a','#1c0430'],
+  f1:  ['#fff6c0','#ffb21f','#ffd95a','#ff6a0e','#c43c00','#6e1a00','#ff8d2e','#1c0430'],
+  f2:  ['#ffffff','#ffe066','#fff2a0','#ff9a1a','#ff6a0e','#8a2400','#ffb347','#1c0430'],
+  f3:  ['#ffffff','#fff6d0','#ffffff','#ffb84a','#ff8a1a','#a03000','#aee0ff','#1c0430']};
 const NX3_RGB={};function nx3Rgb(h){let v=NX3_RGB[h];if(v==null){const n=parseInt(h.slice(1),16);v=NX3_RGB[h]=(255<<24|(n&255)<<16|(n>>8&255)<<8|n>>16)>>>0;}return v;} // ABGR (petit-boutiste)
 function nx3Monte(){
   const el=document.getElementById('tNitro'),bar=document.getElementById('nitroBar');if(!el||!bar||NX3.el)return!!NX3.el;NX3.el=el;
@@ -74275,6 +74280,7 @@ function nx3Monte(){
    g = position du reflet qui balaie (somme x+y, −1 = aucun), clig = contour rouge (à sec). Couches : l'éclair (1), son épaisseur (2), puis
    autour, à 1 case le contour d'encre, à 2 et 3 cases les deux anneaux de lueur. */
 function nx3Dessine(d,pal,a,g,clig){
+  if(NX3.flame)return nxfDessine(d,pal,a,clig);
   const W=NX3.W,H=NX3.H,u=NX3.u32,m=NX3.m,gw=NX3_G[0].length,gh=NX3_G.length,M=NX3_M,T=NX3_T,P=NX3_PAL[pal];u.fill(0);
   const y0=M+d,ep=T-d,B=NX3.B||(NX3.B=new Uint8Array(W*H));
   const forme=function(x,y){x-=M;y-=y0;return x>=0&&y>=0&&x<gw&&y<gh&&m[y*gw+x]===1;};
@@ -74307,16 +74313,18 @@ function nx3Tick(dt,kmh){
   if(rm){NX3.p=appui;NX3.pv=0;}else{const h=Math.min(dt,.05)/2,w0=30,z=.4;for(let i=0;i<2;i++){NX3.pv+=(w0*w0*(appui-NX3.p)-2*z*w0*NX3.pv)*h;NX3.p+=NX3.pv*h;}
     if(NX3.p<-.34){NX3.p=-.34;NX3.pv=0;}else if(NX3.p>1.05){NX3.p=1.05;NX3.pv=0;}}
   const d=Math.max(-1,Math.min(NX3_T,Math.round(NX3.p*NX3_T)));
+  if(NX3.flame)NX3.heat=Math.max(0,Math.min(1,(NX3.heat||0)+(appui?dt/2.2:-dt/.7))); // (?boost=flamme) la CHALEUR monte tant que le doigt reste (2,2 s au maximum) et retombe vite au lâcher
   // LA LUEUR : la nitro qui brûle (à sec, l'appui ne fait rien briller) ; pleine et au repos, elle respire
   const veut=NX3.kF!=null?NX3.kF:(nitroOn?1:0);NX3.k+=(veut-NX3.k)*Math.min(1,dt*(veut>NX3.k?16:6));
-  const souffle=(plein&&!appui&&!rm)?.18+.16*Math.sin(NX3.t*5.2):0,a=Math.max(NX3.k,souffle);
+  const souffle=(plein&&!appui&&!rm)?.18+.16*Math.sin(NX3.t*5.2):0,fh=NX3.flame?Math.max(NX3.heat,NX3.k*.5):0,a=Math.max(NX3.k,souffle,fh*.95);
   const aQ=Math.round(a*(rm?1:(.85+.15*Math.sin(NX3.t*31)))*6)/6; // la lueur par crans (des cases qui battent, pas un dégradé)
-  const chaud=NX3.k>.5,pal=inf?(chaud?'vioF':'vio'):(chaud?(nitroBlue?'bleu':'feu'):(sec?'sec':'or'));
+  const chaud=NX3.k>.5,pal=NX3.flame?(inf?(chaud?'vioF':'vio'):(sec?'sec':(chaud&&nitroBlue?'bleu':'f'+Math.min(3,Math.floor(fh*4))))):inf?(chaud?'vioF':'vio'):(chaud?(nitroBlue?'bleu':'feu'):(sec?'sec':'or'));
   const clig=sec&&!appui&&(Math.floor(NX3.t/.3)&1)===1;
   // le REFLET blanc qui balaie les cases : toutes les ~3,5 s (1,6 s quand la nitro est pleine)
   NX3.glT-=dt;if(NX3.gl<0&&NX3.glT<=0&&!rm&&!appui&&!sec){NX3.gl=0;}
   let g=-1;if(NX3.gl>=0){NX3.gl+=dt/.5;if(NX3.gl>1){NX3.gl=-1;NX3.glT=plein?1.6:3.5;}else g=Math.floor(-2+NX3.gl*36);}
-  const cle=d+'|'+pal+'|'+aQ+'|'+g+'|'+clig;
+  if(NX3.flame){NX3.fh=Math.round(fh*20)/20;NX3.ft=rm?0:Math.floor(NX3.t*(7+9*fh));}
+  const cle=d+'|'+pal+'|'+aQ+'|'+g+'|'+clig+(NX3.flame?'|'+NX3.fh+'|'+NX3.ft:'');
   if(cle!==NX3.cle){NX3.cle=cle;nx3Dessine(d,pal,aQ,g,clig);}
 }
 window.dbgNitro3=function(a,b){
@@ -74511,10 +74519,46 @@ function mortSaute(dt){
   MORT_IMG.n++;return true;
 }
 window.dbgMortImg=function(n){if(n!=null){PAL.B.mortImg[PAL.n]=Math.max(1,n|0);MORT_IMG.i=0;}return {N:PAL.b('mortImg',1),actif:MORT_IMG.on,depuis:+MORT_IMG.t.toFixed(2),sautees:MORT_IMG.n,ecran:overlay.getAttribute('data-ecran'),tel:TCTL.on};}; // (banc)
-/* ===== LES ICÔNES DU BOUTON BOOST (2026-11-01, Léo : « change l'éclair par un truc intelligent ou stylé, genre une bouteille nitro, on peut tester plusieurs trucs ») ===== ?boost=bouteille|chevrons|flamme|anneau : un SVG en verre dans #tNitro à la place de l'éclair en pixels (le style vit dans charte-7-details.css) ; rien dans l'URL = l'éclair, comme avant. */
-const BV_ICO={"bouteille": "<svg class=\"bvIco bv-bouteille\" viewBox=\"0 0 40 66\" aria-hidden=\"true\"><defs><clipPath id=\"bvCb\"><path d=\"M14 9h12v6q8 2 8 12v27q0 8-8 8H14q-8 0-8-8V27q0-10 8-12z\"/></clipPath></defs><g clip-path=\"url(#bvCb)\"><rect class=\"bvLx\" x=\"0\" y=\"15\" width=\"40\" height=\"52\"/><rect class=\"bvLq\" x=\"0\" y=\"15\" width=\"40\" height=\"52\"/></g><path class=\"bvLn\" d=\"M14 9h12v6q8 2 8 12v27q0 8-8 8H14q-8 0-8-8V27q0-10 8-12z\"/><path class=\"bvLn\" d=\"M11 4h18v5H11z\"/><path class=\"bvBr\" d=\"M10 31h20M10 36h20\"/><path class=\"bvSh\" d=\"M11 22q-2 4-2 10\"/></svg>", "chevrons": "<svg class=\"bvIco bv-chevrons\" viewBox=\"0 0 48 52\" aria-hidden=\"true\"><path class=\"bvCh c3\" d=\"M8 46l16-14 16 14\"/><path class=\"bvCh c2\" d=\"M8 31l16-14 16 14\"/><path class=\"bvCh c1\" d=\"M8 16l16-14 16 14\"/></svg>", "flamme": "<svg class=\"bvIco bv-flamme\" viewBox=\"0 0 40 56\" aria-hidden=\"true\"><defs><clipPath id=\"bvCf\"><path d=\"M20 2c2 9 12 14 12 28 0 9-5 15-12 15S8 39 8 30c0-5 2-8 4-11 1 4 3 5 4 5 0-8 1-14 4-22z\"/></clipPath></defs><g clip-path=\"url(#bvCf)\"><rect class=\"bvLx\" x=\"0\" y=\"2\" width=\"40\" height=\"44\"/><rect class=\"bvLq\" x=\"0\" y=\"2\" width=\"40\" height=\"44\"/></g><path class=\"bvLn\" d=\"M20 2c2 9 12 14 12 28 0 9-5 15-12 15S8 39 8 30c0-5 2-8 4-11 1 4 3 5 4 5 0-8 1-14 4-22z\"/></svg>", "anneau": "<svg class=\"bvIco bv-anneau\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"><circle class=\"bvPi\" cx=\"32\" cy=\"32\" r=\"27\"/><circle class=\"bvRx\" cx=\"32\" cy=\"32\" r=\"27\" pathLength=\"100\"/><circle class=\"bvRq\" cx=\"32\" cy=\"32\" r=\"27\" pathLength=\"100\"/><path class=\"bvCh d2\" d=\"M21 38l11-10 11 10\"/><path class=\"bvCh d1\" d=\"M21 29l11-10 11 10\"/></svg>"};
+/* ===== LES ICÔNES DU BOUTON BOOST (2026-11-01, Léo : « change l'éclair par un truc intelligent ou stylé, genre une bouteille nitro, on peut tester plusieurs trucs ») ===== ?boost=bouteille|chevrons|anneau (SVG) ou flamme (en pixels, voir plus bas) : un SVG en verre dans #tNitro à la place de l'éclair en pixels (le style vit dans charte-7-details.css) ; rien dans l'URL = l'éclair, comme avant. */
+const BV_ICO={"bouteille": "<svg class=\"bvIco bv-bouteille\" viewBox=\"0 0 40 66\" aria-hidden=\"true\"><defs><clipPath id=\"bvCb\"><path d=\"M14 9h12v6q8 2 8 12v27q0 8-8 8H14q-8 0-8-8V27q0-10 8-12z\"/></clipPath></defs><g clip-path=\"url(#bvCb)\"><rect class=\"bvLx\" x=\"0\" y=\"15\" width=\"40\" height=\"52\"/><rect class=\"bvLq\" x=\"0\" y=\"15\" width=\"40\" height=\"52\"/></g><path class=\"bvLn\" d=\"M14 9h12v6q8 2 8 12v27q0 8-8 8H14q-8 0-8-8V27q0-10 8-12z\"/><path class=\"bvLn\" d=\"M11 4h18v5H11z\"/><path class=\"bvBr\" d=\"M10 31h20M10 36h20\"/><path class=\"bvSh\" d=\"M11 22q-2 4-2 10\"/></svg>", "chevrons": "<svg class=\"bvIco bv-chevrons\" viewBox=\"0 0 48 52\" aria-hidden=\"true\"><path class=\"bvCh c3\" d=\"M8 46l16-14 16 14\"/><path class=\"bvCh c2\" d=\"M8 31l16-14 16 14\"/><path class=\"bvCh c1\" d=\"M8 16l16-14 16 14\"/></svg>", "anneau": "<svg class=\"bvIco bv-anneau\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"><circle class=\"bvPi\" cx=\"32\" cy=\"32\" r=\"27\"/><circle class=\"bvRx\" cx=\"32\" cy=\"32\" r=\"27\" pathLength=\"100\"/><circle class=\"bvRq\" cx=\"32\" cy=\"32\" r=\"27\" pathLength=\"100\"/><path class=\"bvCh d2\" d=\"M21 38l11-10 11 10\"/><path class=\"bvCh d1\" d=\"M21 29l11-10 11 10\"/></svg>"};
 {const bv=(/[?&]boost=([a-z]+)/.exec(location.search)||[])[1],bt=document.getElementById('tNitro');
- if(bv&&BV_ICO[bv]&&bt){bt.insertAdjacentHTML('beforeend',BV_ICO[bv]);document.body.classList.add('bv','bv-'+bv);}}
+ if(bv==='flamme')NX3.flame=true;
+ else if(bv&&BV_ICO[bv]&&bt){bt.insertAdjacentHTML('beforeend',BV_ICO[bv]);document.body.classList.add('bv','bv-'+bv);}}
+/* ===== LA FLAMME EN PIXELS (2026-11-01, Léo : « flamme mais plus stylé, qui autour du doigt s'enflamme de plus en plus (couleurs et intensité) quand on maintient, même style que l'éclair actuel mais flamme ») =====
+   Même pipeline que l'éclair (grille de cases, contour d'encre, épaisseur dessous, lueur en cases, enfoncement) — seule la FORME change : une flamme qui vacille (tête qui se balance,
+   flancs qui bougent), dessinée du bord vers le cœur (bord foncé → plein → clair → cœur blanc). NX3.heat (0 → 1 en 2,2 s de doigt posé, retombe en 0,7 s) la fait GRANDIR, lui donne
+   deux langues de chaque côté (> 30 % et > 55 %), des étincelles (> 50 %), un cœur blanc-bleu (> 70 %) et la fait passer de la braise (f0) au blanc brûlant (f3) ; la réserve bleue,
+   la nitro infinie (violet) et le « à sec » (gris) gardent leurs palettes. Redessinée 7 à 16 fois par seconde, pas à chaque image. */
+function nxfMasque(fh,fr){
+  const gw=15,gh=20,m=NX3.fm||(NX3.fm=new Uint8Array(gw*gh));m.fill(0);
+  const fl=function(cx,haut,w,ph,sw){const bas=gh-1;
+    for(let y=bas;y>=Math.max(0,bas-haut);y--){const v=(bas-y)/haut,hw=w*Math.pow(1-v,.7)*(.55+.45*Math.sin(Math.min(1,v*3)*1.5708)),
+      c=cx+sw*Math.pow(v,1.5)*Math.sin(fr*.9+ph+v*3),j=.35*Math.sin(fr*1.3+ph*2+y*1.1);
+      for(let x=0;x<gw;x++)if(Math.abs(x-c)<=hw+j+.35)m[y*gw+x]=1;}};
+  fl(7,Math.round(11+8*fh+1.2*Math.sin(fr*.7)),4+.8*fh,0,1.6+fh);
+  if(fh>.3)fl(2,Math.round(5+7*fh+1.2*Math.sin(fr+1)),2,2,1);
+  if(fh>.55)fl(12,Math.round(5+7*fh+1.2*Math.sin(fr*1.1+4)),2,4,1);
+  return m;
+}
+function nxfDessine(d,pal,a,clig){
+  const W=NX3.W,H=NX3.H,u=NX3.u32,gw=15,gh=20,M=NX3_M,T=NX3_T,P=NX3_PAL[pal],fh=NX3.fh||0,fr=NX3.ft||0,m=nxfMasque(fh,fr);u.fill(0);
+  const y0=M+d,ep=T-d,B=NX3.B||(NX3.B=new Uint8Array(W*H));
+  const forme=function(x,y){x-=M;y-=y0;return x>=0&&y>=0&&x<gw&&y<gh&&m[y*gw+x]===1;};
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){let b=forme(x,y)?1:0;if(!b)for(let k=1;k<=ep;k++)if(forme(x,y-k)){b=2;break;}B[y*W+x]=b;}
+  const pres=function(x,y,r){for(let j=-r;j<=r;j++)for(let i=-r;i<=r;i++){const X=x+i,Y=y+j;if(X>=0&&Y>=0&&X<W&&Y<H&&B[Y*W+X])return true;}return false;};
+  const cE=nx3Rgb(clig?'#ff5a6e':P[7]),g0=nx3Rgb(P[6])&0x00ffffff,cG1=(g0|Math.round(a*.78*255)<<24)>>>0,cG2=(g0|Math.round(a*.36*255)<<24)>>>0;
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const b=B[y*W+x],i=y*W+x;
+    if(b===1){let dp=1;while(dp<6&&forme(x-dp,y)&&forme(x+dp,y)&&forme(x,y-dp)&&forme(x,y+dp))dp++;
+      let c=dp===1?P[3]:dp===2?P[1]:dp<5?P[2]:P[0];
+      if(fh>.7&&dp>=3&&y>=y0+gh-5&&Math.abs(x-M-7)<=2)c='#9cc4ff'; // le pied du cœur vire au bleu quand la flamme est blanche
+      u[i]=nx3Rgb(c);}
+    else if(b===2)u[i]=nx3Rgb(forme(x,y-1)?P[4]:P[5]);
+    else if(pres(x,y,1))u[i]=cE;
+    else if(a>.02){if(pres(x,y,2))u[i]=cG1;else if(pres(x,y,3))u[i]=cG2;}
+  }
+  if(fh>.5){const n=Math.round(fh*6),cs=nx3Rgb(P[2]);for(let q=0;q<n;q++){const sx=(q*53+fr*5)%W,sy=(fr*2+q*37)%(H-T-2);if(!B[sy*W+sx])u[sy*W+sx]=cs;}} // les étincelles
+  NX3.cx.putImageData(NX3.img,0,0);
+}
 /* ====================== LA CADENCE STABLE — CAD (2026-10-14, passe perf mobile ; Sacha : « fluide même sur un iPhone 7 », « sans bugger ») ======================
    Un téléphone qui ne tient pas 60 images/s n'en affiche pas « 45 » : il alterne des images de 16,7 ms et de 33,3 ms au hasard, et c'est
    CETTE irrégularité que le joueur appelle « ça bug ». 30 images/s RÉGULIÈRES (une image d'écran sur deux, toujours la même) se lisent
