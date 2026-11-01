@@ -9273,6 +9273,8 @@ Object.assign(PXI_G,{ // (2026-10-15, Sacha : « les traînées, les ailes et le
   fg_plat:'............|............|............|............|............|...######...|.##......##.|#..........#|#..........#|.##....#..#.|...######...|.......#....',
   fg_plat2:'............|............|............|............|.#..........|.#.######...|###......##.|#..........#|#..........#|.##....#..#.|...######...|.......#....',
   fg_demi:'............|............|............|............|............|...###......|.##.........|#...........|#...........|.##..#......|...####.....|.....#......'});
+/* (2026-11-01, Léo : « changer l'icône en haut aussi… oui, partout ») LA FLAMME REMPLACE L'ÉCLAIR dans toute l'interface (barre de boost, réglages, auto-école, orbe de vitesse…) ; l'éclair d'avant reste sous le nom `foudre` (la FOUDRE DIVINE) et revient partout avec ?boost=eclair */
+PXI_G.foudre=PXI_G.eclair;if(!/[?&]boost=eclair/.test(location.search))PXI_G.eclair=PXI_G.flamme;
 (function(){
   let css='',vars='';
   for(const k in PXI_G){
@@ -49323,7 +49325,7 @@ const COSM={
     {id:'hyper',    n:'HYPERESPACE',       p:900000, r:'epique',    pop:'hyper',  rgb:[.42,.98,2.2],sil:{c:1.6,h:.8,f:0,p:2.4},ico:'tr_hyper', col:'#9fd0ff',d:'Les étoiles s\'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.'}, /* (2026-10-18, HYPERESPACE v2) ruban .95,1.15,1.6 (un blanc bleuté, délavé) → bleu ÉLECTRIQUE : le feu de pixels du nitro le prend aussi (nfeuPalTrainee) */
     {id:'grille',   n:'LA GRILLE',         p:2000000,r:'epique',    pop:'grille', rubOff:1,      ico:'tr_grille', col:'#2ee8ff',d:'Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.'}, /* (2026-10-18, Sacha : « the grid doit être epic ») ÉPIQUE, et son prix dans sa famille (350 000 → 200 000 : épique < 250 000, voir cosmRar) */
     {id:'billets',  n:'FAIS PLEUVOIR',     p:5000000,r:'legendaire',pop:'billets',rgb:[.45,1.3,.55],sil:{c:1.15,h:1.05,f:.08,p:1},ico:'tr_billets',col:'#5cd685',d:'Des liasses qui s\'envolent à chaque nitro. Ce n\'est pas du gaspillage, c\'est de la communication.'},
-    {id:'foudre',   n:'FOUDRE DIVINE',     mis:11,pk:450000,r:'legendaire',pop:'foudre',rgb:[.85,.55,1.7],sil:{c:1.3,h:.75,f:0,p:2},ico:'eclair',col:'#b98aff',d:'Des éclairs crépitent derrière toi. Le marteau, tu l\'as laissé au garage.'} /* (2026-10-18, Sacha : « divine ligthing doit etre legendaire ») LÉGENDAIRE (elle était MYTHIQUE) ; son prix `pk` (450 000, Poki) est déjà dans la famille */]
+    {id:'foudre',   n:'FOUDRE DIVINE',     mis:11,pk:450000,r:'legendaire',pop:'foudre',rgb:[.85,.55,1.7],sil:{c:1.3,h:.75,f:0,p:2},ico:'foudre',col:'#b98aff',d:'Des éclairs crépitent derrière toi. Le marteau, tu l\'as laissé au garage.'} /* (2026-10-18, Sacha : « divine ligthing doit etre legendaire ») LÉGENDAIRE (elle était MYTHIQUE) ; son prix `pk` (450 000, Poki) est déjà dans la famille */]
 };
 /* (2026-10-18 soir, Sacha : « enlève la traînée menthe ») LES HABILLAGES RETIRÉS : leur ligne SORT de COSM (la sauvegarde les désigne par leur id,
    aucun index ne bouge) ; qui l'avait acheté est remboursé au prix payé au chargement et l'id sort de shop.own (voir LES CAISSES RETIRÉES dans SAVE) ;
@@ -68533,7 +68535,7 @@ function illuFig(id,c,av,cl){const I=ILLU_FIG[id]||['fg_rond',0,'voiture','fgSal
    Une direction sans figure : la case dit VIDE (son geste, en vol, ne fait rien). */
 var GFS={arme:-1,flash:-1,k:''};
 function gFigNitroSvg(){if(gFigNitroSvg._s)return gFigNitroSvg._s;
-  const G=NX3_G,P=NX3_PAL.or,w=G[0].length,h=G.length,on=function(x,y){return y>=0&&y<h&&x>=0&&x<w&&G[y][x]==='#';},
+  const G=NX3.flame?nxfRows():NX3_G,P=NX3.flame?NX3_PAL.f1:NX3_PAL.or,w=G[0].length,h=G.length,on=function(x,y){return y>=0&&y<h&&x>=0&&x<w&&G[y][x]==='#';},
     ep=function(x,y){return !on(x,y)&&(on(x,y-1)||on(x,y-2));},plein=function(x,y){return on(x,y)||ep(x,y);},cs=function(x,y){return 'M'+(x+1)+' '+(y+1)+'h1v1h-1z';};
   let O='',E='',F='',B='';
   for(let y=-1;y<=h+2;y++)for(let x=-1;x<=w;x++){
@@ -74609,6 +74611,7 @@ function nxfDessine(d,pal,a,clig){
   if(fh>.5){const n=Math.round(fh*6),cs=nx3Rgb(P[2]);for(let q=0;q<n;q++){const sx=(q*53+fr*5)%W,sy=(fr*2+q*37)%(H-T-2);if(!B[sy*W+sx])u[sy*W+sx]=cs;}} // les étincelles
   NX3.cx.putImageData(NX3.img,0,0);
 }
+function nxfRows(){const m=nxfMasque(.35,2),r=[];for(let y=0;y<20;y++){let t='';for(let x=0;x<15;x++)t+=m[y*15+x]?'#':'.';r.push(t);}return r;} // la flamme en lignes de cases, pour le dessin SVG du réglage des figures (même forme que NX3_G)
 /* ====================== LA CADENCE STABLE — CAD (2026-10-14, passe perf mobile ; Sacha : « fluide même sur un iPhone 7 », « sans bugger ») ======================
    Un téléphone qui ne tient pas 60 images/s n'en affiche pas « 45 » : il alterne des images de 16,7 ms et de 33,3 ms au hasard, et c'est
    CETTE irrégularité que le joueur appelle « ça bug ». 30 images/s RÉGULIÈRES (une image d'écran sur deux, toujours la même) se lisent

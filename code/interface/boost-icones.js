@@ -39,3 +39,4 @@ function nxfDessine(d,pal,a,clig){
   if(fh>.5){const n=Math.round(fh*6),cs=nx3Rgb(P[2]);for(let q=0;q<n;q++){const sx=(q*53+fr*5)%W,sy=(fr*2+q*37)%(H-T-2);if(!B[sy*W+sx])u[sy*W+sx]=cs;}} // les étincelles
   NX3.cx.putImageData(NX3.img,0,0);
 }
+function nxfRows(){const m=nxfMasque(.35,2),r=[];for(let y=0;y<20;y++){let t='';for(let x=0;x<15;x++)t+=m[y*15+x]?'#':'.';r.push(t);}return r;} // la flamme en lignes de cases, pour le dessin SVG du réglage des figures (même forme que NX3_G)

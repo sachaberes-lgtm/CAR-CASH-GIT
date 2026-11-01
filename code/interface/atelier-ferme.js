@@ -736,7 +736,7 @@ function illuFig(id,c,av,cl){const I=ILLU_FIG[id]||['fg_rond',0,'voiture','fgSal
    Une direction sans figure : la case dit VIDE (son geste, en vol, ne fait rien). */
 var GFS={arme:-1,flash:-1,k:''};
 function gFigNitroSvg(){if(gFigNitroSvg._s)return gFigNitroSvg._s;
-  const G=NX3_G,P=NX3_PAL.or,w=G[0].length,h=G.length,on=function(x,y){return y>=0&&y<h&&x>=0&&x<w&&G[y][x]==='#';},
+  const G=NX3.flame?nxfRows():NX3_G,P=NX3.flame?NX3_PAL.f1:NX3_PAL.or,w=G[0].length,h=G.length,on=function(x,y){return y>=0&&y<h&&x>=0&&x<w&&G[y][x]==='#';},
     ep=function(x,y){return !on(x,y)&&(on(x,y-1)||on(x,y-2));},plein=function(x,y){return on(x,y)||ep(x,y);},cs=function(x,y){return 'M'+(x+1)+' '+(y+1)+'h1v1h-1z';};
   let O='',E='',F='',B='';
   for(let y=-1;y<=h+2;y++)for(let x=-1;x<=w;x++){
