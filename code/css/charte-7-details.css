@@ -463,6 +463,8 @@ html body.touch.gaucher #tSteer{left:auto!important;right:0!important}
 html body.touch.gaucher #tNitro{right:auto!important;left:calc(var(--hudD,16px) + 8px)!important}
 html body.touch.gaucher #tNitroZone{right:auto!important;left:0!important}
 html body.touch.gaucher #tSteerHint{left:auto!important;right:var(--hudG,24px)!important}
+/* (2026-10-31, Léo : « le slide volant doit être déclenché par le doigt même à droite, tant que c'est pas autour du boost ») LE VOLANT PREND TOUT L'ÉCRAN : un pouce posé n'importe où braque, la zone NITRO (fixe, posée après, donc au-dessus) et les boutons gardent leurs doigts. Hors FIGURES › GLISSER, où la moitié droite est le glissé des figures. */
+html body.touch.play:not(.figGlisse):not(.tpad) #tSteer{width:100%}
 /* ===== LES FLÈCHES EN CROIX (2026-10-28, Léo : « haut et bas au milieu, pas sur le côté ») =====
    Une vraie CROIX : ▲ au-dessus, ▼ en dessous, ◀ ▶ de part et d'autre d'une case centrale vide. Les quatre touches ne sont plus que l'affichage : le doigt
    est lu par UNE surface (#tPad) qui sait 8 directions — on GLISSE de ◀ à ▲ en passant par la diagonale, sans lever le pouce (voir mobile-tactile.js). */
@@ -481,4 +483,103 @@ html body.gaucher #tLeft{right:calc(var(--px0) + 2*var(--pu) + 2*var(--pg))}
 html body.gaucher #tRight{right:var(--px0)}
 html body.gaucher #tUp{right:calc(var(--px0) + var(--pu) + var(--pg))}
 html body.gaucher #tPad{right:calc(var(--px0) - 10px)}
+/* ===== LE SLIDE-VOLANT ET LE BOUTON BOOST EN VERRE LÉGER (2026-10-31, Léo : « plus transparent moderne », « refonte léger premium », « pareil pour bouton boost ») =====
+   Un seul langage pour les deux commandes : du VERRE (très peu de matière, le décor passe au travers, flou + saturation derrière), un filet blanc d'un demi-pixel, un reflet en haut,
+   et la lumière n'apparaît que quand le doigt la réveille. SLIDE : la glissière n'est qu'un trait de verre, la bille un galet clair coiffé d'un ARC OUVERT en bas (« ça monte par là »),
+   l'arc et le chevron s'allument avec --su (le pouce monte). BOOST : un galet de verre derrière l'éclair, qui prend la couleur de la poussée (--nc) quand on appuie ou que ça brûle. */
+html body #tKnob{background:radial-gradient(circle at 34% 20%,rgba(255,255,255,.5) 0,rgba(255,255,255,.08) 28%,transparent 44%),linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.02) 60%,rgba(255,255,255,.08));
+  -webkit-backdrop-filter:blur(10px) saturate(1.6);backdrop-filter:blur(10px) saturate(1.6);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.5),inset 0 -6px 10px rgba(255,255,255,.08),0 6px 18px rgba(0,0,0,.18);
+  transition:box-shadow .18s,background .18s}
+html body #tSteer.act #tKnob{box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),inset 0 -8px 14px rgba(255,255,255,.14),0 0 22px rgba(255,255,255,.3),0 6px 18px rgba(0,0,0,.18)}
+html body #tKnob::before{content:'';position:absolute;inset:-14px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from -112deg,transparent 0deg,rgba(255,255,255,.4) 30deg,rgba(255,255,255,.95) 112deg,rgba(255,255,255,.4) 194deg,transparent 224deg,transparent 360deg);
+  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px),#000 calc(100% - .5px),transparent 100%);mask:radial-gradient(closest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px),#000 calc(100% - .5px),transparent 100%);
+  opacity:calc(.3 + .7*var(--su,0));filter:drop-shadow(0 0 4px rgba(255,255,255,.55));transform:scale(calc(1 + .1*var(--su,0)));transition:opacity .1s}
+html body #tKnob::after{content:'';position:absolute;left:50%;top:-22px;width:10px;height:10px;margin-left:-5px;pointer-events:none;
+  border:solid rgba(255,255,255,.95);border-width:2px 0 0 2px;border-radius:2px 0 0 0;transform:rotate(45deg) translate(calc(var(--su,0)*-4px),calc(var(--su,0)*-4px));
+  opacity:calc(.25 + .75*var(--su,0));filter:drop-shadow(0 0 3px rgba(255,255,255,.7))}
+html body #tStick{background:linear-gradient(rgba(255,255,255,.5),rgba(255,255,255,.5)) 50% 50%/1.5px 18px no-repeat,linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.02) 60%,rgba(255,255,255,.05));
+  -webkit-backdrop-filter:blur(6px) saturate(1.4);backdrop-filter:blur(6px) saturate(1.4);box-shadow:inset 0 0 0 1px rgba(255,255,255,.26),inset 0 1px 0 rgba(255,255,255,.38)}
+html body #tStick::before{height:5px;margin-top:-2.5px;background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.85))}
+html body #tStick::after{height:5px;margin-top:-2.5px;background:linear-gradient(90deg,rgba(255,255,255,.85),rgba(255,255,255,.05))}
+/* LE BOUTON BOOST : le galet de verre derrière l'éclair (le ::before que la v3 cachait) */
+html body.touch.play #tNitro::before{display:block!important;content:'';position:absolute;left:50%;top:50%;width:104px!important;height:104px!important;margin:-52px 0 0 -52px!important;inset:50% auto auto 50%!important;border-radius:50%!important;pointer-events:none;z-index:0;
+  border:0!important;opacity:1;animation:none;
+  background:radial-gradient(circle at 34% 20%,rgba(255,255,255,.42) 0,rgba(255,255,255,.07) 28%,transparent 44%),linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.02) 60%,rgba(255,255,255,.07));
+  -webkit-backdrop-filter:blur(10px) saturate(1.6);backdrop-filter:blur(10px) saturate(1.6);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.45),inset 0 -8px 14px rgba(255,255,255,.07),0 6px 20px rgba(0,0,0,.2)!important;transition:box-shadow .18s}
+html body.touch.play #tNitro:active::before,html body.touch.play #tNitro.on::before{box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),inset 0 -10px 18px color-mix(in srgb,var(--nc,#ff9a3c) 40%,transparent),0 0 28px color-mix(in srgb,var(--nc,#ff9a3c) 60%,transparent),0 6px 20px rgba(0,0,0,.2)!important}
+html body.touch.play #tNitro.plein:not(.on)::before{animation:nxVerrePret 1.6s ease-in-out infinite}
+@keyframes nxVerrePret{50%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.7),0 0 20px color-mix(in srgb,var(--nc,#ff9a3c) 45%,transparent),0 6px 20px rgba(0,0,0,.2)}}
+
+/* ===== LE STICK DIT LE DRIFT (2026-11-01, Léo : « bien faire comprendre comment le joystick agit sur la voiture ») =====
+   Au sol (classes posées par TCTL.drift) : DRIFT sous la glissière + une ligne pointillée à la profondeur du geste (--dc) ; les deux s'allument
+   à mesure qu'on tire (--dp). Trop lent : presque éteints. Braquage fort sans tirer : DRIFT pulse vers le bas (l'invitation). En drift, la couleur
+   du palier (--dcol : blanc, bleu, or, rose — celles des étincelles) passe dans la bille, le trait de braquage, la ligne et l'anneau de charge (--dk).
+   Au relâché, l'anneau part en onde de la couleur du turbo (dTu1-3). `?drift=ancien` : rien de tout ça. */
+html body #tStick .skC{display:none;position:absolute;left:50%;top:calc(50% + var(--dc,34.9px));width:132px;height:0;margin-left:-66px;pointer-events:none;
+  border-top:1.5px dashed rgba(255,255,255,.5);opacity:calc(.3 + .7*var(--dp,0))}
+html body #tStick.dSol .skC{display:block}
+html body #tStick.dSol .skD{color:#fff;opacity:calc(.4 + .6*var(--dp,0));text-shadow:0 0 8px rgba(255,255,255,.55)}
+html body #tStick.dSol .skD:empty{opacity:0}
+html body #tStick.dLent .skC{opacity:.1}
+html body #tStick.dLent .skD{opacity:.14}
+html body #tStick.dInv .skD{animation:dInvite .55s ease-in-out infinite alternate}
+@keyframes dInvite{from{opacity:.45;transform:translate(-50%,0)}to{opacity:1;transform:translate(-50%,6px)}}
+html body #tStick.dl0{--dcol:255,255,255}
+html body #tStick.dl1{--dcol:79,195,255}
+html body #tStick.dl2{--dcol:255,201,64}
+html body #tStick.dl3{--dcol:255,95,210}
+html body #tStick.dOn .skC{border-top-color:rgba(var(--dcol),.95);opacity:1}
+html body #tStick.dOn .skD{color:rgb(var(--dcol));opacity:1;text-shadow:0 0 10px rgba(var(--dcol),.85)}
+html body #tStick.dOn #tKnob{box-shadow:inset 0 0 0 1.5px rgba(var(--dcol),.95),inset 0 -8px 14px rgba(var(--dcol),.25),0 0 26px rgba(var(--dcol),.6),0 6px 18px rgba(0,0,0,.18)}
+html body #tStick.dOn::before{background:linear-gradient(90deg,rgba(var(--dcol),.05),rgba(var(--dcol),.95))}
+html body #tStick.dOn::after{background:linear-gradient(90deg,rgba(var(--dcol),.95),rgba(var(--dcol),.05))}
+html body #tKnob .skR{position:absolute;inset:-7px;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:conic-gradient(rgb(var(--dcol,255,255,255)) calc(var(--dk,0)*360deg),rgba(255,255,255,.14) 0);
+  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 4px),#000 calc(100% - 3.5px));mask:radial-gradient(closest-side,transparent calc(100% - 4px),#000 calc(100% - 3.5px))}
+html body #tStick.dOn #tKnob .skR{opacity:1}
+html body #tStick.dTu1{--tcol:79,195,255}
+html body #tStick.dTu2{--tcol:255,201,64}
+html body #tStick.dTu3{--tcol:255,95,210}
+html body #tStick.dTu1 #tKnob .skR,html body #tStick.dTu2 #tKnob .skR,html body #tStick.dTu3 #tKnob .skR{background:rgb(var(--tcol));animation:dTurbo .5s ease-out forwards}
+html body #tStick.dTu1 #tKnob,html body #tStick.dTu2 #tKnob,html body #tStick.dTu3 #tKnob{box-shadow:inset 0 0 0 1.5px rgba(var(--tcol),.95),0 0 36px rgba(var(--tcol),.85),0 6px 18px rgba(0,0,0,.18)}
+@keyframes dTurbo{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2)}}
+@media (prefers-reduced-motion:reduce){html body #tStick.dInv .skD{animation:none;opacity:1}}
+
+/* ===== LES ICÔNES DU BOUTON BOOST (2026-11-01, Léo : « change l'éclair par un truc intelligent ou stylé, genre une bouteille nitro, on peut tester plusieurs trucs ») =====
+   ?boost=bouteille | chevrons | flamme | anneau (rien = l'éclair en pixels, comme avant). Chaque icône est un SVG en verre qui LIT la réserve : --nr (nitro) et --nx (réserve bleue)
+   sont déjà posées sur #tNitro par la boucle ; la couleur de la poussée est --nc (orange, bleu en réserve, violet en infinie). Appuyé (.on) : l'icône s'enfonce et s'embrase. */
+html body.bv #tNitro .nx3{display:none!important}
+html body.bv #tNitro .bvIco{position:absolute;left:50%;top:50%;height:64px;width:auto;transform:translate(-50%,-50%);overflow:visible;pointer-events:none;z-index:1;--bc:var(--nc,#ff9a3c);
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.28));transition:transform .12s,filter .15s}
+html body.bv #tNitro .bv-bouteille{height:74px}html body.bv #tNitro .bv-flamme{height:68px}html body.bv #tNitro .bv-anneau{height:72px}
+html body.bv #tNitro:active .bvIco,html body.bv #tNitro.on .bvIco{transform:translate(-50%,calc(-50% + 3px)) scale(.95);filter:drop-shadow(0 0 10px var(--bc)) drop-shadow(0 0 22px color-mix(in srgb,var(--bc) 60%,transparent))}
+html body.bv #tNitro.bleu{--nc:#7d97ff}html body.bv #tNitro.inf{--nc:#ff4a3a}
+.bvIco .bvLn{fill:rgba(255,255,255,.09);stroke:rgba(255,255,255,.88);stroke-width:1.6;stroke-linejoin:round}
+.bvIco .bvBr{fill:none;stroke:rgba(255,255,255,.5);stroke-width:1.2;stroke-linecap:round}
+.bvIco .bvSh{fill:none;stroke:rgba(255,255,255,.7);stroke-width:1.6;stroke-linecap:round}
+.bvIco .bvLq,.bvIco .bvLx{transform-box:fill-box;transform-origin:50% 100%;transition:transform .2s}
+.bvIco .bvLq{fill:var(--bc);opacity:.92;transform:scaleY(var(--nr,.5))}
+.bvIco .bvLx{fill:#7d97ff;opacity:.85;transform:scaleY(min(1,calc(var(--nr,.5) + var(--nx,0))))}
+.bvIco .bvCh{fill:none;stroke:#fff;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s}
+.bvIco.bv-chevrons .c3{opacity:calc(.16 + .84*clamp(0,var(--nr,.5)*6,1));stroke:color-mix(in srgb,#fff 55%,var(--bc))}
+.bvIco.bv-chevrons .c2{opacity:calc(.16 + .84*clamp(0,(var(--nr,.5) - .33)*6,1))}
+.bvIco.bv-chevrons .c1{opacity:calc(.16 + .84*clamp(0,(var(--nr,.5) - .66)*6,1));stroke:#fff}
+html body.bv #tNitro.plein:not(.on) .bv-chevrons .bvCh{animation:bvMonte 1.2s ease-in-out infinite}
+html body.bv #tNitro.plein:not(.on) .bv-chevrons .c2{animation-delay:.12s}html body.bv #tNitro.plein:not(.on) .bv-chevrons .c1{animation-delay:.24s}
+@keyframes bvMonte{50%{transform:translateY(-4px)}}
+.bvIco .bvPi{fill:none;stroke:rgba(255,255,255,.2);stroke-width:4}
+.bvIco .bvRq,.bvIco .bvRx{fill:none;stroke-width:4.5;stroke-linecap:round;stroke-dasharray:100 100;transform:rotate(-90deg);transform-origin:32px 32px;transition:stroke-dashoffset .2s}
+.bvIco .bvRq{stroke:var(--bc);stroke-dashoffset:calc(100 - 100*var(--nr,.5))}
+.bvIco .bvRx{stroke:#7d97ff;stroke-dashoffset:calc(100 - 100*min(1,calc(var(--nr,.5) + var(--nx,0))))}
+.bvIco.bv-anneau .bvCh{stroke-width:3.5}
+.bvIco.bv-anneau .d1{opacity:.95}.bvIco.bv-anneau .d2{opacity:.55}
+html body.bv #tNitro.bas:not(.on) .bvIco{animation:bvSec .6s steps(2) infinite}
+@keyframes bvSec{50%{filter:drop-shadow(0 0 8px #ff5a6e)}}
+/* L'ICÔNE EN HAUT (la barre de boost) et les gains qui volent vers elle : la flamme pixel à la place de l'éclair, en trois bandes comme l'éclair (clair, plein, ombre) */
+html body.bvF.touch #nitroBar::before{background:linear-gradient(180deg,#fff3c4 0 24%,#ffb81f 24% 58%,#ff6a0e 58%);-webkit-mask:var(--pxi-flamme) center/100% 100% no-repeat;mask:var(--pxi-flamme) center/100% 100% no-repeat}
+html body.bvF #ajVols b.n>i{background:linear-gradient(180deg,#fff3c4 0 24%,#ffb81f 24% 58%,#ff6a0e 58%);-webkit-mask:var(--pxi-flamme) center/100% 100% no-repeat;mask:var(--pxi-flamme) center/100% 100% no-repeat}
+html body.bvF #ajVols b.n.x>i{background:linear-gradient(180deg,#eef2ff 0 24%,#8fa4ff 24% 58%,#4a68f0 58%)}
 </style>

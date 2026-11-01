@@ -148,11 +148,17 @@ const CIEL_ARC={ // f la photo · su/se son soleil (colonne 0-1, hauteur en degr
   midi: {f:'ciel-midi.jpg', su:.603,se:7.5,ex:.8,ns:0,mi:0,mh:[1,.98,.94],mo:[.48,.58,.76],s:[.65,.55,.38],h:[.74,.77,.80]},
   soir: {f:'ciel-soir.jpg', su:.665,se:3,ex:.9,ns:1,mi:0,mh:[1,.80,.68],mo:[.40,.39,.55],s:[.95,.52,.26],h:[.64,.58,.58]}};
 const CARC={tex:{},mer:null,force:null};
+/* (2026-11-01, Léo : « règle ce qui reste ») LES PHOTOS DU CIEL MONTENT AU GPU AU MENU. MESURÉ (banc iPhone ×4) : la photo de 4096 × 1024 (et ses mipmaps) partait
+   à la puce au PREMIER rendu de la course qui la montre — 290 ms ×4 dans l'image juste après le JOUER. La chauffe du menu (chauffeDivers) les envoie une par
+   image ; une photo arrivée après la chauffe monte à son arrivée, si l'on est encore au menu. */
+function cielArcMonte(){const L=[CARC.mer];for(const k in CARC.tex)L.push(CARC.tex[k]);
+  for(const t of L)if(t&&t.pret&&!t.monte){t.monte=1;try{renderer.initTexture(t);}catch(e){}return true;}return false;}
+function cielArcArrive(t){t.pret=true;if((!started||gameOver)&&CHAUFFE_R.fait)requestAnimationFrame(function(){if(!started||gameOver)cielArcMonte();});}
 function cielArcTex(f){let t=CARC.tex[f];if(t)return t.pret?t:null;
   t=CARC.tex[f]=new THREE.Texture();t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.anisotropy=4;t.wrapS=THREE.RepeatWrapping;t.wrapT=THREE.ClampToEdgeWrapping;
-  const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;t.pret=true;};im.src='assets/ciel/'+f;return null;}
+  const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;cielArcArrive(t);};im.src='assets/ciel/'+f;return null;}
 function cielArcMer(){if(CARC.mer)return CARC.mer.pret?CARC.mer:null;const t=CARC.mer=new THREE.Texture();t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.anisotropy=Math.min(16,renderer.capabilities.getMaxAnisotropy());
-  t.wrapS=t.wrapT=THREE.RepeatWrapping;t.premultiplyAlpha=false;const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;t.pret=true;};im.src='assets/ciel/mer-cumulus.png';return null;}
+  t.wrapS=t.wrapT=THREE.RepeatWrapping;t.premultiplyAlpha=false;const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;cielArcArrive(t);};im.src='assets/ciel/mer-cumulus.png';return null;}
 if(ARC_ON){cielArcMer();for(const m9 in CIEL_ARC){cielArcTex(CIEL_ARC[m9].f); // chargées dès le départ (≈ 1 Mo en tout) ; la brume des cumulus = l'horizon de la photo
   const S9=SF_CARTES&&SF_CARTES.nuages&&SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio];if(B9&&NUF.ap[m9]){B9.fog=CIEL_ARC[m9].h.slice();NUF.ap[m9].fog=B9.fog.slice();}}}
 /* (2026-10-20, Léo : « enlever en général le tapis complètement rempli de nuages, l'harmoniser avec la répartition des nuages du premier plan selon la météo ») LE TAPIS CLAIRSEMÉ :

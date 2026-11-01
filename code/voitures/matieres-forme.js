@@ -511,19 +511,31 @@ function bat10(){
     plat(){M0.identity();return o;},
     add(geo,mat,x,y,z,rx,ry,rz,sx,sy,sz){
       if(o.f&&geo.index){geo=geo.toNonIndexed();geo.computeVertexNormals();}   // `f` : FACETTES — normales plates, comme les voitures (`facetteCaisse`)
-      let e=L.get(mat);if(!e){e={p:[],n:[],u:[],i:[],c:0};L.set(mat,e);}
+      let e=L.get(mat);if(!e){e={p:new Float32Array(3072),n:new Float32Array(3072),u:new Float32Array(2048),i:[],c:0};L.set(mat,e);}
       E.set(rx||0,ry||0,rz||0,'XYZ');Q.setFromEuler(E);P.set(x||0,y||0,z||0);Sc.set(sx==null?1:sx,sy==null?1:sy,sz==null?1:sz);
       Mf.compose(P,Q,Sc);M.multiplyMatrices(M0,Mf);N.getNormalMatrix(M);
       const pa=geo.attributes.position,na=geo.attributes.normal,ua=geo.attributes.uv,n=pa.count;
-      for(let k=0;k<n;k++){V.set(pa.getX(k),pa.getY(k),pa.getZ(k)).applyMatrix4(M);e.p.push(V.x,V.y,V.z);
-        V.set(na.getX(k),na.getY(k),na.getZ(k)).applyMatrix3(N).normalize();e.n.push(V.x,V.y,V.z);
-        if(ua)e.u.push(ua.getX(k),ua.getY(k));else e.u.push(0,0);}
-      if(geo.index){const ix=geo.index.array;for(let k=0;k<ix.length;k++)e.i.push(ix[k]+e.c);}
-      else for(let k=0;k<n;k++)e.i.push(k+e.c);
-      e.c+=n;return o;},
+      /* (2026-11-01, Léo : « règle les petits à-coups ») L'ASSEMBLEUR SANS OBJET PAR SOMMET : MESURÉ (banc iPhone ×4), add + fin faisaient 66 % de la
+         fabrication des 30 moteurs (776 ms sur 1 170) — getX/applyMatrix4/normalize et trois push par sommet, puis la recopie en tableaux typés. Les
+         sommets vont droit dans des tableaux typés qui grandissent par doublement, par les MÊMES opérations que three (applyMatrix4 avec son w,
+         applyMatrix3, normalize = ×1/longueur) : les mêmes nombres au bit près. Les attributs entrelacés ou normalisés gardent le chemin d'avant. */
+      const c0=e.c,c1=c0+n;if(c1*3>e.p.length){let m=e.p.length;while(c1*3>m)m*=2;const P9=new Float32Array(m),N9=new Float32Array(m),U9=new Float32Array(m/3*2);P9.set(e.p);N9.set(e.n);U9.set(e.u);e.p=P9;e.n=N9;e.u=U9;}
+      const ep=e.p,en=e.n,eu=e.u,me=M.elements,ne=N.elements,dir=(a,t)=>a&&!a.isInterleavedBufferAttribute&&!a.normalized&&a.itemSize===t;
+      if(dir(pa,3)&&dir(na,3)&&(!ua||dir(ua,2))){const A=pa.array,B9=na.array,U=ua?ua.array:null;
+        for(let k=0;k<n;k++){const j=k*3,o3=(c0+k)*3,o2=(c0+k)*2;let x=A[j],y=A[j+1],z=A[j+2];const w=1/(me[3]*x+me[7]*y+me[11]*z+me[15]);
+          ep[o3]=(me[0]*x+me[4]*y+me[8]*z+me[12])*w;ep[o3+1]=(me[1]*x+me[5]*y+me[9]*z+me[13])*w;ep[o3+2]=(me[2]*x+me[6]*y+me[10]*z+me[14])*w;
+          x=B9[j];y=B9[j+1];z=B9[j+2];const nx=ne[0]*x+ne[3]*y+ne[6]*z,ny=ne[1]*x+ne[4]*y+ne[7]*z,nz=ne[2]*x+ne[5]*y+ne[8]*z,s9=1/(Math.sqrt(nx*nx+ny*ny+nz*nz)||1);
+          en[o3]=nx*s9;en[o3+1]=ny*s9;en[o3+2]=nz*s9;
+          if(U){eu[o2]=U[k*2];eu[o2+1]=U[k*2+1];}else{eu[o2]=0;eu[o2+1]=0;}}}
+      else for(let k=0;k<n;k++){const o3=(c0+k)*3,o2=(c0+k)*2;V.set(pa.getX(k),pa.getY(k),pa.getZ(k)).applyMatrix4(M);ep[o3]=V.x;ep[o3+1]=V.y;ep[o3+2]=V.z;
+        V.set(na.getX(k),na.getY(k),na.getZ(k)).applyMatrix3(N).normalize();en[o3]=V.x;en[o3+1]=V.y;en[o3+2]=V.z;
+        if(ua){eu[o2]=ua.getX(k);eu[o2+1]=ua.getY(k);}else{eu[o2]=0;eu[o2+1]=0;}}
+      if(geo.index){const ix=geo.index.array;for(let k=0;k<ix.length;k++)e.i.push(ix[k]+c0);}
+      else for(let k=0;k<n;k++)e.i.push(k+c0);
+      e.c=c1;return o;},
     fin(g){L.forEach((e,mat)=>{const bg=new THREE.BufferGeometry();
-      bg.setAttribute('position',new THREE.Float32BufferAttribute(e.p,3));bg.setAttribute('normal',new THREE.Float32BufferAttribute(e.n,3));
-      bg.setAttribute('uv',new THREE.Float32BufferAttribute(e.u,2));bg.setIndex(e.i);bg.computeBoundingSphere();
+      bg.setAttribute('position',new THREE.BufferAttribute(e.p.slice(0,e.c*3),3));bg.setAttribute('normal',new THREE.BufferAttribute(e.n.slice(0,e.c*3),3));
+      bg.setAttribute('uv',new THREE.BufferAttribute(e.u.slice(0,e.c*2),2));bg.setIndex(e.i);bg.computeBoundingSphere();
       g.add(new THREE.Mesh(bg,mat));});L.clear();return o;}
   };
   return o;

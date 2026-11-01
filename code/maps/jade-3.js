@@ -238,6 +238,13 @@ const JCH_M=new THREE.Matrix4(),JCH_R=new THREE.Matrix4(),JCH_T=new THREE.Matrix
    horloge était JADE_U.uTime, qui avance aussi en pause (le temps réel) alors que jadeChuteTick n'y tourne pas : au retour, chaque montagne en
    chute avait pris toute la durée de la pause d’un coup (5 s de pause : 140 à 270 m de chute en une image, l’écume partait, sa hitbox avec). JCH.t ne
    compte que le temps joué (preuve-chute-pause.cjs). */
+/* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LA MONTAGNE QUI TOMBE, CUBE PAR CUBE, SANS OBJETS. Chaque image de chute
+   recalculait chaque cube par trois appels (fromArray, premultiply, toArray) : MESURÉ (banc iPhone ×4), jusqu'à 88 ms dans une image. Le même produit
+   M × cube, écrit à la main dans l'ordre exact de three (Matrix4.multiplyMatrices) : la même matrice au bit près, sans copie intermédiaire. */
+function jchMul(ae,be,A,o){
+  for(let j=0;j<4;j++){const b0=be[4*j],b1=be[4*j+1],b2=be[4*j+2],b3=be[4*j+3];
+    A[o+4*j]=ae[0]*b0+ae[4]*b1+ae[8]*b2+ae[12]*b3;A[o+4*j+1]=ae[1]*b0+ae[5]*b1+ae[9]*b2+ae[13]*b3;
+    A[o+4*j+2]=ae[2]*b0+ae[6]*b1+ae[10]*b2+ae[14]*b3;A[o+4*j+3]=ae[3]*b0+ae[7]*b1+ae[11]*b2+ae[15]*b3;}}
 function jadeChuteTick(dt){
   if(!JCH.L.length||!JADE.root||!started||gameOver)return;let chg=false;JCH.t+=dt;const tn=JCH.t;
   for(const c of JCH.L){
@@ -249,7 +256,7 @@ function jadeChuteTick(dt){
     if(!c.spl&&q[3]-dy<JADE.eauY+6){c.spl=true;jadeEcume(q[0],JADE.eauY,q[1],q[2]);}
     c.inv.copy(JCH_M).invert(); /* (2026-10-21, Léo : « on traverse les montagnes qui tombent ») la hitbox suit la montagne : le point testé est ramené dans son repère d'origine */
     const out=dy>(q[4]-JADE.eauY)+60;if(out)c.fin=true;
-    for(const o of c.orig){const A=o.F.M;if(out)A.set(JCH_Z,o.si*16);else{JCH_R.fromArray(o.m);JCH_R.premultiply(JCH_M);JCH_R.toArray(A,o.si*16);}}
+    {const me=JCH_M.elements;for(const o of c.orig){const A=o.F.M;if(out)A.set(JCH_Z,o.si*16);else jchMul(me,o.m,A,o.si*16);}}
     if(c.fo){if(out)FIN.mats.set(c.pi,JCH_Z);else{JCH_R.fromArray(c.fo);JCH_R.premultiply(JCH_M);FIN.mats.set(c.pi,new Float32Array(JCH_R.elements));}}}
   if(chg){for(const c of JCH.L)if(c.t0&&c.orig&&(!c.fin||!c.vu)){c.vu=c.fin;for(const o of c.orig)o.F.sale=true;if(c.fo)FIN.sale=true;}JADE.sale=true;}
   // l écume

@@ -218,7 +218,7 @@ function balEcart(so,w,sA,sB,lA,lB,lo){
   const ea=lA+(lB-lA)*(a-sA)/d-lo,eb=lA+(lB-lA)*(b-sA)/d-lo;
   return ea*eb<=0?0:Math.min(Math.abs(ea),Math.abs(eb));
 }
-let yawR=0,slipB=0,glisse9=0,routeLacet=0; // lacet courant · angle de glisse (drift) · glisse ressentie (fumée, crissement)
+let yawR=0,slipB=0,slipV=0,glisse9=0,routeLacet=0; // lacet courant · angle de glisse (drift) · glisse ressentie (fumée, crissement)
 const AIR_ASSIST=0; // (conduite v6) règle n°1 : aucun recentrage, en vol non plus — était .2 ; // aide au recentrage en vol (0 = off), monte avec la vitesse — ÷5 (2026-09-25, user : « un effet qui t'attire vers le centre de la route, trop puissant, baisse-le au point qu'il ne soit plus remarquable ») : à 1,0 un ressort de 0,7·écart m/s² ramenait la caisse sur l'axe en plein vol ; il reste un filet qu'on ne sent plus
 const CAM_SHAKE_V=.45; // intensité du tremblement caméra lié à la vitesse (position + roulis) — .78→.45 : un frémissement, plus un séisme (user : « c'est trop »)
 // OVERDRIVE : il suivait le NIVEAU DE CAISSE (+8 %/niveau à partir du 6e). Depuis que la caisse est

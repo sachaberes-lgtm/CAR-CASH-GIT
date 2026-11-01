@@ -65,6 +65,11 @@
           .split("else if (grand) { M.build = rp(['montee', 'filtre']").join("else if (grand) { M.build = 'montee'; void rp(['montee', 'filtre']");
         PB.montee = 'douce'; }
       else PB.montee = 'ancienne';
+      /* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LA SALLE (la réverbe) CALCULÉE UNE FOIS PAR SESSION. Chaque morceau
+         recalculait au JOUER sa réponse de salle, échantillon par échantillon (2,6 s × 2 voies, deux exponentielles par échantillon) : MESURÉ au banc
+         iPhone ×4, 141 ms d'un bloc dans l'image du piqué, à CHAQUE course. Elle ne dépend que de ses réglages (un bruit) : gardée par réglages, elle
+         resservira telle quelle aux courses suivantes. Le texte est le même partout (`function ir(`) ; absent = rien à faire. */
+      s2 = s2.split('function ir(').join("function ir(...A9) { const K9 = JSON.stringify(A9) + '@' + ctx.sampleRate + '@' + " + JSON.stringify(u) + ", C9 = (globalThis.__ccIR || (globalThis.__ccIR = {})); return C9[K9] || (C9[K9] = irCalc(...A9)); }\n  function irCalc(");
       const b = URL.createObjectURL(new Blob([s2.split('import.meta.url').join(JSON.stringify(u))], { type: 'text/javascript' }));
       try { const m = await import(b); PB.avance = AVANCE; return m; } finally { URL.revokeObjectURL(b); }
     } catch (e) { delete MODS[u]; PB.avance = .35; return importe(u); } })());   // (un espace de noms de module n'accepte aucune propriété : l'avance réelle est notée sur PB)
@@ -121,7 +126,13 @@
     const fr = document.createElement('iframe'); fr.src = E.f; fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true');
     fr.style.cssText = 'position:fixed;left:0;bottom:0;width:8px;height:8px;opacity:0;pointer-events:none;border:0;z-index:-1'; document.body.appendChild(fr);
     try { await new Promise((ok, ko) => { fr.onload = ok; fr.onerror = ko; });
-    const prete = new Proxy(ac, { get(t, k) { if (k === 'destination') return dest; if (k === 'close' || k === 'suspend') return () => Promise.resolve();
+    /* (2026-10-31, Léo : « des cuts audio très embêtants sur mobile ») LES PAGES ÉCRITES À LA MAIN PRÉVOIENT 1 s, COMME LE GÉNÉRATEUR. Leur horloge
+       (`while (tNext < ctx.currentTime + 0.4)`, toutes les 60 ms) ne posait la mesure suivante que 0,4 s avant qu'elle sonne : un gel de la page plus
+       long (une montée de palier, un portail, sur iPhone) et la mesure partait EN RETARD, notes tassées ou perdues — le trou dans la musique. Leur
+       texte dit qu'elles ne lisent l'heure du son QUE là (« ni ctx.currentTime » dans le morceau) : le contexte prêté leur donne donc une heure en avance
+       de AVANCE − 0,4 s, et tout le morceau se pose d'autant plus tôt (il démarre 0,6 s plus tard, derrière le filtre de l'intro). `?avance=.35` = avant. */
+    const AV_H = Math.max(0, AVANCE - .4);
+    const prete = new Proxy(ac, { get(t, k) { if (k === 'destination') return dest; if (k === 'close' || k === 'suspend') return () => Promise.resolve(); if (k === 'currentTime') return t.currentTime + AV_H;
       const v = Reflect.get(t, k, t); return typeof v === 'function' ? v.bind(t) : v; } });
     fr.contentWindow.AudioContext = fr.contentWindow.webkitAudioContext = function () { return prete; };
     const d = fr.contentDocument, bt = d.getElementById('play'), jg = d.getElementById('speed'); if (!bt || !jg) throw new Error('page sans #play / #speed');

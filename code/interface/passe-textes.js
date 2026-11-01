@@ -98,11 +98,23 @@ function fmtGta(v){
    Les messages d'événement gardent leurs unités compactes (fmtC) : seul le SOLDE est précis. */
 function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');} /* (2026-10-18, débogage) TRONQUÉ comme soldeEcrit : 6,6 $ s'écrivait « $ 7 » sur l'écran de fin et « $ 6 » au garage */
 const SOLDE={l:[],on:false,D:700};
+/* (2026-10-31, Léo : « le jeu lag encore un peu sur mobile ») LE BON CRAN DU PREMIER COUP. La police descendait d'un cran (1,5 px) par mesure, jusqu'à
+   dix mesures d'affilée, et chaque mesure après une écriture force la mise en page de TOUTE la page : MESURÉ au portail (banc iPhone ×4), 35 à 43 ms
+   dans une image quand le solde gagne un chiffre. Désormais la 1re mesure dit de combien c'est trop large, on saute au cran estimé (un de moins, par
+   prudence), puis on avance cran par cran dans le bon sens : 2 à 3 mesures. Même cran final qu'avant (le plus gros qui tient, dix crans au plus). */
 function soldeFit(el,xMin){const p=el.parentElement;if(!p)return true;el.style.fontSize='';const x0=xMin||4; /* xMin : le bord gauche à ne pas franchir (en course, la colonne des barres) */
-  let fs=parseFloat(getComputedStyle(el).fontSize)||14;
-  for(let i=0;i<10;i++){const r=p.getBoundingClientRect();if(r.width<1)return false; /* caché : on réessaiera à la prochaine écriture */
-    if(el.scrollWidth<=el.clientWidth+1&&p.scrollWidth<=p.clientWidth+1&&r.right<=VP.w-4&&r.left>=x0)return true; /* le chiffre lui-même peut se rogner (overflow:hidden) : on le mesure aussi */
-    fs=Math.max(7,fs-1.5);el.style.fontSize=fs+'px';if(fs<=7)return true;}
+  const fs0=parseFloat(getComputedStyle(el).fontSize)||14,F=function(n){return Math.max(7,fs0-1.5*n);};
+  let nMax=10;for(let n=1;n<10;n++)if(F(n)<=7){nMax=n;break;} /* le cran où l'on s'arrêtait sans remesurer (police à 7 px, ou le 10e) */
+  let r=null;const tient=function(){r=p.getBoundingClientRect();if(r.width<1)return null; /* caché : on réessaiera à la prochaine écriture */
+    return el.scrollWidth<=el.clientWidth+1&&p.scrollWidth<=p.clientWidth+1&&r.right<=VP.w-4&&r.left>=x0;}; /* le chiffre lui-même peut se rogner (overflow:hidden) : on le mesure aussi */
+  let t=tient();if(t===null)return false;if(t)return true;
+  let k=1;if(el.scrollWidth>0)k=Math.min(k,el.clientWidth/el.scrollWidth);if(p.scrollWidth>0)k=Math.min(k,p.clientWidth/p.scrollWidth);
+  if(r.right>VP.w-4)k=Math.min(k,(VP.w-4-r.left)/r.width);if(r.left<x0)k=Math.min(k,(r.right-x0)/r.width);
+  let n=Math.max(1,Math.min(nMax,Math.ceil((fs0-fs0*Math.max(0,k))/1.5)-1));
+  const pose=function(m){el.style.fontSize=F(m)+'px';};
+  pose(n);if(n>=nMax)return true;t=tient();if(t===null)return false;
+  if(t){while(n>1){pose(n-1);const t2=tient();if(t2===null)return false;if(!t2){pose(n);break;}n--;}return true;} /* il tient : un cran plus gros tient-il aussi ? */
+  while(n<nMax){n++;pose(n);if(n>=nMax)return true;t=tient();if(t===null)return false;if(t)return true;}
   return true;}
 function soldeTxt(el,v){const t=fmtSolde(v);el._sl=LANG;if(el.textContent!==t){el.textContent=t;if(el._sn!==t.length){el._sn=t.length;if(!soldeFit(el))el._sn=-1;}}}
 function soldeEcrit(el,v,net){if(!el)return;v=Math.max(0,Math.floor(v));

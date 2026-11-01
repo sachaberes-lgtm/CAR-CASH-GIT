@@ -79,14 +79,14 @@ function engVigBuild(){
     engVigVieux=engVigMesh;engVigMesh=null;
   }
   const t=engVigTier();
-  engVigMesh=mkEngine(t);
+  engVigMesh=engPret(t); /* (2026-10-31) le moteur GARDÉ depuis la chauffe du menu (voir ENG_PRET) : plus de fabrication en course */
   engVigScene.add(engVigMesh);
   // CADRAGE AUTOMATIQUE — mesuré : 10 des 30 paliers débordaient (la tuyère à plasma porte à 2,12 du
   // centre pour un champ de 1,86). Reculer la caméra aurait réduit le moteur rouillé à un pois. Chaque
   // pièce est donc mise à l'échelle pour remplir le cadre. Le rayon retenu est celui du plan XZ, parce
   // que la pièce TOURNE : c'est lui qui balaie la largeur. Recentrage en Y seulement — recentrer en X
   // ferait valser la pièce à chaque tour.
-  {const bb=new THREE.Box3().setFromObject(engVigMesh);
+  {const ud9=engVigMesh.userData,bb=ud9.garde?(ud9.bb||(ud9.bb=new THREE.Box3().setFromObject(engVigMesh))):new THREE.Box3().setFromObject(engVigMesh); /* (2026-10-31) gardé : sa boîte aussi (6 ms ×4 par montée) */
    const rx=Math.max(Math.abs(bb.min.x),Math.abs(bb.max.x)),rz=Math.max(Math.abs(bb.min.z),Math.abs(bb.max.z)),
          rxz=Math.max(.001,Math.hypot(rx,rz)),ry=Math.max(.001,(bb.max.y-bb.min.y)/2);
    const halfV=engVigCam.position.z*Math.tan(engVigCam.fov*Math.PI/360),halfH=halfV*engVigCam.aspect;

@@ -123,8 +123,8 @@ function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
   const pal=t.closest('[data-pal]');if(pal){const j=COSM.peinture.findIndex(function(d){return d.id===pal.getAttribute('data-pal');});if(j<0)return;uiClic('nav');
     ecranWipe(function(){garMode('boutique');shopTab('peinture');shopShow('peinture',j);});return;}
   const row=t.closest('.m2L');if(!row)return;const id=row.getAttribute('data-m2'),m=m2Def(id);if(!m)return;const s=m2Etat();
+  if(row.classList.contains('pret')){if(m.f==='secret'&&m2Revele(id))return;m2Recupere(id,row);return;} // une SECRÈTE qui brille : sa révélation · (2026-10-31) AVANT la photo : sur une ligne prête, la photo récupère aussi (voir m2PrendIci)
   if(t.closest('.m2R.voir')&&!t.closest('.m2Pr')){m2Voir(m);return;}
-  if(row.classList.contains('pret')){if(m.f==='secret'&&m2Revele(id))return;m2Recupere(id,row);return;} // une SECRÈTE qui brille : sa révélation
   if(s.ok.indexOf(id)>=0){uiClic('refus');return;}
   const k=s.su.indexOf(id);
   if(k>=0)s.su.splice(k,1);
@@ -193,12 +193,13 @@ Object.assign(I18N,{'SE DÉBLOQUE':'UNLOCKS','VOIR LA MISSION':'SEE THE MISSION'
   'PACK CHAT':'CAT PACK','AVEC LE CHAT':'WITH THE CAT','+ ARC-EN-CIEL':'+ RAINBOW','+ TRAÎNÉE ARC-EN-CIEL':'+ RAINBOW TRAIL','+ TRAÎNÉE ARC-EN-CIEL INCLUSE':'+ RAINBOW TRAIL INCLUDED'}); // (2026-10-18 soir) le pack du chat (voir chatPackI) ; (2026-10-20) la pastille de la vitrine (voir shArcHtml)
 function m2DebloqueHtml(m,sansBouton){if(!m)return '';const s=m2Etat(),ok=s.ok.indexOf(m.id)>=0;let v=0;try{v=m2Val(m);}catch(e){}const t=m2Seuil(m),p=ok?1:m2Frac(m,v,t);
   return '<span class="m2Deb"><span class="m2DebT">'+pxi('cible')+' '+sansAcc(TR('SE DÉBLOQUE'))+' : '+m2TxtH(m)+'</span>'
-    +'<span class="m2DebB"><u><em style="width:'+Math.round(p*100)+'%"></em></u><b>'+(ok?sansAcc(TR('RÉCUPÈRE DANS MISSIONS')):m2Prog(m,v,t))+'</b></span>'
-    +(sansBouton?'':'<span class="m2DebV" role="button" tabindex="0" data-m2voir="'+m.id+'">'+sansAcc(TR('VOIR LA MISSION'))+' '+pxi('droite')+'</span>')+'</span>';}
+    +'<span class="m2DebB"><u><em style="width:'+Math.round(p*100)+'%"></em></u><b>'+(ok?sansAcc(TR('MISSION RÉUSSIE')):m2Prog(m,v,t))+'</b></span>'
+    +(sansBouton?'':'<span class="m2DebV" role="button" tabindex="0" data-m2voir="'+m.id+'">'+(m2Pret(m.id)?pxi('cadeau')+' '+sansAcc(TR('RÉCUPÈRE')):sansAcc(TR('VOIR LA MISSION'))+' '+pxi('droite'))+'</span>')+'</span>';}
 function m2TxtH(m){return sansAcc(m2Txt(m)).replace(/\d[\d ]*\d/g,function(x){return '<span class="m2Nw">'+x+'</span>';});} // les nombres ne se coupent pas en fin de ligne (« 1 / 000 »)
 function m2SecretHtml(){return '<span class="m2Deb sec"><span class="m2DebT">'+pxi('oeil')+' '+sansAcc(TR('MISSION SECRÈTE'))+'</span></span>';}
 /* VOIR LA MISSION : l'écran MISSIONS, la mission SUIVIE (trois le sont déjà : la plus ancienne laisse sa place), sa ligne amenée en vue */
 function m2VaMission(id){const m=m2Def(id);if(!m||m.f==='secret')return;const s=m2Etat();
+  if(m2Pret(id)){m2PrendIci(id);return;} /* (2026-10-31) réussie, pas encore prise : RÉCUPÈRE sur place (voir m2PrendIci) */
   if(s.ok.indexOf(id)<0&&s.su.indexOf(id)<0){if(s.su.length>=3)s.su.shift();s.su.push(id);SAVE.flush();}
   uiClic('nav');hap(8);
   const va=function(){garMode('missions');setTimeout(function(){const r=document.querySelector('#gmListe .m2L[data-m2="'+id+'"]');if(r){try{r.scrollIntoView({block:'center'});}catch(e){}r.classList.add('flash');}},REDUCED_MOTION?0:380);};
@@ -206,6 +207,18 @@ function m2VaMission(id){const m=m2Def(id);if(!m||m.f==='secret')return;const s=
   ecranWipe(function(){
     if(GBQ.on||GMODE.m==='shop')try{gGarageReplie();GBQ.on=GBQ.veut=false;GBQ.bascule=true;bqClasses(false);try{garBqAmbiance(false);bqSonCoupe(.4);}catch(e){}GBQ.lueur=0;GBQ.sec=null;SHOP.prev=null;buildCar(CARS[equippedCar()]);}catch(e){} // la boutique rangée d'un coup sous le voile (la recette de son ◀ depuis l'accueil)
     va();});}
+/* ===== RÉCUPÉRER AU GARAGE (2026-10-31, Léo : « les récompenses voiture (par exemple ROUGE-GORGE) buggées, on peut pas gagner le truc, ça fait
+   une loop qui renvoie du garage à la mission ») — la mission réussie, sa caisse au garage disait VOIR LA MISSION → l'écran MISSIONS ;
+   là, la PHOTO de la caisse (le geste naturel) ramenait au garage (m2Voir) → VOIR LA MISSION → … sans fin, RÉCUPÈRE n'était que le petit
+   bouton vert. Maintenant : au garage et à la boutique, le bouton dit RÉCUPÈRE et donne la récompense sur place ; dans MISSIONS, toute la
+   ligne prête récupère, sa photo comprise. ===== */
+function m2PrendIci(id){const o=m2Prend(id);if(!o){uiClic('refus');return false;}
+  try{if(SONV2){sfx(o.cash?'ui.achat':'ui.debloque');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.27});}else uiClic('ok');}catch(e){}
+  hap([12,40,18,40,30]);
+  if(o.car!=null){try{carSnapshot();}catch(e){}toast(pxi('voiture')+' '+TR(CARS[o.car].name)+' — '+TR('EST À TOI'),true);if(garageOn)try{GBQ.rk='';garageShow(o.car);}catch(e){}}
+  else if(o.cat){const j=(COSM[o.cat]||[]).findIndex(function(x){return x.id===o.hab;}),d=COSM[o.cat][j];toast(pxi('coche')+' '+(d?TR(d.n):'')+' — '+TR('EST À TOI'),true);if(garageOn&&j>=0)try{GBQ.rk='';shopShow(o.cat,j);}catch(e){}}
+  else toast(pxi('piece')+' +'+fmtC(o.cash)+' '+TR('VERSÉS AU COMPTE'),true);
+  try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}return true;}
 document.addEventListener('click',function(e){const t=e.target&&e.target.closest&&e.target.closest('[data-m2voir]');if(!t)return;e.stopPropagation();e.preventDefault();
   if(typeof GAR!=='undefined'&&(GAR.go||ecranWipe._on))return;try{uiPop(t);}catch(x){}m2VaMission(t.getAttribute('data-m2voir'));},true);
 /* ===== LES MISSIONS v2 — LA RÉVÉLATION D'UNE SECRÈTE (2026-10-16, Sacha : « pour une SECRÈTE, une vraie scène de révélation : la silhouette

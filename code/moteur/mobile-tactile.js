@@ -108,7 +108,26 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   let skU=null,skD=null,skK='';
   if(stk){skU=document.createElement('div');skU.className='skU';skD=document.createElement('div');skD.className='skD';stk.appendChild(skU);stk.appendChild(skD);}
   function skMaj(){ if(!skU)return; const vol=(mode==='fall'),sg=volSens()*volInv(),k=(vol?1:0)+'|'+sg; if(k===skK)return; skK=k;
-    skU.textContent=vol?TR(sg<0?'MONTE':'PLONGE'):''; skD.textContent=vol?TR(sg<0?'PLONGE':'MONTE'):''; }
+    skU.textContent=vol?TR(sg<0?'MONTE':'PLONGE'):''; skD.textContent=vol?TR(sg<0?'PLONGE':'MONTE'):(DRIFT2?TR('DRIFT'):''); if(vol&&skE)TCTL.drift(false,false,true); }
+  /* ===== LE STICK DIT LE DRIFT (2026-11-01, Léo : « bien faire comprendre comment le joystick agit sur la voiture ») =====
+     Au sol, sous la glissière : le mot DRIFT (le geste existait, rien ne le montrait — le commentaire plus haut le promettait, le texte restait vide).
+     · une LIGNE pointillée à la profondeur du geste (34,9 px, ou le seuil de l'arc du pouce `dyS` à droite) : la bille la passe = le drift part ;
+     · DRIFT s'allume à mesure qu'on tire (--dp), s'éteint presque sous la vitesse du drift (`dLent`), PULSE quand on braque fort sans tirer (`dInv`) ;
+     · en drift la bille prend la couleur du palier (bleu · or · rose, celles des étincelles) et un ANNEAU s'y remplit jusqu'à l'ULTRA (1,4 s) ;
+     · au relâché, le turbo FLASHE la bille (`TCTL.turbo`, appelé par driftTick). Appelé à chaque image de conduite par la boucle (`TCTL.drift`) ;
+       les classes ne s'écrivent qu'au changement d'état, les variables qu'au-delà de 2 %. */
+  let skC=null,skR=null,skE='',skDp=-1,skDk=-1,skDc=-1,skTu=0;
+  if(stk&&DRIFT2){skC=document.createElement('div');skC.className='skC';stk.appendChild(skC);if(knb){skR=document.createElement('div');skR.className='skR';knb.appendChild(skR);}skD.textContent=TR('DRIFT');} /* le mot est là dès le départ (skMaj ne passe qu'au premier toucher) */
+  TCTL.drift=function(on,vit,vol){ if(!skC)return;
+    const e=vol||!TCTL.on?'':on?'d'+(driftCd>0?0:driftLv):(vit&&TCTL.act&&Math.abs(steer)>.8)?'i':vit?'v':'l';
+    if(e!==skE){skE=e;stk.classList.toggle('dSol',e!=='');stk.classList.toggle('dLent',e==='l');stk.classList.toggle('dInv',e==='i');stk.classList.toggle('dOn',e.charAt(0)==='d');
+      for(let i=0;i<4;i++)stk.classList.toggle('dl'+i,e==='d'+i);}
+    if(!e)return;
+    const sl=Math.max(DRIFT_PX,TCTL.dyS||0),p=TCTL.act?Math.max(0,Math.min(1,(TCTL.dy||0)/sl)):0,k=on&&driftCd<=0?Math.min(1,driftC/1.4):0;
+    if(Math.abs(p-skDp)>.02){skDp=p;stk.style.setProperty('--dp',p.toFixed(2));}
+    if(Math.abs(k-skDk)>.02||(k===0&&skDk!==0)){skDk=k;stk.style.setProperty('--dk',k.toFixed(3));}
+    if(Math.abs(sl-skDc)>.5){skDc=sl;stk.style.setProperty('--dc',sl.toFixed(1)+'px');} };
+  TCTL.turbo=function(lv){ if(!skC)return; stk.classList.remove('dTu1','dTu2','dTu3'); requestAnimationFrame(function(){stk.classList.add('dTu'+lv);}); clearTimeout(skTu); /* (pas de lecture de mise en page pour relancer l'animation : une image d'écart suffit) */ skTu=setTimeout(function(){stk.classList.remove('dTu1','dTu2','dTu3');},520); };
   function stSet(h,v,kx,ky){ skMaj(); if(GAU)h=-h; TCTL.st=h; TCTL.sv=v; // kx/ky : la place du POUCE en pixels depuis la base
     if(knb)knb.style.transform='translate('+(GAU?-(kx||0):(kx||0))+'px,'+(ky||0)+'px)';
     if(stk){stk.style.setProperty('--sl',Math.max(0,h).toFixed(3));stk.style.setProperty('--sr',Math.max(0,-h).toFixed(3));stk.style.setProperty('--su',Math.max(0,v).toFixed(3));stk.style.setProperty('--sd',Math.max(0,-v).toFixed(3));} } // (2026-10-28) la glissière remplit son trait du côté où l'on braque // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
@@ -787,7 +806,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function surAccueilCiel(){return MENU_PASSE&&garageOn&&!GAR.go&&!ecranWipe._on&&document.body.classList.contains('garMenuH');}
   function mTap(a,el){
     if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
-    if(a==='replay'&&started&&gameOver){ m2Rejoue(); /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); resetGame(); } }); }; r9(); } // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
+    if(a==='replay'&&started&&gameOver){ m2Rejoue(); /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); return rejoueAttend().then(function(){ if(started&&gameOver)resetGame(); }); } }); }; r9(); } /* (2026-10-31) rejoueAttend : le départ d'avance pas fini se finit SOUS le volet, en tranches */ // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
     else if(a==='play'&&jadePlayOk()){ const go9=function(){goImmersive();jadeJouer();}; // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE, avec sa musique
       if(SAVE.d.facile==null&&!SAVE.d.tuto)Promise.resolve().then(go9);else go9(); }
     else if(a==='play'&&sfPlayOk()){ const go9=function(){goImmersive();classiqueJouer();}; // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD

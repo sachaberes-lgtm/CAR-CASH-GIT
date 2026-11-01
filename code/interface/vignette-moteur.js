@@ -159,7 +159,24 @@ const engVigFeuMat=new THREE.MeshBasicMaterial({map:engVigFeuTex,color:0xffa855,
   blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
 function engVigTier(){return engVigForce!=null?engVigForce:engTier;}
 let engVigVieux=null;
-function jeteEngin(m){m.traverse(o=>{if(o.isMesh){if(o.geometry&&!(o.geometry.userData&&o.geometry.userData.partage))o.geometry.dispose();if(o.material)o.material.dispose();}});}
+function jeteEngin(m){if(m&&m.userData.garde)return;m.traverse(o=>{if(o.isMesh){if(o.geometry&&!(o.geometry.userData&&o.geometry.userData.partage))o.geometry.dispose();if(o.material)o.material.dispose();}});} /* un moteur GARDÉ (ENG_PRET) ne part jamais */
+/* ===== LES MOTEURS GARDÉS (2026-10-31, Léo : « le jeu lag encore un peu sur mobile, des cuts audio et visuels ») =====
+   MESURÉ (banc iPhone simulé ×4, course de 25 s, pilote auto) : la pire image de course (90 à 185 ms) était la MONTÉE DE PALIER — `engVigBuild` fabriquait
+   le moteur de la carte « NOUVEAU MOTEUR » en pleine course : `mkEngine` coûte 20 à 75 ms ×4 selon le palier (les thèmes du 26/10 : 1 190 ms pour les 30),
+   588 ms en 25 s, d'un bloc à chaque montée. Or la chauffe du menu (`engChauffe1`) fabrique DÉJÀ les 30, une par image, pour compiler leurs programmes…
+   puis jetait tout. Elle les garde désormais (`ENG_PRET[i]`), et la vignette les reprend tels quels : plus aucune fabrication en course (une montée
+   avant la fin de la chauffe fabrique le sien, comme avant, et le garde). Mémoire : ~39 Mo de géométrie pour les 30 (les tôles d'une voiture en font
+   autant). Même image : la pièce est remise à zéro (échelle, place, rotation) avant le cadrage. `?moteurs=jetes` = comme avant. */
+const ENG_PRET=[],ENG_GARDER=!/[?&]moteurs=jetes\b/.test(location.search);
+/* (2026-10-31, 2e tour) …ET SA BOÎTE DE CADRAGE. MESURÉ (tour de toutes les maps, ×4) : la 1re montée à chaque palier calculait encore la boîte du moteur
+   (setFromObject → computeBoundingBox sur toute sa géométrie : ~45 ms ×4). La chauffe la calcule à l'image qui SUIT la fabrication (ENG_BB : la file). */
+const ENG_BB=[];
+function engPret(i){
+  if(!ENG_GARDER)return mkEngine(i);
+  let g=ENG_PRET[i];
+  if(!g){g=ENG_PRET[i]=mkEngine(i);g.userData.garde=true;}
+  g.scale.setScalar(1);g.position.set(0,0,0);g.rotation.set(0,0,0);
+  return g;}
 /* LES SHADERS DES MOTEURS SE PRÉPARENT AU MENU (2026-09-26, passe perf, lot 4). MESURÉ : la 1re montée de moteur d'une session
    figeait l'image 180 ms EN PLEINE COURSE (5 shaders compilés pour la scène du moteur — ses 4 lumières font des programmes à part), la
    2e encore 70 ms. Au menu et à l'écran de mort, on construit donc chaque palier HORS écran, une pièce par image, on compile, et on garde
@@ -172,7 +189,7 @@ function jeteEngin(m){m.traverse(o=>{if(o.isMesh){if(o.geometry&&!(o.geometry.us
    garage (voir atelierLampes), puis dessiné une fois hors écran (états de pipeline de la puce) — `chauffeRendu([GAR.root])`. Un joueur
    plus rapide que la chauffe ne casse rien : openGarage bâtit ce qui manque et la 1re image compile ce qui reste, comme avant. */
 function atelierChauffe(){ // vrai si elle a travaillé à cette image (la chauffe s'arrête là pour cette image)
-  if(GAR.chaud||garageOn)return false;
+  if(GAR.chaud||garageOn){if(garageOn&&GAR.root)GAR.chaud=true;return false;} /* (2026-11-01) l'atelier déjà montré (JOUER avant la fin de la chauffe) : ses programmes sont nés — MESURÉ ×4 : sans ça, il était redessiné hors écran à l'écran de fin, 330 ms figées */
   if(!GAR.root){const f=document.fonts;atelierChauffe.n=(atelierChauffe.n|0)+1;
     if(f&&f.check&&atelierChauffe.n<150&&!f.check('26px "Press Start 2P"')){if(atelierChauffe.n===1&&f.load)f.load('26px "Press Start 2P"').catch(function(){});return false;} // 2,5 s au plus
     try{buildGarageRoom();}catch(e){console.warn('atelier',e);GAR.chaud=true;}
@@ -288,8 +305,9 @@ function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie 
   if(!lierPret())return;
   LIER.doux=true;try{engChauffe1();}finally{LIER.doux=false;}}
 function engChauffe1(){
+  if(ENG_BB.length){const g=ENG_BB.shift();try{if(!g.userData.bb&&!g.parent)g.userData.bb=new THREE.Box3().setFromObject(g);}catch(e){}chauffeGrace();return;} /* (2026-10-31) la boîte de cadrage d'un moteur gardé, dans SA propre image (voir ENG_BB) */
   if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
-  if(engChaudI<0){chauffeGrace();const k9=CHAUFFE_R.div;CHAUFFE_R.saute=0;const r9=chauffeDivers(k9);if(CHAUFFE_R.saute&&CHAUFFE_R.rejoue!==k9){CHAUFFE_R.rejoue=k9;return;}CHAUFFE_R.div=k9+1;if(!r9)engChaudI=0;return;} /* (LA LIAISON EN ARRIÈRE-PLAN) une étape dont le dessin a sauté des programmes en cours de liaison est rejouée une fois, liée */ // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
+  if(engChaudI<0){chauffeGrace();const k9=CHAUFFE_R.div;CHAUFFE_R.saute=0;const r9=chauffeDivers(k9);if(CHAUFFE_R.encore){CHAUFFE_R.encore=0;return;} /* (2026-11-01) une étape en plusieurs images : rejouée tant qu'il en reste */if(CHAUFFE_R.saute&&CHAUFFE_R.rejoue!==k9){CHAUFFE_R.rejoue=k9;return;}CHAUFFE_R.div=k9+1;if(!r9)engChaudI=0;return;} /* (LA LIAISON EN ARRIÈRE-PLAN) une étape dont le dessin a sauté des programmes en cours de liaison est rejouée une fois, liée */ // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
   if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){chauffeGrace();CHAUFFE_R.saute=0;chauffeRendu();if(CHAUFFE_R.saute&&!CHAUFFE_R.refait){CHAUFFE_R.refait=1;return;}CHAUFFE_R.fait=true;CHAUFFE_R.tFait=performance.now();return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
     if(CHAUFFE_R.ap>=0&&!ecranWipe._on&&!GAR.go&&!CHUTE.go&&(PREB.W?PREB.fait:(!PREB.on||!prebDepCible()||performance.now()-CHAUFFE_R.tFait>15000))){chauffeGrace();if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;} // (2026-10-24) les tôles des voitures, une par image, le départ d'avance prêt (voir chauffeApres) — (2026-10-28) jamais pendant un lâcher ou un piqué (LE DÉPART ATTEND LA CHAUFFE : une tôle de 1,9 s sous le voile retarderait la course)
     return;}
@@ -298,6 +316,7 @@ function engChauffe1(){
     const g=engChaudI<ENGINE_TIERS.length?mkEngine(engChaudI):new THREE.Mesh(engVigFeuGeo,engVigFeuMat); // dernier tour : la flamme
     engChaudI++;
     engVigScene.add(g);renderer.compile(engVigScene,engVigCam);engVigScene.remove(g);
+    if(ENG_GARDER&&engChaudI<=ENGINE_TIERS.length){if(!ENG_PRET[engChaudI-1]){g.userData.garde=true;ENG_PRET[engChaudI-1]=g;ENG_BB.push(g);}return;} /* (2026-10-31) LES MOTEURS GARDÉS : la course le reprend tel quel (voir ENG_PRET) */
     const vus=new Set(); // ⚠ une matière sert souvent à PLUSIEURS pièces du moteur : on ne la juge qu'une fois (sinon la matière gardée était libérée à la pièce suivante)
     g.traverse(function(o){if(!o.isMesh)return;
       if(o.geometry&&o.geometry!==engVigFeuGeo&&!(o.geometry.userData&&o.geometry.userData.partage))o.geometry.dispose();
@@ -363,14 +382,17 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
 }catch(e){console.warn('chauffeRendu',e);} }
 function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image (elles tenaient toutes dans la même : ~1,8 s d'un bloc au chargement, MESURÉ) — rend vrai s'il en reste
   const E=[
+  function(){cielArcMonte();},function(){cielArcMonte();},function(){cielArcMonte();},function(){cielArcMonte();}, /* (2026-11-01) les photos du ciel et la mer de cumulus montent au GPU (voir cielArcMonte) */
   function(){orbiteChauffe();}, // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
   function(){if(!CITY.chaud){CITY.chaud=true;villeChauffe();}},
   function(){if(SPIN.on){const m9=mkJeton(1);scene.add(m9);chauffeRendu([m9]);scene.remove(m9);}}, /* (2026-10-14) LE JETON DU FINAL SPIN : texture et matières montées au menu */
+  function(){try{if(cyBruitsPas())CHAUFFE_R.encore=1;}catch(e){}}, /* (2026-11-01) les bruits du canyon et des dunes, un canal par image (voir cyBruitsPas) */
   function(){try{canyonChauffe();}catch(e){console.warn('canyonChauffe',e);}}, // (2026-10-14) LE CANYON DES GÉANTS : le relief et son ciel compilés au menu
   function(){try{dunesChauffe();}catch(e){console.warn('dunesChauffe',e);}}, // (2026-10-18) LES DUNES D'OR : le sable et ses décors compilés au menu
   function(){campChauffe();},
   function(){try{cryptoChauffe();}catch(e){console.warn('cryptoChauffe',e);}}, // (2026-10-13) CRYPTO CITY et la pluie d'argent : leurs matières compilées au menu
   function(){try{vitreChauffe();}catch(e){console.warn('vitreChauffe',e);}}, // (2026-10-17) LA VILLE VITRÉE : le verre, ses tours au loin, la couche de nuages
+  function(){try{if(foretProtosPas())CHAUFFE_R.encore=1;}catch(e){}}, /* (2026-11-01) les essences de la forêt, une par image (voir foretProtosPas) */
   function(){try{foretChauffe();}catch(e){console.warn('foretChauffe',e);}}, // (2026-10-14) LA FORÊT NOIRE : arbres, sol, torrent, fleurs, papillons, lucioles, rayons, brume, feux follets, lune, loup — compilés au menu
   function(){try{grotteChauffe();}catch(e){console.warn('grotteChauffe',e);}}, // (2026-10-18) LES PROFONDEURS : la roche en blocs (un programme) et les poussières, compilées au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu

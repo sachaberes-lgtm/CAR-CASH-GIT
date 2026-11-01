@@ -52,11 +52,25 @@ function prebDepTick(now){ // (prebTick, hors course) commencer, vérifier, trav
      l'écran de fin (rien ne s'y joue) ; au menu, rien ne change (3-6 ms). */
   const bud9=(GAR.go&&GAR.go.attend)||(CHUTE.go&&CHUTE.go.attend)?10:ins9?3:mode==='boom'&&!gameOver?Math.max(3,Math.min(8,16-tr)):started&&gameOver?Math.max(4,Math.min(10,20-tr)):Math.max(3,Math.min(6,14-tr));
   prebTravaille(performance.now()+bud9);}
+/* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LE REJOUER FINIT SON DÉPART SOUS LE VOLET. MESURÉ (banc iPhone ×4) : mort, REJOUER
+   tapé tout de suite, la grotte tirée pour le départ suivant — sa préparation (la plus lourde, ~16-22 s de tranches) n'en était qu'au début : resetGame
+   bâtissait le reste D'UN BLOC, 4,2 s d'image figée. Le volet du REJOUER couvre déjà l'écran : il reste baissé, et le départ s'y finit en tranches de
+   30 ms par image (le volet et la musique continuent), puis resetGame le prend comme d'habitude. 12 s au plus (ensuite : le reste d'un trait, comme avant).
+   Rien d'avance en route, ou déjà prêt : tout de suite, comme avant. `?attente=0` : comme avant. */
+function rejoueAttend(){
+  if(/[?&]attente=0\b/.test(location.search)||!PREB.W||!PREB.dep||PREB.fait)return Promise.resolve();
+  const t0=performance.now();REJ_ATT.n++;
+  return new Promise(function(ok){const pas=function(){
+    if(!PREB.W||!PREB.dep||PREB.fait||!(started&&gameOver)||performance.now()-t0>12000){REJ_ATT.ms=Math.round(performance.now()-t0);REJ_ATT.sortie=PREB.fait?'prêt':'12 s ou annulé';ok();return;}
+    try{chauffeGrace();prebTravaille(performance.now()+30);}catch(e){}
+    requestAnimationFrame(pas);};requestAnimationFrame(pas);});}
+const REJ_ATT={n:0,ms:0,sortie:''};
+window.dbgRejoue=function(){return Object.assign({},REJ_ATT);};
 function prebDepPrend(fn){PREB.depPorte=true;try{fn();}finally{PREB.depPorte=false;PREB.prend=false;}} // c'est le DÉPART qui construit : la piste bâtie d'avance peut servir
 window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule('dbg');}
   return {on:PREB.on,etat:PREB.W?(PREB.fait?'pret':'en cours'):'',carte:PREB.carte,graine:PREB.sd,palier:PREB.eng,palierCourse:engTier,reste:+((L-s)/Math.max(20,PREB.v||60)).toFixed(1),v:Math.round(PREB.v||0),ms:PREB.W||PREB.tFin?Math.round((PREB.tFin||performance.now())-PREB.t0):0,
     dep:PREB.W&&PREB.dep?{pourStarted:PREB.ctx,prochain:SF.prochain?SF.prochain.carte+'-'+SF.prochain.meteo:null}:null,prisAuDepart:PREB.depPris,legers:PREB.legers, // (LE DÉPART D'AVANCE)
-    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,
+    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
     err:window.__prebErr?String(window.__prebErr.stack||window.__prebErr).slice(0,400):null};};
 /* ===== LA DALLE LISSE (2026-10-25, Sacha : « la route est un peu brinquebalante, elle oscille quand elle fait des spirales ») =====
    MESURÉ (banc nuages/espace, 3 graines) : le roulis de la dalle avait des à-coups jusqu'à 25-35 × l'à-coup moyen — des CASSURES. Deux causes :
