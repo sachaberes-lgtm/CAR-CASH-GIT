@@ -60,6 +60,8 @@ Object.assign(PXI_G,{ // (2026-10-15, Sacha : « les traînées, les ailes et le
   fg_plat:'............|............|............|............|............|...######...|.##......##.|#..........#|#..........#|.##....#..#.|...######...|.......#....',
   fg_plat2:'............|............|............|............|.#..........|.#.######...|###......##.|#..........#|#..........#|.##....#..#.|...######...|.......#....',
   fg_demi:'............|............|............|............|............|...###......|.##.........|#...........|#...........|.##..#......|...####.....|.....#......'});
+/* (2026-11-01, Léo : « changer l'icône en haut aussi… oui, partout ») LA FLAMME REMPLACE L'ÉCLAIR dans toute l'interface (barre de boost, réglages, auto-école, orbe de vitesse…) ; l'éclair d'avant reste sous le nom `foudre` (la FOUDRE DIVINE) et revient partout avec ?boost=eclair */
+PXI_G.foudre=PXI_G.eclair;if(!/[?&]boost=eclair/.test(location.search))PXI_G.eclair=PXI_G.flamme;
 (function(){
   let css='',vars='';
   for(const k in PXI_G){

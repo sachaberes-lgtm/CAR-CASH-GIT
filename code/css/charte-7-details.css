@@ -547,4 +547,39 @@ html body #tStick.dTu1 #tKnob .skR,html body #tStick.dTu2 #tKnob .skR,html body 
 html body #tStick.dTu1 #tKnob,html body #tStick.dTu2 #tKnob,html body #tStick.dTu3 #tKnob{box-shadow:inset 0 0 0 1.5px rgba(var(--tcol),.95),0 0 36px rgba(var(--tcol),.85),0 6px 18px rgba(0,0,0,.18)}
 @keyframes dTurbo{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2)}}
 @media (prefers-reduced-motion:reduce){html body #tStick.dInv .skD{animation:none;opacity:1}}
+
+/* ===== LES ICÔNES DU BOUTON BOOST (2026-11-01, Léo : « change l'éclair par un truc intelligent ou stylé, genre une bouteille nitro, on peut tester plusieurs trucs ») =====
+   ?boost=bouteille | chevrons | flamme | anneau (rien = l'éclair en pixels, comme avant). Chaque icône est un SVG en verre qui LIT la réserve : --nr (nitro) et --nx (réserve bleue)
+   sont déjà posées sur #tNitro par la boucle ; la couleur de la poussée est --nc (orange, bleu en réserve, violet en infinie). Appuyé (.on) : l'icône s'enfonce et s'embrase. */
+html body.bv #tNitro .nx3{display:none!important}
+html body.bv #tNitro .bvIco{position:absolute;left:50%;top:50%;height:64px;width:auto;transform:translate(-50%,-50%);overflow:visible;pointer-events:none;z-index:1;--bc:var(--nc,#ff9a3c);
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.28));transition:transform .12s,filter .15s}
+html body.bv #tNitro .bv-bouteille{height:74px}html body.bv #tNitro .bv-flamme{height:68px}html body.bv #tNitro .bv-anneau{height:72px}
+html body.bv #tNitro:active .bvIco,html body.bv #tNitro.on .bvIco{transform:translate(-50%,calc(-50% + 3px)) scale(.95);filter:drop-shadow(0 0 10px var(--bc)) drop-shadow(0 0 22px color-mix(in srgb,var(--bc) 60%,transparent))}
+html body.bv #tNitro.bleu{--nc:#7d97ff}html body.bv #tNitro.inf{--nc:#ff4a3a}
+.bvIco .bvLn{fill:rgba(255,255,255,.09);stroke:rgba(255,255,255,.88);stroke-width:1.6;stroke-linejoin:round}
+.bvIco .bvBr{fill:none;stroke:rgba(255,255,255,.5);stroke-width:1.2;stroke-linecap:round}
+.bvIco .bvSh{fill:none;stroke:rgba(255,255,255,.7);stroke-width:1.6;stroke-linecap:round}
+.bvIco .bvLq,.bvIco .bvLx{transform-box:fill-box;transform-origin:50% 100%;transition:transform .2s}
+.bvIco .bvLq{fill:var(--bc);opacity:.92;transform:scaleY(var(--nr,.5))}
+.bvIco .bvLx{fill:#7d97ff;opacity:.85;transform:scaleY(min(1,calc(var(--nr,.5) + var(--nx,0))))}
+.bvIco .bvCh{fill:none;stroke:#fff;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s}
+.bvIco.bv-chevrons .c3{opacity:calc(.16 + .84*clamp(0,var(--nr,.5)*6,1));stroke:color-mix(in srgb,#fff 55%,var(--bc))}
+.bvIco.bv-chevrons .c2{opacity:calc(.16 + .84*clamp(0,(var(--nr,.5) - .33)*6,1))}
+.bvIco.bv-chevrons .c1{opacity:calc(.16 + .84*clamp(0,(var(--nr,.5) - .66)*6,1));stroke:#fff}
+html body.bv #tNitro.plein:not(.on) .bv-chevrons .bvCh{animation:bvMonte 1.2s ease-in-out infinite}
+html body.bv #tNitro.plein:not(.on) .bv-chevrons .c2{animation-delay:.12s}html body.bv #tNitro.plein:not(.on) .bv-chevrons .c1{animation-delay:.24s}
+@keyframes bvMonte{50%{transform:translateY(-4px)}}
+.bvIco .bvPi{fill:none;stroke:rgba(255,255,255,.2);stroke-width:4}
+.bvIco .bvRq,.bvIco .bvRx{fill:none;stroke-width:4.5;stroke-linecap:round;stroke-dasharray:100 100;transform:rotate(-90deg);transform-origin:32px 32px;transition:stroke-dashoffset .2s}
+.bvIco .bvRq{stroke:var(--bc);stroke-dashoffset:calc(100 - 100*var(--nr,.5))}
+.bvIco .bvRx{stroke:#7d97ff;stroke-dashoffset:calc(100 - 100*min(1,calc(var(--nr,.5) + var(--nx,0))))}
+.bvIco.bv-anneau .bvCh{stroke-width:3.5}
+.bvIco.bv-anneau .d1{opacity:.95}.bvIco.bv-anneau .d2{opacity:.55}
+html body.bv #tNitro.bas:not(.on) .bvIco{animation:bvSec .6s steps(2) infinite}
+@keyframes bvSec{50%{filter:drop-shadow(0 0 8px #ff5a6e)}}
+/* L'ICÔNE EN HAUT (la barre de boost) et les gains qui volent vers elle : la flamme pixel à la place de l'éclair, en trois bandes comme l'éclair (clair, plein, ombre) */
+html body.bvF.touch #nitroBar::before{background:linear-gradient(180deg,#fff3c4 0 24%,#ffb81f 24% 58%,#ff6a0e 58%);-webkit-mask:var(--pxi-flamme) center/100% 100% no-repeat;mask:var(--pxi-flamme) center/100% 100% no-repeat}
+html body.bvF #ajVols b.n>i{background:linear-gradient(180deg,#fff3c4 0 24%,#ffb81f 24% 58%,#ff6a0e 58%);-webkit-mask:var(--pxi-flamme) center/100% 100% no-repeat;mask:var(--pxi-flamme) center/100% 100% no-repeat}
+html body.bvF #ajVols b.n.x>i{background:linear-gradient(180deg,#eef2ff 0 24%,#8fa4ff 24% 58%,#4a68f0 58%)}
 </style>

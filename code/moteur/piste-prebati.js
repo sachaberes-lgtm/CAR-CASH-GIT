@@ -260,7 +260,9 @@ function* prebJob(sd,W){yield* pisteRoute(sd,W);if(PARK.on)return;
   else if(W.piste==='banquise')yield* prebDecorG(W,'banquise',BANQ,function(){return buildBanqG(sd);});
   else if(W.piste==='grotte')yield* prebDecorG(W,'grotte',GROTTE,function(){return buildGrotteG(sd);}); // (2026-10-18) LES PROFONDEURS
   else if(W.piste==='canyon')yield* cyBatitG(sd,W); // (2026-10-23) LE CANYON D'AVANCE : son monde part au travailleur pendant l'approche (voir cyAvPart)
-  else if(W.piste==='dunes'){W.dunes=prebDunes(sd,W);const a=W.dunes;if(a){yield;while(!a.R){if(JF.lim===Infinity||!DN.w)break;yield;}}}} // (2026-10-24) LES DUNES D'AVANCE : la préparation puis le calcul du monde chez le travailleur, attendu image après image (voir prebDunes)
+  else if(W.piste==='dunes'){W.dunes=prebDunes(sd,W);const a=W.dunes;if(a){yield;const K9=DN_AV_MON?Object.keys(DN_MOD):[];let k9=0;
+    while(!a.R){if(JF.lim===Infinity||!DN.w)break;while(k9<K9.length&&performance.now()<JF.lim)dnMod(K9[k9++]);yield;} /* (2026-11-01) en attendant le travailleur : les modèles des monuments, un par un */
+    if(a.R)while(!dnMonuPas(a))yield;}}} /* (2026-11-01) puis LES MONUMENTS D'AVANCE (voir dnMonuAvanceG) */ // (2026-10-24) LES DUNES D'AVANCE : la préparation puis le calcul du monde chez le travailleur, attendu image après image (voir prebDunes)
 const PREB_PISTES=['','jade','foret','canyon','banquise','grotte','dunes']; // les pistes dont on sait ce que la génération écrit (prebChampsDe) — une map NEUVE n'est pas bâtie d'avance tant qu'elle n'y est pas
 function prebPart(c){ // on commence la piste d'en face
   const W=pisteTravail(c);
@@ -273,7 +275,7 @@ function prebPart(c){ // on commence la piste d'en face
   PREB.g=prebJob(PREB.sd,W);}
 function prebTravaille(lim){ // une tranche de travail, jusqu'à l'échéance lim (Infinity : jusqu'au bout)
   const W=PREB.W,g=PREB.g,t0=performance.now();let r=null;
-  try{prebAvec(W,function(){const l0=JF.lim;JF.lim=lim;try{do{r=g.next();}while(!r.done&&performance.now()<lim);}finally{JF.lim=l0;}});}
+  try{prebAvec(W,function(){const l0=JF.lim;JF.lim=lim;try{do{const t9=performance.now();r=g.next();const d9=performance.now()-t9;if(d9>20&&lim!==Infinity){const P9=PREB.pas||(PREB.pas=[]);P9.push([Math.round(d9),PREB.carte,PREB.img]);if(P9.length>12)P9.shift();}}while(!r.done&&performance.now()<lim);}finally{JF.lim=l0;} /* PREB.pas (banc) : les pas de plus de 20 ms */});}
   catch(e){console.warn('pré-bâti',e);window.__prebErr=e;try{window.__ccNote('panne','pré-bâti · '+(e&&e.message||e));}catch(_){}PREB.echecs++;prebAnnule('erreur');return;}
   PREB.cpu+=performance.now()-t0;PREB.img++;
   if(r&&r.done){PREB.fait=true;PREB.tFin=performance.now();
@@ -285,6 +287,7 @@ function prebAnnule(r){ // le travail en cours est jeté (la map d'en face a cha
   for(const m of W.tab.trackMeshes||[])if(m.geometry)m.geometry.dispose(); // jamais dessinées ; leurs matières non plus (et certaines sont partagées : on n'y touche pas)
   if(W.jade&&W.jade.J)try{jadeJette(W.jade);}catch(e){}
   if(PREB.jadeM&&JADE_GARDE.m===PREB.jadeM){jadeJette(JADE_GARDE.m);JADE_GARDE.m=null;}
+  if(W.dunes)try{dnMonuJette(W.dunes);}catch(e){}
   PREB.jadeM=null;CY.av=null;} // (le canyon d'avance : son monde ne servira plus)
 function prebPorte(fn){PREB.porte=true;try{fn();}finally{PREB.porte=false;PREB.prend=false;}} // c'est le PORTAIL qui construit : la piste bâtie d'avance peut servir
 function prebGraine(niv){ // (newTrack0, après lvlChoisir) la piste d'en face est-elle celle qu'on a bâtie d'avance ? → sa graine
@@ -296,7 +299,7 @@ function prebGraine(niv){ // (newTrack0, après lvlChoisir) la piste d'en face e
   else{const zn=Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0));
   const ok=PREB.porte&&!!niv&&niv===LVL.cur&&!niv.graine&&!PARK.on&&SF.tirage[zn]===PREB.t&&PREB.z===(runStats.zones|0)&&PREB.rh===ROAD_HALF;
   if(!ok){prebAnnule(PREB.porte?'portail':'hors portail');return null;}}
-  if(!PREB.fait){const t0=performance.now();PREB.finis++;prebTravaille(Infinity);PREB.msFin=Math.round(performance.now()-t0);if(!PREB.fait)return null;} // pas fini à temps : le reste d'un trait
+  if(!PREB.fait){const t0=performance.now();PREB.finis++;prebTravaille(Infinity);PREB.msFin=Math.round(performance.now()-t0);if(!PREB.fait)return null;if(!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;} // pas fini à temps : le reste d'un trait
   else PREB.msFin=0;
   PREB.prend=true;return PREB.sd;}
 function prebPrend(seed){ // (buildTrack) la route bâtie d'avance, si c'est elle qu'on construit
@@ -316,6 +319,7 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   PREB.fin0=0;
   if(PREB.W&&PREB.dep){prebAnnule('départ');return;} // la partie est partie sans prendre la piste du départ
   if(mode==='drive'&&PREB.sT){const d9=(now-PREB.sT)/1000,v9=(s-PREB.sP)/Math.max(1e-3,d9);if(d9>0&&d9<.5&&v9>0)PREB.v=PREB.v?PREB.v+(v9-PREB.v)*Math.min(1,d9*2):v9;} // la vitesse le long de la piste (m/s), lissée
+  if(PREB.sT){const d9=now-PREB.sT;if(d9>0&&d9<250)PREB.ips=PREB.ips?PREB.ips+(1000/d9-PREB.ips)*.05:1000/d9;} /* (2026-11-01) les images par seconde, lissées (le rythme du pré-bâti) */
   PREB.sT=now;PREB.sP=s;
   if(paused||!running||garageOn||PCV.fen||PORTV.att||CHAUFFE_R.t)return;
   if(mode!=='drive'&&mode!=='fall')return;
@@ -328,5 +332,11 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   /* (2026-10-24, passe perf 3e tour) L'URGENCE : la grotte se bâtit en tranches fines (grtMailleNetsG) et peut ne pas être finie au portail quand l'image
      est lourde (MESURÉ ×4 : une grotte après la jade, 3,2 s de calcul : le reste d'un trait au passage, 900 ms figées). Le portail à moins de 10 s :
      la tranche monte à 9 ms, à moins de 5 s à 14 ms (une image de 25-33 ms au lieu d'un bloc). */
-  const r9=(L-s)/Math.max(20,PREB.v||60),u9=r9<5?14:r9<10?9:0;
-  prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));}
+  const r9=(L-s)/Math.max(20,PREB.v||60);let u9=r9<5?14:r9<10?9:0;
+  /* (2026-11-01, Léo : « règle ce qui reste ») LE RYTHME QUI SUIT LE RESTE : la tranche grandit dès qu'au rythme des images (PREB.ips) il ne resterait pas assez
+     d'images avant le portail pour finir — le reste estimé d'après la dernière préparation de cette map (PREB_CPU, sinon une estimation large). MESURÉ
+     (×4, portail approché vite) : la grotte n'était pas finie, ses 450 ms d'un bloc tombaient dans l'image du portail. */
+  {const ref=PREB_CPU[PREB.t.carte]||PREB_CPU_DEF[PREB.t.carte]||1500,re=ref*1.15-PREB.cpu;if(re>0)u9=Math.max(u9,Math.min(16,re/Math.max(1,(r9-1.5)*Math.max(8,Math.min(60,PREB.ips||25)))));}
+  prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));
+  if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;}
+const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500,foret:1500}; /* (ms de calcul) la dernière préparation d'avance de chaque map, en tranches — et une estimation large avant la 1re */

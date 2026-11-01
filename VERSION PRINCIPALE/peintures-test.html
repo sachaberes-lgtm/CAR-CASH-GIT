@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Peintures — page de test</title>
+<style>
+/* (2026-10-31, Léo : « je veux la page interactive ») page blanche : le VRAI jeu, en cadre invisible, peint la caisse choisie avec chaque peinture */
+*{box-sizing:border-box}body{margin:0;background:#fff;color:#111;font:13px/1.3 system-ui,sans-serif}
+#barre{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid #ccc;padding:8px 10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#barre select,#barre button,#barre input{font:inherit;padding:4px 8px}
+button.on{background:#111;color:#fff}
+#etat{color:#666;margin-left:auto}
+#grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--w,220px),1fr));gap:8px;padding:10px}
+.c{border:2px solid #eee;border-radius:6px;cursor:pointer;background:#fafafa;position:relative}
+.c.sel{border-color:#06f}.c.garde{border-color:#2a2}.c.vire{border-color:#d22;opacity:.55}
+.c .im{aspect-ratio:720/440;background:#ddd center/contain no-repeat;display:flex;align-items:center;justify-content:center;color:#888}
+.c img{width:100%;display:block}
+.c .t{padding:4px 6px;font-size:12px}.c .t i{color:#666}
+.c .n{position:absolute;top:4px;left:6px;background:#000a;color:#fff;border-radius:3px;padding:0 5px;font-size:11px}
+.c .g{position:absolute;top:4px;right:6px;background:#fc0;border-radius:3px;padding:0 5px;font-size:11px}
+#gros{position:fixed;inset:0;background:#000d;z-index:9;display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:10px}
+#gros.on{display:flex}#gros .rang{display:flex;gap:10px;width:100%;justify-content:center;flex-wrap:wrap;overflow:auto}
+#gros figure{margin:0;color:#fff;text-align:center;flex:1 1 360px;max-width:900px}#gros img{width:100%;background:#ddd}
+#gros .bt{display:flex;gap:8px}
+#cadre{position:fixed;left:-3000px;top:0;width:844px;height:390px;border:0}
+small{color:#888}
+</style></head><body>
+<div id="barre">
+  <label>Caisse <select id="car"></select></label>
+  <span id="filtres"></span>
+  <label>Taille <input id="taille" type="range" min="140" max="520" value="220"></label>
+  <button id="cmp">Comparer la sélection</button>
+  <button id="effsel">Vider la sélection</button>
+  <button id="refaire">Refaire les photos</button>
+  <button id="exp">Copier mon tri</button>
+  <span id="etat">le jeu se charge…</span>
+</div>
+<div id="grille"></div>
+<div id="gros"><div class="rang"></div><div class="bt"><button id="gprev">←</button><button id="gre">Refaire la photo (R)</button><button id="gk">Garder (K)</button><button id="gv">Virer (V)</button><button id="gx">Fermer (Échap)</button><button id="gnext">→</button></div></div>
+<iframe id="cadre"></iframe>
+<script>
+/* LES PEINTURES QUI SE RESSEMBLENT (mesure de couleur de la planche du 30/10, seuil 7 puis 10) : un filtre « doublons » pour les regarder de plus près */
+var DOUB={A:'chrome holo dragee abricot vanille pistache amande piscine lilas neige nardo fantome orrose nacre lunaire',B:'noir gotham orage',C:'or guerrier taxi',D:'menthe srAurore',E:'lagon srLagon',F:'emeute srBraise lave cuivre',G:'royal srEtoile'};
+var GRP={};Object.keys(DOUB).forEach(function(k){DOUB[k].split(' ').forEach(function(id){GRP[id]=k;});});
+var $=function(s){return document.querySelector(s);};
+var cadre=$('#cadre'),gw,L=[],cars=[],cache={},file=[],busy=false,filtre='tout',sel=[],avis={},gros=-1;
+try{avis=JSON.parse(localStorage.peintAvis||'{}');}catch(e){}
+function sauve(){try{localStorage.peintAvis=JSON.stringify(avis);}catch(e){}}
+var FIL=[['tout','Toutes'],['commun','Communes'],['rare','Rares'],['epique','Épiques'],['sec','Secrètes'],['mot','Motifs'],['grad','Dégradés'],['doub','Doublons (A-G)'],['garde','Gardées'],['vire','Virées'],['non','Pas encore triées']];
+function okFiltre(p){switch(filtre){case 'tout':return true;case 'commun':case 'rare':case 'epique':return p.r===filtre;case 'sec':return p.sec;case 'mot':return p.mot;case 'grad':return p.grad;case 'doub':return !!GRP[p.id];case 'garde':return avis[p.id]==='k';case 'vire':return avis[p.id]==='v';case 'non':return !avis[p.id];}return true;}
+function liste(){return L.filter(okFiltre).sort(function(a,b){return filtre==='doub'?((GRP[a.id]||'Z')+a.j).localeCompare((GRP[b.id]||'Z')+b.j):a.o-b.o;});}
+function cle(p){return $('#car').value+'|'+p.id;}
+function dessine(){var G=$('#grille');G.innerHTML='';var cur=null;liste().forEach(function(p){
+  if(filtre==='doub'&&GRP[p.id]!==cur){cur=GRP[p.id];var h=document.createElement('div');h.style.cssText='grid-column:1/-1;background:#222;color:#fff;padding:3px 10px;margin-top:6px';h.textContent='Groupe '+cur;G.appendChild(h);}
+  var d=document.createElement('div');d.className='c'+(sel.indexOf(p.id)>=0?' sel':'')+(avis[p.id]==='k'?' garde':'')+(avis[p.id]==='v'?' vire':'');d.dataset.id=p.id;
+  d.innerHTML='<div class="im" id="im-'+p.id+'">'+(cache[cle(p)]?'<img src="'+cache[cle(p)]+'">':'…')+'</div><span class="n">'+p.j+'</span>'+(GRP[p.id]?'<span class="g">'+GRP[p.id]+'</span>':'')+'<div class="t"><b>'+p.id+'</b> '+(p.n||'')+'<br><i>'+(p.r||'')+(p.sec?' · secrète':'')+(p.mot?' · motif':'')+(p.grad?' · dégradé':'')+(p.eur?' · '+p.eur:'')+'</i></div>';
+  d.onclick=function(e){if(e.shiftKey||e.metaKey){var k=sel.indexOf(p.id);k>=0?sel.splice(k,1):sel.push(p.id);dessine();}else ouvre(p.id);};G.appendChild(d);});
+  file=liste().filter(function(p){return !cache[cle(p)];});pompe();}
+function pompe(){if(busy||!gw)return;var p=file.shift();if(!p){$('#etat').textContent=L.length+' peintures · '+Object.keys(cache).length+' photos';return;}busy=true;var k=cle(p),car=+$('#car').value;
+  $('#etat').textContent='photo '+p.id+'… ('+file.length+' à faire)';
+  try{gw.dbgHab('peinture',p.id);}catch(e){}
+  setTimeout(function(){var u=null;try{u=gw.dbgPhotoCar(car);}catch(e){}
+    if(typeof u==='string'&&u.indexOf('data:')===0){cache[k]=u;var el=document.getElementById('im-'+p.id);if(el&&k===cle(p))el.innerHTML='<img src="'+u+'">';}
+    busy=false;if(gros>=0)montreGros();pompe();},350);}
+function ouvre(id){var l=liste();gros=l.map(function(p){return p.id;}).indexOf(id);montreGros();}
+function montreGros(ids){var l=liste();var ids2=ids||[l[gros]&&l[gros].id];$('#gros').classList.add('on');var R=$('#gros .rang');R.innerHTML='';
+  ids2.forEach(function(id){var p=L.filter(function(x){return x.id===id;})[0];if(!p)return;var f=document.createElement('figure');f.innerHTML=(cache[cle(p)]?'<img src="'+cache[cle(p)]+'">':'<div style="height:300px;color:#fff">photo en cours…</div>')+'<div><b>'+p.j+' '+p.id+'</b> — '+(p.n||'')+' · '+p.r+(p.eur?' · '+p.eur:'')+(GRP[p.id]?' · groupe '+GRP[p.id]:'')+(avis[p.id]?' · '+(avis[p.id]==='k'?'GARDÉE':'VIRÉE'):'')+'</div>';R.appendChild(f);});
+  $('#gros').dataset.cmp=ids?'1':'';}
+function ferme(){$('#gros').classList.remove('on');gros=-1;dessine();}
+function note(v){if(gros<0)return;var id=liste()[gros].id;avis[id]=avis[id]===v?'':v;if(!avis[id])delete avis[id];sauve();montreGros();}
+function aller(d){var l=liste();if(!l.length)return;gros=(gros+d+l.length)%l.length;montreGros();}
+$('#gx').onclick=ferme;$('#gprev').onclick=function(){aller(-1);};$('#gnext').onclick=function(){aller(1);};$('#gk').onclick=function(){note('k');};$('#gv').onclick=function(){note('v');};
+$('#cmp').onclick=function(){if(sel.length<2){alert('Maj-clic (ou ⌘-clic) sur 2 peintures ou plus, puis Comparer.');return;}gros=-1;montreGros(sel);};
+$('#refaire').onclick=function(){liste().forEach(function(p){delete cache[cle(p)];});dessine();};
+$('#gre').onclick=function(){if(gros<0)return;var p=liste()[gros];delete cache[cle(p)];file.unshift(p);montreGros();pompe();};
+$('#effsel').onclick=function(){sel=[];dessine();};
+$('#taille').oninput=function(){document.body.style.setProperty('--w',this.value+'px');};
+$('#exp').onclick=function(){var k=[],v=[];Object.keys(avis).forEach(function(i){(avis[i]==='k'?k:v).push(i);});var t='GARDER: '+k.join(', ')+'\nVIRER: '+v.join(', ');try{navigator.clipboard.writeText(t);}catch(e){}prompt('Ton tri (déjà copié) :',t);};
+document.addEventListener('keydown',function(e){if(!$('#gros').classList.contains('on'))return;if(e.key==='Escape')ferme();else if(e.key==='ArrowRight')aller(1);else if(e.key==='ArrowLeft')aller(-1);else if(e.key==='r'||e.key==='R')$('#gre').click();else if(e.key==='k'||e.key==='K')note('k');else if(e.key==='v'||e.key==='V')note('v');});
+$('#car').onchange=function(){file=[];dessine();};
+FIL.forEach(function(f){var b=document.createElement('button');b.textContent=f[1];b.dataset.f=f[0];if(f[0]===filtre)b.className='on';b.onclick=function(){filtre=f[0];[].forEach.call(document.querySelectorAll('#filtres button'),function(x){x.className=x.dataset.f===filtre?'on':'';});dessine();};$('#filtres').appendChild(b);});
+cadre.src='index.html?colonne=0&garde=1';
+var t0=Date.now(),att=setInterval(function(){var w=cadre.contentWindow;try{if(w&&w.__gameReady&&w.dbgPeintures&&w.dbgPhotoCar){clearInterval(att);gw=w;w.PAL_REVELE=true;
+  L=w.dbgPeintures();cars=w.dbgPeintures('voitures');var S=$('#car');cars.forEach(function(c){if(c.retire)return;var o=document.createElement('option');o.value=c.i;o.textContent=c.i+' · '+c.n;S.appendChild(o);});
+  dessine();}}catch(e){}
+  if(Date.now()-t0>180000){clearInterval(att);$('#etat').textContent='le jeu ne répond pas (ouvre la page depuis un serveur, pas en file://)';}},500);
+</script></body></html>

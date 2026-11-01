@@ -131,7 +131,7 @@ function pcubeDest(){ if(!PCUBE.grp)return;
   if(!k)return;
   let t=PCUBE.img[k];
   if(!t){t=PCUBE.img[k]=new THREE.Texture();t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.anisotropy=4;
-    const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;t.pret=true;if(PCUBE.cle===k){PCUBE.mU.uTex.value=t;PCUBE.mU.uHas.value=1;}};
+    const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;t.pret=true;try{renderer.initTexture(t);}catch(e){} /* (2026-11-01) montée au GPU à l'arrivée (16 ms ×4), pas dans l'image où le portail paraît */if(PCUBE.cle===k){PCUBE.mU.uTex.value=t;PCUBE.mU.uHas.value=1;}};
     im.onerror=function(){t.rate=true;};im.src='assets/portail/'+k+'.webp';
     const cles=Object.keys(PCUBE.img);if(cles.length>4){const v=cles[0];if(v!==k){try{PCUBE.img[v].dispose();}catch(e){}delete PCUBE.img[v];}}} // on n'en garde que quelques-unes
   if(t.pret){PCUBE.mU.uTex.value=t;PCUBE.mU.uHas.value=1;}}

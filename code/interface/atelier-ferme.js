@@ -613,7 +613,11 @@ const SHOP_LBL={voiture:'CAISSE',peinture:'PEINTURE',aile:'AILES',trainee:'TRAÎ
 function homeCielPrise(now){
   const ciel=(garageOn&&!!gEl&&gEl.classList.contains('menu'))||(!garageOn&&((!started||gameOver)||MENUV.retour)); // l'ACCUEIL : le garage en mode « menu » (le ciel), ou l'ancien menu hors garage
   if(!ciel||(typeof stallOn!=='undefined'&&stallOn))return;
-  if(now-(homeCielPrise._t||0)<3000)return; // toutes les 3 s : le ciel change lentement, et relire l'image WebGL coûte un peu sur iPhone
+  if(now-(homeCielPrise._t||0)<(homeCielPrise._cv?20000:3000))return; // toutes les 3 s : le ciel change lentement, et relire l'image WebGL coûte un peu sur iPhone
+  /* (2026-11-01, Léo : « règle ce qui reste ») UNE PRISE TOUTES LES 20 s, ET PAS PENDANT LA CHAUFFE. MESURÉ (banc iPhone ×4) : chaque prise relit l'image WebGL
+     (drawImage de la toile du jeu : la puce doit finir son travail avant) — 220 à 590 ms ×4, un à-coup du menu toutes les 3 s. Le ciel suit l'horloge :
+     il change en minutes. La 1re prise attend la fin de la chauffe du menu (CHAUFFE_R.fait), les suivantes toutes les 20 s. */
+  if(!homeCielPrise._cv&&!CHAUFFE_R.fait)return;
   homeCielPrise._t=now; // (2026-10-12, passe qualité) cette pose était collée DERRIÈRE le « // » : la relecture GPU→CPU tournait à CHAQUE image au menu
   let cv=homeCielPrise._cv;
   if(!cv){const b=document.getElementById('gHomeBas');if(!b)return;cv=homeCielPrise._cv=document.createElement('canvas');cv.className='gHomeCielCv';cv.width=160;cv.height=210;cv.setAttribute('aria-hidden','true');b.insertBefore(cv,b.firstChild);}
@@ -732,7 +736,7 @@ function illuFig(id,c,av,cl){const I=ILLU_FIG[id]||['fg_rond',0,'voiture','fgSal
    Une direction sans figure : la case dit VIDE (son geste, en vol, ne fait rien). */
 var GFS={arme:-1,flash:-1,k:''};
 function gFigNitroSvg(){if(gFigNitroSvg._s)return gFigNitroSvg._s;
-  const G=NX3_G,P=NX3_PAL.or,w=G[0].length,h=G.length,on=function(x,y){return y>=0&&y<h&&x>=0&&x<w&&G[y][x]==='#';},
+  const G=NX3.flame?nxfRows():NX3_G,P=NX3.flame?NX3_PAL.f1:NX3_PAL.or,w=G[0].length,h=G.length,on=function(x,y){return y>=0&&y<h&&x>=0&&x<w&&G[y][x]==='#';},
     ep=function(x,y){return !on(x,y)&&(on(x,y-1)||on(x,y-2));},plein=function(x,y){return on(x,y)||ep(x,y);},cs=function(x,y){return 'M'+(x+1)+' '+(y+1)+'h1v1h-1z';};
   let O='',E='',F='',B='';
   for(let y=-1;y<=h+2;y++)for(let x=-1;x<=w;x++){
