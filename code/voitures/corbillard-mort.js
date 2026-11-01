@@ -10,23 +10,22 @@ window.dbgCorbillard=function(ancien){CORBILLARD_MORT=!ancien;return CORBILLARD_
 {const ancien=SHAPES.d_corbillard;
 SHAPES.d_corbillard=function(K){
   if(!CORBILLARD_MORT)return ancien(K);
-  const U=LPU,R=.40,ZF=1.76,ZR=-1.98,ZC=2.25;                                 /* ZC : où finit le cercueil et commence le crâne */
+  const U=LPU,R=.40,ZF=1.76,ZR=-1.98,ZC=2.38;                                 /* ZC : où finit le cercueil et commence le crâne */
   const P=K.kit({p:{g:'p',c:0x0d0d10},k:{g:'m',c:0x141518},K:{g:'g',c:0x050507},V:{g:'g',c:0x030304},g:{g:'g',c:0x16202a},
-    b:{g:'s',c:0xe6dcc4,f:0},B:{g:'s',c:0xb8ab8c,f:0},A:{g:'c',c:0xc9a45a},
+    b:{g:'s',c:0xbfae88,f:0},B:{g:'s',c:0x6e6048,f:0},N:{g:'m',c:0x0a0806,f:0},A:{g:'c',c:0xc9a45a},
     W:{g:'l',c:0xe8f4ff},L:{g:'l',c:0xff1f2e},Q:{g:'l',c:0xffffff}});   /* Q : la place de la plaque (plqDessinee) */                               /* b : l'os, B : l'os dans l'ombre (sutures, dents du fond), A : le laiton du cercueil */
   const AR=[[0,2*R+.06],[R*.70,2*R+.02],[R+.06,R*1.18],[R+.18,.40]];
-  const zs=[-2.95,-2.85,-2.60,-.30,.10,1.00,ZC-.04,ZC,2.45,2.62,2.80,2.90,2.95];
+  const zs=[-2.95,-2.85,-2.60,-.30,.10,1.00,ZC-.04,ZC];
   for(const w of [ZF,ZR])for(const d of [R*.70,R+.06,R+.18])zs.push(w-d,w+d);
   zs.sort((a,b)=>a-b);
-  const xW=z=>U.lin([[-2.95,.74],[-2.85,.80],[.90,1.00],[1.10,1.00],[2.62,.88],[2.80,.82],[2.90,.74],[2.95,.70]],z),        /* l'hexagone du cercueil */
-        yC=z=>U.lin([[-2.95,1.20],[-2.85,1.34],[-2.60,1.42],[.10,1.44],[1.00,1.16],[ZC,1.12],[2.45,1.20],[2.62,1.22],[2.80,1.17],[2.90,1.06],[2.95,.98]],z);   /* le crâne bombe au-dessus du capot */
+  const xW=z=>U.lin([[-2.95,.74],[-2.85,.80],[.90,1.00],[1.10,1.00],[ZC,.92]],z),        /* l'hexagone du cercueil */
+        yC=z=>U.lin([[-2.95,1.20],[-2.85,1.34],[-2.60,1.42],[.10,1.44],[1.00,1.16],[ZC,1.12]],z);   /* le crâne bombe au-dessus du capot */
   P.loft(zs,z=>{
-    const yb=U.arch(z,[ZF,ZR],AR,z>2.40?.22:.32),xw=xW(z),c=yC(z),cr=z>ZC;   /* devant les roues, la MÂCHOIRE descend ; le crâne s'arrondit (pans plus coupés) */
+    const yb=U.arch(z,[ZF,ZR],AR,.32),xw=xW(z),c=yC(z),cr=false;   /* devant les roues, la MÂCHOIRE descend ; le crâne s'arrondit (pans plus coupés) */
     return [[0,yb],[xw-.06,yb],[xw,Math.max(yb+.06,.42)],[xw,Math.max(yb+.10,.98)],[xw+.035,Math.max(yb+.11,1.00)],[xw+.035,1.06],[xw-.01,1.07],
             [xw*(cr?.80:.86),Math.max(1.08,c-(cr?.10:.06))],[xw*(cr?.52:.70),c],[0,c+.01]];
   },(j,z)=>{
     if(j===0)return 'k';
-    if(z>ZC||j===-1)return 'b';                                                 /* la tête : tout en os */
     if(j===4)return 'A';                                                        /* le jonc de laiton du couvercle */
     if((j===7||j===8)&&z>.10&&z<1.00)return 'g';                               /* le pare-brise */
     if(j===6&&z>-.15&&z<.95)return 'g';                                         /* la vitre de portière */
@@ -38,20 +37,44 @@ SHAPES.d_corbillard=function(K){
     P.put(k,g,(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2);};
   const rotule=(k,r,x,y,z)=>P.put(k,new THREE.IcosahedronGeometry(r,0),x,y,z); /* une tête d'os, à facettes */
   const os=(a,b,t,r)=>{barre('b',a,b,t);for(const p of [a,b])for(const s of [-1,1])rotule('b',r,p[0],p[1]+s*r*.55,p[2]);}; /* un os long : le fût et ses deux têtes doubles */
-  /* LE CRÂNE : la face, à z = 2.95 */
-  const zF=2.952;
-  P.sym(sd=>{
-    P.plate('K',[[sd*.10,.84],[sd*.30,.90],[sd*.52,.85],[sd*.58,.72],[sd*.48,.58],[sd*.24,.58],[sd*.10,.70]],.012,zF);  /* l'orbite */
-    P.cyl('W',.04,.02,6,sd*.34,.73,zF+.012,'z');                        /* l'œil qui brille au fond */
-    P.box('b',.48,.07,.10,sd*.34,.93,2.92,0,0,sd*.18);                                                                 /* l'arcade qui fronce */
-    P.box('B',.14,.10,.10,sd*.62,.50,2.90,0,0,sd*.5);                                                                    /* la pommette */
-  });
-  P.plate('K',[[0,.56],[.09,.41],[.035,.38],[0,.40],[-.035,.38],[-.09,.41]],.012,zF);                                  /* la cavité du nez */
-  P.box('K',.90,.13,.012,0,.30,zF+.004);                                                                             /* la bouche : le noir entre les dents */
-  for(let r=0;r<2;r++)for(let i=0;i<9;i++){const x=(i/8-.5)*.80,h=.055-Math.abs(i/8-.5)*.02;P.box(Math.abs(x)>.30?'B':'b',.075,h,.04,x,r?.30-.004-h/2:.30+.004+h/2,zF+.02);} /* les dents */
-  P.box('B',.012,.30,.012,0,1.02,2.60,-.35,0,0);P.box('B',.012,.012,.40,.18,1.10,2.55,0,.4,0);P.box('B',.012,.012,.32,-.20,1.10,2.45,0,-.3,0); /* les sutures du crâne */
-  /* LES FÉMURS en pare-chocs */
-  os([-.90,.19,3.04],[.90,.19,3.04],.07,.075);
+  /* LE CRÂNE v2 (2026-11-01, Léo : « le crâne ça va pas comparé au reste, refonte ») : un VOLUME sculpté, plus un dessin sur une boîte.
+     Une coque à facettes posée sur la tête du cercueil (z = ZC) : un champ de relief sur une grille (s, y) où la silhouette (wY) fait
+     le crâne de face — voûte ronde, tempes, pommettes larges, mâchoire étroite — et la profondeur (dY) son profil — front, arcades, face, menton.
+     Les orbites, le nez et la bouche sont CREUSÉS dans la coque (vrais creux, os sombre au bord, noir au fond) ; les dents s'y posent. */
+  const ZB=1.90;                                                                                       /* le plan du dos du crâne : la voûte recouvre le bout du capot */
+  const wY=y=>U.lin([[.16,.30],[.24,.42],[.36,.50],[.48,.62],[.54,.74],[.66,.72],[.79,.74],[.97,.80],[1.12,.82],[1.28,.76],[1.40,.62],[1.50,.38],[1.55,.04]],y),
+        dY=y=>U.lin([[.16,.55],[.24,.92],[.36,1.00],[.48,1.02],[.56,1.05],[.70,.98],[.88,1.00],[1.05,1.05],[1.15,.98],[1.28,.86],[1.40,.64],[1.50,.36],[1.55,0]],y);
+  /* une grille LARGE (les grosses facettes du jeu) dont les lignes tombent sur les bords des orbites, du nez et de la bouche :
+     on creuse en enfonçant les sommets intérieurs — orbites et nez taillés à facettes, nets */
+  const XS=[-.80,-.70,-.62,-.52,-.42,-.32,-.22,-.12,-.05,0,.05,.12,.22,.32,.42,.52,.62,.70,.80],
+        YS=[.16,.24,.30,.36,.42,.48,.54,.62,.70,.79,.88,.97,1.05,1.12,1.20,1.28,1.36,1.44,1.50,1.55];
+  const dans=(v,a,b)=>v>a-1e-6&&v<b+1e-6,ds=(v,a,b)=>v>a+1e-6&&v<b-1e-6;
+  const creux=(x,y)=>{const ax=Math.abs(x);let d=0;
+    if(ds(ax,.12,.52)&&ds(y,.70,1.05))d+=ax===.32&&y===.88?.26:.18;                                 /* l'orbite */
+    if((x===0&&y===.62)||(ax===.05&&y===.62))d+=x===0?.15:.10;                                      /* le nez */
+    if(ax<.42-1e-6&&y===.42)d+=.08;                                                                 /* la bouche */
+    if(dans(ax,.12,.52)&&(y===1.05||y===1.12))d-=.05;                                               /* l'arcade avance au-dessus de l'orbite */
+    if(ax===.62&&(y===.54||y===.62))d-=.06;                                                         /* la pommette */
+    if(ax===.70&&dans(y,.88,1.05))d+=.05;                                                           /* la tempe */
+    return d;};
+  const relief=(x,y)=>Math.max(0,dY(y)*Math.pow(Math.max(0,1-(x/.80)**2),.42)-creux(x,y));
+  const cle=(x0,x1,y0,y1)=>{const ax=Math.min(Math.abs(x0),Math.abs(x1)),bx=Math.max(Math.abs(x0),Math.abs(x1));
+    if(dans(ax,.12,.52)&&dans(bx,.12,.52)&&dans(y0,.70,1.05)&&dans(y1,.70,1.05)){
+      const coin=(ax<.13||bx>.51)&&(y0<.71||y1>1.04);return coin?'B':'N';}                          /* l'orbite : noire, ses coins coupés en os d'ombre */
+    if((dans(y0,.62,.70)&&dans(y1,.62,.70)&&bx<.13)||(dans(y0,.54,.62)&&dans(y1,.54,.62)&&bx<.06))return 'N';  /* le nez en cœur renversé */
+    if(bx<.43&&dans(y0,.36,.48)&&dans(y1,.36,.48))return 'N';                                        /* la bouche */
+    return bx>.69?'B':'b';};
+  {const pt=(x,y)=>[x*wY(y)/.80,y,ZB+relief(x,y)];
+   for(let r=0;r<YS.length-1;r++)for(let i=0;i<XS.length-1;i++){const y0=YS[r],y1=YS[r+1],x0=XS[i],x1=XS[i+1];
+     const a=pt(x0,y0),b=pt(x1,y0),c=pt(x1,y1),d=pt(x0,y1),k=cle(x0,x1,y0,y1);P.tri(k,a,b,c);P.tri(k,a,c,d);}
+   for(let i=0;i<XS.length-1;i++){const a=pt(XS[i],YS[0]),b=pt(XS[i+1],YS[0]),A2=[a[0],a[1],ZB],B2=[b[0],b[1],ZB];P.tri('B',a,A2,B2);P.tri('B',a,B2,b);}  /* le dessous du menton */
+   const tour=[];for(const y of YS)tour.push([wY(y),y]);for(let r=YS.length-1;r>=0;r--)tour.push([-wY(YS[r]),YS[r]]);
+   const o=[0,.85,ZB];for(let i=0;i<tour.length-1;i++){const a=tour[i],b=tour[i+1];P.tri('B',o,[b[0],b[1],ZB],[a[0],a[1],ZB]);}}  /* le dos du crâne, fermé */
+  P.sym(sd=>{rotule('W',.05,sd*.32*wY(.88)/.80,.88,ZB+relief(sd*.32,.88)+.03);});                     /* au fond des orbites, les yeux qui brillent (les phares) */
+  for(let r=0;r<2;r++)for(let i=0;i<7;i++){const x=(i/6-.5)*.62,y=r?.39:.45,X=x*wY(y)/.80;            /* les dents, posées dans la bouche creusée */
+    P.box(Math.abs(x)>.22?'B':'b',.075,.05,.07,X,y,ZB+relief(x,.42)+.035);}
+    /* LES OS EN CROIX derrière le crâne : leurs têtes dépassent de chaque côté */
+  for(const s9 of [-1,1]){const a=[s9*-1.04,.22,ZC+.14],b=[s9*1.04,.98,ZC+.14];barre('b',a,b,.075);for(const p9 of [a,b])for(const t of [-1,1])rotule('b',.065,p9[0],p9[1]+t*.045,p9[2]);}
   os([-.78,.30,-3.00],[.78,.30,-3.00],.07,.075);P.box('Q',.52,.13,.01,0,.47,-2.955);   /* la plaque se pose sous les os en croix */
   /* LA COLONNE : du coccyx (la poupe) au crâne, sur le toit, le pare-brise et le capot */
   for(let z=-2.80;z<ZC-.05;z+=.19){const y=yC(z)+.035,pe=z<-2.5?.6:1;
@@ -70,6 +93,6 @@ SHAPES.d_corbillard=function(K){
   });
   for(const s of [-1,1]){const a=[s*-.42,.64,-2.99],b=[s*.42,1.10,-2.99];barre('b',a,b,.065);for(const p of [a,b])for(const t of [-1,1])rotule('b',.055,p[0]+t*.04,p[1],p[2]);} /* les DEUX OS EN CROIX, aux pieds du cercueil */
   K.commit(P);
-  return {hl:[.34,.73,2.96],tl:[.64,.80,-2.97],wx:.86,wzF:ZF,wzR:-ZR,
+  return {hl:[.30,.88,2.70],tl:[.64,.80,-2.97],wx:.86,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.27,style:'enjoliveur',jante:0xe6dcc4}};
 };}
