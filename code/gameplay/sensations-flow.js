@@ -30,7 +30,7 @@ function sensGlisse(on){
   if(on&&!SENS_GL.on){ // L'ACCROCHE : l'arrière part — la caisse se jette sur ses roues extérieures, le nez pique, elle se tasse ; un tic dans le pouce
     if(performance.now()-SENS_GL.ta>260){
       if(!REDUCED_MOTION)sensCoup(-Math.sign(steer)*1.3,.8,-.45); // même sens que le roulis de virage (carRoll9 du côté de `steer`) : ≈ 3° de plus, ≈ 2° de nez, ≈ 2 cm
-      sensHap(8,1);}
+      if(DRIFT2)sensHap(16,2);else sensHap(8,1);} /* (2026-11-01, DRIFT2) l'entrée est un CLAC franc (classe moyenne) : le pouce sent que le geste a pris */
   }
   /* LE PALIER SE PREND DANS LES RESSORTS : bleu, or, rose — le son monte et le pouce tique déjà (driftTick), mais la caisse ne bronchait pas.
      À chaque palier elle se TASSE d'un coup sec (≈ 1,5 cm bleu → 3 cm ULTRA) et verse un rien de plus sur l'extérieur : la charge PÈSE.
@@ -101,13 +101,22 @@ function sensCaisse(){
   else{const pe9=Math.min(1,dB9/hw9);if(pe9>SENS_CA.pk)SENS_CA.pk=pe9;} // dehors : on retient jusqu'où
 }
 SENS_CA.o=false;SENS_CA.pk=0;SENS_CA.tl=0; // (la lèvre) roues dehors · le plus loin qu'elles sont allées (0 → 1 = le centre de gravité au bord) · l'heure du dernier tic
+/* ===== LE DRIFT SE COMPREND (2026-11-01, Léo : « fais une revue et retouche le geste et l'effet drift quand on tourne d'un coup, pour bien faire comprendre comment le joystick agit sur la voiture ») =====
+   Trois lots, tous derrière DRIFT2 (`?drift=ancien` rend l'avant au pixel près) :
+   · LE STICK le dit (mobile-tactile.js, TCTL.drift / TCTL.turbo) : DRIFT écrit sous la glissière au sol, un cran au seuil du geste, la bille
+     prend la couleur de la charge (bleu → or → rose) avec un anneau qui se remplit, un flash au turbo ;
+   · LA CAISSE le montre (boucles 2 et 3) : un virage sec sans le geste ne chasse plus que de ~11° (18° avant : on croyait drifter), le drift
+     entre d'un COUP DE REINS (ressort qui dépasse puis se pose) et va un peu plus en travers (27°), la caméra suit la trajectoire et non le nez ;
+   · LE POUCE le sent (ici) : un clac à l'entrée, un tic qui grossit à chaque palier, un turbo qui pèse selon son niveau. */
+var DRIFT2=!/[?&]drift=ancien/.test(location.search);const DRIFT_CD=new THREE.Vector3(); /* la visée de la caméra en drift (boucle 3) */
+const DRIFT_HAP={lv:[0,9,[10,24,12],[14,30,14,30,18]],tu:[0,[10,24,14],[14,26,22],[20,30,30,30,24]]}; /* palier 1/2/3 · turbo MINI/SUPER/ULTRA */
 function driftTick(dt,on){
   if(SENS)try{sensGlisse(!!on);}catch(e){} // (2026-10-14, sensations) AVANT le traitement : au relâché, `driftLv` porte encore le niveau atteint
   driftCd=Math.max(0,driftCd-dt); // (2026-09-25) recharge après un mini-turbo : le zigzag de drifts ne se « farme » plus
   if(on&&driftCd<=0){
     driftC+=dt;vA*=Math.max(0,1-.10*dt);
     const lv=driftC>1.4?3:driftC>.9?2:driftC>.45?1:0; // (2026-09-25) .5/1/1,7 → .45/.9/1,4 : le SUPER et l'ULTRA tiennent enfin sur la route
-    if(lv>driftLv){driftLv=lv;try{if(SONV2)sfx('drift.charge',{st:sonPd([0,3,5,7][lv]-3)});else chimeNote([0,noteP(3,1),noteP(5,1),noteP(7,1)][lv],0,.08,.16);}catch(e){}hap(lv===3?[14,30,14]:10);}
+    if(lv>driftLv){driftLv=lv;try{if(SONV2)sfx('drift.charge',{st:sonPd([0,3,5,7][lv]-3)});else chimeNote([0,noteP(3,1),noteP(5,1),noteP(7,1)][lv],0,.08,.16);}catch(e){}hap(DRIFT2?DRIFT_HAP.lv[lv]:lv===3?[14,30,14]:10);}
     driftSpk-=dt;
     if(driftLv>0&&driftSpk<=0){driftSpk=.045;const pool=driftLv===3?sparkPink:driftLv===2?sparkGold:sparkBlue,sp9=CARS[level];
       for(const sd of [-1,1]){DRIFT_V.set(sd*sp9.w*.42,.15,-sp9.l*.38);carGroup.localToWorld(DRIFT_V);sparkBurst(pool,DRIFT_V,2,5);}}
@@ -117,7 +126,7 @@ function driftTick(dt,on){
       boost=Math.max(boost,.35+.3*driftLv);vA+=6*driftLv;nitroGain(.16*driftLv,'drift');shake=Math.max(shake,.14*driftLv);(driftLv>=FLOW2.decl.drift?flowAddDecl:flowAdd)(9*driftLv,'style'); // (loi 20) en ville, ce turbo va déclencher : s'il arme, l'armement se tait
       fovPunch=Math.max(fovPunch,6+6*driftLv);                                   // le champ S'OUVRE d'un coup : on est PROPULSÉ
       if(driftLv===3){slowT=Math.max(slowT,.14);try{flashEl.style.background='#ff5ec8';flashEl.style.opacity=.35;setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},90);}catch(e){}}
-      try{if(SONV2)sfx(['','turbo.mini','turbo.super','turbo.ultra'][driftLv]);else{boostSnd(1+.35*driftLv);if(driftLv>=2)crackle(.45+.2*driftLv);}}catch(e){}hap([12,30,20]);
+      try{if(SONV2)sfx(['','turbo.mini','turbo.super','turbo.ultra'][driftLv]);else{boostSnd(1+.35*driftLv);if(driftLv>=2)crackle(.45+.2*driftLv);}}catch(e){}hap(DRIFT2?DRIFT_HAP.tu[driftLv]:[12,30,20]);if(DRIFT2&&TCTL.turbo)try{TCTL.turbo(driftLv);}catch(e){}
       try{chaineAuraMuette(['','MINI-TURBO','SUPER TURBO','ULTRA TURBO'][driftLv],[0,50,100,180][driftLv],'drift',false,SONV2);}catch(e){} // (2026-09-29, Sacha) le turbo se SENT (champ, son, flammes) : il ne s'écrit plus
       if(driftLv>=FLOW2.decl.drift&&FREN.arme&&FLOW.lv<4)frenDeclenche(); // (loi 20 de FLOW2) en VILLE, relâcher un SUPER/ULTRA TURBO fait partir la frénésie armée
     }

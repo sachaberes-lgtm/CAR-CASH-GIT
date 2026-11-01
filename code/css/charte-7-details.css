@@ -512,6 +512,42 @@ html body.touch.play #tNitro::before{display:block!important;content:'';position
 html body.touch.play #tNitro:active::before,html body.touch.play #tNitro.on::before{box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),inset 0 -10px 18px color-mix(in srgb,var(--nc,#ff9a3c) 40%,transparent),0 0 28px color-mix(in srgb,var(--nc,#ff9a3c) 60%,transparent),0 6px 20px rgba(0,0,0,.2)!important}
 html body.touch.play #tNitro.plein:not(.on)::before{animation:nxVerrePret 1.6s ease-in-out infinite}
 @keyframes nxVerrePret{50%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.7),0 0 20px color-mix(in srgb,var(--nc,#ff9a3c) 45%,transparent),0 6px 20px rgba(0,0,0,.2)}}
+
+/* ===== LE STICK DIT LE DRIFT (2026-11-01, Léo : « bien faire comprendre comment le joystick agit sur la voiture ») =====
+   Au sol (classes posées par TCTL.drift) : DRIFT sous la glissière + une ligne pointillée à la profondeur du geste (--dc) ; les deux s'allument
+   à mesure qu'on tire (--dp). Trop lent : presque éteints. Braquage fort sans tirer : DRIFT pulse vers le bas (l'invitation). En drift, la couleur
+   du palier (--dcol : blanc, bleu, or, rose — celles des étincelles) passe dans la bille, le trait de braquage, la ligne et l'anneau de charge (--dk).
+   Au relâché, l'anneau part en onde de la couleur du turbo (dTu1-3). `?drift=ancien` : rien de tout ça. */
+html body #tStick .skC{display:none;position:absolute;left:50%;top:calc(50% + var(--dc,34.9px));width:132px;height:0;margin-left:-66px;pointer-events:none;
+  border-top:1.5px dashed rgba(255,255,255,.5);opacity:calc(.3 + .7*var(--dp,0))}
+html body #tStick.dSol .skC{display:block}
+html body #tStick.dSol .skD{color:#fff;opacity:calc(.4 + .6*var(--dp,0));text-shadow:0 0 8px rgba(255,255,255,.55)}
+html body #tStick.dSol .skD:empty{opacity:0}
+html body #tStick.dLent .skC{opacity:.1}
+html body #tStick.dLent .skD{opacity:.14}
+html body #tStick.dInv .skD{animation:dInvite .55s ease-in-out infinite alternate}
+@keyframes dInvite{from{opacity:.45;transform:translate(-50%,0)}to{opacity:1;transform:translate(-50%,6px)}}
+html body #tStick.dl0{--dcol:255,255,255}
+html body #tStick.dl1{--dcol:79,195,255}
+html body #tStick.dl2{--dcol:255,201,64}
+html body #tStick.dl3{--dcol:255,95,210}
+html body #tStick.dOn .skC{border-top-color:rgba(var(--dcol),.95);opacity:1}
+html body #tStick.dOn .skD{color:rgb(var(--dcol));opacity:1;text-shadow:0 0 10px rgba(var(--dcol),.85)}
+html body #tStick.dOn #tKnob{box-shadow:inset 0 0 0 1.5px rgba(var(--dcol),.95),inset 0 -8px 14px rgba(var(--dcol),.25),0 0 26px rgba(var(--dcol),.6),0 6px 18px rgba(0,0,0,.18)}
+html body #tStick.dOn::before{background:linear-gradient(90deg,rgba(var(--dcol),.05),rgba(var(--dcol),.95))}
+html body #tStick.dOn::after{background:linear-gradient(90deg,rgba(var(--dcol),.95),rgba(var(--dcol),.05))}
+html body #tKnob .skR{position:absolute;inset:-7px;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:conic-gradient(rgb(var(--dcol,255,255,255)) calc(var(--dk,0)*360deg),rgba(255,255,255,.14) 0);
+  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 4px),#000 calc(100% - 3.5px));mask:radial-gradient(closest-side,transparent calc(100% - 4px),#000 calc(100% - 3.5px))}
+html body #tStick.dOn #tKnob .skR{opacity:1}
+html body #tStick.dTu1{--tcol:79,195,255}
+html body #tStick.dTu2{--tcol:255,201,64}
+html body #tStick.dTu3{--tcol:255,95,210}
+html body #tStick.dTu1 #tKnob .skR,html body #tStick.dTu2 #tKnob .skR,html body #tStick.dTu3 #tKnob .skR{background:rgb(var(--tcol));animation:dTurbo .5s ease-out forwards}
+html body #tStick.dTu1 #tKnob,html body #tStick.dTu2 #tKnob,html body #tStick.dTu3 #tKnob{box-shadow:inset 0 0 0 1.5px rgba(var(--tcol),.95),0 0 36px rgba(var(--tcol),.85),0 6px 18px rgba(0,0,0,.18)}
+@keyframes dTurbo{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2)}}
+@media (prefers-reduced-motion:reduce){html body #tStick.dInv .skD{animation:none;opacity:1}}
+
 /* ===== LES ICÔNES DU BOUTON BOOST (2026-11-01, Léo : « change l'éclair par un truc intelligent ou stylé, genre une bouteille nitro, on peut tester plusieurs trucs ») =====
    ?boost=bouteille | chevrons | flamme | anneau (rien = l'éclair en pixels, comme avant). Chaque icône est un SVG en verre qui LIT la réserve : --nr (nitro) et --nx (réserve bleue)
    sont déjà posées sur #tNitro par la boucle ; la couleur de la poussée est --nc (orange, bleu en réserve, violet en infinie). Appuyé (.on) : l'icône s'enfonce et s'embrase. */
@@ -542,4 +578,8 @@ html body.bv #tNitro.plein:not(.on) .bv-chevrons .c2{animation-delay:.12s}html b
 .bvIco.bv-anneau .d1{opacity:.95}.bvIco.bv-anneau .d2{opacity:.55}
 html body.bv #tNitro.bas:not(.on) .bvIco{animation:bvSec .6s steps(2) infinite}
 @keyframes bvSec{50%{filter:drop-shadow(0 0 8px #ff5a6e)}}
+/* L'ICÔNE EN HAUT (la barre de boost) et les gains qui volent vers elle : la flamme pixel à la place de l'éclair, en trois bandes comme l'éclair (clair, plein, ombre) */
+html body.bvF.touch #nitroBar::before{background:linear-gradient(180deg,#fff3c4 0 24%,#ffb81f 24% 58%,#ff6a0e 58%);-webkit-mask:var(--pxi-flamme) center/100% 100% no-repeat;mask:var(--pxi-flamme) center/100% 100% no-repeat}
+html body.bvF #ajVols b.n>i{background:linear-gradient(180deg,#fff3c4 0 24%,#ffb81f 24% 58%,#ff6a0e 58%);-webkit-mask:var(--pxi-flamme) center/100% 100% no-repeat;mask:var(--pxi-flamme) center/100% 100% no-repeat}
+html body.bvF #ajVols b.n.x>i{background:linear-gradient(180deg,#eef2ff 0 24%,#8fa4ff 24% 58%,#4a68f0 58%)}
 </style>
