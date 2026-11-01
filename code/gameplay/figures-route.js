@@ -28,23 +28,24 @@ function frHaut(f){let H=FR_K.hMin; // le sommet du bond : ce qu'il faut à la f
     for(let k=1;k<=16;k++){FR.dq.setFromAxisAngle(FR.dv2,amp*k/16);H=Math.max(H,frDegage(FR.dq,0)+FR_K.marge);}}
   return Math.min(FR_K.hMax,H);}
 function frDuree(f){return Math.min(FR_K.dMax,Math.max(FR_K.dMin,figDMin(f,true),f.D*FR_K.k));}
-function frLance(){ // le double-tap au sol : la figure de la direction tenue, SUR LA ROUTE — true lancée · false refusée · null rien dans cette direction (le saut nitro)
+function frLance(fo){ // le double-tap au sol : la figure de la direction tenue, SUR LA ROUTE — true lancée · false refusée · null rien dans cette direction (le saut nitro) — fo {f,sens} : la figure imposée (le SALTO du glissé ↓, voir figGJoue)
   if(!FR.ok||!FIGV2.on||!FR.C||!window.FIG||mode!=='drive')return null;
-  const S=figSlots();let s=FDIR.on?figDirSlot():FX2.cyc;
+  let s=-1,f=fo&&fo.f;
+  if(!f){const S=figSlots();s=FDIR.on?figDirSlot():FX2.cyc;
   if(!S[s]){if(FDIR.on&&!TUTO.on)return null;for(let k=1;k<FIG_NB&&!S[s];k++)if(S[(s+k)%FIG_NB])s=(s+k)%FIG_NB;if(!S[s])return null;} // (comme le saut) l'auto-école et ?figdir=0 prennent un emplacement qui existe
-  let f=FIG.par[S[s]];if(f&&FIG.oriente&&s<2)f=FIG.oriente(f,FIG_DIR[s]);if(!f)return null;
+  f=FIG.par[S[s]];if(f&&FIG.oriente&&s<2)f=FIG.oriente(f,FIG_DIR[s]);if(!f)return null;}
   if(FR.on||GSOL.k||DMT.act||performance.now()-VEQ.sautT<VEQ_K.sautCd*1000)return false; // une à la fois ; pas pendant un geste du GLISSER ni le demi-tour ; l'attente du saut
   const libre=pwrNitroT>0||PARK.on||startBoostT>0||TUTO.on,cout=libre?0:NITRO2.figN.cout*nitroCap();
   if(!libre&&nitroR+nitroX<cout){figRefus(s);return false;}
   if(cout>0)figNitPaye(cout);
   let ax=0;for(let i=0;i<f.m.length;i++){const m=f.m[i];if(!(m.a[0]!==0&&m.a[1]===0&&m.a[2]===0)){ax=Math.abs(m.a[2])>Math.abs(m.a[1])?2:1;break;}}
-  const st9=FDIR.on&&Math.abs(FDIR.x)>=.3?FDIR.x:steer,sens=Math.abs(st9)>.25?(ax===2?(st9>0?-1:1):(st9>0?1:-1))*(f.piv?-1:1):(FX2.sensAlt=-FX2.sensAlt); // (comme figLance) elle part du côté du pouce
+  const st9=FDIR.on&&Math.abs(FDIR.x)>=.3?FDIR.x:steer,sens=fo&&fo.sens!=null?fo.sens:Math.abs(st9)>.25?(ax===2?(st9>0?-1:1):(st9>0?1:-1))*(f.piv?-1:1):(FX2.sensAlt=-FX2.sensAlt); // (comme figLance) elle part du côté du pouce
   const D=frDuree(f),C=FR.C;
   FX2.pts=0;FX2.nPay=0;if(FX2.cv.cle!=='fin')figCvRaz();else{FX2.cv.n=0;FX2.cv.dist=0;FX2.cv.ids={};FX2.cv.noms.length=0;}FX2.trio=[];FX2.nitF=0;FX2.nitL=0; // un « vol » neuf, sur la route (voir figDepart)
   C.vide();C.budget=9;C.poseK=0;const r=C.lance(f,sens,D,{douce:true});if(!r)return false; // douce : comme celle du saut — jamais une chute, pas de trio
-  r.nitN=1;FX2.nitL=1;FX2.n++;VEQ.n++;FR.n++;FX2.cyc=(s+1)%FIG_NB;VEQ.sautT=performance.now();
+  r.nitN=1;FX2.nitL=1;FX2.n++;VEQ.n++;FR.n++;if(s>=0)FX2.cyc=(s+1)%FIG_NB;VEQ.sautT=performance.now();
   {const D9=FIG.dirs?FIG.dirs(f):[];r.flD=f.sens==='avant'||(D9.length===1&&D9[0]==='avant')?'haut':f.sens==='arriere'||(D9.length===1&&D9[0]==='arriere')?'bas':((ax===2||f.piv)?(sens<0?'gauche':'droite'):(sens>0?'gauche':'droite'));} // la flèche du HUD (voir figLance)
-  FR.on=true;FR.t=0;FR.D=D;FR.T=D*1.12+FIG.PHY.retT+.08;FR.H=frHaut(f);FR.s=s;FR.r=r;FR.f=f;FR.pivK=0;FR.lift=0;FR.liftMax=0;FDC.a=frNez()<FDC.arme; /* (2026-10-19) LE DÉCOLLAGE AU MANCHE : le pouce qui a CHOISI la figure (en haut) doit revenir avant de faire décoller */
+  FR.on=true;FR.t=0;FR.D=D;FR.T=D*1.12+FIG.PHY.retT+.08;FR.H=frHaut(f);FR.s=s;FR.r=r;FR.f=f;FR.pivK=0;FR.lift=0;FR.liftMax=0;FDC.a=frNez()<FDC.arme;FDC.sp=!!keys.Space;FDC.bT=0; /* (2026-10-19) LE DÉCOLLAGE AU MANCHE : le pouce qui a CHOISI la figure (en haut) doit revenir avant de faire décoller */
   figCoup(Math.hypot(r.imp[0],r.imp[1],r.imp[2])/10,false);fhLance(s,r,{}); // le coup de la figure (son, main, caméra) ; son nom tombe en grand, dans la couleur de son emplacement
   const p9=carGroup.position,sp9=CARS[level]||CARS[0];for(let k=0;k<14;k++){const a=Math.random()*6.2832; // le souffle contre la route, sous la caisse
     spawnP(k%3?flames:flameCore,p9.x+Math.cos(a)*sp9.w*.5,p9.y+.2,p9.z+Math.sin(a)*sp9.l*.4,FR.vel.x*.8+Math.cos(a)*(3+Math.random()*5),-1-Math.random()*2,FR.vel.z*.8+Math.sin(a)*(3+Math.random()*5),.16+Math.random()*.14);}
@@ -106,19 +107,26 @@ function frVersVol(k){ // (startFall, APRÈS figDepart) le corps de la figure de
      nitro), ni à l'auto-école, ni pendant un rebond (hopY, la pose qui se tasse), ni pendant le demi-tour.
    · Gratuit (la figure a payé ses 20 %) ; la pose rend la nitro d'un SAUT NITRO (`VEQ.sautF`) ; le volant n'est pas verrouillé.
    `?fdecolle=0` = sans. Console : `dbgFDecolle()` (l'état), `dbgFDecolle(v)` = le manche forcé à v (null : rend la main au pouce). */
-const FDC={ok:!/[?&]fdecolle=0\b/.test(location.search),arme:.3,seuil:.55,haut:.2,imp:6,a:false,n:0,force:null,dv:0,lift:0};
+/* MANCHE HAUT PUIS BOOST (2026-11-01, Léo : « si le joueur veut il doit pouvoir, en mettant flèche en l'air (pour les non inversés et vice
+   versa) puis boost, décoller ; sinon le salto est bien haut comme actuellement… et doit laisser la possibilité de décoller si on a du skill »
+   — au questionnaire : « manche haut PUIS boost »). Le manche seul ne fait plus décoller : il faut AUSSI un appui NITRO NEUF pendant le bond
+   (`FDC.bT`, un appui commencé après le lancement : le 2e tap du double-tap, ou le pouce resté sur NITRO après un coup sec, ne comptent pas).
+   Le manche n'a plus à revenir au neutre (`arme`) : c'est le boost qui décide. `?fdecolle=manche` = le manche seul d'avant. */
+const FDC={ok:!/[?&]fdecolle=0\b/.test(location.search),boost:!/[?&]fdecolle=manche\b/.test(location.search),sp:false,bT:0,arme:.3,seuil:.55,haut:.2,imp:6,a:false,n:0,force:null,dv:0,lift:0};
 function frNez(){if(FDC.force!=null)return FDC.force; // le manche du vol lu sur la route : +1 = le nez en HAUT (le cabré), comme pitT/wPitch en vol
   if(TCTL.act||TCTL.incl)return -TCTL.sv*volSens()*volInv(); // (2026-10-27) INCLINAISON : TCTL.sv porte le tangage du téléphone
  return volInv()*((keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.KeyZ||keys.ArrowUp?1:0));}
 function frEnvol(){ // (frTick, chaque image du bond) le manche tiré : la caisse quitte la route — true : elle vole
-  const u=frNez();if(u<FDC.arme){FDC.a=true;return false;}
-  if(!FDC.ok||!FDC.a||u<FDC.seuil||!FR.on||mode!=='drive'||FR.lift<FDC.haut||side<0||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act)return false;
+  const sp=!!keys.Space;if(sp&&!FDC.sp)FDC.bT=performance.now();FDC.sp=sp; // l'appui NITRO neuf
+  const u=frNez();if(u<FDC.arme){FDC.a=true;if(!FDC.boost)return false;}
+  if(FDC.boost?!(sp&&FDC.bT>0):!FDC.a)return false; // (2026-11-01) manche haut PUIS boost
+  if(!FDC.ok||u<FDC.seuil||!FR.on||mode!=='drive'||FR.lift<FDC.haut||side<0||TUTO.on||hopY>0||hopV!==0||POSE_F||DMT.act)return false;
   const x=Math.min(1,FR.t/FR.T),vb=FR.H*4*(1-2*x)/Math.max(.1,FR.T)/SPD; // la vitesse du bond, dans les unités du vol (la position avance de fallVel × SPD)
   FDC.dv=Math.max(FDC.imp,vb);FDC.lift=FR.lift;FDC.a=false;FDC.n++;
   startFall(FDC.dv,1);VEQ.sautF=flightId;VEQ.l0=0; // un décollage VOULU : comme le saut nitro, le volant tenu continue de tourner, la pose rend la nitro d'un saut
   return true;}
 window.dbgFDecolle=function(v){if(v!==undefined)FDC.force=v==null?null:+v;
-  return {ok:FDC.ok,arme:FDC.a,nez:+frNez().toFixed(2),force:FDC.force,decolles:FDC.n,dv:+FDC.dv.toFixed(1),liftDecolle:+FDC.lift.toFixed(2),route:FR.on,lift:+FR.lift.toFixed(2),
+  return {ok:FDC.ok,boost:FDC.boost,appui:FDC.bT>0,arme:FDC.a,nez:+frNez().toFixed(2),force:FDC.force,decolles:FDC.n,dv:+FDC.dv.toFixed(1),liftDecolle:+FDC.lift.toFixed(2),route:FR.on,lift:+FR.lift.toFixed(2),
     mode:mode,vol:mode==='fall'?+fallTR.toFixed(2):0,haut:mode==='fall'?+fallPos.y.toFixed(1):null};};
 window.dbgFRoute=function(x,y){if(x!=null){FDIR.force=[+x||0,+y||0];let r;try{r=veqDouble();}finally{setTimeout(function(){FDIR.force=null;},250);}
     return {ok:!!r,route:FR.on,mode:mode,fig:FR.on&&FR.f?FR.f.id:null,saut:!FR.on&&mode==='fall',nit:+(nitroR+nitroX).toFixed(2)};}
