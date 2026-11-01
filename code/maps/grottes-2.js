@@ -61,11 +61,13 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
   // ---- 2 · LE BOYAU : ses cristaux sont ceux des grottes embellies (grtCristauxG) — plus de géode ----
   if(performance.now()>JF.lim)yield;
   // ---- 3 · LES STALACTITES : les concrétions, des cônes à six pans ----
-  {let n=0;const N=Math.round((VZ?240:140)*MOB),g9=VZ?1.25:1;
-    for(let e=0;e<N*8&&n<N;e++){if((e&7)===7&&performance.now()>JF.lim)yield;const q=pris(b.stal,ap.stal);if(q<0)break;const xz=cote(q,RHd+8+fr()*(VZ?R.RH[q]*.8:118)),pend=fr()<.55,k=.75+fr()*.5;
-      if(pend){const yc=plafond(xz[0],cote.y+8,xz[1],VZ?R.UP[q]*1.5:150);if(yc==null)continue;const Ld=(8+fr()*38)*(VZ?2.6:1);if(!grtLibre(R,xz[0],xz[1],yc-Ld,yc,5))continue;
+  /* (2026-11-01, Sacha : « la grotte glacée, plus de stalactites et tout ») GLACE : la salle gèle plus dur — 80 % de concrétions de plus,
+     plus longues et plus fines (des glaçons, pas des cônes de pierre). */
+  {const ICE9=GROTTE.met==='glace';let n=0;const N=Math.round((VZ?240:140)*MOB*(ICE9?1.8:1)),g9=(VZ?1.25:1)*(ICE9?.85:1),Lk=ICE9?1.35:1;
+    for(let e=0;e<N*8&&n<N;e++){if((e&7)===7&&performance.now()>JF.lim)yield;const q=pris(b.stal,ap.stal);if(q<0)break;const xz=cote(q,RHd+8+fr()*(VZ?R.RH[q]*.8:118)),pend=ICE9?fr()<.72:fr()<.55,k=.75+fr()*.5;
+      if(pend){const yc=plafond(xz[0],cote.y+8,xz[1],VZ?R.UP[q]*1.5:150);if(yc==null)continue;const Ld=(8+fr()*38)*(VZ?2.6:1)*Lk;if(!grtLibre(R,xz[0],xz[1],yc-Ld,yc,5))continue;
         grtPrisme(D,V,xz[0],yc+3,xz[1],BAS,6,3.4*k*(.8+Ld/60)*g9,0,Ld+3,GT.CONCRETION,fr()*6,'roche');}
-      else{const yf=plancher(xz[0],cote.y-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:140);if(yf==null)continue;const Hs=(6+fr()*30)*(VZ?2.4:1);if(!grtLibre(R,xz[0],xz[1],yf,yf+Hs,5))continue;
+      else{const yf=plancher(xz[0],cote.y-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:140);if(yf==null)continue;const Hs=(6+fr()*30)*(VZ?2.4:1)*Lk;if(!grtLibre(R,xz[0],xz[1],yf,yf+Hs,5))continue;
         grtPrisme(D,V,xz[0],yf-2,xz[1],UP,6,3.2*k*(.8+Hs/50)*g9,0,Hs+2,GT.CONCRETION,fr()*6,'roche');}
       n++;}nb.concretions=n;}
   if(performance.now()>JF.lim)yield;
@@ -125,8 +127,14 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGli
   '      float w1=sin(q.x*.7+q.y*1.9-q.z*.5+sin(q.z*1.2+q.y*.8)*.8+sal*2.3),zn=step(.7,fh3(floor(vW*.032)+sal*3.));',
   '      float fv=zn*(1.-up)*(1.-smoothstep(0.,.13+fwidth(w1)*1.6,abs(w1)))*(1.-smoothstep(160.,420.,length(cameraPosition-vW)));',
   '      float gl=pow(max(0.,sin(uTime*1.9+vW.y*.21+fc*30.)),14.);alb=mix(alb,vv*.4,fv*.7);em+=vv*fv*(.3+.45*gl*uGlint)*uVein;}}',
-  '  else if(mt<1.5){vec2 p=vW.xz*.035;float f=fn2(p+vec2(uTime*.07,uTime*.045))*.65+fn2(p*2.3-uTime*.11)*.35;',
-  '    vec3 c=mix(vec3(.95,.22,.02),vec3(1.,.72,.18),smoothstep(.45,.82,f));c=mix(vec3(.30,.04,.02),c,smoothstep(.28,.42,f));c=mix(c,mix(vec3(.42,.72,.95),vec3(.92,.98,1.),smoothstep(.45,.82,f)),uIce);alb=c*mix(.15,.55,uIce);em=c*mix(2.2*uLav,.5,uIce);}', // la LAVE : des plaques de croûte entre la lave vive
+  /* LA LAVE (2026-11-01, reprise de la HOULE de l'eau des Pics de Jade — jMerH, une somme de sinus) : le lac est plat (le maillage ne bouge pas,
+     la grotte ne recreuse rien à chaque image), mais sa croûte se soulève et s'affaisse comme la houle de Jade, en bien plus lent et lourd ; le
+     dégradé lisse de l'eau devient des PALIERS nets (la croûte qui se fige par plaques) — moins fluide, plus visqueux. */
+  '  else if(mt<1.5){float t=uTime,h=sin(vW.x*.021+t*.22)*.52+sin(vW.z*.017-t*.16)*.48+sin((vW.x+vW.z)*.011+t*.29)*.4;', // la houle de la lave (jMerH, 4× plus lente)
+  '    float gx=cos(vW.x*.021+t*.22)*.011+cos((vW.x+vW.z)*.011+t*.29)*.0044,gz=cos(vW.z*.017-t*.16)*.0082+cos((vW.x+vW.z)*.011+t*.29)*.0044;',
+  '    float keyL=.55+.45*max(0.,dot(normalize(vec3(-gx*9.,1.,-gz*9.)),vec3(.3,.86,.41)));', // le GRADIENT de la houle incline la lumière de la croûte sans bouger le lac
+  '    vec2 p=vW.xz*.03;float f=fn2(p+vec2(t*.016,t*.011))*.65+fn2(p*2.1-t*.025)*.35;f=floor((f+h*.1)*4.)/4.;', // des PLAQUES figées, pas un dégradé lisse
+  '    vec3 c=mix(vec3(.95,.22,.02),vec3(1.,.72,.18),smoothstep(.45,.82,f));c=mix(vec3(.30,.04,.02),c,smoothstep(.28,.42,f));c=mix(c,mix(vec3(.42,.72,.95),vec3(.92,.98,1.),smoothstep(.45,.82,f)),uIce);alb=c*mix(.15,.55,uIce)*keyL;em=c*mix(1.7*uLav,.5,uIce)*(.8+.3*keyL);}', // la LAVE : des plaques de croûte entre la lave vive
   '  else if(mt<2.5){float f=fn2(vW.xz*.05+vec2(uTime*.05,uTime*.03));alb=mix(vec3(.02,.12,.22),vec3(.06,.30,.42),f);em=vec3(.03,.16,.22)*(.6+.4*f);}', // l'EAU
   '  else if(mt<3.5){alb=mix(vec3(.40,.16,.72),vec3(.72,.42,1.),fc*.7);em=vec3(.55,.22,.95)*(.35+.25*fc)*uEmi*(.8+.2*sin(uTime*1.3+fc*9.));}', // l'AMÉTHYSTE de la géode
   '  else if(mt<4.5)alb=vec3(.42,.25,.12)*(.85+.25*fc);', // le BOIS
