@@ -4132,6 +4132,41 @@ html body.touch.play #tNitro::before{display:block!important;content:'';position
 html body.touch.play #tNitro:active::before,html body.touch.play #tNitro.on::before{box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),inset 0 -10px 18px color-mix(in srgb,var(--nc,#ff9a3c) 40%,transparent),0 0 28px color-mix(in srgb,var(--nc,#ff9a3c) 60%,transparent),0 6px 20px rgba(0,0,0,.2)!important}
 html body.touch.play #tNitro.plein:not(.on)::before{animation:nxVerrePret 1.6s ease-in-out infinite}
 @keyframes nxVerrePret{50%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.7),0 0 20px color-mix(in srgb,var(--nc,#ff9a3c) 45%,transparent),0 6px 20px rgba(0,0,0,.2)}}
+
+/* ===== LE STICK DIT LE DRIFT (2026-11-01, Léo : « bien faire comprendre comment le joystick agit sur la voiture ») =====
+   Au sol (classes posées par TCTL.drift) : DRIFT sous la glissière + une ligne pointillée à la profondeur du geste (--dc) ; les deux s'allument
+   à mesure qu'on tire (--dp). Trop lent : presque éteints. Braquage fort sans tirer : DRIFT pulse vers le bas (l'invitation). En drift, la couleur
+   du palier (--dcol : blanc, bleu, or, rose — celles des étincelles) passe dans la bille, le trait de braquage, la ligne et l'anneau de charge (--dk).
+   Au relâché, l'anneau part en onde de la couleur du turbo (dTu1-3). `?drift=ancien` : rien de tout ça. */
+html body #tStick .skC{display:none;position:absolute;left:50%;top:calc(50% + var(--dc,34.9px));width:132px;height:0;margin-left:-66px;pointer-events:none;
+  border-top:1.5px dashed rgba(255,255,255,.5);opacity:calc(.3 + .7*var(--dp,0))}
+html body #tStick.dSol .skC{display:block}
+html body #tStick.dSol .skD{color:#fff;opacity:calc(.4 + .6*var(--dp,0));text-shadow:0 0 8px rgba(255,255,255,.55)}
+html body #tStick.dSol .skD:empty{opacity:0}
+html body #tStick.dLent .skC{opacity:.1}
+html body #tStick.dLent .skD{opacity:.14}
+html body #tStick.dInv .skD{animation:dInvite .55s ease-in-out infinite alternate}
+@keyframes dInvite{from{opacity:.45;transform:translate(-50%,0)}to{opacity:1;transform:translate(-50%,6px)}}
+html body #tStick.dl0{--dcol:255,255,255}
+html body #tStick.dl1{--dcol:79,195,255}
+html body #tStick.dl2{--dcol:255,201,64}
+html body #tStick.dl3{--dcol:255,95,210}
+html body #tStick.dOn .skC{border-top-color:rgba(var(--dcol),.95);opacity:1}
+html body #tStick.dOn .skD{color:rgb(var(--dcol));opacity:1;text-shadow:0 0 10px rgba(var(--dcol),.85)}
+html body #tStick.dOn #tKnob{box-shadow:inset 0 0 0 1.5px rgba(var(--dcol),.95),inset 0 -8px 14px rgba(var(--dcol),.25),0 0 26px rgba(var(--dcol),.6),0 6px 18px rgba(0,0,0,.18)}
+html body #tStick.dOn::before{background:linear-gradient(90deg,rgba(var(--dcol),.05),rgba(var(--dcol),.95))}
+html body #tStick.dOn::after{background:linear-gradient(90deg,rgba(var(--dcol),.95),rgba(var(--dcol),.05))}
+html body #tKnob .skR{position:absolute;inset:-7px;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:conic-gradient(rgb(var(--dcol,255,255,255)) calc(var(--dk,0)*360deg),rgba(255,255,255,.14) 0);
+  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 4px),#000 calc(100% - 3.5px));mask:radial-gradient(closest-side,transparent calc(100% - 4px),#000 calc(100% - 3.5px))}
+html body #tStick.dOn #tKnob .skR{opacity:1}
+html body #tStick.dTu1{--tcol:79,195,255}
+html body #tStick.dTu2{--tcol:255,201,64}
+html body #tStick.dTu3{--tcol:255,95,210}
+html body #tStick.dTu1 #tKnob .skR,html body #tStick.dTu2 #tKnob .skR,html body #tStick.dTu3 #tKnob .skR{background:rgb(var(--tcol));animation:dTurbo .5s ease-out forwards}
+html body #tStick.dTu1 #tKnob,html body #tStick.dTu2 #tKnob,html body #tStick.dTu3 #tKnob{box-shadow:inset 0 0 0 1.5px rgba(var(--tcol),.95),0 0 36px rgba(var(--tcol),.85),0 6px 18px rgba(0,0,0,.18)}
+@keyframes dTurbo{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2)}}
+@media (prefers-reduced-motion:reduce){html body #tStick.dInv .skD{animation:none;opacity:1}}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -25037,7 +25072,7 @@ function murCote(dt,cause){ // LES FAÇADES SONT DES MURS : un CHOC par contact 
      prenait jusqu'à 30 % de la vitesse en UNE image — 22° de cap d'un coup sur un choc à 17°, partout où la route a des murs (couloirs du
      canyon, bourrelets du glacier). Même renvoi, même perte : le cap y va en ~50 ms (MURC.psiR/psiK, appliqué par la conduite juste
      après le lacet), la vitesse en ~0,2 s (vFrein). Un renvoi en cours n'est pas recalculé par les images de contact qui suivent. */
-  if(!(MURC.psiK>0)){MURC.psiR=-psi*.3;MURC.psiK=1;}yawR=0;slipB=0;vL=0;
+  if(!(MURC.psiK>0)){MURC.psiR=-psi*.3;MURC.psiK=1;}yawR=0;slipB=0;slipV=0;vL=0;
   const choc=now-(MURC.chocT||0)>220;if(choc)MURC.chocT=now;       // (mesuré : perdre à CHAQUE image faisait tomber de 151 à 20 km/h en 3 s)
   if(choc)vFrein(1-Math.min(.3,.03+a*.9));else vA*=1-.3*(dt||.016);
   if(now-MURC.murT>90){MURC.murT=now;try{DRIFT_V.set(out*CARS[level].w*.5,.25,.2);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1,6);noiseBurst(.1,.1+a*.3,2600);}catch(e){}
@@ -47603,7 +47638,7 @@ function sensGlisse(on){
   if(on&&!SENS_GL.on){ // L'ACCROCHE : l'arrière part — la caisse se jette sur ses roues extérieures, le nez pique, elle se tasse ; un tic dans le pouce
     if(performance.now()-SENS_GL.ta>260){
       if(!REDUCED_MOTION)sensCoup(-Math.sign(steer)*1.3,.8,-.45); // même sens que le roulis de virage (carRoll9 du côté de `steer`) : ≈ 3° de plus, ≈ 2° de nez, ≈ 2 cm
-      sensHap(8,1);}
+      if(DRIFT2)sensHap(16,2);else sensHap(8,1);} /* (2026-11-01, DRIFT2) l'entrée est un CLAC franc (classe moyenne) : le pouce sent que le geste a pris */
   }
   /* LE PALIER SE PREND DANS LES RESSORTS : bleu, or, rose — le son monte et le pouce tique déjà (driftTick), mais la caisse ne bronchait pas.
      À chaque palier elle se TASSE d'un coup sec (≈ 1,5 cm bleu → 3 cm ULTRA) et verse un rien de plus sur l'extérieur : la charge PÈSE.
@@ -47674,13 +47709,22 @@ function sensCaisse(){
   else{const pe9=Math.min(1,dB9/hw9);if(pe9>SENS_CA.pk)SENS_CA.pk=pe9;} // dehors : on retient jusqu'où
 }
 SENS_CA.o=false;SENS_CA.pk=0;SENS_CA.tl=0; // (la lèvre) roues dehors · le plus loin qu'elles sont allées (0 → 1 = le centre de gravité au bord) · l'heure du dernier tic
+/* ===== LE DRIFT SE COMPREND (2026-11-01, Léo : « fais une revue et retouche le geste et l'effet drift quand on tourne d'un coup, pour bien faire comprendre comment le joystick agit sur la voiture ») =====
+   Trois lots, tous derrière DRIFT2 (`?drift=ancien` rend l'avant au pixel près) :
+   · LE STICK le dit (mobile-tactile.js, TCTL.drift / TCTL.turbo) : DRIFT écrit sous la glissière au sol, un cran au seuil du geste, la bille
+     prend la couleur de la charge (bleu → or → rose) avec un anneau qui se remplit, un flash au turbo ;
+   · LA CAISSE le montre (boucles 2 et 3) : un virage sec sans le geste ne chasse plus que de ~11° (18° avant : on croyait drifter), le drift
+     entre d'un COUP DE REINS (ressort qui dépasse puis se pose) et va un peu plus en travers (27°), la caméra suit la trajectoire et non le nez ;
+   · LE POUCE le sent (ici) : un clac à l'entrée, un tic qui grossit à chaque palier, un turbo qui pèse selon son niveau. */
+var DRIFT2=!/[?&]drift=ancien/.test(location.search);const DRIFT_CD=new THREE.Vector3(); /* la visée de la caméra en drift (boucle 3) */
+const DRIFT_HAP={lv:[0,9,[10,24,12],[14,30,14,30,18]],tu:[0,[10,24,14],[14,26,22],[20,30,30,30,24]]}; /* palier 1/2/3 · turbo MINI/SUPER/ULTRA */
 function driftTick(dt,on){
   if(SENS)try{sensGlisse(!!on);}catch(e){} // (2026-10-14, sensations) AVANT le traitement : au relâché, `driftLv` porte encore le niveau atteint
   driftCd=Math.max(0,driftCd-dt); // (2026-09-25) recharge après un mini-turbo : le zigzag de drifts ne se « farme » plus
   if(on&&driftCd<=0){
     driftC+=dt;vA*=Math.max(0,1-.10*dt);
     const lv=driftC>1.4?3:driftC>.9?2:driftC>.45?1:0; // (2026-09-25) .5/1/1,7 → .45/.9/1,4 : le SUPER et l'ULTRA tiennent enfin sur la route
-    if(lv>driftLv){driftLv=lv;try{if(SONV2)sfx('drift.charge',{st:sonPd([0,3,5,7][lv]-3)});else chimeNote([0,noteP(3,1),noteP(5,1),noteP(7,1)][lv],0,.08,.16);}catch(e){}hap(lv===3?[14,30,14]:10);}
+    if(lv>driftLv){driftLv=lv;try{if(SONV2)sfx('drift.charge',{st:sonPd([0,3,5,7][lv]-3)});else chimeNote([0,noteP(3,1),noteP(5,1),noteP(7,1)][lv],0,.08,.16);}catch(e){}hap(DRIFT2?DRIFT_HAP.lv[lv]:lv===3?[14,30,14]:10);}
     driftSpk-=dt;
     if(driftLv>0&&driftSpk<=0){driftSpk=.045;const pool=driftLv===3?sparkPink:driftLv===2?sparkGold:sparkBlue,sp9=CARS[level];
       for(const sd of [-1,1]){DRIFT_V.set(sd*sp9.w*.42,.15,-sp9.l*.38);carGroup.localToWorld(DRIFT_V);sparkBurst(pool,DRIFT_V,2,5);}}
@@ -47690,7 +47734,7 @@ function driftTick(dt,on){
       boost=Math.max(boost,.35+.3*driftLv);vA+=6*driftLv;nitroGain(.16*driftLv,'drift');shake=Math.max(shake,.14*driftLv);(driftLv>=FLOW2.decl.drift?flowAddDecl:flowAdd)(9*driftLv,'style'); // (loi 20) en ville, ce turbo va déclencher : s'il arme, l'armement se tait
       fovPunch=Math.max(fovPunch,6+6*driftLv);                                   // le champ S'OUVRE d'un coup : on est PROPULSÉ
       if(driftLv===3){slowT=Math.max(slowT,.14);try{flashEl.style.background='#ff5ec8';flashEl.style.opacity=.35;setTimeout(function(){flashEl.style.opacity=0;flashEl.style.background='#ff2020';},90);}catch(e){}}
-      try{if(SONV2)sfx(['','turbo.mini','turbo.super','turbo.ultra'][driftLv]);else{boostSnd(1+.35*driftLv);if(driftLv>=2)crackle(.45+.2*driftLv);}}catch(e){}hap([12,30,20]);
+      try{if(SONV2)sfx(['','turbo.mini','turbo.super','turbo.ultra'][driftLv]);else{boostSnd(1+.35*driftLv);if(driftLv>=2)crackle(.45+.2*driftLv);}}catch(e){}hap(DRIFT2?DRIFT_HAP.tu[driftLv]:[12,30,20]);if(DRIFT2&&TCTL.turbo)try{TCTL.turbo(driftLv);}catch(e){}
       try{chaineAuraMuette(['','MINI-TURBO','SUPER TURBO','ULTRA TURBO'][driftLv],[0,50,100,180][driftLv],'drift',false,SONV2);}catch(e){} // (2026-09-29, Sacha) le turbo se SENT (champ, son, flammes) : il ne s'écrit plus
       if(driftLv>=FLOW2.decl.drift&&FREN.arme&&FLOW.lv<4)frenDeclenche(); // (loi 20 de FLOW2) en VILLE, relâcher un SUPER/ULTRA TURBO fait partir la frénésie armée
     }
@@ -59533,7 +59577,7 @@ function balEcart(so,w,sA,sB,lA,lB,lo){
   const ea=lA+(lB-lA)*(a-sA)/d-lo,eb=lA+(lB-lA)*(b-sA)/d-lo;
   return ea*eb<=0?0:Math.min(Math.abs(ea),Math.abs(eb));
 }
-let yawR=0,slipB=0,glisse9=0,routeLacet=0; // lacet courant · angle de glisse (drift) · glisse ressentie (fumée, crissement)
+let yawR=0,slipB=0,slipV=0,glisse9=0,routeLacet=0; // lacet courant · angle de glisse (drift) · glisse ressentie (fumée, crissement)
 const AIR_ASSIST=0; // (conduite v6) règle n°1 : aucun recentrage, en vol non plus — était .2 ; // aide au recentrage en vol (0 = off), monte avec la vitesse — ÷5 (2026-09-25, user : « un effet qui t'attire vers le centre de la route, trop puissant, baisse-le au point qu'il ne soit plus remarquable ») : à 1,0 un ressort de 0,7·écart m/s² ramenait la caisse sur l'axe en plein vol ; il reste un filet qu'on ne sent plus
 const CAM_SHAKE_V=.45; // intensité du tremblement caméra lié à la vitesse (position + roulis) — .78→.45 : un frémissement, plus un séisme (user : « c'est trop »)
 // OVERDRIVE : il suivait le NIVEAU DE CAISSE (+8 %/niveau à partir du 6e). Depuis que la caisse est
@@ -63383,7 +63427,7 @@ function startFall(impU,impF,bord){const fr9=frDecolle();dmtCoupe();RAI.stage=0;
   MIR.t=0;MIR.max=0; // (2026-09-28) MIRACULÉ : chaque vol repart « pas perdu »
   FILR.ok=false; // (2026-09-29) on a quitté la route : ce virage à filet n'est plus « à fond »
   mode='fall';fallT=0;fallTR=0;yawAcc=0;airRoll=0;trkBigA=false;trkMonstre=false; // (momentum v2) le saut ne remet plus la réserve à zéro : c'est la POSE qui juge
-  driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;BKV.gl=0;carRoll9=0;rollV=0;pitch9=0;SCOUP.p=0;SCOUP.pv=0;SEAU.k=0;SEAU.pose=false;SEAU.vy0=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
+  driftC=0;driftLv=0;driftEnCours=false;driftArm=0;yawR=0;slipB=0;slipV=0;glisse9=0;driftYaw=0;BKV.gl=0;carRoll9=0;rollV=0;pitch9=0;SCOUP.p=0;SCOUP.pv=0;SEAU.k=0;SEAU.pose=false;SEAU.vy0=0;carBody.rotation.set(0,0,0);carBody.position.set(0,0,0); // une glisse ne survit pas au décollage (pas de mini-turbo en l'air)
   // TEMPO DE VOL ∝ VITESSE (2026-07-20, dosage DOUX sur base V1) : =1 jusqu'à 450 km/h affichés
   // (basse/moyenne vitesse : rigoureusement l'existant), puis +1 tous les 1800 km/h, CAP 1.35 —
   // loin du 2.3 de l'ancienne ère (qui compensait SPD=.25) : l'endgame TRAVERSE sa phase aérienne
@@ -63550,7 +63594,7 @@ function dmtArme(bI,sd){ // (tryLand) posée à contresens sur la dalle bI, face
   const vT=fallVel.dot(T[bI])/vm,vB=fallVel.dot(B[bI])*sd/vm; // (vA : la vitesse d'avant le multiplicateur, comme la pose)
   D.vb=THREE.MathUtils.clamp(-vT,0,mx*.9);D.vl=THREE.MathUtils.clamp(vB*.35,-mx*.15,mx*.15);D.vo=THREE.MathUtils.clamp(Math.hypot(vT,vB)*.5,mx*.4,mx*.8);
   D.y=y0;D.y0=y0;D.yV=0;D.cam=yc;D.camP=yc;D.dc=0;D.sg=y0>=0?1:-1;D.t=0;D.burn=false;D.act=true;D.n++;
-  psi=0;yawR=0;slipB=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;vA=-D.vb;vL=0;driftT=1;
+  psi=0;yawR=0;slipB=0;slipV=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;vA=-D.vb;vL=0;driftT=1;
   graceT=Math.max(graceT,D.D+.3); // ni le bord, ni le dessous de la dalle, ni « ROULE OU CRÈVE » pendant la manœuvre
   try{if(SONV2)sfx('fig.slide');}catch(e){}
   dmtSigne(true);
@@ -63566,7 +63610,7 @@ function dmtConduite(dt){const D=DMT; // (boucle de conduite, après le lacet du
   if(vA<0&&s<6)vA=0;
   D.vl*=Math.exp(-dt*3.5);lat+=D.vl*dt*SPD; // un reste de dérive latérale, qui meurt vite
   const lim=ROAD_HALF-(CARS[level].w||2)*.5-.35;if(Math.abs(lat)>lim)lat+=(Math.sign(lat)*lim-lat)*(1-Math.exp(-dt*7)); // ramenée sur le bitume
-  psi=0;yawR=0;slipB=0;driftEnCours=false;driftC=0;driftLv=0;
+  psi=0;yawR=0;slipB=0;slipV=0;driftEnCours=false;driftC=0;driftLv=0;
   glisse9=Math.max(glisse9,x<1?.95:.8*(1-.7*u)); // la gomme crie et fume (son du crissement, fumée et traces de la boucle)
   graceT=Math.max(graceT,.25);
   if(D.t>=D.D){D.act=false;driftYaw=THREE.MathUtils.clamp(D.y,-.35,.35);D.y=0;D.yV=0;dmtSigne(false);} // le reste du lacet passe au power-slide, qui le rend en douceur
@@ -63751,7 +63795,7 @@ function tryLand(dt){
   side=sideL;{const lm9=ROAD_HALF-.02+(sideL>0?bkCgBord():0);lat=THREE.MathUtils.clamp(latX9,-lm9,lm9)*sideL;}
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
-   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*lacetVol(fallVel.length());slipB=0;driftYaw=0;veqPose(bestI,sideL); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
+   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*lacetVol(fallVel.length());slipB=0;slipV=0;driftYaw=0;veqPose(bestI,sideL); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
    driftT=Math.max(driftT,Math.min(1,.45+Math.abs(psi)));} // …et la fumée/le crissement suivent tout seuls
   {const vm9=vitMult(),vT9=fallVel.dot(T[bestI])/vm9,vB9=fallVel.dot(B[bestI])/vm9;vA=vT9>0?Math.hypot(vT9,vB9):vT9;vL=vB9*.4*sideL;} /* (2026-10-15, Sacha : « quand on arrive sur la route en volant avec un certain angle on est ralenti d'un coup, on ne peut pas la couper ») LA COUPE GARDE SON ÉLAN : au sol vA est la vitesse le long du CAP (on avance de vA·cos psi, on dérive de vA·sin psi), et le cap posé juste au-dessus EST la direction du vol — vA = toute la vitesse à plat, plus sa seule part dans l'axe : le cosinus de l'angle était compté DEUX fois (45° → la moitié de l'avance envolée, 60° → les trois quarts). À contresens, inchangé. */ // (2026-09-30) le vol porte la vitesse RÉELLE (× vitMult) : à la pose, on la ramène au vA d'avant le multiplicateur — sans ça, le boost comptait DEUX fois
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant
@@ -63947,7 +63991,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   const vm9=vitMult(),vTan=fallVel.dot(T[bI])/vm9,vLat=fallVel.dot(B[bI])/vm9; // (30/09) le vol porte la vitesse RÉELLE (× vitMult) : ramenée au vA d'avant le multiplicateur, comme à la pose
   s=THREE.MathUtils.clamp(bI/(NP-1)*L+THREE.MathUtils.clamp(tOff,-2,2),0,L-1);
   side=1;lat=Math.sign(latOff)*(ROAD_HALF-.05);
-  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*lacetVol(fallVel.length());slipB=0;driftYaw=0;veqPose(bI,1); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
+  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*lacetVol(fallVel.length());slipB=0;slipV=0;driftYaw=0;veqPose(bI,1); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
   vA=(vTan>0?Math.hypot(vTan,vLat):vTan)*.94;vL=0; // le choc de la lèvre coûte 6 % · (2026-10-15) toute la vitesse à plat, comme à la pose : le cap EST la trajectoire
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1;
   levreY=Math.min(0,hOff);carRoll9=THREE.MathUtils.clamp(r9,-.42,.42);rollV=0;
@@ -64528,7 +64572,7 @@ function resetGame(){
   nitroR=2;nitroX=0;boost=0;combo=0;edgeT=0;momT=0;FREIN_L=0;MURC.psiK=0;styleM=0;fever=0;streak=0;slowT=0;gameOver=false;paused=false;insUsed=false;feverArmed=false;rollover=0;RALENTI.t=0;idleT=0;driftT=0;driftYaw=0;
   vdepPose();engSwapT=0; // le moteur se remonte à chaque run (c'est la progression DE LA PARTIE) — depuis LA VITESSE DE DÉPART (2026-10-19) il repart du cran choisi au garage (le cran 1 = zéro, comme avant)
   pwrNitroT=0;pwrAirT=0;pwrSpdT=0;pwrSpdK=0;pwrMagT=0;pwrAurT=0;pwrV2Raz();
-  driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;virT=0;virC=0;virD=false;virPaye=false;FRONDE.cd=0;FRONDE.n=0;FRONDE.pMax=0;PADCH.n=0;PADCH.sL=null;PADCH.max=0;yawR=0;slipB=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
+  driftC=0;driftLv=0;driftEnCours=false;raseT=0;raseAnn=false;virT=0;virC=0;virD=false;virPaye=false;FRONDE.cd=0;FRONDE.n=0;FRONDE.pMax=0;PADCH.n=0;PADCH.sL=null;PADCH.max=0;yawR=0;slipB=0;slipV=0;glisse9=0;driftYaw=0;FROLE.n=0;FROLE.t=0; // (2026-09-25) une glisse ne survit pas à la partie (sinon MINI-TURBO fantôme au départ)
   nextRainAt=4e3*ECO3.gain;moneyRainT=0;sideCd=0;slipT=0;oilCd=0;
   rampCd=0;deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit(); // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
@@ -74713,8 +74757,11 @@ function loop(now){
       const spdMult=vitMult(); // (NITROOO) ×1,10/s tenue, et avec VITESSE ×2 : PLAFOND COMMUN ×2,6 (voir vitMult) — SPEED UP : le sol défile DEUX FOIS plus vite (2026-09-26, user : « le power-up vitesse doit faire ×2 »), sans casser la physique
       {const rT=steer*lacetMax(vA)*spdMult*(drifte?1.15:1)*THREE.MathUtils.clamp(vA/8,-1,1)*(slipT>0?.18:BKV.sur?BK_VG.grip:1); // flaque : la direction ne mord presque plus · (2026-10-15) verglas du glacier : elle mord à moitié
        yawR+=(rT-yawR)*(1-Math.exp(-dt*spdMult/VOL_TAU));
-       const b0=slipB,bT=drifte?Math.sign(steer)*.42*Math.min(1,Math.abs(steer)):0;
-       slipB+=(bT-slipB)*(1-Math.exp(-dt*(drifte?4:6)));
+       const b0=slipB,bT=drifte?Math.sign(steer)*(DRIFT2?.47:.42)*Math.min(1,Math.abs(steer)):0;
+       if(DRIFT2){ /* (2026-11-01, LE DRIFT SE COMPREND) LE COUP DE REINS : la glisse est un RESSORT (ω 9, amortissement .5 en entrée — elle dépasse de ~15 % puis
+          se pose ; .9 au retour : l'arrière revient sans rebondir). Le nez seul bouge : la trajectoire retire `slipB` (vL plus bas), elle ne change pas. */
+         const z9=drifte?.5:.9,w9=9,d9=Math.min(dt,1/30);slipV+=(w9*w9*(bT-slipB)-2*z9*w9*slipV)*d9;slipB+=slipV*d9;if(!drifte&&Math.abs(slipB)<.002&&Math.abs(slipV)<.02){slipB=0;slipV=0;}}
+       else slipB+=(bT-slipB)*(1-Math.exp(-dt*(drifte?4:6)));
        psi+=yawR*dt+(slipB-b0); // le nez = la trajectoire + la glisse
        if(MURC.psiK>0){MURC.psiK=Math.max(0,MURC.psiK-dt/.06);psi+=(MURC.psiR-psi)*(1-Math.exp(-dt*50));} // (2026-10-17) LE COUP D'ÉPAULE : le renvoi de la paroi en ~50 ms (voir murCote)
        if(BKV.sur)BKV.gl=THREE.MathUtils.clamp(BKV.gl+yawR*dt,-BK_VG.glMax,BK_VG.glMax); // (2026-10-15 soir) SUR LE VERGLAS le pouce tourne le NEZ, la trajectoire ne suit qu'en BK_VG.tau s (voir banqVerglas) : la caisse GLISSE
@@ -74724,7 +74771,7 @@ function loop(now){
        {const aL9=aB9;FRONDE.cd=Math.max(0,FRONDE.cd-dt);if(aL9>32){virT+=dt*spdMult;if(lat*yawR*driveDir>ROAD_HALF*.2*Math.abs(yawR))virC+=dt*spdMult;if(drifte||slipT>0)virD=true;}else if(aL9<12){if(virPaye&&!virD)frondeLache(virT,virC);virT=0;virC=0;virD=false;virPaye=false;} /* (LA FRONDE) la corde = la moitié INTÉRIEURE du virage (lat du côté où l'on tourne) ; une glisse (drift, flaque) désarme la fronde */ // (HAUTE VITESSE) les 0,9 s se comptent en temps ×1 : le même virage paie, pris à ×1 comme à ×2,6
         if(virT>.9&&!virPaye){virPaye=true;if(SONV2)sfx('virage');chaineAuraMuette('VIRAGE SERRÉ',45,'virage',false,SONV2);}} // (2026-09-29, Sacha) ne s'écrit plus
        filetTick();} // (2026-09-29) LA ROUTE QUI TE RATTRAPE : le VIRAGE À FOND (voir FILET)
-      driftTick(dt,drifte);
+      driftTick(dt,drifte);if(DRIFT2&&TCTL.drift)TCTL.drift(drifte,vitOk&&!introD&&!PARK.on,false); /* (2026-11-01) le stick dit le drift */
       if(SENS)try{sensCaisse();}catch(e){} // (2026-10-14, sensations · caisse) le coup de volant sec, la roue qui passe la lèvre et qui remonte : dans la tôle et la main
       // (conduite v3) RASE-BORD : frôler le vide à pleine vitesse RECHARGE le nitro — le risque paie
       if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;if(!nitroOn)nitroGain(NITRO2.rase*dt,'rase'); /* (LA LOI DU RÉSERVOIR) le rase-bord ne remplit que nitro COUPÉE */flowAdd(6*dt,'route'); // bande du RASE-BORD : les 20 % extérieurs de la demi-route (3 à 4,8 m sur la route large)
@@ -74861,7 +74908,7 @@ function loop(now){
              l'arrière CHASSE à proportion de la charge du virage (lacet × vitesse) — le nez rentre dans la courbe jusqu'à ~18°, la
              trajectoire reste celle qu'on pilote. ⚠ À ne pas confondre avec l'ancien « Tokyo drift » retiré en v6 : lui pivotait dès
              qu'on touchait le pouce sous nitro, même en ligne droite — celui-ci n'existe QUE dans un virage, et grandit avec lui. */
-          const aLat9=yawR/spdMult*Math.abs(vA)*SPD,tdWant=Math.sign(aLat9)*.32*(1-Math.exp(-Math.abs(aLat9)/38))*Math.min(1,tdKmh/90);
+          const aLat9=yawR/spdMult*Math.abs(vA)*SPD,tdWant=Math.sign(aLat9)*(DRIFT2&&!driftEnCours?.20:.32)*(1-Math.exp(-Math.abs(aLat9)/38))*Math.min(1,tdKmh/90);
           driftYaw+=(tdWant-driftYaw)*Math.min(1,dt*(Math.abs(tdWant)>Math.abs(driftYaw)?5:3.2)); // départ franc, rattrapage plus doux
           if(Math.abs(driftYaw)>.003){
             qTmp.setFromAxisAngle(F.n,driftYaw);
@@ -75011,7 +75058,10 @@ function loop(now){
         // (conduite v6) la caméra se place derrière un axe MI-ROUTE MI-CAISSE : avant, elle suivait le cap de la caisse et la clouait au
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
         if(!loop._camD)loop._camD=new THREE.Vector3();
-        loop._camD.copy(F.t).multiplyScalar(driveDir).lerp(fwdW,.55).normalize();
+        if(DRIFT2&&slipB!==0){ /* (2026-11-01, LE DRIFT SE COMPREND) en drift la caméra suit la TRAJECTOIRE (le cap moins la glisse), pas le nez : la caisse se met
+          en travers SOUS nos yeux au lieu d'emmener l'image avec elle ; et elle glisse de ~0,5 m vers l'extérieur du virage, on voit le flanc qui chasse. */
+          const p9=psi-slipB;DRIFT_CD.copy(F.t).multiplyScalar(Math.cos(p9)*driveDir).addScaledVector(F.b,Math.sin(p9)*driveDir);loop._camD.copy(F.t).multiplyScalar(driveDir).lerp(DRIFT_CD,.55).normalize();}
+        else loop._camD.copy(F.t).multiplyScalar(driveDir).lerp(fwdW,.55).normalize();
         if(DMT.cam)loop._camD.applyAxisAngle(F.n,DMT.cam);dmtCamTick(dt); // (LE DEMI-TOUR) la caméra tourne autour de la caisse avec elle
         // (2026-09-25, user : « toujours aimantée au centre ») : la caméra suivait la position latérale AU CENTIMÈTRE — la caisse restait
         // plantée au milieu de l'image et c'est la route qui coulissait dessous. Elle suit désormais avec un RETARD (~0,35 s) : quand on
@@ -75025,7 +75075,7 @@ function loop(now){
            posait à 2·lat − _camLat : au lieu de traîner, elle partait DEVANT la caisse du côté où l'on braque, et la caisse filait à l'écran
            du côté opposé à son mouvement. Le regard (FVISEE, repère NON retourné) avait, lui, le bon signe. */
         const cLag9=THREE.MathUtils.clamp(loop._camLat-lat,-camBack*.3,camBack*.3); // de combien la caméra est en retard sur la caisse (repère de la route, retourné sous la dalle comme F.b)
-        tmp2.copy(carGroup.position).addScaledVector(loop._camD,-camBack).addScaledVector(F.n,camH).addScaledVector(F.b,cLag9);
+        tmp2.copy(carGroup.position).addScaledVector(loop._camD,-camBack).addScaledVector(F.n,camH).addScaledVector(F.b,cLag9-(DRIFT2?slipB*1.1*driveDir:0));
         {const n9=performance.now(); // l'écart repart de la caméra RÉELLE à chaque reprise de conduite (après un vol, le garage, un respawn)
          if(!loop._camOff)loop._camOff=new THREE.Vector3();
          if(n9-(loop._camDriveT||0)>(window.dbgCamReprise||CAM_REPRISE)){ /* (banc) dbgCamReprise : en rendu logiciel (200-300 ms l'image) CHAQUE image passait pour une reprise de conduite et la caméra reculait de v·dt à chaque image */loop._camOff.subVectors(camera.position,loop._carPrev&&loop._carPrev.distanceToSquared(carGroup.position)<900?loop._carPrev:carGroup.position);CAM_ROUTE.phi=0;} /* (2026-10-01, LA POSE) l'écart repart de la caisse de l'image D'AVANT (`_carPrev`) : mesuré à la caisse de CETTE image, il clouait la caméra sur place une image entière (elle n'avançait que de 0,4 m au lieu de 0,8, de 0,6 au lieu de 2,5 à 540 km/h), puis elle rattrapait — l'à-coup de la pose */ // (vague 3) le pivot anticipé repart de zéro, lui aussi
@@ -75120,6 +75170,7 @@ function loop(now){
         if(airPie.style.display!=='none')airPie.style.display='none'; // (2026-09-27) une fois suffit (c'était à chaque image de conduite)
       }
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
+      if(DRIFT2&&TCTL.drift)TCTL.drift(false,false,true); /* (2026-11-01) en vol, le stick oublie le drift (le mot, la ligne, l'anneau) */
       const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter
       fallT+=dtF;fallTR+=dt; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6)
       NIT.vol+=dtF;if(nitroOn&&pwrNitroT<=0&&!PARK.on)NIT.nit+=dtF; /* (LA LOI DU RÉSERVOIR) la durée du vol et ce qu'on y a BRÛLÉ : la pose ne rend que la part volée nitro coupée */
@@ -77547,7 +77598,26 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   let skU=null,skD=null,skK='';
   if(stk){skU=document.createElement('div');skU.className='skU';skD=document.createElement('div');skD.className='skD';stk.appendChild(skU);stk.appendChild(skD);}
   function skMaj(){ if(!skU)return; const vol=(mode==='fall'),sg=volSens()*volInv(),k=(vol?1:0)+'|'+sg; if(k===skK)return; skK=k;
-    skU.textContent=vol?TR(sg<0?'MONTE':'PLONGE'):''; skD.textContent=vol?TR(sg<0?'PLONGE':'MONTE'):''; }
+    skU.textContent=vol?TR(sg<0?'MONTE':'PLONGE'):''; skD.textContent=vol?TR(sg<0?'PLONGE':'MONTE'):(DRIFT2?TR('DRIFT'):''); if(vol&&skE)TCTL.drift(false,false,true); }
+  /* ===== LE STICK DIT LE DRIFT (2026-11-01, Léo : « bien faire comprendre comment le joystick agit sur la voiture ») =====
+     Au sol, sous la glissière : le mot DRIFT (le geste existait, rien ne le montrait — le commentaire plus haut le promettait, le texte restait vide).
+     · une LIGNE pointillée à la profondeur du geste (34,9 px, ou le seuil de l'arc du pouce `dyS` à droite) : la bille la passe = le drift part ;
+     · DRIFT s'allume à mesure qu'on tire (--dp), s'éteint presque sous la vitesse du drift (`dLent`), PULSE quand on braque fort sans tirer (`dInv`) ;
+     · en drift la bille prend la couleur du palier (bleu · or · rose, celles des étincelles) et un ANNEAU s'y remplit jusqu'à l'ULTRA (1,4 s) ;
+     · au relâché, le turbo FLASHE la bille (`TCTL.turbo`, appelé par driftTick). Appelé à chaque image de conduite par la boucle (`TCTL.drift`) ;
+       les classes ne s'écrivent qu'au changement d'état, les variables qu'au-delà de 2 %. */
+  let skC=null,skR=null,skE='',skDp=-1,skDk=-1,skDc=-1,skTu=0;
+  if(stk&&DRIFT2){skC=document.createElement('div');skC.className='skC';stk.appendChild(skC);if(knb){skR=document.createElement('div');skR.className='skR';knb.appendChild(skR);}skD.textContent=TR('DRIFT');} /* le mot est là dès le départ (skMaj ne passe qu'au premier toucher) */
+  TCTL.drift=function(on,vit,vol){ if(!skC)return;
+    const e=vol||!TCTL.on?'':on?'d'+(driftCd>0?0:driftLv):(vit&&TCTL.act&&Math.abs(steer)>.8)?'i':vit?'v':'l';
+    if(e!==skE){skE=e;stk.classList.toggle('dSol',e!=='');stk.classList.toggle('dLent',e==='l');stk.classList.toggle('dInv',e==='i');stk.classList.toggle('dOn',e.charAt(0)==='d');
+      for(let i=0;i<4;i++)stk.classList.toggle('dl'+i,e==='d'+i);}
+    if(!e)return;
+    const sl=Math.max(DRIFT_PX,TCTL.dyS||0),p=TCTL.act?Math.max(0,Math.min(1,(TCTL.dy||0)/sl)):0,k=on&&driftCd<=0?Math.min(1,driftC/1.4):0;
+    if(Math.abs(p-skDp)>.02){skDp=p;stk.style.setProperty('--dp',p.toFixed(2));}
+    if(Math.abs(k-skDk)>.02||(k===0&&skDk!==0)){skDk=k;stk.style.setProperty('--dk',k.toFixed(3));}
+    if(Math.abs(sl-skDc)>.5){skDc=sl;stk.style.setProperty('--dc',sl.toFixed(1)+'px');} };
+  TCTL.turbo=function(lv){ if(!skC)return; stk.classList.remove('dTu1','dTu2','dTu3'); requestAnimationFrame(function(){stk.classList.add('dTu'+lv);}); clearTimeout(skTu); /* (pas de lecture de mise en page pour relancer l'animation : une image d'écart suffit) */ skTu=setTimeout(function(){stk.classList.remove('dTu1','dTu2','dTu3');},520); };
   function stSet(h,v,kx,ky){ skMaj(); if(GAU)h=-h; TCTL.st=h; TCTL.sv=v; // kx/ky : la place du POUCE en pixels depuis la base
     if(knb)knb.style.transform='translate('+(GAU?-(kx||0):(kx||0))+'px,'+(ky||0)+'px)';
     if(stk){stk.style.setProperty('--sl',Math.max(0,h).toFixed(3));stk.style.setProperty('--sr',Math.max(0,-h).toFixed(3));stk.style.setProperty('--su',Math.max(0,v).toFixed(3));stk.style.setProperty('--sd',Math.max(0,-v).toFixed(3));} } // (2026-10-28) la glissière remplit son trait du côté où l'on braque // (2026-09-30) le bouton est dessiné SOUS le pouce (×1) : à ×0,62 de la course (×0,5 en vertical, sur la valeur COURBÉE) il traînait derrière le doigt et mentait sur la butée
