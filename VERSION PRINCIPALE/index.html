@@ -66888,13 +66888,19 @@ function garArgent(g){
     for(const c of cand){if(pris.length>=nb)break;if(pris.concat(deja).every(p=>Math.hypot(p[0]-c[0],p[1]-c[1])>=ecart))pris.push(c);}
     return pris;};
   // un TAS : des couches qui rétrécissent, de travers, et quelques billets échappés autour
-  const tas=(x0,z0,couches)=>{const it=[];let y=0;
+  // (2026-11-01, Sacha : « des liasses qui flottent, rends ça plus joli ») CHAQUE ÉTAGE REPOSE SUR LE PRÉCÉDENT : avant, chaque couche
+  // tirait ses points au hasard dans son propre rayon, sans lien avec celle du dessous — une liasse du sommet pouvait n'avoir RIEN sous
+  // elle à cet endroit précis et semblait flotter. Désormais l'étage 0 seul est tiré au hasard (Poisson) ; chaque étage suivant reprend
+  // les points de celui d'en dessous, resserrés vers le centre (×.72) puis triés du plus central au plus loin — la pyramide tient debout.
+  const tas=(x0,z0,couches)=>{const it=[];let y=0,bas=null;
     const vole=()=>{const a=rn()*6.2832,d=.7+rn()*.45;it.push(()=>billet(x0+Math.cos(a)*d,z0+Math.sin(a)*d,rn()*6.2832));};
-    couches.forEach((cc,l)=>{const n=cc[0],R=cc[1],y9=y,tilt=l?.12:.04,pts=[];
-      for(let k=0;k<80&&pts.length<n;k++){const a=rn()*6.2832,d=Math.sqrt(rn())*R,px=x0+Math.cos(a)*d,pz=z0+Math.sin(a)*d;
-        if(pts.every(q=>Math.hypot(q[0]-px,q[1]-pz)>.27))pts.push([px,pz]);}
+    couches.forEach((cc,l)=>{const n=cc[0],R=cc[1],y9=y,tilt=l?.12:.04;let pts;
+      if(!bas){pts=[];for(let k=0;k<80&&pts.length<n;k++){const a=rn()*6.2832,d=Math.sqrt(rn())*R,px=x0+Math.cos(a)*d,pz=z0+Math.sin(a)*d;
+        if(pts.every(q=>Math.hypot(q[0]-px,q[1]-pz)>.27))pts.push([px,pz]);}}
+      else{pts=bas.map(q=>[x0+(q[0]-x0)*.72+(rn()-.5)*.05,z0+(q[1]-z0)*.72+(rn()-.5)*.05])
+        .sort((a,b)=>Math.hypot(a[0]-x0,a[1]-z0)-Math.hypot(b[0]-x0,b[1]-z0)).slice(0,n);}
       for(const q of pts)it.push(()=>liasse(q[0],y9,q[1],rn()*6.2832,(rn()-.5)*tilt,(rn()-.5)*tilt));
-      vole();y+=LT*.96;});
+      vole();y+=LT*.96;bas=pts;});
     return {it:it,a:0};};
   // LES TAS BAS du couloir de la caméra (3 couches : 33 cm, sous les 45 cm de la règle) — puis LES GROS TAS au pied des murs (5 couches)
   const bas=choisir(5.1,8.1,.72,1.7,10,[]),gros=choisir(8.4,11.2,1.0,2.2,7,bas);
