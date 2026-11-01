@@ -189,7 +189,7 @@ function engPret(i){
    garage (voir atelierLampes), puis dessiné une fois hors écran (états de pipeline de la puce) — `chauffeRendu([GAR.root])`. Un joueur
    plus rapide que la chauffe ne casse rien : openGarage bâtit ce qui manque et la 1re image compile ce qui reste, comme avant. */
 function atelierChauffe(){ // vrai si elle a travaillé à cette image (la chauffe s'arrête là pour cette image)
-  if(GAR.chaud||garageOn)return false;
+  if(GAR.chaud||garageOn){if(garageOn&&GAR.root)GAR.chaud=true;return false;} /* (2026-11-01) l'atelier déjà montré (JOUER avant la fin de la chauffe) : ses programmes sont nés — MESURÉ ×4 : sans ça, il était redessiné hors écran à l'écran de fin, 330 ms figées */
   if(!GAR.root){const f=document.fonts;atelierChauffe.n=(atelierChauffe.n|0)+1;
     if(f&&f.check&&atelierChauffe.n<150&&!f.check('26px "Press Start 2P"')){if(atelierChauffe.n===1&&f.load)f.load('26px "Press Start 2P"').catch(function(){});return false;} // 2,5 s au plus
     try{buildGarageRoom();}catch(e){console.warn('atelier',e);GAR.chaud=true;}
@@ -382,6 +382,7 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
 }catch(e){console.warn('chauffeRendu',e);} }
 function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image (elles tenaient toutes dans la même : ~1,8 s d'un bloc au chargement, MESURÉ) — rend vrai s'il en reste
   const E=[
+  function(){cielArcMonte();},function(){cielArcMonte();},function(){cielArcMonte();},function(){cielArcMonte();}, /* (2026-11-01) les photos du ciel et la mer de cumulus montent au GPU (voir cielArcMonte) */
   function(){orbiteChauffe();}, // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
   function(){if(!CITY.chaud){CITY.chaud=true;villeChauffe();}},
   function(){if(SPIN.on){const m9=mkJeton(1);scene.add(m9);chauffeRendu([m9]);scene.remove(m9);}}, /* (2026-10-14) LE JETON DU FINAL SPIN : texture et matières montées au menu */

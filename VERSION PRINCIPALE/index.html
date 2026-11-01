@@ -4132,6 +4132,36 @@ html body.touch.play #tNitro::before{display:block!important;content:'';position
 html body.touch.play #tNitro:active::before,html body.touch.play #tNitro.on::before{box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),inset 0 -10px 18px color-mix(in srgb,var(--nc,#ff9a3c) 40%,transparent),0 0 28px color-mix(in srgb,var(--nc,#ff9a3c) 60%,transparent),0 6px 20px rgba(0,0,0,.2)!important}
 html body.touch.play #tNitro.plein:not(.on)::before{animation:nxVerrePret 1.6s ease-in-out infinite}
 @keyframes nxVerrePret{50%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.7),0 0 20px color-mix(in srgb,var(--nc,#ff9a3c) 45%,transparent),0 6px 20px rgba(0,0,0,.2)}}
+/* ===== LES ICÔNES DU BOUTON BOOST (2026-11-01, Léo : « change l'éclair par un truc intelligent ou stylé, genre une bouteille nitro, on peut tester plusieurs trucs ») =====
+   ?boost=bouteille | chevrons | flamme | anneau (rien = l'éclair en pixels, comme avant). Chaque icône est un SVG en verre qui LIT la réserve : --nr (nitro) et --nx (réserve bleue)
+   sont déjà posées sur #tNitro par la boucle ; la couleur de la poussée est --nc (orange, bleu en réserve, violet en infinie). Appuyé (.on) : l'icône s'enfonce et s'embrase. */
+html body.bv #tNitro .nx3{display:none!important}
+html body.bv #tNitro .bvIco{position:absolute;left:50%;top:50%;height:64px;width:auto;transform:translate(-50%,-50%);overflow:visible;pointer-events:none;z-index:1;--bc:var(--nc,#ff9a3c);
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.28));transition:transform .12s,filter .15s}
+html body.bv #tNitro .bv-bouteille{height:74px}html body.bv #tNitro .bv-flamme{height:68px}html body.bv #tNitro .bv-anneau{height:72px}
+html body.bv #tNitro:active .bvIco,html body.bv #tNitro.on .bvIco{transform:translate(-50%,calc(-50% + 3px)) scale(.95);filter:drop-shadow(0 0 10px var(--bc)) drop-shadow(0 0 22px color-mix(in srgb,var(--bc) 60%,transparent))}
+html body.bv #tNitro.bleu{--nc:#7d97ff}html body.bv #tNitro.inf{--nc:#ff4a3a}
+.bvIco .bvLn{fill:rgba(255,255,255,.09);stroke:rgba(255,255,255,.88);stroke-width:1.6;stroke-linejoin:round}
+.bvIco .bvBr{fill:none;stroke:rgba(255,255,255,.5);stroke-width:1.2;stroke-linecap:round}
+.bvIco .bvSh{fill:none;stroke:rgba(255,255,255,.7);stroke-width:1.6;stroke-linecap:round}
+.bvIco .bvLq,.bvIco .bvLx{transform-box:fill-box;transform-origin:50% 100%;transition:transform .2s}
+.bvIco .bvLq{fill:var(--bc);opacity:.92;transform:scaleY(var(--nr,.5))}
+.bvIco .bvLx{fill:#7d97ff;opacity:.85;transform:scaleY(min(1,calc(var(--nr,.5) + var(--nx,0))))}
+.bvIco .bvCh{fill:none;stroke:#fff;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s}
+.bvIco.bv-chevrons .c3{opacity:calc(.16 + .84*clamp(0,var(--nr,.5)*6,1));stroke:color-mix(in srgb,#fff 55%,var(--bc))}
+.bvIco.bv-chevrons .c2{opacity:calc(.16 + .84*clamp(0,(var(--nr,.5) - .33)*6,1))}
+.bvIco.bv-chevrons .c1{opacity:calc(.16 + .84*clamp(0,(var(--nr,.5) - .66)*6,1));stroke:#fff}
+html body.bv #tNitro.plein:not(.on) .bv-chevrons .bvCh{animation:bvMonte 1.2s ease-in-out infinite}
+html body.bv #tNitro.plein:not(.on) .bv-chevrons .c2{animation-delay:.12s}html body.bv #tNitro.plein:not(.on) .bv-chevrons .c1{animation-delay:.24s}
+@keyframes bvMonte{50%{transform:translateY(-4px)}}
+.bvIco .bvPi{fill:none;stroke:rgba(255,255,255,.2);stroke-width:4}
+.bvIco .bvRq,.bvIco .bvRx{fill:none;stroke-width:4.5;stroke-linecap:round;stroke-dasharray:100 100;transform:rotate(-90deg);transform-origin:32px 32px;transition:stroke-dashoffset .2s}
+.bvIco .bvRq{stroke:var(--bc);stroke-dashoffset:calc(100 - 100*var(--nr,.5))}
+.bvIco .bvRx{stroke:#7d97ff;stroke-dashoffset:calc(100 - 100*min(1,calc(var(--nr,.5) + var(--nx,0))))}
+.bvIco.bv-anneau .bvCh{stroke-width:3.5}
+.bvIco.bv-anneau .d1{opacity:.95}.bvIco.bv-anneau .d2{opacity:.55}
+html body.bv #tNitro.bas:not(.on) .bvIco{animation:bvSec .6s steps(2) infinite}
+@keyframes bvSec{50%{filter:drop-shadow(0 0 8px #ff5a6e)}}
 </style>
 <style id="hudMaitrise">
 /* =====================================================================================================================
@@ -11666,7 +11696,7 @@ function pcubeDest(){ if(!PCUBE.grp)return;
   if(!k)return;
   let t=PCUBE.img[k];
   if(!t){t=PCUBE.img[k]=new THREE.Texture();t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.anisotropy=4;
-    const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;t.pret=true;if(PCUBE.cle===k){PCUBE.mU.uTex.value=t;PCUBE.mU.uHas.value=1;}};
+    const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;t.pret=true;try{renderer.initTexture(t);}catch(e){} /* (2026-11-01) montée au GPU à l'arrivée (16 ms ×4), pas dans l'image où le portail paraît */if(PCUBE.cle===k){PCUBE.mU.uTex.value=t;PCUBE.mU.uHas.value=1;}};
     im.onerror=function(){t.rate=true;};im.src='assets/portail/'+k+'.webp';
     const cles=Object.keys(PCUBE.img);if(cles.length>4){const v=cles[0];if(v!==k){try{PCUBE.img[v].dispose();}catch(e){}delete PCUBE.img[v];}}} // on n'en garde que quelques-unes
   if(t.pret){PCUBE.mU.uTex.value=t;PCUBE.mU.uHas.value=1;}}
@@ -15340,7 +15370,7 @@ function prebPart(c){ // on commence la piste d'en face
   PREB.g=prebJob(PREB.sd,W);}
 function prebTravaille(lim){ // une tranche de travail, jusqu'à l'échéance lim (Infinity : jusqu'au bout)
   const W=PREB.W,g=PREB.g,t0=performance.now();let r=null;
-  try{prebAvec(W,function(){const l0=JF.lim;JF.lim=lim;try{do{r=g.next();}while(!r.done&&performance.now()<lim);}finally{JF.lim=l0;}});}
+  try{prebAvec(W,function(){const l0=JF.lim;JF.lim=lim;try{do{const t9=performance.now();r=g.next();const d9=performance.now()-t9;if(d9>20&&lim!==Infinity){const P9=PREB.pas||(PREB.pas=[]);P9.push([Math.round(d9),PREB.carte,PREB.img]);if(P9.length>12)P9.shift();}}while(!r.done&&performance.now()<lim);}finally{JF.lim=l0;} /* PREB.pas (banc) : les pas de plus de 20 ms */});}
   catch(e){console.warn('pré-bâti',e);window.__prebErr=e;try{window.__ccNote('panne','pré-bâti · '+(e&&e.message||e));}catch(_){}PREB.echecs++;prebAnnule('erreur');return;}
   PREB.cpu+=performance.now()-t0;PREB.img++;
   if(r&&r.done){PREB.fait=true;PREB.tFin=performance.now();
@@ -15363,7 +15393,7 @@ function prebGraine(niv){ // (newTrack0, après lvlChoisir) la piste d'en face e
   else{const zn=Math.max(0,(runStats.zones|0)-(LVL.tutoZ|0));
   const ok=PREB.porte&&!!niv&&niv===LVL.cur&&!niv.graine&&!PARK.on&&SF.tirage[zn]===PREB.t&&PREB.z===(runStats.zones|0)&&PREB.rh===ROAD_HALF;
   if(!ok){prebAnnule(PREB.porte?'portail':'hors portail');return null;}}
-  if(!PREB.fait){const t0=performance.now();PREB.finis++;prebTravaille(Infinity);PREB.msFin=Math.round(performance.now()-t0);if(!PREB.fait)return null;} // pas fini à temps : le reste d'un trait
+  if(!PREB.fait){const t0=performance.now();PREB.finis++;prebTravaille(Infinity);PREB.msFin=Math.round(performance.now()-t0);if(!PREB.fait)return null;if(!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;} // pas fini à temps : le reste d'un trait
   else PREB.msFin=0;
   PREB.prend=true;return PREB.sd;}
 function prebPrend(seed){ // (buildTrack) la route bâtie d'avance, si c'est elle qu'on construit
@@ -15383,6 +15413,7 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   PREB.fin0=0;
   if(PREB.W&&PREB.dep){prebAnnule('départ');return;} // la partie est partie sans prendre la piste du départ
   if(mode==='drive'&&PREB.sT){const d9=(now-PREB.sT)/1000,v9=(s-PREB.sP)/Math.max(1e-3,d9);if(d9>0&&d9<.5&&v9>0)PREB.v=PREB.v?PREB.v+(v9-PREB.v)*Math.min(1,d9*2):v9;} // la vitesse le long de la piste (m/s), lissée
+  if(PREB.sT){const d9=now-PREB.sT;if(d9>0&&d9<250)PREB.ips=PREB.ips?PREB.ips+(1000/d9-PREB.ips)*.05:1000/d9;} /* (2026-11-01) les images par seconde, lissées (le rythme du pré-bâti) */
   PREB.sT=now;PREB.sP=s;
   if(paused||!running||garageOn||PCV.fen||PORTV.att||CHAUFFE_R.t)return;
   if(mode!=='drive'&&mode!=='fall')return;
@@ -15395,8 +15426,14 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   /* (2026-10-24, passe perf 3e tour) L'URGENCE : la grotte se bâtit en tranches fines (grtMailleNetsG) et peut ne pas être finie au portail quand l'image
      est lourde (MESURÉ ×4 : une grotte après la jade, 3,2 s de calcul : le reste d'un trait au passage, 900 ms figées). Le portail à moins de 10 s :
      la tranche monte à 9 ms, à moins de 5 s à 14 ms (une image de 25-33 ms au lieu d'un bloc). */
-  const r9=(L-s)/Math.max(20,PREB.v||60),u9=r9<5?14:r9<10?9:0;
-  prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));}
+  const r9=(L-s)/Math.max(20,PREB.v||60);let u9=r9<5?14:r9<10?9:0;
+  /* (2026-11-01, Léo : « règle ce qui reste ») LE RYTHME QUI SUIT LE RESTE : la tranche grandit dès qu'au rythme des images (PREB.ips) il ne resterait pas assez
+     d'images avant le portail pour finir — le reste estimé d'après la dernière préparation de cette map (PREB_CPU, sinon une estimation large). MESURÉ
+     (×4, portail approché vite) : la grotte n'était pas finie, ses 450 ms d'un bloc tombaient dans l'image du portail. */
+  {const ref=PREB_CPU[PREB.t.carte]||PREB_CPU_DEF[PREB.t.carte]||1500,re=ref*1.15-PREB.cpu;if(re>0)u9=Math.max(u9,Math.min(16,re/Math.max(1,(r9-1.5)*Math.max(8,Math.min(60,PREB.ips||25)))));}
+  prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));
+  if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;}
+const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500,foret:1500}; /* (ms de calcul) la dernière préparation d'avance de chaque map, en tranches — et une estimation large avant la 1re */
 /* LE DÉPART D'AVANCE (2026-10-19, session PERF — chantier du pré-bâti de Léo ; la passe perf du 18/10 : « JOUER : ~1,1 s d'image figée sous le
    nuage blanc · REJOUER : ~1 s de construction sous le volet · depuis l'accueil, la piste bâtie deux fois »). La 1re piste d'une partie se bâtit
    comme la map d'en face : AU MENU et À L'ÉCRAN DE FIN, quelques ms par image, par la même machine (pisteRoute, prebJade, prebDecorG), puis le
@@ -15469,7 +15506,7 @@ function prebDepPrend(fn){PREB.depPorte=true;try{fn();}finally{PREB.depPorte=fal
 window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule('dbg');}
   return {on:PREB.on,etat:PREB.W?(PREB.fait?'pret':'en cours'):'',carte:PREB.carte,graine:PREB.sd,palier:PREB.eng,palierCourse:engTier,reste:+((L-s)/Math.max(20,PREB.v||60)).toFixed(1),v:Math.round(PREB.v||0),ms:PREB.W||PREB.tFin?Math.round((PREB.tFin||performance.now())-PREB.t0):0,
     dep:PREB.W&&PREB.dep?{pourStarted:PREB.ctx,prochain:SF.prochain?SF.prochain.carte+'-'+SF.prochain.meteo:null}:null,prisAuDepart:PREB.depPris,legers:PREB.legers, // (LE DÉPART D'AVANCE)
-    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,
+    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
     err:window.__prebErr?String(window.__prebErr.stack||window.__prebErr).slice(0,400):null};};
 /* ===== LA DALLE LISSE (2026-10-25, Sacha : « la route est un peu brinquebalante, elle oscille quand elle fait des spirales ») =====
    MESURÉ (banc nuages/espace, 3 graines) : le roulis de la dalle avait des à-coups jusqu'à 25-35 × l'à-coup moyen — des CASSURES. Deux causes :
@@ -22568,7 +22605,7 @@ function* grtMailleNetsG(V,c,LL){
   const L=function(i,j,k){return loc[(i+2)+20*((j+2)+20*(k+2))];};
   // 2 · les sommets (cubes −1 … 15)
   vid.fill(-1);let nv=0;const MAXV=39990,cv=new Float32Array(8);
-  for(let cc=-1;cc<16&&nv<MAXV;cc++){if(performance.now()>JF.lim)yield;for(let b=-1;b<16&&nv<MAXV;b++)for(let a=-1;a<16;a++){
+  for(let cc=-1;cc<16&&nv<MAXV;cc++){for(let b=-1;b<16&&nv<MAXV;b++){if(performance.now()>JF.lim)yield; /* (2026-11-01) le rendez-vous à chaque rangée (une couche entière : jusqu'à 100 ms ×4 d'un bloc) */for(let a=-1;a<16;a++){
     let m=0;for(let q=0;q<8;q++){const v=L(a+(q&1),b+((q>>1)&1),cc+((q>>2)&1));cv[q]=v;if(v>0)m|=1<<q;}
     if(m===0||m===255)continue;
     let sx=0,sy=0,sz=0,ne=0;
@@ -22585,7 +22622,7 @@ function* grtMailleNetsG(V,c,LL){
     const p3=nv*3,p4=nv*4;T.P[p3]=lx;T.P[p3+1]=ly;T.P[p3+2]=lz;
     T.F[p4]=grtMatieres(wx,wy,wz,sal,lv);T.F[p4+1]=sal;T.F[p4+2]=Math.round(Math.max(.3,Math.min(1,1.28-roc/64))*255);T.F[p4+3]=0;
     grtLum(wx+gx/gl*1.5,wy+gy/gl*1.5,wz+gz/gl*1.5,sal,LL,lum);T.Lt[p4]=lum[0]*255;T.Lt[p4+1]=lum[1]*127.5;T.Lt[p4+2]=lum[2]*127.5;T.Lt[p4+3]=lum[3]*127.5;
-    vid[(a+1)+17*((b+1)+17*(cc+1))]=nv++;}}
+    vid[(a+1)+17*((b+1)+17*(cc+1))]=nv++;}}}
   // 3 · les quads : chaque arête (points 0 … 15 du tronçon) qui traverse la paroi — tournés vers l'air
   let ni=0;const V9=function(a,b,cc){return vid[(a+1)+17*((b+1)+17*(cc+1))];};
   for(let cc=0;cc<16;cc++){if(performance.now()>JF.lim)yield;for(let b=0;b<16;b++)for(let a=0;a<16;a++){const v0=L(a,b,cc),s0=v0>0;
@@ -43875,8 +43912,12 @@ function envPeintAvance(B){const sh=B&&B.sunHalo!=null?B.sunHalo:1;
   if(ENVC.cache.has(cle)||envProche(B.env,B.eS1,B.eS2,sh,SUN_DIR)){ENVC.attP=null;paintEnv(B.env,B.eS1,B.eS2);return;}
   envPrepare(B);ENVC.attP={B:B,cle:cle,t:performance.now()};}
 function envPeintTick(){const a=ENVC.attP;if(!a)return;
-  if(ENVC.att.has(a.cle)&&performance.now()-a.t<4000)return; /* (en route chez le travailleur) */
-  ENVC.attP=null;if(BIO.to===a.B)paintEnv(a.B.env,a.B.eS1,a.B.eS2);} /* arrivé (ou perdu : alors sur place, comme avant) — si le biome est toujours celui-là */
+  if(ENVC.att.has(a.cle)&&performance.now()-a.t<12000)return; /* (en route chez le travailleur) */
+  ENVC.attP=null;if(BIO.to!==a.B)return; /* arrivé (ou perdu : alors sur place, comme avant) — si le biome est toujours celui-là */
+  /* (2026-11-01, « règle ce qui reste ») LE CIEL ARRIVÉ EST CELUI QU'ON PEINT : entre la demande et l'arrivée, les dunes posent leur soleil (sous le sommet de
+     la grande pyramide) — la clé ne collait plus et le ciel repartait ici, MESURÉ 196 ms ×4 en pleine course. Le ciel demandé est pris tel quel (le reflet
+     est figé à l'entrée du biome) ; le délai passe de 4 à 12 s (un téléphone chargé ne le recalcule plus sur place pour un travailleur en retard). */
+  ENVC.force=a.cle;try{paintEnv(a.B.env,a.B.eS1,a.B.eS2);}finally{ENVC.force=null;}}
 function envProche(stops,s1,s2,sunHalo,sd){const t=JSON.stringify([stops,s1,s2,sunHalo]),pre=t.slice(0,-1)+',';let F=null,dm=.05;
   for(const [k,v] of ENVC.cache){if(k.indexOf(pre)!==0)continue;let a=null;try{a=JSON.parse(k);}catch(e){continue;}
     const d=Math.hypot(a[4]-sd.x,a[5]-sd.y,a[6]-sd.z);if(d<dm){dm=d;F=v;}}
@@ -43899,6 +43940,7 @@ window.dbgEnvCiel=function(){return {on:ENVC.on,cache:ENVC.cache.size,enVol:ENVC
 function paintEnvCiel(stops,s1,s2,sunHalo){FSTU.env='ciel2';FSTU.envB=null;FSTU.garage=false;FSTU.menuW=1;
   const S=128,cle=ENVC.on?envCle(stops,s1,s2,sunHalo,SUN_DIR):null;let F=cle&&ENVC.cache.get(cle);
   if(!F&&cle)F=envProche(stops,s1,s2,sunHalo,SUN_DIR); /* (2026-10-31) le même ciel préparé d'avance, le soleil à peine plus loin */
+  if(!F&&ENVC.force)F=ENVC.cache.get(ENVC.force); /* (2026-11-01) le ciel que envPeintTick vient de recevoir */
   if(F){envGarde(cle,F);ENVC.pris++;}
   else{if(cle){(ENVC.rates||(ENVC.rates=[])).push(cle.slice(-120));if(ENVC.rates.length>6)ENVC.rates.shift();}const t9=performance.now();F=envCielCalc(stops,s1,s2,sunHalo,{x:SUN_DIR.x,y:SUN_DIR.y,z:SUN_DIR.z},fstuDirs(S).T,FSTU_ECL,S);ENVC.ms=Math.round(performance.now()-t9);ENVC.calc++;if(cle)envGarde(cle,F);}
   envCvs.forEach(function(cv,f){if(cv.width!==S)cv.width=cv.height=S;const c=cv.getContext('2d'),im=c.createImageData(S,S);im.data.set(F[f]);c.putImageData(im,0,0);});
@@ -45758,7 +45800,7 @@ function engPret(i){
    garage (voir atelierLampes), puis dessiné une fois hors écran (états de pipeline de la puce) — `chauffeRendu([GAR.root])`. Un joueur
    plus rapide que la chauffe ne casse rien : openGarage bâtit ce qui manque et la 1re image compile ce qui reste, comme avant. */
 function atelierChauffe(){ // vrai si elle a travaillé à cette image (la chauffe s'arrête là pour cette image)
-  if(GAR.chaud||garageOn)return false;
+  if(GAR.chaud||garageOn){if(garageOn&&GAR.root)GAR.chaud=true;return false;} /* (2026-11-01) l'atelier déjà montré (JOUER avant la fin de la chauffe) : ses programmes sont nés — MESURÉ ×4 : sans ça, il était redessiné hors écran à l'écran de fin, 330 ms figées */
   if(!GAR.root){const f=document.fonts;atelierChauffe.n=(atelierChauffe.n|0)+1;
     if(f&&f.check&&atelierChauffe.n<150&&!f.check('26px "Press Start 2P"')){if(atelierChauffe.n===1&&f.load)f.load('26px "Press Start 2P"').catch(function(){});return false;} // 2,5 s au plus
     try{buildGarageRoom();}catch(e){console.warn('atelier',e);GAR.chaud=true;}
@@ -45951,6 +45993,7 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
 }catch(e){console.warn('chauffeRendu',e);} }
 function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image (elles tenaient toutes dans la même : ~1,8 s d'un bloc au chargement, MESURÉ) — rend vrai s'il en reste
   const E=[
+  function(){cielArcMonte();},function(){cielArcMonte();},function(){cielArcMonte();},function(){cielArcMonte();}, /* (2026-11-01) les photos du ciel et la mer de cumulus montent au GPU (voir cielArcMonte) */
   function(){orbiteChauffe();}, // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
   function(){if(!CITY.chaud){CITY.chaud=true;villeChauffe();}},
   function(){if(SPIN.on){const m9=mkJeton(1);scene.add(m9);chauffeRendu([m9]);scene.remove(m9);}}, /* (2026-10-14) LE JETON DU FINAL SPIN : texture et matières montées au menu */
@@ -68255,7 +68298,11 @@ const SHOP_LBL={voiture:'CAISSE',peinture:'PEINTURE',aile:'AILES',trainee:'TRAÎ
 function homeCielPrise(now){
   const ciel=(garageOn&&!!gEl&&gEl.classList.contains('menu'))||(!garageOn&&((!started||gameOver)||MENUV.retour)); // l'ACCUEIL : le garage en mode « menu » (le ciel), ou l'ancien menu hors garage
   if(!ciel||(typeof stallOn!=='undefined'&&stallOn))return;
-  if(now-(homeCielPrise._t||0)<3000)return; // toutes les 3 s : le ciel change lentement, et relire l'image WebGL coûte un peu sur iPhone
+  if(now-(homeCielPrise._t||0)<(homeCielPrise._cv?20000:3000))return; // toutes les 3 s : le ciel change lentement, et relire l'image WebGL coûte un peu sur iPhone
+  /* (2026-11-01, Léo : « règle ce qui reste ») UNE PRISE TOUTES LES 20 s, ET PAS PENDANT LA CHAUFFE. MESURÉ (banc iPhone ×4) : chaque prise relit l'image WebGL
+     (drawImage de la toile du jeu : la puce doit finir son travail avant) — 220 à 590 ms ×4, un à-coup du menu toutes les 3 s. Le ciel suit l'horloge :
+     il change en minutes. La 1re prise attend la fin de la chauffe du menu (CHAUFFE_R.fait), les suivantes toutes les 20 s. */
+  if(!homeCielPrise._cv&&!CHAUFFE_R.fait)return;
   homeCielPrise._t=now; // (2026-10-12, passe qualité) cette pose était collée DERRIÈRE le « // » : la relecture GPU→CPU tournait à CHAQUE image au menu
   let cv=homeCielPrise._cv;
   if(!cv){const b=document.getElementById('gHomeBas');if(!b)return;cv=homeCielPrise._cv=document.createElement('canvas');cv.className='gHomeCielCv';cv.width=160;cv.height=210;cv.setAttribute('aria-hidden','true');b.insertBefore(cv,b.firstChild);}
@@ -69207,11 +69254,17 @@ const CIEL_ARC={ // f la photo · su/se son soleil (colonne 0-1, hauteur en degr
   midi: {f:'ciel-midi.jpg', su:.603,se:7.5,ex:.8,ns:0,mi:0,mh:[1,.98,.94],mo:[.48,.58,.76],s:[.65,.55,.38],h:[.74,.77,.80]},
   soir: {f:'ciel-soir.jpg', su:.665,se:3,ex:.9,ns:1,mi:0,mh:[1,.80,.68],mo:[.40,.39,.55],s:[.95,.52,.26],h:[.64,.58,.58]}};
 const CARC={tex:{},mer:null,force:null};
+/* (2026-11-01, Léo : « règle ce qui reste ») LES PHOTOS DU CIEL MONTENT AU GPU AU MENU. MESURÉ (banc iPhone ×4) : la photo de 4096 × 1024 (et ses mipmaps) partait
+   à la puce au PREMIER rendu de la course qui la montre — 290 ms ×4 dans l'image juste après le JOUER. La chauffe du menu (chauffeDivers) les envoie une par
+   image ; une photo arrivée après la chauffe monte à son arrivée, si l'on est encore au menu. */
+function cielArcMonte(){const L=[CARC.mer];for(const k in CARC.tex)L.push(CARC.tex[k]);
+  for(const t of L)if(t&&t.pret&&!t.monte){t.monte=1;try{renderer.initTexture(t);}catch(e){}return true;}return false;}
+function cielArcArrive(t){t.pret=true;if((!started||gameOver)&&CHAUFFE_R.fait)requestAnimationFrame(function(){if(!started||gameOver)cielArcMonte();});}
 function cielArcTex(f){let t=CARC.tex[f];if(t)return t.pret?t:null;
   t=CARC.tex[f]=new THREE.Texture();t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.anisotropy=4;t.wrapS=THREE.RepeatWrapping;t.wrapT=THREE.ClampToEdgeWrapping;
-  const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;t.pret=true;};im.src='assets/ciel/'+f;return null;}
+  const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;cielArcArrive(t);};im.src='assets/ciel/'+f;return null;}
 function cielArcMer(){if(CARC.mer)return CARC.mer.pret?CARC.mer:null;const t=CARC.mer=new THREE.Texture();t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;t.generateMipmaps=true;t.anisotropy=Math.min(16,renderer.capabilities.getMaxAnisotropy());
-  t.wrapS=t.wrapT=THREE.RepeatWrapping;t.premultiplyAlpha=false;const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;t.pret=true;};im.src='assets/ciel/mer-cumulus.png';return null;}
+  t.wrapS=t.wrapT=THREE.RepeatWrapping;t.premultiplyAlpha=false;const im=new Image();im.onload=function(){t.image=im;t.needsUpdate=true;cielArcArrive(t);};im.src='assets/ciel/mer-cumulus.png';return null;}
 if(ARC_ON){cielArcMer();for(const m9 in CIEL_ARC){cielArcTex(CIEL_ARC[m9].f); // chargées dès le départ (≈ 1 Mo en tout) ; la brume des cumulus = l'horizon de la photo
   const S9=SF_CARTES&&SF_CARTES.nuages&&SF_CARTES.nuages.m[m9],B9=S9&&BIOMES[S9.bio];if(B9&&NUF.ap[m9]){B9.fog=CIEL_ARC[m9].h.slice();NUF.ap[m9].fog=B9.fog.slice();}}}
 /* (2026-10-20, Léo : « enlever en général le tapis complètement rempli de nuages, l'harmoniser avec la répartition des nuages du premier plan selon la météo ») LE TAPIS CLAIRSEMÉ :
@@ -74395,6 +74448,10 @@ function mortSaute(dt){
   MORT_IMG.n++;return true;
 }
 window.dbgMortImg=function(n){if(n!=null){PAL.B.mortImg[PAL.n]=Math.max(1,n|0);MORT_IMG.i=0;}return {N:PAL.b('mortImg',1),actif:MORT_IMG.on,depuis:+MORT_IMG.t.toFixed(2),sautees:MORT_IMG.n,ecran:overlay.getAttribute('data-ecran'),tel:TCTL.on};}; // (banc)
+/* ===== LES ICÔNES DU BOUTON BOOST (2026-11-01, Léo : « change l'éclair par un truc intelligent ou stylé, genre une bouteille nitro, on peut tester plusieurs trucs ») ===== ?boost=bouteille|chevrons|flamme|anneau : un SVG en verre dans #tNitro à la place de l'éclair en pixels (le style vit dans charte-7-details.css) ; rien dans l'URL = l'éclair, comme avant. */
+const BV_ICO={"bouteille": "<svg class=\"bvIco bv-bouteille\" viewBox=\"0 0 40 66\" aria-hidden=\"true\"><defs><clipPath id=\"bvCb\"><path d=\"M14 9h12v6q8 2 8 12v27q0 8-8 8H14q-8 0-8-8V27q0-10 8-12z\"/></clipPath></defs><g clip-path=\"url(#bvCb)\"><rect class=\"bvLx\" x=\"0\" y=\"15\" width=\"40\" height=\"52\"/><rect class=\"bvLq\" x=\"0\" y=\"15\" width=\"40\" height=\"52\"/></g><path class=\"bvLn\" d=\"M14 9h12v6q8 2 8 12v27q0 8-8 8H14q-8 0-8-8V27q0-10 8-12z\"/><path class=\"bvLn\" d=\"M11 4h18v5H11z\"/><path class=\"bvBr\" d=\"M10 31h20M10 36h20\"/><path class=\"bvSh\" d=\"M11 22q-2 4-2 10\"/></svg>", "chevrons": "<svg class=\"bvIco bv-chevrons\" viewBox=\"0 0 48 52\" aria-hidden=\"true\"><path class=\"bvCh c3\" d=\"M8 46l16-14 16 14\"/><path class=\"bvCh c2\" d=\"M8 31l16-14 16 14\"/><path class=\"bvCh c1\" d=\"M8 16l16-14 16 14\"/></svg>", "flamme": "<svg class=\"bvIco bv-flamme\" viewBox=\"0 0 40 56\" aria-hidden=\"true\"><defs><clipPath id=\"bvCf\"><path d=\"M20 2c2 9 12 14 12 28 0 9-5 15-12 15S8 39 8 30c0-5 2-8 4-11 1 4 3 5 4 5 0-8 1-14 4-22z\"/></clipPath></defs><g clip-path=\"url(#bvCf)\"><rect class=\"bvLx\" x=\"0\" y=\"2\" width=\"40\" height=\"44\"/><rect class=\"bvLq\" x=\"0\" y=\"2\" width=\"40\" height=\"44\"/></g><path class=\"bvLn\" d=\"M20 2c2 9 12 14 12 28 0 9-5 15-12 15S8 39 8 30c0-5 2-8 4-11 1 4 3 5 4 5 0-8 1-14 4-22z\"/></svg>", "anneau": "<svg class=\"bvIco bv-anneau\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"><circle class=\"bvPi\" cx=\"32\" cy=\"32\" r=\"27\"/><circle class=\"bvRx\" cx=\"32\" cy=\"32\" r=\"27\" pathLength=\"100\"/><circle class=\"bvRq\" cx=\"32\" cy=\"32\" r=\"27\" pathLength=\"100\"/><path class=\"bvCh d2\" d=\"M21 38l11-10 11 10\"/><path class=\"bvCh d1\" d=\"M21 29l11-10 11 10\"/></svg>"};
+{const bv=(/[?&]boost=([a-z]+)/.exec(location.search)||[])[1],bt=document.getElementById('tNitro');
+ if(bv&&BV_ICO[bv]&&bt){bt.insertAdjacentHTML('beforeend',BV_ICO[bv]);document.body.classList.add('bv','bv-'+bv);}}
 /* ====================== LA CADENCE STABLE — CAD (2026-10-14, passe perf mobile ; Sacha : « fluide même sur un iPhone 7 », « sans bugger ») ======================
    Un téléphone qui ne tient pas 60 images/s n'en affiche pas « 45 » : il alterne des images de 16,7 ms et de 33,3 ms au hasard, et c'est
    CETTE irrégularité que le joueur appelle « ça bug ». 30 images/s RÉGULIÈRES (une image d'écran sur deux, toujours la même) se lisent

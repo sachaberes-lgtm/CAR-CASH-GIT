@@ -613,7 +613,11 @@ const SHOP_LBL={voiture:'CAISSE',peinture:'PEINTURE',aile:'AILES',trainee:'TRAÎ
 function homeCielPrise(now){
   const ciel=(garageOn&&!!gEl&&gEl.classList.contains('menu'))||(!garageOn&&((!started||gameOver)||MENUV.retour)); // l'ACCUEIL : le garage en mode « menu » (le ciel), ou l'ancien menu hors garage
   if(!ciel||(typeof stallOn!=='undefined'&&stallOn))return;
-  if(now-(homeCielPrise._t||0)<3000)return; // toutes les 3 s : le ciel change lentement, et relire l'image WebGL coûte un peu sur iPhone
+  if(now-(homeCielPrise._t||0)<(homeCielPrise._cv?20000:3000))return; // toutes les 3 s : le ciel change lentement, et relire l'image WebGL coûte un peu sur iPhone
+  /* (2026-11-01, Léo : « règle ce qui reste ») UNE PRISE TOUTES LES 20 s, ET PAS PENDANT LA CHAUFFE. MESURÉ (banc iPhone ×4) : chaque prise relit l'image WebGL
+     (drawImage de la toile du jeu : la puce doit finir son travail avant) — 220 à 590 ms ×4, un à-coup du menu toutes les 3 s. Le ciel suit l'horloge :
+     il change en minutes. La 1re prise attend la fin de la chauffe du menu (CHAUFFE_R.fait), les suivantes toutes les 20 s. */
+  if(!homeCielPrise._cv&&!CHAUFFE_R.fait)return;
   homeCielPrise._t=now; // (2026-10-12, passe qualité) cette pose était collée DERRIÈRE le « // » : la relecture GPU→CPU tournait à CHAQUE image au menu
   let cv=homeCielPrise._cv;
   if(!cv){const b=document.getElementById('gHomeBas');if(!b)return;cv=homeCielPrise._cv=document.createElement('canvas');cv.className='gHomeCielCv';cv.width=160;cv.height=210;cv.setAttribute('aria-hidden','true');b.insertBefore(cv,b.firstChild);}

@@ -164,8 +164,12 @@ function envPeintAvance(B){const sh=B&&B.sunHalo!=null?B.sunHalo:1;
   if(ENVC.cache.has(cle)||envProche(B.env,B.eS1,B.eS2,sh,SUN_DIR)){ENVC.attP=null;paintEnv(B.env,B.eS1,B.eS2);return;}
   envPrepare(B);ENVC.attP={B:B,cle:cle,t:performance.now()};}
 function envPeintTick(){const a=ENVC.attP;if(!a)return;
-  if(ENVC.att.has(a.cle)&&performance.now()-a.t<4000)return; /* (en route chez le travailleur) */
-  ENVC.attP=null;if(BIO.to===a.B)paintEnv(a.B.env,a.B.eS1,a.B.eS2);} /* arrivé (ou perdu : alors sur place, comme avant) — si le biome est toujours celui-là */
+  if(ENVC.att.has(a.cle)&&performance.now()-a.t<12000)return; /* (en route chez le travailleur) */
+  ENVC.attP=null;if(BIO.to!==a.B)return; /* arrivé (ou perdu : alors sur place, comme avant) — si le biome est toujours celui-là */
+  /* (2026-11-01, « règle ce qui reste ») LE CIEL ARRIVÉ EST CELUI QU'ON PEINT : entre la demande et l'arrivée, les dunes posent leur soleil (sous le sommet de
+     la grande pyramide) — la clé ne collait plus et le ciel repartait ici, MESURÉ 196 ms ×4 en pleine course. Le ciel demandé est pris tel quel (le reflet
+     est figé à l'entrée du biome) ; le délai passe de 4 à 12 s (un téléphone chargé ne le recalcule plus sur place pour un travailleur en retard). */
+  ENVC.force=a.cle;try{paintEnv(a.B.env,a.B.eS1,a.B.eS2);}finally{ENVC.force=null;}}
 function envProche(stops,s1,s2,sunHalo,sd){const t=JSON.stringify([stops,s1,s2,sunHalo]),pre=t.slice(0,-1)+',';let F=null,dm=.05;
   for(const [k,v] of ENVC.cache){if(k.indexOf(pre)!==0)continue;let a=null;try{a=JSON.parse(k);}catch(e){continue;}
     const d=Math.hypot(a[4]-sd.x,a[5]-sd.y,a[6]-sd.z);if(d<dm){dm=d;F=v;}}
@@ -188,6 +192,7 @@ window.dbgEnvCiel=function(){return {on:ENVC.on,cache:ENVC.cache.size,enVol:ENVC
 function paintEnvCiel(stops,s1,s2,sunHalo){FSTU.env='ciel2';FSTU.envB=null;FSTU.garage=false;FSTU.menuW=1;
   const S=128,cle=ENVC.on?envCle(stops,s1,s2,sunHalo,SUN_DIR):null;let F=cle&&ENVC.cache.get(cle);
   if(!F&&cle)F=envProche(stops,s1,s2,sunHalo,SUN_DIR); /* (2026-10-31) le même ciel préparé d'avance, le soleil à peine plus loin */
+  if(!F&&ENVC.force)F=ENVC.cache.get(ENVC.force); /* (2026-11-01) le ciel que envPeintTick vient de recevoir */
   if(F){envGarde(cle,F);ENVC.pris++;}
   else{if(cle){(ENVC.rates||(ENVC.rates=[])).push(cle.slice(-120));if(ENVC.rates.length>6)ENVC.rates.shift();}const t9=performance.now();F=envCielCalc(stops,s1,s2,sunHalo,{x:SUN_DIR.x,y:SUN_DIR.y,z:SUN_DIR.z},fstuDirs(S).T,FSTU_ECL,S);ENVC.ms=Math.round(performance.now()-t9);ENVC.calc++;if(cle)envGarde(cle,F);}
   envCvs.forEach(function(cv,f){if(cv.width!==S)cv.width=cv.height=S;const c=cv.getContext('2d'),im=c.createImageData(S,S);im.data.set(F[f]);c.putImageData(im,0,0);});
