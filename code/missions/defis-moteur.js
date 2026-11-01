@@ -41,7 +41,9 @@ window.dbgSec=function(a){if(a==='raz'){secReset();return 'remis à zéro';}cons
 /* ===== LES MISSIONS v2 — LE MOTEUR (2026-10-16, Sacha : « toutes les missions sont ouvertes en même temps, sans ordre imposé » · « il
    faut une migration propre de SAVE.d.mis vers le nouveau format, sans rien perdre et sans redonner de primes déjà touchées ») =====
    LA SAUVEGARDE `SAVE.d.m2` (désinfectée par san) : `ok` les missions réussies · `pr` celles dont la récompense est prise · `su` les
-   suivies (3 au plus) · `vu` l'avancement que l'écran a déjà montré (la barre se remplit DEPUIS là) · `nv` réussies pas encore vues ·
+   suivies — (2026-11-01, Sacha : « on peut plus suivre de mission, ça sert à rien » : plus rien n'y ajoute, le tableau reste pour les
+   vieilles sauvegardes) · `mq` celles qu'on a effacées de la liste (une achevée, touchée : elle disparaît) · `vu` l'avancement que
+   l'écran a déjà montré (la barre se remplit DEPUIS là) · `nv` réussies pas encore vues ·
    `fl` les drapeaux des exploits d'un instant (les secrètes « meurs… ») · `r` les records d'une partie que le jeu ne gardait pas · `c` les
    compteurs à vie (morts, argent accumulé, jours joués, maps jouées, maps posées en parfait, parties enchaînées).
    LES BRANCHEMENTS (à côté de ceux des couleurs secrètes, SEC) : m2Tick (chaque image de course, après secTick) · m2Fig (addTrick) ·
@@ -50,7 +52,7 @@ window.dbgSec=function(a){if(a==='raz'){secReset();return 'remis à zéro';}cons
    LA SECONDE CHANCE (CHANCE) : la reprise n'appelle pas runxReset → les compteurs de la partie continuent (« 3 premières secondes » se
    juge sur la conduite depuis le DÉPART, « partie entière sans… » sur toute la partie) ; seule la vie repart (« tiens 5 min sans
    mourir » : on est mort). Rien en BALADE, au BAC À SABLE, au PARC ni à l'AUTO-ÉCOLE. */
-function m2Vierge(){return {v:0,ok:[],pr:[],su:[],vu:{},nv:[],fl:[],r:{},c:{morts:0,gagne:0,jours:0,jd:'',cartes:[],cartesP:[],rejoue:0}};}
+function m2Vierge(){return {v:0,ok:[],pr:[],su:[],mq:[],vu:{},nv:[],fl:[],r:{},c:{morts:0,gagne:0,jours:0,jd:'',cartes:[],cartesP:[],rejoue:0}};}
 function m2Etat(){const d=SAVE.d;if(!m2Etat._pop){m2Etat._pop=1;misPop();} /* (2026-10-18) le cadeau des carnets POP, une fois, avant la migration */let s=d.m2;if(!s||typeof s!=='object'||!s.c)s=d.m2=m2Vierge();if(s.v!==1)m2Migre(s);if(s.vc!==1)m2MigreV2(s);else if(s.vr!==1)m2MigreV2(s,1);return s;} /* (2026-10-18) vr : la REPRISE de la migration avortée (voir m2MigreV2) */
 function m2EnC(){try{return !!(started&&!gameOver);}catch(e){return false;}} // (les `let` de la course naissent APRÈS SAVE.load : la migration passe avant)
 function m2Ok(){try{return started&&!gameOver&&!BALADE&&!SANDBOX&&!(PARK&&PARK.on)&&!TUTO.on;}catch(e){return false;}}
