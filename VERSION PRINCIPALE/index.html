@@ -44696,7 +44696,7 @@ SHAPES.d_corbillard=function(K){
   const U=LPU,R=.40,ZF=1.76,ZR=-1.98,ZC=2.38;                                 /* ZC : où finit le cercueil et commence le crâne */
   const P=K.kit({p:{g:'p',c:0x0d0d10},k:{g:'m',c:0x141518},K:{g:'g',c:0x050507},V:{g:'g',c:0x030304},g:{g:'g',c:0x16202a},
     b:{g:'s',c:0xbfae88,f:0},B:{g:'s',c:0x6e6048,f:0},N:{g:'m',c:0x0a0806,f:0},A:{g:'c',c:0xc9a45a},
-    W:{g:'l',c:0xe8f4ff},L:{g:'l',c:0xff1f2e},Q:{g:'l',c:0xffffff}});   /* Q : la place de la plaque (plqDessinee) */                               /* b : l'os, B : l'os dans l'ombre (sutures, dents du fond), A : le laiton du cercueil */
+    W:{g:'l',c:0xe8f4ff},L:{g:'l',c:0xff1f2e},Q:{g:'l',c:0xffffff},E:{g:'m',c:0x1a1030},I:{g:'l',c:0xff3f8e}});   /* E, I : l'œil kawaii (le grand noir, le CŒUR rose qui brille) */   /* Q : la place de la plaque (plqDessinee) */                               /* b : l'os, B : l'os dans l'ombre (sutures, dents du fond), A : le laiton du cercueil */
   const AR=[[0,2*R+.06],[R*.70,2*R+.02],[R+.06,R*1.18],[R+.18,.40]];
   const zs=[-2.95,-2.85,-2.60,-.30,.10,1.00,ZC-.04,ZC];
   for(const w of [ZF,ZR])for(const d of [R*.70,R+.06,R+.18])zs.push(w-d,w+d);
@@ -44725,7 +44725,7 @@ SHAPES.d_corbillard=function(K){
      le crâne de face — voûte ronde, tempes, pommettes larges, mâchoire étroite — et la profondeur (dY) son profil — front, arcades, face, menton.
      Les orbites, le nez et la bouche sont CREUSÉS dans la coque (vrais creux, os sombre au bord, noir au fond) ; les dents s'y posent. */
   const ZB=1.90;                                                                                       /* le plan du dos du crâne : la voûte recouvre le bout du capot */
-  const wY=y=>U.lin([[.16,.30],[.24,.42],[.36,.50],[.48,.62],[.54,.74],[.66,.72],[.79,.74],[.97,.80],[1.12,.82],[1.28,.76],[1.40,.62],[1.50,.38],[1.55,.04]],y),
+  const wY=y=>U.lin([[.16,.26],[.24,.38],[.30,.46],[.36,.50],[.42,.50],[.48,.58],[.54,.74],[.62,.78],[.70,.75],[.79,.73],[.97,.78],[1.12,.82],[1.28,.78],[1.40,.66],[1.50,.42],[1.55,.04]],y),   /* (v3, « plus propre, réel ») la mandibule, le maxillaire étroit, les pommettes, les tempes, la voûte */
         dY=y=>U.lin([[.16,.55],[.24,.92],[.36,1.00],[.48,1.02],[.56,1.05],[.70,.98],[.88,1.00],[1.05,1.05],[1.15,.98],[1.28,.86],[1.40,.64],[1.50,.36],[1.55,0]],y);
   /* une grille LARGE (les grosses facettes du jeu) dont les lignes tombent sur les bords des orbites, du nez et de la bouche :
      on creuse en enfonçant les sommets intérieurs — orbites et nez taillés à facettes, nets */
@@ -44734,26 +44734,37 @@ SHAPES.d_corbillard=function(K){
   const dans=(v,a,b)=>v>a-1e-6&&v<b+1e-6,ds=(v,a,b)=>v>a+1e-6&&v<b-1e-6;
   const creux=(x,y)=>{const ax=Math.abs(x);let d=0;
     if(ds(ax,.12,.52)&&ds(y,.70,1.05))d+=ax===.32&&y===.88?.26:.18;                                 /* l'orbite */
-    if((x===0&&y===.62)||(ax===.05&&y===.62))d+=x===0?.15:.10;                                      /* le nez */
     if(ax<.42-1e-6&&y===.42)d+=.08;                                                                 /* la bouche */
-    if(dans(ax,.12,.52)&&(y===1.05||y===1.12))d-=.05;                                               /* l'arcade avance au-dessus de l'orbite */
     if(ax===.62&&(y===.54||y===.62))d-=.06;                                                         /* la pommette */
     if(ax===.70&&dans(y,.88,1.05))d+=.05;                                                           /* la tempe */
     return d;};
   const relief=(x,y)=>Math.max(0,dY(y)*Math.pow(Math.max(0,1-(x/.80)**2),.42)-creux(x,y));
   const cle=(x0,x1,y0,y1)=>{const ax=Math.min(Math.abs(x0),Math.abs(x1)),bx=Math.max(Math.abs(x0),Math.abs(x1));
     if(dans(ax,.12,.52)&&dans(bx,.12,.52)&&dans(y0,.70,1.05)&&dans(y1,.70,1.05)){
-      const coin=(ax<.13||bx>.51)&&(y0<.71||y1>1.04);return coin?'B':'N';}                          /* l'orbite : noire, ses coins coupés en os d'ombre */
-    if((dans(y0,.62,.70)&&dans(y1,.62,.70)&&bx<.13)||(dans(y0,.54,.62)&&dans(y1,.54,.62)&&bx<.06))return 'N';  /* le nez en cœur renversé */
+      return 'N';}                          /* l'orbite : noire, ses coins coupés en os d'ombre */
     if(bx<.43&&dans(y0,.36,.48)&&dans(y1,.36,.48))return 'N';                                        /* la bouche */
-    return bx>.69?'B':'b';};
+    return 'b';};                                                                                    /* (v3) plus de bande d'ombre sur le tour : la lumière fait le volume */
   {const pt=(x,y)=>[x*wY(y)/.80,y,ZB+relief(x,y)];
    for(let r=0;r<YS.length-1;r++)for(let i=0;i<XS.length-1;i++){const y0=YS[r],y1=YS[r+1],x0=XS[i],x1=XS[i+1];
      const a=pt(x0,y0),b=pt(x1,y0),c=pt(x1,y1),d=pt(x0,y1),k=cle(x0,x1,y0,y1);P.tri(k,a,b,c);P.tri(k,a,c,d);}
    for(let i=0;i<XS.length-1;i++){const a=pt(XS[i],YS[0]),b=pt(XS[i+1],YS[0]),A2=[a[0],a[1],ZB],B2=[b[0],b[1],ZB];P.tri('B',a,A2,B2);P.tri('B',a,B2,b);}  /* le dessous du menton */
    const tour=[];for(const y of YS)tour.push([wY(y),y]);for(let r=YS.length-1;r>=0;r--)tour.push([-wY(YS[r]),YS[r]]);
    const o=[0,.85,ZB];for(let i=0;i<tour.length-1;i++){const a=tour[i],b=tour[i+1];P.tri('B',o,[b[0],b[1],ZB],[a[0],a[1],ZB]);}}  /* le dos du crâne, fermé */
-  P.sym(sd=>{rotule('W',.05,sd*.32*wY(.88)/.80,.88,ZB+relief(sd*.32,.88)+.03);});                     /* au fond des orbites, les yeux qui brillent (les phares) */
+  {const sur=(x,y)=>[x*wY(y)/.80,y,ZB+relief(x,y)+.008],c9=sur(0,.625),                               /* (v3) le nez : un petit cœur renversé, net, posé sur la face */
+     nz=[[0,.54],[.075,.62],[.07,.67],[.04,.695],[0,.67],[-.04,.695],[-.07,.67],[-.075,.62]].map(p=>sur(p[0],p[1]));
+   for(let i=0;i<nz.length;i++)P.tri('N',c9,nz[i],nz[(i+1)%nz.length]);}
+  /* LES YEUX KAWAII (2026-11-01, Léo : « les yeux du crâne plus kawaii ») : un grand œil rond qui remplit l'orbite, penché comme la face,
+     noir profond, une lueur violette en bas et deux reflets blancs (le gros en haut à gauche, le petit en bas à droite, pareils sur les deux yeux) */
+  P.sym(sd=>{const th=sd*.49,cx=sd*.30,cy=.875,cz=ZB+.86,co=Math.cos(th),si=Math.sin(th);
+    const disque=(k,r,dx,dy,dz)=>{const g=new THREE.CylinderGeometry(r,r,.012,14);g.rotateX(Math.PI/2);
+      P.put(k,g,cx+dx*co+dz*si,cy+dy,cz-dx*si+dz*co,0,th,0);};
+    disque('E',.168,0,0,0);
+    /* (Léo : « avec des cœurs dans les yeux ») le cœur rose à la place de l'iris, et son reflet */
+    {const sh=new THREE.Shape(),n=24;for(let i=0;i<n;i++){const t=i/n*Math.PI*2,x=16*Math.pow(Math.sin(t),3),y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+       const v=new THREE.Vector2(x*.0072,y*.0072+.012);if(i)sh.lineTo(v.x,v.y);else sh.moveTo(v.x,v.y);}
+     const g=new THREE.ExtrudeGeometry(sh,{depth:.012,bevelEnabled:false,curveSegments:1}),dz=.008;
+     P.put('I',g,cx+dz*si,cy,cz+dz*co,0,th,0);}
+    disque('W',.034,-.055,.05,.024);disque('W',.016,.03,.075,.024);});                     /* au fond des orbites, les yeux qui brillent (les phares) */
   for(let r=0;r<2;r++)for(let i=0;i<7;i++){const x=(i/6-.5)*.62,y=r?.39:.45,X=x*wY(y)/.80;            /* les dents, posées dans la bouche creusée */
     P.box(Math.abs(x)>.22?'B':'b',.075,.05,.07,X,y,ZB+relief(x,.42)+.035);}
     /* LES OS EN CROIX derrière le crâne : leurs têtes dépassent de chaque côté */
