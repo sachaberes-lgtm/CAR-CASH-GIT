@@ -107,7 +107,7 @@
     const mod = await importeAvance(url(D + f)), inst = mod.createTrenteMusic({ audioContext: ac, destination: gc || dest, renouvelle: 0, da: E.da });
     const O = {}; if (/^hyb:/.test(E.style)) O.style = E.style;   // (la couleur de l'avis : sans elle, une musique v6 en devenait une autre)
     if (E.ret) { O.retouche = E.ret.retouche; O.voix = E.ret.voix; O.acc = E.ret.acc; }
-    const m0 = t0 || (typeof W.pbjTier === 'function' ? W.pbjTier(1) : 1);   // (2026-10-24) le morceau part au moteur REMAPPÉ du moteur 1 du jeu (pbjTier, musique.js) : plein dès l'intro, pas un palier presque muet
+    const m0 = t0 || (typeof W.pbjTier === 'function' ? W.pbjTier(1, E.id) : 1);   // (2026-10-24) le morceau part au moteur REMAPPÉ du moteur 1 du jeu (pbjTier, musique.js) : plein dès l'intro, pas un palier presque muet
     inst.setTier(m0, 30); inst.start(E.n, E.W || undefined, O); let cur = m0;
     const on = k => { const b = inst._bus && inst._bus[k]; return !!b && b.gain.value > .01; };   // (20/10) ce qui joue : le dompteur de grosse caisse du bus ne touche jamais la basse seule
     return { regle(m) { if (m !== cur) { cur = m; inst.setTier(m, 30); if (gc) gc.gain.setTargetAtTime(depG(m), ac.currentTime, .3); } }, stop() { try { inst.stop(); } catch (e) {} if (gc) setTimeout(() => { try { gc.disconnect(); } catch (e) {} }, 1500); }, bpm: () => inst.bpm || 120, inst,
@@ -137,7 +137,7 @@
     fr.contentWindow.AudioContext = fr.contentWindow.webkitAudioContext = function () { return prete; };
     const d = fr.contentDocument, bt = d.getElementById('play'), jg = d.getElementById('speed'); if (!bt || !jg) throw new Error('page sans #play / #speed');
     jg.step = 'any'; const vit = x => { jg.value = (x * 100).toFixed(1); jg.dispatchEvent(new fr.contentWindow.Event('input')); };
-    vit(t0 ? (t0 - 1) / 29 : typeof W.pbjTier === 'function' ? (W.pbjTier(1) - 1) / 29 : 0); bt.click();
+    vit(t0 ? (t0 - 1) / 29 : typeof W.pbjTier === 'function' ? (W.pbjTier(1, E.id) - 1) / 29 : 0); bt.click();
     const bpm = (fr.contentWindow.MORCEAU && fr.contentWindow.MORCEAU.bpm) || 120;
     return { regle(m) { vit((m - 1) / 29); }, stop() { try { if (/stop/i.test(bt.textContent)) bt.click(); } catch (e) {} fr.remove(); }, bpm: () => bpm };
     } catch (e) { fr.remove(); throw e; }   // (la page n'est pas venue : l'iframe ne reste pas)
@@ -175,7 +175,7 @@
       const J = await (E.type === 'genv' ? joueurGen : E.type === 'paliers' ? joueurPaliers : joueurHtml)(ac, ch.entree, E);
       if (jeton !== PB.n) { J.stop(); try { ch.e.disconnect(); } catch (e) {} return null; }
       PB.E = E; PB.J = J; PB.ch = ch; PB.phase = 'intro';
-      const mes = 240 / (J.bpm() || 120), T = Math.max(2, Math.min(4, 2 * mes)), t = ac.currentTime; PB.tIntro = t + T;
+      const mes = 240 / (J.bpm() || 120), T = (opt.doux && opt.doux[E.id]) ? 6 : Math.max(2, Math.min(4, 2 * mes)), t = ac.currentTime; PB.tIntro = t + T;   // (2/11) un départ ADOUCI pour les morceaux déjà chargés au premier élément : le filtre s'ouvre en 6 s
       ch.f.frequency.cancelScheduledValues(t); ch.f.frequency.setValueAtTime(320, t); ch.f.frequency.exponentialRampToValueAtTime(18000, t + T);
       if (opt.vite) PB.course();
       return E;
@@ -200,7 +200,7 @@
          avec un fondu d'entrée de 4 s (PB.niveau), puis le palier monte d'un cran toutes les 2,5 s jusqu'au palier du lobby de ce morceau (`tl`) : la musique se construit, elle ne tombe pas toute faite. */
       const J = await (E.type === 'genv' ? joueurGen : E.type === 'paliers' ? joueurPaliers : joueurHtml)(ac, ch.entree, E, 1);
       if (jeton !== PB.n) { J.stop(); try { ch.e.disconnect(); } catch (e) {} return null; }
-      PB.E = E; PB.J = J; PB.ch = ch; PB.phase = 'lobby'; PB.tier0 = tl; PB.tLobby = ac.currentTime;
+      PB.E = E; PB.J = J; PB.ch = ch; PB.phase = 'lobby'; PB.tier0 = tl; PB.tLobby = ac.currentTime; PB.doux = !!(opt.doux && opt.doux[E.id]);
       for (let m = 2; m <= tl; m++) setTimeout(() => { if (PB.phase === 'lobby' && PB.J === J) { try { J.regle(m); } catch (e) {} } }, 1500 + 2500 * (m - 1));
       return E;
     } catch (e) { PB.err = String(e && e.message || e); if (jeton === PB.n) PB.phase = 'erreur'; if (ch) try { ch.e.disconnect(); } catch (x) {} return null; }
@@ -208,7 +208,7 @@
   /* LE JOUER, VU DU MENU : le morceau déjà en route se transforme. Le filtre s'ouvre sur 1,8 s, la salle s'efface, le niveau (musicTick) monte ; le morceau est alors « en course ». */
   PB.transforme = function (opt) {
     opt = opt || {}; const ch = PB.ch, ac = PB.ac, E = PB.E; if (!ch || !ac || !E) return null;
-    const t = ac.currentTime, T = .5;   // (2/11, Léo : « quand on appuie, boum, ça démarre comme la musique ») : le filtre claque ouvert en 0,5 s, la salle se coupe en un souffle, et un vrai coup l'accompagne
+    const t = ac.currentTime, T = PB.doux ? 3.2 : .5;   // (2/11) départ adouci : 3,2 s   // (2/11, Léo : « quand on appuie, boum, ça démarre comme la musique ») : le filtre claque ouvert en 0,5 s, la salle se coupe en un souffle, et un vrai coup l'accompagne
     try { ch.f.frequency.cancelScheduledValues(t); ch.f.frequency.setValueAtTime(Math.max(300, ch.f.frequency.value), t); ch.f.frequency.exponentialRampToValueAtTime(18000, t + T); } catch (e) {}
     if (ch.lfo) { try { ch.lfo.g.gain.setTargetAtTime(0, t, .1); ch.lfo.o.stop(t + 1); } catch (e) {} ch.lfo = null; }
     if (ch.wet) { t9(ch.wet.gain, 0, t, .12); setTimeout(() => { try { ch.conv.disconnect(); ch.wet.disconnect(); } catch (e) {} }, 3500); }
@@ -222,7 +222,7 @@
       ns.connect(nf); nf.connect(ng); ng.connect(ch.e); ns.start(t); ns.stop(t + .7);
     } catch (e) {} }
     if (ch.bus) { try { ch.bus.brut(!!opt.brut); ch.bus.piste('jeu:' + E.id); ch.bus.course(true); } catch (e) {} }
-    try { PB.J.regle(typeof W.pbjTier === 'function' ? W.pbjTier(1) : 6); } catch (e) {}   // le palier du lobby monte au palier de départ de la course, au même instant que le filtre et le coup : « boum, ça démarre comme la musique »
+    try { PB.J.regle(typeof W.pbjTier === 'function' ? W.pbjTier(1, E.id) : 6); } catch (e) {}   // le palier du lobby monte au palier de départ de la course, au même instant que le filtre et le coup : « boum, ça démarre comme la musique »
     PB.tier0 = 0; PB.tIntro = t + T; PB.phase = 'course';
     return E;
   };

@@ -477,7 +477,7 @@ function pbjTuto(){return (typeof TUTO!=='undefined'&&!!TUTO.on)||!!(LVL.cur&&LV
 function pbjRegne(){return !!window.POUCE_JEU&&!pbjTuto();} // Pouce bleu a l'antenne des courses : aucune autre musique n'y joue (sauf la frénésie, voir frenMus)
 function pbjActif(){return pbjRegne()&&!PBJ_KO&&!!AC&&!!MASTER&&!!MASTER._lim;}
 function pbjLance(vite,meme){if(!pbjActif()||!SND.music)return;
-  try{const p=POUCE_JEU.depart(AC,MASTER._lim,{brut:BASSES_BRUT,vite:!!vite,meme:!!meme,boum:SND.sfx?(typeof sfxVol==='function'?sfxVol():VOL.sfx):0});
+  try{const p=POUCE_JEU.depart(AC,MASTER._lim,{brut:BASSES_BRUT,vite:!!vite,meme:!!meme,doux:PBJ_DOUX,boum:SND.sfx?(typeof sfxVol==='function'?sfxVol():VOL.sfx):0});
     if(p&&p.then)p.then(function(E){const f=POUCE_JEU.phase;if(E){PBJ_ESSAI=0;return;}if(f!=='erreur'&&f!=='vide')return; // (annulé par un autre départ ou une fin : rien)
       console.warn('Pouce bleu : '+(POUCE_JEU.err||'liste vide'));
       if(f==='erreur'&&++PBJ_ESSAI<3){pbjLance(vite||musicMode==='run',false);return;} // un autre morceau (le raté est compté comme joué)
@@ -495,6 +495,13 @@ let LOBBY_KO=0;
    Un morceau absent de la table (un nouveau dans Pouce bleu) joue le palier 1. `?lobbytier=N` (1 à 6) impose le même palier à tous, pour comparer. */
 const LOBBY_PALIERS={'bleu-6562':2,'bleu-1540':1,'bleu-7299':2,'bleu-2221':1,'bleu-4830':2,'bleu-9551':1,'bleu-9664':1,'bleu-8154':1,'bleu-6167':1,'bleu-8338':2,'bleu-1275':1,'bleu-8042':1,'bleu-3379':3,'bleu-6104':1,
   'pal-neon-noir':1,'pal-nuit-de-velours':1,'pal-aura-30':1,'pal-rubis-neon':1,'pal-asphalte':1};
+/* LE DÉPART DES SEULS MORCEAUX CHARGÉS (2026-11-02 soir, Léo : « certains niveaux commencent vraiment complexes, alors qu'au début ça devrait être plutôt calme ; d'autres sont parfaitement adaptés au palier 1 ; j'ai peur que ceux qui étaient bien, tu les changes ») C'est le « morceau fautif traité SEUL » que le commentaire de PBJ_MIN
+   (25/10) promettait. Chaque morceau du générateur est bâti PAR COUCHES (inst.elements : un de plus à chaque palier). MESURÉ sur les 14 : six commencent par un élément déjà chargé (une basse qui roule, un arpège, des accords hachés, un clavinet) et reçoivent leur rythme (grosse caisse, caisse claire) dès le palier 2 ou 3 ; démarrés au palier 6 (PBJ_MIN) ils jouaient
+   cinq ou six couches dès le premier mètre. Ces six-là, ET ELLES SEULES, démarrent désormais plus bas ; tout autre morceau (les huit au départ doux, les cinq fichiers ou pages en direct, tout nouveau morceau) est ABSOLUMENT inchangé : PBJ_MIN, comme avant. Le moteur 1 du jeu joue ce palier ; le 30 reste le 30 ; entre les deux en ligne droite (pbjTier).
+   `?pbjmin=N` impose N à TOUS (`?pbjmin=6` = le départ d'avant pour les six aussi). */
+const PBJ_DEPART_PAR_MORCEAU={'bleu-9551':1,'bleu-6167':2,'bleu-2221':2,'bleu-6562':2,'bleu-7299':2,'bleu-4830':2};
+/* LES DÉPARTS ADOUCIS : pour ces six aussi, l'entrée en course est lissée : le filtre s'ouvre en 6 s au lieu de 2-4 (départ direct) et en 3,2 s au lieu de 0,5 s (depuis le lobby). */
+const PBJ_DOUX={'bleu-9551':1,'bleu-6167':1,'bleu-2221':1,'bleu-6562':1,'bleu-7299':1,'bleu-4830':1};
 const LOBBY_TIER=(function(){const m=/[?&]lobbytier=(\d+)/.exec(location.search);return m?Math.max(1,Math.min(6,+m[1])):0;})(); // 0 = le palier de chaque morceau (LOBBY_PALIERS)
 /* (2026-11-02, Léo : « le menu ciel ne respecte pas ce que j'ai dit ; le conflit avec le niveau guide du début casse le concept ») LA LEÇON À VENIR. Le jeu ne pose TUTO.on qu'au JOUER (tutoArme, juste avant le lancement) : au MENU d'un joueur neuf, pbjTuto() est faux, et le lobby lié jouait un morceau de Pouce bleu
    que la leçon remplaçait aussitôt par « PREMIER MATIN ». Un joueur qui n'a pas encore fait la leçon (SAVE.d.tuto) a donc, dès le menu, la musique de la leçon : elle joue déjà, et JOUER la continue (`garde`, sans creux : voir ecoleMusPique). Le lobby lié ne vaut qu'après la leçon. */
@@ -516,7 +523,7 @@ function pbjLobby(){
   if(!lobbyPeut()||!SND.music)return;
   const P=POUCE_JEU;if(P.phase==='lobby'||P.phase==='charge')return;
   const fixes=INTROSON.on&&!INTROSON.t0&&!/[?&]lobby=tout\b/.test(location.search); // pendant « PRESENTS » le jeu gèle dessous (sur un Mac lent : images de 0,2 à 1,3 s) : seuls les morceaux à paliers figés (des fichiers) tiennent, les autres (le générateur joue en direct) attendent l'accueil ; ?lobby=tout les laisse tous partir
-  try{const p=P.lobby(AC,MASTER._lim,{brut:BASSES_BRUT,fixes:fixes,tier:LOBBY_TIER||1,tiers:LOBBY_TIER?null:LOBBY_PALIERS});
+  try{const p=P.lobby(AC,MASTER._lim,{brut:BASSES_BRUT,fixes:fixes,tier:LOBBY_TIER||1,tiers:LOBBY_TIER?null:LOBBY_PALIERS,doux:PBJ_DOUX});
     if(p&&p.then)p.then(function(E){if(E||P.attente)return;if(P.phase==='erreur'||P.phase==='vide'){LOBBY_KO=1;console.warn('Lobby lié : '+(P.err||'liste vide'));if(musicMode==='menu')musicMenuAncien();}});}catch(e){LOBBY_KO=1;}}
 function pbjDepart(vite,meme){if(!vite&&!meme){PBJ_KO=0;PBJ_ESSAI=0;if(pbjTuto()){try{ecoleMusPique();}catch(e){}return;}}pbjLance(vite,meme);} // (sans argument = un JOUER : on réessaie) — (2026-10-16) le JOUER de la LEÇON lance la musique de la leçon
 function ecoleMusPique(){ // (2026-10-16) le JOUER de la leçon : SA musique part pendant le piqué, en fondu (DEPMUS), et la course la GARDE (musicStartRun)
@@ -533,8 +540,11 @@ function ecoleMusPique(){ // (2026-10-16) le JOUER de la leçon : SA musique par
    Le morceau reçoit donc un moteur REMAPPÉ : le moteur 1 du jeu joue le palier PBJ_MIN du morceau, le 30 reste le 30, entre les deux en ligne droite — le
    morceau est complet dès l'intro, et la grande montée jusqu'au 30 est gardée. `?pbjmin=1` = le départ d'avant (A/B) ; dbgPouce().min. */
 /* (2026-10-25 soir, Léo : « je disais juste qu'UNE musique est trop lente au début et presque pas musicale, la plupart allaient bien ») le départ repasse à 6 (essai à 3 retiré le soir même : il touchait tous les morceaux). Le morceau fautif se traite SEUL (voir PBJ_DEPART_PAR_MORCEAU s'il existe). */
-const PBJ_MIN=(function(){const m=/[?&]pbjmin=(\d+)/.exec(location.search);return m?Math.max(1,Math.min(29,+m[1])):6;})();
-function pbjTier(m){return m<=1?PBJ_MIN:Math.round(PBJ_MIN+(Math.min(30,m)-1)*(30-PBJ_MIN)/29);}
+const PBJ_MIN_FORCE=(function(){const m=/[?&]pbjmin=(\d+)/.exec(location.search);return m?Math.max(1,Math.min(29,+m[1])):0;})();
+const PBJ_MIN=PBJ_MIN_FORCE||6; /* PBJ_MIN : le départ des morceaux ABSENTS de PBJ_DEPART_PAR_MORCEAU, ou de tous avec ?pbjmin=N */
+function pbjTier(m,id){ /* le palier du MORCEAU pour le moteur m du jeu : (2026-11-02) le départ est celui du morceau (id, ou le morceau en cours), 6 s'il n'est pas dans la table */
+  let mn=PBJ_MIN;if(!PBJ_MIN_FORCE){try{const k=id||(window.POUCE_JEU&&POUCE_JEU.E&&POUCE_JEU.E.id);if(k&&PBJ_DEPART_PAR_MORCEAU[k])mn=PBJ_DEPART_PAR_MORCEAU[k];}catch(e){}}
+  return m<=1?mn:Math.round(mn+(Math.min(30,m)-1)*(30-mn)/29);}
 window.pbjTier=pbjTier; // (pouce-bleu-jeu.js, un fichier à part, y lit le moteur de départ du morceau)
 let PBJ_FORCE=0; // (banc) dbgPouce('moteur', m) impose le moteur du morceau (0 = celui du jeu)
 window.dbgPouce=function(k,v){if(k==='moteur'){PBJ_FORCE=v|0;return PBJ_FORCE;}return window.POUCE_JEU?Object.assign({actif:pbjActif(),force:PBJ_FORCE,min:PBJ_MIN,plancher:{on:PBJ_PL.on,db:Math.round(PBJ_PL.db*10)/10,avant:PBJ_PL.p>0?Math.round(100*Math.log10(PBJ_PL.p))/10:null}},POUCE_JEU.etat()):null;};
