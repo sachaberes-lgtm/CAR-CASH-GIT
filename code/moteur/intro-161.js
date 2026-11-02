@@ -243,8 +243,8 @@
     const sprH=[]; /* la boule : NLUM paliers de lumière par signe et par zone, une teinte fixe par zone */
     for(let z=0;z<ZONES.length;z++)for(let gi=0;gi<GLYPHES.length;gi++){const Lg=[];sprH.push(Lg);
       for(let st=0;st<NLUM;st++){const c=couleurPlanete(z,st),cc=document.createElement('canvas');cc.width=48;cc.height=64;const x=cc.getContext('2d'),d=x.createLinearGradient(0,8,0,56);
-        d.addColorStop(0,'hsl('+c[0]+','+c[1]+'%,'+Math.min(62,c[2]+7)+'%)');d.addColorStop(1,'hsl('+c[0]+','+c[1]+'%,'+c[2]+'%)');
-        x.fillStyle=d;x.font='44px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(GLYPHES[gi],24,34);Lg.push(cc);}}
+        d.addColorStop(0,'hsl('+c[0]+','+c[1]+'%,'+Math.min(70,c[2]+14)+'%)');d.addColorStop(1,'hsl('+c[0]+','+c[1]+'%,'+c[2]+'%)');
+        x.font='44px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';x.lineWidth=4;x.strokeStyle='hsl('+c[0]+','+c[1]+'%,'+Math.max(4,Math.round(c[2]*.35))+'%)';x.strokeText(GLYPHES[gi],24,34);x.fillStyle=d;x.fillText(GLYPHES[gi],24,34);Lg.push(cc); /* contour sombre de la teinte : le chiffre a du corps et de la forme (comme les dorés) */}}
     return{sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:[],gs:Math.max(9*ku,R*.2)};
   }
   /* 10. BOULE (2026-10-23 soir) : seulement la sphère de « 1.61 » ; elle tourne lentement tant que ça charge, s'arrête quand c'est prêt ; l'appui la fait exploser en CASH CAR (dActe3), puis le voile fond vers le jeu. */
@@ -298,7 +298,7 @@
     const ga=lisse(.8,3.5,t)*ea,gp=ga*(.8+.2*pls);
     halo(c,SPR.atmV,e.cx,e.cy,R*1.7,R*1.7,(.2*lisse(.8,4,t)+.08*pls)*ea); /* le halo du fond était d'or : sur le noir il brunissait (2026-11-02) */
     if(s>0)halo(c,SPR.atmB,e.cx,e.cy,R*1.7,R*1.7,.9*Math.exp(-s*7)); /* l'éclat de l'explosion passe au bleu */
-    halo(c,SPR.atmB,e.cx,e.cy,R*2.25,R*2.25,.5*gp);halo(c,SPR.atmV,e.cx,e.cy,R*1.55,R*1.55,.3*gp);halo(c,SPR.atmJ,e.cx+R*LX*.35,e.cy+R*LY*.35,R*1.15,R*1.15,.2*gp);
+    halo(c,SPR.atmB,e.cx,e.cy,R*2.25,R*2.25,.5*gp);halo(c,SPR.atmV,e.cx,e.cy,R*1.55,R*1.55,.3*gp);halo(c,SPR.atmJ,e.cx+R*LX*.35,e.cy+R*LY*.35,R*1.15,R*1.15,.2*gp);halo(c,SPR.bl,e.cx,e.cy,R*.95,R*.95,.11*gp); /* un tout petit peu de lueur blanche au cœur du globe (2026-11-02, Léo) */
     c.globalCompositeOperation='source-over';
     if(pasSon!==Math.floor(t*2.2)){pasSon=Math.floor(t*2.2);if(t>3&&tp===null&&pasSon%2===0){try{if(SON&&!filmMuet&&iAC&&SON.dr)SON.note(iAC.currentTime+.02,pasSon>>1);}catch(x){}}} /* une cloche tous les deux pas (le tempo de l'ancienne onde de couleurs) */
     if(PCI_ON){if(ea>0){ /* (passe perf PC, voir LE FILM SANS TRAVAIL REFAIT) le même dessin au bit près : mêmes expressions, même ordre (les points de derrière, puis ceux de devant, par i croissant) */
@@ -309,7 +309,7 @@
         const k=borne((t-T0[i])/.55,0,1);if(k<=0){Z[i]=-1;continue;}
         const b=(1-Math.pow(1-k,3))*(1+ex),x1=e.px[i]*cr+e.pz[i]*sr,z1=-e.px[i]*sr+e.pz[i]*cr,y2=e.py[i]*ct-z1*st,z2=e.py[i]*st+z1*ct;
         const sx=e.cx+x1*R*b,sy=e.cy+y2*R*b;if(sx<-gs||sx>W+gs||sy<-gs||sy>H+gs){Z[i]=-1;continue;}
-        const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*gr;Z[i]=z2>=0?1:0;LV[i]=Math.round(borne((x1*LX+y2*LY+z2*LZ+.3)/1.3,0,1)*(NLUM-1));Q[4*i]=sx-sz*.35;Q[4*i+1]=sy-sz*.5;Q[4*i+2]=sz;Q[4*i+3]=(.18+.82*dp*dp)*lisse(0,.15,k)*ea;
+        const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*gr;Z[i]=z2>=0?1:0;LV[i]=Math.round(borne((x1*LX+y2*LY+z2*LZ+.3)/1.3,0,1)*(NLUM-1));Q[4*i]=sx-sz*.35;Q[4*i+1]=sy-sz*.5;Q[4*i+2]=sz;Q[4*i+3]=(.42+.58*dp*dp)*lisse(0,.15,k)*ea;
       }
       for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++)if(Z[i]===pass){c.globalAlpha=Q[4*i+3];c.drawImage(e.sprH[e.gk[i]][LV[i]],Q[4*i],Q[4*i+1],Q[4*i+2]*.7,Q[4*i+2]);}
     }}else
@@ -318,7 +318,7 @@
       const b=(1-Math.pow(1-k,3))*(1+ex),x1=e.px[i]*cr+e.pz[i]*sr,z1=-e.px[i]*sr+e.pz[i]*cr,y2=e.py[i]*ct-z1*st,z2=e.py[i]*st+z1*ct;
       if((z2>=0?1:0)!==pass)continue;
       const sx=e.cx+x1*R*b,sy=e.cy+y2*R*b;if(sx<-gs||sx>W+gs||sy<-gs||sy>H+gs)continue;
-      const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*(1+.6*borne(s/.7,0,1));c.globalAlpha=(.18+.82*dp*dp)*lisse(0,.15,k)*ea;c.drawImage(e.sprH[e.gk[i]][Math.round(borne((x1*LX+y2*LY+z2*LZ+.3)/1.3,0,1)*(NLUM-1))],sx-sz*.35,sy-sz*.5,sz*.7,sz);
+      const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*(1+.6*borne(s/.7,0,1));c.globalAlpha=(.42+.58*dp*dp)*lisse(0,.15,k)*ea;c.drawImage(e.sprH[e.gk[i]][Math.round(borne((x1*LX+y2*LY+z2*LZ+.3)/1.3,0,1)*(NLUM-1))],sx-sz*.35,sy-sz*.5,sz*.7,sz);
     }
     c.globalAlpha=1;c.restore();
   }
