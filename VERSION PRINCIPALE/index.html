@@ -77450,7 +77450,10 @@ function goImmersive(){
     for(let z=0;z<ZONES.length;z++)for(let gi=0;gi<GLYPHES.length;gi++){const Lg=[];sprH.push(Lg);
       for(let st=0;st<NLUM;st++){const c=couleurPlanete(z,st),cc=document.createElement('canvas');cc.width=48;cc.height=64;const x=cc.getContext('2d'),d=x.createLinearGradient(0,8,0,56);
         d.addColorStop(0,'hsl('+c[0]+','+c[1]+'%,'+Math.min(70,c[2]+14)+'%)');d.addColorStop(1,'hsl('+c[0]+','+c[1]+'%,'+c[2]+'%)');
-        x.font='44px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';x.lineWidth=4;x.strokeStyle='hsl('+c[0]+','+c[1]+'%,'+Math.max(4,Math.round(c[2]*.35))+'%)';x.strokeText(GLYPHES[gi],24,34);x.fillStyle=d;x.fillText(GLYPHES[gi],24,34);Lg.push(cc); /* contour sombre de la teinte : le chiffre a du corps et de la forme (comme les dorés) */}}
+        x.font='44px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';x.lineWidth=4;x.strokeStyle='hsl('+c[0]+','+c[1]+'%,'+Math.max(4,Math.round(c[2]*.35))+'%)';x.save();x.globalAlpha=.55;x.fillStyle=x.strokeStyle;x.strokeText(GLYPHES[gi],26,37);x.fillText(GLYPHES[gi],26,37);x.restore(); /* l'ombre portée, vers le bas à droite : le chiffre se détache */
+        x.strokeText(GLYPHES[gi],24,34);x.fillStyle=d;x.fillText(GLYPHES[gi],24,34);
+        x.globalCompositeOperation='source-atop';{const sh=x.createLinearGradient(6,8,34,50);sh.addColorStop(0,'rgba(255,255,255,.55)');sh.addColorStop(.38,'rgba(255,255,255,.08)');sh.addColorStop(.62,'rgba(0,0,0,0)');sh.addColorStop(1,'rgba(0,0,0,.38)');x.fillStyle=sh;x.fillRect(0,0,48,64);} /* le reflet en haut à gauche et l'ombre en bas à droite, dans le chiffre : du volume, comme un métal poli */
+        x.globalCompositeOperation='source-over';Lg.push(cc); /* contour sombre de la teinte : le chiffre a du corps et de la forme (comme les dorés) */}}
     return{sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:[],gs:Math.max(9*ku,R*.2)};
   }
   /* 10. BOULE (2026-10-23 soir) : seulement la sphère de « 1.61 » ; elle tourne lentement tant que ça charge, s'arrête quand c'est prêt ; l'appui la fait exploser en CASH CAR (dActe3), puis le voile fond vers le jeu. */
