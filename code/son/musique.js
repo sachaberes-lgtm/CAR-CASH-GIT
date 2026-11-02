@@ -65,8 +65,18 @@ function musicPickNext(excludeIdx){
    menu par le fondu ordinaire (~0,5 s, musicVolCour), au ciel il redescend derrière le vent (MUS_CIEL). Les trois du GARAGE (ATELIER, HUILE DE
    MINUIT, CLÉ DE 12) ne jouent plus dans le jeu : ils restent dans la bibliothèque (lobby/menu-donnees.js) et sur le disque. Basses : les trois
    du ciel ont moins de 4 % de leur énergie sous 60 Hz (mesuré le 15/10) — rien à régler. */
-const MENU_MUS={ciel:['nuages','altitude','apesanteur'].map(k=>'assets/audio/music/lobby/ciel-'+k+'.m4a'),_abs:{}};
-MENU_MUS.tire={ciel:MENU_MUS.ciel[Math.floor(Math.random()*MENU_MUS.ciel.length)]};
+/* LA CINÉMATIQUE SONORE DE L'INTRO (2026-11-02, Léo : « le pad ne dure que jusqu'à l'explosion du 1.61 ; la musique démarre quand 1.61 GAME PRESENTS s'écrit ; à l'accueil c'est la MÊME musique, sans coupure,
+   et le vent arrive petit à petit à l'oreille ») : entre l'appui sur la boule (`on`) et l'apparition de l'accueil (`t0`), le ciel est MUET de vent et la musique joue au niveau du menu ; à `t0` le vent
+   monte et la musique recule vers son niveau de ciel (MUS_CIEL), en `d` secondes, une même courbe pour les deux (`ventIntro`, 0 → 1). Hors de l'intro, `ventIntro` vaut 1 : rien ne change. */
+const INTROSON={on:false,t0:0,d:8,m0:.3}; /* m0 : le niveau de départ de la musique (30 % de celui du garage, −10 dB) ; au ciel elle finit à MUS_CIEL (15 %) */
+function ventIntro(){if(!INTROSON.on)return 1;if(!INTROSON.t0)return 0;const k=(performance.now()-INTROSON.t0)/(INTROSON.d*1000);return k>=1?1:k*k*(3-2*k);}
+/* LE LOBBY JOUE LE PALIER 1 (2026-11-02, Léo : « enlever les musiques de lobby, libérer un maximum d'espace, et mettre à la place le palier numéro 1 : quelque chose qui fasse partie de la musique de la course ») : au lieu des trois
+   morceaux de 3 à 4 Mo (nuages, altitude, apesanteur), le ciel et le garage jouent le PALIER 1 de CIEL · 30 (0,35 Mo, 22 s, en boucle) : le début, calme, du morceau qui monte avec le moteur en course. Un seul morceau :
+   `MENU_MUS.ciel.length` vaut 1, donc il boucle (voir playMusic) et `musicMenuSuivant` n'a plus rien à tirer. Les trois anciens fichiers restent sur le disque tant que le palier 1 n'est pas validé à l'oreille.
+   (même soir, Léo : « cette règle ne vaut que pour le menu ciel ; la boutique est très bien ; on peut en trouver une pareille pour le garage ») LE GARAGE A LE SIEN : le palier 1 de NUIT DE VELOURS (0,40 Mo, 17 s : quatre temps doux, claquements de doigts, basse posée,
+   accords étouffés, derrière un filtre). La boutique s'ouvre DEPUIS le garage : elle continue le morceau du garage, comme avant (son niveau et sa nappe ne changent pas). Le passage ciel ↔ garage est déjà prévu par musicTick (le morceau d'avant s'efface, celui du lieu entre en fondu). */
+const MENU_MUS={ciel:['assets/audio/music/paliers/rendus/ciel-30/p1.m4a'],garage:['assets/audio/music/paliers/rendus/nuit-de-velours/p1.m4a'],_abs:{}};
+MENU_MUS.tire={ciel:MENU_MUS.ciel[0],garage:MENU_MUS.garage[0]};
 MENU_MUS.abs=function(u){return this._abs[u]||(this._abs[u]=(function(){try{return new URL(u,location.href).href;}catch(e){return u;}})());};
 /* ===== LE LOBBY ENCHAÎNE (2026-10-29, Léo : « la musique lobby joue encore deux fois ») =====
    Le morceau du menu BOUCLAIT : au bout de 2 min 30 à 3 min, le MÊME repartait du début. Désormais il ne boucle plus (voir playMusic) : à sa
@@ -83,8 +93,12 @@ function musicMenuSuivant(){
    fonds l'un sur l'autre) et revient si le joueur a coupé la musique. Le néon et le feu de l'atelier restent en sourdine. Le silence de Léo
    reste au choix : `?boutique=muette`. */
 const BQ_MUSIQUE=!/[?&]boutique=muette\b/.test(location.search);
-function musicMenuUrl(){ // le morceau du menu : le MÊME au ciel de LA CHUTE et au garage (15/10)
-  return MENU_MUS.tire.ciel;}
+function musicMenuUrl(){ // le morceau du lieu : le ciel de LA CHUTE a le sien, le garage (et la boutique, qui s'ouvre de lui) le sien (2/11 ; du 15/10 au 2/11 c'était le MÊME partout)
+  let tu9=false;try{tu9=pbjTuto()||leconAVenir();}catch(e){} // (2026-11-02, Léo : « corriger le conflit avec le niveau guide du début, ça casse le concept ») LA LEÇON (1re partie d'un joueur neuf) a SA musique, « PREMIER MATIN » : c'est elle qui joue déjà au menu, et JOUER la continue (`garde`), au lieu d'une musique sans rapport qui s'arrête au JOUER
+  if(tu9)return ECOLE_MUS.f;
+  if(INTROSON.on)return MENU_MUS.tire.ciel; // l'intro : toute la cinématique joue le morceau du ciel, sans en changer
+  let g9=false;try{g9=!!garageOn&&!CHUTE.on;}catch(e){} // (garageOn et CHUTE naissent dans des morceaux plus loin : avant eux, on est au ciel)
+  return g9?MENU_MUS.tire.garage:MENU_MUS.tire.ciel;}
 // musicBaseVol .85→1 (2026-09-24, « la musique pas assez forte comparé au moteur ») : on relève le
 // NIVEAU ACCORDÉ et pas la valeur par défaut du curseur — celle-ci est sauvegardée chez le joueur
 // (`SAVE.d.vol.mus`), la changer n'aurait rien fait pour qui a déjà joué. Le moteur, lui, a reculé
@@ -306,7 +320,8 @@ function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) :
   if(MUS_WA.on){try{musWaBranche();musWaReveil();}catch(e){}} // (2026-10-14, session SON) dans le geste : brancher la musique au graphe, relancer un contexte « interrupted » (appel, Siri) avant l'élément
   if(!musicDeverrouille._ok){musicDeverrouille._ok=true;
     if(!el.src)el.src=musicMenuUrl()||musicPremier();           // le morceau de l'ACCUEIL se charge dès le 1er toucher : aucun blanc au départ — ⚠ (Léo, 2026-09-27) celui du 1er niveau s'entendait une seconde avant l'intro
-    if(!musicVoulue){el.muted=true;const p=el.play();       // lancé une fois, en silence, PENDANT le geste : l'élément est libre
+    if(!musicVoulue){el.muted=true;try{if(!SON_VOL_VERROU&&!musWaTient())el.volume=0;}catch(e){} /* (2026-11-02, Léo : une ancienne musique s'entendait pendant la construction de la boule) muet ET volume 0 : si le lecteur lent ne s'arrête pas à temps, rien ne filtre ; musicTick et musicJoue remontent le volume quand le menu le veut */
+      const p=el.play();       // lancé une fois, en silence, PENDANT le geste : l'élément est libre
       /* (2026-10-05, Léo : « une musique qui commence très fort au début ») le son ne se ROUVRE qu'une fois l'arrêt CONSTATÉ : rouvert
          dans la même image que pause(), un lecteur lent à s'arrêter (téléphone, réseau lent : la lecture muette démarre parfois en pleine
          intro) pouvait laisser filer le morceau à plein volume. Si le menu le réclame entre-temps (musicVoulue), il se rouvre tout de suite. */
@@ -461,17 +476,53 @@ function pbjTuto(){return (typeof TUTO!=='undefined'&&!!TUTO.on)||!!(LVL.cur&&LV
 function pbjRegne(){return !!window.POUCE_JEU&&!pbjTuto();} // Pouce bleu a l'antenne des courses : aucune autre musique n'y joue (sauf la frénésie, voir frenMus)
 function pbjActif(){return pbjRegne()&&!PBJ_KO&&!!AC&&!!MASTER&&!!MASTER._lim;}
 function pbjLance(vite,meme){if(!pbjActif()||!SND.music)return;
-  try{const p=POUCE_JEU.depart(AC,MASTER._lim,{brut:BASSES_BRUT,vite:!!vite,meme:!!meme});
+  try{const p=POUCE_JEU.depart(AC,MASTER._lim,{brut:BASSES_BRUT,vite:!!vite,meme:!!meme,boum:SND.sfx?(typeof sfxVol==='function'?sfxVol():VOL.sfx):0});
     if(p&&p.then)p.then(function(E){const f=POUCE_JEU.phase;if(E){PBJ_ESSAI=0;return;}if(f!=='erreur'&&f!=='vide')return; // (annulé par un autre départ ou une fin : rien)
       console.warn('Pouce bleu : '+(POUCE_JEU.err||'liste vide'));
       if(f==='erreur'&&++PBJ_ESSAI<3){pbjLance(vite||musicMode==='run',false);return;} // un autre morceau (le raté est compté comme joué)
       PBJ_KO=1;});}catch(e){}}
+/* LE LOBBY LIÉ (2026-11-02, Léo : « le son du menu ciel ne doit être rien d'autre qu'un truc fabriqué avec les musiques faites pour le jeu, transformé en un truc d'ambiance qui se transforme en la musique du jeu dès qu'on appuie sur JOUER ; la musique du niveau
+   se fait avant même qu'on appuie : JOUER démarre le niveau qui joue déjà en tant que musique de menu ; il doit quand même y avoir un petit truc qui change, une récompense ») : au menu, le morceau de la PROCHAINE course est tiré et joue déjà (Pouce bleu, au moteur de
+   départ, derrière un filtre à demi fermé et dans une grande salle : voir `POUCE_JEU.lobby`) ; au JOUER, ce MÊME morceau se transforme en musique de course (`POUCE_JEU.transforme` : le filtre s'ouvre, la salle s'efface, le niveau monte), sans rien redémarrer.
+   Le niveau du lobby suit le mixage du menu (musicTick : le ciel derrière le vent, le garage, l'intro) ; l'élément <audio> ne joue plus au menu. `?lobby=ancien` = le lobby d'avant (un fichier fixe, MENU_MUS). Repli : si le morceau ne part pas, le fichier fixe joue, faute de mieux. */
+const LOBBY_LIE=!/[?&]lobby=ancien\b/.test(location.search);
+let LOBBY_KO=0;
+/* (2026-11-02, Léo : « pour chaque musique une version lobby avec une transition quand on appuie sur JOUER, puis le palier 1 jusqu'à 30 ; le début, pour rendre le jeu plus smooth » puis « attention que les musiques ne soient pas buggées en mode ça commence direct avec plein d'instruments »)
+   LE PALIER DU LOBBY, UN PAR MORCEAU, ET JAMAIS « TOUT D'UN COUP ». MESURÉ sur les 19 morceaux de Pouce bleu (niveau brut RMS, le morceau DÉMARRÉ directement à ce palier) : un morceau du générateur passe souvent d'un palier clairsemé (−31 à −51 dB, une ou deux notes) à un palier « plein » (−12 à −16 dB, tous les instruments)
+   en UN cran (1→2, ou 2→3 selon le morceau) ; démarré ou monté jusque-là, il « explose ». Le lobby joue donc le DERNIER PALIER ENCORE CLAIRSEMÉ de chaque morceau (celui dont le niveau brut reste ≤ −20 dB, le plus fort des paliers 1 à 3) : ambiance calme, jamais tout l'orchestre ; il y ENTRE par un fondu de 4 s depuis le palier 1 (PB.lobby) ;
+   et c'est le JOUER qui fait arriver tout le monde : le palier monte au 6 (le départ de la course, PBJ_MIN) en même temps que le filtre s'ouvre et que le coup tombe, puis le moteur du jeu mène la montée jusqu'au 30. Les fichiers à paliers et les pages en direct (déjà pleins au palier 1) restent au palier 1.
+   Un morceau absent de la table (un nouveau dans Pouce bleu) joue le palier 1. `?lobbytier=N` (1 à 6) impose le même palier à tous, pour comparer. */
+const LOBBY_PALIERS={'bleu-6562':2,'bleu-1540':1,'bleu-7299':2,'bleu-2221':1,'bleu-4830':2,'bleu-9551':1,'bleu-9664':1,'bleu-8154':1,'bleu-6167':1,'bleu-8338':2,'bleu-1275':1,'bleu-8042':1,'bleu-3379':3,'bleu-6104':1,
+  'pal-neon-noir':1,'pal-nuit-de-velours':1,'pal-aura-30':1,'pal-rubis-neon':1,'pal-asphalte':1};
+const LOBBY_TIER=(function(){const m=/[?&]lobbytier=(\d+)/.exec(location.search);return m?Math.max(1,Math.min(6,+m[1])):0;})(); // 0 = le palier de chaque morceau (LOBBY_PALIERS)
+/* (2026-11-02, Léo : « le menu ciel ne respecte pas ce que j'ai dit ; le conflit avec le niveau guide du début casse le concept ») LA LEÇON À VENIR. Le jeu ne pose TUTO.on qu'au JOUER (tutoArme, juste avant le lancement) : au MENU d'un joueur neuf, pbjTuto() est faux, et le lobby lié jouait un morceau de Pouce bleu
+   que la leçon remplaçait aussitôt par « PREMIER MATIN ». Un joueur qui n'a pas encore fait la leçon (SAVE.d.tuto) a donc, dès le menu, la musique de la leçon : elle joue déjà, et JOUER la continue (`garde`, sans creux : voir ecoleMusPique). Le lobby lié ne vaut qu'après la leçon. */
+/* (2026-11-02, Léo : « juste pas de musique la leçon : ça doit donner un peu dans la vibe boutique, qui a son propre son, comme sur le main ou une ancienne version ») LA LEÇON SANS MUSIQUE, AVEC L'AMBIANCE DE LA BOUTIQUE. Ni « PREMIER MATIN », ni Pouce bleu, ni lobby lié : à l'auto-école, et au menu d'un joueur neuf qui va la faire (le jeu ne pose
+   TUTO.on qu'au JOUER, voir tutoArme : `leconAVenir` le sait dès le menu, par SAVE.d.tuto), AUCUNE musique ne joue ; à sa place, la nappe de verre PROPRE à la boutique (`bqSon`, boutique-scene-1.js : l'accord E 6/9 ↔ C#m7(11), l'air de la salle, la note cristalline
+   avec son écho) tient l'ambiance, sur le bus des effets, derrière le vent du ciel. Elle s'éteint (0,6 s) quand la leçon finit ; Pouce bleu entre alors comme partout (musicSuitLieu). `?lecon=musique` rend l'ancien (la musique de la leçon, au menu puis en course). */
+const LECON_MUSIQUE=/[?&]lecon=musique\b/.test(location.search);
+function leconAVenir(){try{return !SAVE.d.tuto&&!SANDBOX&&!PARK.on;}catch(e){return false;}} // un joueur qui n'a pas encore fait la leçon, au menu
+function leconSilence(){try{return !LECON_MUSIQUE&&(pbjTuto()||leconAVenir());}catch(e){return false;}} // pas de musique : la leçon, ou son menu
+const LECON_AMB={on:false};
+function leconAmbiance(dt){ // appelé à chaque image (musicTick) : l'ambiance de la boutique pendant la leçon ; on ne coupe QUE la nappe qu'on a lancée (la boutique s'en sert aussi)
+  if(leconSilence()){if(SND.sfx){LECON_AMB.on=true;bqSon(dt,true,true);}}
+  else if(LECON_AMB.on){LECON_AMB.on=false;try{if(!(typeof GBQ!=='undefined'&&GBQ.on))bqSonCoupe(.6);}catch(e){}}
+}
+function lobbyPeut(){return LOBBY_LIE&&!LOBBY_KO&&!leconAVenir()&&pbjActif();}
+window.dbgLobby=function(){try{const P=window.POUCE_JEU;return {lobbyLie:LOBBY_LIE,ko:LOBBY_KO,leconAVenir:leconAVenir(),leconSilence:leconSilence(),ambiance:LECON_AMB.on,tuto:pbjTuto(),pbjActif:pbjActif(),peut:lobbyPeut(),phase:P&&P.phase,morceau:P&&P.E&&P.E.titre,palier:P&&P.tier0,mode:musicMode,musicEl:musicEl?{src:(musicEl.src||'').split('/').pop(),pause:musicEl.paused,vol:+musicEl.volume.toFixed(3)}:null,intro:INTROSON.on};}catch(e){return {erreur:String(e)};}};
+function lobbyActif(){return !!window.POUCE_JEU&&POUCE_JEU.phase==='lobby';}
+function pbjLobby(){
+  if(!lobbyPeut()||!SND.music)return;
+  const P=POUCE_JEU;if(P.phase==='lobby'||P.phase==='charge')return;
+  const fixes=INTROSON.on&&!INTROSON.t0&&!/[?&]lobby=tout\b/.test(location.search); // pendant « PRESENTS » le jeu gèle dessous (sur un Mac lent : images de 0,2 à 1,3 s) : seuls les morceaux à paliers figés (des fichiers) tiennent, les autres (le générateur joue en direct) attendent l'accueil ; ?lobby=tout les laisse tous partir
+  try{const p=P.lobby(AC,MASTER._lim,{brut:BASSES_BRUT,fixes:fixes,tier:LOBBY_TIER||1,tiers:LOBBY_TIER?null:LOBBY_PALIERS});
+    if(p&&p.then)p.then(function(E){if(E||P.attente)return;if(P.phase==='erreur'||P.phase==='vide'){LOBBY_KO=1;console.warn('Lobby lié : '+(P.err||'liste vide'));if(musicMode==='menu')musicMenuAncien();}});}catch(e){LOBBY_KO=1;}}
 function pbjDepart(vite,meme){if(!vite&&!meme){PBJ_KO=0;PBJ_ESSAI=0;if(pbjTuto()){try{ecoleMusPique();}catch(e){}return;}}pbjLance(vite,meme);} // (sans argument = un JOUER : on réessaie) — (2026-10-16) le JOUER de la LEÇON lance la musique de la leçon
 function ecoleMusPique(){ // (2026-10-16) le JOUER de la leçon : SA musique part pendant le piqué, en fondu (DEPMUS), et la course la GARDE (musicStartRun)
   if(!SND.music)return;
   if(window.POUCE_JEU&&POUCE_JEU.phase!=='repos')try{POUCE_JEU.fin(true);}catch(e){}
   musicMode='run';musicLieu=ECOLE_MUS;NIVEAU_FX=0;ECOLE.f0=0;
-  if(DEPMUS.on){DEPMUS.f0=performance.now();musicVolCour=0;}
+  if(DEPMUS.on&&!(musicOn&&musicEl&&!musicEl.paused&&musicEl.src===MENU_MUS.abs(ECOLE_MUS.f))){DEPMUS.f0=performance.now();musicVolCour=0;} // (elle joue déjà au menu : ni creux ni second fondu)
   ECOLE.pique=true;musicPlayCurrent();}
 /* (2026-10-24, Léo, sur une vidéo de course : « la musique de niveau est bizarre — elle prend beaucoup de temps à commencer, on dirait pas de la musique »)
    LE DÉPART À UN MOTEUR DÉJÀ PLEIN. MESURÉ au banc (musique seule, chaque morceau de Pouce bleu joué comme en course, sortie enregistrée) : aux moteurs 1-4 les
@@ -501,7 +552,8 @@ function musicStartRun(depart,reprise){ // au début d'une partie (start / reset
   musicLieu=musicLieuVoulu();          // …mais le lieu a peut-être sa propre musique (l'auto-école, voir musicLieuVoulu)
   musicMode='run';NIVEAU_FX=0;ECOLE.f0=0;
   const garde9=ECOLE.pique&&musicLieu===ECOLE_MUS&&musicOn&&!!musicEl&&!musicEl.paused;ECOLE.pique=false; // (2026-10-16) la musique de la leçon, partie au piqué, CONTINUE (ni coupure ni second fondu)
-  if(depart&&DEPMUS.on&&!garde9){DEPMUS.f0=performance.now();musicVolCour=0;} // (LE DÉPART EN MUSIQUE) elle part tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
+  const deja9=musicOn&&!!musicEl&&!musicEl.paused&&musicLieu===ECOLE_MUS&&musicEl.src===MENU_MUS.abs(ECOLE_MUS.f); // la leçon jouait déjà au menu (2/11) : elle continue, sans creux
+  if(depart&&DEPMUS.on&&!garde9&&!deja9){DEPMUS.f0=performance.now();musicVolCour=0;} // (LE DÉPART EN MUSIQUE) elle part tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
   musicPlayCurrent();
   /* LE LEVER DE PISTE : le décor repart de zéro et remonte avec le morceau, le métronome est remis à plat. */
   LVLFX.k=0;LVLFX.spin=0;LVLFX.flip=LVLFX.flipTo=0;LVLFX.dir=1;
@@ -512,12 +564,20 @@ function musicStartRun(depart,reprise){ // au début d'une partie (start / reset
 function musicMenu(){
   if(!SND.music)return;
   musicMode='menu';
+  if(leconSilence())return; // la leçon et son menu : pas de musique, l'ambiance de la boutique (leconAmbiance)
+  if(lobbyPeut()){try{if(musicEl&&!musicEl.paused)stopMusic();}catch(e){} pbjLobby();return;} // la musique du niveau tiré, en ambiance (le fichier fixe d'avant ne joue plus : voir musicMenuAncien) ; un morceau d'<audio> encore en route (la leçon vient de finir) s'éteint
+  musicMenuAncien();
+}
+function musicMenuAncien(){
+  if(!SND.music||leconSilence())return;
+  musicMode='menu';
   /* (2026-10-05, Léo : « une musique qui commence très fort ») le lobby partait à .8 × le curseur… et musicTick (mode menu) le ramenait à .5
      dans la demi-seconde : un départ FORT puis un creux de −4 dB, à chaque retour au menu. Il part désormais de zéro et monte en ~0,4 s
      jusqu'au niveau du menu (musicTick, inchangé : c'est celui qu'on entend depuis toujours). (iPhone : volume verrouillé, rien ne change.) */
   playMusic(musicMenuUrl()||musicPremier(),{loop:true,volume:0,garde:true});menuFonArme();
 }
 function musicPlayCurrent(){
+  if(leconSilence()){stopMusic();return;} // la leçon n'a pas de musique (voir leconAmbiance)
   if(musicMode==='run'&&pbjRegne()){stopMusic();return;} // (15/10) POUCE BLEU a l'antenne
   const ouv=musicMode==='run'&&!!musicLieu;
   const url=musicMode==='menu'?(musicMenuUrl()||musicPremier()):ouv?musicLieu.f:(MUSIC_TRACKS[musicCur]||{}).f;

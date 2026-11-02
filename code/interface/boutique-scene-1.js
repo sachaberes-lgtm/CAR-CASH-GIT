@@ -104,9 +104,9 @@ function bqAtelierSourdine(on){
   try{if(openGarage._feu){if(on)openGarage._feu.gain(-45,.12);else if(GAR.porte)GAR.porte.db=null;else openGarage._feu.gain(0,.25);}}catch(e){}
 }
 const BQSON_ACC=[[52,59,66,68,73],[49,56,64,66,71]]; // E 6/9 (mi · si · fa# · sol# · do#) ↔ C#m7(11) (do# · sol# · mi · fa# · si) : chaque voix glisse d'un pas
-function bqSon(dt,on){
-  bqAtelierSourdine(!!on);
-  if(on&&BQ_MUSIQUE&&SND.music)on=false; /* (2026-10-16, Sacha) la musique du garage a suivi : la nappe se tait (voir BQ_MUSIQUE) — l'atelier, lui, reste en sourdine */
+function bqSon(dt,on,force){ // force : la leçon (musique.js, leconAmbiance) joue la nappe de la boutique hors de la boutique : ni sourdine de l'atelier, ni retrait derrière la musique
+  if(!force)bqAtelierSourdine(!!on);
+  if(on&&!force&&BQ_MUSIQUE&&SND.music)on=false; /* (2026-10-16, Sacha) la musique du garage a suivi : la nappe se tait (voir BQ_MUSIQUE) — l'atelier, lui, reste en sourdine */
   if(!on){if(BQSON.n&&!BQSON.off)bqSonCoupe(.6);return;}
   if(!AC||AC.state!=='running'||!SND.sfx)return;
   let n=BQSON.n;const now=AC.currentTime,ton=(sonTonSuit._t|0);

@@ -56282,8 +56282,18 @@ function musicPickNext(excludeIdx){
    menu par le fondu ordinaire (~0,5 s, musicVolCour), au ciel il redescend derrière le vent (MUS_CIEL). Les trois du GARAGE (ATELIER, HUILE DE
    MINUIT, CLÉ DE 12) ne jouent plus dans le jeu : ils restent dans la bibliothèque (lobby/menu-donnees.js) et sur le disque. Basses : les trois
    du ciel ont moins de 4 % de leur énergie sous 60 Hz (mesuré le 15/10) — rien à régler. */
-const MENU_MUS={ciel:['nuages','altitude','apesanteur'].map(k=>'assets/audio/music/lobby/ciel-'+k+'.m4a'),_abs:{}};
-MENU_MUS.tire={ciel:MENU_MUS.ciel[Math.floor(Math.random()*MENU_MUS.ciel.length)]};
+/* LA CINÉMATIQUE SONORE DE L'INTRO (2026-11-02, Léo : « le pad ne dure que jusqu'à l'explosion du 1.61 ; la musique démarre quand 1.61 GAME PRESENTS s'écrit ; à l'accueil c'est la MÊME musique, sans coupure,
+   et le vent arrive petit à petit à l'oreille ») : entre l'appui sur la boule (`on`) et l'apparition de l'accueil (`t0`), le ciel est MUET de vent et la musique joue au niveau du menu ; à `t0` le vent
+   monte et la musique recule vers son niveau de ciel (MUS_CIEL), en `d` secondes, une même courbe pour les deux (`ventIntro`, 0 → 1). Hors de l'intro, `ventIntro` vaut 1 : rien ne change. */
+const INTROSON={on:false,t0:0,d:8,m0:.3}; /* m0 : le niveau de départ de la musique (30 % de celui du garage, −10 dB) ; au ciel elle finit à MUS_CIEL (15 %) */
+function ventIntro(){if(!INTROSON.on)return 1;if(!INTROSON.t0)return 0;const k=(performance.now()-INTROSON.t0)/(INTROSON.d*1000);return k>=1?1:k*k*(3-2*k);}
+/* LE LOBBY JOUE LE PALIER 1 (2026-11-02, Léo : « enlever les musiques de lobby, libérer un maximum d'espace, et mettre à la place le palier numéro 1 : quelque chose qui fasse partie de la musique de la course ») : au lieu des trois
+   morceaux de 3 à 4 Mo (nuages, altitude, apesanteur), le ciel et le garage jouent le PALIER 1 de CIEL · 30 (0,35 Mo, 22 s, en boucle) : le début, calme, du morceau qui monte avec le moteur en course. Un seul morceau :
+   `MENU_MUS.ciel.length` vaut 1, donc il boucle (voir playMusic) et `musicMenuSuivant` n'a plus rien à tirer. Les trois anciens fichiers restent sur le disque tant que le palier 1 n'est pas validé à l'oreille.
+   (même soir, Léo : « cette règle ne vaut que pour le menu ciel ; la boutique est très bien ; on peut en trouver une pareille pour le garage ») LE GARAGE A LE SIEN : le palier 1 de NUIT DE VELOURS (0,40 Mo, 17 s : quatre temps doux, claquements de doigts, basse posée,
+   accords étouffés, derrière un filtre). La boutique s'ouvre DEPUIS le garage : elle continue le morceau du garage, comme avant (son niveau et sa nappe ne changent pas). Le passage ciel ↔ garage est déjà prévu par musicTick (le morceau d'avant s'efface, celui du lieu entre en fondu). */
+const MENU_MUS={ciel:['assets/audio/music/paliers/rendus/ciel-30/p1.m4a'],garage:['assets/audio/music/paliers/rendus/nuit-de-velours/p1.m4a'],_abs:{}};
+MENU_MUS.tire={ciel:MENU_MUS.ciel[0],garage:MENU_MUS.garage[0]};
 MENU_MUS.abs=function(u){return this._abs[u]||(this._abs[u]=(function(){try{return new URL(u,location.href).href;}catch(e){return u;}})());};
 /* ===== LE LOBBY ENCHAÎNE (2026-10-29, Léo : « la musique lobby joue encore deux fois ») =====
    Le morceau du menu BOUCLAIT : au bout de 2 min 30 à 3 min, le MÊME repartait du début. Désormais il ne boucle plus (voir playMusic) : à sa
@@ -56300,8 +56310,12 @@ function musicMenuSuivant(){
    fonds l'un sur l'autre) et revient si le joueur a coupé la musique. Le néon et le feu de l'atelier restent en sourdine. Le silence de Léo
    reste au choix : `?boutique=muette`. */
 const BQ_MUSIQUE=!/[?&]boutique=muette\b/.test(location.search);
-function musicMenuUrl(){ // le morceau du menu : le MÊME au ciel de LA CHUTE et au garage (15/10)
-  return MENU_MUS.tire.ciel;}
+function musicMenuUrl(){ // le morceau du lieu : le ciel de LA CHUTE a le sien, le garage (et la boutique, qui s'ouvre de lui) le sien (2/11 ; du 15/10 au 2/11 c'était le MÊME partout)
+  let tu9=false;try{tu9=pbjTuto()||leconAVenir();}catch(e){} // (2026-11-02, Léo : « corriger le conflit avec le niveau guide du début, ça casse le concept ») LA LEÇON (1re partie d'un joueur neuf) a SA musique, « PREMIER MATIN » : c'est elle qui joue déjà au menu, et JOUER la continue (`garde`), au lieu d'une musique sans rapport qui s'arrête au JOUER
+  if(tu9)return ECOLE_MUS.f;
+  if(INTROSON.on)return MENU_MUS.tire.ciel; // l'intro : toute la cinématique joue le morceau du ciel, sans en changer
+  let g9=false;try{g9=!!garageOn&&!CHUTE.on;}catch(e){} // (garageOn et CHUTE naissent dans des morceaux plus loin : avant eux, on est au ciel)
+  return g9?MENU_MUS.tire.garage:MENU_MUS.tire.ciel;}
 // musicBaseVol .85→1 (2026-09-24, « la musique pas assez forte comparé au moteur ») : on relève le
 // NIVEAU ACCORDÉ et pas la valeur par défaut du curseur — celle-ci est sauvegardée chez le joueur
 // (`SAVE.d.vol.mus`), la changer n'aurait rien fait pour qui a déjà joué. Le moteur, lui, a reculé
@@ -56523,7 +56537,8 @@ function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) :
   if(MUS_WA.on){try{musWaBranche();musWaReveil();}catch(e){}} // (2026-10-14, session SON) dans le geste : brancher la musique au graphe, relancer un contexte « interrupted » (appel, Siri) avant l'élément
   if(!musicDeverrouille._ok){musicDeverrouille._ok=true;
     if(!el.src)el.src=musicMenuUrl()||musicPremier();           // le morceau de l'ACCUEIL se charge dès le 1er toucher : aucun blanc au départ — ⚠ (Léo, 2026-09-27) celui du 1er niveau s'entendait une seconde avant l'intro
-    if(!musicVoulue){el.muted=true;const p=el.play();       // lancé une fois, en silence, PENDANT le geste : l'élément est libre
+    if(!musicVoulue){el.muted=true;try{if(!SON_VOL_VERROU&&!musWaTient())el.volume=0;}catch(e){} /* (2026-11-02, Léo : une ancienne musique s'entendait pendant la construction de la boule) muet ET volume 0 : si le lecteur lent ne s'arrête pas à temps, rien ne filtre ; musicTick et musicJoue remontent le volume quand le menu le veut */
+      const p=el.play();       // lancé une fois, en silence, PENDANT le geste : l'élément est libre
       /* (2026-10-05, Léo : « une musique qui commence très fort au début ») le son ne se ROUVRE qu'une fois l'arrêt CONSTATÉ : rouvert
          dans la même image que pause(), un lecteur lent à s'arrêter (téléphone, réseau lent : la lecture muette démarre parfois en pleine
          intro) pouvait laisser filer le morceau à plein volume. Si le menu le réclame entre-temps (musicVoulue), il se rouvre tout de suite. */
@@ -56678,17 +56693,53 @@ function pbjTuto(){return (typeof TUTO!=='undefined'&&!!TUTO.on)||!!(LVL.cur&&LV
 function pbjRegne(){return !!window.POUCE_JEU&&!pbjTuto();} // Pouce bleu a l'antenne des courses : aucune autre musique n'y joue (sauf la frénésie, voir frenMus)
 function pbjActif(){return pbjRegne()&&!PBJ_KO&&!!AC&&!!MASTER&&!!MASTER._lim;}
 function pbjLance(vite,meme){if(!pbjActif()||!SND.music)return;
-  try{const p=POUCE_JEU.depart(AC,MASTER._lim,{brut:BASSES_BRUT,vite:!!vite,meme:!!meme});
+  try{const p=POUCE_JEU.depart(AC,MASTER._lim,{brut:BASSES_BRUT,vite:!!vite,meme:!!meme,boum:SND.sfx?(typeof sfxVol==='function'?sfxVol():VOL.sfx):0});
     if(p&&p.then)p.then(function(E){const f=POUCE_JEU.phase;if(E){PBJ_ESSAI=0;return;}if(f!=='erreur'&&f!=='vide')return; // (annulé par un autre départ ou une fin : rien)
       console.warn('Pouce bleu : '+(POUCE_JEU.err||'liste vide'));
       if(f==='erreur'&&++PBJ_ESSAI<3){pbjLance(vite||musicMode==='run',false);return;} // un autre morceau (le raté est compté comme joué)
       PBJ_KO=1;});}catch(e){}}
+/* LE LOBBY LIÉ (2026-11-02, Léo : « le son du menu ciel ne doit être rien d'autre qu'un truc fabriqué avec les musiques faites pour le jeu, transformé en un truc d'ambiance qui se transforme en la musique du jeu dès qu'on appuie sur JOUER ; la musique du niveau
+   se fait avant même qu'on appuie : JOUER démarre le niveau qui joue déjà en tant que musique de menu ; il doit quand même y avoir un petit truc qui change, une récompense ») : au menu, le morceau de la PROCHAINE course est tiré et joue déjà (Pouce bleu, au moteur de
+   départ, derrière un filtre à demi fermé et dans une grande salle : voir `POUCE_JEU.lobby`) ; au JOUER, ce MÊME morceau se transforme en musique de course (`POUCE_JEU.transforme` : le filtre s'ouvre, la salle s'efface, le niveau monte), sans rien redémarrer.
+   Le niveau du lobby suit le mixage du menu (musicTick : le ciel derrière le vent, le garage, l'intro) ; l'élément <audio> ne joue plus au menu. `?lobby=ancien` = le lobby d'avant (un fichier fixe, MENU_MUS). Repli : si le morceau ne part pas, le fichier fixe joue, faute de mieux. */
+const LOBBY_LIE=!/[?&]lobby=ancien\b/.test(location.search);
+let LOBBY_KO=0;
+/* (2026-11-02, Léo : « pour chaque musique une version lobby avec une transition quand on appuie sur JOUER, puis le palier 1 jusqu'à 30 ; le début, pour rendre le jeu plus smooth » puis « attention que les musiques ne soient pas buggées en mode ça commence direct avec plein d'instruments »)
+   LE PALIER DU LOBBY, UN PAR MORCEAU, ET JAMAIS « TOUT D'UN COUP ». MESURÉ sur les 19 morceaux de Pouce bleu (niveau brut RMS, le morceau DÉMARRÉ directement à ce palier) : un morceau du générateur passe souvent d'un palier clairsemé (−31 à −51 dB, une ou deux notes) à un palier « plein » (−12 à −16 dB, tous les instruments)
+   en UN cran (1→2, ou 2→3 selon le morceau) ; démarré ou monté jusque-là, il « explose ». Le lobby joue donc le DERNIER PALIER ENCORE CLAIRSEMÉ de chaque morceau (celui dont le niveau brut reste ≤ −20 dB, le plus fort des paliers 1 à 3) : ambiance calme, jamais tout l'orchestre ; il y ENTRE par un fondu de 4 s depuis le palier 1 (PB.lobby) ;
+   et c'est le JOUER qui fait arriver tout le monde : le palier monte au 6 (le départ de la course, PBJ_MIN) en même temps que le filtre s'ouvre et que le coup tombe, puis le moteur du jeu mène la montée jusqu'au 30. Les fichiers à paliers et les pages en direct (déjà pleins au palier 1) restent au palier 1.
+   Un morceau absent de la table (un nouveau dans Pouce bleu) joue le palier 1. `?lobbytier=N` (1 à 6) impose le même palier à tous, pour comparer. */
+const LOBBY_PALIERS={'bleu-6562':2,'bleu-1540':1,'bleu-7299':2,'bleu-2221':1,'bleu-4830':2,'bleu-9551':1,'bleu-9664':1,'bleu-8154':1,'bleu-6167':1,'bleu-8338':2,'bleu-1275':1,'bleu-8042':1,'bleu-3379':3,'bleu-6104':1,
+  'pal-neon-noir':1,'pal-nuit-de-velours':1,'pal-aura-30':1,'pal-rubis-neon':1,'pal-asphalte':1};
+const LOBBY_TIER=(function(){const m=/[?&]lobbytier=(\d+)/.exec(location.search);return m?Math.max(1,Math.min(6,+m[1])):0;})(); // 0 = le palier de chaque morceau (LOBBY_PALIERS)
+/* (2026-11-02, Léo : « le menu ciel ne respecte pas ce que j'ai dit ; le conflit avec le niveau guide du début casse le concept ») LA LEÇON À VENIR. Le jeu ne pose TUTO.on qu'au JOUER (tutoArme, juste avant le lancement) : au MENU d'un joueur neuf, pbjTuto() est faux, et le lobby lié jouait un morceau de Pouce bleu
+   que la leçon remplaçait aussitôt par « PREMIER MATIN ». Un joueur qui n'a pas encore fait la leçon (SAVE.d.tuto) a donc, dès le menu, la musique de la leçon : elle joue déjà, et JOUER la continue (`garde`, sans creux : voir ecoleMusPique). Le lobby lié ne vaut qu'après la leçon. */
+/* (2026-11-02, Léo : « juste pas de musique la leçon : ça doit donner un peu dans la vibe boutique, qui a son propre son, comme sur le main ou une ancienne version ») LA LEÇON SANS MUSIQUE, AVEC L'AMBIANCE DE LA BOUTIQUE. Ni « PREMIER MATIN », ni Pouce bleu, ni lobby lié : à l'auto-école, et au menu d'un joueur neuf qui va la faire (le jeu ne pose
+   TUTO.on qu'au JOUER, voir tutoArme : `leconAVenir` le sait dès le menu, par SAVE.d.tuto), AUCUNE musique ne joue ; à sa place, la nappe de verre PROPRE à la boutique (`bqSon`, boutique-scene-1.js : l'accord E 6/9 ↔ C#m7(11), l'air de la salle, la note cristalline
+   avec son écho) tient l'ambiance, sur le bus des effets, derrière le vent du ciel. Elle s'éteint (0,6 s) quand la leçon finit ; Pouce bleu entre alors comme partout (musicSuitLieu). `?lecon=musique` rend l'ancien (la musique de la leçon, au menu puis en course). */
+const LECON_MUSIQUE=/[?&]lecon=musique\b/.test(location.search);
+function leconAVenir(){try{return !SAVE.d.tuto&&!SANDBOX&&!PARK.on;}catch(e){return false;}} // un joueur qui n'a pas encore fait la leçon, au menu
+function leconSilence(){try{return !LECON_MUSIQUE&&(pbjTuto()||leconAVenir());}catch(e){return false;}} // pas de musique : la leçon, ou son menu
+const LECON_AMB={on:false};
+function leconAmbiance(dt){ // appelé à chaque image (musicTick) : l'ambiance de la boutique pendant la leçon ; on ne coupe QUE la nappe qu'on a lancée (la boutique s'en sert aussi)
+  if(leconSilence()){if(SND.sfx){LECON_AMB.on=true;bqSon(dt,true,true);}}
+  else if(LECON_AMB.on){LECON_AMB.on=false;try{if(!(typeof GBQ!=='undefined'&&GBQ.on))bqSonCoupe(.6);}catch(e){}}
+}
+function lobbyPeut(){return LOBBY_LIE&&!LOBBY_KO&&!leconAVenir()&&pbjActif();}
+window.dbgLobby=function(){try{const P=window.POUCE_JEU;return {lobbyLie:LOBBY_LIE,ko:LOBBY_KO,leconAVenir:leconAVenir(),leconSilence:leconSilence(),ambiance:LECON_AMB.on,tuto:pbjTuto(),pbjActif:pbjActif(),peut:lobbyPeut(),phase:P&&P.phase,morceau:P&&P.E&&P.E.titre,palier:P&&P.tier0,mode:musicMode,musicEl:musicEl?{src:(musicEl.src||'').split('/').pop(),pause:musicEl.paused,vol:+musicEl.volume.toFixed(3)}:null,intro:INTROSON.on};}catch(e){return {erreur:String(e)};}};
+function lobbyActif(){return !!window.POUCE_JEU&&POUCE_JEU.phase==='lobby';}
+function pbjLobby(){
+  if(!lobbyPeut()||!SND.music)return;
+  const P=POUCE_JEU;if(P.phase==='lobby'||P.phase==='charge')return;
+  const fixes=INTROSON.on&&!INTROSON.t0&&!/[?&]lobby=tout\b/.test(location.search); // pendant « PRESENTS » le jeu gèle dessous (sur un Mac lent : images de 0,2 à 1,3 s) : seuls les morceaux à paliers figés (des fichiers) tiennent, les autres (le générateur joue en direct) attendent l'accueil ; ?lobby=tout les laisse tous partir
+  try{const p=P.lobby(AC,MASTER._lim,{brut:BASSES_BRUT,fixes:fixes,tier:LOBBY_TIER||1,tiers:LOBBY_TIER?null:LOBBY_PALIERS});
+    if(p&&p.then)p.then(function(E){if(E||P.attente)return;if(P.phase==='erreur'||P.phase==='vide'){LOBBY_KO=1;console.warn('Lobby lié : '+(P.err||'liste vide'));if(musicMode==='menu')musicMenuAncien();}});}catch(e){LOBBY_KO=1;}}
 function pbjDepart(vite,meme){if(!vite&&!meme){PBJ_KO=0;PBJ_ESSAI=0;if(pbjTuto()){try{ecoleMusPique();}catch(e){}return;}}pbjLance(vite,meme);} // (sans argument = un JOUER : on réessaie) — (2026-10-16) le JOUER de la LEÇON lance la musique de la leçon
 function ecoleMusPique(){ // (2026-10-16) le JOUER de la leçon : SA musique part pendant le piqué, en fondu (DEPMUS), et la course la GARDE (musicStartRun)
   if(!SND.music)return;
   if(window.POUCE_JEU&&POUCE_JEU.phase!=='repos')try{POUCE_JEU.fin(true);}catch(e){}
   musicMode='run';musicLieu=ECOLE_MUS;NIVEAU_FX=0;ECOLE.f0=0;
-  if(DEPMUS.on){DEPMUS.f0=performance.now();musicVolCour=0;}
+  if(DEPMUS.on&&!(musicOn&&musicEl&&!musicEl.paused&&musicEl.src===MENU_MUS.abs(ECOLE_MUS.f))){DEPMUS.f0=performance.now();musicVolCour=0;} // (elle joue déjà au menu : ni creux ni second fondu)
   ECOLE.pique=true;musicPlayCurrent();}
 /* (2026-10-24, Léo, sur une vidéo de course : « la musique de niveau est bizarre — elle prend beaucoup de temps à commencer, on dirait pas de la musique »)
    LE DÉPART À UN MOTEUR DÉJÀ PLEIN. MESURÉ au banc (musique seule, chaque morceau de Pouce bleu joué comme en course, sortie enregistrée) : aux moteurs 1-4 les
@@ -56718,7 +56769,8 @@ function musicStartRun(depart,reprise){ // au début d'une partie (start / reset
   musicLieu=musicLieuVoulu();          // …mais le lieu a peut-être sa propre musique (l'auto-école, voir musicLieuVoulu)
   musicMode='run';NIVEAU_FX=0;ECOLE.f0=0;
   const garde9=ECOLE.pique&&musicLieu===ECOLE_MUS&&musicOn&&!!musicEl&&!musicEl.paused;ECOLE.pique=false; // (2026-10-16) la musique de la leçon, partie au piqué, CONTINUE (ni coupure ni second fondu)
-  if(depart&&DEPMUS.on&&!garde9){DEPMUS.f0=performance.now();musicVolCour=0;} // (LE DÉPART EN MUSIQUE) elle part tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
+  const deja9=musicOn&&!!musicEl&&!musicEl.paused&&musicLieu===ECOLE_MUS&&musicEl.src===MENU_MUS.abs(ECOLE_MUS.f); // la leçon jouait déjà au menu (2/11) : elle continue, sans creux
+  if(depart&&DEPMUS.on&&!garde9&&!deja9){DEPMUS.f0=performance.now();musicVolCour=0;} // (LE DÉPART EN MUSIQUE) elle part tout de suite, en fondu (musicJoue pose le volume 0 avant de lancer)
   musicPlayCurrent();
   /* LE LEVER DE PISTE : le décor repart de zéro et remonte avec le morceau, le métronome est remis à plat. */
   LVLFX.k=0;LVLFX.spin=0;LVLFX.flip=LVLFX.flipTo=0;LVLFX.dir=1;
@@ -56729,12 +56781,20 @@ function musicStartRun(depart,reprise){ // au début d'une partie (start / reset
 function musicMenu(){
   if(!SND.music)return;
   musicMode='menu';
+  if(leconSilence())return; // la leçon et son menu : pas de musique, l'ambiance de la boutique (leconAmbiance)
+  if(lobbyPeut()){try{if(musicEl&&!musicEl.paused)stopMusic();}catch(e){} pbjLobby();return;} // la musique du niveau tiré, en ambiance (le fichier fixe d'avant ne joue plus : voir musicMenuAncien) ; un morceau d'<audio> encore en route (la leçon vient de finir) s'éteint
+  musicMenuAncien();
+}
+function musicMenuAncien(){
+  if(!SND.music||leconSilence())return;
+  musicMode='menu';
   /* (2026-10-05, Léo : « une musique qui commence très fort ») le lobby partait à .8 × le curseur… et musicTick (mode menu) le ramenait à .5
      dans la demi-seconde : un départ FORT puis un creux de −4 dB, à chaque retour au menu. Il part désormais de zéro et monte en ~0,4 s
      jusqu'au niveau du menu (musicTick, inchangé : c'est celui qu'on entend depuis toujours). (iPhone : volume verrouillé, rien ne change.) */
   playMusic(musicMenuUrl()||musicPremier(),{loop:true,volume:0,garde:true});menuFonArme();
 }
 function musicPlayCurrent(){
+  if(leconSilence()){stopMusic();return;} // la leçon n'a pas de musique (voir leconAmbiance)
   if(musicMode==='run'&&pbjRegne()){stopMusic();return;} // (15/10) POUCE BLEU a l'antenne
   const ouv=musicMode==='run'&&!!musicLieu;
   const url=musicMode==='menu'?(musicMenuUrl()||musicPremier()):ouv?musicLieu.f:(MUSIC_TRACKS[musicCur]||{}).f;
@@ -56981,6 +57041,7 @@ function lvlTick(dt,S){
 }
 /* <<<FIN FOND>>> ========================================================== */
 function musicTick(dt,mvt){
+  try{leconAmbiance(dt);}catch(e){} // (2026-11-02) la leçon : pas de musique, l'ambiance de la boutique
   if(MUSREP.att&&!paused){MUSREP.att=false;if(SND.music&&started&&running&&!gameOver)try{musicStartRun(false,true);}catch(e){}} // (2026-10-15) MUSIQUE rallumée pendant la pause : la course reprend, son morceau aussi
   try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
   let target=0,beat=0,hiT=0,bsT=0,mdT=0;
@@ -57049,8 +57110,15 @@ function musicTick(dt,mvt){
       (chuteDoux exige SND.sfx), et la musique restait à −16/−22 dB « derrière » ce vent absent — un ciel presque muet. Sans vent, plus de
       MUS_CIEL : le niveau du garage. */
    const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,cielV9=ciel9&&VOL_LOCKED&&!musWaTient(),tait9=bq9||cielV9;MUS_TAIT=tait9;
-   if(ciel9&&SND.sfx&&!(MUSAP.t>performance.now())){const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78;musicVolCible*=MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6);} // la rafale la couvre, l'accalmie la ramène : on l'entend de loin, en tombant — (2026-10-14, session SON) sauf pendant l'extrait du curseur MUSIQUE : 1,4 s au niveau du garage, le vrai volume réglé
-   if(musicMode==='menu'&&!tait9&&musicEl&&musicEl.src&&!musicTick._pz){const u9=musicMenuUrl(); // LA MUSIQUE DU LIEU (ciel ↔ garage)
+   {const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78,fc9=ciel9&&SND.sfx&&!(MUSAP.t>performance.now())?MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6):1; /* fc9 : le niveau où ce lieu joue d'habitude (le ciel derrière le vent, ou le garage) */
+     if(INTROSON.on&&musicMode==='menu')musicVolCible*=INTROSON.m0+(fc9-INTROSON.m0)*ventIntro(); /* (2026-11-02, l'intro) la musique part DOUCE (m0, quel que soit le lieu qui se prépare dessous : plus de départ « très fort ») et rejoint le niveau du lieu en même temps que le vent monte */
+     else musicVolCible*=fc9;} // la rafale la couvre, l'accalmie la ramène : on l'entend de loin, en tombant — (2026-10-14, session SON) sauf pendant l'extrait du curseur MUSIQUE : 1,4 s au niveau du garage, le vrai volume réglé
+   if(window.POUCE_JEU&&POUCE_JEU.phase==='lobby'&&(!SND.music||musicMode!=='menu')){try{POUCE_JEU.fin(false);}catch(e){}} // la musique coupée (ou plus au menu) : le morceau du lobby s'éteint
+   if(lobbyActif()&&musicMode==='menu'){ /* (2026-11-02) LE LOBBY LIÉ : son niveau suit le mixage du menu (ciel derrière le vent, garage, intro, boutique), ramené à l'échelle de la course (au garage : le niveau du départ d'une course à l'arrêt) ; l'élément <audio> reste muet */
+     const m9=musVol()*.5,r9=m9>1e-4?Math.min(2.5,musicVolCible/m9):0,b9=tait9?0:VOL.mus/.62*PBJ_NIV*.62*r9;
+     try{POUCE_JEU.niveau(b9*pbjPlancher(dt,b9,POUCE_JEU.tier0||pbjTier(1)));}catch(e){}
+     musicVolCible=0;}
+   if(musicMode==='menu'&&!tait9&&musicEl&&musicEl.src&&!musicTick._pz&&!lobbyActif()){const u9=musicMenuUrl(); // LA MUSIQUE DU LIEU (ciel ↔ garage)
      if(u9&&musicEl.src!==MENU_MUS.abs(u9)){musicVolCible=0;                       // on a changé de lieu : la musique d'avant s'efface…
        if((VOL_LOCKED&&!musWaTient())||musicVolCour<.015||musicEl.paused)playMusic(u9,{loop:true,volume:0});}} // …puis celle du lieu prend sa place, en fondu depuis zéro (iPhone sans MUS_WA : franche)
    if(tait9){musicVolCible=0;if(!musicTick._pz&&((VOL_LOCKED&&!musWaTient())||musicVolCour<.012)){ /* (2026-10-14, session SON) branchée en WebAudio, l'iPhone fait comme l'ordi : un fondu, puis la pause */musicTick._pz=true;musicPause(true);}}
@@ -70916,7 +70984,7 @@ function chuteDoux(t,u){
   }
   clearTimeout(CHDOUX.off);CHDOUX.off=0;
   const now=AC.currentTime,houle=.78+.16*Math.sin(t*.41)+.08*Math.sin(t*1.07+1.3);CHDOUX.h=houle; // (la musique du ciel la lit : elle plonge sous les rafales)
-  stt(n.g.gain,CHDOUX_VOL*houle*(1+.6*u),now,.5);                  // au piqué de JOUER il gonfle (+4 dB ; +8 avant le 16/10 : voir LE PIQUÉ QUI NE CRIE PLUS)…
+  stt(n.g.gain,CHDOUX_VOL*houle*(1+.6*u)*ventIntro(),now,.5);                  // au piqué de JOUER il gonfle (+4 dB ; +8 avant le 16/10 : voir LE PIQUÉ QUI NE CRIE PLUS)…
   stt(n.f1.frequency,330+70*Math.sin(t*.29)+300*u,now,.6);         // …et s'éclaircit un peu
   stt(n.f2.frequency,820+260*Math.sin(t*.53+2)+500*u,now,.6);
   stt(n.g2.gain,.2+.08*Math.sin(t*.67),now,.6);
@@ -71374,9 +71442,9 @@ function bqAtelierSourdine(on){
   try{if(openGarage._feu){if(on)openGarage._feu.gain(-45,.12);else if(GAR.porte)GAR.porte.db=null;else openGarage._feu.gain(0,.25);}}catch(e){}
 }
 const BQSON_ACC=[[52,59,66,68,73],[49,56,64,66,71]]; // E 6/9 (mi · si · fa# · sol# · do#) ↔ C#m7(11) (do# · sol# · mi · fa# · si) : chaque voix glisse d'un pas
-function bqSon(dt,on){
-  bqAtelierSourdine(!!on);
-  if(on&&BQ_MUSIQUE&&SND.music)on=false; /* (2026-10-16, Sacha) la musique du garage a suivi : la nappe se tait (voir BQ_MUSIQUE) — l'atelier, lui, reste en sourdine */
+function bqSon(dt,on,force){ // force : la leçon (musique.js, leconAmbiance) joue la nappe de la boutique hors de la boutique : ni sourdine de l'atelier, ni retrait derrière la musique
+  if(!force)bqAtelierSourdine(!!on);
+  if(on&&!force&&BQ_MUSIQUE&&SND.music)on=false; /* (2026-10-16, Sacha) la musique du garage a suivi : la nappe se tait (voir BQ_MUSIQUE) — l'atelier, lui, reste en sourdine */
   if(!on){if(BQSON.n&&!BQSON.off)bqSonCoupe(.6);return;}
   if(!AC||AC.state!=='running'||!SND.sfx)return;
   let n=BQSON.n;const now=AC.currentTime,ton=(sonTonSuit._t|0);
@@ -77132,6 +77200,7 @@ function goImmersive(){
    `?intro=ancien` = l'intro d'avant (init.js) · `?intro=muet` = sans aucun son · « réduire les animations » = sans secousse ni
    éclats (le voile s'efface) · quelqu'un qui a déjà fini la leçon (SAVE.d.tuto) voit le même film en 20 % plus court · un 2e toucher passe. */
 (function(){
+  try{if(/[?&]lecon=non\b/.test(location.search)&&SAVE&&SAVE.d)SAVE.d.tuto=1;}catch(e){} /* (réglage de TEST, 2026-11-02) `?lecon=non` : la leçon est comptée comme faite (SAVE.d.tuto) : le menu joue alors le lobby lié (le morceau du niveau, en ambiance), pas « Premier matin » */
   if(!INTRO_NEUVE)return;
   const sp=document.getElementById('splash'),cv=document.getElementById('fxCv');
   if(!sp||!cv)return;
@@ -77301,16 +77370,49 @@ function goImmersive(){
 
   /* 9. SPHÈRE (2026-10-23, Léo : « l'effet éclaboussure étincelle artifice qui fait la courbe φ, explose et laisse paraître 1.61 en sphère, écrit en masse pour former une boule qui tourne sur elle-même, se désintègre, et toutes les lettres tombent, effet terre qui s'écroule ; puis CASH CAR surgit de l'ombre, zoom, et boom : ça explose en écran ciel »).
      Le feu d'artifice en spirale (dLabFeu, sans son nombre en cubes), puis les caractères « 1 . 6 1 » en masse jaillissent du centre et se posent en sphère (spirale de Fibonacci) qui tourne, penchée ; elle tremble, puis lâche : le bas d'abord, tout choit. */
+  /* LA BOULE EST LA SUITE DU NOMBRE D'OR (2026-11-02, Léo : « ça ne va plus être que 1.61, la boule : la boule, c'est la suite du chiffre d'or ; ensuite, il y aura 1.61 PRESENTS ») : au lieu de « 1 . 6 1 » répété, chaque point de la sphère porte
+     le chiffre suivant de φ = 1,6180339887498948… (560 signes, plus qu'aucune taille d'écran n'en demande), dans l'ordre de la spirale de Fibonacci qui dessine la boule : de la tête à la base, la boule s'écrit. */
+  const PHI_CH="1.618033988749894848204586834365638117720309179805762862135448622705260462818902449707207204189391137484754088075386891752126633862223536931793180060766726354433389086595939582905638322661319928290267880675208766892501711696207032221043216269548626296313614438149758701220340805887954454749246185695364864449241044320771344947049565846788509874339442212544877066478091588460749988712400765217057517978834166256249407589069704000281210427621771117778053153171410117046665991466979873176135600670874807101317952368942752194843530567830022878569978297783478458782";
+  const GLYPHES='0123456789.';
+  /* LES COULEURS FORMENT UNE PLANÈTE, ET TOURNENT AUTOUR DE SES TONS (2026-11-02, Léo : « les couleurs forment la couleur du globe, on reconnaît une planète ; encore un peu abstrait : que ça tourne vraiment autour des tons de la planète ») :
+     la couleur d'un chiffre ne dépend pas de sa valeur mais de SA ZONE sur la sphère : un bruit de valeur à basse fréquence (PLANETE_BRUIT) sépare des océans profonds, des côtes, des terres (forêts ou déserts), des glaces aux pôles, et des nuages qui passent par-dessus ;
+     la sphère tourne, les continents défilent. Une seule planète, la TERRE : chaque zone ONDULE autour de son ton (le bleu de l'océan va du marine à l'azur, la forêt du vert franc au vert-jaune…), chacune à son rythme, comme la lumière sur l'eau : la planète change
+     de couleur sans jamais cesser d'en être une. NPAS pas par tour (2,2 pas par seconde : 5,5 s), une onde fermée : le dernier pas rejoint le premier. Le pouls (rayon, lueur) est celui de dBoule, inchangé. */
+  const NPAS=12;
+  const ZONES=[ /* [teinte, saturation %, clarté %, amplitude de teinte (°), amplitude de clarté (%), déphasage] */
+    [220,85,55,16,8,0],   /* 0 océan profond : du marine à l'azur */
+    [188,90,58,14,8,1.3], /* 1 côtes, mer claire : du turquoise au vert d'eau */
+    [105,62,50,22,7,2.6], /* 2 terres vertes : du vert franc au vert-jaune */
+    [38,70,60,12,7,3.9],  /* 3 terres sèches, déserts : de l'ocre au sable */
+    [200,35,90,12,4,5.2], /* 4 glaces des pôles */
+    [210,14,93,0,3,.7]];  /* 5 nuages */
+  function couleurPlanete(z,st){ /* la couleur de la zone z au pas st : son ton de base, qui ondule (teinte et clarté) autour de lui */
+    const Z=ZONES[z],ph=6.2832*st/NPAS+Z[5];
+    return[Math.round((Z[0]+Z[3]*Math.sin(ph)+360)%360),Z[1],Math.round(Z[2]+Z[4]*Math.sin(ph+1.1))];
+  }
+  const PLANETE_BRUIT=(function(){ /* un bruit de valeur en 3D, lisse (courbe en S entre les sommets d'une grille) */
+    const h3=function(i,j,k){let h=Math.imul(i|0,374761393)+Math.imul(j|0,668265263)+Math.imul(k|0,1274126177)|0;h=Math.imul(h^h>>>13,1274126177);return((h^h>>>16)>>>0)/4294967296;};
+    return function(x,y,z){const i=Math.floor(x),j=Math.floor(y),k=Math.floor(z),u=x-i,v=y-j,w=z-k,su=u*u*(3-2*u),sv=v*v*(3-2*v),sw=w*w*(3-2*w),L=function(a,b,t){return a+(b-a)*t;};
+      return L(L(L(h3(i,j,k),h3(i+1,j,k),su),L(h3(i,j+1,k),h3(i+1,j+1,k),su),sv),L(L(h3(i,j,k+1),h3(i+1,j,k+1),su),L(h3(i,j+1,k+1),h3(i+1,j+1,k+1),su),sv),sw);};
+  })();
   function geoLabSphere(){
     const land=W>H*1.15,R=Math.min(W*.24,H*(land?.27:.19)),cx=W/2,cy=H*(land?.5:.46),n=Math.round(Math.max(260,Math.min(520,W*H/420))),Rn=hasard(161),ga=Math.PI*(3-Math.sqrt(5));
-    const F=()=>new Float32Array(n),px=F(),py=F(),pz=F(),dl=F(),tf=F(),fx=F(),gk=new Uint8Array(n),spr=[];
-    for(let i=0;i<n;i++){const y=1-2*(i+.5)/n,r=Math.sqrt(1-y*y),th=i*ga;px[i]=r*Math.cos(th);py[i]=y;pz[i]=r*Math.sin(th);dl[i]=Rn()*.4;gk[i]=i%4;
+    const F=()=>new Float32Array(n),px=F(),py=F(),pz=F(),dl=F(),tf=F(),fx=F(),gk=new Uint8Array(n);
+    for(let i=0;i<n;i++){const y=1-2*(i+.5)/n,r=Math.sqrt(1-y*y),th=i*ga;px[i]=r*Math.cos(th);py[i]=y;pz[i]=r*Math.sin(th);dl[i]=Rn()*.4;gk[i]=GLYPHES.indexOf(PHI_CH[i%PHI_CH.length]);
       tf[i]=TL.fondu-.95+(1-(y+1)/2)*.4+Rn()*.18;fx[i]=(Rn()-.5)*120*ku;}
-    const TEINTES=[['#fff0b0','#f0b030'],['#c8f0ff','#38b8ff'],['#ffc4d4','#ff4f86'],['#e4d4ff','#9a6bff']]; /* un « 1 . 6 1 » à quatre couleurs : or, bleu glace, rose, violet */
-    ['1','.','6','1'].forEach(function(ch,ci){const cc=document.createElement('canvas');cc.width=48;cc.height=64;const x=cc.getContext('2d'),d=x.createLinearGradient(0,8,0,56);d.addColorStop(0,TEINTES[ci][0]);d.addColorStop(1,TEINTES[ci][1]);x.fillStyle=d;x.font='44px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(ch,24,34);spr.push(cc);});
-    const sprH=[],HB=[42,200,340,265]; /* la boule qui change de couleur : 24 teintes par signe (départ : or, bleu glace, rose, violet), toutes décalées pareil au fil du temps */
-    for(let ci=0;ci<4;ci++){sprH.push([]);for(let st=0;st<24;st++){const h=(HB[ci]+15*st)%360,cc=document.createElement('canvas');cc.width=48;cc.height=64;const x=cc.getContext('2d'),d=x.createLinearGradient(0,8,0,56);d.addColorStop(0,'hsl('+h+',100%,86%)');d.addColorStop(1,'hsl('+h+',95%,56%)');x.fillStyle=d;x.font='44px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(['1','.','6','1'][ci],24,34);sprH[ci].push(cc);}}
-    return{sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:spr,gs:Math.max(9*ku,R*.2)};
+    const nv=new Float32Array(n),nd=new Float32Array(n),nn=new Float32Array(n); /* les zones : trois bruits posés sur la sphère. nv : les continents (les 38 % les plus hauts sont des terres, les 12 % d'après des côtes, le reste de l'océan) ; nd : forêt ou désert ; nn : les nuages (étirés en bandes) */
+    for(let i=0;i<n;i++){nv[i]=PLANETE_BRUIT(px[i]*1.15+4.1,py[i]*1.15+1.7,pz[i]*1.15+9.3)*.72+PLANETE_BRUIT(px[i]*2.5+8.2,py[i]*2.5+2.9,pz[i]*2.5+5.5)*.28;
+      nd[i]=PLANETE_BRUIT(px[i]*1.9+13.7,py[i]*1.9+6.3,pz[i]*1.9+2.1);nn[i]=PLANETE_BRUIT(px[i]*2.3+21.4,py[i]*3.9+9.1,pz[i]*2.3+17.8);}
+    const tri=Float32Array.from(nv).sort(),sTerre=tri[Math.floor(n*.62)],sCote=tri[Math.floor(n*.5)],sNuage=Float32Array.from(nn).sort()[Math.floor(n*.86)];
+    for(let i=0;i<n;i++){const ay=Math.abs(py[i]);
+      const z=ay>.89-.06*(nv[i]-.5)?4:nn[i]>=sNuage?5:nv[i]>=sTerre?(nd[i]>.56&&ay<.62?3:2):nv[i]>=sCote?1:0; /* glaces aux pôles, puis nuages, puis terres (déserts loin des pôles), côtes, océan */
+      gk[i]+=z*GLYPHES.length;} /* gk : zone × 11 + signe */
+    const sprH=[]; /* la boule qui change de couleur : NPAS teintes par signe et par zone, toutes avancées pareil au fil du temps */
+    for(let z=0;z<ZONES.length;z++)for(let gi=0;gi<GLYPHES.length;gi++){const Lg=[];sprH.push(Lg);
+      for(let st=0;st<NPAS;st++){const c=couleurPlanete(z,st),cc=document.createElement('canvas');cc.width=48;cc.height=64;const x=cc.getContext('2d'),d=x.createLinearGradient(0,8,0,56);
+        d.addColorStop(0,'hsl('+c[0]+','+c[1]+'%,'+Math.min(95,c[2]+16)+'%)');d.addColorStop(1,'hsl('+c[0]+','+c[1]+'%,'+c[2]+'%)');
+        x.fillStyle=d;x.font='44px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(GLYPHES[gi],24,34);Lg.push(cc);}}
+    return{sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:[],gs:Math.max(9*ku,R*.2)};
   }
   /* 10. BOULE (2026-10-23 soir) : seulement la sphère de « 1.61 » ; elle tourne lentement tant que ça charge, s'arrête quand c'est prêt ; l'appui la fait exploser en CASH CAR (dActe3), puis le voile fond vers le jeu. */
   let pasSon=-1;
@@ -77331,6 +77433,24 @@ function goImmersive(){
     const lache=function(){if(!bDown)return;bDown=false;if(bMove>12){bGlisse=true;setTimeout(function(){bGlisse=false;},400);}if(performance.now()-bLt>120){bVy=0;bVp=0;}};
     addEventListener('pointerup',lache);addEventListener('pointercancel',lache);
   }
+  /* LA GRAINE (2026-11-02, Léo : « l'écran noir au début donne l'impression que ça bug ; trouve un truc à mettre pendant le chargement ») : un point d'or au centre de la future boule, qui respire, et des ondes
+     qui s'en écartent comme un sonar. C'est de LUI que la boule naît (elle se construit du milieu). Dessiné dès l'attente, avant que le film parte (`attente`), puis jusqu'à ce que les premiers points de la boule
+     l'éteignent (`rendu`) : il ne dépend que de l'heure réelle, donc il continue sans à-coup à travers le départ du film. « Réduire les animations » : un point fixe, sans ondes. */
+  function dGraine(c,a){
+    if(a<=.004)return;
+    if(!SPR.or)SPR.or=lueur(255,190,80);
+    const land=W>H*1.15,cx=W/2,cy=H*(land?.5:.46),s=performance.now()/1000,R=reduit();
+    c.save();c.globalCompositeOperation='lighter';
+    const r=(5+(R?0:1.2*Math.sin(s*3.2)))*ku;
+    halo(c,SPR.or,cx,cy,r*5,r*5,.55*a);
+    if(!R)for(let j=0;j<2;j++){const k=(s*.55+j*.5)%1,rr=(8+k*46)*ku;c.globalAlpha=.5*(1-k)*(1-k)*a;c.strokeStyle='rgb(255,214,120)';c.lineWidth=Math.max(1,1.4*ku);c.beginPath();c.arc(cx,cy,rr,0,6.2832);c.stroke();}
+    c.globalAlpha=a;c.fillStyle='#fff1cf';const p=Math.max(2,Math.round(3*ku));c.fillRect(Math.round(cx-p/2),Math.round(cy-p/2),p,p);
+    c.restore();
+  }
+  function attente(){ /* avant le départ du film (page en chargement, police, fenêtre) : du noir, et la graine qui respire */
+    if(!W||!H)return;
+    g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.fillStyle='#000';g.fillRect(0,0,W,H);dGraine(g,1);
+  }
   function dBoule(c,t,e){
     const dtf=bTP===null?0:borne(t-bTP,0,.1);bTP=t;
     if(!bDown){bYaw+=bVy*dtf;bPit+=bVp*dtf;const f=Math.exp(-dtf*2.5);bVy*=f;bVp*=f;bPit*=Math.exp(-dtf*.8);}
@@ -77340,26 +77460,26 @@ function goImmersive(){
     const ex=s>0?9*(1-Math.pow(1-borne(s/.7,0,1),3)):0,ea=s>0?1-lisse(.15,.75,s):1;
     c.save();
     c.globalCompositeOperation='lighter';halo(c,SPR.or,e.cx,e.cy,R*1.7,R*1.7,(.2*lisse(.8,4,t)+.08*pls)*ea+(s>0?.9*Math.exp(-s*7):0));c.globalCompositeOperation='source-over';
-    const pas=Math.floor(t*2.2)%24; /* la teinte avance de 15° toutes les 0,45 s : un tour complet en 11 s */
+    const pas=Math.floor(t*2.2)%NPAS; /* la planète avance d'un pas toutes les 0,45 s : un tour complet de l'onde des couleurs en 5,5 s */
     if(pasSon!==Math.floor(t*2.2)){pasSon=Math.floor(t*2.2);if(t>3&&tp===null&&pasSon%2===0){try{if(SON&&!filmMuet&&iAC&&SON.dr)SON.note(iAC.currentTime+.02,pasSon>>1);}catch(x){}}} /* une cloche tous les deux pas : elle suit la couleur */
     if(PCI_ON){if(ea>0){ /* (passe perf PC, voir LE FILM SANS TRAVAIL REFAIT) le même dessin au bit près : mêmes expressions, même ordre (les points de derrière, puis ceux de devant, par i croissant) */
-      if(!e.pciT0){const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=.8+Math.pow(i/e.n,.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);
+      if(!e.pciT0){const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=.8+Math.pow(Math.abs(e.py[i]),.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);
         if(typeof createImageBitmap==='function')e.sprH.forEach(function(L,ci){L.forEach(function(cc,st){try{createImageBitmap(cc).then(function(b){if(e.sprH[ci][st]===cc)e.sprH[ci][st]=b;},function(){});}catch(x){}});});} /* les vignettes en ImageBitmap (mêmes pixels) dès qu'elles sont prêtes */
       const T0=e.pciT0,Q=e.pciQ,Z=e.pciZ,gr=1+.6*borne(s/.7,0,1);
       for(let i=0;i<e.n;i++){
         const k=borne((t-T0[i])/.55,0,1);if(k<=0){Z[i]=-1;continue;}
         const b=(1-Math.pow(1-k,3))*(1+ex),x1=e.px[i]*cr+e.pz[i]*sr,z1=-e.px[i]*sr+e.pz[i]*cr,y2=e.py[i]*ct-z1*st,z2=e.py[i]*st+z1*ct;
         const sx=e.cx+x1*R*b,sy=e.cy+y2*R*b;if(sx<-gs||sx>W+gs||sy<-gs||sy>H+gs){Z[i]=-1;continue;}
-        const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*gr;Z[i]=z2>=0?1:0;Q[4*i]=sx-sz*.35;Q[4*i+1]=sy-sz*.5;Q[4*i+2]=sz;Q[4*i+3]=(.5+.5*dp)*lisse(0,.15,k)*ea;
+        const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*gr;Z[i]=z2>=0?1:0;Q[4*i]=sx-sz*.35;Q[4*i+1]=sy-sz*.5;Q[4*i+2]=sz;Q[4*i+3]=(.18+.82*dp*dp)*lisse(0,.15,k)*ea;
       }
       for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++)if(Z[i]===pass){c.globalAlpha=Q[4*i+3];c.drawImage(e.sprH[e.gk[i]][pas],Q[4*i],Q[4*i+1],Q[4*i+2]*.7,Q[4*i+2]);}
     }}else
     if(ea>0)for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++){
-      const k=borne((t-(.8+Math.pow(i/e.n,.9)*3.2))/.55,0,1);if(k<=0)continue; /* noir d'abord, puis la boule se dessine point après point, en spirale du bas vers le haut */
+      const k=borne((t-(.8+Math.pow(Math.abs(e.py[i]),.9)*3.2))/.55,0,1);if(k<=0)continue; /* noir d'abord, puis la boule se dessine point après point, du MILIEU (l'équateur) vers le haut et vers le bas en même temps (2026-11-02, Léo : « qu'il se construise du milieu et s'étende en haut et en bas ») ; même durée qu'avant, mais chaque front ne parcourt que la moitié de la hauteur : il avance deux fois moins vite à l'œil */
       const b=(1-Math.pow(1-k,3))*(1+ex),x1=e.px[i]*cr+e.pz[i]*sr,z1=-e.px[i]*sr+e.pz[i]*cr,y2=e.py[i]*ct-z1*st,z2=e.py[i]*st+z1*ct;
       if((z2>=0?1:0)!==pass)continue;
       const sx=e.cx+x1*R*b,sy=e.cy+y2*R*b;if(sx<-gs||sx>W+gs||sy<-gs||sy>H+gs)continue;
-      const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*(1+.6*borne(s/.7,0,1));c.globalAlpha=(.5+.5*dp)*lisse(0,.15,k)*ea;c.drawImage(e.sprH[e.gk[i]][pas],sx-sz*.35,sy-sz*.5,sz*.7,sz);
+      const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*(1+.6*borne(s/.7,0,1));c.globalAlpha=(.18+.82*dp*dp)*lisse(0,.15,k)*ea;c.drawImage(e.sprH[e.gk[i]][pas],sx-sz*.35,sy-sz*.5,sz*.7,sz);
     }
     c.globalAlpha=1;c.restore();
   }
@@ -77479,8 +77599,16 @@ function goImmersive(){
      lettre à lettre sur le noir (or, interlettrage qui se resserre), tient, s'éteint ; PUIS le voile fond sur le ciel, et c'est là, là seulement, que la musique du lobby démarre (`reveler`).
      Le gros logo CASH CAR du film (`dActe3`) n'est plus montré après l'appui : le premier CASH CAR du jeu est celui du menu. s = secondes depuis l'appui. */
   const PRES_FIN=4.1; /* l'instant (s après l'appui) où le texte est éteint ; le voile fond juste après (2026-10-24 : 2,5 → 4,1 s, Léo : « laisse le temps d'apprécier ») */
+  let presFin=PRES_FIN,tenuJeu=false; /* l'instant où le texte s'éteint : PRES_FIN, ou plus tard tant que le jeu gèle dessous (voir `ouvreQuandPret`) ; tenuJeu : le voile a dû attendre le jeu */
+  function dAttenteJeu(c,s,e){ /* le jeu se prépare encore dessous : trois petits carrés d'or s'allument tour à tour sous « PRESENTS », le seul signe de vie pendant que l'image se fige */
+    const a=lisse(PRES_FIN-.7,PRES_FIN,s)*(1-lisse(presFin-.7,presFin,s));if(a<=.004)return;
+    const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),y=e.cy+px*.62+px2*5.3,p=Math.max(3,Math.round(4*ku)),gp=p*2.6,tt=performance.now()/1000;
+    c.save();c.fillStyle='#ffd75e';
+    for(let i=0;i<3;i++){c.globalAlpha=a*(.22+.78*Math.max(0,Math.sin(tt*4.2-i*1.1)));c.fillRect(Math.round(W/2+(i-1)*gp-p/2),Math.round(y),p,p);}
+    c.restore();
+  }
   function dPresente(c,s,e){
-    const sor=1-lisse(PRES_FIN-.7,PRES_FIN,s);if(sor<=.004)return;
+    const sor=1-lisse(presFin-.7,presFin,s);if(sor<=.004)return;
     /* (2026-10-26, Sacha : « 1.61 Studio » → « 1.61 Game ») deux lignes : « 1.61 GAME » en grand (le « 1.61 » blanc chaud, GAME en or), un filet d'or qui s'ouvre depuis le centre,
        puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier. */
     const t1='1.61 GAME',t2='PRESENTS',n1=t1.length,n2=t2.length;
@@ -77572,6 +77700,24 @@ function goImmersive(){
   /* ---- LE SON : tout est fabriqué ici (WebAudio) ; `A` peut être un AudioContext ou un OfflineAudioContext (le banc de mesure).
      Le travail est ÉTALÉ, pour qu'aucune image ne soit sacrifiée : au toucher seulement l'allumage ; `suite()` juste après (réverbération, blips,
      coup final) ; `acte3()` dans le noir complet (claquement, tension) ; `casse(q)` à l'instant de la casse. ---- */
+  /* LA NAPPE DU CIEL SOUS LA BOULE (2026-11-02, Léo : « une ancienne musique calme du ciel s'est mise par erreur pendant que la boule se construit : une erreur heureuse, le son était pas mal. Enlève-la, mais retouche le son de l'animation avec ce son ») :
+     la fuite est supprimée (voir musicDeverrouille) ; à sa place, le pad de l'attente est RETOUCHÉ avec la nappe du lobby du ciel, le palier 1 de CIEL · 30 (une nappe vapeur filtrée et une sous-basse tenue, en MI♭ MAJEUR) : elle monte avec la boule derrière un filtre qui s'ouvre,
+     bat avec son pouls, et se coupe à l'appui comme avant. Tout le reste du son de l'intro (cloches, étincelles, accord de la marque, coup de l'explosion) est TRANSPOSÉ d'un demi-ton vers le haut (TR : Ré → Mi♭) pour s'accorder avec elle.
+     Elle se charge au démarrage, avant le film (`essaiAuto` l'attend 3,5 s au plus) ; sans elle (réseau, bloqueur), l'ancien pad synthétique joue seul, transposé lui aussi. */
+  /* (2026-11-02, Léo : « je voulais que le pad du début soit touché par le son du ciel que j'ai appelé une erreur heureuse ») LA VRAIE NAPPE : la musique ancienne qui s'entendait par erreur pendant la construction de la boule était le DÉBUT d'un des trois morceaux de lobby du ciel
+     (le premier toucher en chargeait un au hasard : nuages, altitude, apesanteur). La nappe de l'intro est donc leur début, 8 mesures en boucle (assets/audio/music/intro/pad-*.m4a, 0,5 Mo chacun, coupés dans les originaux) ; `?lit=nuages|altitude|apesanteur` en choisit une pour comparer à l'oreille,
+     `?lit=p1` rend la nappe d'avant (le palier 1 de CIEL · 30). Chaque morceau a sa tonalité : tout le son synthétique de l'intro (cloches, étincelles, accord de la marque, coup de l'explosion), écrit en Ré majeur, est TRANSPOSÉ de LIT_DEMI demi-tons pour s'y accorder
+     (nuages : ré majeur, 0 ; altitude : si♭ majeur, −4 ; apesanteur : fa majeur, +3 ; p1 : mi♭ majeur, +1). Par défaut : NUAGES, qui joue dans la tonalité d'origine du pad. */
+  const LITS={nuages:['assets/audio/music/intro/pad-nuages.m4a',0],altitude:['assets/audio/music/intro/pad-altitude.m4a',-4],apesanteur:['assets/audio/music/intro/pad-apesanteur.m4a',3],p1:['assets/audio/music/paliers/rendus/ciel-30/p1.m4a',1]};
+  const LIT_ID=(function(){const m=/[?&]lit=(nuages|altitude|apesanteur|p1)\b/.exec(location.search);return m?m[1]:'nuages';})(),LIT_URL=LITS[LIT_ID][0],LIT_DEMI=LITS[LIT_ID][1];
+  let LIT=null,litEnCours=false;
+  function chargeLit(){
+    if(LIT||litEnCours||SANS_SON)return;litEnCours=true;
+    try{fetch(LIT_URL).then(function(r){return r.arrayBuffer();}).then(function(ab){
+      const C=new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(2,44100,44100);
+      return new Promise(function(ok,ko){const pr=C.decodeAudioData(ab,ok,ko);if(pr&&pr.then)pr.then(ok,ko);});
+    }).then(function(b){LIT=b;litEnCours=false;},function(){litEnCours=false;});}catch(e){litEnCours=false;}
+  }
   let IR48=null; /* la réponse de la réverbération, calculée À L'ATTENTE du toucher (10 ms), à 48 kHz */
   function pixelise(src,pq){ /* une copie en petit (1 pixel pour pq × pq) : redessinée sans lissage, elle donne de gros pixels */
     const c2=document.createElement('canvas');c2.width=Math.max(1,Math.ceil(W/pq));c2.height=Math.max(1,Math.ceil(H/pq));const x=c2.getContext('2d');x.imageSmoothingEnabled=true;x.drawImage(src,0,0,c2.width,c2.height);return c2;
@@ -77639,48 +77785,59 @@ function goImmersive(){
       const revOut=A.createGain();revOut.gain.value=.62;rev.connect(revOut);revOut.connect(master);send.connect(rev);
     };
     R.acte3=function(){}; /* (plus de claquement programmé : il sonne à l'appui, `boum`) */
-    const ACC=[73.42,110,146.83,220,293.66,440]; /* l'accord de la marque : Ré, quintes et octaves, net et ouvert (pas de notes serrées) */
+    const TR=Math.pow(2,LIT_DEMI/12),ACC=[73.42,110,146.83,220,293.66,440].map(function(f){return f*TR;}); /* l'accord de la marque : Ré, transposé de LIT_DEMI demi-tons pour s'accorder à la nappe (voir LITS), quintes et octaves, net et ouvert (pas de notes serrées) */
     function accord(q,pk,att,dec,w){for(let i=0;i<ACC.length;i++){oscil(master,'sine',ACC[i],ACC[i],q,0,pk*(i<2?1.5:1),att,dec,(i-4)*.12,w);oscil(master,'triangle',ACC[i]*1.003,ACC[i]*1.003,q,0,pk*.6,att,dec,(4-i)*.12,w);}}
     R.charge=function(q,el,pret){ /* le chargement : un grave qui monte avec la boule, mais VIVANT : il bat au rythme du pouls de la boule (3,2 rad/s), un pad dont le filtre respire, un chœur de médiums qui s'ouvre en tremblant, un souffle, un voile qui scintille, et des étincelles à mesure que les chiffres apparaissent */
       el=el||0;const dur=Math.max(.8,4.6-el),top=pret?.45:1,gs=[],oc=[];
       const P=A.createGain();P.gain.value=.78;P.connect(master); /* le pouls : tout le chargement passe là, et la boule le fait battre */
       const lf=A.createOscillator(),lg=A.createGain();lf.type='sine';lf.frequency.value=3.2/6.2832;lg.gain.value=.22;lf.connect(lg);lg.connect(P.gain);lf.start(q);oc.push(lf);
-      const sub=A.createOscillator(),sg=A.createGain(),s2=A.createOscillator(),s2g=A.createGain();sub.type='sine';sub.frequency.setValueAtTime(41.2,q);sub.frequency.exponentialRampToValueAtTime(73.42,q+dur);
-      s2.type='triangle';s2.frequency.setValueAtTime(82.4,q);s2.frequency.exponentialRampToValueAtTime(146.83,q+dur);s2g.gain.value=.22;s2.connect(s2g);s2g.connect(sg); /* l'octave au-dessus, pour que le grave sonne aussi sur un petit haut-parleur */
-      sg.gain.setValueAtTime(.0003,q);sg.gain.exponentialRampToValueAtTime(.4*top,q+dur);sub.connect(sg);sg.connect(P);sub.start(q);s2.start(q);gs.push(sg);oc.push(sub,s2);
+      const sub=A.createOscillator(),sg=A.createGain(),s2=A.createOscillator(),s2g=A.createGain();sub.type='sine';sub.frequency.setValueAtTime(41.2*TR,q);sub.frequency.exponentialRampToValueAtTime(73.42*TR,q+dur);
+      s2.type='triangle';s2.frequency.setValueAtTime(82.4*TR,q);s2.frequency.exponentialRampToValueAtTime(146.83*TR,q+dur);s2g.gain.value=.22;s2.connect(s2g);s2g.connect(sg); /* l'octave au-dessus, pour que le grave sonne aussi sur un petit haut-parleur */
+      sg.gain.setValueAtTime(.0003,q);sg.gain.exponentialRampToValueAtTime(.4*top*(LIT?.12:1),q+dur); /* (avec la nappe : son grave est le sien, le sub synthétique n'est plus qu'un soutien) */sub.connect(sg);sg.connect(P);sub.start(q);s2.start(q);gs.push(sg);oc.push(sub,s2);
       const lp=A.createBiquadFilter(),pg=A.createGain(),pr=A.createGain();lp.type='lowpass';lp.Q.value=2.5;lp.frequency.setValueAtTime(180,q);lp.frequency.exponentialRampToValueAtTime(2600,q+dur);
       const fl=A.createOscillator(),fg=A.createGain();fl.type='sine';fl.frequency.value=.11;fg.gain.value=320;fl.connect(fg);fg.connect(lp.frequency);fl.start(q);oc.push(fl); /* le filtre respire, lentement */
-      pg.gain.setValueAtTime(.0003,q);pg.gain.exponentialRampToValueAtTime(.12*top,q+dur);pr.gain.value=.5;lp.connect(pg);pg.connect(P);pg.connect(pr);pr.connect(send);gs.push(pg);
-      const CH=[{b:73.42,u:[146.83,220,293.66,369.99]},{b:61.74,u:[123.47,185,246.94,293.66]},{b:98,u:[196,246.94,293.66,392]},{b:55,u:[164.81,220,277.18,329.63]}]; /* la progression du pad : Ré, Si mineur, Sol, La, en boucle sans fin */
+      pg.gain.setValueAtTime(.0003,q);pg.gain.exponentialRampToValueAtTime(.12*top*(LIT?.15:1),q+dur);pr.gain.value=.5;lp.connect(pg);pg.connect(P);pg.connect(pr);pr.connect(send);gs.push(pg);
+      const CH=[{b:73.42,u:[146.83,220,293.66,369.99]},{b:61.74,u:[123.47,185,246.94,293.66]},{b:98,u:[196,246.94,293.66,392]},{b:55,u:[164.81,220,277.18,329.63]}].map(function(c){return{b:c.b*TR,u:c.u.map(function(f){return f*TR;})};}); /* la progression du pad : Ré, Si mineur, Sol, La, en boucle sans fin */
       const vo=[];CH[0].u.forEach(function(f,i){const o=A.createOscillator();o.type='sawtooth';o.frequency.value=f;o.detune.value=[5,-8,6,-5][i];o.connect(lp);o.start(q);oc.push(o);vo.push(o);});
       let ci=0,iv=0;const suivant=function(){ /* l'accord suivant arrive en glissant (un cycle toutes les 7,85 s = quatre pulsations de la boule) */
         try{if(A.state==='closed'){clearInterval(iv);return;}ci=(ci+1)%CH.length;const tt=A.currentTime+.05,c=CH[ci];
           sub.frequency.setTargetAtTime(c.b,tt,.8);s2.frequency.setTargetAtTime(c.b*2,tt,.8);vo.forEach(function(o,i){o.frequency.setTargetAtTime(c.u[i],tt,.7);});}catch(x){clearInterval(iv);}};
-      if(!(typeof OfflineAudioContext!=='undefined'&&A instanceof OfflineAudioContext))iv=setInterval(suivant,7850);
+      if(!LIT&&!(typeof OfflineAudioContext!=='undefined'&&A instanceof OfflineAudioContext))iv=setInterval(suivant,7850); /* (avec la nappe du ciel, la progression de l'ancien pad ne change plus : la nappe tient sa tonalité) */
       const sh=A.createBufferSource(),bp=A.createBiquadFilter(),hg=A.createGain();sh.buffer=nz;sh.loop=true;bp.type='bandpass';bp.Q.value=2;bp.frequency.setValueAtTime(3500,q);bp.frequency.exponentialRampToValueAtTime(9000,q+dur);
-      hg.gain.setValueAtTime(.0003,q);hg.gain.exponentialRampToValueAtTime(.05*top,q+dur);sh.connect(bp);bp.connect(hg);hg.connect(P);sh.start(q);oc.push(sh);gs.push(hg);
+      hg.gain.setValueAtTime(.0003,q);hg.gain.exponentialRampToValueAtTime(.035*top,q+dur);sh.connect(bp);bp.connect(hg);hg.connect(P);sh.start(q);oc.push(sh);gs.push(hg);
       /* le chœur : les notes hautes de l'accord (Ré, La, Ré, La), chacune doublée et désaccordée, qui s'ouvrent en tremblant, de gauche à droite */
-      const cg=A.createGain(),cr=A.createGain();cg.gain.setValueAtTime(.0003,q);cg.gain.exponentialRampToValueAtTime(.06*top,q+dur*1.1);cr.gain.value=.55;cg.connect(P);cg.connect(cr);cr.connect(send);gs.push(cg);
-      [293.66,440,587.33,880].forEach(function(f,k){for(const dc of [-6,6]){const o=A.createOscillator(),pn=pan(dc>0?.6-k*.2:-.6+k*.2),tg=A.createGain(),tl=A.createOscillator(),tq=A.createGain();
+      const cg=A.createGain(),cr=A.createGain();cg.gain.setValueAtTime(.0003,q);cg.gain.exponentialRampToValueAtTime(.045*top,q+dur*1.1);cr.gain.value=.55;cg.connect(P);cg.connect(cr);cr.connect(send);gs.push(cg);
+      [293.66,440,587.33,880].forEach(function(f,k){f*=TR;for(const dc of [-6,6]){const o=A.createOscillator(),pn=pan(dc>0?.6-k*.2:-.6+k*.2),tg=A.createGain(),tl=A.createOscillator(),tq=A.createGain();
         o.type=k%2?'triangle':'sine';o.frequency.value=f;o.detune.value=dc;tg.gain.value=.5;tl.type='sine';tl.frequency.value=.23+.07*k+(dc>0?.04:0);tq.gain.value=.4;tl.connect(tq);tq.connect(tg.gain);
         o.connect(tg);tg.connect(pn);pn.connect(cg);o.start(q);tl.start(q);oc.push(o,tl);}});
       const br=A.createBufferSource(),bb=A.createBiquadFilter(),bg=A.createGain();br.buffer=nz;br.loop=true;bb.type='bandpass';bb.Q.value=.8;bb.frequency.setValueAtTime(600,q);bb.frequency.exponentialRampToValueAtTime(1500,q+dur);
       bg.gain.setValueAtTime(.0003,q);bg.gain.exponentialRampToValueAtTime(.035*top,q+dur);br.connect(bb);bb.connect(bg);bg.connect(P);br.start(q);oc.push(br);gs.push(bg); /* le souffle du médium : de l'air autour du grave */
-      const PF=[1174.7,1318.5,1480,1760,2349.3,2960];
-      for(let i=0;i<64;i++){const te=.8+Math.pow(i/64,.9)*3.2;if(te<el)continue;const f=PF[(i*5)%PF.length];oscil(master,'sine',f,f,q+(te-el),0,.045,.002,.35,(Math.random()-.5)*1.4,.55);}
-      R.dr={g:gs,o:oc,get iv(){return iv;}};
+      const PF=[1174.7,1318.5,1480,1760,2349.3,2960].map(function(f){return f*TR;});
+      for(let i=0;i<64;i++){const te=.8+Math.pow(i/64,.9)*3.2;if(te<el)continue;const f=PF[(i*5)%PF.length];oscil(master,'sine',f,f,q+(te-el),0,.03,.002,.35,(Math.random()-.5)*1.4,.55);}
+      let iv2=0;
+      if(LIT){ /* la nappe du ciel : un filtre qui s'ouvre, le même pouls que la boule (elle passe par P), et une boucle SANS COUPURE : des voix qui se chevauchent de 0,35 s (fondu croisé), programmées au fil de l'eau */
+        const lb=A.createBiquadFilter(),bg2=A.createGain();lb.type='lowpass';lb.Q.value=.7;lb.frequency.setValueAtTime(380,q);lb.frequency.exponentialRampToValueAtTime(7000,q+dur*1.6);
+        bg2.gain.setValueAtTime(.0003,q);bg2.gain.exponentialRampToValueAtTime(.46*top,q+Math.min(dur,2.2)); /* la nappe est là dès le début de la construction et elle ENTRE doucement (2026-11-02 : « un peu violent » → .34 en 3,4 s, puis « je n'entends pas le pad du début » : mesuré avec un vrai contexte audio, −40 dBFS à 2 s, trop bas → .46 en 2,2 s ; avant tout : .6 en 1,6 s) */lb.connect(bg2);bg2.connect(P);gs.push(bg2);
+        const D=LIT.duration,X=.35,pas=D-X;let k=0;
+        const voix=function(){const t=q+k*pas,sv=A.createBufferSource(),gv=A.createGain();sv.buffer=LIT;
+          gv.gain.setValueAtTime(k?.0001:1,t);if(k)gv.gain.linearRampToValueAtTime(1,t+X);gv.gain.setValueAtTime(1,t+pas);gv.gain.linearRampToValueAtTime(.0001,t+D);
+          sv.connect(gv);gv.connect(lb);sv.start(t);sv.stop(t+D+.05);oc.push(sv);k++;};
+        if(typeof OfflineAudioContext!=='undefined'&&A instanceof OfflineAudioContext){for(let j=0;j<3;j++)voix();}
+        else{const prog=function(){try{if(A.state==='closed'){clearInterval(iv2);return;}while(q+k*pas<A.currentTime+10)voix();}catch(x){clearInterval(iv2);}};prog();iv2=setInterval(prog,2000);}
+      }
+      R.dr={g:gs,o:oc,get iv(){return iv;},get iv2(){return iv2;}};
     };
-    const PENTA=[587.33,659.25,739.99,880,987.77,1174.66,987.77,880,739.99,659.25]; /* Ré majeur pentatonique, montée puis descente : jamais fausse avec l'accord */
+    const PENTA=[587.33,659.25,739.99,880,987.77,1174.66,987.77,880,739.99,659.25].map(function(f){return f*TR;}); /* Ré majeur pentatonique, montée puis descente : jamais fausse avec l'accord */
     R.note=function(q,k){ /* une cloche douce à chaque pas de couleur de la boule */
       const f=PENTA[k%PENTA.length],x=((k*7)%5-2)*.3;
-      oscil(master,'sine',f,f,q,0,.05,.004,1.1,x,.7);oscil(master,'triangle',f*2,f*2,q,0,.012,.004,.5,x,.7);
+      oscil(master,'sine',f,f,q,0,.036,.004,1.1,x,.7);oscil(master,'triangle',f*2,f*2,q,0,.008,.004,.5,x,.7);
     };
     R.pret=function(q){ /* c'est prêt : l'accord de la marque s'ouvre en grand, un grave l'ancre, puis le chargement retombe en nappe douce */
-      accord(q,.04,.15,1.5,.5);oscil(master,'sine',55,36,q,1,.4,.006,1,0,.3);oscil(master,'sine',2349.3,2349.3,q+.05,0,.04,.002,.6,0,.6);
-      souffle(master,q,.6,'highpass',2000,9000,1,.08,.05,.6,0,.5);
+      accord(q,.026,.35,1.8,.5);oscil(master,'sine',55*TR,36*TR,q,1,.16,.03,1,0,.3);oscil(master,'sine',2349.3*TR,2349.3*TR,q+.05,0,.026,.01,.6,0,.6);
+      souffle(master,q,.6,'highpass',2000,9000,1,.05,.12,.6,0,.5);
     };
     R.boum=function(q){ /* l'appui : la boule explose en CASH CAR : un coup de grave énorme, un métal qui sonne, un grand souffle, et l'accord de la marque en pleine puissance */
-      if(R.dr){clearInterval(R.dr.iv);for(const g of R.dr.g){g.gain.cancelScheduledValues(q);g.gain.setTargetAtTime(0,q,.08);}R.dr.o.forEach(function(o){try{o.stop(q+.5);}catch(e){}});R.dr=null;}
+      if(R.dr){clearInterval(R.dr.iv);clearInterval(R.dr.iv2);for(const g of R.dr.g){g.gain.cancelScheduledValues(q);g.gain.setTargetAtTime(0,q,.08);}R.dr.o.forEach(function(o){try{o.stop(q+.5);}catch(e){}});R.dr=null;}
       oscil(master,'sine',70,28,q,1.8,1.4,.003,1.8,0,.45);oscil(master,'sine',140,50,q,.4,.7,.003,.4,0,.2);
       souffle(master,q,.7,'lowpass',12000,300,.8,.6,.001,.7,0,.4);souffle(master,q,.02,'highpass',3000,0,1,.4,.001,.015,0,0);
       [1,2.76,5.4,8.93].forEach(function(r,i){oscil(master,'sine',190*r,190*r,q,0,.16/(i+1),.002,1.7-.3*i,i%2?.4:-.4,.5);});
@@ -77731,7 +77888,8 @@ function goImmersive(){
     sp.style.cssText='position:fixed;inset:0;z-index:1000;display:block;pointer-events:none;overflow:hidden;background:transparent';
     setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},30); /* le jeu était en pause sous le film : s'il a été retaillé entre-temps (cadre tourné, volet agrandi), il recalcule sa taille (un bandeau blanc à droite, vu le 23/10) */
     setTimeout(function(){try{document.dispatchEvent(new Event('cc:revele'));}catch(e){}},60); /* le menu joue son entrée dessous */
-    setTimeout(function(){try{if(!started){if(musicEl&&musicEl.paused&&musicMenuUrl()&&musicEl.src.indexOf(musicMenuUrl())>=0)musicEl.currentTime=0;musicMenu();}}catch(e){}},260); /* la musique du ciel part avec le ciel */
+    if(INTROSON.on){INTROSON.t0=performance.now();setTimeout(function(){INTROSON.on=false;},INTROSON.d*1000+500);} /* l'accueil apparaît : le vent monte et la musique recule vers son niveau de ciel (voir INTROSON) */
+    setTimeout(function(){try{if(!started&&!musIntro){if(musicEl&&musicEl.paused&&musicMenuUrl()&&musicEl.src.indexOf(musicMenuUrl())>=0)musicEl.currentTime=0;musicMenu();}}catch(e){}},260); /* la musique du ciel part avec le ciel (sauf si l'intro l'a déjà lancée : c'est la même, elle continue sans couture) */
     setTimeout(function(){window.__intro=null;},1500); /* (le voile s'ouvre : on ne recharge pas encore) */
   }
   function finir(){
@@ -77767,8 +77925,33 @@ function goImmersive(){
     try{if(iAC&&iAC.state!=='running')acReveil(iAC);}catch(e){}
     try{if(SON){SON.suite();SON.boum(iAC.currentTime+.02);}}catch(e){}
     try{ouvrir();}catch(e){}
+    INTROSON.on=true;INTROSON.t0=0; /* le ciel, dessous, reste sans vent jusqu'à l'accueil */
+    setTimeout(musiqueDePresents,700); /* (2026-11-02, Léo) la musique démarre quand « 1.61 GAME » commence à s'écrire (dPresente : 0,7 s après l'appui), et ne s'arrête plus */
     setTimeout(function(){window.__introCouvre=false;},150);
-    setTimeout(fonduDoux,PRES_FIN*1000+80);
+    ouvreQuandPret();
+  }
+  /* (2026-11-02, Léo : « ça saccade ») LE VOILE S'OUVRE QUAND LE JEU EST CALME. Mesuré sur son Mac (Safari, cadre 1226 × 566) : de l'appui à +10 s, le ciel se construit sous le voile par images de 0,2 à 1,3 s, puis ~20 i/s ;
+     le voile s'ouvrait à +4,2 s, en plein dans ces gels (rien avant l'appui : la boule y tourne fluide). « 1.61 GAME PRESENTS » TIENT donc tant que le jeu gèle, avec ses trois carrés d'or qui s'allument, et le voile ne
+     fond qu'après 25 images d'affilée sous 100 ms (plafond : 15 s après l'appui). Sur une machine rapide les images sont courtes dès l'appui : le voile s'ouvre à l'heure d'avant (PRES_FIN), rien ne change. */
+  function ouvreQuandPret(){
+    let prev=performance.now(),calmes=0,tenu=false;
+    (function pas(now){
+      if(fini||doux)return;
+      const d=now-prev;prev=now;calmes=d<100?calmes+1:0;
+      const s=(now-tLance)/1000-latV-tapT;
+      if(!tenu&&s<PRES_FIN-.7){requestAnimationFrame(pas);return;} /* le texte ne commence à s'éteindre qu'à PRES_FIN − 0,7 : c'est là qu'on décide */
+      if(!tenu){
+        if(calmes>=25){setTimeout(fonduDoux,Math.max(0,(PRES_FIN-s)*1000+80));return;} /* le jeu est calme : l'horaire d'avant */
+        tenu=true;tenuJeu=true;presFin=1e9; /* il gèle encore : le texte reste affiché */
+      }
+      if(calmes>=25||s>=15){presFin=s+.7;setTimeout(fonduDoux,780);return;} /* calme (ou plafond) : le texte s'éteint en 0,7 s, puis le voile fond */
+      requestAnimationFrame(pas);
+    })(performance.now());
+  }
+  let musIntro=false; /* la musique du menu a été lancée par l'intro, pendant « PRESENTS » */
+  function musiqueDePresents(){
+    if(fini||revele||musIntro)return;
+    try{if(SND.music&&!started){musicMenu();musIntro=!lobbyPeut();}}catch(e){} /* le lobby lié (le morceau du niveau, en ambiance) part tout seul ; musIntro : le fichier fixe d'avant a été lancé par l'intro (repli ou ?lobby=ancien) */
   }
   function passer(){
     if(BOULE){tapBoule();return;}
@@ -77812,7 +77995,7 @@ function goImmersive(){
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
     g.fillStyle='#000';g.fillRect(0,0,W,H);
-    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());dBoule(g,t,e);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
+    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());dGraine(g,1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
     let tl=t,id=forceId||(LABELS[LAB_ID]?LAB_ID:'neon'),idx=0;
     if(DEMO){const T=PERIODE_DEMO(),n=ORDRE_LABELS.length;idx=Math.floor(Math.max(0,t)/T);tl=Math.max(0,t)-idx*T;id=forceId||ORDRE_LABELS[idx%n];} /* la démo : les labels s'enchaînent en boucle */
     if(tl<TL.noir){const e=ETS[id]||(ETS[id]=LABELS[id].geo());LABELS[id].dessin(g,tl,e);}else if(!DEMO&&t>=TL.slam)dActe3(g,t,0);;
@@ -77825,7 +78008,7 @@ function goImmersive(){
     raf=requestAnimationFrame(boucle);
     if(manuel)return;
     if(!casse){const t=PCI_ON?pciTaille(now):tailleEcran();if(t[0]!==W||t[1]!==H)remesure();} /* l'écran a changé de taille sans que `resize` nous le dise (cadre du volet, rotation) : tout se refait à la bonne taille (vu le 23/10 : logo énorme, coupé à droite) */
-    if(!lance)return;
+    if(!lance){try{attente();}catch(e){}return;}
     try{
       const t=(now-tLance)/1000-latV;
       if(BOULE){if(pretT===null&&t>=4.6&&document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')){pretT=t;try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
@@ -77864,6 +78047,7 @@ function goImmersive(){
   function remesure(){pciDer=-1e9;if(fini||casse)return;mesure();if(lance){if(PCI_ON&&prepEn===W+'x'+H+'x'+S){PCI_N.prepEvitees++;return;}try{prepare();}catch(e){}}} /* (passe perf PC) un `resize` qui ne change ni la taille ni l'échelle (le zoom du cadre bureau en envoie) ne refait plus tout le film : boule, logo, fracture étaient refaits À L'IDENTIQUE (même règle que `lancer` et `chauffe`) */
 
   mesure();
+  chargeLit();
   setTimeout(irPret,500); /* pendant l'attente du toucher : 10 ms de calcul, hors de vue */
   setTimeout(chauffe,900); /* puis le reste (quelques dizaines de ms, hors de vue) */
   let remesureTO=0;
@@ -77891,7 +78075,7 @@ function goImmersive(){
   }
   function essaiAuto(n){ /* attendre que la page soit chargée, la police prête et la fenêtre visible */
     if(lance||fini)return;
-    if(document.hidden||document.readyState!=='complete'||(n<24&&document.fonts&&document.fonts.status==='loading')){setTimeout(function(){essaiAuto(n+1);},250);return;}
+    if(document.hidden||document.readyState!=='complete'||(n<24&&document.fonts&&document.fonts.status==='loading')||(n<14&&litEnCours&&!LIT)){setTimeout(function(){essaiAuto(n+1);},250);return;}
     autoLance();
   }
   if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher\b/.test(location.search))setTimeout(function(){essaiAuto(0);},BOULE?500:1700); /* (?depart=toucher : l'ancien départ au toucher) */
