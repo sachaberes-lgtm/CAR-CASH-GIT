@@ -280,9 +280,13 @@
     c.globalAlpha=a;c.fillStyle='#fff1cf';const p=Math.max(2,Math.round(3*ku));c.fillRect(Math.round(cx-p/2),Math.round(cy-p/2),p,p);
     c.restore();
   }
+  function chCl(a){ /* l'anneau de chargement du HTML (spCharge) : visible jusqu'à ce que les premiers points de la boule se dessinent, puis il fond et disparaît (Léo, 02/11) */
+    const el=chCl.el===undefined?(chCl.el=document.getElementById('spCharge')):chCl.el;if(!el||chCl.fini)return;
+    if(a<=.004){chCl.fini=1;el.remove();return;}el.style.opacity=a;
+  }
   function attente(){ /* avant le départ du film (page en chargement, police, fenêtre) : du noir, et la graine qui respire */
     if(!W||!H)return;
-    g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.fillStyle='#000';g.fillRect(0,0,W,H);dGraine(g,1);
+    g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.fillStyle='#000';g.fillRect(0,0,W,H);
   }
   function dBoule(c,t,e){
     const dtf=bTP===null?0:borne(t-bTP,0,.1);bTP=t;
@@ -834,7 +838,7 @@
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
     g.fillStyle='#000';g.fillRect(0,0,W,H);
-    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());dGraine(g,1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
+    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());chCl(1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
     let tl=t,id=forceId||(LABELS[LAB_ID]?LAB_ID:'neon'),idx=0;
     if(DEMO){const T=PERIODE_DEMO(),n=ORDRE_LABELS.length;idx=Math.floor(Math.max(0,t)/T);tl=Math.max(0,t)-idx*T;id=forceId||ORDRE_LABELS[idx%n];} /* la démo : les labels s'enchaînent en boucle */
     if(tl<TL.noir){const e=ETS[id]||(ETS[id]=LABELS[id].geo());LABELS[id].dessin(g,tl,e);}else if(!DEMO&&t>=TL.slam)dActe3(g,t,0);;

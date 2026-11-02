@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1079'; /* v1079 (2026-11-02, Léo : « globe plus complet : un tout petit peu de lueur blanche à l'intérieur, chiffres plus opaques et plus de forme, comme les dorés ») : lueur blanche au cœur, opacité des chiffres .18→.42, contour sombre + haut plus clair. */
+const CACHE = 'cashcar-v1080'; /* v1080 (2026-11-02, Léo : « le chargement doré est nul et n'apparaît pas direct : un truc classique au milieu ») : anneau CSS dans le HTML, visible tout de suite, remplace la graine dorée. Avant : v1079 (2026-11-02, Léo : « globe plus complet : un tout petit peu de lueur blanche à l'intérieur, chiffres plus opaques et plus de forme, comme les dorés ») : lueur blanche au cœur, opacité des chiffres .18→.42, contour sombre + haut plus clair. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
