@@ -208,17 +208,20 @@
      la couleur d'un chiffre ne dépend pas de sa valeur mais de SA ZONE sur la sphère : un bruit de valeur à basse fréquence (PLANETE_BRUIT) sépare des océans profonds, des côtes, des terres (forêts ou déserts), des glaces aux pôles, et des nuages qui passent par-dessus ;
      la sphère tourne, les continents défilent. Une seule planète, la TERRE : chaque zone ONDULE autour de son ton (le bleu de l'océan va du marine à l'azur, la forêt du vert franc au vert-jaune…), chacune à son rythme, comme la lumière sur l'eau : la planète change
      de couleur sans jamais cesser d'en être une. NPAS pas par tour (2,2 pas par seconde : 5,5 s), une onde fermée : le dernier pas rejoint le premier. Le pouls (rayon, lueur) est celui de dBoule, inchangé. */
-  const NPAS=12;
-  const ZONES=[ /* [teinte, saturation %, clarté %, amplitude de teinte (°), amplitude de clarté (%), déphasage] */
-    [220,85,55,16,8,0],   /* 0 océan profond : du marine à l'azur */
-    [188,90,58,14,8,1.3], /* 1 côtes, mer claire : du turquoise au vert d'eau */
-    [105,62,50,22,7,2.6], /* 2 terres vertes : du vert franc au vert-jaune */
-    [38,70,60,12,7,3.9],  /* 3 terres sèches, déserts : de l'ocre au sable */
-    [200,35,90,12,4,5.2], /* 4 glaces des pôles */
-    [210,14,93,0,3,.7]];  /* 5 nuages */
-  function couleurPlanete(z,st){ /* la couleur de la zone z au pas st : son ton de base, qui ondule (teinte et clarté) autour de lui */
-    const Z=ZONES[z],ph=6.2832*st/NPAS+Z[5];
-    return[Math.round((Z[0]+Z[3]*Math.sin(ph)+360)%360),Z[1],Math.round(Z[2]+Z[4]*Math.sin(ph+1.1))];
+  /* LA TERRE, SES TEINTES FIXES ET SA LUMIÈRE (2026-11-02, Léo : « retire les blancs et les marrons en trop ; amplifie la lueur et les nuances de bleu et de vert qui tirent vers le jaune, l'effet Terre ; pendant que la planète tourne et que je la manipule, ne change pas les couleurs :
+     fais varier l'éclat, l'ombre et le contraste de chaque teinte selon l'angle ») : plus d'onde de couleurs, plus de glaces ni de nuages blancs, plus de déserts bruns. Chaque zone a UNE teinte qui ne bouge jamais ; seule sa clarté (et un peu sa saturation) suit l'angle
+     de la surface à une lumière fixe, en haut à gauche : NLUM paliers, de l'ombre profonde à l'éclat. Chaque teinte a son propre contraste (gamma) et son propre éclat : l'océan est profond et brille en miroir, les terres jaunes restent claires dans l'ombre (un jaune sombre vire au brun). */
+  const NLUM=10;
+  const ZONES=[ /* [teinte, saturation d'ombre %, saturation d'éclat %, clarté d'ombre %, clarté d'éclat %, gamma (contraste)] */
+    [224,96,90,9,50,1.5],   /* 0 océan profond : du bleu nuit saturé à l'azur vif, sans blanc */
+    [208,98,92,14,54,1.3],  /* 1 azur : mers claires et pôles */
+    [176,96,88,15,52,1.2],  /* 2 turquoise : côtes, lagons */
+    [128,92,88,12,48,1.35], /* 3 vert franc : forêts, du vert bouteille au vert vif */
+    [96,94,90,15,52,1.2],   /* 4 vert-jaune : prairies */
+    [76,96,92,24,54,1.05]]; /* 5 vert-jaune doré : terres sèches (un jaune sombre vire au brun : sa teinte reste verte, son ombre reste claire) */
+  function couleurPlanete(z,u){ /* la couleur de la zone z au palier de lumière u (0 ombre … NLUM−1 éclat) : sa teinte ne change pas, sa clarté et sa saturation si */
+    const Z=ZONES[z],t=Math.pow(u/(NLUM-1),Z[5]);
+    return[Z[0],Math.round(Z[1]+(Z[2]-Z[1])*t),Math.round(Z[3]+(Z[4]-Z[3])*t)];
   }
   const PLANETE_BRUIT=(function(){ /* un bruit de valeur en 3D, lisse (courbe en S entre les sommets d'une grille) */
     const h3=function(i,j,k){let h=Math.imul(i|0,374761393)+Math.imul(j|0,668265263)+Math.imul(k|0,1274126177)|0;h=Math.imul(h^h>>>13,1274126177);return((h^h>>>16)>>>0)/4294967296;};
@@ -233,14 +236,14 @@
     const nv=new Float32Array(n),nd=new Float32Array(n),nn=new Float32Array(n); /* les zones : trois bruits posés sur la sphère. nv : les continents (les 38 % les plus hauts sont des terres, les 12 % d'après des côtes, le reste de l'océan) ; nd : forêt ou désert ; nn : les nuages (étirés en bandes) */
     for(let i=0;i<n;i++){nv[i]=PLANETE_BRUIT(px[i]*1.15+4.1,py[i]*1.15+1.7,pz[i]*1.15+9.3)*.72+PLANETE_BRUIT(px[i]*2.5+8.2,py[i]*2.5+2.9,pz[i]*2.5+5.5)*.28;
       nd[i]=PLANETE_BRUIT(px[i]*1.9+13.7,py[i]*1.9+6.3,pz[i]*1.9+2.1);nn[i]=PLANETE_BRUIT(px[i]*2.3+21.4,py[i]*3.9+9.1,pz[i]*2.3+17.8);}
-    const tri=Float32Array.from(nv).sort(),sTerre=tri[Math.floor(n*.62)],sCote=tri[Math.floor(n*.5)],sNuage=Float32Array.from(nn).sort()[Math.floor(n*.86)];
+    const tri=Float32Array.from(nv).sort(),sTerre=tri[Math.floor(n*.62)],sCote=tri[Math.floor(n*.5)],sNuage=Float32Array.from(nn).sort()[Math.floor(n*.86)]; /* nn ne sert plus qu'à nuancer l'océan */
     for(let i=0;i<n;i++){const ay=Math.abs(py[i]);
-      const z=ay>.89-.06*(nv[i]-.5)?4:nn[i]>=sNuage?5:nv[i]>=sTerre?(nd[i]>.56&&ay<.62?3:2):nv[i]>=sCote?1:0; /* glaces aux pôles, puis nuages, puis terres (déserts loin des pôles), côtes, océan */
+      const z=ay>.89-.06*(nv[i]-.5)?1:nv[i]>=sTerre?(nd[i]>.62&&ay<.62?5:nd[i]>.38?4:3):nv[i]>=sCote?2:nn[i]>=sNuage?1:0; /* pôles en azur (plus de glace blanche), terres (forêt, prairie, terre dorée), côtes turquoise, océan (avec des plaques d'azur à la place des nuages) */
       gk[i]+=z*GLYPHES.length;} /* gk : zone × 11 + signe */
-    const sprH=[]; /* la boule qui change de couleur : NPAS teintes par signe et par zone, toutes avancées pareil au fil du temps */
+    const sprH=[]; /* la boule : NLUM paliers de lumière par signe et par zone, une teinte fixe par zone */
     for(let z=0;z<ZONES.length;z++)for(let gi=0;gi<GLYPHES.length;gi++){const Lg=[];sprH.push(Lg);
-      for(let st=0;st<NPAS;st++){const c=couleurPlanete(z,st),cc=document.createElement('canvas');cc.width=48;cc.height=64;const x=cc.getContext('2d'),d=x.createLinearGradient(0,8,0,56);
-        d.addColorStop(0,'hsl('+c[0]+','+c[1]+'%,'+Math.min(95,c[2]+16)+'%)');d.addColorStop(1,'hsl('+c[0]+','+c[1]+'%,'+c[2]+'%)');
+      for(let st=0;st<NLUM;st++){const c=couleurPlanete(z,st),cc=document.createElement('canvas');cc.width=48;cc.height=64;const x=cc.getContext('2d'),d=x.createLinearGradient(0,8,0,56);
+        d.addColorStop(0,'hsl('+c[0]+','+c[1]+'%,'+Math.min(62,c[2]+7)+'%)');d.addColorStop(1,'hsl('+c[0]+','+c[1]+'%,'+c[2]+'%)');
         x.fillStyle=d;x.font='44px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(GLYPHES[gi],24,34);Lg.push(cc);}}
     return{sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:[],gs:Math.max(9*ku,R*.2)};
   }
@@ -284,32 +287,38 @@
   function dBoule(c,t,e){
     const dtf=bTP===null?0:borne(t-bTP,0,.1);bTP=t;
     if(!bDown){bYaw+=bVy*dtf;bPit+=bVp*dtf;const f=Math.exp(-dtf*2.5);bVy*=f;bVp*=f;bPit*=Math.exp(-dtf*.8);}
+    const LX=-.52,LY=-.5,LZ=.69; /* la lumière : en haut à gauche, devant ; elle ne tourne pas avec la planète */
     const W0=.5,tau=.7,pt=pretT,tp=tapT;
     const rot=.6+bYaw+W0*t; /* elle tourne sans jamais s'arrêter */
     const cr=Math.cos(rot),sr=Math.sin(rot),ct=Math.cos(.38+bPit),st=Math.sin(.38+bPit),pls=Math.sin(t*3.2),R=e.R*(1+.06*pls),gs=e.gs*(1+.05*pls),s=tp===null?-1:Math.max(0,t-tp); /* elle respire : un léger pouls */
     const ex=s>0?9*(1-Math.pow(1-borne(s/.7,0,1),3)):0,ea=s>0?1-lisse(.15,.75,s):1;
     c.save();
-    c.globalCompositeOperation='lighter';halo(c,SPR.or,e.cx,e.cy,R*1.7,R*1.7,(.2*lisse(.8,4,t)+.08*pls)*ea+(s>0?.9*Math.exp(-s*7):0));c.globalCompositeOperation='source-over';
-    const pas=Math.floor(t*2.2)%NPAS; /* la planète avance d'un pas toutes les 0,45 s : un tour complet de l'onde des couleurs en 5,5 s */
-    if(pasSon!==Math.floor(t*2.2)){pasSon=Math.floor(t*2.2);if(t>3&&tp===null&&pasSon%2===0){try{if(SON&&!filmMuet&&iAC&&SON.dr)SON.note(iAC.currentTime+.02,pasSon>>1);}catch(x){}}} /* une cloche tous les deux pas : elle suit la couleur */
+    c.globalCompositeOperation='lighter';
+    if(!SPR.atmB){SPR.atmB=lueur(40,140,255);SPR.atmV=lueur(110,255,150);SPR.atmJ=lueur(235,255,90);} /* la lueur de la Terre : l'atmosphère bleue au large, une brume verte, et un cœur vert-jaune du côté du soleil */
+    const ga=lisse(.8,3.5,t)*ea,gp=ga*(.8+.2*pls);
+    halo(c,SPR.atmV,e.cx,e.cy,R*1.7,R*1.7,(.2*lisse(.8,4,t)+.08*pls)*ea); /* le halo du fond était d'or : sur le noir il brunissait (2026-11-02) */
+    if(s>0)halo(c,SPR.atmB,e.cx,e.cy,R*1.7,R*1.7,.9*Math.exp(-s*7)); /* l'éclat de l'explosion passe au bleu */
+    halo(c,SPR.atmB,e.cx,e.cy,R*2.25,R*2.25,.5*gp);halo(c,SPR.atmV,e.cx,e.cy,R*1.55,R*1.55,.3*gp);halo(c,SPR.atmJ,e.cx+R*LX*.35,e.cy+R*LY*.35,R*1.15,R*1.15,.2*gp);
+    c.globalCompositeOperation='source-over';
+    if(pasSon!==Math.floor(t*2.2)){pasSon=Math.floor(t*2.2);if(t>3&&tp===null&&pasSon%2===0){try{if(SON&&!filmMuet&&iAC&&SON.dr)SON.note(iAC.currentTime+.02,pasSon>>1);}catch(x){}}} /* une cloche tous les deux pas (le tempo de l'ancienne onde de couleurs) */
     if(PCI_ON){if(ea>0){ /* (passe perf PC, voir LE FILM SANS TRAVAIL REFAIT) le même dessin au bit près : mêmes expressions, même ordre (les points de derrière, puis ceux de devant, par i croissant) */
-      if(!e.pciT0){const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=.8+Math.pow(Math.abs(e.py[i]),.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);
+      if(!e.pciT0){const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=.8+Math.pow(Math.abs(e.py[i]),.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);e.pciL=new Uint8Array(e.n);
         if(typeof createImageBitmap==='function')e.sprH.forEach(function(L,ci){L.forEach(function(cc,st){try{createImageBitmap(cc).then(function(b){if(e.sprH[ci][st]===cc)e.sprH[ci][st]=b;},function(){});}catch(x){}});});} /* les vignettes en ImageBitmap (mêmes pixels) dès qu'elles sont prêtes */
-      const T0=e.pciT0,Q=e.pciQ,Z=e.pciZ,gr=1+.6*borne(s/.7,0,1);
+      const T0=e.pciT0,Q=e.pciQ,Z=e.pciZ,LV=e.pciL,gr=1+.6*borne(s/.7,0,1);
       for(let i=0;i<e.n;i++){
         const k=borne((t-T0[i])/.55,0,1);if(k<=0){Z[i]=-1;continue;}
         const b=(1-Math.pow(1-k,3))*(1+ex),x1=e.px[i]*cr+e.pz[i]*sr,z1=-e.px[i]*sr+e.pz[i]*cr,y2=e.py[i]*ct-z1*st,z2=e.py[i]*st+z1*ct;
         const sx=e.cx+x1*R*b,sy=e.cy+y2*R*b;if(sx<-gs||sx>W+gs||sy<-gs||sy>H+gs){Z[i]=-1;continue;}
-        const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*gr;Z[i]=z2>=0?1:0;Q[4*i]=sx-sz*.35;Q[4*i+1]=sy-sz*.5;Q[4*i+2]=sz;Q[4*i+3]=(.18+.82*dp*dp)*lisse(0,.15,k)*ea;
+        const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*gr;Z[i]=z2>=0?1:0;LV[i]=Math.round(borne((x1*LX+y2*LY+z2*LZ+.3)/1.3,0,1)*(NLUM-1));Q[4*i]=sx-sz*.35;Q[4*i+1]=sy-sz*.5;Q[4*i+2]=sz;Q[4*i+3]=(.18+.82*dp*dp)*lisse(0,.15,k)*ea;
       }
-      for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++)if(Z[i]===pass){c.globalAlpha=Q[4*i+3];c.drawImage(e.sprH[e.gk[i]][pas],Q[4*i],Q[4*i+1],Q[4*i+2]*.7,Q[4*i+2]);}
+      for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++)if(Z[i]===pass){c.globalAlpha=Q[4*i+3];c.drawImage(e.sprH[e.gk[i]][LV[i]],Q[4*i],Q[4*i+1],Q[4*i+2]*.7,Q[4*i+2]);}
     }}else
     if(ea>0)for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++){
       const k=borne((t-(.8+Math.pow(Math.abs(e.py[i]),.9)*3.2))/.55,0,1);if(k<=0)continue; /* noir d'abord, puis la boule se dessine point après point, du MILIEU (l'équateur) vers le haut et vers le bas en même temps (2026-11-02, Léo : « qu'il se construise du milieu et s'étende en haut et en bas ») ; même durée qu'avant, mais chaque front ne parcourt que la moitié de la hauteur : il avance deux fois moins vite à l'œil */
       const b=(1-Math.pow(1-k,3))*(1+ex),x1=e.px[i]*cr+e.pz[i]*sr,z1=-e.px[i]*sr+e.pz[i]*cr,y2=e.py[i]*ct-z1*st,z2=e.py[i]*st+z1*ct;
       if((z2>=0?1:0)!==pass)continue;
       const sx=e.cx+x1*R*b,sy=e.cy+y2*R*b;if(sx<-gs||sx>W+gs||sy<-gs||sy>H+gs)continue;
-      const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*(1+.6*borne(s/.7,0,1));c.globalAlpha=(.18+.82*dp*dp)*lisse(0,.15,k)*ea;c.drawImage(e.sprH[e.gk[i]][pas],sx-sz*.35,sy-sz*.5,sz*.7,sz);
+      const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*(1+.6*borne(s/.7,0,1));c.globalAlpha=(.18+.82*dp*dp)*lisse(0,.15,k)*ea;c.drawImage(e.sprH[e.gk[i]][Math.round(borne((x1*LX+y2*LY+z2*LZ+.3)/1.3,0,1)*(NLUM-1))],sx-sz*.35,sy-sz*.5,sz*.7,sz);
     }
     c.globalAlpha=1;c.restore();
   }
