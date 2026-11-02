@@ -173,6 +173,25 @@ function sampleWA(url,v,max,liste){ // un sample (mort, argent) en WebAudio : m�
      paramètre sans jamais être consommé (une file qui grossit tant qu'on joue son coupé) ;
    · cible quasi identique à la dernière envoyée (±0,2 %) → rien, mais on renvoie quand même 4 fois par seconde : si un autre son a
      touché le même paramètre entre-temps, il ne reste jamais décalé plus d'un quart de seconde. */
+/* ===== LE VROOM DU GARAGE (2026-11-02, Léo : « pour une belle transition entre l'ambiance du ciel et l'ambiance du garage, un bruit de moteur qui fait vroom quand on appuie sur garage, puisque le son est plus fort ») =====
+   L'atelier sonne plus fort que le ciel (la nappe de verre, la musique à son niveau) : entrer d'un coup serait une marche. Un moteur qui s'ébroue, ~1,1 s, fait la transition : il MONTE en régime (le « vrr », 46 → 150 Hz en 0,42 s) puis RETOMBE (le « oum »,
+   → 64 Hz), un filtre qui s'ouvre avec lui, une trémulation d'amplitude qui suit le régime (les explosions : le moteur « bat »), l'octave grave en dessous, et le souffle de l'échappement. Synthétisé (la banque n'a pas de moteur court : `garage.lacher` dure
+   1,7 s et sert au départ de la partie), sur le bus des effets (MASTER : curseur EFFETS, interrupteur SON). Appelé par le bouton GARAGE (bureau : garage-cadrage.js ; mobile : mobile-tactile.js) ; jamais si l'atelier est déjà ouvert. */
+function vroomGarage(){
+  try{
+    if(garageOn||!AC||AC.state!=='running'||!SND.sfx||!MASTER)return;
+    const t=AC.currentTime+.01,out=AC.createGain(),tr=AC.createGain(),lp=AC.createBiquadFilter();
+    lp.type='lowpass';lp.Q.value=.9;lp.frequency.setValueAtTime(380,t);lp.frequency.exponentialRampToValueAtTime(2600,t+.42);lp.frequency.exponentialRampToValueAtTime(700,t+1.05);
+    out.gain.setValueAtTime(.0001,t);out.gain.exponentialRampToValueAtTime(.15,t+.07);out.gain.setValueAtTime(.15,t+.45); /* .15 : crête mesurée à −10,5 dBFS (avec .2 : −8) */out.gain.exponentialRampToValueAtTime(.0002,t+1.15);
+    tr.gain.value=.78;lp.connect(tr);tr.connect(out);out.connect(MASTER); /* tr : la trémulation (gain .56 → 1,0, jamais négatif : pas de pop) */
+    for(const dc of [-8,8]){const o=AC.createOscillator();o.type='sawtooth';o.detune.value=dc;
+      o.frequency.setValueAtTime(46,t);o.frequency.exponentialRampToValueAtTime(150,t+.42);o.frequency.exponentialRampToValueAtTime(64,t+1.05);o.connect(lp);o.start(t);o.stop(t+1.2);}
+    const sub=AC.createOscillator(),sg=AC.createGain();sub.type='sine';sub.frequency.setValueAtTime(23,t);sub.frequency.exponentialRampToValueAtTime(75,t+.42);sub.frequency.exponentialRampToValueAtTime(32,t+1.05);sg.gain.value=.7;sub.connect(sg);sg.connect(lp);sub.start(t);sub.stop(t+1.2);
+    const lfo=AC.createOscillator(),lg=AC.createGain();lfo.type='square';lfo.frequency.setValueAtTime(14,t);lfo.frequency.exponentialRampToValueAtTime(48,t+.42);lfo.frequency.exponentialRampToValueAtTime(20,t+1.05);lg.gain.value=.22;lfo.connect(lg);lg.connect(tr.gain);lfo.start(t);lfo.stop(t+1.2);
+    const ns=AC.createBufferSource(),nf=AC.createBiquadFilter(),ng=AC.createGain();ns.buffer=noiseBuf(1.3);nf.type='bandpass';nf.Q.value=.8;nf.frequency.setValueAtTime(260,t);nf.frequency.exponentialRampToValueAtTime(1400,t+.42);nf.frequency.exponentialRampToValueAtTime(420,t+1.05);
+    ng.gain.setValueAtTime(.0001,t);ng.gain.exponentialRampToValueAtTime(.06,t+.1);ng.gain.exponentialRampToValueAtTime(.0002,t+1.1);ns.connect(nf);nf.connect(ng);ng.connect(MASTER);ns.start(t);ns.stop(t+1.2);
+  }catch(e){}
+}
 function stt(p,v,t,tc){
   if(!AC||AC.state!=='running'||!p)return;
   const o=p._s9,now=AC.currentTime;

@@ -834,7 +834,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     /* (2026-09-30, Sacha : « c'est buggé, les boutons ne sont pas connectés ») GARAGE et MISSIONS, APRÈS UNE PARTIE, depuis le menu : la course
        était finie (started && gameOver restent vrais jusqu'au prochain JOUER) → ils repassaient par accueilRetour, qui ne rejoue qu'une fois
        (MENUV.retour) → le bouton ne faisait RIEN jusqu'à la partie suivante. L'atelier déjà ouvert (garageOn) = on y va tout droit. */
-    else if(a==='garage'){ if(started&&gameOver&&!garageOn){ GAR.aGar=true; /* (2026-10-25) le bouton GARAGE de l'écran de mort ouvre le garage, pas l'écran titre */ }
+    else if(a==='garage'){ vroomGarage(); if(started&&gameOver&&!garageOn){ GAR.aGar=true; /* (2026-10-25) le bouton GARAGE de l'écran de mort ouvre le garage, pas l'écran titre */ }
       if(started&&gameOver&&!garageOn)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('boutique'); else openGarage(); }); } // (2026-09-30, Sacha : ses boutons) GARAGE = l'ATELIER (caisses, peinture, ailes, traînées) — le menu, on y est déjà
     else if(a==='surv'){ clic(survBtnEl); mFill(); }
     else if(a==='sand'){ SANDBOX=!SANDBOX; SAVE.d.sand=SANDBOX; SAVE.flush(); mFill(); }
