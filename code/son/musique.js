@@ -75,7 +75,8 @@ function ventIntro(){if(!INTROSON.on)return 1;if(!INTROSON.t0)return 0;const k=(
    `MENU_MUS.ciel.length` vaut 1, donc il boucle (voir playMusic) et `musicMenuSuivant` n'a plus rien à tirer. Les trois anciens fichiers restent sur le disque tant que le palier 1 n'est pas validé à l'oreille.
    (même soir, Léo : « cette règle ne vaut que pour le menu ciel ; la boutique est très bien ; on peut en trouver une pareille pour le garage ») LE GARAGE A LE SIEN : le palier 1 de NUIT DE VELOURS (0,40 Mo, 17 s : quatre temps doux, claquements de doigts, basse posée,
    accords étouffés, derrière un filtre). La boutique s'ouvre DEPUIS le garage : elle continue le morceau du garage, comme avant (son niveau et sa nappe ne changent pas). Le passage ciel ↔ garage est déjà prévu par musicTick (le morceau d'avant s'efface, celui du lieu entre en fondu). */
-const MENU_MUS={ciel:['assets/audio/music/paliers/rendus/ciel-30/p1.m4a'],garage:['assets/audio/music/paliers/rendus/nuit-de-velours/p1.m4a'],_abs:{}};
+/* (2026-11-02 soir) ⚠ la construction Vercel ne publie QUE les dossiers de paliers des morceaux de Pouce bleu (vercel-build.sh, publie-audio.cjs) : CIEL · 30 n'en est pas, son palier 1 répondait 404 en ligne ; le fichier de secours du ciel est donc celui de NUIT DE VELOURS (publié). */
+const MENU_MUS={ciel:['assets/audio/music/paliers/rendus/nuit-de-velours/p1.m4a'],garage:['assets/audio/music/paliers/rendus/nuit-de-velours/p1.m4a'],_abs:{}};
 MENU_MUS.tire={ciel:MENU_MUS.ciel[0],garage:MENU_MUS.garage[0]};
 MENU_MUS.abs=function(u){return this._abs[u]||(this._abs[u]=(function(){try{return new URL(u,location.href).href;}catch(e){return u;}})());};
 /* ===== LE LOBBY ENCHAÎNE (2026-10-29, Léo : « la musique lobby joue encore deux fois ») =====
