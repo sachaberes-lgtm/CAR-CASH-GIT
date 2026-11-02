@@ -456,8 +456,9 @@
   function dPresente(c,s,e){
     const sor=1-lisse(presFin-.7,presFin,s);if(sor<=.004)return;
     /* (2026-10-26, Sacha : « 1.61 Studio » → « 1.61 Game ») deux lignes : « 1.61 GAME » en grand (le « 1.61 » blanc chaud, GAME en or), un filet d'or qui s'ouvre depuis le centre,
-       puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier. */
-    const t1='1.61 GAME',t2='PRESENTS',n1=t1.length,n2=t2.length;
+       puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier.
+       (2026-11-02 nuit, Léo : « enlève le GAME, c'est juste 1.61 ») la ligne du haut n'est plus que « 1.61 ». */
+    const t1='1.61',t2='PRESENTS',n1=t1.length,n2=t2.length;
     const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),k=sort3((s-.7)/1.5),esp=px*(.95-.5*k);
     const tot=n1*px+(n1-1)*esp,y1=e.cy-px*.1,yR=e.cy+px*.62,y2=yR+px2*2.1;
     c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';
@@ -690,6 +691,17 @@
       souffle(master,q,.6,'bandpass',500,9000,1.4,.28,.01,.6,0,.5);souffle(master,q+.05,1,'highpass',5000,0,.8,.08,.05,1,0,.6);
       accord(q+.02,.13,.004,2.2,.6);
     };
+    /* LE SCINTILLEMENT D'OR (2026-11-02 nuit, Léo : « rajoute un sound effect au 1.61 PRESENTS », choisi : « un scintillement doré ») : chaque lettre qui s'allume tinte (une clochette de verre, très haut,
+       tirée au hasard dans l'accord de MI♭ de la nappe : pas une mélodie), le filet d'or souffle un air fin, « PRESENTS » scintille plus bas et plus doux. Calé sur dPresente : « 1.61 » de 0,7 s, le filet 1,55 s, PRESENTS 1,9 s. */
+    R.scintille=function(q){
+      const F=[1245,1568,1865,2489,3136];let der=-1;
+      const tinte=function(t,pk,x){let i=Math.floor(Math.random()*F.length);if(i===der)i=(i+2)%F.length;der=i;const f=F[i];
+        oscil(master,'sine',f,f,t,0,pk,.002,.9,x,.6);oscil(master,'sine',f*2.01,f*2.01,t,0,pk*.35,.001,.35,-x,.5);
+        souffle(master,t,.01,'highpass',7000,0,1,pk*.5,.0008,.03,x,.3);};
+      for(let i=0;i<4;i++)tinte(q+.72+i*.07,.05,(i-1.5)*.35);
+      souffle(master,q+1.55,.9,'bandpass',6000,9500,2,.035,.25,.8,0,.6);
+      for(let i=0;i<8;i++)tinte(q+1.92+i*.09,.022,(i-3.5)*.18);
+    };
     /* 5. LA CASSE (programmée au dernier moment par `programmerCasse` : on peut passer le film) */
     R.casse=function(q){
       souffle(master,q,.34,'lowpass',16000,900,.8,.80,.001,.32,0,.25);
@@ -769,7 +781,7 @@
     if(!lance||fini||tapT!==null||pretT===null)return;
     tapT=(performance.now()-tLance)/1000-latV;passee=true;
     try{if(iAC&&iAC.state!=='running')acReveil(iAC);}catch(e){}
-    try{if(SON){SON.suite();SON.boum(iAC.currentTime+.02);}}catch(e){}
+    try{if(SON){SON.suite();SON.boum(iAC.currentTime+.02);SON.scintille(iAC.currentTime+.02);}}catch(e){}
     try{ouvrir();}catch(e){}
     INTROSON.on=true;INTROSON.t0=0; /* le ciel, dessous, reste sans vent jusqu'à l'accueil */
     /* (2026-11-02 nuit, Léo : « la musique commence trop tôt et se coupe direct, puis une autre démarre au ciel » puis « elle ne se lance qu'en fondu à partir du moment où le menu ciel a chargé ») la musique ne part plus pendant « PRESENTS » :
@@ -778,7 +790,7 @@
     ouvreQuandPret();
   }
   /* (2026-11-02, Léo : « ça saccade ») LE VOILE S'OUVRE QUAND LE JEU EST CALME. Mesuré sur son Mac (Safari, cadre 1226 × 566) : de l'appui à +10 s, le ciel se construit sous le voile par images de 0,2 à 1,3 s, puis ~20 i/s ;
-     le voile s'ouvrait à +4,2 s, en plein dans ces gels (rien avant l'appui : la boule y tourne fluide). « 1.61 GAME PRESENTS » TIENT donc tant que le jeu gèle, avec ses trois carrés d'or qui s'allument, et le voile ne
+     le voile s'ouvrait à +4,2 s, en plein dans ces gels (rien avant l'appui : la boule y tourne fluide). « 1.61 PRESENTS » TIENT donc tant que le jeu gèle, avec ses trois carrés d'or qui s'allument, et le voile ne
      fond qu'après 25 images d'affilée sous 100 ms (plafond : 15 s après l'appui). Sur une machine rapide les images sont courtes dès l'appui : le voile s'ouvre à l'heure d'avant (PRES_FIN), rien ne change. */
   function ouvreQuandPret(){
     let prev=performance.now(),calmes=0,tenu=false;
