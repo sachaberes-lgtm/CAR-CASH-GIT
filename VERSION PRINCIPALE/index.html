@@ -56311,7 +56311,7 @@ function musicMenuSuivant(){
    reste au choix : `?boutique=muette`. */
 const BQ_MUSIQUE=!/[?&]boutique=muette\b/.test(location.search);
 function musicMenuUrl(){ // le morceau du lieu : le ciel de LA CHUTE a le sien, le garage (et la boutique, qui s'ouvre de lui) le sien (2/11 ; du 15/10 au 2/11 c'était le MÊME partout)
-  let tu9=false;try{tu9=pbjTuto()||leconAVenir();}catch(e){} // (2026-11-02, Léo : « corriger le conflit avec le niveau guide du début, ça casse le concept ») LA LEÇON (1re partie d'un joueur neuf) a SA musique, « PREMIER MATIN » : c'est elle qui joue déjà au menu, et JOUER la continue (`garde`), au lieu d'une musique sans rapport qui s'arrête au JOUER
+  let tu9=false;try{tu9=pbjTuto()||(LECON_MUSIQUE&&leconAVenir());}catch(e){} // (2026-11-02, Léo : « corriger le conflit avec le niveau guide du début, ça casse le concept ») LA LEÇON (1re partie d'un joueur neuf) a SA musique, « PREMIER MATIN » : c'est elle qui joue déjà au menu, et JOUER la continue (`garde`), au lieu d'une musique sans rapport qui s'arrête au JOUER
   if(tu9)return ECOLE_MUS.f;
   if(INTROSON.on)return MENU_MUS.tire.ciel; // l'intro : toute la cinématique joue le morceau du ciel, sans en changer
   let g9=false;try{g9=!!garageOn&&!CHUTE.on;}catch(e){} // (garageOn et CHUTE naissent dans des morceaux plus loin : avant eux, on est au ciel)
@@ -56719,13 +56719,13 @@ const LOBBY_TIER=(function(){const m=/[?&]lobbytier=(\d+)/.exec(location.search)
    avec son écho) tient l'ambiance, sur le bus des effets, derrière le vent du ciel. Elle s'éteint (0,6 s) quand la leçon finit ; Pouce bleu entre alors comme partout (musicSuitLieu). `?lecon=musique` rend l'ancien (la musique de la leçon, au menu puis en course). */
 const LECON_MUSIQUE=/[?&]lecon=musique\b/.test(location.search);
 function leconAVenir(){try{return !SAVE.d.tuto&&!SANDBOX&&!PARK.on;}catch(e){return false;}} // un joueur qui n'a pas encore fait la leçon, au menu
-function leconSilence(){try{return !LECON_MUSIQUE&&(pbjTuto()||leconAVenir());}catch(e){return false;}} // pas de musique : la leçon, ou son menu
+function leconSilence(){try{return !LECON_MUSIQUE&&pbjTuto();}catch(e){return false;}} /* pas de musique : la LEÇON elle-même (TUTO.on, posé au JOUER par tutoArme). (2026-11-02 soir, Léo : « il n'y a plus rien du lobby sur mon localhost ») le premier jet y ajoutait le MENU du joueur neuf (leconAVenir) : le lobby lié ne démarrait jamais pour lui, qui est toujours un joueur neuf sur un navigateur vierge. Au JOUER de la leçon, le lobby s'éteint (musicTick) et la nappe de la boutique reste. */
 const LECON_AMB={on:false};
 function leconAmbiance(dt){ // appelé à chaque image (musicTick) : l'ambiance de la boutique pendant la leçon ; on ne coupe QUE la nappe qu'on a lancée (la boutique s'en sert aussi)
   if(leconSilence()){if(SND.sfx){LECON_AMB.on=true;bqSon(dt,true,true);}}
   else if(LECON_AMB.on){LECON_AMB.on=false;try{if(!(typeof GBQ!=='undefined'&&GBQ.on))bqSonCoupe(.6);}catch(e){}}
 }
-function lobbyPeut(){return LOBBY_LIE&&!LOBBY_KO&&!leconAVenir()&&pbjActif();}
+function lobbyPeut(){return LOBBY_LIE&&!LOBBY_KO&&!(LECON_MUSIQUE&&leconAVenir())&&pbjActif();} /* (2/11 soir) le lobby lié joue AUSSI au menu d'un joueur neuf : seule la leçon elle-même est sans musique (voir leconSilence) */
 window.dbgLobby=function(){try{const P=window.POUCE_JEU;return {lobbyLie:LOBBY_LIE,ko:LOBBY_KO,leconAVenir:leconAVenir(),leconSilence:leconSilence(),ambiance:LECON_AMB.on,tuto:pbjTuto(),pbjActif:pbjActif(),peut:lobbyPeut(),phase:P&&P.phase,morceau:P&&P.E&&P.E.titre,palier:P&&P.tier0,mode:musicMode,musicEl:musicEl?{src:(musicEl.src||'').split('/').pop(),pause:musicEl.paused,vol:+musicEl.volume.toFixed(3)}:null,intro:INTROSON.on};}catch(e){return {erreur:String(e)};}};
 function lobbyActif(){return !!window.POUCE_JEU&&POUCE_JEU.phase==='lobby';}
 function pbjLobby(){
