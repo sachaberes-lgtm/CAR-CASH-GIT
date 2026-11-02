@@ -772,7 +772,8 @@
     try{if(SON){SON.suite();SON.boum(iAC.currentTime+.02);}}catch(e){}
     try{ouvrir();}catch(e){}
     INTROSON.on=true;INTROSON.t0=0; /* le ciel, dessous, reste sans vent jusqu'à l'accueil */
-    setTimeout(musiqueDePresents,700); /* (2026-11-02, Léo) la musique démarre quand « 1.61 GAME » commence à s'écrire (dPresente : 0,7 s après l'appui), et ne s'arrête plus */
+    /* (2026-11-02 nuit, Léo : « la musique commence trop tôt et se coupe direct, puis une autre démarre au ciel » puis « elle ne se lance qu'en fondu à partir du moment où le menu ciel a chargé ») la musique ne part plus pendant « PRESENTS » :
+       là, seuls les morceaux en fichiers pouvaient partir, les autres étaient mis en attente (pbjLobby, `fixes`) puis un autre partait à l'accueil. Elle part UNE fois, au ciel (`reveler`), avec le fondu du lobby (4 s) et la montée d'INTROSON. */
     setTimeout(function(){window.__introCouvre=false;},150);
     ouvreQuandPret();
   }
@@ -794,11 +795,7 @@
       requestAnimationFrame(pas);
     })(performance.now());
   }
-  let musIntro=false; /* la musique du menu a été lancée par l'intro, pendant « PRESENTS » */
-  function musiqueDePresents(){
-    if(fini||revele||musIntro)return;
-    try{if(SND.music&&!started){musicMenu();musIntro=!lobbyPeut();}}catch(e){} /* le lobby lié (le morceau du niveau, en ambiance) part tout seul ; musIntro : le fichier fixe d'avant a été lancé par l'intro (repli ou ?lobby=ancien) */
-  }
+  let musIntro=false; /* (plus rien ne la lance avant le ciel : voir tapBoule) */
   function passer(){
     if(BOULE){tapBoule();return;}
     if(!lance||fini||casse||passee)return;passee=true;

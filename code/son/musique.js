@@ -286,7 +286,7 @@ function musicElGet(){
     musicEl=document.createElement('audio');musicEl.id='musique';musicEl.preload='auto';
     musicEl.setAttribute('playsinline','');musicEl.setAttribute('webkit-playsinline','');musicEl.style.display='none';
     document.body.appendChild(musicEl);
-    musicEl.addEventListener('ended',function(){if(musicMode==='run'&&!musicLieu)musicNext();else if(musicMode==='menu')musicMenuSuivant();}); // la radio enchaîne (les morceaux de LIEU bouclent)
+    musicEl.addEventListener('ended',function(){if(musicSilence._u&&musicEl.src===musicSilence._u)return; /* (le silence du déverrouillage : rien n'enchaîne) */ if(musicMode==='run'&&!musicLieu)musicNext();else if(musicMode==='menu')musicMenuSuivant();}); // la radio enchaîne (les morceaux de LIEU bouclent)
     musicEl.addEventListener('playing',function(){musicOn=true;musicEnAttente=false;musicEl._err=0;musicAnalyse();if(MENUFON.att&&musicMode==='menu'){MENUFON.att=false;MENUFON.f0=performance.now();musicVolCour=0;}}); /* (LE LOBBY ENTRE EN DOUCEUR) le fondu part au vrai départ du son */
     musicEl.addEventListener('pause',function(){musicOn=false;});
     musicEl.addEventListener('error',function(){if(FRENM.sw){frenMusRate();return;} // le morceau de la TRIADE manque : on repart sur la radio, surmultipliée
@@ -317,12 +317,20 @@ function musicJoue(){ // lance (ou relance) la lecture — un refus n'est jamais
   const p=el.play();
   if(p&&p.catch)p.catch(function(){musicOn=false;musicEnAttente=true;});
 }
+function musicSilence(){ /* 0,1 s de silence (WAV 8 kHz, 8 bits, mono) en adresse blob : de quoi libérer le lecteur sans un son */
+  if(musicSilence._u)return musicSilence._u;
+  const n=800,b=new Uint8Array(44+n),v=new DataView(b.buffer),t=function(o,x){for(let i=0;i<4;i++)b[o+i]=x.charCodeAt(i);};
+  t(0,'RIFF');v.setUint32(4,36+n,true);t(8,'WAVE');t(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);t(36,'data');v.setUint32(40,n,true);b.fill(128,44);
+  try{musicSilence._u=URL.createObjectURL(new Blob([b],{type:'audio/wav'}));}catch(e){musicSilence._u='';}
+  return musicSilence._u;}
 function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) : le 1er libère le lecteur, les suivants relancent si besoin
   musicJoue._vu=1; // un toucher : la page est à l'écran (voir la garde de musicJoue)
   const el=musicElGet();musicSession();
   if(MUS_WA.on){try{musWaBranche();musWaReveil();}catch(e){}} // (2026-10-14, session SON) dans le geste : brancher la musique au graphe, relancer un contexte « interrupted » (appel, Siri) avant l'élément
   if(!musicDeverrouille._ok){musicDeverrouille._ok=true;
-    if(!el.src)el.src=musicMenuUrl()||musicPremier();           // le morceau de l'ACCUEIL se charge dès le 1er toucher : aucun blanc au départ — ⚠ (Léo, 2026-09-27) celui du 1er niveau s'entendait une seconde avant l'intro
+    /* (2026-11-02 nuit, Léo, sur l'iPhone : « la musique de l'intro commence trop tôt et se coupe direct ») le déverrouillage jouait LE MORCEAU DU CIEL, muet et à volume 0 : sur l'iPhone ni l'un ni l'autre ne tient toujours (volume verrouillé, élément branché au graphe),
+       et on l'entendait une fraction de seconde au toucher de la boule. Il joue désormais un SILENCE (un WAV vide, fabriqué ici) : l'élément est libéré pareil, et rien ne peut s'entendre ; le vrai morceau ne se charge qu'au ciel (playMusic). */
+    if(!el.src)el.src=musicSilence();
     if(!musicVoulue){el.muted=true;try{if(!SON_VOL_VERROU&&!musWaTient())el.volume=0;}catch(e){} /* (2026-11-02, Léo : une ancienne musique s'entendait pendant la construction de la boule) muet ET volume 0 : si le lecteur lent ne s'arrête pas à temps, rien ne filtre ; musicTick et musicJoue remontent le volume quand le menu le veut */
       const p=el.play();       // lancé une fois, en silence, PENDANT le geste : l'élément est libre
       /* (2026-10-05, Léo : « une musique qui commence très fort au début ») le son ne se ROUVRE qu'une fois l'arrêt CONSTATÉ : rouvert
@@ -512,11 +520,13 @@ const LOBBY_TIER=(function(){const m=/[?&]lobbytier=(\d+)/.exec(location.search)
    avec son écho) tient l'ambiance, sur le bus des effets, derrière le vent du ciel. Elle s'éteint (0,6 s) quand la leçon finit ; Pouce bleu entre alors comme partout (musicSuitLieu). `?lecon=musique` rend l'ancien (la musique de la leçon, au menu puis en course). */
 const LECON_MUSIQUE=/[?&]lecon=musique\b/.test(location.search);
 function leconAVenir(){try{return !SAVE.d.tuto&&!SANDBOX&&!PARK.on;}catch(e){return false;}} // un joueur qui n'a pas encore fait la leçon, au menu
-function leconSilence(){try{return !LECON_MUSIQUE&&pbjTuto();}catch(e){return false;}} /* pas de musique : la LEÇON elle-même (TUTO.on, posé au JOUER par tutoArme). (2026-11-02 soir, Léo : « il n'y a plus rien du lobby sur mon localhost ») le premier jet y ajoutait le MENU du joueur neuf (leconAVenir) : le lobby lié ne démarrait jamais pour lui, qui est toujours un joueur neuf sur un navigateur vierge. Au JOUER de la leçon, le lobby s'éteint (musicTick) et la nappe de la boutique reste. */
+/* (2026-11-02 nuit, Léo : « pour la toute première partie, la musique du lobby c'est celle de la boutique, et celle du guide c'est la même ; une fois le guide terminé, la musique, on sait ») le MENU du joueur neuf (leconAVenir) revient dans le silence de la leçon :
+   au ciel, avant sa première partie, il entend la nappe de la boutique (leconAmbiance), la même que pendant la leçon ; le lobby lié (Pouce bleu) ne vaut qu'une fois la leçon faite (SAVE.d.tuto). */
+function leconSilence(){try{return !LECON_MUSIQUE&&(pbjTuto()||(leconAVenir()&&musicMode==='menu'));}catch(e){return false;}} /* pas de musique : la LEÇON elle-même (TUTO.on, posé au JOUER par tutoArme). (2026-11-02 soir, Léo : « il n'y a plus rien du lobby sur mon localhost ») le premier jet y ajoutait le MENU du joueur neuf (leconAVenir) : le lobby lié ne démarrait jamais pour lui, qui est toujours un joueur neuf sur un navigateur vierge. Au JOUER de la leçon, le lobby s'éteint (musicTick) et la nappe de la boutique reste. */
 const LECON_AMB={on:false};
 function leconAmbiance(dt){ // appelé à chaque image (musicTick) : l'ambiance de la boutique pendant la leçon ; on ne coupe QUE la nappe qu'on a lancée (la boutique s'en sert aussi)
-  if(leconSilence()){if(SND.sfx){LECON_AMB.on=true;bqSon(dt,true,true);}}
-  else if(LECON_AMB.on){LECON_AMB.on=false;try{if(!(typeof GBQ!=='undefined'&&GBQ.on))bqSonCoupe(.6);}catch(e){}}
+  if(leconSilence()&&!(INTROSON.on&&!INTROSON.t0)){if(SND.sfx){LECON_AMB.on=true;bqSon(dt,true,true);}} /* (2/11 nuit) pendant l'intro, rien : la nappe part avec le ciel (INTROSON.t0, posé par `reveler`), en fondu */
+  else if(LECON_AMB.on){LECON_AMB.on=false;try{if(!(typeof GBQ!=='undefined'&&GBQ.on))bqSonCoupe(.6);}catch(e){} if(musicMode==='menu'&&!started)try{musicMenu();}catch(e){}} /* (2/11 nuit) au menu (« J'AI DÉJÀ JOUÉ », ou la leçon passée) : la musique du ciel prend le relais */
 }
 function lobbyPeut(){return LOBBY_LIE&&!LOBBY_KO&&!(LECON_MUSIQUE&&leconAVenir())&&pbjActif();} /* (2/11 soir) le lobby lié joue AUSSI au menu d'un joueur neuf : seule la leçon elle-même est sans musique (voir leconSilence) */
 window.dbgLobby=function(){try{const P=window.POUCE_JEU;return {lobbyLie:LOBBY_LIE,ko:LOBBY_KO,leconAVenir:leconAVenir(),leconSilence:leconSilence(),ambiance:LECON_AMB.on,tuto:pbjTuto(),pbjActif:pbjActif(),peut:lobbyPeut(),phase:P&&P.phase,morceau:P&&P.E&&P.E.titre,palier:P&&P.tier0,mode:musicMode,musicEl:musicEl?{src:(musicEl.src||'').split('/').pop(),pause:musicEl.paused,vol:+musicEl.volume.toFixed(3)}:null,intro:INTROSON.on};}catch(e){return {erreur:String(e)};}};
