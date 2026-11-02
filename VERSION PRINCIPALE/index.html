@@ -61451,7 +61451,7 @@ function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
   if(t.closest('.m2R.voir')&&!t.closest('.m2Pr')){m2Voir(m);return;}
   if(s.ok.indexOf(id)>=0){ /* (2026-11-01, Sacha : « quand on clique sur une mission achevée, elle se supprime automatiquement » ) */
     if(!s.mq)s.mq=[];if(s.mq.indexOf(id)<0)s.mq.push(id);SAVE.flush();uiClic('off');hap(10);m2Render(true);return;}
-  uiClic('refus'); /* (2026-11-01) on ne peut plus suivre une mission : toucher une mission en cours ne fait plus rien */
+  uiClic('refus'); /* (2026-11-01) on ne peut plus suivre une mission : toucher une mission en cours ne fait plus rien */}
 /* LE POINT VERT DES PORTES (à la place des trois pastilles du carnet) : une récompense attend d'être récupérée */
 function m2Portes(){const n=m2NbPret();
   document.querySelectorAll('#gvMis,.ghT[data-h="mis"],#mHome [data-m="mis"]').forEach(function(d){let p=d.querySelector(':scope>.m2Pt');
