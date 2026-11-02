@@ -48861,7 +48861,7 @@ const PHOTO={cache:{},rt:null,scene:null,cam:null};
 const PHDB={db:null,n:0,lu:false,t0:0}; /* lu : la base est lue (ou inutilisable) — voir phdbAttend */
 /* (2026-10-22, piste « démarrage ») LA VERSION DES PHOTOS n'est plus la version publiée : c'est CC_PHOTOS, l'empreinte des fichiers qui dessinent une photo (vercel-build.sh) — une publication qui ne touche ni les caisses, ni le rendu, ni le studio garde toutes les photos (MESURÉ au profil : 3,3 à 4,4 s de fil principal à CPU ×4 pour les refaire). Jeton non gravé : on retombe sur CC_BUILD (rien n'est gardé en local). La PEINTURE entre en entier (couleurs comprises), pas seulement son id : une teinte retouchée refait les photos. */
 function phdbVer(){return /^__/.test(CC_PHOTOS)?CC_BUILD:CC_PHOTOS;}
-function phdbSig(){let p='';try{const d=cosmSur('peinture');if(d){const j=JSON.stringify(d);let h=2166136261;for(let i=0;i<j.length;i++){h^=j.charCodeAt(i);h=Math.imul(h,16777619);}p=(d.id||'')+':'+(h>>>0).toString(36);}}catch(e){try{p=cosmSur('peinture').id||'';}catch(e2){}}return phdbVer()+'|'+p;} /* la peinture en entier, résumée en 6 lettres (FNV-1a) : la signature se range avec CHAQUE photo */
+function phdbSig(){if(PHOTO_USINE)return phdbVer()+'|usine-photo'; /* (2026-11-02) une photo de caisse ne dépend plus de la peinture portée */let p='';try{const d=cosmSur('peinture');if(d){const j=JSON.stringify(d);let h=2166136261;for(let i=0;i<j.length;i++){h^=j.charCodeAt(i);h=Math.imul(h,16777619);}p=(d.id||'')+':'+(h>>>0).toString(36);}}catch(e){try{p=cosmSur('peinture').id||'';}catch(e2){}}return phdbVer()+'|'+p;} /* la peinture en entier, résumée en 6 lettres (FNV-1a) : la signature se range avec CHAQUE photo */
 function phdbOuvre(){if(PHDB.db!==null)return;PHDB.db=false;PHDB.t0=performance.now();if(/^__/.test(CC_BUILD)||!window.indexedDB||!window.URL||!URL.createObjectURL){PHDB.lu=true;return;}
   try{const r=indexedDB.open('ccPhotos',1);r.onupgradeneeded=function(){try{r.result.createObjectStore('p');}catch(e){}};
     r.onsuccess=function(){PHDB.db=r.result;phdbLit();};r.onerror=function(){PHDB.db=false;PHDB.lu=true;};}catch(e){PHDB.db=false;PHDB.lu=true;}}
@@ -48870,7 +48870,7 @@ function phdbLit(){try{const sig=phdbSig(),st=PHDB.db.transaction('p','readwrite
   vs.onsuccess=function(){try{const K=ks.result||[],V=vs.result||[];
     for(let i=0;i<V.length;i++){const v=V[i],k=K[i];
       if(!v||String(v.s).split('|')[0]!==phdbVer()){try{st.delete(k);}catch(e){}}
-      else if(v.s===sig&&v.b&&!PHOTO.cache[k]){try{PHOTO.cache[k]=URL.createObjectURL(v.b);PHDB.n++;}catch(e){}}}
+      else if((v.s===sig||v.s===phdbVer()+'|usine-photo')&&v.b&&!PHOTO.cache[k]){try{PHOTO.cache[k]=URL.createObjectURL(v.b);PHDB.n++;}catch(e){}}}
   }catch(e){}PHDB.lu=true;};}catch(e){PHDB.lu=true;}}
 /* (2026-10-22, piste « démarrage ») LA FILE DES PHOTOS ATTEND LA BASE : sa lecture part 700 ms après le chargement, mais sur un téléphone le fil est pris par le démarrage bien plus longtemps — MESURÉ (CPU ×4) : la file prenait ses premières photos 8 à 18 s avant que la base ne soit lue, et refaisait donc celles qu'elle gardait déjà. Tant que la base n'est pas lue, photoTour et photoRafale attendent (avant que la lecture ne soit lancée, sans limite — son minuteur est posé ; ensuite au plus 4 s : une base muette ne bloque pas les vignettes). */
 function phdbAttend(){return !PHDB.lu&&(!PHDB.t0||performance.now()-PHDB.t0<4000);}
@@ -48960,6 +48960,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   photoStudio();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
   if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin) — (2026-10-16) en RAFALE, posée une fois par photoRafale
+  PHOTO_USINE=true; /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) */
   const sig9=phdbSig();let url=null,asy=false;
   try{
     if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
@@ -49018,6 +49019,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     else{url=cv.toDataURL('image/png');toileRend(cv);}
     T9.montage=performance.now()-T9.t0;
   }catch(e){console.warn('photo',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
+  PHOTO_USINE=false; /* la caisse qu'on rend après la photo reprend sa peinture */
   if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
   if(!PHOTO.chaine){const av=PHOTO.avant;buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);} // on rend la caisse qu'on regardait (au garage : la feuilletée) — (2026-10-16) en RAFALE, photoRafale la rend une fois à la fin
   T9.total=performance.now()-T9.t0;
@@ -49770,7 +49772,11 @@ function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin()){
 const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
   if(d.pack==='chat'&&m2Chat())return true; /* (2026-10-16, missions v2) l'ARC-EN-CIEL vient avec le chat */if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
 function shopEqD(cat){const id=SAVE.d.shop.eq[cat],d=COSM[cat].find(x=>x.id===id);return (d&&shopOwned(cat,d.id))?d:COSM[cat][0];}
-function cosm(cat){return (SHOP.prev&&SHOP.prev.cat===cat)?COSM[cat][SHOP.prev.i]:shopEqD(cat);} // ce que la caisse PORTE (essai compris)
+/* ===== LES PHOTOS DES CAISSES EN TEINTE D'ORIGINE (2026-11-02, Léo : « quand on va dans les paint des boutiques, ça met toutes les voitures dans ta peinture et on ne peut à peine les distinguer. Enlève-moi ce truc ») =====
+   Pendant que le studio photographie une caisse (carPhoto : vignettes de la boutique, de l'inventaire, vue de la fenêtre d'achat), PHOTO_USINE
+   est vrai : la caisse porte D'ORIGINE, ni la peinture équipée ni celle qu'on essaie. La caisse qu'on conduit et l'essai en 3D gardent la peinture. */
+let PHOTO_USINE=false;
+function cosm(cat){if(PHOTO_USINE&&cat==='peinture')return COSM.peinture[0];return (SHOP.prev&&SHOP.prev.cat===cat)?COSM[cat][SHOP.prev.i]:shopEqD(cat);} // ce que la caisse PORTE (essai compris)
 // ⚠ le TOUT PREMIER `buildCar` tourne à l'init, AVANT que `SAVE`/`SHOP` ne soient déclarés (zone morte) : on rend alors l'origine
 function cosmSur(cat){try{return cosm(cat);}catch(e){return null;}}
 function shopBuy(cat,i){ // ⚠ débit et possession dans la MÊME fonction, comme `carBuy` : jamais l'un sans l'autre
