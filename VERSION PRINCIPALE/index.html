@@ -77641,10 +77641,7 @@ function goImmersive(){
     R.acte3=function(){}; /* (plus de claquement programmé : il sonne à l'appui, `boum`) */
     const ACC=[73.42,110,146.83,220,293.66,440]; /* l'accord de la marque : Ré, quintes et octaves, net et ouvert (pas de notes serrées) */
     function accord(q,pk,att,dec,w){for(let i=0;i<ACC.length;i++){oscil(master,'sine',ACC[i],ACC[i],q,0,pk*(i<2?1.5:1),att,dec,(i-4)*.12,w);oscil(master,'triangle',ACC[i]*1.003,ACC[i]*1.003,q,0,pk*.6,att,dec,(4-i)*.12,w);}}
-    /* LA NAPPE DU CHARGEMENT RETIRÉE (2026-11-02, Léo : « enlève la musique intro pad qui tourne ») : plus de pad Ré, Si mineur, Sol, La en boucle
-       ni de cloches pendant la boule ; restent l'accord du « prêt », le coup de l'appui et la casse. `?intro=pad` = la nappe d'avant. */
-    const NAPPE=/[?&]intro=pad\b/.test(location.search);
-    R.charge=function(q,el,pret){if(!NAPPE)return; /* le chargement : un grave qui monte avec la boule, mais VIVANT : il bat au rythme du pouls de la boule (3,2 rad/s), un pad dont le filtre respire, un chœur de médiums qui s'ouvre en tremblant, un souffle, un voile qui scintille, et des étincelles à mesure que les chiffres apparaissent */
+    R.charge=function(q,el,pret){ /* le chargement : un grave qui monte avec la boule, mais VIVANT : il bat au rythme du pouls de la boule (3,2 rad/s), un pad dont le filtre respire, un chœur de médiums qui s'ouvre en tremblant, un souffle, un voile qui scintille, et des étincelles à mesure que les chiffres apparaissent */
       el=el||0;const dur=Math.max(.8,4.6-el),top=pret?.45:1,gs=[],oc=[];
       const P=A.createGain();P.gain.value=.78;P.connect(master); /* le pouls : tout le chargement passe là, et la boule le fait battre */
       const lf=A.createOscillator(),lg=A.createGain();lf.type='sine';lf.frequency.value=3.2/6.2832;lg.gain.value=.22;lf.connect(lg);lg.connect(P.gain);lf.start(q);oc.push(lf);
