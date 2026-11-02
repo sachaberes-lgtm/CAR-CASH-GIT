@@ -154,11 +154,13 @@
   }
   function chaine(ac, sortie, ambiance) {
     const f = ac.createBiquadFilter(), g = ac.createGain(), e = ac.createGain(); f.type = 'lowpass'; f.frequency.value = 320; f.Q.value = .6; g.gain.value = 0; e.gain.value = .937;
-    f.connect(g); let d = g, bus = null, conv = null, wet = null;
-    if (ambiance) { conv = ac.createConvolver(); conv.buffer = irAmbiance(ac); wet = ac.createGain(); wet.gain.value = 0; f.connect(conv); conv.connect(wet); wet.connect(g); wet.gain.setTargetAtTime(ambiance, ac.currentTime, 1.2); }
+    let hp = null, nt = null;   // (2/11 soir) le lobby a un PASSE-HAUT (il laisse les graves au vent du ciel) ; la course n'en a pas : sa chaîne est inchangée
+    if (ambiance) { hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 10; hp.Q.value = .7; nt = ac.createBiquadFilter(); nt.type = 'peaking'; nt.frequency.value = 900; nt.Q.value = 1; nt.gain.value = -4; f.connect(hp); hp.connect(nt); nt.connect(g); } else f.connect(g);   // nt : une encoche de −4 dB à 900 Hz, la bande de souffle du vent du ciel (voir chute-libre.js) : le vent garde sa place dans les médiums
+    let d = g, bus = null, conv = null, wet = null;
+    if (ambiance) { conv = ac.createConvolver(); conv.buffer = irAmbiance(ac); wet = ac.createGain(); wet.gain.value = 0; (hp || f).connect(conv); conv.connect(wet); wet.connect(g); wet.gain.setTargetAtTime(ambiance, ac.currentTime, 1.2); }
     if (W.MUSBUS) { bus = W.MUSBUS.cree(ac); g.connect(bus.entree); d = bus.sortie; }
     d.connect(e); e.connect(sortie);
-    return { f, g, e, bus, entree: f, conv, wet };
+    return { f, g, e, bus, entree: f, conv, wet, hp, nt };
   }
   const t9 = (p, v, t, tau) => { try { if (p.cancelAndHoldAtTime) p.cancelAndHoldAtTime(t); else { p.cancelScheduledValues(t); p.setValueAtTime(p.value, t); } p.setTargetAtTime(v, t, tau); } catch (x) {} };
 
@@ -192,8 +194,8 @@
       const E = PB.attente || PB.tire(); PB.attente = null; if (!E) { PB.phase = 'vide'; return null; }
       if (opt.fixes && E.type !== 'paliers') { PB.attente = E; PB.phase = 'repos'; return null; }
       PB.dernier = E;
-      ch = chaine(ac, sortie, .8); ch.f.frequency.setValueAtTime(620, ac.currentTime); ch.f.Q.value = .9;   // l'ambiance (2/11 : plus loin qu'au premier essai, 1 100 Hz / salle .5) : le filtre bien fermé, la grande salle, et un souffle lent dans le filtre
-      try { const l = ac.createOscillator(), lg = ac.createGain(); l.type = 'sine'; l.frequency.value = .07; lg.gain.value = 150; l.connect(lg); lg.connect(ch.f.frequency); l.start(); ch.lfo = { o: l, g: lg }; } catch (e) {}
+      ch = chaine(ac, sortie, .5); ch.f.frequency.setValueAtTime(2400, ac.currentTime); ch.f.Q.value = .7; if (ch.hp) ch.hp.frequency.setValueAtTime(220, ac.currentTime);   // (2/11 soir, Léo : « mieux mixer la musique dans le ciel : on n'entend pas assez la musique, mais il faut qu'on entende le ciel, que les deux ne se brouillent pas ») MESURÉ au jeu : le filtre à 620 Hz et la salle à .8 enfermaient la musique entre 300 et 1 500 Hz, EXACTEMENT là où le vent a ses médiums ; elle joue maintenant de 220 Hz (les graves restent au vent) à 2 400 Hz (la présence, où le vent n'a presque rien : −18 dB), avec moitié moins de salle   // l'ambiance (2/11 : plus loin qu'au premier essai, 1 100 Hz / salle .5) : le filtre bien fermé, la grande salle, et un souffle lent dans le filtre
+      try { const l = ac.createOscillator(), lg = ac.createGain(); l.type = 'sine'; l.frequency.value = .07; lg.gain.value = 400; l.connect(lg); lg.connect(ch.f.frequency); l.start(); ch.lfo = { o: l, g: lg }; } catch (e) {}
       if (ch.bus) { ch.bus.brut(!!opt.brut); ch.bus.piste('lobby:' + E.id); ch.bus.course(false); }
       const tl = (opt.tiers && opt.tiers[E.id]) || opt.tier || 0;   // le palier du lobby : celui du morceau (table du jeu), sinon le palier commun
       /* (2026-11-02, Léo : « attention que les musiques ne soient pas buggées en mode ça commence direct avec plein d'instruments ») LE LOBBY ENTRE DOUCEMENT : il démarre au palier 1 (un morceau du générateur démarré DIRECTEMENT au palier 3 joue déjà tout : −13 dB, tous les instruments),
@@ -210,6 +212,8 @@
     opt = opt || {}; const ch = PB.ch, ac = PB.ac, E = PB.E; if (!ch || !ac || !E) return null;
     const t = ac.currentTime, T = PB.doux ? 3.2 : .5;   // (2/11) départ adouci : 3,2 s   // (2/11, Léo : « quand on appuie, boum, ça démarre comme la musique ») : le filtre claque ouvert en 0,5 s, la salle se coupe en un souffle, et un vrai coup l'accompagne
     try { ch.f.frequency.cancelScheduledValues(t); ch.f.frequency.setValueAtTime(Math.max(300, ch.f.frequency.value), t); ch.f.frequency.exponentialRampToValueAtTime(18000, t + T); } catch (e) {}
+    if (ch.hp) t9(ch.hp.frequency, 10, t, .25);
+    if (ch.nt) t9(ch.nt.gain, 0, t, .25);   // le passe-haut s'ouvre avec le filtre : les graves reviennent, « ça démarre comme la musique »
     if (ch.lfo) { try { ch.lfo.g.gain.setTargetAtTime(0, t, .1); ch.lfo.o.stop(t + 1); } catch (e) {} ch.lfo = null; }
     if (ch.wet) { t9(ch.wet.gain, 0, t, .12); setTimeout(() => { try { ch.conv.disconnect(); ch.wet.disconnect(); } catch (e) {} }, 3500); }
     if (opt.boum > 0) { try {   // le coup du JOUER : un grave qui tombe, un souffle filtré qui s'ouvre ; il suit le curseur EFFETS (opt.boum)

@@ -9278,7 +9278,7 @@ html[data-reduced-motion="1"] :is(.m5Halo,#mDead.m5 .m5Scene .hMotCv,.m5Ombre,#m
 <script src="figures.js?v=10"></script>
 <script src="creatures/vitrail.js?v=1"></script><script>if(/[?&]singes(jade)?=1\b/.test(location.search))document.write('<script src="creatures/singe.js?v=2"><\/script>');</script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html — (2026-10-22) le singe n'est chargé que sur `?singes=1` : les singes sont éteints par défaut (voir JSG_ON) -->
 <script src="assets/audio/musique-bus.js?v=7"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
-<script src="assets/audio/pouce-bleu-jeu.js?v=8"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
+<script src="assets/audio/pouce-bleu-jeu.js?v=9"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
      si l'un manque, le jeu retombe proprement sur renderer.render() (garde CAN_POST). -->
 <!-- ORDRE IMPORTANT : EffectComposer.js définit THREE.Pass, dont héritent Shader/Render/UnrealBloomPass — il doit venir AVANT elles. -->
@@ -56494,6 +56494,8 @@ window.dbgMusWa=function(k){ // console : l'état · dbgMusWa('raz') efface la c
    ciel, un bruit de chute libre doux ») LE LOBBY SE TAIT AU CIEL : `MUS_TAIT` (posé par musicTick en mode menu : le ciel de LA CHUTE ou
    la boutique) — la musique s'efface en fondu puis se met en PAUSE (elle garde sa place), et RIEN ne la relance tant qu'il vaut vrai
    (ni le toucher, ni le retour d'arrière-plan : musicJoue l'ignore en mode menu). Le garage la rallume : elle repart de zéro en fondu. */
+/* (2/11 soir) MUS_CIEL_LOBBY : le niveau du lobby lié au ciel, 30 % de celui du garage (−10,5 dB ; avant : MUS_CIEL .15, −16 dB). MESURÉ au jeu : au ciel les morceaux clairsemés sortaient 9 dB SOUS le vent (inaudibles), les pleins 9 dB au-dessus ; le nivellement (pbjPlancher, jusqu'à 24 dB pour le lobby) les amène tous au même niveau final, ~4 dB au-dessus du vent. */
+const MUS_CIEL_LOBBY=.27;
 let MUS_TAIT=false;const MUS_CIEL=.15; // au ciel, la musique à 15 % de celle du garage (−16 dB), derrière le vent — (même soir, Léo : « vraiment très légère, comme si on l'entendait en tombant ») : .4 → .15, et elle RESPIRE avec le vent (voir musicTick)
 const MUSIC_PASSIF={passive:true,capture:true};
 function musicElGet(){
@@ -57052,6 +57054,7 @@ function lvlTick(dt,S){
 }
 /* <<<FIN FOND>>> ========================================================== */
 function musicTick(dt,mvt){
+  if(PBJ_PL.max!==11&&!lobbyActif())PBJ_PL.max=11; // le nivellement de la course reste à +11 dB (le lobby le relève pendant qu'il joue)
   try{leconAmbiance(dt);}catch(e){} // (2026-11-02) la leçon : pas de musique, l'ambiance de la boutique
   if(MUSREP.att&&!paused){MUSREP.att=false;if(SND.music&&started&&running&&!gameOver)try{musicStartRun(false,true);}catch(e){}} // (2026-10-15) MUSIQUE rallumée pendant la pause : la course reprend, son morceau aussi
   try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
@@ -57121,13 +57124,13 @@ function musicTick(dt,mvt){
       (chuteDoux exige SND.sfx), et la musique restait à −16/−22 dB « derrière » ce vent absent — un ciel presque muet. Sans vent, plus de
       MUS_CIEL : le niveau du garage. */
    const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,cielV9=ciel9&&VOL_LOCKED&&!musWaTient(),tait9=bq9||cielV9;MUS_TAIT=tait9;
-   {const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78,fc9=ciel9&&SND.sfx&&!(MUSAP.t>performance.now())?MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6):1; /* fc9 : le niveau où ce lieu joue d'habitude (le ciel derrière le vent, ou le garage) */
+   {const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78,fc9=ciel9&&SND.sfx&&!(MUSAP.t>performance.now())?(lobbyActif()?MUS_CIEL_LOBBY*Math.max(.6,1-(h9-.78)*1.2):MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6)):1; /* fc9 : le niveau où ce lieu joue d'habitude (le ciel derrière le vent, ou le garage) */
      if(INTROSON.on&&musicMode==='menu')musicVolCible*=INTROSON.m0+(fc9-INTROSON.m0)*ventIntro(); /* (2026-11-02, l'intro) la musique part DOUCE (m0, quel que soit le lieu qui se prépare dessous : plus de départ « très fort ») et rejoint le niveau du lieu en même temps que le vent monte */
      else musicVolCible*=fc9;} // la rafale la couvre, l'accalmie la ramène : on l'entend de loin, en tombant — (2026-10-14, session SON) sauf pendant l'extrait du curseur MUSIQUE : 1,4 s au niveau du garage, le vrai volume réglé
    if(window.POUCE_JEU&&POUCE_JEU.phase==='lobby'&&(!SND.music||musicMode!=='menu')){try{POUCE_JEU.fin(false);}catch(e){}} // la musique coupée (ou plus au menu) : le morceau du lobby s'éteint
    if(lobbyActif()&&musicMode==='menu'){ /* (2026-11-02) LE LOBBY LIÉ : son niveau suit le mixage du menu (ciel derrière le vent, garage, intro, boutique), ramené à l'échelle de la course (au garage : le niveau du départ d'une course à l'arrêt) ; l'élément <audio> reste muet */
      const m9=musVol()*.5,r9=m9>1e-4?Math.min(2.5,musicVolCible/m9):0,b9=tait9?0:VOL.mus/.62*PBJ_NIV*.62*r9;
-     try{POUCE_JEU.niveau(b9*pbjPlancher(dt,b9,POUCE_JEU.tier0||pbjTier(1)));}catch(e){}
+     try{PBJ_PL.max=24;POUCE_JEU.niveau(b9*pbjPlancher(dt,VOL.mus*PBJ_NIV,POUCE_JEU.tier0||pbjTier(1)));}catch(e){} /* (2/11 soir) le nivellement vise le niveau du GARAGE (base constante) et le lieu l'abaisse : au ciel, −10,5 dB de plus (MUS_CIEL_LOBBY) ; jusqu'à +24 dB (+11 en course) : un morceau clairsemé est enfin audible */
      musicVolCible=0;}
    if(musicMode==='menu'&&!tait9&&musicEl&&musicEl.src&&!musicTick._pz&&!lobbyActif()){const u9=musicMenuUrl(); // LA MUSIQUE DU LIEU (ciel ↔ garage)
      if(u9&&musicEl.src!==MENU_MUS.abs(u9)){musicVolCible=0;                       // on a changé de lieu : la musique d'avant s'efface…
