@@ -148,7 +148,7 @@ html.bqIndus body #garage #gAct>#gBqBtn[data-e="sec"],html:not(.c6):not(.ux8g).b
    la photo au plus 110 % de large et 148 % de haut (la caisse = 83 % × 59 % de la photo : ~90 % de la case), descendue de 10 % (le milieu de
    la caisse est à 40 % de la hauteur de la photo). L'étiquette SECRÈTE lui couvrait le toit : retirée ici, la carte dit déjà
    « MISSION SECRÈTE » en magenta juste dessous. */
-#gBqPan .bqK.m2sec .bqKph img{width:auto;height:auto;min-width:0;max-width:110%;max-height:148%;transform:translateY(10%)}
+#gBqPan .bqK.m2sec .bqKph img{width:100%;height:100%;min-width:0;max-width:100%;max-height:100%;transform:none} /* (2026-11-03) la silhouette secrète entière dans sa case, comme les autres photos */
 #gBqPan .bqK.m2sec .bqKr{display:none}
 html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-left:4px;padding-right:4px} /* debout, « MISSION SECRÈTE » (117 px de texte) était coupé dans une carte de 112 px : il passe sur deux lignes ; couché (128 px) il tient sur une, à 4 px des bords */
 /* LA RÉVÉLATION D'UNE SECRÈTE (étape 4, #m2Rev) : la nuit, les rayons à la couleur de la rareté, la silhouette qui se remplit de couleur
