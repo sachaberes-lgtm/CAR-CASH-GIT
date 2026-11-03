@@ -26993,6 +26993,7 @@ function* jadePont(root,i0,jr,M9,pose,ARB){ // (LE PRÉ-BÂTI) un générateur (
    de distance (jadeBande) ; chaque famille dessine les bandes qui sont les siennes. Les tampons ne repartent que si la liste a changé. ---- */
 const JT={fr:new THREE.Frustum(),pv:new THREE.Matrix4(),vis:null,ms:0,n:0,up:0,fam:0};
 /* (v8) LES MONTAGNES PROCHES (≤ FIN.D, +25 m pour en sortir) passent aux cubes minuscules — rend une signature (le tri ne recopie que si elle change) */
+function jtCroiss(a,b){return a-b;}
 function finProches(cp){
   if(!FIN.on||!JADE.col||!FIN.stamp)return 7;FIN.veut.clear();
   const C=JADE.col,P=C.P,D=FIN.D,r=Math.ceil((D+110)/C.CG),bx=Math.floor(cp.x/C.CG),bz=Math.floor(cp.z/C.CG),gen=++FIN.gen,o=FIN.near,par=FIN.par||(FIN.par=[]);
@@ -27002,7 +27003,7 @@ function finProches(cp){
       const dh=Math.max(0,Math.hypot(q[0]-cp.x,q[1]-cp.z)-q[2]),dv=cp.y<q[3]?q[3]-cp.y:cp.y>q[4]?cp.y-q[4]:0;
       if(Math.hypot(dh,dv)<(FIN.was[k]?D+25:D))o.push(k);}}
   for(const k of FIN.dans)FIN.was[k]=0;FIN.dans.clear();
-  o.sort(function(a,b){return a-b;});const n9=new Map();let sg=7;
+  o.sort(jtCroiss);const n9=FIN.n9||(FIN.n9=new Map());n9.clear();let sg=7; /* (2026-11-03) le compte par gabarit et le tri : réutilisés, rien d'alloué par image */
   for(const k of o){const t=P[k][5],c=n9.get(t)||0;if(c>=FIN.fam[t].cap)continue;n9.set(t,c+1);FIN.dans.add(k);FIN.was[k]=1;sg=(Math.imul(sg,31)+k+1)|0;}
   return sg;}
 function finFamille(t){const T9=JADE.geos.p[t],cap=FIN.cap&&FIN.cap[t];if(!T9||!T9.fin||!cap||!JADE.root||FIN.fam[t])return; // la famille fine d'un gabarit (quand il est prêt)
