@@ -164,7 +164,7 @@ function cryptoTaureau(root,t){
   {const m9=new THREE.Matrix4(),yM=new THREE.Mesh(crFusion(F.yeux.map(function(e){return [CRYPTO_G.oeil,m9.makeScale(8,8,8).setPosition(e[0],e[1],e[2]).clone()];})),M.oeil);g.add(yM);CRYPTO.jeter.push(yM);} /* (2026-11-03) les deux yeux en une géométrie : un appel de dessin au lieu de deux (elle part avec la ville : cryptoVide) */
   for(const e of F.yeux){
     const L9=new THREE.Group();L9.position.fromArray(e);g.add(L9);
-    const b=new THREE.Mesh(CRYPTO_G.laser,M.laser);b.scale.set(5,5,1700);L9.add(b);const b2=new THREE.Mesh(CRYPTO_G.laser,M.laserC);b2.scale.set(1.3,1.3,1700);L9.add(b2); /* (2026-11-03, passe maps cohérentes) le rayon le long de +z (CRYPTO_G.laser) : à (5,1700,5) c'était une LAME de 3,4 km de haut et 10 m de large — un trait rouge vertical dans le ciel, pas un laser */
+    const b=new THREE.Mesh(CRYPTO_G.laser,M.laser);b.scale.set(2.6,2.6,1700);L9.add(b);const b2=new THREE.Mesh(CRYPTO_G.laser,M.laserC);b2.scale.set(.8,.8,1700);L9.add(b2); /* (2026-11-03, passe maps cohérentes) le rayon le long de +z (CRYPTO_G.laser) : à (5,1700,5) c'était une LAME de 3,4 km de haut et 10 m de large — un trait rouge vertical dans le ciel, pas un laser ; vu au banc, à 5 m de rayon et 11-25° il barrait la route d'une planche rouge : 2,6 m, 22-36° — il balaie le CIEL */
     b.frustumCulled=b2.frustumCulled=false;lasers.push(L9);}
   root.add(g);g.updateMatrixWorld(true);
   return {k:TAUREAU_K,g:g,x:t.x,y:t.y,z:t.z,co:Math.cos(t.cap),si:Math.sin(t.cap),F:F,pl:(t.pied-t.y)/TAUREAU_K,lasers:lasers,ph:t.ph,s:t.s};
@@ -340,7 +340,7 @@ function cryptoTick(dt,sim){
   if(CRYPTO.mat.tick)CRYPTO.mat.tick.offset.x=(t*.045)%1;
   crhTick(t,true);
   // les yeux laser balaient le ciel ; le ruban du taureau le plus proche se pose à la hauteur de la route
-  let bd=1e18;for(const b of CRYPTO.taureaux){for(let i=0;i<2;i++){const L9=b.lasers[i];L9.rotation.set(-.32-.12*Math.sin(t*.37+b.ph),.22*Math.sin(t*.5+b.ph+i*.4)+(i?-.06:.06),0);}
+  let bd=1e18;for(const b of CRYPTO.taureaux){for(let i=0;i<2;i++){const L9=b.lasers[i];L9.rotation.set(-.5-.12*Math.sin(t*.37+b.ph),.22*Math.sin(t*.5+b.ph+i*.4)+(i?-.06:.06),0);}
     const dd=(b.x-cam.x)*(b.x-cam.x)+(b.z-cam.z)*(b.z-cam.z);if(dd<bd){bd=dd;CRYPTO.mat.taureau.userData.uBand.value=b.y+78*b.k;}}
   // fusées, feux, ATH
   for(const f of CRYPTO.fus)if(f.on&&d>0)cryptoFuseeTick(f,d);
