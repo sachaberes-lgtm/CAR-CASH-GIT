@@ -59596,7 +59596,8 @@ if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferen
     /* ===== LE MIROIR ILLISIBLE NE SE SÈME PAS (24/10, débogage sortie iOS : « aucune progression perdue ») ===== semé tel quel, il rechargeait la page sur un localStorage
        tout aussi illisible, qui relisait le miroir, rechargeait… à l'infini : appli inutilisable. Illisible = vide (le flush qui suit écrit une sauvegarde saine) */
     const mv9=!!(r&&r.value&&(function(){try{const x9=JSON.parse(r.value);return !!x9&&typeof x9==='object';}catch(e){return false;}})());
-    if(mv9&&l9&&(+(l9.ex&&l9.ex.runs)||0)>0){SAVE.natif=0;raz9();SAVE.flush();} /* le local a de vraies parties (jouées après l'échec de lecture) : on le garde, il rattrape le miroir */
+    const lr9=l9?(+(l9.ex&&l9.ex.runs)||0):0,mr9=mv9?(function(){try{return +((JSON.parse(r.value).ex||{}).runs)||0;}catch(e){return 0;}})():0;
+    if(mv9&&lr9>0&&lr9>=mr9){SAVE.natif=0;raz9();SAVE.flush();} /* le local a de vraies parties (jouées après l'échec de lecture) ET au moins autant que le miroir : on le garde, il rattrape le miroir. (2026-11-03, relecture de l'audit) Un miroir PLUS RICHE (100 parties contre 1 jouée depuis l'échec) l'emporte : avant, le local pauvre l'écrasait */
     else if(mv9){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
       if(ok){raz9();location.reload();}else SAVE.natif=1;}
     else{SAVE.natif=0;raz9();SAVE.flush();}
