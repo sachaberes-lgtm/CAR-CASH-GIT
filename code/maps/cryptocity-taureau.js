@@ -163,7 +163,7 @@ function cryptoTaureau(root,t){
   const yeux=[],lasers=[];
   for(const e of F.yeux){const o=new THREE.Mesh(CRYPTO_G.oeil,M.oeil);o.position.fromArray(e);o.scale.setScalar(8);g.add(o);yeux.push(o);
     const L9=new THREE.Group();L9.position.copy(o.position);g.add(L9);
-    const b=new THREE.Mesh(CRYPTO_G.laser,M.laser);b.scale.set(5,1700,5);L9.add(b);const b2=new THREE.Mesh(CRYPTO_G.laser,M.laserC);b2.scale.set(1.3,1700,1.3);L9.add(b2);
+    const b=new THREE.Mesh(CRYPTO_G.laser,M.laser);b.scale.set(5,5,1700);L9.add(b);const b2=new THREE.Mesh(CRYPTO_G.laser,M.laserC);b2.scale.set(1.3,1.3,1700);L9.add(b2); /* (2026-11-03, passe maps cohérentes) le rayon le long de +z (CRYPTO_G.laser) : à (5,1700,5) c'était une LAME de 3,4 km de haut et 10 m de large — un trait rouge vertical dans le ciel, pas un laser */
     b.frustumCulled=b2.frustumCulled=false;lasers.push(L9);}
   root.add(g);g.updateMatrixWorld(true);
   return {k:TAUREAU_K,g:g,x:t.x,y:t.y,z:t.z,co:Math.cos(t.cap),si:Math.sin(t.cap),F:F,pl:(t.pied-t.y)/TAUREAU_K,lasers:lasers,ph:t.ph,s:t.s};
@@ -176,6 +176,11 @@ function cryptoHeurt(p){ // la caisse est-elle DANS un taureau ? (comme villeHeu
 }
 /* ---- LES GÉOMÉTRIES PARTAGÉES (une fois) ---- */
 const CRYPTO_G={};
+function crFusion(L){ /* [géométrie, matrice]… → UNE géométrie non indexée (position, normale, uv) — les normales suivent la matrice (applyMatrix4) */
+  let n=0;const parts=L.map(function(e){const g=e[0].index?e[0].toNonIndexed():e[0].clone();g.applyMatrix4(e[1]);n+=g.attributes.position.count;return g;});
+  const P=new Float32Array(n*3),N=new Float32Array(n*3),U=new Float32Array(n*2);let o=0;
+  for(const g of parts){P.set(g.attributes.position.array,o*3);N.set(g.attributes.normal.array,o*3);U.set(g.attributes.uv.array,o*2);o+=g.attributes.position.count;g.dispose();}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(N,3));g.setAttribute('uv',new THREE.BufferAttribute(U,2));g.computeBoundingSphere();return g;}
 function cryptoGeos(){
   if(CRYPTO_G.cube)return CRYPTO_G;
   CRYPTO_G.cube=new THREE.BoxGeometry(1,1,1);
@@ -186,6 +191,15 @@ function cryptoGeos(){
   {const g=new THREE.OctahedronGeometry(1,0);g.scale(1,1.45,1);CRYPTO_G.diam=g;}
   {const g=new THREE.SphereGeometry(1,24,14);g.scale(16,16,60);CRYPTO_G.ballon=g;}
   CRYPTO_G.plan=new THREE.PlaneGeometry(1,1);
+  /* (2026-11-03, passe maps cohérentes) LES PIÈCES D'UN MÊME OBJET, D'UNE MÊME MATIÈRE, EN UNE GÉOMÉTRIE : le dirigeable posait 8 maillages (ballon, 4 ailerons, nacelle,
+     2 écrans), la fusée 5 (corps, coiffe, 3 ailerons) — un appel de dessin chacun. Même forme au millimètre : ailerons + nacelle (l'or) et les deux écrans du cours
+     fusionnés (dirigeable : 8 → 3 appels), coiffe + ailerons (le rouge) fusionnés (fusée : 5 → 2). */
+  {const m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),v=new THREE.Vector3(),sc=new THREE.Vector3(),P=function(g,x,y,z,ry,sx,sy,sz){e.set(0,ry,0);q.setFromEuler(e);return [g,m4.compose(v.set(x,y,z),q,sc.set(sx,sy,sz)).clone()];};
+   const L=[];for(const a of [0,1,2,3]){const s9=a<2?(a?1:-1):0,u9=a>=2?(a===2?1:-1):0;L.push(P(CRYPTO_G.cube,s9*12,u9*12,-52,0,s9?16:1.6,u9?16:1.6,18));} /* les ailerons d'or */
+   L.push(P(CRYPTO_G.cube,0,-17,6,0,8,5,22));CRYPTO_G.dirOr=crFusion(L); /* + la nacelle */
+   CRYPTO_G.dirEcr=crFusion([-1,1].map(function(s){return P(CRYPTO_G.plan,s*16.4,1,2,s*Math.PI/2,56,9,1);})); /* les deux écrans du cours */
+   const F=[P(new THREE.ConeGeometry(1,1,12),0,12,0,0,2.2,7,2.2)];for(let a=0;a<3;a++){const r=a/3*6.283;F.push(P(CRYPTO_G.cube,Math.cos(r)*2.6,-7,Math.sin(r)*2.6,-r,3.4,6,.5));}
+   CRYPTO_G.fuseeR=crFusion(F);} /* la coiffe et les trois ailerons rouges de la fusée */
   {const g=new THREE.CylinderGeometry(1,1,1,12);CRYPTO_G.cyl=g;const c=new THREE.ConeGeometry(1,1,12);CRYPTO_G.cone=c;}
   for(const k in CRYPTO_G)CRYPTO_G[k].dispose=function(){};
   return CRYPTO_G;
@@ -222,9 +236,8 @@ function cryptoBatit(root){
   if(S.dirig.length){cryptoTickerTex();
     for(const d of S.dirig){const g=new THREE.Group();g.position.set(d.x,d.y,d.z);g.rotation.y=d.cap;
       g.add(new THREE.Mesh(G.ballon,M.ballon));
-      for(const a of [0,1,2,3]){const f=new THREE.Mesh(G.cube,M.or);const s9=a<2?(a?1:-1):0,u9=a>=2?(a===2?1:-1):0;f.position.set(s9*12,u9*12,-52);f.scale.set(s9?16:1.6,u9?16:1.6,18);g.add(f);} // les ailerons d'or
-      const go=new THREE.Mesh(G.cube,M.or);go.position.set(0,-17,6);go.scale.set(8,5,22);g.add(go); // la nacelle
-      for(const s of [-1,1]){const e=new THREE.Mesh(G.plan,CRYPTO.mat.ecran);e.position.set(s*16.4,1,2);e.rotation.y=s*Math.PI/2;e.scale.set(56,9,1);g.add(e);} // les écrans du cours
+      g.add(new THREE.Mesh(G.dirOr,M.or)); /* les ailerons d'or et la nacelle (une géométrie, voir cryptoGeos) */
+      g.add(new THREE.Mesh(G.dirEcr,CRYPTO.mat.ecran)); /* les deux écrans du cours */
       root.add(g);CRYPTO.dirig.push({g:g,y:d.y,ph:d.ph});}}
   CRYPTO.ath.t=22;CRYPTO.fusT=3;CRYPTO.feuT=2;
   crhBatit(); /* (2026-10-21) l'horizon du bull run et les projecteurs de la nuit : voir cryptocity-embellie */
@@ -249,8 +262,7 @@ function cryptoInit(){
   // LES FUSÉES « TO THE MOON » : le corps blanc, la coiffe et les ailerons rouges, la flamme, et un sillage de fumée (ruban de 56 points)
   for(let k=0;k<3;k++){const g=new THREE.Group();
     const b=new THREE.Mesh(G.cyl,M.fusee);b.scale.set(2.2,17,2.2);g.add(b);
-    const n=new THREE.Mesh(G.cone,M.fuseeR);n.scale.set(2.2,7,2.2);n.position.y=12;g.add(n);
-    for(let a=0;a<3;a++){const f=new THREE.Mesh(G.cube,M.fuseeR);const r=a/3*6.283;f.position.set(Math.cos(r)*2.6,-7,Math.sin(r)*2.6);f.rotation.y=-r;f.scale.set(3.4,6,.5);g.add(f);}
+    g.add(new THREE.Mesh(G.fuseeR,M.fuseeR)); /* la coiffe et les trois ailerons rouges (une géométrie, voir cryptoGeos) */
     const fl=new THREE.Sprite(M.flamme);fl.position.y=-12;fl.scale.set(9,16,1);g.add(fl);
     g.scale.setScalar(1.5);g.visible=false;scene.add(g);
     const NT=56,pos=new Float32Array(NT*2*3),al=new Float32Array(NT*2),sd9=new Float32Array(NT*2),idx=[];for(let i=0;i<NT*2;i++)sd9[i]=i%2;for(let i=0;i<NT-1;i++){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}
