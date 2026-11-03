@@ -185,6 +185,8 @@ html body #mob #mDead.m5 #mObj>.obFt{padding-top:9px;box-shadow:inset 0 1px 0 rg
   html body #mob #mDead.m5 .m6Mot>.m6Pied{grid-area:pied;margin-top:12px;flex-direction:column;align-items:flex-start;gap:8px}
   html body #mob #mDead.m5 .m6Mot>.m6Jauge{grid-area:jauge;margin-top:9px}
   html body #mob #mDead.m5 .m6Mot>.m6Scene{grid-area:scene;margin:6px -4px -4px 0}
+  /* debout la scène a toute la hauteur de la carte : la pièce y prend sa vraie place (elle flottait, petite, au milieu du vide) */
+  html body #mob #mDead.m5 .m6Mot>.m6Scene .hMotCv{width:142%;height:142%}
   html body #mob #mDead.m5 .m6Aura{display:grid;column-gap:14px;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);grid-template-rows:auto minmax(0,1fr);
     grid-template-areas:"tete tete" "big graphe"}
   html body #mob #mDead.m5 .m6Aura>.m6Tete{grid-area:tete}
