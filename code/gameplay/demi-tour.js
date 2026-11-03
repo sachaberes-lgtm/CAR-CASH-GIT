@@ -66,7 +66,13 @@ function dmtRattrape(net){const D=DMT,mx=D.mx,q=net?THREE.MathUtils.clamp(1-(D.t
   D.act=false;D.gl=false;D.y=0;D.yV=0;D.burn=true;D.ok++;dmtGivre(false);
   try{if(SONV2)sfx('turbo.mini',{vol:q>.5?-2:-5});}catch(e){}hap(q>.5?[10,24,40]:[10,24]);fovPunch=Math.max(fovPunch,4+4*q);
   if(typeof sensCoup==='function')try{sensCoup(0,1.2+q,-.8);}catch(e){}
-  if(net){flowAdd(4+8*q,'style');nitroGain(.08+.22*q,'rattrape');sparkBurst(sparkGold,carGroup.position,6+Math.round(10*q),8);}
+  /* (2026-11-03, Sacha : « il faut que ce demi-tour donuts donne un gros, une sorte de petit boost de vitesse, mais qui soit assez
+     kiffant et qui fasse des flammes sur la route, les mêmes textures que pour le nitro ») LE BOOST DU RATTRAPAGE : un vrai coup de
+     reins (jusqu'à mx*,9 au rattrapage pile), pas juste la glisse qu'on garde — et `nitroAllume` rejoue EXACTEMENT le coup du nitro
+     (le feu de pixels aux pots, qui traîne au sol derrière la caisse, l'onde, le flash d'écran, la secousse) : zéro code de flamme en
+     plus, le même qu'en tenant NITRO. */
+  if(net){vA=Math.max(vA,mx*(.55+.35*q));flowAdd(4+8*q,'style');nitroGain(.08+.22*q,'rattrape');sparkBurst(sparkGold,carGroup.position,6+Math.round(10*q),8);
+    try{nitroAllume(false,false);}catch(e){}}
   dmtSigne(net?'ok':false);
 }
 function dmtVmax(){return CARS[0].maxKmh/3.6*lateMul()*(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push;} // le maxSp de la boucle (local à loop)
@@ -105,7 +111,8 @@ function dmtConduite(dt,frein){const D=DMT; // (boucle de conduite, après le la
   const x=D.t/D.tS,u=x<1?0:Math.min(1,(D.t-D.tS)/(D.D-D.tS));
   if(x<1)vA=-D.vb*Math.pow(1-x,1.5); // la GLISSE en arrière, que les pneus mangent
   else{vA=D.vo*u*u; // le BURN-OUT : ça patine d'abord, puis ça mord
-    if(!D.burn){D.burn=true;try{if(SONV2)sfx('turbo.mini',{vol:-5});}catch(e){}hap([10,24]);fovPunch=Math.max(fovPunch,5);if(typeof sensCoup==='function')sensCoup(0,1.6,-.8);}}
+    if(!D.burn){D.burn=true;try{if(SONV2)sfx('turbo.mini',{vol:-5});}catch(e){}hap([10,24]);fovPunch=Math.max(fovPunch,5);if(typeof sensCoup==='function')sensCoup(0,1.6,-.8);
+      D.vo=Math.max(D.vo,dmtVmax()*.72);nitroGain(.18,'rattrape');try{nitroAllume(false,false);}catch(e){}}} // (2026-11-03, Sacha) le même boost et les mêmes flammes de nitro qu'au RATTRAPAGE du verglas
   if(vA<0&&s<6)vA=0;
   D.vl*=Math.exp(-dt*3.5);lat+=D.vl*dt*SPD; // un reste de dérive latérale, qui meurt vite
   const lim=ROAD_HALF-(CARS[level].w||2)*.5-.35;if(Math.abs(lat)>lim)lat+=(Math.sign(lat)*lim-lat)*(1-Math.exp(-dt*7)); // ramenée sur le bitume

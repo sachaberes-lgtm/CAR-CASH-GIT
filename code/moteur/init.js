@@ -351,6 +351,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
 // PAUSE commune : clavier P, bouton tactile ⏸ et pause auto passent tous par ici (gère aussi le son)
 function busPlein(){busPlein.n=(busPlein.n|0)+1;clearTimeout(togglePause._t); /* (2026-10-16) compté : LE CLIC DANS LA PAUSE (pauseSon) sait que la partie a repris la sortie */if(AC&&BUSOUT){const t9=AC.currentTime;BUSOUT.gain.cancelScheduledValues(t9);BUSOUT.gain.setValueAtTime(1,t9);}} // (2026-09-28) la sortie commune à plein (voir le fondu de la pause)
 function togglePause(){ if(!started||gameOver)return;
+  if(mode==='boom'&&!paused)return; // (audit p12) PAS de pause pendant l'EXPLOSION (touche P au clavier) : elle figeait la boule de feu, coupait le son de mort et faisait refuser boomSkip — comme tous les chemins tactiles (visibilitychange, ⏸, P via __panBascule) ; la REPRISE (paused vrai) reste toujours possible
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
   if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
   /* (2026-09-28) LES BOUCLES SE TAISENT AVEC LA PAUSE. Suspendre le contexte FIGE les sons continus à leur gain du moment : dès que

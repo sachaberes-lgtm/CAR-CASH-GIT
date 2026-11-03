@@ -89,6 +89,7 @@ function ccConstr(etape,ms){try{document.dispatchEvent(new CustomEvent('cc:const
 function newTrack(){
   const t0NT=performance.now();ccConstr('debut');try{newTrack0();}finally{ccConstr('fin',Math.round(performance.now()-t0NT));}}
 function newTrack0(){
+  PORTV.paye=0; // (audit p8) une piste neuve est bâtie : son portail paiera de nouveau
   const leger9=PREB.ntLeger;PREB.ntLeger=false; // (LE DÉPART D'AVANCE) la piste que resetGame rebâtit dans la même image : jamais dessinée, seul son ciel compte (voir sous9)
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) portail / nouvelle piste : la tension du vol repart de zéro
   PADCH.sL=0; /* (LE TRAIN DE BOOSTS) il traverse le portail — mais les pads de la nouvelle piste comptent dès son début */

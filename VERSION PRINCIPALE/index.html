@@ -6062,6 +6062,8 @@ html:not([lang=fr]) #gBqTete .bqLim::before,html:not([lang=fr]) #gBqNom .bqLim::
 #gBqPan .bqK .bqKp.pc{color:#14171c}
 /* LA BOUTIQUE EN GRILLE (debout comme couché) : trois de large, elle défile vers le bas */
 #gBqPan.grille .bqRail{flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;min-height:0;flex:1;align-content:flex-start;scroll-snap-type:y proximity}
+/* (2026-11-03, Sacha : « les voitures coupent ») la dernière rangée visible était rognée net par le bas de la liste (une photo sans nom ni prix) : le bas s'estompe sur 22 px — on lit que la liste continue — et la liste garde 22 px de marge en fin de défilement pour que la dernière carte reste nette */
+#gBqPan.grille .bqRail{padding-bottom:22px;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 22px),transparent)}
 #gBqPan.grille .bqK,#gBqPan.grille .bqK.off{width:calc((100% - 20px) / 3)}
 #gBqPan.grille .bqK .bqKph,#gBqPan.grille .bqK.off .bqKph{height:66px}
 #gBqPan.grille.cote .bqK .bqKph,#gBqPan.grille.cote .bqK.off .bqKph{height:50px}
@@ -6130,7 +6132,8 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi
 #gBqPan .bqK .bqKr{display:none}
 #gBqPan .bqK::after{content:'';position:absolute;left:0;right:0;bottom:0;height:36%;max-height:46px;background:var(--rc);opacity:.55;pointer-events:none;-webkit-mask-image:linear-gradient(to top,#000,rgba(0,0,0,.35) 55%,transparent);mask-image:linear-gradient(to top,#000,rgba(0,0,0,.35) 55%,transparent)}
 #gBqPan .bqK .bqKph{height:60px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(180deg,#f8f9fb,#eceff3)}
-#gBqPan .bqK .bqKph img{width:118%;max-width:none}
+/* (2026-11-03, Sacha : « les photos sont buggées, grosses, les voitures coupent ») la photo (720×440, la caisse déjà cadrée à ~93 % de sa largeur) s'affichait à 118 % dans une case qui rogne (overflow:hidden) : toutes les voitures perdaient le nez et la queue. Désormais ENTIÈRE : elle remplit la case sans jamais déborder (contain). */
+#gBqPan .bqK .bqKph img{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain}
 #gBqPan .bqK .bqKn{padding:7px 7px 0;font-size:8px;color:#14171c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #gBqPan .bqK .bqKp{display:flex;align-items:center;gap:5px;padding:6px 7px 9px;font-size:8px;color:#14171c}
 #gBqPan .bqK .bqKp .pxi{--pxs:1;color:#14171c}
@@ -7900,7 +7903,7 @@ html.bqIndus body #garage #gAct>#gBqBtn[data-e="sec"],html:not(.c6):not(.ux8g).b
    la photo au plus 110 % de large et 148 % de haut (la caisse = 83 % × 59 % de la photo : ~90 % de la case), descendue de 10 % (le milieu de
    la caisse est à 40 % de la hauteur de la photo). L'étiquette SECRÈTE lui couvrait le toit : retirée ici, la carte dit déjà
    « MISSION SECRÈTE » en magenta juste dessous. */
-#gBqPan .bqK.m2sec .bqKph img{width:auto;height:auto;min-width:0;max-width:110%;max-height:148%;transform:translateY(10%)}
+#gBqPan .bqK.m2sec .bqKph img{width:100%;height:100%;min-width:0;max-width:100%;max-height:100%;transform:none} /* (2026-11-03) la silhouette secrète entière dans sa case, comme les autres photos */
 #gBqPan .bqK.m2sec .bqKr{display:none}
 html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-left:4px;padding-right:4px} /* debout, « MISSION SECRÈTE » (117 px de texte) était coupé dans une carte de 112 px : il passe sur deux lignes ; couché (128 px) il tient sur une, à 4 px des bords */
 /* LA RÉVÉLATION D'UNE SECRÈTE (étape 4, #m2Rev) : la nuit, les rayons à la couleur de la rareté, la silhouette qui se remplit de couleur
@@ -8554,7 +8557,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   cursor:pointer;background:var(--laqueP);clip-path:var(--coupe7);box-shadow:inset 0 0 0 1px var(--fil);
   transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
 #plq .plMod canvas{display:block;width:100%;height:auto;aspect-ratio:4/1}
-#plq .plMod b{font-size:var(--f0);line-height:1;color:var(--tx3);white-space:nowrap}
+#plq .plMod b{font-size:var(--f0);line-height:1.15;color:var(--tx3);max-width:100%;text-align:center;text-wrap:balance;overflow-wrap:anywhere} /* (3/11, Sacha : « AFRIQUE DU SUD dépasse du bouton ») un nom long passe à la ligne au lieu de déborder de la tuile */
 #plq .plMod.on{box-shadow:inset 0 0 0 2px var(--neoC),inset 0 0 18px -6px var(--neoC)}
 #plq .plMod.on b{color:var(--neoC)}
 #plq .plMod:is(:active,.appui){transform:translateY(2px)}
@@ -8892,147 +8895,205 @@ body.touch #settings{-webkit-backdrop-filter:none;backdrop-filter:none;backgroun
 
 </style>
 <style id="mortFlottante">
-/* ===== L'ÉCRAN DE MORT FLOTTANT (2026-10-25, Sacha : « plus de fenêtres, un truc flottant, aérien, moderne ») =====
-   UNE couche, par-dessus toutes les autres, qui ne vise que #mDead.m5 (`?mort=ancien` retire la classe : l'écran d'avant revient).
-   · L'ARGENT : plus de plaque verte — le montant seul, gros, qui flotte dans sa lueur, et la ligne du compte dessous.
-   · LE MOTEUR : plus de carte ni de « MOTEUR ATTEINT » — la pièce 3D, plus grosse, flotte (elle monte et descend, son ombre respire),
-     et seul son PALIER est écrit.
-   · L'AURA : la seule fenêtre de l'écran, un graphe en trois bougies — la PARTIE (violet), ta MOYENNE (creuse) et ton RECORD (or),
-     avec l'aura de la partie en clair, en violet, et l'écart à la moyenne (▲ / ▼ %) ou RECORD !.
-   · À DROITE : les MISSIONS descendent sous PERDU (alignées sur l'argent) ; les quatre chiffres (multi, km/h, niveau, frénésie)
-     laissent la place à deux touches de verre, GARAGE et RÉGLAGES. */
+/* ===== L'ÉCRAN DE MORT v6 (2026-11-03, Sacha : « c'est calamiteux, recommence, fais un truc parfait […] reprends chaque élément,
+   améliore chaque élément ») — refait de zéro, UNE couche par-dessus toutes les autres, qui ne vise que #mDead.m5 (`?mort=ancien` = les
+   cartes d'avant). Le remplissage vit dans mFill (moteur/mobile-tactile.js, branche MORT_FLOT).
+   · DEUX FAMILLES, PAS UNE DE PLUS. Ce qu'on LIT est à plat : le PANNEAU du jeu (deux coins coupés, laque, filet, bande de couleur à
+     gauche). MOTEUR, AURA et MISSIONS sont trois panneaux de la MÊME anatomie : en-tête (icône + nom à la couleur de la bande, info à
+     droite), grande valeur, visuel, pied. Ce qu'on TOUCHE est penché : la touche `.pbtn` du jeu — ⌂, GARAGE, RÉGLAGES, NON MERCI en laque,
+     ×2 au vert de l'argent, REJOUER / CONTINUER en lingot. Plus de bulle de verre, plus de carte arrondie, plus rien qui flotte au hasard.
+   · UNE GRILLE. Couché (le téléphone de Sacha, 844 × 390) : à gauche le RÉSULTAT — titre, cause, argent, puis MOTEUR | AURA jusqu'au
+     bas ; à droite les MISSIONS en haut et les touches en bas, sous le pouce. Debout : une colonne, les touches en bas. Les bords tombent
+     sur les mêmes lignes (le bas des panneaux = le bas du lingot ; le haut des MISSIONS = le haut du titre) ; marges 6 / 10 / 14 / 16.
+   · TAILLES : touches secondaires 44 px (le minimum du doigt), lingot 56 couché / 62 debout, ⌂ carré à la hauteur du lingot.
+   · LE MOTEUR vit DANS son panneau : le clip-path du panneau le rogne, il ne peut plus jamais passer devant (ni derrière) l'AURA.
+   · L'AURA garde les trois bougies demandées le 25/10 (PARTIE · MOYENNE · RECORD), avec des libellés qui tiennent debout. */
 #mDead:not(.m5) .mDuo{display:none}
-html body #mDead.m5{--m5V:#c99bff;--m5Vf:#8a4dff;--m5Vg:rgba(160,96,255,.6)}
-html body #mDead.m5 .mStats,html body #mDead.m5>.mRow,html body #mDead.m5 .mCashL>span{display:none!important}
+html body #mob #mDead.m5{--m6V:#c99bff;--m6Vg:rgba(160,96,255,.55);--m6Bl:#b9d4ff;--m6Pad:10px 12px 11px 15px}
 
-/* ---- L'ARGENT QUI FLOTTE ---- */
-html body #mDead.m5 .mCashL{background:none!important;box-shadow:none!important;clip-path:none!important;border:0!important;
-  padding:0!important;gap:6px!important;container-type:inline-size;overflow:visible}
-html body #mDead.m5 .mCashL::before,html body #mDead.m5 .mCashL::after{content:none!important;display:none!important}
-html body #mDead.m5 .mCashL>b{font-size:min(50px,calc((100cqi - 8px) / (var(--n,6) + 1)))!important;letter-spacing:2px;line-height:1;
-  color:var(--cash);text-shadow:0 3px 0 var(--cashO),0 0 16px rgba(125,255,155,.55),0 0 42px rgba(125,255,155,.28)!important}
-html body #mDead.m5 .mCashL>b::before{content:'+';margin-right:.18em;opacity:.8}
-html body #mDead.m5 .mCashL>small{font-size:var(--f0);letter-spacing:2px;color:#a7f0bd;opacity:.85}
-html body #mDead.m5 .mCashL>em.mCashRec{position:static;margin:2px 0 0;transform:none}
+/* ---------- LA GRILLE ---------- */
+html body #mob #mDead.m5.on{display:grid!important;gap:0 18px!important;align-items:start;justify-items:stretch;align-content:stretch;box-sizing:border-box;
+  min-height:100%;padding:calc(var(--sT,0px) + 14px) calc(var(--sR,0px) + var(--gut,18px)) calc(var(--sB,0px) + 12px) calc(var(--sL,0px) + var(--gut,18px))!important}
+html body #mob #mDead.m5>*{margin:0!important;order:0!important}
+html body #mob #mDead.m5 :is(.mStats,.mNew,#mBest2,.mEsp,#mChanceFond,#nameEntry),html body #mob #mDead.m5>.mRow,
+html body #mob #mDead.m5 .mCashL>span{display:none!important}
 
-/* ---- LE HÉROS : moteur flottant | graphe d'aura ---- */
-html body #mDead.m5 .mHero.m5Hero{display:grid!important;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);grid-template-rows:minmax(0,1fr);
-  gap:14px;margin:0;padding:0;background:none;box-shadow:none;min-height:0;overflow:visible}
-#mDead.on .m5Hero>.m5Mot{animation:k6Carte var(--t-in) var(--ease) 250ms backwards}
-#mDead.on .m5Hero>.m5Aura{animation:k6Carte var(--t-in) var(--ease) 330ms backwards}
+/* ---------- LE RÉSULTAT : titre, cause, argent ---------- */
+html body #mob #mDead.m5 #mOverT{grid-area:over;justify-self:start;font-size:var(--f6);line-height:1.15;letter-spacing:2px;white-space:nowrap;
+  transform:skewX(var(--sk));transform-origin:0 100%;text-shadow:0 3px 0 #1c0410,0 0 18px color-mix(in srgb,currentColor 55%,transparent)}
+html body #mob #mDead.m5 #mCause{grid-area:cause;margin-top:7px!important;font-size:var(--f0);line-height:1.5;letter-spacing:2px;color:#ff9fb0;text-align:left}
+html body #mob #mDead.m5 .mCashL{grid-area:cash;margin-top:10px!important;display:grid!important;grid-template-columns:auto auto;justify-content:start;align-items:center;
+  column-gap:12px;row-gap:7px;container-type:inline-size;overflow:visible;
+  background:none!important;box-shadow:none!important;clip-path:none!important;border:0!important;padding:0!important}
+html body #mob #mDead.m5 .mCashL::before,html body #mob #mDead.m5 .mCashL::after{content:none!important;display:none!important}
+html body #mob #mDead.m5 .mCashL>b{grid-column:1;grid-row:1;display:block;font-size:min(42px,calc(100cqi / (var(--n,6) + 1.6)))!important;line-height:1;
+  letter-spacing:1px;word-spacing:-.72em;white-space:nowrap;color:var(--cash);transform:skewX(var(--sk));transform-origin:0 100%;
+  text-shadow:0 3px 0 var(--cashO),0 0 16px rgba(125,255,155,.5),0 0 40px rgba(125,255,155,.2)!important}
+html body #mob #mDead.m5 .mCashL>b::before{content:'+';margin-right:.1em;opacity:.85}
+html body #mob #mDead.m5 .mCashL>small{grid-column:1/-1;grid-row:2;font-size:var(--f0);line-height:1.6;letter-spacing:1px;word-spacing:-.4em;color:#a7f0bd;opacity:.9;
+  text-align:left;max-width:none}
+html body #mob #mDead.m5 .mCashL>em.mCashRec{grid-column:2;grid-row:1;align-self:center;position:static;margin:0;transform:none}
 
-/* le moteur */
-.m5Mot{position:relative;display:flex;flex-direction:column;align-items:center;min-height:0;min-width:0}
-.m5Scene{position:relative;flex:1 1 0;min-height:0;width:100%}
-.m5Halo{position:absolute;left:50%;top:46%;width:96%;aspect-ratio:1;translate:-50% -50%;border-radius:50%;pointer-events:none;
-  background:radial-gradient(closest-side,color-mix(in srgb,var(--ec) 34%,transparent),color-mix(in srgb,var(--ec) 10%,transparent) 55%,transparent);
-  animation:m5Respire 3.6s ease-in-out infinite}
-html body #mDead.m5 .m5Scene .hMotCv{position:absolute;left:50%;top:47%;height:112%;width:auto!important;max-width:none;aspect-ratio:480/321;margin:0!important;
-  translate:-50% -50%;animation:m5Flotte 3.6s ease-in-out infinite}
-.m5Ombre{position:absolute;left:50%;bottom:-2px;width:52%;height:12px;translate:-50% 0;border-radius:50%;pointer-events:none;
-  background:radial-gradient(closest-side,rgba(0,0,0,.6),transparent);animation:m5Ombre 3.6s ease-in-out infinite}
-.m5Pal{position:relative;display:flex;align-items:baseline;gap:9px;margin-top:6px;white-space:nowrap}
-.m5Pal>span{font-size:var(--f1);letter-spacing:3px;color:var(--tx2)}
-.m5Pal>b{font-size:var(--f9);line-height:1;color:var(--tx);text-shadow:0 2px 0 var(--txO),0 0 14px color-mix(in srgb,var(--ec) 70%,transparent)}
-.m5Pal.rec>b{color:var(--or);text-shadow:0 2px 0 var(--orF),0 0 14px rgba(255,215,94,.6)}
-@keyframes m5Flotte{0%,100%{transform:translateY(3px)}50%{transform:translateY(-5px)}}
-@keyframes m5Ombre{0%,100%{transform:scaleX(1);opacity:.9}50%{transform:scaleX(.78);opacity:.55}}
-@keyframes m5Respire{0%,100%{opacity:.75}50%{opacity:1}}
+/* ---------- LES PASTILLES (RECORD, ▲ / ▼ à la moyenne) : une seule forme, coins coupés comme les panneaux ---------- */
+html body #mob #mDead.m5 :is(.m6Badge,.mCashL>em.mCashRec){display:inline-flex;align-items:center;gap:5px;flex:none;padding:5px 7px 4px;font-family:var(--pix);font-style:normal;
+  font-size:var(--f0);line-height:1;letter-spacing:0;word-spacing:-.35em;white-space:nowrap;color:var(--tx2);background:rgba(255,255,255,.06);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px);text-shadow:none;animation:none}
+html body #mob #mDead.m5 :is(.m6Badge.rec,.mCashL>em.mCashRec){color:var(--or);background:rgba(255,215,94,.12);box-shadow:inset 0 0 0 1px rgba(255,215,94,.6)}
+html body #mob #mDead.m5 .m6Badge.up{color:var(--neoV);background:rgba(94,227,122,.11);box-shadow:inset 0 0 0 1px rgba(94,227,122,.5)}
+html body #mob #mDead.m5 .m6Badge.down{color:#ff8a9c;background:rgba(255,74,100,.1);box-shadow:inset 0 0 0 1px rgba(255,74,100,.45)}
+html body #mob #mDead.m5 .m6Badge .pxi{--pxs:1;color:currentColor}
 
-/* le graphe d'aura : la seule fenêtre */
-.m5Aura{position:relative;display:flex;flex-direction:column;min-height:0;min-width:0;padding:9px 11px 8px;border-radius:16px;
-  background:linear-gradient(180deg,rgba(52,32,104,.62),rgba(18,11,40,.66));
-  box-shadow:inset 0 0 0 1px rgba(201,155,255,.24),inset 0 1px 0 rgba(255,255,255,.1),0 14px 30px rgba(0,0,0,.38),0 0 26px rgba(138,77,255,.14)}
-.m5Tete{display:flex;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:5px;min-width:0}
-.m5Tete>small{font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
-html body #mDead.m5 .m5Tete>#mAuraV{order:3;flex:1 0 100%;font-size:26px;line-height:1;letter-spacing:1px;white-space:nowrap;color:var(--m5V);
-  text-shadow:0 2px 0 #1a0a3a,0 0 12px var(--m5Vg),0 0 26px rgba(138,77,255,.35)}
-html body #mDead.m5 .m5Tete>#mAuraV.zero{color:var(--tx3,#8a80b0);text-shadow:0 2px 0 var(--txO)}
-.m5Vd{order:2;margin-left:auto;flex:none;padding:4px 6px 3px;border-radius:8px;font-size:7px;font-style:normal;letter-spacing:0;white-space:nowrap;
-  color:var(--tx2);background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
-.m5Vd.up{color:var(--neoV);background:rgba(94,227,122,.12);box-shadow:inset 0 0 0 1px rgba(94,227,122,.45)}
-.m5Vd.down{color:#ff8a9c;background:rgba(255,74,100,.1);box-shadow:inset 0 0 0 1px rgba(255,74,100,.38)}
-.m5Vd.rec{color:var(--or);background:rgba(255,215,94,.12);box-shadow:inset 0 0 0 1px rgba(255,215,94,.55),0 0 12px rgba(255,215,94,.25)}
-.m5Vd .pxi{--pxs:1}
-.m5Graphe{position:relative;flex:1 1 0;min-height:56px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:8px 0 15px;
-  border-bottom:1px solid rgba(201,155,255,.35);
-  background:repeating-linear-gradient(to top,rgba(201,155,255,.08) 0 1px,transparent 1px 25%)}
-.m5Ligne{position:absolute;left:0;right:0;bottom:var(--h);border-top:1px dashed rgba(255,215,94,.4);pointer-events:none}
-.m5Col{position:relative;min-width:0}
-.m5Pied{position:absolute;inset:0}
-.m5Meche{position:absolute;left:50%;bottom:0;width:2px;height:var(--h);translate:-50% 0;transform-origin:50% 100%}
-.m5Corps{position:absolute;left:50%;bottom:3px;width:min(40%,26px);height:max(3px,calc(var(--h) * .84 - 3px));translate:-50% 0;border-radius:3px;transform-origin:50% 100%}
-.m5Val{position:absolute;left:50%;bottom:calc(var(--h) + 4px);translate:-50% 0;font-size:var(--f0);white-space:nowrap;color:var(--tx2)}
-.m5Col>small{position:absolute;left:50%;bottom:-13px;translate:-50% 0;font-size:7px;letter-spacing:1px;white-space:nowrap;color:var(--tx2)}
-/* la PARTIE : violet, pleine, qui brille */
-.m5P .m5Meche{background:#e2c8ff}
-.m5P .m5Corps{background:linear-gradient(180deg,#e4c6ff,#a56bff 45%,#6d2fe0);box-shadow:0 0 14px var(--m5Vg,rgba(160,96,255,.6)),inset 0 1px 0 rgba(255,255,255,.6)}
-.m5P .m5Val{color:var(--m5V,#c99bff);font-size:var(--f1)}
-.m5P>small{color:var(--m5V,#c99bff)}
-/* la MOYENNE : creuse, comme une bougie qui n'a pas monté d'un coup */
-.m5M .m5Meche{background:rgba(190,215,255,.55)}
-.m5M .m5Corps{background:rgba(160,200,255,.14);box-shadow:inset 0 0 0 1.5px rgba(180,215,255,.7)}
-.m5M .m5Val{color:#c6dcff}
-/* le RECORD : or */
-.m5R .m5Meche{background:#ffe9a0}
-.m5R .m5Corps{background:linear-gradient(180deg,#fff1b8,#ffc400 50%,#b06c05);box-shadow:0 0 10px rgba(255,200,60,.35),inset 0 1px 0 rgba(255,255,255,.55)}
-.m5R .m5Val,.m5R>small{color:var(--or,#ffd75e)}
-/* les bougies poussent l'une après l'autre */
-#mDead.on .m5Corps,#mDead.on .m5Meche{animation:m5Pousse 700ms var(--ease) backwards}
-#mDead.on .m5Val{animation:m5Apparait 300ms var(--ease) backwards}
-#mDead.on .m5P .m5Corps,#mDead.on .m5P .m5Meche{animation-delay:420ms}#mDead.on .m5P .m5Val{animation-delay:1000ms}
-#mDead.on .m5M .m5Corps,#mDead.on .m5M .m5Meche{animation-delay:540ms}#mDead.on .m5M .m5Val{animation-delay:1120ms}
-#mDead.on .m5R .m5Corps,#mDead.on .m5R .m5Meche{animation-delay:660ms}#mDead.on .m5R .m5Val{animation-delay:1240ms}
-@keyframes m5Pousse{from{transform:scaleY(0)}}
-@keyframes m5Apparait{from{opacity:0;transform:translateY(4px)}}
+/* ---------- LES PANNEAUX : MOTEUR | AURA, et MISSIONS ---------- */
+html body #mob #mDead.m5 .mHero.m5Hero{grid-area:hero;margin-top:14px!important;align-self:stretch;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:12px;min-height:0;height:auto;padding:0;background:none;box-shadow:none;overflow:visible}
+html body #mob #mDead.m5 .m6Carte{--c:var(--coupe,14px);--fc:var(--kl2);position:relative;box-sizing:border-box;display:flex;flex-direction:column;min-width:0;min-height:0;
+  padding:var(--m6Pad);container-type:inline-size;
+  background:linear-gradient(to bottom right,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 0 0/var(--c) var(--c) no-repeat,
+    linear-gradient(to top left,transparent 50%,var(--fil) 50% calc(50% + 1.3px),transparent calc(50% + 1.3px)) 100% 100%/var(--c) var(--c) no-repeat,
+    var(--tresse),var(--laqueP);
+  clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c));
+  box-shadow:inset 0 0 0 1px var(--fil),var(--levre),inset 3px 0 0 var(--fc)}
+html body #mob #mDead.m5 .m6Mot{--fc:var(--ec)}
+html body #mob #mDead.m5 .m6Aura{--fc:var(--m6V)}
+html body #mob #mDead.m5 #mObj{grid-area:mis;align-self:start;padding:var(--m6Pad)!important;gap:7px!important;min-height:0!important}
+/* l'en-tête, le même pour les trois (celui des MISSIONS est .obHd) */
+html body #mob #mDead.m5 .m6Tete{display:flex;align-items:center;gap:8px;min-width:0;min-height:18px}
+html body #mob #mDead.m5 .m6Lb{display:inline-flex;align-items:center;gap:6px;min-width:0;font-size:var(--f2);letter-spacing:2px;color:var(--fc);white-space:nowrap}
+html body #mob #mDead.m5 .m6Lb .pxi{--pxs:1.5;flex:none;color:var(--fc)}
+html body #mob #mDead.m5 .m6Tete>.m6Badge{margin-left:auto}
+/* carte étroite (iPhone couché, encoches) : l'icône de l'en-tête RESTE (les trois panneaux ont la leur) — c'est le badge qui se replie sur son étoile */
+@container (max-width:178px){html body #mob #mDead.m5 .m6Lb{letter-spacing:1px}html body #mob #mDead.m5 .m6Badge.rec>span{display:none}html body #mob #mDead.m5 .m6Badge.rec{padding:5px 6px 4px}}
+/* la grande valeur */
+html body #mob #mDead.m5 .m6Big{display:flex;align-items:baseline;gap:7px;min-width:0;margin-top:9px;line-height:1;white-space:nowrap}
+html body #mob #mDead.m5 .m6Big>small{font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
+html body #mob #mDead.m5 .m6Big>small.m6Sur{margin-left:-3px;letter-spacing:0;color:var(--tx3)}
+html body #mob #mDead.m5 .m6Big>b{font-weight:400;font-size:min(var(--f9),calc(100cqi / (var(--n,3) + .4)));letter-spacing:1px;word-spacing:-.5em}
+html body #mob #mDead.m5 .m6Mot .m6Big>b{color:color-mix(in srgb,var(--ec) 45%,#fff);text-shadow:0 2px 0 var(--txO),0 0 14px color-mix(in srgb,var(--ec) 75%,transparent)}
+html body #mob #mDead.m5 .m6Aura .m6Big>b{color:var(--m6V);text-shadow:0 2px 0 #1a0a3a,0 0 12px var(--m6Vg),0 0 26px rgba(138,77,255,.3)}
+html body #mob #mDead.m5 .m6Aura .m6Big>b.zero{color:var(--tx3);text-shadow:0 2px 0 var(--txO)}
 
-/* ---- GARAGE · RÉGLAGES : deux touches de verre ---- */
-html body #mDead.m5 .mDuo{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%}
-/* la même bulle de verre que GARAGE · ACHAT · RÉGLAGES de l'accueil (boutons-flottants.css) : reflet en haut à gauche, liseré double,
-   la couleur de la touche qui monte du bas (GARAGE bleu, RÉGLAGES or). Pas de backdrop-filter (interdit sur mobile par la charte). */
-html body #mDead.m5 .mVerre{--lk:1;position:relative;isolation:isolate;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;
-  min-height:48px;margin:0;padding:0 12px;border:0;border-radius:20px!important;clip-path:none!important;transform:none!important;overflow:visible;
-  font-size:var(--f1);letter-spacing:1px;color:var(--tx);
-  background:
-    radial-gradient(120% 95% at 16% -12%,rgba(255,255,255,calc(.62*var(--lk))) 0,rgba(255,255,255,calc(.14*var(--lk))) 36%,transparent 57%),
-    linear-gradient(112deg,transparent 0 41%,rgba(255,255,255,calc(.34*var(--lk))) 42% 47%,transparent 48% 54%,rgba(255,255,255,calc(.16*var(--lk))) 55% 58%,transparent 59%),
-    radial-gradient(95% 75% at 86% 118%,color-mix(in srgb,var(--nc) calc(46%*var(--lk)),transparent),transparent 62%),
-    linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08))!important;
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.8),inset 0 2px 2px rgba(255,255,255,calc(.85*var(--lk))),
-    inset 0 -12px 16px -9px color-mix(in srgb,var(--nc) 60%,transparent),inset 0 0 24px rgba(255,255,255,calc(.22*var(--lk))),
-    0 0 18px color-mix(in srgb,var(--nc) 42%,transparent),0 7px 16px -6px rgba(15,25,70,.32)!important;
-  transition:translate var(--t-fast) var(--ease)}
-html body #mDead.m5 .mVerre::before{content:''!important;display:block!important;position:absolute;inset:5px;z-index:-1;pointer-events:none;border-radius:inherit;
-  border:1px solid rgba(255,255,255,calc(.34*var(--lk)));box-shadow:inset 0 0 8px rgba(255,255,255,calc(.18*var(--lk)));background:none!important;animation:none!important;transform:none!important}
-html body #mDead.m5 .mVerre::after{content:''!important;display:block!important;position:absolute;left:9%;top:7%;width:30%;height:17%;z-index:-1;pointer-events:none;border-radius:50%;
-  background:radial-gradient(ellipse at 40% 40%,rgba(255,255,255,calc(.95*var(--lk))) 0,rgba(255,255,255,calc(.35*var(--lk))) 45%,transparent 72%);transform:rotate(-14deg)!important;animation:none!important;opacity:1!important}
-html body #mDead.m5 .mVerre :is(span,.pxi){text-shadow:0 1px 3px rgba(10,20,60,.7);transform:none!important}
-html body #mDead.m5 .mVerre .pxi{--pxs:2;color:var(--nc)}
-html body #mDead.m5 .mvGar{--nc:#2f80ff}
-html body #mDead.m5 .mvSet{--nc:var(--or,#ffd75e)}
-html body #mDead.m5 .mVerre:is(:active,.appui){translate:0 2px;--lk:1.25}
-html body #mDead.m5 .mVerre .mBadge{position:absolute;top:-8px;right:-6px;transform:scale(.86);transform-origin:100% 0}
-#mDead.on .mDuo>.mVerre{animation:k6Monte var(--t-in) var(--ease) 520ms backwards}
-#mDead.on .mDuo>.mVerre+.mVerre{animation-delay:570ms}
+/* le MOTEUR : la pièce dans son halo, puis son nom et la jauge vers le palier suivant */
+html body #mob #mDead.m5 .m6Scene{position:relative;flex:1 1 0;min-height:56px;margin:4px -6px 2px -9px}
+html body #mob #mDead.m5 .m6Halo{position:absolute;inset:0 4%;pointer-events:none;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--ec) 38%,transparent),color-mix(in srgb,var(--ec) 12%,transparent) 60%,transparent);
+  animation:m6Respire 3.6s ease-in-out infinite}
+html body #mob #mDead.m5 .m6Scene .hMotCv{position:absolute;left:50%;top:48%;width:126%;height:126%;object-fit:contain;margin:0!important;max-width:none;
+  translate:-50% -50%;animation:m6Flotte 3.6s ease-in-out infinite}
+html body #mob #mDead.m5 .m6Ombre{position:absolute;left:50%;bottom:3%;width:52%;height:10px;translate:-50% 0;border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(0,0,0,.75),transparent);animation:m6Ombre 3.6s ease-in-out infinite}
+html body #mob #mDead.m5 .m6Pied{display:flex;align-items:baseline;justify-content:space-between;gap:8px;min-width:0;font-size:var(--f0);line-height:1.2;letter-spacing:1px}
+html body #mob #mDead.m5 .m6Nom{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx)}
+html body #mob #mDead.m5 .m6Pc{display:inline-flex;align-items:center;gap:4px;flex:none;letter-spacing:0;color:var(--tx2);white-space:nowrap}
+html body #mob #mDead.m5 .m6Pc .pxi{--pxs:1;color:var(--or)}
+html body #mob #mDead.m5 .m6Pc.max{color:var(--or)}
+html body #mob #mDead.m5 .m6Jauge{height:4px;margin-top:6px;background:#06040e;box-shadow:0 0 0 1px color-mix(in srgb,var(--ec) 30%,transparent)}
+html body #mob #mDead.m5 .m6Jauge>em{display:block;height:100%;background:var(--ec);box-shadow:0 0 8px color-mix(in srgb,var(--ec) 70%,transparent);transition:width .9s var(--ease) .5s}
+html body #mob #mDead.m5 .m6Jauge.max>em{width:100%!important;background:var(--or);box-shadow:0 0 8px rgba(255,215,94,.6)}
+@keyframes m6Flotte{0%,100%{transform:translateY(3px)}50%{transform:translateY(-4px)}}
+@keyframes m6Ombre{0%,100%{transform:scaleX(1);opacity:.9}50%{transform:scaleX(.8);opacity:.55}}
+@keyframes m6Respire{0%,100%{opacity:.75}50%{opacity:1}}
 
-/* ---- COUCHÉ (le téléphone de Sacha, 844 × 390) : PERDU seul en haut à gauche, les missions descendent à la hauteur de l'argent ---- */
-@media (orientation:landscape) and (max-height:540px){
-  html body #mDead.m5.on{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);column-gap:22px;row-gap:10px;align-content:stretch;
-    grid-template-areas:"over ." "cash obj" "hero duo" "hero row" "hero rej";grid-template-rows:auto auto minmax(0,1fr) auto auto}
-  html body #mDead.m5 .mCashL{grid-area:cash;align-self:center;margin:0}
-  html body #mDead.m5 .mHero.m5Hero{grid-area:hero;align-self:stretch;margin:4px 0 0}
-  html body #mDead.m5 .mObj{grid-area:obj;align-self:start;margin:0}
-  html body #mDead.m5 .mDuo{grid-area:duo;align-self:end}
+/* l'AURA : trois bougies — la PARTIE (violet, pleine), la MOYENNE (creuse), le RECORD (or) ; la valeur au-dessus, le nom dessous */
+html body #mob #mDead.m5 .m6Graphe{position:relative;flex:1 1 0;min-height:66px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px;padding:15px 0 16px;
+  background:repeating-linear-gradient(to top,rgba(201,155,255,.075) 0 1px,transparent 1px 25%) 0 15px/100% calc(100% - 31px) no-repeat}
+html body #mob #mDead.m5 .m6Graphe::after{content:'';position:absolute;left:0;right:0;bottom:16px;height:1px;background:rgba(201,155,255,.38)}
+html body #mob #mDead.m5 .m6Ligne{position:absolute;left:0;right:0;bottom:calc(16px + (100% - 31px) * var(--h) / 100);border-top:1px dashed rgba(255,215,94,.45);pointer-events:none}
+html body #mob #mDead.m5 .m6Col{position:relative;min-width:0}
+html body #mob #mDead.m5 .m6Barre{position:absolute;left:50%;bottom:0;width:min(46%,28px);height:calc(var(--h) * 1%);min-height:3px;translate:-50% 0;transform-origin:50% 100%}
+html body #mob #mDead.m5 .m6Val{position:absolute;left:50%;bottom:calc(var(--h) * 1% + 5px);translate:-50% 0;font-size:var(--f0);line-height:1;letter-spacing:0;word-spacing:-.45em;white-space:nowrap;color:var(--tx2)}
+html body #mob #mDead.m5 .m6Col>small{position:absolute;left:50%;top:calc(100% + 6px);translate:-50% 0;font-size:var(--f0);line-height:1;letter-spacing:0;white-space:nowrap;color:var(--tx2)}
+html body #mob #mDead.m5 .m6P .m6Barre{background:linear-gradient(180deg,#ead6ff,#a56bff 42%,#6d2fe0);box-shadow:0 0 14px var(--m6Vg),inset 0 2px 0 rgba(255,255,255,.55)}
+html body #mob #mDead.m5 .m6P :is(.m6Val,small){color:var(--m6V)}
+html body #mob #mDead.m5 .m6M .m6Barre{background:rgba(160,200,255,.12);box-shadow:inset 0 0 0 2px rgba(185,212,255,.75)}
+html body #mob #mDead.m5 .m6M :is(.m6Val,small){color:var(--m6Bl)}
+html body #mob #mDead.m5 .m6R .m6Barre{background:linear-gradient(180deg,#fff1b8,#ffc400 48%,#b06c05);box-shadow:0 0 10px rgba(255,200,60,.35),inset 0 2px 0 rgba(255,255,255,.55)}
+html body #mob #mDead.m5 .m6R :is(.m6Val,small){color:var(--or)}
+
+/* ---------- LES TOUCHES : la touche du jeu, aux mêmes hauteurs ---------- */
+html body #mob #mDead.m5 #mDouble{grid-area:dbl;margin-top:10px!important;width:auto!important;min-height:44px!important;padding:0 14px;gap:12px;font-size:var(--f1)}
+html body #mob #mDead.m5 #mDouble :is(.dbS,.dbT){word-spacing:-.6em}
+html body #mob #mDead.m5 .mDuo{grid-area:duo;margin-top:10px!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;width:auto}
+html body #mob #mDead.m5 .mDuo>.pbtn{min-height:44px;padding:0 10px;gap:9px;font-size:var(--f1);letter-spacing:1px}
+html body #mob #mDead.m5 .mDuo>.pbtn .pxi{--pxs:2}
+html body #mob #mDead.m5 .mvGar{--nc:var(--neoC)}
+html body #mob #mDead.m5 .mvSet{--nc:var(--or)}
+html body #mob #mDead.m5 .mVerre .mBadge{position:absolute;top:-8px;right:-6px;transform:scale(.86);transform-origin:100% 0}
+html body #mob #mDead.m5 .mFin{grid-area:rej;margin-top:10px!important;display:flex!important;align-items:stretch;gap:12px;width:auto;position:static}
+html body #mob #mDead.m5 .mFin>.mMenu{--nc:var(--neoL);flex:none;width:var(--m6Lg,56px)!important;min-width:var(--m6Lg,56px)!important;min-height:var(--m6Lg,56px)!important;padding:0!important}
+html body #mob #mDead.m5 .mFin>.mMenu .pxi{--pxs:3}
+html body #mob #mDead.m5 .mFin>[data-m="replay"]{flex:1;min-width:0;width:auto;min-height:var(--m6Lg,56px)!important;margin:0;padding:0 16px}
+/* LA SECONDE CHANCE : pendant l'offre, NON MERCI prend la place de GARAGE · RÉGLAGES et CONTINUER celle de ⌂ · REJOUER */
+html body.chOffre #mob #mDead.m5 .mDuo,html body.chOffre #mob #mDead.m5 .mFin{display:none!important}
+html body #mob #mDead.m5 #mChanceNon:not([hidden]){grid-area:duo;margin-top:10px!important;width:auto;min-height:44px!important;font-size:var(--f1)}
+html body #mob #mDead.m5 #mChance:not([hidden]){grid-area:rej;margin-top:10px!important;width:auto;min-height:var(--m6Lg,56px)!important}
+
+/* ---------- L'ENTRÉE : le résultat, puis les panneaux, puis les touches ---------- */
+html body #mob #mDead.m5.on>*{animation:none}
+html body #mob #mDead.m5.on>#mOverT{animation:k4Enseigne .9s var(--ease) 80ms backwards}
+html body #mob #mDead.m5.on>#mCause{animation:k6Monte var(--t-in) var(--ease) 180ms backwards}
+html body #mob #mDead.m5.on>.mCashL{animation:k6Monte var(--t-in) var(--ease) 240ms backwards}
+html body #mob #mDead.m5.on .m6Mot{animation:k6Carte var(--t-in) var(--ease) 300ms backwards}
+html body #mob #mDead.m5.on .m6Aura{animation:k6Carte var(--t-in) var(--ease) 370ms backwards}
+html body #mob #mDead.m5.on>#mObj{animation:k6Carte var(--t-in) var(--ease) 440ms backwards}
+html body #mob #mDead.m5.on .mDuo>.pbtn{animation:k6Monte var(--t-in) var(--ease) 520ms backwards}
+html body #mob #mDead.m5.on .mDuo>.pbtn+.pbtn{animation-delay:570ms}
+html body #mob #mDead.m5.on .mFin>.mMenu{animation:k6Monte var(--t-in) var(--ease) 620ms backwards}
+html body #mob #mDead.m5.on .mFin>.pb-gold{animation:k6Surgit var(--t-in) var(--ease) 660ms backwards,k4Lingot 4.2s var(--ease) 2s infinite}
+html body #mob #mDead.m5.on .m6Barre{animation:m6Pousse .7s var(--ease) backwards}
+html body #mob #mDead.m5.on .m6Val{animation:m6Apparait .3s var(--ease) backwards}
+html body #mob #mDead.m5.on .m6P .m6Barre{animation-delay:.48s}html body #mob #mDead.m5.on .m6P .m6Val{animation-delay:1.06s}
+html body #mob #mDead.m5.on .m6M .m6Barre{animation-delay:.6s}html body #mob #mDead.m5.on .m6M .m6Val{animation-delay:1.18s}
+html body #mob #mDead.m5.on .m6R .m6Barre{animation-delay:.72s}html body #mob #mDead.m5.on .m6R .m6Val{animation-delay:1.3s}
+@keyframes m6Pousse{from{transform:scaleY(0)}}
+@keyframes m6Apparait{from{opacity:0;transform:translateY(4px)}}
+
+/* ---------- COUCHÉ : le résultat à gauche, les missions et les touches à droite ----------
+   Les MISSIONS descendent jusqu'aux touches (leur pied « VOIR » se pose en bas) : la colonne de droite est pleine comme celle de gauche,
+   plus de trou entre le panneau et les touches. */
+@media (orientation:landscape){
+  html body #mob #mDead.m5.on{grid-template-columns:minmax(0,1.38fr) minmax(0,1fr);grid-template-rows:auto auto auto minmax(0,1fr) auto auto;
+    grid-template-areas:"over ." "cause ." "cash dbl" "hero mis" "hero duo" "hero rej"}
+  /* le ×2 double CE montant : il se pose à sa hauteur, en face de lui */
+  html body #mob #mDead.m5 #mDouble{align-self:center;margin-top:0!important}
+  /* les trois panneaux partagent leur haut ; les MISSIONS descendent jusqu'aux touches (le pied « VOIR » en bas) */
+  html body #mob #mDead.m5 #mObj{align-self:stretch;margin-top:14px!important}
+  html body #mob #mDead.m5 #mObj>.obFt{margin-top:auto}
 }
-/* ---- DEBOUT : tout en colonne, le héros a sa hauteur ---- */
+/* le pied des MISSIONS (À RÉCUPÉRER · VOIR) posé sur un filet : en-tête / liste / pied se lisent comme trois étages, même quand la liste est courte */
+html body #mob #mDead.m5 #mObj>.obFt{padding-top:9px;box-shadow:inset 0 1px 0 rgba(160,140,230,.16)}
+/* ---------- DEBOUT : une colonne, centrée ; trois panneaux pleine largeur (le visuel à droite), les touches en bas ----------
+   Côte à côte, deux panneaux de 171 px rapetissaient la pièce et serraient les bougies ; empilés pleine largeur, le moteur et le graphe
+   ont leur place, et les panneaux prennent la hauteur libre au lieu de laisser un trou au-dessus des touches. */
 @media (orientation:portrait){
-  html body #mDead.m5 .mHero.m5Hero{height:clamp(170px,26vh,230px);margin:18px 0 6px}
-  html body #mDead.m5 .mCashL{margin-top:10px}
-  html body #mDead.m5 .mCashL>b{font-size:min(56px,calc((100cqi - 8px) / (var(--n,6) + 1)))!important}
-  html body #mDead.m5>.mDuo{order:-1;margin-top:10px}
+  html body #mob #mDead.m5.on{--m6Lg:62px;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto auto minmax(0,1fr) auto auto auto;
+    grid-template-areas:"over" "cause" "cash" "dbl" "hero" "mis" "duo" "rej";padding-top:calc(var(--sT,0px) + 22px)!important}
+  html body #mob #mDead.m5 #mOverT{justify-self:center;transform-origin:50% 100%}
+  html body #mob #mDead.m5 #mCause{text-align:center}
+  html body #mob #mDead.m5 .mCashL{justify-content:center;justify-items:center}
+  html body #mob #mDead.m5 .mCashL>b{transform-origin:50% 100%;font-size:min(48px,calc(100cqi / (var(--n,6) + 1.6)))!important}
+  html body #mob #mDead.m5 .mCashL>small{text-align:center}
+  html body #mob #mDead.m5 #mDouble{margin-top:14px!important}
+  html body #mob #mDead.m5 .mHero.m5Hero{margin-top:16px!important;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.15fr) minmax(0,1fr);max-height:470px}
+  html body #mob #mDead.m5 .m6Mot{display:grid;column-gap:12px;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+    grid-template-rows:auto minmax(0,1fr) auto auto auto minmax(0,1fr);grid-template-areas:"tete tete" ". scene" "big scene" "pied scene" "jauge scene" ". scene"}
+  html body #mob #mDead.m5 .m6Mot>.m6Tete{grid-area:tete}
+  html body #mob #mDead.m5 .m6Mot>.m6Big{grid-area:big;margin-top:0}
+  html body #mob #mDead.m5 .m6Mot>.m6Pied{grid-area:pied;margin-top:12px;flex-direction:column;align-items:flex-start;gap:8px}
+  html body #mob #mDead.m5 .m6Mot>.m6Jauge{grid-area:jauge;margin-top:9px}
+  html body #mob #mDead.m5 .m6Mot>.m6Scene{grid-area:scene;margin:6px -4px -4px 0}
+  /* debout la scène a toute la hauteur de la carte : la pièce y prend sa vraie place (elle flottait, petite, au milieu du vide) */
+  html body #mob #mDead.m5 .m6Mot>.m6Scene .hMotCv{width:142%;height:142%}
+  html body #mob #mDead.m5 .m6Aura{display:grid;column-gap:14px;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);grid-template-rows:auto minmax(0,1fr);
+    grid-template-areas:"tete tete" "big graphe"}
+  html body #mob #mDead.m5 .m6Aura>.m6Tete{grid-area:tete}
+  html body #mob #mDead.m5 .m6Aura>.m6Big{grid-area:big;align-self:center;margin-top:0}
+  html body #mob #mDead.m5 .m6Aura>.m6Graphe{grid-area:graphe;margin-top:4px}
+  html body #mob #mDead.m5 #mObj{margin-top:12px!important}
+  html body #mob #mDead.m5 .mDuo,html body #mob #mDead.m5 #mChanceNon:not([hidden]){margin-top:16px!important}
+  html body #mob #mDead.m5 .mFin,html body #mob #mDead.m5 #mChance:not([hidden]){margin-top:12px!important}
 }
-@media (prefers-reduced-motion:reduce){.m5Halo,html body #mDead.m5 .m5Scene .hMotCv,.m5Ombre,#mDead.on .m5Corps,#mDead.on .m5Meche,#mDead.on .m5Val{animation:none!important}}
-html[data-reduced-motion="1"] :is(.m5Halo,#mDead.m5 .m5Scene .hMotCv,.m5Ombre,#mDead.on .m5Corps,#mDead.on .m5Meche,#mDead.on .m5Val){animation:none!important}
+@media (prefers-reduced-motion:reduce){html body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val){animation:none!important}}
+html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val){animation:none!important}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -9069,7 +9130,7 @@ html[data-reduced-motion="1"] :is(.m5Halo,#mDead.m5 .m5Scene .hMotCv,.m5Ombre,#m
   <div id="runStats"></div>
   <!-- LE MOTEUR ATTEINT : on montre la pièce qu'on a réussi à monter, pas seulement son nom.
        Le rendu 3D vient du MÊME moteur que la vignette de course (voir engVigRender). -->
-  <div id="endEng"><canvas id="endEngCv" width="480" height="321"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div>
+  <div id="endEng"><canvas id="endEngCv" width="480" height="321"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div><!-- 480×321 : repli sans JS — affiné à la résolution du palier dès le chargement (voir ENG_RES_W) -->
   <div id="nameEntry"><span><i class="pxi pxi-etoile" aria-hidden="true"></i> NOUVEAU RECORD — TON NOM</span><input id="nameInput" maxlength="8" autocomplete="off" spellcheck="false" placeholder="________"><button id="nameSave">VALIDER</button></div>
   <div id="lbBox"></div>
   <button id="playBtn" aria-label="Jouer">Jouer</button>
@@ -10791,7 +10852,8 @@ const SIMU_JEU=/[?&]simu=1\b/.test(location.search);
 if(SIMU_JEU){let dpr9=devicePixelRatio;setInterval(function(){if(Math.abs(devicePixelRatio-dpr9)<.01)return;dpr9=devicePixelRatio;
   try{DPR_CAP=Math.min(devicePixelRatio,ALLEGE?1:1.5);qlReprise();}catch(e){}},250);}
 if(BALADE)document.documentElement.classList.add('balade');
-const IS_LOW_END=ALLEGE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
+/* (2026-11-03, Léo : « les graphismes sont nuls sur Vercel ») le nombre de cœurs ne rabat plus l'ORDINATEUR : un Mac à 4 cœurs perdait anticrénelage, MSAA, ombres et bloom — contre « l'ordi a toujours le MAX ». Seul ALLEGE (vrai téléphone) allège. */
+const IS_LOW_END=ALLEGE;
 /* ====================== LE PALIER DE L'APPAREIL — PAL (2026-10-14, passe perf mobile, Sacha : « la version mobile n'arrive pas à afficher
    de bons graphismes sans bugger ; comprime un maximum, que ce soit fluide même sur un iPhone 7 ») ======================
    Jusqu'ici RIEN ne distinguait un iPhone 7 d'un iPhone 15 Pro : `IS_MOBILE` = tout téléphone, Safari dit « 2 cœurs » et « Apple GPU » sur
@@ -19531,6 +19593,12 @@ const DN_SOL=!/[?&]sans=([^&]*,)?dunessoleil(,|&|$)/.test(location.search);
    bas de son emprise (au plus 40 % de la hauteur pour un obélisque, 25 % pour une pyramide). `?sans=dunesancre` = comme avant. */
 const DN_ANCRE=typeof location==='undefined'||!/[?&]sans=([^&]*,)?dunesancre(,|&|$)/.test(location.search);
 function dnPlancher(x,z,r){let lo=1e9;for(const f of [0,.5,1])for(let a=0;a<(f?16:1);a++){const th=a/16*6.2832,g=dnHauteur(x+Math.cos(th)*r*f,z+Math.sin(th)*r*f);if(g<lo)lo=g;}return lo;}
+/* (2026-10-31) le cercle de `dnPlancher` (rayon = la diagonale) ne touche le carré de la pyramide qu'à ses 4 coins : entre eux, il sort de l'emprise et lit
+   le sable VOISIN (une dune ou un creux qui n'a rien à faire sous le monument) — l'ancrage se décalait au hasard du tirage (flotte ici, s'enfonce là).
+   On lit une grille 5×5 dans le repère TOURNÉ de la pyramide (son angle `a`) : uniquement sous sa base réelle. */
+function dnPlancherPyr(P){const ca=Math.cos(P.a),sa=Math.sin(P.a),hw=P.hw;let lo=1e9;
+  for(const u of [-1,-.5,0,.5,1])for(const w of [-1,-.5,0,.5,1]){const g=dnHauteur(P.x+u*hw*ca+w*hw*sa,P.z-u*hw*sa+w*hw*ca);if(g<lo)lo=g;}
+  return lo;}
 /* ===== LES MONUMENTS DES DUNES D'AVANCE (2026-11-01, Léo : « règle ce qui reste ») =====
    MESURÉ (banc iPhone ×4) : au portail des dunes, dnMondePose posait tous les monuments d'un bloc (dnMonuments : les modèles, les scènes, les ruines
    ensablées, le décor cuit) — 170 à 730 ms selon le décor tiré, dans l'image du portail. Dès que le travailleur a rendu le monde d'avance (W.dunes.R),
@@ -19562,7 +19630,7 @@ function dnMonuPose(A){ /* (dnMondePose, au passage) les monuments bâtis d'avan
 function dnMonuJette(a){if(!a||!a.mon)return;for(const o of a.mon.grp.children)if(o.userData.jeter&&o.geometry)o.geometry.dispose();a.mon=null;} /* (un pré-bâti annulé) */
 function dnAncreDecors(){if(!DN_ANCRE||!DN.Z||!DN.F)return;
   for(const b of DN.ob||[]){const lo=dnPlancher(b.x,b.z,b.r*1.42);if(b.y>lo-.6)b.y=Math.max(lo-.6,b.y-Math.max(6,b.h*.4));}
-  for(const P of DN.pyrs||[]){const lo=dnPlancher(P.x,P.z,P.hw*1.4142);if(P.y>lo-3)P.y=Math.max(lo-3,P.y-P.h*.25);}
+  for(const P of DN.pyrs||[]){const lo=dnPlancherPyr(P);if(P.y>lo-3)P.y=Math.max(lo-3,P.y-P.h*.25);}
   for(const m of DN.mo||[]){const lo=dnPlancher(m.x,m.z,m.r);if(m.y>lo-1)m.y=Math.max(lo-1,m.y-Math.max(6,m.h*.3));}}
 function dnMondePose(R,mon){
   if(!DN.mat||!(LVL.cur&&LVL.cur.piste==='dunes'))return;const t4=performance.now();
@@ -29843,7 +29911,7 @@ for(const [f9,ks9] of [['banquise',['banqMatin','banqMidi','banqSoir','banqNuit'
 const SF_CARTES={
   nuages:{nm:'MER DE NUAGES',base:'nuages',m:{matin:{bio:'matin'},midi:{bio:'midi'},soir:{bio:'nuagesSoir'},nuit:{bio:'nuagesNuit',nuit:1},
     pluie:{bio:'nuagesPluie',pluie:.75,route:.18,sheen:.16},orage:{niv:'orage',orage:1}}},
-  ville:{nm:'CRYPTOVILLE',base:'ville',teintes:['violet','vert','jaune'],m:{orage:{bio:'villeOrage',pluie:1,orage:1,route:.5,sheen:.2,p:3.5}}}, // (2026-10-25, Léo, revue des maps : « vire la nuit simple, la pluie, le brouillard et la couleur bleue ») LA VILLE de CRYPTOVILLE = la NUIT d'ORAGE (violet, vert ou jaune) ; p 3,5 = le poids des trois temps de Crypto City : la journée et la nuit de la map à égalité sur PC
+  ville:{nm:'CRYPTO CITY',base:'ville',teintes:['violet','vert','jaune'],m:{orage:{bio:'villeOrage',pluie:1,orage:1,route:.5,sheen:.2,p:3.5}}}, // (2026-10-25, Léo, revue des maps : « vire la nuit simple, la pluie, le brouillard et la couleur bleue ») LA VILLE de CRYPTOVILLE = la NUIT d'ORAGE (violet, vert ou jaune) ; p 3,5 = le poids des trois temps de Crypto City : la journée et la nuit de la map à égalité sur PC
   jade:{nm:'PICS DE JADE',base:'jade',m:{matin:{bio:'jadeMatin'},midi:{bio:'jadeMidi'},soir:{bio:'jade'},nuit:{bio:'jadeNuit',nuit:1},
     pluie:{bio:'jadePluie',pluie:.75,sheen:.2},orage:{bio:'jadeOrage',pluie:1,orage:1,sheen:.2}}},
   /* (2026-10-14, Sacha) LA FORÊT NOIRE : ses six temps — le matin doré, le midi vert, le soir d'or, la NUIT HANTÉE (les phares, le loup-garou),
@@ -29860,7 +29928,7 @@ const SF_CARTES={
      pendant la montée fulgurante du Bitcoin ; pleine de références à la token culture, à l'argent et à la tech »). La CRYPTOCITY de Léo (13/10,
      retirée le 14/10 faute d'être dans le tirage) revient comme MAP : ses taureaux, ses bougies, ses pièces ₿ géantes, ses fusées, ses feux,
      le NOUVEL ATH, la pluie d'argent — et des façades en cinq matières. Quatre temps, jamais de pluie ni d'orage (c'est l'apogée). */
-  crypto:{nm:'CRYPTOVILLE',base:'crypto',m:{matin:{bio:'cryptoMatin'},midi:{bio:'bullrun',p:1.3},soir:{bio:'cryptoSoir',p:1.2}}},
+  crypto:{nm:'CRYPTO CITY',base:'crypto',m:{matin:{bio:'cryptoMatin'},midi:{bio:'bullrun',p:1.3},soir:{bio:'cryptoSoir',p:1.2}}}, /* (2026-11-03, Léo : « Crypto City, ça s'appelle jamais Cryptoville ou autre chose ») le nom affiché est CRYPTO CITY, jour et nuit, sans traduction ; 'cryptoville' ne reste que l'identifiant interne de SF_FUSION */
   /* (2026-10-17, Léo) LA VILLE VITRÉE : quatre heures — le MATIN aux reflets dorés, le MIDI bleu (les nuages dans les vitres), le COUCHER où les tours
      s'embrasent, la NUIT des bureaux allumés derrière le verre. Jamais de pluie ni d'orage. Voir « LA VILLE VITRÉE ». */
   ...({vitree:{nm:'VILLE VITRÉE',base:'vitree',m:{matin:{bio:'vitreMatin',pr:'REFLETS DORES'},midi:{bio:'vitreMidi',p:1.2},soir:{bio:'vitreSoir',p:1.2,pr:'LES TOURS S EMBRASENT'},nuit:{bio:'vitreNuit',nuit:1,pr:'LES BUREAUX BRILLENT'},
@@ -29876,7 +29944,8 @@ const SF_CARTES={
   /* (2026-10-18, Sacha : « fais les dunes d'or de manière parfaite ») LES DUNES D'OR : le matin rose, le midi turquoise et or (les mirages), le SOIR (la carte postale :
      un peu plus souvent), la nuit d'argent, le VENT DE SABLE (pas une goutte : `pluie` reste 0), la TEMPÊTE DE SABLE (un orage sec). Voir genDunes, buildDunes. */
   ...(DUNES_OK?{dunes:{nm:"LES DUNES D'OR",base:'dunes',m:{matin:{bio:'dunesMatin'},soir:{bio:'dunesSoir',p:1.3},nuit:{bio:'dunesNuit',nuit:1,pr:'LA LUNE ARGENTE LE SABLE'},
-    pluie:{bio:'dunesVent',mt:'VENT DE SABLE',sheen:.14,pr:'LE VENT SE LEVE'}}}}:{})
+    pluie:{bio:'dunesVent',mt:'VENT DE SABLE',sheen:.14,pr:'LE VENT SE LEVE'},
+    orage:{bio:'dunesTempete',mt:'TEMPETE DE SABLE',orage:1,sheen:.16,pr:'LE SABLE AVALE LA VISIBILITE'}}}}:{}) /* (2026-10-31) la TEMPÊTE DE SABLE existait déjà toute bâtie (BIOMES.dunesTempete, CONTI.cartes.dunes.orage, l'i18n 'SANDSTORM') mais jamais branchée ici : injouable, jamais tirée. `?carte=dunes&meteo=orage` ou dbgClassique('dunes','orage'). */
 };
 /* (2026-10-16, Sacha : « la map ville, elle sera toujours la nuit […] on abandonne toutes les maps ville-jour ») LA VILLE TOUJOURS LA NUIT (voir VTEINTES) :
    plus de matin, de midi ni de soir ; la map de base sous ses quatre temps — la PLUIE (AU-DESSUS DE LA VILLE, telle quelle, un peu plus souvent), la NUIT sèche
@@ -45808,6 +45877,15 @@ const ENG_PBO={b:null,f:null,ctx:null,ko:false};
    et recopié dans la toile 2D, 30 fois par seconde. La pièce fait un tour en ~10 s : à 10 images/s elle avance de 3,4° par image, ça se lit
    encore comme une rotation. `engVigMs` = l'écart en ms entre deux recopies au téléphone : ANCIEN 100 (10/s), MOYEN 66 (15/s), RÉCENT 33 (comme avant). */
 PAL.B.engVigMs=[100,66,33];
+/* ⚠ LA DÉFINITION DU MOTEUR, PAR PALIER (2026-10-31, chasse aux bugs : « les moteurs sont vachement pixelisés quand ils tournent ») —
+   le tampon 480×321 datait d'avant les écrans retina (DPR 2-3) : affiché à ~300-380 px CSS sur l'écran de mort (`m5Scene .hMotCv`,
+   `height:112%` d'une carte qui peut monter à 230 px), chaque pixel du tampon s'étalait sur 2 à 3 pixels physiques → flou/« grain ».
+   Cette relecture ne tourne JAMAIS pendant la course (voir engVigRender, branche `fin||tel`) : la monter ne coûte rien au jeu, seulement
+   à l'écran de mort, à l'arrêt — mais iPhone 7 reste iPhone 7 (mesure ci-dessus), donc ANCIEN garde l'ancienne taille telle quelle. */
+PAL.B.engRes=[480,624,864]; /* (2026-11-03) RÉCENT monte à 864 (1,8× l'ancien 480) : voir le commentaire sur `engRT` plus bas — ce
+   suréchantillonnage fait maintenant TOUT le travail d'anticrénelage (le MSAA testé relu VIDE par readRenderTargetPixels) */
+const ENG_RES_W=PAL.b('engRes',480),ENG_RES_H=Math.round(ENG_RES_W*321/480);
+if(engEndCv){engEndCv.width=ENG_RES_W;engEndCv.height=ENG_RES_H;} // la balise HTML dit 480×321 (repli sans JS) : on l'affine ici, avant le premier rendu
 function engPose(ctx,w,h){ // l'image lue → le <canvas> de la carte (les lignes arrivent de bas en haut : retournement, une ligne d'un bloc)
   const d=engEndImg.data,l9=w*4;for(let y=0;y<h;y++)d.set(engEndBuf.subarray((h-1-y)*l9,(h-y)*l9),y*l9);ctx.putImageData(engEndImg,0,0);}
 function engLit(w,h,ctx){
@@ -45848,7 +45926,19 @@ engVigScene.add(new THREE.HemisphereLight(0xd8ecff,0x241c3e,.55));
    nombre de lumières d'une scène change ses programmes), éteinte au repos. La carte MOTEUR l'allume à la couleur néon du moteur : le métal
    accroche un filet de sa couleur sur la tranche, le moteur n'est plus un bloc cuivré terne au-dessus de la caisse. */
 const engRim=new THREE.DirectionalLight(0xffffff,0);engRim.position.set(-4.2,1.2,2.4);engVigScene.add(engRim); // de trois-quarts avant-gauche : il teinte les faces qu'on VOIT
-const engRT=new THREE.WebGLRenderTarget(480,321,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
+/* ⚠ LE « GRAIN » SUR LE MOTEUR (2026-11-03, Sacha : « il y a une sorte de grain bizarre sur les moteurs ») — `engRT` n'avait
+   AUCUN anticrénelage : chaque petite facette du modèle bas-poly (le moteur, comme les voitures, est fait de plein de petits
+   triangles plats) ressortait avec un bord en escalier une fois relu pixel à pixel et recopié dans le <canvas> 2D — vu en
+   grand sur l'écran de mort, ça se lisait comme un bruit/grain plutôt que comme des facettes nettes.
+   ⚠ PREMIER ESSAI RATÉ : `WebGLMultisampleRenderTarget` (comme `rt` plus haut dans le fichier) lisse bien les bords, mais
+   `renderer.readRenderTargetPixels` — la relecture GPU→CPU de CETTE fonction, pas la lecture-texture de `rt` — lit un
+   renderbuffer multi-échantillonné À VIDE sans passage par un `resolve` explicite (que Three.js r128 ne fait pas tout seul
+   pour `readRenderTargetPixels`) : le moteur disparaissait complètement de l'écran de mort (testé, confirmé). On revient
+   donc à un `WebGLRenderTarget` ordinaire, et l'anticrénelage se fait par SURÉCHANTILLONNAGE : le tampon rend volontairement
+   plus grand que la taille d'affichage (voir `PAL.B.engRes` : jusqu'à 2× la taille de 2026-10-31), et le lissage bilinéaire
+   du CSS (`object-fit:contain`) en retombant à la taille finale absorbe les bords en escalier. Coûte plus de pixels à
+   produire — sans gravité : cette relecture ne tourne jamais pendant la course (voir plus haut, branche `fin||tel`). */
+const engRT=new THREE.WebGLRenderTarget(ENG_RES_W,ENG_RES_H,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});
 // le quad de recollage — caméra ortho en coordonnées NDC (-1..1), donc positionner = convertir un rect DOM
 const engVigQuadScene=new THREE.Scene();
 const engVigQuadCam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
@@ -59235,7 +59325,7 @@ const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
   def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
     vol:{mus:.62,sfx:1,vox:1}, // les trois curseurs de volume (1 = le mixage d'origine)
-    tctl:'stick',q:(PAL.b('qNetDefaut',0)?'net':'fast'),qChoisi:0,sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable // (2026-10-14, passe perf mobile) q d'une sauvegarde NEUVE = le défaut du palier (RAPIDE tant que qNetDefaut=[0,0,0]) ; qChoisi = 1 quand le joueur a touché IMAGE
+    tctl:'stick',q:((PAL.b('qNetDefaut',0)||!ALLEGE)?'net':'fast'),qChoisi:0,sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable // (2026-10-14, passe perf mobile) q d'une sauvegarde NEUVE = le défaut du palier (RAPIDE tant que qNetDefaut=[0,0,0]) ; qChoisi = 1 quand le joueur a touché IMAGE
     volH:'monte',volHv:2, // (2026-10-10, Léo) POUCE HAUT EN VOL : MONTE d'origine (voir san)
     figG:'tap', // (2026-10-15, Léo) FIGURES : 'tap' = le double-tap NITRO (d'origine) · 'glisse' = glisser depuis NITRO puis lâcher (voir GLI)
     // EXPLOITS — les compteurs À VIE qui débloquent les caisses. Ils PERSISTENT : le moteur est la
@@ -59278,6 +59368,10 @@ const SAVE={
     c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;c.vib=d.vib!==false; // (2026-09-28) VIBRATIONS : leur propre interrupteur
     if(d.facile===1||d.facile===true)c.facile=1;else if(d.facile===0||d.facile===false)c.facile=0; // (2026-09-29) MODE FACILE : absent = jamais choisi (le 1er JOUER le propose)
     c.figG=d.figG==='glisse'?'glisse':'tap'; // (2026-10-15) LA FIGURE AU GLISSÉ
+    /* (audit p2) TROIS RÉGLAGES ÉCRITS MAIS JAMAIS RELUS : san() part d'un def() neuf et ne recopie que ce qu'il connaît — gaucher (MODE GAUCHER),
+       cmd (le schéma VOLANT/FLÈCHES/INCLINAISON, relu au boot par mobile-tactile) et volInv (haut/bas inversés en vol) revenaient au défaut à chaque relance.
+       Absent / invalide → le défaut d'avant (droitier, volant, vol normal). */
+    c.gaucher=(d.gaucher===1||d.gaucher===true)?1:0;c.volInv=(d.volInv===1||d.volInv===true)?1:0;c.cmd=(d.cmd==='fleches'||d.cmd==='incl')?d.cmd:'volant';
     c.vdep=Math.max(0,Math.min(5,Math.round(+d.vdep)||0)); // (2026-10-19) LA VITESSE DE DÉPART : le cran choisi au garage (0-5 ; vdepN le ramène au plus haut ouvert)
     c.volH=d.volH==='plonge'&&d.volHv>=2?'plonge':'monte';c.volHv=2; // pouce en HAUT en vol : monte (d'origine depuis le 2026-10-10, Léo : « plus logique, plus intuitif sur mobile ») ou plonge (manche d'avion, l'ancien défaut) — `volHv` < 2 : sauvegarde d'avant, basculée UNE fois sur MONTE, le choix fait après est gardé
     /* ⚠ LES VOLUMES SONT BORNÉS À [0,1], ET C'EST UNE VRAIE PROTECTION, pas une formalité : ces
@@ -59291,7 +59385,7 @@ const SAVE={
     /* (2026-10-14, passe perf mobile) « JAMAIS CHOISI » ≠ « A CHOISI RAPIDE » : qChoisi=1 posé par les trois bascules IMAGE. Une sauvegarde
        d'AVANT ce champ (qChoisi absent) en 'net' a forcément choisi (le défaut a toujours été RAPIDE) ; en 'fast' on ne peut pas savoir : elle
        suit le défaut du palier. Jamais choisi → le défaut du palier (qNetDefaut), relu à chaque chargement : qNetDefaut=[0,0,0] = RAPIDE, comme avant. */
-    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&(d.q==='net'||d.q==='haute')))?1:0;if(!c.qChoisi)c.q=PAL.b('qNetDefaut',0)?'net':'fast';
+    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&(d.q==='net'||d.q==='haute')))?1:0;if(!c.qChoisi)c.q=(PAL.b('qNetDefaut',0)||!ALLEGE)?'net':'fast';
     if(d.carrSel&&typeof d.carrSel==='object'&&['nuages','ville','espace','paris'].includes(d.carrSel.id))c.carrSel={id:d.carrSel.id,i:Math.max(0,Math.min(9,d.carrSel.i|0))}; // (2026-10-07) LE NIVEAU DES PLAY (carrSel le revérifie contre la carrière)
     if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
       n:e.n.slice(0,24),
@@ -59448,7 +59542,7 @@ const SAVE={
   },
   mark(){this.dirty=true;},
   natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
-  flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;}catch(e){} /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
+  flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
     if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
@@ -59471,15 +59565,21 @@ const SAVE={
    rattrape le miroir ; réponse pleine → 2 : plus AUCUNE écriture jusqu'au rechargement (le passage en arrière-plan qui accompagne
    un rechargement flushait la sauvegarde vierge PAR-DESSUS celle qu'on venait de semer). Lecture en échec : on reste à 1 — on
    n'écrase pas un secours qu'on n'a pas pu lire. Et on ne recharge que si le localStorage a GARDÉ la valeur (sinon : boucle). */
-if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&!(function(){try{const x=JSON.parse(localStorage[SAVE.K]||'null');return !!x&&typeof x==='object';}catch(e){return false;}})()){ // (2026-10-14, chasse aux bugs) une sauvegarde locale ILLISIBLE (écriture tronquée) comptait comme présente : le miroir n'était pas lu, load repartait à neuf et le 1er flush écrasait le secours natif — perte totale. Illisible = absente
+/* ===== LE MIROIR ATTEND SA LECTURE JUSQU'AU BOUT (2026-11-03, audit p3) ===== si `Preferences.get` échoue ou ne répond jamais, `natif` reste à 1 mais le filet de 30 s / un réglage écrit quand même dans localStorage une sauvegarde (vierge) lisible : au lancement suivant le bloc était sauté, natif=0 et le 1er flush écrasait le secours natif — perte totale. Le TÉMOIN `cashcarSave_natif` (posé par flush tant que natif===1) force la relecture du miroir ; une sauvegarde locale qui a de vraies parties (ex.runs>0) est gardée et rattrape le miroir, sinon le miroir est semé. */
+{const l9=(function(){try{const x=JSON.parse(localStorage[SAVE.K]||'null');return !!x&&typeof x==='object'?x:null;}catch(e){return null;}})();
+const raz9=function(){try{localStorage.removeItem(SAVE.K+'_natif');}catch(e){}};
+if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&(!l9||(function(){try{return localStorage[SAVE.K+'_natif']==='1';}catch(e){return false;}})())){ // (2026-10-14, chasse aux bugs) une sauvegarde locale ILLISIBLE (écriture tronquée) comptait comme présente : le miroir n'était pas lu, load repartait à neuf et le 1er flush écrasait le secours natif — perte totale. Illisible = absente
   SAVE.natif=1;
   try{window.Capacitor.Plugins.Preferences.get({key:SAVE.K}).then(function(r){
     /* ===== LE MIROIR ILLISIBLE NE SE SÈME PAS (24/10, débogage sortie iOS : « aucune progression perdue ») ===== semé tel quel, il rechargeait la page sur un localStorage
        tout aussi illisible, qui relisait le miroir, rechargeait… à l'infini : appli inutilisable. Illisible = vide (le flush qui suit écrit une sauvegarde saine) */
-    if(r&&r.value&&(function(){try{const x9=JSON.parse(r.value);return !!x9&&typeof x9==='object';}catch(e){return false;}})()){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
-      if(ok)location.reload();else SAVE.natif=1;}
-    else{SAVE.natif=0;SAVE.flush();}
+    const mv9=!!(r&&r.value&&(function(){try{const x9=JSON.parse(r.value);return !!x9&&typeof x9==='object';}catch(e){return false;}})());
+    if(mv9&&l9&&(+(l9.ex&&l9.ex.runs)||0)>0){SAVE.natif=0;raz9();SAVE.flush();} /* le local a de vraies parties (jouées après l'échec de lecture) : on le garde, il rattrape le miroir */
+    else if(mv9){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
+      if(ok){raz9();location.reload();}else SAVE.natif=1;}
+    else{SAVE.natif=0;raz9();SAVE.flush();}
   }).catch(function(){});}catch(e){}
+}
 }
 SAVE.load();
 /* (2026-10-16) J'AI DÉJÀ JOUÉ, sans « ne plus me demander » : la leçon n'était sautée que pour l'ouverture d'avant — la question revient. */
@@ -61034,7 +61134,8 @@ function fhCsCale(){const L=FH.cs.children,ch=VP.w>VP.h?10:8,lim=Math.min(VP.w*.
 function figRec(){return +(SAVE.d&&SAVE.d.figRec)||0;} // le meilleur combo jamais POSÉ (le × du vol)
 function fhXMaj(){const c=FX2.cv,x=c.n>=2?figCvX():0;fhEl();FH.el.classList.toggle('combo',c.n>=2);if(x===FH.xv)return;const monte=x>FH.xv;FH.xv=x; /* (v5) la ligne des noms n'existe qu'à partir de DEUX figures : une figure seule s'écrit une fois, en grand */
   FH.x.innerHTML=x?'<small>'+fhNet(TR('COMBO'))+'</small> '+figCvTxtX(x):'';FH.x.style.setProperty('--xc',x>=3?'var(--fhO)':x>=2?'var(--fh0)':'var(--fhVert)');FH.x.classList.toggle('max',x>=IMPU.xMax); // vert → or → orange → l'arc-en-ciel du plafond
-  {const bat=x>0&&x>figRec()+1e-6;if(bat!==FH.recBat){FH.recBat=bat;FH.rec.textContent=bat?fhNet(TR('RECORD')):'';FH.rec.classList.toggle('on',bat);if(bat){fhAnime(FH.rec,[{transform:'scale(2.2)',opacity:0},{transform:'scale(.9)',opacity:1,offset:.6},{transform:'none'}],380);try{hap([6,20,6]);}catch(e){}}}} // (v4) le RECORD bat à côté du × : on le voit tomber en plein vol
+  // (2026-11-03, Sacha : « le badge RECORD en jaune en plein vol, ça sert à rien, enlève-le ») plus de badge « RECORD » à côté du × en vol ;
+  // SAVE.d.figRec (le meilleur combo jamais posé) continue d'être tenu à jour (ligne 114) — il reste lu par la plaque (MEILLEUR COMBO).
   if(x&&monte)fhAnime(FH.x,[{transform:'scale(2.1)',filter:'brightness(2.6)'},{transform:'scale(.9)',offset:.5},{transform:'none',filter:'none'}],380);}
 function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;if(LEFIL.on)filFig(figNom(r.f,figRepsEnCours(r)),figRarH(r.f),1); /* (LE FIL) le nom part dans la pastille ; #fh reste caché */
   const c=o&&o.douce?3:s>=0?Math.min(2,s):3;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement
@@ -61626,8 +61727,12 @@ function m2FocusMaj(){let e=document.getElementById('m2Focus');const on=!MIS_FOC
 function objRenderV2(el){const s=m2Etat(),L=[];
   for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
   for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
-  if(!L.length){let b=null,bp=-1;for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m))continue;let v=0;try{v=m2Val(m);}catch(x){}
-    const p=m2Frac(m,v,m2Seuil(m));if(p<1&&p>bp){bp=p;b=m;}}if(b)L.push({m:b,ok:0});}
+  /* (2026-11-03, Sacha : « améliorer encore un peu ») le panneau ne reste plus à moitié vide : il se complète avec les missions les plus
+     proches du but (avec leur barre) — jusqu'à 2 lignes debout, 3 couché, où il a toute la hauteur de la colonne */
+  {const cible=(window.matchMedia&&matchMedia('(orientation:landscape)').matches)?3:2,C=[];
+    if(L.length<cible)for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
+      let v=0;try{v=m2Val(m);}catch(x){}const p=m2Frac(m,v,m2Seuil(m));if(p<1)C.push({m:m,p:p});}
+    C.sort(function(a,b){return b.p-a.p;});for(const c of C){if(L.length>=cible)break;L.push({m:c.m,ok:0});}}
   const nP=m2NbPret(),c=m2Compte();
   el.className='mObj misPorte m2Ob';el.setAttribute('data-m','mis');el.style.removeProperty('--rc');
   let h='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+(nP?' <i class="m2Pt in"></i>':'')+'</span><b class="m2Cpt">'+c.ok+' / '+c.tot+'</b></div>';
@@ -61702,13 +61807,14 @@ const M2REV={on:false,id:null,t:0};
 Object.assign(I18N,{'CONTINUER':'CONTINUE'});
 function m2RevFile(){const s=m2Etat();return M2.filter(function(m){return m.f==='secret'&&!!(m.r&&m.r.car)&&s.ok.indexOf(m.id)>=0&&s.pr.indexOf(m.id)<0&&m2Pret(m.id);}).map(function(m){return m.id;});}
 function m2RevAuto(delai){if(M2REV.on||!m2RevFile().length)return;clearTimeout(M2REV.t);
-  M2REV.t=setTimeout(function(){if(M2REV.on||m2EnC())return;if(m2RevAttend()){m2RevAuto(400);return;}const L=m2RevFile();if(L.length)m2Revele(L[0]);},delai||0);}
+  M2REV.t=setTimeout(function(){if(M2REV.on||m2EnC()||m2RevVolet())return;if(m2RevAttend()){m2RevAuto(400);return;}const L=m2RevFile();if(L.length)m2Revele(L[0]);},delai||0);}
 /* ===== LA RÉVÉLATION ATTEND SON TOUR (24/10, relecture : « une secrète réussie pendant la partie couvrait l'offre de seconde chance ») =====
    Ouverte 1,4 s après l'écran de fin, plein écran (z-index 95), elle passait PAR-DESSUS la plaque CONTINUER de la seconde chance, qui n'a que
    5,5 s : le joueur regardait la caisse se remplir de couleur pendant que l'offre filait. La machine FINAL SPIN attendait déjà l'offre
    (chanceAttend) ; la révélation l'attend aussi, et attend que la machine (z-index 250, par-dessus elle) soit refermée. Elle repasse toutes les 0,4 s. */
+function m2RevVolet(){try{return !!(typeof ecranWipe==='function'&&ecranWipe._on);}catch(e){return false;}} /* (2026-11-03, audit) LE VOLET EST BAISSÉ = une course se prépare dessous (REJOUER → rejoueAttend, jusqu'à 12 s, pendant lesquelles started&&gameOver tient encore) : une révélation qui s'ouvrait là restait PAR-DESSUS la course lancée (plein écran, elle prend les taps — la caisse roulait sans personne). On ne révèle jamais sous le volet ; la secrète reste dans m2RevFile et se montre à la fin de partie suivante. */
 function m2RevAttend(){try{return !!((typeof chanceAttend==='function'&&chanceAttend())||(typeof SPIN!=='undefined'&&SPIN.ouvert));}catch(e){return false;}}
-function m2Revele(id){const m=m2Def(id);if(!m||M2REV.on||m2EnC())return false;const i=m2CarIdx((m.r||{}).car);if(i<0||carRetiree(i))return false;
+function m2Revele(id){const m=m2Def(id);if(!m||M2REV.on||m2EnC()||m2RevVolet())return false;const i=m2CarIdx((m.r||{}).car);if(i<0||carRetiree(i))return false;
   M2REV.on=true;M2REV.id=id;
   let el=document.getElementById('m2Rev');if(!el){el=document.createElement('div');el.id='m2Rev';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);}
   const ri=rarInfo(carRar(i));el.style.setProperty('--rc',ri.c);el.setAttribute('aria-label',sansAcc(TR('MISSION SECRÈTE')));
@@ -63765,13 +63871,14 @@ function portailPasse(){
   flashEcran('rgba(255,79,216,.6)'); // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
   portalSnd();if(!SONV2)boostSnd();shake=.5; /* (console de son) `portail` porte tout le passage : plus le souffle d'un pad dessous */
   if(SENS)try{sensHap([22,36,12],3);}catch(e){} // (2026-10-14, sensations · passages) le portail CLAQUE dans la main : un coup lourd puis son écho — le plus gros passage du jeu avait son flash, son souffle et sa secousse, mais pas une vibration (les finales et l'auto-école sortent plus haut : rien)
-  const zb=denom()*120*(fever>0?2:1)*flowMult(); /* (2026-10-14, équilibrage) 24 → 120 : un portail paie 15-20 s de pièces, un vrai jalon (+3-5 % sur une bonne partie) */money+=zb;levelCash+=zb;livre('$:portail',zb);checkUpgrade();frenCash(zb,carGroup.position); // portail : 40→24 (régulation 2026-07-30) · (2026-09-29) × le FLOW comme les pièces : franchi en FRÉNÉSIE, il paie ×3
-  runStats.zones++;secPorte(); // (2026-10-14) LES DÉFIS SECRETS : LUNAIRE
+  const dejaPaye=PORTV.paye;PORTV.paye=1; // (2026-11, audit p8) CE portail est payé UNE fois : explosion dans les 1-2 images d'attente → newTrack sauté (mode 'boom') → seconde chance replace la caisse à L−80 de la MÊME piste → elle repasse le portail : la zone n'est pas payée deux fois (remis à 0 par newTrack0, quand une piste neuve est vraiment bâtie)
+  const zb=dejaPaye?0:denom()*120*(fever>0?2:1)*flowMult(); /* (2026-10-14, équilibrage) 24 → 120 : un portail paie 15-20 s de pièces, un vrai jalon (+3-5 % sur une bonne partie) */if(!dejaPaye){money+=zb;levelCash+=zb;livre('$:portail',zb);checkUpgrade();frenCash(zb,carGroup.position);} // portail : 40→24 (régulation 2026-07-30) · (2026-09-29) × le FLOW comme les pièces : franchi en FRÉNÉSIE, il paie ×3
+  if(!dejaPaye){runStats.zones++;secPorte();} // (2026-10-14) LES DÉFIS SECRETS : LUNAIRE
   if(SONV2&&nitroR<nitroCap()-.05)sfx('nitro.plein',{t:.45}); // (console de son) le portail refait le plein : on l'entend, après l'aspiration
   nitroR=Math.max(nitroR,nitroCap()); // le portail regonfle la nitro : chaque zone repart pied au plancher — au plein du MOTEUR (en dur à 2, il vidait un réservoir de 3,6)
-  trickMsg(TR(pickL(ZONE_LINES))+' +'+fmtC(zb),true);
-  flyCash(carGroup.position,8);
-  SURV.pBase+=sP; // la course traverse le portail : les écarts restent vrais (téléportation invisible) — (2026-09-30) même franchi en vol
+  if(!dejaPaye){trickMsg(TR(pickL(ZONE_LINES))+' +'+fmtC(zb),true);
+  flyCash(carGroup.position,8);}
+  if(!dejaPaye)SURV.pBase+=sP; // la course traverse le portail : les écarts restent vrais (téléportation invisible) — (2026-09-30) même franchi en vol
   portPasseNiveau();
 }
 /* LE PASSAGE EN DEUX TEMPS (2026-10-05, Léo : « rends plus smooth la transition entre deux niveaux qui se suivent, avec le portail »).
@@ -63782,7 +63889,7 @@ function portailPasse(){
    le voile tient ~0,28 s (la chauffe des programmes, CHAUFFE_R à +120 ms, tombe dessous) puis s'ouvre en 0,5 s. Pendant l'attente (1 à 2
    images) la caisse reste à la bouche du portail (s ≤ L − 2 : 32 m de marge, mais à 1 900 km/h une image en avale 9). En VOL, la
    construction reste immédiate (la chute continuerait) : le voile cache la coupe. Le temps du jeu, lui, ne ralentit JAMAIS (règle du 26/09). */
-const PORTV={el:null,att:0,n:0,tS:0,t0:0};
+const PORTV={el:null,att:0,n:0,tS:0,t0:0,paye:0}; // paye : le portail de la piste en cours a déjà payé (remis à 0 par newTrack0)
 /* LE PASSAGE PAR LA FENÊTRE (2026-10-17, Léo : « revoir tout le système de transition entre chaque map »). Avec le portail de cubes, le voile
    du passage n'est plus un écran à part (les feux du départ) : c'est L'IMAGE MÊME qu'on traverse. À l'instant du passage la scène est rendue
    une fois et recopiée dans une toile plein écran (la fenêtre couvre déjà tout l'écran : on y voit la map d'en face) ; la toile AVANCE (un
@@ -64107,7 +64214,13 @@ function dmtRattrape(net){const D=DMT,mx=D.mx,q=net?THREE.MathUtils.clamp(1-(D.t
   D.act=false;D.gl=false;D.y=0;D.yV=0;D.burn=true;D.ok++;dmtGivre(false);
   try{if(SONV2)sfx('turbo.mini',{vol:q>.5?-2:-5});}catch(e){}hap(q>.5?[10,24,40]:[10,24]);fovPunch=Math.max(fovPunch,4+4*q);
   if(typeof sensCoup==='function')try{sensCoup(0,1.2+q,-.8);}catch(e){}
-  if(net){flowAdd(4+8*q,'style');nitroGain(.08+.22*q,'rattrape');sparkBurst(sparkGold,carGroup.position,6+Math.round(10*q),8);}
+  /* (2026-11-03, Sacha : « il faut que ce demi-tour donuts donne un gros, une sorte de petit boost de vitesse, mais qui soit assez
+     kiffant et qui fasse des flammes sur la route, les mêmes textures que pour le nitro ») LE BOOST DU RATTRAPAGE : un vrai coup de
+     reins (jusqu'à mx*,9 au rattrapage pile), pas juste la glisse qu'on garde — et `nitroAllume` rejoue EXACTEMENT le coup du nitro
+     (le feu de pixels aux pots, qui traîne au sol derrière la caisse, l'onde, le flash d'écran, la secousse) : zéro code de flamme en
+     plus, le même qu'en tenant NITRO. */
+  if(net){vA=Math.max(vA,mx*(.55+.35*q));flowAdd(4+8*q,'style');nitroGain(.08+.22*q,'rattrape');sparkBurst(sparkGold,carGroup.position,6+Math.round(10*q),8);
+    try{nitroAllume(false,false);}catch(e){}}
   dmtSigne(net?'ok':false);
 }
 function dmtVmax(){return CARS[0].maxKmh/3.6*lateMul()*(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push;} // le maxSp de la boucle (local à loop)
@@ -64146,7 +64259,8 @@ function dmtConduite(dt,frein){const D=DMT; // (boucle de conduite, après le la
   const x=D.t/D.tS,u=x<1?0:Math.min(1,(D.t-D.tS)/(D.D-D.tS));
   if(x<1)vA=-D.vb*Math.pow(1-x,1.5); // la GLISSE en arrière, que les pneus mangent
   else{vA=D.vo*u*u; // le BURN-OUT : ça patine d'abord, puis ça mord
-    if(!D.burn){D.burn=true;try{if(SONV2)sfx('turbo.mini',{vol:-5});}catch(e){}hap([10,24]);fovPunch=Math.max(fovPunch,5);if(typeof sensCoup==='function')sensCoup(0,1.6,-.8);}}
+    if(!D.burn){D.burn=true;try{if(SONV2)sfx('turbo.mini',{vol:-5});}catch(e){}hap([10,24]);fovPunch=Math.max(fovPunch,5);if(typeof sensCoup==='function')sensCoup(0,1.6,-.8);
+      D.vo=Math.max(D.vo,dmtVmax()*.72);nitroGain(.18,'rattrape');try{nitroAllume(false,false);}catch(e){}}} // (2026-11-03, Sacha) le même boost et les mêmes flammes de nitro qu'au RATTRAPAGE du verglas
   if(vA<0&&s<6)vA=0;
   D.vl*=Math.exp(-dt*3.5);lat+=D.vl*dt*SPD; // un reste de dérive latérale, qui meurt vite
   const lim=ROAD_HALF-(CARS[level].w||2)*.5-.35;if(Math.abs(lat)>lim)lat+=(Math.sign(lat)*lim-lat)*(1-Math.exp(-dt*7)); // ramenée sur le bitume
@@ -64608,6 +64722,7 @@ function ccConstr(etape,ms){try{document.dispatchEvent(new CustomEvent('cc:const
 function newTrack(){
   const t0NT=performance.now();ccConstr('debut');try{newTrack0();}finally{ccConstr('fin',Math.round(performance.now()-t0NT));}}
 function newTrack0(){
+  PORTV.paye=0; // (audit p8) une piste neuve est bâtie : son portail paiera de nouveau
   const leger9=PREB.ntLeger;PREB.ntLeger=false; // (LE DÉPART D'AVANCE) la piste que resetGame rebâtit dans la même image : jamais dessinée, seul son ciel compte (voir sous9)
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) portail / nouvelle piste : la tension du vol repart de zéro
   PADCH.sL=0; /* (LE TRAIN DE BOOSTS) il traverse le portail — mais les pads de la nouvelle piste comptent dès son début */
@@ -65117,6 +65232,7 @@ function finSonsCoupe(){
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
 }
 function resetGame(){
+  try{clearTimeout(M2REV.t);if(M2REV.on){M2REV.on=false;M2REV.id=null;const e9=document.getElementById('m2Rev');if(e9){e9.className='';e9.innerHTML='';}}}catch(e){} // (audit p7) REJOUER tapé tôt : `rejoueAttend` garde `started&&gameOver` jusqu'à 12 s, le délai de 1,4 s ouvrait la révélation d'une secrète (z-index 95) PAR-DESSUS la course qui part dessous — elle se ferme (ou ne s'ouvre pas) ici ; la secrète reste dans la file (m2RevFile) pour la prochaine mort
   dmtCoupe(); // (LE DEMI-TOUR) une nouvelle partie repart droite
   SPIN.pose=0; // (2026-10-14) LE FINAL SPIN : le plafond de jetons posés est par partie (ceux qu'on a ramassés restent dans la sauvegarde)
   secReset(); // (2026-10-14) LES DÉFIS SECRETS : chaque partie repart de zéro
@@ -74349,6 +74465,7 @@ $('gPlayMain').addEventListener('click',function(e){
   setTimeout(garJouer,260); // (2026-09-30) le même départ que le JOUER du bas : 1er JOUER → le mode, caisse à l'essai → la tienne, auto-école
 });
 $('gPlayMain').addEventListener('keydown',function(e){
+  if(window.__introCouvre||document.getElementById('splash'))return; /* (audit p11) idem : rien sous le film d'intro */
   if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();playWordWave();setTimeout(garJouer,260);}
 });
 $('gPrev').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);garageGo(-1);});
@@ -74422,7 +74539,7 @@ addEventListener('pointermove',e=>{
 // ⚠ ORBITE BORNÉE À 7,8 m : au-delà on sortait par les murs et on traversait la servante et les
 // piles de pneus. Le décor est rangé POUR ce rayon (rien de posé à moins de 8,3 m du centre).
 addEventListener('wheel',e=>{if(!garageOn||PLQ.on||PLQ.prof)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
-addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on||PLQ.on||PLQ.prof)return; /* (24/10, relecture : « Espace / I / P agissent-ils sur le garage derrière la plaque ? ») le profil ou l'atelier de la plaque ouverts par-dessus : le clavier ne touche plus le garage dessous (I ouvrait l'inventaire, les flèches changeaient la caisse, Entrée lançait la course) — comme la molette (preuve-clavier-profil) */if(GATL.on&&e.code==='Escape'){e.preventDefault();gAtelier(false);return;}if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&garAtelierLibre()){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){if(!GAR.go&&gEl.classList.contains('missions'))garMisRetour();else if(!GAR.go&&!gEl.classList.contains('menu')&&(gModeM()==='shop'||gModeM()==='tous')){uiClic('retour');gModeVa('shop');} /* (2026-10-12, passe qualité) en BOUTIQUE, Échap = ◀ RETOUR (le même chemin que la touche), pas la sortie du garage */ else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on')&&!gEl.classList.contains('shopRet')){e.preventDefault();garJouer();}}); // (passe qualité) pas de JOUER au clavier en BOUTIQUE : la touche JOUER y est masquée · même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
+addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on||PLQ.on||PLQ.prof||window.__introCouvre||document.getElementById('splash'))return; /* (audit p11) l'INTRO DU STUDIO couvre le garage ciel ouvert : Entrée lançait garJouer (caisse lâchée, musique de course) puis start() refusait tant que #splash existe — planté au menu. Même garde que start() */ /* (24/10, relecture : « Espace / I / P agissent-ils sur le garage derrière la plaque ? ») le profil ou l'atelier de la plaque ouverts par-dessus : le clavier ne touche plus le garage dessous (I ouvrait l'inventaire, les flèches changeaient la caisse, Entrée lançait la course) — comme la molette (preuve-clavier-profil) */if(GATL.on&&e.code==='Escape'){e.preventDefault();gAtelier(false);return;}if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&garAtelierLibre()){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){if(!GAR.go&&gEl.classList.contains('missions'))garMisRetour();else if(!GAR.go&&!gEl.classList.contains('menu')&&(gModeM()==='shop'||gModeM()==='tous')){uiClic('retour');gModeVa('shop');} /* (2026-10-12, passe qualité) en BOUTIQUE, Échap = ◀ RETOUR (le même chemin que la touche), pas la sortie du garage */ else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on')&&!gEl.classList.contains('shopRet')){e.preventDefault();garJouer();}}); // (passe qualité) pas de JOUER au clavier en BOUTIQUE : la touche JOUER y est masquée · même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
 
 // ---------- BOUCLE ----------
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();
@@ -74908,6 +75025,7 @@ function ajTick(dt){
   volgTick(dt); // les gains qui flottent puis tombent dans leur jauge (la nitro)
 }
 function loopWarn(b,nom,e){if(!((loop._crWarn|0)&b)){console.warn('créatures/musique · '+nom,e);try{window.__ccNote('panne',nom+' · '+(e&&e.message||e),e&&e.stack&&String(e.stack).split('\n')[1]);}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */loop._crWarn=(loop._crWarn|0)|b;}} // (2026-09-30) un bit par appel gardé : chaque panne se dit UNE fois, sans masquer celle du voisin
+function loopWarnN(nom,e){const w=loop._wn||(loop._wn={});if(w[nom])return;w[nom]=1;console.warn('image · '+nom,e);try{window.__ccNote('panne',nom+' · '+(e&&e.message||e),e&&e.stack&&String(e.stack).split('\n')[1]);}catch(_){}} // (audit p5) comme loopWarn, mais une fois PAR NOM (pas de masque de bits) : pour les tranches de la boucle hors du try de simulation — un décor qui plante ne fige plus l'image, la panne se dit une seule fois
 /* (2026-10-13, passe de sortie — perf-iphone7) BANC : LE COÛT D'UNE IMAGE ENTIÈRE. `renderer.info` se remet à zéro à CHAQUE render() du
    compositeur : seul, il ne montre que la dernière passe (l'ACES : 1 appel, 2 triangles). Armé, il additionne TOUTES les passes de l'image
    (ombre, scène, bloom, ACES, vignette moteur) et la puce se chronomètre là où le navigateur le permet (EXT_disjoint_timer_query_webgl2 —
@@ -75220,13 +75338,13 @@ function loop(now){
     else QL.up=0;
   }
   if(PERF_MON)perfMonTick(now,rawMs);
-  lvlStep(dt);routeTick(); // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
-  ailvTick(dt); // (2026-10-16) LES AILES VIVANTES : le boost, le virage, la montée, la vitrine du garage — avant blingTick, qui les anime
-  blingTick(dt); // (2026-10-10) L'ICEBERG : les éclats de givre scintillent (menu, garage, course)
-  bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
+  try{lvlStep(dt);}catch(e){loopWarnN('niveaux',e);}try{routeTick();}catch(e){loopWarnN('route',e);} // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
+  try{ailvTick(dt);}catch(e){loopWarnN('ailes vivantes',e);} // (2026-10-16) LES AILES VIVANTES : le boost, le virage, la montée, la vitrine du garage — avant blingTick, qui les anime
+  try{blingTick(dt);}catch(e){loopWarnN('éclats',e);} // (2026-10-10) L'ICEBERG : les éclats de givre scintillent (menu, garage, course)
+  try{bioStep(dt);}catch(e){loopWarnN('biomes',e);} // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   try{nuFondTick(dt);}catch(e){} // (2026-10-18) le fond peint de la mer de nuages
   if(mode!=='drive'||!running||gameOver)LIGNE_U.uFile.value*=Math.max(0,1-dt*6); /* (LES TIRETS FILENT) hors de la route, le filé retombe : pas de tirets flous au menu */
-  cityTick(dt,camera.position.y); // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
+  try{cityTick(dt,camera.position.y);}catch(e){loopWarnN('ville',e);} // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
   try{portesTick();}catch(e){} // (optimisation) les chaînes muettes se débranchent, les chaînes appelées se rebranchent
   if(SONV2){ // (console de son) LE VIDE : en orbite, un bourdon qui respire remplace le vent (windG/whG se taisent, voir la boucle audio)
     const v9=LVL.espace>.5&&started&&running&&!paused&&!gameOver&&!garageOn&&mode!=='boom';
@@ -76657,7 +76775,7 @@ function loop(now){
         break;}
     }
     if(!gameOver&&money>=nextRainAt){nextRainAt*=2.6;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
-    if(money>best){if(SONV2&&started&&!gameOver&&!SANDBOX&&!TUTO.on&&best>START_CASH+.5&&!runStats.recSon){runStats.recSon=1;sfx('aura.record',{vol:-6});}best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
+    if(money>best){if(SONV2&&started&&!gameOver&&!SANDBOX&&!TUTO.on&&best>START_CASH+.5&&!runStats.recSon){runStats.recSon=1;sfx('aura.record',{vol:-6});}if(!SANDBOX&&!TUTO.on){best=money;SAVE.d.best=best;SAVE.mark();}} /* (audit p10) ni l'auto-école ni le bac à sable ne posent un record : premiereFois() restait faux dès la 1re image */ // mark : le filet des 30 s (ou la fin de run) écrira
     if(loop._bestHud!==best){loop._bestHud=best;elRecord.textContent=TR('record : ')+fmt(best);}
     // ⚠ on n'écrit la jauge QUE si elle a bougé d'un demi-pour-cent : un style par image, c'est un recalcul de style par image
     // (2026-09-28, HUD v5) la rampe dit la MÊME chose que le disque NITRO : la part du RÉSERVOIR du moteur (orange), puis la réserve bleue
@@ -76722,14 +76840,15 @@ function loop(now){
       if(feverGlow.className!==(feverArmed?'armed':''))feverGlow.className=feverArmed?'armed':'';}
     if(comboT>0){comboT-=dt;if(comboT<=0)combo=0;}
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
-  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
+  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;} /* (2026-11-03, audit p4) UN ÉTAT NON FINI NE DOIT PAS BLOQUER LA PARTIE : un NaN dans s/vA fait jeter frameAt (pts[NaN]) AVANT le test de bord, la caméra, le HUD et endGame — chaque image rejoue la même exception (muette après la 1re), la physique d'avant le point d'erreur continue et aucune mort ne vient. Vitesse, côté, cap non finis → remis à 0 ; position le long du ruban non finie (irrécupérable) → fin de partie normale (endGame, gardée par !gameOver donc jamais deux fois). Sans exception, rien de tout ça ne tourne. */try{if(started&&running&&!gameOver){if(!Number.isFinite(vA))vA=0;if(!Number.isFinite(vL))vL=0;if(!Number.isFinite(lat))lat=0;if(!Number.isFinite(psi))psi=0;if(!Number.isFinite(s)){try{window.__ccNote('boucle','état non fini (s) : fin de partie');}catch(_){}endGame();}}}catch(e2){console.error('loop secours',e2);}}
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
-  vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||(gameOver&&!!PAL.b('vhdMort',1)&&!PCM_ON)||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn)); // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
-  if(garageOn)garageRender(dt);
-  else if(!started||MENUV.retour)menuVitrine(dt); else if(MENUV.bio)menuVitrineFin(); // L'ACCUEIL (au couchant — rendu au niveau dès qu'on le quitte) : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
-  else if(stallOn)stallRender(dt); // ÉTAL : même showroom, mais c'est un fruit qui tourne
+  try{vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||(gameOver&&!!PAL.b('vhdMort',1)&&!PCM_ON)||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn));}catch(e){loopWarnN('vitrine HD',e);} // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
+  if(garageOn)try{garageRender(dt);}catch(e){loopWarnN('garage',e);}
+  else if(!started||MENUV.retour)try{menuVitrine(dt);}catch(e){loopWarnN('vitrine du menu',e);} else if(MENUV.bio)try{menuVitrineFin();}catch(e){loopWarnN('fin de vitrine',e);} // L'ACCUEIL (au couchant — rendu au niveau dès qu'on le quitte) : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
+  else if(stallOn)try{stallRender(dt);}catch(e){loopWarnN('étal',e);} // ÉTAL : même showroom, mais c'est un fruit qui tourne
   try{nyanTick(dt);}catch(e){loopWarn(32,'chat pop-tart',e);}
   try{atchTick(dt);}catch(e){loopWarn(4096,'atchoum',e);} // (2026-10-06) ATCHOUM crache et éternue (voir atchTick) // (2026-10-06) le pas du GIF et l'arc-en-ciel du chat (voir nyanTick)
+  try{ // (audit p5) le ciel, le soleil, les planètes : un plantage de décor ne doit jamais empêcher le rendu
   skyDome.position.copy(camera.position);
   skyU.uTime.value=t;
   skyU.uVille.value=LVL.ville;skyU.uPluie.value=Math.max(LVL.pluie,LVL.brume);skyU.uFogCol.value.copy(scene.fog.color);skyU.uCam.value.copy(camera.position); // LE CIEL DE LA VILLE
@@ -76759,6 +76878,8 @@ function loop(now){
     RAYS[r9].position.y+=RAY_LIFT;
   }
   if(!sunSprite.parent){scene.add(sunSprite);scene.add(horizonGlow);for(const r9 of RAYS)scene.add(r9);}
+  }catch(e){loopWarnN('ciel',e);}
+  try{ // (audit p5) fenêtre d'ombre + liseré
   // fenêtre d'ombre : le soleil suit la caisse, snappé au texel dans le plan lumière (zéro scintillement en roulant)
   const ts9=68/sun.shadow.mapSize.x;
   L_PERP.crossVectors(L_DIR,ORB.haut).normalize();L_UP.crossVectors(L_PERP,L_DIR).normalize(); // (2026-09-27) la fenêtre d'ombre suit LA lumière du niveau : le couchant (L_DIR = SUN_DIR, au bit près) ou le soleil de l'ORBITE (posé par orbiteLumiere)
@@ -76778,11 +76899,13 @@ function loop(now){
   if(fever>0)RIM_U.uRimC.value.setHex(0xffc55e);
   else if(nitroOn)RIM_U.uRimC.value.setHex(nitroBlue?(0xb9c5dc):0xffb886); // (vague 3) la caisse prend le liseré de SA flamme (il était cyan : un néon, pas la nitro de la bible)
   else{RIM_U.uRimC.value.copy(RIM_C0);if(LVL.espace>.001)RIM_U.uRimC.value.lerp(ESP_RIM,LVL.espace);}
-  updateContactShadow();
-  carVit(dt); // (2026-09-26) roues, flou de jante, halos des phares et des feux (frein)
+  }catch(e){loopWarnN('ombre et liseré',e);}
+  try{updateContactShadow();}catch(e){loopWarnN('ombre de contact',e);}
+  try{carVit(dt);}catch(e){loopWarnN('roues et feux',e);} // (2026-09-26) roues, flou de jante, halos des phares et des feux (frein)
   // MUSIQUE + CRÉATURES : hors du try/catch gameplay → protégés à part pour ne jamais casser le rendu
   // mouvement 0..1 : le filtre suit la VITESSE en parallèle — on ralentit, le son se referme progressivement (plein vers ~65 % vmax)
   const musMvt=(running&&!gameOver)?Math.max(0,Math.min(1,(speedKmh/Math.max(1,vmaxShow()))/0.65)):0;
+  try{ // (audit p5) ailes, comète, montage du moteur : décor de la caisse
   // MINI-AILES : déployées en vol, repliées au sol (lissé)
   if(carWingL){const tgt=((mode==='fall'&&!garageOn)||(garageOn&&(SHOP.tab==='aile'||(INV&&INV.on&&INV.cat==='aile')))||!!(AILV.force&&AILV.force.ouvre))?1:0; /* (banc) dbgAilesForce({ouvre:1}) : dépliées en roulant */ // boutique, onglet AILES : on les montre ouvertes
     wingT+=(tgt-wingT)*Math.min(1,dt*6);
@@ -76857,8 +76980,9 @@ function loop(now){
       }
     }
   }else if(swapRing.visible){swapRing.visible=false;swapLight.intensity=0;}
-  juiceScreenTick(dt); // les taches de jus s'effacent, meme en pause
-  fxTick(dt); // ⚠ hors du gate de sim : un refractaire fige en pause rejoue le son au retour
+  }catch(e){loopWarnN('caisse (ailes, comète, montage)',e);}
+  try{juiceScreenTick(dt);}catch(e){loopWarnN('jus',e);} // les taches de jus s'effacent, meme en pause
+  try{fxTick(dt);}catch(e){loopWarnN('fx',e);} // ⚠ hors du gate de sim : un refractaire fige en pause rejoue le son au retour
   /* (2026-09-30) UN try PAR APPEL : dans un seul bloc, une exception de musicTick ou de villeApres sautait les suivants — le banc de
      dauphins, le serpent et la BOULE DE FEU restaient figés en l'air. Chacun son filet, chacun son avertissement (une fois : loopWarn) */
   try{musicTick(dt,musMvt);}catch(e){loopWarn(1,'musique',e);}
@@ -76872,7 +76996,7 @@ function loop(now){
      mortS9 toujours faux, dtA9 = dt — rien ne change. */
   let dtA9=dt;if(mortS9)MORT_IMG.dt=Math.min(.1,MORT_IMG.dt+dt);else if(MORT_IMG.dt>0){dtA9=Math.min(.1,MORT_IMG.dt+dt);MORT_IMG.dt=0;}
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
-  if(JADE.root&&!mortS9){jadeTick(dtA9);try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}} // (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
+  if(JADE.root&&!mortS9){try{jadeTick(dtA9);}catch(e){loopWarnN('jade',e);}try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}} // (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
   try{jsgTick(dt);}catch(e){loopWarn(64,'singes de jade',e);}
   try{jdmTick(dt);}catch(e){loopWarn(1<<22,'dauphins de la mer',e);} // (2026-10-15, Léo) LES DAUPHINS DE LA MER DE JADE (au bout de 5 s dans l'eau ; sautent avec la caisse une fois sur deux) // (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE (décor : coucou, mangue, course, au bord)
   if(!mortS9)try{foretTick(dtA9);}catch(e){window.__foretErr=e;loopWarn(131072,'forêt',e);} // (2026-10-14) LA FORÊT NOIRE : lumière, météo, papillons, feux follets, le loup-garou, les voix du bois
@@ -76883,13 +77007,13 @@ function loop(now){
   try{vitreTick(dt,running&&!paused&&!gameOver&&!BANC_FIGE);}catch(e){loopWarn(8388608,'vitre',e);} // (2026-10-17) LA VILLE VITRÉE : les nuages et leur reflet, l'éclat du soleil, les bureaux la nuit // (2026-10-13) CRYPTO CITY : la lune ₿, les pièces, les fusées, les feux, l'ATH
   try{plaTick(dt,running&&!paused&&!BANC_FIGE);}catch(e){loopWarn(65536,'pluie d argent',e);} // (2026-10-13) LA PLUIE D'ARGENT v2
   try{canyonTick(dt);cyVautours(dt);}catch(e){loopWarn(262144,'canyon',e);}try{dunesTick(dt);}catch(e){loopWarn(33554432,'dunes',e);} /* (2026-10-18) LES DUNES D'OR : après canyonTick (l'ombre des crêtes sur la caisse) */ // (2026-10-14) LE CANYON DES GÉANTS : les lumières du relief, l'ombre des parois sur la caisse
-  if((GRUE.L.length||JADE.root)&&!mortS9)grueTick(dtA9); // …et les vols de grues // (Paris) le scintillement et le phare
+  if((GRUE.L.length||JADE.root)&&!mortS9)try{grueTick(dtA9);}catch(e){loopWarnN('grues',e);} // …et les vols de grues // (Paris) le scintillement et le phare
   try{lumTick(dt,speedKmh);}catch(e){loopWarn(1<<23,'lumières',e);} // (2026-10-17) LES LUMIÈRES DE LA CAISSE v2 : phares, feux, nitro, traînées (voir LUM_GLSL)
   if(mortS9){}else
   if(PCV.fen&&PORTV.att&&!PCV.copie){}else // (2026-10-17, 3e tour) l'image d'attente du passage : l'écran est COUVERT par la fenêtre recopiée — on ne dessine pas l'ancien monde pour rien
   if((started&&!gameOver)||lierPassesPretes()){ /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : hors course, tant qu'une passe de l'image se lie, l'image d'avant reste (voir interface/vignette-moteur.js) */
-  if(POST_ON&&composer)composer.render(); // ACES + bloom
-  else renderer.render(scene,camera);}     // repli si le post n'a pas pu se charger
+  if(POST_ON&&composer)try{composer.render();}catch(e){loopWarnN('rendu',e);} // ACES + bloom
+  else try{renderer.render(scene,camera);}catch(e){loopWarnN('rendu (repli)',e);}}     // repli si le post n'a pas pu se charger
   if(window.__introPrise){const f9=window.__introPrise;window.__introPrise=null;try{f9(renderer.domElement);}catch(e){}} // (2026-10-22) l'intro du studio demande une photo de la scène 3D, prise ici, juste après son rendu (le tampon est encore plein) : les éclats de l'écran en font des loupes — voir moteur/intro-161.js
   if(PCV.copie&&!mortS9)pcCopie(); // (2026-10-17) LE PASSAGE PAR LA FENÊTRE : l'image qu'on traverse, recopiée APRÈS ce rendu (pas de rendu en plus)
   try{if(!mortS9)homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
@@ -77259,6 +77383,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
 // PAUSE commune : clavier P, bouton tactile ⏸ et pause auto passent tous par ici (gère aussi le son)
 function busPlein(){busPlein.n=(busPlein.n|0)+1;clearTimeout(togglePause._t); /* (2026-10-16) compté : LE CLIC DANS LA PAUSE (pauseSon) sait que la partie a repris la sortie */if(AC&&BUSOUT){const t9=AC.currentTime;BUSOUT.gain.cancelScheduledValues(t9);BUSOUT.gain.setValueAtTime(1,t9);}} // (2026-09-28) la sortie commune à plein (voir le fondu de la pause)
 function togglePause(){ if(!started||gameOver)return;
+  if(mode==='boom'&&!paused)return; // (audit p12) PAS de pause pendant l'EXPLOSION (touche P au clavier) : elle figeait la boule de feu, coupait le son de mort et faisait refuser boomSkip — comme tous les chemins tactiles (visibilitychange, ⏸, P via __panBascule) ; la REPRISE (paused vrai) reste toujours possible
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
   if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
   /* (2026-09-28) LES BOUCLES SE TAISENT AVEC LA PAUSE. Suspendre le contexte FIGE les sons continus à leur gain du moment : dès que
@@ -78330,7 +78455,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const padFin=function(e){ for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===padId){padId=null;padSet(0,0,0,0);} };
     pad.addEventListener('touchend',padFin,{passive:true}); pad.addEventListener('touchcancel',padFin,{passive:true});
     let msP=false; pad.addEventListener('mousedown',function(e){msP=true;padLit(e.clientX,e.clientY);start();}); addEventListener('mousemove',function(e){if(msP)padLit(e.clientX,e.clientY);}); addEventListener('mouseup',function(){if(msP){msP=false;padSet(0,0,0,0);}});
-    addEventListener('blur',function(){padId=null;msP=false;padSet(0,0,0,0);}); } // (2026-10-27) FLÈCHES : l'assiette en vol, et le drift (bas) comme au clavier
+    addEventListener('blur',function(){padId=null;msP=false;padSet(0,0,0,0);});
+    document.addEventListener('visibilitychange',function(){ if(document.hidden){padId=null;msP=false;padSet(0,0,0,0);} }); } /* (2026-11-03, audit) comme le volant (stDoigts, plus bas) : l'appli part derrière en plein appui, iOS n'envoie pas toujours touchcancel ni blur — `padId` gardait un identifiant mort et chaque touchstart suivant sortait sur `padId!==null` : plus moyen de tourner */ // (2026-10-27) FLÈCHES : l'assiette en vol, et le drift (bas) comme au clavier
   const nitroDown=function(){ if(!figGlisseOn())veqDoigt(true); if(boomSkip())return; start(); // (2026-10-15) en FIGURES › GLISSER, taper NITRO = booster, rien d'autre // (2026-10-14) l'appui compte pour le TONNEAU (double-tap) // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
     if(started&&!gameOver){ const n9=performance.now();
       lastSpaceT=n9; } }; // (double-tap « DÉCOLLAGE » retiré)
@@ -78693,7 +78819,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   let gearId=null,gearTt=0;
   if(gear){
     gear.addEventListener('touchstart',function(e){ if(gearId===null&&e.changedTouches.length)gearId=e.changedTouches[0].identifier; },{passive:true});
-    gear.addEventListener('touchcancel',function(){ gearId=null; },{passive:true});
+    gear.addEventListener('touchcancel',function(){ gearId=null; },{passive:true}); document.addEventListener('visibilitychange',function(){ if(document.hidden)gearId=null; }); // (2026-11-03, audit) même règle que le pavé : un doigt perdu en arrière-plan ne bloque pas le ⏸
     gear.addEventListener('touchend',function(e){
       let t=null; for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===gearId)t=e.changedTouches[i];
       if(!t)return; gearId=null;
@@ -78940,7 +79066,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
   }
   const MORT_FLOT=!/[?&]mort=ancien\b/.test(location.search); /* (2026-10-25) L'ÉCRAN DE MORT FLOTTANT (voir mFill) — `?mort=ancien` = les cartes d'avant */
-  Object.assign(I18N,{'PARTIE':'THIS RUN','MOYENNE':'AVERAGE','VS MOY':'VS AVG'});
+  Object.assign(I18N,{'PARTIE':'THIS RUN','MOYENNE':'AVERAGE','VS MOY':'VS AVG','MOY.':'AVG','MOTEUR':'ENGINE'});
   window.dbgMortAura=function(a,moy,n,rec){if(a!=null&&started&&!gameOver)auraRun=Math.max(0,+a||0);if(moy!=null){SAVE.d.auraH={s:Math.round(moy*(n||10)),n:n||10};}if(rec!=null)SAVE.d.auraMax=Math.round(rec);return {partie:Math.round(auraRun),moyenne:SAVE.d.auraH,record:SAVE.d.auraMax};}; /* (banc) l'aura de la partie en cours (et la moyenne, le record) pour voir le graphe de l'écran de mort */
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');
@@ -78994,23 +79120,37 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
            plus gros, avec son seul palier ; l'AURA devient un graphe en bougies, lisible d'un coup d'œil — la PARTIE (violet), ta MOYENNE et
            ton RECORD. La moyenne et le record sont ceux d'AVANT la partie (commitExploits) : le graphe dit si tu as fait mieux que d'habitude.
            `?mort=ancien` = les deux cartes d'avant. */
+        /* ===== L'ÉCRAN DE MORT v6 (2026-11-03, Sacha : « c'est calamiteux, recommence […] reprends chaque élément ») — voir css/mort-flottante.css.
+           MOTEUR et AURA sont deux PANNEAUX jumeaux (la même anatomie que la carte MISSIONS) : en-tête (icône + nom à la couleur de la bande,
+           pastille à droite), la grande valeur (le PALIER / l'aura de la partie), le visuel (la pièce 3D / les trois bougies), le pied
+           (le nom du moteur et la jauge des pièces vers le palier suivant / les libellés des bougies). */
         if(h&&MORT_FLOT){
           const n9=(SAVE.d.auraH&&SAVE.d.auraH.n)|0,moy0=commitExploits._moy||0,moyV=Math.round(moy0>0?moy0:(n9<=1?au:0)),
                 recV=Math.max(commitExploits._recAvant||0,SAVE.d.auraMax||0,au),M9=Math.max(1,au,moyV,recV),
-                hP=function(v){return Math.max(4,Math.round(v/M9*78));},
-                bg9=function(k,v,lb){return '<div class="m5Col m5'+k+'" style="--h:'+hP(v)+'%"><div class="m5Pied"><span class="m5Val">'+fA(v)+'</span><i class="m5Meche"></i><i class="m5Corps"></i></div><small>'+TR(lb)+'</small></div>';};
+                hP=function(v){return Math.max(3,Math.round(v/M9*100));},
+                lb9=LANG==='en'?['RUN','AVG','BEST']:['PARTIE','MOY.','RECORD'],
+                bg9=function(k,v,l){return '<div class="m6Col m6'+k+'" style="--h:'+hP(v)+'"><span class="m6Val">'+fA(v)+'</span><i class="m6Barre"></i><small>'+l+'</small></div>';},
+                pas9=function(c,t){return '<em class="m6Badge '+c+'">'+t+'</em>';};
           let vd9='';
-          if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9='<em class="m5Vd rec">'+pxi('etoile')+' '+TR('RECORD !')+'</em>';
-          else if(!tq9&&moy0>0&&au>0){const p9=Math.round((au-moy0)/moy0*100);vd9=p9>=1?'<em class="m5Vd up">▲ +'+p9+' % '+TR('VS MOY')+'</em>':p9<=-1?'<em class="m5Vd down">▼ '+p9+' % '+TR('VS MOY')+'</em>':'<em class="m5Vd">= '+TR('MOYENNE')+'</em>';}
+          if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9=pas9('rec',pxi('etoile')+'<span>'+TR('RECORD')+'</span>');
+          else if(!tq9&&moy0>0&&au>0){const p9=Math.round((au-moy0)/moy0*100);vd9=p9>=1?pas9('up','▲ +'+p9+'%'):p9<=-1?pas9('down','▼ '+p9+'%'):pas9('eq','= '+TR('MOY.'));}
+          const e0=E.coins|0,pc9=nx?Math.max(0,Math.min(1,(coinsGot-e0)/Math.max(1,nx.coins-e0))):1,
+                pied9=nx?'<span class="m6Pc">'+coinsGot+'/'+nx.coins+pxi('piece')+'</span>':'<span class="m6Pc max">'+TR('MAX')+'</span>';
           h.className='mHero m5Hero';
-          h.innerHTML='<div class="m5Mot" style="--ec:'+hx+'"><div class="m5Scene"><i class="m5Halo"></i><canvas class="hMotCv" width="480" height="321"></canvas><i class="m5Ombre"></i></div>'
-            +'<div class="m5Pal'+(eN&&!tq9?' rec':'')+'"><span>'+TR('PALIER')+'</span><b>'+(engTier+1)+'</b></div></div>'
-            +'<div class="m5Aura"><div class="m5Tete"><small>'+TR('AURA')+'</small><b id="mAuraV">0</b>'+vd9+'</div>'
-            +'<div class="m5Graphe"><i class="m5Ligne" style="--h:'+hP(recV)+'%"></i>'+bg9('P',au,'PARTIE')+bg9('M',moyV,'MOYENNE')+bg9('R',recV,'RECORD')+'</div></div>';
+          h.innerHTML='<div class="m6Carte m6Mot" style="--ec:'+hx+'">'
+            +'<div class="m6Tete"><span class="m6Lb">'+pxi('flamme')+'<span>'+TR('MOTEUR')+'</span></span>'+(eN&&!tq9?pas9('rec',pxi('etoile')+'<span>'+TR('RECORD')+'</span>'):'')+'</div>'
+            +'<div class="m6Big"><small>'+TR('PALIER')+'</small><b>'+(engTier+1)+'</b><small class="m6Sur">/'+ENGINE_TIERS.length+'</small></div>'
+            +'<div class="m6Scene"><i class="m6Halo"></i><canvas class="hMotCv" width="'+ENG_RES_W+'" height="'+ENG_RES_H+'"></canvas><i class="m6Ombre"></i></div>'
+            +'<div class="m6Pied"><span class="m6Nom">'+sansAcc(TR(E.n))+'</span>'+pied9+'</div>'
+            +'<div class="m6Jauge'+(nx?'':' max')+'"><em style="width:'+(pc9*100).toFixed(1)+'%"></em></div></div>'
+            +'<div class="m6Carte m6Aura">'
+            +'<div class="m6Tete"><span class="m6Lb">'+pxi('aile')+'<span>'+TR('AURA')+'</span></span>'+vd9+'</div>'
+            +'<div class="m6Big"><b id="mAuraV" style="--n:'+fA(au).length+'">0</b></div>'
+            +'<div class="m6Graphe"><i class="m6Ligne" style="--h:'+hP(recV)+'"></i>'+bg9('P',au,lb9[0])+bg9('M',moyV,lb9[1])+bg9('R',recV,lb9[2])+'</div></div>';
         }
         else if(h){h.className='mHero';h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
             +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em><div class="hNx hNxC6">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>' /* (2026-10-14, charte 6) cartes JUMELLES : la sous-ligne MEILLEUR est toujours là (.hNxC6 = celle que seule la charte 6 montre, quand le badge RECORD ! se tait) */
-          +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR ATTEINT')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
+          +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR ATTEINT')+'</small><canvas class="hMotCv" width="'+ENG_RES_W+'" height="'+ENG_RES_H+'"></canvas>'
             +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN&&!tq9?'<em>'+TR('RECORD !')+'</em>':'')
             +(pr?'<div class="hNx hPres"><span>'+presqueTxt(mq)+'</span><span>'+pxi('haut')+' '+TR(nx.n)+'</span></div>':ci?'<div class="hNx hRec"><span>'+TR('RECORD')+'</span><span>'+TR('PALIER')+' '+(ea+1)+'</span></div>':'' /* (29/09, DEBUGGING) deux morceaux insécables : le chiffre ne tombe plus seul à la ligne */)+'</div>'; // (2026-09-28) « RECORD · PALIER 18 » : le nom du moteur (STATOREACTEUR) cassait la ligne ; la carte parle déjà en paliers
         }
@@ -79087,7 +79227,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function surAccueilCiel(){return MENU_PASSE&&garageOn&&!GAR.go&&!ecranWipe._on&&document.body.classList.contains('garMenuH');}
   function mTap(a,el){
     if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
-    if(a==='replay'&&started&&gameOver){ m2Rejoue(); /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); return rejoueAttend().then(function(){ if(started&&gameOver)resetGame(); }); } }); }; r9(); } /* (2026-10-31) rejoueAttend : le départ d'avance pas fini se finit SOUS le volet, en tranches */ // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
+    if(a==='replay'&&started&&gameOver){ m2Rejoue(); try{clearTimeout(M2REV.t);}catch(e){} /* (2026-11-03, audit) la RÉVÉLATION d'une secrète (m2RevAuto, 1,4 s après la mort) n'a plus à s'ouvrir : REJOUER est parti, elle se montrera à la prochaine fin de partie (m2RevFile la garde) */ /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); return rejoueAttend().then(function(){ if(started&&gameOver)resetGame(); }); } }); }; r9(); } /* (2026-10-31) rejoueAttend : le départ d'avance pas fini se finit SOUS le volet, en tranches */ // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
     else if(a==='play'&&jadePlayOk()){ const go9=function(){goImmersive();jadeJouer();}; // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE, avec sa musique
       if(SAVE.d.facile==null&&!SAVE.d.tuto)Promise.resolve().then(go9);else go9(); }
     else if(a==='play'&&sfPlayOk()){ const go9=function(){goImmersive();classiqueJouer();}; // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
@@ -79371,7 +79511,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
     if(o)feuilleOuvre(dPan,'open');else feuilleFerme(dPan,'open');
     if(o){ dPanSync(); if(started&&!gameOver&&!paused)togglePause(); }
     else if(started&&!gameOver&&paused)togglePause(); }
-  if(dGear)dGear.addEventListener('click',function(e){ e.stopPropagation(); dPanOpen(true); });
+  if(dGear)dGear.addEventListener('click',function(e){ e.stopPropagation(); if(started&&!gameOver&&mode==='boom'){boomSkip();return;} /* (audit p12) comme gearOpenHandler côté mobile : pendant l'explosion, le ⏸ avance à l'écran de fin au lieu d'ouvrir une feuille sur un jeu qui ne se met plus en pause */ dPanOpen(true); });
   if(dPan)dPan.addEventListener('click',function(e){
     e.stopPropagation();
     const el=e.target&&e.target.closest?e.target.closest('.tp'):null;
