@@ -149,8 +149,8 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gBqBtn{displa
 #gBqBtn:is(:active,.appui){translate:0 2px}
 html.bqIndus body #garage #gAct>#gBqBtn[data-e="equip"]{background:#3d4bff}
 html.bqIndus body #garage #gAct>#gBqBtn[data-e="desequip"]{background:#fff;color:#14171c;box-shadow:0 0 0 1.5px #14171c}
-html.bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:#fff;color:#8a929c;box-shadow:0 0 0 1px #dde1e6}
-html.bqIndus body #garage #gAct>#gBqBtn[data-e="defi"]{background:#eef0f3;color:#8a929c;box-shadow:none}
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:#fff;color:#4a5360;box-shadow:0 0 0 1px #dde1e6}
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="defi"]{background:#eef0f3;color:#4a5360;box-shadow:none}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{min-width:0!important;width:auto!important;height:44px!important;min-height:44px!important;padding:0 14px!important;gap:6px!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas span{font-size:8px!important;letter-spacing:1px}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct{translate:0 20px} /* (Léo : « le bouton BACK plus bas ») la barre descend vers le bord */
@@ -176,7 +176,7 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi
 #gBqPan .bqK .bqKp{display:flex;align-items:center;gap:5px;padding:6px 7px 9px;font-size:8px;color:#14171c}
 #gBqPan .bqK .bqKp .pxi{--pxs:1;color:#14171c}
 #gBqPan .bqK .bqKp.eur{color:#3d4bff}
-#gBqPan .bqK .bqKp:is(.acq,.defi){color:#8a929c}
+#gBqPan .bqK .bqKp:is(.acq,.defi){color:#5b6572} /* (2026-11-03, Sacha : « horrible » — MISSION et ÉQUIPÉE se lisaient à peine) gris plus foncé : contraste ≥ 5 sur le fond clair */
 #gBqPan .bqK .bqKl{position:absolute;top:6px;left:6px;padding:4px 6px;background:#3d4bff;color:#fff;font-size:8px;letter-spacing:1px}
 /* (2026-10-31, clarté boutique) LE BADGE « AUSSI » : une figure à deux sens a une carte dans chacune de ses deux sections — sans lui, ça
    ressemble à un doublon. Coin opposé à .bqKl, teinté de la couleur de l'AUTRE emplacement (--dc, voir FIG_DC) pour qu'on la retrouve. */
