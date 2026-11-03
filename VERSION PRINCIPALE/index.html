@@ -8913,11 +8913,13 @@ body.touch #settings{-webkit-backdrop-filter:none;backdrop-filter:none;backgroun
    · LE MOTEUR vit DANS son panneau : le clip-path du panneau le rogne, il ne peut plus jamais passer devant (ni derrière) l'AURA.
    · L'AURA garde les trois bougies demandées le 25/10 (PARTIE · MOYENNE · RECORD), avec des libellés qui tiennent debout. */
 #mDead:not(.m5) .mDuo{display:none}
-html body #mob #mDead.m5{--m6V:#c99bff;--m6Vg:rgba(160,96,255,.55);--m6Bl:#b9d4ff;--m6Pad:10px 12px 11px 15px}
+#mDead:not(.m5) .obVoir{display:none}
+html body #mob #mDead.m5{--m6V:#c99bff;--m6Vg:rgba(160,96,255,.55);--m6Bl:#b9d4ff;--m6Pad:10px 12px 11px 15px;--m6E:12px;--m6H:54px;--m6Lg:54px;--m6D:46px;--m6Fs:var(--f3);--m6Rf:var(--f6);--nch:7}
+html[lang="en"] body #mob #mDead.m5{--nch:10}
 
 /* ---------- LA GRILLE ---------- */
-html body #mob #mDead.m5.on{display:grid!important;gap:0 18px!important;align-items:start;justify-items:stretch;align-content:stretch;box-sizing:border-box;
-  min-height:100%;padding:calc(var(--sT,0px) + 14px) calc(var(--sR,0px) + var(--gut,18px)) calc(var(--sB,0px) + 12px) calc(var(--sL,0px) + var(--gut,18px))!important}
+html body #mob #mDead.m5.on{display:grid!important;gap:0 var(--m6E)!important;align-items:start;justify-items:stretch;align-content:stretch;box-sizing:border-box;
+  min-height:100%;height:100%;padding:calc(var(--sT,0px) + 14px) calc(var(--sR,0px) + var(--gut,18px)) calc(var(--sB,0px) + 12px) calc(var(--sL,0px) + var(--gut,18px))!important}
 html body #mob #mDead.m5>*{margin:0!important;order:0!important}
 html body #mob #mDead.m5 :is(.mStats,.mNew,#mBest2,.mEsp,#mChanceFond,#nameEntry),html body #mob #mDead.m5>.mRow,
 html body #mob #mDead.m5 .mCashL>span{display:none!important}
@@ -8930,7 +8932,7 @@ html body #mob #mDead.m5 .mCashL{grid-area:cash;margin-top:10px!important;displa
   column-gap:12px;row-gap:7px;container-type:inline-size;overflow:visible;
   background:none!important;box-shadow:none!important;clip-path:none!important;border:0!important;padding:0!important}
 html body #mob #mDead.m5 .mCashL::before,html body #mob #mDead.m5 .mCashL::after{content:none!important;display:none!important}
-html body #mob #mDead.m5 .mCashL>b{grid-column:1;grid-row:1;display:block;font-size:min(42px,calc(100cqi / (var(--n,6) + 1.6)))!important;line-height:1;
+html body #mob #mDead.m5 .mCashL>b{grid-column:1;grid-row:1;display:block;font-size:min(48px,calc(100cqi / (var(--n,6) + 1.6)))!important;line-height:1;
   letter-spacing:1px;word-spacing:-.72em;white-space:nowrap;color:var(--cash);transform:skewX(var(--sk));transform-origin:0 100%;
   text-shadow:0 3px 0 var(--cashO),0 0 16px rgba(125,255,155,.5),0 0 40px rgba(125,255,155,.2)!important}
 html body #mob #mDead.m5 .mCashL>b::before{content:'+';margin-right:.1em;opacity:.85}
@@ -8959,7 +8961,7 @@ html body #mob #mDead.m5 .m6Carte{--c:var(--coupe,14px);--fc:var(--kl2);position
   box-shadow:inset 0 0 0 1px var(--fil),var(--levre),inset 3px 0 0 var(--fc)}
 html body #mob #mDead.m5 .m6Mot{--fc:var(--ec)}
 html body #mob #mDead.m5 .m6Aura{--fc:var(--m6V)}
-html body #mob #mDead.m5 #mObj{grid-area:mis;align-self:start;padding:var(--m6Pad)!important;gap:7px!important;min-height:0!important}
+html body #mob #mDead.m5 #mObj{padding:var(--m6Pad)!important;min-height:0!important}
 /* l'en-tête, le même pour les trois (celui des MISSIONS est .obHd) */
 html body #mob #mDead.m5 .m6Tete{display:flex;align-items:center;gap:8px;min-width:0;min-height:18px}
 html body #mob #mDead.m5 .m6Lb{display:inline-flex;align-items:center;gap:6px;min-width:0;font-size:var(--f2);letter-spacing:2px;color:var(--fc);white-space:nowrap}
@@ -8970,7 +8972,7 @@ html body #mob #mDead.m5 .m6Tete>.m6Badge{margin-left:auto}
 /* la grande valeur */
 html body #mob #mDead.m5 .m6Big{display:flex;align-items:baseline;gap:7px;min-width:0;margin-top:9px;line-height:1;white-space:nowrap}
 html body #mob #mDead.m5 .m6Big>small{font-size:var(--f0);letter-spacing:2px;color:var(--tx2)}
-html body #mob #mDead.m5 .m6Big>small.m6Sur{margin-left:-3px;letter-spacing:0;color:var(--tx3)}
+html body #mob #mDead.m5 .m6Big>small.m6Sur{margin-left:0;letter-spacing:0;color:var(--tx3)}
 html body #mob #mDead.m5 .m6Big>b{font-weight:400;font-size:min(var(--f9),calc(100cqi / (var(--n,3) + .4)));letter-spacing:1px;word-spacing:-.5em}
 html body #mob #mDead.m5 .m6Mot .m6Big>b{color:color-mix(in srgb,var(--ec) 45%,#fff);text-shadow:0 2px 0 var(--txO),0 0 14px color-mix(in srgb,var(--ec) 75%,transparent)}
 html body #mob #mDead.m5 .m6Aura .m6Big>b{color:var(--m6V);text-shadow:0 2px 0 #1a0a3a,0 0 12px var(--m6Vg),0 0 26px rgba(138,77,255,.3)}
@@ -9013,23 +9015,41 @@ html body #mob #mDead.m5 .m6M :is(.m6Val,small){color:var(--m6Bl)}
 html body #mob #mDead.m5 .m6R .m6Barre{background:linear-gradient(180deg,#fff1b8,#ffc400 48%,#b06c05);box-shadow:0 0 10px rgba(255,200,60,.35),inset 0 2px 0 rgba(255,255,255,.55)}
 html body #mob #mDead.m5 .m6R :is(.m6Val,small){color:var(--or)}
 
-/* ---------- LES TOUCHES : la touche du jeu, aux mêmes hauteurs ---------- */
-html body #mob #mDead.m5 #mDouble{grid-area:dbl;margin-top:10px!important;width:auto!important;min-height:44px!important;padding:0 14px;gap:12px;font-size:var(--f1)}
-html body #mob #mDead.m5 #mDouble :is(.dbS,.dbT){word-spacing:-.6em}
-html body #mob #mDead.m5 .mDuo{grid-area:duo;margin-top:10px!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;width:auto}
-html body #mob #mDead.m5 .mDuo>.pbtn{min-height:44px;padding:0 10px;gap:9px;font-size:var(--f1);letter-spacing:1px}
-html body #mob #mDead.m5 .mDuo>.pbtn .pxi{--pxs:2}
-html body #mob #mDead.m5 .mvGar{--nc:var(--neoC)}
-html body #mob #mDead.m5 .mvSet{--nc:var(--or)}
+/* ---------- LES TOUCHES (2026-11-03, Sacha : « je préfère home, garage, réglages et c'est tout », « le ×2 comme CONTINUER ▶ PUB »,
+   « les boutons sont trop petits par rapport au reste », « l'engrenage en jaune si le bouton est jaune ») ----------
+   Deux groupes. CE QUI EMMÈNE AILLEURS : ⌂ · GARAGE · RÉGLAGES, une ligne à eux seuls. CE QUI RELANCE : le ×2 (une ligne, « ×2 +$ N ▶ PUB »,
+   comme CONTINUER ▶ PUB), posé juste AU-DESSUS de REJOUER, le lingot. Couché : ⌂ GARAGE RÉGLAGES en bas à gauche, ×2 puis REJOUER dans la
+   colonne des MISSIONS ; debout : ⌂ GARAGE RÉGLAGES, ×2, REJOUER. Chaque icône prend la couleur de SA touche. La case du ×2 est réservée
+   dès qu'il est dû (.m6Dbl, posée par sa relecture) : il entre 1,1 s après l'écran sans rien pousser. */
+html body #mob #mDead.m5 :is(.mDuo,.mFin){display:contents!important}
+html body #mob #mDead.m5 :is(.mDuo,.mFin)>.pbtn{margin-left:0!important;margin-right:0!important;margin-bottom:0!important;min-width:0!important;width:auto!important}
+html body #mob #mDead.m5 .mvGar{grid-area:gar;--nc:var(--neoC)}
+html body #mob #mDead.m5 .mvSet{grid-area:set;--nc:var(--or)}
+html body #mob #mDead.m5 .mMenu{grid-area:home;--nc:var(--neoL)}
+html body #mob #mDead.m5 [data-m="replay"]{grid-area:rej}
+html body #mob #mDead.m5 :is(.mvGar,.mvSet,.mMenu) .pxi{color:var(--nc)!important}
+/* GARAGE, RÉGLAGES : libellé --m6Fs, icône ×2 ; l'icône se retire si la touche est trop étroite */
+html body #mob #mDead.m5 :is(.mvGar,.mvSet){min-height:var(--m6H)!important;padding:0 12px!important;gap:10px;font-size:var(--m6Fs);letter-spacing:1px;container-type:inline-size}
+html body #mob #mDead.m5 :is(.mvGar,.mvSet) .pxi{--pxs:2}
+@media (orientation:landscape){@container (max-width:122px){html body #mob #mDead.m5 :is(.mvGar,.mvSet) .pxi{display:none}}}
 html body #mob #mDead.m5 .mVerre .mBadge{position:absolute;top:-8px;right:-6px;transform:scale(.86);transform-origin:100% 0}
-html body #mob #mDead.m5 .mFin{grid-area:rej;margin-top:10px!important;display:flex!important;align-items:stretch;gap:12px;width:auto;position:static}
-html body #mob #mDead.m5 .mFin>.mMenu{--nc:var(--neoL);flex:none;width:var(--m6Lg,56px)!important;min-width:var(--m6Lg,56px)!important;min-height:var(--m6Lg,56px)!important;padding:0!important}
-html body #mob #mDead.m5 .mFin>.mMenu .pxi{--pxs:3}
-html body #mob #mDead.m5 .mFin>[data-m="replay"]{flex:1;min-width:0;width:auto;min-height:var(--m6Lg,56px)!important;margin:0;padding:0 16px}
-/* LA SECONDE CHANCE : pendant l'offre, NON MERCI prend la place de GARAGE · RÉGLAGES et CONTINUER celle de ⌂ · REJOUER */
-html body.chOffre #mob #mDead.m5 .mDuo,html body.chOffre #mob #mDead.m5 .mFin{display:none!important}
-html body #mob #mDead.m5 #mChanceNon:not([hidden]){grid-area:duo;margin-top:10px!important;width:auto;min-height:44px!important;font-size:var(--f1)}
-html body #mob #mDead.m5 #mChance:not([hidden]){grid-area:rej;margin-top:10px!important;width:auto;min-height:var(--m6Lg,56px)!important}
+html body #mob #mDead.m5 .mMenu{min-height:var(--m6H)!important;padding:0!important}
+html body #mob #mDead.m5 .mMenu .pxi{--pxs:3}
+/* le ×2 : une ligne, comme CONTINUER ▶ PUB — « ×2 » en vert, ce qu'il rapporte, puis ▶ PUB */
+html body #mob #mDead.m5 #mDouble{grid-area:dbl;margin-left:0!important;margin-right:0!important;margin-bottom:0!important;width:auto!important;min-width:0!important;
+  min-height:var(--m6D)!important;padding:0 14px!important}
+html body #mob #mDead.m5 #mDouble:not([hidden]){display:flex!important;align-items:center;justify-content:center;gap:14px}
+html body #mob #mDead.m5 #mDouble .dbT{font-size:var(--f5);line-height:1;letter-spacing:0}
+html body #mob #mDead.m5 #mDouble .dbS{font-size:var(--f3);line-height:1;letter-spacing:0;word-spacing:-.3em;white-space:nowrap}
+html body #mob #mDead.m5 #mDouble .dbP{display:inline-flex;align-items:center;gap:7px;font-size:var(--f3);line-height:1;letter-spacing:1px;white-space:nowrap}
+html body #mob #mDead.m5 #mDouble .dbP .pxi{--pxs:1.5}
+/* REJOUER : le seul lingot ; son libellé se règle sur la largeur de sa case (REJOUER 7 lettres, PLAY AGAIN 10) */
+html body #mob #mDead.m5 [data-m="replay"]{min-height:var(--m6Lg)!important;padding:0 14px!important;container-type:inline-size}
+html body #mob #mDead.m5 [data-m="replay"]>span{font-size:min(var(--m6Rf),calc((100cqi - 30px) / (var(--nch) * 1.2)));letter-spacing:.2em;white-space:nowrap}
+/* LA SECONDE CHANCE : pendant l'offre, NON MERCI prend la ligne ⌂ GARAGE RÉGLAGES, CONTINUER la place de REJOUER */
+html body.chOffre #mob #mDead.m5 :is(.mDuo,.mFin){display:none!important}
+html body #mob #mDead.m5 #mChanceNon:not([hidden]){margin-left:0!important;margin-right:0!important;margin-bottom:0!important;width:auto;min-height:var(--m6H)!important;font-size:var(--m6Fs)}
+html body #mob #mDead.m5 #mChance:not([hidden]){grid-area:rej;margin-left:0!important;margin-right:0!important;margin-bottom:0!important;width:auto;min-height:var(--m6Lg)!important}
 
 /* ---------- L'ENTRÉE : le résultat, puis les panneaux, puis les touches ---------- */
 html body #mob #mDead.m5.on>*{animation:none}
@@ -9051,50 +9071,88 @@ html body #mob #mDead.m5.on .m6R .m6Barre{animation-delay:.72s}html body #mob #m
 @keyframes m6Pousse{from{transform:scaleY(0)}}
 @keyframes m6Apparait{from{opacity:0;transform:translateY(4px)}}
 
-/* ---------- COUCHÉ : le résultat à gauche, les missions et les touches à droite ----------
-   Les MISSIONS descendent jusqu'aux touches (leur pied « VOIR » se pose en bas) : la colonne de droite est pleine comme celle de gauche,
-   plus de trou entre le panneau et les touches. */
+/* ---------- COUCHÉ (844 × 390, le téléphone de Sacha) : TROIS BANDES ----------
+   en haut le RÉSULTAT (titre, puis l'argent, et à sa droite le badge et le compte) ; au milieu MOTEUR | AURA | MISSIONS, même haut ; en
+   bas ⌂ GARAGE RÉGLAGES sous MOTEUR | AURA. La dernière colonne = un tiers exact : les MISSIONS, le ×2, REJOUER, l'un sous l'autre. */
 @media (orientation:landscape){
-  html body #mob #mDead.m5.on{grid-template-columns:minmax(0,1.38fr) minmax(0,1fr);grid-template-rows:auto auto auto minmax(0,1fr) auto auto;
-    grid-template-areas:"over ." "cause ." "cash dbl" "hero mis" "hero duo" "hero rej"}
-  /* le ×2 double CE montant : il se pose à sa hauteur, en face de lui */
-  html body #mob #mDead.m5 #mDouble{align-self:center;margin-top:0!important}
-  /* les trois panneaux partagent leur haut ; les MISSIONS descendent jusqu'aux touches (le pied « VOIR » en bas) */
-  html body #mob #mDead.m5 #mObj{align-self:stretch;margin-top:14px!important}
-  html body #mob #mDead.m5 #mObj>.obFt{margin-top:auto}
+  html body #mob #mDead.m5.on{grid-template-columns:var(--m6H) minmax(0,1fr) minmax(0,1fr) calc((100% - 2 * var(--m6E)) / 3);grid-template-rows:auto auto auto minmax(0,1fr) auto auto;
+    grid-template-areas:"over over over over" "cause cause cause cause" "cash cash cash cash" "hero hero hero mis" "hero hero hero mis" "home gar set rej"}
+  html body #mob #mDead.m5.on.m6Dbl{grid-template-areas:"over over over over" "cause cause cause cause" "cash cash cash cash" "hero hero hero mis" "hero hero hero dbl" "home gar set rej"}
+  html body #mob #mDead.m5 .mCashL{margin-top:10px!important;grid-template-rows:auto auto;column-gap:18px;row-gap:8px;align-content:center}
+  html body #mob #mDead.m5 .mCashL>b{grid-row:1/3;align-self:center}
+  html body #mob #mDead.m5 .mCashL>em.mCashRec{grid-column:2;grid-row:1;align-self:end;justify-self:start}
+  html body #mob #mDead.m5 .mCashL>small{grid-column:2;grid-row:2;align-self:start}
+  html body #mob #mDead.m5 .mHero.m5Hero,html body #mob #mDead.m5 #mObj{margin-top:16px!important;align-self:stretch}
+  html body #mob #mDead.m5.on :is(#mDouble,.mMenu,.mvGar,.mvSet,[data-m="replay"],#mChance,#mChanceNon){margin-top:var(--m6E)!important}
+  html body #mob #mDead.m5.on #mChanceNon:not([hidden]){grid-row:6;grid-column:1/4}
+  /* le panneau MISSIONS a la hauteur que lui laisse le ×2 : trop court, chaque mission tient sur une ligne */
+  html body #mob #mDead.m5 #mObj{container:m6mis / size}
+  @container m6mis (max-height:136px){html body #mob #mDead.m5 #mObj .obM6>span{-webkit-line-clamp:1}}
 }
-/* le pied des MISSIONS (À RÉCUPÉRER · VOIR) posé sur un filet : en-tête / liste / pied se lisent comme trois étages, même quand la liste est courte */
-html body #mob #mDead.m5 #mObj>.obFt{padding-top:9px;box-shadow:inset 0 1px 0 rgba(160,140,230,.16)}
-/* ---------- DEBOUT : une colonne, centrée ; trois panneaux pleine largeur (le visuel à droite), les touches en bas ----------
-   Côte à côte, deux panneaux de 171 px rapetissaient la pièce et serraient les bougies ; empilés pleine largeur, le moteur et le graphe
-   ont leur place, et les panneaux prennent la hauteur libre au lieu de laisser un trou au-dessus des touches. */
+
+/* ---------- LES MISSIONS : le même panneau que ses deux voisins ----------
+   plus de pied (« VOIR » est la flèche de l'en-tête, « À RÉCUPÉRER » la pastille verte) ; chaque mission en cours : son texte sur toute la
+   largeur (deux lignes au besoin, plus de « … » au milieu d'un mot), dessous sa barre, et son compte au bout de la barre. */
+html body #mob #mDead.m5 #mObj{grid-area:mis;display:flex!important;flex-direction:column;justify-content:flex-start!important;gap:11px!important}
+html body #mob #mDead.m5 #mObj>.obHd{min-height:18px;gap:8px;font-size:var(--f2)!important;letter-spacing:2px;white-space:nowrap}
+html body #mob #mDead.m5 #mObj>.obHd>span{min-width:0}
+html body #mob #mDead.m5 #mObj>.obHd>span>.pxi{--pxs:1.5}
+html body #mob #mDead.m5 #mObj .m2Cpt{display:inline-flex;align-items:center;flex:none;letter-spacing:0;word-spacing:-.2em;white-space:nowrap}
+html body #mob #mDead.m5 #mObj>.obFt{display:none!important}
+html body #mob #mDead.m5 #mObj .obVoir{display:inline-flex;margin-left:8px;color:var(--tx2)}
+html body #mob #mDead.m5 #mObj .obVoir .pxi{--pxs:1}
+html body #mob #mDead.m5 #mObj .obM6{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:8px;row-gap:7px;align-items:center}
+html body #mob #mDead.m5 #mObj .obM6>.pxi{grid-column:1;grid-row:1;align-self:start;margin-top:1px}
+html body #mob #mDead.m5 #mObj .obM6>span{grid-column:2/4;grid-row:1;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+html body #mob #mDead.m5 #mObj .obM6>.obBar{grid-column:2;grid-row:2;margin:0!important}
+html body #mob #mDead.m5 #mObj .obM6>b{grid-column:3;grid-row:2;line-height:1}
+html body #mob #mDead.m5 #mObj .obM.ok:not(.sec){display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:8px;align-items:start}
+html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>.pxi{margin-top:1px}
+html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>span{white-space:normal;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
+
+/* ---------- DEBOUT : une colonne, centrée ; les panneaux pleine largeur (le visuel à droite), puis les touches, en trois étages ----------
+   (2026-11-03, Sacha : « moteur et aura beaucoup trop grands par rapport aux boutons ») les touches prennent leur vraie taille — 56 px,
+   le ×2 52, le lingot 64 et son libellé en grand — et les deux panneaux se partagent ce qui reste. */
 @media (orientation:portrait){
-  html body #mob #mDead.m5.on{--m6Lg:62px;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto auto minmax(0,1fr) auto auto auto;
-    grid-template-areas:"over" "cause" "cash" "dbl" "hero" "mis" "duo" "rej";padding-top:calc(var(--sT,0px) + 22px)!important}
+  /* les tailles suivent la HAUTEUR UTILE (l'écran moins l'encoche et la barre du bas) : 844 → 56 / 52 / 64 ; iPhone à encoche (763) → 50 / 47 / 58 */
+  html body #mob #mDead.m5{--m6Av:calc(100vh - var(--sT,0px) - var(--sB,0px))}
+  html body #mob #mDead.m5.on{--m6H:clamp(48px,calc(var(--m6Av) * .066),56px);--m6Lg:clamp(54px,calc(var(--m6Av) * .076),64px);--m6D:clamp(44px,calc(var(--m6Av) * .062),52px);
+    --m6Pas:clamp(12px,calc(var(--m6Av) * .023),20px);--m6Fs:11px;--m6Rf:var(--f9);grid-template-columns:var(--m6H) minmax(0,1fr) minmax(0,1fr);
+    grid-template-rows:auto auto auto minmax(0,1fr) auto auto auto auto;
+    grid-template-areas:"over over over" "cause cause cause" "cash cash cash" "hero hero hero" "mis mis mis" "home gar set" ". . ." "rej rej rej";padding-top:calc(var(--sT,0px) + 22px)!important}
+  html body #mob #mDead.m5.on.m6Dbl{grid-template-areas:"over over over" "cause cause cause" "cash cash cash" "hero hero hero" "mis mis mis" "home gar set" "dbl dbl dbl" "rej rej rej"}
   html body #mob #mDead.m5 #mOverT{justify-self:center;transform-origin:50% 100%}
   html body #mob #mDead.m5 #mCause{text-align:center}
-  html body #mob #mDead.m5 .mCashL{justify-content:center;justify-items:center}
-  html body #mob #mDead.m5 .mCashL>b{transform-origin:50% 100%;font-size:min(48px,calc(100cqi / (var(--n,6) + 1.6)))!important}
-  html body #mob #mDead.m5 .mCashL>small{text-align:center}
-  html body #mob #mDead.m5 #mDouble{margin-top:14px!important}
-  html body #mob #mDead.m5 .mHero.m5Hero{margin-top:16px!important;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.15fr) minmax(0,1fr);max-height:470px}
-  html body #mob #mDead.m5 .m6Mot{display:grid;column-gap:12px;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+  /* l'argent seul sur sa ligne, au plus grand ; dessous, côte à côte, le badge et le compte */
+  html body #mob #mDead.m5 .mCashL{margin-top:12px!important;display:flex!important;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 12px}
+  html body #mob #mDead.m5 .mCashL>b{order:1;flex:0 0 100%;text-align:center;transform-origin:50% 100%;font-size:min(56px,calc(100cqi / (var(--n,6) + 2.4)),calc(var(--m6Av) * .066))!important}
+  html body #mob #mDead.m5 .mCashL>em.mCashRec{order:2;flex:none}
+  html body #mob #mDead.m5 .mCashL>small{order:3;flex:0 1 auto;width:auto!important;text-align:left}
+  /* GARAGE, RÉGLAGES : l'icône au-dessus du libellé (côte à côte, RÉGLAGES n'avait plus la place de garder la sienne) */
+  html body #mob #mDead.m5 :is(.mvGar,.mvSet){flex-direction:column;gap:6px}
+  html body #mob #mDead.m5 .mHero.m5Hero{margin-top:var(--m6Pas)!important;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1.12fr) minmax(0,1fr)}
+  html body #mob #mDead.m5 .m6Mot{display:grid;column-gap:12px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     grid-template-rows:auto minmax(0,1fr) auto auto auto minmax(0,1fr);grid-template-areas:"tete tete" ". scene" "big scene" "pied scene" "jauge scene" ". scene"}
   html body #mob #mDead.m5 .m6Mot>.m6Tete{grid-area:tete}
   html body #mob #mDead.m5 .m6Mot>.m6Big{grid-area:big;margin-top:0}
-  html body #mob #mDead.m5 .m6Mot>.m6Pied{grid-area:pied;margin-top:12px;flex-direction:column;align-items:flex-start;gap:8px}
+  html body #mob #mDead.m5 .m6Mot>.m6Pied{grid-area:pied;margin-top:10px;flex-direction:column;align-items:flex-start;gap:8px}
   html body #mob #mDead.m5 .m6Mot>.m6Jauge{grid-area:jauge;margin-top:9px}
-  html body #mob #mDead.m5 .m6Mot>.m6Scene{grid-area:scene;margin:6px -4px -4px 0}
-  /* debout la scène a toute la hauteur de la carte : la pièce y prend sa vraie place (elle flottait, petite, au milieu du vide) */
+  html body #mob #mDead.m5 .m6Mot>.m6Scene{grid-area:scene;margin:4px -4px -4px 0}
+  /* debout la scène a toute la hauteur de la carte : la pièce y prend sa vraie place */
   html body #mob #mDead.m5 .m6Mot>.m6Scene .hMotCv{width:142%;height:142%}
   html body #mob #mDead.m5 .m6Aura{display:grid;column-gap:14px;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);grid-template-rows:auto minmax(0,1fr);
     grid-template-areas:"tete tete" "big graphe"}
   html body #mob #mDead.m5 .m6Aura>.m6Tete{grid-area:tete}
   html body #mob #mDead.m5 .m6Aura>.m6Big{grid-area:big;align-self:center;margin-top:0}
-  html body #mob #mDead.m5 .m6Aura>.m6Graphe{grid-area:graphe;margin-top:4px}
+  /* debout le grand chiffre n'a que sa colonne (≈ 38 % de la carte) : 128 400 y tient aussi */
+  html body #mob #mDead.m5 .m6Aura>.m6Big>b{font-size:min(var(--f9),calc(38cqi / (var(--n,3) + .4)))}
+  html body #mob #mDead.m5 .m6Aura>.m6Graphe{grid-area:graphe;margin-top:4px;min-height:44px}
   html body #mob #mDead.m5 #mObj{margin-top:12px!important}
-  html body #mob #mDead.m5 .mDuo,html body #mob #mDead.m5 #mChanceNon:not([hidden]){margin-top:16px!important}
-  html body #mob #mDead.m5 .mFin,html body #mob #mDead.m5 #mChance:not([hidden]){margin-top:12px!important}
+  /* les panneaux, puis un vrai pas avant les touches ; entre deux étages de touches, l'écart commun */
+  html body #mob #mDead.m5.on :is(.mMenu,.mvGar,.mvSet,#mChanceNon){margin-top:var(--m6Pas)!important}
+  html body #mob #mDead.m5.on :is(#mDouble,[data-m="replay"],#mChance){margin-top:var(--m6E)!important}
+  html body #mob #mDead.m5.on #mChanceNon:not([hidden]){grid-row:6;grid-column:1/-1}
 }
 @media (prefers-reduced-motion:reduce){html body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val){animation:none!important}}
 html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val){animation:none!important}
@@ -61747,20 +61805,23 @@ function m2FocusMaj(){let e=document.getElementById('m2Focus');const on=!MIS_FOC
 function objRenderV2(el){const s=m2Etat(),L=[];
   for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
   for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
-  /* (2026-11-03, Sacha : « améliorer encore un peu ») le panneau ne reste plus à moitié vide : il se complète avec les missions les plus
-     proches du but (avec leur barre) — jusqu'à 2 lignes debout, 3 couché, où il a toute la hauteur de la colonne */
-  {const cible=(window.matchMedia&&matchMedia('(orientation:landscape)').matches)?3:2,C=[];
+  /* (2026-11-03, Sacha : « améliorer encore un peu », puis « mission il prend trop de place ») le panneau ne reste plus à moitié vide :
+     il se complète avec les missions les plus proches du but (avec leur barre), jusqu'à 2 (couché, le ×2 prend sa place sous le panneau) */
+  const flot9=!/[?&]mort=ancien\b/.test(location.search); /* l'écran de mort v6 (MORT_FLOT vit dans la coque, hors de portée ici) */
+  {const cible=2,C=[];
     if(L.length<cible)for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
       let v=0;try{v=m2Val(m);}catch(x){}const p=m2Frac(m,v,m2Seuil(m));if(p<1)C.push({m:m,p:p});}
     C.sort(function(a,b){return b.p-a.p;});for(const c of C){if(L.length>=cible)break;L.push({m:c.m,ok:0});}}
   const nP=m2NbPret(),c=m2Compte();
   el.className='mObj misPorte m2Ob';el.setAttribute('data-m','mis');el.style.removeProperty('--rc');
-  let h='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+(nP?' <i class="m2Pt in"></i>':'')+'</span><b class="m2Cpt">'+c.ok+' / '+c.tot+'</b></div>';
+  let h='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+(nP?' <i class="m2Pt in"></i>':'')+'</span><b class="m2Cpt">'+c.ok+' / '+c.tot+'<i class="obVoir">'+pxi('droite')+'</i></b></div>';
   for(const x of L){const m=x.m;
     if(m.f==='secret')h+='<div class="obM ok sec">'+pxi('oeil')+'<span>'+sansAcc(TR('MISSION SECRÈTE TROUVÉE'))+'</span></div>';
     else if(x.ok)h+='<div class="obM ok">'+pxi('coche')+'<span>'+sansAcc(m2Txt(m))+'</span><em>'+sansAcc(m2RecNom(m))+'</em></div>';
     else{let v=0;try{v=m2ValCourse(m);}catch(q){}const t=m2Seuil(m);
-      h+='<div class="obM">'+pxi((M2_FAM[m.f]||M2_FAM.exploit).ic)+'<span>'+sansAcc(m2Txt(m))+'</span><b>'+m2Prog(m,v,t)+'</b></div><div class="obBar"><i style="width:0%" data-w="'+(100*m2Frac(m,v,t)).toFixed(1)+'"></i></div>';}}
+      const ic9=pxi((M2_FAM[m.f]||M2_FAM.exploit).ic),tx9='<span>'+sansAcc(m2Txt(m))+'</span>',br9='<div class="obBar"><i style="width:0%" data-w="'+(100*m2Frac(m,v,t)).toFixed(1)+'"></i></div>',pg9='<b>'+m2Prog(m,v,t)+'</b>';
+      /* écran de mort v6 : le texte sur toute la largeur (deux lignes au besoin), la barre dessous et le compte AU BOUT de sa barre */
+      h+=flot9?'<div class="obM obM6">'+ic9+tx9+br9+pg9+'</div>':'<div class="obM">'+ic9+tx9+pg9+'</div>'+br9;}}
   h+='<div class="obFt"><span>'+sansAcc(TR(nP?'À RÉCUPÉRER':'TOUTES LES MISSIONS'))+'</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';
   el.innerHTML=h;
   const bars=el.querySelectorAll('.obBar i');
@@ -79466,6 +79527,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     let vu0=0,mort=-1,prep=false,deja=false;
     const maj=function(){let e=null;try{e=dblEtat();}catch(_){e=null;}const ok=!!(e&&e.ok);
       if(mort!==TCTL.mortT){mort=TCTL.mortT;prep=false;deja=false;}
+      {const d9=$t('mDead');if(d9)d9.classList.toggle('m6Dbl',ok);} /* écran de mort v6 : la case du ×2 est RÉSERVÉE dès qu'il est dû — il entre 1,1 s plus tard sans rien pousser */
       if(!ok)vu0=0;else if(!vu0)vu0=performance.now();
       const voir=ok&&(deja||performance.now()-vu0>=1100); // (une pub fermée trop tôt : la plaque revient tout de suite, sans rejouer son entrée)
       if(voir)deja=true;
