@@ -154,8 +154,12 @@ function m2FocusMaj(){let e=document.getElementById('m2Focus');const on=!MIS_FOC
 function objRenderV2(el){const s=m2Etat(),L=[];
   for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
   for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
-  if(!L.length){let b=null,bp=-1;for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m))continue;let v=0;try{v=m2Val(m);}catch(x){}
-    const p=m2Frac(m,v,m2Seuil(m));if(p<1&&p>bp){bp=p;b=m;}}if(b)L.push({m:b,ok:0});}
+  /* (2026-11-03, Sacha : « améliorer encore un peu ») le panneau ne reste plus à moitié vide : il se complète avec les missions les plus
+     proches du but (avec leur barre) — jusqu'à 2 lignes debout, 3 couché, où il a toute la hauteur de la colonne */
+  {const cible=(window.matchMedia&&matchMedia('(orientation:landscape)').matches)?3:2,C=[];
+    if(L.length<cible)for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
+      let v=0;try{v=m2Val(m);}catch(x){}const p=m2Frac(m,v,m2Seuil(m));if(p<1)C.push({m:m,p:p});}
+    C.sort(function(a,b){return b.p-a.p;});for(const c of C){if(L.length>=cible)break;L.push({m:c.m,ok:0});}}
   const nP=m2NbPret(),c=m2Compte();
   el.className='mObj misPorte m2Ob';el.setAttribute('data-m','mis');el.style.removeProperty('--rc');
   let h='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+(nP?' <i class="m2Pt in"></i>':'')+'</span><b class="m2Cpt">'+c.ok+' / '+c.tot+'</b></div>';
@@ -230,13 +234,14 @@ const M2REV={on:false,id:null,t:0};
 Object.assign(I18N,{'CONTINUER':'CONTINUE'});
 function m2RevFile(){const s=m2Etat();return M2.filter(function(m){return m.f==='secret'&&!!(m.r&&m.r.car)&&s.ok.indexOf(m.id)>=0&&s.pr.indexOf(m.id)<0&&m2Pret(m.id);}).map(function(m){return m.id;});}
 function m2RevAuto(delai){if(M2REV.on||!m2RevFile().length)return;clearTimeout(M2REV.t);
-  M2REV.t=setTimeout(function(){if(M2REV.on||m2EnC())return;if(m2RevAttend()){m2RevAuto(400);return;}const L=m2RevFile();if(L.length)m2Revele(L[0]);},delai||0);}
+  M2REV.t=setTimeout(function(){if(M2REV.on||m2EnC()||m2RevVolet())return;if(m2RevAttend()){m2RevAuto(400);return;}const L=m2RevFile();if(L.length)m2Revele(L[0]);},delai||0);}
 /* ===== LA RÉVÉLATION ATTEND SON TOUR (24/10, relecture : « une secrète réussie pendant la partie couvrait l'offre de seconde chance ») =====
    Ouverte 1,4 s après l'écran de fin, plein écran (z-index 95), elle passait PAR-DESSUS la plaque CONTINUER de la seconde chance, qui n'a que
    5,5 s : le joueur regardait la caisse se remplir de couleur pendant que l'offre filait. La machine FINAL SPIN attendait déjà l'offre
    (chanceAttend) ; la révélation l'attend aussi, et attend que la machine (z-index 250, par-dessus elle) soit refermée. Elle repasse toutes les 0,4 s. */
+function m2RevVolet(){try{return !!(typeof ecranWipe==='function'&&ecranWipe._on);}catch(e){return false;}} /* (2026-11-03, audit) LE VOLET EST BAISSÉ = une course se prépare dessous (REJOUER → rejoueAttend, jusqu'à 12 s, pendant lesquelles started&&gameOver tient encore) : une révélation qui s'ouvrait là restait PAR-DESSUS la course lancée (plein écran, elle prend les taps — la caisse roulait sans personne). On ne révèle jamais sous le volet ; la secrète reste dans m2RevFile et se montre à la fin de partie suivante. */
 function m2RevAttend(){try{return !!((typeof chanceAttend==='function'&&chanceAttend())||(typeof SPIN!=='undefined'&&SPIN.ouvert));}catch(e){return false;}}
-function m2Revele(id){const m=m2Def(id);if(!m||M2REV.on||m2EnC())return false;const i=m2CarIdx((m.r||{}).car);if(i<0||carRetiree(i))return false;
+function m2Revele(id){const m=m2Def(id);if(!m||M2REV.on||m2EnC()||m2RevVolet())return false;const i=m2CarIdx((m.r||{}).car);if(i<0||carRetiree(i))return false;
   M2REV.on=true;M2REV.id=id;
   let el=document.getElementById('m2Rev');if(!el){el=document.createElement('div');el.id='m2Rev';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);}
   const ri=rarInfo(carRar(i));el.style.setProperty('--rc',ri.c);el.setAttribute('aria-label',sansAcc(TR('MISSION SECRÈTE')));
