@@ -6,7 +6,7 @@ function finProches(cp){
   if(!FIN.on||!JADE.col||!FIN.stamp)return 7;FIN.veut.clear();
   const C=JADE.col,P=C.P,D=FIN.D,r=Math.ceil((D+110)/C.CG),bx=Math.floor(cp.x/C.CG),bz=Math.floor(cp.z/C.CG),gen=++FIN.gen,o=FIN.near,par=FIN.par||(FIN.par=[]);
   o.length=0;par.length=0;
-  for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=C.g.get((bx+dx)+','+(bz+dz));if(!a)continue;
+  for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=C.g.get((bx+dx)*100003+(bz+dz));if(!a)continue;
     for(let j=0;j<a.length;j++){const k=a[j];if(k<0||FIN.stamp[k]===gen)continue;FIN.stamp[k]=gen;const q=P[k];if(!FIN.fam[q[5]]){FIN.veut.add(q[5]);continue;}
       const dh=Math.max(0,Math.hypot(q[0]-cp.x,q[1]-cp.z)-q[2]),dv=cp.y<q[3]?q[3]-cp.y:cp.y>q[4]?cp.y-q[4]:0;
       if(Math.hypot(dh,dv)<(FIN.was[k]?D+25:D))o.push(k);}}
@@ -276,7 +276,7 @@ const V9J=new THREE.Vector3();
 function jadeHeurt(p){
   const C=JADE.col;if(!C||!JADE.root)return false;
   for(const o of JH){const x=p.x+o[0],z=p.z+o[1];
-    const a=C.g.get(Math.floor(x/C.CG)+','+Math.floor(z/C.CG));
+    const a=C.g.get(Math.floor(x/C.CG)*100003+Math.floor(z/C.CG));
     if(a)for(let j=0;j<a.length;j++){if(C.mort&&C.mort.has(a[j]))continue;const q=C.P[a[j]];if(p.y<q[3]-1||p.y>q[4]+1)continue;const dx=x-q[0],dz=z-q[1];if(dx*dx+dz*dz>(q[2]+1)*(q[2]+1))continue;
       if(jadePilierDans(q,x,p.y,z))return true;}
     /* (2026-10-21, Léo : « on traverse les montagnes qui tombent ») les montagnes en chute gardent leur hitbox : le point est ramené dans leur repère d'origine */
