@@ -155,10 +155,9 @@ function objRenderV2(el){const s=m2Etat(),L=[];
   for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
   for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
   /* (2026-11-03, Sacha : « améliorer encore un peu », puis « mission il prend trop de place ») le panneau ne reste plus à moitié vide :
-     il se complète avec les missions les plus proches du but (avec leur barre) : 2 lignes debout ; couché, le panneau a la hauteur de ses
-     deux voisins (MOTEUR, AURA), il en montre 3 */
+     il se complète avec les missions les plus proches du but (avec leur barre), jusqu'à 2 (couché, le ×2 prend sa place sous le panneau) */
   const flot9=!/[?&]mort=ancien\b/.test(location.search); /* l'écran de mort v6 (MORT_FLOT vit dans la coque, hors de portée ici) */
-  {const cible=(flot9&&window.matchMedia&&matchMedia('(orientation:landscape)').matches)?3:2,C=[];
+  {const cible=2,C=[];
     if(L.length<cible)for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
       let v=0;try{v=m2Val(m);}catch(x){}const p=m2Frac(m,v,m2Seuil(m));if(p<1)C.push({m:m,p:p});}
     C.sort(function(a,b){return b.p-a.p;});for(const c of C){if(L.length>=cible)break;L.push({m:c.m,ok:0});}}
