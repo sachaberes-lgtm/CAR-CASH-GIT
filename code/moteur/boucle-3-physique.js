@@ -24,7 +24,7 @@
             carGroup.quaternion.premultiply(qTmp); // rotation MONDE autour de la verticale de la route
           }
           if(BKV.yaw){qTmp.setFromAxisAngle(F.n,BKV.yaw);carGroup.quaternion.premultiply(qTmp);}
-          if(DMT.y||DMT.act)dmtPose(F,dt); // (LE DEMI-TOUR) le lacet de la manœuvre, la gomme, le panneau // (2026-10-15) ICE SKATE : le crabe et la foulée du patineur sur le verglas
+          if(DMT.y||DMT.act||DMT.boostT>0||DMT.chargeT>0)dmtPose(F,dt); // (LE DEMI-TOUR) le lacet de la manœuvre, la gomme, le panneau — (2026-11-03, Sacha) +boostT : l'après-boost (fumée dense, la flamme qui revient) continue une fois D.act retombé ; +chargeT : la charge avant la relâche tourne, elle aussi, une fois D.act retombé // (2026-10-15) ICE SKATE : le crabe et la foulée du patineur sur le verglas
           gsolPose(F); // (2026-10-15) LES FIGURES AU SOL du GLISSER (slide 360, wheelie, stoppie)
           figMemo(dt); // (2026-10-14, LES FIGURES v2) l'assiette des deux dernières images : au décollage, la caisse emporte sa rotation
           frPose(F,dt); // (2026-10-17) LA FIGURE SUR LA ROUTE : elle tourne et bondit par-dessus la pose (après figMemo : l'élan emporté reste celui de la route)
@@ -43,7 +43,8 @@
            pitch9+=(((dn||driftEnCours)?.035:0)-((nitroOn||boost>0)?.03:0)-NFX.ign*NFX.ignK*.1-pitch9)*Math.min(1,dt*6); // plonge au frein/drift, s'accroupit à la poussée — (vague 3) et SE CABRE à l'allumage de la nitro (≈3° le temps du coup)
            const pv=carBody.userData.pivY||.45;
            if(SENS){SCOUP.pv+=(-SCOUP.p*169-SCOUP.pv*13)*d9;SCOUP.p=THREE.MathUtils.clamp(SCOUP.p+SCOUP.pv*d9,-.14,.14);} // (2026-10-14, sensations) le ressort des COUPS de tangage (ω 13, amorti .5) : voir sensCoup
-           carBody.rotation.set(pitch9+SCOUP.p+veqConduite(d9),0,carRoll9);carBody.position.set(pv*Math.sin(carRoll9),pv-pv*Math.cos(carRoll9),0);}
+           const cab9=(DMT.cab||DMT.cabV||DMT.cabT>0||DMT.chargeT>0)?dmtCabre(d9):0; /* (2026-11-03, LE DÉCOLLAGE du demi-tour) le WHEELIE : le nez se lève, la caisse pivote sur l'essieu arrière (relevée d'autant), voir dmtCabre */
+           carBody.rotation.set(pitch9+SCOUP.p+veqConduite(d9)-cab9,0,carRoll9);carBody.position.set(pv*Math.sin(carRoll9),pv-pv*Math.cos(carRoll9)+(cab9>0?CARS[level].l*.3*Math.sin(cab9):0),0);}
         }
         /* (2026-09-28) LA SUSPENSION : la réception, le dos d'âne, le bump écrasaient TOUTE la caisse (`carGroup.scale`) — roues comprises,
            qui devenaient ovales, comme du caoutchouc. Désormais la CARROSSERIE plonge sur ses ressorts (ω ≈ 15, amortie) : elle se tasse,
