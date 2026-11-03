@@ -189,6 +189,21 @@ function invListe(cat){
   if(cat==='peinture'&&PEINT_V2)return L.sort(function(a,b){return peintClef(a.i)-peintClef(b.i);}); // (2026-10-26) les peintures : par famille, comme la console (voir peintClef)
   return L.sort(function(a,b){return (INV_RANG[b.r]-INV_RANG[a.r])||((b.d.p||0)-(a.d.p||0));});
 }
+/* ===== LES NOMS DES TUILES, À LA TAILLE DE LA CASE (2026-11-03, passe photos / inventaire / boutique) =====
+   MESURÉ à 844 × 390 : MASTODONTE, CORBILLARD, NOCTAMBULE, ENGRENAGES (80 px) dans une case de 79, HYPERESPACE (88), et dans l'onglet PEINTURES
+   (cases de 59 px) D'ORIGINE, GUERRIER, IMPERIAL, PISTACHE — le mot se coupait au milieu (« ENGRENAGE / S ») et un nom de trois lignes perdait la
+   dernière (« LE MASTODON… », « LE CHARGEUR 69 » sans son 69). La police pixel a une avance carrée (1 em par lettre) : le nom tient quand
+   (lettres de la plus longue ligne) × taille ≤ largeur de la case. On descend donc d'un PALIER ENTIER (8 → 7 → 6 → 5 px : les pixels restent
+   nets) jusqu'à deux lignes au plus, coupées aux espaces et après un tiret. Rien ne bouge quand ça tient déjà. */
+function nomLignes(nom,cap){ // les lignes d'un nom de `cap` lettres de large ; 99 = un mot ne tient pas
+  const tk=[];String(nom).trim().split(/\s+/).forEach(function(m,j){m.replace(/-/g,'-\u0001').split('\u0001').forEach(function(t,k){if(t)tk.push([t,j>0&&k===0]);});});
+  let l=1,x=0;for(let i=0;i<tk.length;i++){const n=tk[i][0].length;if(n>cap)return 99;const v=x?(tk[i][1]?x+1+n:x+n):n;if(v>cap){l++;x=n;}else x=v;}return l;}
+function invNoms(g){
+  if(!g||!(g.clientWidth>0))return;g._nw=g.clientWidth;
+  g.querySelectorAll('.ivT').forEach(function(t){const b=t.querySelector('b');if(!b)return;b.style.fontSize='';
+    const cs=getComputedStyle(t),av=t.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0),base=parseFloat(getComputedStyle(b).fontSize)||8;if(!(av>0))return;
+    let fs=Math.floor(base);while(fs>5&&nomLignes(b.textContent,Math.floor(av/fs))>2)fs--;
+    if(fs<base)b.style.fontSize=fs+'px';});}
 function invTotal(cat){ // (2026-10-20) tout ce qui existe dans l'onglet (le dénominateur de la progression)
   if(cat==='voiture'){let n=0;for(let i=0;i<CARS.length;i++)if(!carRetiree(i))n++;return n;}
   if(cat==='figure')return window.FIG?FIG.liste.length:0;
@@ -219,6 +234,7 @@ function invRender(){
     if(INV.cat==='aile')setTimeout(function(){if(!INV.on)return;g.querySelectorAll('.ivT [data-ai]').forEach(function(v){const id=v.getAttribute('data-ai'),el=v.closest('.ivT');
       aileFile(id,function(url){if(!url||!v.isConnected)return;const im=document.createElement('img');im.alt='';im.src=url;v.replaceWith(im);},el);});},420); // (31/10) les AILES, en photo elles aussi — même attente que les caisses
   }
+  if(g._nk!==k||g._nw!==g.clientWidth){g._nk=k;invNoms(g);} // les noms à la taille de la case (voir invNoms) : à chaque nouvelle liste, et quand la largeur change (rotation)
   const eqs={};L.forEach(function(o){if(o.eq)eqs[o.i]=1;});
   g.querySelectorAll('.ivT').forEach(function(el){el.classList.toggle('eq',!!eqs[+el.getAttribute('data-i')]);});
 }
@@ -230,7 +246,7 @@ function invOuvre(){
   gEl.classList.remove('aideInv');gEl.classList.add('inv');garLibre._r=null;
   const g=$('ivGrille');if(g){g._k=null;g.scrollTop=0;}invRender();
   if(GAR_TAB_ANG[INV.cat]!=null)garTourneVers(GAR_TAB_ANG[INV.cat]); // (2026-10-24) en tournant, comme les onglets
-  feuilleOuvre($('gInv'),'on');return true;
+  feuilleOuvre($('gInv'),'on');invNoms(g);return true; // la feuille est posée : c'est maintenant que les cases ont leur largeur
 }
 function invFerme(sec){
   if(!INV||!INV.on)return;INV.on=false;const el=$('gInv');
