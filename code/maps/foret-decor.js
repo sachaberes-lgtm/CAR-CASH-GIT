@@ -408,20 +408,22 @@ const FOR_LUC_VS=['attribute vec4 aR;uniform float uTime,uLuc,uPol,uPx;uniform v
 const FOR_LUC_FS=['varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,d);a*=a;if(vA*a<.004)discard;gl_FragColor=vec4(vC*vA*a,1.);}'].join('\n');
 /* LES RAYONS DE SOLEIL : des pans de lumière qui tombent en biais entre les géants (additifs). Leur axe suit la lumière de la forêt ;
    ils s'éteignent à moins de 40 m de l'objectif (sinon un voile plein écran quand la caméra passe dedans). aR = (sommet, largeur) · aL = (longueur, hasard) */
-const FOR_RAY_VS=['attribute vec4 aR;attribute vec2 aL;uniform vec3 uSunDir,uCam;uniform float uTime;varying vec2 vQ;varying float vA,vD;',
+const FOR_RAY_VS=['attribute vec4 aR;attribute vec2 aL;uniform vec3 uSunDir,uCam;uniform float uTime,fogFar;varying vec2 vQ;varying float vA,vD;',
   'void main(){vec3 ax=-normalize(uSunDir+vec3(0.,.08,0.));vec3 P=aR.xyz+ax*aL.x*position.y;vec3 vw=normalize(P-uCam);vec3 sd=normalize(cross(ax,vw)+vec3(1e-4,0.,0.));',
   '  P+=sd*position.x*aR.w*(1.+position.y*.7);vQ=vec2(position.x*2.,position.y);vA=.55+.45*sin(uTime*.35+aL.y*20.);',
-  '  vec4 mv=viewMatrix*vec4(P,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;}'].join('\n');
+  '  vec4 mv=viewMatrix*vec4(P,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;',
+  '  float d0=-(viewMatrix*vec4(aR.xyz,1.)).z,d1=-(viewMatrix*vec4(aR.xyz+ax*aL.x,1.)).z;if(max(d0,d1)<40.-aR.w||min(d0,d1)>fogFar+aR.w)gl_Position=vec4(0.,0.,2.,1.);}'].join('\n'); /* (2026-11-03, maps cohérentes) le rai ENTIER à moins de 40 m ou au-delà de la brume (son éclat y est nul : voir FOR_RAY_FS) n'est plus tramé — même image, moins de pixels */
 const FOR_RAY_FS=['uniform vec3 uSunC;uniform float uRay,uRayK,fogNear,fogFar;varying vec2 vQ;varying float vA,vD;',
   'void main(){float x=1.-vQ.x*vQ.x;float a=x*x*smoothstep(0.,.18,vQ.y)*smoothstep(1.,.45,vQ.y)*vA*uRay*uRayK*smoothstep(40.,110.,vD)*(1.-smoothstep(fogNear,fogFar,vD));',
   '  vec3 rc=mix(vec3(.50,.72,1.),vec3(1.,.80,.46),smoothstep(.15,.85,x));gl_FragColor=vec4(uSunC*rc*a*.16,1.);}'].join('\n'); /* (2026-10-20, embellir) DEUX TEMPÉRATURES : le cœur du rai est ambre, sa lisière bleutée (le remplissage froid du ciel) */
 /* LA BRUME EN NAPPES : de grands flocons face à la caméra, qui dérivent au fond de la vallée et traversent la route la nuit */
-const FOR_BRUME_VS=['uniform vec3 uCam,uSunDir;uniform float uTime;varying vec2 vUv;varying float vD,vS,vG;',
+const FOR_BRUME_VS=['uniform vec3 uCam,uSunDir;uniform float uTime,fogFar;varying vec2 vUv;varying float vD,vS,vG;',
   'void main(){vec3 c=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz;float s=length(instanceMatrix[0].xyz);vS=fract(c.x*.013+c.z*.007);',
   '  c.x+=sin(uTime*.05+vS*20.)*25.;c.z+=cos(uTime*.04+vS*13.)*25.;',
   '  vec3 R=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]),U=vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);',
   '  vG=dot(normalize(c-uCam),uSunDir);', /* (2026-10-20, embellir) vG : la nappe est-elle devant le soleil (ou la lune) ? */
-  '  vec3 P=c+(R*position.x+U*position.y*.45)*s;vUv=uv;vec4 mv=viewMatrix*vec4(P,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;}'].join('\n');
+  '  vec3 P=c+(R*position.x+U*position.y*.45)*s;vUv=uv;vec4 mv=viewMatrix*vec4(P,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;',
+  '  if(vD<25.||vD>fogFar)gl_Position=vec4(0.,0.,2.,1.);}'].join('\n'); /* (2026-11-03, maps cohérentes) LA NAPPE INVISIBLE N'EST PLUS TRAMÉE : elle fait face à l'objectif (vD est le même aux quatre coins) ; à moins de 25 m ou au-delà de la brume son alpha est nul (FOR_BRUME_FS) — mais une nappe de 70-160 m à 10 m de l'objectif couvrait tout l'écran de bruit et de discard. Même image, des écrans entiers de pixels en moins quand on roule dans la brume */
 const FOR_BRUME_FS=[FG_BRUIT,'uniform vec3 uMistC,uSky,uSunC;uniform float uMistK,uHante,uTime,fogNear,fogFar;varying vec2 vUv;varying float vD,vS,vG;',
   'void main(){vec2 q=vUv-.5;float a=smoothstep(.5,.08,length(q*vec2(1.,1.6)))*(.35+.65*fn2(vUv*3.2+vS*17.+vec2(uTime*.03,0.)))*.24*uMistK*smoothstep(25.,90.,vD)*(1.-smoothstep(fogFar*.7,fogFar,vD))*1.6;if(a<.003)discard;',
   '  vec3 c=uMistC*.75+(uSky*.18+uSunC*.12)+vec3(.05,.20,.16)*uHante;',
