@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Enseigne de jade — course, 30 paliers</title>
+<style>
+:root{--fond:#fff;--tx:#17141c;--tx2:#8a8494;--fil:#e4e1ea;--acc:#0e8a5f}
+@media (prefers-color-scheme:dark){:root{--fond:#0b090d;--tx:#f2f0f7;--tx2:#9a94a8;--fil:#2a2633;--acc:#21c48a}}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--fond);color:var(--tx);font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:grid;place-items:center;padding:16px}
+.boite{width:100%;max-width:560px;border:1px solid var(--fil);border-radius:20px;padding:24px;display:grid;gap:18px}
+h1{margin:0;font-size:22px}.sous{color:var(--tx2);font-size:13px;margin-top:4px}
+.rang{display:flex;gap:16px;align-items:center}
+#play{width:72px;height:72px;border-radius:50%;border:0;background:var(--tx);color:var(--fond);font-weight:700;cursor:pointer;flex:none}
+.pals{display:grid;gap:6px;flex:1}#speed{width:100%}#mot{font-weight:700;font-size:18px}
+#ce{color:var(--tx2);font-size:13px;min-height:36px}
+</style></head><body>
+<div class="boite">
+  <div><h1>ENSEIGNE DE JADE · 30 PALIERS</h1><div class="sous">écrit à la main · 124 BPM · fa# dorien · une enseigne au néon qui clignote : le pluck de cristal compte, la house bat sur quatre temps, la basse tombe sur les contretemps — en 30 moteurs</div></div>
+  <div class="rang"><button id="play">PLAY</button><div class="pals"><div id="mot">Moteur 1 / 30</div><input type="range" id="speed" min="0" max="100" step="any" value="0" aria-label="Moteur"></div></div>
+  <div id="ce"></div>
+</div>
+
+
+<!-- ======================= LE MORCEAU (format CASH CAR « morceau à paliers ») =======================
+     (2026-11-03, pôle SON ; Léo : « une version premium de toutes les musiques, dans la nouvelle DA, sans perdre l'identité ; 20 bangers différents »).
+     ENSEIGNE DE JADE (n° 7299, synthwave néon/luxe, mineur/dorien, harpe/clavier, lead carré/verre, basse 808 qui roule) — l'identité gardée : le THÈME (deux versions d'origine :
+     des montées de trois notes 2-3-4 / 1-2-3 / 0-1-2, une note longue sur le degré 1, puis la descente 5-4-3-1-0), la couleur néon-jade, la harpe, le lead carré, la basse qui roule.
+     Le neuf : une HOUSE quatre-sur-le-temps (grosse caisse sur chaque temps, basse COURTE sur les contretemps, charleys shufflés, claps au 2 et au 4, congas), un PLUCK DE CRISTAL
+     (modulation de fréquence : le thème, et une pluie d'arpèges pentatoniques), et L'ENSEIGNE QUI CLIGNOTE : un ronflement de néon (92,5 Hz et ses harmoniques) et la nappe passent
+     dans une porte qui claque (défauts d'allumage et crépitements aux premiers moteurs, puis un vrai trance-gate de plus en plus net) ; au 18, tous les deux phrases le néon GRILLE
+     (un noir d'une double croche avant la reprise). Le thème a QUATRE versions qui se relaient, l'arpège a HUIT motifs, la basse HUIT figures, la porte HUIT dessins :
+     deux phrases ne reviennent jamais à l'identique.
+     Grille (8 mesures) : F#m9 · F#m9 · B9 · B9 · Amaj7 · Amaj7 · C#m9 · F#m9 (le thème retombe sur le fa# à la mesure 8).
+     COÛT : les frappes sont des tampons précalculés (aucun filtre en direct par coup) ; ~150 oscillateurs par mesure au plus au moteur 30.
+     Ce bloc ne touche JAMAIS à la page : pas de document, window, setInterval, Math.random, ni ctx.currentTime. -->
+<script id="morceau">
+const MORCEAU = (function () {
+  const BPM = 124, SD = 60 / BPM / 4, MES = 16 * SD, SWG = SD * .28;
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  const hh = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };   /* un tirage répétable (pas de Math.random) */
+
+  // LA GRILLE : F#m9 · F#m9 · B9 · B9 · Amaj7 · Amaj7 · C#m9 · F#m9
+  const ROOTS = [42, 42, 47, 47, 45, 45, 37, 42];
+  const CHORDS = [[54, 57, 61, 64, 68], [54, 57, 61, 64, 68], [59, 63, 66, 69, 73], [59, 63, 66, 69, 73], [57, 61, 64, 68, 71], [57, 61, 64, 68, 71], [61, 64, 68, 71, 75], [54, 57, 61, 64, 68]];
+  // LE THÈME en degrés du fa# dorien (0 = fa#), [pas sur 128, degré, durée en doubles croches] ; QUATRE versions
+  const SC = [0, 2, 3, 5, 7, 9, 10];
+  const deg = (base, d) => base + SC[d % 7] + 12 * Math.floor(d / 7);
+  const TH_A = [[2, 2, 2], [4, 3, 3], [18, 1, 2], [20, 2, 3], [34, 0, 2], [36, 1, 3], [48, 1, 8], [66, 2, 2], [68, 3, 3], [82, 2, 2], [84, 3, 3], [96, 5, 4], [100, 4, 4], [104, 3, 4], [108, 1, 4], [112, 0, 8]];
+  const TH_B = [[0, 2, 2], [2, 3, 2], [4, 4, 3], [16, 1, 2], [18, 2, 2], [20, 3, 3], [32, 0, 2], [34, 1, 2], [36, 2, 3], [48, 1, 8], [64, 2, 2], [66, 3, 2], [68, 4, 3], [80, 1, 2], [82, 2, 2], [84, 3, 3], [96, 5, 4], [100, 4, 4], [104, 3, 4], [108, 1, 4], [112, 0, 8]];
+  const TH_C = [[1, 4, 2], [3, 3, 2], [5, 2, 3], [17, 3, 2], [19, 2, 2], [21, 1, 3], [33, 2, 2], [35, 1, 2], [37, 0, 3], [48, 1, 3], [52, 2, 2], [54, 3, 6], [65, 3, 2], [67, 4, 2], [69, 5, 3], [81, 4, 2], [83, 3, 2], [85, 2, 3], [96, 5, 2], [98, 6, 2], [100, 7, 4], [104, 5, 4], [108, 3, 4], [112, 0, 8]];
+  const TH_D = TH_A.filter(n => n[0] < 64).concat(TH_B.filter(n => n[0] >= 64 && n[0] < 96)).concat(TH_B.filter(n => n[0] >= 96).map(n => [n[0], n[1] + 7, n[2]]));
+  const THEMES = [TH_A, TH_B, TH_C, TH_D];
+  // L'ARPÈGE (pluie de cristal) : HUIT motifs de 16 pas (rang dans l'échelle de l'accord, -1 = silence)
+  const ARPS = [[0, 1, 2, 3, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 4, 3], [4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1], [0, 2, 4, 2, 1, 3, 5, 3, 2, 4, 6, 4, 3, 5, 4, 2], [0, -1, 2, -1, 4, 2, -1, 1, 3, -1, 5, 4, -1, 2, 3, -1],
+    [6, 4, 2, 0, 5, 3, 1, 0, 4, 2, 0, 3, 5, 6, 4, 2], [0, 0, 2, 2, 4, 4, 6, 6, 5, 5, 3, 3, 1, 1, 2, 4], [2, 4, 1, 3, 0, 2, 5, 3, 1, 4, 2, 5, 3, 6, 4, 1], [0, 3, 1, 4, 2, 5, 3, 6, 4, 5, 3, 2, 4, 1, 2, 0]];
+  // LA BASSE sur les contretemps (pas 2, 6, 10, 14) : HUIT figures, en demi-tons au-dessus de la fondamentale
+  const BASSES = [[0, 0, 0, 0], [0, 0, 12, 0], [0, 7, 0, 12], [0, 0, 10, 12], [0, 12, 0, 7], [7, 0, 12, 0], [0, 0, 7, 10], [12, 0, 0, 7]];
+  // LA PORTE DE L'ENSEIGNE : HUIT dessins de 16 pas (1 = ouvert) ; les trois premiers sont discrets
+  const GATES = ['1111111011110111', '1110110111101101', '1111101111110011', '1011101110111011', '1101110111011101', '1111010111110101', '1100110011001111', '1110111011101110'];
+
+  const QUAND = { hum: 1, pad: 1, kick: 1, arps: 1, shaker: 2, hats: 3, hatO: 4, clap: 5, bass: 6, grosArp: 7, shuf: 8, conga: 9, theme: 10, stab: 11, flick: 12, large: 12, harpe: 13, roll: 14,
+    drive: 15, ride: 15, riser: 16, pulsar: 17, roule: 18, noir: 18, saut: 19, crash: 20, air: 20, carillon: 21, hats32: 22, gate: 23, etincelle: 24, octbas: 25, stab5: 26, climax: 27, final: 28, tutti: 29, haut: 30 };
+  const ENTRE = { 1: 'Le néon vient de s’allumer : le ronflement, la nappe qui clignote, une goutte de cristal, la grosse caisse à voix basse.', 2: '+ le shaker, la grosse caisse sur chaque temps', 3: '+ la house se met à battre : les charleys en croches',
+    4: '+ le charley ouvert sur les contretemps', 5: '+ les claps au 2 et au 4', 6: '+ la basse COURTE sur les contretemps', 7: '+ la pluie d’arpèges de cristal, en doubles croches', 8: '+ les charleys shufflés',
+    9: '+ les congas', 10: 'LE THÈME : le pluck de cristal chante (montées de trois notes, note longue, descente)', 11: '+ les accords frappés', 12: 'L’ENSEIGNE CLIGNOTE en rythme, la nappe s’élargit', 13: '+ la harpe, une rosée qui monte aux fins de phrase',
+    14: '+ le roulement de claps de fin de phrase', 15: 'ÇA DÉCOLLE : le ride, le clap fantôme, la pompe de la grosse caisse', 16: '+ la montée de fin de phrase', 17: 'LE LEAD CARRÉ entre, une octave plus bas que le cristal',
+    18: '+ la basse roule, le néon GRILLE (un noir avant la reprise)', 19: '+ l’arpège saute d’octave', 20: '+ la cymbale à chaque phrase, un souffle d’air', 21: '+ les carillons de jade, en cascade', 22: '+ les charleys en 32es aux fins de phrase',
+    23: '+ le trance-gate : l’enseigne claque net', 24: '+ l’étincelle : un éclair électrique à chaque phrase', 25: '+ le lead carré double le thème', 26: '+ les accords frappés à cinq', 27: 'LE CLIMAX : la cymbale toutes les 4 mesures', 28: 'Le final : la grosse caisse s’emballe', 29: 'Le tutti : tout est doublé', 30: 'Le thème grimpe d’une octave.' };
+  const PALIERS30 = Array.from({ length: 30 }, (_, k) => ENTRE[k + 1] || 'Tout pousse d’un cran : plus fort, plus serré.');
+  const BASE = { hum: .5, pad: .55, kick: .85, arps: .42, shaker: .3, hats: .34, hatO: .3, clap: .5, bass: .5, conga: .32, theme: .62, stab: .5, harpe: .9, ride: .22, riser: .38, pulsar: .34, crash: .42, air: .4, carillon: .55, etincelle: .4 };
+  const niv = (id, p) => { const e = QUAND[id] || 1; if (p < e) return 0; const r = Math.min(1, (p - e) / 6), g = .66 + .52 * (p - 1) / 29; return (BASE[id] || .3) * (.82 + .18 * r) * g; };
+  const FILTRE_PAD = p => Math.min(3600, 520 * Math.pow(1.085, p - 1));
+  const POMPE = p => p < 15 ? .78 : Math.max(.4, .66 - .018 * (p - 15));
+  const PROFONDEUR = p => p < 20 ? .35 : p < 23 ? .24 : .1;
+
+  function preparer(ctx, sortie, alea) {
+    const G = v => { const g = ctx.createGain(); g.gain.value = v; return g; };
+    const F = (type, f, q) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q != null) b.Q.value = q; return b; };
+    const chaine = (...n) => { for (let i = 0; i < n.length - 1; i++) n[i].connect(n[i + 1]); return n[n.length - 1]; };
+    const courbe = k => { const c = new Float32Array(2048); for (let i = 0; i < 2048; i++) { const x = i / 1023.5 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); } return c; };
+    const impulsion = (len, dec, lp) => { const n = Math.floor(ctx.sampleRate * len), b = ctx.createBuffer(2, n, ctx.sampleRate);
+      for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let y = 0; const a = Math.exp(-2 * Math.PI * lp / ctx.sampleRate);
+        for (let i = 0; i < n; i++) { y = (1 - a) * (alea() * 2 - 1) + a * y; d[i] = y * Math.pow(1 - i / n, dec); } } return b; };
+    const master = G(.5), chaud = ctx.createWaveShaper(); chaud.curve = courbe(1.15); chaud.oversample = '2x';
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -20; comp.ratio.value = 3; comp.attack.value = .012; comp.release.value = .18;
+    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .1; lim.knee.value = 0;
+    // le grave est tenu : passe-haut à 34 Hz, un creux dans la boue 240-320 Hz
+    const boue = F('peaking', 270, .9); boue.gain.value = -2.5;
+    chaine(master, F('highpass', 34, .7), boue, chaud, comp, lim, sortie);
+    const noir = G(1); noir.connect(master);   /* le néon qui grille : tout passe par ici (sauf la queue de salle) */
+    const salle = ctx.createConvolver(); salle.buffer = impulsion(2.8, 2.3, 3200); const envoiSalle = G(1); chaine(envoiSalle, salle, F('highpass', 260, .7), G(.3), master);
+    // l'écho de croche, en ping-pong
+    const dG = ctx.createDelay(2), dD = ctx.createDelay(2); dG.delayTime.value = SD * 2; dD.delayTime.value = SD * 2;
+    const fb = G(.33), echoIn = G(1), echoSort = G(0), pG = ctx.createStereoPanner(), pD = ctx.createStereoPanner(); pG.pan.value = -.6; pD.pan.value = .6;
+    chaine(echoIn, F('lowpass', 5000, .7), F('highpass', 360, .7), dG); dG.connect(dD); dD.connect(fb); fb.connect(dG); dG.connect(pG); dD.connect(pD); pG.connect(echoSort); pD.connect(echoSort); echoSort.connect(noir); echoSort.connect(envoiSalle);
+    const pompe = G(1); pompe.connect(noir);
+    const porte = G(1);   /* la porte de l'enseigne : la nappe et le ronflement */
+    const ids = ['hum', 'pad', 'kick', 'arps', 'shaker', 'hats', 'hatO', 'clap', 'bass', 'conga', 'theme', 'stab', 'harpe', 'ride', 'riser', 'pulsar', 'crash', 'air', 'carillon', 'etincelle'], bus = {};
+    ids.forEach(id => bus[id] = G(0));
+    const pompes = ['stab', 'arps', 'pulsar', 'harpe'];   /* (la nappe et le ronflement passent par la porte, puis par la pompe) */
+    pompes.forEach(id => bus[id].connect(pompe));
+    ids.filter(id => pompes.indexOf(id) < 0 && id !== 'hum' && id !== 'pad').forEach(id => bus[id].connect(noir));
+    const envoi = (id, v) => { const g = G(v); bus[id].connect(g); g.connect(envoiSalle); };
+    envoi('pad', .45); envoi('arps', .4); envoi('theme', .55); envoi('pulsar', .4); envoi('stab', .3); envoi('harpe', .35); envoi('clap', .35); envoi('carillon', .8); envoi('etincelle', .5); envoi('hum', .2); envoi('conga', .25); envoi('crash', .2);
+    { const dub = (id, v) => { const g = G(v); bus[id].connect(g); g.connect(echoIn); }; dub('arps', .3); dub('theme', .5); dub('pulsar', .35); dub('harpe', .4); dub('carillon', .3); dub('conga', .3); }
+    const filtrePad = F('lowpass', 520, .7), humF = F('highpass', 70, .7);
+    chaine(filtrePad, bus.pad, porte); chaine(bus.hum, humF, porte); porte.connect(pompe);
+    const kickSat = ctx.createWaveShaper(); kickSat.curve = courbe(1.5); kickSat.connect(bus.kick);
+    // LES FRAPPES SONT DES TAMPONS précalculés une fois (aucun filtre à chaque coup)
+    const SR = ctx.sampleRate, norm = d => { let mx = 0; for (let i = 0; i < d.length; i++) mx = Math.max(mx, Math.abs(d[i])); if (mx > 0) for (let i = 0; i < d.length; i++) d[i] /= mx; return d; };
+    const tampon = (len, fn) => { const n = Math.floor(SR * len), b = ctx.createBuffer(1, n, SR), d = b.getChannelData(0); fn(d, n); norm(d); const f = Math.min(n, Math.floor(SR * .004)); for (let i = 0; i < f; i++) d[n - 1 - i] *= i / f; return b; };
+    const diff = (d, k) => { for (let j = 0; j < k; j++) { let pr = 0; for (let i = 0; i < d.length; i++) { const x = d[i]; d[i] = x - pr; pr = x; } } };
+    const passeBande = (d, a1, a2) => { let y1 = 0, y2 = 0; for (let i = 0; i < d.length; i++) { y1 += a1 * (d[i] - y1); y2 += a2 * (d[i] - y2); d[i] = y1 - y2; } };
+    const B = {};
+    B.hat = tampon(.06, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.exp(-i / SR / .01); diff(d, 2); });
+    B.hatO = tampon(.24, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.exp(-i / SR / .06) * Math.min(1, i / SR / .003); diff(d, 2); });
+    B.shaker = tampon(.07, (d, n) => { for (let i = 0; i < n; i++) { const t = i / SR; d[i] = (alea() * 2 - 1) * Math.min(1, t / .012) * Math.exp(-t / .022); } passeBande(d, .8, .2); });
+    B.clap = tampon(.3, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1); passeBande(d, .5, .07); for (let i = 0; i < n; i++) { const t = i / SR; const rafale = t < .036 ? (Math.floor(t / .012) % 2 === 0 ? 1 : .6) : 0; d[i] *= rafale * 1.1 + Math.exp(-t / .06) * .85; } });
+    B.crash = tampon(2.6, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.exp(-i / SR / .6) * Math.min(1, i / SR / .004); diff(d, 2); });
+    B.riser = tampon(1.4, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.pow(i / n, 2.2); diff(d, 1); });
+    B.crepite = [0, 1, 2].map(j => tampon(.035, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.exp(-i / SR / (.002 + .002 * j)) * (alea() > .35 ? 1 : .2); passeBande(d, .8 - .1 * j, .15); }));
+    return { bus, pompe, filtrePad, kickSat, echoSort, B, master, porte, noir };
+  }
+
+  function jouer(ctx, kit, p, t0, m0, n, alea) {
+    p = Math.max(1, Math.min(30, p | 0));
+    const b = kit.bus, B = kit.B, A = id => p >= QUAND[id];
+    for (const id in b) b[id].gain.setValueAtTime(niv(id, p), t0);
+    kit.master.gain.setTargetAtTime(.56 + .78 * Math.pow((p - 1) / 29, 1.15), t0, .5);
+    kit.filtrePad.frequency.setTargetAtTime(FILTRE_PAD(p), t0, .4); kit.echoSort.gain.setValueAtTime(p >= 7 ? .5 : .25, t0);
+    const osc = (type, f, dt) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; if (dt) o.detune.value = dt; return o; };
+    const filt = (type, f, q) => { const x = ctx.createBiquadFilter(); x.type = type; x.frequency.value = f; x.Q.value = q; return x; };
+    const gain = v => { const g = ctx.createGain(); g.gain.value = v; return g; };
+    const env = (g, t, pic, a, dur) => { g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(.0002, pic), t + a); g.gain.exponentialRampToValueAtTime(.0001, t + dur); };
+    const frappe = (buf, t, dest, v, rate, pan) => { const s = ctx.createBufferSource(), g = gain(v); s.buffer = buf; if (rate) s.playbackRate.value = rate; s.connect(g);
+      if (pan) { const pn = ctx.createStereoPanner(); pn.pan.value = pan; g.connect(pn); pn.connect(dest); } else g.connect(dest); s.start(t); };
+
+    // ---- les instruments ----
+    // le PLUCK DE CRISTAL : un sinus que fait vibrer un second sinus (FM) dont l'indice retombe vite ; la note s'éteint seule (aucune coupure)
+    const cristal = (t, midi, v, dest, pan, long) => { const f = mtof(midi), o = osc('sine', f), m = osc('sine', f * 2), mg = gain(0), g = gain(0), dur = long || .42;
+      mg.gain.setValueAtTime(f * 1.1, t); mg.gain.exponentialRampToValueAtTime(f * .03, t + dur * .55); env(g, t, v, .002, dur);
+      m.connect(mg); mg.connect(o.frequency); o.connect(g);
+      if (pan) { const pn = ctx.createStereoPanner(); pn.pan.value = pan; g.connect(pn); pn.connect(dest); } else g.connect(dest);
+      o.start(t); m.start(t); o.stop(t + dur + .05); m.stop(t + dur + .05); };
+    // le thème : le cristal plus long, une octave en dessous qui tinte (troisième oscillateur)
+    const cristalLead = (t, midi, len, v) => { const dur = Math.min(1.6, .5 + SD * len * .7); cristal(t, midi, v, b.theme, 0, dur);
+      const o = osc('sine', mtof(midi) * 2), g = gain(0); env(g, t, v * .22, .002, dur * .5); o.connect(g); g.connect(b.theme); o.start(t); o.stop(t + dur * .5 + .05); };
+    // le LEAD CARRÉ : deux carrés désaccordés dans un filtre qui s'ouvre puis retombe ; vibrato tardif ; la fin descend en douceur
+    const pulsar = (t, midi, len, v, dest) => { const dur = SD * len, f = mtof(midi), g = gain(0), x = filt('lowpass', 900, 2.2), o = osc('square', f, -8), o2 = osc('square', f, 8), lfo = osc('sine', 5.4), lg = gain(0), fin = t + Math.max(.08, dur - .03);
+      x.frequency.setValueAtTime(900, t); x.frequency.exponentialRampToValueAtTime(3000, t + .05); x.frequency.exponentialRampToValueAtTime(1500, t + Math.max(.12, dur * .7));
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + .012); g.gain.setValueAtTime(v, fin); g.gain.setTargetAtTime(.0001, fin, .1);
+      lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(10, t + Math.min(.45, dur * .8)); lfo.connect(lg); lg.connect(o.detune); lg.connect(o2.detune);
+      o.connect(x); o2.connect(x); x.connect(g); g.connect(dest); const fe = fin + .7; o.start(t); o2.start(t); lfo.start(t); o.stop(fe); o2.stop(fe); lfo.stop(fe); };
+    // l'accord frappé de house : trois notes de scie désaccordées dans un filtre qui claque
+    const stab = (t, notes, v) => { const g = gain(0), x = filt('lowpass', 3000, .9); x.frequency.setValueAtTime(4200, t); x.frequency.exponentialRampToValueAtTime(800, t + SD * 1.6); env(g, t, v, .004, SD * 2);
+      notes.forEach(m => [-9, 9].forEach(dt => { const o = osc('sawtooth', mtof(m), dt); o.connect(x); o.start(t); o.stop(t + SD * 2.1); })); x.connect(g); g.connect(b.stab); };
+    // la nappe : des scies désaccordées dans le filtre doux, elle tient DEUX mesures et passe par la porte de l'enseigne
+    const nappe = (t, accord, dur) => { const g = gain(0), v = p >= 24 ? .068 : A('large') ? .05 : .04;
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + .9); g.gain.setValueAtTime(v, t + dur - .15); g.gain.linearRampToValueAtTime(.0001, t + dur + .7);
+      accord.slice(0, A('large') ? 4 : 3).forEach(m => [-7, 7].forEach(dt => { const o = osc('sawtooth', mtof(m), dt); o.connect(g); o.start(t); o.stop(t + dur + .8); }));
+      if (A('large')) { const o = osc('sine', mtof(accord[0] - 12)); o.connect(g); o.start(t); o.stop(t + dur + .8); }
+      g.connect(kit.filtrePad); };
+    // LE RONFLEMENT DU NÉON : le fa# de 92,5 Hz et ses harmoniques, doux, deux mesures
+    const ronfle = (t, dur) => { const g = gain(0), v = A('flick') ? .12 : .09; g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + .5); g.gain.setValueAtTime(v, t + dur - .1); g.gain.linearRampToValueAtTime(.0001, t + dur + .3);
+      [[92.5, 'sine', 1], [185, 'sine', .55], [277.2, 'triangle', .22]].forEach(([f, ty, gv]) => { const o = osc(ty, f), gg = gain(gv); o.connect(gg); gg.connect(g); o.start(t); o.stop(t + dur + .4); }); g.connect(b.hum); };
+    // la basse : COURTE. Un sinus et un carré d'octave dans un filtre qui se referme, 0,14 s
+    const basse = (t, midi, v) => { const o = osc('sine', mtof(midi)), o2 = osc('square', mtof(midi + 12)), x = filt('lowpass', 900, 1.5), g = gain(0), g2 = gain(.25);
+      x.frequency.setValueAtTime(1000, t); x.frequency.exponentialRampToValueAtTime(220, t + .1); env(g, t, v, .004, .15); o2.connect(x); x.connect(g2); g2.connect(g); o.connect(g); g.connect(b.bass); o.start(t); o2.start(t); o.stop(t + .17); o2.stop(t + .17); };
+    const kick = (t, v, soft) => { const o = osc('sine', 158), g = gain(0); o.frequency.setValueAtTime(158, t); o.frequency.exponentialRampToValueAtTime(46, t + .07);
+      env(g, t, v, .002, .24); o.connect(g); g.connect(kit.kickSat); o.start(t); o.stop(t + .26);
+      kit.pompe.gain.setValueAtTime(soft ? .92 : POMPE(p), t); kit.pompe.gain.linearRampToValueAtTime(1, t + SD * 3.3); };
+    const conga = (t, f0, v, pan) => { const o = osc('sine', f0), g = gain(0), pn = ctx.createStereoPanner(); pn.pan.value = pan; o.frequency.setValueAtTime(f0 * 1.25, t); o.frequency.exponentialRampToValueAtTime(f0, t + .03); env(g, t, v, .002, .2);
+      o.connect(g); g.connect(pn); pn.connect(b.conga); o.start(t); o.stop(t + .22); };
+    const harpe = (t, midi, v) => { const o = osc('triangle', mtof(midi)), g = gain(0); env(g, t, v, .004, .8); o.connect(g); g.connect(b.harpe); o.start(t); o.stop(t + .85); };
+    const carillon = (t, midi, v, pan) => { const f = mtof(midi), g = gain(0), pn = ctx.createStereoPanner(); pn.pan.value = pan; env(g, t, v, .002, 1.1);
+      [[1, 1, 1.1], [2.76, .5, .5]].forEach(([k, gv, d]) => { const o = osc('sine', f * k), gg = gain(gv); gg.gain.setValueAtTime(gv, t); gg.gain.exponentialRampToValueAtTime(.001, t + d); o.connect(gg); gg.connect(g); o.start(t); o.stop(t + d + .05); }); g.connect(pn); pn.connect(b.carillon); };
+    const air = (t, dur) => { const s = ctx.createBufferSource(), x = filt('bandpass', 4200, .8), g = gain(0); s.buffer = B.riser; x.frequency.setValueAtTime(4200, t); x.frequency.exponentialRampToValueAtTime(10500, t + dur);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.4, t + dur * .9); g.gain.exponentialRampToValueAtTime(.0001, t + dur + .5); s.connect(x); x.connect(g); g.connect(b.air); s.start(t); s.stop(t + 1.39); };
+    // l'étincelle : un éclair, une scie qui chute de 4 000 Hz à 120 Hz en un instant, avec une rafale de crépitements
+    const etincelle = t => { const o = osc('sawtooth', 4000), x = filt('bandpass', 2000, 1.2), g = gain(0); o.frequency.setValueAtTime(4000, t); o.frequency.exponentialRampToValueAtTime(120, t + .22); x.frequency.setValueAtTime(5000, t); x.frequency.exponentialRampToValueAtTime(400, t + .22);
+      env(g, t, .6, .003, .26); o.connect(x); x.connect(g); g.connect(b.etincelle); o.start(t); o.stop(t + .28); [0, .03, .07, .12].forEach((d, k) => frappe(B.crepite[k % 3], t + d, b.etincelle, .8 - .15 * k, 1, (k - 1.5) * .5)); };
+
+    // ---- les mesures ----
+    for (let m = m0; m < m0 + n; m++) {
+      const tm = t0 + (m - m0) * MES, bar = m % 8, cy = Math.floor(m / 8), accord = CHORDS[bar], root = ROOTS[bar], d2 = m >> 1;
+      const kicks = p === 1 ? [0, 8] : [0, 4, 8, 12].concat(A('drive') && bar % 2 === 1 ? [14] : []).concat(A('final') && bar === 7 ? [10, 15] : []);
+      const sw = i => (i % 2 ? SWG : 0);
+      // — l'enseigne : le ronflement, la nappe et la porte
+      kit.noir.gain.setValueAtTime(1, tm);
+      if (bar % 2 === 0) { nappe(tm, accord, MES * 2); ronfle(tm, MES * 2); }
+      kit.porte.gain.setValueAtTime(1, tm);
+      if (!A('flick')) {
+        if (bar % 2 === 1 || p >= 6) { const k = 1 + (hh(m, 1) > .5 ? 1 : 0); for (let j = 0; j < k; j++) { const x = tm + (2 + Math.floor(hh(m, 10 + j) * 11)) * SD, w = .03 + .05 * hh(m, 20 + j);
+          kit.porte.gain.setValueAtTime(1, x - .002); kit.porte.gain.setValueAtTime(PROFONDEUR(p), x); kit.porte.gain.setValueAtTime(1, x + w);
+          if (hh(m, 30 + j) > .3) frappe(B.crepite[j % 3], x, b.hum, .6, 1, (hh(m, 40 + j) - .5) * .8); } }
+      } else {
+        const pat = GATES[p >= 20 ? Math.floor(hh(m, 5) * 8) : Math.floor(hh(m, 5) * 3)], dep = PROFONDEUR(p);
+        for (let i = 0; i < 16; i++) kit.porte.gain.setTargetAtTime(pat[i] === '1' ? 1 : dep, tm + i * SD, .004);
+      }
+      if (A('crash') && bar === 0) frappe(B.crash, tm, b.crash, .75, 1, 0);
+      if (A('climax') && bar === 4) frappe(B.crash, tm, b.crash, .55, 1.12, 0);
+      if (A('riser') && bar === 7) frappe(B.riser, tm + MES - 1.39, b.riser, .6, 1, 0);
+      if (A('air') && (bar === 3 || bar === 7)) air(tm, MES);
+      if (A('etincelle') && bar === 0) etincelle(tm);
+      // le néon grille : un noir de deux doubles croches avant la reprise, un phrase sur deux
+      if (A('noir') && bar === 7 && cy % 2 === 1) { kit.noir.gain.setTargetAtTime(.0001, tm + 14 * SD, .004); kit.noir.gain.setTargetAtTime(1, tm + MES - .004, .003); }
+      // — le thème : le cristal, le lead carré (une octave dessous), son octave haute
+      const theme = THEMES[cy % 4], haut = A('haut') && ((cy >> 1) & 1) === 1 ? 12 : 0;
+      if (A('theme')) theme.forEach(([st, d, ln], k) => { if (Math.floor(st / 16) !== bar) return; const t = tm + (st % 16) * SD, nn = deg(78, d) + (haut && st >= 64 ? haut : 0);
+        cristalLead(t, nn, ln, .22);
+        if (hh(cy * 131 + st, 3) > .55 && ln >= 3) cristal(t - SD * .5, nn + 2, .08, b.theme, 0, .25);   /* l'appoggiature, une phrase sur deux environ */
+        if (A('pulsar')) pulsar(t, deg(66, d), ln, .11, b.pulsar);
+        if (A('octbas')) pulsar(t, deg(54, d), ln, .07, b.pulsar); });
+      // — l'échelle de l'accord, pour la pluie de cristal
+      const ech = accord.map(x => { let y = x; while (y < 66) y += 12; return y; }).sort((a, c) => a - c); ech.push(ech[0] + 12, ech[1] + 12);
+      const motif = ARPS[Math.floor(hh(m, 7) * 8)];
+      for (let i = 0; i < 16; i++) {
+        const t = tm + i * SD, tt = t + sw(i);
+        // la pluie : une goutte aux premiers moteurs, puis toutes les doubles croches (shufflées dès le 8)
+        if (p < 7) { const posi = bar % 2 === 0 ? (p === 1 ? [3] : p < 4 ? [3, 10] : [3, 7, 10, 14]) : (p === 1 ? [] : p < 4 ? [6] : [2, 6, 11]); if (posi.indexOf(i) >= 0) cristal(tt, ech[Math.floor(hh(m, i + 50) * 5)], .2 + .06 * (p > 3), b.arps, (hh(m, i + 60) - .5) * 1.2); }
+        else { const r = motif[i]; if (r >= 0 && hh(m, i + 70) > (p < 10 ? .3 : .08)) { const sauteur = A('saut') && hh(m, i + 80) > .7 ? 12 : 0, ver = i % 4 === 0 ? 1 : i % 2 === 0 ? .66 : .45;
+          cristal(A('shuf') ? tt : t, ech[r] + sauteur, .22 * ver * (p >= 15 ? 1.1 : 1), b.arps, ((i % 8) - 3.5) * .16);
+          if (A('tutti') && i % 2 === 0) { const o = osc('sine', mtof(ech[r] + 12 + sauteur)), g = gain(0); env(g, A('shuf') ? tt : t, .07, .002, .2); o.connect(g); g.connect(b.arps); o.start(t); o.stop(t + .22); } } }
+        // — la grosse caisse (sur chaque temps) et la basse COURTE sur les contretemps
+        if (kicks.indexOf(i) >= 0) kick(t, p === 1 ? .68 : p === 2 ? .56 : i % 4 === 0 ? .95 : .8, p < 3);
+        if (A('bass') && (i === 2 || i === 6 || i === 10 || i === 14)) { const fig = A('roule') ? BASSES[Math.floor(hh(m, 3) * 8)] : p < 11 ? BASSES[0] : BASSES[Math.floor(hh(m, 3) * 4)], o = fig[(i - 2) / 4];
+          basse(t, root + o, .7); if (A('roule') && hh(m, i + 90) > .3) basse(t + SD, root + (o ? 0 : 12), .45); }
+        // — les claps au 2 et au 4, un clap fantôme, le roulement de fin de phrase
+        if (A('clap') && (i === 4 || i === 12)) frappe(B.clap, t, b.clap, i === 12 ? 1 : .85, 1 + (hh(m, i) - .5) * .05, 0);
+        if (A('drive') && i === 15 && hh(m, 2) > .45) frappe(B.clap, t, b.clap, .3, 1.1, .3);
+        if (A('roll') && bar === 7 && (i === 8 || i === 10 || i === 12 || i === 13 || i === 14 || i === 15)) frappe(B.clap, t, b.clap, .25 + .06 * (i - 8), 1.04 + .01 * (i - 8), (i % 2 ? .3 : -.3));
+        // — les charleys : croches (3), contretemps ouverts (4), doubles croches shufflées (8), 32es en fin de phrase (22)
+        if (A('hats')) { const on = A('shuf') ? (i % 2 === 0 || hh(m, i + 60) < (p < 15 ? .5 : .75)) : i % 2 === 0, contre = i === 2 || i === 6 || i === 10 || i === 14;
+          if (on && !(A('hatO') && contre)) frappe(B.hat, tt, b.hats, i % 4 === 0 ? .26 : i % 2 === 0 ? .36 : .2, 1 + (hh(m, i + 9) - .5) * .08, 0); }
+        if (A('hatO') && (i === 2 || i === 6 || i === 10 || i === 14)) frappe(B.hatO, t, b.hatO, .55, 1, .25);
+        if (A('hats32') && bar === 7 && i >= 12) { frappe(B.hat, t + SD * .5, b.hats, .3 + .05 * (i - 12), 1.05, 0); }
+        if (A('ride') && i % 4 === 0) frappe(B.hatO, t + SD * .02, b.ride, .35, 1.5, 0);
+        if (A('shaker') && (p < 8 ? i % 2 === 1 : true)) frappe(B.shaker, tt, b.shaker, (i % 4 === 2 ? .6 : .38) * (0.8 + .4 * hh(m, i + 15)), 1 + (hh(m, i + 17) - .5) * .12, ((i % 4) - 1.5) * .25);
+        // — les congas
+        if (A('conga') && [3, 6, 7, 11, 14].indexOf(i) >= 0 && hh(m, i + 24) > (A('drive') ? .15 : .35)) conga(tt, hh(m, i + 26) > .5 ? 330 : 250, .38, hh(m, i + 28) > .5 ? .5 : -.5);
+        // — les accords frappés : trois ou quatre coups par mesure, un dessin par deux mesures
+        if (A('stab')) { const SP = [[3, 6, 10, 13], [2, 5, 9, 12], [3, 7, 10, 14], [1, 5, 8, 11]][Math.floor(hh(d2, 11) * 4)], liste = p < 15 ? SP.slice(0, 2) : A('stab5') ? SP.concat([15]) : SP;
+          if (liste.indexOf(i) >= 0) stab(tt, A('stab5') ? [accord[0], accord[2], accord[3], accord[4]] : [accord[1], accord[2], accord[3]], p >= 26 ? .19 : p >= 19 ? .16 : .13); }
+        // — la harpe : une rosée qui monte l'échelle aux fins de phrase
+        if (A('harpe') && ((bar === 7 && i >= 8) || (bar === 3 && i >= 12 && p >= 17))) { const st = bar === 7 ? 8 : 12; harpe(t, ech[Math.min(ech.length - 1, i - st)] + (p >= 20 ? 12 : 0) - 12, .3 + .06 * (i - st)); }
+        // — le carillon de jade : une cascade qui descend l'échelle
+        if (A('carillon') && ((bar === 3 && i >= 8 && i % 2 === 0) || (bar === 7 && i >= 4 && i % 2 === 0 && cy % 2 === 0))) { const k = (i - (bar === 3 ? 8 : 4)) / 2; carillon(t, ech[Math.max(0, 6 - k)], .22, (k - 2) * .35); }
+      }
+    }
+  }
+
+  return {
+    titre: 'ENSEIGNE DE JADE', bpm: BPM, mesures: 8, intro: 0, pas: 0.6, moteurs: Array(30).fill(1), ton: 'fa# dorien', auteur: 'Claude Code (pôle SON), écrit à la main pour Léo',
+    style: 'house néon : pluck de cristal, enseigne qui clignote, basse courte sur les contretemps', introTxt: '', paliers: PALIERS30, preparer, jouer };
+})();
+</script>
+
+
+<!-- ======================= L'ÉCOUTE (libre : ce que voit celui qui ouvre le fichier) ======================= -->
+<script>
+(function () {
+  let ctx = null, kit = null, p = 1, m = 0, tNext = 0, iv = 0;
+  let graine = 72990; const alea = () => { graine = (graine * 1664525 + 1013904223) >>> 0; return graine / 4294967296; };
+  const mes = 240 / MORCEAU.bpm;
+  const ce = document.getElementById('ce'), play = document.getElementById('play'), jg = document.getElementById('speed'), mot = document.getElementById('mot');
+  const maj = () => { mot.textContent = 'Moteur ' + p + ' / 30'; ce.textContent = 'Moteur ' + p + ' · ' + MORCEAU.paliers[p - 1]; };
+  jg.addEventListener('input', () => { p = Math.max(1, Math.min(30, 1 + Math.round(+jg.value / 100 * 29))); maj(); });
+  play.onclick = () => {
+    if (iv) { clearInterval(iv); iv = 0; ctx.close(); ctx = null; play.textContent = 'PLAY'; maj(); return; }
+    ctx = new (window.AudioContext || window.webkitAudioContext)(); kit = MORCEAU.preparer(ctx, ctx.destination, alea);
+    m = 0; tNext = ctx.currentTime + 0.1; play.textContent = 'STOP';
+    iv = setInterval(() => { while (tNext < ctx.currentTime + 0.4) { MORCEAU.jouer(ctx, kit, p, tNext, m++, 1, alea); tNext += mes; } maj(); }, 60);
+  };
+  maj();
+})();
+</script>
+</body></html>
