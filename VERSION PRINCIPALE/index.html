@@ -76749,7 +76749,7 @@ function loop(now){
         break;}
     }
     if(!gameOver&&money>=nextRainAt){nextRainAt*=2.6;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
-    if(money>best){if(SONV2&&started&&!gameOver&&!SANDBOX&&!TUTO.on&&best>START_CASH+.5&&!runStats.recSon){runStats.recSon=1;sfx('aura.record',{vol:-6});}best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
+    if(money>best){if(SONV2&&started&&!gameOver&&!SANDBOX&&!TUTO.on&&best>START_CASH+.5&&!runStats.recSon){runStats.recSon=1;sfx('aura.record',{vol:-6});}if(!SANDBOX&&!TUTO.on){best=money;SAVE.d.best=best;SAVE.mark();}} /* (audit p10) ni l'auto-école ni le bac à sable ne posent un record : premiereFois() restait faux dès la 1re image */ // mark : le filet des 30 s (ou la fin de run) écrira
     if(loop._bestHud!==best){loop._bestHud=best;elRecord.textContent=TR('record : ')+fmt(best);}
     // ⚠ on n'écrit la jauge QUE si elle a bougé d'un demi-pour-cent : un style par image, c'est un recalcul de style par image
     // (2026-09-28, HUD v5) la rampe dit la MÊME chose que le disque NITRO : la part du RÉSERVOIR du moteur (orange), puis la réserve bleue
