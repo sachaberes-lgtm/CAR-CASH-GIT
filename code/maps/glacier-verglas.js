@@ -322,6 +322,9 @@ function banqSons(dt,c){
   for(const e of L9){if(T9.k[e[0]]==null)T9.k[e[0]]=e[1]*Math.random();T9.k[e[0]]-=dt;if(T9.k[e[0]]<=0){T9.k[e[0]]=e[1]+Math.random()*(e[2]-e[1]);try{sfx(e[0],{vol:e[3],pan:Math.random()*1.6-.8});}catch(x){}}}}
 /* ---------------- LA CHAUFFE AU MENU : chaque matière compilée et dessinée une fois hors écran (0 programme en course) ---------------- */
 function banqChauffe(){
+  if(SF_HORS.banquise)return; /* (2026-11-03, passe maps cohérentes) LE GLACIER HORS DU JOUER (SF_HORS, Léo, 30/10) : rien à préparer au menu pour une map qu'on ne tire pas — ses programmes
+     et ses effets (flocons, poussière de diamant, aurores, crêtes, traces, poudre, givre, éclats) naissaient à chaque lancement, sur l'ordi comme au téléphone, et restaient en mémoire
+     toute la session ; `?carte=banquise` le remet au tirage, et la chauffe avec (un dbgClassique forcé compile à sa 1re image, comme avant la chauffe) */
   const M=banqMats(),fx=banqFx(),L9=[];
   const tri=at=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,1,0,0,0,0,1],3));g.setAttribute('normal',new THREE.Float32BufferAttribute([0,1,0,0,1,0,0,1,0],3));
     for(const k in at)g.setAttribute(k,new THREE.Float32BufferAttribute(new Float32Array(3*at[k]),at[k]));return g;};
