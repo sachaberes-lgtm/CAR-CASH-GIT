@@ -26356,7 +26356,7 @@ function jadeChuteTick(dt){
     c.inv.copy(JCH_M).invert(); /* (2026-10-21, Léo : « on traverse les montagnes qui tombent ») la hitbox suit la montagne : le point testé est ramené dans son repère d'origine */
     const out=dy>(q[4]-JADE.eauY)+60;if(out)c.fin=true;
     {const me=JCH_M.elements;for(const o of c.orig){const A=o.F.M;if(out)A.set(JCH_Z,o.si*16);else jchMul(me,o.m,A,o.si*16);}}
-    if(c.fo){if(out)FIN.mats.set(c.pi,JCH_Z);else{JCH_R.fromArray(c.fo);JCH_R.premultiply(JCH_M);FIN.mats.set(c.pi,new Float32Array(JCH_R.elements));}}}
+    if(c.fo){if(out)FIN.mats.set(c.pi,JCH_Z);else{JCH_R.fromArray(c.fo);JCH_R.premultiply(JCH_M);if(!c.fm)c.fm=new Float32Array(16);c.fm.set(JCH_R.elements);FIN.mats.set(c.pi,c.fm);}}} /* (2026-11-03) la matrice des cubes fins d'une montagne qui tombe : SON tableau, réécrit (avant : un neuf à chaque image) */
   if(chg){for(const c of JCH.L)if(c.t0&&c.orig&&(!c.fin||!c.vu)){c.vu=c.fin;for(const o of c.orig)o.F.sale=true;if(c.fo)FIN.sale=true;}JADE.sale=true;}
   // l écume
   const S9=JCH.sp,im=JCH.splash;if(im&&S9.length){let n=0;const M9=JCH_M;
