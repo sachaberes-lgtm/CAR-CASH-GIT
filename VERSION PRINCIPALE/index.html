@@ -7816,6 +7816,51 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 .m2Fin{display:flex;align-items:center;gap:8px;min-height:44px;margin:10px 2px 4px;padding:0 4px;cursor:pointer;font-size:var(--f0);letter-spacing:1px;color:#b9b2e6;
   border-top:1px solid rgba(143,132,200,.3)}
 .m2Fin span{flex:1}.m2Fin .pxi{--pxs:1}.m2Fin.on{color:#dfeeff}
+/* ===== LES MISSIONS, PISTE B « PORTAIL » (2026-11-03) : encre, os, or ; le vert d'un portail pour l'anneau de la vedette ; la couleur de rareté pour un habillage. À plat. ===== */
+.mbPal{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.mbPh{display:flex;align-items:baseline;gap:10px}.mbPh small{font-size:var(--f0);letter-spacing:3px;color:#8c8f98}.mbPh b{font-weight:400;font-size:var(--f6);line-height:1;color:#e9e6dc}
+.mbPips{display:flex;gap:4px}.mbPips s{display:block;flex:1;max-width:24px;height:6px;background:#4a4d58}.mbPips s.o{background:var(--au2)}
+.mbPn{font-size:var(--f0);letter-spacing:1px;line-height:1.6;color:#8c8f98}
+.mbV{display:flex;flex-direction:column;align-items:center;gap:8px;box-sizing:border-box;padding:12px 8px;text-align:center;background:#0b0c10;box-shadow:inset 0 0 0 1px #2a2d36;cursor:pointer}
+.mbV.hab{--pg:var(--rc);background:color-mix(in srgb,var(--rc) 20%,#0b0c10)}
+.mbV{--pg:#8dff4a}
+.mbAnn{position:relative;flex:none;width:min(120px,30vw);aspect-ratio:1}
+.mbAnn svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.mbAnn circle{fill:none;stroke-width:10}.mbAnn .t{stroke:#1d2027}.mbAnn .p{stroke:var(--pg);transition:stroke-dashoffset 1s var(--ease)}
+.mbAnn .c{position:absolute;inset:11%;display:flex;align-items:center;justify-content:center}
+.mbV.pret .mbAnn .p{stroke-dashoffset:0!important;filter:drop-shadow(0 0 6px var(--pg))}
+.mbVt{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.mbVx{font-size:var(--f1);line-height:1.5;color:#e9e6dc}.mbVp{font-size:var(--f1);letter-spacing:1px;color:var(--pg)}
+.mbSil{position:relative;display:block;width:100%;aspect-ratio:720/440;font-style:normal}
+.mbSil img{position:absolute;left:-8%;top:0;width:116%;height:100%;object-fit:contain;filter:brightness(0) drop-shadow(0 0 1px #4a4d58);pointer-events:none}
+.mbSil img:not([src]){display:none}.mbSil.rev img{filter:none}
+.mbCash{font-weight:400;font-size:var(--f2);color:var(--au1);white-space:nowrap;text-align:center;line-height:1.3}
+.mbAnn .mbCash{font-size:var(--f3)}
+.mbAnn .mbRar{letter-spacing:0}
+.mbRar{font-weight:400;font-size:var(--f0);letter-spacing:2px;color:var(--rc,#e9e6dc);text-align:center}.mbQ{font-weight:400;font-size:var(--f4);color:#6a6d76}
+.mbL{position:relative;display:flex;flex-direction:column;gap:7px;box-sizing:border-box;padding:9px 10px;margin-bottom:6px;background:#14161c;cursor:pointer;animation:gmIn .4s var(--ease) backwards;animation-delay:calc(var(--i) * 50ms)}
+.mbL:active,.mbV:active{transform:translateY(2px)}
+.mbLt{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:var(--f1);line-height:1.5;color:#e9e6dc}
+.mbLt>span:first-child{min-width:0}
+.mbR{flex:none;display:flex;align-items:center;justify-content:flex-end;min-width:46px}.mbR.voir{cursor:pointer}
+.mbL .mbSil{width:54px}
+.mbGl{display:flex;align-items:center;gap:10px}
+.mbG{display:block;flex:1;height:6px;background:#23262e;text-decoration:none}.mbG i{display:block;height:100%;width:0;background:var(--au2);transition:width var(--m2T,1s) var(--ease)}
+.mbGl small{flex:none;font-size:var(--f0);color:#8c8f98;white-space:nowrap}
+.mbL.hab{background:color-mix(in srgb,var(--rc) 22%,#0b0c10);box-shadow:inset 3px 0 0 var(--rc)}.mbL.hab .mbG{background:color-mix(in srgb,var(--rc) 30%,#0b0c10)}.mbL.hab .mbG i{background:var(--rc)}
+.mbL.pret,.mbV.pret{box-shadow:inset 0 0 0 2px #8dff4a,0 0 14px rgba(141,255,74,.25)}.mbL.pret .m2Pr,.mbV.pret .m2Pr{align-self:flex-start;margin-top:0}
+.mbBt{font-size:var(--f0);color:#8c8f98}
+.mbNx{display:flex;align-items:center;gap:6px;padding:8px 2px 4px;font-size:var(--f0);letter-spacing:2px;color:#8c8f98}.mbNx s{display:block;height:9px;background:#3a3d47}.mbNx span{margin-left:4px}
+.mbL.pris,.mbV.pris{opacity:.4;transition:opacity .5s}
+.mbSil.rev{animation:m2Tourne 5.5s var(--ease) infinite alternate}
+#gmListe.m2:not(.land){background:#0b0c10;box-shadow:inset 0 0 0 1px #2a2d36} /* debout : le panneau en encre, comme la piste B */
+/* debout : la vedette en rangée (l'anneau à gauche, la mission à droite) */
+#gmListe:not(.land) .mbV{flex-direction:row;text-align:left;gap:16px;padding:12px 14px}#gmListe:not(.land) .mbVt{align-items:flex-start}
+#gmListe:not(.land) .mbAnn{width:104px}
+/* couché : la colonne de gauche est étroite (≈ 190-236 px) : l'anneau plus petit */
+#gmListe.land .mbAnn{width:92px}#gmListe.land .mbV{gap:6px;padding:9px 6px}#gmListe.land .mbPal{margin-bottom:8px;gap:5px}#gmListe.land .mbPh b{font-size:var(--f5)}
+#gmListe.m2.vu .mbL{animation:none}
+@media (prefers-reduced-motion:reduce){.mbL,.mbSil.rev{animation:none}}
 .m2Rien{padding:16px 6px;font-size:var(--f0);color:#8fb8c8;text-align:center}
 /* LE POINT VERT des portes MISSIONS : une récompense attend */
 .m2Pt{position:absolute;top:5px;right:6px;width:10px;height:10px;background:var(--cash);box-shadow:0 0 0 2px var(--k0),0 0 10px var(--cash);pointer-events:none;
@@ -61671,14 +61716,63 @@ function m2LignePal(d){ // une couleur secrète de la palette, trouvée : son in
    au-dessus de JOUER. Les titres de groupe n'apparaissent que s'il y a plusieurs groupes. Plus de défi du jour, plus de filtres de famille. */
 Object.assign(I18N,{'SUIVIES':'TRACKED'});
 const M2_GROUPES=[[0,'À RÉCUPÉRER','vert','cadeau'],[1,'SUIVIES','or','cible'],[2,'MISSIONS','','']];
+/* ===== L'ÉCRAN MISSIONS, PISTE B « PORTAIL » (2026-11-03, Sacha : « un truc clean, simple, avec quelques missions qui changent progressivement ; plus on les réalise, plus elles
+   sont compliquées ; juste la jauge ; la récompense en petite forme noire si c'est une voiture ; si c'est un objet stylé, la mission change de couleur ; une vibe James Bond,
+   Rick et Morty ») =====
+   LES PALIERS : les missions visibles sont rangées par difficulté en paliers de 4 (M2_PAL, à la main : du plus simple au plus long). On ne voit que le palier COURANT (le 1er dont
+   moins de 3 / 4 sont réussies) et ses restes plus anciens ; le palier suivant n'est qu'un bandeau caviardé. Quatre missions au plus à l'écran : une VEDETTE (ce qui est à récupérer, sinon la
+   caisse la plus avancée) dans un anneau vert qui se remplit, et trois lignes. Récompense : une caisse = sa SILHOUETTE NOIRE (sa photo passée au noir : elle ne se révèle qu'à RÉCUPÈRE) ;
+   de l'argent = le montant ; un habillage = toute la mission prend la couleur de sa rareté. Plus d'icône de famille, plus de coche décorative. Les secrètes trouvées, les TERMINÉES : comme avant. */
+const M2_PAL=[
+  ['fig2','air5','eng10','fig3'],['fig5','aura10k','car5','ai5'],['parf10','eng20','cash100k','tr5'],['fren','pu100','aura20k','col5'],
+  ['figs500','maps','col10','tr10'],['nit2000','car10','ai10','fig8'],['kmh1000','tours5','parfmaps','fren30'],['nmax100','vie5min','cash500k','maps2'],
+  ['air1000','eng30','aura50k','mis10'],['meteo','verglas100','km100k','morts100'],['cash1m','car20','colall','trall'],['aiall','figall','carall','rares'],['cash2m','toutall']];
+Object.assign(I18N,{'PALIER':'TIER','POUR OUVRIR LE SUIVANT':'TO UNLOCK THE NEXT','PALIER SUIVANT':'NEXT TIER'});
+function m2PalierDe(id){for(let i=0;i<M2_PAL.length;i++)if(M2_PAL[i].indexOf(id)>=0)return i;return M2_PAL.length-1;} // une mission neuve, pas encore rangée : au dernier palier
+function m2Paliers(s){ // {T : par palier {n : missions au garage, ok : réussies} · cur : le palier courant (le 1er sous les 3 / 4) · need : ce qu'il faut pour ouvrir le suivant}
+  const T=M2_PAL.map(function(){return {n:0,ok:0};});
+  for(const m of M2){if(m.f==='secret'||!m2Dispo(m))continue;const p=m2PalierDe(m.id);T[p].n++;if(s.ok.indexOf(m.id)>=0||(s.mq&&s.mq.indexOf(m.id)>=0))T[p].ok++;}
+  let cur=-1;for(let i=0;i<T.length;i++){if(T[i].n&&T[i].ok<Math.ceil(T[i].n*.75)){cur=i;break;}}
+  if(cur<0){cur=T.length-1;while(cur>0&&!T[cur].n)cur--;}
+  return {T:T,cur:cur,need:Math.ceil(T[cur].n*.75)};}
+function mbCouleur(m){const r=m.r||{};if(!r.cat)return '';const d=(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return rarInfo(d&&d.r).c;} // la couleur de la rareté d'un habillage
+function mbRec(m,pret){const r=m.r||{};
+  if(r.cash)return '<b class="mbCash">+'+fmtC(r.cash)+'</b>';
+  if(r.vide)return '<b class="mbQ">?</b>';
+  if(r.car){const i=m2CarIdx(r.car),ph=i>=0&&PHOTO.cache[i];return '<i class="mbSil'+(pret?' rev':'')+'"><img alt=""'+(ph?' src="'+ph+'"':i>=0&&!carRetiree(i)?' data-ph="'+i+'"':'')+'></i>';}
+  if(r.cat){const d=(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return '<b class="mbRar">'+sansAcc(TR(rarInfo(d&&d.r).n1))+'</b>';}
+  return '';}
+function mbBouton(x){return m2Pret(x.m.id)?'<span class="m2Pr" aria-hidden="true"><span>'+pxi('cadeau')+' '+TR('RÉCUPÈRE')+'</span></span>':'<small class="mbBt">'+TR('BIENTÔT AU GARAGE')+'</small>';}
+function mbVu(x,s){const vu=s.vu[x.m.id];return [Math.round(100*Math.min(x.p,vu!=null?vu:x.p)),Math.round(100*x.p)];}
+function mbLigne(x,k,s){const m=x.m,pret=x.rg===0,w=mbVu(x,s),rc=mbCouleur(m);
+  return '<div class="mbL'+(pret?' pret':'')+(rc?' hab':'')+'" data-m2="'+m.id+'" role="button" tabindex="0" style="--i:'+Math.min(k,12)+(rc?';--rc:'+rc:'')+'">'
+    +'<div class="mbLt"><span>'+(m.f==='secret'?'<i class="m2Sec">'+TR('SECRÈTE')+'</i> ':'')+m2TxtH(m)+'</span><span class="mbR'+(m2CarVoir(m)?' voir':'')+'" aria-label="'+sansAcc(m2RecNom(m)).replace(/"/g,'')+'">'+mbRec(m,pret)+'</span></div>'
+    +(pret?mbBouton(x):'<div class="mbGl"><u class="mbG"><i style="width:'+w[0]+'%" data-w="'+w[1]+'"></i></u><small>'+m2Prog(m,x.v,x.t)+'</small></div>')+'</div>';}
+function mbVedette(x,s){const m=x.m,pret=x.rg===0,w=mbVu(x,s),rc=mbCouleur(m),R=58,C=2*Math.PI*R;
+  return '<div class="mbV'+(pret?' pret':'')+(rc?' hab':'')+'" data-m2="'+m.id+'" role="button" tabindex="0"'+(rc?' style="--rc:'+rc+'"':'')+'>'
+    +'<div class="mbAnn"><svg viewBox="0 0 132 132" aria-hidden="true"><circle class="t" cx="66" cy="66" r="'+R+'"/><circle class="p" cx="66" cy="66" r="'+R+'" style="stroke-dasharray:'+C.toFixed(1)+';stroke-dashoffset:'+(C*(1-w[0]/100)).toFixed(1)+'" data-o="'+(C*(1-w[1]/100)).toFixed(1)+'"/></svg>'
+    +'<div class="c mbR'+(m2CarVoir(m)?' voir':'')+'" aria-label="'+sansAcc(m2RecNom(m)).replace(/"/g,'')+'">'+mbRec(m,pret)+'</div></div>'
+    +'<div class="mbVt"><div class="mbVx">'+(m.f==='secret'?'<i class="m2Sec">'+TR('SECRÈTE')+'</i> ':'')+m2TxtH(m)+'</div>'
+    +(pret?mbBouton(x):'<small class="mbVp">'+m2Prog(m,x.v,x.t)+'</small>')+'</div></div>';}
+function m2Vue(L,s){ // → {hb : la colonne vedette (palier + vedette) · h : les lignes · n : combien de missions à l'écran}
+  const P=m2Paliers(s),T=P.T[P.cur],pal=function(x){return m2PalierDe(x.m.id);};
+  const cand=L.filter(function(x){return x.rg===0||((x.rg===1||x.rg===2)&&x.m.f!=='secret'&&pal(x)<=P.cur);});
+  cand.sort(function(a,b){const ra=a.rg===0?0:1,rb=b.rg===0?0:1;return ra-rb||(ra?pal(a)-pal(b)||b.p-a.p:0);});
+  const vis=cand.slice(0,4);let ved=vis.find(function(x){return x.rg===0;});
+  if(!ved){let b=-1;for(const x of vis)if(x.m.r&&x.m.r.car&&x.p>b){b=x.p;ved=x;}}
+  if(!ved)for(const x of vis)if(!ved||x.p>ved.p)ved=x;
+  let pips='';for(let i=0;i<T.n;i++)pips+='<s'+(i<T.ok?' class="o"':'')+'></s>';
+  const hb='<div class="mbPal"><div class="mbPh"><small>'+sansAcc(TR('PALIER'))+'</small><b>'+(P.cur+1)+'</b></div><div class="mbPips">'+pips+'</div>'
+    +(P.cur<M2_PAL.length-1&&T.ok<P.need?'<small class="mbPn">'+Math.min(T.ok,P.need)+' / '+P.need+' · '+sansAcc(TR('PALIER'))+' '+(P.cur+2)+'</small>':'')+'</div>'+(ved?mbVedette(ved,s):'');
+  let h='',k=0;for(const x of vis)if(x!==ved)h+=mbLigne(x,k++,s);
+  if(vis.length&&P.cur<M2_PAL.length-1)h+='<div class="mbNx" aria-hidden="true"><s style="width:64px"></s><s style="width:104px"></s><s style="width:44px"></s><span>'+sansAcc(TR('PALIER'))+' '+(P.cur+2)+'</span></div>';
+  return {hb:hb,h:h,n:vis.length};}
 function m2Render(vu){
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';
   const old=$('gmListe'),sc0=old?old.scrollTop:0,a0=old&&old.querySelector('.glA'),sc1=a0?a0.scrollTop:0,b0=old&&old.querySelector('.glB'),sc2=b0?b0.scrollTop:0;
-  const s=m2Etat(),L=m2Lignes(),pal=m2SecPal();let k=0,hb='',h='<div class="glA m2A">';
+  const s=m2Etat(),L=m2Lignes(),pal=m2SecPal();let k=0,hb='',h='<div class="glA m2A mbA">';
   /* (2026-11-03, Sacha) la série de sept jours n'est plus ici : elle a son écran, à la mort (serieWOuvre) */
-  const gr=M2_GROUPES.map(function(g){return {g:g,ls:L.filter(function(x){return x.rg===g[0];})};}).filter(function(o){return o.ls.length;});
-  for(const o of gr){if(gr.length>1)h+='<h4 class="m2Hd'+(o.g[2]?' '+o.g[2]:'')+'">'+(o.g[3]?pxi(o.g[3])+' ':'')+sansAcc(TR(o.g[1]))+' <b>'+(o.g[0]===1?o.ls.length+' / 3':o.ls.length)+'</b></h4>';
-    for(const x of o.ls)h+=m2Ligne(x,k++,s);}
+  const V=m2Vue(L,s);hb=V.hb;h+=V.h;k=V.n;
   const fin=L.filter(function(x){return x.rg===9;}),nf=fin.length+pal.length;
   if(nf){h+='<div class="m2Fin'+(M2E.fin?' on':'')+'" role="button" tabindex="0" aria-expanded="'+M2E.fin+'">'+pxi('coche')+'<span>'+sansAcc(TR('TERMINÉES'))+' ('+nf+')</span>'+pxi(M2E.fin?'haut':'bas')+'</div>';
     if(M2E.fin){h+='<div class="m2FinL">';fin.forEach(function(x,j){h+=m2Ligne(x,j,s);});pal.forEach(function(d){h+=m2LignePal(d);});h+='</div>';}}
@@ -61690,12 +61784,12 @@ function m2Render(vu){
   const aide=$('gmAide');if(aide)aide.textContent=''; /* (2026-11-01, Sacha : « enlève le texte touche une mission pour la suivre, on peut plus suivre » ) */
   try{gmPlaceL(VP.w,VP.h);}catch(e){}
   const nl=$('gmListe');if(nl){nl.scrollTop=sc0;const a1=nl.querySelector('.glA'),b1=nl.querySelector('.glB');if(a1)a1.scrollTop=sc1;if(b1)b1.scrollTop=sc2;}
-  if(typeof GAR!=='undefined'&&GAR.aMisId){const id9=GAR.aMisId;GAR.aMisId=null;setTimeout(function(){const r9=document.querySelector('#gmListe .m2L[data-m2="'+id9+'"]');if(r9){try{r9.scrollIntoView({block:'center'});}catch(e){}r9.classList.add('flash');}},REDUCED_MOTION?0:380);} // VOIR LA MISSION hors du garage
+  if(typeof GAR!=='undefined'&&GAR.aMisId){const id9=GAR.aMisId;GAR.aMisId=null;setTimeout(function(){const r9=document.querySelector('#gmListe [data-m2="'+id9+'"]');if(r9){try{r9.scrollIntoView({block:'center'});}catch(e){}r9.classList.add('flash');}},REDUCED_MOTION?0:380);} // VOIR LA MISSION hors du garage
   /* les photos : une à la fois (photoFile tourne au garage), posées si la ligne est encore là */
   el.querySelectorAll('img[data-ph]').forEach(function(im){const i=+im.getAttribute('data-ph');photoFile(i,function(u){if(u&&im.isConnected)im.src=u;});});
   el.querySelectorAll('img[data-ai]').forEach(function(im){try{aileFile(im.getAttribute('data-ai'),function(u){if(u&&im.isConnected)im.src=u;});}catch(e){}});
   /* les jauges se remplissent depuis ce que l'écran avait montré (après une partie : on voit ce qu'elle a fait) */
-  const ems=el.querySelectorAll('.m2L u em[data-w]'),go=function(){ems.forEach(function(e){e.style.width=e.getAttribute('data-w')+'%';});};
+  const ems=el.querySelectorAll('.m2L u em[data-w],.mbG i[data-w]'),rgs=el.querySelectorAll('.mbAnn .p[data-o]'),go=function(){ems.forEach(function(e){e.style.width=e.getAttribute('data-w')+'%';});rgs.forEach(function(e){e.style.strokeDashoffset=e.getAttribute('data-o');});};
   if(REDUCED_MOTION||vu)go();else setTimeout(function(){requestAnimationFrame(go);},420);
   let ch=false;for(const x of L){const p=Math.round(x.p*1000)/1000;if(s.vu[x.m.id]!==p){s.vu[x.m.id]=p;ch=true;}}if(ch)SAVE.mark();
   m2Portes();m2RevAuto(700);}
@@ -61718,9 +61812,9 @@ function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
     if(M2E.fin){const f2=document.querySelector('#gmListe .m2Fin');if(f2&&f2.scrollIntoView)try{f2.scrollIntoView({block:'start',behavior:REDUCED_MOTION?'auto':'smooth'});}catch(x){}}return;}
   const pal=t.closest('[data-pal]');if(pal){const j=COSM.peinture.findIndex(function(d){return d.id===pal.getAttribute('data-pal');});if(j<0)return;uiClic('nav');
     ecranWipe(function(){garMode('boutique');shopTab('peinture');shopShow('peinture',j);});return;}
-  const row=t.closest('.m2L');if(!row)return;const id=row.getAttribute('data-m2'),m=m2Def(id);if(!m)return;const s=m2Etat();
+  const row=t.closest('.m2L,.mbL,.mbV');if(!row)return;const id=row.getAttribute('data-m2'),m=m2Def(id);if(!m)return;const s=m2Etat();
   if(row.classList.contains('pret')){if(m.f==='secret'&&m2Revele(id))return;m2Recupere(id,row);return;} // une SECRÈTE qui brille : sa révélation · (2026-10-31) AVANT la photo : sur une ligne prête, la photo récupère aussi (voir m2PrendIci)
-  if(t.closest('.m2R.voir')&&!t.closest('.m2Pr')){m2Voir(m);return;}
+  if(t.closest('.m2R.voir,.mbR.voir')&&!t.closest('.m2Pr')){m2Voir(m);return;}
   if(s.ok.indexOf(id)>=0){ /* (2026-11-01, Sacha : « quand on clique sur une mission achevée, elle se supprime automatiquement » ) */
     if(!s.mq)s.mq=[];if(s.mq.indexOf(id)<0)s.mq.push(id);SAVE.flush();uiClic('off');hap(10);m2Render(true);return;}
   uiClic('refus'); /* (2026-11-01) on ne peut plus suivre une mission : toucher une mission en cours ne fait plus rien */}
