@@ -9078,6 +9078,8 @@ html body #mob #mDead.m5 #mObj>.obFt{padding-top:9px;box-shadow:inset 0 1px 0 rg
   html body #mob #mDead.m5 .m6Mot>.m6Pied{grid-area:pied;margin-top:12px;flex-direction:column;align-items:flex-start;gap:8px}
   html body #mob #mDead.m5 .m6Mot>.m6Jauge{grid-area:jauge;margin-top:9px}
   html body #mob #mDead.m5 .m6Mot>.m6Scene{grid-area:scene;margin:6px -4px -4px 0}
+  /* debout la scène a toute la hauteur de la carte : la pièce y prend sa vraie place (elle flottait, petite, au milieu du vide) */
+  html body #mob #mDead.m5 .m6Mot>.m6Scene .hMotCv{width:142%;height:142%}
   html body #mob #mDead.m5 .m6Aura{display:grid;column-gap:14px;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);grid-template-rows:auto minmax(0,1fr);
     grid-template-areas:"tete tete" "big graphe"}
   html body #mob #mDead.m5 .m6Aura>.m6Tete{grid-area:tete}
@@ -61712,8 +61714,12 @@ function m2FocusMaj(){let e=document.getElementById('m2Focus');const on=!MIS_FOC
 function objRenderV2(el){const s=m2Etat(),L=[];
   for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
   for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
-  if(!L.length){let b=null,bp=-1;for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m))continue;let v=0;try{v=m2Val(m);}catch(x){}
-    const p=m2Frac(m,v,m2Seuil(m));if(p<1&&p>bp){bp=p;b=m;}}if(b)L.push({m:b,ok:0});}
+  /* (2026-11-03, Sacha : « améliorer encore un peu ») le panneau ne reste plus à moitié vide : il se complète avec les missions les plus
+     proches du but (avec leur barre) — jusqu'à 2 lignes debout, 3 couché, où il a toute la hauteur de la colonne */
+  {const cible=(window.matchMedia&&matchMedia('(orientation:landscape)').matches)?3:2,C=[];
+    if(L.length<cible)for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
+      let v=0;try{v=m2Val(m);}catch(x){}const p=m2Frac(m,v,m2Seuil(m));if(p<1)C.push({m:m,p:p});}
+    C.sort(function(a,b){return b.p-a.p;});for(const c of C){if(L.length>=cible)break;L.push({m:c.m,ok:0});}}
   const nP=m2NbPret(),c=m2Compte();
   el.className='mObj misPorte m2Ob';el.setAttribute('data-m','mis');el.style.removeProperty('--rc');
   let h='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+(nP?' <i class="m2Pt in"></i>':'')+'</span><b class="m2Cpt">'+c.ok+' / '+c.tot+'</b></div>';
