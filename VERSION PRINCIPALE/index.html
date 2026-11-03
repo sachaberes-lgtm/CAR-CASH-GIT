@@ -18045,6 +18045,18 @@ function cyTirage(seed){let h9=Math.imul((seed^0xDEC0CA)>>>0,0x9E3779B1);h9^=h9>
   return D;}
 /* ---- LE MONDE : appelé en fin de buildTrack (no-op hors du canyon) ---- */
 function cyEteindre(){CY.on=false;if(CY.mesh)CY.mesh.visible=false;if(CY.grp)CY.grp.visible=false;}
+/* ===== LE CANYON QU'ON QUITTE (2026-11-03, passe « maps cohérentes » — Sacha : « qu'elles soient toutes cohérentes et optimisées ») =====
+   cyEteindre CACHAIT le relief et ses pièces sans rien rendre : passé le portail, la map suivante gardait en mémoire de la puce les quatre textures de
+   données du canyon (la taille fine en RG32F et sa marque, le plateau en RGBA flottant, l'ombre de l'heure : plusieurs Mo) et toutes ses géométries
+   cuites (parois des Étroits, galerie et façade du tunnel, mine, arche, route 66, éboulis) avec les tampons d'instances (peupliers, cheminées).
+   Hors du canyon on les rend : le prochain canyon les refait de toute façon (cyMondePose, cyMonuments). Restent : la matière et ses programmes
+   (compilés au menu), les bruits partagés (CY.tNz, CY.tRnd — les dunes s'en servent), la colonne des strates, les géométries partagées (peuplier,
+   cheminée, bloc) et le monde côté processeur (petit, et relu par le canyon d'avance). */
+function cyLiberer(){if(CY.on||!CY.mat)return;const U=CY.mat.uniforms,z9=CY.z1;let n=0;
+  for(const k of ['tC','tM','tZ','tS'])if(CY[k]){CY[k].dispose();CY[k]=null;n++;}
+  if(z9){U.uTC.value=z9;U.uTZ.value=z9;U.uTS.value=z9;U.uTM.value=CY.tRnd;}
+  if(CY.grp)for(const o of CY.grp.children.slice()){CY.grp.remove(o);if(o.geometry&&o.userData.jeter)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();n++;}
+  CY.couT=CY.tunT=CY.mineT=null;CY.monu=false;CY.libere=n;}
 /* LA CONSTRUCTION EN DEUX TEMPS (2026-10-14, CANYON) — MESURÉ (banc processeur, piste de 19 km au palier 0) : ~0,65 s de calcul (le
    plateau ~0,16, la taille fine ~0,28, l'ombre ~0,06…), 1,1 s pour la piste de 40 km de fin de partie — au portail, c'était un GEL (la
    règle d'OPTIMISATION : ≤ 250 ms). Désormais : les échantillons de la route ici (~20 ms), le MONDE (plateau, taille, ombre, monuments)
@@ -18076,7 +18088,7 @@ function cyAvPrend(seed){ // (buildCanyon, au passage) le monde calculé d'avanc
   return true;}
 function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en face — rien n'est écrit dans CY, le monde part au travailleur
   if(!av){cyEteindre();CY.job=(CY.job||0)+1;}
-  if(PARK.on||!LVL.cur||LVL.cur.piste!=='canyon'||!(NP>1)||!CANYON_OK)return;
+  if(PARK.on||!LVL.cur||LVL.cur.piste!=='canyon'||!(NP>1)||!CANYON_OK){if(!av)cyLiberer();return;} /* (2026-11-03) hors du canyon : sa mémoire rendue */
   const t0=performance.now(),LV=lvPiste(),K=Math.sqrt(LV),r=mulberry32((seed^0xCA4F0A)>>>0);
   cyBruits();cyTerrain();
   const C={},D9=CY_DECO.on?cyTirage(seed):null;C.deco=D9;if(D9&&!av)cyStratesTeinte(D9.strates); // (2026-10-20) LE DÉCOR TIRÉ : la palette des strates d'abord (le tunnel la relit) — d'avance : au passage (cyAvPrend)
@@ -18413,7 +18425,7 @@ function cyTerrain(){ if(CY.mesh)return;
   const g=new THREE.InstancedBufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);
   CY.aN=new THREE.InstancedBufferAttribute(new Float32Array(CY.maxN*4),4);CY.aN.setUsage(THREE.DynamicDrawUsage);g.setAttribute('aN',CY.aN);g.instanceCount=0;
   g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7);CY.geo=g;
-  const z1=new THREE.DataTexture(new Float32Array([0,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);z1.needsUpdate=true;
+  const z1=new THREE.DataTexture(new Float32Array([0,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);z1.needsUpdate=true;CY.z1=z1; /* (2026-11-03) la texture vide : les uniformes y reviennent quand on quitte le canyon (cyLiberer) */
   const U=Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),{uTC:{value:z1},uTM:{value:CY.tRnd},uTZ:{value:z1},uTS:{value:z1},uRND:{value:CY.tRnd},uNZ:{value:CY.tNz},uSTR:{value:CY.tStr},
     uFD:{value:new THREE.Vector4(0,0,1,1)},uZD:{value:new THREE.Vector4(0,0,1,1)},uSD:{value:new THREE.Vector4(0,0,1,1)},uFN:{value:new THREE.Vector2(1,1)},uZN:{value:new THREE.Vector2(1,1)},uSN:{value:new THREE.Vector2(1,1)},
     uCam:{value:new THREE.Vector3()},uG:{value:G},uR0:{value:CY.R0},uTime:{value:0},uFlash:{value:0},uWet:{value:0},uSunD:{value:SUN_DIR},
@@ -19061,6 +19073,8 @@ window.dbgCanyon=function(k,a,b,c){
   if(k==='reprendre'){if(paused)togglePause();return 'ok';}
   if(k==='frag'){if(!CY.mat)return 'pas de matière';if(typeof a==='string'){CY.mat.fragmentShader=a;CY.mat.needsUpdate=true;}return CY.mat.fragmentShader;} /* (banc) la matière du relief relue / remplacée à chaud */
   if(k==='raccourcis')return CY.rac||[];
+  if(k==='pieces'){const r=[],vu=o=>{const g=o&&o.geometry;if(!g)return;const n=(g.index?g.index.count:g.attributes.position.count)/3,q=o.isInstancedMesh?o.count:1;r.push([o.name||o.type,Math.round(n),q,Math.round(n*q),o.visible,o.frustumCulled]);}; /* (2026-11-03, banc) le coût de chaque pièce du décor : [nom, triangles, instances, total, visible, coupée hors champ] */
+    if(CY.grp)CY.grp.traverse(vu);vu(CY_VAU.im);vu(CY_POUS.p);return {pieces:r,terrain:{noeuds:CY.n,grille:CY.G,tri:CY.n*CY.G*CY.G*2},libere:CY.libere|0,textures:['tC','tM','tZ','tS'].filter(function(t){return !!CY[t];}).length};}
   if(k==='vue'||k==='vueA'){if(!CY.on)return 'pas de canyon';if(started&&!gameOver&&!paused)togglePause();const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
     frameAt(Math.max(0,Math.min(L-1,(k==='vueA'?0:s)+(a||0))),F9); /* 'vueA' : à l'abscisse a de la piste (sinon a mètres devant la caisse) */const cap=(c||0)*Math.PI/180,dx=F9.t.x*Math.cos(cap)-F9.t.z*Math.sin(cap),dz=F9.t.z*Math.cos(cap)+F9.t.x*Math.sin(cap);
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(a!=null&&arguments[4]!=null?arguments[4]:.12),F9.p.z+dz*200);camera.updateMatrixWorld();

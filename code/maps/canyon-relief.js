@@ -126,7 +126,7 @@ function cyTerrain(){ if(CY.mesh)return;
   const g=new THREE.InstancedBufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);
   CY.aN=new THREE.InstancedBufferAttribute(new Float32Array(CY.maxN*4),4);CY.aN.setUsage(THREE.DynamicDrawUsage);g.setAttribute('aN',CY.aN);g.instanceCount=0;
   g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7);CY.geo=g;
-  const z1=new THREE.DataTexture(new Float32Array([0,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);z1.needsUpdate=true;
+  const z1=new THREE.DataTexture(new Float32Array([0,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);z1.needsUpdate=true;CY.z1=z1; /* (2026-11-03) la texture vide : les uniformes y reviennent quand on quitte le canyon (cyLiberer) */
   const U=Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),{uTC:{value:z1},uTM:{value:CY.tRnd},uTZ:{value:z1},uTS:{value:z1},uRND:{value:CY.tRnd},uNZ:{value:CY.tNz},uSTR:{value:CY.tStr},
     uFD:{value:new THREE.Vector4(0,0,1,1)},uZD:{value:new THREE.Vector4(0,0,1,1)},uSD:{value:new THREE.Vector4(0,0,1,1)},uFN:{value:new THREE.Vector2(1,1)},uZN:{value:new THREE.Vector2(1,1)},uSN:{value:new THREE.Vector2(1,1)},
     uCam:{value:new THREE.Vector3()},uG:{value:G},uR0:{value:CY.R0},uTime:{value:0},uFlash:{value:0},uWet:{value:0},uSunD:{value:SUN_DIR},
