@@ -7937,29 +7937,70 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 #m2Rev.fin .m2RvBloc{opacity:0;transform:scale(1.06)}#m2Rev.fin .m2RvFond,#m2Rev.fin .m2RvRayons{opacity:0}
 @media (orientation:landscape) and (max-height:540px){.m2RvPh{width:min(44vw,300px)}.m2RvNom{font-size:var(--f6)}.m2RvBloc{gap:5px}.m2RvTx{min-height:2.4em}}
 @media (prefers-reduced-motion:reduce){.m2RvRayons{animation:none}.m2RvBloc,.m2RvNom,.m2RvBt,.m2RvRar,.m2RvPh img.n,.m2RvFond,.m2RvRayons{transition:none}#m2Rev.plein .m2RvLigne{animation:none}}
-/* (2026-10-20, Léo) LA SÉRIE DE SEPT JOURS — sept cases : cochées en vert, celle du jour qui bat en or (l'or = ce qu'on vise, comme une mission suivie), DEMAIN
-   annoncé, la 7e case = la peinture exclusive, son nuancier. (2026-10-22, Sacha : « enlève le défi du jour ») le défi et son bloc AUJOURD'HUI sont partis :
-   la série tient dans une carte (.m2Serie) — titre, sept cases, une phrase. Rien ne bouge en continu sauf la case du jour. */
-.m2Serie .spIco{display:inline-block;flex:none;background-size:contain;background-repeat:no-repeat;background-position:center;image-rendering:pixelated}
-.m2Serie{position:relative;box-sizing:border-box;padding:10px 8px 11px;cursor:pointer;background:linear-gradient(180deg,#10294b,#0a1b36);
-  box-shadow:inset 0 0 0 1px rgba(95,240,255,.24),0 8px 22px rgba(0,0,0,.38);animation:gmIn .4s var(--ease) backwards;animation-delay:260ms}
-.m2Serie>b{display:flex;align-items:center;gap:7px;font-weight:400;font-size:var(--f1);letter-spacing:1px;line-height:1.4;color:#fff;margin-bottom:9px}
-.m2Serie>b .pxi{--pxs:2;color:var(--neoA)}
-.m2Serie>small{display:block;margin-top:9px;font-size:var(--f0);line-height:1.55;letter-spacing:.5px;color:#8fb8c8}
-.srL{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.srC{position:relative;font-style:normal;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;min-width:0;height:54px;padding:5px 0 3px;
-  box-sizing:border-box;background:#06142b;box-shadow:inset 0 0 0 1px rgba(95,240,255,.16);clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
-.srC>em{font-style:normal;font-size:var(--f0);letter-spacing:0;color:#6f93a6;white-space:nowrap}
-.srC .m2Cash{font-size:var(--f0);letter-spacing:-1px;line-height:22px}
-.srC .spIco{width:22px;height:22px}.srC>b{font-weight:400;font-size:var(--f0);color:var(--au1)}
-.srSw{display:block;width:80%;max-width:24px;height:22px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 0 8px rgba(255,120,200,.35)}
-.srC.fait{background:#0a2418;box-shadow:inset 0 0 0 1px rgba(94,227,122,.55)}.srC.fait>*:not(s):not(em){visibility:hidden}.srC.fait>em{color:#5ee37a}
-.srC>s{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#5ee37a;text-decoration:none}.srC>s .pxi{--pxs:2}
-.srC.auj{background:#2b240c;box-shadow:inset 0 0 0 2px var(--au2);animation:srBat 1.1s var(--ease) infinite alternate}.srC.auj>em{color:var(--au1)}
-@keyframes srBat{to{box-shadow:inset 0 0 0 2px var(--au2),0 0 14px rgba(255,201,58,.45)}}
-.srC.dem{box-shadow:inset 0 0 0 1px var(--au2)}.srC.dem>em{color:var(--au1)}
-.srC.ex:not(.fait){background:linear-gradient(180deg,#1a0f3a,#06142b)}
-@media (prefers-reduced-motion:reduce){.srC.auj{animation:none}}
+/* (2026-11-03, Sacha : « la série de connexions rapporte un peu plus d'argent chaque jour, puis une voiture épique à la fin — enlève-la de l'écran missions,
+   mets-la dans un écran en plus, à ta mort, 1re partie de la journée ») L'ÉCRAN DE SÉRIE (#serieW) : noir d'encre, l'or pour la case du jour, le vert
+   « portail » pour la voiture mystère seulement. Ouverture en œilleton (le cercle s'ouvre sur la scène), sept marches qui montent, le gain qui s'égrène,
+   la voiture du 7e jour qui sort du portail. Rien de penché, rien en continu sauf le portail et la case du jour. */
+#serieW{position:fixed;inset:0;z-index:96;display:none;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--pix);background:#000;color:#fff;
+  padding:calc(var(--sT,0px) + 12px) calc(var(--sR,0px) + 14px) calc(var(--sB,0px) + 12px) calc(var(--sL,0px) + 14px);overflow:hidden;cursor:pointer;
+  --pg:#8dff4a;--pg2:#1c7a2a;transition:opacity .4s var(--ease)}
+#serieW.on{display:flex}#serieW.fin{opacity:0;pointer-events:none}
+.swScene{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 38%,#15130d 0,#0a0a0c 55%,#040405 100%);clip-path:circle(0% at 50% 40%);transition:clip-path 1s var(--ease)}
+#serieW.on .swScene{clip-path:circle(150% at 50% 40%)}
+.swAnneau{position:absolute;left:50%;top:40%;width:24vmin;height:24vmin;margin:-12vmin 0 0 -12vmin;border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 22px rgba(255,255,255,.5);opacity:0;pointer-events:none}
+#serieW.on .swAnneau{animation:swIris 1s var(--ease) forwards}
+@keyframes swIris{0%{transform:scale(.08);opacity:1}70%{opacity:.9}100%{transform:scale(7);opacity:0}}
+.swBloc{position:relative;display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2.2vh,16px);width:min(100%,520px);text-align:center;opacity:0;transform:translateY(8px);transition:opacity .45s var(--ease) .5s,transform .45s var(--ease) .5s}
+#serieW.on .swBloc{opacity:1;transform:none}
+.swHd{display:flex;flex-direction:column;align-items:center;gap:6px}
+.swHd small{font-size:var(--f1);letter-spacing:3px;color:#8c8f98}
+.swHd b{font-weight:400;font-size:var(--f8);line-height:1;color:#fff;text-shadow:0 3px 0 #000}
+.swHd b i{font-style:normal;font-size:var(--f4);color:#6a6d76;margin-left:4px}
+.swHd em{font-style:normal;font-size:var(--f0);letter-spacing:1px;color:var(--au1)}
+.swPiste{display:grid;grid-template-columns:repeat(7,1fr);gap:clamp(3px,1.4vw,8px);align-items:end;width:100%;height:clamp(96px,26vh,170px);border-bottom:2px solid #2a2c33;box-sizing:border-box;padding:0 2px}
+.swC{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0;font-style:normal}
+.swBar{position:relative;display:flex;align-items:flex-start;justify-content:center;width:100%;height:calc(var(--h) * 1%);box-sizing:border-box;padding-top:5px;text-decoration:none;
+  background:#14151a;box-shadow:inset 0 0 0 1px #2a2c33;transform-origin:bottom;animation:swMonte .55s var(--ease) backwards;animation-delay:calc(.55s + var(--i) * 70ms)}
+@keyframes swMonte{from{transform:scaleY(0)}}
+.swBar b{font-weight:400;font-size:var(--f0);letter-spacing:-1px;color:#6a6d76;white-space:nowrap}
+.swC>em{position:absolute;top:100%;left:0;right:0;margin-top:6px;font-style:normal;font-size:var(--f0);color:#5b5e67;letter-spacing:0}
+.swC.fait .swBar{background:#1b1d23;box-shadow:inset 0 0 0 1px #3a3d46}.swC.fait .swBar b{color:#9a9da6}
+.swC.auj .swBar{background:#0a0a0c;box-shadow:inset 0 0 0 2px var(--au2)}.swC.auj .swBar b{color:var(--au1)}.swC.auj>em{color:var(--au1)}
+.swC.auj .swBar::before{content:"";position:absolute;left:0;right:0;bottom:0;height:0;background:var(--au2);transition:height 1s var(--ease)}
+#serieW.plein .swC.auj .swBar::before{height:100%}#serieW.plein .swC.auj .swBar b{position:relative;color:var(--auO)}
+.swC.voit .swBar{background:transparent;box-shadow:none;align-items:center;padding:0}
+.swC.voit .swBar::before{display:none}
+.swPortail{position:relative;width:100%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(var(--pg),var(--pg2),#d9ffb0,var(--pg2),var(--pg));box-shadow:0 0 14px color-mix(in srgb,var(--pg) 55%,transparent);animation:swTourne 3s linear infinite}
+.swPortail::after{content:"";position:absolute;inset:18%;border-radius:50%;background:#030b05}
+.swPortail s{position:relative;z-index:1;text-decoration:none;font-size:var(--f3);color:var(--pg);animation:swContre 3s linear infinite}
+@keyframes swTourne{to{transform:rotate(360deg)}}@keyframes swContre{to{transform:rotate(-360deg)}}
+.swC.voit.auj .swPortail{box-shadow:0 0 22px var(--pg)}
+.swC>s.swOk{position:absolute;left:0;right:0;top:6px;text-align:center;color:#5ee37a;text-decoration:none}.swC>s.swOk .pxi{--pxs:2}
+.swCentre{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:clamp(70px,20vh,150px);margin-top:14px}
+.swGain{font-size:var(--f7);line-height:1.1;color:var(--au1);text-shadow:0 3px 0 var(--auE),0 0 18px var(--auG);opacity:0;transform:scale(.9);transition:opacity .3s var(--ease),transform .4s var(--ease)}
+.swGain small{display:block;margin-bottom:6px;font-size:var(--f1);letter-spacing:3px;color:#8c8f98;text-shadow:none}
+#serieW.gain .swGain{opacity:1;transform:none}
+.swPh{position:relative;width:min(70vw,360px);aspect-ratio:720/440;display:none}
+.swPh img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}.swPh img:not([src]){display:none}
+.swPh img.n{filter:brightness(0) drop-shadow(0 0 2px var(--pg));clip-path:inset(0 0 0 0);transition:clip-path 1.4s var(--ease)}
+.swPh img.c{filter:drop-shadow(0 0 16px color-mix(in srgb,var(--rc,#fff) 55%,transparent))}
+#serieW.plein .swPh img.n{clip-path:inset(0 0 100% 0)}
+.swLigne{position:absolute;left:3%;right:3%;top:100%;height:3px;background:var(--pg);box-shadow:0 0 14px var(--pg);opacity:0}
+#serieW.plein .swLigne{animation:m2RvBalaye 1.4s var(--ease) forwards}
+#serieW.voiture .swPh{display:block}
+.swRar{font-size:var(--f0);letter-spacing:3px;color:var(--rc,#fff);opacity:0;transition:opacity .4s var(--ease)}
+.swNom{font-size:var(--f6);line-height:1.2;color:#fff;text-shadow:0 3px 0 #000,0 0 18px var(--rc,#fff);opacity:0;transform:scale(1.6);transition:transform .45s var(--ease),opacity .3s var(--ease)}
+#serieW.nom .swRar,#serieW.nom .swNom{opacity:1;transform:none}
+.swPied{font-size:var(--f1);line-height:1.7;letter-spacing:1px;color:#8c8f98;opacity:0;transition:opacity .4s var(--ease)}.swPied b{font-weight:400;color:var(--au1)}
+.swPied i{display:block;font-style:normal;color:#e0645a;font-size:var(--f0)}
+#serieW.bt .swPied{opacity:1}
+.swBt{min-width:220px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .3s var(--ease),transform .3s var(--ease)}
+#serieW.bt .swBt{opacity:1;pointer-events:auto;transform:none}
+.swG,.swD{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2.2vh,16px);width:100%;min-width:0}
+@media (orientation:landscape) and (max-height:540px){.swBloc{flex-direction:row;align-items:center;gap:26px;width:min(100%,800px)}.swG,.swD{flex:1 1 0;gap:10px}
+  .swHd b{font-size:var(--f6)}.swPiste{height:clamp(80px,34vh,130px)}.swCentre{min-height:0;margin-top:0}.swGain{font-size:var(--f6)}.swPh{width:min(34vw,230px)}.swNom{font-size:var(--f4)}.swBt{min-width:180px}}
+@media (prefers-reduced-motion:reduce){.swScene{transition:none}#serieW.on .swAnneau{animation:none}.swBar{animation:none}.swPortail,.swPortail s{animation:none}.swBloc{transition:none}}
 /* (2026-10-22, Sacha : « enlève le défi du jour, enlève toutes les catégories en haut, c'est trop compliqué… mets-toi dans la peau d'un designer UX/UI senior : un truc beau,
    plus simple, chaque bouton mieux placé, plus ergonomique ») L'ÉCRAN MISSIONS ÉPURÉ.
    COUCHÉ (#gMis.m2land, posé par gmPlaceL) : UNE grille à deux colonnes pour le haut comme pour le bas. À gauche (--m2Gl) : le titre, le compte et sa jauge, la carte de la
@@ -7998,7 +8039,6 @@ html.misV2 #gmHead em{order:3}
 .m2A .m2L:not(.pret):not(.ok) .glTx>u{margin:5px 0 0}.m2A .m2L:not(.pret):not(.ok) .glTx>small{margin-top:5px;white-space:nowrap}
 .m2A .m2L{min-height:56px;margin-bottom:6px}
 @media (orientation:landscape) and (max-height:540px){.m2A .m2L{min-height:54px;padding:6px 9px 6px 8px;margin-bottom:6px}.m2A .m2R{width:74px;height:40px}.m2Serie{padding:9px 8px 10px}.srC{height:52px}.m2Pr{min-height:26px;margin-top:5px}}
-#gmListe.m2.vu .m2Serie{animation:none}
 </style>
 <style>
 /* ===== LA PAUSE, MESURÉE (2026-10-24, Sacha : « cet écran est horrible, mets-toi sérieusement dessus, prends des mesures et corrige ça ») =====
@@ -54265,7 +54305,7 @@ setInterval(function(){try{ // le guetteur : la machine après l'écran de fin (
   const enCourse=started&&!gameOver;
   if(enCourse&&!SPIN.enCourse&&!(typeof CHANCE!=='undefined'&&CHANCE.used))spinDepart();SPIN.enCourse=enCourse;
   if(SPIN.ouvert){if(!(started&&gameOver)||garageOn)spinFerme();return;}
-  const ok=(SAVE.d.spinJ|0)>0&&started&&gameOver&&!SANDBOX&&!garageOn&&!ecranWipe._on&&!chanceAttend()&&!M2REV.on&&!!document.querySelector('#mDead.on'); /* (24/10, relecture) …ni pendant la révélation d'une secrète (#m2Rev) : la machine (z-index 250) la couvrait, sa scène se jouait derrière */
+  const ok=(SAVE.d.spinJ|0)>0&&started&&gameOver&&!SANDBOX&&!garageOn&&!ecranWipe._on&&!chanceAttend()&&!M2REV.on&&!serieWAttend()&&!!document.querySelector('#mDead.on'); /* (24/10, relecture) …ni pendant la révélation d'une secrète (#m2Rev) : la machine (z-index 250) la couvrait, sa scène se jouait derrière */
   if(!ok){SPIN.vu0=0;return;}
   if(!SPIN.vu0)SPIN.vu0=performance.now();else if(performance.now()-SPIN.vu0>1100)spinOuvre();
 }catch(e){}},200);
@@ -59217,7 +59257,7 @@ function jourCommit(){ // appelée par commitExploits : la partie compte → le 
     if(!J.on||!J.cmp||!J.dep||!(RUNX.t>=J.tMin))return 0;
     const e=jourEtat(J.dep),S=SAVE.d.jour;
     if(e.dispo){S.d=J.dep;S.n=e.suiv;
-      if(typeof SERIE7==='object'&&SERIE7.on){const o=serieDonne(e.suiv);J.fin={n:e.suiv,p:o.cash,k:J.k,s:o};J.cmp=false;return o.cash;} /* (2026-10-20, Léo) LA SÉRIE DE SEPT JOURS (missions/aujourdhui.js) : la case du calendrier au lieu de la prime ; ?serie=ancien = la prime */
+      if(typeof SERIE7==='object'&&SERIE7.on){const o=serieDonne(e.suiv);J.fin={n:e.suiv,p:o.cash,k:J.k,s:o,casse:e.n>0&&e.suiv===1};J.cmp=false;return o.cash;} /* (2026-10-20, Léo) LA SÉRIE DE SEPT JOURS (missions/aujourdhui.js) : la case du calendrier au lieu de la prime ; ?serie=ancien = la prime */
       const p=jourPrime(e.suiv);
       if(p>0){SAVE.d.bank=Math.min(1e30,bank()+p);gagneAjoute(p);bankMaxMaj();}
       J.fin={n:e.suiv,p:p,k:J.k};J.cmp=false; // une seule fois par partie
@@ -59229,7 +59269,7 @@ function jourCommit(){ // appelée par commitExploits : la partie compte → le 
 function jourFinTexte(){ // (écran de fin) ce que le quotidien a donné à CETTE partie, à ajouter à la ligne « COMPTE : $ N » : « · ×2 DU JOUR · SÉRIE 3 +$ 40 » ('' si rien) — en capitales JS (accents gardés : la ligne est en police système)
   const f=JOUR.fin;if(!f)return '';
   let s=f.k>1?TR('×2 du jour'):'';
-  if(f.s){const L=f.s.cash?{cash:f.s.cash}:f.s.jeton?{jeton:f.s.jeton}:{exclu:f.s.exclu};s+=(s?' · ':'')+TR('Série {n}').replace('{n}',f.n)+' '+serieLotTxt(L);} /* (2026-10-20) la case de la série : argent, jeton ou peinture */
+  if(f.s){const L=f.s.cash?{cash:f.s.cash}:f.s.jeton?{jeton:f.s.jeton}:f.s.car>=0?{voiture:1}:{exclu:f.s.exclu};s+=(s?' · ':'')+TR('Série {n}').replace('{n}',f.n)+' '+serieLotTxt(L);} /* (2026-10-20) la case de la série : argent, jeton ou peinture */
   else if(f.p>0)s+=(s?' · ':'')+TR('Série {n}').replace('{n}',f.n)+' +'+fmtC(f.p);
   return s?' · '+sansAcc(s.toUpperCase()):''; /* (2026-10-20) la ligne est en police PIXEL (pas de capitales accentuées : « SéRIE » s'affichait) */
 }
@@ -61635,7 +61675,7 @@ function m2Render(vu){
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';
   const old=$('gmListe'),sc0=old?old.scrollTop:0,a0=old&&old.querySelector('.glA'),sc1=a0?a0.scrollTop:0,b0=old&&old.querySelector('.glB'),sc2=b0?b0.scrollTop:0;
   const s=m2Etat(),L=m2Lignes(),pal=m2SecPal();let k=0,hb='',h='<div class="glA m2A">';
-  try{hb=serieHtml();}catch(e){console.warn('serieHtml',e);} /* la série de sept jours (missions/aujourdhui.js) */
+  /* (2026-11-03, Sacha) la série de sept jours n'est plus ici : elle a son écran, à la mort (serieWOuvre) */
   const gr=M2_GROUPES.map(function(g){return {g:g,ls:L.filter(function(x){return x.rg===g[0];})};}).filter(function(o){return o.ls.length;});
   for(const o of gr){if(gr.length>1)h+='<h4 class="m2Hd'+(o.g[2]?' '+o.g[2]:'')+'">'+(o.g[3]?pxi(o.g[3])+' ':'')+sansAcc(TR(o.g[1]))+' <b>'+(o.g[0]===1?o.ls.length+' / 3':o.ls.length)+'</b></h4>';
     for(const x of o.ls)h+=m2Ligne(x,k++,s);}
@@ -61674,7 +61714,6 @@ function m2Recupere(id,row){
   try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}
   setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions'))m2Render(true);else m2Portes();},REDUCED_MOTION?0:560);}
 function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
-  if(t.closest('.m2Serie')){aujClic(t);return;} /* (2026-10-20) la carte de la série dit ce qu'elle donne */
   const fin=t.closest('.m2Fin');if(fin){M2E.fin=!M2E.fin;uiClic(M2E.fin?'on':'off');hap(8);m2Render(true);
     if(M2E.fin){const f2=document.querySelector('#gmListe .m2Fin');if(f2&&f2.scrollIntoView)try{f2.scrollIntoView({block:'start',behavior:REDUCED_MOTION?'auto':'smooth'});}catch(x){}}return;}
   const pal=t.closest('[data-pal]');if(pal){const j=COSM.peinture.findIndex(function(d){return d.id===pal.getAttribute('data-pal');});if(j<0)return;uiClic('nav');
@@ -61792,7 +61831,7 @@ function m2RevAuto(delai){if(M2REV.on||!m2RevFile().length)return;clearTimeout(M
    Ouverte 1,4 s après l'écran de fin, plein écran (z-index 95), elle passait PAR-DESSUS la plaque CONTINUER de la seconde chance, qui n'a que
    5,5 s : le joueur regardait la caisse se remplir de couleur pendant que l'offre filait. La machine FINAL SPIN attendait déjà l'offre
    (chanceAttend) ; la révélation l'attend aussi, et attend que la machine (z-index 250, par-dessus elle) soit refermée. Elle repasse toutes les 0,4 s. */
-function m2RevAttend(){try{return !!((typeof chanceAttend==='function'&&chanceAttend())||(typeof SPIN!=='undefined'&&SPIN.ouvert));}catch(e){return false;}}
+function m2RevAttend(){try{return !!((typeof chanceAttend==='function'&&chanceAttend())||(typeof SPIN!=='undefined'&&SPIN.ouvert)||(typeof serieWAttend==='function'&&serieWAttend()));}catch(e){return false;}}
 function m2Revele(id){const m=m2Def(id);if(!m||M2REV.on||m2EnC())return false;const i=m2CarIdx((m.r||{}).car);if(i<0||carRetiree(i))return false;
   M2REV.on=true;M2REV.id=id;
   let el=document.getElementById('m2Rev');if(!el){el=document.createElement('div');el.id='m2Rev';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);}
@@ -61885,14 +61924,14 @@ const NFX={ign:0,ignK:1,air:false,off:0,t0:-9,sT:-9,len:0,edge:0,col:new THREE.C
         ~90 % pour le reste ; un plancher de débutant (2 figures, 3 s de vol, 45 s, 250 km/h, 1 500 d'aura, 2 poses, 8 s de frénésie).
       · Il se joue EN UNE PARTIE (les mesures de la course : m2ValCourse) ; réussi → +1 JETON tout de suite et la ligne du bas en course
         (« DÉFI DU JOUR RÉUSSI · +1 JETON ») — la machine FINAL SPIN s'ouvre à l'écran de fin. Rien en balade, bac à sable, parc ni auto-école.
-   L'AFFICHAGE : la carte de la série (serieHtml, colonne de gauche de l'écran MISSIONS) — le titre (la série en cours), les sept cases (cochées, celle d'aujourd'hui
+   (2026-11-03 : la carte n'est plus dans MISSIONS — voir L'ÉCRAN DE SÉRIE plus bas) L'AFFICHAGE d'avant : la carte de la série (serieHtml, colonne de gauche de l'écran MISSIONS) — le titre (la série en cours), les sept cases (cochées, celle d'aujourd'hui
    qui bat, DEMAIN annoncé quand la case du jour est prise) et une phrase. L'écran de fin dit ce que la série a donné (jourFinTexte).
    (2026-10-22, Sacha : « enlève le défi du jour, je t'avais dit de l'enlever ») LE DÉFI DU JOUR EST ÉTEINT : `DJ.on` faux sauf `?defijour=1` — plus de tirage, de ligne
    ni de jeton ; le moteur (djTire, djTick…) reste là, intact, pour le rallumer. Seule la série de sept jours garde son affichage.
    Console : dbgSerie() · dbgSerie('jour',n) (pose la série à n jours, prise hier) · dbgDefiJour() · ('force','fig') · ('reussi') · ('demain'). */
 const SERIE7={on:!/[?&]serie=ancien\b/.test(location.search),
-  lots:[{cash:150},{cash:250},{jeton:1},{cash:400},{cash:600},{jeton:1},{exclu:1}],
-  exclu:[],plein:{jeton:2}}; /* (2026-10-22, Sacha : « tableau des peintures ») les quatre peintures de la série passent à l'achat (1 €) : le 7e jour ne donne plus que le plein de jetons */
+  lots:[{cash:150},{cash:250},{cash:400},{cash:600},{cash:900},{cash:1300},{voiture:1}], /* (2026-11-03, Sacha) un peu plus d'argent chaque jour, puis UNE VOITURE ÉPIQUE au hasard le 7e jour */
+  exclu:[],plein:{cash:5000}}; /* (2026-10-22, Sacha : « tableau des peintures ») les quatre peintures de la série passent à l'achat (1 €) : le 7e jour ne donne plus que le plein de jetons */
 /* LES QUATRE PEINTURES DE LA SÉRIE — `serie:1` : ni prix, ni mission ; shopOwned / m2HabAMoi ne les donnent qu'une fois gagnées ; hors des lots « toutes » des missions (m2HabReco) */
 COSM.peinture.push(
   {id:'srBraise',n:'BRAISE FIDÈLE',eur:'1 €',r:'epique',g:'o',grad:[0xb3141c,0xff5a1c,0xffc23a],d:'Sept jours d\'affilée sur l\'asphalte, la laque en garde la chaleur.'},
@@ -61900,17 +61939,19 @@ COSM.peinture.push(
   {id:'srLagon',n:'LAGON INTERDIT',eur:'1 €',r:'epique',g:'g',grad:[0x01404f,0x00b3c7,0x9ff7ff],d:'Une eau que personne n\'a le droit de voir. Toi si.'},
   {id:'srEtoile',n:'NUIT ÉTOILÉE',eur:'1 €',r:'epique',g:'c',grad:[0x2a1f8f,0x8f5bff,0xff7ad9],d:'La nuit entière sur ta carrosserie, une semaine de plus.'});
 function serieCase(n){return ((Math.max(1,n|0)-1)%7)+1;} /* le jour de série n → sa case du calendrier (1 … 7) */
-function serieLot(c){const L=SERIE7.lots[c-1]||SERIE7.lots[0];if(!L.exclu)return L;const id=serieExclu();return id?{exclu:id}:SERIE7.plein;}
+function serieLot(c){const L=SERIE7.lots[c-1]||SERIE7.lots[0];if(L.voiture)return spinEpique()>=0?L:SERIE7.plein; /* plus aucune épique à gagner : le sac */if(!L.exclu)return L;const id=serieExclu();return id?{exclu:id}:SERIE7.plein;}
 function serieExclu(){const o=(SAVE.d.shop&&SAVE.d.shop.own)||[];for(const id of SERIE7.exclu)if(o.indexOf('peinture:'+id)<0)return id;return '';} /* la prochaine peinture pas encore à toi */
 function serieDonne(n){ /* appelée par jourCommit (la 1re partie comptée du jour) : verse le lot de la case du jour n, rend {c, cash, jeton, exclu} */
-  const c=serieCase(n),L=serieLot(c),o={c:c,cash:0,jeton:0,exclu:''};
+  const c=serieCase(n),L=serieLot(c),o={c:c,cash:0,jeton:0,exclu:'',car:-1};
   if(L.cash){SAVE.d.bank=Math.min(1e30,bank()+L.cash);gagneAjoute(L.cash);bankMaxMaj();o.cash=L.cash;}
   if(L.jeton){SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+L.jeton);o.jeton=L.jeton;}
+  if(L.voiture){const i=spinEpique();if(i>=0){if(!Array.isArray(SAVE.d.owned))SAVE.d.owned=[];if(SAVE.d.owned.indexOf(i)<0)SAVE.d.owned.push(i);try{carWas[i]=true;}catch(e){}o.car=i;}
+    else{SAVE.d.bank=Math.min(1e30,bank()+SERIE7.plein.cash);gagneAjoute(SERIE7.plein.cash);bankMaxMaj();o.cash=SERIE7.plein.cash;}} /* la voiture est à toi tout de suite (comme la machine) ; l'écran de série la raconte */
   if(L.exclu){const k='peinture:'+L.exclu;if(SAVE.d.shop.own.indexOf(k)<0)SAVE.d.shop.own.push(k);o.exclu=L.exclu;
     setTimeout(function(){try{toast(pxi('pinceau')+' '+serieLotTxt(L)+' — '+TR('EST À TOI'),true);}catch(e){}},1400);} /* le 7e jour : la peinture se dit, après l'entrée de l'écran de fin */
   SAVE.mark();return o;}
 function serieLotTxt(L){ /* « +$ 150 » · « +1 JETON » · « BRAISE FIDÈLE » */
-  if(L.cash)return '+'+fmtC(L.cash);if(L.jeton)return '+'+L.jeton+' '+TR(L.jeton>1?'JETONS':'JETON');
+  if(L.cash)return '+'+fmtC(L.cash);if(L.voiture)return TR('VOITURE ÉPIQUE');if(L.jeton)return '+'+L.jeton+' '+TR(L.jeton>1?'JETONS':'JETON');
   const d=COSM.peinture.find(function(x){return x.id===(L.exclu||'');});return d?TR(d.n):'';}
 function serieVue(){ /* l'état du calendrier pour l'affichage : {c : la case du jour (1-7) · pris : la case du jour est déjà gagnée · faits : cases cochées · n : la série vivante} */
   const a=jourAuj();if(!a||!JOUR.on)return null;const e=jourEtat(a);
@@ -61951,25 +61992,66 @@ function djTick(dt){ /* m2Tick (chaque image de course, missions allumées) : le
     try{hap([12,40,18]);}catch(e){}}}
 function djReste(){const t=new Date(),m=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1);return Math.max(0,m-t);} /* ms jusqu'à minuit (l'appareil) */
 
-/* ---- LA SÉRIE DE SEPT JOURS, en carte à côté de la liste des missions ---- */
-/* (2026-10-22, Sacha : « enlève le défi du jour… plus simple ») plus de bloc AUJOURD'HUI ni de ligne de défi : une carte — le titre (la série en
-   cours), les sept cases, une phrase (ce qui attend demain, ou comment gagner la case du jour). */
-function serieHtml(){
-  const S=SERIE7.on?serieVue():null;if(!S)return '';
-  try{spinSprites();}catch(e){}
-  let cs='';
-  for(let c=1;c<=7;c++){const L=serieLot(c),fait=c<=S.faits,auj=c===S.c,dem=S.pris&&c===serieCase(S.c+1)&&c!==S.c;
-    let ico;if(L.cash)ico='<b class="m2Cash">'+m2Nb(L.cash)+'</b>'; /* le chiffre seul : le vert dit déjà l'argent du jeu (« $ 150 » ne tenait pas dans la case) */else if(L.jeton)ico=(typeof spinIco==='function'?spinIco(5):'')+(L.jeton>1?'<b>×'+L.jeton+'</b>':'');
-    else{const d=COSM.peinture.find(function(x){return x.id===L.exclu;}),hx=function(c){return '#'+((c>>>0)&0xffffff).toString(16).padStart(6,'0');};
-      ico=d?'<b class="srSw" style="background:'+(d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0))+'"></b>':pxi('etoile');}
-    cs+='<i class="srC'+(fait?' fait':'')+(auj&&!S.pris?' auj':'')+(dem?' dem':'')+(L.exclu?' ex':'')+'" style="--i:'+c+'"><em>'+(LANG==='en'?'D':'J')+c+'</em>'+ico+(fait?'<s>'+pxi('coche')+'</s>':'')+'</i>';}
-  const tit=S.n&&!S.casse?TR('SÉRIE')+' '+S.n+' '+TR(S.n>1?'JOURS':'JOUR'):TR('SÉRIE'),
-    bas=S.pris?TR('DEMAIN')+' : '+serieLotTxt(serieLot(serieCase(S.c+1))):S.casse?TR('SÉRIE PERDUE · ON REPART AU 1ER JOUR'):TR('JOUE UNE PARTIE POUR LA CASE DU JOUR');
-  return '<div class="m2Serie" data-aj="serie" role="button" tabindex="0"><b>'+pxi('flamme')+' '+sansAcc(tit)+'</b><div class="srL">'+cs+'</div><small>'+sansAcc(bas)+'</small></div>';}
-function aujClic(t){const a=t.closest&&t.closest('[data-aj]');if(!a)return false;
-  try{uiClic('nav');}catch(e){}try{hap(8);}catch(e){}
-  const S=serieVue();if(S)try{const L=serieLot(S.pris?serieCase(S.c+1):S.c);toast(pxi('flamme')+' '+(S.pris?TR('DEMAIN')+' : ':TR('AUJOURD\'HUI')+' : ')+serieLotTxt(L));}catch(e){}
+/* ===== L'ÉCRAN DE SÉRIE (2026-11-03, Sacha : « la série rapporte un peu plus d'argent chaque jour, puis une voiture épique à la fin ; enlève-la de l'écran missions, mets-la
+   dans un écran en plus quand tu meurs, ta 1re partie de la journée, stylé et bien travaillé ») =====
+   La série de sept jours (SERIE7) ne vit plus dans MISSIONS. Le jour où la 1re partie COMPTÉE est finie (jourCommit a versé la case : J.fin.s), l'écran de mort arrive, puis
+   1 s plus tard cet écran par-dessus (z-index 96) : l'œilleton s'ouvre, sept marches montent (150 → 1 300 $), la case du jour se remplit d'or et le gain s'égrène ; au 7e jour
+   la marche est un PORTAIL vert d'où sort la voiture épique gagnée (silhouette qui se remplit, nom, rareté). Toucher avant la fin = aller au bout ; CONTINUER ferme.
+   Il attend l'offre de seconde chance, la révélation d'une secrète et la machine FINAL SPIN (qui, elle, l'attend). Console : dbgSerie('ecran', n) l'ouvre sur le jour n sans rien verser. */
+const SERIEW={on:false,vu:null,t0:0,id:0};
+function serieWAttend(){try{const f=JOUR.fin;return !!(SERIEW.on||(f&&f.s&&SERIEW.vu!==f&&started&&gameOver));}catch(e){return false;}}
+function serieWOuvre(fin){ // fin = ce que jourCommit a versé ({n, casse, s:{c,cash,jeton,car}}) ; sans paramètre : la dernière fin de partie
+  const f=fin||JOUR.fin;if(!f||!f.s||SERIEW.on)return false;
+  SERIEW.on=true;SERIEW.vu=f;const id=++SERIEW.id,o=f.s,c=o.c||serieCase(f.n),car=o.car>=0?o.car:-1,L=serieLot(c);
+  let el=document.getElementById('serieW');if(!el){el=document.createElement('div');el.id='serieW';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);}
+  el.setAttribute('aria-label',sansAcc(TR('SÉRIE DE CONNEXION')));
+  const H=[30,38,48,60,74,88,100];let cs='';
+  for(let k=1;k<=7;k++){const Lk=serieLot(k),v=k===c?'auj':k<c?'fait':'futur';
+    const txt=Lk.cash?String(Lk.cash):Lk.jeton?'×'+Lk.jeton:'';
+    cs+='<i class="swC '+v+(Lk.voiture?' voit':'')+'" style="--i:'+k+';--h:'+(Lk.voiture?100:H[k-1])+'"><u class="swBar">'
+      +(Lk.voiture?'<span class="swPortail"><s>?</s></span>':'<b>'+txt+'</b>')+'</u>'+(k<c?'<s class="swOk">'+pxi('coche')+'</s>':'')+'<em>'+(LANG==='en'?'D':'J')+k+'</em></i>';}
+  const ni=serieLot(serieCase(c+1)),pied=sansAcc(TR('REVIENS DEMAIN'))+' : <b>'+sansAcc(serieLotTxt(ni))+'</b>'+(f.casse?'<i>'+sansAcc(TR('SÉRIE PERDUE · ON REPART AU 1ER JOUR'))+'</i>':'');
+  el.innerHTML='<div class="swScene"></div><i class="swAnneau"></i>'
+    +'<div class="swBloc"><div class="swG"><div class="swHd"><small>'+sansAcc(TR('SÉRIE DE CONNEXION'))+'</small><b>'+sansAcc(TR('JOUR'))+' '+c+'<i>/ 7</i></b>'+(f.n>7?'<em>'+sansAcc(TR('SÉRIE')+' '+f.n+' '+TR('JOURS'))+'</em>':'')+'</div>'
+    +'<div class="swPiste">'+cs+'</div></div><div class="swD">'
+    +'<div class="swCentre">'+(car>=0?'<div class="swPh"><img class="c" alt=""><img class="n" alt=""><i class="swLigne"></i></div><div class="swRar"></div><div class="swNom"></div>'
+      :'<div class="swGain"><small>'+sansAcc(TR('AUJOURD\'HUI'))+'</small><b>+'+fmtC(0)+'</b></div>')+'</div>'
+    +'<div class="swPied">'+pied+'</div>'
+    +'<div class="pbtn pb-gold swBt" role="button" tabindex="0"><span>'+sansAcc(TR('CONTINUER'))+'</span></div></div></div>';
+  el.className='';void el.offsetWidth;el.classList.add('on');if(car>=0)el.classList.add('voiture');
+  try{if(SONV2)sfx('ui.volet');}catch(e){}hap(10);
+  const T=function(fn,ms){setTimeout(function(){if(SERIEW.on&&SERIEW.id===id)fn();},REDUCED_MOTION?0:ms);};
+  if(car>=0){
+    const ri=rarInfo(carRar(car));el.style.setProperty('--rc',ri.c);
+    el.querySelector('.swRar').textContent=sansAcc(TR(ri.n1));el.querySelector('.swNom').textContent=sansAcc(TR(CARS[car].name));
+    const go=function(url){if(!SERIEW.on||SERIEW.id!==id)return;const a=el.querySelector('img.c'),b=el.querySelector('img.n');
+      if(url){a.src=url;b.src=url;}else el.querySelector('.swPh').classList.add('vide');
+      T(function(){el.classList.add('plein');try{if(SONV2)sfx('ui.debloque');}catch(e){}hap([20,60,20,60,60]);},1900);
+      T(function(){el.classList.add('nom');try{pixBurst(el.querySelector('.swNom'),12);}catch(e){}},3400);
+      T(function(){el.classList.add('bt');},4000);};
+    T(function(){try{carPhoto(car,go);}catch(e){go(null);}},1100);
+  }else{
+    T(function(){el.classList.add('plein','gain');const b=el.querySelector('.swGain b'),V=L.cash|0||o.cash|0,T0=performance.now(),D=1000;let last=0;
+      if(!V){b.textContent=sansAcc(serieLotTxt(L));return;}
+      (function monte(now){if(!SERIEW.on||SERIEW.id!==id)return;const u=Math.min(1,(now-T0)/D),v=V*(1-Math.pow(1-u,3));b.textContent='+'+fmtC(u<1?v:V);
+        if(u<1&&now-last>70){last=now;try{if(SONV2)sfx('spin.piece');}catch(e){}}if(u<1)requestAnimationFrame(monte);
+        else{try{if(SONV2)sfx('ui.achat');}catch(e){}hap([12,40,12]);try{pixBurst(b,10);}catch(e){}}})(T0);},1300);
+    T(function(){el.classList.add('bt');},2700);}
   return true;}
+function serieWFerme(){const el=document.getElementById('serieW');if(!SERIEW.on||!el)return;
+  if(!el.classList.contains('bt')){el.classList.add('plein','gain','nom','bt');const b=el.querySelector('.swGain b'),f=SERIEW.vu;
+    if(b&&f&&f.s){const L=serieLot(f.s.c||serieCase(f.n));b.textContent=L.cash||f.s.cash?'+'+fmtC(L.cash||f.s.cash):sansAcc(serieLotTxt(L));}return;} // pas fini : au bout
+  try{if(SONV2)sfx('ui.tampon');else uiClic('ok');}catch(e){}hap(10);
+  try{carSnapshot();}catch(e){}
+  el.classList.add('fin');SERIEW.on=false;setTimeout(function(){if(!SERIEW.on){el.className='';el.innerHTML='';}},REDUCED_MOTION?0:420);}
+document.addEventListener('click',function(e){const el=document.getElementById('serieW');if(!el||!SERIEW.on||!el.contains(e.target))return;e.stopPropagation();e.preventDefault();serieWFerme();},true);
+document.addEventListener('keydown',function(e){if(!SERIEW.on)return;if(e.code==='Enter'||e.code==='Space'||e.code==='Escape'){e.preventDefault();e.stopPropagation();serieWFerme();}},true);
+setInterval(function(){try{ // le guetteur : l'écran de mort est là, la série du jour a été versée → 0,9 s plus tard, l'écran de série
+  const f=JOUR.fin;if(SERIEW.on||!f||!f.s||SERIEW.vu===f){SERIEW.t0=0;return;}
+  if(!(started&&gameOver)||garageOn||SANDBOX||!document.querySelector('#mDead.on')||M2REV.on||ecranWipe._on||(typeof chanceAttend==='function'&&chanceAttend())||(typeof SPIN!=='undefined'&&SPIN.ouvert)){SERIEW.t0=0;return;}
+  if(!SERIEW.t0)SERIEW.t0=performance.now();else if(performance.now()-SERIEW.t0>900){SERIEW.t0=0;serieWOuvre();}
+}catch(e){}},200);
+Object.assign(I18N,{'SÉRIE DE CONNEXION':'LOGIN STREAK','REVIENS DEMAIN':'COME BACK TOMORROW','VOITURE ÉPIQUE':'EPIC CAR'});
 Object.assign(I18N,{'DÉFI DU JOUR':'DAILY CHALLENGE','DÉFI DU JOUR RÉUSSI':'DAILY CHALLENGE DONE','JETON':'TOKEN','JETONS':'TOKENS','RÉUSSI':'DONE','MEILLEUR ESSAI':'BEST TRY',
   'NOUVEAU DÉFI DANS':'NEW CHALLENGE IN','NOUVEAU DANS':'NEW IN','AUJOURD\'HUI':'TODAY','DEMAIN':'TOMORROW','REVIENS DEMAIN':'COME BACK TOMORROW','JOUR':'DAY',
   'SÉRIE PERDUE · ON REPART AU 1ER JOUR':'STREAK LOST · BACK TO DAY 1','JOUE UNE PARTIE POUR LA CASE DU JOUR':'PLAY A RUN FOR TODAY\'S BOX','UNE PARTIE POUR LE RÉUSSIR':'ONE RUN TO DO IT',
@@ -61979,6 +62061,7 @@ Object.assign(I18N,{'DÉFI DU JOUR':'DAILY CHALLENGE','DÉFI DU JOUR RÉUSSI':'D
   'Une eau que personne n\'a le droit de voir. Toi si.':'Water nobody is allowed to see. Except you.',
   'La nuit entière sur ta carrosserie, une semaine de plus.':'The whole night on your body panels, one more week.'});
 window.dbgSerie=function(a,n){ /* (banc) l'état du calendrier · ('jour',n) : la série à n jours, prise HIER (la case suivante est à jouer) · ('pris',n) : prise aujourd'hui */
+  if(a==='ecran'){const k=Math.max(1,n|0),L=serieLot(serieCase(k));return serieWOuvre({n:k,casse:false,s:{c:serieCase(k),cash:L.cash|0,jeton:0,exclu:'',car:L.voiture?spinEpique():-1}});} /* (2026-11-03) l'écran de série sur le jour n, sans rien verser */
   if(a==='jour'||a==='pris'){const t=new Date();if(a==='jour')t.setDate(t.getDate()-1);const y=t.getFullYear(),m=t.getMonth()+1,d=t.getDate();
     SAVE.d.jour={d:y+'-'+(m<10?'0':'')+m+'-'+(d<10?'0':'')+d,n:Math.max(0,n|0)};SAVE.flush();}
   const S=serieVue();return {actif:SERIE7.on,vue:S,lotDuJour:S?serieLot(S.c):null,demain:S?serieLot(serieCase(S.c+1)):null,exclusive:serieExclu(),jetons:SAVE.d.spinJ|0};};
