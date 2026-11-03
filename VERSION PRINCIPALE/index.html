@@ -63850,13 +63850,14 @@ function portailPasse(){
   flashEcran('rgba(255,79,216,.6)'); // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
   portalSnd();if(!SONV2)boostSnd();shake=.5; /* (console de son) `portail` porte tout le passage : plus le souffle d'un pad dessous */
   if(SENS)try{sensHap([22,36,12],3);}catch(e){} // (2026-10-14, sensations · passages) le portail CLAQUE dans la main : un coup lourd puis son écho — le plus gros passage du jeu avait son flash, son souffle et sa secousse, mais pas une vibration (les finales et l'auto-école sortent plus haut : rien)
-  const zb=denom()*120*(fever>0?2:1)*flowMult(); /* (2026-10-14, équilibrage) 24 → 120 : un portail paie 15-20 s de pièces, un vrai jalon (+3-5 % sur une bonne partie) */money+=zb;levelCash+=zb;livre('$:portail',zb);checkUpgrade();frenCash(zb,carGroup.position); // portail : 40→24 (régulation 2026-07-30) · (2026-09-29) × le FLOW comme les pièces : franchi en FRÉNÉSIE, il paie ×3
-  runStats.zones++;secPorte(); // (2026-10-14) LES DÉFIS SECRETS : LUNAIRE
+  const dejaPaye=PORTV.paye;PORTV.paye=1; // (2026-11, audit p8) CE portail est payé UNE fois : explosion dans les 1-2 images d'attente → newTrack sauté (mode 'boom') → seconde chance replace la caisse à L−80 de la MÊME piste → elle repasse le portail : la zone n'est pas payée deux fois (remis à 0 par newTrack0, quand une piste neuve est vraiment bâtie)
+  const zb=dejaPaye?0:denom()*120*(fever>0?2:1)*flowMult(); /* (2026-10-14, équilibrage) 24 → 120 : un portail paie 15-20 s de pièces, un vrai jalon (+3-5 % sur une bonne partie) */if(!dejaPaye){money+=zb;levelCash+=zb;livre('$:portail',zb);checkUpgrade();frenCash(zb,carGroup.position);} // portail : 40→24 (régulation 2026-07-30) · (2026-09-29) × le FLOW comme les pièces : franchi en FRÉNÉSIE, il paie ×3
+  if(!dejaPaye){runStats.zones++;secPorte();} // (2026-10-14) LES DÉFIS SECRETS : LUNAIRE
   if(SONV2&&nitroR<nitroCap()-.05)sfx('nitro.plein',{t:.45}); // (console de son) le portail refait le plein : on l'entend, après l'aspiration
   nitroR=Math.max(nitroR,nitroCap()); // le portail regonfle la nitro : chaque zone repart pied au plancher — au plein du MOTEUR (en dur à 2, il vidait un réservoir de 3,6)
-  trickMsg(TR(pickL(ZONE_LINES))+' +'+fmtC(zb),true);
-  flyCash(carGroup.position,8);
-  SURV.pBase+=sP; // la course traverse le portail : les écarts restent vrais (téléportation invisible) — (2026-09-30) même franchi en vol
+  if(!dejaPaye){trickMsg(TR(pickL(ZONE_LINES))+' +'+fmtC(zb),true);
+  flyCash(carGroup.position,8);}
+  if(!dejaPaye)SURV.pBase+=sP; // la course traverse le portail : les écarts restent vrais (téléportation invisible) — (2026-09-30) même franchi en vol
   portPasseNiveau();
 }
 /* LE PASSAGE EN DEUX TEMPS (2026-10-05, Léo : « rends plus smooth la transition entre deux niveaux qui se suivent, avec le portail »).
@@ -63867,7 +63868,7 @@ function portailPasse(){
    le voile tient ~0,28 s (la chauffe des programmes, CHAUFFE_R à +120 ms, tombe dessous) puis s'ouvre en 0,5 s. Pendant l'attente (1 à 2
    images) la caisse reste à la bouche du portail (s ≤ L − 2 : 32 m de marge, mais à 1 900 km/h une image en avale 9). En VOL, la
    construction reste immédiate (la chute continuerait) : le voile cache la coupe. Le temps du jeu, lui, ne ralentit JAMAIS (règle du 26/09). */
-const PORTV={el:null,att:0,n:0,tS:0,t0:0};
+const PORTV={el:null,att:0,n:0,tS:0,t0:0,paye:0}; // paye : le portail de la piste en cours a déjà payé (remis à 0 par newTrack0)
 /* LE PASSAGE PAR LA FENÊTRE (2026-10-17, Léo : « revoir tout le système de transition entre chaque map »). Avec le portail de cubes, le voile
    du passage n'est plus un écran à part (les feux du départ) : c'est L'IMAGE MÊME qu'on traverse. À l'instant du passage la scène est rendue
    une fois et recopiée dans une toile plein écran (la fenêtre couvre déjà tout l'écran : on y voit la map d'en face) ; la toile AVANCE (un
@@ -64700,6 +64701,7 @@ function ccConstr(etape,ms){try{document.dispatchEvent(new CustomEvent('cc:const
 function newTrack(){
   const t0NT=performance.now();ccConstr('debut');try{newTrack0();}finally{ccConstr('fin',Math.round(performance.now()-t0NT));}}
 function newTrack0(){
+  PORTV.paye=0; // (audit p8) une piste neuve est bâtie : son portail paiera de nouveau
   const leger9=PREB.ntLeger;PREB.ntLeger=false; // (LE DÉPART D'AVANCE) la piste que resetGame rebâtit dans la même image : jamais dessinée, seul son ciel compte (voir sous9)
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) portail / nouvelle piste : la tension du vol repart de zéro
   PADCH.sL=0; /* (LE TRAIN DE BOOSTS) il traverse le portail — mais les pads de la nouvelle piste comptent dès son début */
