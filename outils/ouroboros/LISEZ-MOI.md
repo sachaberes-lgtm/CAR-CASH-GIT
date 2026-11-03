@@ -1,28 +1,30 @@
-# L'OUROBOROS DU CHARGEMENT — notice d'intégration
+# L'OUROBOROS DU CHARGEMENT
 
-Demande de Sacha (2026-11-03) : « pendant le temps de chargement, un mini Ouroboros pixel, mignon, noir et blanc, qui se mord la
-queue en boucle ; animation simple, pas de ressources, mais très belle ». Le dessin et l'animation sont de Fable 5.1 (ce dossier) ;
-l'intégration dans le jeu est à faire par un autre modèle en suivant cette notice.
+Demande de Sacha (03/11/2026) : « un mini Ouroboros pixel, mignon, noir et blanc, qui se mord la queue en boucle pendant le
+chargement ; animation simple, pas de ressources, mais très belle », puis : « un air plus malicieux, et qu'on le voie tourner
+et se manger son propre corps en boucle ». Dessin et animation : Fable 5.1.
 
-## Ce qu'il y a ici
-- `ouroboros-44px-48img.png` — la bande : 48 images de 44 × 44 px côte à côte (2112 × 44), palette transparent / blanc / gris / noir, 1,3 Ko.
-- `ouroboros.css` — LE BLOC À COLLER : `#spCharge` avec la bande en data-URL, `steps(48)` sur 4 s (12 images/s), `image-rendering:pixelated`,
-  affiché ×2 (88 px), `prefers-reduced-motion` → image fixe. Aucun JS : visible dès la première image, avant tout script.
-- `demo.html` — la démo seule sur fond noir (`?zoom=4` pour voir les pixels).
-- `ouroboros.cjs` + `png.cjs` — le générateur (`node outils/ouroboros/ouroboros.cjs` régénère tout). Ne pas changer l'échelle ×2 :
-  à ×1,5 les pixels deviennent inégaux sur iPhone (DPR 3).
+## Ce que fait l'animation (boucle de 3 s, 48 images à 16 images/s)
+- Un serpent blanc à grosse tête, posé en anneau, la tête au-dessus qui mord sa propre queue ; la queue s'effile jusque dans la gueule.
+- Il TOURNE sans bouger : les écailles (carrés noirs) et les tirets gris du ventre filent le long du corps vers la gueule ; ils rapetissent
+  sur la queue amincie, comme digérés.
+- Il SE MANGE : toutes les 1,5 s une bosse de corps voyage du cou à la gueule, la mâchoire grande ouverte la guette, CLAC (la tête plonge
+  d'un pixel, des miettes jaillissent).
+- Malicieux : œil rond à paupière lourde et reflet, sourcil en pente (qui se lève une fois par tour), sourire en coin, petite dent,
+  joue rose, un clignement par tour, trois étincelles qui scintillent autour.
+- 3 tons seulement (noir, blanc, gris). Aucun JS, aucune image externe : un bloc CSS de 5,7 Ko.
 
-## Intégration (dans `code/`, jamais dans index.html à la main)
-1. `code/page/ecrans-garage.html`, dans `<div id="splash">` : remplacer la ligne `<style>#spCharge{…}</style>` (l'anneau CSS de Léo du 02/11)
-   par `<style>` + le contenu de `ouroboros.css` + `</style>`. GARDER `<div id="spCharge"></div>` et son id : `chCl()` dans
-   `code/moteur/intro-161.js` le fond en opacité puis le retire quand la boule de l'intro se dessine — rien à changer côté JS.
-   Mettre à jour le commentaire HTML au-dessus (c'est l'Ouroboros, plus l'anneau).
-2. `node code/assembler.cjs` (puis `node code/assembler.cjs --verifier`) : index.html est refabriqué.
-3. `VERSION PRINCIPALE/sw.js` : remplacer la ligne `const CACHE = 'cashcar-v1103'` par v1104 avec une note courte
-   (« l'Ouroboros pixel remplace l'anneau du chargement »), sans garder l'ancienne ligne.
-4. Vérifier dans un navigateur en servant `VERSION PRINCIPALE/` (entrée `.claude/launch.json`, `--bind 0.0.0.0`) :
-   `index.html` (téléphone couché) et `index.html?colonne=portrait` (debout) — l'Ouroboros apparaît tout de suite sur le noir, au centre
-   (haut 46 %), il s'anime (les écailles avancent, la tête fait « gloups » à 1 s, l'œil cligne à 3 s), puis il s'efface quand la boule
-   se dessine. Capture d'écran en preuve. Vérifier aussi que menu → JOUER démarre une course (rien d'autre ne doit avoir changé).
-5. Commit `code/` + `VERSION PRINCIPALE/index.html` + `sw.js` ENSEMBLE (message en français), sur la branche `ouroboros-chargement`,
-   `git push origin ouroboros-chargement`. NE PAS fusionner dans `main` : Sacha décide après avoir vu. `app-ios/www` est généré : ne pas y toucher.
+## Les fichiers
+- `ouroboros.cjs` — LE GÉNÉRATEUR. `node outils/ouroboros/ouroboros.cjs` régénère tout le reste. La tête est dessinée à la main (`BASE`, `sprite()`),
+  le corps, la queue, les écailles, les bosses et les étincelles sont calculés. Pour retoucher le dessin : modifier ce fichier, jamais le PNG.
+- `ouroboros-56px-48img.png` — la bande : 48 images de 56 × 56 px côte à côte (2688 × 56).
+- `ouroboros.css` — le bloc CSS pur (`#spCharge`, la bande en data-URL, `steps(48)` sur un `transform` : le compositeur le joue même quand le script
+  du jeu est occupé à construire la scène, comme l'ancien anneau de Léo). Affiché ×2 (112 px) : pixels nets sur iPhone (×3 d'écran = 6 px par pixel).
+- `demo.html` — la démo seule sur fond noir (`?zoom=4` pour voir les pixels ; à servir depuis la racine du dépôt pour retrouver la police).
+- `planche-16-images.png`, `tete-4-images.png` — des aperçus pour l'œil humain. `png.cjs` — l'encodeur PNG (aucune dépendance).
+
+## Où c'est branché dans le jeu
+`code/page/ecrans-garage.html`, dans `<div id="splash">` : le `<style>` qui suit le commentaire « LE CHARGEMENT » = le contenu de `ouroboros.css`.
+L'élément garde l'id `spCharge` : `chCl()` dans `code/moteur/intro-161.js` le fond en opacité puis le retire quand la boule de l'intro se dessine.
+Pour mettre à jour après une retouche du dessin : régénérer, recoller le contenu de `ouroboros.css` à la place du `<style>`, `node code/assembler.cjs`,
+incrémenter `cashcar-vNNN` dans `VERSION PRINCIPALE/sw.js`.
