@@ -29921,7 +29921,7 @@ const SF_CARTES={
   /* (2026-10-14, Sacha) LA FORÊT NOIRE : ses six temps — le matin doré, le midi vert, le soir d'or, la NUIT HANTÉE (les phares, le loup-garou),
      la pluie, l'orage (les éclairs blanchissent la forêt). Voir « LA FORÊT NOIRE — LA MAP DES CONTES » (genForet, buildForet, FOR_MET). */
   foret:{nm:'LA FORÊT NOIRE',base:'foret',m:{matin:{bio:'foretMatin'},midi:{bio:'foretMidi'},soir:{bio:'foretSoir'},
-    pluie:{bio:'foretPluie',pluie:.8,sheen:.18},orage:{bio:'foretOrage',pluie:1,orage:1,sheen:.2,pr:'LES LOUPS HURLENT'}}},
+    pluie:{bio:'foretPluie',pluie:.8,sheen:.18,p:0}, /* (2026-11-03, Sacha : « supprime la map pluie ») hors du tirage ; `?carte=foret&meteo=pluie` la joue encore */ orage:{bio:'foretOrage',pluie:1,orage:1,sheen:.2,pr:'LES LOUPS HURLENT'}}},
   /* (2026-10-14, Sacha) LE GLACIER (ex-LA BANQUISE, renommé à 20 h 40 : « ça devrait plutôt s'appeler GLACIER et être une MONTAGNE, comme dans STEEP ») :
      le matin rose, le midi bleu profond, le soir où les pics s'embrasent, la NUIT des aurores boréales, la NEIGE, le BLIZZARD (plus rare). Ni pluie ni
      éclairs. La promesse est la même à toute heure : le RACCOURCI (genBanq : les lacets superposés). Voir « LE GLACIER » au JOURNAL. L'id reste 'banquise'. */
