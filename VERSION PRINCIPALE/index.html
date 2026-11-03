@@ -6954,7 +6954,7 @@ html body #coach.v2.v2.bravo{background:linear-gradient(100deg,#0d3a1d 0%,#167a3
 html body #coach.v2.v2.rate{animation:ecTremble .42s steps(6)}
 @keyframes ecTremble{0%,100%{translate:0 0}20%{translate:-7px 0}40%{translate:6px 0}60%{translate:-4px 0}80%{translate:3px 0}}
 /* — l'en-tête : six pastilles, et PASSER au coin — */
-html body #coach.v2 .ecH{grid-column:2;display:flex;align-items:center;gap:8px;min-height:14px;padding-right:62px} /* (la place de PASSER, au coin) */
+html body #coach.v2 .ecH{grid-column:2;display:flex;align-items:center;gap:8px;min-height:14px;padding-right:0} /* (la place de PASSER, au coin) */
 html body #coach.v2 .ecPips{display:flex;gap:5px}
 html body #coach.v2 .ecPips i{width:10px;height:10px;background:#2a2158;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);transform:skewX(-11deg)}
 html body #coach.v2 .ecPips i.ok{background:var(--neoV,#5ee37a);box-shadow:0 0 6px rgba(94,227,122,.6)}
@@ -6964,9 +6964,9 @@ html body #coach.v2 .ecPips i.vient{animation:ecPipOk .5s var(--ease)}
 @keyframes ecPipOk{0%{transform:skewX(-11deg) scale(2.2);background:#fff}100%{transform:skewX(-11deg) scale(1)}}
 html body #coach.v2 .coN{flex:1;min-width:0;font-size:9px;letter-spacing:1px;color:var(--neoR,#ff4a64);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html body #coach.v2.passe .coN{color:var(--or)}
-html body #coach.v2 .coSkip{position:absolute;right:4px;top:0;min-width:44px;min-height:30px;padding:8px 8px 6px;margin:0;border:0;background:none;
-  font:9px var(--pix);letter-spacing:1px;color:var(--tx2,#c9bdf0);opacity:.75;cursor:pointer}
-html body #coach.v2 .coSkip:hover{opacity:1}
+html body #coach.v2 .coSkip{grid-column:1/-1;display:block;width:100%;min-height:48px;padding:12px;margin:10px 0 0;border:0;
+  font:10px var(--pix);letter-spacing:2px;color:#2a1700;background:var(--or);box-shadow:inset 0 -3px 0 #b87400,0 3px 0 rgba(0,0,0,.35);cursor:pointer} /* PASSER : un gros bouton or pleine largeur, impossible à rater */
+html body #coach.v2 .coSkip:active{transform:translateY(2px)}
 html body #coach.v2 .coSkip.sur{color:var(--neoR,#ff4a64);opacity:1}
 /* — LE MOT : en or, il arrive lettre par lettre — */
 html body #coach.v2 .ecT{grid-column:2;position:relative;display:block;margin:2px 0 1px;white-space:nowrap;line-height:1.15;
@@ -28730,7 +28730,7 @@ Object.assign(I18N,{
 // (2026-09-29) les étiquettes VoiceOver (aria-label), traduites par applyLangDOM
 Object.assign(I18N,{"CASH CAR — toucher pour jouer":"CASH CAR — tap to play","Compte":"Account","Familles":"Rarities","Vignettes":"Thumbnails","Précédente":"Previous","Suivante":"Next","Retour":"Back","Fermer":"Close","Carrière":"Career","Menu principal CASH CAR":"CASH CAR main menu","Missions":"Missions","Menu":"Menu","Volant — glisse pour tourner":"Steering — swipe to steer","Gauche":"Left","Droite":"Right","Nitro":"Nitro","La partie en cours":"Current run","Fruit précédent":"Previous fruit","Fruit suivant":"Next fruit","Réglages":"Settings"});
 // (2026-09-29, les dix premières minutes) PASSER qui demande, le permis fêté, la carrière qui passe par l'auto-école
-Object.assign(I18N,{"VRAIMENT ?": "SURE?", "PERMIS": "LICENSE", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! NITRO, VISE LE DESSUS": "MISSED! NITRO, AIM ABOVE IT", "Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono.": "Training's over: ONE LIFE. In the air, land before the timer runs out.", "Tu reprendras la leçon au prochain départ.": "You'll pick the lesson up on your next start.", "Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent.": "You'll pick the lesson up on your next start: the LICENSE and its bonus are waiting.", "PASSE D'ABORD TON PERMIS": "GET YOUR LICENSE FIRST"});
+Object.assign(I18N,{"PASSER LE TUTO": "SKIP TUTORIAL", "VRAIMENT ?": "SURE?", "PERMIS": "LICENSE", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! NITRO, VISE LE DESSUS": "MISSED! NITRO, AIM ABOVE IT", "Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono.": "Training's over: ONE LIFE. In the air, land before the timer runs out.", "Tu reprendras la leçon au prochain départ.": "You'll pick the lesson up on your next start.", "Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent.": "You'll pick the lesson up on your next start: the LICENSE and its bonus are waiting.", "PASSE D'ABORD TON PERMIS": "GET YOUR LICENSE FIRST"});
 // (2026-09-29) MODE FACILE + pouce haut en vol
 Object.assign(I18N,{"MULTI MAX":"BEST MULTI","Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"Training's over: you have 3 LIVES. In the air, land before the timer runs out.","IL MENE DE":"BANKER AHEAD BY","Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.":"Money, cars, cosmetics, missions, records, career and settings: everything starts over.","Argent, caisses, habillages, missions, records et réglages : tout repart de zéro.":"Money, cars, cosmetics, missions, records and settings: everything starts over."}); // (2026-09-29, passe qualité)
 Object.assign(I18N,{"MODE FACILE": "EASY MODE", "POUCE HAUT EN VOL": "THUMB UP IN THE AIR", "PLONGE": "DIVE", "MONTE": "CLIMB", "CHOISIS TON MODE": "PICK YOUR MODE", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.", "FACILE": "EASY", "NORMAL": "NORMAL", "VIES": "LIVES", "DERNIERE VIE !": "LAST LIFE!", "ON REPART !": "BACK ON THE ROAD!", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "In the air: thumb UP = climb, DOWN = dive."});
@@ -49977,6 +49977,7 @@ function tutoCarte(){
     c.innerHTML='<div class="ecScene"></div><div class="ecH"><span class="ecPips"></span><span class="coN"></span></div>'
       +'<b class="ecT"></b><span class="ecD"></span><button class="coSkip" type="button"></button>';
     document.body.appendChild(c);
+    c.querySelector('.coSkip').addEventListener('pointerdown',function(e){e.stopPropagation();});
     c.querySelector('.coSkip').addEventListener('click',function(e){e.stopPropagation();tutoPasse(this);});}
   if(!document.getElementById('ecMain')){const m=document.createElement('div');m.id='ecMain';m.setAttribute('aria-hidden','true');
     m.innerHTML='<div class="p"><i class="o"></i><i class="m"></i></div><i class="r"></i><i class="fg"></i><i class="fd"></i><b class="x2">×2</b>';document.body.appendChild(m);}
@@ -50009,16 +50010,12 @@ function tutoMain(){
    Permis déjà payé (REVOIR L'AUTO-ÉCOLE) : rien à perdre, un seul appui comme avant. */
 function tutoPasse(b){
   const c=document.getElementById('coach');if(!c||!TUTO.on)return;
-  if(SAVE.d.permis||b.classList.contains('sur')){clearTimeout(tutoPasse._t);uiClic('retour');tutoFin(true);return;}
-  uiClic('danger');hap(8);
-  b.classList.add('sur');b.textContent=TR('VRAIMENT ?').replace(' ',' ');
-  clearTimeout(tutoAffiche._t);c.classList.remove('rate');c.classList.add('passe');
-  c.querySelector('.coN').textContent=TR('PERMIS')+' +'+fmtC(500);
-  clearTimeout(tutoPasse._t);tutoPasse._t=setTimeout(function(){tutoPasseRange(c);},3000);
+  /* (2026-11-03, demande de Sacha) PASSER = UN SEUL CLIC : plus de « VRAIMENT ? ». On sort de la leçon et on repart tout de suite sur une vraie partie. */
+  clearTimeout(tutoPasse._t);uiClic('retour');tutoFin(true);resetGame();
 }
 function tutoPasseRange(c){ // la question retombe : PASSER revient, l'en-tête se vide
   clearTimeout(tutoPasse._t);if(!c)return;const b=c.querySelector('.coSkip');
-  if(b){b.classList.remove('sur');b.textContent=TR('PASSER');}
+  if(b){b.classList.remove('sur');b.textContent=TR('PASSER LE TUTO')+' ›';}
   if(c.classList.contains('passe')){c.classList.remove('passe');c.querySelector('.coN').textContent='';}
 }
 function tutoPips(c,vient){ // les six pastilles : faites (vert), celle en cours (or qui bat), à venir ; `vient` = celle qui vient de se remplir
@@ -50033,7 +50030,7 @@ function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tê
   const montre=function(){
     c.classList.remove('bravo','sort','rate','intro');if(intro)c.classList.add('intro');
     c.querySelector('.coN').textContent=msg?TR(msg):'';
-    c.querySelector('.coSkip').textContent=TR('PASSER');
+    c.querySelector('.coSkip').textContent=TR('PASSER LE TUTO')+' ›';
     tutoMot(c.querySelector('.ecT'),TR(E.t));
     const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()||!E.dk?E.d:E.dk));dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';
     c.querySelector('.ecScene').className='ecScene f-'+E.film;c.querySelector('.ecScene').innerHTML=TUTO_FILMS[E.film]+'<i class="ok"></i>';
