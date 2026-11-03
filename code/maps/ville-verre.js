@@ -445,19 +445,27 @@ function vitreCiel(){
 function vitreDirigeable(){
   if(VIT.dir)return VIT.dir;
   const g=new THREE.Group(),Lh=230,Rh=31,M=function(c,e){return new THREE.MeshLambertMaterial({color:c,emissive:e||0x000000});};
-  const blanc=M(0xf2f5f9,0x0b0f16),gris=M(0xc9d0da),bleu=new THREE.MeshBasicMaterial({color:0x4cb6ff}),vitre=new THREE.MeshBasicMaterial({color:0x9fdcff});
+  const blanc=M(0xf2f5f9,0x0b0f16),gris=M(0xc9d0da),bleu=new THREE.MeshBasicMaterial({color:0x4cb6ff}),vitre=new THREE.MeshBasicMaterial({color:0x9fdcff}),anneau=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});
   const rayon=function(u){return Rh*Math.pow(Math.max(0,Math.sin(Math.PI*u)),.62)*(1-.2*u);};
   const prof=[];for(let i=0;i<=16;i++){const u=i/16;prof.push(new THREE.Vector2(Math.max(.05,rayon(u)),(u-.5)*Lh));}
   const coque=new THREE.Mesh(new THREE.LatheGeometry(prof,20),blanc);coque.rotation.x=Math.PI/2;g.add(coque); // l'axe de la coque : +z (le nez devant… la queue au bout du profil)
   for(const sg of [-1,1]){const b=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.4,Lh*.62),bleu);b.position.set(sg*(Rh*.985),-2,Lh*.02);g.add(b); // la ligne de lumière
-    const u=.62,r=rayon(u)+.6,an=new THREE.Mesh(new THREE.RingGeometry(9,12.5,32),new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide}));an.position.set(sg*r,6,(u-.5)*Lh);an.rotation.y=sg*Math.PI/2;g.add(an); // le logo : un anneau…
+    const u=.62,r=rayon(u)+.6,an=new THREE.Mesh(new THREE.RingGeometry(9,12.5,32),anneau);an.position.set(sg*r,6,(u-.5)*Lh);an.rotation.y=sg*Math.PI/2;g.add(an); // le logo : un anneau…
     const pt=new THREE.Mesh(new THREE.CircleGeometry(3.6,20),bleu);pt.position.set(sg*(r+.2),6,(u-.5)*Lh);pt.rotation.y=sg*Math.PI/2;g.add(pt);} // …et un point
   const zq=-Lh*.41;
   for(const [sx,sy] of [[1,0],[-1,0],[0,1],[0,-1]]){const a=new THREE.Mesh(new THREE.BoxGeometry(sx?28:1.6,sx?1.6:28,26),gris);a.position.set(sx*(rayon(.09)+11),sy*(rayon(.09)+11),zq);g.add(a);} // les ailerons
   const nac=new THREE.Mesh(new THREE.BoxGeometry(12,6,40),blanc);nac.position.set(0,-Rh-1.5,14);g.add(nac); // la nacelle
   const fen=new THREE.Mesh(new THREE.BoxGeometry(12.3,1.6,34),vitre);fen.position.set(0,-Rh-1.2,14);g.add(fen); // ses vitres
   const nav=new THREE.Mesh(new THREE.SphereGeometry(1.8,8,6),bleu);nav.position.set(0,rayon(.1)+11+14,zq-6);g.add(nav);VIT.nav=nav; // le feu de navigation (bleu, il bat)
-  g.traverse(function(o){if(o.isMesh){o.frustumCulled=false;o.matrixAutoUpdate=true;}});
+  /* (2026-11-03, MAPS COHÉRENTES) LES PIÈCES FONDUES PAR MATIÈRE : 14 appels de dessin → 6 (la coque et la nacelle · les ailerons · les lignes et les points
+     bleus · les deux anneaux · la vitre · le feu qui bat, seul : il clignote) — la même image au triangle près. Chaque pièce garde sa place (sa matrice est
+     cuite dans les sommets) ; la sphère englobante rend au dirigeable le tri hors champ (il était dessiné même derrière la caméra). */
+  {const par=new Map();for(const o of g.children.slice()){if(o===nav)continue;o.updateMatrix();const G9=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();G9.applyMatrix4(o.matrix);
+     o.geometry.dispose();g.remove(o);let a=par.get(o.material);if(!a)par.set(o.material,a=[]);a.push(G9);}
+   for(const [m9,L9] of par){let n9=0,o9=0;for(const q of L9)n9+=q.attributes.position.count;const P9=new Float32Array(n9*3),N9=new Float32Array(n9*3);
+     for(const q of L9){P9.set(q.attributes.position.array,o9*3);N9.set(q.attributes.normal.array,o9*3);o9+=q.attributes.position.count;q.dispose();}
+     const gm=new THREE.BufferGeometry();gm.setAttribute('position',new THREE.BufferAttribute(P9,3));gm.setAttribute('normal',new THREE.BufferAttribute(N9,3));gm.computeBoundingSphere();g.add(new THREE.Mesh(gm,m9));}}
+  g.traverse(function(o){if(o.isMesh){o.updateMatrix();o.matrixAutoUpdate=false;}});
   g.name='ville vitrée dirigeable';g.visible=false;scene.add(g);VIT.dir=g;
   VIT.Fd={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};VIT.dirS=null;VIT.dirC=0;VIT.dirT=0;return g;}
 function vitreDirTick(d){
