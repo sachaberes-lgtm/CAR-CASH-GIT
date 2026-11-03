@@ -153,6 +153,7 @@ function vitrePilMat(){
   m.dispose=function(){};VIT.mat.pil=m;return m;
 }
 function vitreSolPose(root,GS){
+  vitreChauffe(true); // (si le menu ne l'a pas fait : la vitrée était hors du tirage — voir vitreJouable)
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   const M9=7000,g=new THREE.Mesh(new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2),vitreSolMat());
   g.scale.set(x1-x0+2*M9,1,z1-z0+2*M9);g.position.set((x0+x1)/2,GS,(z0+z1)/2);g.frustumCulled=false;g.renderOrder=1; // dessiné APRÈS la ville : ce que les tours cachent n'est pas peint
@@ -506,7 +507,13 @@ function vitreTick(dt,sim){
   const c=vitreCiel();c.visible=true;c.position.copy(camera.position);
   if(!VIT_PLAFOND)vitreDirTick(d);
 }
-function vitreChauffe(){ // au menu (chauffeDivers) : les trois matières de la VILLE VITRÉE compilées et dessinées une fois hors écran — 0 programme en course
+/* (2026-11-03, MAPS COHÉRENTES) HORS DU TIRAGE, ELLE NE SE CHAUFFE PLUS AU MENU : la vitrée n'est jouable que par `?vitree=1` / `?carte=vitree` (SF_HORS), mais
+   son verre, ses tours au loin, son sol, ses piliers, sa couche de nuages et son dirigeable étaient compilés et bâtis à CHAQUE lancement — cinq programmes
+   et huit géométries portés par toutes les autres maps, et une étape de plus avant le premier départ. Désormais : au menu seulement si elle peut être
+   tirée ; sinon au moment où sa ville se BÂTIT (vitreSolPose, `fort`), avant sa course — un portail de debug (dbgClassique, dbgNiveauVitre) reste servi. */
+function vitreJouable(){return !SF_HORS.vitree||!!(SF.force&&SF.force.carte==='vitree');}
+function vitreChauffe(fort){ // au menu (chauffeDivers) : les trois matières de la VILLE VITRÉE compilées et dessinées une fois hors écran — 0 programme en course
+  if(VIT.chaud||(!fort&&!vitreJouable()))return;VIT.chaud=true;
   const L9=[],add=function(o){o.position.copy(camera.position);camera.getWorldDirection(VIT.v1);o.position.addScaledVector(VIT.v1,30);scene.add(o);L9.push(o);};
   {const im=new THREE.InstancedMesh(vitreGeo(),vitreMatTours(),1);im.setMatrixAt(0,VIT.m4.identity());im.setColorAt(0,VIT.c.set(1,1,1));add(im);}
   {const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),vitreMatToursLoin(),1);im.setMatrixAt(0,VIT.m4.identity());add(im);}
