@@ -49,6 +49,7 @@ rm -f .vercel-static/jouer/musique-moteur.html .vercel-static/jouer/assets/audio
 # musique-moteur.json, musique-paliers.js, rendus/). boucles/dark-triad.m4a RESTE : c'est le morceau de la frénésie (MUSIC_FREN.f, depuis le 24/10 — avant, le jeu le cherchait en .mp3 ailleurs).
 rm -f .vercel-static/jouer/bibliotheque.html
 rm -f .vercel-static/jouer/test-depart-musique.html   # (2026-10-25) la page de test du palier de départ de la musique de course : outil local de Léo
+rm -f .vercel-static/jouer/lobby-musiques.html   # (2026-11-03) la liste d écoute des musiques de Léo : outil LOCAL
 rm -rf .vercel-static/jouer/assets/audio/music/depart .vercel-static/jouer/assets/audio/music/petites-musiques
 find .vercel-static/jouer/assets/audio/music/boucles -type f ! -name dark-triad.m4a -delete 2>/dev/null || true
 rm -f .vercel-static/jouer/assets/audio/music/lobby/menu-donnees.js .vercel-static/jouer/assets/audio/music/lobby/chris-donnees.js .vercel-static/jouer/assets/audio/music/lobby/garage-*.m4a
