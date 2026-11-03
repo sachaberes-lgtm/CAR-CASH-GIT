@@ -27217,19 +27217,30 @@ function grueGeos(){if(GRUE.gC)return;
   A.tri([.75,.02,.12],[1.45,.03,-.08],[1.38,0,-.46],no);A.tri([.75,.02,.12],[1.38,0,-.46],[.75,0,-.30],no);
   A.tri([0,0,-.28],[.75,0,-.30],[.55,0,-.42],no);
   GRUE.gA=toC(A.geo());
-  GRUE.M=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});}
+  GRUE.M=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});
+  /* ===== LES GRUES EN TROIS APPELS (2026-11-03, passe « maps cohérentes », Sacha : « cohérentes et optimisées ») =====
+     MESURÉ (lecture du code) : chaque grue était un Groupe de TROIS maillages (le corps, deux ailes) — un vol de 5 à 9 oiseaux, deux ou trois
+     vols à la fois, soit 30 à 60 appels de dessin rien que pour les grues sur l'ordi (le téléphone ne les a pas : JADE_SOBRE). Désormais trois
+     InstancedMesh (les corps, les ailes gauches, les ailes droites) : TROIS appels, la même image — chaque oiseau garde sa pose (un Object3D
+     hors scène), ses ailes battent pareil. L'aile gauche n'est plus l'aile droite à l'échelle −1 (une instance ne retourne pas ses faces) :
+     c'est son MIROIR taillé une fois (x opposé, ordre des sommets inversé : mêmes normales que le maillage retourné d'avant). */
+  {const gL=GRUE.gA.clone(),P9=gL.attributes.position.array,C9=gL.attributes.color.array;
+   for(let i=0;i<P9.length;i+=9){P9[i]=-P9[i];P9[i+3]=-P9[i+3];P9[i+6]=-P9[i+6];for(const A9 of [P9,C9])for(let k=0;k<3;k++){const x=A9[i+3+k];A9[i+3+k]=A9[i+6+k];A9[i+6+k]=x;}}
+   gL.computeVertexNormals();GRUE.gAL=gL;}
+  GRUE.im=[GRUE.gC,GRUE.gAL,GRUE.gA].map(function(g9){const im=new THREE.InstancedMesh(g9,GRUE.M,GRUE.CAP);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);im.frustumCulled=false;im.matrixAutoUpdate=false;im.count=0;im.visible=false;scene.add(im);return im;});}
+GRUE.CAP=32;GRUE.mA=new THREE.Matrix4();GRUE.mW=new THREE.Matrix4(); // (au plus 19 + un vol de 9) · les matrices de travail : rien d'alloué par image
+function grueChauffe(){const im=new THREE.InstancedMesh(GRUE.gC,GRUE.M,1);im.setMatrixAt(0,GRUE.mW.identity());im.frustumCulled=false;return im;} // une grue d'essai, du même genre que les vraies (les chauffes de programmes)
 function grueVol(){grueGeos();
   const fw=new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion);fw.y=0;if(fw.lengthSq()<1e-4)fw.set(0,0,1);fw.normalize();
   const rt=new THREE.Vector3(fw.z,0,-fw.x),sg=Math.random()<.5?-1:1;
   const base=carGroup.position.clone().addScaledVector(fw,260+Math.random()*260).addScaledVector(rt,sg*(260+Math.random()*120));base.y+=10+Math.random()*70;
   const dir=rt.clone().multiplyScalar(-sg).addScaledVector(fw,(Math.random()-.3)*.6).normalize(),n=5+((Math.random()*5)|0),sp=15+Math.random()*5,S=5.5+Math.random()*1.5;
   const side=new THREE.Vector3(dir.z,0,-dir.x);
-  for(let k=0;k<n;k++){const g=new THREE.Group(),rang=Math.ceil(k/2),cote=k%2?1:-1;
-    const c=new THREE.Mesh(GRUE.gC,GRUE.M),wl=new THREE.Mesh(GRUE.gA,GRUE.M),wr=new THREE.Mesh(GRUE.gA,GRUE.M);
-    wr.position.set(.12,.05,.2);wl.position.set(-.12,.05,.2);wl.scale.x=-1;g.add(c,wl,wr);g.scale.setScalar(S);
+  for(let k=0;k<n;k++){const g=new THREE.Object3D(),rang=Math.ceil(k/2),cote=k%2?1:-1; // la pose de l'oiseau (hors scène : ses trois instances la lisent)
+    g.scale.setScalar(S);
     g.position.copy(base).addScaledVector(dir,-rang*S*2.6).addScaledVector(side,cote*rang*S*2.2);g.position.y+=rang*S*.25;
-    g.lookAt(g.position.clone().add(dir));scene.add(g);
-    GRUE.L.push({g:g,wl:wl,wr:wr,v:dir.clone().multiplyScalar(sp),ph:k*.35+Math.random()*.3,life:42});}
+    g.lookAt(g.position.clone().add(dir));
+    GRUE.L.push({g:g,v:dir.clone().multiplyScalar(sp),ph:k*.35+Math.random()*.3,life:42});}
 }
 function grueTick(dt){
   const ici=!!JADE.root&&LVL.cur&&LVL.cur.id==='jade'&&mode!=='boom'&&!JADE_SOBRE;
@@ -27237,9 +27248,14 @@ function grueTick(dt){
   const t=JADE_U.uTime.value;
   for(let i=GRUE.L.length-1;i>=0;i--){const b=GRUE.L[i];b.life-=dt;if(!ici)b.life=0;
     b.g.position.addScaledVector(b.v,dt);b.g.position.y+=Math.sin(t*.6+b.ph)*.6*dt;
-    const pl=Math.max(0,Math.sin(t*.35+b.ph*.5)),a=(.15+.55*(1-pl))*Math.sin(t*5.2+b.ph*2.4)+.08*pl; // battements lents… puis le vol plané
-    b.wr.rotation.z=a;b.wl.rotation.z=-a;
-    if(b.life<=0){scene.remove(b.g);GRUE.L.splice(i,1);}}
+    const pl=Math.max(0,Math.sin(t*.35+b.ph*.5));b.a=(.15+.55*(1-pl))*Math.sin(t*5.2+b.ph*2.4)+.08*pl; // battements lents… puis le vol plané
+    if(b.life<=0)GRUE.L.splice(i,1);}
+  if(!GRUE.im)return;
+  const n=Math.min(GRUE.L.length,GRUE.CAP),I9=GRUE.im,mA=GRUE.mA,mW=GRUE.mW;
+  for(let i=0;i<n;i++){const b=GRUE.L[i],a=b.a||0;b.g.updateMatrix();I9[0].setMatrixAt(i,b.g.matrix);
+    mW.makeRotationZ(-a).setPosition(-.12,.05,.2);I9[1].setMatrixAt(i,mA.multiplyMatrices(b.g.matrix,mW)); // l'aile gauche (le miroir)
+    mW.makeRotationZ(a).setPosition(.12,.05,.2);I9[2].setMatrixAt(i,mA.multiplyMatrices(b.g.matrix,mW));}   // l'aile droite
+  for(const im of I9){if(im.count!==n)im.count=n;if(im.visible!==(n>0))im.visible=n>0;if(n)im.instanceMatrix.needsUpdate=true;}
 }
 /* ---- EN VOL : les CUBES sont durs — la montagne et le rocher (la grille de leur gabarit, au quart de tour près), la muraille, l'arche.
    La caisse compte pour cinq points (son centre et ±1,4 m de chaque côté). ---- */
@@ -27270,7 +27286,7 @@ function jadeHeurt(p){
 function jadeChauffeNiveau(){ if(!JADE.root||!JADE.root.parent)return;
   try{for(const o of JADE.monu||[])jadeMonuLoin(o);}catch(e){console.warn('monument de loin',e);} // (2026-10-14, passe perf mobile) le monument allégé de loin, paliers 0-1 (une fois par carte)
   let g=null;const eau=[],vu=[];
-  try{grueGeos();g=new THREE.Group();g.add(new THREE.Mesh(GRUE.gC,GRUE.M));
+  try{grueGeos();g=new THREE.Group();g.add(grueChauffe()); /* (2026-11-03) la grue est INSTANCIÉE : son programme aussi (USE_INSTANCING) */
     const m0=JADE.monu&&JADE.monu.find(function(o){return o.L&&o.L[0];}); // les monuments changent de matière à 450 m (vrOM au loin → vrM de près) : la matière de PRÈS aussi
     if(m0)g.add(new THREE.Mesh(m0.L[0].geometry,m0.L[0].material===JADE_M.vrM?JADE_M.vrOM:JADE_M.vrM));
     scene.add(g);
@@ -27282,7 +27298,7 @@ function jadeChauffeNiveau(){ if(!JADE.root||!JADE.root.parent)return;
     for(const o of eau){if(!o)continue;vu.push([o,o.visible]);o.visible=true;const h=haut(o);if(h&&Q.indexOf(h)<0)Q.push(h);}
     chauffeRendu(Q);}
   catch(e){console.warn('jadeChauffeNiveau',e);}
-  finally{if(g)scene.remove(g);for(const v of vu)v[0].visible=v[1];
+  finally{if(g){scene.remove(g);for(const o of g.children)if(o.isInstancedMesh)o.dispose();}for(const v of vu)v[0].visible=v[1];
     try{for(const r9 of EAUR.L){r9.t=9;r9.m.visible=false;}for(const r9 of COUR.L){r9.t=9;r9.m.visible=false;}}catch(e){}} }
 /* (2026-10-14, passe perf mobile) LES PROGRAMMES DU SOLEIL DE JADE COMPILÉS AU MENU, SANS BÂTIR LA CARTE. MESURÉ (iPhone 7 émulé, ×4) : au
    portail ville → jade, 17 programmes naissaient d'un coup (163 → 180 liens, une image de ~580 ms ; 6,1 s vue au REJOUER tiré sur le jade) —
@@ -27302,7 +27318,7 @@ function jadeChauffeProgs(k){const lots=jadeChauffeLots();if(k>=lots.length)retu
   const L9=[],tmp=[],vu=[];let box=null;
   try{box=new THREE.BoxGeometry(1,1,1);
     if(lots[k][0][1]==='E'){
-      try{grueGeos();tmp.push(new THREE.Mesh(GRUE.gC,GRUE.M));}catch(e){}
+      try{grueGeos();tmp.push(grueChauffe());}catch(e){}
       try{if(!JADE_CHP.lam)JADE_CHP.lam=new THREE.MeshLambertMaterial({color:0xf4f8fa,emissive:0x2a3238});const im=new THREE.InstancedMesh(box,JADE_CHP.lam,1);im.setMatrixAt(0,JADE_CHP.m.identity());tmp.push(im);}catch(e){}
       try{const eau=[jadePeau(),sillonMesh(),jadeBullesIm(),eauPIm(),eauBIm()];eauRide(0,-1e5,0,0);eauCouronne(0,-1e5,0,{r0:1,r1:2,h:1,fl:0,d:1,fx:0,fz:0});
         for(const r9 of EAUR.L)eau.push(r9.m);for(const r9 of COUR.L)eau.push(r9.m);
