@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1092'; /* v1092 (2026-11-03, Léo : « Crypto City, ça s'appelle que Crypto City ») la map s'affiche CRYPTO CITY (plus CRYPTOVILLE), jour et nuit, sans traduction */
+const CACHE = 'cashcar-v1093'; /* v1093 (2026-11-03, passe photos) la 1re photo d'une caisse sortait parfois sans carrosserie (le CHAT POP-TART de la vitrine) : carPhoto compte les appels de dessin et refait la prise une fois si elle est incomplète */ /* v1092 (2026-11-03, Léo : « Crypto City, ça s'appelle que Crypto City ») la map s'affiche CRYPTO CITY (plus CRYPTOVILLE), jour et nuit, sans traduction */
    grain bizarre sur les moteurs […] parfois le moteur il passe derrière le graphique […] refais tous les boutons qui soient cohérents entre eux,
    redimensionne-les, remets-les au bon endroit ») GARAGE/RÉGLAGES reprennent `.pbtn` telle quelle (comme HOME, REJOUER, tout le jeu) au lieu de
    leur bulle de verre à part ; le « grain » du moteur/de la créature (bords en escalier d'un modèle bas-poly relu sans anticrénelage) corrigé par

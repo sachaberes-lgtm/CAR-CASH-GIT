@@ -13,7 +13,7 @@ function photoGarde(ck,u,oct){const k=String(ck),M=PHOTO_MEM;if(!u||String(u).in
   const vues=new Set();try{document.querySelectorAll('img[src^="blob:"]').forEach(function(im){vues.add(im.getAttribute('src'));});for(const F of FILM.l)if(F.cv.isConnected)vues.add(F.im.src);}catch(e){return;}
   for(const [k9,e] of M.L){if(M.oct<=M.max*.85)break;if(k9===k||vues.has(e.u))continue;
     M.L.delete(k9);M.oct-=e.o;M.lib++;if(PHOTO.cache[k9]===e.u)delete PHOTO.cache[k9];try{URL.revokeObjectURL(e.u);}catch(x){}}}
-window.dbgPhotoMem=function(mo){if(mo!=null)PHOTO_MEM.max=mo*1048576;return {photos:PHOTO_MEM.L.size,mo:+(PHOTO_MEM.oct/1048576).toFixed(2),maxMo:PHOTO_MEM.max/1048576,liberees:PHOTO_MEM.lib,cache:Object.keys(PHOTO.cache).length};};
+window.dbgPhotoMem=function(mo){if(mo!=null)PHOTO_MEM.max=mo*1048576;return {photos:PHOTO_MEM.L.size,mo:+(PHOTO_MEM.oct/1048576).toFixed(2),maxMo:PHOTO_MEM.max/1048576,liberees:PHOTO_MEM.lib,cache:Object.keys(PHOTO.cache).length,reprises:PHOTO.nReprise|0};};
 // le studio (pellicule, scène, objectif, lumières), monté à la première photo — caisse, aile ou figure (2026-10-15 soir : sorti de carPhoto pour figPhoto)
 function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
@@ -70,7 +70,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
   if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin) — (2026-10-16) en RAFALE, posée une fois par photoRafale
   PHOTO_USINE=true; /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) */
-  const sig9=phdbSig();let url=null,asy=false;
+  const sig9=phdbSig();let url=null,asy=false,reprise9=false;
   try{
     if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
     else buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
@@ -96,7 +96,15 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     cam.position.copy(tg).addScaledVector(dir,D);cam.lookAt(tg);cam.updateMatrixWorld();
     {v9.set(ctr.x,bx.min.y,ctr.z).project(cam);ymin=v9.y;} // le sol SOUS le centre de la caisse, à l'écran (le coin avant de la boîte tombait plus bas : l'ombre se décollait)
     const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget();
-    renderer.setRenderTarget(PHOTO.rt);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(PHOTO.scene,cam);
+    renderer.setRenderTarget(PHOTO.rt);renderer.setClearColor(0x000000,0);renderer.clear();
+    {const inf9=renderer.info,c9=inf9.render.calls;renderer.render(PHOTO.scene,cam);
+     /* ===== LA PREMIÈRE PRISE INCOMPLÈTE (2026-11-03, passe « photos, inventaire, boutique ») =====
+        MESURÉ au banc : la TOUTE PREMIÈRE photo du CHAT POP-TART de la session (celle de la vitrine de la boutique) sortait sans carrosserie — 8 appels
+        de dessin et 850 triangles au lieu de 21 et 10 588 : les grosses pièces n'étaient pas dessinées (ni culling, ni erreur GL, ni matière cachée : la
+        scène est identique à celle de la 2e prise, qui est bonne). Une 2e prise de la même caisse, aussitôt, est complète. On compte donc les appels de
+        dessin rendus contre les maillages visibles ; sous 70 %, la photo est jetée et refaite UNE fois (PHOTO.reprise : pas de boucle). */
+     const dc9=inf9.autoReset?inf9.render.calls:inf9.render.calls-c9;
+     if(!PHOTO.reprise&&dc9<photoMaillages(PHOTO.scene)*.7){renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);PHOTO.nReprise=(PHOTO.nReprise|0)+1;throw PHOTO_REPRISE;}}
     let gros=null;if(!PHOTO_DEV_JS)try{gros=photoDev(W,H);}catch(e){console.warn('photoDev',e);gros=null;PHOTO_DEV_JS=true;} // (2026-10-16) LA PELLICULE SUR LA PUCE (photoDev) : la toile sort déjà développée, retournée et réduite
     let buf=null;if(!gros){buf=new Uint8Array(RW*RH*4);renderer.readRenderTargetPixels(PHOTO.rt,0,0,RW,RH,buf);}
     renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);T9.rendu=performance.now()-T9.t0;
@@ -127,15 +135,18 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
         const L9=PHOTO.att[ck]||[];delete PHOTO.att[ck];for(const f of L9)try{f(u);}catch(e){console.warn('photo',e);}},'image/png');}
     else{url=cv.toDataURL('image/png');toileRend(cv);}
     T9.montage=performance.now()-T9.t0;
-  }catch(e){console.warn('photo',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
+  }catch(e){if(e===PHOTO_REPRISE)reprise9=true;else console.warn('photo',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
   PHOTO_USINE=false; /* la caisse qu'on rend après la photo reprend sa peinture */
   if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
   if(!PHOTO.chaine){const av=PHOTO.avant;buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);} // on rend la caisse qu'on regardait (au garage : la feuilletée) — (2026-10-16) en RAFALE, photoRafale la rend une fois à la fin
+  if(reprise9){PHOTO.reprise=true;try{return carPhoto(i,cb,aile,az9);}finally{PHOTO.reprise=false;}} // la prise incomplète est jetée (voir plus haut) : la caisse du garage est revenue, on refait la photo, une seule fois
   T9.total=performance.now()-T9.t0;
   if(url)PHOTO.cache[ck]=url;
   if(cb&&!asy)cb(url);
   return url;
 }
+const PHOTO_REPRISE={reprise:1}; // le « jet » qui sort carPhoto d'une prise incomplète (voir sa 1re passe de rendu)
+function photoMaillages(o){if(!o.visible)return 0;let n=o.isMesh&&o.material&&o.material.visible!==false?1:0;for(let k=0;k<o.children.length;k++)n+=photoMaillages(o.children[k]);return n;} // les maillages qui doivent être dessinés (parents visibles compris)
 window.dbgAiles=function(id){ /* (banc, 2026-10-16, LES AILES VIVANTES) porter une aile et compter ce qui BOUGE : groupes animés, pièces animées, groupes VIDÉS (la soudure ne doit en vider aucun) */
   if(id)window.dbgHab('aile',id);const L=[];
   for(const w of [carWingL,carWingR]){if(!w)continue;let gb=0,pb=0,vides=0,maillages=0;w.traverse(function(o){if(o.isMesh)maillages++;if(o!==w&&o.userData.bouge){if(o.isGroup){gb++;if(!o.children.length)vides++;}else pb++;}});L.push({enfants:w.children.length,maillages:maillages,groupes:gb,pieces:pb,vides:vides});}
