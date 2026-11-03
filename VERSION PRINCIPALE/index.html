@@ -7833,6 +7833,8 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
   text-shadow:0 3px 0 var(--txO),0 0 24px color-mix(in srgb,var(--rc) 50%,transparent)}
 .mcNom::after{content:'';position:absolute;left:0;bottom:0;width:min(62vw,230px);height:3px;background:linear-gradient(90deg,var(--rc) 0 72%,transparent);box-shadow:0 0 12px color-mix(in srgb,var(--rc) 60%,transparent)}
 .mcSous{display:block;margin-top:8px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
+.mcNeuf{display:inline-block;margin-top:9px;padding:5px 9px 4px;font-style:normal;font-size:var(--f0);letter-spacing:2px;color:var(--txO);background:var(--neoV);box-shadow:0 0 14px color-mix(in srgb,var(--neoV) 60%,transparent);transform:skewX(var(--sk));animation:mcTampon .45s var(--ease) .75s backwards}
+@keyframes mcTampon{from{opacity:0;transform:skewX(var(--sk)) scale(2.2)}}
 /* LA VEDETTE : le portail flotte sur le décor, comme la caisse au garage */
 .mcHero{display:flex;justify-content:center;padding:10px 0 14px}
 .mcV{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:420px;text-align:center;cursor:pointer;animation:k4Nom var(--t-slow) var(--ease) backwards}
@@ -7842,6 +7844,10 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 .mcPo .fd{fill:rgba(7,5,15,.88)}
 .mcPo .gl{fill:var(--pg);opacity:.08}
 .mcPo .rf{fill:none;stroke:var(--pg);stroke-width:1.3;opacity:.3;transform-origin:100px 100px;animation:mcTourne 48s linear infinite}
+.mcPo .rf0{transform-origin:100px 100px;animation:mcArme 1.5s var(--ease) backwards} /* l'armement : un tour et demi lancé, puis la rotation lente */
+@keyframes mcArme{from{transform:rotate(-260deg);opacity:0}30%{opacity:1}}
+.mcPo .hd{transform-origin:100px 100px;transition:transform 1.1s var(--ease)}.mcPo .hd circle{fill:#fff;filter:drop-shadow(0 0 4px var(--pg)) drop-shadow(0 0 9px var(--pg))}
+.mcPo{transition:transform .15s var(--ease)}.mcV:active .mcPo{transform:scale(.96)}
 .mcPo .tr{fill:none;stroke:rgba(200,184,255,.16);stroke-width:6}
 .mcPo .pr{fill:none;stroke:var(--pg);stroke-width:6;transform:rotate(-90deg);transform-origin:100px 100px;transition:stroke-dashoffset 1.1s var(--ease)}
 @keyframes mcTourne{to{transform:rotate(360deg)}}
@@ -7849,6 +7855,11 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 .mcSil{position:relative;display:block;width:100%;aspect-ratio:720/440;font-style:normal}
 .mcSil img{position:absolute;left:-8%;top:0;width:116%;height:100%;object-fit:contain;pointer-events:none;filter:brightness(0) drop-shadow(0 0 1px var(--pg)) drop-shadow(0 0 6px color-mix(in srgb,var(--pg) 45%,transparent))}
 .mcSil img:not([src]){display:none}.mcSil.rev img{filter:none}
+.mcSil.duo img.c{filter:drop-shadow(0 0 10px color-mix(in srgb,var(--pg) 45%,transparent))}.mcSil.duo img.n{clip-path:inset(0 0 0 0);transition:clip-path 1.2s var(--ease)}
+.revele .mcSil.duo img.n{clip-path:inset(0 0 100% 0)}
+.mcBal{position:absolute;left:2%;right:2%;top:100%;height:2px;background:var(--pg);box-shadow:0 0 10px var(--pg),0 0 22px var(--pg);opacity:0;text-decoration:none}
+.revele .mcBal{animation:m2RvBalaye 1.2s var(--ease) forwards}
+.mcV.revele .mcPo{animation:none;filter:drop-shadow(0 0 26px color-mix(in srgb,var(--pg) 75%,transparent))}
 .mcFond .mcSil{width:118%}
 .mcSom{font-weight:400;font-size:var(--f5);line-height:1.2;color:var(--cash);white-space:nowrap;text-shadow:0 0 10px rgba(125,255,155,.45)}.mcSom small{font-size:var(--f1);margin-right:4px}
 .mcRar{font-weight:400;font-size:var(--f1);letter-spacing:1px;color:var(--pg);text-shadow:0 0 8px var(--pg)}
@@ -7890,6 +7901,7 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 .mcFin b{font-weight:400;color:var(--tx3)}.mcFin .pxi{--pxs:1;margin-left:auto}
 .mcL.flash{animation:gmFlash .5s var(--ease)}
 #gmListe.mcE.vu .mcL,#gmListe.mcE.vu .mcV,#gmListe.mcE.vu .mcPan{animation:none}
+#gmListe.mcE:not(.land) .mcDef{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 20px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 20px),transparent)} /* petit écran : le bas du panneau se fond, on sait qu'il défile */
 /* couché : le titre et le portail à gauche sur le décor, le panneau à droite (comme #gBottom couché), RETOUR | JOUER sous le panneau */
 #gMis.mbOn.m2land #gmBas{left:auto;right:calc(var(--sR) + 14px);width:min(calc(50% - var(--sR) - 14px),430px);transform:none;bottom:calc(var(--sB) + 12px)}
 #gMis.mbOn.m2land #gmBas .gmHome{width:76px;flex-direction:column;gap:6px;padding:6px 4px 4px 8px}
@@ -7898,7 +7910,7 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 #gmListe.mcE.land .mcHero{grid-column:1;grid-row:2;align-items:center;padding:0}
 #gmListe.mcE.land .mcPan{grid-column:2;grid-row:1/3;max-width:none;height:100%;margin:0;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(var(--mcJh,70px) + 8px)}
 #gmListe.mcE.land .mcPo{width:min(42vh,172px)}
-@media (prefers-reduced-motion:reduce){.mcPo .rf,.mcV.pret .mcPo{animation:none}.mcL,.mcV,.mcPan{animation:none}}
+@media (prefers-reduced-motion:reduce){.mcPo .rf,.mcPo .rf0,.mcV.pret .mcPo,.mcNeuf{animation:none}.mcL,.mcV,.mcPan{animation:none}.mcSil.duo img.n,.mcPo .hd{transition:none}}
 .m2Rien{padding:16px 6px;font-size:var(--f0);color:#8fb8c8;text-align:center}
 /* LE POINT VERT des portes MISSIONS : une récompense attend */
 .m2Pt{position:absolute;top:5px;right:6px;width:10px;height:10px;background:var(--cash);box-shadow:0 0 0 2px var(--k0),0 0 10px var(--cash);pointer-events:none;
@@ -61771,7 +61783,7 @@ const M2_PAL=[
   ['figs500','maps','col10','tr10'],['nit2000','car10','ai10','fig8'],['kmh1000','tours5','parfmaps','fren30'],['nmax100','vie5min','cash500k','maps2'],
   ['air1000','eng30','aura50k','mis10'],['meteo','verglas100','km100k','morts100'],['cash1m','car20','colall','trall'],['aiall','figall','carall','rares'],['cash2m','toutall']];
 Object.assign(I18N,{'PALIER':'TIER','ENSUITE':'NEXT UP','ENCORE':'NEEDS','MISSION':'MISSION','MISSIONS RÉUSSIES':'MISSIONS DONE','RÉCUPÉRER':'CLAIM','VOITURE':'CAR','TRAÎNÉE':'TRAIL',
-  'PEINTURE':'PAINT','FIGURE':'TRICK','CLASSIFIÉ':'CLASSIFIED','TOUTES LES MISSIONS SONT RÉUSSIES':'EVERY MISSION IS DONE','RÉCOMPENSE':'REWARD'});
+  'PEINTURE':'PAINT','FIGURE':'TRICK','CLASSIFIÉ':'CLASSIFIED','NOUVEAU PALIER':'NEW TIER','TOUTES LES MISSIONS SONT RÉUSSIES':'EVERY MISSION IS DONE','RÉCOMPENSE':'REWARD'});
 function m2PalierDe(id){for(let i=0;i<M2_PAL.length;i++)if(M2_PAL[i].indexOf(id)>=0)return i;return M2_PAL.length-1;} // une mission neuve, pas encore rangée : au dernier palier
 function m2Paliers(s){ // {T : par palier {n : missions au garage, ok : réussies} · cur : le palier courant · need : ce qu'il faut pour ouvrir le suivant}
   const T=M2_PAL.map(function(){return {n:0,ok:0};});
@@ -61786,7 +61798,8 @@ function mcRec(m){ // ce que rapporte la mission : {k : 'car'|'cash'|'hab'|'vide
   if(r.cash)return {k:'cash',v:r.cash,c:''};
   if(r.cat){const d=(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});const ri=rarInfo(d&&d.r);return {k:'hab',c:ri.c,rar:ri.n1,cat:MC_CAT[r.cat]||''};}
   return {k:'vide',c:''};}
-function mcSil(i,rev){const ph=i>=0&&PHOTO.cache[i];return '<i class="mcSil'+(rev?' rev':'')+'"><img alt=""'+(ph?' src="'+ph+'"':i>=0&&!carRetiree(i)?' data-ph="'+i+'"':'')+'></i>';}
+function mcSil(i,rev,duo){const ph=i>=0&&PHOTO.cache[i],a=ph?' src="'+ph+'"':i>=0&&!carRetiree(i)?' data-ph="'+i+'"':''; /* duo : la photo en couleur DESSOUS, la silhouette noire dessus — RÉCUPÈRE la fait fondre (voir m2Clic) */
+  return '<i class="mcSil'+(rev?' rev':'')+(duo?' duo':'')+'">'+(duo?'<img class="c" alt=""'+a+'>':'')+'<img class="n" alt=""'+a+'>'+(duo?'<s class="mcBal"></s>':'')+'</i>';}
 function mcVu(x,s){const vu=s.vu[x.m.id];return [Math.min(x.p,vu!=null?vu:x.p),x.p];}
 let MC_CANON='';
 function mcCanon(){ // le dessin du canon (graduations, rayures) : calculé une fois
@@ -61794,18 +61807,19 @@ function mcCanon(){ // le dessin du canon (graduations, rayures) : calculé une 
   for(let i=0;i<60;i++){const a=i*Math.PI/30,l=i%5?94:90;tk+='M'+P(98,a)+'L'+P(l,a);}
   for(let i=0;i<8;i++){const a=i*Math.PI/4;rf+='M'+P(79,a)+'Q'+P(62,a+.42)+' '+P(36,a+.95);}
   MC_CANON='<path class="tk" d="'+tk+'"/><circle class="fd" cx="100" cy="100" r="80"/><circle class="gl" cx="100" cy="100" r="80"/>'
-    +'<g class="rf"><path d="'+rf+'"/><circle cx="100" cy="100" r="35"/></g>';
+    +'<g class="rf0"><g class="rf"><path d="'+rf+'"/><circle cx="100" cy="100" r="35"/></g></g>';
   return MC_CANON;}
-function mcVedette(x,s){const m=x.m,pret=x.rg===0,R=mcRec(m),w=mcVu(x,s),C=2*Math.PI*88,pg=R.k==='hab'?R.c:'';
+function mcVedette(x,s,arme){const m=x.m,pret=x.rg===0,R=mcRec(m),w=mcVu(x,s),C=2*Math.PI*88,pg=R.k==='hab'?R.c:'';if(arme)w[0]=0; /* arme : on arrive sur la page, l'anneau se charge depuis zéro */
   let fond;
-  if(R.k==='car')fond=mcSil(R.i,pret);
+  if(R.k==='car')fond=mcSil(R.i,false,pret&&m2Pret(m.id));
   else if(R.k==='cash')fond='<b class="mcSom"><small>$</small>'+m2Nb(R.v)+'</b>';
   else if(R.k==='hab')fond='<b class="mcRar">'+sansAcc(TR(R.rar))+'</b>';
   else fond='<b class="mcSom">?</b>';
   const lab=R.k==='car'?TR('VOITURE')+' · '+TR(R.rar):R.k==='hab'?TR(R.cat)+' · '+TR(R.rar):''; /* l'argent se lit tout seul au fond du portail */
   return '<div class="mcV'+(pret?' pret':'')+'" data-m2="'+m.id+'" role="button" tabindex="0"'+(pg?' style="--pg:'+pg+'"':'')+'>'
     +'<div class="mcPo"><svg viewBox="0 0 200 200" aria-hidden="true">'+mcCanon()
-    +'<circle class="tr" cx="100" cy="100" r="88"/><circle class="pr" cx="100" cy="100" r="88" style="stroke-dasharray:'+C.toFixed(1)+';stroke-dashoffset:'+(C*(1-w[0])).toFixed(1)+'" data-o="'+(C*(1-w[1])).toFixed(1)+'"/></svg>'
+    +'<circle class="tr" cx="100" cy="100" r="88"/><circle class="pr" cx="100" cy="100" r="88" style="stroke-dasharray:'+C.toFixed(1)+';stroke-dashoffset:'+(C*(1-w[0])).toFixed(1)+'" data-o="'+(C*(1-w[1])).toFixed(1)+'"/>'
+    +(w[1]>0&&!pret?'<g class="hd" style="transform:rotate('+(360*w[0]).toFixed(1)+'deg)" data-r="'+(360*w[1]).toFixed(1)+'"><circle cx="100" cy="12" r="5"/></g>':'')+'</svg>'
     +'<div class="mcFond mbR'+(m2CarVoir(m)&&!pret?' voir':'')+'" aria-label="'+sansAcc(m2RecNom(m)).replace(/"/g,'')+'">'+fond+'</div></div>'
     +'<div class="mcVt">'+(lab?'<small class="mcLab"'+(R.c?' style="color:'+R.c+'"':'')+'>'+sansAcc(lab)+'</small>':'')
     +'<b class="mcTit">'+(m.f==='secret'?sansAcc(TR('SECRÈTE'))+' · ':'')+sansAcc(m2Txt(m))+'</b>'
@@ -61813,7 +61827,7 @@ function mcVedette(x,s){const m=x.m,pret=x.rg===0,R=mcRec(m),w=mcVu(x,s),C=2*Mat
       :'<span class="mcAv">'+sansAcc(m2Prog(m,x.v,x.t))+'</span>')+'</div></div>';}
 function mcLigne(x,k,s){const m=x.m,pret=x.rg===0,ok=x.ok&&!pret,R=mcRec(m),w=mcVu(x,s),hab=R.k==='hab';
   let rec;
-  if(R.k==='car')rec=mcSil(R.i,pret||ok);
+  if(R.k==='car')rec=mcSil(R.i,ok,pret&&m2Pret(m.id));
   else if(R.k==='cash')rec='<b class="mcCash">'+fmtC(R.v)+'</b>';
   else if(hab)rec='<b class="mcRarS">'+sansAcc(TR(R.rar))+'</b>';
   else rec='';
@@ -61824,11 +61838,12 @@ function mcLigne(x,k,s){const m=x.m,pret=x.rg===0,ok=x.ok&&!pret,R=mcRec(m),w=mc
   return '<div class="mcL'+(pret?' pret':'')+(ok?' ok':'')+(hab?' hab':'')+'" data-m2="'+m.id+'" role="button" tabindex="0" style="--i:'+Math.min(k,12)+(hab?';--rc:'+R.c:'')+'">'
     +'<div class="mcLt"><b>'+(m.f==='secret'?sansAcc(TR('SECRÈTE'))+' · ':'')+sansAcc(m2Txt(m))+'</b><span class="mbR'+(m2CarVoir(m)&&!pret?' voir':'')+'">'+rec+'</span></div>'+bas+'</div>';}
 function mcLignePal(d){return '<div class="mcL ok" data-pal="'+d.id+'"><div class="mcLt"><b>'+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><span class="mbR voir">'+objFig({cat:'peinture',i:COSM.peinture.indexOf(d)})+'</span></div><small class="mcFait">'+sansAcc(TR('SECRÈTE'))+' · '+sansAcc(TR('RÉUSSIE'))+'</small></div>';}
-function m2Vue(L,s){ // → {pal : le palier (coin haut droit) · ved : la vedette · suite : les lignes et le palier suivant · n : missions à l'écran}
+function m2Vue(L,s,vu){ // → {pal : le palier (coin haut droit) · ved : la vedette · suite : les lignes et le palier suivant · n : missions à l'écran}
   const P=m2Paliers(s),T=P.T[P.cur],pal=function(x){return m2PalierDe(x.m.id);};
   const cand=L.filter(function(x){return x.rg===0||((x.rg===1||x.rg===2)&&x.m.f!=='secret'&&pal(x)<=P.cur);});
   cand.sort(function(a,b){const ra=a.rg===0?0:1,rb=b.rg===0?0:1;return ra-rb||(ra?pal(a)-pal(b)||b.p-a.p:0);});
   const vis=cand.slice(0,4);let ved=vis.find(function(x){return x.rg===0;});
+  {const vc=function(x){return !!(x.m.r&&x.m.r.car);};if(vis.length===4&&!vis.some(vc)){const c9=cand.find(vc);if(c9)vis[3]=c9;}} /* une caisse à gagner ne reste jamais hors de l'écran : c'est la vedette naturelle */
   if(!ved){let b=-1;for(const x of vis)if(x.m.r&&x.m.r.car&&x.p>b){b=x.p;ved=x;}}
   if(!ved)for(const x of vis)if(!ved||x.p>ved.p)ved=x;
   let sq='';for(let i=0;i<T.n;i++)sq+='<s'+(i<T.ok?' class="o"':'')+'></s>';
@@ -61838,19 +61853,20 @@ function m2Vue(L,s){ // → {pal : le palier (coin haut droit) · ved : la vedet
   if(vis.length&&P.cur<M2_PAL.length-1){const reste=Math.max(0,P.need-T.ok);
     suite+='<div class="mcNx" aria-hidden="true"><small>'+sansAcc(TR('PALIER'))+' '+(P.cur+2)+'</small><span><i style="width:30%"></i><i style="width:46%"></i><i style="width:18%"></i></span>'
       +'<small>'+(reste?sansAcc(TR('ENCORE'))+' '+reste:sansAcc(TR('CLASSIFIÉ')))+'</small></div>';}
-  return {palier:P.cur+1,sq:sq,ved:ved?mcVedette(ved,s):'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>',suite:suite,n:vis.length};}
+  return {palier:P.cur+1,sq:sq,ved:ved?mcVedette(ved,s,!vu):'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>',suite:suite,n:vis.length};}
 function m2Render(vu){ /* (2026-11-03, refonte) la page MISSIONS entière : voir « L'ÉCRAN MISSIONS — REFONTE » */
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';
   const old=$('gmListe'),d0=old&&old.querySelector('.mcDef'),sc0=d0?d0.scrollTop:0,s0=old&&old.querySelector('.mcPan'),sc1=s0?s0.scrollTop:0;
-  const s=m2Etat(),L=m2Lignes(),pal=m2SecPal(),V=m2Vue(L,s);
+  const s=m2Etat(),L=m2Lignes(),pal=m2SecPal(),V=m2Vue(L,s,vu);
   const fin=L.filter(function(x){return x.rg===9;}),nf=fin.length+pal.length;
   let fh='';
+  const pv=s.pv|0,neuf=!!pv&&V.palier>pv&&!vu;if(s.pv!==V.palier&&!vu){s.pv=V.palier;SAVE.mark();} /* LE PALIER NEUF : on le dit une fois, à la 1re visite qui le montre (pv : le dernier palier vu) */
   if(nf){fh+='<div class="m2Fin mcFin'+(M2E.fin?' on':'')+'" role="button" tabindex="0" aria-expanded="'+M2E.fin+'"><span>'+sansAcc(TR('MISSIONS RÉUSSIES'))+'</span><b>'+nf+'</b>'+pxi(M2E.fin?'haut':'bas')+'</div>';
     if(M2E.fin){fh+='<div class="mcFinL">';fin.forEach(function(x,j){fh+=mcLigne(x,j,s);});pal.forEach(function(d){fh+=mcLignePal(d);});fh+='</div>';}}
   const gm=$('gMis');if(gm)gm.classList.add('mbOn');
   const c0=m2Compte();
   el.innerHTML='<div id="gmListe" class="m2 mcE'+(vu?' vu':'')+'"><div class="mcVoile"></div>'
-    +'<div class="mcDef"><div class="mcTete"><b class="mcNom">'+sansAcc(TR('MISSIONS'))+'</b><small class="mcSous">'+sansAcc(TR('PALIER'))+' '+V.palier+' / '+M2_PAL.length+' · '+c0.ok+' / '+c0.tot+'</small></div>'
+    +'<div class="mcDef"><div class="mcTete"><b class="mcNom">'+sansAcc(TR('MISSIONS'))+'</b><small class="mcSous">'+sansAcc(TR('PALIER'))+' '+V.palier+' / '+M2_PAL.length+' · '+c0.ok+' / '+c0.tot+'</small>'+(neuf?'<em class="mcNeuf">'+sansAcc(TR('NOUVEAU PALIER'))+'</em>':'')+'</div>'
     +'<div class="mcHero">'+V.ved+'</div>'
     +'<div class="mcPan"><div class="gModeT">'+pxi('cible')+'<span>'+sansAcc(TR('ENSUITE'))+'</span><s></s><em class="mcSq">'+V.sq+'</em></div>'+V.suite+fh+'</div></div></div>';
   GMIS.cards=[];GMIS.pts=[];GMIS.paths=[];GMIS.last=null;GMIS.lw=0;
@@ -61859,8 +61875,9 @@ function m2Render(vu){ /* (2026-11-03, refonte) la page MISSIONS entière : voir
   const nl=$('gmListe');if(nl){const d1=nl.querySelector('.mcDef'),s1=nl.querySelector('.mcPan');if(d1)d1.scrollTop=sc0;if(s1)s1.scrollTop=sc1;}
   if(typeof GAR!=='undefined'&&GAR.aMisId){const id9=GAR.aMisId;GAR.aMisId=null;setTimeout(function(){const r9=document.querySelector('#gmListe [data-m2="'+id9+'"]');if(r9){try{r9.scrollIntoView({block:'center'});}catch(e){}r9.classList.add('flash');}},REDUCED_MOTION?0:380);} // VOIR LA MISSION hors du garage
   el.querySelectorAll('img[data-ph]').forEach(function(im){const i=+im.getAttribute('data-ph');photoFile(i,function(u){if(u&&im.isConnected)im.src=u;});});
-  const ems=el.querySelectorAll('.mcJ i[data-w]'),rgs=el.querySelectorAll('.mcPo .pr[data-o]'),go=function(){ems.forEach(function(e){e.style.width=e.getAttribute('data-w')+'%';});rgs.forEach(function(e){e.style.strokeDashoffset=e.getAttribute('data-o');});};
+  const ems=el.querySelectorAll('.mcJ i[data-w]'),rgs=el.querySelectorAll('.mcPo .pr[data-o]'),hds=el.querySelectorAll('.mcPo .hd[data-r]'),go=function(){ems.forEach(function(e){e.style.width=e.getAttribute('data-w')+'%';});rgs.forEach(function(e){e.style.strokeDashoffset=e.getAttribute('data-o');});hds.forEach(function(e){e.style.transform='rotate('+e.getAttribute('data-r')+'deg)';});};
   if(REDUCED_MOTION||vu)go();else setTimeout(function(){requestAnimationFrame(go);},520);
+  if(neuf&&!REDUCED_MOTION)setTimeout(function(){const t9=document.querySelector('#gmListe .mcNeuf');if(!t9)return;try{pixBurst(t9,14);}catch(e){}try{if(SONV2)sfx('ui.debloque');}catch(e){}hap([12,40,30]);},900);
   let ch=false;for(const x of L){const p=Math.round(x.p*1000)/1000;if(s.vu[x.m.id]!==p){s.vu[x.m.id]=p;ch=true;}}if(ch)SAVE.mark();
   m2Portes();m2RevAuto(700);}
 function m2Voir(m){const o=m2CarVoir(m);if(!o){uiClic('refus');return;}uiClic('nav');
@@ -61884,7 +61901,11 @@ function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
   const pal=t.closest('[data-pal]');if(pal){const j=COSM.peinture.findIndex(function(d){return d.id===pal.getAttribute('data-pal');});if(j<0)return;uiClic('nav');
     ecranWipe(function(){garMode('boutique');shopTab('peinture');shopShow('peinture',j);});return;}
   const row=t.closest('.m2L,.mcL,.mcV');if(!row)return;const id=row.getAttribute('data-m2'),m=m2Def(id);if(!m)return;const s=m2Etat();
-  if(row.classList.contains('pret')){if(m.f==='secret'&&m2Revele(id))return;m2Recupere(id,row);return;} // une SECRÈTE qui brille : sa révélation · (2026-10-31) AVANT la photo : sur une ligne prête, la photo récupère aussi (voir m2PrendIci)
+  if(row.classList.contains('pret')){if(m.f==='secret'&&m2Revele(id))return;
+    if(row.classList.contains('revele'))return; /* (2026-11-03) la révélation est en cours */
+    if(row.querySelector('.mcSil.duo')&&m2Pret(id)){row.classList.add('revele');try{if(SONV2)sfx('ui.debloque');}catch(x){}hap([20,60,20,60,60]); /* la caisse sort du noir, PUIS elle est à toi */
+      setTimeout(function(){if(row.isConnected)m2Recupere(id,row);},REDUCED_MOTION?0:1400);return;}
+    m2Recupere(id,row);return;} // une SECRÈTE qui brille : sa révélation · (2026-10-31) AVANT la photo : sur une ligne prête, la photo récupère aussi (voir m2PrendIci)
   if(t.closest('.m2R.voir,.mbR.voir')&&!t.closest('.m2Pr')){m2Voir(m);return;}
   if(s.ok.indexOf(id)>=0){ /* (2026-11-01, Sacha : « quand on clique sur une mission achevée, elle se supprime automatiquement » ) */
     if(!s.mq)s.mq=[];if(s.mq.indexOf(id)<0)s.mq.push(id);SAVE.flush();uiClic('off');hap(10);m2Render(true);return;}
