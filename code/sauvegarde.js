@@ -50,7 +50,10 @@ const SAVE={
     c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;c.vib=d.vib!==false; // (2026-09-28) VIBRATIONS : leur propre interrupteur
     if(d.facile===1||d.facile===true)c.facile=1;else if(d.facile===0||d.facile===false)c.facile=0; // (2026-09-29) MODE FACILE : absent = jamais choisi (le 1er JOUER le propose)
     c.figG=d.figG==='glisse'?'glisse':'tap'; // (2026-10-15) LA FIGURE AU GLISSÉ
-    if(d.gaucher)c.gaucher=1;if(d.volInv)c.volInv=1;if(d.cmd==="fleches"||d.cmd==="incl"||d.cmd==="volant")c.cmd=d.cmd; // (2026-11-03, audit) MODE GAUCHER (mobile-tactile : gauSet), l'inversion haut/bas en vol (volInvBascule) et le schéma de COMMANDES (cmdSet) étaient écrits dans SAVE.d puis flushés, mais jamais recopiés ici : chaque relance repartait de def() et les perdait. Absents = défaut (droitier, normal, volant)
+    /* (audit p2) TROIS RÉGLAGES ÉCRITS MAIS JAMAIS RELUS : san() part d'un def() neuf et ne recopie que ce qu'il connaît — gaucher (MODE GAUCHER),
+       cmd (le schéma VOLANT/FLÈCHES/INCLINAISON, relu au boot par mobile-tactile) et volInv (haut/bas inversés en vol) revenaient au défaut à chaque relance.
+       Absent / invalide → le défaut d'avant (droitier, volant, vol normal). */
+    c.gaucher=(d.gaucher===1||d.gaucher===true)?1:0;c.volInv=(d.volInv===1||d.volInv===true)?1:0;c.cmd=(d.cmd==='fleches'||d.cmd==='incl')?d.cmd:'volant';
     c.vdep=Math.max(0,Math.min(5,Math.round(+d.vdep)||0)); // (2026-10-19) LA VITESSE DE DÉPART : le cran choisi au garage (0-5 ; vdepN le ramène au plus haut ouvert)
     c.volH=d.volH==='plonge'&&d.volHv>=2?'plonge':'monte';c.volHv=2; // pouce en HAUT en vol : monte (d'origine depuis le 2026-10-10, Léo : « plus logique, plus intuitif sur mobile ») ou plonge (manche d'avion, l'ancien défaut) — `volHv` < 2 : sauvegarde d'avant, basculée UNE fois sur MONTE, le choix fait après est gardé
     /* ⚠ LES VOLUMES SONT BORNÉS À [0,1], ET C'EST UNE VRAIE PROTECTION, pas une formalité : ces
@@ -221,7 +224,7 @@ const SAVE={
   },
   mark(){this.dirty=true;},
   natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
-  flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;}catch(e){} /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
+  flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
     if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
@@ -244,15 +247,21 @@ const SAVE={
    rattrape le miroir ; réponse pleine → 2 : plus AUCUNE écriture jusqu'au rechargement (le passage en arrière-plan qui accompagne
    un rechargement flushait la sauvegarde vierge PAR-DESSUS celle qu'on venait de semer). Lecture en échec : on reste à 1 — on
    n'écrase pas un secours qu'on n'a pas pu lire. Et on ne recharge que si le localStorage a GARDÉ la valeur (sinon : boucle). */
-if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&!(function(){try{const x=JSON.parse(localStorage[SAVE.K]||'null');return !!x&&typeof x==='object';}catch(e){return false;}})()){ // (2026-10-14, chasse aux bugs) une sauvegarde locale ILLISIBLE (écriture tronquée) comptait comme présente : le miroir n'était pas lu, load repartait à neuf et le 1er flush écrasait le secours natif — perte totale. Illisible = absente
+/* ===== LE MIROIR ATTEND SA LECTURE JUSQU'AU BOUT (2026-11-03, audit p3) ===== si `Preferences.get` échoue ou ne répond jamais, `natif` reste à 1 mais le filet de 30 s / un réglage écrit quand même dans localStorage une sauvegarde (vierge) lisible : au lancement suivant le bloc était sauté, natif=0 et le 1er flush écrasait le secours natif — perte totale. Le TÉMOIN `cashcarSave_natif` (posé par flush tant que natif===1) force la relecture du miroir ; une sauvegarde locale qui a de vraies parties (ex.runs>0) est gardée et rattrape le miroir, sinon le miroir est semé. */
+{const l9=(function(){try{const x=JSON.parse(localStorage[SAVE.K]||'null');return !!x&&typeof x==='object'?x:null;}catch(e){return null;}})();
+const raz9=function(){try{localStorage.removeItem(SAVE.K+'_natif');}catch(e){}};
+if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&(!l9||(function(){try{return localStorage[SAVE.K+'_natif']==='1';}catch(e){return false;}})())){ // (2026-10-14, chasse aux bugs) une sauvegarde locale ILLISIBLE (écriture tronquée) comptait comme présente : le miroir n'était pas lu, load repartait à neuf et le 1er flush écrasait le secours natif — perte totale. Illisible = absente
   SAVE.natif=1;
   try{window.Capacitor.Plugins.Preferences.get({key:SAVE.K}).then(function(r){
     /* ===== LE MIROIR ILLISIBLE NE SE SÈME PAS (24/10, débogage sortie iOS : « aucune progression perdue ») ===== semé tel quel, il rechargeait la page sur un localStorage
        tout aussi illisible, qui relisait le miroir, rechargeait… à l'infini : appli inutilisable. Illisible = vide (le flush qui suit écrit une sauvegarde saine) */
-    if(r&&r.value&&(function(){try{const x9=JSON.parse(r.value);return !!x9&&typeof x9==='object';}catch(e){return false;}})()){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
-      if(ok)location.reload();else SAVE.natif=1;}
-    else{SAVE.natif=0;SAVE.flush();}
+    const mv9=!!(r&&r.value&&(function(){try{const x9=JSON.parse(r.value);return !!x9&&typeof x9==='object';}catch(e){return false;}})());
+    if(mv9&&l9&&(+(l9.ex&&l9.ex.runs)||0)>0){SAVE.natif=0;raz9();SAVE.flush();} /* le local a de vraies parties (jouées après l'échec de lecture) : on le garde, il rattrape le miroir */
+    else if(mv9){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
+      if(ok){raz9();location.reload();}else SAVE.natif=1;}
+    else{SAVE.natif=0;raz9();SAVE.flush();}
   }).catch(function(){});}catch(e){}
+}
 }
 SAVE.load();
 /* (2026-10-16) J'AI DÉJÀ JOUÉ, sans « ne plus me demander » : la leçon n'était sautée que pour l'ouverture d'avant — la question revient. */
