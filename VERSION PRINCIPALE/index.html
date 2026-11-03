@@ -22012,6 +22012,7 @@ const BK_CG_X=[-1.5,.4,3,9,16,22,30,36],BK_CG_Y=BK_NEIGE?[-.5,.2,.5,.85,1.3,2.2,
 function bkCgH(x){const X=BK_CG_X,Y=BK_CG_Y;if(x<=X[0])return Y[0];for(let i=1;i<X.length;i++)if(x<=X[i])return Y[i-1]+(Y[i]-Y[i-1])*(x-X[i-1])/(X[i]-X[i-1]);return Y[Y.length-1];}
 function bkCgBord(){return banqOk()?BK_CG.w:0;} // la largeur de neige où l'on peut rouler (et se poser) au-delà de la glace
 function bkCongerePose(root){ // les deux rubans de neige du bord, du départ à l'arrivée (même pas de 4 m que le verglas)
+  BANQ.n.congere=0;return; /* (2026-11-03, passe maps cohérentes) plus bâti du tout : depuis le 28/10 (Léo, plus bas) le ruban était CACHÉ mais construit à chaque glacier — 2 côtés × ~2 500 rangs × 7 bandes (≈ 70 000 triangles pour 10 km, une géométrie) gardés en mémoire pour rien ; la physique du bord lit bkCgH, pas ce maillage. Le code d'avant reste, inatteignable, pour qui voudrait le redessiner */
   const P=[],A=[],I=[],X=BK_CG_X,NC=X.length,nk=Math.max(2,Math.ceil(L/4));let n=0;
   for(const sd of [1,-1]){
     for(let k=0;k<=nk;k++){frameAt(L*k/nk,F);
