@@ -187,7 +187,9 @@ function ecranWipe(fn,apres){
   try{uiGarde(520);}catch(e){} // (2026-10-12, passe qualité) le VOLET arme le verrou du double-tap : le 2e tap d'un HOME du garage tombait sur le JOUER de l'accueil (~200-350 ms) et lançait une course
   w.className='in';const px=wipePxOk();if(px)wipePxStart(w,'in');try{if(SONV2)sfx('ui.volet');else noiseBurst(.18,.05,1800);}catch(e){} // (2026-09-28) le son du volet : session SON
   setTimeout(function(){
-    try{fn();}catch(e){console.error(e);}
+    let r9=null;try{r9=fn();}catch(e){console.error(e);}
+    /* (2026-10-31) `fn` peut rendre une PROMESSE : le volet reste baissé jusqu'à ce qu'elle tienne (le REJOUER finit d'y bâtir son départ — voir rejoueAttend) */
+    const suite9=function(){
     let leve=false;
     const lever=function(){ if(leve)return;leve=true;
       w.className='out';if(px)wipePxStart(w,'out');ecranWipe._on=false; // la main revient DÈS que l'écran se redécouvre (le voile qui s'efface ne bloque plus rien)
@@ -199,6 +201,8 @@ function ecranWipe(fn,apres){
       setTimeout(function(){if(ecranWipe._id===id){w.className='';wipePxEnd();}},REDUCED_MOTION?160:460); }; // un fondu relancé entre-temps garde son voile
     requestAnimationFrame(function(){requestAnimationFrame(lever);});
     setTimeout(lever,160); // filet : onglet caché = aucune image, le voile ne doit jamais rester collé
+    };
+    if(r9&&typeof r9.then==='function')r9.then(suite9,suite9);else suite9();
   },REDUCED_MOTION?120:160); // (2026-10-11, passe UX) 210 → 160 ms : le volet entre en 150 ms (voir <style id="uxPasse">), l'écran change dès qu'il couvre
 }
 function uiPop(el){ // le rebond d'un bouton relâché (re-déclenchable : on retire, on force un reflow, on remet)

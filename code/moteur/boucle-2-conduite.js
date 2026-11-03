@@ -85,8 +85,11 @@
       const spdMult=vitMult(); // (NITROOO) ×1,10/s tenue, et avec VITESSE ×2 : PLAFOND COMMUN ×2,6 (voir vitMult) — SPEED UP : le sol défile DEUX FOIS plus vite (2026-09-26, user : « le power-up vitesse doit faire ×2 »), sans casser la physique
       {const rT=steer*lacetMax(vA)*spdMult*(drifte?1.15:1)*THREE.MathUtils.clamp(vA/8,-1,1)*(slipT>0?.18:BKV.sur?BK_VG.grip:1); // flaque : la direction ne mord presque plus · (2026-10-15) verglas du glacier : elle mord à moitié
        yawR+=(rT-yawR)*(1-Math.exp(-dt*spdMult/VOL_TAU));
-       const b0=slipB,bT=drifte?Math.sign(steer)*.42*Math.min(1,Math.abs(steer)):0;
-       slipB+=(bT-slipB)*(1-Math.exp(-dt*(drifte?4:6)));
+       const b0=slipB,bT=drifte?Math.sign(steer)*(DRIFT2?.47:.42)*Math.min(1,Math.abs(steer)):0;
+       if(DRIFT2){ /* (2026-11-01, LE DRIFT SE COMPREND) LE COUP DE REINS : la glisse est un RESSORT (ω 9, amortissement .5 en entrée — elle dépasse de ~15 % puis
+          se pose ; .9 au retour : l'arrière revient sans rebondir). Le nez seul bouge : la trajectoire retire `slipB` (vL plus bas), elle ne change pas. */
+         const z9=drifte?.5:.9,w9=9,d9=Math.min(dt,1/30);slipV+=(w9*w9*(bT-slipB)-2*z9*w9*slipV)*d9;slipB+=slipV*d9;if(!drifte&&Math.abs(slipB)<.002&&Math.abs(slipV)<.02){slipB=0;slipV=0;}}
+       else slipB+=(bT-slipB)*(1-Math.exp(-dt*(drifte?4:6)));
        psi+=yawR*dt+(slipB-b0); // le nez = la trajectoire + la glisse
        if(MURC.psiK>0){MURC.psiK=Math.max(0,MURC.psiK-dt/.06);psi+=(MURC.psiR-psi)*(1-Math.exp(-dt*50));} // (2026-10-17) LE COUP D'ÉPAULE : le renvoi de la paroi en ~50 ms (voir murCote)
        if(BKV.sur)BKV.gl=THREE.MathUtils.clamp(BKV.gl+yawR*dt,-BK_VG.glMax,BK_VG.glMax); // (2026-10-15 soir) SUR LE VERGLAS le pouce tourne le NEZ, la trajectoire ne suit qu'en BK_VG.tau s (voir banqVerglas) : la caisse GLISSE
@@ -96,7 +99,7 @@
        {const aL9=aB9;FRONDE.cd=Math.max(0,FRONDE.cd-dt);if(aL9>32){virT+=dt*spdMult;if(lat*yawR*driveDir>ROAD_HALF*.2*Math.abs(yawR))virC+=dt*spdMult;if(drifte||slipT>0)virD=true;}else if(aL9<12){if(virPaye&&!virD)frondeLache(virT,virC);virT=0;virC=0;virD=false;virPaye=false;} /* (LA FRONDE) la corde = la moitié INTÉRIEURE du virage (lat du côté où l'on tourne) ; une glisse (drift, flaque) désarme la fronde */ // (HAUTE VITESSE) les 0,9 s se comptent en temps ×1 : le même virage paie, pris à ×1 comme à ×2,6
         if(virT>.9&&!virPaye){virPaye=true;if(SONV2)sfx('virage');chaineAuraMuette('VIRAGE SERRÉ',45,'virage',false,SONV2);}} // (2026-09-29, Sacha) ne s'écrit plus
        filetTick();} // (2026-09-29) LA ROUTE QUI TE RATTRAPE : le VIRAGE À FOND (voir FILET)
-      driftTick(dt,drifte);
+      driftTick(dt,drifte);if(DRIFT2&&TCTL.drift)TCTL.drift(drifte,vitOk&&!introD&&!PARK.on,false); /* (2026-11-01) le stick dit le drift */
       if(SENS)try{sensCaisse();}catch(e){} // (2026-10-14, sensations · caisse) le coup de volant sec, la roue qui passe la lèvre et qui remonte : dans la tôle et la main
       // (conduite v3) RASE-BORD : frôler le vide à pleine vitesse RECHARGE le nitro — le risque paie
       if(!introD&&!PARK.on&&Math.abs(lat)>ROAD_HALF*.8&&Math.abs(vA)>maxSp*.5){raseT+=dt;if(!nitroOn)nitroGain(NITRO2.rase*dt,'rase'); /* (LA LOI DU RÉSERVOIR) le rase-bord ne remplit que nitro COUPÉE */flowAdd(6*dt,'route'); // bande du RASE-BORD : les 20 % extérieurs de la demi-route (3 à 4,8 m sur la route large)
@@ -114,7 +117,7 @@
       // (la RÉCEPTION EN GLISSE à l'atterrissage, elle, reste — c'est un effet ponctuel bien visible)
       driftT=Math.max(0,driftT-dt*2.2); // retombe après un atterrissage en travers
       psi=THREE.MathUtils.clamp(psi,-1.4,1.4);
-      if(DMT.act)dmtConduite(dt); // (LE DEMI-TOUR) la manœuvre tient le volant, la vitesse et la ligne pendant ~1 s
+      if(DMT.act)dmtConduite(dt,tireBas||dn); // (LE DEMI-TOUR) la manœuvre tient le volant, la vitesse et la ligne pendant ~1 s
       vL=vA*Math.sin(psi-slipB-BKV.gl); // la TRAJECTOIRE : le cap moins la glisse (0 hors drift) · moins la glissade du verglas (BKV.gl, 0 hors du glacier)
       const lat09=lat; // (BALAYAGE, voir balEcart) la ligne de la caisse AVANT l'avance : plots, pads, dos d'âne et flaques se testent sur le trajet
       lat+=vL*driveDir*dt*SPD*spdMult; // (spdMult : calculé avant le lacet, voir HAUTE VITESSE)

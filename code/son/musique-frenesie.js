@@ -207,6 +207,8 @@ function lvlTick(dt,S){
 }
 /* <<<FIN FOND>>> ========================================================== */
 function musicTick(dt,mvt){
+  if(PBJ_PL.max!==11&&!lobbyActif())PBJ_PL.max=11; // le nivellement de la course reste à +11 dB (le lobby le relève pendant qu'il joue)
+  try{leconAmbiance(dt);}catch(e){} // (2026-11-02) la leçon : pas de musique, l'ambiance de la boutique
   if(MUSREP.att&&!paused){MUSREP.att=false;if(SND.music&&started&&running&&!gameOver)try{musicStartRun(false,true);}catch(e){}} // (2026-10-15) MUSIQUE rallumée pendant la pause : la course reprend, son morceau aussi
   try{sonTonSuit();}catch(e){} // (console de son) les sons accordés suivent la tonalité du morceau qui joue
   let target=0,beat=0,hiT=0,bsT=0,mdT=0;
@@ -275,8 +277,15 @@ function musicTick(dt,mvt){
       (chuteDoux exige SND.sfx), et la musique restait à −16/−22 dB « derrière » ce vent absent — un ciel presque muet. Sans vent, plus de
       MUS_CIEL : le niveau du garage. */
    const ciel9=musicMode==='menu'&&typeof CHUTE!=='undefined'&&!!CHUTE.on,cielV9=ciel9&&VOL_LOCKED&&!musWaTient(),tait9=bq9||cielV9;MUS_TAIT=tait9;
-   if(ciel9&&SND.sfx&&!(MUSAP.t>performance.now())){const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78;musicVolCible*=MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6);} // la rafale la couvre, l'accalmie la ramène : on l'entend de loin, en tombant — (2026-10-14, session SON) sauf pendant l'extrait du curseur MUSIQUE : 1,4 s au niveau du garage, le vrai volume réglé
-   if(musicMode==='menu'&&!tait9&&musicEl&&musicEl.src&&!musicTick._pz){const u9=musicMenuUrl(); // LA MUSIQUE DU LIEU (ciel ↔ garage)
+   {const h9=(typeof CHDOUX!=='undefined'&&CHDOUX.h)||.78,fc9=ciel9&&SND.sfx&&!(MUSAP.t>performance.now())?(lobbyActif()?MUS_CIEL_LOBBY*Math.max(.6,1-(h9-.78)*1.2):MUS_CIEL*Math.max(.5,1-(h9-.78)*1.6)):1; /* fc9 : le niveau où ce lieu joue d'habitude (le ciel derrière le vent, ou le garage) */
+     if(INTROSON.on&&musicMode==='menu')musicVolCible*=INTROSON.m0+(fc9-INTROSON.m0)*ventIntro(); /* (2026-11-02, l'intro) la musique part DOUCE (m0, quel que soit le lieu qui se prépare dessous : plus de départ « très fort ») et rejoint le niveau du lieu en même temps que le vent monte */
+     else musicVolCible*=fc9;} // la rafale la couvre, l'accalmie la ramène : on l'entend de loin, en tombant — (2026-10-14, session SON) sauf pendant l'extrait du curseur MUSIQUE : 1,4 s au niveau du garage, le vrai volume réglé
+   if(window.POUCE_JEU&&POUCE_JEU.phase==='lobby'&&(!SND.music||musicMode!=='menu')){try{POUCE_JEU.fin(false);}catch(e){}} // la musique coupée (ou plus au menu) : le morceau du lobby s'éteint
+   if(lobbyActif()&&musicMode==='menu'){ /* (2026-11-02) LE LOBBY LIÉ : son niveau suit le mixage du menu (ciel derrière le vent, garage, intro, boutique), ramené à l'échelle de la course (au garage : le niveau du départ d'une course à l'arrêt) ; l'élément <audio> reste muet */
+     const m9=musVol()*.5,r9=m9>1e-4?Math.min(2.5,musicVolCible/m9):0,b9=tait9?0:VOL.mus/.62*PBJ_NIV*.62*r9;
+     try{PBJ_PL.max=24;POUCE_JEU.niveau(b9*pbjPlancher(dt,VOL.mus*PBJ_NIV,POUCE_JEU.tier0||pbjTier(1)));}catch(e){} /* (2/11 soir) le nivellement vise le niveau du GARAGE (base constante) et le lieu l'abaisse : au ciel, −10,5 dB de plus (MUS_CIEL_LOBBY) ; jusqu'à +24 dB (+11 en course) : un morceau clairsemé est enfin audible */
+     musicVolCible=0;}
+   if(musicMode==='menu'&&!tait9&&musicEl&&musicEl.src&&musicEl.src!==musicSilence._u&&!musicTick._pz&&!lobbyActif()){ /* (2/11 nuit) le silence du déverrouillage n'est pas une musique de lieu : rien à remplacer */const u9=musicMenuUrl(); // LA MUSIQUE DU LIEU (ciel ↔ garage)
      if(u9&&musicEl.src!==MENU_MUS.abs(u9)){musicVolCible=0;                       // on a changé de lieu : la musique d'avant s'efface…
        if((VOL_LOCKED&&!musWaTient())||musicVolCour<.015||musicEl.paused)playMusic(u9,{loop:true,volume:0});}} // …puis celle du lieu prend sa place, en fondu depuis zéro (iPhone sans MUS_WA : franche)
    if(tait9){musicVolCible=0;if(!musicTick._pz&&((VOL_LOCKED&&!musWaTient())||musicVolCour<.012)){ /* (2026-10-14, session SON) branchée en WebAudio, l'iPhone fait comme l'ordi : un fondu, puis la pause */musicTick._pz=true;musicPause(true);}}

@@ -211,11 +211,13 @@ function invRender(){
         if(o.cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;fig='<i class="ivSw'+cosmSwCl(d)+'" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
         else if(o.cat==='trainee')fig='<i class="ivRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
         else if(o.cat==='figure')fig='<i class="pxi pxi-rotation ivAile" style="color:'+ri.c+'"></i>';
-        else fig='<i class="pxi pxi-aile ivAile" style="color:#dff6ff"></i>';}
+        else fig='<i class="pxi pxi-aile ivAile" data-ai="'+sansAcc(String(d.id)).replace(/"/g,'')+'" style="color:#dff6ff"></i>';} // (31/10) une AILE passe en PHOTO dès qu'aileFile la rend (voir plus bas, comme les caisses) : l'icône n'est qu'une attente
       const nmA=sansAcc(String(nm)).replace(/"/g,'');
       return '<div class="ivT r-'+o.r+'" data-i="'+o.i+'" role="button" tabindex="0" aria-label="'+nmA+' · '+sansAcc(TR(ri.n1))+'" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.26+.42*lu)+';--rf:'+invRgba(ri.c,.06+.18*lu)+';--rk:'+lu+';--n:'+n+'">'+fig+'<b>'+nmA+'</b><small>'+sansAcc(TR(ri.n1))+'</small><u'+(o.cat==='peinture'&&o.d.id!=='usine'?' class="x">'+pxi('croix'):'>'+(o.cat==='figure'&&FIGV2.on&&o.eq?figSlots().map(function(x,i9){return x===o.d.id?pxi(FIG_FAM[i9][2]):'';}).join(''):pxi('coche')))+'</u></div>';}).join(''); /* (LES FIGURES v2) une figure équipée porte le NUMÉRO de son emplacement (1 · 2 · 3 = les boutons de vol) */
     if(INV.cat==='voiture')setTimeout(function(){if(!INV.on)return;g.querySelectorAll('.ivT').forEach(function(el){if(!el.querySelector('.ivPh'))return;const i=+el.getAttribute('data-i');
       photoFile(i,function(url){const v=el.querySelector('.ivPh');if(!v||!el.isConnected)return;const im=document.createElement('img');im.alt='';im.src=url;v.replaceWith(im);});});},420); // les photos manquantes APRÈS l'entrée du tiroir (une photo = deux caisses rebâties : pas pendant qu'il glisse)
+    if(INV.cat==='aile')setTimeout(function(){if(!INV.on)return;g.querySelectorAll('.ivT [data-ai]').forEach(function(v){const id=v.getAttribute('data-ai'),el=v.closest('.ivT');
+      aileFile(id,function(url){if(!url||!v.isConnected)return;const im=document.createElement('img');im.alt='';im.src=url;v.replaceWith(im);},el);});},420); // (31/10) les AILES, en photo elles aussi — même attente que les caisses
   }
   const eqs={};L.forEach(function(o){if(o.eq)eqs[o.i]=1;});
   g.querySelectorAll('.ivT').forEach(function(el){el.classList.toggle('eq',!!eqs[+el.getAttribute('data-i')]);});

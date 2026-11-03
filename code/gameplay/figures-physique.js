@@ -44,6 +44,7 @@ const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,nul
    que le tonneau, la leçon serait bloquée) et la figure AUTOMATIQUE du saut nitro au sol : elles prennent un emplacement qui existe. */
 const FIG_DIR=['avant','arriere','cote'];
 const FIG_FAM=[["VERS L'AVANT",'POUCE EN AVANT','haut'],["VERS L'ARRIÈRE",'POUCE EN ARRIÈRE','bas'],['SUR LES CÔTÉS','POUCE À GAUCHE OU À DROITE','fleches']]; // le nom de chaque direction, le geste qui la joue, son pictogramme (ceux du rappel #fhLeg)
+const FIG_DC=['#4fd6ff','#ff9a4d','#9b7bff']; // (2026-10-31, clarté boutique) une couleur par EMPLACEMENT (avant/arrière/côtés), reprise sur l'hexagone, l'intertitre de sa section et le badge « aussi » des figures à deux sens — juste un repère visuel, aucun rapport avec la rareté
 function figPeut(id){const f=window.FIG&&FIG.par[id];if(!f||!FIG.dirs)return [2]; // les emplacements que la figure accepte (0 avant · 1 arrière · 2 côté)
   return FIG.dirs(f).map(function(d){return FIG_DIR.indexOf(d);}).filter(function(i){return i>=0;});}
 /* ranger les figures L (de la plus récente à la plus ancienne) dans les emplacements VIDES de S : d'abord celles à UN sens, puis celles à deux
@@ -296,11 +297,12 @@ function figGDir(dx,dy){const ax=Math.abs(dx),ay=Math.abs(dy);if(Math.max(ax,ay)
 function figGFig(d){const F=window.FIG&&FIG.par;return F?(d==='l'||d==='r'?(F.tailwhip||F.toupie):d==='u'?F.saltoa:F.saltov):null;} // (2e passe, Léo : « en l'air 360 aussi ») ← → = le 360 à plat — (2026-10-15, Léo par le MANAGER) ← → EN L'AIR = le TAIL WHIP de ce côté (le nez reste, la poupe fait le tour)
 function figGOpts(d){const f=figGFig(d);if(!f)return null;
   return {f:f,sens:f.piv?(d==='l'?-1:d==='r'?1:1):(d==='l'?1:d==='r'?-1:1),empile:true};} // (figLance, toupie : pouce à GAUCHE → sens +1, le nez part à gauche ; un salto garde son sens) — le TAIL WHIP : glissé à GAUCHE → la POUPE part à gauche (sens −1 : le nez tient, la queue fouette du côté du pouce)
-function figGNom(d){if(mode==='drive')return d==='l'||d==='r'?'SLIDE 360':d==='u'?'WHEELIE':'STOPPIE';const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';} // ce que dit la flèche
+function figGNom(d){if(mode==='drive'&&GSOL.v2){if(d==='d'){const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';}return d==='u'?'WHEELIE':'TAIL WHIP';}
+  if(mode==='drive')return d==='l'||d==='r'?'SLIDE 360':d==='u'?'WHEELIE':'STOPPIE';const f=figGFig(d);return f?sansAcc(LANG==='en'?f.en:f.n):'';} // ce que dit la flèche
 function figGJoue(d){ // (la boucle) le glissé lâché
   if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte())){GLI.refus++;return false;}
   const o=figGOpts(d);let ok=false;
-  if(o){if(mode==='drive')ok=gsolLance(d);else if(mode==='fall')ok=!!(FIGV2.on?figLance(-1,o):veqFigure());} // (2e passe) AU SOL : la figure se fait AU SOL (voir GSOL)
+  if(o){if(mode==='drive')ok=GSOL.v2&&d==='d'?frLance(o)===true:gsolLance(d);else if(mode==='fall')ok=!!(FIGV2.on?figLance(-1,o):veqFigure());} // (2e passe) AU SOL : la figure se fait AU SOL (voir GSOL)
   if(ok){GLI.n++;GLI.der=d;if(TUTO.on)TUTO.sauts=(TUTO.sauts|0)+1;}else GLI.refus++;
   return ok;}
 function figGVoit(d,x,y){ // la flèche du glissé : ce qui partira si on lâche ici
@@ -330,13 +332,22 @@ window.dbgGlisse=function(a){if(a==='on'||a==='off'){SAVE.d.figG=a==='on'?'gliss
      coût, attente) et le salto de ce sens, fini en l'air ; la caisse emporte l'angle de l'amorce (figDepart). Sinon elle se repose (coup de
      nez du ressort SCOUP) et c'est payé « WHEELIE » / « STOPPIE ».
    Pose = une rotation de carGroup autour d'un pivot, rejouée à chaque image APRÈS sa pose sur la route (gsolPose) : la physique ne voit rien.
-   Jamais sous la dalle (side < 0), une seule à la fois. */
-const GSOL={k:null,t:0,D:0,s:1,saute:false,k0:false,n:0,sauts:0,ax:new THREE.Vector3(),pv:new THREE.Vector3(),v:new THREE.Vector3(),q:new THREE.Quaternion()};
+   Jamais sous la dalle (side < 0), une seule à la fois.
+   ===== LE GLISSÉ AU SOL, 3e PASSE (2026-11-01, Léo : « les figures du genre salto doivent être déclenchées dès qu'on fait slide ou double
+   clic, ça retombe direct sur la route […] faire des figures roues avant levées et un slide pas 360, tail whip au sol » — au questionnaire :
+   « ↑ wheelie · ↓ salto · ← → tail whip au sol ») :
+   · ↓ = LE SALTO TOUT DE SUITE : la figure sur la route (frLance, le même bond haut que le double-tap), plus d'amorce STOPPIE ni de flèche
+     avant à tenir ; elle retombe sur la route. Décoller : manche haut PUIS boost pendant le bond (voir FDC, figures-route).
+   · ↑ = WHEELIE : les roues avant se lèvent ~1 s, la caisse reste au sol (plus de saut depuis l'amorce).
+   · ← → = TAIL WHIP AU SOL (`'t'`) : le nez tient (pivot sur l'essieu avant), la poupe FOUETTE du côté glissé (~110°) puis revient, la gomme
+     fume — pas un tour complet. Payé « TAIL WHIP ».
+   `?glsol=ancien` = la 2e passe (slide 360, wheelie/stoppie qui sautent au manche). */
+const GSOL={v2:!/[?&]glsol=ancien\b/.test(location.search),k:null,t:0,D:0,s:1,saute:false,k0:false,n:0,sauts:0,ax:new THREE.Vector3(),pv:new THREE.Vector3(),v:new THREE.Vector3(),q:new THREE.Quaternion()};
 function gsolHaut(){return !!(keys.ArrowUp||keys.KeyW||keys.KeyZ);}
 function gsolLance(d){const G=GSOL;
   if(mode!=='drive'||side<0||G.k||hopY>0||POSE_F){try{if(SONV2)sfx('nitro.vide');}catch(e){}hap(6);return false;}
-  G.k=d==='l'||d==='r'?'p':d==='u'?'w':'s';G.t=0;G.D=G.k==='p'?.72:G.k==='w'?.78:.6;G.s=d==='l'?1:-1;G.saute=false;G.k0=gsolHaut();
-  if(G.k==='p'){try{if(SONV2&&!sfx('fig.toupie',{st:echSt()}))sfx('turbo.mini',{vol:-6});}catch(e){}hap([8,16]);}
+  G.k=d==='l'||d==='r'?(G.v2?'t':'p'):d==='u'?'w':'s';G.t=0;G.D=G.k==='p'?.72:G.k==='t'?.66:G.k==='w'?(G.v2?1.05:.78):.6;G.s=d==='l'?1:-1;G.saute=false;G.k0=gsolHaut();
+  if(G.k==='p'||G.k==='t'){try{if(SONV2&&!sfx('fig.toupie',{st:echSt()}))sfx('turbo.mini',{vol:-6});}catch(e){}hap([8,16]);}
   else{try{if(SONV2)sfx('turbo.mini',{vol:-6});}catch(e){}hap([10,20]);if(typeof sensCoup==='function')sensCoup(0,0,G.k==='w'?1.4:-1.4);}
   return true;}
 function gsolCoupe(){GSOL.k=null;GSOL.t=0;}
@@ -344,20 +355,24 @@ function gsolTick(dt){const G=GSOL;if(!G.k)return; // (la boucle, en course)
   if(mode!=='drive'||gameOver||!started){gsolCoupe();return;}
   if(paused)return;
   G.t+=dt;
-  if(G.k==='p'){if(Math.random()<dt*34){const sp=CARS[level]||CARS[0],sd=Math.random()<.5?-1:1; // la gomme fume aux roues arrière pendant le tour
+  if(G.k==='p'||G.k==='t'){if(Math.random()<dt*34){const sp=CARS[level]||CARS[0],sd=Math.random()<.5?-1:1; // la gomme fume aux roues arrière pendant le tour
       G.v.set(sd*sp.w*.45,.25,-sp.l*.38).applyQuaternion(carGroup.quaternion).add(carGroup.position);
       for(let k=0;k<3;k++)spawnP(dust,G.v.x,G.v.y,G.v.z,(Math.random()-.5)*5,1+Math.random()*2,(Math.random()-.5)*5,.35+Math.random()*.3);}}
-  else if(!G.saute&&G.t<G.D*.8){ // FLÈCHE AVANT pendant l'amorce : elle SAUTE et finit le salto en l'air
+  else if(!G.v2&&!G.saute&&G.t<G.D*.8){ // FLÈCHE AVANT pendant l'amorce : elle SAUTE et finit le salto en l'air
     const h=gsolHaut();if(!h)G.k0=false;
     if((TCTL.act&&TCTL.sv>.35)||(h&&!G.k0)){G.saute=true;const o=figGOpts(G.k==='w'?'u':'d');
       if(o&&veqSaut(o)){G.sauts++;gsolCoupe();return;}}} // refusé (attente, nitro à sec) : elle reste au sol, un seul essai
   if(G.t>=G.D){const k=G.k;gsolCoupe();G.n++;
     if(k==='p'){try{chaineAura('SLIDE 360',70,'gslide',false,false);}catch(e){}hap([10,22,10]);}
+    else if(k==='t'){try{chaineAura('TAIL WHIP',70,'gtailwhip',false,false);}catch(e){}hap([10,22,10]);}
     else{try{chaineAura(k==='w'?'WHEELIE':'STOPPIE',40,k==='w'?'gwheelie':'gstoppie',false,false);}catch(e){}
       if(typeof sensCoup==='function')sensCoup(0,k==='w'?2.4:-2,-1.2);hap([8,18]);}}} // elle retombe sur ses roues : le nez claque
 function gsolPose(F){const G=GSOL;if(!G.k||mode!=='drive')return; // (conduite, chaque image, après la pose de la caisse sur la route)
   const x=Math.min(1,G.t/G.D),q=carGroup.quaternion,p=carGroup.position;
   if(G.k==='p'){G.q.setFromAxisAngle(F.n,G.s*6.2832*x*x*(3-2*x));q.premultiply(G.q);return;}
-  const sp=CARS[level]||CARS[0],b=Math.pow(Math.sin(Math.PI*x),.75),a=(G.k==='w'?-.46:.34)*b,zp=(G.k==='w'?-1:1)*(sp.l||4.4)*.36;
+  const sp=CARS[level]||CARS[0];
+  if(G.k==='t'){const a=-G.s*1.92*Math.pow(Math.sin(Math.PI*Math.min(1,x*1.15)),.7); // le TAIL WHIP : la poupe part vite, revient un peu plus lentement ; pivot = l'essieu avant
+    G.pv.set(0,0,(sp.l||4.4)*.36).applyQuaternion(q).add(p);G.q.setFromAxisAngle(F.n,a);q.premultiply(G.q);p.sub(G.pv).applyQuaternion(G.q).add(G.pv);return;}
+  const b=Math.pow(Math.sin(Math.PI*x),G.v2&&G.k==='w'?.45:.75),a=(G.k==='w'?-.46:.34)*b,zp=(G.k==='w'?-1:1)*(sp.l||4.4)*.36;
   G.ax.set(1,0,0).applyQuaternion(q);G.pv.set(0,0,zp).applyQuaternion(q).add(p); // l'axe des roues, le pivot : l'essieu qui reste au sol
   G.q.setFromAxisAngle(G.ax,a);q.premultiply(G.q);p.sub(G.pv).applyQuaternion(G.q).add(G.pv);}

@@ -24,7 +24,51 @@
    la caisse se poser à contresens (nez dans le sens du vol) ; `dbgDemiTour()` = l'état. */
 var DMT={on:!/[?&]demitour=0\b/.test(location.search),act:false,t:0,D:1.45,tS:.8,TR:1.1,y0:0,y:0,yV:0,cam:0,camP:0,dc:0,vb:0,vo:0,vl:0,sg:1,burn:false,force:false,n:0,
   g:new THREE.Vector3(),f:new THREE.Vector3(),c:new THREE.Vector3(),nn:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),fw:new THREE.Vector3(),
-  el:null,eW:0,eTop:'',eLeft:''};
+  el:null,eW:0,eTop:'',eLeft:'',gl:false,h:0,h0:1,sb:1,vt:0,vb2:0,wl:0,tm:0,mx:20,prog:0,ok:0,givre:null,gO:-1};
+/* ===== LE VERGLAS DU CONTRESENS (2026-11-02, Léo : « la voiture ne va plus tourner toute seule, mais va indiquer qu'il y a un mauvais sens et va
+   automatiquement s'accorder à l'angle, le sens dans lequel la voiture arrive sur la route, pour lui donner un effet de verglas qui permettra de se
+   rattraper en drift de manière assez satisfaisante, mais qui peut aussi faire tomber ceux qui arrivent de manière trop brutale sans savoir ce
+   qu'ils font. Il faut pas que ça handicape trop. Transformer ce problème en quelque chose de stylé ») =====
+   Posée à contresens, la caisse garde le CAP DE SON ARRIVÉE (plus de pivot automatique) et la route devient du VERGLAS :
+   · le POUCE tourne le nez (DMT.h), vite ; le geste du drift (pouce tiré vers le bas) tourne encore plus vite mais l'arrière lâche plus ;
+   · la vitesse vit dans le repère de la caisse : le long du nez elle roule (le moteur pousse le nez, même vers l'arrière), de CÔTÉ elle glisse et
+     ne meurt qu'en GV.kSide — un nez pointé vers le vide y emmène la caisse : la pose brutale, nez au bord, sans rien faire, TOMBE ;
+   · les 4 derniers mètres du bord freinent la dérive vers le vide (la croûte de givre) : on a le temps de se rattraper ;
+   · RATTRAPÉ (le nez à moins de ~31° de la route) : la caisse repart en power-slide (slipB), burn-out d'autant plus fort que c'était vite fait,
+     un peu de flow et de nitro ; perdu (rien touché pendant GV.tAide s) : le nez revient doucement tout seul — on ne reste jamais coincé ;
+   · le panneau MAUVAIS SENS grandit : le texte, deux chevrons qui montrent de quel côté braquer et la jauge du demi-tour ; le bord de l'écran
+     givre ; les pneus crachent des cristaux.
+   La règle de la pose ratée ne bouge pas (flow à zéro). `?verglas=0` = le demi-tour automatique du 17/10. */
+const GV={on:!/[?&]verglas=0\b/.test(location.search),w:2.5,wF:1.7,tAide:1.4,wAide:0,pousse:.42,kLong:.8,kSide:1.9,kSideF:1.05,bord:6,kBord:2.0,sortie:.6,tMax:14,cam:.6,lat0:.5};
+function dmtGlace(dt,frein){const D=DMT;D.t+=dt;const d=Math.min(dt,1/30),mx=D.mx;
+  {const ry=(routeLacet||0)*dt,c=Math.cos(ry),s9=Math.sin(ry),vt=D.vt*c+D.vb2*s9;D.vb2=-D.vt*s9+D.vb2*c;D.vt=vt;D.h-=ry;} /* la route tourne sous la caisse, le cap et l'élan restent dans le monde */
+  const vit=Math.hypot(D.vt,D.vb2),lent=vit<mx*.12;
+  if(Math.abs(steer)>.2)D.tm=0;else D.tm+=dt; /* le temps sans toucher au pouce : passé GV.tAide, le nez revient seul */
+  let wT=steer*GV.w*(frein?GV.wF:1);
+  if(GV.wAide>0&&(D.tm>GV.tAide||lent||D.t>GV.tMax-1)){const k=lent?1:Math.min(1,Math.max(D.tm-GV.tAide,D.t-GV.tMax+1)/.8);wT+=-Math.sign(D.h)*GV.wAide*k*Math.min(1,Math.abs(D.h)/.5);}
+  D.yV+=(wT-D.yV)*(1-Math.exp(-d/.09));D.h+=D.yV*dt;D.h=Math.atan2(Math.sin(D.h),Math.cos(D.h));
+  {const hx=Math.cos(D.h),hy=Math.sin(D.h);let u=D.vt*hx+D.vb2*hy,w=-D.vt*hy+D.vb2*hx; /* l'élan dans le repère de la caisse : u le long du nez, w de côté */
+   u+=GV.pousse*mx*dt*Math.max(0,hx); /* le moteur ne mord que nez vers l avant : à l envers, les roues patinent sur la glace */
+   u*=Math.exp(-dt*GV.kLong);w*=Math.exp(-dt*(frein?GV.kSideF:GV.kSide));D.wl=w;
+   D.vt=u*hx-w*hy;D.vb2=u*hy+w*hx;}
+  if(Math.abs(lat)>ROAD_HALF-GV.bord&&D.vb2*Math.sign(lat)>0)D.vb2*=Math.exp(-dt*GV.kBord); /* la croûte de givre du bord */
+  if(s<6&&D.vt<0)D.vt=0;
+  lat+=D.vb2*dt*SPD*vitMult();vA=D.vt;
+  psi=0;yawR=0;slipB=0;slipV=0;driftEnCours=false;driftC=0;driftLv=0;idleT=0;
+  glisse9=Math.max(glisse9,THREE.MathUtils.clamp(.35+Math.abs(D.wl)/(mx*.25),0,1));
+  D.y=D.h*D.sb;D.cam+=(D.y*GV.cam-D.cam)*(1-Math.exp(-d/.2));
+  D.prog=1-Math.min(1,Math.max(0,(Math.abs(D.h)-GV.sortie)/Math.max(.3,D.h0-GV.sortie)));
+  {const net=D.t<=GV.tMax&&D.tm<=GV.tAide;if(Math.abs(D.h)<(net?GV.sortie:.12)||D.t>GV.tMax)dmtRattrape(net);} /* rattrapé au pouce : on repart en glisse ; ramené par l'aide : on repart droit */
+}
+function dmtRattrape(net){const D=DMT,mx=D.mx,q=net?THREE.MathUtils.clamp(1-(D.t-.5)/2.3,0,1):0;
+  const hx=Math.cos(D.h),hy=Math.sin(D.h),u=D.vt*hx+D.vb2*hy;
+  vA=Math.max(u,mx*(.3+.4*q));psi=THREE.MathUtils.clamp(D.h,-1.4,1.4);slipB=THREE.MathUtils.clamp(D.h*.6,-.45,.45);slipV=0;driftYaw=0;driftT=1;
+  D.act=false;D.gl=false;D.y=0;D.yV=0;D.burn=true;D.ok++;dmtGivre(false);
+  try{if(SONV2)sfx('turbo.mini',{vol:q>.5?-2:-5});}catch(e){}hap(q>.5?[10,24,40]:[10,24]);fovPunch=Math.max(fovPunch,4+4*q);
+  if(typeof sensCoup==='function')try{sensCoup(0,1.2+q,-.8);}catch(e){}
+  if(net){flowAdd(4+8*q,'style');nitroGain(.08+.22*q,'rattrape');sparkBurst(sparkGold,carGroup.position,6+Math.round(10*q),8);}
+  dmtSigne(net?'ok':false);
+}
 function dmtVmax(){return CARS[0].maxKmh/3.6*lateMul()*(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push;} // le maxSp de la boucle (local à loop)
 function dmtAng(f,n,g){DMT.c.crossVectors(n,f);return Math.atan2(g.dot(DMT.c),g.dot(f));} // l'angle, autour de n, qui mène f sur g (même sens que setFromAxisAngle(n,·))
 function dmtArme(bI,sd){ // (tryLand) posée à contresens sur la dalle bI, face sd — lat, psi, vA viennent d'être posés
@@ -41,12 +85,20 @@ function dmtArme(bI,sd){ // (tryLand) posée à contresens sur la dalle bI, face
   const vT=fallVel.dot(T[bI])/vm,vB=fallVel.dot(B[bI])*sd/vm; // (vA : la vitesse d'avant le multiplicateur, comme la pose)
   D.vb=THREE.MathUtils.clamp(-vT,0,mx*.9);D.vl=THREE.MathUtils.clamp(vB*.35,-mx*.15,mx*.15);D.vo=THREE.MathUtils.clamp(Math.hypot(vT,vB)*.5,mx*.4,mx*.8);
   D.y=y0;D.y0=y0;D.yV=0;D.cam=yc;D.camP=yc;D.dc=0;D.sg=y0>=0?1:-1;D.t=0;D.burn=false;D.act=true;D.n++;
-  psi=0;yawR=0;slipB=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;vA=-D.vb;vL=0;driftT=1;
+  psi=0;yawR=0;slipB=0;slipV=0;driftYaw=0;driftEnCours=false;driftC=0;driftLv=0;vA=-D.vb;vL=0;driftT=1;
+  D.gl=GV.on;
+  if(D.gl){ /* (LE VERGLAS) le cap d'arrivée en convention psi (vers +lat), l'élan tel qu'il arrive (la pose mange la moitié de la dérive, comme une pose ordinaire) */
+    D.sb=Math.sign(D.c.crossVectors(n,f).dot(B[bI])*sd)||1;D.h=y0*D.sb;D.h0=Math.max(GV.sortie+.3,Math.abs(D.h));D.mx=mx;D.tm=0;D.wl=0;D.prog=0;
+    D.vt=THREE.MathUtils.clamp(vT,-mx*1.3,mx*1.3);D.vb2=THREE.MathUtils.clamp(vB*GV.lat0,-mx,mx);vA=D.vt;
+    graceT=Math.max(graceT,.25); /* juste le temps de poser les roues : ensuite le bord est un vrai bord */
+    try{if(SONV2)sfx('fig.slide');}catch(e){}hap([18,30,18]);
+    dmtSigne(true);return;}
   graceT=Math.max(graceT,D.D+.3); // ni le bord, ni le dessous de la dalle, ni « ROULE OU CRÈVE » pendant la manœuvre
   try{if(SONV2)sfx('fig.slide');}catch(e){}
   dmtSigne(true);
 }
-function dmtConduite(dt){const D=DMT; // (boucle de conduite, après le lacet du pouce) la manœuvre REMPLACE la conduite du joueur
+function dmtConduite(dt,frein){const D=DMT; // (boucle de conduite, après le lacet du pouce) la manœuvre REMPLACE la conduite du joueur
+  if(D.gl)return dmtGlace(dt,frein); /* (LE VERGLAS) le pouce garde le volant */
   D.t+=dt;const d=Math.min(dt,1/30);
   {const r=Math.min(1,D.t/D.TR),e=r*r*r*(r*(r*6-15)+10);D.y=D.y0*(1-e);} // le PIVOT : smootherstep sur 1,1 s (pointe ~5 rad/s pour 180°), il part et se pose en douceur, sans dépasser
   D.cam+=(D.y-D.cam)*(1-Math.exp(-d/.16)); // la caméra suit le cap de la caisse avec un temps de retard (on voit son flanc pendant le pivot) : elle ORBITE
@@ -57,14 +109,21 @@ function dmtConduite(dt){const D=DMT; // (boucle de conduite, après le lacet du
   if(vA<0&&s<6)vA=0;
   D.vl*=Math.exp(-dt*3.5);lat+=D.vl*dt*SPD; // un reste de dérive latérale, qui meurt vite
   const lim=ROAD_HALF-(CARS[level].w||2)*.5-.35;if(Math.abs(lat)>lim)lat+=(Math.sign(lat)*lim-lat)*(1-Math.exp(-dt*7)); // ramenée sur le bitume
-  psi=0;yawR=0;slipB=0;driftEnCours=false;driftC=0;driftLv=0;
+  psi=0;yawR=0;slipB=0;slipV=0;driftEnCours=false;driftC=0;driftLv=0;
   glisse9=Math.max(glisse9,x<1?.95:.8*(1-.7*u)); // la gomme crie et fume (son du crissement, fumée et traces de la boucle)
   graceT=Math.max(graceT,.25);
   if(D.t>=D.D){D.act=false;driftYaw=THREE.MathUtils.clamp(D.y,-.35,.35);D.y=0;D.yV=0;dmtSigne(false);} // le reste du lacet passe au power-slide, qui le rend en douceur
 }
 function dmtPose(F,dt){const D=DMT; // (conduite, après la pose de la caisse sur la route) le lacet de la manœuvre, la fumée, le panneau
   if(D.y){qTmp.setFromAxisAngle(F.n,D.y);carGroup.quaternion.premultiply(qTmp);}
+  dmtGivre(D.act&&D.gl);
   if(!D.act)return;
+  if(D.gl){const sp=CARS[level]||CARS[0],rp=emiN('dmt',dt*(.6+Math.min(1,Math.abs(D.wl)/(D.mx*.2)))); /* (LE VERGLAS) les pneus crachent du givre : cristaux et poudre blanche */
+    for(let r=0;r<rp;r++){const sd=r&1?1:-1,av=r&2;
+      D.v.set(sd*sp.w*.48,.15,(av?.36:-.36)*sp.l).applyQuaternion(carGroup.quaternion).add(carGroup.position);
+      sparkBurst(sparkBlue,D.v,1,3.5);
+      if(r&1)spawnP(dust,D.v.x,D.v.y,D.v.z,(Math.random()-.5)*2.4,.5+Math.random(),(Math.random()-.5)*2.4,.25+Math.random()*.2);}
+    dmtSigneSuit();return;}
   const sp=CARS[level]||CARS[0],bo=D.burn,VC=PT_U.uVc&&PT_U.uVc.value,rp=emiN('dmt',dt*(bo?2:.8));
   D.w.set(0,0,-1).applyQuaternion(carGroup.quaternion); // l'arrière de la caisse (le patinage crache par là)
   for(let r=0;r<rp;r++){const sd=r&1?1:-1,av=!bo&&(r&2);
@@ -77,7 +136,7 @@ function dmtCamDir(fw,n){const D=DMT; // (caméra de conduite) la direction de l
   if(!D.cam)return fw;
   return D.fw.copy(fw).applyAxisAngle(n,D.cam);}
 function dmtCamTick(dt){const D=DMT;if(!D.act&&D.cam){D.cam*=Math.exp(-dt/.14);if(Math.abs(D.cam)<.003)D.cam=0;}D.dc=D.cam-D.camP;D.camP=D.cam;} // dc : de combien la caméra a tourné depuis l'image d'avant
-function dmtCoupe(){if(typeof DMT==='undefined'||!DMT)return;DMT.act=false;DMT.y=0;DMT.yV=0;DMT.cam=0;DMT.camP=0;DMT.dc=0;dmtSigne(false,true);} // vol, explosion, portail, replacement, nouvelle partie
+function dmtCoupe(){if(typeof DMT==='undefined'||!DMT)return;DMT.act=false;DMT.gl=false;dmtGivre(false);DMT.y=0;DMT.yV=0;DMT.cam=0;DMT.camP=0;DMT.dc=0;dmtSigne(false,true);} // vol, explosion, portail, replacement, nouvelle partie
 /* LE « MAUVAIS SENS » : le texte seul, petit (8 px, police pixel), rouge cerné d'encre comme les textes du HUD, au-dessus du toit ; il suit la
    caisse à l'écran, apparaît en fondu et s'efface quand elle repart. (1er essai : un panneau routier rouge à double liseré et sa flèche —
    « plus petit et discret », Léo.) */
@@ -92,11 +151,34 @@ function dmtSigne(on,net){const D=DMT;
       '@keyframes dmtVient{0%{opacity:0;translate:0 4px}100%{opacity:.92;translate:0 0}}'+
       '@keyframes dmtPart{0%{opacity:.92}100%{opacity:0}}'+
       'html[data-reduced-motion="1"] #dmtSigne.on,html[data-reduced-motion="1"] #dmtSigne.sort{animation:none}html[data-reduced-motion="1"] #dmtSigne.on{opacity:.92}'+
-      'body.ebOn #dmtSigne,body.ftOn #dmtSigne{visibility:hidden!important}';
+      'body.ebOn #dmtSigne,body.ftOn #dmtSigne{visibility:hidden!important}'+
+      /* (LE VERGLAS) le panneau grandit : le texte givré, les chevrons du côté où braquer, la jauge du demi-tour ; RATTRAPÉ en or */
+      '#dmtSigne.gl{font-size:13px;letter-spacing:2px;color:#ff4d6a;text-align:center;text-shadow:1px 0 0 #1c0430,-1px 0 0 #1c0430,0 1px 0 #1c0430,0 -1px 0 #1c0430,1px 1px 0 #1c0430,-1px 1px 0 #1c0430,0 2px 0 #1c0430,0 0 7px rgba(150,230,255,.75)}'+
+      '#dmtSigne .l{display:flex;align-items:center;justify-content:center;gap:7px}'+
+      '#dmtSigne .cs{display:flex;gap:2px;opacity:0}#dmtSigne .ch{display:block;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;filter:drop-shadow(0 1px 0 #1c0430) drop-shadow(0 0 4px rgba(150,230,255,.9))}'+
+      '#dmtSigne .ch.g{border-right:9px solid #bff4ff}#dmtSigne .ch.d{border-left:9px solid #bff4ff}#dmtSigne .cs .ch:first-child{opacity:.55}#dmtSigne .cs.d .ch:first-child{opacity:1}#dmtSigne .cs.d .ch:last-child{opacity:.55}'+
+      '#dmtSigne.vg .cs.g{opacity:1;animation:dmtChG .5s ease-in-out infinite}#dmtSigne.vd .cs.d{opacity:1;animation:dmtChD .5s ease-in-out infinite}'+
+      '@keyframes dmtChG{0%,100%{translate:0 0}50%{translate:-4px 0}}@keyframes dmtChD{0%,100%{translate:0 0}50%{translate:4px 0}}'+
+      '#dmtSigne .j{width:74px;height:5px;margin:5px auto 0;background:rgba(28,4,48,.55);box-shadow:0 0 0 1px #1c0430,0 0 6px rgba(150,230,255,.5)}'+
+      '#dmtSigne .j i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7fe3ff,#f2fdff)}'+
+      '#dmtSigne.ok{color:#ffd75e;text-shadow:1px 0 0 #1c0430,-1px 0 0 #1c0430,0 1px 0 #1c0430,0 -1px 0 #1c0430,0 2px 0 #1c0430,0 0 8px rgba(255,215,94,.8)}'+
+      '#dmtSigne.ok .cs,#dmtSigne.ok .j{visibility:hidden}'+
+      '#dmtSigne.ok.on{animation:dmtOk .95s ease-out both}'+
+      '@keyframes dmtOk{0%{opacity:0;scale:1.6}18%{opacity:1;scale:1}70%{opacity:1;scale:1}100%{opacity:0;scale:1;translate:0 -8px}}'+
+      '#dmtGivre{position:fixed;inset:0;z-index:39;pointer-events:none;opacity:0;transition:opacity .35s ease-out;'+
+      'background:radial-gradient(ellipse 80% 72% at 50% 52%,rgba(0,0,0,0) 58%,rgba(150,225,255,.14) 80%,rgba(225,250,255,.42) 100%)}'+
+      '#dmtGivre.on{opacity:1;transition-duration:.15s}'+
+      'body.ebOn #dmtGivre,body.ftOn #dmtGivre{visibility:hidden!important}';
     document.head.appendChild(st);
-    const e=D.el=document.createElement('div');e.id='dmtSigne';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
+    const e=D.el=document.createElement('div');e.id='dmtSigne';e.setAttribute('aria-hidden','true');document.body.appendChild(e);
+    const g=D.givre=document.createElement('div');g.id='dmtGivre';g.setAttribute('aria-hidden','true');document.body.appendChild(g);}
   const e=D.el;
-  if(on){e.textContent=TR('MAUVAIS SENS');D.eW=e.textContent.length*9+4;D.eTop='';D.eLeft='';
+  if(on==='ok'){e.className='gl ok';e.innerHTML='<div class="l"><span class="t"></span></div>';e.querySelector('.t').textContent=TR('RATTRAPÉ !');
+    D.eW=150;void e.offsetWidth;e.classList.add('on');D.eTop='';D.eLeft='';dmtSigneSuit();clearTimeout(D.okT);D.okT=setTimeout(function(){if(e.classList.contains('ok'))e.classList.remove('on');},950);return;}
+  if(on&&D.gl){clearTimeout(D.okT);e.className='gl';e.innerHTML='<div class="l"><span class="cs g"><i class="ch g"></i><i class="ch g"></i></span><span class="t"></span><span class="cs d"><i class="ch d"></i><i class="ch d"></i></span></div><div class="j"><i></i></div>';
+    e.querySelector('.t').textContent=TR('MAUVAIS SENS');D.eJ=e.querySelector('.j i');D.eV='';D.eP=-1;D.eW=170;D.eTop='';D.eLeft='';
+    void e.offsetWidth;e.classList.add('on');dmtSigneSuit();return;}
+  if(on){e.className='';e.textContent=TR('MAUVAIS SENS');D.eW=e.textContent.length*9+4;D.eTop='';D.eLeft='';
     e.classList.remove('sort');e.classList.remove('on');void e.offsetWidth;e.classList.add('on');dmtSigneSuit();} // (une fois par demi-tour : la relance synchrone est sans conséquence)
   else if(net){e.classList.remove('on');e.classList.remove('sort');}
   else if(e.classList.contains('on')){e.classList.remove('on');e.classList.add('sort');}
@@ -104,11 +186,15 @@ function dmtSigne(on,net){const D=DMT;
 function dmtSigneSuit(){const D=DMT,e=D.el;if(!e||!e.classList.contains('on'))return;
   POP_V9.copy(carGroup.position).addScaledVector(camera.up,2.2).project(camera);
   const y=THREE.MathUtils.clamp((-POP_V9.y*.5+.5)*VP.h-8,laneY()+40,VP.h*.7),hw=D.eW*.5+6,x=THREE.MathUtils.clamp((POP_V9.x*.5+.5)*VP.w,hw,VP.w-hw);
-  const t9=y.toFixed(0)+'px',l9=x.toFixed(0)+'px';if(t9!==D.eTop){D.eTop=t9;e.style.top=t9;}if(l9!==D.eLeft){D.eLeft=l9;e.style.left=l9;}}
-Object.assign(I18N,{'MAUVAIS SENS':'WRONG WAY'});
+  const t9=y.toFixed(0)+'px',l9=x.toFixed(0)+'px';if(t9!==D.eTop){D.eTop=t9;e.style.top=t9;}if(l9!==D.eLeft){D.eLeft=l9;e.style.left=l9;}
+  if(D.gl&&D.eJ){const v9=-Math.sign(D.h)*GV.dr>0?'vd':'vg';if(v9!==D.eV){if(D.eV)e.classList.remove(D.eV);e.classList.add(v9);D.eV=v9;} /* le côté où BRAQUER : celui qui ramène le nez vers la route, par le plus court */
+    const p9=Math.round(D.prog*20);if(p9!==D.eP){D.eP=p9;D.eJ.style.width=(p9*5)+'%';}}}
+function dmtGivre(on){const g=DMT.givre;if(!g)return;const o=on?1:0;if(o!==DMT.gO){DMT.gO=o;g.classList.toggle('on',!!o);}} /* le bord de l'écran givre tant que la caisse est sur le verglas */
+GV.dr=-1; /* (mesuré au banc) le pouce à DROITE donne steer < 0 : il fait DESCENDRE DMT.h */
+Object.assign(I18N,{'MAUVAIS SENS':'WRONG WAY','RATTRAPÉ !':'SAVED!'});
 window.dbgDemiTour=function(ang,v,la,h){
-  if(ang==null)return {actif:DMT.act,on:DMT.on,t:+DMT.t.toFixed(2),lacetDeg:Math.round(DMT.y*57.3),cameraDeg:Math.round(DMT.cam*57.3),vA:+vA.toFixed(1),lat:+lat.toFixed(2),
-    glisse:+DMT.vb.toFixed(1),relance:+DMT.vo.toFixed(1),n:DMT.n,mode:mode,panneau:!!(DMT.el&&DMT.el.classList.contains('on'))};
+  if(ang==null)return {actif:DMT.act,on:DMT.on,verglas:DMT.gl,t:+DMT.t.toFixed(2),lacetDeg:Math.round(DMT.y*57.3),capDeg:Math.round(DMT.h*57.3),cameraDeg:Math.round(DMT.cam*57.3),vA:+vA.toFixed(1),lat:+lat.toFixed(2),
+    vt:+DMT.vt.toFixed(1),vb:+DMT.vb2.toFixed(1),cote:+DMT.wl.toFixed(1),jauge:+DMT.prog.toFixed(2),rattrapes:DMT.ok,pouce:+steer.toFixed(2),go:gameOver,glisse:+DMT.vb.toFixed(1),relance:+DMT.vo.toFixed(1),n:DMT.n,mode:mode,panneau:!!(DMT.el&&DMT.el.classList.contains('on'))};
   if(!started||gameOver)return 'pas de course en cours';if(mode!=='drive')return 'déjà en vol : '+mode;
   const a=(+ang||180)/57.3,V=v==null?70:+v;DMT.force=true;setTimeout(function(){DMT.force=false;},6000);
   return window.dbgDauphin(h==null?12:+h,V*Math.cos(a),V*Math.sin(a),la||0);};
@@ -242,7 +328,7 @@ function tryLand(dt){
   side=sideL;{const lm9=ROAD_HALF-.02+(sideL>0?bkCgBord():0);lat=THREE.MathUtils.clamp(latX9,-lm9,lm9)*sideL;}
   // RÉCEPTION EN GLISSE : la caisse se pose de travers et rattrape — petit drift au lieu d'un psi=0 sec
   {const vTan=fallVel.dot(T[bestI]),vLat=fallVel.dot(B[bestI])*sideL;
-   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*lacetVol(fallVel.length());slipB=0;driftYaw=0;veqPose(bestI,sideL); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
+   psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*lacetVol(fallVel.length());slipB=0;slipV=0;driftYaw=0;veqPose(bestI,sideL); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */ // (2026-09-25) le cap de la pose = la direction EXACTE du vol — plus de redressement (×0,6) : c'était une aide
    driftT=Math.max(driftT,Math.min(1,.45+Math.abs(psi)));} // …et la fumée/le crissement suivent tout seuls
   {const vm9=vitMult(),vT9=fallVel.dot(T[bestI])/vm9,vB9=fallVel.dot(B[bestI])/vm9;vA=vT9>0?Math.hypot(vT9,vB9):vT9;vL=vB9*.4*sideL;} /* (2026-10-15, Sacha : « quand on arrive sur la route en volant avec un certain angle on est ralenti d'un coup, on ne peut pas la couper ») LA COUPE GARDE SON ÉLAN : au sol vA est la vitesse le long du CAP (on avance de vA·cos psi, on dérive de vA·sin psi), et le cap posé juste au-dessus EST la direction du vol — vA = toute la vitesse à plat, plus sa seule part dans l'axe : le cosinus de l'angle était compté DEUX fois (45° → la moitié de l'avance envolée, 60° → les trois quarts). À contresens, inchangé. */ // (2026-09-30) le vol porte la vitesse RÉELLE (× vitMult) : à la pose, on la ramène au vA d'avant le multiplicateur — sans ça, le boost comptait DEUX fois
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1; // PARC : on repart dans le sens d'atterrissage (les deux directions roulent) ; COURSE : toujours vers l'avant

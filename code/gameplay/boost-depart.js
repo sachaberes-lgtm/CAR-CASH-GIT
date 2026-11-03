@@ -121,6 +121,11 @@ let startBoostT=0;
 // `fireLaunchBoost()` — LE GESTE DU DÉPART, un seul écrivain (2026-09-05) : armé depuis `resetGame`
 // (rejeu direct) ET depuis la fin du LÂCHER du garage (`GAR.go`, prembattre le tout premier départ)
 // pour que le geste soit identique dans les deux cas, sans dupliquer le minuteur du logo.
+/* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») RELANCER UNE ANIMATION SANS MISE EN PAGE INUTILE. `void el.offsetWidth`
+   force le navigateur à recalculer TOUTE la page sur-le-champ : MESURÉ au JOUER (banc iPhone ×4), 238 ms dans l'image du départ, la page venant de changer
+   d'écran (l'atelier se ferme, le HUD arrive). Il ne sert que si la classe est DÉJÀ là (l'animation tourne : il faut la retirer, la faire constater, la
+   remettre) ; au départ elle est partie depuis longtemps (retirée 1,9 s après) : on l'ajoute, l'animation part à la même image, sans lecture forcée. */
+function relanceAnim(el,c){if(el.classList.contains(c)){el.classList.remove(c);void el.offsetWidth;}el.classList.add(c);}
 function fireLaunchBoost(){
   // (2026-09-24) la nitro OFFERTE avait été désarmée à la fusion (« la caisse qui s'arrache toute seule au gaz auto »)…
   // (2026-09-29) …elle REVIENT, comme sur la branche de Léo : c'est la suite du RIDEAU DE FLAMMES du garage.
@@ -129,8 +134,8 @@ function fireLaunchBoost(){
   // classe `.on` et le MÊME minuteur — un flash sans le mot, ou le mot sans le flash, ferait deux
   // demi-effets au lieu d'un seul coup net.
   const ll9=$('launchLogo'),lg9=$('launchGlow');
-  if(ll9){ll9.classList.remove('on');void ll9.offsetWidth;ll9.classList.add('on');try{sfx('depart.logo',{vol:-4});}catch(e){}} /* (console de son) le logo CLAQUE : sub + accord d'or — (2026-10-16) −4 dB : il remettait un coup de sub juste après le piqué */
-  if(lg9){lg9.classList.remove('on');void lg9.offsetWidth;lg9.classList.add('on');}
+  if(ll9){relanceAnim(ll9,'on');try{sfx('depart.logo',{vol:-4});}catch(e){}} /* (console de son) le logo CLAQUE : sub + accord d'or — (2026-10-16) −4 dB : il remettait un coup de sub juste après le piqué */
+  if(lg9)relanceAnim(lg9,'on');
   clearTimeout(fireLaunchBoost._t);fireLaunchBoost._t=setTimeout(function(){
     if(ll9)ll9.classList.remove('on');if(lg9)lg9.classList.remove('on');
     if(!started||gameOver)return; /* (24/10, relecture) la course est déjà finie ou quittée (QUITTER, mort dans les 1,9 s) : la bannière « NIVEAU n » ne vient plus après coup sur l'écran de fin ou le garage */

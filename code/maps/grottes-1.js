@@ -318,7 +318,7 @@ function grtLibre(R,x,z,y0,y1,r){const lim=ROAD_HALF+r+10,big=lim+50+r,bx=Math.f
    la DENSITÉ = la marge (1 + nz·bruit − r̂) × rh × K, gardée au plus grand de tous les échantillons (l'union des creux). Le NOYAU
    (ROAD_HALF + 10 m de large, 30 m au-dessus, THICK + 9 m au-dessous) est vide quoi qu'il arrive : la règle d'or. Le bruit d'une case est
    calculé une fois (cache Int8 : ~10 échantillons la revisitent) et seulement dans la COQUILLE (près de la paroi). */
-function grtCreuse1(V,R,q,O){ /* O : un creusement à part, le BASSIN vertical de la lave {ax,ay,az,rh,up,dn} — sans lui, l'ellipsoïde de l'échantillon, de révolution autour de la NORMALE de la dalle */
+function* grtCreuse1(V,R,q,O){ /* (2026-10-31, passe perf mobile) un générateur : un rendez-vous JF.lim par tranche de cases (un creusement d'un bloc : 15-37 ms ×4 au pré-bâti) */ /* O : un creusement à part, le BASSIN vertical de la lave {ax,ay,az,rh,up,dn} — sans lui, l'ellipsoïde de l'échantillon, de révolution autour de la NORMALE de la dalle */
   const B=V.B,inv=1/B,K=GRT.K,px=R.X[q],py=R.Y[q],pz=R.Z[q],cax=R.NNX[q],cay=R.NNY[q],caz=R.NNZ[q]; // (cax… : la normale de la dalle, pour la carotte de la route)
   const ax=O?O.ax:cax,ay=O?O.ay:cay,az=O?O.az:caz,lat=O?0:R.LAT[q],cx0=px+R.BX[q]*lat,cy0=py+R.BY[q]*lat,cz0=pz+R.BZ[q]*lat;
   const rh=O?O.rh:R.RH[q],up=O?O.up:R.UP[q],dn=O?O.dn:R.DN[q],ex=O?2:R.EX[q],nz=R.NZ[q];
@@ -335,7 +335,7 @@ function grtCreuse1(V,R,q,O){ /* O : un creusement à part, le BASSIN vertical d
     j0=Math.max(0,Math.floor((Math.min(cy0-hy,py-hc)-V.oy)*inv)),j1=Math.min(V.NY-1,Math.floor((Math.max(cy0+hy,py+hc)-V.oy)*inv)),
     k0=Math.max(0,Math.floor((Math.min(cz0-hz,pz-hc)-V.oz)*inv)),k1=Math.min(V.NZ-1,Math.floor((Math.max(cz0+hz,pz+hc)-V.oz)*inv));
   let cc=-1,A=null,DN=null,NZ=null;
-  for(let k=k0;k<=k1;k++){const cz=V.oz+(k+.5)*B,dz=cz-cz0,ez=cz-pz;
+  for(let k=k0;k<=k1;k++){if(k>k0&&performance.now()>JF.lim)yield;const cz=V.oz+(k+.5)*B,dz=cz-cz0,ez=cz-pz;
     for(let j=j0;j<=j1;j++){const cy=V.oy+(j+.5)*B,dy=cy-cy0,ey=cy-py;
       for(let i=i0;i<=i1;i++){const cx=V.ox+(i+.5)*B,dx=cx-cx0,ex2=cx-px;
         const dN=dx*ax+dy*ay+dz*az,d2=dx*dx+dy*dy+dz*dz,dh2=Math.max(0,d2-dN*dN);
@@ -431,7 +431,7 @@ function* grtMailleNetsG(V,c,LL){
   const L=function(i,j,k){return loc[(i+2)+20*((j+2)+20*(k+2))];};
   // 2 · les sommets (cubes −1 … 15)
   vid.fill(-1);let nv=0;const MAXV=39990,cv=new Float32Array(8);
-  for(let cc=-1;cc<16&&nv<MAXV;cc++){if(performance.now()>JF.lim)yield;for(let b=-1;b<16&&nv<MAXV;b++)for(let a=-1;a<16;a++){
+  for(let cc=-1;cc<16&&nv<MAXV;cc++){for(let b=-1;b<16&&nv<MAXV;b++){if(performance.now()>JF.lim)yield; /* (2026-11-01) le rendez-vous à chaque rangée (une couche entière : jusqu'à 100 ms ×4 d'un bloc) */for(let a=-1;a<16;a++){
     let m=0;for(let q=0;q<8;q++){const v=L(a+(q&1),b+((q>>1)&1),cc+((q>>2)&1));cv[q]=v;if(v>0)m|=1<<q;}
     if(m===0||m===255)continue;
     let sx=0,sy=0,sz=0,ne=0;
@@ -448,7 +448,7 @@ function* grtMailleNetsG(V,c,LL){
     const p3=nv*3,p4=nv*4;T.P[p3]=lx;T.P[p3+1]=ly;T.P[p3+2]=lz;
     T.F[p4]=grtMatieres(wx,wy,wz,sal,lv);T.F[p4+1]=sal;T.F[p4+2]=Math.round(Math.max(.3,Math.min(1,1.28-roc/64))*255);T.F[p4+3]=0;
     grtLum(wx+gx/gl*1.5,wy+gy/gl*1.5,wz+gz/gl*1.5,sal,LL,lum);T.Lt[p4]=lum[0]*255;T.Lt[p4+1]=lum[1]*127.5;T.Lt[p4+2]=lum[2]*127.5;T.Lt[p4+3]=lum[3]*127.5;
-    vid[(a+1)+17*((b+1)+17*(cc+1))]=nv++;}}
+    vid[(a+1)+17*((b+1)+17*(cc+1))]=nv++;}}}
   // 3 · les quads : chaque arête (points 0 … 15 du tronçon) qui traverse la paroi — tournés vers l'air
   let ni=0;const V9=function(a,b,cc){return vid[(a+1)+17*((b+1)+17*(cc+1))];};
   for(let cc=0;cc<16;cc++){if(performance.now()>JF.lim)yield;for(let b=0;b<16;b++)for(let a=0;a<16;a++){const v0=L(a,b,cc),s0=v0>0;

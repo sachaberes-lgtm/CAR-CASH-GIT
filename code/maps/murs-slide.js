@@ -55,7 +55,7 @@ function murCote(dt,cause){ // LES FAÇADES SONT DES MURS : un CHOC par contact 
      prenait jusqu'à 30 % de la vitesse en UNE image — 22° de cap d'un coup sur un choc à 17°, partout où la route a des murs (couloirs du
      canyon, bourrelets du glacier). Même renvoi, même perte : le cap y va en ~50 ms (MURC.psiR/psiK, appliqué par la conduite juste
      après le lacet), la vitesse en ~0,2 s (vFrein). Un renvoi en cours n'est pas recalculé par les images de contact qui suivent. */
-  if(!(MURC.psiK>0)){MURC.psiR=-psi*.3;MURC.psiK=1;}yawR=0;slipB=0;vL=0;
+  if(!(MURC.psiK>0)){MURC.psiR=-psi*.3;MURC.psiK=1;}yawR=0;slipB=0;slipV=0;vL=0;
   const choc=now-(MURC.chocT||0)>220;if(choc)MURC.chocT=now;       // (mesuré : perdre à CHAQUE image faisait tomber de 151 à 20 km/h en 3 s)
   if(choc)vFrein(1-Math.min(.3,.03+a*.9));else vA*=1-.3*(dt||.016);
   if(now-MURC.murT>90){MURC.murT=now;try{DRIFT_V.set(out*CARS[level].w*.5,.25,.2);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1,6);noiseBurst(.1,.1+a*.3,2600);}catch(e){}

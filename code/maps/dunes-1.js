@@ -400,7 +400,7 @@ function buildDunes(seed,pre){
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='dunes'||!(NP>1)||!DUNES_OK)return;
   if(pre&&!av){const a=pre;
     if(a.cle===[seed,L,NP,lvPiste(),ROAD_HALF].join('|')){Object.assign(DN,a.chg);DN.t0=performance.now();cyBruits();dnTerrain();
-      if(a.R){DN.ms.avance='pret';dnMondePose(a.R);return;}
+      if(a.R){DN.ms.avance='pret';if(a.it)while(!dnMonuPas(a));dnMondePose(a.R,a.mon);return;} /* (2026-11-01) les monuments bâtis d'avance (dnMonuPas : d'un trait si le pré-bâti ne les a pas finis) */
       const W9=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null; // pas revenu : on le lui redemande, comme avant
       if(W9){const job=DN.job;DN.attente={job:job,S:a.S,opt:a.opt};try{W9.postMessage({job:job,S:a.S,opt:a.opt,nz:CY.nz});return;}catch(e){DN.attente=null;}}
       dnMondePose(dnMondeCalc(a.S,a.opt));return;}}
@@ -499,13 +499,42 @@ function dnPlancher(x,z,r){let lo=1e9;for(const f of [0,.5,1])for(let a=0;a<(f?1
 function dnPlancherPyr(P){const ca=Math.cos(P.a),sa=Math.sin(P.a),hw=P.hw;let lo=1e9;
   for(const u of [-1,-.5,0,.5,1])for(const w of [-1,-.5,0,.5,1]){const g=dnHauteur(P.x+u*hw*ca+w*hw*sa,P.z-u*hw*sa+w*hw*ca);if(g<lo)lo=g;}
   return lo;}
+/* ===== LES MONUMENTS DES DUNES D'AVANCE (2026-11-01, Léo : « règle ce qui reste ») =====
+   MESURÉ (banc iPhone ×4) : au portail des dunes, dnMondePose posait tous les monuments d'un bloc (dnMonuments : les modèles, les scènes, les ruines
+   ensablées, le décor cuit) — 170 à 730 ms selon le décor tiré, dans l'image du portail. Dès que le travailleur a rendu le monde d'avance (W.dunes.R),
+   le pré-bâti bâtit les monuments dans un ÉTAT FANTÔME des dunes (a.G, échangé avec DN le temps d'un pas : prebObj), en pas (dnMonumentsTiresG) :
+   le groupe et les champs écrits (a.mon) attendent ; au passage, dnMondePose ne fait que les poser (dnMonuPose). Pendant l'attente du travailleur,
+   les 49 modèles (dnMod) se fabriquent un par un. Même tirage, même ordre : le même décor. `?dnmon=0` = avant (posés au passage). */
+const DN_AV_MON=!/[?&]dnmon=0\b/.test(location.search);
+function* dnMonuAvanceG(a){const R=a.R; /* (DN est ici l'état fantôme) ce que dnMondePose pose avant les monuments, puis les monuments */
+  DN.Z=R.Z;DN.F=R.F;DN.O=R.O;DN.ob=R.ob;DN.pyr=R.pyr||null;DN.pyrs=R.pyrs;DN.mo=R.mo;DN.yMin=R.yMin;DN.yMax=R.yMax;
+  dnAncreDecors();R.ancre=true;DN.on=true;DN.grp=new THREE.Group();DN.tor=[];DN.torIm=null;DN.decoN=null;
+  const base=Object.assign({},DN);
+  yield* dnMonumentsTiresG(DN.job);
+  const chg={};for(const k of Object.keys(DN))if(k!=='grp'&&DN[k]!==base[k])chg[k]=DN[k];
+  a.mon={grp:DN.grp,chg:chg};}
+function dnMonuPas(a){ /* un pas des monuments d'avance — vrai : fini (ou impossible : posés au passage, comme avant) */
+  if(!a.it){if(a.mon||a.ko)return true;const R=a.R,deco='deco' in a.chg?a.chg.deco:DN.deco;
+    if(!DN_AV_MON||!R||!deco||!DN.mat||!DN.grp){a.ko=true;return true;}
+    R.ob=R.ob||[];R.mo=R.mo||[];R.pyrs=R.pyrs||(R.pyr?[R.pyr]:[]); /* les MÊMES tableaux au passage (dnScenes ajoute ses monuments qui tuent à DN.mo) */
+    a.G=Object.assign({},DN,{on:false,lev:[],oa:null},a.chg); /* l'état des dunes au passage, juste avant leurs monuments (dnEteindre, puis les champs préparés) */
+    a.it=dnMonuAvanceG(a);}
+  prebObj(DN,a.G);let r;
+  try{r=a.it.next();}catch(e){console.warn('dunes : monuments d\'avance',e);r={done:true};a.mon=null;a.ko=true;}
+  finally{prebObj(DN,a.G);}
+  if(r.done){a.it=null;a.G=null;return true;}return false;}
+function dnMonuPose(A){ /* (dnMondePose, au passage) les monuments bâtis d'avance entrent dans le groupe des dunes */
+  if(DN.grp){for(const o of DN.grp.children.slice()){DN.grp.remove(o);if(o.userData.jeter&&o.geometry)o.geometry.dispose();}}
+  for(const o of A.grp.children.slice()){A.grp.remove(o);DN.grp.add(o);}
+  Object.assign(DN,A.chg);DN.grp.visible=true;DN.grp.updateMatrixWorld(true);}
+function dnMonuJette(a){if(!a||!a.mon)return;for(const o of a.mon.grp.children)if(o.userData.jeter&&o.geometry)o.geometry.dispose();a.mon=null;} /* (un pré-bâti annulé) */
 function dnAncreDecors(){if(!DN_ANCRE||!DN.Z||!DN.F)return;
   for(const b of DN.ob||[]){const lo=dnPlancher(b.x,b.z,b.r*1.42);if(b.y>lo-.6)b.y=Math.max(lo-.6,b.y-Math.max(6,b.h*.4));}
   for(const P of DN.pyrs||[]){const lo=dnPlancherPyr(P);if(P.y>lo-3)P.y=Math.max(lo-3,P.y-P.h*.25);}
   for(const m of DN.mo||[]){const lo=dnPlancher(m.x,m.z,m.r);if(m.y>lo-1)m.y=Math.max(lo-1,m.y-Math.max(6,m.h*.3));}}
-function dnMondePose(R){
+function dnMondePose(R,mon){
   if(!DN.mat||!(LVL.cur&&LVL.cur.piste==='dunes'))return;const t4=performance.now();
-  DN.Z=R.Z;DN.F=R.F;DN.O=R.O;DN.ob=R.ob||[];DN.pyr=R.pyr||null;DN.pyrs=R.pyrs||(DN.pyr?[DN.pyr]:[]);DN.mo=R.mo||[];DN.yMin=R.yMin;DN.yMax=R.yMax;Object.assign(DN.ms,R.ms);dnAncreDecors();
+  DN.Z=R.Z;DN.F=R.F;DN.O=R.O;DN.ob=R.ob||[];DN.pyr=R.pyr||null;DN.pyrs=R.pyrs||(DN.pyr?[DN.pyr]:[]);DN.mo=R.mo||[];DN.yMin=R.yMin;DN.yMax=R.yMax;Object.assign(DN.ms,R.ms);if(!R.ancre)dnAncreDecors(); /* (déjà fait au pré-bâti avec ses monuments : R.ancre) */
   const F=R.F,Z=R.Z,O=R.O;
   const dt=(d,w,h,fmt,typ,inf)=>{const t=new THREE.DataTexture(d,w,h,fmt,typ);if(inf)t.internalFormat=inf;t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.needsUpdate=true;return t;};
   for(const k of ['tC','tZ','tS'])if(DN[k])DN[k].dispose();
@@ -518,6 +547,6 @@ function dnMondePose(R){
   U.uW.value.fromArray(DN.vent);U.uLam.value=DN.lam;if(DN.fin)U.uFin.value.set(DN.fin.x,DN.fin.z,0,DN.sb?1:0);const oa=DN.oa;if(oa)U.uOA.value.set(oa.x,oa.z,oa.r,oa.y);else U.uOA.value.set(0,0,0,0);
   if(DN.sunAz!=null&&DN.pyrs&&DN.pyrs[2]&&DN.S){const P=DN.pyrs[2],S9=DN.S,e=S9.n-1,d=Math.hypot(P.x-S9.x[e],P.z-S9.z[e]);DN.sunEl=Math.max(2.5,Math.min(21,Math.atan2(P.y+P.h-(S9.y[e]+4),d)*57.29578-3.2));} /* le soleil juste sous le sommet : caché par la pyramide, son halo la couronne */
   DN.on=true;DN.mesh.visible=true;
-  try{dnMonuments(DN.job);}catch(e){console.warn('dunes : décors',e);}
+  try{if(mon)dnMonuPose(mon);else dnMonuments(DN.job);}catch(e){console.warn('dunes : décors',e);}
   DN.ms.pose=Math.round(performance.now()-t4);DN.ms.total=Math.round(performance.now()-(DN.t0||t4));
 }

@@ -33,7 +33,7 @@ const SPIN={on:!/[?&]spin=0\b/.test(location.search),pZone:.28,max:3,pose:0,ouve
   lots:[{id:'petit',nm:'PETIT SAC',p:.08,cash:6000},
         {id:'sac',nm:"SAC D'ARGENT",p:.04,cash:15000},
         {id:'gros',nm:'GROS SAC',p:.012,cash:50000},
-        {id:'coeur',nm:'SECONDE CHANCE GRATUITE',p:.15,bon:'chanceG',sous:'À TA PROCHAINE CHUTE'},
+        {id:'coeur',nm:'SECONDE CHANCE GRATUITE',p:.19,bon:'chanceG',sous:'À TA PROCHAINE CHUTE'}, // (2026-10-31, Sacha : « augmente un peu la probabilité d'avoir une seconde chance ») ,15 → ,19
         {id:'boost',nm:'DÉPART BOOSTÉ',p:.07,bon:'spinBoost',sous:'NITRO PLEINE · MOTEUR +1'},
         {id:'jeton',nm:'+1 JETON',p:.05,jeton:1,sous:'UN TIRAGE DE PLUS'},
         {id:'sept',nm:'JACKPOT !',p:.012,voiture:'epique',cash:500000}],

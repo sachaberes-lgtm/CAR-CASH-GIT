@@ -52,7 +52,7 @@ function* jadeBatit(seed,cle){
   const zonesNu=[];let iPorte=-1,iPont=-1;
   if(Q.porte0&&Q.porte1)iPorte=Math.round((sDe(Q.porte0.p)+sDe(Q.porte1.p))/2);
   if(Q.pont0&&Q.pont1)iPont=Math.round((sDe(Q.pont0.p)+sDe(Q.pont1.p))/2);
-  // ---- LES MONTAGNES : [x, z, rayon (m), y du pied (la pointe), y du sommet, gabarit, quart de tour, graine, distance à la route] ----
+  // ---- LES MONTAGNES : [x, z, rayon (m), y du pied (la pointe), y du sommet, gabarit, quart de tour, graine, distance à la route, (10e, optionnel) étiquette de quartier forcé] ----
   const PIL=[],PG=new Map(),PGC=120,mer=JADE.merY+90,snap=v=>Math.round(v/VX)*VX;
   const pgVois=(x,z,cb)=>{const bx=Math.floor(x/PGC),bz=Math.floor(z/PGC);for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){const a=PG.get((bx+dx)+','+(bz+dz));if(a)for(const q of a)if(cb(q))return true;}return false;};
   const pose=q9=>{PIL.push(q9);const kk=Math.floor(q9[0]/PGC)+','+Math.floor(q9[1]/PGC);let a9=PG.get(kk);if(!a9)PG.set(kk,a9=[]);a9.push(q9);};
@@ -132,7 +132,7 @@ function* jadeBatit(seed,cle){
        const h=15+jc()*20;CRI.push({x:best[0],y:best[1],z:best[2],j:[h*(.9+jc()*.3),h,jc()<.6?8:9,jc()],pq:q});}}}
   if(performance.now()>JF.lim)yield;
   // ---- LA POSE : par QUARTIERS de 360 m (le tri, c'est jadeTri) ----
-  const QC=160,quart=new Map(),qDe=(x,z)=>{const k=Math.floor(x/QC)+','+Math.floor(z/QC);let o=quart.get(k);if(!o)quart.set(k,o={k:quart.size,x0:1e9,x1:-1e9,y0:1e9,y1:-1e9,z0:1e9,z1:-1e9});return o;};
+  const QC=160,quart=new Map(),qDe=(x,z,tag)=>{const k=tag!=null?'t:'+tag:(Math.floor(x/QC)+','+Math.floor(z/QC));let o=quart.get(k);if(!o)quart.set(k,o={k:quart.size,x0:1e9,x1:-1e9,y0:1e9,y1:-1e9,z0:1e9,z1:-1e9});return o;}; // tag : force un même quartier (10e champ de q, voir jadePont — « l'arche grise sur une moitié »)
   const ext=(o,x,y0,y1,z,r)=>{o.x0=Math.min(o.x0,x-r);o.x1=Math.max(o.x1,x+r);o.y0=Math.min(o.y0,y0);o.y1=Math.max(o.y1,y1);o.z0=Math.min(o.z0,z-r);o.z1=Math.max(o.z1,z+r);};
   const vue=jadeVueGeo;
   const famille=(geo,mat,items,b0,b1)=>{if(!items.length||(geo.index&&!geo.index.count))return;
@@ -149,7 +149,7 @@ function* jadeBatit(seed,cle){
       F.im3=new THREE.InstancedMesh(g,M9.vrP,n);F.im3.instanceMatrix=F.im.instanceMatrix;F.im3.frustumCulled=false;F.im3.matrixAutoUpdate=false;F.im3.renderOrder=2.5;F.im3.count=0;root.add(F.im3);} // …et celle de la PROFONDEUR
     return F;};
   const parT=G.p.map(function(){return [[],[],[],[]];});
-  {PIL.forEach(function(q,pi){const o=qDe(q[0],q[1]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);for(let k=0;k<4;k++)parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],q[8]<2000||q[8]===1e9?1:.85,0,0],pi:pi});});
+  {PIL.forEach(function(q,pi){const o=qDe(q[0],q[1],q[9]);ext(o,q[0],q[3]-8,q[4]+25,q[1],q[2]);for(let k=0;k<4;k++)parT[q[5]][k].push({q:o,m:jadeMatPilier(q,k).toArray(),j:[q[7],q[8]<2000||q[8]===1e9?1:.85,0,0],pi:pi});});
     for(let t=0;t<G.p.length;t++){if(performance.now()>JF.lim)yield;const Gt=G.p[t].geo;famille(Gt[0],M9.vr,parT[t][0],0,0);if(performance.now()>JF.lim)yield;famille(Gt[1],M9.vr,parT[t][1],1,1);if(performance.now()>JF.lim)yield;famille(Gt[2],M9.vrO,parT[t][2],2,4);if(performance.now()>JF.lim)yield;famille(Gt[3],M9.vrO,parT[t][3],5,5);}} // (v17) au-delà de 750 m : UNE passe opaque (le verre en trois passes coûtait 3× ses triangles)
   // (v8) LES CUBES MINUSCULES : une famille par gabarit, remplie à chaque image des montagnes proches (finProches) — elles quittent leur famille de 1,75 m
   if(performance.now()>JF.lim)yield;
@@ -238,6 +238,13 @@ const JCH_M=new THREE.Matrix4(),JCH_R=new THREE.Matrix4(),JCH_T=new THREE.Matrix
    horloge était JADE_U.uTime, qui avance aussi en pause (le temps réel) alors que jadeChuteTick n'y tourne pas : au retour, chaque montagne en
    chute avait pris toute la durée de la pause d’un coup (5 s de pause : 140 à 270 m de chute en une image, l’écume partait, sa hitbox avec). JCH.t ne
    compte que le temps joué (preuve-chute-pause.cjs). */
+/* (2026-10-31, Léo : « l'image ne doit plus couper quand je joue sur téléphone ») LA MONTAGNE QUI TOMBE, CUBE PAR CUBE, SANS OBJETS. Chaque image de chute
+   recalculait chaque cube par trois appels (fromArray, premultiply, toArray) : MESURÉ (banc iPhone ×4), jusqu'à 88 ms dans une image. Le même produit
+   M × cube, écrit à la main dans l'ordre exact de three (Matrix4.multiplyMatrices) : la même matrice au bit près, sans copie intermédiaire. */
+function jchMul(ae,be,A,o){
+  for(let j=0;j<4;j++){const b0=be[4*j],b1=be[4*j+1],b2=be[4*j+2],b3=be[4*j+3];
+    A[o+4*j]=ae[0]*b0+ae[4]*b1+ae[8]*b2+ae[12]*b3;A[o+4*j+1]=ae[1]*b0+ae[5]*b1+ae[9]*b2+ae[13]*b3;
+    A[o+4*j+2]=ae[2]*b0+ae[6]*b1+ae[10]*b2+ae[14]*b3;A[o+4*j+3]=ae[3]*b0+ae[7]*b1+ae[11]*b2+ae[15]*b3;}}
 function jadeChuteTick(dt){
   if(!JCH.L.length||!JADE.root||!started||gameOver)return;let chg=false;JCH.t+=dt;const tn=JCH.t;
   for(const c of JCH.L){
@@ -249,7 +256,7 @@ function jadeChuteTick(dt){
     if(!c.spl&&q[3]-dy<JADE.eauY+6){c.spl=true;jadeEcume(q[0],JADE.eauY,q[1],q[2]);}
     c.inv.copy(JCH_M).invert(); /* (2026-10-21, Léo : « on traverse les montagnes qui tombent ») la hitbox suit la montagne : le point testé est ramené dans son repère d'origine */
     const out=dy>(q[4]-JADE.eauY)+60;if(out)c.fin=true;
-    for(const o of c.orig){const A=o.F.M;if(out)A.set(JCH_Z,o.si*16);else{JCH_R.fromArray(o.m);JCH_R.premultiply(JCH_M);JCH_R.toArray(A,o.si*16);}}
+    {const me=JCH_M.elements;for(const o of c.orig){const A=o.F.M;if(out)A.set(JCH_Z,o.si*16);else jchMul(me,o.m,A,o.si*16);}}
     if(c.fo){if(out)FIN.mats.set(c.pi,JCH_Z);else{JCH_R.fromArray(c.fo);JCH_R.premultiply(JCH_M);FIN.mats.set(c.pi,new Float32Array(JCH_R.elements));}}}
   if(chg){for(const c of JCH.L)if(c.t0&&c.orig&&(!c.fin||!c.vu)){c.vu=c.fin;for(const o of c.orig)o.F.sale=true;if(c.fo)FIN.sale=true;}JADE.sale=true;}
   // l écume

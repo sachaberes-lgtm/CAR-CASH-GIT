@@ -81,12 +81,12 @@ html body.touch.play.figVol #tFig{display:flex;position:fixed;z-index:3;gap:var(
    · #fhLeg (le rappel, là où étaient les boutons, à côté de NITRO) : ↑ figure 1 · ◄► figure 2. Rien ne s'y touche ; il flashe quand sa figure part.
    Les animations passent par l'API Web Animations (fhAnime : une relance sans remise en page forcée), la courbe est --ease. */
 :root{--fh1:var(--neoC,#00eaff);--fh2:var(--neoM,#ff3ec8);--fh0:var(--or,#ffd75e);--fhO:#ff7a24;--fhVert:var(--neoV,#5ee37a);--fhKo:var(--neoR,#ff4a64);
-  --fhE:var(--encre,#1c0430);--fhT:calc(var(--ccT,env(safe-area-inset-top,0px)) + 19%);--fhCh:var(--f1,10px);--fhXs:var(--f9,24px);--fhGap:8px;
+  --fhE:var(--encre,#1c0430);--fhB:calc(var(--sB,env(safe-area-inset-bottom,0px)) + 150px);--fhCh:var(--f1,10px);--fhXs:var(--f9,24px);--fhGap:8px;
   --fhBord:3px 0 0 var(--fhE),-3px 0 0 var(--fhE),0 3px 0 var(--fhE),0 -3px 0 var(--fhE),3px 3px 0 var(--fhE),-3px 3px 0 var(--fhE),3px -3px 0 var(--fhE),-3px -3px 0 var(--fhE),0 6px 0 var(--fhE);
   --fhBord2:2px 0 0 var(--fhE),-2px 0 0 var(--fhE),0 2px 0 var(--fhE),0 -2px 0 var(--fhE),2px 2px 0 var(--fhE),-2px 2px 0 var(--fhE),2px -2px 0 var(--fhE),-2px -2px 0 var(--fhE),0 4px 0 var(--fhE);
   --fhCoupe:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
-@media (orientation:portrait){:root{--fhT:calc(var(--ccT,env(safe-area-inset-top,0px)) + 22%);--fhCh:var(--f0,8px);--fhXs:var(--f6,20px)}}
-#fh{position:fixed;left:50%;top:var(--fhT);z-index:40;pointer-events:none;transform:translateX(-50%);width:min(94vw,680px);
+@media (orientation:portrait){:root{--fhB:calc(var(--sB,env(safe-area-inset-bottom,0px)) + 130px);--fhCh:var(--f0,8px);--fhXs:var(--f6,20px)}}
+#fh{position:fixed;left:50%;bottom:var(--fhB);z-index:40;pointer-events:none;transform:translateX(-50%);width:min(94vw,680px);
   display:flex;flex-direction:column;align-items:center;gap:var(--fhGap);font-family:var(--pix);text-align:center;white-space:nowrap;visibility:hidden}
 #fh.on{visibility:visible}
 body:not(.play) #fh,body.dead #fh,body.hTp:not(#ccH) #fh,body.ebOn #fh{visibility:hidden}

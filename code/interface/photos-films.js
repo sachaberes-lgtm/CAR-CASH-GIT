@@ -69,6 +69,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   photoStudio();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
   if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin) — (2026-10-16) en RAFALE, posée une fois par photoRafale
+  PHOTO_USINE=true; /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) */
   const sig9=phdbSig();let url=null,asy=false;
   try{
     if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
@@ -77,7 +78,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     carGroup.updateMatrixWorld(true);
     // LA BOÎTE de ce qu'on voit (maillages visibles seulement : les halos cachés gonfleraient le cadre)
     const bx=new THREE.Box3(),b9=new THREE.Box3();
-    carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||o.userData.fx)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
+    carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||o.userData.fx||o.isInstancedMesh)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
       if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();b9.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);bx.union(b9);});
     if(bx.isEmpty())bx.set(new THREE.Vector3(-1,0,-2),new THREE.Vector3(1,1.3,2));
     const EL9=aile?PHOTO_AILE.el:PHOTO_EL,AZ9=aile?PHOTO_AILE.az:(az9!=null?az9:PHOTO_AZ),cam=PHOTO.cam,ctr=bx.getCenter(new THREE.Vector3()),dir=new THREE.Vector3(Math.sin(AZ9)*Math.cos(EL9),Math.sin(EL9),Math.cos(AZ9)*Math.cos(EL9));T9.box=bx.getSize(new THREE.Vector3()).toArray().map(function(v){return +v.toFixed(2);});T9.ailes=!!carWingL;
@@ -127,6 +128,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     else{url=cv.toDataURL('image/png');toileRend(cv);}
     T9.montage=performance.now()-T9.t0;
   }catch(e){console.warn('photo',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
+  PHOTO_USINE=false; /* la caisse qu'on rend après la photo reprend sa peinture */
   if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
   if(!PHOTO.chaine){const av=PHOTO.avant;buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);} // on rend la caisse qu'on regardait (au garage : la feuilletée) — (2026-10-16) en RAFALE, photoRafale la rend une fois à la fin
   T9.total=performance.now()-T9.t0;

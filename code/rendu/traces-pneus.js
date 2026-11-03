@@ -46,7 +46,7 @@ function levreRattrape(bI,latOff,hOff,tOff){
   const vm9=vitMult(),vTan=fallVel.dot(T[bI])/vm9,vLat=fallVel.dot(B[bI])/vm9; // (30/09) le vol porte la vitesse RÉELLE (× vitMult) : ramenée au vA d'avant le multiplicateur, comme à la pose
   s=THREE.MathUtils.clamp(bI/(NP-1)*L+THREE.MathUtils.clamp(tOff,-2,2),0,L-1);
   side=1;lat=Math.sign(latOff)*(ROAD_HALF-.05);
-  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*lacetVol(fallVel.length());slipB=0;driftYaw=0;veqPose(bI,1); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
+  psi=THREE.MathUtils.clamp(Math.atan2(vLat,Math.abs(vTan)+1),-1.4,1.4);yawR=steer*lacetVol(fallVel.length());slipB=0;slipV=0;driftYaw=0;veqPose(bI,1); /* (2026-10-09) yawR = le lacet du VOL (même formule que yawIn) : volant tenu, la caisse ne « s'arrête » plus de tourner à la pose avant de repartir — elle rejoint le lacet du sol en VOL_TAU */
   vA=(vTan>0?Math.hypot(vTan,vLat):vTan)*.94;vL=0; // le choc de la lèvre coûte 6 % · (2026-10-15) toute la vitesse à plat, comme à la pose : le cap EST la trajectoire
   if(PARK.on){driveDir=vA<0?-1:1;vA=Math.abs(vA);}else driveDir=1;
   levreY=Math.min(0,hOff);carRoll9=THREE.MathUtils.clamp(r9,-.42,.42);rollV=0;

@@ -17,7 +17,7 @@
              l'arrière CHASSE à proportion de la charge du virage (lacet × vitesse) — le nez rentre dans la courbe jusqu'à ~18°, la
              trajectoire reste celle qu'on pilote. ⚠ À ne pas confondre avec l'ancien « Tokyo drift » retiré en v6 : lui pivotait dès
              qu'on touchait le pouce sous nitro, même en ligne droite — celui-ci n'existe QUE dans un virage, et grandit avec lui. */
-          const aLat9=yawR/spdMult*Math.abs(vA)*SPD,tdWant=Math.sign(aLat9)*.32*(1-Math.exp(-Math.abs(aLat9)/38))*Math.min(1,tdKmh/90);
+          const aLat9=yawR/spdMult*Math.abs(vA)*SPD,tdWant=Math.sign(aLat9)*(DRIFT2&&!driftEnCours?.20:.32)*(1-Math.exp(-Math.abs(aLat9)/38))*Math.min(1,tdKmh/90);
           driftYaw+=(tdWant-driftYaw)*Math.min(1,dt*(Math.abs(tdWant)>Math.abs(driftYaw)?5:3.2)); // départ franc, rattrapage plus doux
           if(Math.abs(driftYaw)>.003){
             qTmp.setFromAxisAngle(F.n,driftYaw);
@@ -167,7 +167,10 @@
         // (conduite v6) la caméra se place derrière un axe MI-ROUTE MI-CAISSE : avant, elle suivait le cap de la caisse et la clouait au
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
         if(!loop._camD)loop._camD=new THREE.Vector3();
-        loop._camD.copy(F.t).multiplyScalar(driveDir).lerp(fwdW,.55).normalize();
+        if(DRIFT2&&slipB!==0){ /* (2026-11-01, LE DRIFT SE COMPREND) en drift la caméra suit la TRAJECTOIRE (le cap moins la glisse), pas le nez : la caisse se met
+          en travers SOUS nos yeux au lieu d'emmener l'image avec elle ; et elle glisse de ~0,5 m vers l'extérieur du virage, on voit le flanc qui chasse. */
+          const p9=psi-slipB;DRIFT_CD.copy(F.t).multiplyScalar(Math.cos(p9)*driveDir).addScaledVector(F.b,Math.sin(p9)*driveDir);loop._camD.copy(F.t).multiplyScalar(driveDir).lerp(DRIFT_CD,.55).normalize();}
+        else loop._camD.copy(F.t).multiplyScalar(driveDir).lerp(fwdW,.55).normalize();
         if(DMT.cam)loop._camD.applyAxisAngle(F.n,DMT.cam);dmtCamTick(dt); // (LE DEMI-TOUR) la caméra tourne autour de la caisse avec elle
         // (2026-09-25, user : « toujours aimantée au centre ») : la caméra suivait la position latérale AU CENTIMÈTRE — la caisse restait
         // plantée au milieu de l'image et c'est la route qui coulissait dessous. Elle suit désormais avec un RETARD (~0,35 s) : quand on
@@ -181,7 +184,7 @@
            posait à 2·lat − _camLat : au lieu de traîner, elle partait DEVANT la caisse du côté où l'on braque, et la caisse filait à l'écran
            du côté opposé à son mouvement. Le regard (FVISEE, repère NON retourné) avait, lui, le bon signe. */
         const cLag9=THREE.MathUtils.clamp(loop._camLat-lat,-camBack*.3,camBack*.3); // de combien la caméra est en retard sur la caisse (repère de la route, retourné sous la dalle comme F.b)
-        tmp2.copy(carGroup.position).addScaledVector(loop._camD,-camBack).addScaledVector(F.n,camH).addScaledVector(F.b,cLag9);
+        tmp2.copy(carGroup.position).addScaledVector(loop._camD,-camBack).addScaledVector(F.n,camH).addScaledVector(F.b,cLag9-(DRIFT2?slipB*1.1*driveDir:0));
         {const n9=performance.now(); // l'écart repart de la caméra RÉELLE à chaque reprise de conduite (après un vol, le garage, un respawn)
          if(!loop._camOff)loop._camOff=new THREE.Vector3();
          if(n9-(loop._camDriveT||0)>(window.dbgCamReprise||CAM_REPRISE)){ /* (banc) dbgCamReprise : en rendu logiciel (200-300 ms l'image) CHAQUE image passait pour une reprise de conduite et la caméra reculait de v·dt à chaque image */loop._camOff.subVectors(camera.position,loop._carPrev&&loop._carPrev.distanceToSquared(carGroup.position)<900?loop._carPrev:carGroup.position);CAM_ROUTE.phi=0;} /* (2026-10-01, LA POSE) l'écart repart de la caisse de l'image D'AVANT (`_carPrev`) : mesuré à la caisse de CETTE image, il clouait la caméra sur place une image entière (elle n'avançait que de 0,4 m au lieu de 0,8, de 0,6 au lieu de 2,5 à 540 km/h), puis elle rattrapait — l'à-coup de la pose */ // (vague 3) le pivot anticipé repart de zéro, lui aussi
@@ -276,6 +279,7 @@
         if(airPie.style.display!=='none')airPie.style.display='none'; // (2026-09-27) une fois suffit (c'était à chaque image de conduite)
       }
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
+      if(DRIFT2&&TCTL.drift)TCTL.drift(false,false,true); /* (2026-11-01) en vol, le stick oublie le drift (le mot, la ligne, l'anneau) */
       const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter
       fallT+=dtF;fallTR+=dt; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6)
       NIT.vol+=dtF;if(nitroOn&&pwrNitroT<=0&&!PARK.on)NIT.nit+=dtF; /* (LA LOI DU RÉSERVOIR) la durée du vol et ce qu'on y a BRÛLÉ : la pose ne rend que la part volée nitro coupée */

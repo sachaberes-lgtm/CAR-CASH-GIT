@@ -103,7 +103,7 @@ function buildCar(spec){
   const chromeM=new THREE.MeshPhongMaterial({color:0xe8ecf0,shininess:280,specular:0xffffff,envMap:envTex,reflectivity:.85,combine:THREE.MixOperation});
   const darkM=new THREE.MeshPhongMaterial({color:0x14161a,shininess:60,specular:0x333333});
   const rustM=new THREE.MeshPhongMaterial({color:0x5a3a20,shininess:5,specular:0x111111});
-  {const pd=cosmSur('peinture');if(pd&&pd.id!=='usine'){const pc=pd.c!=null?pd.c:pd.grad[1];bodyM.color.setHex(pd.mot?0xffffff:pc);bodyM.emissive.setHex(pc);if(pd.mot)bodyM.userData.mot=pd.mot;}} // (2026-10-16) un MOTIF : la tôle blanche, le motif la colore (greffé après rimify)
+  {const pd=cosmSur('peinture');if(pd&&pd.id!=='usine'){const pc=pd.c!=null?pd.c:pd.grad[1];bodyM.color.setHex(pd.mot&&!MOTIFS[pd.mot].mel?0xffffff:pd.mot?spec.color:pc);bodyM.emissive.setHex(pc);if(pd.id==='lave')bodyM.emissiveIntensity=Math.max(bodyM.emissiveIntensity,.26);if(pd.mot)bodyM.userData.mot=pd.mot;}} /* (2026-11-01, « donne envie d'acheter ») LAVE : elle disait « la coulée ne refroidit jamais » mais rendait une tôle mate — la caisse rougeoie vraiment, comme la gueule du volcan chauffé */ // (2026-10-16) un MOTIF : la tôle blanche, le motif la colore (greffé après rimify)
   // le liseré (rim), c'est pour la tôle. (2026-09-26) + LE VERNIS des caisses « classiques » (pop-tart, requin, comète, formule, le
   // mans, patron, acide) : à .45 de reflet FIXE, la FORMULE OR sortait jaune pâle et ses vitres couleur de ciel. Le verre et le chrome
   // prennent le vernis SANS le liseré. L'épave garde l'ancien mélange au bit près (« ne rien changer »).
@@ -411,7 +411,7 @@ function buildCar(spec){
   if(finAreteOk())finCaisse(); // (2026-10-20, FINITION STUDIO) les drapeaux d'arête de la tôle, AVANT la soudure (voir finition.js)
   if(FSTU.on)finLaque(FSTU.garage); // le vernis profond si on est au garage
   try{traduisLangage(spec);}catch(e){console.warn('langage',e);} // (25/10) ESSAI `?langage=1` : les caisses « hors langage » regroupées en grandes facettes (éteint par défaut)
-  caisseSoude(); // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
+  caisseSoude();{const pd9=cosmSur('peinture');if(pd9&&pd9.mot)try{motTouffes(carBody,pd9.mot);}catch(e){console.warn('touffes',e);}} /* (2026-11-01) les touffes de la MOUSSE : du relief sur la tôle, posé APRÈS la soudure (elle fond les pièces de la caisse) */ // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
   try{feuxLed(spec,hlM,tlM);}catch(e){console.warn('feux',e);} // (2026-10-20) l'étude des feux en LED, `?feux=1|2` (voir FEUXL) — sans paramètre, rien ne change
 }
 /* <<<FIN VOITURES>>> */

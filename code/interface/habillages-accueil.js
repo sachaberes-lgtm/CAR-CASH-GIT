@@ -126,7 +126,7 @@ function silApercu(dt,on,k9){
   const id=d.id+':'+garageI+':'+nf;if(id!==S.id){S.id=id;S.on=0;}            // une autre traînée, une autre caisse : l'allumage se rejoue
   if(k9===0){S.on=0;for(const tr of S.s)tr.m.visible=false;return true;} // (2026-10-17) k9 = 0 : la vitrine coupe le moteur — le ruban s'éteint, il rejaillira des feux
   S.on+=dt;S.t+=dt;
-  const neo=d.pop==='neon',rgb=d.rgb||[1.38,.62,.17],ku=.74,kk=Math.max(.8,k9==null?1:k9)*(neo?neonAllume(S.on):1),gro=neo?1:Math.min(1,S.on/.28),ign=neo?0:Math.exp(-S.on*4.5),
+  const neo=d.pop==='neon',rgb=d.pop==='billets'?billetsTeinte():(d.rgb||[1.38,.62,.17]),ku=.74,kk=Math.max(.8,k9==null?1:k9)*(neo?neonAllume(S.on):1),gro=neo?1:Math.min(1,S.on/.28),ign=neo?0:Math.exp(-S.on*4.5),
     L=11*(.12+.88*gro*(2-gro)),Q=SIL_Q,v=S.v,N=34;
   SIL_ENCRE=silBlanc();SIL_STY=d.sil||null;
   for(let i=0;i<2;i++){const tr=S.s[i];if(i>=nf){tr.m.visible=false;continue;}
