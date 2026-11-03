@@ -14,6 +14,20 @@ function photoGarde(ck,u,oct){const k=String(ck),M=PHOTO_MEM;if(!u||String(u).in
   for(const [k9,e] of M.L){if(M.oct<=M.max*.85)break;if(k9===k||vues.has(e.u))continue;
     M.L.delete(k9);M.oct-=e.o;M.lib++;if(PHOTO.cache[k9]===e.u)delete PHOTO.cache[k9];try{URL.revokeObjectURL(e.u);}catch(x){}}}
 window.dbgPhotoMem=function(mo){if(mo!=null)PHOTO_MEM.max=mo*1048576;return {photos:PHOTO_MEM.L.size,mo:+(PHOTO_MEM.oct/1048576).toFixed(2),maxMo:PHOTO_MEM.max/1048576,liberees:PHOTO_MEM.lib,cache:Object.keys(PHOTO.cache).length};};
+/* ===== UNE PHOTO NE SE PREND PAS SUR UN SHADER EN COURS DE LIAISON (2026-11-03, passe « photos, inventaire, boutique ») =====
+   MESURÉ au banc : la 1re photo du CHAT POP-TART de la session (celle de la vitrine) sortait sans carrosserie — 8 appels de dessin au lieu de 21 —
+   et la toute 1re photo de la session (LA HONTE) parfois VIDE, ombre seule. Cause : depuis la liaison en arrière-plan (voir LIER, vignette-moteur.js),
+   hors course, `renderer.render` d'une scène CACHE ce dont le programme n'est pas encore lié (`lierScene` : « il apparaît une ou deux images plus tard »)
+   — bien pour le menu vivant, faux pour une photo qu'on prend UNE fois et qu'on garde : la caisse (ou le programme de la pellicule) neuve était
+   photographiée cachée. La photo lie donc ses programmes pour de bon (`compile` d'avant la liaison douce) juste avant de se rendre ; déjà liés, ça ne
+   coûte presque rien. Sur l'iPhone, un programme neuf met ~110 ms à se lier : ces 110 ms-là sont dans la photo, plus dans une image du menu. */
+function photoLie(sc,cam){try{
+  (LIER.compile0||renderer.compile).call(renderer,sc,cam); // les programmes neufs de la scène : liés pour de bon
+  if(LIER.att&&LIER.att.length){const g=renderer.getContext(),P=new Set(LIER.att); // ceux d'une liaison douce encore en cours (lancée par le menu) et qui servent ICI : on les attend
+    sc.traverseVisible(function(o){const L=o.material?(Array.isArray(o.material)?o.material:[o.material]):null;if(!L)return;
+      for(const m of L){const p=m&&renderer.properties.get(m).currentProgram;if(p&&P.has(p)&&p.program)g.getProgramParameter(p.program,g.LINK_STATUS);}});
+    lierPret();} // lus liés : la liste des attendus se vide, `lierScene` ne cachera rien
+}catch(e){}}
 // le studio (pellicule, scène, objectif, lumières), monté à la première photo — caisse, aile ou figure (2026-10-15 soir : sorti de carPhoto pour figPhoto)
 function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
@@ -57,6 +71,7 @@ function photoDev(W,H){
   const D=photoDevPrep();
   if(!D.rt||D.rt.width!==W||D.rt.height!==H){if(D.rt)D.rt.dispose();D.rt=new THREE.WebGLRenderTarget(W,H,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,depthBuffer:false,stencilBuffer:false,format:THREE.RGBAFormat,type:THREE.UnsignedByteType});D.buf=new Uint8ClampedArray(W*H*4);}
   D.m.uniforms.t.value=PHOTO.rt.texture;D.m.uniforms.px.value.set(1/PHOTO.rt.width,1/PHOTO.rt.height);
+  if(!D.lie){photoLie(D.sc,D.cam);D.lie=true;} // le programme de la pellicule : lié une fois pour toutes (voir photoLie)
   renderer.setRenderTarget(D.rt);renderer.render(D.sc,D.cam);renderer.readRenderTargetPixels(D.rt,0,0,W,H,D.buf);
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.putImageData(new ImageData(D.buf,W,H),0,0);return cv;}
 function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAGE de la fenêtre d'achat (shopTourne) — la caisse vue sous cet azimut, cadrée pour TOUS les azimuts (le cadre ne respire pas), rangée sous sa clé */
@@ -96,7 +111,8 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     cam.position.copy(tg).addScaledVector(dir,D);cam.lookAt(tg);cam.updateMatrixWorld();
     {v9.set(ctr.x,bx.min.y,ctr.z).project(cam);ymin=v9.y;} // le sol SOUS le centre de la caisse, à l'écran (le coin avant de la boîte tombait plus bas : l'ombre se décollait)
     const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget();
-    renderer.setRenderTarget(PHOTO.rt);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(PHOTO.scene,cam);
+    renderer.setRenderTarget(PHOTO.rt);renderer.setClearColor(0x000000,0);renderer.clear();
+    photoLie(PHOTO.scene,cam);renderer.render(PHOTO.scene,cam); // (voir photoLie : les shaders de cette caisse sont liés AVANT la prise)
     let gros=null;if(!PHOTO_DEV_JS)try{gros=photoDev(W,H);}catch(e){console.warn('photoDev',e);gros=null;PHOTO_DEV_JS=true;} // (2026-10-16) LA PELLICULE SUR LA PUCE (photoDev) : la toile sort déjà développée, retournée et réduite
     let buf=null;if(!gros){buf=new Uint8Array(RW*RH*4);renderer.readRenderTargetPixels(PHOTO.rt,0,0,RW,RH,buf);}
     renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);T9.rendu=performance.now()-T9.t0;
@@ -216,7 +232,7 @@ function figFilm(o,cb){const ck=o.k;
       tg.addScaledVector(rt9,(x0+x1)/2*tH*D).addScaledVector(up9,(y0-P.bas)*tV*D);}
     cam.position.copy(tg).addScaledVector(dc,D);cam.lookAt(tg);cam.updateMatrixWorld();
     // LES PRISES : une image rendue au double, développée et réduite par la pellicule dans SA case de la planche ; une seule lecture à la fin
-    const DV=photoDevPrep(),rtP=PHOTO.rtP,buf=new Uint8ClampedArray(PW*PH*4);
+    const DV=photoDevPrep(),rtP=PHOTO.rtP,buf=new Uint8ClampedArray(PW*PH*4);photoLie(PHOTO.scene,cam);if(!DV.lie){photoLie(DV.sc,DV.cam);DV.lie=true;} // (voir photoLie)
     DV.m.uniforms.t.value=PHOTO.rtF.texture;DV.m.uniforms.px.value.set(1/RW,1/RH);
     try{renderer.setClearColor(0x000000,0);rtP.scissorTest=false;rtP.viewport.set(0,0,PW,PH);renderer.setRenderTarget(rtP);renderer.clear();renderer.autoClear=false;
       for(let k=0;k<N;k++){carGroup.position.copy(Q[k][0]);carGroup.quaternion.copy(Q[k][1]);carGroup.updateMatrixWorld(true);
