@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1088'; /* v1088 (2026-11-03, Sacha : « le moteur il passe devant le graphique, il est toujours pas assez beau ») ÉCRAN DE
+const CACHE = 'cashcar-v1089'; /* v1089 (2026-11-03, Sacha : « il faut que ce demi-tour donuts donne un gros, une sorte de petit boost de vitesse, mais qui soit assez kiffant et qui fasse des flammes sur la route, les mêmes textures que pour le nitro ») LE RATTRAPAGE DU VERGLAS BOOSTE : au rattrapage réussi comme à l’ancien demi-tour pivoté (?verglas=0), la caisse repart avec un vrai coup de vitesse (jusqu’à 90 % du plafond au lieu de juste garder la glisse) et `nitroAllume` rejoue l’allumage du nitro — le même feu de pixels aux pots, qui traîne au sol derrière elle, la même onde et le même flash d’écran (zéro code de flamme en plus). Avant : v1088 (2026-11-03, Sacha : « le moteur il passe devant le graphique, il est toujours pas assez beau ») ÉCRAN DE
    MORT : la pièce (moteur/créature) n'était dimensionnée que par sa HAUTEUR (largeur libre) — sur un écran de mort étroit elle débordait sur la
    colonne voisine et mangeait le bord de la carte AURA ; `object-fit:contain` (jamais plus large OU plus haut que sa colonne) + colonnes 1fr/1fr
    (avant .8fr/1.2fr, la pièce qu'on vient de débloquer n'a plus à être la plus petite des deux) + halo et ombre renforcés pour qu'elle se détache

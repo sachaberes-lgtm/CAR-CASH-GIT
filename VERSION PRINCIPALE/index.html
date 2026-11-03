@@ -64145,7 +64145,6 @@ function dmtRattrape(net){const D=DMT,mx=D.mx,q=net?THREE.MathUtils.clamp(1-(D.t
     try{nitroAllume(false,false);}catch(e){}}
   dmtSigne(net?'ok':false);
 }
-window.dbgRattrape=function(net){dmtRattrape(!!net);return 'ok';}; // (banc, TEMPORAIRE — à retirer) force dmtRattrape sans attendre le timing du verglas
 function dmtVmax(){return CARS[0].maxKmh/3.6*lateMul()*(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push;} // le maxSp de la boucle (local à loop)
 function dmtAng(f,n,g){DMT.c.crossVectors(n,f);return Math.atan2(g.dot(DMT.c),g.dot(f));} // l'angle, autour de n, qui mène f sur g (même sens que setFromAxisAngle(n,·))
 function dmtArme(bI,sd){ // (tryLand) posée à contresens sur la dalle bI, face sd — lat, psi, vA viennent d'être posés
