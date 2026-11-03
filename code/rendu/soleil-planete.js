@@ -320,4 +320,5 @@ const SIMU_JEU=/[?&]simu=1\b/.test(location.search);
 if(SIMU_JEU){let dpr9=devicePixelRatio;setInterval(function(){if(Math.abs(devicePixelRatio-dpr9)<.01)return;dpr9=devicePixelRatio;
   try{DPR_CAP=Math.min(devicePixelRatio,ALLEGE?1:1.5);qlReprise();}catch(e){}},250);}
 if(BALADE)document.documentElement.classList.add('balade');
-const IS_LOW_END=ALLEGE||(navigator.hardwareConcurrency>0&&navigator.hardwareConcurrency<=4);
+/* (2026-11-03, Léo : « les graphismes sont nuls sur Vercel ») le nombre de cœurs ne rabat plus l'ORDINATEUR : un Mac à 4 cœurs perdait anticrénelage, MSAA, ombres et bloom — contre « l'ordi a toujours le MAX ». Seul ALLEGE (vrai téléphone) allège. */
+const IS_LOW_END=ALLEGE;
