@@ -6027,6 +6027,8 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gS
 #gBqCats.duo{flex-direction:row;flex-wrap:wrap;align-content:flex-start}
 #gBqCats.duo button{width:calc((100% - var(--cG,8px)) / 2);justify-content:center;padding:0}
 #gBqCats.duo button span{display:none}
+/* (2026-11-03) en deux colonnes de carrés, rien ne disait plus où l'on était : le nom du rayon ouvert s'écrit dessous (VOITURES, PEINTURES…) */
+#gBqCats.duo::after{content:attr(data-cur);flex:0 0 100%;display:block;margin-top:2px;font-size:8px;letter-spacing:1px;line-height:14px;text-align:center;color:#14171c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #gBqPan .bqK .bqKph[data-pha] img{width:100%}
 #gBqPan .bqK .bqKph[data-phf] .fgFilm{display:block;width:100%;height:100%} /* (2026-10-18) le FILM d'une figure (figFilm) : la toile prend toute la case, l'image s'y pose entière, en bas (filmDessine) */
 #gBq #gBqPan .bqK.hab .bqKph .bqSw{width:42px;height:42px} /* les grandes cartes des habillages : la pastille de la peinture, le ruban de la traînée à leur taille */
@@ -6111,7 +6113,7 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gBqBtn{displa
 #gBqBtn:is(:active,.appui){translate:0 2px}
 html.bqIndus body #garage #gAct>#gBqBtn[data-e="equip"]{background:#3d4bff}
 html.bqIndus body #garage #gAct>#gBqBtn[data-e="desequip"]{background:#fff;color:#14171c;box-shadow:0 0 0 1.5px #14171c}
-html.bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:#fff;color:#4a5360;box-shadow:0 0 0 1px #dde1e6}
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:#fff;color:#14171c;box-shadow:0 0 0 1px #dde1e6,inset 3px 0 0 #3d4bff} /* (2026-11-03) « ÉQUIPÉE ✓ » : encre pleine sur une plaque blanche à liseré bleu (la même marque que le rayon ouvert), plus un texte gris fantôme */
 html.bqIndus body #garage #gAct>#gBqBtn[data-e="defi"]{background:#eef0f3;color:#4a5360;box-shadow:none}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{min-width:0!important;width:auto!important;height:44px!important;min-height:44px!important;padding:0 14px!important;gap:6px!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas span{font-size:8px!important;letter-spacing:1px}
@@ -6952,7 +6954,7 @@ html body #coach.v2.v2.bravo{background:linear-gradient(100deg,#0d3a1d 0%,#167a3
 html body #coach.v2.v2.rate{animation:ecTremble .42s steps(6)}
 @keyframes ecTremble{0%,100%{translate:0 0}20%{translate:-7px 0}40%{translate:6px 0}60%{translate:-4px 0}80%{translate:3px 0}}
 /* — l'en-tête : six pastilles, et PASSER au coin — */
-html body #coach.v2 .ecH{grid-column:2;display:flex;align-items:center;gap:8px;min-height:14px;padding-right:62px} /* (la place de PASSER, au coin) */
+html body #coach.v2 .ecH{grid-column:2;display:flex;align-items:center;gap:8px;min-height:14px;padding-right:0} /* (la place de PASSER, au coin) */
 html body #coach.v2 .ecPips{display:flex;gap:5px}
 html body #coach.v2 .ecPips i{width:10px;height:10px;background:#2a2158;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);transform:skewX(-11deg)}
 html body #coach.v2 .ecPips i.ok{background:var(--neoV,#5ee37a);box-shadow:0 0 6px rgba(94,227,122,.6)}
@@ -6962,9 +6964,9 @@ html body #coach.v2 .ecPips i.vient{animation:ecPipOk .5s var(--ease)}
 @keyframes ecPipOk{0%{transform:skewX(-11deg) scale(2.2);background:#fff}100%{transform:skewX(-11deg) scale(1)}}
 html body #coach.v2 .coN{flex:1;min-width:0;font-size:9px;letter-spacing:1px;color:var(--neoR,#ff4a64);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html body #coach.v2.passe .coN{color:var(--or)}
-html body #coach.v2 .coSkip{position:absolute;right:4px;top:0;min-width:44px;min-height:30px;padding:8px 8px 6px;margin:0;border:0;background:none;
-  font:9px var(--pix);letter-spacing:1px;color:var(--tx2,#c9bdf0);opacity:.75;cursor:pointer}
-html body #coach.v2 .coSkip:hover{opacity:1}
+html body #coach.v2 .coSkip{grid-column:1/-1;display:block;width:100%;min-height:48px;padding:12px;margin:10px 0 0;border:0;
+  font:10px var(--pix);letter-spacing:2px;color:#2a1700;background:var(--or);box-shadow:inset 0 -3px 0 #b87400,0 3px 0 rgba(0,0,0,.35);cursor:pointer} /* PASSER : un gros bouton or pleine largeur, impossible à rater */
+html body #coach.v2 .coSkip:active{transform:translateY(2px)}
 html body #coach.v2 .coSkip.sur{color:var(--neoR,#ff4a64);opacity:1}
 /* — LE MOT : en or, il arrive lettre par lettre — */
 html body #coach.v2 .ecT{grid-column:2;position:relative;display:block;margin:2px 0 1px;white-space:nowrap;line-height:1.15;
@@ -7309,6 +7311,8 @@ html:not(.c6):not(.ux8g) :is(#gBqPan .bqK,#gBqUne .bqU){padding-bottom:0}
 html:not(.c6):not(.ux8g) :is(.bqKr,.bqUrr){position:absolute;top:6px;right:6px;z-index:1;margin:0;padding:3px 5px 2px;max-width:calc(100% - 12px);box-sizing:border-box;overflow:hidden;white-space:nowrap;background:#14171c;color:var(--rc);font-size:10px;line-height:1.1;letter-spacing:0}
 html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKn,#gBqUne .bqUn){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;overflow:hidden;overflow-wrap:anywhere;text-overflow:clip;font-size:9px;line-height:11px;letter-spacing:0;padding:5px 6px 0}
 html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKp,#gBqUne .bqUp){font-size:10px;letter-spacing:0;padding:4px 6px 8px;white-space:nowrap}
+/* (2026-11-03) un nom sur deux lignes (LA DOLCE VITA) poussait son prix plus bas que ceux des voisines : le prix colle au bas de la carte, tous alignés sur la rangée */
+html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKp{margin-top:auto}
 html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKn{-webkit-line-clamp:3;font-size:9px;padding:5px 5px 0}
 html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKr{font-size:8px;top:4px;right:4px}
 html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKr.lg{font-size:8px;padding:3px 4px 2px} /* (2026-10-15) LÉGENDAIRE (10 lettres) débordait de sa carte et se coupait */
@@ -7323,7 +7327,7 @@ html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn{font-size:11px;lette
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn b{font-size:12px;letter-spacing:0}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="achat"]{background:var(--or);color:#14171c;box-shadow:0 4px 0 var(--orF),0 10px 24px rgba(20,23,28,.22)}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="equip"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="figeq"]{background:#3d4bff;color:#fff}
-html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:none;color:#5b6572;box-shadow:none;font-size:11px;cursor:default}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:#fff;color:#14171c;box-shadow:0 0 0 1px #dde1e6,inset 3px 0 0 #3d4bff;font-size:11px;cursor:default} /* (2026-11-03, Sacha : « cet écran, il est horrible ») ÉQUIPÉE ✓ n'est plus un texte gris fantôme sur le fond : une plaque blanche, encre pleine, le liseré bleu du rayon ouvert */
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{height:44px}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"]{background:#e3e6ea;color:#5b6572;box-shadow:inset 0 0 0 1px #c7ccd3;cursor:default;translate:none}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"] b{color:#14171c;font-size:9px}
@@ -9309,7 +9313,9 @@ html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.
   </div>
 </div>
 <div id="touchCtl">
-  <div id="tSteer" role="button" tabindex="0" aria-label="Volant — glisse pour tourner"><div id="tStick"><div id="tKnob"></div></div><div id="tSteerHint" data-fr="GLISSE POUR TOURNER">GLISSE POUR TOURNER</div></div>
+  <!-- (2026-11-03, Sacha : « enlève le HUD "glisse pour tourner", ça sert à rien, c'est tout le temps là » — le texte #tSteerHint est retiré ;
+       le volant garde son invite visuelle (l'anneau qui pulse, #tSteer:not(.used)::after) qui s'efface seule au premier braquage. -->
+  <div id="tSteer" role="button" tabindex="0" aria-label="Volant — glisse pour tourner"><div id="tStick"><div id="tKnob"></div></div></div>
   <div id="tLeft" class="tbtn" role="button" tabindex="0" aria-label="Gauche"><i class="pxi pxi-gauche" aria-hidden="true"></i></div>
   <div id="tRight" class="tbtn" role="button" tabindex="0" aria-label="Droite"><i class="pxi pxi-droite" aria-hidden="true"></i></div>
   <div id="tUp" class="tbtn" role="button" tabindex="0" aria-label="Haut"><i class="pxi pxi-haut" aria-hidden="true"></i></div><!-- (2026-10-27, Léo) FLÈCHES : haut / bas = l'assiette en vol -->
@@ -28724,7 +28730,7 @@ Object.assign(I18N,{
 // (2026-09-29) les étiquettes VoiceOver (aria-label), traduites par applyLangDOM
 Object.assign(I18N,{"CASH CAR — toucher pour jouer":"CASH CAR — tap to play","Compte":"Account","Familles":"Rarities","Vignettes":"Thumbnails","Précédente":"Previous","Suivante":"Next","Retour":"Back","Fermer":"Close","Carrière":"Career","Menu principal CASH CAR":"CASH CAR main menu","Missions":"Missions","Menu":"Menu","Volant — glisse pour tourner":"Steering — swipe to steer","Gauche":"Left","Droite":"Right","Nitro":"Nitro","La partie en cours":"Current run","Fruit précédent":"Previous fruit","Fruit suivant":"Next fruit","Réglages":"Settings"});
 // (2026-09-29, les dix premières minutes) PASSER qui demande, le permis fêté, la carrière qui passe par l'auto-école
-Object.assign(I18N,{"VRAIMENT ?": "SURE?", "PERMIS": "LICENSE", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! NITRO, VISE LE DESSUS": "MISSED! NITRO, AIM ABOVE IT", "Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono.": "Training's over: ONE LIFE. In the air, land before the timer runs out.", "Tu reprendras la leçon au prochain départ.": "You'll pick the lesson up on your next start.", "Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent.": "You'll pick the lesson up on your next start: the LICENSE and its bonus are waiting.", "PASSE D'ABORD TON PERMIS": "GET YOUR LICENSE FIRST"});
+Object.assign(I18N,{"PASSER LE TUTO": "SKIP TUTORIAL", "VRAIMENT ?": "SURE?", "PERMIS": "LICENSE", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! NITRO, VISE LE DESSUS": "MISSED! NITRO, AIM ABOVE IT", "Fini l'entraînement : UNE SEULE VIE. En l'air, pose-toi avant la fin du chrono.": "Training's over: ONE LIFE. In the air, land before the timer runs out.", "Tu reprendras la leçon au prochain départ.": "You'll pick the lesson up on your next start.", "Tu reprendras la leçon au prochain départ : le PERMIS et sa prime t'attendent.": "You'll pick the lesson up on your next start: the LICENSE and its bonus are waiting.", "PASSE D'ABORD TON PERMIS": "GET YOUR LICENSE FIRST"});
 // (2026-09-29) MODE FACILE + pouce haut en vol
 Object.assign(I18N,{"MULTI MAX":"BEST MULTI","Fini l'entraînement : tu as 3 VIES. En l'air, pose-toi avant la fin du chrono.":"Training's over: you have 3 LIVES. In the air, land before the timer runs out.","IL MENE DE":"BANKER AHEAD BY","Argent, caisses, habillages, missions, records, carrière et réglages : tout repart de zéro.":"Money, cars, cosmetics, missions, records, career and settings: everything starts over.","Argent, caisses, habillages, missions, records et réglages : tout repart de zéro.":"Money, cars, cosmetics, missions, records and settings: everything starts over."}); // (2026-09-29, passe qualité)
 Object.assign(I18N,{"MODE FACILE": "EASY MODE", "POUCE HAUT EN VOL": "THUMB UP IN THE AIR", "PLONGE": "DIVE", "MONTE": "CLIMB", "CHOISIS TON MODE": "PICK YOUR MODE", "En FACILE, la voiture suit mieux les virages, tu restes plus longtemps en l'air et tu as 3 vies. Tu pourras changer dans les réglages.": "In EASY, the car follows the turns better, you stay longer in the air and you get 3 lives. You can change it in the settings.", "FACILE": "EASY", "NORMAL": "NORMAL", "VIES": "LIVES", "DERNIERE VIE !": "LAST LIFE!", "ON REPART !": "BACK ON THE ROAD!", "En l'air : pouce en HAUT = monte, en BAS = plonge.": "In the air: thumb UP = climb, DOWN = dive."});
@@ -29917,7 +29923,7 @@ const SF_CARTES={
   /* (2026-10-14, Sacha) LA FORÊT NOIRE : ses six temps — le matin doré, le midi vert, le soir d'or, la NUIT HANTÉE (les phares, le loup-garou),
      la pluie, l'orage (les éclairs blanchissent la forêt). Voir « LA FORÊT NOIRE — LA MAP DES CONTES » (genForet, buildForet, FOR_MET). */
   foret:{nm:'LA FORÊT NOIRE',base:'foret',m:{matin:{bio:'foretMatin'},midi:{bio:'foretMidi'},soir:{bio:'foretSoir'},
-    pluie:{bio:'foretPluie',pluie:.8,sheen:.18},orage:{bio:'foretOrage',pluie:1,orage:1,sheen:.2,pr:'LES LOUPS HURLENT'}}},
+    pluie:{bio:'foretPluie',pluie:.8,sheen:.18,p:0}, /* (2026-11-03, Sacha : « supprime la map pluie ») hors du tirage ; `?carte=foret&meteo=pluie` la joue encore */ orage:{bio:'foretOrage',pluie:1,orage:1,sheen:.2,pr:'LES LOUPS HURLENT'}}},
   /* (2026-10-14, Sacha) LE GLACIER (ex-LA BANQUISE, renommé à 20 h 40 : « ça devrait plutôt s'appeler GLACIER et être une MONTAGNE, comme dans STEEP ») :
      le matin rose, le midi bleu profond, le soir où les pics s'embrasent, la NUIT des aurores boréales, la NEIGE, le BLIZZARD (plus rare). Ni pluie ni
      éclairs. La promesse est la même à toute heure : le RACCOURCI (genBanq : les lacets superposés). Voir « LE GLACIER » au JOURNAL. L'id reste 'banquise'. */
@@ -49971,6 +49977,7 @@ function tutoCarte(){
     c.innerHTML='<div class="ecScene"></div><div class="ecH"><span class="ecPips"></span><span class="coN"></span></div>'
       +'<b class="ecT"></b><span class="ecD"></span><button class="coSkip" type="button"></button>';
     document.body.appendChild(c);
+    c.querySelector('.coSkip').addEventListener('pointerdown',function(e){e.stopPropagation();});
     c.querySelector('.coSkip').addEventListener('click',function(e){e.stopPropagation();tutoPasse(this);});}
   if(!document.getElementById('ecMain')){const m=document.createElement('div');m.id='ecMain';m.setAttribute('aria-hidden','true');
     m.innerHTML='<div class="p"><i class="o"></i><i class="m"></i></div><i class="r"></i><i class="fg"></i><i class="fd"></i><b class="x2">×2</b>';document.body.appendChild(m);}
@@ -50003,16 +50010,12 @@ function tutoMain(){
    Permis déjà payé (REVOIR L'AUTO-ÉCOLE) : rien à perdre, un seul appui comme avant. */
 function tutoPasse(b){
   const c=document.getElementById('coach');if(!c||!TUTO.on)return;
-  if(SAVE.d.permis||b.classList.contains('sur')){clearTimeout(tutoPasse._t);uiClic('retour');tutoFin(true);return;}
-  uiClic('danger');hap(8);
-  b.classList.add('sur');b.textContent=TR('VRAIMENT ?').replace(' ',' ');
-  clearTimeout(tutoAffiche._t);c.classList.remove('rate');c.classList.add('passe');
-  c.querySelector('.coN').textContent=TR('PERMIS')+' +'+fmtC(500);
-  clearTimeout(tutoPasse._t);tutoPasse._t=setTimeout(function(){tutoPasseRange(c);},3000);
+  /* (2026-11-03, demande de Sacha) PASSER = UN SEUL CLIC : plus de « VRAIMENT ? ». On sort de la leçon et on repart tout de suite sur une vraie partie. */
+  clearTimeout(tutoPasse._t);uiClic('retour');tutoFin(true);resetGame();
 }
 function tutoPasseRange(c){ // la question retombe : PASSER revient, l'en-tête se vide
   clearTimeout(tutoPasse._t);if(!c)return;const b=c.querySelector('.coSkip');
-  if(b){b.classList.remove('sur');b.textContent=TR('PASSER');}
+  if(b){b.classList.remove('sur');b.textContent=TR('PASSER LE TUTO')+' ›';}
   if(c.classList.contains('passe')){c.classList.remove('passe');c.querySelector('.coN').textContent='';}
 }
 function tutoPips(c,vient){ // les six pastilles : faites (vert), celle en cours (or qui bat), à venir ; `vient` = celle qui vient de se remplir
@@ -50027,7 +50030,7 @@ function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tê
   const montre=function(){
     c.classList.remove('bravo','sort','rate','intro');if(intro)c.classList.add('intro');
     c.querySelector('.coN').textContent=msg?TR(msg):'';
-    c.querySelector('.coSkip').textContent=TR('PASSER');
+    c.querySelector('.coSkip').textContent=TR('PASSER LE TUTO')+' ›';
     tutoMot(c.querySelector('.ecT'),TR(E.t));
     const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()||!E.dk?E.d:E.dk));dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';
     c.querySelector('.ecScene').className='ecScene f-'+E.film;c.querySelector('.ecScene').innerHTML=TUTO_FILMS[E.film]+'<i class="ok"></i>';
@@ -59590,7 +59593,8 @@ if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferen
     /* ===== LE MIROIR ILLISIBLE NE SE SÈME PAS (24/10, débogage sortie iOS : « aucune progression perdue ») ===== semé tel quel, il rechargeait la page sur un localStorage
        tout aussi illisible, qui relisait le miroir, rechargeait… à l'infini : appli inutilisable. Illisible = vide (le flush qui suit écrit une sauvegarde saine) */
     const mv9=!!(r&&r.value&&(function(){try{const x9=JSON.parse(r.value);return !!x9&&typeof x9==='object';}catch(e){return false;}})());
-    if(mv9&&l9&&(+(l9.ex&&l9.ex.runs)||0)>0){SAVE.natif=0;raz9();SAVE.flush();} /* le local a de vraies parties (jouées après l'échec de lecture) : on le garde, il rattrape le miroir */
+    const lr9=l9?(+(l9.ex&&l9.ex.runs)||0):0,mr9=mv9?(function(){try{return +((JSON.parse(r.value).ex||{}).runs)||0;}catch(e){return 0;}})():0;
+    if(mv9&&lr9>0&&lr9>=mr9){SAVE.natif=0;raz9();SAVE.flush();} /* le local a de vraies parties (jouées après l'échec de lecture) ET au moins autant que le miroir : on le garde, il rattrape le miroir. (2026-11-03, relecture de l'audit) Un miroir PLUS RICHE (100 parties contre 1 jouée depuis l'échec) l'emporte : avant, le local pauvre l'écrasait */
     else if(mv9){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
       if(ok){raz9();location.reload();}else SAVE.natif=1;}
     else{SAVE.natif=0;raz9();SAVE.flush();}
@@ -64188,7 +64192,8 @@ function dalleProche(x,y,z,pas,bd0,graine){
    la caisse se poser à contresens (nez dans le sens du vol) ; `dbgDemiTour()` = l'état. */
 var DMT={on:!/[?&]demitour=0\b/.test(location.search),act:false,t:0,D:1.45,tS:.8,TR:1.1,y0:0,y:0,yV:0,cam:0,camP:0,dc:0,vb:0,vo:0,vl:0,sg:1,burn:false,force:false,n:0,
   g:new THREE.Vector3(),f:new THREE.Vector3(),c:new THREE.Vector3(),nn:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),fw:new THREE.Vector3(),
-  el:null,eW:0,eTop:'',eLeft:'',gl:false,h:0,h0:1,sb:1,vt:0,vb2:0,wl:0,tm:0,mx:20,prog:0,ok:0,givre:null,gO:-1};
+  el:null,eW:0,eTop:'',eLeft:'',gl:false,h:0,h0:1,sb:1,vt:0,vb2:0,wl:0,tm:0,mx:20,prog:0,ok:0,givre:null,gO:-1,boostT:0,boostT0:0,boostPop:false,chargeP:0,chargeQ:0,chargeLv:0,
+  cab:0,cabV:0,cabT:0,cabA:0,cp:new THREE.Vector3(),cv:new THREE.Vector3(),cpOk:false};
 /* ===== LE VERGLAS DU CONTRESENS (2026-11-02, Léo : « la voiture ne va plus tourner toute seule, mais va indiquer qu'il y a un mauvais sens et va
    automatiquement s'accorder à l'angle, le sens dans lequel la voiture arrive sur la route, pour lui donner un effet de verglas qui permettra de se
    rattraper en drift de manière assez satisfaisante, mais qui peut aussi faire tomber ceux qui arrivent de manière trop brutale sans savoir ce
@@ -64203,13 +64208,18 @@ var DMT={on:!/[?&]demitour=0\b/.test(location.search),act:false,t:0,D:1.45,tS:.8
    · le panneau MAUVAIS SENS grandit : le texte, deux chevrons qui montrent de quel côté braquer et la jauge du demi-tour ; le bord de l'écran
      givre ; les pneus crachent des cristaux.
    La règle de la pose ratée ne bouge pas (flow à zéro). `?verglas=0` = le demi-tour automatique du 17/10. */
-const GV={on:!/[?&]verglas=0\b/.test(location.search),w:2.5,wF:1.7,tAide:1.4,wAide:0,pousse:.42,kLong:.8,kSide:1.9,kSideF:1.05,bord:6,kBord:2.0,sortie:.6,tMax:14,cam:.6,lat0:.5};
+/* (2026-11-03, Sacha : « quand tu atterris à contresens, la voiture fait le demi-tour, et pendant que tu tournes ça PRÉPARE un boost, et dès que
+   tu es en face de la route, ça décolle ») LE DEMI-TOUR SE FAIT, ET IL CHARGE. Après `tAide` s sans toucher au pouce (la glisse, le « chiii », le
+   panneau MAUVAIS SENS), le nez revient tout seul (`wAide`, vite : ~0,6 s) ; le pouce reste plus rapide. Tout le long du demi-tour la CHARGE
+   monte avec le cap qui se redresse (dmtCharge : champ qui se resserre, secousse, feu aspiré dans les pots) et, dès que la caisse est en face de
+   la route, elle DÉCOLLE (dmtDecolle). `?decollage=manuel` = le verglas de Léo (02/11) : rien d'automatique, le nez ne revient que si on le ramène. */
+const GV={on:!/[?&]verglas=0\b/.test(location.search),w:2.5,wF:1.7,tAide:.5,wAide:/[?&]decollage=manuel\b/.test(location.search)?0:5,pousse:.42,kLong:.8,kSide:1.9,kSideF:1.05,bord:6,kBord:2.0,sortie:.6,tMax:14,cam:.6,lat0:.5};
 function dmtGlace(dt,frein){const D=DMT;D.t+=dt;const d=Math.min(dt,1/30),mx=D.mx;
   {const ry=(routeLacet||0)*dt,c=Math.cos(ry),s9=Math.sin(ry),vt=D.vt*c+D.vb2*s9;D.vb2=-D.vt*s9+D.vb2*c;D.vt=vt;D.h-=ry;} /* la route tourne sous la caisse, le cap et l'élan restent dans le monde */
   const vit=Math.hypot(D.vt,D.vb2),lent=vit<mx*.12;
   if(Math.abs(steer)>.2)D.tm=0;else D.tm+=dt; /* le temps sans toucher au pouce : passé GV.tAide, le nez revient seul */
   let wT=steer*GV.w*(frein?GV.wF:1);
-  if(GV.wAide>0&&(D.tm>GV.tAide||lent||D.t>GV.tMax-1)){const k=lent?1:Math.min(1,Math.max(D.tm-GV.tAide,D.t-GV.tMax+1)/.8);wT+=-Math.sign(D.h)*GV.wAide*k*Math.min(1,Math.abs(D.h)/.5);}
+  if(GV.wAide>0&&(D.tm>GV.tAide||lent||D.t>GV.tMax-1)){const k=lent?1:Math.min(1,Math.max(D.tm-GV.tAide,D.t-GV.tMax+1)/.3);wT+=-Math.sign(D.h)*GV.wAide*k*Math.min(1,Math.abs(D.h)/.5);}
   D.yV+=(wT-D.yV)*(1-Math.exp(-d/.09));D.h+=D.yV*dt;D.h=Math.atan2(Math.sin(D.h),Math.cos(D.h));
   {const hx=Math.cos(D.h),hy=Math.sin(D.h);let u=D.vt*hx+D.vb2*hy,w=-D.vt*hy+D.vb2*hx; /* l'élan dans le repère de la caisse : u le long du nez, w de côté */
    u+=GV.pousse*mx*dt*Math.max(0,hx); /* le moteur ne mord que nez vers l avant : à l envers, les roues patinent sur la glace */
@@ -64222,23 +64232,86 @@ function dmtGlace(dt,frein){const D=DMT;D.t+=dt;const d=Math.min(dt,1/30),mx=D.m
   glisse9=Math.max(glisse9,THREE.MathUtils.clamp(.35+Math.abs(D.wl)/(mx*.25),0,1));
   D.y=D.h*D.sb;D.cam+=(D.y*GV.cam-D.cam)*(1-Math.exp(-d/.2));
   D.prog=1-Math.min(1,Math.max(0,(Math.abs(D.h)-GV.sortie)/Math.max(.3,D.h0-GV.sortie)));
-  {const net=D.t<=GV.tMax&&D.tm<=GV.tAide;if(Math.abs(D.h)<(net?GV.sortie:.12)||D.t>GV.tMax)dmtRattrape(net);} /* rattrapé au pouce : on repart en glisse ; ramené par l'aide : on repart droit */
+  dmtCharge(dt,Math.max(D.prog,.5*Math.min(1,D.t/1.2))); /* la charge monte avec le cap qui se redresse (et un peu avec le temps : la glisse du début la fait déjà frémir) */
+  {const net=D.t<=GV.tMax&&(GV.wAide>0||D.tm<=GV.tAide);if(Math.abs(D.h)<(net?GV.sortie:.12)||D.t>GV.tMax)dmtRattrape(net);} /* rattrapé au pouce : on repart en glisse ; ramené par l'aide : on repart droit */
 }
 function dmtRattrape(net){const D=DMT,mx=D.mx,q=net?THREE.MathUtils.clamp(1-(D.t-.5)/2.3,0,1):0;
   const hx=Math.cos(D.h),hy=Math.sin(D.h),u=D.vt*hx+D.vb2*hy;
   vA=Math.max(u,mx*(.3+.4*q));psi=THREE.MathUtils.clamp(D.h,-1.4,1.4);slipB=THREE.MathUtils.clamp(D.h*.6,-.45,.45);slipV=0;driftYaw=0;driftT=1;
   D.act=false;D.gl=false;D.y=0;D.yV=0;D.burn=true;D.ok++;dmtGivre(false);
   try{if(SONV2)sfx('turbo.mini',{vol:q>.5?-2:-5});}catch(e){}hap(q>.5?[10,24,40]:[10,24]);fovPunch=Math.max(fovPunch,4+4*q);
-  if(typeof sensCoup==='function')try{sensCoup(0,1.2+q,-.8);}catch(e){}
-  /* (2026-11-03, Sacha : « il faut que ce demi-tour donuts donne un gros, une sorte de petit boost de vitesse, mais qui soit assez
-     kiffant et qui fasse des flammes sur la route, les mêmes textures que pour le nitro ») LE BOOST DU RATTRAPAGE : un vrai coup de
-     reins (jusqu'à mx*,9 au rattrapage pile), pas juste la glisse qu'on garde — et `nitroAllume` rejoue EXACTEMENT le coup du nitro
-     (le feu de pixels aux pots, qui traîne au sol derrière la caisse, l'onde, le flash d'écran, la secousse) : zéro code de flamme en
-     plus, le même qu'en tenant NITRO. */
-  if(net){vA=Math.max(vA,mx*(.55+.35*q));flowAdd(4+8*q,'style');nitroGain(.08+.22*q,'rattrape');sparkBurst(sparkGold,carGroup.position,6+Math.round(10*q),8);
-    try{nitroAllume(false,false);}catch(e){}}
-  dmtSigne(net?'ok':false);
+  if(!net&&typeof sensCoup==='function')try{sensCoup(0,1.2+q,-.8);}catch(e){} // (le coup d'encaissement du nez ; au décollage, c'est le wheelie qui prend la place)
+  D.chargeP=0;
+  /* (2026-11-03, Sacha : « il faut que ce demi-tour donuts donne un gros boost, qui fasse des flammes, les mêmes textures que le nitro » —
+     « beaucoup plus explosif » — « ×3 » — « tu arrives à contresens, la voiture fait le demi-tour, pendant que tu tournes ça prépare un boost, et
+     dès que tu es en face de la route, ça décolle ») LE RATTRAPAGE EST LE DÉCOLLAGE : la charge a monté pendant tout le demi-tour (dmtCharge,
+     appelée par dmtGlace) ; ici, la caisse est en face de la route : `dmtDecolle` la lâche — le boost additif ×3, le nitro, le wheelie. */
+  if(net){D.chargeQ=q;dmtDecolle();}
+  else dmtSigne(false);
 }
+/* ===== LE DÉCOLLAGE (2026-11-03, Sacha : « pas du tout assez puissant, il faut vraiment décollage, augmente le boost de 300 % — tu
+   arrives à contresens, la voiture fait "chiii", zoom caméra qui se serre, les flammes se concentrent à l'intérieur du moteur, elles se
+   préparent à exploser, la caméra tremble, un petit effet visuel, puis la flamme derrière, et la voiture avance d'un coup, elle décolle un
+   peu les roues à l'avant — fais un truc exceptionnel, magnifique, vraiment très fun ») =====
+   Deux temps, comme une fusée sur son pas de tir :
+   · LA CHARGE (tout le demi-tour, ~1,2 à 1,8 s, dmtCharge) : le champ de la caméra se RESSERRE (CAMV.zoom, jusqu'à −29°), elle tremble de plus en plus
+     (shake), les bords de l'écran s'allument d'or (NFX.edge), les pneus crient (glisse9) ; la caisse s'ASSOIT sur l'arrière et VIBRE
+     (dmtCabre) ; le feu du nitro est ASPIRÉ dans les pots (dmtAspire : des cubes du feu de pixels qui convergent vers la bouche des pots,
+     de plus en plus nombreux) et le feu du moteur gonfle (flmPop) ; trois notes du turbo du drift MONTENT (drift.charge, l'octave).
+   · LA RELÂCHE (dmtDecolle) : le champ S'OUVRE d'un coup (le zoom lâché + fovPunch), le boost (×3 de la version d'avant : +165 à +285 %
+     de la vitesse plafond, ADDITIF), l'allumage du nitro au complet (nitroAllume : boule de feu, onde, flash, WHOOMP) et une gerbe énorme
+     (nfeuCoup), un ANNEAU DE FEU qui s'ouvre sur la route autour de la caisse (dmtAnneauFeu) et l'anneau de fumée du burn-out ; le WHEELIE
+     tenu (~12-14°, l'avant décolle ~0,5-0,65 s puis RETOMBE et rebondit — le ressort de tangage du jeu, plafonné à 8° et retombé en 0,1 s,
+     ne se voyait pas) ; le vent s'emballe (VENT.pic) ; « DÉCOLLAGE ! » remplace « RATTRAPÉ ! ». Puis l'après-boost : ~0,7 s de JET de
+     nitro continu derrière la caisse, la fumée dense, la flamme qui revient. Pas de ralenti (Sacha, 26/09 : « enlève tous les modes
+     ralentis du jeu »). */
+function dmtCharge(dt,p){const D=DMT; // LA CHARGE (p : 0 → 1, l'avancée du demi-tour) : ça monte, ça tremble, ça n'explose pas encore
+  p=THREE.MathUtils.clamp(p,0,1);D.chargeP=Math.max(p,1e-3);const e=p*p; // quadratique : lent au début, net à la fin
+  CAMV.zoom=Math.max(CAMV.zoom,.18+.95*e);shake=Math.max(shake,.1+.55*e);glisse9=Math.max(glisse9,.45+.5*e);
+  try{NFX.edge=Math.max(NFX.edge,.38*e);}catch(ex){}
+  for(let i=0;i<4;i++)try{flmPop(i,.4+1.1*e);}catch(ex){}
+  {const lv=1+(p>=.38)+(p>=.74);if(lv>D.chargeLv){D.chargeLv=lv;try{if(SONV2)sfx('drift.charge',{st:sonPd([0,1,3,5][lv])});}catch(ex){}try{hap([0,10,14,20][lv]);}catch(ex){}}}
+  dmtAspire(dt,e);}
+function dmtVitCaisse(dt){const D=DMT,cp=carGroup.position,id=1/Math.max(dt,1e-3); // la vitesse MONDE de la caisse (le feu aspiré la suit)
+  if(D.cpOk){D.cv.set((cp.x-D.cp.x)*id,(cp.y-D.cp.y)*id,(cp.z-D.cp.z)*id);if(D.cv.lengthSq()>4e4)D.cv.set(0,0,0);}else D.cv.set(0,0,0);
+  D.cp.copy(cp);D.cpOk=true;}
+function dmtAspire(dt,e){const D=DMT,np=Math.max(1,nfeuNp()),T=.3; // LE FEU ASPIRÉ : des cubes du feu du nitro nés autour des pots, qui y CONVERGENT en T s
+  dmtVitCaisse(dt);
+  const n=emiN('dmtAsp',dt*(110+460*e));
+  for(let k=0;k<n;k++){potMonde(CAR_POTS[(Math.random()*np)|0]||CAR_POT_C,D.v);
+    const r=(1.2+Math.random()*1.4)*(1-.6*e),a=Math.random()*6.2832,b=(Math.random()-.25)*1.3; /* (Sacha : « les flammes qui RAPETISSENT et qui se préparent à exploser ») le cercle se resserre… */
+    D.g.set(Math.cos(a)*Math.cos(b),Math.sin(b)+.15,Math.sin(a)*Math.cos(b)).normalize().multiplyScalar(r);
+    if(nfeuGicle(D.v.x+D.g.x,D.v.y+D.g.y,D.v.z+D.g.z,D.cv.x-D.g.x/T,D.cv.y-D.g.y/T+4.5*T,D.cv.z-D.g.z/T,.17-.1*e)) /* …et les cubes RAPETISSENT : le feu se comprime avant d'exploser — +4,5·T : la gravité du cube (9 m/s²) compensée sur le trajet */
+      NFEU.P[(NFEU.n-1)*12+7]=T*(.85+.25*Math.random());}} /* sa VIE = son trajet : il s'éteint en arrivant dans le pot, au lieu de le traverser */
+function dmtAnneauFeu(q){const D=DMT,cp=carGroup.position,N=40+Math.round(24*q); // L'ANNEAU DE FEU : le feu du nitro qui s'ouvre en cercle sur la route
+  D.g.set(1,0,0).applyQuaternion(carGroup.quaternion);D.w.set(0,0,1).applyQuaternion(carGroup.quaternion);D.nn.set(0,1,0).applyQuaternion(carGroup.quaternion);
+  for(let i=0;i<N;i++){const a=i/N*6.2832+Math.random()*.15,ca=Math.cos(a),sa=Math.sin(a),v=9+Math.random()*8,
+      ox=D.g.x*ca+D.w.x*sa,oy=D.g.y*ca+D.w.y*sa,oz=D.g.z*ca+D.w.z*sa;
+    nfeuGicle(cp.x+ox*1.3+D.nn.x*.25,cp.y+oy*1.3+D.nn.y*.25,cp.z+oz*1.3+D.nn.z*.25,D.cv.x+ox*v+D.nn.x*3.2,D.cv.y+oy*v+D.nn.y*3.2,D.cv.z+oz*v+D.nn.z*3.2,.15+.1*Math.random());}}
+function dmtCabre(d){const D=DMT;let t=0,tr=0; // L'ASSIETTE DU DÉCOLLAGE (rad, nez en l'air > 0) : un ressort qui suit sa consigne — lue par la boucle (boucle-3-physique)
+  if(D.chargeP>0){const p=D.chargeP;t=.035*p*p;tr=.012*p*Math.sin(performance.now()*.075);} // assise sur l'arrière, et la carrosserie qui VIBRE (~12 Hz, hors ressort)
+  else if(D.cabT>0){D.cabT=Math.max(0,D.cabT-d);t=D.cabA;} // LE WHEELIE tenu, puis lâché d'un coup : l'avant retombe et rebondit (ressort peu amorti)
+  D.cabV+=((t-D.cab)*120-D.cabV*9.5)*d;D.cab=THREE.MathUtils.clamp(D.cab+D.cabV*d,-.08,.34);
+  if(!D.cabT&&!(D.chargeP>0)&&Math.abs(D.cab)<1e-4&&Math.abs(D.cabV)<1e-3){D.cab=0;D.cabV=0;}
+  return D.cab+tr;}
+function dmtDecolle(){const D=DMT,mx=D.mx,q=D.chargeQ; // LA RELÂCHE
+  vA+=mx*(1.65+1.2*q);flowAdd(10+16*q,'style');nitroGain(.22+.38*q,'rattrape');sparkBurst(sparkGold,carGroup.position,22+Math.round(20*q),15);
+  shake=Math.min(1.3,Math.max(shake,1.15+.15*q));CAMV.zoom=Math.min(CAMV.zoom,.4);fovPunch=Math.max(fovPunch,22+8*q); // le champ resserré S'OUVRE d'un coup, et plus large que d'habitude
+  try{nitroAllume(false,false);nfeuCoup(2.4+q);}catch(e){}
+  try{VENT.pic=Math.max(VENT.pic,1.8);}catch(e){}try{hap([30,40,60]);}catch(e){}
+  if(typeof sensCoup==='function')try{sensCoup(0,0,1.2);}catch(e){} // la suspension arrière s'écrase sous la poussée
+  D.cabT=.5+.15*q;D.cabA=.17+.07*q; /* LE WHEELIE (dmtCabre) */
+  dmtAnneauFeu(q);dmtSigne('go');
+  /* (2026-11-03, Sacha : « reprends le burn-out du garage — la texture au sol avec les donuts, et plein de fumée, très dense, genre
+     comme dans le garage ; les flammes reviennent plus tard, à la fin du boost » — « inspire-toi des fichiers ») L'ANNEAU DE FUMÉE, comme
+     `burnAnneau` du garage (interface/burn-out-1.js — même idée, pas le même réservoir : celui-ci est à LA ROUTE, pas protégé par
+     garde-burnout.sh) : un cercle de bouffées qui s'ouvre autour de la caisse au départ. Et L'APRÈS-BOOST (D.boostT, lu par dmtPose
+     même une fois D.act retombé) : la fumée continue de sortir DENSE (54 bouffées/s — le débit du burn-out chauffé, pas le filet
+     habituel du demi-tour) pendant que la caisse s'arrache, et une DERNIÈRE langue de feu du nitro revient juste avant que ça s'éteigne. */
+  {const c0=carGroup.position,N=18,R=1.9+.6*q;for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*6.2832,ca=Math.cos(a),sa=Math.sin(a),v=2.8+Math.random()*2;
+    spawnP(dust,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v,.3+Math.random()*.7,sa*v,2.2+Math.random()*1.5);
+    if(i&1)spawnP(embers,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v*1.4,.6+Math.random()*1.2,sa*v*1.4,.3+Math.random()*.3);}}
+  D.boostT=D.boostT0=.85+.4*q;D.boostPop=false;}
 function dmtVmax(){return CARS[0].maxKmh/3.6*lateMul()*(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push;} // le maxSp de la boucle (local à loop)
 function dmtAng(f,n,g){DMT.c.crossVectors(n,f);return Math.atan2(g.dot(DMT.c),g.dot(f));} // l'angle, autour de n, qui mène f sur g (même sens que setFromAxisAngle(n,·))
 function dmtArme(bI,sd){ // (tryLand) posée à contresens sur la dalle bI, face sd — lat, psi, vA viennent d'être posés
@@ -64275,8 +64348,13 @@ function dmtConduite(dt,frein){const D=DMT; // (boucle de conduite, après le la
   const x=D.t/D.tS,u=x<1?0:Math.min(1,(D.t-D.tS)/(D.D-D.tS));
   if(x<1)vA=-D.vb*Math.pow(1-x,1.5); // la GLISSE en arrière, que les pneus mangent
   else{vA=D.vo*u*u; // le BURN-OUT : ça patine d'abord, puis ça mord
-    if(!D.burn){D.burn=true;try{if(SONV2)sfx('turbo.mini',{vol:-5});}catch(e){}hap([10,24]);fovPunch=Math.max(fovPunch,5);if(typeof sensCoup==='function')sensCoup(0,1.6,-.8);
-      D.vo=Math.max(D.vo,dmtVmax()*.72);nitroGain(.18,'rattrape');try{nitroAllume(false,false);}catch(e){}}} // (2026-11-03, Sacha) le même boost et les mêmes flammes de nitro qu'au RATTRAPAGE du verglas
+    if(!D.burn){D.burn=true;try{if(SONV2)sfx('turbo.mini',{vol:-5});}catch(e){}hap([10,24]);fovPunch=Math.max(fovPunch,13);shake=Math.min(1.3,Math.max(shake,1.1));if(typeof sensCoup==='function')sensCoup(0,1.6,-.8);
+      D.vo+=dmtVmax()*1.86;nitroGain(.3,'rattrape');CAMV.zoom=Math.max(CAMV.zoom,1.55);try{nitroAllume(false,false);nfeuCoup(2.6);}catch(e){} // (2026-11-03, Sacha : « ×3 ») le même boost (×3, additif) et les mêmes flammes de nitro qu'à LA RELÂCHE du rattrapage du verglas
+      D.cabT=.55;D.cabA=.2;D.cv.set(0,0,0);D.cpOk=false;dmtAnneauFeu(1);try{VENT.pic=Math.max(VENT.pic,1.8);}catch(e){} // LE WHEELIE et L'ANNEAU DE FEU du décollage (voir LE DÉCOLLAGE)
+      {const c0=carGroup.position,N=18,R=2.3;for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*6.2832,ca=Math.cos(a),sa=Math.sin(a),v=2.8+Math.random()*2; // l'anneau de fumée du donut, même idée qu'au rattrapage du verglas
+        spawnP(dust,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v,.3+Math.random()*.7,sa*v,2.2+Math.random()*1.5);
+        if(i&1)spawnP(embers,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v*1.4,.6+Math.random()*1.2,sa*v*1.4,.3+Math.random()*.3);}}
+      D.boostT=D.boostT0=.85;D.boostPop=false;}}
   if(vA<0&&s<6)vA=0;
   D.vl*=Math.exp(-dt*3.5);lat+=D.vl*dt*SPD; // un reste de dérive latérale, qui meurt vite
   const lim=ROAD_HALF-(CARS[level].w||2)*.5-.35;if(Math.abs(lat)>lim)lat+=(Math.sign(lat)*lim-lat)*(1-Math.exp(-dt*7)); // ramenée sur le bitume
@@ -64288,6 +64366,23 @@ function dmtConduite(dt,frein){const D=DMT; // (boucle de conduite, après le la
 function dmtPose(F,dt){const D=DMT; // (conduite, après la pose de la caisse sur la route) le lacet de la manœuvre, la fumée, le panneau
   if(D.y){qTmp.setFromAxisAngle(F.n,D.y);carGroup.quaternion.premultiply(qTmp);}
   dmtGivre(D.act&&D.gl);
+  if(D.boostT>0){ /* (2026-11-03, Sacha : « plein de fumée, très dense, genre comme dans le garage ; les flammes reviennent plus tard, à
+       la fin du boost » — inspiré du burn-out du garage, interface/burn-out-2.js `burnTick` : son débit chauffé va de 46 à 90 bouffées/s)
+       L'APRÈS-BOOST continue même une fois D.act retombé (le rattrapage l'a déjà coupé) : la fumée sort dense derrière la caisse qui
+       s'arrache (54 bouffées/s, le filet habituel du demi-tour n'en fait que ,8 à 2/s), la trace de pneus (TRACE, voir
+       rendu/traces-pneus.js — elle lit `glisse9`) reste épaisse tant que ça fume, et une LANGUE DE FEU du nitro revient juste avant que
+       tout s'éteigne : le feu « qui revient », pas qu'un seul coup au départ. */
+    D.boostT-=dt;const sp9=CARS[level]||CARS[0],VC9=PT_U.uVc&&PT_U.uVc.value;D.w.set(0,0,-1).applyQuaternion(carGroup.quaternion);
+    if(D.boostT0-D.boostT<.7)try{nfeuCoup(Math.min(.5,dt*13));}catch(e){} /* (LE DÉCOLLAGE) ~0,7 s de JET de nitro continu derrière la caisse qui s'arrache (le débit d'une nitro tenue) */
+    dmtSigneSuit();
+    glisse9=Math.max(glisse9,.85);
+    const rp9=emiN('dmtBoost',dt*54);
+    for(let r=0;r<rp9;r++){const sd=r&1?1:-1,av=r&2;
+      D.v.set(sd*sp9.w*.5,.25,(av?.4:-.4)*sp9.l).applyQuaternion(carGroup.quaternion).add(carGroup.position);
+      spawnP(dust,D.v.x,D.v.y,D.v.z,(VC9?VC9.x*.85:0)+D.w.x*7+(Math.random()-.5)*3.4,(VC9?VC9.y*.85:0)+1+Math.random()*1.8,(VC9?VC9.z*.85:0)+D.w.z*7+(Math.random()-.5)*3.4,1.4+Math.random()*1.2);
+      if((r&3)===0)spawnP(embers,D.v.x,D.v.y,D.v.z,D.w.x*9+(Math.random()-.5)*2,1.2+Math.random()*1.6,D.w.z*9+(Math.random()-.5)*2,.35+Math.random()*.3);}
+    if(D.boostT<=.4&&!D.boostPop){D.boostPop=true;try{nfeuCoup(1.1);}catch(e){}}
+    if(D.boostT<=0){D.boostT=0;D.boostPop=false;}}
   if(!D.act)return;
   if(D.gl){const sp=CARS[level]||CARS[0],rp=emiN('dmt',dt*(.6+Math.min(1,Math.abs(D.wl)/(D.mx*.2)))); /* (LE VERGLAS) les pneus crachent du givre : cristaux et poudre blanche */
     for(let r=0;r<rp;r++){const sd=r&1?1:-1,av=r&2;
@@ -64307,7 +64402,7 @@ function dmtCamDir(fw,n){const D=DMT; // (caméra de conduite) la direction de l
   if(!D.cam)return fw;
   return D.fw.copy(fw).applyAxisAngle(n,D.cam);}
 function dmtCamTick(dt){const D=DMT;if(!D.act&&D.cam){D.cam*=Math.exp(-dt/.14);if(Math.abs(D.cam)<.003)D.cam=0;}D.dc=D.cam-D.camP;D.camP=D.cam;} // dc : de combien la caméra a tourné depuis l'image d'avant
-function dmtCoupe(){if(typeof DMT==='undefined'||!DMT)return;DMT.act=false;DMT.gl=false;dmtGivre(false);DMT.y=0;DMT.yV=0;DMT.cam=0;DMT.camP=0;DMT.dc=0;dmtSigne(false,true);} // vol, explosion, portail, replacement, nouvelle partie
+function dmtCoupe(){if(typeof DMT==='undefined'||!DMT)return;DMT.act=false;DMT.gl=false;dmtGivre(false);DMT.y=0;DMT.yV=0;DMT.cam=0;DMT.camP=0;DMT.dc=0;DMT.boostT=0;DMT.boostPop=false;DMT.chargeP=0;DMT.cab=0;DMT.cabV=0;DMT.cabT=0;DMT.cpOk=false;dmtSigne(false,true);} // vol, explosion, portail, replacement, nouvelle partie
 /* LE « MAUVAIS SENS » : le texte seul, petit (8 px, police pixel), rouge cerné d'encre comme les textes du HUD, au-dessus du toit ; il suit la
    caisse à l'écran, apparaît en fondu et s'efface quand elle repart. (1er essai : un panneau routier rouge à double liseré et sa flèche —
    « plus petit et discret », Léo.) */
@@ -64336,6 +64431,10 @@ function dmtSigne(on,net){const D=DMT;
       '#dmtSigne.ok .cs,#dmtSigne.ok .j{visibility:hidden}'+
       '#dmtSigne.ok.on{animation:dmtOk .95s ease-out both}'+
       '@keyframes dmtOk{0%{opacity:0;scale:1.6}18%{opacity:1;scale:1}70%{opacity:1;scale:1}100%{opacity:0;scale:1;translate:0 -8px}}'+
+      /* (LE DÉCOLLAGE) « DÉCOLLAGE ! » : plus gros, couleur du feu, il CLAQUE (écrasé puis rebond) et s'envole */
+      '#dmtSigne.go{font-size:18px;letter-spacing:3px;color:#ffc24a;text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 3px 0 #1c0430,0 0 14px rgba(255,120,30,.95),0 0 28px rgba(255,70,20,.55)}'+
+      '#dmtSigne.go.on{animation:dmtGo 1.15s cubic-bezier(.2,.9,.3,1) both}'+
+      '@keyframes dmtGo{0%{opacity:0;scale:2.6}10%{opacity:1;scale:.9}20%{scale:1.08}30%{scale:1}72%{opacity:1;scale:1;translate:0 0}100%{opacity:0;scale:1.15;translate:0 -18px}}'+
       '#dmtGivre{position:fixed;inset:0;z-index:39;pointer-events:none;opacity:0;transition:opacity .35s ease-out;'+
       'background:radial-gradient(ellipse 80% 72% at 50% 52%,rgba(0,0,0,0) 58%,rgba(150,225,255,.14) 80%,rgba(225,250,255,.42) 100%)}'+
       '#dmtGivre.on{opacity:1;transition-duration:.15s}'+
@@ -64346,6 +64445,8 @@ function dmtSigne(on,net){const D=DMT;
   const e=D.el;
   if(on==='ok'){e.className='gl ok';e.innerHTML='<div class="l"><span class="t"></span></div>';e.querySelector('.t').textContent=TR('RATTRAPÉ !');
     D.eW=150;void e.offsetWidth;e.classList.add('on');D.eTop='';D.eLeft='';dmtSigneSuit();clearTimeout(D.okT);D.okT=setTimeout(function(){if(e.classList.contains('ok'))e.classList.remove('on');},950);return;}
+  if(on==='go'){e.className='gl ok go';e.innerHTML='<div class="l"><span class="t"></span></div>';e.querySelector('.t').textContent=TR('DÉCOLLAGE !'); // (LE DÉCOLLAGE) il remplace « RATTRAPÉ ! » à la relâche
+    D.eW=220;void e.offsetWidth;e.classList.add('on');D.eTop='';D.eLeft='';dmtSigneSuit();clearTimeout(D.okT);D.okT=setTimeout(function(){if(e.classList.contains('go'))e.classList.remove('on');},1150);return;}
   if(on&&D.gl){clearTimeout(D.okT);e.className='gl';e.innerHTML='<div class="l"><span class="cs g"><i class="ch g"></i><i class="ch g"></i></span><span class="t"></span><span class="cs d"><i class="ch d"></i><i class="ch d"></i></span></div><div class="j"><i></i></div>';
     e.querySelector('.t').textContent=TR('MAUVAIS SENS');D.eJ=e.querySelector('.j i');D.eV='';D.eP=-1;D.eW=170;D.eTop='';D.eLeft='';
     void e.offsetWidth;e.classList.add('on');dmtSigneSuit();return;}
@@ -64362,7 +64463,7 @@ function dmtSigneSuit(){const D=DMT,e=D.el;if(!e||!e.classList.contains('on'))re
     const p9=Math.round(D.prog*20);if(p9!==D.eP){D.eP=p9;D.eJ.style.width=(p9*5)+'%';}}}
 function dmtGivre(on){const g=DMT.givre;if(!g)return;const o=on?1:0;if(o!==DMT.gO){DMT.gO=o;g.classList.toggle('on',!!o);}} /* le bord de l'écran givre tant que la caisse est sur le verglas */
 GV.dr=-1; /* (mesuré au banc) le pouce à DROITE donne steer < 0 : il fait DESCENDRE DMT.h */
-Object.assign(I18N,{'MAUVAIS SENS':'WRONG WAY','RATTRAPÉ !':'SAVED!'});
+Object.assign(I18N,{'MAUVAIS SENS':'WRONG WAY','RATTRAPÉ !':'SAVED!','DÉCOLLAGE !':'TAKEOFF!'});
 window.dbgDemiTour=function(ang,v,la,h){
   if(ang==null)return {actif:DMT.act,on:DMT.on,verglas:DMT.gl,t:+DMT.t.toFixed(2),lacetDeg:Math.round(DMT.y*57.3),capDeg:Math.round(DMT.h*57.3),cameraDeg:Math.round(DMT.cam*57.3),vA:+vA.toFixed(1),lat:+lat.toFixed(2),
     vt:+DMT.vt.toFixed(1),vb:+DMT.vb2.toFixed(1),cote:+DMT.wl.toFixed(1),jauge:+DMT.prog.toFixed(2),rattrapes:DMT.ok,pouce:+steer.toFixed(2),go:gameOver,glisse:+DMT.vb.toFixed(1),relance:+DMT.vo.toFixed(1),n:DMT.n,mode:mode,panneau:!!(DMT.el&&DMT.el.classList.contains('on'))};
@@ -71945,7 +72046,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
   const rk=ong+':'+cat+':'+L.map(function(k){return k+(bqA(k)?1:0);}).join(',')+':'+LANG;
   if(GBQ.rk!==rk){GBQ.rk=rk;GBQ.vu=-1;
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
-      if(C9&&s){const t=sansAcc(TR(C9[1]));if(s.textContent!==t){s.textContent=t;b.setAttribute('aria-label',t);}}});
+      if(C9&&s){const t=sansAcc(TR(C9[1]));if(s.textContent!==t){s.textContent=t;b.setAttribute('aria-label',t);b.title=t;}if(on)une.setAttribute('data-cur',t);}}); /* (2026-11-03, Sacha : « cet écran, il est horrible ») `data-cur` : le NOM du rayon ouvert, écrit sous les carrés quand les libellés n'ont plus la place (.duo) */
     rail.classList.remove('off','habs');rail.classList.add('entre');rail.scrollTop=0;rail.scrollLeft=0; /* (2026-10-15, Sacha : « un menu plus grand pour les figures, les ailes, les peintures ») tous les rayons en GRANDES cartes, trois par rangée comme les voitures — à quatre, « D'ORIGINE » se coupait en « D'ORIGIN / E » */
     rail.innerHTML=(cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):cat==='voiture'?bqVoitRail(L):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);bqAimant(rail);
     pan.classList.toggle('bqFigOn',cat==='figure');BQFS.k='';} /* (2026-10-16, Sacha) les trois figures équipées en haut du rayon FIGURES (voir bqFigSelMaj) */
@@ -72012,7 +72113,7 @@ function bqManque(k){
 /* LES RAYONS TIENNENT DANS LEUR PLACE (2026-10-15) : une ligne par rayon, de 44 à 52 px (la cible du pouce), l'écart se resserre d'abord ;
    s'il n'y a pas la place de six lignes de 44 px (petit téléphone, couché bas), deux colonnes de carrés, pictogramme seul (le nom reste dans aria-label) */
 function bqRayons(el,dispo){const n=el.children.length||1;let g=6,h=Math.floor((dispo-g*(n-1))/n);if(h<46){g=4;h=Math.floor((dispo-g*(n-1))/n);}
-  const duo=h<44;if(duo){g=8;const r=Math.ceil(n/2);h=Math.floor((dispo-g*(r-1))/r);}
+  const duo=h<44;if(duo){g=8;const r=Math.ceil(n/2);h=Math.floor((dispo-18-g*(r-1))/r);} /* 18 px : la ligne du nom du rayon ouvert sous les carrés */
   h=Math.max(44,Math.min(duo?56:52,h));el.classList.toggle('duo',duo);el.style.setProperty('--cH',h+'px');el.style.setProperty('--cG',g+'px');}
 function bqEtat(){const k=bqCourant();if(!k)return null;
   {const m9=bqManque(k);if(m9)return m9;} // (2026-10-14, boutique P1) pas assez d'argent : voir bqManque
@@ -75715,7 +75816,7 @@ function loop(now){
             carGroup.quaternion.premultiply(qTmp); // rotation MONDE autour de la verticale de la route
           }
           if(BKV.yaw){qTmp.setFromAxisAngle(F.n,BKV.yaw);carGroup.quaternion.premultiply(qTmp);}
-          if(DMT.y||DMT.act)dmtPose(F,dt); // (LE DEMI-TOUR) le lacet de la manœuvre, la gomme, le panneau // (2026-10-15) ICE SKATE : le crabe et la foulée du patineur sur le verglas
+          if(DMT.y||DMT.act||DMT.boostT>0)dmtPose(F,dt); // (LE DEMI-TOUR) le lacet de la manœuvre, la gomme, le panneau — (2026-11-03, Sacha) +boostT : l'après-boost (fumée dense, la flamme qui revient) continue une fois D.act retombé ; // (2026-10-15) ICE SKATE : le crabe et la foulée du patineur sur le verglas
           gsolPose(F); // (2026-10-15) LES FIGURES AU SOL du GLISSER (slide 360, wheelie, stoppie)
           figMemo(dt); // (2026-10-14, LES FIGURES v2) l'assiette des deux dernières images : au décollage, la caisse emporte sa rotation
           frPose(F,dt); // (2026-10-17) LA FIGURE SUR LA ROUTE : elle tourne et bondit par-dessus la pose (après figMemo : l'élan emporté reste celui de la route)
@@ -75734,7 +75835,8 @@ function loop(now){
            pitch9+=(((dn||driftEnCours)?.035:0)-((nitroOn||boost>0)?.03:0)-NFX.ign*NFX.ignK*.1-pitch9)*Math.min(1,dt*6); // plonge au frein/drift, s'accroupit à la poussée — (vague 3) et SE CABRE à l'allumage de la nitro (≈3° le temps du coup)
            const pv=carBody.userData.pivY||.45;
            if(SENS){SCOUP.pv+=(-SCOUP.p*169-SCOUP.pv*13)*d9;SCOUP.p=THREE.MathUtils.clamp(SCOUP.p+SCOUP.pv*d9,-.14,.14);} // (2026-10-14, sensations) le ressort des COUPS de tangage (ω 13, amorti .5) : voir sensCoup
-           carBody.rotation.set(pitch9+SCOUP.p+veqConduite(d9),0,carRoll9);carBody.position.set(pv*Math.sin(carRoll9),pv-pv*Math.cos(carRoll9),0);}
+           const cab9=(DMT.cab||DMT.cabV||DMT.cabT>0||DMT.chargeP>0)?dmtCabre(d9):0; /* (2026-11-03, LE DÉCOLLAGE du demi-tour) le WHEELIE : le nez se lève, la caisse pivote sur l'essieu arrière (relevée d'autant), voir dmtCabre */
+           carBody.rotation.set(pitch9+SCOUP.p+veqConduite(d9)-cab9,0,carRoll9);carBody.position.set(pv*Math.sin(carRoll9),pv-pv*Math.cos(carRoll9)+(cab9>0?CARS[level].l*.3*Math.sin(cab9):0),0);}
         }
         /* (2026-09-28) LA SUSPENSION : la réception, le dos d'âne, le bump écrasaient TOUTE la caisse (`carGroup.scale`) — roues comprises,
            qui devenaient ovales, comme du caoutchouc. Désormais la CARROSSERIE plonge sur ses ressorts (ω ≈ 15, amortie) : elle se tasse,
