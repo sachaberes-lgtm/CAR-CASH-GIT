@@ -1,19 +1,20 @@
-/* ===== L'OUROBOROS DU CHARGEMENT (2026-11-03, Sacha : « un mini Ouroboros pixel, mignon, malicieux, qui se mord la queue ; il faut qu'on le voit TOURNER en se mangeant lui-même, en boucle ») =====
+/* ===== L'OUROBOROS DU CHARGEMENT (2026-11-03, Sacha : « son corps ne doit pas tourner : c'est sa TÊTE qui avance autour de son corps en le mangeant ; le corps se nourrit de boules de matière qui passent et qu'il avale ») =====
    Dessiné par Fable 5.1. `node outils/ouroboros/ouroboros.cjs` régénère tout dans ce dossier :
    - ouroboros-64px-48img.png : la bande de 48 images de 64 × 64 px (3 tons : noir, blanc, gris)
    - ouroboros.css : le bloc CSS pur à coller dans la page (data-URL de la bande, steps(48) à 20 images/s = 2,4 s par tour, affiché ×2)
    - demo.html : la page de démo (?zoom=3 pour voir les pixels) ; planche-16-images.png, tete-6-angles.png : des aperçus pour l'œil humain
-   LE DESSIN : TOUT LE SERPENT TOURNE comme une roue, tête comprise : un tour complet par boucle (7,5° par image), la tête en avant, qui rattrape sa propre queue.
-   Le corps est UN anneau dont la queue s'effile jusque dans la gueule ; la tête est dessinée à la main (`BASE`, `sprite()`) avec un visage fait de formes épaisses (`face()`) qui
-   restent lisibles à tous les angles : œil rond mi-clos à paupière lourde, sourire en coin, petite dent, joue rose, un sourcil qui se lève une fois par tour, un clignement.
-   IL SE MANGE : des bosses de corps (une toutes les 1,2 s) voyagent du cou à la gueule, qui les guette grande ouverte, puis CLAC (mâchoire, plongeon de la tête, miettes) ;
-   les écailles tournent avec le corps et glissent vers la gueule, en rapetissant sur la queue amincie, comme digérées ; les tirets gris du ventre filent aussi.
-   Trois étincelles scintillent autour (fixes à l'écran). Boucle parfaite : 48 images = 360°, 3 pas de 7 px de glissement, jeu de mâchoire sur 24 images (2 bouchées par tour). */
+   LE DESSIN : LE CORPS NE TOURNE PAS. C'est un anneau fixe, ses écailles (carrés noirs) sont fixes à l'écran. Seule la TÊTE bouge : elle fait un tour complet autour du corps par boucle
+   (7,5° par image, dans le sens des aiguilles d'une montre) en le mangeant : devant sa gueule la queue s'effile jusque dans ses dents (les écailles rapetissent et disparaissent, croquées),
+   derrière elle le corps reprend son épaisseur (les écailles reviennent). La tête est dessinée à la main (`BASE`, `sprite()`) avec un visage fait de formes épaisses (`face()`) :
+   œil rond mi-clos à paupière en pente et reflet, sourire en coin, petite dent, joue rose, un sourcil qui se lève et un clignement par tour.
+   LES BOULES DE MATIÈRE : des disques gris qui passent dans le corps, du cou jusqu'à la gueule, qui les guette grande ouverte ; CLAC (mâchoire qui se referme, tête qui plonge d'un pixel,
+   miettes) ; une boule avalée toutes les 12 images (0,6 s), deux visibles à la fois. Trois étincelles scintillent autour (fixes à l'écran).
+   Boucle parfaite : 48 images = un tour de la tête, 4 boules, 4 bouchées. */
 const fs=require('fs'),{pngIndexed,pngRGB}=require('./png.cjs');
 const N=64,F=48,FPS=20,SS=4,CX=32,CY=32,R=16,TH=6.2,TIP=2.0,TAPER=40,PER=7,FLOW=3;
 const DEG=Math.PI/180,TAU=Math.PI*2,smooth=k=>k*k*(3-2*k),clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const PAL=[[0,0,0],[255,255,255],[150,150,150]];
-const MARGIN=[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,0,0,1]; /* la gueule sur 24 images : grande ouverte… CLAC (images 21-22) */
+const MARGIN=[2,2,2,2,2,2,2,2,1,0,0,1]; /* la gueule sur 12 images : grande ouverte… CLAC (images 9-10), une boule de matière avalée à chaque fois */
 const HEAD=[21.5,13.5]; /* le centre de la tête, dans le repère du serpent (avant rotation) */
 const BASE=[
 '......#######.........',
@@ -56,58 +57,59 @@ const tw=s=>TIP+(TH-TIP)*smooth(clamp(s/TAPER,0,1));
 function dseg(x,y,a,b,c,d){const px=x-a,py=y-b,dx=c-a,dy=d-b,t=clamp((px*dx+py*dy)/(dx*dx+dy*dy),0,1);return Math.hypot(px-t*dx,py-t*dy);}
 /* LE VISAGE : des formes dans le repère du dessin de la tête (u vers l'avant, v vers le bas), épaisseur ≥ 1,3 px ; rend 1 encre, 2 blanc, 3 gris, 0 rien */
 function face(u,v,blink,brow,m){
-  if(blink){if(dseg(u,v,10,7.8,15.2,7.8)<=.8)return 1;}
+  if(blink){if(dseg(u,v,10.2,7.9,15,7.9)<=.8)return 1;}
   else{
-    if(Math.hypot(u-13.7,v-7.9)<=.85)return 2; /* le reflet */
-    if(Math.hypot(u-12.4,v-7.9)<=2.75&&v>=5.7+.28*(u-12.4))return 1; /* l'œil rond, coupé en haut par une paupière en pente : mi-clos, malin */
-    if(dseg(u,v,9.3,5.5,16.2,6.5)<=.85)return 1; /* la paupière lourde, qui déborde */
+    if(Math.hypot(u-13.9,v-7.7)<=.8)return 2; /* le reflet */
+    if(Math.hypot(u-12.4,v-8.0)<=2.9&&v>=5.5+.3*(u-12.4))return 1; /* l'œil rond, coupé en haut par une paupière en pente : mi-clos, malin */
   }
-  if(brow&&dseg(u,v,9.0,2.7+brow,14.6,3.9+brow)<=.75)return 1; /* le sourcil se lève (« hmm ? ») une fois par tour */
-  if(dseg(u,v,10.8,11.5,9.5,10.2)<=.75||dseg(u,v,9.5,10.2,9.2,8.7)<=.75)return 1; /* le sourire en coin */
+  if(brow&&dseg(u,v,9.0,3.0+brow,14.4,4.0+brow)<=.8)return 1; /* le sourcil se lève (« hmm ? ») une fois par tour */
+  if(dseg(u,v,10.8,11.5,9.5,10.2)<=.8||dseg(u,v,9.5,10.2,9.2,8.8)<=.8)return 1; /* le sourire en coin */
   if(m>=2&&Math.hypot(u-16.6,v-9.4)<=.9)return 2; /* la petite dent */
   if(Math.hypot(u-6.6,v-11.5)<=1.55)return 3; /* la joue */
   return 0;
 }
 const SPR={};for(const m of [0,1,2])SPR[m]=sprite(m);
 function render(t){
-  const c=t%24,m=MARGIN[c],ph=TAU*t/F,cp=Math.cos(ph),sp=Math.sin(ph);
-  const Ph=[HEAD[0],HEAD[1]+((c===21||c===22)?1:0)]; /* la tête plonge d'un pixel au CLAC */
+  const c=t%12,m=MARGIN[c],ph=TAU*t/F,cp=Math.cos(ph),sp=Math.sin(ph);
+  const Ph=[HEAD[0],HEAD[1]+((c===9||c===10)?1:0)]; /* la tête plonge d'un pixel au CLAC */
   const S=SPR[m];
   const toSnake=(x,y)=>{const dx=x-CX,dy=y-CY;return [CX+dx*cp+dy*sp,CY-dx*sp+dy*cp];}; /* de l'écran vers le serpent (rotation inverse) */
   const toScreen=(x,y)=>{const dx=x-CX,dy=y-CY;return [CX+dx*cp-dy*sp,CY+dx*sp+dy*cp];}; /* du serpent vers l'écran */
   const spr=(u,v)=>toScreen(Ph[0]+u-8.5,Ph[1]+v-8.5); /* un point du dessin de la tête, à l'écran */
-  const lumpS=c<=21.5?(L-(L-10)*(c/21.5)):null;
-  const SHIFT=FLOW*PER*t/F;
-  const blink=t>=34&&t<=36,brow=(t>=6&&t<=13)?-.9:0;
+  const balls=[];for(const age of [c,c+12])if(age<=21.5)balls.push(L-(L-10)*(age/21.5)); /* l'abscisse (le long du corps) de chaque boule de matière : du cou à la gueule */
+  const blink=t>=34&&t<=36,brow=(t>=6&&t<=13)?-.9:0; /* un clignement et un sourcil levé par tour */
   const g=new Uint8Array(N*N),own=new Uint8Array(N*N);
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){let nF=0,nG=0,nK=0,nB=0,nW=0,nY=0;
     for(let sy=0;sy<SS;sy++)for(let sx=0;sx<SS;sx=sx+1){
       const [x,y]=toSnake(i+(sx+.5)/SS,j+(sy+.5)/SS);
       let body=false,belly=false;const [k,d]=near(x,y);
       if(k>=0){const p=P[k],w=tw(p.s)/2,rx=x-p.x,ry=y-p.y,outer=(rx*(p.x-CX)+ry*(p.y-CY))>0;
-        const bump=(lumpS!==null&&outer)?2.1*Math.exp(-Math.pow((p.s-lumpS)/9,2)):0;
-        if(d<=w+bump){body=true;if(!outer&&w>2.2&&d>w-1.2&&(((p.s+SHIFT+3.5)%PER)<PER*.62))belly=true;}}
+        let bump=0;if(outer)for(const bs of balls)bump=Math.max(bump,2.1*Math.exp(-Math.pow((p.s-bs)/7,2)));
+        if(d<=w+bump){body=true;if(!outer&&w>2.2&&d>w-1.2)belly=true;}}
       const u=Math.floor(x-Ph[0]+8.5),v=Math.floor(y-Ph[1]+8.5),cl=(u>=0&&u<22&&v>=0&&v<17)?S[v][u]:0;
       if(cl===1){nF++;}else if(cl===3){nK++;}else if(body){nF++;nB++;if(belly)nG++;}
       if(u>=0&&u<22&&v>=0&&v<17){const fu=x-Ph[0]+8.5,fv=y-Ph[1]+8.5,f=face(fu,fv,blink,brow,m);if(f===1)nK++;else if(f===2)nW++;else if(f===3)nY++;}
     }
     const q=j*N+i,T=SS*SS;if(nF/T>=.4){g[q]=(nG/nF>.5||nY/nF>.45)?2:1;if(nB>nF/2)own[q]=1;}if(nK/T>=.4)g[q]=0;if(nW/T>=.4)g[q]=1;
   }
-  /* les écailles : carrés noirs posés sur le dos, qui tournent AVEC le corps et glissent doucement vers la gueule ; elles rapetissent sur la queue amincie (digérées) */
-  const LL=PER*Math.ceil(L/PER);
-  for(let q=-1;q*PER<L+PER;q++){
-    const ss=(((q*PER+PER/2-SHIFT)%LL)+LL)%LL;if(ss>L)continue;let k=0;while(k<P.length-1&&P[k].s<ss)k++;
-    const p=P[k],w=tw(p.s);if(w<3.6)continue;
-    const nx=p.x-CX,ny=p.y-CY,nl=Math.hypot(nx,ny)||1,[ox,oy]=toScreen(p.x+nx/nl*.9,p.y+ny/nl*.9),cx=Math.round(ox),cy=Math.round(oy);
+  /* les écailles : des carrés noirs FIXES à l'écran (le corps ne tourne pas) ; la tête les croque en passant : elles rapetissent sur la queue amincie devant la gueule, puis reviennent derrière elle */
+  const SC=14;
+  for(let q=0;q<SC;q++){
+    const ang=(q+.5)*TAU/SC,rs=R+.9,cx=Math.round(CX+rs*Math.sin(ang)),cy=Math.round(CY-rs*Math.cos(ang));
+    const [sx,sy]=toSnake(CX+R*Math.sin(ang),CY-R*Math.cos(ang)),[k,d]=near(sx,sy);if(k<0||d>2)continue;const w=tw(P[k].s);if(w<3.6)continue;
     const big=w>=5.6,x0=big?cx-1:cx,y0=big?cy-1:cy,sz=big?2:1;
     let ok=true;for(let y=y0;y<y0+sz;y++)for(let x=x0;x<x0+sz;x++){const z=y*N+x;if(!(g[z]===1&&own[z]))ok=false;}
     if(ok)for(let y=y0;y<y0+sz;y++)for(let x=x0;x<x0+sz;x++)g[y*N+x]=0;
   }
-    /* étincelles (fixes à l'écran) et miettes (au CLAC, qui tournent avec le serpent) */
+  /* les boules de matière : un disque gris au cœur du corps, qui passe du cou à la gueule et se fait avaler */
+  for(const bs of balls){let k=0;while(k<P.length-1&&P[k].s<bs)k++;const [bx,by]=toScreen(P[k].x,P[k].y);
+    for(let j=Math.floor(by-3);j<=Math.ceil(by+3);j++)for(let i=Math.floor(bx-3);i<=Math.ceil(bx+3);i++){if(i<0||j<0||i>=N||j>=N)continue;
+      if(Math.hypot(i+.5-bx,j+.5-by)<=2.0&&g[j*N+i]===1&&own[j*N+i])g[j*N+i]=2;}}
+  /* étincelles (fixes à l'écran) et miettes (au CLAC, qui tournent avec le serpent) */
   const px=(x,y)=>{x=Math.round(x);y=Math.round(y);if(x>=0&&y>=0&&x<N&&y<N&&g[y*N+x]===0&&!own[y*N+x])g[y*N+x]=1;};
   for(const [x,y,t0] of [[7,9,4],[57,56,20],[58,12,35]]){const k=(t-t0+F)%F;if(k>4)continue;
     px(x,y);if(k===1||k===3){px(x-1,y);px(x+1,y);px(x,y-1);px(x,y+1);}if(k===2){for(let d=1;d<=2;d++){px(x-d,y);px(x+d,y);px(x,y-d);px(x,y+d);}}}
-  const cr=c>=21&&c<=23?c-21:-1;if(cr>=0)for(const [dx,dy] of [[[1,-3],[4,-1]],[[2,-5],[6,-3]],[[3,-8],[8,-5]]][cr]){const [x,y]=toScreen(A0[0]+dx,A0[1]+dy-1);px(x,y);}
+  const cr=c>=9&&c<=11?c-9:-1;if(cr>=0)for(const [dx,dy] of [[[1,-3],[4,-1]],[[2,-5],[6,-3]],[[3,-8],[8,-5]]][cr]){const [x,y]=toScreen(A0[0]+dx,A0[1]+dy-1);px(x,y);}
   return {g,Ph};
 }
 function sheet(frames,scale,cols,file){const rows=Math.ceil(frames.length/cols),W=cols*(N*scale+2),H=rows*(N*scale+2),rgb=new Uint8Array(W*H*3).fill(40);
