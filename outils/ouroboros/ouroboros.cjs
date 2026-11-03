@@ -6,7 +6,7 @@
    LE DESSIN : LE CORPS NE TOURNE PAS. C'est un anneau fixe, ses écailles (carrés noirs) sont fixes à l'écran. Seule la TÊTE bouge : elle fait un tour complet autour du corps par boucle
    (7,5° par image, dans le sens des aiguilles d'une montre) en le mangeant : devant sa gueule la queue s'effile jusque dans ses dents (les écailles rapetissent et disparaissent, croquées),
    derrière elle le corps reprend son épaisseur (les écailles reviennent). La tête est dessinée à la main (`BASE`, `sprite()`) avec un visage fait de formes épaisses (`face()`) :
-   œil rond mi-clos à paupière en pente et reflet, sourire en coin, petite dent, joue rose, un sourcil qui se lève et un clignement par tour.
+   œil rond mi-clos à paupière en pente et reflet, sourire en coin, joue rose, un sourcil qui se lève et un clignement par tour, et surtout des DENTS : deux gros crocs en haut, une dent en bas, dessinés à la main pour chaque état de la gueule (`GUEULE`).
    LES BOULES DE MATIÈRE : des disques gris qui passent dans le corps, du cou jusqu'à la gueule, qui les guette grande ouverte ; CLAC (mâchoire qui se referme, tête qui plonge d'un pixel,
    miettes) ; une boule avalée toutes les 12 images (0,6 s), deux visibles à la fois. Trois étincelles scintillent autour (fixes à l'écran).
    Boucle parfaite : 48 images = un tour de la tête, 4 boules, 4 bouchées. */
@@ -14,7 +14,7 @@ const fs=require('fs'),{pngIndexed,pngRGB}=require('./png.cjs');
 const N=64,F=48,FPS=20,SS=4,CX=32,CY=32,R=16,TH=6.2,TIP=2.0,TAPER=40,PER=7,FLOW=3;
 const DEG=Math.PI/180,TAU=Math.PI*2,smooth=k=>k*k*(3-2*k),clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const PAL=[[0,0,0],[255,255,255],[150,150,150]];
-const MARGIN=[2,2,2,2,2,2,2,2,1,0,0,1]; /* la gueule sur 12 images : grande ouverte… CLAC (images 9-10), une boule de matière avalée à chaque fois */
+const MARGIN=[3,3,3,3,3,3,3,3,2,0,0,2]; /* 3 = grande ouverte, 2 = mi-ouverte, 0 = fermée (CLAC) */ /* la gueule sur 12 images : grande ouverte… CLAC (images 9-10), une boule de matière avalée à chaque fois */
 const HEAD=[21.5,13.5]; /* le centre de la tête, dans le repère du serpent (avant rotation) */
 const BASE=[
 '......#######.........',
@@ -31,19 +31,23 @@ const BASE=[
 '.#####################',
 '.#####################',
 '..####################',
-'..###################.',
+'..####################',
+'...##################.',
 '...#################..',
-'.....##############...'];
+'....###############...',
+'......############....'];
 /* la silhouette de la tête (1 blanc, 3 fente de la gueule) ; le visage est peint à part, au pixel */
+/* LA GUEULE, dessinée à la main pour chacun des 4 états (colonnes x = 11 à 21, rangées 6 à 15) : '.' on garde la tête, 'o' noir, '#' blanc. La queue (2 px) la traverse ;
+   les DENTS sont des crocs blancs en triangle (3 px de large, 2 de haut) plantés dans les deux mâchoires, qui se croisent. */
+const GUEULE={
+  3:{5:'....###o###',6:'....###o###',7:'....o#ooo#o',8:'....ooooooo',9:'..ooooooooo',10:'..ooooooooo',11:'oo#########',12:'oo#########',13:'..ooooooooo',14:'..oooo#oooo',15:'..ooo###ooo'}, /* grande ouverte : deux gros crocs en haut, une dent en bas */
+  2:{7:'....###o###',8:'....o#ooo#o',9:'..ooooooooo',10:'..ooooooooo',11:'oo#########',12:'oo#########',13:'..ooooooooo',14:'..ooo###ooo'}, /* mi-ouverte : les crocs raccourcissent */
+  1:{10:'...oo#ooo#o',11:'oo#########',12:'oo#########',13:'...ooo#oooo'}, /* presque fermée : un liseré noir, la pointe des dents */
+  0:{10:'.....o.o.o.',11:'oo#########',12:'oo#########',13:'......o.o.o'} /* fermée sur la queue : les dents serrées, deux rangées de traits */
+};
 function sprite(m){
-  const S=BASE.map(r=>[...r].map(c=>c==='#'?1:0));const set=(c,r,v)=>{if(r>=0&&r<S.length&&c>=0&&c<S[0].length)S[r][c]=v;};
-  for(let x=11;x<=21;x++){
-    if(x<=12){set(x,11,3);set(x,12,3);continue;}
-    const h=Math.min(m,Math.floor((x-11)/2));
-    for(let r=11-h;r<=10;r++)if(S[r][x]||x===21)set(x,r,3);
-    for(let r=13;r<=12+h;r++)if(S[r][x]||x===21)set(x,r,3);
-    set(x,11,1);set(x,12,1);
-  }
+  const S=BASE.map(r=>[...r].map(c=>c==='#'?1:0));
+  for(const [r,row] of Object.entries(GUEULE[m]))[...row].forEach((ch,i)=>{if(ch==='.')return;const x=11+i;S[+r][x]=ch==='#'?1:3;});
   return S;
 }
 /* le corps : l'anneau lui-même, de la gueule (s = 0, la queue) jusqu'au cou */
@@ -57,18 +61,17 @@ const tw=s=>TIP+(TH-TIP)*smooth(clamp(s/TAPER,0,1));
 function dseg(x,y,a,b,c,d){const px=x-a,py=y-b,dx=c-a,dy=d-b,t=clamp((px*dx+py*dy)/(dx*dx+dy*dy),0,1);return Math.hypot(px-t*dx,py-t*dy);}
 /* LE VISAGE : des formes dans le repère du dessin de la tête (u vers l'avant, v vers le bas), épaisseur ≥ 1,3 px ; rend 1 encre, 2 blanc, 3 gris, 0 rien */
 function face(u,v,blink,brow,m){
-  if(blink){if(dseg(u,v,10.2,7.9,15,7.9)<=.8)return 1;}
+  if(blink){if(dseg(u,v,9.2,6.4,13.8,6.4)<=.8)return 1;}
   else{
-    if(Math.hypot(u-13.9,v-7.7)<=.8)return 2; /* le reflet */
-    if(Math.hypot(u-12.4,v-8.0)<=2.9&&v>=5.5+.3*(u-12.4))return 1; /* l'œil rond, coupé en haut par une paupière en pente : mi-clos, malin */
+    if(Math.hypot(u-12.4,v-6.1)<=.8)return 2; /* le reflet */
+    if(Math.hypot(u-11.4,v-6.4)<=2.6&&v>=4.0+.3*(u-11.4))return 1; /* l'œil rond, coupé en haut par une paupière en pente : mi-clos, malin */
   }
-  if(brow&&dseg(u,v,9.0,3.0+brow,14.4,4.0+brow)<=.8)return 1; /* le sourcil se lève (« hmm ? ») une fois par tour */
+  if(brow&&dseg(u,v,8.0,1.6+brow,13.4,2.7+brow)<=.8)return 1; /* le sourcil se lève (« hmm ? ») une fois par tour */
   if(dseg(u,v,10.8,11.5,9.5,10.2)<=.8||dseg(u,v,9.5,10.2,9.2,8.8)<=.8)return 1; /* le sourire en coin */
-  if(m>=2&&Math.hypot(u-16.6,v-9.4)<=.9)return 2; /* la petite dent */
   if(Math.hypot(u-6.6,v-11.5)<=1.55)return 3; /* la joue */
   return 0;
 }
-const SPR={};for(const m of [0,1,2])SPR[m]=sprite(m);
+const SPR={};for(const m of [0,1,2,3])SPR[m]=sprite(m);
 function render(t){
   const c=t%12,m=MARGIN[c],ph=TAU*t/F,cp=Math.cos(ph),sp=Math.sin(ph);
   const Ph=[HEAD[0],HEAD[1]+((c===9||c===10)?1:0)]; /* la tête plonge d'un pixel au CLAC */
@@ -86,9 +89,9 @@ function render(t){
       if(k>=0){const p=P[k],w=tw(p.s)/2,rx=x-p.x,ry=y-p.y,outer=(rx*(p.x-CX)+ry*(p.y-CY))>0;
         let bump=0;if(outer)for(const bs of balls)bump=Math.max(bump,2.1*Math.exp(-Math.pow((p.s-bs)/7,2)));
         if(d<=w+bump){body=true;if(!outer&&w>2.2&&d>w-1.2)belly=true;}}
-      const u=Math.floor(x-Ph[0]+8.5),v=Math.floor(y-Ph[1]+8.5),cl=(u>=0&&u<22&&v>=0&&v<17)?S[v][u]:0;
+      const u=Math.floor(x-Ph[0]+8.5),v=Math.floor(y-Ph[1]+8.5),cl=(u>=0&&u<22&&v>=0&&v<S.length)?S[v][u]:0;
       if(cl===1){nF++;}else if(cl===3){nK++;}else if(body){nF++;nB++;if(belly)nG++;}
-      if(u>=0&&u<22&&v>=0&&v<17){const fu=x-Ph[0]+8.5,fv=y-Ph[1]+8.5,f=face(fu,fv,blink,brow,m);if(f===1)nK++;else if(f===2)nW++;else if(f===3)nY++;}
+      if(u>=0&&u<22&&v>=0&&v<S.length){const fu=x-Ph[0]+8.5,fv=y-Ph[1]+8.5,f=face(fu,fv,blink,brow,m);if(f===1)nK++;else if(f===2)nW++;else if(f===3)nY++;}
     }
     const q=j*N+i,T=SS*SS;if(nF/T>=.4){g[q]=(nG/nF>.5||nY/nF>.45)?2:1;if(nB>nF/2)own[q]=1;}if(nK/T>=.4)g[q]=0;if(nW/T>=.4)g[q]=1;
   }
@@ -121,7 +124,10 @@ function headCrop(ts,half,sc,file){const w=half*2,cw=w*sc+3,W=ts.length*cw,H=cw,
     for(let y=0;y<w;y++)for(let x=0;x<w;x++){const gx=x0+x,gy=y0+y,c=(gx<0||gy<0||gx>=N||gy>=N)?PAL[0]:PAL[g[gy*N+gx]];
       for(let a=0;a<sc;a++)for(let b=0;b<sc;b++){const p=((1+y*sc+a)*W+k*cw+1+x*sc+b)*3,e=(a===0||b===0);rgb[p]=e?58:c[0];rgb[p+1]=e?58:c[1];rgb[p+2]=e?58:c[2];}}});
   fs.writeFileSync(file,pngRGB(W,H,rgb));}
-module.exports={render,sheet,strip,headCrop,N,F,FPS,PAL};
+function spriteSheet(file){const ms=[3,2,1,0],sc=16,w=22,h=BASE.length,W=ms.length*(w*sc+4),H=h*sc+2,rgb=new Uint8Array(W*H*3).fill(45);
+  ms.forEach((m,k)=>{const S=sprite(m);for(let y=0;y<h;y++)for(let x=0;x<w;x++){const v=S[y][x],c=v===1?[255,255,255]:v===3?[0,0,0]:[70,70,70];for(let a=0;a<sc;a++)for(let b=0;b<sc;b++){const p=((1+y*sc+a)*W+k*(w*sc+4)+1+x*sc+b)*3,e=(a===0||b===0);rgb[p]=e?58:c[0];rgb[p+1]=e?58:c[1];rgb[p+2]=e?58:c[2];}}});
+  fs.writeFileSync(file,pngRGB(W,H,rgb));}
+module.exports={render,sheet,strip,headCrop,spriteSheet,N,F,FPS,PAL};
 if(require.main===module){
   process.chdir(__dirname);
   const fr=[];for(let t=0;t<F;t++)fr.push(render(t).g);

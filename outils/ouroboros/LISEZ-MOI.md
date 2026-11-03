@@ -11,7 +11,7 @@ le seul truc animé, c'est sa tête qui tourne autour de son corps ». Dessin et
   et disparaissent (croquées) ; derrière elle le corps reprend son épaisseur et les écailles reviennent.
 - LES BOULES DE MATIÈRE : des disques gris qui passent dans le corps, du cou jusqu'à la gueule ; elle les guette grande ouverte, CLAC (la mâchoire se referme,
   la tête plonge d'un pixel, des miettes jaillissent). Une boule avalée toutes les 0,6 s, deux visibles à la fois.
-- Malicieux : œil rond mi-clos à paupière en pente et reflet, sourire en coin, petite dent, joue rose, un sourcil qui se lève et un clignement par tour.
+- Malicieux : œil rond mi-clos à paupière en pente et reflet, sourire en coin, joue rose, un sourcil qui se lève et un clignement par tour, et des DENTS : deux gros crocs en haut, une dent en bas (dessinés à la main pour chaque état de la gueule, `GUEULE`).
   Trois étincelles scintillent autour. 3 tons seulement (noir, blanc, gris). Aucun JS, aucune image externe : un bloc CSS de 9 Ko.
 
 ## Pourquoi cette forme (les essais refusés)
