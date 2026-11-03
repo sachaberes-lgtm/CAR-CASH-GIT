@@ -50,10 +50,10 @@ const FORET={root:null,Q:null,plg:[],fam:[],quart:null,sig:0,sol:null,can:null,g
 const FOR_MET={
   matin:{el:15,ray:1.2,mist:.9,mC:[.92,.88,.78],pap:.75,luc:0,pol:.8,hante:0,phare:.04,leaf:[1.02,1.02,.94],ros:1,vent:.5,lune:0,sons:'jour',lant:.12,vg:[1,.84,.46]},
   midi: {el:55,ray:.62,mist:.25,mC:[.78,.88,.84],pap:1,luc:0,pol:.5,hante:0,phare:0,leaf:[1.04,1.08,.94],ros:.3,vent:.6,lune:0,sons:'jour',lant:0,vg:[1,.86,.45]},
-  soir: {el:8,ray:1.35,mist:.55,mC:[1,.70,.46],pap:.4,luc:.45,pol:.9,hante:.12,phare:.35,leaf:[1.1,.98,.78],ros:.2,vent:.45,lune:0,sons:'soir',lant:.8,vg:[1,.76,.40]},
+  soir: {el:8,ray:.9,mist:.55,mC:[1,.70,.46],pap:.4,luc:.45,pol:.9,hante:.12,phare:.35,leaf:[1.1,.98,.78],ros:.2,vent:.45,lune:0,sons:'soir',lant:.8,vg:[1,.76,.40]},
   nuit: {el:34,ray:.3,mist:1,mC:[.09,.14,.19],pap:0,luc:1,pol:0,hante:1,phare:1,leaf:[.62,.82,.92],ros:0,vent:.7,lune:1,sons:'nuit',lant:1,vg:[.50,.62,1]},
   pluie:{el:62,ray:0,mist:.85,mC:[.44,.50,.50],pap:0,luc:0,pol:0,hante:.18,phare:.55,leaf:[.84,.96,.90],ros:0,vent:1.1,lune:0,sons:'pluie',lant:.5,vg:[.76,.88,.96]},
-  orage:{el:62,ray:0,mist:.95,mC:[.14,.17,.22],pap:0,luc:.15,pol:0,hante:.75,phare:.9,leaf:[.70,.84,.92],ros:0,vent:1.6,lune:0,sons:'orage',lant:.45,vg:[.60,.74,1]}}; /* (2026-11-03, maps cohérentes) vg de l'orage : le violet [.62,.55,1] teignait tous les fûts en LILAS (la charte : l'orage est ARDOISE, jamais indigo-violet) — un bleu d'ardoise froid, entre la pluie et la lune */
+  orage:{el:62,ray:0,mist:.95,mC:[.14,.17,.22],pap:0,luc:.15,pol:0,hante:.75,phare:.9,leaf:[.70,.84,.92],ros:0,vent:1.6,lune:0,sons:'orage',lant:.45,vg:[.60,.74,1]}}; /* (2026-11-03, maps cohérentes) vg de l'orage : le violet [.62,.55,1] teignait tous les fûts en LILAS (la charte : l'orage est ARDOISE, jamais indigo-violet) — un bleu d'ardoise froid, entre la pluie et la lune */ /* (2026-11-03) ray du SOIR 1,35 → ,9 : face au couchant, les rais (×1,5 de FOR_EMB) noyaient les saules sous des bandes orange (milieu de l'image à chroma 43-49, l'orange « Cheetos » de la charte) */
 const FOR_U={uSunDir:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uFillC:{value:new THREE.Color()},uFillD:{value:new THREE.Vector3(0,-1,0)},uCam:{value:new THREE.Vector3()},uCarP:{value:new THREE.Vector3(0,-1e5,0)},
   uCarF:{value:new THREE.Vector3(0,0,1)},uTime:{value:0},uPhare:{value:0},uFlash:{value:0},uWet:{value:0},uHante:{value:0},uMistC:{value:new THREE.Color(.8,.88,.84)},
