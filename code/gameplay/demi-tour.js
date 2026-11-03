@@ -40,13 +40,18 @@ var DMT={on:!/[?&]demitour=0\b/.test(location.search),act:false,t:0,D:1.45,tS:.8
    · le panneau MAUVAIS SENS grandit : le texte, deux chevrons qui montrent de quel côté braquer et la jauge du demi-tour ; le bord de l'écran
      givre ; les pneus crachent des cristaux.
    La règle de la pose ratée ne bouge pas (flow à zéro). `?verglas=0` = le demi-tour automatique du 17/10. */
-const GV={on:!/[?&]verglas=0\b/.test(location.search),w:2.5,wF:1.7,tAide:1.4,wAide:0,pousse:.42,kLong:.8,kSide:1.9,kSideF:1.05,bord:6,kBord:2.0,sortie:.6,tMax:14,cam:.6,lat0:.5};
+/* (2026-11-03, Sacha : « je parlais de quand on atterrit sur la route à contresens — je ne vois pas les changements ») LE DÉCOLLAGE PART TOUT SEUL :
+   il ne partait qu'au RATTRAPAGE au pouce — posé à contresens sans rien toucher, il ne se passait rien de neuf. Désormais, après `tAide` s sans
+   toucher au pouce (la glisse, le « chiii », le panneau MAUVAIS SENS), le nez revient tout seul (`wAide`, vite : ~1 s) et ce retour, comme un
+   rattrapage au pouce, joue la charge puis LE DÉCOLLAGE. Le pouce reste plus rapide : rattraper avant `tAide` s paie le même coup, plus tôt.
+   `?decollage=manuel` = le verglas de Léo (02/11) : rien d'automatique, le nez ne revient que si on le ramène. */
+const GV={on:!/[?&]verglas=0\b/.test(location.search),w:2.5,wF:1.7,tAide:1,wAide:/[?&]decollage=manuel\b/.test(location.search)?0:5,pousse:.42,kLong:.8,kSide:1.9,kSideF:1.05,bord:6,kBord:2.0,sortie:.6,tMax:14,cam:.6,lat0:.5};
 function dmtGlace(dt,frein){const D=DMT;D.t+=dt;const d=Math.min(dt,1/30),mx=D.mx;
   {const ry=(routeLacet||0)*dt,c=Math.cos(ry),s9=Math.sin(ry),vt=D.vt*c+D.vb2*s9;D.vb2=-D.vt*s9+D.vb2*c;D.vt=vt;D.h-=ry;} /* la route tourne sous la caisse, le cap et l'élan restent dans le monde */
   const vit=Math.hypot(D.vt,D.vb2),lent=vit<mx*.12;
   if(Math.abs(steer)>.2)D.tm=0;else D.tm+=dt; /* le temps sans toucher au pouce : passé GV.tAide, le nez revient seul */
   let wT=steer*GV.w*(frein?GV.wF:1);
-  if(GV.wAide>0&&(D.tm>GV.tAide||lent||D.t>GV.tMax-1)){const k=lent?1:Math.min(1,Math.max(D.tm-GV.tAide,D.t-GV.tMax+1)/.8);wT+=-Math.sign(D.h)*GV.wAide*k*Math.min(1,Math.abs(D.h)/.5);}
+  if(GV.wAide>0&&(D.tm>GV.tAide||lent||D.t>GV.tMax-1)){const k=lent?1:Math.min(1,Math.max(D.tm-GV.tAide,D.t-GV.tMax+1)/.3);wT+=-Math.sign(D.h)*GV.wAide*k*Math.min(1,Math.abs(D.h)/.5);}
   D.yV+=(wT-D.yV)*(1-Math.exp(-d/.09));D.h+=D.yV*dt;D.h=Math.atan2(Math.sin(D.h),Math.cos(D.h));
   {const hx=Math.cos(D.h),hy=Math.sin(D.h);let u=D.vt*hx+D.vb2*hy,w=-D.vt*hy+D.vb2*hx; /* l'élan dans le repère de la caisse : u le long du nez, w de côté */
    u+=GV.pousse*mx*dt*Math.max(0,hx); /* le moteur ne mord que nez vers l avant : à l envers, les roues patinent sur la glace */
@@ -59,7 +64,7 @@ function dmtGlace(dt,frein){const D=DMT;D.t+=dt;const d=Math.min(dt,1/30),mx=D.m
   glisse9=Math.max(glisse9,THREE.MathUtils.clamp(.35+Math.abs(D.wl)/(mx*.25),0,1));
   D.y=D.h*D.sb;D.cam+=(D.y*GV.cam-D.cam)*(1-Math.exp(-d/.2));
   D.prog=1-Math.min(1,Math.max(0,(Math.abs(D.h)-GV.sortie)/Math.max(.3,D.h0-GV.sortie)));
-  {const net=D.t<=GV.tMax&&D.tm<=GV.tAide;if(Math.abs(D.h)<(net?GV.sortie:.12)||D.t>GV.tMax)dmtRattrape(net);} /* rattrapé au pouce : on repart en glisse ; ramené par l'aide : on repart droit */
+  {const net=D.t<=GV.tMax&&(GV.wAide>0||D.tm<=GV.tAide);if(Math.abs(D.h)<(net?GV.sortie:.12)||D.t>GV.tMax)dmtRattrape(net);} /* rattrapé au pouce : on repart en glisse ; ramené par l'aide : on repart droit */
 }
 function dmtRattrape(net){const D=DMT,mx=D.mx,q=net?THREE.MathUtils.clamp(1-(D.t-.5)/2.3,0,1):0;
   const hx=Math.cos(D.h),hy=Math.sin(D.h),u=D.vt*hx+D.vb2*hy;
