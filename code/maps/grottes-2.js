@@ -174,7 +174,10 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGli
   '  if(mt<.5&&uVein>.001&&uLant>.01){vec3 Hh=normalize(normalize(cameraPosition-vW)+normalize(dl));float wm=step(mix(.5,.12,uIce),fh3(floor(vW*.045)+sal*5.))*(1.-.6*smoothstep(.45,.85,n.y));',
   '    em+=uLantC*pow(max(dot(n,Hh),0.),30.)*wm*uLant*.7/(1.+d2/2200.);}',
   '  vec3 col=alb*(((uAmb+uTorchC*(vL.x*uTorch)+mix(vL.yzw,vec3(dot(vL.yzw,vec3(.34)))*vec3(.9,1.0,1.12),uIce)*(2.*uLieu))*key+Lc)*ao);',
-  '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.55);','  #else','  col+=em;','  #endif',
+  /* (2026-11-03, passe maps cohérentes) PLUS D'ÉCLAT QUI SURGIT AU BOUT DE LA BRUME : les éclats percent la brume (45 % au-delà de son fond), mais un tronçon n'est dessiné
+     qu'à moins de « fond de brume + 170 m » de la caméra (grotteTick) — la lave, les cristaux, les gemmes d'un tronçon qui entrait APPARAISSAIENT d'un coup à ~1 km. Ils
+     s'éteignent désormais en douceur entre 85 % et 100 % du fond de la brume (à la distance vraie, pas à la profondeur : les bords de l'écran aussi) : rien ne surgit. */
+  '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.55)*(1.-smoothstep(fogFar*.85,fogFar,length(cameraPosition-vW)));','  #else','  col+=em;','  #endif',
   '  gl_FragColor=vec4(col,1.);}'].join('\n');
 /* LES POUSSIÈRES (700 points ronds et doux autour de la caméra, comme les braises du volcan) : la poussière de la mine, les spores, les paillettes
    de la géode, les gouttes, les braises, les âmes — chaque salle les siennes, fondues en ~1 s. */
