@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pluie d’argent — 30 paliers</title>
+<style>
+:root{--fond:#fff;--tx:#17141c;--tx2:#8a8494;--fil:#e4e1ea;--acc:#0e8a5f}
+@media (prefers-color-scheme:dark){:root{--fond:#0b090d;--tx:#f2f0f7;--tx2:#9a94a8;--fil:#2a2633;--acc:#21c48a}}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--fond);color:var(--tx);font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:grid;place-items:center;padding:16px}
+.boite{width:100%;max-width:560px;border:1px solid var(--fil);border-radius:20px;padding:24px;display:grid;gap:18px}
+h1{margin:0;font-size:22px}.sous{color:var(--tx2);font-size:13px;margin-top:4px}
+.rang{display:flex;gap:16px;align-items:center}
+#play{width:72px;height:72px;border-radius:50%;border:0;background:var(--tx);color:var(--fond);font-weight:700;cursor:pointer;flex:none}
+.pals{display:grid;gap:6px;flex:1}#speed{width:100%}#mot{font-weight:700;font-size:18px}
+#ce{color:var(--tx2);font-size:13px;min-height:36px}
+</style></head><body>
+<div class="boite">
+  <div><h1>PLUIE D’ARGENT · 30 PALIERS</h1><div class="sous">écrit à la main, sans le générateur · 106 BPM · do♯ mineur · synthwave de luxe sous la pluie : l’arpège de gouttes, la caisse claire à réverbération coupée, le sifflet futuriste — en 30 moteurs</div></div>
+  <div class="rang"><button id="play">PLAY</button><div class="pals"><div id="mot">Moteur 1 / 30</div><input type="range" id="speed" min="0" max="100" step="any" value="0" aria-label="Moteur"></div></div>
+  <div id="ce"></div>
+</div>
+
+<!-- ======================= LE MORCEAU (format CASH CAR « morceau à paliers ») =======================
+     (2026-11-03, sous-artiste PLUIE D'ARGENT ; Léo : « une version premium de toutes les musiques, la nouvelle DA, 20 bangers différents, sans perdre l'identité de chaque son » ; avant elle : le synthwave NÉON du générateur, lead sifflet / scie, basse funk, claviers).
+     L'IDENTITÉ GARDÉE : le synthwave néon (mineur, accords qui tournent, nappe analogique), le SIFFLET en lead (devenu un sifflet-voyelle futuriste : sinus + scie dans des formants qui glissent, portamento, relâché doux) et la pluie.
+     CE QUI EST NEUF : la PLUIE d'argent partout (un grésil de gouttes sur toute la mesure, des gouttes de cristal FM qui tombent) ; la rythmique DEMI-TEMPS de luxe (grosse caisse syncopée, caisse claire à réverbération coupée sur le 3, charleys qui glissent
+     du 8e au 16e puis aux roulements) ; une basse COURTE et nette ; un arpège de gouttes qui change de dessin à chaque mesure ; une voix de vocodeur à voyelles qui bougent.
+     La grille (do♯m9 · la maj9 · mi maj7(9) · si 6/9, deux mesures chacun ; la dominante sol♯7(♭9) boucle la phrase une fois sur deux) : 106 BPM.
+     Le moteur 1 est le LOBBY : la nappe, la pluie, trois gouttes de cristal, un cœur de grosse caisse — calme, jamais pauvre.
+     Rien du générateur ici. Ce bloc ne touche JAMAIS à la page : pas de document, window, setInterval, Math.random, ni ctx.currentTime. -->
+<script id="morceau">
+const MORCEAU = (function () {
+  const BPM = 106, SD = 60 / BPM / 4, MES = 16 * SD;
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  const GAMME = [1, 3, 4, 6, 8, 9, 11];   /* do♯ éolien : les notes où le sifflet a le droit de se poser */
+  const AuDessus = n => { for (let k = 1; k < 6; k++) if (GAMME.indexOf((n + k) % 12) >= 0) return n + k; return n + 2; };
+
+  // LA GRILLE : do♯m9 · la maj9 · mi maj7(9) · si 6/9 (deux mesures chacun) ; la dernière mesure d'une phrase sur deux tombe sur sol♯7(♭9) qui renvoie au do♯
+  const ROOTS = [37, 37, 33, 33, 40, 40, 35, 35];
+  const CHORDS = [[56, 59, 61, 63, 64], [56, 59, 61, 63, 64], [57, 59, 61, 64, 68], [57, 59, 61, 64, 68], [56, 59, 63, 64, 66], [56, 59, 63, 64, 66], [59, 61, 63, 66, 68], [59, 61, 63, 66, 68]];
+  const DOMI = [56, 60, 63, 66, 69], DOMI_ROOT = 32;
+  // LES GOUTTES DU LOBBY : [mesure, pas, note] — trois gouttes d'argent qui tombent (do♯, sol♯, mi : l'accord du départ)
+  const GOUTTES = [[0, 2, 85], [1, 9, 80], [2, 5, 88], [4, 11, 83], [5, 3, 85], [6, 8, 80]];
+  // LA MÉLODIE (le sifflet) : [pas sur 128, note, durée en doubles croches]
+  const THEME = [[0, 80, 3], [3, 78, 1], [4, 76, 2], [6, 78, 2], [8, 80, 4], [12, 83, 4], [16, 85, 3], [19, 83, 1], [20, 80, 4], [24, 78, 2], [26, 76, 2], [28, 75, 4],
+    [32, 81, 3], [35, 80, 1], [36, 78, 4], [40, 76, 2], [42, 78, 2], [44, 81, 4], [48, 80, 3], [51, 78, 1], [52, 76, 4], [56, 73, 2], [58, 76, 2], [60, 78, 4],
+    [64, 80, 3], [67, 83, 1], [68, 85, 4], [72, 83, 2], [74, 80, 2], [76, 78, 4], [80, 76, 3], [83, 78, 1], [84, 80, 4], [88, 83, 2], [90, 85, 2], [92, 87, 4],
+    [96, 85, 3], [99, 83, 1], [100, 80, 4], [104, 78, 2], [106, 80, 2], [108, 83, 4], [112, 85, 3], [115, 87, 1], [116, 85, 2], [118, 83, 2], [120, 80, 4], [124, 78, 4]];
+  // L'ARPÈGE DE GOUTTES : quatre dessins (indice dans l'accord, -1 = silence), un par mesure, tournants
+  const ARP = [[0, 2, 4, 2, 3, 1, 2, -1, 0, 2, 4, 2, 3, 4, 2, -1], [4, 2, 0, -1, 3, 1, -1, 2, 4, 2, 0, -1, 1, 3, 4, -1], [0, -1, 3, 4, 2, -1, 1, 2, 0, -1, 4, 3, 2, 1, -1, 0], [2, 4, -1, 3, 1, 4, 2, -1, 3, 0, -1, 2, 4, 1, 3, -1]];
+  const BASS_A = [[0, 0], [3, 0], [6, 12], [8, 0], [11, 7], [14, 12]], BASS_B = [[0, 0], [2, 0], [6, 7], [8, 0], [10, 12], [13, 7]];
+  const KICK = { 6: [0, 10], 8: [0, 7, 10], 15: [0, 3, 7, 10], 22: [0, 3, 7, 10, 14] };
+  const VOYELLES = [[700, 1100], [450, 1800], [320, 2200], [550, 900]];   /* a · é · i · o */
+
+  const QUAND = { pad: 1, pluie: 1, goutte: 1, kick: 1, arp: 2, hats: 3, bass: 5, snare: 6, kicks: 6, hats16: 8, lead: 9, voix: 10, clap: 11, arp2: 12, toms: 13, stabs: 14, drive: 15, bells: 16, lead2: 17, vide: 18, sub: 19, crash: 20, ouverts: 21,
+    chops: 22, echos: 23, roule: 24, rafale: 25, cordes: 26, climax: 27, final: 28, octave: 29, tempete: 30 };
+  const ENTRE = { 1: 'Le lobby : la nappe analogique, la pluie fine, trois gouttes de cristal qui tombent, un cœur de grosse caisse. Rien de grave.', 2: '+ l’arpège de gouttes (une sur deux)', 3: '+ le charley',
+    5: '+ la basse courte, nette', 6: '+ la grosse caisse syncopée et la caisse claire à réverbération coupée, sur le 3', 8: '+ l’arpège plein et les charleys en doubles croches', 9: 'LE SIFFLET : le thème entre',
+    10: '+ le vocodeur, les accords qui changent de voyelle', 11: '+ le clap', 12: '+ la seconde pluie, décalée', 13: '+ les toms en fin de phrase', 14: '+ les accords d’argent (stabs)', 15: 'ÇA DÉCOLLE : plus de grosse caisse, la pompe se creuse',
+    16: '+ les cloches de contre-chant', 17: '+ le sifflet à la tierce', 18: 'LE VIDE : une phrase sur deux, la salle retient son souffle une demi-mesure', 19: '+ la sous-basse', 20: '+ la cymbale, une pluie de grosses gouttes',
+    21: '+ les charleys ouverts', 22: '+ le vocodeur haché et la grosse caisse qui se double', 23: '+ les échos', 24: '+ les roulements de caisse claire', 25: '+ les rafales d’arpège', 26: '+ la nappe de cordes', 27: 'LE CLIMAX : tous les accords frappés',
+    28: 'Le final : la grosse caisse s’emballe', 29: '+ le sifflet à l’octave', 30: 'LA TEMPÊTE D’ARGENT : l’arpège monte, la salle déborde.' };
+  const PALIERS30 = Array.from({ length: 30 }, (_, k) => ENTRE[k + 1] || (k < 14 ? 'Tout s’ouvre d’un cran.' : 'Tout pousse d’un cran : plus fort, plus serré.'));
+  const BASE = { pad: 1.05, pluie: .9, goutte: .6, kick: .5, arp: .4, arp2: .2, bass: .34, sub: .3, snare: .45, clap: .4, hats: .2, ouverts: .2, toms: .5, lead: .45, lead2: .38, voix: .34, stabs: .38, bells: .26, cordes: .42,
+    crash: .3, chops: .26, riser: .3, caisse: .3, inverse: .3 };
+  const niv = (id, p) => { const e = id === 'caisse' ? QUAND.roule : id === 'riser' ? QUAND.drive : (QUAND[id] || 1); if (p < e) return 0; const r = Math.min(1, (p - e) / 6), g = .72 + .28 * (p - 1) / 29; return (BASE[id] || .3) * (.82 + .18 * r) * g; };
+  const FILTRE_PAD = p => Math.min(5000, 700 * Math.pow(1.068, p - 1));
+  const POMPE = p => p < QUAND.drive ? .86 : Math.max(.45, .8 - .022 * (p - QUAND.drive));
+
+  function preparer(ctx, sortie, alea) {
+    const sr = ctx.sampleRate;
+    const G = v => { const g = ctx.createGain(); g.gain.value = v; return g; };
+    const F = (type, f, q) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q != null) b.Q.value = q; return b; };
+    const chaine = (...n) => { for (let i = 0; i < n.length - 1; i++) n[i].connect(n[i + 1]); return n[n.length - 1]; };
+    const courbe = k => { const c = new Float32Array(2048); for (let i = 0; i < 2048; i++) { const x = i / 1023.5 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); } return c; };
+    const impulsion = (len, dec, lp) => { const n = Math.floor(sr * len), b = ctx.createBuffer(2, n, sr);
+      for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let y = 0; const a = Math.exp(-2 * Math.PI * lp / sr);
+        for (let i = 0; i < n; i++) { y = (1 - a) * (alea() * 2 - 1) + a * y; d[i] = y * Math.pow(1 - i / n, dec); } } return b; };
+    /* les frappes sont cuites une fois pour toutes dans des tampons : aucun oscillateur ni filtre en direct à chaque coup (le moteur 30 tient en vrai) */
+    const cuit = (dur, fn) => { const n = Math.floor(sr * dur), b = ctx.createBuffer(1, n, sr), d = b.getChannelData(0); fn(d, n); return b; };
+    const bruitBlanc = () => alea() * 2 - 1;
+    const tampons = {};
+    tampons.kick = cuit(.32, (d, n) => { let ph = 0; for (let i = 0; i < n; i++) { const t = i / sr; ph += 2 * Math.PI * (46 + 110 * Math.exp(-t / .03)) / sr; d[i] = Math.sin(ph) * Math.exp(-t / .1) * .95 + bruitBlanc() * Math.exp(-t / .003) * .25; } });
+    tampons.snare = cuit(.3, (d, n) => { let ph = 0, p1 = 0; for (let i = 0; i < n; i++) { const t = i / sr; ph += 2 * Math.PI * (160 + 70 * Math.exp(-t / .03)) / sr; const w = bruitBlanc(), hp = w - p1; p1 = w * .55 + p1 * .45;
+        const porte = t < .2 ? .38 + .62 * Math.exp(-t / .035) : Math.exp(-(t - .2) / .008) * .38; d[i] = (hp * .75 + Math.sin(ph) * .45 * Math.exp(-t / .05)) * porte; } });   /* la réverbération coupée : un plateau qui tient puis tombe net à 200 ms */
+    tampons.clap = cuit(.22, (d, n) => { let p1 = 0; for (let i = 0; i < n; i++) { const t = i / sr; const w = bruitBlanc(); p1 = p1 * .6 + w * .4; const e = (t < .09 ? (Math.sin(t * 2 * Math.PI * 95) > 0 ? 1 : .3) * Math.exp(-t / .06) : 0) + Math.exp(-t / .07) * .5; d[i] = (p1 * 1.4) * e * .7; } });
+    tampons.hat = cuit(.07, (d, n) => { let p1 = 0; for (let i = 0; i < n; i++) { const t = i / sr, w = bruitBlanc(); d[i] = (w - p1) * Math.exp(-t / .011); p1 = w; } });
+    tampons.ouvert = cuit(.34, (d, n) => { let p1 = 0; for (let i = 0; i < n; i++) { const t = i / sr, w = bruitBlanc(); d[i] = (w - p1) * Math.exp(-t / .09) * .6; p1 = w; } });
+    tampons.crash = cuit(2.4, (d, n) => { let p1 = 0; for (let i = 0; i < n; i++) { const t = i / sr, w = bruitBlanc(); d[i] = (w - p1) * Math.exp(-t / .55) * .55; p1 = w; } });
+    [['tomA', 190], ['tomB', 150], ['tomC', 115]].forEach(([k, f0]) => tampons[k] = cuit(.34, (d, n) => { let ph = 0; for (let i = 0; i < n; i++) { const t = i / sr; ph += 2 * Math.PI * (f0 * (.55 + .45 * Math.exp(-t / .09))) / sr; d[i] = Math.sin(ph) * Math.exp(-t / .1); } }));
+    /* la pluie : un grésil fin sur la mesure entière, semé de petites gouttes sèches */
+    tampons.pluie = cuit(MES, (d, n) => { let p1 = 0; for (let i = 0; i < n; i++) { const w = bruitBlanc(); d[i] = (w - p1) * .03; p1 = w; }
+      for (let k = 0; k < 70; k++) { const i0 = Math.floor(alea() * (n - 400)), a = .18 + alea() * .5, f = 3500 + alea() * 6000; for (let j = 0; j < 360; j++) d[i0 + j] += Math.sin(2 * Math.PI * f * j / sr) * Math.exp(-j / 55) * a * .35 + bruitBlanc() * Math.exp(-j / 18) * a * .3; } });
+    const bruit = ctx.createBuffer(1, sr * 2, sr); { const d = bruit.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = alea() * 2 - 1; }
+
+    const master = G(.5), chaud = ctx.createWaveShaper(); chaud.curve = courbe(1.1); chaud.oversample = '2x';
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 2; comp.attack.value = .012; comp.release.value = .18;
+    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .1; lim.knee.value = 0;
+    const boue = F('peaking', 240, .9); boue.gain.value = -2; const doux = F('highshelf', 8000, .7); doux.gain.value = -1.5;
+    chaine(master, F('highpass', 38, .7), boue, doux, chaud, comp, lim, sortie);
+    const salle = ctx.createConvolver(); salle.buffer = impulsion(2.8, 2.2, 3600); const envoiSalle = G(1); chaine(envoiSalle, salle, F('highpass', 280, .7), G(.3), master);
+    const dG = ctx.createDelay(2), dD = ctx.createDelay(2); dG.delayTime.value = SD * 3; dD.delayTime.value = SD * 3;
+    const fb = G(.36), echoIn = G(1), echoSort = G(0), pG = ctx.createStereoPanner(), pD = ctx.createStereoPanner(); pG.pan.value = -.7; pD.pan.value = .7;
+    chaine(echoIn, F('lowpass', 4600, .7), F('highpass', 340, .7), dG); dG.connect(dD); dD.connect(fb); fb.connect(dG); dG.connect(pG); dD.connect(pD); pG.connect(echoSort); pD.connect(echoSort); echoSort.connect(master); echoSort.connect(envoiSalle);
+    const pompe = G(1); pompe.connect(master);
+    const ids = ['pad', 'pluie', 'goutte', 'kick', 'arp', 'arp2', 'bass', 'sub', 'snare', 'clap', 'hats', 'ouverts', 'toms', 'lead', 'lead2', 'voix', 'stabs', 'bells', 'cordes', 'crash', 'chops', 'riser', 'caisse', 'inverse'], bus = {};
+    ids.forEach(id => bus[id] = G(0));
+    const pompes = ['pad', 'voix', 'stabs', 'cordes', 'arp2', 'chops'];
+    pompes.forEach(id => bus[id].connect(pompe));
+    ids.filter(id => pompes.indexOf(id) < 0).forEach(id => bus[id].connect(master));
+    const envoi = (id, v) => { const g = G(v); bus[id].connect(g); g.connect(envoiSalle); };
+    envoi('pad', .45); envoi('pluie', .25); envoi('goutte', .9); envoi('arp', .3); envoi('arp2', .35); envoi('lead', .42); envoi('lead2', .42); envoi('voix', .4); envoi('stabs', .28); envoi('bells', .6); envoi('chops', .35); envoi('cordes', .35); envoi('clap', .3); envoi('inverse', .7); envoi('toms', .25);
+    { const e = (id, v) => { const g = G(v); bus[id].connect(g); g.connect(echoIn); }; e('lead', .42); e('lead2', .4); e('arp', .3); e('bells', .4); e('goutte', .5); e('chops', .3); }
+    const filtrePad = F('lowpass', 700, .7); filtrePad.connect(bus.pad);
+    return { bus, pompe, filtrePad, echoSort, bruit, master, tampons };
+  }
+
+  function jouer(ctx, kit, p, t0, m0, n, alea) {
+    p = Math.max(1, Math.min(30, p | 0));
+    const b = kit.bus, T = kit.tampons, A = id => p >= QUAND[id];
+    for (const id in b) b[id].gain.setValueAtTime(niv(id, p), t0);
+    kit.master.gain.setTargetAtTime(.62 + .5 * Math.pow((p - 1) / 29, 1.15), t0, .5);
+    kit.filtrePad.frequency.setTargetAtTime(FILTRE_PAD(p), t0, .4); kit.echoSort.gain.setValueAtTime(A('echos') ? .5 : 0, t0);
+    const osc = (type, f, dt) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; if (dt) o.detune.value = dt; return o; };
+    const filt = (type, f, q) => { const x = ctx.createBiquadFilter(); x.type = type; x.frequency.value = f; x.Q.value = q; return x; };
+    const env = (g, t, pic, a, dur) => { g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(.0002, pic), t + a); g.gain.exponentialRampToValueAtTime(.0001, t + dur); };
+    const joue = (t, buf, dest, v, rate) => { const s = ctx.createBufferSource(), g = ctx.createGain(); s.buffer = buf; if (rate) s.playbackRate.value = rate; g.gain.value = v; s.connect(g); g.connect(dest); s.start(t); };
+
+    // ---- les instruments ----
+    /* la goutte d'argent : une cloche FM (porteuse + modulatrice qui s'effondre), brève — le grain de tout l'arpège */
+    const goutte = (t, midi, v, dest, dur) => { const f = mtof(midi), c = osc('sine', f), mo = osc('sine', f * 3.51), mg = ctx.createGain(), g = ctx.createGain();
+      mg.gain.setValueAtTime(f * 1.9, t); mg.gain.exponentialRampToValueAtTime(f * .08, t + .12); mo.connect(mg); mg.connect(c.frequency); env(g, t, v, .002, dur); c.connect(g); g.connect(dest);
+      c.start(t); mo.start(t); c.stop(t + dur + .02); mo.stop(t + .14); };
+    /* la basse : une scie qui s'ouvre et se referme en 0,2 s et son sous-sinus — COURTE */
+    const basse = (t, midi, v) => { const f = mtof(midi), o = osc('sawtooth', f), s = osc('sine', f), x = filt('lowpass', 900, 1.2), g = ctx.createGain(), g2 = ctx.createGain();
+      x.frequency.setValueAtTime(1500, t); x.frequency.exponentialRampToValueAtTime(260, t + .12); env(g, t, v, .003, .21); g2.gain.value = .8;
+      o.connect(x); x.connect(g); s.connect(g2); g2.connect(g); g.connect(b.bass); o.start(t); s.start(t); o.stop(t + .23); s.stop(t + .23); };
+    const sous = (t, midi, v) => { const o = osc('sine', mtof(midi)), g = ctx.createGain(); env(g, t, v, .004, .3); o.connect(g); g.connect(b.sub); o.start(t); o.stop(t + .32); };
+    /* le sifflet futuriste : une scie dans une voyelle qui glisse (ou → é), un sinus de souffle, du portamento et un relâché doux (jamais de coupure nette) */
+    const siffle = (t, midi, len, v, dest, depuis, vib, leger) => { const dur = SD * len, f = mtof(midi), a = osc('sawtooth', f), s = leger ? null : osc('sine', f * 2), c = leger ? null : osc('sine', f), g = ctx.createGain(), x1 = filt('bandpass', 700, 5), x2 = filt('bandpass', 2300, 6), mel = ctx.createGain(), os = [a, s, c].filter(Boolean);
+      if (depuis) { const f0 = mtof(depuis); os.forEach(o => { const k = o === s ? 2 : 1; o.frequency.setValueAtTime(f0 * k, t); o.frequency.exponentialRampToValueAtTime(f * k, t + .075); }); }
+      x1.frequency.setValueAtTime(600, t); x1.frequency.exponentialRampToValueAtTime(1200, t + Math.min(dur, .5)); x2.frequency.setValueAtTime(1800, t); x2.frequency.exponentialRampToValueAtTime(3000, t + Math.min(dur, .5));
+      mel.gain.value = leger ? 1 : .55;
+      a.connect(x1); a.connect(x2); x1.connect(mel); x2.connect(mel); mel.connect(g);
+      if (!leger) { const gs = ctx.createGain(), gc = ctx.createGain(); gs.gain.value = .14; gc.gain.value = .7; s.connect(gs); gs.connect(g); c.connect(gc); gc.connect(g); }
+      if (vib) { vib.connect(a.detune); if (c) vib.connect(c.detune); }
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + .045); g.gain.setValueAtTime(v, t + Math.max(.06, dur - .05)); g.gain.setTargetAtTime(.0001, t + dur - .03, .1);
+      g.connect(dest); os.forEach(o => { o.start(t); o.stop(t + dur + .7); }); };
+    const nappe = (t, accord, dur) => { const g = ctx.createGain(), v = A('voix') ? .05 : .046; g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + 1.0); g.gain.setValueAtTime(v, t + dur - .3); g.gain.linearRampToValueAtTime(.0001, t + dur + .8);
+      accord.forEach(m => [-9, 9].forEach(dt => { const o = osc('sawtooth', mtof(m), dt), pn = ctx.createStereoPanner(); pn.pan.value = dt / 12; o.connect(pn); pn.connect(g); o.start(t); o.stop(t + dur + .9); }));
+      g.connect(kit.filtrePad); };
+    /* le vocodeur : quatre scies dans deux formants, la voyelle change à mi-accord */
+    const voix = (t, accord, dur, vo) => { const g = ctx.createGain(), f1 = filt('bandpass', VOYELLES[vo][0], 5), f2 = filt('bandpass', VOYELLES[vo][1], 6), v2 = VOYELLES[(vo + 1) % 4];
+      f1.frequency.setValueAtTime(VOYELLES[vo][0], t); f1.frequency.exponentialRampToValueAtTime(v2[0], t + dur * .9); f2.frequency.setValueAtTime(VOYELLES[vo][1], t); f2.frequency.exponentialRampToValueAtTime(v2[1], t + dur * .9);
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.1, t + .5); g.gain.setValueAtTime(.1, t + dur - .15); g.gain.linearRampToValueAtTime(.0001, t + dur + .5);
+      accord.slice(1, 5).forEach(m => { const o = osc('sawtooth', mtof(m + (p >= QUAND.chops ? 0 : 0)), (m % 2 ? 6 : -6)); o.connect(f1); o.connect(f2); o.start(t); o.stop(t + dur + .6); }); f1.connect(g); f2.connect(g); g.connect(b.voix); };
+    const chop = (t, midi, vo) => { const g = ctx.createGain(), f1 = filt('bandpass', VOYELLES[vo][0], 5), f2 = filt('bandpass', VOYELLES[vo][1], 6); env(g, t, .2, .006, .14); [-7, 7].forEach(dt => { const o = osc('sawtooth', mtof(midi), dt); o.connect(f1); o.connect(f2); o.start(t); o.stop(t + .16); }); f1.connect(g); f2.connect(g); g.connect(b.chops); };
+    const stab = (t, accord, v, dur) => { const g = ctx.createGain(), x = filt('lowpass', 3600, .8); x.frequency.setValueAtTime(5200, t); x.frequency.exponentialRampToValueAtTime(1500, t + dur); env(g, t, v, .004, dur);
+      accord.slice(0, 4).forEach((m, k) => (k < 2 ? [-8, 8] : [0]).forEach(dt => { const o = osc('sawtooth', mtof(m + 12), dt); o.connect(x); o.start(t); o.stop(t + dur + .02); })); x.connect(g); g.connect(b.stabs); };
+    const cordes = (t, accord, dur) => { const g = ctx.createGain(), x = filt('lowpass', 2600, .7); g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.06, t + dur * .6); g.gain.linearRampToValueAtTime(.0001, t + dur + .5);
+      accord.forEach(m => [-8, 8].forEach(dt => { const o = osc('sawtooth', mtof(m + 12), dt); o.connect(x); o.start(t); o.stop(t + dur + .6); })); x.connect(g); g.connect(b.cordes); };
+    const souffle = (t, dur) => { const s = ctx.createBufferSource(), x = filt('bandpass', 500, .9), g = ctx.createGain(); s.buffer = kit.bruit;
+      x.frequency.setValueAtTime(400, t); x.frequency.exponentialRampToValueAtTime(8000, t + dur); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.3, t + dur); g.gain.setValueAtTime(.0001, t + dur + .01);
+      s.connect(x); x.connect(g); g.connect(b.riser); s.start(t, alea()); s.stop(t + dur + .02); };
+    /* la cloche inversée : une goutte qui gonfle à l'envers et se coupe sur le temps */
+    const inverse = (t, tFin, midi) => { const g = ctx.createGain(), o = osc('sine', mtof(midi)), o2 = osc('sine', mtof(midi) * 3.51), g2 = ctx.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.45, tFin - .02); g.gain.setValueAtTime(.0001, tFin);
+      g2.gain.setValueAtTime(.0001, t); g2.gain.exponentialRampToValueAtTime(.07, tFin - .02); g2.gain.setValueAtTime(.0001, tFin); o.connect(g); o2.connect(g2); g.connect(b.inverse); g2.connect(b.inverse); o.start(t); o2.start(t); o.stop(tFin + .01); o2.stop(tFin + .01); };
+    const kick = t => { joue(t, T.kick, b.kick, 1); kit.pompe.gain.setValueAtTime(POMPE(p), t); kit.pompe.gain.linearRampToValueAtTime(1, t + SD * 3.4); };
+
+    // ---- les mesures ----
+    for (let m = m0; m < m0 + n; m++) {
+      const tm = t0 + (m - m0) * MES, bar = m % 8, ph = Math.floor(m / 8) % 4, dom = bar === 7 && ph % 2 === 1, accord = dom ? DOMI : CHORDS[bar], root = dom ? DOMI_ROOT : ROOTS[bar], vide = A('vide') && bar === 3 && ph % 2 === 0;
+      const vo = (Math.floor(bar / 2) + ph) % 4;
+      if (bar % 2 === 0) nappe(tm, accord, MES * 2);
+      joue(tm, T.pluie, b.pluie, 1);
+      if (A('voix') && bar % 2 === 0) voix(tm, accord, MES * 2 - SD, vo);
+      if (A('cordes') && bar % 2 === 0) cordes(tm, accord, MES * 2);
+      if (A('crash') && bar === 0) joue(tm, T.crash, b.crash, 1);
+      if (A('climax') && bar === 4) joue(tm, T.crash, b.crash, .8);
+      if (A('drive') && bar === 7) souffle(tm + MES - SD * 8, SD * 8);
+      if (A('vide') && vide) inverse(tm + MES - SD * 8, tm + MES, accord[2] + 24);
+      GOUTTES.forEach(([gb, gs, gn]) => { if (gb === bar && !(A('arp') && p > 4)) goutte(tm + gs * SD, gn, .55, b.goutte, 1.4); else if (gb === bar && gs % 2 === 0) goutte(tm + gs * SD, gn, .35, b.goutte, 1.2); });
+      // le sifflet : le thème tel quel, une phrase sur deux avec une note de passage qui monte d'un degré avant chaque note longue
+      if (A('lead')) { const vib = ctx.createOscillator(), vg = ctx.createGain(); vib.frequency.value = 5.2; vg.gain.value = 11; vib.connect(vg); vib.start(tm); vib.stop(tm + MES + .8);
+        let prec = null;
+        THEME.forEach(([st, nt, ln]) => { if (Math.floor(st / 16) !== bar) return; const t = tm + (st % 16) * SD, note = nt;
+          if (ph % 2 === 1 && ln >= 4 && st % 16 >= 1) siffle(t - SD, AuDessus(AuDessus(nt)) , 1, .07, b.lead, null, vg);   /* la note de passage */
+          siffle(t, note, ln, .12, b.lead, prec && (t - prec.fin) < SD * .2 ? prec.note : null, vg);
+          if (A('lead2')) siffle(t, note - 3 - (GAMME.indexOf((note - 3) % 12) < 0 ? 1 : 0), ln, .07, b.lead2, null, vg, true);
+          if (A('octave')) siffle(t, note + 12, ln, .06, b.lead2, null, vg, true);
+          prec = { note, fin: t + ln * SD }; }); }
+      // l'arpège de gouttes : un dessin par mesure ; une sur deux avant le moteur 8 ; la seconde pluie décalée de trois doubles croches
+      if (A('arp')) { const D = ARP[(bar + ph) % 4];
+        for (let i = 0; i < 16; i++) { if (D[i] < 0 || vide && i >= 8) continue; if (!A('hats16') && i % 2) continue; const t = tm + i * SD;
+          goutte(t, accord[D[i]] + 12 + (A('climax') && i % 8 === 6 ? 12 : 0), (i % 4 === 0 ? .6 : .38), b.arp, .22);
+          if (A('arp2') && i % 2 === 1) goutte(t + SD * .75, accord[(D[i] + 2) % 5] + 24, .3, b.arp2, .2); } }
+      if (A('rafale') && bar === 7) for (let i = 8; i < 16; i++) { const t = tm + i * SD; goutte(t, accord[i % 5] + 24, .28, b.arp2, .16); goutte(t + SD / 2, accord[(i + 2) % 5] + 24, .22, b.arp2, .14); }
+      if (A('bells')) { [1, 9, 13].forEach((st, k) => { if ((bar + k) % 3 !== 0) goutte(tm + st * SD, accord[(k * 2 + bar) % 5] + 24, .26, b.bells, .5); }); }
+      const BS = ph % 2 ? BASS_B : BASS_A;
+      for (let i = 0; i < 16; i++) {
+        const t = tm + i * SD, tt = t + (i % 2 ? SD * (A('hats16') ? .08 : .12) : 0), coupe = vide && i >= 8;
+        // — les graves : le cœur au départ, puis les grosses caisses syncopées, la basse courte, la sous-basse
+        const KP = p >= 22 ? KICK[22] : p >= 15 ? KICK[15] : p >= 8 ? KICK[8] : p >= 6 ? KICK[6] : (bar % 2 === 0 ? [0] : []);
+        if (!coupe && KP.indexOf(i) >= 0) kick(t);
+        if (A('final') && bar === 7 && i >= 8 && i % 2 === 0 && i % 4 !== 0) kick(t);
+        if (A('bass') && !coupe) BS.forEach(([st, iv]) => { if (st === i) basse(tt, root + iv, st === 0 ? 1 : .8); });
+        if (A('sub') && !coupe && (i === 0 || i === 8)) sous(t, root + 12, .6);
+        // — la rythmique
+        if (A('snare') && i === 8 && !(vide)) joue(t, T.snare, b.snare, 1);
+        if (A('snare') && A('drive') && i === 14 && bar % 2 === 1) joue(t, T.snare, b.snare, .35);
+        if (A('clap') && i === 8 && !(vide)) joue(t, T.clap, b.clap, 1);
+        if (A('hats') && !coupe) { if (A('hats16')) joue(tt, T.hat, b.hats, i % 4 === 2 ? 1 : i % 2 ? .45 : .7, i % 4 === 2 ? 1 : 1.04); else if (i % 2 === 0) joue(tt, T.hat, b.hats, i % 4 === 2 ? 1 : .6); }
+        if (A('ouverts') && i % 8 === 6 && !coupe) joue(tt, T.ouvert, b.ouverts, 1);
+        if (A('toms') && (bar === 3 || bar === 7) && i >= 12 && !(vide && bar === 3)) joue(t, [T.tomA, T.tomB, T.tomC, T.tomC][i - 12], b.toms, 1);
+        if (A('roule') && bar === 7 && i >= 8) joue(t, T.snare, b.caisse, .3 + .08 * (i - 8), 1 + .02 * (i - 8));
+        if (A('stabs') && (A('climax') ? [0, 3, 6, 10, 14] : A('crash') ? [3, 6, 10, 13] : [3, 10]).indexOf(i) >= 0 && !coupe) stab(tt, accord, .6, i % 2 ? .2 : .3);
+        if (A('chops') && (i === 2 || i === 5 || i === 11 || (A('climax') && i === 14)) && !coupe) chop(tt, accord[(i + bar) % 5] + 12, (i + ph) % 4);
+      }
+    }
+  }
+
+  return {
+    titre: 'PLUIE D’ARGENT', bpm: BPM, mesures: 8, intro: 0, pas: 0.6, moteurs: Array(30).fill(1), ton: 'do♯ mineur', auteur: 'Claude Code (pôle SON), écrit à la main pour Léo',
+    style: 'synthwave de luxe sous la pluie : arpège de gouttes, caisse claire à réverbération coupée, sifflet futuriste', introTxt: '', paliers: PALIERS30, preparer, jouer };
+})();
+</script>
+
+<!-- ======================= L'ÉCOUTE (libre : ce que voit celui qui ouvre le fichier) ======================= -->
+<script>
+(function () {
+  let ctx = null, kit = null, p = 1, m = 0, tNext = 0, iv = 0;
+  let graine = 65620; const alea = () => { graine = (graine * 1664525 + 1013904223) >>> 0; return graine / 4294967296; };
+  const mes = 240 / MORCEAU.bpm;
+  const ce = document.getElementById('ce'), play = document.getElementById('play'), jg = document.getElementById('speed'), mot = document.getElementById('mot');
+  const maj = () => { mot.textContent = 'Moteur ' + p + ' / 30'; ce.textContent = 'Moteur ' + p + ' · ' + MORCEAU.paliers[p - 1]; };
+  jg.addEventListener('input', () => { p = Math.max(1, Math.min(30, 1 + Math.round(+jg.value / 100 * 29))); maj(); });
+  play.onclick = () => {
+    if (iv) { clearInterval(iv); iv = 0; ctx.close(); ctx = null; play.textContent = 'PLAY'; maj(); return; }
+    ctx = new (window.AudioContext || window.webkitAudioContext)(); kit = MORCEAU.preparer(ctx, ctx.destination, alea);
+    m = 0; tNext = ctx.currentTime + 0.1; play.textContent = 'STOP';
+    iv = setInterval(() => { while (tNext < ctx.currentTime + 0.4) { MORCEAU.jouer(ctx, kit, p, tNext, m++, 1, alea); tNext += mes; } maj(); }, 60);
+  };
+  maj();
+})();
+</script>
+</body></html>

@@ -14,6 +14,7 @@
 (function (W) {
   'use strict';
   const D = 'assets/audio/music/';
+  const PERSO = { 'bleu-1540': { tout: D + 'direct/cavale-ultra-course.html' }, 'bleu-8338': { tout: D + 'direct/rubis-ultra.html' }, 'bleu-4830': { tout: D + 'direct/flamme-de-tonnerre.html' }, 'bleu-9664': { tout: D + 'direct/mirage.html' }, 'pal-asphalte': { tout: D + 'direct/asphalte-emeraude.html', ancien: D + 'direct/asphalte-emeraude-avant.html' }, 'pal-nuit-de-velours': { tout: D + 'direct/nuit-de-velours.html' }, 'bleu-6104': { tout: D + 'direct/tonnerre-deluxe.html' }, 'pal-neon-noir': { tout: D + 'direct/neon-noir.html' }, 'bleu-8154': { tout: D + 'direct/fire-prime.html' }, 'bleu-7299': { tout: D + 'direct/enseigne-de-jade.html' }, 'bleu-9551': { tout: D + 'direct/nenuphars-velours.html' }, 'bleu-6562': { tout: D + 'direct/pluie-d-argent.html' }, 'bleu-2221': { tout: D + 'direct/cobra-ultra.html' }, 'bleu-3379': { tout: D + 'direct/sauver-maman.html' }, 'pal-rubis-neon': { tout: D + 'direct/rubis-de-neon.html', ancien: D + 'direct/rubis-de-neon-avant.html' }, 'pal-aura-30': { tout: D + 'direct/aura-30.html', ancien: D + 'direct/aura-30-avant.html' }, 'bleu-1275': { tout: D + 'direct/feu-de-luxe.html' } };   // les morceaux refaits (voir PB.charge)
   const EN_ATTENTE = {};   // (15/10 soir) MIRAGE ULTRA n'y est plus : Léo l'a laissé à la corbeille (sa retouche d'entrée jetée) — le tirage suit Pouce bleu, rien de plus
   const HTML = { 'pal-aura-30': ['AURA · 30 PALIERS', 'direct/aura-30.html'], 'pal-rubis-neon': ['RUBIS DE NÉON', 'direct/rubis-de-neon.html'], 'pal-asphalte': ['ASPHALTE D’ÉMERAUDE', 'direct/asphalte-emeraude.html'] };   // (16/10) les morceaux écrits à la main, en page
   const DEFAUT = Object.keys(HTML);   // rangés d'office dans Pouce bleu par la bibliothèque (sec 'bleu')
@@ -38,7 +39,7 @@
      suivante). Le texte introuvable ou l'import refusé → le module d'origine (rien ne casse). `?avance=.35` = l'horloge d'avant (A/B) ; dbgPouce().avance. */
   const AVANCE = +((/[?&]avance=([\d.]+)/.exec(location.search) || [])[1]) || 1, AV_TXT = 'while (nextTime < now + .35)', MODS = {};
   const MONTEE_ANCIEN = /[?&]montee=ancien\b/.test(location.search);   // (2026-10-20 soir) voir LA MONTÉE « GRANDE » plus bas
-  const importeAvance = u => MODS[u] || (MODS[u] = (async () => { try {
+  const importeAvance = u => { const K = u + '#' + (W.RYTHMIQUE ? W.RYTHMIQUE.cle() : 'o'); return MODS[K] || (MODS[K] = (async () => { try {
       const r = await fetch(u); if (!r.ok) throw new Error(u);
       const s = await r.text(); if (s.indexOf(AV_TXT) < 0) throw new Error('horloge introuvable');
       /* (2026-10-20 soir, Léo : « quand je booste, ça apparaît, ça évolue, puis ça devient une sorte de TROMPETTE horrible qui fait bugger la musique :
@@ -70,9 +71,10 @@
          iPhone ×4, 141 ms d'un bloc dans l'image du piqué, à CHAQUE course. Elle ne dépend que de ses réglages (un bruit) : gardée par réglages, elle
          resservira telle quelle aux courses suivantes. Le texte est le même partout (`function ir(`) ; absent = rien à faire. */
       s2 = s2.split('function ir(').join("function ir(...A9) { const K9 = JSON.stringify(A9) + '@' + ctx.sampleRate + '@' + " + JSON.stringify(u) + ", C9 = (globalThis.__ccIR || (globalThis.__ccIR = {})); return C9[K9] || (C9[K9] = irCalc(...A9)); }\n  function irCalc(");
+      if (W.RYTHMIQUE) s2 = W.RYTHMIQUE.patch(s2);   /* (2026-11-02, Léo : « les versions améliorées dans le jeu ») rythmique haut de gamme + timbres affinés, retouchés au chargement (music/ameliorees/rythmique.js) ; ?rythmique=0 = les originales */
       const b = URL.createObjectURL(new Blob([s2.split('import.meta.url').join(JSON.stringify(u))], { type: 'text/javascript' }));
       try { const m = await import(b); PB.avance = AVANCE; return m; } finally { URL.revokeObjectURL(b); }
-    } catch (e) { delete MODS[u]; PB.avance = .35; return importe(u); } })());   // (un espace de noms de module n'accepte aucune propriété : l'avance réelle est notée sur PB)
+    } catch (e) { delete MODS[K]; PB.avance = .35; return importe(u); } })()); };   // (un espace de noms de module n'accepte aucune propriété : l'avance réelle est notée sur PB)
   const PB = { avance: null, liste: null, E: null, J: null, ch: null, ac: null, phase: 'repos', err: null, tIntro: 0, n: 0, dernier: null };
 
   PB.charge = async function () {   // la liste de Pouce bleu (une fois)
@@ -80,6 +82,7 @@
     const P = await (await fetch('musique-moteur.json', { cache: 'no-cache' })).json();
     let R = null; try { R = await importe(url(D + 'direct/retouches-bleu.js')); } catch (e) {}
     if (!W.PALIERS_RENDUS) try { await script(D + 'paliers/rendus/index.js'); } catch (e) {}
+    if (!W.RYTHMIQUE) try { await script(D + 'ameliorees/rythmique.js'); } catch (e) {}   /* (2026-11-02) les versions améliorées ; absent = les originales */
     const suppr = new Set(P.suppr || []), place = P.place || {}, noms = P.noms || {}, RN = (R && R.RENOMS) || {}, V2 = (R && R.V2) || [], L = [], vu = new Set();
     (P.gen || []).forEach(e => { const id = 'bleu-' + e.n, k = e.n + '|' + e.titre; if (!(e.avis > 0) || suppr.has(id) || EN_ATTENTE[id] || vu.has(k)) return; vu.add(k);
       L.push({ id, type: 'genv', titre: noms[id] || RN[id] || e.titre, n: e.n, W: e.g || null, v: versionDe(e), da: e.da || 'cashcar', style: String(e.style || ''),
@@ -89,6 +92,13 @@
       if (f && f.fichiers && f.fichiers.length) L.push({ id, type: 'paliers', titre: noms[id] || f.titre, fiche: f }); });
     DEFAUT.forEach(id => { if (suppr.has(id) || (place[id] && place[id] !== 'bleu') || EN_ATTENTE[id]) return;
       if (HTML[id]) L.push({ id, type: 'html', titre: noms[id] || HTML[id][0], f: D + HTML[id][1] }); });
+    /* (2026-11-02, Léo : « refonte de la musique de course de CAVALE ULTRA… », « refonte totale de RUBIS ULTRA ») LES MORCEAUX REFAITS, directement sur le morceau (pas de second morceau) :
+       `course` = une page écrite à la main joue la COURSE, le lobby reste celui du générateur ; `tout` = la page remplace le morceau (lobby ET course). `avant` = la version d'avant (la salle d'écoute la propose en petit). */
+    const AV = (R && R.AVANT) || {};
+    L.forEach((E, i) => { const X = PERSO[E.id], A = AV[E.id];
+      if (A && E.type === 'genv') E.avant = Object.assign({}, E, { ret: A, avant: null });
+      if (X && X.tout) { L[i] = { id: E.id, type: 'html', titre: E.titre, f: X.tout, avant: E.avant || Object.assign({}, E, X.ancien ? { f: X.ancien } : {}, { avant: null }) }; }
+      else if (X && X.course) { E.course = X.course; if (!E.avant) E.avant = Object.assign({}, E, { course: null, avant: null }); } });
     return PB.liste = L;
   };
   PB.tire = function () {   // au hasard, sans doublon d'une course à l'autre
@@ -120,10 +130,11 @@
     const charge = i => { if (i < 0 || i >= n || L.buf[i] || enCours[i]) return; enCours[i] = lit(F.fichiers[i]).then(b => { L.buf[i] = b; L.gain[i] = 1; }, () => {}).then(() => { delete enCours[i]; }); };
     const garde = p => { for (let i = 0; i < n; i++) if (L.buf[i] && (i < p - 1 || i > p + 2) && i !== L.palier() && i !== L.vers()) L.buf[i] = undefined; for (let i = p - 1; i <= p + 2; i++) charge(i); };
     L.buf[0] = await lit(F.fichiers[0]); L.gain[0] = 1; L.demarre(0); garde(0);
-    return { regle(m) { const p = W.palPalierDe(deb, m - 1); L.promeut(); garde(p); if (L.vers() !== p) L.vise(p); }, stop() { try { L.stop(.3); } catch (e) {} }, bpm: () => F.bpm || 120 };
+    const SUR = (W.RYTHMIQUE && W.RYTHMIQUE.on) ? W.RYTHMIQUE.surcouche(ac, dest, L, E.id) : null;   /* (2026-11-02) la rythmique améliorée, calée sur la boucle du morceau figé */
+    return { regle(m) { const p = W.palPalierDe(deb, m - 1); L.promeut(); garde(p); if (L.vers() !== p) L.vise(p); if (SUR) SUR.regle(m); }, stop() { try { L.stop(.3); } catch (e) {} if (SUR) SUR.stop(); }, bpm: () => F.bpm || 120 };
   }
-  async function joueurHtml(ac, dest, E, t0) {
-    const fr = document.createElement('iframe'); fr.src = E.f; fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true');
+  async function joueurHtml(ac, dest, E, t0, differe) {
+    const fr = document.createElement('iframe'); fr.src = (W.RYTHMIQUE && W.RYTHMIQUE.on) ? await W.RYTHMIQUE.urlPage(E.f) : E.f;   /* (2026-11-02) la page retouchée (rythmique + timbres) */ fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true');
     fr.style.cssText = 'position:fixed;left:0;bottom:0;width:8px;height:8px;opacity:0;pointer-events:none;border:0;z-index:-1'; document.body.appendChild(fr);
     try { await new Promise((ok, ko) => { fr.onload = ok; fr.onerror = ko; });
     /* (2026-10-31, Léo : « des cuts audio très embêtants sur mobile ») LES PAGES ÉCRITES À LA MAIN PRÉVOIENT 1 s, COMME LE GÉNÉRATEUR. Leur horloge
@@ -137,9 +148,10 @@
     fr.contentWindow.AudioContext = fr.contentWindow.webkitAudioContext = function () { return prete; };
     const d = fr.contentDocument, bt = d.getElementById('play'), jg = d.getElementById('speed'); if (!bt || !jg) throw new Error('page sans #play / #speed');
     jg.step = 'any'; const vit = x => { jg.value = (x * 100).toFixed(1); jg.dispatchEvent(new fr.contentWindow.Event('input')); };
-    vit(t0 ? (t0 - 1) / 29 : typeof W.pbjTier === 'function' ? (W.pbjTier(1, E.id) - 1) / 29 : 0); bt.click();
+    const depart = () => { vit(t0 ? (t0 - 1) / 29 : typeof W.pbjTier === 'function' ? (W.pbjTier(1, E.id) - 1) / 29 : 0); bt.click(); };
+    if (!differe) depart();   /* (2026-11-02) `differe` : la page est chargée mais muette, elle part au lance() (la course d'un morceau refait, préparée pendant le lobby) */
     const bpm = (fr.contentWindow.MORCEAU && fr.contentWindow.MORCEAU.bpm) || 120;
-    return { regle(m) { vit((m - 1) / 29); }, stop() { try { if (/stop/i.test(bt.textContent)) bt.click(); } catch (e) {} fr.remove(); }, bpm: () => bpm };
+    return { lance: depart, regle(m) { vit((m - 1) / 29); }, stop() { try { if (/stop/i.test(bt.textContent)) bt.click(); } catch (e) {} fr.remove(); }, bpm: () => bpm };
     } catch (e) { fr.remove(); throw e; }   // (la page n'est pas venue : l'iframe ne reste pas)
   }
 
@@ -174,7 +186,8 @@
       await PB.charge(); if (jeton !== PB.n) return null;
       const E = (opt.meme && PB.dernier) || PB.tire(); if (!E) { PB.phase = 'vide'; return null; } PB.dernier = E;   // (la seconde chance : le MÊME morceau repart)
       ch = chaine(ac, sortie); if (ch.bus) { ch.bus.brut(!!opt.brut); ch.bus.piste('jeu:' + E.id); ch.bus.course(true); }
-      const J = await (E.type === 'genv' ? joueurGen : E.type === 'paliers' ? joueurPaliers : joueurHtml)(ac, ch.entree, E);
+      const Ej = E.course ? Object.assign({}, E, { type: 'html', f: E.course }) : E;   /* (2026-11-02) un morceau refait : la page de course */
+      const J = await (Ej.type === 'genv' ? joueurGen : Ej.type === 'paliers' ? joueurPaliers : joueurHtml)(ac, ch.entree, Ej);
       if (jeton !== PB.n) { J.stop(); try { ch.e.disconnect(); } catch (e) {} return null; }
       PB.E = E; PB.J = J; PB.ch = ch; PB.phase = 'intro';
       const mes = 240 / (J.bpm() || 120), T = (opt.doux && opt.doux[E.id]) ? 6 : Math.max(2, Math.min(4, 2 * mes)), t = ac.currentTime; PB.tIntro = t + T;   // (2/11) un départ ADOUCI pour les morceaux déjà chargés au premier élément : le filtre s'ouvre en 6 s
@@ -204,18 +217,13 @@
       if (jeton !== PB.n) { J.stop(); try { ch.e.disconnect(); } catch (e) {} return null; }
       PB.E = E; PB.J = J; PB.ch = ch; PB.phase = 'lobby'; PB.tier0 = tl; PB.tLobby = ac.currentTime; PB.doux = !!(opt.doux && opt.doux[E.id]);
       for (let m = 2; m <= tl; m++) setTimeout(() => { if (PB.phase === 'lobby' && PB.J === J) { try { J.regle(m); } catch (e) {} } }, 1500 + 2500 * (m - 1));
+      if (E.course) { const pre = { v: null, p: null }; PB.pre = pre;   /* la course refaite se prépare pendant le lobby : chargée, muette, elle part au JOUER */
+        pre.p = (async () => { const ch2 = chaine(ac, sortie); const J2 = await joueurHtml(ac, ch2.entree, Object.assign({}, E, { type: 'html', f: E.course }), 0, true); return { ch: ch2, J: J2 }; })();
+        pre.p.then(v => { pre.v = v; if (PB.pre !== pre) { try { v.J.stop(); v.ch.e.disconnect(); } catch (e) {} } }, () => { if (PB.pre === pre) PB.pre = null; }); }
       return E;
     } catch (e) { PB.err = String(e && e.message || e); if (jeton === PB.n) PB.phase = 'erreur'; if (ch) try { ch.e.disconnect(); } catch (x) {} return null; }
   };
-  /* LE JOUER, VU DU MENU : le morceau déjà en route se transforme. Le filtre s'ouvre sur 1,8 s, la salle s'efface, le niveau (musicTick) monte ; le morceau est alors « en course ». */
-  PB.transforme = function (opt) {
-    opt = opt || {}; const ch = PB.ch, ac = PB.ac, E = PB.E; if (!ch || !ac || !E) return null;
-    const t = ac.currentTime, T = PB.doux ? 3.2 : .5;   // (2/11) départ adouci : 3,2 s   // (2/11, Léo : « quand on appuie, boum, ça démarre comme la musique ») : le filtre claque ouvert en 0,5 s, la salle se coupe en un souffle, et un vrai coup l'accompagne
-    try { ch.f.frequency.cancelScheduledValues(t); ch.f.frequency.setValueAtTime(Math.max(300, ch.f.frequency.value), t); ch.f.frequency.exponentialRampToValueAtTime(18000, t + T); } catch (e) {}
-    if (ch.hp) t9(ch.hp.frequency, 10, t, .25);
-    if (ch.nt) t9(ch.nt.gain, 0, t, .25);   // le passe-haut s'ouvre avec le filtre : les graves reviennent, « ça démarre comme la musique »
-    if (ch.lfo) { try { ch.lfo.g.gain.setTargetAtTime(0, t, .1); ch.lfo.o.stop(t + 1); } catch (e) {} ch.lfo = null; }
-    if (ch.wet) { t9(ch.wet.gain, 0, t, .12); setTimeout(() => { try { ch.conv.disconnect(); ch.wet.disconnect(); } catch (e) {} }, 3500); }
+    const boumDe = (ch, ac, t, opt) => {
     if (opt.boum > 0) { try {   // le coup du JOUER : un grave qui tombe, un souffle filtré qui s'ouvre ; il suit le curseur EFFETS (opt.boum)
       const k = opt.boum, o = ac.createOscillator(), og = ac.createGain();
       o.type = 'sine'; o.frequency.setValueAtTime(95, t); o.frequency.exponentialRampToValueAtTime(34, t + .55);
@@ -225,6 +233,31 @@
       nf.frequency.setValueAtTime(500, t); nf.frequency.exponentialRampToValueAtTime(9000, t + .5); ng.gain.setValueAtTime(.0001, t); ng.gain.exponentialRampToValueAtTime(.14 * k, t + .04); ng.gain.exponentialRampToValueAtTime(.0002, t + .6);
       ns.connect(nf); nf.connect(ng); ng.connect(ch.e); ns.start(t); ns.stop(t + .7);
     } catch (e) {} }
+  };
+  /* LA BASCULE (2026-11-02) : le JOUER d'un morceau dont la course est refaite. La page de course, préparée pendant le lobby, part : son filtre claque ouvert, le coup du JOUER ; le lobby s'éteint en un souffle. */
+  PB.bascule = function (opt) {
+    opt = opt || {}; const pre = PB.pre, N = pre.v, ac = PB.ac, E = PB.E, vieux = { J: PB.J, ch: PB.ch }; PB.pre = null;
+    const t = ac.currentTime, T = PB.doux ? 3.2 : .5, ch = N.ch;
+    try { ch.f.frequency.cancelScheduledValues(t); ch.f.frequency.setValueAtTime(320, t); ch.f.frequency.exponentialRampToValueAtTime(18000, t + T); } catch (e) {}
+    boumDe(ch, ac, t, opt);
+    if (ch.bus) { try { ch.bus.brut(!!opt.brut); ch.bus.piste('jeu:' + E.id); ch.bus.course(true); } catch (e) {} }
+    const vc = vieux.ch; if (vc) { if (vc.lfo) { try { vc.lfo.o.stop(); } catch (e) {} vc.lfo = null; } try { t9(vc.g.gain, 0, t, .08); } catch (e) {}
+      setTimeout(() => { try { vieux.J.stop(); } catch (e) {} setTimeout(() => { try { vc.e.disconnect(); } catch (e) {} }, 600); }, 700); }
+    try { N.J.lance(); } catch (e) {}
+    PB.J = N.J; PB.ch = ch; PB.tier0 = 0; PB.tIntro = t + T; PB.phase = 'course';
+    return E;
+  };
+  /* LE JOUER, VU DU MENU : le morceau déjà en route se transforme. Le filtre s'ouvre sur 1,8 s, la salle s'efface, le niveau (musicTick) monte ; le morceau est alors « en course ». */
+  PB.transforme = function (opt) {
+    opt = opt || {};
+    if (PB.E && PB.E.course && PB.pre && PB.pre.v && PB.phase === 'lobby') return PB.bascule(opt);   /* (2026-11-02) un morceau refait : le lobby s'éteint, la course refaite part */ const ch = PB.ch, ac = PB.ac, E = PB.E; if (!ch || !ac || !E) return null;
+    const t = ac.currentTime, T = PB.doux ? 3.2 : .5;   // (2/11) départ adouci : 3,2 s   // (2/11, Léo : « quand on appuie, boum, ça démarre comme la musique ») : le filtre claque ouvert en 0,5 s, la salle se coupe en un souffle, et un vrai coup l'accompagne
+    try { ch.f.frequency.cancelScheduledValues(t); ch.f.frequency.setValueAtTime(Math.max(300, ch.f.frequency.value), t); ch.f.frequency.exponentialRampToValueAtTime(18000, t + T); } catch (e) {}
+    if (ch.hp) t9(ch.hp.frequency, 10, t, .25);
+    if (ch.nt) t9(ch.nt.gain, 0, t, .25);   // le passe-haut s'ouvre avec le filtre : les graves reviennent, « ça démarre comme la musique »
+    if (ch.lfo) { try { ch.lfo.g.gain.setTargetAtTime(0, t, .1); ch.lfo.o.stop(t + 1); } catch (e) {} ch.lfo = null; }
+    if (ch.wet) { t9(ch.wet.gain, 0, t, .12); setTimeout(() => { try { ch.conv.disconnect(); ch.wet.disconnect(); } catch (e) {} }, 3500); }
+    boumDe(ch, ac, t, opt);
     if (ch.bus) { try { ch.bus.brut(!!opt.brut); ch.bus.piste('jeu:' + E.id); ch.bus.course(true); } catch (e) {} }
     try { PB.J.regle(typeof W.pbjTier === 'function' ? W.pbjTier(1, E.id) : 6); } catch (e) {}   // le palier du lobby monte au palier de départ de la course, au même instant que le filtre et le coup : « boum, ça démarre comme la musique »
     PB.tier0 = 0; PB.tIntro = t + T; PB.phase = 'course';
@@ -244,6 +277,7 @@
   PB.joue = () => !!PB.J && (PB.phase === 'intro' || PB.phase === 'course');
   /* LA FIN : un fondu (la mort : plus court), puis tout s'éteint */
   PB.fin = function (vite) {
+    const pre = PB.pre; PB.pre = null; if (pre) pre.p.then(v => { try { v.J.stop(); v.ch.e.disconnect(); } catch (e) {} }, () => {});
     PB.n++; const J = PB.J, ch = PB.ch, ac = PB.ac; PB.J = null; PB.ch = null; PB.E = null; PB.phase = 'repos';
     if (!J && !ch) return;
     const d = vite ? .35 : .9;

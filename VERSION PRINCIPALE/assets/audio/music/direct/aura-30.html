@@ -52,6 +52,14 @@ const MORCEAU = (function () {
   const T_VOW = { a: [750, 1150, 2800], e: [400, 2000, 2600], i: [280, 2250, 2900], o: [450, 800, 2830], u: [320, 800, 2400] };
   const T_CONS = ['p', 't', 'k', 'b', 'd', 'm', 'n', 's', 'ch', 'r', 'l', '', ''];
   const CUTS = [[0, 8], [0, 6, 10], [0, 3, 6, 10, 13]];
+  /* (2026-11-03, Léo : « aucune répétition, ça s'entend quand on rejoue des parties ») une phrase sur deux joue la VARIANTE B : une voix, une cloche et un arpège qui ne retombent pas sur les mêmes notes */
+  const VOICE_B = { 0: [71, 2, 'e', 'o'], 3: [69, 2, 'o', 'a'], 6: [67, 3, 'a', 'e'], 10: [66, 2, 'e', 'o'], 16: [67, 3, 'o', 'a'], 20: [64, 2, 'a', 'e'], 24: [66, 2, 'e', 'o'], 27: [64, 4, 'o', 'a'] };
+  const COW_B = [[0, 3], [2, 2], [5, 2], [8, 1], [11, 2], [12, 3], [15, 2], [16, 1], [18, 0], [22, 1], [24, 3], [27, 2], [29, 1], [30, 0]];
+  /* l'ARPÈGE DE VERRE : quatre grilles de 16 doubles croches, le rang est une note de l'accord (registre aigu) ; -1 = silence */
+  const ARP = [[0, -1, 2, -1, 4, -1, 2, -1, 3, -1, 1, -1, 4, 2, -1, -1], [-1, 3, -1, 1, 4, -1, -1, 2, 0, -1, 3, -1, -1, 4, 1, -1],
+               [2, -1, -1, 4, -1, 3, 1, -1, -1, 2, 4, -1, 3, -1, 0, 1], [4, -1, 3, -1, 2, -1, 1, 0, -1, -1, 2, 3, -1, 4, -1, 3]];
+  /* LA LAME (reese sombre) : trois accroches de 16 pas, [pas, rang dans l'accord, durée en pas] — une par mesure, tirée selon la mesure et la phrase */
+  const LAME = [[[0, 3, 6], [8, 2, 3], [12, 4, 4]], [[0, 4, 3], [3, 3, 3], [8, 2, 6], [14, 3, 2]], [[0, 2, 4], [6, 3, 2], [10, 4, 6]]];
 
   // HUIT PALIERS, UN TOUS LES 4 MOTEURS — QUAND : le palier où chaque élément entre (comme la jauge du Moteur French Touch)
   const MOTEURS = [4, 4, 4, 4, 4, 4, 4, 2];
@@ -71,12 +79,21 @@ const MORCEAU = (function () {
     theremin: [1, 1, 1, 1, .9, .85, .8, .8, .8],
     bleeps:   [0, 0, 0, 1, 1, 1, 1, 1.05, 1.05],
     laser:    [0, 0, 0, 0, 1, 1, 1, 1.05, 1.1],
-    cow:      [0, 0, 0, 0, 0, 1, 1.05, 1.1, 1.15],
-    b808:     [0, 0, 0, 0, 0, .9, 1, 1, 1.05],
+    cow:      [0, 0, 0, 0, 0, .5, .85, 1.1, 1.15],   /* (premium) la cloche et la 808 d'AURA entrent en glissant (avant : un bond de +5 dB d'un coup au moteur 17) */
+    b808:     [0, 0, 0, 0, 0, .45, .8, 1, 1.05],
     choir:    [0, 0, 0, 0, 0, 0, 1, 1.05, 1.1],
     strings:  [0, 0, 0, 0, 0, 0, 0, 0, 1],
     tamb:     [0, 0, 0, 0, 0, 0, 0, .8, 1],
     crash:    [0, 0, 0, 0, 1, 1, 1, 1, 1],
+    /* (2026-11-03, Léo : « version premium, nouvelle DA ») les couches neuves : arpège de verre, lame (reese sombre), mur d'accords, chute, impact, toms, rim, roulements */
+    arp:      [0, .9, .9, .9, 1, 1, 1.05, 1.1, 1.15],
+    reese:    [0, 0, 0, 0, 0, .6, .8, 1, 1.15],
+    mur:      [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    boom:     [0, 0, 0, 0, 0, 0, 0, 1, 1.1],
+    riser:    [0, 0, 0, .8, .9, 1, 1, 1.05, 1.1],
+    toms:     [0, 0, 0, 0, 0, .9, 1, 1, 1.05],
+    rim:      [0, 0, 0, 0, 0, .7, .8, .9, 1],
+    roule:    [0, 0, 0, 0, 0, 0, 0, .9, 1],
   };
   const LOOP_F = [0, 700, 1200, 2200, 9000, 16000, 18000, 18000, 18000];   // LE FILTRE DE LA BOUCLE (sa jauge « Filtré → Grand ouvert »)
   const LOOP_Q = [3, 3, 2.6, 2.2, 1.2, .8, .8, .8, .8];
@@ -95,13 +112,14 @@ const MORCEAU = (function () {
   for (const id in NIV) NIV[id] = etire(NIV[id]);
   [[LOOP_F, 1], [LOOP_Q], [POMPE], [FLANGE], [BLEEP_P]].forEach(([a, geo]) => { const r = etire(a, geo); a.splice(0, a.length, ...r); });
   Object.assign(QUAND, { clap: 5, talker: 6, hat16: 7, guitare: 9, bleeps: 10, plonge: 11, drop: 13, voix: 14, laser: 15, aura: 17, fantome: 18,
-                         triade: 21, talk: 22, flanger: 25, laser2: 26, voixTout: 27, final: 29 });
+                         triade: 21, talk: 22, flanger: 25, laser2: 26, voixTout: 27, final: 29,
+                         fil: 12, chute: 13, rim: 16, toms: 17, lame: 19, roule: 22, boom: 24, lame8: 26, roulecaisse: 26, mur: 28 });
   MOTEURS.splice(0, MOTEURS.length, ...Array(30).fill(1));
   const ENTRE = { 1: 'Filtré : la boucle derrière le filtre — basse disco, accords hachés, grosse caisse, le thérémine qui glisse.', 5: '+ les claps', 6: '+ la voix qui parle en charabia',
-    7: '+ les charleys en doubles croches', 9: '+ la guitare funk', 10: '+ les bips de l’ordinateur de bord', 11: '+ le filtre qui plonge en fin de phrase',
-    13: 'LE DROP : grand ouvert, charleys ouverts, cymbale', 14: '+ la voix robot', 15: '+ un laser à chaque phrase', 17: 'AURA : la cloche phonk, la 808 qui glisse et sature',
-    18: '+ la grosse caisse qui rebondit', 21: 'DARK TRIAD : le chœur sombre, les claps qui relancent', 22: '+ la réponse robot', 25: '+ le flanger sur la boucle',
-    26: '+ les lasers qui se répondent', 27: '+ la voix robot partout', 29: 'Le final : les cordes, le tambourin, la voix qui parle deux fois plus vite', 30: 'Tout dehors.' };
+    7: '+ les charleys en doubles croches', 9: '+ la guitare funk', 10: '+ les bips de l’ordinateur de bord', 11: '+ le filtre qui plonge en fin de phrase', 12: '+ l’arpège de verre',
+    13: 'LE DROP : grand ouvert, charleys ouverts, cymbale, la chute qui monte avant lui', 14: '+ la voix robot', 15: '+ un laser à chaque phrase', 16: '+ les rim shots fantômes', 17: 'AURA : la cloche phonk, la 808 qui glisse et sature, les toms de fin de phrase',
+    18: '+ la grosse caisse qui rebondit', 19: '+ la lame : un reese sombre qui chante par-dessus', 22: '+ la réponse robot, les triolets de charley', 21: 'DARK TRIAD : le chœur sombre, les claps qui relancent', 24: '+ l’impact grave à chaque phrase', 25: '+ le flanger sur la boucle',
+    26: '+ les lasers qui se répondent, la lame à l’octave, le roulement de caisse claire', 27: '+ la voix robot partout', 28: '+ le mur : les accords empilés qui pompent', 29: 'Le final : les cordes, le tambourin, la voix qui parle deux fois plus vite', 30: 'Tout dehors.' };
   const PALIERS30 = Array.from({ length: 30 }, (_, k) => ENTRE[k + 1] || (k < 12 ? 'Le filtre s’ouvre un cran.' : 'Tout pousse un cran : plus fort, plus serré.'));
 
   function preparer(ctx, sortie, alea) {
@@ -119,7 +137,10 @@ const MORCEAU = (function () {
     const soft = F('highshelf', 6000); soft.gain.value = -3;
     const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3;
     const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -8; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.08; lim.knee.value = 0;   // serré : les pics de grosse caisse ne bloquent plus la montée de volume des premiers paliers
-    chaine(master, F('highpass', 30, 0.7), warm, soft, comp, lim, sortie);
+    /* (premium) LE NIVEAU PAR MOTEUR : avant le compresseur et le limiteur, un gain qui monte de -7 dB (moteur 1, calme) à +2 dB (moteur 30). Avant, tout se
+       plaquait contre le limiteur dès le moteur 1 : le niveau ne bougeait presque pas de 1 à 16, puis un bond au 17, puis plus rien jusqu'au 30. */
+    const lvl = G(1);
+    chaine(master, F('highpass', 30, 0.7), lvl, warm, soft, comp, lim, sortie);
 
     // LA BOUCLE : basse, accords, guitare, voix passent dans UN filtre résonant, puis dans la POMPE
     const loopIn = G(1), loopFilter = F('lowpass', 700, 3), pump = G(1);
@@ -159,6 +180,15 @@ const MORCEAU = (function () {
     bus.theremin.connect(roomSend); bus.theremin.connect(vDelay); { const t = G(0.4); bus.theremin.connect(t); t.connect(salleSend); }
     bus.bleeps.connect(vDelay);
     bus.laser.connect(vDelay); bus.laser.connect(roomSend);
+    /* les couches premium : l'arpège de verre (écho + pièce), la lame et le mur (pompent sur la grosse caisse, salle sombre), l'impact, la chute, les toms/rim */
+    bus.arp.connect(master); bus.arp.connect(vDelay); bus.arp.connect(roomSend);
+    bus.reese.connect(pump); bus.reese.connect(salleSend);
+    bus.mur.connect(pump); { const t = G(0.5); bus.mur.connect(t); t.connect(salleSend); }
+    bus.boom.connect(master);
+    bus.riser.connect(master); { const t = G(0.6); bus.riser.connect(t); t.connect(salleSend); }
+    bus.toms.connect(master); bus.toms.connect(roomSend);
+    bus.rim.connect(master); bus.rim.connect(roomSend);
+    bus.roule.connect(master); bus.roule.connect(roomSend);
 
     // LE THÉRÉMINE : UNE voix qui glisse d'une note à l'autre (son idée), plus basse et plus inquiétante — vibrato calé sur la phrase
     const there = ctx.createOscillator(); there.type = 'sine'; there.frequency.value = mtof(66);
@@ -167,7 +197,7 @@ const MORCEAU = (function () {
 
     const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
     { const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = alea() * 2 - 1; }
-    return { bus, loopFilter, pump, flWet, there, thereGain, noiseBuf, last808: null, phrase: [], talkK: 0, talkIdx: 3 };
+    return { bus, loopFilter, pump, flWet, there, thereGain, noiseBuf, last808: null, phrase: [], talkK: 0, talkIdx: 3, lvl };
   }
 
   function jouer(ctx, kit, p, t0, m0, n, alea) {
@@ -175,13 +205,16 @@ const MORCEAU = (function () {
     const b = kit.bus, intro = p === 0, lf = kit.loopFilter;
     for (const id in NIV) b[id].gain.setValueAtTime(NIV[id][p], t0);
     kit.flWet.gain.setValueAtTime(FLANGE[p], t0);
+    kit.lvl.gain.setValueAtTime(Math.pow(10, (-7 + 9 * (Math.max(1, p) - 1) / 29) / 20), t0);   /* le niveau du moteur (voir preparer) */
 
     const kr = (...ps) => ps.forEach(x => { try { x.automationRate = 'k-rate'; } catch (e) {} });
     const filt = (type, f, q) => { const fl = ctx.createBiquadFilter(); fl.type = type; fl.frequency.value = f; fl.Q.value = q; kr(fl.frequency, fl.Q); return fl; };
     const osc = (type, f, dt) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; if (dt) o.detune.value = dt; return o; };
     const env = (g, t, peak, a, dur) => { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); };
-    const noise = (t, dest, type, freq, q, peak, dur, off) => { const s = ctx.createBufferSource(), f = filt(type, freq, q), g = ctx.createGain();
-      s.buffer = kit.noiseBuf; env(g, t, peak, 0.002, dur); s.connect(f); f.connect(g); g.connect(dest); s.start(t, off != null ? off : alea() * 0.5); s.stop(t + dur + 0.02); };
+    /* (2026-11-03, audit du palier 30) un filtre par (sortie, type, fréquence, Q), partagé par tous les coups de bruit (le coup passe dans son gain puis dans le filtre) */
+    const filtreBruit = (dest, type, freq, q) => { const W = kit.fb || (kit.fb = new WeakMap()); let M = W.get(dest); if (!M) W.set(dest, M = {}); const k = type + freq + '/' + q; if (!M[k]) { M[k] = filt(type, freq, q); M[k].connect(dest); } return M[k]; };
+    const noise = (t, dest, type, freq, q, peak, dur, off) => { const s = ctx.createBufferSource(), g = ctx.createGain();
+      s.buffer = kit.noiseBuf; env(g, t, peak, 0.002, dur); s.connect(g); g.connect(filtreBruit(dest, type, freq, q)); s.start(t, off != null ? off : alea() * 0.5); s.stop(t + dur + 0.02); };
 
     // ---- SES instruments (le Moteur French Touch), assombris ----
     const kick = t => { const o = osc('sine', 150), g = ctx.createGain();
@@ -226,8 +259,9 @@ const MORCEAU = (function () {
 
     // ---- L'AURA / DARK TRIAD ----
     // LA CLOCHE (phonk) : deux carrés à 1 : 1,48 (la cloche de la 808), un passe-bande, puis le façonneur du bus
-    const cloche = (t, midi, v) => { const f = mtof(midi), o1 = osc('square', f), o2 = osc('square', f * 1.4815), bp = filt('bandpass', f * 2.5, 1.2), g = ctx.createGain();
-      env(g, t, 0.32 * v, 0.001, 0.3); o1.connect(bp); o2.connect(bp); bp.connect(g); g.connect(b.cow); [o1, o2].forEach(o => { o.start(t); o.stop(t + 0.32); }); };
+    const cloche = (t, midi, v) => { const f = mtof(midi), o1 = osc('square', f), o2 = osc('square', f * 1.4815), o3 = osc('triangle', f), bp = filt('bandpass', f * 2.5, 1.2), lp = filt('lowpass', 7000, 0.6), cg = ctx.createGain(), g = ctx.createGain();
+      cg.gain.value = 0.9;   /* (premium) le corps triangle arrondit l'attaque, le passe-bas enlève la dureté du carré */
+      env(g, t, 0.3 * v, 0.001, 0.34); o1.connect(bp); o2.connect(bp); o3.connect(cg); bp.connect(lp); cg.connect(lp); lp.connect(g); g.connect(b.cow); [o1, o2, o3].forEach(o => { o.start(t); o.stop(t + 0.36); }); };
     const noteCloche = (bar, rang) => { const pool = []; for (let m = 64; m <= 76; m++) if (PCS[bar].indexOf(m % 12) >= 0) pool.push(m); return pool[Math.min(pool.length - 1, rang)]; };
     // LA 808 qui glisse d'une fondamentale à l'autre, écrasée par son façonneur
     const huit = (t, midi, len) => { const o = osc('sine', mtof(midi)), g = ctx.createGain(), from = kit.last808;
@@ -240,6 +274,34 @@ const MORCEAU = (function () {
       g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.11, t + 0.5); g.gain.setValueAtTime(0.11, t + dur - 0.1); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.45);
       chord.forEach(m => [-7, 7].forEach(dt => { const o = osc('sawtooth', mtof(m), dt); o.connect(somme); o.start(t); o.stop(t + dur + 0.5); }));
       g.connect(b.choir); };
+
+    // ---- LES COUCHES PREMIUM (2026-11-03) : de l'air, du brillant, de l'impact — sans toucher à l'identité d'AURA ----
+    const poolDe = (barX, lo, hi) => { const r = []; for (let mm = lo; mm <= hi; mm++) if (PCS[barX].indexOf(mm % 12) >= 0) r.push(mm); return r; };
+    /* l'arpège de verre : un sinus dont l'indice de modulation retombe vite (FM 1 : 3) — une goutte brillante, fin douce */
+    const verre = (t, midi, v, pan) => { const f = mtof(midi), c = osc('sine', f), mo = osc('sine', f * 3), mg = ctx.createGain(), g = ctx.createGain(), pn = ctx.createStereoPanner();
+      mg.gain.setValueAtTime(f * 1.2, t); mg.gain.exponentialRampToValueAtTime(f * 0.05, t + 0.16); mo.connect(mg); mg.connect(c.frequency);
+      env(g, t, 0.16 * v, 0.002, 0.26); pn.pan.value = pan; c.connect(g); g.connect(pn); pn.connect(b.arp);
+      c.start(t); mo.start(t); c.stop(t + 0.28); mo.stop(t + 0.28); };
+    /* la lame : deux scies désaccordées + un sub, un filtre qui claque puis se referme ; la note se referme en douceur */
+    const lame = (t, midi, dur, v) => { const o1 = osc('sawtooth', mtof(midi), -11), o2 = osc('sawtooth', mtof(midi), 11), sub = osc('sine', mtof(midi - 12)), f = filt('lowpass', 700, 5),
+        sg = ctx.createGain(), g = ctx.createGain();
+      f.frequency.setValueAtTime(500, t); f.frequency.exponentialRampToValueAtTime(3000, t + 0.05); f.frequency.exponentialRampToValueAtTime(700, t + dur);
+      sg.gain.value = 0.5; sub.connect(sg); o1.connect(f); o2.connect(f); sg.connect(f);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.085 * v, t + 0.012); g.gain.setValueAtTime(0.085 * v, t + dur * 0.85); g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.14);
+      f.connect(g); g.connect(b.reese); [o1, o2, sub].forEach(o => { o.start(t); o.stop(t + dur + 0.16); }); };
+    /* le mur : le grand accord, trois scies par note, qui pompe sur la grosse caisse (bus dans la pompe) */
+    const mur = (t, chord) => { const f = filt('lowpass', 3800, 0.7), g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.03, t + 0.03); g.gain.setValueAtTime(0.03, t + MES - 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t + MES + 0.1);
+      chord.forEach(m9 => [-12, 0, 12].forEach(dt => { const o = osc('sawtooth', mtof(m9 + 12), dt); o.connect(f); o.start(t); o.stop(t + MES + 0.12); }));
+      f.connect(g); g.connect(b.mur); };
+    const boom = t => { const o = osc('sine', 95), g = ctx.createGain(); o.frequency.setValueAtTime(95, t); o.frequency.exponentialRampToValueAtTime(34, t + 0.7); env(g, t, 0.5, 0.004, 0.9);
+      o.connect(g); g.connect(b.boom); o.start(t); o.stop(t + 0.92); noise(t, b.boom, 'lowpass', 900, 0.7, 0.2, 0.5, 0); };
+    const chute = t => { const sr = ctx.createBufferSource(), f = filt('bandpass', 400, 1.3), g = ctx.createGain(); sr.buffer = kit.noiseBuf;
+      f.frequency.setValueAtTime(400, t); f.frequency.exponentialRampToValueAtTime(9000, t + MES * 0.86);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.2, t + MES * 0.86); g.gain.linearRampToValueAtTime(0.0001, t + MES * 0.9);
+      sr.connect(f); f.connect(g); g.connect(b.riser); sr.start(t, 0); sr.stop(t + MES * 0.9 + 0.02); };
+    const tom = (t, f0, v) => { const o = osc('sine', f0), g = ctx.createGain(); o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * 0.5, t + 0.18);
+      env(g, t, 0.45 * v, 0.003, 0.26); o.connect(g); g.connect(b.toms); o.start(t); o.stop(t + 0.28); noise(t, b.toms, 'bandpass', 1800, 1, 0.05 * v, 0.02); };
 
     // ---- la voix qui parle en charabia (la sienne), plus basse : un murmure de la ville ----
     const makePhrase = () => { const ph = [], vk = Object.keys(T_VOW);
@@ -290,6 +352,12 @@ const MORCEAU = (function () {
       if (plonge) { lf.frequency.setTargetAtTime(380, tm + 8 * SD, 0.25); lf.Q.setTargetAtTime(5, tm + 8 * SD, 0.1); }
       if (!intro && p >= QUAND.drop && bar8 === 0) noise(tm, b.crash, 'highpass', 6000, 0.5, 0.12, 1.2, 0);
       if (p >= QUAND.final && bar === 0) strings(tm, chord, MES);
+      const ph = Math.floor(m / 8) % 2;   /* la phrase paire joue la version A, l'impaire la version B */
+      if (!intro && p >= QUAND.chute && bar8 === 7) chute(tm);
+      if (!intro && p >= QUAND.boom && bar8 === 0) boom(tm);
+      if (!intro && p >= QUAND.mur) mur(tm, chord);
+      if (!intro && p >= QUAND.lame) { const hook = LAME[(bar + ph + (bar8 >> 2)) % 3], pl = poolDe(bar, 55, 69);
+        hook.forEach(([st, rang, len]) => { const nn = pl[Math.min(pl.length - 1, rang)], tt = tm + st * SD + (st % 2 ? SD * SHUF : 0); lame(tt, nn, len * SD, 1); if (p >= QUAND.lame8) lame(tt, nn + 12, len * SD, 0.55); }); }
       if (p >= QUAND.triade) choeur(tm, chord, MES);
       // le thérémine : une note de l'accord toutes les demi-mesures, il se tait sur la 4e mesure
       if (bar !== 3) [0, 8].forEach((s, h) => { const pool = chord.map(x => x + 12).filter(x => x >= 62 && x <= 76), note = pool[(bar * 2 + h + Math.floor(m / 4)) % pool.length] || 66;
@@ -313,12 +381,18 @@ const MORCEAU = (function () {
         if (p >= QUAND.bleeps && alea() < BLEEP_P[p]) bleep(t, PENTA[Math.floor(alea() * PENTA.length)]);
         if (p >= QUAND.laser && ((bar8 === 0 && i === 0) || (p >= QUAND.laser2 && i === 15 && bar % 2 === 1))) laser(t);
         if (p >= QUAND.guitare && GUIT[i]) guitar(t, chord[chord.length - 1], GUIT[i] === 2);
+        if (!intro && p >= QUAND.fil) { const gr = ARP[(bar8 * 3 + ph * 2 + bar) % 4][i];
+          if (gr >= 0 && (p >= 16 || i % 2 === 0)) { const pl = poolDe(bar, 72, 91); verre(t, pl[Math.min(pl.length - 1, gr + (bar8 >= 4 ? 1 : 0))], i % 4 === 0 ? 1 : 0.8, (i % 8 - 3.5) / 5); } }
+        if (!intro && p >= QUAND.rim && ((i === 10 && bar % 2 === 1) || (i === 15 && bar8 % 4 === 3))) noise(t, b.rim, 'bandpass', 1900, 3, 0.35, 0.025);
+        if (!intro && p >= QUAND.toms && (bar8 === 3 || bar8 === 7) && (i === 12 || i === 13 || i === 15 || (bar8 === 7 && (i === 10 || i === 14)))) tom(t, i < 12 ? 210 : i === 12 ? 190 : i === 13 ? 150 : i === 14 ? 120 : 100, 1);
+        if (!intro && p >= QUAND.roule && bar8 === 3 && (i === 12 || i === 14)) for (let k = 0; k < 3; k++) noise(t + k * SD * 2 / 3, b.roule, 'highpass', 9000, 0.7, 0.18 + 0.05 * (i - 12) + 0.03 * k, 0.03);
+        if (!intro && p >= QUAND.roulecaisse && bar8 === 7 && i >= 8) noise(t, b.roule, 'bandpass', 1500, 0.9, 0.22 + 0.06 * (i - 8), 0.06);
         // la 808 (aura) : la fondamentale tenue sur les temps 1 et 3, qui glisse vers la suivante
         if (p >= QUAND.aura && (i === 0 || i === 8)) huit(t, root, SD * 6);
         // la cloche phonk (aura), calée sur les notes de l'accord en cours
-        if (p >= QUAND.aura) COW.forEach(([st, rang]) => { if (st === (bar8 % 2) * 16 + i) cloche(t, noteCloche(bar, rang), i % 4 === 0 ? 1 : 0.8); });
+        if (p >= QUAND.aura) (ph ? COW_B : COW).forEach(([st, rang]) => { if (st === (bar8 % 2) * 16 + i) cloche(t, noteCloche(bar, rang), i % 4 === 0 ? 1 : 0.8); });
         const tk = TALK[i]; if (p >= QUAND.talk && tk && bar % 2 === 1) robot(t, tk[0], SD * tk[1], 'o', 'a', b.talk, 0.2);
-        const v = VOICE[s % 32];
+        const v = (ph ? VOICE_B : VOICE)[s % 32];
         if (v && ((p >= QUAND.voix && s >= 32 && s < 64) || p >= QUAND.voixTout || (intro && m === 3 && i >= 8))) robot(t, v[0], SD * v[1], v[2], v[3], b.voice, 0.38);
       }
     }

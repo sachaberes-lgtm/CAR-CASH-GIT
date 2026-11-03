@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nénuphars Velours — 30 paliers</title>
+<style>
+:root{--fond:#fff;--tx:#17141c;--tx2:#8a8494;--fil:#e4e1ea;--acc:#0e8a5f}
+@media (prefers-color-scheme:dark){:root{--fond:#0b090d;--tx:#f2f0f7;--tx2:#9a94a8;--fil:#2a2633;--acc:#21c48a}}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--fond);color:var(--tx);font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:grid;place-items:center;padding:16px}
+.boite{width:100%;max-width:560px;border:1px solid var(--fil);border-radius:20px;padding:24px;display:grid;gap:18px}
+h1{margin:0;font-size:22px}.sous{color:var(--tx2);font-size:13px;margin-top:4px}
+.rang{display:flex;gap:16px;align-items:center}
+#play{width:72px;height:72px;border-radius:50%;border:0;background:var(--tx);color:var(--fond);font-weight:700;cursor:pointer;flex:none}
+.pals{display:grid;gap:6px;flex:1}#speed{width:100%}#mot{font-weight:700;font-size:18px}
+#ce{color:var(--tx2);font-size:13px;min-height:36px}
+</style></head><body>
+<div class="boite">
+  <div><h1>NÉNUPHARS VELOURS · 30 PALIERS</h1><div class="sous">écrit à la main, sans le générateur · 96 BPM · la♭ lydien · dub aquatique : la goutte de verre, la nappe de velours, le saxo, la basse qui roule — en 30 moteurs</div></div>
+  <div class="rang"><button id="play">PLAY</button><div class="pals"><div id="mot">Moteur 1 / 30</div><input type="range" id="speed" min="0" max="100" step="any" value="0" aria-label="Moteur"></div></div>
+  <div id="ce"></div>
+</div>
+
+<!-- ======================= LE MORCEAU (format CASH CAR « morceau à paliers ») =======================
+     (2026-11-03, pôle SON ; Léo : « une version premium de toutes les musiques, la nouvelle DA, sans perdre l'identité de chaque son ; vingt bangers différents » ; avant lui : synthwave doux du générateur, saxo, basse qui roule, gouttes de verre, vapeur).
+     L'EAU ET LE VELOURS, en DUB : le « one drop » du reggae (rien sur le 1, la grosse caisse et le clic de bois tombent ensemble sur le 3), la grille de la♭ lydien (le ré naturel, la note qui flotte),
+     le skank en contretemps qui s'envole dans le ressort, l'écho de bande qui jette chaque coup au loin. La NAPPE DE VELOURS tient la surface, les GOUTTES DE VERRE (une goutte d'eau : sa hauteur MONTE) tombent
+     sur les notes de l'accord, la BASSE ROULE (courte, ronde, trois motifs qui tournent), le SAXO VELOURS chante le thème (dès 8) et il finit en retombant doucement, jamais net ; la VAPEUR (accords à l'envers) aspire la mesure suivante.
+     Le moteur 1 est le LOBBY : la nappe, le cœur du one drop, le clic de bois, le shaker, les gouttes — calme, jamais pauvre. 9 : le pluck d'eau (arpège liquide). 15 : on passe du one drop aux STEPPERS (grosse caisse à chaque temps), ça décolle.
+     20-30 : l'intensité (cordes, éclaboussure, backbeat, pluie de gouttes, sous-basse, voix de nénuphar, stabs, TSUNAMI au 28 : une vague de bruit qui monte deux mesures et s'écrase), climax au 30.
+     Rien du générateur ici. Ce bloc ne touche JAMAIS à la page : pas de document, window, setInterval, Math.random, ni ctx.currentTime. -->
+<script id="morceau">
+const MORCEAU = (function () {
+  const BPM = 96, SD = 60 / BPM / 4, MES = 16 * SD;
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+
+  // LA GRILLE (la♭ lydien), 8 mesures : Abmaj9#11 ×2 · Bb9 ×2 · Gm7 · Fm9 · Eb6/9 · Bb7sus4 (qui retombe sur le la♭)
+  const ROOTS = [44, 44, 46, 46, 43, 41, 39, 46];
+  const CHORDS = [[56, 60, 63, 67, 70, 74], [56, 60, 63, 67, 70, 74], [58, 62, 65, 68, 72], [58, 62, 65, 68, 72], [55, 58, 62, 65, 70], [53, 56, 60, 63, 67], [51, 55, 58, 60, 65], [58, 63, 65, 68, 72]];
+  const SC = new Set([8, 10, 0, 2, 3, 5, 7]);   // la♭ lydien : sol♭ ne s'y trouve pas, le ré naturel y est
+  const BAS = m => { for (let d = 1; d < 4; d++) if (SC.has((((m - d) % 12) + 12) % 12)) return m - d; return m - 2; };
+  // LES GOUTTES DE VERRE : [mesure, pas, note, moteur d'entrée] — des notes d'accord, haut perchées
+  const GOUTTES = [[0, 6, 84, 1], [0, 10, 79, 1], [0, 13, 87, 6], [1, 5, 91, 12], [2, 4, 86, 1], [2, 9, 89, 1], [3, 12, 84, 6], [4, 7, 82, 1], [4, 11, 86, 10], [5, 3, 84, 1], [5, 8, 80, 1],
+    [6, 5, 79, 1], [6, 11, 82, 1], [6, 14, 89, 8], [7, 4, 84, 1], [7, 9, 87, 1], [7, 13, 91, 14]];
+  // LA BASSE QUI ROULE : trois motifs qui tournent d'une mesure à l'autre : [pas, intervalle, durée]
+  const BASSES = [[[0, 0, .34], [5, 7, .22], [8, 0, .3], [11, 12, .2], [14, 10, .22]], [[0, 0, .3], [3, 7, .2], [8, 0, .34], [10, 5, .2], [13, 7, .24]], [[0, 0, .36], [6, 12, .2], [8, 7, .26], [12, 5, .22], [15, 7, .16]]];
+  // LES MAINS (conga et bongo) : quatre variantes, une par phrase
+  const CONGA = ['...L....H..L..H.', '....H..L...H.L..', '...H...L....H.LH', '.L....H...L..H..'];
+  // LE THÈME du saxo : [pas sur 128, note, durée en doubles croches] — A et B se relaient (A, B, A orné, B plus haut)
+  const THEME_A = [[2, 72, 5], [8, 75, 3], [12, 74, 4], [18, 72, 3], [22, 70, 2], [25, 68, 7], [32, 70, 3], [36, 74, 4], [42, 77, 4], [48, 75, 6], [56, 72, 3], [60, 70, 4],
+    [66, 70, 4], [72, 67, 2], [74, 74, 6], [80, 72, 3], [84, 68, 4], [90, 67, 2], [92, 72, 4], [96, 70, 4], [102, 75, 4], [108, 77, 4], [112, 79, 6], [120, 77, 4], [124, 75, 4]];
+  const THEME_B = [[0, 75, 3], [4, 72, 2], [7, 70, 3], [12, 68, 4], [20, 74, 4], [26, 72, 6], [34, 77, 3], [38, 74, 2], [42, 70, 6], [48, 72, 4], [54, 75, 2], [57, 74, 3], [61, 72, 3],
+    [64, 74, 3], [68, 70, 3], [72, 67, 8], [82, 68, 3], [86, 72, 3], [90, 75, 6], [96, 77, 4], [102, 75, 2], [104, 72, 4], [109, 70, 3], [114, 68, 4], [120, 70, 2], [123, 72, 5]];
+  // LE PLUCK D'EAU (l'arpège liquide) : quatre grilles d'indices dans l'accord empilé sur deux octaves
+  const ARPS = [[0, 2, 4, 1, 3, 5, 2, 4, 1, 3, 5, 2, 4, 6, 3, 5], [4, 2, 0, 3, 1, 5, 2, 6, 3, 1, 4, 2, 5, 3, 6, 4], [0, 3, 1, 4, 2, 5, 3, 6, 4, 7, 5, 8, 6, 9, 7, 5], [2, 0, 3, 1, 4, 2, 5, 3, 6, 4, 7, 5, 8, 6, 9, 7]];
+
+  const QUAND = { pad: 1, kick: 1, rim: 1, shaker: 1, goutte: 1, hats: 2, basse: 3, skank: 4, conga: 5, pad2: 6, plein: 7, sax: 8, eau: 9, clap: 10, hats16: 11, toms: 12, eau2: 12, vapeur: 14, steppers: 15, verre: 16, sax2: 17,
+    vagues: 18, strings: 19, splash: 20, eau3: 20, back: 20, bruine: 21, roll: 22, pluie: 23, sub: 24, octave: 25, voix: 26, stabs: 27, tsunami: 28, arp16: 29, final: 30 };
+  const ENTRE = { 1: 'Le lobby : la nappe de velours, le cœur du one drop (la grosse caisse sur le 3), le clic de bois, le shaker et les premières gouttes de verre. Rien de grave.', 2: '+ le charley en contretemps',
+    3: '+ la basse qui roule, courte et ronde', 4: '+ le skank : l’accord en contretemps qui s’envole dans le ressort', 5: '+ les mains : conga et bongo', 6: '+ la nappe qui s’ouvre, d’autres gouttes', 7: '+ l’écho de bande qui jette chaque coup au loin, le skank plein',
+    8: 'LE SAXO VELOURS : le thème entre', 9: 'LE PLUCK D’EAU : l’arpège liquide', 10: '+ le clap sur le 3', 11: '+ les charleys en doubles croches', 12: '+ les toms de dub, l’arpège qui double',
+    14: '+ la vapeur : les accords à l’envers aspirent la mesure suivante', 15: 'ÇA DÉCOLLE : les steppers, la grosse caisse à chaque temps', 16: '+ les cloches de verre', 17: '+ le saxo à la tierce', 18: '+ les vagues',
+    19: '+ les cordes de velours', 20: '+ l’éclaboussure à chaque phrase, le backbeat, l’arpège plein', 21: '+ la bruine : les charleys ouverts', 22: '+ les roulements de charley', 23: '+ la pluie de gouttes',
+    24: '+ la sous-basse qui gonfle', 25: '+ le saxo double à l’octave', 26: '+ la voix de nénuphar', 27: 'LE CLIMAX : les stabs d’accords en contretemps', 28: 'LE TSUNAMI : une vague de bruit monte deux mesures et s’écrase',
+    29: '+ l’arpège en octaves', 30: 'Le saxo monte d’une octave : le ciel de gouttes.' };
+  const PALIERS30 = Array.from({ length: 30 }, (_, k) => ENTRE[k + 1] || (k < 14 ? 'Tout s’ouvre d’un cran.' : 'Tout pousse d’un cran : plus fort, plus serré.'));
+  const BASE = { pad: .5, kick: .5, rim: .5, shaker: .2, goutte: .4, hats: .2, basse: .5, skank: .3, conga: .34, sax: .54, eau: .3, clap: .36, toms: .46, verre: .3, vapeur: .3, sax2: .26, vagues: .2, strings: .46, splash: .34,
+    sub: .1, voix: .36, stabs: .44, tsunami: .3 };
+  const niv = (id, p) => { const e = QUAND[id] || 1; if (p < e) return 0; const r = Math.min(1, (p - e) / 6), g = .72 + .28 * (p - 1) / 29; return (BASE[id] || .3) * (.82 + .18 * r) * g; };
+  const FILTRE_PAD = p => Math.min(4200, 750 * Math.pow(1.07, p - 1));
+  const POMPE = p => p < QUAND.steppers ? .9 : Math.max(.52, .8 - .018 * (p - QUAND.steppers));
+
+  function preparer(ctx, sortie, alea) {
+    const G = v => { const g = ctx.createGain(); g.gain.value = v; return g; };
+    const F = (type, f, q) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q != null) b.Q.value = q; return b; };
+    const chaine = (...n) => { for (let i = 0; i < n.length - 1; i++) n[i].connect(n[i + 1]); return n[n.length - 1]; };
+    const courbe = k => { const c = new Float32Array(2048); for (let i = 0; i < 2048; i++) { const x = i / 1023.5 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); } return c; };
+    const impulsion = (len, dec, lp, ressort) => { const sr = ctx.sampleRate, n = Math.floor(sr * len), b = ctx.createBuffer(2, n, sr);
+      for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let y = 0; const a = Math.exp(-2 * Math.PI * lp / sr);
+        for (let i = 0; i < n; i++) { y = (1 - a) * (alea() * 2 - 1) + a * y; d[i] = y * Math.pow(1 - i / n, dec) * (ressort ? .6 + .4 * Math.cos(2 * Math.PI * i / sr / (.029 + c * .003)) : 1); } } return b; };
+    // les frappes de bruit sont calculées UNE fois (aucun filtre en direct à chaque coup de charley)
+    const rend = (sec, f) => { const sr = ctx.sampleRate, n = Math.floor(sr * sec), buf = ctx.createBuffer(1, n, sr); f(buf.getChannelData(0), n, sr); return buf; };
+    const bas = (d, fc, sr) => { const k = 1 - Math.exp(-2 * Math.PI * fc / sr); let y = 0; for (let i = 0; i < d.length; i++) { y += k * (d[i] - y); d[i] = y; } };
+    const haut = (d, fc, sr) => { const k = 1 - Math.exp(-2 * Math.PI * fc / sr); let y = 0; for (let i = 0; i < d.length; i++) { y += k * (d[i] - y); d[i] -= y; } };
+    const bruitD = (d, n) => { for (let i = 0; i < n; i++) d[i] = alea() * 2 - 1; };
+    const tp = {
+      hat: rend(.07, (d, n, sr) => { bruitD(d, n); haut(d, 7000, sr); haut(d, 7000, sr); for (let i = 0; i < n; i++) d[i] *= Math.exp(-i / sr / .012); }),
+      ouvert: rend(.38, (d, n, sr) => { bruitD(d, n); haut(d, 6500, sr); haut(d, 6500, sr); for (let i = 0; i < n; i++) d[i] *= Math.exp(-i / sr / .09); }),
+      shaker: rend(.08, (d, n, sr) => { bruitD(d, n); haut(d, 4800, sr); bas(d, 9500, sr); for (let i = 0; i < n; i++) { const t = i / sr; d[i] *= Math.min(1, t / .012) * Math.exp(-t / .022); } }),
+      rim: rend(.1, (d, n, sr) => { const b = new Float32Array(n); bruitD(b, n); haut(b, 2500, sr); bas(b, 5200, sr); for (let i = 0; i < n; i++) { const t = i / sr; d[i] = Math.sin(2 * Math.PI * 1750 * t) * Math.exp(-t / .012) * .8 + b[i] * Math.exp(-t / .014) * .7; } }),
+      clap: rend(.28, (d, n, sr) => { bruitD(d, n); haut(d, 1000, sr); bas(d, 2600, sr); for (let i = 0; i < n; i++) { const t = i / sr; let e = 0; for (let k = 0; k < 3; k++) { const tk = t - k * .011; if (tk >= 0) e = Math.max(e, Math.exp(-tk / .008)); } e = Math.max(e, t > .03 ? Math.exp(-(t - .03) / .07) * .7 : 0); d[i] *= e; } }),
+      splash: rend(1.8, (d, n, sr) => { bruitD(d, n); haut(d, 5200, sr); for (let i = 0; i < n; i++) { const t = i / sr; d[i] *= Math.min(1, t / .03) * Math.exp(-t / .5); } })
+    };
+    const master = G(.5), chaud = ctx.createWaveShaper(); chaud.curve = courbe(1.08); chaud.oversample = '2x';
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 2; comp.attack.value = .015; comp.release.value = .2;
+    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .1; lim.knee.value = 0;
+    // le grave est tenu : passe-haut à 40 Hz, un creux dans la boue 250 Hz, un coin d'aigus arrondi
+    const boue = F('peaking', 250, .9); boue.gain.value = -2; const doux = F('highshelf', 7500, .7); doux.gain.value = -2;
+    chaine(master, F('highpass', 40, .7), boue, doux, chaud, comp, lim, sortie);
+    const salle = ctx.createConvolver(); salle.buffer = impulsion(3.4, 2.2, 3000, false); const envoiSalle = G(1); chaine(envoiSalle, salle, F('highpass', 280, .7), G(.32), master);
+    const ressort = ctx.createConvolver(); ressort.buffer = impulsion(1.6, 3, 3400, true); const envoiRessort = G(1); chaine(envoiRessort, F('highpass', 400, .7), ressort, G(.34), master);
+    // l'écho de bande : croche pointée, boucle assombrie, la bande tremble un peu
+    const dG = ctx.createDelay(2), dD = ctx.createDelay(2); dG.delayTime.value = SD * 3; dD.delayTime.value = SD * 3;
+    const fb = G(.5), echoIn = G(1), echoSort = G(0), pG = ctx.createStereoPanner(), pD = ctx.createStereoPanner(); pG.pan.value = -.7; pD.pan.value = .7;
+    const tremble = ctx.createOscillator(), tg = G(.0035); tremble.frequency.value = .6; tremble.connect(tg); tg.connect(dG.delayTime); tg.connect(dD.delayTime); tremble.start();
+    chaine(echoIn, F('lowpass', 4000, .7), F('highpass', 260, .7), dG); dG.connect(dD); chaine(dD, F('lowpass', 2700, .6), fb); fb.connect(dG); dG.connect(pG); dD.connect(pD); pG.connect(echoSort); pD.connect(echoSort); echoSort.connect(master); echoSort.connect(envoiSalle);
+    const pompe = G(1); pompe.connect(master);
+    const ids = ['pad', 'kick', 'rim', 'shaker', 'goutte', 'hats', 'basse', 'skank', 'conga', 'sax', 'eau', 'clap', 'toms', 'verre', 'vapeur', 'sax2', 'vagues', 'strings', 'splash', 'sub', 'voix', 'stabs', 'tsunami'], bus = {};
+    ids.forEach(id => bus[id] = G(0));
+    ['pad', 'strings', 'voix', 'skank', 'stabs'].forEach(id => bus[id].connect(pompe));
+    ids.filter(id => !['pad', 'strings', 'voix', 'skank', 'stabs'].includes(id)).forEach(id => bus[id].connect(master));
+    const envoi = (id, v, dest) => { const g = G(v); bus[id].connect(g); g.connect(dest || envoiSalle); };
+    envoi('pad', .5); envoi('goutte', 1); envoi('sax', .38); envoi('sax2', .38); envoi('eau', .4); envoi('verre', .5); envoi('rim', .3); envoi('clap', .5); envoi('conga', .22); envoi('toms', .3); envoi('strings', .4); envoi('voix', .5);
+    envoi('vapeur', .5); envoi('hats', .1); envoi('stabs', .3); envoi('splash', .3); envoi('vagues', .4);
+    envoi('skank', .75, envoiRessort); envoi('rim', .35, envoiRessort); envoi('clap', .3, envoiRessort);
+    { const e = (id, v) => { const g = G(v); bus[id].connect(g); g.connect(echoIn); };
+      e('goutte', .55); e('rim', .5); e('skank', .5); e('sax', .4); e('sax2', .3); e('eau', .35); e('verre', .4); e('clap', .4); e('toms', .5); e('conga', .25); e('stabs', .25); }
+    const filtrePad = F('lowpass', 750, .7); filtrePad.connect(bus.pad);
+    const bruit = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate); { const d = bruit.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = alea() * 2 - 1; }
+    return { bus, pompe, filtrePad, echoSort, bruit, master, tp };
+  }
+
+  function jouer(ctx, kit, p, t0, m0, n, alea) {
+    p = Math.max(1, Math.min(30, p | 0));
+    const b = kit.bus, A = id => p >= QUAND[id];
+    for (const id in b) b[id].gain.setValueAtTime(niv(id, p), t0);
+    kit.master.gain.setTargetAtTime(.56 + .5 * Math.pow((p - 1) / 29, 1.15) + .38 * Math.pow(1 - (p - 1) / 29, 2.2) + .5 * Math.pow(Math.max(0, p - 14) / 16, 1.2), t0, .5);
+    kit.filtrePad.frequency.setTargetAtTime(FILTRE_PAD(p), t0, .4); kit.echoSort.gain.setValueAtTime(A('plein') ? .55 : .36, t0);
+    const osc = (type, f, dt) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; if (dt) o.detune.value = dt; return o; };
+    const filt = (type, f, q) => { const x = ctx.createBiquadFilter(); x.type = type; x.frequency.value = f; x.Q.value = q; return x; };
+    const env = (g, t, pic, a, dur) => { g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(.0002, pic), t + a); g.gain.exponentialRampToValueAtTime(.0001, t + dur); };
+    const tamp = (buf, t, dest, v, rate) => { const s = ctx.createBufferSource(), g = ctx.createGain(); s.buffer = buf; if (rate) s.playbackRate.value = rate; g.gain.value = v; s.connect(g); g.connect(dest); s.start(t); };
+    const onde = (t, dur, fa, fb, pic, dest, monte) => { const s = ctx.createBufferSource(), x = filt('bandpass', fa, 1.2), g = ctx.createGain(); s.buffer = kit.bruit; s.loop = true;
+      x.frequency.setValueAtTime(fa, t); x.frequency.exponentialRampToValueAtTime(fb, t + dur); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(pic, t + dur * (monte ? .97 : .5));
+      if (monte) g.gain.setValueAtTime(.0001, t + dur + .005); else g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      s.connect(x); x.connect(g); g.connect(dest); s.start(t, alea() * 1.2); s.stop(t + dur + .03); };
+
+    // ---- les instruments ----
+    // la nappe de velours : triangles et sinus qui se frôlent, attaque lente, filtre qui s'ouvre avec les moteurs
+    const nappe = (t, accord, dur) => { const g = ctx.createGain(), v = A('pad2') ? .06 : .05; g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + 1.0); g.gain.setValueAtTime(v, t + dur - .3); g.gain.linearRampToValueAtTime(.0001, t + dur + .9);
+      accord.forEach(m => [-8, 8].forEach((dt, j) => { const o = osc(j ? 'triangle' : 'sine', mtof(m), dt); o.connect(g); o.start(t); o.stop(t + dur + .95); }));
+      if (A('pad2')) accord.slice(2).forEach((m, k) => { const o = osc('sine', mtof(m + 12), k % 2 ? 5 : -5), pn = ctx.createStereoPanner(); pn.pan.value = k % 2 ? .6 : -.6; o.connect(pn); pn.connect(g); o.start(t); o.stop(t + dur + .95); });
+      g.connect(kit.filtrePad); };
+    // la basse qui roule : un sinus qui retombe d'un souffle sur sa note, un harmonique, COURTE (0,2 à 0,36 s), jamais de queue
+    const basse = (t, midi, v, dur) => { const f = mtof(midi), o = osc('sine', f), o2 = osc('triangle', f * 2), g = ctx.createGain(), g2 = ctx.createGain(), x = filt('lowpass', 560, .7);
+      o.frequency.setValueAtTime(f * 1.06, t); o.frequency.exponentialRampToValueAtTime(f, t + .03); env(g, t, v, .005, dur); g2.gain.value = .22;
+      o.connect(x); o2.connect(g2); g2.connect(x); x.connect(g); g.connect(b.basse); o.start(t); o2.start(t); o.stop(t + dur + .02); o2.stop(t + dur + .02); };
+    const sous = (t, midi, dur) => { const o = osc('sine', mtof(midi)), g = ctx.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.7, t + .6); g.gain.setValueAtTime(.7, t + dur - .5); g.gain.linearRampToValueAtTime(.0001, t + dur); o.connect(g); g.connect(b.sub); o.start(t); o.stop(t + dur + .02); };
+    const kick = t => { const o = osc('sine', 110), g = ctx.createGain(); o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(44, t + .08);
+      env(g, t, .85, .003, .26); o.connect(g); g.connect(b.kick); o.start(t); o.stop(t + .28); tamp(kit.tp.rim, t, b.kick, .05, 1.8);
+      kit.pompe.gain.setValueAtTime(POMPE(p), t); kit.pompe.gain.linearRampToValueAtTime(1, t + SD * 3.2); };
+    // le saxo velours : une scie et un carré qui se frôlent, le filtre s'ouvre à l'attaque puis se referme ; vibrato qui arrive après un quart de seconde ; la note FINIT en retombant, jamais net
+    const sax = (t, midi, len, v, dest, vib) => { const dur = SD * len, f = mtof(midi), x = filt('lowpass', 700, .8), g = ctx.createGain(), lfo = osc('sine', 5.3), lg = ctx.createGain();
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + .035); g.gain.setValueAtTime(v, t + Math.max(.05, dur - .06)); g.gain.exponentialRampToValueAtTime(.0001, t + dur + .22);
+      x.frequency.setValueAtTime(700, t); x.frequency.exponentialRampToValueAtTime(2600, t + .06); x.frequency.exponentialRampToValueAtTime(1500, t + dur);
+      lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(vib || 9, t + .4); lfo.connect(lg);
+      [['sawtooth', 1, .6], ['square', 1.004, .28]].forEach(([ty, r, gv]) => { const o = osc(ty, f * r), gg = ctx.createGain(); gg.gain.value = gv; if (len >= 4) o.frequency.setValueAtTime(f * r, t + dur - .02), o.frequency.exponentialRampToValueAtTime(f * r * .985, t + dur + .2);
+        lg.connect(o.detune); o.connect(gg); gg.connect(x); o.start(t); o.stop(t + dur + .25); });
+      lfo.start(t); lfo.stop(t + dur + .25); x.connect(g); g.connect(dest); };
+    // la goutte de verre : une VRAIE goutte d'eau — la hauteur MONTE (le « bloup »), un partiel de verre, puis elle s'éteint dans la salle
+    const goutte = (t, midi, v) => { const f = mtof(midi), o = osc('sine', f * .8), o2 = osc('sine', f * 2.76), g = ctx.createGain(), g2 = ctx.createGain(); o.frequency.setValueAtTime(f * .8, t); o.frequency.exponentialRampToValueAtTime(f, t + .035);
+      env(g, t, v, .004, 1.1); env(g2, t, v * .1, .003, .2); o.connect(g); o2.connect(g2); g.connect(b.goutte); g2.connect(b.goutte); o.start(t); o2.start(t); o.stop(t + 1.15); o2.stop(t + .25); };
+    // le pluck d'eau : un triangle dans un filtre à résonance qui s'ouvre vite, la hauteur monte comme une bulle
+    const eau = (t, midi, v) => { const f = mtof(midi), o = osc('triangle', f), x = filt('lowpass', 900, 3), g = ctx.createGain(); o.frequency.setValueAtTime(f * .84, t); o.frequency.exponentialRampToValueAtTime(f, t + .03);
+      x.frequency.setValueAtTime(900, t); x.frequency.exponentialRampToValueAtTime(3400, t + .04); x.frequency.exponentialRampToValueAtTime(700, t + .3); env(g, t, v, .004, .34); o.connect(x); x.connect(g); g.connect(b.eau); o.start(t); o.stop(t + .36); };
+    // la cloche de verre : un sinus et un partiel de verre (rapport 4,07), attaque douce
+    const verre = (t, midi) => { const f = mtof(midi), o = osc('sine', f), o2 = osc('sine', f * 4.07), g = ctx.createGain(), g2 = ctx.createGain(); env(g, t, .5, .006, .95); env(g2, t, .09, .004, .22); o.connect(g); o2.connect(g2); g.connect(b.verre); g2.connect(b.verre); o.start(t); o2.start(t); o.stop(t + .97); o2.stop(t + .24); };
+    const skank = (t, accord, v, k) => { const g = ctx.createGain(), x = filt('lowpass', 1100 + p * 55, .9), pn = ctx.createStereoPanner(); env(g, t, v, .003, .15); pn.pan.value = k % 2 ? .35 : -.35;
+      accord.slice(1, 4).forEach((m, j) => { const o = osc('sawtooth', mtof(m + 12), (j - 1) * 6); o.connect(x); o.start(t); o.stop(t + .17); });
+      x.connect(g); g.connect(pn); pn.connect(b.skank); };
+    const stab = (t, accord, v) => { const g = ctx.createGain(), x = filt('lowpass', 3000, .8); env(g, t, v, .004, .22); accord.slice(0, 5).forEach((m, j) => { const o = osc('sawtooth', mtof(m + 12), (j - 2) * 5); o.connect(x); o.start(t); o.stop(t + .24); }); x.connect(g); g.connect(b.stabs); };
+    const cordes = (t, accord, dur) => { const g = ctx.createGain(), x = filt('lowpass', 1900, .7); g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.06, t + dur * .55); g.gain.linearRampToValueAtTime(.0001, t + dur + .5);
+      accord.slice(0, 4).forEach(m => [-9, 9].forEach(dt => { const o = osc('sawtooth', mtof(m + 12), dt); o.connect(x); o.start(t); o.stop(t + dur + .6); })); x.connect(g); g.connect(b.strings); };
+    // la voix de nénuphar : des scies dans deux filtres de voyelle qui glissent doucement de « ou » vers « a » pendant l'accord
+    const voix = (t, accord, dur) => { const g = ctx.createGain(), f1 = filt('bandpass', 450, 4), f2 = filt('bandpass', 1100, 5);
+      f1.frequency.setValueAtTime(450, t); f1.frequency.exponentialRampToValueAtTime(850, t + dur); f2.frequency.setValueAtTime(1100, t); f2.frequency.exponentialRampToValueAtTime(1500, t + dur);
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.09, t + .6); g.gain.setValueAtTime(.09, t + dur - .2); g.gain.linearRampToValueAtTime(.0001, t + dur + .6);
+      accord.slice(1, 4).forEach(m => { const o = osc('sawtooth', mtof(m + 12), m % 2 ? 7 : -7); o.connect(f1); o.connect(f2); o.start(t); o.stop(t + dur + .7); }); f1.connect(g); f2.connect(g); g.connect(b.voix); };
+    const tom = (t, f0) => { const o = osc('sine', f0), g = ctx.createGain(); o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * .55, t + .2); env(g, t, .7, .003, .28); o.connect(g); g.connect(b.toms); o.start(t); o.stop(t + .3); };
+    const main = (t, haute) => { const o = osc('sine', haute ? 330 : 215), g = ctx.createGain(); o.frequency.setValueAtTime(haute ? 330 : 215, t); o.frequency.exponentialRampToValueAtTime(haute ? 290 : 180, t + .1); env(g, t, .55, .002, .16); o.connect(g); g.connect(b.conga); o.start(t); o.stop(t + .18); tamp(kit.tp.rim, t, b.conga, .18, haute ? 1.5 : 1); };
+    // la vapeur : l'accord de la mesure SUIVANTE, à l'envers — il gonfle puis se coupe sur le 1, avec un souffle de bruit qui monte
+    const vapeur = (t, tFin, accord) => { const g = ctx.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.09, tFin - .02); g.gain.setValueAtTime(.0001, tFin);
+      accord.slice(0, 4).forEach(m => { const o = osc('triangle', mtof(m + 12)); o.connect(g); o.start(t); o.stop(tFin + .01); }); g.connect(b.vapeur); onde(t, tFin - t, 600, 7000, .35, b.vapeur, true); };
+
+    // ---- les mesures ----
+    for (let m = m0; m < m0 + n; m++) {
+      const tm = t0 + (m - m0) * MES, bar = m % 8, ph = Math.floor(m / 8) % 4, accord = CHORDS[bar], root = ROOTS[bar], hautSax = A('final') ? 12 : 0;
+      nappe(tm, accord, MES);
+      if (A('strings') && bar % 2 === 0) cordes(tm, accord, MES * 2);
+      if (A('voix') && bar % 2 === 0) voix(tm, accord, MES * 2 - SD);
+      if (A('sub') && bar % 2 === 0) sous(tm, root - 12, MES * 2 - .1);
+      if (A('splash') && bar === 0) tamp(kit.tp.splash, tm, b.splash, A('tsunami') ? .55 : .38);
+      if (A('vapeur') && bar === 7) vapeur(tm + MES - SD * 8, tm + MES, CHORDS[0]);
+      if (A('vagues') && bar % 4 === 1) onde(tm + SD * 4, MES * .95, 300, 1700, .5, b.vagues, false);
+      if (A('tsunami') && bar === 6) onde(tm, MES * 2, 200, 9000, .8, b.tsunami, true);
+      GOUTTES.forEach(([gb, gs, gn, gp]) => { if (gb === bar && p >= gp) goutte(tm + gs * SD, gn + (A('final') && gs % 2 ? 12 : 0), .5); });
+      if (A('pluie') && bar === 7) for (let k = 0; k < 8; k++) goutte(tm + (6 + k) * SD, [91, 89, 87, 84, 82, 79, 77, 75][k] - (k > 5 ? 12 : 0), .3);
+      // le thème du saxo : A, B, A orné (appogiature), B une octave plus haut dans les deux dernières mesures
+      if (A('sax')) { const TH = ph % 2 ? THEME_B : THEME_A, orne = ph === 2, haut = ph === 3;
+        TH.forEach(([st, nt, ln]) => { if (Math.floor(st / 16) !== bar) return; const t = tm + (st % 16) * SD, nn = nt + (haut && bar >= 6 ? 12 : 0) + hautSax;
+          if (orne && ln >= 3) sax(t - SD * .75, BAS(nn), 1, .05, b.sax, 0);
+          sax(t, nn, ln, .08, b.sax);
+          if (A('sax2')) sax(t, A('octave') ? nn + 12 : BAS(BAS(nn)), ln, .05, b.sax2, 6); }); }
+      if (A('basse')) BASSES[(bar * 2 + ph) % 3].forEach(([st, iv, du]) => basse(tm + st * SD, root + iv, st === 0 ? 1 : .75, du));
+      if (A('skank')) { const pas = A('plein') ? [2, 6, 10, 14] : [6, 14]; pas.forEach((st, k) => skank(tm + st * SD, accord, .5 + (st === 6 ? .1 : 0), k)); }
+      if (A('stabs')) [2, 6, 10, 14].forEach(st => { if ((st + bar) % 4 !== 0 || A('final')) stab(tm + st * SD, accord, .38); });
+      // le pluck d'eau : sparse (9), plus dense (12), pleine (20), octaves (29)
+      if (A('eau')) { const gr = ARPS[(bar + ph * 3) % 4], up = accord.concat(accord.map(x => x + 12));
+        for (let i = 0; i < 16; i++) { const joue = A('eau3') ? true : A('eau2') ? i % 2 === 1 : i % 4 === 1; if (!joue) continue; let nn = up[gr[i] % up.length] + 12; while (nn > 88) nn -= 12;
+          eau(tm + i * SD + (i % 2 ? SD * .08 : 0), nn, i % 4 === 1 ? .8 : .55); if (A('arp16') && i % 2 === 0) eau(tm + i * SD, Math.min(96, nn + 12), .35); } }
+      for (let i = 0; i < 16; i++) {
+        const t = tm + i * SD, tt = t + (i % 2 ? SD * .1 : 0);
+        // — le one drop : rien sur le 1, la grosse caisse et le clic de bois sur le 3 ; les steppers dès 15 : la grosse caisse à chaque temps
+        if (A('steppers') ? i % 4 === 0 : i === 8) kick(t);
+        if (!A('steppers') && A('hats16') && i === 14 && bar % 2 === 1) kick(t);
+        if (i === 8 || (A('back') && (i === 4 || i === 12))) tamp(kit.tp.rim, t, b.rim, i === 8 ? 1 : .55);
+        if (A('clap') && i === 8) tamp(kit.tp.clap, t, b.clap, 1);
+        if (A('back') && (i === 4 || i === 12)) tamp(kit.tp.clap, t, b.clap, .5);
+        // — les charleys et le shaker
+        if (A('hats') && !A('hats16') && i % 4 === 2) tamp(kit.tp.hat, tt, b.hats, .6);
+        if (A('hats16')) tamp(kit.tp.hat, tt, b.hats, i % 4 === 2 ? .8 : i % 2 ? .3 : .45);
+        if (A('bruine') && i % 8 === 6) tamp(kit.tp.ouvert, tt, b.hats, .5);
+        if (A('roll') && (bar === 3 || bar === 7) && i >= 12) tamp(kit.tp.hat, t + SD * .5, b.hats, .35);
+        if (i % 4 === 3 || (A('plein') && i % 2 === 1)) tamp(kit.tp.shaker, tt, b.shaker, i % 4 === 3 ? .8 : .5);
+        if (A('conga')) { const c = CONGA[ph % 4][i]; if (c === 'H' || c === 'L') main(tt, c === 'H'); }
+        if (A('toms') && (bar === 3 || bar === 7) && i >= 12) tom(t, [210, 175, 140, 110][i - 12]);
+        if (A('verre') && ((i === 3 && bar % 2 === 0) || (i === 11 && bar % 2 === 1) || (i === 7 && A('bruine')))) verre(tt, accord[(i + bar) % accord.length] + 24);
+      }
+    }
+  }
+
+  return {
+    titre: 'NÉNUPHARS VELOURS', bpm: BPM, mesures: 8, intro: 0, pas: 0.6, moteurs: Array(30).fill(1), ton: 'la♭ lydien', auteur: 'Claude Code (pôle SON), écrit à la main pour Léo',
+    style: 'dub aquatique : goutte de verre, nappe de velours, saxo, basse qui roule', introTxt: '', paliers: PALIERS30, preparer, jouer };
+})();
+</script>
+
+<!-- ======================= L'ÉCOUTE (libre : ce que voit celui qui ouvre le fichier) ======================= -->
+<script>
+(function () {
+  let ctx = null, kit = null, p = 1, m = 0, tNext = 0, iv = 0;
+  let graine = 95510; const alea = () => { graine = (graine * 1664525 + 1013904223) >>> 0; return graine / 4294967296; };
+  const mes = 240 / MORCEAU.bpm;
+  const ce = document.getElementById('ce'), play = document.getElementById('play'), jg = document.getElementById('speed'), mot = document.getElementById('mot');
+  const maj = () => { mot.textContent = 'Moteur ' + p + ' / 30'; ce.textContent = 'Moteur ' + p + ' · ' + MORCEAU.paliers[p - 1]; };
+  jg.addEventListener('input', () => { p = Math.max(1, Math.min(30, 1 + Math.round(+jg.value / 100 * 29))); maj(); });
+  play.onclick = () => {
+    if (iv) { clearInterval(iv); iv = 0; ctx.close(); ctx = null; play.textContent = 'PLAY'; maj(); return; }
+    ctx = new (window.AudioContext || window.webkitAudioContext)(); kit = MORCEAU.preparer(ctx, ctx.destination, alea);
+    m = 0; tNext = ctx.currentTime + 0.1; play.textContent = 'STOP';
+    iv = setInterval(() => { while (tNext < ctx.currentTime + 0.4) { MORCEAU.jouer(ctx, kit, p, tNext, m++, 1, alea); tNext += mes; } maj(); }, 60);
+  };
+  maj();
+})();
+</script>
+</body></html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lobby des musiques</title>
+<style>
+  :root{--fond:#0b0d14;--carte:#151a27;--carte2:#1d2538;--bord:#2c3554;--texte:#f4f6fc;--doux:#a3adcb;--or:#ffcb3d;--bleu:#6fb4ff;--vert:#4de0a0;--rouge:#ff5d6c}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fond);color:var(--texte);font:18px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .page{max-width:900px;margin:0 auto;padding:0 18px}
+  header{padding:18px 0 4px}
+  h1{margin:0;font-size:30px}
+  header p{margin:8px 0 0;color:var(--doux);font-size:17px}
+
+  /* LE PUPITRE */
+  .pupitre{position:sticky;top:0;z-index:10;background:rgba(11,13,20,.98);border-bottom:1px solid var(--bord);padding:12px 0 14px}
+  .etat{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .badge{border-radius:10px;padding:4px 12px;font-weight:800;font-size:15px;letter-spacing:.8px;background:var(--carte2);color:var(--doux)}
+  .badge.lobby{background:var(--bleu);color:#06121f}
+  .badge.course{background:var(--or);color:#1a1400}
+  #titre{font-size:22px;font-weight:800;flex:1;min-width:180px;line-height:1.25}
+  #titre small{display:block;font-size:15px;font-weight:400;color:var(--doux)}
+  .reglage{display:flex;align-items:center;gap:16px;margin-top:12px}
+  .gros{font-size:52px;line-height:1;font-weight:800;color:var(--or);font-variant-numeric:tabular-nums;min-width:2.1ch;text-align:center}
+  .gros small{display:block;font-size:13px;font-weight:700;color:var(--doux);letter-spacing:1px}
+  .gros.off{color:var(--doux)}
+  .curseur{flex:1}
+  input[type=range]{width:100%;accent-color:var(--or);height:34px}
+  input[type=range][disabled]{opacity:.35}
+  .sauts{display:flex;gap:6px;flex-wrap:wrap}
+  button{background:var(--carte2);color:var(--texte);border:1px solid var(--bord);border-radius:12px;padding:10px 16px;font:inherit;font-size:16px;cursor:pointer}
+  button:hover{border-color:var(--or)}
+  button[disabled]{opacity:.35;cursor:default}
+  button.on{background:var(--or);color:#1a1400;border-color:var(--or);font-weight:700}
+  .sauts button{padding:6px 12px;font-size:15px}
+  .jouer{background:var(--or);color:#1a1400;border-color:var(--or);font-weight:800;font-size:18px}
+  .ajout{margin-top:8px;font-size:15px;color:var(--doux);min-height:22px}
+  .ajout b{color:var(--vert)}
+  details.regl{margin-top:8px;font-size:15px;color:var(--doux)}
+  details.regl summary{cursor:pointer}
+  details.regl .l{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;align-items:center}
+  details.regl input[type=range]{width:130px;height:24px}
+
+  /* LA LISTE : une ligne par musique */
+  #liste{margin-top:8px}
+  .rang{display:grid;grid-template-columns:34px 30px 1fr auto;align-items:center;gap:12px;padding:12px 10px;border-bottom:1px solid var(--bord)}
+  .rang.joue{background:var(--carte2);box-shadow:inset 3px 0 0 var(--or)}
+  .num{color:var(--doux);font-variant-numeric:tabular-nums;text-align:right}
+  .refondu{margin-left:8px;font-size:11px;font-weight:400;color:#6b7494;letter-spacing:.3px}
+  .nom{font-weight:800;font-size:19px;letter-spacing:.2px}
+  .sous{color:var(--doux);font-size:14px;flex:1;min-width:120px}
+  .refait{font-size:12px;font-weight:800;letter-spacing:.6px;border-radius:7px;padding:1px 8px;background:var(--vert);color:#04170f}
+  .act{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .act button{padding:6px 12px;font-size:15px;font-weight:700}
+  .bl{border-color:var(--bleu);color:var(--bleu)}.bl.actif{background:var(--bleu);color:#06121f}
+  .bc{border-color:var(--or);color:var(--or)}.bc.actif{background:var(--or);color:#1a1400}
+  .corbeille{font-size:13px !important;font-weight:400 !important;color:var(--doux);border-style:dashed}
+  .corbeille.actif{background:var(--carte2);color:var(--texte);border-style:solid}
+  .fav{background:none;border:0;font-size:22px;line-height:1;padding:0 4px;cursor:pointer;color:#4a526e;flex:none}
+  .fav.on{color:var(--or)}
+  .filtre-fav{margin:10px 0 0;display:flex;gap:10px;align-items:center;color:var(--doux);font-size:15px}
+  .err{color:var(--rouge)}
+  footer{margin:34px 0 70px;color:var(--doux);font-size:15px}
+  @media(max-width:620px){.rang{grid-template-columns:30px 26px 1fr}.act{grid-column:1/-1;justify-content:flex-end}.btns{margin-left:0}.meta,.note{margin-left:0}.gros{font-size:42px}}
+</style>
+</head>
+<body>
+<div class="pupitre"><div class="page">
+  <div class="etat">
+    <span class="badge" id="badge">RIEN</span>
+    <div id="titre">Choisis un morceau ↓</div>
+    <button class="jouer" id="jouer" disabled>▶ JOUER</button>
+    <button id="stop">■ Stop</button>
+  </div>
+  <div class="reglage">
+    <div class="gros off" id="gros"><span id="mval">–</span><small>MOTEUR</small></div>
+    <div class="curseur">
+      <input type="range" id="moteur" min="1" max="30" value="1" step="1" disabled aria-label="Moteur de 1 à 30">
+      <div class="sauts" id="sauts"></div>
+    </div>
+  </div>
+  <div class="ajout" id="ajout"></div>
+  <details class="regl"><summary>Réglages</summary>
+    <div class="l">
+      <label>volume <input type="range" id="vol" min="0" max="100" value="60"></label>
+      <button id="montee">▶ Montée de course</button>
+      <label>durée <input type="range" id="duree" min="30" max="300" value="90" step="10"> <span id="dval">90 s</span></label>
+    </div>
+  </details>
+</div></div>
+
+<div class="page">
+<header>
+  <h1>LOBBY DES MUSIQUES</h1>
+  <div class="filtre-fav"><button id="btnFav">☆ Afficher seulement mes favoris <span id="compteurFav"></span></button></div>
+</header>
+<main id="liste"><p>Chargement de la liste…</p></main>
+
+</div>
+
+<script src="assets/audio/musique-bus.js"></script>
+<script src="assets/audio/pouce-bleu-jeu.js"></script>
+<script>
+(function(){
+'use strict';
+const W = window, PB = W.POUCE_JEU, $ = id => document.getElementById(id);
+/* LES TABLES DU JEU (code/son/musique.js) : le palier du lobby de chaque morceau, le départ de la course, les départs adoucis */
+const LOBBY_PALIERS = {'bleu-6562':1,'bleu-1540':1,'bleu-7299':1,'bleu-2221':1,'bleu-4830':1,'bleu-9551':1,'bleu-9664':1,'bleu-8154':1,'bleu-6167':2,'bleu-8338':1,'bleu-1275':1,'bleu-8042':1,'bleu-3379':1,'bleu-6104':1,
+  'pal-neon-noir':1,'pal-nuit-de-velours':1,'pal-aura-30':1,'pal-rubis-neon':1,'pal-asphalte':1};
+const DEPART_ANCIEN = {'bleu-9551':1,'bleu-6167':2,'bleu-2221':2,'bleu-6562':2,'bleu-7299':2,'bleu-4830':2};   /* le départ d'avant les refontes */
+const DEPART = Object.assign({}, DEPART_ANCIEN, {'bleu-1275':1,'bleu-3379':1,'bleu-8154':1,'bleu-6104':1,'bleu-1540':1,'bleu-9664':1,'bleu-8338':1,'bleu-4830':1});
+const DOUX = {'bleu-9551':1,'bleu-6167':1,'bleu-2221':1,'bleu-6562':1,'bleu-7299':1,'bleu-4830':1};
+W.pbjTier = (m, id) => { const k = id || (PB.E && PB.E.id), T = ancienne ? DEPART_ANCIEN : DEPART, mn = (k && T[k]) || 6; return m <= 1 ? mn : Math.round(mn + (Math.min(30, m) - 1) * (30 - mn) / 29); };
+
+/* (2026-11-02) les morceaux refaits à la demande de Léo : lobby = le lobby est nouveau, course = la course est nouvelle (la corbeille = l'ancienne version, gardée à côté) */
+const REFONDU = new Set(['bleu-1540','bleu-4830','bleu-9664','bleu-8338','bleu-6562','bleu-7299','bleu-2221','bleu-9551','bleu-8154','bleu-1275','bleu-3379','bleu-6104','pal-neon-noir','pal-nuit-de-velours']);   /* les refontes : une mention minuscule à côté du nom */
+const REFAIT = {'bleu-1540': { lobby: true, course: true }, 'bleu-9664': { lobby: true, course: true }, 'bleu-8338': { lobby: true, course: true }, 'bleu-6167': { lobby: true, course: true }, 'bleu-4830': { lobby: true, course: true }, 'bleu-8042': { lobby: true, course: true }, 'pal-asphalte': { lobby: true, course: true }, 'pal-nuit-de-velours': { lobby: true, course: true }, 'bleu-6104': { lobby: true, course: true }, 'pal-neon-noir': { lobby: true, course: true }, 'bleu-8154': { lobby: true, course: true }, 'bleu-7299': { lobby: true, course: true }, 'bleu-9551': { lobby: true, course: true }, 'bleu-6562': { lobby: true, course: true }, 'bleu-2221': { lobby: true, course: true }, 'bleu-3379': { lobby: true, course: true }, 'pal-rubis-neon': { lobby: true, course: true }, 'pal-aura-30': { lobby: true, course: true }, 'bleu-1275': { lobby: true, course: true }};
+/* LES FAVORIS (2026-11-02, Léo : « laisse-moi la possibilité de mettre favori sur ce que je valide ») : une étoile par morceau, gardée dans le navigateur (localStorage) */
+const favoris = new Set(); try { JSON.parse(localStorage.getItem('ccFavorisMusiques') || '[]').forEach(id => favoris.add(id)); } catch (e) {}
+const sauveFavoris = () => { try { localStorage.setItem('ccFavorisMusiques', JSON.stringify([...favoris])); } catch (e) {} };
+let seulFav = false;
+let ancienne = false, ac = null, lim = null, ALL = [], notes = {}, courant = null, etape = null, moteur = 1, tMontee = null;
+const STYLES = { neon: 'synthwave', luxe: 'trap de luxe', velours: 'french touch', lofi: 'lo-fi', disco: 'disco funk', drift: 'phonk', touge: 'eurobeat', dnb: 'drum & bass', garage: 'UK garage', rock: 'big beat', pixel: 'chiptune', epique: 'épique', dembow: 'dembow', zef: 'rave-rap' };
+const AJOUTS = [[1,'pouls calme'],[3,'fantômes de shaker'],[4,'percussions en 3-3-2'],[6,'charley ouvert'],[7,'caisse claire fantôme'],[8,'grosse caisse syncopée'],[10,'charley rempli'],[12,'toms de fin de mesure'],[13,'cymbale de phrase'],[15,'montée de caisse claire'],[17,'caisse claire épaissie'],[19,'roulement de charley'],[21,'ride'],[23,'relance de grosse caisse'],[25,'toms en cascade'],[28,'grosse caisse qui s’emballe']];
+const FAMILLES = [['genv', 'Morceaux du générateur'], ['paliers', 'Morceaux à paliers figés'], ['html', 'Pages écrites à la main']];
+
+function audio(){
+  if(ac) return ac;
+  ac = new (W.AudioContext || W.webkitAudioContext)({ latencyHint: 'playback' });
+  lim = ac.createDynamicsCompressor(); lim.threshold.value = -3; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .003; lim.release.value = .1;
+  lim.connect(ac.destination); return ac;
+}
+function meta(E){
+  const d = (DEPART[E.id] || 6);
+  const base = E.type === 'genv' ? (STYLES[E.style] || E.style || 'générateur') + ' · n° ' + E.n : E.type === 'paliers' ? 'paliers figés' : 'écrit à la main';
+  return base + ' · lobby : palier ' + (LOBBY_PALIERS[E.id] || 1) + ' · la course part au palier ' + d;
+}
+function ligne(E, n){
+  const R = REFAIT[E.id], r = document.createElement('div'); r.className = 'rang' + (R ? ' refaite' : ''); r.id = 'c-' + E.id;
+  r.innerHTML = '<button class="fav' + (favoris.has(E.id) ? ' on' : '') + '" title="favori">' + (favoris.has(E.id) ? '★' : '☆') + '</button><span class="num">' + n + '</span><span class="nom"></span>' + '' +
+    '<span class="act"><button class="bl">▶ LOBBY</button><button class="bc">▶ COURSE</button>' +
+    '</span>';
+  r.querySelector('.nom').textContent = E.titre; if(REFONDU.has(E.id)){ const t = document.createElement('small'); t.className = 'refondu'; t.textContent = 'refondu'; r.querySelector('.nom').appendChild(t); }
+  r.querySelector('.fav').onclick = e => { const b = e.currentTarget; if(favoris.has(E.id)) favoris.delete(E.id); else favoris.add(E.id); sauveFavoris(); b.classList.toggle('on', favoris.has(E.id)); b.textContent = favoris.has(E.id) ? '★' : '☆'; if(seulFav) dessine(); majCompteur(); };
+  r.querySelector('.bl').onclick = () => lobby(E); r.querySelector('.bc').onclick = () => course(E);
+  return r;
+}
+function dessine(){
+  const L = $('liste'); L.innerHTML = ''; ALL.forEach((E, i) => { if(!seulFav || favoris.has(E.id)) L.appendChild(ligne(E, i + 1)); });
+  if(seulFav && !favoris.size) L.innerHTML = '<p style="color:var(--doux);padding:14px 4px">Aucun favori pour l\u2019instant : clique sur ☆ à gauche d\u2019un morceau.</p>';
+  marque();
+}
+function majCompteur(){ const c = $('compteurFav'); if(c) c.textContent = favoris.size ? '(' + favoris.size + ')' : ''; }
+function marque(){
+  document.querySelectorAll('.carte').forEach(c => { c.classList.remove('joue'); c.querySelectorAll('button').forEach(b => b.classList.remove('actif')); });
+  if(!courant) return; const c = $('c-' + courant.id); if(!c) return; c.classList.add('joue');
+  const sel = ancienne ? (etape === 'lobby' ? '.ol' : '.oc') : (etape === 'lobby' ? '.bl' : '.bc'); const bt = c.querySelector(sel); if(bt) bt.classList.add('actif');
+}
+function entete(){
+  const b = $('badge'), g = $('gros'), sl = $('moteur');
+  if(!courant){ b.className = 'badge'; b.textContent = 'RIEN'; $('titre').textContent = 'Choisis un morceau ↓'; $('jouer').disabled = true; sl.disabled = true; g.className = 'gros off'; $('mval').textContent = '–'; $('ajout').textContent = ''; return; }
+  $('titre').innerHTML = '<span></span><small></small>'; $('titre').firstChild.textContent = courant.titre;
+  if(etape === 'lobby'){
+    b.className = 'badge lobby'; b.textContent = ancienne ? 'LOBBY · ANCIEN' : 'LOBBY'; $('titre').lastChild.textContent = 'version du menu · palier ' + (LOBBY_PALIERS[courant.id] || 1) + ' · appuie sur JOUER';
+    $('jouer').disabled = false; sl.disabled = true; g.className = 'gros off'; $('mval').textContent = '–'; $('ajout').textContent = '';
+  } else {
+    b.className = 'badge course'; b.textContent = ancienne ? 'COURSE · ANCIENNE' : 'COURSE'; $('titre').lastChild.textContent = 'palier du morceau ' + W.pbjTier(moteur, courant.id);
+    $('jouer').disabled = true; sl.disabled = false; g.className = 'gros'; $('mval').textContent = moteur;
+    const a = AJOUTS.filter(x => x[0] <= moteur).map(x => x[1]);
+    $('ajout').textContent = '';
+  }
+}
+async function lancer(E, mode, ancien){
+  audio(); await ac.resume(); arretMontee();
+  if(ancien){ W.RYTHMIQUE.on = false; E = E.avant; } else { W.RYTHMIQUE.on = !/[?&]rythmique=0/.test(location.search); }
+  if(PB.phase !== 'repos') { PB.fin(true); await new Promise(r => setTimeout(r, 500)); }
+  $('badge').className = 'badge'; $('badge').textContent = '…'; $('titre').textContent = E.titre + ' : chargement…';
+  if(mode === 'lobby'){ PB.attente = E; const r = await PB.lobby(ac, lim, { tier: 1, tiers: LOBBY_PALIERS, doux: DOUX }); return r; }
+  PB.dernier = E; return await PB.depart(ac, lim, { vite: true, meme: true });
+}
+async function lobby(E, ancien){
+  try{
+    const r = await lancer(E, 'lobby', ancien);
+    if(!r){ $('titre').innerHTML = '<span class="err">Impossible de lancer : ' + (PB.err || 'inconnu') + '</span>'; courant = null; marque(); return; }
+    courant = PB.E; etape = 'lobby'; ancienne = !!ancien; marque(); entete();
+  }catch(e){ $('titre').innerHTML = '<span class="err">Erreur : ' + e.message + '</span>'; }
+}
+async function course(E, ancien){
+  try{
+    const r = await lancer(E, 'course', ancien);
+    if(!r){ $('titre').innerHTML = '<span class="err">Impossible de lancer : ' + (PB.err || 'inconnu') + '</span>'; courant = null; marque(); return; }
+    PB.course(); courant = PB.E; etape = 'course'; ancienne = !!ancien; moteur = 1; regle(1); marque();
+  }catch(e){ $('titre').innerHTML = '<span class="err">Erreur : ' + e.message + '</span>'; }
+}
+function jouer(){   /* le JOUER du jeu : le lobby se transforme, sans rien redémarrer */
+  if(!courant || etape !== 'lobby' || PB.phase !== 'lobby') return;
+  PB.transforme({ boum: 1, doux: !!DOUX[courant.id] }); etape = 'course'; moteur = 1; regle(1); marque();
+}
+function regle(m){
+  moteur = Math.max(1, Math.min(30, Math.round(m)));
+  $('moteur').value = moteur; document.querySelectorAll('#sauts button').forEach(b => b.classList.toggle('on', +b.dataset.m === moteur));
+  if(courant && etape === 'course') PB.moteur(W.pbjTier(moteur, courant.id)); entete();
+}
+function arretMontee(){ if(tMontee){ clearInterval(tMontee); tMontee = null; } $('montee').textContent = '▶ Montée de course'; }
+function montee(){
+  if(tMontee){ arretMontee(); return; }
+  if(!courant || etape !== 'course') return;
+  const dur = +$('duree').value * 1000, t0 = performance.now(); regle(1); $('montee').textContent = '■ Arrêter';
+  tMontee = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / dur); regle(1 + k * 29); if(k >= 1) arretMontee(); }, 250);
+}
+function stop(){ arretMontee(); PB.fin(false); courant = null; etape = null; marque(); entete(); }
+
+[1, 3, 6, 10, 15, 20, 25, 30].forEach(m => { const b = document.createElement('button'); b.textContent = m; b.dataset.m = m; b.onclick = () => { if(etape !== 'course') return; arretMontee(); regle(m); }; $('sauts').appendChild(b); });
+$('moteur').oninput = e => { arretMontee(); regle(+e.target.value); };
+$('duree').oninput = e => { $('dval').textContent = e.target.value + ' s'; };
+$('btnFav').onclick = () => { seulFav = !seulFav; $('btnFav').classList.toggle('on', seulFav); $('btnFav').firstChild.textContent = seulFav ? '★ Tous les morceaux ' : '☆ Afficher seulement mes favoris '; dessine(); };
+$('montee').onclick = montee; $('stop').onclick = stop; $('jouer').onclick = jouer;
+setInterval(() => { if(courant) PB.niveau($('vol').value / 100); }, 50);
+document.addEventListener('keydown', e => { if(e.code === 'Space' && !/BUTTON|INPUT|SUMMARY/.test(e.target.tagName)){ e.preventDefault(); stop(); } });
+
+(async function(){
+  try{
+    const P = await (await fetch('musique-moteur.json', { cache: 'no-cache' })).json(); notes = P.notes || {};
+    ALL = await PB.charge(); dessine(); majCompteur(); entete();
+  }catch(e){ $('liste').innerHTML = '<p class="err">Impossible de charger la liste : ' + e.message + '</p>'; }
+})();
+})();
+</script>
+</body>
+</html>
