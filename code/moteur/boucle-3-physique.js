@@ -43,7 +43,8 @@
            pitch9+=(((dn||driftEnCours)?.035:0)-((nitroOn||boost>0)?.03:0)-NFX.ign*NFX.ignK*.1-pitch9)*Math.min(1,dt*6); // plonge au frein/drift, s'accroupit à la poussée — (vague 3) et SE CABRE à l'allumage de la nitro (≈3° le temps du coup)
            const pv=carBody.userData.pivY||.45;
            if(SENS){SCOUP.pv+=(-SCOUP.p*169-SCOUP.pv*13)*d9;SCOUP.p=THREE.MathUtils.clamp(SCOUP.p+SCOUP.pv*d9,-.14,.14);} // (2026-10-14, sensations) le ressort des COUPS de tangage (ω 13, amorti .5) : voir sensCoup
-           carBody.rotation.set(pitch9+SCOUP.p+veqConduite(d9),0,carRoll9);carBody.position.set(pv*Math.sin(carRoll9),pv-pv*Math.cos(carRoll9),0);}
+           const cab9=(DMT.cab||DMT.cabV||DMT.cabT>0||DMT.chargeT>0)?dmtCabre(d9):0; /* (2026-11-03, LE DÉCOLLAGE du demi-tour) le WHEELIE : le nez se lève, la caisse pivote sur l'essieu arrière (relevée d'autant), voir dmtCabre */
+           carBody.rotation.set(pitch9+SCOUP.p+veqConduite(d9)-cab9,0,carRoll9);carBody.position.set(pv*Math.sin(carRoll9),pv-pv*Math.cos(carRoll9)+(cab9>0?CARS[level].l*.3*Math.sin(cab9):0),0);}
         }
         /* (2026-09-28) LA SUSPENSION : la réception, le dos d'âne, le bump écrasaient TOUTE la caisse (`carGroup.scale`) — roues comprises,
            qui devenaient ovales, comme du caoutchouc. Désormais la CARROSSERIE plonge sur ses ressorts (ω ≈ 15, amortie) : elle se tasse,
