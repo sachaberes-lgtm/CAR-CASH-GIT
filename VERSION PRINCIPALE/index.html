@@ -78422,7 +78422,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const padFin=function(e){ for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===padId){padId=null;padSet(0,0,0,0);} };
     pad.addEventListener('touchend',padFin,{passive:true}); pad.addEventListener('touchcancel',padFin,{passive:true});
     let msP=false; pad.addEventListener('mousedown',function(e){msP=true;padLit(e.clientX,e.clientY);start();}); addEventListener('mousemove',function(e){if(msP)padLit(e.clientX,e.clientY);}); addEventListener('mouseup',function(){if(msP){msP=false;padSet(0,0,0,0);}});
-    addEventListener('blur',function(){padId=null;msP=false;padSet(0,0,0,0);}); } // (2026-10-27) FLÈCHES : l'assiette en vol, et le drift (bas) comme au clavier
+    addEventListener('blur',function(){padId=null;msP=false;padSet(0,0,0,0);});
+    addEventListener('visibilitychange',function(){ if(document.hidden){padId=null;msP=false;padSet(0,0,0,0);} }); } // (audit p6) l'appli passe derrière pouce sur le pavé : pas de touchend/touchcancel, padId restait posé et chaque touchstart sortait sur `padId!==null` — le pavé est rendu comme le volant (stUp) // (2026-10-27) FLÈCHES : l'assiette en vol, et le drift (bas) comme au clavier
   const nitroDown=function(){ if(!figGlisseOn())veqDoigt(true); if(boomSkip())return; start(); // (2026-10-15) en FIGURES › GLISSER, taper NITRO = booster, rien d'autre // (2026-10-14) l'appui compte pour le TONNEAU (double-tap) // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
     if(started&&!gameOver){ const n9=performance.now();
       lastSpaceT=n9; } }; // (double-tap « DÉCOLLAGE » retiré)
