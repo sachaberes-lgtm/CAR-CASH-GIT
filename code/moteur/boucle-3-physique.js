@@ -24,7 +24,7 @@
             carGroup.quaternion.premultiply(qTmp); // rotation MONDE autour de la verticale de la route
           }
           if(BKV.yaw){qTmp.setFromAxisAngle(F.n,BKV.yaw);carGroup.quaternion.premultiply(qTmp);}
-          if(DMT.y||DMT.act||DMT.boostT>0)dmtPose(F,dt); // (LE DEMI-TOUR) le lacet de la manœuvre, la gomme, le panneau — (2026-11-03, Sacha) +boostT : l'après-boost (fumée dense, la flamme qui revient) continue une fois D.act retombé // (2026-10-15) ICE SKATE : le crabe et la foulée du patineur sur le verglas
+          if(DMT.y||DMT.act||DMT.boostT>0||DMT.chargeT>0)dmtPose(F,dt); // (LE DEMI-TOUR) le lacet de la manœuvre, la gomme, le panneau — (2026-11-03, Sacha) +boostT : l'après-boost (fumée dense, la flamme qui revient) continue une fois D.act retombé ; +chargeT : la charge avant la relâche tourne, elle aussi, une fois D.act retombé // (2026-10-15) ICE SKATE : le crabe et la foulée du patineur sur le verglas
           gsolPose(F); // (2026-10-15) LES FIGURES AU SOL du GLISSER (slide 360, wheelie, stoppie)
           figMemo(dt); // (2026-10-14, LES FIGURES v2) l'assiette des deux dernières images : au décollage, la caisse emporte sa rotation
           frPose(F,dt); // (2026-10-17) LA FIGURE SUR LA ROUTE : elle tourne et bondit par-dessus la pose (après figMemo : l'élan emporté reste celui de la route)

@@ -24,7 +24,7 @@
    la caisse se poser à contresens (nez dans le sens du vol) ; `dbgDemiTour()` = l'état. */
 var DMT={on:!/[?&]demitour=0\b/.test(location.search),act:false,t:0,D:1.45,tS:.8,TR:1.1,y0:0,y:0,yV:0,cam:0,camP:0,dc:0,vb:0,vo:0,vl:0,sg:1,burn:false,force:false,n:0,
   g:new THREE.Vector3(),f:new THREE.Vector3(),c:new THREE.Vector3(),nn:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),fw:new THREE.Vector3(),
-  el:null,eW:0,eTop:'',eLeft:'',gl:false,h:0,h0:1,sb:1,vt:0,vb2:0,wl:0,tm:0,mx:20,prog:0,ok:0,givre:null,gO:-1,boostT:0,boostPop:false};
+  el:null,eW:0,eTop:'',eLeft:'',gl:false,h:0,h0:1,sb:1,vt:0,vb2:0,wl:0,tm:0,mx:20,prog:0,ok:0,givre:null,gO:-1,boostT:0,boostPop:false,chargeT:0,chargeDur:0,chargeQ:0};
 /* ===== LE VERGLAS DU CONTRESENS (2026-11-02, Léo : « la voiture ne va plus tourner toute seule, mais va indiquer qu'il y a un mauvais sens et va
    automatiquement s'accorder à l'angle, le sens dans lequel la voiture arrive sur la route, pour lui donner un effet de verglas qui permettra de se
    rattraper en drift de manière assez satisfaisante, mais qui peut aussi faire tomber ceux qui arrivent de manière trop brutale sans savoir ce
@@ -68,26 +68,36 @@ function dmtRattrape(net){const D=DMT,mx=D.mx,q=net?THREE.MathUtils.clamp(1-(D.t
   if(typeof sensCoup==='function')try{sensCoup(0,1.2+q,-.8);}catch(e){}
   /* (2026-11-03, Sacha : « il faut que ce demi-tour donuts donne un gros, une sorte de petit boost de vitesse, mais qui soit assez
      kiffant et qui fasse des flammes sur la route, les mêmes textures que pour le nitro » — puis, en rejouant : « pas du tout assez
-     important, il faut que ça soit beaucoup plus explosif ») LE BOOST DU RATTRAPAGE : `Math.max(vA, mx*…)` était un PLANCHER — posée
-     vite (le cas courant, on arrive déjà lancé), la caisse volait déjà plus vite que le plancher : le boost ne se voyait jamais. Il
-     s'AJOUTE désormais à l'élan déjà là (jusqu'à +95 % de mx au rattrapage pile), un vrai coup de postcombustion qui se sent TOUJOURRS —
-     et `nitroAllume` rejoue EXACTEMENT le coup du nitro (le feu de pixels aux pots, qui traîne au sol derrière la caisse, l'onde, le
-     flash d'écran, la secousse) : zéro code de flamme en plus, le même qu'en tenant NITRO. */
-  if(net){vA+=mx*(.55+.4*q);flowAdd(8+14*q,'style');nitroGain(.18+.32*q,'rattrape');sparkBurst(sparkGold,carGroup.position,14+Math.round(16*q),11);
-    shake=Math.min(1.3,Math.max(shake,.85+.35*q));fovPunch=Math.max(fovPunch,9+6*q);
-    try{nitroAllume(false,false);nfeuCoup(1.5+.7*q);}catch(e){}
-    /* (2026-11-03, Sacha : « reprends le burn-out du garage — la texture au sol avec les donuts, et plein de fumée, très dense, genre
-       comme dans le garage ; les flammes reviennent plus tard, à la fin du boost » — « inspire-toi des fichiers ») L'ANNEAU DE FUMÉE, comme
-       `burnAnneau` du garage (interface/burn-out-1.js — même idée, pas le même réservoir : celui-ci est à LA ROUTE, pas protégé par
-       garde-burnout.sh) : un cercle de bouffées qui s'ouvre autour de la caisse au départ. Et L'APRÈS-BOOST (D.boostT, lu par dmtPose
-       même une fois D.act retombé) : la fumée continue de sortir DENSE (54 bouffées/s — le débit du burn-out chauffé, pas le filet
-       habituel du demi-tour) pendant que la caisse s'arrache, et une DERNIÈRE langue de feu du nitro revient juste avant que ça s'éteigne. */
-    {const c0=carGroup.position,N=14,R=1.7+.5*q;for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*6.2832,ca=Math.cos(a),sa=Math.sin(a),v=2.6+Math.random()*1.8;
-      spawnP(dust,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v,.3+Math.random()*.7,sa*v,2+Math.random()*1.4);
-      if(i&1)spawnP(embers,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v*1.4,.6+Math.random()*1.2,sa*v*1.4,.3+Math.random()*.3);}}
-    D.boostT=.6+.35*q;D.boostPop=false;}
+     important, il faut que ça soit beaucoup plus explosif » — puis : « augmente le boost de 300 % ; tu arrives à contresens, la voiture
+     fait "chiii", il y a un zoom caméra qui se resserre et qui tremble, les flammes se concentrent dans le moteur, elles se préparent à
+     exploser, et puis la flamme sort derrière, et la caisse avance d'un coup, elle décolle un peu les roues à l'avant » ») LE RATTRAPAGE
+     NE PAIE PLUS TOUT D'UN COUP : la confirmation (le son, la main, le petit coup de caméra, « RATTRAPÉ ! ») reste instantanée, mais le
+     GROS coup — le boost, les flammes, le wheelie — est désormais une MISE À FEU armée ici et jouée par `dmtCharge`/`dmtDecolle` (dans
+     `dmtPose`, déjà appelée chaque image) : ~0,3 à 0,5 s de charge (zoom caméra qui se resserre, secousse qui monte, feu du moteur qui
+     gonfle sur ses 4 pots via `flmPop`, crissement qui tient via `glisse9`) puis LA RELÂCHE. */
+  if(net){D.chargeT=D.chargeDur=.32+.16*q;D.chargeQ=q;}
   dmtSigne(net?'ok':false);
 }
+function dmtCharge(dt){const D=DMT; // LA CHARGE : ça monte, ça tremble, ça n'explose pas encore (voir dmtRattrape)
+  D.chargeT-=dt;const p=THREE.MathUtils.clamp(1-D.chargeT/D.chargeDur,0,1),e=p*p; // quadratique : lent au début, net à la fin
+  CAMV.zoom=Math.max(CAMV.zoom,.12+.85*e);shake=Math.max(shake,.1+.45*e);glisse9=Math.max(glisse9,.4+.45*e);
+  for(let i=0;i<4;i++)try{flmPop(i,.35+1.05*e);}catch(ex){} // le feu du MOTEUR gonfle et pulse sur les 4 pots — pas encore la gerbe du nitro
+  if(D.chargeT<=0){D.chargeT=0;dmtDecolle();}}
+function dmtDecolle(){const D=DMT,mx=D.mx,q=D.chargeQ; // LA RELÂCHE : ×3 du coup d'avant (demande de Sacha), et LE WHEELIE
+  vA+=mx*(1.65+1.2*q);flowAdd(10+16*q,'style');nitroGain(.22+.38*q,'rattrape');sparkBurst(sparkGold,carGroup.position,18+Math.round(18*q),13);
+  shake=Math.min(1.3,Math.max(shake,1.1+.2*q));fovPunch=Math.max(fovPunch,13+6*q);CAMV.zoom=Math.max(CAMV.zoom,1.55+.15*q); // le zoom CLAQUE, puis se détend tout seul (décroissance déjà dans la boucle)
+  try{nitroAllume(false,false);nfeuCoup(2+.8*q);}catch(e){}
+  if(typeof sensCoup==='function')try{sensCoup(0,-(1.8+.6*q),1.1);}catch(e){} // LE WHEELIE : signe inversé du coup d'encaissement — le nez se cabre, l'arrière s'écrase
+  /* (2026-11-03, Sacha : « reprends le burn-out du garage — la texture au sol avec les donuts, et plein de fumée, très dense, genre
+     comme dans le garage ; les flammes reviennent plus tard, à la fin du boost » — « inspire-toi des fichiers ») L'ANNEAU DE FUMÉE, comme
+     `burnAnneau` du garage (interface/burn-out-1.js — même idée, pas le même réservoir : celui-ci est à LA ROUTE, pas protégé par
+     garde-burnout.sh) : un cercle de bouffées qui s'ouvre autour de la caisse au départ. Et L'APRÈS-BOOST (D.boostT, lu par dmtPose
+     même une fois D.act retombé) : la fumée continue de sortir DENSE (54 bouffées/s — le débit du burn-out chauffé, pas le filet
+     habituel du demi-tour) pendant que la caisse s'arrache, et une DERNIÈRE langue de feu du nitro revient juste avant que ça s'éteigne. */
+  {const c0=carGroup.position,N=18,R=1.9+.6*q;for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*6.2832,ca=Math.cos(a),sa=Math.sin(a),v=2.8+Math.random()*2;
+    spawnP(dust,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v,.3+Math.random()*.7,sa*v,2.2+Math.random()*1.5);
+    if(i&1)spawnP(embers,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v*1.4,.6+Math.random()*1.2,sa*v*1.4,.3+Math.random()*.3);}}
+  D.boostT=.75+.4*q;D.boostPop=false;}
 function dmtVmax(){return CARS[0].maxKmh/3.6*lateMul()*(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).push;} // le maxSp de la boucle (local à loop)
 function dmtAng(f,n,g){DMT.c.crossVectors(n,f);return Math.atan2(g.dot(DMT.c),g.dot(f));} // l'angle, autour de n, qui mène f sur g (même sens que setFromAxisAngle(n,·))
 function dmtArme(bI,sd){ // (tryLand) posée à contresens sur la dalle bI, face sd — lat, psi, vA viennent d'être posés
@@ -124,12 +134,13 @@ function dmtConduite(dt,frein){const D=DMT; // (boucle de conduite, après le la
   const x=D.t/D.tS,u=x<1?0:Math.min(1,(D.t-D.tS)/(D.D-D.tS));
   if(x<1)vA=-D.vb*Math.pow(1-x,1.5); // la GLISSE en arrière, que les pneus mangent
   else{vA=D.vo*u*u; // le BURN-OUT : ça patine d'abord, puis ça mord
-    if(!D.burn){D.burn=true;try{if(SONV2)sfx('turbo.mini',{vol:-5});}catch(e){}hap([10,24]);fovPunch=Math.max(fovPunch,9);shake=Math.min(1.3,Math.max(shake,.9));if(typeof sensCoup==='function')sensCoup(0,1.6,-.8);
-      D.vo+=dmtVmax()*.62;nitroGain(.3,'rattrape');try{nitroAllume(false,false);nfeuCoup(1.8);}catch(e){} // (2026-11-03, Sacha) le même boost (additif, pas un plancher) et les mêmes flammes de nitro qu'au RATTRAPAGE du verglas
-      {const c0=carGroup.position,N=14,R=1.9;for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*6.2832,ca=Math.cos(a),sa=Math.sin(a),v=2.6+Math.random()*1.8; // l'anneau de fumée du donut, même idée qu'au rattrapage du verglas
-        spawnP(dust,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v,.3+Math.random()*.7,sa*v,2+Math.random()*1.4);
+    if(!D.burn){D.burn=true;try{if(SONV2)sfx('turbo.mini',{vol:-5});}catch(e){}hap([10,24]);fovPunch=Math.max(fovPunch,13);shake=Math.min(1.3,Math.max(shake,1.1));if(typeof sensCoup==='function')sensCoup(0,1.6,-.8);
+      D.vo+=dmtVmax()*1.86;nitroGain(.3,'rattrape');CAMV.zoom=Math.max(CAMV.zoom,1.55);try{nitroAllume(false,false);nfeuCoup(2.6);}catch(e){} // (2026-11-03, Sacha : « ×3 ») le même boost (×3, additif) et les mêmes flammes de nitro qu'à LA RELÂCHE du rattrapage du verglas
+      if(typeof sensCoup==='function')try{sensCoup(0,-2.2,1.1);}catch(e){} // LE WHEELIE : l'avant décolle un peu au lancer (signe inversé du coup d'encaissement juste au-dessus)
+      {const c0=carGroup.position,N=18,R=2.3;for(let i=0;i<N;i++){const a=(i+Math.random()*.4)/N*6.2832,ca=Math.cos(a),sa=Math.sin(a),v=2.8+Math.random()*2; // l'anneau de fumée du donut, même idée qu'au rattrapage du verglas
+        spawnP(dust,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v,.3+Math.random()*.7,sa*v,2.2+Math.random()*1.5);
         if(i&1)spawnP(embers,c0.x+ca*R,c0.y+.3,c0.z+sa*R,ca*v*1.4,.6+Math.random()*1.2,sa*v*1.4,.3+Math.random()*.3);}}
-      D.boostT=.7;D.boostPop=false;}}
+      D.boostT=.75;D.boostPop=false;}}
   if(vA<0&&s<6)vA=0;
   D.vl*=Math.exp(-dt*3.5);lat+=D.vl*dt*SPD; // un reste de dérive latérale, qui meurt vite
   const lim=ROAD_HALF-(CARS[level].w||2)*.5-.35;if(Math.abs(lat)>lim)lat+=(Math.sign(lat)*lim-lat)*(1-Math.exp(-dt*7)); // ramenée sur le bitume
@@ -141,6 +152,7 @@ function dmtConduite(dt,frein){const D=DMT; // (boucle de conduite, après le la
 function dmtPose(F,dt){const D=DMT; // (conduite, après la pose de la caisse sur la route) le lacet de la manœuvre, la fumée, le panneau
   if(D.y){qTmp.setFromAxisAngle(F.n,D.y);carGroup.quaternion.premultiply(qTmp);}
   dmtGivre(D.act&&D.gl);
+  if(D.chargeT>0)dmtCharge(dt); // LA CHARGE avant la relâche (voir dmtRattrape/dmtCharge/dmtDecolle) : tourne même une fois D.act retombé
   if(D.boostT>0){ /* (2026-11-03, Sacha : « plein de fumée, très dense, genre comme dans le garage ; les flammes reviennent plus tard, à
        la fin du boost » — inspiré du burn-out du garage, interface/burn-out-2.js `burnTick` : son débit chauffé va de 46 à 90 bouffées/s)
        L'APRÈS-BOOST continue même une fois D.act retombé (le rattrapage l'a déjà coupé) : la fumée sort dense derrière la caisse qui
@@ -175,7 +187,7 @@ function dmtCamDir(fw,n){const D=DMT; // (caméra de conduite) la direction de l
   if(!D.cam)return fw;
   return D.fw.copy(fw).applyAxisAngle(n,D.cam);}
 function dmtCamTick(dt){const D=DMT;if(!D.act&&D.cam){D.cam*=Math.exp(-dt/.14);if(Math.abs(D.cam)<.003)D.cam=0;}D.dc=D.cam-D.camP;D.camP=D.cam;} // dc : de combien la caméra a tourné depuis l'image d'avant
-function dmtCoupe(){if(typeof DMT==='undefined'||!DMT)return;DMT.act=false;DMT.gl=false;dmtGivre(false);DMT.y=0;DMT.yV=0;DMT.cam=0;DMT.camP=0;DMT.dc=0;DMT.boostT=0;DMT.boostPop=false;dmtSigne(false,true);} // vol, explosion, portail, replacement, nouvelle partie
+function dmtCoupe(){if(typeof DMT==='undefined'||!DMT)return;DMT.act=false;DMT.gl=false;dmtGivre(false);DMT.y=0;DMT.yV=0;DMT.cam=0;DMT.camP=0;DMT.dc=0;DMT.boostT=0;DMT.boostPop=false;DMT.chargeT=0;dmtSigne(false,true);} // vol, explosion, portail, replacement, nouvelle partie
 /* LE « MAUVAIS SENS » : le texte seul, petit (8 px, police pixel), rouge cerné d'encre comme les textes du HUD, au-dessus du toit ; il suit la
    caisse à l'écran, apparaît en fondu et s'efface quand elle repart. (1er essai : un panneau routier rouge à double liseré et sa flèche —
    « plus petit et discret », Léo.) */
