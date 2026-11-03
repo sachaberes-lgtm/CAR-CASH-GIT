@@ -659,7 +659,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
   }
   const MORT_FLOT=!/[?&]mort=ancien\b/.test(location.search); /* (2026-10-25) L'ÉCRAN DE MORT FLOTTANT (voir mFill) — `?mort=ancien` = les cartes d'avant */
-  Object.assign(I18N,{'PARTIE':'THIS RUN','MOYENNE':'AVERAGE','VS MOY':'VS AVG'});
+  Object.assign(I18N,{'PARTIE':'THIS RUN','MOYENNE':'AVERAGE','VS MOY':'VS AVG','MOY.':'AVG','MOTEUR':'ENGINE'});
   window.dbgMortAura=function(a,moy,n,rec){if(a!=null&&started&&!gameOver)auraRun=Math.max(0,+a||0);if(moy!=null){SAVE.d.auraH={s:Math.round(moy*(n||10)),n:n||10};}if(rec!=null)SAVE.d.auraMax=Math.round(rec);return {partie:Math.round(auraRun),moyenne:SAVE.d.auraH,record:SAVE.d.auraMax};}; /* (banc) l'aura de la partie en cours (et la moyenne, le record) pour voir le graphe de l'écran de mort */
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');
@@ -713,19 +713,33 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
            plus gros, avec son seul palier ; l'AURA devient un graphe en bougies, lisible d'un coup d'œil — la PARTIE (violet), ta MOYENNE et
            ton RECORD. La moyenne et le record sont ceux d'AVANT la partie (commitExploits) : le graphe dit si tu as fait mieux que d'habitude.
            `?mort=ancien` = les deux cartes d'avant. */
+        /* ===== L'ÉCRAN DE MORT v6 (2026-11-03, Sacha : « c'est calamiteux, recommence […] reprends chaque élément ») — voir css/mort-flottante.css.
+           MOTEUR et AURA sont deux PANNEAUX jumeaux (la même anatomie que la carte MISSIONS) : en-tête (icône + nom à la couleur de la bande,
+           pastille à droite), la grande valeur (le PALIER / l'aura de la partie), le visuel (la pièce 3D / les trois bougies), le pied
+           (le nom du moteur et la jauge des pièces vers le palier suivant / les libellés des bougies). */
         if(h&&MORT_FLOT){
           const n9=(SAVE.d.auraH&&SAVE.d.auraH.n)|0,moy0=commitExploits._moy||0,moyV=Math.round(moy0>0?moy0:(n9<=1?au:0)),
                 recV=Math.max(commitExploits._recAvant||0,SAVE.d.auraMax||0,au),M9=Math.max(1,au,moyV,recV),
-                hP=function(v){return Math.max(4,Math.round(v/M9*78));},
-                bg9=function(k,v,lb){return '<div class="m5Col m5'+k+'" style="--h:'+hP(v)+'%"><div class="m5Pied"><span class="m5Val">'+fA(v)+'</span><i class="m5Meche"></i><i class="m5Corps"></i></div><small>'+TR(lb)+'</small></div>';};
+                hP=function(v){return Math.max(3,Math.round(v/M9*100));},
+                lb9=LANG==='en'?['RUN','AVG','BEST']:['PARTIE','MOY.','RECORD'],
+                bg9=function(k,v,l){return '<div class="m6Col m6'+k+'" style="--h:'+hP(v)+'"><span class="m6Val">'+fA(v)+'</span><i class="m6Barre"></i><small>'+l+'</small></div>';},
+                pas9=function(c,t){return '<em class="m6Badge '+c+'">'+t+'</em>';};
           let vd9='';
-          if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9='<em class="m5Vd rec">'+pxi('etoile')+' '+TR('RECORD !')+'</em>';
-          else if(!tq9&&moy0>0&&au>0){const p9=Math.round((au-moy0)/moy0*100);vd9=p9>=1?'<em class="m5Vd up">▲ +'+p9+' % '+TR('VS MOY')+'</em>':p9<=-1?'<em class="m5Vd down">▼ '+p9+' % '+TR('VS MOY')+'</em>':'<em class="m5Vd">= '+TR('MOYENNE')+'</em>';}
+          if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9=pas9('rec',pxi('etoile')+'<span>'+TR('RECORD')+'</span>');
+          else if(!tq9&&moy0>0&&au>0){const p9=Math.round((au-moy0)/moy0*100);vd9=p9>=1?pas9('up','▲ +'+p9+'%'):p9<=-1?pas9('down','▼ '+p9+'%'):pas9('eq','= '+TR('MOY.'));}
+          const e0=E.coins|0,pc9=nx?Math.max(0,Math.min(1,(coinsGot-e0)/Math.max(1,nx.coins-e0))):1,
+                pied9=nx?'<span class="m6Pc">'+coinsGot+'/'+nx.coins+pxi('piece')+'</span>':'<span class="m6Pc max">'+TR('MAX')+'</span>';
           h.className='mHero m5Hero';
-          h.innerHTML='<div class="m5Mot" style="--ec:'+hx+'"><div class="m5Scene"><i class="m5Halo"></i><canvas class="hMotCv" width="'+ENG_RES_W+'" height="'+ENG_RES_H+'"></canvas><i class="m5Ombre"></i></div>'
-            +'<div class="m5Pal'+(eN&&!tq9?' rec':'')+'"><span>'+TR('PALIER')+'</span><b>'+(engTier+1)+'</b></div></div>'
-            +'<div class="m5Aura"><div class="m5Tete"><small>'+TR('AURA')+'</small><b id="mAuraV">0</b>'+vd9+'</div>'
-            +'<div class="m5Graphe"><i class="m5Ligne" style="--h:'+hP(recV)+'%"></i>'+bg9('P',au,'PARTIE')+bg9('M',moyV,'MOYENNE')+bg9('R',recV,'RECORD')+'</div></div>';
+          h.innerHTML='<div class="m6Carte m6Mot" style="--ec:'+hx+'">'
+            +'<div class="m6Tete"><span class="m6Lb">'+pxi('flamme')+'<span>'+TR('MOTEUR')+'</span></span>'+(eN&&!tq9?pas9('rec',pxi('etoile')+'<span>'+TR('RECORD')+'</span>'):'')+'</div>'
+            +'<div class="m6Big"><small>'+TR('PALIER')+'</small><b>'+(engTier+1)+'</b><small class="m6Sur">/'+ENGINE_TIERS.length+'</small></div>'
+            +'<div class="m6Scene"><i class="m6Halo"></i><canvas class="hMotCv" width="'+ENG_RES_W+'" height="'+ENG_RES_H+'"></canvas><i class="m6Ombre"></i></div>'
+            +'<div class="m6Pied"><span class="m6Nom">'+sansAcc(TR(E.n))+'</span>'+pied9+'</div>'
+            +'<div class="m6Jauge'+(nx?'':' max')+'"><em style="width:'+(pc9*100).toFixed(1)+'%"></em></div></div>'
+            +'<div class="m6Carte m6Aura">'
+            +'<div class="m6Tete"><span class="m6Lb">'+pxi('aile')+'<span>'+TR('AURA')+'</span></span>'+vd9+'</div>'
+            +'<div class="m6Big"><b id="mAuraV" style="--n:'+fA(au).length+'">0</b></div>'
+            +'<div class="m6Graphe"><i class="m6Ligne" style="--h:'+hP(recV)+'"></i>'+bg9('P',au,lb9[0])+bg9('M',moyV,lb9[1])+bg9('R',recV,lb9[2])+'</div></div>';
         }
         else if(h){h.className='mHero';h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
             +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em><div class="hNx hNxC6">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>' /* (2026-10-14, charte 6) cartes JUMELLES : la sous-ligne MEILLEUR est toujours là (.hNxC6 = celle que seule la charte 6 montre, quand le badge RECORD ! se tait) */

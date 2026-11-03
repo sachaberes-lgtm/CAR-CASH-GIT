@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1092'; /* v1092 (2026-11-03, Léo : « Crypto City, ça s'appelle que Crypto City ») la map s'affiche CRYPTO CITY (plus CRYPTOVILLE), jour et nuit, sans traduction */
+const CACHE = 'cashcar-v1093'; /* v1093 (2026-11-03, Sacha : « recommence, fais un truc parfait […] tu reprends chaque élément ») L'ÉCRAN DE MORT REFAIT : deux familles seulement (ce qu'on LIT = panneaux plats à coins coupés, ce qu'on TOUCHE = touches inclinées), une grille par orientation, trois cartes MOTEUR / AURA / MISSIONS du même gabarit, nouveau graphe (PARTIE / MOY. / RECORD sur une même base, ligne du record), moteur dans sa propre scène (plus jamais sur le graphe). Avant : v1092 (2026-11-03, Léo : « Crypto City, ça s'appelle que Crypto City ») la map s'affiche CRYPTO CITY (plus CRYPTOVILLE), jour et nuit, sans traduction */
    grain bizarre sur les moteurs […] parfois le moteur il passe derrière le graphique […] refais tous les boutons qui soient cohérents entre eux,
    redimensionne-les, remets-les au bon endroit ») GARAGE/RÉGLAGES reprennent `.pbtn` telle quelle (comme HOME, REJOUER, tout le jeu) au lieu de
    leur bulle de verre à part ; le « grain » du moteur/de la créature (bords en escalier d'un modèle bas-poly relu sans anticrénelage) corrigé par
