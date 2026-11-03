@@ -84,7 +84,7 @@ function nuageChauffe(){ // (2026-09-26) les deux programmes de nuage compilés 
   nuageChaud=true;cotonInit(); // (ciel de coton) ses instances sont dans la scène : renderer.compile les prend avec
   const g=mergeSpheres([[0,0,0,.6,1],[.4,.1,0,.45,1]],2,2,2),a=new THREE.Mesh(g,CLOUD_MAT),b=new THREE.Mesh(g,CLOUD_MAT_IN),c9=new THREE.Mesh(g,nuage8Solo()),d9=new THREE.Mesh(g,CLOUD_MAT_IN8);
   a.position.copy(camera.position);b.position.copy(camera.position);a.frustumCulled=b.frustumCulled=false;if(c9){c9.position.copy(camera.position);c9.frustumCulled=false;scene.add(c9);d9.position.copy(camera.position);d9.frustumCulled=false;scene.add(d9);} // (v8) la matière des maillages seuls
-  const vt9=[];{const MS=nuVitMats(true);for(const m9 of [MS.cub,MS.coe,MS.pea,MS.fan]){const x=new THREE.Mesh(g,m9);x.position.copy(camera.position);x.frustumCulled=false;scene.add(x);vt9.push(x);}} // (vitrail) les trois matières des nuages seuls
+  const vt9=[];if(!NUVIT.vox){const MS=nuVitMats(true); /* (2026-11-03) en cubes, pas de vitrail : ses quatre programmes ne se compilent plus au menu */for(const m9 of [MS.cub,MS.coe,MS.pea,MS.fan]){const x=new THREE.Mesh(g,m9);x.position.copy(camera.position);x.frustumCulled=false;scene.add(x);vt9.push(x);}} // (vitrail) les trois matières des nuages seuls
   scene.add(a);scene.add(b);try{renderer.compile(scene,camera);}catch(e){}scene.remove(a);scene.remove(b);if(c9){scene.remove(c9);scene.remove(d9);}for(const x of vt9)scene.remove(x);g.dispose();
 }
 // FINESSE : à 16×11 les grosses boules (r 200-700) montraient leurs FACETTES — d'où les « formes
