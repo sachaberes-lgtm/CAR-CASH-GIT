@@ -66,7 +66,7 @@ function fauxCap(valeur,opt){const o=opt||{};const P={store:{},sets:[],gets:0,pe
   if(valeur!==undefined)P.store.cashcarSave=valeur;return {Plugins:{Preferences:P},P};}
 function boot(initLS,opt){const o=opt||{};const L=fauxLS(initLS,o);const cap=o.cap||null;const reloads={n:0};
   const sb={localStorage:L.ls,window:{Capacitor:cap},location:{reload(){reloads.n++;},search:o.search!=null?o.search:'?garde=1'},console,
-    THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:ECOGAIN},ENGINE_TIERS:new Array(NE).fill(0),
+    THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:ECOGAIN},ENGINE_TIERS:new Array(NE).fill(0),ALLEGE:true,/* (2026-11-03) v1087 : SAVE.def() lit ALLEGE (qualité NETTE par défaut sur ordinateur) — sur téléphone, comme la preuve se joue */
     CARS:RETIRE.map(r=>r?{retire:1}:{}),CAR_UNLOCK:RETIRE.map(r=>r?{p:1000}:null),pk:()=>null,SANS_CARRIERE:false,CHANCE:{used:false},jourCommit:()=>0,/* (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : commitExploits et enCoursPose l'appellent ; le quotidien n'a pas de rôle dans ces preuves */PAL:{b:(k,d)=>d}}; // PAL (T5, passe perf) : défaut = le palier « fast »
   const ctx=vm.createContext(sb);let err=null;
   try{vm.runInContext(blocSave+';',ctx);}catch(e){err=e;}
