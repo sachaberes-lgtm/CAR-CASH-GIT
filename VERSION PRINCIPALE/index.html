@@ -9340,7 +9340,7 @@ html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.
 </div>
 <script src="vendor/three.min.js"></script>
 <script src="figures.js?v=10"></script>
-<script src="creatures/vitrail.js?v=1"></script><script>if(/[?&]singes(jade)?=1\b/.test(location.search))document.write('<script src="creatures/singe.js?v=2"><\/script>');</script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html — (2026-10-22) le singe n'est chargé que sur `?singes=1` : les singes sont éteints par défaut (voir JSG_ON) -->
+<script src="creatures/vitrail.js?v=1"></script><script>if(/[?&]singes(jade)?=1\b/.test(location.search))document.write('<script src="creatures/singe.js?v=2"><\/script>');</script><script>/* (2026-11-03, passe « maps cohérentes » — PICS DE JADE) LE TÉLÉPHONE NE TAILLE PLUS DE DAUPHINS QU'IL NE MONTRE PAS : creatures/dauphin.js bâtit au chargement trois maillages (~38 000 triangles, cubes du vitrail : MESURÉ ~0,7 s de calcul à froid sur le Mac) pour les dauphins de la mer de jade — que JADE_SOBRE éteint sur le téléphone. Même test que ALLEGE et JADE_SOBRE (rendu/soleil-planete.js, maps/jade-1.js : le jeu vérifie qu'ils disent pareil) ; `?jadeplein=1` les rend. */var SANS_DAUPHIN=(function(){try{var q=location.search,mm=function(m){return !!(window.matchMedia&&matchMedia(m).matches);},tn=(mm('(pointer:coarse)')||('ontouchstart' in window)||navigator.maxTouchPoints>0)&&(mm('(hover:none)')||Math.min(screen.width,screen.height)<600);return !/[?&]allege=0\b/.test(q)&&(tn||/[?&](tel|mobile|allege)=1\b/.test(q))&&!/[?&]jadeplein=1\b/.test(q);}catch(e){return false;}})();</script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html — (2026-10-22) le singe n'est chargé que sur `?singes=1` : les singes sont éteints par défaut (voir JSG_ON) -->
 <script src="assets/audio/musique-bus.js?v=7"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=11"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
@@ -27178,6 +27178,7 @@ function jadeTick(dt){
   if(BALADE&&running&&!gameOver){
     {const m9=Math.min(ENGINE_TIERS.length-1,BALADE_MOTEUR);if(engTier!==m9){engTier=m9;coinsGot=ENGINE_TIERS[m9].coins;}} // le moteur de la balade, posé tel quel (sans la scène du palier)
     if(!nitroOn)nitroR=Math.min(nitroCap(),nitroR+.30*dt);} // sans pièces ni fruits, la nitro se recharge seule // (dev) dbgJadeVue : une image NETTE (le flou de vitesse figé par la pause)
+  {if(!JADE.rt0)JADE.rt0=ROUTE_JADE.slice();const t9=BIO.cur.rtT||JADE.rt0,r0=JADE.rt0;ROUTE_JADE[0]=r0[0]*t9[0];ROUTE_JADE[1]=r0[1]*t9[1];ROUTE_JADE[2]=r0[2]*t9[2];} /* (2026-11-03, passe « maps cohérentes ») LE BITUME COMMUN AUX PICS DE JADE — routeTick ne lit `rtT` (la teinte du béton par temps, voir CONTI) que sur les maps de la recette ; la jade la reçoit ici, dans SA teinte (ROUTE_JADE, fondue par LVL.jade au portail) : trois flottants, rien d'alloué */
   JADE_U.uTime.value+=dt;if(!paused)skyU.uEauT.value+=dt;
   finTravail(paused?12:4);
   try{jadeEauTick(dt);}catch(e){window.__jadeErr=e;}
@@ -56176,6 +56177,7 @@ const JDM={pret:false,chaud:false,node:new THREE.Group(),D:[],mode:null,part:0,t
   cv:new THREE.Vector3(),c0:new THREE.Vector3(),H:new THREE.Vector3(0,0,1),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),Xr:new THREE.Vector3(),
   X:new THREE.Vector3(),Y:new THREE.Vector3(),Z:new THREE.Vector3(),UP:new THREE.Vector3(0,1,0),AX:new THREE.Vector3(1,0,0),m:new THREE.Matrix4(),q:new THREE.Quaternion()};
 JDM.node.visible=false;scene.add(JDM.node);
+if(typeof SANS_DAUPHIN!=='undefined'&&!!SANS_DAUPHIN!==JADE_SOBRE)console.warn('SANS_DAUPHIN (la page) ≠ JADE_SOBRE (le jeu) : le test de page/bibliotheques.html a dérivé de ALLEGE'); // (2026-11-03) les deux tests doivent dire pareil
 function jdmActif(){return !JADE_SOBRE&&!!(started&&!gameOver&&jadeEauOk()&&!TUTO.on);}
 function jdmFabrique(){ // les trois dauphins (le modèle est bâti au chargement de creatures/dauphin.js) — une fois
   if(typeof mkDauphin!=='function'||typeof DOL_GEO==='undefined'||!DOL_GEO)return false;
@@ -56201,6 +56203,7 @@ function jdmJailli(vx,vy,vz){ // appelée par jadeEauVol au JAILLISSEMENT : la v
   if(JDM.mode!=='mer'||JDM.part||!(JDM.force||Math.random()<JDM_SAUT))return;JDM.force=false;
   JDM.D.forEach(function(E,i){E.sautT=.05+i*.13+Math.random()*.06;E.sV=[vx,vy,vz];});}
 function jdmTick(dt){
+  if(JADE_SOBRE)return; /* (2026-11-03) le téléphone ne les montre jamais (jdmActif) : ni fabrique, ni programmes compilés au menu — et la page ne taille plus leurs maillages (SANS_DAUPHIN, page/bibliotheques.html) */
   if(!JDM.pret){if(!jdmFabrique())return;JDM.pret=true;return;}
   if(!JDM.chaud){if(started&&!gameOver&&jadeEauOk())return; // (au menu : les trois programmes se compilent hors écran, une fois)
     JDM.chaud=true;JDM.node.visible=true;for(const E of JDM.D)E.d.visible=true;try{chauffeRendu([JDM.node]);}catch(e){}for(const E of JDM.D)E.d.visible=false;JDM.node.visible=false;return;}
