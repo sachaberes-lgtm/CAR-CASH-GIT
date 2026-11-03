@@ -155,8 +155,10 @@ function objRenderV2(el){const s=m2Etat(),L=[];
   for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
   for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
   /* (2026-11-03, Sacha : « améliorer encore un peu », puis « mission il prend trop de place ») le panneau ne reste plus à moitié vide :
-     il se complète avec les missions les plus proches du but (avec leur barre), jusqu'à 2 lignes, pas plus */
-  {const cible=2,C=[];
+     il se complète avec les missions les plus proches du but (avec leur barre) : 2 lignes debout ; couché, le panneau a la hauteur de ses
+     deux voisins (MOTEUR, AURA), il en montre 3 */
+  const flot9=!/[?&]mort=ancien\b/.test(location.search); /* l'écran de mort v6 (MORT_FLOT vit dans la coque, hors de portée ici) */
+  {const cible=(flot9&&window.matchMedia&&matchMedia('(orientation:landscape)').matches)?3:2,C=[];
     if(L.length<cible)for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
       let v=0;try{v=m2Val(m);}catch(x){}const p=m2Frac(m,v,m2Seuil(m));if(p<1)C.push({m:m,p:p});}
     C.sort(function(a,b){return b.p-a.p;});for(const c of C){if(L.length>=cible)break;L.push({m:c.m,ok:0});}}
@@ -167,7 +169,9 @@ function objRenderV2(el){const s=m2Etat(),L=[];
     if(m.f==='secret')h+='<div class="obM ok sec">'+pxi('oeil')+'<span>'+sansAcc(TR('MISSION SECRÈTE TROUVÉE'))+'</span></div>';
     else if(x.ok)h+='<div class="obM ok">'+pxi('coche')+'<span>'+sansAcc(m2Txt(m))+'</span><em>'+sansAcc(m2RecNom(m))+'</em></div>';
     else{let v=0;try{v=m2ValCourse(m);}catch(q){}const t=m2Seuil(m);
-      h+='<div class="obM">'+pxi((M2_FAM[m.f]||M2_FAM.exploit).ic)+'<span>'+sansAcc(m2Txt(m))+'</span><b>'+m2Prog(m,v,t)+'</b></div><div class="obBar"><i style="width:0%" data-w="'+(100*m2Frac(m,v,t)).toFixed(1)+'"></i></div>';}}
+      const ic9=pxi((M2_FAM[m.f]||M2_FAM.exploit).ic),tx9='<span>'+sansAcc(m2Txt(m))+'</span>',br9='<div class="obBar"><i style="width:0%" data-w="'+(100*m2Frac(m,v,t)).toFixed(1)+'"></i></div>',pg9='<b>'+m2Prog(m,v,t)+'</b>';
+      /* écran de mort v6 : le texte sur toute la largeur (deux lignes au besoin), la barre dessous et le compte AU BOUT de sa barre */
+      h+=flot9?'<div class="obM obM6">'+ic9+tx9+br9+pg9+'</div>':'<div class="obM">'+ic9+tx9+pg9+'</div>'+br9;}}
   h+='<div class="obFt"><span>'+sansAcc(TR(nP?'À RÉCUPÉRER':'TOUTES LES MISSIONS'))+'</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';
   el.innerHTML=h;
   const bars=el.querySelectorAll('.obBar i');

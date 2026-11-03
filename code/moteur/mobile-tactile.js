@@ -925,6 +925,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     let vu0=0,mort=-1,prep=false,deja=false;
     const maj=function(){let e=null;try{e=dblEtat();}catch(_){e=null;}const ok=!!(e&&e.ok);
       if(mort!==TCTL.mortT){mort=TCTL.mortT;prep=false;deja=false;}
+      {const d9=$t('mDead');if(d9)d9.classList.toggle('m6Dbl',ok);} /* écran de mort v6 : la case du ×2 est RÉSERVÉE dès qu'il est dû — il entre 1,1 s plus tard sans rien pousser */
       if(!ok)vu0=0;else if(!vu0)vu0=performance.now();
       const voir=ok&&(deja||performance.now()-vu0>=1100); // (une pub fermée trop tôt : la plaque revient tout de suite, sans rejouer son entrée)
       if(voir)deja=true;
