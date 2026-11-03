@@ -22394,8 +22394,8 @@ function bkCretes(fx){ // une fois, au premier tour de la banquise (banqFx) : le
 function bkCretesTick(fx){ // chaque image, dans banqTick : l'anneau suit la caméra (rien d'autre : tout le reste vit dans le shader)
   if(!fx.cre)return;
   if(fx.cG!==(BANQ.graine|0))bkCretesGen(fx); // une piste neuve : d'autres crêtes (un seul passage, < 1 ms)
-  const cp=camera.position;
-  for(const m of [fx.cre,fx.pan]){if(!m)continue;m.visible=true;m.position.copy(cp);m.updateMatrix();m.updateMatrixWorld(true);}}
+  bkCretesSuit(fx.cre);bkCretesSuit(fx.pan);} /* (2026-11-03) sans tableau neuf à chaque image */
+function bkCretesSuit(m){if(!m)return;m.visible=true;m.position.copy(camera.position);m.updateMatrix();m.updateMatrixWorld(true);}
 function bkCretesCache(fx){if(fx.cre)fx.cre.visible=false;if(fx.pan)fx.pan.visible=false;}
 function bkCretesChauffe(fx){return fx.cre?(fx.pan?[fx.cre,fx.pan]:[fx.cre]):[];}
 /* <<<GROTTE>>> */
