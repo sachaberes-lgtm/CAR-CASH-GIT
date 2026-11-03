@@ -23001,6 +23001,17 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
    une lumière douce d'en haut qui dessine les facettes, l'occlusion, la LANTERNE de la caisse. Les éclats PERCENT le brouillard. */
 const GRT_MUR=[[.46,.32,.22],[.22,.36,.33],[.32,.25,.46],[.60,.38,.22],[.17,.15,.24],[.10,.15,.24]]; // mine, luxuriante, puits, stalactites, lave, abysses
 const GRT_SOL=[[.42,.28,.15],[.24,.56,.16],[.26,.22,.40],[.68,.48,.28],[.24,.11,.09],[.04,.17,.21]];
+/* ===== L'ACCORD DES SALLES (2026-11-03, passe maps cohérentes — Sacha : « que les maps soient toutes magnifiques dans leur ensemble, cohérentes et optimisées ») =====
+   MESURÉ au banc (photos de course, Lab) : trois salles parlaient trop fort à côté des maps du ciel — la ROCHE prenait la couleur que la charte réserve aux ÉCLATS :
+   · LE BOYAU : air, brume, ciel, sol et remplissage VIOLET-MAGENTA (le néon violet que Sacha rejette : « trop IA ») — la route du NOIR COMPLET sortait violette ;
+     ils passent à l'INDIGO (le magenta retiré, la clarté gardée) : l'améthyste reste aux CRISTAUX (violets, roses, azur), qui ressortent enfin de la paroi ;
+   · LA LUXURIANTE : un sol vert FLUO (vert pur × lumière verte : le « criard » de la charte) — un vert mousse, même clarté, ~25 % de chroma en moins ;
+   · LE LAC DE LAVE : TOUT rouge — brume, ciel, sol, remplissage — la caisse rouge se perdait sur une route rouge (chroma 69) ; la règle des deux températures
+     de la charte : la clé chaude (la lave, par en dessous) et son CONTRAIRE en ombre — le ciel de la salle devient ardoise, la brume une cendre chaude.
+   La clarté de chaque couleur est gardée (luminance), seule la teinte bouge. `?sans=grtaccord` = avant (A/B). */
+const GRT_ACCORD=!/[?&]sans=([^&]*,)?grtaccord(,|&|$)/.test(location.search);
+if(GRT_ACCORD){GRT_MUR[2]=[.30,.28,.42];GRT_SOL[2]=[.25,.24,.36];GRT_SOL[1]=[.26,.52,.22];
+  GRT_AMB[1]=[.15,.35,.25];GRT_AMB[2]=[.17,.12,.38];GRT_AMB[4]=[.27,.11,.075];}
 const GRT_U={uTime:{value:0},uTorch:{value:1},uLieu:{value:1},uAmb:{value:new THREE.Color(.05,.05,.06)},uEmi:{value:1},uLav:{value:1},uFlam:{value:1},uLant:{value:1},uVein:{value:1},uGlint:{value:1},uIce:{value:0},
   uTorchC:{value:new THREE.Color(1.5,.86,.42)},uLantC:{value:new THREE.Color(1.05,.95,.82)},uLantP:{value:new THREE.Vector3(0,-1e5,0)},
   uMur:{value:GRT_MUR.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})},uSol:{value:GRT_SOL.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})}};
@@ -23235,6 +23246,8 @@ function grtBiomes(){if(typeof BIOMES==='undefined'||!BIOMES.nuagesNuit)return;
     stal:{fog:[.094,.066,.042],hemiS:[.50,.42,.32],hemiG:[.36,.26,.16],fillC:[1,.72,.40],kickC:[1,.56,.40]},
     lave:{fog:[.15,.04,.022],hemiS:[.38,.22,.30],hemiG:[.70,.18,.04],fillC:[1,.36,.08],kickC:[1,.30,.12]},
     abysse:{fog:[.01,.045,.06],hemiS:[.12,.30,.36],hemiG:[.04,.20,.24],fillC:[.12,.80,.90],kickC:[.30,.90,1]}};
+  if(GRT_ACCORD){Object.assign(S.boyau,{fog:[.05,.04,.12],hemiS:[.38,.36,.62],hemiG:[.28,.20,.44],fillC:[.62,.50,1]}); /* (L'ACCORD DES SALLES, voir GRT_ACCORD) l'indigo */
+    Object.assign(S.lave,{fog:[.12,.05,.045],hemiS:[.28,.26,.36],hemiG:[.62,.24,.10],fillC:[1,.46,.20]});} /* la cendre chaude, le ciel ardoise, la lave par en dessous */
   const ICE={}; /* GLACE : la brume bleu-blanc, une teinte par salle (la lave gelée vire au violet pâle, les abysses au bleu profond) */
   /* (2026-11-03, passe maps cohérentes) ses lumières (ciel, sol, remplissage, contre-jour) un tiers plus près du blanc : un bleu saturé que l'étalonnage filmique
      (ACES) écrase vire au VIOLET — la route et les parois de la grotte gelée sortaient pervenche et cobalt ; la glace se lit claire, comme au glacier */
