@@ -65,6 +65,8 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gS
 #gBqCats.duo{flex-direction:row;flex-wrap:wrap;align-content:flex-start}
 #gBqCats.duo button{width:calc((100% - var(--cG,8px)) / 2);justify-content:center;padding:0}
 #gBqCats.duo button span{display:none}
+/* (2026-11-03) en deux colonnes de carrés, rien ne disait plus où l'on était : le nom du rayon ouvert s'écrit dessous (VOITURES, PEINTURES…) */
+#gBqCats.duo::after{content:attr(data-cur);flex:0 0 100%;display:block;margin-top:2px;font-size:8px;letter-spacing:1px;line-height:14px;text-align:center;color:#14171c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #gBqPan .bqK .bqKph[data-pha] img{width:100%}
 #gBqPan .bqK .bqKph[data-phf] .fgFilm{display:block;width:100%;height:100%} /* (2026-10-18) le FILM d'une figure (figFilm) : la toile prend toute la case, l'image s'y pose entière, en bas (filmDessine) */
 #gBq #gBqPan .bqK.hab .bqKph .bqSw{width:42px;height:42px} /* les grandes cartes des habillages : la pastille de la peinture, le ruban de la traînée à leur taille */
@@ -149,7 +151,7 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gBqBtn{displa
 #gBqBtn:is(:active,.appui){translate:0 2px}
 html.bqIndus body #garage #gAct>#gBqBtn[data-e="equip"]{background:#3d4bff}
 html.bqIndus body #garage #gAct>#gBqBtn[data-e="desequip"]{background:#fff;color:#14171c;box-shadow:0 0 0 1.5px #14171c}
-html.bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:#fff;color:#4a5360;box-shadow:0 0 0 1px #dde1e6}
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:#fff;color:#14171c;box-shadow:0 0 0 1px #dde1e6,inset 3px 0 0 #3d4bff} /* (2026-11-03) « ÉQUIPÉE ✓ » : encre pleine sur une plaque blanche à liseré bleu (la même marque que le rayon ouvert), plus un texte gris fantôme */
 html.bqIndus body #garage #gAct>#gBqBtn[data-e="defi"]{background:#eef0f3;color:#4a5360;box-shadow:none}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{min-width:0!important;width:auto!important;height:44px!important;min-height:44px!important;padding:0 14px!important;gap:6px!important}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas span{font-size:8px!important;letter-spacing:1px}
