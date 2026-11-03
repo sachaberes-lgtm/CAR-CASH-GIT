@@ -19456,7 +19456,19 @@ function dnMondeCalc(S,opt){
   const R={Z:Z,F:F,O:DN.O,ob:pv.ob,pyr:pv.pyr,yMin:yMin-40,yMax:yMax+40,ms:ms};if(pv.pyrs){R.pyrs=pv.pyrs;R.mo=pv.mo;}return R;
 }
 /* ---- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors des dunes) : les échantillons de la route ici, le MONDE dans un travailleur ---- */
-function dnEteindre(){DN.on=false;DN.lev=[];if(DN.mesh)DN.mesh.visible=false;if(DN.grp)DN.grp.visible=false;DN.oa=null;if(DN.mat)DN.mat.uniforms.uOA.value.set(0,0,0,0);}
+function dnEteindre(){DN.on=false;DN.lev=[];if(DN.mesh)DN.mesh.visible=false;if(DN.grp)DN.grp.visible=false;DN.oa=null;if(DN.mat)DN.mat.uniforms.uOA.value.set(0,0,0,0);if(DN_REND)dnLibere();}
+/* ===== LES DUNES RENDENT LA PUCE (2026-11-03, passe « maps cohérentes », Sacha : « cohérentes et optimisées » — « tout ce que la map crée est LIBÉRÉ quand on la quitte ») =====
+   Avant : quitter les dunes ne faisait que CACHER le groupe des décors et le sable — le décor cuit (une géométrie de ~10⁵ sommets), les instances (palmiers, papyrus,
+   caravanes, buttes…) et les trois textures flottantes du monde (relief fin, fond, ombre : quelques Mo) restaient dans la puce toute la partie suivante, jusqu'au
+   prochain passage aux dunes. Ici, à chaque extinction (le portail, REJOUER — buildDunes rebâtit tout de toute façon) : les décors quittent le groupe, leurs géométries
+   et leurs instances sont rendues (un modèle partagé se renvoie tout seul s'il resert), les textures du monde aussi (la matière reprend le texel vide). Les PROGRAMMES
+   restent (compilés au menu par dunesChauffe : 0 compilation en course, voulu). `dbgDunes('libere')` = ce qui a été rendu la dernière fois · `?sans=dunesrend` = comme avant (tout gardé). */
+const DN_REND=!/[?&]sans=([^&]*,)?dunesrend(,|&|$)/.test(location.search);
+function dnLibere(){let g=0,t=0;
+  if(DN.grp)for(const o of DN.grp.children.slice()){DN.grp.remove(o);if(o.geometry){o.geometry.dispose();g++;}if(o.isInstancedMesh&&typeof o.dispose==='function')o.dispose();}
+  for(const k of ['tC','tZ','tS'])if(DN[k]){DN[k].dispose();DN[k]=null;t++;}
+  if(DN.mat&&DN.z1){const U=DN.mat.uniforms;U.uTC.value=U.uTZ.value=U.uTS.value=DN.z1;}
+  DN.carIm=null;DN.torIm=null;if(g||t)DN.libere={geo:g,tex:t};}
 /* LE TIRAGE DU DÉCOR (2026-10-20, LE DÉSERT AU HASARD) : des choix INDÉPENDANTS, dans un flux né de la graine de la piste (ni `rnd`, ni `r`, ni le tracé) —
    un objet simple (il part au travailleur avec le reste). Les PALETTES restent dans la DA : le sable or / rouge / blanc d'argile / rose. */
 function dnTirage(seed){let h9=Math.imul((seed^0xDEC0D5)>>>0,0x9E3779B1);h9^=h9>>>15;h9=Math.imul(h9,0x85EBCA6B);h9^=h9>>>13;const rd=mulberry32(h9>>>0), /* (la graine brassée) */ch=(L9,P9)=>{let t=rd()*P9.reduce((a,b)=>a+b,0);for(let i=0;i<L9.length;i++){t-=P9[i];if(t<0)return L9[i];}return L9[L9.length-1];},
@@ -19819,7 +19831,7 @@ function dnTerrain(){ if(DN.mesh)return;
   const g=new THREE.InstancedBufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);
   DN.aN=new THREE.InstancedBufferAttribute(new Float32Array(DN.maxN*4),4);DN.aN.setUsage(THREE.DynamicDrawUsage);g.setAttribute('aN',DN.aN);g.instanceCount=0;
   g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7);DN.geo=g;
-  const z1=new THREE.DataTexture(new Float32Array([0,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);z1.needsUpdate=true;
+  const z1=new THREE.DataTexture(new Float32Array([0,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);z1.needsUpdate=true;DN.z1=z1; /* (le texel vide : la matière le reprend quand les dunes rendent la puce, dnLibere) */
   const C3=()=>({value:new THREE.Color()});
   const U=Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),{uTC:{value:z1},uTZ:{value:z1},uTS:{value:z1},uNZ:{value:CY.tNz},uGl:{value:dnGlyphes()},
     uFD:{value:new THREE.Vector4(0,0,1,1)},uZD:{value:new THREE.Vector4(0,0,1,1)},uSD:{value:new THREE.Vector4(0,0,1,1)},uFN:{value:new THREE.Vector2(1,1)},uZN:{value:new THREE.Vector2(1,1)},uSN:{value:new THREE.Vector2(1,1)},
@@ -20269,6 +20281,7 @@ window.dbgDunes=function(k,a,b,c,d){
   if(k==='tp'){if(!started||gameOver||mode!=='drive')return 'pas au sol';s=Math.max(0,Math.min(L-30,+a||0));lat=0;if(b!=null)vA=+b/SPD;return {s:Math.round(s),vA:+vA.toFixed(1)};} /* (banc) la caisse posée à l'abscisse a, à la vitesse monde b (m/s) */
   if(k==='marge'){if(!DN.on)return 'pas de dunes';const S9=DN.S,o=[];for(let q=+a||0;q<=(+b||L);q+=(+c||10)){const i=Math.min(S9.n-1,Math.round(q/S9.ds));o.push(Math.round(q)+':'+(S9.y[i]-dnHauteur(S9.x[i],S9.z[i])).toFixed(0)+'/D'+S9.D[i].toFixed(0)+'/z'+S9.zC[i].toFixed(1));}return o.join(' ');} /* (banc) la hauteur de la ligne de route au-dessus du sable, de a à b tous les c m */
   if(k==='raccourcis')return DN.rac||[];
+  if(k==='libere')return {rendu:DN.libere||null,groupe:DN.grp?DN.grp.children.length:0,textures:['tC','tZ','tS'].filter(function(q){return !!DN[q];}).length}; /* (2026-11-03) ce que l'extinction a rendu à la puce (dnLibere) */
   if(k==='const')return {ROAD_HALF:ROAD_HALF,THICK:THICK,L:Math.round(L),NP:NP,SPD:SPD,FALL_G:FALL_G,GRAV_K:GRAV_K,vPalier:Math.round(vPalier()),rayon:Math.round(rayonPalier()),lv:+lvPiste().toFixed(2),lcible:Math.round(longueurCible()),eng:engTier,y0:Math.round(pts[0].y),yFin:Math.round(pts[NP-1].y),vitMult:+vitMult().toFixed(2),vA:+vA.toFixed(1)}; /* (banc) les constantes du jeu que le banc ne peut pas lire (rien n'est global) */
   if(k==='gpu'){const gl=renderer.getContext(),ext=gl.getExtension('EXT_disjoint_timer_query_webgl2');if(!ext)return 'pas de chrono';const n=a||20,reps=b||5; /* (banc) le coût GPU d'une image FIGÉE (la caméra de dbgDunes('vueA'…)) : n rendus d'affilée chronométrés par la puce, reps fois — {min, med} en ms par image */
     return (async function(){const all=[];for(let rep=0;rep<reps;rep++){const q=gl.createQuery();gl.beginQuery(ext.TIME_ELAPSED_EXT,q);for(let i=0;i<n;i++){if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}gl.endQuery(ext.TIME_ELAPSED_EXT);const t0=performance.now();while(!gl.getQueryParameter(q,gl.QUERY_RESULT_AVAILABLE)&&performance.now()-t0<4000)await new Promise(function(r){setTimeout(r,5);});const ok=!gl.getParameter(ext.GPU_DISJOINT_EXT),v=gl.getQueryParameter(q,gl.QUERY_RESULT)/1e6/n;gl.deleteQuery(q);if(ok)all.push(v);}all.sort(function(x,y){return x-y;});return all.length?{min:+all[0].toFixed(2),med:+all[all.length>>1].toFixed(2)}:null;})();}
