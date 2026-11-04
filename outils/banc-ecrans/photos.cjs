@@ -74,19 +74,19 @@ const ETAPES = [
         await c.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: r[0], y: r[1] }] }); await dormir(60);
         await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); return r[2]; };
       for (const et of ETAPES) {
-        if (ECRANS && !ECRANS.includes(et.n) && !et.sans) continue;
+        const voulu = ECRANS ? ECRANS.includes(et.n) : !et.sans; /* --ecrans : chaque étape est JOUÉE (la suivante en dépend), seules celles demandées sont photographiées */
         const cle = fmt + '-' + et.n; let ok = '';
         try {
           await c.ev('window.__gaps=[];(function(){var l=performance.now(),t0=l;function f(t){var d=t-l;if(d>50)window.__gaps.push(Math.round(d));l=t;if(t-t0<' + (et.att + 400) + ')requestAnimationFrame(f);}requestAnimationFrame(f);})();1');
           if (et.js) { try { await c.ev(et.js + ';1'); } catch (e) { ok += ' js:' + e.message.slice(0, 80); } await dormir(300); }
           if (et.tap) ok += ' tap:' + await tap(et.tap, et.fx, et.fy);
           await dormir(et.att);
-          if (et.sans && !(ECRANS && ECRANS.includes(et.n))) continue;
+          if (!voulu) continue;
           const n0 = erreurs.length;
           const sh = await c.send('Page.captureScreenshot', { format: 'png' }, 30000);
           fs.writeFileSync(path.join(OUT, cle + '.png'), Buffer.from(sh.data, 'base64'));
           const audit = await c.ev('JSON.stringify(ccAudit())');
-          const etat = await c.ev("JSON.stringify({body:document.body.className.slice(0,120),garage:document.getElementById('garage').className.slice(0,120),ecran:[...document.querySelectorAll('.mscr.on')].map(e=>e.id).join(' ')})");
+          const etat = await c.ev("JSON.stringify({body:document.body.className.slice(0,120),garage:document.getElementById('garage').className.slice(0,120),ecran:[...document.querySelectorAll('.mscr.on')].map(e=>e.id).join(' '),mort:document.getElementById('mDead').classList.contains('on')?['mObj','mChance','mChanceNon','mDouble','mDuo','mFin','mHero','mCashL'].map(function(k){var e=document.getElementById(k)||document.querySelector('#mDead .'+k);if(!e)return k+':absent';var b=e.getBoundingClientRect(),c=getComputedStyle(e);return k+':'+c.display+'/'+c.opacity.slice(0,4)+'/'+(e.hidden?'hidden':'')+'/'+Math.round(b.left)+','+Math.round(b.top)+','+Math.round(b.width)+'x'+Math.round(b.height)}):null})");
           const gaps = await c.ev('JSON.stringify(window.__gaps||[])');
           rapport[cle] = { ok, gaps: JSON.parse(gaps), audit: JSON.parse(audit), etat: JSON.parse(etat), erreurs: erreurs.slice(n0) };
           console.log(cle, ok, 'erreurs:', erreurs.length - n0, 'gels(ms):', gaps);

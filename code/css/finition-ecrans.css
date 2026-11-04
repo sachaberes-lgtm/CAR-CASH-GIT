@@ -14,4 +14,16 @@
 /* 3. LA LIGNE DES MISSIONS en course, couché : « JOUE UNE MAP SOUS TOUTES SES ME… » — le texte passe sur deux lignes au lieu d'être coupé au
    milieu d'un mot (debout il l'était déjà) */
 @media (orientation:landscape){#m2Ligne{max-width:min(72vw,560px)}#m2Ligne span{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}}
+/* 4. L'ÉCRAN MISSIONS debout : RETOUR était une touche carrée de 76 px (l'icône au-dessus du mot, 10 px), seule de son espèce — elle prend la
+   forme du RETOUR de l'inventaire et de la boutique (l'icône à gauche du mot, 112 px), JOUER garde le reste (MESURÉ 390 : 354 − 12 − 112 = 230 px) */
+@media (orientation:portrait){
+  #gmBas .gmHome{flex-direction:row;width:auto;min-width:112px;gap:10px;padding:0 12px;font-size:var(--f1)}
+  #gmBas .gmHome .pxi{--pxs:2}
+  #gmBas .gmJouer{font-size:var(--f6);letter-spacing:3px}} /* JOUER + ses trois chevrons : 24 px débordait de 2 px la case de 224 ; 20 px, comme couché */
+/* 5. L'OFFRE À LA UNE (ACHAT) : « ACHETER » était une mention grise de 8 px au bout de la ligne du prix — c'est LA décision de la carte, elle
+   devient un petit lingot (la matière de JOUER / ACHETER partout ailleurs) ; « À TOI » (déjà achetée) reste un mot vert */
+.shUne .shBtn:not(.aToi){min-height:32px;padding:0 12px;gap:6px;color:var(--auT);background:linear-gradient(180deg,var(--au1),var(--au2) 55%,var(--au3));
+  box-shadow:0 3px 0 var(--auE),inset 0 1px 0 rgba(255,255,255,.55);transform:skewX(var(--sk));text-shadow:none;font-size:var(--f0);letter-spacing:1px}
+.shUne .shBtn:not(.aToi) .pxi{color:var(--auT);filter:none}
+.shUne:is(:active,.appui) .shBtn:not(.aToi){transform:skewX(var(--sk)) translateY(2px);box-shadow:0 1px 0 var(--auE),inset 0 1px 0 rgba(255,255,255,.55)}
 </style>
