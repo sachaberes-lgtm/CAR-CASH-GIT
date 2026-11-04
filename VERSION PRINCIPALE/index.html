@@ -144,11 +144,20 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
        `version-leolei-2026`, 26/09) : le téléphone passe COUCHÉ ⇄ DEBOUT sans recharger — le jeu, dans la colonne, ne reçoit qu'un
        resize (fovFit, HUD, garage suivent seuls), on peut tourner en pleine course. L'adresse garde le choix (`?colonne=portrait`). */
     var vv=document.createElement('div');vv.id='ccVer';vv.textContent='VERSION '+CC_VER;document.body.appendChild(vv); // à comparer d'un coup d'œil avec les réglages du téléphone
-    var tb=document.createElement('button');tb.id='tourne';tb.type='button';document.body.appendChild(tb);
+    var bw=document.createElement('div');bw.id='ccBtns';document.body.appendChild(bw);
+    var tb=document.createElement('button');tb.id='tourne';tb.type='button';bw.appendChild(tb);
+    /* (2026-11-04, Sacha : « rajoute un bouton à côté du bouton portrait paysage qui permet de switch vers la version mobile ») SANS BOÎTIER ⇄ TÉLÉPHONE :
+       l'écran du jeu seul (même mise en page mobile, sans la lunette ni l'encoche du 13 Pro) — `?encoche=0`, déjà géré plus haut ; un 2e clic le rend. */
+    var nu=document.createElement('button');nu.id='nu';nu.type='button';bw.appendChild(nu);
+    var nuLbl=function(){var lg9='';try{lg9=localStorage.ccLang||'';}catch(e){}var en=lg9?lg9!=='fr':!/^fr/i.test(navigator.language||'fr');
+      nu.textContent=ENC?(en?'\u25a3  MOBILE':'\u25a3  MOBILE'):(en?'\u25a3  PHONE':'\u25a3  T\u00c9L\u00c9PHONE');
+      nu.setAttribute('aria-label',ENC?(en?'Mobile version without the phone frame':'Version mobile sans le bo\u00eetier'):(en?'Show the phone frame':'Remettre le bo\u00eetier du t\u00e9l\u00e9phone'));};
+    nuLbl();
+    nu.addEventListener('click',function(e){e.stopPropagation();try{var u=new URL(location.href);u.searchParams.set('encoche',ENC?'0':'1');location.href=u.toString();}catch(_){}});
     var tLbl=function(){var lg9='';try{lg9=localStorage.ccLang||'';}catch(e){}var en=lg9?lg9!=='fr':!/^fr/i.test(navigator.language||'fr'); /* (2026-10-07) la langue CHOISIE d'abord, comme l'écran de crash */
       tb.textContent=debout?(en?'\u21bb  LANDSCAPE':'\u21bb  PAYSAGE'):'\u21bb  PORTRAIT';var a9=debout?'Tenir le téléphone couché':'Tenir le téléphone debout';
       tb.dataset.frAria=a9;tb.setAttribute('aria-label',en?(debout?'Hold the phone sideways':'Hold the phone upright'):a9);};
-    window.__tourneLbl=tLbl; /* applyLangDOM le rappelle quand on change de langue */
+    window.__tourneLbl=function(){tLbl();nuLbl();}; /* applyLangDOM le rappelle quand on change de langue */
     tLbl();
     tb.addEventListener('click',function(e){e.stopPropagation();debout=!debout;L=debout?390:844;H=debout?844:390;
       document.documentElement.classList.toggle('debout',debout);document.documentElement.classList.toggle('couche',!debout);
@@ -206,7 +215,7 @@ html.colonne,html.colonne body{height:100%;margin:0;overflow:hidden;background:#
 html.colonne body{display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
-html.colonne:not(.poki) body>*:not(#tel):not(#tourne):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
+html.colonne:not(.poki) body>*:not(#tel):not(#ccBtns):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
 html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:8px/1 var(--pix);letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
 /* le BOÎTIER (#tel, posé en px par le script) : la lunette noire, le cerclage d'acier, l'ombre et le halo néon du jeu ;
    l'écran du 13 Pro dedans : coins de 47 pt (le zoom du cadre les agrandit avec lui) ; l'encoche dans la lunette, par-dessus l'image */
@@ -220,11 +229,14 @@ html.colonne.couche #encoche::after{left:0;bottom:calc(-1*var(--or));background:
 html.colonne.debout #encoche::before{top:0;left:calc(-1*var(--or));background:radial-gradient(circle at 0 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
 html.colonne.debout #encoche::after{top:0;right:calc(-1*var(--or));background:radial-gradient(circle at 100% 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
 /* (Léo) le bouton TOURNER, dans un coin de la page-cadre (hors du téléphone) */
-html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:10px/1 var(--pix);letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
+html.colonne #ccBtns{position:fixed;right:16px;bottom:16px;z-index:9;display:flex;gap:10px}
+html.colonne #tourne,html.colonne #nu{font:10px/1 var(--pix);letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
   background:linear-gradient(#7a6cff,#5143d9);box-shadow:0 4px 0 #2c2280,0 8px 18px rgba(0,0,0,.45);opacity:.85}
-html.colonne #tourne:hover{opacity:1}
-/* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien */
-html.colonne:not(.debout) #tourne{right:auto;left:50%;bottom:8px;transform:translateX(-50%);padding:7px 12px;font-size:10px;opacity:.6}
+html.colonne #nu{background:linear-gradient(#f6c453,#d99a1c);color:#2a1c00;box-shadow:0 4px 0 #8a5d08,0 8px 18px rgba(0,0,0,.45)}
+html.colonne #tourne:hover,html.colonne #nu:hover{opacity:1}
+/* couché, le cadre prend toute la largeur : les boutons se rangent au milieu du bas, là où le jeu n'a rien */
+html.colonne:not(.debout) #ccBtns{right:auto;left:50%;bottom:8px;transform:translateX(-50%);gap:8px}
+html.colonne:not(.debout) #tourne,html.colonne:not(.debout) #nu{padding:7px 12px;font-size:10px;opacity:.6}
 html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
 </style>
 <style>
