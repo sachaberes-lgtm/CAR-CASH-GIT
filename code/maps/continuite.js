@@ -59,6 +59,9 @@ const CONTI={
      un horizon qui brûle sans saturer tout l'écran */
   jours:{
     canyonMidi:{rtK:.6,sunI:1.6},dunesMidi:{rtK:.6,sunI:1.6},
+    /* (2026-11-03, passe maps cohérentes · canyon) LE SOIR du canyon : le ciel lavande et le remplissage bleu-violet peignaient la route et les gorges en MAUVE — un
+       bleu de crépuscule (la clé chaude, l'ombre froide, sans magenta) : la route redevient ardoise, la roche terre cuite. LA PLUIE : la gorge tombait au noir (ciel ,8) */
+    canyonSoir:{hemiS:[.38,.44,.70],fillC:[.40,.50,.88]},canyonPluie:{hemiI:1.05},
     nuagesMatinCC:{rtT:[.97,1,1.05]},nuagesMidiCC:{rtT:[.97,1,1.05]}, // (mesuré) la route des nuages de jour était déjà NEUTRE (ROUTE_JOUR) : la teinte commune la faisait beige
     nuagesSoir:{volSun:[1.95,1.65,1.40]}}
 };
