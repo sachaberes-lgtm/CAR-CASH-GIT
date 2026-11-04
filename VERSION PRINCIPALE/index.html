@@ -9157,6 +9157,23 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
 @media (prefers-reduced-motion:reduce){html body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val){animation:none!important}}
 html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val){animation:none!important}
 </style>
+<style id="finitionEcrans">
+/* ===== LA FINITION DES ÉCRANS (2026-11-04, Sacha : « chaque écran, chaque interface doit être parfaite […] qualité professionnelle ») =====
+   Une couche posée APRÈS toutes les autres : des détails MESURÉS au banc des écrans (outils/banc-ecrans/photos.cjs — chaque écran, debout
+   et couché, photographié et audité : cibles, chevauchements, textes coupés, polices, corps). Rien de nouveau dans la mise en scène :
+   la même touche, la même marge, le même toucher — seulement ce qui n'était pas d'équerre. */
+/* 1. AUCUNE BARRE DE DÉFILEMENT dans l'interface (Android, et l'ordi en cadre téléphone, en dessinaient une sur les réglages, l'achat, la plaque) */
+#overlay,#plq,#prof,#plq .plMods,#prof .pfStats,#tPanel,#modale{scrollbar-width:none;-ms-overflow-style:none}
+#overlay::-webkit-scrollbar,#plq::-webkit-scrollbar,#prof::-webkit-scrollbar,#plq .plMods::-webkit-scrollbar,#prof .pfStats::-webkit-scrollbar,#tPanel::-webkit-scrollbar,#modale::-webkit-scrollbar{display:none;width:0;height:0}
+/* 2. LA PLAQUE depuis le profil : à côté de RETOUR, VALIDER (24 px, huit lettres et la coche) débordait de son lingot debout (MESURÉ : 272 px de
+   contenu dans 192) — au corps des titres, la coche à sa taille ; couché, le lingot est large, il remonte d'un cran */
+#plq:not(.premier) .plOk{font-size:var(--f5);letter-spacing:2px;gap:10px;padding:0 14px}
+#plq:not(.premier) .plOk .pxi{--pxs:2}
+@media (orientation:landscape) and (max-height:540px){#plq:not(.premier) .plOk{font-size:var(--f6);letter-spacing:3px}}
+/* 3. LA LIGNE DES MISSIONS en course, couché : « JOUE UNE MAP SOUS TOUTES SES ME… » — le texte passe sur deux lignes au lieu d'être coupé au
+   milieu d'un mot (debout il l'était déjà) */
+@media (orientation:landscape){#m2Ligne{max-width:min(72vw,560px)}#m2Ligne span{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}}
+</style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
 <nav id="gHub" role="tablist" aria-label="Garage">
