@@ -23,6 +23,7 @@ RACINE=os.path.dirname(os.path.dirname(ICI));VP=os.path.join(RACINE,'VERSION PRI
 UA='Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'
 SAVE={'v':2,'sfx':False,'mus':False,'vox':False,'tuto':1,'permis':1,'lang':'fr','facile':0,'q':'net','qChoisi':1,'plq':{'m':0,'x':'BANC 01','ok':1}}
 TOUR=['nuages:midi','ville:pluie','jade:midi','grotte:matin','dunes:midi','canyon:midi']
+OPT={'palier':2,'tel':False,'json':None,'mesures':[]}
 HOOK=r"""(function(){var lp=WebGL2RenderingContext.prototype.linkProgram;window.__LK=0;WebGL2RenderingContext.prototype.linkProgram=function(p){window.__LK++;return lp.call(this,p);};
  window.__F=[];window.__Fon=false;var l=performance.now();function f(t){if(window.__Fon)window.__F.push(t-l);l=t;requestAnimationFrame(f);}requestAnimationFrame(f);})();"""
 def libre():
@@ -40,8 +41,29 @@ def attend(c,js,tmax):
         if c.ev(js) is True:return True
         c.pump(.3)
     return False
+def mesure(c,nom,F,V,passe=None,lk=None):
+    """Les COMPTEURS d'une map (2026-11-04, T0) : appels, triangles, programmes, textures/géométries, toiles, tas JS + images longues du portail. dbgCout est armé 2 s, hors des fenêtres d'images."""
+    c.ev("dbgAuto(1,0,{});dbgCout(1);1");c.pump(2.5)
+    r=c.ev("JSON.stringify((function(){var k=dbgCout(),t=dbgToiles(),m=performance.memory;return {appels:k.image&&k.image.calls,triangles:k.image&&k.image.tris,programmes:k.progs,textures:k.tex,geometries:k.geo,toiles:t.rendues,tas:m?m.usedJSHeapSize:null,dpr:k.dpr,px:k.px,passes:k.passes,ombre:k.ombre,bloom:k.bloom,cpu:k.cpu}})())")
+    c.ev("dbgCout(0);1")
+    try:d=json.loads(r)
+    except Exception:d={'erreur':str(r)[:200]}
+    d['map']=nom;d['palier']=OPT['palier']
+    if F is not None:
+        d['pire']=round(max(F[1:] or [0]));d['longues']=sum(1 for x in F[1:] if x>100)
+        d['pireVol']=round(max(V[2:] or [0]));d['longuesVol']=sum(1 for x in V[2:] if x>100)
+        d['portail']=bool(passe);d['compilations']=lk
+    return d
 def main():
-    maps=[a for a in sys.argv[1:] if not a.startswith('-')] or TOUR
+    maps=[];av=sys.argv[1:];i=0
+    while i<len(av): # (2026-11-04, passe perf mobile 2, T0) options : --palier N · --tel · --json <fichier> ; sans option, comportement d'avant
+        a=av[i]
+        if a=='--palier':OPT['palier']=int(av[i+1]);i+=2
+        elif a=='--tel':OPT['tel']=True;i+=1
+        elif a=='--json':OPT['json']=av[i+1];i+=2
+        elif a.startswith('-'):i+=1
+        else:maps.append(a);i+=1
+    maps=maps or TOUR
     cartes=[m.split(':') for m in maps]
     http=libre();port=libre()
     srv=subprocess.Popen([sys.executable,'-m','http.server',str(http),'--bind','127.0.0.1'],cwd=VP,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
@@ -74,7 +96,7 @@ def tour(http,port,cartes):
     c.ev("localStorage.clear();localStorage.setItem('cashcarSave',%s);1"%json.dumps(json.dumps(SAVE)))
     c.call('Page.addScriptToEvaluateOnNewDocument',source=HOOK)
     A=cartes[0]
-    c.call('Page.navigate',url=base+'/index.html?garde=1&palier=2&pistegraine=777&carte=%s&meteo=%s'%(A[0],A[1] if len(A)>1 else 'midi'))
+    c.call('Page.navigate',url=base+'/index.html?garde=1&palier=%d%s&pistegraine=777&carte=%s&meteo=%s'%(OPT['palier'],'&tel=1' if OPT['tel'] else '',A[0],A[1] if len(A)>1 else 'midi'))
     if not attend(c,"!!window.__gameReady&&typeof dbgState==='function'",240):print('⛔ le jeu ne démarre pas');return 2
     echecs=[];avert=[];lignes=[]
     if not attend(c,"(function(){var e=[].slice.call(document.querySelectorAll('.mPlay')).filter(function(x){return x.getBoundingClientRect().width>0})[0];return !!e})()",90):
@@ -96,6 +118,7 @@ def tour(http,port,cartes):
         return 2
     c.pump(2);c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{});1")
     charge0=os.getloadavg()[0] if hasattr(os,'getloadavg') else 0
+    if OPT['json']:OPT['mesures'].append(mesure(c,':'.join(cartes[0]),None,None)) # la map de départ : compteurs seuls (pas de portail)
     for nxt in cartes[1:]:
         nom=':'.join(nxt);z0=c.ev("dbgEco().zones")
         c.ev("dbgClassique(%s,%s);1"%(json.dumps(nxt[0]),json.dumps(nxt[1] if len(nxt)>1 else None)));c.ev("dbgPortail(2600);1");c.pump(1)
@@ -108,6 +131,7 @@ def tour(http,port,cartes):
         V=json.loads(c.ev("JSON.stringify(window.__F)"));c.ev("dbgAuto(1,0,{});1")
         lk2=c.ev("window.__LK")-lk0
         pire=max(F[1:] or [0]);n100=sum(1 for x in F[1:] if x>100);pireV=max(V[2:] or [0]);n100V=sum(1 for x in V[2:] if x>100)
+        if OPT['json']:OPT['mesures'].append(mesure(c,nom,F,V,passe,lk2))
         lignes.append('%-18s portail %s | pire %4.0f ms · %2d images > 100 ms | en vol : pire %4.0f ms · %2d > 100 | compilations %d'%(nom,'ok ' if passe else 'RATÉ',pire,n100,pireV,n100V,lk2))
         if not passe:echecs.append('%s : le portail n\'a pas été franchi en 80 s — %s'%(nom,c.ev("JSON.stringify({e:dbgEco(),vis:document.visibilityState,m:dbgState().mode,p:dbgState().paused,r:dbgState().running})")))
         if lk2>0:echecs.append('%s : %d programme(s) compilé(s) EN COURSE (la règle : zéro)'%(nom,lk2))
@@ -121,6 +145,8 @@ def tour(http,port,cartes):
     for e in c.events:
         if e['method']=='Runtime.exceptionThrown':echecs.append('exception : '+(e['params']['exceptionDetails'].get('exception',{}).get('description') or '')[:160])
     print('\n'.join(lignes))
+    if OPT['json']:
+        json.dump({'date':time.strftime('%Y-%m-%d %H:%M'),'palier':OPT['palier'],'tel':OPT['tel'],'charge':round(charge0,1),'cpu':4,'mesures':OPT['mesures']},open(OPT['json'],'w'),indent=1,ensure_ascii=False)
     if (os.getloadavg()[0] if hasattr(os,'getloadavg') else 0)>=8:print('ⓘ charge machine ≥ 8 : seuils de temps ignorés (compilations et erreurs comptent toujours)')
     for a in avert:print('⚠',a)
     if echecs:
