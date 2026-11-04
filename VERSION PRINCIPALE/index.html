@@ -9185,6 +9185,12 @@ html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.
   box-shadow:0 3px 0 var(--auE),inset 0 1px 0 rgba(255,255,255,.55);transform:skewX(var(--sk));text-shadow:none;font-size:var(--f0);letter-spacing:1px}
 .shUne .shBtn:not(.aToi) .pxi{color:var(--auT);filter:none}
 .shUne:is(:active,.appui) .shBtn:not(.aToi){transform:skewX(var(--sk)) translateY(2px);box-shadow:0 1px 0 var(--auE),inset 0 1px 0 rgba(255,255,255,.55)}
+/* 6. LA BOUTIQUE 3D : une case dont la photo n'est pas encore prise était un rectangle blanc vide (les photos se prennent à la volée, les
+   cases visibles d'abord) — le pictogramme de son rayon, en filigrane, le temps qu'elle arrive ; il s'efface dès que la photo est posée */
+#gBqPan .bqK .bqKph:empty::before{content:'';display:block;width:26px;height:26px;background:rgba(20,23,28,.14);
+  -webkit-mask:var(--pxi-voiture) center/100% 100% no-repeat;mask:var(--pxi-voiture) center/100% 100% no-repeat}
+#gBqPan .bqK .bqKph.c-aile:empty::before{-webkit-mask-image:var(--pxi-aile);mask-image:var(--pxi-aile)}
+#gBqPan .bqK .bqKph.c-figure:empty::before{-webkit-mask-image:var(--pxi-rotation);mask-image:var(--pxi-rotation)}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
