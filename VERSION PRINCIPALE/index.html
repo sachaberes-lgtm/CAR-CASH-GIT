@@ -150,7 +150,7 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
        l'écran du jeu seul (même mise en page mobile, sans la lunette ni l'encoche du 13 Pro) — `?encoche=0`, déjà géré plus haut ; un 2e clic le rend. */
     var nu=document.createElement('button');nu.id='nu';nu.type='button';bw.appendChild(nu);
     var nuLbl=function(){var lg9='';try{lg9=localStorage.ccLang||'';}catch(e){}var en=lg9?lg9!=='fr':!/^fr/i.test(navigator.language||'fr');
-      nu.textContent=ENC?(en?'\u25a3  MOBILE':'\u25a3  MOBILE'):(en?'\u25a3  PHONE':'\u25a3  T\u00c9L\u00c9PHONE');
+      nu.textContent=ENC?(en?'\u25a3  MOBILE':'\u25a3  MOBILE'):(en?'\u25a3  PHONE':'\u25a3  TELEPHONE');
       nu.setAttribute('aria-label',ENC?(en?'Mobile version without the phone frame':'Version mobile sans le bo\u00eetier'):(en?'Show the phone frame':'Remettre le bo\u00eetier du t\u00e9l\u00e9phone'));};
     nuLbl();
     nu.addEventListener('click',function(e){e.stopPropagation();try{var u=new URL(location.href);u.searchParams.set('encoche',ENC?'0':'1');location.href=u.toString();}catch(_){}});
