@@ -65,9 +65,9 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
      plus longues et plus fines (des glaçons, pas des cônes de pierre). */
   {const ICE9=GROTTE.met==='glace';let n=0;const N=Math.round((VZ?240:140)*MOB*(ICE9?1.8:1)),g9=(VZ?1.25:1)*(ICE9?.85:1),Lk=ICE9?1.35:1;
     for(let e=0;e<N*8&&n<N;e++){if((e&7)===7&&performance.now()>JF.lim)yield;const q=pris(b.stal,ap.stal);if(q<0)break;const xz=cote(q,RHd+8+fr()*(VZ?R.RH[q]*.8:118)),pend=ICE9?fr()<.72:fr()<.55,k=.75+fr()*.5;
-      if(pend){const yc=plafond(xz[0],cote.y+8,xz[1],VZ?R.UP[q]*1.5:150);if(yc==null)continue;const Ld=(8+fr()*38)*(VZ?2.6:1)*Lk;if(!grtLibre(R,xz[0],xz[1],yc-Ld,yc,5))continue;
+      if(pend){const yc=plafond(xz[0],cote.y+8,xz[1],VZ?R.UP[q]*1.5:150);if(yc==null)continue;const Ld=(8+fr()*38)*(VZ?2.6:1)*Lk;if(!grtLibre(R,xz[0],xz[1],yc-Ld,yc,Math.max(5,3.4*k*(.8+Ld/60)*g9+2)))continue; /* (2026-11-05, Léo : « de gros tas de neige sur la route ») la marge suit la VRAIE base du cône (jusqu'à ~9 m en grotte vaste glacée), plus un 5 m fixe */
         grtPrisme(D,V,xz[0],yc+3,xz[1],BAS,6,3.4*k*(.8+Ld/60)*g9,0,Ld+3,GT.CONCRETION,fr()*6,'roche');}
-      else{const yf=plancher(xz[0],cote.y-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:140);if(yf==null)continue;const Hs=(6+fr()*30)*(VZ?2.4:1)*Lk;if(!grtLibre(R,xz[0],xz[1],yf,yf+Hs,5))continue;
+      else{const yf=plancher(xz[0],cote.y-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:140);if(yf==null)continue;const Hs=(6+fr()*30)*(VZ?2.4:1)*Lk;if(!grtLibre(R,xz[0],xz[1],yf,yf+Hs,Math.max(5,3.2*k*(.8+Hs/50)*g9+2)))continue; /* (idem : la marge suit la base réelle) */
         grtPrisme(D,V,xz[0],yf-2,xz[1],UP,6,3.2*k*(.8+Hs/50)*g9,0,Hs+2,GT.CONCRETION,fr()*6,'roche');}
       n++;}nb.concretions=n;}
   if(performance.now()>JF.lim)yield;
@@ -343,10 +343,10 @@ function grotteTick(dt){
 function grtDansCone(q,p){const dx=p.x-q[0],dy=p.y-q[1],dz=p.z-q[2],t=dx*q[3]+dy*q[4]+dz*q[5];if(t<-1||t>q[8]+1)return false; /* (2026-10-22, DEBUGGING) dans le prisme d'une concrétion (base q0-2, axe q3-5, rayon q6 → q7 sur q8 m), avec la marge d'1 m des boîtes */
   const r=q[6]+(q[7]-q[6])*Math.max(0,Math.min(1,t/q[8]))+1;return dx*dx+dy*dy+dz*dz-t*t<r*r;}
 function grotteHeurt(p){const V=GROTTE.V;if(!V)return '';
-  if(grtDensIci(V,p.x,p.y,p.z)<=0){const a=grtIci(V,p.x,p.y,p.z),b=grtIci(V,p.x,p.y-V.B*.5,p.z); /* (2026-10-22, DEBUGGING : « 4 m plus bas » datait des cases de 8 m — avec celles de 12 m (LA GROTTE VASTE), quand un centre de case tombe 0 à 2 m au-dessus de la surface d'un lac, le point et ses 4 m plus bas restaient dans cette case non marquée : toute chute dans CE lac (lave, eau, bassin du puits) se lisait « roche » ; une demi-case plus bas est toujours sous la surface) */return a===4||b===4?'lave':a===5||b===5?'eau':'roche';}
+  if(grtDensIci(V,p.x,p.y,p.z)<=0){const a=grtIci(V,p.x,p.y,p.z),b=grtIci(V,p.x,p.y-V.B*.5,p.z); /* (2026-10-22, DEBUGGING : « 4 m plus bas » datait des cases de 8 m — avec celles de 12 m (LA GROTTE VASTE), quand un centre de case tombe 0 à 2 m au-dessus de la surface d'un lac, le point et ses 4 m plus bas restaient dans cette case non marquée : toute chute dans CE lac (lave, eau, bassin du puits) se lisait « roche » ; une demi-case plus bas est toujours sous la surface) */return a===4||b===4?(GROTTE.met==='glace'?'glace':'lave'):a===5||b===5?'eau':'roche';}
   const G=GROTTE.col;if(G){const a=G.G.get(Math.floor(p.x/64)+','+Math.floor(p.z/64));
     if(a)for(let i=0;i<a.length;i++){const o=a[i],dx=p.x-o.x,dz=p.z-o.z,lx=dx*o.c-dz*o.s,lz=dx*o.s+dz*o.c;
-      if(Math.abs(lx)<o.hx+1&&Math.abs(p.y-o.y)<o.hy+1&&Math.abs(lz)<o.hz+1&&(!o.cone||grtDansCone(o.cone,p)))return o.k;}}
+      if(Math.abs(lx)<o.hx+1&&Math.abs(p.y-o.y)<o.hy+1&&Math.abs(lz)<o.hz+1&&(!o.cone||grtDansCone(o.cone,p)))return o.k==='lave'&&GROTTE.met==='glace'?'glace':o.k; /* (2026-11-05, Léo : « dans la glace ça donne l'aigle de feu ») la lave repeinte en glace tue en 'glace', pas en 'lave' (la mission ROULE DANS LA LAVE) */}}
   return '';}
 /* ---------------- LA CHAUFFE AU MENU : la roche et les poussières ---------------- */
 function grotteChauffe(){const M=grtMats(),g9=new THREE.BufferGeometry();

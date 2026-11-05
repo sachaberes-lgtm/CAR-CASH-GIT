@@ -52,7 +52,7 @@ window.dbgMusAp=function(){ // (banc) l'état de la musique autour de l'extrait 
        pendant le glissé ; au relâcher du curseur EFFETS, une pièce témoin jouée au NOUVEAU volume (volSet vient de le poser sur MASTER) */
     e.addEventListener('pointerdown',function(){e._cran=Math.floor(+e.value/10);});
     e.addEventListener('input',function(){try{const c9=Math.floor(+e.value/10);if(e._cran==null)e._cran=c9;else if(c9!==e._cran){e._cran=c9;sfx('ui.curseur',{st:(c9-5)*2});}}catch(x){}});
-    e.addEventListener('change',function(){e._cran=null;if(k==='sfx')try{sfx('piece',{t:.06});}catch(x){}else if(k==='mus')try{musApercu();}catch(x){}}); // (2026-10-14, session SON) …et au relâcher du curseur MUSIQUE, un extrait (musApercu)
+    e.addEventListener('change',function(){e._cran=null;if(k==='sfx')try{sfx(paused?'ui.ok':'piece',{t:.06});}catch(x){} /* (2026-11-05, finition) en pause le contexte dort et le bus de la pièce est coupé : le témoin passe par le bus de l'interface */else if(k==='mus')try{musApercu();}catch(x){}}); // (2026-10-14, session SON) …et au relâcher du curseur MUSIQUE, un extrait (musApercu)
     e.addEventListener('click',function(ev){ev.stopPropagation();}); // ⚠ sinon le clic remonte à la ligne .setRow et rouvre/bascule autre chose
     e.addEventListener('pointerdown',function(ev){ev.stopPropagation();});
   };
@@ -132,7 +132,7 @@ function sonUiSt(id){const t=performance.now()/1000,g=t-SON_UI.t;SON_UI.t=t;
   const i=SON_UI.i;return sonPd(i<4?i:2+(i&1));}
 function uiClicId(k){const id=UI_CLIC[typeof k==='string'?k:'']||'ui.tap';return id==='ui.jouer'&&SONV2&&!(window.CCSON&&window.CCSON.existe(id))?'ui.tap':id;} // (2026-10-16) une vieille banque en cache sans le moteur : l'appui d'or
 function uiClic(k){ if(UI_SON)UI_SON.t=performance.now(); try{ const id9=uiClicId(k),st9=SON_UI_MEL[id9]?sonUiSt(id9):0,f9=function(){if(SONV2)sfx(id9,st9?{st:st9}:id9==='ui.jouer'?{vol:-9}:undefined);else chimeNote(1480,0,.045,.05);}; /* (2026-10-16, LE PIQUÉ QUI NE CRIE PLUS) le V8 de JOUER −9 dB : posé sur le ciel calme, avec le lâcher et le vent, c'était le gros du BOOM du départ (+15 à +20 dB en 200 ms, mesuré) */ // (2026-10-14, session SON) id9/st9 pris À L'APPUI (le son peut partir plus tard, en pause)
-  if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')AC.resume().then(f9).catch(function(){}); else f9(); }
+  if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')acReveil(AC).then(function(ok9){if(ok9)f9();}); else f9(); } /* (2026-11-05, DEBUG-TOTAL) par acReveil, comme partout : un resume() REFUSÉ (iPhone : appel, Siri, retour d'arrière-plan) arme le réessai au prochain toucher au lieu de se perdre en silence */
   else if(SND.sfx&&paused&&SONV2&&PSON_ON)f9(); /* (2026-10-16) LE CLIC DANS LA PAUSE : il sonne tout de suite (sfx → pauseSon réveille le contexte le temps du clic) — l'attente ci-dessous reste pour ?pauseson=0 */
   else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),j9=uiClic._att=(uiClic._att|0)+1,w9=function(){if(j9!==uiClic._att)return;if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (2026-10-14, session SON — relevé par DEBUGGING) UNE seule attente à la fois : la ligne QUITTER puis sa confirmation ouvraient chacune la leur, la sortie de pause les relâchait dans la même image (le son de danger doublé, 14-27 ms d'écart) ; la nouvelle remplace l'ancienne */ /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
   }catch(e){} hap(k==='jouer'?[8,230,30]:8); } /* (2026-10-16) JOUER : le tic de la clé, puis le coup de gaz dans le pouce (≈ 250 ms, avec le VROUUM) */ // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
@@ -159,7 +159,7 @@ function uiFiletRole(el){
 }
 addEventListener('pointerdown',function(){UI_SON.pd=performance.now();},{capture:true,passive:true});
 addEventListener('click',function(e){
-  if(!e.isTrusted||performance.now()<(uiGarde.t||0))return; // un .click() programmé (Entrée, interrupteurs) sonne par le bouton qu'il pousse · le verrou du double-tap avale ce clic-là
+  if(!e.isTrusted||performance.now()<(uiGarde.t||0)||(started&&gameOver&&TCTL.mortT&&performance.now()-TCTL.mortT<600))return; /* (2026-11-05, finition) les 600 ms « sourdes » après la mort : l'action est ignorée, le filet ne sonne pas non plus */ // un .click() programmé (Entrée, interrupteurs) sonne par le bouton qu'il pousse · le verrou du double-tap avale ce clic-là
   let el=e.target&&e.target.nodeType===1?e.target:(e.target&&e.target.parentElement);
   for(let n=0;el&&n<8&&el!==document.body&&el!==document.documentElement;n++,el=el.parentElement){
     if(el.tagName==='CANVAS'||el.hasAttribute('data-muet'))return;

@@ -1,0 +1,30 @@
+LE BANC MÉMOIRE DE L'ORDI (2026-11-05, Sacha : « le lien Vercel a des latences et prend beaucoup de mémoire sur mon ordi, règle ça de manière durable »)
+
+Le jeu, dans un Chrome headless (vrai GPU, muet, page-cadre de l'ordi à la taille de l'écran de Sacha : 2560×1350 CSS, densité 1,5),
+au menu puis en course au pilote auto, puis à l'écran de mort. Il relève à chaque étape :
+  · la mémoire des processus Chrome (navigateur, rendu, GPU : WorkingSet, par PowerShell) ;
+  · le tas V8 et les tampons ArrayBuffer (Runtime.getHeapUsage), les compteurs DOM ;
+  · dbgCout / dbgNette / dbgPerf / dbgToiles / dbgPhotoMem / dbgPalier (les crochets du jeu : copie LOCALE seulement, publie-allege les retire en ligne) ;
+  · les tâches longues (PerformanceObserver longtask) ;
+  · --infra=1  : la ventilation memory-infra de Chrome par processus et par allocateur (partition_alloc, cc = tuiles du compositeur, v8, webgl, canvas…) ;
+  · --geo=1    : les copies JavaScript des géométries de la scène, une par une (dbgScene) ;
+  · --couches=1: les couches composées (LayerTree) et POURQUOI elles le sont ;
+  · --workers=1: le tas de chaque Web Worker ;
+  · --cpu=1    : profil CPU du chargement ; --cpu=2 : accueil → garage et garage → course ;
+  · --tas=1    : profil d'allocations vivantes ; --gc=1 : ramasse-miettes forcé avant chaque relevé ;
+  · --bloque=sons-banque : bloque une adresse (ablation : « combien pèse la banque de sons ? ») ;
+  · --csstop= / --cssjeu= : un CSS injecté dans la page-cadre / dans le jeu (essais de couches) ;
+  · --capture=1 [--clip=x,y,l,h] : une capture PNG (au menu et en course) pour comparer deux réglages à l œil ;
+  · --son=1 : les effets sonores restent allumés (Chrome est muet) — CCSON.etat() compte les sons résidents, tardifs, perdus, évincés.
+
+LANCER (Node ≥ 22, Chrome installé) :
+  node outils/banc-pc/serveur.cjs "VERSION PRINCIPALE" 8125          (dans un terminal à part)
+  node outils/banc-pc/banc.cjs http://127.0.0.1:8125/index.html --duree=20 --courses=1 --gc=1 --infra=1 "--q=carte=nuages" --tag=essai
+  node outils/banc-pc/banc.cjs https://car-cash-git.vercel.app/jouer/ --tag=live   (le site publié : sans les crochets dbg, mémoire seule)
+Les résultats (JSON, journaux, profils) vont dans %TEMP%\cc-banc-pc\resultats\ (CC_BANC_DIR pour choisir le dossier) ; le profil Chrome
+« chaud » y reste d'un lancement à l'autre (cache des programmes GPU : 4 s de chargement au lieu de 70).
+--q=… ajoute des paramètres d'adresse ; « avant » = ?msaa=1&ouvrier=garde (voir LA TOILE SANS MSAA, L'OUVRIER SE REPOSE).
+
+MESURÉ le 2026-11-05 (voir JOURNAL.md, « LA MÉMOIRE DE L'ORDI ») : au menu, processus de rendu ~800 Mo = tampons/partitions ~380 (dont ~130 de
+sons décodés, ~150 de copies JS de géométrie), tuiles du compositeur ~210, V8 ~155 (dont 80-115 dans l'ouvrier des nuages), tampon MSAA de la
+toile 98 ; en course 1,0 à 1,2 Go, GPU 300 à 600 Mo.

@@ -95,6 +95,10 @@ const M2=[
    caisses tombaient en mourant à la 2e seconde ; `frole` : la distance (m) d'un flanc de tour qui compte comme frôlé ; `prof` : le fond de
    la mer de Jade (m sous la surface) — EAU.fond n'est jamais atteint (la poussée ramène avant), le seuil est le fond qu'on atteint vraiment. */
 const M2K={partie:60,frole:6,prof:EAU.fond,debut:3}; // prof : le fond de la mer de Jade (420 m) — mesuré : en tenant la plongée on le passe en ~25 s
+/* (2026-11-05, Sacha : « corrige-le ») M2_METEO_MIN — le nombre de temps à avoir joués sur une map (m2Meteo) — vit ICI, avant l'appel de m2Etat du démarrage :
+   déclarée dans defis-moteur.js, elle était lue par la migration (m2MigreV2 → m2Seuil → m2Meteo) AVANT sa ligne — « Cannot access before initialization » à
+   chaque chargement, et la migration s'arrêtait net (le même piège que M2_COLK le 18/10). `?meteo=ancien` : l'ancien calcul. */
+const M2_METEO_MIN=/[?&]meteo=ancien\b/.test(location.search)?1:3;
 /* (2026-10-18) ⚠ CES DEUX-LÀ SONT ICI, AVANT L'APPEL DE m2Etat DU DÉMARRAGE (voir « la migration de la sauvegarde, une fois »), et nulle part plus bas : la migration
    (m2MigreV2 → m2Val / m2Seuil → m2Col) les lit, et un `const` / `let` lu avant sa ligne est en zone morte (ReferenceError). Le try/catch de l'appel avalait
    l'erreur : la migration des missions v2 s'arrêtait net, sans bruit, depuis le 16/10. M2_COLK : la catégorie de collection de chaque `k` ; M2_RECO : le cache de m2Reco. */

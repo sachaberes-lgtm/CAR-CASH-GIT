@@ -39,7 +39,9 @@ css/palier-leger.css                 # <style id="palierLeger"> : le CSS par pal
 css/ecrans-iphone.css                # <style id="ecransIphone"> : les écrans sur tous les iPhone (pause couchée, fin du SE, HOME, noms des caisses)
 css/mort-flottante.css               # <style id="mortFlottante"> : l'écran de mort flottant (argent et moteur sans cadre, graphe d'aura en bougies, GARAGE · RÉGLAGES)
 css/finition-ecrans.css              # <style id="finitionEcrans"> : la finition des écrans (2026-11-04) — détails mesurés au banc des écrans, posés après tout le reste
-css/peintures.css                    # <style id="peintures"> : le nuancier v3 (2026-11-05) — les pastilles vernies, le défi, les légendaires qui vivent ; les cartes des traînées en mouvement
+css/peintures.css                    # <style id="peintures"> : le nuancier v3 (2026-11-05) — les pastilles vernies, le défi, les légendaires qui vivent ; les cartes des traînées en mouvement ; le showroom des voitures et des ailes
+css/figures-selecteur.css            # <style id="figuresSelecteur"> : le sélecteur de figures (2026-11-05) — le dock, les pastilles, la puce ANNULER, les gestes en pastilles
+css/boites-blister.css             # <style id="boitesBlister"> : les cartes de la boutique en BOÎTES blister penchées en 3D, une couleur par rareté, la dorée
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
@@ -56,6 +58,7 @@ maps/nuages-casses.js                # nuages qui se dégagent : trouées par ma
 maps/pigeons.js                      # pigeons ramiers, pigeons de Paris
 maps/nuages-embellie.js              # nuages : l'embellissement (poussières de lumière, oiseaux lointains, éclats rose et or)
 gameplay/route-sans-haut.js          # la route sans haut ni bas, vitesse réelle
+gameplay/route-rythme.js             # LE DIRECTEUR DE RYTHME : la fiche d'une route (virages, droites, spirales, coudes), la note, le meilleur-de-N
 maps/ville-entree.js                 # l'entrée dans la ville
 rendu/bitume-beton.js                # bitume v2, béton brut, lumières de la caisse v2, bitume mouillé, bords en béton
 maps/ville-nuit.js                   # la ville toujours la nuit (teintes)
@@ -71,14 +74,14 @@ maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumi�
 maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
 maps/canyon-embellie.js               # canyon : la poussière dorée (détail vivant, une instance)
 maps/canyon-murs.js                  # canyon : les MURS (la dalle couchée à 86° le long des falaises, le plan de roche, le banc dbgCanyonMurs)
-maps/dunes-1.js                      # LES DUNES D'OR : la route CONTINUE (vagues, tremplins de crête), le terrain prescrit, la construction
-maps/dunes-2.js                      # dunes : sable à la puce (rides façon Journey), matière des décors, hiéroglyphes, tremplins, sable qui vole
-maps/dunes-3.js                      # dunes : la boîte à outils des décors (loft, oriflammes), les modèles (pharaon assis, pyramides de Gizeh, obélisque, pylône, sphinx, felouque…)
-maps/dunes-dieux.js                  # dunes : les DIEUX À TÊTE D'ANIMAL (faucon, chacal, ibis, bélier, lionne, crocodile — assis sur le corps du pharaon), le SPHINX-CHAT (trois livrées, queue à gauche ou à droite) et leur tirage (colosses, porte, allée)
-maps/dunes-gizeh.js                  # dunes : le GRAND SPHINX de Gizeh (150-200 m, dans sa fosse) et ses pyramides en série
-maps/dunes-4.js                      # dunes : les scènes le long de la route (colonnade, allée des sphinx, colosses, porte, portes du ciel, braseros, ruines)
-maps/dunes-embellie.js               # dunes : le plan moyen (buttes, arbres morts, touffes)
-maps/dunes-ruines.js                 # dunes : les RUINES ENSABLÉES (mur à créneaux, colonnes tronquées, arche, escalier, chapiteau, tête, obélisque couché — enfoncés dans le sable, semés à 40-900 m de la route)
+maps/dunes-1.js                      # LES DUNES (Arrakis) : la route CONTINUE (vagues, tremplins de crête, slalom/cuvette/chapelet), la FORME des dunes (DN_FORME : crêtes vives, jonctions en Y), les dunes du bord de route, la construction
+maps/dunes-2.js                      # dunes : sable à la puce (rides du vent, palette Arrakis), matière des décors, tremplins, sable qui vole, le décor tiré
+maps/dunes-3.js                      # dunes : la boîte à outils des décors (dnKit : loft, tubes, prismes), le brasero, le bloc, le monolithe cassé
+maps/dunes-arrakis.js                # dunes : ARRAKIS — le monolithe, le rocher à degrés, la maison du désert
+maps/dunes-ver.js                    # dunes : LE VER DES SABLES — une arche d anneaux qui enjambe la route
+maps/dunes-4.js                      # dunes : les scènes le long de la route (allée de monolithes, village du désert, rochers dressés, ver des sables, braseros)
+maps/dunes-embellie.js               # dunes : le plan moyen (les buttes de grès)
+maps/dunes-ruines.js                 # dunes : les RUINES ENSABLÉES (pans de mur, monolithe couché, éclat de roche — enfoncés dans le sable, semés à 40-900 m de la route)
 maps/glacier-route.js                # LA BANQUISE / LE GLACIER v4 : route, manteau de neige
 maps/glacier-construction.js         # glacier : construction, volant en l'air
 maps/glacier-verglas.js              # glacier : verglas, retombée des tremplins, console
@@ -232,11 +235,13 @@ interface/richesse-3.js              # la pluie de richesse : tirage, chaque ima
 interface/chute-libre.js             # chute libre douce et réaliste
 interface/boutique-scene-1.js        # boutique 3D : blanc laqué, son, aimant
 interface/boutique-scene-2.js        # boutique 3D : lancer dosé, bras, gestes
+interface/vitre-brisee.js            # LA VITRE QUI SE BRISE : l'animation d'achat de la boutique (éclats de verre, éclair, DÉBLOQUÉ)
 interface/garage-ombre.js            # l'ombre de la caisse qui saute : empreinte sur le plateau, hauteur, emprise (garage et boutique)
 interface/garage-saut.js             # la figure au garage et en boutique : un vrai saut (parabole, rotation gouvernée, ressort, poussière)
 interface/garage-rendu.js            # le doigt sur la scène, garageRender
 interface/garage-cadrage.js          # cadrage mesuré, lampes de l'atelier
 interface/garage-menu-inventaire.js  # le garage est le menu, hub, accueil du ciel, l'inventaire
+interface/figures-selecteur.js      # le sélecteur de figures commun à la boutique et à l'inventaire : emplacement automatique, ANNULER, filtres, tri, dock
 interface/burn-out-1.js              # le premier burn-out
 interface/burn-out-2.js              # burn-out : la caisse dans la fumée, la balade
 interface/bouton-rouge.js            # le bouton rouge et ses outils

@@ -1,7 +1,7 @@
     // sons continus
-    if(AC){
+    try{if(AC){ /* (2026-11-05, DEBUG-TOTAL) les sons continus dans LEUR try : une panne de son ne saute plus le HUD, la caméra ni la mort (voir sonPanne) */
       const spd3=speedKmh;
-      if(duckT>0)duckT=Math.max(0,duckT-dt*2.6); // les gros événements creusent le mix, puis il respire
+      if(duckT>0)duckT=Math.max(0,duckT-dt*2.6);else duckT=0; /* (2026-11-05, DEBUG-TOTAL) else : un NaN reçu par un Math.max(duckT,…) restait POUR TOUJOURS (NaN>0 est faux, rien ne le remettait à zéro, ni la mort ni REJOUER) et rendait non finis tous les gains de la boucle (dk) */ // les gros événements creusent le mix, puis il respire
       const dk=(1-.5*duckT);
       nA+=((nitroOn&&mode!=='boom'?1:0)-nA)*Math.min(1,dt*6); // rampe nitro : le moteur gonfle, ne saute pas
       /* (2026-10-14, session SON) LA TENSION DU VOL (voir SVOL) : en l'air elle vise 85 % à 2,5 s de vol + 6 % par geste (30 % au plus),
@@ -188,7 +188,7 @@
         loop._jetWas=nOn9&&air9;
         if(RUG_SON)rugPas(dt,{on:nOn9,air:air9,bleu:nitroBlue,v:spd3,dk:dk}); // (2026-10-16) LE FEU QUI RUGIT : la gorge, la montée, la pulsation, le crépitement
       }
-    }
+    }}catch(e){sonPanne('sons continus (boucle)',e);}
     // portail qui pulse + pads RGB qui défilent
     if(PCUBE.on)pcubeTick(t,speedKmh,dt); // (2026-10-17) LE PORTAIL DE CUBES : l'onde, les flotteurs, l'aspiration
     // (console de son) LE PORTAIL APPROCHE : un bourdon qui monte, UNE fois par portail (portalMesh est neuf à chaque piste), ~2 s avant l'ovule — et près du BOUT de la piste (un ruban qui repasse sous l'ovule ne le déclenche pas)

@@ -224,7 +224,7 @@ const APPUI_SEL='.pbtn,.mLigne,.tp,.gT,.gTab,.gR,.mMode,.misPrix.voir,.mObj[data
     const el=e.target&&e.target.closest?e.target.closest(APPUI_SEL):null;
     if(!el||el.closest('#tNitroZone,#tSteer,#touchCtl,#tNitro'))return;
     if(cur&&cur!==el)cur.classList.remove('appui');clearTimeout(el._apT);cur=el;t0=performance.now();el.classList.add('appui');
-    if(!el.classList.contains('off')&&!el.classList.contains('arme'))try{typeof sfx==='function'&&sfx('ui.appui');}catch(err){}},{capture:true,passive:true});
+    if(!el.classList.contains('off')&&!el.classList.contains('arme')&&el.getAttribute('aria-disabled')!=='true'&&performance.now()>=(uiGarde.t||0))try{typeof sfx==='function'&&sfx('ui.appui');}catch(err){}},{capture:true,passive:true}); /* (2026-11-05, finition) pas de tick sur une touche éteinte (aria-disabled) ni sous le verrou du double-tap */
   addEventListener('pointerup',lache,{capture:true,passive:true});
   addEventListener('pointercancel',lache,{capture:true,passive:true});
   addEventListener('blur',lache);
@@ -270,7 +270,7 @@ const APPUI_TOUS=!/[?&]appui=0\b/.test(location.search);
     try{if(el._apA)el._apA.cancel();}catch(x){} /* un appui rapide après un autre : on repart de l'échelle VRAIE de la touche */
     cur=el;t0=performance.now();base=echelle(el);
     if(!REDUCED_MOTION)try{anim=el._apA=el.animate([{scale:String(base)},{scale:String(base*.94)}],{duration:70,easing:EASE,fill:'forwards'});}catch(x){anim=null;}
-    if(!el.classList.contains('off')&&el.getAttribute('aria-disabled')!=='true')try{typeof sfx==='function'&&sfx('ui.appui');}catch(err){}},{capture:true,passive:true});
+    if(!el.classList.contains('off')&&el.getAttribute('aria-disabled')!=='true'&&performance.now()>=(uiGarde.t||0))try{typeof sfx==='function'&&sfx('ui.appui');}catch(err){}},{capture:true,passive:true});
   addEventListener('pointerup',lache,{capture:true,passive:true});
   addEventListener('pointercancel',lache,{capture:true,passive:true});
   addEventListener('blur',lache);

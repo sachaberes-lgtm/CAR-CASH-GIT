@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Mini Cash</title>
+<style>
+/* ===== LE MINI CASH (2026-11-05, session SON ; Sacha : « un mini CASH léger pour tester les moteurs, sur du plat, une voiture allégée, avec un générateur
+   qui génère des moteurs automatiquement ; que la voiture marche comme un instrument : on tourne, on atterrit, on bouge, et le son varie ») =====
+   Une page à part (atelier-son/ : jamais publiée). Le son est le MÊME DSP que le jeu (assets/audio/moteur-vivant/) : un moteur trouvé ici passe au jeu tel quel
+   (bouton COPIER : la fiche en JSON). Le dessin et la conduite sont dans mini-cash.js, le générateur dans generateur.js, le processeur audio dans worklet-mini.js. */
+:root{--bg:#0b0d12;--pan:rgba(14,17,24,.82);--ln:rgba(255,255,255,.12);--tx:#eef1f7;--mu:#97a2b6;--ac:#ffb02e;--nit:#4f8bff;--ko:#ff4d5e;--ok:#4be38a}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none}
+canvas#scene{position:fixed;inset:0;width:100%;height:100%;display:block}
+button,select{font:inherit;color:var(--tx);background:#1d2330;border:1px solid var(--ln);border-radius:9px;padding:7px 11px;cursor:pointer;touch-action:manipulation}
+button:hover{border-color:rgba(255,255,255,.3)}button:active{transform:translateY(1px)}
+button.gen{background:var(--ac);border-color:var(--ac);color:#1a1004;font-weight:800;letter-spacing:.06em}
+kbd{background:#1d2330;border:1px solid var(--ln);border-bottom-width:2px;border-radius:5px;padding:0 5px;font-size:11px}
+#haut{position:fixed;top:0;left:0;right:0;padding:max(8px,env(safe-area-inset-top)) 12px 8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:linear-gradient(var(--pan),rgba(14,17,24,0));pointer-events:none}
+#haut>*{pointer-events:auto}
+#nom{font-weight:800;letter-spacing:.05em;font-size:15px;margin-right:6px;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#nom small{display:block;color:var(--mu);font-weight:500;letter-spacing:0;font-size:12px}
+#garage{max-width:180px}
+#cadrans{position:fixed;left:12px;bottom:max(12px,env(safe-area-inset-bottom));background:var(--pan);border:1px solid var(--ln);border-radius:12px;padding:10px 12px;min-width:210px;pointer-events:none}
+#vit{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}#vit small{font-size:12px;color:var(--mu);font-weight:500;margin-left:4px}
+#rapport{float:right;font-size:26px;font-weight:800;color:var(--ac)}
+.barre{height:7px;border-radius:9px;background:rgba(255,255,255,.08);margin-top:7px;overflow:hidden;position:relative}
+.barre i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:9px}
+#rpmB i{background:linear-gradient(90deg,#3bd3a0,#ffd34a 70%,#ff4d5e)}#nitB i{background:var(--nit)}
+#rpmT{color:var(--mu);font-size:12px;margin-top:4px;font-variant-numeric:tabular-nums}
+#jour{position:fixed;right:12px;top:86px;width:230px;pointer-events:none;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+#jour div{background:var(--pan);border:1px solid var(--ln);border-radius:8px;padding:4px 9px;font-size:12px;font-weight:700;letter-spacing:.06em;animation:fond 2.4s forwards}
+#jour div b{color:var(--ac)}
+@keyframes fond{0%{opacity:0;transform:translateX(12px)}8%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0}}
+#capot{position:fixed;right:12px;bottom:max(12px,env(safe-area-inset-bottom));width:290px;max-height:62vh;overflow:auto;background:var(--pan);border:1px solid var(--ln);border-radius:12px;padding:8px 12px}
+#capot summary{cursor:pointer;font-weight:700;letter-spacing:.08em;font-size:12px;color:var(--mu);text-transform:uppercase;padding:2px 0}
+#capot label{display:grid;grid-template-columns:1fr 46px;gap:2px 8px;font-size:12px;color:var(--mu);margin-top:7px}
+#capot label input{grid-column:1/-1;width:100%;accent-color:var(--ac)}
+#capot label output{text-align:right;color:var(--tx);font-variant-numeric:tabular-nums}
+#capot pre{font-size:10.5px;color:var(--mu);white-space:pre-wrap;word-break:break-all;margin:8px 0 0}
+#aide{color:var(--mu);font-size:12px;margin-top:8px}
+#boot{position:fixed;inset:0;background:radial-gradient(circle at 50% 40%,#1b2232,#07080b 70%);display:flex;align-items:center;justify-content:center;z-index:9;text-align:center;padding:16px}
+#boot h1{font-size:44px;letter-spacing:.12em;margin:0}#boot h1 b{color:var(--ac)}
+#boot p{color:var(--mu);max-width:440px;margin:10px auto 22px}
+#boot button{font-size:20px;padding:16px 34px}
+#tactile{display:none}
+body.tactile #tactile{display:block}
+/* tactile : les cadrans au-dessus des flèches, le journal à droite sous la barre du haut (qui peut prendre deux lignes) */
+body.tactile #cadrans{bottom:calc(max(16px,env(safe-area-inset-bottom)) + 88px);min-width:150px;padding:6px 10px}body.tactile #vit{font-size:24px}body.tactile #rapport{font-size:20px}
+body.tactile #capot{display:none}body.tactile #capot.ouvert{display:block;top:172px;bottom:auto;left:12px;right:12px;width:auto;max-height:50vh}
+body.tactile #jour{top:176px;width:auto;left:auto}
+.tb{position:fixed;bottom:max(16px,env(safe-area-inset-bottom));width:74px;height:74px;border-radius:50%;background:rgba(20,24,34,.6);border:2px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;letter-spacing:.04em}
+.tb.tenu{background:rgba(255,176,46,.55);border-color:var(--ac)}
+#tG{left:12px}#tD{left:94px}
+#tFrein{right:112px}#tGaz{right:12px;width:90px;height:90px}#tNit{right:20px;bottom:calc(max(16px,env(safe-area-inset-bottom)) + 102px);background:rgba(40,60,140,.6)}
+#tNit.tenu{background:rgba(79,139,255,.8);border-color:var(--nit)}
+@media(max-width:640px){#haut{gap:4px}#haut button{padding:6px 8px;font-size:13px}#nom{width:100%}}
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<div id="haut">
+  <div id="nom">—<small>—</small></div>
+  <button class="gen" id="bGen" title="Un moteur tout neuf (G)">GÉNÉRER</button>
+  <button id="bCousin" title="Le même, un peu différent (M)">COUSIN</button>
+  <button id="bGarde" title="Garder ce moteur (K)">♥ GARDER</button>
+  <select id="garage" title="Les moteurs gardés"><option value="">Garage (0)</option></select>
+  <select id="musique" title="La musique du jeu"><option value="">♪ Sans musique</option></select>
+  <button id="bCopie" title="La fiche du moteur en JSON, pour le jeu">COPIER</button>
+  <button id="bCapot" title="Les réglages">RÉGLAGES</button>
+</div>
+
+<div id="cadrans">
+  <span id="rapport">N</span><div id="vit">0<small>km/h</small></div>
+  <div class="barre" id="rpmB"><i></i></div><div id="rpmT">0 tr/min</div>
+  <div class="barre" id="nitB"><i></i></div>
+</div>
+<div id="jour"></div>
+
+<details id="capot">
+  <summary>Sous le capot</summary>
+  <div id="curseurs"></div>
+  <pre id="fiche"></pre>
+  <div id="aide"><kbd>↑</kbd> gaz · <kbd>↓</kbd> frein / marche arrière · <kbd>←</kbd><kbd>→</kbd> tourner · <kbd>Espace</kbd> ou <kbd>Maj</kbd> nitro · <kbd>B</kbd> frein à main (dérapage) · <kbd>↑</kbd>+<kbd>↓</kbd> à l'arrêt : burnout · <kbd>G</kbd> générer · <kbd>M</kbd> cousin · <kbd>K</kbd> garder · <kbd>R</kbd> revenir au départ</div>
+</details>
+
+<div id="tactile">
+  <div class="tb" id="tG">◀</div><div class="tb" id="tD">▶</div>
+  <div class="tb" id="tFrein">FREIN</div><div class="tb" id="tNit">NITRO</div><div class="tb" id="tGaz">GAZ</div>
+</div>
+
+<div id="boot"><div>
+  <h1>MINI <b>CASH</b></h1>
+  <p>Un banc d'essai pour les moteurs. Un sol plat, des tremplins, une voiture. Chaque appui sur GÉNÉRER invente un moteur et son nitro. Conduis-le : virages, sauts, atterrissages et lâchers de gaz changent le son.</p>
+  <p><kbd>↑</kbd> gaz · <kbd>↓</kbd> frein · <kbd>←</kbd><kbd>→</kbd> tourner · <kbd>Espace</kbd> nitro · <kbd>B</kbd> frein à main · <kbd>G</kbd> nouveau moteur · menu ♪ pour la musique</p>
+  <button class="gen" id="bBoot">DÉMARRER</button>
+</div></div>
+
+<script src="../../vendor/three.min.js"></script>
+<script src="generateur.js"></script>
+<script src="mini-cash.js"></script>
+</body>
+</html>

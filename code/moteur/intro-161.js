@@ -432,7 +432,8 @@
     /* (2026-10-26, Sacha : « 1.61 Studio » → « 1.61 Game ») deux lignes : « 1.61 GAME » en grand (le « 1.61 » blanc chaud, GAME en or), un filet d'or qui s'ouvre depuis le centre,
        puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier.
        (2026-11-02 nuit, Léo : « enlève le GAME, c'est juste 1.61 ») la ligne du haut n'est plus que « 1.61 ». */
-    const t1='1.61',t2=(function(){try{return TR('PRÉSENTE');}catch(e){return 'PRESENTS';}})(),n1=t1.length,n2=t2.length;
+    /* (2026-11-05, Sacha : « le mot du bas doit être en anglais ») PRESENTS en dur, même en français */
+    const t1='1.61',t2='PRESENTS',n1=t1.length,n2=t2.length;
     const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),k=sort3((s-.7)/1.5),esp=px*(.95-.5*k);
     const tot=n1*px+(n1-1)*esp,y1=e.cy-px*.1,yR=e.cy+px*.62,y2=yR+px2*2.1;
     c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';
@@ -766,18 +767,23 @@
   /* (2026-11-02, Léo : « ça saccade ») LE VOILE S'OUVRE QUAND LE JEU EST CALME. Mesuré sur son Mac (Safari, cadre 1226 × 566) : de l'appui à +10 s, le ciel se construit sous le voile par images de 0,2 à 1,3 s, puis ~20 i/s ;
      le voile s'ouvrait à +4,2 s, en plein dans ces gels (rien avant l'appui : la boule y tourne fluide). « 1.61 PRESENTS » TIENT donc tant que le jeu gèle, avec ses trois carrés d'or qui s'allument, et le voile ne
      fond qu'après 25 images d'affilée sous 100 ms (plafond : 15 s après l'appui). Sur une machine rapide les images sont courtes dès l'appui : le voile s'ouvre à l'heure d'avant (PRES_FIN), rien ne change. */
+  /* (2026-11-05, Sacha : « des fois il y a ce genre de bug visuel sur vercel » — le menu sur un écran NOIR, ni ciel ni caisse) MESURÉ sur le site, profil de navigateur neuf, vrai processeur graphique :
+     l'appui à 69 s, le voile retiré à 73 s (PRES_FIN), et le jeu ne dessine RIEN (0 appel de dessin par seconde, contre ~8 500) de 66 s à 78 s : sa 1re image attend la liaison de ses programmes (`lierDemarrage`,
+     20 s au plus) pendant que l'intro, elle, tourne à 60 i/s « calmes » — la mesure d'avant (« 25 images sous 100 ms ») ne disait rien du jeu. Le voile ne compte plus une image pour calme que si le jeu a
+     DESSINÉ au moins 3 images depuis l'appui (`window.__imagesJeu`, voir boucle-6-hud.js) ; plafond 15 → 26 s (la liaison s'arrête à 20 s). */
+  let imgBase=0;
   function ouvreQuandPret(){
-    let prev=performance.now(),calmes=0,tenu=false;
+    let prev=performance.now(),calmes=0,tenu=false;imgBase=window.__imagesJeu|0;
     (function pas(now){
       if(fini||doux)return;
-      const d=now-prev;prev=now;calmes=d<100?calmes+1:0;
+      const d=now-prev;prev=now;calmes=(d<100&&(window.__imagesJeu|0)-imgBase>=3)?calmes+1:0;
       const s=(now-tLance)/1000-latV-tapT;
       if(!tenu&&s<PRES_FIN-.7){requestAnimationFrame(pas);return;} /* le texte ne commence à s'éteindre qu'à PRES_FIN − 0,7 : c'est là qu'on décide */
       if(!tenu){
         if(calmes>=25){setTimeout(fonduDoux,Math.max(0,(PRES_FIN-s)*1000+80));return;} /* le jeu est calme : l'horaire d'avant */
         tenu=true;tenuJeu=true;presFin=1e9; /* il gèle encore : le texte reste affiché */
       }
-      if(calmes>=25||s>=15){presFin=s+.7;setTimeout(fonduDoux,780);return;} /* calme (ou plafond) : le texte s'éteint en 0,7 s, puis le voile fond */
+      if(calmes>=25||s>=26){presFin=s+.7;setTimeout(fonduDoux,780);return;} /* calme (ou plafond) : le texte s'éteint en 0,7 s, puis le voile fond */
       requestAnimationFrame(pas);
     })(performance.now());
   }

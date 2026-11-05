@@ -140,7 +140,8 @@ const SAVE={
     /* (2026-10-22, Sacha : « corrige ATCHOUM, traduis les indices, ne rembourse que ce qui a été acheté ») LE REMBOURSEMENT NE RENDS QUE CE QUI S'ACHETAIT : une caisse GAGNÉE par sa mission (LA CAISSE-NUAGE : `nuage30` · LA FOURNAISE : `cratere`, réussie dans `d.m2.ok`) sort de `owned` sans remboursement — sans quoi qui l'avait gagnée touchait 1,8 M ou 3,4 M $ */
     {let rb=0;const nm=[],GAG={'LA CAISSE-NUAGE':'nuage30','LA FOURNAISE':'cratere'},ok2=(d.m2&&Array.isArray(d.m2.ok))?d.m2.ok:[];c.owned=c.owned.filter(x=>{if(!CARS[x].retire)return true;let p9=(CAR_UNLOCK[x]&&CAR_UNLOCK[x].p)||0;if(p9&&GAG[CARS[x].name]&&ok2.indexOf(GAG[CARS[x].name])>=0)p9=0;{const u9=CAR_UNLOCK[x]||{};if(p9&&u9.exK==='carnet'&&c.mis.n>=u9.exV)p9=0;if(p9&&(u9.exK==='carrN'||u9.exK==='carrV')&&(c.carr[u9.exK==='carrN'?'nuages':'ville']|0)>=u9.exV)p9=0;} /* (2026-10-24) ni une caisse DONNÉE par sa condition d'avant : le carnet relevé (m2MigreV2), la carrière gagnée (la migration après SAVE.load) — rien n'a été payé */if(p9){rb+=p9;nm.push(CARS[x].name);}return false;});
      /* (2026-11-05, le nuancier v3) LES PEINTURES FUSIONNÉES (PEINT_FUSION) : qui avait une teinte retirée reçoit sa voisine, et la porte s'il la portait */
-     c.shop.own=[...new Set(c.shop.own.map(k=>{const p=k.split(':');return p[0]==='peinture'&&PEINT_FUSION[p[1]]?'peinture:'+PEINT_FUSION[p[1]]:k;}))];if(PEINT_FUSION[c.shop.eq.peinture])c.shop.eq.peinture=PEINT_FUSION[c.shop.eq.peinture];
+     {const pf=x=>Object.prototype.hasOwnProperty.call(PEINT_FUSION,x)?PEINT_FUSION[x]:null; /* (2026-11-05, DEBUG-TOTAL) les SEULES clés de la table : « constructor », « toString »… passent la regex des ids et rendaient une FONCTION du prototype (peinture:function Object()…) */
+     c.shop.own=[...new Set(c.shop.own.map(k=>{const p=k.split(':');return p[0]==='peinture'&&pf(p[1])?'peinture:'+pf(p[1]):k;}))];if(pf(c.shop.eq.peinture))c.shop.eq.peinture=pf(c.shop.eq.peinture);}
      c.shop.own=c.shop.own.filter(k=>{const h=HAB_RETIRES[k];if(!h)return true;rb+=h.p;if(h.p)nm.push(h.n);return false;}); /* (2026-10-18 soir) LES HABILLAGES RETIRÉS (HAB_RETIRES) : même règle */
      for(const k of ['peinture','aile','trainee'])if(HAB_RETIRES[k+':'+c.shop.eq[k]])c.shop.eq[k]=k==='peinture'?'usine':k==='aile'?'panneaux':'nitro';
      if(rb){c.bank=Math.min(1e30,c.bank+rb);this.remb={n:nm,v:rb};}if(CARS[c.equipped]&&CARS[c.equipped].retire)c.equipped=0;}
@@ -240,7 +241,15 @@ const SAVE={
     try{
       const d=JSON.parse(decodeURIComponent(escape(atob(String(code).trim()))));
       if(typeof d.v!=='number')return false; // pas un code à nous
-      this.d=this.san(d);this.flush();return true;
+      this.d=this.san(d);
+      /* (2026-11-05, DEBUG-TOTAL) L'IMPORT ÉCRIT LUI-MÊME, ET NE DIT « RESTAURÉ » QUE S'IL A ÉCRIT. Il passait par flush(), qui ne fait RIEN dans un onglet
+         devenu passif (deux onglets du site : garage-menu-inventaire, ONGLET.passif) ou pendant la restauration du miroir natif : l'écran disait
+         « RESTAURÉ — RECHARGE… », la page rechargeait… et le joueur retrouvait l'ancienne sauvegarde. Demander une restauration, c'est reprendre la main. */
+      if(this.neuf){this.flush();return true;}
+      let ok=false;this.d.v=this.V;const s=JSON.stringify(this.d);
+      try{localStorage[this.K]=s;ok=localStorage[this.K]===s;this.dirty=false;}catch(e){try{console.warn('[SAUVEGARDE] import non écrit',e);}catch(_){}}
+      try{if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});ok=true;}}catch(e){}
+      return ok;
     }catch(e){return false;}
   }
 };

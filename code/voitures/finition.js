@@ -42,14 +42,36 @@ function finZero(geo){const P=geo.attributes.position;if(!P)return;const F=new F
 /* LA RETOUCHE PAR MODÈLE (2026-11-05, Léo : « une retouche voiture par voiture ») : les réglages de `patineGeo` propres à une forme, versés par-dessus la marbrure commune.
    `crasse` (0-1) fonce le BAS de caisse jusqu'à `yCrasse` mètres (la peinture prend de la profondeur vers le bas, comme une laque vue de côté) ; `poussiere` éclaircit ce qui
    regarde le ciel (capot, toit) — des DÉGRADÉS de peinture, jamais de saleté. Une entrée par voiture : ELDORADO (« un peu trop plate ») la première. */
-const FIN_PATINE={eldorado:{marbre:.035,echelle:.55,crasse:.62,yCrasse:.85,poussiere:.18}};
+/* `bande` : LE DEUXIÈME TON NET d'une caisse (2026-11-05) — {bas:[part de la hauteur, [r,g,b] multiplicateurs], haut:[…], nez:[…]} : les sommets du bas (ou du haut) de la tôle sont MULTIPLIÉS par une teinte,
+   avec une arête franche (finBande) : un bas de caisse plus profond, un toit plus sombre — du relief par la peinture, qui reste compatible avec les peintures de la boutique (on multiplie, on ne remplace pas). */
+const FIN_PATINE={eldorado:{marbre:.035,echelle:.55,crasse:.30,yCrasse:.85,poussiere:0,bande:{bas:[.36,[.74,.50,.66]]}},   // rose bonbon → magenta profond
+  rosso:{bande:{bas:[.30,[.70,.50,.56]]}},                      // rouge → rouge sang
+  poster:{bande:{bas:[.30,[.80,.60,.44]]}},                     // jaune → ambre brûlé
+  combi:{bande:{bas:[.36,[.62,.80,.78]]}},                      // menthe → sarcelle (le bicolore d'un vrai combi)
+  dolores:{bande:{bas:[.30,[.66,.68,.76]]}},                    // argent → acier bleuté
+  poptart:{bande:{bas:[.32,[.80,.62,.52]]}}};                   // pâte → biscuit doré
+/* LA COULEUR NE SE TERNIT JAMAIS (2026-11-05, Léo : « le SAMOURAÏ a perdu son violet, j'ai peur qu'on perde le côté coloré — ça vaut pour toutes les voitures ») : après la patine et le deuxième ton,
+   chaque sommet qui a foncé reprend de la SATURATION en proportion (un bas de caisse 20 % plus sombre est 18 % plus saturé) : plus profond, jamais plus gris. Les teintes déjà sombres (luminance < .30,
+   comme le violet du SAMOURAÏ) ne sont pas touchées du tout (`lumMin`). `?teinte=0` coupe la compensation. */
+function finTeinte(G,C0){if(/[?&]teinte=0/.test(location.search))return;const C=G.attributes.color.array;
+  for(let i=0;i<C.length;i+=3){const l0=.299*C0[i]+.587*C0[i+1]+.114*C0[i+2],l1=.299*C[i]+.587*C[i+1]+.114*C[i+2];if(l0<1e-3||l1>=l0)continue;
+    const f=1+(1-l1/l0)*.9;for(let k=0;k<3;k++){const v=l1+(C[i+k]-l1)*f;C[i+k]=v<0?0:v>1?1:v;}}
+  G.attributes.color.needsUpdate=true;}
+function finBande(G,b){const P=G.attributes.position.array,C=G.attributes.color.array;let y0=1e9,y1=-1e9;
+  for(let i=1;i<P.length;i+=3){if(P[i]<y0)y0=P[i];if(P[i]>y1)y1=P[i];}const H=Math.max(1e-3,y1-y0),sm=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t);};
+  for(let i=0,k=0;i<P.length;i+=3,k++){const t=(P[i+1]-y0)/H;let m=null,w=0;
+    if(b.bas&&t<b.bas[0]+.03){w=1-sm((t-b.bas[0]+.03)/.06);m=b.bas[1];}
+    if(b.haut&&t>1-b.haut[0]-.03){const w2=sm((t-(1-b.haut[0])+.03)/.06);if(w2>w){w=w2;m=b.haut[1];}}
+    if(m&&w>0){C[i]*=1+(m[0]-1)*w;C[i+1]*=1+(m[1]-1)*w;C[i+2]*=1+(m[2]-1)*w;}}
+  G.attributes.color.needsUpdate=true;}
 const MARBRE_ON=!/[?&]marbre=0/.test(location.search);
 function finMarbre(spec){if(!MARBRE_ON||!spec||spec.shape==='epave'||typeof patineGeo!=='function')return;
   let gr=7;const nm=String(spec.name||spec.shape||'');for(let i=0;i<nm.length;i++)gr=(gr*31+nm.charCodeAt(i))%997;
   carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isArray(o.material)||!o.material||!o.material.userData)return;
     const g=o.material.userData.g,G=o.geometry;if(!(g==='p'||g==='k'||g==='n'||(typeof g==='string'&&g.indexOf('pm:')===0)))return;
     if(G.userData.marbre||!G.attributes.color||!G.attributes.position||!G.attributes.normal)return;G.userData.marbre=1;
-    try{patineGeo(G,Object.assign({marbre:.045,echelle:.42,graine:gr,crasse:.36,yCrasse:.70,poussiere:0},FIN_PATINE[spec.shape]||{}));}catch(e){console.warn('marbrure',e);}});}
+    try{const o9=Object.assign({marbre:.045,echelle:.42,graine:gr,crasse:.30,yCrasse:.70,poussiere:0,lumMin:.30},FIN_PATINE[spec.shape]||{}),C0=Float32Array.from(G.attributes.color.array);
+      patineGeo(G,o9);if(o9.bande&&!/[?&]bande=0/.test(location.search))finBande(G,o9.bande);finTeinte(G,C0);}catch(e){console.warn('marbrure',e);}});}
 // toutes les pièces de la caisse dont la matière dessine les arêtes : la tôle (laque, métallisé, nacre) calcule ses arêtes, le reste porte des zéros
 function finCaisse(){carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isArray(o.material)||!o.material||!o.material.userData.arete)return;
   if(o.geometry.attributes.aArete)return;const g=o.material.userData.g;
@@ -118,7 +140,9 @@ function paintEnvStudio(){FSTU.env='studio';
 /* (2026-11-05, Léo : « dans le menu ciel la lumière est trop éblouissante, un peu gamine, ça rend la voiture moins jolie ») mesuré sur ROSSO 40 : un rouge sortait rose saumon délavé.
    Reflets qui éclatent ÷ 1,4 (1 → .7 : en dessous, les grands panneaux lisses — ELDORADO — s'aplatissent) et exposition du MENU seulement ×.9 (`MENU_EXPO`, posée par menuVitrine) : le rouge reste rouge, le ciel prend de la profondeur.
    `?menuexpo=1` rend l'exposition d'avant, `?menuhdr=1` les reflets d'avant. */
-const FSTU_MENU_HDR=(/[?&]menuhdr=([\d.]+)/.exec(location.search)||[0,.7])[1]*1,MENU_EXPO=(/[?&]menuexpo=([\d.]+)/.exec(location.search)||[0,.9])[1]*1;
+/* (2026-11-05) LE VOILE DU CIEL DANS LA PEINTURE : aux heures claires (matin, midi, après-midi) le ciel reflété est presque blanc et délave un rouge en rose saumon (mesuré, ROSSO 40, sept heures du menu). Le cube de reflets est assombri de .2 + MENU_VOILE × le jour (avant : .35). `?menuvoile=.35` = avant. */
+const MENU_VOILE=(/[?&]menuvoile=([\d.]+)/.exec(location.search)||[0,.35])[1]*1;
+const FSTU_MENU_HDR=(/[?&]menuhdr=([\d.]+)/.exec(location.search)||[0,.7])[1]*1,MENU_EXPO=(/[?&]menuexpo=([\d.]+)/.exec(location.search)||[0,.94])[1]*1;
 function paintEnvMenu(B){FSTU.env='menu';FSTU.envB=B;FSTU.garage=false; // (garage=false : finMenu repose la laque, au dosage de ce ciel)
   const S=256,stops=B.env,zen=stops[0][1],sol=stops[stops.length-1][1],s1=B.eS1,s2=B.eS2,
     sunF=Math.abs(SUN_DIR.x)>Math.abs(SUN_DIR.z)?(SUN_DIR.x>0?0:1):(SUN_DIR.z>0?4:5),
@@ -134,7 +158,7 @@ function paintEnvMenu(B){FSTU.env='menu';FSTU.envB=B;FSTU.garage=false; // (gara
       const g=c.createRadialGradient(128,128,10,128,128,110);g.addColorStop(0,'rgba('+clair+',.75)');g.addColorStop(1,'rgba('+clair+',0)');c.fillStyle=g;c.fillRect(0,0,S,S);return;} // le zénith, un voile clair au milieu (les toits)
     if(f===3){c.fillStyle=sol;c.fillRect(0,0,S,S);c.fillStyle='rgba(0,0,0,.6)';c.fillRect(0,0,S,S);return;}
     const gr=c.createLinearGradient(0,0,0,S);for(const st of stops)gr.addColorStop(st[0],st[1]);c.fillStyle=gr;c.fillRect(0,0,S,S);
-    c.fillStyle='rgba(8,8,18,'+(.2+.35*jour).toFixed(2)+')';c.fillRect(0,0,S,S);                         // le ciel ASSOMBRI : les bandes ressortent (moins la nuit : il l'est déjà)
+    c.fillStyle='rgba(8,8,18,'+(.2+MENU_VOILE*jour).toFixed(2)+')';c.fillRect(0,0,S,S);                         // le ciel ASSOMBRI : les bandes ressortent (moins la nuit : il l'est déjà)
     bande(c,198,12,chaud,.95*kA,10);                                                                     // la mer de nuages au soleil : les flancs
     bande(c,146,7,dore,.85*kA,8);                                                                        // l'horizon doré : les épaules
     bande(c,84,6,clair,.6*kA,10);
@@ -198,10 +222,15 @@ function envOuvrier(){if(ENVC.w!==undefined)return ENVC.w;
   try{const src="'use strict';var FSTU_DIR=null;\n"+fstuDirs.toString()+"\n"+envCielCalc.toString()+"\nvar ECL="+JSON.stringify(FSTU_ECL)+";\n"+
       "onmessage=function(e){var m=e.data,a=m.a,F=envCielCalc(a[0],a[1],a[2],a[3],a[4],fstuDirs(128).T,ECL,128);postMessage({id:m.id,cle:m.cle,F:F},F.map(function(x){return x.buffer;}));};";
     const W=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
-    W.onmessage=function(e){const m=e.data;if(ENVC.att.get(m.cle)!==m.id)return;ENVC.att.delete(m.cle);envGarde(m.cle,m.F);ENVC.av++;};
+    W.onmessage=function(e){const m=e.data;if(ENVC.att.get(m.cle)!==m.id)return;ENVC.att.delete(m.cle);envGarde(m.cle,m.F);ENVC.av++;envOuvrierRepos(W);};
     W.onerror=function(e){try{e.preventDefault();}catch(x){}ENVC.w=null;ENVC.att.clear();};
     ENVC.w=W;}catch(e){ENVC.w=null;}
   return ENVC.w;}
+/* (2026-11-05, mémoire de l'ordi — même passe que « L'OUVRIER SE REPOSE » des nuages) le travailleur des ciels s'arrête 1,5 s après son dernier calcul (ses résultats
+   sont dans ENVC.cache) ; `envOuvrier()` le refait à la demande suivante (`ENVC.w` revient à undefined). `?ouvrier=garde` = avant. */
+function envOuvrierRepos(W){if(/[?&]ouvrier=garde\b/.test(location.search)||ENVC.w!==W||ENVC.att.size)return;
+  if(ENVC.repos)clearTimeout(ENVC.repos);
+  ENVC.repos=setTimeout(function(){ENVC.repos=0;if(ENVC.w!==W||ENVC.att.size)return;try{W.terminate();}catch(e){}ENVC.w=undefined;ENVC.reposes=(ENVC.reposes|0)+1;},1500);}
 function envPrepare(B){ // (le pré-bâti) le ciel d'un biome à venir, calculé par le travailleur (B : une entrée de BIOMES)
   if(!ENVC.on||!FSTU.on||!B||!B.env)return;const sh=B.sunHalo!=null?B.sunHalo:1,cle=envCle(B.env,B.eS1,B.eS2,sh,SUN_DIR);
   if(ENVC.cache.has(cle)||ENVC.att.has(cle))return;const W=envOuvrier();if(!W)return;

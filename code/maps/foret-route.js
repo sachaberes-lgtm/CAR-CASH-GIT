@@ -121,10 +121,11 @@ function* genForet(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main en
   let kR=(40+.3*vP9)/63,kV=vP9/70;try{if(typeof rayonPalier==='function')kR=rayonPalier()/63;if(typeof vPalier==='function')kV=vPalier()/70;}catch(e){}
   kR=Math.max(1,Math.min(2.8,kR||1));kV=Math.max(1,Math.min(3.2,kV||1));
   const gr=mulberry32((rnd()*4294967296)>>>0);let best=null,ne=0;
-  for(let e=0;e<8;e++){if(e)yield;const r=forPelote(gr,kR,kV);ne++;if(!best||r.note<best.note)best=r;if(r.note<1)break;}
+  const notes9=[];for(let e=0;e<8;e++){if(e)yield;const r=forPelote(gr,kR,kV);ne++;notes9.push(+r.note.toFixed(1));if(!best||r.note<best.note)best=r;if(r.note<1)break;}
+  RYTHME.der={carte:'foret',note:best.note,notes:notes9,fiche:best.fiche}; /* (2026-11-05, LE DIRECTEUR DE RYTHME) dbgRythme() */
   for(const m of best.mods||[])MODMARK.push(m); // (2026-10-18) LES MODULES DE CHAQUE MAP : ceux de l'essai gardé (voir fSlalom)
   FORET.Q=best.Q;FORET.plg=[];FORET.boucles=best.BO;FORET.noeuds=best.NO;FORET.plan=best.plan;FORET.axe=best.axe;FORET.pel={cxs:best.cxs,dsM:best.dsM,note:+best.note.toFixed(2),essais:ne,croise:best.croise,dyMin:best.dyMin,L:Math.round(best.L),mk:best.mk};
-  forBank(best.ctrl,best.Q,kR*(FORET_VASTE?forVasteG(kR):1));FORET.pel.bankMax=FORET.bankMax;
+  forBank(best.ctrl,best.Q,kR*(FORET_VASTE?1+(forVasteG(kR)-1)*.3:1)); /* (2026-11-05) la même échelle de rayons que forPelote */FORET.pel.bankMax=FORET.bankMax;
   return best.ctrl;}
 /* LES TORSADES DE LA FORÊT VASTE (2026-11-05, voir FOR_VASTE.bank) — la recette de Jade (genJade) : la dalle se couche vers l'INTÉRIEUR du virage, de l'angle
    d'une courbure moyennée sur ±W m (deux passes : l'angle monte et redescend sur ~800 m) et pliée par un tanh (kref : un virage de 3,2 rM donne ~76 % du
@@ -149,7 +150,7 @@ function forVasteT(kR){return Math.max(0,Math.min(1,(kR-1)/1.8));} /* 0 au palie
 function forVasteG(kR){return FOR_VASTE.G0+(FOR_VASTE.G-FOR_VASTE.G0)*forVasteT(kR);}
 function forVasteLong(kR){return FOR_VASTE.long0+(FOR_VASTE.long-FOR_VASTE.long0)*forVasteT(kR);}
 function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent les rayons : à haute vitesse le nœud grandit en entier, sans s'étirer en lignes droites)
-  const v9=70*kV,kR0=kR,G=FORET_VASTE?forVasteG(kR):1;kR*=G;kV*=G; /* (2026-11-05, LA FORÊT VASTE) tout le plan à l'échelle G : rayons, droites, nœuds, écarts — v9 (la vitesse, donc les lissages du relief) ne bouge pas */
+  const v9=70*kV,kR0=kR,G=FORET_VASTE?forVasteG(kR):1;kR*=1+(G-1)*.3;kV*=G; /* (2026-11-05, LE DIRECTEUR DE RYTHME) les RAYONS ne prennent que 30 % de l'échelle G (les longueurs la prennent entière) : à ×2,4 sur des rayons déjà à l'échelle du palier, au palier 20 plus un virage ne demandait le volant (banc : 0,3 virage/km, des droites de 15 s) */ /* (2026-11-05, LA FORÊT VASTE) tout le plan à l'échelle G : rayons, droites, nœuds, écarts — v9 (la vitesse, donc les lissages du relief) ne bouge pas */
   const rM=63*kR,LT=9600*(.55+.45*kR0)*(FORET_VASTE?forVasteLong(kR0):1),RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,DY=FORET_VASTE?FOR_VASTE.DY:32;
   // ---- LA TORTUE : le plan (x, z), l'abscisse s, et un relevé fin tous les ~10 m pour les croisements ----
   let x=0,z=0,phi=0,s=0,cib=null;const C=[[0,0]],SC=[0],D=[0,0,0],ZO=[],Q={},BO=[],NO=[];
@@ -241,12 +242,12 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   const recadre=()=>{cap();for(let k=0;k<3&&Math.abs(rel())>.5;k++){const r9=rel();arc((r9>0?1:-1)*Math.min(110,Math.abs(r9)*57.3*(.75+rnd()*.25)),rM*(1.9+rnd()*1.3),null,.06);}};
   const sf=.5+.5*forVasteT(kR0); /* (le palier) les tout-droits des pièces : la moitié au palier 0, entiers aux hauts paliers */
   const PV={
-    allee:()=>{const l=(250+rnd()*170)*kV*sf,s0=s;droite(l*(.3+rnd()*.2));arc((rnd()<.5?-1:1)*(6+rnd()*10),rM*10);droite(l*(.4+rnd()*.2));ZM.push([s0,s,.035,l>800?2:1]);},
+    allee:()=>{const l=Math.min((250+rnd()*170)*kV*sf,3.2*v9),s0=s;droite(l*(.3+rnd()*.2));arc((rnd()<.5?-1:1)*(8+rnd()*12),rM*5);droite(l*(.4+rnd()*.2));ZM.push([s0,s,.035,l>800?2:1]);}, /* (2026-11-05) l'allée : jamais plus de 3,2 s de croisière, sa dérive à 5 rM (10 rM : une droite d'un kilomètre aux hauts paliers) */
     virage:()=>{const sg=rnd()<.65?sgC():-sgC(),a=100+rnd()*80,R=rM*(2.2+rnd()*1.1);droite((30+rnd()*50)*kV*sf);arc(sg*a*.15,R*1.6);arc(sg*a*.7,R,R*(.9+rnd()*.2));arc(sg*a*.15,R*1.6);},
     vagues:()=>{const n=3+((rnd()*2)|0),a=40+rnd()*25,R=rM*(1.7+rnd()*.9),s0=s;let sg=rnd()<.5?-1:1;arc(sg*a*.5,R);for(let k=0;k<n-1;k++){sg=-sg;arc(sg*a,R*(.9+rnd()*.2));}arc(-sg*a*.5,R);ZM.push([s0,s,.03,n]);},
     retour:()=>{const sg=sgC(),R=rM*(1.5+rnd()*.5);droite((60+rnd()*80)*kV*sf);arc(sg*(170+rnd()*20),R,R*(.95+rnd()*.15),.05);droite((180+rnd()*200)*kV*sf);arc(-sg*(170+rnd()*20),R*(.9+rnd()*.2),null,.05);droite(60*kV*sf);},
     spirale:()=>{cap();boucle();},
-    toboggan:()=>{const l=(300+rnd()*120)*kV*sf,s0=s;droite(l);ZM.push([s0,s,.07,1]);},
+    toboggan:()=>{const l=Math.min((300+rnd()*120)*kV*sf,3.2*v9),s0=s;droite(l);ZM.push([s0,s,.07,1]);}, /* (2026-11-05) jamais plus de 3,2 s */
     cygne:()=>{const sg=rnd()<.5?-1:1,R=rM*(1.6+rnd()*.4);droite((40+rnd()*60)*kV*sf);arc(sg*(220+rnd()*30),R,R*(1+rnd()*.2),.05);arc(-sg*(40+rnd()*30),R*2);}};
   const MARQUE={spirale:1,retour:1,toboggan:1},PN=Object.keys(PV).concat(['spirale','cygne','cygne']),paq=[]; /* (SE PERDRE) les pièces qui se recroisent (spirale, col de cygne) sont deux fois plus nombreuses */let der='';
   const tire=()=>{for(let e=0;e<8;e++){if(!paq.length){const t=PN.slice();for(let i=t.length-1;i>0;i--){const j=(rnd()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)paq.push(x9);}
@@ -405,7 +406,8 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
       VI[c]=vm;if(pm){pire=Math.max(pire,vm);const h=Math.min(12,vm*.5);bosse(D[3*pm[0]+2],sg*h);bosse(D[3*pm[1]+2],-sg*h);}}
     if(pire<.5)break;
     if(it===30)for(let c=0;c<CR.length;c++)if(VI[c]>14&&!BA[c]){SGN[c]=-SGN[c];BA[c]=1;}} // un croisement qui résiste : l'autre route passe dessus
-  // ---- LA NOTE : croisements encore trop serrés, pentes hors bornes (descente > 15 %, montée > 12 % sur 40 m), pelote trop lâche ----
+  const yS9=s9=>{const f=s9/10,k=Math.max(0,Math.min(nY-2,Math.floor(f))),w=f-k;return Y[k]*(1-w)+Y[k+1]*w;};
+  // ---- LA NOTE : croisements encore trop serrés, pentes hors bornes (descente > 15 %, montée > 12 % sur 40 m), pelote trop lâche, et le RYTHME ----
   let note=0,dyMin=1e9;
   for(let c=0;c<CR.length;c++){for(const p of CR[c]){const dy=Math.abs(yA(p[0])-yA(p[1]));if(dy<dyMin)dyMin=dy;if(dy<DY-1)note+=(DY-1-dy)*.5;}}
   for(let k=4;k<nY;k++){const g=(Y[k]-Y[k-4])/40;if(g<-.15)note+=(-.15-g)*40;if(g>.12)note+=(g-.12)*40;}
@@ -413,11 +415,12 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   if(FORET_VASTE){let fw9=0,bk9=0;for(const m of CR){let sk=0,f9=0;for(const q of m){const d9=D[3*q[1]+2]-D[3*q[0]+2];if(d9>sk){sk=d9;f9=yA(q[0])>yA(q[1])?1:-1;}}if(f9>0){fw9++;if(sk>.33*L)note+=(sk/L-.33)*12;}else bk9++;} /* (SE PERDRE) un raccourci qui saute plus du tiers de la forêt = on finit en 10 s : refusé ; et au moins 3 croisements sur 10 sont des PIÈGES */
     if(CR.length>=3){if(bk9<CR.length*.35)note+=(CR.length*.35-bk9)*1.5;if(fw9<CR.length*.35)note+=(CR.length*.35-fw9)*1.5;}} /* (le mélange) au moins 35 % de raccourcis ET 35 % de pièges, à tous les paliers */ // (2e tour) moins emmêlée : 0,7 croisement/km suffit avec les modules
   if(rf9&&MM.length<mNeed)note+=(mNeed-MM.length)*4; // (2026-10-18) au moins TROIS modules (voir fSlalom) : un essai qui en a moins est repris — (2026-10-19, au hasard) autant que la longueur en tient (mNeed)
-  if(LVISE){const r9=L/LVISE;if(r9>1.3)note+=(r9-1.3)*12;else if(r9<.75)note+=(.75-r9)*12;} // (2026-10-19, LA FORÊT AU HASARD) près de la longueur visée
+  if(LVISE){const r9=L/LVISE;if(r9>1.3)note+=(r9-1.3)*12;else if(r9<.75)note+=(.75-r9)*12;}
+  let fr9=null;if(typeof rythmeMesure==='function'){const c9=C.map(function(c,k){return new THREE.Vector3(c[0],yS9(SC[k]),c[1]);});fr9=rythmeMesure(c9,{vP:v9,rP:63*kR0,marks:MM});note+=rythmeNote(fr9,rythmeCible('foret'))*.4;} /* (2026-11-05, LE DIRECTEUR DE RYTHME) la note de rythme (route-rythme.js) pèse dans le choix de l'essai : virages/km, droites, spirales hors pelote */ // (2026-10-19, LA FORÊT AU HASARD) près de la longueur visée
   if(LVISE)for(const k of ['arche','archeB']){const q=Q[k];if(!q)continue; // (2026-10-19) LA PLACE DE L'ARCHE : aucune autre route à moins de 200 m (foretArche renonce à une arche dont le tronc croise un autre étage — au hasard, ça arrivait une fois sur deux)
     for(let i=0;i<nD;i+=2){if(Math.abs(D[3*i+2]-q.s)<330)continue;if(Math.hypot(D[3*i]-q.x,D[3*i+1]-q.z)<200){note+=3;break;}}}
   // ---- LES POINTS DE CONTRÔLE ----
-  const yS=s9=>{const f=s9/10,k=Math.max(0,Math.min(nY-2,Math.floor(f))),w=f-k;return Y[k]*(1-w)+Y[k+1]*w;};
+  const yS=yS9;
   if(AXE){const c9=Math.cos(AXE),s9=Math.sin(AXE),ro=p=>{const x9=p[0]*c9+p[1]*s9;p[1]=p[1]*c9-p[0]*s9;p[0]=x9;}; // (2026-10-19, LA FORÊT AU HASARD) le plan dessiné face à +z TOURNE EN BLOC autour du départ
     for(const c of C)ro(c);for(const k in Q){const o=Q[k],q=[o.x,o.z];ro(q);o.x=q[0];o.z=q[1];o.phi+=AXE;}for(const o of BO){const q=[o.e.x,o.e.z];ro(q);o.e.x=q[0];o.e.z=q[1];}for(const o of NO){o.c=o.c.slice();ro(o.c);}}
   const ctrl=C.map((c,k)=>new THREE.Vector3(c[0],yS(SC[k]),c[1]));
@@ -425,7 +428,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   const BO9=BO.map(o=>({e:new THREE.Vector3(o.e.x,yS(o.e.s),o.e.z),sg:o.sg,R:o.R}));
   let dsM=0;for(const m of CR)for(const p of m)dsM=Math.max(dsM,D[3*p[1]+2]-D[3*p[0]+2]);
   const CXS=CR.map(m=>{let sk=0,fw=0;for(const p of m){const d9=D[3*p[1]+2]-D[3*p[0]+2];if(d9>sk){sk=d9;fw=yA(p[0])>yA(p[1])?1:-1;}}return [Math.round(sk),fw];}); /* (2026-11-05) pour chaque croisement : la route sautée (m) et le sens — +1 un RACCOURCI (la route d'en dessous est devant), −1 un PIÈGE (elle est derrière) */
-  return {cxs:CXS,dsM:Math.round(dsM),ctrl:ctrl,Q:Q,BO:BO9,note:note,croise:CR.length,dyMin:Math.round(dyMin),L:L,NO:NO,mods:MM,mk:MK,plan:PLAN,axe:AXE};}
+  return {cxs:CXS,dsM:Math.round(dsM),ctrl:ctrl,Q:Q,BO:BO9,note:note,fiche:fr9,croise:CR.length,dyMin:Math.round(dyMin),L:L,NO:NO,mods:MM,mk:MK,plan:PLAN,axe:AXE};}
 /* ---------------- L'ATELIER DES ARBRES : un petit maillage indexé (position, normale, aA, aC, aB) ----------------
    aA = (partie, occlusion, hasard, hauteur relative) · aC = la couleur de base · aB = (écorce, mousse).
    Parties : 0 écorce · 1 feuilles · 2 aiguilles · 3 peint (chaumière, champignon) · 4 fenêtre (luit la nuit) · 5 VISAGE (luit la nuit)
