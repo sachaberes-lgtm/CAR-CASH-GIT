@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1157'; /* v1157 (2026-11-05, DEBUG-TOTAL) la pause tait aussi le slide et le moteur vivant ; le moteur vivant refuse les NaN. v1156 (2026-11-05, DEBUG-TOTAL) le clic d'un bouton réveille le son par acReveil (un refus iOS se réessaie au toucher suivant). v1155 (2026-11-05, DEBUG-TOTAL) la seconde chance reprend le morceau de la course (plus celui du lobby). v1154 (2026-11-05, DEBUG-TOTAL) plus deux musiques sur l'écran de mort après une frénésie. v1153 (2026-11-05, DEBUG-TOTAL) le son ne fait plus jamais tomber la boucle (valeur non finie refusée par stt, sons continus dans leur try, duckT réparé). v1152 (2026-11-05, Sacha : « pas assez de virages, pas assez de trucs fun, rajoute des modules ») LES PROFONDEURS : la route à rythme (virages larges, un module propre à chaque salle : boyau rapide, lacets, corniche, géants, plongeon), la lave ne noie plus la route. `?sans=flow` = la route d'hier. */
+const CACHE = 'cashcar-v1162'; /* v1162 (2026-11-05, DEBUG-TOTAL) fusion de main (v1161) : le son ne fait plus tomber la boucle, plus deux musiques après une frénésie, la seconde chance reprend son morceau, réveil du son au clic, pause plus propre. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

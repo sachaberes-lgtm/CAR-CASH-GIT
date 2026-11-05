@@ -167,8 +167,9 @@ function m2Render(vu){ /* (2026-11-03, refonte · 2026-11-05, plus de vedette : 
   const gm=$('gMis');if(gm)gm.classList.add('mbOn');
   const c0=m2Compte();
   el.innerHTML='<div id="gmListe" class="m2 mcE'+(vu?' vu':'')+'"><div class="mcVoile"></div>'
-    +'<div class="mcDef"><div class="mcTete"><b class="mcNom">'+sansAcc(TR('MISSIONS'))+'</b><small class="mcSous">'+sansAcc(TR('PALIER'))+' '+V.palier+' / '+M2_PAL.length+' · '+c0.ok+' / '+c0.tot+'</small>'+(neuf?'<em class="mcNeuf">'+sansAcc(TR('NOUVEAU PALIER'))+'</em>':'')+'</div>'
-    +'<div class="mcPan"><div class="gModeT">'+pxi('cible')+'<span>'+sansAcc(TR('ENSUITE'))+'</span><s></s><em class="mcSq">'+V.sq+'</em></div>'+V.listeTab+fh+'</div></div></div>';
+    +'<div class="mcDef"><div class="mcTete"><b class="mcNom">'+sansAcc(TR('MISSIONS'))+'</b><small class="mcSous">'+sansAcc(TR('PALIER'))+' '+V.palier+' / '+M2_PAL.length+' · '+c0.ok+' / '+c0.tot+'</small>'+(neuf?'<em class="mcNeuf">'+sansAcc(TR('NOUVEAU PALIER'))+'</em>':'')+'<em class="mcSq mcSqT" aria-hidden="true">'+V.sq+'</em></div>' /* (2026-11-06, plein cadre) couché, l'en-tête ENSUITE s'efface : ses carrés montent sur la ligne du titre */
+    +'<div class="mcPan" data-n="'+V.n+'"><div class="gModeT">'+pxi('cible')+'<span>'+sansAcc(TR('ENSUITE'))+'</span><s></s><em class="mcSq">'+V.sq+'</em></div>'
+    +(V.n?V.listeTab:'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>')+fh+'</div></div></div>';
   GMIS.cards=[];GMIS.pts=[];GMIS.paths=[];GMIS.last=null;GMIS.lw=0;
   const c=m2Compte(),sous=$('gmSous');if(sous)sous.textContent=c.ok+' / '+c.tot;
   try{gmPlaceL(VP.w,VP.h);}catch(e){}

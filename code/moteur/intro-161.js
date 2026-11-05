@@ -766,18 +766,23 @@
   /* (2026-11-02, Léo : « ça saccade ») LE VOILE S'OUVRE QUAND LE JEU EST CALME. Mesuré sur son Mac (Safari, cadre 1226 × 566) : de l'appui à +10 s, le ciel se construit sous le voile par images de 0,2 à 1,3 s, puis ~20 i/s ;
      le voile s'ouvrait à +4,2 s, en plein dans ces gels (rien avant l'appui : la boule y tourne fluide). « 1.61 PRESENTS » TIENT donc tant que le jeu gèle, avec ses trois carrés d'or qui s'allument, et le voile ne
      fond qu'après 25 images d'affilée sous 100 ms (plafond : 15 s après l'appui). Sur une machine rapide les images sont courtes dès l'appui : le voile s'ouvre à l'heure d'avant (PRES_FIN), rien ne change. */
+  /* (2026-11-05, Sacha : « des fois il y a ce genre de bug visuel sur vercel » — le menu sur un écran NOIR, ni ciel ni caisse) MESURÉ sur le site, profil de navigateur neuf, vrai processeur graphique :
+     l'appui à 69 s, le voile retiré à 73 s (PRES_FIN), et le jeu ne dessine RIEN (0 appel de dessin par seconde, contre ~8 500) de 66 s à 78 s : sa 1re image attend la liaison de ses programmes (`lierDemarrage`,
+     20 s au plus) pendant que l'intro, elle, tourne à 60 i/s « calmes » — la mesure d'avant (« 25 images sous 100 ms ») ne disait rien du jeu. Le voile ne compte plus une image pour calme que si le jeu a
+     DESSINÉ au moins 3 images depuis l'appui (`window.__imagesJeu`, voir boucle-6-hud.js) ; plafond 15 → 26 s (la liaison s'arrête à 20 s). */
+  let imgBase=0;
   function ouvreQuandPret(){
-    let prev=performance.now(),calmes=0,tenu=false;
+    let prev=performance.now(),calmes=0,tenu=false;imgBase=window.__imagesJeu|0;
     (function pas(now){
       if(fini||doux)return;
-      const d=now-prev;prev=now;calmes=d<100?calmes+1:0;
+      const d=now-prev;prev=now;calmes=(d<100&&(window.__imagesJeu|0)-imgBase>=3)?calmes+1:0;
       const s=(now-tLance)/1000-latV-tapT;
       if(!tenu&&s<PRES_FIN-.7){requestAnimationFrame(pas);return;} /* le texte ne commence à s'éteindre qu'à PRES_FIN − 0,7 : c'est là qu'on décide */
       if(!tenu){
         if(calmes>=25){setTimeout(fonduDoux,Math.max(0,(PRES_FIN-s)*1000+80));return;} /* le jeu est calme : l'horaire d'avant */
         tenu=true;tenuJeu=true;presFin=1e9; /* il gèle encore : le texte reste affiché */
       }
-      if(calmes>=25||s>=15){presFin=s+.7;setTimeout(fonduDoux,780);return;} /* calme (ou plafond) : le texte s'éteint en 0,7 s, puis le voile fond */
+      if(calmes>=25||s>=26){presFin=s+.7;setTimeout(fonduDoux,780);return;} /* calme (ou plafond) : le texte s'éteint en 0,7 s, puis le voile fond */
       requestAnimationFrame(pas);
     })(performance.now());
   }
@@ -899,15 +904,22 @@
     let A=null;if(!SANS_SON&&SND.sfx&&VOL.sfx>0){try{A=new (window.AudioContext||window.webkitAudioContext)();}catch(e){A=null;}}
     if(!A){lancer(false);return;}
     preAC=A;let fait=false;const go=function(){if(fait)return;fait=true;if(lance){if(A!==iAC)try{A.close();}catch(e){}return;}lancer(false);}; /* (24/10, relecture : « le son de l'intro coupé net ») un toucher pendant l'attente de A.resume() (≤ 0,3 s) lance le film SUR A (son() prend preAC) : A n'est fermé que s'il n'a pas servi — avant, le film tapé tôt passait muet */
-    try{A.resume().then(go,go);}catch(e){go();}
-    setTimeout(go,300);
+    try{if(!DEPART_LENT&&(A.state==='running'||(navigator.userActivation&&!navigator.userActivation.hasBeenActive))){go();return;}A.resume().then(go,go);}catch(e){go();} /* (2026-11-05) le navigateur le laisse sonner d'emblée, ou personne n'a encore touché la page (resume() ne répondrait jamais) : on part tout de suite, muet dans ce second cas (son() le voit), le toucher libérera le son */
+    setTimeout(go,DEPART_LENT?300:120); /* sans geste, resume() ne répond jamais : 300 ms de noir pour rien, 120 suffisent à un navigateur qui l'accepte */
   }
-  function essaiAuto(n){ /* attendre que la page soit chargée, la police prête et la fenêtre visible */
+  /* ===== LE DÉPART SANS ATTENDRE `load` (2026-11-05, Sacha : « l'animation du début a des latences sur la version Vercel, rends les titres de début plus rapides ») =====
+     Sur le site, `readyState==='complete'` n'arrive qu'APRÈS que tout ce que le jeu va chercher en arrivant a fini de descendre (ciel-*.jpg, mer-cumulus.png 850 Ko, 4 polices pixel, la boucle audio) :
+     de 2 à 3 s de noir en plus de la construction du script, mesurées sur le site (DOM prêt à 46,4 s, `load` à 48,8 s). Le film n'a besoin que de SA police (Press Start 2P, préchargée dans la page)
+     et du DOM : il part dès qu'elles sont là. L'attente se sonde toutes les 60 ms (au lieu de 250) et le premier essai tombe à 40 ms (au lieu de 500). `?depart=lent` = l'ancien départ (attend `load`). */
+  const DEPART_LENT=/[?&]depart=lent\b/.test(location.search);
+  const policeFilm=function(){try{return !document.fonts||document.fonts.check('44px "Press Start 2P"');}catch(e){return true;}}; /* SA police seule : les autres polices du jeu n'ont rien à faire dans le film */
+  function essaiAuto(n){ /* attendre que le DOM soit prêt, la police du film chargée et la fenêtre visible */
     if(lance||fini)return;
-    if(document.hidden||document.readyState!=='complete'||(n<24&&document.fonts&&document.fonts.status==='loading')||(n<14&&litEnCours&&!LIT)){setTimeout(function(){essaiAuto(n+1);},250);return;}
+    const dom=DEPART_LENT?document.readyState==='complete':document.readyState!=='loading';
+    if(document.hidden||!dom||(n<100&&!(DEPART_LENT?!(document.fonts&&document.fonts.status==='loading'):policeFilm()))||(n<58&&litEnCours&&!LIT)){setTimeout(function(){essaiAuto(n+1);},DEPART_LENT?250:60);return;}
     autoLance();
   }
-  if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher\b/.test(location.search))setTimeout(function(){essaiAuto(0);},BOULE?500:1700); /* (?depart=toucher : l'ancien départ au toucher) */
+  if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher\b/.test(location.search))setTimeout(function(){essaiAuto(0);},BOULE?(DEPART_LENT?500:40):1700); /* (?depart=toucher : l'ancien départ au toucher) */
   if(BALADE||SIMU_JEU)setTimeout(finRapide,80); /* (atelier des nuages, simulateur) droit au jeu, sans l'intro */
   raf=requestAnimationFrame(boucle);
   let vuRev=false;
