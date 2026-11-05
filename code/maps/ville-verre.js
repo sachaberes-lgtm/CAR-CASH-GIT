@@ -43,6 +43,18 @@ const VIT_PLAFOND=/[?&]plafond=1\b/.test(location.search);
      la jouent toujours, telle quelle (le travail de Léo n'est pas touché).
    VILLE_VERRE_V=false = la ville néon d'avant (et la vitrée revient au tirage) — pas d'interrupteur d'adresse (allègement du 18/10). Console : `dbgVilleVerre()`. */
 const VILLE_VERRE_V=true;
+/* ===== CRYPTO CITY, UNE SEULE VILLE (2026-11-05, Sacha : « c'est une fusion des trois maps : Crypto City, Crypto Ville et la ville vitrée. Crypto City, la journée,
+   on enlève les bougies, on enlève le taureau, c'est la version journée ; Crypto Ville, la nuit avec la pluie, c'est la version nuit ; mais c'est la même map.
+   La ville vitrée se fusionne avec les deux, avec certains immeubles. Fais-le comme un vrai game designer ») =====
+   UNE map au tirage (SF_FUSION : `crypto` le jour, `ville` la nuit), UN nom (CRYPTO CITY), UN générateur (buildVoxCity : mêmes rangs, même règle d'or, mêmes
+   tours pour une graine donnée). Ce qui fait que c'est la même ville de jour et de nuit, ce sont ses GÉANTES DE VERRE : la même règle (villeVerreTour, tirée de
+   la POSITION de la tour, part tirée par le décor : DZ.verre) choisit les mêmes tours du skyline dans les deux, avec leurs formes de la ville vitrée (effilée,
+   vrillée, fuseau, ronde, lame, coins biseautés), leur mur-rideau et leurs logos. Autour d'elles : le JOUR les façades d'or, d'argent, de verre et de blanc
+   de Crypto City (cryptoMatTours), ses réclames du bull run, ses pièces ₿ ; la NUIT le béton, les enseignes et les réclames au néon de la ville sous la pluie.
+   Le verre lui-même change d'heure (villeVerreTick) : le jour il renvoie le VRAI ciel du biome (skyU.uJ*) et ses nuages, l'éclat du soleil, les bureaux
+   éteints, les filets et le parapet en OR (VV.acc) ; la nuit, la brume teintée de la ville, les bureaux allumés, les filets à la teinte du néon.
+   Ni taureau, ni bougies (retirés, code compris) ; la VILLE VITRÉE n'est plus une map (SF_CARTES) — son code reste, son verre sert ici. */
+const VV_JOUR={matin:{k:[.54,.80,.78],l:[1,.86,.70],a:[.62,.60,.76],s:1,n:0},midi:{k:[.47,.74,.94],l:[1,1,1],a:[.64,.72,.86],s:1,n:0},soir:{k:[.56,.82,.72],l:[1,.76,.56],a:[.46,.32,.48],s:.9,n:.22}}; // (les heures de la ville vitrée, VIT_MET_CL) · s : l'éclat du soleil · n : la part de bureaux allumés (au soir, les premières baies)
 const VV_STY='sty=s3<.34?0.:s3<.44?1.:s3<.56?2.:s3<.78?3.:4.'; // (NÉON ET VERRE) 34 % VERRE BLEU · 10 % BLANCHE à bandeaux · 12 % LAMES · 22 % SOMBRE · 22 % ARGENT — les mêmes seuils pour la structure (buildVoxCity)
 const VV={on:false,n:0,nv:0,acc:new THREE.Color(1,.25,.78),
   uZen:{value:new THREE.Vector3(.04,.02,.06)},uMid:{value:new THREE.Vector3(.12,.05,.16)},uHor:{value:new THREE.Vector3(.35,.14,.4)},uAcc:{value:new THREE.Vector3(1,.25,.78)},
@@ -56,8 +68,17 @@ function villeVerreTourD(cx,cz,haut,canyon,V){if(haut<(canyon?60:30))return fals
    à la première les géantes sortaient PLUS SOMBRES que les tours au néon — elles éteignaient le skyline ; d'où ces dosages.) */
 const VV_MET={pluie:[.20,.62,.95],nuit:[.52,.84,.55],brouillard:[.10,.50,1.],orage:[.16,.58,1.]}; // la couverture des nuages [seuil bas, seuil haut, force]
 function villeVerreTick(dt){
-  if(!(VV.on&&CITY.root&&LVL.cur&&LVL.cur.id==='ville'&&!LVL.cur.vitre&&!LVL.cur.crypto))return;
+  if(!(VV.on&&CITY.root&&LVL.cur&&LVL.cur.id==='ville'&&!LVL.cur.vitre))return;
   const f=scene.fog&&scene.fog.color,a=VV.acc;if(!f)return;
+  if(LVL.cur.crypto){ /* (2026-11-05, CRYPTO CITY, UNE SEULE VILLE) LE JOUR : le verre renvoie le vrai ciel du biome, ses nuages éclairés, le soleil */
+    const J=VV_JOUR[LVL.cur.meteo]||VV_JOUR.midi,k=Math.min(1,dt*1.5),K=VV.uClK.value,z=skyU.uJZen.value,m=skyU.uJMid.value,h=skyU.uJHor.value;
+    VV.uZen.value.set(z.x+a.r*.02,z.y+a.g*.02,z.z+a.b*.02);VV.uMid.value.set(m.x+a.r*.04,m.y+a.g*.04,m.z+a.b*.04);VV.uHor.value.set(h.x*.9+f.r*.1+a.r*.06,h.y*.9+f.g*.1+a.g*.06,h.z*.9+f.b*.1+a.b*.06);
+    VV.uAcc.value.set(a.r,a.g,a.b);
+    K.x+=(J.k[0]-K.x)*k;K.y+=(J.k[1]-K.y)*k;K.z+=(J.k[2]-K.z)*k;VV.uClL.value.set(J.l[0],J.l[1],J.l[2]);VV.uClA.value.set(J.a[0],J.a[1],J.a[2]);
+    VV.uNuit.value+=(J.n-VV.uNuit.value)*Math.min(1,k*4);VV.uSunK.value+=(J.s-VV.uSunK.value)*Math.min(1,k*4);
+    VIT.uSun.value.copy(SUN_DIR);VIT.uSunC.value.set(sun.color.r,sun.color.g,sun.color.b).multiplyScalar(Math.min(1.6,sun.intensity)); /* l'éclat du soleil, de sa couleur (la ville vitrée les posait ; elle n'est plus jouée) */
+    VV.uClD.value.x+=dt*.0016;VV.uClD.value.y+=dt*.0007;return;}
+  VV.uNuit.value=1;VV.uSunK.value=0; /* LA NUIT (la ville sous la pluie) : les bureaux allumés, pas de soleil dans le verre */
   VV.uZen.value.set(f.r*.55+a.r*.04,f.g*.55+a.g*.04,f.b*.55+a.b*.04);
   VV.uMid.value.set(f.r*1.0+a.r*.14,f.g*1.0+a.g*.14,f.b*1.0+a.b*.14);
   VV.uHor.value.set(f.r*1.35+a.r*.32,f.g*1.35+a.g*.32,f.b*1.35+a.b*.32); // la lueur de la ville et de ses néons à l'horizon du reflet
