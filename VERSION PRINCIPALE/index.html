@@ -13396,6 +13396,8 @@ function mergeSpheres(blobs,rx,ry,rz){
      géantes qu'on traverse (white-out) — eux aussi prennent la forme classique —, la mer, les voiles et tout ce que pose la campagne.
    · Traversé, un nuage de coton s'efface autour de l'objectif (fondu 10-40 m dans le shader) au lieu de claquer.
    Hook : `dbgCoton()` (nuages, envoyés près/loin, triangles, ms). */
+/* (2026-11-05, passe perf mobile 2, C3, `?c3=0` = avant) BUDGETS DES NUAGES : `nuFin` = la plus fine des quatre finesses de la ouate (3 = 22×15) permise ; `nuFac` = le facteur de finesse (73 : une facette sous ~1,7° ; plus petit = on passe plus tôt à la finesse légère). Palier 2 : inchangé. */
+PAL.B.nuFin=[2,3,3];PAL.B.nuFac=[56,64,73];PAL.B.nuCub=[30,36,40]; /* nuCub : au plus N cellules de cubes sur la plus grande dimension d'un nuage (40 avant) */
 const COTON={S:[],im:[],I:null,n:0,cap:560,mat:null,grid:null,root:null,L:null,M:new THREE.Matrix4(),Q:new THREE.Quaternion(),Sc:new THREE.Vector3(), // (v4) 420 → 480 : les petits nuages en plus
   P:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0),fr:new THREE.Frustum(),pv:new THREE.Matrix4(),nN:0,nF:0,tri:0,ms:0,
   SEG:[[7,5],[10,7],[16,11],[22,15]],FAC:73,CH:.45}; // les QUATRE finesses d'un gabarit ; FAC : on prend la plus légère dont une facette reste sous ~1,7° à l'écran (segments ≥ 73·R/d)
@@ -14362,7 +14364,7 @@ function cotonInst(o,A,C,b,tt){const I=COTON.I,r=I[o+3];C[b*3]=I[o+10];C[b*3+1]=
   COTON.M.compose(COTON.P,COTON.Q,COTON.Sc);COTON.M.toArray(A,b*16);}
 function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le champ, en quelle finesse, du plus loin au plus près
   if(!COTON.root||!COTON.root.visible)return;
-  const t00=performance.now(),I=COTON.I,Ls=COTON.L,J=COTON.jd,pj=J?cotonPalier():2,fm=J?J.f[pj]:3,n=J?Math.min(COTON.n,J.lim[pj]):COTON.n,tt=(t00-COTON_T0)*.001; /* (2026-10-14, passe graphismes) J : les Pics de Jade — les `lim[palier]` premiers nuages, jusqu'à la finesse `fm` */N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
+  const t00=performance.now(),I=COTON.I,Ls=COTON.L,J=COTON.jd,pj=J?cotonPalier():2,fm=J?J.f[pj]:(C3_ON?PAL.b('nuFin',3):3),n=J?Math.min(COTON.n,J.lim[pj]):COTON.n,tt=(t00-COTON_T0)*.001; /* (2026-10-14, passe graphismes) J : les Pics de Jade — les `lim[palier]` premiers nuages, jusqu'à la finesse `fm` */N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
   COTON.pv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);COTON.fr.setFromProjectionMatrix(COTON.pv);
   const pl=COTON.fr.planes,cx=cam.position.x,cy=cam.position.y,cz=cam.position.z;
   const LV=(NUVIT.on&&!J&&COTON.LV)?COTON.LV:null,W9=COTON.W,WC9=COTON.WC;if(LV)for(const Lv of LV)Lv.n=0; // (2026-10-18, LE FONDU) pas aux Pics de Jade
@@ -14371,7 +14373,7 @@ function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le ch
     const x=I[o]+Math.sin(tt*.05+ph)*6,z=I[o+2]+Math.cos(tt*.04+ph)*6,yc=I[o+1]+S.base*r*I[o+9]+h*.5,R=Math.max(r*1.08*I[o+8],h*.56); // la ouate DÉRIVE au vent
     let vis=true;for(let q=0;q<6;q++){const P9=pl[q];if(P9.normal.x*x+P9.normal.y*yc+P9.normal.z*z+P9.constant<-R){vis=false;break;}}
     if(!vis)continue;
-    const dx=x-cx,dy=yc-cy,dz=z-cz,d=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d-R>fF)continue;const sg=COTON.FAC*R*(S.fin||1)/Math.max(1,d-R*.5); // les segments qu'il faut pour que la facette ne se voie pas — (v4) à la taille de SES bourgeons
+    const dx=x-cx,dy=yc-cy,dz=z-cz,d=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d-R>fF)continue;const sg=(C3_ON?PAL.b('nuFac',COTON.FAC):COTON.FAC)*R*(S.fin||1)/Math.max(1,d-R*.5); // les segments qu'il faut pour que la facette ne se voie pas — (v4) à la taille de SES bourgeons
     const fq=Math.min(fm,(sg<=10?0:sg<=16?1:sg<=32?2:3)),Lq=Ls[k*4+fq]; /* (v8) la surface : ~10 px par cellule à l'écran */
     let w=0,wc=0,vq=3;if(LV){const V9=COTON.vit[k*4+3];if(V9&&V9.ok){const x=Math.max(1,d-R)/R,c=2/((NUVIT.fant?NUVIT.fsz:NUVIT.nc)*x); /* (2026-10-18, Sacha) LE FONDU : les parts du corps (w) et des cubes (wc) ; avant, des bascules (lot 2 : 40 % des fantômes, lot 3 : tous, tout près : la v8) */
       if(NUVIT.fondu){const P9=nuvPoids(x,c);w=P9[0];wc=P9[1];vq=(NUVIT.fant&&wc*1.06<=NUVIT.loin)?2:3;}else if(fq>=2&&c<=NUVIT.ang){w=wc=1;vq=fq;}}} // le lot lointain (40 % des fantômes) suffit tant que les cubes n'en demandent pas plus
@@ -14505,7 +14507,7 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
         f9.onBeforeRender=function(r9,s9,c9b,g9,m9){m9.uniforms.uNvW.value=1;m9.uniformsNeedUpdate=true;};if(!NUVIT.on)f9.visible=false;}}
     else if(q.fant){const G=nuFantGeo(q,fin9.dyU,g2),MS=nuVitMats(true),f9=new THREE.Mesh(G.fan,nufMat(MS.fan,G)); /* (fantôme) les bancs, coussins et tours : le maillage devient le CORPS rentré, les cubes fantômes sont son enfant */
       f9.castShadow=f9.receiveShadow=false;f9.updateMatrix();f9.matrixAutoUpdate=false;mesh.add(f9);
-      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.fan=true;u9.nvw=1;f9.onBeforeRender=function(r9,s9,c9,g9,m9){m9.uniforms.uNvW.value=u9.nvw;m9.uniformsNeedUpdate=true;}; /* (2026-10-18, LE FONDU) la part de cubes de CE nuage */u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},Math.max(NUVIT.nc,Math.min(40,Math.round(r/8))),fin9.dyU);
+      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.fan=true;u9.nvw=1;f9.onBeforeRender=function(r9,s9,c9,g9,m9){m9.uniforms.uNvW.value=u9.nvw;m9.uniformsNeedUpdate=true;}; /* (2026-10-18, LE FONDU) la part de cubes de CE nuage */u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},Math.max(NUVIT.nc,Math.min(C3_ON?PAL.b('nuCub',40):40,Math.round(r/8))),fin9.dyU);
   else if(fin9)cotonCalcAsync(fin9.S,CLOUD_SPH,function(q){if(!g.parent)return; /* jeté entre-temps (portail) */ const g2=cotonBuf(q);g2.scale(fin9.r,fin9.r,fin9.r);g2.translate(0,fin9.dy,0);g2.computeBoundingSphere();const o9=mesh.geometry;mesh.geometry=g2;o9.dispose();mesh.userData.fin=true;});
   CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
 }
@@ -16428,7 +16430,12 @@ function matSursisTick(){
    lueur additive, ligne) : 9 à 15 tranches visibles = 45 à 75 appels pour la seule route, sur 160-220. MESURÉ (banc processeur ×4, mêmes pistes
    `pistegraine=777`, 4 relevés par map) : rendu de la scène crypto 14,5 → 10,4 ms, forêt 20,2 → 9,8, nuages 16,3 → 10,8, jade 12,8 → 9,9, ville 8,3 → 7,7 ;
    la boucle forêt 66 → 39 ms, nuages 71 → 49. L'image ne change pas (le découpage ne sert qu'au tri par le champ de vision). `?tranche=600` = avant. */
-const PISTE_CH=Math.max(100,+((/[?&]tranche=(\d+)/.exec(location.search)||[])[1])||1200),PISTE_PAS=1,PISTE_LOD=[]; // `?tranche=n` : la taille des tranches (banc)
+/* (2026-11-05, passe perf mobile 2, C3 : budgets de rendu par palier) `?c3=0` = tout comme avant. Trois leviers, tous INVISIBLES à l'image ou presque, jamais au palier 2 :
+   (1) `pisteCh` : des tranches plus COURTES au téléphone ancien/moyen (le tri proche/moyen/loin se fait par tranche : une tranche de 1 200 points entière dès que son bout le plus
+   proche est à moins de 400 m traînait des centaines de mètres de bitume en pleine finesse) ; (2) `railMoy` : les rails et nappes néon prennent aussi la tranche moyenne
+   (une rangée sur 4 au-delà de 400 m) ; (3) `pieceArr` (boucle-4) : les pièces derrière la caisse. */
+const C3_ON=!/[?&]c3=0\b/.test(location.search);try{Object.assign(PAL.B,{pisteCh:[720,900,1200],railMoy:[1,1,0],pieceArr:[150,240,1e9]});}catch(e){}
+const PISTE_CH=Math.max(100,+((/[?&]tranche=(\d+)/.exec(location.search)||[])[1])||(C3_ON?PAL.b('pisteCh',1200):1200)),PISTE_PAS=1,PISTE_LOD=[]; // `?tranche=n` : la taille des tranches (banc)
 const TEINTE9={c:null,n:0}; // (chasse aux gels) la teinte du bitume par (point, colonne) — ne dépend pas de la piste : voir buildTrack
 function sphere9(g){ // (2026-09-28, chasse aux gels) computeBoundingSphere de three r128 recopié sur le tableau brut (même boîte, même centre
   // (min+max)×0,5, même plus grand carré de distance par Math.max, même racine) : mêmes flottants, sans Vector3 ni getX par sommet
@@ -16550,7 +16557,7 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
     trackMeshes.push(m); /* (LE PRÉ-BÂTI) elle entre dans la scène à l'installation (pisteInstalle) */
     if(o.loin===undefined)continue;
     yield;
-    let lo=null;const g2=o.loin?pisteMaigre(att,c,o.loin):null;
+    let lo=null;const g2=o.loin?pisteMaigre(att,c,o.loin,o.loin.pas):null;
     if(g2){lo=new THREE.Mesh(g2,mat);if(o.nom)lo.name=o.nom+' maigre';lo.receiveShadow=m.receiveShadow;lo.renderOrder=m.renderOrder;lo.visible=false;lo.userData.maigre=true;
       lo.updateMatrix();lo.matrixAutoUpdate=false;trackMeshes.push(lo);}
     let mo=null; // (LA TRANCHE MOYENNE, téléphone) toutes les colonnes, une rangée sur PISTE_MOY
@@ -17081,7 +17088,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     const mat9=traitMat(new THREE.MeshBasicMaterial({color:accC,side:THREE.DoubleSide,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),1.5,0);
     mat9.userData.base=accC.clone(); // la teinte d'accent de la zone, à retrouver après chaque pulsation
     NEON_RAILS.push(mat9);
-    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{marge:20,nom:'piste rails néon'});
+    yield* pisteTranches({position:[ep,3],aLat:[el,3],aS:[es9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{marge:20,nom:'piste rails néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined});
   }
   // NAPPE DE LUEUR sous chaque bande : additif qui saigne vers l intérieur du bitume — sans fog, le néon perce
   // la brume et les rails roses filent jusqu au bout de la nuit (1 mesh par face : gauche+droite fusionnées)
@@ -17105,7 +17112,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     mat9.userData.base=.78; // opacité de repos — la pulsation part de là et y revient
     NEON_GLOW.push(mat9);
     W.bords=true; // (LE PRÉ-BÂTI) bordsTick part à l'installation — (2026-10-14, bords-route) la 1re image du rail est déjà à la bonne couleur (chanfrein de jour / rail blanc de nuit)
-    yield* pisteTranches({position:[gp,3],color:[gc,3],aLat:[gl,3],aS:[gs9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{ordre:1,marge:20,nom:'piste nappe néon'}); // ...et leur nappe aussi
+    yield* pisteTranches({position:[gp,3],color:[gc,3],aLat:[gl,3],aS:[gs9,1]},{blocs:4,pr:2,np:NP,pas:1},mat9,{ordre:1,marge:20,nom:'piste nappe néon',loin:(C3_ON&&PAL.b('railMoy',0))?{blocs:4,pr:2,cols:[0,1],pas:8}:undefined}); // ...et leur nappe aussi
   }
   // ligne centrale pointillée — sodium doré, comme les vraies voies rapides la nuit (les DEUX faces : zéro dessus-dessous)
   /* (2026-09-26) UNE VRAIE PEINTURE AU SOL. C'était un trait GL d'UN pixel : aussi fin sous la caisse qu'à 2 km, crénelé, et au loin des
@@ -78747,12 +78754,12 @@ function loop(now){
     // (`lastNearS`) — sinon le couloir resterait figé au point de décollage et la zone d'arrivée
     // se retrouverait vide pendant tout le saut.
     {
-      const cS=(mode==='fall'?lastNearS:s),lodR=620+Math.abs(vA)*1.1;
+      const cS=(mode==='fall'?lastNearS:s),lodR=620+Math.abs(vA)*1.1,pieceArr=C3_ON?PAL.b('pieceArr',1e9):1e9; /* (2026-11-05, perf mobile 2, C3) les pièces À PLUS DE 150 m DERRIÈRE la caisse (ancien) ne sont dans aucune vue : on ne les range plus (`?c3=0` = avant) */
       for(const pk of pickups){
         if(pk.taken)continue;
         // ⚠ LA FACE D'EN DESSOUS NE SE DESSINE PAS AU SOL (2026-09-25) : chaque pickup existe en miroir sous la
         // route, invisible derrière la dalle mais DESSINÉ quand même — la moitié des appels de dessin pour rien.
-        const vis=(Math.abs(pk.s-cS)<lodR||(pk.air&&pk.mesh.position.distanceToSquared(carGroup.position)<640000))&&(mode==='fall'||pk.face===side); /* (LES SENTIERS DE LUCIOLES) le fil se voit de 800 m, quelle que soit la dalle la plus proche */
+        const vis=(Math.abs(pk.s-cS)<lodR||(pk.air&&pk.mesh.position.distanceToSquared(carGroup.position)<640000))&&(mode==='fall'||pk.face===side)&&(!pk.ci||pk.s>=cS-pieceArr); /* (LES SENTIERS DE LUCIOLES) le fil se voit de 800 m, quelle que soit la dalle la plus proche */
         if(pk.mesh.visible!==vis)pk.mesh.visible=vis;
         if(!vis)continue; // hors couloir : on ne l'anime même pas (une pièce instanciée n'est tout simplement pas rangée)
         pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5));
