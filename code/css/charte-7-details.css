@@ -249,7 +249,7 @@ img{-webkit-user-drag:none}
 @media (orientation:landscape) and (max-height:540px){html #mDead #nameEntry{grid-area:obj;align-self:start;z-index:2;background:var(--k0)}}
 /* le CONTRASTE des petits textes (8-10 px) : le lavande éteint gagne un cran (≈ 4,7:1 sur les fonds d'écran), les titres de section de la
    pause s'écrivent comme les réglages (le voile allégé laisse passer un ciel de jour), l'indication du champ se lit */
-:root{--tx3:#9a90c8}
+:root{--tx3:#aea5d8} /* (2026-11-05, Sonnet : jury INT-19) #9a90c8 → #aea5d8 : ≈ 4:1 sur la laque #120e26 pour une police pixel de 8 px, illisible en plein soleil */
 #tPanel .tpH:not(:first-child){color:var(--tx2);text-shadow:0 1px 0 var(--k0),0 0 8px var(--k0)}
 #nameInput::placeholder{color:var(--tx3)}
 /* « Affichage agrandi » d'iOS (320 pt de large) : RECOMMENCER tient dans sa plaque */

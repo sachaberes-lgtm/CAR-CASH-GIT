@@ -12,7 +12,7 @@ try{document.documentElement.classList.toggle('fil',LEFIL.on);}catch(e){}
 function filEl(){
   if(LEFIL.el&&LEFIL.el.isConnected)return LEFIL.el;
   const h=document.getElementById('auraV2');if(!h)return null;
-  const e=document.createElement('div');e.id='fil';e.setAttribute('aria-hidden','true');h.appendChild(e);LEFIL.el=e;return e;
+  const e=document.createElement('div');e.id='fil';e.setAttribute('aria-hidden','true');document.body.appendChild(e);LEFIL.el=e;return e; /* (2026-11-05) dans <body> : en bas au centre, plus sous le compteur d'aura */
 }
 function filBase(s){return String(s).replace(/\s*[+×]\s*[\d.,$].*$/,'').trim();} /* le nom du geste, sans ses points ni son × */
 function fil(txt,col,niv){

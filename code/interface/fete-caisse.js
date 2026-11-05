@@ -31,7 +31,7 @@ const FETE_CSS='#feteCaisse{position:fixed;inset:0;z-index:99990;pointer-events:
  +'#feteCaisse .feTexte i{display:inline-block;font-style:normal;font-size:max(15px,4.6vmin);letter-spacing:.18em;color:var(--fc);margin:.8vmin 0;padding:.5vmin 2vmin;border:.5vmin solid var(--fc);background:rgba(0,0,0,.55);box-shadow:0 0 3vmin var(--fc);animation:feTamp .55s calc(var(--k) + .12s) cubic-bezier(.2,1.7,.4,1) both}'
  +'#feteCaisse .feEtoiles{display:block;font-size:max(14px,3.4vmin);letter-spacing:.4em;margin:.4vmin 0 .8vmin;color:var(--fc);text-indent:.4em}'
  +'#feteCaisse .feEtoiles u{text-decoration:none;display:inline-block;opacity:0;animation:feEtoile .5s cubic-bezier(.2,1.8,.4,1) both;animation-delay:calc(var(--k) + .5s + var(--j)*.13s)}'
- +'#feteCaisse .feNom{display:block;font-size:max(20px,calc(var(--fs)*1vmin));line-height:1.12;font-weight:900}'
+ +'#feteCaisse .feNom{display:block;font-size:max(20px,calc(var(--fs)*1vmin));line-height:1.12;font-weight:400}'
  +'#feteCaisse .feNom span{display:inline-block;opacity:0;animation:feLettre .45s cubic-bezier(.2,1.6,.4,1) both;animation-delay:calc(var(--k) + .2s + var(--i)*.045s);'
  +'background:linear-gradient(100deg,#fff 0 40%,var(--fc) 50%,#fff 60% 100%);background-size:260% 100%;background-position:130% 0;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 .4vmin 0 rgba(0,0,0,.65)) drop-shadow(0 0 2vmin var(--fc));'
  +'animation-name:feLettre,feReflet;animation-duration:.45s,1.2s;animation-delay:calc(var(--k) + .2s + var(--i)*.045s),calc(var(--k) + 1s + var(--i)*.04s);animation-fill-mode:both,both}'

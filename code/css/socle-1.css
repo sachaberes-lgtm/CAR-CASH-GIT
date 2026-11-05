@@ -236,7 +236,7 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
     color:#7dffec;
     /* plus de bandeau derrière : c'est l'ombre portée qui décolle le texte du ciel */
     text-shadow:0 0 8px rgba(125,255,236,.55),0 2px 4px rgba(0,0,0,.9),0 0 14px rgba(0,0,0,.75)}
-  #engVigTier{display:block;color:#ffd75e;font-size:6px;opacity:.9;margin-top:2px}
+  #engVigTier{display:block;color:#ffd75e;font-size:7px;opacity:.9;margin-top:2px}
   /* ---- LE BADGE DE PALIER : la récompense qui CLAQUE ----
      ⚠ il se pose SUR la vignette du moteur, jamais au centre de l'écran. Ce qui vient de
      changer, c'est CETTE pièce-là : l'œil doit y aller. Un bandeau de plus au milieu se

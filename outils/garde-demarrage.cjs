@@ -7,6 +7,7 @@
    1. un <script> en ligne d'index.html ou un .js local qu'il charge qui ne se LIT pas (faute de syntaxe = page blanche sur tous les
       téléphones) — lu par acorn (outils/vendor/acorn.js, déjà vendu pour publie-allege) ;
    2. un <script src> local qui n'existe pas (404 = un morceau du jeu absent, en silence).
+   3. (2026-11-05, jury final, ECO-02) `TEST_CAISSES=true` dans index.html : toutes les caisses offertes à tous les joueurs (le drapeau d'essai du 14/10, oublié à true).
    Usage : node outils/garde-demarrage.cjs [dossier du jeu, défaut « VERSION PRINCIPALE »] · GARDE_DEMARRAGE=0 la coupe. Sortie 0 = OK, 1 = refus. */
 'use strict';
 const fs=require('fs'),path=require('path'),{execFileSync}=require('child_process');
@@ -24,6 +25,7 @@ if(fs.existsSync(path.join(RACINE,'code','assembler.cjs'))&&path.basename(DOS)==
 /* 1 et 2. les scripts */
 const h=fs.readFileSync(path.join(DOS,'index.html'),'utf8');
 const ligne=i=>h.slice(0,i).split('\n').length;
+if(/\bTEST_CAISSES\s*=\s*true\b/.test(h))fautes.push('index.html : TEST_CAISSES=true (toutes les caisses seraient offertes) — le remettre à false dans code/economie/aura-banque-contrats.js');
 let n=0;
 /* les <script> du document, hors commentaires HTML (un commentaire peut citer « <script> » en toutes lettres) */
 const blocs=[];for(let i=0;;){const c=h.indexOf('<!--',i),rs=/<script\b/gi;rs.lastIndex=i;const ks=rs.exec(h),o=ks?ks.index:-1;

@@ -261,6 +261,8 @@ window.dbgCanyon=function(k,a,b,c){
   if(k==='reprendre'){if(paused)togglePause();return 'ok';}
   if(k==='frag'){if(!CY.mat)return 'pas de matière';if(typeof a==='string'){CY.mat.fragmentShader=a;CY.mat.needsUpdate=true;}return CY.mat.fragmentShader;} /* (banc) la matière du relief relue / remplacée à chaud */
   if(k==='raccourcis')return CY.rac||[];
+  if(k==='pieces'){const r=[],vu=o=>{const g=o&&o.geometry;if(!g)return;const n=(g.index?g.index.count:g.attributes.position.count)/3,q=o.isInstancedMesh?o.count:1;r.push([o.name||o.type,Math.round(n),q,Math.round(n*q),o.visible,o.frustumCulled]);}; /* (2026-11-03, banc) le coût de chaque pièce du décor : [nom, triangles, instances, total, visible, coupée hors champ] */
+    if(CY.grp)CY.grp.traverse(vu);vu(CY_VAU.im);vu(CY_POUS.p);return {pieces:r,terrain:{noeuds:CY.n,grille:CY.G,tri:CY.n*CY.G*CY.G*2},libere:CY.libere|0,textures:['tC','tM','tZ','tS'].filter(function(t){return !!CY[t];}).length};}
   if(k==='vue'||k==='vueA'){if(!CY.on)return 'pas de canyon';if(started&&!gameOver&&!paused)togglePause();const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
     frameAt(Math.max(0,Math.min(L-1,(k==='vueA'?0:s)+(a||0))),F9); /* 'vueA' : à l'abscisse a de la piste (sinon a mètres devant la caisse) */const cap=(c||0)*Math.PI/180,dx=F9.t.x*Math.cos(cap)-F9.t.z*Math.sin(cap),dz=F9.t.z*Math.cos(cap)+F9.t.x*Math.sin(cap);
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(a!=null&&arguments[4]!=null?arguments[4]:.12),F9.p.z+dz*200);camera.updateMatrixWorld();

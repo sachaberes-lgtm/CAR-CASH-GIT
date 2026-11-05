@@ -17,6 +17,10 @@ sh garde-allege.sh
 # démarrer (index.html ≠ code/, un <script> illisible, un fichier chargé absent) n'est PAS publiée — le site garde la version d'avant
 # (outils/garde-demarrage.cjs ; GARDE_DEMARRAGE=0 la coupe).
 node outils/garde-demarrage.cjs
+# (2026-11-05, Opus : jury IOS-32 « une coupe cassée bloque la publication web avant de casser l'app ») L'ESSAI DE L'ÉDITION APP STORE : toute la
+# fabrication de l'app (app-ios/preparer-www.js : coupes vérifiées, retraits, inventaire réseau) jouée à blanc dans un dossier jetable. Une coupe
+# qui a perdu sa cible (le jeu a bougé) arrête la publication du site : on répare la coupe, puis on publie. GARDE_APP=0 la coupe.
+[ "$GARDE_APP" = "0" ] || node app-ios/preparer-www.js --essai "VERSION PRINCIPALE"
 rm -rf .vercel-static
 mkdir -p .vercel-static
 cp -R demo/cash-car-demo .vercel-static/demo
@@ -50,10 +54,9 @@ rm -f .vercel-static/jouer/musique-moteur.html .vercel-static/jouer/assets/audio
 rm -f .vercel-static/jouer/bibliotheque.html
 rm -f .vercel-static/jouer/test-depart-musique.html   # (2026-10-25) la page de test du palier de départ de la musique de course : outil local de Léo
 rm -f .vercel-static/jouer/lobby-musiques.html   # (2026-11-03) la liste d écoute des musiques de Léo : outil LOCAL
-rm -rf .vercel-static/jouer/assets/audio/music/depart .vercel-static/jouer/assets/audio/music/petites-musiques
-find .vercel-static/jouer/assets/audio/music/boucles -type f ! -name dark-triad.m4a -delete 2>/dev/null || true
-rm -f .vercel-static/jouer/assets/audio/music/lobby/menu-donnees.js .vercel-static/jouer/assets/audio/music/lobby/chris-donnees.js .vercel-static/jouer/assets/audio/music/lobby/garage-*.m4a
-rm -f .vercel-static/jouer/assets/audio/music/direct/french-touch.html .vercel-static/jouer/assets/audio/music/direct/gouts-mesures.json .vercel-static/jouer/assets/audio/music/direct/musique-glisse.js
+# (2026-11-05, Opus : jury IOS-11) ces retraits (depart/, petites-musiques/, boucles/ sauf dark-triad.m4a, lobby menu/chris-donnees et garage-*.m4a,
+# direct/french-touch.html, gouts-mesures.json, musique-glisse.js, *.py) sont UNE liste, outils/retraits-publies.cjs, que l'app (preparer-www.js) applique aussi.
+node outils/retraits-publies.cjs .vercel-static/jouer
 # …et ce qui dépend des musiques de POUCE BLEU (musique-moteur.json) est calculé à chaque build, avec la règle du jeu : les dossiers de paliers
 # des morceaux rangés « bleu », les générateurs que les 👍 rejouent, les échantillons vrais/ du rejeu (outils/vrais-jeu.json, tant que sa preuve
 # colle). AVANT publie-allege (l'empreinte de la preuve lit les fichiers tels que le dépôt les a).

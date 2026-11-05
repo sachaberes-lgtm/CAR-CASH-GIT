@@ -1,5 +1,13 @@
 </head>
 <body>
+<script>/* ===== LA PAGE-CADRE NE CHARGE PAS LE JEU (2026-11-05, Opus : jury DIR-07) =====
+   Sur l'ordi, /jouer/ est une page-cadre qui montre le jeu dans une colonne (iframe, voir <head> : CC_COLONNE). Son grand script s'arrêtait à
+   sa 1re ligne, mais tout le reste du corps partait quand même : three.js, figures.js, le post-traitement, la banque de sons (7 Mo), sfx.js,
+   la lecture du grand script de ~10 Mo… deux fois (38,6 Mo mesurés, deux tâches longues). Le boîtier, l'iframe et les boutons sont tous
+   construits par le <head> (à DOMContentLoaded) : ici le reste du document devient un texte caché, inerte (rien n'est chargé ni exécuté).
+   `?cadre=ancien` : la page-cadre d'avant. */
+if(window.CC_COLONNE&&!/[?&]cadre=ancien\b/.test(location.search))document.write('<plaintext id="ccCadreInerte" hidden style="display:none">');
+</script>
 <!-- ================= LE MOUCHARD : un écran noir ne doit JAMAIS rester muet =================
      ⚠ IL EST DANS SON PROPRE <script>, ET C'EST TOUT L'INTÉRÊT. Le capteur d'erreur du jeu vit DANS
      le grand script : si celui-ci meurt au PARSING (une accolade de travers, une syntaxe que le
