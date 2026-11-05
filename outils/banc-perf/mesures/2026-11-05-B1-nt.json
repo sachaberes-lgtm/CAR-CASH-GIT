@@ -1,0 +1,408 @@
+{
+ "date": "2026-11-05 15:55",
+ "opt": {
+  "palier": 0,
+  "n": 2,
+  "json": "outils/banc-perf/mesures/2026-11-05-B1-nt.json",
+  "menu": 8.0,
+  "mort": 1.5,
+  "extra": ""
+ },
+ "charge": 29.0,
+ "tempsFiables": false,
+ "cpu": 4,
+ "passes": [
+  {
+   "carte": "nuages:midi",
+   "palier": 0,
+   "prebJouer": {
+    "etat": "pret",
+    "carte": "nuages-midi",
+    "dep": 1,
+    "pris": 0,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 1282
+   },
+   "jouer": {
+    "pire": 200,
+    "sup100": 2,
+    "sup150": 1,
+    "images": 156,
+    "duree_ms": 2983
+   },
+   "ntJouer": "[32]",
+   "pickJouer": {
+    "n": 284,
+    "somme": -161295.86,
+    "pieces": 0
+   },
+   "prebRejouer": {
+    "etat": "pret",
+    "carte": "canyon-matin",
+    "dep": 1,
+    "pris": 1,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 1628
+   },
+   "rejouer": {
+    "pire": 200,
+    "sup100": 1,
+    "sup150": 1,
+    "images": 163,
+    "duree_ms": 2983
+   },
+   "ntRejouer": "[99]",
+   "pickRejouer": {
+    "n": 268,
+    "somme": 628338.6,
+    "pieces": 0
+   },
+   "err": null
+  },
+  {
+   "carte": "nuages:midi",
+   "palier": 0,
+   "prebJouer": {
+    "etat": "pret",
+    "carte": "nuages-midi",
+    "dep": 1,
+    "pris": 0,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 1892
+   },
+   "jouer": {
+    "pire": 100,
+    "sup100": 1,
+    "sup150": 0,
+    "images": 165,
+    "duree_ms": 2983
+   },
+   "ntJouer": "[32]",
+   "pickJouer": {
+    "n": 284,
+    "somme": -161295.86,
+    "pieces": 0
+   },
+   "prebRejouer": {
+    "etat": "pret",
+    "carte": "ville-orage",
+    "dep": 1,
+    "pris": 1,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 1332
+   },
+   "rejouer": {
+    "pire": 217,
+    "sup100": 1,
+    "sup150": 1,
+    "images": 162,
+    "duree_ms": 2983
+   },
+   "ntRejouer": "[85]",
+   "pickRejouer": {
+    "n": 304,
+    "somme": 392769.79,
+    "pieces": 0
+   },
+   "err": null
+  },
+  {
+   "carte": "ville:pluie",
+   "palier": 0,
+   "prebJouer": {
+    "etat": "pret",
+    "carte": "ville-orage",
+    "dep": 1,
+    "pris": 0,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 1104
+   },
+   "jouer": {
+    "pire": 150,
+    "sup100": 2,
+    "sup150": 1,
+    "images": 155,
+    "duree_ms": 2983
+   },
+   "ntJouer": "[60]",
+   "pickJouer": {
+    "n": 302,
+    "somme": 391764.38,
+    "pieces": 0
+   },
+   "prebRejouer": {
+    "etat": "pret",
+    "carte": "dunes-nuit",
+    "dep": 1,
+    "pris": 1,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 2310
+   },
+   "rejouer": {
+    "pire": 117,
+    "sup100": 1,
+    "sup150": 0,
+    "images": 168,
+    "duree_ms": 2983
+   },
+   "ntRejouer": "[15]",
+   "pickRejouer": {
+    "n": 502,
+    "somme": 1211117.79,
+    "pieces": 0
+   },
+   "err": null
+  },
+  {
+   "carte": "ville:pluie",
+   "palier": 0,
+   "prebJouer": {
+    "etat": "pret",
+    "carte": "ville-orage",
+    "dep": 1,
+    "pris": 0,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 2097
+   },
+   "jouer": {
+    "pire": 150,
+    "sup100": 1,
+    "sup150": 0,
+    "images": 165,
+    "duree_ms": 2983
+   },
+   "ntJouer": "[55]",
+   "pickJouer": {
+    "n": 302,
+    "somme": 391778.86,
+    "pieces": 0
+   },
+   "prebRejouer": {
+    "etat": "en cours",
+    "carte": "jade-nuit",
+    "dep": 1,
+    "pris": 1,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 3427
+   },
+   "rejouer": {
+    "pire": 133,
+    "sup100": 1,
+    "sup150": 0,
+    "images": 163,
+    "duree_ms": 3000
+   },
+   "ntRejouer": "[27]",
+   "pickRejouer": {
+    "n": 270,
+    "somme": 963387.41,
+    "pieces": 0
+   },
+   "err": null
+  },
+  {
+   "carte": "jade:midi",
+   "palier": 0,
+   "prebJouer": {
+    "etat": "pret",
+    "carte": "jade-midi",
+    "dep": 1,
+    "pris": 0,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 4093
+   },
+   "jouer": {
+    "pire": 167,
+    "sup100": 2,
+    "sup150": 1,
+    "images": 158,
+    "duree_ms": 2983
+   },
+   "ntJouer": "[38]",
+   "pickJouer": {
+    "n": 266,
+    "somme": 952350.45,
+    "pieces": 0
+   },
+   "prebRejouer": {
+    "etat": "en cours",
+    "carte": "grotte-glace",
+    "dep": 1,
+    "pris": 1,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 3432
+   },
+   "rejouer": {
+    "pire": 100,
+    "sup100": 0,
+    "sup150": 0,
+    "images": 69,
+    "duree_ms": 2966
+   },
+   "ntRejouer": "[]",
+   "pickRejouer": {
+    "n": 454,
+    "somme": 85055.13,
+    "pieces": 0
+   },
+   "err": null
+  },
+  {
+   "carte": "jade:midi",
+   "palier": 0,
+   "prebJouer": {
+    "etat": "pret",
+    "carte": "jade-midi",
+    "dep": 1,
+    "pris": 0,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 3945
+   },
+   "jouer": {
+    "pire": 117,
+    "sup100": 1,
+    "sup150": 0,
+    "images": 164,
+    "duree_ms": 2966
+   },
+   "ntJouer": "[30]",
+   "pickJouer": {
+    "n": 268,
+    "somme": 963600.4,
+    "pieces": 0
+   },
+   "prebRejouer": {
+    "etat": "pret",
+    "carte": "ville-orage",
+    "dep": 1,
+    "pris": 1,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 1334
+   },
+   "rejouer": {
+    "pire": 167,
+    "sup100": 1,
+    "sup150": 1,
+    "images": 161,
+    "duree_ms": 2983
+   },
+   "ntRejouer": "[66]",
+   "pickRejouer": {
+    "n": 304,
+    "somme": 392783.83,
+    "pieces": 0
+   },
+   "err": null
+  },
+  {
+   "carte": "foret:midi",
+   "palier": 0,
+   "prebJouer": {
+    "etat": "pret",
+    "carte": "foret-midi",
+    "dep": 1,
+    "pris": 0,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 2699
+   },
+   "jouer": {
+    "pire": 150,
+    "sup100": 3,
+    "sup150": 1,
+    "images": 134,
+    "duree_ms": 3000
+   },
+   "ntJouer": "[45]",
+   "pickJouer": {
+    "n": 264,
+    "somme": -381337.67,
+    "pieces": 0
+   },
+   "prebRejouer": {
+    "etat": "en cours",
+    "carte": "grotte-nuit",
+    "dep": 1,
+    "pris": 1,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 3660
+   },
+   "rejouer": {
+    "pire": 133,
+    "sup100": 1,
+    "sup150": 0,
+    "images": 73,
+    "duree_ms": 3333
+   },
+   "ntRejouer": "[]",
+   "pickRejouer": {
+    "n": 452,
+    "somme": 88614,
+    "pieces": 0
+   },
+   "err": null
+  },
+  {
+   "carte": "foret:midi",
+   "palier": 0,
+   "prebJouer": {
+    "etat": "pret",
+    "carte": "foret-midi",
+    "dep": 1,
+    "pris": 0,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 2362
+   },
+   "jouer": {
+    "pire": 133,
+    "sup100": 2,
+    "sup150": 0,
+    "images": 149,
+    "duree_ms": 3116
+   },
+   "ntJouer": "[20]",
+   "pickJouer": {
+    "n": 264,
+    "somme": -381337.67,
+    "pieces": 0
+   },
+   "prebRejouer": {
+    "etat": "pret",
+    "carte": "nuages-matin",
+    "dep": 1,
+    "pris": 1,
+    "pasPris": 0,
+    "echecs": 0,
+    "ms": 1262
+   },
+   "rejouer": {
+    "pire": 133,
+    "sup100": 1,
+    "sup150": 0,
+    "images": 148,
+    "duree_ms": 3300
+   },
+   "ntRejouer": "[]",
+   "pickRejouer": {
+    "n": 286,
+    "somme": -160655.29,
+    "pieces": 0
+   },
+   "err": null
+  }
+ ]
+}
