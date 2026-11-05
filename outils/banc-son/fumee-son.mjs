@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 const a = process.argv.slice(2);
 const opt = (k, d) => { const i = a.indexOf('--' + k); return i >= 0 ? a[i + 1] : d; };
 const W = +opt('w', 844), H = +opt('h', 390), FOIS = +opt('fois', 1), COURSE = +opt('course', 30), JEU = +opt('jeu', 9830), PORT = +opt('port', 9831);
-const PLUS = opt('url', ''), MOBILE = a.includes('--mobile'), FREN = a.includes('--frenesie');
+const NCOURSES = +opt('courses', 2), PLUS = opt('url', ''), MOBILE = a.includes('--mobile'), FREN = a.includes('--frenesie'), CHANCE = a.includes('--chance');
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const ICI = path.dirname(fileURLToPath(import.meta.url));
 const SONDE = fs.readFileSync(path.join(ICI, 'sonde.js'), 'utf8');
@@ -140,9 +140,25 @@ for (let tour = 1; tour <= FOIS; tour++) {
     await c.ev('dbgAuto(true,0)'); await sleep(4000);
     if (FREN) { /* --frenesie : la jauge pleine, la frénésie déclenchée par le vrai chemin, sa musique (la triade) puis la mort */
       log(`[${tour}] frénésie : ${JSON.stringify(await c.ev(`(function(){try{dbgFren('v',100);var r=dbgFren('entre');return {musique:r.musique,lv:r.lv};}catch(e){return e.message}})()`))}`);
-      await sleep(9000);
+      await sleep(2500);
+      const f1 = await releve(c);
+      log(`[${tour}] frénésie +2,5 s : medias ${JSON.stringify(f1.medias)} · fren ${JSON.stringify(f1.fren && { m: f1.fren.musique, lv: f1.fren.lv, t: f1.fren.tenue })} · pouce ${f1.pouce && f1.pouce.titre}`);
+      if (f1.fren && f1.fren.musique === 'triade' && !f1.medias.some(m => /dark-triad/.test(m.src))) pb.push('frénésie : la TRIADE est annoncée mais aucun <audio> ne la joue (trou de musique)');
+      await sleep(6500);
       R.fren = await releve(c); juge('frénésie', R.fren, { musMax: 1 }, pb);
       log(`[${tour}] en frénésie : musiques ${JSON.stringify(musiques(R.fren))} · medias ${JSON.stringify(R.fren.medias)} · fren ${R.fren.fren && R.fren.fren.musique} · pouce ${JSON.stringify(R.fren.pouce)}`);
+    }
+    if (CHANCE) { /* --chance : mourir, laisser le lobby repartir (1,4 s), prendre la SECONDE CHANCE : le morceau de la course doit revenir */
+      const t0 = (await releve(c)).pouce; await c.ev(`(function(){try{dbgAuto(false);dbgChance('t',200);}catch(e){}try{return dbgChance('mort');}catch(e){return e.message}})()`);
+      await attends(c, '(function(){try{return dbgState().gameOver}catch(e){return false}})()', 20000); await sleep(4500);
+      const tl = (await releve(c)).pouce;
+      const j = await c.ev(`(function(){try{return {etat:dbgChance(),joue:dbgChance('joue')};}catch(e){return e.message}})()`);
+      const ok = await attends(c, '(function(){try{var s=dbgState();return s.started&&!s.gameOver}catch(e){return false}})()', 25000); await sleep(4000);
+      const t1 = (await releve(c)).pouce;
+      log(`[${tour}] seconde chance : ${JSON.stringify(j && j.joue)} · course ${t0 && t0.titre} → lobby ${tl && tl.titre} (${tl && tl.phase}) → reprise ${t1 && t1.titre} (${t1 && t1.phase}) · repartie ${ok}`);
+      if (!ok) pb.push('seconde chance : la course ne repart pas (' + JSON.stringify(j) + ')');
+      else if (t0 && t1 && t0.titre !== t1.titre) pb.push(`seconde chance : le morceau CHANGE (${t0.titre} → ${t1.titre}) alors que la course continue`);
+      await c.ev('dbgAuto(true,0)'); await sleep(3000);
     }
     /* la mort */
     await c.ev(`(function(){try{dbgAuto(false);}catch(e){}try{return dbgDauphin('boom');}catch(e){return e.message}})()`);
@@ -164,8 +180,23 @@ for (let tour = 1; tour <= FOIS; tour++) {
     R.course2 = await releve(c); juge('course 2', R.course2, { musMax: 1 }, pb);
     log(`[${tour}] course 2 : sources ${R.course2.sources} ${JSON.stringify(R.course2.typesSources)} · liens ${R.course2.liens} (${R.course2.noeudsLies} nœuds) · tas ${R.course2.tasMo} Mo · musiques ${JSON.stringify(musiques(R.course2))} · pouce ${JSON.stringify(R.course2.pouce)}`);
     if (!musiques(R.course2).length) pb.push('course 2 : AUCUNE musique (MUSIQUE allumée)');
-    const dl = R.course2.liens - R.course1.liens;
-    if (dl > 60) pb.push(`liaisons audio : ${R.course1.liens} en course 1 → ${R.course2.liens} en course 2 (+${dl}) : fuite probable`);
+    /* --courses N : la mort et REJOUER encore N−2 fois (10 s de course chacune) — la pente des nœuds vivants et du tas, course après course */
+    R.serie = [[1, R.course1.noeudsLies, R.course1.tasMo], [2, R.course2.noeudsLies, R.course2.tasMo]];
+    for (let k = 3; k <= NCOURSES; k++) {
+      await c.ev(`(function(){try{dbgAuto(false);}catch(e){}try{return dbgDauphin('boom');}catch(e){return e.message}})()`);
+      await attends(c, '(function(){try{return dbgState().gameOver}catch(e){return false}})()', 30000); await sleep(3000);
+      let parti = false; for (let q = 0; q < 4 && !parti; q++) { if (!await touche(c, '[data-m="replay"]')) break; parti = await attends(c, '(function(){try{var s=dbgState();return s.started&&s.running&&!s.gameOver}catch(e){return false}})()', 15000); }
+      if (!parti) { pb.push(`course ${k} : REJOUER ne relance pas`); break; }
+      await c.ev('dbgAuto(true,0)'); await sleep(10000);
+      const e = await releve(c); juge('course ' + k, e, { musMax: 1 }, pb); R.serie.push([k, e.noeudsLies, e.tasMo]); R['course' + k] = e;
+      log(`[${tour}] course ${k} : ${e.noeudsLies} nœuds vivants · tas ${e.tasMo} Mo · ctx ${e.contextes.map(x => x.etat)} · musiques ${JSON.stringify(musiques(e))}`);
+    }
+    if (NCOURSES > 2) { const S0 = R.serie[1], S1 = R.serie[R.serie.length - 1], n = S1[0] - S0[0];
+      if (n > 0) { const pente = (S1[1] - S0[1]) / n; log(`[${tour}] pente : ${pente.toFixed(1)} nœuds vivants de plus par course · ${((S1[2] - S0[2]) / n).toFixed(1)} Mo de tas par course`);
+        if (pente > 15) pb.push(`fuite : ${pente.toFixed(0)} nœuds audio vivants de plus à chaque course (${S0[1]} → ${S1[1]} en ${n} courses)`);
+        const D = []; const A = R['course2'].parPile || {}, B = R['course' + S1[0]].parPile || {}; for (const q in B) { const d = B[q] - (A[q] || 0); if (d > n) D.push([d, q]); }
+        D.sort((x, y) => y[0] - x[0]); if (D.length) log(`[${tour}] ce qui grossit (course 2 → ${S1[0]}) :\n     ` + D.slice(0, 12).map(x => '+' + x[0] + '  ' + x[1]).join('\n     ')); } }
+    /* (les nœuds vivants d'une course à l'autre dépendent du morceau tiré : seule la PENTE sur ≥ 5 courses dit une fuite, voir --courses) */
     await c.ev(`(function(){try{dbgAuto(false);}catch(e){}try{return dbgDauphin('boom');}catch(e){return e.message}})()`);
     await attends(c, '(function(){try{return dbgState().gameOver}catch(e){return false}})()', 30000);
     await sleep(4000);
@@ -177,8 +208,7 @@ for (let tour = 1; tour <= FOIS; tour++) {
     { const A = R.course1.parPile || {}, B = R.accueil2.parPile || {}, D = [];
       for (const k in B) { const d = B[k] - (A[k] || 0); if (d > 2) D.push([d, k]); }
       D.sort((x, y) => y[0] - x[0]); if (D.length) log(`[${tour}] nœuds branchés en plus (course 1 → accueil 2) :\n     ` + D.slice(0, 14).map(x => '+' + x[0] + '  ' + x[1]).join('\n     ')); }
-    const dla = R.accueil2.liens - R.accueil.liens;
-    if (dla > 80) pb.push(`liaisons audio : accueil ${R.accueil.liens} → accueil après 2 courses ${R.accueil2.liens} (+${dla})`);
+    /* (idem pour l'accueil) */
     log(`[${tour}] sons de la banque joués : ${R.accueil2.nPlays} (${Object.keys(R.accueil2.plays).length} ids) · créés ${JSON.stringify(R.accueil2.crees)}`);
   } catch (e) { pb.push('PARCOURS : ' + e.message); }
   for (const e of c.erreurs) pb.push('console : ' + e);
