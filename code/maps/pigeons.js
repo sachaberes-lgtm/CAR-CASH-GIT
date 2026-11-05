@@ -1,35 +1,30 @@
 // ---------- PIGEONS RAMIERS : rares traversées d'oiseaux — un peu de vie dans le ciel ----------
 const PIGEONS=[];let pigeonT=12+Math.random()*14;
-const pgBodyM=new THREE.MeshLambertMaterial({color:0x97a2b6});
-const pgBreastM=new THREE.MeshLambertMaterial({color:0xc9a9b4});
-const pgWingM=new THREE.MeshLambertMaterial({color:0x76839b,side:THREE.DoubleSide});
-const pgBarM=new THREE.MeshBasicMaterial({color:0xf4f6fa,side:THREE.DoubleSide});
+/* (2026-11-03, maps cohérentes) UN PIGEON = TROIS APPELS DE DESSIN (dix avant : corps, poitrail, tête, deux taches, queue, deux ailes, deux barres) et
+   UN programme (trois avant : Lambert recto, Lambert recto-verso, Basic). Les morceaux qui bougent ensemble sont FUSIONNÉS une fois pour toutes,
+   chacun avec SA couleur (couleur par sommet) : le corps entier d'un côté, chaque aile avec sa barre blanche de l'autre (elles battent). Mêmes
+   formes, mêmes couleurs, mêmes battements ; la barre et les taches du cou prennent maintenant la lumière comme le reste (elles étaient « Basic »). */
+const pgM=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});
+function pgFusion(parts){ // [[géométrie, position, rotation x, échelle, couleur], …] → une géométrie non indexée, la couleur dans ses sommets
+  const P=[],N=[],C=[],c=new THREE.Color(),M=new THREE.Matrix4(),Q=new THREE.Quaternion(),E=new THREE.Euler(),V=new THREE.Vector3(),S=new THREE.Vector3();
+  for(const q of parts){Q.setFromEuler(E.set(q[2]||0,0,0));V.fromArray(q[1]);S.fromArray(q[3]||[1,1,1]);M.compose(V,Q,S);
+    const g=q[0].clone().applyMatrix4(M),h=g.index?g.toNonIndexed():g,pa=h.attributes.position.array,na=h.attributes.normal.array;c.setHex(q[4]);
+    for(let i=0;i<pa.length;i++){P.push(pa[i]);N.push(na[i]);}for(let i=0;i<pa.length/3;i++)C.push(c.r,c.g,c.b);g.dispose();if(h!==g)h.dispose();}
+  const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(P,3));o.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
+  o.setAttribute('color',new THREE.Float32BufferAttribute(C,3));o.computeBoundingSphere();return o;}
 // (2026-09-26, passe fuites) les géométries des pigeons sont PARTAGÉES : chaque oiseau en créait 10 neuves, jamais libérées
-const PG_G={body:new THREE.SphereGeometry(.5,9,7),breast:new THREE.SphereGeometry(.24,8,6),head:new THREE.SphereGeometry(.16,8,6),nk:new THREE.SphereGeometry(.06,6,5),
-  tail:new THREE.BoxGeometry(.26,.04,.5),wing:new THREE.PlaneGeometry(1.0,.42),bar:new THREE.PlaneGeometry(.9,.11)};
+const PG_G=(function(){const s=[new THREE.SphereGeometry(.5,9,7),new THREE.SphereGeometry(.24,8,6),new THREE.SphereGeometry(.16,8,6),new THREE.SphereGeometry(.06,6,5),
+  new THREE.BoxGeometry(.26,.04,.5),new THREE.PlaneGeometry(1.0,.42),new THREE.PlaneGeometry(.9,.11)],GRIS=0x97a2b6,ROSE=0xc9a9b4,AILE=0x76839b,BLANC=0xf4f6fa,r=-Math.PI/2;
+  const o={corps:pgFusion([[s[0],[0,0,0],0,[.52,.46,1.15],GRIS],[s[1],[0,-.06,.3],0,0,ROSE],[s[2],[0,.18,.56],0,0,GRIS], // le corps, le poitrail rosé, la tête
+      [s[3],[-.12,.14,.44],0,0,BLANC],[s[3],[.12,.14,.44],0,0,BLANC],[s[4],[0,.02,-.66],0,0,AILE]]), // les taches blanches du cou (la signature du ramier), la queue
+    aile:[-1,1].map(function(sd){return pgFusion([[s[5],[sd*.5,0,0],r,0,AILE],[s[6],[sd*.5,.01,.02],r,0,BLANC]]);})}; // chaque aile et sa barre alaire blanche
+  for(const g of s)g.dispose();return o;})();
 function mkPigeon(){
   const g=new THREE.Group();
-  const body=new THREE.Mesh(PG_G.body,pgBodyM);
-  body.scale.set(.52,.46,1.15);g.add(body);
-  const breast=new THREE.Mesh(PG_G.breast,pgBreastM); // poitrail rosé
-  breast.position.set(0,-.06,.3);g.add(breast);
-  const head=new THREE.Mesh(PG_G.head,pgBodyM);
-  head.position.set(0,.18,.56);g.add(head);
-  for(const sd of [-1,1]){ // tache blanche du cou — la signature du ramier
-    const nk=new THREE.Mesh(PG_G.nk,pgBarM);
-    nk.position.set(sd*.12,.14,.44);g.add(nk);
-  }
-  const tail=new THREE.Mesh(PG_G.tail,pgWingM);
-  tail.position.set(0,.02,-.66);g.add(tail);
-  for(const sd of [-1,1]){ // ailes battantes avec barre alaire blanche
-    const wg=new THREE.Group();wg.position.set(sd*.16,.1,.06);
-    const wing=new THREE.Mesh(PG_G.wing,pgWingM);
-    wing.rotation.x=-Math.PI/2;wing.position.x=sd*.5;wg.add(wing);
-    const bar=new THREE.Mesh(PG_G.bar,pgBarM);
-    bar.rotation.x=-Math.PI/2;bar.position.set(sd*.5,.01,.02);wg.add(bar);
-    g.add(wg);
-    if(sd<0)g.userData.wl=wg;else g.userData.wr=wg;
-  }
+  g.add(new THREE.Mesh(PG_G.corps,pgM));
+  for(let i=0;i<2;i++){const sd=i?1:-1,wg=new THREE.Group();wg.position.set(sd*.16,.1,.06); // ailes battantes (pivot à l'épaule)
+    wg.add(new THREE.Mesh(PG_G.aile[i],pgM));g.add(wg);
+    if(sd<0)g.userData.wl=wg;else g.userData.wr=wg;}
   g.scale.setScalar(1.7);
   return g;
 }

@@ -73,11 +73,11 @@ function nuCasseTick(dt,t){
     const dx=P[j]-cp.x,dy=P[j+1]-cp.y,dz=P[j+2]-cp.z,dd=Math.sqrt(dx*dx+dy*dy+dz*dz);
     if(dd<46){const k=(1-dd/46)*dt*1.3;V[j]+=(cv.x*.6-V[j])*k;V[j+1]+=(cv.y*.6-V[j+1])*k;V[j+2]+=(cv.z*.6-V[j+2])*k;} // le sillage les emporte
     P[j]+=V[j]*dt;P[j+1]+=V[j+1]*dt;P[j+2]+=V[j+2]*dt;R[j]+=W[j]*dt;R[j+1]+=W[j+1]*dt;R[j+2]+=W[j+2]*dt;}
-  const n=NCB.n;im.count=n;
+  const n=NCB.n;im.count=n;NCB.vu=(NCB.vu||0)+1;im.visible=n>0||NCB.vu<4; /* (2026-11-03, maps cohérentes) VIDE = INVISIBLE (comme les peaux de cotonTick) : la gerbe vit dans la scène de TOUTES les maps ; à zéro bloc three préparait encore programme et uniformes à chaque image — les 3 premières images la gardent visible : le programme se compile au menu */
   for(let i=0;i<n;i++){const j=i*3,age=NCB.A[i],life=NCB.L[i],cx=P[j]-camera.position.x,cy=P[j+1]-camera.position.y,cz=P[j+2]-camera.position.z,dc=Math.sqrt(cx*cx+cy*cy+cz*cz),fc=Math.min(1,Math.max(0,(dc-4)/13)),sz=NCB.S[i]*Math.min(1,.25+age*8)*Math.min(1,(life-age)/.45)*fc*fc*(3-2*fc); // près de l'objectif un bloc rétrécit (jamais un mur de cube sur l'écran)
    
     e.set(R[j],R[j+1],R[j+2]);q.setFromEuler(e);pp.set(P[j],P[j+1],P[j+2]);ss.set(sz,sz,sz);m.compose(pp,q,ss);im.setMatrixAt(i,m);const b=NCB.B[i];im.instanceColor.setXYZ(i,b,b,b);}
-  im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}
+  if(n){im.instanceMatrix.updateRange.offset=0;im.instanceMatrix.updateRange.count=n*16;im.instanceMatrix.needsUpdate=true;im.instanceColor.updateRange.offset=0;im.instanceColor.updateRange.count=n*3;im.instanceColor.needsUpdate=true;}} /* (2026-11-03) seulement les blocs vivants partent au GPU — avant, les 700 places (53 ko) À CHAQUE IMAGE, sur toutes les maps, même sans un bloc */
 window.dbgCasse=function(o){o=o||{};nuCasseInit();if(!NCB.mesh)return 'pas prêt'; // (banc) dbgCasse({c:1}) = une trouée + une gerbe devant la caisse
   if(o.c){const cp=carGroup.position.clone();if(o.d)cp.addScaledVector(new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion),o.d);nuCasseBurst(cp,o.k==null?1:o.k,{r:o.r||120});}
   if(o.pas)for(let i=0;i<o.pas;i++)nuCasseTick(1/60,performance.now()/1000+i/60); // (banc, en pause) fait avancer la gerbe de o.pas images
@@ -160,7 +160,7 @@ function nuPouInit(){
 function nuPouTick(dt,t){
   if(!NPOU.on)return;if(!NPOU.mesh){nuPouInit();if(!NPOU.mesh)return;}
   const c9=LVL&&LVL.cur,run=started&&!gameOver,actif=run?!!(c9&&c9.carte==='nuages'&&mode!=='boom'):(typeof CHUTE!=='undefined'&&CHUTE.on&&!garageOn),im=NPOU.mesh;
-  if(!actif){im.count=0;NPOU.init=false;return;}
+  if(!actif){if(im.visible){im.count=0;im.visible=false;}NPOU.init=false;return;} /* (2026-11-03) hors de la map nuages : retiré du rendu (même programme que la gerbe, déjà compilé) */
   const F=NPOU.f,C=NPOU.c,RT=NPOU.rt;
   if(run){C.copy(carGroup.position);if(NCB.cv.lengthSq()>25)F.copy(NCB.cv).normalize();else F.set(0,0,1).applyQuaternion(carGroup.quaternion);}
   else{camera.getWorldDirection(F);C.copy(camera.position).addScaledVector(F,160);} // au titre : devant l'objectif
@@ -174,4 +174,4 @@ function nuPouTick(dt,t){
     const dr=Math.exp(-dt*.35);V[j]*=dr;V[j+1]*=dr;V[j+2]*=dr;P[j]+=V[j]*dt;P[j+1]+=V[j+1]*dt;P[j+2]+=V[j+2]*dt;R[j]+=W[j]*dt;R[j+1]+=W[j+1]*dt;R[j+2]+=W[j+2]*dt;
     const cx=P[j]-cam.x,cy=P[j+1]-cam.y,cz=P[j+2]-cam.z,dc=Math.sqrt(cx*cx+cy*cy+cz*cz),fn=Math.min(1,Math.max(0,(dc-25)/55)),ff=Math.min(1,Math.max(0,(reach-dd)/90)),sc=NPOU.S[i]*fn*fn*ff;
     e.set(R[j],R[j+1],R[j+2]);q.setFromEuler(e);pp.set(P[j],P[j+1],P[j+2]);ss.set(sc,sc,sc);m.compose(pp,q,ss);im.setMatrixAt(i,m);const b=NPOU.B[i];im.instanceColor.setXYZ(i,b,b,b);}
-  NPOU.init=true;im.count=NPOU.n;im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}
+  NPOU.init=true;im.count=NPOU.n;im.visible=true;im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}

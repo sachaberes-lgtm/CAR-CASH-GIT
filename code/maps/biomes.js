@@ -377,35 +377,40 @@ BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fogN:90,fogF:1150,s
    mirage, tempête, paillettes], dnK = [satin, rides, lumière enveloppée, —], dnW / dnX = l'eau claire / profonde de l'oasis. cyR = les dunes et les
    pyramides de l'horizon (uCyDn). Le temps « pluie » est un VENT DE SABLE (pas une goutte), l'« orage » une TEMPÊTE DE SABLE (orage sec : les éclairs
    dans la poussière). */
+/* (2026-11-03, passe « maps cohérentes », Sacha : « fais les dunes d'or de manière parfaite » — MESURÉ au banc, Lab des photos) L'OR RESTE DE L'OR : au SOIR (la
+   carte postale) le sable vu en contre-jour sortait LILAS (L* 65, teinte −36°, chroma 33-38) — l'ombre lavande `dnS` (la palette de Léo, 27/10 : gardée), poussée
+   à 1,2 (`dnE[0]`), REMPLAÇAIT la teinte du sable ; au MATIN la face à l'ombre était un indigo saturé (chroma 43). La lavande reste, moins forte (`dnE[0]` ,9 le soir,
+   ,85 le matin) : l'or du sable passe à travers ; le ciel du soir (variante rose) moins mauve. La NUIT devient d'ARGENT (le sable gris argent et non mauve, l'ombre
+   argent-bleu, voir aussi CONTI.nuits) ; le VENT DE SABLE moins orange (chroma 56 au sable). */
 {const dnB=function(b,o){return bioMet(BIOMES[b],o);};
  BIOMES.dunesMatin=dnB('canyonMatin',{nm:'DUNES · MATIN',jZen:[.08,.27,.66],jMid:[.34,.48,.78],jHor:[.98,.70,.58],jSol:[.7,.38,.20],
    fog:[.94,.72,.62],fogN:600,fogF:7800,fogCj:[1,.78,.60],fogIn:[.96,.86,.82],hemiS:[.40,.52,.86],hemiG:[.72,.46,.34],hemiI:.58,sunC:[1,.74,.48],sunI:1.6,fillC:[.38,.48,.90],fillI:.26,
    env:[[0,'#4E8FDA'],[.3,'#A9B2DA'],[.48,'#F8D6BC'],[.58,'#FFE2C4'],[.66,'#E2A27E'],[1,'#9A5A3E']],
    cyZ:[.08,.27,.66],cyM:[.34,.48,.78],cyH:[.98,.70,.58],cyS:[1,.68,.44],cyB:[.90,.50,.64],cyC:[1,.82,.74],cyD:[.46,.42,.60],cyR:[.94,.64,.54],
    cyK:[.58,.3,0,0],cyN:[.9,.9,1.3,0],cyA:[10,68,0,0],
-   dnA:[.96,.76,.54],dnB:[.86,.58,.38],dnL:[1,.88,.72],dnS:[.52,.56,1.0],dnC:[.98,.88,.84],dnV:[.17,.34,.11],dnH:[.98,.80,.70],dnQ:[.30,.20,0,.6],dnK:[.55,1,.25,1],dnW:[.14,.64,.66],dnX:[.03,.24,.36]});
+   dnA:[.96,.76,.54],dnB:[.86,.58,.38],dnL:[1,.88,.72],dnS:[.52,.56,1.0],dnC:[.98,.88,.84],dnV:[.17,.34,.11],dnH:[.98,.80,.70],dnQ:[.30,.20,0,.6],dnK:[.55,1,.25,1],dnW:[.14,.64,.66],dnX:[.03,.24,.36],dnE:[.85,1,.8,1]});
  BIOMES.dunesMidi=dnB('canyonMidi',{nm:'DUNES · MIDI',jZen:[.02,.20,.66],jMid:[.12,.48,.86],jHor:[.92,.80,.62],jSol:[.36,.30,.18],
    fog:[.90,.80,.64],fogN:900,fogF:9800,fogCj:[1,.86,.64],fogIn:[.96,.92,.84],hemiS:[.40,.62,1.0],hemiG:[.82,.56,.36],hemiI:.52,sunC:[1,.94,.82],sunI:1.35,fillC:[.44,.62,.95],fillI:.18,
    env:[[0,'#2F86E0'],[.3,'#6CC2EE'],[.48,'#E6E2D6'],[.58,'#FFF6E6'],[.66,'#EAB27E'],[1,'#A8643C']],
    cyZ:[.02,.20,.66],cyM:[.12,.48,.86],cyH:[.92,.80,.62],cyS:[1,.95,.86],cyB:[.72,.70,.78],cyC:[1,1,.98],cyD:[.56,.64,.78],cyR:[.94,.72,.52],
    cyK:[.74,.3,0,0],cyN:[0,.6,1.8,0],cyA:[50,205,0,0],
    dnA:[.92,.76,.46],dnB:[.82,.62,.34],dnL:[.99,.90,.70],dnS:[.42,.50,.92],dnC:[1,.94,.86],dnV:[.14,.34,.09],dnH:[.94,.86,.68],dnQ:[.22,1,0,1],dnK:[.45,1,.2,.62],dnW:[.10,.72,.70],dnX:[.02,.30,.40]});
- BIOMES.dunesSoir=dnB('canyonSoir',{nm:'DUNES · SOIR',jZen:[.08,.10,.40],jMid:[.50,.30,.46],jHor:[1,.58,.32],jSol:[1,.52,.22],
-   fog:[.96,.62,.42],fogN:700,fogF:8200,fogCj:[1,.68,.42],fogIn:[1,.84,.72],hemiS:[.62,.60,.78],hemiG:[.88,.70,.54],hemiI:.74,sunC:[1,.74,.46],sunI:1.7,fillC:[.42,.44,.95],fillI:.36,
+ BIOMES.dunesSoir=dnB('canyonSoir',{nm:'DUNES · SOIR',jZen:[.08,.10,.40],jMid:[.56,.36,.46],jHor:[1,.58,.32],jSol:[1,.52,.22],
+   fog:[.96,.62,.42],fogN:700,fogF:8200,fogCj:[1,.68,.42],fogIn:[1,.84,.72],hemiS:[.66,.62,.72],hemiG:[.88,.70,.54],hemiI:.74,sunC:[1,.74,.46],sunI:1.7,fillC:[.42,.44,.95],fillI:.36,
    env:[[0,'#4A4FA6'],[.3,'#B0749A'],[.48,'#FFB27E'],[.58,'#FFC88C'],[.66,'#E0663A'],[1,'#74301C']],
-   cyZ:[.08,.10,.40],cyM:[.50,.30,.46],cyH:[1,.58,.32],cyS:[1,.52,.22],cyB:[.82,.46,.58],cyC:[1,.68,.46],cyD:[.36,.26,.42],cyR:[.78,.46,.38],
+   cyZ:[.08,.10,.40],cyM:[.56,.36,.46],cyH:[1,.58,.32],cyS:[1,.52,.22],cyB:[.82,.46,.58],cyC:[1,.68,.46],cyD:[.40,.30,.40],cyR:[.78,.46,.38],
    cyK:[.55,.35,0,0],cyN:[.6,1.3,1.25,0],cyA:[5,-104,0,0],
-   dnA:[1,.84,.62],dnB:[.96,.72,.54],dnL:[1,.92,.78],dnS:[.76,.70,.94],dnC:[1,.84,.70],dnV:[.17,.30,.09],dnH:[1,.74,.52],dnQ:[.32,.40,0,.85],dnK:[.65,1,.30,1],dnW:[.16,.48,.56],dnX:[.03,.14,.26],dnE:[1.2,1,.9,1.2]});
+   dnA:[1,.84,.62],dnB:[.96,.72,.54],dnL:[1,.92,.78],dnS:[.76,.70,.94],dnC:[1,.84,.70],dnV:[.17,.30,.09],dnH:[1,.74,.52],dnQ:[.32,.40,0,.85],dnK:[.65,1,.30,1],dnW:[.16,.48,.56],dnX:[.03,.14,.26],dnE:[.9,1,.9,1.2]});
  BIOMES.dunesNuit=dnB('canyonNuit',{nm:'DUNES · NUIT',cyA:[34,150,0,0],cyR:[.10,.09,.20], /* (MESURÉ à la photo : un sable clair sous la lune sortait blanc rosé comme de la neige — le sable de nuit est sombre, la crête argentée) */
-   dnA:[.40,.34,.36],dnB:[.34,.27,.30],dnL:[.62,.66,.86],dnS:[.50,.56,1.15],dnC:[.55,.56,.66],dnV:[.10,.20,.14],dnH:[.10,.10,.24],dnQ:[.25,0,0,.4],dnK:[.7,1,.3,1],dnW:[.04,.10,.16],dnX:[.01,.03,.06],dnE:[1.1,1,.5,.9],dnP:[.62,.78,1,1]});
+   dnA:[.38,.37,.40],dnB:[.31,.29,.33],dnL:[.70,.76,.90],dnS:[.60,.66,.92],dnC:[.55,.56,.66],dnV:[.10,.20,.14],dnH:[.09,.11,.22],dnQ:[.25,0,0,.4],dnK:[.7,1,.3,1],dnW:[.04,.10,.16],dnX:[.01,.03,.06],dnE:[.8,1,.5,.9],dnP:[.62,.78,1,1]});
  BIOMES.dunesVent=dnB('canyonMidi',{nm:'DUNES · VENT DE SABLE',jZen:[.24,.30,.42],jMid:[.56,.48,.40],jHor:[.88,.66,.44],jSol:[.5,.36,.2],
    fog:[.80,.60,.40],fogN:140,fogF:2800,fogCj:[.92,.70,.46],fogIn:[.88,.70,.52],hemiS:[.62,.58,.62],hemiG:[.62,.44,.30],hemiI:.78,sunC:[1,.80,.58],sunI:.95,fillC:[.50,.50,.62],fillI:.2,
    env:[[0,'#7A7E8C'],[.3,'#A69A88'],[.48,'#D8B48A'],[.58,'#E6C49A'],[.66,'#B8865A'],[1,'#6A4428']],
    cyZ:[.24,.30,.42],cyM:[.56,.48,.40],cyH:[.88,.66,.44],cyS:[1,.78,.52],cyB:[0,0,0],cyC:[.96,.74,.48],cyD:[.58,.40,.26],cyR:[.80,.58,.40],
    cyK:[0,0,0,0],cyN:[0,1.1,.7,.55],cyA:[42,160,0,0],
-   dnA:[.98,.64,.34],dnB:[.90,.46,.24],dnL:[1,.80,.58],dnS:[.70,.66,.90],dnC:[.94,.86,.76],dnV:[.22,.40,.14],dnH:[.86,.64,.42],dnQ:[.85,0,.6,.15],dnK:[.35,.7,.35,1],dnW:[.30,.40,.36],dnX:[.10,.14,.14],dnE:[.7,.8,.3,.3],dnP:[1,.8,.5,.4]});
+   dnA:[.96,.68,.42],dnB:[.86,.52,.32],dnL:[1,.80,.58],dnS:[.70,.66,.90],dnC:[.94,.86,.76],dnV:[.22,.40,.14],dnH:[.86,.64,.42],dnQ:[.85,0,.6,.15],dnK:[.35,.7,.35,1],dnW:[.30,.40,.36],dnX:[.10,.14,.14],dnE:[.7,.8,.3,.3],dnP:[1,.8,.5,.4]});
  BIOMES.dunesTempete=dnB('canyonOrage',{nm:'DUNES · TEMPÊTE DE SABLE',jZen:[.10,.06,.05],jMid:[.30,.16,.09],jHor:[.58,.32,.16],jSol:[0,0,0],
-   fog:[.34,.19,.10],fogN:70,fogF:1300,fogCj:[.46,.26,.13],fogIn:[.42,.25,.15],hemiS:[.46,.34,.30],hemiG:[.30,.18,.09],hemiI:.55,sunC:[1,.60,.34],sunI:.55,fillC:[.48,.38,.50],fillI:.24,
+   fog:[.34,.19,.10],fogN:70,fogF:1300,fogCj:[.46,.26,.13],fogIn:[.42,.25,.15],hemiS:[.46,.34,.30],hemiG:[.26,.18,.11],hemiI:.55,sunC:[1,.60,.34],sunI:.55,fillC:[.48,.38,.50],fillI:.24,
    env:[[0,'#3A2A22'],[.3,'#5A3E2C'],[.48,'#8A5C38'],[.58,'#9A6A40'],[.66,'#5A3A24'],[1,'#20140C']],
    cyZ:[.10,.06,.05],cyM:[.30,.16,.09],cyH:[.58,.32,.16],cyS:[.9,.5,.25],cyB:[0,0,0],cyC:[.66,.38,.18],cyD:[.24,.12,.06],cyR:[.40,.22,.11],
    cyK:[0,0,0,0],cyN:[0,.8,.3,.9],cyA:[36,170,0,0],
@@ -427,7 +432,7 @@ BIOMES.foretMatin=bioMet(BIOMES.matin,{nm:'FORÊT · MATIN',jZen:[.11,.35,.72],j
   env:[[0,'#5E9FDD'],[.3,'#9CC4D6'],[.48,'#E8DCC0'],[.58,'#F2E6CC'],[.66,'#6E7A5A'],[1,'#2E3A26']],eS1:[255,236,200,.44],eS2:[170,210,235,.28]});
 BIOMES.foretMidi=bioMet(BIOMES.midi,{nm:'FORÊT · MIDI',jZen:[.05,.28,.74],jMid:[.21,.48,.82],jHor:[.62,.81,.93],jSol:[.30,.28,.20],sunTint:[1,.97,.90],sunHalo:.55,
   fogN:140,fogF:2700,fogCj:[.92,.93,.86],fogIn:[.86,.92,.90],hemiS:[.68,.80,.98],hemiG:[.32,.42,.22],hemiI:.78,sunI:1.6,fillC:[.48,.64,.90],fillI:.2,
-  expo:.98,con:1.18,rtK:.85,sh:[0,.008,.03],hi:[.01,.006,-.006],vigK:.2,vigC:[.03,.045,.05],bloomS:.42,
+  expo:.98,con:1.18,rtK:.72,sh:[0,.008,.03],hi:[.01,.006,-.006],vigK:.2,vigC:[.03,.045,.05],bloomS:.42,
   env:[[0,'#3F8FE0'],[.3,'#7FB8EA'],[.48,'#D8ECF2'],[.58,'#FFFFFF'],[.66,'#6E8A5E'],[1,'#2A3A24']],eS2:[150,205,250,.3]});
 BIOMES.foretSoir=bioMet(BIOMES.nuagesSoir,{nm:'FORÊT · SOIR',jZen:[.10,.115,.39],jMid:[.46,.30,.32],jHor:[1,.49,.25],jSol:[1,.50,.20],sunTint:[1,.62,.38],sunHalo:1,stars:.15,moon:0,
   fog:[.92,.50,.28],fogN:100,fogF:2200,fogCj:[1,.72,.48],fogIn:[1,.88,.78],hemiS:[.52,.50,.70],hemiG:[.30,.24,.16],sunC:[1,.68,.42],fillC:[.42,.40,.66],fillI:.2,
@@ -443,7 +448,8 @@ BIOMES.foretPluie=bioMet(BIOMES.nuagesPluie,{nm:'FORÊT · PLUIE',jZen:[.155,.21
   env:[[0,'#3a4450'],[.3,'#5a646e'],[.48,'#8a9298'],[.58,'#9aa2a6'],[.66,'#4a5650'],[1,'#262e2a']],eS1:[200,214,226,.3],eS2:[150,170,186,.25]});
 BIOMES.foretOrage=bioMet(BIOMES.tempete,{nm:'FORÊT · ORAGE',jour:1,jZen:[.013,.020,.051],jMid:[.035,.05,.10],jHor:[.068,.093,.162],sunTint:[.7,.75,.9],
   fog:[.10,.12,.13],fogN:50,fogF:1000,fogCj:[.24,.29,.31],fogIn:[.28,.32,.33],hemiS:[.36,.42,.50],hemiG:[.07,.09,.09],hemiI:.52,sunC:[.62,.70,.82],sunI:.5,fillC:[.30,.40,.52],fillI:.26,kickI:.18,
-  expo:.9,sat:.9,con:1.18,rtK:.85,sh:[0,.01,.02],hi:[0,0,0],daCon:.4,daExpo:1.1,vigK:.45,vigC:[.015,.02,.025],bloomS:.5,bloomT:.92});
+  expo:.9,sat:.9,con:1.18,rtK:1.15,sh:[0,.01,.02],hi:[0,0,0],daCon:.4,daExpo:1.1,vigK:.45,vigC:[.015,.02,.025],bloomS:.5,bloomT:.92});
+/* (2026-11-03, maps cohérentes : la route repère commun, L* 32-45 de jour) LE BÉTON DE LA FORÊT, MESURÉ au banc : à MIDI il sortait à L* 45-52 (le plus clair des maps, la caisse beige s'y perdait) → rtK ,85 → ,72 : L* 40-46 ; sous l'ORAGE il était NOIR (L* 0-4) → rtK ,85 → 1,15 (avec l'exposition rendue, voir « LA FORÊT CONTRASTÉE » dans continuite.js) : L* 19-20. */
 /* LA BANQUISE — SES SIX TEMPS (2026-10-14, Sacha : « fais une map absolument magnifique »). Écrites d'après la CHARTE (jour:1, couleurs du ciel et
    brume en LINÉAIRE, sat ≤ 1,03 de jour, ≤ 1,07 le soir, ≤ ,95 la nuit, la neige et le blizzard ; con ≤ 1,24). Identité de la map : le BLEU
    PROFOND du ciel d'altitude contre la neige, des OMBRES BLEUES (jamais grises), la glace TURQUOISE, le rose de l'alpenglow aux heures

@@ -28,15 +28,22 @@ function sapequePeint(c){
 function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, « ¥ » au niveau SOLEIL DE JADE (voir coinSymbole)
   const N=16,cv=COIN_CV;const c=cv.getContext('2d');
   if(sym==='Y'){sapequePeint(c);return;} // (2026-10-14, passe graphismes) sur la piste jade : la SAPÈQUE de laiton (même toile 16 × 16, repeinte)
-  /* (2026-09-26, vague 2) L'OR DE LA BIBLE À L'ÉCRAN : #ffd75e. MESURÉ en course (pixels lus après l'ACES et le grade) : l'ancienne pièce
-     (#ffc12e, émissif blanc ×.42, et surtout éclairée par la scène) sortait #fe8004 au couchant — ORANGE pur, la teinte des plots
-     et de la flamme — et BRONZE sombre (#682800) dans la nuit de la ville. Deux causes : (1) elle vivait de la lumière de la scène,
-     orange au couchant, magenta en ville ; (2) le grade (saturation ×1,4 puis ×1,12, coude des hautes lumières) pousse tout jaune
-     vif vers l'orange : le vert tient à la luminance, le rouge s'envole et `roule` divise par lui. D'où une pièce qui ÉMET (voir
-     pickMat) et un champ peint en or CITRON #fff27a : c'est lui qui ressort OR à l'écran (mesuré : #fcb120 au couchant au lieu de
-     #fe8004, un or franc au lieu du bronze dans la ville) — et plus jamais de la teinte des plots. */
-  const COL=sym==='B'?{k:'#5a2600',d:'#d8780c',g:'#ffab2e',l:'#fff1d0',h:'#ffd38a',s:'#fffaf0'}: /* (2026-10-13) CRYPTOCITY : la pièce BITCOIN — champ orange, ₿ blanc */sym==='Y'?{k:'#073a20',d:'#e0a818',g:'#6ff0ae',l:'#fff6c8',h:'#d6ffe8',s:'#0a4428'}:{k:'#6e3c00',d:'#d8a412',g:'#fff27a',l:'#fffbe6',h:'#fffbd0',s:'#8a4a00'}; // (2026-10-12) au SOLEIL DE JADE : le champ en JADE, la tranche d'OR, le ¥ en vert sombre (une pièce d'or se perdait sur la route en pièces d'or)
-  const DOL=sym==='B'?['.#.#.','####.','#...#','#...#','####.','#...#','#...#','####.','.#.#.']:sym==='Y'?['#...#','#...#','.#.#.','..#..','#####','..#..','#####','..#..','..#..']:['..#..','.####','#.#..','#.#..','.###.','..#.#','..#.#','####.','..#..'];
+  if(sym!=='B'){ // (2026-11-01, Sacha : « redessine les pièces en 1 et 2 € ») LA PIÈCE BIMÉTAL : un anneau et un cœur dans deux
+    // métaux — le seul trait qui dit « pièce d'euro » à 16 px, plus net qu'un symbole frappé. ⚠ UNE SEULE texture pour toutes les
+    // pièces de la route (coinIM : une matière, un appel) : impossible de mélanger 1 € et 2 € pièce à pièce sans dédoubler le
+    // dessin — on prend l'alliage de la 1 €, la plus répandue (anneau d'or, cœur d'argent), plutôt que l'inverse de la 2 €.
+    const ANN={h:'#fff6c8',g:'#ffd75e',d:'#8a5a00'},COE={h:'#f6f9fb',g:'#d8dee4',d:'#8a97a2'}; // l'ANNEAU (or) · le CŒUR (cupronickel)
+    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+      const dx=x-7.5,dy=y-7.5,r=Math.hypot(dx,dy);
+      if(r>6.9||(r>3&&r<=3.35)){c.fillStyle='#201400';c.fillRect(x,y,1,1);continue;} // le liseré sombre, et le SILLON entre les deux métaux
+      const COL=r>3.35?ANN:COE,k=r>5.7?((dx+dy<-1)?'h':(dx+dy>2?'d':'g')):((dx+dy<(r>3.35?-6:-2))?'h':'g');
+      c.fillStyle=COL[k];c.fillRect(x,y,1,1);
+    }
+    return;
+  }
+  /* (2026-10-13) CRYPTOCITY : la pièce BITCOIN — champ orange, ₿ blanc, inchangée */
+  const COL={k:'#5a2600',d:'#d8780c',g:'#ffab2e',l:'#fff1d0',h:'#ffd38a',s:'#fffaf0'};
+  const DOL=['.#.#.','####.','#...#','#...#','####.','#...#','#...#','####.','.#.#.'];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const dx=x-7.5,dy=y-7.5,r=Math.hypot(dx,dy);let k;
     if(r>6.9)k='k';                                   // le liseré sombre (il découpe la pièce sur n'importe quel ciel)
@@ -441,35 +448,35 @@ function fruitGeo(i){
 // modèle 3D (0 = plus de pistons du tout : turbines et réacteurs).
 const ENGINE_TIERS=[
   {n:'MOTEUR ROUILLÉ',    d:'Il tousse, il fume, il prie. Mais il tourne.',        coins:0,   push:1.00,res:2.00,cyl:2, col:0x7a5a3c,flam:0x8a6a30},
-  {n:'BICYLINDRE',        d:'Deux cylindres. Un qui pousse, un qui regarde.',      coins:5,   push:1.06,res:2.02,cyl:2, col:0x9fa8b0,flam:0xd08a3c},
-  {n:'3 CYLINDRES',       d:'Deux qui toussent, un qui prie.',                     coins:12,  push:1.12,res:2.05,cyl:3, col:0x9a8f7a,flam:0xff8a30},
-  {n:'4 EN LIGNE',        d:'Le premier moteur qui ne s\'excuse pas.',             coins:21,  push:1.19,res:2.08,cyl:4, col:0xa8a294,flam:0xffa040},
-  {n:'4 SOUPAPES',        d:'Il respire enfin par le nez.',                        coins:33,  push:1.26,res:2.11,cyl:4, col:0xb4b0a2,flam:0xffb050},
-  {n:'4 EN LIGNE TURBO',  d:'Le premier vrai souffle. Ça siffle.',                 coins:48,  push:1.34,res:2.15,cyl:4, col:0x6fd0ff,flam:0xffc23a},
-  {n:'5 CYLINDRES',       d:'Un chiffre impair, un bruit inoubliable.',            coins:66,  push:1.42,res:2.19,cyl:5, col:0x5cc0f0,flam:0xffcc50},
-  {n:'V6',                d:'La forme fait le son. Le son fait le reste.',         coins:88,  push:1.50,res:2.23,cyl:6, col:0x4a9cff,flam:0x8ad8ff},
-  {n:'V6 BITURBO',        d:'Deux turbos, zéro patience.',                         coins:114, push:1.59,res:2.28,cyl:6, col:0x3f8cf5,flam:0x8ad8ff},
-  {n:'BOXER À PLAT',      d:'Le centre de gravité au ras du bitume.',              coins:145, push:1.68,res:2.33,cyl:4, col:0x5a7ae0,flam:0x9ac0ff},
-  {n:'V8 ATMO',           d:'Le grondement qui fait trembler la dalle.',           coins:181, push:1.78,res:2.38,cyl:8, col:0xff7a3c,flam:0xff5a2a},
-  {n:'V8 COMPRESSÉ',      d:'Un compresseur, et la dalle demande grâce.',          coins:223, push:1.88,res:2.43,cyl:8, col:0xff8a48,flam:0xff6a30},
-  {n:'V10',               d:'Dix cylindres, zéro argument.',                       coins:271, push:1.99,res:2.49,cyl:10,col:0xffa055,flam:0xff8038},
-  {n:'V12',               d:'Douze cylindres qui hurlent à l\'unisson.',           coins:326, push:2.10,res:2.55,cyl:12,col:0xffd75e,flam:0xfff0a0},
-  {n:'W12',               d:'Deux V6 mariés de force. Ça marche.',                 coins:389, push:2.21,res:2.61,cyl:12,col:0xffe27a,flam:0xfff4b8},
-  {n:'V16',               d:'Seize. Parce que quinze, c\'était ridicule.',         coins:452, push:2.33,res:2.67,cyl:16,col:0xf2ecc8,flam:0xfff8d0},
-  {n:'H16 F1',            d:'Seize cylindres en H. Interdit en course. Logique.',  coins:540, push:2.45,res:2.73,cyl:16,col:0xe8eef6,flam:0xbfe8ff},
-  {n:'QUADRITURBO',       d:'Quatre escargots, une seule idée.',                   coins:630, push:2.58,res:2.80,cyl:8, col:0xd8e8ff,flam:0xa8d8ff},
-  {n:'ROTATIF TRIPLE',    d:'Pas de pistons. Que du hurlement.',                   coins:731, push:2.71,res:2.87,cyl:3, col:0xc0e0ff,flam:0x90d0ff},
-  {n:'TURBINE À GAZ',     d:'L\'hélicoptère a appelé. Il veut son moteur.',        coins:844, push:2.85,res:2.94,cyl:0, col:0xa8dcf0,flam:0x8ae0ff},
-  {n:'TURBINE À PLASMA',  d:'Plus de pistons. Un souffle continu, bleu.',          coins:970, push:2.99,res:3.01,cyl:0, col:0x7dffec,flam:0x9fffe8},
-  {n:'STATORÉACTEUR',     d:'Il n\'avale plus l\'air. Il l\'agresse.',             coins:1110,push:3.13,res:3.08,cyl:0, col:0x6affe0,flam:0x8affe8},
-  {n:'PULSORÉACTEUR',     d:'Un battement par milliseconde. C\'est le tien qui suit.',coins:1265,push:3.28,res:3.15,cyl:0,col:0x8affc0,flam:0xb0ffd0},
-  {n:'RÉACTEUR NUCLÉAIRE',d:'Tu roules avec un cœur de centrale sous le capot.',   coins:1420,push:3.44,res:3.23,cyl:0, col:0x9dff50,flam:0xd8ff7a},
-  {n:'CŒUR À FUSION',     d:'Une petite étoile, sanglée sous le capot.',           coins:1624,push:3.60,res:3.31,cyl:0, col:0xd8ff60,flam:0xf0ff90},
-  {n:'ANTIMATIÈRE',       d:'Un gramme. Un seul. Ne freine pas.',                  coins:1830,push:3.76,res:3.39,cyl:0, col:0xffe860,flam:0xfff2a0},
-  {n:'MOTEUR À DISTORSION',d:'Ce n\'est plus toi qui avances. C\'est la route qui recule.',coins:2055,push:3.90,res:3.46,cyl:0,col:0xff9ad8,flam:0xffc0e8},
-  {n:'COMÈTE',            d:'La caisse est EN FEU. Comme au premier jour.',        coins:2270,push:4.02,res:3.52,cyl:0, col:0xff3ec8,flam:0xff8a20},
-  {n:'SUPERNOVA',         d:'Tu ne brûles plus le carburant. Tu brûles le ciel.',  coins:2566,push:4.12,res:3.56,cyl:0, col:0xff6ea0,flam:0xffb060},
-  {n:'TROU NOIR',         d:'Plus rien ne s\'échappe. Même pas toi.',              coins:2854,push:4.20,res:3.60,cyl:0, col:0xf5f6fa,flam:0xffffff}
+  {n:'BICYLINDRE',        d:'Deux cylindres. Un qui pousse, un qui regarde.',      coins:60,   push:1.06,res:2.02,cyl:2, col:0x9fa8b0,flam:0xd08a3c},
+  {n:'3 CYLINDRES',       d:'Deux qui toussent, un qui prie.',                     coins:125,  push:1.12,res:2.05,cyl:3, col:0x9a8f7a,flam:0xff8a30},
+  {n:'4 EN LIGNE',        d:'Le premier moteur qui ne s\'excuse pas.',             coins:200,  push:1.19,res:2.08,cyl:4, col:0xa8a294,flam:0xffa040},
+  {n:'4 SOUPAPES',        d:'Il respire enfin par le nez.',                        coins:280,  push:1.26,res:2.11,cyl:4, col:0xb4b0a2,flam:0xffb050},
+  {n:'4 EN LIGNE TURBO',  d:'Le premier vrai souffle. Ça siffle.',                 coins:365,  push:1.34,res:2.15,cyl:4, col:0x6fd0ff,flam:0xffc23a},
+  {n:'5 CYLINDRES',       d:'Un chiffre impair, un bruit inoubliable.',            coins:460,  push:1.42,res:2.19,cyl:5, col:0x5cc0f0,flam:0xffcc50},
+  {n:'V6',                d:'La forme fait le son. Le son fait le reste.',         coins:560,  push:1.50,res:2.23,cyl:6, col:0x4a9cff,flam:0x8ad8ff},
+  {n:'V6 BITURBO',        d:'Deux turbos, zéro patience.',                         coins:665, push:1.59,res:2.28,cyl:6, col:0x3f8cf5,flam:0x8ad8ff},
+  {n:'BOXER À PLAT',      d:'Le centre de gravité au ras du bitume.',              coins:775, push:1.68,res:2.33,cyl:4, col:0x5a7ae0,flam:0x9ac0ff},
+  {n:'V8 ATMO',           d:'Le grondement qui fait trembler la dalle.',           coins:895, push:1.78,res:2.38,cyl:8, col:0xff7a3c,flam:0xff5a2a},
+  {n:'V8 COMPRESSÉ',      d:'Un compresseur, et la dalle demande grâce.',          coins:1020, push:1.88,res:2.43,cyl:8, col:0xff8a48,flam:0xff6a30},
+  {n:'V10',               d:'Dix cylindres, zéro argument.',                       coins:1150, push:1.99,res:2.49,cyl:10,col:0xffa055,flam:0xff8038},
+  {n:'V12',               d:'Douze cylindres qui hurlent à l\'unisson.',           coins:1290, push:2.10,res:2.55,cyl:12,col:0xffd75e,flam:0xfff0a0},
+  {n:'W12',               d:'Deux V6 mariés de force. Ça marche.',                 coins:1435, push:2.21,res:2.61,cyl:12,col:0xffe27a,flam:0xfff4b8},
+  {n:'V16',               d:'Seize. Parce que quinze, c\'était ridicule.',         coins:1585, push:2.33,res:2.67,cyl:16,col:0xf2ecc8,flam:0xfff8d0},
+  {n:'H16 F1',            d:'Seize cylindres en H. Interdit en course. Logique.',  coins:1745, push:2.45,res:2.73,cyl:16,col:0xe8eef6,flam:0xbfe8ff},
+  {n:'QUADRITURBO',       d:'Quatre escargots, une seule idée.',                   coins:1910, push:2.58,res:2.80,cyl:8, col:0xd8e8ff,flam:0xa8d8ff},
+  {n:'ROTATIF TRIPLE',    d:'Pas de pistons. Que du hurlement.',                   coins:2080, push:2.71,res:2.87,cyl:3, col:0xc0e0ff,flam:0x90d0ff},
+  {n:'TURBINE À GAZ',     d:'L\'hélicoptère a appelé. Il veut son moteur.',        coins:2255, push:2.85,res:2.94,cyl:0, col:0xa8dcf0,flam:0x8ae0ff},
+  {n:'TURBINE À PLASMA',  d:'Plus de pistons. Un souffle continu, bleu.',          coins:2440, push:2.99,res:3.01,cyl:0, col:0x7dffec,flam:0x9fffe8},
+  {n:'STATORÉACTEUR',     d:'Il n\'avale plus l\'air. Il l\'agresse.',             coins:2630,push:3.13,res:3.08,cyl:0, col:0x6affe0,flam:0x8affe8},
+  {n:'PULSORÉACTEUR',     d:'Un battement par milliseconde. C\'est le tien qui suit.',coins:2825,push:3.28,res:3.15,cyl:0,col:0x8affc0,flam:0xb0ffd0},
+  {n:'RÉACTEUR NUCLÉAIRE',d:'Tu roules avec un cœur de centrale sous le capot.',   coins:3030,push:3.44,res:3.23,cyl:0, col:0x9dff50,flam:0xd8ff7a},
+  {n:'CŒUR À FUSION',     d:'Une petite étoile, sanglée sous le capot.',           coins:3240,push:3.60,res:3.31,cyl:0, col:0xd8ff60,flam:0xf0ff90},
+  {n:'ANTIMATIÈRE',       d:'Un gramme. Un seul. Ne freine pas.',                  coins:3455,push:3.76,res:3.39,cyl:0, col:0xffe860,flam:0xfff2a0},
+  {n:'MOTEUR À DISTORSION',d:'Ce n\'est plus toi qui avances. C\'est la route qui recule.',coins:3680,push:3.90,res:3.46,cyl:0,col:0xff9ad8,flam:0xffc0e8},
+  {n:'COMÈTE',            d:'La caisse est EN FEU. Comme au premier jour.',        coins:3910,push:4.02,res:3.52,cyl:0, col:0xff3ec8,flam:0xff8a20},
+  {n:'SUPERNOVA',         d:'Tu ne brûles plus le carburant. Tu brûles le ciel.',  coins:4145,push:4.12,res:3.56,cyl:0, col:0xff6ea0,flam:0xffb060},
+  {n:'TROU NOIR',         d:'Plus rien ne s\'échappe. Même pas toi.',              coins:4385,push:4.20,res:3.60,cyl:0, col:0xf5f6fa,flam:0xffffff}
 ];
 // SEUILS DES CAPACITÉS MOTEUR — nommés plutôt que semés en `engTier>=4` dans la boucle : la liste a
 // triplé de longueur, des index nus se seraient décalés en silence (billets dès le 4e palier sur 30,

@@ -34,6 +34,18 @@ function finArete(geo,deg){
   for(let i=0;i<n;i++)F[i*4+3]=i%3;
   geo.setAttribute('aArete',new THREE.Float32BufferAttribute(F,4));}
 function finZero(geo){const P=geo.attributes.position;if(!P)return;const F=new Float32Array(P.count*4);for(let i=0;i<P.count;i++)F[i*4+3]=i%3;geo.setAttribute('aArete',new THREE.Float32BufferAttribute(F,4));}
+/* ===== LA MARBRURE DE TÔLE (2026-11-05, Léo : « la voiture de la honte est magnifique dans le garage : il faut que toutes les autres le soient autant ») =====
+   Ce qui rend LA HONTE vivante, c'est que sa laque n'a pas le même ton partout (voir `patineGeo`, travail-caisse.js). Les autres caisses étaient d'un seul ton
+   par pièce. Ici : la MÊME marbrure, mais PROPRE (pas de crasse, pas de rouille, pas de poussière) et très douce (±4 %), posée UNE FOIS à la construction sur
+   la couleur des sommets de la tôle (laque, métallisé, nacre, motif) : zéro coût en jeu, la peinture de la boutique passe dessous (les couleurs sont multipliées).
+   Une graine par caisse (son nom) ; une géométrie déjà marbrée ne l'est jamais deux fois. `?marbre=0` = l'ancien rendu. */
+const MARBRE_ON=!/[?&]marbre=0/.test(location.search);
+function finMarbre(spec){if(!MARBRE_ON||!spec||spec.shape==='epave'||typeof patineGeo!=='function')return;
+  let gr=7;const nm=String(spec.name||spec.shape||'');for(let i=0;i<nm.length;i++)gr=(gr*31+nm.charCodeAt(i))%997;
+  carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isArray(o.material)||!o.material||!o.material.userData)return;
+    const g=o.material.userData.g,G=o.geometry;if(!(g==='p'||g==='k'||g==='n'||(typeof g==='string'&&g.indexOf('pm:')===0)))return;
+    if(G.userData.marbre||!G.attributes.color||!G.attributes.position||!G.attributes.normal)return;G.userData.marbre=1;
+    try{patineGeo(G,{marbre:.045,echelle:.42,graine:gr});}catch(e){console.warn('marbrure',e);}});}
 // toutes les pièces de la caisse dont la matière dessine les arêtes : la tôle (laque, métallisé, nacre) calcule ses arêtes, le reste porte des zéros
 function finCaisse(){carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isArray(o.material)||!o.material||!o.material.userData.arete)return;
   if(o.geometry.attributes.aArete)return;const g=o.material.userData.g;

@@ -151,7 +151,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       gx=Math.max(24,Math.min(LOCK,x-sL-6)); gy=Math.max(20,Math.min(LOCKV,sB-y-6));
       TCTL.id=id; TCTL.ox=x; TCTL.oy=y; TCTL.x0=TCTL.lx=x; TCTL.ly=y; TCTL.ab=TCTL.tr=0; TCTL.ar=-1; TCTL.act=true; TCTL.doigt=true; TCTL.dy=0; TCTL.dyS=0; // (le pouce en pixels repart de zéro : un appui immobile ne rejoue pas le dernier glissé)
       stk.style.left=dispL(x); stk.style.top=(y-sT)+'px';
-      stSet(0,0); sz.classList.add('act'); sz.classList.add('used'); // la consigne « GLISSE POUR TOURNER » a fait son travail
+      stSet(0,0); sz.classList.add('act'); sz.classList.add('used'); // premier braquage : le volant a trouvé sa place
       start();
     };
     const stMove=function(x,y){

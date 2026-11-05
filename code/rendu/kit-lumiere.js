@@ -301,7 +301,7 @@ function survTick(dt){
       }
       b.padCd=Math.max(0,b.padCd-dt);
       if(b.padCd<=0)for(let i9=0;i9<PADS.length;i9++){ // pads turbo : même coup de pied, même règle de VISÉE que le joueur
-        if(Math.abs(rel-PADS[i9])<6&&Math.abs(b.lat-PADL[i9])<4.1){b.v+=18;b.padB=Math.max(b.padB,1.5);b.padCd=1.5;break;}
+        if(Math.abs(rel-PADS[i9])<8&&Math.abs(b.lat-PADL[i9])<5.6){b.v+=26;b.padB=Math.max(b.padB,1.9);b.padCd=1.5;break;} // (2026-11-01) même plaque grossie, même poussée que le joueur
       }
     }
   }

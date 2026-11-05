@@ -408,6 +408,7 @@ function buildCar(spec){
   carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[wheels.length-1].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
   if(bodyM.userData.mot)carGroup.traverse(function(o9){const m9=o9.material;if(o9.isMesh&&m9&&!Array.isArray(m9)&&m9.userData&&m9.userData.mot&&!MOT_FAIT.has(m9))try{motGreffe(m9,m9.userData.mot);}catch(e){}}); // (2026-10-16) un gabarit qui CLONE la tôle (l'épave : K.body.clone()) : le clone garde la couleur blanche, il reprend le motif
+  finMarbre(spec); // (2026-11-05) la marbrure propre de la tôle, comme LA HONTE (voir finition.js)
   if(finAreteOk())finCaisse(); // (2026-10-20, FINITION STUDIO) les drapeaux d'arête de la tôle, AVANT la soudure (voir finition.js)
   if(FSTU.on)finLaque(FSTU.garage); // le vernis profond si on est au garage
   try{traduisLangage(spec);}catch(e){console.warn('langage',e);} // (25/10) ESSAI `?langage=1` : les caisses « hors langage » regroupées en grandes facettes (éteint par défaut)

@@ -27,7 +27,6 @@ html body.touch.play #nitroWrap{animation:hmHaut .55s var(--ease) 1.15s both}
 html body.touch.play #flowHud{animation:hmHaut .55s var(--ease) 1.24s both}
 html body.touch.play #tGear{animation:hmDroite .45s var(--ease) .1s both}   /* le ⏸ n'attend pas : on doit pouvoir mettre en pause dès la première seconde */
 html body.touch.play #auraV2{animation:hmGauche .55s var(--ease) 1.32s both}
-html body.touch.play #tSteer:not(.used)::after{animation:hmBas .6s var(--ease) 1.44s both,volantInvite 1.6s ease-in-out 2.04s infinite}
 /* ---------------------------------------------- 2. LA JAUGE DE NITRO -------------------------------------------------- */
 /* PLEINE : elle respire (la lueur de la nitro monte et redescend) — l'animation d'origine touchait une ombre verrouillée en !important */
 @keyframes hmPlein{0%,100%{filter:brightness(1)}50%{filter:brightness(1.32)}}
@@ -234,7 +233,7 @@ html body :is(#verdHud .vM){color:transparent!important;-webkit-text-fill-color:
   -webkit-background-clip:text!important;background-clip:text!important;background-size:100% 1lh!important;filter:var(--contourH) drop-shadow(0 0 12px color-mix(in srgb,var(--tc) 55%,transparent))}
 html body #verdHud .vM{--tc:var(--cash)}
 /* les PETITS textes : deux tons */
-html body :is(#slam9 small,#lvlNom,#auraV2 .avTot em,#avList li,#pwrChip .pw span small,#tSteerHint,#misBan .mbTx small,#coach .coTx b,#campChip b,#campChip small,#tNitro span,#frenTraits b,#lvlNom em){
+html body :is(#slam9 small,#lvlNom,#auraV2 .avTot em,#avList li,#pwrChip .pw span small,#misBan .mbTx small,#coach .coTx b,#campChip b,#campChip small,#tNitro span,#frenTraits b,#lvlNom em){
   color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;
   background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 38%,#fff) 0 50%,var(--tc) 50%)!important;-webkit-background-clip:text!important;background-clip:text!important;background-size:100% 1lh!important;
   filter:var(--contourP)}
@@ -244,7 +243,6 @@ html body #auraV2 .avTot em{--tc:#e2b6ff}
 html body #avList li{--tc:#e6ddff}
 html body #avList li:first-child{--tc:#ffd75e}
 html body #pwrChip .pw span small{--tc:#ece6ff}
-html body #tSteerHint{--tc:#c9bdf0}
 html body #misBan .mbTx small{--tc:var(--mbC,#62e062)}
 html body #campChip b{--tc:var(--cc,#fff7ee)}
 html body #campChip small{--tc:#c9bdf0}
@@ -302,7 +300,7 @@ html body #flowHud .fT.trois{gap:5px}
 @media (prefers-reduced-motion:reduce){html body #flowHud .fT i.on,html body #flowHud .fT i.on2,html body #flowHud .fT i.moins.on,html body #flowHud .fT i.moins.on2{animation:none}}
 /* ---------------------------------------------- « RÉDUIRE LES ANIMATIONS » ------------------------------------------- */
 @media (prefers-reduced-motion:reduce){
-  html body.touch.play :is(#nitroWrap,#flowHud,#tGear,#auraV2,#ajCourse),html body.touch.play #tSteer:not(.used)::after,
+  html body.touch.play :is(#nitroWrap,#flowHud,#tGear,#auraV2,#ajCourse),
   html body.touch #nitroBar.plein #nitroR,html body.touch #nitroBar.plein #nitroX,html body.touch #nitroBar::before,html body.touch #nitroBar.bas,
   html body.touch #flowHud.monte .fSeg::after,html body.touch #flowHud.monte .fM,html body.touch #flowHud.monte .fL,html body.touch #auraV2 .avTot.pulse,
   html body.touch #avRec.presque,html body.touch #avX.up,html body.touch #avX.feu,html body #triade .trPiece,html body.touch #pwrChip .pw,html body.touch #airPie,html body #tSteer.act #tStick{animation:none!important}
