@@ -15222,14 +15222,18 @@ function betonPeint(N){ // PUR (aucun canvas) : les octets RGBA d'une tuile N×N
     for(let i=0;i<n;i++){const an=r()*6.283,q=r()*R0;pose(cx+Math.cos(an)*q,cy+Math.sin(an)*q,.4+r()*.5);}}
   // LES JOINTS DE DALLE, sur les bords de la tuile (ils se raccordent avec la tuile voisine) : le joint EN LONG (franc : il file vers l'horizon sans jamais clignoter)
   // et le joint EN TRAVERS (plus discret : c'est lui qui défile) ; une arête claire d'un côté (le chanfrein prend la lumière), la salissure qui s'accumule autour
-  const JL=.36,JT=.22,jd=function(p){return Math.min(p,N-1-p);}; // p : distance (texels) au bord ; joint = 2 texels à cheval sur le raccord
+  /* (2026-11-05, Léo : « il y a encore des quadrillés, il faudrait qu'on les enlève, que la route soit vraiment jolie — un mélange entre lisse et grain ») PLUS DE JOINTS :
+     le quadrillé de la route, c'étaient ces joints (en long et en travers, tous les 7 m), leur salissure et le chanfrein clair du bord de tuile. Retirés par défaut ; à la place,
+     de larges plages plus claires / plus sombres qui se raccordent (la tuile reste bouclée), au-dessus du même grain de béton. `?joints=1` rend la route d'avant. */
+  const JOINTS=/[?&]joints=1/.test(location.search),JL=JOINTS?.36:0,JT=JOINTS?.22:0,jd=function(p){return Math.min(p,N-1-p);}; // p : distance (texels) au bord ; joint = 2 texels à cheval sur le raccord
   for(let i=0;i<N*N;i++){const x=i%N,y=(i-x)/N,o=i*4,u=(x+.5)/N,v=(y+.5)/N;
     let g=(r()-.5)*.20;const q=r();if(q<.045)g+=.10+r()*.10;else if(q<.075)g-=.20; // LE GRANULAT : grain serré, granulats clairs, petits trous
     let b=1+g+(V[i]-mV)*.30-F[i]*.34;
     const dx=jd(x),dy=jd(y);
-    b*=1-.07*Math.max(Math.max(0,1-dx/9),Math.max(0,1-dy/9)*.7);                 // la salissure autour des joints
-    if(x===1||x===N-2)b+=.05;if(y===1||y===N-2)b+=.03;                           // l'arête du chanfrein
-    if(dx<1)b*=1-JL;else if(dy<1)b*=1-JT;                                        // le joint (2 texels ≈ 5,5 cm)
+    if(JOINTS){b*=1-.07*Math.max(Math.max(0,1-dx/9),Math.max(0,1-dy/9)*.7);                 // la salissure autour des joints
+      if(x===1||x===N-2)b+=.05;if(y===1||y===N-2)b+=.03;                           // l'arête du chanfrein
+      if(dx<1)b*=1-JL;else if(dy<1)b*=1-JT;}                                       // le joint (2 texels ≈ 5,5 cm)
+    else b*=1+(lit(W,u,v)-.5)*.16+(V[i]-mV)*.10;                                    // (sans joints) de larges plages douces, en plus du grain
     const t=lit(W,u,v)-.5,k=204*b;                                               // la teinte : un rien plus chaude ou plus froide par grandes plages (gris minéral, jamais coloré)
     d[o]=k*(1+t*.035);d[o+1]=k;d[o+2]=k*(1-t*.05);d[o+3]=255;}
   return d;
@@ -18321,7 +18325,7 @@ window.dbgForetEmb=function(o){if(o)Object.assign(FOR_EMB,o);return {emb:Object.
      passe jamais dans un tronc ;
    · les autres croisements restent des paris : pas de fil, on voit la route, on décide.
    `?sans=foretsentiers` = la forêt sans fils. Banc : `dbgSentiers()` (les fils, les fruits posés et pris) ; `node outils/banc-routes/foret.cjs sentiers palier n`. */
-const FOR_SENT={on:typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretsentiers(,|&|$)/.test(location.search),vk0:1.55,vk1:1.1,bascule:.45,pop:5.3,dv:6,air:30,pente:.48,ang:[0,8,16,26],ang2:[0,14],lac:[-30,30],cos:.6,robMin:0,gainMin:180,esp:900,rayon:24,pas:.18,fruits:['ORANGE','MANGUE','MELON','POMME'],pow:['n','v','x','n']};
+const FOR_SENT={on:typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretsentiers(,|&|$)/.test(location.search),vk0:1.55,vk1:1.1,bascule:.45,pop:5.3,dv:6,air:30,pente:.48,ang:[0,8,16,26],ang2:[0,14],lac:[-30,30],cos:.6,latMax:14,robMin:0,gainMin:180,esp:900,rayon:24,pas:.18,fruits:['ORANGE','MANGUE','MELON','POMME'],pow:['n','v','x','n']};
 function* foretSentiersCalc(){ /* un générateur : il rend la main à l'échéance JF.lim (le pré-bâti) */
   FORET.sent=[];FORET.sentZ=[];
   if(!FOR_SENT.on||PARK.on||!(NP>300))return;
@@ -18329,10 +18333,10 @@ function* foretSentiersCalc(){ /* un générateur : il rend la main à l'échéa
   /* 1. les croisements : une route 25-190 m sous une autre, à moins de 210 m en plan (un croisement ou un frôlement), et DEVANT (≥ 300 m de route plus loin) */
   const H2=new Map(),k2=(a,b)=>a*100003+b;
   for(let i=0;i<NP;i+=3){const p=pts[i],k=k2(Math.floor(p.x/100),Math.floor(p.z/100));let a=H2.get(k);if(!a)H2.set(k,a=[]);a.push(i);}
-  const st=Math.max(1,Math.round(14/ds)),PR=[];
+  const st=Math.max(1,Math.round(14/ds)),PR=[],dMax=Math.max(210,vN*2.2),R2c=Math.ceil(dMax/100); /* (le palier) la portée d'un vol grandit avec la vitesse */
   for(let i=0;i<NP;i+=st){const p=pts[i],cx=Math.floor(p.x/100),cz=Math.floor(p.z/100);let bj=-1,bd=1e9;
-    for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++){const l=H2.get(k2(cx+a,cz+b));if(!l)continue;
-      for(const j of l){if((j-i)*ds<300)continue;const dy=p.y-pts[j].y;if(dy<25||dy>190)continue;const d=Math.hypot(p.x-pts[j].x,p.z-pts[j].z);if(d<210&&d<bd){bd=d;bj=j;}}}
+    for(let a=-R2c;a<=R2c;a++)for(let b=-R2c;b<=R2c;b++){const l=H2.get(k2(cx+a,cz+b));if(!l)continue;
+      for(const j of l){if((j-i)*ds<300)continue;const dy=p.y-pts[j].y;if(dy<25||dy>230)continue;const d=Math.hypot(p.x-pts[j].x,p.z-pts[j].z);if(d<dMax&&d<bd){bd=d;bj=j;}}}
     if(bj>=0)PR.push([i,bj,bd]);}
   const CX=[];{let g=null;const gap=Math.round(90/ds);for(const q of PR){if(g&&q[0]-g.last<=gap){g.last=q[0];if(q[2]<g.rep[2])g.rep=q;}else{g={first:q[0],last:q[0],rep:q};CX.push(g);}}}
   if(tmp9())yield;
@@ -18368,10 +18372,10 @@ function* foretSentiersCalc(){ /* un générateur : il rend la main à l'échéa
   const nMax=Math.max(2,Math.min(5,Math.round(L/3200)));FORET.sentVN=Math.round(vN*10)/10;
   const passe=function*(LAC){
     for(const g of CX){if(tmp9())yield;
-      const back=Math.ceil(Math.min(1100,vN*4.8)/ds),lo=Math.max(40,g.first-back),hi=Math.min(NP-40,g.last+Math.ceil(40/ds)),stp9=Math.max(stp,Math.ceil((hi-lo)/(LAC.length>1?36:70)));let best=null;
+      const back=Math.ceil(Math.min(2600,vN*5.2)/ds),lo=Math.max(40,g.first-back),hi=Math.min(NP-40,g.last+Math.ceil(40/ds)),stp9=Math.max(stp,Math.ceil((hi-lo)/(LAC.length>1?36:70)));let best=null;
       for(let i0=lo;i0<=hi;i0+=stp9)for(const sd of [-1,1])for(const ag of (LAC.length>1?FOR_SENT.ang2:FOR_SENT.ang))for(const w of LAC){
         if(i0*ds<600||i0*ds>L-1000)continue;if((DB.tests&15)===0&&tmp9())yield;
-        const r=vol(i0,sd,1,ag,w,false);DB.tests++;if(!r){DB.rien++;continue;}if(r.gain<FOR_SENT.gainMin){DB.gain++;continue;}if(r.cosA<FOR_SENT.cos){DB.cos++;continue;}if(r.t<1.3||r.t>5.2){DB.t++;continue;}if(Math.abs(r.lat)>HALF-7){DB.lat++;continue;}
+        const r=vol(i0,sd,1,ag,w,false);DB.tests++;if(!r){DB.rien++;continue;}if(r.gain<FOR_SENT.gainMin){DB.gain++;continue;}if(r.cosA<FOR_SENT.cos){DB.cos++;continue;}if(r.t<1.3||r.t>5.2){DB.t++;continue;}if(Math.abs(r.lat)>FOR_SENT.latMax){DB.lat++;continue;}
         let rob=0;for(const m of [.8,1.4]){const q=vol(i0,sd,m,ag,w,false);if(q&&q.gain>=150&&q.cosA>=.64)rob++;}
         {let ok=true;for(const dv of [-FOR_SENT.dv,FOR_SENT.dv]){const q=vol(i0,sd,1,ag,w,false,dv);if(!q||q.gain<100||q.cosA<.5){ok=false;break;}}if(!ok){DB.dv++;continue;}} /* la vitesse verticale du décollage varie de ± 9 m/s (mesuré) : la pose doit tenir */
         if(rob<FOR_SENT.robMin){DB.rob++;continue;}
@@ -18416,8 +18420,8 @@ window.dbgSentiersEssai=function(k,vm,sgn){const e=(FORET.sent||[])[k|0];if(!e)r
   const v=(FORET.sentVN||90)*(vm||1);window.dbgBord({s:e.s0,lat:0,psi:(sgn||1)*e.sd*e.ag*Math.PI/180,vA:v/SPD,grace:0});window.dbgBord({lat:e.sd*(ROAD_HALF+1.2),vL:0});return {fil:k|0,s0:e.s0,vN:FORET.sentVN,v:+v.toFixed(1),ag:e.ag,w:e.w,prevu:{sL:e.sL,t:e.t}};};
 /* banc : la position de la caisse, son temps de vol, sa vitesse verticale, et la distance au fruit en l'air non pris le plus proche ; \`dbgSentiersFr(k)\` rend les fruits du fil k */
 window.dbgSentiersPos=function(){let d=1e9,n=0;for(const p of pickups)if(p.air&&!p.taken){const q=p.mesh.position.distanceTo(carGroup.position);if(q<d)d=q;n++;}
-  return {m:mode,t:+(fallT||0).toFixed(2),x:+carGroup.position.x.toFixed(1),y:+carGroup.position.y.toFixed(1),z:+carGroup.position.z.toFixed(1),vy:+(fallVel.y||0).toFixed(1),dFruit:+d.toFixed(1),restants:n};};
-window.dbgSentiersFr=function(k){const e=(FORET.sent||[])[k|0];return e?{p0:e.p0,h:e.h,fr:e.fr.map(p=>p.map(v=>+v.toFixed(1)))}:null;};
+  return {m:mode,t:+(fallT||0).toFixed(2),x:+carGroup.position.x.toFixed(1),y:+carGroup.position.y.toFixed(1),z:+carGroup.position.z.toFixed(1),vy:+(fallVel.y||0).toFixed(1),h:String(FORET.heurt||''),over:!!gameOver,dFruit:+d.toFixed(1),restants:n};};
+window.dbgSentiersFr=function(k){const e=(FORET.sent||[])[k|0];return e?{yL:pts[Math.max(0,Math.min(NP-1,Math.round(e.sL/L*(NP-1))))].y,sL:e.sL,p0:e.p0,h:e.h,fr:e.fr.map(p=>p.map(v=>+v.toFixed(1)))}:null;};
 /* =========================== LE CANYON DES GÉANTS (2026-10-14, Sacha) ===========================
    Sacha : « fais une map façon canyon Monument Valley mais genre géant, avec des grandes gorges où la route passe entre, au-dessus des
    lits de rivière, entre deux grandes parois de pierre ; il faut quand même que la route descende vers le bas, pas comme la map montagne
@@ -44720,13 +44724,17 @@ function finZero(geo){const P=geo.attributes.position;if(!P)return;const F=new F
    par pièce. Ici : la MÊME marbrure, mais PROPRE (pas de crasse, pas de rouille, pas de poussière) et très douce (±4 %), posée UNE FOIS à la construction sur
    la couleur des sommets de la tôle (laque, métallisé, nacre, motif) : zéro coût en jeu, la peinture de la boutique passe dessous (les couleurs sont multipliées).
    Une graine par caisse (son nom) ; une géométrie déjà marbrée ne l'est jamais deux fois. `?marbre=0` = l'ancien rendu. */
+/* LA RETOUCHE PAR MODÈLE (2026-11-05, Léo : « une retouche voiture par voiture ») : les réglages de `patineGeo` propres à une forme, versés par-dessus la marbrure commune.
+   `crasse` (0-1) fonce le BAS de caisse jusqu'à `yCrasse` mètres (la peinture prend de la profondeur vers le bas, comme une laque vue de côté) ; `poussiere` éclaircit ce qui
+   regarde le ciel (capot, toit) — des DÉGRADÉS de peinture, jamais de saleté. Une entrée par voiture : ELDORADO (« un peu trop plate ») la première. */
+const FIN_PATINE={eldorado:{marbre:.035,echelle:.55,crasse:.62,yCrasse:.85,poussiere:.18}};
 const MARBRE_ON=!/[?&]marbre=0/.test(location.search);
 function finMarbre(spec){if(!MARBRE_ON||!spec||spec.shape==='epave'||typeof patineGeo!=='function')return;
   let gr=7;const nm=String(spec.name||spec.shape||'');for(let i=0;i<nm.length;i++)gr=(gr*31+nm.charCodeAt(i))%997;
   carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isArray(o.material)||!o.material||!o.material.userData)return;
     const g=o.material.userData.g,G=o.geometry;if(!(g==='p'||g==='k'||g==='n'||(typeof g==='string'&&g.indexOf('pm:')===0)))return;
     if(G.userData.marbre||!G.attributes.color||!G.attributes.position||!G.attributes.normal)return;G.userData.marbre=1;
-    try{patineGeo(G,{marbre:.045,echelle:.42,graine:gr});}catch(e){console.warn('marbrure',e);}});}
+    try{patineGeo(G,Object.assign({marbre:.045,echelle:.42,graine:gr,crasse:.36,yCrasse:.70,poussiere:0},FIN_PATINE[spec.shape]||{}));}catch(e){console.warn('marbrure',e);}});}
 // toutes les pièces de la caisse dont la matière dessine les arêtes : la tôle (laque, métallisé, nacre) calcule ses arêtes, le reste porte des zéros
 function finCaisse(){carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isArray(o.material)||!o.material||!o.material.userData.arete)return;
   if(o.geometry.attributes.aArete)return;const g=o.material.userData.g;
@@ -44792,7 +44800,10 @@ function paintEnvStudio(){FSTU.env='studio';
    du studio), et porte des bandes de lumière NETTES aux hauteurs que regardent les pans (mesurées à la mire au garage) : la mer de nuages au
    soleil pour les flancs, l'horizon doré pour les épaules, un voile de ciel clair pour les capots ; le soleil en disque net. Le vernis profond et
    les reflets qui éclatent (plus doux qu'au garage : FSTU_MENU_HDR) suivent. REQUIN (FSTU_SANS) garde le ciel d'avant. */
-const FSTU_MENU_HDR=1;
+/* (2026-11-05, Léo : « dans le menu ciel la lumière est trop éblouissante, un peu gamine, ça rend la voiture moins jolie ») mesuré sur ROSSO 40 : un rouge sortait rose saumon délavé.
+   Reflets qui éclatent ÷ 1,4 (1 → .7 : en dessous, les grands panneaux lisses — ELDORADO — s'aplatissent) et exposition du MENU seulement ×.9 (`MENU_EXPO`, posée par menuVitrine) : le rouge reste rouge, le ciel prend de la profondeur.
+   `?menuexpo=1` rend l'exposition d'avant, `?menuhdr=1` les reflets d'avant. */
+const FSTU_MENU_HDR=(/[?&]menuhdr=([\d.]+)/.exec(location.search)||[0,.7])[1]*1,MENU_EXPO=(/[?&]menuexpo=([\d.]+)/.exec(location.search)||[0,.9])[1]*1;
 function paintEnvMenu(B){FSTU.env='menu';FSTU.envB=B;FSTU.garage=false; // (garage=false : finMenu repose la laque, au dosage de ce ciel)
   const S=256,stops=B.env,zen=stops[0][1],sol=stops[stops.length-1][1],s1=B.eS1,s2=B.eS2,
     sunF=Math.abs(SUN_DIR.x)>Math.abs(SUN_DIR.z)?(SUN_DIR.x>0?0:1):(SUN_DIR.z>0?4:5),
@@ -48472,9 +48483,10 @@ function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
    CET appareil tout est À TOI : les caisses (carUnlockedVrai : en vente, en €, à défi), les habillages (shopOwned), les FIGURES (figPossede),
    tous les niveaux de la carrière. Rien n'est écrit ailleurs (l'argent, l'aura et les records ne bougent pas) ; EFFACER MA PROGRESSION l'enlève. */
 function codeCousin(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
-  if(k!=='cousin'&&k!=='cousin161')return false;SAVE.d.cousin=1;SAVE.flush();try{GBQ.rk='';GBQ.uk='';}catch(e){}
+  if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;SAVE.d.cousin=1;if(k==='cousintout')SAVE.d.cousinTout=1; /* (2026-11-05, Léo : « remets code cousin pour que je puisse tout essayer » — les caisses payantes en € aussi) « cousin tout » : en plus, les caisses et peintures en €, pour essayer toute la boutique ; « cousin » seul garde la règle de Sacha */SAVE.flush();try{GBQ.rk='';GBQ.uk='';}catch(e){}
   try{carSnapshot();}catch(e){} // (2026-10-14) la photo des caisses acquises suit : sans elle, la partie suivante criait « NOUVELLE CAISSE » ~70 fois au 1er gain
   return true;}
+function cousinTout(){try{return !!SAVE.d.cousinTout;}catch(e){return false;}}
 function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}} // (SAVE peut ne pas exister encore : le tout premier buildCar tourne avant lui)
 /* (2026-10-14, Sacha, après la revue des idées de Léo : « le code cousin ne débloque PLUS rien de ce qui se paie en euros ») un code partageable
    vidait la boutique en vrai argent (et l'App Store, règle 3.1.1, interdit d'ouvrir un contenu payant autrement que par l'achat). Il garde tout le
@@ -48491,7 +48503,7 @@ function carUnlocked(i){return !carRetiree(i)&&(TEST_CAISSES||carUnlockedVrai(i)
    « déjà à toi », le testeur ne voyait jamais la boucle achat → caisse que vivra le joueur. */
 function carUnlockedVrai(i){
   if(carRetiree(i))return false; // (2026-10-02) retirée : ni à toi, ni à gagner
-  if(cousin()&&!carEuros(i))return true; // (2026-10-14) LE CODE COUSIN : toutes les caisses — (même jour, Sacha) SAUF celles qui se paient en EUROS
+  if(cousin()&&(!carEuros(i)||cousinTout()))return true; // (2026-10-14) LE CODE COUSIN : toutes les caisses — (même jour, Sacha) SAUF celles qui se paient en EUROS
   if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true; // acquise sous les anciennes règles : elle le reste
   const u=CAR_UNLOCK[i];
   if(!u)return true;
@@ -50810,7 +50822,7 @@ function figDesc(f,lg){const en=lg==='en'||lg==='zh'; // (2026-10-14, textes) BI
 COSM.figure=(window.FIG?FIG.liste:[]).map(function(f){return {id:f.id,n:f.n,p:f.p,d:figDesc(f,'fr'),fig:1};});
 const SHOP_CATS=['voiture','peinture','aile','trainee','figure'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
-function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin()){const c9=COSM[cat].find(x=>x.id===id);if(c9&&!c9.eur&&(!c9.pack||c9.sec))return true;} /* (2026-10-14) LE CODE COUSIN : tous les habillages — (2026-10-24) SAUF ce qui se paie en EUROS (peintures en €, packs PALETTE et CHAT), la règle de Sacha du 14/10 (carEuros) ; les secrètes, gagnables par leur défi, restent offertes ; le reste suit la possession réelle */
+function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin()){const c9=COSM[cat].find(x=>x.id===id);if(c9&&((!c9.eur&&(!c9.pack||c9.sec))||cousinTout()))return true;} /* (2026-10-14) LE CODE COUSIN : tous les habillages — (2026-10-24) SAUF ce qui se paie en EUROS (peintures en €, packs PALETTE et CHAT), la règle de Sacha du 14/10 (carEuros) ; les secrètes, gagnables par leur défi, restent offertes ; le reste suit la possession réelle */
 const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
   if(d.pack==='chat'&&m2Chat())return true; /* (2026-10-16, missions v2) l'ARC-EN-CIEL vient avec le chat */if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
 function shopEqD(cat){const id=SAVE.d.shop.eq[cat],d=COSM[cat].find(x=>x.id===id);return (d&&shopOwned(cat,d.id))?d:COSM[cat][0];}
@@ -60533,7 +60545,7 @@ const SAVE={
     if(Array.isArray(d.figEq3))c.figEq3=[0,1,2].map(i=>{const k=d.figEq3[i];return typeof k==='string'&&/^[a-z0-9_]{2,24}$/.test(k)?k:'';}); // (2026-10-15 soir) UN PAR DIRECTION, à sa place : avant · arrière · côté ('' = vide) — voir figSlots
     if(d.figRec!=null)c.figRec=Math.max(0,Math.min(9,Math.round((+d.figRec||0)*100)/100)); // (2026-10-15 soir, HUD des figures v4) le meilleur COMBO jamais posé (le × d'un vol)
     if(typeof d.pseudo==='string')c.pseudo=d.pseudo.slice(0,8);
-    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.bienv=d.bienv?1:0;c.tutoProv=d.tutoProv?1:0; /* (2026-10-16) LA QUESTION DE BIENVENUE : `bienv` = ne plus la poser · `tutoProv` = la leçon sautée pour UNE ouverture (voir bienvMontre) */c.cousin=d.cousin?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(1023,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 libre (l'ancienne astuce de l'assiette en vol, supprimée le 2026-11-05 : ne pas le réutiliser) ; 256 le doigt de bienvenue de l'accueil, 2026-10-15 soir — d'où 1023 au lieu de 255) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
+    c.tuto=d.tuto===0?0:(d.tuto||c.ex.runs>0)?1:0;c.permis=d.permis?1:0;c.bienv=d.bienv?1:0;c.tutoProv=d.tutoProv?1:0; /* (2026-10-16) LA QUESTION DE BIENVENUE : `bienv` = ne plus la poser · `tutoProv` = la leçon sautée pour UNE ouverture (voir bienvMontre) */c.cousin=d.cousin?1:0;c.cousinTout=d.cousinTout?1:0;c.spinJ=Math.max(0,Math.min(9,d.spinJ|0));c.chanceG=Math.max(0,Math.min(3,d.chanceG|0));c.spinBoost=Math.max(0,Math.min(3,d.spinBoost|0)); /* (2026-10-14) FINAL SPIN v2 : les bons gagnés à la machine */ /* (2026-10-14) LE FINAL SPIN : les jetons gardés */ /* (2026-10-14) LE CODE COUSIN */ /* (2026-09-28) un 0 ÉCRIT est respecté : c'est « REVOIR L'AUTO-ÉCOLE » (le « qui a déjà joué » ne vaut que pour les sauvegardes d'avant l'auto-école, sans champ) · `permis` : la prime de 500 déjà versée (une seule fois) */ c.shopVu=d.shopVu?1:0;c.ast=Math.max(0,Math.min(1023,Math.round(+d.ast)||0)); // `ast` : les ASTUCES déjà montrées (bits : 1 drift, 2 libre (l'ancienne astuce de l'assiette en vol, supprimée le 2026-11-05 : ne pas le réutiliser) ; 256 le doigt de bienvenue de l'accueil, 2026-10-15 soir — d'où 1023 au lieu de 255) // (2026-09-25) la pastille NEW de la boutique ne s'allume que tant qu'on n'y est jamais entré // qui a déjà joué ne refait pas la partie guidée
     c.aura=Math.max(0,Math.min(1e12,Math.round(+d.aura)||0));
     c.auraMax=Math.max(0,Math.min(1e12,Math.round(+d.auraMax)||0));
     /* (2026-10-25, Sacha : « un graphe bougie : l'aura de la partie, la moyenne et le record ») LA MOYENNE D'AURA. Une sauvegarde d'avant n'a pas
@@ -68891,21 +68903,39 @@ function buildGarageRoom(){
   /* (2026-09-30, L'ATELIER v2) LE SOL : un ÉPOXY sombre en grandes dalles de 2,2 m (joint noir + arête claire), moucheté, deux ou trois traces
      de pneus — et BRILLANT (Phong) : les deux lampes qui suivent la caméra y courent en reflets. L'ancien béton tacheté, mat, faisait de la
      moitié basse de l'écran du menu un aplat bleu nuit. */
+  /* (2026-11-05, Léo : « toute la texture de la salle, un peu plus mature, sans alourdir le jeu ») LA SALLE PLUS MÛRE : le quadrillé du sol (joints noirs épais, arête claire sur chaque dalle,
+     bleu-nuit saturé) s'adoucit — joints fins et discrets, plus d'arête claire, un graphite à peine bleuté, et de larges plages lisses (résine coulée) sous le grain. Même canvas, peint une fois :
+     rien de plus à dessiner. `?salle=ancien` = la salle d'avant. */
+  const SALLE_MURE=!/[?&]salle=ancien/.test(location.search);
   const solTex=cvT(512,512,(x,w,h)=>{const T9=128;
-    x.fillStyle='#1c2029';x.fillRect(0,0,w,h);
-    for(let i=0;i<4;i++)for(let j=0;j<4;j++){const l=(Math.random()*8-4)|0;x.fillStyle='rgb('+(30+l)+','+(35+l)+','+(46+l)+')';x.fillRect(i*T9+2,j*T9+2,T9-4,T9-4);}
+    x.fillStyle=SALLE_MURE?'#1d2026':'#1c2029';x.fillRect(0,0,w,h);
+    for(let i=0;i<4;i++)for(let j=0;j<4;j++){const l=(Math.random()*8-4)|0;x.fillStyle=SALLE_MURE?'rgb('+(31+l)+','+(34+l)+','+(41+l)+')':'rgb('+(30+l)+','+(35+l)+','+(46+l)+')';x.fillRect(i*T9+(SALLE_MURE?1:2),j*T9+(SALLE_MURE?1:2),T9-(SALLE_MURE?2:4),T9-(SALLE_MURE?2:4));}
+    if(SALLE_MURE){for(let k=0;k<9;k++){const px=Math.random()*w,py=Math.random()*h,R=90+Math.random()*130,gp=x.createRadialGradient(px,py,0,px,py,R);const c9=Math.random()<.5?'255,255,255':'0,0,0';gp.addColorStop(0,'rgba('+c9+',.05)');gp.addColorStop(1,'rgba('+c9+',0)');x.fillStyle=gp;x.fillRect(px-R,py-R,2*R,2*R);}}
     for(let i=0;i<9000;i++){const a=(Math.random()*.09).toFixed(3);x.fillStyle=(Math.random()<.5?'rgba(0,0,0,':'rgba(190,210,255,')+a+')';
       x.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*1.4,1+Math.random()*1.4);}
-    x.fillStyle='rgba(3,5,9,.9)';for(let i=0;i<=4;i++){x.fillRect(i*T9-2,0,3,h);x.fillRect(0,i*T9-2,w,3);}          // le joint
-    x.fillStyle='rgba(130,155,205,.13)';for(let i=0;i<4;i++){x.fillRect(i*T9+1,0,1,h);x.fillRect(0,i*T9+1,w,1);}    // l'arête qui accroche la lumière
+    x.fillStyle=SALLE_MURE?'rgba(3,5,9,.38)':'rgba(3,5,9,.9)';for(let i=0;i<=4;i++){x.fillRect(i*T9-(SALLE_MURE?1:2),0,SALLE_MURE?2:3,h);x.fillRect(0,i*T9-(SALLE_MURE?1:2),w,SALLE_MURE?2:3);}          // le joint
+    if(!SALLE_MURE){x.fillStyle='rgba(130,155,205,.13)';for(let i=0;i<4;i++){x.fillRect(i*T9+1,0,1,h);x.fillRect(0,i*T9+1,w,1);}}    // l'arête qui accroche la lumière (avant)
     x.lineWidth=7;for(let k=0;k<3;k++){x.strokeStyle='rgba(0,0,0,'+(.1+Math.random()*.1).toFixed(2)+')';x.beginPath();
       x.arc(Math.random()*w,Math.random()*h,70+Math.random()*140,Math.random()*6,Math.random()*6+1.3);x.stroke();}   // traces de gomme
+    if(SALLE_MURE){ /* (2026-11-05) LES DÉTAILS DU SOL : ce qui fait vivre un vrai atelier — taches d'huile à reflet, fissures fines, éclats de peinture, marquages au pochoir et, à qui sait
+        regarder, trois clins d'œil (un 1.61 à la craie, le code des anciens jeux, un compteur de caisses). Tout est peint UNE fois dans le même canvas : zéro objet, zéro appel de dessin. */
+      for(let k=0;k<7;k++){const px=Math.random()*w,py=Math.random()*h,R=14+Math.random()*30,go=x.createRadialGradient(px,py,0,px,py,R);
+        go.addColorStop(0,'rgba(6,5,10,.55)');go.addColorStop(.62,'rgba(12,10,18,.30)');go.addColorStop(.8,'rgba(70,90,140,.10)');go.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=go;x.save();x.translate(px,py);x.scale(1,.55+Math.random()*.4);x.translate(-px,-py);x.fillRect(px-R,py-R,2*R,2*R);x.restore();}     // taches d'huile (un bord irisé)
+      x.lineWidth=1;for(let k=0;k<6;k++){let cx=Math.random()*w,cy=Math.random()*h,th=Math.random()*6.283;x.strokeStyle='rgba(0,0,0,'+(.25+Math.random()*.2).toFixed(2)+')';x.beginPath();x.moveTo(cx,cy);
+        for(let st=0;st<22;st++){th+=(Math.random()-.5)*.9;cx+=Math.cos(th)*(4+Math.random()*5);cy+=Math.sin(th)*(4+Math.random()*5);x.lineTo(cx,cy);}x.stroke();}                                         // fissures fines
+      for(let k=0;k<40;k++){x.fillStyle='rgba('+(Math.random()<.5?'230,200,60':'210,70,50')+','+(.12+Math.random()*.2).toFixed(2)+')';x.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*2,1+Math.random()*2);} // éclats de peinture (jaune sécurité, rouge)
+      x.save();x.fillStyle='rgba(225,225,215,.30)';x.font='bold 17px monospace';x.textAlign='left';
+      x.translate(30,66);x.rotate(-.03);x.fillText('BOX 07',0,0);x.restore();                                                                                                                     // le pochoir de la place
+      x.save();x.fillStyle='rgba(235,235,225,.24)';x.font='bold 10px monospace';x.translate(w-215,h-24);x.rotate(.02);x.fillText('\u2191\u2191\u2193\u2193\u2190\u2192\u2190\u2192 B A',0,0);x.restore();      // le code des anciens jeux, à la craie
+      x.save();x.fillStyle='rgba(235,235,225,.2)';x.font='bold 12px monospace';x.translate(w*.62,h-100);x.rotate(-.5);x.fillText('1.61',0,0);x.restore();                                       // la signature du studio
+      x.fillStyle='rgba(240,220,90,.34)';for(let i=0;i<6;i++){x.save();x.translate(30+i*13,h-56);x.rotate(-.55);x.fillRect(0,0,6,26);x.restore();}                                              // chevrons de sécurité
+      x.fillStyle='rgba(235,235,225,.26)';for(let i=0;i<9;i++){x.fillRect(w-150+(i>>2)*14+(i%4)*3*0,40+(i%4)*5,10,2);}x.font='bold 9px monospace';x.fillText('caisses : 0'+(Math.floor(Math.random()*9)+1),w-150,76);}   // le compteur au mur, rayé à la craie
   });
   solTex.wrapS=solTex.wrapT=THREE.RepeatWrapping;solTex.repeat.set(W/8.8,D/8.8);solTex.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());
   M.sol=new THREE.MeshPhongMaterial({color:0xffffff,map:solTex,specular:0x2c3850,shininess:90,emissive:0x0a1020,fog:false});
   // LES MURS : un bardage de panneaux de 2,6 m (nervures, joint, rivets, lisse) avec la lumière du plafond cuite (clair en haut, sombre
   // en bas) — une matière par mur, parce que la répétition d'une texture est une propriété de la TEXTURE (et les murs n'ont pas la même largeur)
-  const murTexB=cvT(128,256,(x,w,h)=>{const gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#566279');gr.addColorStop(.45,'#3c465a');gr.addColorStop(1,'#252c3a');
+  const murTexB=cvT(128,256,(x,w,h)=>{const gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,SALLE_MURE?'#5a6372':'#566279');gr.addColorStop(.45,SALLE_MURE?'#404857':'#3c465a');gr.addColorStop(1,SALLE_MURE?'#282e39':'#252c3a');
     x.fillStyle=gr;x.fillRect(0,0,w,h);
     for(let i=0;i<8;i++){const xx=8+i*15;x.fillStyle='rgba(255,255,255,.07)';x.fillRect(xx,0,3,h);x.fillStyle='rgba(0,0,0,.16)';x.fillRect(xx+3,0,3,h);}
     x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,0,3,h);x.fillStyle='rgba(255,255,255,.1)';x.fillRect(3,0,1,h);
@@ -71091,7 +71121,7 @@ function menuCamera(dt){
 }
 function menuVitrine(dt){
   MENUV.t+=dt;
-  if(!MENUV.bio||MENUV.pas!==BIO.pas){if(!MENUV.bio)paintEnv(BIOMES[MENU_BIO].env,BIOMES[MENU_BIO].eS1,BIOMES[MENU_BIO].eS2);MENUV.bio=true;MENUV.pas=BIO.pas;bioApply(BIOMES[MENU_BIO]);} // (bioStep a pu repeindre le ciel du niveau cette image : on repasse derrière)
+  if(!MENUV.bio||MENUV.pas!==BIO.pas){if(!MENUV.bio)paintEnv(BIOMES[MENU_BIO].env,BIOMES[MENU_BIO].eS1,BIOMES[MENU_BIO].eS2);MENUV.bio=true;MENUV.pas=BIO.pas;bioApply(BIOMES[MENU_BIO]);POST_EXPO*=MENU_EXPO;if(acesPass)acesPass.uniforms.uExposure.value=POST_EXPO;} /* (2026-11-05) le menu ciel un cran moins éblouissant (voir MENU_EXPO, finition.js) */ // (bioStep a pu repeindre le ciel du niveau cette image : on repasse derrière)
   try{finMenu(BIOMES[MENU_BIO]);}catch(e){} // (2026-10-20) la caisse aussi belle qu'au garage : le ciel du menu en reflets nets + le vernis profond (voir finition.js)
   skyU.uMer.value=1; // la mer de nuages sous l'horizon, même si le niveau du dessous (auto-école) a le ciel nu
   if(MENUV.L!==L){menuPlan();MENUV.sd=null;}
