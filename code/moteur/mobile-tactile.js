@@ -151,7 +151,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       gx=Math.max(24,Math.min(LOCK,x-sL-6)); gy=Math.max(20,Math.min(LOCKV,sB-y-6));
       TCTL.id=id; TCTL.ox=x; TCTL.oy=y; TCTL.x0=TCTL.lx=x; TCTL.ly=y; TCTL.ab=TCTL.tr=0; TCTL.ar=-1; TCTL.act=true; TCTL.doigt=true; TCTL.dy=0; TCTL.dyS=0; // (le pouce en pixels repart de zéro : un appui immobile ne rejoue pas le dernier glissé)
       stk.style.left=dispL(x); stk.style.top=(y-sT)+'px';
-      stSet(0,0); sz.classList.add('act'); sz.classList.add('used'); // la consigne « GLISSE POUR TOURNER » a fait son travail
+      stSet(0,0); sz.classList.add('act'); sz.classList.add('used'); // premier braquage : le volant a trouvé sa place
       start();
     };
     const stMove=function(x,y){
@@ -620,17 +620,56 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   window.__mHomeSur=function(){if(mCur!=='home')mGo('home','racine',true);else{try{mFill();}catch(e){}}}; // (passe qualité) déjà sur l'accueil (retour du garage) : on remplit quand même — la pastille GARAGE gardait le compte d'avant un achat // (2026-09-30) le garage-menu montre l'ACCUEIL, d'où que vienne le routeur (mGo('home') rappelle garAccueil → garMode('menu') : ici, mCur vaut déjà 'home')
   function mStatBox(v,l){return '<div class="mStat"><b>'+v+'</b><span>'+l+'</span></div>';}
   let mCntT=0;
-  function mCount(el,to,direct){ // égrène le montant : départ franc, arrivée en douceur (ease-out cubique)
+  /* ===== L'ÉCRAN DE MORT v6 S'ANIME (2026-11-04, Sacha : « rajoute des animations pour les graphiques, le moteur, les missions et le compteur
+     d'argent qu'on doit voir monter en s'accumulant ») =====
+     Tout partait dans la même seconde (l'argent en 0,75 s) : rien ne se voyait. Un fil, dans l'ordre de lecture —
+     · 0,36 → 2,16 s  l'ARGENT s'accumule (M6_CPT) : le chiffre grossit et s'allume en montant, des pièces viennent s'y fondre, le COMPTE monte
+                      avec lui ; à l'arrivée il CLAQUE et éclate. Le ×2 attend la fin du compte (il double le montant final) ;
+     · 0,45 s         le MOTEUR surgit, son halo flambe, puis son PALIER grimpe cran par cran depuis 1 (m6Anime) ;
+     · 0,75 → 1,9 s   l'AURA : le grand chiffre monte avec la bougie de la PARTIE, puis la MOYENNE et le RECORD poussent, la ligne du record
+                      se trace, un record fait flamber la bougie ;
+     · 1,0 s →        les MISSIONS entrent une à une, leurs barres et leurs comptes montent ensemble (objRenderV2), les coches claquent.
+     Une seule fois par mort ; REDUCED_MOTION : tout est posé d'un coup. Les mouvements sont dans css/mort-flottante.css (« LE FIL »). */
+  const M6_CPT=1800;
+  function m6Fil(el,D,f,fin){const t0=performance.now();(function p(){if(!el.isConnected)return;const k=Math.min(1,(performance.now()-t0)/D);f(k);if(k<1)requestAnimationFrame(p);else if(fin)fin();})();} /* D ms, k de 0 à 1 à chaque image */
+  function m6Pieces(el){ /* deux pièces viennent se fondre dans le chiffre, par-dessous, là où il grandit (sa droite) */
+    const r=zRect(el),x=r.left+r.width*(el.closest('.mCashL')&&getComputedStyle(el).textAlign==='center'?.5:.72),y=r.top+r.height*.55;
+    for(let i=0;i<2;i++){const p=document.createElement('i');p.className='m6Piece';p.style.left=Math.round(x)+'px';p.style.top=Math.round(y)+'px';
+      p.style.setProperty('--dx',Math.round((Math.random()-.5)*150)+'px');p.style.setProperty('--dy',Math.round(50+Math.random()*60)+'px');
+      p.style.animationDelay=(i*45)+'ms';document.body.appendChild(p);setTimeout(function(){p.remove();},700);}}
+  function mCount(el,to,direct){ // égrène le montant : départ franc, arrivée en douceur
     if(!el)return;
     if(mCntT)clearInterval(mCntT);
+    const v6=!!(el.closest&&el.closest('#mDead.m5')),tot=v6?$t('mCashTot'):null,sol=bank(),
+      cpt=function(x){if(tot&&tot.firstChild&&tot.firstChild.nodeType===3)tot.firstChild.nodeValue=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(Math.round(x));};
+    if(v6){el.style.minWidth='';el.classList.remove('m6Cpt');el.style.removeProperty('--k');}
     if(to<=0||direct){el.textContent=fmtC(Math.max(0,to));return;} // direct : on REVIENT sur l'écran (réglages, garage) — le compte ne se rejoue pas
-    el.textContent=fmtC(0);let t0=0;const D=750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
-    mCntT=setInterval(function(){ if(performance.now()<T0)return; if(!t0)t0=performance.now();
-      const k=Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-k,3);
+    el.textContent=fmtC(0);let t0=0,pc=0;const D=v6?M6_CPT:750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
+    if(v6&&!REDUCED_MOTION){cpt(sol-to);el.classList.add('m6Cpt');el.style.setProperty('--k','0');}
+    mCntT=setInterval(function(){ if(performance.now()<T0)return;
+      if(!t0){t0=performance.now();
+        if(v6){el.textContent=fmtC(to);el.style.minWidth=el.offsetWidth+'px';}} /* (v6) la place du montant FINAL est prise d'avance : le badge et le compte, à sa droite, ne bougent pas */
+      const k=Math.min(1,(performance.now()-t0)/D),e=v6?1-Math.pow(1-k,2):1-Math.pow(1-k,3); /* v6 : ease-out quadratique, les crans du son (mCompteSon) tombent sur 1 - √(1 - j/N) */
       el.textContent=fmtC(Math.round(to*e));
-      if(k>=1){clearInterval(mCntT);mCntT=0;if(!REDUCED_MOTION){el.classList.remove('clac');void el.offsetWidth;el.classList.add('clac');}} // (charte v4) l'arrivée CLAQUE
+      if(v6&&!REDUCED_MOTION){el.style.setProperty('--k',e.toFixed(3));cpt(sol-to+to*e);
+        if(k<.92&&performance.now()-pc>90){pc=performance.now();try{m6Pieces(el);}catch(x){}}}
+      if(k>=1){clearInterval(mCntT);mCntT=0;
+        if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');cpt(sol);if(!REDUCED_MOTION)try{pixBurst(el,12);}catch(x){}}
+        if(!REDUCED_MOTION){el.classList.remove('clac');void el.offsetWidth;el.classList.add('clac');}} // (charte v4) l'arrivée CLAQUE
     },28);
   }
+  /* le MOTEUR et l'AURA de l'écran v6 (voir plus haut) — p1 = le palier atteint (affiché à partir de 1) */
+  function m6Anime(h,au,p1,fA){
+    const av=$t('mAuraV'),bm=h.querySelector('.m6Mot .m6Big>b'),mo=h.querySelector('.m6Mot');
+    if(REDUCED_MOTION){if(av)av.textContent=fA(au);return;}
+    /* le palier grimpe : un cran toutes les 130 ms au plus (le tout en 1,1 s au plus), chaque cran TAPE ; le badge RECORD tombe après le dernier */
+    const n=Math.max(0,p1-1),pas=n?Math.min(130,Math.round(1100/n)):0,T=600;
+    if(mo)mo.style.setProperty('--m6Bd',(T+n*pas+120)+'ms');
+    if(bm&&n){bm.textContent='1';
+      for(let i=1;i<=n;i++)setTimeout(function(){if(!bm.isConnected)return;bm.textContent=String(1+i);bm.classList.remove('m6Tape');void bm.offsetWidth;bm.classList.add('m6Tape');},T+i*pas);}
+    /* l'aura monte AVEC la bougie de la PARTIE (même départ, même durée : css .m6P .m6Barre) */
+    if(av){av.textContent=fA(0);if(au>0)setTimeout(function(){m6Fil(av,1100,function(k){av.textContent=fA(au*(1-Math.pow(1-k,3)));});},750);}}
+  window.dbgM6Fil={cpt:M6_CPT}; /* (banc) la durée du compte, pour filmer l'écran */
   /* L'ÉCRAN DE MORT A UNE VOIX (2026-09-26, audit son) : l'écran le plus vu était muet. 300 ms après son apparition (la traîne du son
      de mort passe d'abord), huit notes de la gamme des pièces montent avec les compteurs, puis l'arrivée sonne — en fanfare si record.
      Une seule fois par mort (clé = l'instant de la mort) : mFill est rappelé à chaque retour sur l'écran. */
@@ -650,8 +689,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       const d9=REDUCED_MOTION?0:360,cpt=!!mCntT;
       s9(80,'mort.enseigne');
       if(commitExploits._rangMonte)s9(250,'ui.debloque');
-      if(cpt){for(let j=0;j<9;j++)s9(d9+Math.round(750*(1-Math.sqrt(1-j/9))),'ui.compte',{st:sonPd(j)});s9(d9+750,'mort.compteFin');}
-      if(rec)s9(d9+450,'ui.record');
+      const D9=MORT_FLOT?M6_CPT:750,N9=MORT_FLOT?12:9; /* (2026-11-04) v6 : le compte dure 1,8 s, douze crans */
+      if(cpt){for(let j=0;j<N9;j++)s9(d9+Math.round(D9*(1-Math.sqrt(1-j/N9))),'ui.compte',{st:sonPd(j)});s9(d9+D9,'mort.compteFin');}
+      if(rec)s9(MORT_FLOT?d9+M6_CPT-300:d9+450,'ui.record'); /* son TAAA (0,3 s) tombe pile sur la pose */
       if(commitExploits._neuves&&!document.body.classList.contains('touch'))s9(1750,'caisse.debloquee'); /* sur téléphone la caisse gagnée n'est pas affichée (#mNew masqué) : pas de son sans image */
       if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900);
       return;}
@@ -723,20 +763,16 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
                 recV=Math.max(commitExploits._recAvant||0,SAVE.d.auraMax||0,au),M9=Math.max(1,au,moyV,recV),
                 hP=function(v){return Math.max(3,Math.round(v/M9*100));},
                 lb9=LANG==='en'?['RUN','AVG','BEST']:['PARTIE','MOY.','RECORD'],
-                bg9=function(k,v,l){return '<div class="m6Col m6'+k+'" style="--h:'+hP(v)+'"><span class="m6Val">'+fA(v)+'</span><i class="m6Barre"></i><small>'+l+'</small></div>';},
+                bg9=function(k,v,l){return '<div class="m6Col m6'+k+(k==='P'&&au>0&&au>=recV&&!tq9?' rec':'')+'" style="--h:'+hP(v)+'"><span class="m6Val">'+fA(v)+'</span><i class="m6Barre"></i><small>'+l+'</small></div>';},
                 pas9=function(c,t){return '<em class="m6Badge '+c+'">'+t+'</em>';};
           let vd9='';
           if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9=pas9('rec',pxi('etoile')+'<span>'+TR('RECORD')+'</span>');
           else if(!tq9&&moy0>0&&au>0){const p9=Math.round((au-moy0)/moy0*100);vd9=p9>=1?pas9('up','▲ +'+p9+'%'):p9<=-1?pas9('down','▼ '+p9+'%'):pas9('eq','= '+TR('MOY.'));}
-          const e0=E.coins|0,pc9=nx?Math.max(0,Math.min(1,(coinsGot-e0)/Math.max(1,nx.coins-e0))):1,
-                pied9=nx?'<span class="m6Pc">'+coinsGot+'/'+nx.coins+pxi('piece')+'</span>':'<span class="m6Pc max">'+TR('MAX')+'</span>';
           h.className='mHero m5Hero';
           h.innerHTML='<div class="m6Carte m6Mot" style="--ec:'+hx+'">'
             +'<div class="m6Tete"><span class="m6Lb">'+pxi('flamme')+'<span>'+TR('MOTEUR')+'</span></span>'+(eN&&!tq9?pas9('rec',pxi('etoile')+'<span>'+TR('RECORD')+'</span>'):'')+'</div>'
             +'<div class="m6Big"><small>'+TR('PALIER')+'</small><b>'+(engTier+1)+'</b><small class="m6Sur">/'+ENGINE_TIERS.length+'</small></div>'
-            +'<div class="m6Scene"><i class="m6Halo"></i><canvas class="hMotCv" width="'+ENG_RES_W+'" height="'+ENG_RES_H+'"></canvas><i class="m6Ombre"></i></div>'
-            +'<div class="m6Pied"><span class="m6Nom">'+sansAcc(TR(E.n))+'</span>'+pied9+'</div>'
-            +'<div class="m6Jauge'+(nx?'':' max')+'"><em style="width:'+(pc9*100).toFixed(1)+'%"></em></div></div>'
+            +'<div class="m6Scene"><i class="m6Halo"></i><canvas class="hMotCv" width="'+ENG_RES_W+'" height="'+ENG_RES_H+'"></canvas><i class="m6Ombre"></i></div></div>' /* (2026-11-04, Sacha : « enlève ce texte, il sert à rien ») plus de nom du moteur, de pièces ni de jauge sous la pièce */
             +'<div class="m6Carte m6Aura">'
             +'<div class="m6Tete"><span class="m6Lb">'+pxi('aile')+'<span>'+TR('AURA')+'</span></span>'+vd9+'</div>'
             +'<div class="m6Big"><b id="mAuraV" style="--n:'+fA(au).length+'">0</b></div>'
@@ -750,7 +786,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         }
         if(h){ /* (2026-10-25) les deux dessins (flottant ou cartes) partagent le moteur 3D et le compte de l'aura */
           {const cv9=h.querySelector('.hMotCv');ENG_MORT.cv=cv9;ENG_MORT.ctx=cv9?cv9.getContext('2d'):null;} // le moteur 3D y tourne (engVigRender)
-          {const av9=$t('mAuraV');if(av9){av9.textContent=fA(prem9?0:au);av9.classList.toggle('zero',au<=0);}if(prem9&&av9)setTimeout(function(){countUp(av9,au,function(v){return fA(v);});},REDUCED_MOTION?0:260);} // la carte AURA est distribuée à 250 ms : le chiffre monte quand on la voit
+          {const av9=$t('mAuraV');if(av9){av9.textContent=fA(prem9?0:au);av9.classList.toggle('zero',au<=0);}
+           if(MORT_FLOT){h.classList.toggle('m6Joue',prem9&&!REDUCED_MOTION);{const cl9=document.querySelector('#mDead .mCashL');if(cl9)cl9.classList.toggle('m6Joue',prem9&&!REDUCED_MOTION);} /* le badge RECORD ! de l'argent tombe à la fin du compte */if(prem9)m6Anime(h,au,engTier+1,fA);} /* (2026-11-04) le fil de l'écran v6 — rejoué une seule fois par mort (.m6Joue porte les mouvements CSS) */
+           else if(prem9&&av9)setTimeout(function(){countUp(av9,au,function(v){return fA(v);});},REDUCED_MOTION?0:260);} // la carte AURA est distribuée à 250 ms : le chiffre monte quand on la voit
           if(an){const u=$t('mAuraB'),D=Math.max(1,an.seuil-bas),w1=Math.min(100,(a1-bas)/D*100),w0=rg?0:Math.max(0,(a1-au-bas)/D*100);
             if(u){u.style.width=w0.toFixed(1)+'%';requestAnimationFrame(function(){requestAnimationFrame(function(){u.style.width=w1.toFixed(1)+'%';});});}}}
       }
@@ -926,8 +964,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     let vu0=0,mort=-1,prep=false,deja=false;
     const maj=function(){let e=null;try{e=dblEtat();}catch(_){e=null;}const ok=!!(e&&e.ok);
       if(mort!==TCTL.mortT){mort=TCTL.mortT;prep=false;deja=false;}
+      {const d9=$t('mDead');if(d9)d9.classList.toggle('m6Dbl',ok);} /* écran de mort v6 : la case du ×2 est RÉSERVÉE dès qu'il est dû — il entre 1,1 s plus tard sans rien pousser */
       if(!ok)vu0=0;else if(!vu0)vu0=performance.now();
-      const voir=ok&&(deja||performance.now()-vu0>=1100); // (une pub fermée trop tôt : la plaque revient tout de suite, sans rejouer son entrée)
+      const voir=ok&&(deja||(performance.now()-vu0>=1100&&!mCntT)); // (une pub fermée trop tôt : la plaque revient tout de suite, sans rejouer son entrée) · (2026-11-04) et pas avant la fin du compte de l'argent : il en double le montant FINAL
       if(voir)deja=true;
       if(voir){const s9='+'+fmtC(e.v);if(el._s9!==s9){el._s9=s9;el.querySelector('.dbS').textContent=s9;}
         if(!prep){prep=true;pubPrepare('double-gain');} // la régie va chercher sa pub pendant que la plaque monte

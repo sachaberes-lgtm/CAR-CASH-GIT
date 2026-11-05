@@ -268,8 +268,6 @@
   #tKnob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;
     background:radial-gradient(circle at 38% 32%,rgba(210,250,255,.9),rgba(0,190,230,.55) 58%,rgba(0,110,150,.28));
     border:2px solid rgba(170,244,255,.8);box-shadow:0 0 18px rgba(0,234,255,.55)}
-  #tSteerHint{position:absolute;left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 24px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px);font-family:var(--pix);font-size:8px;letter-spacing:2px;pointer-events:none;text-shadow:0 0 10px rgba(0,234,255,.5);transition:opacity .3s}
-  #tSteer.act #tSteerHint,#tSteer.used #tSteerHint,body.tpad #tSteerHint{opacity:0} /* dit UNE fois : au premier braquage la consigne s'efface pour de bon */
   /* --- flèches : mode PAD, pour qui préfère le tout-ou-rien --- */
   #tLeft,#tRight{display:none;width:min(84px,21vh);height:min(84px,21vh);bottom:20px;font-size:24px}
   body.tpad #tLeft,body.tpad #tRight,body.tpad #tUp,body.tpad #tDown{display:flex}

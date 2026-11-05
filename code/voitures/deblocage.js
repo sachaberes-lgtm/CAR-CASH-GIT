@@ -19,7 +19,7 @@
                   et c'est ce qui empêche la banque de tout ouvrir à elle seule.
      `k:'surv'` = le trophée. ROSSO 40 se gagne en gagnant, point.
    ⚠ l'échelle des prix est géométrique (×5 environ) parce que l'économie du jeu l'est : les paliers
-   moteur vont de 5 à 2 854 et la valeur d'une pièce suit. Une échelle linéaire rendrait les
+   moteur vont de 60 à 4385 et la valeur d'une pièce suit. Une échelle linéaire rendrait les
    premières caisses interminables et les dernières gratuites. */
 /* ===== TOUS LES PRIX ×10, SAUF LA ZAGAIE (2026-10-25, Sacha : « tous les items du jeu, tous leurs prix des trucs que tu peux acheter, tu rajoutes un 0 à la fin de chacun de leurs prix. sauf la zagate ») =====
    Les `p:` ci-dessous (et ceux des habillages dans boutique.js, des figures dans figures.js, des quatre caisses de carnet PX9 dans missions/table.js) sont les prix

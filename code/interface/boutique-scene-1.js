@@ -315,7 +315,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
   const rk=ong+':'+cat+':'+L.map(function(k){return k+(bqA(k)?1:0);}).join(',')+':'+LANG;
   if(GBQ.rk!==rk){GBQ.rk=rk;GBQ.vu=-1;
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
-      if(C9&&s){const t=sansAcc(TR(C9[1]));if(s.textContent!==t){s.textContent=t;b.setAttribute('aria-label',t);}}});
+      if(C9&&s){const t=sansAcc(TR(C9[1]));if(s.textContent!==t){s.textContent=t;b.setAttribute('aria-label',t);b.title=t;}if(on)une.setAttribute('data-cur',t);}}); /* (2026-11-03, Sacha : « cet écran, il est horrible ») `data-cur` : le NOM du rayon ouvert, écrit sous les carrés quand les libellés n'ont plus la place (.duo) */
     rail.classList.remove('off','habs');rail.classList.add('entre');rail.scrollTop=0;rail.scrollLeft=0; /* (2026-10-15, Sacha : « un menu plus grand pour les figures, les ailes, les peintures ») tous les rayons en GRANDES cartes, trois par rangée comme les voitures — à quatre, « D'ORIGINE » se coupait en « D'ORIGIN / E » */
     rail.innerHTML=(cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):cat==='voiture'?bqVoitRail(L):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);bqAimant(rail);
     pan.classList.toggle('bqFigOn',cat==='figure');BQFS.k='';} /* (2026-10-16, Sacha) les trois figures équipées en haut du rayon FIGURES (voir bqFigSelMaj) */
@@ -382,7 +382,7 @@ function bqManque(k){
 /* LES RAYONS TIENNENT DANS LEUR PLACE (2026-10-15) : une ligne par rayon, de 44 à 52 px (la cible du pouce), l'écart se resserre d'abord ;
    s'il n'y a pas la place de six lignes de 44 px (petit téléphone, couché bas), deux colonnes de carrés, pictogramme seul (le nom reste dans aria-label) */
 function bqRayons(el,dispo){const n=el.children.length||1;let g=6,h=Math.floor((dispo-g*(n-1))/n);if(h<46){g=4;h=Math.floor((dispo-g*(n-1))/n);}
-  const duo=h<44;if(duo){g=8;const r=Math.ceil(n/2);h=Math.floor((dispo-g*(r-1))/r);}
+  const duo=h<44;if(duo){g=8;const r=Math.ceil(n/2);h=Math.floor((dispo-18-g*(r-1))/r);} /* 18 px : la ligne du nom du rayon ouvert sous les carrés */
   h=Math.max(44,Math.min(duo?56:52,h));el.classList.toggle('duo',duo);el.style.setProperty('--cH',h+'px');el.style.setProperty('--cG',g+'px');}
 function bqEtat(){const k=bqCourant();if(!k)return null;
   {const m9=bqManque(k);if(m9)return m9;} // (2026-10-14, boutique P1) pas assez d'argent : voir bqManque
