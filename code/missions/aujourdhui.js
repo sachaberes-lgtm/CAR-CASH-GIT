@@ -77,7 +77,7 @@ function djTick(dt){ /* m2Tick (chaque image de course, missions allumées) : le
     try{if(m2EnC()){M2L.q.unshift({k:'dj',tx:sansAcc(TR('RÉUSSI')),p:'+1 '+TR('JETON')});if(!M2L.on)m2LigneSuit();} /* la ligne du bas, EN TÊTE de la file : jamais fondue dans « n MISSIONS RÉUSSIES » */
       else toast(pxi('coche')+' '+TR('DÉFI DU JOUR RÉUSSI')+' · +1 '+TR('JETON'),true);}catch(e){}
     try{hap([12,40,18]);}catch(e){}}}
-function djReste(){const t=new Date(),m=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1);return Math.max(0,m-t);} /* ms jusqu'à minuit (l'appareil) */
+/* (2026-11-05, jury HYG-12) djReste : fonction jamais appelée, retirée */ /* ms jusqu'à minuit (l'appareil) */
 
 /* ---- LA SÉRIE DE SEPT JOURS, en carte à côté de la liste des missions ---- */
 /* (2026-10-22, Sacha : « enlève le défi du jour… plus simple ») plus de bloc AUJOURD'HUI ni de ligne de défi : une carte — le titre (la série en

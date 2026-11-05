@@ -88,7 +88,7 @@ html.hub body #mHome.acc2 .mAccP>.mPlay{flex:1;display:flex!important;align-item
 html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:30px!important}
 html.hub body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
-  html.hub body #mHome.acc2 :is(.mOutils,.mAccP){width:min(372px,48vw);margin-left:auto!important;margin-right:0!important;align-self:flex-end}
+  html.hub body #mHome.acc2 :is(.mOutils,.mAccP){width:min(372px,48vw);margin-left:auto!important;margin-right:max(6px,var(--sR,0px))!important;align-self:flex-end} /* (2026-11-05, Sonnet : jury DIR-22) le mot JOUER, penché, dépassait de 4 px le bord droit en couché : une marge de 6 px (ou l'encoche) */
   html.hub body #mHome.acc2 .mOutils{margin-bottom:8px!important}
   html.hub body #mHome.acc2 :is(.mAccB,.mOutils>.mGear,.mOutils>.mHubShop){height:50px;min-height:50px!important;gap:5px}
   html.hub body #mHome.acc2 .mAccP>.mPlay{height:52px}

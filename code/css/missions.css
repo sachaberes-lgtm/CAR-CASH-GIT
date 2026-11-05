@@ -159,7 +159,7 @@ html.bqIndus body #garage #gAct>#gBqBtn[data-e="sec"],html:not(.c6):not(.ux8g).b
 html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-left:4px;padding-right:4px} /* debout, « MISSION SECRÈTE » (117 px de texte) était coupé dans une carte de 112 px : il passe sur deux lignes ; couché (128 px) il tient sur une, à 4 px des bords */
 /* LA RÉVÉLATION D'UNE SECRÈTE (étape 4, #m2Rev) : la nuit, les rayons à la couleur de la rareté, la silhouette qui se remplit de couleur
    de bas en haut sous une ligne de lumière, le nom qui tombe, l'intitulé tapé, RÉCUPÈRE (le lingot de l'écran) */
-#m2Rev{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--pix);
+#m2Rev{position:fixed;inset:0;z-index:93;display:none;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--pix);
   padding:calc(var(--sT,0px) + 14px) calc(var(--sR,0px) + 16px) calc(var(--sB,0px) + 14px) calc(var(--sL,0px) + 16px);overflow:hidden;cursor:pointer}
 #m2Rev.on{display:flex}
 .m2RvFond{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,#22102f 0,#0b0614 55%,#05030a 100%);opacity:0;transition:opacity .45s var(--ease)}
