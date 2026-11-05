@@ -848,7 +848,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(a==='surv')return SURV.armed?'off':'on';
     if(a==='park')return PARK.on?'off':'on';
     if(a==='sand')return SANDBOX?'off':'on';
-    if(a==='q'||a==='lang'||a==='ctl')return 'onglet';
+    if(a==='q'||a==='lang'||a==='ctl'||a==='gau'||a==='volinv'||a==='incl')return 'onglet'; /* (2026-11-05, finition) MAIN, VOL INVERSÉ, INCLINAISON : des lignes à valeur comme IMAGE ou LANGUE, même son */
     if(a==='wipe')return 'danger';
     return 'nav';
   }

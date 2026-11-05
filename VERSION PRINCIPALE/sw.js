@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1165'; /* v1165 (2026-11-05, Léo : « des vitrines de verre sur un socle noir, la voiture bien visible, les ailes seules qui battent ; fusionné avec le showroom de Sacha ») les cartes de la boutique deviennent des vitrines : le plateau de nuit de Sacha est l'intérieur, le verre (cube 3D au palier 2, projection oblique ailleurs), le socle noir, l'étiquette de prix et la banderole l'entourent ; la photo d'une aile ne garde que ses deux ailes, qui battent. */
+const CACHE = 'cashcar-v1169'; /* v1169 (2026-11-05, Léo : « on garde les vitres ; plus de fond noir pour les voitures et les traînées ; la vitre qui se brise à l'achat ») les cartes de la boutique deviennent des vitrines de verre sur socle noir (cube 3D au palier 2, projection oblique ailleurs) avec le décor clair teinté de la rareté ; les ailes sont seules et battent ; à l'achat, la vitre éclate (DÉBLOQUÉ). */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

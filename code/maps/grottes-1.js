@@ -179,7 +179,9 @@ const GRT_HUMEURS=[ // a : angle d'un virage (°, minimum + étendue) · t : la 
 function* genGrotte(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais
   CAMPM.length=0;MODMARK.length=0;
   const LV=typeof lvPiste==='function'?lvPiste():1,gr=mulberry32((rnd()*4294967296)>>>0);let best=null;
-  for(let e=0;e<6;e++){if(e)yield;const r=grtTrace(gr,LV);if(!best||r.conflits<best.conflits)best=r;if(!r.conflits)break;}
+  const cib9=rythmeCible('grotte'),vP9=typeof vPalier==='function'?vPalier():78,rP9=typeof rayonPalier==='function'?rayonPalier():63,notes9=[]; /* (2026-11-05, LE DIRECTEUR DE RYTHME) l'essai gardé : sans conflit ET le mieux noté (route-rythme.js) */
+  for(let e=0;e<6;e++){if(e)yield;const r=grtTrace(gr,LV);r.fiche=rythmeMesure(r.ctrl,{vP:vP9,rP:rP9,marks:r.mods});r.note=rythmeNote(r.fiche,cib9)+r.conflits*20;notes9.push(+r.note.toFixed(1));if(!best||r.note<best.note)best=r;if(!r.conflits&&r.note<=1)break;}
+  RYTHME.der={carte:'grotte',note:best.note,notes:notes9,fiche:best.fiche};
   for(const k of ['Q','salles','sTot','conflits','croise','geants','boyaux'])GROTTE[k]=best[k];
   for(const m of best.mods||[])MODMARK.push(m);
   return best.ctrl;}
