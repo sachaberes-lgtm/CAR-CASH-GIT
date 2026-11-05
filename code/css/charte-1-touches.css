@@ -1,5 +1,21 @@
 <style id="charte4">
 /* =====================================================================================================================
+   LA TABLE DES COUCHES (2026-11-05, Sonnet : jury INT-43 — « l'échelle des z-index n'est écrite nulle part ») — du plus bas au plus haut.
+   Une fenêtre qui doit passer AU-DESSUS d'une autre prend un cran de plus ICI d'abord, puis dans sa règle. Les valeurs sont celles du code
+   à cette date (rien n'est calculé depuis cette table : c'est une carte, pas un réglage).
+     1 … 12   le décor de l'interface : HUD de course, boutons flottants, bandeaux (socle-3-hud.css, hud-da.css)
+     29 … 89  les écrans du menu, le garage, la pause (#tPanel), l'inventaire
+     90       #plq (la plaque) et #prof (le profil)                                  — plaque.css
+     93       #m2Rev, la révélation des missions réussies                            — missions.css (95 avant : à égalité avec #modale)
+     94       #shPop, la fenêtre d'un article de la boutique                         — hud-da.css
+     95       #modale, les fenêtres du jeu (QUITTER ?, ENTRER UN CODE…)              — charte-2-ecrans.css
+     96       #toast                                                                 — charte-2-ecrans.css
+     120      les éclats de pièces (.m6Piece, .pxBurst), au-dessus de tout le HUD
+     250 … 1000  les voiles plein écran (#wipe, #spinM le FINAL SPIN, #pubR la promo de la seconde chance) et les outils (boîte noire, bancs)
+     99990    #feteCaisse, la fête d'une nouvelle caisse                              — interface/fete-caisse.js
+     99999    #ccCrash, l'écran « a calé »                                           — page/debut-corps.html
+   ===================================================================================================================== */
+/* =====================================================================================================================
    LA CHARTE v5 — LAQUE · OR · NÉON (2026-09-28) — la v4 CARBONE · OR · NÉON, un cran plus haut
    ---------------------------------------------------------------------------------------------------------------------
    Sacha : « ça manque de soin — tous les affichages doivent être beaucoup plus soignés, beaucoup plus cohérents entre

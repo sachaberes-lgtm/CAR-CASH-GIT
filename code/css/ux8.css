@@ -16,7 +16,7 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{flex-direction:r
 html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .pxi{--pxs:3}
 html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .mMisPips{top:calc(50% - 3px)!important;right:18px!important}
 html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){flex-direction:column!important;gap:6px!important;padding:4px 2px!important;font-size:10px!important;letter-spacing:1px;color:var(--tx,#dfeeff)}
-html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres)>span,html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear>span{display:block!important;font-family:var(--pix);font-size:10px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:clip;max-width:100%}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres)>span,html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear>span{display:block!important;font-family:var(--pix);font-size:10px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .pxi{--pxs:3}
 @media (orientation:portrait) and (max-width:400px){
   html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:8px}

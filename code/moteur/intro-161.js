@@ -129,27 +129,7 @@
   function bez(p0,p1,p2,p3,n){const o=[];for(let i=0;i<=n;i++){const t=i/n,u=1-t;o.push({x:u*u*u*p0[0]+3*u*u*t*p1[0]+3*u*t*t*p2[0]+t*t*t*p3[0],y:u*u*u*p0[1]+3*u*u*t*p1[1]+3*u*t*t*p2[1]+t*t*t*p3[1]});}return o;}
   function lig(p0,p1,n){const o=[];for(let i=0;i<=n;i++){const t=i/n;o.push({x:p0[0]+(p1[0]-p0[0])*t,y:p0[1]+(p1[1]-p0[1])*t});}return o;}
   function ell(cx,cy,rx,ry,a0,a1,n){const o=[];for(let i=0;i<=n;i++){const a=a0+(a1-a0)*i/n;o.push({x:cx+Math.cos(a)*rx,y:cy+Math.sin(a)*ry});}return o;}
-  function glyphes(o){ /* les quatre signes « 1 . 6 1 » : chacun un tracé continu (le centre du trait) en hauteurs de chiffre, posés côte à côte, puis penchés. o : sw (l'épaisseur), pente, gaps (entre les signes), rx/ry (le ventre du 6), fx/fy (le drapeau du 1), dr (le rayon du point) */
-    const sw=o.sw,t0=sw/2,rx=o.rx||.20,ry=o.ry||.29,fx=o.fx||.225,fy=o.fy||.1475,dr=o.dr||sw*.725,sx=fx+.045,NH=22,cyb=1-t0-ry,pente=o.pente||0;
-    const UN=()=>lig([sx-fx,t0+fy],[sx,t0],7).concat(lig([sx,t0],[sx,1-t0],24).slice(1)); /* le 1 : un drapeau, une hampe (un tableau neuf à chaque appel : les deux 1 ne partagent pas leurs points) */
-    const SIX=bez([2*rx,t0+.0875],[2*rx-.14,t0-.1525],[0,t0+.1375],[0,cyb],NH).concat(ell(rx,cyb,rx,ry,Math.PI,-Math.PI,52).slice(1)); /* le 6 : la crosse, qui descend et s'enroule en ventre (NH : où elle finit) */
-    const signes=[{pl:UN()},{pt:{x:dr,y:1-dr},dr:dr},{pl:SIX},{pl:UN()}];
-    let x0=0;
-    signes.forEach(function(g,i){
-      let m0=1e9,m1=-1e9;
-      if(g.pt){m0=g.pt.x-dr;m1=g.pt.x+dr;}else for(const q of g.pl){m0=Math.min(m0,q.x-sw/2);m1=Math.max(m1,q.x+sw/2);}
-      g.dx=x0-m0;x0+=m1-m0+(o.gaps[i]||0);
-    });
-    let bx0=1e9,bx1=-1e9,by0=1e9,by1=-1e9;
-    const borne4=function(x,y,r){bx0=Math.min(bx0,x-r);bx1=Math.max(bx1,x+r);by0=Math.min(by0,y-r);by1=Math.max(by1,y+r);};
-    for(const g of signes){
-      if(g.pt){g.pt.x+=g.dx+pente*(.5-g.pt.y);borne4(g.pt.x,g.pt.y,dr);continue;}
-      for(const q of g.pl){q.x+=g.dx+pente*(.5-q.y);borne4(q.x,q.y,sw/2);}
-      g.cum=[0];for(let i=1;i<g.pl.length;i++)g.cum.push(g.cum[i-1]+Math.hypot(g.pl[i].x-g.pl[i-1].x,g.pl[i].y-g.pl[i-1].y));
-      g.L=g.cum[g.cum.length-1];
-    }
-    return{signes:signes,sw:sw,dr:dr,NH:NH,bx0:bx0,bx1:bx1,by0:by0,by1:by1};
-  }
+  /* (2026-11-05, jury HYG-12) glyphes : fonction jamais appelée, retirée */
   function morceau(sg,a,b,P,h,sw){ /* le bout de tracé entre les fractions a et b de sa longueur, en pixels : un Path2D, son point d'arrivée, deux jeux de taches de lumière (serrées, larges) et des points serrés avec leur normale (pour les grains) */
     const pl=sg.pl,cum=sg.cum,d0=a*sg.L,d1=b*sg.L,p=new Path2D();
     const pt=function(d){let i=0;while(i<cum.length-2&&cum[i+1]<d)i++;const k=(d-cum[i])/Math.max(1e-9,cum[i+1]-cum[i]);return P(pl[i].x+(pl[i+1].x-pl[i].x)*k,pl[i].y+(pl[i+1].y-pl[i].y)*k);};
@@ -163,11 +143,7 @@
   function etoile(c,x,y,r,a){ /* une étoile à quatre branches effilées */
     const v=r*.62,q=r*.07;c.globalAlpha=a;c.fillStyle='#fff';c.beginPath();c.moveTo(x-r,y);c.quadraticCurveTo(x-q,y-q,x,y-v);c.quadraticCurveTo(x+q,y-q,x+r,y);c.quadraticCurveTo(x+q,y+q,x,y+v);c.quadraticCurveTo(x-q,y+q,x-r,y);c.fill();
   }
-  function allumage(c,t,cx,cy,sw,h){ /* le trait de lumière de l'allumage (le titre faible s'aplatit dedans) ; à poser en addition */
-    if(t>=.5)return;const L=W*.47*sort3(t/.2),a=1-lisse(.26,.5,t);
-    if(a>0){halo(c,SPR.bl,cx,cy,L*1.02,sw*.8,.55*a);c.globalAlpha=a;c.fillStyle='#fff';c.fillRect(cx-L,cy-1,2*L,2);}
-    halo(c,SPR.bl,cx,cy,h*.7,h*.7,Math.exp(-t/.09)*.4);
-  }
+  /* (2026-11-05, jury HYG-12) allumage : fonction jamais appelée, retirée */
 
   /* ---- 1. NÉON : le tube blanc que les blips allument morceau après morceau, dans le sens de l'écriture ---- */
 
@@ -273,17 +249,7 @@
   /* LA GRAINE (2026-11-02, Léo : « l'écran noir au début donne l'impression que ça bug ; trouve un truc à mettre pendant le chargement ») : un point d'or au centre de la future boule, qui respire, et des ondes
      qui s'en écartent comme un sonar. C'est de LUI que la boule naît (elle se construit du milieu). Dessiné dès l'attente, avant que le film parte (`attente`), puis jusqu'à ce que les premiers points de la boule
      l'éteignent (`rendu`) : il ne dépend que de l'heure réelle, donc il continue sans à-coup à travers le départ du film. « Réduire les animations » : un point fixe, sans ondes. */
-  function dGraine(c,a){
-    if(a<=.004)return;
-    if(!SPR.or)SPR.or=lueur(255,190,80);
-    const land=W>H*1.15,cx=W/2,cy=H*(land?.5:.46),s=performance.now()/1000,R=reduit();
-    c.save();c.globalCompositeOperation='lighter';
-    const r=(5+(R?0:1.2*Math.sin(s*3.2)))*ku;
-    halo(c,SPR.or,cx,cy,r*5,r*5,.55*a);
-    if(!R)for(let j=0;j<2;j++){const k=(s*.55+j*.5)%1,rr=(8+k*46)*ku;c.globalAlpha=.5*(1-k)*(1-k)*a;c.strokeStyle='rgb(255,214,120)';c.lineWidth=Math.max(1,1.4*ku);c.beginPath();c.arc(cx,cy,rr,0,6.2832);c.stroke();}
-    c.globalAlpha=a;c.fillStyle='#fff1cf';const p=Math.max(2,Math.round(3*ku));c.fillRect(Math.round(cx-p/2),Math.round(cy-p/2),p,p);
-    c.restore();
-  }
+  /* (2026-11-05, jury HYG-12) dGraine : fonction jamais appelée, retirée */
   function chCl(a){ /* l'anneau de chargement du HTML (spCharge) : visible jusqu'à ce que les premiers points de la boule se dessinent, puis il fond et disparaît (Léo, 02/11) */
     const el=chCl.el===undefined?(chCl.el=document.getElementById('spCharge')):chCl.el;if(!el||chCl.fini)return;
     if(a<=.004){chCl.fini=1;el.remove();return;}el.style.opacity=a;
@@ -466,7 +432,7 @@
     /* (2026-10-26, Sacha : « 1.61 Studio » → « 1.61 Game ») deux lignes : « 1.61 GAME » en grand (le « 1.61 » blanc chaud, GAME en or), un filet d'or qui s'ouvre depuis le centre,
        puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier.
        (2026-11-02 nuit, Léo : « enlève le GAME, c'est juste 1.61 ») la ligne du haut n'est plus que « 1.61 ». */
-    const t1='1.61',t2='PRESENTS',n1=t1.length,n2=t2.length;
+    const t1='1.61',t2=(function(){try{return TR('PRÉSENTE');}catch(e){return 'PRESENTS';}})(),n1=t1.length,n2=t2.length;
     const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),k=sort3((s-.7)/1.5),esp=px*(.95-.5*k);
     const tot=n1*px+(n1-1)*esp,y1=e.cy-px*.1,yR=e.cy+px*.62,y2=yR+px2*2.1;
     c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';

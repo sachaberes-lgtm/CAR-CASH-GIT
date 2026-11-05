@@ -817,7 +817,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop');
       if(bg){if(/[?&]pastille=ancien\b/.test(location.search))bg.textContent=nG||'';else{const h9=nG>0?pxi('panier'):'';if(bg._h9!==h9){bg._h9=h9;bg.innerHTML=h9;}bg.setAttribute('aria-label',nG>0?(LANG==='en'?nG+' to buy':nG+' à ta portée'):'');}bg.classList.toggle('on',nG>0);} /* (2026-11-05, Opus : jury DIR-26) un « 19 » nu ne disait rien : un panier (il y a de quoi acheter), le nombre pour VoiceOver ; `?pastille=ancien` = le nombre */ // tout ce qui s'achète en argent du jeu est au GARAGE
-      if(bs){bs.textContent='NEW';bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
+      if(bs){bs.textContent=sansAcc(TR('NOUVEAU'));bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
     }else if(mCur==='modes'){
       const set9=function(id,sid,on){const c=$t(id),s=$t(sid);
         if(c){c.classList.toggle('on',on);c.classList.toggle('off',!on);} if(s)s.textContent=on?'ON':'OFF';};

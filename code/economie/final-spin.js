@@ -29,10 +29,10 @@ const SPIN={on:!qDev(/[?&]spin=0\b/), /* (2026-11-05, Opus : HYG-10) ?spin=0 en 
      d'argent ; le jackpot doit faire gagner une voiture épique ») — les sacs ×50 (120 → 6 000, 300 → 15 000, 1 000 → 50 000) et 2,5 à
      3,3 fois plus rares (,20 → ,08 · ,12 → ,04 · ,04 → ,012) ; le CŒUR ,05 → ,15 ; le 7 donne une ÉPIQUE pas encore à toi (spinEpique),
      `cash` = ce qu'il verse quand elles le sont toutes. Argent ≈ 1 700 $ d'espérance par tirage (avant : ≈ 178 $, plafond de GENERAL
-     « ≤ 10 % du gain d'une partie » levé par Sacha). */
-  lots:[{id:'petit',nm:'PETIT SAC',p:.08,cash:6000},
-        {id:'sac',nm:"SAC D'ARGENT",p:.04,cash:15000},
-        {id:'gros',nm:'GROS SAC',p:.012,cash:50000},
+     « ≤ 10 % du gain d'une partie » levé par Sacha). (2026-11-05, jury ECO-31) le ×10 des prix du 25/10 n'avait pas touché les sacs : 6 000 / 15 000 / 50 000 → 60 000 / 150 000 / 500 000 (espérance ≈ 16 800 $ par tirage). */
+  lots:[{id:'petit',nm:'PETIT SAC',p:.08,cash:60000},
+        {id:'sac',nm:"SAC D'ARGENT",p:.04,cash:150000},
+        {id:'gros',nm:'GROS SAC',p:.012,cash:500000},
         {id:'coeur',nm:'SECONDE CHANCE GRATUITE',p:.19,bon:'chanceG',sous:'À TA PROCHAINE CHUTE'}, // (2026-10-31, Sacha : « augmente un peu la probabilité d'avoir une seconde chance ») ,15 → ,19
         {id:'boost',nm:'DÉPART BOOSTÉ',p:.07,bon:'spinBoost',sous:'NITRO PLEINE · MOTEUR +1'},
         {id:'jeton',nm:'+1 JETON',p:.05,jeton:1,sous:'UN TIRAGE DE PLUS'},
@@ -417,7 +417,7 @@ setInterval(function(){try{ // le guetteur : la machine après l'écran de fin (
   const enCourse=started&&!gameOver;
   if(enCourse&&!SPIN.enCourse&&!(typeof CHANCE!=='undefined'&&CHANCE.used))spinDepart();SPIN.enCourse=enCourse;
   if(SPIN.ouvert){if(!(started&&gameOver)||garageOn)spinFerme();return;}
-  const ok=(SAVE.d.spinJ|0)>0&&started&&gameOver&&!SANDBOX&&!garageOn&&!ecranWipe._on&&!chanceAttend()&&!M2REV.on&&!!document.querySelector('#mDead.on'); /* (24/10, relecture) …ni pendant la révélation d'une secrète (#m2Rev) : la machine (z-index 250) la couvrait, sa scène se jouait derrière */
+  const ok=(SAVE.d.spinJ|0)>0&&started&&gameOver&&!SANDBOX&&!garageOn&&!ecranWipe._on&&!chanceAttend()&&!M2REV.on&&!serieWAttend()&&!!document.querySelector('#mDead.on'); /* (24/10, relecture) …ni pendant la révélation d'une secrète (#m2Rev) : la machine (z-index 250) la couvrait, sa scène se jouait derrière */
   if(!ok){SPIN.vu0=0;return;}
   if(!SPIN.vu0)SPIN.vu0=performance.now();else if(performance.now()-SPIN.vu0>1100)spinOuvre();
 }catch(e){}},200);

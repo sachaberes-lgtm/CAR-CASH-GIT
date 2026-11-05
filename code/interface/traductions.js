@@ -185,7 +185,7 @@ Object.assign(I18N,{'FRÔLÉ':'CLOSE CALL','RÉCOLTE':'COIN RUSH','RAFALE':'FRUI
   'VRILLE 360 — LAVE-LINGE !':'360 SPIN — WASHING MACHINE!','TRIPLE BUMP — LA DALLE EN PLEURE':'TRIPLE BUMP — THE ROAD IS CRYING'});
 // ---- la charte v4 (2026-09-26) : les libellés neufs de l'interface (et ceux qui retombaient en français) ----
 Object.assign(I18N,{"LÉGENDAIRES":"LEGENDARIES","EXOTIQUES":"EXOTICS","EXOTIQUE":"EXOTIC","MYTHIQUES":"MYTHICS","MYTHIQUE":"MYTHIC","INFINIS":"INFINITE","INFINI":"INFINITE","BIENTÔT":"SOON"}); // (2026-10-10) les sept raretés
-Object.assign(I18N,{"MISSIONS SECRÈTES":"SECRET MISSIONS","COMMUNES":"COMMONS","COMMUNE":"COMMON","RARES":"RARES","ÉPIQUES":"EPICS","ÉPIQUE":"EPIC","LÉGENDES":"LEGENDS","LÉGENDAIRE":"LEGENDARY","DÉFIS":"MISSIONS","TOUT":"ALL","À MOI":"MINE","À ACHETER":"FOR SALE","TRAÎNÉE":"TRAIL","PEINTURE":"PAINT","AILES":"WINGS"});
+Object.assign(I18N,{"MISSIONS SECRÈTES":"SECRET MISSIONS","COMMUNES":"COMMONS","COMMUNE":"COMMON","RARES":"RARE","ÉPIQUES":"EPICS","ÉPIQUE":"EPIC","LÉGENDES":"LEGENDS","LÉGENDAIRE":"LEGENDARY","DÉFIS":"MISSIONS","TOUT":"ALL","À MOI":"MINE","À ACHETER":"FOR SALE","TRAÎNÉE":"TRAIL","PEINTURE":"PAINT","AILES":"WINGS"});
 Object.assign(I18N,{"PIÈCE":"COIN","RETOUR":"BACK","EN BOUTIQUE":"IN THE SHOP","VERROUILLÉE":"LOCKED","ÉQUIPÉE":"EQUIPPED","IL MANQUE":"SHORT BY","LES LEGENDAIRES":"LEGENDARIES","DÉFI":"CHALLENGE","MISSION":"MISSION","FAITES":"DONE"});
 // (2026-09-28, pouvoirs v2) les six pouvoirs, leurs durées, le cumul, le bouclier qui sauve
 Object.assign(I18N,{'NITRO INFINIE — 9 s À FOND !':'INFINITE NITRO — 9 s FLAT OUT!','🪂 AIRTIME INFINI — 14 s DE VOL !':'🪂 INFINITE AIRTIME — 14 s OF FLIGHT!',
@@ -399,3 +399,12 @@ for(const k of Object.keys(I18N)){
 Object.assign(I18N,{'TOUS LES REGLAGES':'ALL SETTINGS'}); Object.assign(I18N,{'AIDE':'HELP','Colle un code de sauvegarde, ou un code secret.':'Paste a save code, or a secret code.'}); // (2026-10-14, UX 8) // (2026-10-14, charte 6) la ligne de la pause qui ouvre l'écran complet
 Object.assign(I18N,{"VOL INVERSÉ":"INVERTED FLIGHT"}); /* (2026-10-27, Léo) l'option VOL INVERSÉ des réglages */
 Object.assign(I18N,{"INCLINAISON":"TILT STEERING","MAIN":"HAND","GAUCHER":"LEFTY","DROITIER":"RIGHTY"}); /* (2026-10-27, Léo) tourner en penchant le téléphone */
+/* ===== LES CLÉS MANQUANTES DU JURY (2026-11-05, Sonnet : « clés I18N manquantes : CAPTEUR REFUSÉ, RACCOURCI, CHAMPION !… et les aria-label sans traduction ») =====
+   Relevées par un script qui liste tout appel de TR, sous:, data-fr et aria-label sans clé. RACCOURCI, CHAMPION !, DERNIER !, EXPLOSION DANS, COUPERET DANS, ACCROCHE !,
+   ELLE T'A SEME et LA CAISSE-NUAGE existent déjà (zones-caisses.js). RARES (boutique) : le nom d'une rareté, au singulier en anglais comme COMMON / EPIC. */
+Object.assign(I18N,{"LES PIECES VIENNENT A TOI":"COINS COME TO YOU","AURA x2, x3 SI TU ENCHAINES":"AURA x2, x3 IF YOU CHAIN","AIRTIME x2, 2 JAUGES":"AIRTIME x2, 2 GAUGES",
+  "DONUT":"DONUT","BOOST":"BOOST","RIEN ICI":"NOTHING HERE","BURN-OUT":"BURN-OUT","SECONDE CHANCE":"SECOND CHANCE","PREMIER MATIN":"FIRST MORNING","THE DARK TRIAD":"THE DARK TRIAD",
+  "CAPTEUR REFUSÉ : RÉGLAGES › SAFARI":"SENSOR DENIED: SETTINGS > SAFARI","PENCHE LE TÉLÉPHONE POUR TOURNER":"TILT YOUR PHONE TO STEER","EARLY DEAD":"CHAIN LOST",
+  "NOUVEAU":"NEW"}); /* (la pastille NEW de la boutique, le bandeau « chaîne perdue » de la mort précoce) */
+Object.assign(I18N,{"Final spin":"Final spin","Levier":"Lever","Achat":"Buy","Aura":"Aura","Vitesse de départ":"Starting speed","Plaque":"License plate","Cadeau":"Gift",
+  "Volume du son":"Sound volume","Volume de la musique":"Music volume","Haut":"Up","Bas":"Down","Figures":"Tricks"}); /* les étiquettes VoiceOver (applyLangDOM les passe par I18N) */

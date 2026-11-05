@@ -596,7 +596,7 @@ const MOT_MASQ={};
 function motMasque(id){if(MOT_MASQ[id])return MOT_MASQ[id];const N=64,cv=motToile(id,N),d=cv.getContext('2d').getImageData(0,0,N,N).data,m=new Uint8Array(N*N);for(let i=0;i<N*N;i++)m[i]=Math.min(d[i*4],d[i*4+1],d[i*4+2])<238?1:0;return MOT_MASQ[id]={N:N,m:m};}
 let MOT_TGEO=null,MOT_TMAT=null;
 function motTouffes(grp,id){const M=MOTIFS[id];if(!M||!M.touffes)return;grp.updateWorldMatrix(true,false);const INV=new THREE.Matrix4().copy(grp.matrixWorld).invert(),REL=new THREE.Matrix4();
-  if(!MOT_TGEO){MOT_TGEO=new THREE.IcosahedronGeometry(1,0);MOT_TMAT=new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true});}
+  if(!MOT_TGEO){MOT_TGEO=new THREE.IcosahedronGeometry(1,0);MOT_TMAT=new THREE.MeshLambertMaterial({vertexColors:true});}
   const MQ=motMasque(id),R=motAlea(20261101),IP=MOT_TGEO.attributes.position,NV=IP.count;
   grp.traverse(function(o){const m9=o.material;if(!o.isMesh||!m9||Array.isArray(m9)||!m9.userData||m9.userData.mot!==id||o.userData.touffes)return;
     const g=o.geometry,P=g&&g.attributes.position;if(!P)return;o.updateWorldMatrix(true,false);REL.multiplyMatrices(INV,o.matrixWorld);
@@ -644,9 +644,7 @@ function habPaye(cat,i,bt){const d=COSM[cat]&&COSM[cat][i];if(!d||!d.eur||shopOw
   shopPaye(cat+':'+d.id).then(function(){habPaye.on=0;habDonne(cat,d.id);garEquipeHabit(cat,i);shopShow(cat,i);hap([10,30,20,30,40]);try{pixBurst($('gCard'),26);gTampon(TR('À TOI !'));}catch(e){}
     try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}}catch(e){}try{GBQ.rk='';gShopJour();}catch(e){}},
     function(){habPaye.on=0;if(bt)try{gSecoue(bt);}catch(e){}uiClic('refus');hap([10,40,10]);toast(pxi('panier')+' '+TR("L'achat est indisponible pour le moment."));});return true;}
-function palDonne(){ /* APRÈS le succès de shopPaye('palette') (ou une restauration d'achats) : les communes et les rares dans `own`, jamais la banque du jeu */
-  if(!PALETTE_ON)return false;const o=SAVE.d.shop.own;let n9=0;for(const id of PALETTE_PACK.ids)if(o.indexOf('peinture:'+id)<0){o.push('peinture:'+id);n9++;}
-  SAVE.flush();if(n9){toast(pxi('coche')+' '+TR('LA PALETTE'),true);try{hap([20,40,20,40,60]);}catch(e){}}return true;}
+/* (2026-11-05, jury HYG-12) palDonne : fonction jamais appelée, retirée */
 /* ===== « OU GAGNE-LA » — LES DÉFIS DES PEINTURES (2026-11-05, le nuancier v3) =====
    Une peinture à `def` s'achète, ou se gagne : sa valeur se lit à tout moment (peintDefVal, les records de la partie en cours compris) ; elle tombe
    dès qu'elle passe le seuil (peintDefisVerifie, appelée par m2Verifie : en course quatre fois par seconde, et aux menus), ou par secGagne pour un

@@ -8,18 +8,7 @@ function patBruit(x,y,z){const i=Math.floor(x),j=Math.floor(y),k=Math.floor(z),u
   return l(l(l(H(i,j,k),H(i+1,j,k),a),l(H(i,j+1,k),H(i+1,j+1,k),a),b),l(l(H(i,j,k+1),H(i+1,j,k+1),a),l(H(i,j+1,k+1),H(i+1,j+1,k+1),a),b),c);}
 /* LA LAQUE QUI COULE : chaque « côté » d'un sommet (une position et sa normale : un pli vif reste séparé) est un nœud ; à chaque tour, la normale d'un nœud devient la sienne plus la moyenne de ses
    voisins (les nœuds reliés par un côté de facette). `bulleOutils.lisse` ne regarde que les facettes qui se touchent EN un point : une facette tous les 9 cm d'un loft y survit. */
-function lisseDiffuse(G,tours,poids,zone){   /* `zone(x,y,z)` (facultatif) : seuls les sommets qui y tombent sont lissés, les autres gardent leur normale */
-  const N0=zone?G.attributes.normal.array.slice():null;
-  const P=G.attributes.position.array,N=G.attributes.normal.array,nv=(P.length/3)|0,id=new Map(),nod=new Int32Array(nv),cur0=[];
-  for(let i=0;i<nv;i++){const k=Math.round(P[i*3]*4e3)+','+Math.round(P[i*3+1]*4e3)+','+Math.round(P[i*3+2]*4e3)+'|'+Math.round(N[i*3]*400)+','+Math.round(N[i*3+1]*400)+','+Math.round(N[i*3+2]*400);
-    let n=id.get(k);if(n===undefined){n=cur0.length;id.set(k,n);cur0.push([N[i*3],N[i*3+1],N[i*3+2]]);}nod[i]=n;}
-  const adj=cur0.map(()=>new Set());
-  for(let t=0;t+2<nv;t+=3){const a=nod[t],b=nod[t+1],c=nod[t+2];adj[a].add(b);adj[a].add(c);adj[b].add(a);adj[b].add(c);adj[c].add(a);adj[c].add(b);}
-  let cur=cur0;const w=poids==null?1:poids;
-  for(let it=0;it<tours;it++){cur=cur.map((v,i)=>{const L=adj[i];if(!L.size)return v;let x=0,y=0,z=0;for(const j of L){x+=cur[j][0];y+=cur[j][1];z+=cur[j][2];}
-      x=v[0]+w*x/L.size;y=v[1]+w*y/L.size;z=v[2]+w*z/L.size;const h=Math.hypot(x,y,z)||1;return [x/h,y/h,z/h];});}
-  for(let i=0;i<nv;i++){if(zone&&!zone(P[i*3],P[i*3+1],P[i*3+2])){N[i*3]=N0[i*3];N[i*3+1]=N0[i*3+1];N[i*3+2]=N0[i*3+2];continue;}const v=cur[nod[i]];N[i*3]=v[0];N[i*3+1]=v[1];N[i*3+2]=v[2];}
-  G.attributes.normal.needsUpdate=true;return G;}
+/* (2026-11-05, jury HYG-12) lisseDiffuse : fonction jamais appelée, retirée */
 /* LA PATINE : `o` = {marbre (amplitude, .05), echelle (m, .35), graine, crasse (0-1 : le bas s'assombrit), yCrasse (m : la hauteur où elle s'éteint, .5), poussiere (0-1 : ce qui regarde le ciel s'éclaircit),
    rouille (0-1 : la part de plaques de rouille, plus fréquentes en bas), lumMin (les sommets plus sombres que ça — joints, noirs — ne sont pas touchés)}. Les couleurs sont MULTIPLIÉES : la peinture
    de la boutique passe dessous sans rien casser. */

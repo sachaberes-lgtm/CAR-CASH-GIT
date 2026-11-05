@@ -5,12 +5,12 @@ function buildGarageRoom(){
   const BX=new THREE.BoxGeometry(1,1,1),CY=new THREE.CylinderGeometry(.5,.5,1,14),
         CY8=new THREE.CylinderGeometry(.5,.5,1,7),TOR=new THREE.TorusGeometry(.34,.16,7,16),
         CN=new THREE.ConeGeometry(.5,1,12),PL=new THREE.PlaneGeometry(1,1);
-  const L=(c,e,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c,emissive:e===undefined?0:e,flatShading:true,fog:false},o||{}));
+  const L=(c,e,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c,emissive:e===undefined?0:e,fog:false},o||{}));
   const BA=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));
   // La PALETTE : béton froid, ferraille bleu nuit, et quatre couleurs franches (rouge servante,
   // jaune sécurité, bleu fût, orange palan) qui suffisent à faire lire « atelier » d'un coup d'œil.
   const M={
-    sol   :L(0xffffff,0x090b10,{flatShading:false}),
+    sol   :L(0xffffff,0x090b10),
     mur   :L(0x3c4557,0x1b212f), bas:L(0x1c2433,0x0e1422), toit:L(0x101319,0x0a0f1a), /* (garage-lumiere) émissifs remontés : on lit les murs */
     fer   :L(0x232a38,0x070910), acier:L(0x6b7688,0x101319), chrome:L(0xc2cbd8,0x171b21),
     noir  :L(0x15181f,0x040609), pneu:L(0x1a1c21,0x050608),

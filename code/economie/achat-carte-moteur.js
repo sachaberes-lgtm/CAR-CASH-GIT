@@ -144,9 +144,9 @@ function engBig(E,tier,ru){
      LA CARTE SE RÉDUIT À L'ESSENTIEL : une étiquette (NOUVEAU MOTEUR), le NOM dans la typo ombrée du HUD, à la couleur néon du moteur, et
      le moteur 3D à l'échelle de la CAISSE, posé sur son toit. Le palier, les cylindres et le gain ont quitté la carte : le gain jaillit de
      la voiture à l'entrée dans le capot (engImpact), les cylindres chantent toujours (à l'oreille). */
-  b.innerHTML='<div class="ebCarte"><small class="ebTit'+(cap9?' cap':'')+'">'+(cap9?'+ '+sansAcc(TR(cap9)):sansAcc(TR(rec?'NOUVEAU SOMMET':'NOUVEAU MOTEUR')))+'</small>'
-    +'<b data-t="'+String(nm).replace(/[<>&"]/g,'')+'">'+nm+'</b>'
-    +'<div class="ebScene"></div></div>';
+  /* (2026-11-05, Sacha : « enlève le texte au-dessus du moteur quand on monte de palier ») la carte ne porte plus ni l'étiquette (NOUVEAU MOTEUR) ni le NOM :
+     le moteur 3D seul, avec son onde, son clank et le « +N KM/H » qui jaillit du capot */
+  b.innerHTML='<div class="ebCarte"><div class="ebScene"></div></div>';
   engBig.ctx=null;engBig.on=true;engBig.plonge=0;engBig.t0=performance.now();engBig.col=parseInt(hx.slice(1),16);engBig.hex=hx;engVigSpin=0;
   engRim.color.setHex(engBig.col);engRim.intensity=1.5; // le liseré néon du moteur (éteint par engBigFin)
   document.body.classList.remove('ebPlonge');document.body.classList.add('ebOn');
@@ -215,8 +215,7 @@ function engPop9(E,tier){
     if(TUTO.on){popTexte(E.n,'#'+(E.col||0xffd75e).toString(16).padStart(6,'0'));return;}
     engBigFile(E,tier);return;} // TÉLÉPHONE : la grande carte (le badge de coin reste pour l'ordinateur)
   if(!epEl)return;
-  epNumEl.innerHTML='<i>'+TR('PALIER')+'</i>'+(tier+1);
-  epNomEl.textContent=TR(E.n);
+  epNumEl.innerHTML='';epNomEl.textContent=''; /* (2026-11-05, Sacha) plus de texte sur le badge de palier : l'onde et le flash suffisent */
   epEl.classList.remove('on');
   void epEl.offsetWidth;                 // ⚠ le reflow : sans lui, pas de rejeu
   epEl.classList.add('on');
