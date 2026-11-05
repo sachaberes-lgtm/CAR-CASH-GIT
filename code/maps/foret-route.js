@@ -113,7 +113,7 @@ const FOR_DECOR=typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretdecor(,|
    `?foret=pelote` = la pelote d'avant (l'échelle, le dessin, les arbres), `?foret=serre` = celle d'avant encore. */
 const FORET_VASTE=typeof location==='undefined'||!/[?&]foret=(serre|pelote)\b/.test(location.search);
 /* (2026-11-05 soir, Sacha : « un peu trop vaste et boring ; adapte la taille des virages et des tout droits au palier : plus il est haut, plus ça doit être large ») L'ÉCHELLE SUIT LE PALIER : G0 (palier 0) → G (palier 27 et plus) — les rayons étaient déjà à l'échelle du palier (kR), le ×2,4 fixe les doublait au palier 0 ; la durée aussi (long0 → long) */
-const FOR_VASTE={G0:1.15,G:2.4,long0:1,long:1.5,DY:46,arbres:1.45,geant:1.9,prof:1.3,
+const FOR_VASTE={G0:1.15,G:2.4,long0:1.35,long:1.7,DY:46,arbres:1.45,geant:1.9,prof:1.3,
   bank:{on:typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretbank(,|&|$)/.test(location.search),max:17*Math.PI/180,W:210}};
 function* genForet(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais
   CAMPM.length=0;MODMARK.length=0;
@@ -123,7 +123,7 @@ function* genForet(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main en
   const gr=mulberry32((rnd()*4294967296)>>>0);let best=null,ne=0;
   for(let e=0;e<8;e++){if(e)yield;const r=forPelote(gr,kR,kV);ne++;if(!best||r.note<best.note)best=r;if(r.note<1)break;}
   for(const m of best.mods||[])MODMARK.push(m); // (2026-10-18) LES MODULES DE CHAQUE MAP : ceux de l'essai gardé (voir fSlalom)
-  FORET.Q=best.Q;FORET.plg=[];FORET.boucles=best.BO;FORET.noeuds=best.NO;FORET.plan=best.plan;FORET.axe=best.axe;FORET.pel={dsM:best.dsM,note:+best.note.toFixed(2),essais:ne,croise:best.croise,dyMin:best.dyMin,L:Math.round(best.L),mk:best.mk};
+  FORET.Q=best.Q;FORET.plg=[];FORET.boucles=best.BO;FORET.noeuds=best.NO;FORET.plan=best.plan;FORET.axe=best.axe;FORET.pel={cxs:best.cxs,dsM:best.dsM,note:+best.note.toFixed(2),essais:ne,croise:best.croise,dyMin:best.dyMin,L:Math.round(best.L),mk:best.mk};
   forBank(best.ctrl,best.Q,kR*(FORET_VASTE?forVasteG(kR):1));FORET.pel.bankMax=FORET.bankMax;
   return best.ctrl;}
 /* LES TORSADES DE LA FORÊT VASTE (2026-11-05, voir FOR_VASTE.bank) — la recette de Jade (genJade) : la dalle se couche vers l'INTÉRIEUR du virage, de l'angle
@@ -248,13 +248,13 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
     spirale:()=>{cap();boucle();},
     toboggan:()=>{const l=(300+rnd()*120)*kV*sf,s0=s;droite(l);ZM.push([s0,s,.07,1]);},
     cygne:()=>{const sg=rnd()<.5?-1:1,R=rM*(1.6+rnd()*.4);droite((40+rnd()*60)*kV*sf);arc(sg*(220+rnd()*30),R,R*(1+rnd()*.2),.05);arc(-sg*(40+rnd()*30),R*2);}};
-  const MARQUE={spirale:1,retour:1,toboggan:1},PN=Object.keys(PV),paq=[];let der='';
+  const MARQUE={spirale:1,retour:1,toboggan:1},PN=Object.keys(PV).concat(['spirale','cygne','cygne']),paq=[]; /* (SE PERDRE) les pièces qui se recroisent (spirale, col de cygne) sont deux fois plus nombreuses */let der='';
   const tire=()=>{for(let e=0;e<8;e++){if(!paq.length){const t=PN.slice();for(let i=t.length-1;i>0;i--){const j=(rnd()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)paq.push(x9);}
     const n=paq.shift();if(n!==der)return n;}return der==='allee'?'virage':'allee';};
-  const piece=n=>{const i0=C.length-1,s0=s,g=rnd()<.22?pente(.015,.035):-pente(.02,.05);zone(g,PV[n]);if(MARQUE[n])MM.push({i0:i0,i1:C.length-1});MK.push(n);PLAN.push(n+':'+Math.round(s-s0));der=n;};
+  const piece=n=>{const i0=C.length-1,s0=s,g=rnd()<.33?pente(.02,.04):-pente(.02,.05);zone(g,PV[n]); /* (2026-11-05 soir, Sacha : « j'ai fini en 10 secondes, on doit se PERDRE ») la route MONTE aussi : 33 % des pièces en montée — sinon la route d'en dessous est toujours devant, tout croisement est un raccourci gagnant */if(MARQUE[n])MM.push({i0:i0,i1:C.length-1});MK.push(n);PLAN.push(n+':'+Math.round(s-s0));der=n;};
   /* LA PELOTE (l'étoile d'avant, à sa taille : jamais plus serrée que 3 rM, jamais plus de la moitié de la course) */
   const mP=3+(LVISE>14000*kR0&&rnd()<.4?1:0),rhoP=Math.max(3*rM,Math.min(225*kR*.85,LVISE*.5/(3.4*mP))),estP=3.4*rhoP*mP+600*kR0;
-  const nPel=estP>LVISE*.7?0:estP*2.3+2500<LVISE&&rnd()<.6?2:1,TYP=[];for(let n=0;n<nPel;n++)TYP.push(rnd()<.62?'desc':'vague');if(nPel>1)TYP[(rnd()*nPel)|0]='monte';
+  const nPel=estP>LVISE*.7?0:estP*2.3+2500<LVISE&&rnd()<.6?2:1,TYP=[];for(let n=0;n<nPel;n++){const r9=rnd();TYP.push(r9<.3?'monte':r9<.7?'vague':'desc');}if(nPel>1&&!TYP.includes('monte'))TYP[(rnd()*nPel)|0]='monte'; /* (le piège) une pelote sur trois MONTE : la route d'en dessous est DERRIÈRE */
   const libre=Math.max(0,LVISE-nPel*estP-900),SP=[];{let a9=300;for(let n=0;n<nPel;n++){a9+=libre*(nPel>1?(n?.25+rnd()*.25:.04+rnd()*.22):.08+rnd()*.5);SP.push(a9);a9+=estP;}}
   const pelote=n=>{const ty=TYP[n],m=mP,rho=rhoP*(.9+rnd()*.15),c0=dA(ca+(rnd()-.5)*.6,rho*(1.1+rnd()*.3)),cN=[x+c0[0],z+c0[1]],th9=Math.atan2(x-cN[0],z-cN[1]);
     zone(-pente(.02,.04),()=>vers([cN[0]+Math.sin(th9)*rho*.9,cN[1]+Math.cos(th9)*rho*.9],110*kR));
@@ -409,7 +409,9 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   let note=0,dyMin=1e9;
   for(let c=0;c<CR.length;c++){for(const p of CR[c]){const dy=Math.abs(yA(p[0])-yA(p[1]));if(dy<dyMin)dyMin=dy;if(dy<DY-1)note+=(DY-1-dy)*.5;}}
   for(let k=4;k<nY;k++){const g=(Y[k]-Y[k-4])/40;if(g<-.15)note+=(-.15-g)*40;if(g>.12)note+=(g-.12)*40;}
-  const nKm=CR.length/(L/1000),nKmV=FORET_VASTE?.35:rf9?.7:1.1;if(nKm<nKmV)note+=(nKmV-nKm)*8; // (2e tour) moins emmêlée : 0,7 croisement/km suffit avec les modules
+  const nKm=CR.length/(L/1000),nKmV=FORET_VASTE?.65:rf9?.7:1.1;if(nKm<nKmV)note+=(nKmV-nKm)*8;
+  if(FORET_VASTE){let fw9=0,bk9=0;for(const m of CR){let sk=0,f9=0;for(const q of m){const d9=D[3*q[1]+2]-D[3*q[0]+2];if(d9>sk){sk=d9;f9=yA(q[0])>yA(q[1])?1:-1;}}if(f9>0){fw9++;if(sk>.33*L)note+=(sk/L-.33)*12;}else bk9++;} /* (SE PERDRE) un raccourci qui saute plus du tiers de la forêt = on finit en 10 s : refusé ; et au moins 3 croisements sur 10 sont des PIÈGES */
+    if(CR.length>=3){if(bk9<CR.length*.35)note+=(CR.length*.35-bk9)*1.5;if(fw9<CR.length*.35)note+=(CR.length*.35-fw9)*1.5;}} /* (le mélange) au moins 35 % de raccourcis ET 35 % de pièges, à tous les paliers */ // (2e tour) moins emmêlée : 0,7 croisement/km suffit avec les modules
   if(rf9&&MM.length<mNeed)note+=(mNeed-MM.length)*4; // (2026-10-18) au moins TROIS modules (voir fSlalom) : un essai qui en a moins est repris — (2026-10-19, au hasard) autant que la longueur en tient (mNeed)
   if(LVISE){const r9=L/LVISE;if(r9>1.3)note+=(r9-1.3)*12;else if(r9<.75)note+=(.75-r9)*12;} // (2026-10-19, LA FORÊT AU HASARD) près de la longueur visée
   if(LVISE)for(const k of ['arche','archeB']){const q=Q[k];if(!q)continue; // (2026-10-19) LA PLACE DE L'ARCHE : aucune autre route à moins de 200 m (foretArche renonce à une arche dont le tronc croise un autre étage — au hasard, ça arrivait une fois sur deux)
@@ -422,7 +424,8 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   for(const k in Q){const o=Q[k];Q[k]={p:new THREE.Vector3(o.x,yS(o.s),o.z),phi:o.phi,s:o.s};}
   const BO9=BO.map(o=>({e:new THREE.Vector3(o.e.x,yS(o.e.s),o.e.z),sg:o.sg,R:o.R}));
   let dsM=0;for(const m of CR)for(const p of m)dsM=Math.max(dsM,D[3*p[1]+2]-D[3*p[0]+2]);
-  return {dsM:Math.round(dsM),ctrl:ctrl,Q:Q,BO:BO9,note:note,croise:CR.length,dyMin:Math.round(dyMin),L:L,NO:NO,mods:MM,mk:MK,plan:PLAN,axe:AXE};}
+  const CXS=CR.map(m=>{let sk=0,fw=0;for(const p of m){const d9=D[3*p[1]+2]-D[3*p[0]+2];if(d9>sk){sk=d9;fw=yA(p[0])>yA(p[1])?1:-1;}}return [Math.round(sk),fw];}); /* (2026-11-05) pour chaque croisement : la route sautée (m) et le sens — +1 un RACCOURCI (la route d'en dessous est devant), −1 un PIÈGE (elle est derrière) */
+  return {cxs:CXS,dsM:Math.round(dsM),ctrl:ctrl,Q:Q,BO:BO9,note:note,croise:CR.length,dyMin:Math.round(dyMin),L:L,NO:NO,mods:MM,mk:MK,plan:PLAN,axe:AXE};}
 /* ---------------- L'ATELIER DES ARBRES : un petit maillage indexé (position, normale, aA, aC, aB) ----------------
    aA = (partie, occlusion, hasard, hauteur relative) · aC = la couleur de base · aB = (écorce, mousse).
    Parties : 0 écorce · 1 feuilles · 2 aiguilles · 3 peint (chaumière, champignon) · 4 fenêtre (luit la nuit) · 5 VISAGE (luit la nuit)

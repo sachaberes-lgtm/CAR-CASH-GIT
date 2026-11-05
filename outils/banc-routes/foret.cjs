@@ -7,7 +7,7 @@ const fs=require('fs'),vm=require('vm'),path=require('path');
 const C=require('./charge.cjs'),R=require('./raccourcis.cjs');
 const RACINE=path.resolve(__dirname,'../..');
 function monde(vieux){
-  const B=C.creer(vieux?'?foret=pelote':'');const ctx=B.ctx;
+  const B=C.creer((vieux?'?foret=pelote':'')+(process.argv[2]==='sentiers'?'?foretsentiers=1':''));const ctx=B.ctx;
   for(const d of ['var CAMPM=[]','var MODC_ON=true','var PLEUR={on:true}','function rayonPalier(){return 40+.3*__vw;}'])try{vm.runInContext('typeof '+d.replace(/^(var |function )/,'').split(/[=(]/)[0]+"==='undefined'?0:(()=>{throw 1})()",ctx);vm.runInContext(d,ctx);}catch(e){}
   vm.runInContext(fs.readFileSync(path.join(RACINE,'code/maps/foret-route.js'),'utf8').split('/* ---------------- L\'ATELIER DES ARBRES')[0],ctx,{filename:'foret-route.js'});
   return B;}
@@ -66,3 +66,12 @@ if(require.main===module&&process.argv[2]==='rythme'){
   const a=process.argv.slice(3).filter(x=>!x.startsWith('--')),pal=+a[0]||0,n=+a[1]||8,g0=+a[2]||1,B=monde(process.argv.includes('--vieux'));
   let S={L:0,vir:0,ser:0,d:0,ds:0,dm:0};for(let k=0;k<n;k++){const o=rythme(B,g0+k*7919,pal);S.L+=o.L;S.vir+=o.vir;S.ser+=o.ser;S.d+=o.droite;S.ds+=o.droiteS;S.dm=Math.max(S.dm,o.droiteS);}
   console.log('RYTHME pal',pal,'n',n,'km',(S.L/n/1000).toFixed(1),'virages/km',(S.vir/n).toFixed(2),'serrés/km',(S.ser/n).toFixed(2),'plus longue droite moy',Math.round(S.d/n),'m =',(S.ds/n).toFixed(1),'s à vPalier ; pire',S.dm.toFixed(1),'s');}
+
+/* LES PIÈGES au banc : par forêt, combien de croisements, quelle part de RACCOURCIS (la route d'en dessous est devant) et de PIÈGES (derrière), la route sautée en % de la forêt
+   node foret.cjs pieges palier n [graine0] */
+if(require.main===module&&process.argv[2]==='pieges'){
+  const a=process.argv.slice(3),pal=+a[0]||0,n=+a[1]||8,g0=+a[2]||1,B=monde(false);let S={cx:0,fw:0,bk:0,fwSk:0,max:0,maxFw:0,gros:0};const L9=[];
+  for(let k=0;k<n;k++){const r=piste(B,g0+k*7919,pal),cx=r.pel.cxs||[];let fw=0,bk=0,mx=0,mf=0,gros=0;
+    for(const c of cx){if(c[1]>0){fw++;mf=Math.max(mf,c[0]/r.L);if(c[0]/r.L>.3)gros++;}else bk++;mx=Math.max(mx,c[0]/r.L);}
+    S.cx+=cx.length;S.fw+=fw;S.bk+=bk;S.maxFw+=mf;S.gros+=gros;L9.push([g0+k*7919,Math.round(r.L),cx.length+' croisements',fw+' raccourcis',bk+' pièges','plus gros raccourci '+Math.round(100*mf)+' % de la forêt',gros+' > 30 %'].join('  '));}
+  console.log('PIEGES pal',pal,'n',n,'croisements/forêt',(S.cx/n).toFixed(1),'raccourcis',(S.fw/n).toFixed(1),'pièges',(S.bk/n).toFixed(1),'plus gros raccourci moy',Math.round(100*S.maxFw/n)+' %','raccourcis > 30 % de la forêt',(S.gros/n).toFixed(1));console.log(L9.join(String.fromCharCode(10)));}

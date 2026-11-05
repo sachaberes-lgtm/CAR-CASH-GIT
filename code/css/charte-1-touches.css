@@ -10,7 +10,7 @@
      94       #shPop, la fenêtre d'un article de la boutique                         — hud-da.css
      95       #modale, les fenêtres du jeu (QUITTER ?, ENTRER UN CODE…)              — charte-2-ecrans.css
      96       #toast                                                                 — charte-2-ecrans.css
-     120      les éclats de pièces (.m6Piece, .pxBurst), au-dessus de tout le HUD
+     120      les éclats de pièces (.pxBurst), au-dessus de tout le HUD
      250 … 1000  les voiles plein écran (#wipe, #spinM le FINAL SPIN, #pubR la promo de la seconde chance) et les outils (boîte noire, bancs)
      99990    #feteCaisse, la fête d'une nouvelle caisse                              — interface/fete-caisse.js
      99999    #ccCrash, l'écran « a calé »                                           — page/debut-corps.html
