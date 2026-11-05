@@ -50,7 +50,7 @@ EQM.A={
   foretSoir:{sat:.92},                                                            /* chroma 91 : l'or du soir se tient */
   foretPluie:{expo:1.15,rtK:1.12,sat:1.04},
   foretOrage:{expo:1.22,sat:1.2,chr:.25,lev:[.002,.004,.01],vigK:.26,lum:1.1},    /* L* 20, chroma 36 : le plus terne des orages */
-  espaceMatin:{expo:1.1,sat:1.15,chr:.2,lev:[.002,.003,.008],lum:1.05,rtT:[.95,.97,1.05],rtK:.85}, /* (2e essai : à 1,18 × 1,1 et rtT bleu, la route sortait lavande claire L* 53) */ /* l'orbite : le vide reste noir, la route et la caisse prennent le bleu de la Terre */
+  espaceMatin:{expo:1.14,sat:1.15,chr:.2,lev:[.002,.003,.008],lum:1.08,rtT:[.95,.97,1.04]}, /* (2e essai : à 1,18 × 1,1 et rtT bleu, la route sortait lavande claire L* 53) */ /* l'orbite : le vide reste noir, la route et la caisse prennent le bleu de la Terre */
   'grt-matin':{expo:1.12,con:1.02},
   'grt-midi':{expo:1.25,rtK:1.15,lev:[.003,.004,.01],vigK:.22,lum:1.12},           /* CRISTAUX : L* 16, route L* 17 → la grotte explorée se lit */
   'grt-soir':{expo:1.25,rtK:1.15,lev:[.003,.004,.01],vigK:.22,lum:1.12},          /* MAGMA : idem, la lave éclaire vraiment */
