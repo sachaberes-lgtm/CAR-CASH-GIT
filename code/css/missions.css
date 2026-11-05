@@ -409,7 +409,8 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 .swC.auj .swBar{background:#0a0a0c;box-shadow:inset 0 0 0 2px var(--au2)}.swC.auj .swBar b{color:var(--au1)}.swC.auj>em{color:var(--au1)}
 .swC.auj .swBar::before{content:"";position:absolute;left:0;right:0;bottom:0;height:0;background:var(--au2);transition:height 1s var(--ease)}
 #serieW.plein .swC.auj .swBar::before{height:100%}#serieW.plein .swC.auj .swBar b{position:relative;color:var(--auO)}
-.swC.voit .swBar{background:transparent;box-shadow:none;align-items:center;padding:0}
+.swC.voit .swBar{background:transparent;box-shadow:none;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0}
+.swBar b.swEp{color:#c77dff;text-shadow:0 0 10px rgba(199,125,255,.7);letter-spacing:0}.swC.voit.auj .swBar b.swEp{color:#e6c2ff}
 .swC.voit .swBar::before{display:none}
 .swPortail{position:relative;width:100%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
   background:conic-gradient(var(--pg),var(--pg2),#d9ffb0,var(--pg2),var(--pg));box-shadow:0 0 14px color-mix(in srgb,var(--pg) 55%,transparent);animation:swTourne 3s linear infinite}
@@ -448,22 +449,6 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 .swC.fait .swBar{background:linear-gradient(180deg,rgba(26,21,50,.9),rgba(20,15,40,.9));box-shadow:inset 0 0 0 1px rgba(200,184,255,.28)}.swC.fait .swBar b{color:var(--tx2)}
 .swC.auj .swBar{background:#0b0818}.swPiste{border-bottom-color:var(--fil)}.swHd small,.swPied,.swC>em{color:var(--tx3)}
 .swHd b{transform:skewX(var(--sk));text-shadow:0 3px 0 var(--txO),0 0 24px rgba(255,201,58,.35)}
-/* (2026-11-05, Sacha : « prends le meilleur écran de mission que t'avais fait, mets-le à la mort, la 1re fois et chaque jour la 1re fois, enlève-le de la mission ») L'ÉCRAN
-   DES MISSIONS À LA MORT (#mvW) : le portail (.mcV, .mcPo, mcVedette — inchangé, voir plus haut) posé SEUL sur la scène et l'œilleton de l'écran de série (.swScene,
-   .swAnneau, mêmes matières, aujourdhui.js), avant lui. --pg/--rc valaient --neoV sous #gMis.mbOn (l'écran MISSIONS) : ici, hors du garage, on les repose à la main. */
-#mvW{position:fixed;inset:0;z-index:96;display:none;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--pix);background:#000;color:#fff;
-  padding:calc(var(--sT,0px) + 12px) calc(var(--sR,0px) + 14px) calc(var(--sB,0px) + 12px) calc(var(--sL,0px) + 14px);overflow:hidden;cursor:pointer;
-  --pg:var(--neoV);--rc:var(--neoV);transition:opacity .4s var(--ease)}
-#mvW.on{display:flex}#mvW.fin{opacity:0;pointer-events:none}
-.mvBloc{position:relative;display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2.6vh,18px);width:min(100%,460px);opacity:0;transform:translateY(8px);
-  transition:opacity .45s var(--ease) .5s,transform .45s var(--ease) .5s}
-#mvW.on .mvBloc{opacity:1;transform:none}
-.mvKick{font-size:var(--f1);letter-spacing:3px;color:var(--tx3)}
-.mvBloc .mcHero{padding:0}.mvBloc .mcV{cursor:default;animation:none}
-.mvBt{min-width:220px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .3s var(--ease) .3s,transform .3s var(--ease) .3s}
-#mvW.on .mvBt{opacity:1;pointer-events:auto;transform:none}
-@media (orientation:landscape) and (max-height:540px){.mvBloc{gap:10px}.mvBloc .mcPo{width:min(30vh,140px)}.mvBloc .mcTit{font-size:var(--f2);max-width:280px}}
-@media (prefers-reduced-motion:reduce){.mvBloc,.mvBt{transition:none}}
 #m2Rev.bout .m2RvNom{animation:none}
 #m2Rev.fin .m2RvCadre{opacity:0;transform:scale(1.05)!important;transition:opacity .45s var(--ease),transform .5s var(--ease)}
 #m2Rev.fin .m2RvFond{opacity:0;transition:opacity .5s var(--ease) .05s}
