@@ -1,6 +1,8 @@
 # RAPPORT JURY — FABLE (branche `jury/fable`, 2026-11-05)
 
-Base : `origin/main` ea2d37b4 (v1135). Worktree `CASH-CAR-jury-fable`. Huit commits, chacun vérifié à part (`--verifier`, `garde-allege.sh`,
+Base : `origin/main` ea2d37b4 (v1135), puis **fusion d'`origin/main` v1155 (Sonnet et Opus déjà fusionnés) le 05/11 au soir** : deux conflits
+(`index.html` recollé depuis les morceaux avec `--depuis-morceaux`, `boucle-4-effets.js` en CRLF côté amont, repris en LF + ma fin de tranche),
+banc course et panne verts après fusion. Worktree `CASH-CAR-jury-fable`. Huit commits, chacun vérifié à part (`--verifier`, `garde-allege.sh`,
 `garde-demarrage.cjs`, banc headless). `sw.js` **non touché** (Sacha monte le numéro à la fusion). Rien poussé sur `main`, rien envoyé à Apple.
 
 Banc : `outils/banc-jury/banc.cjs` (client CDP en Node pur, Chrome headless sur le vrai GPU, 390×844, toucher tactile, profil « chaud »).
