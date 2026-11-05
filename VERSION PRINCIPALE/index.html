@@ -54326,7 +54326,7 @@ const SPIN_SPR=[ /* (2026-11-05, Sacha : « retravaille le design des items à g
     '....kkkk....']}];
 function spinSprites(){ // les sept symboles + la boule du levier peints UNE fois (canvas → data URL) ; la feuille <style id="spinSpr"> les pose sur .spS0 … .spS7
   if(spinSprites.ok)return;spinSprites.ok=true;let css='';
-  SPIN_SPR.forEach(function(S,i){const Z=8,cv=document.createElement('canvas');n=S.r.length;cv.width=cv.height=n*Z;const c=cv.getContext('2d');
+  SPIN_SPR.forEach(function(S,i){const Z=8,cv=document.createElement('canvas'),n=S.r.length;cv.width=cv.height=n*Z;const c=cv.getContext('2d');
     for(let y=0;y<n;y++)for(let x=0;x<n;x++){const ch=S.r[y][x];if(ch==='.')continue;c.fillStyle=S.pal[ch]||'#ff00ff';c.fillRect(x*Z,y*Z,Z,Z);}
     let u='';try{u=cv.toDataURL('image/png');}catch(e){}
     css+='#spinM .spS'+i+',.spIco.spS'+i+'{background-image:url('+u+');--z:'+S.z+'}';});
