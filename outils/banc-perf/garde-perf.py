@@ -103,7 +103,7 @@ def tour(http,port,cartes):
     c.ev("localStorage.clear();localStorage.setItem('cashcarSave',%s);1"%json.dumps(json.dumps(SAVE)))
     c.call('Page.addScriptToEvaluateOnNewDocument',source=HOOK)
     A=cartes[0]
-    c.call('Page.navigate',url=base+'/index.html?garde=1&palier=%d%s&pistegraine=777&carte=%s&meteo=%s'%(OPT['palier'],'&tel=1' if OPT['tel'] else '',A[0],A[1] if len(A)>1 else 'midi'))
+    c.call('Page.navigate',url=base+'/index.html?garde=1&palier=%d%s&pistegraine=777&carte=%s&meteo=%s'%(OPT['palier'],('&tel=1' if OPT['tel'] else '')+os.environ.get('GARDE_PERF_QS',''),A[0],A[1] if len(A)>1 else 'midi'))
     if not attend(c,"!!window.__gameReady&&typeof dbgState==='function'",240):print('⛔ le jeu ne démarre pas');return 2
     echecs=[];avert=[];lignes=[]
     if not attend(c,"(function(){var e=[].slice.call(document.querySelectorAll('.mPlay')).filter(function(x){return x.getBoundingClientRect().width>0})[0];return !!e})()",90):
