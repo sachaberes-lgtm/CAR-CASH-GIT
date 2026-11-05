@@ -11,47 +11,46 @@
    miettes) ; une boule avalée toutes les 12 images (0,6 s), deux visibles à la fois. Trois étincelles scintillent autour (fixes à l'écran).
    Boucle parfaite : 48 images = un tour de la tête, 4 boules, 4 bouchées. */
 const fs=require('fs'),{pngIndexed,pngRGB}=require('./png.cjs');
-const N=64,F=48,FPS=20,SS=4,CX=32,CY=32,R=16,TH=6.2,TIP=2.0,TAPER=40,PER=7,FLOW=3;
+const N=64,F=48,FPS=20,SS=4,CX=32,CY=32,R=16,TH=4.6,TIP=2.0,TAPER=40,PER=7,FLOW=3;
 const DEG=Math.PI/180,TAU=Math.PI*2,smooth=k=>k*k*(3-2*k),clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
 const PAL=[[0,0,0],[255,255,255],[150,150,150]];
 const MARGIN=[3,3,2,0,0,2,3,3,2,0,0,2]; /* 3 = grande ouverte, 2 = mi-ouverte, 0 = fermée (CLAC) */ /* la gueule sur 12 images : grande ouverte… CLAC (images 9-10), une boule de matière avalée à chaque fois */
-const HEAD=[21.5,13.5]; /* le centre de la tête, dans le repère du serpent (avant rotation) */
-const BASE=[
-'......#######.........',
-'....###########.......',
-'...###############....',
-'..#################...',
-'..##################..',
-'.###################..',
-'.####################.',
-'.####################.',
-'.####################.',
-'.#####################',
-'.#####################',
-'.#####################',
-'.#####################',
-'..####################',
-'..####################',
-'...##################.',
-'...#################..',
-'....###############...',
-'......############....'];
+const HEAD=[25.5,13.5]; /* le centre de la tête, dans le repère du serpent (avant rotation) */
+const BASE=[ /* LA TÊTE, dessinée pixel par pixel (18 × 18, de profil, regard vers la droite) : W blanc, g gris (contour, gorge), o noir (arcade, œil en amande à reflet, narine) */
+'.....gggggg.......',
+'...gggggggggg.....',
+'..ggWWggWWggWgg...',
+'.gWWWoooWWWWWWWg..',
+'.gWWWWWooWWWWWWWg.',
+'gWWWWooWoWWWWWWWWg',
+'gWWWWooooWWWWWWoWg',
+'gWWWWWWWWWWWWWWWWg',
+'gWWWWWWWWWWWWWWWWg',
+'gWWWWWWWWW........',
+'gWWWWWWWWW........',
+'gWWWWWWWWW........',
+'gWWWWWWWWW........',
+'gWWWWWWWWW........',
+'gggggggggggggggggg',
+'ggggggggggggggggg.',
+'.ggggggggggggggg..',
+'...ggggggggggg....'];
 /* la silhouette de la tête (1 blanc, 3 fente de la gueule) ; le visage est peint à part, au pixel */
 /* LA GUEULE, dessinée à la main pour chacun des 4 états (colonnes x = 11 à 21, rangées 6 à 15) : '.' on garde la tête, 'o' noir, '#' blanc. La queue (2 px) la traverse ;
    les DENTS sont des crocs blancs en triangle (3 px de large, 2 de haut) plantés dans les deux mâchoires, qui se croisent. */
-const GUEULE={ /* x = 11 à 21 ; le CORPS ENTIER (rangées 9 à 14, aussi épais que l'anneau) entre dans la gueule, entre les deux mâchoires ; les dents mordent dedans */
-  3:{7:'..o#o#o#o#o',8:'..ooooooooo',9:'..#########',10:'..#########',11:'..#########',12:'..#########',13:'..#########',14:'..#########',15:'..ooooooooo',16:'..o#o#o#o#o'}, /* grande ouverte */
-  2:{8:'..o#o#o#o#o',9:'..#########',10:'..#########',11:'..#########',12:'..#########',13:'..#########',14:'..#########',15:'..o#o#o#o#o'}, /* mi-ouverte */
-  1:{8:'...oooooooo',15:'...oooooooo'}, /* presque fermée : deux lèvres */
-  0:{8:'....o.o.o.o',15:'.....o.o.o.'} /* fermée sur le corps : les dents serrées */
+const GUEULE={ /* x = 10 à 17 ; le corps (rangées 10 à 13) passe entre les mâchoires ; deux crocs en haut, deux en bas */
+  3:{8:'oWWooWWo',9:'ooWoooWo',10:'WWWWWWWW',11:'WWWWWWWW',12:'WWWWWWWW',13:'WWWWWWWW',14:'ooWoooWo',15:'oWWooWWo'},
+  2:{9:'oWWooWWo',10:'WWWWWWWW',11:'WWWWWWWW',12:'WWWWWWWW',13:'WWWWWWWW',14:'oWWooWWo'},
+  1:{9:'oooooooo',14:'oooooooo'},
+  0:{9:'o.o.o.o.',14:'.o.o.o.o'}
 };
 function sprite(m){
-  const S=BASE.map(r=>[...r].map(c=>c==='#'?1:0));
-  for(const [r,row] of Object.entries(GUEULE[m]))[...row].forEach((ch,i)=>{if(ch==='.')return;const x=11+i;S[+r][x]=ch==='#'?1:3;});
+  const V={'W':1,'g':4,'o':3,'.':0},S=BASE.map(r=>[...r].map(c=>V[c]));
+  for(const [r,row] of Object.entries(GUEULE[m]))[...row].forEach((ch,i)=>{if(ch==='.')return;S[+r][10+i]=V[ch];});
   return S;
 }
 /* le corps : l'anneau lui-même, de la gueule (s = 0, la queue) jusqu'au cou */
-const A0=[HEAD[0]+13.5,HEAD[1]+3.5];
+const A0=[HEAD[0]+9.5,HEAD[1]+3.5];
 const P=[];{const add=(x,y)=>{P.push({x,y,s:P.length?P[P.length-1].s+Math.hypot(x-P[P.length-1].x,y-P[P.length-1].y):0});};
   const a0=Math.atan2(A0[0]-CX,-(A0[1]-CY));add(A0[0],A0[1]);for(let a=a0+.25/R;a<=TAU-30*DEG;a+=.25/R)add(CX+R*Math.sin(a),CY-R*Math.cos(a));}
 const L=P[P.length-1].s;
@@ -60,15 +59,7 @@ const near=(x,y)=>{let bk=-1,bd=1e9;const i=Math.floor(x/4),j=Math.floor(y/4);fo
 const tw=s=>TH; /* le corps ENTIER, épais partout : il entre tel quel dans la gueule */
 function dseg(x,y,a,b,c,d){const px=x-a,py=y-b,dx=c-a,dy=d-b,t=clamp((px*dx+py*dy)/(dx*dx+dy*dy),0,1);return Math.hypot(px-t*dx,py-t*dy);}
 /* LE VISAGE : des formes dans le repère du dessin de la tête (u vers l'avant, v vers le bas), épaisseur ≥ 1,3 px ; rend 1 encre, 2 blanc, 3 gris, 0 rien */
-function face(u,v,blink,brow,m){
-  if(blink){if(dseg(u,v,7.8,4.8,11.8,4.8)<=.8)return 1;}
-  else{
-    if(Math.hypot(u-10.6,v-3.7)<=.8)return 2; /* le reflet */
-    if(Math.hypot(u-9.8,v-4.4)<=2.4&&v>=2.6+.3*(u-9.8))return 1; /* l'œil rond mi-clos */
-  }
-  if(Math.hypot(u-6.4,v-11.5)<=1.55)return 3; /* la joue */
-  return 0;
-}
+function face(){return 0;} /* le visage est dans le dessin lui-même (BASE) */
 const SPR={};for(const m of [0,1,2,3])SPR[m]=sprite(m);
 function render(t){
   const c=t%12,m=MARGIN[c],ph=TAU*t/F,cp=Math.cos(ph),sp=Math.sin(ph);
@@ -87,9 +78,9 @@ function render(t){
       if(k>=0){const p=P[k],w=tw(p.s)/2,rx=x-p.x,ry=y-p.y,outer=(rx*(p.x-CX)+ry*(p.y-CY))>0;
         let bump=0;if(outer)for(const bs of balls)bump=Math.max(bump,2.1*Math.exp(-Math.pow((p.s-bs)/7,2)));
         if(d<=w+bump){body=true;if(!outer&&w>2.2&&d>w-1.2)belly=true;}}
-      const u=Math.floor(x-Ph[0]+8.5),v=Math.floor(y-Ph[1]+8.5),cl=(u>=0&&u<22&&v>=0&&v<S.length)?S[v][u]:0;
-      if(cl===1){nF++;}else if(cl===3){nK++;}else if(body){nF++;nB++;if(belly)nG++;}
-      if(u>=0&&u<22&&v>=0&&v<S.length){const fu=x-Ph[0]+8.5,fv=y-Ph[1]+8.5,f=face(fu,fv,blink,brow,m);if(f===1)nK++;else if(f===2)nW++;else if(f===3)nY++;}
+      const u=Math.floor(x-Ph[0]+8.5),v=Math.floor(y-Ph[1]+8.5),cl=(u>=0&&u<S[0].length&&v>=0&&v<S.length)?S[v][u]:0;
+      if(cl===1){nF++;}else if(cl===4){nF++;nY++;}else if(cl===3){nK++;}else if(body){nF++;nB++;if(belly)nG++;}
+      if(u>=0&&u<S[0].length&&v>=0&&v<S.length){const fu=x-Ph[0]+8.5,fv=y-Ph[1]+8.5,f=face(fu,fv,blink,brow,m);if(f===1)nK++;else if(f===2)nW++;else if(f===3)nY++;}
     }
     const q=j*N+i,T=SS*SS;if(nF/T>=.4){g[q]=(nG/nF>.5||nY/nF>.45)?2:1;if(nB>nF/2)own[q]=1;}if(nK/T>=.4)g[q]=0;if(nW/T>=.4)g[q]=1;
   }
@@ -98,9 +89,9 @@ function render(t){
   for(let q=0;q<SC;q++){
     const ang=(q+.5)*TAU/SC,rs=R+.9,cx=Math.round(CX+rs*Math.sin(ang)),cy=Math.round(CY-rs*Math.cos(ang));
     const [sx,sy]=toSnake(CX+R*Math.sin(ang),CY-R*Math.cos(ang)),[k,d]=near(sx,sy);if(k<0||d>2)continue;const w=tw(P[k].s);if(w<3.6)continue;
-    const big=w>=5.6,x0=big?cx-1:cx,y0=big?cy-1:cy,sz=big?2:1;
+    const big=w>=5.6,x0=big?cx-1:cx,y0=big?cy-1:cy,sz=big?3:1;
     let ok=true;for(let y=y0;y<y0+sz;y++)for(let x=x0;x<x0+sz;x++){const z=y*N+x;if(!(g[z]===1&&own[z]))ok=false;}
-    if(ok)for(let y=y0;y<y0+sz;y++)for(let x=x0;x<x0+sz;x++)g[y*N+x]=0;
+    if(ok){g[cy*N+cx]=2;if(big)for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])g[(cy+dy)*N+cx+dx]=2;} /* une écaille grise en losange */
   }
   /* les boules de matière : un disque gris au cœur du corps, qui passe du cou à la gueule et se fait avaler */
   for(const bs of balls){let k=0;while(k<P.length-1&&P[k].s<bs)k++;const [bx,by]=toScreen(P[k].x,P[k].y);
