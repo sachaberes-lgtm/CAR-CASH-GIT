@@ -62,3 +62,7 @@ VERSION PRINCIPALE/atelier-son/boite/mp3/
 
 # --- (2026-10-18) l édition PC n est plus dans le dépôt : synchro-versions.js la refabrique en local si besoin, sans la committer ---
 AUTRE VERSION/
+
+# --- Outils de session (2026-11-05, jury IOS-15) ---
+.claude/
+.playwright-mcp/

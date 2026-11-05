@@ -550,18 +550,7 @@ function tourY10(pts,seg){const v=[];for(let k=0;k<pts.length;k++)v.push(new THR
 // un tube qui passe par des points (durite, tubulure, ligne d'huile)
 function tube10(pts,r,seg,rad){return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(p[0],p[1],p[2]))),seg||16,r,rad||8,false);}
 // la courroie : le contour convexe de poulies (y,z,r) dans le plan YZ, creusé, extrudé sur X — une vraie boucle plate
-function courroie10(poulies,ep,larg){
-  const pts=[],cercle=(r)=>{const a=[];for(const p of poulies)for(let k=0;k<28;k++){const t=k/28*6.2832;a.push([-(p[1]+Math.cos(t)*(p[2]+r)),p[0]+Math.sin(t)*(p[2]+r)]);}return a;};
-  const hull=(P)=>{P.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
-    const lo=[],hi=[];for(const p of P){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p);}
-    for(let k=P.length-1;k>=0;k--){const p=P[k];while(hi.length>1&&cr(hi[hi.length-2],hi[hi.length-1],p)<=0)hi.pop();hi.push(p);}
-    lo.pop();hi.pop();return lo.concat(hi);};
-  const ho=hull(cercle(ep)),hi2=hull(cercle(0));
-  const sh=new THREE.Shape(ho.map(p=>new THREE.Vector2(p[0],p[1])));
-  sh.holes.push(new THREE.Path(hi2.map(p=>new THREE.Vector2(p[0],p[1]))));
-  const g=new THREE.ExtrudeGeometry(sh,{depth:larg,bevelEnabled:false,steps:1});
-  g.rotateY(Math.PI/2);return g;
-}
+/* (2026-11-05, jury HYG-12) courroie10 : fonction jamais appelée, retirée */
 G10.axeX=tourX([[.0006,0],[1,0],[1,1],[.0006,1]],14);       // un cylindre plein d'axe X, rayon 1, longueur 1 (de x=0 à x=1)
 G10.axeX8=tourX([[.0006,0],[1,0],[1,1],[.0006,1]],8);
 G10.poulie=function(r){return tourX([[.02,0],[r+.03,0],[r+.03,.012],[r,.026],[r,.034],[r+.02,.044],[r+.02,.056],[r,.066],[r,.072],[r+.03,.086],[r+.03,.1],[.02,.1]],22);};

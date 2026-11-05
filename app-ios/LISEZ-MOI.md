@@ -13,6 +13,36 @@ qui affiche le jeu dans une vue web, sans navigateur autour). Le jeu n'est **pas
 | Le contrôleur plein écran + la garde des liens | `ios/App/App/JeuViewController.swift` |
 | Le manifeste de confidentialité exigé par Apple | `ios/App/App/PrivacyInfo.xcprivacy` |
 | Les images sources de l'icône et de l'écran de lancement | `ressources/` (→ `assets/` → `Assets.xcassets`) |
+| **iOS minimum** | **16.4** (depuis le 2026-11-05, jury IOS-10) |
+
+## Ce qui a changé le 2026-11-05 (audit du jury, branche `jury/opus`) — à vérifier le jour Mac
+
+- **iOS 16.4 minimum** (IOS-10) : `IPHONEOS_DEPLOYMENT_TARGET = 16.4` (les 4 lignes du projet) et `CapApp-SPM/Package.swift`
+  (`.iOS("16.4")`). Raison : le CSS du jeu emploie `color-mix()` (166 fois, iOS 16.2+) et `:has()` (47 fois, 15.4+) ; sous 16.2 la
+  boutique, les boutons flottants et les toasts perdent leurs couleurs. Les iPhone bloqués sous 16.4 (6s, 7, SE 1) ne tiendraient pas
+  le rendu de toute façon. ⚠ `Package.swift` est réécrit par `npx cap sync` (il remettra peut-être `.v15`) : sans gravité, c'est la
+  cible de l'app (`project.pbxproj`) qui compte. Fiche App Store : « iOS 16.4 ou plus récent ».
+- **Le son malgré l'interrupteur silencieux** (SON-04) : `AppDelegate.swift` pose `AVAudioSession` en `.playback` au lancement. Sur
+  iOS 16 la page n'a pas `navigator.audioSession` (iOS 17+) et la vue web jouait en « ambient » : le bouton silencieux coupait tout le
+  jeu. Sur iOS 17+ le jeu ajuste encore lui-même (`musicSession`, `code/son/musique.js`). Test Mac : iPhone en silencieux → le son joue.
+- **L'indicateur d'accueil s'efface** (IOS-21) : `prefersHomeIndicatorAutoHidden` dans `JeuViewController.swift`. Le bloc `SystemBars`
+  de `capacitor.config.json` n'a aucun module installé : il est inerte (gardé, sans effet).
+- **L'écran de lancement attend le jeu** (IOS-20) : `launchAutoHide:false` ; c'est `natif.js` qui l'efface à `DOMContentLoaded`
+  (après l'exécution du grand script), avec un filet à 30 s. Avant, il partait seul à 4 s et un iPhone lent montrait un fond violet nu.
+- **Une version native = un numéro de version** (IOS-19) : `publier-maj.js` met `natifMin` = `MARKETING_VERSION`, et l'app ne compare
+  que ce numéro (`getBuiltinVersion`, pas le numéro de build). Donc **chaque envoi qui change le natif** (un module Capacitor, une
+  autorisation, `Info.plist`, Swift) **monte `MARKETING_VERSION`** (1.0.0 → 1.0.1 → 1.1.0) ; monter seulement le build ne suffit pas :
+  une mise à jour en direct qui a besoin du nouveau natif irait aussi sur les anciens.
+- **La fabrication de `www/` = la copie publiée du site** (IOS-07, IOS-11, IOS-26, ECO-17, SON-01, SON-07) : `preparer-www.js` copie
+  aussi ce que le jeu charge PAR PROGRAMME (Worker `creatures/atelier.js`, `musique-moteur.json`, `musique-paliers.js` : ils
+  manquaient à l'app), puis applique les outils du site : `outils/retraits-publies.cjs` (la même liste que `vercel-build.sh`),
+  `scinde-banque`, `publie-audio`, `publie-allege` (commentaires et crochets `dbg` retirés). Résultat : ~104 → ~47 Mo. Il relit la
+  page avec la garde du démarrage avant et après, refuse tout texte « PUB » / « AD » et toute marque (Ferrari, Batman…) dans le livrable.
+  Une page `.html` de `assets/` ne part que si la page du jeu, `pouce-bleu-jeu.js` ou `musique-bus.js` la cite (`CHARGEURS`).
+- **L'essai bloque le site** (IOS-32) : `vercel-build.sh` lance `node app-ios/preparer-www.js --essai` ; une coupe qui a perdu sa cible
+  arrête la publication web (`GARDE_APP=0` la coupe en urgence). `--essai` sans dossier = le `VERSION PRINCIPALE` du dépôt.
+- **Pas de pub dans l'app** (IOS-04, décision D1) : sous `window.Capacitor` le jeu sert la seconde chance tout de suite (GRATUIT) et n'a
+  pas de ×2 ; les textes « PUB / AD » sont retirés de `www/`. Le site garde la pub maison et le ×2. Simuler l'app au navigateur : `?app=1`.
 
 ## Mettre à jour l'app après un changement du jeu
 

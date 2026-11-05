@@ -281,3 +281,46 @@ function garSurCaisse(e){
     return e.clientX>=r.x0-mx&&e.clientX<=r.x1+mx&&e.clientY>=r.y0-my&&e.clientY<=r.y1+my;}catch(er){return false;}
 }
 function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFrame(INV.raf);const a=$('gInvAnneau');if(a)a.classList.remove('on');}
+/* ===== UN SEUL ONGLET ÉCRIT LA SAUVEGARDE (2026-11-05, Opus : jury DIR-30) =====
+   Sur le site, deux onglets du jeu écrivaient la même cashcarSave sans verrou : le dernier qui écrivait gagnait (des caisses achetées dans
+   l'un disparaissaient en jouant dans l'autre). Chaque onglet porte un jeton (sessionStorage : il survit au rechargement de CET onglet) et
+   le pose dans localStorage.ccOngletActif à l'ouverture : c'est le DERNIER ouvert qui joue. L'événement `storage` prévient les autres, qui
+   passent en LECTURE SEULE (SAVE.flush / SAVE.mark ne font plus rien) et le disent ; recharger un onglet passif le rend actif.
+   Pas dans l'app (une seule vue). `?onglets=ancien` : sans verrou. */
+const ONGLET={id:'',passif:false};
+(function(){if(EN_APP||/[?&]onglets=ancien\b/.test(location.search))return;
+  try{ONGLET.id=sessionStorage.getItem('ccOnglet')||'';if(!ONGLET.id){ONGLET.id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);sessionStorage.setItem('ccOnglet',ONGLET.id);}
+    localStorage.setItem('ccOngletActif',ONGLET.id);}catch(e){return;}
+  addEventListener('storage',function(e){if(e.key!=='ccOngletActif'||!e.newValue||e.newValue===ONGLET.id||ONGLET.passif)return;
+    ONGLET.passif=true;try{SAVE.flush=function(){};SAVE.mark=function(){};}catch(x){}
+    try{toast(sansAcc(TR('LE JEU EST OUVERT DANS UN AUTRE ONGLET : CETTE PAGE NE SAUVEGARDE PLUS (RECHARGE POUR JOUER ICI)')));}catch(x){}});})();
+/* ===== POUCE HAUT ET VOL INVERSÉ NE FONT PLUS QU'UN (2026-11-05, Opus : jury INT-40) =====
+   Au doigt, les deux lignes des réglages se MULTIPLIAIENT (volSens × volInv) : deux interrupteurs, la même icône, le même effet, et un joueur qui
+   ne sait lequel toucher. Sur un vrai téléphone (TEL_NATIF : au doigt), VOL INVERSÉ disparaît et son choix est replié dans POUCE HAUT (même sens au doigt qu'avant). L'ordi
+   garde VOL INVERSÉ (POUCE HAUT y est déjà caché : c'est le seul réglage du clavier). `?volinv=ancien` : les deux lignes. */
+try{if(TEL_NATIF&&!/[?&]volinv=ancien\b/.test(location.search)){
+  if(SAVE.d&&SAVE.d.volInv){SAVE.d.volInv=0;SAVE.d.volH=SAVE.d.volH==='plonge'?'monte':'plonge';SAVE.flush();}
+  document.querySelectorAll('.mLigne[data-m="volinv"]').forEach(function(e9){e9.style.display='none';});}}catch(e){}
+/* ===== LA FENÊTRE À CHAMP AU-DESSUS DU CLAVIER (2026-11-05, Opus : jury INT-08) =====
+   #modale (ENTRER UN CODE, MA SAUVEGARDE) est une feuille collée en bas : sur iPhone le clavier la recouvrait, VALIDER et ANNULER passaient sous
+   les touches. Même recette que la plaque (plqClavier) : tant que son champ a le focus et que la partie visible a perdu plus de 90 px, la
+   fenêtre se pose sur la partie visible (visualViewport). Sur l'ordi rien ne rétrécit : rien ne change. `?modclavier=0` : sans. */
+(function(){const vv=window.visualViewport;if(!vv||/[?&]modclavier=0\b/.test(location.search))return;
+  const pose=function(){const md=document.getElementById('modale');if(!md)return;const ch=md.querySelector('input,textarea');
+    const h0=Math.max(innerHeight||0,document.documentElement.clientHeight||0),perdu=h0-vv.height;
+    const veut=md.classList.contains('on')&&!!ch&&document.activeElement===ch&&perdu>90;
+    if(veut){md.style.setProperty('top',Math.round(vv.offsetTop)+'px','important');md.style.setProperty('height',Math.round(vv.height)+'px','important');
+      md.style.setProperty('bottom','auto','important');md.classList.add('clavier');}
+    else if(md.classList.contains('clavier')){md.style.removeProperty('top');md.style.removeProperty('height');md.style.removeProperty('bottom');md.classList.remove('clavier');}};
+  vv.addEventListener('resize',pose);vv.addEventListener('scroll',pose);
+  document.addEventListener('focusin',function(){setTimeout(pose,80);});document.addEventListener('focusout',function(){setTimeout(pose,150);});})();
+window.dbgOnglet=function(){let a='';try{a=localStorage.getItem('ccOngletActif')||'';}catch(e){}return {id:ONGLET.id,actif:a,passif:ONGLET.passif};};
+Object.assign(I18N,{'LE JEU EST OUVERT DANS UN AUTRE ONGLET : CETTE PAGE NE SAUVEGARDE PLUS (RECHARGE POUR JOUER ICI)':'THE GAME IS OPEN IN ANOTHER TAB: THIS PAGE NO LONGER SAVES (RELOAD TO PLAY HERE)'});
+/* ===== LA CARTE DE LA CAISSE MÈNE À LA BOUTIQUE (2026-11-05, Opus : jury DIR-36) =====
+   #gCard (le nom et « 1 / 51 ») promettait une liste mais ne réagissait pas. Toucher la carte ouvre la BOUTIQUE sur cette caisse (rayon VOITURES).
+   `?carte=ancien` ne sert pas ici (`?carte=` choisit une map) : `?gcard=ancien` = la carte inerte. */
+try{if(!/[?&]gcard=ancien\b/.test(location.search)){const c9=$('gCard');if(c9){c9.style.cursor='pointer';
+  c9.addEventListener('click',function(e){if(!garageOn||GAR.go||ecranWipe._on)return;if(e.target&&e.target.closest&&e.target.closest('button,a,input,.pbtn'))return;
+    let m9='';try{m9=gModeM();}catch(x){}if(m9==='shop'||m9==='tous')return;
+    uiPop(c9);uiClic('nav');const i9=garageI;try{gModeVa('shop');}catch(x){return;}
+    setTimeout(function(){try{GBQ.cat='voiture';GBQ.ong='cat';bqEssaie('v:'+i9);}catch(x){}},60);});}}}catch(e){}
