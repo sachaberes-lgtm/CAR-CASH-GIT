@@ -401,10 +401,17 @@ window.dbgAppels=function(n){ // (2026-10-14, banc) QUI fait les appels de dessi
 window.dbgJadeRegle=function(){if(!JADE.root)return null;const ds=L/(NP-1),st=Math.max(1,Math.round(5/ds)),V9=new THREE.Vector3();let n=0,t=0;const ex=[]; /* (2026-10-20, banc) LA RÈGLE D'OR : aucun pilier ni rocher sur la route — la caisse tous les 5 m, à 3 places de la largeur, à 0,5 et 3 m */
   for(let i=0;i<NP;i+=st)for(const f of [-.9,0,.9])for(const h of [.5,3]){V9.copy(pts[i]).addScaledVector(B[i],f*ROAD_HALF).addScaledVector(Nn[i],h);t++;if(jadeHeurt(V9)){n++;if(ex.length<6)ex.push([Math.round(i*ds),f,h]);}}
   return {essais:t,heurts:n,ex:ex};};
+window.dbgJadeRefaire=function(){ /* (2026-11-05, B2, banc) la MÊME vallée rebâtie sans la carte rangée : la Porte gardée doit se reposer à l'identique — renvoie les ms, les reprises et une empreinte (porte, montagnes) */
+  if(!JADE.root||!JADE.cle)return 'pas de map';const sd=+JADE.cle.split(':')[0],cle0=JADE.cle,t=performance.now(),n0=JADE_PORTE_C.reprises;
+  const emp=function(){let h=0x811c9dc5,tri=0;const mx=function(x){h=Math.imul(h^(x*1000|0),16777619);};
+    for(const o of JADE.monu||[]){const g=o.L&&o.L[0].geometry;if(!g)continue;tri+=g.index.count/3;mx(g.index.count);const P=g.attributes.position.array;for(let i=0;i<P.length;i+=997)mx(P[i]);}
+    for(const q of (JADE.col&&JADE.col.P)||[])for(let i=0;i<9;i++)mx(+q[i]||0);return [tri,(h>>>0).toString(16),(JADE.col&&JADE.col.P||[]).length];};
+  const e0=emp();jadeRange();jadeEtatVide();jadeOublie();buildJade(sd);const e1=emp();
+  return {ms:Math.round(performance.now()-t),reprises:JADE_PORTE_C.reprises-n0,memeCle:JADE.cle===cle0,avant:e0,apres:e1,egal:e0.join()===e1.join()};};
 window.dbgJade=function(){let tri=0;for(const F of JADE.fam)tri+=F.im.count*F.tri;
   let triF=0;for(const FF of FIN.fam)if(FF)triF+=FF.im.count*FF.tri;
   return Object.assign({},JADE.n,{deco:JADE.deco||null,mods:JADE.mk||null,bank:JADE.bankMax||0,fins:FIN.dans.size,triFins:Math.round(triF),finPrets:JADE.geos?JADE.geos.p.filter(function(T9){return T9.fin;}).length+'/'+JADE.geos.p.length:0,finMs:JADE.geos&&JADE.geos.p.map(function(T9){return T9.finMs||0;}),triFinGab:JADE.geos&&JADE.geos.p.map(function(T9){return T9.fin?T9.fin.index.count/3:0;}),triangles:Math.round(tri+triF)+(JADE.porte?JADE.porte.tri:0)+(JADE.pont?JADE.pont.tri:0),porteFin:JADE.porte&&JADE.porte.triF,nuTri:JADE.nuTri,msPorte:JADE.msPorte,tPorte:JADE.tPorte,msPont:JADE.msPont,pontFin:JADE.pont&&JADE.pont.triF,appels:JADE.fam.filter(function(F){return F.im.count>0;}).length,
-    tri:{ms:JT.n?+(JT.ms/JT.n).toFixed(3):0,envois:JT.up},garde:{reprises:JADE_GARDE.reprises,msReprise:JADE_GARDE.ms,rangee:!!JADE_GARDE.m},grues:GRUE.L.length,balade:BALADE,niveau:LVL.cur&&LVL.cur.id,err:window.__jadeErr?String(window.__jadeErr):null});};
+    tri:{ms:JT.n?+(JT.ms/JT.n).toFixed(3):0,envois:JT.up},garde:{reprises:JADE_GARDE.reprises,msReprise:JADE_GARDE.ms,rangee:!!JADE_GARDE.m},porteGardee:{reprises:JADE_PORTE_C.reprises,ms:JADE_PORTE_C.ms,cle:JADE_PORTE_C.cle},grues:GRUE.L.length,balade:BALADE,niveau:LVL.cur&&LVL.cur.id,err:window.__jadeErr?String(window.__jadeErr):null});};
 window.dbgJadeAller=function(k,d){if(typeof k==='number'){if(!started||gameOver)return 'non';if(paused)togglePause();s=Math.max(0,Math.min(L-40,k));lat=0;psi=0;prevTvalid=false;mode='drive';return Math.round(s);} // (v14) un nombre : la caisse à s m
   const P=k==='pont'?JADE.pont:JADE.porte;if(!P||!started||gameOver)return 'non';if(paused)togglePause(); // (dev) la caisse d m avant un monument, sur la route
   s=Math.max(0,P.i/(NP-1)*L-(d||350));lat=0;psi=0;prevTvalid=false;mode='drive';return Math.round(s);};
