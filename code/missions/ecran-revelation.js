@@ -164,16 +164,28 @@ function objRenderV2(el){const s=m2Etat(),L=[];
   const nP=m2NbPret(),c=m2Compte();
   el.className='mObj misPorte m2Ob';el.setAttribute('data-m','mis');el.style.removeProperty('--rc');
   let h='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+(nP?' <i class="m2Pt in"></i>':'')+'</span><b class="m2Cpt">'+c.ok+' / '+c.tot+'<i class="obVoir">'+pxi('droite')+'</i></b></div>';
+  const P9=[]; /* (v6) chaque mission en cours : de quoi faire monter son compte avec sa barre */
   for(const x of L){const m=x.m;
     if(m.f==='secret')h+='<div class="obM ok sec">'+pxi('oeil')+'<span>'+sansAcc(TR('MISSION SECRÈTE TROUVÉE'))+'</span></div>';
     else if(x.ok)h+='<div class="obM ok">'+pxi('coche')+'<span>'+sansAcc(m2Txt(m))+'</span><em>'+sansAcc(m2RecNom(m))+'</em></div>';
     else{let v=0;try{v=m2ValCourse(m);}catch(q){}const t=m2Seuil(m);
       const ic9=pxi((M2_FAM[m.f]||M2_FAM.exploit).ic),tx9='<span>'+sansAcc(m2Txt(m))+'</span>',br9='<div class="obBar"><i style="width:0%" data-w="'+(100*m2Frac(m,v,t)).toFixed(1)+'"></i></div>',pg9='<b>'+m2Prog(m,v,t)+'</b>';
       /* écran de mort v6 : le texte sur toute la largeur (deux lignes au besoin), la barre dessous et le compte AU BOUT de sa barre */
+      if(flot9)P9.push({m:m,v:v,t:t});
       h+=flot9?'<div class="obM obM6">'+ic9+tx9+br9+pg9+'</div>':'<div class="obM">'+ic9+tx9+pg9+'</div>'+br9;}}
   h+='<div class="obFt"><span>'+sansAcc(TR(nP?'À RÉCUPÉRER':'TOUTES LES MISSIONS'))+'</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';
   el.innerHTML=h;
   const bars=el.querySelectorAll('.obBar i');
+  if(flot9){ /* (2026-11-04, Sacha : « des animations pour les missions ») écran de mort v6 : chaque barre et son compte (« 8 / 10 ») montent ENSEMBLE,
+       une image à la fois, à l'entrée de leur ligne (1,25 s, puis 0,15 s de plus par ligne) — une seule fois par mort ; au retour (garage,
+       réglages) tout est posé. La révélation d'une secrète attend que l'écran ait fini de se jouer (2,6 s). */
+    const go=!REDUCED_MOTION&&!!TCTL.mortT&&objRenderV2._a!==TCTL.mortT;if(TCTL.mortT)objRenderV2._a=TCTL.mortT;el.classList.toggle('m6Joue',go);
+    el.querySelectorAll('.obM6').forEach(function(r,j){const q=P9[j],i=r.querySelector('.obBar i'),b=r.querySelector('b');if(!q||!i||!b)return;i.style.transition='none';
+      const W=+i.getAttribute('data-w')||0,iv=Number.isInteger(q.v),pose=function(k){const e=1-Math.pow(1-k,3);i.style.width=(W*e).toFixed(2)+'%';b.innerHTML=m2Prog(q.m,iv?Math.round(q.v*e):q.v*e,q.t);};
+      if(!go){pose(1);return;}pose(0);
+      setTimeout(function(){const t0=performance.now();(function f(){if(!i.isConnected)return;const k=Math.min(1,(performance.now()-t0)/1000);pose(k);if(k<1)requestAnimationFrame(f);})();},1250+j*150);});
+    if(go&&el.querySelector('.obM6'))setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none'&&el.isConnected)sfx('ui.jauge');}catch(e){}},1250);
+    m2RevAuto(2600);return;}
   if(bars.length&&!REDUCED_MOTION&&TCTL.mortT&&objRenderV2._k!==TCTL.mortT){objRenderV2._k=TCTL.mortT;setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none'&&el.isConnected)sfx('ui.jauge');}catch(e){}},520);}
   setTimeout(function(){requestAnimationFrame(function(){bars.forEach(function(i){i.style.width=i.getAttribute('data-w')+'%';});});},REDUCED_MOTION?0:520);
   m2RevAuto(1400);} // une SECRÈTE trouvée pendant la partie : sa révélation, par-dessus l'écran de mort

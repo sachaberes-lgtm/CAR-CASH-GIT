@@ -363,7 +363,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
     if(enTrou(sp,10))continue; // (LES TROUS) pas de pad dans le vide entre deux segments
     // (2026-09-25) LE PAD EST UNE CIBLE : il vit sur une VOIE (gauche / axe / droite), déduite de sp — zéro rnd() consommé, la
     // génération en aval ne bouge pas. Avant, il se déclenchait sur toute la largeur : un turbo reçu sans rien faire.
-    const pl=[0,-1,1][Math.floor(sp*.0071)%3]*Math.min(ROAD_HALF-2.95,Math.max(4.6,ROAD_HALF*.45)); // (route ÷2) la fenêtre de prise fait 4,1 (pad 2,75 + caisse) : à 0,45×ROAD_HALF la voie de côté tombait à 3,5 m au plancher, et rouler AU CENTRE raflait tous les pads — voie ≥ 4,6 m, et ≤ bord − 2,95 : le pad reste entier sur la dalle
+    const pl=[0,-1,1][Math.floor(sp*.0071)%3]*Math.min(ROAD_HALF-4.2,Math.max(4.6,ROAD_HALF*.45)); // (route ÷2) la fenêtre de prise fait 5,6 (pad 4 + caisse) : à 0,45×ROAD_HALF la voie de côté tombait à 3,5 m au plancher, et rouler AU CENTRE raflait tous les pads — voie ≥ 4,6 m, et ≤ bord − 4,2 : le pad grossi (2026-11-01) reste entier sur la dalle
     if(PADS_OFF)continue; // (2026-10-20, Léo : « les boosts de la route disparaissent ») plus de plaque turbo : le boost se gagne en attrapant des FRUITS (voir la ligne parfaite) — le tirage ci-dessus reste consommé
     PADS.push(sp);PADL.push(pl);
     for(const fy of [1,-1]){

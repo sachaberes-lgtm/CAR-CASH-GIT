@@ -33,18 +33,14 @@ html body #coach,html body #coach:not(.bravo){box-shadow:inset 3px 0 0 var(--neo
 html body #coach.bravo{box-shadow:inset 3px 0 0 var(--neoV),inset 0 0 0 1px rgba(94,227,122,.55),inset 0 1px 0 rgba(255,255,255,.14)!important}
 html body.touch #campChip{box-shadow:inset 3px 0 0 var(--cc,var(--neoC)),inset 40px 0 30px -26px color-mix(in srgb,var(--cc,var(--neoC)) 45%,transparent),var(--filetH)}
 @keyframes k5CampAlerte{50%{box-shadow:inset 3px 0 0 var(--neoR),inset 0 0 0 1px var(--neoR),inset 40px 0 30px -26px rgba(255,74,100,.5)}}
-/* (b) LE VOLANT : l'invitation (avant le premier braquage) et le stick deviennent des CADRANS SEGMENTÉS, frères du disque NITRO — un
-   anneau de crans (16° de trait, 4° de jour) au lieu d'un pointillé de navigateur ; le patin est une touche de laque au liseré cyan */
-html body.touch.play #tSteer:not(.used)::after{border:0;border-radius:50%;
-  background:repeating-conic-gradient(from -8deg,rgba(159,232,255,.62) 0 16deg,transparent 16deg 22.5deg);
-  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 4px),#000 calc(100% - 4px));mask:radial-gradient(closest-side,transparent calc(100% - 4px),#000 calc(100% - 4px))}
+/* (b) LE VOLANT : le stick devient un CADRAN SEGMENTÉ, frère du disque NITRO — un anneau de crans (16° de trait, 4° de jour) au lieu
+   d'un pointillé de navigateur ; le patin est une touche de laque au liseré cyan */
 html body #tStick{border:0;background:radial-gradient(closest-side,rgba(0,234,255,.10) 0%,rgba(6,4,16,.24) 90%,transparent 92%)}
 html body #tStick::before{content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none;
   background:repeating-conic-gradient(from -8deg,rgba(0,234,255,.55) 0 16deg,transparent 16deg 22.5deg);
   -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 5px),#000 calc(100% - 5px));mask:radial-gradient(closest-side,transparent calc(100% - 5px),#000 calc(100% - 5px))}
 html body #tKnob{border:0;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.22),transparent 55%),radial-gradient(circle,#2a2350 0%,#161230 72%);
   box-shadow:inset 0 0 0 2px var(--neoC),inset 0 0 14px rgba(0,234,255,.35),0 0 0 2px rgba(3,1,9,.8),0 0 18px rgba(0,234,255,.5)}
-html body #tSteerHint{color:var(--tx2);opacity:.78}
 /* (b') UNE VOIX AU CENTRE, MÊME À DROITE : pendant qu'une grande annonce ou un verdict de pose passe (1,4 s), les plaques de pouvoirs
    s'effacent aux trois quarts — « DOUBLE MONSTRE » les traversait. L'information revient dès que l'annonce s'en va. */
 html body.touch.slamOn #pwrChip,html body.touch.verdOn #pwrChip{opacity:.22}
@@ -121,8 +117,6 @@ html #spNote{position:fixed;bottom:calc(var(--sB) + 84px)}
   /* le couloir des annonces remonte au tiers (il tombait à 338 px sur 390 : « NIVEAU 1 » sur la caisse, le verdict coupé en bas) */
   html body.touch,html body.touch.hCampChip:not(#ccH){--laneA:40%}
   /* les pouvoirs s'installent en haut à droite, à gauche du chrono de vol (ils descendaient sur le disque NITRO) */
-  /* l'invitation du volant descend sous le pouce */
-  html body.touch.play #tSteer:not(.used)::after{bottom:calc(var(--sB) + 34px)}
   /* le dock de sortie va d'un bord à l'autre, et RETOUR tombe toujours au même endroit */
   html .mDock{margin-left:-24px;margin-right:-24px;padding:22px 24px calc(var(--sB) + 14px);background:none}
   html .mDock::before{content:'';position:absolute;top:0;bottom:0;left:-100vw;right:-100vw;z-index:-1;pointer-events:none}

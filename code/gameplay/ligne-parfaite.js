@@ -234,7 +234,7 @@ function frameAt(s,out){
   out.b.crossVectors(out.n,out.t);
 }
 const F={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
-const padGeo=new THREE.PlaneGeometry(5.5,9);
+const padGeo=new THREE.PlaneGeometry(8,13); /* (2026-11-01, Sacha : « augmente la taille et la puissance des boosters sur la route ») plaque grossie (5,5×9 → 8×13 : son empan de prise suit, voir boucle-2-conduite) */
 /* (2026-09-26, passe perf) LES PLAQUES TURBO ne se redessinent plus à chaque image (8 tracés Canvas2D avec `shadowBlur` par image,
    renvoyés au GPU). (2026-09-26, vague 2 « L'ENCRE ET L'OR ») … et elles deviennent de L'OR. Elles tiraient leur couleur au hasard
    (bleu / blanc / rouge, sans aucun sens) et leurs chevrons étaient des traits flous (`shadowBlur`) de 64×128 agrandis au plus proche :
