@@ -62630,7 +62630,7 @@ window.dbgRevelation=function(q){if(M2REV.on)return 'déjà ouverte';let i=-1,rf
   const sec=M2.filter(function(m){return m.f==='secret'&&m.r&&m.r.car;}),m=sec.find(function(x){return x.r.car===CARS[i].name;})||sec[(Math.random()*sec.length)|0];
   M2REV.demo=true;m2RevScene(i,m?sansAcc(m2Txt(m)):'','demo',rf);return CARS[i].name+' — '+(rf||carRar(i))+(rf?' (palier essayé avec '+carRar(i)+')':'');};
 (function(){let q='';try{q=new URLSearchParams(location.search).get('revelation')||'';}catch(e){}if(!q)return;let n=0;
-  const iv=setInterval(function(){n++;if(n>120){clearInterval(iv);return;}let ok=false;try{ok=bienvPret();}catch(e){}if(!ok)return;clearInterval(iv);
+  const iv=setInterval(function(){n++;if(n>600){clearInterval(iv);return;}let ok=false;try{ok=bienvPret();}catch(e){}if(!ok)return;clearInterval(iv);
     setTimeout(function(){try{console.log('révélation :',window.dbgRevelation(q));}catch(e){console.warn(e);}},600);},500);})();
 // rampCd empêche de re-déclencher un bec de glace en reposant dessus ; fallStartSide mémorise la FACE de décollage (la bascule du bord).
 let rampCd=0,fallStartSide=1;
