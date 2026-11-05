@@ -24681,10 +24681,11 @@ function vitrePilMat(){
   m.dispose=function(){};VIT.mat.pil=m;return m;
 }
 function vitreSolPose(root,GS){
+  vitreChauffe(true); // (si le menu ne l'a pas fait : la vitrée était hors du tirage — voir vitreJouable)
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   const M9=7000,g=new THREE.Mesh(new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2),vitreSolMat());
   g.scale.set(x1-x0+2*M9,1,z1-z0+2*M9);g.position.set((x0+x1)/2,GS,(z0+z1)/2);g.frustumCulled=false;g.renderOrder=1; // dessiné APRÈS la ville : ce que les tours cachent n'est pas peint
-  g.matrixAutoUpdate=false;g.updateMatrix();root.add(g);VIT.solM=g;
+  g.matrixAutoUpdate=false;g.updateMatrix();root.add(g);trackMeshes.push(g);VIT.solM=g; // (2026-11-03, MAPS COHÉRENTES) dans trackMeshes, comme les tours : sa géométrie part avec la piste (elle restait en mémoire à chaque visite)
   // LES PILIERS : un fût de 7 m et un chapiteau en T sous le tablier, tous les ~64 m — pas là où une autre route passe dessous (le pont de l'échangeur)
   const st=Math.max(1,Math.round(64/(L/(NP-1)))),P9=[],R2=(ROAD_HALF+12)*(ROAD_HALF+12),PIL=VIT.pilP||(VIT.pilP=[]);PIL.length=0;
   for(let i=Math.round(st/2);i<NP-st;i+=st){const p=pts[i],n=Nn[i];if(!(n.y>.85))continue;const top=p.y-THICK*.3,hh=top-GS;if(hh<12)continue;
@@ -24695,7 +24696,7 @@ function vitreSolPose(root,GS){
   for(let k=0;k<nP;k++){const x=P9[k*5],top=P9[k*5+1],z=P9[k*5+2],hh=P9[k*5+3],a=P9[k*5+4];q.setFromEuler(e.set(0,a,0));
     m4.compose(v.set(x,GS+hh/2,z),q,sc.set(7,hh,7));im.setMatrixAt(k*2,m4);
     m4.compose(v.set(x,top-3,z),q,sc.set(ROAD_HALF*1.25,5,9));im.setMatrixAt(k*2+1,m4);PIL.push(x,z);}
-  im.frustumCulled=false;im.matrixAutoUpdate=false;im.updateMatrix();root.add(im);VIT.pilN=nP;
+  im.frustumCulled=false;im.matrixAutoUpdate=false;im.updateMatrix();root.add(im);trackMeshes.push(im);VIT.pilN=nP; // (de même : la boîte des piliers part avec la piste)
 }
 function vitreSolDans(p){return CITY.solY!=null&&p.y<CITY.solY+.8;} // (AU SOL) la caisse touche-t-elle le sol ? (le test de impPrep)
 const VIT={mat:{},geo:null,tex:null,ciel:null,met:'midi',
@@ -24973,26 +24974,34 @@ function vitreCiel(){
 function vitreDirigeable(){
   if(VIT.dir)return VIT.dir;
   const g=new THREE.Group(),Lh=230,Rh=31,M=function(c,e){return new THREE.MeshLambertMaterial({color:c,emissive:e||0x000000});};
-  const blanc=M(0xf2f5f9,0x0b0f16),gris=M(0xc9d0da),bleu=new THREE.MeshBasicMaterial({color:0x4cb6ff}),vitre=new THREE.MeshBasicMaterial({color:0x9fdcff});
+  const blanc=M(0xf2f5f9,0x0b0f16),gris=M(0xc9d0da),bleu=new THREE.MeshBasicMaterial({color:0x4cb6ff}),vitre=new THREE.MeshBasicMaterial({color:0x9fdcff}),anneau=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});
   const rayon=function(u){return Rh*Math.pow(Math.max(0,Math.sin(Math.PI*u)),.62)*(1-.2*u);};
   const prof=[];for(let i=0;i<=16;i++){const u=i/16;prof.push(new THREE.Vector2(Math.max(.05,rayon(u)),(u-.5)*Lh));}
   const coque=new THREE.Mesh(new THREE.LatheGeometry(prof,20),blanc);coque.rotation.x=Math.PI/2;g.add(coque); // l'axe de la coque : +z (le nez devant… la queue au bout du profil)
   for(const sg of [-1,1]){const b=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.4,Lh*.62),bleu);b.position.set(sg*(Rh*.985),-2,Lh*.02);g.add(b); // la ligne de lumière
-    const u=.62,r=rayon(u)+.6,an=new THREE.Mesh(new THREE.RingGeometry(9,12.5,32),new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide}));an.position.set(sg*r,6,(u-.5)*Lh);an.rotation.y=sg*Math.PI/2;g.add(an); // le logo : un anneau…
+    const u=.62,r=rayon(u)+.6,an=new THREE.Mesh(new THREE.RingGeometry(9,12.5,32),anneau);an.position.set(sg*r,6,(u-.5)*Lh);an.rotation.y=sg*Math.PI/2;g.add(an); // le logo : un anneau…
     const pt=new THREE.Mesh(new THREE.CircleGeometry(3.6,20),bleu);pt.position.set(sg*(r+.2),6,(u-.5)*Lh);pt.rotation.y=sg*Math.PI/2;g.add(pt);} // …et un point
   const zq=-Lh*.41;
   for(const [sx,sy] of [[1,0],[-1,0],[0,1],[0,-1]]){const a=new THREE.Mesh(new THREE.BoxGeometry(sx?28:1.6,sx?1.6:28,26),gris);a.position.set(sx*(rayon(.09)+11),sy*(rayon(.09)+11),zq);g.add(a);} // les ailerons
   const nac=new THREE.Mesh(new THREE.BoxGeometry(12,6,40),blanc);nac.position.set(0,-Rh-1.5,14);g.add(nac); // la nacelle
   const fen=new THREE.Mesh(new THREE.BoxGeometry(12.3,1.6,34),vitre);fen.position.set(0,-Rh-1.2,14);g.add(fen); // ses vitres
   const nav=new THREE.Mesh(new THREE.SphereGeometry(1.8,8,6),bleu);nav.position.set(0,rayon(.1)+11+14,zq-6);g.add(nav);VIT.nav=nav; // le feu de navigation (bleu, il bat)
-  g.traverse(function(o){if(o.isMesh){o.frustumCulled=false;o.matrixAutoUpdate=true;}});
-  g.name='ville vitrée dirigeable';g.visible=false;scene.add(g);VIT.dir=g;
+  /* (2026-11-03, MAPS COHÉRENTES) LES PIÈCES FONDUES PAR MATIÈRE : 14 appels de dessin → 6 (la coque et la nacelle · les ailerons · les lignes et les points
+     bleus · les deux anneaux · la vitre · le feu qui bat, seul : il clignote) — la même image au triangle près. Chaque pièce garde sa place (sa matrice est
+     cuite dans les sommets) ; la sphère englobante rend au dirigeable le tri hors champ (il était dessiné même derrière la caméra). */
+  {const par=new Map();for(const o of g.children.slice()){if(o===nav)continue;o.updateMatrix();const G9=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();G9.applyMatrix4(o.matrix);
+     o.geometry.dispose();g.remove(o);let a=par.get(o.material);if(!a)par.set(o.material,a=[]);a.push(G9);}
+   for(const [m9,L9] of par){let n9=0,o9=0;for(const q of L9)n9+=q.attributes.position.count;const P9=new Float32Array(n9*3),N9=new Float32Array(n9*3);
+     for(const q of L9){P9.set(q.attributes.position.array,o9*3);N9.set(q.attributes.normal.array,o9*3);o9+=q.attributes.position.count;q.dispose();}
+     const gm=new THREE.BufferGeometry();gm.setAttribute('position',new THREE.BufferAttribute(P9,3));gm.setAttribute('normal',new THREE.BufferAttribute(N9,3));gm.computeBoundingSphere();g.add(new THREE.Mesh(gm,m9));}}
+  g.traverse(function(o){if(o.isMesh){o.updateMatrix();o.matrixAutoUpdate=false;}});
+  g.name='ville vitrée dirigeable';g.visible=false;scene.add(g);VIT.dir=g;VIT.dirM=[blanc,gris,bleu,vitre,anneau];VIT.dirA=1;
   VIT.Fd={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};VIT.dirS=null;VIT.dirC=0;VIT.dirT=0;return g;}
 function vitreDirTick(d){
   const DZ9=CITY.dz&&CITY.dz.genre==='vitree'?CITY.dz:null; // (2026-10-20, LE DÉCOR AU HASARD) le dirigeable tiré : aucun, comme avant, haut, rasant
   if(DZ9&&!DZ9.dir){if(VIT.dir&&VIT.dir.visible)VIT.dir.visible=false;return;}
   const g=vitreDirigeable();g.visible=true;
-  if(VIT.dirS==null||s>VIT.dirS-150||VIT.dirS>s+5200){VIT.dirS=Math.min(L-80,s+1700);VIT.dirC++;VIT.dirT=0; // dépassé (ou nouvelle piste) : loin devant, de l'autre côté
+  if(VIT.dirS==null||s>VIT.dirS-150||VIT.dirS>s+5200){VIT.dirS=Math.min(L-80,s+1700);VIT.dirC++;VIT.dirT=0;VIT.dirA=0; // dépassé (ou nouvelle piste) : loin devant, de l'autre côté
     VIT.dirY=0;if(VIT_SOL&&CITY.solY!=null&&VIT.tours){frameAt(VIT.dirS,VIT.Fd);const p9=VIT.Fd.p;let mx=CITY.solY+620; // (AU SOL) il croise AU-DESSUS des géantes qui l'entourent (jamais dans une tour)
       for(const t9 of VIT.tours){const dx=t9[0]-p9.x,dz=t9[1]-p9.z;if(dx*dx+dz*dz<520*520&&t9[5]+60>mx)mx=t9[5]+60;}VIT.dirY=mx;}}
   VIT.dirT+=d;frameAt(VIT.dirS,VIT.Fd);const F9=VIT.Fd,h=Math.hypot(F9.t.x,F9.t.z)||1,tx=F9.t.x/h,tz=F9.t.z/h,sg=(VIT.dirC%2)?1:-1;
@@ -25000,6 +25009,9 @@ function vitreDirTick(d){
   g.position.set(F9.p.x-tz*sg*lat9+tx*VIT.dirT*7,(VIT.dirY||F9.p.y+130)+dh9+Math.sin(VIT.uT.value*.3)*3,F9.p.z+tx*sg*lat9+tz*VIT.dirT*7);
   g.rotation.set(0,Math.atan2(tx,tz),Math.sin(VIT.uT.value*.21)*.02);
   if(VIT.nav)VIT.nav.visible=(VIT.uT.value%1.6)<.25;
+  /* (2026-11-03, MAPS COHÉRENTES) IL SORT DE LA BRUME EN FONDU : à 1,7 km la brume de la vitrée (900-4 600 m) ne le cache qu'à 12 % — il APPARAISSAIT d'un
+     coup dans le ciel, devant. 2,5 s de fondu (les matières passent transparentes le temps du fondu : même programme, rien à compiler). */
+  if(VIT.dirA<1&&VIT.dirM){VIT.dirA=Math.min(1,VIT.dirA+d/2.5);const a9=VIT.dirA*VIT.dirA*(3-2*VIT.dirA),tr9=VIT.dirA<1;for(const m9 of VIT.dirM){m9.opacity=a9;m9.transparent=tr9;}}
 }
 function vitreTick(dt,sim){
   villeVerreTick(dt); // (2026-10-18) LA VILLE, NÉON ET VERRE : le ciel que renvoient ses géantes de verre
@@ -25023,7 +25035,13 @@ function vitreTick(dt,sim){
   const c=vitreCiel();c.visible=true;c.position.copy(camera.position);
   if(!VIT_PLAFOND)vitreDirTick(d);
 }
-function vitreChauffe(){ // au menu (chauffeDivers) : les trois matières de la VILLE VITRÉE compilées et dessinées une fois hors écran — 0 programme en course
+/* (2026-11-03, MAPS COHÉRENTES) HORS DU TIRAGE, ELLE NE SE CHAUFFE PLUS AU MENU : la vitrée n'est jouable que par `?vitree=1` / `?carte=vitree` (SF_HORS), mais
+   son verre, ses tours au loin, son sol, ses piliers, sa couche de nuages et son dirigeable étaient compilés et bâtis à CHAQUE lancement — cinq programmes
+   et huit géométries portés par toutes les autres maps, et une étape de plus avant le premier départ. Désormais : au menu seulement si elle peut être
+   tirée ; sinon au moment où sa ville se BÂTIT (vitreSolPose, `fort`), avant sa course — un portail de debug (dbgClassique, dbgNiveauVitre) reste servi. */
+function vitreJouable(){return !SF_HORS.vitree||!!(SF.force&&SF.force.carte==='vitree');}
+function vitreChauffe(fort){ // au menu (chauffeDivers) : les trois matières de la VILLE VITRÉE compilées et dessinées une fois hors écran — 0 programme en course
+  if(VIT.chaud||(!fort&&!vitreJouable()))return;VIT.chaud=true;
   const L9=[],add=function(o){o.position.copy(camera.position);camera.getWorldDirection(VIT.v1);o.position.addScaledVector(VIT.v1,30);scene.add(o);L9.push(o);};
   {const im=new THREE.InstancedMesh(vitreGeo(),vitreMatTours(),1);im.setMatrixAt(0,VIT.m4.identity());im.setColorAt(0,VIT.c.set(1,1,1));add(im);}
   {const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),vitreMatToursLoin(),1);im.setMatrixAt(0,VIT.m4.identity());add(im);}
