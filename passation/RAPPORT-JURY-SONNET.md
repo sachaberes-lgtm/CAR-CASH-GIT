@@ -44,10 +44,11 @@ FAIT :
 - **INT-19 / DIR-42 (partie contraste et corps)** : `--tx3` `#9a90c8` → `#aea5d8` ; les corps de 6 px passent à 7 px (`.ivT small`, `#engVigTier`, `#misBan .mbTx small`).
 - **INT-43** : table des couches (commentaire) en tête de `charte-1-touches.css` ; `#m2Rev` de 95 à 93 pour qu'une fenêtre `#modale` (95) s'ouvre au-dessus de la révélation.
 - **DIR-22** : en couché, le bloc JOUER prend `margin-right:max(6px,var(--sR))` (il dépassait de 4 px).
+- **DIR-20** : debout, la barre RETOUR / CHANGER MA PLAQUE du profil est collée en bas (`position:sticky`, `plaque.css`) ; mesuré sur SE : y = 729 → 597 pour 667 px, vérifié sur capture.
 - **DIR-14** : déjà réglé (la zone de toucher des onglets fait 44 px par `::after{top:-5px;bottom:-5px}`, `garage-hub-boutique.css:251`) : le rectangle visible, lui, fait 34 px.
 - **DIR-15 / 16 / 17 (MESURÉ au banc, SE et debout)** : à la fin du défilement, le dernier élément s'arrête 30 à 36 px AU-DESSUS de RETOUR (réglages : 563 contre 593 ; achat : 557 contre 593). Le chevauchement vu par le jury est l'état en milieu de défilement, avec le fondu qui existe déjà. Rien à changer ; l'indice de défilement reste à décider.
 
-PAS FAIT (demandent un banc d'images itératif sur des règles empilées à `#garage#garage#garage…` et `!important` ; je n'ai pas voulu livrer du CSS non vu) : DIR-13, DIR-18, DIR-20, DIR-23 (c'est le JS qui écrit l'espace fine entre les milliers), DIR-35 (`mort-flottante.css`, exclu), DIR-38, DIR-39, DIR-44, DIR-48, INT-12 (glyphe › dans `auto-ecole.js`), INT-14, INT-25, INT-41 (`mort-flottante.css`), et les corps de 4 et 5 px (`socle-1.css:289-290`, `socle-3-hud.css:17`, `ecrans-iphone.css:29` « ACCUEIL » 6 px `!important`).
+PAS FAIT (demandent un banc d'images itératif sur des règles empilées à `#garage#garage#garage…` et `!important` ; je n'ai pas voulu livrer du CSS non vu) : DIR-13, DIR-18 (je n'ai pas identifié l'élément du compteur du garage ; `#moneyTxt` est celui du HUD de course), DIR-23 (c'est le JS qui écrit l'espace fine entre les milliers), DIR-35 (`mort-flottante.css`, exclu), DIR-38, DIR-39, DIR-44, DIR-48, INT-12 (glyphe › dans `auto-ecole.js`), INT-14, INT-25, INT-41 (`mort-flottante.css`), et les corps de 4 et 5 px (`socle-1.css:289-290`, `socle-3-hud.css:17`, `ecrans-iphone.css:29` « ACCUEIL » 6 px `!important`).
 
 ## 4. C. TABLES ET PETITES VALEURS
 
@@ -76,6 +77,7 @@ PAS FAIT :
 FAIT :
 - **SON-09** : `FX_ARGENT`, `fxPreload`, `fxEls`… retirés de `son/fanfare-turbo.js` (restent trois coquilles vides `fxStop/fxPreload/fxTick` pour les appelants de `init.js`, `curseurs.js`, `seconde-chance.js`, `boucle-6-hud.js`) ; les 4 mp3 de `assets/audio/fx/` supprimés (le dossier disparaît ; `preparer-www --essai` : 659 → 655 fichiers).
 - **HYG-12 (en partie)** : 13 fonctions jamais appelées retirées, trouvées par acorn (un seul jeton d'identifiant = sa déclaration, aucune occurrence entre guillemets) : `lisseDiffuse`, `palDonne`, `courroie10`, `sphN10`, `bete30`, `h4_naissance`, `h3_poly`, `fx3_comete`, `djReste`, `glyphes`, `allumage`, `dGraine`, `orbAlea` (≈ 15 Ko). `dunes-dieux/gizeh` étaient déjà partis ; `dnScenes` (`dunes-4.js`) laissé : fichier interdit tant que la session Arrakis n'a pas dit « fini ».
+- **SON-19** : `assets/audio/music/paliers/rendus/index.js` : les deux entrées sans dossier (`velours-v1`, `moteur-glisse`) retirées (le fichier est relu sans erreur, 6 morceaux restent). Les `*-donnees.js` de la bibliothèque locale (liens morts) ne sont pas touchés.
 - **IOS-03** : `pages-app/confidentialite.html` = le texte de `app-ios/fiche/` (mises à jour depuis GitHub). **IOS-15** : `.gitignore` += `.claude/`, `.playwright-mcp/`.
 - **HYG-11 / ECO-17** : il n'y a **pas de liste de 27 crochets** dans `publie-allege.cjs` : il retire tout seul tout `window.dbgX=` qu'aucun autre code ne nomme. Les survivants sont ceux que le jeu teste (`typeof dbgX`). Rien à compléter ; reste à brancher `publie-allege` dans `preparer-www` (Opus) puis à relire `grep -o "window\.dbg[A-Za-z]*" app-ios/www/index.html`.
 
