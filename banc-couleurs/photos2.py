@@ -21,7 +21,7 @@ OUT = os.environ.get('OUT', ICI)
 PORT_HTTP, PORT_CDP = int(os.environ.get('PH',9243)), int(os.environ.get('PC',9493))
 CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 SAVE = {'v': 2, 'sfx': False, 'mus': False, 'vox': False, 'tuto': 1, 'permis': 1, 'facile': 0, 'ex': {'runs': 5}}
-TEMPS = [5, 10, 15]
+TEMPS = json.loads(os.environ.get('TEMPS', '[5, 10, 15]'))
 
 MESURE = """(function(b64){return new Promise(function(res){var im=new Image();im.onload=function(){var W=320,H=180,cv=document.createElement('canvas');cv.width=W;cv.height=H;var g=cv.getContext('2d');g.drawImage(im,0,0,W,H);var d=g.getImageData(0,0,W,H).data;
 function lin(c){c/=255;return c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4);}function Lst(y){return y<=.008856?903.3*y:116*Math.pow(y,1/3)-16;}
@@ -113,7 +113,7 @@ def couples_de(args):
         for m in re.finditer(r"id:\s*'(\w+)'.*?meteos:\s*\[(.*?)\]\s*\}", txt, re.S):
             cartes[m.group(1)] = re.findall(r"\['([\w-]+)',", m.group(2))  # (2026-10-16) une clé peut porter sa TEINTE : « pluie-vert »
     out = []
-    for a in (list(cartes) if args == ['--tout'] else args):
+    for a in [x for a9 in args for x in (list(cartes) if a9 == '--tout' else [a9])]:
         if ':' in a: out.append(tuple(a.split(':', 1)))
         else: out += [(a, k) for k in cartes.get(a, [])]
     return out
@@ -159,11 +159,11 @@ def main():
                 c.ev(CACHE); time.sleep(.3)
                 r = c.send('Page.captureScreenshot', {'format': 'jpeg', 'quality': 86})
                 open(os.path.join(prises, '%s-%s-%d.jpg' % (carte, meteo, k)), 'wb').write(base64.b64decode(r['data']))
-                if k == 1:
+                if k == len(TEMPS)//2:
                     try: mes = c.ev(MESURE + '(' + json.dumps(r['data']) + ')')
                     except Exception as e: mes = None; print('mesure ?', e)
                 c.ev("document.getElementById('cc-nu').textContent=''")
-            garde(os.path.join(prises, '%s-%s-1.jpg' % (carte, meteo)), carte, meteo)
+            garde(os.path.join(prises, '%s-%s-%d.jpg' % (carte, meteo, len(TEMPS)//2)), carte, meteo)
             note_version(carte, meteo)
             try:
                 et = c.ev("JSON.stringify({etal:dbgChaine().etal, niveau:dbgClassique().niveau, bio:(function(){var s=dbgCielObj();return {name:s.BIO.name, cur:s.BIO.cur};})()})")
