@@ -11,6 +11,10 @@
     "backgroundColor": "#12081f",
     "preferredContentMode": "mobile"
   },
+  "android": {
+    "backgroundColor": "#12081f",
+    "allowMixedContent": false
+  },
   "plugins": {
     "SplashScreen": {
       "launchShowDuration": 4000,

@@ -4,6 +4,8 @@ L'app iOS **emballe le jeu web de `VERSION PRINCIPALE/`** dans une vraie app iPh
 qui affiche le jeu dans une vue web, sans navigateur autour). Le jeu n'est **pas recopié à la main** : `www/` est
 **fabriqué** à partir de `VERSION PRINCIPALE/` par `preparer-www.js`.
 
+**Android (Google Play)** : le même projet a aussi une coquille Android, `android/` — mode d'emploi dans `ANDROID.md`.
+
 | Quoi | Où |
 |---|---|
 | Identifiant de l'app | `com.sachaberes.carcash` · nom sous l'icône : **CASH CAR** · version **1.0.0 (1)** · équipe Apple `M532TDYCH2` |

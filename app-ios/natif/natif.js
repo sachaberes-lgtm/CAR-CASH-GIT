@@ -12,7 +12,9 @@
    5. l'écran de lancement natif retiré dès que le jeu a peint son propre écran ;
    6. en version DEBUG seulement (Xcode ▶) : chaque requête qui sortirait de l'app est écrite dans la console de Xcode,
       plus un bilan à 15 s et à 60 s — c'est le banc du « mode hors ligne ». La version App Store n'écrit rien ;
-   7. les mises à jour en direct du jeu (sans l'App Store), placées avant le 6 qui s'arrête hors DEBUG. */
+   7. les mises à jour en direct du jeu (sans l'App Store), placées avant le 6 qui s'arrête hors DEBUG ;
+   8. sur ANDROID seulement (l'app Google Play, 2026-11-05) : le bouton RETOUR passe par la touche Échap du jeu.
+   Le même fichier sert aux deux apps : la garde native est GardeNavigation.swift sur iPhone, GardeNavigation.java sur Android. */
 (function(){
   'use strict';
   var C=window.Capacitor;
@@ -75,6 +77,33 @@
   /* ---- 5. L'ÉCRAN DE LANCEMENT ---- (retiré seul au bout de 4 s au plus : capacitor.config.json, launchShowDuration) */
   var cache=function(){try{if(P.SplashScreen)P.SplashScreen.hide({fadeOutDuration:250});}catch(e){}};
   if(document.readyState!=='loading')setTimeout(cache,60);else document.addEventListener('DOMContentLoaded',function(){setTimeout(cache,60);});
+
+  /* ---- 8. ANDROID : LE BOUTON RETOUR (2026-11-05, l'app Google Play) ----
+     MainActivity.java appelle window.ccRetour() à chaque RETOUR d'Android. Le jeu sait déjà ce que veut dire « revenir » : c'est
+     sa touche Échap (mobile-tactile.js et les autres écrans) — elle referme la fenêtre ouverte, quitte un sous-écran, met la course
+     en PAUSE. On la lui envoie, puis on regarde si un écran a bougé (une classe on/open/sort… posée ou retirée). Rien n'a bougé :
+     il n'y avait plus rien à refermer, l'app passe en arrière-plan (GardeNavigation.enArriere), comme toute app Android.
+     Sur iPhone, rien de tout ça n'existe (pas de bouton retour). */
+  if(typeof C.getPlatform==='function'&&C.getPlatform()==='android'){
+    document.documentElement.classList.add('natif-android');
+    var MOTS=['on','open','sort','sortant','retour','avant','racine'];
+    var marques=function(s){s=' '+(s||'')+' ';return MOTS.filter(function(m){return s.indexOf(' '+m+' ')>=0;}).join(' ');};
+    var enCours=false;
+    window.ccRetour=function(){
+      if(enCours)return 1;enCours=true; /* deux RETOUR très rapprochés : le second attend le verdict du premier */
+      var bouge=false,obs=null;
+      try{obs=new MutationObserver(function(l){for(var i=0;i<l.length&&!bouge;i++){var m=l[i];
+          if(m.attributeName==='class'){if(marques(m.oldValue)!==marques(m.target.getAttribute('class')))bouge=true;}
+          else bouge=true;}});
+        obs.observe(document.documentElement,{subtree:true,attributes:true,attributeOldValue:true,attributeFilter:['class','data-ecran']});}catch(e){}
+      var ev;try{ev=new KeyboardEvent('keydown',{key:'Escape',code:'Escape',keyCode:27,which:27,bubbles:true,cancelable:true});
+        (document.activeElement||document.body||document.documentElement).dispatchEvent(ev);}catch(e){dit('retour : Échap impossible',e&&e.message);}
+      setTimeout(function(){try{if(obs)obs.disconnect();}catch(e){}enCours=false;
+        if(bouge||(ev&&ev.defaultPrevented)){dit('retour : pris par le jeu');return;}
+        dit('retour : plus rien à refermer, arrière-plan');
+        try{if(P.GardeNavigation&&P.GardeNavigation.enArriere)P.GardeNavigation.enArriere();}catch(e){}},450);
+      return 1;};
+  }
 
   /* ---- 7. LES MISES À JOUR EN DIRECT (2026-10-14, oui de Sacha) ----
      Le jeu (les fichiers de www/) se met à jour SANS passer par l'App Store : publier-maj.js fabrique l'édition App Store d'une

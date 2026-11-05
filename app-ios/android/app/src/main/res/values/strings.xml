@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CASH CAR</string>
+    <string name="title_activity_main">CASH CAR</string>
+    <string name="package_name">com.sachaberes.carcash</string>
+    <string name="custom_url_scheme">com.sachaberes.carcash</string>
+</resources>

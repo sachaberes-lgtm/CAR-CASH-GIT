@@ -5,6 +5,8 @@ CASH CAR est un runner arcade 3D (three.js) pour téléphone : on conduit une ca
 **L'APP iOS** (2026-10-13, branche `ios-capacitor`) n'est pas un autre jeu : `app-ios/` = Capacitor 8, appId `com.sachaberes.carcash`.
 Son `www/` est GÉNÉRÉ depuis `VERSION PRINCIPALE/` (`cd app-ios && npm run sync`, jamais à la main) ; la colle native vit dans
 `app-ios/natif/natif.js` (inerte hors de l'app). Mode d'emploi : `app-ios/LISEZ-MOI.md` ; état et décisions : `passation/APP-STORE.md`.
+**L'APP ANDROID** (2026-11-05, Google Play) est la MÊME app : `app-ios/android/` à côté de `app-ios/ios/`, même `www/`, même `natif.js`
+(`cd app-ios && npm run sync:android`). Mode d'emploi : `app-ios/ANDROID.md`.
 
 ## Quel fichier fait quoi
 - `VERSION PRINCIPALE/index.html` : le jeu que le navigateur charge. **Fabriqué à partir de `code/` : on ne l'édite pas.**

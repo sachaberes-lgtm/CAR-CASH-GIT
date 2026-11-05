@@ -6,3 +6,7 @@ node_modules/
 /build/
 /fiche/captures/
 /fiche/captures-t8/
+# ANDROID : la clé de signature Google Play et ses mots de passe ne vont JAMAIS dans git (voir ANDROID.md)
+*.jks
+*.keystore
+/android/keystore.properties

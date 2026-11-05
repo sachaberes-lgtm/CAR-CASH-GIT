@@ -105,7 +105,7 @@ une("function carUnlockedVrai(i){",
 toutes('LA DAYTONA','LA GRANDE FLÈCHE',10,'nom LA DAYTONA (Ferrari)');une('"THE DAYTONA"','"THE GREAT ARROW"','nom LA DAYTONA en anglais');
 toutes('LA STRATOS','LA CALE',14,'nom LA STRATOS (Lancia)');une('"THE STRATOS"','"THE WEDGE"','nom LA STRATOS en anglais');
 toutes('LA VETTE','LA RAPIÈRE',6,'nom LA VETTE (Corvette)');une('"THE VETTE"','"THE RAPIER"','nom LA VETTE en anglais');
-toutes('LE CHARGEUR','LE FORBAN',13,'noms LE CHARGEUR et LE CHARGEUR 69 (Dodge)');toutes('"THE CHARGER','"THE CORSAIR',2,'noms LE CHARGEUR et LE CHARGEUR 69 en anglais');
+toutes('LE CHARGEUR','LE FORBAN',14,'noms LE CHARGEUR et LE CHARGEUR 69 (Dodge)'); /* (2026-11-05) 14 : un commentaire de l'inventaire (3ed5315d, noms à la taille de la case) cite « LE CHARGEUR 69 » */toutes('"THE CHARGER','"THE CORSAIR',2,'noms LE CHARGEUR et LE CHARGEUR 69 en anglais');
 une("À 88 à l\\'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (CARS)');
 une("À 88 à l'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (clé de traduction)');
 une('At 88 it travels back in time, apparently.','Ahead of its time, they say.','phrase de LA DOLORÈS en anglais');
@@ -121,10 +121,13 @@ une("var CC_ADMOB={recompense:''};","var CC_ADMOB={recompense:''}; /* (app iOS) 
 /* (2026-10-24, session APP STORE « directement sortable », règle 3.1.1) LES PEINTURES EN EUROS : depuis le 16/10 le jeu vend chaque peinture en
    vrai argent (PEINT_EUR / PEINT_EUR_ID : 0,50 € à 5 €, par shopPaye, la porte de StoreKit jamais branchée : « L'achat est indisponible pour le
    moment ») et LA PALETTE en pack (0,99 €). Dans l'app, comme les caisses : chaque prix en € devient un prix en argent du jeu (60 000 par euro,
-   0,50 € → 30 000, 5 € → 300 000), et l'article du pack sans prix (une secrète) dit SECRÈTE au lieu du prix du pack. */
-une("{d.eur=PEINT_EUR_ID[d.id]||PEINT_EUR[r];delete d.p;}",
-  "{d.p=Math.round((parseFloat(String(PEINT_EUR_ID[d.id]||PEINT_EUR[r]).replace(',','.'))||1)*60)*1000;delete d.eur;} /* (app iOS) les peintures en € passent à l'argent du jeu */",
+   0,50 € → 30 000, 5 € → 300 000), et l'article du pack sans prix (une secrète) dit SECRÈTE au lieu du prix du pack.
+   (2026-11-05, le nuancier v3 du jeu, v1135) le prix suit maintenant la seule RARETÉ (PEINT_EUR : 1 €, 1 €, 2 €, 3 €), posé dans la boucle de
+   PEINT_CAT : même conversion (60 000, 60 000, 120 000, 180 000), et le sous-titre de chaque rareté de la boutique (« UNIES · 1 € ») dit ce prix-là. */
+une("o.eur=PEINT_EUR[o.r];",
+  "o.p=Math.round((parseFloat(String(PEINT_EUR[o.r]).replace(',','.'))||1)*60)*1000; /* (app) les peintures en € passent à l'argent du jeu */",
   'peintures vendues en €');
+une("' · '+eurTxt(PEINT_EUR[f])","' · '+bqPxT(Math.round((parseFloat(String(PEINT_EUR[f]).replace(',','.'))||1)*60)*1000)",'prix en € des raretés de peintures (boutique)');
 une("d.pack?eurTxt(PALETTE_PACK.eur):","d.pack?sansAcc(TR('SECRÈTE')):",'prix du pack LA PALETTE sur ses articles');
 /* (2026-10-24) la fenêtre ENTRER UN CODE ne parle plus de « code secret » (le code COUSIN est coupé plus haut) : elle restaure une sauvegarde. */
 toutes('Colle un code de sauvegarde, ou un code secret.','Colle un code de sauvegarde.',2,'fenêtre ENTRER UN CODE (texte + clé de traduction)');
