@@ -70,6 +70,10 @@ function musicPickNext(excludeIdx){
    monte et la musique recule vers son niveau de ciel (MUS_CIEL), en `d` secondes, une même courbe pour les deux (`ventIntro`, 0 → 1). Hors de l'intro, `ventIntro` vaut 1 : rien ne change. */
 const INTROSON={on:false,t0:0,d:8,m0:.3}; /* m0 : le niveau de départ de la musique (30 % de celui du garage, −10 dB) ; au ciel elle finit à MUS_CIEL (15 %) */
 function ventIntro(){if(!INTROSON.on)return 1;if(!INTROSON.t0)return 0;const k=(performance.now()-INTROSON.t0)/(INTROSON.d*1000);return k>=1?1:k*k*(3-2*k);}
+/* (2026-11-05, Sacha : « remets le léger bruit de vent dans l'écran d'accueil » — au lancement) LE VENT DU CIEL AU LANCEMENT : `chuteDoux` ne suivait que ventIntro (0 pendant « 1.61 PRESENTS », puis 8 s de montée) : on
+   n'entendait le vent qu'après l'accueil. Il a maintenant son propre fondu : un léger souffle (35 %) dès que le ciel se construit sous le film, qui rejoint son niveau en 3 s quand l'accueil apparaît.
+   La musique, elle, garde ventIntro (inchangé). */
+function ventCiel(){if(!INTROSON.on)return 1;if(!INTROSON.t0)return .35;const k=(performance.now()-INTROSON.t0)/3000;return k>=1?1:.35+.65*k*k*(3-2*k);}
 /* LE LOBBY JOUE LE PALIER 1 (2026-11-02, Léo : « enlever les musiques de lobby, libérer un maximum d'espace, et mettre à la place le palier numéro 1 : quelque chose qui fasse partie de la musique de la course ») : au lieu des trois
    morceaux de 3 à 4 Mo (nuages, altitude, apesanteur), le ciel et le garage jouent le PALIER 1 de CIEL · 30 (0,35 Mo, 22 s, en boucle) : le début, calme, du morceau qui monte avec le moteur en course. Un seul morceau :
    `MENU_MUS.ciel.length` vaut 1, donc il boucle (voir playMusic) et `musicMenuSuivant` n'a plus rien à tirer. Les trois anciens fichiers restent sur le disque tant que le palier 1 n'est pas validé à l'oreille.

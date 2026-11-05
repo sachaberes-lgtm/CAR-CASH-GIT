@@ -57933,6 +57933,10 @@ function musicPickNext(excludeIdx){
    monte et la musique recule vers son niveau de ciel (MUS_CIEL), en `d` secondes, une même courbe pour les deux (`ventIntro`, 0 → 1). Hors de l'intro, `ventIntro` vaut 1 : rien ne change. */
 const INTROSON={on:false,t0:0,d:8,m0:.3}; /* m0 : le niveau de départ de la musique (30 % de celui du garage, −10 dB) ; au ciel elle finit à MUS_CIEL (15 %) */
 function ventIntro(){if(!INTROSON.on)return 1;if(!INTROSON.t0)return 0;const k=(performance.now()-INTROSON.t0)/(INTROSON.d*1000);return k>=1?1:k*k*(3-2*k);}
+/* (2026-11-05, Sacha : « remets le léger bruit de vent dans l'écran d'accueil » — au lancement) LE VENT DU CIEL AU LANCEMENT : `chuteDoux` ne suivait que ventIntro (0 pendant « 1.61 PRESENTS », puis 8 s de montée) : on
+   n'entendait le vent qu'après l'accueil. Il a maintenant son propre fondu : un léger souffle (35 %) dès que le ciel se construit sous le film, qui rejoint son niveau en 3 s quand l'accueil apparaît.
+   La musique, elle, garde ventIntro (inchangé). */
+function ventCiel(){if(!INTROSON.on)return 1;if(!INTROSON.t0)return .35;const k=(performance.now()-INTROSON.t0)/3000;return k>=1?1:.35+.65*k*k*(3-2*k);}
 /* LE LOBBY JOUE LE PALIER 1 (2026-11-02, Léo : « enlever les musiques de lobby, libérer un maximum d'espace, et mettre à la place le palier numéro 1 : quelque chose qui fasse partie de la musique de la course ») : au lieu des trois
    morceaux de 3 à 4 Mo (nuages, altitude, apesanteur), le ciel et le garage jouent le PALIER 1 de CIEL · 30 (0,35 Mo, 22 s, en boucle) : le début, calme, du morceau qui monte avec le moteur en course. Un seul morceau :
    `MENU_MUS.ciel.length` vaut 1, donc il boucle (voir playMusic) et `musicMenuSuivant` n'a plus rien à tirer. Les trois anciens fichiers restent sur le disque tant que le palier 1 n'est pas validé à l'oreille.
@@ -73395,7 +73399,7 @@ function chuteDoux(t,u){
   }
   clearTimeout(CHDOUX.off);CHDOUX.off=0;
   const now=AC.currentTime,houle=.78+.16*Math.sin(t*.41)+.08*Math.sin(t*1.07+1.3);CHDOUX.h=houle; // (la musique du ciel la lit : elle plonge sous les rafales)
-  stt(n.g.gain,CHDOUX_VOL*houle*(1+.6*u)*ventIntro(),now,.5);                  // au piqué de JOUER il gonfle (+4 dB ; +8 avant le 16/10 : voir LE PIQUÉ QUI NE CRIE PLUS)…
+  stt(n.g.gain,CHDOUX_VOL*houle*(1+.6*u)*ventCiel(),now,.5);                  // au piqué de JOUER il gonfle (+4 dB ; +8 avant le 16/10 : voir LE PIQUÉ QUI NE CRIE PLUS)…
   stt(n.f1.frequency,330+70*Math.sin(t*.29)+300*u,now,.6);         // …et s'éclaircit un peu
   stt(n.f2.frequency,820+260*Math.sin(t*.53+2)+500*u,now,.6);
   stt(n.g2.gain,.2+.08*Math.sin(t*.67),now,.6);
@@ -74155,6 +74159,7 @@ function bqRayons(el,dispo){const n=el.children.length||1;let g=6,h=Math.floor((
   const duo=h<44;if(duo){g=8;const r=Math.ceil(n/2);h=Math.floor((dispo-18-g*(r-1))/r);} /* 18 px : la ligne du nom du rayon ouvert sous les carrés */
   h=Math.max(44,Math.min(duo?56:52,h));el.classList.toggle('duo',duo);el.style.setProperty('--cH',h+'px');el.style.setProperty('--cG',g+'px');}
 function bqEtat(){const k=bqCourant();if(!k)return null;
+  if(GBQ.panOn&&GBQ.cat==='figure'&&!GBQ.figK)return null; /* (2026-11-05, Sacha : « on a toujours le bouton de l'écran peinture ») rayon FIGURES, aucune figure touchée : bqCourant retombe sur la caisse du plateau et le bouton vendait ACHETER 3 € la voiture — pas de figure, pas de bouton */
   {const m9=bqManque(k);if(m9)return m9;} // (2026-10-14, boutique P1) pas assez d'argent : voir bqManque
   if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{},eq=(SAVE.d.equipped|0)===i,a=carUnlockedVrai(i)||eq;
     if(eq)return {e:'eq',t:'ÉQUIPÉE'};if(a)return {e:'equip',t:'ÉQUIPER'};
@@ -74233,6 +74238,7 @@ window.dbgFigEssai=function(id,c){garFigEssai(id,c==null?-1:c);return {D:+GFIG.D
 window.dbgFigEtat=function(){const o=GBQ.omb;return {t:+GFIG.t.toFixed(3),D:+GFIG.D.toFixed(3),plat:!!GFIG.plat,gel:GFIG.gel==null?null:GFIG.gel,omb:o?{vis:!!(o.visible&&GBQ.grp&&GBQ.grp.visible),y:+o.position.y.toFixed(3),x:+o.position.x.toFixed(3),z:+o.position.z.toFixed(3),s:[+o.scale.x.toFixed(2),+o.scale.y.toFixed(2)],o:+o.material.opacity.toFixed(2)}:null};};
 window.dbgFigGel=function(t){GFIG.gel=t==null?null:+t;return GFIG.gel;};
 function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+(s.dir!=null?s.dir:'')+'|'+(s.rem||'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
+  bt.style.display=s?'':'none'; /* (2026-11-05) rien à proposer : le bouton disparaît (la grille reprend sa place) */
   bt.dataset.e=s?s.e:'';bt.classList.toggle('rem',!!(s&&s.rem));bt.innerHTML=s?((s.dir!=null?'<i class="bqBtnDir" style="--dc:'+FIG_DC[s.dir]+'">'+pxi(FIG_FAM[s.dir][2])+'</i>':'')+(s.rem?'<span class="bqBtnT"><span>'+sansAcc(TR(s.t))+'</span><small>'+sansAcc(TR('REMPLACE'))+' '+sansAcc(TR(FIG.par[s.rem]?FIG.par[s.rem].n:s.rem))+'</small></span>':'<span>'+sansAcc(TR(s.t))+'</span>')+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):(s.e==='mis'||s.e==='chat')?pxi('droite'):s.e==='sec'?pxi('oeil'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
 try{Object.assign(I18N,{"VERS L'ARRIÈRE":'BACKWARD','POUCE EN ARRIÈRE':'THUMB BACK',"VERS L'AVANT":'FORWARD','SUR LES CÔTÉS':'SIDEWAYS','POUCE EN AVANT':'THUMB FORWARD','POUCE À GAUCHE OU À DROITE':'THUMB LEFT OR RIGHT'});}catch(e){} // (2026-10-15) les deux familles de figures
 try{Object.assign(I18N,{'ÉQUIPER':'EQUIP','DÉSÉQUIPER':'UNEQUIP','ÉQUIPÉE':'EQUIPPED','ÉQUIPÉ':'EQUIPPED','ACHETER':'BUY','À GAGNER':'TO EARN'});}catch(e){}
