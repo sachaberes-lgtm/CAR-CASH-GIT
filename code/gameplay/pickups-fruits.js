@@ -28,15 +28,22 @@ function sapequePeint(c){
 function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, « ¥ » au niveau SOLEIL DE JADE (voir coinSymbole)
   const N=16,cv=COIN_CV;const c=cv.getContext('2d');
   if(sym==='Y'){sapequePeint(c);return;} // (2026-10-14, passe graphismes) sur la piste jade : la SAPÈQUE de laiton (même toile 16 × 16, repeinte)
-  /* (2026-09-26, vague 2) L'OR DE LA BIBLE À L'ÉCRAN : #ffd75e. MESURÉ en course (pixels lus après l'ACES et le grade) : l'ancienne pièce
-     (#ffc12e, émissif blanc ×.42, et surtout éclairée par la scène) sortait #fe8004 au couchant — ORANGE pur, la teinte des plots
-     et de la flamme — et BRONZE sombre (#682800) dans la nuit de la ville. Deux causes : (1) elle vivait de la lumière de la scène,
-     orange au couchant, magenta en ville ; (2) le grade (saturation ×1,4 puis ×1,12, coude des hautes lumières) pousse tout jaune
-     vif vers l'orange : le vert tient à la luminance, le rouge s'envole et `roule` divise par lui. D'où une pièce qui ÉMET (voir
-     pickMat) et un champ peint en or CITRON #fff27a : c'est lui qui ressort OR à l'écran (mesuré : #fcb120 au couchant au lieu de
-     #fe8004, un or franc au lieu du bronze dans la ville) — et plus jamais de la teinte des plots. */
-  const COL=sym==='B'?{k:'#5a2600',d:'#d8780c',g:'#ffab2e',l:'#fff1d0',h:'#ffd38a',s:'#fffaf0'}: /* (2026-10-13) CRYPTOCITY : la pièce BITCOIN — champ orange, ₿ blanc */sym==='Y'?{k:'#073a20',d:'#e0a818',g:'#6ff0ae',l:'#fff6c8',h:'#d6ffe8',s:'#0a4428'}:{k:'#6e3c00',d:'#d8a412',g:'#fff27a',l:'#fffbe6',h:'#fffbd0',s:'#8a4a00'}; // (2026-10-12) au SOLEIL DE JADE : le champ en JADE, la tranche d'OR, le ¥ en vert sombre (une pièce d'or se perdait sur la route en pièces d'or)
-  const DOL=sym==='B'?['.#.#.','####.','#...#','#...#','####.','#...#','#...#','####.','.#.#.']:sym==='Y'?['#...#','#...#','.#.#.','..#..','#####','..#..','#####','..#..','..#..']:['..#..','.####','#.#..','#.#..','.###.','..#.#','..#.#','####.','..#..'];
+  if(sym!=='B'){ // (2026-11-01, Sacha : « redessine les pièces en 1 et 2 € ») LA PIÈCE BIMÉTAL : un anneau et un cœur dans deux
+    // métaux — le seul trait qui dit « pièce d'euro » à 16 px, plus net qu'un symbole frappé. ⚠ UNE SEULE texture pour toutes les
+    // pièces de la route (coinIM : une matière, un appel) : impossible de mélanger 1 € et 2 € pièce à pièce sans dédoubler le
+    // dessin — on prend l'alliage de la 1 €, la plus répandue (anneau d'or, cœur d'argent), plutôt que l'inverse de la 2 €.
+    const ANN={h:'#fff6c8',g:'#ffd75e',d:'#8a5a00'},COE={h:'#f6f9fb',g:'#d8dee4',d:'#8a97a2'}; // l'ANNEAU (or) · le CŒUR (cupronickel)
+    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+      const dx=x-7.5,dy=y-7.5,r=Math.hypot(dx,dy);
+      if(r>6.9||(r>3&&r<=3.35)){c.fillStyle='#201400';c.fillRect(x,y,1,1);continue;} // le liseré sombre, et le SILLON entre les deux métaux
+      const COL=r>3.35?ANN:COE,k=r>5.7?((dx+dy<-1)?'h':(dx+dy>2?'d':'g')):((dx+dy<(r>3.35?-6:-2))?'h':'g');
+      c.fillStyle=COL[k];c.fillRect(x,y,1,1);
+    }
+    return;
+  }
+  /* (2026-10-13) CRYPTOCITY : la pièce BITCOIN — champ orange, ₿ blanc, inchangée */
+  const COL={k:'#5a2600',d:'#d8780c',g:'#ffab2e',l:'#fff1d0',h:'#ffd38a',s:'#fffaf0'};
+  const DOL=['.#.#.','####.','#...#','#...#','####.','#...#','#...#','####.','.#.#.'];
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const dx=x-7.5,dy=y-7.5,r=Math.hypot(dx,dy);let k;
     if(r>6.9)k='k';                                   // le liseré sombre (il découpe la pièce sur n'importe quel ciel)

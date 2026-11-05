@@ -307,7 +307,7 @@
   body.touch #pwrChip .pw>.pxi{--pxs:3;color:var(--pc);filter:drop-shadow(0 2px 0 #000)}
   body.touch #nitroBar::before{width:27px;height:27px;left:-35px}
   /* 6.6 LE CONTOUR D'ARCADE partout où le texte passe sur le monde (la ville mangeait le sous-titre du niveau) */
-  #lvlBan span,#tSteerHint{text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 4px 0 #1c0430}
+  #lvlBan span{text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,0 4px 0 #1c0430}
   /* 6.8 LE MOUVEMENT : la jauge de nitro glisse (elle avançait par crans), les pastilles de l'accueil clignotent à l'arrivée puis se posent */
   body.touch #nitroR,body.touch #nitroX{transition:width var(--t-fast) var(--ease)}
   /* ===== HUD DE COURSE — VAGUE 2 (2026-09-26, bible « L'ENCRE ET L'OR ») =====
