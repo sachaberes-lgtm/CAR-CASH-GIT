@@ -283,6 +283,9 @@ function lierDemarrage(now){ /* (loop) vrai : cette image ne dessine pas, les pr
     return true;}
   if(lierPret()||performance.now()-LIER.t0>20000){LIER.dem=2;LIER.msDem=Math.round(performance.now()-LIER.t0);return false;}
   return true;}
+/* (2026-11-05, passe perf mobile 2, A1.a) LIER PENDANT LA BOULE : le jeu ne fait RIEN sous la boule de l'intro (≥ 4,6 s perdues, voir boucle-1.js:3) ; au 1er toucher (et dès que la page est chargée) les ~103 programmes de la
+   1re image sont lancés en doux, sur les fils du pilote : quand la boule se brise, `lierDemarrage` ne trouve plus qu'à constater (`lierPret`). Faux = pas encore possible / déjà fait. `?lierboule=0` = avant. */
+window.__ccLierTot=function(){if(LIER.dem!==0||/[?&]lierboule=0\b/.test(location.search)||document.readyState!=='complete'||!renderer||!scene)return false;LIER.tot=1;lierDemarrage(performance.now());return true;};
 function lierScene(sc){ /* (renderer.render d'une SCÈNE, HORS COURSE) un objet neuf (la caisse du menu, l'atelier, un décor bâti après le démarrage) : ses programmes sont lancés en doux, et
      ce qui n'est pas encore lié n'est pas dessiné cette fois (il apparaît une ou deux images plus tard) au lieu de figer l'écran. Rend les matières cachées, que `lierMenuFin` remet. */
   lierPret();let neuf=false;const H=[];

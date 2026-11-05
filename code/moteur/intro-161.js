@@ -866,7 +866,7 @@
     if(!lance){try{attente();}catch(e){}return;}
     try{
       const t=(now-tLance)/1000-latV;
-      if(BOULE){if(pretT===null&&t>=4.6&&document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')){pretT=t;try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
+      if(BOULE){if(!lierTotFait){try{if(window.__ccLierTot&&window.__ccLierTot())lierTotFait=true;}catch(e){lierTotFait=true;}} /* (A1.a) le toucher est venu avant la fin du chargement : la liaison part dès que la page est prête */if(pretT===null&&t>=4.6&&document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')){pretT=t;try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
       if(DEMO){const T=PERIODE_DEMO(),idx=Math.floor(Math.max(0,t)/T);if(idx>0)sonDemo(idx,t-idx*T);else sonDemo(0,t);rendu(t);return;}
       if(!ouvert&&t>=TL.noir)ouvrir();
       if(!revele&&!doux&&!passee){ /* le jeu ne dessine rien derrière le film (voir `loop`), SAUF quelques images dans le NOIR COMPLET : ses accrocs du premier dessin (relecture du ciel, compilations) ne se voient pas là, et il reprend à chaud 0,5 s avant la casse */
@@ -884,10 +884,12 @@
     ttl.classList.remove('tease');ttl.style.animation='none';ttl.style.transition='transform .15s cubic-bezier(.6,0,1,.4),opacity .15s linear';ttl.style.opacity='0';ttl.style.transform='scale(1.15,.02)';
     setTimeout(function(){ttl.style.display='none';},180);
   }
+  let lierTotFait=false;
   function lancer(geste){
     if(lance||fini)return;lance=true;RM=reduit();tLance=performance.now();window.__intro='joue'; /* l'intro passe : pas de rechargement */
     eteintTitre();
     window.__introCouvre=true; /* le film couvre l'écran : le jeu ne calcule ni ne dessine plus rien dessous, jusqu'à 0,5 s avant la casse (voir `boucle`) */
+    try{window.__ccLierTot&&window.__ccLierTot();}catch(e){} /* (2026-11-05, passe perf mobile 2, A1.a) les programmes de la 1re image se lient pendant la BOULE (voir lierTot, vignette-moteur.js) */
     try{if(prepEn!==W+'x'+H+'x'+S)prepare();}catch(e){} /* (déjà prêt si on a attendu un peu sur l'écran titre) */
     try{son(geste);}catch(e){} /* le son ne doit JAMAIS bloquer les visuels */
     if(!iAC)tLance=performance.now(); /* (sans son : le film part tout de suite) */
