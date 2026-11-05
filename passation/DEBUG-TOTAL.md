@@ -22,6 +22,10 @@ du code sans jamais avoir de problème » — puis : « concentre-toi particuli�
 | S6 | musique / frénésie | réseau lent ou `play()` refusé : silence total au déclenchement de la frénésie (Pouce bleu coupé, la triade pas encore là) | `FRENM.sw` vrai dès le changement de source ; Pouce bleu s'effaçait sur ce drapeau, pas sur la lecture réelle | Pouce bleu ne s'efface que quand la triade JOUE (`musicOn`, événement `playing`) | voir git log | lecture + banc `--frenesie` (la triade joue, puis Pouce bleu revient) | toutes, surtout réseau mobile | non |
 | G1 | portails | 404 `assets/portail/grotte-glace.webp` à chaque portail vers la grotte glacée (console rouge, pas de carte postale) | la météo GLACE (8f0f2ceb, v939) a inscrit sa carte postale dans `PCUBE_CP` sans que l'image soit jamais tirée | retirée de la liste : `pcubeCle` prend la grotte à une autre heure (à tirer un jour : `carte-postale.py`) | voir git log | vu au banc (404 en console) | toutes | non |
 
+| G2 | sauvegarde / import | site, deux onglets : « RESTAURÉ — RECHARGE… » s'affiche, la page recharge… et l'ancienne sauvegarde revient | `SAVE.import` passait par `flush()`, neutralisé dans un onglet devenu passif (`ONGLET.passif`) ou pendant la restauration du miroir natif | l'import écrit lui-même (localStorage + miroir natif) et ne rend vrai que s'il a écrit | voir git log | `node passation/preuves/preuve-import-onglet.cjs code <ancien code/>` → OK (ancien : dit vrai, banque restée à 5) | web | non |
+| G3 | sauvegarde / habillages | un id « constructor » / « toString » (code importé trafiqué, stockage rongé) devenait une FONCTION dans la boutique | `PEINT_FUSION[x]` lisait le prototype d'objet | lecture par `hasOwnProperty` | voir git log | même preuve (cas 2) | toutes | non |
+| G4 | preuves | `preuve-sauvegarde`, `preuve-miroir-illisible`, `preuve-import-pause` plantaient (« PEINT_FUSION / ALLEGE is not defined ») : plus aucun filet sur SAVE | le bloc SAVE lit `PEINT_FUSION` et `ALLEGE` depuis le nuancier v3 ; la section H testait la règle d'avant le jury (D6) | extraits / bouchonnés ; section H à la règle du 05/11 (`?demo=1`) | voir git log | les trois → PREUVE OK | — | — |
+
 ## À vérifier sur un vrai iPhone
 (ce que le banc ne simule pas : la session audio d'iOS, le bouton Silencieux, le verrouillage, les interruptions, les écouteurs)
 1. **Bouton Silencieux, MUSIQUE allumée** (app ET Safari) : la musique et les effets doivent jouer (session `playback`). Couper MUSIQUE
@@ -45,6 +49,30 @@ En cas de souci : `dbgAudio()` (état du contexte, refus de réveil), `dbgSonPan
 - D-SON-2 : « la musique revient après 24 h » rallume MUSIQUE même si le joueur l'avait coupée exprès (voulu le 14/10) — à chaque absence de 24 h.
 
 ## Pièges pour les prochaines modifs
+### Son et musique
+- **Qui joue la musique ?** En course ET au menu : `POUCE_JEU` (assets/audio/pouce-bleu-jeu.js, WebAudio pur ; au menu = le « lobby lié »).
+  L'`<audio>` `musicEl` ne sert plus qu'à la TRIADE de la frénésie et aux replis (lobby KO, `?lecon=musique`, `?lobby=ancien`). Tout nouveau
+  `playMusic(…)`/`musicJoue()` doit d'abord demander `lobbyPeut()` (menu) ou `pbjRegne()` (course) — sinon deux musiques (S2).
+- **`lobbyActif()` ≠ `lobbyPeut()`** : le premier n'est vrai qu'une fois le morceau du lobby LANCÉ (phase `lobby`) ; pendant son chargement
+  (phase `charge`, 1 à 3 s), seul `lobbyPeut()` dit que le lobby a la main.
+- **`PB.dernier` ≠ `PB.enCourse`** : `dernier` = le dernier tiré (le lobby le change) ; `enCourse` = le morceau de la course en cours.
+- **`pouce-bleu-jeu.js`, `musique-bus.js`, `sfx.js`… sont HORS d'index.html** : après une modif, monter leur `?v=` dans `code/page/bibliotheques.html`
+  (sinon le navigateur garde l'ancien), en plus de `sw.js`.
+- **`setTargetAtTime`/`setValueAtTime` LÈVENT sur NaN** : passer par `stt()` (qui refuse le non-fini) ; une panne de son se dit par `sonPanne(nom,e)`,
+  jamais par un `try{}catch(e){}` muet. Les sons continus de la boucle ont leur propre try (boucle-5-sons) : ne pas le retirer.
+- **Une boucle continue nouvelle** (un gain qui suit la vitesse) : l'ajouter à la liste coupée par `togglePause` (init.js) ET par `endGame`.
+- **Le contexte audio** : un seul `AC` (graphe-audio.js) + celui de l'intro, fermé 4,2 s après la casse. Le réveiller par `acReveil(AC)`, jamais
+  `AC.resume()` nu (un refus d'iOS doit réarmer le réveil au toucher suivant).
+- **`?simu=1`** (la page du simulateur) n'a pas d'écran titre : le contexte y reste endormi jusqu'au 1er bouton. Ce n'est pas le jeu des joueurs :
+  les bancs du son passent par défaut par le vrai écran titre.
+### Outils et livraison
+- **`sw.js` : UNE seule ligne `const CACHE`** — on la REMPLACE (numéro +1, note courte), on n'empile pas les anciennes notes.
+- **Assembleur** : ne jamais remettre un morceau à l'état de HEAD (git checkout code/…) quand index.html a déjà été réassemblé avec lui : l'assembleur
+  voit « les deux modifiés » et fusionne à trois — le changement repasse dans index.html. Pour séparer deux correctifs en deux commits, les faire l'un
+  après l'autre (modifier → assembler → committer → suivant).
+- **Le banc sert `VERSION PRINCIPALE/` en direct** : ne pas réassembler pendant qu'un banc tourne.
+- **Machine chargée** : au-delà d'une charge ~100, les fenêtres courtes du jeu (offre de seconde chance 5,5 s) se ferment entre deux allers-retours du
+  banc ; piloter ces scénarios DANS la page (voir `--chance`).
 
 ## Journal de session
 - 17 h 00 — worktree, banc `outils/banc-son/`. Trois lectures de code (musique/transitions · contexte/volumes · sons continus) rendues.

@@ -26,7 +26,9 @@ async function essai(chemin){
   const unique=rep=>{const i=src.indexOf(rep);if(i<0)throw new Error('repère introuvable : '+rep);if(src.indexOf(rep,i+1)>=0)throw new Error('repère non unique : '+rep);return i;};
   const fonction=entete=>{const i=unique(entete);return src.slice(i,finBloc(src,i+entete.length-1,'{','}'));};
   const iHab=unique('const HAB_RETIRES={'),habTxt=src.slice(iHab,finBloc(src,iHab+'const HAB_RETIRES='.length,'{','}'))+';';
-  const avant=[fonction('function m2Vierge(){'),fonction('function gagneAjoute(x){'),fonction('function carRetiree(i){'),fonction('function carOwned(i){'),habTxt,'function m2Etat(){}'].join('\n');
+  /* (2026-11-05, DEBUG-TOTAL) le bloc SAVE lit aussi PEINT_FUSION et ALLEGE : extrait / bouchonné (la preuve plantait « ALLEGE is not defined ») */
+  const iPf=unique('const PEINT_FUSION={'),pfTxt=src.slice(iPf,finBloc(src,iPf+'const PEINT_FUSION='.length,'{','}'))+';';
+  const avant=[fonction('function m2Vierge(){'),fonction('function gagneAjoute(x){'),fonction('function carRetiree(i){'),fonction('function carOwned(i){'),habTxt,pfTxt,'function m2Etat(){}'].join('\n');
   const bloc=avant+'\n'+src.slice(unique('const SAVE={'),unique('if(BALADE){SAVE.d.tuto=1'));
   const pose=fonction('function enCoursPose(){')+'\n'+fonction('function enCoursRetire(){');
   /* l'écouteur visibilitychange d'init.js (la pause automatique, l'audio, l'instantané) */
@@ -43,7 +45,7 @@ async function essai(chemin){
     const reload={n:0},T=[];
     const sb={localStorage:store,window:{Capacitor:{Plugins:{Preferences:P}}},location:{reload(){reload.n++;},search:''},console,document:{hidden:false},
       THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:.25},ENGINE_TIERS:new Array(NE).fill(0),
-      CARS:new Array(77).fill(0).map(()=>({})),CAR_UNLOCK:new Array(77).fill(null),PAL:{b:(k,d)=>d},
+      CARS:new Array(77).fill(0).map(()=>({})),CAR_UNLOCK:new Array(77).fill(null),PAL:{b:(k,d)=>d},ALLEGE:true,
       atob:s=>Buffer.from(String(s),'base64').toString('binary'),btoa:s=>Buffer.from(String(s),'binary').toString('base64'),setTimeout(fn,ms){T.push(fn);return T.length;},toast(){},pxi(){return '';},TR(x){return x;},codeCousin(){return false;},sfx(){},SONV2:false,hap(){},mFill(){},
       /* la partie en cours, EN PAUSE (les réglages ouverts depuis la pause) */
       started:!!jeu,gameOver:false,paused:true,mode:'drive',running:true,SANDBOX:false,TUTO:{on:false},PARK:{on:false},CHA:{n:0},CHANCE:{used:false},START_CASH:1.61,
