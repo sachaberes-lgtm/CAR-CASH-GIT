@@ -5,7 +5,7 @@ ICI = os.path.dirname(os.path.abspath(__file__))
 ORDRE = ['nuages','crypto','ville','jade','foret','banquise','espace','grotte','canyon','dunes']
 MET = ['matin','midi','soir','nuit','pluie','orage','orage-vert','orage-jaune','neige','glace']
 rows = []
-for f in glob.glob(os.path.join(ICI, 'etal', '*.json')):
+for f in glob.glob(os.path.join(ICI, os.environ.get('ETAL', 'etal'), '*.json')):
     n = os.path.basename(f)[:-5]; c, _, m = n.partition('-')
     try: J = json.load(open(f))
     except Exception: continue
