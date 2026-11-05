@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+/* ⚠ RÈGLE DE FUSION (5/11) : pour juger une branche, enchaîner l'AVANT et l'APRÈS, machine calme (charge < 8), tolérances 2 appels / 2 % de triangles ; seules nuages, ville et jade
+   tiennent d'un banc à l'autre — pour les 8 autres maps (décor non fixé par la graine), ajouter une capture A/B au pixel. Voir mesures/LISEZMOI.txt. */
 /* (2026-11-04, passe perf mobile 2, T0) COMPARER deux mesures du banc : node outils/banc-perf/compare.cjs base.json apres.json
    Une ligne par map : Δ % des compteurs (appels, triangles, programmes, textures, géométries, toiles). Les COMPTEURS du rendu sont déterministes
    (même graine, même map) : au palier 2, tout écart > 0 est affiché en ROUGE et la sortie vaut 1 (« la fusion est refusée »). Les temps (pire, longues,
