@@ -265,6 +265,7 @@ function buildGarageRoom(){
     R:{g:'p',c:0xd53c2f},B:{g:'p',c:0x2f6cb8},V:{g:'p',c:0x2f9e63},J:{g:'p',c:0xefb52a},O:{g:'p',c:0xe8721f},  // les laques franches
     N:{g:'p',c:0x1d2027},K:{g:'p',c:0x626b79},                                                           // laque noire, gris moteur
     C:{g:'c',c:0xe6e9ee},Or:{g:'o',c:0xffc24a},                                                          // chrome, laiton
+    AuH:{g:'o',c:0xfff3c2},Au:{g:'o',c:0xffc400},AuD:{g:'o',c:0xc9820a},             // (2026-11-01, Sacha : « plus gold, plus massif ») le CACHE-CAR : le même or que JOUER (#playBtn), en dégradé haut→bas
     F:{g:'s',c:0x2c3445},A:{g:'s',c:0x8792a4},W:{g:'s',c:0x8a6237},W2:{g:'s',c:0xa3794a},E:{g:'s',c:0xd8d0bc},Wb:{g:'s',c:0xf2f0ea},
     P:{g:'m',c:0x1a1c21},D:{g:'m',c:0x101217},T:{g:'m',c:0xb08b5a},T2:{g:'m',c:0x9c7a4c},                // pneu, caoutchouc, carton
     G:{g:'g',c:0x1b3550},H:{g:'g',c:0x07080b}});                                                        // verre, huile
@@ -326,16 +327,19 @@ function buildGarageRoom(){
   {const POLICE3D={C:['.###.','#....','#....','#....','#....','#....','.###.'],A:['.###.','#...#','#...#','#####','#...#','#...#','#...#'],
      S:['.####','#....','.###.','....#','....#','....#','####.'],H:['#...#','#...#','#...#','#####','#...#','#...#','#...#'],
      R:['####.','#...#','#...#','####.','#.#..','#..#.','#...#']};
-   const MOTS=['CASH','CAR'],PX=.46,EPAIS=.55;
+   /* (2026-11-01, Sacha : « les lettres beaucoup plus gold et beaucoup plus massives, comme le bouton JOUER ») PX reste fixé par
+      la largeur du mur (le panneau touchait déjà ses bords) ; c'est PY (la hauteur du pixel) et l'ÉPAIS (le relief) qui grossissent,
+      et chaque lettre porte le DÉGRADÉ du bouton JOUER (AuH crème en haut → Au or plein → AuD or sombre en bas, voir .or3/#playBtn). */
+   const MOTS=['CASH','CAR'],PX=.46,PY=.52,EPAIS=.95;
    let total=0;MOTS.forEach((m,i)=>{total+=m.length*5+(m.length-1);if(i<MOTS.length-1)total+=3;});
-   const largeur=total*PX,hauteur=7*PX,xDebut=-largeur/2,yMilieu=3.5,zFace=-hd;
+   const largeur=total*PX,hauteur=7*PY,xDebut=-largeur/2,yMilieu=3.5,zFace=-hd;
    cb('F',largeur+1.6,hauteur+1.4,.1,0,yMilieu,zFace+.05);                            // la plaque de fond, en retrait : l'or s'y détache
    let col=0;
    MOTS.forEach((mot,mi)=>{
      for(let c=0;c<mot.length;c++){const lettre=POLICE3D[mot[c]];
-       for(let row=0;row<7;row++){const ligne=lettre[row];
+       for(let row=0;row<7;row++){const ligne=lettre[row],k=row<=1?'AuH':row<=4?'Au':'AuD';
          for(let pcol=0;pcol<5;pcol++)if(ligne[pcol]==='#')
-           cb('Or',PX*.94,PX*.94,EPAIS,xDebut+(col+pcol)*PX+PX/2,yMilieu+hauteur/2-row*PX-PX/2,zFace+EPAIS/2);}
+           cb(k,PX*.97,PY*.97,EPAIS,xDebut+(col+pcol)*PX+PX/2,yMilieu+hauteur/2-row*PY-PY/2,zFace+EPAIS/2);}
        col+=5;if(c<mot.length-1)col+=1;}
      if(mi<MOTS.length-1)col+=3;});}
 
