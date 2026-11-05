@@ -65,6 +65,7 @@ maps/foret-route.js                  # LA FORÊT NOIRE : la pelote (route), les 
 maps/foret-decor.js                  # forêt : les géants, les fleurs, les matières, le relief
 maps/foret-construction.js           # forêt : construction, boucle, console
 maps/foret-embellie.js               # forêt : la passe d'embellissement (lanternes de conte, réglages FOR_EMB)
+maps/foret-sentiers.js               # forêt : les SENTIERS DE LUCIOLES (les raccourcis balisés : fil de fruits, couloir sans arbres, fruit-pouvoir à la pose)
 maps/canyon-route.js                 # LE CANYON DES GÉANTS : route, construction, monde, pose
 maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumière cuite
 maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66

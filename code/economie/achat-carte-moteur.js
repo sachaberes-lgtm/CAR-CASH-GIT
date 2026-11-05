@@ -58,7 +58,7 @@ let carWas=[];
 // sauvegarde importée ou d'une règle antérieure doit retomber sur la cabossée plutôt que d'offrir
 // une caisse non méritée.
 /* (2026-11-05, Opus : jury ECO-15, D3) une caisse en € jamais achetée n'est jamais « équipée » (ni par TEST_CAISSES, ni par un code importé) */
-function equippedCar(){const i=SAVE.d.equipped|0;return (i>=0&&i<CARS.length&&carUnlocked(i)&&(!carEuros(i)||carOwned(i)))?i:0;}
+function equippedCar(){const i=SAVE.d.equipped|0;return (i>=0&&i<CARS.length&&carUnlocked(i)&&(!carEuros(i)||carOwned(i)||(cousin()&&cousinTout())))?i:0;} /* (« cousin tout » de Sacha, 5/11 : les caisses en € aussi) */
 function carSnapshot(){carWas=[];for(let i=0;i<CARS.length;i++)carWas[i]=carUnlockedVrai(i);}
 function carScan(){ // rend les caisses NOUVELLEMENT débloquées + resynchronise l'indicateur bestCar
   const got=[];

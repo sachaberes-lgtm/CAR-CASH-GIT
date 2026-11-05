@@ -124,7 +124,9 @@ une("À 88 à l\\'heure elle remonte le temps, paraît-il.","On la dit en avance
 une("À 88 à l'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (clé de traduction)');
 une('At 88 it travels back in time, apparently.','Ahead of its time, they say.','phrase de LA DOLORÈS en anglais');
 /* (l'enseigne MOULIN ROUGE de la carte PARIS : retirée du jeu lui-même, coupe ôtée le 24/10) */
-une("if(k!=='cousin'&&k!=='cousin161')return false;","return false; /* (app iOS) pas de déblocage par code */",'code COUSIN (saisie)');
+/* (2026-11-05, Opus) recalée sur « cousin tout » (Léo, 5/11 : le code ouvre aussi les caisses et peintures en €) : dans l'app, aucun des trois codes ne débloque rien */
+une("if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;","return false; /* (app iOS) pas de déblocage par code */",'code COUSIN (saisie)');
+une("function cousinTout(){try{return !!SAVE.d.cousinTout;}catch(e){return false;}}","function cousinTout(){return false;} /* (app iOS) pas de déblocage par code */",'code COUSIN TOUT (effet)');
 une("function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}}","function cousin(){return false;} /* (app iOS) pas de déblocage par code */",'code COUSIN (effet)');
 /* (2026-10-27) les deux adresses OpenGameArt citées en crédit dans un commentaire des bêtes CC0 : retirées pour que l'inventaire reste à 0 adresse réseau. */
 une(' https://opengameart.org/content/5-low-poly-animals · https://opengameart.org/content/animated-animales-low-poly',' (source : OpenGameArt)','crédit des bêtes CC0 (adresses en commentaire)');
