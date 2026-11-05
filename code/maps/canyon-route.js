@@ -297,6 +297,18 @@ function cyTirage(seed){let h9=Math.imul((seed^0xDEC0CA)>>>0,0x9E3779B1);h9^=h9>
   return D;}
 /* ---- LE MONDE : appelé en fin de buildTrack (no-op hors du canyon) ---- */
 function cyEteindre(){CY.on=false;if(CY.mesh)CY.mesh.visible=false;if(CY.grp)CY.grp.visible=false;}
+/* ===== LE CANYON QU'ON QUITTE (2026-11-03, passe « maps cohérentes » — Sacha : « qu'elles soient toutes cohérentes et optimisées ») =====
+   cyEteindre CACHAIT le relief et ses pièces sans rien rendre : passé le portail, la map suivante gardait en mémoire de la puce les quatre textures de
+   données du canyon (la taille fine en RG32F et sa marque, le plateau en RGBA flottant, l'ombre de l'heure : plusieurs Mo) et toutes ses géométries
+   cuites (parois des Étroits, galerie et façade du tunnel, mine, arche, route 66, éboulis) avec les tampons d'instances (peupliers, cheminées).
+   Hors du canyon on les rend : le prochain canyon les refait de toute façon (cyMondePose, cyMonuments). Restent : la matière et ses programmes
+   (compilés au menu), les bruits partagés (CY.tNz, CY.tRnd — les dunes s'en servent), la colonne des strates, les géométries partagées (peuplier,
+   cheminée, bloc) et le monde côté processeur (petit, et relu par le canyon d'avance). */
+function cyLiberer(){if(CY.on||!CY.mat)return;const U=CY.mat.uniforms,z9=CY.z1;let n=0;
+  for(const k of ['tC','tM','tZ','tS'])if(CY[k]){CY[k].dispose();CY[k]=null;n++;}
+  if(z9){U.uTC.value=z9;U.uTZ.value=z9;U.uTS.value=z9;U.uTM.value=CY.tRnd;}
+  if(CY.grp)for(const o of CY.grp.children.slice()){CY.grp.remove(o);if(o.geometry&&o.userData.jeter)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();n++;}
+  CY.couT=CY.tunT=CY.mineT=null;CY.monu=false;CY.libere=n;}
 /* LA CONSTRUCTION EN DEUX TEMPS (2026-10-14, CANYON) — MESURÉ (banc processeur, piste de 19 km au palier 0) : ~0,65 s de calcul (le
    plateau ~0,16, la taille fine ~0,28, l'ombre ~0,06…), 1,1 s pour la piste de 40 km de fin de partie — au portail, c'était un GEL (la
    règle d'OPTIMISATION : ≤ 250 ms). Désormais : les échantillons de la route ici (~20 ms), le MONDE (plateau, taille, ombre, monuments)
@@ -328,7 +340,7 @@ function cyAvPrend(seed){ // (buildCanyon, au passage) le monde calculé d'avanc
   return true;}
 function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en face — rien n'est écrit dans CY, le monde part au travailleur
   if(!av){cyEteindre();CY.job=(CY.job||0)+1;}
-  if(PARK.on||!LVL.cur||LVL.cur.piste!=='canyon'||!(NP>1)||!CANYON_OK)return;
+  if(PARK.on||!LVL.cur||LVL.cur.piste!=='canyon'||!(NP>1)||!CANYON_OK){if(!av)cyLiberer();return;} /* (2026-11-03) hors du canyon : sa mémoire rendue */
   const t0=performance.now(),LV=lvPiste(),K=Math.sqrt(LV),r=mulberry32((seed^0xCA4F0A)>>>0);
   cyBruits();cyTerrain();
   const C={},D9=CY_DECO.on?cyTirage(seed):null;C.deco=D9;if(D9&&!av)cyStratesTeinte(D9.strates); // (2026-10-20) LE DÉCOR TIRÉ : la palette des strates d'abord (le tunnel la relit) — d'avance : au passage (cyAvPrend)
