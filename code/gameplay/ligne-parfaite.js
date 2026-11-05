@@ -93,9 +93,12 @@ function villeForme(p,c,o,f9){
   if(ch>0&&ax+az>hw+hd-ch+1.27)return false;
   if(f===5&&dy>H*(.5-(.05+.08*sv)*(.5+Math.min(.5,Math.max(-.5,dx/w))))+.5)return false; // la LAME : au-dessus de son toit en biais
   return true;}
+/* (2026-11-05, passe perf mobile 2, C2) la clé d'une case des grilles de collision (ville, jade, forêt, grotte) : un NOMBRE (injectif tant que |j|<50 000), plus la chaîne 'i,j' que chaque lecture par image fabriquait puis hachait — ramasse-miettes en moins ; ?clenum=0 rend la chaîne d'avant */
+const CLE_NUM=!/[?&]clenum=0\b/.test(location.search);
+function cleG(i,j){return CLE_NUM?i*100003+j:i+','+j;}
 function villeHeurt(p){ // la caisse est-elle DANS une tour de la ville ? (marge : la demi-caisse)
   const C=CITY.col;if(!C||!CITY.root)return false;if(CRYPTO.taureaux.length&&cryptoHeurt(p))return true; // (CRYPTOCITY) les taureaux sont durs
-  const a=C.g.get(Math.floor(p.x/C.CG)+','+Math.floor(p.z/C.CG));if(!a)return false;const c=C.c;
+  const a=C.g.get(cleG(Math.floor(p.x/C.CG),Math.floor(p.z/C.CG)));if(!a)return false;const c=C.c;
   for(let j=0;j<a.length;j++){const o=a[j],f9=C.f?C.f[o/6]:0;if(f9){if(villeForme(p,c,o,f9))return true;continue;}if(Math.abs(p.x-c[o])<c[o+3]/2+.9&&Math.abs(p.z-c[o+2])<c[o+5]/2+.9&&Math.abs(p.y-c[o+1])<c[o+4]/2+.5)return true;}
   return false;
 }

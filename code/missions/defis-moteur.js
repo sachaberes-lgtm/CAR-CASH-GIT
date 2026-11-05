@@ -248,7 +248,7 @@ function m2Saut(){M2R.tourV.length=0;M2R.figV=0;M2R.volT=0;} // startFall : un s
 /* FRÔLER UNE TOUR (la ville) : passer à moins de M2K.frole m d'un flanc, à hauteur de la tour, sans la toucher — la même grille que
    villeHeurt (CITY.col : boîtes x,y,z,l,h,p), les huit cases voisines comprises. Une tour = son décalage dans la grille. */
 function m2Tours(r){const C=CITY.col;if(!C||!CITY.root)return;const p=carGroup.position,cg=C.CG,ix=Math.floor(p.x/cg),iz=Math.floor(p.z/cg),c=C.c,M=M2K.frole;
-  for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const L=C.g.get((ix+a)+','+(iz+b));if(!L)continue;
+  for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const L=C.g.get(cleG(ix+a,iz+b));if(!L)continue;
     for(let j=0;j<L.length;j++){const o=L[j];if(Math.abs(p.y-c[o+1])>c[o+4]/2)continue;
       const ex9=Math.abs(p.x-c[o])-c[o+3]/2,ez9=Math.abs(p.z-c[o+2])-c[o+5]/2,dd=Math.max(ex9,ez9);
       if(dd>0&&dd<M&&M2R.tourV.indexOf(o)<0&&M2R.tourV.length<32){M2R.tourV.push(o);if(M2R.tourV.length>(r.tours|0))r.tours=M2R.tourV.length;}}}}

@@ -291,7 +291,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
   // ---- les collisions en grille de 120 m ----
   {const CG=120,G=new Map();for(const c of COL){const xs=c.g?[c.a[0],c.b[0]]:[c.a[0]],zs=c.g?[c.a[2],c.b[2]]:[c.a[2]],r=c.r+2;
      const i0=Math.floor((Math.min.apply(null,xs)-r)/CG),i1=Math.floor((Math.max.apply(null,xs)+r)/CG),j0=Math.floor((Math.min.apply(null,zs)-r)/CG),j1=Math.floor((Math.max.apply(null,zs)+r)/CG);
-     for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const k=i+','+j;let a=G.get(k);if(!a)G.set(k,a=[]);a.push(c);}}
+     for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const k=cleG(i,j);let a=G.get(k);if(!a)G.set(k,a=[]);a.push(c);}}
    FORET.gcol={CG:CG,G:G,n:COL.length};}
   for(const F of FORET.fam)F.im.name='forêt '+(F.nom||'?');if(FORET.rayons)FORET.rayons.name='forêt rayons';if(FORET.brume)FORET.brume.name='forêt brume';if(FORET.yeux)FORET.yeux.name='forêt yeux';
   FORET.n.geants=GE.length;FORET.n.rochers=RO.length;FORET.n.quartiers=QL.length;FORET.n.familles=FORET.fam.length;
@@ -482,7 +482,7 @@ function foretSons(dt,c){
 /* ---------------- EN VOL : CE QUI TUE ---------------- */
 function foretHeurt(p){
   if(!FORET.root||!FORET.sol)return '';const G=FORET.gcol;
-  if(G){const a=G.G.get(Math.floor(p.x/G.CG)+','+Math.floor(p.z/G.CG));
+  if(G){const a=G.G.get(cleG(Math.floor(p.x/G.CG),Math.floor(p.z/G.CG)));
     if(a)for(let j=0;j<a.length;j++){const c=a[j];
       if(c.g){const ax=c.a[0],ay=c.a[1],az=c.a[2],bx=c.b[0]-ax,by=c.b[1]-ay,bz=c.b[2]-az,l2=bx*bx+by*by+bz*bz;let u=l2>0?((p.x-ax)*bx+(p.y-ay)*by+(p.z-az)*bz)/l2:0;u=Math.max(0,Math.min(1,u));
         const dx=p.x-ax-bx*u,dy=p.y-ay-by*u,dz=p.z-az-bz*u;if(dx*dx+dy*dy+dz*dz<(c.r+1.2)*(c.r+1.2))return 'arbre';}
