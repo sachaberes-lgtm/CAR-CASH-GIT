@@ -149,4 +149,28 @@ html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv{--ry:-11de
 html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .bk,html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .bk{background:none;border-color:transparent}
 html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .fr{background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(255,255,255,0) 45%,rgba(255,255,255,.08))}
 html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel .bqKv{--ry:-9deg;--rx:-7deg}
+
+/* ===== VERSION DE LÉO + SACHA (2026-11-05, Léo : « on garde les vitres ; pour les voitures et les traînées, plus de fond noir : ça se marie mal ») =====
+   Les cases des voitures et des ailes (`.scene`) et la plaque des traînées (`.tSw`) perdent leur nuit : l'intérieur de la vitrine est le DÉCOR CLAIR teinté de la rareté (un projecteur blanc sur la voiture, comme
+   avant la fusion). Les effets de Sacha restent (rayons tournants des hautes raretés, aura de l'épique, ruban et tuyère des traînées) ; seule la plaque noire change. Le socle noir du bas, lui, reste. */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph.scene{background:radial-gradient(ellipse 60% 70% at 50% 62%,rgba(255,255,255,.95),rgba(255,255,255,0) 70%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 38%,#fff),color-mix(in srgb,var(--rc) 62%,#6a7686))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph.scene{background:radial-gradient(ellipse 60% 70% at 50% 62%,#fffbe8,rgba(255,251,232,0) 70%),linear-gradient(180deg,#ffe9a0,#d9a21b)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKph.scene,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.m2sec .bqKph.scene{background:radial-gradient(46% 17% at 50% 82%,rgba(255,62,200,.35) 0,transparent 72%),radial-gradient(75% 70% at 50% 38%,#fff2fb 0,#f8dcef 70%,#efc9e4 100%)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph.scene img{filter:drop-shadow(0 5px 4px rgba(20,30,45,.35)) drop-shadow(0 0 8px color-mix(in srgb,var(--rc) 40%,transparent))}
+/* la plaque des traînées : un fond clair teinté par la couleur de la traînée (--tc), l'éclat, la tuyère et les pictogrammes restent ; rien ne déborde de la case */
+html:not(.c6):not(.ux8g):not(.zz) #gBq #gBqPan .bqK.hab .bqKph .tSw{background:radial-gradient(90% 120% at 88% 50%,color-mix(in srgb,var(--tc) 45%,#fff) 0,color-mix(in srgb,var(--tc) 22%,#f4f7fb) 60%,color-mix(in srgb,var(--tc) 14%,#e3e9f1) 100%);box-shadow:inset 0 0 0 1px rgba(20,30,45,.12),inset 0 -6px 10px -6px rgba(20,30,45,.25)}
+html:not(.c6):not(.ux8g):not(.zz) #gBq #gBqPan .bqK.hab .bqKph.c-trainee{overflow:hidden}
+html:not(.c6):not(.ux8g):not(.zz) #gBq #gBqPan .bqK.hab .bqKph .tSw::before{opacity:.8;background:linear-gradient(90deg,transparent,rgba(20,30,45,.28),transparent) 0 18%/38% 1px repeat-x,linear-gradient(90deg,transparent,rgba(20,30,45,.2),transparent) 30% 82%/52% 1px repeat-x,linear-gradient(90deg,transparent,rgba(20,30,45,.16),transparent) 60% 34%/30% 1px repeat-x}
+/* la banderole de rareté : seulement la LÉGENDAIRE sur une peinture (Léo : « trop bizarre » ailleurs) ; sur les voitures elle garde les trois hautes raretés */
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.hab:not(.b-legendaire) .bqKr{display:none}
+
+/* LA VITRE QUI SE BRISE (voir interface/vitre-brisee.js) : éclats, éclair de la rareté, mot DÉBLOQUÉ */
+#gBqPan .bqBris{position:absolute;pointer-events:none;z-index:30}
+#gBqPan .bqBris span{position:absolute;inset:0;background:linear-gradient(150deg,rgba(255,255,255,.9),color-mix(in srgb,var(--rc) 45%,rgba(190,215,240,.6)));box-shadow:inset 0 0 0 1px rgba(255,255,255,.9);animation:bqEclat 1s cubic-bezier(.25,.6,.35,1) forwards;will-change:transform,opacity}
+@keyframes bqEclat{0%{transform:none;opacity:1}35%{opacity:.95}100%{transform:translate(var(--dx),var(--dy)) rotate(var(--rz)) scale(.6);opacity:0}}
+#gBqPan .bqBris .bqF{position:absolute;inset:-25%;background:radial-gradient(closest-side,#fff,color-mix(in srgb,var(--rc) 70%,transparent) 55%,transparent);animation:bqFlash .55s ease-out forwards}
+@keyframes bqFlash{0%{opacity:0;transform:scale(.4)}30%{opacity:1}100%{opacity:0;transform:scale(1.4)}}
+#gBqPan .bqBris b{position:absolute;left:50%;top:40%;white-space:nowrap;padding:4px 7px;background:#0e0f12;color:#fff;font:800 9px/1 var(--pix,system-ui);letter-spacing:.06em;box-shadow:0 0 0 2px var(--rc);animation:bqLab 1s ease-out forwards}
+@keyframes bqLab{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}80%{opacity:1;transform:translate(-50%,-60%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%) scale(1)}}
+#gBqPan .bqK.brise .bqKv{opacity:0}
 </style>

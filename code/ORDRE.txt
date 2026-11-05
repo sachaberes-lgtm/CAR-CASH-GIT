@@ -233,6 +233,7 @@ interface/richesse-3.js              # la pluie de richesse : tirage, chaque ima
 interface/chute-libre.js             # chute libre douce et réaliste
 interface/boutique-scene-1.js        # boutique 3D : blanc laqué, son, aimant
 interface/boutique-scene-2.js        # boutique 3D : lancer dosé, bras, gestes
+interface/vitre-brisee.js            # LA VITRE QUI SE BRISE : l'animation d'achat de la boutique (éclats de verre, éclair, DÉBLOQUÉ)
 interface/garage-ombre.js            # l'ombre de la caisse qui saute : empreinte sur le plateau, hauteur, emprise (garage et boutique)
 interface/garage-saut.js             # la figure au garage et en boutique : un vrai saut (parabole, rotation gouvernée, ressort, poussière)
 interface/garage-rendu.js            # le doigt sur la scène, garageRender
