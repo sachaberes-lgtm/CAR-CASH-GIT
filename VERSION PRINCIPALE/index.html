@@ -28837,7 +28837,7 @@ Object.assign(I18N,{'FRÔLÉ':'CLOSE CALL','RÉCOLTE':'COIN RUSH','RAFALE':'FRUI
   'VRILLE 360 — LAVE-LINGE !':'360 SPIN — WASHING MACHINE!','TRIPLE BUMP — LA DALLE EN PLEURE':'TRIPLE BUMP — THE ROAD IS CRYING'});
 // ---- la charte v4 (2026-09-26) : les libellés neufs de l'interface (et ceux qui retombaient en français) ----
 Object.assign(I18N,{"LÉGENDAIRES":"LEGENDARIES","EXOTIQUES":"EXOTICS","EXOTIQUE":"EXOTIC","MYTHIQUES":"MYTHICS","MYTHIQUE":"MYTHIC","INFINIS":"INFINITE","INFINI":"INFINITE","BIENTÔT":"SOON"}); // (2026-10-10) les sept raretés
-Object.assign(I18N,{"MISSIONS SECRÈTES":"SECRET MISSIONS","COMMUNES":"COMMONS","COMMUNE":"COMMON","RARES":"RARES","ÉPIQUES":"EPICS","ÉPIQUE":"EPIC","LÉGENDES":"LEGENDS","LÉGENDAIRE":"LEGENDARY","DÉFIS":"MISSIONS","TOUT":"ALL","À MOI":"MINE","À ACHETER":"FOR SALE","TRAÎNÉE":"TRAIL","PEINTURE":"PAINT","AILES":"WINGS"});
+Object.assign(I18N,{"MISSIONS SECRÈTES":"SECRET MISSIONS","COMMUNES":"COMMONS","COMMUNE":"COMMON","RARES":"RARE","ÉPIQUES":"EPICS","ÉPIQUE":"EPIC","LÉGENDES":"LEGENDS","LÉGENDAIRE":"LEGENDARY","DÉFIS":"MISSIONS","TOUT":"ALL","À MOI":"MINE","À ACHETER":"FOR SALE","TRAÎNÉE":"TRAIL","PEINTURE":"PAINT","AILES":"WINGS"});
 Object.assign(I18N,{"PIÈCE":"COIN","RETOUR":"BACK","EN BOUTIQUE":"IN THE SHOP","VERROUILLÉE":"LOCKED","ÉQUIPÉE":"EQUIPPED","IL MANQUE":"SHORT BY","LES LEGENDAIRES":"LEGENDARIES","DÉFI":"CHALLENGE","MISSION":"MISSION","FAITES":"DONE"});
 // (2026-09-28, pouvoirs v2) les six pouvoirs, leurs durées, le cumul, le bouclier qui sauve
 Object.assign(I18N,{'NITRO INFINIE — 9 s À FOND !':'INFINITE NITRO — 9 s FLAT OUT!','🪂 AIRTIME INFINI — 14 s DE VOL !':'🪂 INFINITE AIRTIME — 14 s OF FLIGHT!',
@@ -29051,6 +29051,15 @@ for(const k of Object.keys(I18N)){
 Object.assign(I18N,{'TOUS LES REGLAGES':'ALL SETTINGS'}); Object.assign(I18N,{'AIDE':'HELP','Colle un code de sauvegarde, ou un code secret.':'Paste a save code, or a secret code.'}); // (2026-10-14, UX 8) // (2026-10-14, charte 6) la ligne de la pause qui ouvre l'écran complet
 Object.assign(I18N,{"VOL INVERSÉ":"INVERTED FLIGHT"}); /* (2026-10-27, Léo) l'option VOL INVERSÉ des réglages */
 Object.assign(I18N,{"INCLINAISON":"TILT STEERING","MAIN":"HAND","GAUCHER":"LEFTY","DROITIER":"RIGHTY"}); /* (2026-10-27, Léo) tourner en penchant le téléphone */
+/* ===== LES CLÉS MANQUANTES DU JURY (2026-11-05, Sonnet : « clés I18N manquantes : CAPTEUR REFUSÉ, RACCOURCI, CHAMPION !… et les aria-label sans traduction ») =====
+   Relevées par un script qui liste tout appel de TR, sous:, data-fr et aria-label sans clé. RACCOURCI, CHAMPION !, DERNIER !, EXPLOSION DANS, COUPERET DANS, ACCROCHE !,
+   ELLE T'A SEME et LA CAISSE-NUAGE existent déjà (zones-caisses.js). RARES (boutique) : le nom d'une rareté, au singulier en anglais comme COMMON / EPIC. */
+Object.assign(I18N,{"LES PIECES VIENNENT A TOI":"COINS COME TO YOU","AURA x2, x3 SI TU ENCHAINES":"AURA x2, x3 IF YOU CHAIN","AIRTIME x2, 2 JAUGES":"AIRTIME x2, 2 GAUGES",
+  "DONUT":"DONUT","BOOST":"BOOST","RIEN ICI":"NOTHING HERE","BURN-OUT":"BURN-OUT","SECONDE CHANCE":"SECOND CHANCE","PREMIER MATIN":"FIRST MORNING","THE DARK TRIAD":"THE DARK TRIAD",
+  "CAPTEUR REFUSÉ : RÉGLAGES › SAFARI":"SENSOR DENIED: SETTINGS > SAFARI","PENCHE LE TÉLÉPHONE POUR TOURNER":"TILT YOUR PHONE TO STEER","EARLY DEAD":"CHAIN LOST",
+  "NOUVEAU":"NEW"}); /* (la pastille NEW de la boutique, le bandeau « chaîne perdue » de la mort précoce) */
+Object.assign(I18N,{"Final spin":"Final spin","Levier":"Lever","Achat":"Buy","Aura":"Aura","Vitesse de départ":"Starting speed","Plaque":"License plate","Cadeau":"Gift",
+  "Volume du son":"Sound volume","Volume de la musique":"Music volume","Haut":"Up","Bas":"Down","Figures":"Tricks"}); /* les étiquettes VoiceOver (applyLangDOM les passe par I18N) */
 /* ============================================================================================================================
    LA PASSE DES TEXTES (2026-10-14) — un seul mot par rôle dans les trois langues, plus d'anglais dans l'interface française.
    I18N_FR : le FRANÇAIS AFFICHÉ quand il diffère de la clé (la clé reste la phrase d'origine, le code ne bouge pas). Écrire ici avec
@@ -46024,10 +46033,10 @@ function plqPose(lvl,A,W9,H9,L9,y0,exclus,verre,prims){ // appelée par buildCar
 }
 /* ---- LES ÉCRANS : l'atelier de la plaque (#plq) et le profil (#prof) ---- */
 Object.assign(I18N,{'TA PLAQUE':'YOUR PLATE','Elle roule sur toutes tes caisses':'It rides on all your cars','VALIDER':'CONFIRM','RETOUR':'BACK',
-  'MON PROFIL':'MY PROFILE','CHANGER MA PLAQUE':'CHANGE MY PLATE','TEMPS DE JEU':'PLAY TIME','JOUEUR DEPUIS':'PLAYER SINCE','PARTIES':'RUNS',
+  'MON PROFIL':'MY PROFILE','CHANGER MA PLAQUE':'CHANGE MY PLATE','TEMPS DANS L\'APP':'TIME IN APP','JOUEUR DEPUIS':'PLAYER SINCE','PARTIES':'RUNS',
   'FIGURES':'TRICKS','MEILLEUR TEMPS':'BEST TIME','RECORD':'BEST SCORE','FORTUNE MAX':'TOP FORTUNE','VITESSE MAX':'TOP SPEED',
   'AURA':'AURA','MEILLEURE AURA':'BEST AURA','RANG':'RANK','CAISSES':'CARS','MISSIONS':'MISSIONS','MEILLEUR COMBO':'BEST COMBO','SERIE':'STREAK',
-  'TEMPS EN COURSE':'RACE TIME','Au hasard':'Random','Le texte de ta plaque':'Your plate text','Modeles':'Styles','Profil':'Profile',
+  'EN COURSE':'IN RACES','Au hasard':'Random','Le texte de ta plaque':'Your plate text','Modeles':'Styles','Profil':'Profile',
   'JOURS':'DAYS','JOUR':'DAY','AUJOURD\'HUI':'TODAY','RETRO':'RETRO','COURSE':'RACING','BILLET':'BANKNOTE','LINGOT':'GOLD BAR','FRANCE':'FRANCE',
   'PLAQUE ENREGISTREE':'PLATE SAVED'});
 function $p(id){return document.getElementById(id);}
@@ -46125,12 +46134,12 @@ function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for
   let mis=0,misT=0;try{const s=m2Etat();mis=(s.ok||[]).length;misT=M2.length;}catch(e){}
   let rang='';try{rang=auraRankName();}catch(e){}
   return [
-    ['horloge','TEMPS DE JEU',plqDuree(Math.max(p.tA||0,tc)),'gros'],
+    ['horloge','TEMPS DANS L\'APP',plqDuree(Math.max(p.tA||0,tc)),'gros'],
     ['etoile','JOUEUR DEPUIS',plqDate(p.ne),''],
     ['drapeau','PARTIES',String(ex.runs|0),''],
     ['rotation','FIGURES',String(ex.tricks|0),''],
     ['horloge','MEILLEUR TEMPS',p.dMax?plqDuree(p.dMax):'—',''],
-    ['volant','TEMPS EN COURSE',plqDuree(tc),''],
+    ['volant','EN COURSE',plqDuree(tc),''],
     ['piece','RECORD',fmtC(d.best||0),'cash'],
     ['piece','FORTUNE MAX',fmtC(Math.max(d.bankMax||0,d.bank||0)),'cash'],
     ['eclair','VITESSE MAX',(ex.kmh|0)+' KM/H',''],
@@ -47920,7 +47929,7 @@ const M2=[
   {id:'fren30',f:'exploit',k:'frenT',v:30,u:'s',r:{cash:25000},t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'}, // (2026-10-19, Sacha) avant : traînée sang — absente du garage, l'argent à la place
   {id:'kmh1000',f:'exploit',k:'kmh',v:1000,u:'kmh',r:{cash:20000},t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
   {id:'vie5min',f:'exploit',k:'vie',v:300,u:'mn',r:{cash:30000},t:'TIENS 5 MIN SANS MOURIR',en:'SURVIVE 5 MIN WITHOUT DYING'}, // (2026-10-19, Sacha) avant : LA JEEP — absente du garage, l'argent à la place
-  {id:'tours5',f:'exploit',k:'tours',v:5,u:'',r:{cash:20000},t:'FRÔLE {v} TOURS DANS UN SEUL SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'}, // (2026-10-19, Sacha) avant : LE TAXI JAUNE — absente du garage, l'argent à la place
+  {id:'tours5',f:'exploit',k:'tours',v:5,u:'',r:{cash:20000},t:'FRÔLE {v} TOURS EN UN SAUT (LA VILLE)',en:'SKIM {v} TOWERS IN ONE JUMP (THE CITY)'}, // (2026-10-19, Sacha) avant : LE TAXI JAUNE — absente du garage, l'argent à la place
   {id:'parfmaps',f:'exploit',k:'cartesP',v:'tot',u:'',r:{cash:15000},t:'POSE-TOI EN PARFAIT SUR CHAQUE MAP',en:'LAND A PERFECT ON EVERY MAP'}, // (proposition de la demande : LA STRATOS, à valider par Sacha) /* (2026-10-22, Sacha : « tableau des voitures » : LA STRATOS a sa nouvelle mission (météo) ; avant : LA STRATOS — À VALIDER */
   // AURA — le record d'une partie
   {id:'aura10k',f:'aura',k:'aura',v:10000,u:'aura',r:{cash:15000},t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
@@ -47949,10 +47958,10 @@ const M2=[
   {id:'figs500',f:'exploit',k:'figs',v:500,u:'',r:{car:'ATCHOUM'},t:'FAIS {v} FIGURES',en:'LAND {v} TRICKS'},
   {id:'nit2000',f:'exploit',k:'nitS',v:2000,u:'s',r:{car:'LA TAURINE'},t:'BRÛLE {v} S DE NITRO',en:'BURN {v} S OF NITRO'},
   {id:'air1000',f:'exploit',k:'airS',v:1000,u:'s',r:{car:'LE MASTODONTE'},t:'PASSE {v} S EN L\'AIR',en:'SPEND {v} S IN THE AIR'},
-  {id:'verglas100',f:'exploit',k:'verglasKm',v:100,u:'km',r:{car:'L\'ICEBERG'},t:'PARCOURS {v} KM SUR LE VERGLAS (LE GLACIER)',en:'DRIVE {v} KM ON THE BLACK ICE (THE GLACIER)'},
+  {id:'verglas100',f:'exploit',k:'verglasKm',v:100,u:'km',r:{car:'L\'ICEBERG'},t:'ROULE {v} KM SUR LE VERGLAS (GLACIER)',en:'DRIVE {v} KM ON THE BLACK ICE (THE GLACIER)'},
   {id:'km100k',f:'exploit',k:'kmTot',v:100000,u:'km',r:{car:'LA QUEUE DE CANARD'},t:'ROULE {v} KM',en:'DRIVE {v} KM'},
-  {id:'meteo',f:'exploration',k:'meteoMap',v:'tot',u:'',r:{car:'LA STRATOS'},t:'JOUE UNE MAP SOUS TOUTES SES MÉTÉOS ET TOUS SES MOMENTS DE LA JOURNÉE',en:'PLAY ONE MAP IN EVERY WEATHER AND TIME OF DAY'},
-  {id:'silence',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE ENTIÈRE SANS SON NI MUSIQUE (RÉGLAGES)',en:'PLAY A WHOLE RUN WITH SOUND AND MUSIC OFF (SETTINGS)'},
+  {id:'meteo',f:'exploration',k:'meteoMap',v:'tot',u:'',r:{car:'LA STRATOS'},t:'JOUE UNE MAP SOUS TOUTES SES MÉTÉOS',en:'PLAY ONE MAP IN EVERY WEATHER AND TIME OF DAY'},
+  {id:'silence',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE SANS SON NI MUSIQUE',en:'PLAY A WHOLE RUN WITH SOUND AND MUSIC OFF (SETTINGS)'},
   /* (2026-10-22, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée ») secrète : `m2Tick` pose le drapeau `palier10` (engTier + 1 ≥ 10, SND.music allumé) */
   /* (2026-10-25, Sacha : « c'est pas palier 10 tout court, c'est palier 10 de CHAQUE musique du jeu ») le défi compte maintenant les morceaux de Pouce bleu
      (la musique de course, un par partie) sur lesquels on a atteint le palier 10 : `m2Tick` range leur id dans `c.musP10` ; réussi quand TOUS y sont (m2Val/m2Seuil) */
@@ -68994,7 +69003,7 @@ function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=do
   if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop'||m==='tous');st.classList.toggle('gModeTous',m==='tous');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
   if(gEl)gEl.classList.toggle('modeShop',m==='shop');} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
 function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou « 15 / 46 » en INVENTAIRE
-  if(m==='tous'){bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>SEE ALL ITEMS</span><s></s><b>'+n+'</b></div>';return;} // (2026-10-10) SEE ALL ITEMS, en anglais (Léo)
+  if(m==='tous'){bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>'+sansAcc(TR('TOUT VOIR'))+'</span><s></s><b>'+n+'</b></div>';return;} // (2026-10-10) SEE ALL ITEMS, en anglais (Léo)
   bar.innerHTML='<div class="gModeT" style="--rc:'+(m==='inv'?'var(--neoC)':'var(--neoM)')+'">'+pxi(m==='inv'?'coffre':'panier')+'<span>'+sansAcc(TR(m==='inv'?'INVENTAIRE':'BOUTIQUE'))+'</span><s></s><b>'+n+'</b></div>';}
 /* LE LOGO DE LA RARETÉ (2026-10-10, Léo : « les raretés, tu peux ajouter le logo à côté de chaque voiture, au même endroit, pour créer un peu
    de logique visuelle ») : sur CHAQUE vignette de caisse (inventaire, SEE ALL ITEMS, vitrine du jour), le logo de sa famille (RAR_LOGO : roue,
@@ -69107,7 +69116,7 @@ function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{
   if(st._r!==k){st._r=k;st._n=-1;st.scrollLeft=0;st.scrollTop=0;st.classList.remove('finBas');
     st.innerHTML=(O.length?bqPorte(O)+'<div class="fnSec"><span>'+sansAcc(TR('À LA UNE'))+'</span><s></s></div>':'')
       +B.l.map(function(x,n){return (n===BQ_N.une?'<div class="fnSec"><span>'+sansAcc(TR('DU JOUR'))+'</span><s></s></div>':'')+bqCarte(x,n<BQ_N.une);}).join('')
-      +'<div class="fnTout" role="button" tabindex="0">SEE ALL ITEMS '+pxi('droite')+'</div>'; // (2026-10-10, Léo : « tout en bas de la boutique, pour voir toutes les voitures — écrit en transparent, pas un bouton », puis « en anglais, SEE ALL ITEMS ») → le mode `tous` : la page de l'inventaire, avec tout ce qui s'achète
+      +'<div class="fnTout" role="button" tabindex="0">'+sansAcc(TR('TOUT VOIR'))+' '+pxi('droite')+'</div>'; // (2026-10-10, Léo : « tout en bas de la boutique, pour voir toutes les voitures — écrit en transparent, pas un bouton », puis « en anglais, SEE ALL ITEMS ») → le mode `tous` : la page de l'inventaire, avec tout ce qui s'achète
     bqPhotos(st);}
   const cur=bqCourant();st.querySelectorAll('.fnC').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-fn')===cur);});}
 /* LES OFFRES PAYANTES (2026-10-11, Léo : « quand on rappuie sur BOUTIQUE, ça met les offres payantes, mises en page comme la page des
@@ -78793,7 +78802,7 @@ function goImmersive(){
     /* (2026-10-26, Sacha : « 1.61 Studio » → « 1.61 Game ») deux lignes : « 1.61 GAME » en grand (le « 1.61 » blanc chaud, GAME en or), un filet d'or qui s'ouvre depuis le centre,
        puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier.
        (2026-11-02 nuit, Léo : « enlève le GAME, c'est juste 1.61 ») la ligne du haut n'est plus que « 1.61 ». */
-    const t1='1.61',t2='PRESENTS',n1=t1.length,n2=t2.length;
+    const t1='1.61',t2=(function(){try{return TR('PRÉSENTE');}catch(e){return 'PRESENTS';}})(),n1=t1.length,n2=t2.length;
     const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),k=sort3((s-.7)/1.5),esp=px*(.95-.5*k);
     const tot=n1*px+(n1-1)*esp,y1=e.cy-px*.1,yR=e.cy+px*.62,y2=yR+px2*2.1;
     c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';
@@ -80103,7 +80112,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop');
       if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);} // tout ce qui s'achète en argent du jeu est au GARAGE
-      if(bs){bs.textContent='NEW';bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
+      if(bs){bs.textContent=sansAcc(TR('NOUVEAU'));bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
     }else if(mCur==='modes'){
       const set9=function(id,sid,on){const c=$t(id),s=$t(sid);
         if(c){c.classList.toggle('on',on);c.classList.toggle('off',!on);} if(s)s.textContent=on?'ON':'OFF';};
