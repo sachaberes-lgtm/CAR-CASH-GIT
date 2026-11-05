@@ -7695,6 +7695,8 @@ html body.touch #auraV2{top:calc(var(--hudH) + 84px)!important}
    (2e ligne de la grille, 10 px) : l'AURA, calée avant lui à +76 / +72, se retrouvait dessous — elle passe sous l'étiquette. */
 html body #avList{display:none!important}
 html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
+/* (2026-11-05, Sacha : « enlève les carrés de couleur cadeau et boutique ») plus de pastille sur les tuiles de l'accueil : ni le panier cyan du GARAGE (#bdGar), ni le NOUVEAU rose d'ACHAT (#bdShop) */
+html body #bdGar,html body #bdShop{display:none!important}
 </style>
 <style id="accueilDoigt">
 /* LE DOIGT DE BIENVENUE (2026-10-15 soir, Sacha : « dans l'écran d'accueil, une sorte d'icône avec un doigt qui clignote sur la voiture la
@@ -9298,8 +9300,12 @@ html body #mob #mDead.m5 .mCashL>b{grid-column:1;grid-row:1;display:block;font-s
 html body #mob #mDead.m5 .mCashL>b::before{content:'+';margin-right:.1em;opacity:.85}
 /* le compteur à rouleaux : chaque chiffre a sa case (1ch : la police n'a pas la même chasse pour tous), les zéros d'avant le 1er chiffre sont éteints */
 html body #mob #mDead.m5 .mCashL>b>span{font-size:inherit;letter-spacing:inherit;line-height:inherit} /* (ux8 donne .mCashL span le corps d'une légende : ici ce sont les chiffres du compteur) */
-html body #mob #mDead.m5 .mCashL>b>.m6D{display:inline-block;width:1ch;text-align:center;transition:opacity .25s}
+html body #mob #mDead.m5 .mCashL>b>.m6D{display:inline-block;position:relative;width:1ch;text-align:center;transition:opacity .25s}
 html body #mob #mDead.m5 .mCashL>b>.m6D.z{opacity:.2}
+/* le compteur kilométrique : <i> = le chiffre courant (monte et s'efface), <u> = le suivant (monte d'en dessous et s'allume), --f de 0 à 1 (voir m6Pose) */
+html body #mob #mDead.m5 .mCashL>b>.m6D>i,html body #mob #mDead.m5 .mCashL>b>.m6D>u{display:block;font-style:normal;text-decoration:none;line-height:inherit;will-change:transform,opacity}
+html body #mob #mDead.m5 .mCashL>b>.m6D>i{transform:translateY(calc(var(--f,0) * -.6em));opacity:calc(1 - var(--f,0))}
+html body #mob #mDead.m5 .mCashL>b>.m6D>u{position:absolute;left:0;right:0;top:0;transform:translateY(calc((1 - var(--f,0)) * .6em));opacity:var(--f,0)}
 html body #mob #mDead.m5 .mCashL>b>.m6S{display:inline-block;width:.34em}
 html body #mob #mDead.m5 .mCashL>small{grid-column:1/-1;grid-row:2;font-size:var(--f0);line-height:1.6;letter-spacing:1px;word-spacing:-.4em;color:#a7f0bd;opacity:.9;
   text-align:left;max-width:none}
@@ -10320,7 +10326,7 @@ html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.hab:not(.b-legen
 <!-- (2026-09-28) LA CONSOLE DE SON : la banque de sons (générée par atelier-son/cuire.js) et son lecteur. `defer` : ils ne retardent
      pas le démarrage (on n'en a besoin qu'au premier geste) ; changer `?v=` à chaque nouvelle banque (le service worker garde l'ancienne sinon). -->
 <script defer src="sons-banque.js?v=39"></script>
-<script defer src="sfx.js?v=8"></script>
+<script defer src="sfx.js?v=9"></script>
 <script>
 (function(){
 'use strict';
@@ -24602,9 +24608,9 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
      plus longues et plus fines (des glaçons, pas des cônes de pierre). */
   {const ICE9=GROTTE.met==='glace';let n=0;const N=Math.round((VZ?240:140)*MOB*(ICE9?1.8:1)),g9=(VZ?1.25:1)*(ICE9?.85:1),Lk=ICE9?1.35:1;
     for(let e=0;e<N*8&&n<N;e++){if((e&7)===7&&performance.now()>JF.lim)yield;const q=pris(b.stal,ap.stal);if(q<0)break;const xz=cote(q,RHd+8+fr()*(VZ?R.RH[q]*.8:118)),pend=ICE9?fr()<.72:fr()<.55,k=.75+fr()*.5;
-      if(pend){const yc=plafond(xz[0],cote.y+8,xz[1],VZ?R.UP[q]*1.5:150);if(yc==null)continue;const Ld=(8+fr()*38)*(VZ?2.6:1)*Lk;if(!grtLibre(R,xz[0],xz[1],yc-Ld,yc,5))continue;
+      if(pend){const yc=plafond(xz[0],cote.y+8,xz[1],VZ?R.UP[q]*1.5:150);if(yc==null)continue;const Ld=(8+fr()*38)*(VZ?2.6:1)*Lk;if(!grtLibre(R,xz[0],xz[1],yc-Ld,yc,Math.max(5,3.4*k*(.8+Ld/60)*g9+2)))continue; /* (2026-11-05, Léo : « de gros tas de neige sur la route ») la marge suit la VRAIE base du cône (jusqu'à ~9 m en grotte vaste glacée), plus un 5 m fixe */
         grtPrisme(D,V,xz[0],yc+3,xz[1],BAS,6,3.4*k*(.8+Ld/60)*g9,0,Ld+3,GT.CONCRETION,fr()*6,'roche');}
-      else{const yf=plancher(xz[0],cote.y-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:140);if(yf==null)continue;const Hs=(6+fr()*30)*(VZ?2.4:1)*Lk;if(!grtLibre(R,xz[0],xz[1],yf,yf+Hs,5))continue;
+      else{const yf=plancher(xz[0],cote.y-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:140);if(yf==null)continue;const Hs=(6+fr()*30)*(VZ?2.4:1)*Lk;if(!grtLibre(R,xz[0],xz[1],yf,yf+Hs,Math.max(5,3.2*k*(.8+Hs/50)*g9+2)))continue; /* (idem : la marge suit la base réelle) */
         grtPrisme(D,V,xz[0],yf-2,xz[1],UP,6,3.2*k*(.8+Hs/50)*g9,0,Hs+2,GT.CONCRETION,fr()*6,'roche');}
       n++;}nb.concretions=n;}
   if(performance.now()>JF.lim)yield;
@@ -24880,10 +24886,10 @@ function grotteTick(dt){
 function grtDansCone(q,p){const dx=p.x-q[0],dy=p.y-q[1],dz=p.z-q[2],t=dx*q[3]+dy*q[4]+dz*q[5];if(t<-1||t>q[8]+1)return false; /* (2026-10-22, DEBUGGING) dans le prisme d'une concrétion (base q0-2, axe q3-5, rayon q6 → q7 sur q8 m), avec la marge d'1 m des boîtes */
   const r=q[6]+(q[7]-q[6])*Math.max(0,Math.min(1,t/q[8]))+1;return dx*dx+dy*dy+dz*dz-t*t<r*r;}
 function grotteHeurt(p){const V=GROTTE.V;if(!V)return '';
-  if(grtDensIci(V,p.x,p.y,p.z)<=0){const a=grtIci(V,p.x,p.y,p.z),b=grtIci(V,p.x,p.y-V.B*.5,p.z); /* (2026-10-22, DEBUGGING : « 4 m plus bas » datait des cases de 8 m — avec celles de 12 m (LA GROTTE VASTE), quand un centre de case tombe 0 à 2 m au-dessus de la surface d'un lac, le point et ses 4 m plus bas restaient dans cette case non marquée : toute chute dans CE lac (lave, eau, bassin du puits) se lisait « roche » ; une demi-case plus bas est toujours sous la surface) */return a===4||b===4?'lave':a===5||b===5?'eau':'roche';}
+  if(grtDensIci(V,p.x,p.y,p.z)<=0){const a=grtIci(V,p.x,p.y,p.z),b=grtIci(V,p.x,p.y-V.B*.5,p.z); /* (2026-10-22, DEBUGGING : « 4 m plus bas » datait des cases de 8 m — avec celles de 12 m (LA GROTTE VASTE), quand un centre de case tombe 0 à 2 m au-dessus de la surface d'un lac, le point et ses 4 m plus bas restaient dans cette case non marquée : toute chute dans CE lac (lave, eau, bassin du puits) se lisait « roche » ; une demi-case plus bas est toujours sous la surface) */return a===4||b===4?(GROTTE.met==='glace'?'glace':'lave'):a===5||b===5?'eau':'roche';}
   const G=GROTTE.col;if(G){const a=G.G.get(Math.floor(p.x/64)+','+Math.floor(p.z/64));
     if(a)for(let i=0;i<a.length;i++){const o=a[i],dx=p.x-o.x,dz=p.z-o.z,lx=dx*o.c-dz*o.s,lz=dx*o.s+dz*o.c;
-      if(Math.abs(lx)<o.hx+1&&Math.abs(p.y-o.y)<o.hy+1&&Math.abs(lz)<o.hz+1&&(!o.cone||grtDansCone(o.cone,p)))return o.k;}}
+      if(Math.abs(lx)<o.hx+1&&Math.abs(p.y-o.y)<o.hy+1&&Math.abs(lz)<o.hz+1&&(!o.cone||grtDansCone(o.cone,p)))return o.k==='lave'&&GROTTE.met==='glace'?'glace':o.k; /* (2026-11-05, Léo : « dans la glace ça donne l'aigle de feu ») la lave repeinte en glace tue en 'glace', pas en 'lave' (la mission ROULE DANS LA LAVE) */}}
   return '';}
 /* ---------------- LA CHAUFFE AU MENU : la roche et les poussières ---------------- */
 function grotteChauffe(){const M=grtMats(),g9=new THREE.BufferGeometry();
@@ -45637,6 +45643,13 @@ const FIN_PATINE={eldorado:{marbre:.035,echelle:.55,crasse:.30,yCrasse:.85,pouss
   combi:{bande:{bas:[.36,[.62,.80,.78]]}},                      // menthe → sarcelle (le bicolore d'un vrai combi)
   dolores:{bande:{bas:[.30,[.66,.68,.76]]}},                    // argent → acier bleuté
   poptart:{bande:{bas:[.32,[.80,.62,.52]]}}};                   // pâte → biscuit doré
+/* LA COULEUR NE SE TERNIT JAMAIS (2026-11-05, Léo : « le SAMOURAÏ a perdu son violet, j'ai peur qu'on perde le côté coloré — ça vaut pour toutes les voitures ») : après la patine et le deuxième ton,
+   chaque sommet qui a foncé reprend de la SATURATION en proportion (un bas de caisse 20 % plus sombre est 18 % plus saturé) : plus profond, jamais plus gris. Les teintes déjà sombres (luminance < .30,
+   comme le violet du SAMOURAÏ) ne sont pas touchées du tout (`lumMin`). `?teinte=0` coupe la compensation. */
+function finTeinte(G,C0){if(/[?&]teinte=0/.test(location.search))return;const C=G.attributes.color.array;
+  for(let i=0;i<C.length;i+=3){const l0=.299*C0[i]+.587*C0[i+1]+.114*C0[i+2],l1=.299*C[i]+.587*C[i+1]+.114*C[i+2];if(l0<1e-3||l1>=l0)continue;
+    const f=1+(1-l1/l0)*.9;for(let k=0;k<3;k++){const v=l1+(C[i+k]-l1)*f;C[i+k]=v<0?0:v>1?1:v;}}
+  G.attributes.color.needsUpdate=true;}
 function finBande(G,b){const P=G.attributes.position.array,C=G.attributes.color.array;let y0=1e9,y1=-1e9;
   for(let i=1;i<P.length;i+=3){if(P[i]<y0)y0=P[i];if(P[i]>y1)y1=P[i];}const H=Math.max(1e-3,y1-y0),sm=t=>{t=t<0?0:t>1?1:t;return t*t*(3-2*t);};
   for(let i=0,k=0;i<P.length;i+=3,k++){const t=(P[i+1]-y0)/H;let m=null,w=0;
@@ -45650,7 +45663,8 @@ function finMarbre(spec){if(!MARBRE_ON||!spec||spec.shape==='epave'||typeof pati
   carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isArray(o.material)||!o.material||!o.material.userData)return;
     const g=o.material.userData.g,G=o.geometry;if(!(g==='p'||g==='k'||g==='n'||(typeof g==='string'&&g.indexOf('pm:')===0)))return;
     if(G.userData.marbre||!G.attributes.color||!G.attributes.position||!G.attributes.normal)return;G.userData.marbre=1;
-    try{const o9=Object.assign({marbre:.045,echelle:.42,graine:gr,crasse:.36,yCrasse:.70,poussiere:0},FIN_PATINE[spec.shape]||{});patineGeo(G,o9);if(o9.bande&&!/[?&]bande=0/.test(location.search))finBande(G,o9.bande);}catch(e){console.warn('marbrure',e);}});}
+    try{const o9=Object.assign({marbre:.045,echelle:.42,graine:gr,crasse:.30,yCrasse:.70,poussiere:0,lumMin:.30},FIN_PATINE[spec.shape]||{}),C0=Float32Array.from(G.attributes.color.array);
+      patineGeo(G,o9);if(o9.bande&&!/[?&]bande=0/.test(location.search))finBande(G,o9.bande);finTeinte(G,C0);}catch(e){console.warn('marbrure',e);}});}
 // toutes les pièces de la caisse dont la matière dessine les arêtes : la tôle (laque, métallisé, nacre) calcule ses arêtes, le reste porte des zéros
 function finCaisse(){carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isArray(o.material)||!o.material||!o.material.userData.arete)return;
   if(o.geometry.attributes.aArete)return;const g=o.material.userData.g;
@@ -45719,7 +45733,9 @@ function paintEnvStudio(){FSTU.env='studio';
 /* (2026-11-05, Léo : « dans le menu ciel la lumière est trop éblouissante, un peu gamine, ça rend la voiture moins jolie ») mesuré sur ROSSO 40 : un rouge sortait rose saumon délavé.
    Reflets qui éclatent ÷ 1,4 (1 → .7 : en dessous, les grands panneaux lisses — ELDORADO — s'aplatissent) et exposition du MENU seulement ×.9 (`MENU_EXPO`, posée par menuVitrine) : le rouge reste rouge, le ciel prend de la profondeur.
    `?menuexpo=1` rend l'exposition d'avant, `?menuhdr=1` les reflets d'avant. */
-const FSTU_MENU_HDR=(/[?&]menuhdr=([\d.]+)/.exec(location.search)||[0,.7])[1]*1,MENU_EXPO=(/[?&]menuexpo=([\d.]+)/.exec(location.search)||[0,.9])[1]*1;
+/* (2026-11-05) LE VOILE DU CIEL DANS LA PEINTURE : aux heures claires (matin, midi, après-midi) le ciel reflété est presque blanc et délave un rouge en rose saumon (mesuré, ROSSO 40, sept heures du menu). Le cube de reflets est assombri de .2 + MENU_VOILE × le jour (avant : .35). `?menuvoile=.35` = avant. */
+const MENU_VOILE=(/[?&]menuvoile=([\d.]+)/.exec(location.search)||[0,.35])[1]*1;
+const FSTU_MENU_HDR=(/[?&]menuhdr=([\d.]+)/.exec(location.search)||[0,.7])[1]*1,MENU_EXPO=(/[?&]menuexpo=([\d.]+)/.exec(location.search)||[0,.94])[1]*1;
 function paintEnvMenu(B){FSTU.env='menu';FSTU.envB=B;FSTU.garage=false; // (garage=false : finMenu repose la laque, au dosage de ce ciel)
   const S=256,stops=B.env,zen=stops[0][1],sol=stops[stops.length-1][1],s1=B.eS1,s2=B.eS2,
     sunF=Math.abs(SUN_DIR.x)>Math.abs(SUN_DIR.z)?(SUN_DIR.x>0?0:1):(SUN_DIR.z>0?4:5),
@@ -45735,7 +45751,7 @@ function paintEnvMenu(B){FSTU.env='menu';FSTU.envB=B;FSTU.garage=false; // (gara
       const g=c.createRadialGradient(128,128,10,128,128,110);g.addColorStop(0,'rgba('+clair+',.75)');g.addColorStop(1,'rgba('+clair+',0)');c.fillStyle=g;c.fillRect(0,0,S,S);return;} // le zénith, un voile clair au milieu (les toits)
     if(f===3){c.fillStyle=sol;c.fillRect(0,0,S,S);c.fillStyle='rgba(0,0,0,.6)';c.fillRect(0,0,S,S);return;}
     const gr=c.createLinearGradient(0,0,0,S);for(const st of stops)gr.addColorStop(st[0],st[1]);c.fillStyle=gr;c.fillRect(0,0,S,S);
-    c.fillStyle='rgba(8,8,18,'+(.2+.35*jour).toFixed(2)+')';c.fillRect(0,0,S,S);                         // le ciel ASSOMBRI : les bandes ressortent (moins la nuit : il l'est déjà)
+    c.fillStyle='rgba(8,8,18,'+(.2+MENU_VOILE*jour).toFixed(2)+')';c.fillRect(0,0,S,S);                         // le ciel ASSOMBRI : les bandes ressortent (moins la nuit : il l'est déjà)
     bande(c,198,12,chaud,.95*kA,10);                                                                     // la mer de nuages au soleil : les flancs
     bande(c,146,7,dore,.85*kA,8);                                                                        // l'horizon doré : les épaules
     bande(c,84,6,clair,.6*kA,10);
@@ -81768,13 +81784,20 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      en TOUS ses chiffres (« $ 7 210 », plus « 7,2 k »), une case par signe, réservée dès le départ à la largeur finale — les zéros d'avant le
      premier chiffre sont là, éteints, et s'allument quand le nombre les atteint ; chaque chiffre qui change ROULE (il monte d'un cran). */
   function m6Monte(el,F){el.textContent='';const S=[];
-    for(const c of Array.from(F)){const x=document.createElement('span');if(/\d/.test(c)){x.className='m6D';x.textContent='0';S.push(x);}else if(/\s/.test(c))x.className='m6S';else{x.className='m6X';x.textContent=c;}el.appendChild(x);}
-    el._m={S:S,cur:null};el.setAttribute('aria-label',F);}
-  function m6Pose(el,v,roule){const M=el._m;if(!M)return;const n=M.S.length,t=String(Math.max(0,Math.round(v))),d=t.padStart(n,'0').slice(-n);
-    for(let i=0;i<n;i++){const x=M.S[i];
-      if(!M.cur||M.cur[i]!==d[i]){x.textContent=d[i];if(roule&&!REDUCED_MOTION&&x.animate)x.animate([{transform:'translateY(.55em)',opacity:0},{transform:'none',opacity:1}],{duration:170,easing:'cubic-bezier(.2,.8,.2,1)'});}
-      x.classList.toggle('z',i<n-t.length);}
-    M.cur=d;}
+    for(const c of Array.from(F)){const x=document.createElement('span');if(/\d/.test(c)){x.className='m6D';const a=x.appendChild(document.createElement('i')),b=x.appendChild(document.createElement('u'));a.textContent='0';b.textContent='1';x.A=a;x.B=b;S.push(x);}else if(/\s/.test(c))x.className='m6S';else{x.className='m6X';x.textContent=c;}el.appendChild(x);}
+    el._m={S:S,cur:null,f:[]};el.setAttribute('aria-label',F);}
+  /* (2026-11-05, Sacha : « le compteur de cash doit être mieux animé, avec le dernier chiffre qui augmente d'abord et qui fait augmenter les autres ») UN VRAI
+     COMPTEUR KILOMÉTRIQUE : v est un nombre à virgule. Le chiffre des unités glisse en continu (le courant monte, le suivant arrive dessous) ; quand il
+     passe par 9 il POUSSE celui des dizaines (f = sa fraction de glissade, de 0 à 1 pendant que le chiffre d'en dessous va de 9 à 10), qui pousse les
+     centaines, etc. Chaque case a deux glyphes : <i> le chiffre courant, <u> le suivant ; la variable --f (0→1) les fait glisser et se fondre (css). */
+  function m6Pose(el,v,roule){const M=el._m;if(!M)return;const n=M.S.length,V=Math.max(0,roule?v:Math.round(v)),I=Math.floor(V),len=String(I).length;
+    for(let j=0;j<n;j++){const x=M.S[j],i=n-1-j,pw=Math.pow(10,i),d=Math.floor(I/pw)%10;
+      let f=0;if(roule&&!REDUCED_MOTION)f=i===0?V-I:Math.min(1,Math.max(0,(V%pw)/(pw/10)-9));
+      if(!M.cur||M.cur[j]!==d){M.cur=M.cur||[];M.cur[j]=d;x.A.textContent=d;x.B.textContent=(d+1)%10;}
+      const fq=Math.round(f*40)/40; /* 40 crans de glissade : assez doux, et on ne réécrit le style que s'il bouge */
+      if(M.f[j]!==fq){M.f[j]=fq;x.style.setProperty('--f',fq);}
+      const z=i>=len;x.classList.toggle('z',z);
+      x.style.opacity=(z&&i===len&&fq>0)?(.2+.8*fq).toFixed(2):''; /* le premier zéro éteint qui devient un 1 s'allume pendant la poussée */}}
   function m6Ici(){return mCur==='dead'&&started&&gameOver&&overlay.style.display!=='none';} /* l'écran de mort est là (REJOUER tapé pendant le compte : plus rien ne vole sur la course) */
   /* (2026-11-05, Sacha : « enlève le petit carré doré qui monte l'argent ») les petits carrés dorés qui venaient se fondre dans le chiffre pendant le compte (m6Pieces) sont retirés */
   function mCount(el,to,direct){ // égrène le montant : départ franc, arrivée en douceur
@@ -81789,7 +81812,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     mCntT=setInterval(function(){ if(performance.now()<T0)return;
       if(!t0)t0=performance.now(); /* (v6) la place du montant FINAL est prise d'avance (m6Monte) : le badge et le compte, à sa droite, ne bougent pas */
       const k=Math.min(1,(performance.now()-t0)/D),e=v6?1-Math.pow(1-k,2):1-Math.pow(1-k,3); /* v6 : ease-out quadratique, les crans du son (mCompteSon) tombent sur 1 - √(1 - j/N) */
-      if(v6)m6Pose(el,Math.round(to*e),true);else el.textContent=fmtC(Math.round(to*e));
+      if(v6)m6Pose(el,to*e,true);else el.textContent=fmtC(Math.round(to*e));
       if(v6&&!REDUCED_MOTION){el.style.setProperty('--k',e.toFixed(3));cpt(sol-to+to*e);}
       if(k>=1){clearInterval(mCntT);mCntT=0;
         if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');cpt(sol);if(!REDUCED_MOTION&&m6Ici())try{pixBurst(el,12);}catch(x){}}
@@ -82121,7 +82144,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(v6)m6Monte(c9,fmtSolde(2*v));
       if(REDUCED_MOTION){if(v6)m6Pose(c9,2*v,false);else c9.textContent=fmtC(2*v);return;}
       const t0=performance.now(),D=v6?900:600;
-      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,Math.round(v*(1+q)),true);else c9.textContent=fmtC(Math.round(v*(1+q)));
+      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,v*(1+q),true);else c9.textContent=fmtC(Math.round(v*(1+q)));
         if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');if(v6&&m6Ici())try{pixBurst(c9,12);}catch(x){}}},v6?16:28);};
     const apres=function(vue,v){if(vue)monte(v);maj();};window.__dblApres=apres;
     const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};

@@ -14,7 +14,8 @@ au menu puis en course au pilote auto, puis à l'écran de mort. Il relève à c
   · --tas=1    : profil d'allocations vivantes ; --gc=1 : ramasse-miettes forcé avant chaque relevé ;
   · --bloque=sons-banque : bloque une adresse (ablation : « combien pèse la banque de sons ? ») ;
   · --csstop= / --cssjeu= : un CSS injecté dans la page-cadre / dans le jeu (essais de couches) ;
-  · --capture=1 [--clip=x,y,l,h] : une capture PNG (au menu et en course) pour comparer deux réglages à l œil.
+  · --capture=1 [--clip=x,y,l,h] : une capture PNG (au menu et en course) pour comparer deux réglages à l œil ;
+  · --son=1 : les effets sonores restent allumés (Chrome est muet) — CCSON.etat() compte les sons résidents, tardifs, perdus, évincés.
 
 LANCER (Node ≥ 22, Chrome installé) :
   node outils/banc-pc/serveur.cjs "VERSION PRINCIPALE" 8125          (dans un terminal à part)
