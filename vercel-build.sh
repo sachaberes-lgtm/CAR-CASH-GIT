@@ -49,6 +49,7 @@ rm -f .vercel-static/jouer/musique-moteur.html .vercel-static/jouer/assets/audio
 # musique-moteur.json, musique-paliers.js, rendus/). boucles/dark-triad.m4a RESTE : c'est le morceau de la frénésie (MUSIC_FREN.f, depuis le 24/10 — avant, le jeu le cherchait en .mp3 ailleurs).
 rm -f .vercel-static/jouer/bibliotheque.html
 rm -f .vercel-static/jouer/test-depart-musique.html   # (2026-10-25) la page de test du palier de départ de la musique de course : outil local de Léo
+rm -f .vercel-static/jouer/lobby-musiques.html   # (2026-11-03) la liste d écoute des musiques de Léo : outil LOCAL
 rm -rf .vercel-static/jouer/assets/audio/music/depart .vercel-static/jouer/assets/audio/music/petites-musiques
 find .vercel-static/jouer/assets/audio/music/boucles -type f ! -name dark-triad.m4a -delete 2>/dev/null || true
 rm -f .vercel-static/jouer/assets/audio/music/lobby/menu-donnees.js .vercel-static/jouer/assets/audio/music/lobby/chris-donnees.js .vercel-static/jouer/assets/audio/music/lobby/garage-*.m4a
@@ -65,6 +66,11 @@ node outils/publie-audio.cjs .vercel-static/jouer || echo "⚠ publie-audio : é
 # n'appelle ; le SOURCE garde tout. Chaque fichier n'est réécrit que si ses jetons restent identiques (voir outils/publie-allege.cjs) ;
 # en cas d'échec, la copie part telle quelle. AVANT l'empreinte : elle couvre donc ce qui est vraiment publié.
 node outils/publie-allege.cjs .vercel-static/jouer || echo "⚠ publie-allege : échec, la copie part avec ses commentaires"
+# (2026-11-04, Sacha : « que le jeu se lance plus vite aux lancements suivants ») LE JEU EN FICHIER EXTERNE : le gros <script> en ligne d'index.html
+# (~5 Mo allégé) est recompilé par V8 à CHAQUE lancement ; sorti dans jeu.<empreinte>.js il garde son bytecode en cache (Chrome/Safari ne le font que pour
+# un script externe). La copie publiée seulement ; APRÈS publie-allege (qui lit index.html), AVANT l'empreinte (qui couvre jeu.*.js). En cas d'échec, le
+# script reste en ligne. Numéros de ligne des erreurs : voir l'en-tête du fichier (ajouter N-1) — outils/publie-script-externe.cjs.
+node outils/publie-script-externe.cjs .vercel-static/jouer || echo "⚠ publie-script-externe : échec, le jeu reste en ligne dans index.html"
 # LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo) : le commit publié est gravé dans le jeu (jeton __CC_BUILD__ de
 # index.html) et posé dans version.json ; le jeu compare les deux et se recharge tout seul s'il est en retard.
 # ⚠ (2026-10-03, Léo : « le jeu coupe bizarrement la musique ») L'EMPREINTE DU JEU, PLUS LE COMMIT : graver le commit faisait croire à une

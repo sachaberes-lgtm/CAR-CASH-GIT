@@ -340,7 +340,7 @@ function mkEngine(i){
 }
 /* <<<FIN MOTEURS>>> */
 function fruitPick(rnd){ // (2026-10-20, Léo : « je ne vois que des myrtilles ») TOUS LES FRUITS À ÉGALITÉ, sur toutes les maps : les anciennes règles par map (`jf`, `cf`, `cs` : fruits de Jade, du Canyon) ne regardaient que les 7 exotiques, retirés du jeu — sans eux le tirage retombait sur le fruit n°0 (la myrtille) à chaque fois
-  const fq=f=>1;
+  const fq=f=>Math.max(0,f.freq); // (2026-11-05, hiérarchie des fruits) le tirage suit de nouveau la `freq` de chaque fruit (plus petit = plus fréquent) : tous les 9 fruits ont une freq > 0 (c'était la freq 0 des exotiques qui ramenait la myrtille à chaque tirage)
   let tot=0;for(const f of FRUIT_DEFS)tot+=fq(f);
   if(tot<=0)return 0;
   let r=(rnd?rnd():Math.random())*tot;
@@ -349,9 +349,26 @@ function fruitPick(rnd){ // (2026-10-20, Léo : « je ne vois que des myrtilles 
 }
 /* (2026-10-20, Léo : « si les fruits normaux sont aussi gros que les fruits spéciaux, c'est pas bon ») LES FRUITS NORMAUX SONT PETITS (×1,6) ; les fruits-pouvoirs sont GROS (×4,8, voir mkPower) */
 const FRUIT_K=1.6;
-function mkFruit(i){ const g=new THREE.Mesh(fruitGeo(i),FRUIT_MAT);g.scale.setScalar(FRUIT_K);g.userData.fruit=i;return g; } // (2026-09-26) ×2,7 // 1,15 → 1,9 : on les repère de loin · UN mesh par fruit
+/* (2026-11-05, Sacha : « adapte leur taille en fonction de leur nitro ») LA TAILLE SUIT LA VALEUR. FRUIT_ECH = le multiplicateur de FRUIT_K de chaque fruit (par nom : l'ordre de FRUIT_DEFS peut bouger).
+   Calé MESURE EN MAIN (dbgFruits) sur la dimension moyenne de chaque dessin, feuilles comprises (racine cubique de largeur × hauteur × profondeur : les formes ne se remplissent pas pareil, la cerise
+   est une grappe, la mangue est haute et mince, la pêche est plate) pour que la taille à l'écran monte d'un cran régulier : myrtille 1,55 m · cerise 1,8 · litchi 2,05 · kiwi 2,3 · pêche 2,55 · pomme 2,75 ·
+   orange 2,95 · mangue 3,15 · melon 3,5 m (le melon, 2,3 × la myrtille). Le plus gros reste dans l'enveloppe d'avant (Léo, 20/10 : « les fruits normaux sont petits ») ; les fruits-pouvoirs, eux,
+   passent au-dessus (PWR_ECH). Le rayon de ramassage ne bouge pas : un petit fruit se prend aussi facilement qu'un gros. */
+const FRUIT_ECH={'MYRTILLE':.71,'CERISE':.89,'LITCHI':.8,'KIWI':1.02,'PÊCHE':.94,'POMME':1.04,'ORANGE':1.1,'MANGUE':1.5,'MELON':1.24};
+function fruitEch(i){const f=FRUIT_DEFS[i];return FRUIT_K*((f&&FRUIT_ECH[f.n])||1);}
+/* LA NITRO RENDUE : `boost` du fruit ÷ la moyenne pondérée par la `freq` (1 = le fruit moyen = ses 20 % de réserve d'avant). Calculée en direct : l'ÉTAL (garage) règle toujours boost et freq. */
+function fruitK(i){let t=0,b=0;for(const f of FRUIT_DEFS){const q=Math.max(0,f.freq);t+=q;b+=q*Math.max(0,f.boost);}
+  const f=FRUIT_DEFS[i]||FRUIT_DEFS[0];return (t>0&&b>0)?Math.max(0,f.boost)/(b/t):1;}
+/* (banc) dbgFruits() : la table de la hiérarchie — nom, boost, part du tirage, nitro rendue (× le fruit moyen, et en % de la jauge), échelle, largeur · hauteur · profondeur à l'écran et leur
+   dimension moyenne `dim` (m) ; `pouvoirs` : les cinq fruits-pouvoirs, mêmes mesures (PWR_ECH) */
+window.dbgFruits=function(){let t=0;for(const f of FRUIT_DEFS)t+=Math.max(0,f.freq);
+  const mes=(g,s)=>{if(!g.boundingBox)g.computeBoundingBox();const b=g.boundingBox,w=(b.max.x-b.min.x)*s,h=(b.max.y-b.min.y)*s,d=(b.max.z-b.min.z)*s;
+    return {echelle:+s.toFixed(2),largeur:+w.toFixed(2),hauteur:+h.toFixed(2),profondeur:+d.toFixed(2),dim:+Math.cbrt(w*h*d).toFixed(2)};};
+  return {fruits:FRUIT_DEFS.map((f,i)=>Object.assign({i:i,n:f.n,boost:f.boost,tirage:Math.round(100*Math.max(0,f.freq)/(t||1))+' %',nitro:+fruitK(i).toFixed(2),jauge:Math.round(20*fruitK(i))+' %'},mes(fruitGeo(i),fruitEch(i)))),
+    pouvoirs:Object.keys(FRUIT_POW).map(k=>Object.assign({k:k,n:FRUIT_POW[k].n},mes(fruitPowGeo(k),PWR_ECH[k])))};};
+function mkFruit(i){ const g=new THREE.Mesh(fruitGeo(i),FRUIT_MAT);g.scale.setScalar(fruitEch(i));g.userData.fruit=i;return g; } // (2026-09-26) ×2,7 // 1,15 → 1,9 : on les repère de loin · UN mesh par fruit
 /* (2026-09-26, user : « parfois les fruits sont en collision avec la route ») — MESURÉ : posés à 1,3 m du bitume, mais grossis ×2,7
    (et ×1,08 au battement), certains descendent à 2,3 m sous leur centre : un bon mètre DANS la dalle. `fruitLeve(i)` = la hauteur du
    centre qui garde le plus bas du fruit ~45 cm au-dessus du bitume, battement compris (calculée une fois, sur la vraie géométrie). */
 const FRUIT_LEVE=[];
-function fruitLeve(i){if(FRUIT_LEVE[i]==null){const g=fruitGeo(i);if(!g.boundingBox)g.computeBoundingBox();FRUIT_LEVE[i]=Math.max(.9,-g.boundingBox.min.y*FRUIT_K*1.1+.45);}return FRUIT_LEVE[i];}
+function fruitLeve(i){if(FRUIT_LEVE[i]==null){const g=fruitGeo(i);if(!g.boundingBox)g.computeBoundingBox();FRUIT_LEVE[i]=Math.max(.9,-g.boundingBox.min.y*fruitEch(i)*1.1+.45);}return FRUIT_LEVE[i];}

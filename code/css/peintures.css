@@ -1,0 +1,49 @@
+<style id="peintures">
+/* ===== LE NUANCIER v3 — LES PASTILLES (2026-11-05, Sacha : « retravaille la présentation des peintures dans la boutique […] pro, fini, léché ») =====
+   1. La carte d'une peinture montre la PEINTURE, pas un timbre de 42 px : une plaque vernie qui prend toute la case (le reflet du vernis par-dessus,
+      plus franc sur les chromes, les ors, les métaux et les nacres ; aucun sur le mat).
+   2. Un DÉFI (« ou gagne-la ») : une pastille sombre en bas de la plaque, la cible et la jauge — on voit d'un coup d'œil ce qui se gagne en jouant.
+   3. ÉPIQUE : un filet violet. LÉGENDAIRE : un filet or qui luit, un éclat qui balaie la plaque, et la plaque VIT (animation `.pL-<id>`, la même
+      dans toutes les listes : boutique, inventaire, bande du garage, boutique du jour).
+   4. Les intertitres de rareté disent ce qu'est la famille et son prix (UNIES · 1 €, DÉGRADÉS · 1 €, MOTIFS · 2 €, ANIMÉES · 3 €). */
+#gBq #gBqPan .bqK.hab .bqKph.c-peinture{position:relative;align-items:stretch;justify-content:stretch;padding:6px 6px 0;box-sizing:border-box}
+#gBq #gBqPan .bqK.hab .bqKph .bqSw.pSw{position:relative;display:block;flex:1;width:auto;height:auto;min-height:0;border-radius:9px 9px 3px 3px;overflow:hidden;
+  box-shadow:inset 0 0 0 1px rgba(20,23,28,.14),inset 0 -6px 10px -6px rgba(0,0,0,.28),0 1px 0 rgba(255,255,255,.9)}
+#gBq #gBqPan .bqK.hab .bqKph .bqSw.pSw::before{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(165deg,rgba(255,255,255,.62) 0%,rgba(255,255,255,.16) 24%,rgba(255,255,255,0) 42%,rgba(255,255,255,0) 70%,rgba(0,0,0,.12) 100%)}
+#gBq #gBqPan .bqK.hab .bqKph .bqSw.pSw.mat::before{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.14))}
+#gBq #gBqPan .bqK.hab .bqKph .bqSw.pSw:is(.chrome,.or,.metal,.nacre)::before{background:linear-gradient(165deg,rgba(255,255,255,.75) 0%,rgba(255,255,255,.2) 22%,rgba(255,255,255,0) 34%,rgba(255,255,255,.45) 52%,rgba(255,255,255,0) 64%,rgba(0,0,0,.14) 100%)}
+/* 2. le défi */
+#gBqPan .bqK .bqKph .pDef{position:absolute;left:11px;bottom:5px;display:flex;align-items:center;gap:4px;height:13px;padding:0 5px 0 3px;border-radius:7px;background:rgba(9,11,17,.78);box-shadow:0 0 0 1px rgba(95,240,255,.35)}
+#gBqPan .bqK .bqKph .pDef:has(u){right:11px}
+#gBqPan .bqK .bqKph .pDef .pxi{--pxs:1;width:8px;height:8px;margin:0;color:#5ff0ff}
+#gBqPan .bqK .bqKph .pDef u{display:block;flex:1;min-width:14px;height:3px;border-radius:2px;background:rgba(255,255,255,.2);overflow:hidden}
+#gBqPan .bqK .bqKph .pDef u em{display:block;height:100%;background:#5ff0ff;box-shadow:0 0 4px #5ff0ff}
+/* 3. épique, légendaire */
+#gBqPan .bqK.hab.r-epique:not(.sel){box-shadow:0 0 0 1px #d6b6f2,0 8px 20px rgba(30,40,55,.07)}
+#gBqPan .bqK.hab.r-legendaire:not(.sel){box-shadow:0 0 0 1.5px #f2c23a,0 0 14px -2px rgba(255,200,60,.65),0 8px 22px rgba(255,180,40,.18)}
+#gBqPan .bqK.hab.r-legendaire .bqKph.c-peinture::after{content:'';position:absolute;inset:6px 6px 0;border-radius:9px 9px 3px 3px;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(115deg,rgba(255,255,255,0) 38%,rgba(255,255,255,.6) 50%,rgba(255,255,255,0) 62%) no-repeat;background-size:300% 100%;animation:pBrille 3.6s ease-in-out infinite}
+@keyframes pBrille{0%{background-position:120% 0}55%,100%{background-position:-20% 0}}
+/* la plaque qui vit : la toile défile, et chaque légendaire a son geste */
+.pL{background-size:96px 96px!important;animation:pLDefile 16s linear infinite}
+@keyframes pLDefile{from{background-position:0 0}to{background-position:96px 96px}}
+@keyframes pLGlisse{from{background-position:0 0}to{background-position:-96px 0}}
+@keyframes pLChute{from{background-position:0 0}to{background-position:0 96px}}
+@keyframes pLScint{from{filter:brightness(.92) saturate(1.05)}to{filter:brightness(1.3) saturate(1.45)}}
+@keyframes pLRespire{from{filter:brightness(.78) saturate(1)}to{filter:brightness(1.38) saturate(1.3)}}
+@keyframes pLTeinte{to{filter:hue-rotate(360deg)}}
+.pL-galaxie{animation:pLDefile 26s linear infinite,pLScint 2.6s ease-in-out infinite alternate}
+.pL-neon{animation:pLGlisse 2.2s linear infinite,pLScint .9s steps(2) infinite alternate}
+.pL-sakura{animation:pLChute 7s steps(56) infinite}
+.pL-magma{animation:pLDefile 40s linear infinite,pLRespire 1.7s ease-in-out infinite alternate}
+.pL-ocean{animation:pLDefile 12s linear infinite,pLRespire 2.4s ease-in-out infinite alternate}
+.pL-rgb{animation:pLGlisse 2.8s linear infinite,pLTeinte 5s linear infinite}
+/* 4. les intertitres */
+#gBqPan .bqRail .bqSec.bqRarS .bqSecSous{font-style:normal;font-size:7px;letter-spacing:1px;color:#5b6470;white-space:nowrap}
+#gBqPan .bqRail .bqSec.bqRarS[data-rar="legendaire"] .bqRl{animation:pLueur 2.4s ease-in-out infinite alternate}
+@keyframes pLueur{from{box-shadow:0 0 0 1px var(--rc),0 0 6px -2px var(--rc)}to{box-shadow:0 0 0 1px var(--rc),0 0 14px 1px var(--rc)}}
+/* « OU GAGNE-LA » sous le nom : la même ligne que SE DÉBLOQUE */
+#gBqNom .pDeb .m2DebT{color:#14171c}
+@media (prefers-reduced-motion:reduce){.pL,#gBqPan .bqK.hab.r-legendaire .bqKph.c-peinture::after,#gBqPan .bqRail .bqSec.bqRarS[data-rar="legendaire"] .bqRl{animation:none}}
+</style>

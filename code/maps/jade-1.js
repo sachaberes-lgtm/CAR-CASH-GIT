@@ -28,6 +28,9 @@ const JADE_U={uSunDir:{value:SUN_DIR},uSunC:{value:new THREE.Color()},uSky:{valu
   uMerY:{value:-420},uSous:{value:0},uEauT:skyU.uEauT,uTime:{value:0},uCam:{value:new THREE.Vector3()},uY0:{value:0},uYH:{value:1},uGhost:{value:new THREE.Color(.70,.92,1.)},uRocT:{value:new THREE.Vector3(1,1,1)},uVerT:{value:new THREE.Vector3(1,1,1)}}; /* (2026-10-20, LE DÉCOR AU HASARD) uRocT, uVerT : la teinte de la roche et des verts de CETTE vallée (1 = celles d'avant) */
 const JADE_MODULES=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jademodules(,|&|$)/.test(location.search); /* (2026-10-20) SIX MODULES (voir jCorniche) — `?sans=jademodules` = le paquet d'avant (lacets, épingle, double sommet) */
 const JADE_DECOR=typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadedecor(,|&|$)/.test(location.search); /* (2026-10-20) LE DÉCOR AU HASARD (voir jadeDecoTire) — `?sans=jadedecor` = la vallée d'avant, au tirage près */
+/* LE DÉVERS DE JADE (2026-11-05, Sacha : « longues torsades, dans les virages la route s'incline légèrement comme les routes de NASCAR, pour frôler les montagnes — pas des torsades comme les nuages ou l'espace, des longues torsades beaucoup plus smooth »)
+   max : l'angle plafond (les dunes vont à 22°, les nuages à 50°) · W : le demi-fenêtrage de la courbure (m) — passé DEUX fois : l'angle monte et redescend sur ~600 m, jamais d'à-coup · `?sans=jadebank` = la route plate d'avant */
+const JADE_BANK={on:typeof location==='undefined'||!/[?&]sans=([^&]*,)?jadebank(,|&|$)/.test(location.search),max:16*Math.PI/180,W:150};
 /* LA ROUTE — même outillage que genParis (droites, arcs ≤ 9° par point), mais tirée à la graine de la piste : chaque vallée est neuve.
    Le cap reste dans ±85° de l'axe de départ (aucun retour sur ses pas : la route ne recroise jamais un de ses tronçons).
    (2026-10-18, Sacha : « la génération de map dans les montagnes chinoises est toujours la même, rends-la plus aléatoire ») MESURÉ (les plans
@@ -125,6 +128,23 @@ function genJade(rnd){
     ctrl[k].y=y;}
   adoucirPentes(ctrl,JADE_PENTE); // les rampes vers les monuments (et les crêtes des ondes) ramenées vers ~10° — les paliers restent à plat
   for(const k in Q){const o=Q[k];let bi=0,bd=1e18;for(let j=0;j<ctrl.length;j++){const d=ctrl[j].distanceToSquared(o.p);if(d<bd){bd=d;bi=j;}}o.p.y=ctrl[bi].y;}
+  /* L'INCLINAISON (2026-11-05, voir JADE_BANK) — même recette que les dunes (genDunes) : la dalle se couche vers l'INTÉRIEUR du virage, de l'angle d'une courbure moyennée sur ±W m (deux passes) et pliée par un tanh.
+     À plat : le départ (jusqu'à 250 m, plein à 650 m), la Porte du ciel et le Pont du ciel (fondu sur 260 m de part et d'autre) et la ligne d'arrivée. Les normales (une par point de contrôle) passent à buildTrack par TORD.N, sans TORD.on. */
+  JADE.bankN=null;JADE.bankMax=0;
+  if(JADE_BANK.on){const n=ctrl.length,sc=new Float32Array(n),kap=new Float32Array(n),hh=new Float32Array(n),sm9=(a9,b9,x)=>{const t=Math.max(0,Math.min(1,(x-a9)/(b9-a9)));return t*t*(3-2*t);};
+    for(let i=1;i<n;i++)sc[i]=sc[i-1]+Math.hypot(ctrl[i].x-ctrl[i-1].x,ctrl[i].z-ctrl[i-1].z);
+    for(let i=0;i<n;i++){const a9=ctrl[Math.max(0,i-1)],b9=ctrl[Math.min(n-1,i+1)];hh[i]=Math.hypot(b9.x-a9.x,b9.z-a9.z)/2||1;}
+    for(let i=1;i<n-1;i++){const ax=ctrl[i].x-ctrl[i-1].x,az=ctrl[i].z-ctrl[i-1].z,bx=ctrl[i+1].x-ctrl[i].x,bz=ctrl[i+1].z-ctrl[i].z,la=Math.hypot(ax,az)||1,lb=Math.hypot(bx,bz)||1;kap[i]=Math.asin(Math.max(-1,Math.min(1,(ax*bz-az*bx)/(la*lb))))/((la+lb)/2);}
+    const W9=JADE_BANK.W,lisse=a9=>{const o9=new Float32Array(n);for(let i=0;i<n;i++){let sw=0,sk=0;for(let j=i;j>=0&&sc[i]-sc[j]<W9;j--){sw+=hh[j];sk+=a9[j]*hh[j];}for(let j=i+1;j<n&&sc[j]-sc[i]<W9;j++){sw+=hh[j];sk+=a9[j]*hh[j];}o9[i]=sk/sw;}return o9;};
+    const kl=lisse(lisse(kap)),kref=1/(2.4*jRm);
+    const iDe=k9=>{let bi=0,bd=1e18;for(let j=0;j<n;j++){const d=ctrl[j].distanceToSquared(Q[k9].p);if(d<bd){bd=d;bi=j;}}return bi;};
+    const plat=[['porte0','porte1'],['pont0','pont1']].map(function(c9){const a9=sc[iDe(c9[0])],b9=sc[iDe(c9[1])];return [Math.min(a9,b9),Math.max(a9,b9)];});
+    JADE.bankN=[];let mx=0;
+    for(let i=0;i<n;i++){let m=sm9(250,650,sc[i])*sm9(0,400,sc[n-1]-sc[i]);
+      for(const z9 of plat){const d=Math.max(z9[0]-sc[i],sc[i]-z9[1],0);m=Math.min(m,sm9(0,260,d));}
+      const b9=JADE_BANK.max*Math.tanh(kl[i]/kref)*m,a9=ctrl[Math.max(0,i-1)],c9=ctrl[Math.min(n-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl;
+      JADE.bankN.push(new THREE.Vector3(-tz*Math.sin(b9),Math.cos(b9),tx*Math.sin(b9)));if(Math.abs(b9)>mx)mx=Math.abs(b9);}
+    JADE.bankMax=Math.round(mx*57.2958);}
   JADE.Q=Q;JADE.mk=MK9; /* (2026-10-20) les modules de cette vallée (dbgJade().mods) */
   return ctrl;
 }

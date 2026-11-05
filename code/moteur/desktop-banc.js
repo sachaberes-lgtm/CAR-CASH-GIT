@@ -28,7 +28,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
     if(o)feuilleOuvre(dPan,'open');else feuilleFerme(dPan,'open');
     if(o){ dPanSync(); if(started&&!gameOver&&!paused)togglePause(); }
     else if(started&&!gameOver&&paused)togglePause(); }
-  if(dGear)dGear.addEventListener('click',function(e){ e.stopPropagation(); dPanOpen(true); });
+  if(dGear)dGear.addEventListener('click',function(e){ e.stopPropagation(); if(started&&!gameOver&&mode==='boom'){boomSkip();return;} /* (audit p12) comme gearOpenHandler côté mobile : pendant l'explosion, le ⏸ avance à l'écran de fin au lieu d'ouvrir une feuille sur un jeu qui ne se met plus en pause */ dPanOpen(true); });
   if(dPan)dPan.addEventListener('click',function(e){
     e.stopPropagation();
     const el=e.target&&e.target.closest?e.target.closest('.tp'):null;
