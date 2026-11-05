@@ -6003,6 +6003,7 @@ html.bqIndus body #garage::before,html.bqIndus body #garage::after{opacity:0!imp
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom{background:none!important;box-shadow:none!important;clip-path:none!important;padding-top:0}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom::before{display:none}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip,#gStrip.fnBande){display:none!important}
+html body #garage.modeShop.bqEntre:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip){visibility:hidden!important} /* (2026-11-05) le geste BOUTIQUE → la salle blanche : la vitrine du jour est déjà écrite mais pas encore à montrer (la place reste, le display:none tombe avec bqIndus) */
 /* L'INTERFACE v3 (voir garBqPanneau) : blanc, du noir pour lire, un BLEU ÉLECTRIQUE (#3d4bff) pour ce qui compte — l'orange retiré */
 #gBqTete{position:absolute;top:calc(var(--sT,0px) + 16px);display:flex;align-items:flex-start;justify-content:space-between;font-family:var(--pix);animation:bqTete .5s var(--ease) .12s both}
 @keyframes bqTete{from{opacity:0;translate:0 -12px}to{opacity:1;translate:0 0}}
@@ -8625,8 +8626,8 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
 }
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
-  <!-- LE CHARGEMENT : l'Ouroboros de Fable EN MODE SNAKE (demande de Sacha du 04/11 : Snake Nokia / Google, culture jeu vidéo) : un anneau fixe de segments carrés, une grosse tête à gros yeux qui avance autour du corps en le croquant (il repousse derrière elle), des pommes avalées qui traversent le corps, une pomme au centre ; en CSS pur (bande de 48 images en data-URL, steps(48) sur un transform joué par le compositeur : il bouge même quand le script construit la scène), donc visible dès la première image, avant tout le JS ; intro-161.js (chCl) l'éteint quand la boule se dessine. Le dessin se retouche dans outils/ouroboros/ouroboros.cjs. -->
-  <style>#spCharge{position:absolute;left:50%;top:46%;width:158px;height:158px;margin:-79px 0 0 -79px;z-index:5;pointer-events:none;overflow:hidden;contain:strict}#spCharge::before{content:"";position:absolute;left:0;top:0;width:7584px;height:158px;background:url("data:image/png;base64,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") 0 0/100% 100% no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;animation:spOuro 3s steps(48) infinite;will-change:transform}@keyframes spOuro{to{transform:translate3d(-100%,0,0)}}@media(prefers-reduced-motion:reduce){#spCharge::before{animation:none}}</style>
+  <!-- LE CHARGEMENT : l'Ouroboros pixel de Fable (serpent organique mignon) : le corps est fixe, c'est la TÊTE qui fait le tour du corps en le rongeant (gueule qui claque, dents), des boules de matière traversent le corps et sont avalées ; CSS pur (48 images, steps(48) sur un transform) ; intro-161.js (chCl) l'éteint. Le dessin se retouche dans outils/ouroboros/ouroboros.cjs. -->
+  <style>#spCharge{position:absolute;left:50%;top:46%;width:104px;height:104px;margin:-52px 0 0 -52px;z-index:5;pointer-events:none;overflow:hidden;contain:strict}#spCharge::before{content:"";position:absolute;left:0;top:0;width:4992px;height:104px;background:url("data:image/png;base64,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") 0 0/100% 100% no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;animation:spOuro 2.4s steps(48) infinite;will-change:transform}@keyframes spOuro{to{transform:translate3d(-100%,0,0)}}@media(min-aspect-ratio:23/20){#spCharge{top:50%}}@media(prefers-reduced-motion:reduce){#spCharge::before{animation:none}}</style>
   <div id="spCharge"></div>
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -9090,18 +9091,22 @@ html[data-reduced-motion="1"] body #garage#garage #gAct>#gShopBas#gShopBas::befo
    #ff3347, SETTINGS or (inchangé) — les icônes suivent `--nc`. LA BANDELETTE sous CASH CAR : cyan · magenta · or (l'ordre rose · cyan · or, cyan
    et rose échangés) ; elle ne lit PAS `--livree` (son dégradé est dans `#mHome .mTitle::after`). Le badge NEW reste rose. Le verre-loupe de v858 avait été
    retiré par Sacha (v863) : c'est cette version-ci que Léo a demandée ensuite (tuiles, pas de parallélogramme — « trop Claude »).
-   Texte en contre-pente : tout enfant des tuiles a `transform:none`. Pas de backdrop-filter : il relit la 3D derrière chaque tuile à chaque image (interdit sur mobile par la charte) — un voile blanc en dégradé le remplace. */
+   Texte en contre-pente : tout enfant des tuiles a `transform:none`. Pas de backdrop-filter : il relit la 3D derrière chaque tuile à chaque image (interdit sur mobile par la charte) — un voile blanc en dégradé le remplace.
+   (2026-11-05, Sacha : « en fonction des couleurs du ciel, on voit pas certains boutons » — ciel doré ou rose, REGLAGES et ACHAT se fondaient dedans) LE
+   VOILE GIVRÉ FONCE : le dernier calque passe d'un lavis presque transparent (blanc 8-24 %) à un fond anthracite translucide (64-72 %) — la tuile garde
+   son verre (reflets, lueur de couleur, givre) mais a enfin un corps qui tient tête à n'importe quel ciel ; + un liseré d'encre tout autour (contour net,
+   peu importe la luminosité derrière). */
 html{--lk:1}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte){
   position:relative;isolation:isolate;border-radius:7px!important;clip-path:none!important;animation:none!important;overflow:visible;
   background:
-    radial-gradient(120% 95% at 16% -12%,rgba(255,255,255,calc(.62*var(--lk))) 0,rgba(255,255,255,calc(.14*var(--lk))) 36%,transparent 57%),
-    linear-gradient(112deg,transparent 0 41%,rgba(255,255,255,calc(.34*var(--lk))) 42% 47%,transparent 48% 54%,rgba(255,255,255,calc(.16*var(--lk))) 55% 58%,transparent 59%),
-    radial-gradient(95% 75% at 86% 118%,color-mix(in srgb,var(--nc) calc(46%*var(--lk)),transparent),transparent 62%),
-    linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08))!important;
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.8),inset 0 2px 2px rgba(255,255,255,calc(.85*var(--lk))),
-    inset 0 -12px 16px -9px color-mix(in srgb,var(--nc) 60%,transparent),inset 0 0 24px rgba(255,255,255,calc(.22*var(--lk))),
-    0 0 18px color-mix(in srgb,var(--nc) 42%,transparent),0 7px 16px -6px rgba(15,25,70,.32)!important}
+    radial-gradient(120% 95% at 16% -12%,rgba(255,255,255,calc(.5*var(--lk))) 0,rgba(255,255,255,calc(.12*var(--lk))) 36%,transparent 57%),
+    linear-gradient(112deg,transparent 0 41%,rgba(255,255,255,calc(.28*var(--lk))) 42% 47%,transparent 48% 54%,rgba(255,255,255,calc(.13*var(--lk))) 55% 58%,transparent 59%),
+    radial-gradient(95% 75% at 86% 118%,color-mix(in srgb,var(--nc) calc(50%*var(--lk)),transparent),transparent 62%),
+    linear-gradient(180deg,rgba(26,21,48,.64),rgba(11,9,23,.72))!important;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 0 2px 2px rgba(255,255,255,calc(.5*var(--lk))),
+    inset 0 -12px 16px -9px color-mix(in srgb,var(--nc) 65%,transparent),inset 0 0 24px rgba(255,255,255,calc(.12*var(--lk))),
+    0 0 18px color-mix(in srgb,var(--nc) 48%,transparent),0 0 0 1px rgba(5,3,14,.6),0 7px 16px -6px rgba(10,6,20,.55)!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::before{
   content:''!important;display:block!important;position:absolute;inset:4px;z-index:-1;pointer-events:none;border-radius:4px;
   border:1px solid rgba(255,255,255,calc(.34*var(--lk)));box-shadow:inset 0 0 8px rgba(255,255,255,calc(.18*var(--lk)));background:none!important;animation:none!important;transform:none!important}
@@ -9601,6 +9606,40 @@ html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMi
 /* « OU GAGNE-LA » sous le nom : la même ligne que SE DÉBLOQUE */
 #gBqNom .pDeb .m2DebT{color:#14171c}
 @media (prefers-reduced-motion:reduce){.pL,#gBqPan .bqK.hab.r-legendaire .bqKph.c-peinture::after,#gBqPan .bqRail .bqSec.bqRarS[data-rar="legendaire"] .bqRl{animation:none}}
+/* ===== LES TRAÎNÉES (2026-11-05, Sacha : « retravaille la présentation des traînées dans le même esprit ») =====
+   La carte montre la traînée EN MOUVEMENT : une plaque de nuit (lignes de vitesse qui filent), la tuyère qui brûle à droite, le ruban qui en coule
+   et s'effile vers la gauche (sa lumière court dedans), trois pictogrammes qui s'envolent. GLOUTON et LA GRILLE n'ont pas de ruban (leur effet EST
+   la traînée) ; l'ARC-EN-CIEL a le sien en arc-en-ciel. Le filet violet / or et l'éclat des légendaires sont ceux des peintures. */
+#gBq #gBqPan .bqK.hab .bqKph.c-trainee{position:relative;align-items:stretch;justify-content:stretch;padding:6px 6px 0;box-sizing:border-box}
+#gBq #gBqPan .bqK.hab .bqKph .tSw{position:relative;display:block;flex:1;min-height:0;border-radius:9px 9px 3px 3px;overflow:hidden;
+  background:radial-gradient(90% 120% at 88% 50%,color-mix(in srgb,var(--tc) 30%,#151829) 0,#0e1020 55%,#08090f 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),inset 0 -6px 10px -6px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.9)}
+#gBq #gBqPan .bqK.hab .bqKph .tSw::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.55;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent) 0 18%/38% 1px repeat-x,linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent) 30% 82%/52% 1px repeat-x,
+    linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent) 60% 34%/30% 1px repeat-x;animation:tVit 1.1s linear infinite}
+@keyframes tVit{to{background-position:-120px 18%,-150px 82%,-90px 34%}}
+#gBq #gBqPan .bqK.hab .bqKph .tSw::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(165deg,rgba(255,255,255,.18) 0,rgba(255,255,255,0) 32%)}
+.tSw .tRu{position:absolute;left:-6%;right:15%;top:50%;height:52%;translate:0 -50%;clip-path:polygon(0 47%,100% 0,100% 100%,0 53%);
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,0) 0 16px,rgba(255,255,255,.45) 16px 19px,rgba(255,255,255,0) 19px 30px),linear-gradient(90deg,transparent 0,color-mix(in srgb,var(--tc) 55%,transparent) 38%,var(--tc) 82%,#fff 100%);
+  filter:drop-shadow(0 0 5px var(--tc));animation:tCoule .7s linear infinite}
+@keyframes tCoule{to{background-position:-30px 0,0 0}}
+.tSw.arc .tRu{background:repeating-linear-gradient(90deg,rgba(255,255,255,0) 0 16px,rgba(255,255,255,.45) 16px 19px,rgba(255,255,255,0) 19px 30px),linear-gradient(90deg,transparent 0,#9b5bff 18%,#3bb4ff 34%,#3bff6a 50%,#ffe23a 66%,#ff9b1a 82%,#ff3b3b 100%)}
+.tSw.sansRuban .tRu{display:none}
+.tSw .tBuse{position:absolute;right:15%;top:50%;width:12px;height:12px;translate:50% -50%;border-radius:50%;background:radial-gradient(circle,#fff 0 30%,var(--tc) 55%,transparent 72%);
+  box-shadow:0 0 12px 4px color-mix(in srgb,var(--tc) 70%,transparent);animation:tBrule .18s steps(2) infinite alternate}
+@keyframes tBrule{to{scale:1.18}}
+.tSw .tPa{position:absolute;inset:0;pointer-events:none}
+#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi{position:absolute;right:16%;top:50%;--pxs:2;margin:0;opacity:0;filter:drop-shadow(1px 1px 0 rgba(0,0,0,.85)) drop-shadow(0 0 3px rgba(0,0,0,.5));animation:tPart 2.1s linear infinite}
+#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(2){top:28%;animation-delay:-.7s}
+#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(3){top:72%;animation-delay:-1.4s}
+.tSw.sansRuban .tPa .pxi{animation-duration:1.6s}
+@keyframes tPart{0%{transform:translate(0,-50%) scale(1.1);opacity:0}12%{opacity:1}80%{opacity:.9}100%{transform:translate(-78px,-50%) scale(.55);opacity:0}}
+#gBqPan .bqK.hab.r-legendaire .bqKph.c-trainee::after{content:'';position:absolute;inset:6px 6px 0;border-radius:9px 9px 3px 3px;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(115deg,rgba(255,255,255,0) 38%,rgba(255,255,255,.45) 50%,rgba(255,255,255,0) 62%) no-repeat;background-size:300% 100%;animation:pBrille 3.6s ease-in-out infinite}
+/* sa phrase sous le nom (la caisse ne boost pas sur le plateau : ce sont la carte et ces mots qui la vendent) */
+#gBqNom .tDesc{display:block;max-width:min(80vw,420px);margin:6px auto 0;font-size:var(--f0,8px);line-height:1.7;letter-spacing:.5px;color:#4a5260;text-align:center;white-space:normal}
+@media (orientation:landscape){#gBqNom .tDesc{max-width:none;font-size:7px;line-height:1.6}} /* couché : toute la largeur libre (garBq la donne à .bqM2) — deux lignes, pas trois : l'étiquette ne monte plus sur le logo */
+@media (prefers-reduced-motion:reduce){.tSw::before,.tSw .tRu,.tSw .tBuse,#gBqPan .bqK.hab.r-legendaire .bqKph.c-trainee::after{animation:none}#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi{animation:none;opacity:1}#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(2){right:42%}#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(3){right:66%}}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -9890,7 +9929,8 @@ function estCouche(){return COUCHE_MQ?COUCHE_MQ.matches:innerWidth>innerHeight;}
 /* ACHAT_EUR (2026-11-05, Opus : jury INT-01 / INT-20, décision D3 « masquer partout tant que StoreKit n'existe pas ») : faux = ni l'écran ACHAT
    (#mShop), ni ses portes (la tuile de l'accueil, la BOUTIQUE du bas du garage, la porte des offres éphémères), ni le rayon ACHAT de la boutique.
    shopPaye reste, inerte. Les caisses en € ne comptent plus nulle part (caisse équipée, étage, missions « toutes »). `?achat=ancien` : l'ancien. */
-const ACHAT_EUR=/[?&]achat=ancien\b/.test(location.search);
+/* (2026-11-05, Sacha : « remet le, c'est tout, je m'en fous du jury ») ACHAT REVIENT SUR LE SITE : seule l'app iPhone (EN_APP) le garde coupé (preparer-www l'y cache aussi) ; `?achat=non` : la coupe du jury. */
+const ACHAT_EUR=(!EN_APP&&!/[?&]achat=non\b/.test(location.search))||/[?&]achat=ancien\b/.test(location.search);
 if(!ACHAT_EUR)try{const s9=document.createElement('style');s9.id='sansAchat';
   s9.textContent='html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],#mShop,#bdShop,.fnPorte){display:none!important}';
   document.head.appendChild(s9);}catch(e){}
@@ -14695,13 +14735,14 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
   const FZ=[],ZDBG=[],lead=Math.max(520,5*vC);let fi=0;
   if(!sansVrille&&ROUTE_LIBRE){const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,sOf=function(j){const f=Math.max(0,Math.min(nC,j))/nC*dv,k=Math.min(dv-1,Math.floor(f));return lg[k]+(lg[k+1]-lg[k])*(f-k);};
     for(const m of MODMARK)if(m.g||m.f){const a=sOf(m.i0),b=sOf(m.i1);ZDBG.push([m.fig||'?',Math.round(a),Math.round(b),Math.round(s0),Math.round(fin),b>fin-40||a<s0+60?0:1]);if(b>fin-40||a<s0+60)continue;
-      FZ.push({a:a,b:b,ev:(m.f||[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};})});}
+      FZ.push({a:a,b:b,calme:m.calme?1:0,ev:(m.f||[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};})});}
     FZ.sort(function(x,y){return x.a-y.a;});}
   while(!sansVrille&&s<fin-120){
     if(fi<FZ.length&&FZ[fi].a-lead-s<60){const z=FZ[fi++];
       if(z.a>s+1){const w=Math.atan2(Math.sin(rho),Math.cos(rho));seg.push({s0:s,s1:z.a,r0:rho,r1:rho-w});rho-=w;} // à l'endroit avant la figure (le plus court)
       let c=Math.max(s,z.a);for(const e of z.ev){if(e.a>c+1)seg.push({s0:c,s1:e.a,r0:rho,r1:rho});seg.push({s0:e.a,s1:e.b,r0:rho,r1:rho+e.amt,fig:1});rho+=e.amt;c=e.b;}
-      if(z.b>c+1)seg.push({s0:c,s1:z.b,r0:rho,r1:rho});s=Math.max(s,z.b);continue;}
+      if(z.b>c+1)seg.push({s0:c,s1:z.b,r0:rho,r1:rho,calme:z.calme}); /* (2026-11-05, LES GÉANTS) m.calme : une figure SANS roulis tenue À L'ENDROIT — la dalle y est rappelée vers le ciel (dévers compris), comme dans une tenue calme ; sans ce rappel le repère dérive dans les virages et la dalle se couche */
+      s=Math.max(s,z.b);continue;}
     const lim=fi<FZ.length?FZ[fi].a-lead:fin; // la route ordinaire s'arrête `lead` m avant la prochaine figure
     const r=rg(),Z=O.zone?Object.assign({},O,O.zone(s/Lc)):O;let len,amt=0; /* (SUR LES PAROIS) Z : les réglages DE L'ENDROIT (O.zone(part de la route) → surcharges : chaque salle de la grotte a son caractère de roulis) */
     if(NV_CALME){const w=Math.atan2(Math.sin(rho),Math.cos(rho)); // (MOINS TORDUE, voir NV_CALME) w : le roulis ramené entre −π et π (0 = à l'endroit)
@@ -23420,6 +23461,37 @@ if(GRT_VASTE)Object.assign(GRT_FORME,{
   fin:   {rh:230,up:210,dn:160, ex:2,nz:.16}});
 /* (2026-10-25, SUR LES PAROIS) hug : le fond sous la route quand elle LONGE la paroi · lt : de combien (× rh) le creux se décale de côté — seules les salles qui roulent en ont */
 /* LA PROFONDEUR : le fond sous la route s'ouvre en gouffre ~25 % du temps (0 = la route longe la paroi, 1 = le fond entier de la salle) */
+/* ===== LES GÉANTS (2026-11-05, Sacha : « un module avec une salle pleine de stalagmites… je veux qu'il soit tellement imposant que ça devienne un obstacle à part entière ») =====
+   Dans la salle des stalactites, un MODULE : la route fait une serpentine de 1 à 3 virages larges et, au CENTRE de chaque virage, se dresse un stalagmite GÉANT (50-70 m de rayon,
+   150-210 m de haut, tiges de pierre superposées, petits piquants au pied, une stalactite qui descend presque à sa pointe). Le virage existe À CAUSE de lui : il cache la suite de la route,
+   couper le virage en vol, c'est le percuter (la roche tue en vol), et il est trop haut pour passer par-dessus. La route reste simple (longues droites, virages larges) : c'est le décor qui est l'obstacle.
+   · `gGeants` (grtTrace) trace la serpentine et note chaque virage (GROTTE.geants : abscisses d'entrée et de sortie) ; le module est marqué `f:[]` dans MODMARK : pisteTord y tient la dalle À L'ENDROIT (le géant est sur le sol).
+   · `grtEchantillons` relit le vrai virage dans la route finale (cap au début et à la fin → rayon, centre) : R.geants ; et ouvre la salle autour (RH, UP) pour que le géant tienne dans l'air.
+   · `grtDecorsG` plante le géant sur le sol (plancher), le plafonne sous la voûte, et l'inscrit aux collisions (cône à la mesure de la facette).
+   `?sans=geants` = la salle d'avant. Console : `dbgGrotte('geants')`. Les réglages sont ici, à un seul endroit. */
+const GRT_GEANT={on:!/[?&]sans=([^&]*,)?geants(,|&|$)/.test(location.search),
+  rayon:[48,72],  /* le rayon du pied (m) : 0,3 × le rayon du virage, borné ici */
+  jour:70,        /* l'air minimum entre le flanc du géant et le bord de la route (m) */
+  haut:[150,210], /* la pointe au-dessus de la ROUTE (m) — le fond peut être 200 m plus bas, dans un gouffre ; plus bas si la voûte est basse */
+  voute:38,       /* l'air gardé entre la pointe du géant et la voûte (m) */
+  salle:70,       /* la roche creusée de plus derrière le géant (m) */
+  up:300,         /* le plafond de la salle autour des géants (m au-dessus de la dalle) */
+  nMax:3};        /* le nombre de géants du module */
+/* ===== LA ROUTE À RYTHME (2026-11-05, Sacha : « il n'y a pas assez de virages, pas assez de trucs fun, rajoute des modules — vitesse, exploration, smoothness ») =====
+   MESURÉ au banc (passation/RACCOURCIS.md, outils/banc-routes) sur la route d'hier : 0,5 virage au km (cible ≥ 2,5), 0,2 enchaînement au km (≥ 1), 0 raccourci au km (≥ 0,6). Des virages LARGES (≥ 1,9 × le rayon mini : ils passent
+   au pouce, jamais serrés) qui s'enchaînent en rythme, des droites courtes (≤ 3 s), et des MODULES lisibles : slalom, chicane, corde, esses (le rythme), houle (des bosses : les tremplins), LACETS (deux fois : ce sont
+   les RACCOURCIS, la route sage reste ouverte), et trois nouveaux — LE PLONGEON (une descente raide et sa bosse), LA CORNICHE (un grand virage où la dalle monte sur la paroi) et LE BOYAU RAPIDE (un couloir étroit où la roche défile).
+   `?sans=flow` = la route d'hier (longues droites, rares courbes douces). Réglages ici, à un seul endroit. */
+const GRT_FLOW={on:!/[?&]sans=([^&]*,)?flow(,|&|$)/.test(location.search),
+  a:[30,30],      /* l'angle d'un virage (° : minimum + étendue) */
+  k:[1.9,1.0],    /* son rayon (× rM : minimum + étendue) */
+  gap:[.4,15,60], /* la chance d'une droite après un virage, sa longueur minimum et son étendue (m × KV) */
+  rel:42,         /* écart au cap de l'axe (°) au-delà duquel le virage suivant ramène vers lui */
+  liste:['gSlalom','gLacets','gChicane','gHoule','gEsses','gCorde','gPlongeon','gCorniche','gBoyau'], /* les modules tirés par paquets (le même n'est jamais deux fois de suite) */
+  signature:{luxe:'gBoyau',boyau:'gLacets',lave:'gCorniche',abysse:'gLacets'}, /* le module PROPRE à chaque salle (le premier qu'elle reçoit) : la luxuriante s'engouffre dans un couloir, le boyau de cristaux et les abysses descendent en lacets (les raccourcis), la salle de lave longe sa paroi en corniche ; les stalactites ont les géants */
+  plongeon:{amp:.07,long:[480,140]},        /* la pente en plus (0,07 = 4°) sur 480-620 m × KV, puis une bosse (−0,55 × amp) : le tremplin */
+  corniche:{a:[75,25],k:2.4,roulis:1.8},   /* l'angle (°), le rayon (× rM), la durée du roulis (s de croisière) */
+  boyau:{long:[340,100],rh:70,up:68,dn:42}};/* la longueur (m × KV) et le creux du couloir : demi-largeur, voûte, fond */
 function grtProfond(s){const v=.5+.5*Math.sin(s*.0069+1.3)*Math.cos(s*.0027+.4);return Math.max(0,Math.min(1,(v-.62)/.28));}
 /* long : la longueur · ent : l'entonnoir du puits au-delà de la spirale (m) · voute / bassin / eauP : sa voûte au-dessus du 1er tour, son fond et
    son eau sous le dernier · nzK : l'échelle du bruit de la roche · lacP, eauL : la lave et le lac sous le point le plus bas de leur salle ·
@@ -23477,7 +23549,7 @@ function* genGrotte(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   CAMPM.length=0;MODMARK.length=0;
   const LV=typeof lvPiste==='function'?lvPiste():1,gr=mulberry32((rnd()*4294967296)>>>0);let best=null;
   for(let e=0;e<6;e++){if(e)yield;const r=grtTrace(gr,LV);if(!best||r.conflits<best.conflits)best=r;if(!r.conflits)break;}
-  for(const k of ['Q','salles','sTot','conflits','croise'])GROTTE[k]=best[k];
+  for(const k of ['Q','salles','sTot','conflits','croise','geants','boyaux'])GROTTE[k]=best[k];
   for(const m of best.mods||[])MODMARK.push(m);
   return best.ctrl;}
 function grtTrace(rnd,LV){
@@ -23508,6 +23580,7 @@ function grtTrace(rnd,LV){
   // (2026-11-04, Sacha : « la génération de route dans la grotte, c'est trop compliqué — plus simple, plus linéaire, moins de torsion serrée ») :
   // plus de caractères de salle ni de virages serrés — de LONGUES droites et de rares courbes douces (12-26°, grands rayons), toujours ramenées vers l'axe.
   const virages=n=>{for(let k=0;k<n;k++){const r=rel();
+    if(GRT_FLOW.on){const F=GRT_FLOW;sg=Math.abs(r)>F.rel?(r>0?-1:1):-sg;tourne(sg*(F.a[0]+rnd()*F.a[1]),rM*(F.k[0]+rnd()*F.k[1]));if(rnd()<F.gap[0])droite((F.gap[1]+rnd()*F.gap[2])*KV);continue;} /* (2026-11-05) LA ROUTE À RYTHME */
     sg=Math.abs(r)>16?(r>0?-1:1):-sg;tourne(sg*(12+rnd()*14),Rl());droite((70+rnd()*90)*KV);}};
   const SL=[],salle=k=>{sa=k;SL.push({k:k,p:P.clone(),s:s});};
   // LES MODULES DES PROFONDEURS (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON) : les quatre du volcan, cap borné par l'axe, hasard `rv`
@@ -23527,32 +23600,55 @@ function grtTrace(rnd,LV){
   const gLacets=()=>{gAxe();const n=2+((rv()*2)|0),R=rM*(1.15+rv()*.25);let d=rel()>0?-1:1;arc(d*90,R);for(let k=0;k<n;k++){droite((80+rv()*90)*KV);arc(-d*180,R);d=-d;}droite((60+rv()*50)*KV);arc(-d*90,R);};
   const gEsses=()=>{gAxe();const n=3+((rv()*3)|0),a=56+rv()*12,R=rM*(1.2+rv()*.25);let s9=rel()>0?-1:1;tourne(s9*a*.5,R);for(let k=0;k<n;k++){s9=-s9;tourne(s9*a,R);droite((10+rv()*16)*KV);}tourne(-s9*a*.5,R);};
   const gDouce=()=>{gAxe();const s9=rel()>0?-1:1;droite(60*KV);tourne(s9*20,Rl());droite(80*KV);tourne(-s9*20,Rl());droite(60*KV);}; // un seul module : un S large
-  const MJ=[gDouce];
-  const gMod=()=>{let m=0;for(let e=0;e<6;e++){if(!paq.length){const t=MJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)paq.push(x);}m=paq.shift();if(m!==mLast)break;}
-    mLast=m;const i0=ctrl.length-1;MJ[m]();MM.push({i0:i0,i1:ctrl.length-1});};
+  /* LES GÉANTS (2026-11-05, voir GRT_GEANT) : la serpentine de la salle des stalactites. Un virage large par géant (1er : ~44°, les suivants ~88°, de l'un à l'autre côté de l'axe), un stalagmite au centre de chacun.
+     Les rayons sont ceux des grandes courbes (≥ 1,7 rM, jamais sous 190 m) ; les droites entre deux virages laissent voir le suivant. Le module n'est PAS dans MJ (il n'est pas tiré au hasard : la salle des stalactites l'a toujours). */
+  const GEA=[],gGeants=(n,iZ)=>{gAxe();const i0=iZ!=null?iZ:ctrl.length-1,A=40+rv()*8,Rg=Math.max(rM*1.7,190)+rv()*45;let d=rel()>0?-1:1;
+    droite((130+rv()*60)*KV); /* de quoi poser la dalle à l'endroit avant le 1er virage */
+    for(let k=0;k<n;k++){const a=wrap(axe+d*A/57.2958-phi)*57.2958,sA=s;arc(a,Rg);GEA.push({s0:sA,s1:s,sg:a>0?1:-1,R:Rg});droite((60+rv()*50)*KV);d=-d;}
+    vers(0,Rg);droite(50*KV);MM.push({i0:i0,i1:ctrl.length-1,f:[],calme:1,geant:1});}; /* f:[] : pisteTord tient la dalle à l'endroit sur tout le module (une « figure » sans roulis) */
+  /* LE PLONGEON (2026-11-05, Sacha : « vitesse, sensation ») : un grand S qui s'ouvre sur une descente RAIDE (+0,07 de pente sur ~500 m, ~4° de plus) suivie d'une bosse : la route se redresse et la caisse décolle au sommet — un tremplin naturel.
+     La pente en plus passe par gM (la houle) ; la longueur du module est calculée d'avance pour que la bosse tombe à la fin. */
+  const gPlongeon=()=>{gAxe();const P9=GRT_FLOW.plongeon,s9=rel()>0?-1:1,Rp=Rl(),aP=34,d1=(P9.long[0]*.2+rv()*P9.long[1]*.4)*KV,d2=(P9.long[0]*.25+rv()*P9.long[1]*.4)*KV,L9=d1+Rp*aP/57.2958+d2,s0=s;
+    gM={s0:s0,s1:s0+L9,f:function(sx){const u=Math.max(0,Math.min(1,(sx-s0)/L9));return u<.62?P9.amp*Math.sin(Math.PI*u/.62):-.55*P9.amp*Math.sin(Math.PI*(u-.62)/.38);}};
+    droite(d1);tourne(s9*aP,Rp);droite(d2);gM=null;};
+  /* LA CORNICHE : un grand virage (75-100°) où la dalle se couche d'un quart de tour sur la paroi (le côté extérieur : on rase la roche), tient le virage, puis se redresse — le roulis est SCRIPTÉ (MODMARK.f, comme LE MUR des nuages) */
+  const gCorniche=()=>{gAxe();const C9=GRT_FLOW.corniche,sg9=rel()>0?-1:1,Rc=Math.max(rM*C9.k,vw*.85)*(.95+rv()*.25),aC=C9.a[0]+rv()*C9.a[1],dR=Math.max(160,vw*C9.roulis);
+    droite(70*KV);const ia=ctrl.length-1;droite(dR);const ib=ctrl.length-1;arc(sg9*aC,Rc);const ic=ctrl.length-1;droite(dR);const id=ctrl.length-1;vers(0,Rc);droite(50*KV); /* le retour à l'axe, dalle à l'endroit */
+    return {g:1,fig:'corniche',f:[[ia,ib,-sg9*Math.PI/2],[ic,id,sg9*Math.PI/2]]};};
+  /* LE BOYAU RAPIDE : un couloir étroit (demi-largeur 70 m, voûte 68 m) presque droit, torches serrées : la roche défile à 30 m du bord de la route. Le creux se resserre dans grtEchantillons (GROTTE.boyaux), la dalle reste à l'endroit */
+  const BOY=[],gBoyau=()=>{gAxe();const B9=GRT_FLOW.boyau,s9=rel()>0?-1:1,sA=s;droite((B9.long[0]*.45+rv()*B9.long[1]*.5)*KV);tourne(s9*(10+rv()*8),Rl()*1.4);droite((B9.long[0]*.45+rv()*B9.long[1]*.5)*KV);
+    BOY.push({s0:sA,s1:s});return {f:[],calme:1,tunnel:1};};
+  const MJALL={gSlalom:gSlalom,gCorde:gCorde,gChicane:gChicane,gHoule:gHoule,gEsses:gEsses,gDouce:gDouce,gEpingle:gEpingle,gLacets:gLacets,gPlongeon:gPlongeon,gCorniche:gCorniche,gBoyau:gBoyau};
+  const MJ=GRT_FLOW.on?GRT_FLOW.liste.map(function(n){return MJALL[n];}):[gDouce];
+  const gMod=sig=>{let m=0,pris9=false;if(sig&&GRT_FLOW.on&&MJALL[sig]&&MJ.indexOf(MJALL[sig])>=0&&(mLast<0||MJ[mLast]!==MJALL[sig])){m=MJ.indexOf(MJALL[sig]);pris9=true;} /* (2026-11-05) la signature de la salle */
+    for(let e=0;e<6&&!pris9;e++){if(!paq.length){const t=MJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)paq.push(x);}m=paq.shift();if(mLast<0||MJ[m]!==MJ[mLast])break;}
+    mLast=m;const i0=ctrl.length-1,e9=MJ[m]();MM.push(Object.assign({i0:i0,i1:ctrl.length-1,nom:Object.keys(MJALL).filter(function(k){return MJALL[k]===MJ[m];})[0]},e9||{}));}; /* un module peut rendre de quoi marquer le sien (le roulis scripté de la corniche, le boyau) */
   /* LA PLACE DE CHAQUE SALLE (LA DURÉE DES MAPS, 2026-10-18 — voir DUREE) : l'entrée, la mine, le PUITS (la pièce maîtresse) et la salle du portail
      sont fixes ; les quatre autres salles se partagent le reste de la longueur visée (luxuriante 27 %, stalactites 20 %, lave 30 %, abysses 23 %),
      chacune remplie de virages et d'un module quand il tient (au moins un module dans la map). Hors du JOUER : la longueur pleine (~4,2 km × KV). */
   const LC9=(typeof longueurCible==='function'?longueurCible():0)*GRV.long; // (LA GROTTE VASTE, 19/10 : 1,7 × la longueur visée)
   const KM=Math.sqrt(KV),FIXE=170*KM+330*KM+250*KV,B9=LC9?Math.max(1500,LC9-FIXE):4200*KV*GRV.long; // (2026-10-25 : plus de spirale à réserver — tout le reste va aux salles)
   let nMod=0;
-  const remplir=(len,mods)=>{const s0=s;let m=0;while(s-s0<len-70){const r=len-(s-s0);if(m<mods&&(r>430*KV||nMod===0)){gMod();m++;nMod++;}else virages(1);}};
+  const remplir=(len,mods,sig)=>{const s0=s;let m=0;while(s-s0<len-70){const r=len-(s-s0);if(m<mods&&(r>430*KV||nMod===0)){gMod(m===0?sig:null);m++;nMod++;}else virages(1);}};
   // ================= 0 · L'ENTRÉE ET LA MINE =================
   push();salle('mine');ici('depart');droite(170*KM);ici('mine0'); // (la mine ne grandit qu'en √KV : c'est un décor qu'on reconnaît, pas un tronçon de vitesse)
   {const a=sg*(24+rnd()*10);tourne(a,Rn());droite(70*KM);tourne(-a*1.25,Rn());droite(90*KM);tourne(a*.7,Rn());droite(40*KM);}ici('mine1');
   let C=null,b0=0,yH0=0,sH0=0,yH1=0,sH1=0,sgB=1;
   // ================= 1 · LA GROTTE LUXURIANTE =================
-  const sLuxe=len=>{salle('luxe');remplir(len,Math.max(1,Math.round(len/(640*KV))));droite(20*KV);};
+  const sLuxe=len=>{salle('luxe');remplir(len,Math.max(1,Math.round(len/(640*KV))),GRT_FLOW.signature.luxe);droite(20*KV);};
   // ================= 2 · LE BOYAU DE CRISTAUX : un tube étroit qui tourne vite =================
-  const sBoyau=len=>{salle('boyau');remplir(len,Math.max(1,Math.round(len/(520*KV))));droite(20*KV);};
+  const sBoyau=len=>{salle('boyau');remplir(len,Math.max(1,Math.round(len/(520*KV))),GRT_FLOW.signature.boyau);droite(20*KV);};
   // ================= 3 · LES STALACTITES =================
-  const sStal=len=>{salle('stal');remplir(len,Math.max(1,Math.round(len/(700*KV))));};
+  const sStal=len=>{salle('stal');const s0=s;
+    if(GRT_GEANT.on){const iZ=ctrl.length-1;droite(120*KV);gGeants(Math.max(1,Math.min(GRT_GEANT.nMax,Math.floor((len-600*KV)/430))),iZ);nMod++;remplir(Math.max(0,len-(s-s0)),0);} /* (2026-11-05) LES GÉANTS : le module de la salle ; le reste, de longues droites et de rares courbes */
+    else remplir(len,Math.max(1,Math.round(len/(700*KV))));};
   // ================= 4 · LE LAC DE LAVE : de longues courbes au-dessus de la lave =================
   const sLave=len=>{salle('lave');{const s0=s;droite(60*KV);let m=0;
-    while(s-s0<len-80){const r=len-(s-s0);if(m<2&&(nMod<2||r>700*KV)&&r>430*KV){gMod();m++;nMod++;continue;}
+    while(s-s0<len-80){const r=len-(s-s0);if(m<2&&(nMod<2||r>700*KV)&&r>430*KV){gMod(m===0?GRT_FLOW.signature.lave:null);m++;nMod++;continue;}
+      if(GRT_FLOW.on){virages(1);continue;} /* (2026-11-05) LA ROUTE À RYTHME */
       const rr=rel();sg=Math.abs(rr)>20?(rr>0?-1:1):-sg;tourne(sg*(12+rnd()*14),Rl());droite((70+rnd()*90)*KV);}}};
   // ================= 5 · LES ABYSSES =================
-  const sAbysse=len=>{salle('abysse');remplir(len,Math.max(nMod?1:2,Math.round(len/(700*KV))));if(!nMod){gMod();nMod++;}}; // (au moins un module dans la map)
+  const sAbysse=len=>{salle('abysse');remplir(len,Math.max(nMod?1:2,Math.round(len/(700*KV))),GRT_FLOW.signature.abysse);if(!nMod){gMod();nMod++;}}; // (au moins un module dans la map)
   let HZ=null;
   if(!H9){sLuxe(B9*.25);sBoyau(B9*.15);sStal(B9*.2);sLave(B9*.26);sAbysse(B9*.14);}
   else{ /* LES PROFONDEURS AU HASARD (voir GRT_HASARD) : l'ordre des quatre salles du milieu (jamais la lave contre le puits), leurs longueurs, leurs caractères */
@@ -23572,7 +23668,7 @@ function grtTrace(rnd,LV){
         for(const j of L9){const sj=DN[j*4+3];if(sj-si<300)continue;const dh=Math.hypot(DN[j*4]-x,DN[j*4+2]-z);if(dh>2*RH+14)continue;
           const t=Math.round(si/150)+':'+Math.round(sj/150);if(vu.has(t))continue;vu.add(t);if(Math.abs(yy-DN[j*4+1])<32)conflits++;else croise++;}}}}
   if(HZ)Q.hasard=HZ;
-  return {ctrl:ctrl,Q:Q,salles:SL,conflits:conflits,croise:croise,mods:MM,sTot:s};
+  return {ctrl:ctrl,Q:Q,salles:SL,conflits:conflits,croise:croise,mods:MM,sTot:s,geants:GEA,boyaux:BOY};
 }
 /* ---------------- LA ROCHE : un CHAMP DE DENSITÉ creusé autour de la route ----------------
    (2026-10-18, Sacha, au premier banc : « non, arrête, ça fait pas Minecraft — je veux une grotte, les biomes de grotte de Minecraft, mais avec la
@@ -23621,15 +23717,36 @@ function grtEchantillons(){
   for(let k=0;k<20;k++){const d=(20-k)*6;pose(k,p0.x-T0.x*d,p0.y-T0.y*d,p0.z-T0.z*d,T0.x,T0.z,-d,1,N0,T0);}
   for(let k=0;k<ns;k++){const i=Math.min(NP-1,k*st),p=pts[i];pose(20+k,p.x,p.y,p.z,T[i].x,T[i].z,i*ds,0,Nn[i],T[i]);}
   for(let k=0;k<20;k++){const d=(k+1)*6;pose(20+ns+k,p1.x+T1.x*d,p1.y+T1.y*d,p1.z+T1.z*d,T1.x,T1.z,L+d,1,N1,T1);}
+  /* LES GÉANTS (2026-11-05, voir GRT_GEANT) : le vrai virage relu dans la route finale (le cap à l'entrée et à la sortie → le rayon, le centre : pisteTord a pu la déplacer un peu), le rayon du géant,
+     et la salle OUVERTE autour de lui — le creux (RH) s'élargit jusqu'à l'envers du géant + sa marge, la voûte (UP) monte, le décalage latéral (LAT) s'efface — ~40 m avant le virage jusqu'à ~40 m après, fondu sur ~180 m. */
+  R.geants=[];R.TUN=new Uint8Array(n); /* TUN : 1 dans le boyau rapide (les torches s'y serrent) */
+  if(GRT_GEANT.on&&GROTTE.geants&&GROTTE.geants.length){const G9=GRT_GEANT,wA=function(a){while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;},
+      qAt=function(s9){let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s9)lo=m;else hi=m-1;}return lo;};
+    for(const g of GROTTE.geants){const q0=qAt(g.s0*kS),q1=qAt(g.s1*kS);if(q1-q0<4)continue;const qm=(q0+q1)>>1,
+        dpsi=wA(Math.atan2(R.TX[q1],R.TZ[q1])-Math.atan2(R.TX[q0],R.TZ[q0])),len=R.S[q1]-R.S[q0];if(Math.abs(dpsi)<.3)continue;
+      const Rb=len/Math.abs(dpsi),psi=Math.atan2(R.TX[qm],R.TZ[qm]),sg=dpsi>0?1:-1,rG=Math.min(G9.rayon[1],Math.max(G9.rayon[0],Rb*.3),Rb-ROAD_HALF-G9.jour);if(rG<30)continue;
+      const G={x:R.X[qm]+sg*Rb*Math.cos(psi),z:R.Z[qm]-sg*Rb*Math.sin(psi),y:R.Y[qm],q:qm,q0:q0,q1:q1,R:Rb,r:rG,sg:sg};R.geants.push(G);
+      const need=Rb+rG+G9.salle,sa=R.S[q0],sb=R.S[q1];
+      for(let q=R.i0;q<R.n-20;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,40,220);if(f<=0)continue;
+        R.RH[q]=Math.max(R.RH[q],R.RH[q]+(need-R.RH[q])*f);R.UP[q]=Math.max(R.UP[q],R.UP[q]+(G9.up-R.UP[q])*f);R.LAT[q]*=1-f;}}}
+  /* LE BOYAU RAPIDE (2026-11-05, voir GRT_FLOW) : le creux se resserre autour de la route — demi-largeur, voûte et fond du couloir (GRT_FLOW.boyau), parois plus nettes — sur toute la longueur du module, fondu sur ~90 m aux deux bouts : on s'y engouffre. */
+  if(GRT_FLOW.on&&GROTTE.boyaux&&GROTTE.boyaux.length){const B9=GRT_FLOW.boyau;
+    for(const b of GROTTE.boyaux){const sa=b.s0*kS,sb=b.s1*kS;
+      for(let q=R.i0;q<R.n-20;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,0,90);if(f<=0)continue;
+        R.RH[q]+=(B9.rh-R.RH[q])*f;R.UP[q]+=(B9.up-R.UP[q])*f;R.DN[q]+=(Math.min(R.DN[q],B9.dn)-R.DN[q])*f;R.LAT[q]*=1-f;R.NZ[q]*=1-.6*f;if(f>.5)R.TUN[q]=1;}}}
   // LES LACS : la lave PLATE 70 m sous le point le plus bas de la salle de lave (elle déborde 300 m dans les salles voisines) ; l'eau de la grotte luxuriante
   const yMinDe=function(a,b){let m=1e9;for(let q=0;q<n;q++)if(!R.EXT[q]&&R.S[q]>=a&&R.S[q]<=b)m=Math.min(m,R.Y[q]);return m;};
   /* (AU HASARD) la lave ne déborde que vers les stalactites et les abysses (ses voisines d'avant) — jamais dans la mine, ni l'eau de la luxuriante ; sa LUMIÈRE n'éclaire qu'elle et les voisines où elle déborde
      (lavLum, par salle). (SUR LES PAROIS) le lac est creusé PAR EN DESSOUS de la route (R.BAS : un bassin vertical, voir buildGrotteG) — la route peut longer un mur ou le plafond au-dessus de la lave. */
+  /* (2026-11-05, LA ROUTE À RYTHME) LA PORTÉE D'UN LAC EST ROGNÉE là où la route passerait SOUS son niveau : avec des virages sur la paroi, la route plonge ou grimpe de plusieurs centaines de mètres (le virage d'une dalle couchée est vertical) ;
+     la lave déborde 300 m au-delà de sa salle, plus bas que la route y arrive, et la noyait (mesuré : 10 routes sur 30 au palier 0 ; 0 avant). Le lac s'arrête à la première dalle qui passe à moins de 24 m au-dessus de lui. */
+  const qDe=function(s9){let lo=R.i0,hi=n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s9)lo=m;else hi=m-1;}return lo;};
+  const rogne=function(L9,sa,sb){for(let q=qDe(sb);q<n-20&&R.S[q]<=L9.s1;q++)if(R.Y[q]<L9.y+24){L9.s1=R.S[q];break;}for(let q=qDe(sa);q>=R.i0&&R.S[q]>=L9.s0;q--)if(R.Y[q]<L9.y+24){L9.s0=R.S[q];break;}};
   const deb9=k=>k==='stal'||k==='abysse'?300:0;GROTTE.lavLum=null;
-  if(bornes.lave!=null&&apres.lave!=null){const y9=yMinDe(bornes.lave,apres.lave),v=voisin.lave;GROTTE.lac={y:y9-GRV.lacP,s0:bornes.lave-deb9(v[0]),s1:apres.lave+deb9(v[1])};
+  if(bornes.lave!=null&&apres.lave!=null){const y9=yMinDe(bornes.lave,apres.lave),v=voisin.lave;GROTTE.lac={y:y9-GRV.lacP,s0:bornes.lave-deb9(v[0]),s1:apres.lave+deb9(v[1])};rogne(GROTTE.lac,bornes.lave,apres.lave);
     GROTTE.lavLum=[0,0,0,0,1,0];for(const k of v)if(deb9(k))GROTTE.lavLum[SI[k]]=1;
     for(let q=0;q<n;q++)if(R.S[q]>=GROTTE.lac.s0&&R.S[q]<=GROTTE.lac.s1){const dd=R.Y[q]-GROTTE.lac.y+14;if(GRT_ROULE){if(dd<340)R.BAS[q]=dd;}else R.DN[q]=Math.max(R.DN[q],dd);}}
-  if(bornes.luxe!=null&&apres.luxe!=null){const y9=yMinDe(bornes.luxe,apres.luxe);GROTTE.eau={y:y9-GRV.eauL,s0:bornes.luxe,s1:apres.luxe+(voisin.luxe[1]==='lave'?0:120)};}
+  if(bornes.luxe!=null&&apres.luxe!=null){const y9=yMinDe(bornes.luxe,apres.luxe);GROTTE.eau={y:y9-GRV.eauL,s0:bornes.luxe,s1:apres.luxe+(voisin.luxe[1]==='lave'?0:120)};rogne(GROTTE.eau,bornes.luxe,apres.luxe);}
   // la grille des échantillons (48 m) : les questions « suis-je sur la route ? » des décors
   const G=new Map();for(let q=0;q<n;q++){const k=Math.floor(R.X[q]/48)+','+Math.floor(R.Z[q]/48);let a=G.get(k);if(!a)G.set(k,a=[]);a.push(q);}R.G=G;
   return R;}
@@ -23867,7 +23984,7 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
       grtBoite(D,V,x,y1+.6,z,la+1,1.1,1.1,GT.BOIS,yaw,'roche');n++;}nb.cadres=n;}
   if(performance.now()>JF.lim)yield;
   // ---- LES TORCHES (hors de la mine) ----
-  {let sd=1,der=-1e9;for(let q=R.i0;q<R.n-20;q++){const s9=R.S[q],sal=R.SAL[q];if(sal===0||s9-der<(sal===4?84:42))continue;der=s9;sd=-sd;
+  {let sd=1,der=-1e9;for(let q=R.i0;q<R.n-20;q++){const s9=R.S[q],sal=R.SAL[q];if(sal===0||s9-der<(sal===4?84:R.TUN&&R.TUN[q]?20:42))continue;der=s9;sd=-sd;
     const y=R.Y[q]+7,tk=GRV.torK,w=paroi(q,sd,y,RHd+4,VZ?Math.min(R.RH[q]*1.45,600):96);let ok=false;
     if(w&&w[4]>=RHd+3&&grtDensIci(V,w[0],w[5]+5,w[1])>0){torche(w[0],w[5],w[1],tk);ok=true;}
     if(!ok){const bx=R.TZ[q]*sd,bz=-R.TX[q]*sd,tx=R.X[q]+bx*(RHd+9),tz=R.Z[q]+bz*(RHd+9),yf=plancher(tx,R.Y[q]-THICK-3,tz,70);if(yf!=null&&grtLibre(R,tx,tz,yf,yf+5*tk,1))torche(tx,yf+4.6*tk,tz,tk);}}}
@@ -23903,6 +24020,39 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
       else{const yf=plancher(xz[0],cote.y-THICK-3,xz[1],VZ?R.DN[q]*1.5+20:140);if(yf==null)continue;const Hs=(6+fr()*30)*(VZ?2.4:1)*Lk;if(!grtLibre(R,xz[0],xz[1],yf,yf+Hs,5))continue;
         grtPrisme(D,V,xz[0],yf-2,xz[1],UP,6,3.2*k*(.8+Hs/50)*g9,0,Hs+2,GT.CONCRETION,fr()*6,'roche');}
       n++;}nb.concretions=n;}
+  if(performance.now()>JF.lim)yield;
+  // ---- 3 bis · LES GÉANTS (2026-11-05, voir GRT_GEANT) : un stalagmite énorme au centre de chaque virage du module, planté au sol, plafonné sous la voûte ----
+  GROTTE.geantsInfo=[];
+  if(R.geants&&R.geants.length){const fg=mulberry32(0x6E4A17A5),G9=GRT_GEANT;let n=0; /* (un flux à part : les autres décors tirent leur hasard comme avant) */
+    /* une tige de pierre : un cône tronqué à 7 pans, inscrit aux collisions À LA MESURE de sa facette (le rayon moyen entre l'apothème et le sommet : grtPrisme ne le ferait qu'à 0,8 × le rayon) */
+    const tige=function(x,y,z,r0,r1,h,rot){grtPrisme(D,V,x,y,z,UP,7,r0,r1,h,GT.CONCRETION,rot);const rc=Math.max(r0,r1)*.95+1;grtCol(x,y+h/2,z,rc,h/2,rc,0,'roche').cone=[x,y,z,0,1,0,r0*.95,r1*.95,h];};
+    const pendue=function(x,y,z,r0,h,rot){grtPrisme(D,V,x,y,z,BAS,7,r0,0,h,GT.CONCRETION,rot);const rc=r0*.95+1;grtCol(x,y-h/2,z,rc,h/2,rc,0,'roche').cone=[x,y,z,0,-1,0,r0*.95,0,h];};
+    for(const g of R.geants){const q=g.q,x=g.x,z=g.z,rG=g.r,info={x:Math.round(x),z:Math.round(z),r:Math.round(rG),R:Math.round(g.R),ok:0,why:''};GROTTE.geantsInfo.push(info);
+      if(R.NNY[q]<.75){info.why='dalle couchée';continue;} /* (le virage lu en plan n'est juste que si la dalle est à peu près à l'endroit : le dévers (34°) laisse .83) */
+      const yR=R.Y[q],y0=yR+14,d0=grtDensIci(V,x,y0,z);info.d0=Math.round(d0);
+      let yf=plancher(x,y0,z,640);if(yf==null&&d0>0){for(let yy=y0;yy>y0-640;yy-=2)if(grtDensIci(V,x,yy,z)<=0){yf=yy+1;break;}} /* (un fond de lave ou d'eau : le géant y plonge) */
+      const yc=plafond(x,y0,z,640);
+      if(yf==null||yc==null){info.why=yf==null?(d0>0?'pas de sol':'dans la roche'):'pas de voûte';continue;}
+      /* la hauteur se compte depuis la ROUTE (le fond peut être 200 m plus bas, dans un gouffre) : la pointe est à 150-210 m au-dessus d'elle, ou 38 m sous la voûte */
+      const top=Math.min(yR+G9.haut[0]+fg()*(G9.haut[1]-G9.haut[0]),yc-G9.voute),H=top-yf;
+      if(top-yR<90){info.why='voûte trop basse';continue;}
+      /* le pied s'évase si le fond est loin sous la route : la largeur au niveau de la route reste celle du virage (rG), borné pour ne pas toucher la route */
+      const t0=Math.max(0,Math.min(.9,(yR-yf+12)/(H+12))),pr=t0<.30?1-.38*t0/.30:t0<.62?.62-.24*(t0-.30)/.32:t0<.86?.38-.23*(t0-.62)/.24:.15*(1-(t0-.86)/.14),rB=Math.min(rG/pr,rG*1.8,g.R-ROAD_HALF-40);
+      if(!grtLibre(R,x,z,yf,top,rB)){info.why='sur la route';continue;}
+      // le fût : quatre tiges qui s'affinent (le pied enterré de 12 m), un léger décalage d'une tige à l'autre, des facettes tournées
+      const Ht=H+12,F9=[.30,.32,.24,.14],R9=[1,.62,.38,.15,0],rot=fg()*6.28;let yy=yf-12,cx=x,cz=z;
+      for(let k=0;k<4;k++){const h=Ht*F9[k];tige(cx,yy,cz,rB*R9[k],rB*R9[k+1],h,rot+k*.37);yy+=h;cx+=(fg()-.5)*rB*.07;cz+=(fg()-.5)*rB*.07;}
+      // les piquants du pied : trois ou quatre petits stalagmites collés au géant
+      const ns=3+((fg()*2)|0);for(let k=0;k<ns;k++){const a=rot+k/ns*6.2832+fg()*.9,dd=rB*(.8+fg()*.25),sx=x+Math.cos(a)*dd,sz=z+Math.sin(a)*dd,sy=plancher(sx,yf+14,sz,140);if(sy==null)continue;
+        const rs=rB*(.18+fg()*.12),hs=Math.min(H,260)*(.13+fg()*.17);if(!grtLibre(R,sx,sz,sy,sy+hs,rs))continue;tige(sx,sy-6,sz,rs,0,hs+6,fg()*6);}
+      // la stalactite d'en face : elle descend presque jusqu'à la pointe (le géant tient la salle du sol à la voûte)
+      const gap=yc-top;pendue(x,yc+3,z,rG*.36,gap*.82+3,rot+1);
+      // la lumière : deux foyers ambre sur le flanc tourné vers la route (à hauteur de la route et plus haut), deux grandes torches au pied quand il est près de la route — le géant se lit de loin dans le noir
+      const ang=Math.atan2(R.X[q]-x,R.Z[q]-z),dx=Math.sin(ang),dz=Math.cos(ang);
+      lum(x+dx*rG*.9,yR+10,z+dz*rG*.9,170,[1,.62,.28],.85);lum(x+dx*rG*.5,yR+90,z+dz*rG*.5,210,[1,.7,.4],.6);
+      if(yR-yf<120)for(const sd of [-1,1]){const tx=x+dx*(rB+10)-dz*sd*16,tz=z+dz*(rB+10)+dx*sd*16,ty=plancher(tx,yf+14,tz,120);if(ty!=null)torche(tx,ty+4.2*2.4,tz,2.4);}
+      info.ok=1;info.H=Math.round(H);info.yf=Math.round(yf);info.yc=Math.round(yc);info.yR=Math.round(yR);info.rB=Math.round(rB);n++;}
+    nb.geants=n;}
   if(performance.now()>JF.lim)yield;
   // ---- 4 · LE LAC DE LAVE : les chutes de lave ----
   {let n=0;const lac=GROTTE.lac;if(lac){const N=Math.round((VZ?14:9)*MOB),cw=VZ?6:3.4;
@@ -24155,6 +24305,25 @@ function grotteChauffe(){const M=grtMats(),g9=new THREE.BufferGeometry();
   const v=P.visible;P.visible=true;try{chauffeRendu([g,P]);}finally{scene.remove(g);P.visible=v;g9.dispose();}}
 /* ---------------- LA CONSOLE ---------------- */
 window.dbgGrotte=function(k,o){
+  if(k==='sonde'){const R=GROTTE.R,V=GROTTE.V;if(!R||!V)return 'pas de grotte bâtie'; /* (2026-11-05) {s} : ce que la grotte sait de la route à l'abscisse s — la salle, la dalle (NNY), le creux (RH, UP, DN, BAS, LAT), le noyau et la densité au-dessus/au-dessous du centre */
+    if(!o||o.s==null){const bad=[];for(let q=R.i0;q<R.n-20&&bad.length<12;q++){if(grtDensIci(V,R.X[q]+R.NNX[q]*1.5,R.Y[q]+R.NNY[q]*1.5,R.Z[q]+R.NNZ[q]*1.5)<=0||grtDensIci(V,R.X[q],R.Y[q],R.Z[q])<=0)bad.push({q:q,S:Math.round(R.S[q]),sal:R.SAL[q],ny:+R.NNY[q].toFixed(2),rh:Math.round(R.RH[q])});}return {mauvais:bad};} /* sans s : les premiers échantillons dont le centre est dans la roche */
+    let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=o.s)lo=m;else hi=m-1;}const q=lo,out=[];
+    for(const d of [-18,-12,-6,0,6,12,18]){const j=Math.max(R.i0,Math.min(R.n-21,q+d)),dens=[];for(const h of [-8,-2,1.5,8,14,30]){dens.push(Math.round(grtDensIci(V,R.X[j]+R.NNX[j]*h,R.Y[j]+R.NNY[j]*h,R.Z[j]+R.NNZ[j]*h)));}
+      out.push({S:Math.round(R.S[j]),sal:R.SAL[j],ny:+R.NNY[j].toFixed(2),rh:Math.round(R.RH[j]),up:Math.round(R.UP[j]),dn:Math.round(R.DN[j]),bas:R.BAS?Math.round(R.BAS[j]):null,lat:Math.round(R.LAT[j]),y:Math.round(R.Y[j]),dens:dens});}
+    return {q:q,lac:GROTTE.lac?Math.round(GROTTE.lac.y):null,piliers:(GROTTE.piliers||[]).filter(function(c){return Math.hypot(c.x-R.X[q],c.z-R.Z[q])<260;}).map(function(c){return {x:Math.round(c.x-R.X[q]),z:Math.round(c.z-R.Z[q]),r:Math.round(c.r),yb:Math.round(c.yb),yt:Math.round(c.yt),k:c.k};}),pts:out};}
+  if(k==='module'){const R=GROTTE.R; /* (2026-11-05) LES MODULES : sans argument la liste ([n, abscisse de début et de fin, ce que c'est]) ; {n, d, recul, haut, ahead, fov} la caméra SUR la route, d m après le début du module n, dans le repère de la dalle */
+    if(!R)return 'pas de grotte bâtie';const M9=MODMARK.map(function(m,i){const z=MODS&&MODS[i];return {n:i,nom:m.nom||(m.geant?'gGeants':''),s0:z?Math.round(z.s0+60):null,s1:z?Math.round(z.s1):null,fig:m.fig||'',geant:m.geant?1:0,tunnel:m.tunnel?1:0,rouli:m.f?m.f.length:0};});
+    if(!o||o.n==null)return M9;const z=MODS&&MODS[o.n];if(!z)return 'pas de module n° '+o.n;
+    const at=function(s9){let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s9)lo=m;else hi=m-1;}return lo;},s9=z.s0+60+(o.d||0)-(o.recul||0),q=at(s9),q2=at(s9+(o.ahead||160)),h9=o.haut==null?12:o.haut;
+    return window.dbgGrotte('vue',{p:[R.X[q]+R.NNX[q]*h9,R.Y[q]+R.NNY[q]*h9,R.Z[q]+R.NNZ[q]*h9],c:[R.X[q2]+R.NNX[q2]*h9*.5,R.Y[q2]+R.NNY[q2]*h9*.5,R.Z[q2]+R.NNZ[q2]*h9*.5],fov:o.fov||75,up:[R.NNX[q],R.NNY[q],R.NNZ[q]]});}
+  if(k==='geants'){const R=GROTTE.R; /* (2026-11-05) LES GÉANTS : où ils sont (x, z, rayon du pied, rayon du virage, hauteur, sol, voûte) ou pourquoi il en manque ; o.vue : la caméra devant le n° o.vue, o.cote/o.haut pour la reculer */
+    if(!R)return 'pas de grotte bâtie';const L9=GROTTE.geantsInfo||[];
+    if(o&&o.vue!=null){const g=R.geants&&R.geants[o.vue];if(!g)return 'pas de géant n° '+o.vue;let qs=g.q;while(qs>R.i0&&R.S[qs]>R.S[g.q]-(o.recul==null?200:o.recul))qs--; /* la caméra SUR la route, o.recul m avant le milieu du virage, dans le repère de la dalle (ce que voit le joueur) ; elle vise le géant, ou la route devant (o.route) */
+      const h9=o.haut==null?12:o.haut,c9=o.route?[R.X[qs]+R.TX[qs]*200,R.Y[qs]+h9,R.Z[qs]+R.TZ[qs]*200]:[g.x,R.Y[g.q]+(o.cible==null?90:o.cible),g.z];
+      return window.dbgGrotte('vue',{p:[R.X[qs]+R.NNX[qs]*h9,R.Y[qs]+R.NNY[qs]*h9,R.Z[qs]+R.NNZ[qs]*h9],c:c9,fov:o.fov||70,up:[R.NNX[qs],R.NNY[qs],R.NNZ[qs]]});}
+    if(o&&o.profil&&R.geants&&R.geants.length){const a=Math.max(R.i0,R.geants[0].q0-60),b=Math.min(R.n-21,R.geants[R.geants.length-1].q1+60),P9=[];for(let q=a;q<=b;q+=10)P9.push([Math.round(R.S[q]),+R.NNY[q].toFixed(2),Math.round(R.RH[q]),Math.round(R.UP[q]),Math.round(R.DN[q]),Math.round(R.Y[q]),Math.round(Math.atan2(R.TX[q],R.TZ[q])*57.2958)]);return {L:L,sTot:GROTTE.sTot,gen:GROTTE.geants,profil:P9};}
+    const P9=new THREE.Vector3();for(const i of L9)if(i.ok)i.col=[grotteHeurt(P9.set(i.x+.6*i.r,i.yR,i.z)),grotteHeurt(P9.set(i.x,i.yR+120,i.z)),grotteHeurt(P9.set(i.x+1.4*i.r,i.yR,i.z))]; /* la collision au pied (dedans), à 120 m au-dessus de la route (dedans), et à 1,4 rayon (dehors : '' si l'air est libre) */
+    return {demandes:(GROTTE.geants||[]).length,relus:(R.geants||[]).length,poses:L9.filter(function(i){return i.ok;}).length,geants:L9,pos:(R.geants||[]).map(function(g){return {q0:g.q0,q1:g.q1,S0:Math.round(R.S[g.q0]),S1:Math.round(R.S[g.q1]),ny:+R.NNY[g.q].toFixed(2)};})};}
   if(k==='test'){ // LA RÈGLE D'OR : de l'air tous les 6 m au bord et au milieu de la route, sous la dalle (−THICK−1,5), dessus (+1,5) et à hauteur de saut (+14) ; aucun décor dur
     if(!GROTTE.V)return 'pas de grotte bâtie';let roc=0,dec=0;const ou=[],F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},p=new THREE.Vector3();
     for(let s9=0;s9<L;s9+=6){frameAt(s9,F9);for(const lt of [-ROAD_HALF,0,ROAD_HALF])for(const h of [-THICK-1.5,1.5,14]){p.copy(F9.p).addScaledVector(F9.b,lt).addScaledVector(F9.n,h);
@@ -50921,6 +51090,25 @@ function peintDefHtml(d){const f=d&&d.def;if(!f||shopOwned('peinture',d.id))retu
   return '<span class="m2Deb pDeb"><span class="m2DebT">'+pxi('cible')+' '+sansAcc(TR('OU GAGNE-LA'))+' : '+sansAcc(TR(f.t)).toUpperCase()+'</span>'
     +(v<0?'':'<span class="m2DebB"><u><em style="width:'+Math.round(p*100)+'%"></em></u><b>'+peintDefNb(f,v)+'</b></span>')+'</span>';}
 window.dbgDefisPeint=function(){return COSM.peinture.filter(function(d){return d.def;}).map(function(d){const v=peintDefVal(d.def);return {id:d.id,r:d.r,defi:d.def.t,val:v,seuil:d.def.k==='b'||d.def.k==='serie'?null:peintDefSeuil(d.def),a:shopOwned('peinture',d.id)};});};
+/* ===== LES TRAÎNÉES EN VITRINE (2026-11-05, Sacha : « retravaille la présentation des traînées dans le même esprit » que le nuancier v3) =====
+   UNE TABLE, dans l'ordre de la vitrine (TRAINEE_CAT) : la rareté suit le SPECTACLE, le prix monte avec elle (les prix en $ ne bougent pas).
+   · COMMUNES    — les RUBANS : un sillage de couleur (NITRO, offerte ; ROSE NÉON) ;
+   · RARES       — les PARTICULES : ce qu'on sème (SAKURA, MATRICE, POUDRE D'OR, ANNEAUX D'OR) ;
+   · ÉPIQUES     — les EFFETS : un numéro à part entière (WOW, GLOUTON, HYPERESPACE, LA GRILLE) ;
+   · LÉGENDAIRES — le SPECTACLE : celles qui ne s'achètent pas comme les autres (FAIS PLEUVOIR, FOUDRE DIVINE par mission, ARC-EN-CIEL avec le chat).
+   Ce qui change : POUDRE D'OR épique → rare, WOW légendaire → épique, GLOUTON rare → épique, ARC-EN-CIEL (qui se lisait COMMUNE) → légendaire.
+   La carte de la boutique (traineeCarte) montre la traînée EN MOUVEMENT sur une route de nuit : le ruban qui coule hors de la tuyère, ses
+   particules qui s'envolent (css/peintures.css, « LES TRAÎNÉES ») — sur le plateau, la caisse ne boost pas : la carte est la seule à la montrer. */
+const TRAINEE_CAT=[['nitro','commun'],['rose','commun'],['sakura','rare'],['matrice','rare'],['or','rare'],['anneaux','rare'],
+  ['wow','epique'],['glouton','epique'],['hyper','epique'],['grille','epique'],['billets','legendaire'],['foudre','legendaire'],['arcenciel','legendaire']];
+Object.assign(I18N,{'RUBANS':'RIBBONS','PARTICULES':'PARTICLES','EFFETS':'EFFECTS','SPECTACLE':'SHOWSTOPPERS'});
+const TRAINEE_RANG={};TRAINEE_CAT.forEach(function(e,k){TRAINEE_RANG[e[0]]=k;const d=COSM.trainee.find(function(x){return x.id===e[0];});if(d)d.r=e[1];});
+function traineeOrdre(){return COSM.trainee.map(function(d,j){return j;}).sort(function(a,b){const ra=TRAINEE_RANG[COSM.trainee[a].id],rb=TRAINEE_RANG[COSM.trainee[b].id];return (ra!=null?ra:900+a)-(rb!=null?rb:900+b);});}
+function traineeCoul(d){if(d.rainbow)return '#ff5ad0';if(d.col)return d.col;if(d.rgb)return 'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')';return '#ff7a1a';}
+/* la plaque d'une carte : la nuit, des lignes de vitesse, la tuyère à droite, le ruban qui en coule (aucun pour celles dont l'effet EST la traînée :
+   GLOUTON, LA GRILLE), et trois fois son pictogramme qui s'envole */
+function traineeCarte(d){let I=null;try{I=illuTr(d);}catch(e){}const ic=I?illuPx(I,'tPx'):'';
+  return '<i class="tSw'+(d.rubOff?' sansRuban':'')+(d.rainbow?' arc':'')+'" style="--tc:'+traineeCoul(d)+'"><b class="tRu"></b><b class="tBuse"></b>'+(ic?'<span class="tPa">'+ic+ic+ic+'</span>':'')+'</i>';}
 function cosmSwCl(d){return (d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':d.g==='k'?' metal':d.g==='n'?' nacre':'')+(d.anim?' pL pL-'+d.id:'');} /* la classe de finition d'une pastille (une seule table pour toutes les listes) — (2026-11-05) une légendaire : son animation (css/peintures.css) */
 /* (2026-10-14) LES FIGURES dans la console du garage : COSM.figure est la VUE du catalogue figures.js (même id, nom, prix) — la console
    (onglet, bande, fiche, ACHETER) la traite comme un habillage. Possédées : SAVE.d.figs (figPossede), achetées par shopBuy → figAchat ;
@@ -69817,6 +70005,7 @@ function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=do
     if(!c._ret){const s9=c.querySelector('span[data-fr]');if(s9&&s9.textContent!==TR(s9.dataset.fr))s9.textContent=TR(s9.dataset.fr);}}
   if(gEl){gEl.classList.remove('invRet');gEl.classList.toggle('modeInv',m==='inv');gEl.classList.toggle('atelierInv',GATL.on);} // (2026-10-12, Léo) à l'arrivée l'INVENTAIRE en aperçu, les cinq touches ; INVENTAIRE touché = L'ATELIER FERMÉ (gAtelier) : la touche devient ◀ RETOUR, en bas à gauche, les autres s'effacent
   if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop'||m==='tous');st.classList.toggle('gModeTous',m==='tous');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
+  if(gEl)gEl.classList.toggle('bqEntre',(m==='shop'||m==='tous')&&typeof GBQ!=='undefined'&&!GBQ.on&&bqIndusVoulu()); /* (2026-11-05, Sacha : « pendant un bref instant, quand on clique sur boutique, ça ouvre une autre page qui ressemble à une boutique mais différente ») la vitrine du jour s'écrit ICI, d'un coup, mais la salle blanche (bqIndus) n'arrive que ~285 ms plus tard, sous le voile : entre les deux l'ancienne console se voyait seule. bqEntre la cache dès le geste (voir garage-hub-rayons.css), bqClasses la retire à la bascule */
   if(gEl)gEl.classList.toggle('modeShop',m==='shop');} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
 function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou « 15 / 46 » en INVENTAIRE
   if(m==='tous'){bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>'+sansAcc(TR('TOUT VOIR'))+'</span><s></s><b>'+n+'</b></div>';return;} // (2026-10-10) SEE ALL ITEMS, en anglais (Léo)
@@ -73455,7 +73644,7 @@ function bqVoile(v){let w=document.getElementById('gBqVoile'); // LE VOILE de la
   cv.classList.remove('bqPose','bqArrive');cv.classList.toggle('recul',!v);void cv.offsetWidth;cv.classList.add('bqPasse');
   bqVoile._fin=performance.now()+2e3;
   bqVoile._t=setTimeout(function(){if(!GBQ.bascule){GBQ.bascule=true;GBQ.on=GBQ.veut;bqClasses(GBQ.veut);try{garBqAmbiance(GBQ.veut);}catch(e){}}bqVoile(null);},1400);} // filet : jamais de voile collé ni d'interface à moitié basculée (onglet caché, garage quitté en plein geste)
-function bqClasses(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl)gEl.classList.toggle('bqIndus',on);garLibre._r=null;} // dès le geste : l'interface du garage s'efface
+function bqClasses(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl){gEl.classList.toggle('bqIndus',on);gEl.classList.remove('bqEntre');}garLibre._r=null;} // dès le geste : l'interface du garage s'efface
 /* LA LUEUR DERRIÈRE LA CAISSE (v3) : un disque blanc tourné vers la caméra, posé DERRIÈRE la caisse (elle reste devant : il est caché par
    elle), qui grandit jusqu'à couvrir le garage ; une nappe blanche s'étale au sol depuis sous elle. Deux objets de la scène (hors de
    l'atelier : ils survivent au basculement), blancs au-delà de 1 (le bloom les fait rayonner). */
@@ -73484,6 +73673,7 @@ function garBqLueur(ay){const g=GBQ.lueur||0;garBqLueurBatit();const vis=g>.002;
 function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).toString(16).padStart(6,'0');};
   if(o.cat==='figure')return '<i class="bqFig">'+pxi('rotation')+'</i>';
   if(o.cat==='peinture')return peintCarte(d); /* (2026-11-05, le nuancier v3) la grande pastille vernie, la cible du défi et sa jauge (voir peintCarte) */
+  if(o.cat==='trainee')return traineeCarte(d); /* (2026-11-05) la traînée EN MOUVEMENT sur une route de nuit (voir traineeCarte) */
   if(o.cat==='trainee'){const I9=illuTr(d);if(I9)return illuPx(I9,'bqTrIc');} // (2026-10-14) une traînée POP : son pictogramme — (2026-10-16, TRAÎNÉES) TOUTES les traînées, et EN COULEUR (celui de l'inventaire) : en noir sur la salle blanche, SAKURA, MATRICE et LA GRILLE se ressemblaient ; NITRO, MENTHE, ROSE et OR n'étaient qu'un dégradé
   if(o.cat==='trainee')return '<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,rgba(255,255,255,0),'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 45%,#fff)')+'"></i>';
   return pxi(d.ico||'aile');}
@@ -73503,6 +73693,9 @@ function bqVoitRail(L){const fam=function(k){const i=+k.slice(2);return m2Secret
 /* LE RAYON DES PEINTURES (2026-11-05, le nuancier v3) : un intertitre par RARETÉ, comme les voitures — son logo, son nom, ce qu'elle est et son prix
    (UNIES · 1 €, DÉGRADÉS · 1 €, MOTIFS · 2 €, ANIMÉES · 3 €), le compte « à toi / total » ; D'ORIGINE ouvre les communes. */
 const BQ_PEINT_SOUS={commun:'UNIES',rare:'DÉGRADÉS',epique:'MOTIFS',legendaire:'ANIMÉES'};
+const BQ_TRAINEE_SOUS={commun:'RUBANS',rare:'PARTICULES',epique:'EFFETS',legendaire:'SPECTACLE'}; /* (2026-11-05) les traînées : ce qu'est la famille (leurs prix sont en $, différents d'une carte à l'autre) */
+function bqTraineeRail(L){const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+  return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,BQ_TRAINEE_SOUS[f]?sansAcc(TR(BQ_TRAINEE_SOUS[f])):''))+bqCarteHtml(k,n,false);});}
 function bqPeintRail(L){try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */const fam=function(k){return cosmRar('peinture',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k),sous=BQ_PEINT_SOUS[f]?sansAcc(TR(BQ_PEINT_SOUS[f]))+' · '+eurTxt(PEINT_EUR[f]):'';return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,sous))+bqCarteHtml(k,n,false);});}
 function bqPxT(v){return fmtSolde(v);} /* (clarté 15/10) les prix de la boutique de Léo au format GTA de GAMEPLAY (chiffres pleins, un seul « $ ») */
@@ -73559,7 +73752,7 @@ function bqFigSelMaj(pan,on){if(!on||!window.FIG)return;const el=bqFigSelEl(pan)
     if(P&&P[s]!==S[s]&&f){b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');}});}
 function bqAchat(){const eu=function(i){return parseFloat(String((CAR_UNLOCK[i]||{}).eur||'').replace(',','.'))||0;},une=function(i){return CAR_UNLOCK[i]&&CAR_UNLOCK[i].une?0:1;}; // l'offre de lancement (`une`) en tête, puis de la moins chère à la plus chère
   return bqPayantes().slice().sort(function(a,b){return (une(a)-une(b))||(eu(a)-eu(b))||(a-b);});}
-function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];if(cat==='peinture')return peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;}); /* (2026-10-16) rangées par RARETÉ (voir peintOrdre) */ return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
+function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];if(cat==='peinture')return peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;});if(cat==='trainee')return traineeOrdre().map(function(j){return 'trainee:'+COSM.trainee[j].id;}); /* (2026-11-05) les traînées par rareté (voir TRAINEE_CAT) */ /* (2026-10-16) rangées par RARETÉ (voir peintOrdre) */ return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
 function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),sec9=vo&&m2Secrete(i);let ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);if(sec9){ri={c:'#ff3ec8',n1:'SECRÈTE'};nom='? ? ?';} /* (2026-10-16) une SECRÈTE : ni nom, ni rareté, ni couleur */
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.pack==='chat'){px=sansAcc(TR('PACK CHAT'));c='eur';}else if(d.eur){px=eurTxt(d.eur);c='eur';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';} /* (2026-10-18 soir) l'ARC-EN-CIEL : PACK CHAT (voir chatPackI) */
@@ -73620,7 +73813,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
       if(C9&&s){const t=sansAcc(TR(C9[1]));if(s.textContent!==t){s.textContent=t;b.setAttribute('aria-label',t);b.title=t;}if(on)une.setAttribute('data-cur',t);}}); /* (2026-11-03, Sacha : « cet écran, il est horrible ») `data-cur` : le NOM du rayon ouvert, écrit sous les carrés quand les libellés n'ont plus la place (.duo) */
     rail.classList.remove('off','habs');rail.classList.add('entre');rail.scrollTop=0;rail.scrollLeft=0; /* (2026-10-15, Sacha : « un menu plus grand pour les figures, les ailes, les peintures ») tous les rayons en GRANDES cartes, trois par rangée comme les voitures — à quatre, « D'ORIGINE » se coupait en « D'ORIGIN / E » */
-    rail.innerHTML=(cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);bqAimant(rail);
+    rail.innerHTML=(cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):cat==='trainee'?bqTraineeRail(L):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);bqAimant(rail);
     pan.classList.toggle('bqFigOn',cat==='figure');BQFS.k='';} /* (2026-10-16, Sacha) les trois figures équipées en haut du rayon FIGURES (voir bqFigSelMaj) */
   if(cat==='figure')try{bqFigSelMaj(pan,true);}catch(e){console.warn('bqFigSel',e);}
   if(cat==='figure')try{filmJoue();}catch(e){} /* (2026-10-18) les films des cartes (voir LE FILM D'UNE FIGURE) */
@@ -73640,7 +73833,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
     {let mt=nm.querySelector('.bqM2');if(!mt){mt=document.createElement('span');mt.className='bqM2';nm.appendChild(mt);} /* (2026-10-16) SE DÉBLOQUE : la mission, sa jauge — une secrète : rien (son étiquette dit déjà MISSION SECRÈTE) */
       let h9='';if(cur[0]==='v'){const iv=+cur.slice(2),m9=m2DeCaisse(iv);if(m9&&!carUnlockedVrai(iv))h9=m9.f==='secret'?'':m2DebloqueHtml(m9,true);
         if(!h9)h9=shArcHtml(iv,carUnlockedVrai(iv));} /* (2026-10-20, Sacha) le CHAT POP-TART : « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous son nom (voir shArcHtml) */
-      else{const o9=bqCos(cur),m9=o9&&o9.d&&m2DeHab(o9.cat,o9.d);if(m9&&!shopOwned(o9.cat,o9.d.id))h9=m2DebloqueHtml(m9,true);else if(o9&&o9.cat==='peinture'&&o9.d)h9=peintDefHtml(o9.d);} /* (2026-11-05) une peinture à défi : OU GAGNE-LA, sa jauge */
+      else{const o9=bqCos(cur),m9=o9&&o9.d&&m2DeHab(o9.cat,o9.d);if(m9&&!shopOwned(o9.cat,o9.d.id))h9=m2DebloqueHtml(m9,true);else if(o9&&o9.cat==='peinture'&&o9.d)h9=peintDefHtml(o9.d);else if(o9&&o9.cat==='trainee'&&o9.d&&o9.d.d)h9='<span class="tDesc">'+sansAcc(TR(o9.d.d))+'</span>';} /* (2026-11-05) une traînée : sa phrase — la caisse ne boost pas sur le plateau, c'est la carte et ces mots qui la vendent */ /* (2026-11-05) une peinture à défi : OU GAGNE-LA, sa jauge */
       mt.innerHTML=h9;mt.hidden=!h9;}
     {const L9=bqSkins(cur);sk.classList.toggle('vide',!L9.length);sk.querySelector('.bqSk').innerHTML=L9.map(function(x,n){return '<button class="bqS'+(n===0?' on':'')+'" data-s="'+x.id+'" style="--sc:'+x.c+'"><i></i><span>'+sansAcc(TR(x.n))+'</span></button>';}).join('');}
     rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur&&(!el.hasAttribute('data-dir')||GBQ.figDir==null||+el.getAttribute('data-dir')===GBQ.figDir));});
