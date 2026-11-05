@@ -2,6 +2,8 @@
 
 > **Pour les agents :** sous-compétence REQUISE `superpowers:subagent-driven-development` (ou `superpowers:executing-plans`) : une tâche à la fois, dans l'ordre des vagues (§6). Les étapes sont des cases `- [ ]` à cocher. Chaque tâche = une session Sonnet (`effort: medium`, `high` au plus), 1 à 3 h, **un commit par gain**.
 
+**CIBLE (Sacha, 5/11 soir) : L'APP iOS** (`app-ios/`, Capacitor, WKWebView + Metal, branche `ios-capacitor`, www/ généré depuis `VERSION PRINCIPALE` par `npm run sync`), PAS le site sur mobile. Toute mesure qui compte se fait dans l'app, sur le 13 Pro branché (build Xcode, boîte noire `cashcarErr`, lignes `[natif]`). Hors cible : A3 (cache HTTP Vercel) et A2.f (script en fichier) — sans effet dans l'app. Le reste du plan vaut tel quel : le code est le même.
+
 **But :** la version TÉLÉPHONE de CASH CAR (`ALLEGE`, paliers `PAL` 0/1/2) fluide et sans gel, de l'iPhone 7 à l'iPhone 15, sans changer d'un pixel le palier 2 ni l'ordinateur, sans toucher au gameplay.
 
 **Architecture :** un seul code (`code/` → `node code/assembler.cjs` → `VERSION PRINCIPALE/index.html`) ; tout allègement se garde sur `ALLEGE` / `TEL_NATIF` / `PAL.b('clé')` (jamais `IS_MOBILE`). Chaque optimisation est soit INVISIBLE (même image, moins de travail : vaut pour tous), soit taillée par palier avec la 3e colonne `= avant`. Chaque changement a son interrupteur `?x=0` et se mesure AUX COMPTEURS (appels de dessin, triangles, programmes compilés, octets, images > 100 ms), jamais aux millisecondes seules d'un Mac chargé.
