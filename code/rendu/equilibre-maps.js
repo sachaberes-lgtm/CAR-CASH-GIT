@@ -34,38 +34,38 @@ EQM.A={
   nuagesMatinCC:{sat:1.2,chr:.3,con:1.04,fogL:.96,rtK:.88},                      /* matin pâle : l'air reprend sa couleur, la brume un peu moins blanche */
   nuagesMidiCC:{expo:.9,sat:1.3,chr:.45,con:1.08,rtK:.62},                        /* le plus lavé du jeu : un cran d'exposition en moins, la couleur, le béton ramené de L* 66 à ~42 */
   nuagesSoir:{rtK:.8},                                                            /* déjà beau (chroma 65) : seule la route, trop claire pour un soir */
-  nuagesNuit:{expo:1.3,lev:[.003,.005,.012],vigK:.26,lum:1.1},                   /* nuit bouchée (L* 18) : lumière, plancher d'encre bleue, vignette plus douce */
+  nuagesNuit:{expo:1.22,lev:[.003,.005,.012],vigK:.26,lum:1.08},                   /* nuit bouchée (L* 18) : lumière, plancher d'encre bleue, vignette plus douce */
   tempete:{expo:1.08,sat:1.05},                                                   /* l'orage des nuages : un cran de lumière */
   cryptoMatin:{sat:.95,rtK:.75},                                                  /* déjà très coloré (chroma 73) : la route (L* 56) descend vers le gris commun */
   cryptoSoir:{sat:1.05},
-  villeOrage:{expo:1.15,lev:[.004,.006,.014],vigK:.38,lum:1.2,rtK:1.3},         /* la ville au néon : elle garde sa nuit, mais 78 % de noirs en bas → on débouche sans la délaver (ses trois teintes en héritent) */
+  villeOrage:{expo:1.12,lev:[.004,.006,.014],vigK:.38,lum:1.12,rtK:1.2},         /* la ville au néon : elle garde sa nuit, mais 78 % de noirs en bas → on débouche sans la délaver (ses trois teintes en héritent) */
   jadeMatin:{sat:1.03},
   jadeMidi:{sat:.93,rtK:.78},                                                     /* chroma 101, route L* 54 : on redescend d'un cran vers les autres midis */
   jade:{sat:1.12,chr:.15,fogL:.93,rtK:.72,con:1.04},                               /* le soir de Léo : horizon trop blanc, route lavande L* 49 → béton plus sombre, air moins gris */
-  jadeNuit:{expo:1.3,lev:[.003,.006,.012],vigK:.22,lum:1.15,sat:1.1,rtK:.85},    /* nuit encre-vert bouchée (ciel L* 8) */
+  jadeNuit:{expo:1.22,lev:[.003,.006,.012],vigK:.22,lum:1.1,sat:1.1,rtK:.85},    /* nuit encre-vert bouchée (ciel L* 8) */
   jadePluie:{con:1.03},
   jadeOrage:{sat:1.04,rtK:.75},
-  foretMatin:{expo:1.18,rtK:1.15},                                                /* le sous-bois reste un sous-bois, mais L* 40 → ~47 et une route moins noire */
-  foretMidi:{expo:1.15,rtK:1.1},
+  foretMatin:{expo:1.12,rtK:1.1},                                                /* le sous-bois reste un sous-bois, mais L* 40 → ~47 et une route moins noire */
+  foretMidi:{expo:1.1,rtK:1.08},
   foretSoir:{sat:.92},                                                            /* chroma 91 : l'or du soir se tient */
-  foretPluie:{expo:1.2,rtK:1.2,sat:1.04},
-  foretOrage:{expo:1.3,sat:1.2,chr:.25,lev:[.002,.004,.01],vigK:.26,lum:1.15},    /* L* 20, chroma 36 : le plus terne des orages */
-  espaceMatin:{expo:1.25,sat:1.2,chr:.3,lev:[.002,.003,.008],lum:1.15,rtT:[.9,.95,1.1]}, /* l'orbite : le vide reste noir, la route et la caisse prennent le bleu de la Terre */
+  foretPluie:{expo:1.15,rtK:1.12,sat:1.04},
+  foretOrage:{expo:1.22,sat:1.2,chr:.25,lev:[.002,.004,.01],vigK:.26,lum:1.1},    /* L* 20, chroma 36 : le plus terne des orages */
+  espaceMatin:{expo:1.18,sat:1.2,chr:.3,lev:[.002,.003,.008],lum:1.1,rtT:[.9,.95,1.1]}, /* l'orbite : le vide reste noir, la route et la caisse prennent le bleu de la Terre */
   'grt-matin':{expo:1.12,con:1.02},
-  'grt-midi':{expo:1.35,rtK:1.3,lev:[.003,.004,.01],vigK:.22,lum:1.2},           /* CRISTAUX : L* 16, route L* 17 → la grotte explorée se lit */
-  'grt-soir':{expo:1.35,rtK:1.35,lev:[.003,.004,.01],vigK:.22,lum:1.2},          /* MAGMA : idem, la lave éclaire vraiment */
+  'grt-midi':{expo:1.25,rtK:1.15,lev:[.003,.004,.01],vigK:.22,lum:1.12},           /* CRISTAUX : L* 16, route L* 17 → la grotte explorée se lit */
+  'grt-soir':{expo:1.25,rtK:1.15,lev:[.003,.004,.01],vigK:.22,lum:1.12},          /* MAGMA : idem, la lave éclaire vraiment */
   'grt-glace':{sat:.95},
-  canyonMatin:{expo:1.15,rtK:.72,lum:1.1},                                        /* gorge sombre (L* 33) sous une route claire (L* 58) */
-  canyonSoir:{expo:1.4,lum:1.3,lev:[.004,.004,.008],vigK:.22,rtK:1.4,rtT:[1.08,1,.84],sat:1.05}, /* L* 16 : parois brunes et route marine → lumière, route réchauffée */
-  canyonNuit:{expo:1.35,lum:1.3,lev:[.003,.005,.012],vigK:.3,rtK:1.4,sat:1.05},    /* L* 12, 24 % de noirs */
-  canyonOrage:{expo:1.3,sat:1.3,chr:.4,lev:[.002,.004,.01],lum:1.2,vigK:.26},     /* L* 17, chroma 27 : sombre ET terne */
+  canyonMatin:{expo:1.1,rtK:.8,lum:1.05},                                        /* gorge sombre (L* 33) sous une route claire (L* 58) */
+  canyonSoir:{expo:1.2,lum:1.1,lev:[.004,.004,.008],vigK:.22,rtK:1.1,rtT:[1.06,1,.9],sat:1.02}, /* (1er essai : expo 1,4 × lumières 1,3 brûlaient les parois en orange plat — la gorge et la plaine ne reçoivent pas la même lumière) */ /* L* 16 : parois brunes et route marine → lumière, route réchauffée */
+  canyonNuit:{expo:1.25,lum:1.15,lev:[.003,.005,.012],vigK:.3,rtK:1.15,sat:1.05},    /* L* 12, 24 % de noirs */
+  canyonOrage:{expo:1.22,sat:1.25,chr:.4,lev:[.002,.004,.01],lum:1.1,vigK:.26},     /* L* 17, chroma 27 : sombre ET terne */
   dunesMatin:{rtK:1.3,sat:.92,expo:1.1},                                          /* chroma 96, route L* 24 sous un ciel L* 58 */
   dunesSoir:{expo:.88,sat:.95,rtK:.85},                                           /* la carte postale : L* 62, un cran de moins pour rejoindre les autres soirs */
   dunesNuit:{sat:.92},
   dunesVent:{expo:.9,rtK:.9},
   dunesTempete:{sat:.92,rtK:.8},
   nuagesPluie:{rtK:.78},                                                          /* l'averse : la route (L* 52) un cran plus sombre */
-  canyonPluie:{expo:1.3,sat:1.3,chr:.35,lum:1.2,con:1.04},                         /* L* 26, chroma 26 : la gorge sous la pluie, sombre ET grise */
+  canyonPluie:{expo:1.2,sat:1.25,chr:.35,lum:1.1,con:1.04},                         /* L* 26, chroma 26 : la gorge sous la pluie, sombre ET grise */
   banqMidi:{sat:.9},banqSoir:{sat:.92,rtK:1.3},banqNuit:{sat:.9},banqNeige:{sat:.9,rtK:1.2}}; /* le glacier (hors tirage) : chroma 96-132, le plus saturé du jeu — un cran de moins */
 /* PISTE B — LE POP FRANC : les mêmes cibles, atteintes plus par la LUMIÈRE DE LA SCÈNE et la couleur de l'air que par le grade seul — +10 % de saturation,
    un cran de contraste, l'air plus coloré, les lumières plus fortes sur les sombres, les vignettes plus légères. Dérivée de A : même squelette, plus de nerf. */
