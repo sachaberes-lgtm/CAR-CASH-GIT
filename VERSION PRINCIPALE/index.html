@@ -12311,7 +12311,7 @@ function nuageChauffe(){ // (2026-09-26) les deux programmes de nuage compilés 
   nuageChaud=true;cotonInit(); // (ciel de coton) ses instances sont dans la scène : renderer.compile les prend avec
   const g=mergeSpheres([[0,0,0,.6,1],[.4,.1,0,.45,1]],2,2,2),a=new THREE.Mesh(g,CLOUD_MAT),b=new THREE.Mesh(g,CLOUD_MAT_IN),c9=new THREE.Mesh(g,nuage8Solo()),d9=new THREE.Mesh(g,CLOUD_MAT_IN8);
   a.position.copy(camera.position);b.position.copy(camera.position);a.frustumCulled=b.frustumCulled=false;if(c9){c9.position.copy(camera.position);c9.frustumCulled=false;scene.add(c9);d9.position.copy(camera.position);d9.frustumCulled=false;scene.add(d9);} // (v8) la matière des maillages seuls
-  const vt9=[];{const MS=nuVitMats(true);for(const m9 of [MS.cub,MS.coe,MS.pea,MS.fan]){const x=new THREE.Mesh(g,m9);x.position.copy(camera.position);x.frustumCulled=false;scene.add(x);vt9.push(x);}} // (vitrail) les trois matières des nuages seuls
+  const vt9=[];if(!NUVIT.vox){const MS=nuVitMats(true); /* (2026-11-03) en cubes, pas de vitrail : ses quatre programmes ne se compilent plus au menu */for(const m9 of [MS.cub,MS.coe,MS.pea,MS.fan]){const x=new THREE.Mesh(g,m9);x.position.copy(camera.position);x.frustumCulled=false;scene.add(x);vt9.push(x);}} // (vitrail) les trois matières des nuages seuls
   scene.add(a);scene.add(b);try{renderer.compile(scene,camera);}catch(e){}scene.remove(a);scene.remove(b);if(c9){scene.remove(c9);scene.remove(d9);}for(const x of vt9)scene.remove(x);g.dispose();
 }
 // FINESSE : à 16×11 les grosses boules (r 200-700) montraient leurs FACETTES — d'où les « formes
@@ -13176,7 +13176,7 @@ function cotonInit(){ if(COTON.root)return; // une fois par session : 24 gabarit
   COTON.t0=performance.now();COTON.pret=new Uint8Array(COTON_KINDS*4);
   const rg=mulberry32(0xC07070),SPH=COTON.SEG.map(function(s){return new THREE.SphereGeometry(1,s[0],s[1]);}),m=nuage8Mat();
   COTON.root=new THREE.Group();COTON.root.name='coton';COTON.root.visible=false;scene.add(COTON.root);COTON.L=[];
-  COTON.vit=[];const MV=nuVitMats(false); // (2026-10-18) LE VITRAIL : trois maillages de plus par lot fin (finesses 2 et 3), mêmes instances
+  COTON.vit=[];const MV=NUVIT.vox?null:nuVitMats(false); /* (2026-11-03, maps cohérentes) en CUBES (le réglage de Léo, par défaut) le vitrail et les fantômes ne servent jamais : plus leurs 250 maillages cachés ni leurs 1,8 Mo de matrices (50 jeux × 36 ko) ; `?nuvit=fantome|verre|…` les rend */ // (2026-10-18) LE VITRAIL : trois maillages de plus par lot fin (finesses 2 et 3), mêmes instances
   COTON.W=new Float32Array(COTON.cap);COTON.WC=new Float32Array(COTON.cap);COTON.LV=MV?Array.from({length:COTON_KINDS*2},function(){return {i:new Int32Array(COTON.cap),d:new Float32Array(COTON.cap),n:0};}):null; // (2026-10-18, LE FONDU) les parts (corps, cubes) de chaque nuage, et, par jeu de cubes (gabarit × lot 2|3), ceux qui en ont une
   const rgC=mulberry32(0xC0F1E5); // (v7) le hasard du chou-fleur, à part
   for(let k=0;k<COTON_KINDS;k++){let S;{S=cumulus8(k===24?'cumulonimbus':k<6?N8_GENRE6[k]:(N8_GENRE_V[COTON_GENRES[k-6]]||COTON_GENRES[k-6]),rg);S.fin=1;}COTON.S.push(S);
@@ -13746,11 +13746,11 @@ function nuCasseTick(dt,t){
     const dx=P[j]-cp.x,dy=P[j+1]-cp.y,dz=P[j+2]-cp.z,dd=Math.sqrt(dx*dx+dy*dy+dz*dz);
     if(dd<46){const k=(1-dd/46)*dt*1.3;V[j]+=(cv.x*.6-V[j])*k;V[j+1]+=(cv.y*.6-V[j+1])*k;V[j+2]+=(cv.z*.6-V[j+2])*k;} // le sillage les emporte
     P[j]+=V[j]*dt;P[j+1]+=V[j+1]*dt;P[j+2]+=V[j+2]*dt;R[j]+=W[j]*dt;R[j+1]+=W[j+1]*dt;R[j+2]+=W[j+2]*dt;}
-  const n=NCB.n;im.count=n;
+  const n=NCB.n;im.count=n;NCB.vu=(NCB.vu||0)+1;im.visible=n>0||NCB.vu<4; /* (2026-11-03, maps cohérentes) VIDE = INVISIBLE (comme les peaux de cotonTick) : la gerbe vit dans la scène de TOUTES les maps ; à zéro bloc three préparait encore programme et uniformes à chaque image — les 3 premières images la gardent visible : le programme se compile au menu */
   for(let i=0;i<n;i++){const j=i*3,age=NCB.A[i],life=NCB.L[i],cx=P[j]-camera.position.x,cy=P[j+1]-camera.position.y,cz=P[j+2]-camera.position.z,dc=Math.sqrt(cx*cx+cy*cy+cz*cz),fc=Math.min(1,Math.max(0,(dc-4)/13)),sz=NCB.S[i]*Math.min(1,.25+age*8)*Math.min(1,(life-age)/.45)*fc*fc*(3-2*fc); // près de l'objectif un bloc rétrécit (jamais un mur de cube sur l'écran)
    
     e.set(R[j],R[j+1],R[j+2]);q.setFromEuler(e);pp.set(P[j],P[j+1],P[j+2]);ss.set(sz,sz,sz);m.compose(pp,q,ss);im.setMatrixAt(i,m);const b=NCB.B[i];im.instanceColor.setXYZ(i,b,b,b);}
-  im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}
+  if(n){im.instanceMatrix.updateRange.offset=0;im.instanceMatrix.updateRange.count=n*16;im.instanceMatrix.needsUpdate=true;im.instanceColor.updateRange.offset=0;im.instanceColor.updateRange.count=n*3;im.instanceColor.needsUpdate=true;}} /* (2026-11-03) seulement les blocs vivants partent au GPU — avant, les 700 places (53 ko) À CHAQUE IMAGE, sur toutes les maps, même sans un bloc */
 window.dbgCasse=function(o){o=o||{};nuCasseInit();if(!NCB.mesh)return 'pas prêt'; // (banc) dbgCasse({c:1}) = une trouée + une gerbe devant la caisse
   if(o.c){const cp=carGroup.position.clone();if(o.d)cp.addScaledVector(new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion),o.d);nuCasseBurst(cp,o.k==null?1:o.k,{r:o.r||120});}
   if(o.pas)for(let i=0;i<o.pas;i++)nuCasseTick(1/60,performance.now()/1000+i/60); // (banc, en pause) fait avancer la gerbe de o.pas images
@@ -13833,7 +13833,7 @@ function nuPouInit(){
 function nuPouTick(dt,t){
   if(!NPOU.on)return;if(!NPOU.mesh){nuPouInit();if(!NPOU.mesh)return;}
   const c9=LVL&&LVL.cur,run=started&&!gameOver,actif=run?!!(c9&&c9.carte==='nuages'&&mode!=='boom'):(typeof CHUTE!=='undefined'&&CHUTE.on&&!garageOn),im=NPOU.mesh;
-  if(!actif){im.count=0;NPOU.init=false;return;}
+  if(!actif){if(im.visible){im.count=0;im.visible=false;}NPOU.init=false;return;} /* (2026-11-03) hors de la map nuages : retiré du rendu (même programme que la gerbe, déjà compilé) */
   const F=NPOU.f,C=NPOU.c,RT=NPOU.rt;
   if(run){C.copy(carGroup.position);if(NCB.cv.lengthSq()>25)F.copy(NCB.cv).normalize();else F.set(0,0,1).applyQuaternion(carGroup.quaternion);}
   else{camera.getWorldDirection(F);C.copy(camera.position).addScaledVector(F,160);} // au titre : devant l'objectif
@@ -13847,39 +13847,34 @@ function nuPouTick(dt,t){
     const dr=Math.exp(-dt*.35);V[j]*=dr;V[j+1]*=dr;V[j+2]*=dr;P[j]+=V[j]*dt;P[j+1]+=V[j+1]*dt;P[j+2]+=V[j+2]*dt;R[j]+=W[j]*dt;R[j+1]+=W[j+1]*dt;R[j+2]+=W[j+2]*dt;
     const cx=P[j]-cam.x,cy=P[j+1]-cam.y,cz=P[j+2]-cam.z,dc=Math.sqrt(cx*cx+cy*cy+cz*cz),fn=Math.min(1,Math.max(0,(dc-25)/55)),ff=Math.min(1,Math.max(0,(reach-dd)/90)),sc=NPOU.S[i]*fn*fn*ff;
     e.set(R[j],R[j+1],R[j+2]);q.setFromEuler(e);pp.set(P[j],P[j+1],P[j+2]);ss.set(sc,sc,sc);m.compose(pp,q,ss);im.setMatrixAt(i,m);const b=NPOU.B[i];im.instanceColor.setXYZ(i,b,b,b);}
-  NPOU.init=true;im.count=NPOU.n;im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}
+  NPOU.init=true;im.count=NPOU.n;im.visible=true;im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}
 // ---------- PIGEONS RAMIERS : rares traversées d'oiseaux — un peu de vie dans le ciel ----------
 const PIGEONS=[];let pigeonT=12+Math.random()*14;
-const pgBodyM=new THREE.MeshLambertMaterial({color:0x97a2b6});
-const pgBreastM=new THREE.MeshLambertMaterial({color:0xc9a9b4});
-const pgWingM=new THREE.MeshLambertMaterial({color:0x76839b,side:THREE.DoubleSide});
-const pgBarM=new THREE.MeshBasicMaterial({color:0xf4f6fa,side:THREE.DoubleSide});
+/* (2026-11-03, maps cohérentes) UN PIGEON = TROIS APPELS DE DESSIN (dix avant : corps, poitrail, tête, deux taches, queue, deux ailes, deux barres) et
+   UN programme (trois avant : Lambert recto, Lambert recto-verso, Basic). Les morceaux qui bougent ensemble sont FUSIONNÉS une fois pour toutes,
+   chacun avec SA couleur (couleur par sommet) : le corps entier d'un côté, chaque aile avec sa barre blanche de l'autre (elles battent). Mêmes
+   formes, mêmes couleurs, mêmes battements ; la barre et les taches du cou prennent maintenant la lumière comme le reste (elles étaient « Basic »). */
+const pgM=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});
+function pgFusion(parts){ // [[géométrie, position, rotation x, échelle, couleur], …] → une géométrie non indexée, la couleur dans ses sommets
+  const P=[],N=[],C=[],c=new THREE.Color(),M=new THREE.Matrix4(),Q=new THREE.Quaternion(),E=new THREE.Euler(),V=new THREE.Vector3(),S=new THREE.Vector3();
+  for(const q of parts){Q.setFromEuler(E.set(q[2]||0,0,0));V.fromArray(q[1]);S.fromArray(q[3]||[1,1,1]);M.compose(V,Q,S);
+    const g=q[0].clone().applyMatrix4(M),h=g.index?g.toNonIndexed():g,pa=h.attributes.position.array,na=h.attributes.normal.array;c.setHex(q[4]);
+    for(let i=0;i<pa.length;i++){P.push(pa[i]);N.push(na[i]);}for(let i=0;i<pa.length/3;i++)C.push(c.r,c.g,c.b);g.dispose();if(h!==g)h.dispose();}
+  const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(P,3));o.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
+  o.setAttribute('color',new THREE.Float32BufferAttribute(C,3));o.computeBoundingSphere();return o;}
 // (2026-09-26, passe fuites) les géométries des pigeons sont PARTAGÉES : chaque oiseau en créait 10 neuves, jamais libérées
-const PG_G={body:new THREE.SphereGeometry(.5,9,7),breast:new THREE.SphereGeometry(.24,8,6),head:new THREE.SphereGeometry(.16,8,6),nk:new THREE.SphereGeometry(.06,6,5),
-  tail:new THREE.BoxGeometry(.26,.04,.5),wing:new THREE.PlaneGeometry(1.0,.42),bar:new THREE.PlaneGeometry(.9,.11)};
+const PG_G=(function(){const s=[new THREE.SphereGeometry(.5,9,7),new THREE.SphereGeometry(.24,8,6),new THREE.SphereGeometry(.16,8,6),new THREE.SphereGeometry(.06,6,5),
+  new THREE.BoxGeometry(.26,.04,.5),new THREE.PlaneGeometry(1.0,.42),new THREE.PlaneGeometry(.9,.11)],GRIS=0x97a2b6,ROSE=0xc9a9b4,AILE=0x76839b,BLANC=0xf4f6fa,r=-Math.PI/2;
+  const o={corps:pgFusion([[s[0],[0,0,0],0,[.52,.46,1.15],GRIS],[s[1],[0,-.06,.3],0,0,ROSE],[s[2],[0,.18,.56],0,0,GRIS], // le corps, le poitrail rosé, la tête
+      [s[3],[-.12,.14,.44],0,0,BLANC],[s[3],[.12,.14,.44],0,0,BLANC],[s[4],[0,.02,-.66],0,0,AILE]]), // les taches blanches du cou (la signature du ramier), la queue
+    aile:[-1,1].map(function(sd){return pgFusion([[s[5],[sd*.5,0,0],r,0,AILE],[s[6],[sd*.5,.01,.02],r,0,BLANC]]);})}; // chaque aile et sa barre alaire blanche
+  for(const g of s)g.dispose();return o;})();
 function mkPigeon(){
   const g=new THREE.Group();
-  const body=new THREE.Mesh(PG_G.body,pgBodyM);
-  body.scale.set(.52,.46,1.15);g.add(body);
-  const breast=new THREE.Mesh(PG_G.breast,pgBreastM); // poitrail rosé
-  breast.position.set(0,-.06,.3);g.add(breast);
-  const head=new THREE.Mesh(PG_G.head,pgBodyM);
-  head.position.set(0,.18,.56);g.add(head);
-  for(const sd of [-1,1]){ // tache blanche du cou — la signature du ramier
-    const nk=new THREE.Mesh(PG_G.nk,pgBarM);
-    nk.position.set(sd*.12,.14,.44);g.add(nk);
-  }
-  const tail=new THREE.Mesh(PG_G.tail,pgWingM);
-  tail.position.set(0,.02,-.66);g.add(tail);
-  for(const sd of [-1,1]){ // ailes battantes avec barre alaire blanche
-    const wg=new THREE.Group();wg.position.set(sd*.16,.1,.06);
-    const wing=new THREE.Mesh(PG_G.wing,pgWingM);
-    wing.rotation.x=-Math.PI/2;wing.position.x=sd*.5;wg.add(wing);
-    const bar=new THREE.Mesh(PG_G.bar,pgBarM);
-    bar.rotation.x=-Math.PI/2;bar.position.set(sd*.5,.01,.02);wg.add(bar);
-    g.add(wg);
-    if(sd<0)g.userData.wl=wg;else g.userData.wr=wg;
-  }
+  g.add(new THREE.Mesh(PG_G.corps,pgM));
+  for(let i=0;i<2;i++){const sd=i?1:-1,wg=new THREE.Group();wg.position.set(sd*.16,.1,.06); // ailes battantes (pivot à l'épaule)
+    wg.add(new THREE.Mesh(PG_G.aile[i],pgM));g.add(wg);
+    if(sd<0)g.userData.wl=wg;else g.userData.wr=wg;}
   g.scale.setScalar(1.7);
   return g;
 }
