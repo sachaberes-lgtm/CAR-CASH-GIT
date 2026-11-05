@@ -321,11 +321,24 @@ const DEPART_ATT={n:0,ms:0,sortie:''};
 function departAttend(G){ /* vrai : cette image, la course ne part pas encore (le voile reste) */
   if(!G||/[?&]attente=0\b/.test(location.search))return false;
   const now=performance.now();if(!G.att0)G.att0=now;
-  const chaud=engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait&&lierPret();
+  const chaud=engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait&&lierPret()&&!(CHAUFFE_R.niv&&performance.now()-CHAUFFE_R.nivT<4000); /* (A1.d) et la chauffe du niveau neuf finie */
   let pb=true;try{pb=!PREB.on||!PREB.W||PREB.fait||!prebDepCible();}catch(e){} /* le départ d'avance n'est attendu que s'il est DÉJÀ en route (MESURÉ, iPhone à froid : pas commencé avant le JOUER, il ne démarre pas sous le voile — le voile tenait jusqu'aux 20 s pour rien ; la piste se bâtit alors au départ, ~0,6 s de JS, sans compilation) */
   if(chaud&&pb||now-G.att0>20000){if(G.attend){DEPART_ATT.n++;DEPART_ATT.ms=Math.round(now-G.att0);DEPART_ATT.sortie=chaud&&pb?'prêt':'20 s';G.attend=false;}return false;}
   G.attend=true;chauffeGrace();return true;}
 window.dbgDepart=function(){return Object.assign({},DEPART_ATT);};
+/* (2026-11-05, passe perf mobile 2, A1.d) LA CHAUFFE DU NIVEAU NEUF EN TRANCHES. MESURÉ (B1, p0 ×4) : newTrack ne coûte plus que 20-99 ms, mais la 1re image après le voile faisait jusqu'à 333 ms — `chauffeRendu()` d'un bloc,
+   déclenché 120 ms après la construction, donc APRÈS l'ouverture du voile. Désormais (paliers 0-1, là où `chauffeTranche` < 999) : `jadeChauffeNiveau` une fois, puis `chauffeRendu()` une tranche par image tant qu'il en
+   reste (`CHAUFFE_R.niv`), et le voile du JOUER attend la fin (garage-rendu.js, 700 ms au plus). `?chauffeniveau=0` = avant. */
+function chauffeNiveauTranche(){return !/[?&]chauffeniveau=0\b/.test(location.search)&&!CHAUFFE_R.sansTranche&&PAL.b('chauffeTranche',999)<999;}
+function chauffeNiveauPas(){
+  if(performance.now()-CHAUFFE_R.nivT>6000||CHAUFFE_R.nivN>60){CHAUFFE_R.niv=0;return;} /* garde-fou : jamais plus de 6 s ni 60 images */
+  CHAUFFE_R.nivN++;LIER.doux=true;CHAUFFE_R.tr=1;CHAUFFE_R.saute=0;CHAUFFE_R.encore=0;
+  try{if(!CHAUFFE_R.nivJ){CHAUFFE_R.nivJ=1;CHAUFFE_R.tr=0;jadeChauffeNiveau();CHAUFFE_R.tr=1;return;} /* l'étape jade (sa propre chauffe de bloc) seule dans sa première image */
+    chauffeRendu();}
+  finally{LIER.doux=false;CHAUFFE_R.tr=0;}
+  if(CHAUFFE_R.encore){CHAUFFE_R.encore=0;return;}
+  if(CHAUFFE_R.saute&&CHAUFFE_R.nivN<20)return; /* des programmes en cours de liaison n'ont pas été dessinés : encore une image */
+  CHAUFFE_R.niv=0;ccConstr('chauffe');}
 function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie encore : le menu tourne, la suivante attend ; l'étape compile en doux */
   if(!lierPret())return;
   LIER.doux=true;CHAUFFE_R.tr=1;try{engChauffe1();}finally{LIER.doux=false;CHAUFFE_R.tr=0;}}

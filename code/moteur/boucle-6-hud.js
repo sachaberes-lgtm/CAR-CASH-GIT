@@ -300,7 +300,10 @@
   if(PCV.copie&&!mortS9)pcCopie(); // (2026-10-17) LE PASSAGE PAR LA FENÊTRE : l'image qu'on traverse, recopiée APRÈS ce rendu (pas de rendu en plus)
   try{if(!mortS9)homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
-  if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;jadeChauffeNiveau();chauffeRendu();ccConstr('chauffe');} // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
+  if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;
+    if(chauffeNiveauTranche()){CHAUFFE_R.niv=1;CHAUFFE_R.nivT=now;CHAUFFE_R.nivN=0;CHAUFFE_R.nivJ=0;} /* (2026-11-05, passe perf mobile 2, A1.d) paliers 0-1 : la chauffe du niveau neuf en tranches, une par image (voir chauffeNiveauPas) */
+    else{jadeChauffeNiveau();chauffeRendu();ccConstr('chauffe');}}
+  if(CHAUFFE_R.niv)chauffeNiveauPas(); // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
   if(!started||gameOver)engChauffe(); // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image
   // VIGNETTE MOTEUR — RÉACTIVÉE (2026-08-02) : elle passe désormais par un RenderTarget dédié puis un
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,

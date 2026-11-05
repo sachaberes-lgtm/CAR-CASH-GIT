@@ -256,7 +256,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       const wasStarted=started;
       closeGarage(wasStarted);
       if(wasStarted)resetGame();else{start();fireLaunchBoost();}
-      const f=$('gFade');if(f)setTimeout(function(){f.classList.remove('on');},60); // il se retire SUR la piste
+      const f=$('gFade');if(f){const t0=performance.now(),lever=function(){if((CHAUFFE_R.t||CHAUFFE_R.niv)&&performance.now()-t0<700&&!/[?&]chauffeniveau=0\b/.test(location.search)){setTimeout(lever,30);return;}f.classList.remove('on');};setTimeout(lever,60);} /* (2026-11-05, passe perf mobile 2, A1.d) il se retire SUR la piste, une fois sa chauffe faite (700 ms au plus) */ // il se retire SUR la piste
     }
     return;                                                // ⚠ on ne rejoue pas l'orbite derrière
   }

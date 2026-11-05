@@ -46284,11 +46284,24 @@ const DEPART_ATT={n:0,ms:0,sortie:''};
 function departAttend(G){ /* vrai : cette image, la course ne part pas encore (le voile reste) */
   if(!G||/[?&]attente=0\b/.test(location.search))return false;
   const now=performance.now();if(!G.att0)G.att0=now;
-  const chaud=engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait&&lierPret();
+  const chaud=engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait&&lierPret()&&!(CHAUFFE_R.niv&&performance.now()-CHAUFFE_R.nivT<4000); /* (A1.d) et la chauffe du niveau neuf finie */
   let pb=true;try{pb=!PREB.on||!PREB.W||PREB.fait||!prebDepCible();}catch(e){} /* le départ d'avance n'est attendu que s'il est DÉJÀ en route (MESURÉ, iPhone à froid : pas commencé avant le JOUER, il ne démarre pas sous le voile — le voile tenait jusqu'aux 20 s pour rien ; la piste se bâtit alors au départ, ~0,6 s de JS, sans compilation) */
   if(chaud&&pb||now-G.att0>20000){if(G.attend){DEPART_ATT.n++;DEPART_ATT.ms=Math.round(now-G.att0);DEPART_ATT.sortie=chaud&&pb?'prêt':'20 s';G.attend=false;}return false;}
   G.attend=true;chauffeGrace();return true;}
 window.dbgDepart=function(){return Object.assign({},DEPART_ATT);};
+/* (2026-11-05, passe perf mobile 2, A1.d) LA CHAUFFE DU NIVEAU NEUF EN TRANCHES. MESURÉ (B1, p0 ×4) : newTrack ne coûte plus que 20-99 ms, mais la 1re image après le voile faisait jusqu'à 333 ms — `chauffeRendu()` d'un bloc,
+   déclenché 120 ms après la construction, donc APRÈS l'ouverture du voile. Désormais (paliers 0-1, là où `chauffeTranche` < 999) : `jadeChauffeNiveau` une fois, puis `chauffeRendu()` une tranche par image tant qu'il en
+   reste (`CHAUFFE_R.niv`), et le voile du JOUER attend la fin (garage-rendu.js, 700 ms au plus). `?chauffeniveau=0` = avant. */
+function chauffeNiveauTranche(){return !/[?&]chauffeniveau=0\b/.test(location.search)&&!CHAUFFE_R.sansTranche&&PAL.b('chauffeTranche',999)<999;}
+function chauffeNiveauPas(){
+  if(performance.now()-CHAUFFE_R.nivT>6000||CHAUFFE_R.nivN>60){CHAUFFE_R.niv=0;return;} /* garde-fou : jamais plus de 6 s ni 60 images */
+  CHAUFFE_R.nivN++;LIER.doux=true;CHAUFFE_R.tr=1;CHAUFFE_R.saute=0;CHAUFFE_R.encore=0;
+  try{if(!CHAUFFE_R.nivJ){CHAUFFE_R.nivJ=1;CHAUFFE_R.tr=0;jadeChauffeNiveau();CHAUFFE_R.tr=1;return;} /* l'étape jade (sa propre chauffe de bloc) seule dans sa première image */
+    chauffeRendu();}
+  finally{LIER.doux=false;CHAUFFE_R.tr=0;}
+  if(CHAUFFE_R.encore){CHAUFFE_R.encore=0;return;}
+  if(CHAUFFE_R.saute&&CHAUFFE_R.nivN<20)return; /* des programmes en cours de liaison n'ont pas été dessinés : encore une image */
+  CHAUFFE_R.niv=0;ccConstr('chauffe');}
 function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie encore : le menu tourne, la suivante attend ; l'étape compile en doux */
   if(!lierPret())return;
   LIER.doux=true;CHAUFFE_R.tr=1;try{engChauffe1();}finally{LIER.doux=false;CHAUFFE_R.tr=0;}}
@@ -54559,6 +54572,7 @@ function vpalTick(kmh){
 }
 function grisantRaz(){MIR.t=0;MIR.max=0;SFA.n=0;VPAL.n=0;VPAL.rec=false;
   try{VPAL.c0=Math.max(3,Math.floor(((SAVE.d.ex&&SAVE.d.ex.kmh)|0)/100)-1);}catch(e){VPAL.c0=3;}}
+window.dbgPick=function(){let n=0,x=0,y=0,z=0;for(const p of pickups){n++;const q=p.mesh&&p.mesh.position;if(q){x+=q.x;y+=q.y;z+=q.z;}}return {n:n,somme:Math.round((x+y+z)*100)/100,pieces:coinN};}; /* (2026-11-05, passe perf mobile 2, B1) banc : combien de ramassages posés, et la somme de leurs positions (preuve de simulation identique) — lecture seule */
 // console : dbgPwr('m') prend un pouvoir (n a v m x) · dbgPwr() l'état des cinq minuteurs et du grisant
 window.dbgPwr=function(k,n){try{if(k&&PWR_DEFS[k]){for(let i=0;i<(n||1);i++)pwrPrend(k,carGroup.position);}
   if(k==='mir'){MIR.max=n==null?1:n;return MIR.max;} // (banc) la prochaine pose est un MIRACULÉ
@@ -73196,7 +73210,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       const wasStarted=started;
       closeGarage(wasStarted);
       if(wasStarted)resetGame();else{start();fireLaunchBoost();}
-      const f=$('gFade');if(f)setTimeout(function(){f.classList.remove('on');},60); // il se retire SUR la piste
+      const f=$('gFade');if(f){const t0=performance.now(),lever=function(){if((CHAUFFE_R.t||CHAUFFE_R.niv)&&performance.now()-t0<700&&!/[?&]chauffeniveau=0\b/.test(location.search)){setTimeout(lever,30);return;}f.classList.remove('on');};setTimeout(lever,60);} /* (2026-11-05, passe perf mobile 2, A1.d) il se retire SUR la piste, une fois sa chauffe faite (700 ms au plus) */ // il se retire SUR la piste
     }
     return;                                                // ⚠ on ne rejoue pas l'orbite derrière
   }
@@ -77313,7 +77327,10 @@ function loop(now){
   if(PCV.copie&&!mortS9)pcCopie(); // (2026-10-17) LE PASSAGE PAR LA FENÊTRE : l'image qu'on traverse, recopiée APRÈS ce rendu (pas de rendu en plus)
   try{if(!mortS9)homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)
   matSursisTick(); // (perf) les matières de la piste d'avant partent une fois la neuve rendue
-  if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;jadeChauffeNiveau();chauffeRendu();ccConstr('chauffe');} // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
+  if(CHAUFFE_R.t&&now>CHAUFFE_R.t){CHAUFFE_R.t=0;
+    if(chauffeNiveauTranche()){CHAUFFE_R.niv=1;CHAUFFE_R.nivT=now;CHAUFFE_R.nivN=0;CHAUFFE_R.nivJ=0;} /* (2026-11-05, passe perf mobile 2, A1.d) paliers 0-1 : la chauffe du niveau neuf en tranches, une par image (voir chauffeNiveauPas) */
+    else{jadeChauffeNiveau();chauffeRendu();ccConstr('chauffe');}}
+  if(CHAUFFE_R.niv)chauffeNiveauPas(); // (tour 2) niveau neuf : la puce le voit une fois en entier, hors écran
   if(!started||gameOver)engChauffe(); // (perf) au menu et à l'écran de mort : les shaders des moteurs se préparent, un palier par image
   // VIGNETTE MOTEUR — RÉACTIVÉE (2026-08-02) : elle passe désormais par un RenderTarget dédié puis un
   // quad ortho recollé par-dessus. Elle ne touche plus au viewport de la passe finale — c'était ça,
