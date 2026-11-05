@@ -59399,6 +59399,7 @@ function pauseSon(id,o){const C=window.CCSON,n=++PSON.n;if(UI_SON)UI_SON.t=perfo
   }catch(e){pauseSonFin(n);}
   return null;}
 function sfx(id,o){
+  if(typeof id!=='string'){sonPanne('sfx sans identifiant',String(id));return null;} /* (2026-11-05, DEBUG-TOTAL) id.indexOf hors du try : un id absent LEVAIT chez l'appelant (souvent dans la boucle) */
   if(SONV2&&id.indexOf('ui.')===0&&pauseSonDort())return pauseSon(id,o); // (2026-10-16) LE CLIC DANS LA PAUSE (voir pauseSon)
   if(!SONV2||!sfxOk()||document.hidden)return null;
   try{if(UI_SON&&id!=='ui.appui'&&!(o&&o.loop))UI_SON.t=performance.now();if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(h&&SIG_RECUL[id])musRecul();return h;}catch(e){return null;}
@@ -59546,8 +59547,19 @@ function vroomGarage(){
     ng.gain.setValueAtTime(.0001,t);ng.gain.exponentialRampToValueAtTime(.06,t+.1);ng.gain.exponentialRampToValueAtTime(.0002,t+1.1);ns.connect(nf);nf.connect(ng);ng.connect(MASTER);ns.start(t);ns.stop(t+1.2);
   }catch(e){}
 }
+/* ===== LE SON NE FAIT JAMAIS TOMBER LA BOUCLE (2026-11-05, DEBUG-TOTAL : « qu'on puisse faire ce qu'on veut du code sans jamais avoir de problème ») =====
+   `setTargetAtTime` LÈVE une TypeError (« non-finite ») sur un NaN ou un Infinity. Une cinquantaine de `stt` par image (boucle-5-sons) suivent
+   la vitesse, le régime, la glisse : un seul NaN venu d'en amont (dt énorme au retour d'arrière-plan, une division par une vitesse nulle)
+   faisait sauter, À CHAQUE IMAGE, toute la fin de la simulation (HUD, caméra, test de bord, mort) — la caisse figée sans mourir.
+   La valeur non finie est refusée ici (le paramètre garde sa valeur) et dite UNE fois en console, préfixe [SON], et dans la boîte noire.
+   `sonPanne(nom,…)` sert à toute panne du son : une fois par nom, jamais muette, jamais bloquante. `dbgSonPannes()` : la liste. */
+const SON_PANNES={};
+function sonPanne(nom,e,x){if(SON_PANNES[nom]){SON_PANNES[nom].n++;return;}SON_PANNES[nom]={n:1,m:String(e&&e.message||e).slice(0,160)};
+  try{console.warn('[SON] '+nom,e,x===undefined?'':x);}catch(_){}try{window.__ccNote('son',nom+' · '+SON_PANNES[nom].m,e&&e.stack&&String(e.stack).split('\n')[1]);}catch(_){}}
+window.dbgSonPannes=function(){return JSON.parse(JSON.stringify(SON_PANNES));};
 function stt(p,v,t,tc){
   if(!AC||AC.state!=='running'||!p)return;
+  if(!isFinite(v)||!isFinite(t)||!isFinite(tc)){sonPanne('valeur non finie (stt)','v='+v+' t='+t+' tc='+tc);return;}
   const o=p._s9,now=AC.currentTime;
   if(o!==undefined&&p._c9===tc&&Math.abs(v-o)<=Math.abs(o)*.002+1e-5&&now-p._t9<.25)return;
   p._s9=v;p._c9=tc;p._t9=now;p.setTargetAtTime(v,t,tc);
@@ -78443,9 +78455,9 @@ function loop(now){
     trailLight.intensity=0; // (2026-09-26, audit rendu) son reflet rond sur le bitume derrière la caisse est retiré — la lumière reste en scène à 0 (retirer une lumière recompile tout) // ×1.7→1.5 : le RUBAN garde la vedette, son reflet accompagne sans s'additionner brutalement au reste
     trailLight.color.setRGB(Math.min(1,tcr),Math.min(1,tcg),Math.min(1,tcb));
     // sons continus
-    if(AC){
+    try{if(AC){ /* (2026-11-05, DEBUG-TOTAL) les sons continus dans LEUR try : une panne de son ne saute plus le HUD, la caméra ni la mort (voir sonPanne) */
       const spd3=speedKmh;
-      if(duckT>0)duckT=Math.max(0,duckT-dt*2.6); // les gros événements creusent le mix, puis il respire
+      if(duckT>0)duckT=Math.max(0,duckT-dt*2.6);else duckT=0; /* (2026-11-05, DEBUG-TOTAL) else : un NaN reçu par un Math.max(duckT,…) restait POUR TOUJOURS (NaN>0 est faux, rien ne le remettait à zéro, ni la mort ni REJOUER) et rendait non finis tous les gains de la boucle (dk) */ // les gros événements creusent le mix, puis il respire
       const dk=(1-.5*duckT);
       nA+=((nitroOn&&mode!=='boom'?1:0)-nA)*Math.min(1,dt*6); // rampe nitro : le moteur gonfle, ne saute pas
       /* (2026-10-14, session SON) LA TENSION DU VOL (voir SVOL) : en l'air elle vise 85 % à 2,5 s de vol + 6 % par geste (30 % au plus),
@@ -78632,7 +78644,7 @@ function loop(now){
         loop._jetWas=nOn9&&air9;
         if(RUG_SON)rugPas(dt,{on:nOn9,air:air9,bleu:nitroBlue,v:spd3,dk:dk}); // (2026-10-16) LE FEU QUI RUGIT : la gorge, la montée, la pulsation, le crépitement
       }
-    }
+    }}catch(e){sonPanne('sons continus (boucle)',e);}
     // portail qui pulse + pads RGB qui défilent
     if(PCUBE.on)pcubeTick(t,speedKmh,dt); // (2026-10-17) LE PORTAIL DE CUBES : l'onde, les flotteurs, l'aspiration
     // (console de son) LE PORTAIL APPROCHE : un bourdon qui monte, UNE fois par portail (portalMesh est neuf à chaque piste), ~2 s avant l'ovule — et près du BOUT de la piste (un ruban qui repasse sous l'ovule ne le déclenche pas)
