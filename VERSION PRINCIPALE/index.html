@@ -9608,6 +9608,11 @@ html.ccApp body #mob #mDead #mDouble#mDouble,html.ccApp #pubR#pubR{display:none!
   #gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMis,#gvMis::before,#gvMis::after,#gvMis .gvFx,#gName.entre{animation:none}}
 html[data-reduced-motion="1"] body #mob #mDead.m5.on :is(.m6Mot,.m6Aura,.mDuo>.pbtn){animation:none}
 html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMis,#gvMis::before,#gvMis::after,#gvMis .gvFx,#gName.entre){animation:none}
+/* 10. LA CARTE MISSIONS DE L'ÉCRAN DE MORT, couché étroit (2026-11-05, finition — MESURÉ 667×375, en anglais) : « MISSIONS » (115 px) mordait de 13 px
+   le compteur « 5 / 53 » — on lisait « / 53 » ; et « SECRET MISSION FOUND » (170 px dans 158) finissait en « FO… ». Le titre passe à 8 px (il tient, 5 px
+   de jour), la mission secrète a le droit à deux lignes */
+@media (orientation:landscape) and (max-width:700px){#mObj .obHd>span{font-size:8px;gap:4px}}
+#mObj .obM.sec>span{white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;line-height:11px}
 </style>
 <style id="peintures">
 /* ===== LE NUANCIER v3 — LES PASTILLES (2026-11-05, Sacha : « retravaille la présentation des peintures dans la boutique […] pro, fini, léché ») =====
