@@ -12387,7 +12387,7 @@ function qlSonde(){ try{ const g9=renderer.getContext();
    (mesuré sur Mac : 15 lectures = 510 ms de jeu gelé, pics de 120 ms) — justement quand les images ratent déjà. Sous ALLEGE (WebGL2) : une
    BARRIÈRE (fenceSync) posée en fin d'image, relue sans bloquer toutes les ~2 ms ; la durée = du début de l'image au moment où la puce a fini
    (un peu plus longue que la vraie, de la latence du minuteur : l'échelle QL en est un peu plus prudente). L'ordi garde l'ancienne sonde.
-   `?sonde=ancien` : readPixels partout, comme avant. */
+   `?sonde=ancien` : readPixels partout, comme avant. `dbgBarriere()` : l'état (dbgSonde existe déjà : la sonde elle-même). */
 const QL_BARRIERE=ALLEGE&&!/[?&]sonde=ancien\b/.test(location.search)&&!!(renderer.capabilities&&renderer.capabilities.isWebGL2);
 function qlSondeBarriere(g9){const S=QLR.S,t0=QLR.t0;let sy=null;try{sy=g9.fenceSync(g9.SYNC_GPU_COMMANDS_COMPLETE,0);g9.flush();}catch(e){sy=null;}
   if(!sy){QLR.sN=0;return;}QLR.sN--;S.pend++;
@@ -12395,7 +12395,7 @@ function qlSondeBarriere(g9){const S=QLR.S,t0=QLR.t0;let sy=null;try{sy=g9.fence
     const dt=performance.now()-t0;if(!ok&&dt<500){setTimeout(pas,2);return;}
     try{g9.deleteSync(sy);}catch(e){}S.pend--;if(S!==QLR.S)return;if(ok)QLR.sA.push(Math.min(120,dt));qlSondeFin();};
   setTimeout(pas,0);}
-window.dbgSonde=function(){return {barriere:QL_BARRIERE,chrono:!!QLT.ok,vrai:QLR.vrai,dern:QLR.dern};};
+window.dbgBarriere=function(){return {barriere:QL_BARRIERE,chrono:!!QLT.ok,vrai:QLR.vrai,dern:QLR.dern};};
 const QL={k:0,mur:0,murT:0,roseT:0,up:0,efT:0,effondre:false,fr:0,N_EFF:5,ombre0:sun.shadow.mapSize.x,essai:null,plafK:0,plafT:0,
   nom:['ombre en vol ½','ombre 768','bloom ¾','ombre 512','flou radial']};
 /* (2026-09-27, tour 2 — « on repasse en mode pixel assez vite après avoir lancé ») LE MODE PIXEL, C'ÉTAIT LE PLANCHER : sous l'effondrement,
