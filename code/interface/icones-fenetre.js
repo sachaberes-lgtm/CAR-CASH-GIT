@@ -1,6 +1,25 @@
 (function(){
 'use strict';
 if(window.CC_COLONNE)return; // (2026-09-28) sur l'ordi cette page n'est que le CADRE : le jeu tourne dans la colonne (voir <head>)
+/* ===== L'APP ET LE MODE DÉVELOPPEUR (2026-11-05, Opus : « dans l'app, plus aucun mot PUB » · HYG-10 « un seul drapeau DEV ») =====
+   EN_APP : le jeu tourne dans l'app iPhone (la coquille Capacitor pose window.Capacitor AVANT le jeu). ⚠ Pas TEL_NATIF : lui est vrai aussi
+   dans Safari sur iPhone (le site). `?app=1` simule l'app au navigateur, pour les bancs. La classe `ccApp` sur <html> sert au CSS.
+   DEV : les paramètres d'adresse qui donnent un avantage ou faussent la partie (?pub=0 ?chance=0 ?spin=0 ?cadeau=1 ?lecon=non ?eco=ancien,
+   et ceux des autres zones : ?carte= ?niveau= ?simu=1) ne comptent que sur une copie LOCALE (localhost, 127.0.0.1, réseau privé, fichier)
+   ou avec `?dev=…` dans l'adresse. Sur le site public et dans l'app, ils sont ignorés. `qDev(/re/)` = « ce paramètre ET le mode DEV ». */
+const EN_APP=!!window.Capacitor||/[?&]app=1\b/.test(location.search);
+const DEV=location.protocol==='file:'||/[?&]dev=/.test(location.search)||
+  /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)$|\.(local|localhost|test)$/.test(location.hostname);
+function qDev(re){return DEV&&re.test(location.search);}
+if(EN_APP)try{document.documentElement.classList.add('ccApp');}catch(e){}
+window.CC_DEV=DEV;window.CC_EN_APP=EN_APP;
+/* ACHAT_EUR (2026-11-05, Opus : jury INT-01 / INT-20, décision D3 « masquer partout tant que StoreKit n'existe pas ») : faux = ni l'écran ACHAT
+   (#mShop), ni ses portes (la tuile de l'accueil, la BOUTIQUE du bas du garage, la porte des offres éphémères), ni le rayon ACHAT de la boutique.
+   shopPaye reste, inerte. Les caisses en € ne comptent plus nulle part (caisse équipée, étage, missions « toutes »). `?achat=ancien` : l'ancien. */
+const ACHAT_EUR=/[?&]achat=ancien\b/.test(location.search);
+if(!ACHAT_EUR)try{const s9=document.createElement('style');s9.id='sansAchat';
+  s9.textContent='html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],#mShop,#bdShop,.fnPorte){display:none!important}';
+  document.head.appendChild(s9);}catch(e){}
 /* ================= LES ICÔNES PIXEL (2026-09-24) =================
    ⚠ POURQUOI : la police pixel du jeu n'a AUCUN des symboles d'interface (✕ ◀ ▶ ⚙ ⏸ ↻ ★ ✓ — mesuré) ; ils
    tombaient dans la police du système ou en EMOJI, chacun avec sa facture, ses couleurs, son épaisseur —

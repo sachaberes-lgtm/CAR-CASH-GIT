@@ -1,4 +1,5 @@
 import UIKit
+import AVFoundation
 import Capacitor
 
 @UIApplicationMain
@@ -7,7 +8,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // LE SON MALGRÉ L'INTERRUPTEUR SILENCIEUX (2026-11-05, Opus : jury SON-04).
+        // Sur iOS 16 la page n'a pas navigator.audioSession (iOS 17+) : la vue web joue en catégorie « ambient », que l'interrupteur
+        // silencieux coupe — le jeu entier devenait muet. On pose « playback » pour toute l'app, avant que la page ne charge ;
+        // sur iOS 17+ le jeu ajuste encore la catégorie lui-même (musicSession dans code/son/musique.js : playback, ou ambient sans musique).
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
+        } catch {
+            CAPLog.print("⚡️  [natif] session audio : \(error.localizedDescription)")
+        }
         return true
     }
 

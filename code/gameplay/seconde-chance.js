@@ -8,7 +8,10 @@
    · LA PUB MAISON — sinon : PUBR.d secondes plein écran (#pubR, <style id="pubRecompense">) qui montrent une caisse de la boutique qu'on
      n'a pas encore, son nom, son prix ; le compte ROND et la barre disent le temps qui reste ; rien ne se touche ; le temps ne court que
      l'écran allumé. `pubRecompense(nom, fin)` : fin(vue) part UNE fois. `?pub=0` : pas de pub, reprise immédiate. Banc : dbgPub(). */
-const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,sans:/[?&]pub=0\b/.test(location.search)};
+/* ===== L'APP NE MONTRE AUCUNE PUB (2026-11-05, Opus : jury IOS-04 / DIR-29, décision D1 « couper dans l'app ») =====
+   L'app déclare « aucune publicité » à Apple : sous EN_APP, plus de pub maison (PUBR.sans : la reprise est servie tout de suite), la
+   seconde chance s'annonce GRATUITE (chanceEtat), et le ×2 du gain n'existe pas (DBL.on). Le site garde tout. `?pub=0` ne vaut qu'en DEV. */
+const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,sans:EN_APP||qDev(/[?&]pub=0\b/)};
 Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});
 function pubSilence(on){try{ // une régie montre SA pub par-dessus le jeu : le jeu se tait (la musique en pause, le contexte audio suspendu), puis reprend
   if(on){PUBR.mus=!!(musicEl&&!musicEl.paused);if(PUBR.mus)musicEl.pause();if(AC&&AC.state==='running')AC.suspend();}
@@ -85,7 +88,7 @@ window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison f
      secondes de course : un choc est ignoré, une chute (vide, trop d'air) la replace sans frais. 2 s de nitro offerte, comme au départ.
    Contrat avec l'écran de mort (INTERFACE, plaque #mChance) : `chanceEtat()` → {ok, prix, reste} et `chanceJoue()`. L'événement `cc:chance`
    (sur document) part quand l'offre s'ouvre, s'éteint ou sert : la plaque relit alors chanceEtat(). `?chance=0` éteint tout. Banc : dbgChance(). */
-const CHANCE={on:!/[?&]chance=0\b/.test(location.search),plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
+const CHANCE={on:!qDev(/[?&]chance=0\b/),plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
   offre:false,used:false,pub:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0};
 function chanceBase(){return CHANCE.used?CHANCE.m0:START_CASH;} // ce que la prochaine fin de partie NE verse PAS (déjà versé avant la reprise)
 function chanceSignal(){try{document.dispatchEvent(new Event('cc:chance'));}catch(e){}}
@@ -115,7 +118,7 @@ addEventListener('visibilitychange',function(){ try{
 }catch(e){} });
 function chanceEtat(){
   const ok=!!(CHANCE.on&&CHANCE.offre&&!CHANCE.used&&started&&gameOver&&performance.now()<CHANCE.fin&&overlay.style.display!=='none'&&!garageOn&&!MENUV.retour); /* (15/10 soir) plus de `bank()>=CHANCE.prix` : la pub ne demande rien au compte */
-  return {ok:ok,prix:CHANCE.prix,gratuit:!!CHANCE.gratuit,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
+  return {ok:ok,prix:CHANCE.prix,gratuit:!!CHANCE.gratuit||EN_APP,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
 }
 function chanceJoue(){ // le toucher de la plaque : (15/10 soir) la PUB d'abord (pubRecompense) — la reprise, sous le volet, quand elle a été vue
   if(!chanceEtat().ok)return false;
@@ -310,9 +313,14 @@ window.dbgChance=function(k){ // banc : dbgChance() l'état · ('mort') explose 
    Sans régie (aujourd'hui : l'app v1 et le site), c'est la pub maison de 5 s qui la paie. Fermée avant la fin (vraie régie) : rien n'est
    versé, la plaque revient — on peut réessayer. Ce que la machine à sous verse après la mort n'est PAS doublé (RUNX.verse est figé à la mort).
    `?double=0` éteint tout. Banc : dbgDouble() l'état · ('joue') la touche. */
-const DBL={on:!/[?&]double=0\b/.test(location.search),min:50,used:false,pub:false,v:0};
+const DBL={on:!EN_APP&&!/[?&]double=0\b/.test(location.search),min:50,used:false,pub:false,v:0};
 function dblRaz(){DBL.used=false;DBL.pub=false;DBL.v=0;}
-function dblGain(){return Math.max(0,Math.floor(RUNX.verse!=null?RUNX.verse:bank()-(RUNX.bank0||0)));}
+/* ===== LE ×2 NE DOUBLE QUE LE GAIN DE LA COURSE (2026-11-05, Opus : jury ECO-08) =====
+   RUNX.verse = tout ce que la fin de partie a mis au compte, prime de SÉRIE du jour (jourCommit) et missions comprises : le ×2 les doublait aussi.
+   Il double maintenant le virement de la course seul (commitExploits._vire : après une reprise, toute la partie). `?double=ancien` : l'ancien calcul. */
+const DBL_ANCIEN=/[?&]double=ancien\b/.test(location.search);
+function dblGain(){const b=commitExploits._vire;if(!DBL_ANCIEN&&typeof b==='number'&&isFinite(b))return Math.max(0,Math.floor(b));
+  return Math.max(0,Math.floor(RUNX.verse!=null?RUNX.verse:bank()-(RUNX.bank0||0)));}
 function dblEtat(){
   const v=dblGain();
   const ok=!!(DBL.on&&!DBL.used&&!DBL.pub&&started&&gameOver&&!SANDBOX&&!TUTO.on&&!TUTO.quitte&&!PARK.on&&!SURV.on&&!BALADE&&v>=DBL.min&&
@@ -324,7 +332,7 @@ function dblJoue(apres){ // le toucher de la plaque : la pub, puis le 2e verseme
   DBL.pub=true;DBL.v=e.v;
   const lance=pubRecompense('double-gain',function(vue){DBL.pub=false;const v=DBL.v;
     const ok=!!(vue&&started&&gameOver&&!DBL.used&&v>0);
-    if(ok){DBL.used=true;SAVE.d.bank=Math.min(1e30,bank()+v);gagneAjoute(v);bankMaxMaj();RUNX.verse=dblGain()+v;SAVE.flush();}
+    if(ok){DBL.used=true;SAVE.d.bank=Math.min(1e30,bank()+v);gagneAjoute(v);bankMaxMaj();RUNX.verse=(RUNX.verse!=null?RUNX.verse:dblGain())+v;SAVE.flush();}
     try{if(apres)apres(ok,ok?v:0);}catch(e){console.warn('double',e);}});
   if(!lance){DBL.pub=false;return false;}
   return true;

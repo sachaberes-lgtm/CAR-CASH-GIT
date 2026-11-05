@@ -13,11 +13,12 @@
       s'allume qu'avec ?poki=1 dans l'adresse, impossible ici), et plus aucune adresse réseau dans ce qu'on embarque.
    Puis l'inventaire : aucune adresse http(s) ne doit rester dans www/ (hors espaces de noms XML du W3C, qui ne se chargent pas). */
 'use strict';
-const fs=require('fs'),path=require('path'),os=require('os'),{execSync}=require('child_process');
+const fs=require('fs'),path=require('path'),os=require('os'),{execSync,execFileSync}=require('child_process');
 /* L'ESSAI À BLANC :  node preparer-www.js --essai "<un autre dossier VERSION PRINCIPALE>"   (npm run essai -- "<dossier>")
    Joue TOUTE la fabrication (copie, retouches, inventaire) sur le jeu d'une autre branche, dans un dossier jetable : www/ n'est pas
    touché. Sert à savoir, AVANT de fusionner, si les retouches trouvent encore leurs cibles dans un jeu qui a bougé. */
-const iE=process.argv.indexOf('--essai'), ESSAI=iE>=0?path.resolve(process.argv[iE+1]||''):null;
+/* (2026-11-05, Opus) sans dossier après --essai (ou suivi d'une autre option), l'essai porte sur le VERSION PRINCIPALE de ce dépôt (vercel-build.sh) */
+const iE=process.argv.indexOf('--essai'), aE=process.argv[iE+1], ESSAI=iE>=0?path.resolve(aE&&!/^--/.test(aE)?aE:path.join(__dirname,'..','VERSION PRINCIPALE')):null;
 //   … --sortie "<dossier>" : l'essai est GARDÉ dans ce dossier (pour le regarder au navigateur) au lieu d'être effacé.
 const iS=process.argv.indexOf('--sortie'), SORTIE=ESSAI&&iS>=0?path.resolve(process.argv[iS+1]||''):null;
 /* LES MISES À JOUR EN DIRECT (2026-10-14) : natif.js lit latest.json à cette adresse (la branche `app-maj` du dépôt public, voir
@@ -31,7 +32,9 @@ if(ESSAI&&!SORTIE)process.on('exit',()=>{try{fs.rmSync(WWW,{recursive:true,force
 const meurt=m=>{console.error('\n✗ preparer-www'+(ESSAI?' (essai sur '+SRC+')':'')+' : '+m+'\n');process.exit(1);};
 if(!fs.existsSync(path.join(SRC,'index.html')))meurt(SRC+'/index.html introuvable');
 
-const GARDE=['index.html','sfx.js','sons-banque.js','manifest.webmanifest','vendor','assets'];
+/* (2026-11-05, Opus : jury IOS-07) creatures/ : le Worker des singes et dauphins du SOLEIL DE JADE (new Worker('creatures/atelier.js')) n'est pas un
+   <script src> : il manquait à l'app (404 muet). Les autres fichiers chargés PAR PROGRAMME suivent plus bas (« LES CHARGEMENTS DYNAMIQUES »). */
+const GARDE=['index.html','sfx.js','sons-banque.js','manifest.webmanifest','vendor','assets','creatures'];
 const JAMAIS=/\.py$|^\.DS_Store$|^Thumbs\.db$/;
 /* LES VOIX NE SONT PAS LIVRÉES (2026-10-14), comme dans l'édition POKI (poki-construire.js, même liste) : sans « ?voix=1 » dans
    l'adresse — impossible dans l'app — le jeu naît SANS_VOIX : l'annonceur, le « ewww » des morts et le « WOW » des combos ne sont
@@ -45,8 +48,11 @@ let nFic=0,nOct=0;
    restent dehors — MAIS PAS les pages que le jeu charge lui-même : la musique de course joue AURA · 30, RUBIS DE NÉON, ASPHALTE D'ÉMERAUDE
    dans une iframe cachée (assets/audio/pouce-bleu-jeu.js, `HTML`). Règle : une page .html de assets/ part dans l'app seulement si son nom
    est cité par la page du jeu ou par un script de assets/. */
-const CITE=(()=>{let s=fs.readFileSync(path.join(SRC,'index.html'),'utf8');const lis=d=>{for(const n of fs.readdirSync(d)){const p=path.join(d,n);
-  if(fs.statSync(p).isDirectory())lis(p);else if(/\.m?js$/i.test(n))s+=fs.readFileSync(p,'utf8');}};lis(path.join(SRC,'assets'));return s;})();
+/* (2026-11-05, Opus : jury IOS-26) la règle CITE ne lit plus TOUS les .js de assets/ : les catalogues de la bibliothèque (direct/*.js) y citent ~21 pages
+   d'atelier, qui seraient toutes parties dans l'app. Seuls les VRAIS chargeurs : la page du jeu, pouce-bleu-jeu.js (les iframes de la musique en
+   direct) et musique-bus.js. Un nouveau chargeur de page = l'ajouter ici. */
+const CHARGEURS=['assets/audio/pouce-bleu-jeu.js','assets/audio/musique-bus.js'];
+const CITE=(()=>{let s=fs.readFileSync(path.join(SRC,'index.html'),'utf8');for(const c of CHARGEURS){const p=path.join(SRC,c);if(fs.existsSync(p))s+=fs.readFileSync(p,'utf8');}return s;})();
 const ATELIER=r=>/^assets\/.*\.html$/i.test(r)&&CITE.indexOf(path.basename(r))<0;
 const copie=(a,b)=>{const r0=path.relative(SRC,a).split(path.sep).join('/');if(SANS_LIVRER.has(r0)||ATELIER(r0))return;const s=fs.statSync(a);
   if(s.isDirectory()){fs.mkdirSync(b,{recursive:true});for(const n of fs.readdirSync(a))if(!JAMAIS.test(n))copie(path.join(a,n),path.join(b,n));}
@@ -57,6 +63,14 @@ for(const n of GARDE){const a=path.join(SRC,n);if(!fs.existsSync(a))meurt('manqu
 for(const m of fs.readFileSync(path.join(SRC,'index.html'),'utf8').matchAll(/<script[^>]*\ssrc=["']([^"'?#]+)/g)){const n=m[1];
   if(/^[a-z]+:|^\/\//i.test(n)||n==='natif.js')continue;const a=path.join(SRC,n);if(!fs.existsSync(a))meurt('la page charge '+n+', absent de VERSION PRINCIPALE');
   if(!fs.existsSync(path.join(WWW,n))){fs.mkdirSync(path.dirname(path.join(WWW,n)),{recursive:true});copie(a,path.join(WWW,n));console.log('  + '+n+' (chargé par la page)');}}
+/* LES CHARGEMENTS DYNAMIQUES (2026-11-05, Opus : jury IOS-07) : un Worker (new Worker('…')), un fetch('…') ou un script('…') à chemin local, dans la page
+   ou dans un .js de assets/ (les adresses relatives se lisent depuis la page) — vu le 5/11 : musique-moteur.json et musique-paliers.js (la musique de
+   course, pouce-bleu-jeu.js) et creatures/atelier.js manquaient à l'app. Le fichier existe : il est copié ; un Worker introuvable arrête tout. */
+{let s=fs.readFileSync(path.join(SRC,'index.html'),'utf8');const lis=d=>{for(const n of fs.readdirSync(d)){const p=path.join(d,n);
+  if(fs.statSync(p).isDirectory())lis(p);else if(/\.m?js$/i.test(n))s+=fs.readFileSync(p,'utf8');}};lis(path.join(SRC,'assets'));
+  for(const m of s.matchAll(/\b(new Worker|fetch|script)\(\s*['"]([^'"?#]+)/g)){const n=m[2];if(/^[a-z]+:|^\/\/|^\//i.test(n)||!/\.[a-z0-9]+$/i.test(n))continue;
+    const a=path.join(SRC,n);if(!fs.existsSync(a)||!fs.statSync(a).isFile()){if(m[1]==='new Worker')meurt('le jeu lance le Worker '+n+', absent de VERSION PRINCIPALE');continue;}
+    if(!fs.existsSync(path.join(WWW,n))&&!JAMAIS.test(path.basename(n))&&!ATELIER(n)){fs.mkdirSync(path.dirname(path.join(WWW,n)),{recursive:true});copie(a,path.join(WWW,n));console.log('  + '+n+' (chargé par programme)');}}}
 // l'icône du web : le mot-symbole pixel CASH CAR (icon.svg du jeu = l'émoji 💰 d'Apple, une image protégée : refus App Store)
 fs.copyFileSync(path.join(ICI,'ressources','icon.svg'),path.join(WWW,'icon.svg'));nFic++;
 {let n=fs.readFileSync(path.join(ICI,'natif','natif.js'),'utf8');const k=n.split("'"+MAJ_PROD+"'").length-1;
@@ -105,7 +119,7 @@ une("function carUnlockedVrai(i){",
 toutes('LA DAYTONA','LA GRANDE FLÈCHE',10,'nom LA DAYTONA (Ferrari)');une('"THE DAYTONA"','"THE GREAT ARROW"','nom LA DAYTONA en anglais');
 toutes('LA STRATOS','LA CALE',14,'nom LA STRATOS (Lancia)');une('"THE STRATOS"','"THE WEDGE"','nom LA STRATOS en anglais');
 toutes('LA VETTE','LA RAPIÈRE',6,'nom LA VETTE (Corvette)');une('"THE VETTE"','"THE RAPIER"','nom LA VETTE en anglais');
-toutes('LE CHARGEUR','LE FORBAN',13,'noms LE CHARGEUR et LE CHARGEUR 69 (Dodge)');toutes('"THE CHARGER','"THE CORSAIR',2,'noms LE CHARGEUR et LE CHARGEUR 69 en anglais');
+toutes('LE CHARGEUR','LE FORBAN',14,'noms LE CHARGEUR et LE CHARGEUR 69 (Dodge)');toutes('"THE CHARGER','"THE CORSAIR',2,'noms LE CHARGEUR et LE CHARGEUR 69 en anglais');
 une("À 88 à l\\'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (CARS)');
 une("À 88 à l'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (clé de traduction)');
 une('At 88 it travels back in time, apparently.','Ahead of its time, they say.','phrase de LA DOLORÈS en anglais');
@@ -122,13 +136,28 @@ une("var CC_ADMOB={recompense:''};","var CC_ADMOB={recompense:''}; /* (app iOS) 
    vrai argent (PEINT_EUR / PEINT_EUR_ID : 0,50 € à 5 €, par shopPaye, la porte de StoreKit jamais branchée : « L'achat est indisponible pour le
    moment ») et LA PALETTE en pack (0,99 €). Dans l'app, comme les caisses : chaque prix en € devient un prix en argent du jeu (60 000 par euro,
    0,50 € → 30 000, 5 € → 300 000), et l'article du pack sans prix (une secrète) dit SECRÈTE au lieu du prix du pack. */
-une("{d.eur=PEINT_EUR_ID[d.id]||PEINT_EUR[r];delete d.p;}",
-  "{d.p=Math.round((parseFloat(String(PEINT_EUR_ID[d.id]||PEINT_EUR[r]).replace(',','.'))||1)*60)*1000;delete d.eur;} /* (app iOS) les peintures en € passent à l'argent du jeu */",
+/* (2026-11-05, Opus) le nuancier v3 du 5/11 a réécrit la vitrine des peintures : le prix suit la rareté (PEINT_EUR = 1, 1, 2, 3 €) et la section du
+   rayon PEINTURES affiche ce prix sous son titre. Même règle (60 000 $ par euro) aux deux endroits. */
+une("o.eur=PEINT_EUR[o.r];","o.p=Math.round((parseFloat(String(PEINT_EUR[o.r]).replace(',','.'))||1)*60)*1000; /* (app iOS) les peintures en € passent à l'argent du jeu */",
   'peintures vendues en €');
+une("sansAcc(TR(BQ_PEINT_SOUS[f]))+' · '+eurTxt(PEINT_EUR[f])","sansAcc(TR(BQ_PEINT_SOUS[f]))+' · '+fmtC(Math.round((parseFloat(String(PEINT_EUR[f]).replace(',','.'))||1)*60)*1000)",
+  'prix des peintures sous le titre de leur rareté');
 une("d.pack?eurTxt(PALETTE_PACK.eur):","d.pack?sansAcc(TR('SECRÈTE')):",'prix du pack LA PALETTE sur ses articles');
 /* (2026-10-24) la fenêtre ENTRER UN CODE ne parle plus de « code secret » (le code COUSIN est coupé plus haut) : elle restaure une sauvegarde. */
 toutes('Colle un code de sauvegarde, ou un code secret.','Colle un code de sauvegarde.',2,'fenêtre ENTRER UN CODE (texte + clé de traduction)');
 une('Paste a save code, or a secret code.','Paste a save code.','fenêtre ENTRER UN CODE en anglais');
+/* (2026-11-05, Opus : jury IOS-04 / DIR-29, décision D1) PAS UN MOT « PUB » / « AD » DANS L'APP. Le jeu, sous EN_APP, n'ouvre déjà ni la pub maison ni le ×2
+   (seconde-chance.js) et la seconde chance s'annonce GRATUITE ; ici on retire en plus les TEXTES de ces écrans jamais montrés, pour qu'aucun mot de pub
+   ne reste dans le binaire (le contrôle « PUB / AD » plus bas le vérifie). */
+une("Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});",
+  "Object.assign(I18N,{'EN BOUTIQUE':'IN THE SHOP'}); /* (app iOS) pas de pub */",'textes de la pub maison (traductions)');
+une("'<i class=\"prTag\" data-fr=\"PUB\">'+TR('PUB')+'</i>","'<i class=\"prTag\"></i>",'étiquette de la pub maison');
+une("<span class=\"prPied\" data-fr=\"TA COURSE REPREND APRÈS LA PUB\">'+TR('TA COURSE REPREND APRÈS LA PUB')+'</span>","<span class=\"prPied\"></span>",'pied de la pub maison');
+une("el.setAttribute('aria-label',TR('PUB'));","el.setAttribute('aria-label','');",'nom de la pub maison (VoiceOver)');
+une("k9=nom==='double-gain'?'TON GAIN ×2 APRÈS LA PUB':'TA COURSE REPREND APRÈS LA PUB';","k9='';",'pied de la pub maison (×2 ou reprise)');
+une("pxi('lecture')+'<span>'+TR('PUB')+'</span>'","(LANG==='en'?'FREE':'GRATUIT')",'CONTINUER ▶ PUB');
+une("<b class=\"dbP\">'+pxi('lecture')+'<span data-fr=\"PUB\">'+TR('PUB')+'</span></b>","<b class=\"dbP\"></b>",'×2 ▶ PUB');
+une("el.setAttribute('aria-label','×2 '+s9+' '+TR('PUB'));","el.setAttribute('aria-label','×2 '+s9);",'×2 ▶ PUB (VoiceOver)');
 une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni l\'écran, ni ses portes (mêmes sélecteurs que l\'édition POKI ; les deux :not(#…) passent devant\n'+
   '   la règle de l\'accueil v2 qui réaffiche la tuile OFFRES) */\n'+
   'html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],.gBoutique,#mShop,#bdShop){display:none!important}\n'+
@@ -142,6 +171,36 @@ for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil'],['id="mSho
   ['id="setBtn"','le bouton du vieux panneau RÉGLAGES (#setBtn)'],['id="settings"','le vieux panneau RÉGLAGES (#settings)']])
   if(h.indexOf(t)<0)meurt('témoin perdu — '+quoi+' : « '+t+' » n\'existe plus dans le jeu. L\'écran a changé : revoir la coupe de l\'édition App Store.');
 fs.writeFileSync(path.join(WWW,'index.html'),h);
+/* (2026-11-05, Opus) LA PAGE RETOUCHÉE SE RELIT : la garde du démarrage du site (outils/garde-demarrage.cjs : chaque <script> en ligne et chaque .js
+   chargé se lit avec acorn, chaque <script src> existe) passe sur www/, avant ET après l'allègement. Une coupe qui casse la syntaxe arrête la
+   fabrication — avant, publie-allege gardait le script cassé tel quel, sans rien dire. */
+const relit=quand=>{try{execFileSync(process.execPath,[path.join(ICI,'..','outils','garde-demarrage.cjs'),WWW],{stdio:['ignore','pipe','pipe'],env:Object.assign({},process.env,{GARDE_DEMARRAGE:'1'})});}
+  catch(e){meurt('la page de l\'app ne se lit plus '+quand+' :\n'+String(e.stderr||e.stdout||e.message).trim().slice(0,800));}};
+relit('après les coupes');
+
+/* ---- LA COPIE ALLÉGÉE, COMME LE SITE (2026-11-05, Opus : jury IOS-11, SON-01, SON-07, ECO-17) ----
+   Les mêmes outils que vercel-build.sh, dans le même ordre, sur www/ : les fichiers d'atelier du son (outils/retraits-publies.cjs), la banque de sons
+   en deux moitiés (scinde-banque : le démarrage n'attend que la 1re), seulement l'audio que le jeu peut demander (publie-audio : ~83 → ~30 Mo), puis
+   les commentaires et les crochets de test window.dbgX (publie-allege : index.html ~9,7 → ~5 Mo, et plus un mot des commentaires — « Ferrari »,
+   « Batman », « Nyan »… — dans le binaire). Chaque outil vérifie lui-même qu'il ne casse rien (sinon il laisse le fichier tel quel) ; s'il échoue,
+   la fabrication s'arrête. */
+{const OUT=path.join(ICI,'..','outils'),av=nOct;require(path.join(OUT,'retraits-publies.cjs'))(WWW);
+  for(const o of ['scinde-banque.cjs','publie-audio.cjs','publie-allege.cjs']){
+    try{execFileSync(process.execPath,[path.join(OUT,o),WWW],{stdio:['ignore','pipe','pipe']});}catch(e){meurt(o+' a échoué : '+String((e.stderr||e.stdout||e.message)).trim().slice(0,600));}}
+  let n=0,o=0;const pese=d=>{for(const x of fs.readdirSync(d)){const p=path.join(d,x),s=fs.statSync(p);if(s.isDirectory())pese(p);else{n++;o+=s.size;}}};pese(WWW);nFic=n;nOct=o;
+  console.log('  copie allégée : '+(av/1048576).toFixed(1)+' → '+(o/1048576).toFixed(1)+' Mo');}
+relit('après l\'allègement');
+/* PAS DE « PUB » NI DE « AD » DANS UN TEXTE DE L'APP (2026-11-05, Opus : jury IOS-04) : aucune chaîne entre guillemets ne contient le MOT PUB ou AD
+   (les noms de variables comme `PUB`, le tableau des enseignes des villes, ne s'affichent pas). Les fichiers de sons (base64) ne sont pas lus. */
+{const re=/(['"`])(?:(?!\1)[^\n\\]|\\.){0,200}?\b(PUB|AD)\b(?:(?!\1)[^\n\\]|\\.){0,200}?\1/g,vus=[];
+  const f=d=>{for(const x of fs.readdirSync(d)){const p=path.join(d,x);if(fs.statSync(p).isDirectory())f(p);else if(/\.(html|js)$/i.test(x)&&!/^sons-banque/.test(x)){const t=fs.readFileSync(p,'utf8');let m;while((m=re.exec(t)))vus.push(path.relative(WWW,p)+' : '+m[0].slice(0,90));}}};f(WWW);
+  if(vus.length)meurt('le mot PUB ou AD reste dans un texte de l\'app (règle « aucune publicité ») :\n  '+vus.slice(0,20).join('\n  '));}
+/* PLUS AUCUNE MARQUE D'AUTRUI DANS LE TEXTE LIVRÉ (2026-11-05, Opus : jury IOS-11 / IOS-18) : après l'allègement, ces mots ne doivent plus
+   apparaître dans aucun fichier texte de www/ (ils n'existaient plus que dans des commentaires). Un mot qui revient = l'arrêt, avec le fichier. */
+/* (les clés internes nyan, simpson, poptart restent : ce sont des identifiants de sauvegarde, jamais affichés ; le nom CHAT POP-TART est le choix de Sacha) */
+{const MARQUES=/ferrari|batman|kellogg|mcqueen|lamborghini|cybertruck|rolls-?royce/i,vus=[];
+  const f=d=>{for(const x of fs.readdirSync(d)){const p=path.join(d,x);if(fs.statSync(p).isDirectory())f(p);else if(/\.(html|js|css|json)$/i.test(x)&&!/^sons-banque/.test(x)){const t=fs.readFileSync(p,'utf8'),m=t.match(MARQUES);if(m)vus.push(path.relative(WWW,p)+' : « '+t.slice(Math.max(0,m.index-40),m.index+40).replace(/\s+/g,' ')+' »');}}};f(WWW);
+  if(vus.length)meurt('marques d\'autrui dans le texte livré :\n  '+vus.join('\n  '));}
 
 // ---- l'inventaire : plus aucune adresse réseau ----
 const TEXTE=/\.(html|js|mjs|css|json|webmanifest|svg|txt)$/i, W3C=/^https?:\/\/www\.w3\.org\//;
