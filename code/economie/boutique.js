@@ -456,7 +456,13 @@ const PEINT_BASIQUES=['bolide','azur','billet','taxi','emeute','royal','poupee',
 function peintClef(j){const d=COSM.peinture[j];if(d.id==='usine')return -1; // D'ORIGINE en tête, puis 1 basiques · 2 originales · 2,5 brillantes · 3 dégradés · 4 motifs
   let k=PEINT_BASIQUES.indexOf(d.id);if(k>=0)return 100+k;k=PEINT_ORIGINALES.indexOf(d.id);if(k>=0)return 200+k;k=PEINT_BRILLANTES.indexOf(d.id);if(k>=0)return 250+k;k=PEINT_DEGRADES.indexOf(d.id);if(k>=0)return 300+k;k=PEINT_PALES.indexOf(d.id);if(k>=0)return 500+k;
   return (d.mot?400:350)+j;} // les motifs (les « stickers ») : l'ordre du catalogue 
-function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;});if(!PEINT_V2)return L; // les indices de COSM.peinture, rangés par famille (voir peintClef)
+/* ===== LES SECRÈTES SE CACHENT (2026-11-05, Sacha : « beaucoup trop de gris et de noirs » — « les cacher ») =====
+   Dix-huit peintures sur 56 sont des secrètes pas encore gagnées : toutes la même pastille ardoise « ? ? ? » (PAL_MASQUE). Une secrète
+   verrouillée ne figure plus dans la boutique, la bande du garage ni le défilement des cartes ; elle apparaît à la seconde où elle se gagne.
+   (l'écran des missions garde sa liste de secrètes, c'est lui qui les raconte ; `window.PAL_REVELE=1` les montre toutes.) */
+function peintCachee(d){return !!d.sec&&!window.PAL_REVELE&&PEINT_BIENTOT.indexOf(d.id)<0&&!shopOwned('peinture',d.id);}
+function peintVoisine(i,pas){const L=COSM.peinture,n=L.length;for(let k=0;k<n;k++){i=((i+pas)%n+n)%n;if(!peintCachee(L[i]))return i;}return i;} /* le pas suivant (+1 / −1) qui n'est pas une secrète cachée */
+function peintOrdre(){const L=COSM.peinture.map(function(d,j){return j;}).filter(function(j){return !peintCachee(COSM.peinture[j]);});if(!PEINT_V2)return L; // les indices de COSM.peinture, rangés par famille (voir peintClef)
   return L.sort(function(a,b){return peintClef(a)-peintClef(b);});}
 /* acheter un habillage EN EUROS (une peinture) : la porte de StoreKit, comme une caisse — rien n'est donné tant qu'Apple n'a pas encaissé */
 function habDonne(cat,id){const o=SAVE.d.shop.own,k=cat+':'+id;if(o.indexOf(k)<0)o.push(k);SAVE.d.shop.eq[cat]=id;SAVE.flush();}
