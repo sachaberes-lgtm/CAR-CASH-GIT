@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1149'; /* v1149 (2026-11-05, Sacha : « pas assez de virages, pas assez de trucs fun, rajoute des modules ») LES PROFONDEURS : la route à rythme (virages larges, un module propre à chaque salle : boyau rapide, lacets, corniche, géants, plongeon), la lave ne noie plus la route. `?sans=flow` = la route d'hier. */
+const CACHE = 'cashcar-v1150'; /* v1150 (2026-11-05, Sacha : « pas assez de virages, pas assez de trucs fun, rajoute des modules ») LES PROFONDEURS : la route à rythme (virages larges, un module propre à chaque salle : boyau rapide, lacets, corniche, géants, plongeon), la lave ne noie plus la route. `?sans=flow` = la route d'hier. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
