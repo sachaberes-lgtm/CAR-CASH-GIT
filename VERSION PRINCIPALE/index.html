@@ -49248,7 +49248,7 @@ function frenCash(g,pos){
   const m=FX3.m||(FX3.m=FLOW.el?FLOW.el.querySelector('.fM'):null);
   if(m){const k=FX3.k=!FX3.k;m.classList.remove(k?'cj1':'cj2');m.classList.add(k?'cj2':'cj1'); // deux animations jumelles : relance sans remise en page
     if(n-FX3.bT>400){FX3.bT=n;try{pixBurst(m,4);}catch(e){}}}
-  if(pos)try{fx3Tag(pos);}catch(e){}
+  /* (2026-11-05, Sacha : « enlève les petits ×2 ») le « ×N » qui jaillissait de la pièce (fx3Tag) ne s'écrit plus */
   if(SONV2)sfx('frenesie.cash',{vol:4}); /* (2026-10-14, session SON) +4 comme la pièce : conçu 3 dB SOUS elle, il était passé 7 dB sous (−37 contre −30) — le ×3 ne s'entendait plus */ // (console de son) l'argent qui tombe EN FRÉNÉSIE, par-dessus le son de la pièce : trois micro-pièces qui montent (le ×3) — recette dans atelier-son/recettes.js (bloc FRENCASH) ; au plus toutes les 90 ms
 }
 function fx3Tag(pos){ // le « ×3 » qui jaillit de la pièce : l'étiquette la plus ancienne du bassin est recyclée, projetée là où l'argent est né
@@ -51306,9 +51306,9 @@ function engBig(E,tier,ru){
      LA CARTE SE RÉDUIT À L'ESSENTIEL : une étiquette (NOUVEAU MOTEUR), le NOM dans la typo ombrée du HUD, à la couleur néon du moteur, et
      le moteur 3D à l'échelle de la CAISSE, posé sur son toit. Le palier, les cylindres et le gain ont quitté la carte : le gain jaillit de
      la voiture à l'entrée dans le capot (engImpact), les cylindres chantent toujours (à l'oreille). */
-  b.innerHTML='<div class="ebCarte"><small class="ebTit'+(cap9?' cap':'')+'">'+(cap9?'+ '+sansAcc(TR(cap9)):sansAcc(TR(rec?'NOUVEAU SOMMET':'NOUVEAU MOTEUR')))+'</small>'
-    +'<b data-t="'+String(nm).replace(/[<>&"]/g,'')+'">'+nm+'</b>'
-    +'<div class="ebScene"></div></div>';
+  /* (2026-11-05, Sacha : « enlève le texte au-dessus du moteur quand on monte de palier ») la carte ne porte plus ni l'étiquette (NOUVEAU MOTEUR) ni le NOM :
+     le moteur 3D seul, avec son onde, son clank et le « +N KM/H » qui jaillit du capot */
+  b.innerHTML='<div class="ebCarte"><div class="ebScene"></div></div>';
   engBig.ctx=null;engBig.on=true;engBig.plonge=0;engBig.t0=performance.now();engBig.col=parseInt(hx.slice(1),16);engBig.hex=hx;engVigSpin=0;
   engRim.color.setHex(engBig.col);engRim.intensity=1.5; // le liseré néon du moteur (éteint par engBigFin)
   document.body.classList.remove('ebPlonge');document.body.classList.add('ebOn');
@@ -51377,8 +51377,7 @@ function engPop9(E,tier){
     if(TUTO.on){popTexte(E.n,'#'+(E.col||0xffd75e).toString(16).padStart(6,'0'));return;}
     engBigFile(E,tier);return;} // TÉLÉPHONE : la grande carte (le badge de coin reste pour l'ordinateur)
   if(!epEl)return;
-  epNumEl.innerHTML='<i>'+TR('PALIER')+'</i>'+(tier+1);
-  epNomEl.textContent=TR(E.n);
+  epNumEl.innerHTML='';epNomEl.textContent=''; /* (2026-11-05, Sacha) plus de texte sur le badge de palier : l'onde et le flash suffisent */
   epEl.classList.remove('on');
   void epEl.offsetWidth;                 // ⚠ le reflow : sans lui, pas de rejeu
   epEl.classList.add('on');
@@ -76319,7 +76318,7 @@ function pickupsTick(dt){
         // ~2,3× moins et le combo se mérite (un palier toutes les 5 pièces, plafond ×4 au lieu de ×5)
         // → rendement max 8,8×denom contre 25×denom avant. La CHAÎNE DE FIGURES reste la vraie fortune.
         // LE MOTEUR MONTE À LA PIÈCE : c'est la ferraille ramassée qui paye le turbo
-        addCoins(1);RUNX.coins++;flowAdd(.7,'route');if(p.grp)coinSerie(p);try{piece1Plus();}catch(e){} /* (2026-10-14) le « +1 » à côté de la caisse */
+        addCoins(1);RUNX.coins++;flowAdd(.7,'route');if(p.grp)coinSerie(p);/* (2026-11-05, Sacha : « enlève les petits +3 à côté de la voiture ») le « +1 » flottant (piece1Plus) ne s'écrit plus */
         /* (2026-10-14, sensations · passages) LA RÉCOLTE SE SENT. La 5e, la 10e, la 15e — celles où la salve d'aura tombe et où
            `piece.recolte` sonne — soulèvent la caisse d'un rien (≈ 1 → 2 cm : elle s'allège).
            (2026-10-15, Sacha : « enlève les vibrations à chaque fois qu'on ramasse des pièces ») LA PIÈCE NE VIBRE PLUS : ni le tic de
