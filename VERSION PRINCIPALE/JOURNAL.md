@@ -5,6 +5,15 @@
 
 
 
+## LES PROFONDEURS : LA ROUTE À RYTHME ET LES GÉANTS (2026-11-05, v1122-v1123 → v1146 — Sacha : « un module avec des stalagmites tellement imposants que ça devienne un obstacle » puis « pas assez de virages, pas assez de trucs fun, rajoute des modules : vitesse, exploration, fluidité »)
+- **Mesuré d'abord** (banc `outils/banc-routes/grotte.cjs`, les cibles de `passation/RACCOURCIS.md`) : la route simplifiée du 04/11 faisait 0,5 virage/km (cible ≥ 2,5), 0,2 enchaînement/km (≥ 1), 0 raccourci/km (≥ 0,6) — la grotte n'avait AUCUN raccourci, le cœur du jeu.
+- **Maintenant** (16 graines, palier 0 / 10 / 20) : 3,2 / 2,9 / 1,8 virages/km, 2,2 / 2,0 / 1,05 enchaînements/km, droite max 3,1 / 2,6 / 2,4 s, 0,43 / 0,39 / 0,58 raccourci/km, 0 contact, 0 croisement. Les raccourcis restent sous la cible aux paliers 0 et 10.
+- `GRT_FLOW` (tête de `code/maps/grottes-1.js`) : virages de 30-60° à ≥ 1,9 × le rayon mini (au pouce, jamais serrés), droites courtes ; un module PROPRE à chaque salle (`signature`) — luxuriante : `gBoyau` (couloir étroit, torches tous les 20 m ; le creux se resserre dans `grtEchantillons`), boyau de cristaux et abysses : `gLacets` (les raccourcis), lave : `gCorniche` (la dalle monte sur la paroi dans un grand virage ; roulis scripté `MODMARK.f`, option `calme` de `pisteTord` pour tenir la dalle à l'endroit), stalactites : LES GÉANTS ; au hasard en plus : `gPlongeon` (descente raide + bosse), houle, slalom, chicane, esses, corde. `?sans=flow` = la route d'hier.
+- `GRT_GEANT` : 1 à 3 virages larges, un stalagmite de ~70 m de rayon (au niveau de la route) et 150-210 m au-dessus d'elle au centre de chacun, collé à la voûte par une stalactite ; collision à la mesure de la facette ; la salle s'ouvre autour (RH, UP). `?sans=geants`.
+- ⚠ **Piège** : un virage sur une dalle couchée est VERTICAL — avec des virages nombreux la route plonge de centaines de mètres, et la lave (déborde 300 m au-delà de sa salle) la noyait (10 graines sur 30 ; 0 avant). `rogne` (grtEchantillons) arrête la portée du lac à la première dalle à moins de 24 m au-dessus de lui ; banc `grotte-lacs.cjs`.
+- Console : `dbgGrotte('module')` (la liste, ou la caméra sur le n°), `('geants')`, `('sonde')` (route dans la roche), `('test')` (la règle d'or). Les temps de construction en navigateur sont faux sur le Mac chargé ; le volume creusé est plutôt plus petit qu'avant (722 000 cellules contre 922 000).
+- Pas encore joué à la manette : le plongeon et les lacets n'ont pas été photographiés dans le jeu, seulement mesurés au banc.
+
 ## LE LOBBY ENTRE EN DOUCEUR (2026-10-30, v1019 — Léo : « mtn ça démarre, plus calmement, pas d'un coup »)
 - Le lobby montait au niveau du menu en ~0,4 s (le ressort de musicTick), et parfois sans fondu : au lancement le morceau met plusieurs secondes
   à charger (simulateur : 8 à 40 s), musicMenu le trouvait « pas en pause » et ne remettait pas le volume à zéro — il partait d'un coup.
