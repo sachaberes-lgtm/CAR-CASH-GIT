@@ -170,12 +170,9 @@ html body #mob #mDead.m5.on .mFin>.pb-gold{animation:k6Surgit var(--t-in) var(--
 /* ---------- LE FIL (2026-11-04, Sacha : « des animations pour les graphiques, le moteur, les missions, et le compteur d'argent qu'on doit voir
    monter en s'accumulant ») ---------- l'ordre et les durées : « L'ÉCRAN DE MORT v6 S'ANIME » (moteur/mobile-tactile.js). #mHero.m6Joue et
    #mObj.m6Joue = la PREMIÈRE apparition de l'écran pour cette mort (au retour du garage, tout est déjà posé). */
-/* l'ARGENT s'accumule : il grossit et s'allume en montant (--k de 0 à 1, posé par mCount), des pièces viennent s'y fondre ; puis il claque */
+/* l'ARGENT s'accumule : il grossit et s'allume en montant (--k de 0 à 1, posé par mCount) ; puis il claque (2026-11-05, Sacha : plus de petits carrés dorés qui viennent s'y fondre) */
 html body #mob #mDead.m5 .mCashL>b.m6Cpt{scale:calc(.82 + .18 * var(--k,1));filter:brightness(calc(.78 + .5 * var(--k,1)))}
-.m6Piece{position:fixed;z-index:120;width:10px;height:10px;margin:-5px 0 0 -5px;pointer-events:none;background:#ffd75e;
-  box-shadow:inset 2px 2px 0 #fff6c8,inset -2px -2px 0 #c98a1c,0 0 0 1px rgba(0,0,0,.5),0 0 12px rgba(255,215,94,.8);animation:m6Aspire .6s cubic-bezier(.5,0,.8,.4) both}
 html body #mob #mDead.m5 .mCashL.m6Joue>em.mCashRec{animation:m6Tampon .45s cubic-bezier(.34,1.56,.64,1) 2.5s backwards}
-@keyframes m6Aspire{0%{transform:translate(var(--dx),var(--dy)) scale(1.15);opacity:0}20%{opacity:1}80%{opacity:1}100%{transform:translate(0,0) scale(.3);opacity:0}}
 /* le MOTEUR surgit en rebond, son halo flambe ; chaque cran du palier TAPE ; le badge RECORD tombe après le dernier cran (--m6Bd) */
 html body #mob #mDead.m5 .m6Joue .m6Mot .m6Scene{animation:m6Surgit .8s cubic-bezier(.34,1.56,.64,1) .55s backwards}
 html body #mob #mDead.m5 .m6Joue .m6Mot .m6Scene::after{content:'';position:absolute;inset:-10% 0;pointer-events:none;opacity:0;
@@ -292,7 +289,7 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
   html body #mob #mDead.m5.on :is(#mDouble,[data-m="replay"],#mChance){margin-top:var(--m6E)!important}
   html body #mob #mDead.m5.on #mChanceNon:not([hidden]){grid-row:6;grid-column:1/-1}
 }
-@media (prefers-reduced-motion:reduce){html body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}.m6Piece{display:none}}
+@media (prefers-reduced-motion:reduce){html body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}}
 html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}
 /* ===== L'APP SANS PUB (2026-11-05, Opus : jury IOS-04 / DIR-29, décision D1) =====
    Dans l'app (html.ccApp, posée par EN_APP), le ×2 du gain et l'écran de la pub maison n'existent pas : le jeu ne les ouvre jamais
