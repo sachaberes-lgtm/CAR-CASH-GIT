@@ -505,7 +505,7 @@ function* foretSol(){ // (LE PRÉ-BÂTI) un générateur : rendez-vous à l'éch
     if(D[k]<1e11){d=Math.sqrt(D[k]);hb=HM[k];if(d>R1-160){const w=THREE.MathUtils.smoothstep(d,R1-160,R1);hb=Math.min(hb,hb*(1-w)+gBil(GH,x,z)*w);}}
     else{d=Math.max(R1,gBil(GD,x,z));hb=gBil(GH,x,z);}
     D[k]=d;
-    const n1=fB(0,i,j,x,z),D0=132+13*n1; // la PROFONDEUR sous l'enveloppe : 120-145 m
+    const n1=fB(0,i,j,x,z),D0=(132+13*n1)*(FORET_VASTE?FOR_VASTE.prof:1); /* (2026-11-05, LA FORÊT VASTE) le fond 30 % plus bas : des fûts plus hauts */ // la PROFONDEUR sous l'enveloppe : 120-145 m
     if(d>MARG+150){H[k]=hb-D0+52*fB(2,i,j,x*.31,z*.31);PR[k]=0;FD[k]=.62;continue;} // hors du maillage : les collines seules (rien d'autre ne lit si loin)
     H[k]=hb-D0+40*fB(2,i,j,x*.31,z*.31)*THREE.MathUtils.smoothstep(d,380,900)+4.5*fB(3,i,j,x*3.1,z*3.1);
     const pr=d<220?THREE.MathUtils.smoothstep(fB(4,i,j,x*1.7,z*1.7),.05,.42)*(1-THREE.MathUtils.smoothstep(d,160,220)):0;PR[k]=pr;

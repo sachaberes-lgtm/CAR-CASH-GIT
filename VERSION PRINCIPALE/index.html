@@ -15803,7 +15803,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   THICK=THICK_ROUTE; /* (2026-10-13) la route normale reprend ses 2,6 m — 3,9 depuis le 2026-10-15, 5,2 le soir (THICK_ROUTE) */const JADE9=!!(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!JADE_JEU&&!LVL.cur.sansFin); /* (2026-10-13) au mode classique aussi, la jade est un vrai niveau */const BANQ9=!!(LVL.cur&&LVL.cur.piste==='banquise'&&!PARK.on); /* (2026-10-15, Sacha : « pas besoin de mettre les mêmes modules que dans les nuages ») LE GLACIER : une route nue, comme la jade — ses pièges à lui sont le VERGLAS (bkVerglas) */ // (2026-10-09) LES PICS DE JADE : une route nue (ni pad, ni flaque, ni plot)
   // (l'entrée surélevée n'existe que si genCtrl la pose : niveau VILLE généré) · (les modules aussi : le parc, l'école et la campagne n'en ont pas)
   let ctrl=(LVL.cur&&LVL.cur.piste==='tuto')?genTuto():(LVL.cur&&LVL.cur.piste==='jade')?genJade(rnd):(LVL.cur&&LVL.cur.piste==='foret')?(yield* genForet(rnd)):(LVL.cur&&LVL.cur.piste==='canyon')?(yield* genCanyon(rnd)):(LVL.cur&&LVL.cur.piste==='dunes')?(yield* genDunes(rnd)):(LVL.cur&&LVL.cur.piste==='banquise')?genBanq(rnd):(LVL.cur&&LVL.cur.piste==='grotte')?(yield* genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0); // FREESTYLE : le parc de figures remplace la piste de course · (2026-09-27) CAMPAGNE : la piste dessinée du niveau
-  TORD.on=false;TORD.N=null;const GRT9=grtTordOn();if(hautOn()||espTordOn()||GRT9){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined); /* (2026-10-25, LA GROTTE SUR LES PAROIS) la grotte aussi se roule : la route sur le sol, les murs, le plafond */ ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;}else if(LVL.cur&&LVL.cur.piste==='dunes'&&DN.bankN&&!PARK.on)TORD.N=DN.bankN; /* (2026-10-23, DUNES) la route penchée dans les virages : les normales de genDunes, sans TORD.on */ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord) — (2026-10-22) et celle de l'ORBITE (voir ROUTE_LIBRE)
+  TORD.on=false;TORD.N=null;const GRT9=grtTordOn();if(hautOn()||espTordOn()||GRT9){TORD.ctrl0=ctrl;TORD.seed=seed|0;const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined); /* (2026-10-25, LA GROTTE SUR LES PAROIS) la grotte aussi se roule : la route sur le sol, les murs, le plafond */ ctrl=h9.ctrl;TORD.N=h9.N;TORD.on=true;}else if(LVL.cur&&LVL.cur.piste==='dunes'&&DN.bankN&&!PARK.on)TORD.N=DN.bankN; /* (2026-10-23, DUNES) la route penchée dans les virages : les normales de genDunes, sans TORD.on */else if(LVL.cur&&LVL.cur.piste==='foret'&&FORET.bankN&&!PARK.on)TORD.N=FORET.bankN; /* (2026-11-05, LA FORÊT VASTE) idem : les torsades douces des longs virages (voir forBank) */ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : la piste des NUAGES ré-enroulée dans l'espace (voir pisteTord) — (2026-10-22) et celle de l'ORBITE (voir ROUTE_LIBRE)
   const curve=new THREE.CatmullRomCurve3(ctrl,false,'centripetal'); // (piste v7) centripète : l'uniforme faisait des COUDES entre points inégalement espacés (liaison courte après une grande figure)
   /* (2026-09-30, revue PISTE) LE PAS DE LA PISTE. Tout le jeu suppose `pts` ÉQUIDISTANTS (frameAt : f = s/L·(NP−1) ; s avance en mètres).
      Or three r128 ne mesure la longueur qu'en 200 tronçons (`arcLengthDivisions`) pour les 450-550 points de contrôle de genCtrl : entre
@@ -16274,6 +16274,24 @@ const FORET_LARGE=typeof location==='undefined'||!/[?&]foret=serre\b/.test(locat
 const FORET_HASARD=typeof location==='undefined'||!/[?&]sans=([^&]*,)?forethasard(,|&|$)/.test(location.search); // (2026-10-19) LA FORÊT AU HASARD (voir le dessin de forPelote) — `?sans=forethasard` = la recette d'avant, à l'identique
 const FOR_MODULES=typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretmodules(,|&|$)/.test(location.search); // (2026-10-20) SIX MODULES (voir fToboggan) — `?sans=foretmodules` = le paquet d'avant (slalom, corde, racines)
 const FOR_DECOR=typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretdecor(,|&|$)/.test(location.search); // (2026-10-20) LE DÉCOR AU HASARD (voir forDecoTire) — `?sans=foretdecor` = le décor d'avant, au tirage près
+/* ===== LA FORÊT VASTE (2026-11-05, Sacha : « refonte totale de la map forêt : elle est beaucoup trop petite, trop tassée, les virages trop condensés ;
+   on garde l'aspect labyrinthe mais en beaucoup plus large ; des arbres beaucoup plus hauts, des boucles beaucoup plus larges ; plus aléatoire, avec
+   des modules à inventer ; qu'on avance, des tout droits pendant longtemps, des grands virages, qu'après avoir roulé 20 secondes on se rende compte
+   qu'il y a une autre route — est-ce qu'on la prend ou pas ? — et de légères torsades larges : dans les longs virages la route s'incline un peu,
+   pas de tonneau ») =====
+   · LE PLAN À L'ÉCHELLE G (×2,4) : rayons, droites, étoiles, boucles (voir forPelote : kR et kV multipliés, la vitesse v9 non) ; la forêt dure ×1,6
+     au JOUER (`long`, voir longueurCible) — une route d'en dessous, on la voit venir pendant des secondes ;
+   · LE DESSIN VASTE (dans forPelote, `FORET_VASTE`) : une suite de PIÈCES tirées au hasard (jamais deux fois la même de suite) — la GRANDE ALLÉE,
+     le GRAND VIRAGE, les GRANDES VAGUES, le GRAND RETOUR, la SPIRALE, le TOBOGGAN, le COL DE CYGNE — et une ou deux PELOTES (l'étoile qui se
+     recoupe : le labyrinthe), posées n'importe où dans la course ; les croisements ont 46 m entre les étages (`DY`) ;
+   · LES TORSADES (`FOR_VASTE.bank`) : le dévers de Jade et des dunes — la dalle se couche vers l'intérieur des LONGS virages (courbure moyennée sur
+     ±W m, deux passes, pliée par un tanh), 17° au plus ; à plat au départ, aux arches, à l'arrivée ; `?sans=foretbank` = la route plate ;
+   · LES ARBRES (`arbres`, `geant`, `prof`) : la forêt ordinaire ×1,45 (des épicéas de 115 m), le fond 30 % plus profond, les géants qui ouvrent leur
+     couronne bien plus haut au-dessus des routes — voir foretSol et buildForet.
+   `?foret=pelote` = la pelote d'avant (l'échelle, le dessin, les arbres), `?foret=serre` = celle d'avant encore. */
+const FORET_VASTE=typeof location==='undefined'||!/[?&]foret=(serre|pelote)\b/.test(location.search);
+const FOR_VASTE={G:2.4,long:1.6,DY:46,arbres:1.45,geant:1.9,prof:1.3,
+  bank:{on:typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretbank(,|&|$)/.test(location.search),max:17*Math.PI/180,W:210}};
 function* genForet(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais
   CAMPM.length=0;MODMARK.length=0;
   const LV=Math.min(4.4,typeof lvPiste==='function'?lvPiste():1),vP9=70+(LV-1)*100;
@@ -16283,9 +16301,30 @@ function* genForet(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main en
   for(let e=0;e<8;e++){if(e)yield;const r=forPelote(gr,kR,kV);ne++;if(!best||r.note<best.note)best=r;if(r.note<1)break;}
   for(const m of best.mods||[])MODMARK.push(m); // (2026-10-18) LES MODULES DE CHAQUE MAP : ceux de l'essai gardé (voir fSlalom)
   FORET.Q=best.Q;FORET.plg=[];FORET.boucles=best.BO;FORET.noeuds=best.NO;FORET.plan=best.plan;FORET.axe=best.axe;FORET.pel={dsM:best.dsM,note:+best.note.toFixed(2),essais:ne,croise:best.croise,dyMin:best.dyMin,L:Math.round(best.L),mk:best.mk};
+  forBank(best.ctrl,best.Q,kR*(FORET_VASTE?FOR_VASTE.G:1));FORET.pel.bankMax=FORET.bankMax;
   return best.ctrl;}
+/* LES TORSADES DE LA FORÊT VASTE (2026-11-05, voir FOR_VASTE.bank) — la recette de Jade (genJade) : la dalle se couche vers l'INTÉRIEUR du virage, de l'angle
+   d'une courbure moyennée sur ±W m (deux passes : l'angle monte et redescend sur ~800 m) et pliée par un tanh (kref : un virage de 3,2 rM donne ~76 % du
+   plafond). À plat : le départ (plein à 700 m), les arches (fondu sur 300 m de part et d'autre) et l'arrivée. Les normales (une par point de
+   contrôle) passent à buildTrack par TORD.N, sans TORD.on (voir depart-avance). Les virages courts et les S se moyennent : seuls les LONGS appuis penchent. */
+function forBank(ctrl,Q,kR){FORET.bankN=null;FORET.bankMax=0;if(!FORET_VASTE||!FOR_VASTE.bank.on||!ctrl||ctrl.length<4)return;
+  const n=ctrl.length,sc=new Float32Array(n),kap=new Float32Array(n),hh=new Float32Array(n),sm9=(a9,b9,x)=>{const t=Math.max(0,Math.min(1,(x-a9)/(b9-a9)));return t*t*(3-2*t);};
+  for(let i=1;i<n;i++)sc[i]=sc[i-1]+Math.hypot(ctrl[i].x-ctrl[i-1].x,ctrl[i].z-ctrl[i-1].z);
+  for(let i=0;i<n;i++){const a9=ctrl[Math.max(0,i-1)],b9=ctrl[Math.min(n-1,i+1)];hh[i]=Math.hypot(b9.x-a9.x,b9.z-a9.z)/2||1;}
+  for(let i=1;i<n-1;i++){const ax=ctrl[i].x-ctrl[i-1].x,az=ctrl[i].z-ctrl[i-1].z,bx=ctrl[i+1].x-ctrl[i].x,bz=ctrl[i+1].z-ctrl[i].z,la=Math.hypot(ax,az)||1,lb=Math.hypot(bx,bz)||1;kap[i]=Math.asin(Math.max(-1,Math.min(1,(ax*bz-az*bx)/(la*lb))))/((la+lb)/2);}
+  const W9=FOR_VASTE.bank.W,lisse=a9=>{const o9=new Float32Array(n);for(let i=0;i<n;i++){let sw=0,sk=0;for(let j=i;j>=0&&sc[i]-sc[j]<W9;j--){sw+=hh[j];sk+=a9[j]*hh[j];}for(let j=i+1;j<n&&sc[j]-sc[i]<W9;j++){sw+=hh[j];sk+=a9[j]*hh[j];}o9[i]=sk/sw;}return o9;};
+  const kl=lisse(lisse(kap)),kref=1/(3.2*63*kR);
+  const iDe=p=>{let bi=0,bd=1e18;for(let j=0;j<n;j++){const d=ctrl[j].distanceToSquared(p);if(d<bd){bd=d;bi=j;}}return bi;};
+  const plat=[];for(const k of ['arche','archeB'])if(Q&&Q[k+'0']&&Q[k+'1']){const a9=sc[iDe(Q[k+'0'].p)],b9=sc[iDe(Q[k+'1'].p)];plat.push([Math.min(a9,b9),Math.max(a9,b9)]);}
+  FORET.bankN=[];let mx=0;
+  for(let i=0;i<n;i++){let m=sm9(300,700,sc[i])*sm9(0,450,sc[n-1]-sc[i]);
+    for(const z9 of plat){const d=Math.max(z9[0]-sc[i],sc[i]-z9[1],0);m=Math.min(m,sm9(0,300,d));}
+    const b9=FOR_VASTE.bank.max*Math.tanh(kl[i]/kref)*m,a9=ctrl[Math.max(0,i-1)],c9=ctrl[Math.min(n-1,i+1)],tl=Math.hypot(c9.x-a9.x,c9.z-a9.z)||1,tx=(c9.x-a9.x)/tl,tz=(c9.z-a9.z)/tl;
+    FORET.bankN.push(new THREE.Vector3(-tz*Math.sin(b9),Math.cos(b9),tx*Math.sin(b9)));if(Math.abs(b9)>mx)mx=Math.abs(b9);}
+  FORET.bankMax=Math.round(mx*57.2958);}
 function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent les rayons : à haute vitesse le nœud grandit en entier, sans s'étirer en lignes droites)
-  const rM=63*kR,v9=70*kV,LT=9600*(.55+.45*kR),RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,DY=32;
+  const v9=70*kV,kR0=kR,G=FORET_VASTE?FOR_VASTE.G:1;kR*=G;kV*=G; /* (2026-11-05, LA FORÊT VASTE) tout le plan à l'échelle G : rayons, droites, nœuds, écarts — v9 (la vitesse, donc les lissages du relief) ne bouge pas */
+  const rM=63*kR,LT=9600*(.55+.45*kR0)*(FORET_VASTE?FOR_VASTE.long:1),RH=(typeof ROAD_HALF==='number'&&ROAD_HALF>0)?ROAD_HALF:28,DY=FORET_VASTE?FOR_VASTE.DY:32;
   // ---- LA TORTUE : le plan (x, z), l'abscisse s, et un relevé fin tous les ~10 m pour les croisements ----
   let x=0,z=0,phi=0,s=0,cib=null;const C=[[0,0]],SC=[0],D=[0,0,0],ZO=[],Q={},BO=[],NO=[];
   const pas=(nx,nz)=>{const dh=Math.hypot(nx-x,nz-z),n=Math.max(1,Math.ceil(dh/10));for(let j=1;j<=n;j++)D.push(x+(nx-x)*j/n,z+(nz-z)*j/n,s+dh*j/n);s+=dh;x=nx;z=nz;C.push([x,z]);SC.push(s);};
@@ -16352,7 +16391,65 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
      boucle à une pointe — chaque branche recoupe les précédentes. Entre deux nœuds, une LIAISON de virages ; la ligne des nœuds ondule à
      travers une forêt de plusieurs kilomètres. CHAQUE NŒUD A SON RELIEF : il DESCEND (sauter sur la route d'en dessous = un raccourci), il
      MONTE (sauter = revenir en arrière), ou il fait LA VAGUE (descend puis remonte : les deux à la fois). Vu d'en haut, rien ne les distingue. */
-  if(!FORET_HASARD){ // la recette d'avant (`?sans=forethasard`), à l'identique — le dessin au hasard est plus bas
+  if(FORET_VASTE){
+  /* ===== LE DESSIN VASTE (2026-11-05, voir FOR_VASTE) =====
+     Le plan (face à +z, tourné en bloc par AXE à la fin) est une suite de PIÈCES tirées d'un paquet mélangé (jamais deux fois la même de suite) ;
+     après chaque pièce, LE RECADRAGE ramène la route vers le CAP de la forêt (qui louvoie de ±70°) par un grand virage, jamais une épingle :
+       allee   · LA GRANDE ALLÉE : 600-1000 m presque droits (une dérive de 6-16° au milieu), une longue crête douce par-dessus la pente
+       virage  · LE GRAND VIRAGE : 100-180° d'un seul appui, rayon 2,2-3,3 rM, entrée et sortie plus ouvertes — c'est là que la route se couche
+       vagues  · LES GRANDES VAGUES : 3-4 courbes alternées de 40-65° (rayon 1,7-2,6 rM) et autant de houles du relief
+       retour  · LE GRAND RETOUR : deux demi-tours larges en sens contraires (un Z géant) — trois jambes parallèles à 2 rayons l'une de l'autre :
+                 entre les fûts, on voit passer l'autre route pendant de longues secondes
+       spirale · LA SPIRALE : un tour complet très large (la boucle d'avant, ×G) — la sortie passe au-dessus ou en dessous de l'entrée, le séquoia au cœur
+       toboggan· LE TOBOGGAN : 700-1000 m droits qui montent puis plongent (± 7 %)
+       cygne   · LE COL DE CYGNE : un virage de 220-250° puis un contre-appui — la route repart d'où elle vient et le recadrage la renvoie
+                 À TRAVERS son propre passé : un croisement de plus, loin du premier
+     Et LA PELOTE (l'étoile qui se recoupe, d'avant : 3-4 pointes, sa boucle) une ou deux fois, posée au hasard dans la course quand elle tient dans
+     la longueur ; sinon la spirale et le col de cygne font les croisements. Les arches sur une droite, à 25-70 % de la course.
+     Spirale, retour et toboggan vont dans MODMARK (ni plot ni huile dedans) ; les autres gardent leurs obstacles. */
+  const LC9=typeof longueurCible==='function'?longueurCible():0,dA=(a,l)=>[Math.sin(a)*l,Math.cos(a)*l];
+  LVISE=LC9?LC9*FOR_VASTE.long:LT*(.9+rnd()*.3);AXE=rnd()*6.2832-3.1416;PLAN=[];mNeed=0;LMOD=1e12;fmNext=1e12;
+  let ca=(rnd()-.5)*.8;
+  const cap=()=>{cib=[x+Math.sin(ca)*6000,z+Math.cos(ca)*6000];};
+  const sgC=()=>{cap();const r9=rel();return Math.abs(r9)>.15?(r9>0?1:-1):(rnd()<.5?-1:1);}; /* le côté du cap */
+  const recadre=()=>{cap();for(let k=0;k<3&&Math.abs(rel())>.5;k++){const r9=rel();arc((r9>0?1:-1)*Math.min(110,Math.abs(r9)*57.3*(.75+rnd()*.25)),rM*(1.9+rnd()*1.3),null,.06);}};
+  const PV={
+    allee:()=>{const l=(250+rnd()*170)*kV,s0=s;droite(l*(.3+rnd()*.2));arc((rnd()<.5?-1:1)*(6+rnd()*10),rM*10);droite(l*(.4+rnd()*.2));ZM.push([s0,s,.035,l>800?2:1]);},
+    virage:()=>{const sg=rnd()<.65?sgC():-sgC(),a=100+rnd()*80,R=rM*(2.2+rnd()*1.1);droite((30+rnd()*50)*kV);arc(sg*a*.15,R*1.6);arc(sg*a*.7,R,R*(.9+rnd()*.2));arc(sg*a*.15,R*1.6);},
+    vagues:()=>{const n=3+((rnd()*2)|0),a=40+rnd()*25,R=rM*(1.7+rnd()*.9),s0=s;let sg=rnd()<.5?-1:1;arc(sg*a*.5,R);for(let k=0;k<n-1;k++){sg=-sg;arc(sg*a,R*(.9+rnd()*.2));}arc(-sg*a*.5,R);ZM.push([s0,s,.03,n]);},
+    retour:()=>{const sg=sgC(),R=rM*(1.5+rnd()*.5);droite((60+rnd()*80)*kV);arc(sg*(170+rnd()*20),R,R*(.95+rnd()*.15),.05);droite((180+rnd()*200)*kV);arc(-sg*(170+rnd()*20),R*(.9+rnd()*.2),null,.05);droite(60*kV);},
+    spirale:()=>{cap();boucle();},
+    toboggan:()=>{const l=(300+rnd()*120)*kV,s0=s;droite(l);ZM.push([s0,s,.07,1]);},
+    cygne:()=>{const sg=rnd()<.5?-1:1,R=rM*(1.6+rnd()*.4);droite((40+rnd()*60)*kV);arc(sg*(220+rnd()*30),R,R*(1+rnd()*.2),.05);arc(-sg*(40+rnd()*30),R*2);}};
+  const MARQUE={spirale:1,retour:1,toboggan:1},PN=Object.keys(PV),paq=[];let der='';
+  const tire=()=>{for(let e=0;e<8;e++){if(!paq.length){const t=PN.slice();for(let i=t.length-1;i>0;i--){const j=(rnd()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)paq.push(x9);}
+    const n=paq.shift();if(n!==der)return n;}return der==='allee'?'virage':'allee';};
+  const piece=n=>{const i0=C.length-1,s0=s,g=rnd()<.22?pente(.015,.035):-pente(.02,.05);zone(g,PV[n]);if(MARQUE[n])MM.push({i0:i0,i1:C.length-1});MK.push(n);PLAN.push(n+':'+Math.round(s-s0));der=n;};
+  /* LA PELOTE (l'étoile d'avant, à sa taille : jamais plus serrée que 3 rM, jamais plus de la moitié de la course) */
+  const mP=3+(LVISE>14000*kR0&&rnd()<.4?1:0),rhoP=Math.max(3*rM,Math.min(225*kR*.85,LVISE*.5/(3.4*mP))),estP=3.4*rhoP*mP+600*kR0;
+  const nPel=estP>LVISE*.7?0:estP*2.3+2500<LVISE&&rnd()<.6?2:1,TYP=[];for(let n=0;n<nPel;n++)TYP.push(rnd()<.62?'desc':'vague');if(nPel>1)TYP[(rnd()*nPel)|0]='monte';
+  const libre=Math.max(0,LVISE-nPel*estP-900),SP=[];{let a9=300;for(let n=0;n<nPel;n++){a9+=libre*(nPel>1?(n?.25+rnd()*.25:.04+rnd()*.22):.08+rnd()*.5);SP.push(a9);a9+=estP;}}
+  const pelote=n=>{const ty=TYP[n],m=mP,rho=rhoP*(.9+rnd()*.15),c0=dA(ca+(rnd()-.5)*.6,rho*(1.1+rnd()*.3)),cN=[x+c0[0],z+c0[1]],th9=Math.atan2(x-cN[0],z-cN[1]);
+    zone(-pente(.02,.04),()=>vers([cN[0]+Math.sin(th9)*rho*.9,cN[1]+Math.cos(th9)*rho*.9],110*kR));
+    const sr=rnd()<.5?-1:1,th0=Math.atan2(x-cN[0],z-cN[1]),jB=rnd()<.35?1+(rnd()*(m-1)|0):-1,s0=s;
+    for(let j=1;j<=m;j++){const th=th0+sr*j*(130+rnd()*28)*Math.PI/180,r=rho*(.62+rnd()*.38),c=[cN[0]+Math.sin(th)*r,cN[1]+Math.cos(th)*r];
+      let g=ty==='desc'?-pente(.06,.08):ty==='monte'?pente(.045,.06):(j<=m/2?-pente(.07,.09):pente(.05,.065));
+      g+=(rnd()-.5)*.05;if(rnd()<.2)g=-Math.sign(g)*pente(.02,.04);
+      zone(g,()=>{vers(c,110*kR);if(j===jB)boucle();});}
+    NO.push({c:cN,t:ty,s0:s0,s1:s});PLAN.push('pelote:'+ty+m+(jB>0?'b':'')+':'+Math.round(s-s0));};
+  const arche=k=>{zone(-.03,()=>{recadre();droite(50);ici(k+'0');droite(100);ici(k);droite(100);ici(k+'1');droite(40);});PLAN.push(k);};
+  const AR=[['arche',LVISE*(.25+rnd()*.2)]];if(LVISE>7000*kR0&&rnd()<.5)AR.push(['archeB',LVISE*(.55+rnd()*.15)]);
+  ici('depart');zone(-.02,()=>droite((200+rnd()*200)*Math.sqrt(kV)));
+  let nP9=0;if(nPel===0)paq.push('spirale'); /* sans pelote, une spirale tout de suite : le premier croisement */
+  for(let e=0;e<40;e++){
+    if(nP9<nPel&&s>=SP[nP9]){pelote(nP9++);recadre();continue;}
+    {const a=AR.find(q=>!q[2]&&s>=q[1]);if(a){a[2]=1;arche(a[0]);}} /* une arche à la fois : la seconde attend la pièce suivante */
+    if(s>LVISE-500*kR0&&nP9>=nPel)break;
+    ca=Math.max(-1.2,Math.min(1.2,ca+(rnd()-.5)*1.1));
+    piece(tire());recadre();}
+  for(const a of AR)if(!a[2]){a[2]=1;arche(a[0]);}
+  zone(-.02,()=>{recadre();droite(180);ici('fin');droite(100);});
+  }else if(!FORET_HASARD){ // la recette d'avant (`?sans=forethasard`), à l'identique — le dessin au hasard est plus bas
   const nN0=3+(kR>1.6&&rnd()<.35?1:0),RHO=225*kR,LC9=typeof longueurCible==='function'?longueurCible():0;let ca=0,cN=[0,RHO+380];
   const nN=LC9?Math.max(1,Math.min(nN0,Math.round((LC9-1200*kR)/(3600*kR)))):nN0; // (LA DURÉE DES MAPS) au JOUER, autant de nœuds (~3,6 km × l'échelle chacun) que la longueur visée en tient — au moins UN : l'étoile qui se recroise et l'arche restent
   const TY=[rnd()<.7?'desc':'vague'],SAC=['desc','monte','vague','desc','monte','vague','desc'];for(let n=1;n<nN;n++)TY.push(SAC.splice(rnd()*SAC.length|0,1)[0]);
@@ -16485,7 +16582,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   let note=0,dyMin=1e9;
   for(let c=0;c<CR.length;c++){for(const p of CR[c]){const dy=Math.abs(yA(p[0])-yA(p[1]));if(dy<dyMin)dyMin=dy;if(dy<DY-1)note+=(DY-1-dy)*.5;}}
   for(let k=4;k<nY;k++){const g=(Y[k]-Y[k-4])/40;if(g<-.15)note+=(-.15-g)*40;if(g>.12)note+=(g-.12)*40;}
-  const nKm=CR.length/(L/1000),nKmV=rf9?.7:1.1;if(nKm<nKmV)note+=(nKmV-nKm)*8; // (2e tour) moins emmêlée : 0,7 croisement/km suffit avec les modules
+  const nKm=CR.length/(L/1000),nKmV=FORET_VASTE?.35:rf9?.7:1.1;if(nKm<nKmV)note+=(nKmV-nKm)*8; // (2e tour) moins emmêlée : 0,7 croisement/km suffit avec les modules
   if(rf9&&MM.length<mNeed)note+=(mNeed-MM.length)*4; // (2026-10-18) au moins TROIS modules (voir fSlalom) : un essai qui en a moins est repris — (2026-10-19, au hasard) autant que la longueur en tient (mNeed)
   if(LVISE){const r9=L/LVISE;if(r9>1.3)note+=(r9-1.3)*12;else if(r9<.75)note+=(.75-r9)*12;} // (2026-10-19, LA FORÊT AU HASARD) près de la longueur visée
   if(LVISE)for(const k of ['arche','archeB']){const q=Q[k];if(!q)continue; // (2026-10-19) LA PLACE DE L'ARCHE : aucune autre route à moins de 200 m (foretArche renonce à une arche dont le tronc croise un autre étage — au hasard, ça arrivait une fois sur deux)
@@ -17181,7 +17278,7 @@ function* foretSol(){ // (LE PRÉ-BÂTI) un générateur : rendez-vous à l'éch
     if(D[k]<1e11){d=Math.sqrt(D[k]);hb=HM[k];if(d>R1-160){const w=THREE.MathUtils.smoothstep(d,R1-160,R1);hb=Math.min(hb,hb*(1-w)+gBil(GH,x,z)*w);}}
     else{d=Math.max(R1,gBil(GD,x,z));hb=gBil(GH,x,z);}
     D[k]=d;
-    const n1=fB(0,i,j,x,z),D0=132+13*n1; // la PROFONDEUR sous l'enveloppe : 120-145 m
+    const n1=fB(0,i,j,x,z),D0=(132+13*n1)*(FORET_VASTE?FOR_VASTE.prof:1); /* (2026-11-05, LA FORÊT VASTE) le fond 30 % plus bas : des fûts plus hauts */ // la PROFONDEUR sous l'enveloppe : 120-145 m
     if(d>MARG+150){H[k]=hb-D0+52*fB(2,i,j,x*.31,z*.31);PR[k]=0;FD[k]=.62;continue;} // hors du maillage : les collines seules (rien d'autre ne lit si loin)
     H[k]=hb-D0+40*fB(2,i,j,x*.31,z*.31)*THREE.MathUtils.smoothstep(d,380,900)+4.5*fB(3,i,j,x*3.1,z*3.1);
     const pr=d<220?THREE.MathUtils.smoothstep(fB(4,i,j,x*1.7,z*1.7),.05,.42)*(1-THREE.MathUtils.smoothstep(d,160,220)):0;PR[k]=pr;
@@ -17390,7 +17487,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
   const geantXZ=(x,z,sp)=>{if(CLR.length)for(const c of CLR)if(Math.hypot(c[0]-x,c[1]-z)<c[2]+12)return false;const meta=PT.geant[sp][0].m,base=solH(x,z)-3,cb=sp==='sequoia'?(meta.cb||178):(meta.cb||95),R9=meta.cr*2.2+ROAD_HALF+14;
     let yH=-1e9,dM=1e9,iM=-1;proches(x,z,R9,function(j){const q=pts[j],dh=Math.hypot(q.x-x,q.z-z);if(dh<R9&&q.y>yH)yH=q.y;if(dh<dM){dM=dh;iM=j;}});
     if(iM<0){const yb9=solBil(S.yb,x,z);yH=yb9<1e4?yb9:base+120;} // (aucune route à portée de couronne : la plus basse des environs sert de repère)
-    const sy=THREE.MathUtils.clamp((yH-base+(sp==='sequoia'?45+fr()*150:24+fr()*36))/cb,sp==='sequoia'?.9:.7,4.4),sxz=Math.sqrt(sy)*(.84+fr()*.2),rT=FOR_GEANT_RB[sp]*sxz,cr=meta.cr*sxz;
+    const sy=THREE.MathUtils.clamp((yH-base+(sp==='sequoia'?45+fr()*150:24+fr()*36)*(FORET_VASTE?FOR_VASTE.geant:1))/cb,sp==='sequoia'?.9:.7,FORET_VASTE?6:4.4),sxz=Math.sqrt(sy)*(.84+fr()*.2),rT=FOR_GEANT_RB[sp]*sxz,cr=meta.cr*sxz;
     if(base+cb*sy-16<yH)return false; // (la couronne plafonnée passerait dans une route)
     for(const g of GE){const d=Math.hypot(g.x-x,g.z-z);if(d<Math.max((g.rT+rT)*2.4+25,(g.cr+cr)*.5))return false;}
     let ok=true;proches(x,z,rT+ROAD_HALF+6,function(j){if(!ok)return;const q=pts[j];if(Math.hypot(q.x-x,q.z-z)<rT+ROAD_HALF+5)ok=false;});
@@ -17404,22 +17501,22 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
    const sm=K9.map(function(k,j){let s9=0,n9=0;for(let d=-4;d<=4;d++){const o=K9[j+d];if(o){s9+=o[1];n9++;}}return [k[0],s9/n9];});
    let der=-1e9;
    for(let j=1;j<sm.length-1;j++){if(performance.now()>JF.lim)yield;const k=sm[j],a=Math.abs(k[1]);if(a<1/1100||a<Math.abs(sm[j-1][1])||a<Math.abs(sm[j+1][1]))continue;
-     const sK=k[0]*ds;if(sK-der<110||sK<260||sK>L-180)continue;
+     const sK=k[0]*ds;if(sK-der<(FORET_VASTE?170:110)||sK<260||sK>L-180)continue;
      const sg=k[1]>0?1:-1,sp=ge[(fr()*ge.length)|0]; // le côté INTÉRIEUR du virage (θ<0 : le cap tourne vers −latéral)
      if(geant(k[0],sg,ROAD_HALF+8+FOR_GEANT_RB[sp]*1.5+fr()*10,sp)||geant(k[0],sg,ROAD_HALF+22+FOR_GEANT_RB[sp]*1.6+fr()*14,ge[(fr()*ge.length)|0]))der=sK; // à la CORDE
      if(fr()<.5){const i2=Math.min(NP-1,k[0]+Math.round((55+fr()*45)/ds));geant(i2,-sg,ROAD_HALF+14+fr()*18+FOR_GEANT_RB.chene*1.6,ge[(fr()*ge.length)|0]);}}} // …et parfois, à la sortie, de l'autre côté
-  {let sd=fr()<.5?-1:1;for(let s9=280;s9<L-200;s9+=95+fr()*70){if(performance.now()>JF.lim)yield;const i=Math.round(s9/ds);let pres=false;for(const g of GE){const d=Math.hypot(g.x-pts[i].x,g.z-pts[i].z);if(d<85){pres=true;break;}}
+  {let sd=fr()<.5?-1:1;for(let s9=280;s9<L-200;s9+=(95+fr()*70)*(FORET_VASTE?1.4:1)){if(performance.now()>JF.lim)yield;const i=Math.round(s9/ds);let pres=false;for(const g of GE){const d=Math.hypot(g.x-pts[i].x,g.z-pts[i].z);if(d<85){pres=true;break;}}
     if(pres)continue;sd=-sd;const sp=ge[(fr()*ge.length)|0];geant(i,sd,ROAD_HALF+10+FOR_GEANT_RB[sp]*1.5+fr()*22,sp);}}
   for(const o of FORET.boucles||[]){let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(o.e);if(d<bd){bd=d;bi=i;}}
     geant(bi,-o.sg,o.R,'sequoia');} // LE SÉQUOIA DE LA BOUCLE : au centre du premier demi-tour, la route tourne autour de lui
   /* LES SÉQUOIAS-TOURS (2026-10-14 soir) : une COLONNADE le long de la route — un fût tous les 70-115 m, d'un côté puis de l'autre, au ras
      du bord (la route serpente entre les troncs). */
-  {let sd=fr()<.5?-1:1;for(let s9=300;s9<L-160;s9+=(70+fr()*45)*(DZ?DZ.gea.col:1)){if(performance.now()>JF.lim)yield;const i=Math.round(s9/ds);sd=-sd;
+  {let sd=fr()<.5?-1:1;for(let s9=300;s9<L-160;s9+=(70+fr()*45)*(DZ?DZ.gea.col:1)*(FORET_VASTE?1.5:1)){if(performance.now()>JF.lim)yield;const i=Math.round(s9/ds);sd=-sd;
      geant(i,sd,ROAD_HALF+FOR_GEANT_RB.sequoia*1.6+16+fr()*34,'sequoia');}}
   /* LA FUTAIE (2026-10-15, LA PELOTE) : partout à moins de 360 m d'une route, un géant tous les ~95 m (une grille décalée) — séquoias,
      chênes, hêtres, épicéas, vieux chênes ; la pelote serpente entre des troncs de 20 à 50 m de diamètre, et l'air entre ses étages
      n'appartient qu'à eux : c'est entre ces fûts qu'on saute d'une route à l'autre. (`foretFutaie` : l'écart de la grille par palier) */
-  {const PF=95*PAL_B9('foretFutaie',1);let bx0=1e9,bx1=-1e9,bz0=1e9,bz1=-1e9;for(let i=0;i<NP;i+=8){const p=pts[i];if(p.x<bx0)bx0=p.x;if(p.x>bx1)bx1=p.x;if(p.z<bz0)bz0=p.z;if(p.z>bz1)bz1=p.z;}
+  {const PF=95*PAL_B9('foretFutaie',1)*(FORET_VASTE?1.35:1);let bx0=1e9,bx1=-1e9,bz0=1e9,bz1=-1e9;for(let i=0;i<NP;i+=8){const p=pts[i];if(p.x<bx0)bx0=p.x;if(p.x>bx1)bx1=p.x;if(p.z<bz0)bz0=p.z;if(p.z>bz1)bz1=p.z;}
    for(let gx=bx0-360;gx<bx1+360;gx+=PF)for(let gz=bz0-360;gz<bz1+360;gz+=PF){if(performance.now()>JF.lim)yield;const x=gx+(fr()-.5)*PF*.8,z=gz+(fr()-.5)*PF*.8,d=solBil(S.d,x,z),r=fr();
      if(d>360||d<ROAD_HALF+24)continue;geantXZ(x,z,r<.42?'sequoia':ge[(fr()*ge.length)|0]);}}
   FORET.geants=GE;
@@ -17447,7 +17544,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
   const ESP={},LOINF=[],LOINC=[];for(const k of FOR_ESP_N)ESP[k]=[];
   /* (2026-10-15, LA PELOTE — « des arbres beaucoup plus grands ») la forêt ordinaire à l'échelle ×2,1 (des hêtres de 60 m, des épicéas de 80) :
      une case 2× plus large, 4× moins d'arbres pour le même couvert — et autant de triangles en moins. */
-  const FE=2.1,cell=15*2/Math.sqrt(Math.min(1,MOB*1.25)),Rt=PAL_B9('foretRayon',1650),metaE={};for(const k of FOR_ESP_N)metaE[k]=PT.esp[k][0].m;
+  const FE=2.1*(FORET_VASTE?FOR_VASTE.arbres:1),cell=15*2*FE/2.1/Math.sqrt(Math.min(1,MOB*1.25)), /* (2026-11-05, LA FORÊT VASTE) des arbres ×1,45, la case à la même échelle : le même couvert */Rt=PAL_B9('foretRayon',1650),metaE={};for(const k of FOR_ESP_N)metaE[k]=PT.esp[k][0].m;
   const ES9=DZ&&FOR_ESS[DZ.ess],choix=(d,r)=>{if(ES9){for(const e of ES9[d<175?0:d<620?1:2])if(r<e[0])return e[1];return 'epicea';}if(d<175)return r<.30?'hetre':r<.52?'bouleau':r<.70?'chene':r<.82?'epicea':r<.92?'pin':'sapin';
     if(d<620)return r<.40?'epicea':r<.58?'sapin':r<.82?'hetre':r<.90?'pin':r<.95?'chene':'bouleau';
     return r<.48?'epicea':r<.68?'sapin':r<.94?'hetre':'pin';};
