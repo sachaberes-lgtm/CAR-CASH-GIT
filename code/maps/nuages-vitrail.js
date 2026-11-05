@@ -235,7 +235,7 @@ function cotonInit(){ if(COTON.root)return; // une fois par session : 24 gabarit
       if(MV&&f9>=2){const V={g0:g0,ok:false,tri:0,A:new THREE.InstancedBufferAttribute(new Float32Array(COTON.cap*16),16),C:new THREE.InstancedBufferAttribute(new Float32Array(COTON.cap*3).fill(1),3)};V.A.setUsage(THREE.DynamicDrawUsage);V.C.setUsage(THREE.DynamicDrawUsage);
         for(const q9 of [['c',MV.cub],['o',MV.coe],['p',MV.pea],['b',MV.corps],['g',MV.fan]]){const x=new THREE.InstancedMesh(g0,q9[1],COTON.cap);x.instanceMatrix=V.A;x.instanceColor=V.C; // les trois maillages partagent LEURS instances (les nuages trop proches restent dans le lot v8)
         x.frustumCulled=false;x.count=0;x.visible=false;x.castShadow=x.receiveShadow=false;x.matrixAutoUpdate=false;COTON.root.add(x);V[q9[0]]=x;}COTON.vit[k*4+f9]=V;}}}
-  {for(let k=0;k<COTON_KINDS;k++)COTON.S[k].seed=k*7+1;COTON.pret.fill(0); // (v8) les QUATRE finesses de la surface arrivent de l'ouvrier ; l'ébauche en sphères tient la place
+  {COTON.sym=nuSymVoulu();/* (2026-11-05, sans dessus dessous) le nuage naît symétrique ou non selon la map du moment */for(let k=0;k<COTON_KINDS;k++)COTON.S[k].seed=k*7+1;COTON.pret.fill(0); // (v8) les QUATRE finesses de la surface arrivent de l'ouvrier ; l'ébauche en sphères tient la place
     for(let f=0;f<4;f++)for(let k=0;k<COTON_KINDS;k++)nuage8Async(COTON.S[k],N8_FIN[f],function(r){const g9=cotonBuf(r);cotonFinesse(k,f,g9);if(r.skin)nuSkinPose(k,f,r.skin);if(r.vit){nuVitPose(k,2,r);nuVitPose(k,3,r);}if(r.fant){nuFantPose(k,2,r,g9);nuFantPose(k,3,r,g9);}},f===2?NUVIT.nc:0);} // (vitrail) calculé UNE fois par gabarit (avec la finesse 2 : le cœur n'est vu que dans les joints), les deux lots fins le partagent // les plus légères d'abord : le ciel s'affine en quelques instants, sans jamais geler
   for(const s of SPH)s.dispose();COTON.I=new Float32Array(COTON.cap*COTON_ST);COTON.msInit=performance.now()-COTON.t0;
 }
@@ -303,7 +303,7 @@ function cotonOrdonne(cr,perp){
       r=t.r[0]+(t.r[1]-t.r[0])*cr(),kk=cotonKind(cr,t.w);let d=t.d[0]+(t.d[1]-t.d[0])*cr();
       for(let e=0;e<3;e++,d*=1.25){const x=p.x+q[0]*sg*d,y=p.y+t.y+(cr()-.5)*40,z=p.z+q[1]*sg*d;if(libre(x,y+r*.35,z,r)&&cotonPose(x,y,z,r,kk,cr))break;}}});}
 function buildCoton(cr){
-  cotonInit();cotonVide();COTON.jd=null;COTON.corrH=0;COTON.corrV=0;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
+  cotonInit();nuSymMaj();cotonVide();COTON.jd=null;COTON.corrH=0;COTON.corrV=0;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
   if(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!LVL.cur.sansNuages){cotonJade(cr);return;} // (2026-10-14, passe graphismes) LES PICS DE JADE : le ciel de coton, à leur mesure
   const okD=lvlNuageOk({deco:true}),okG=lvlNuageOk({giant:true});if(!okD&&!okG)return;
   const ORD=!!(ARC_ON&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage')&&!/[?&]ordre=0\b/.test(location.search));if(ORD){COTON.corrH=NU_ORD.corrH;COTON.corrV=NU_ORD.corrV;} // (2026-10-21) LE PLAN D'AVION : voir cotonOrdonne

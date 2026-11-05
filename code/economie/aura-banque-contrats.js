@@ -78,9 +78,10 @@ function carOwned(i){return !!(SAVE.d.owned&&SAVE.d.owned.indexOf(i)>=0);}
    CET appareil tout est À TOI : les caisses (carUnlockedVrai : en vente, en €, à défi), les habillages (shopOwned), les FIGURES (figPossede),
    tous les niveaux de la carrière. Rien n'est écrit ailleurs (l'argent, l'aura et les records ne bougent pas) ; EFFACER MA PROGRESSION l'enlève. */
 function codeCousin(t){const k=String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
-  if(k!=='cousin'&&k!=='cousin161')return false;SAVE.d.cousin=1;SAVE.flush();try{GBQ.rk='';GBQ.uk='';}catch(e){}
+  if(k!=='cousin'&&k!=='cousin161'&&k!=='cousintout')return false;SAVE.d.cousin=1;if(k==='cousintout')SAVE.d.cousinTout=1; /* (2026-11-05, Léo : « remets code cousin pour que je puisse tout essayer » — les caisses payantes en € aussi) « cousin tout » : en plus, les caisses et peintures en €, pour essayer toute la boutique ; « cousin » seul garde la règle de Sacha */SAVE.flush();try{GBQ.rk='';GBQ.uk='';}catch(e){}
   try{carSnapshot();}catch(e){} // (2026-10-14) la photo des caisses acquises suit : sans elle, la partie suivante criait « NOUVELLE CAISSE » ~70 fois au 1er gain
   return true;}
+function cousinTout(){try{return !!SAVE.d.cousinTout;}catch(e){return false;}}
 function cousin(){try{return !!SAVE.d.cousin;}catch(e){return false;}} // (SAVE peut ne pas exister encore : le tout premier buildCar tourne avant lui)
 /* (2026-10-14, Sacha, après la revue des idées de Léo : « le code cousin ne débloque PLUS rien de ce qui se paie en euros ») un code partageable
    vidait la boutique en vrai argent (et l'App Store, règle 3.1.1, interdit d'ouvrir un contenu payant autrement que par l'achat). Il garde tout le
@@ -97,7 +98,7 @@ function carUnlocked(i){return !carRetiree(i)&&(TEST_CAISSES||carUnlockedVrai(i)
    « déjà à toi », le testeur ne voyait jamais la boucle achat → caisse que vivra le joueur. */
 function carUnlockedVrai(i){
   if(carRetiree(i))return false; // (2026-10-02) retirée : ni à toi, ni à gagner
-  if(cousin()&&!carEuros(i))return true; // (2026-10-14) LE CODE COUSIN : toutes les caisses — (même jour, Sacha) SAUF celles qui se paient en EUROS
+  if(cousin()&&(!carEuros(i)||cousinTout()))return true; // (2026-10-14) LE CODE COUSIN : toutes les caisses — (même jour, Sacha) SAUF celles qui se paient en EUROS
   if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true; // acquise sous les anciennes règles : elle le reste
   const u=CAR_UNLOCK[i];
   if(!u)return true;

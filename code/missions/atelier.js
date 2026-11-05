@@ -37,6 +37,7 @@ function gmPlaceL(W,H){ // couché : DEUX colonnes — la carte de la série à 
   const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),gm=$('gMis'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=W>H*1.25;
   const bt=rb&&rb.height?rb.top:H-90,g0=rh&&rh.width?rh.left:16,A=L.querySelector('.glA'),Bk=L.querySelector('.glB'),px=function(v){return Math.round(v)+'px';};
   L.classList.toggle('land',land);if(gm)gm.classList.toggle('m2land',land);
+  if(L.classList.contains('mcE')){L.style.left=L.style.top=L.style.right=L.style.maxHeight='';L.style.setProperty('--mcBas',px(rb&&rb.height?H-rb.top+10:96));L.style.setProperty('--mcJh',px(rb&&rb.height?H-rb.top:70));return;} /* (2026-11-03, refonte) la page MISSIONS se pose seule : seulement le bas (JOUER) à éviter */
   if(hd)hd.style.maxWidth=''; // (2026-10-22) la largeur de l'en-tête vient du CSS (la colonne de gauche couché)
   if(land){
     L.style.left=L.style.top='0px';L.style.right='0px';L.style.maxHeight='none';
