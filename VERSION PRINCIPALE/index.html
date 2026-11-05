@@ -11955,7 +11955,8 @@ try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',fun
    et l'anticrénelage est le FXAA de la passe finale. Même image au pixel près, ~100 Mo de moins. `?msaa=1` (l'ancien choix, voir FXAA_ON) garde le tampon. */
 const MSAA_TOILE=/[?&]msaa=1\b/.test(location.search);
 const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance'});
-renderer.setSize(innerWidth,innerHeight);
+const TOILE1=!/[?&]toile1=0\b/.test(location.search); /* (2026-11-05, passe perf mobile 2, A2.c) UNE seule allocation de la toile : sa taille se pose plus bas, une fois DPR_CAP connu (`?toile1=0` = l'ancien ordre : taille puis rapport de pixels) */
+if(!TOILE1)renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
 try{palPuce(renderer.getContext());}catch(e){} // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
 /* ⚠ LE CONTEXTE 3D PERDU (2026-09-25, audit App Store) : iOS reprend la carte graphique d'une app en arrière-plan
@@ -12000,6 +12001,17 @@ const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([\d.]+)/.exec(location.search);r
 function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
   if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));
   return Math.min(devicePixelRatio,Math.max(1.25,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
+/* ===== UNE SEULE ALLOCATION DE LA TOILE (2026-11-05, passe perf mobile 2, A2.c) =====
+   MESURÉ (Chrome iPhone émulé ×4, palier 0) : `renderer.setSize` 2 fois avant le menu — la 1re à 1 pixel/point avec DPR_CAP provisoire, la 2e (`applyQ` → `qlReprise` → `applyDPR`, ~1,1 s) une fois le choix RAPIDE/NETTE connu :
+   toile et cibles du compositeur réallouées. Ici le plafond est calculé tout de suite depuis la sauvegarde brute (même règle que `sauvegarde.js` : `q`, `qChoisi`, défaut du palier), AVANT le 1er `setSize` ;
+   `applyQ` (mobile-tactile.js) ne refait rien si `DPR_CAP` n'a pas bougé. Une sauvegarde illisible ou miroir natif encore vide : repli RAPIDE, puis `applyQ` corrige comme avant. `?toile1=0` = avant. */
+PAL.B.dprNetCap=[1.25,1.35,1.5]; /* le même budget que `rendu/nettete-qualite.js` (qui le redéclare, identique) : il doit exister AVANT le 1er dessin de la toile, sinon `dprPlafond` lirait le repli 1,5 et la toile serait allouée au mauvais rapport */
+let TOILE1_Q=null; /* le choix d'image (fast|net|haute) lu d'avance ; null = l'ancien ordre */
+if(TOILE1){try{let r9=null;try{r9=JSON.parse(localStorage.getItem('cashcarSave')||'null');}catch(e){}r9=r9&&typeof r9==='object'?r9:{};
+  const netq=r9.q==='net'||r9.q==='haute',choisi=r9.qChoisi===1||(r9.qChoisi===undefined&&netq);
+  TOILE1_Q=choisi?(netq?r9.q:'fast'):((PAL.b('qNetDefaut',PAL.n>=2?1:0)||!ALLEGE)?'net':'fast');
+  DPR_CAP=dprPlafond(TOILE1_Q==='fast');curDPR=Math.min(DPR_CAP,devicePixelRatio);}catch(e){TOILE1_Q=null;}
+  renderer.setPixelRatio(curDPR);renderer.setSize(innerWidth,innerHeight);}
 const DPR_MIN=(IS_MOBILE&&!FORCE_TEL)?.5:.6; // .42 était une bouillie de pixels — et on y restait coincé (voir la remontée dans loop)
 // PORTRAIT : le `fov` de three est VERTICAL — sur un écran haut, le champ HORIZONTAL s'effondre.
 // FOV_K rouvre l'angle, POR (0 paysage → 1 portrait) recadre la caméra. Les deux se règlent ENSEMBLE
@@ -80831,7 +80843,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   TCTL.on=true;
   AUTO_GAS=true; // GAZ AUTOMATIQUE : deux pouces, pas trois — ça pousse tout seul, on gère la trajectoire
   TCTL.pad=false;SAVE.d.tctl='stick'; // ⚠ (2026-09-25) le réglage COMMANDES est retiré : tout le monde au VOLANT (un joueur resté sur « flèches » ne pourrait plus en sortir)
-  setTimeout(function(){applyQ(SAVE.d.q==='fast');},0); // qualité d'image retenue (applyQ est défini plus bas dans ce bloc)
+  setTimeout(function(){if(TOILE1_Q&&dprPlafond(SAVE.d.q==='fast')===DPR_CAP)return;applyQ(SAVE.d.q==='fast');},0); /* (2026-11-05, passe perf mobile 2, A2.c) le plafond est déjà bon (calculé avant le 1er setSize, palier-appareil.js) : rien à réallouer ; `?toile1=0` = comme avant */ // qualité d'image retenue (applyQ est défini plus bas dans ce bloc)
   document.body.classList.toggle('tpad',TCTL.pad);
   SANDBOX=BALADE;SAVE.d.sand=false; // ⚠ UN SEUL MODE (2026-09-25, user) : le bac à sable, le parc et le Survivant sont retirés de l'interface — une ancienne sauvegarde ne doit pas en rallumer un en douce
   const $t=function(i){return document.getElementById(i);};
