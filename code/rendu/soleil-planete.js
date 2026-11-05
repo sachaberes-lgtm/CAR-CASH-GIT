@@ -1,10 +1,23 @@
+/* ===== LE SOLEIL « 1.61 » EN IMAGES (2026-11-05, Fable : « DIR-01 : gel de 20 à 65 s au démarrage — 25 s de temps propre dans draw() ») =====
+   Le disque et les chiffres d'or étaient PEINTS au chargement dans deux toiles 2D de 512² : strokeText 84 px Press Start 2P, épaisseur 30,
+   destination-out, puis drawImage d'une troisième toile, et le tout envoyé en texture — une lecture synchrone d'une toile accélérée pendant que la
+   puce compile les programmes du ciel. Profil du jury : 25 s de temps propre dans draw() sur 8 chargements sur 15 (contention GPU) ; mesuré ici,
+   sur un PC calme, 4,5 s pour le seul dessin dans une page vide. Désormais les deux sprites sont des PNG (assets/soleil/disque.png et chiffres.png,
+   512², capturés UNE fois depuis l'ancien dessin par outils/soleil-161/genere.html, au pixel près) chargés comme textures : zéro toile, zéro police,
+   zéro lecture au démarrage. En attendant l'image : une texture d'un pixel transparent (le soleil apparaît quand le PNG est là, quelques ms).
+   `?soleil=ancien` : l'ancien dessin en toile (gardé une semaine). `dbgSoleil161()` : mode, temps de dessin, arrivée des images. */
+const SOLEIL_ANCIEN=/[?&]soleil=ancien\b/.test(location.search);
+const SOLEIL_MS={mode:SOLEIL_ANCIEN?'toile':'png',init:0,dessin:0,dessins:0,disque:-1,chiffres:-1};
+window.dbgSoleil161=function(){return Object.assign({},SOLEIL_MS);};
 // SOLEIL « 1.61 » : les grands numéros lumineux du studio se couchent à l'horizon
 const sunSprite=(function(){
+  const t0=performance.now();let tex,texO;
+  if(SOLEIL_ANCIEN){ /* L'ANCIEN DESSIN, en toiles 2D (?soleil=ancien, une semaine) */
   const cv=document.createElement('canvas');cv.width=cv.height=512;
   const c=cv.getContext('2d');
-  const tex=new THREE.CanvasTexture(cv);
-  const cvO=document.createElement('canvas');cvO.width=cvO.height=512;const texO=new THREE.CanvasTexture(cvO); // (vague 2) les chiffres d'or
-  function draw(){
+  tex=new THREE.CanvasTexture(cv);
+  const cvO=document.createElement('canvas');cvO.width=cvO.height=512;texO=new THREE.CanvasTexture(cvO); // (vague 2) les chiffres d'or
+  function draw(){const tD=performance.now();
     c.clearRect(0,0,512,512);
     // UNE VRAIE SOURCE DE LUMIÈRE (2026-08-03) : le disque était volontairement « contenu » et
     // dessiné en fusion NORMALE — il PEIGNAIT le ciel au lieu d'y AJOUTER de la lumière, d'où un
@@ -38,9 +51,12 @@ const sunSprite=(function(){
     l.globalCompositeOperation='source-atop';l.fillStyle='#fff3b0';l.fillRect(0,0,512,248);
     d.drawImage(cvL,0,0);toileRend(cvL); // (2026-10-14, passe perf mobile) toile de travail 512² : 1 Mo rendu tout de suite, à chaque dessin
     texO.needsUpdate=true;
-  }
+  SOLEIL_MS.dessin+=performance.now()-tD;SOLEIL_MS.dessins++;}
   draw();
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(draw).catch(function(){});
+  }else{ /* un pixel transparent en attendant les PNG : aucune toile, aucune police, rien à lire */
+    const px=new THREE.DataTexture(new Uint8Array(4),1,1,THREE.RGBAFormat);px.needsUpdate=true;tex=texO=px;
+  }
   // ADDITIF : c'est ce qui fait la différence entre un autocollant et une source de lumière — le disque
   // AJOUTE sa lumière au ciel, le bloom l'attrape, et le halo se fond au lieu de se découper.
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending}));
@@ -62,6 +78,12 @@ const sunSprite=(function(){
   // (garage, étal, orbite, pluie). Fusion NORMALE : l'or se PEINT sur le ciel, il ne s'y dilue plus. Dessiné après la nappe et les rayons.
   const chif=new THREE.Sprite(new THREE.SpriteMaterial({map:texO,transparent:true,depthWrite:false,fog:false}));
   chif.renderOrder=-5;sp.add(chif);sp.userData.chif=chif;
+  if(!SOLEIL_ANCIEN){ /* les deux PNG, chargés comme textures (même cadrage 512², même encodage que la toile) */
+    const ld=new THREE.TextureLoader();
+    ld.load('assets/soleil/disque.png',function(t9){sp.material.map=t9;sp.material.needsUpdate=true;SOLEIL_MS.disque=Math.round(performance.now()-t0);},undefined,function(){try{window.__ccNote('panne','soleil · assets/soleil/disque.png introuvable');}catch(_){}});
+    ld.load('assets/soleil/chiffres.png',function(t9){chif.material.map=t9;chif.material.needsUpdate=true;SOLEIL_MS.chiffres=Math.round(performance.now()-t0);},undefined,function(){try{window.__ccNote('panne','soleil · assets/soleil/chiffres.png introuvable');}catch(_){}});
+  }
+  SOLEIL_MS.init=Math.round((performance.now()-t0)*10)/10;
   return sp;
 })();
 // LUEUR D'HORIZON + RAYONS CRÉPUSCULAIRES (purement visuels — constantes réglables)

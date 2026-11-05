@@ -1,0 +1,60 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Soleil « 1.61 » : les deux sprites en PNG</title>
+<style>
+@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;src:url('../../VERSION PRINCIPALE/assets/fonts/pressstart2p.woff2') format('woff2');}
+body{background:#223;color:#eee;font:14px monospace;margin:16px}
+canvas{background:#000;margin:4px;width:256px;height:256px;image-rendering:auto}
+button{font:inherit;padding:6px 12px}
+</style>
+<h1>Soleil « 1.61 » — générateur des sprites (DIR-01, 2026-11-05)</h1>
+<p>Le dessin ci-dessous est la copie EXACTE de l'ancien <code>draw()</code> de <code>code/rendu/soleil-planete.js</code> (chemin <code>?soleil=ancien</code>).
+Les deux PNG qui en sortent sont <code>VERSION PRINCIPALE/assets/soleil/disque.png</code> (le disque additif, sillon creusé) et
+<code>chiffres.png</code> (les chiffres d'or, fusion normale). Pour les refaire : ouvrir cette page par un serveur qui accepte
+<code>POST /__ecrit/&lt;nom&gt;.png</code> (le serveur du banc), attendre « prêt », puis ENREGISTRER — ou « télécharger » et copier les deux fichiers à la main.</p>
+<div id="etat">police…</div>
+<canvas id="disque" width="512" height="512"></canvas>
+<canvas id="chiffres" width="512" height="512"></canvas>
+<p><button onclick="envoie()">ENREGISTRER (POST /__ecrit/)</button> <button onclick="telecharge()">télécharger les deux PNG</button> <span id="res"></span></p>
+<script>
+function dessine(){
+  const t0=performance.now();
+  const cv=document.getElementById('disque'),c=cv.getContext('2d');
+  const cvO=document.getElementById('chiffres');
+  c.clearRect(0,0,512,512);
+  const g=c.createRadialGradient(256,256,10,256,256,252);
+  g.addColorStop(0,'rgba(255,252,242,1)');
+  g.addColorStop(.09,'rgba(255,236,190,.98)');
+  g.addColorStop(.20,'rgba(255,198,120,.62)');
+  g.addColorStop(.46,'rgba(255,132,104,.24)');
+  g.addColorStop(1,'rgba(255,124,110,0)');
+  c.fillStyle=g;c.beginPath();c.arc(256,256,252,0,7);c.fill();
+  c.font='84px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
+  c.lineJoin='round';
+  c.globalCompositeOperation='destination-out';
+  c.lineWidth=30;c.strokeStyle='rgba(0,0,0,.70)';c.strokeText('1.61',256,260);
+  c.globalCompositeOperation='source-over';
+  const d=cvO.getContext('2d');d.clearRect(0,0,512,512);
+  d.font=c.font;d.textAlign='center';d.textBaseline='middle';d.lineJoin='miter';
+  d.lineWidth=16;d.strokeStyle='#1c0430';d.strokeText('1.61',256,266);d.strokeText('1.61',256,260);
+  d.fillStyle='#b8860b';d.fillText('1.61',256,266);
+  const cvL=document.createElement('canvas');cvL.width=cvL.height=512;const l=cvL.getContext('2d');
+  l.font=c.font;l.textAlign='center';l.textBaseline='middle';l.fillStyle='#ffd75e';l.fillText('1.61',256,260);
+  l.globalCompositeOperation='source-atop';l.fillStyle='#fff3b0';l.fillRect(0,0,512,248);
+  d.drawImage(cvL,0,0);
+  const t1=performance.now();
+  document.getElementById('etat').textContent='prêt — dessin '+(t1-t0).toFixed(1)+' ms, police : '+(document.fonts.check('84px "Press Start 2P"')?'Press Start 2P':'REPLI (pas la bonne police !)');
+  window.__pret=true;
+}
+function blob(id){return new Promise(function(ok){document.getElementById(id).toBlob(ok,'image/png');});}
+async function envoie(){
+  const r=document.getElementById('res');r.textContent='envoi…';
+  try{const a=await fetch('/__ecrit/disque.png',{method:'POST',body:await blob('disque')});const b=await fetch('/__ecrit/chiffres.png',{method:'POST',body:await blob('chiffres')});
+    r.textContent=(await a.text())+' · '+(await b.text());window.__envoye=r.textContent;}
+  catch(e){r.textContent='échec : '+e;}
+}
+async function telecharge(){
+  for(const id of ['disque','chiffres']){const u=URL.createObjectURL(await blob(id));const a=document.createElement('a');a.href=u;a.download=id+'.png';a.click();}
+}
+document.fonts.load('84px "Press Start 2P"').then(function(){return document.fonts.ready;}).then(dessine);
+</script>
