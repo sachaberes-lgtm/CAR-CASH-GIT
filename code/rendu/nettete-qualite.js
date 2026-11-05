@@ -227,6 +227,14 @@ function perfAcoup(now,rawMs){const M=PERF_MON,I=renderer.info,np=(I.programs||[
   const ou=started&&!gameOver?'course':gameOver?'fin':(typeof garageOn!=='undefined'&&garageOn)?'atelier':'menu';
   const cs=[];if(loop._rebuildT&&now-loop._rebuildT<1000)cs.push('construction');if(dp>0)cs.push('+'+dp+' prog');if(dt9>0)cs.push('+'+dt9+' tex');
   (M.L||(M.L=[])).push(Math.round((now-M.t0)/1000)+' s · '+Math.round(rawMs)+' ms · '+ou+(LVL.cur?' '+LVL.cur.id:'')+(cs.length?' · '+cs.join(' '):''));if(M.L.length>5)M.L.shift();}
+/* (2026-11-05, passe perf mobile 2, T0) LE RELAIS DU VRAI TÉLÉPHONE : `?perf=1&relais=http://<IP du Mac>:<port>/` envoie toutes les 10 s au Mac (outils/banc-perf/relais.py, POST)
+   l'état du moniteur — palier, ms, p50/p75/p90, à-coups (> 50/100/250 ms et les 5 derniers avec leur cause), écran, niveau, DPR, cran. `sendBeacon` : aucune attente, aucune réponse lue.
+   Sans le paramètre `relais` : rien (PERF_REL null), aucun envoi. */
+const PERF_REL=PERF_MON&&/[?&]relais=([^&]+)/.test(location.search)?decodeURIComponent(/[?&]relais=([^&]+)/.exec(location.search)[1]):null;
+function perfRelais(now,rawMs){const M=PERF_MON;if(!PERF_REL||now-(M.rt||0)<10000)return;M.rt=now;
+  try{const ou=started&&!gameOver?'course':gameOver?'fin':(typeof garageOn!=='undefined'&&garageOn)?'atelier':'menu';
+    navigator.sendBeacon(PERF_REL,JSON.stringify({t:Math.round(now),depuis:Math.round((now-(M.t0||now))/1000),palier:PAL.n,src:PAL.src,ecran:ou,niveau:LVL.cur?LVL.cur.id:null,ms:+(loop._ms||0).toFixed(1),pire:Math.round(M.pire||0),
+      p50:+QLR.p50.toFixed(1),p75:+QLR.p75.toFixed(1),p90:+QLR.p90.toFixed(1),n50:M.n50|0,n100:M.n100|0,n250:M.n250|0,max:Math.round(M.max|0),dernieres:M.L||[],dpr:+curDPR.toFixed(2),cran:QL.k,tas:performance.memory?performance.memory.usedJSHeapSize:null,ua:navigator.userAgent.slice(0,80)}));}catch(e){}}
 function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;try{perfAcoup(now,loop._brut||rawMs);}catch(e){}if(now-M.t<250)return;M.t=now;
   const ms=loop._ms||16,al=[];for(let i=0;i<QL.N_EFF&&i<QL.k;i++)al.push(QL.nom[i]);const b=qlBornes();
   if(QL.k>b.kNet)al.push(QL.k>=b.kMax?'SOUS LE PLANCHER + BLOOM OFF':'SOUS LE PLANCHER');
@@ -234,4 +242,4 @@ function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;tr
     '\nPALIER '+PAL.n+' ('+PAL.src+')  DPR '+curDPR.toFixed(2)+'/'+DPR_CAP.toFixed(2)+'  cran '+QL.k+'/'+b.kMax+(RESPIN?'  FIGE':'')+(bloomPass&&!bloomPass.fuse?'  bloom ancien':'')+'\n'+(al.length?al.join(' · '):'plein')
     +'\nÀ-COUPS en '+Math.round((now-(M.t0||now))/1000)+' s : '+(M.n50|0)+' > 50 ms · '+(M.n100|0)+' > 100 · '+(M.n250|0)+' > 250 · pire '+Math.round(M.max|0)+' ms'+(M.L&&M.L.length?'\n'+M.L.join('\n'):'');
   if(now-(M.p0||0)>1000){M.p0=now;M.pire=0;}
-  if(tx!==M.txt){M.txt=tx;M.el.textContent=tx;}}
+  if(tx!==M.txt){M.txt=tx;M.el.textContent=tx;}perfRelais(now,rawMs);}
