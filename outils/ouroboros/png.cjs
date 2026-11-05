@@ -7,8 +7,8 @@ function ihdr(w,h,depth,ctype){const b=Buffer.alloc(13);b.writeUInt32BE(w,0);b.w
 const SIG=Buffer.from([137,80,78,71,13,10,26,10]);
 /* idx : Uint8Array w*h d'indices ; palette : [[r,g,b],...] ; alpha : [a0,a1,...] (optionnel) */
 function pngIndexed(w,h,idx,palette,alpha){
-  /* palette de 4 couleurs au plus : 2 bits par pixel (4 pixels par octet), sinon 8 bits */
-  const bits=palette.length<=4?2:8,per=8/bits,rb=Math.ceil(w/per),raw=Buffer.alloc((rb+1)*h);
+  /* palette de 4 couleurs au plus : 2 bits par pixel ; de 16 au plus : 4 bits ; sinon 8 bits */
+  const bits=palette.length<=4?2:palette.length<=16?4:8,per=8/bits,rb=Math.ceil(w/per),raw=Buffer.alloc((rb+1)*h);
   for(let y=0;y<h;y++){raw[y*(rb+1)]=0;for(let x=0;x<w;x++){const v=idx[y*w+x],bi=Math.floor(x/per),sh=8-bits-(x%per)*bits;raw[y*(rb+1)+1+bi]|=v<<sh;}}
   const plte=Buffer.from(palette.flat());const parts=[SIG,ihdr(w,h,bits,3),chunk('PLTE',plte)];
   if(alpha)parts.push(chunk('tRNS',Buffer.from(alpha)));

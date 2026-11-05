@@ -1892,6 +1892,14 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
 </style>
 </head>
 <body>
+<script>/* ===== LA PAGE-CADRE NE CHARGE PAS LE JEU (2026-11-05, Opus : jury DIR-07) =====
+   Sur l'ordi, /jouer/ est une page-cadre qui montre le jeu dans une colonne (iframe, voir <head> : CC_COLONNE). Son grand script s'arrêtait à
+   sa 1re ligne, mais tout le reste du corps partait quand même : three.js, figures.js, le post-traitement, la banque de sons (7 Mo), sfx.js,
+   la lecture du grand script de ~10 Mo… deux fois (38,6 Mo mesurés, deux tâches longues). Le boîtier, l'iframe et les boutons sont tous
+   construits par le <head> (à DOMContentLoaded) : ici le reste du document devient un texte caché, inerte (rien n'est chargé ni exécuté).
+   `?cadre=ancien` : la page-cadre d'avant. */
+if(window.CC_COLONNE&&!/[?&]cadre=ancien\b/.test(location.search))document.write('<plaintext id="ccCadreInerte" hidden style="display:none">');
+</script>
 <!-- ================= LE MOUCHARD : un écran noir ne doit JAMAIS rester muet =================
      ⚠ IL EST DANS SON PROPRE <script>, ET C'EST TOUT L'INTÉRÊT. Le capteur d'erreur du jeu vit DANS
      le grand script : si celui-ci meurt au PARSING (une accolade de travers, une syntaxe que le
@@ -5995,6 +6003,7 @@ html.bqIndus body #garage::before,html.bqIndus body #garage::after{opacity:0!imp
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom{background:none!important;box-shadow:none!important;clip-path:none!important;padding-top:0}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom::before{display:none}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip,#gStrip.fnBande){display:none!important}
+html body #garage.modeShop.bqEntre:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip){visibility:hidden!important} /* (2026-11-05) le geste BOUTIQUE → la salle blanche : la vitrine du jour est déjà écrite mais pas encore à montrer (la place reste, le display:none tombe avec bqIndus) */
 /* L'INTERFACE v3 (voir garBqPanneau) : blanc, du noir pour lire, un BLEU ÉLECTRIQUE (#3d4bff) pour ce qui compte — l'orange retiré */
 #gBqTete{position:absolute;top:calc(var(--sT,0px) + 16px);display:flex;align-items:flex-start;justify-content:space-between;font-family:var(--pix);animation:bqTete .5s var(--ease) .12s both}
 @keyframes bqTete{from{opacity:0;translate:0 -12px}to{opacity:1;translate:0 0}}
@@ -8617,8 +8626,8 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
 }
 </style>
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
-  <!-- LE CHARGEMENT : l'Ouroboros de Fable EN MODE SNAKE (demande de Sacha du 04/11 : Snake Nokia / Google, culture jeu vidéo) : un anneau fixe de segments carrés, une grosse tête à gros yeux qui avance autour du corps en le croquant (il repousse derrière elle), des pommes avalées qui traversent le corps, une pomme au centre ; en CSS pur (bande de 48 images en data-URL, steps(48) sur un transform joué par le compositeur : il bouge même quand le script construit la scène), donc visible dès la première image, avant tout le JS ; intro-161.js (chCl) l'éteint quand la boule se dessine. Le dessin se retouche dans outils/ouroboros/ouroboros.cjs. -->
-  <style>#spCharge{position:absolute;left:50%;top:46%;width:158px;height:158px;margin:-79px 0 0 -79px;z-index:5;pointer-events:none;overflow:hidden;contain:strict}#spCharge::before{content:"";position:absolute;left:0;top:0;width:7584px;height:158px;background:url("data:image/png;base64,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") 0 0/100% 100% no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;animation:spOuro 3s steps(48) infinite;will-change:transform}@keyframes spOuro{to{transform:translate3d(-100%,0,0)}}@media(prefers-reduced-motion:reduce){#spCharge::before{animation:none}}</style>
+  <!-- LE CHARGEMENT : l'Ouroboros pixel de Fable (serpent organique mignon) : le corps est fixe, c'est la TÊTE qui fait le tour du corps en le rongeant (gueule qui claque, dents), des boules de matière traversent le corps et sont avalées ; CSS pur (48 images, steps(48) sur un transform) ; intro-161.js (chCl) l'éteint. Le dessin se retouche dans outils/ouroboros/ouroboros.cjs. -->
+  <style>#spCharge{position:absolute;left:50%;top:46%;width:128px;height:128px;margin:-64px 0 0 -64px;z-index:5;pointer-events:none;overflow:hidden;contain:strict}#spCharge::before{content:"";position:absolute;left:0;top:0;width:6144px;height:128px;background:url("data:image/png;base64,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") 0 0/100% 100% no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;animation:spOuro 2.4s steps(48) infinite;will-change:transform}@keyframes spOuro{to{transform:translate3d(-100%,0,0)}}@media(prefers-reduced-motion:reduce){#spCharge::before{animation:none}}</style>
   <div id="spCharge"></div>
   <canvas id="fxCv"></canvas>
   <div id="spStage">
@@ -9082,18 +9091,22 @@ html[data-reduced-motion="1"] body #garage#garage #gAct>#gShopBas#gShopBas::befo
    #ff3347, SETTINGS or (inchangé) — les icônes suivent `--nc`. LA BANDELETTE sous CASH CAR : cyan · magenta · or (l'ordre rose · cyan · or, cyan
    et rose échangés) ; elle ne lit PAS `--livree` (son dégradé est dans `#mHome .mTitle::after`). Le badge NEW reste rose. Le verre-loupe de v858 avait été
    retiré par Sacha (v863) : c'est cette version-ci que Léo a demandée ensuite (tuiles, pas de parallélogramme — « trop Claude »).
-   Texte en contre-pente : tout enfant des tuiles a `transform:none`. Pas de backdrop-filter : il relit la 3D derrière chaque tuile à chaque image (interdit sur mobile par la charte) — un voile blanc en dégradé le remplace. */
+   Texte en contre-pente : tout enfant des tuiles a `transform:none`. Pas de backdrop-filter : il relit la 3D derrière chaque tuile à chaque image (interdit sur mobile par la charte) — un voile blanc en dégradé le remplace.
+   (2026-11-05, Sacha : « en fonction des couleurs du ciel, on voit pas certains boutons » — ciel doré ou rose, REGLAGES et ACHAT se fondaient dedans) LE
+   VOILE GIVRÉ FONCE : le dernier calque passe d'un lavis presque transparent (blanc 8-24 %) à un fond anthracite translucide (64-72 %) — la tuile garde
+   son verre (reflets, lueur de couleur, givre) mais a enfin un corps qui tient tête à n'importe quel ciel ; + un liseré d'encre tout autour (contour net,
+   peu importe la luminosité derrière). */
 html{--lk:1}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte){
   position:relative;isolation:isolate;border-radius:7px!important;clip-path:none!important;animation:none!important;overflow:visible;
   background:
-    radial-gradient(120% 95% at 16% -12%,rgba(255,255,255,calc(.62*var(--lk))) 0,rgba(255,255,255,calc(.14*var(--lk))) 36%,transparent 57%),
-    linear-gradient(112deg,transparent 0 41%,rgba(255,255,255,calc(.34*var(--lk))) 42% 47%,transparent 48% 54%,rgba(255,255,255,calc(.16*var(--lk))) 55% 58%,transparent 59%),
-    radial-gradient(95% 75% at 86% 118%,color-mix(in srgb,var(--nc) calc(46%*var(--lk)),transparent),transparent 62%),
-    linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08))!important;
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.8),inset 0 2px 2px rgba(255,255,255,calc(.85*var(--lk))),
-    inset 0 -12px 16px -9px color-mix(in srgb,var(--nc) 60%,transparent),inset 0 0 24px rgba(255,255,255,calc(.22*var(--lk))),
-    0 0 18px color-mix(in srgb,var(--nc) 42%,transparent),0 7px 16px -6px rgba(15,25,70,.32)!important}
+    radial-gradient(120% 95% at 16% -12%,rgba(255,255,255,calc(.5*var(--lk))) 0,rgba(255,255,255,calc(.12*var(--lk))) 36%,transparent 57%),
+    linear-gradient(112deg,transparent 0 41%,rgba(255,255,255,calc(.28*var(--lk))) 42% 47%,transparent 48% 54%,rgba(255,255,255,calc(.13*var(--lk))) 55% 58%,transparent 59%),
+    radial-gradient(95% 75% at 86% 118%,color-mix(in srgb,var(--nc) calc(50%*var(--lk)),transparent),transparent 62%),
+    linear-gradient(180deg,rgba(26,21,48,.64),rgba(11,9,23,.72))!important;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 0 2px 2px rgba(255,255,255,calc(.5*var(--lk))),
+    inset 0 -12px 16px -9px color-mix(in srgb,var(--nc) 65%,transparent),inset 0 0 24px rgba(255,255,255,calc(.12*var(--lk))),
+    0 0 18px color-mix(in srgb,var(--nc) 48%,transparent),0 0 0 1px rgba(5,3,14,.6),0 7px 16px -6px rgba(10,6,20,.55)!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::before{
   content:''!important;display:block!important;position:absolute;inset:4px;z-index:-1;pointer-events:none;border-radius:4px;
   border:1px solid rgba(255,255,255,calc(.34*var(--lk)));box-shadow:inset 0 0 8px rgba(255,255,255,calc(.18*var(--lk)));background:none!important;animation:none!important;transform:none!important}
@@ -9485,6 +9498,11 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
 }
 @media (prefers-reduced-motion:reduce){html body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}}
 html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}
+/* ===== L'APP SANS PUB (2026-11-05, Opus : jury IOS-04 / DIR-29, décision D1) =====
+   Dans l'app (html.ccApp, posée par EN_APP), le ×2 du gain et l'écran de la pub maison n'existent pas : le jeu ne les ouvre jamais
+   (DBL.on, PUBR.sans, voir seconde-chance.js) — ceinture et bretelles si un écran les montrait quand même. L'id doublé passe devant
+   la règle du ×2 ci-dessus (#mob #mDead.m5 #mDouble:not([hidden])). */
+html.ccApp body #mob #mDead #mDouble#mDouble,html.ccApp #pubR#pubR{display:none!important}
 </style>
 <style id="finitionEcrans">
 /* ===== LA FINITION DES ÉCRANS (2026-11-04, Sacha : « chaque écran, chaque interface doit être parfaite […] qualité professionnelle ») =====
@@ -9569,6 +9587,40 @@ html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.
 /* « OU GAGNE-LA » sous le nom : la même ligne que SE DÉBLOQUE */
 #gBqNom .pDeb .m2DebT{color:#14171c}
 @media (prefers-reduced-motion:reduce){.pL,#gBqPan .bqK.hab.r-legendaire .bqKph.c-peinture::after,#gBqPan .bqRail .bqSec.bqRarS[data-rar="legendaire"] .bqRl{animation:none}}
+/* ===== LES TRAÎNÉES (2026-11-05, Sacha : « retravaille la présentation des traînées dans le même esprit ») =====
+   La carte montre la traînée EN MOUVEMENT : une plaque de nuit (lignes de vitesse qui filent), la tuyère qui brûle à droite, le ruban qui en coule
+   et s'effile vers la gauche (sa lumière court dedans), trois pictogrammes qui s'envolent. GLOUTON et LA GRILLE n'ont pas de ruban (leur effet EST
+   la traînée) ; l'ARC-EN-CIEL a le sien en arc-en-ciel. Le filet violet / or et l'éclat des légendaires sont ceux des peintures. */
+#gBq #gBqPan .bqK.hab .bqKph.c-trainee{position:relative;align-items:stretch;justify-content:stretch;padding:6px 6px 0;box-sizing:border-box}
+#gBq #gBqPan .bqK.hab .bqKph .tSw{position:relative;display:block;flex:1;min-height:0;border-radius:9px 9px 3px 3px;overflow:hidden;
+  background:radial-gradient(90% 120% at 88% 50%,color-mix(in srgb,var(--tc) 30%,#151829) 0,#0e1020 55%,#08090f 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),inset 0 -6px 10px -6px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.9)}
+#gBq #gBqPan .bqK.hab .bqKph .tSw::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.55;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent) 0 18%/38% 1px repeat-x,linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent) 30% 82%/52% 1px repeat-x,
+    linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent) 60% 34%/30% 1px repeat-x;animation:tVit 1.1s linear infinite}
+@keyframes tVit{to{background-position:-120px 18%,-150px 82%,-90px 34%}}
+#gBq #gBqPan .bqK.hab .bqKph .tSw::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(165deg,rgba(255,255,255,.18) 0,rgba(255,255,255,0) 32%)}
+.tSw .tRu{position:absolute;left:-6%;right:15%;top:50%;height:52%;translate:0 -50%;clip-path:polygon(0 47%,100% 0,100% 100%,0 53%);
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,0) 0 16px,rgba(255,255,255,.45) 16px 19px,rgba(255,255,255,0) 19px 30px),linear-gradient(90deg,transparent 0,color-mix(in srgb,var(--tc) 55%,transparent) 38%,var(--tc) 82%,#fff 100%);
+  filter:drop-shadow(0 0 5px var(--tc));animation:tCoule .7s linear infinite}
+@keyframes tCoule{to{background-position:-30px 0,0 0}}
+.tSw.arc .tRu{background:repeating-linear-gradient(90deg,rgba(255,255,255,0) 0 16px,rgba(255,255,255,.45) 16px 19px,rgba(255,255,255,0) 19px 30px),linear-gradient(90deg,transparent 0,#9b5bff 18%,#3bb4ff 34%,#3bff6a 50%,#ffe23a 66%,#ff9b1a 82%,#ff3b3b 100%)}
+.tSw.sansRuban .tRu{display:none}
+.tSw .tBuse{position:absolute;right:15%;top:50%;width:12px;height:12px;translate:50% -50%;border-radius:50%;background:radial-gradient(circle,#fff 0 30%,var(--tc) 55%,transparent 72%);
+  box-shadow:0 0 12px 4px color-mix(in srgb,var(--tc) 70%,transparent);animation:tBrule .18s steps(2) infinite alternate}
+@keyframes tBrule{to{scale:1.18}}
+.tSw .tPa{position:absolute;inset:0;pointer-events:none}
+#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi{position:absolute;right:16%;top:50%;--pxs:2;margin:0;opacity:0;filter:drop-shadow(1px 1px 0 rgba(0,0,0,.85)) drop-shadow(0 0 3px rgba(0,0,0,.5));animation:tPart 2.1s linear infinite}
+#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(2){top:28%;animation-delay:-.7s}
+#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(3){top:72%;animation-delay:-1.4s}
+.tSw.sansRuban .tPa .pxi{animation-duration:1.6s}
+@keyframes tPart{0%{transform:translate(0,-50%) scale(1.1);opacity:0}12%{opacity:1}80%{opacity:.9}100%{transform:translate(-78px,-50%) scale(.55);opacity:0}}
+#gBqPan .bqK.hab.r-legendaire .bqKph.c-trainee::after{content:'';position:absolute;inset:6px 6px 0;border-radius:9px 9px 3px 3px;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(115deg,rgba(255,255,255,0) 38%,rgba(255,255,255,.45) 50%,rgba(255,255,255,0) 62%) no-repeat;background-size:300% 100%;animation:pBrille 3.6s ease-in-out infinite}
+/* sa phrase sous le nom (la caisse ne boost pas sur le plateau : ce sont la carte et ces mots qui la vendent) */
+#gBqNom .tDesc{display:block;max-width:min(80vw,420px);margin:6px auto 0;font-size:var(--f0,8px);line-height:1.7;letter-spacing:.5px;color:#4a5260;text-align:center;white-space:normal}
+@media (orientation:landscape){#gBqNom .tDesc{max-width:none;font-size:7px;line-height:1.6}} /* couché : toute la largeur libre (garBq la donne à .bqM2) — deux lignes, pas trois : l'étiquette ne monte plus sur le logo */
+@media (prefers-reduced-motion:reduce){.tSw::before,.tSw .tRu,.tSw .tBuse,#gBqPan .bqK.hab.r-legendaire .bqKph.c-trainee::after{animation:none}#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi{animation:none;opacity:1}#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(2){right:42%}#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(3){right:66%}}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -9595,7 +9647,7 @@ html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.
   <div class="plMods" id="plqMods" role="radiogroup" aria-label="Modeles"></div>
   <div class="plBas"><div class="pbtn plRet" data-p="ret" role="button" tabindex="0" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i><span data-fr="RETOUR">RETOUR</span></div><div class="pbtn pb-gold big plOk" data-p="ok" role="button" tabindex="0"><i class="pxi pxi-coche" aria-hidden="true"></i><span data-fr="VALIDER">VALIDER</span></div></div>
 </div></div>
-<div id="overlay" role="button" tabindex="0" aria-label="Menu principal CASH CAR">
+<div id="overlay" role="region" aria-label="Menu principal CASH CAR"><!-- (2026-11-05, Opus : jury INT-02) plus role="button" : VoiceOver ne voyait qu'UN bouton à la place de tout le menu (aucun clic n'y lance rien : le logo est un jouet, voir menu-logo.js) -->
   <div id="mEmbers" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <h1><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></h1>
   <div id="tagline">cours après le cash · ne tombe jamais</div>
@@ -9837,6 +9889,32 @@ html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.
 (function(){
 'use strict';
 if(window.CC_COLONNE)return; // (2026-09-28) sur l'ordi cette page n'est que le CADRE : le jeu tourne dans la colonne (voir <head>)
+/* ===== L'APP ET LE MODE DÉVELOPPEUR (2026-11-05, Opus : « dans l'app, plus aucun mot PUB » · HYG-10 « un seul drapeau DEV ») =====
+   EN_APP : le jeu tourne dans l'app iPhone (la coquille Capacitor pose window.Capacitor AVANT le jeu). ⚠ Pas TEL_NATIF : lui est vrai aussi
+   dans Safari sur iPhone (le site). `?app=1` simule l'app au navigateur, pour les bancs. La classe `ccApp` sur <html> sert au CSS.
+   DEV : les paramètres d'adresse qui donnent un avantage ou faussent la partie (?pub=0 ?chance=0 ?spin=0 ?cadeau=1 ?lecon=non ?eco=ancien,
+   et ceux des autres zones : ?carte= ?niveau= ?simu=1) ne comptent que sur une copie LOCALE (localhost, 127.0.0.1, réseau privé, fichier)
+   ou avec `?dev=…` dans l'adresse. Sur le site public et dans l'app, ils sont ignorés. `qDev(/re/)` = « ce paramètre ET le mode DEV ». */
+const EN_APP=!!window.Capacitor||/[?&]app=1\b/.test(location.search);
+const DEV=location.protocol==='file:'||/[?&]dev=/.test(location.search)||
+  /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)$|\.(local|localhost|test)$/.test(location.hostname);
+function qDev(re){return DEV&&re.test(location.search);}
+if(EN_APP)try{document.documentElement.classList.add('ccApp');}catch(e){}
+window.CC_DEV=DEV;window.CC_EN_APP=EN_APP;
+/* COUCHÉ, UNE SEULE DÉFINITION (2026-11-05, Opus : jury INT-26) : le CSS dit « couché » quand l'écran est en paysage ET bas (≤ 540 px), ou en
+   paysage large (≥ 3/2) jusqu'à 820 px de haut ; le JS avait deux autres règles (ratio > 1,25 aux missions, > 1 au HUD des figures). estCouche()
+   lit la MÊME requête que le CSS (et que GT_COUCHE du garage). `?couche=ancien` : les anciennes règles. */
+const COUCHE_MQ=(function(){try{return matchMedia('(orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px)');}catch(e){return null;}})();
+const COUCHE_ANCIEN=/[?&]couche=ancien\b/.test(location.search);
+function estCouche(){return COUCHE_MQ?COUCHE_MQ.matches:innerWidth>innerHeight;}
+/* ACHAT_EUR (2026-11-05, Opus : jury INT-01 / INT-20, décision D3 « masquer partout tant que StoreKit n'existe pas ») : faux = ni l'écran ACHAT
+   (#mShop), ni ses portes (la tuile de l'accueil, la BOUTIQUE du bas du garage, la porte des offres éphémères), ni le rayon ACHAT de la boutique.
+   shopPaye reste, inerte. Les caisses en € ne comptent plus nulle part (caisse équipée, étage, missions « toutes »). `?achat=ancien` : l'ancien. */
+/* (2026-11-05, Sacha : « remet le, c'est tout, je m'en fous du jury ») ACHAT REVIENT SUR LE SITE : seule l'app iPhone (EN_APP) le garde coupé (preparer-www l'y cache aussi) ; `?achat=non` : la coupe du jury. */
+const ACHAT_EUR=(!EN_APP&&!/[?&]achat=non\b/.test(location.search))||/[?&]achat=ancien\b/.test(location.search);
+if(!ACHAT_EUR)try{const s9=document.createElement('style');s9.id='sansAchat';
+  s9.textContent='html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],#mShop,#bdShop,.fnPorte){display:none!important}';
+  document.head.appendChild(s9);}catch(e){}
 /* ================= LES ICÔNES PIXEL (2026-09-24) =================
    ⚠ POURQUOI : la police pixel du jeu n'a AUCUN des symboles d'interface (✕ ◀ ▶ ⚙ ⏸ ↻ ★ ✓ — mesuré) ; ils
    tombaient dans la police du système ou en EMOJI, chacun avec sa facture, ses couleurs, son épaisseur —
@@ -11799,7 +11877,7 @@ if(CAN_POST){ try{
      tuiles. ANCIEN : 3 étages (7 passes), MOYEN : 4 (9 passes), RÉCENT : 5 (11 passes, comme avant). Le poids des étages retirés se
      reporte sur le dernier calculé (même énergie, même alpha, même écrêtage) : le halo garde sa force, il s'étale juste un peu moins loin.
      Console : `bloomPass._nM=5` rend les 5 étages. Ne vaut que pour le chemin fusionné (`?bloom=ancien` garde tout). */
-  PAL.B.postBloomMips=[3,4,5];bloomPass._nM=PAL.b('postBloomMips',5);
+  PAL.B.postBloomMips=[3,4,5];bloomPass._nM=ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?Math.min(4,PAL.b('postBloomMips',5)):PAL.b('postBloomMips',5); /* (2026-11-05, Opus : jury RND-06) un téléphone RÉCENT (palier 2) avait les 5 étages de halo de l'ordi : 4 sous ALLEGE (2 passes plein écran de moins, le halo le plus large qui reste invisible sur 6 pouces) ; l'ordi garde 5 ; `?post=ancien` = avant */
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
@@ -12523,8 +12601,23 @@ function qlSonde(){ try{ const g9=renderer.getContext();
       if(S!==QLR.S)return;if(gpu!=null){QLR.sA.push(Math.min(120,cpu+gpu));(QLR.cg||(QLR.cg=[])).push([+cpu.toFixed(1),+gpu.toFixed(1)]);if(QLR.cg.length>10)QLR.cg.shift();}qlSondeFin();};
     setTimeout(pas,8);return;}
   if(qlChrono(g9))return; // chrono pas encore lancé (la sonde vient d'être armée en cours d'image) : il partira à l'image suivante
+  if(QL_BARRIERE&&g9.fenceSync){qlSondeBarriere(g9);return;}
   renderer.setRenderTarget(null);g9.readPixels(0,0,1,1,g9.RGBA,g9.UNSIGNED_BYTE,QLR.px);QLR.sN--;QLR.sA.push(performance.now()-QLR.t0);qlSondeFin();
   }catch(e){QLR.sN=0;try{if(QLT.q){renderer.getContext().endQuery(QLT.ext.TIME_ELAPSED_EXT);QLT.q=null;}}catch(e2){QLT.ok=false;}} }
+/* ===== LA SONDE SANS ATTENTE SUR TÉLÉPHONE (2026-11-05, Opus : jury RND-05) =====
+   Sur iPhone, EXT_disjoint_timer_query_webgl2 n'existe pas : la sonde retombait sur readPixels, qui FORCE le processeur à attendre la puce
+   (mesuré sur Mac : 15 lectures = 510 ms de jeu gelé, pics de 120 ms) — justement quand les images ratent déjà. Sous ALLEGE (WebGL2) : une
+   BARRIÈRE (fenceSync) posée en fin d'image, relue sans bloquer toutes les ~2 ms ; la durée = du début de l'image au moment où la puce a fini
+   (un peu plus longue que la vraie, de la latence du minuteur : l'échelle QL en est un peu plus prudente). L'ordi garde l'ancienne sonde.
+   `?sonde=ancien` : readPixels partout, comme avant. `dbgBarriere()` : l'état (dbgSonde existe déjà : la sonde elle-même). */
+const QL_BARRIERE=ALLEGE&&!/[?&]sonde=ancien\b/.test(location.search)&&!!(renderer.capabilities&&renderer.capabilities.isWebGL2);
+function qlSondeBarriere(g9){const S=QLR.S,t0=QLR.t0;let sy=null;try{sy=g9.fenceSync(g9.SYNC_GPU_COMMANDS_COMPLETE,0);g9.flush();}catch(e){sy=null;}
+  if(!sy){QLR.sN=0;return;}QLR.sN--;S.pend++;
+  const pas=function(){let ok=false;try{ok=g9.getSyncParameter(sy,g9.SYNC_STATUS)===g9.SIGNALED;}catch(e){ok=true;}
+    const dt=performance.now()-t0;if(!ok&&dt<500){setTimeout(pas,2);return;}
+    try{g9.deleteSync(sy);}catch(e){}S.pend--;if(S!==QLR.S)return;if(ok)QLR.sA.push(Math.min(120,dt));qlSondeFin();};
+  setTimeout(pas,0);}
+window.dbgBarriere=function(){return {barriere:QL_BARRIERE,chrono:!!QLT.ok,vrai:QLR.vrai,dern:QLR.dern};};
 const QL={k:0,mur:0,murT:0,roseT:0,up:0,efT:0,effondre:false,fr:0,N_EFF:5,ombre0:sun.shadow.mapSize.x,essai:null,plafK:0,plafT:0,
   nom:['ombre en vol ½','ombre 768','bloom ¾','ombre 512','flou radial']};
 /* (2026-09-27, tour 2 — « on repasse en mode pixel assez vite après avoir lancé ») LE MODE PIXEL, C'ÉTAIT LE PLANCHER : sous l'effondrement,
@@ -16671,7 +16764,7 @@ const FOR_DECOR=typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretdecor(,|
    `?foret=pelote` = la pelote d'avant (l'échelle, le dessin, les arbres), `?foret=serre` = celle d'avant encore. */
 const FORET_VASTE=typeof location==='undefined'||!/[?&]foret=(serre|pelote)\b/.test(location.search);
 /* (2026-11-05 soir, Sacha : « un peu trop vaste et boring ; adapte la taille des virages et des tout droits au palier : plus il est haut, plus ça doit être large ») L'ÉCHELLE SUIT LE PALIER : G0 (palier 0) → G (palier 27 et plus) — les rayons étaient déjà à l'échelle du palier (kR), le ×2,4 fixe les doublait au palier 0 ; la durée aussi (long0 → long) */
-const FOR_VASTE={G0:1.15,G:2.4,long0:1,long:1.5,DY:46,arbres:1.45,geant:1.9,prof:1.3,
+const FOR_VASTE={G0:1.15,G:2.4,long0:1.35,long:1.7,DY:46,arbres:1.45,geant:1.9,prof:1.3,
   bank:{on:typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretbank(,|&|$)/.test(location.search),max:17*Math.PI/180,W:210}};
 function* genForet(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main entre deux essais
   CAMPM.length=0;MODMARK.length=0;
@@ -16681,7 +16774,7 @@ function* genForet(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main en
   const gr=mulberry32((rnd()*4294967296)>>>0);let best=null,ne=0;
   for(let e=0;e<8;e++){if(e)yield;const r=forPelote(gr,kR,kV);ne++;if(!best||r.note<best.note)best=r;if(r.note<1)break;}
   for(const m of best.mods||[])MODMARK.push(m); // (2026-10-18) LES MODULES DE CHAQUE MAP : ceux de l'essai gardé (voir fSlalom)
-  FORET.Q=best.Q;FORET.plg=[];FORET.boucles=best.BO;FORET.noeuds=best.NO;FORET.plan=best.plan;FORET.axe=best.axe;FORET.pel={dsM:best.dsM,note:+best.note.toFixed(2),essais:ne,croise:best.croise,dyMin:best.dyMin,L:Math.round(best.L),mk:best.mk};
+  FORET.Q=best.Q;FORET.plg=[];FORET.boucles=best.BO;FORET.noeuds=best.NO;FORET.plan=best.plan;FORET.axe=best.axe;FORET.pel={cxs:best.cxs,dsM:best.dsM,note:+best.note.toFixed(2),essais:ne,croise:best.croise,dyMin:best.dyMin,L:Math.round(best.L),mk:best.mk};
   forBank(best.ctrl,best.Q,kR*(FORET_VASTE?forVasteG(kR):1));FORET.pel.bankMax=FORET.bankMax;
   return best.ctrl;}
 /* LES TORSADES DE LA FORÊT VASTE (2026-11-05, voir FOR_VASTE.bank) — la recette de Jade (genJade) : la dalle se couche vers l'INTÉRIEUR du virage, de l'angle
@@ -16806,13 +16899,13 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
     spirale:()=>{cap();boucle();},
     toboggan:()=>{const l=(300+rnd()*120)*kV*sf,s0=s;droite(l);ZM.push([s0,s,.07,1]);},
     cygne:()=>{const sg=rnd()<.5?-1:1,R=rM*(1.6+rnd()*.4);droite((40+rnd()*60)*kV*sf);arc(sg*(220+rnd()*30),R,R*(1+rnd()*.2),.05);arc(-sg*(40+rnd()*30),R*2);}};
-  const MARQUE={spirale:1,retour:1,toboggan:1},PN=Object.keys(PV),paq=[];let der='';
+  const MARQUE={spirale:1,retour:1,toboggan:1},PN=Object.keys(PV).concat(['spirale','cygne','cygne']),paq=[]; /* (SE PERDRE) les pièces qui se recroisent (spirale, col de cygne) sont deux fois plus nombreuses */let der='';
   const tire=()=>{for(let e=0;e<8;e++){if(!paq.length){const t=PN.slice();for(let i=t.length-1;i>0;i--){const j=(rnd()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)paq.push(x9);}
     const n=paq.shift();if(n!==der)return n;}return der==='allee'?'virage':'allee';};
-  const piece=n=>{const i0=C.length-1,s0=s,g=rnd()<.22?pente(.015,.035):-pente(.02,.05);zone(g,PV[n]);if(MARQUE[n])MM.push({i0:i0,i1:C.length-1});MK.push(n);PLAN.push(n+':'+Math.round(s-s0));der=n;};
+  const piece=n=>{const i0=C.length-1,s0=s,g=rnd()<.33?pente(.02,.04):-pente(.02,.05);zone(g,PV[n]); /* (2026-11-05 soir, Sacha : « j'ai fini en 10 secondes, on doit se PERDRE ») la route MONTE aussi : 33 % des pièces en montée — sinon la route d'en dessous est toujours devant, tout croisement est un raccourci gagnant */if(MARQUE[n])MM.push({i0:i0,i1:C.length-1});MK.push(n);PLAN.push(n+':'+Math.round(s-s0));der=n;};
   /* LA PELOTE (l'étoile d'avant, à sa taille : jamais plus serrée que 3 rM, jamais plus de la moitié de la course) */
   const mP=3+(LVISE>14000*kR0&&rnd()<.4?1:0),rhoP=Math.max(3*rM,Math.min(225*kR*.85,LVISE*.5/(3.4*mP))),estP=3.4*rhoP*mP+600*kR0;
-  const nPel=estP>LVISE*.7?0:estP*2.3+2500<LVISE&&rnd()<.6?2:1,TYP=[];for(let n=0;n<nPel;n++)TYP.push(rnd()<.62?'desc':'vague');if(nPel>1)TYP[(rnd()*nPel)|0]='monte';
+  const nPel=estP>LVISE*.7?0:estP*2.3+2500<LVISE&&rnd()<.6?2:1,TYP=[];for(let n=0;n<nPel;n++){const r9=rnd();TYP.push(r9<.3?'monte':r9<.7?'vague':'desc');}if(nPel>1&&!TYP.includes('monte'))TYP[(rnd()*nPel)|0]='monte'; /* (le piège) une pelote sur trois MONTE : la route d'en dessous est DERRIÈRE */
   const libre=Math.max(0,LVISE-nPel*estP-900),SP=[];{let a9=300;for(let n=0;n<nPel;n++){a9+=libre*(nPel>1?(n?.25+rnd()*.25:.04+rnd()*.22):.08+rnd()*.5);SP.push(a9);a9+=estP;}}
   const pelote=n=>{const ty=TYP[n],m=mP,rho=rhoP*(.9+rnd()*.15),c0=dA(ca+(rnd()-.5)*.6,rho*(1.1+rnd()*.3)),cN=[x+c0[0],z+c0[1]],th9=Math.atan2(x-cN[0],z-cN[1]);
     zone(-pente(.02,.04),()=>vers([cN[0]+Math.sin(th9)*rho*.9,cN[1]+Math.cos(th9)*rho*.9],110*kR));
@@ -16967,7 +17060,9 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   let note=0,dyMin=1e9;
   for(let c=0;c<CR.length;c++){for(const p of CR[c]){const dy=Math.abs(yA(p[0])-yA(p[1]));if(dy<dyMin)dyMin=dy;if(dy<DY-1)note+=(DY-1-dy)*.5;}}
   for(let k=4;k<nY;k++){const g=(Y[k]-Y[k-4])/40;if(g<-.15)note+=(-.15-g)*40;if(g>.12)note+=(g-.12)*40;}
-  const nKm=CR.length/(L/1000),nKmV=FORET_VASTE?.35:rf9?.7:1.1;if(nKm<nKmV)note+=(nKmV-nKm)*8; // (2e tour) moins emmêlée : 0,7 croisement/km suffit avec les modules
+  const nKm=CR.length/(L/1000),nKmV=FORET_VASTE?.65:rf9?.7:1.1;if(nKm<nKmV)note+=(nKmV-nKm)*8;
+  if(FORET_VASTE){let fw9=0,bk9=0;for(const m of CR){let sk=0,f9=0;for(const q of m){const d9=D[3*q[1]+2]-D[3*q[0]+2];if(d9>sk){sk=d9;f9=yA(q[0])>yA(q[1])?1:-1;}}if(f9>0){fw9++;if(sk>.33*L)note+=(sk/L-.33)*12;}else bk9++;} /* (SE PERDRE) un raccourci qui saute plus du tiers de la forêt = on finit en 10 s : refusé ; et au moins 3 croisements sur 10 sont des PIÈGES */
+    if(CR.length>=3){if(bk9<CR.length*.35)note+=(CR.length*.35-bk9)*1.5;if(fw9<CR.length*.35)note+=(CR.length*.35-fw9)*1.5;}} /* (le mélange) au moins 35 % de raccourcis ET 35 % de pièges, à tous les paliers */ // (2e tour) moins emmêlée : 0,7 croisement/km suffit avec les modules
   if(rf9&&MM.length<mNeed)note+=(mNeed-MM.length)*4; // (2026-10-18) au moins TROIS modules (voir fSlalom) : un essai qui en a moins est repris — (2026-10-19, au hasard) autant que la longueur en tient (mNeed)
   if(LVISE){const r9=L/LVISE;if(r9>1.3)note+=(r9-1.3)*12;else if(r9<.75)note+=(.75-r9)*12;} // (2026-10-19, LA FORÊT AU HASARD) près de la longueur visée
   if(LVISE)for(const k of ['arche','archeB']){const q=Q[k];if(!q)continue; // (2026-10-19) LA PLACE DE L'ARCHE : aucune autre route à moins de 200 m (foretArche renonce à une arche dont le tronc croise un autre étage — au hasard, ça arrivait une fois sur deux)
@@ -16980,7 +17075,8 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   for(const k in Q){const o=Q[k];Q[k]={p:new THREE.Vector3(o.x,yS(o.s),o.z),phi:o.phi,s:o.s};}
   const BO9=BO.map(o=>({e:new THREE.Vector3(o.e.x,yS(o.e.s),o.e.z),sg:o.sg,R:o.R}));
   let dsM=0;for(const m of CR)for(const p of m)dsM=Math.max(dsM,D[3*p[1]+2]-D[3*p[0]+2]);
-  return {dsM:Math.round(dsM),ctrl:ctrl,Q:Q,BO:BO9,note:note,croise:CR.length,dyMin:Math.round(dyMin),L:L,NO:NO,mods:MM,mk:MK,plan:PLAN,axe:AXE};}
+  const CXS=CR.map(m=>{let sk=0,fw=0;for(const p of m){const d9=D[3*p[1]+2]-D[3*p[0]+2];if(d9>sk){sk=d9;fw=yA(p[0])>yA(p[1])?1:-1;}}return [Math.round(sk),fw];}); /* (2026-11-05) pour chaque croisement : la route sautée (m) et le sens — +1 un RACCOURCI (la route d'en dessous est devant), −1 un PIÈGE (elle est derrière) */
+  return {cxs:CXS,dsM:Math.round(dsM),ctrl:ctrl,Q:Q,BO:BO9,note:note,croise:CR.length,dyMin:Math.round(dyMin),L:L,NO:NO,mods:MM,mk:MK,plan:PLAN,axe:AXE};}
 /* ---------------- L'ATELIER DES ARBRES : un petit maillage indexé (position, normale, aA, aC, aB) ----------------
    aA = (partie, occlusion, hasard, hauteur relative) · aC = la couleur de base · aB = (écorce, mousse).
    Parties : 0 écorce · 1 feuilles · 2 aiguilles · 3 peint (chaumière, champignon) · 4 fenêtre (luit la nuit) · 5 VISAGE (luit la nuit)
@@ -18364,7 +18460,7 @@ window.dbgForetEmb=function(o){if(o)Object.assign(FOR_EMB,o);return {emb:Object.
      passe jamais dans un tronc ;
    · les autres croisements restent des paris : pas de fil, on voit la route, on décide.
    `?sans=foretsentiers` = la forêt sans fils. Banc : `dbgSentiers()` (les fils, les fruits posés et pris) ; `node outils/banc-routes/foret.cjs sentiers palier n`. */
-const FOR_SENT={on:typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretsentiers(,|&|$)/.test(location.search),vk0:1.55,vk1:1.1,bascule:.45,pop:5.3,dv:6,air:30,pente:.48,ang:[0,8,16,26],ang2:[0,14],lac:[-30,30],cos:.6,latMax:14,robMin:0,gainMin:180,esp:900,rayon:24,pas:.18,fruits:['ORANGE','MANGUE','MELON','POMME'],pow:['n','v','x','n']};
+const FOR_SENT={on:typeof location!=='undefined'&&/[?&]foretsentiers=1/.test(location.search), /* (2026-11-05 soir) COUPÉS par défaut : Sacha a fini la forêt en 10 s et veut s'y PERDRE — un fil de fruits rend le raccourci évident et gagnant à coup sûr ; `?foretsentiers=1` les rend */ vk0:1.55,vk1:1.1,bascule:.45,pop:5.3,dv:6,air:30,pente:.48,ang:[0,8,16,26],ang2:[0,14],lac:[-30,30],cos:.6,latMax:14,robMin:0,gainMin:180,esp:900,rayon:24,pas:.18,fruits:['ORANGE','MANGUE','MELON','POMME'],pow:['n','v','x','n']};
 function* foretSentiersCalc(){ /* un générateur : il rend la main à l'échéance JF.lim (le pré-bâti) */
   FORET.sent=[];FORET.sentZ=[];
   if(!FOR_SENT.on||PARK.on||!(NP>300))return;
@@ -28862,9 +28958,11 @@ const CARS=[
  // (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») LE DOGE (voir SHAPES.doge) : le mème du
  // shiba en voxels, regard en coin, queue en tire-bouchon, et les phrases du mème qui surgissent autour de lui. Ajoutée EN DERNIER.
  // (2026-10-26) REDESSINÉ EN POLY (SHAPES.doge v3) : la grosse tête taillée en pans plans, ~2 800 triangles au lieu de 46 000 ; `?doge=ancien` rend la v2.
- {name:'LE DOGE',shape:'doge',color:0xd99545,accent:0xf6e6c6,maxKmh:440,accel:53,turn:3.1,h:2.0,w:2.0,l:2.3,spoiler:0,rar:'epique',
+ /* (2026-11-05, Opus : jury IOS-05 / IOS-18, décision D4 — recommandation du jury, Sacha n'a pas tranché) « Doge » est une marque déposée et le nom
+    d'une cryptomonnaie : LE DOGE devient LE SHIBA (la race du chien). Même index, même forme (shape 'doge'), même fiche : seuls le nom et la phrase changent. */
+ {name:'LE SHIBA',shape:'doge',color:0xd99545,accent:0xf6e6c6,maxKmh:440,accel:53,turn:3.1,h:2.0,w:2.0,l:2.3,spoiler:0,rar:'epique',
   fx:{jet:0xffc83a,core:0xfff2c0,trail:[1.5,1.1,.3],light:0xffb43a,wow:1}, // sa traînée : les phrases du mème (voir LA TRAÎNÉE WOW)
-  desc:'Wow. Très tête. Beaucoup roues. Il te regarde de côté, et il a raison.'},
+  desc:'Une grosse tête de chien sur quatre roues. Il te regarde de côté, et il a raison.'},
  // (2026-10-16, Léo : « fais une belle Porsche Cayenne rose Barbie », puis « un rose plus pâle, vraiment Cayenne ») LA POUPÉE (voir SHAPES.poupee) :
  // le grand SUV de luxe allemand, en rose poupée pâle. Pas de marque (ni le nom, ni le blason) : un petit cœur à la place. Ajoutée EN DERNIER.
  // (2026-10-17, Léo : « enlève la barbie » → « du jeu ») elle avait été RETIRÉE, et remboursée (4,2 M$) à qui l'avait achetée ; (2026-10-18, Sacha) la
@@ -29020,7 +29118,7 @@ function denom(){return DENOMS[Math.min(engTier,DENOMS.length-1)]*ECO3.gain*ECOD
    partie (médiane, 11 % des joueurs avant la 5e) ; avec ×1,5 à la 4e (25 % dès la 3e, 62 % au plus tard à la 4e, 89 % à la 5e). ⚠ Le résultat dépend surtout des PRIMES, pas des
    pièces : si ce joueur fait aussi la moitié des défis du carnet 2 (1 800 $), il l'a déjà à la 3e même sans relèvement — ECOD.coup est LE bouton à reprendre après un vrai test
    (`dbgEcoDebut()` dit où l'on en est). Le joueur qui meurt avant 45 s (25-30 $ par partie) n'y arrive pas par les pièces : son plancher est un autre chantier. */
-const ECO_ANCIEN=/[?&]eco=ancien\b/.test(location.search); // `?eco=ancien` : ECOD.k reste à 1, l'économie d'avant au dollar près
+const ECO_ANCIEN=qDev(/[?&]eco=ancien\b/); /* (2026-11-05, Opus : HYG-10) en DEV seulement */ // `?eco=ancien` : ECOD.k reste à 1, l'économie d'avant au dollar près
 const ECOD={coup:1.5,k:1,raison:'depart'}; // coup : LE réglage · k : ce que la partie en cours applique · raison : pourquoi (actif · achat · assez · cousin · ancien · erreur)
 function ecoDebutPrix(){let m=1e30;for(const c of ['peinture','aile','trainee'])for(const x of COSM[c])if(x.p>0&&x.p<m&&!x.sec&&!x.mis&&!x.retire&&!x.eur)m=x.p;for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(u&&u.p>0&&u.p<m&&!carRetiree(i))m=u.p;}return m;} /* la 1re chose qui s'achète EN DOLLARS, LUE sur COSM et CAR_UNLOCK : si les prix changent, le seuil suit — ni les SECRÈTES, ni celles d'un carnet, ni les retirées, ni celles en euros. (2026-10-24) toutes les peintures sont passées en euros (boutique.js leur retire p) : le seuil valait 1e30 et « assez » ne tombait plus jamais ; caisses, ailes et traînées en $ prennent le relais (aujourd'hui LA CABOSSÉE, 2 500 $, le prix de l'ancienne MENTHE GLACÉE) */
 function ecoDebutAchat(){ // vrai dès qu'UN achat a été fait : caisse (owned), figure (figs — le TAIL WHIP est offert ; le TONNEAU l'était avant le 15/10), habillage payant (shop.own — ceux d'un carnet n'ont pas de `p`)
@@ -33151,7 +33249,7 @@ FEUX_DOSES[3]=Object.assign({},FEUX_DOSES[2],{kH:0,carte:[.75,.8],ambre:null}); 
    gardent LEUR couleur — au balayage de la gamme, la veilleuse éteignait les étoiles d'or du DRAGON D'OR et les phares de rallye de LA STRATOS */
 /* LES CAISSES-PERSONNAGES gardent leurs pièces lumineuses telles quelles (ce sont des YEUX, un pelage, de la lave, de la glace — pas des phares) :
    relevé au balayage de la gamme (le CHAT : les yeux bleuissaient ; LE DOGE : les sourcils). Les halos et le faisceau suivent la lecture. */
-const FEUX_SAUF=['CHAT POP-TART','LE DOGE','LA FOURNAISE',"L'ICEBERG"];
+const FEUX_SAUF=['CHAT POP-TART','LE SHIBA','LA FOURNAISE',"L'ICEBERG"];
 /* ⚠ LA 3 EST LE JEU (oui de Léo, 20/10) : `?feux=0` rend les feux d'avant l'étude (halos crème), `?feux=1`/`?feux=2` les deux autres lectures. */
 var FEUXL=(function(){let n=3;try{const q=new URLSearchParams(location.search).get('feux');if(q==='0'||q==='1'||q==='2')n=+q;}catch(e){}
   return {n:n,d:FEUX_DOSES[n]||null,fais:[],cartes:[],cM:null,stats:null,hlM:null,tlM:null,spec:null};})();
@@ -39138,6 +39236,9 @@ SHAPES.poupee=function(K){
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xe4e8ed}};
 };
+/* ===== LE SHIBA (2026-11-05, Opus : jury D4 « renommer au moins DOGE ») ===== le nom et la phrase de l'ex-DOGE, et leur anglais. Les anciennes
+   clés (« LE DOGE », sa phrase) restent dans traductions.js (zone de Sonnet) : mortes, sans effet. */
+Object.assign(I18N,{"LE SHIBA":"THE SHIBA","Une grosse tête de chien sur quatre roues. Il te regarde de côté, et il a raison.":"A big dog head on four wheels. He side-eyes you, and he is right."});
 /* LA PERLE (2026-10-16 ; ex-L'ONYX noire). Léo : « Taycan 4S », « blanche, laquée comme une vraie », « lissée », « tous les traits du plan ».
    (2026-10-26, 2e onglet « FIDÈLE ET PROPRE ») Léo, devant la 1re version poly : « tu m'as mélangé deux ou trois voitures différentes ». Refaite
    À LA MAIN, en poly, au niveau de la Rosso 40 et de La Honte : UNE voiture, la Taycan, rien d'autre. Les cotes viennent du plan coté de
@@ -46538,6 +46639,7 @@ function plqVeut(){try{if(/[?&]plaque=1\b/.test(location.search))return !PLQ.fai
   return !PLQ.fait&&!(SAVE.d.plq&&SAVE.d.plq.ok)&&!BALADE&&!SIMU_JEU&&!SANDBOX&&!(PARK&&PARK.on);}catch(e){return false;}}
 function plqGuette(){if(PLQ.iv)return;PLQ.iv=setInterval(function(){try{
   if(!plqVeut()){clearInterval(PLQ.iv);return;}
+  if(!/[?&]plaque=ancien\b/.test(location.search)&&!((SAVE.d.ex&&SAVE.d.ex.runs)>0)){PLQ.t0=0;return;} /* (2026-11-05, Opus : jury DIR-46, décision D8 — recommandation) la plaque se choisit APRÈS la 1re course, plus avant d'avoir vu le jeu : la guette PATIENTE (elle ne s'arrête plus) jusqu'au retour à l'accueil après la 1re partie ; `?plaque=ancien` = au 1er accueil */
   const sp=document.getElementById('splash'),md=document.getElementById('modale');
   const pret=!sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play')&&!BIENV.on;
   if(!pret){PLQ.t0=0;return;}if(!PLQ.t0){PLQ.t0=performance.now();return;}
@@ -48373,7 +48475,7 @@ const M2=[
   {id:'nit2000',f:'exploit',k:'nitS',v:2000,u:'s',r:{car:'LA TAURINE'},t:'BRÛLE {v} S DE NITRO',en:'BURN {v} S OF NITRO'},
   {id:'air1000',f:'exploit',k:'airS',v:1000,u:'s',r:{car:'LE MASTODONTE'},t:'PASSE {v} S EN L\'AIR',en:'SPEND {v} S IN THE AIR'},
   {id:'verglas100',f:'exploit',k:'verglasKm',v:100,u:'km',r:{car:'L\'ICEBERG'},t:'ROULE {v} KM SUR LE VERGLAS (GLACIER)',en:'DRIVE {v} KM ON THE BLACK ICE (THE GLACIER)'},
-  {id:'km100k',f:'exploit',k:'kmTot',v:100000,u:'km',r:{car:'LA QUEUE DE CANARD'},t:'ROULE {v} KM',en:'DRIVE {v} KM'},
+  {id:'km100k',f:'exploit',k:'kmTot',v:10000, /* (2026-11-05, Opus : jury ECO-06) 100 000 km = 250 h de conduite : 10 000 km (~25-30 h), l'ordre des autres compteurs à vie */u:'km',r:{car:'LA QUEUE DE CANARD'},t:'ROULE {v} KM',en:'DRIVE {v} KM'},
   {id:'meteo',f:'exploration',k:'meteoMap',v:'tot',u:'',r:{car:'LA STRATOS'},t:'JOUE UNE MAP SOUS TOUTES SES MÉTÉOS',en:'PLAY ONE MAP IN EVERY WEATHER'},
   {id:'silence',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE SANS SON NI MUSIQUE',en:'PLAY A WHOLE RUN WITH SOUND AND MUSIC OFF (SETTINGS)'},
   /* (2026-10-22, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée ») secrète : `m2Tick` pose le drapeau `palier10` (engTier + 1 ≥ 10, SND.music allumé) */
@@ -48412,7 +48514,7 @@ const M2=[
   {id:'lac10',f:'secret',k:'lac',v:10,u:'s',r:{cash:15000},t:'GLISSE {v} S SUR UN LAC GELÉ',en:'SLIDE {v} S ON A FROZEN LAKE'}, // (2026-10-19, Sacha) avant : LE GLACIER — absente du garage, l'argent à la place
   {id:'sansnit',f:'secret',k:'flag',v:1,u:'b',r:{cash:10000},t:'FAIS UNE PARTIE ENTIÈRE SANS TOUCHER NITRO',en:'PLAY A WHOLE RUN WITHOUT TOUCHING NITRO'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA SILENCIEUSE a sa nouvelle mission (silence) ; avant : LA SILENCIEUSE — À VALIDER */
   {id:'sanspiece',f:'secret',k:'flag',v:1,u:'b',r:{cash:15000},t:'FAIS UNE PARTIE SANS RAMASSER UNE SEULE PIÈCE',en:'PLAY A WHOLE RUN WITHOUT PICKING UP A COIN'}, // (2026-10-19, Sacha) avant : LA DEUCHE — absente du garage, l'argent à la place
-  {id:'rejoue10',f:'secret',k:'rejoue',v:10,u:'',r:{car:'LE DOGE'},t:'REJOUE {v} FOIS DE SUITE SANS REVENIR AU MENU',en:'REPLAY {v} TIMES IN A ROW WITHOUT THE MENU'},
+  {id:'rejoue10',f:'secret',k:'rejoue',v:10,u:'',r:{car:'LE SHIBA'},t:'REJOUE {v} FOIS DE SUITE SANS REVENIR AU MENU',en:'REPLAY {v} TIMES IN A ROW WITHOUT THE MENU'},
   {id:'nuit3h',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA NOCTAMBULE'},t:'JOUE À 3 H DU MATIN',en:'PLAY AT 3 AM'},
   {id:'jours7',f:'secret',k:'jours',v:7,u:'',r:{cash:25000},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}, // (2026-10-19, Sacha) avant : LA DÉESSE — absente du garage, l'argent à la place
   {id:'jours30',f:'secret',k:'jours',v:30,u:'',r:{cash:25000},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}]; /* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE passe en boutique ; avant : L\'ÉTERNELLE — À VALIDER */
@@ -48541,7 +48643,7 @@ function carUnlocked(i){return !carRetiree(i)&&(TEST_CAISSES||carUnlockedVrai(i)
 function carUnlockedVrai(i){
   if(carRetiree(i))return false; // (2026-10-02) retirée : ni à toi, ni à gagner
   if(cousin()&&(!carEuros(i)||cousinTout()))return true; // (2026-10-14) LE CODE COUSIN : toutes les caisses — (même jour, Sacha) SAUF celles qui se paient en EUROS
-  if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true; // acquise sous les anciennes règles : elle le reste
+  if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0)&&!carEuros(i))return true; /* (2026-11-05, Opus : ECO-16) l'étage n'ouvre jamais une caisse en € */ // acquise sous les anciennes règles : elle le reste
   const u=CAR_UNLOCK[i];
   if(!u)return true;
   if(u.p||u.k==='premium')return carOwned(i); // caisse à vendre (argent du jeu OU boutique) : possédée ou rien
@@ -50301,11 +50403,11 @@ const COSM={
     {id:'monarque', n:'MONARQUE',          p:1200000,r:'rare',      ico:'ai_monarque',col:'#ff8a1a',d:'Orange et noir, nervures et points blancs, comme les vrais. Elles battent, planent, battent encore. Jusqu\'à 900 à l\'heure.'},
     {id:'pixel',    n:'8-BIT',             p:2500000,r:'rare',      ico:'ai_pixel',  col:'#ffd75e',d:'Des ailes d\'ange en gros pixels, animées image par image. Au boost, elles clignotent de toutes les couleurs, comme avec l\'étoile.'},
     {id:'baron',    n:'BARON ROUGE',       p:3800000,r:'rare',      ico:'ai_baron',  col:'#ff4a4e',d:'Toile rouge, haubans, ailerons, et l\'écharpe du pilote qui claque au vent. Un chien sur sa niche en rêve encore.'},
-    {id:'rouages',  n:'ENGRENAGES',        p:10000000,r:'epique',    ico:'ai_rouages',col:'#e0a84a',d:'Les rouages font battre l\'aile, la chaudière crache sa vapeur au boost. Léonard l\'avait dessinée, toi tu la pilotes.'},
-    {id:'xwing',    n:'AILES EN X',        p:12000000,r:'epique',    ico:'ai_xwing',  col:'#e8e4da',d:'Repliées en croisière, elles s\'écartent en X dès que tu boostes, réacteurs à fond. Verrouillez les ailes en position d\'attaque.'},
-    {id:'fee',      n:'FÉE',               p:16000000,r:'epique',    ico:'ai_fee',    col:'#d9b8ff',d:'Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d\'y croire. Et d\'un plein de nitro.'},
-    {id:'dragon',   n:'DRAGON',            p:45000000,r:'legendaire',ico:'ai_dragon', col:'#ff5a2a',d:'Membranes veinées de lave, griffes, grands coups d\'aile. Au boost, la lave flambe et crache des braises.'},
-    {id:'air',      n:'SANS AILES',        p:50000000,r:'legendaire',ico:'ai_air',    col:'#dff1ff',d:'Les ailes, c\'est pour les pigeons. Dix buses à air comprimé planquées dans la carrosserie : elle crache des bouffées blanches, pivote sur elle-même et s\'envole. Bon. Ça a marché.'}, // (2026-10-18, Léo) LA BLAGUE : l'aile la plus chère de la boutique… n'a pas d'aile (voir AILES_POP.air)
+    {id:'rouages',  n:'ENGRENAGES',        p:4000000, /* (2026-11-05, Opus : jury ECO-23) les ailes du haut ramenées sous 5 M, l'ordre gardé ; avant 10 M */r:'epique',    ico:'ai_rouages',col:'#e0a84a',d:'Les rouages font battre l\'aile, la chaudière crache sa vapeur au boost. Léonard l\'avait dessinée, toi tu la pilotes.'},
+    {id:'xwing',    n:'AILES EN X',        p:4200000, /* (ECO-23) avant 12 M */r:'epique',    ico:'ai_xwing',  col:'#e8e4da',d:'Repliées en croisière, elles s\'écartent en X dès que tu boostes, réacteurs à fond. Verrouillez les ailes en position d\'attaque.'},
+    {id:'fee',      n:'FÉE',               p:4500000, /* (ECO-23) avant 16 M */r:'epique',    ico:'ai_fee',    col:'#d9b8ff',d:'Quatre voiles irisés qui bourdonnent et sèment de la poussière de fée. Il suffit d\'y croire. Et d\'un plein de nitro.'},
+    {id:'dragon',   n:'DRAGON',            p:4800000, /* (ECO-23) avant 45 M */r:'legendaire',ico:'ai_dragon', col:'#ff5a2a',d:'Membranes veinées de lave, griffes, grands coups d\'aile. Au boost, la lave flambe et crache des braises.'},
+    {id:'air',      n:'SANS AILES',        p:5000000, /* (ECO-23) avant 50 M */r:'legendaire',ico:'ai_air',    col:'#dff1ff',d:'Les ailes, c\'est pour les pigeons. Dix buses à air comprimé planquées dans la carrosserie : elle crache des bouffées blanches, pivote sur elle-même et s\'envole. Bon. Ça a marché.'}, // (2026-10-18, Léo) LA BLAGUE : l'aile la plus chère de la boutique… n'a pas d'aile (voir AILES_POP.air)
     {id:'phenix',   n:'PHÉNIX',            mis:10,pk:400000,r:'legendaire',ico:'flamme',col:'#ffb02a',d:'Des plumes de feu qui battent en semant des étincelles. Tu exploses ? Tu renais de tes cendres. Au prochain run.'}],
   trainee:[
     {id:'nitro',   n:'NITRO',             p:0,     d:'Orange brûlé. Le classique des tuyères.'},
@@ -50840,6 +50942,25 @@ function peintDefHtml(d){const f=d&&d.def;if(!f||shopOwned('peinture',d.id))retu
   return '<span class="m2Deb pDeb"><span class="m2DebT">'+pxi('cible')+' '+sansAcc(TR('OU GAGNE-LA'))+' : '+sansAcc(TR(f.t)).toUpperCase()+'</span>'
     +(v<0?'':'<span class="m2DebB"><u><em style="width:'+Math.round(p*100)+'%"></em></u><b>'+peintDefNb(f,v)+'</b></span>')+'</span>';}
 window.dbgDefisPeint=function(){return COSM.peinture.filter(function(d){return d.def;}).map(function(d){const v=peintDefVal(d.def);return {id:d.id,r:d.r,defi:d.def.t,val:v,seuil:d.def.k==='b'||d.def.k==='serie'?null:peintDefSeuil(d.def),a:shopOwned('peinture',d.id)};});};
+/* ===== LES TRAÎNÉES EN VITRINE (2026-11-05, Sacha : « retravaille la présentation des traînées dans le même esprit » que le nuancier v3) =====
+   UNE TABLE, dans l'ordre de la vitrine (TRAINEE_CAT) : la rareté suit le SPECTACLE, le prix monte avec elle (les prix en $ ne bougent pas).
+   · COMMUNES    — les RUBANS : un sillage de couleur (NITRO, offerte ; ROSE NÉON) ;
+   · RARES       — les PARTICULES : ce qu'on sème (SAKURA, MATRICE, POUDRE D'OR, ANNEAUX D'OR) ;
+   · ÉPIQUES     — les EFFETS : un numéro à part entière (WOW, GLOUTON, HYPERESPACE, LA GRILLE) ;
+   · LÉGENDAIRES — le SPECTACLE : celles qui ne s'achètent pas comme les autres (FAIS PLEUVOIR, FOUDRE DIVINE par mission, ARC-EN-CIEL avec le chat).
+   Ce qui change : POUDRE D'OR épique → rare, WOW légendaire → épique, GLOUTON rare → épique, ARC-EN-CIEL (qui se lisait COMMUNE) → légendaire.
+   La carte de la boutique (traineeCarte) montre la traînée EN MOUVEMENT sur une route de nuit : le ruban qui coule hors de la tuyère, ses
+   particules qui s'envolent (css/peintures.css, « LES TRAÎNÉES ») — sur le plateau, la caisse ne boost pas : la carte est la seule à la montrer. */
+const TRAINEE_CAT=[['nitro','commun'],['rose','commun'],['sakura','rare'],['matrice','rare'],['or','rare'],['anneaux','rare'],
+  ['wow','epique'],['glouton','epique'],['hyper','epique'],['grille','epique'],['billets','legendaire'],['foudre','legendaire'],['arcenciel','legendaire']];
+Object.assign(I18N,{'RUBANS':'RIBBONS','PARTICULES':'PARTICLES','EFFETS':'EFFECTS','SPECTACLE':'SHOWSTOPPERS'});
+const TRAINEE_RANG={};TRAINEE_CAT.forEach(function(e,k){TRAINEE_RANG[e[0]]=k;const d=COSM.trainee.find(function(x){return x.id===e[0];});if(d)d.r=e[1];});
+function traineeOrdre(){return COSM.trainee.map(function(d,j){return j;}).sort(function(a,b){const ra=TRAINEE_RANG[COSM.trainee[a].id],rb=TRAINEE_RANG[COSM.trainee[b].id];return (ra!=null?ra:900+a)-(rb!=null?rb:900+b);});}
+function traineeCoul(d){if(d.rainbow)return '#ff5ad0';if(d.col)return d.col;if(d.rgb)return 'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')';return '#ff7a1a';}
+/* la plaque d'une carte : la nuit, des lignes de vitesse, la tuyère à droite, le ruban qui en coule (aucun pour celles dont l'effet EST la traînée :
+   GLOUTON, LA GRILLE), et trois fois son pictogramme qui s'envole */
+function traineeCarte(d){let I=null;try{I=illuTr(d);}catch(e){}const ic=I?illuPx(I,'tPx'):'';
+  return '<i class="tSw'+(d.rubOff?' sansRuban':'')+(d.rainbow?' arc':'')+'" style="--tc:'+traineeCoul(d)+'"><b class="tRu"></b><b class="tBuse"></b>'+(ic?'<span class="tPa">'+ic+ic+ic+'</span>':'')+'</i>';}
 function cosmSwCl(d){return (d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':d.g==='k'?' metal':d.g==='n'?' nacre':'')+(d.anim?' pL pL-'+d.id:'');} /* la classe de finition d'une pastille (une seule table pour toutes les listes) — (2026-11-05) une légendaire : son animation (css/peintures.css) */
 /* (2026-10-14) LES FIGURES dans la console du garage : COSM.figure est la VUE du catalogue figures.js (même id, nom, prix) — la console
    (onglet, bande, fiche, ACHETER) la traite comme un habillage. Possédées : SAVE.d.figs (figPossede), achetées par shopBuy → figAchat ;
@@ -51217,7 +51338,8 @@ let carWas=[];
 // se gagnant plus dans l'ordre, on ne peut pas se fier à `bestCar` — un `equipped` hérité d'une
 // sauvegarde importée ou d'une règle antérieure doit retomber sur la cabossée plutôt que d'offrir
 // une caisse non méritée.
-function equippedCar(){const i=SAVE.d.equipped|0;return (i>=0&&i<CARS.length&&carUnlocked(i))?i:0;}
+/* (2026-11-05, Opus : jury ECO-15, D3) une caisse en € jamais achetée n'est jamais « équipée » (ni par TEST_CAISSES, ni par un code importé) */
+function equippedCar(){const i=SAVE.d.equipped|0;return (i>=0&&i<CARS.length&&carUnlocked(i)&&(!carEuros(i)||carOwned(i)||(cousin()&&cousinTout())))?i:0;} /* (« cousin tout » de Sacha, 5/11 : les caisses en € aussi) */
 function carSnapshot(){carWas=[];for(let i=0;i<CARS.length;i++)carWas[i]=carUnlockedVrai(i);}
 function carScan(){ // rend les caisses NOUVELLEMENT débloquées + resynchronise l'indicateur bestCar
   const got=[];
@@ -54927,7 +55049,7 @@ Object.assign(I18N,{'FINAL SPIN':'FINAL SPIN','JETON SPIN':'SPIN TOKEN','TIRER':
   '+1 JETON':'+1 TOKEN','LOT DE CONSOLATION':'CONSOLATION PRIZE','TIRE LE LEVIER':'PULL THE LEVER','À TA PROCHAINE CHUTE':'ON YOUR NEXT CRASH',
   'NITRO PLEINE · MOTEUR +1':'FULL NITRO · ENGINE +1','UN TIRAGE DE PLUS':'ONE MORE PULL','GRATUIT':'FREE','À LA PROCHAINE PARTIE':'ON YOUR NEXT RUN',
   'VOITURE ÉPIQUE':'EPIC CAR'}); // (2026-10-19) le jackpot donne une caisse
-const SPIN={on:!/[?&]spin=0\b/.test(location.search),pZone:.28,max:3,pose:0,ouvert:false,vu0:0,roule:false,force:null,total:0,el:null,N:20,
+const SPIN={on:!qDev(/[?&]spin=0\b/), /* (2026-11-05, Opus : HYG-10) ?spin=0 en DEV seulement */pZone:.28,max:3,pose:0,ouvert:false,vu0:0,roule:false,force:null,total:0,el:null,N:20,
   /* LES LOTS — une ligne par lot, l'index = le symbole des rouleaux. p = probabilité par tirage (le reste : la consolation).
      (2026-10-19, Sacha : « seconde chance doit être plus probable ; les sacs d'argent doivent être plus rares mais ils rapportent 50× plus
      d'argent ; le jackpot doit faire gagner une voiture épique ») — les sacs ×50 (120 → 6 000, 300 → 15 000, 1 000 → 50 000) et 2,5 à
@@ -60554,7 +60676,10 @@ const SAVE={
   },
   /* ===== SANS SAUVEGARDE SUR LE LIEN WEB (2026-10-22, Sacha : « enlève le système de sauvegarde du lien Vercel, dès qu'on se connecte on arrive sur un nouveau compte ») =====
      Sur le web (pas Capacitor) chaque ouverture démarre un compte NEUF : on ne lit rien, on n'écrit rien. `?garde=1` rend la sauvegarde locale (bancs, essais). L'appli native garde la sienne. */
-  neuf:!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences)&&!/[?&]garde=1/.test(location.search),
+  /* ===== LA SAUVEGARDE REVIENT SUR LE WEB (2026-11-05, Opus : jury ECO-18, décision D6 — recommandation du jury, Sacha n'a pas tranché) =====
+     « Un joueur qui perd ses caisses au rechargement ne revient pas » : le site garde sa sauvegarde (localStorage), comme l'app. Le compte NEUF
+     à chaque ouverture reste possible pour une démonstration : `?demo=1`. `?garde=1` ne sert plus (la sauvegarde est là par défaut). */
+  neuf:/[?&]demo=1\b/.test(location.search)&&!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences),
   load(){
     let d=null;
     if(!this.neuf)try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){}
@@ -61972,6 +62097,7 @@ function gsolPose(F){const G=GSOL;if(!G.k||mode!=='drive')return; // (conduite, 
    · Le GLISSER de Léo n'est pas changé : au sol, slide 360 / wheelie / stoppie, et son salto part toujours avec le saut (joystick en avant).
    `?froute=0` = le saut nitro d'avant. Console : `dbgFRoute()` (l'état), `dbgFRoute(x,y)` (un double-tap au sol, le joystick en x, y). */
 const FR_K={k:.65,dMin:.4,dMax:.72,hMin:.35,hMax:2.4,marge:.1,cam:.8};
+const FR_REND_ANCIEN=/[?&]figrend=ancien\b/.test(location.search); /* (2026-11-05, Opus : GP-03, voir frFin) */
 const FR={ok:!/[?&]froute=0\b/.test(location.search),on:false,C:window.FIG&&FIG.Corps?new FIG.Corps():null,t:0,D:0,T:0,H:0,s:-1,r:null,f:null,pivK:0,lift:0,liftMax:0,n:0,fini:0,vols:0,
   qr:new THREE.Quaternion(),dq:new THREE.Quaternion(),pv:new THREE.Vector3(),pv2:new THREE.Vector3(),dv:new THREE.Vector3(),dv2:new THREE.Vector3(),cv:new THREE.Vector3(),
   p0:new THREE.Vector3(),p0ok:false,vel:new THREE.Vector3()};
@@ -62011,18 +62137,30 @@ function frBoum(e){const k=Math.min(1.6,e.k||1),n=Math.round(14+16*k),vx=FR.vel.
   sparkBurst(sparkGold,FX2.v,Math.round(8+8*k),12);}
 function frPaye(r){const c0=chainSeen['fig_'+r.f.id]|0;figPaye(r); // plantée : comme en vol — et le FLOW qu'addTrick ne donne qu'en l'air (celle du saut le nourrissait)
   if(mode==='drive'){const reps=Math.max(1,r.reps|0),a=(r.f.aura||60)*(reps>1?1+(reps-1)*1.25:1);flowAdd((a>=120||reps>=2?9:6)*Math.pow(.6,c0),'risque');}}
-function frEncaisse(){ // la caisse est retombée sur ses roues : ce que la POSE d'un vol fait pour ses figures (tryLand), sans le vol — grade ordinaire
+function frEncaisse(paye){ // (2026-11-05, Opus : GP-03) `paye` faux = aucune figure plantée : le nitro n'est PAS rendu — la caisse est retombée sur ses roues : ce que la POSE d'un vol fait pour ses figures (tryLand), sans le vol — grade ordinaire
   const q=chainVal*Math.min(6,chainMult)*(1+FLOW.lv*.5)*(fever>0?2:1);
   if(chain>0&&q>0){flowAdd(4,'style','n');runStats.tricks++;poseSndT=performance.now();addCoins(Math.max(2,Math.min(18,Math.round(2+q/6))));boost=Math.max(boost,1.2);
     if(FREN.arme&&FLOW.lv<4)frenDeclenche();} // jauge pleine + figure posée : la FRÉNÉSIE part (comme à la pose)
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;
-  figComboEncaisse();const g=figNitRend(true);if(SONV2&&g>.01)try{sfx('nitro.plein',{t:.2});}catch(e){}}
+  figComboEncaisse();const g=figNitRend(paye!==false);if(SONV2&&g>.01)try{sfx('nitro.plein',{t:.2});}catch(e){}}
 function frCoupe(){if(FR.C)FR.C.vide();FR.on=false;FR.lift=0;FX2.nitL=0;} // (la course s'arrête, la caisse explose) rien à rendre
 function frFin(){const C=FR.C,P=C.pose();for(let i=0;i<P.payees.length;i++)frPaye(P.payees[i]); // le bond fini : ce qui reste se juge (une figure presque finie compte)
-  FR.ecFin=+(C.ecart()*57.3).toFixed(1);C.vide();FR.on=false;FR.lift=0;FR.fini++;frEncaisse(); // (FX2.nitL gardé : frEncaisse rend ses 40 %) — ecFin (banc) : de combien elle se recale à la dernière image (°)
+  FR.ecFin=+(C.ecart()*57.3).toFixed(1);C.vide();FR.on=false;FR.lift=0;FR.fini++;frEncaisse(FR_REND_ANCIEN||P.payees.length>0); /* (2026-11-05, Opus : jury GP-03) la figure de route remboursait 40 % de nitro SANS condition (+20 % de jauge net par double-tap, sans quitter le sol) : seulement si une figure a été PLANTÉE ; `?figrend=ancien` = toujours */ // (FX2.nitL gardé : frEncaisse rend ses 40 %) — ecFin (banc) : de combien elle se recale à la dernière image (°)
   sensCoup(0,.6,-1.4);hap([8,18]);try{if(SONV2)sfx('pose.nette',{t:.02});}catch(e){} // elle retombe : la suspension encaisse, le petit son de la pose
   const sp9=CARS[level]||CARS[0];for(const sd of [-1,1]){FX2.v.set(sd*sp9.w*.45,.2,0);carGroup.localToWorld(FX2.v);for(let k=0;k<4;k++)spawnP(dust,FX2.v.x,FX2.v.y,FX2.v.z,FR.vel.x*.7+(Math.random()-.5)*5,1+Math.random()*2,FR.vel.z*.7+(Math.random()-.5)*5,.3+Math.random()*.25);}}
-function frTick(dt){if(!FR.on)return; // (la boucle, en course) le corps de la figure avance
+/* ===== LES RAILS DU DÉPART (2026-11-05, Opus : jury DIR-09, décision D7 — recommandation du jury, Sacha n'a pas tranché) =====
+   Sans aucune entrée, la caisse sortait de la route et mourait 5 à 7 s après JOUER : un testeur qui pose le téléphone au départ était mort.
+   Les RAIL_D premières secondes de conduite d'une partie (après le largage), tant que le joueur ne braque pas, la caisse est ramenée
+   doucement sur l'axe de la route (écart et cap) : elle suit la courbe toute seule. Au premier coup de volant, les rails disparaissent pour
+   toute la partie. Posés par resetGame (seconde-chance.js), tenus ici, à chaque image de la porte de simulation (frTick).
+   `?rails=0` : sans. `dbgRails()` : l'état. */
+const RAILS={on:!/[?&]rails=0\b/.test(location.search),d:3,t:0};
+function railsPose(){RAILS.t=RAILS.on?RAILS.d:0;}
+function railsTick(dt){if(!(RAILS.t>0))return;if(!started||gameOver||paused||SANDBOX||PARK.on||BALADE)return;if(introD||mode!=='drive')return;
+  if(Math.abs(steer)>.12){RAILS.t=0;return;} /* le joueur a pris le volant */
+  RAILS.t=Math.max(0,RAILS.t-dt);const k=Math.min(1,dt*4);lat-=lat*k;psi-=psi*k;vL-=vL*k;}
+window.dbgRails=function(){return {on:RAILS.on,reste:+RAILS.t.toFixed(2),lat:+lat.toFixed(2),psi:+psi.toFixed(3)};};
+function frTick(dt){railsTick(dt);if(!FR.on)return; // (la boucle, en course) le corps de la figure avance
   if(!started||gameOver||mode!=='drive'){frCoupe();return;}
   if(paused)return;
   const C=FR.C;FR.t+=dt;C.budget=Math.max(.05,FR.T-FR.t);C.poseK=FR.t>FR.D?1:0; // poseK : sa durée jouée, l'air la range VITE (un battement — le shimmy — mettait 1,3 s à se calmer, puis se recalait d'un coup)
@@ -62164,7 +62302,7 @@ function fhNom(t,c,g,dir,rp){const e=fhEl();t=fhNet(t);const b=FH.b;
   if(rp!==undefined){FH.rp=rp||'';if(rp)FH.nom.setAttribute('data-rp',rp);else FH.nom.removeAttribute('data-rp');} // (v5) la RARETÉ du nom : sa couleur et sa police ('' = Press Start 2P, la couleur c)
   t=fhTitre(t,FH.rp);
   if(b.textContent!==t||FH.rpT!==FH.rp){const K=FIG_RP[FH.rp]||FIG_RP.commun;FH.rpT=FH.rp;b.textContent=t;b.setAttribute('data-t',t); /* (v5) même hauteur de capitale que Press Start 2P (k), la largeur selon la chasse de SA police (w) */
-    b.style.fontSize=Math.round(K.k*Math.max(12,Math.min(FH_N[VP.w>VP.h?0:1],Math.floor(VP.w*.8/Math.max(1,(t.length+1.5)*K.w))-2)))+'px';}
+    b.style.fontSize=Math.round(K.k*Math.max(12,Math.min(FH_N[(COUCHE_ANCIEN?VP.w>VP.h:estCouche())?0:1],Math.floor(VP.w*.8/Math.max(1,(t.length+1.5)*K.w))-2)))+'px';}
   if(c)FH.nom.style.setProperty('--fc',c);else FH.nom.style.removeProperty('--fc');FH.nom.className='fhNom on'+(g==='ko'?' ko':'');e.classList.add('on');if(!FH.vu)document.body.classList.add('fhOn');FH.vu=true;
   if(g==='in')fhAnime(FH.nom,[{transform:'scale(2.3) rotate(-7deg)',opacity:0,filter:'brightness(3)'},{transform:'scale(.92) rotate(2deg)',opacity:1,filter:'brightness(1.6)',offset:.45},
     {transform:'scale(1.05) rotate(0deg)',offset:.72},{transform:'none',opacity:1,filter:'none'}],460);
@@ -62391,7 +62529,7 @@ function m2Cartes(){try{const u=[];for(const k of Object.keys(SF_CARTES)){if(SF_
 function m2Vues(L){const K=m2Cartes(),S=[];for(const k of L){const g=sfMapDe(k);if(K.indexOf(g)>=0&&S.indexOf(g)<0)S.push(g);}return S.length;} // les maps jouées qui comptent (une map sortie du tirage ne compte plus ; les anciennes sauvegardes « crypto » et « ville » valent CRYPTOVILLE)
 /* À TOI, SANS LE CODE COUSIN : le code cousin ouvre tout sur un appareil (« l'argent, l'aura et les records ne bougent pas ») — il ne
    doit pas non plus encaisser les primes de collection. Même règle que carUnlockedVrai / shopOwned / figPossede, le cousin en moins. */
-function m2CarAMoi(i){if(carRetiree(i))return false;if(carOwned(i))return true;if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true;
+function m2CarAMoi(i){if(carRetiree(i))return false;if(carOwned(i))return true;if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0)&&!carEuros(i))return true;
   const u=CAR_UNLOCK[i];if(!u)return true;if(u.k==='mis'||u.p||u.k==='premium'||u.eur)return false;return carStat(u.k)>=u.v;}
 function m2HabAMoi(cat,d){if(cat==='figure')return d.id==='tailwhip'||(Array.isArray(SAVE.d.figs)&&SAVE.d.figs.indexOf(d.id)>=0);
   if(d.pack==='chat'&&m2Chat())return true;if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+d.id)>=0;}
@@ -62403,13 +62541,29 @@ function m2Reco(){if(M2_RECO)return M2_RECO;const R={car:{},hab:{}};for(const m 
 function m2HabReco(cat,d){return !!(m2Reco().hab[cat+':'+d.id]||(cat==='peinture'&&(d.sec||d.serie)));} /* (2026-10-20) les peintures de la SÉRIE se gagnent au 7e jour : hors des « toutes » */
 /* LA COLLECTION : n = possédés (tout compte), tot/nT = le lot « toutes » (sans les objets de mission) et ce qu'on en a */
 function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
-  if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a=m2CarAMoi(i);if(a)n++;if(!R.car[CARS[i].name]){tot++;if(a)nT++;}}}
-  else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)){tot++;if(a)nT++;}}}
+  /* (2026-11-05, Opus : jury ECO-05) le lot « toutes » (LE TRÔNE CENTRAL, colall, toutall) ne compte plus ce qui se paie en € (impossible tant que StoreKit
+   n'existe pas) ; dans l'app, preparer-www.js les passe à l'argent du jeu : ils y comptent de nouveau. */
+  if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a=m2CarAMoi(i);if(a)n++;if(!R.car[CARS[i].name]&&(!carEuros(i)||a)){tot++;if(a)nT++;}}}
+  else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)&&(!d.eur||a)){tot++;if(a)nT++;}}}
   return {n:n,tot:tot,nT:nT};}
 /* (2026-10-22) LES RARES À TOI : celles qui s'achètent (les rares gagnées par mission ne comptent pas — LA DOLORÈS se débloque en les ayant toutes) */
 function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carRar(i)!=='rare'||R.car[CARS[i].name])continue;tot++;if(m2CarAMoi(i))n++;}return {n:n,tot:tot};}
 /* (2026-10-22) LA MÉTÉO D'UNE MAP (LA STRATOS) : pour chaque map, les temps (SF_CARTES[k].m : matin, midi, soir, nuit, pluie, orage…) déjà joués ; la meilleure map compte (n joués sur tot) */
-function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const g of m2Cartes()){const P=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k]||sfMapDe(k)!==g)continue;for(const x of Object.keys((SF_CARTES[k].m)||{}))P.push([k,x]);}if(!P.length)continue;let j=0;for(const q of P)if((H[q[0]]||[]).indexOf(q[1])>=0)j++;if(j/P.length>f||(j/P.length===f&&P.length>tot)){f=j/P.length;n=j;tot=P.length;}}return {n:n,tot:tot};}
+/* ===== LA MÉTÉO D'UNE MAP NE SE GAGNE PLUS EN UNE PARTIE (2026-11-05, Opus : jury DIR-08) =====
+   « JOUE UNE MAP SOUS TOUTES SES MÉTÉOS » (sa caisse : voir table.js) prenait la MEILLEURE map en proportion : EN ORBITE n'a qu'un temps (matin), donc une
+   seule partie en orbite faisait 1/1 = mission réussie (vu par le jury après 4 parties). Seules comptent maintenant les maps qui ont au
+   moins M2_METEO_MIN temps (matin, midi, soir, nuit, pluie, orage…). `?meteo=ancien` : l'ancien calcul. */
+const M2_METEO_MIN=/[?&]meteo=ancien\b/.test(location.search)?1:3;
+function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const g of m2Cartes()){const P=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k]||sfMapDe(k)!==g)continue;for(const x of Object.keys((SF_CARTES[k].m)||{}))P.push([k,x]);}if(P.length<M2_METEO_MIN)continue;let j=0;for(const q of P)if((H[q[0]]||[]).indexOf(q[1])>=0)j++;if(j/P.length>f||(j/P.length===f&&P.length>tot)){f=j/P.length;n=j;tot=P.length;}}return {n:n,tot:tot};}
+/* ===== LE JOURNAL DE LA BANQUE (2026-11-05, Opus : jury DIR-08 « +180 000 $ pendant la navigation des menus ») =====
+   `?journal=banque` (en DEV seulement) : chaque écriture de SAVE.d.bank est notée (avant, après, l'écart, l'écran, la pile d'appels courte),
+   et chaque temps de map gagné pour la mission des météos. `dbgBanque()` rend les 60 dernières lignes. Sans le paramètre : rien n'est posé. */
+const JBQ={on:qDev(/[?&]journal=banque\b/),L:[],d:null};
+function jbqNote(o){if(!JBQ.on)return;o.t=Math.round(performance.now());o.ecran=garageOn?'garage':(started&&!gameOver?'course':(gameOver?'mort':'menu'));JBQ.L.push(o);if(JBQ.L.length>400)JBQ.L.shift();}
+if(JBQ.on)setInterval(function(){try{const d=SAVE.d;if(!d||d===JBQ.d)return;JBQ.d=d;let v=d.bank;
+  Object.defineProperty(d,'bank',{configurable:true,enumerable:true,get:function(){return v;},
+    set:function(x){if(x!==v)jbqNote({de:v,a:x,dv:Math.round(x-v),pile:String(new Error().stack||'').split('\n').slice(2,6).map(function(s){return s.trim().replace(/^at /,'');}).join(' < ')});v=x;}});}catch(e){}},200);
+window.dbgBanque=function(){return JBQ.on?JBQ.L.slice(-60):'ajouter ?journal=banque (en DEV) à l\'adresse';};
 function m2Tout(){let tot=0,nT=0;for(const c of ['voiture','peinture','aile','trainee','figure']){const o=m2Col(c);tot+=o.tot;nT+=o.nT;}return {tot:tot,nT:nT};}
 /* (M2_COLK est déclarée plus haut, à côté de M2K : voir là) */
 /* LA VALEUR D'UNE MISSION, maintenant (les records de la partie en cours compris) */
@@ -62561,7 +62715,7 @@ function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R
   if(nitroOn&&(mode==='drive'||mode==='fall')){s.c.nitS=(s.c.nitS||0)+dt;if(pwrNitroT>0)s.c.nmaxS=(s.c.nmaxS||0)+dt;SAVE.mark();} /* (2026-10-22) les secondes de nitro, et celles brûlées pendant une NITRO MAX */
   if(FLOW.lv===4){r.frenN=1;if(FREN.t>(r.frenT||0))r.frenT=FREN.t;}
   const k=secCarte().c;if(k&&s.c.cartes.indexOf(k)<0){s.c.cartes.push(k);SAVE.mark();}
-  {const k9=secCarte();if(k9.c&&k9.m){const H=s.c.met||(s.c.met={}),L=H[k9.c]||(H[k9.c]=[]);if(L.indexOf(k9.m)<0){L.push(k9.m);SAVE.mark();}}} /* (2026-10-22) les temps joués, map par map (LA STRATOS) */
+  {const k9=secCarte();if(k9.c&&k9.m){const H=s.c.met||(s.c.met={}),L=H[k9.c]||(H[k9.c]=[]);if(L.indexOf(k9.m)<0){L.push(k9.m);SAVE.mark();jbqNote({meteo:k9.c+'/'+k9.m});}}} /* (2026-10-22) les temps joués, map par map (LA STRATOS) */
   if(k==='banquise'&&BANQ.sur>0){s.c.verglasKm=(s.c.verglasKm||0)+kmh*dt/3600;} /* (2026-10-22) les km sur le verglas du glacier (L'ICEBERG) */
   if(mode==='fall'){if(!JEAU.dans){M2R.volT+=dt;s.c.airS=(s.c.airS||0)+dt;SAVE.mark();}if(k==='nuages'&&M2R.volT>(r.vol||0))r.vol=M2R.volT;if(k==='ville')m2Tours(r);}
   if(k==='banquise'&&BANQ.glisse&&BANQ.sur===2){M2R.lac+=dt;if(M2R.lac>(r.lac||0))r.lac=M2R.lac;}else M2R.lac=0;
@@ -62836,8 +62990,17 @@ function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
     m2Recupere(id,row);return;} // une SECRÈTE qui brille : sa révélation · (2026-10-31) AVANT la photo : sur une ligne prête, la photo récupère aussi (voir m2PrendIci)
   if(t.closest('.m2R.voir,.mbR.voir')&&!t.closest('.m2Pr')){m2Voir(m);return;}
   if(s.ok.indexOf(id)>=0){ /* (2026-11-01, Sacha : « quand on clique sur une mission achevée, elle se supprime automatiquement » ) */
+    /* ===== RETIRER UNE MISSION SE CONFIRME (2026-11-05, Opus : jury INT-05) =====
+       Un toucher par erreur effaçait la mission réussie pour toujours. Le 1er toucher ARME (la ligne se marque, « TOUCHE ENCORE POUR RETIRER »),
+       un 2e toucher sur la MÊME ligne dans les 3 s la retire, comme avant. `?retire=ancien` : un seul toucher. */
+    if(!/[?&]retire=ancien\b/.test(location.search)&&(M2E.arme!==id||performance.now()-(M2E.armeT||0)>3000)){
+      M2E.arme=id;M2E.armeT=performance.now();document.querySelectorAll('#gmListe .m2L.m2Arme').forEach(function(e9){e9.classList.remove('m2Arme');});
+      row.classList.add('m2Arme');try{toast(sansAcc(TR('TOUCHE ENCORE POUR RETIRER')));}catch(x){}uiClic('');hap(6);return;}
+    M2E.arme=null;
     if(!s.mq)s.mq=[];if(s.mq.indexOf(id)<0)s.mq.push(id);SAVE.flush();uiClic('off');hap(10);m2Render(true);return;}
-  uiClic('refus'); /* (2026-11-01) on ne peut plus suivre une mission : toucher une mission en cours ne fait plus rien */}
+  /* (2026-11-05, Opus : jury INT-05) une mission EN COURS ne se suit plus, mais son toucher n'est pas une faute : plus le son du refus, un toucher neutre */
+  uiClic('');hap(4);}
+Object.assign(I18N,{'TOUCHE ENCORE POUR RETIRER':'TAP AGAIN TO REMOVE'});
 /* LE POINT VERT DES PORTES (à la place des trois pastilles du carnet) : une récompense attend d'être récupérée */
 function m2Portes(){const n=m2NbPret();
   document.querySelectorAll('#gvMis,.ghT[data-h="mis"],#mHome [data-m="mis"]').forEach(function(d){let p=d.querySelector(':scope>.m2Pt');
@@ -66422,7 +66585,10 @@ if(ADS.on){
    · LA PUB MAISON — sinon : PUBR.d secondes plein écran (#pubR, <style id="pubRecompense">) qui montrent une caisse de la boutique qu'on
      n'a pas encore, son nom, son prix ; le compte ROND et la barre disent le temps qui reste ; rien ne se touche ; le temps ne court que
      l'écran allumé. `pubRecompense(nom, fin)` : fin(vue) part UNE fois. `?pub=0` : pas de pub, reprise immédiate. Banc : dbgPub(). */
-const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,sans:/[?&]pub=0\b/.test(location.search)};
+/* ===== L'APP NE MONTRE AUCUNE PUB (2026-11-05, Opus : jury IOS-04 / DIR-29, décision D1 « couper dans l'app ») =====
+   L'app déclare « aucune publicité » à Apple : sous EN_APP, plus de pub maison (PUBR.sans : la reprise est servie tout de suite), la
+   seconde chance s'annonce GRATUITE (chanceEtat), et le ×2 du gain n'existe pas (DBL.on). Le site garde tout. `?pub=0` ne vaut qu'en DEV. */
+const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,sans:EN_APP||qDev(/[?&]pub=0\b/)};
 Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});
 function pubSilence(on){try{ // une régie montre SA pub par-dessus le jeu : le jeu se tait (la musique en pause, le contexte audio suspendu), puis reprend
   if(on){PUBR.mus=!!(musicEl&&!musicEl.paused);if(PUBR.mus)musicEl.pause();if(AC&&AC.state==='running')AC.suspend();}
@@ -66499,11 +66665,11 @@ window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison f
      secondes de course : un choc est ignoré, une chute (vide, trop d'air) la replace sans frais. 2 s de nitro offerte, comme au départ.
    Contrat avec l'écran de mort (INTERFACE, plaque #mChance) : `chanceEtat()` → {ok, prix, reste} et `chanceJoue()`. L'événement `cc:chance`
    (sur document) part quand l'offre s'ouvre, s'éteint ou sert : la plaque relit alors chanceEtat(). `?chance=0` éteint tout. Banc : dbgChance(). */
-const CHANCE={on:!/[?&]chance=0\b/.test(location.search),plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
+const CHANCE={on:!qDev(/[?&]chance=0\b/),plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
   offre:false,used:false,pub:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0};
 function chanceBase(){return CHANCE.used?CHANCE.m0:START_CASH;} // ce que la prochaine fin de partie NE verse PAS (déjà versé avant la reprise)
 function chanceSignal(){try{document.dispatchEvent(new Event('cc:chance'));}catch(e){}}
-function chanceRaz(){resuFin(false);RESU.plein=0;clearTimeout(CHANCE.tm);CHANCE.gratuit=false;CHANCE.pub=false;const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;chanceCompteFin();if(f)chanceSignal();}
+function chanceRaz(){try{railsPose();}catch(e){} /* (2026-11-05, Opus : D7) chanceRaz = le crochet « partie neuve » (frole-contrats.js) : les rails du départ s'y arment, 1re partie comprise */resuFin(false);RESU.plein=0;clearTimeout(CHANCE.tm);CHANCE.gratuit=false;CHANCE.pub=false;const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;chanceCompteFin();if(f)chanceSignal();}
 function chanceCompteFin(){const s9=avE('slam9');if(s9&&s9.classList.contains('compte'))s9.classList.remove('compte','on');} /* (chasse aux bugs) le 3 · 2 · 1 de la reprise interrompu (pause puis RECOMMENCER ou QUITTER : son minuteur CHANCE.tm est tué) ne reste pas figé au centre de l'écran */
 function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'écran de mort s'ouvre — l'offre aussi, si elle a lieu d'être
   clearTimeout(CHANCE.tm);chanceCompteFin();CHANCE.offre=false;
@@ -66529,7 +66695,7 @@ addEventListener('visibilitychange',function(){ try{
 }catch(e){} });
 function chanceEtat(){
   const ok=!!(CHANCE.on&&CHANCE.offre&&!CHANCE.used&&started&&gameOver&&performance.now()<CHANCE.fin&&overlay.style.display!=='none'&&!garageOn&&!MENUV.retour); /* (15/10 soir) plus de `bank()>=CHANCE.prix` : la pub ne demande rien au compte */
-  return {ok:ok,prix:CHANCE.prix,gratuit:!!CHANCE.gratuit,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
+  return {ok:ok,prix:CHANCE.prix,gratuit:!!CHANCE.gratuit||EN_APP,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
 }
 function chanceJoue(){ // le toucher de la plaque : (15/10 soir) la PUB d'abord (pubRecompense) — la reprise, sous le volet, quand elle a été vue
   if(!chanceEtat().ok)return false;
@@ -66565,7 +66731,7 @@ function chanceRepart(bon){ // sous le volet : la course reprend où elle s'est 
   clearBoom();RALENTI.t=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   airPie.style.display='none';airFlash=0;nitroX=0;boost=0;nitroR=Math.max(nitroR,nitroCap()*.5); // de quoi voler, pas un plein
-  M2R.vie=0;/* (missions v2) on est mort : « tiens 5 min sans mourir » repart de zéro */respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0; // elle RETOMBE sur sa ligne : on voit qu'on repart
+  M2R.vie=0;/* (missions v2) on est mort : « tiens 5 min sans mourir » repart de zéro */chanceSafe();respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0; // elle RETOMBE sur sa ligne : on voit qu'on repart
   if(CHANCE.moteurPerte>0&&engTier>0){engTier=Math.max(0,engTier-CHANCE.moteurPerte);coinsGot=ENGINE_TIERS[engTier].coins;MV.coup(.9);} // le MOTEUR encaisse le choc : un palier (ses pièces avec), la vignette et le timbre suivent seuls
   startBoostT=Math.max(startBoostT,2);paintMoney();dnRelance(); /* (2026-10-22, DEBUGGING) les DUNES : la reprise repart lancée, sinon la lèvre suivante la jette dans le sable (voir dnRelance) */
   if(GH.on&&!GH.fini&&!GH.pris)GH.g.visible=true; // campStop a caché la caisse-nuage : elle revient
@@ -66585,6 +66751,12 @@ function chanceRepart(bon){ // sous le volet : la course reprend où elle s'est 
     n--;CHANCE.tm=setTimeout(pas,500);};
   CHANCE.tm=setTimeout(pas,120);
 }
+/* ===== LA REPRISE NE RECULE PLUS DE CENTAINES DE MÈTRES (2026-11-05, Opus : jury GP-04) =====
+   respawn() repose la caisse à safeS − 8, et safeS n'est écrit que sur une route « à plat » (dessus, normale vers le haut) : sur la route sans
+   haut ni bas des NUAGES ou l'ORBITE libre, il restait des centaines de mètres en arrière (parfois au début de la zone). La seconde chance et la
+   chute sous bouclier repartent maintenant au plus loin de : safeS, ou l'endroit de la mort moins CH_RECUL m. `?reprise=ancien` : safeS seul. */
+const CH_RECUL=40,CH_SAFE_ANCIEN=/[?&]reprise=ancien\b/.test(location.search);
+function chanceSafe(){if(CH_SAFE_ANCIEN||!isFinite(s))return;if(s-safeS>CH_RECUL+20)safeS=Math.max(safeS,s-CH_RECUL);}
 function chanceTick(dt){ // dans la porte de simulation de loop : la pause fige le bouclier avec le reste
   CHANCE.inv=Math.max(0,CHANCE.inv-dt);
   if(mode==='boom')return;
@@ -66596,7 +66768,7 @@ function chanceProtege(cause){ // explode, pendant le bouclier
   if(!(CHANCE.inv>0)||gameOver||mode==='boom'||!started)return false;
   if(mode==='fall'||cause==='vide'||cause==='air'){ // une chute : replacée sans frais (comme le filet du mode facile)
     airPie.style.display='none';airFlash=0;
-    respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;dnRelance();CHANCE.inv=Math.max(CHANCE.inv,1);}
+    chanceSafe();respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;dnRelance();CHANCE.inv=Math.max(CHANCE.inv,1);}
   return true; // un choc : ignoré
 }
 function chanceRefuse(){if(!CHANCE.offre)return false;clearTimeout(CHANCE.tm);CHANCE.offre=false;chanceSignal();return true;} // l'offre se ferme tout de suite (un geste ailleurs, la machine à sous d'IDEE qui veut sa place)
@@ -66724,9 +66896,14 @@ window.dbgChance=function(k){ // banc : dbgChance() l'état · ('mort') explose 
    Sans régie (aujourd'hui : l'app v1 et le site), c'est la pub maison de 5 s qui la paie. Fermée avant la fin (vraie régie) : rien n'est
    versé, la plaque revient — on peut réessayer. Ce que la machine à sous verse après la mort n'est PAS doublé (RUNX.verse est figé à la mort).
    `?double=0` éteint tout. Banc : dbgDouble() l'état · ('joue') la touche. */
-const DBL={on:!/[?&]double=0\b/.test(location.search),min:50,used:false,pub:false,v:0};
+const DBL={on:!EN_APP&&!/[?&]double=0\b/.test(location.search),min:50,used:false,pub:false,v:0};
 function dblRaz(){DBL.used=false;DBL.pub=false;DBL.v=0;}
-function dblGain(){return Math.max(0,Math.floor(RUNX.verse!=null?RUNX.verse:bank()-(RUNX.bank0||0)));}
+/* ===== LE ×2 NE DOUBLE QUE LE GAIN DE LA COURSE (2026-11-05, Opus : jury ECO-08) =====
+   RUNX.verse = tout ce que la fin de partie a mis au compte, prime de SÉRIE du jour (jourCommit) et missions comprises : le ×2 les doublait aussi.
+   Il double maintenant le virement de la course seul (commitExploits._vire : après une reprise, toute la partie). `?double=ancien` : l'ancien calcul. */
+const DBL_ANCIEN=/[?&]double=ancien\b/.test(location.search);
+function dblGain(){const b=commitExploits._vire;if(!DBL_ANCIEN&&typeof b==='number'&&isFinite(b))return Math.max(0,Math.floor(b));
+  return Math.max(0,Math.floor(RUNX.verse!=null?RUNX.verse:bank()-(RUNX.bank0||0)));}
 function dblEtat(){
   const v=dblGain();
   const ok=!!(DBL.on&&!DBL.used&&!DBL.pub&&started&&gameOver&&!SANDBOX&&!TUTO.on&&!TUTO.quitte&&!PARK.on&&!SURV.on&&!BALADE&&v>=DBL.min&&
@@ -66738,7 +66915,7 @@ function dblJoue(apres){ // le toucher de la plaque : la pub, puis le 2e verseme
   DBL.pub=true;DBL.v=e.v;
   const lance=pubRecompense('double-gain',function(vue){DBL.pub=false;const v=DBL.v;
     const ok=!!(vue&&started&&gameOver&&!DBL.used&&v>0);
-    if(ok){DBL.used=true;SAVE.d.bank=Math.min(1e30,bank()+v);gagneAjoute(v);bankMaxMaj();RUNX.verse=dblGain()+v;SAVE.flush();}
+    if(ok){DBL.used=true;SAVE.d.bank=Math.min(1e30,bank()+v);gagneAjoute(v);bankMaxMaj();RUNX.verse=(RUNX.verse!=null?RUNX.verse:dblGain())+v;SAVE.flush();}
     try{if(apres)apres(ok,ok?v:0);}catch(e){console.warn('double',e);}});
   if(!lance){DBL.pub=false;return false;}
   return true;
@@ -66752,6 +66929,7 @@ function finSonsCoupe(){
 function resetGame(){
   try{clearTimeout(M2REV.t);if(M2REV.on){M2REV.on=false;M2REV.id=null;const e9=document.getElementById('m2Rev');if(e9){e9.className='';e9.innerHTML='';}}}catch(e){} // (audit p7) REJOUER tapé tôt : `rejoueAttend` garde `started&&gameOver` jusqu'à 12 s, le délai de 1,4 s ouvrait la révélation d'une secrète (z-index 95) PAR-DESSUS la course qui part dessous — elle se ferme (ou ne s'ouvre pas) ici ; la secrète reste dans la file (m2RevFile) pour la prochaine mort
   dmtCoupe(); // (LE DEMI-TOUR) une nouvelle partie repart droite
+  railsPose(); /* (2026-11-05, Opus : D7) les rails du départ (figures-route.js) */
   SPIN.pose=0; // (2026-10-14) LE FINAL SPIN : le plafond de jetons posés est par partie (ceux qu'on a ramassés restent dans la sauvegarde)
   secReset(); // (2026-10-14) LES DÉFIS SECRETS : chaque partie repart de zéro
   evtPartie(); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : le tirage de la partie, AVANT newTrack (qui pose celui de la 1re zone)
@@ -69673,9 +69851,13 @@ function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=do
   if(b){const ret=m==='shop'||m==='tous';if(b._lib==null)b._lib=b.innerHTML;if(ret!==!!b._ret){b._ret=ret;b.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':b._lib;if(!ret){const s9=b.querySelector('span[data-fr]');if(s9)s9.textContent=TR(s9.dataset.fr);}b.setAttribute('aria-label',ret?TR('RETOUR'):TR('Boutique'));} /* (2026-10-12, passe qualité) _lib est figé dans la langue de la 1re visite : on repasse le libellé dans la langue du moment (sinon « BOUTIQUE » en anglais après FR→EN) */
     if(gEl)gEl.classList.toggle('shopRet',ret);} // (2026-10-12) BOUTIQUE devient RETOUR
   if(GATL.on&&m!=='inv')GATL.on=false; // l'atelier fermé n'existe qu'en INVENTAIRE
-  if(c){const ret=m==='inv'&&GATL.on;if(c._lib==null)c._lib=c.innerHTML;if(ret!==!!c._ret){c._ret=ret;c.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':c._lib;c.setAttribute('aria-label',ret?TR('RETOUR'):'Inventaire');}}
+  if(c){const ret=m==='inv'&&GATL.on;if(c._lib==null)c._lib=c.innerHTML;if(ret!==!!c._ret){c._ret=ret;c.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':c._lib;c.setAttribute('aria-label',ret?TR('RETOUR'):TR('Inventaire'));}
+    /* (2026-11-05, Opus : jury DIR-04) _lib est figé dans la langue de la 1re visite : « INVENTAIRE » restait en français au retour du garage depuis la mort
+       (anglais). Comme la BOUTIQUE juste au-dessus, le libellé repasse par TR à chaque fois qu'il revient. */
+    if(!c._ret){const s9=c.querySelector('span[data-fr]');if(s9&&s9.textContent!==TR(s9.dataset.fr))s9.textContent=TR(s9.dataset.fr);}}
   if(gEl){gEl.classList.remove('invRet');gEl.classList.toggle('modeInv',m==='inv');gEl.classList.toggle('atelierInv',GATL.on);} // (2026-10-12, Léo) à l'arrivée l'INVENTAIRE en aperçu, les cinq touches ; INVENTAIRE touché = L'ATELIER FERMÉ (gAtelier) : la touche devient ◀ RETOUR, en bas à gauche, les autres s'effacent
   if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop'||m==='tous');st.classList.toggle('gModeTous',m==='tous');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
+  if(gEl)gEl.classList.toggle('bqEntre',(m==='shop'||m==='tous')&&typeof GBQ!=='undefined'&&!GBQ.on&&bqIndusVoulu()); /* (2026-11-05, Sacha : « pendant un bref instant, quand on clique sur boutique, ça ouvre une autre page qui ressemble à une boutique mais différente ») la vitrine du jour s'écrit ICI, d'un coup, mais la salle blanche (bqIndus) n'arrive que ~285 ms plus tard, sous le voile : entre les deux l'ancienne console se voyait seule. bqEntre la cache dès le geste (voir garage-hub-rayons.css), bqClasses la retire à la bascule */
   if(gEl)gEl.classList.toggle('modeShop',m==='shop');} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
 function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou « 15 / 46 » en INVENTAIRE
   if(m==='tous'){bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>'+sansAcc(TR('TOUT VOIR'))+'</span><s></s><b>'+n+'</b></div>';return;} // (2026-10-10) SEE ALL ITEMS, en anglais (Léo)
@@ -69722,7 +69904,7 @@ function bqCles(){const V=[],C=[];
   for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat])if(d.p>0)C.push(cat+':'+d.id);
   return {V:V,C:C};}
 function bqCos(k){const p=k.indexOf(':'),cat=k.slice(0,p);if(cat==='figure')return {cat:cat,d:window.FIG?FIG.par[k.slice(p+1)]:null};return {cat:cat,d:COSM[cat]&&COSM[cat].find(function(x){return x.id===k.slice(p+1);})};}
-function bqA(k){if(k[0]==='v'){const i=+k.slice(2);return carUnlockedVrai(i)||i===(SAVE.d.equipped|0);}const o=bqCos(k);return !!o.d&&shopOwned(o.cat,o.d.id);}
+function bqA(k){if(k[0]==='v'){const i=+k.slice(2);return carUnlockedVrai(i)||i===equippedCar();} /* (2026-11-05, Opus : ECO-15) la caisse équipée VÉRIFIÉE */const o=bqCos(k);return !!o.d&&shopOwned(o.cat,o.d.id);}
 function bqValide(k){if(typeof k!=='string')return false;if(k[0]==='v'){const i=+k.slice(2);return !!CARS[i]&&!carRetiree(i)&&!!CAR_UNLOCK[i]&&CAR_UNLOCK[i].p>0;}const o=bqCos(k);return !!o.d&&o.d.p>0;} /* (24/10, relecture) …et toujours EN VENTE (un prix en dollars, comme au tirage, bqCles) : une vitrine tirée avant une mise à jour qui a retiré le prix d'un objet (passé en euros, devenu récompense de mission) était gardée jusqu'à minuit UTC, sa carte disait « $ NaN » ou « $ 0 » — elle est retirée */
 function bqRar(k){if(k[0]==='v')return carRar(+k.slice(2));const o=bqCos(k);return cosmRar(o.cat,o.d);}
 function bqTire(j){const r=mulberry32(Math.imul(j,2654435761)^0x5B0071C),{V,C}=bqCles(),rg={commun:0,rare:1,exotique:1,defi:1,epique:2,legendaire:3,mythique:3,infini:3};
@@ -69777,7 +69959,7 @@ function bqPorte(L){const V=L.filter(function(i){return !carOwned(i);}).concat(L
 setInterval(function(){try{if(!garageOn)return;const c=document.querySelector('#gStrip .fnCarr');if(!c||!c.offsetParent)return;const S=c.querySelectorAll('.fpS1'),P=c.querySelectorAll('.fpDots u');if(S.length<2)return;
   let i=-1;S.forEach(function(e,j){if(e.classList.contains('on'))i=j;});const n=(i+1)%S.length;if(i>=0){S[i].classList.remove('on');S[i].classList.add('sort');setTimeout(function(){S[i].classList.remove('sort');},500);if(P[i])P[i].classList.remove('on');}
   S[n].classList.add('on');if(P[n])P[n].classList.add('on');}catch(e){}},2600); // (2026-10-12) le défilé des offres
-function gOffresPage(){window.__offGar=true;ecranWipe(function(){window.__mRetour='shop';closeGarage();});} // la page OFFRES (rose) ; son RETOUR rouvre la boutique du garage
+function gOffresPage(){if(!ACHAT_EUR)return; /* (2026-11-05, Opus : D3) plus de page ACHAT en € */window.__offGar=true;ecranWipe(function(){window.__mRetour='shop';closeGarage();});} // la page OFFRES (rose) ; son RETOUR rouvre la boutique du garage
 function bqCourant(){if(GBQ.figK&&GBQ.panOn&&(GBQ.cat==='figure'))return GBQ.figK;if(GBQ.sec!=null&&GBQ.panOn&&SHOP.tab==='voiture')return 'v:'+GBQ.sec; /* (missions v2) la secrète regardée */if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
 function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}
   if(gEl)gEl.classList.toggle('shopJour',!GMODE.paye);
@@ -73314,7 +73496,7 @@ function bqVoile(v){let w=document.getElementById('gBqVoile'); // LE VOILE de la
   cv.classList.remove('bqPose','bqArrive');cv.classList.toggle('recul',!v);void cv.offsetWidth;cv.classList.add('bqPasse');
   bqVoile._fin=performance.now()+2e3;
   bqVoile._t=setTimeout(function(){if(!GBQ.bascule){GBQ.bascule=true;GBQ.on=GBQ.veut;bqClasses(GBQ.veut);try{garBqAmbiance(GBQ.veut);}catch(e){}}bqVoile(null);},1400);} // filet : jamais de voile collé ni d'interface à moitié basculée (onglet caché, garage quitté en plein geste)
-function bqClasses(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl)gEl.classList.toggle('bqIndus',on);garLibre._r=null;} // dès le geste : l'interface du garage s'efface
+function bqClasses(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl){gEl.classList.toggle('bqIndus',on);gEl.classList.remove('bqEntre');}garLibre._r=null;} // dès le geste : l'interface du garage s'efface
 /* LA LUEUR DERRIÈRE LA CAISSE (v3) : un disque blanc tourné vers la caméra, posé DERRIÈRE la caisse (elle reste devant : il est caché par
    elle), qui grandit jusqu'à couvrir le garage ; une nappe blanche s'étale au sol depuis sous elle. Deux objets de la scène (hors de
    l'atelier : ils survivent au basculement), blancs au-delà de 1 (le bloom les fait rayonner). */
@@ -73343,6 +73525,7 @@ function garBqLueur(ay){const g=GBQ.lueur||0;garBqLueurBatit();const vis=g>.002;
 function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).toString(16).padStart(6,'0');};
   if(o.cat==='figure')return '<i class="bqFig">'+pxi('rotation')+'</i>';
   if(o.cat==='peinture')return peintCarte(d); /* (2026-11-05, le nuancier v3) la grande pastille vernie, la cible du défi et sa jauge (voir peintCarte) */
+  if(o.cat==='trainee')return traineeCarte(d); /* (2026-11-05) la traînée EN MOUVEMENT sur une route de nuit (voir traineeCarte) */
   if(o.cat==='trainee'){const I9=illuTr(d);if(I9)return illuPx(I9,'bqTrIc');} // (2026-10-14) une traînée POP : son pictogramme — (2026-10-16, TRAÎNÉES) TOUTES les traînées, et EN COULEUR (celui de l'inventaire) : en noir sur la salle blanche, SAKURA, MATRICE et LA GRILLE se ressemblaient ; NITRO, MENTHE, ROSE et OR n'étaient qu'un dégradé
   if(o.cat==='trainee')return '<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,rgba(255,255,255,0),'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 45%,#fff)')+'"></i>';
   return pxi(d.ico||'aile');}
@@ -73362,6 +73545,9 @@ function bqVoitRail(L){const fam=function(k){const i=+k.slice(2);return m2Secret
 /* LE RAYON DES PEINTURES (2026-11-05, le nuancier v3) : un intertitre par RARETÉ, comme les voitures — son logo, son nom, ce qu'elle est et son prix
    (UNIES · 1 €, DÉGRADÉS · 1 €, MOTIFS · 2 €, ANIMÉES · 3 €), le compte « à toi / total » ; D'ORIGINE ouvre les communes. */
 const BQ_PEINT_SOUS={commun:'UNIES',rare:'DÉGRADÉS',epique:'MOTIFS',legendaire:'ANIMÉES'};
+const BQ_TRAINEE_SOUS={commun:'RUBANS',rare:'PARTICULES',epique:'EFFETS',legendaire:'SPECTACLE'}; /* (2026-11-05) les traînées : ce qu'est la famille (leurs prix sont en $, différents d'une carte à l'autre) */
+function bqTraineeRail(L){const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+  return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,BQ_TRAINEE_SOUS[f]?sansAcc(TR(BQ_TRAINEE_SOUS[f])):''))+bqCarteHtml(k,n,false);});}
 function bqPeintRail(L){try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */const fam=function(k){return cosmRar('peinture',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k),sous=BQ_PEINT_SOUS[f]?sansAcc(TR(BQ_PEINT_SOUS[f]))+' · '+eurTxt(PEINT_EUR[f]):'';return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,sous))+bqCarteHtml(k,n,false);});}
 function bqPxT(v){return fmtSolde(v);} /* (clarté 15/10) les prix de la boutique de Léo au format GTA de GAMEPLAY (chiffres pleins, un seul « $ ») */
@@ -73374,7 +73560,7 @@ function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sans
    · onglets : le 1er dit la CATÉGORIE (VOITURES · PEINTURES · AILES · TRAÎNÉES) — retouché, il ouvre le choix (#gBqPan .bqMenu) —, le 2e les OFFRES ;
    · la colonne de gauche, qui défile : CETTE SEMAINE — trois caisses et trois habillages tirés sur la semaine (bqSemaine). */
 /* (2026-10-15, Sacha) ACHAT : à la place de l'onglet OFFRES — TOUTES les caisses payantes (bqAchat), plus seulement les quatre de la semaine */
-const BQ_CATS=[['voiture','VOITURES','voiture'],['achat','ACHAT','panier'],['peinture','PEINTURES','pinceau'],['aile','AILES','aile'],['trainee','TRAÎNÉES','trainee'],['figure','FIGURES','rotation']]; // (2026-10-14) FIGURES : les tricks du double-tap nitro (figures.js)
+const BQ_CATS=[['voiture','VOITURES','voiture'],['achat','ACHAT','panier'],['peinture','PEINTURES','pinceau'],['aile','AILES','aile'],['trainee','TRAÎNÉES','trainee'],['figure','FIGURES','rotation']].filter(function(c){return ACHAT_EUR||c[0]!=='achat';}); /* (2026-11-05, Opus : D3) plus de rayon ACHAT (en €) */ // (2026-10-14) FIGURES : les tricks du double-tap nitro (figures.js)
 /* LES FIGURES PAR DIRECTION (2026-10-15, Sacha : « dans la boutique classe toutes les figures selon ces deux catégories » · puis « mets aussi
    une catégorie vers l'ARRIÈRE ; une même figure doit avoir marqué à quelle direction elle peut aller ») : VERS L'AVANT (pouce en avant), VERS
    L'ARRIÈRE (pouce en arrière), SUR LES CÔTÉS (pouce à gauche ou à droite : elle part de ce côté). Une figure à deux sens (rodéo, tire-bouchon,
@@ -73418,7 +73604,7 @@ function bqFigSelMaj(pan,on){if(!on||!window.FIG)return;const el=bqFigSelEl(pan)
     if(P&&P[s]!==S[s]&&f){b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');}});}
 function bqAchat(){const eu=function(i){return parseFloat(String((CAR_UNLOCK[i]||{}).eur||'').replace(',','.'))||0;},une=function(i){return CAR_UNLOCK[i]&&CAR_UNLOCK[i].une?0:1;}; // l'offre de lancement (`une`) en tête, puis de la moins chère à la plus chère
   return bqPayantes().slice().sort(function(a,b){return (une(a)-une(b))||(eu(a)-eu(b))||(a-b);});}
-function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];if(cat==='peinture')return peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;}); /* (2026-10-16) rangées par RARETÉ (voir peintOrdre) */ return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
+function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];if(cat==='peinture')return peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;});if(cat==='trainee')return traineeOrdre().map(function(j){return 'trainee:'+COSM.trainee[j].id;}); /* (2026-11-05) les traînées par rareté (voir TRAINEE_CAT) */ /* (2026-10-16) rangées par RARETÉ (voir peintOrdre) */ return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
 function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),sec9=vo&&m2Secrete(i);let ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);if(sec9){ri={c:'#ff3ec8',n1:'SECRÈTE'};nom='? ? ?';} /* (2026-10-16) une SECRÈTE : ni nom, ni rareté, ni couleur */
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.pack==='chat'){px=sansAcc(TR('PACK CHAT'));c='eur';}else if(d.eur){px=eurTxt(d.eur);c='eur';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';} /* (2026-10-18 soir) l'ARC-EN-CIEL : PACK CHAT (voir chatPackI) */
@@ -73479,7 +73665,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
       if(C9&&s){const t=sansAcc(TR(C9[1]));if(s.textContent!==t){s.textContent=t;b.setAttribute('aria-label',t);b.title=t;}if(on)une.setAttribute('data-cur',t);}}); /* (2026-11-03, Sacha : « cet écran, il est horrible ») `data-cur` : le NOM du rayon ouvert, écrit sous les carrés quand les libellés n'ont plus la place (.duo) */
     rail.classList.remove('off','habs');rail.classList.add('entre');rail.scrollTop=0;rail.scrollLeft=0; /* (2026-10-15, Sacha : « un menu plus grand pour les figures, les ailes, les peintures ») tous les rayons en GRANDES cartes, trois par rangée comme les voitures — à quatre, « D'ORIGINE » se coupait en « D'ORIGIN / E » */
-    rail.innerHTML=(cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);bqAimant(rail);
+    rail.innerHTML=(cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):cat==='trainee'?bqTraineeRail(L):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);bqAimant(rail);
     pan.classList.toggle('bqFigOn',cat==='figure');BQFS.k='';} /* (2026-10-16, Sacha) les trois figures équipées en haut du rayon FIGURES (voir bqFigSelMaj) */
   if(cat==='figure')try{bqFigSelMaj(pan,true);}catch(e){console.warn('bqFigSel',e);}
   if(cat==='figure')try{filmJoue();}catch(e){} /* (2026-10-18) les films des cartes (voir LE FILM D'UNE FIGURE) */
@@ -73499,7 +73685,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
     {let mt=nm.querySelector('.bqM2');if(!mt){mt=document.createElement('span');mt.className='bqM2';nm.appendChild(mt);} /* (2026-10-16) SE DÉBLOQUE : la mission, sa jauge — une secrète : rien (son étiquette dit déjà MISSION SECRÈTE) */
       let h9='';if(cur[0]==='v'){const iv=+cur.slice(2),m9=m2DeCaisse(iv);if(m9&&!carUnlockedVrai(iv))h9=m9.f==='secret'?'':m2DebloqueHtml(m9,true);
         if(!h9)h9=shArcHtml(iv,carUnlockedVrai(iv));} /* (2026-10-20, Sacha) le CHAT POP-TART : « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous son nom (voir shArcHtml) */
-      else{const o9=bqCos(cur),m9=o9&&o9.d&&m2DeHab(o9.cat,o9.d);if(m9&&!shopOwned(o9.cat,o9.d.id))h9=m2DebloqueHtml(m9,true);else if(o9&&o9.cat==='peinture'&&o9.d)h9=peintDefHtml(o9.d);} /* (2026-11-05) une peinture à défi : OU GAGNE-LA, sa jauge */
+      else{const o9=bqCos(cur),m9=o9&&o9.d&&m2DeHab(o9.cat,o9.d);if(m9&&!shopOwned(o9.cat,o9.d.id))h9=m2DebloqueHtml(m9,true);else if(o9&&o9.cat==='peinture'&&o9.d)h9=peintDefHtml(o9.d);else if(o9&&o9.cat==='trainee'&&o9.d&&o9.d.d)h9='<span class="tDesc">'+sansAcc(TR(o9.d.d))+'</span>';} /* (2026-11-05) une traînée : sa phrase — la caisse ne boost pas sur le plateau, c'est la carte et ces mots qui la vendent */ /* (2026-11-05) une peinture à défi : OU GAGNE-LA, sa jauge */
       mt.innerHTML=h9;mt.hidden=!h9;}
     {const L9=bqSkins(cur);sk.classList.toggle('vide',!L9.length);sk.querySelector('.bqSk').innerHTML=L9.map(function(x,n){return '<button class="bqS'+(n===0?' on':'')+'" data-s="'+x.id+'" style="--sc:'+x.c+'"><i></i><span>'+sansAcc(TR(x.n))+'</span></button>';}).join('');}
     rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur&&(!el.hasAttribute('data-dir')||GBQ.figDir==null||+el.getAttribute('data-dir')===GBQ.figDir));});
@@ -75096,6 +75282,49 @@ function garSurCaisse(e){
     return e.clientX>=r.x0-mx&&e.clientX<=r.x1+mx&&e.clientY>=r.y0-my&&e.clientY<=r.y1+my;}catch(er){return false;}
 }
 function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFrame(INV.raf);const a=$('gInvAnneau');if(a)a.classList.remove('on');}
+/* ===== UN SEUL ONGLET ÉCRIT LA SAUVEGARDE (2026-11-05, Opus : jury DIR-30) =====
+   Sur le site, deux onglets du jeu écrivaient la même cashcarSave sans verrou : le dernier qui écrivait gagnait (des caisses achetées dans
+   l'un disparaissaient en jouant dans l'autre). Chaque onglet porte un jeton (sessionStorage : il survit au rechargement de CET onglet) et
+   le pose dans localStorage.ccOngletActif à l'ouverture : c'est le DERNIER ouvert qui joue. L'événement `storage` prévient les autres, qui
+   passent en LECTURE SEULE (SAVE.flush / SAVE.mark ne font plus rien) et le disent ; recharger un onglet passif le rend actif.
+   Pas dans l'app (une seule vue). `?onglets=ancien` : sans verrou. */
+const ONGLET={id:'',passif:false};
+(function(){if(EN_APP||/[?&]onglets=ancien\b/.test(location.search))return;
+  try{ONGLET.id=sessionStorage.getItem('ccOnglet')||'';if(!ONGLET.id){ONGLET.id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);sessionStorage.setItem('ccOnglet',ONGLET.id);}
+    localStorage.setItem('ccOngletActif',ONGLET.id);}catch(e){return;}
+  addEventListener('storage',function(e){if(e.key!=='ccOngletActif'||!e.newValue||e.newValue===ONGLET.id||ONGLET.passif)return;
+    ONGLET.passif=true;try{SAVE.flush=function(){};SAVE.mark=function(){};}catch(x){}
+    try{toast(sansAcc(TR('LE JEU EST OUVERT DANS UN AUTRE ONGLET : CETTE PAGE NE SAUVEGARDE PLUS (RECHARGE POUR JOUER ICI)')));}catch(x){}});})();
+/* ===== POUCE HAUT ET VOL INVERSÉ NE FONT PLUS QU'UN (2026-11-05, Opus : jury INT-40) =====
+   Au doigt, les deux lignes des réglages se MULTIPLIAIENT (volSens × volInv) : deux interrupteurs, la même icône, le même effet, et un joueur qui
+   ne sait lequel toucher. Sur un vrai téléphone (TEL_NATIF : au doigt), VOL INVERSÉ disparaît et son choix est replié dans POUCE HAUT (même sens au doigt qu'avant). L'ordi
+   garde VOL INVERSÉ (POUCE HAUT y est déjà caché : c'est le seul réglage du clavier). `?volinv=ancien` : les deux lignes. */
+try{if(TEL_NATIF&&!/[?&]volinv=ancien\b/.test(location.search)){
+  if(SAVE.d&&SAVE.d.volInv){SAVE.d.volInv=0;SAVE.d.volH=SAVE.d.volH==='plonge'?'monte':'plonge';SAVE.flush();}
+  document.querySelectorAll('.mLigne[data-m="volinv"]').forEach(function(e9){e9.style.display='none';});}}catch(e){}
+/* ===== LA FENÊTRE À CHAMP AU-DESSUS DU CLAVIER (2026-11-05, Opus : jury INT-08) =====
+   #modale (ENTRER UN CODE, MA SAUVEGARDE) est une feuille collée en bas : sur iPhone le clavier la recouvrait, VALIDER et ANNULER passaient sous
+   les touches. Même recette que la plaque (plqClavier) : tant que son champ a le focus et que la partie visible a perdu plus de 90 px, la
+   fenêtre se pose sur la partie visible (visualViewport). Sur l'ordi rien ne rétrécit : rien ne change. `?modclavier=0` : sans. */
+(function(){const vv=window.visualViewport;if(!vv||/[?&]modclavier=0\b/.test(location.search))return;
+  const pose=function(){const md=document.getElementById('modale');if(!md)return;const ch=md.querySelector('input,textarea');
+    const h0=Math.max(innerHeight||0,document.documentElement.clientHeight||0),perdu=h0-vv.height;
+    const veut=md.classList.contains('on')&&!!ch&&document.activeElement===ch&&perdu>90;
+    if(veut){md.style.setProperty('top',Math.round(vv.offsetTop)+'px','important');md.style.setProperty('height',Math.round(vv.height)+'px','important');
+      md.style.setProperty('bottom','auto','important');md.classList.add('clavier');}
+    else if(md.classList.contains('clavier')){md.style.removeProperty('top');md.style.removeProperty('height');md.style.removeProperty('bottom');md.classList.remove('clavier');}};
+  vv.addEventListener('resize',pose);vv.addEventListener('scroll',pose);
+  document.addEventListener('focusin',function(){setTimeout(pose,80);});document.addEventListener('focusout',function(){setTimeout(pose,150);});})();
+window.dbgOnglet=function(){let a='';try{a=localStorage.getItem('ccOngletActif')||'';}catch(e){}return {id:ONGLET.id,actif:a,passif:ONGLET.passif};};
+Object.assign(I18N,{'LE JEU EST OUVERT DANS UN AUTRE ONGLET : CETTE PAGE NE SAUVEGARDE PLUS (RECHARGE POUR JOUER ICI)':'THE GAME IS OPEN IN ANOTHER TAB: THIS PAGE NO LONGER SAVES (RELOAD TO PLAY HERE)'});
+/* ===== LA CARTE DE LA CAISSE MÈNE À LA BOUTIQUE (2026-11-05, Opus : jury DIR-36) =====
+   #gCard (le nom et « 1 / 51 ») promettait une liste mais ne réagissait pas. Toucher la carte ouvre la BOUTIQUE sur cette caisse (rayon VOITURES).
+   `?carte=ancien` ne sert pas ici (`?carte=` choisit une map) : `?gcard=ancien` = la carte inerte. */
+try{if(!/[?&]gcard=ancien\b/.test(location.search)){const c9=$('gCard');if(c9){c9.style.cursor='pointer';
+  c9.addEventListener('click',function(e){if(!garageOn||GAR.go||ecranWipe._on)return;if(e.target&&e.target.closest&&e.target.closest('button,a,input,.pbtn'))return;
+    let m9='';try{m9=gModeM();}catch(x){}if(m9==='shop'||m9==='tous')return;
+    uiPop(c9);uiClic('nav');const i9=garageI;try{gModeVa('shop');}catch(x){return;}
+    setTimeout(function(){try{GBQ.cat='voiture';GBQ.ong='cat';bqEssaie('v:'+i9);}catch(x){}},60);});}}}catch(e){}
 /* ===== LE PREMIER BURN-OUT, REVENU (2026-10-08, Léo : « reviens sur le premier burn-out, celui où on ne pouvait pas faire de donuts ;
    reviens sur celui-là et laisse-moi juste faire des donuts avec lui aussi ; reviens sur les premiers petits carrés transparents ; si tu y
    arrives, intègre quelques cubes blancs comme tu as fait là ; remets-le sur le main — la fumée ET le mouvement, les deux »). Ce bloc est
@@ -75846,7 +76075,7 @@ function gmSuit(){return gmSuitS();} // chaque image : le panneau MISSIONS se re
 function gmHoloPlace(land){ // (2026-09-30) les hologrammes suivent l'ancre de l'orientation (voir `pp`)
   for(const h of GMIS.holo){const q=(!land&&h.a.pp)||h.a.p;h.beam.scale.set(.5,q[1]+.5,1);h.beam.position.set(q[0],(q[1]+.5)/2,q[2]);if(h.ring)h.ring.position.set(q[0],.05,q[2]);}}
 function gmPlaceL(W,H){ // couché : DEUX colonnes — la carte de la série à gauche sous le titre, la liste à droite au-dessus de JOUER (le CSS les pose : voir « L'ÉCRAN MISSIONS ÉPURÉ ») ; debout : UN panneau entre le titre et la barre du bas
-  const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),gm=$('gMis'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=W>H*1.25;
+  const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),gm=$('gMis'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=COUCHE_ANCIEN?W>H*1.25:estCouche(); /* (2026-11-05, Opus : INT-26) */
   const bt=rb&&rb.height?rb.top:H-90,g0=rh&&rh.width?rh.left:16,A=L.querySelector('.glA'),Bk=L.querySelector('.glB'),px=function(v){return Math.round(v)+'px';};
   L.classList.toggle('land',land);if(gm)gm.classList.toggle('m2land',land);
   if(L.classList.contains('mcE')){L.style.left=L.style.top=L.style.right=L.style.maxHeight='';L.style.setProperty('--mcBas',px(rb&&rb.height?H-rb.top+10:96));L.style.setProperty('--mcJh',px(rb&&rb.height?H-rb.top:70));return;} /* (2026-11-03, refonte) la page MISSIONS se pose seule : seulement le bas (JOUER) à éviter */
@@ -75937,7 +76166,7 @@ function gInvSuite(cat){clearTimeout(gInvSuite.t);gInvSuite.t=0;if(!INV_ENCHAINE
 /* ÉQUIPER AU TOUCHER (2026-10-11, Léo : « quand on clique sur une voiture, ça l'équipe ; donc enlève le bouton ÉQUIPER ») : toucher une caisse
    ou un habillage À TOI (vraiment : pas seulement ouvert pour le TEST) l'équipe tout de suite ; le bouton ÉQUIPER ne se montre plus que pour
    ACHETER (voir « LE COIN DU GARAGE » : #gEquip:not(.achat) masqué) ; un achat équipe aussi. */
-function garEquipeCaisse(i){const eq=SAVE.d.equipped|0;if(!(i>=0)||!CARS[i]||!(carUnlockedVrai(i)||i===eq))return false;
+function garEquipeCaisse(i){const eq=equippedCar(); /* (2026-11-05, Opus : ECO-15) */if(!(i>=0)||!CARS[i]||!(carUnlockedVrai(i)||i===eq))return false;
   if(i!==eq){SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;try{if(SONV2){sfx('ui.equipe');GSON9=true;}}catch(e){}}return true;}
 /* DÉSÉLECTIONNER UNE PEINTURE (2026-10-26, Léo : « quand on appuie sur une peinture sélectionnée, ça la désélectionne et laisse la couleur originale de l'ouverture ») :
    retoucher la peinture ÉQUIPÉE la retire — la caisse reprend sa teinte d'usine (la fiche D'ORIGINE, qui devient l'équipée). */
@@ -79050,7 +79279,7 @@ function goImmersive(){
    `?intro=ancien` = l'intro d'avant (init.js) · `?intro=muet` = sans aucun son · « réduire les animations » = sans secousse ni
    éclats (le voile s'efface) · quelqu'un qui a déjà fini la leçon (SAVE.d.tuto) voit le même film en 20 % plus court · un 2e toucher passe. */
 (function(){
-  try{if(/[?&]lecon=non\b/.test(location.search)&&SAVE&&SAVE.d)SAVE.d.tuto=1;}catch(e){} /* (réglage de TEST, 2026-11-02) `?lecon=non` : la leçon est comptée comme faite (SAVE.d.tuto) : le menu joue alors le lobby lié (le morceau du niveau, en ambiance), pas « Premier matin » */
+  try{if(qDev(/[?&]lecon=non\b/)&&SAVE&&SAVE.d)SAVE.d.tuto=1;}catch(e){} /* (2026-11-05, Opus : HYG-10) en DEV seulement : sur le site il écrivait la sauvegarde (INT-45) */ /* (réglage de TEST, 2026-11-02) `?lecon=non` : la leçon est comptée comme faite (SAVE.d.tuto) : le menu joue alors le lobby lié (le morceau du niveau, en ambiance), pas « Premier matin » */
   if(!INTRO_NEUVE)return;
   const sp=document.getElementById('splash'),cv=document.getElementById('fxCv');
   if(!sp||!cv)return;
@@ -79248,6 +79477,7 @@ function goImmersive(){
   }
   /* 10. BOULE (2026-10-23 soir) : seulement la sphère de « 1.61 » ; elle tourne lentement tant que ça charge, s'arrête quand c'est prêt ; l'appui la fait exploser en CASH CAR (dActe3), puis le voile fond vers le jeu. */
   let pasSon=-1;
+  const GLISSE_ANCIEN=/[?&]glisse=ancien\b/.test(location.search);
   let bYaw=0,bPit=0,bVy=0,bVp=0,bDown=false,bMove=0,bLx=0,bLy=0,bLt=0,bTP=null,bGlisse=false; /* la boule se tourne au doigt : angle et pente ajoutés, vitesse (inertie), le doigt est-il posé, la distance parcourue, un glissement vient-il d'avoir lieu */
   function boulePointeur(){
     if(!BOULE)return;
@@ -79262,7 +79492,7 @@ function goImmersive(){
       const dx=ev.clientX-bLx,dy=ev.clientY-bLy,now=performance.now(),dtt=Math.max(.008,(now-bLt)/1000);
       bMove+=Math.abs(dx)+Math.abs(dy);bYaw+=dx*.012;bPit=borne(bPit+dy*.008,-1.1,1.1);bVy=borne(dx*.012/dtt,-8,8);bVp=borne(dy*.008/dtt,-5,5);bLx=ev.clientX;bLy=ev.clientY;bLt=now;
     });
-    const lache=function(){if(!bDown)return;bDown=false;if(bMove>12){bGlisse=true;setTimeout(function(){bGlisse=false;},400);}if(performance.now()-bLt>120){bVy=0;bVp=0;}};
+    const lache=function(){if(!bDown)return;bDown=false;if(bMove>(GLISSE_ANCIEN?12:32)){bGlisse=true; /* (2026-11-05, Opus : jury DIR-45) un doigt qui TOUCHE bouge de quelques pixels : à 12 px, 3 touchers sur 4 passaient pour un glissement (le film ne partait pas) ; 32 px — `?glisse=ancien` : 12 */setTimeout(function(){bGlisse=false;},400);}if(performance.now()-bLt>120){bVy=0;bVp=0;}};
     addEventListener('pointerup',lache);addEventListener('pointercancel',lache);
   }
   /* LA GRAINE (2026-11-02, Léo : « l'écran noir au début donne l'impression que ça bug ; trouve un truc à mettre pendant le chargement ») : un point d'or au centre de la future boule, qui respire, et des ondes
@@ -79403,6 +79633,13 @@ function goImmersive(){
       c.restore();}
     c.restore();
   }
+  /* ===== « TOUCHE » SOUS LA BOULE (2026-11-05, Opus : jury INT-06 / DIR-45) =====
+     L'intro BOULE attendait son toucher sans jamais le dire (dIndice ne vit que dans le film du logo) : un testeur qui ne touche pas voit une
+     planète qui tourne, sans fin. 2 s après que tout est prêt (pretT), le même « TOUCHE » discret que le logo, sous la boule. `?touche=ancien` : sans. */
+  const TOUCHE_BOULE=!/[?&]touche=ancien\b/.test(location.search);
+  function dToucheBoule(c,u){const a=lisse(2,2.8,u)*(.45+.25*Math.sin(u*3.1));if(a<=.01)return;
+    c.save();c.globalAlpha=a;c.fillStyle='#fff1cf';c.textAlign='center';c.textBaseline='middle';c.font=Math.max(9,Math.round(11*ku))+'px "Press Start 2P",monospace';
+    c.fillText(LANG==='fr'?'TOUCHE':'TAP',W/2,Math.min(H-24*ku,H/2+Math.min(W,H)*.40));c.restore();}
   function dIndice(c,t){ /* l'invitation, très discrète : le logo attend qu'on le touche */
     const a=lisse(0,.8,t-TL.slam-1.2)*(.45+.25*Math.sin((t-TL.slam)*3.1));if(a<=.01)return;
     c.save();c.globalAlpha=a;c.fillStyle='#fff1cf';c.textAlign='center';c.textBaseline='middle';c.font=Math.max(9,Math.round(11*ku))+'px "Press Start 2P",monospace';
@@ -79836,7 +80073,7 @@ function goImmersive(){
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
     g.fillStyle='#000';g.fillRect(0,0,W,H);
-    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());chCl(1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
+    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());chCl(1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT===null&&pretT!==null&&TOUCHE_BOULE)dToucheBoule(g,t-pretT);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
     let tl=t,id=forceId||(LABELS[LAB_ID]?LAB_ID:'neon'),idx=0;
     if(DEMO){const T=PERIODE_DEMO(),n=ORDRE_LABELS.length;idx=Math.floor(Math.max(0,t)/T);tl=Math.max(0,t)-idx*T;id=forceId||ORDRE_LABELS[idx%n];} /* la démo : les labels s'enchaînent en boucle */
     if(tl<TL.noir){const e=ETS[id]||(ETS[id]=LABELS[id].geo());LABELS[id].dessin(g,tl,e);}else if(!DEMO&&t>=TL.slam)dActe3(g,t,0);;
@@ -80748,7 +80985,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       soldeEcrit($t('mBankV'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop');
-      if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);} // tout ce qui s'achète en argent du jeu est au GARAGE
+      if(bg){if(/[?&]pastille=ancien\b/.test(location.search))bg.textContent=nG||'';else{const h9=nG>0?pxi('panier'):'';if(bg._h9!==h9){bg._h9=h9;bg.innerHTML=h9;}bg.setAttribute('aria-label',nG>0?(LANG==='en'?nG+' to buy':nG+' à ta portée'):'');}bg.classList.toggle('on',nG>0);} /* (2026-11-05, Opus : jury DIR-26) un « 19 » nu ne disait rien : un panier (il y a de quoi acheter), le nombre pour VoiceOver ; `?pastille=ancien` = le nombre */ // tout ce qui s'achète en argent du jeu est au GARAGE
       if(bs){bs.textContent=sansAcc(TR('NOUVEAU'));bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
     }else if(mCur==='modes'){
       const set9=function(id,sid,on){const c=$t(id),s=$t(sid);
