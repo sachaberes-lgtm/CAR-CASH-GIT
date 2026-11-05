@@ -46620,7 +46620,7 @@ function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for
     ['piece','FORTUNE MAX',fmtC(Math.max(d.bankMax||0,d.bank||0)),'cash'],
     ['eclair','VITESSE MAX',(ex.kmh|0)+' KM/H',''],
     ['etoile','AURA',String(Math.round(d.aura||0)),'aura'],
-    ['trophee','RANG',rang?sansAcc(rang):'—','aura'],
+    ...(auraSansNom()?[]:[['trophee','RANG',rang?sansAcc(rang):'—','aura']]), /* (2026-11-05, finition : « plus de surnom de rang, juste le chiffre » — la carte RANG écrivait encore ANONYME ; sans elle, 15 cartes = 5 rangées de 3 pleines, SERIE ne traîne plus seule dessous) */
     ['etoile','MEILLEURE AURA',String(Math.round(d.auraMax||0)),'aura'],
     ['rotation','MEILLEUR COMBO',d.figRec?'×'+(+d.figRec).toFixed(d.figRec%1?1:0):'—',''],
     ['voiture','CAISSES',own+' / '+tot,''],
@@ -74905,11 +74905,11 @@ for(const b9 of document.querySelectorAll('#gOutils [data-go],#gShopBas'))b9.add
   const vers=b9.getAttribute('data-go');window.__setGar=vers==='set'; /* (2026-10-19, Sacha) le ⚙ du garage (voir <style id="garageHaut">) : le ◀ des RÉGLAGES rouvre le garage (le routeur de la coque) */
   ecranWipe(function(){window.__mRetour=vers;closeGarage();});});
 /* LE ⚙ ET L'ŒIL À CÔTÉ DU TROPHÉE (2026-10-19, voir <style id="garageHaut">) : plqGarage recale le trophée en miroir du compte ; on lit sa place
-   (4 Hz, garage ouvert) et on la donne au CSS — --ghTx : du bord droit de l'écran au bord droit du ⚙ (8 px avant le trophée), --ghTy : son
+   (4 Hz, garage ouvert) et on la donne au CSS — --ghTx : du bord droit de l'écran au bord GAUCHE du trophée (le ⚙ ajoute lui-même ses 8 px : (2026-11-05, finition) il y avait un « +8 » de trop ici — 16 px entre le trophée et le ⚙, 8 entre le ⚙ et l'œil), --ghTy : son
    milieu. Jamais vu : les valeurs par défaut de la feuille. Écrit seulement si ça change. */
 function ghPlace(){if(!garageOn||!gEl||document.documentElement.classList.contains('garLeo'))return;const p=document.getElementById('gProf');
   if(!p||!p.classList.contains('on'))return; /* trophée caché (l'œil allumé…) : on garde sa dernière place, l'œil ne saute pas */
-  const b=p.getBoundingClientRect();if(b.width<=8||b.bottom<=0)return;const x=Math.round(innerWidth-b.left+8)+'px',y=Math.round(b.top+b.height/2)+'px';
+  const b=p.getBoundingClientRect();if(b.width<=8||b.bottom<=0)return;const x=Math.round(innerWidth-b.left)+'px',y=Math.round(b.top+b.height/2)+'px';
   if(gEl._ghX!==x){gEl._ghX=x;gEl.style.setProperty('--ghTx',x);}if(gEl._ghY!==y){gEl._ghY=y;gEl.style.setProperty('--ghTy',y);}}
 setInterval(ghPlace,250);
 function gActSync(){const a=$('gAct');if(!a)return;const bt=$('gEquip'),row=$('gBuyRow'),vu=function(x){return !!x&&x.style.display!=='none';};

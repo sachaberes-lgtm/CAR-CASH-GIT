@@ -336,7 +336,7 @@ function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for
     ['piece','FORTUNE MAX',fmtC(Math.max(d.bankMax||0,d.bank||0)),'cash'],
     ['eclair','VITESSE MAX',(ex.kmh|0)+' KM/H',''],
     ['etoile','AURA',String(Math.round(d.aura||0)),'aura'],
-    ['trophee','RANG',rang?sansAcc(rang):'—','aura'],
+    ...(auraSansNom()?[]:[['trophee','RANG',rang?sansAcc(rang):'—','aura']]), /* (2026-11-05, finition : « plus de surnom de rang, juste le chiffre » — la carte RANG écrivait encore ANONYME ; sans elle, 15 cartes = 5 rangées de 3 pleines, SERIE ne traîne plus seule dessous) */
     ['etoile','MEILLEURE AURA',String(Math.round(d.auraMax||0)),'aura'],
     ['rotation','MEILLEUR COMBO',d.figRec?'×'+(+d.figRec).toFixed(d.figRec%1?1:0):'—',''],
     ['voiture','CAISSES',own+' / '+tot,''],
