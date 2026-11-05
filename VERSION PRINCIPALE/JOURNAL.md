@@ -4,6 +4,14 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+## LES SONS À LA DEMANDE (2026-11-05, v1176 — Sacha, après le bilan « LA MÉMOIRE DE L'ORDI » : « Sons à la demande »)
+- La banque entière décodée pesait ~130 Mo de PCM dans le processus de rendu (229 sons, 384 fichiers avec leurs bases d'octave), pour une partie
+  qui n'en joue qu'une fraction (forêt, banquise, ailes, richesse, machine : 4,3 des 6,9 Mo de MP3 dorment). `sfx.js` (v9) : au chargement, seuls
+  les sons `pre:1` et l'interface `ui.*` sont décodés (la 1re moitié publiée, 0,8 Mo) ; un son demandé par `play()` et pas encore prêt est décodé
+  EN PRIORITÉ et part s'il est prêt dans les 120 ms (en retard de quelques ms ; `tardifs`), sinon il se tait comme avant (`perdus`) ; son base64
+  est gardé ; un son muet depuis 60 s sans voix vivante rend son tampon (`evinces`) et se refera. `?sons=tout` = tout décoder au chargement et
+  jeter le base64, comme avant. `CCSON.etat()` : residents, mo, tardifs, perdus, evinces. Téléphone : même logique (rien ne dépend d'ALLEGE).
+- MESURÉ (outils/banc-pc `--son=1`, map NUAGES, 30 s de course au pilote auto, effets allumés dans un Chrome muet) : PCM résident 15,5 Mo au menu, 19 Mo après 40 s de course (141 → 165 sons décodés sur 384 ; tout décodé ≈ 45 Mo), 27 sons partis en retard de moins de 120 ms, 0 perdu, 4 évincés ; partitions du rendu en course 530 → 420 Mo (A/B, bruit ±50), Chrome 1 760-1 900 → 1 680-1 770 Mo.
 ## LA 4K À LA MESURE DE LA MÉMOIRE (2026-11-05, v1173 — Sacha, après le bilan « LA MÉMOIRE DE L'ORDI » : « Résolution 4K »)
 - Sur un écran de CLASSE 4K (≥ 4,5 Mpx vus par le jeu dans la colonne : 4K à 100 ou 150 %), les budgets de pixels de l'ordi baissent — course 3,2 → 2,0 Mpx
   (toile 2631×1216 → 2080×961, 1,7 pixel d'écran par pixel 3D), vitrine du menu 4,2 → 2,6 Mpx (3014×1393 → 2372×1096) ; `palier-appareil.js`, PC_4K.
