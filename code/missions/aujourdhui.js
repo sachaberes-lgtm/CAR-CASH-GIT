@@ -86,14 +86,47 @@ function djTick(dt){ /* m2Tick (chaque image de course, missions allumées) : le
     try{hap([12,40,18]);}catch(e){}}}
 function djReste(){const t=new Date(),m=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1);return Math.max(0,m-t);} /* ms jusqu'à minuit (l'appareil) */
 
+/* ===== L'ÉCRAN DES MISSIONS À LA MORT (2026-11-05, Sacha : « prends le meilleur écran de mission que t'avais fait, mets-le quand on meurt, la 1re fois, et chaque jour
+   quand on meurt la 1re fois ; enlève-le de la mission ») =====
+   Le même portail que l'onglet MISSIONS (mcVedette, inchangé : l'anneau qui s'arme, le canon, la silhouette qui garde son secret) est montré SEUL, sur la scène et
+   l'œilleton de l'écran de série (.swScene, .swAnneau : mêmes matières). Il s'ouvre AVANT lui, au même guetteur (le jour versé : J.fin.s) ; CONTINUER (ou n'importe quel
+   toucher) l'enchaîne tout de suite sur l'écran de série (mvwFerme appelle serieWOuvre). Dans l'onglet MISSIONS, qui ne montre plus cette vedette : toutes les missions
+   repassent en liste normale (voir m2Vue.listeTab, ecran-revelation.js) — on peut toujours les suivre et les récupérer là. */
+const MVW={on:false,vu:null,t0:0,id:0};
+Object.assign(I18N,{'TA PROCHAINE RÉCOMPENSE':'YOUR NEXT REWARD'});
+function mvwOuvre(fin){ // fin = ce que jourCommit a versé (J.fin) ; sans paramètre : la dernière fin de partie
+  const f=fin||JOUR.fin;if(!f||!f.s||MVW.on)return false;
+  MVW.on=true;MVW.vu=f;const id=++MVW.id;
+  let el=document.getElementById('mvW');if(!el){el=document.createElement('div');el.id='mvW';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);}
+  el.setAttribute('aria-label',sansAcc(TR('MISSIONS')));
+  const s=m2Etat(),L=m2Lignes(),V=m2Vue(L,s,false); // vu=false : l'anneau s'arme, comme à l'arrivée sur l'onglet MISSIONS
+  el.innerHTML='<div class="swScene"></div><i class="swAnneau"></i>'
+    +'<div class="mvBloc"><small class="mvKick">'+sansAcc(TR('TA PROCHAINE RÉCOMPENSE'))+'</small>'
+    +'<div class="mcHero">'+V.ved+'</div>'
+    +'<div class="pbtn pb-gold mvBt" role="button" tabindex="0"><span>'+sansAcc(TR('CONTINUER'))+'</span></div></div>';
+  el.className='';void el.offsetWidth;el.classList.add('on');
+  try{if(SONV2)sfx('ui.volet');}catch(e){}hap(10);
+  const ems=el.querySelectorAll('.mcJ i[data-w]'),rgs=el.querySelectorAll('.mcPo .pr[data-o]'),hds=el.querySelectorAll('.mcPo .hd[data-r]');
+  setTimeout(function(){if(!MVW.on||MVW.id!==id)return;requestAnimationFrame(function(){
+    ems.forEach(function(e){e.style.width=e.getAttribute('data-w')+'%';});rgs.forEach(function(e){e.style.strokeDashoffset=e.getAttribute('data-o');});
+    hds.forEach(function(e){e.style.transform='rotate('+e.getAttribute('data-r')+'deg)';});});},REDUCED_MOTION?0:700);
+  return true;}
+function mvwFerme(){const el=document.getElementById('mvW');if(!MVW.on||!el)return;
+  try{if(SONV2)sfx('ui.tampon');else uiClic('ok');}catch(e){}hap(10);
+  el.classList.add('fin');MVW.on=false;const f=MVW.vu;
+  setTimeout(function(){if(!MVW.on){el.className='';el.innerHTML='';}},REDUCED_MOTION?0:420);
+  serieWOuvre(f);} // enchaîne tout de suite sur l'écran de série (qui se referme tout seul si le jour n'a rien d'autre à montrer)
+document.addEventListener('click',function(e){const el=document.getElementById('mvW');if(!el||!MVW.on||!el.contains(e.target))return;e.stopPropagation();e.preventDefault();mvwFerme();},true);
+document.addEventListener('keydown',function(e){if(!MVW.on)return;if(e.code==='Enter'||e.code==='Space'||e.code==='Escape'){e.preventDefault();e.stopPropagation();mvwFerme();}},true);
 /* ===== L'ÉCRAN DE SÉRIE (2026-11-03, Sacha : « la série rapporte un peu plus d'argent chaque jour, puis une voiture épique à la fin ; enlève-la de l'écran missions, mets-la
    dans un écran en plus quand tu meurs, ta 1re partie de la journée, stylé et bien travaillé ») =====
    La série de sept jours (SERIE7) ne vit plus dans MISSIONS. Le jour où la 1re partie COMPTÉE est finie (jourCommit a versé la case : J.fin.s), l'écran de mort arrive, puis
-   1 s plus tard cet écran par-dessus (z-index 96) : l'œilleton s'ouvre, sept marches montent (150 → 1 300 $), la case du jour se remplit d'or et le gain s'égrène ; au 7e jour
-   la marche est un PORTAIL vert d'où sort la voiture épique gagnée (silhouette qui se remplit, nom, rareté). Toucher avant la fin = aller au bout ; CONTINUER ferme.
+   1 s plus tard L'ÉCRAN DES MISSIONS CI-DESSUS, qui enchaîne sur cet écran (z-index 96) : l'œilleton s'ouvre, sept marches montent (150 → 1 300 $), la case du jour se
+   remplit d'or et le gain s'égrène ; au 7e jour la marche est un PORTAIL vert d'où sort la voiture épique gagnée (silhouette qui se remplit, nom, rareté). Toucher avant
+   la fin = aller au bout ; CONTINUER ferme.
    Il attend l'offre de seconde chance, la révélation d'une secrète et la machine FINAL SPIN (qui, elle, l'attend). Console : dbgSerie('ecran', n) l'ouvre sur le jour n sans rien verser. */
 const SERIEW={on:false,vu:null,t0:0,id:0};
-function serieWAttend(){try{const f=JOUR.fin;return !!(SERIEW.on||(f&&f.s&&SERIEW.vu!==f&&started&&gameOver));}catch(e){return false;}}
+function serieWAttend(){try{const f=JOUR.fin;return !!(SERIEW.on||MVW.on||(f&&f.s&&(SERIEW.vu!==f||MVW.vu!==f)&&started&&gameOver));}catch(e){return false;}}
 function serieWOuvre(fin){ // fin = ce que jourCommit a versé ({n, casse, s:{c,cash,jeton,car}}) ; sans paramètre : la dernière fin de partie
   const f=fin||JOUR.fin;if(!f||!f.s||SERIEW.on)return false;
   SERIEW.on=true;SERIEW.vu=f;const id=++SERIEW.id,o=f.s,c=o.c||serieCase(f.n),car=o.car>=0?o.car:-1,L=serieLot(c);
@@ -140,10 +173,10 @@ function serieWFerme(){const el=document.getElementById('serieW');if(!SERIEW.on|
   el.classList.add('fin');SERIEW.on=false;setTimeout(function(){if(!SERIEW.on){el.className='';el.innerHTML='';}},REDUCED_MOTION?0:420);}
 document.addEventListener('click',function(e){const el=document.getElementById('serieW');if(!el||!SERIEW.on||!el.contains(e.target))return;e.stopPropagation();e.preventDefault();serieWFerme();},true);
 document.addEventListener('keydown',function(e){if(!SERIEW.on)return;if(e.code==='Enter'||e.code==='Space'||e.code==='Escape'){e.preventDefault();e.stopPropagation();serieWFerme();}},true);
-setInterval(function(){try{ // le guetteur : l'écran de mort est là, la série du jour a été versée → 0,9 s plus tard, l'écran de série
-  const f=JOUR.fin;if(SERIEW.on||!f||!f.s||SERIEW.vu===f){SERIEW.t0=0;return;}
-  if(!(started&&gameOver)||garageOn||SANDBOX||!document.querySelector('#mDead.on')||M2REV.on||ecranWipe._on||(typeof chanceAttend==='function'&&chanceAttend())||(typeof SPIN!=='undefined'&&SPIN.ouvert)){SERIEW.t0=0;return;}
-  if(!SERIEW.t0)SERIEW.t0=performance.now();else if(performance.now()-SERIEW.t0>900){SERIEW.t0=0;serieWOuvre();}
+setInterval(function(){try{ // le guetteur : l'écran de mort est là, la série du jour a été versée → 0,9 s plus tard, l'écran des missions, qui enchaîne sur celui de série
+  const f=JOUR.fin;if(MVW.on||SERIEW.on||!f||!f.s||MVW.vu===f){MVW.t0=0;return;}
+  if(!(started&&gameOver)||garageOn||SANDBOX||!document.querySelector('#mDead.on')||M2REV.on||ecranWipe._on||(typeof chanceAttend==='function'&&chanceAttend())||(typeof SPIN!=='undefined'&&SPIN.ouvert)){MVW.t0=0;return;}
+  if(!MVW.t0)MVW.t0=performance.now();else if(performance.now()-MVW.t0>900){MVW.t0=0;mvwOuvre(f);}
 }catch(e){}},200);
 Object.assign(I18N,{'SÉRIE DE CONNEXION':'LOGIN STREAK','REVIENS DEMAIN':'COME BACK TOMORROW','VOITURE ÉPIQUE':'EPIC CAR'});
 Object.assign(I18N,{'DÉFI DU JOUR':'DAILY CHALLENGE','DÉFI DU JOUR RÉUSSI':'DAILY CHALLENGE DONE','JETON':'TOKEN','JETONS':'TOKENS','RÉUSSI':'DONE','MEILLEUR ESSAI':'BEST TRY',
@@ -156,6 +189,7 @@ Object.assign(I18N,{'DÉFI DU JOUR':'DAILY CHALLENGE','DÉFI DU JOUR RÉUSSI':'D
   'La nuit entière sur ta carrosserie, une semaine de plus.':'The whole night on your body panels, one more week.'});
 window.dbgSerie=function(a,n){ /* (banc) l'état du calendrier · ('jour',n) : la série à n jours, prise HIER (la case suivante est à jouer) · ('pris',n) : prise aujourd'hui */
   if(a==='ecran'){const k=Math.max(1,n|0),L=serieLot(serieCase(k));return serieWOuvre({n:k,casse:false,s:{c:serieCase(k),cash:L.cash|0,jeton:0,exclu:'',car:L.voiture?spinEpique():-1}});} /* (2026-11-03) l'écran de série sur le jour n, sans rien verser */
+  if(a==='mission'){const k=Math.max(1,n|0),L=serieLot(serieCase(k));return mvwOuvre({n:k,casse:false,s:{c:serieCase(k),cash:L.cash|0,jeton:0,exclu:'',car:L.voiture?spinEpique():-1}});} /* (2026-11-05) l'écran des missions seul (puis la série), sans rien verser */
   if(a==='jour'||a==='pris'){const t=new Date();if(a==='jour')t.setDate(t.getDate()-1);const y=t.getFullYear(),m=t.getMonth()+1,d=t.getDate();
     SAVE.d.jour={d:y+'-'+(m<10?'0':'')+m+'-'+(d<10?'0':'')+d,n:Math.max(0,n|0)};SAVE.flush();}
   const S=serieVue();return {actif:SERIE7.on,vue:S,lotDuJour:S?serieLot(S.c):null,demain:S?serieLot(serieCase(S.c+1)):null,exclusive:serieExclu(),jetons:SAVE.d.spinJ|0};};

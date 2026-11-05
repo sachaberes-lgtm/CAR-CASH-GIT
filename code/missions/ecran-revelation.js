@@ -140,7 +140,7 @@ function mcLigne(x,k,s){const m=x.m,pret=x.rg===0,ok=x.ok&&!pret,R=mcRec(m),w=mc
   return '<div class="mcL'+(pret?' pret':'')+(ok?' ok':'')+(hab?' hab':'')+'" data-m2="'+m.id+'" role="button" tabindex="0" style="--i:'+Math.min(k,12)+(hab?';--rc:'+R.c:'')+'">'
     +'<div class="mcLt"><b>'+(m.f==='secret'?sansAcc(TR('SECRÈTE'))+' · ':'')+sansAcc(m2Txt(m))+'</b><span class="mbR'+(m2CarVoir(m)&&!pret?' voir':'')+'">'+rec+'</span></div>'+bas+'</div>';}
 function mcLignePal(d){return '<div class="mcL ok" data-pal="'+d.id+'"><div class="mcLt"><b>'+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><span class="mbR voir">'+objFig({cat:'peinture',i:COSM.peinture.indexOf(d)})+'</span></div><small class="mcFait">'+sansAcc(TR('SECRÈTE'))+' · '+sansAcc(TR('RÉUSSIE'))+'</small></div>';}
-function m2Vue(L,s,vu){ // → {pal : le palier (coin haut droit) · ved : la vedette · suite : les lignes et le palier suivant · n : missions à l'écran}
+function m2Vue(L,s,vu){ // → {pal : le palier (coin haut droit) · ved : la vedette (l'écran de mort seulement, depuis le 2026-11-05) · listeTab : TOUTES les lignes de l'onglet MISSIONS, palier suivant compris · n : missions à l'écran}
   const P=m2Paliers(s),T=P.T[P.cur],pal=function(x){return m2PalierDe(x.m.id);};
   const cand=L.filter(function(x){return x.rg===0||((x.rg===1||x.rg===2)&&x.m.f!=='secret'&&pal(x)<=P.cur);});
   cand.sort(function(a,b){const ra=a.rg===0?0:1,rb=b.rg===0?0:1;return ra-rb||(ra?pal(a)-pal(b)||b.p-a.p:0);});
@@ -149,14 +149,13 @@ function m2Vue(L,s,vu){ // → {pal : le palier (coin haut droit) · ved : la ve
   if(!ved){let b=-1;for(const x of vis)if(x.m.r&&x.m.r.car&&x.p>b){b=x.p;ved=x;}}
   if(!ved)for(const x of vis)if(!ved||x.p>ved.p)ved=x;
   let sq='';for(let i=0;i<T.n;i++)sq+='<s'+(i<T.ok?' class="o"':'')+'></s>';
-  let suite='',k=0;
-  const autres=vis.filter(function(x){return x!==ved;});
-  for(const x of autres)suite+=mcLigne(x,k++,s);
+  let listeTab='',k=0; /* (2026-11-05, Sacha : « enlève le portail de la mission ») plus de vedette à part dans l'onglet : TOUTES les lignes, dont celle qui joue le rôle de vedette à la mort */
+  for(const x of vis)listeTab+=mcLigne(x,k++,s);
   if(vis.length&&P.cur<M2_PAL.length-1){const reste=Math.max(0,P.need-T.ok);
-    suite+='<div class="mcNx" aria-hidden="true"><small>'+sansAcc(TR('PALIER'))+' '+(P.cur+2)+'</small><span><i style="width:30%"></i><i style="width:46%"></i><i style="width:18%"></i></span>'
+    listeTab+='<div class="mcNx" aria-hidden="true"><small>'+sansAcc(TR('PALIER'))+' '+(P.cur+2)+'</small><span><i style="width:30%"></i><i style="width:46%"></i><i style="width:18%"></i></span>'
       +'<small>'+(reste?sansAcc(TR('ENCORE'))+' '+reste:sansAcc(TR('CLASSIFIÉ')))+'</small></div>';}
-  return {palier:P.cur+1,sq:sq,ved:ved?mcVedette(ved,s,!vu):'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>',suite:suite,n:vis.length};}
-function m2Render(vu){ /* (2026-11-03, refonte) la page MISSIONS entière : voir « L'ÉCRAN MISSIONS — REFONTE » */
+  return {palier:P.cur+1,sq:sq,ved:ved?mcVedette(ved,s,!vu):'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>',listeTab:listeTab,n:vis.length};}
+function m2Render(vu){ /* (2026-11-03, refonte · 2026-11-05, plus de vedette : voir « L'ÉCRAN DES MISSIONS À LA MORT », aujourdhui.js) la page MISSIONS entière */
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';
   const old=$('gmListe'),d0=old&&old.querySelector('.mcDef'),sc0=d0?d0.scrollTop:0,s0=old&&old.querySelector('.mcPan'),sc1=s0?s0.scrollTop:0;
   const s=m2Etat(),L=m2Lignes(),pal=m2SecPal(),V=m2Vue(L,s,vu);
@@ -169,8 +168,7 @@ function m2Render(vu){ /* (2026-11-03, refonte) la page MISSIONS entière : voir
   const c0=m2Compte();
   el.innerHTML='<div id="gmListe" class="m2 mcE'+(vu?' vu':'')+'"><div class="mcVoile"></div>'
     +'<div class="mcDef"><div class="mcTete"><b class="mcNom">'+sansAcc(TR('MISSIONS'))+'</b><small class="mcSous">'+sansAcc(TR('PALIER'))+' '+V.palier+' / '+M2_PAL.length+' · '+c0.ok+' / '+c0.tot+'</small>'+(neuf?'<em class="mcNeuf">'+sansAcc(TR('NOUVEAU PALIER'))+'</em>':'')+'</div>'
-    +'<div class="mcHero">'+V.ved+'</div>'
-    +'<div class="mcPan"><div class="gModeT">'+pxi('cible')+'<span>'+sansAcc(TR('ENSUITE'))+'</span><s></s><em class="mcSq">'+V.sq+'</em></div>'+V.suite+fh+'</div></div></div>';
+    +'<div class="mcPan"><div class="gModeT">'+pxi('cible')+'<span>'+sansAcc(TR('ENSUITE'))+'</span><s></s><em class="mcSq">'+V.sq+'</em></div>'+V.listeTab+fh+'</div></div></div>';
   GMIS.cards=[];GMIS.pts=[];GMIS.paths=[];GMIS.last=null;GMIS.lw=0;
   const c=m2Compte(),sous=$('gmSous');if(sous)sous.textContent=c.ok+' / '+c.tot;
   try{gmPlaceL(VP.w,VP.h);}catch(e){}
