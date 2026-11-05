@@ -31,7 +31,7 @@ function m2Prog(m,v,t){v=Math.min(v,t); // « 3 / 5 », « 42 000 / 100 000 $ »
 function m2RecNom(m){const r=m.r||{};if(r.cash)return '+'+fmtC(r.cash);if(r.car)return TR(r.car);
   if(r.cat){const d=(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return d?TR(d.n):'';}return TR('RÉCOMPENSE À VENIR');}
 function m2NbPret(){const s=m2Etat();let n=0;for(const id of s.ok)if(s.pr.indexOf(id)<0&&m2Pret(id))n++;return n;}
-function m2SecPal(){const o=(SAVE.d.shop&&SAVE.d.shop.own)||[];return COSM.peinture.filter(function(d){return d.sec&&o.indexOf('peinture:'+d.id)>=0;});} // les couleurs secrètes TROUVÉES (le pack n'en fait pas des missions… mais on ne sait pas d'où elles viennent : elles comptent)
+function m2SecPal(){const o=(SAVE.d.shop&&SAVE.d.shop.own)||[];let g=[];try{g=m2Etat().c.pg||[];}catch(e){}return COSM.peinture.filter(function(d){return d.def&&g.indexOf(d.id)>=0&&o.indexOf('peinture:'+d.id)>=0;});} /* (2026-11-05, le nuancier v3) les peintures GAGNÉES par leur défi (m2.c.pg ; achetées, elles n'y sont pas) */ // les couleurs secrètes TROUVÉES (le pack n'en fait pas des missions… mais on ne sait pas d'où elles viennent : elles comptent)
 function m2Compte(){const s=m2Etat(),p=m2SecPal().length;let vis=0,sec=0,ok=0;for(const m of M2){if(!m2Dispo(m))continue;const r=s.ok.indexOf(m.id)>=0;if(r)ok++;if(m.f!=='secret')vis++;else if(r)sec++;}
   return {ok:ok+p,tot:vis+sec+p};} // (2026-10-19) ok : les réussies qu'on VOIT (une cachée par m2Dispo ne compte ni en haut ni en bas)
 /* les lignes, triées : 0 à récupérer · 1 suivies · 2 les autres, PAR FAMILLE (M2_ORDRE), la plus avancée d'abord · 9 terminées
@@ -66,7 +66,7 @@ function m2Ligne(x,k,s){const m=x.m,F=M2_FAM[m.f]||M2_FAM.exploit,pret=x.rg===0,
     +'<div class="m2R'+(voir?' voir':'')+'" aria-label="'+sansAcc(m2RecNom(m)).replace(/"/g,'')+'">'+m2Vign(m)+'</div></div>';}
 function m2LignePal(d){ // une couleur secrète de la palette, trouvée : son indice devient sa mission
   const j=COSM.peinture.indexOf(d);return '<div class="m2L m2F-secret ok" data-pal="'+d.id+'"><span class="m2Ic">'+pxi('coche')+'</span>'
-    +'<div class="glTx"><b><i class="m2Sec">'+TR('SECRÈTE')+'</i> '+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><small>'+TR('RÉUSSIE')+'</small></div>'
+    +'<div class="glTx"><b><i class="m2Sec">'+TR('PEINTURE')+'</i> '+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><small>'+TR('RÉUSSIE')+'</small></div>'
     +'<div class="m2R voir">'+objFig({cat:'peinture',i:j})+'</div></div>';}
 /* (2026-10-22, Sacha : « enlève le défi du jour, enlève toutes les catégories en haut, c'est trop compliqué : plus simple, plus beau, chaque bouton mieux placé »)
    Deux colonnes, rien d'autre. À GAUCHE (.glB) : la carte de la SÉRIE de sept jours (sous le titre et le compte, RETOUR en bas).
@@ -151,16 +151,25 @@ function m2FocusMaj(){let e=document.getElementById('m2Focus');const on=!MIS_FOC
 /* LA CARTE MISSIONS DE L'ÉCRAN DE MORT : les missions réussies pendant la partie, puis l'avancement des suivies (la jauge se remplit
    sous les yeux) ; à défaut, celle qui est la plus proche de tomber. Une SECRÈTE trouvée ne dit pas son nom (sa révélation est à venir).
    Le point vert : une récompense attend. Touchée : l'écran MISSIONS. */
-function objRenderV2(el){const s=m2Etat(),L=[];
+Object.assign(I18N,{'AUCUNE MISSION AVANCÉE':'NO MISSION PROGRESS'});
+/* d'où part la mission au début de cette partie : les missions « d'une partie » (aura, figures, vitesse…) partent de 0, le moteur de 1, les autres
+   du cliché pris au départ (M2R.v0, defis-moteur.js) ; null = on ne sait pas (partie trop courte, cliché pas encore pris) */
+function m2Avant(m){const k=m.k;if(k==='eng')return 1;if(/^(aura|parf|fig|vie|frenT|kmh|tours|airP)$/.test(k))return 0;const V=M2R.v0;return V&&(m.id in V)?V[m.id]:null;}
+function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search); /* l'écran de mort v6 (MORT_FLOT vit dans la coque, hors de portée ici) */
+  const s=m2Etat(),L=[];
   for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
-  for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
+  if(!flot9)for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
   /* (2026-11-03, Sacha : « améliorer encore un peu », puis « mission il prend trop de place ») le panneau ne reste plus à moitié vide :
      il se complète avec les missions les plus proches du but (avec leur barre), jusqu'à 2 (couché, le ×2 prend sa place sous le panneau) */
-  const flot9=!/[?&]mort=ancien\b/.test(location.search); /* l'écran de mort v6 (MORT_FLOT vit dans la coque, hors de portée ici) */
-  {const cible=2,C=[];
+  if(!flot9){const cible=2,C=[];
     if(L.length<cible)for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
       let v=0;try{v=m2Val(m);}catch(x){}const p=m2Frac(m,v,m2Seuil(m));if(p<1)C.push({m:m,p:p});}
     C.sort(function(a,b){return b.p-a.p;});for(const c of C){if(L.length>=cible)break;L.push({m:c.m,ok:0});}}
+  if(flot9){ /* (2026-11-05) SEULEMENT CE QUI A AVANCÉ : les réussies de la partie (déjà dans L), puis celles dont la valeur a monté, la plus grosse avance d'abord */
+    const A=[];for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
+      const a=m2Avant(m);if(a==null)continue;let v=0;try{v=m2ValCourse(m);}catch(x){continue;}const t=m2Seuil(m);
+      if(!(v>a+1e-9)||!(t>0))continue;const p1=m2Frac(m,v,t);if(p1>=1)continue;A.push({m:m,a:a,v:v,t:t,d:p1-m2Frac(m,a,t)});}
+    A.sort(function(x,y){return y.d-x.d;});for(const c of A){if(L.length>=2)break;L.push({m:c.m,ok:0,a:c.a,v:c.v,t:c.t});}}
   const nP=m2NbPret(),c=m2Compte();
   el.className='mObj misPorte m2Ob';el.setAttribute('data-m','mis');el.style.removeProperty('--rc');
   let h='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+(nP?' <i class="m2Pt in"></i>':'')+'</span><b class="m2Cpt">'+c.ok+' / '+c.tot+'<i class="obVoir">'+pxi('droite')+'</i></b></div>';
@@ -168,24 +177,27 @@ function objRenderV2(el){const s=m2Etat(),L=[];
   for(const x of L){const m=x.m;
     if(m.f==='secret')h+='<div class="obM ok sec">'+pxi('oeil')+'<span>'+sansAcc(TR('MISSION SECRÈTE TROUVÉE'))+'</span></div>';
     else if(x.ok)h+='<div class="obM ok">'+pxi('coche')+'<span>'+sansAcc(m2Txt(m))+'</span><em>'+sansAcc(m2RecNom(m))+'</em></div>';
-    else{let v=0;try{v=m2ValCourse(m);}catch(q){}const t=m2Seuil(m);
-      const ic9=pxi((M2_FAM[m.f]||M2_FAM.exploit).ic),tx9='<span>'+sansAcc(m2Txt(m))+'</span>',br9='<div class="obBar"><i style="width:0%" data-w="'+(100*m2Frac(m,v,t)).toFixed(1)+'"></i></div>',pg9='<b>'+m2Prog(m,v,t)+'</b>';
+    else{let v=x.v!=null?x.v:0;if(x.v==null)try{v=m2ValCourse(m);}catch(q){}const t=x.t!=null?x.t:m2Seuil(m);
+      const ic9=pxi((M2_FAM[m.f]||M2_FAM.exploit).ic),tx9='<span>'+sansAcc(m2Txt(m))+'</span>',br9='<div class="obBar"><i style="width:'+(flot9&&x.a!=null?(100*m2Frac(m,x.a,t)).toFixed(1):0)+'%" data-w0="'+(flot9&&x.a!=null?(100*m2Frac(m,x.a,t)).toFixed(1):0)+'" data-w="'+(100*m2Frac(m,v,t)).toFixed(1)+'"></i></div>',pg9='<b>'+m2Prog(m,v,t)+'</b>';
       /* écran de mort v6 : le texte sur toute la largeur (deux lignes au besoin), la barre dessous et le compte AU BOUT de sa barre */
-      if(flot9)P9.push({m:m,v:v,t:t});
+      if(flot9)P9.push({m:m,a:x.a!=null?x.a:0,v:v,t:t});
       h+=flot9?'<div class="obM obM6">'+ic9+tx9+br9+pg9+'</div>':'<div class="obM">'+ic9+tx9+pg9+'</div>'+br9;}}
+  if(flot9&&!L.length)h+='<div class="obM obVide"><span>'+sansAcc(TR('AUCUNE MISSION AVANCÉE'))+'</span></div>';
   h+='<div class="obFt"><span>'+sansAcc(TR(nP?'À RÉCUPÉRER':'TOUTES LES MISSIONS'))+'</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';
   el.innerHTML=h;
   const bars=el.querySelectorAll('.obBar i');
-  if(flot9){ /* (2026-11-04, Sacha : « des animations pour les missions ») écran de mort v6 : chaque barre et son compte (« 8 / 10 ») montent ENSEMBLE,
-       une image à la fois, à l'entrée de leur ligne (1,25 s, puis 0,15 s de plus par ligne) — une seule fois par mort ; au retour (garage,
-       réglages) tout est posé. La révélation d'une secrète attend que l'écran ait fini de se jouer (2,6 s). */
+  if(flot9){ /* (2026-11-04/05, Sacha : « des animations pour les missions », « les barres qui avancent ») écran de mort v6 : chaque barre PART de où elle
+       en était au début de la partie et monte à où elle en est, son compte (« 5 / 10 → 8 / 10 ») avec elle, image par image, quand sa ligne est
+       entrée (1,45 s, puis 0,2 s de plus par ligne : la vague de gauche à droite finit ici) — une seule fois par mort ; au retour (garage, réglages)
+       tout est posé. La révélation d'une secrète attend que l'écran ait fini de se jouer (3 s). */
     const go=!REDUCED_MOTION&&!!TCTL.mortT&&objRenderV2._a!==TCTL.mortT;if(TCTL.mortT)objRenderV2._a=TCTL.mortT;el.classList.toggle('m6Joue',go);
     el.querySelectorAll('.obM6').forEach(function(r,j){const q=P9[j],i=r.querySelector('.obBar i'),b=r.querySelector('b');if(!q||!i||!b)return;i.style.transition='none';
-      const W=+i.getAttribute('data-w')||0,iv=Number.isInteger(q.v),pose=function(k){const e=1-Math.pow(1-k,3);i.style.width=(W*e).toFixed(2)+'%';b.innerHTML=m2Prog(q.m,iv?Math.round(q.v*e):q.v*e,q.t);};
+      const W0=+i.getAttribute('data-w0')||0,W1=+i.getAttribute('data-w')||0,iv=Number.isInteger(q.v)&&Number.isInteger(q.a),
+        pose=function(k){const e=1-Math.pow(1-k,3);i.style.width=(W0+(W1-W0)*e).toFixed(2)+'%';const x=q.a+(q.v-q.a)*e;b.innerHTML=m2Prog(q.m,iv?Math.round(x):x,q.t);};
       if(!go){pose(1);return;}pose(0);
-      setTimeout(function(){const t0=performance.now();(function f(){if(!i.isConnected)return;const k=Math.min(1,(performance.now()-t0)/1000);pose(k);if(k<1)requestAnimationFrame(f);})();},1250+j*150);});
-    if(go&&el.querySelector('.obM6'))setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none'&&el.isConnected)sfx('ui.jauge');}catch(e){}},1250);
-    m2RevAuto(2600);return;}
+      setTimeout(function(){const t0=performance.now();(function f(){if(!i.isConnected)return;const k=Math.min(1,(performance.now()-t0)/1000);pose(k);if(k<1)requestAnimationFrame(f);else{i.classList.add('m6Fin');}})();},1450+j*200);});
+    if(go&&el.querySelector('.obM6'))setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none'&&el.isConnected)sfx('ui.jauge');}catch(e){}},1450);
+    m2RevAuto(3000);return;}
   if(bars.length&&!REDUCED_MOTION&&TCTL.mortT&&objRenderV2._k!==TCTL.mortT){objRenderV2._k=TCTL.mortT;setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none'&&el.isConnected)sfx('ui.jauge');}catch(e){}},520);}
   setTimeout(function(){requestAnimationFrame(function(){bars.forEach(function(i){i.style.width=i.getAttribute('data-w')+'%';});});},REDUCED_MOTION?0:520);
   m2RevAuto(1400);} // une SECRÈTE trouvée pendant la partie : sa révélation, par-dessus l'écran de mort

@@ -164,7 +164,7 @@ function m2GagneEstime(){const d=SAVE.d;let t=bank();
   try{for(const k of (d.shop&&d.shop.own)||[]){const p=k.split(':'),h=(COSM[p[0]]||[]).find(function(x){return x.id===p[1];});if(h&&h.p)t+=h.p;}}catch(e){}
   return Math.max(t,d.bankMax||0);}
 /* ---- LA VÉRIFICATION : une mission tombe dès que sa valeur passe le seuil (en course : 4 fois par seconde, sans la collection) ---- */
-function m2Verifie(enC){const s=m2Etat();let n=0;
+function m2Verifie(enC){const s=m2Etat();let n=0;try{peintDefisVerifie(enC);}catch(e){console.warn('peintDefis',e);} /* (2026-11-05, le nuancier v3) les DÉFIS DES PEINTURES (« ou gagne-la ») : au même rythme que les missions */
   for(const m of M2){if(s.ok.indexOf(m.id)>=0||!m2Dispo(m))continue;if(enC&&m.f==='collection')continue;let v=0;try{v=m2Val(m);}catch(e){continue;}
     if(v>=m2Seuil(m)){s.ok.push(m.id);s.nv.push(m.id);if(enC||m2EnC())M2R.run.push(m.id);n++;try{m2Annonce(m,enC);}catch(e){}}}
   if(n){SAVE.mark();if(!enC)try{m2Portes();}catch(e){}}return n;}
@@ -188,12 +188,15 @@ function m2LigneSuit(){clearTimeout(M2L.t);let e=document.getElementById('m2Lign
   M2L.on=1;
   if(!e){e=document.createElement('div');e.id='m2Ligne';e.setAttribute('role','status');(document.getElementById('hud')||document.body).appendChild(e);}
   const f=document.getElementById('m2Focus');e.style.setProperty('--m2lY',(f&&f._on&&f.offsetHeight?f.offsetHeight+4:0)+'px'); // au-dessus des suivies
-  const dj=it.k==='dj',sec=it.k!=='ok'&&!dj,ti=it.n?it.n+' '+TR('MISSIONS RÉUSSIES'):TR(dj?'DÉFI DU JOUR':sec?'MISSION SECRÈTE':'MISSION RÉUSSIE');
-  e.innerHTML='<i>'+pxi(dj?'cible':sec?'oeil':'coche')+'</i><span><small>'+sansAcc(ti)+'</small>'+(it.tx?' '+it.tx:'')+'</span>'+(it.p?'<b>'+it.p+'</b>':'');
+  const dj=it.k==='dj',col=it.k==='col',sec=it.k!=='ok'&&!dj,ti=it.n?it.n+' '+TR('MISSIONS RÉUSSIES'):TR(dj?'DÉFI DU JOUR':col?'PEINTURE GAGNÉE':sec?'MISSION SECRÈTE':'MISSION RÉUSSIE'); /* (2026-11-05) col : une peinture gagnée par son défi */
+  e.innerHTML='<i>'+pxi(dj?'cible':col?'pinceau':sec?'oeil':'coche')+'</i><span><small>'+sansAcc(ti)+'</small>'+(it.tx?' '+it.tx:'')+'</span>'+(it.p?'<b>'+it.p+'</b>':'');
   e.classList.toggle('sec',sec);e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  document.body.classList.add('m2Lon'); /* (2026-11-05, Sacha : « conflit de superposition en bas entre les missions et les infos générales, fais une
+    animation où la barre de mission est celle du dessus ») le FIL (code/interface/fil.js) vit dans la même zone, en bas au centre — tant que la
+    ligne de mission parle, il s'efface (voir <style id="missionsV2"> : body.m2Lon #fil) */
   try{if(SONV2&&(it.k==='ok'||dj))sfx('ui.mission');}catch(x){}
-  M2L.t=setTimeout(function(){e.classList.remove('on');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
-function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');}
+  M2L.t=setTimeout(function(){e.classList.remove('on');document.body.classList.remove('m2Lon');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
+function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');document.body.classList.remove('m2Lon');}
 /* ---- LA RÉCOMPENSE (RÉCUPÈRE) : une fois, jamais deux ---- rend {cash|car|cat,hab} ou null */
 function m2Prend(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return null;const r=m.r||{},o={id:id};
   if(r.vide)return null; // la récompense de « tous les objets » n'existe pas encore (à définir par Sacha)
@@ -210,10 +213,14 @@ function m2Dispo(m){if(!M2DISPO)return true;const r=(m&&m.r)||{};if(r.vide)retur
 function m2Pret(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return false;const r=m.r||{};
   if(r.vide)return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}if(r.cat)return !!(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return true;}
 /* ---- LES BRANCHEMENTS DE LA COURSE ---- */
-function m2Raz(){M2R.lv='';M2R.sonne=false;M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.figV=0;M2R.volT=0;M2R.figMax=0;M2R.airPm=0;}
+function m2Raz(){M2R.lv='';M2R.sonne=false;M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.v0=null;M2R.figV=0;M2R.volT=0;M2R.figMax=0;M2R.airPm=0;}
 function m2Debut(){const s=m2Etat(),c=s.c,j=m2Jour();M2R.deb=true; // la 1re image de la partie qui compte : le jour, l'heure
   if(c.jd!==j){c.jd=j;c.jours=(c.jours|0)+1;SAVE.mark();}
-  if(new Date().getHours()===3)m2Flag('nuit3h');}
+  if(new Date().getHours()===3)m2Flag('nuit3h');
+  /* (2026-11-05, Sacha : « on voit seulement les missions sur lesquelles on a avancé ») D'OÙ PART CHAQUE MISSION : le cliché de leurs valeurs, pris
+     0,7 s après le départ (pas dans la première image : m2Val parcourt les collections). L'écran de mort compare ce cliché à la fin de partie
+     (m2Avant, missions/ecran-revelation.js) : seules les missions dont la valeur a monté y figurent, barre de « d'avant » à « maintenant ». */
+  setTimeout(function(){try{if(!M2R.deb||M2R.v0)return;const s9=m2Etat(),V={};for(const m of M2){if(m.f==='collection'||m.f==='secret'||s9.ok.indexOf(m.id)>=0||!m2Dispo(m))continue;try{V[m.id]=m2Val(m);}catch(e){}}M2R.v0=V;}catch(e){}},700);}
 function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R.deb)m2Debut();
   if(!introD&&(mode==='drive'||mode==='fall'))M2R.ctl+=dt;
   if(mode!=='boom'){M2R.vie+=dt;if(M2R.vie>(r.vie||0))r.vie=M2R.vie;}
@@ -241,8 +248,8 @@ function m2Cpt(k,v,seuil,id){if(!m2Ok())return;const c=m2Etat().c,S=c.sc||(c.sc=
 function m2Fruit(nom){const T={CERISE:['cerise','bolide'],ORANGE:['orange','emeute'],MYRTILLE:['myrtille','azur']}[nom];if(T)m2Cpt(T[0],1,50,T[1]);} /* un fruit croqué (ramassage.js) */
 /* UN NIVEAU ENTRÉ (le portail franchi, ou le départ) : dix par temps / par map pour les peintures secrètes */
 function m2Niveau(k){const m=k.m,c=k.c;
-  if(m==='neige'||m==='blizzard')m2Cpt('neige',1,10,'menthe');if(m==='nuit')m2Cpt('nuit',1,10,'minuit');if(m==='matin')m2Cpt('matin',1,10,'dragee');if(m==='midi')m2Cpt('midi',1,10,'abricot');
-  if(c==='banquise')m2Cpt('glacier',1,10,'neige');if(c==='foret')m2Cpt('foret',1,10,'ogre');if(c==='ville'||c==='crypto'||c==='vitree')m2Cpt('ville',1,10,'gotham');
+  if(m==='neige'||m==='blizzard')m2Cpt('neige',1,10,'menthe');if(m==='nuit')m2Cpt('nuit',1,10,'minuit');if(m==='matin')m2Cpt('matin',1,10,'dragee');if(m==='midi')m2Cpt('midi',1,10,'piscine');
+  if(c==='banquise')m2Cpt('glacier',1,10,'neige');if(c==='foret')m2Cpt('foret',1,10,'camo');if(c==='ville'||c==='crypto'||c==='vitree')m2Cpt('ville',1,10,'gotham');
   if(m==='pluie'||m==='orage')m2Cpt('pluie',1,10,'orage');if(c==='espace')m2Cpt('espace',1,10,'lunaire');if(c==='nuages')m2Cpt('nuages',1,5,'chrome');} /* (2026-10-22, Sacha : « oui » aux deux points de la revue) MENTHE compte aussi le blizzard (le glacier en neige seule : un niveau sur 66) ; CHROME MIROIR : cinq niveaux sur la mer de nuages (un seul l'ouvrait dès la 1re course) */
 function m2Saut(){M2R.tourV.length=0;M2R.figV=0;M2R.volT=0;} // startFall : un saut neuf (le bump n'en est pas un : il prolonge le saut)
 /* FRÔLER UNE TOUR (la ville) : passer à moins de M2K.frole m d'un flanc, à hauteur de la tour, sans la toucher — la même grille que
