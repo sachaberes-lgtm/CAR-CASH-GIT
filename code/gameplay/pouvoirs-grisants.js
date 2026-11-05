@@ -141,13 +141,13 @@ function pieceNeuve(){const m=PIECES_LIBRES.pop();if(m){m.visible=true;m.scale.s
    instances. */
 const COIN_CAP=4096; // pièces VISIBLES à la fois (le couloir, les deux faces en vol) — au-delà, les plus lointaines attendent l'image suivante
 const coinIM=new THREE.InstancedMesh(pickGeo,pickMat,COIN_CAP);
-coinIM.frustumCulled=false;coinIM.matrixAutoUpdate=false;coinIM.instanceMatrix.setUsage(THREE.DynamicDrawUsage);coinIM.count=0;scene.add(coinIM);
+coinIM.name='pièces 1 €';coinIM.frustumCulled=false;coinIM.matrixAutoUpdate=false;coinIM.instanceMatrix.setUsage(THREE.DynamicDrawUsage);coinIM.count=0;scene.add(coinIM);
 /* (2026-11-05, Sacha : « à la place des pièces sur la route met des pièces de 1 et 2 euros ») DEUX instances : coinIM = les 1 €, coinIM2 = les 2 €
    (anneau d'argent, cœur d'or, un peu plus grandes). Deux appels de dessin au lieu d'un — la pièce se tire 1 € ou 2 € à sa pose (`pk.deux`, même
    tirage sur les deux faces) ; hors euros (sapèque de Jade, bitcoin) tout reste dans coinIM. */
 const COIN_CAP2=COIN_CAP;
 const coinIM2=new THREE.InstancedMesh(pickGeo2,pickMat2,COIN_CAP2);
-coinIM2.frustumCulled=false;coinIM2.matrixAutoUpdate=false;coinIM2.instanceMatrix.setUsage(THREE.DynamicDrawUsage);coinIM2.count=0;scene.add(coinIM2);
+coinIM2.name='pièces 2 €';coinIM2.frustumCulled=false;coinIM2.matrixAutoUpdate=false;coinIM2.instanceMatrix.setUsage(THREE.DynamicDrawUsage);coinIM2.count=0;scene.add(coinIM2);
 let coinN=0,coinN2=0;
 function coinPose(p){if(p.deux&&COIN_DEUX){if(coinN2<COIN_CAP2)coinIM2.setMatrixAt(coinN2++,p.mesh.matrix);return;}
   if(coinN<COIN_CAP)coinIM.setMatrixAt(coinN++,p.mesh.matrix);} // une pièce du couloir, rangée en tête
