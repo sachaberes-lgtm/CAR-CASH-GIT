@@ -20,38 +20,35 @@ function dnPlanScenes(S,K,RH,D){
   const rs=mulberry32((D.sd^0x5CE9E)>>>0),R=()=>rs(),Kc=Math.min(1.3,K),Kd=Math.min(1.25,K);
   /* LES OMBRES : chaque scène donne ses volumes (x, z, rayon, hauteur) à la grille d'ombre du travailleur (dnOmbre) — les mêmes positions que le placement, au hasard près (±3 m : sous une case de 44 m) */
   DN.scnV=[];const vol=(c)=>{const RH9=RH;
-    if(c.k==='colonnade'){const sc=c.H/22,pas=26*sc*1.05,lat=RH9+8+3.8*sc+1.5;for(let s9=c.a;s9<=c.b;s9+=pas)for(const sg of [-1,1]){const q=dnPos(S,s9,sg*lat);DN.scnV.push({x:q.x,z:q.z,r:3.9*sc,h:c.H});}}
-    else if(c.k==='allee'){const lat=RH9+c.len*.5+8,pas=c.len*2.2;for(let s9=c.a+c.len;s9<=c.b-c.len;s9+=pas)for(const sg of [-1,1]){const q=dnPos(S,s9,sg*lat);DN.scnV.push({x:q.x,z:q.z,r:c.len*.5,h:c.len*.5});}}
-    else if(c.k==='colosses'){for(const sg of [-1,1])for(let k=0;k<2;k++){const q=dnPos(S,c.a+k*c.H*1.9,sg*(RH9+c.H*.40+8));DN.scnV.push({x:q.x,z:q.z,r:c.H*.40,h:c.H});}}
-    else if(c.k==='sphinx'){for(const f of [-.3,0,.3]){const q=dnPos(S,c.sc+f*c.L,c.sg*c.lat);DN.scnV.push({x:q.x,z:q.z,r:c.L*.15,h:c.L*.30});}
-      const P=c.py;if(P)for(const f of [.1,.3,.5,.7,.9])DN.scnV.push({x:P.x,z:P.z,r:P.hw*(1-f)*1.5,h:P.hw*1.27*f});}
-    else if(c.k==='porte'){const sc=c.H/30;for(const sg of [-1,1]){const q=dnPos(S,(c.a+c.b)/2,sg*(RH9+7*sc+8));DN.scnV.push({x:q.x,z:q.z,r:c.H*.3,h:c.H});}}};
+    if(c.k==='allee'){const lat=RH9+c.len*.5+8,pas=c.len*2.2;for(let s9=c.a+c.len;s9<=c.b-c.len;s9+=pas)for(const sg of [-1,1]){const q=dnPos(S,s9,sg*lat);DN.scnV.push({x:q.x,z:q.z,r:c.len*.5,h:c.len*.5});}}
+    // (2026-11-05, ARRAKIS) le village du désert et les rochers dressés : les mêmes volumes que leur bâtisseur (village/monolithes, plus bas) — approchés
+    else if(c.k==='village'){const n9=Math.max(3,Math.round((c.b-c.a)/(c.H*.55)));for(let k=0;k<n9;k++)for(const sg of [-1,1]){const q=dnPos(S,c.a+(k+.5)*(c.b-c.a)/n9,sg*(RH9+c.H*.45+10));DN.scnV.push({x:q.x,z:q.z,r:3.6,h:2.8});}}
+    else if(c.k==='ver'){for(const f of [-.88,.95]){const q=dnPos(S,(c.a+c.b)/2,f*c.s);DN.scnV.push({x:q.x,z:q.z,r:c.s*.2,h:c.s*.5});}} // (2026-11-05) le ver des sables : ses deux pieds (l'arche, elle, ombre la route)
+    else if(c.k==='monolithes'){const mid=(c.a+c.b)/2,offs=[-.42,-.08,.30];for(let k=0;k<offs.length;k++)for(const sg of [-1,1]){if(k===1&&sg>0)continue;const q=dnPos(S,mid+offs[k]*(c.b-c.a)*.5,sg*(RH9+c.H*.55+12+k*c.H*.18));const h9=c.H*(.7+.5*((k*2+(sg<0?0:1))%3)/2);DN.scnV.push({x:q.x,z:q.z,r:h9*.32,h:h9});}}};
   const ajoute=(k,a,b,pw,ex)=>{DN.scn.push(Object.assign({k:k,a:Math.round(a),b:Math.round(b),pw:Math.round(pw)},ex||{}));vol(DN.scn[DN.scn.length-1]);
     for(let i=0;i<S.n;i++){const s9=i*S.ds,u=Math.max(0,Math.min(1,(s9-(a-120))/120))*Math.max(0,Math.min(1,((b+120)-s9)/120));if(u>0){const e=u*u*(3-2*u);if(S.pw[i]<pw*e)S.pw[i]=pw*e;}}};
   const faire=function(k,q){const L9=q.b-q.a;
-    if(k==='porte'){const H=(38+R()*8)*Kd,sc=H/30,a=Math.max(q.a+40,Math.min(q.b-60,q.a+170+R()*Math.max(0,L9-340)));ajoute('porte',a-20,a+20,RH+22*sc+8,{H:H});return true;}
     if(k==='allee'){const len=(34+R()*10)*Kd,a=q.a+50,b=Math.min(q.b-40,a+380+R()*160);if(b-a>len*3.4){ajoute('allee',a,b,RH+len*1.0+16,{len:len});return true;}return false;}
-    if(k==='colonnade'){const Hc=(36+R()*10)*Kc,sc=Hc/22,a=q.a+70,b=Math.min(q.b-40,a+360+R()*170);if(b-a>sc*26*5){ajoute('colonnade',a,b,RH+8+3.8*sc*2.2+10,{H:Hc});return true;}return false;}
-    if(k==='sphinx'){const Ls=Math.min((270+R()*70)*Kd,(L9-60)/1.25),lat=RH+36+.46*Ls,sg=R()<.5?-1:1,hw=(200+R()*80)*Kd,sc=Math.max(q.a+Ls*.6+30,q.a+L9*.42);
-      if(Ls<150||sc+Ls*.6>q.b-20)return false;const sH=sc-Ls*.3,H=dnPos(S,sH,sg*lat),dd=Math.hypot(330,lat),d0=330/dd,d1=sg*lat/dd,dist=hw*1.4+80;
-      let ps=sH+d0*dist,pl=sg*lat+d1*dist;const minL=RH+hw*1.1+40;if(Math.abs(pl)<minL)pl=sg*minL;const Pp=dnPos(S,ps,pl);
-      ajoute('sphinx',sc-Ls*.6,sc+Ls*.6,lat+.46*Ls+20,{L:Ls,lat:lat,sg:sg,sc:sc,py:{x:Pp.x,z:Pp.z,hw:hw,t:Pp.t}});return true;}
-    if(k==='colosses'){const H=(50+R()*12)*Kd,a=q.a+60+R()*Math.max(0,L9-H*3.4-120),b=a+H*1.9+40;if(b<q.b-30){ajoute('colosses',a,b,RH+H*.8+18,{H:H});return true;}return false;}
+    // (2026-11-05, ARRAKIS) le village du désert (remplace les colosses) et les rochers dressés (remplacent le grand sphinx) : même gabarit que ce qu'ils remplacent
+    if(k==='village'){const H=(70+R()*24)*Kd,a=q.a+60+R()*Math.max(0,L9-H*2.6-120),b=a+H*1.7+40;if(b<q.b-30){ajoute('village',a,b,RH+H*.55+16,{H:H});return true;}return false;}
+    // (2026-11-05, LES MODULES DU DÉSERT) le VER DES SABLES : une arche de 60-100 m au-dessus de la route, dans un creux d'au moins 260 m (jamais plus d'une demi-largeur de plateau de 1,2 s + 24 m)
+    if(k==='ver'){const s9=(60+R()*40)*Kd,mid=(q.a+q.b)/2+(R()-.5)*Math.max(0,L9-260)*.5;if(L9<260)return false;ajoute('ver',mid-20,mid+20,s9*1.2+24,{s:s9});return true;}
+    if(k==='monolithes'){const H=(58+R()*18)*Kd,a=q.a+70+R()*Math.max(0,L9-H*3.2-130),b=a+H*1.9+40;if(b<q.b-30){ajoute('monolithes',a,b,RH+H*.9+18,{H:H});return true;}return false;}
     return false;};
-  // LES ACTES (2026-10-23, Léo : « brouillon : l'organisation et l'harmonie ») : UN décor par lieu, du VIDE entre les actes. I le désert nu (le départ, la 1re vague : rien près de la route) · II LA PLACE : le GRAND SPHINX et sa pyramide ·
-  // III L'ALLÉE : les sphinx-chats et les obélisques · IV LA VALLÉE D'ARGILE : la rangée des dieux · V la fin : l'oasis (rien près de la route) puis les pyramides au loin. `?sans=dunesactes` : le plan d'avant.
+  // LES ACTES (2026-10-23, Léo : « brouillon : l'organisation et l'harmonie ») : UN décor par lieu, du VIDE entre les actes. I le désert nu (le départ, la 1re vague : rien près de la route) · II LA PLACE : le village du désert ou les rochers ·
+  // III L'ALLÉE : les monolithes · IV LA VALLÉE D'ARGILE : le village · V la fin : rien près de la route. (ARRAKIS, 2026-11-05 : plus aucune scène égyptienne)
   if(DN_ACTES.on){const vlei=seg.some(function(q){return q.sp==='vlei';});
-    for(const q of seg){if(q.sp==='plaza'){if(!faire('sphinx',q))faire('colosses',q);}
-      else if(q.sp==='avenue'){if(!faire('allee',q))faire('colosses',q);}
-      else if(q.sp==='vlei')faire('colosses',q);}
-    if(!vlei){const ry=seg.filter(function(q){return q.sp==='rythme';});for(const q of ry)if(faire('colosses',q))break;} /* pas de vallée d'argile : les dieux prennent un creux de bosses (jamais l'oasis) */
+    for(const q of seg){if(q.sp==='plaza'){if(!faire('village',q))faire('monolithes',q);}
+      else if(q.sp==='avenue'){if(!faire('allee',q))faire('monolithes',q);}
+      else if(q.sp==='vlei')faire('village',q);}
+    if(!vlei){const ry=seg.filter(function(q){return q.sp==='rythme'||q.sp==='chapelet';});for(const q of ry)if(faire('monolithes',q))break;}
+    /* (2026-11-05, LES MODULES DU DÉSERT) la CUVETTE de sable reçoit toujours son ver ; les creux sans lieu en ont un une fois sur deux (deux au plus) ; le SLALOM, ses rochers dressés en portes (une fois sur deux) */
+    {let nv=0;for(const q of seg)if(q.sp==='cuvette'&&nv<2&&faire('ver',q))nv++;
+     for(const q of seg)if(q.k==='creux'&&!q.sp&&nv<2&&R()<.5&&faire('ver',q))nv++;
+     for(const q of seg)if(q.sp==='slalom'&&R()<.5)faire('monolithes',q);}/* pas de vallée d'argile : les rochers prennent un creux de bosses (jamais l'oasis) */
     return;}
-  // UN LIEU, UNE SCÈNE (le plan d'avant) : le DÉPART a sa porte ; l'ARRIVÉE sa colonnade (4 fois sur 5, sinon une allée) ; l'ALLÉE des obélisques porte l'allée des sphinx ; la PLACE, les colosses (ou une colonnade) ; les autres creux, parfois une porte
-  for(const q of seg){if(q.k==='depart')faire('porte',q);
-    else if(q.k==='fin'){if(R()<.8){if(!faire('colonnade',q))faire('allee',q);}else faire('allee',q);}
-    else if(q.sp==='avenue'){if(!faire('allee',q))faire('colosses',q);}
-    else if(q.sp==='plaza'){if(R()<.72){if(!faire('colosses',q))faire('colonnade',q);}else if(!faire('colonnade',q))faire('colosses',q);}
-    else if(q.sp!=='vlei'&&R()<.35)faire('porte',q);}}
+  // (le plan d'avant, sans actes, est retiré avec les pharaons : `?sans=dunesactes` ne pose plus de scène)
+}
 // un décor posé à (x, z) : le plateau le tient à la hauteur de la dalle ; sinon un PODIUM de pierre rattrape le sable (jamais plus de 26 m) — rend la hauteur de la base
 const o9s={};
 function dnAssise(cuis,x,z,yr,larg,rot){const h=dnHauteur(x,z,o9s);if(o9s.eau)return null;const yb=Math.max(h-.3,yr-1.2);if(yb-h>26)return null;
@@ -60,46 +57,36 @@ function dnScenes(X){return jadeFini(dnScenesG(X));}
 function* dnScenesG(X){ /* (2026-11-01) en pas : voir dnMonumentsTiresG */
   if(!DN_SCN.on||!DN.S||!DN.scn||!DN.scn.length)return;const S=DN.S,rg=X.rg,cuis=X.cuis,K=X.K,RH=X.RH,N=X.N,mo=DN.mo,M=n=>dnMod(n);N.sc=[];
   const kill=(k,x,y,z,r,h)=>{mo.push({k:k,x:x,y:y,z:z,r:r,h:h,a:0,t:0});};
-  // LA COLONNADE : deux files de colonnes (une tous les ~26 m × l'échelle), un architrave entre deux colonnes voisines, des brisées, des tambours à terre
-  const colonnade=(a,b,H)=>{const sc=H/22,pas=26*sc*1.05,lat=RH+8+3.8*sc+rg()*3;let n=0;
-    for(let s=a;s<=b;s+=pas){for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat);if(S.gd[q.i]>.01)continue;
-        const yb=dnAssise(cuis,q.x,q.z,q.yr,9*sc,q.t);if(yb==null)continue;const br=rg()<.18,hy=br?H*(.35+rg()*.4):H;
-        cuis(M('colonne'),q.x,yb,q.z,sc,hy/22,sc,q.t);kill('colonne',q.x,yb,q.z,3.9*sc,hy);n++;
-        if(br){const an=rg()*6.28,d=H*.25+rg()*H*.3,x2=q.x+Math.sin(an)*d,z2=q.z+Math.cos(an)*d;cuis(M('tambour'),x2,dnHauteur(x2,z2)+.6*sc,z2,2.3*sc,2.6*sc,2.3*sc,an,Math.PI/2*(rg()<.5?1:0),rg()*2);}
-        else{const nx=dnPos(S,s+pas,sg*lat);if(nx.i!==q.i&&s+pas<=b){const ln=Math.hypot(nx.x-q.x,nx.z-q.z);cuis(M('bloc'),(q.x+nx.x)/2,yb+H*1.01,(q.z+nx.z)/2,3.4*sc,H*.07,ln,Math.atan2(nx.x-q.x,nx.z-q.z),0,0,[.94,.84,.66]);}}}}
-    N.colonnade=n;N.sc.push(['colonnade',Math.round(a),Math.round(b)]);};
-  // L'ALLÉE DES SPHINX : des paires tous les ~2,2 longueurs (un sphinx de chaque côté, le regard vers la route), un obélisque entre deux paires
+  // L'ALLÉE DES MONOLITHES (2026-11-05, ARRAKIS) : des paires de rochers dressés tous les ~2,2 longueurs, un monolithe plus haut entre deux paires
   const allee=(a,b,len)=>{const lat=RH+len*.5+8,pas=len*2.2;let n=0,pi=0;
     for(let s=a+len;s<=b-len;s+=pas,pi++){for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat);if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,len*.55,q.t);if(yb==null)continue;
-        const ar=Math.atan2(S.x[q.i]-q.x,S.z[q.i]-q.z);cuis(M(dnSphinxNom(pi,Math.cos(ar)*S.tx[q.i]-Math.sin(ar)*S.tz[q.i])),q.x,yb,q.z,len,len,len,ar);kill('sphinx',q.x,yb,q.z,len*.5,len*.70);n++;}
-      const m=dnPos(S,s+pas/2,(rg()<.5?-1:1)*(RH+len*.55+10));if(S.gd[m.i]<=.01){const yb=dnAssise(cuis,m.x,m.z,m.yr,8,m.t);if(yb!=null){const hs=26+rg()*12;cuis(M('obelisque'),m.x,yb,m.z,hs/64*1.1,hs/64,hs/64*1.1,m.t);kill('obelisque',m.x,yb,m.z,4.4,hs);}}}
+        const ar=Math.atan2(S.x[q.i]-q.x,S.z[q.i]-q.z),hs=len*(1.05+.22*((pi+(sg<0?0:1))%3)),sc=hs/64;cuis(M('monolithe'),q.x,yb,q.z,sc*1.15,sc,sc*1.15,ar+(sg<0?.22:-.22));kill('monolithe',q.x,yb,q.z,4.4*sc,hs);n++;}
+      const m=dnPos(S,s+pas/2,(rg()<.5?-1:1)*(RH+len*.55+10));if(S.gd[m.i]<=.01){const yb=dnAssise(cuis,m.x,m.z,m.yr,8,m.t);if(yb!=null){const hs=22+rg()*10,sc=hs/64;cuis(M('monolithe'),m.x,yb,m.z,sc*1.1,sc,sc*1.1,m.t);kill('monolithe',m.x,yb,m.z,4*sc,hs);}}}
     for(let s=a+30;s<=b-20;s+=48)braise(s,RH+5,3.6);
     N.allee=n;N.sc.push(['allee',Math.round(a),Math.round(b)]);};
-  // LA RANGÉE DE COLOSSES : quatre statues assises (deux de chaque côté) qui regardent la route — des dieux à tête d'animal, ou le pharaon (dunes-dieux.js : dnDieuxTirage)
-  const colosses=(a,H)=>{let n=0;for(const sg of [-1,1])for(let k=0;k<2;k++){const q=dnPos(S,a+k*H*1.9,sg*(RH+H*.40+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,H*.8,q.t);if(yb==null)continue;
-      const ar=Math.atan2(S.x[q.i]-q.x,S.z[q.i]-q.z);cuis(M(dnColosseNom((sg<0?0:2)+k)),q.x,yb,q.z,H,H,H,ar);kill('colosse',q.x,yb,q.z,H*.40,H*1.32);n++;}N.colosses=n;N.sc.push(['colosses',Math.round(a),Math.round(a+H*1.9)]);};
-  // LE GRAND SPHINX (dunes-gizeh.js) : au bord de la place, le regard tourné vers les voitures qui arrivent (et un peu vers la route), sa grande pyramide DERRIÈRE lui dans l'axe de la vue
-  const sphinx=(c)=>{const L9=c.L,q=dnPos(S,c.sc,c.sg*c.lat),yb=dnAssise(cuis,q.x,q.z,q.yr,L9*.6,q.t);if(yb==null)return;const ar=q.t+Math.PI-c.sg*.26,ca=Math.sin(ar),sa=Math.cos(ar);
-    cuis(M('sphinxGrand'),q.x,yb,q.z,L9,L9,L9,ar);for(const f of [-.3,0,.3])kill('sphinx',q.x+ca*f*L9,yb,q.z+sa*f*L9,L9*.15,L9*.40);N.sphinx=Math.round(L9);
-    const P=c.py;if(P){const y9=Math.min(dnHauteur(P.x+P.hw*.8,P.z+P.hw*.8),dnHauteur(P.x-P.hw*.8,P.z-P.hw*.8),dnHauteur(P.x+P.hw*.8,P.z-P.hw*.8),dnHauteur(P.x-P.hw*.8,P.z+P.hw*.8));
-      cuis(M(c.sg<0?'pyrCap':'pyrGiza'),P.x,y9-14,P.z,P.hw,P.hw*1.27,P.hw,P.t+.35);N.pyrSphinx=Math.round(P.hw);}
-    N.sc.push(['sphinx',Math.round(c.sc-L9*.6),Math.round(c.sc+L9*.6)]);};
-  // LA PORTE : deux pylônes de part et d'autre de la route, la baie le long d'elle
-  const porte=(a,H)=>{const sc=H/30;for(const sg of [-1,1]){const q=dnPos(S,a,sg*(RH+7*sc+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,H*.6,q.t);if(yb==null)continue;
-      cuis(M('pylone'),q.x,yb,q.z,sc,sc,sc,q.t);kill('pylone',q.x,yb,q.z,H*.3,H);}
-    if(DN_DIEUX.on){const T=dnDieuxTirage(),hs=H*.34;[-1,1].forEach(function(sg,j){const q=dnPos(S,a-12*sc,sg*(RH+7*sc+8));if(S.gd[q.i]>.01)return;const yb=dnAssise(cuis,q.x,q.z,q.yr,hs*.8,q.t);if(yb==null)return;
-        const ar=Math.atan2(S.x[q.i]-q.x,S.z[q.i]-q.z);cuis(M(dnNomDieu(T.porte[j])),q.x,yb,q.z,hs,hs,hs,ar);kill('dieu',q.x,yb,q.z,hs*.40,hs*1.25);});} // (2026-10-23) deux petits dieux gardent l'entrée, devant les pylônes
-    braise(a-26,RH+5,3.6);braise(a+26,RH+5,3.6);N.portes=(N.portes|0)+1;N.sc.push(['porte',Math.round(a),Math.round(a)]);};
+  // LE VILLAGE DU DÉSERT (2026-11-05, ARRAKIS, Sacha : « un petit village à l'arrache, pas comme Minecraft ») : un hameau de pisé clairsemé des deux côtés de la route — tailles, orientations et parcelles jamais pareilles
+  const village=(a,b,H)=>{const lat=RH+H*.45+10,n9=Math.max(3,Math.round((b-a)/(H*.55)));let n=0;
+    for(let k=0;k<n9;k++)for(const sg of [-1,1]){if(rg()<.18)continue; // (un hameau clairsemé, pas une rangée : des parcelles sautées)
+      const jig=(rg()-.5)*H*.5,q=dnPos(S,a+(k+.5)*(b-a)/n9+jig,sg*(lat+(rg()-.5)*H*.35));if(S.gd[q.i]>.01)continue;const sc=.85+rg()*.5,yb=dnAssise(cuis,q.x,q.z,q.yr,3.2*sc,q.t);if(yb==null)continue;
+      const ar=Math.atan2(S.x[q.i]-q.x,S.z[q.i]-q.z)+(rg()-.5)*1.7; // (jamais face à la route : les maisons se tournent n'importe comment)
+      cuis(M(dnMaisonNom(k+(sg<0?0:1))),q.x,yb,q.z,sc,sc,sc,ar);kill('maison',q.x,yb,q.z,3.6*sc,2.8*sc);n++;}
+    N.village=n;N.sc.push(['village',Math.round(a),Math.round(b)]);};
+  // LES ROCHERS D'ARRAKIS (2026-11-05 — remplacent le grand sphinx et sa pyramide) : un groupe de rochers dressés, de tailles différentes, jamais symétrique — un passage spectaculaire et contemplatif
+  const monolithes=(a,b,H)=>{const lat=RH+H*.55+12,mid=(a+b)/2,offs=[-.42,-.08,.30];let n=0;
+    for(let k=0;k<offs.length;k++)for(const sg of [-1,1]){if(k===1&&sg>0)continue; // (un rocher de moins d'un côté : jamais une paire bien rangée)
+      const s=mid+offs[k]*(b-a)*.5,q=dnPos(S,s,sg*(lat+k*H*.18));if(S.gd[q.i]>.01)continue;const h9=H*(.7+.5*((k*2+(sg<0?0:1))%3)/2),yb=dnAssise(cuis,q.x,q.z,q.yr,h9*.34,q.t);if(yb==null)continue;
+      const ar=rg()*6.28;cuis(M(dnRocherNom(k+(sg<0?0:1))),q.x,yb,q.z,h9*.3,h9,h9*.3,ar);kill('rocher',q.x,yb,q.z,h9*.32,h9*1.05);n++;}
+    N.rochers=n;N.sc.push(['monolithes',Math.round(a),Math.round(b)]);};
+  // LE VER DES SABLES (dunes-ver.js) : l'arche enjambe la route, au milieu de la scène ; son axe (x local) est en travers de la route
+  const ver=(c)=>{const q=dnPos(S,(c.a+c.b)/2,0),yb=dnAssise(cuis,q.x,q.z,q.yr,c.s*.3,q.t);if(yb==null)return;cuis(M('ver'),q.x,yb-1,q.z,c.s,c.s,c.s,q.t);N.ver=(N.ver|0)+1;N.sc.push(['ver',c.a,c.b]);};
   // LES BRASEROS (2026-10-22) : des paires de vasques sur la berme, de part et d'autre de la route — la nuit, ce sont elles qui éclairent la procession
   const braise=(s,lat0,h)=>{for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat0);if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,h*.5,q.t);if(yb==null)continue;cuis(M('brasero'),q.x,yb,q.z,h,h,h,q.t);N.braseros=(N.braseros|0)+1;}};
-  // LES PORTES DU CIEL (2026-10-22, Léo : « le joueur peut piquer en bas ou décoller ») : à chaque crête, deux obélisques de part et d'autre de la route, juste avant l'apex — le tremplin se lit de loin (l'Akhet, le signe de
-  // l'horizon : le soleil se lève entre deux monts)
+  // LES BALISES DES CRÊTES (2026-10-22, Léo : « le joueur peut piquer en bas ou décoller ») : à chaque crête, deux monolithes de part et d'autre de la route, juste avant l'apex — le tremplin se lit de loin (la porte du ciel)
   {let n=0;for(const v of DN.lev||[]){if(performance.now()>JF.lim)yield;if(v.tag==='bosse')continue;if(DN_ACTES.on&&v.tag!=='grande'){braise(v.s-40,RH+5,3.4);continue;}for(const sg of [-1,1]){const q=dnPos(S,v.s-12,sg*(RH+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,9,q.t);if(yb==null)continue;
-      const hs=(26+rg()*8)*Math.min(1.2,K);cuis(M('obelisque'),q.x,yb,q.z,hs/64*1.1,hs/64,hs/64*1.1,q.t);kill('obelisque',q.x,yb,q.z,4.6,hs);n++;}braise(v.s-40,RH+5,3.4);braise(v.s+30,RH+5,3.4);}N.portiques=n;}
-  for(const c of DN.scn){if(performance.now()>JF.lim)yield;if(c.k==='porte')porte((c.a+c.b)/2,c.H);else if(c.k==='allee')allee(c.a,c.b,c.len);else if(c.k==='colonnade')colonnade(c.a,c.b,c.H);else if(c.k==='colosses')colosses(c.a,c.H);else if(c.k==='sphinx')sphinx(c);}
-  // LES RUINES : des tambours, des têtes, des blocs, de part et d'autre, à 10-70 m du bord, sur chaque tronçon
+      const hs=(26+rg()*8)*Math.min(1.2,K);cuis(M('monolithe'),q.x,yb,q.z,hs/64*1.1,hs/64,hs/64*1.1,q.t);kill('monolithe',q.x,yb,q.z,4.6,hs);n++;}braise(v.s-40,RH+5,3.4);braise(v.s+30,RH+5,3.4);}N.portiques=n;}
+  for(const c of DN.scn){if(performance.now()>JF.lim)yield;if(c.k==='allee')allee(c.a,c.b,c.len);else if(c.k==='village')village(c.a,c.b,c.H);else if(c.k==='monolithes')monolithes(c.a,c.b,c.H);else if(c.k==='ver')ver(c);}
+  // LES ÉBOULIS : des blocs et des éclats de roche, de part et d'autre, à 10-70 m du bord, sur chaque tronçon calme
   const seg=dnTroncons();let nr=0;for(const q of seg){if(performance.now()>JF.lim)yield;const n9=Math.round((q.b-q.a)/38*PAL.b('dnRuines',1)*(DN_ACTES.on?((q.sp==='vlei'||q.sp==='avenue')?.6:0):1));for(let k=0;k<n9;k++){if((k&7)===7&&performance.now()>JF.lim)yield;const s=q.a+rg()*(q.b-q.a),sg=rg()<.5?-1:1,lat=RH+10+rg()*rg()*60,p=dnPos(S,s,sg*lat);if(S.gd[p.i]>.01)continue;const g=dnHauteur(p.x,p.z,o9s);if(o9s.eau)continue;
-      const r=rg();if(r<.45){const sc=(1.4+rg()*1.6)*K*.8;cuis(M('tambour'),p.x,g+.25*sc,p.z,sc,sc*(1.2+rg()*.8),sc,rg()*6.28,Math.PI/2,rg()*2);}
-      else if(r<.62){const sc=(4+rg()*5)*K*.8;cuis(M(dnTeteNom(p)),p.x,g-sc*.42,p.z,sc,sc,sc,Math.atan2(S.x[p.i]-p.x,S.z[p.i]-p.z)+(rg()-.5)*.8,(rg()-.5)*.5,(rg()-.4)*.4);}
+      const r=rg();if(r<.45){const sc=(3+rg()*4)*K*.8;cuis(M(dnTeteNom(p)),p.x,g-sc*.42,p.z,sc,sc,sc,rg()*6.28,(rg()-.5)*.5,(rg()-.4)*.4);}
       else{const sc=(2+rg()*4)*K*.8;cuis(M('bloc'),p.x,g-.4,p.z,sc*(1+rg()),sc*(.6+rg()*.6),sc*(1+rg()),rg()*6.28,(rg()-.5)*.4,(rg()-.5)*.4,[.88,.76,.58]);}nr++;}}N.ruines=nr;}
 /* <<<FIN DUNES>>> */

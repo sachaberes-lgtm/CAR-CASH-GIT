@@ -72,14 +72,14 @@ maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumi�
 maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
 maps/canyon-embellie.js               # canyon : la poussière dorée (détail vivant, une instance)
 maps/canyon-murs.js                  # canyon : les MURS (la dalle couchée à 86° le long des falaises, le plan de roche, le banc dbgCanyonMurs)
-maps/dunes-1.js                      # LES DUNES D'OR : la route CONTINUE (vagues, tremplins de crête), le terrain prescrit, la construction
-maps/dunes-2.js                      # dunes : sable à la puce (rides façon Journey), matière des décors, hiéroglyphes, tremplins, sable qui vole
-maps/dunes-3.js                      # dunes : la boîte à outils des décors (loft, oriflammes), les modèles (pharaon assis, pyramides de Gizeh, obélisque, pylône, sphinx, felouque…)
-maps/dunes-dieux.js                  # dunes : les DIEUX À TÊTE D'ANIMAL (faucon, chacal, ibis, bélier, lionne, crocodile — assis sur le corps du pharaon), le SPHINX-CHAT (trois livrées, queue à gauche ou à droite) et leur tirage (colosses, porte, allée)
-maps/dunes-gizeh.js                  # dunes : le GRAND SPHINX de Gizeh (150-200 m, dans sa fosse) et ses pyramides en série
-maps/dunes-4.js                      # dunes : les scènes le long de la route (colonnade, allée des sphinx, colosses, porte, portes du ciel, braseros, ruines)
-maps/dunes-embellie.js               # dunes : le plan moyen (buttes, arbres morts, touffes)
-maps/dunes-ruines.js                 # dunes : les RUINES ENSABLÉES (mur à créneaux, colonnes tronquées, arche, escalier, chapiteau, tête, obélisque couché — enfoncés dans le sable, semés à 40-900 m de la route)
+maps/dunes-1.js                      # LES DUNES (Arrakis) : la route CONTINUE (vagues, tremplins de crête, slalom/cuvette/chapelet), la FORME des dunes (DN_FORME : crêtes vives, jonctions en Y), les dunes du bord de route, la construction
+maps/dunes-2.js                      # dunes : sable à la puce (rides du vent, palette Arrakis), matière des décors, tremplins, sable qui vole, le décor tiré
+maps/dunes-3.js                      # dunes : la boîte à outils des décors (dnKit : loft, tubes, prismes), le brasero, le bloc, le monolithe cassé
+maps/dunes-arrakis.js                # dunes : ARRAKIS — le monolithe, le rocher à degrés, la maison du désert
+maps/dunes-ver.js                    # dunes : LE VER DES SABLES — une arche d anneaux qui enjambe la route
+maps/dunes-4.js                      # dunes : les scènes le long de la route (allée de monolithes, village du désert, rochers dressés, ver des sables, braseros)
+maps/dunes-embellie.js               # dunes : le plan moyen (les buttes de grès)
+maps/dunes-ruines.js                 # dunes : les RUINES ENSABLÉES (pans de mur, monolithe couché, éclat de roche — enfoncés dans le sable, semés à 40-900 m de la route)
 maps/glacier-route.js                # LA BANQUISE / LE GLACIER v4 : route, manteau de neige
 maps/glacier-construction.js         # glacier : construction, volant en l'air
 maps/glacier-verglas.js              # glacier : verglas, retombée des tremplins, console
