@@ -25,9 +25,13 @@ const DN_MOB=(ALLEGE||/[?&]dunessobre=1\b/.test(location.search))&&!/[?&]dunespl
 if(DN_MOB){PAL.B.dnGrille[2]=24;PAL.B.dnArbres[2]=PAL.B.dnArbres[1];PAL.B.dnPalmes[2]=PAL.B.dnPalmes[1];PAL.B.dnPart[2]=PAL.B.dnPart[1];PAL.B.dnMo[2]=PAL.B.dnMo[1];PAL.B.dnRuines[2]=PAL.B.dnRuines[1];PAL.B.dnTors[2]=PAL.B.dnTors[1];PAL.B.dnTouffes[2]=PAL.B.dnTouffes[1];PAL.B.dnMorts[2]=PAL.B.dnMorts[1];}
 /* LA ROUTE SURÉLEVÉE (2026-10-25, Sacha : « surélève un petit peu la route, comme posée sur un truc surélevé, pour qu'on ne meure pas directement sur le sable et qu'on ait une petite chance de se redresser ») — la berme, les éperons, les collines et le lac de l'oasis descendent de DN_SUR m sous la dalle (la route, elle, ne bouge pas) ; `?sur=N` change la valeur, `?sur=0` = avant */
 const DN_SUR=(function(){const m=/[?&]sur=(\d+(?:\.\d+)?)/.exec(location.search);return m?Math.min(40,+m[1]):10;})();
+/* ===== ARRAKIS (2026-11-05, Sacha : « refonte totale… beaucoup plus grosses, beaucoup plus vastes… 2 fois plus longue… comme Arrakis dans Dune ») =====
+   DN_VASTE double la longueur de chaque vague (la montée, la crête, l'épaule, la descente) ET le budget total de la route (B) — la pente ne change pas, donc la colline devient aussi
+   DEUX FOIS PLUS HAUTE (hauteur = pente × distance parcourue) sans qu'on retouche l'atterrissage sur l'épaule. DN_HAUT ajoute un peu plus de hauteur par-dessus (crêtes plus hautes, creux plus bas). `?vaste=N` l'essaie à une autre échelle. */
+const DN_VASTE=(function(){const m=/[?&]vaste=([\d.]+)/.exec(location.search);return m?+m[1]:2;})(),DN_HAUT=1.35;
 const DN={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,mesh:null,mat:null,geo:null,aN:null,maxN:900,G:32,S0:64,R0:118,lods:7,
   F:null,Z:null,O:null,fr:new THREE.Frustum(),pm:new THREE.Matrix4(),box:new THREE.Box3(),n:0,S:null,job:0,attente:null,grp:null,
-  ombre:1,ecrit:false,ob:[],pyr:null,pyrs:[],gp:[],fe:[],lev:[],mo:[],deco:null,tor:[],oa:null,rac:[],vent:[1,0,1,0],lam:560,car:[],sep:0,rmin:0}; // (les textes : avec les ambiances des dunes, I18N n'existe pas encore ici)
+  ombre:1,ecrit:false,ob:[],pyr:null,pyrs:[],gp:[],fe:[],lev:[],mo:[],deco:null,tor:[],oa:null,rac:[],vent:[1,0,1,0],lam:560*DN_VASTE,car:[],sep:0,rmin:0}; // (les textes : avec les ambiances des dunes, I18N n'existe pas encore ici) // (2026-11-05, ARRAKIS) des dunes 2× plus longues : moins répétitives, plus grandioses
 /* ===== LE DÉSERT AU HASARD (2026-10-20, Sacha : « volcan, grotte, dune : ces maps ne sont pas générées aléatoirement, il faut que chaque map soit aléatoire
    avec des modules et des décors qui changent ») ===== — MESURÉ (16 graines) : le TRACÉ changeait déjà (écart de forme 0,22), mais d'une partie à l'autre on
    retrouvait la MÊME composition : l'allée des obélisques en paires, une grande pyramide près de l'oasis, l'oasis, les acacias de la vallée, trois caravanes
@@ -44,7 +48,7 @@ const DN={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,mesh:null,mat:null,geo:null,a
 const DN_DECO={on:!/[?&]sans=([^&]*,)?dunesdecor(,|&|$)/.test(location.search),mods:!/[?&]sans=([^&]*,)?dunesmodules(,|&|$)/.test(location.search)};
 const DN_MOSA=!/[?&]mosaique=0\b/.test(location.search),DN_BUTTES=!/[?&]buttes=0\b/.test(location.search); // (2026-10-22) `?mosaique=0` : le sable et la pierre sans mosaïque · `?buttes=0` : sans les buttes de grès (banc : ce que coûte chaque matière)
 const DN_BANK={on:!/[?&]sans=([^&]*,)?dunesbank(,|&|$)/.test(location.search),max:22*Math.PI/180}; /* (2026-10-23) L'INCLINAISON de la route dans les virages : max = l'angle plafond (les nuages montent à 50°) · `?sans=dunesbank` = la route plate d'avant */
-const DN_HZ={axe:20,kL:.94,lim:64},DN_SEG={D:2.6,H:34,A:150,haut:260}; // DN_SEG : la profondeur de la mer de dunes sous la route, sa hauteur, et `haut` : de combien le désert lointain est plus bas au départ (m)
+const DN_HZ={axe:20,kL:.94,lim:64},DN_SEG={D:2.6,H:34*DN_HAUT,A:150,haut:260*DN_HAUT}; // DN_SEG : la profondeur de la mer de dunes sous la route, sa hauteur, et `haut` : de combien le désert lointain est plus bas au départ (m) — (2026-11-05, ARRAKIS) plus profond, plus vertigineux
 /* (2026-10-22, Léo : « les routes qui font sauter embrassent une haute colline de sable… le joueur peut piquer en bas ou décoller… je veux niveau 100 » — LA ROUTE CONTINUE) Plus de trou, plus de lèvre coupée :
    la route est UN ruban, posé sur de grosses dunes. Chaque VAGUE : la MONTÉE (un arc qui ENLACE une colline : le sable monte au-dedans, tombe au-dehors), la CRÊTE (la courbe verticale
    s'arrondit, l'apex est le tremplin — `dnLevre`), la DESCENTE (une droite sur l'éperon, l'avalanche de chaque côté : on s'y pose), le CREUX (on y tourne, entre deux collines). La pente est la
@@ -95,23 +99,23 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
     };
   // UNE VAGUE : montée (le chemin enlace une colline), crête (l'apex = le tremplin), descente (l'éperon), puis le creux — `o.sg` : le côté où tourne l'arc, `o.fin` : la dernière (l'oasis)
   let sgC=r()<.5?-1:1;
-  const vague=o=>{const n=FE.length,kb=o.big?1.3:1,kv=o.big?1.14:1,pt=o.petite?1:0,fe={n:n,S:!pt&&r()<.30,notch:r()<.5,ferme:r()<.6,gm:(pt?.10+r()*.05:(.115+r()*.085)*kv)*1.3,gl:(pt?.15+r()*.06:(.195+r()*.09)*kv)*1.3,g1:pt?.04+r()*.03:.05+r()*.04,Lc:0,gv:-(.020+r()*.028),
-      vt:pt?['S','balayage','droit'][(r()*3)|0]:['S','S','balayage','serpent','droit'][(r()*5)|0],sp:o.sp||'',big:o.big?1:0,fin:o.fin?1:0,sg:0,sg2:0,K:kb,pt:pt};fe.Lc=(72+r()*30)*LL*(pt?.8:1+Math.max(0,fe.gm+fe.g1-.2)*1.6);FE.push(fe); /* (2026-10-23, Léo : « la route est trop plate… comme le jeu du pingouin ») des collines 2 fois plus hautes : des montées à 12-20 %, des descentes à 20-30 %, la crête plus longue pour que sa courbe reste franche mais jamais coupée */
+  const vague=o=>{const n=FE.length,kb=(o.big?1.3:1)*DN_VASTE,kv=o.big?1.14:1,pt=o.petite?1:0,fe={n:n,S:!pt&&r()<.30,notch:r()<.5,ferme:r()<.6,gm:(pt?.10+r()*.05:(.115+r()*.085)*kv)*1.3*DN_HAUT,gl:(pt?.15+r()*.06:(.195+r()*.09)*kv)*1.3*DN_HAUT,g1:(pt?.04+r()*.03:.05+r()*.04)*DN_HAUT,Lc:0,gv:-(.020+r()*.028),
+      vt:pt?['S','balayage','droit'][(r()*3)|0]:['S','balayage','balayage','serpent','droit'][(r()*5)|0],sp:o.sp||'',big:o.big?1:0,fin:o.fin?1:0,sg:0,sg2:0,K:kb,pt:pt};fe.Lc=(72+r()*30)*LL*DN_VASTE*(pt?.8:1+Math.max(0,fe.gm+fe.g1-.2)*1.6);FE.push(fe); /* (2026-11-05, ARRAKIS) kb porte déjà DN_VASTE : la montée, la crête, l'épaule et la descente doublent de longueur (et donc de hauteur, à pente égale) ; gm/gl/g1 ×DN_HAUT pour des crêtes encore plus hautes et des creux encore plus bas ; les creux des grandes vagues préfèrent le grand balayage contemplatif au zigzag serré */
     ici('m'+n+'a');{const uM=uh;gn(uM-40,gP);gn(uM+40,fe.gm);}
     droite((8+r()*18)*LL*kb);
     if(!fe.S){const a=(pt?32:44)+r()*(pt?22:30),R=RMIN*(pt?1.2+r()*.8:1.35+r()*1.25)*kb,s9=vir(sgC,a,R);fe.sg=-s9;}                                   // l'arc : la colline est AU-DEDANS (le côté σ = −signe du virage)
-    else{const a=34+r()*22,R=RMIN*(1.5+r()*.5),s1=vir(sgC,a,R);droite((6+r()*8)*LL);ici('m'+n+'s');const s2=vir(-s1,a*(.8+r()*.4),RMIN*(1.5+r()*.6));fe.sg=-s1;fe.sg2=-s2;}
+    else{const a=34+r()*22,R=RMIN*(1.5+r()*.5)*DN_VASTE,s1=vir(sgC,a,R);droite((6+r()*8)*LL*DN_VASTE);ici('m'+n+'s');const s2=vir(-s1,a*(.8+r()*.4),RMIN*(1.5+r()*.6)*DN_VASTE);fe.sg=-s1;fe.sg2=-s2;}
     ici('m'+n+'b');
-    droite(14*LL+fe.Lc/2);ici('c'+n);{const uA=uh;gn(uA-fe.Lc/2,fe.gm);gn(uA+fe.Lc/2,-fe.g1);}                         // l'apex, au milieu de sa courbe verticale
+    droite(14*LL*DN_VASTE+fe.Lc/2);ici('c'+n);{const uA=uh;gn(uA-fe.Lc/2,fe.gm);gn(uA+fe.Lc/2,-fe.g1);}                         // l'apex, au milieu de sa courbe verticale
     /* L'ÉPAULE (2026-10-23, Léo : « comme le jeu du pingouin où il faut atterrir pour prendre la vitesse ») — MESURÉ : à la vitesse de la caisse (190 m/s) une descente à 17 % file sous la parabole du vol, la caisse ne se pose qu'en BAS (2 s, choc de 67) ;
-       pour qu'elle atterrisse SUR la pente il faut une pente DOUCE (5-9 %) pendant ~200 m après l'apex : l'ÉPAULE, où l'on se pose — puis la DESCENTE RAIDE (20-29 %, qui zigzague) où la gravité rend la vitesse : décoller, se poser sur l'épaule, plonger. */
+       pour qu'elle atterrisse SUR la pente il faut une pente DOUCE (5-9 %) pendant ~200 m après l'apex : l'ÉPAULE, où l'on se pose — puis la DESCENTE RAIDE (20-29 %, qui zigzague) où la gravité rend la vitesse : décoller, se poser sur l'épaule, plonger. (2026-11-05, ARRAKIS) l'épaule et la descente portent aussi DN_VASTE : l'angle d'atterrissage ne change pas, seule la distance double. */
     {const Ls=(o.fin?110:pt?95+r()*30:125+r()*55)*LL*kb;droite(Ls);ici('e'+n);gn(uh,-fe.g1);gn(uh+80,-fe.gl);}
-    {const dl=(o.fin?330+r()*60+(o.xtra||0)*.5:pt?105+r()*40:125+r()*55)*LL*kb;if(o.fin){ond(dl*.5,.9);ond(dl*.5,.9);}else{droite(dl*.12);{const s9=vir(r()<.5?-1:1,20+r()*18,RMIN*(2.2+r()*1.1));vir(-s9,14+r()*14,RMIN*(2.2+r()*1.1));}serp(Math.max(dl*.35,50*LL));}}/* la descente zigzague toujours : un virage et son contre-virage */ /* LA DESCENTE ZIGZAGUE : un balayage entre deux dunes */
+    {const dl=(o.fin?330+r()*60+(o.xtra||0)*.5:pt?105+r()*40:125+r()*55)*LL*kb;if(o.fin){ond(dl*.5,.9);ond(dl*.5,.9);}else{droite(dl*.12);{const s9=vir(r()<.5?-1:1,20+r()*18,RMIN*(2.2+r()*1.1)*DN_VASTE);vir(-s9,14+r()*14,RMIN*(2.2+r()*1.1)*DN_VASTE);}serp(Math.max(dl*.35,50*LL*DN_VASTE));}}/* la descente zigzague toujours : un virage et son contre-virage */ /* LA DESCENTE ZIGZAGUE : un balayage entre deux dunes */
     ici('d'+n);{const uL=uh,gv=o.fin?-.015:fe.gv;gn(uL-50,-fe.gl);gn(uL+50,gv);gP=gv;}
     if(o.fin){ici('oasis0');creux('S');recentre();droite(170*LL+(o.xtra||0)*.5);ici('fin');droite(150,2);}
     else valle(fe);
     sgC=r()<.9?-sgC:sgC;};
-  const B=LC9?LC9*DN_HZ.kL*(.92+r()*.16):5300*LL,FIN=1120*LL,LEN9={'':900,avenue:1300,vlei:900,plaza:1400,rythme:1300}; // FIN : la dernière vague (l'oasis) et la route d'après · LEN9 : la longueur d'une vague selon son lieu (mesurée au banc)
+  const B=(LC9?LC9*DN_HZ.kL*(.92+r()*.16):5300*LL)*DN_VASTE,FIN=1120*LL*DN_VASTE,LEN9={'':900,avenue:1300,vlei:900,plaza:1400,rythme:1300}; // FIN : la dernière vague (l'oasis) et la route d'après · LEN9 : la longueur d'une vague selon son lieu (mesurée au banc)
   // LE DÉPART : le belvédère, tout en haut — une droite pour s'élancer, un virage, puis la 1re colline
   push();ici('depart');gn(0,gP);droite(110*LL);creux('balayage');recentre();ici('erg0'); // (l'ouverture est DOUCE : un seul grand balayage — la caisse part très vite)
   /* LES LIEUX : des creux LONGS (la place où se posent les scènes) — l'allée des obélisques, la cuvette d'argile, la place des colosses —, tirés dans l'ordre ; le premier creux reste calme */
@@ -185,7 +189,7 @@ function dnMesa(x,z,dr){if(DN.sb)return 0;const n=cyNz(x/11000+.21,z/11000+.73,1
    des dunes (~3 km), hautes de `h` m (et le fond du désert remonte de `b`×`h` : l'horizon passe au-dessus de l'œil), perpendiculaires au même vent et serpentant sur des dizaines de km ; elles se lisent comme des plans qui s'étagent, que la brume (DN_FS) refroidit de l'un à l'autre. Rien autour de l'arrivée
    (`f1`-`f2` m : les pyramides, hautes de 500 à 750 m). La même fonction dans le GLSL de la puce (dnGeant de DN_VS) : toute retouche ici se refait là-bas. `?sans=dunesimmense` = le désert d'avant · `?immense=h,l,r1,r2,b,air` l'essaie à d'autres réglages · `dbgDunes('immense', s, hauteur, n)` = le profil de l'horizon (élévation et distance de la crête la plus haute, par azimut) · `dbgDunes('parite', n)` = la hauteur de la puce contre dnHauteur. */
 const DN_IMM=(function(){const m=/[?&]immense=([\d.,]+)/.exec(location.search),p=m?m[1].split(',').map(Number):[],ok=function(i,d){return p[i]>0?p[i]:d;};
-  return {on:!/[?&]sans=([^&]*,)?dunesimmense(,|&|$)/.test(location.search),h:ok(0,460),l:ok(1,5.4),r1:ok(2,900),r2:ok(3,2300),b:ok(4,.4),air:ok(5,.8),f1:1500,f2:3200};})();
+  return {on:!/[?&]sans=([^&]*,)?dunesimmense(,|&|$)/.test(location.search),h:ok(0,460*DN_HAUT),l:ok(1,5.4*DN_VASTE),r1:ok(2,900),r2:ok(3,2300*DN_VASTE),b:ok(4,.4),air:ok(5,.8),f1:1500,f2:3200};})(); // (2026-11-05, ARRAKIS) l'erg lointain monte plus haut (h) et s'étage sur plus de plans (r2, l) : l'horizon d'Arrakis
 function dnGeant(x,z,dr,mk){const I=DN_IMM;if(!I.on||dr<=I.r1)return 0;
   const t=Math.min(1,(dr-I.r1)/(I.r2-I.r1)),rd=t*t*(3-2*t);let q=1;const F9=DN.fin;
   if(F9){const s=Math.max(0,Math.min(1,(Math.hypot(x-F9.x,z-F9.z)-I.f1)/(I.f2-I.f1)));q=s*s*(3-2*s);}  // (aucun géant autour de l'arrivée : les pyramides, l'oasis, le portail)
