@@ -27978,7 +27978,7 @@ function lignePad(sp,pl){ // un pad d'OR, deux faces (même recette que la boucl
     m.position.copy(F.p).addScaledVector(F.b,pl).addScaledVector(F.n,fy>0?.1:-THICK-.1);scene.add(m);trackMeshes.push(m);}
 }
 function ligneFruit(sp,lt){ // un fruit, deux faces (même recette que `place` dans spawnPickups) — il rend LIGNE.don de nitro (× l'espacement du groupe : plus espacé, plus généreux)
-  const g9=LIGNE.grp,fi=(g9&&Math.random()<.7)?g9.fi:fruitPick(),lv=fruitLeve(fi),don9=LIGNE.don*((g9&&g9.mult)||1);frameAt(sp,F);
+  const g9=LIGNE.grp,fi=(g9&&Math.random()<.7)?g9.fi:fruitPick(),lv=fruitLeve(fi),don9=LIGNE.don*((g9&&g9.mult)||1)*(.6+.4*fruitK(fi)); /* (2026-11-05, hiérarchie des fruits) la file suit la hiérarchie, ADOUCIE : une myrtille rend ×0,77, un melon ×1,7 (au lieu de ×0,43 et ×2,9 hors file) — la file doit rester tenable de bout en bout, la moyenne reste ×1 */frameAt(sp,F);
   for(const face of [1,-1]){
     const m=mkFruit(fi);m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?lv:-(THICK+lv)); // petits (FRUIT_K) : on les sème partout sans gêner la vue
     if(face<0)LM4.makeBasis(LV1.copy(F.b).negate(),LV2.copy(F.n).negate(),F.t);else LM4.makeBasis(F.b,F.n,F.t);
@@ -47497,16 +47497,25 @@ for(const k in FRUIT_PAL_N)FRUIT_PAL[k]={g:'f',c:FRUIT_PAL_N[k]};
 const FRUIT_EXO=FRUIT_DEFS.splice(0,FRUIT_DEFS.length); // les 13 d'avant : hors du jeu, au cahier des charges
 const FRN_ANC=n=>FRUIT_EXO.find(f=>f.n===n);
 /* (2026-10-21, Sacha : « des fruits plus rares qui rapportent plus ») les NOUVEAUX dessins, les ANCIENS réglages : communs et petits (myrtille, orange…) jusqu'au rare qui claque (mangue, melon) */
+/* ===== LA HIÉRARCHIE DES FRUITS (2026-11-05, Sacha : « les plus petits fruits donnent moins de nitro, les plus gros plus de nitro ; une vraie hiérarchie en fonction des pouvoirs, des tailles, du nitro apporté ») =====
+   UN ORDRE, TROIS RÉGLAGES QUI LE SUIVENT : plus le fruit est gros (FRUIT_ECH, voir mkFruit), plus il rend de nitro (`boost`, lu par ramassage via fruitK) et plus il est RARE (`freq`, lu par
+   fruitPick). Avant : tous les fruits rendaient 20 % de la jauge quel que soit leur `boost` (qui ne pilotait que le jus), et tous sortaient à égalité.
+   L'ORDRE est celui de la vraie taille d'un fruit (myrtille 1,5 cm … melon 15 cm) : on lit la valeur d'un fruit à son volume. TROIS PALIERS, ×2,4 de la myrtille au melon :
+     PETITS (commun)   MYRTILLE · CERISE · LITCHI   — 0,3 à 0,5  · 51 % des fruits  · 0,4 à 0,7 × le fruit moyen
+     MOYENS            KIWI · PÊCHE · POMME         — 0,65 à 1   · 33 %            · 0,9 à 1,4 ×
+     GROS (rare)       ORANGE · MANGUE · MELON      — 1,2 à 2    · 16 %            · 1,7 à 2,9 ×
+   La moyenne pondérée des `boost` vaut 0,70 : le fruit MOYEN rend toujours ses 20 % d'avant, l'économie de la nitro ne bouge pas — elle se répartit autrement
+   (une myrtille rend 0,4 × un fruit moyen, un melon 2,9 ×). Les fruits-pouvoirs, eux, sont au-dessus de tout (voir PWR_ECH, pouvoirs-orbes). Banc : dbgFruits(). */
 FRUIT_DEFS.push(
-  Object.assign({},FRN_ANC('MYRTILLE'),{boost:.35,freq:26}),
-  {n:'CERISE',boost:.5,freq:14,jus:0xd01030,lp:FRN_CERISE},
-  {n:'KIWI',boost:.6,freq:11,jus:0x7cc020,lp:FRN_KIWI},
-  Object.assign({},FRN_ANC('PÊCHE PLATE'),{n:'PÊCHE',boost:.6,freq:10}),
-  Object.assign({},FRN_ANC('ORANGE'),{boost:.5,freq:11}),
-  {n:'POMME',boost:.7,freq:8,jus:0xe02a2a,lp:FRN_POMME},
-  {n:'LITCHI',boost:1,freq:4,jus:0xf6e6ee,lp:FRN_LITCHI},
-  {n:'MANGUE',boost:1.2,freq:3,jus:0xf4b030,lp:FRN_MANGUE},
-  {n:'MELON',boost:2,freq:1,jus:0xf0a050,lp:FRN_MELON}
+  Object.assign({},FRN_ANC('MYRTILLE'),{boost:.3,freq:20}),
+  {n:'CERISE',boost:.4,freq:17,jus:0xd01030,lp:FRN_CERISE},
+  {n:'LITCHI',boost:.5,freq:14,jus:0xf6e6ee,lp:FRN_LITCHI},
+  {n:'KIWI',boost:.65,freq:13,jus:0x7cc020,lp:FRN_KIWI},
+  Object.assign({},FRN_ANC('PÊCHE PLATE'),{n:'PÊCHE',boost:.8,freq:11}),
+  {n:'POMME',boost:1,freq:9,jus:0xe02a2a,lp:FRN_POMME},
+  Object.assign({},FRN_ANC('ORANGE'),{boost:1.2,freq:7}),
+  {n:'MANGUE',boost:1.5,freq:5,jus:0xf4b030,lp:FRN_MANGUE},
+  {n:'MELON',boost:2,freq:4,jus:0xf0a050,lp:FRN_MELON}
 );
 /* LES FORMES DES FRUITS-POUVOIRS : une géométrie par pouvoir, coulée à la 1re demande (comme fruitGeo) et partagée */
 const FRUIT_POW={n:{n:'PIMENT',lp:FRN_PIMENT,jus:0xff3a10},v:{n:'CITRON',lp:FRN_CITRON,jus:0xfff060},x:{n:'FRUIT DU DRAGON',lp:FRN_DRAGON,jus:0xe0157a},
@@ -53470,7 +53479,7 @@ function mkEngine(i){
 }
 /* <<<FIN MOTEURS>>> */
 function fruitPick(rnd){ // (2026-10-20, Léo : « je ne vois que des myrtilles ») TOUS LES FRUITS À ÉGALITÉ, sur toutes les maps : les anciennes règles par map (`jf`, `cf`, `cs` : fruits de Jade, du Canyon) ne regardaient que les 7 exotiques, retirés du jeu — sans eux le tirage retombait sur le fruit n°0 (la myrtille) à chaque fois
-  const fq=f=>1;
+  const fq=f=>Math.max(0,f.freq); // (2026-11-05, hiérarchie des fruits) le tirage suit de nouveau la `freq` de chaque fruit (plus petit = plus fréquent) : tous les 9 fruits ont une freq > 0 (c'était la freq 0 des exotiques qui ramenait la myrtille à chaque tirage)
   let tot=0;for(const f of FRUIT_DEFS)tot+=fq(f);
   if(tot<=0)return 0;
   let r=(rnd?rnd():Math.random())*tot;
@@ -53479,12 +53488,29 @@ function fruitPick(rnd){ // (2026-10-20, Léo : « je ne vois que des myrtilles 
 }
 /* (2026-10-20, Léo : « si les fruits normaux sont aussi gros que les fruits spéciaux, c'est pas bon ») LES FRUITS NORMAUX SONT PETITS (×1,6) ; les fruits-pouvoirs sont GROS (×4,8, voir mkPower) */
 const FRUIT_K=1.6;
-function mkFruit(i){ const g=new THREE.Mesh(fruitGeo(i),FRUIT_MAT);g.scale.setScalar(FRUIT_K);g.userData.fruit=i;return g; } // (2026-09-26) ×2,7 // 1,15 → 1,9 : on les repère de loin · UN mesh par fruit
+/* (2026-11-05, Sacha : « adapte leur taille en fonction de leur nitro ») LA TAILLE SUIT LA VALEUR. FRUIT_ECH = le multiplicateur de FRUIT_K de chaque fruit (par nom : l'ordre de FRUIT_DEFS peut bouger).
+   Calé MESURE EN MAIN (dbgFruits) sur la dimension moyenne de chaque dessin, feuilles comprises (racine cubique de largeur × hauteur × profondeur : les formes ne se remplissent pas pareil, la cerise
+   est une grappe, la mangue est haute et mince, la pêche est plate) pour que la taille à l'écran monte d'un cran régulier : myrtille 1,55 m · cerise 1,8 · litchi 2,05 · kiwi 2,3 · pêche 2,55 · pomme 2,75 ·
+   orange 2,95 · mangue 3,15 · melon 3,5 m (le melon, 2,3 × la myrtille). Le plus gros reste dans l'enveloppe d'avant (Léo, 20/10 : « les fruits normaux sont petits ») ; les fruits-pouvoirs, eux,
+   passent au-dessus (PWR_ECH). Le rayon de ramassage ne bouge pas : un petit fruit se prend aussi facilement qu'un gros. */
+const FRUIT_ECH={'MYRTILLE':.71,'CERISE':.89,'LITCHI':.8,'KIWI':1.02,'PÊCHE':.94,'POMME':1.04,'ORANGE':1.1,'MANGUE':1.5,'MELON':1.24};
+function fruitEch(i){const f=FRUIT_DEFS[i];return FRUIT_K*((f&&FRUIT_ECH[f.n])||1);}
+/* LA NITRO RENDUE : `boost` du fruit ÷ la moyenne pondérée par la `freq` (1 = le fruit moyen = ses 20 % de réserve d'avant). Calculée en direct : l'ÉTAL (garage) règle toujours boost et freq. */
+function fruitK(i){let t=0,b=0;for(const f of FRUIT_DEFS){const q=Math.max(0,f.freq);t+=q;b+=q*Math.max(0,f.boost);}
+  const f=FRUIT_DEFS[i]||FRUIT_DEFS[0];return (t>0&&b>0)?Math.max(0,f.boost)/(b/t):1;}
+/* (banc) dbgFruits() : la table de la hiérarchie — nom, boost, part du tirage, nitro rendue (× le fruit moyen, et en % de la jauge), échelle, largeur · hauteur · profondeur à l'écran et leur
+   dimension moyenne `dim` (m) ; `pouvoirs` : les cinq fruits-pouvoirs, mêmes mesures (PWR_ECH) */
+window.dbgFruits=function(){let t=0;for(const f of FRUIT_DEFS)t+=Math.max(0,f.freq);
+  const mes=(g,s)=>{if(!g.boundingBox)g.computeBoundingBox();const b=g.boundingBox,w=(b.max.x-b.min.x)*s,h=(b.max.y-b.min.y)*s,d=(b.max.z-b.min.z)*s;
+    return {echelle:+s.toFixed(2),largeur:+w.toFixed(2),hauteur:+h.toFixed(2),profondeur:+d.toFixed(2),dim:+Math.cbrt(w*h*d).toFixed(2)};};
+  return {fruits:FRUIT_DEFS.map((f,i)=>Object.assign({i:i,n:f.n,boost:f.boost,tirage:Math.round(100*Math.max(0,f.freq)/(t||1))+' %',nitro:+fruitK(i).toFixed(2),jauge:Math.round(20*fruitK(i))+' %'},mes(fruitGeo(i),fruitEch(i)))),
+    pouvoirs:Object.keys(FRUIT_POW).map(k=>Object.assign({k:k,n:FRUIT_POW[k].n},mes(fruitPowGeo(k),PWR_ECH[k])))};};
+function mkFruit(i){ const g=new THREE.Mesh(fruitGeo(i),FRUIT_MAT);g.scale.setScalar(fruitEch(i));g.userData.fruit=i;return g; } // (2026-09-26) ×2,7 // 1,15 → 1,9 : on les repère de loin · UN mesh par fruit
 /* (2026-09-26, user : « parfois les fruits sont en collision avec la route ») — MESURÉ : posés à 1,3 m du bitume, mais grossis ×2,7
    (et ×1,08 au battement), certains descendent à 2,3 m sous leur centre : un bon mètre DANS la dalle. `fruitLeve(i)` = la hauteur du
    centre qui garde le plus bas du fruit ~45 cm au-dessus du bitume, battement compris (calculée une fois, sur la vraie géométrie). */
 const FRUIT_LEVE=[];
-function fruitLeve(i){if(FRUIT_LEVE[i]==null){const g=fruitGeo(i);if(!g.boundingBox)g.computeBoundingBox();FRUIT_LEVE[i]=Math.max(.9,-g.boundingBox.min.y*FRUIT_K*1.1+.45);}return FRUIT_LEVE[i];}
+function fruitLeve(i){if(FRUIT_LEVE[i]==null){const g=fruitGeo(i);if(!g.boundingBox)g.computeBoundingBox();FRUIT_LEVE[i]=Math.max(.9,-g.boundingBox.min.y*fruitEch(i)*1.1+.45);}return FRUIT_LEVE[i];}
 // POUVOIRS : grosses orbes rares — sphère de verre teinté + cœur brûlant + anneau qui tourne
 const pwrGeo=new THREE.IcosahedronGeometry(1.9,1),pwrCoreGeo=new THREE.OctahedronGeometry(.95,0), // (2026-09-26) le CRISTAL à facettes et son cœur-étoile
       pwrRingGeo=new THREE.TorusGeometry(2.6,.12,6,32);
@@ -53558,13 +53584,20 @@ try{if(document.fonts&&document.fonts.load)document.fonts.load('13px "Press Star
    citron (v, vitesse ×2), pomme dorée (m, aimant), fruit du dragon (x, aura ×2). Même clé, même minuteur, mêmes plaques : seule l'ENVELOPPE change (forme du fruit
    `fruitPowGeo`, aura en shader `fauraFruit` — voir fruits-auras.js). Le dessin des cristaux reste dessous, pour `?cristaux=1`. */
 const FRUIT_POW_AURA={n:0,v:1,x:2,a:3,m:4};
+/* (2026-11-05, Sacha : « les fruits qui donnent des pouvoirs sont trop gros ; une vraie hiérarchie en fonction des pouvoirs ») L'ÉCHELLE D'UN FRUIT-POUVOIR SUIT SON POIDS. Tous à ×4,8 (rayon 4 à 6 m, 3 × un fruit
+   normal) : trop gros (8 à 10 m de plus grande dimension), et rien ne distinguait le piment de la pomme dorée. Désormais 30 à 50 % plus petits et CLASSÉS, du plus utilitaire au plus décisif : POMME DORÉE
+   (aimant : l'argent vient seul, le pouvoir du débutant) < RAISIN (airtime infini, de la place pour les figures) < FRUIT DU DRAGON (aura ×2) < CITRON (vitesse ×2, le plus risqué) < PIMENT (nitro infinie,
+   le pouvoir roi). Plus grande dimension à l'écran, MESURÉE (dbgFruits().pouvoirs) : 4,3 · 5,2 · 5,9 · 6,3 · 7,3 m — toujours au-dessus du plus gros fruit normal (le melon, 3,7 m), qu'on repère de
+   loin. Le pouvoir se lit à sa couleur ET à sa taille. */
+const PWR_ECH={m:2.5,a:2.7,x:2.9,v:3.4,n:3.7};
 function mkPower(kind,dir){
   const d=PWR_DEFS[kind],g=new THREE.Group();
   if(FRUIT_POW[kind]&&!/[?&]cristaux=1/.test(location.search)){
     const geo=fruitPowGeo(kind);if(!geo.boundingBox)geo.computeBoundingBox();
-    const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(4.8);g.add(m); // ×4,8 : les fruits-pouvoirs sont GROS, trois fois les fruits normaux
-    g.userData.lev=-geo.boundingBox.min.y*4.8+.08; // POSÉ SUR LE BITUME (Léo : « qu'ils ne flottent pas ») : le centre du groupe est à `lev` au-dessus du sol
-    {const au=fauraCubes(FRUIT_POW_AURA[kind],g.userData.lev);if(au.children.length)g.add(au);} // l'aura en MINI CUBES vit AUTOUR du fruit, sans jamais le cacher
+    const ps=PWR_ECH[kind]||PWR_ECH.x;
+    const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(ps);g.add(m); // (2026-11-05, Sacha : « les fruits qui donnent des pouvoirs sont trop gros ») ×2,5 à ×3,7 selon le pouvoir, au lieu de ×4,8 pour tous : voir PWR_ECH
+    g.userData.lev=-geo.boundingBox.min.y*ps+.08; // POSÉ SUR LE BITUME (Léo : « qu'ils ne flottent pas ») : le centre du groupe est à `lev` au-dessus du sol
+    {const ka=ps/4.8,au=fauraCubes(FRUIT_POW_AURA[kind],g.userData.lev/ka);if(au.children.length){au.scale.setScalar(ka);g.add(au);}} // l'aura en MINI CUBES vit AUTOUR du fruit, sans jamais le cacher · (2026-11-05) tracée pour le fruit ×4,8 : le groupe rétrécit avec lui, et le sol (`lev`) est donné dans SON repère
     if(kind==='m'){const sh=fauraFruit(4,geo);if(sh.children.length)m.add(sh);} // la pomme dorée : rien autour, c'est le fruit qui SCINTILLE
     g.userData.fruit=true;
     return g;
@@ -59664,7 +59697,8 @@ const SAVE={
     if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
       n:e.n.slice(0,24),
       b:THREE.MathUtils.clamp(isFinite(+e.b)?+e.b:.5,0,2),
-      f:THREE.MathUtils.clamp(isFinite(+e.f)?+e.f:8,0,40)}));
+      f:THREE.MathUtils.clamp(isFinite(+e.f)?+e.f:8,0,40),
+      v:e.v|0})); // (2026-11-05) la version des réglages d'usine (FRUITS_V, son/curseurs.js)
     if(d.ex&&typeof d.ex==='object'){const e=d.ex,n=(k,hi)=>Math.min(hi,Math.max(0,Math.round(+e[k])||0)); // bornés : un code importé bidon ne débloque pas le roster
       c.ex={eng:n('eng',ENGINE_TIERS.length-1),tricks:n('tricks',1e7),gaps:n('gaps',1e6),bumps:n('bumps',1e6),
         zones:n('zones',1e4),chain:n('chain',1e5),kmh:n('kmh',1e5),surv:n('surv',1e5),runs:n('runs',1e6),pubs:n('pubs',1e6),
@@ -59966,9 +60000,12 @@ window.dbgMusAp=function(){ // (banc) l'état de la musique autour de l'extrait 
 // ÉTAL : on recharge les réglages boost/fréquence par-dessus les valeurs d'usine
 // ⚠ indexés par NOM, pas par position : changer la liste des fruits ne doit PAS coller les réglages
 // de l'ancien étal sur les nouveaux (une pêche héritant du boost d'une pomme).
+/* (2026-11-05, hiérarchie des fruits) FRUITS_V : la version des réglages d'usine. Un réglage sauvé d'une AUTRE version (l'ancien étal : tous les fruits à égalité) est ignoré, sinon il
+   écraserait la nouvelle hiérarchie chez qui a touché aux curseurs. Pour refaire un tour de réglages d'usine : FRUITS_V + 1. */
+const FRUITS_V=2;
 (function(){const fr=SAVE.d.fruits;if(!fr||!fr.length)return;
-  for(const d of FRUIT_DEFS){const e=fr.find(z=>z.n===d.n);if(e){d.boost=e.b;d.freq=e.f;}}})();
-function saveFruits(){SAVE.d.fruits=FRUIT_DEFS.map(f=>({n:f.n,b:f.boost,f:f.freq}));SAVE.flush();}
+  for(const d of FRUIT_DEFS){const e=fr.find(z=>z.n===d.n);if(e&&e.v===FRUITS_V){d.boost=e.b;d.freq=e.f;}}})();
+function saveFruits(){SAVE.d.fruits=FRUIT_DEFS.map(f=>({n:f.n,b:f.boost,f:f.freq,v:FRUITS_V}));SAVE.flush();}
 const sndBtnEl=document.getElementById('sndBtn'),musBtnEl=document.getElementById('musBtn');
 function sndRefresh(){
   sndBtnEl.innerHTML=pxi(SND.sfx?'son':'muet')+' <span class="blabel">'+TR('SON')+'</span>';sndBtnEl.classList.toggle('off',!SND.sfx); // garde le span → masquable en icône seule sur mobile ; TR() sinon le libellé revient au français à chaque bascule, même en anglais
@@ -75136,15 +75173,15 @@ function pickupsTick(dt){
         const fd=FRUIT_DEFS[p.fruit]||FRUIT_DEFS[0],pw=Math.min(1,fd.boost/2);
         // (2026-09-26, user : « les fruits donnent du nitro BLEU ») : chaque fruit remplit la RÉSERVE BLEUE (la nitro la plus forte : poussée
         // 48 contre 30) de 20 % de la jauge — le bleu se voit sur la barre et sur l'anneau du bouton
-        {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?(p.don||LIGNE.don):.2*mx9)); /* (2026-10-21, Sacha : « l'ancien système ») comme avant : le fruit remplit la RÉSERVE BLEUE */if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9)-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
+        {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?(p.don||LIGNE.don):.2*mx9*fruitK(p.fruit))); /* (2026-10-21, Sacha : « l'ancien système ») comme avant : le fruit remplit la RÉSERVE BLEUE · (2026-11-05, hiérarchie des fruits) × fruitK : 20 % pour le fruit MOYEN, 8 % la myrtille, 57 % le melon */if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9*fruitK(p.fruit))-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
          if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});nbPrend('x');}} /* (2026-10-21, Léo : « on voit directement la barre monter ») le fruit ne vole plus vers la barre : elle monte tout de suite */
-        RUNX.fruits++;try{m2Fruit(fd.n);}catch(e){}hap(fd.boost>=1.5?[20,40,30]:11);
+        RUNX.fruits++;try{m2Fruit(fd.n);}catch(e){}hap(fd.boost>=1.9?[20,40,30]:11);
         if(SENS&&!REDUCED_MOTION)try{sensCoup(0,-(.45+.6*pw),-(.3+.35*pw));}catch(e){} // (2026-10-14, sensations · passages) LE COUP DE REINS du plein : le fruit rend sa nitro, la caisse S'ASSOIT d'un coup sur son train arrière (nez levé ≈ 1,2° la myrtille → 2,7° la pastèque, ≈ 1 à 2,5 cm) puis se repose — le jus, le croc et la main existaient, la tôle ne bronchait pas. Au sol seulement (sensCoup dort en vol).
         fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n,!!p.ligne&&PADS_OFF); // ON CROQUE : jus, crunch, et la rafale qui monte
         // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
-        if(fd.boost>=1.5){ // LE GRAAL : la pastèque, ça se fête
-          trickMsg('🍉 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);
-        }else sparkBurst(fd.boost>=.8?sparkGold:sparkBlue,carGroup.position,fd.boost>=.8?8:5,7);
+        if(fd.boost>=1.9){ // LE GRAAL : le melon (la pastèque, avant), ça se fête · (2026-11-05, hiérarchie des fruits) seuils recalés : le graal = le plus gros, l'étincelle d'or = les GROS (pomme et au-dessus), le bleu = les petits
+          trickMsg('🍈 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);
+        }else sparkBurst(fd.boost>=1?sparkGold:sparkBlue,carGroup.position,fd.boost>=1?8:5,7);
       }
       else{
         sparkBurst(sparkGold,p.mesh.position,FLOW.lv===4?14:8,FLOW.lv===4?11:8); // (2026-09-28) là où la pièce disparaît · (×3) en FRÉNÉSIE la gerbe grossit : la pièce vaut trois fois plus

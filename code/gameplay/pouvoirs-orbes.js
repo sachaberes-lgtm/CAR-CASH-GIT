@@ -71,13 +71,20 @@ try{if(document.fonts&&document.fonts.load)document.fonts.load('13px "Press Star
    citron (v, vitesse ×2), pomme dorée (m, aimant), fruit du dragon (x, aura ×2). Même clé, même minuteur, mêmes plaques : seule l'ENVELOPPE change (forme du fruit
    `fruitPowGeo`, aura en shader `fauraFruit` — voir fruits-auras.js). Le dessin des cristaux reste dessous, pour `?cristaux=1`. */
 const FRUIT_POW_AURA={n:0,v:1,x:2,a:3,m:4};
+/* (2026-11-05, Sacha : « les fruits qui donnent des pouvoirs sont trop gros ; une vraie hiérarchie en fonction des pouvoirs ») L'ÉCHELLE D'UN FRUIT-POUVOIR SUIT SON POIDS. Tous à ×4,8 (rayon 4 à 6 m, 3 × un fruit
+   normal) : trop gros (8 à 10 m de plus grande dimension), et rien ne distinguait le piment de la pomme dorée. Désormais 30 à 50 % plus petits et CLASSÉS, du plus utilitaire au plus décisif : POMME DORÉE
+   (aimant : l'argent vient seul, le pouvoir du débutant) < RAISIN (airtime infini, de la place pour les figures) < FRUIT DU DRAGON (aura ×2) < CITRON (vitesse ×2, le plus risqué) < PIMENT (nitro infinie,
+   le pouvoir roi). Plus grande dimension à l'écran, MESURÉE (dbgFruits().pouvoirs) : 4,3 · 5,2 · 5,9 · 6,3 · 7,3 m — toujours au-dessus du plus gros fruit normal (le melon, 3,7 m), qu'on repère de
+   loin. Le pouvoir se lit à sa couleur ET à sa taille. */
+const PWR_ECH={m:2.5,a:2.7,x:2.9,v:3.4,n:3.7};
 function mkPower(kind,dir){
   const d=PWR_DEFS[kind],g=new THREE.Group();
   if(FRUIT_POW[kind]&&!/[?&]cristaux=1/.test(location.search)){
     const geo=fruitPowGeo(kind);if(!geo.boundingBox)geo.computeBoundingBox();
-    const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(4.8);g.add(m); // ×4,8 : les fruits-pouvoirs sont GROS, trois fois les fruits normaux
-    g.userData.lev=-geo.boundingBox.min.y*4.8+.08; // POSÉ SUR LE BITUME (Léo : « qu'ils ne flottent pas ») : le centre du groupe est à `lev` au-dessus du sol
-    {const au=fauraCubes(FRUIT_POW_AURA[kind],g.userData.lev);if(au.children.length)g.add(au);} // l'aura en MINI CUBES vit AUTOUR du fruit, sans jamais le cacher
+    const ps=PWR_ECH[kind]||PWR_ECH.x;
+    const m=new THREE.Mesh(geo,FRUIT_MAT);m.scale.setScalar(ps);g.add(m); // (2026-11-05, Sacha : « les fruits qui donnent des pouvoirs sont trop gros ») ×2,5 à ×3,7 selon le pouvoir, au lieu de ×4,8 pour tous : voir PWR_ECH
+    g.userData.lev=-geo.boundingBox.min.y*ps+.08; // POSÉ SUR LE BITUME (Léo : « qu'ils ne flottent pas ») : le centre du groupe est à `lev` au-dessus du sol
+    {const ka=ps/4.8,au=fauraCubes(FRUIT_POW_AURA[kind],g.userData.lev/ka);if(au.children.length){au.scale.setScalar(ka);g.add(au);}} // l'aura en MINI CUBES vit AUTOUR du fruit, sans jamais le cacher · (2026-11-05) tracée pour le fruit ×4,8 : le groupe rétrécit avec lui, et le sol (`lev`) est donné dans SON repère
     if(kind==='m'){const sh=fauraFruit(4,geo);if(sh.children.length)m.add(sh);} // la pomme dorée : rien autour, c'est le fruit qui SCINTILLE
     g.userData.fruit=true;
     return g;
