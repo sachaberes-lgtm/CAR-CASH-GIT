@@ -12855,7 +12855,7 @@ function cotonPalier(){ // 0 ancien iPhone · 1 moyen · 2 récent — `PAL.n` (
   if(COTON_JADE.force!=null)return COTON_JADE.force;
   try{if(typeof PAL==='object'&&PAL&&typeof PAL.n==='number')return Math.max(0,Math.min(2,PAL.n|0));}catch(e){}
   return QUAL_LOW?0:QUAL_MED?1:2;}
-const N8_FIN=(/[?&]nufin=(\d+)/.exec(location.search)||[])[1]==='2'?[12,18,26,48]:PAL.n===0?[10,14,20,32]:PAL.n===1?[12,16,24,40]:[12,18,26,48]; /* (2026-10-24, allègement mobile) la finesse des nuages par palier : ANCIEN 10/14/20/32 · MOYEN 12/16/24/40 · RÉCENT 12/18/26/48 (l'image d'avant) ; `?nufin=2` = celle d'avant sur tous les paliers (essai) */ // (SON, mesuré : de près, en vol, une surface lisse « en plastique ») la finesse du tout près monte à 48 : les petits bourgeons s'y dessinent // (mesuré, banc perf de DEBUGGING : 14/22/32/46 avec des seuils trop fins = 449 k triangles au sol, contre 153 k avant)
+const N8_FIN=(/[?&]nufin=(\d+)/.exec(location.search)||[])[1]==='2'?[12,18,26,48]:PAL.n===0?[10,14,20,32]:PAL.n===1?[12,16,24,40]:ALLEGE?[12,18,26,48]:[12,18,28,64]; /* (2026-11-05, Sacha : « des nuages lisses, d'autres pixelisés : un problème de résolution ? ») L'ORDINATEUR (le maximum) : les cubes du tout près étaient jusqu'à 2,5 fois plus gros à l'écran que ceux du lointain (le dernier palier ne s'affinait plus quand on approchait) : 48 → 64 (et 26 → 28) ; le téléphone garde ses finesses */ /* (2026-10-24, allègement mobile) la finesse des nuages par palier : ANCIEN 10/14/20/32 · MOYEN 12/16/24/40 · RÉCENT 12/18/26/48 (l'image d'avant) ; `?nufin=2` = celle d'avant sur tous les paliers (essai) */ // (SON, mesuré : de près, en vol, une surface lisse « en plastique ») la finesse du tout près monte à 48 : les petits bourgeons s'y dessinent // (mesuré, banc perf de DEBUGGING : 14/22/32/46 avec des seuils trop fins = 449 k triangles au sol, contre 153 k avant)
 const N8_GENRE6=['mediocris','humilis','congestus','humilis','stratocumulus','mediocris'];
 const N8_GENRE_V={champignon:'congestus'}; // (v8) le « champignon » (une tête sur un cou) se lisait comme un ARBRE de près : un congestus de plus ; l'ENCLUME est réservée aux titans lointains (kind 24) // (v8) le « champignon » (une tête sur un cou) se lisait comme un ARBRE : c'est un congestus de plus // (v8) les six gabarits « classiques » deviennent des cumulus de ces genres
 const N8_OPT={K:5.5,det:.3,fq:1}; // (v8) le champ : netteté des bourgeons, force et finesse du chou-fleur // les quatre finesses de la surface (cellules sur la plus grande dimension du nuage)
@@ -12948,17 +12948,24 @@ function nuage8Calc(B, base, top, N, opt) {
     const a = hs(i, j, k), b = hs(i + 1, j, k), c = hs(i, j + 1, k), d = hs(i + 1, j + 1, k), e = hs(i, j, k + 1), f = hs(i + 1, j, k + 1), g = hs(i, j + 1, k + 1), m = hs(i + 1, j + 1, k + 1);
     const l1 = a + (b - a) * fx, l2 = c + (d - c) * fx, l3 = e + (f - e) * fx, l4 = g + (m - g) * fx, q1 = l1 + (l2 - l1) * fy, q2 = l3 + (l4 - l3) * fy; return q1 + (q2 - q1) * fz; };
   const sd = (opt.seed || 0) * 17.13, VOXF = !!opt.vox, FAR = DET * .5 + .02;
+  /* (2026-11-05, Sacha : « il faut que la map soit sans dessus dessous : qu'on ne se rende plus compte quand les nuages sont à l'envers ») LE NUAGE SANS DESSUS DESSOUS (opt.sym, cubes seulement) : le champ est REPLIÉ sur le plan
+     du milieu (`ymid`) — le haut du cumulus (ses bourgeons, tirés du plan `ys`, là où ses lobes sont les plus larges) est recopié en bas : plus de base plate, plus de plat-dessous/chou-fleur-dessus, la même boîte [base, sommet].
+     Les cubes sont gros au ventre et petits aux DEUX bouts, l'ombre des bourgeons vient du bout le plus proche, le cuit « hauteur » est la distance au milieu : à l'endroit ou à l'envers, c'est le même nuage. */
+  const SYM = !!opt.sym && !!opt.vox; let ymid = 0, ys = 0, ksy = 1;
+  if (SYM) { let ytp = -1e9; const YSF = opt.ysf == null ? .52 : opt.ysf; for (const b of B) ytp = Math.max(ytp, b[1] + b[3] * b[4]);
+    ymid = (base + ytp) * .5; ys = base + (ytp - base) * YSF; /* le plan source, un peu au-dessus du milieu : les lobes aplatis de l'ancienne base (des ailes minces à l'équateur) n'y sont plus */ ksy = (ytp - ys) / Math.max(.05, (ytp - base) * .5); }
+  const yRepli = function (y) { return SYM ? ys + Math.abs(y - ymid) * ksy : y; }; // (sym) l'altitude, repliée sur le plan du milieu
   // le champ : > 0 dedans
   const champ = function (x, y, z, LB) { // LB (cubes) : la liste des lobes qui comptent dans la région interrogée
-    let f = 0;
-    for (let ii = 0, nb = LB ? LB.length : B.length; ii < nb; ii++) { const i = LB ? LB[ii] : ii, b = B[i], r = b[3], ry = b[3] * b[4], dx = (x - b[0]) / r, dy = (y - b[1]) / ry, dz = (z - b[2]) / r, q = dx * dx + dy * dy + dz * dz; if (q < 9) f += Math.exp(-K * q); }
+    let f = 0; const yr = yRepli(y);
+    for (let ii = 0, nb = LB ? LB.length : B.length; ii < nb; ii++) { const i = LB ? LB[ii] : ii, b = B[i], r = b[3], ry = b[3] * b[4], dx = (x - b[0]) / r, dy = (yr - b[1]) / ry, dz = (z - b[2]) / r, q = dx * dx + dy * dy + dz * dz; if (q < 9) f += Math.exp(-K * q); }
     let g = Math.log(Math.max(f, 1e-9) / T); // 0 à la surface, en « unités de rayon » (le log rend le champ presque linéaire près de la surface)
-    if (VOXF && (g > FAR || g < -FAR)) return g - Math.max(0, (base + .015 - y)) * 40; // (cubes) le bruit ne vaut que ±DET/2 : loin de la surface il ne change aucun signe, on ne le calcule pas
+    if (VOXF && (g > FAR || g < -FAR)) return SYM ? g : g - Math.max(0, (base + .015 - y)) * 40; // (cubes) le bruit ne vaut que ±DET/2 : loin de la surface il ne change aucun signe, on ne le calcule pas
     // le chou-fleur : deux octaves de bosses, plus fortes vers le haut (la base reste lisse)
-    const hy = Math.max(0, Math.min(1, (y - base) / Math.max(.1, top - base)));
+    const hy = Math.max(0, Math.min(1, (yr - base) / Math.max(.1, top - base)));
     g += DET * (0.55 * (vn(x * 4.1 * FQ + sd, y * 4.1 * FQ, z * 4.1 * FQ) - .5) + 0.3 * (vn(x * 9.3 * FQ, y * 9.3 * FQ + sd, z * 9.3 * FQ) - .5) + 0.15 * (vn(x * 19.7 * FQ, y * 19.7 * FQ, z * 19.7 * FQ + sd) - .5)) * (.3 + .7 * hy);
     // la BASE PLATE : le niveau de condensation
-    g -= Math.max(0, (base + .015 - y)) * 40;
+    if (!SYM) g -= Math.max(0, (base + .015 - y)) * 40;
     return g;
   };
   /* (2026-10-20, Léo : « le niveau nuage a l'air déchiqueté — une refonte, avec toutes les techniques, entre réalisme et cubes pixel de tailles
@@ -12976,10 +12983,10 @@ function nuage8Calc(B, base, top, N, opt) {
     const RL = new Int8Array(NRX * NRY * NRZ), RS = new Int8Array(NRX * NRY * NRZ), memo = new Map();
     const t0v = VX.t0 == null ? .36 : VX.t0, t1v = VX.t1 == null ? .7 : VX.t1, hbv = VX.hb == null ? .35 : VX.hb, hh0 = Math.max(.1, top - base);
     for (let k = 0; k < NRZ; k++) for (let j = 0; j < NRY; j++) for (let i = 0; i < NRX; i++) { // la taille des cubes de chaque région : un bruit LISSE (des plaques), plus petite vers le haut
-      const rv = vn(i * .83 + sd + 3.1, j * .83 + 1.7, k * .83 - 2.3) * .65 + hs(i * 7 + 1, j * 13 + 5, k * 11 + 3) * .35, yy = Math.min(1, Math.max(0, (gy0 + (j + .5) * RG - base) / hh0)), t = rv + (.5 - yy) * hbv;
+      const rv = vn(i * .83 + sd + 3.1, j * .83 + 1.7, k * .83 - 2.3) * .65 + hs(i * 7 + 1, j * 13 + 5, k * 11 + 3) * .35, yy = Math.min(1, Math.max(0, SYM ? Math.abs(gy0 + (j + .5) * RG - ymid) / (hh0 * .5) : (gy0 + (j + .5) * RG - base) / hh0)), t = rv + (.5 - yy) * hbv; /* (sym) gros au ventre, petits aux deux bouts */
       RL[i + NRX * (j + NRY * k)] = t < t0v ? 0 : t < t1v ? 1 : 2; }
     const RBL = new Array(NRX * NRY * NRZ), bl = function (i, j, k) { const q = i + NRX * (j + NRY * k); let L9 = RBL[q]; if (L9) return L9; // les lobes dont la portée (3 rayons : q < 9) touche cette région
-      const ccx = gx0 + (i + .5) * RG, ccy = gy0 + (j + .5) * RG, ccz = gz0 + (k + .5) * RG, rr = RG * .87; L9 = [];
+      const ccx = gx0 + (i + .5) * RG, ccy = yRepli(gy0 + (j + .5) * RG), ccz = gz0 + (k + .5) * RG, rr = RG * .87 * (SYM ? Math.max(1, ksy) : 1); L9 = []; /* (sym) la région se lit dans le champ replié : son centre replié, sa portée élargie de la pente */
       for (let b9 = 0; b9 < B.length; b9++) { const b = B[b9], R9 = 3 * Math.max(b[3], b[3] * b[4]) + rr; if (Math.abs(ccx - b[0]) < R9 && Math.abs(ccy - b[1]) < R9 && Math.abs(ccz - b[2]) < R9) L9.push(b9); }
       RBL[q] = L9; return L9; };
     const rstate = function (i, j, k) { const q = i + NRX * (j + NRY * k); let s = RS[q]; if (s) return s;
@@ -13010,9 +13017,9 @@ function nuage8Calc(B, base, top, N, opt) {
           if (!dat) { let gx = champ(cx + e1, cy, cz) - champ(cx - e1, cy, cz), gy = champ(cx, cy + e1, cz) - champ(cx, cy - e1, cz), gz = champ(cx, cy, cz + e1) - champ(cx, cy, cz - e1);
             const gl = Math.hypot(gx, gy, gz) || 1; gx = -gx / gl; gy = -gy / gl; gz = -gz / gl;
             let o9 = 0; for (const s9 of [.04, .09, .17, .3]) { const w9 = champ(cx + gx * s9, cy + gy * s9, cz + gz * s9); if (w9 > -1.4) o9 += (w9 + 1.4) / 1.4 * (s9 === .04 ? .35 : s9 === .09 ? .3 : s9 === .17 ? .22 : .13); }
-            let u9 = 0; for (const s9 of [.1, .22, .38, .6]) { const w9 = champ(cx + gx * .03, cy + s9, cz + gz * .03); if (w9 > 0) u9 += Math.min(1, w9) * .5; }
+            let u9 = 0; const sgS = SYM && cy < ymid ? -1 : 1; for (const s9 of [.1, .22, .38, .6]) { const w9 = champ(cx + gx * .03, cy + s9 * sgS, cz + gz * .03); if (w9 > 0) u9 += Math.min(1, w9) * .5; }
             const hz = hs(ci * 7 + 3, cj * 13 + 5, ck * 11 + 1 + l * 31) - .5;
-            dat = { g: [gx, gy, gz], md: [Math.max(0, Math.min(1, (.25 + .75 * Math.max(0, Math.min(1, 1 - o9 * 1.15))) * (1 + hz * jit))), Math.min(1, Math.exp(-u9 * 1.6) * (1 + hz * jit * .5)), Math.max(0, Math.min(1, (cy - base) / hh0))] }; }
+            dat = { g: [gx, gy, gz], md: [Math.max(0, Math.min(1, (.25 + .75 * Math.max(0, Math.min(1, 1 - o9 * 1.15))) * (1 + hz * jit))), Math.min(1, Math.exp(-u9 * 1.6) * (1 + hz * jit * .5)), Math.max(0, Math.min(1, SYM ? Math.abs(cy - ymid) / (hh0 * .5) : (cy - base) / hh0))] }; }
           const nn = [d[0] * (1 - kn) + dat.g[0] * kn, d[1] * (1 - kn) + dat.g[1] * kn, d[2] * (1 - kn) + dat.g[2] * kn], nl = Math.hypot(nn[0], nn[1], nn[2]) || 1; nn[0] /= nl; nn[1] /= nl; nn[2] /= nl;
           if (nex === m * m) quad(cx, cy, cz, ax, sg, s * .5, 0, 0, s * .5, s * .5, nn, dat.md);
           else { const hp = s / m * .5; let ii = 0; for (let q = 0; q < m; q++) for (let p = 0; p < m; p++, ii++) if (ex[ii]) quad(cx, cy, cz, ax, sg, s * .5, ((p + .5) / m - .5) * s, ((q + .5) / m - .5) * s, hp, hp, nn, dat.md); } } } }
@@ -13303,7 +13310,7 @@ function cotonCalcAsync(S,sph,cb){ // cb(le calcul), PLUS TARD : dans l'ouvrier 
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,B:job.B,base:job.base,top:job.top,sp:job.sp,sn:job.sn,si:job.si,CH:job.CH});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function nuage8Async(S,N,cb,vit,dyF){ // dyF : le décalage vertical de ses cubes fantômes (nuFantGeo), pour que l'ouvrier les convertisse // (v8) une finesse de la NOUVELLE surface : dans l'ouvrier si possible, sinon par tranches — vit : la taille des écailles du VITRAIL (nombre de cubes sur la plus grande dimension), 0 = sans
-  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,NUVIT.vox?{vox:NUVIT.vox,det:NUVIT.vox.det==null?N8_OPT.det:NUVIT.vox.det}:vit?(NUVIT.fant?{fant:NUVIT.fant,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:Object.assign({vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0},NUVIT.mix?{fant:NUVIT.mix,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:{})):{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
+  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,NUVIT.vox?{vox:NUVIT.vox,det:NUVIT.vox.det==null?N8_OPT.det:NUVIT.vox.det,sym:COTON.sym?1:0}:vit?(NUVIT.fant?{fant:NUVIT.fant,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:Object.assign({vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0},NUVIT.mix?{fant:NUVIT.mix,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:{})):{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});let hf=0;try{hf=NUF_TEX&&job.o8.fant?NUF_W:0;}catch(e){} /* (NUF_TEX est déclarée plus bas : jamais lue en zone morte) */try{w.postMessage({id:id,n8:N,o8:job.o8,B:job.B,base:job.base,top:job.top,hf:hf,dy:dyF||0});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function cotonFinesse(k,f,g){ // une finesse est arrivée : elle remplace l'ébauche dans SON lot et dans les lots plus fins encore en attente
@@ -13330,6 +13337,7 @@ function n8Vap(){ const N=256,A=new Uint8Array(N*N),D=new Uint8Array(N*N*2),rg=m
 const N8_U={uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
 if(N8_VAP){N8_U.uVap={value:null};N8_U.uVapK={value:new THREE.Vector4(1,1,1,1)};} // (coton-blanc) la toile de vapeur et ses doses : x érosion du bord, y grain du cœur, z or du contre-jour, w tout (palier 2)
 N8_U.uHole=NHOLE.uHole;N8_U.uHoleC=NHOLE.uHoleC;N8_U.uMood={value:new THREE.Vector4(1,0,0,0)};N8_U.uBolt=NBOLT.uBolt;N8_U.uBoltR=NBOLT.uBoltR;N8_U.uInC={value:new THREE.Vector3(.6,.7,1)};
+N8_U.uSym=skyU.uSym; /* (2026-11-05, Sacha : « sans dessus dessous ») le MÊME fondu 0 → 1 que le ciel replié (map NUAGES en course) : l'ombre bleue du ventre et le rebond d'en dessous deviennent symétriques */
 N8_U.uLav={value:new THREE.Vector3(.72,.78,.97)}; // (2026-10-14, passe graphismes · nuages-jour) la teinte de l'ombre des cumulus (était la constante vec3(.72,.78,.97) du GLSL, un bleu-lavande franc) : un uniforme, posé par ambiance (champ `nuLav`), même valeur par défaut
 /* LES NUAGES SANS COUTURES BLEUES (2026-10-15 soir, Sacha : « les nuages sont encore buggés ») — VU au banc (mer de nuages, rafales de photos) : des
    LISERÉS BLEUS et des trous dans la ouate là où deux cumulus se chevauchent. La cause : le bord d'un nuage est à demi transparent (la silhouette
@@ -13367,7 +13375,7 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       ...(N8_VAP?['  float sc9=length(modelMatrix[0].xyz);','#ifdef USE_INSTANCING','  sc9*=length(c0);','#endif','  vQ=sc9*.077/max(length(cameraPosition-wp.xyz),1.);']:[]), /* (coton-blanc) la taille d une cellule de vapeur à l écran (rad) : sous ~3 px elle s éteint */
       '#include <fog_vertex>',
       '}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC;uniform vec4 uMood;uniform vec3 uInC;uniform float uTps;uniform vec4 uBolt[12];uniform float uBoltR;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform float uSym;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC;uniform vec4 uMood;uniform vec3 uInC;uniform float uTps;uniform vec4 uBolt[12];uniform float uBoltR;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
       'void main(){vec3 N=normalize(vN),N0=N,V=normalize(cameraPosition-vW);',
       '  for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(vW/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}',
       /* LE RELIEF DE PRÈS (SON et DEBUGGING, mesuré : en vol, un grand nuage tout proche était un MUR lisse « en plastique ») : sous ~300 m, la
@@ -13381,8 +13389,8 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
          aplats de peintre aux bords brisés, le contour sombre — est RETIRÉE : les nuages gardent leur modelé doux. */
       '  vec3 alb=uAlb*mix(vec3(1.),vT,.3)*uK.x;',                                                /* la teinte propre du nuage, en sourdine (à plein, les « chauds » sortaient ORANGE) */
       '  vec3 sk=mix(vec3(dot(uSky,vec3(.3,.59,.11))),uSky,.6)*vec3(.9,.95,1.05);',
-      '  vec3 ciel=mix(vec3(.72,.78,.97)*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,N.y));',   /* (SON, mesuré) l ombre tirait au BRUN (le sol de l hémisphère) : un bleu-LAVANDE franc sous le ventre et sur les flancs */                   /* le côté ombre pris par le CIEL : bleu-lavande (et le rebond de la mer sous le ventre) */
-      '  vec3 Fd=normalize(vec3(-uSunW.x,.55,-uSunW.z));float fl=.72+.38*max(dot(N,Fd),0.)+.12*max(-N.y,0.);',     /* le côté OMBRE a son modelé : le ciel à l opposé du soleil l éclaire, la mer de nuages renvoie par en dessous */
+      '  vec3 ciel=mix(vec3(.72,.78,.97)*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,mix(N.y,abs(N.y),uSym)));',   /* (SON, mesuré) l ombre tirait au BRUN (le sol de l hémisphère) : un bleu-LAVANDE franc sous le ventre et sur les flancs */                   /* le côté ombre pris par le CIEL : bleu-lavande (et le rebond de la mer sous le ventre) */
+      '  vec3 Fd=normalize(vec3(-uSunW.x,.55*mix(1.,N.y<0.?-1.:1.,uSym),-uSunW.z));float fl=.72+.38*max(dot(N,Fd),0.)+.12*max(-N.y,0.)*(1.-uSym);',     /* le côté OMBRE a son modelé : le ciel à l opposé du soleil l éclaire, la mer de nuages renvoie par en dessous */
       '  vec3 ombre=ciel*uR.z*fl*mix(.55,1.,ao)*mix(.84,1.,hh);',
       '  float ch=clamp((uSunC.r-uSunC.b-.18)*3.5,0.,.45);',                                        /* la CHALEUR du soleil : nulle au matin et à midi, l or n arrive qu en fin d après-midi */
       '  vec3 soleil=mix(vec3(1.,.99,.975),uSunC/max(uSunC.r,.01),ch)*dot(uSunC,vec3(.3,.59,.11))*uK.y;',   /* (SON, mesuré) au matin les nuages sortaient BEIGE-SABLE : un blanc franc côté soleil */
@@ -13647,7 +13655,7 @@ function cotonInit(){ if(COTON.root)return; // une fois par session : 24 gabarit
       if(MV&&f9>=2){const V={g0:g0,ok:false,tri:0,A:new THREE.InstancedBufferAttribute(new Float32Array(COTON.cap*16),16),C:new THREE.InstancedBufferAttribute(new Float32Array(COTON.cap*3).fill(1),3)};V.A.setUsage(THREE.DynamicDrawUsage);V.C.setUsage(THREE.DynamicDrawUsage);
         for(const q9 of [['c',MV.cub],['o',MV.coe],['p',MV.pea],['b',MV.corps],['g',MV.fan]]){const x=new THREE.InstancedMesh(g0,q9[1],COTON.cap);x.instanceMatrix=V.A;x.instanceColor=V.C; // les trois maillages partagent LEURS instances (les nuages trop proches restent dans le lot v8)
         x.frustumCulled=false;x.count=0;x.visible=false;x.castShadow=x.receiveShadow=false;x.matrixAutoUpdate=false;COTON.root.add(x);V[q9[0]]=x;}COTON.vit[k*4+f9]=V;}}}
-  {for(let k=0;k<COTON_KINDS;k++)COTON.S[k].seed=k*7+1;COTON.pret.fill(0); // (v8) les QUATRE finesses de la surface arrivent de l'ouvrier ; l'ébauche en sphères tient la place
+  {COTON.sym=nuSymVoulu();/* (2026-11-05, sans dessus dessous) le nuage naît symétrique ou non selon la map du moment */for(let k=0;k<COTON_KINDS;k++)COTON.S[k].seed=k*7+1;COTON.pret.fill(0); // (v8) les QUATRE finesses de la surface arrivent de l'ouvrier ; l'ébauche en sphères tient la place
     for(let f=0;f<4;f++)for(let k=0;k<COTON_KINDS;k++)nuage8Async(COTON.S[k],N8_FIN[f],function(r){const g9=cotonBuf(r);cotonFinesse(k,f,g9);if(r.skin)nuSkinPose(k,f,r.skin);if(r.vit){nuVitPose(k,2,r);nuVitPose(k,3,r);}if(r.fant){nuFantPose(k,2,r,g9);nuFantPose(k,3,r,g9);}},f===2?NUVIT.nc:0);} // (vitrail) calculé UNE fois par gabarit (avec la finesse 2 : le cœur n'est vu que dans les joints), les deux lots fins le partagent // les plus légères d'abord : le ciel s'affine en quelques instants, sans jamais geler
   for(const s of SPH)s.dispose();COTON.I=new Float32Array(COTON.cap*COTON_ST);COTON.msInit=performance.now()-COTON.t0;
 }
@@ -13715,7 +13723,7 @@ function cotonOrdonne(cr,perp){
       r=t.r[0]+(t.r[1]-t.r[0])*cr(),kk=cotonKind(cr,t.w);let d=t.d[0]+(t.d[1]-t.d[0])*cr();
       for(let e=0;e<3;e++,d*=1.25){const x=p.x+q[0]*sg*d,y=p.y+t.y+(cr()-.5)*40,z=p.z+q[1]*sg*d;if(libre(x,y+r*.35,z,r)&&cotonPose(x,y,z,r,kk,cr))break;}}});}
 function buildCoton(cr){
-  cotonInit();cotonVide();COTON.jd=null;COTON.corrH=0;COTON.corrV=0;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
+  cotonInit();nuSymMaj();cotonVide();COTON.jd=null;COTON.corrH=0;COTON.corrV=0;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
   if(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!LVL.cur.sansNuages){cotonJade(cr);return;} // (2026-10-14, passe graphismes) LES PICS DE JADE : le ciel de coton, à leur mesure
   const okD=lvlNuageOk({deco:true}),okG=lvlNuageOk({giant:true});if(!okD&&!okG)return;
   const ORD=!!(ARC_ON&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage')&&!/[?&]ordre=0\b/.test(location.search));if(ORD){COTON.corrH=NU_ORD.corrH;COTON.corrV=NU_ORD.corrV;} // (2026-10-21) LE PLAN D'AVION : voir cotonOrdonne
@@ -14143,18 +14151,18 @@ const NCB={cap:700,n:0,mesh:null,P:new Float32Array(700*3),V:new Float32Array(70
   lp:new THREE.Vector3(),cv:new THREE.Vector3(),has:false,acc:0,hs:[],hi:0,tm:new THREE.Matrix4(),tq:new THREE.Quaternion(),te:new THREE.Euler(),tp:new THREE.Vector3(),ts:new THREE.Vector3()};
 function nuCasseInit(){
   if(NCB.mesh||!COTON.mat8||!N8_U.uSunC.value)return;
-  const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR'])U[k]=N8_U[k];
+  const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR','uSym'])U[k]=N8_U[k];
   const m=new THREE.ShaderMaterial({uniforms:U,fog:true,
     vertexShader:['#include <common>','#include <fog_pars_vertex>','varying vec3 vN,vT;',
       'void main(){vec3 tr=position;vec3 nn=normal;vT=vec3(1.);',
       '#ifdef USE_INSTANCING','  nn=mat3(instanceMatrix)*nn;tr=(instanceMatrix*vec4(tr,1.)).xyz;','#endif',
       '#ifdef USE_INSTANCING_COLOR','  vT=instanceColor;','#endif',
       '  vN=normalize(mat3(modelMatrix)*nn);vec4 mvPosition=viewMatrix*modelMatrix*vec4(tr,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uSunC,uSky,uGnd,uLav;uniform vec4 uK,uR;varying vec3 vN,vT;',
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uSunC,uSky,uGnd,uLav;uniform float uSym;uniform vec4 uK,uR;varying vec3 vN,vT;',
       'void main(){vec3 N=normalize(vN);float lit=smoothstep(uR.x,uR.y,dot(N,uSunW));', // la lumière de la ouate (nuage8Mat), sans le modelé cuit : un cube = une face
       '  vec3 sk=mix(vec3(dot(uSky,vec3(.3,.59,.11))),uSky,.6)*vec3(.9,.95,1.05);',
-      '  vec3 ciel=mix(uLav*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,N.y));',
-      '  vec3 ombre=ciel*uR.z*(.78+.22*max(dot(N,normalize(vec3(-uSunW.x,.55,-uSunW.z))),0.));',
+      '  vec3 ciel=mix(uLav*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,mix(N.y,abs(N.y),uSym)));',
+      '  vec3 ombre=ciel*uR.z*(.78+.22*max(dot(N,normalize(vec3(-uSunW.x,.55*mix(1.,N.y<0.?-1.:1.,uSym),-uSunW.z))),0.));',
       '  float ch=clamp((uSunC.r-uSunC.b-.18)*3.5,0.,.45);',
       '  vec3 soleil=mix(vec3(1.,.99,.975),uSunC/max(uSunC.r,.01),ch)*dot(uSunC,vec3(.3,.59,.11))*uK.y;',
       '  gl_FragColor=vec4(vT*mix(ombre,soleil,lit),1.);','#include <fog_fragment>','}'].join('\n')});
@@ -14253,19 +14261,19 @@ function nuVide(){ // un triangle dégénéré : une géométrie qui ne dessine 
 function nuSkinGeo(sk,dy){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(sk.pos,3));g.setAttribute('normal',new THREE.BufferAttribute(sk.nor,3));g.setIndex(new THREE.BufferAttribute(sk.idx,1));if(dy)g.translate(0,dy,0);g.computeBoundingSphere();return g;}
 function nuSkinMat(){
   if(NUSKIN.mat)return NUSKIN.mat;const U=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);
-  for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR','uHole','uHoleC','uNearF'])U[k]=N8_U[k];U.uSk=NUSKIN.uSk;
+  for(const k of ['uSunW','uSunC','uSky','uGnd','uLav','uK','uR','uHole','uHoleC','uNearF','uSym'])U[k]=N8_U[k];U.uSk=NUSKIN.uSk;
   NUSKIN.mat=new THREE.ShaderMaterial({uniforms:U,fog:true,transparent:true,depthWrite:false,
     vertexShader:['#include <common>','#include <fog_pars_vertex>','varying vec3 vN,vW;varying float vF;',
       'void main(){vec3 tr=position;vec3 nn=normal;vF=0.;',
       '#ifdef USE_INSTANCING','  vF=instanceMatrix[0][3];nn=mat3(instanceMatrix)*nn;tr=(instanceMatrix*vec4(tr,1.)).xyz;','#endif',
       '  vec4 wp=modelMatrix*vec4(tr,1.);vW=wp.xyz;vN=normalize(mat3(modelMatrix)*nn);vec4 mvPosition=viewMatrix*wp;gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uSunC,uSky,uGnd,uLav;uniform vec4 uK,uR,uSk,uHole[8];uniform vec2 uNearF;uniform float uHoleC;varying vec3 vN,vW;varying float vF;',
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uSunC,uSky,uGnd,uLav;uniform vec4 uK,uR,uSk,uHole[8];uniform vec2 uNearF;uniform float uHoleC,uSym;varying vec3 vN,vW;varying float vF;',
       'void main(){',
       '  for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(vW/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}',
       '  vec3 N=normalize(vN),V=normalize(cameraPosition-vW);float lit=smoothstep(uR.x,uR.y,dot(N,uSunW));',
       '  vec3 sk=mix(vec3(dot(uSky,vec3(.3,.59,.11))),uSky,.6)*vec3(.9,.95,1.05);',
-      '  vec3 ciel=mix(uLav*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,N.y));',
-      '  vec3 ombre=ciel*uR.z*(.78+.22*max(dot(N,normalize(vec3(-uSunW.x,.55,-uSunW.z))),0.));',
+      '  vec3 ciel=mix(uLav*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,mix(N.y,abs(N.y),uSym)));',
+      '  vec3 ombre=ciel*uR.z*(.78+.22*max(dot(N,normalize(vec3(-uSunW.x,.55*mix(1.,N.y<0.?-1.:1.,uSym),-uSunW.z))),0.));',
       '  float ch=clamp((uSunC.r-uSunC.b-.18)*3.5,0.,.45);',
       '  vec3 soleil=mix(vec3(1.,.99,.975),uSunC/max(uSunC.r,.01),ch)*dot(uSunC,vec3(.3,.59,.11))*uK.y;',
       '  vec3 col=mix(vec3(1.,.985,.96)*(.8+.2*lit),mix(ombre,soleil,lit),.3)+vec3(.9,.92,1.)*uSk.z;', // le voile laiteux du verre : surtout BLANC (la lumière à 30 % seulement) — plus de voile bleu
@@ -14278,6 +14286,19 @@ function nuSkinPose(k,f,sk){ // une finesse arrive : sa peau pour SON lot et les
   for(let f2=f;f2<4;f2++){const j=k*4+f2;if(f2>f&&COTON.pret[j])break;const im=COTON.im[j];if(!im)continue;let S=COTON.skin[j];
     if(!S){const m=new THREE.InstancedMesh(g,m9,COTON.cap);m.instanceMatrix=im.instanceMatrix;m.instanceColor=im.instanceColor;m.frustumCulled=false;m.count=0;m.renderOrder=1;m.castShadow=m.receiveShadow=false;m.matrixAutoUpdate=false;COTON.root.add(m);COTON.skin[j]=S={m:m};}
     else S.m.geometry=g;}}
+/* ===== LES NUAGES SANS DESSUS DESSOUS (2026-11-05, Sacha : « change un peu la génération des nuages pour qu'on ne se rende pas compte quand ils sont à l'envers ; la map doit être sans dessus dessous ») =====
+   Sur la map NUAGES (et l'orage), la route se tord dans tous les sens et le ciel est replié (uSym) : un cumulus à base plate et chou-fleur dessus dit à tout moment où est le haut. Les gabarits y sont donc calculés SYMÉTRIQUES (nuage8Calc, opt.sym : le champ replié
+   sur le plan du milieu, des cubes petits aux deux bouts) et leur lumière ne distingue plus le haut du bas (uSym dans les matières). Les autres maps gardent le cumulus à base plate : quand la map change de famille, les 100 gabarits (25 × 4 finesses) sont recalculés dans l'ouvrier
+   et remplacent les anciens un à un (l'ancien est libéré dès qu'aucun lot ne s'en sert). `?sym=0` = les nuages d'avant sur la map NUAGES aussi. */
+function nuSymVoulu(){const c=LVL.cur;return !!(NUVIT.vox&&!/[?&]sym=0\b/.test(location.search)&&c&&(c.id==='nuages'||c.id==='orage')&&!c.sansNuages&&!c.piste&&!PARK.on);}
+function nuGeoLibre(g){ /* une géométrie remplacée : libérée seulement si plus aucun lot (corps ou peau) ne s'en sert */
+  if(!g||!g.dispose)return;for(const im of COTON.im)if(im.geometry===g)return;if(COTON.skin)for(const S of COTON.skin)if(S&&S.m.geometry===g)return;g.dispose();}
+function nuSymMaj(){const w=nuSymVoulu();if(!!COTON.sym===w||!COTON.S||COTON.S.length<COTON_KINDS||!COTON.im||!COTON.im.length)return;COTON.sym=w;nuSymRebuild();}
+function nuSymRebuild(){const gen=COTON.symGen=(COTON.symGen|0)+1;
+  for(let f=0;f<4;f++)for(let k=0;k<COTON_KINDS;k++)nuage8Async(COTON.S[k],N8_FIN[f],function(r){if(gen!==COTON.symGen)return; /* une carte plus récente a relancé le calcul : ce résultat est périmé */
+    const vieux=[];for(let f2=f;f2<4;f2++){const j=k*4+f2;vieux.push(COTON.im[j].geometry);if(COTON.skin&&COTON.skin[j])vieux.push(COTON.skin[j].m.geometry);}
+    cotonFinesse(k,f,cotonBuf(r));if(r.skin)nuSkinPose(k,f,r.skin);for(const g of vieux)nuGeoLibre(g);},0);}
+window.dbgNuSym=function(v){if(v!=null&&!!v!==!!COTON.sym){COTON.sym=!!v;nuSymRebuild();}return {sym:!!COTON.sym,voulu:nuSymVoulu(),gen:COTON.symGen|0,prets:COTON.pret?COTON.pret.reduce(function(x,y){return x+y;},0):0};}; /* (banc) l'état des nuages sans dessus dessous ; dbgNuSym(true|false) force l'un ou l'autre (recalcule les 100 gabarits) */
 window.dbgSkin=function(a,b,c){const u=NUSKIN.uSk.value;if(a!=null)u.x=+a;if(b!=null)u.y=+b;if(c!=null)u.z=+c;return u.toArray();}; // (banc) base · bord · voile ; dbgSkin(0,0,0) = invisible
 /* ============================== LE NUAGE QUI FLOTTE (2026-10-21, Léo : « dans l'air aussi, peut-être ajouter des petits cubes qui se promènent, comme des particules ; le nuage qui flotte ») ==============================
    Sur la map nuages (en course et au titre) : ~240 PETITS CUBES (0,5-2,3 m, blancs, éclairés comme la ouate — la matière des blocs de la collision, une seule InstancedMesh) en suspension dans l'air autour de la caisse :
