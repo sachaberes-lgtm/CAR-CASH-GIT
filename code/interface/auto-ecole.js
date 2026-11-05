@@ -239,7 +239,10 @@ function pixCouleurs(el){
    déjà les coordonnées de l'écran ; l'ancien comportement (WebKit, possible sur iPhone) les rend DIVISÉES par le zoom — les gerbes
    partaient à côté du compteur. On mesure une fois lequel des deux on a. `zK(el)` = le zoom effectif d'un élément (1 hors du HUD). */
 function zK(el){try{const z=el&&el.closest&&el.closest('#auraV2,#triade,#airHud,#pwrChip,#campChip');return z?(parseFloat(getComputedStyle(z).zoom)||1):1;}catch(e){return 1;}}
-function zRect(el){const r=el.getBoundingClientRect();
+function zRect(el){
+  if(HUD_R.on&&HUD_R.m.has(el)&&hudRFrais()){const q=HUD_R.m.get(el);if(q&&q.ep===HUD_R.ep&&performance.now()-q.t<1000)return q.r;} /* (2026-11-05, passe perf mobile 2, C1) le rectangle en cache tant que rien n'a bougé (voir HUD_R) */
+  const r=zRectLire(el);if(HUD_R.on&&HUD_R.m.has(el))HUD_R.m.set(el,{ep:HUD_R.ep,t:performance.now(),r:r});return r;}
+function zRectLire(el){const r=el.getBoundingClientRect();
   if(zRect.leg===undefined){try{const d=document.createElement('div');d.style.cssText='position:fixed;left:0;top:0;width:100px;height:10px;zoom:.5;visibility:hidden;pointer-events:none';document.body.appendChild(d);zRect.leg=d.getBoundingClientRect().width>75;d.remove();}catch(e){zRect.leg=false;}}
   const k=zRect.leg?zK(el):1;if(k===1)return r;
   return {left:r.left*k,top:r.top*k,right:r.right*k,bottom:r.bottom*k,width:r.width*k,height:r.height*k};}
