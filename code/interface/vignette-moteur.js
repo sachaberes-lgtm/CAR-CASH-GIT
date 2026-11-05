@@ -216,7 +216,7 @@ function atelierChauffe(){ // vrai si elle a travaillé à cette image (la chauf
     try{buildGarageRoom();}catch(e){console.warn('atelier',e);GAR.chaud=true;}
     return true;}
   let q9=[GAR.root];try{q9=q9.concat(burnPools());}catch(e){} // (2026-10-08) les réservoirs du burn-out (la fumée en pixels…) compilés avec l'atelier : rien au 1er burn-out
-  CHAUFFE_R.saute=0;chauffeRendu(q9);if(!CHAUFFE_R.saute||atelierChauffe.rejoue)GAR.chaud=true;else atelierChauffe.rejoue=1;return true; /* (LA LIAISON EN ARRIÈRE-PLAN) pas tout lié : redessiné une fois, lié */
+  CHAUFFE_R.saute=0;chauffeRendu(q9);if(CHAUFFE_R.encore){CHAUFFE_R.encore=0;return true;} /* (A1.c) une tranche de plus */if(!CHAUFFE_R.saute||atelierChauffe.rejoue)GAR.chaud=true;else atelierChauffe.rejoue=1;return true; /* (LA LIAISON EN ARRIÈRE-PLAN) pas tout lié : redessiné une fois, lié */
 }
 /* UNE ÉTAPE DE CHAUFFE EST UN CHARGEMENT, PAS UNE LENTEUR (2026-09-28, chasse aux gels). Sur iPhone chaque étape (un moteur compilé, une
    fournée de programmes) dure 30 à 250 ms : une trentaine d'images d'affilée au menu, passé les 3,5 s de grâce du chargement, et la
@@ -279,9 +279,13 @@ function lierDemarrage(now){ /* (loop) vrai : cette image ne dessine pas, les pr
     LIER.t0=performance.now();
     try{const rt=renderer.getRenderTarget();if(POST_ON&&composer&&composer.renderTarget1)renderer.setRenderTarget(composer.renderTarget1);compileDoux(scene,camera);renderer.setRenderTarget(rt);}catch(e){console.warn('lierDemarrage',e);}
     try{if(POST_ON)lierPasses();}catch(e){console.warn('lierPasses',e);}
+    try{cielChauffeLier();}catch(e){console.warn('cielChauffeLier',e);} /* (2026-11-05, passe perf mobile 2, A1.b) les 7 programmes du ciel, lancés en doux avec ceux de la 1re image (voir ciel2.js) */
     return true;}
   if(lierPret()||performance.now()-LIER.t0>20000){LIER.dem=2;LIER.msDem=Math.round(performance.now()-LIER.t0);return false;}
   return true;}
+/* (2026-11-05, passe perf mobile 2, A1.a) LIER PENDANT LA BOULE : le jeu ne fait RIEN sous la boule de l'intro (≥ 4,6 s perdues, voir boucle-1.js:3) ; au 1er toucher (et dès que la page est chargée) les ~103 programmes de la
+   1re image sont lancés en doux, sur les fils du pilote : quand la boule se brise, `lierDemarrage` ne trouve plus qu'à constater (`lierPret`). Faux = pas encore possible / déjà fait. `?lierboule=0` = avant. */
+window.__ccLierTot=function(){if(LIER.dem!==0||/[?&]lierboule=0\b/.test(location.search)||document.readyState!=='complete'||!renderer||!scene)return false;LIER.tot=1;lierDemarrage(performance.now());return true;};
 function lierScene(sc){ /* (renderer.render d'une SCÈNE, HORS COURSE) un objet neuf (la caisse du menu, l'atelier, un décor bâti après le démarrage) : ses programmes sont lancés en doux, et
      ce qui n'est pas encore lié n'est pas dessiné cette fois (il apparaît une ou deux images plus tard) au lieu de figer l'écran. Rend les matières cachées, que `lierMenuFin` remet. */
   lierPret();let neuf=false;const H=[];
@@ -317,20 +321,33 @@ const DEPART_ATT={n:0,ms:0,sortie:''};
 function departAttend(G){ /* vrai : cette image, la course ne part pas encore (le voile reste) */
   if(!G||/[?&]attente=0\b/.test(location.search))return false;
   const now=performance.now();if(!G.att0)G.att0=now;
-  const chaud=engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait&&lierPret();
+  const chaud=engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait&&lierPret()&&!(CHAUFFE_R.niv&&performance.now()-CHAUFFE_R.nivT<4000); /* (A1.d) et la chauffe du niveau neuf finie */
   let pb=true;try{pb=!PREB.on||!PREB.W||PREB.fait||!prebDepCible();}catch(e){} /* le départ d'avance n'est attendu que s'il est DÉJÀ en route (MESURÉ, iPhone à froid : pas commencé avant le JOUER, il ne démarre pas sous le voile — le voile tenait jusqu'aux 20 s pour rien ; la piste se bâtit alors au départ, ~0,6 s de JS, sans compilation) */
   if(chaud&&pb||now-G.att0>20000){if(G.attend){DEPART_ATT.n++;DEPART_ATT.ms=Math.round(now-G.att0);DEPART_ATT.sortie=chaud&&pb?'prêt':'20 s';G.attend=false;}return false;}
   G.attend=true;chauffeGrace();return true;}
 window.dbgDepart=function(){return Object.assign({},DEPART_ATT);};
+/* (2026-11-05, passe perf mobile 2, A1.d) LA CHAUFFE DU NIVEAU NEUF EN TRANCHES. MESURÉ (B1, p0 ×4) : newTrack ne coûte plus que 20-99 ms, mais la 1re image après le voile faisait jusqu'à 333 ms — `chauffeRendu()` d'un bloc,
+   déclenché 120 ms après la construction, donc APRÈS l'ouverture du voile. Désormais (paliers 0-1, là où `chauffeTranche` < 999) : `jadeChauffeNiveau` une fois, puis `chauffeRendu()` une tranche par image tant qu'il en
+   reste (`CHAUFFE_R.niv`), et le voile du JOUER attend la fin (garage-rendu.js, 700 ms au plus). `?chauffeniveau=0` = avant. */
+function chauffeNiveauTranche(){return !/[?&]chauffeniveau=0\b/.test(location.search)&&!CHAUFFE_R.sansTranche&&PAL.b('chauffeTranche',999)<999;}
+function chauffeNiveauPas(){
+  if(performance.now()-CHAUFFE_R.nivT>6000||CHAUFFE_R.nivN>60){CHAUFFE_R.niv=0;return;} /* garde-fou : jamais plus de 6 s ni 60 images */
+  CHAUFFE_R.nivN++;LIER.doux=true;CHAUFFE_R.tr=1;CHAUFFE_R.saute=0;CHAUFFE_R.encore=0;
+  try{if(!CHAUFFE_R.nivJ){CHAUFFE_R.nivJ=1;CHAUFFE_R.tr=0;jadeChauffeNiveau();CHAUFFE_R.tr=1;return;} /* l'étape jade (sa propre chauffe de bloc) seule dans sa première image */
+    chauffeRendu();}
+  finally{LIER.doux=false;CHAUFFE_R.tr=0;}
+  if(CHAUFFE_R.encore){CHAUFFE_R.encore=0;return;}
+  if(CHAUFFE_R.saute&&CHAUFFE_R.nivN<20)return; /* des programmes en cours de liaison n'ont pas été dessinés : encore une image */
+  CHAUFFE_R.niv=0;ccConstr('chauffe');}
 function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie encore : le menu tourne, la suivante attend ; l'étape compile en doux */
   if(!lierPret())return;
-  LIER.doux=true;try{engChauffe1();}finally{LIER.doux=false;}}
+  LIER.doux=true;CHAUFFE_R.tr=1;try{engChauffe1();}finally{LIER.doux=false;CHAUFFE_R.tr=0;}}
 function engChauffe1(){
   if(ENG_BB.length){const g=ENG_BB.shift();try{if(!g.userData.bb&&!g.parent)g.userData.bb=new THREE.Box3().setFromObject(g);}catch(e){}chauffeGrace();return;} /* (2026-10-31) la boîte de cadrage d'un moteur gardé, dans SA propre image (voir ENG_BB) */
   if(atelierChauffe()){chauffeGrace();return;} // (chasse aux gels) L'ATELIER D'ABORD : c'est lui que JOUER montre dans la seconde
   if(engChaudI<0){chauffeGrace();const k9=CHAUFFE_R.div;CHAUFFE_R.saute=0;const r9=chauffeDivers(k9);if(CHAUFFE_R.encore){CHAUFFE_R.encore=0;return;} /* (2026-11-01) une étape en plusieurs images : rejouée tant qu'il en reste */if(CHAUFFE_R.saute&&CHAUFFE_R.rejoue!==k9){CHAUFFE_R.rejoue=k9;return;}CHAUFFE_R.div=k9+1;if(!r9)engChaudI=0;return;} /* (LA LIAISON EN ARRIÈRE-PLAN) une étape dont le dessin a sauté des programmes en cours de liaison est rejouée une fois, liée */ // d'abord ce qui peut naître à N'IMPORTE quel moment de la course (pigeons, trace, ville) — (chasse aux gels) une étape par image
-  if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){chauffeGrace();CHAUFFE_R.saute=0;chauffeRendu();if(CHAUFFE_R.saute&&!CHAUFFE_R.refait){CHAUFFE_R.refait=1;return;}CHAUFFE_R.fait=true;CHAUFFE_R.tFait=performance.now();return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
-    if(CHAUFFE_R.ap>=0&&!ecranWipe._on&&!GAR.go&&!CHUTE.go&&(PREB.W?PREB.fait:(!PREB.on||!prebDepCible()||performance.now()-CHAUFFE_R.tFait>15000))){chauffeGrace();if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;} // (2026-10-24) les tôles des voitures, une par image, le départ d'avance prêt (voir chauffeApres) — (2026-10-28) jamais pendant un lâcher ou un piqué (LE DÉPART ATTEND LA CHAUFFE : une tôle de 1,9 s sous le voile retarderait la course)
+  if(engChaudI>ENGINE_TIERS.length){if(!CHAUFFE_R.fait){chauffeGrace();CHAUFFE_R.saute=0;chauffeRendu();if(CHAUFFE_R.encore){CHAUFFE_R.encore=0;return;} /* (A1.c) une tranche de plus */if(CHAUFFE_R.saute&&!CHAUFFE_R.refait){CHAUFFE_R.refait=1;return;}CHAUFFE_R.fait=true;CHAUFFE_R.tFait=performance.now();return;} // (tour 2) les moteurs prêts : toute la scène passe une fois par la puce
+    if(CHAUFFE_R.ap>=0&&!ecranWipe._on&&!GAR.go&&!CHUTE.go&&(PREB.W?PREB.fait:(!PREB.on||!prebDepCible()||performance.now()-CHAUFFE_R.tFait>15000))){chauffeGrace();CHAUFFE_R.tr=0;if(!chauffeApres(CHAUFFE_R.ap++))CHAUFFE_R.ap=-1;} // (2026-10-24) les tôles des voitures, une par image, le départ d'avance prêt (voir chauffeApres) — (2026-10-28) jamais pendant un lâcher ou un piqué (LE DÉPART ATTEND LA CHAUFFE : une tôle de 1,9 s sous le voile retarderait la course)
     return;}
   chauffeGrace();
   try{
@@ -359,7 +376,11 @@ function engChauffe1(){
    DESSINE tout une fois, HORS écran (une cible 8×8 au MÊME format que la vraie — les états de pipeline en dépendent), tout rendu
    visible et sans tri de champ, les lumières intouchées (leur nombre changerait les programmes) : au menu une fois, et à chaque
    construction de niveau. Les géométries montent au GPU du même coup (elles montaient elles aussi au 1er dessin, en plein vol). */
-const CHAUFFE_R={t:0,rt:null,fait:false,div:0,ap:0,saute:0,rejoue:-1,refait:0}; // ap : l'étape des tôles des voitures (chauffeApres ; -1 = finies)
+const CHAUFFE_R={t:0,rt:null,fait:false,div:0,ap:0,saute:0,rejoue:-1,refait:0,tr:0,dessines:new Set(),cles:new Set(),compiles:new WeakSet(),tranches:0,sansTranche:/[?&]tranche=0\b/.test(location.search)};
+/* (2026-11-05, passe perf mobile 2, A1.c) CHAUFFE EN TRANCHES : une étape de la chauffe du menu n'accepte que `chauffeTranche` programmes JAMAIS dessinés (clé `cacheKey` absente de `dessines`) ;
+   les objets des programmes en trop sont cachés pour ce dessin et l'étape est rejouée à l'image suivante (`encore`). MESURÉ (JOURNAL 28/10) : un dessin d'un bloc = 0,2 à 1,5 s à froid, « gels de 3 à 5,6 s ».
+   Ancien · moyen · récent : le palier 2 garde 999 = tout d'un coup, comme avant. `?tranche=0` = avant. */
+PAL.B.chauffeTranche=[3,6,999]; // ap : l'étape des tôles des voitures (chauffeApres ; -1 = finies)
 function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ces sous-arbres, sous l'éclairage de la scène (l'atelier, au menu)
   if(!CHAUFFE_R.rt){const t9=(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
     CHAUFFE_R.rt=new THREE.WebGLRenderTarget(8,8,{format:THREE.RGBAFormat,type:t9,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});}
@@ -369,18 +390,19 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
   const kids=scene.children,sm=renderer.shadowMap,sa=sm.autoUpdate,sn=sm.needsUpdate;
   if(que){scene.children=kids.filter(function(o){return o.isLight||que.indexOf(o)>=0;});sm.autoUpdate=false;sm.needsUpdate=false;}
   try{
-  if(que)renderer.compile(scene,camera); // le sous-arbre compilé SEUL (compile() parcourt aussi le caché) — pas toute la scène
+  if(que&&!(CHAUFFE_R.tr&&!CHAUFFE_R.sansTranche&&PAL.b('chauffeTranche',999)<999&&que.every(function(o){return CHAUFFE_R.compiles.has(o);})))renderer.compile(scene,camera); /* (A1.c, rejeu d'une tranche : le sous-arbre est déjà compilé, pas deux fois) */ // le sous-arbre compilé SEUL (compile() parcourt aussi le caché) — pas toute la scène
   // Un objet CACHÉ dont la matière n'a encore jamais été compilée reste caché : on prépare le dessin de ce qui existe, on ne compile
   // rien d'inutile (mesuré : 4 programmes au 1er portail pour des objets qui ne s'affichent jamais — 100-400 ms perdus sur iPhone).
-  const vis=[],cul=[],off=[],vus=new Set(),sansP=[],caches9=[];
+  const vis=[],cul=[],off=[],vus=new Set(),sansP=[],caches9=[],tranT=[],nvT=new Set();
   /* (2026-09-28, chasse aux gels) UN DESSIN PAR COUPLE (matière, géométrie). L'état de pipeline de la puce ne dépend que du programme, de la
      disposition des sommets, du mélange et de la cible ; la géométrie monte au GPU une fois : dessiner les 2 000-4 000 PIÈCES d'une piste
      (une géométrie, une matière) ne préparait rien de plus que d'en dessiner UNE. MESURÉ : ~4 700 appels de dessin → ~450 à chaque chauffe. */
+  const TR9=CHAUFFE_R.tr&&!CHAUFFE_R.sansTranche&&PAL.b('chauffeTranche',999)<999,gardes9=[];
   (function walk(o,h0){ if(o.isLight||(o===GAR.root&&!que))return;const h=h0||!o.visible; // l'ATELIER ne s'affiche jamais en course : il n'est dessiné qu'une fois, au menu (`que`) — (avant la chasse aux gels, son éclairage à lui recompilait 2 programmes au 1er portail)
     if(o.isMesh||o.isPoints||o.isSprite||o.isLine){const m=Array.isArray(o.material)?o.material[0]:o.material,pr=m&&renderer.properties.get(m).currentProgram;
       const cle=m&&o.geometry?(o.isInstancedMesh?'I':o.isSprite?'S':o.isPoints?'P':o.isLine?'L':'M')+m.id+':'+o.geometry.id:null;
-      if((h&&!pr)||(cle&&vus.has(cle))){if(h&&!pr)sansP.push(o);if(o.visible){o.visible=false;off.push(o);}}
-      else{if(cle)vus.add(cle);if(!o.visible){o.visible=true;vis.push(o);}if(o.frustumCulled){o.frustumCulled=false;cul.push(o);}}}
+      if((h&&!pr)||(cle&&vus.has(cle))||(cle&&TR9&&CHAUFFE_R.cles.has(cle))){ /* (A1.c) un couple déjà dessiné à une tranche précédente : caché d'emblée */if(h&&!pr)sansP.push(o);if(o.visible){o.visible=false;off.push(o);}}
+      else{if(cle){vus.add(cle);if(TR9)gardes9.push([o,cle]);}if(!o.visible){o.visible=true;vis.push(o);}if(o.frustumCulled){o.frustumCulled=false;cul.push(o);}}}
     else if(!o.visible){o.visible=true;vis.push(o);}
     for(let i=0;i<o.children.length;i++)walk(o.children[i],h);})(scene,false);
   if(LIER.doux&&LIER.X){ /* (LA LIAISON EN ARRIÈRE-PLAN) les programmes de ce dessin lancés ENSEMBLE (ils se lient en parallèle), sauf ceux des objets cachés jamais compilés (voir plus haut) ; le dessin attend ensuite le tout */
@@ -392,17 +414,27 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
       for(const m of L){if(!m||!m.visible)continue;const p=renderer.properties.get(m).currentProgram;if(!p||!p.program)continue;
         let ok=etat.get(p);if(ok===undefined){try{ok=!!g9.getProgramParameter(p.program,K9);}catch(e){ok=true;}etat.set(p,ok);}
         if(!ok){m.visible=false;caches9.push(m);}}});
-    CHAUFFE_R.saute+=caches9.length;}
+    CHAUFFE_R.saute+=caches9.length;
+    if(CHAUFFE_R.tr&&!CHAUFFE_R.sansTranche){const lim=PAL.b('chauffeTranche',999);if(lim<999){ /* (2026-11-05, A1.c) la tranche : seuls `lim` programmes neufs sont dessinés cette fois */
+      scene.traverseVisible(function(o){if(!(o.isMesh||o.isPoints||o.isSprite||o.isLine)||!o.material)return;
+        const L=Array.isArray(o.material)?o.material:[o.material],K=[];let trop=false;
+        for(const m of L){if(!m||!m.visible)continue;const p=renderer.properties.get(m).currentProgram;if(!p)continue;const k=p.cacheKey;
+          if(CHAUFFE_R.dessines.has(k)||nvT.has(k))continue;if(nvT.size+K.length<lim&&K.indexOf(k)<0)K.push(k);else{trop=true;break;}}
+        if(trop){o.visible=false;tranT.push(o);}else for(const k of K)nvT.add(k);});
+      if(tranT.length){CHAUFFE_R.encore=1;CHAUFFE_R.tranches++;}}}}
   const ob9=scene.onBeforeRender;scene.onBeforeRender=function(){}; // pisteLoin remettrait ses visibilités pendant le rendu
   const cible=renderer.getRenderTarget(),t9=performance.now();renderer.setRenderTarget(CHAUFFE_R.rt);renderer.render(scene,camera);renderer.setRenderTarget(cible);
   CHAUFFE_R.appels=renderer.info.render.calls;CHAUFFE_R.ms=+(performance.now()-t9).toFixed(1); // (dev) dbgChauffe()
   scene.onBeforeRender=ob9;
+  if(TR9){for(const g of gardes9){const m=Array.isArray(g[0].material)?g[0].material[0]:g[0].material;if(g[0].visible&&m&&m.visible)CHAUFFE_R.cles.add(g[1]);}if(que)for(const o of que)CHAUFFE_R.compiles.add(o);} /* (A1.c) ce qui a été dessiné cette fois ne l'est plus */
+  for(const k of nvT)CHAUFFE_R.dessines.add(k);for(const o of tranT)o.visible=true; /* (A1.c) les programmes dessinés sont gardés, les objets de la tranche suivante remis */
   for(const o of vis)o.visible=false;for(const o of off)o.visible=true;for(const o of cul)o.frustumCulled=true;
   for(const m of caches9)m.visible=true;
   }finally{if(que){scene.children=kids;sm.autoUpdate=sa;sm.needsUpdate=sn;}}
 }catch(e){console.warn('chauffeRendu',e);} }
 function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image (elles tenaient toutes dans la même : ~1,8 s d'un bloc au chargement, MESURÉ) — rend vrai s'il en reste
   const E=[
+  function(){if(!CIEL2.chauffeTete&&!CIEL2.dessine){CIEL2.dessine=1;cielChauffe();}}, /* (2026-11-05, passe perf mobile 2, A1.b) le dessin du ciel (8×8), lié en doux au démarrage, n'est plus au chargement */
   function(){cielArcMonte();},function(){cielArcMonte();},function(){cielArcMonte();},function(){cielArcMonte();}, /* (2026-11-01) les photos du ciel et la mer de cumulus montent au GPU (voir cielArcMonte) */
   function(){orbiteChauffe();}, // (vague 3) la lune peinte et montée au GPU, lune + rochers compilés : rien ne naît au portail de l'orbite
   function(){if(!CITY.chaud){CITY.chaud=true;villeChauffe();}},

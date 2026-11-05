@@ -38,7 +38,7 @@ def une(palier,http,port):
     c.call('Page.addScriptToEvaluateOnNewDocument',source=HOOK)
     c.call('Emulation.setCPUThrottlingRate',rate=4) # ×4 AVANT la navigation : tout le chargement est ralenti
     t0=time.time()
-    c.call('Page.navigate',url=base+'/index.html?tel=1&palier=%d&garde=1&pistegraine=777'%palier)
+    c.call('Page.navigate',url=base+'/index.html?tel=1&palier=%d&garde=1&pistegraine=777'%palier+os.environ.get('DEMQ','')) # DEMQ='&cielchauffe=tete' : un interrupteur d'URL de plus (A/B)
     menu=None;tlast=0;joue=None
     while time.time()-t0<240:
         r=c.ev(BTN)

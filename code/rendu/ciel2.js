@@ -60,7 +60,18 @@ function cielChauffe(){ if(!CIEL2.on)return; try{
   renderer.setRenderTarget(b);for(const k of ['netN','netV','plein','cy','jd']){me.material=C[k];renderer.render(sc,camera);}
   renderer.setRenderTarget(cible);skyU.uBasTex.value=t0;a.dispose();b.dispose(); // (les matières restent : leurs programmes vivent)
 }catch(e){console.warn('cielChauffe',e);} }
-cielChauffe();
+/* (2026-11-05, passe perf mobile 2, A1.b) LE CIEL N'EST PLUS CHAUFFÉ AU CHARGEMENT : les 7 rendus synchrones du dôme (282 ms à froid sur iPhone, 1,5 s dans le JOURNAL) tenaient dans la tâche de tête du
+   script. Désormais : `cielChauffeLier` lance les 7 programmes EN DOUX (sans dessin) avec la liaison de la 1re image (lierDemarrage), et `cielChauffe` (le dessin) est la 1re étape de chauffeDivers au menu.
+   `?cielchauffe=tete` = avant (le dessin d'un bloc au chargement). */
+CIEL2.chauffeTete=/[?&]cielchauffe=tete\b/.test(location.search);
+function cielChauffeLier(){ if(!CIEL2.on||CIEL2.chauffeTete||CIEL2.lie)return; CIEL2.lie=1; try{
+  const C=skyDome.userData.ciel,a=cielCible(8,8,false),b=cielCible(8,8,true),cible=renderer.getRenderTarget();
+  const mk=function(L){const sc=new THREE.Scene();for(const k of L){const me=new THREE.Mesh(skyDome.geometry,C[k]);me.frustumCulled=false;sc.add(me);}return sc;};
+  renderer.setRenderTarget(a);compileDoux(mk(['basN','basV']),camera);
+  renderer.setRenderTarget(b);compileDoux(mk(['netN','netV','plein','cy','jd']),camera);
+  renderer.setRenderTarget(cible);a.dispose();b.dispose();
+}catch(e){console.warn('cielChauffeLier',e);} }
+if(CIEL2.chauffeTete)cielChauffe();
 {const ob=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt9){ob.call(this,r9,s9,cam,rt9);cielDeuxTemps(r9,cam);};} // ⚠ CHAÎNÉ (pisteLoin passe d'abord)
 /* (banc) `dbgCiel2(false)` = le ciel d'avant, pour des A/B dans la même page · `dbgCiel2(on,{rendre:1})` re-rend l'image courante tout de
    suite (même caméra, même horloge : deux captures comparables au pixel) · `{octets:1}` force la passe lisse en 8 bits (le cas d'un
