@@ -4,7 +4,7 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
-## LES SONS À LA DEMANDE (2026-11-05, v1176 — Sacha, après le bilan « LA MÉMOIRE DE L'ORDI » : « Sons à la demande »)
+## LES SONS À LA DEMANDE (2026-11-05, v1177 — Sacha, après le bilan « LA MÉMOIRE DE L'ORDI » : « Sons à la demande »)
 - La banque entière décodée pesait ~130 Mo de PCM dans le processus de rendu (229 sons, 384 fichiers avec leurs bases d'octave), pour une partie
   qui n'en joue qu'une fraction (forêt, banquise, ailes, richesse, machine : 4,3 des 6,9 Mo de MP3 dorment). `sfx.js` (v9) : au chargement, seuls
   les sons `pre:1` et l'interface `ui.*` sont décodés (la 1re moitié publiée, 0,8 Mo) ; un son demandé par `play()` et pas encore prêt est décodé
