@@ -47,40 +47,46 @@
     const F = tireFamille(r), E = r.entre;
     const pipe0 = E(F.pipe[0], F.pipe[1]);
     const limit = Math.round(E(F.limit[0], F.limit[1]) / 50) * 50;
-    const turbo = r.pile(F.turbo);
-    const mat = r(); /* 0 = mat et sourd, 1 = clair et métallique : tire plusieurs réglages dans le même sens, sinon ils s'annulent */
+    const turbo = r.pile(F.turbo * .6);  /* turbos plus rares : leur sifflet est la couche la plus aiguë du moteur */
+    const mat = r(); /* 0 = mat et sourd, 1 = un peu plus clair : tire plusieurs réglages dans le même sens, sinon ils s'annulent */
+    /* ⚠ LES PLAGES « DOUCES » (2026-11-05, après « tous les sons sont horribles ») : râpe divisée par deux, coups plus longs (ronds), corps et aigus
+       coupés bas, admission discrète, saturation qui ne mord plus sous charge, hauteur descendue de 12 %, gorge du pot plus marquée (le ronron).
+       Mesuré au banc (atelier-son/mini-cash/banc.cjs) : l'énergie au-dessus de 1,5 kHz tombe de ~10 dB avant même le filtre doux. */
     const fiche = {
       nom: F.nom, n: F.n, slot: r.choix(F.slot).slice(),
       idle: Math.round(E(F.idle[0], F.idle[1]) / 10) * 10, limit: limit, redline: limit - Math.round(E(250, 450) / 50) * 50,
       pipe: [arr(pipe0), arr(pipe0 * E(1.01, 1.1))],
-      r: arr(-E(.5, .7)), damp: arr(.48 - .2 * mat + E(-.05, .05)),
-      form: [Math.round(E(F.form[0], F.form[1])), arr(E(1.2, 1.9), 2), arr(E(2.8, 5), 1)],
-      form2: [Math.round(E(170, 260)), arr(E(.9, 1.3), 2), arr(E(1.2, 3), 1)],
-      bodyLP: Math.round(2800 + 2000 * mat + E(-300, 300)), hp: Math.round(E(32, 42)),
-      eq: [['ls', 110, 0, arr(-E(2.5, 5), 1)], ['hs', Math.round(E(1300, 1900)), 0, arr(-E(4, 9), 1)]],
-      lope: arr(E(F.lope[0], F.lope[1])), rasp: arr(E(F.rasp[0], F.rasp[1])), tau: arr(E(.0006, .0011), 5),
-      popRate: arr(E(F.pop[0], F.pop[1])), ticks: arr(E(.5, 1.1), 2), intake: arr(E(.18, .5), 2), pan: arr(E(F.pan[0], F.pan[1]), 2),
-      cutMs: [Math.round(E(40, 62)), Math.round(E(66, 92))],
-      pitch: arr(E(F.pitch[0], F.pitch[1])), sat: arr(E(.95, 1.25), 2), satLoad: arr(E(.6, 1.3), 2),
-      tickF: Math.round(E(2600, 4000)), muff: arr(E(.18, .34)), clac: arr(E(.0004, .0008), 5), dryF: Math.round(E(850, 1500)),
-      knockF: Math.round(E(5200, 7200)), noiseMix: arr(E(.55, .85), 2)
+      r: arr(-E(.5, .66)), damp: arr(.5 - .12 * mat + E(-.04, .04)),
+      form: [Math.round(E(F.form[0], F.form[1]) * .9), arr(E(1.1, 1.6), 2), arr(E(4, 6.5), 1)],
+      form2: [Math.round(E(160, 230)), arr(E(.9, 1.3), 2), arr(E(1.5, 3), 1)],
+      bodyLP: Math.round(1600 + 900 * mat + E(-150, 150)), hp: Math.round(E(30, 38)),
+      eq: [['ls', 110, 0, arr(-E(1, 3), 1)], ['hs', Math.round(E(1000, 1400)), 0, arr(-E(7, 11), 1)]],
+      lope: arr(E(F.lope[0], F.lope[1])), rasp: arr(E(F.rasp[0], F.rasp[1]) * .5), tau: arr(E(.0011, .0017), 5),
+      popRate: arr(E(F.pop[0], F.pop[1])), ticks: arr(E(.1, .3), 2), intake: arr(E(.08, .22), 2), pan: arr(E(F.pan[0], F.pan[1]), 2),
+      cutMs: [Math.round(E(50, 66)), Math.round(E(72, 96))],
+      pitch: arr(E(F.pitch[0], F.pitch[1]) * .88), sat: arr(E(.9, 1.05), 2), satLoad: arr(E(.3, .7), 2),
+      tickF: Math.round(E(2200, 3000)), muff: arr(E(.22, .36)), clac: arr(E(.00025, .0004), 5), dryF: Math.round(E(600, 950)),
+      knockF: Math.round(E(5200, 7200)), noiseMix: arr(E(.3, .5), 2)
     };
-    if (turbo) fiche.turbo = { spool: arr(E(.4, .75), 2), whine: arr(E(.6, 1.2), 2) };
-    /* LE NITRO ASSORTI : la flamme est d'autant plus grave que le moteur est gros ; les crépitements (pops) sont TOUJOURS là, c'est la demande */
+    if (turbo) fiche.turbo = { spool: arr(E(.4, .75), 2), whine: arr(E(.35, .6), 2) };
+    /* LES COUCHES du moteur vivant (ses gains `G`) : le claquement direct du pot, le cliquetis, le raclement et le coup de bielle sont les sons qui
+       FONT MAL ; on les baisse ou on les coupe. Le choc de tôle (atterrissage) reste, à moitié. */
+    const couches = { dry: arr(E(.25, .45), 2), knock: 0, grind: 0, rod: .3, tick: arr(E(.2, .4), 2), tink: .5, clank: .5, turbo: .45, starter: .7, intake: .8, pipe: 1 };
+    /* LE NITRO ASSORTI : chaud et rond (flamme grave, le ton qui chante dessous), le souffle et le sifflet en retrait, des crépitements feutrés
+       (pops plus graves et moins forts, plus nombreux : un feu qui craque, pas un fusil). La flamme est d'autant plus grave que le moteur est gros. */
     const gros = F.n >= 8 ? 1 : F.n >= 6 ? .6 : .3;
     const nitro = {
-      roarG: arr(E(.45, .7), 2), roarF: Math.round(E(180, 320) * (1.2 - .35 * gros)), roarBody: arr(E(.2, .5), 2), roarFlutHz: arr(E(14, 30), 1), roarFlut: arr(E(.2, .45), 2), roarTurb: arr(E(.3, .6), 2),
-      hissG: arr(E(.1, .22), 2), hissF: Math.round(E(1800, 3200)), hissQ: arr(E(.5, .9), 2),
-      whineG: arr(turbo ? E(.1, .2) : E(.04, .12), 2), whineF0: Math.round(E(700, 1200)), whineF1: Math.round(E(3200, 5600)), whineQ: Math.round(E(18, 36)), whineWob: arr(E(.006, .02), 3),
-      toneG: arr(E(.06, .14), 2), toneF0: Math.round(E(70, 130) * (1.15 - .3 * gros)), toneF1: Math.round(E(260, 420)), toneHarm: arr(E(.3, .7), 2),
-      popRate: Math.round(E(14, 30)), popG: arr(E(.5, .8), 2), popTone: Math.round(E(700, 1400)), popBig: arr(E(.12, .3), 2),
-      boomG: arr(E(.55, .85), 2), boomF: Math.round(E(42, 64)), boomWhoosh: arr(E(.35, .65), 2),
-      bovG: arr(turbo ? E(.4, .6) : E(.15, .35), 2), bovF: Math.round(E(3400, 5000)),
-      attack: arr(E(.07, .14), 2), release: arr(E(.22, .4), 2), spool: arr(E(.45, .8), 2)
+      roarG: arr(E(.5, .7), 2), roarF: Math.round(E(150, 240) * (1.15 - .3 * gros)), roarBody: arr(E(.25, .5), 2), roarFlutHz: arr(E(12, 22), 1), roarFlut: arr(E(.2, .4), 2), roarTurb: arr(E(.25, .45), 2),
+      hissG: arr(E(.04, .09), 2), hissF: Math.round(E(1100, 1700)), hissQ: arr(E(.6, .9), 2),
+      whineG: arr(turbo ? E(.03, .06) : E(.015, .035), 3), whineF0: Math.round(E(500, 800)), whineF1: Math.round(E(1700, 2500)), whineQ: Math.round(E(14, 24)), whineWob: arr(E(.006, .015), 3),
+      toneG: arr(E(.1, .16), 2), toneF0: Math.round(E(60, 100) * (1.15 - .3 * gros)), toneF1: Math.round(E(190, 300)), toneHarm: arr(E(.25, .5), 2),
+      popRate: Math.round(E(10, 18)), popG: arr(E(.3, .45), 2), popTone: Math.round(E(420, 750)), popBig: arr(E(.06, .14), 2),
+      boomG: arr(E(.45, .65), 2), boomF: Math.round(E(40, 54)), boomWhoosh: arr(E(.3, .5), 2),
+      bovG: arr(turbo ? E(.15, .25) : E(.06, .12), 2), bovF: Math.round(E(1800, 2600)),
+      attack: arr(E(.12, .2), 2), release: arr(E(.3, .5), 2), spool: arr(E(.5, .85), 2)
     };
     const surnom = r.choix(SURNOMS);
-    const sante = r.pile(.12) ? arr(E(.45, .75), 2) : 1; /* une fois sur huit : une vieille caisse qui tousse */
-    return { graine: graine, nom: F.nom + (turbo ? ' TURBO' : '') + ' « ' + surnom + ' »', famille: F.id, fiche: fiche, nitro: nitro, sante: sante, mute: 0 };
+    return { graine: graine, nom: F.nom + (turbo ? ' TURBO' : '') + ' « ' + surnom + ' »', famille: F.id, fiche: fiche, nitro: nitro, couches: couches, sante: 1, mute: 0 };
   }
 
   /* UN COUSIN : même famille, même ordre d'allumage, les réglages bougent de ±force (0..1). Pour « j'aime bien, mais un peu plus ci ». */
@@ -90,11 +96,11 @@
     const c = JSON.parse(JSON.stringify(m)), f = c.fiche, nz = c.nitro;
     const bouge = function (v, lo, hi) { return Math.min(hi, Math.max(lo, v * (1 + force * (r() * 2 - 1)))); };
     f.pipe = [arr(bouge(f.pipe[0], .4, 1.6)), 0]; f.pipe[1] = arr(f.pipe[0] * (1.01 + .09 * r()));
-    f.lope = arr(bouge(f.lope, .03, 1)); f.rasp = arr(bouge(f.rasp, .3, 1)); f.popRate = arr(bouge(f.popRate, .15, 1));
-    f.damp = arr(bouge(f.damp, .2, .65)); f.pitch = arr(bouge(f.pitch, .55, 1.05)); f.intake = arr(bouge(f.intake, .1, .6), 2);
-    f.bodyLP = Math.round(bouge(f.bodyLP, 2200, 5500)); f.form[0] = Math.round(bouge(f.form[0], 70, 160));
-    f.satLoad = arr(bouge(f.satLoad, .4, 1.5), 2); f.tau = arr(bouge(f.tau, .0005, .0013), 5);
-    nz.roarF = Math.round(bouge(nz.roarF, 120, 420)); nz.popRate = Math.round(bouge(nz.popRate, 8, 36)); nz.popTone = Math.round(bouge(nz.popTone, 500, 1700));
+    f.lope = arr(bouge(f.lope, .03, 1)); f.rasp = arr(bouge(f.rasp, .1, .5)); f.popRate = arr(bouge(f.popRate, .15, 1));
+    f.damp = arr(bouge(f.damp, .2, .65)); f.pitch = arr(bouge(f.pitch, .48, .92)); f.intake = arr(bouge(f.intake, .05, .3), 2);
+    f.bodyLP = Math.round(bouge(f.bodyLP, 1300, 2800)); f.form[0] = Math.round(bouge(f.form[0], 70, 160));
+    f.satLoad = arr(bouge(f.satLoad, .2, .8), 2); f.tau = arr(bouge(f.tau, .0009, .002), 5);
+    nz.roarF = Math.round(bouge(nz.roarF, 100, 300)); nz.popRate = Math.round(bouge(nz.popRate, 6, 22)); nz.popTone = Math.round(bouge(nz.popTone, 350, 900));
     nz.toneF0 = Math.round(bouge(nz.toneF0, 50, 160)); nz.roarFlutHz = arr(bouge(nz.roarFlutHz, 10, 34), 1);
     c.mute = (m.mute || 0) + 1;
     c.nom = m.nom.replace(/ · v\d+$/, '') + ' · v' + (c.mute + 1);

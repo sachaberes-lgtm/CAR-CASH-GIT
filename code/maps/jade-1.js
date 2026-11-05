@@ -55,6 +55,13 @@ const JADE_HUMEURS=[ // a : angle d'un virage (°, minimum + étendue) · R : ra
   {nm:'balcon',  a:[24,30],R:[340,260],k:[2.6,1.2],inv:.6,dr:[.7,110,170]},    // de longues droites cassées de coudes : on voit loin
   {nm:'chicanes',a:[22,20],R:[280,80],k:[1.9,.6],inv:1,dr:[.06,40,70]}];     // gauche-droite-gauche, vite
 const JADE_PENTE={seuil:.12,garde:.3}; // au-delà de 12 %, la pente n'est gardée qu'à 30 % (voir adoucirPentes)
+
+/* ===== LE RAS DE L'EAU (2026-11-05, Sacha : « dans la map Pic de Jade, rajoute un module où parfois la route passe juste au-dessus de l'eau, à ras ») =====
+   Un 7e module, VERTICAL cette fois : dans une vallée sur ~45, les creux les plus bas du relief sont rognés à plat (~420 m de route à l'intérieur de la vallée) : la route file à `haut` m au-dessus de la mer
+   (la houle des cubes monte de 8 m dans 90 % des cas : les crêtes lèchent la dalle). La mer, elle, se cale sur ce creux (jadeBatit : eauY = le point le plus bas de la route − haut)
+   au lieu de 45 m sous lui : tout le reste de la vallée reste au-dessus. Le creux est cherché hors du départ, des deux monuments et de la chute (ce qui y descend plus bas est relevé : rogner ne rend jamais une pente plus raide, et on renonce
+   au-delà de 800 m / 45 m de relevé). `?ras=1` le force, `?sans=ras` l'ôte ; dbgJade().mods le liste ('ras'). */
+const JADE_RAS={on:typeof location==='undefined'||!/[?&]sans=([^&]*,)?ras(,|&|$)/.test(location.search),force:typeof location!=='undefined'&&/[?&]ras=1(&|$)/.test(location.search),chance:.45,haut:7,plat:420,horsMax:800,liftMax:45};
 function genJade(rnd){return rythmeMeilleur(rnd,RYTHME.N,'jade',genJade1,{assez:1}).ctrl;} /* (2026-11-05, LE DIRECTEUR DE RYTHME) N vallées sur des flux dérivés d'un seul tirage, la mieux notée est gardée (route-rythme.js) */
 function genJade1(rnd){
   const ctrl=[];CAMPM.length=0;MODMARK.length=0;
@@ -128,6 +135,15 @@ function genJade1(rnd){
     for(const z of zones){const c=(z[0]+z[1])/2,yc=brut(c)-brut(0),w=1-THREE.MathUtils.smoothstep(Math.abs(s9-c),(z[1]-z[0])/2,(z[1]-z[0])/2+260);y+=(yc-y)*w;}
     ctrl[k].y=y;}
   adoucirPentes(ctrl,JADE_PENTE); // les rampes vers les monuments (et les crêtes des ondes) ramenées vers ~10° — les paliers restent à plat
+  JADE.ras=null;
+  if(rj&&JADE_RAS.on&&(JADE_RAS.force||rj()<JADE_RAS.chance)){ /* LE RAS DE L'EAU (voir JADE_RAS) : le point le plus bas ne se choisit pas, il se TROUVE — on rogne les creux du relief à un niveau F (max lissé : jamais plus raide) */
+    const n9=ctrl.length,S9=sOf[n9-1],pl=JADE_RAS.plat,seg=function(i9){return (sOf[Math.min(n9-1,i9+1)]-sOf[Math.max(0,i9-1)])/2;};
+    const ban=[[-1e9,700],[S9-1000,1e9],[zones[0][0]-100,zones[0][1]+100],[zones[1][0]-100,zones[1][1]+100]],ok9=[],el=[]; /* le départ, la chute, la Porte et le Pont : on n'y cherche pas le creux */
+    for(let k=0;k<n9;k++){let o9=true;for(const f9 of ban)if(sOf[k]>f9[0]&&sOf[k]<f9[1]){o9=false;break;}ok9.push(o9);if(o9)el.push([ctrl[k].y,seg(k)]);}
+    el.sort(function(a9,b9){return a9[0]-b9[0];});let acc=0,F=null;for(const e9 of el){acc+=e9[1];if(acc>=pl){F=e9[0];break;}} /* F : le niveau sous lequel il y a `plat` m de route à l'intérieur de la vallée */
+    if(F!==null){let lAll=0,lHors=0,lift=0;for(let k=0;k<n9;k++)if(ctrl[k].y<F){lAll+=seg(k);if(!ok9[k])lHors+=seg(k);lift=Math.max(lift,F-ctrl[k].y);}
+      if(lHors<=JADE_RAS.horsMax&&lift<=JADE_RAS.liftMax){const w9=8;for(let k=0;k<n9;k++){const d9=ctrl[k].y-F;ctrl[k].y=F+(d9+Math.sqrt(d9*d9+w9*w9))/2;}
+        JADE.ras={y:F,long:Math.round(lAll),hors:Math.round(lHors),lift:Math.round(lift)};MK9.push('ras');}}}
   for(const k in Q){const o=Q[k];let bi=0,bd=1e18;for(let j=0;j<ctrl.length;j++){const d=ctrl[j].distanceToSquared(o.p);if(d<bd){bd=d;bi=j;}}o.p.y=ctrl[bi].y;}
   /* L'INCLINAISON (2026-11-05, voir JADE_BANK) — même recette que les dunes (genDunes) : la dalle se couche vers l'INTÉRIEUR du virage, de l'angle d'une courbure moyennée sur ±W m (deux passes) et pliée par un tanh.
      À plat : le départ (jusqu'à 250 m, plein à 650 m), la Porte du ciel et le Pont du ciel (fondu sur 260 m de part et d'autre) et la ligne d'arrivée. Les normales (une par point de contrôle) passent à buildTrack par TORD.N, sans TORD.on. */
