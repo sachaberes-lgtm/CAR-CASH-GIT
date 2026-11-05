@@ -144,8 +144,16 @@ let DPR_CAP=Math.min(devicePixelRatio,ALLEGE?1:1.5),curDPR=Math.min(DPR_CAP,devi
    844×390 à densité 3,16 (la page-cadre zoome l'iframe), mais la course était plafonnée à DPR_CAP 1,5 : dessinée en 1 266 px de large puis étirée sur ~2 670 px
    physiques — le flou du PC. Désormais l'ordi (pas ALLEGE) dessine aux pixels RÉELS de l'écran, dans un budget de pixels (PC_PX, 4,5 M : ~4K/2) ; le téléphone
    garde son plafond de palier (`dprNetCap`). RAPIDE (choix du joueur) reste à 1. `?pcpx=N` (millions de pixels) règle le budget au banc, `?pcpx=0` = l'ancien plafond 1,5. */
-const PC_PX=(function(){const m=/[?&]pcpx=([\d.]+)/.exec(location.search);return m?+m[1]*1e6:3.2e6;})(); /* (2026-10-25, Sacha : « Chrome prend 1 700 Mo de GPU ») budget 4,5 M → 3,2 M : toujours les pixels réels d'un écran 1080p, mais plus la 4K/2 ; `?pcpx=4.5` = avant */
-const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([d.]+)/.exec(location.search);return m?+m[1]*1e6:4.2e6;})(); /* budget de pixels de la vitrine du menu sur ordinateur (8,3 M avant) ; `?vhdpc=8.3` = avant */
+/* ===== LA 4K À LA MESURE DE LA MÉMOIRE (2026-11-05, Sacha, après le bilan mémoire de l'ordi : « Résolution 4K ») =====
+   MESURÉ sur l'ordi de Sacha (écran 3840×2160 à 150 % : dans la colonne le jeu voit 844×390 à densité 4,2, soit 5,8 Mpx d'écran) : la course se
+   dessinait au budget plein (3,2 Mpx, toile 2631×1216) et la vitrine du menu à 4,2 Mpx — toile, cibles demi-flottantes du compositeur, halo : 300 à
+   600 Mo de carte graphique, sur une machine à 1,5 Go de libre. Sur un écran de CLASSE 4K (≥ 4,5 Mpx dans la colonne : 4K à 100 ou 150 %), les budgets
+   passent à 2,0 Mpx en course (toile ~2080×961 : 1,7 pixel d'écran par pixel 3D, le FXAA et le zoom bilinéaire lissent) et 2,6 Mpx à la vitrine.
+   Un écran 1080p ou 1440p ne change pas d'un pixel : il est sous les budgets, il dessine à ses pixels réels (1440p à 100 % : 2,9 Mpx).
+   `?4k=0` = les budgets d'avant (A/B) ; `?pcpx=` et `?vhdpc=` priment toujours (le `?vhdpc=` ne marchait pas : `[d.]` au lieu de `[\d.]`, corrigé). */
+const PC_4K=!/[?&]4k=0\b/.test(location.search)&&innerWidth*innerHeight*devicePixelRatio*devicePixelRatio>=4.5e6;
+const PC_PX=(function(){const m=/[?&]pcpx=([\d.]+)/.exec(location.search);return m?+m[1]*1e6:PC_4K?2.0e6:3.2e6;})(); /* (2026-10-25, Sacha : « Chrome prend 1 700 Mo de GPU ») budget 4,5 M → 3,2 M : toujours les pixels réels d'un écran 1080p, mais plus la 4K/2 ; `?pcpx=4.5` = avant */
+const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([\d.]+)/.exec(location.search);return m?+m[1]*1e6:PC_4K?2.6e6:4.2e6;})(); /* budget de pixels de la vitrine du menu sur ordinateur (8,3 M avant) ; `?vhdpc=8.3` = avant */
 function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
   if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));
   return Math.min(devicePixelRatio,Math.max(1.25,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}

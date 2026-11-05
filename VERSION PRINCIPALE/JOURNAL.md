@@ -4,6 +4,15 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+## LA 4K À LA MESURE DE LA MÉMOIRE (2026-11-05, v1173 — Sacha, après le bilan « LA MÉMOIRE DE L'ORDI » : « Résolution 4K »)
+- Sur un écran de CLASSE 4K (≥ 4,5 Mpx vus par le jeu dans la colonne : 4K à 100 ou 150 %), les budgets de pixels de l'ordi baissent — course 3,2 → 2,0 Mpx
+  (toile 2631×1216 → 2080×961, 1,7 pixel d'écran par pixel 3D), vitrine du menu 4,2 → 2,6 Mpx (3014×1393 → 2372×1096) ; `palier-appareil.js`, PC_4K.
+  Un écran 1080p ou 1440p ne change pas : il est sous les budgets et dessine à ses pixels réels. `?4k=0` = avant ; `?pcpx=` / `?vhdpc=` priment
+  (le `?vhdpc=` ne marchait pas depuis le 25/10 : `[d.]` au lieu de `[\d.]`, corrigé).
+- MESURÉ (outils/banc-pc, map NUAGES, écran de Sacha, A/B `?4k=0`) : processus GPU en course 627-632 → 575-577 Mo, au menu 440 → 410 ; « webgl » du rendu
+  250-262 → 229-237 Mo ; le total Chrome 1 890-1 900 → 1 860-1 900 Mo. C'est −50 Mo de carte graphique et un tiers de pixels en moins à remplir par image ;
+  le reste (partitions ~530, tuiles du compositeur ~240 — le HUD est rastérisé au zoom du cadre, pas au budget 3D —, toiles 2D ~75) ne dépend pas de la
+  résolution 3D. Captures avant/après : `--capture=1` du banc.
 ## LA MÉMOIRE DE L'ORDI (2026-11-05, v1169 — Sacha : « le lien Vercel a des latences et prend beaucoup de mémoire sur mon ordi, règle ça de manière durable »)
 - **La machine** : Ryzen 5 3600, RX 6600, 16 Go dont 1,5 Go libres au moment de la demande (Chrome déjà à 5 Go en 55 processus), écran 3840×2160 à 150 % :
   dans la colonne de l'ordi le jeu voit une densité de 4,2 et dessine la course à 3,2 Mpx (le budget PC_PX), le menu à 4,2 Mpx. Sur le site publié,

@@ -112,6 +112,9 @@ async function releve(p,nom,R){
       for(const l of top){try{const cr=await p.call('LayerTree.compositingReasons',{layerId:l.id});l.pourquoi=(cr.compositingReasonIds||cr.compositingReasons||[]).join(',');}catch(e){}
         if(!l.n)continue;try{const d=await p.call('DOM.describeNode',{backendNodeId:l.n});const nd=d.node;const at=nd.attributes||[];let id='',cl='';for(let i=0;i<at.length;i+=2){if(at[i]==='id')id=at[i+1];if(at[i]==='class')cl=at[i+1];}l.el=nd.nodeName.toLowerCase()+(id?'#'+id:'')+(cl?'.'+cl.split(' ').slice(0,3).join('.'):'');}catch(e){l.el='?';}}
       r.couches={n:L.length,totalMpx:+tot.toFixed(1),top:top};console.log('   COUCHES composées qui dessinent : '+L.length+', '+tot.toFixed(1)+' Mpx (CSS) · '+top.map(l=>l.px+' Mpx '+(l.el||'')+(l.pc?' ×'+l.pc:'')+(l.pourquoi?' ['+l.pourquoi+']':'')).join(' | '));}catch(e){console.log('   couches : '+e.message);}}
+  if(opt.capture==='1'&&/course 1 à 10 s|menu/.test(nom)){try{const cl=opt.clip?opt.clip.split(',').map(Number):[880,420,800,450];
+      const sh=await p.call('Page.captureScreenshot',{format:'png',clip:{x:cl[0],y:cl[1],width:cl[2],height:cl[3],scale:+(opt.dsf||1.5)},captureBeyondViewport:false});
+      const f=path.join(HERE,'resultats',TAG+'-'+(/menu/.test(nom)?'menu':'course')+'.png');fs.writeFileSync(f,Buffer.from(sh.data,'base64'));console.log('   capture : '+f);}catch(e){console.log('   capture : '+e.message);}}
   if(opt.geo==='1'){try{const g=await p.evF(GEO);r.geo=g;console.log('   GÉOMÉTRIES (copies JS dans la scène) : '+g.totalMo+' Mo, '+g.n+' géométries · textures (images) '+g.texMo+' Mo, '+g.nTex);for(const [mo,k] of g.top)if(mo>=1)console.log('        '+String(mo).padStart(6)+' Mo  '+k);}catch(e){console.log('   géométries : '+e.message);}}
   return r;}
 const GEO=`(function(){var S=dbgScene().scene,M={},tot=0,n=0,seen={},tex={},texMo=0,nTex=0;
