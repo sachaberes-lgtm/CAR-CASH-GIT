@@ -195,7 +195,10 @@ const SAVE={
   },
   /* ===== SANS SAUVEGARDE SUR LE LIEN WEB (2026-10-22, Sacha : « enlève le système de sauvegarde du lien Vercel, dès qu'on se connecte on arrive sur un nouveau compte ») =====
      Sur le web (pas Capacitor) chaque ouverture démarre un compte NEUF : on ne lit rien, on n'écrit rien. `?garde=1` rend la sauvegarde locale (bancs, essais). L'appli native garde la sienne. */
-  neuf:!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences)&&!/[?&]garde=1/.test(location.search),
+  /* ===== LA SAUVEGARDE REVIENT SUR LE WEB (2026-11-05, Opus : jury ECO-18, décision D6 — recommandation du jury, Sacha n'a pas tranché) =====
+     « Un joueur qui perd ses caisses au rechargement ne revient pas » : le site garde sa sauvegarde (localStorage), comme l'app. Le compte NEUF
+     à chaque ouverture reste possible pour une démonstration : `?demo=1`. `?garde=1` ne sert plus (la sauvegarde est là par défaut). */
+  neuf:/[?&]demo=1\b/.test(location.search)&&!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences),
   load(){
     let d=null;
     if(!this.neuf)try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){}

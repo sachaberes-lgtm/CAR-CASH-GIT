@@ -8,7 +8,10 @@
    · LA PUB MAISON — sinon : PUBR.d secondes plein écran (#pubR, <style id="pubRecompense">) qui montrent une caisse de la boutique qu'on
      n'a pas encore, son nom, son prix ; le compte ROND et la barre disent le temps qui reste ; rien ne se touche ; le temps ne court que
      l'écran allumé. `pubRecompense(nom, fin)` : fin(vue) part UNE fois. `?pub=0` : pas de pub, reprise immédiate. Banc : dbgPub(). */
-const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,sans:/[?&]pub=0\b/.test(location.search)};
+/* ===== L'APP NE MONTRE AUCUNE PUB (2026-11-05, Opus : jury IOS-04 / DIR-29, décision D1 « couper dans l'app ») =====
+   L'app déclare « aucune publicité » à Apple : sous EN_APP, plus de pub maison (PUBR.sans : la reprise est servie tout de suite), la
+   seconde chance s'annonce GRATUITE (chanceEtat), et le ×2 du gain n'existe pas (DBL.on). Le site garde tout. `?pub=0` ne vaut qu'en DEV. */
+const PUBR={on:false,d:5,t:0,tm:0,el:null,mus:false,sans:EN_APP||qDev(/[?&]pub=0\b/)};
 Object.assign(I18N,{'PUB':'AD','EN BOUTIQUE':'IN THE SHOP','TA COURSE REPREND APRÈS LA PUB':'YOUR RUN RESUMES AFTER THE AD','TON GAIN ×2 APRÈS LA PUB':'YOUR WINNINGS ×2 AFTER THE AD'});
 function pubSilence(on){try{ // une régie montre SA pub par-dessus le jeu : le jeu se tait (la musique en pause, le contexte audio suspendu), puis reprend
   if(on){PUBR.mus=!!(musicEl&&!musicEl.paused);if(PUBR.mus)musicEl.pause();if(AC&&AC.state==='running')AC.suspend();}
@@ -85,11 +88,11 @@ window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison f
      secondes de course : un choc est ignoré, une chute (vide, trop d'air) la replace sans frais. 2 s de nitro offerte, comme au départ.
    Contrat avec l'écran de mort (INTERFACE, plaque #mChance) : `chanceEtat()` → {ok, prix, reste} et `chanceJoue()`. L'événement `cc:chance`
    (sur document) part quand l'offre s'ouvre, s'éteint ou sert : la plaque relit alors chanceEtat(). `?chance=0` éteint tout. Banc : dbgChance(). */
-const CHANCE={on:!/[?&]chance=0\b/.test(location.search),plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
+const CHANCE={on:!qDev(/[?&]chance=0\b/),plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
   offre:false,used:false,pub:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0};
 function chanceBase(){return CHANCE.used?CHANCE.m0:START_CASH;} // ce que la prochaine fin de partie NE verse PAS (déjà versé avant la reprise)
 function chanceSignal(){try{document.dispatchEvent(new Event('cc:chance'));}catch(e){}}
-function chanceRaz(){resuFin(false);RESU.plein=0;clearTimeout(CHANCE.tm);CHANCE.gratuit=false;CHANCE.pub=false;const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;chanceCompteFin();if(f)chanceSignal();}
+function chanceRaz(){try{railsPose();}catch(e){} /* (2026-11-05, Opus : D7) chanceRaz = le crochet « partie neuve » (frole-contrats.js) : les rails du départ s'y arment, 1re partie comprise */resuFin(false);RESU.plein=0;clearTimeout(CHANCE.tm);CHANCE.gratuit=false;CHANCE.pub=false;const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;chanceCompteFin();if(f)chanceSignal();}
 function chanceCompteFin(){const s9=avE('slam9');if(s9&&s9.classList.contains('compte'))s9.classList.remove('compte','on');} /* (chasse aux bugs) le 3 · 2 · 1 de la reprise interrompu (pause puis RECOMMENCER ou QUITTER : son minuteur CHANCE.tm est tué) ne reste pas figé au centre de l'écran */
 function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'écran de mort s'ouvre — l'offre aussi, si elle a lieu d'être
   clearTimeout(CHANCE.tm);chanceCompteFin();CHANCE.offre=false;
@@ -115,7 +118,7 @@ addEventListener('visibilitychange',function(){ try{
 }catch(e){} });
 function chanceEtat(){
   const ok=!!(CHANCE.on&&CHANCE.offre&&!CHANCE.used&&started&&gameOver&&performance.now()<CHANCE.fin&&overlay.style.display!=='none'&&!garageOn&&!MENUV.retour); /* (15/10 soir) plus de `bank()>=CHANCE.prix` : la pub ne demande rien au compte */
-  return {ok:ok,prix:CHANCE.prix,gratuit:!!CHANCE.gratuit,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
+  return {ok:ok,prix:CHANCE.prix,gratuit:!!CHANCE.gratuit||EN_APP,reste:ok?Math.max(0,Math.round(CHANCE.fin-performance.now())):0};
 }
 function chanceJoue(){ // le toucher de la plaque : (15/10 soir) la PUB d'abord (pubRecompense) — la reprise, sous le volet, quand elle a été vue
   if(!chanceEtat().ok)return false;
@@ -151,7 +154,7 @@ function chanceRepart(bon){ // sous le volet : la course reprend où elle s'est 
   clearBoom();RALENTI.t=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   airPie.style.display='none';airFlash=0;nitroX=0;boost=0;nitroR=Math.max(nitroR,nitroCap()*.5); // de quoi voler, pas un plein
-  M2R.vie=0;/* (missions v2) on est mort : « tiens 5 min sans mourir » repart de zéro */respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0; // elle RETOMBE sur sa ligne : on voit qu'on repart
+  M2R.vie=0;/* (missions v2) on est mort : « tiens 5 min sans mourir » repart de zéro */chanceSafe();respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0; // elle RETOMBE sur sa ligne : on voit qu'on repart
   if(CHANCE.moteurPerte>0&&engTier>0){engTier=Math.max(0,engTier-CHANCE.moteurPerte);coinsGot=ENGINE_TIERS[engTier].coins;MV.coup(.9);} // le MOTEUR encaisse le choc : un palier (ses pièces avec), la vignette et le timbre suivent seuls
   startBoostT=Math.max(startBoostT,2);paintMoney();dnRelance(); /* (2026-10-22, DEBUGGING) les DUNES : la reprise repart lancée, sinon la lèvre suivante la jette dans le sable (voir dnRelance) */
   if(GH.on&&!GH.fini&&!GH.pris)GH.g.visible=true; // campStop a caché la caisse-nuage : elle revient
@@ -171,6 +174,12 @@ function chanceRepart(bon){ // sous le volet : la course reprend où elle s'est 
     n--;CHANCE.tm=setTimeout(pas,500);};
   CHANCE.tm=setTimeout(pas,120);
 }
+/* ===== LA REPRISE NE RECULE PLUS DE CENTAINES DE MÈTRES (2026-11-05, Opus : jury GP-04) =====
+   respawn() repose la caisse à safeS − 8, et safeS n'est écrit que sur une route « à plat » (dessus, normale vers le haut) : sur la route sans
+   haut ni bas des NUAGES ou l'ORBITE libre, il restait des centaines de mètres en arrière (parfois au début de la zone). La seconde chance et la
+   chute sous bouclier repartent maintenant au plus loin de : safeS, ou l'endroit de la mort moins CH_RECUL m. `?reprise=ancien` : safeS seul. */
+const CH_RECUL=40,CH_SAFE_ANCIEN=/[?&]reprise=ancien\b/.test(location.search);
+function chanceSafe(){if(CH_SAFE_ANCIEN||!isFinite(s))return;if(s-safeS>CH_RECUL+20)safeS=Math.max(safeS,s-CH_RECUL);}
 function chanceTick(dt){ // dans la porte de simulation de loop : la pause fige le bouclier avec le reste
   CHANCE.inv=Math.max(0,CHANCE.inv-dt);
   if(mode==='boom')return;
@@ -182,7 +191,7 @@ function chanceProtege(cause){ // explode, pendant le bouclier
   if(!(CHANCE.inv>0)||gameOver||mode==='boom'||!started)return false;
   if(mode==='fall'||cause==='vide'||cause==='air'){ // une chute : replacée sans frais (comme le filet du mode facile)
     airPie.style.display='none';airFlash=0;
-    respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;dnRelance();CHANCE.inv=Math.max(CHANCE.inv,1);}
+    chanceSafe();respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;dnRelance();CHANCE.inv=Math.max(CHANCE.inv,1);}
   return true; // un choc : ignoré
 }
 function chanceRefuse(){if(!CHANCE.offre)return false;clearTimeout(CHANCE.tm);CHANCE.offre=false;chanceSignal();return true;} // l'offre se ferme tout de suite (un geste ailleurs, la machine à sous d'IDEE qui veut sa place)
@@ -310,9 +319,14 @@ window.dbgChance=function(k){ // banc : dbgChance() l'état · ('mort') explose 
    Sans régie (aujourd'hui : l'app v1 et le site), c'est la pub maison de 5 s qui la paie. Fermée avant la fin (vraie régie) : rien n'est
    versé, la plaque revient — on peut réessayer. Ce que la machine à sous verse après la mort n'est PAS doublé (RUNX.verse est figé à la mort).
    `?double=0` éteint tout. Banc : dbgDouble() l'état · ('joue') la touche. */
-const DBL={on:!/[?&]double=0\b/.test(location.search),min:50,used:false,pub:false,v:0};
+const DBL={on:!EN_APP&&!/[?&]double=0\b/.test(location.search),min:50,used:false,pub:false,v:0};
 function dblRaz(){DBL.used=false;DBL.pub=false;DBL.v=0;}
-function dblGain(){return Math.max(0,Math.floor(RUNX.verse!=null?RUNX.verse:bank()-(RUNX.bank0||0)));}
+/* ===== LE ×2 NE DOUBLE QUE LE GAIN DE LA COURSE (2026-11-05, Opus : jury ECO-08) =====
+   RUNX.verse = tout ce que la fin de partie a mis au compte, prime de SÉRIE du jour (jourCommit) et missions comprises : le ×2 les doublait aussi.
+   Il double maintenant le virement de la course seul (commitExploits._vire : après une reprise, toute la partie). `?double=ancien` : l'ancien calcul. */
+const DBL_ANCIEN=/[?&]double=ancien\b/.test(location.search);
+function dblGain(){const b=commitExploits._vire;if(!DBL_ANCIEN&&typeof b==='number'&&isFinite(b))return Math.max(0,Math.floor(b));
+  return Math.max(0,Math.floor(RUNX.verse!=null?RUNX.verse:bank()-(RUNX.bank0||0)));}
 function dblEtat(){
   const v=dblGain();
   const ok=!!(DBL.on&&!DBL.used&&!DBL.pub&&started&&gameOver&&!SANDBOX&&!TUTO.on&&!TUTO.quitte&&!PARK.on&&!SURV.on&&!BALADE&&v>=DBL.min&&
@@ -324,7 +338,7 @@ function dblJoue(apres){ // le toucher de la plaque : la pub, puis le 2e verseme
   DBL.pub=true;DBL.v=e.v;
   const lance=pubRecompense('double-gain',function(vue){DBL.pub=false;const v=DBL.v;
     const ok=!!(vue&&started&&gameOver&&!DBL.used&&v>0);
-    if(ok){DBL.used=true;SAVE.d.bank=Math.min(1e30,bank()+v);gagneAjoute(v);bankMaxMaj();RUNX.verse=dblGain()+v;SAVE.flush();}
+    if(ok){DBL.used=true;SAVE.d.bank=Math.min(1e30,bank()+v);gagneAjoute(v);bankMaxMaj();RUNX.verse=(RUNX.verse!=null?RUNX.verse:dblGain())+v;SAVE.flush();}
     try{if(apres)apres(ok,ok?v:0);}catch(e){console.warn('double',e);}});
   if(!lance){DBL.pub=false;return false;}
   return true;
@@ -338,6 +352,7 @@ function finSonsCoupe(){
 function resetGame(){
   try{clearTimeout(M2REV.t);if(M2REV.on){M2REV.on=false;M2REV.id=null;const e9=document.getElementById('m2Rev');if(e9){e9.className='';e9.innerHTML='';}}}catch(e){} // (audit p7) REJOUER tapé tôt : `rejoueAttend` garde `started&&gameOver` jusqu'à 12 s, le délai de 1,4 s ouvrait la révélation d'une secrète (z-index 95) PAR-DESSUS la course qui part dessous — elle se ferme (ou ne s'ouvre pas) ici ; la secrète reste dans la file (m2RevFile) pour la prochaine mort
   dmtCoupe(); // (LE DEMI-TOUR) une nouvelle partie repart droite
+  railsPose(); /* (2026-11-05, Opus : D7) les rails du départ (figures-route.js) */
   SPIN.pose=0; // (2026-10-14) LE FINAL SPIN : le plafond de jetons posés est par partie (ceux qu'on a ramassés restent dans la sauvegarde)
   secReset(); // (2026-10-14) LES DÉFIS SECRETS : chaque partie repart de zéro
   evtPartie(); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : le tirage de la partie, AVANT newTrack (qui pose celui de la 1re zone)

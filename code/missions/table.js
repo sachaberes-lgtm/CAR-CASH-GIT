@@ -48,7 +48,7 @@ const M2=[
   {id:'nit2000',f:'exploit',k:'nitS',v:2000,u:'s',r:{car:'LA TAURINE'},t:'BRÛLE {v} S DE NITRO',en:'BURN {v} S OF NITRO'},
   {id:'air1000',f:'exploit',k:'airS',v:1000,u:'s',r:{car:'LE MASTODONTE'},t:'PASSE {v} S EN L\'AIR',en:'SPEND {v} S IN THE AIR'},
   {id:'verglas100',f:'exploit',k:'verglasKm',v:100,u:'km',r:{car:'L\'ICEBERG'},t:'ROULE {v} KM SUR LE VERGLAS (GLACIER)',en:'DRIVE {v} KM ON THE BLACK ICE (THE GLACIER)'},
-  {id:'km100k',f:'exploit',k:'kmTot',v:100000,u:'km',r:{car:'LA QUEUE DE CANARD'},t:'ROULE {v} KM',en:'DRIVE {v} KM'},
+  {id:'km100k',f:'exploit',k:'kmTot',v:10000, /* (2026-11-05, Opus : jury ECO-06) 100 000 km = 250 h de conduite : 10 000 km (~25-30 h), l'ordre des autres compteurs à vie */u:'km',r:{car:'LA QUEUE DE CANARD'},t:'ROULE {v} KM',en:'DRIVE {v} KM'},
   {id:'meteo',f:'exploration',k:'meteoMap',v:'tot',u:'',r:{car:'LA STRATOS'},t:'JOUE UNE MAP SOUS TOUTES SES MÉTÉOS',en:'PLAY ONE MAP IN EVERY WEATHER'},
   {id:'silence',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA SILENCIEUSE'},t:'FAIS UNE PARTIE SANS SON NI MUSIQUE',en:'PLAY A WHOLE RUN WITH SOUND AND MUSIC OFF (SETTINGS)'},
   /* (2026-10-22, Sacha : « HOT ROD : atteindre le palier 10 du moteur avec la musique activée ») secrète : `m2Tick` pose le drapeau `palier10` (engTier + 1 ≥ 10, SND.music allumé) */
@@ -87,7 +87,7 @@ const M2=[
   {id:'lac10',f:'secret',k:'lac',v:10,u:'s',r:{cash:15000},t:'GLISSE {v} S SUR UN LAC GELÉ',en:'SLIDE {v} S ON A FROZEN LAKE'}, // (2026-10-19, Sacha) avant : LE GLACIER — absente du garage, l'argent à la place
   {id:'sansnit',f:'secret',k:'flag',v:1,u:'b',r:{cash:10000},t:'FAIS UNE PARTIE ENTIÈRE SANS TOUCHER NITRO',en:'PLAY A WHOLE RUN WITHOUT TOUCHING NITRO'}, /* (2026-10-22, Sacha : « tableau des voitures » : LA SILENCIEUSE a sa nouvelle mission (silence) ; avant : LA SILENCIEUSE — À VALIDER */
   {id:'sanspiece',f:'secret',k:'flag',v:1,u:'b',r:{cash:15000},t:'FAIS UNE PARTIE SANS RAMASSER UNE SEULE PIÈCE',en:'PLAY A WHOLE RUN WITHOUT PICKING UP A COIN'}, // (2026-10-19, Sacha) avant : LA DEUCHE — absente du garage, l'argent à la place
-  {id:'rejoue10',f:'secret',k:'rejoue',v:10,u:'',r:{car:'LE DOGE'},t:'REJOUE {v} FOIS DE SUITE SANS REVENIR AU MENU',en:'REPLAY {v} TIMES IN A ROW WITHOUT THE MENU'},
+  {id:'rejoue10',f:'secret',k:'rejoue',v:10,u:'',r:{car:'LE SHIBA'},t:'REJOUE {v} FOIS DE SUITE SANS REVENIR AU MENU',en:'REPLAY {v} TIMES IN A ROW WITHOUT THE MENU'},
   {id:'nuit3h',f:'secret',k:'flag',v:1,u:'b',r:{car:'LA NOCTAMBULE'},t:'JOUE À 3 H DU MATIN',en:'PLAY AT 3 AM'},
   {id:'jours7',f:'secret',k:'jours',v:7,u:'',r:{cash:25000},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}, // (2026-10-19, Sacha) avant : LA DÉESSE — absente du garage, l'argent à la place
   {id:'jours30',f:'secret',k:'jours',v:30,u:'',r:{cash:25000},t:'JOUE {v} JOURS DIFFÉRENTS',en:'PLAY ON {v} DIFFERENT DAYS'}]; /* (2026-10-22, Sacha : « tableau des voitures » : L'ÉTERNELLE passe en boutique ; avant : L\'ÉTERNELLE — À VALIDER */
