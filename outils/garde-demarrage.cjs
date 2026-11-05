@@ -6,7 +6,8 @@
    (avertit seulement) index.html qui n'est plus l'assemblage de code/ (une retouche faite d'un seul côté, perdue au prochain assemblage) ;
    1. un <script> en ligne d'index.html ou un .js local qu'il charge qui ne se LIT pas (faute de syntaxe = page blanche sur tous les
       téléphones) — lu par acorn (outils/vendor/acorn.js, déjà vendu pour publie-allege) ;
-   2. un <script src> local qui n'existe pas (404 = un morceau du jeu absent, en silence).
+   2. un <script src> local qui n'existe pas (404 = un morceau du jeu absent, en silence) ;
+   3. un <script src> local hors vendor/ et assets/ sans ?v= (servi en cache immuable, il lui faut son jeton de contenu).
    Usage : node outils/garde-demarrage.cjs [dossier du jeu, défaut « VERSION PRINCIPALE »] · GARDE_DEMARRAGE=0 la coupe. Sortie 0 = OK, 1 = refus. */
 'use strict';
 const fs=require('fs'),path=require('path'),{execFileSync}=require('child_process');
@@ -33,6 +34,8 @@ for(const m of blocs){
   const at=m[1],src=/\ssrc=["']([^"']+)["']/i.exec(at);
   if(src){const u=src[1].split(/[?#]/)[0];if(/^[a-z]+:|^\/\//i.test(u))continue;
     const f=path.join(DOS,u);if(!fs.existsSync(f)){fautes.push('index.html charge '+u+' : fichier absent');continue;}
+    /* (2026-11-05, passe perf mobile 2, A3) 3. le jeton de contenu : vercel.json sert ces .js en cache IMMUABLE, la copie publiée y pose ?v=<sha1> ; sans ?v= dans le source, il serait immuable SANS jeton */
+    if(!/^(vendor|assets)\//.test(u)&&!/[?&]v=/.test(src[1]))fautes.push('index.html charge '+u+' sans ?v= (cache immuable sans jeton de contenu : voir vercel-build.sh)');
     if(/\.m?js$/.test(u)){lit(fs.readFileSync(f,'utf8'),u);n++;}continue;}
   const ty=/\stype=["']([^"']+)["']/i.exec(at);if(ty&&!/javascript|module/i.test(ty[1]))continue;
   lit(m[2],'index.html, <script> de la ligne '+ligne(m.index));n++;}

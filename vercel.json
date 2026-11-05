@@ -46,6 +46,24 @@
       ]
     },
     {
+      "source": "/jouer/(sons-banque|sons-banque-2|sfx|figures|musique-paliers)\\.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/jouer/creatures/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/jouer/",
       "headers": [
         {
