@@ -17,3 +17,18 @@ html body.touch #fil[data-n="3"]{--fs:calc(17px / var(--hudK,.8))}
 body.dead #fil,body.ebOn #fil{visibility:hidden}
 html.fil :is(#fh,#verdHud,#trickBox,#chainHud){display:none!important} /* les anciennes voix du milieu : la pastille les remplace */
 </style>
+<style id="filBas">
+/* (2026-11-05, Sacha : « petite révision de l'UHD : enlève le record (la barre jaune) et le texte FLOW 1 / FLOW 2 ; les infos Big Air, miraculé,
+   backflip… tu les mets en bas de l'écran au milieu, sous la voiture, mais petit ») la pastille du FIL quitte #auraV2 (filEl la pose dans <body>) :
+   fixée en bas au centre, plus petite, sans la compensation du zoom du HUD (elle n'est plus dedans). Le RECORD et le nom du palier de flow se taisent. */
+html body #avRec,html body #flowHud .fL,html body.touch #flowHud .fL,html body.touch #avRec{display:none!important}
+html body #fil{--fs:9px;display:none;position:fixed;left:0;right:0;margin:0 auto;width:max-content;max-width:calc(100vw - 180px);box-sizing:border-box;
+  bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 12px);z-index:6;padding:3px 6px 2px;transform-origin:center bottom;text-align:center}
+html body.play #fil{display:block}
+html body #fil[data-n="2"]{--fs:10px}
+html body #fil[data-n="3"]{--fs:11px}
+html body.touch #fil,html body.touch #fil[data-n="2"],html body.touch #fil[data-n="3"]{--fs:9px}
+html body.touch #fil[data-n="2"]{--fs:10px}
+html body.touch #fil[data-n="3"]{--fs:11px}
+html body.coOn #fil,html.balade #fil,body.hTp:not(#ccH) #fil{visibility:hidden}
+</style>

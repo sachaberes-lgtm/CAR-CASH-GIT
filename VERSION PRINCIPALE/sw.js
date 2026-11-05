@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1129'; /* v1129 (2026-11-05, Sacha : « petite révision de l'HUD ») le RECORD (barre jaune) et le nom du palier de flow (FLOW 1, FLOW 2) disparaissent ; la pastille du FIL (Big Air, miraculé, backflip…) passe en bas au centre, sous la voiture, en petit. */
+const CACHE = 'cashcar-v1130'; /* v1130 (2026-11-05, Léo : « la voiture de la honte est magnifique dans le garage, que les autres le soient autant ») LA MARBRURE DE TÔLE : la laque de toutes les caisses (sauf LA HONTE) n'a plus le même ton partout — marbrure propre, douce (±4,5 %), posée une fois à la construction (finMarbre, finition.js) ; `?marbre=0` = avant. */ /* v1129 (2026-11-05, Sacha : « petite révision de l'HUD ») le RECORD (barre jaune) et le nom du palier de flow (FLOW 1, FLOW 2) disparaissent ; la pastille du FIL (Big Air, miraculé, backflip…) passe en bas au centre, sous la voiture, en petit. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
