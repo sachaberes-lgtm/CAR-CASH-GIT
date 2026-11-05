@@ -633,7 +633,7 @@ function homeCielPrise(now){
    la voiture se tourne pour montrer les différentes features — TRAÎNÉES : la vue de l'arrière ») : l'onglet ne POSE plus l'angle d'un coup
    (garageAng=3.5), il le fait TOURNER en ~0,9 s par le plus court chemin (garTourneVers, joué dans garageRender, prioritaire sur la rotation
    lente ; le doigt l'interrompt). TRAÎNÉES 3,5 (trois-quarts arrière) · PEINTURE ,42 (trois-quarts avant) · AILES 1,2 (de profil). */
-const GAR_TAB_ANG={trainee:3.5,peinture:.42,aile:1.2,figure:1.25}; // (FIGURES : de profil, on voit les saltos)
+const GAR_TAB_ANG={trainee:3.5,peinture:.42,aile:1.2,figure:1.25,voiture:+((/[?&]bqang=([-\d.]+)/.exec(location.search)||[0,0])[1]),achat:+((/[?&]bqang=([-\d.]+)/.exec(location.search)||[0,0])[1])}; // (FIGURES : de profil, on voit les saltos) — (2026-11-05, Sacha : « les voitures sont mal mises en avant ») VOITURES / ACHAT : de trois quarts AVANT, les phares vers toi (avant : l'angle d'avant, souvent de dos) ; `?bqang=` pour essayer
 function garTourneVers(a,D){if(!garageOn||GAR.go)return;a-=GAR.vA||0; /* (2026-10-24) l'angle se compte depuis la VUE : le regard tourné (jauge, doigt) n'envoie plus la caisse du mauvais côté */const a0=garageAng,T=2*Math.PI,d=((a-a0)%T+T*1.5)%T-T/2;if(Math.abs(d)<.02)return;GAR.angTw={a0:a0,d:d,t:0,D:D||.9};}
 function shopTab(tab){
   if(SHOP_CATS.indexOf(tab)<0)tab='voiture';
