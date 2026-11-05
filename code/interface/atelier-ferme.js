@@ -17,14 +17,14 @@ function gAtelier(on){on=!!on;if(!gEl||GATL.on===on)return;
   gModeBoutons();}
 function garAtelierBatir(){
   const g=new THREE.Group();g.visible=false;GAR.root.add(g);GATL.g=g;
-  const L=(c,e)=>new THREE.MeshLambertMaterial({color:c,emissive:e||0,flatShading:true,fog:false}); // le programme des Lambert de l'atelier : rien à compiler
+  const L=(c,e)=>new THREE.MeshLambertMaterial({color:c,emissive:e||0,fog:false}); // le programme des Lambert de l'atelier : rien à compiler
   const M=GATL.M={fer:L(0x232a38,0x070910),jaune:L(0xefb52a,0x2e2005),chrome:L(0xc2cbd8,0x171b21),noir:L(0x15181f,0x040609),led:L(0x5ff0ff,0x2fb8d0)};
   GATL.BX=new THREE.BoxGeometry(1,1,1);GATL.CY=new THREE.CylinderGeometry(.5,.5,1,8);
   const pg=new THREE.Group();g.add(pg);GATL.pg=pg;
   const lp=new THREE.Group();g.add(lp);GATL.lp=lp;
   const mk=(geo,mat,sx,sy,sz)=>{const m=new THREE.Mesh(geo,mat);m.scale.set(sx,sy,sz);lp.add(m);return m;};
   GATL.cord=mk(GATL.CY,M.noir,.035,1,.035);
-  GATL.abat=mk(new THREE.ConeGeometry(.5,1,10,1,true),new THREE.MeshLambertMaterial({color:0x2a3242,emissive:0x070910,flatShading:true,fog:false,side:THREE.DoubleSide}),.78,.4,.78);
+  GATL.abat=mk(new THREE.ConeGeometry(.5,1,10,1,true),new THREE.MeshLambertMaterial({color:0x2a3242,emissive:0x070910,fog:false,side:THREE.DoubleSide}),.78,.4,.78);
   GATL.cul=mk(GATL.CY,M.fer,.22,.12,.22);
   GATL.ampM=new THREE.MeshBasicMaterial({color:0x2a2620,fog:false});GATL.amp=mk(GATL.CY,GATL.ampM,.2,.14,.2);
   GATL.rayM=new THREE.MeshBasicMaterial({color:0xfff0d0,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,side:THREE.FrontSide});
@@ -365,7 +365,7 @@ function brasHabille(l){if(BRB.habit===l||!BRB.g)return;if(l==='boutique'&&!GBQ.
 /* LE MODÈLE (bâti au 1er besoin, matières de l'atelier) */
 function brasBatir(){if(BRB.g)return BRB.g;if(!GATL.g)garAtelierBatir();
   const G=new THREE.Group();G.visible=false;scene.add(G);BRB.g=G;const M=GATL.M,BX=GATL.BX,CY=GATL.CY,m=BRB.m; // dans la SCÈNE : en boutique GAR.root est éteint
-  BRB.M={led:new THREE.MeshLambertMaterial({color:0x5ff0ff,emissive:0x2fb8d0,flatShading:true,fog:false})}; // sa diode à lui (celle des pinces est partagée)
+  BRB.M={led:new THREE.MeshLambertMaterial({color:0x5ff0ff,emissive:0x2fb8d0,fog:false})}; // sa diode à lui (celle des pinces est partagée)
   const mk=(geo,mat)=>{const o=new THREE.Mesh(geo,mat);G.add(o);return o;};
   m.gorge=mk(new THREE.RingGeometry(BRB.Rr-.24,BRB.Rr+.24,72,1),M.noir);m.gorge.rotation.x=-Math.PI/2;m.gorge.position.y=.004; // la GORGE du rail, dans le plateau
   m.rails=[];for(const dr of [-.16,.16]){const t=mk(new THREE.TorusGeometry(BRB.Rr+dr,.028,4,96),M.chrome);t.rotation.x=-Math.PI/2;t.position.y=.012;m.rails.push(t);}

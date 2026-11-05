@@ -45,7 +45,7 @@ function carRetiree(i){const c=CARS[i];return !!(c&&c.retire);} // (2026-10-02) 
 function carPrice(i){const u=CAR_UNLOCK[i];return (!carRetiree(i)&&u&&u.p)||0;} // 0 = pas à vendre (une caisse retirée ne se vend plus)
 /* LES CINQ FAMILLES (2026-09-26) — une caisse porte sa famille (`rar` dans sa fiche) ; les 16 d'origine la déduisent de leur
    condition : boutique = LÉGENDAIRE, contrat/rang d'aura = DÉFI, prix ≥ 1 M = ÉPIQUE, ≥ 20 000 = RARE, sinon COMMUNE.
-   ⚠ LÉGENDAIRE = en BOUTIQUE seulement (vrai argent) : c'est la règle du joueur. */
+   ⚠ LÉGENDAIRE = en BOUTIQUE seulement (vrai argent) : c'était la règle du joueur ; (2026-11-05, jury ECO-12) elle n'est plus tenue — LE LOUP (50 M$) et POSTER 84 sont LÉGENDAIRES à l'argent du jeu : c'est le `rar` de la fiche qui prime sur la déduction. */
 const RARETES=[
   /* LES SEPT RARETÉS (2026-10-10, Léo : « les voitures DÉFI n'existent plus : il y en aura de plusieurs raretés, selon la difficulté du défi ;
      les principales : communes, rares, exotiques, épiques, légendaires, MYTHIQUE, INFINI » — on pourra en créer d'autres). DÉFI n'est plus une

@@ -208,7 +208,7 @@ function loop(now){
     if(SENS)try{sensPassages(dt);}catch(e){} // (2026-10-14, sensations · passages) l'arrivée d'un portail, le replacement : la caisse se pose sur ses ressorts
     if(!nitroOn)nitroHeldT=0;
     loop._nOn=nitroOn;
-    if(keys.KeyR&&mode==='drive'){respawn();keys.KeyR=false;if(SONV2)sfx('respawn');}
+    if(keys.KeyR&&mode==='drive'){keys.KeyR=false;if(/[?&]dev(=|&|$)/.test(location.search)){respawn();if(SONV2)sfx('respawn');}} /* (2026-11-05, jury GP-13) R = respawn gratuit : seulement sous ?dev (c'était une résurrection offerte sur ordi) */
     // PILOTE AUTO DE MESURE (`dbgAuto`) : le volant du bot de poursuite (mêmes équations) posé sur TA caisse —
     // sert à mesurer l'économie sur des dizaines de parties sans jouer à la main. Jamais armé en jeu.
     const mA9=DBG_AUTO.on&&mode==='drive'?vitMult():1; // (HAUTE VITESSE, 2026-09-30) le pilote de mesure connaît sa caisse : au sol, le lacet est ×spdMult, et l'écart latéral s'y referme en autant de SECONDES qu'à ×1

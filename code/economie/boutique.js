@@ -596,7 +596,7 @@ const MOT_MASQ={};
 function motMasque(id){if(MOT_MASQ[id])return MOT_MASQ[id];const N=64,cv=motToile(id,N),d=cv.getContext('2d').getImageData(0,0,N,N).data,m=new Uint8Array(N*N);for(let i=0;i<N*N;i++)m[i]=Math.min(d[i*4],d[i*4+1],d[i*4+2])<238?1:0;return MOT_MASQ[id]={N:N,m:m};}
 let MOT_TGEO=null,MOT_TMAT=null;
 function motTouffes(grp,id){const M=MOTIFS[id];if(!M||!M.touffes)return;grp.updateWorldMatrix(true,false);const INV=new THREE.Matrix4().copy(grp.matrixWorld).invert(),REL=new THREE.Matrix4();
-  if(!MOT_TGEO){MOT_TGEO=new THREE.IcosahedronGeometry(1,0);MOT_TMAT=new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true});}
+  if(!MOT_TGEO){MOT_TGEO=new THREE.IcosahedronGeometry(1,0);MOT_TMAT=new THREE.MeshLambertMaterial({vertexColors:true});}
   const MQ=motMasque(id),R=motAlea(20261101),IP=MOT_TGEO.attributes.position,NV=IP.count;
   grp.traverse(function(o){const m9=o.material;if(!o.isMesh||!m9||Array.isArray(m9)||!m9.userData||m9.userData.mot!==id||o.userData.touffes)return;
     const g=o.geometry,P=g&&g.attributes.position;if(!P)return;o.updateWorldMatrix(true,false);REL.multiplyMatrices(INV,o.matrixWorld);

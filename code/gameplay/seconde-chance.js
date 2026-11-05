@@ -371,6 +371,9 @@ function resetGame(){
   rampCd=0;deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit(); // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
   bounceN=0;airFlash=0;flightId=0;
+  /* (2026-11-05, jury GP-06/07/10/29) les ressorts de caméra et de caisse, la rafale de fruits, la figure en cours et la fenêtre du portail ne passent pas d'une partie à l'autre */
+  shake=0;fovPunch=0;CAMV.zoom=0;CAMV.zp=0;squashT=0;susY=0;susV=0;SCOUP.p=0;SCOUP.pv=0;VEQ.sp=0;VEQ.spV=0;VEQ.camT=-1;rollV=0;fruitRaf=0;fruitRafT=0;FX2.att=null;FLC.ok=false;try{if(FX2.corps)FX2.corps.vide();}catch(e){}
+  PCV.fen=false;PCV.copie=false;try{cancelAnimationFrame(PCV.raf);if(PCV.el){PCV.el.style.opacity='0';PCV.el.classList.remove('go');}}catch(e){}
   VEQ.sautF=-1;VEQ.dReq=false;GLI.req=null;VEQ.sautAtt=0;gsolCoupe(); // (2026-10-14, chasse aux bugs) le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;

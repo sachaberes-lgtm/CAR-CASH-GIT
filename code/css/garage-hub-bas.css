@@ -77,6 +77,8 @@ html.hub body #mHome.acc2 .mAccP{position:relative;display:flex;flex-direction:c
    autour de la MÊME ligne (le milieu de l'écart de 6 px, `transform-origin`) : leurs bords penchés se prolongent, un seul bloc. */
 html.hub body #mHome.acc2 .mAccP>.mMisBarre{flex-direction:row!important;align-self:stretch!important;width:auto!important;height:30px;min-height:30px!important;margin:0 0 6px!important;padding:0 14px!important;gap:9px;font-size:var(--f0)!important;letter-spacing:1px!important;transform-origin:50% calc(100% + 3px)!important}
 html.hub body #mHome.acc2 .mAccP>.mMisBarre .pxi{--pxs:1}
+/* (2026-11-05, Sonnet : jury INT-03) 30 px de dessin, 44 px de zone de toucher : la barre est penchée (transform), donc le ::before s'y accroche ; le bas s'arrête au bord de JOUER (marge de 6 px) */
+html.hub body #mHome.acc2 .mAccP>.mMisBarre::before{content:'';position:absolute;left:0;right:0;top:-8px;bottom:-6px}
 html.hub body #mHome.acc2 .mAccP>.mMisBarre .mMisPips{position:static;margin-left:auto}
 html.hub body #mHome.acc2 .mOffres{--nc:var(--neoM)}
 html.hub body #mHome.acc2 .mOffres .mBadge{top:-9px;right:-7px;transform:scale(.8);transform-origin:100% 0}
@@ -91,6 +93,7 @@ html.hub body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:skewX(var(-
   html.hub body #mHome.acc2 :is(.mAccB,.mOutils>.mGear,.mOutils>.mHubShop){height:50px;min-height:50px!important;gap:5px}
   html.hub body #mHome.acc2 .mAccP>.mPlay{height:52px}
   html.hub body #mHome.acc2 .mAccP>.mMisBarre{height:28px;min-height:28px!important;margin-bottom:6px!important}
+  html.hub body #mHome.acc2 .mAccP>.mMisBarre::before{top:-10px;bottom:-6px} /* couché : 28 + 16 = 44 */
   html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:26px!important}}
 /* LA JAUGE SOBRE (2026-10-10, Léo : « retravaille la jauge : jolie, sobre, discrète, agréable à l'œil ») : plus de plaque ni de flèches.
    Un fil fin qui s'efface aux deux bouts (une ombre douce dessous pour se lire sur l'anneau du plateau), cinq points discrets (−180°, −90°,

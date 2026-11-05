@@ -54,7 +54,7 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gS
   box-shadow:0 0 0 1px #dde1e6,0 6px 16px rgba(30,40,55,.07);font-family:var(--pix);font-size:8px;letter-spacing:0;text-align:left;-webkit-tap-highlight-color:transparent;
   transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),translate var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
 #gBqCats button .pxi{--pxs:2;flex:none;color:#14171c}
-#gBqCats button span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:clip}
+#gBqCats button span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 #gBqCats button::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent;transition:background var(--t-fast) var(--ease)}
 #gBqCats button.on{background:#14171c;color:#fff;box-shadow:0 8px 18px rgba(20,23,28,.22)}
 #gBqCats button.on .pxi{color:#fff}

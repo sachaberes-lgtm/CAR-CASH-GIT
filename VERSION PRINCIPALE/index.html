@@ -5338,14 +5338,14 @@ html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,c
 .ivTab.on{color:#fff;background:linear-gradient(180deg,rgba(255,62,200,.32),rgba(255,62,200,.12));box-shadow:inset 0 -2px 0 var(--neoM),inset 0 0 0 1px rgba(255,62,200,.5)}
 .ivTab.on .pxi{color:var(--neoM);filter:drop-shadow(0 0 6px var(--neoM))}
 .ivTab.on em{color:#fff}
-.ivTab span{max-width:100%;overflow:hidden;text-overflow:clip;white-space:nowrap;font-size:7px}
+.ivTab span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:7px}
 /* LA PROGRESSION (2026-10-20, Sacha : « retravaille et améliore l'inventaire ») : une barre fine sous les onglets, « possédés / total » de l'onglet ouvert */
 .ivProg{display:flex;align-items:center;gap:10px;padding:0 6px}
 .ivProg i{position:relative;flex:1;height:6px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px var(--fil)}
 .ivProg i::before{content:'';position:absolute;left:0;top:0;bottom:0;width:calc(var(--p,0) * 100%);background:linear-gradient(90deg,var(--neoM),#ffd75e);box-shadow:0 0 8px rgba(255,62,200,.6);transition:width .4s var(--ease)}
 .ivProg b{font-weight:400;font-size:var(--f0);letter-spacing:1px;color:#fff;white-space:nowrap}
 .ivVide{grid-column:1/-1;align-self:center;margin:24px 0;text-align:center;font-size:var(--f0);line-height:1.8;color:var(--tx3);letter-spacing:1px}
-.ivT small{display:block;margin-top:2px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:clip;font-size:6px;letter-spacing:1px;color:var(--rc);text-shadow:0 0 6px var(--rg)}
+.ivT small{display:block;margin-top:2px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:6px;letter-spacing:1px;color:var(--rc);text-shadow:0 0 6px var(--rg)}
 #ivGrille{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;
   display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));grid-auto-rows:112px;gap:16px 12px;align-content:start;padding:12px 10px 16px;
   scrollbar-width:none;-webkit-mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 14px),transparent);mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 14px),transparent)}
@@ -6006,7 +6006,7 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gS
   box-shadow:0 0 0 1px #dde1e6,0 6px 16px rgba(30,40,55,.07);font-family:var(--pix);font-size:8px;letter-spacing:0;text-align:left;-webkit-tap-highlight-color:transparent;
   transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),translate var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
 #gBqCats button .pxi{--pxs:2;flex:none;color:#14171c}
-#gBqCats button span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:clip}
+#gBqCats button span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 #gBqCats button::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent;transition:background var(--t-fast) var(--ease)}
 #gBqCats button.on{background:#14171c;color:#fff;box-shadow:0 8px 18px rgba(20,23,28,.22)}
 #gBqCats button.on .pxi{color:#fff}
@@ -6281,6 +6281,8 @@ html.hub body #mHome.acc2 .mAccP{position:relative;display:flex;flex-direction:c
    autour de la MÊME ligne (le milieu de l'écart de 6 px, `transform-origin`) : leurs bords penchés se prolongent, un seul bloc. */
 html.hub body #mHome.acc2 .mAccP>.mMisBarre{flex-direction:row!important;align-self:stretch!important;width:auto!important;height:30px;min-height:30px!important;margin:0 0 6px!important;padding:0 14px!important;gap:9px;font-size:var(--f0)!important;letter-spacing:1px!important;transform-origin:50% calc(100% + 3px)!important}
 html.hub body #mHome.acc2 .mAccP>.mMisBarre .pxi{--pxs:1}
+/* (2026-11-05, Sonnet : jury INT-03) 30 px de dessin, 44 px de zone de toucher : la barre est penchée (transform), donc le ::before s'y accroche ; le bas s'arrête au bord de JOUER (marge de 6 px) */
+html.hub body #mHome.acc2 .mAccP>.mMisBarre::before{content:'';position:absolute;left:0;right:0;top:-8px;bottom:-6px}
 html.hub body #mHome.acc2 .mAccP>.mMisBarre .mMisPips{position:static;margin-left:auto}
 html.hub body #mHome.acc2 .mOffres{--nc:var(--neoM)}
 html.hub body #mHome.acc2 .mOffres .mBadge{top:-9px;right:-7px;transform:scale(.8);transform-origin:100% 0}
@@ -6295,6 +6297,7 @@ html.hub body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:skewX(var(-
   html.hub body #mHome.acc2 :is(.mAccB,.mOutils>.mGear,.mOutils>.mHubShop){height:50px;min-height:50px!important;gap:5px}
   html.hub body #mHome.acc2 .mAccP>.mPlay{height:52px}
   html.hub body #mHome.acc2 .mAccP>.mMisBarre{height:28px;min-height:28px!important;margin-bottom:6px!important}
+  html.hub body #mHome.acc2 .mAccP>.mMisBarre::before{top:-10px;bottom:-6px} /* couché : 28 + 16 = 44 */
   html.hub body #mHome.acc2 .mAccP>.mPlay .lg{font-size:26px!important}}
 /* LA JAUGE SOBRE (2026-10-10, Léo : « retravaille la jauge : jolie, sobre, discrète, agréable à l'œil ») : plus de plaque ni de flèches.
    Un fil fin qui s'efface aux deux bouts (une ombre douce dessous pour se lire sur l'anneau du plateau), cinq points discrets (−180°, −90°,
@@ -7285,7 +7288,7 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{flex-direction:r
 html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .pxi{--pxs:3}
 html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .mMisPips{top:calc(50% - 3px)!important;right:18px!important}
 html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){flex-direction:column!important;gap:6px!important;padding:4px 2px!important;font-size:10px!important;letter-spacing:1px;color:var(--tx,#dfeeff)}
-html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres)>span,html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear>span{display:block!important;font-family:var(--pix);font-size:10px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:clip;max-width:100%}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres)>span,html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear>span{display:block!important;font-family:var(--pix);font-size:10px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .pxi{--pxs:3}
 @media (orientation:portrait) and (max-width:400px){
   html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:8px}
@@ -8843,7 +8846,7 @@ html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:var(--livree
    3. (2026-10-31, Sacha : « le JOUER un peu plus vers la gauche, meilleure proportion de diagonale ») les trois crans à la même largeur : logo −12,
       tuiles 0, JOUER +12 (au lieu de +24) — l'escalier descend d'un pas régulier au lieu d'accélérer sur la dernière marche. */
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){padding:0 3px!important;align-items:center!important;justify-content:center!important;overflow:visible}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear)>span{display:block!important;max-width:100%;box-sizing:border-box;font-size:9px!important;letter-spacing:0!important;white-space:nowrap;overflow:hidden;text-overflow:clip;text-align:center;padding:0!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear)>span{display:block!important;max-width:100%;box-sizing:border-box;font-size:9px!important;letter-spacing:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;padding:0!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2>.mTitle{translate:-12px 0}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:12px 0}
 @media (orientation:landscape) and (max-height:540px){
@@ -9304,7 +9307,7 @@ html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.
 </nav>
 <div id="gHomeMini" role="button" tabindex="0" aria-label="Accueil"><b class="hmFond" aria-hidden="true"></b><i class="pxi pxi-maison" aria-hidden="true"></i></div>
 <div id="gTourne" role="slider" tabindex="0" aria-label="Tourner le garage" aria-valuemin="-180" aria-valuemax="180" aria-valuenow="0"><i class="gtZone"></i><i class="gtRail"></i><i class="gtFill"></i><i class="gtPouce"></i></div>
-<div id="modale" role="dialog" aria-modal="true"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off"></textarea><div class="modB"></div></div></div>
+<div id="modale" role="dialog" aria-modal="true" aria-labelledby="modT"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off"></textarea><div class="modB"></div></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <!-- (2026-10-17, Sacha) LA PLAQUE D'IMMATRICULATION : l'atelier de la plaque (#plq, au premier accueil puis depuis le profil) et le PROFIL du
      joueur (#prof, le petit trophée du garage, #gProf) — voir PLQ dans le script -->
@@ -11147,8 +11150,8 @@ const PAL=(function(){
 PAL.B.memToiles=[1,1,0]; // rendre les toiles des textures peintes une fois : ancien, moyen = oui · récent = comme avant
 function toileRend(cv){try{if(cv&&cv.getContext)cv.width=cv.height=0;}catch(e){}}
 function texLibere(tex){if(!tex||tex._lib)return tex;tex._lib=1;const av=tex.onUpdate;
-  tex.onUpdate=function(t){if(av)av(t);t.onUpdate=av||null;if(PAL.b('memToiles',0)){toileRend(t.image);MEM_TOILES.n++;}};return tex;}
-const MEM_TOILES={n:0};window.dbgToiles=function(){return {palier:PAL.n,actif:PAL.b('memToiles',0),rendues:MEM_TOILES.n};}; // (dev) combien de toiles ont été rendues
+  tex.onUpdate=function(t){if(av)av(t);t.onUpdate=av||null;if(PAL.b('memToiles',0)||ALLEGE){toileRend(t.image);MEM_TOILES.n++;} /* (2026-11-05, jury RND-03) tout téléphone (ALLEGE), pas seulement les paliers ancien/moyen : un iPhone récent est au palier 0 */};return tex;}
+const MEM_TOILES={n:0};window.dbgToiles=function(){return {palier:PAL.n,actif:PAL.b('memToiles',0)||ALLEGE,rendues:MEM_TOILES.n};}; // (dev) combien de toiles ont été rendues
 function palPuce(gl9){ // (après la création du contexte) la puce graphique, là où le navigateur la dit (Android) : une puce d'entrée de gamme rabat le palier
   try{const x=gl9.getExtension('WEBGL_debug_renderer_info'),r=x?String(gl9.getParameter(x.UNMASKED_RENDERER_WEBGL)||''):'';PAL.puce=r;
     if(PAL.src==='?palier'||PAL.src==='appris en course'||!IS_MOBILE||FORCE_TEL)return;
@@ -15502,7 +15505,7 @@ function pisteMaigre(att,c,lz,pas9){ // la tranche lointaine : mêmes attributs,
    en MOYENNE : les mêmes 11 colonnes, une rangée sur PISTE_MOY (4 m), les bords de trou gardés — 4 fois moins de triangles de bitume. À 400 m un pas de
    4 m fait moins d'un vingtième de pixel en profondeur, la flèche d'un virage serré (R 110 m) 2 cm : l'image ne bouge pas. Sur l'ordinateur : rien ne
    change (règle d'or). `?pistemoy=0` = avant ; `dbgPiste()` compte les tranches moyennes. */
-const PISTE_MOY=(TEL_NATIF&&!/[?&]pistemoy=0\b/.test(location.search))?4:0,PISTE_MOY_D=400;
+const PISTE_MOY=(ALLEGE&&!/[?&]pistemoy=0\b/.test(location.search))?4:0, /* (2026-11-05, jury RND-28 : ALLEGE et non TEL_NATIF — le téléphone en navigateur aussi) */ PISTE_MOY_D=400;
 function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
   if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
@@ -28264,7 +28267,7 @@ function updatePadTex(t){ // les chevrons FILENT vers l'avant (6,7 m/s, le rythm
 updatePadTex(0);
 
 // ---------- VOITURES & ÉCONOMIE ----------
-// 15 caisses, UNE SILHOUETTE CHACUNE (2026-08-05) — l'ancien roster de 24 faisait sortir 10 caisses
+// (2026-11-05, jury ECO-28 : 91 lignes dont 50 caisses actives et 41 retirées — l'index d'une ligne ne bouge JAMAIS) 15 caisses à l'origine, UNE SILHOUETTE CHACUNE (2026-08-05) — l'ancien roster de 24 faisait sortir 10 caisses
 // du même moule `rocket` : 20 paires au-dessus de 90 % de recouvrement. Mieux vaut 15 formes qu'on
 // reconnaît que 24 variantes d'une seule. ⚠ toutes au-dessus de l'ex-reine
 // (657 km/h) et de plus en plus extrêmes. Le skin = le palier visuel ; `desc` = la carte de déblocage.
@@ -28291,7 +28294,7 @@ const CARS=[
  {retire:1,name:'SA MAJESTÉ'},
  {name:'ROSSO 40',        shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,rar:'epique', /* (2026-10-22, Sacha : « tableau des voitures » ROSSO 40 épique à 400 000 $ : sans cette ligne le prix la ferait RARE) */
   desc:'Rouge course, aileron plateau. La caisse de rêve : 1,5 million, et chaque dollar se voit.'},
- {name:'POSTER 84',       shape:'poster',  color:0xffc414,accent:0x131417,maxKmh:480,accel:55,turn:3.15,h:1.07,w:2.00,l:4.14,spoiler:0,
+ {name:'POSTER 84',       shape:'poster',  color:0xffc414,accent:0x131417,maxKmh:480,accel:55,turn:3.15,h:1.07,w:2.00,l:4.14,spoiler:0,rar:'legendaire', /* (2026-11-05, jury ECO-11 : TABLEAU-VOITURES.md la veut LÉGENDAIRE ; sans `rar`, carRar la déduisait du prix (3,2 M) = ÉPIQUE) */
   desc:'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.'},
  // ---- LES CAISSES DE CONTRAT (2026-09-25) : elles ne s'achètent PAS — chacune est la récompense d'un
  // carnet de trois missions (voir `CARNETS`). Des silhouettes que tout le monde reconnaît de loin, sans
@@ -47742,7 +47745,7 @@ const PWR_LIGNE=/[?&]fruitpow=1/.test(location.search); /* (2026-10-21) les frui
 const PWR_EGAUX=PWR_LIGNE; // les cinq pouvoirs à la même fréquence
 
 /* ============================================================================
-   DÉBLOCAGE DES 24 VOITURES (2026-08-03)
+   DÉBLOCAGE DES VOITURES (2026-08-03 ; 2026-11-05, jury ECO-28 : 91 lignes, 50 actives et 41 retirées — il y en avait 24 à l'origine)
    Le MOTEUR est la progression DANS une partie (il repart à zéro à chaque run) ; la VOITURE est la
    progression ENTRE les parties. Les deux échelles ne se marchent donc plus dessus — c'est pour ça
    que les conditions portent toutes sur des compteurs PERSISTANTS (`SAVE.d.ex`, + le record `best`),
@@ -47769,7 +47772,7 @@ const PWR_EGAUX=PWR_LIGNE; // les cinq pouvoirs à la même fréquence
    d'AUJOURD'HUI ; les commentaires datés qui les accompagnent citent les prix d'AVANT. LA ZAGAIE (index 88) garde 3 500 000. Les caisses RETIRÉES gardent leur
    ancien prix : il ne sert qu'au REMBOURSEMENT de qui les avait payées à l'époque. Les prix en € des premium (`eur`) ne bougent pas. */
 const CAR_UNLOCK=[
-  /* (2026-10-06, Léo : « fiche-voitures-cash-car.txt — applique les changements ») LA GAMME RESSERRÉE : 43 caisses jouables. Prix et
+  /* (2026-10-06, Léo : « fiche-voitures-cash-car.txt — applique les changements ») LA GAMME RESSERRÉE : 43 caisses jouables (50 au 2026-11-05). Prix et
      familles de la fiche ; les 25 supprimées gardent leur ligne (`retire:1` dans CARS, leur prix ici sert au REMBOURSEMENT de san) ;
      `k:'bientot'` = un DÉFI encore à écrire (COMÈTE : verrouillée, « DÉFI À VENIR ») ; `k:'pubs'` = L'ÉTERNELLE,
      100 pubs regardées (`SAVE.d.ex.pubs` : seule l'édition des portails, retirée le 14/10, avait des pubs). */
@@ -47852,11 +47855,11 @@ const CAR_UNLOCK=[
   {p:9000000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
   {k:'premium',eur:'1,61 €',rar:'leg'}, // (2026-10-21, Sacha : « remplace le shark par l'autre requin de Léo, à 1,61 € ») LE SQUALE passe en boutique, ex-700 000 (la mission secrète `abysse` ne le donne plus : elle paie de l'argent, voir missions/table.js — sinon le patch des missions le remettait en `k:'mis'` et il disparaissait de la boutique) ; (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
   {p:3000000}, // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE — ÉPIQUE, la plus chère des épiques (juste après ROSSO 40)
-  {p:32000000}, // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
+  {p:3200000}, /* (2026-11-05, jury ECO-07 : 32 000 000 → 3 200 000, c'était ×100 au lieu de ×10) */ // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
   {p:3400000}, // (2026-10-10, Léo : « une voiture flamme ») LA FOURNAISE — ÉPIQUE, juste après L'ICEBERG
   {p:3600000}, // (2026-10-10, Léo : « une abstraite type eau ») LA DÉFERLANTE — ÉPIQUE, juste après LA FOURNAISE
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
-  {p:40000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
+  {p:4000000}, /* (2026-11-05, jury ECO-07 : 40 000 000 → 4 000 000, ×100 au lieu de ×10) */ // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
   {p:4200000}, // (2026-10-16, Léo : « une belle Porsche Cayenne rose Barbie ») LA POUPÉE — ÉPIQUE, juste après LE DOGE
   {p:2400000},/* (2026-10-22, Sacha : « tableau des voitures » 2 000 000 → 240 000) */ // (2026-10-19) 4 400 000 → 2 000 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) (2026-10-16, Léo : « Taycan 4S », blanche, « la perle ») LA PERLE — ÉPIQUE, juste après LA POUPÉE
   /* LES NOUVELLES VOITURES (2026-10-18) — prix provisoires (réglables dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $ */
@@ -48073,7 +48076,7 @@ function carRetiree(i){const c=CARS[i];return !!(c&&c.retire);} // (2026-10-02) 
 function carPrice(i){const u=CAR_UNLOCK[i];return (!carRetiree(i)&&u&&u.p)||0;} // 0 = pas à vendre (une caisse retirée ne se vend plus)
 /* LES CINQ FAMILLES (2026-09-26) — une caisse porte sa famille (`rar` dans sa fiche) ; les 16 d'origine la déduisent de leur
    condition : boutique = LÉGENDAIRE, contrat/rang d'aura = DÉFI, prix ≥ 1 M = ÉPIQUE, ≥ 20 000 = RARE, sinon COMMUNE.
-   ⚠ LÉGENDAIRE = en BOUTIQUE seulement (vrai argent) : c'est la règle du joueur. */
+   ⚠ LÉGENDAIRE = en BOUTIQUE seulement (vrai argent) : c'était la règle du joueur ; (2026-11-05, jury ECO-12) elle n'est plus tenue — LE LOUP (50 M$) et POSTER 84 sont LÉGENDAIRES à l'argent du jeu : c'est le `rar` de la fiche qui prime sur la déduction. */
 const RARETES=[
   /* LES SEPT RARETÉS (2026-10-10, Léo : « les voitures DÉFI n'existent plus : il y en aura de plusieurs raretés, selon la difficulté du défi ;
      les principales : communes, rares, exotiques, épiques, légendaires, MYTHIQUE, INFINI » — on pourra en créer d'autres). DÉFI n'est plus une
@@ -50338,7 +50341,7 @@ const MOT_MASQ={};
 function motMasque(id){if(MOT_MASQ[id])return MOT_MASQ[id];const N=64,cv=motToile(id,N),d=cv.getContext('2d').getImageData(0,0,N,N).data,m=new Uint8Array(N*N);for(let i=0;i<N*N;i++)m[i]=Math.min(d[i*4],d[i*4+1],d[i*4+2])<238?1:0;return MOT_MASQ[id]={N:N,m:m};}
 let MOT_TGEO=null,MOT_TMAT=null;
 function motTouffes(grp,id){const M=MOTIFS[id];if(!M||!M.touffes)return;grp.updateWorldMatrix(true,false);const INV=new THREE.Matrix4().copy(grp.matrixWorld).invert(),REL=new THREE.Matrix4();
-  if(!MOT_TGEO){MOT_TGEO=new THREE.IcosahedronGeometry(1,0);MOT_TMAT=new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true});}
+  if(!MOT_TGEO){MOT_TGEO=new THREE.IcosahedronGeometry(1,0);MOT_TMAT=new THREE.MeshLambertMaterial({vertexColors:true});}
   const MQ=motMasque(id),R=motAlea(20261101),IP=MOT_TGEO.attributes.position,NV=IP.count;
   grp.traverse(function(o){const m9=o.material;if(!o.isMesh||!m9||Array.isArray(m9)||!m9.userData||m9.userData.mot!==id||o.userData.touffes)return;
     const g=o.geometry,P=g&&g.attributes.position;if(!P)return;o.updateWorldMatrix(true,false);REL.multiplyMatrices(INV,o.matrixWorld);
@@ -54612,10 +54615,10 @@ const SPIN={on:!/[?&]spin=0\b/.test(location.search),pZone:.28,max:3,pose:0,ouve
      d'argent ; le jackpot doit faire gagner une voiture épique ») — les sacs ×50 (120 → 6 000, 300 → 15 000, 1 000 → 50 000) et 2,5 à
      3,3 fois plus rares (,20 → ,08 · ,12 → ,04 · ,04 → ,012) ; le CŒUR ,05 → ,15 ; le 7 donne une ÉPIQUE pas encore à toi (spinEpique),
      `cash` = ce qu'il verse quand elles le sont toutes. Argent ≈ 1 700 $ d'espérance par tirage (avant : ≈ 178 $, plafond de GENERAL
-     « ≤ 10 % du gain d'une partie » levé par Sacha). */
-  lots:[{id:'petit',nm:'PETIT SAC',p:.08,cash:6000},
-        {id:'sac',nm:"SAC D'ARGENT",p:.04,cash:15000},
-        {id:'gros',nm:'GROS SAC',p:.012,cash:50000},
+     « ≤ 10 % du gain d'une partie » levé par Sacha). (2026-11-05, jury ECO-31) le ×10 des prix du 25/10 n'avait pas touché les sacs : 6 000 / 15 000 / 50 000 → 60 000 / 150 000 / 500 000 (espérance ≈ 16 800 $ par tirage). */
+  lots:[{id:'petit',nm:'PETIT SAC',p:.08,cash:60000},
+        {id:'sac',nm:"SAC D'ARGENT",p:.04,cash:150000},
+        {id:'gros',nm:'GROS SAC',p:.012,cash:500000},
         {id:'coeur',nm:'SECONDE CHANCE GRATUITE',p:.19,bon:'chanceG',sous:'À TA PROCHAINE CHUTE'}, // (2026-10-31, Sacha : « augmente un peu la probabilité d'avoir une seconde chance ») ,15 → ,19
         {id:'boost',nm:'DÉPART BOOSTÉ',p:.07,bon:'spinBoost',sous:'NITRO PLEINE · MOTEUR +1'},
         {id:'jeton',nm:'+1 JETON',p:.05,jeton:1,sous:'UN TIRAGE DE PLUS'},
@@ -66131,6 +66134,9 @@ function resetGame(){
   rampCd=0;deathStop();fxStop(); // la mort précédente se tait : on repart, elle n'a plus rien à dire
   auraRun=0;auraPop=0;auraFlash=0;figCombo=0;figComboT=0;figComboAura=0;chaReset();CHA.v=0;CHA.vAff=-1;recInit(); // l'aura de la partie repart de zéro — la banque et le total à vie, eux, restent
   bounceN=0;airFlash=0;flightId=0;
+  /* (2026-11-05, jury GP-06/07/10/29) les ressorts de caméra et de caisse, la rafale de fruits, la figure en cours et la fenêtre du portail ne passent pas d'une partie à l'autre */
+  shake=0;fovPunch=0;CAMV.zoom=0;CAMV.zp=0;squashT=0;susY=0;susV=0;SCOUP.p=0;SCOUP.pv=0;VEQ.sp=0;VEQ.spV=0;VEQ.camT=-1;rollV=0;fruitRaf=0;fruitRafT=0;FX2.att=null;FLC.ok=false;try{if(FX2.corps)FX2.corps.vide();}catch(e){}
+  PCV.fen=false;PCV.copie=false;try{cancelAnimationFrame(PCV.raf);if(PCV.el){PCV.el.style.opacity='0';PCV.el.classList.remove('go');}}catch(e){}
   VEQ.sautF=-1;VEQ.dReq=false;GLI.req=null;VEQ.sautAtt=0;gsolCoupe(); // (2026-10-14, chasse aux bugs) le saut NITRO / la figure d'une partie ne passent pas à la suivante : flightId repart de 0 mais VEQ.sautF gardait le n° du dernier saut → le même n° de vol (normal) rendait 30 % de nitro à la pose ; double-tap et figure en cours périmés effacés
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
@@ -68158,12 +68164,12 @@ function buildGarageRoom(){
   const BX=new THREE.BoxGeometry(1,1,1),CY=new THREE.CylinderGeometry(.5,.5,1,14),
         CY8=new THREE.CylinderGeometry(.5,.5,1,7),TOR=new THREE.TorusGeometry(.34,.16,7,16),
         CN=new THREE.ConeGeometry(.5,1,12),PL=new THREE.PlaneGeometry(1,1);
-  const L=(c,e,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c,emissive:e===undefined?0:e,flatShading:true,fog:false},o||{}));
+  const L=(c,e,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c,emissive:e===undefined?0:e,fog:false},o||{}));
   const BA=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));
   // La PALETTE : béton froid, ferraille bleu nuit, et quatre couleurs franches (rouge servante,
   // jaune sécurité, bleu fût, orange palan) qui suffisent à faire lire « atelier » d'un coup d'œil.
   const M={
-    sol   :L(0xffffff,0x090b10,{flatShading:false}),
+    sol   :L(0xffffff,0x090b10),
     mur   :L(0x3c4557,0x1b212f), bas:L(0x1c2433,0x0e1422), toit:L(0x101319,0x0a0f1a), /* (garage-lumiere) émissifs remontés : on lit les murs */
     fer   :L(0x232a38,0x070910), acier:L(0x6b7688,0x101319), chrome:L(0xc2cbd8,0x171b21),
     noir  :L(0x15181f,0x040609), pneu:L(0x1a1c21,0x050608),
@@ -69180,14 +69186,14 @@ function gAtelier(on){on=!!on;if(!gEl||GATL.on===on)return;
   gModeBoutons();}
 function garAtelierBatir(){
   const g=new THREE.Group();g.visible=false;GAR.root.add(g);GATL.g=g;
-  const L=(c,e)=>new THREE.MeshLambertMaterial({color:c,emissive:e||0,flatShading:true,fog:false}); // le programme des Lambert de l'atelier : rien à compiler
+  const L=(c,e)=>new THREE.MeshLambertMaterial({color:c,emissive:e||0,fog:false}); // le programme des Lambert de l'atelier : rien à compiler
   const M=GATL.M={fer:L(0x232a38,0x070910),jaune:L(0xefb52a,0x2e2005),chrome:L(0xc2cbd8,0x171b21),noir:L(0x15181f,0x040609),led:L(0x5ff0ff,0x2fb8d0)};
   GATL.BX=new THREE.BoxGeometry(1,1,1);GATL.CY=new THREE.CylinderGeometry(.5,.5,1,8);
   const pg=new THREE.Group();g.add(pg);GATL.pg=pg;
   const lp=new THREE.Group();g.add(lp);GATL.lp=lp;
   const mk=(geo,mat,sx,sy,sz)=>{const m=new THREE.Mesh(geo,mat);m.scale.set(sx,sy,sz);lp.add(m);return m;};
   GATL.cord=mk(GATL.CY,M.noir,.035,1,.035);
-  GATL.abat=mk(new THREE.ConeGeometry(.5,1,10,1,true),new THREE.MeshLambertMaterial({color:0x2a3242,emissive:0x070910,flatShading:true,fog:false,side:THREE.DoubleSide}),.78,.4,.78);
+  GATL.abat=mk(new THREE.ConeGeometry(.5,1,10,1,true),new THREE.MeshLambertMaterial({color:0x2a3242,emissive:0x070910,fog:false,side:THREE.DoubleSide}),.78,.4,.78);
   GATL.cul=mk(GATL.CY,M.fer,.22,.12,.22);
   GATL.ampM=new THREE.MeshBasicMaterial({color:0x2a2620,fog:false});GATL.amp=mk(GATL.CY,GATL.ampM,.2,.14,.2);
   GATL.rayM=new THREE.MeshBasicMaterial({color:0xfff0d0,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,side:THREE.FrontSide});
@@ -69528,7 +69534,7 @@ function brasHabille(l){if(BRB.habit===l||!BRB.g)return;if(l==='boutique'&&!GBQ.
 /* LE MODÈLE (bâti au 1er besoin, matières de l'atelier) */
 function brasBatir(){if(BRB.g)return BRB.g;if(!GATL.g)garAtelierBatir();
   const G=new THREE.Group();G.visible=false;scene.add(G);BRB.g=G;const M=GATL.M,BX=GATL.BX,CY=GATL.CY,m=BRB.m; // dans la SCÈNE : en boutique GAR.root est éteint
-  BRB.M={led:new THREE.MeshLambertMaterial({color:0x5ff0ff,emissive:0x2fb8d0,flatShading:true,fog:false})}; // sa diode à lui (celle des pinces est partagée)
+  BRB.M={led:new THREE.MeshLambertMaterial({color:0x5ff0ff,emissive:0x2fb8d0,fog:false})}; // sa diode à lui (celle des pinces est partagée)
   const mk=(geo,mat)=>{const o=new THREE.Mesh(geo,mat);G.add(o);return o;};
   m.gorge=mk(new THREE.RingGeometry(BRB.Rr-.24,BRB.Rr+.24,72,1),M.noir);m.gorge.rotation.x=-Math.PI/2;m.gorge.position.y=.004; // la GORGE du rail, dans le plateau
   m.rails=[];for(const dr of [-.16,.16]){const t=mk(new THREE.TorusGeometry(BRB.Rr+dr,.028,4,96),M.chrome);t.rotation.x=-Math.PI/2;t.position.y=.012;m.rails.push(t);}
@@ -69962,7 +69968,7 @@ const FETE_CSS='#feteCaisse{position:fixed;inset:0;z-index:99990;pointer-events:
  +'#feteCaisse .feTexte i{display:inline-block;font-style:normal;font-size:max(15px,4.6vmin);letter-spacing:.18em;color:var(--fc);margin:.8vmin 0;padding:.5vmin 2vmin;border:.5vmin solid var(--fc);background:rgba(0,0,0,.55);box-shadow:0 0 3vmin var(--fc);animation:feTamp .55s calc(var(--k) + .12s) cubic-bezier(.2,1.7,.4,1) both}'
  +'#feteCaisse .feEtoiles{display:block;font-size:max(14px,3.4vmin);letter-spacing:.4em;margin:.4vmin 0 .8vmin;color:var(--fc);text-indent:.4em}'
  +'#feteCaisse .feEtoiles u{text-decoration:none;display:inline-block;opacity:0;animation:feEtoile .5s cubic-bezier(.2,1.8,.4,1) both;animation-delay:calc(var(--k) + .5s + var(--j)*.13s)}'
- +'#feteCaisse .feNom{display:block;font-size:max(20px,calc(var(--fs)*1vmin));line-height:1.12;font-weight:900}'
+ +'#feteCaisse .feNom{display:block;font-size:max(20px,calc(var(--fs)*1vmin));line-height:1.12;font-weight:400}'
  +'#feteCaisse .feNom span{display:inline-block;opacity:0;animation:feLettre .45s cubic-bezier(.2,1.6,.4,1) both;animation-delay:calc(var(--k) + .2s + var(--i)*.045s);'
  +'background:linear-gradient(100deg,#fff 0 40%,var(--fc) 50%,#fff 60% 100%);background-size:260% 100%;background-position:130% 0;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 .4vmin 0 rgba(0,0,0,.65)) drop-shadow(0 0 2vmin var(--fc));'
  +'animation-name:feLettre,feReflet;animation-duration:.45s,1.2s;animation-delay:calc(var(--k) + .2s + var(--i)*.045s),calc(var(--k) + 1s + var(--i)*.04s);animation-fill-mode:both,both}'
@@ -76313,7 +76319,7 @@ function loop(now){
     if(SENS)try{sensPassages(dt);}catch(e){} // (2026-10-14, sensations · passages) l'arrivée d'un portail, le replacement : la caisse se pose sur ses ressorts
     if(!nitroOn)nitroHeldT=0;
     loop._nOn=nitroOn;
-    if(keys.KeyR&&mode==='drive'){respawn();keys.KeyR=false;if(SONV2)sfx('respawn');}
+    if(keys.KeyR&&mode==='drive'){keys.KeyR=false;if(/[?&]dev(=|&|$)/.test(location.search)){respawn();if(SONV2)sfx('respawn');}} /* (2026-11-05, jury GP-13) R = respawn gratuit : seulement sous ?dev (c'était une résurrection offerte sur ordi) */
     // PILOTE AUTO DE MESURE (`dbgAuto`) : le volant du bot de poursuite (mêmes équations) posé sur TA caisse —
     // sert à mesurer l'économie sur des dizaines de parties sans jouer à la main. Jamais armé en jeu.
     const mA9=DBG_AUTO.on&&mode==='drive'?vitMult():1; // (HAUTE VITESSE, 2026-09-30) le pilote de mesure connaît sa caisse : au sol, le lacet est ×spdMult, et l'écart latéral s'y referme en autant de SECONDES qu'à ×1
