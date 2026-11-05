@@ -5979,6 +5979,7 @@ html.bqIndus body #garage::before,html.bqIndus body #garage::after{opacity:0!imp
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom{background:none!important;box-shadow:none!important;clip-path:none!important;padding-top:0}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom::before{display:none}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip,#gStrip.fnBande){display:none!important}
+html body #garage.modeShop.bqEntre:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip){visibility:hidden!important} /* (2026-11-05) le geste BOUTIQUE → la salle blanche : la vitrine du jour est déjà écrite mais pas encore à montrer (la place reste, le display:none tombe avec bqIndus) */
 /* L'INTERFACE v3 (voir garBqPanneau) : blanc, du noir pour lire, un BLEU ÉLECTRIQUE (#3d4bff) pour ce qui compte — l'orange retiré */
 #gBqTete{position:absolute;top:calc(var(--sT,0px) + 16px);display:flex;align-items:flex-start;justify-content:space-between;font-family:var(--pix);animation:bqTete .5s var(--ease) .12s both}
 @keyframes bqTete{from{opacity:0;translate:0 -12px}to{opacity:1;translate:0 0}}
@@ -68637,6 +68638,7 @@ function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=do
   if(c){const ret=m==='inv'&&GATL.on;if(c._lib==null)c._lib=c.innerHTML;if(ret!==!!c._ret){c._ret=ret;c.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':c._lib;c.setAttribute('aria-label',ret?TR('RETOUR'):'Inventaire');}}
   if(gEl){gEl.classList.remove('invRet');gEl.classList.toggle('modeInv',m==='inv');gEl.classList.toggle('atelierInv',GATL.on);} // (2026-10-12, Léo) à l'arrivée l'INVENTAIRE en aperçu, les cinq touches ; INVENTAIRE touché = L'ATELIER FERMÉ (gAtelier) : la touche devient ◀ RETOUR, en bas à gauche, les autres s'effacent
   if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop'||m==='tous');st.classList.toggle('gModeTous',m==='tous');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
+  if(gEl)gEl.classList.toggle('bqEntre',(m==='shop'||m==='tous')&&typeof GBQ!=='undefined'&&!GBQ.on&&bqIndusVoulu()); /* (2026-11-05, Sacha : « pendant un bref instant, quand on clique sur boutique, ça ouvre une autre page qui ressemble à une boutique mais différente ») la vitrine du jour s'écrit ICI, d'un coup, mais la salle blanche (bqIndus) n'arrive que ~285 ms plus tard, sous le voile : entre les deux l'ancienne console se voyait seule. bqEntre la cache dès le geste (voir garage-hub-rayons.css), bqClasses la retire à la bascule */
   if(gEl)gEl.classList.toggle('modeShop',m==='shop');} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
 function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou « 15 / 46 » en INVENTAIRE
   if(m==='tous'){bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>SEE ALL ITEMS</span><s></s><b>'+n+'</b></div>';return;} // (2026-10-10) SEE ALL ITEMS, en anglais (Léo)
@@ -72275,7 +72277,7 @@ function bqVoile(v){let w=document.getElementById('gBqVoile'); // LE VOILE de la
   cv.classList.remove('bqPose','bqArrive');cv.classList.toggle('recul',!v);void cv.offsetWidth;cv.classList.add('bqPasse');
   bqVoile._fin=performance.now()+2e3;
   bqVoile._t=setTimeout(function(){if(!GBQ.bascule){GBQ.bascule=true;GBQ.on=GBQ.veut;bqClasses(GBQ.veut);try{garBqAmbiance(GBQ.veut);}catch(e){}}bqVoile(null);},1400);} // filet : jamais de voile collé ni d'interface à moitié basculée (onglet caché, garage quitté en plein geste)
-function bqClasses(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl)gEl.classList.toggle('bqIndus',on);garLibre._r=null;} // dès le geste : l'interface du garage s'efface
+function bqClasses(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl){gEl.classList.toggle('bqIndus',on);gEl.classList.remove('bqEntre');}garLibre._r=null;} // dès le geste : l'interface du garage s'efface
 /* LA LUEUR DERRIÈRE LA CAISSE (v3) : un disque blanc tourné vers la caméra, posé DERRIÈRE la caisse (elle reste devant : il est caché par
    elle), qui grandit jusqu'à couvrir le garage ; une nappe blanche s'étale au sol depuis sous elle. Deux objets de la scène (hors de
    l'atelier : ils survivent au basculement), blancs au-delà de 1 (le bloom les fait rayonner). */
