@@ -68,7 +68,7 @@ async function vise(c, sel) {
 }
 /* le relevé : la sonde (navigateur) + ce que le jeu dit de sa musique (dbgMusique : l'<audio> ; dbgPouce : Pouce bleu, le générateur WebAudio de course) */
 const releve = async c => { await c.send('HeapProfiler.enable'); await c.send('HeapProfiler.collectGarbage'); await sleep(300); await c.send('HeapProfiler.collectGarbage'); const h = await c.send('Runtime.getHeapUsage'); const e = await releve0(c); e.tasMo = Math.round((h.result && h.result.usedSize || 0) / 1048576); return e; };
-const releve0 = c => c.ev(`(function(){var e=window.__SONBANC.etat();try{e.mus=dbgMusique();}catch(x){e.mus={err:x.message};}try{var p=dbgPouce();e.pouce=p&&{actif:p.actif,phase:p.phase,titre:p.titre,type:p.type,err:p.err};}catch(x){e.pouce={err:x.message};}try{e.fren=typeof dbgFren==='function'?dbgFren():null;}catch(x){}return e;})()`);
+const releve0 = c => c.ev(`(function(){var e=window.__SONBANC.etat();try{e.mus=dbgMusique();}catch(x){e.mus={err:x.message};}try{var p=dbgPouce();e.pouce=p&&{actif:p.actif,phase:p.phase,titre:p.titre,type:p.type,err:p.err,niveau:p.niveau};}catch(x){e.pouce={err:x.message};}try{e.fren=typeof dbgFren==='function'?dbgFren():null;}catch(x){}return e;})()`);
 const etatJeu = c => c.ev(`(function(){try{var s=dbgState();return {started:s.started,running:s.running,gameOver:s.gameOver,mode:s.mode,paused:s.paused};}catch(e){return {err:e.message}}})()`);
 const musique = c => c.ev(`(function(){try{return dbgMusique();}catch(e){return {err:e.message}}})()`);
 async function attends(c, test, ms) { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { if (await c.ev(test)) return true; } catch (e) {} await sleep(300); } return false; }
@@ -76,7 +76,7 @@ async function attends(c, test, ms) { const t0 = Date.now(); while (Date.now() -
 /* les musiques EN COURS : <audio> audibles + longues boucles WebAudio, regroupées par fichier */
 function musiques(e) {
   const L = [];
-  if (e.pouce && e.pouce.actif) L.push({ par: 'pouce', f: 'pouce:' + (e.pouce.titre || '?'), phase: e.pouce.phase });
+  if (e.pouce && e.pouce.actif && !(e.pouce.niveau != null && e.pouce.niveau < .01 && /course|intro/.test(e.pouce.phase))) L.push({ par: 'pouce', f: 'pouce:' + (e.pouce.titre || '?'), phase: e.pouce.phase, niveau: e.pouce.niveau }); /* (Pouce bleu effacé à 0 pendant la triade de la frénésie : pas une 2e musique) */
   for (const m of e.medias) if (!m.muet && m.vol > 0) L.push({ par: 'audio', f: m.src });
   for (const b of e.boucles) L.push({ par: 'webaudio', f: b.url, dur: b.dur });
   return L;
@@ -149,7 +149,7 @@ for (let tour = 1; tour <= FOIS; tour++) {
       const f1 = await releve(c);
       log(`[${tour}] frénésie +2,5 s : medias ${JSON.stringify(f1.medias)} · fren ${JSON.stringify(f1.fren && { m: f1.fren.musique, lv: f1.fren.lv, t: f1.fren.tenue })} · pouce ${f1.pouce && f1.pouce.titre}`);
       if (f1.fren && f1.fren.musique === 'triade' && !f1.medias.some(m => /dark-triad/.test(m.src))) pb.push('frénésie : la TRIADE est annoncée mais aucun <audio> ne la joue (trou de musique)');
-      await sleep(6500);
+      for (let q = 0; q < 5; q++) { await sleep(1500); const fq = await releve(c); if (fq.fren && fq.fren.musique === 'triade') { log(`[${tour}] en frénésie (+${4 + q * 1.5} s) : medias ${JSON.stringify(fq.medias)} · pouce niveau ${fq.pouce && fq.pouce.niveau}`); juge('frénésie (triade)', fq, { musMax: 1 }, pb); } }
       R.fren = await releve(c); juge('frénésie', R.fren, { musMax: 1 }, pb);
       log(`[${tour}] en frénésie : musiques ${JSON.stringify(musiques(R.fren))} · medias ${JSON.stringify(R.fren.medias)} · fren ${R.fren.fren && R.fren.fren.musique} · pouce ${JSON.stringify(R.fren.pouce)}`);
     }

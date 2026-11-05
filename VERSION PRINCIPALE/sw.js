@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1178'; /* v1178 (2026-11-05, DEBUG-TOTAL) fusion de main (v1177, les sons à la demande) dans la passe de débogage (son, sauvegarde, contexte 3D). */
+const CACHE = 'cashcar-v1179'; /* v1179 (2026-11-05, DEBUG-TOTAL) sons à la demande : une boucle pas encore décodée ne part plus orpheline (sfx.js v10). */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
