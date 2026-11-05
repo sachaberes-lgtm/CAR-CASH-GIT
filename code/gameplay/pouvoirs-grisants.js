@@ -193,7 +193,7 @@ function spawnPickups(rnd){
   };
   /* ---- LE FLUX DE PIÈCES SUIT LA PROGRESSION (2026-08-03) ----------------------------------
      ⚠ LE PROBLÈME : la densité était IDENTIQUE dans toutes les zones, alors que l'échelle des
-     paliers ACCÉLÈRE (5, 12, 21 … 2854 pièces). Avec un flux constant, les premiers paliers
+     paliers ACCÉLÈRE (60, 125, 200 … 4385 pièces). Avec un flux constant, les premiers paliers
      tombaient en quelques secondes et le dernier tiers de la liste restait hors d'atteinte : on
      affichait 30 paliers pour n'en jouer qu'une dizaine.
      LE PRINCIPE : la route devient plus RICHE à mesure qu'on avance. Zone 1 = route maigre, il
