@@ -150,6 +150,8 @@ Chaque tâche : **Pourquoi** (la preuve) · **Fichiers** (`code/…:ligne` à la
 
 ### B1 — JOUER et REJOUER sans gel (après T0)
 
+> **Clos le 5/11 : sans objet, mesuré** — départ d'avance pris 16/16, `newTrack` 20-99 ms au JOUER ; les ~333 ms restants sont la chauffe du niveau neuf après le voile, confiée à A1 (A1.d). Livré : `jouer.py`, `dbgPick`, mesures AVANT (`mesures/2026-11-05-B1-*.json`).
+
 **Pourquoi :** `resetGame` (`code/gameplay/seconde-chance.js:338`) → `newTrack` (`code/rendu/traces-pneus.js:89`) → `buildTrack` (`code/moteur/depart-avance.js:421`) + `spawnPickups` (`code/gameplay/pouvoirs-grisants.js:149`) + `computeMinimap` (`code/gameplay/boost-depart.js:378`) : 1,0-1,3 s d'un bloc au JOUER, 0,7 s au REJOUER (passations du 14/10 ; le DÉPART D'AVANCE et le PRÉ-BÂTI existent depuis : état à remesurer).
 
 **Fichiers :** `code/moteur/depart-avance.js` (le départ d'avance, `pisteRoute` :91 en générateur), `code/moteur/piste-prebati.js` (`PREB` :160, `prebEchange` :185, `pisteInstalle` :205), `code/gameplay/seconde-chance.js:338`, `code/gameplay/pouvoirs-grisants.js:149`, `code/gameplay/boost-depart.js:378`.
@@ -189,6 +191,8 @@ Chaque tâche : **Pourquoi** (la preuve) · **Fichiers** (`code/…:ligne` à la
 - [ ] Un commit PAR MAP : `Perf mobile 2 — portail <map> : décor bâti en tranches pendant l'approche (pire image X → Y ms, p0)`.
 
 ### C1 — Le HUD sans lecture forcée du DOM (après T0 ; indépendante)
+
+> **Clos le 5/11 : sans objet, mesuré** — la lecture après mise en page (17/10) avait déjà réglé le problème, ~1,6 ms/s restants ; aucun changement de code. Livré : `hud-profil.py` + mesures (`mesures/2026-11-05-C1/`).
 
 **Pourquoi :** `hudColonne` (`code/interface/passe-textes.js:189`) et `volgTick` (`code/interface/bouton-nitro-gains.js:231`) lisent `getBoundingClientRect` (`zRect`, `code/interface/auto-ecole.js:242`) à 10 Hz : ~13 ms/s de mise en page forcée sur PC (×4 sur iPhone 7). 69 appels à `getBoundingClientRect` dans le fichier ; 6 `ResizeObserver` déjà en place.
 
