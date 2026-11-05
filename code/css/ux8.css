@@ -32,7 +32,10 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .p
 /* (14/10 ~21 h, Sacha : « enlève cadeau, touche et mission » de l'ACCUEIL — les missions restent au garage, le cadeau dans MISSIONS) */
 html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{display:none!important}
 html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:0 auto minmax(16px,1fr) 0 0 68px 12px 74px 0}
-@media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:minmax(0,1fr) auto 34px 0 0 56px 8px 58px minmax(0,1fr)}} /* (2026-10-15) 34 px : les tuiles ne mordent plus le trait néon du logo */
+@media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:minmax(0,1fr) auto 44px 0 0 56px 8px 58px minmax(0,1fr)}} /* (2026-10-15) 34 px : les tuiles ne mordent plus le trait néon du logo ; (2026-11-05) 44 px : la pastille NOUVEAU (dépasse de 9 px) ne le touche plus non plus */
+/* (2026-11-05, Sacha : « la disposition des boutons : NOUVEAU est trop proche de la barre de flow ») le trait néon descend à 20 px sous le logo ; la pastille,
+   large de ~77 px sur une tuile de 100, débordait de 9 px à droite (à 1 px de RÉGLAGES) et montait à 4 px du trait. Elle se CENTRE sur sa tuile, à cheval sur le bord haut. */
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mOffres.mAccB .mBadge{top:-9px!important;left:0!important;right:0!important;width:max-content;margin:0 auto!important} /* centrée sans transform : `.mOffres *{transform:none!important}` (boutons-flottants.css) l'annule */
 /* (2026-10-16, Sacha : « dans l'écran d'accueil GARAGE, OFFRE et RÉGLAGES doivent être de couleur rose, bleu et jaune — comme les bandes sous le logo CAR CASH »)
    LES TROIS TUILES AUX COULEURS DE LA LIVRÉE : dans l'ordre des trois bandes du trait néon sous le logo (rose · cyan · or, `--livree`), de gauche à droite.
    Tout passe par `--nc` (liseré, lueur intérieure, pictogramme) : le dessin des plaques ne bouge pas, le libellé reste blanc. */
