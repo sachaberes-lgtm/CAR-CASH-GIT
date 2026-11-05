@@ -1,0 +1,290 @@
+charge au départ: 13:49  up  2:45, 1 user, load averages: 7.37 5.74 13.67
+{
+ "secs": 8.13,
+ "hudcache": "0",
+ "couche": false,
+ "palier": "0",
+ "selfMs": {
+  "hudColonne": 0.6,
+  "hudColMesure": 13.6,
+  "volgTick": 0.0,
+  "volgMesure": 0.0,
+  "zRect": 0.1,
+  "zK": 0.0,
+  "mepRappel": 6.4,
+  "apresMiseEnPage": 4.7
+ },
+ "selfMsParSec": 3.12,
+ "layout_s": 19.44,
+ "recalcstyle_s": 35.43,
+ "layoutDur_msParSec": 21.35,
+ "recalcDur_msParSec": 202.68,
+ "top": [
+  [
+   5132.5,
+   "(program)"
+  ],
+  [
+   529.7,
+   "(idle)"
+  ],
+  [
+   263.2,
+   "loop"
+  ],
+  [
+   147.6,
+   "(anon)"
+  ],
+  [
+   142.5,
+   "At"
+  ],
+  [
+   126.9,
+   "update"
+  ],
+  [
+   123.6,
+   "renderBufferDirect"
+  ],
+  [
+   123.1,
+   "render"
+  ],
+  [
+   116.4,
+   "It"
+  ],
+  [
+   96.5,
+   "bindVertexArray"
+  ],
+  [
+   95.0,
+   "setup"
+  ],
+  [
+   87.3,
+   "scene.updateMatrixWorld"
+  ]
+ ]
+}
+fin 0 13:51  up  2:47, 1 user, load averages: 5.95 5.85 12.67
+{
+ "secs": 8.1,
+ "hudcache": "1",
+ "couche": false,
+ "palier": "0",
+ "selfMs": {
+  "hudColonne": 2.6,
+  "hudColMesure": 9.6,
+  "volgTick": 0.0,
+  "volgMesure": 0.0,
+  "zRect": 0.3,
+  "zK": 0.0,
+  "mepRappel": 3.8,
+  "apresMiseEnPage": 7.3
+ },
+ "selfMsParSec": 2.93,
+ "layout_s": 26.43,
+ "recalcstyle_s": 57.3,
+ "layoutDur_msParSec": 17.92,
+ "recalcDur_msParSec": 190.04,
+ "top": [
+  [
+   4806.0,
+   "(program)"
+  ],
+  [
+   1458.9,
+   "(idle)"
+  ],
+  [
+   257.0,
+   "loop"
+  ],
+  [
+   109.4,
+   "renderBufferDirect"
+  ],
+  [
+   105.1,
+   "At"
+  ],
+  [
+   104.1,
+   "It"
+  ],
+  [
+   101.6,
+   "scene.updateMatrixWorld"
+  ],
+  [
+   99.4,
+   "update"
+  ],
+  [
+   90.3,
+   "setup"
+  ],
+  [
+   73.3,
+   "render"
+  ],
+  [
+   71.6,
+   "(anon)"
+  ],
+  [
+   62.6,
+   "pres"
+  ]
+ ]
+}
+fin 1 13:53  up  2:49, 1 user, load averages: 4.60 5.53 11.69
+{
+ "secs": 8.17,
+ "hudcache": "0",
+ "couche": true,
+ "palier": "0",
+ "selfMs": {
+  "hudColonne": 3.1,
+  "hudColMesure": 13.4,
+  "volgTick": 0.0,
+  "volgMesure": 0.0,
+  "zRect": 0.0,
+  "zK": 0.0,
+  "mepRappel": 10.2,
+  "apresMiseEnPage": 3.9
+ },
+ "selfMsParSec": 3.74,
+ "layout_s": 19.34,
+ "recalcstyle_s": 36.97,
+ "layoutDur_msParSec": 22.01,
+ "recalcDur_msParSec": 178.16,
+ "top": [
+  [
+   4725.7,
+   "(program)"
+  ],
+  [
+   668.1,
+   "(idle)"
+  ],
+  [
+   311.4,
+   "loop"
+  ],
+  [
+   148.9,
+   "renderBufferDirect"
+  ],
+  [
+   144.1,
+   "It"
+  ],
+  [
+   121.2,
+   "At"
+  ],
+  [
+   105.1,
+   "render"
+  ],
+  [
+   102.5,
+   "Oi"
+  ],
+  [
+   101.1,
+   "setup"
+  ],
+  [
+   95.1,
+   "(anon)"
+  ],
+  [
+   81.7,
+   "scene.updateMatrixWorld"
+  ],
+  [
+   81.6,
+   "update"
+  ]
+ ]
+}
+fin 0 --couche 13:55  up  2:51, 1 user, load averages: 6.28 5.92 11.04
+{
+ "secs": 8.16,
+ "hudcache": "1",
+ "couche": true,
+ "palier": "0",
+ "selfMs": {
+  "hudColonne": 0.2,
+  "hudColMesure": 14.4,
+  "volgTick": 0.0,
+  "volgMesure": 0.1,
+  "zRect": 1.3,
+  "zK": 0.0,
+  "mepRappel": 5.6,
+  "apresMiseEnPage": 1.1
+ },
+ "selfMsParSec": 2.77,
+ "layout_s": 19.11,
+ "recalcstyle_s": 29.89,
+ "layoutDur_msParSec": 22.02,
+ "recalcDur_msParSec": 172.37,
+ "top": [
+  [
+   4739.1,
+   "(program)"
+  ],
+  [
+   343.9,
+   "loop"
+  ],
+  [
+   219.1,
+   "(anon)"
+  ],
+  [
+   164.7,
+   "(idle)"
+  ],
+  [
+   136.7,
+   "renderBufferDirect"
+  ],
+  [
+   135.9,
+   "It"
+  ],
+  [
+   120.2,
+   "At"
+  ],
+  [
+   113.7,
+   "prebJob"
+  ],
+  [
+   108.7,
+   "update"
+  ],
+  [
+   104.3,
+   "pisteRoute"
+  ],
+  [
+   96.4,
+   "musicTick"
+  ],
+  [
+   92.3,
+   "setup"
+  ]
+ ]
+}
+fin 1 --couche 13:57  up  2:53, 1 user, load averages: 6.49 6.44 10.60
+FINI

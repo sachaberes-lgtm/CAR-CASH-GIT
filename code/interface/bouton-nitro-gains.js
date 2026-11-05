@@ -227,7 +227,7 @@ function volgArrive(f,i,muet){
   else{VOLG.n[f.k]=Math.max(0,VOLG.n[f.k]-f.q);if(!muet){nbPrend(f.k);volgBat(document.getElementById(f.k==='x'?'nitroX':'nitroR'),a);volgImpact(f.c[0],f.c[1],f.k==='x'?'#8fa4ff':'#ffb81f');}}
 }
 function volgVide(){for(let i=VOLG.L.length-1;i>=0;i--)volgArrive(VOLG.L[i],i,true);VOLG.n.r=VOLG.n.x=0;}
-function volgMesure(){if(AJ.seg){hudRInscrit(AJ.seg);VOLG.rS=zRect(AJ.seg);}const nb=document.getElementById('nitroBar');if(nb){hudRInscrit(nb);VOLG.rN=zRect(nb);}} /* (2026-11-05, passe perf mobile 2, C1) inscrits : zRect lit le cache (HUD_R) */
+function volgMesure(){if(AJ.seg)VOLG.rS=zRect(AJ.seg);const nb=document.getElementById('nitroBar');if(nb)VOLG.rN=zRect(nb);}
 function volgTick(dt){
   if((VOLG.rT-=dt)<=0){VOLG.rT=.5;apresMiseEnPage(volgMesure);} // (2026-10-17, HUD-MESURE) relus en fin d'image, quand ça ne force plus rien (voir apresMiseEnPage)
   if(!VOLG.L.length)return;

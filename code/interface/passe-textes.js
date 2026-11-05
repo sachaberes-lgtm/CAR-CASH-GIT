@@ -178,27 +178,6 @@ function cashEcrit(force){
    (zRect.leg : l'ancien WebKit rend les boîtes divisées par le zoom). Couché, l'emblème DARK TRIAD garde sa place en haut au milieu (la
    colonne n'a pas la hauteur). Dix fois par seconde. */
 const HUDCOL={t:0,els:null,p:[]};
-/* (2026-11-05, passe perf mobile 2, C1) LES RECTANGLES DU HUD EN CACHE. Même après `apresMiseEnPage`, la mesure du HUD (hudColMesure à 10 Hz,
-   volgMesure à 2 Hz) relisait getComputedStyle + getBoundingClientRect de la colonne à chaque tour alors que presque rien n'a bougé entre deux
-   tours. HUD_R garde le dernier rectangle de chaque élément INSCRIT (hudRInscrit) et un « âge » global : tout ce qui peut déplacer ou
-   redimensionner un bloc le périme — un ResizeObserver sur les éléments, un MutationObserver (class/style des éléments et du <body>),
-   `resize`/`orientationchange`, et toute transition ou animation CSS qui démarre ou s'arrête (écouteurs en capture sur le document, la
-   fenêtre reste « chaude » 0,7 s après). Un rectangle ne vit jamais plus d'1 s. Périmé ⇒ on relit, exactement comme avant. Interrupteur : ?hudcache=0. */
-const HUD_R={on:!/[?&]hudcache=0\b/.test(location.search),m:new Map(),ep:0,chaud:0,ro:null,mo:null,pret:false,lectures:0,sautees:0};
-function hudRPerime(){HUD_R.ep++;HUD_R.chaud=performance.now()+700;}
-function hudRVide(){if(!HUD_R.mo)return;const r=HUD_R.mo.takeRecords();if(r.length)hudRPerime();} // les mutations en attente comptent AVANT de décider
-function hudRFrais(){hudRVide();return HUD_R.on&&HUD_R.pret&&performance.now()>HUD_R.chaud;}
-function hudRInscrit(el){ // inscrit un élément du HUD (une fois) : ses changements périment le cache
-  if(!HUD_R.on||!el||HUD_R.m.has(el))return;
-  try{if(!HUD_R.pret){
-      if(!window.ResizeObserver||!window.MutationObserver||!document.body)return;
-      HUD_R.ro=new ResizeObserver(hudRPerime);HUD_R.mo=new MutationObserver(hudRPerime);
-      HUD_R.mo.observe(document.body,{attributes:true,attributeFilter:['class','style']});
-      window.addEventListener('resize',hudRPerime);window.addEventListener('orientationchange',hudRPerime);
-      for(const ev of ['transitionrun','transitionend','transitioncancel','animationstart','animationend','animationcancel'])document.addEventListener(ev,hudRPerime,true);
-      HUD_R.pret=true;}
-    HUD_R.m.set(el,null);HUD_R.ro.observe(el);HUD_R.mo.observe(el,{attributes:true,attributeFilter:['class','style']});hudRPerime();}catch(x){HUD_R.on=false;}
-}
 /* (2026-10-14, passe mobile) LIRE D'ABORD, ÉCRIRE ENSUITE — et en TÊTE d'image. MESURÉ (profil, téléphone émulé, processeur ×4) : c'était
    la fonction la plus lourde du jeu (8 % du processeur en course). Appelée APRÈS que le HUD de l'image avait écrit ses styles, chaque
    lecture (getComputedStyle, getBoundingClientRect) forçait un recalcul complet des styles — et chaque `top` écrit dans la boucle salissait
@@ -214,9 +193,6 @@ function hudColonne(dt){
 function hudColMesure(){ // la mesure d'avant, à l'identique
   if(!(TCTL.on&&running&&!paused&&!gameOver))return; // (le rappel tombe en fin d'image : la partie a pu s'arrêter entre-temps)
   if(!HUDCOL.els)HUDCOL.els=['cashHud','triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
-  if(HUD_R.on){for(const e of HUDCOL.els)hudRInscrit(e);hudRInscrit(document.getElementById('tGear'));hudRInscrit(document.getElementById('coach'));
-    if(hudRFrais()&&HUDCOL.ep===HUD_R.ep&&performance.now()-HUDCOL.tl<1000&&HUDCOL.vp===VP.w+'x'+VP.h){HUD_R.sautees++;return;} // rien n'a bougé depuis la dernière mesure : les `top` posés sont encore bons
-    HUDCOL.ep=HUD_R.ep;HUDCOL.tl=performance.now();HUDCOL.vp=VP.w+'x'+VP.h;HUD_R.lectures++;}
   const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
   let y=g?zRect(g).bottom+10:66;P.length=0;
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
@@ -226,8 +202,6 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
     P.push(e,+(y/z).toFixed(1)+'px');y+=h+8;} // (2026-10-17) « 113px » et non « 113.0px » : le navigateur relit la forme courte, la comparaison d'en dessous réécrivait sinon le même `top` à chaque passage
   for(let i=0;i<P.length;i+=2){const e=P[i],t=P[i+1];if(e.style.getPropertyValue('top')!==t||e.style.getPropertyPriority('top')!=='important')e.style.setProperty('top',t,'important');}
   P.length=0;
-  if(HUD_R.on&&HUD_R.mo){const rr=HUD_R.mo.takeRecords(),ids=HUDCOL.els;let ext=false;for(const q of rr)if(!(q.attributeName==='style'&&ids.indexOf(q.target)>=0)){ext=true;break;} // nos propres `top` (style des cinq blocs) ne périment pas le cache
-    if(ext)hudRPerime();else HUDCOL.ep=HUD_R.ep;}
 }
 /* LIRE APRÈS LA MISE EN PAGE (2026-10-17, HUD-MESURE — Sacha : « alléger le jeu pour l'App Store, surtout des coupes pour la fluidité »).
    MESURÉ (téléphone émulé 390×844, processeur bridé ×4, 12 s de course, édition App Store) : getBoundingClientRect ≈ 600-720 ms de temps

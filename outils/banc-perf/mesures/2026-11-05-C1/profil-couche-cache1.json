@@ -1,0 +1,71 @@
+{
+ "secs": 8.16,
+ "hudcache": "1",
+ "couche": true,
+ "palier": "0",
+ "selfMs": {
+  "hudColonne": 0.2,
+  "hudColMesure": 14.4,
+  "volgTick": 0.0,
+  "volgMesure": 0.1,
+  "zRect": 1.3,
+  "zK": 0.0,
+  "mepRappel": 5.6,
+  "apresMiseEnPage": 1.1
+ },
+ "selfMsParSec": 2.77,
+ "layout_s": 19.11,
+ "recalcstyle_s": 29.89,
+ "layoutDur_msParSec": 22.02,
+ "recalcDur_msParSec": 172.37,
+ "top": [
+  [
+   4739.1,
+   "(program)"
+  ],
+  [
+   343.9,
+   "loop"
+  ],
+  [
+   219.1,
+   "(anon)"
+  ],
+  [
+   164.7,
+   "(idle)"
+  ],
+  [
+   136.7,
+   "renderBufferDirect"
+  ],
+  [
+   135.9,
+   "It"
+  ],
+  [
+   120.2,
+   "At"
+  ],
+  [
+   113.7,
+   "prebJob"
+  ],
+  [
+   108.7,
+   "update"
+  ],
+  [
+   104.3,
+   "pisteRoute"
+  ],
+  [
+   96.4,
+   "musicTick"
+  ],
+  [
+   92.3,
+   "setup"
+  ]
+ ]
+}

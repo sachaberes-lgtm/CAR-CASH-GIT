@@ -1,0 +1,71 @@
+{
+ "secs": 8.1,
+ "hudcache": "1",
+ "couche": false,
+ "palier": "0",
+ "selfMs": {
+  "hudColonne": 2.6,
+  "hudColMesure": 9.6,
+  "volgTick": 0.0,
+  "volgMesure": 0.0,
+  "zRect": 0.3,
+  "zK": 0.0,
+  "mepRappel": 3.8,
+  "apresMiseEnPage": 7.3
+ },
+ "selfMsParSec": 2.93,
+ "layout_s": 26.43,
+ "recalcstyle_s": 57.3,
+ "layoutDur_msParSec": 17.92,
+ "recalcDur_msParSec": 190.04,
+ "top": [
+  [
+   4806.0,
+   "(program)"
+  ],
+  [
+   1458.9,
+   "(idle)"
+  ],
+  [
+   257.0,
+   "loop"
+  ],
+  [
+   109.4,
+   "renderBufferDirect"
+  ],
+  [
+   105.1,
+   "At"
+  ],
+  [
+   104.1,
+   "It"
+  ],
+  [
+   101.6,
+   "scene.updateMatrixWorld"
+  ],
+  [
+   99.4,
+   "update"
+  ],
+  [
+   90.3,
+   "setup"
+  ],
+  [
+   73.3,
+   "render"
+  ],
+  [
+   71.6,
+   "(anon)"
+  ],
+  [
+   62.6,
+   "pres"
+  ]
+ ]
+}
