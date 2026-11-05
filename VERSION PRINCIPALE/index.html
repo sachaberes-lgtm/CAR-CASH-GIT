@@ -80335,15 +80335,22 @@ function goImmersive(){
     let A=null;if(!SANS_SON&&SND.sfx&&VOL.sfx>0){try{A=new (window.AudioContext||window.webkitAudioContext)();}catch(e){A=null;}}
     if(!A){lancer(false);return;}
     preAC=A;let fait=false;const go=function(){if(fait)return;fait=true;if(lance){if(A!==iAC)try{A.close();}catch(e){}return;}lancer(false);}; /* (24/10, relecture : « le son de l'intro coupé net ») un toucher pendant l'attente de A.resume() (≤ 0,3 s) lance le film SUR A (son() prend preAC) : A n'est fermé que s'il n'a pas servi — avant, le film tapé tôt passait muet */
-    try{A.resume().then(go,go);}catch(e){go();}
-    setTimeout(go,300);
+    try{if(!DEPART_LENT&&(A.state==='running'||(navigator.userActivation&&!navigator.userActivation.hasBeenActive))){go();return;}A.resume().then(go,go);}catch(e){go();} /* (2026-11-05) le navigateur le laisse sonner d'emblée, ou personne n'a encore touché la page (resume() ne répondrait jamais) : on part tout de suite, muet dans ce second cas (son() le voit), le toucher libérera le son */
+    setTimeout(go,DEPART_LENT?300:120); /* sans geste, resume() ne répond jamais : 300 ms de noir pour rien, 120 suffisent à un navigateur qui l'accepte */
   }
-  function essaiAuto(n){ /* attendre que la page soit chargée, la police prête et la fenêtre visible */
+  /* ===== LE DÉPART SANS ATTENDRE `load` (2026-11-05, Sacha : « l'animation du début a des latences sur la version Vercel, rends les titres de début plus rapides ») =====
+     Sur le site, `readyState==='complete'` n'arrive qu'APRÈS que tout ce que le jeu va chercher en arrivant a fini de descendre (ciel-*.jpg, mer-cumulus.png 850 Ko, 4 polices pixel, la boucle audio) :
+     de 2 à 3 s de noir en plus de la construction du script, mesurées sur le site (DOM prêt à 46,4 s, `load` à 48,8 s). Le film n'a besoin que de SA police (Press Start 2P, préchargée dans la page)
+     et du DOM : il part dès qu'elles sont là. L'attente se sonde toutes les 60 ms (au lieu de 250) et le premier essai tombe à 40 ms (au lieu de 500). `?depart=lent` = l'ancien départ (attend `load`). */
+  const DEPART_LENT=/[?&]depart=lent\b/.test(location.search);
+  const policeFilm=function(){try{return !document.fonts||document.fonts.check('44px "Press Start 2P"');}catch(e){return true;}}; /* SA police seule : les autres polices du jeu n'ont rien à faire dans le film */
+  function essaiAuto(n){ /* attendre que le DOM soit prêt, la police du film chargée et la fenêtre visible */
     if(lance||fini)return;
-    if(document.hidden||document.readyState!=='complete'||(n<24&&document.fonts&&document.fonts.status==='loading')||(n<14&&litEnCours&&!LIT)){setTimeout(function(){essaiAuto(n+1);},250);return;}
+    const dom=DEPART_LENT?document.readyState==='complete':document.readyState!=='loading';
+    if(document.hidden||!dom||(n<100&&!(DEPART_LENT?!(document.fonts&&document.fonts.status==='loading'):policeFilm()))||(n<58&&litEnCours&&!LIT)){setTimeout(function(){essaiAuto(n+1);},DEPART_LENT?250:60);return;}
     autoLance();
   }
-  if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher\b/.test(location.search))setTimeout(function(){essaiAuto(0);},BOULE?500:1700); /* (?depart=toucher : l'ancien départ au toucher) */
+  if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher\b/.test(location.search))setTimeout(function(){essaiAuto(0);},BOULE?(DEPART_LENT?500:40):1700); /* (?depart=toucher : l'ancien départ au toucher) */
   if(BALADE||SIMU_JEU)setTimeout(finRapide,80); /* (atelier des nuages, simulateur) droit au jeu, sans l'intro */
   raf=requestAnimationFrame(boucle);
   let vuRev=false;
