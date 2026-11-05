@@ -11,22 +11,23 @@ le seul truc animé, c'est sa tête qui tourne autour de son corps ». Dessin et
   et disparaissent (croquées) ; derrière elle le corps reprend son épaisseur et les écailles reviennent.
 - LES BOULES DE MATIÈRE : des disques gris qui passent dans le corps, du cou jusqu'à la gueule ; elle les guette grande ouverte, CLAC (la mâchoire se referme,
   la tête plonge d'un pixel, des miettes jaillissent). Une boule avalée toutes les 0,6 s, deux visibles à la fois.
-- Malicieux : œil rond mi-clos à paupière en pente et reflet, sourire en coin, joue rose, un sourcil qui se lève et un clignement par tour, et des DENTS : deux gros crocs en haut, une dent en bas (dessinés à la main pour chaque état de la gueule, `GUEULE`).
-  Trois étincelles scintillent autour. 3 tons seulement (noir, blanc, gris). Aucun JS, aucune image externe : un bloc CSS de 9 Ko.
+- La tête (05/11, ~12 × 10 px, grise foncée à contour clair) : œil blanc à pupille qui regarde vers l'avant, narine, dents claires plantées dans le corps, écailles de joue, mâchoire du haut qui pivote
+  (grande ouverte → CLAC) ; le corps blanc entre épais entre les mâchoires et se perd dans la gorge. Trois étincelles scintillent autour. 4 tons (noir, blanc, gris clair, gris foncé).
+  Aucun JS, aucune image externe : un bloc CSS de 7 Ko.
 
 ## Pourquoi cette forme (les essais refusés)
 1. Tête fixe, matière qui file sur le corps : « on ne le voit pas tourner ». 2. Tout le serpent qui tourne comme une roue, écailles comprises : « son corps ne doit pas tourner ».
-3. Retenu : le corps fixe, la tête qui orbite. Une tête dessinée à 8 orientations (45°) était illisible ; la tête est donc UNE silhouette dessinée à la main, tournée par
-échantillonnage (4 × 4 sous-pixels par pixel), avec un visage fait de FORMES épaisses (≥ 1,3 px, `face()`) : les traits d'un pixel ne survivent pas à la rotation.
+3. Retenu : le corps fixe, la tête qui orbite. Une tête dessinée à 8 orientations (45°) était illisible ; la tête est donc calculée à chaque image : silhouette par couverture (4 × 4 sous-pixels), contour clair d'1 px après la rotation, et les détails
+(œil, dents, narine, écailles) en TAMPONS d'1 px net : un trait fin ne survit pas à la rotation, un pixel posé si.
 
 ## Les fichiers
-- `ouroboros.cjs` — LE GÉNÉRATEUR. `node outils/ouroboros/ouroboros.cjs` régénère tout le reste. La silhouette de la tête est dessinée à la main (`BASE`, `sprite()`),
-  le visage (`face()`), le corps, la queue, les écailles, les boules et les étincelles sont calculés. Pour retoucher le dessin : modifier ce fichier, jamais le PNG.
-- `ouroboros-64px-48img.png` — la bande : 48 images de 64 × 64 px côte à côte (3072 × 64, PNG à 2 bits par pixel, 6 Ko).
+- `ouroboros.cjs` — LE GÉNÉRATEUR. `node outils/ouroboros/ouroboros.cjs` régénère tout le reste. La tête (`SK`, `UPJ`, `LOWJ`, `STAMPS`, `EYE`, dans le repère courbe de l'anneau),
+  le corps, les écailles, les boules et les étincelles sont calculés. Pour retoucher le dessin : modifier ce fichier, jamais le PNG.
+- `ouroboros-64px-48img.png` — la bande : 48 images de 64 × 64 px côte à côte (3072 × 64, PNG à 2 bits par pixel, 5 Ko).
 - `ouroboros.css` — le bloc CSS pur (`#spCharge`, la bande en data-URL, `steps(48)` sur un `transform` : le compositeur le joue même quand le script
   du jeu est occupé à construire la scène, comme l'ancien anneau de Léo). Affiché ×2 (128 px) : pixels nets sur iPhone (×3 d'écran = 6 px par pixel).
 - `demo.html` — la démo seule sur fond noir (`?zoom=3` pour voir les pixels ; à servir depuis la racine du dépôt pour retrouver la police).
-- `planche-16-images.png`, `tete-6-angles.png` — des aperçus pour l'œil humain. `png.cjs` — l'encodeur PNG (aucune dépendance).
+- `planche-16-images.png`, `tete-6-angles.png`, `tete-dessin.png` (la silhouette à plat) — des aperçus pour l'œil humain. `png.cjs` — l'encodeur PNG (aucune dépendance).
 
 ## Où c'est branché dans le jeu
 `code/page/ecrans-garage.html`, dans `<div id="splash">` : le `<style>` qui suit le commentaire « LE CHARGEMENT » = le contenu de `ouroboros.css`.

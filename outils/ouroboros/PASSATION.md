@@ -12,8 +12,16 @@
 
 ## En cours (dernier retour de Sacha)
 « La tête est moche, trop grosse, pas assez détaillée, trop blanche ; inspiration ouroboros. »
-Dernière version : tête dessinée à la main 18 × 18 (`BASE` dans `ouroboros.cjs`), gueule en 4 états (`GUEULE`), crâne et mâchoire gris.
-Défaut connu : la tête est tournée au pixel autour de l'anneau, les détails se brouillent quand elle est de côté ou à l'envers.
+Version précédente (18 × 18 blanche, `BASE` + `GUEULE`) : remplacée le 05/11 après-midi, non committée au moment de cette note.
+**Version actuelle** (06/11, à faire juger par Sacha) : style « cartoon Undertale » demandé par Sacha — pixels nets, 6 gris tranchés, gros œil à pupille en fente, contour clair d'1 px autour de la tête ET du corps (demandé par Sacha le 06/11).
+Tête reptile de petit dragon sobre (~15 × 12 px avec les pics ; échelle `HS`) : écailles en losanges, 4 pics dorsaux, pointe de joue, arcade, dents, narine ; PEINTE à 8 cellules/px dans le repère courbe de l'anneau puis votée au pixel.
+Corps en relief (tube éclairé de l'extérieur), écailles en losanges, 14 pics couchés, 3 reflets qui le parcourent. Animation : mâchoire (2 bouchées / 12 images), coup de tête au CLAC, clignement, pics qui oscillent, boules de matière.
+Passe « améliore l'ensemble » (06/11) : dents plus grosses, sourcil expressif, écrasement-étirement au CLAC (`SQUASH`), pupille qui suit la boule, fumée de narine.
+**Tête et corps RACCORD, la tête un cran plus foncée** (Sacha, 06/11 : « tête plus foncée que le corps » puis « pas de la même couleur, pas raccord ») : un seul modèle de lumière (`tube(q)`, tube éclairé par l'extérieur) pour les deux ; la tête le reprend à `HK` = 0,58 (remplissage ~100/255 contre ~126 pour le corps, rapport 0,79 — mesuré) ;
+le corps s'assombrit en approchant du crâne (le cou, ~10 px de dégradé) pour qu'il n'y ait pas de rupture. Ne pas repasser à une tête 2 fois plus sombre (rapport 0,57, essayé : rupture) ni la ramener au même gris (rapport 0,96).
+Réglages : `HS` (taille de la tête), `SPIKES`, `JAW`, `LUNGE`, `LV` (les gris). Détail dans l'en-tête de `ouroboros.cjs`.
+Essais écartés : rendu en gris lissé (anneau fin et flou, détails perdus à 1×), tête de 12 px (trop petite pour qu'on lise l'œil), épines fines en barre (on dirait une antenne), 3-4 tons plats (bouillie).
+Lien de test : serveur statique à lancer soi-même depuis la racine du worktree (`python3 -m http.server <port>`), puis `/outils/ouroboros/demo.html?v=<n>&zoom=3`.
 
 ## Fichiers
 - `ouroboros.cjs` — le générateur (`node outils/ouroboros/ouroboros.cjs`) : écrit la bande PNG, `ouroboros.css`, `demo.html`, les planches. Retoucher ici, jamais le PNG.
