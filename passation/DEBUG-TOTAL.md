@@ -95,7 +95,7 @@ En cas de souci : `dbgAudio()` (état du contexte, refus de réveil), `dbgSonPan
   alignées ; achats et récompenses gardés contre le double débit. Pièges du code (AST de toute l'IIFE) : 0 `let/const` en double, 1 `function` en double
   (dnGeos2), 6 appels « au chargement » qui touchent des `const` déclarés plus loin, tous protégés aujourd'hui — voir « Reste ».
 - Cadre de l'ordinateur couché ET debout (`cadre.mjs`) : VERT. Fusions de main v1161, v1177 (sons à la demande → S7), v1186 (Arrakis).
-- 21 h 10 — fumée finale après la dernière fusion (v1187) : couché `--frenesie --chance` VERT, debout VERT, cadre couché VERT (charge machine 283).
+- 21 h 10 — fumée après la fusion v1187 : couché `--frenesie --chance` VERT, debout VERT, cadre couché VERT (charge machine 283).
 
 ## Reste, non corrigé (mineur ou décision), par zone
 - **Sauvegarde** : l'import n'est pas signé (banque 1e30, `ex.floor`, `owned` libres ; remboursement des caisses retirées rejouable par import) —
@@ -110,5 +110,10 @@ En cas de souci : `dbgAudio()` (état du contexte, refus de réveil), `dbgSonPan
 - **Faux « la boucle plante à chaque image »** possible si deux erreurs d'écouteurs tombent autour de la 8e seconde (`debut-corps.html`, `__loopErr`
   alimenté par toute erreur globale) — rare.
 - **natif.js** : `StatusBar.hide()` / `SplashScreen.hide()` sans `.catch` (un rejet avant `__gameReady` poserait l'écran « a calé ») — faible.
+- **Musique, à surveiller** : au JOUER, le morceau du lobby doit SE TRANSFORMER en musique de course (le même). Vu au banc 11 fois sur 12 ; une fois
+  (machine à charge 260) un autre morceau est parti (PLUIE D'ARGENT au lobby → MIRAGE en course). Hypothèse non vérifiée : le lobby n'était pas en
+  phase `lobby` à l'instant du JOUER (chargement d'un morceau refait, `PB.pre`/`PB.attente`), et `PB.depart` en tire un neuf. Piste : la trace du
+  lecteur (`outils/banc-son/trace-pouce.js`) posée avant JOUER.
 - **Code** : `function dnGeos2` déclarée deux fois (`maps/dunes-2.js:358` et `maps/dunes-embellie.js:9` : la 2e gagne, le corps de la 1re est mort)
   — zone de la session Arrakis, non touché.
+- 21 h 40 — fusion v1187 (route des dunes) → v1188 ; fumée couchée VERTE ; poussé sur main.
