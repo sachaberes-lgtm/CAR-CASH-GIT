@@ -142,7 +142,7 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
       ici(nm+'2');droite(Lb,-pa,Math.max(2,Math.round(Lb/70)));                          // la SORTIE : droite sous l'approche…
       {const R3=(400+r()*100)*RS;arc(-sg*150*LL/R3*57.2958,R3,-pa);}ici(nm+'3');          // …puis elle tourne déjà sous le 1er demi-tour (150 m sur R 400-500 : 28 m d'écart au bout, la pose reste sur la dalle)
       arc(-sg*(18+r()*14),(380+r()*120)*RS,-pa);                                          // …et elle finit son GRAND virage (R 380-500 m : la pose de ceux qui volent loin reste douce)
-      BO.push([k0,C.length-1]);};
+      BO.push([k0,C.length-1]);MM.push({i0:k0,i1:C.length-1,fig:'raccourci'});}; /* (2026-11-05, LE DIRECTEUR DE RYTHME) le raccourci est un temps fort DÉCLARÉ : ses deux demi-tours ne sont pas une spirale, sa sortie (la zone de pose) n'est pas une droite de trop */
     let sg0=r()<.5?1:-1;const sens=()=>(sg0=-sg0);                            // les boucles alternent de côté : la piste ne dérive pas
     /* (LA DURÉE DES MAPS) au JOUER (LC9 > 0) : la Route 66 (moitié), la brèche, le raccourci A, les étroits, l'arche, l'amphithéâtre et la finale
        restent ; les raccourcis B à H, les bosses, la mine et le dos de chameau n'entrent que si la longueur visée les tient (`tient`) */

@@ -162,7 +162,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   rPlancher=MC?1.6*rP:1.45*rP*Z;rPlafond=3.3*rP*Z; /* (2026-11-05, LE DIRECTEUR DE RYTHME) partout : jamais sous 1,45-1,6 × le rayon tenable — serré, jamais infranchissable */ // (2e tour) voir arc()
   const tSlalom=()=>{const n=5+((rf()*3)|0),R=(1.9+rf()*.5)*rP;let sg=rf()<thrH(.5)?1:-1;straight(70*LV*Z,-4*LV*Z,1);
     for(let k=0;k<n;k++){const a=38+rf()*14;arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);sg=-sg;}straight(70*LV*Z,-4*LV*Z,1);};
-  const tEpingle=()=>{const sg=rf()<thrH(.5+hand*.22,175)?1:-1,R=(1.7+rf()*.3)*rP,a=165+rf()*20;straight(150*LV*Z,-6*LV*Z,2);
+  const tEpingle=()=>{const sg=rf()<thrH(.5+hand*.22,175)?1:-1,R=(1.45+rf()*.4)*rP,a=165+rf()*20; /* (2026-11-05) 1,45-1,85 rP : une fois sur deux SERRÉE (volant à fond, la dalle couchée par le dévers) */straight(150*LV*Z,-6*LV*Z,2);
     arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);straight(130*LV*Z,-6*LV*Z,2);};
   const tCorde=()=>{const sg=rf()<thrH(.5+hand*.22,185)?1:-1,R=(2+rf()*.5)*rP;straight(100*LV*Z,-5*LV*Z,1);
     for(let k=0;k<2;k++){const a=80+rf()*25;arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);if(!k)straight((60+rf()*40)*LV*Z,-3*LV*Z,1);}straight(100*LV*Z,-5*LV*Z,1);};

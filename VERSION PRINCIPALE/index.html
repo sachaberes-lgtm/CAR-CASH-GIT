@@ -15151,7 +15151,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   rPlancher=MC?1.6*rP:1.45*rP*Z;rPlafond=3.3*rP*Z; /* (2026-11-05, LE DIRECTEUR DE RYTHME) partout : jamais sous 1,45-1,6 × le rayon tenable — serré, jamais infranchissable */ // (2e tour) voir arc()
   const tSlalom=()=>{const n=5+((rf()*3)|0),R=(1.9+rf()*.5)*rP;let sg=rf()<thrH(.5)?1:-1;straight(70*LV*Z,-4*LV*Z,1);
     for(let k=0;k<n;k++){const a=38+rf()*14;arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);sg=-sg;}straight(70*LV*Z,-4*LV*Z,1);};
-  const tEpingle=()=>{const sg=rf()<thrH(.5+hand*.22,175)?1:-1,R=(1.7+rf()*.3)*rP,a=165+rf()*20;straight(150*LV*Z,-6*LV*Z,2);
+  const tEpingle=()=>{const sg=rf()<thrH(.5+hand*.22,175)?1:-1,R=(1.45+rf()*.4)*rP,a=165+rf()*20; /* (2026-11-05) 1,45-1,85 rP : une fois sur deux SERRÉE (volant à fond, la dalle couchée par le dévers) */straight(150*LV*Z,-6*LV*Z,2);
     arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);straight(130*LV*Z,-6*LV*Z,2);};
   const tCorde=()=>{const sg=rf()<thrH(.5+hand*.22,185)?1:-1,R=(2+rf()*.5)*rP;straight(100*LV*Z,-5*LV*Z,1);
     for(let k=0;k<2;k++){const a=80+rf()*25;arc(sg*a,R*Z,Math.ceil(a/10),-a/57.3*R*Z*.03);if(!k)straight((60+rf()*40)*LV*Z,-3*LV*Z,1);}straight(100*LV*Z,-5*LV*Z,1);};
@@ -18839,7 +18839,7 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
       ici(nm+'2');droite(Lb,-pa,Math.max(2,Math.round(Lb/70)));                          // la SORTIE : droite sous l'approche…
       {const R3=(400+r()*100)*RS;arc(-sg*150*LL/R3*57.2958,R3,-pa);}ici(nm+'3');          // …puis elle tourne déjà sous le 1er demi-tour (150 m sur R 400-500 : 28 m d'écart au bout, la pose reste sur la dalle)
       arc(-sg*(18+r()*14),(380+r()*120)*RS,-pa);                                          // …et elle finit son GRAND virage (R 380-500 m : la pose de ceux qui volent loin reste douce)
-      BO.push([k0,C.length-1]);};
+      BO.push([k0,C.length-1]);MM.push({i0:k0,i1:C.length-1,fig:'raccourci'});}; /* (2026-11-05, LE DIRECTEUR DE RYTHME) le raccourci est un temps fort DÉCLARÉ : ses deux demi-tours ne sont pas une spirale, sa sortie (la zone de pose) n'est pas une droite de trop */
     let sg0=r()<.5?1:-1;const sens=()=>(sg0=-sg0);                            // les boucles alternent de côté : la piste ne dérive pas
     /* (LA DURÉE DES MAPS) au JOUER (LC9 > 0) : la Route 66 (moitié), la brèche, le raccourci A, les étroits, l'arche, l'amphithéâtre et la finale
        restent ; les raccourcis B à H, les bosses, la mine et le dos de chameau n'entrent que si la longueur visée les tient (`tient`) */
@@ -20284,11 +20284,11 @@ function dnTrace(r){ /* UN erg : la route continue (vagues, tremplins de crête)
     droite((8+r()*18)*LL*kb);
     if(!fe.S){const a=(pt?32:44)+r()*(pt?22:30),R=RMIN*(pt?1.3+r()*.8:1.5+r()*1.2),s9=vir(sgC,a,R);fe.sg=-s9;} /* (2026-11-05, LE DIRECTEUR DE RYTHME) l'arc de montée à 1,5-2,7 rP, sans ×kb (ARRAKIS le portait à 2,7-6,8 rP : une droite de 15 s avec la crête et l'épaule) */                                   // l'arc : la colline est AU-DEDANS (le côté σ = −signe du virage)
     else{const a=34+r()*22,R=RMIN*(1.6+r()*.7),s1=vir(sgC,a,R);droite((6+r()*8)*LL*DN_VASTE);ici('m'+n+'s');const s2=vir(-s1,a*(.8+r()*.4),RMIN*(1.6+r()*.8));fe.sg=-s1;fe.sg2=-s2;} /* (2026-11-05) le S de montée aussi : 1,6-2,4 rP */
-    ici('m'+n+'b');
+    ici('m'+n+'b');const iT9=C.length-1;
     droite(14*LL*DN_VASTE+fe.Lc/2);ici('c'+n);{const uA=uh;gn(uA-fe.Lc/2,fe.gm);gn(uA+fe.Lc/2,-fe.g1);}                         // l'apex, au milieu de sa courbe verticale
     /* L'ÉPAULE (2026-10-23, Léo : « comme le jeu du pingouin où il faut atterrir pour prendre la vitesse ») — MESURÉ : à la vitesse de la caisse (190 m/s) une descente à 17 % file sous la parabole du vol, la caisse ne se pose qu'en BAS (2 s, choc de 67) ;
        pour qu'elle atterrisse SUR la pente il faut une pente DOUCE (5-9 %) pendant ~200 m après l'apex : l'ÉPAULE, où l'on se pose — puis la DESCENTE RAIDE (20-29 %, qui zigzague) où la gravité rend la vitesse : décoller, se poser sur l'épaule, plonger. (2026-11-05, ARRAKIS) l'épaule et la descente portent aussi DN_VASTE : l'angle d'atterrissage ne change pas, seule la distance double. */
-    {const Ls=(o.fin?110:pt?95+r()*30:125+r()*55)*LL*kb;droite(Ls*.6);serp(Ls*.4);ici('e'+n);gn(uh,-fe.g1);gn(uh+80,-fe.gl);} /* (2026-11-05) l'épaule : on se pose sur ses 60 % droits, puis elle ondule déjà */
+    {const Ls=(o.fin?110:pt?95+r()*30:125+r()*55)*LL*kb;droite(Ls*.6);MM.push({i0:iT9,i1:C.length-1,fig:'tremplin'});serp(Ls*.4);ici('e'+n);gn(uh,-fe.g1);gn(uh+80,-fe.gl);} /* fig : la crête et l'épaule (décoller, se poser) sont un temps fort déclaré, pas une droite */ /* (2026-11-05) l'épaule : on se pose sur ses 60 % droits, puis elle ondule déjà */
     {const dl=(o.fin?330+r()*60+(o.xtra||0)*.5:pt?105+r()*40:125+r()*55)*LL*kb;if(o.fin){ond(dl*.5,.9);ond(dl*.5,.9);}else{droite(dl*.12);{const s9=vir(r()<.5?-1:1,28+r()*20,RMIN*(1.9+r()*.9));vir(-s9,22+r()*16,RMIN*(1.9+r()*.9));}serp(Math.max(dl*.35,50*LL*DN_VASTE));} /* (2026-11-05, LE DIRECTEUR DE RYTHME) la descente CARVE : 28-48° puis 22-38° à 1,9-2,8 rP (c'était 20-38° à 4,4-6,6 rP avec ARRAKIS : une droite) */}/* la descente zigzague toujours : un virage et son contre-virage */ /* LA DESCENTE ZIGZAGUE : un balayage entre deux dunes */
     ici('d'+n);{const uL=uh,gv=o.fin?-.015:fe.gv;gn(uL-50,-fe.gl);gn(uL+50,gv);gP=gv;}
     if(o.fin){ici('oasis0');creux('S');recentre();droite(170*LL+(o.xtra||0)*.5);ici('fin');droite(150,2);}
@@ -26439,8 +26439,8 @@ function genJade1(rnd){
      l'effondrement ne raccourcissent pas. */
   const FX9=MODC_ON?2000:3200,MD9=MODC_ON?Math.max(420,Math.min(1000,9*(typeof rayonPalier==='function'?rayonPalier():63))):0, /* (2026-11-05) les modules en rayons tenables sont plus courts (~9 rP) et les monuments aussi (FX9 2400 → 2000) : la vallée garde sa longueur visée */LC9=longueurCible(),jmN=!LC9?3:Math.max(1,Math.min(3,Math.floor((LC9-FX9-900)/1000))),vir9=LC9?Math.max(900,LC9-FX9-jmN*MD9):0,chu9=LC9?Math.min(1000,Math.max(350,vir9*.12)):0,tot=LC9?vir9-chu9:tot0;
   const porte=()=>{{const a=(phi0-phi)*57.2958*.7;if(Math.abs(a)>4)arc(a,rj?2.8*jRP:520);} // (2e tour) avec les modules : l'alignement plus serré, les abords plus courts // la Porte se prend plutôt dans l'axe de la vallée
-    droite(rj?110:380,2);ici('porte0');droite(rj?360:520,4);ici('porte1');droite(rj?80:260,2);}; /* (2026-11-05, « trop de tout droit ») la Porte : 740 m de droite → 550 (son modèle se pose au milieu, jade-3 : iPorte) */ /* (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit, plus de virages, que ça reste fun ») : abords plus courts */
-  const pont=()=>{droite(rj?90:300,2);ici('pont0');droite(rj?280:360,3);ici('pont1');droite(rj?70:200,2);}; /* (2026-11-05) le Pont : 550 m de droite → 440 */
+    const i9=ctrl.length-1;droite(rj?110:380,2);ici('porte0');droite(rj?360:520,4);ici('porte1');droite(rj?80:260,2);MODMARK.push({i0:i9,i1:ctrl.length-1,fig:'porte'});}; /* fig : la Porte est un temps fort déclaré (sa droite est la sienne) */ /* (2026-11-05, « trop de tout droit ») la Porte : 740 m de droite → 550 (son modèle se pose au milieu, jade-3 : iPorte) */ /* (2026-10-23, Sacha : « retravaille toutes les générations de routes… trop souvent tout droit, plus de virages, que ça reste fun ») : abords plus courts */
+  const pont=()=>{const i9=ctrl.length-1;droite(rj?90:300,2);ici('pont0');droite(rj?280:360,3);ici('pont1');droite(rj?70:200,2);MODMARK.push({i0:i9,i1:ctrl.length-1,fig:'pont'});}; /* (2026-11-05) le Pont : 550 m de droite → 440 */
   const monus=rnd()<.5?[porte,pont]:[pont,porte];               // la Porte d'abord, ou le Pont
   /* LES MODULES DE JADE (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON). Un au cœur de chacun des trois tronçons de virages (après 40 à 60 %
      de sa longueur : jamais collé à la Porte ni au Pont), les trois chaque fois, dans un ordre tiré au hasard (`rj`, un seul tirage de plus) :
