@@ -14,6 +14,10 @@
     try { Object.defineProperty(W, 'name', { value: 'AudioContext' }); } catch (e) {}
     window.AudioContext = W; if (window.webkitAudioContext) window.webkitAudioContext = W;
   }
+  /* l'historique des états : qui endort, qui réveille (suspend/resume, avec la pile) */
+  S.histo = [];
+  var pileC = function () { return (new Error().stack || '').split('\n').slice(3, 6).map(function (l) { return l.replace(/^\s*at\s*/, '').replace(/\(?https?:\/\/[^/]+\//, '').replace(/\?[^:)]*/, '').replace(/\)$/, ''); }).join(' < ').slice(0, 200); };
+  if (AC0) ['suspend', 'resume'].forEach(function (k) { var f = AC0.prototype[k]; AC0.prototype[k] = function () { if (S.histo.length < 400) S.histo.push({ t: Math.round(performance.now()), k: k, avant: this.state, pile: pileC() }); var p = f.apply(this, arguments); var me = this; if (p && p.then) p.then(function () { if (S.histo.length < 400) S.histo.push({ t: Math.round(performance.now()), k: k + ' ok', etat: me.state }); }, function (e) { S.histo.push({ t: Math.round(performance.now()), k: k + ' REFUS', m: e && e.message }); }); return p; }; });
   if (window.OfflineAudioContext) { var O0 = window.OfflineAudioContext; var WO = function (a, b, c) { S.hors++; return arguments.length === 1 ? new O0(a) : new O0(a, b, c); }; WO.prototype = O0.prototype; window.OfflineAudioContext = WO; }
   /* chaque create*() compté par type */
   var B = window.BaseAudioContext ? BaseAudioContext.prototype : (AC0 && AC0.prototype);
@@ -60,6 +64,6 @@
     S.medias.forEach(function (e) { if (!e.paused && !e.ended) med.push({ src: (e.currentSrc || e.src || '').split('/').slice(-2).join('/'), vol: +e.volume.toFixed(2), muet: e.muted, t: +e.currentTime.toFixed(1), boucle: e.loop }); });
     var nl = 0, nn = 0, parPile = {}; S.liens.forEach(function (v, w) { var n = w.deref(); if (!n) { S.liens.delete(w); return; } var s = nbL.get(n); if (s && s.size) { nl += s.size; nn++; parPile[v] = (parPile[v] || 0) + 1; } });
     var typ = {}; src.forEach(function (o) { typ[o.type] = (typ[o.type] || 0) + 1; });
-    return { contextes: rt, horsLigne: S.hors, sources: src.length, typesSources: typ, boucles: boucles, medias: med, liens: nl, noeudsLies: nn, parPile: parPile, crees: S.crees, rejets: S.rejets.slice(), nPlays: S.nPlays, plays: S.plays };
+    return { contextes: rt, horsLigne: S.hors, sources: src.length, typesSources: typ, boucles: boucles, medias: med, liens: nl, noeudsLies: nn, parPile: parPile, crees: S.crees, rejets: S.rejets.slice(), histo: S.histo.slice(-25), nPlays: S.nPlays, plays: S.plays };
   };
 })();
