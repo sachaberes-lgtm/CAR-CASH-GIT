@@ -312,10 +312,10 @@ addEventListener('keydown',function(e){if(e.target&&e.target.id==='plqTx'){e.sto
 addEventListener('keyup',function(e){if(e.target&&e.target.id==='plqTx')e.stopImmediatePropagation();},true);
 /* LE PREMIER ACCUEIL : la plaque se choisit avant tout le reste (la question de bienvenue attend qu'elle soit refermée, voir bienvPret) */
 function plqVeut(){try{if(/[?&]plaque=1\b/.test(location.search))return !PLQ.fait;if(/[?&](plaque|bienvenue)=0\b/.test(location.search)||navigator.webdriver)return false; /* les BANCS (Puppeteer : navigator.webdriver) partent de sauvegardes neuves : l'atelier leur boucherait l'accueil — `?plaque=1` le rend */
-  if(!/[?&]plaque=ancien\b/.test(location.search)&&!((SAVE.d.ex&&SAVE.d.ex.runs)>0))return false; /* (2026-11-05, Opus : jury DIR-46, décision D8 — recommandation) la plaque se choisit APRÈS la 1re course, plus avant d'avoir vu le jeu ; `?plaque=ancien` = au 1er accueil */
   return !PLQ.fait&&!(SAVE.d.plq&&SAVE.d.plq.ok)&&!BALADE&&!SIMU_JEU&&!SANDBOX&&!(PARK&&PARK.on);}catch(e){return false;}}
 function plqGuette(){if(PLQ.iv)return;PLQ.iv=setInterval(function(){try{
   if(!plqVeut()){clearInterval(PLQ.iv);return;}
+  if(!/[?&]plaque=ancien\b/.test(location.search)&&!((SAVE.d.ex&&SAVE.d.ex.runs)>0)){PLQ.t0=0;return;} /* (2026-11-05, Opus : jury DIR-46, décision D8 — recommandation) la plaque se choisit APRÈS la 1re course, plus avant d'avoir vu le jeu : la guette PATIENTE (elle ne s'arrête plus) jusqu'au retour à l'accueil après la 1re partie ; `?plaque=ancien` = au 1er accueil */
   const sp=document.getElementById('splash'),md=document.getElementById('modale');
   const pret=!sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play')&&!BIENV.on;
   if(!pret){PLQ.t0=0;return;}if(!PLQ.t0){PLQ.t0=performance.now();return;}
