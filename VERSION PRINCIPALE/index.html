@@ -6003,6 +6003,7 @@ html.bqIndus body #garage::before,html.bqIndus body #garage::after{opacity:0!imp
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom{background:none!important;box-shadow:none!important;clip-path:none!important;padding-top:0}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom::before{display:none}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip,#gStrip.fnBande){display:none!important}
+html body #garage.modeShop.bqEntre:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip){visibility:hidden!important} /* (2026-11-05) le geste BOUTIQUE → la salle blanche : la vitrine du jour est déjà écrite mais pas encore à montrer (la place reste, le display:none tombe avec bqIndus) */
 /* L'INTERFACE v3 (voir garBqPanneau) : blanc, du noir pour lire, un BLEU ÉLECTRIQUE (#3d4bff) pour ce qui compte — l'orange retiré */
 #gBqTete{position:absolute;top:calc(var(--sT,0px) + 16px);display:flex;align-items:flex-start;justify-content:space-between;font-family:var(--pix);animation:bqTete .5s var(--ease) .12s both}
 @keyframes bqTete{from{opacity:0;translate:0 -12px}to{opacity:1;translate:0 0}}
@@ -9090,18 +9091,22 @@ html[data-reduced-motion="1"] body #garage#garage #gAct>#gShopBas#gShopBas::befo
    #ff3347, SETTINGS or (inchangé) — les icônes suivent `--nc`. LA BANDELETTE sous CASH CAR : cyan · magenta · or (l'ordre rose · cyan · or, cyan
    et rose échangés) ; elle ne lit PAS `--livree` (son dégradé est dans `#mHome .mTitle::after`). Le badge NEW reste rose. Le verre-loupe de v858 avait été
    retiré par Sacha (v863) : c'est cette version-ci que Léo a demandée ensuite (tuiles, pas de parallélogramme — « trop Claude »).
-   Texte en contre-pente : tout enfant des tuiles a `transform:none`. Pas de backdrop-filter : il relit la 3D derrière chaque tuile à chaque image (interdit sur mobile par la charte) — un voile blanc en dégradé le remplace. */
+   Texte en contre-pente : tout enfant des tuiles a `transform:none`. Pas de backdrop-filter : il relit la 3D derrière chaque tuile à chaque image (interdit sur mobile par la charte) — un voile blanc en dégradé le remplace.
+   (2026-11-05, Sacha : « en fonction des couleurs du ciel, on voit pas certains boutons » — ciel doré ou rose, REGLAGES et ACHAT se fondaient dedans) LE
+   VOILE GIVRÉ FONCE : le dernier calque passe d'un lavis presque transparent (blanc 8-24 %) à un fond anthracite translucide (64-72 %) — la tuile garde
+   son verre (reflets, lueur de couleur, givre) mais a enfin un corps qui tient tête à n'importe quel ciel ; + un liseré d'encre tout autour (contour net,
+   peu importe la luminosité derrière). */
 html{--lk:1}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte){
   position:relative;isolation:isolate;border-radius:7px!important;clip-path:none!important;animation:none!important;overflow:visible;
   background:
-    radial-gradient(120% 95% at 16% -12%,rgba(255,255,255,calc(.62*var(--lk))) 0,rgba(255,255,255,calc(.14*var(--lk))) 36%,transparent 57%),
-    linear-gradient(112deg,transparent 0 41%,rgba(255,255,255,calc(.34*var(--lk))) 42% 47%,transparent 48% 54%,rgba(255,255,255,calc(.16*var(--lk))) 55% 58%,transparent 59%),
-    radial-gradient(95% 75% at 86% 118%,color-mix(in srgb,var(--nc) calc(46%*var(--lk)),transparent),transparent 62%),
-    linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08))!important;
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.8),inset 0 2px 2px rgba(255,255,255,calc(.85*var(--lk))),
-    inset 0 -12px 16px -9px color-mix(in srgb,var(--nc) 60%,transparent),inset 0 0 24px rgba(255,255,255,calc(.22*var(--lk))),
-    0 0 18px color-mix(in srgb,var(--nc) 42%,transparent),0 7px 16px -6px rgba(15,25,70,.32)!important}
+    radial-gradient(120% 95% at 16% -12%,rgba(255,255,255,calc(.5*var(--lk))) 0,rgba(255,255,255,calc(.12*var(--lk))) 36%,transparent 57%),
+    linear-gradient(112deg,transparent 0 41%,rgba(255,255,255,calc(.28*var(--lk))) 42% 47%,transparent 48% 54%,rgba(255,255,255,calc(.13*var(--lk))) 55% 58%,transparent 59%),
+    radial-gradient(95% 75% at 86% 118%,color-mix(in srgb,var(--nc) calc(50%*var(--lk)),transparent),transparent 62%),
+    linear-gradient(180deg,rgba(26,21,48,.64),rgba(11,9,23,.72))!important;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 0 2px 2px rgba(255,255,255,calc(.5*var(--lk))),
+    inset 0 -12px 16px -9px color-mix(in srgb,var(--nc) 65%,transparent),inset 0 0 24px rgba(255,255,255,calc(.12*var(--lk))),
+    0 0 18px color-mix(in srgb,var(--nc) 48%,transparent),0 0 0 1px rgba(5,3,14,.6),0 7px 16px -6px rgba(10,6,20,.55)!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::before{
   content:''!important;display:block!important;position:absolute;inset:4px;z-index:-1;pointer-events:none;border-radius:4px;
   border:1px solid rgba(255,255,255,calc(.34*var(--lk)));box-shadow:inset 0 0 8px rgba(255,255,255,calc(.18*var(--lk)));background:none!important;animation:none!important;transform:none!important}
@@ -9905,7 +9910,8 @@ function estCouche(){return COUCHE_MQ?COUCHE_MQ.matches:innerWidth>innerHeight;}
 /* ACHAT_EUR (2026-11-05, Opus : jury INT-01 / INT-20, décision D3 « masquer partout tant que StoreKit n'existe pas ») : faux = ni l'écran ACHAT
    (#mShop), ni ses portes (la tuile de l'accueil, la BOUTIQUE du bas du garage, la porte des offres éphémères), ni le rayon ACHAT de la boutique.
    shopPaye reste, inerte. Les caisses en € ne comptent plus nulle part (caisse équipée, étage, missions « toutes »). `?achat=ancien` : l'ancien. */
-const ACHAT_EUR=/[?&]achat=ancien\b/.test(location.search);
+/* (2026-11-05, Sacha : « remet le, c'est tout, je m'en fous du jury ») ACHAT REVIENT SUR LE SITE : seule l'app iPhone (EN_APP) le garde coupé (preparer-www l'y cache aussi) ; `?achat=non` : la coupe du jury. */
+const ACHAT_EUR=(!EN_APP&&!/[?&]achat=non\b/.test(location.search))||/[?&]achat=ancien\b/.test(location.search);
 if(!ACHAT_EUR)try{const s9=document.createElement('style');s9.id='sansAchat';
   s9.textContent='html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],#mShop,#bdShop,.fnPorte){display:none!important}';
   document.head.appendChild(s9);}catch(e){}
@@ -69851,6 +69857,7 @@ function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=do
     if(!c._ret){const s9=c.querySelector('span[data-fr]');if(s9&&s9.textContent!==TR(s9.dataset.fr))s9.textContent=TR(s9.dataset.fr);}}
   if(gEl){gEl.classList.remove('invRet');gEl.classList.toggle('modeInv',m==='inv');gEl.classList.toggle('atelierInv',GATL.on);} // (2026-10-12, Léo) à l'arrivée l'INVENTAIRE en aperçu, les cinq touches ; INVENTAIRE touché = L'ATELIER FERMÉ (gAtelier) : la touche devient ◀ RETOUR, en bas à gauche, les autres s'effacent
   if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop'||m==='tous');st.classList.toggle('gModeTous',m==='tous');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
+  if(gEl)gEl.classList.toggle('bqEntre',(m==='shop'||m==='tous')&&typeof GBQ!=='undefined'&&!GBQ.on&&bqIndusVoulu()); /* (2026-11-05, Sacha : « pendant un bref instant, quand on clique sur boutique, ça ouvre une autre page qui ressemble à une boutique mais différente ») la vitrine du jour s'écrit ICI, d'un coup, mais la salle blanche (bqIndus) n'arrive que ~285 ms plus tard, sous le voile : entre les deux l'ancienne console se voyait seule. bqEntre la cache dès le geste (voir garage-hub-rayons.css), bqClasses la retire à la bascule */
   if(gEl)gEl.classList.toggle('modeShop',m==='shop');} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
 function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou « 15 / 46 » en INVENTAIRE
   if(m==='tous'){bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>'+sansAcc(TR('TOUT VOIR'))+'</span><s></s><b>'+n+'</b></div>';return;} // (2026-10-10) SEE ALL ITEMS, en anglais (Léo)
@@ -73489,7 +73496,7 @@ function bqVoile(v){let w=document.getElementById('gBqVoile'); // LE VOILE de la
   cv.classList.remove('bqPose','bqArrive');cv.classList.toggle('recul',!v);void cv.offsetWidth;cv.classList.add('bqPasse');
   bqVoile._fin=performance.now()+2e3;
   bqVoile._t=setTimeout(function(){if(!GBQ.bascule){GBQ.bascule=true;GBQ.on=GBQ.veut;bqClasses(GBQ.veut);try{garBqAmbiance(GBQ.veut);}catch(e){}}bqVoile(null);},1400);} // filet : jamais de voile collé ni d'interface à moitié basculée (onglet caché, garage quitté en plein geste)
-function bqClasses(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl)gEl.classList.toggle('bqIndus',on);garLibre._r=null;} // dès le geste : l'interface du garage s'efface
+function bqClasses(on){document.documentElement.classList.toggle('bqIndus',on);if(gEl){gEl.classList.toggle('bqIndus',on);gEl.classList.remove('bqEntre');}garLibre._r=null;} // dès le geste : l'interface du garage s'efface
 /* LA LUEUR DERRIÈRE LA CAISSE (v3) : un disque blanc tourné vers la caméra, posé DERRIÈRE la caisse (elle reste devant : il est caché par
    elle), qui grandit jusqu'à couvrir le garage ; une nappe blanche s'étale au sol depuis sous elle. Deux objets de la scène (hors de
    l'atelier : ils survivent au basculement), blancs au-delà de 1 (le bloom les fait rayonner). */
