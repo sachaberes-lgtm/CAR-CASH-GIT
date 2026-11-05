@@ -5,7 +5,7 @@
 // Vert si : un seul AudioContext temps réel · au plus UNE musique (même fichier jamais deux fois, jamais <audio> + boucle ensemble
 // sur le même morceau) · aucune musique de course sur l'accueil · liaisons stables d'une course à l'autre · 0 erreur console,
 // 0 promesse rejetée.
-//   node outils/banc-son/fumee-son.mjs [--fois 1] [--course 30] [--w 844 --h 390] [--url "&colonne=portrait"] [--jeu 9830] [--port 9831]
+//   node outils/banc-son/fumee-son.mjs [--fois 1] [--simu] [--frenesie] [--chance] [--courses N] [--course 30] [--w 844 --h 390] [--url "&colonne=portrait"] [--jeu 9830] [--port 9831]
 // UN banc à la fois sur la machine (vérifier `uptime` avant). Le jeu est servi par ce script (python3 -m http.server), tué à la sortie.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -82,9 +82,9 @@ function musiques(e) {
   return L;
 }
 function juge(nom, e, att, pb) {
-  const rt = e.contextes.length;
-  if (rt !== 1) pb.push(`${nom} : ${rt} AudioContext temps réel (attendu 1) ${JSON.stringify(e.contextes.map(x => x.pile))}`);
-  const ferme = e.contextes.filter(x => x.etat === 'closed').length; if (ferme) pb.push(`${nom} : ${ferme} contexte(s) fermé(s)`);
+  /* (l'intro du studio a SON contexte, fermé 4,2 s après la casse : seuls les contextes OUVERTS comptent) */
+  const ouverts = e.contextes.filter(x => x.etat !== 'closed');
+  if (ouverts.length !== 1) pb.push(`${nom} : ${ouverts.length} AudioContext ouverts (attendu 1) ${JSON.stringify(ouverts.map(x => x.pile))}`);
   const M = musiques(e), parF = {};
   for (const m of M) { const k = (m.f || '?').replace(/\?.*$/, ''); parF[k] = (parF[k] || 0) + 1; }
   for (const k in parF) if (parF[k] > 1 && k !== '?') pb.push(`${nom} : le même morceau joue ${parF[k]} fois : ${k}`);
@@ -103,7 +103,7 @@ for (let tour = 1; tour <= FOIS; tour++) {
     const save = JSON.stringify({ v: 2, sfx: true, mus: true, vox: true, tuto: 1, permis: 1, facile: 0, bienv: 1, ex: { runs: 5 }, plq: { m: 'fr', x: 'BANC', ok: 1 } });
     await c.send('Page.addScriptToEvaluateOnNewDocument', { source: `try{if(!sessionStorage.ccBanc){sessionStorage.ccBanc=1;localStorage.cashcarSave=${JSON.stringify(save)};}}catch(e){}` });
     await c.send('Page.addScriptToEvaluateOnNewDocument', { source: SONDE });
-    const url = `http://127.0.0.1:${JEU}/index.html?colonne=0${a.includes('--titre') ? '' : '&simu=1'}&garde=1${PLUS}`; /* --titre : le vrai écran titre et l'intro (sans ?simu=1), comme un joueur */
+    const SIMU = a.includes('--simu'); const url = `http://127.0.0.1:${JEU}/index.html?colonne=0${SIMU ? '&simu=1' : ''}&garde=1${PLUS}`; /* par défaut le VRAI écran titre et l'intro, comme un joueur ; --simu : la page du simulateur (pas d'écran titre : le contexte audio y attend le 1er bouton, voulu) */
     await c.send('Page.navigate', { url });
     if (!await attends(c, '!!window.__gameReady', 90000)) throw new Error('__gameReady jamais venu');
     for (let i = 0; i < 30; i++) { const la = await c.ev(`(()=>{const s=document.getElementById('splash');if(!s)return 0;const cs=getComputedStyle(s);return (cs.display!=='none'&&cs.visibility!=='hidden'&&+cs.opacity>.05)?1:0;})()`); if (!la) break; await c.clic(W / 2, H / 2); await sleep(500); }
@@ -113,9 +113,10 @@ for (let tour = 1; tour <= FOIS; tour++) {
     if (R.accueil.pouce && R.accueil.pouce.actif && /course|intro|depart/.test(R.accueil.pouce.phase)) pb.push('accueil : Pouce bleu (musique de course) joue sur l\'accueil');
     log(`[${tour}] accueil : ctx ${R.accueil.contextes.map(x => x.etat)} · sources ${R.accueil.sources} · liens ${R.accueil.liens} (${R.accueil.noeudsLies} nœuds) · tas ${R.accueil.tasMo} Mo · musiques ${JSON.stringify(musiques(R.accueil))} · el ${JSON.stringify(R.accueil.mus && R.accueil.mus.el)} · menu ${JSON.stringify(R.accueil.mus && R.accueil.mus.menu)}`);
 
-    if (R.accueil.contextes.length && R.accueil.contextes[0].etat !== 'running') {
-      log(`[${tour}] accueil : contexte ${R.accueil.contextes[0].etat} après le toucher du splash — historique : ${JSON.stringify(R.accueil.histo)} · dbgAudio ${JSON.stringify(await c.ev('(function(){try{var a=dbgAudio();return {reveil:a.reveil,mode:a.mode,running:a.running}}catch(e){return e.message}})()'))}`);
-      if (R.accueil.pouce && R.accueil.pouce.actif) pb.push('accueil : le lobby de Pouce bleu « joue » mais le contexte audio est ' + R.accueil.contextes[0].etat + ' : on ne l\'entend pas');
+    const ctxJeu = R.accueil.contextes.filter(x => x.etat !== 'closed')[0];
+    if (ctxJeu && ctxJeu.etat !== 'running') {
+      log(`[${tour}] accueil : contexte ${ctxJeu.etat} après le toucher du splash — historique : ${JSON.stringify(R.accueil.histo)} · dbgAudio ${JSON.stringify(await c.ev('(function(){try{var a=dbgAudio();return {reveil:a.reveil,mode:a.mode,running:a.running}}catch(e){return e.message}})()'))}`);
+      if (!SIMU && R.accueil.pouce && R.accueil.pouce.actif) pb.push('accueil : le lobby de Pouce bleu « joue » mais le contexte audio est ' + ctxJeu.etat + ' : on ne l\'entend pas');
     }
     if (!await touche(c, '[data-m="play"]')) throw new Error('JOUER introuvable');
     if (!await attends(c, '(function(){try{var s=dbgState();return s.started&&s.running&&!s.gameOver}catch(e){return false}})()', 60000)) throw new Error('la course ne part pas');
@@ -156,13 +157,13 @@ for (let tour = 1; tour <= FOIS; tour++) {
       await c.ev(fs.readFileSync(path.join(ICI, 'trace-pouce.js'), 'utf8'));
       const t0 = (await releve(c)).pouce; await c.ev(`(function(){try{dbgAuto(false);dbgChance('t',200);}catch(e){}try{return dbgDauphin('boom');}catch(e){return e.message}})()`);
       /* (la machine chargée : la fenêtre de 5,5 s se fermait entre deux allers-retours du banc) la PAGE elle-même touche CONTINUER dès que le lobby repart */
-      await c.ev(`(function(){window.__chJ=null;var t0=performance.now(),iv=setInterval(function(){var L=window.__pbTrace||[],lob=L.some(function(x){return x.k==='lobby'});var e=null;try{e=dbgChance();}catch(x){}
-        if(e&&e.ok&&(lob||performance.now()-t0>9000)){clearInterval(iv);window.__chJ={joue:dbgChance('joue'),apresLobby:lob,ms:Math.round(performance.now()-t0)};}else if(performance.now()-t0>15000){clearInterval(iv);window.__chJ={joue:false,etat:e};}},50);})()`);
-      await attends(c, '!!window.__chJ', 20000);
-      const tl = (await releve(c)).pouce;
-      const j = await c.ev('window.__chJ');
-      const ok = await attends(c, '(function(){try{var s=dbgState();return s.started&&!s.gameOver}catch(e){return false}})()', 25000); try { await c.ev('dbgAuto(true,0)'); } catch (e) {} await sleep(4000);
-      const t1 = (await releve(c)).pouce;
+      await c.ev(`(function(){window.__chJ=null;window.__chR=null;var t0=performance.now(),iv=setInterval(function(){var L=window.__pbTrace||[],lob=L.some(function(x){return x.k==='lobby'});var e=null;try{e=dbgChance();}catch(x){}
+        if(e&&e.ok&&(lob||performance.now()-t0>9000)){clearInterval(iv);var tl=POUCE_JEU.etat();window.__chJ={joue:dbgChance('joue'),apresLobby:lob,ms:Math.round(performance.now()-t0),lobby:tl.titre};
+          var t1=performance.now(),iv2=setInterval(function(){var s=dbgState();if(s.started&&!s.gameOver){clearInterval(iv2);try{dbgAuto(true,0);}catch(x){}setTimeout(function(){var p=POUCE_JEU.etat();window.__chR={titre:p.titre,phase:p.phase,repartieMs:Math.round(performance.now()-t1)};},4000);}else if(performance.now()-t1>40000){clearInterval(iv2);window.__chR={rate:true};}},50);}
+        else if(performance.now()-t0>15000){clearInterval(iv);window.__chJ={joue:false,etat:e};window.__chR={rate:true};}},50);})()`);
+      await attends(c, '!!window.__chR', 60000);
+      const j = await c.ev('window.__chJ'), r = await c.ev('window.__chR'), ok = !!(r && !r.rate);
+      const tl = { titre: j && j.lobby, phase: 'lobby' }, t1 = r && { titre: r.titre, phase: r.phase };
       log(`[${tour}] trace du lecteur pendant la seconde chance :\n     ` + (await c.ev('JSON.stringify(window.__pbTrace)')).replace(/\},\{/g, '}\n     {'));
       log(`[${tour}] seconde chance : ${JSON.stringify(j)} · course ${t0 && t0.titre} → lobby ${tl && tl.titre} (${tl && tl.phase}) → reprise ${t1 && t1.titre} (${t1 && t1.phase}) · repartie ${ok}`);
       if (!ok) pb.push('seconde chance : la course ne repart pas (' + JSON.stringify(j) + ')');

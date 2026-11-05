@@ -58773,7 +58773,7 @@ function musicTick(dt,mvt){
   if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*(1-.3*Math.min(1,DIST.env));   // à l'arrêt un peu plus bas, lancé à plein
   if(window.POUCE_JEU&&POUCE_JEU.joue()){ /* (15/10) POUCE BLEU : son niveau = celui qu'aurait la radio (le curseur, le souffle du mouvement, l'annonceur), le moteur du jeu le pilote ; la musique coupée l'éteint */
     if(!SND.music)POUCE_JEU.fin(false);
-    else{const fr9=musicMode==='run'&&!!FRENM.sw; /* (15/10 soir, Léo : « la frénésie doit rester ») le morceau de la FRÉNÉSIE joue : Pouce bleu s'efface (~0,3 s), puis revient */
+    else{const fr9=musicMode==='run'&&!!FRENM.sw&&musicOn&&!!musicEl&&!musicEl.paused; /* (15/10 soir, Léo : « la frénésie doit rester ») le morceau de la FRÉNÉSIE joue : Pouce bleu s'efface (~0,3 s), puis revient — (2026-11-05, DEBUG-TOTAL) seulement quand la triade JOUE VRAIMENT (musicOn : son événement « playing ») : FRENM.sw passe à vrai dès le changement de source, Pouce bleu se taisait pendant tout le chargement du m4a (réseau mobile, play() refusé) — un trou de silence pile sur la récompense */
       const b9=VOL.mus/.62*PBJ_NIV*(musicMode==='run'?(.62+.38*musicBoostEnv):.62);
       POUCE_JEU.niveau(fr9?0:b9*pbjPlancher(dt,b9,PBJ_FORCE||(musicMode==='run'&&running?pbjTier(engTier+1):1))); /* (2026-10-16) LE PLANCHER DU DÉPART (pbjPlancher) */if(musicMode==='run'){POUCE_JEU.moteur(PBJ_FORCE||pbjTier(engTier+1));if(!fr9)musicVolCible=0;}}}
   else if(musicMode==='menu'){musicVolCible=musVol()*.5;                   // le menu : en fond

@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1162'; /* v1162 (2026-11-05, DEBUG-TOTAL) fusion de main (v1161) : le son ne fait plus tomber la boucle, plus deux musiques après une frénésie, la seconde chance reprend son morceau, réveil du son au clic, pause plus propre. */
+const CACHE = 'cashcar-v1163'; /* v1163 (2026-11-05, DEBUG-TOTAL) frénésie : Pouce bleu ne se tait que quand la triade joue vraiment (plus de trou de silence au déclenchement). */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
