@@ -6905,6 +6905,21 @@ html body.touch #fil[data-n="3"]{--fs:calc(17px / var(--hudK,.8))}
 body.dead #fil,body.ebOn #fil{visibility:hidden}
 html.fil :is(#fh,#verdHud,#trickBox,#chainHud){display:none!important} /* les anciennes voix du milieu : la pastille les remplace */
 </style>
+<style id="filBas">
+/* (2026-11-05, Sacha : « petite révision de l'UHD : enlève le record (la barre jaune) et le texte FLOW 1 / FLOW 2 ; les infos Big Air, miraculé,
+   backflip… tu les mets en bas de l'écran au milieu, sous la voiture, mais petit ») la pastille du FIL quitte #auraV2 (filEl la pose dans <body>) :
+   fixée en bas au centre, plus petite, sans la compensation du zoom du HUD (elle n'est plus dedans). Le RECORD et le nom du palier de flow se taisent. */
+html body #avRec,html body #flowHud .fL,html body.touch #flowHud .fL,html body.touch #avRec{display:none!important}
+html body #fil{--fs:9px;display:none;position:fixed;left:0;right:0;margin:0 auto;width:max-content;max-width:calc(100vw - 180px);box-sizing:border-box;
+  bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 12px);z-index:6;padding:3px 6px 2px;transform-origin:center bottom;text-align:center}
+html body.play #fil{display:block}
+html body #fil[data-n="2"]{--fs:10px}
+html body #fil[data-n="3"]{--fs:11px}
+html body.touch #fil,html body.touch #fil[data-n="2"],html body.touch #fil[data-n="3"]{--fs:9px}
+html body.touch #fil[data-n="2"]{--fs:10px}
+html body.touch #fil[data-n="3"]{--fs:11px}
+html body.coOn #fil,html.balade #fil,body.hTp:not(#ccH) #fil{visibility:hidden}
+</style>
 <style id="ecoleV2">
 /* ==============================================================================================================
    L'AUTO-ÉCOLE v2 (2026-10-14, Sacha : « le tutoriel est un peu intimidant, pas très beau — plus d'animation, plus de trucs clairs ; les carrés
@@ -9457,7 +9472,7 @@ html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.
 </div>
 <script src="vendor/three.min.js"></script>
 <script src="figures.js?v=10"></script>
-<script src="creatures/vitrail.js?v=1"></script><script>if(/[?&]singes(jade)?=1\b/.test(location.search))document.write('<script src="creatures/singe.js?v=2"><\/script>');</script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html — (2026-10-22) le singe n'est chargé que sur `?singes=1` : les singes sont éteints par défaut (voir JSG_ON) -->
+<script src="creatures/vitrail.js?v=1"></script><script>if(/[?&]singes(jade)?=1\b/.test(location.search))document.write('<script src="creatures/singe.js?v=2"><\/script>');</script><script>/* (2026-11-03, passe « maps cohérentes » — PICS DE JADE) LE TÉLÉPHONE NE TAILLE PLUS DE DAUPHINS QU'IL NE MONTRE PAS : creatures/dauphin.js bâtit au chargement trois maillages (~38 000 triangles, cubes du vitrail : MESURÉ ~0,7 s de calcul à froid sur le Mac) pour les dauphins de la mer de jade — que JADE_SOBRE éteint sur le téléphone. Même test que ALLEGE et JADE_SOBRE (rendu/soleil-planete.js, maps/jade-1.js : le jeu vérifie qu'ils disent pareil) ; `?jadeplein=1` les rend. */var SANS_DAUPHIN=(function(){try{var q=location.search,mm=function(m){return !!(window.matchMedia&&matchMedia(m).matches);},tn=(mm('(pointer:coarse)')||('ontouchstart' in window)||navigator.maxTouchPoints>0)&&(mm('(hover:none)')||Math.min(screen.width,screen.height)<600);return !/[?&]allege=0\b/.test(q)&&(tn||/[?&](tel|mobile|allege)=1\b/.test(q))&&!/[?&]jadeplein=1\b/.test(q);}catch(e){return false;}})();</script><script src="creatures/dauphin.js?v=2"></script><!-- (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE : la recette vitrail et le singe (ses poses), hors d'index.html — (2026-10-22) le singe n'est chargé que sur `?singes=1` : les singes sont éteints par défaut (voir JSG_ON) -->
 <script src="assets/audio/musique-bus.js?v=7"></script><!-- (2026-10-15, pôle SON) LE BUS DE LA MUSIQUE : les basses réglées morceau par morceau — le MÊME réglage que la bibliothèque (voir MUS_WA) -->
 <script src="assets/audio/pouce-bleu-jeu.js?v=11"></script><!-- (2026-10-15, pôle SON) POUCE BLEU EN COURSE : un morceau de Pouce bleu par course, qui suit le moteur (voir PBJ) --><!-- (2026-10-14) LES FIGURES : le catalogue et le lecteur, partagés avec la boîte blanche (boite-figures.html) -->
 <!-- POST-PROCESSING r128 (bloom cinématique) — version EXACTE alignée sur three r128. Chargés avant le jeu ;
@@ -10165,8 +10180,8 @@ const skyDome=(function(){
       '    vec3 pl=mix(uCyD,uCyC,smoothstep(.3,.8,n))+vec3(.75,.78,.95)*uCyF*(.5+.8*smoothstep(.4,.8,n));c=mix(c,pl,uCyN.w*smoothstep(-.02,.06,y));}',
       '  {float ds=smoothstep('+'.99955-.00035*uCyN.y,.99975-.00035*uCyN.y,sd);c=mix(c,mix(vec3(1.,.97,.9),vec3(.92,.94,1.),uCyK.w)*uCyN.z*(1.+1.2*(1.-uCyK.w)),ds*(1.-uCyN.w*.92));',
       '   if(uCyK.w>.5&&ds>0.){vec3 e1=normalize(cross(uSunDir,vec3(0.,1.,0.)));vec2 q=vec2(dot(d,e1),d.y-uSunDir.y)*90.;c-=vec3(.10,.09,.07)*smoothstep(.45,.7,vn(q*3.+2.))*ds;}}',
-      '  if(uCyK.z>.001&&y>-.02){vec3 G=normalize(vec3(.42,.55,.72));float b=dot(d,G),mw=exp(-b*b/.022)*smoothstep(-.02,.15,y);vec2 q=vec2(atan(d.z,d.x)*3.,b*14.);',
-      '    mw*=(.55+.6*smoothstep(.35,.75,vfbm(q*5.1)))*(1.-.75*smoothstep(.45,.65,vfbm(q*2.3+1.3))*exp(-b*b/.006));c+=vec3(.55,.58,.75)*mw*.12*uCyK.z;}',
+      '  if(uCyK.z>.001&&y>-.02){vec3 G=normalize(vec3(.42,.55,.72));float b=dot(d,G),mw=exp(-b*b/.022)*smoothstep(-.02,.15,y);vec2 q=vec2(atan(d.z,d.x)*3.,b*14.);if(mw>.004){', /* (2026-11-03, passe maps cohérentes) les deux bruits de la VOIE LACTÉE seulement DANS sa bande : MESURÉ (ordi, nuit du canyon) elle coûtait 3,6 ms de puce sur 11 — hors de la bande sa part est < 1/500 de niveau (même image) */
+      '    mw*=(.55+.6*smoothstep(.35,.75,vfbm(q*5.1)))*(1.-.75*smoothstep(.45,.65,vfbm(q*2.3+1.3))*exp(-b*b/.006));c+=vec3(.55,.58,.75)*mw*.12*uCyK.z;}}',
       '  {vec2 m=cyMesas(az,y);if(uCyDn>.001)m=mix(m,dnHorizon(az,y),uCyDn);if(m.x>0.){vec3 mc=mix(uCyR,uFogCol,.25+.25*m.y);c=mix(c,mix(mc,uFogCol,smoothstep(.02,-.005,y)*.5),m.x);}}',
       '  c=mix(c,uFogCol,(1.-smoothstep(-.03,.02,y))*.9);',
       '  return c;}'],
@@ -12428,7 +12443,7 @@ function nuageChauffe(){ // (2026-09-26) les deux programmes de nuage compilés 
   nuageChaud=true;cotonInit(); // (ciel de coton) ses instances sont dans la scène : renderer.compile les prend avec
   const g=mergeSpheres([[0,0,0,.6,1],[.4,.1,0,.45,1]],2,2,2),a=new THREE.Mesh(g,CLOUD_MAT),b=new THREE.Mesh(g,CLOUD_MAT_IN),c9=new THREE.Mesh(g,nuage8Solo()),d9=new THREE.Mesh(g,CLOUD_MAT_IN8);
   a.position.copy(camera.position);b.position.copy(camera.position);a.frustumCulled=b.frustumCulled=false;if(c9){c9.position.copy(camera.position);c9.frustumCulled=false;scene.add(c9);d9.position.copy(camera.position);d9.frustumCulled=false;scene.add(d9);} // (v8) la matière des maillages seuls
-  const vt9=[];{const MS=nuVitMats(true);for(const m9 of [MS.cub,MS.coe,MS.pea,MS.fan]){const x=new THREE.Mesh(g,m9);x.position.copy(camera.position);x.frustumCulled=false;scene.add(x);vt9.push(x);}} // (vitrail) les trois matières des nuages seuls
+  const vt9=[];if(!NUVIT.vox){const MS=nuVitMats(true); /* (2026-11-03) en cubes, pas de vitrail : ses quatre programmes ne se compilent plus au menu */for(const m9 of [MS.cub,MS.coe,MS.pea,MS.fan]){const x=new THREE.Mesh(g,m9);x.position.copy(camera.position);x.frustumCulled=false;scene.add(x);vt9.push(x);}} // (vitrail) les trois matières des nuages seuls
   scene.add(a);scene.add(b);try{renderer.compile(scene,camera);}catch(e){}scene.remove(a);scene.remove(b);if(c9){scene.remove(c9);scene.remove(d9);}for(const x of vt9)scene.remove(x);g.dispose();
 }
 // FINESSE : à 16×11 les grosses boules (r 200-700) montraient leurs FACETTES — d'où les « formes
@@ -13293,7 +13308,7 @@ function cotonInit(){ if(COTON.root)return; // une fois par session : 24 gabarit
   COTON.t0=performance.now();COTON.pret=new Uint8Array(COTON_KINDS*4);
   const rg=mulberry32(0xC07070),SPH=COTON.SEG.map(function(s){return new THREE.SphereGeometry(1,s[0],s[1]);}),m=nuage8Mat();
   COTON.root=new THREE.Group();COTON.root.name='coton';COTON.root.visible=false;scene.add(COTON.root);COTON.L=[];
-  COTON.vit=[];const MV=nuVitMats(false); // (2026-10-18) LE VITRAIL : trois maillages de plus par lot fin (finesses 2 et 3), mêmes instances
+  COTON.vit=[];const MV=NUVIT.vox?null:nuVitMats(false); /* (2026-11-03, maps cohérentes) en CUBES (le réglage de Léo, par défaut) le vitrail et les fantômes ne servent jamais : plus leurs 250 maillages cachés ni leurs 1,8 Mo de matrices (50 jeux × 36 ko) ; `?nuvit=fantome|verre|…` les rend */ // (2026-10-18) LE VITRAIL : trois maillages de plus par lot fin (finesses 2 et 3), mêmes instances
   COTON.W=new Float32Array(COTON.cap);COTON.WC=new Float32Array(COTON.cap);COTON.LV=MV?Array.from({length:COTON_KINDS*2},function(){return {i:new Int32Array(COTON.cap),d:new Float32Array(COTON.cap),n:0};}):null; // (2026-10-18, LE FONDU) les parts (corps, cubes) de chaque nuage, et, par jeu de cubes (gabarit × lot 2|3), ceux qui en ont une
   const rgC=mulberry32(0xC0F1E5); // (v7) le hasard du chou-fleur, à part
   for(let k=0;k<COTON_KINDS;k++){let S;{S=cumulus8(k===24?'cumulonimbus':k<6?N8_GENRE6[k]:(N8_GENRE_V[COTON_GENRES[k-6]]||COTON_GENRES[k-6]),rg);S.fin=1;}COTON.S.push(S);
@@ -13863,11 +13878,11 @@ function nuCasseTick(dt,t){
     const dx=P[j]-cp.x,dy=P[j+1]-cp.y,dz=P[j+2]-cp.z,dd=Math.sqrt(dx*dx+dy*dy+dz*dz);
     if(dd<46){const k=(1-dd/46)*dt*1.3;V[j]+=(cv.x*.6-V[j])*k;V[j+1]+=(cv.y*.6-V[j+1])*k;V[j+2]+=(cv.z*.6-V[j+2])*k;} // le sillage les emporte
     P[j]+=V[j]*dt;P[j+1]+=V[j+1]*dt;P[j+2]+=V[j+2]*dt;R[j]+=W[j]*dt;R[j+1]+=W[j+1]*dt;R[j+2]+=W[j+2]*dt;}
-  const n=NCB.n;im.count=n;
+  const n=NCB.n;im.count=n;NCB.vu=(NCB.vu||0)+1;im.visible=n>0||NCB.vu<4; /* (2026-11-03, maps cohérentes) VIDE = INVISIBLE (comme les peaux de cotonTick) : la gerbe vit dans la scène de TOUTES les maps ; à zéro bloc three préparait encore programme et uniformes à chaque image — les 3 premières images la gardent visible : le programme se compile au menu */
   for(let i=0;i<n;i++){const j=i*3,age=NCB.A[i],life=NCB.L[i],cx=P[j]-camera.position.x,cy=P[j+1]-camera.position.y,cz=P[j+2]-camera.position.z,dc=Math.sqrt(cx*cx+cy*cy+cz*cz),fc=Math.min(1,Math.max(0,(dc-4)/13)),sz=NCB.S[i]*Math.min(1,.25+age*8)*Math.min(1,(life-age)/.45)*fc*fc*(3-2*fc); // près de l'objectif un bloc rétrécit (jamais un mur de cube sur l'écran)
    
     e.set(R[j],R[j+1],R[j+2]);q.setFromEuler(e);pp.set(P[j],P[j+1],P[j+2]);ss.set(sz,sz,sz);m.compose(pp,q,ss);im.setMatrixAt(i,m);const b=NCB.B[i];im.instanceColor.setXYZ(i,b,b,b);}
-  im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}
+  if(n){im.instanceMatrix.updateRange.offset=0;im.instanceMatrix.updateRange.count=n*16;im.instanceMatrix.needsUpdate=true;im.instanceColor.updateRange.offset=0;im.instanceColor.updateRange.count=n*3;im.instanceColor.needsUpdate=true;}} /* (2026-11-03) seulement les blocs vivants partent au GPU — avant, les 700 places (53 ko) À CHAQUE IMAGE, sur toutes les maps, même sans un bloc */
 window.dbgCasse=function(o){o=o||{};nuCasseInit();if(!NCB.mesh)return 'pas prêt'; // (banc) dbgCasse({c:1}) = une trouée + une gerbe devant la caisse
   if(o.c){const cp=carGroup.position.clone();if(o.d)cp.addScaledVector(new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion),o.d);nuCasseBurst(cp,o.k==null?1:o.k,{r:o.r||120});}
   if(o.pas)for(let i=0;i<o.pas;i++)nuCasseTick(1/60,performance.now()/1000+i/60); // (banc, en pause) fait avancer la gerbe de o.pas images
@@ -13950,7 +13965,7 @@ function nuPouInit(){
 function nuPouTick(dt,t){
   if(!NPOU.on)return;if(!NPOU.mesh){nuPouInit();if(!NPOU.mesh)return;}
   const c9=LVL&&LVL.cur,run=started&&!gameOver,actif=run?!!(c9&&c9.carte==='nuages'&&mode!=='boom'):(typeof CHUTE!=='undefined'&&CHUTE.on&&!garageOn),im=NPOU.mesh;
-  if(!actif){im.count=0;NPOU.init=false;return;}
+  if(!actif){if(im.visible){im.count=0;im.visible=false;}NPOU.init=false;return;} /* (2026-11-03) hors de la map nuages : retiré du rendu (même programme que la gerbe, déjà compilé) */
   const F=NPOU.f,C=NPOU.c,RT=NPOU.rt;
   if(run){C.copy(carGroup.position);if(NCB.cv.lengthSq()>25)F.copy(NCB.cv).normalize();else F.set(0,0,1).applyQuaternion(carGroup.quaternion);}
   else{camera.getWorldDirection(F);C.copy(camera.position).addScaledVector(F,160);} // au titre : devant l'objectif
@@ -13964,39 +13979,34 @@ function nuPouTick(dt,t){
     const dr=Math.exp(-dt*.35);V[j]*=dr;V[j+1]*=dr;V[j+2]*=dr;P[j]+=V[j]*dt;P[j+1]+=V[j+1]*dt;P[j+2]+=V[j+2]*dt;R[j]+=W[j]*dt;R[j+1]+=W[j+1]*dt;R[j+2]+=W[j+2]*dt;
     const cx=P[j]-cam.x,cy=P[j+1]-cam.y,cz=P[j+2]-cam.z,dc=Math.sqrt(cx*cx+cy*cy+cz*cz),fn=Math.min(1,Math.max(0,(dc-25)/55)),ff=Math.min(1,Math.max(0,(reach-dd)/90)),sc=NPOU.S[i]*fn*fn*ff;
     e.set(R[j],R[j+1],R[j+2]);q.setFromEuler(e);pp.set(P[j],P[j+1],P[j+2]);ss.set(sc,sc,sc);m.compose(pp,q,ss);im.setMatrixAt(i,m);const b=NPOU.B[i];im.instanceColor.setXYZ(i,b,b,b);}
-  NPOU.init=true;im.count=NPOU.n;im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}
+  NPOU.init=true;im.count=NPOU.n;im.visible=true;im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;}
 // ---------- PIGEONS RAMIERS : rares traversées d'oiseaux — un peu de vie dans le ciel ----------
 const PIGEONS=[];let pigeonT=12+Math.random()*14;
-const pgBodyM=new THREE.MeshLambertMaterial({color:0x97a2b6});
-const pgBreastM=new THREE.MeshLambertMaterial({color:0xc9a9b4});
-const pgWingM=new THREE.MeshLambertMaterial({color:0x76839b,side:THREE.DoubleSide});
-const pgBarM=new THREE.MeshBasicMaterial({color:0xf4f6fa,side:THREE.DoubleSide});
+/* (2026-11-03, maps cohérentes) UN PIGEON = TROIS APPELS DE DESSIN (dix avant : corps, poitrail, tête, deux taches, queue, deux ailes, deux barres) et
+   UN programme (trois avant : Lambert recto, Lambert recto-verso, Basic). Les morceaux qui bougent ensemble sont FUSIONNÉS une fois pour toutes,
+   chacun avec SA couleur (couleur par sommet) : le corps entier d'un côté, chaque aile avec sa barre blanche de l'autre (elles battent). Mêmes
+   formes, mêmes couleurs, mêmes battements ; la barre et les taches du cou prennent maintenant la lumière comme le reste (elles étaient « Basic »). */
+const pgM=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});
+function pgFusion(parts){ // [[géométrie, position, rotation x, échelle, couleur], …] → une géométrie non indexée, la couleur dans ses sommets
+  const P=[],N=[],C=[],c=new THREE.Color(),M=new THREE.Matrix4(),Q=new THREE.Quaternion(),E=new THREE.Euler(),V=new THREE.Vector3(),S=new THREE.Vector3();
+  for(const q of parts){Q.setFromEuler(E.set(q[2]||0,0,0));V.fromArray(q[1]);S.fromArray(q[3]||[1,1,1]);M.compose(V,Q,S);
+    const g=q[0].clone().applyMatrix4(M),h=g.index?g.toNonIndexed():g,pa=h.attributes.position.array,na=h.attributes.normal.array;c.setHex(q[4]);
+    for(let i=0;i<pa.length;i++){P.push(pa[i]);N.push(na[i]);}for(let i=0;i<pa.length/3;i++)C.push(c.r,c.g,c.b);g.dispose();if(h!==g)h.dispose();}
+  const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(P,3));o.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
+  o.setAttribute('color',new THREE.Float32BufferAttribute(C,3));o.computeBoundingSphere();return o;}
 // (2026-09-26, passe fuites) les géométries des pigeons sont PARTAGÉES : chaque oiseau en créait 10 neuves, jamais libérées
-const PG_G={body:new THREE.SphereGeometry(.5,9,7),breast:new THREE.SphereGeometry(.24,8,6),head:new THREE.SphereGeometry(.16,8,6),nk:new THREE.SphereGeometry(.06,6,5),
-  tail:new THREE.BoxGeometry(.26,.04,.5),wing:new THREE.PlaneGeometry(1.0,.42),bar:new THREE.PlaneGeometry(.9,.11)};
+const PG_G=(function(){const s=[new THREE.SphereGeometry(.5,9,7),new THREE.SphereGeometry(.24,8,6),new THREE.SphereGeometry(.16,8,6),new THREE.SphereGeometry(.06,6,5),
+  new THREE.BoxGeometry(.26,.04,.5),new THREE.PlaneGeometry(1.0,.42),new THREE.PlaneGeometry(.9,.11)],GRIS=0x97a2b6,ROSE=0xc9a9b4,AILE=0x76839b,BLANC=0xf4f6fa,r=-Math.PI/2;
+  const o={corps:pgFusion([[s[0],[0,0,0],0,[.52,.46,1.15],GRIS],[s[1],[0,-.06,.3],0,0,ROSE],[s[2],[0,.18,.56],0,0,GRIS], // le corps, le poitrail rosé, la tête
+      [s[3],[-.12,.14,.44],0,0,BLANC],[s[3],[.12,.14,.44],0,0,BLANC],[s[4],[0,.02,-.66],0,0,AILE]]), // les taches blanches du cou (la signature du ramier), la queue
+    aile:[-1,1].map(function(sd){return pgFusion([[s[5],[sd*.5,0,0],r,0,AILE],[s[6],[sd*.5,.01,.02],r,0,BLANC]]);})}; // chaque aile et sa barre alaire blanche
+  for(const g of s)g.dispose();return o;})();
 function mkPigeon(){
   const g=new THREE.Group();
-  const body=new THREE.Mesh(PG_G.body,pgBodyM);
-  body.scale.set(.52,.46,1.15);g.add(body);
-  const breast=new THREE.Mesh(PG_G.breast,pgBreastM); // poitrail rosé
-  breast.position.set(0,-.06,.3);g.add(breast);
-  const head=new THREE.Mesh(PG_G.head,pgBodyM);
-  head.position.set(0,.18,.56);g.add(head);
-  for(const sd of [-1,1]){ // tache blanche du cou — la signature du ramier
-    const nk=new THREE.Mesh(PG_G.nk,pgBarM);
-    nk.position.set(sd*.12,.14,.44);g.add(nk);
-  }
-  const tail=new THREE.Mesh(PG_G.tail,pgWingM);
-  tail.position.set(0,.02,-.66);g.add(tail);
-  for(const sd of [-1,1]){ // ailes battantes avec barre alaire blanche
-    const wg=new THREE.Group();wg.position.set(sd*.16,.1,.06);
-    const wing=new THREE.Mesh(PG_G.wing,pgWingM);
-    wing.rotation.x=-Math.PI/2;wing.position.x=sd*.5;wg.add(wing);
-    const bar=new THREE.Mesh(PG_G.bar,pgBarM);
-    bar.rotation.x=-Math.PI/2;bar.position.set(sd*.5,.01,.02);wg.add(bar);
-    g.add(wg);
-    if(sd<0)g.userData.wl=wg;else g.userData.wr=wg;
-  }
+  g.add(new THREE.Mesh(PG_G.corps,pgM));
+  for(let i=0;i<2;i++){const sd=i?1:-1,wg=new THREE.Group();wg.position.set(sd*.16,.1,.06); // ailes battantes (pivot à l'épaule)
+    wg.add(new THREE.Mesh(PG_G.aile[i],pgM));g.add(wg);
+    if(sd<0)g.userData.wl=wg;else g.userData.wr=wg;}
   g.scale.setScalar(1.7);
   return g;
 }
@@ -16228,10 +16238,10 @@ const FORET={root:null,Q:null,plg:[],fam:[],quart:null,sig:0,sol:null,can:null,g
 const FOR_MET={
   matin:{el:15,ray:1.2,mist:.9,mC:[.92,.88,.78],pap:.75,luc:0,pol:.8,hante:0,phare:.04,leaf:[1.02,1.02,.94],ros:1,vent:.5,lune:0,sons:'jour',lant:.12,vg:[1,.84,.46]},
   midi: {el:55,ray:.62,mist:.25,mC:[.78,.88,.84],pap:1,luc:0,pol:.5,hante:0,phare:0,leaf:[1.04,1.08,.94],ros:.3,vent:.6,lune:0,sons:'jour',lant:0,vg:[1,.86,.45]},
-  soir: {el:8,ray:1.35,mist:.55,mC:[1,.70,.46],pap:.4,luc:.45,pol:.9,hante:.12,phare:.35,leaf:[1.1,.98,.78],ros:.2,vent:.45,lune:0,sons:'soir',lant:.8,vg:[1,.76,.40]},
+  soir: {el:8,ray:.9,mist:.55,mC:[1,.70,.46],pap:.4,luc:.45,pol:.9,hante:.12,phare:.35,leaf:[1.1,.98,.78],ros:.2,vent:.45,lune:0,sons:'soir',lant:.8,vg:[1,.76,.40]},
   nuit: {el:34,ray:.3,mist:1,mC:[.09,.14,.19],pap:0,luc:1,pol:0,hante:1,phare:1,leaf:[.62,.82,.92],ros:0,vent:.7,lune:1,sons:'nuit',lant:1,vg:[.50,.62,1]},
   pluie:{el:62,ray:0,mist:.85,mC:[.44,.50,.50],pap:0,luc:0,pol:0,hante:.18,phare:.55,leaf:[.84,.96,.90],ros:0,vent:1.1,lune:0,sons:'pluie',lant:.5,vg:[.76,.88,.96]},
-  orage:{el:62,ray:0,mist:.95,mC:[.14,.17,.22],pap:0,luc:.15,pol:0,hante:.75,phare:.9,leaf:[.70,.84,.92],ros:0,vent:1.6,lune:0,sons:'orage',lant:.45,vg:[.62,.55,1]}};
+  orage:{el:62,ray:0,mist:.95,mC:[.14,.17,.22],pap:0,luc:.15,pol:0,hante:.75,phare:.9,leaf:[.70,.84,.92],ros:0,vent:1.6,lune:0,sons:'orage',lant:.45,vg:[.60,.74,1]}}; /* (2026-11-03, maps cohérentes) vg de l'orage : le violet [.62,.55,1] teignait tous les fûts en LILAS (la charte : l'orage est ARDOISE, jamais indigo-violet) — un bleu d'ardoise froid, entre la pluie et la lune */ /* (2026-11-03) ray du SOIR 1,35 → ,9 : face au couchant, les rais (×1,5 de FOR_EMB) noyaient les saules sous des bandes orange (milieu de l'image à chroma 43-49, l'orange « Cheetos » de la charte) */
 const FOR_U={uSunDir:{value:new THREE.Vector3(0,1,0)},uSunC:{value:new THREE.Color()},uSky:{value:new THREE.Color()},uGnd:{value:new THREE.Color()},
   uFillC:{value:new THREE.Color()},uFillD:{value:new THREE.Vector3(0,-1,0)},uCam:{value:new THREE.Vector3()},uCarP:{value:new THREE.Vector3(0,-1e5,0)},
   uCarF:{value:new THREE.Vector3(0,0,1)},uTime:{value:0},uPhare:{value:0},uFlash:{value:0},uWet:{value:0},uHante:{value:0},uMistC:{value:new THREE.Color(.8,.88,.84)},
@@ -17181,20 +17191,22 @@ const FOR_LUC_VS=['attribute vec4 aR;uniform float uTime,uLuc,uPol,uPx;uniform v
 const FOR_LUC_FS=['varying vec3 vC;varying float vA;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,d);a*=a;if(vA*a<.004)discard;gl_FragColor=vec4(vC*vA*a,1.);}'].join('\n');
 /* LES RAYONS DE SOLEIL : des pans de lumière qui tombent en biais entre les géants (additifs). Leur axe suit la lumière de la forêt ;
    ils s'éteignent à moins de 40 m de l'objectif (sinon un voile plein écran quand la caméra passe dedans). aR = (sommet, largeur) · aL = (longueur, hasard) */
-const FOR_RAY_VS=['attribute vec4 aR;attribute vec2 aL;uniform vec3 uSunDir,uCam;uniform float uTime;varying vec2 vQ;varying float vA,vD;',
+const FOR_RAY_VS=['attribute vec4 aR;attribute vec2 aL;uniform vec3 uSunDir,uCam;uniform float uTime,fogFar;varying vec2 vQ;varying float vA,vD;',
   'void main(){vec3 ax=-normalize(uSunDir+vec3(0.,.08,0.));vec3 P=aR.xyz+ax*aL.x*position.y;vec3 vw=normalize(P-uCam);vec3 sd=normalize(cross(ax,vw)+vec3(1e-4,0.,0.));',
   '  P+=sd*position.x*aR.w*(1.+position.y*.7);vQ=vec2(position.x*2.,position.y);vA=.55+.45*sin(uTime*.35+aL.y*20.);',
-  '  vec4 mv=viewMatrix*vec4(P,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;}'].join('\n');
+  '  vec4 mv=viewMatrix*vec4(P,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;',
+  '  float d0=-(viewMatrix*vec4(aR.xyz,1.)).z,d1=-(viewMatrix*vec4(aR.xyz+ax*aL.x,1.)).z;if(max(d0,d1)<40.-aR.w||min(d0,d1)>fogFar+aR.w)gl_Position=vec4(0.,0.,2.,1.);}'].join('\n'); /* (2026-11-03, maps cohérentes) le rai ENTIER à moins de 40 m ou au-delà de la brume (son éclat y est nul : voir FOR_RAY_FS) n'est plus tramé — même image, moins de pixels */
 const FOR_RAY_FS=['uniform vec3 uSunC;uniform float uRay,uRayK,fogNear,fogFar;varying vec2 vQ;varying float vA,vD;',
   'void main(){float x=1.-vQ.x*vQ.x;float a=x*x*smoothstep(0.,.18,vQ.y)*smoothstep(1.,.45,vQ.y)*vA*uRay*uRayK*smoothstep(40.,110.,vD)*(1.-smoothstep(fogNear,fogFar,vD));',
   '  vec3 rc=mix(vec3(.50,.72,1.),vec3(1.,.80,.46),smoothstep(.15,.85,x));gl_FragColor=vec4(uSunC*rc*a*.16,1.);}'].join('\n'); /* (2026-10-20, embellir) DEUX TEMPÉRATURES : le cœur du rai est ambre, sa lisière bleutée (le remplissage froid du ciel) */
 /* LA BRUME EN NAPPES : de grands flocons face à la caméra, qui dérivent au fond de la vallée et traversent la route la nuit */
-const FOR_BRUME_VS=['uniform vec3 uCam,uSunDir;uniform float uTime;varying vec2 vUv;varying float vD,vS,vG;',
+const FOR_BRUME_VS=['uniform vec3 uCam,uSunDir;uniform float uTime,fogFar;varying vec2 vUv;varying float vD,vS,vG;',
   'void main(){vec3 c=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz;float s=length(instanceMatrix[0].xyz);vS=fract(c.x*.013+c.z*.007);',
   '  c.x+=sin(uTime*.05+vS*20.)*25.;c.z+=cos(uTime*.04+vS*13.)*25.;',
   '  vec3 R=vec3(viewMatrix[0][0],viewMatrix[1][0],viewMatrix[2][0]),U=vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1]);',
   '  vG=dot(normalize(c-uCam),uSunDir);', /* (2026-10-20, embellir) vG : la nappe est-elle devant le soleil (ou la lune) ? */
-  '  vec3 P=c+(R*position.x+U*position.y*.45)*s;vUv=uv;vec4 mv=viewMatrix*vec4(P,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;}'].join('\n');
+  '  vec3 P=c+(R*position.x+U*position.y*.45)*s;vUv=uv;vec4 mv=viewMatrix*vec4(P,1.);vD=-mv.z;gl_Position=projectionMatrix*mv;',
+  '  if(vD<25.||vD>fogFar)gl_Position=vec4(0.,0.,2.,1.);}'].join('\n'); /* (2026-11-03, maps cohérentes) LA NAPPE INVISIBLE N'EST PLUS TRAMÉE : elle fait face à l'objectif (vD est le même aux quatre coins) ; à moins de 25 m ou au-delà de la brume son alpha est nul (FOR_BRUME_FS) — mais une nappe de 70-160 m à 10 m de l'objectif couvrait tout l'écran de bruit et de discard. Même image, des écrans entiers de pixels en moins quand on roule dans la brume */
 const FOR_BRUME_FS=[FG_BRUIT,'uniform vec3 uMistC,uSky,uSunC;uniform float uMistK,uHante,uTime,fogNear,fogFar;varying vec2 vUv;varying float vD,vS,vG;',
   'void main(){vec2 q=vUv-.5;float a=smoothstep(.5,.08,length(q*vec2(1.,1.6)))*(.35+.65*fn2(vUv*3.2+vS*17.+vec2(uTime*.03,0.)))*.24*uMistK*smoothstep(25.,90.,vD)*(1.-smoothstep(fogFar*.7,fogFar,vD))*1.6;if(a<.003)discard;',
   '  vec3 c=uMistC*.75+(uSky*.18+uSunC*.12)+vec3(.05,.20,.16)*uHante;',
@@ -17448,7 +17460,7 @@ function buildForet(seed){jadeFini(buildForetG(seed));} // (2026-10-17, LE PRÉ-
 function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   foretVide();
   if(PARK.on||!LVL.cur||LVL.cur.id!=='foret'||!(NP>1))return;
-  const t0=performance.now(),M=foretMats(),PT=foretProtos(),fr=mulberry32((seed^0xF0E57)>>>0),fw=mulberry32((seed^0x5A01E)>>>0),MOB=PAL_B9('foretArbres',1)*(TEL_NATIF?.8:1),ds=L/(NP-1);FORET.b0=PAL_B9('foretB0',270);FORET.b1=PAL_B9('foretB1',760);
+  const t0=performance.now(),M=foretMats(),PT=foretProtos(),fr=mulberry32((seed^0xF0E57)>>>0),fw=mulberry32((seed^0x5A01E)>>>0),MOB=PAL_B9('foretArbres',1)*(ALLEGE?.8:1),ds=L/(NP-1);FORET.b0=PAL_B9('foretB0',270);FORET.b1=ALLEGE?Math.min(480,PAL_B9('foretB1',760)):PAL_B9('foretB1',760); /* (2026-11-03, maps cohérentes) LE TÉLÉPHONE RÉCENT PASSE AU DÉTAIL LOINTAIN À 480 m (le palier MOYEN) au lieu de 540 : MESURÉ, les géants au détail fin (5-8 k triangles chacun) font 70 % des triangles de la forêt ; le palier MOYEN (iPhone XR/11) bascule déjà à 480 — sur un écran de téléphone, l'écart entre les deux détails d'un géant à 500 m est minime. L'ordi garde 540. */
   FORET.graine=(seed>>>0)%100000;FORET.seed=seed;FORET.zonesNu=[];FORET.met=LVL.cur.meteo||'midi';FORET.n={};
   const DZ=FOR_DECOR?forDecoTire(seed):null,dz2=mulberry32((seed^0xB015E)>>>0);FORET.dz=DZ;FORET.deco=DZ?DZ.li:null; /* (LE DÉCOR AU HASARD) le tirage, et le flux des placements neufs */
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);FORET.root=root;trackMeshes.push(root);
@@ -18259,6 +18271,18 @@ function cyTirage(seed){let h9=Math.imul((seed^0xDEC0CA)>>>0,0x9E3779B1);h9^=h9>
   return D;}
 /* ---- LE MONDE : appelé en fin de buildTrack (no-op hors du canyon) ---- */
 function cyEteindre(){CY.on=false;if(CY.mesh)CY.mesh.visible=false;if(CY.grp)CY.grp.visible=false;}
+/* ===== LE CANYON QU'ON QUITTE (2026-11-03, passe « maps cohérentes » — Sacha : « qu'elles soient toutes cohérentes et optimisées ») =====
+   cyEteindre CACHAIT le relief et ses pièces sans rien rendre : passé le portail, la map suivante gardait en mémoire de la puce les quatre textures de
+   données du canyon (la taille fine en RG32F et sa marque, le plateau en RGBA flottant, l'ombre de l'heure : plusieurs Mo) et toutes ses géométries
+   cuites (parois des Étroits, galerie et façade du tunnel, mine, arche, route 66, éboulis) avec les tampons d'instances (peupliers, cheminées).
+   Hors du canyon on les rend : le prochain canyon les refait de toute façon (cyMondePose, cyMonuments). Restent : la matière et ses programmes
+   (compilés au menu), les bruits partagés (CY.tNz, CY.tRnd — les dunes s'en servent), la colonne des strates, les géométries partagées (peuplier,
+   cheminée, bloc) et le monde côté processeur (petit, et relu par le canyon d'avance). */
+function cyLiberer(){if(CY.on||!CY.mat)return;const U=CY.mat.uniforms,z9=CY.z1;let n=0;
+  for(const k of ['tC','tM','tZ','tS'])if(CY[k]){CY[k].dispose();CY[k]=null;n++;}
+  if(z9){U.uTC.value=z9;U.uTZ.value=z9;U.uTS.value=z9;U.uTM.value=CY.tRnd;}
+  if(CY.grp)for(const o of CY.grp.children.slice()){CY.grp.remove(o);if(o.geometry&&o.userData.jeter)o.geometry.dispose();if(o.isInstancedMesh)o.dispose();n++;}
+  CY.couT=CY.tunT=CY.mineT=null;CY.monu=false;CY.libere=n;}
 /* LA CONSTRUCTION EN DEUX TEMPS (2026-10-14, CANYON) — MESURÉ (banc processeur, piste de 19 km au palier 0) : ~0,65 s de calcul (le
    plateau ~0,16, la taille fine ~0,28, l'ombre ~0,06…), 1,1 s pour la piste de 40 km de fin de partie — au portail, c'était un GEL (la
    règle d'OPTIMISATION : ≤ 250 ms). Désormais : les échantillons de la route ici (~20 ms), le MONDE (plateau, taille, ombre, monuments)
@@ -18290,7 +18314,7 @@ function cyAvPrend(seed){ // (buildCanyon, au passage) le monde calculé d'avanc
   return true;}
 function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en face — rien n'est écrit dans CY, le monde part au travailleur
   if(!av){cyEteindre();CY.job=(CY.job||0)+1;}
-  if(PARK.on||!LVL.cur||LVL.cur.piste!=='canyon'||!(NP>1)||!CANYON_OK)return;
+  if(PARK.on||!LVL.cur||LVL.cur.piste!=='canyon'||!(NP>1)||!CANYON_OK){if(!av)cyLiberer();return;} /* (2026-11-03) hors du canyon : sa mémoire rendue */
   const t0=performance.now(),LV=lvPiste(),K=Math.sqrt(LV),r=mulberry32((seed^0xCA4F0A)>>>0);
   cyBruits();cyTerrain();
   const C={},D9=CY_DECO.on?cyTirage(seed):null;C.deco=D9;if(D9&&!av)cyStratesTeinte(D9.strates); // (2026-10-20) LE DÉCOR TIRÉ : la palette des strates d'abord (le tunnel la relit) — d'avance : au passage (cyAvPrend)
@@ -18582,7 +18606,7 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   '  float wX=abs(N.x)/(abs(N.x)+abs(N.z)+.001),wl=smoothstep(.10,.30,stp);vec4 n0=tl(uNZ,Pc.xz/2600.,1./2600.),n1=mix(tl(uNZ,Pc.xz/170.,1./170.),twp(uNZ,Pc,wX,1./170.,1./170.),wl),n2=mix(tl(uNZ,Pc.xz/31.,1./31.),twp(uNZ,Pc,wX,1./31.,1./31.),wl),nv=twp(uNZ,Pc,wX,1./140.,1./70.);', /* sur une paroi le bruit se déroule le long du mur : plus de fenêtres étirées. (2026-10-25, Sacha : « la texture grésille, des spirales, des traits ») l'ancien axe `dot(position, tangente de la normale)` tournait d'un pixel à l'autre (spirales) et partait au hasard sur les surfaces presque plates (grésillement) : on mélange maintenant les LECTURES des deux plans fixes x/z */
   ...(CYD>=1?['  vec4 nf=mix(tl(uNZ,vec2(Pc.x/17.,Pc.y/89.),1./17.),tl(uNZ,vec2(Pc.z/17.,Pc.y/89.),1./17.),wX);float fx=wl*rk*(1.-smoothstep(200.,700.,dist));vec3 Tg=normalize(vec3(-N.z,0.,N.x)+vec3(1e-4,0.,1e-4));'+'']:[]),
   /* LES STRATES : la colonne relue à la hauteur, gondolée par deux bruits (les couches ondulent et plongent doucement) */
-  '  float sy=(Pc.y+34.*(n0.r-.5)+4.*(n1.g-.5))/'+('3.7')+';vec4 st=texture2DLodEXT(uSTR,vec2(.5,sy/1024.),max(log2(gCs/3.7),0.));'+('vec3 rc=st.rgb*st.rgb*(.95+.10*n1.b);rc=max(mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,1.32),0.);'),
+  '  float sy=(Pc.y+34.*(n0.r-.5)+4.*(n1.g-.5))/'+('3.7')+';vec4 st=texture2DLodEXT(uSTR,vec2(.5,sy/1024.),max(log2(gCs/3.7),0.));'+('vec3 rc=st.rgb*st.rgb*(.95+.10*n1.b);rc=max(mix(vec3(dot(rc,vec3(.3,.55,.15))),rc,1.32-.22*uWet),0.);'), /* (2026-11-03) sous la pluie la roche perd un peu de son éclat (la charte : saturation ≤ 1,05 sous la pluie) */
   ...(CYD>=1?['  rc*=vec3(1.+.35*(n0.g-.5),1.,1.-.42*(n0.g-.5));rc*=1.+(nf.g-.5)*.62*fx;']:[]), /* la dérive de teinte au kilomètre (chaud ↔ froid) · les cannelures : des bandes verticales plus claires, plus sombres */
   ...(CYD>=2?['  rc*=1.-.30*(1.-smoothstep(0.,.03,abs(nf.b-.5)))*fx;']:[]), /* les fissures : de fines lignes sombres, verticales */
   '  float lb=fract(Pc.y*.42+n1.b*.6);rc*=1.-'+('(.025+.035*st.a)*smoothstep(.65,1.,lb)*(1.-smoothstep(120.,420.,dist))')+'*rk;', // le litage des grès, horizontal (fondu au loin : des rayures de 2,4 m moiraient)
@@ -18591,7 +18615,7 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   '  col=mix(col,'+('vec3(.10,.19,.03),smoothstep(.64,.86,n1.a)*top*.55')+');', // le maquis sur les replats
   '  float bas=1.-smoothstep(.2,.5,rk);vec3 sol=sab*('+('.98+.03*(1.-smoothstep(60.,240.,dist))')+'*sin(dot(Pc.xz,vec2(.83,.41))*1.6+n2.g*5.));col=mix(col,sol,bas*(1.-wat));',
   '  col=mix(col,mix(vec3(.05,.10,.03),vec3(.16,.24,.06),n1.r),veg*smoothstep(.42,.58,n2.g)*(1.-wat));', // la ripisylve
-  '  col*=uRkT*(1.-.35*uWet*(1.-wat));',
+  '  col*=uRkT*(1.-.22*uWet*(1.-wat));', /* (2026-11-03) la pierre mouillée, assombrie de 22 % (35 % avant : sous la pluie et l'orage la gorge tombait au noir) */
   '  col*=(.90+.20*hq)*mix(.84,1.,eg);', /* chaque case sa nuance (±10 %), son bord un peu dans l'ombre : on lit les gros pixels, comme les mini-cubes de la forêt */
   ...(CYD>=2?['  vec3 Nb=normalize(N+fx*((nf.g-.5)*1.4*Tg+(nf.r-.5)*.8*vec3(0.,1.,0.)));']:['  vec3 Nb=N;']), /* le relief fin : la normale tordue par les cannelures (la lumière rasante y accroche des arêtes) */
   '  Nb=normalize(Nb+(mix(vec3(dhc(c0+3.1),dhc(c0+7.7),dhc(c0+11.3)),vec3(dhc(c1+60.),dhc(c1+64.),dhc(c1+68.)),wq)-.5)*.2*rk);', // chaque case sa facette : elle attrape la lumière à sa façon
@@ -18600,7 +18624,7 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   '  Lc+=uSunC*vec3(1.,1.1,1.2)*(1.-smoothstep(.04,.5,uSunD.y))*pow(1.-smoothstep(.1,.9,dk),1.4)*(1.-lit)*(.4+.6*stp)*rk*'+(CYD>=1?'.42':'.26')+';', /* LA LUEUR D'ALTITUDE : le soleil rasant n'atteint pas le fond, mais le HAUT des parois en garde la lueur (dorée, un peu rose) ; le bas reste dans le violet */
   '  if(dist<220.){float gr=twp(uNZ,Pc,wX,1./5.3,1./5.3).g*wl+tl(uNZ,Pc.xz/5.3,1./5.3).g*(1.-wl);col*=1.+(gr-.5)*'+('.06')+'*(1.-smoothstep(90.,220.,dist));}',
   '  vec3 c=max(col*Lc,col*vec3(.36,.26,.25)*(.5+.5*lit)+col*uSky*.22);', /* jamais de noir franc : un grès à l'ombre reste brun */
-  '  c*=mix(vec3(1.),vec3(.80,.70,1.04),(1.-lit)*.55*rk);', // l'ombre de la roche tire au VIOLET (la bible)
+  '  c*=mix(vec3(1.),vec3(.86,.88,1.04),(1.-lit)*.55*rk);', /* l'ombre de la roche tire au FROID (la bible) — (2026-11-03, passe maps cohérentes) ardoise et non plus magenta : `.80,.70` coupait le vert, l'ombre des gorges sortait mauve (la charte : jamais de violet en dominante de jour) */
   ...(CYD>=1?['  {float vz=smoothstep(.60,.80,n0.b)*(1.-smoothstep(0.,.014,abs(n1.r-.5)))*fx;c+=vec3(1.,.72,.22)*vz*(.55+.45*sin(uTime*2.1+n1.g*40.))*(.30+.70*lit);}']:[]), /* LES FILONS D'OR : de rares veines (un cinquième des falaises, une ligne tous les 40 m) qui brillent par moments */
   '  if(wat>.01){vec4 nw=texture2D(uNZ,vW.xz/16.+uTime*vec2(.021,.033)),nw2=texture2D(uNZ,vW.xz/41.-uTime*vec2(.013,.008));',
   '    vec3 Nw=normalize(N*3.+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.)*(1.-stp));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.5));wc=mix(wc,uMud,uQ.w);',
@@ -18627,7 +18651,7 @@ function cyTerrain(){ if(CY.mesh)return;
   const g=new THREE.InstancedBufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);
   CY.aN=new THREE.InstancedBufferAttribute(new Float32Array(CY.maxN*4),4);CY.aN.setUsage(THREE.DynamicDrawUsage);g.setAttribute('aN',CY.aN);g.instanceCount=0;
   g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7);CY.geo=g;
-  const z1=new THREE.DataTexture(new Float32Array([0,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);z1.needsUpdate=true;
+  const z1=new THREE.DataTexture(new Float32Array([0,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);z1.needsUpdate=true;CY.z1=z1; /* (2026-11-03) la texture vide : les uniformes y reviennent quand on quitte le canyon (cyLiberer) */
   const U=Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),{uTC:{value:z1},uTM:{value:CY.tRnd},uTZ:{value:z1},uTS:{value:z1},uRND:{value:CY.tRnd},uNZ:{value:CY.tNz},uSTR:{value:CY.tStr},
     uFD:{value:new THREE.Vector4(0,0,1,1)},uZD:{value:new THREE.Vector4(0,0,1,1)},uSD:{value:new THREE.Vector4(0,0,1,1)},uFN:{value:new THREE.Vector2(1,1)},uZN:{value:new THREE.Vector2(1,1)},uSN:{value:new THREE.Vector2(1,1)},
     uCam:{value:new THREE.Vector3()},uG:{value:G},uR0:{value:CY.R0},uTime:{value:0},uFlash:{value:0},uWet:{value:0},uSunD:{value:SUN_DIR},
@@ -19275,6 +19299,8 @@ window.dbgCanyon=function(k,a,b,c){
   if(k==='reprendre'){if(paused)togglePause();return 'ok';}
   if(k==='frag'){if(!CY.mat)return 'pas de matière';if(typeof a==='string'){CY.mat.fragmentShader=a;CY.mat.needsUpdate=true;}return CY.mat.fragmentShader;} /* (banc) la matière du relief relue / remplacée à chaud */
   if(k==='raccourcis')return CY.rac||[];
+  if(k==='pieces'){const r=[],vu=o=>{const g=o&&o.geometry;if(!g)return;const n=(g.index?g.index.count:g.attributes.position.count)/3,q=o.isInstancedMesh?o.count:1;r.push([o.name||o.type,Math.round(n),q,Math.round(n*q),o.visible,o.frustumCulled]);}; /* (2026-11-03, banc) le coût de chaque pièce du décor : [nom, triangles, instances, total, visible, coupée hors champ] */
+    if(CY.grp)CY.grp.traverse(vu);vu(CY_VAU.im);vu(CY_POUS.p);return {pieces:r,terrain:{noeuds:CY.n,grille:CY.G,tri:CY.n*CY.G*CY.G*2},libere:CY.libere|0,textures:['tC','tM','tZ','tS'].filter(function(t){return !!CY[t];}).length};}
   if(k==='vue'||k==='vueA'){if(!CY.on)return 'pas de canyon';if(started&&!gameOver&&!paused)togglePause();const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};
     frameAt(Math.max(0,Math.min(L-1,(k==='vueA'?0:s)+(a||0))),F9); /* 'vueA' : à l'abscisse a de la piste (sinon a mètres devant la caisse) */const cap=(c||0)*Math.PI/180,dx=F9.t.x*Math.cos(cap)-F9.t.z*Math.sin(cap),dz=F9.t.z*Math.cos(cap)+F9.t.x*Math.sin(cap);
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(a!=null&&arguments[4]!=null?arguments[4]:.12),F9.p.z+dz*200);camera.updateMatrixWorld();
@@ -19674,7 +19700,19 @@ function dnMondeCalc(S,opt){
   const R={Z:Z,F:F,O:DN.O,ob:pv.ob,pyr:pv.pyr,yMin:yMin-40,yMax:yMax+40,ms:ms};if(pv.pyrs){R.pyrs=pv.pyrs;R.mo=pv.mo;}return R;
 }
 /* ---- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors des dunes) : les échantillons de la route ici, le MONDE dans un travailleur ---- */
-function dnEteindre(){DN.on=false;DN.lev=[];if(DN.mesh)DN.mesh.visible=false;if(DN.grp)DN.grp.visible=false;DN.oa=null;if(DN.mat)DN.mat.uniforms.uOA.value.set(0,0,0,0);}
+function dnEteindre(){DN.on=false;DN.lev=[];if(DN.mesh)DN.mesh.visible=false;if(DN.grp)DN.grp.visible=false;DN.oa=null;if(DN.mat)DN.mat.uniforms.uOA.value.set(0,0,0,0);if(DN_REND)dnLibere();}
+/* ===== LES DUNES RENDENT LA PUCE (2026-11-03, passe « maps cohérentes », Sacha : « cohérentes et optimisées » — « tout ce que la map crée est LIBÉRÉ quand on la quitte ») =====
+   Avant : quitter les dunes ne faisait que CACHER le groupe des décors et le sable — le décor cuit (une géométrie de ~10⁵ sommets), les instances (palmiers, papyrus,
+   caravanes, buttes…) et les trois textures flottantes du monde (relief fin, fond, ombre : quelques Mo) restaient dans la puce toute la partie suivante, jusqu'au
+   prochain passage aux dunes. Ici, à chaque extinction (le portail, REJOUER — buildDunes rebâtit tout de toute façon) : les décors quittent le groupe, leurs géométries
+   et leurs instances sont rendues (un modèle partagé se renvoie tout seul s'il resert), les textures du monde aussi (la matière reprend le texel vide). Les PROGRAMMES
+   restent (compilés au menu par dunesChauffe : 0 compilation en course, voulu). `dbgDunes('libere')` = ce qui a été rendu la dernière fois · `?sans=dunesrend` = comme avant (tout gardé). */
+const DN_REND=!/[?&]sans=([^&]*,)?dunesrend(,|&|$)/.test(location.search);
+function dnLibere(){let g=0,t=0;
+  if(DN.grp)for(const o of DN.grp.children.slice()){DN.grp.remove(o);if(o.geometry){o.geometry.dispose();g++;}if(o.isInstancedMesh&&typeof o.dispose==='function')o.dispose();}
+  for(const k of ['tC','tZ','tS'])if(DN[k]){DN[k].dispose();DN[k]=null;t++;}
+  if(DN.mat&&DN.z1){const U=DN.mat.uniforms;U.uTC.value=U.uTZ.value=U.uTS.value=DN.z1;}
+  DN.carIm=null;DN.torIm=null;if(g||t)DN.libere={geo:g,tex:t};}
 /* LE TIRAGE DU DÉCOR (2026-10-20, LE DÉSERT AU HASARD) : des choix INDÉPENDANTS, dans un flux né de la graine de la piste (ni `rnd`, ni `r`, ni le tracé) —
    un objet simple (il part au travailleur avec le reste). Les PALETTES restent dans la DA : le sable or / rouge / blanc d'argile / rose. */
 function dnTirage(seed){let h9=Math.imul((seed^0xDEC0D5)>>>0,0x9E3779B1);h9^=h9>>>15;h9=Math.imul(h9,0x85EBCA6B);h9^=h9>>>13;const rd=mulberry32(h9>>>0), /* (la graine brassée) */ch=(L9,P9)=>{let t=rd()*P9.reduce((a,b)=>a+b,0);for(let i=0;i<L9.length;i++){t-=P9[i];if(t<0)return L9[i];}return L9[L9.length-1];},
@@ -20037,7 +20075,7 @@ function dnTerrain(){ if(DN.mesh)return;
   const g=new THREE.InstancedBufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setIndex(I);
   DN.aN=new THREE.InstancedBufferAttribute(new Float32Array(DN.maxN*4),4);DN.aN.setUsage(THREE.DynamicDrawUsage);g.setAttribute('aN',DN.aN);g.instanceCount=0;
   g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e7);DN.geo=g;
-  const z1=new THREE.DataTexture(new Float32Array([0,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);z1.needsUpdate=true;
+  const z1=new THREE.DataTexture(new Float32Array([0,0,0,0]),1,1,THREE.RGBAFormat,THREE.FloatType);z1.needsUpdate=true;DN.z1=z1; /* (le texel vide : la matière le reprend quand les dunes rendent la puce, dnLibere) */
   const C3=()=>({value:new THREE.Color()});
   const U=Object.assign(THREE.UniformsUtils.clone(THREE.UniformsLib.fog),{uTC:{value:z1},uTZ:{value:z1},uTS:{value:z1},uNZ:{value:CY.tNz},uGl:{value:dnGlyphes()},
     uFD:{value:new THREE.Vector4(0,0,1,1)},uZD:{value:new THREE.Vector4(0,0,1,1)},uSD:{value:new THREE.Vector4(0,0,1,1)},uFN:{value:new THREE.Vector2(1,1)},uZN:{value:new THREE.Vector2(1,1)},uSN:{value:new THREE.Vector2(1,1)},
@@ -20487,6 +20525,7 @@ window.dbgDunes=function(k,a,b,c,d){
   if(k==='tp'){if(!started||gameOver||mode!=='drive')return 'pas au sol';s=Math.max(0,Math.min(L-30,+a||0));lat=0;if(b!=null)vA=+b/SPD;return {s:Math.round(s),vA:+vA.toFixed(1)};} /* (banc) la caisse posée à l'abscisse a, à la vitesse monde b (m/s) */
   if(k==='marge'){if(!DN.on)return 'pas de dunes';const S9=DN.S,o=[];for(let q=+a||0;q<=(+b||L);q+=(+c||10)){const i=Math.min(S9.n-1,Math.round(q/S9.ds));o.push(Math.round(q)+':'+(S9.y[i]-dnHauteur(S9.x[i],S9.z[i])).toFixed(0)+'/D'+S9.D[i].toFixed(0)+'/z'+S9.zC[i].toFixed(1));}return o.join(' ');} /* (banc) la hauteur de la ligne de route au-dessus du sable, de a à b tous les c m */
   if(k==='raccourcis')return DN.rac||[];
+  if(k==='libere')return {rendu:DN.libere||null,groupe:DN.grp?DN.grp.children.length:0,textures:['tC','tZ','tS'].filter(function(q){return !!DN[q];}).length}; /* (2026-11-03) ce que l'extinction a rendu à la puce (dnLibere) */
   if(k==='const')return {ROAD_HALF:ROAD_HALF,THICK:THICK,L:Math.round(L),NP:NP,SPD:SPD,FALL_G:FALL_G,GRAV_K:GRAV_K,vPalier:Math.round(vPalier()),rayon:Math.round(rayonPalier()),lv:+lvPiste().toFixed(2),lcible:Math.round(longueurCible()),eng:engTier,y0:Math.round(pts[0].y),yFin:Math.round(pts[NP-1].y),vitMult:+vitMult().toFixed(2),vA:+vA.toFixed(1)}; /* (banc) les constantes du jeu que le banc ne peut pas lire (rien n'est global) */
   if(k==='gpu'){const gl=renderer.getContext(),ext=gl.getExtension('EXT_disjoint_timer_query_webgl2');if(!ext)return 'pas de chrono';const n=a||20,reps=b||5; /* (banc) le coût GPU d'une image FIGÉE (la caméra de dbgDunes('vueA'…)) : n rendus d'affilée chronométrés par la puce, reps fois — {min, med} en ms par image */
     return (async function(){const all=[];for(let rep=0;rep<reps;rep++){const q=gl.createQuery();gl.beginQuery(ext.TIME_ELAPSED_EXT,q);for(let i=0;i<n;i++){if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);}gl.endQuery(ext.TIME_ELAPSED_EXT);const t0=performance.now();while(!gl.getQueryParameter(q,gl.QUERY_RESULT_AVAILABLE)&&performance.now()-t0<4000)await new Promise(function(r){setTimeout(r,5);});const ok=!gl.getParameter(ext.GPU_DISJOINT_EXT),v=gl.getQueryParameter(q,gl.QUERY_RESULT)/1e6/n;gl.deleteQuery(q);if(ok)all.push(v);}all.sort(function(x,y){return x-y;});return all.length?{min:+all[0].toFixed(2),med:+all[all.length>>1].toFixed(2)}:null;})();}
@@ -21832,7 +21871,7 @@ function banqPisteHeurt(){
   return false;}
 function banqVide(){
   bkPisteNue(false);BANQ.obst=[];BANQ.kick=[]; // (v4) la route revient aux autres maps ; les pics et les becs partent avec leur piste
-  BANQ.sol=null;BANQ.solM=[];BANQ.pics=[];BANQ.picG=null;BANQ.picM=[];BANQ.loinM=[];BANQ.file=[];BANQ.fi=0;BANQ.msFile=0;
+  BANQ.sol=null;BANQ.solM=[];BANQ.pics=[];BANQ.picG=null;BANQ.picM=[];BANQ.loinM=[];BANQ.vgM=[];BANQ.file=[];BANQ.fi=0;BANQ.msFile=0;
   if(BANQ.root){BANQ.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});BANQ.root=null;}
   BANQ.dz=null;BANQ.deco=null;BANQ.glisse=false;BANQ.pou=false;BANQ.sur=0;BANQ.mort='';BANQ.dNow=9;bkTraceVide();BANQ.verg=[];BKV.sur=false;BKV.yaw=0;BKV.gl=0;BKV.gk=0;bkSkateRaz();BKB.k=0;BKB.enf=0;BKB.dans=false;
 }
@@ -22147,22 +22186,28 @@ function banqRamene(){
      derrière), le givre des roues, et une rayure de glace qui s'élargit avec l'angle. `BKV.gk` (0-1) = la glisse ressentie.
    Console : dbgBanq('verglas') (l'état, avec gl et gk), dbgBanq('verglas',{s,v}) pose la caisse au mètre s (à v km/h). */
 const BK_VG={grip:.86,der:.21,tau:.38,tau0:.15,glMax:.5,base:6,v:24,tMin:.4,lache:.2,kmhMin:30}; // la piste de glace : elle part un cran plus // (2026-10-15) toute la route gèle : la dérive .30 → .16 (au banc, .62/.20 : le pilote sortait à 455 km/h après 1 km) · (soir) le volant remonte à 92 % : c'est la TRAJECTOIRE qui traîne (tau s, tau0 à l'arrêt), plus le volant qui manque — glMax ≈ 29° de crabe ; au banc, tau .55 : le pilote de mesure (qui vise avec le NEZ) sortait en 3 s à 390 km/h — 0,5 s de glisse = 50 m
+const BK_VG_DALLE=!/[?&]sans=([^&]*,)?glacedalle(,|&|$)/.test(location.search),BK_VG_MOR=300; /* (2026-11-03) la dalle de verglas en morceaux de 300 rangs de 3,5 m, ~1 km (voir bkVerglasPose) — MESURÉ (midi, ordi, même piste) à 140 rangs (490 m) : 134 779 → 108 337 triangles, mais 151 → 162 appels de dessin — des morceaux deux fois plus longs en coûtent moins */
 const BKV={sur:false,v:null,yaw:0,ph:0,t:0,aura:0,hors:0,k:0,etiq:null,dix:0,eg:0,gl:0,gk:0,ee:0,eb:0,cr:0,crT:0};
 const BKV_A=new THREE.Vector3(),BKV_B=new THREE.Vector3(),BKV_C=new THREE.Vector3();
 function bkVerglasPose(root,seed){ // (2026-10-15, Sacha : « toute la route doit être verglacée ») UNE plaque, du départ à l'arrivée
   BANQ.verg=[];const vr=mulberry32((seed^0x1CE5)>>>0),ds=L/(NP-1);
   BANQ.verg.push({s0:-1e9,s1:1e9,a:0,b:L,sd:1}); // de bout en bout : la glace est TOUTE la piste
   if(!BANQ.verg.length)return;
-  const P=[],N=[],A=[],I=[],COL=[-1,-.75,-.5,-.25,0,.25,.5,.75,1],W=ROAD_HALF+1.2,NC=COL.length;let n=0; // un peu plus large que la piste : sa frange de givre se fond dans le bourrelet
-  for(const v of BANQ.verg){const sdg=vr()*10,va=v.a,vb=v.b;
-    for(const fy of [1,-1]){const nk=Math.max(2,Math.ceil((vb-va)/3.5));
-      for(let k=0;k<=nk;k++){const s9=va+(vb-va)*k/nk,d0=s9-va,d1=vb-s9,tv=d0<d1?Math.min(.5,d0/200):1-Math.min(.5,d1/200);frameAt(s9,F); // (le long : les bouts fondent sur ~30 m, pas sur 15 % de 9 km)
+  /* (2026-11-03, passe maps cohérentes) LA DALLE EN MORCEAUX, LA FACE DU DESSUS SEULE. Elle était UN maillage de 10 km, jamais écarté (frustumCulled
+     faux), dessus ET dessous : ~96 000 triangles envoyés à chaque image, dont la moitié — la face du dessous, THICK m sous la glace — est toujours DANS
+     la neige (le manteau se cale 1,5 m sous la glace, banqSol, et la caméra ne passe jamais sous la neige, banqTick). Désormais le dessus seul, en
+     morceaux de BK_VG_MOR rangs (~1 km) que three écarte hors du champ et banqTick au-delà de la brume (comme la neige et les pics) ; les rangs de
+     raccord sont les mêmes points (frameAt) : aucune couture. Même matière, mêmes attributs, même tirage (`vr`). `?sans=glacedalle` = la dalle d'avant. */
+  const COL=[-1,-.75,-.5,-.25,0,.25,.5,.75,1],W=ROAD_HALF+1.2,NC=COL.length,MOR=BK_VG_DALLE?BK_VG_MOR:1e9;BANQ.vgM=[]; // un peu plus large que la piste : sa frange de givre se fond dans le bourrelet
+  for(const v of BANQ.verg){const sdg=vr()*10,va=v.a,vb=v.b,nk=Math.max(2,Math.ceil((vb-va)/3.5));
+    for(const fy of BK_VG_DALLE?[1]:[1,-1])for(let k0=0;k0<nk;k0+=MOR){const k1=Math.min(nk,k0+MOR),P=[],N=[],A=[],I=[];
+      for(let k=k0;k<=k1;k++){const s9=va+(vb-va)*k/nk,d0=s9-va,d1=vb-s9,tv=d0<d1?Math.min(.5,d0/200):1-Math.min(.5,d1/200);frameAt(s9,F); // (le long : les bouts fondent sur ~30 m, pas sur 15 % de 9 km)
         for(const c of COL){const l=c*W,o=fy>0?.06:-THICK-.06;P.push(F.p.x+F.b.x*l+F.n.x*o,F.p.y+F.b.y*l+F.n.y*o,F.p.z+F.b.z*l+F.n.z*o);N.push(F.n.x*fy,F.n.y*fy,F.n.z*fy);A.push(c,tv,sdg,0);}
-        if(k>0){const r0=n+(k-1)*NC,r1=n+k*NC;for(let q=0;q<NC-1;q++){if(fy>0)I.push(r0+q,r1+q,r0+q+1,r0+q+1,r1+q,r1+q+1);else I.push(r0+q,r0+q+1,r1+q,r0+q+1,r1+q+1,r1+q);}}}
-      n+=(nk+1)*NC;}}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
-  g.setAttribute('aV',new THREE.Float32BufferAttribute(A,4));g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeBoundingSphere();
-  const m=new THREE.Mesh(g,BANQ.mats.vg);m.name='banquise verglas';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;m.frustumCulled=false;root.add(m);BANQ.n.verglas=BANQ.verg.length;}
+        if(k>k0){const r0=(k-1-k0)*NC,r1=(k-k0)*NC;for(let q=0;q<NC-1;q++){if(fy>0)I.push(r0+q,r1+q,r0+q+1,r0+q+1,r1+q,r1+q+1);else I.push(r0+q,r0+q+1,r1+q,r0+q+1,r1+q+1,r1+q);}}}
+      const n=P.length/3,g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
+      g.setAttribute('aV',new THREE.Float32BufferAttribute(A,4));g.setIndex(n>65535?new THREE.Uint32BufferAttribute(I,1):new THREE.Uint16BufferAttribute(I,1));g.computeBoundingSphere();
+      const m=new THREE.Mesh(g,BANQ.mats.vg);m.name='banquise verglas';m.matrixAutoUpdate=false;m.userData.jeter=true;m.renderOrder=1;if(!BK_VG_DALLE)m.frustumCulled=false;else BANQ.vgM.push(m);root.add(m);}}
+  BANQ.n.verglas=BANQ.verg.length;BANQ.n.vgMorceaux=BANQ.vgM.length;}
 function banqVerglas(dt){ // la boucle de conduite, chaque image, après les flaques
   let v=null;
   if(mode==='drive'&&BANQ.verg&&BANQ.verg.length&&banqOk()&&hopY<=.05&&!introD&&Math.abs(lat)<ROAD_HALF)for(const o of BANQ.verg)if(s>o.s0&&s<o.s1){v=o;break;} // (toute la route : une plaque sans bornes)
@@ -22224,6 +22269,7 @@ const BK_CG_X=[-1.5,.4,3,9,16,22,30,36],BK_CG_Y=BK_NEIGE?[-.5,.2,.5,.85,1.3,2.2,
 function bkCgH(x){const X=BK_CG_X,Y=BK_CG_Y;if(x<=X[0])return Y[0];for(let i=1;i<X.length;i++)if(x<=X[i])return Y[i-1]+(Y[i]-Y[i-1])*(x-X[i-1])/(X[i]-X[i-1]);return Y[Y.length-1];}
 function bkCgBord(){return banqOk()?BK_CG.w:0;} // la largeur de neige où l'on peut rouler (et se poser) au-delà de la glace
 function bkCongerePose(root){ // les deux rubans de neige du bord, du départ à l'arrivée (même pas de 4 m que le verglas)
+  BANQ.n.congere=0;return; /* (2026-11-03, passe maps cohérentes) plus bâti du tout : depuis le 28/10 (Léo, plus bas) le ruban était CACHÉ mais construit à chaque glacier — 2 côtés × ~2 500 rangs × 7 bandes (≈ 70 000 triangles pour 10 km, une géométrie) gardés en mémoire pour rien ; la physique du bord lit bkCgH, pas ce maillage. Le code d'avant reste, inatteignable, pour qui voudrait le redessiner */
   const P=[],A=[],I=[],X=BK_CG_X,NC=X.length,nk=Math.max(2,Math.ceil(L/4));let n=0;
   for(const sd of [1,-1]){
     for(let k=0;k<=nk;k++){frameAt(L*k/nk,F);
@@ -22389,6 +22435,7 @@ function banqTick(dt){
   if(BK_TR.mesh)BK_TR.mesh.visible=true;
   if(BANQ.solM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.solM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
   if(BANQ.picM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.picM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}}
+  if(BANQ.vgM){const ff=(scene.fog&&scene.fog.far)||6000,cp=camera.position;for(const m of BANQ.vgM){const b=m.geometry.boundingSphere,v=cp.distanceTo(b.center)-b.radius<ff+60;if(m.visible!==v)m.visible=v;}} // (2026-11-03) la dalle de verglas, au-delà de la brume
   if(vit){try{updatePool(fx.poudre,dt,0);updatePool(fx.givre,dt,0);updatePool(fx.eclat,dt,0);updatePool(fx.brume,dt,0);}catch(e){}}
   if(BANQ.fid!==flightId){BANQ.fid=flightId;BANQ.figs={};BANQ.lent=0;}
   if(mode!=='drive'){BKB.k=0;BKB.enf=0;BKB.dans=false;} // (2026-10-18) la congère ne suit pas la caisse en vol
@@ -22443,6 +22490,9 @@ function banqSons(dt,c){
   for(const e of L9){if(T9.k[e[0]]==null)T9.k[e[0]]=e[1]*Math.random();T9.k[e[0]]-=dt;if(T9.k[e[0]]<=0){T9.k[e[0]]=e[1]+Math.random()*(e[2]-e[1]);try{sfx(e[0],{vol:e[3],pan:Math.random()*1.6-.8});}catch(x){}}}}
 /* ---------------- LA CHAUFFE AU MENU : chaque matière compilée et dessinée une fois hors écran (0 programme en course) ---------------- */
 function banqChauffe(){
+  if(SF_HORS.banquise)return; /* (2026-11-03, passe maps cohérentes) LE GLACIER HORS DU JOUER (SF_HORS, Léo, 30/10) : rien à préparer au menu pour une map qu'on ne tire pas — ses programmes
+     et ses effets (flocons, poussière de diamant, aurores, crêtes, traces, poudre, givre, éclats) naissaient à chaque lancement, sur l'ordi comme au téléphone, et restaient en mémoire
+     toute la session ; `?carte=banquise` le remet au tirage, et la chauffe avec (un dbgClassique forcé compile à sa 1re image, comme avant la chauffe) */
   const M=banqMats(),fx=banqFx(),L9=[];
   const tri=at=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,1,0,0,0,0,1],3));g.setAttribute('normal',new THREE.Float32BufferAttribute([0,1,0,0,1,0,0,1,0],3));
     for(const k in at)g.setAttribute(k,new THREE.Float32BufferAttribute(new Float32Array(3*at[k]),at[k]));return g;};
@@ -22601,8 +22651,8 @@ function bkCretes(fx){ // une fois, au premier tour de la banquise (banqFx) : le
 function bkCretesTick(fx){ // chaque image, dans banqTick : l'anneau suit la caméra (rien d'autre : tout le reste vit dans le shader)
   if(!fx.cre)return;
   if(fx.cG!==(BANQ.graine|0))bkCretesGen(fx); // une piste neuve : d'autres crêtes (un seul passage, < 1 ms)
-  const cp=camera.position;
-  for(const m of [fx.cre,fx.pan]){if(!m)continue;m.visible=true;m.position.copy(cp);m.updateMatrix();m.updateMatrixWorld(true);}}
+  bkCretesSuit(fx.cre);bkCretesSuit(fx.pan);} /* (2026-11-03) sans tableau neuf à chaque image */
+function bkCretesSuit(m){if(!m)return;m.visible=true;m.position.copy(camera.position);m.updateMatrix();m.updateMatrixWorld(true);}
 function bkCretesCache(fx){if(fx.cre)fx.cre.visible=false;if(fx.pan)fx.pan.visible=false;}
 function bkCretesChauffe(fx){return fx.cre?(fx.pan?[fx.cre,fx.pan]:[fx.cre]):[];}
 /* <<<GROTTE>>> */
@@ -23220,6 +23270,18 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
    une lumière douce d'en haut qui dessine les facettes, l'occlusion, la LANTERNE de la caisse. Les éclats PERCENT le brouillard. */
 const GRT_MUR=[[.46,.32,.22],[.22,.36,.33],[.32,.25,.46],[.60,.38,.22],[.17,.15,.24],[.10,.15,.24]]; // mine, luxuriante, puits, stalactites, lave, abysses
 const GRT_SOL=[[.42,.28,.15],[.24,.56,.16],[.26,.22,.40],[.68,.48,.28],[.24,.11,.09],[.04,.17,.21]];
+/* ===== L'ACCORD DES SALLES (2026-11-03, passe maps cohérentes — Sacha : « que les maps soient toutes magnifiques dans leur ensemble, cohérentes et optimisées ») =====
+   MESURÉ au banc (photos de course, Lab) : trois salles parlaient trop fort à côté des maps du ciel — la ROCHE prenait la couleur que la charte réserve aux ÉCLATS :
+   · LE BOYAU : air, brume, ciel, sol et remplissage VIOLET-MAGENTA saturés (le néon violet que Sacha rejette : « trop IA ») — la route du NOIR COMPLET sortait
+     violette ; ils perdent un tiers de leur saturation (même teinte, même clarté) : l'améthyste reste aux CRISTAUX (violets, roses, azur), qui ressortent de la paroi ;
+   · LA LUXURIANTE : un sol vert FLUO (vert pur × lumière verte : le « criard » de la charte) — un vert mousse, même clarté, ~25 % de chroma en moins ;
+   · LE LAC DE LAVE : TOUT rouge — brume, ciel, sol, remplissage — la caisse rouge se perdait sur une route rouge (chroma 69) ; la règle des deux températures
+     de la charte : la clé chaude (la lave, par en dessous) et son CONTRAIRE en ombre — le ciel de la salle devient ardoise, la brume une cendre chaude.
+   La clarté de chaque couleur est gardée (luminance), seule la teinte bouge. `?sans=grtaccord` = avant (A/B). */
+const GRT_ACCORD=!/[?&]sans=([^&]*,)?grtaccord(,|&|$)/.test(location.search);
+function grtDs(c,k){const l=.3*c[0]+.59*c[1]+.11*c[2];return c.map(function(v){return v+(l-v)*k;});} /* une couleur k plus près de son gris (même luminance) */
+if(GRT_ACCORD){GRT_MUR[2]=grtDs(GRT_MUR[2],.35);GRT_SOL[2]=grtDs(GRT_SOL[2],.35);GRT_SOL[1]=[.26,.52,.22];
+  GRT_AMB[1]=[.15,.35,.25];GRT_AMB[2]=grtDs(GRT_AMB[2],.35);GRT_AMB[4]=[.27,.11,.075];} /* (banc du 3/11 au soir : décalé vers l'INDIGO, le boyau sortait d'un bleu-violet ÉLECTRIQUE — l'ACES sature le bleu ; il garde donc sa teinte et perd un tiers de sa saturation) */
 const GRT_U={uTime:{value:0},uTorch:{value:1},uLieu:{value:1},uAmb:{value:new THREE.Color(.05,.05,.06)},uEmi:{value:1},uLav:{value:1},uFlam:{value:1},uLant:{value:1},uVein:{value:1},uGlint:{value:1},uIce:{value:0},
   uTorchC:{value:new THREE.Color(1.5,.86,.42)},uLantC:{value:new THREE.Color(1.05,.95,.82)},uLantP:{value:new THREE.Vector3(0,-1e5,0)},
   uMur:{value:GRT_MUR.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})},uSol:{value:GRT_SOL.map(function(c){return new THREE.Vector3(c[0],c[1],c[2]);})}};
@@ -23274,8 +23336,11 @@ const GRT_FS=['uniform float uTime,uTorch,uLieu,uEmi,uLav,uFlam,uLant,uVein,uGli
   /* L'HUMIDITÉ (embellir) : des plaques de roche mouillée qui brillent quand les phares passent (le reflet de la lanterne sur les facettes) — le détail vivant, sans calcul côté processeur ; le vieux téléphone ne la paie pas (uVein = 0) */
   '  if(mt<.5&&uVein>.001&&uLant>.01){vec3 Hh=normalize(normalize(cameraPosition-vW)+normalize(dl));float wm=step(mix(.5,.12,uIce),fh3(floor(vW*.045)+sal*5.))*(1.-.6*smoothstep(.45,.85,n.y));',
   '    em+=uLantC*pow(max(dot(n,Hh),0.),30.)*wm*uLant*.7/(1.+d2/2200.);}',
-  '  vec3 col=alb*(((uAmb+uTorchC*(vL.x*uTorch)+mix(vL.yzw,vec3(dot(vL.yzw,vec3(.34)))*vec3(.82,1.0,1.25),uIce)*(2.*uLieu))*key+Lc)*ao);',
-  '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.55);','  #else','  col+=em;','  #endif',
+  '  vec3 col=alb*(((uAmb+uTorchC*(vL.x*uTorch)+mix(vL.yzw,vec3(dot(vL.yzw,vec3(.34)))*vec3(.9,1.0,1.12),uIce)*(2.*uLieu))*key+Lc)*ao);',
+  /* (2026-11-03, passe maps cohérentes) PLUS D'ÉCLAT QUI SURGIT AU BOUT DE LA BRUME : les éclats percent la brume (45 % au-delà de son fond), mais un tronçon n'est dessiné
+     qu'à moins de « fond de brume + 170 m » de la caméra (grotteTick) — la lave, les cristaux, les gemmes d'un tronçon qui entrait APPARAISSAIENT d'un coup à ~1 km. Ils
+     s'éteignent désormais en douceur entre 85 % et 100 % du fond de la brume (à la distance vraie, pas à la profondeur : les bords de l'écran aussi) : rien ne surgit. */
+  '  #ifdef USE_FOG','  float ff=smoothstep(fogNear,fogFar,fogDepth);col=mix(col,fogColor,ff)+em*(1.-ff*.55)*(1.-smoothstep(fogFar*.85,fogFar,length(cameraPosition-vW)));','  #else','  col+=em;','  #endif',
   '  gl_FragColor=vec4(col,1.);}'].join('\n');
 /* LES POUSSIÈRES (700 points ronds et doux autour de la caméra, comme les braises du volcan) : la poussière de la mine, les spores, les paillettes
    de la géode, les gouttes, les braises, les âmes — chaque salle les siennes, fondues en ~1 s. */
@@ -23295,7 +23360,7 @@ function grtMats(){if(GRT_MATS.roche)return GRT_MATS;
   m.dispose=function(){};GRT_MATS.roche=m; // jamais libérée : un seul jeu pour toutes les grottes
   const p=new THREE.ShaderMaterial({uniforms:Object.assign({uTime:GRT_U.uTime},GRT_PU),vertexShader:GRT_PART_VS,fragmentShader:GRT_PART_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
   p.dispose=function(){};GRT_MATS.part=p;return GRT_MATS;}
-function grtPartObj(){if(GRT_FX.part)return GRT_FX.part;const M=grtMats(),n=Math.round(PAL_B9('grottePart',700)*(TEL_NATIF?.75:1)),R9=mulberry32(0x6A7C1E),a=new Float32Array(n*4);for(let i=0;i<n*4;i++)a[i]=R9();
+function grtPartObj(){if(GRT_FX.part)return GRT_FX.part;const M=grtMats(),n=Math.round(PAL_B9('grottePart',700)*(ALLEGE?.75:1)),R9=mulberry32(0x6A7C1E),a=new Float32Array(n*4);for(let i=0;i<n*4;i++)a[i]=R9();
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(n*3),3));g.setAttribute('aR',new THREE.BufferAttribute(a,4));
   const p=new THREE.Points(g,M.part);p.frustumCulled=false;p.visible=false;p.matrixAutoUpdate=false;p.renderOrder=8;scene.add(p);GRT_FX.part=p;GRT_FX.p=JSON.parse(JSON.stringify(GRT_PART[0]));return p;}
 /* ---------------- LA CONSTRUCTION ----------------
@@ -23316,12 +23381,14 @@ function grtBouche(V){const n0=V.pool.length;let n=0;
 function grotteVide(){
   if(GROTTE.root){GROTTE.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});GROTTE.root=null;}
   GROTTE.V=null;GROTTE.R=null;GROTTE.grp=[];GROTTE.file=null;GROTTE.fi=0;GROTTE.msFile=0;GROTTE.pret=false;GROTTE.col=null;GROTTE.salle=-1;GROTTE.piliers=null;
-  GROTTE.puits=null;GROTTE.lac=null;GROTTE.lavLum=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';}
+  GROTTE.puits=null;GROTTE.lac=null;GROTTE.lavLum=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';
+  GROTTE.envPret=null;} /* (2026-11-03, passe maps cohérentes) envPret (le témoin des ciels préparés, voir grotteTick) gardait la RACINE de la grotte quittée — tous ses tronçons et leurs mailles
+   restaient dans le tas JavaScript jusqu'à la grotte suivante */
 function buildGrotte(seed){jadeFini(buildGrotteG(seed));} // d'un trait au passage ; en tranches d'avance (prebDecorG)
 function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   grotteVide();
   if(PARK.on||!LVL.cur||LVL.cur.id!=='grotte'||!(NP>1)||!GROTTE.salles)return;
-  const t0=performance.now(),direct=JF.lim===Infinity,fr=mulberry32((seed^0x6A07E)>>>0),MOB=TEL_NATIF?.75:1;
+  const t0=performance.now(),direct=JF.lim===Infinity,fr=mulberry32((seed^0x6A07E)>>>0),MOB=ALLEGE?.75:1; /* (2026-11-03) ALLEGE, plus TEL_NATIF : le même allègement (décors ×,75) sur le vrai téléphone ET sur ?tel=1 — le banc « téléphone » mesure enfin ce que le téléphone dessine ; ?allege=0 rend tout */
   GROTTE.met=GRT_MET[LVL.cur.meteo]?LVL.cur.meteo:'matin';GROTTE.n={};
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);GROTTE.root=root;trackMeshes.push(root);
   const R=grtEchantillons();GROTTE.R=R;
@@ -23351,10 +23418,14 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   grotteMeteo(GROTTE.met,started?bioPortDur():.01);
 }
 function grtTroncon(c){jadeFini(grtTronconG(c));} // d'un trait (les tranches en course) — au pré-bâti : yield* grtTronconG
+/* (2026-11-03, passe maps cohérentes) LA COPIE JAVASCRIPT DES MAILLES EST JETÉE UNE FOIS ENVOYÉE À LA CARTE GRAPHIQUE (comme nuLibre, les fantômes des nuages) :
+   une maille de roche n'est jamais relue (la collision lit le champ de densité, la sphère de culling est calculée avant l'envoi) et la page se recharge si le
+   contexte est perdu. Chaque sommet de la grotte (non indexé : 20 octets) existait deux fois — à la carte graphique ET dans le tas JavaScript, toute la course. */
+function grtLibere(){this.array=null;}
 function* grtTronconG(c){const V=GROTTE.V,d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V.CY,ck=(d/(V.CX*V.CY))|0,C=16*V.B,M=grtMats(),LL=GROTTE.LL&&GROTTE.LL.get(d)||null;
   const g=new THREE.Group();g.position.set(V.ox+ci*C,V.oy+cj*C,V.oz+ck*C);g.matrixAutoUpdate=false;g.updateMatrix();
   const mk=function(p){const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(p.P,3));ge.setAttribute('aF',new THREE.BufferAttribute(p.F,4));ge.setAttribute('aL',new THREE.BufferAttribute(p.L,4,true));
-    if(p.I)ge.setIndex(new THREE.BufferAttribute(p.I,1));ge.computeBoundingSphere();const me=new THREE.Mesh(ge,M.roche);me.matrixAutoUpdate=false;me.updateMatrix();me.userData.jeter=1;g.add(me);};
+    if(p.I)ge.setIndex(new THREE.BufferAttribute(p.I,1));ge.computeBoundingSphere();for(const k9 in ge.attributes)ge.attributes[k9].onUpload(grtLibere);if(ge.index)ge.index.onUpload(grtLibere);const me=new THREE.Mesh(ge,M.roche);me.matrixAutoUpdate=false;me.updateMatrix();me.userData.jeter=1;g.add(me);};
   const m=yield* grtMailleNetsG(V,c,LL);GROTTE.n.triangles=(GROTTE.n.triangles|0)+m.nt;
   const L9=GROTTE.dec&&GROTTE.dec.get(d);let pd=null;
   if(L9&&L9.length){const qs=V.chS[c],sal=qs<1e9&&GROTTE.R?GROTTE.R.SAL[Math.min(GROTTE.R.n-1,qs)]:0,p=grtMailleDecor(V,c,L9,LL,sal);if(p.nv){pd=p;GROTTE.n.decors=(GROTTE.n.decors|0)+L9.length;GROTTE.n.triangles+=p.I.length/3;}}
@@ -23376,14 +23447,14 @@ function grtPas(dt){if(!GROTTE.cur||GROTTE.k>=1)return;GROTTE.k=Math.min(1,GROTT
   for(const k in b)o[k]=a[k]+(b[k]-a[k])*e;}
 function grtBioNom(met,k){return 'grt-'+(GRT_MET[met]?met:'matin')+'-'+GRT_SALLES[k|0];}
 function grtSalleIci(sc){const R=GROTTE.R;if(!R)return 0;let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=sc)lo=m;else hi=m-1;}return R.SAL[lo];}
-const GRT_V=new THREE.Vector3();
+const GRT_V=new THREE.Vector3(),GRT_PF=['w','z','k']; // (GRT_PF : les champs fondus des poussières — un tableau à demeure, rien d'alloué par image)
 function grotteTick(dt){
   const on=!!GROTTE.root&&!!LVL.cur&&LVL.cur.id==='grotte'&&!PARK.on;
   if(!on){if(GRT_FX.part&&GRT_FX.part.visible)GRT_FX.part.visible=false;if(GROTTE.root&&!GROTTE.root.parent)grotteVide();return;} // (la grotte quittée : ses mailles rendues à la carte graphique tout de suite, pas au prochain passage)
   if(GROTTE.file&&GROTTE.fi<GROTTE.file.length)grtTranches(paused?12:4); // LES TRANCHES : la grotte se finit quelques millisecondes par image
   const U=GRT_U,c=GROTTE.cur||(grotteMeteo(GROTTE.met,.01),GROTTE.cur),vit=!paused;grtPas(dt);if(vit)U.uTime.value+=dt;
   U.uTorch.value=c.torche;U.uLieu.value=c.lieu;U.uAmb.value.setRGB(c.amb*.85,c.amb*.9,c.amb*1.15);U.uEmi.value=c.emi;U.uLav.value=c.lav;U.uFlam.value=c.flam;
-  U.uLant.value=c.lant*(mode==='boom'||!carGroup.visible?0:1);U.uVein.value=c.vein*PAL_B9('grotteVeine',1);U.uGlint.value=c.glint;U.uIce.value=c.ice||0;U.uTorchC.value.setRGB(1.5-.95*(c.ice||0),.86+.15*(c.ice||0),.42+1.0*(c.ice||0));
+  U.uLant.value=c.lant*(mode==='boom'||!carGroup.visible?0:1);U.uVein.value=c.vein*PAL_B9('grotteVeine',1);U.uGlint.value=c.glint;U.uIce.value=c.ice||0;U.uTorchC.value.setRGB(1.5-.62*(c.ice||0),.86+.16*(c.ice||0),.42+.7*(c.ice||0)); /* (2026-11-03) la torche gelée : un blanc froid (,88 · 1,02 · 1,12), plus un bleu franc (,55 · 1 · 1,42) que l'ACES tournait au cobalt */
   GRT_V.set(0,0,1).applyQuaternion(carGroup.quaternion);U.uLantP.value.copy(carGroup.position).addScaledVector(GRT_V,12);U.uLantP.value.y+=2;
   // LA SALLE : sous la caisse (en vol, la route survolée) ; en entrant, l'ambiance de la salle (2,4 s)
   if(GROTTE.envPret!==GROTTE.root){GROTTE.envPret=GROTTE.root;for(const m9 in GRT_MET)for(let k9=0;k9<GRT_SALLES.length;k9++)envPrepare(BIOMES[grtBioNom(m9,k9)]);} /* (2026-10-24, passe perf) les ciels des reflets de TOUTES les salles, à tous les temps (la grotte change de temps en route : 24 ciels), partent au travailleur (envPrepare) : chaque entrée de salle recalculait le cube des reflets en JS — 210 ms d'image figée sur PC, en pleine course */
@@ -23393,7 +23464,7 @@ function grotteTick(dt){
   {const ff=((scene.fog&&scene.fog.far)||800)+GRV.cull,cp=camera.position,f2=ff*ff;for(const g of GROTTE.grp){const b=g.userData.c,v=(cp.x-b.x)**2+(cp.y-b.y)**2+(cp.z-b.z)**2<f2;if(g.visible!==v)g.visible=v;}}
   // LES POUSSIÈRES
   {const P=grtPartObj(),cur=GRT_FX.p,to=(c.ice||0)>.5?GRT_PART_GLACE:(GRT_PART[k]||GRT_PART[0]),a=Math.min(1,dt*1.2);
-   for(const f of ['w','z','k'])cur[f]+=(to[f]-cur[f])*a;for(let i=0;i<3;i++){cur.c[i]+=(to.c[i]-cur.c[i])*a;cur.v[i]+=(to.v[i]-cur.v[i])*a;}
+   for(const f of GRT_PF)cur[f]+=(to[f]-cur[f])*a;for(let i=0;i<3;i++){cur.c[i]+=(to.c[i]-cur.c[i])*a;cur.v[i]+=(to.v[i]-cur.v[i])*a;}
    const u=GRT_PU;u.uK.value=cur.k*c.part;u.uSz.value=cur.z;u.uSw.value=cur.w;u.uVel.value.fromArray(cur.v);u.uPC.value.setRGB(cur.c[0],cur.c[1],cur.c[2]);u.uPx.value=renderer.getPixelRatio();
    u.uBoxC.value.copy(camera.position);P.visible=u.uK.value>.01;}
 }
@@ -23448,13 +23519,17 @@ function grtBiomes(){if(typeof BIOMES==='undefined'||!BIOMES.nuagesNuit)return;
     stal:{fog:[.094,.066,.042],hemiS:[.50,.42,.32],hemiG:[.36,.26,.16],fillC:[1,.72,.40],kickC:[1,.56,.40]},
     lave:{fog:[.15,.04,.022],hemiS:[.38,.22,.30],hemiG:[.70,.18,.04],fillC:[1,.36,.08],kickC:[1,.30,.12]},
     abysse:{fog:[.01,.045,.06],hemiS:[.12,.30,.36],hemiG:[.04,.20,.24],fillC:[.12,.80,.90],kickC:[.30,.90,1]}};
+  if(GRT_ACCORD){for(const f of ['fog','hemiS','hemiG','fillC'])S.boyau[f]=grtDs(S.boyau[f],.35); /* (L'ACCORD DES SALLES, voir GRT_ACCORD) le violet, un tiers plus près du gris */
+    Object.assign(S.lave,{fog:[.12,.05,.045],hemiS:[.28,.26,.36],hemiG:[.62,.24,.10],fillC:[1,.46,.20]});} /* la cendre chaude, le ciel ardoise, la lave par en dessous */
   const ICE={}; /* GLACE : la brume bleu-blanc, une teinte par salle (la lave gelée vire au violet pâle, les abysses au bleu profond) */
-  {const ic=function(f,hs,hg,fc,kc){return {fog:f,hemiS:hs,hemiG:hg,fillC:fc,kickC:kc};};
+  /* (2026-11-03, passe maps cohérentes) ses lumières (ciel, sol, remplissage, contre-jour) un tiers plus près du blanc : un bleu saturé que l'étalonnage filmique
+     (ACES) écrase vire au VIOLET — la route et les parois de la grotte gelée sortaient pervenche et cobalt ; la glace se lit claire, comme au glacier */
+  {const ds=function(c){const l=.3*c[0]+.59*c[1]+.11*c[2];return c.map(function(v){return v+(l-v)*.35;});},ic=function(f,hs,hg,fc,kc){return {fog:f,hemiS:ds(hs),hemiG:ds(hg),fillC:ds(fc),kickC:ds(kc)};};
    ICE.mine=ic([.05,.09,.12],[.42,.58,.74],[.22,.36,.50],[.60,.85,1],[.70,.90,1]);ICE.luxe=ic([.04,.11,.14],[.40,.64,.78],[.22,.42,.52],[.55,.95,.95],[.65,.95,1]);
    ICE.boyau=ic([.06,.08,.15],[.44,.52,.80],[.26,.32,.56],[.70,.75,1],[.80,.80,1]);ICE.stal=ic([.06,.10,.13],[.46,.62,.76],[.26,.40,.52],[.65,.88,1],[.75,.92,1]);
    ICE.lave=ic([.08,.09,.15],[.50,.58,.82],[.34,.38,.60],[.75,.80,1],[.85,.85,1]);ICE.abysse=ic([.02,.06,.11],[.20,.36,.58],[.08,.20,.38],[.30,.65,1],[.40,.75,1]);}
   const M={matin:{k:1,fogN:50,fogF:680,hemiI:.52,fillI:.34,expo:1,bloomS:.55,bloomT:.86},midi:{k:.9,fogN:60,fogF:740,hemiI:.46,fillI:.42,expo:1,bloomS:.66,bloomT:.82},
-    soir:{k:1.05,fogN:50,fogF:640,hemiI:.5,fillI:.42,expo:.98,bloomS:.62,bloomT:.84},nuit:{k:.5,fogN:30,fogF:460,hemiI:.3,fillI:.26,expo:1,bloomS:.6,bloomT:.84},glace:{k:1.25,fogN:45,fogF:720,hemiI:.62,fillI:.40,expo:1.04,bloomS:.72,bloomT:.8}};
+    soir:{k:1.05,fogN:50,fogF:640,hemiI:.5,fillI:.42,expo:.98,bloomS:.62,bloomT:.84},nuit:{k:.5,fogN:30,fogF:460,hemiI:.4,fillI:.26, /* (2026-11-03) hemiI ,3 → ,4 : avec rtK 1 (grtConti), le béton du NOIR COMPLET revient dans la clarté des nuits communes */expo:1,bloomS:.6,bloomT:.84},glace:{k:1.25,fogN:45,fogF:720,hemiI:.62,fillI:.40,expo:1.04,bloomS:.72,bloomT:.8}};
   const hx=function(c,k){return '#'+c.map(function(v){return ('0'+Math.round(Math.min(1,Math.pow(Math.max(0,v*k),1/2.2))*255).toString(16)).slice(-2);}).join('');};
   for(const m in M)for(const k of GRT_SALLES){const a=m==='glace'?ICE[k]:S[k],b=M[m],kc=GRV.fogS[GRT_SALLES.indexOf(k)]*(k==='mine'?1:GRV.fogC),f=a.fog.map(function(v){return v*b.k*kc;}),sky=f.map(function(v){return v*.8;});
     BIOMES['grt-'+m+'-'+k]=bioMet(BIOMES.nuagesNuit,{nm:'GROTTE · '+k.toUpperCase()+' · '+m.toUpperCase(),jour:1,jZen:sky,jMid:sky,jHor:f,jSol:f,sunTint:[.5,.5,.6],sunHalo:0,stars:0,moon:0,city:0,
@@ -23462,8 +23537,15 @@ function grtBiomes(){if(typeof BIOMES==='undefined'||!BIOMES.nuagesNuit)return;
       expo:b.expo,sat:1.04,con:1.16,rtK:1,wb:[1,1,1],sh:[0,.006,.02],hi:[.01,.004,-.004],daSh:.4,vigK:.46,vigC:[.01,.01,.03],bloomS:b.bloomS,bloomT:b.bloomT,rimK:.8,
       env:[[0,hx(f,.6)],[.3,hx(f,1.6)],[.48,hx(a.fillC,.35)],[.58,hx(a.fillC,.55)],[.66,hx(f,1.2)],[1,hx(f,.5)]],
       eS1:a.fillC.map(function(v){return Math.round(Math.min(1,v)*255);}).concat([.42]),eS2:a.kickC.map(function(v){return Math.round(Math.min(1,v)*255);}).concat([.26])});}}
-function grtConti(){for(const m of ['matin','midi','soir','nuit']){const r=CONTI.temps[m];if(!r)continue;for(const k of GRT_SALLES){const b=BIOMES['grt-'+m+'-'+k];if(!b)continue;
-  for(const f in r)if(f!=='stars')b[f]=Array.isArray(r[f])?r[f].slice():r[f];}}}
+/* (2026-11-03, passe maps cohérentes) LA GROTTE GELÉE PREND AUSSI LA RECETTE COMMUNE (celle de midi : la plus claire des cinq) — elle y échappait seule : sa vignette
+   à ,46 (celle d'une nuit), son bitume sans la correction commune (rtT, rtA) ; mesurée au banc, sa route sortait VIOLETTE (teinte −61°, chroma 58) et ses parois
+   cobalt (chroma 60-65) quand le glacier, la glace de référence, tient un bleu clair (chroma ~40, route −92°). Voir aussi ICE et uTorchC. */
+function grtConti(){for(const m of ['matin','midi','soir','nuit','glace']){const r=CONTI.temps[m==='glace'?'midi':m];if(!r)continue;for(const k of GRT_SALLES){const b=BIOMES['grt-'+m+'-'+k];if(!b)continue;
+  for(const f in r)if(f!=='stars')b[f]=Array.isArray(r[f])?r[f].slice():r[f];
+  /* (2026-11-03, passe maps cohérentes) LA ROUTE DU NOIR COMPLET SE LIT DANS LES PHARES — MESURÉ (banc, bitume à côté de la caisse) : L* 3 à 15 la nuit, 3 dans le
+     boyau (un trou noir) quand la nuit commune vise 14-20. Le béton de nuit des maps du ciel est abaissé (rtK ,75) parce que la LUNE l'éclaire ; sous la terre
+     il n'y a pas de lune : le béton garde sa clarté (rtK 1). */
+  if(m==='nuit')b.rtK=1;}}}
 function grtTextes(){Object.assign(I18N,{'LES PROFONDEURS':'THE DEPTHS','LA ROCHE NE PARDONNE PAS':'THE ROCK NEVER FORGIVES','TORCHES':'TORCHES','CRISTAUX':'CRYSTALS','MAGMA':'MAGMA','NOIR COMPLET':'PITCH BLACK',
   'SUIS LES TORCHES':'FOLLOW THE TORCHES','LES CRISTAUX T ECLAIRENT':'THE CRYSTALS LIGHT YOUR WAY','LA LAVE MONTE':'THE LAVA IS RISING','TES PHARES, TA SEULE LUMIERE':'YOUR HEADLIGHTS, YOUR ONLY LIGHT',
   'AU FOND DE L EAU':'AT THE BOTTOM OF THE WATER','GLACE':'ICE','LA GROTTE A GELE':'THE CAVE FROZE'});} // (2026-10-18) LES PROFONDEURS — appelée avec grtBiomes (I18N naît plus bas que ce bloc)
@@ -23486,7 +23568,7 @@ const GRT_CRIS_L=[[1,.22,.5],[.55,.25,1],[.2,.55,1],[1,.7,.2]]; // la lumière c
 const GRT_CRIS_P=[[.55,0,0,.45],[.40,0,.20,.40],[.25,.55,.20,0],[.40,.30,.30,0],[.50,0,0,.50],[.40,.20,.40,0]]; // la part de chaque teinte par salle (entrée : rose et or ; la mine est écartée plus bas)
 const GRT_CRIS_D=[.6,1,1.8,1,.55,1]; // (SUR LES PAROIS) le boyau (la 3e salle) en porte beaucoup plus, violets surtout : l'améthyste reste, la boule non // la densité par salle (la lave a déjà assez de lumière)
 function* grtCristauxG(V,R,dec,seed){
-  const fe=mulberry32((seed^0x5C47A1)>>>0),D=dec.D,P9=dec.P,RHd=ROAD_HALF,VZ=GRT_VASTE,K9=PAL_B9('grotteCris',1)*(TEL_NATIF?.75:1),UP=[0,1,0],BAS=[0,-1,0];
+  const fe=mulberry32((seed^0x5C47A1)>>>0),D=dec.D,P9=dec.P,RHd=ROAD_HALF,VZ=GRT_VASTE,K9=PAL_B9('grotteCris',1)*(ALLEGE?.75:1),UP=[0,1,0],BAS=[0,-1,0];
   let n=0,it=0,acc=0,suiv=30+fe()*40;
   const teinte=function(sal){const p=GRT_CRIS_P[sal];let u=fe(),k=0;for(;k<3&&u>p[k];k++)u-=p[k];return k;};
   const clair=function(x,y,z,L,k){const r=(24+L*.9)*(VZ?1.4:1),c=GRT_CRIS_L[k];P9.push({x:x,y:y,z:z,r:r,r2:r*r,c:c,I:1.7});}; /* (reprise : I .85 → 1,7 — la roche autour d'une grappe rosissait trop peu pour se lire à 150 m dans la brume) */
@@ -23850,8 +23932,8 @@ function villePubAtlas(){
   const N=512,C=128,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
   const PUB=[['CASH CAR','#ffd75e','#ff2e8e','LA CAISSE QUI PAIE'],['1.61','#fff3be','#b86bff','GAME STUDIO'],['NITRO','#ff8d2e','#ff2e2e','PLEIN GAZ'],['$$$','#ffd75e','#7a1fb0','BANQUE OUVERTE'],
     ['AURA','#ff9ee6','#7a2fd0','BRILLE FORT'],['FLOW','#5ee6ff','#1d63c8','NE LACHE RIEN'],['GO !','#ffffff','#ff5e7a','VITE VITE'],['24/7','#ffe23e','#ff7a14','NUIT BLANCHE'],
-    ['RAMEN','#ffb85a','#d8261e','CHAUD'],['NEON','#2ee6ff','#ff3ea5','PLUIE ET LUMIERE'],['TURBO','#ffffff','#ff2e8e','PLUS VITE'],['CASINO','#ffd75e','#b0106a','TOUT OU RIEN'],
-    ['DRIVE','#9fe8ff','#3a2fd0','OU CREVE'],['LUCKY','#7dffec','#ff3ea5','7 7 7'],['SUSHI','#ffffff','#ff5e7a','24 H'],['\u20bf','#fff0b0','#c08a14','CASH CAR']]; /* (2026-10-20, VILLE EMBELLIE) L'OR : la 16e réclame (VITESSE ILLÉGALE) devient la pièce ₿, dorée — 1 panneau sur 16 */
+    ['HODL','#7df9ff','#7a2fd0','DIAMOND HANDS'],['NEON','#2ee6ff','#ff3ea5','PLUIE ET LUMIERE'],['TURBO','#ffffff','#ff2e8e','PLUS VITE'],['CASINO','#ffd75e','#b0106a','TOUT OU RIEN'],
+    ['MOON','#ffffff','#3a2fd0','NEXT STOP'],['WAGMI','#ff9ee6','#b0106a','WE ALL MAKE IT'],['ATH','#ffd75e','#ff2e8e','ALL TIME HIGH'],['\u20bf','#fff0b0','#c08a14','CASH CAR']]; /* (2026-10-20, VILLE EMBELLIE) L'OR : la 16e réclame (VITESSE ILLÉGALE) devient la pièce ₿, dorée — 1 panneau sur 16 */ /* (2026-11-03, passe maps cohérentes) CRYPTO CITY LA NUIT PARLE COMME LE JOUR : la ville au néon est la nuit de Crypto City (Léo, 25/10 et 03/11) — RAMEN, SUSHI, DRIVE et LUCKY (le cyberpunk générique) cèdent leur place à quatre réclames du bull run que le joueur a lues le jour (HODL, MOON, WAGMI, ATH), aux couleurs de la ville (jamais de vert : la teinte les remappe comme les autres) */
   pubLangue(PUB); // (2026-10-14, textes) les réclames parlent la langue du joueur
   if(T9)for(const p of PUB){p[1]=vtHex(p[1],T9);p[2]=vtHex(p[2],T9);} // (teintes) le magenta et le violet des réclames → la couleur de la ville
   x.imageSmoothingEnabled=false; // (2026-09-26, vague 2) plus de VERT dans la ville (il n'est nulle part dans la bible) : « $$$ » et « CASINO » passent à l'or sur violet et sur magenta
@@ -24642,10 +24724,11 @@ function vitrePilMat(){
   m.dispose=function(){};VIT.mat.pil=m;return m;
 }
 function vitreSolPose(root,GS){
+  vitreChauffe(true); // (si le menu ne l'a pas fait : la vitrée était hors du tirage — voir vitreJouable)
   let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(let i=0;i<NP;i+=6){const p=pts[i];if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.z<z0)z0=p.z;if(p.z>z1)z1=p.z;}
   const M9=7000,g=new THREE.Mesh(new THREE.PlaneGeometry(1,1).rotateX(-Math.PI/2),vitreSolMat());
   g.scale.set(x1-x0+2*M9,1,z1-z0+2*M9);g.position.set((x0+x1)/2,GS,(z0+z1)/2);g.frustumCulled=false;g.renderOrder=1; // dessiné APRÈS la ville : ce que les tours cachent n'est pas peint
-  g.matrixAutoUpdate=false;g.updateMatrix();root.add(g);VIT.solM=g;
+  g.matrixAutoUpdate=false;g.updateMatrix();root.add(g);trackMeshes.push(g);VIT.solM=g; // (2026-11-03, MAPS COHÉRENTES) dans trackMeshes, comme les tours : sa géométrie part avec la piste (elle restait en mémoire à chaque visite)
   // LES PILIERS : un fût de 7 m et un chapiteau en T sous le tablier, tous les ~64 m — pas là où une autre route passe dessous (le pont de l'échangeur)
   const st=Math.max(1,Math.round(64/(L/(NP-1)))),P9=[],R2=(ROAD_HALF+12)*(ROAD_HALF+12),PIL=VIT.pilP||(VIT.pilP=[]);PIL.length=0;
   for(let i=Math.round(st/2);i<NP-st;i+=st){const p=pts[i],n=Nn[i];if(!(n.y>.85))continue;const top=p.y-THICK*.3,hh=top-GS;if(hh<12)continue;
@@ -24656,7 +24739,7 @@ function vitreSolPose(root,GS){
   for(let k=0;k<nP;k++){const x=P9[k*5],top=P9[k*5+1],z=P9[k*5+2],hh=P9[k*5+3],a=P9[k*5+4];q.setFromEuler(e.set(0,a,0));
     m4.compose(v.set(x,GS+hh/2,z),q,sc.set(7,hh,7));im.setMatrixAt(k*2,m4);
     m4.compose(v.set(x,top-3,z),q,sc.set(ROAD_HALF*1.25,5,9));im.setMatrixAt(k*2+1,m4);PIL.push(x,z);}
-  im.frustumCulled=false;im.matrixAutoUpdate=false;im.updateMatrix();root.add(im);VIT.pilN=nP;
+  im.frustumCulled=false;im.matrixAutoUpdate=false;im.updateMatrix();root.add(im);trackMeshes.push(im);VIT.pilN=nP; // (de même : la boîte des piliers part avec la piste)
 }
 function vitreSolDans(p){return CITY.solY!=null&&p.y<CITY.solY+.8;} // (AU SOL) la caisse touche-t-elle le sol ? (le test de impPrep)
 const VIT={mat:{},geo:null,tex:null,ciel:null,met:'midi',
@@ -24934,26 +25017,34 @@ function vitreCiel(){
 function vitreDirigeable(){
   if(VIT.dir)return VIT.dir;
   const g=new THREE.Group(),Lh=230,Rh=31,M=function(c,e){return new THREE.MeshLambertMaterial({color:c,emissive:e||0x000000});};
-  const blanc=M(0xf2f5f9,0x0b0f16),gris=M(0xc9d0da),bleu=new THREE.MeshBasicMaterial({color:0x4cb6ff}),vitre=new THREE.MeshBasicMaterial({color:0x9fdcff});
+  const blanc=M(0xf2f5f9,0x0b0f16),gris=M(0xc9d0da),bleu=new THREE.MeshBasicMaterial({color:0x4cb6ff}),vitre=new THREE.MeshBasicMaterial({color:0x9fdcff}),anneau=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});
   const rayon=function(u){return Rh*Math.pow(Math.max(0,Math.sin(Math.PI*u)),.62)*(1-.2*u);};
   const prof=[];for(let i=0;i<=16;i++){const u=i/16;prof.push(new THREE.Vector2(Math.max(.05,rayon(u)),(u-.5)*Lh));}
   const coque=new THREE.Mesh(new THREE.LatheGeometry(prof,20),blanc);coque.rotation.x=Math.PI/2;g.add(coque); // l'axe de la coque : +z (le nez devant… la queue au bout du profil)
   for(const sg of [-1,1]){const b=new THREE.Mesh(new THREE.BoxGeometry(1.4,1.4,Lh*.62),bleu);b.position.set(sg*(Rh*.985),-2,Lh*.02);g.add(b); // la ligne de lumière
-    const u=.62,r=rayon(u)+.6,an=new THREE.Mesh(new THREE.RingGeometry(9,12.5,32),new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide}));an.position.set(sg*r,6,(u-.5)*Lh);an.rotation.y=sg*Math.PI/2;g.add(an); // le logo : un anneau…
+    const u=.62,r=rayon(u)+.6,an=new THREE.Mesh(new THREE.RingGeometry(9,12.5,32),anneau);an.position.set(sg*r,6,(u-.5)*Lh);an.rotation.y=sg*Math.PI/2;g.add(an); // le logo : un anneau…
     const pt=new THREE.Mesh(new THREE.CircleGeometry(3.6,20),bleu);pt.position.set(sg*(r+.2),6,(u-.5)*Lh);pt.rotation.y=sg*Math.PI/2;g.add(pt);} // …et un point
   const zq=-Lh*.41;
   for(const [sx,sy] of [[1,0],[-1,0],[0,1],[0,-1]]){const a=new THREE.Mesh(new THREE.BoxGeometry(sx?28:1.6,sx?1.6:28,26),gris);a.position.set(sx*(rayon(.09)+11),sy*(rayon(.09)+11),zq);g.add(a);} // les ailerons
   const nac=new THREE.Mesh(new THREE.BoxGeometry(12,6,40),blanc);nac.position.set(0,-Rh-1.5,14);g.add(nac); // la nacelle
   const fen=new THREE.Mesh(new THREE.BoxGeometry(12.3,1.6,34),vitre);fen.position.set(0,-Rh-1.2,14);g.add(fen); // ses vitres
   const nav=new THREE.Mesh(new THREE.SphereGeometry(1.8,8,6),bleu);nav.position.set(0,rayon(.1)+11+14,zq-6);g.add(nav);VIT.nav=nav; // le feu de navigation (bleu, il bat)
-  g.traverse(function(o){if(o.isMesh){o.frustumCulled=false;o.matrixAutoUpdate=true;}});
-  g.name='ville vitrée dirigeable';g.visible=false;scene.add(g);VIT.dir=g;
+  /* (2026-11-03, MAPS COHÉRENTES) LES PIÈCES FONDUES PAR MATIÈRE : 14 appels de dessin → 6 (la coque et la nacelle · les ailerons · les lignes et les points
+     bleus · les deux anneaux · la vitre · le feu qui bat, seul : il clignote) — la même image au triangle près. Chaque pièce garde sa place (sa matrice est
+     cuite dans les sommets) ; la sphère englobante rend au dirigeable le tri hors champ (il était dessiné même derrière la caméra). */
+  {const par=new Map();for(const o of g.children.slice()){if(o===nav)continue;o.updateMatrix();const G9=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();G9.applyMatrix4(o.matrix);
+     o.geometry.dispose();g.remove(o);let a=par.get(o.material);if(!a)par.set(o.material,a=[]);a.push(G9);}
+   for(const [m9,L9] of par){let n9=0,o9=0;for(const q of L9)n9+=q.attributes.position.count;const P9=new Float32Array(n9*3),N9=new Float32Array(n9*3);
+     for(const q of L9){P9.set(q.attributes.position.array,o9*3);N9.set(q.attributes.normal.array,o9*3);o9+=q.attributes.position.count;q.dispose();}
+     const gm=new THREE.BufferGeometry();gm.setAttribute('position',new THREE.BufferAttribute(P9,3));gm.setAttribute('normal',new THREE.BufferAttribute(N9,3));gm.computeBoundingSphere();g.add(new THREE.Mesh(gm,m9));}}
+  g.traverse(function(o){if(o.isMesh){o.updateMatrix();o.matrixAutoUpdate=false;}});
+  g.name='ville vitrée dirigeable';g.visible=false;scene.add(g);VIT.dir=g;VIT.dirM=[blanc,gris,bleu,vitre,anneau];VIT.dirA=1;
   VIT.Fd={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};VIT.dirS=null;VIT.dirC=0;VIT.dirT=0;return g;}
 function vitreDirTick(d){
   const DZ9=CITY.dz&&CITY.dz.genre==='vitree'?CITY.dz:null; // (2026-10-20, LE DÉCOR AU HASARD) le dirigeable tiré : aucun, comme avant, haut, rasant
   if(DZ9&&!DZ9.dir){if(VIT.dir&&VIT.dir.visible)VIT.dir.visible=false;return;}
   const g=vitreDirigeable();g.visible=true;
-  if(VIT.dirS==null||s>VIT.dirS-150||VIT.dirS>s+5200){VIT.dirS=Math.min(L-80,s+1700);VIT.dirC++;VIT.dirT=0; // dépassé (ou nouvelle piste) : loin devant, de l'autre côté
+  if(VIT.dirS==null||s>VIT.dirS-150||VIT.dirS>s+5200){VIT.dirS=Math.min(L-80,s+1700);VIT.dirC++;VIT.dirT=0;VIT.dirA=0; // dépassé (ou nouvelle piste) : loin devant, de l'autre côté
     VIT.dirY=0;if(VIT_SOL&&CITY.solY!=null&&VIT.tours){frameAt(VIT.dirS,VIT.Fd);const p9=VIT.Fd.p;let mx=CITY.solY+620; // (AU SOL) il croise AU-DESSUS des géantes qui l'entourent (jamais dans une tour)
       for(const t9 of VIT.tours){const dx=t9[0]-p9.x,dz=t9[1]-p9.z;if(dx*dx+dz*dz<520*520&&t9[5]+60>mx)mx=t9[5]+60;}VIT.dirY=mx;}}
   VIT.dirT+=d;frameAt(VIT.dirS,VIT.Fd);const F9=VIT.Fd,h=Math.hypot(F9.t.x,F9.t.z)||1,tx=F9.t.x/h,tz=F9.t.z/h,sg=(VIT.dirC%2)?1:-1;
@@ -24961,6 +25052,9 @@ function vitreDirTick(d){
   g.position.set(F9.p.x-tz*sg*lat9+tx*VIT.dirT*7,(VIT.dirY||F9.p.y+130)+dh9+Math.sin(VIT.uT.value*.3)*3,F9.p.z+tx*sg*lat9+tz*VIT.dirT*7);
   g.rotation.set(0,Math.atan2(tx,tz),Math.sin(VIT.uT.value*.21)*.02);
   if(VIT.nav)VIT.nav.visible=(VIT.uT.value%1.6)<.25;
+  /* (2026-11-03, MAPS COHÉRENTES) IL SORT DE LA BRUME EN FONDU : à 1,7 km la brume de la vitrée (900-4 600 m) ne le cache qu'à 12 % — il APPARAISSAIT d'un
+     coup dans le ciel, devant. 2,5 s de fondu (les matières passent transparentes le temps du fondu : même programme, rien à compiler). */
+  if(VIT.dirA<1&&VIT.dirM){VIT.dirA=Math.min(1,VIT.dirA+d/2.5);const a9=VIT.dirA*VIT.dirA*(3-2*VIT.dirA),tr9=VIT.dirA<1;for(const m9 of VIT.dirM){m9.opacity=a9;m9.transparent=tr9;}}
 }
 function vitreTick(dt,sim){
   villeVerreTick(dt); // (2026-10-18) LA VILLE, NÉON ET VERRE : le ciel que renvoient ses géantes de verre
@@ -24984,7 +25078,13 @@ function vitreTick(dt,sim){
   const c=vitreCiel();c.visible=true;c.position.copy(camera.position);
   if(!VIT_PLAFOND)vitreDirTick(d);
 }
-function vitreChauffe(){ // au menu (chauffeDivers) : les trois matières de la VILLE VITRÉE compilées et dessinées une fois hors écran — 0 programme en course
+/* (2026-11-03, MAPS COHÉRENTES) HORS DU TIRAGE, ELLE NE SE CHAUFFE PLUS AU MENU : la vitrée n'est jouable que par `?vitree=1` / `?carte=vitree` (SF_HORS), mais
+   son verre, ses tours au loin, son sol, ses piliers, sa couche de nuages et son dirigeable étaient compilés et bâtis à CHAQUE lancement — cinq programmes
+   et huit géométries portés par toutes les autres maps, et une étape de plus avant le premier départ. Désormais : au menu seulement si elle peut être
+   tirée ; sinon au moment où sa ville se BÂTIT (vitreSolPose, `fort`), avant sa course — un portail de debug (dbgClassique, dbgNiveauVitre) reste servi. */
+function vitreJouable(){return !SF_HORS.vitree||!!(SF.force&&SF.force.carte==='vitree');}
+function vitreChauffe(fort){ // au menu (chauffeDivers) : les trois matières de la VILLE VITRÉE compilées et dessinées une fois hors écran — 0 programme en course
+  if(VIT.chaud||(!fort&&!vitreJouable()))return;VIT.chaud=true;
   const L9=[],add=function(o){o.position.copy(camera.position);camera.getWorldDirection(VIT.v1);o.position.addScaledVector(VIT.v1,30);scene.add(o);L9.push(o);};
   {const im=new THREE.InstancedMesh(vitreGeo(),vitreMatTours(),1);im.setMatrixAt(0,VIT.m4.identity());im.setColorAt(0,VIT.c.set(1,1,1));add(im);}
   {const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),vitreMatToursLoin(),1);im.setMatrixAt(0,VIT.m4.identity());add(im);}
@@ -26261,8 +26361,8 @@ function* jadeBatit(seed,cle){
   if(performance.now()>JF.lim)yield;
   // ---- LA GRILLE DES CHOCS (cases de 80 m) : chaque montagne et chaque rocher y est inscrit dans son cercle ; le test final lit SES cubes ----
   {const CG=80,g9=new Map();
-   PIL.forEach(function(q,k){const re=q[2]+2;for(let gx=Math.floor((q[0]-re)/CG);gx<=Math.floor((q[0]+re)/CG);gx++)for(let gz=Math.floor((q[1]-re)/CG);gz<=Math.floor((q[1]+re)/CG);gz++){const kk=gx+','+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(k);}});
-   JADE.col={g:g9,CG:CG,P:PIL};}
+   PIL.forEach(function(q,k){const re=q[2]+2;for(let gx=Math.floor((q[0]-re)/CG);gx<=Math.floor((q[0]+re)/CG);gx++)for(let gz=Math.floor((q[1]-re)/CG);gz<=Math.floor((q[1]+re)/CG);gz++){const kk=gx*100003+gz;let a=g9.get(kk);if(!a)g9.set(kk,a=[]);a.push(k);}});
+   JADE.col={g:g9,CG:CG,P:PIL};} /* (2026-11-03, passe « maps cohérentes ») la clé d'une case est un NOMBRE (gx × 100003 + gz, comme la grille de la route plus haut) : finProches (chaque image) et jadeHeurt (chaque image de vol) fabriquaient une chaîne par case lue */
   // ---- LA BRUME QUI FLOTTE ----
   {const n0=Math.round((JADE_SOBRE?60:TEL_NATIF?150:240)*(DZ?DZ.brume.n:1)),itb=[],ib=[],Mx=new THREE.Matrix4();const pasB=Math.max(1,Math.floor(NP/n0));
    for(let i=0;i<NP;i+=pasB){const t9=T[i],hl=Math.hypot(t9.x,t9.z)||1,px=-t9.z/hl,pz=t9.x/hl;
@@ -26338,7 +26438,7 @@ function jadeChuteTick(dt){
     c.inv.copy(JCH_M).invert(); /* (2026-10-21, Léo : « on traverse les montagnes qui tombent ») la hitbox suit la montagne : le point testé est ramené dans son repère d'origine */
     const out=dy>(q[4]-JADE.eauY)+60;if(out)c.fin=true;
     {const me=JCH_M.elements;for(const o of c.orig){const A=o.F.M;if(out)A.set(JCH_Z,o.si*16);else jchMul(me,o.m,A,o.si*16);}}
-    if(c.fo){if(out)FIN.mats.set(c.pi,JCH_Z);else{JCH_R.fromArray(c.fo);JCH_R.premultiply(JCH_M);FIN.mats.set(c.pi,new Float32Array(JCH_R.elements));}}}
+    if(c.fo){if(out)FIN.mats.set(c.pi,JCH_Z);else{JCH_R.fromArray(c.fo);JCH_R.premultiply(JCH_M);if(!c.fm)c.fm=new Float32Array(16);c.fm.set(JCH_R.elements);FIN.mats.set(c.pi,c.fm);}}} /* (2026-11-03) la matrice des cubes fins d'une montagne qui tombe : SON tableau, réécrit (avant : un neuf à chaque image) */
   if(chg){for(const c of JCH.L)if(c.t0&&c.orig&&(!c.fin||!c.vu)){c.vu=c.fin;for(const o of c.orig)o.F.sale=true;if(c.fo)FIN.sale=true;}JADE.sale=true;}
   // l écume
   const S9=JCH.sp,im=JCH.splash;if(im&&S9.length){let n=0;const M9=JCH_M;
@@ -26975,16 +27075,17 @@ function* jadePont(root,i0,jr,M9,pose,ARB){ // (LE PRÉ-BÂTI) un générateur (
    de distance (jadeBande) ; chaque famille dessine les bandes qui sont les siennes. Les tampons ne repartent que si la liste a changé. ---- */
 const JT={fr:new THREE.Frustum(),pv:new THREE.Matrix4(),vis:null,ms:0,n:0,up:0,fam:0};
 /* (v8) LES MONTAGNES PROCHES (≤ FIN.D, +25 m pour en sortir) passent aux cubes minuscules — rend une signature (le tri ne recopie que si elle change) */
+function jtCroiss(a,b){return a-b;}
 function finProches(cp){
   if(!FIN.on||!JADE.col||!FIN.stamp)return 7;FIN.veut.clear();
   const C=JADE.col,P=C.P,D=FIN.D,r=Math.ceil((D+110)/C.CG),bx=Math.floor(cp.x/C.CG),bz=Math.floor(cp.z/C.CG),gen=++FIN.gen,o=FIN.near,par=FIN.par||(FIN.par=[]);
   o.length=0;par.length=0;
-  for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=C.g.get((bx+dx)+','+(bz+dz));if(!a)continue;
+  for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=C.g.get((bx+dx)*100003+(bz+dz));if(!a)continue;
     for(let j=0;j<a.length;j++){const k=a[j];if(k<0||FIN.stamp[k]===gen)continue;FIN.stamp[k]=gen;const q=P[k];if(!FIN.fam[q[5]]){FIN.veut.add(q[5]);continue;}
       const dh=Math.max(0,Math.hypot(q[0]-cp.x,q[1]-cp.z)-q[2]),dv=cp.y<q[3]?q[3]-cp.y:cp.y>q[4]?cp.y-q[4]:0;
       if(Math.hypot(dh,dv)<(FIN.was[k]?D+25:D))o.push(k);}}
   for(const k of FIN.dans)FIN.was[k]=0;FIN.dans.clear();
-  o.sort(function(a,b){return a-b;});const n9=new Map();let sg=7;
+  o.sort(jtCroiss);const n9=FIN.n9||(FIN.n9=new Map());n9.clear();let sg=7; /* (2026-11-03) le compte par gabarit et le tri : réutilisés, rien d'alloué par image */
   for(const k of o){const t=P[k][5],c=n9.get(t)||0;if(c>=FIN.fam[t].cap)continue;n9.set(t,c+1);FIN.dans.add(k);FIN.was[k]=1;sg=(Math.imul(sg,31)+k+1)|0;}
   return sg;}
 function finFamille(t){const T9=JADE.geos.p[t],cap=FIN.cap&&FIN.cap[t];if(!T9||!T9.fin||!cap||!JADE.root||FIN.fam[t])return; // la famille fine d'un gabarit (quand il est prêt)
@@ -27160,6 +27261,7 @@ function jadeTick(dt){
   if(BALADE&&running&&!gameOver){
     {const m9=Math.min(ENGINE_TIERS.length-1,BALADE_MOTEUR);if(engTier!==m9){engTier=m9;coinsGot=ENGINE_TIERS[m9].coins;}} // le moteur de la balade, posé tel quel (sans la scène du palier)
     if(!nitroOn)nitroR=Math.min(nitroCap(),nitroR+.30*dt);} // sans pièces ni fruits, la nitro se recharge seule // (dev) dbgJadeVue : une image NETTE (le flou de vitesse figé par la pause)
+  {if(!JADE.rt0)JADE.rt0=ROUTE_JADE.slice();const t9=BIO.cur.rtT||JADE.rt0,r0=JADE.rt0;ROUTE_JADE[0]=r0[0]*t9[0];ROUTE_JADE[1]=r0[1]*t9[1];ROUTE_JADE[2]=r0[2]*t9[2];} /* (2026-11-03, passe « maps cohérentes ») LE BITUME COMMUN AUX PICS DE JADE — routeTick ne lit `rtT` (la teinte du béton par temps, voir CONTI) que sur les maps de la recette ; la jade la reçoit ici, dans SA teinte (ROUTE_JADE, fondue par LVL.jade au portail) : trois flottants, rien d'alloué */
   JADE_U.uTime.value+=dt;if(!paused)skyU.uEauT.value+=dt;
   finTravail(paused?12:4);
   try{jadeEauTick(dt);}catch(e){window.__jadeErr=e;}
@@ -27199,19 +27301,30 @@ function grueGeos(){if(GRUE.gC)return;
   A.tri([.75,.02,.12],[1.45,.03,-.08],[1.38,0,-.46],no);A.tri([.75,.02,.12],[1.38,0,-.46],[.75,0,-.30],no);
   A.tri([0,0,-.28],[.75,0,-.30],[.55,0,-.42],no);
   GRUE.gA=toC(A.geo());
-  GRUE.M=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});}
+  GRUE.M=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});
+  /* ===== LES GRUES EN TROIS APPELS (2026-11-03, passe « maps cohérentes », Sacha : « cohérentes et optimisées ») =====
+     MESURÉ (lecture du code) : chaque grue était un Groupe de TROIS maillages (le corps, deux ailes) — un vol de 5 à 9 oiseaux, deux ou trois
+     vols à la fois, soit 30 à 60 appels de dessin rien que pour les grues sur l'ordi (le téléphone ne les a pas : JADE_SOBRE). Désormais trois
+     InstancedMesh (les corps, les ailes gauches, les ailes droites) : TROIS appels, la même image — chaque oiseau garde sa pose (un Object3D
+     hors scène), ses ailes battent pareil. L'aile gauche n'est plus l'aile droite à l'échelle −1 (une instance ne retourne pas ses faces) :
+     c'est son MIROIR taillé une fois (x opposé, ordre des sommets inversé : mêmes normales que le maillage retourné d'avant). */
+  {const gL=GRUE.gA.clone(),P9=gL.attributes.position.array,C9=gL.attributes.color.array;
+   for(let i=0;i<P9.length;i+=9){P9[i]=-P9[i];P9[i+3]=-P9[i+3];P9[i+6]=-P9[i+6];for(const A9 of [P9,C9])for(let k=0;k<3;k++){const x=A9[i+3+k];A9[i+3+k]=A9[i+6+k];A9[i+6+k]=x;}}
+   gL.computeVertexNormals();GRUE.gAL=gL;}
+  GRUE.im=[GRUE.gC,GRUE.gAL,GRUE.gA].map(function(g9){const im=new THREE.InstancedMesh(g9,GRUE.M,GRUE.CAP);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);im.frustumCulled=false;im.matrixAutoUpdate=false;im.count=0;im.visible=false;scene.add(im);return im;});}
+GRUE.CAP=32;GRUE.mA=new THREE.Matrix4();GRUE.mW=new THREE.Matrix4(); // (au plus 19 + un vol de 9) · les matrices de travail : rien d'alloué par image
+function grueChauffe(){const im=new THREE.InstancedMesh(GRUE.gC,GRUE.M,1);im.setMatrixAt(0,GRUE.mW.identity());im.frustumCulled=false;return im;} // une grue d'essai, du même genre que les vraies (les chauffes de programmes)
 function grueVol(){grueGeos();
   const fw=new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion);fw.y=0;if(fw.lengthSq()<1e-4)fw.set(0,0,1);fw.normalize();
   const rt=new THREE.Vector3(fw.z,0,-fw.x),sg=Math.random()<.5?-1:1;
   const base=carGroup.position.clone().addScaledVector(fw,260+Math.random()*260).addScaledVector(rt,sg*(260+Math.random()*120));base.y+=10+Math.random()*70;
   const dir=rt.clone().multiplyScalar(-sg).addScaledVector(fw,(Math.random()-.3)*.6).normalize(),n=5+((Math.random()*5)|0),sp=15+Math.random()*5,S=5.5+Math.random()*1.5;
   const side=new THREE.Vector3(dir.z,0,-dir.x);
-  for(let k=0;k<n;k++){const g=new THREE.Group(),rang=Math.ceil(k/2),cote=k%2?1:-1;
-    const c=new THREE.Mesh(GRUE.gC,GRUE.M),wl=new THREE.Mesh(GRUE.gA,GRUE.M),wr=new THREE.Mesh(GRUE.gA,GRUE.M);
-    wr.position.set(.12,.05,.2);wl.position.set(-.12,.05,.2);wl.scale.x=-1;g.add(c,wl,wr);g.scale.setScalar(S);
+  for(let k=0;k<n;k++){const g=new THREE.Object3D(),rang=Math.ceil(k/2),cote=k%2?1:-1; // la pose de l'oiseau (hors scène : ses trois instances la lisent)
+    g.scale.setScalar(S);
     g.position.copy(base).addScaledVector(dir,-rang*S*2.6).addScaledVector(side,cote*rang*S*2.2);g.position.y+=rang*S*.25;
-    g.lookAt(g.position.clone().add(dir));scene.add(g);
-    GRUE.L.push({g:g,wl:wl,wr:wr,v:dir.clone().multiplyScalar(sp),ph:k*.35+Math.random()*.3,life:42});}
+    g.lookAt(g.position.clone().add(dir));
+    GRUE.L.push({g:g,v:dir.clone().multiplyScalar(sp),ph:k*.35+Math.random()*.3,life:42});}
 }
 function grueTick(dt){
   const ici=!!JADE.root&&LVL.cur&&LVL.cur.id==='jade'&&mode!=='boom'&&!JADE_SOBRE;
@@ -27219,9 +27332,14 @@ function grueTick(dt){
   const t=JADE_U.uTime.value;
   for(let i=GRUE.L.length-1;i>=0;i--){const b=GRUE.L[i];b.life-=dt;if(!ici)b.life=0;
     b.g.position.addScaledVector(b.v,dt);b.g.position.y+=Math.sin(t*.6+b.ph)*.6*dt;
-    const pl=Math.max(0,Math.sin(t*.35+b.ph*.5)),a=(.15+.55*(1-pl))*Math.sin(t*5.2+b.ph*2.4)+.08*pl; // battements lents… puis le vol plané
-    b.wr.rotation.z=a;b.wl.rotation.z=-a;
-    if(b.life<=0){scene.remove(b.g);GRUE.L.splice(i,1);}}
+    const pl=Math.max(0,Math.sin(t*.35+b.ph*.5));b.a=(.15+.55*(1-pl))*Math.sin(t*5.2+b.ph*2.4)+.08*pl; // battements lents… puis le vol plané
+    if(b.life<=0)GRUE.L.splice(i,1);}
+  if(!GRUE.im)return;
+  const n=Math.min(GRUE.L.length,GRUE.CAP),I9=GRUE.im,mA=GRUE.mA,mW=GRUE.mW;
+  for(let i=0;i<n;i++){const b=GRUE.L[i],a=b.a||0;b.g.updateMatrix();I9[0].setMatrixAt(i,b.g.matrix);
+    mW.makeRotationZ(-a).setPosition(-.12,.05,.2);I9[1].setMatrixAt(i,mA.multiplyMatrices(b.g.matrix,mW)); // l'aile gauche (le miroir)
+    mW.makeRotationZ(a).setPosition(.12,.05,.2);I9[2].setMatrixAt(i,mA.multiplyMatrices(b.g.matrix,mW));}   // l'aile droite
+  for(const im of I9){if(im.count!==n)im.count=n;if(im.visible!==(n>0))im.visible=n>0;if(n)im.instanceMatrix.needsUpdate=true;}
 }
 /* ---- EN VOL : les CUBES sont durs — la montagne et le rocher (la grille de leur gabarit, au quart de tour près), la muraille, l'arche.
    La caisse compte pour cinq points (son centre et ±1,4 m de chaque côté). ---- */
@@ -27232,7 +27350,7 @@ const V9J=new THREE.Vector3();
 function jadeHeurt(p){
   const C=JADE.col;if(!C||!JADE.root)return false;
   for(const o of JH){const x=p.x+o[0],z=p.z+o[1];
-    const a=C.g.get(Math.floor(x/C.CG)+','+Math.floor(z/C.CG));
+    const a=C.g.get(Math.floor(x/C.CG)*100003+Math.floor(z/C.CG));
     if(a)for(let j=0;j<a.length;j++){if(C.mort&&C.mort.has(a[j]))continue;const q=C.P[a[j]];if(p.y<q[3]-1||p.y>q[4]+1)continue;const dx=x-q[0],dz=z-q[1];if(dx*dx+dz*dz>(q[2]+1)*(q[2]+1))continue;
       if(jadePilierDans(q,x,p.y,z))return true;}
     /* (2026-10-21, Léo : « on traverse les montagnes qui tombent ») les montagnes en chute gardent leur hitbox : le point est ramené dans leur repère d'origine */
@@ -27252,7 +27370,7 @@ function jadeHeurt(p){
 function jadeChauffeNiveau(){ if(!JADE.root||!JADE.root.parent)return;
   try{for(const o of JADE.monu||[])jadeMonuLoin(o);}catch(e){console.warn('monument de loin',e);} // (2026-10-14, passe perf mobile) le monument allégé de loin, paliers 0-1 (une fois par carte)
   let g=null;const eau=[],vu=[];
-  try{grueGeos();g=new THREE.Group();g.add(new THREE.Mesh(GRUE.gC,GRUE.M));
+  try{grueGeos();g=new THREE.Group();g.add(grueChauffe()); /* (2026-11-03) la grue est INSTANCIÉE : son programme aussi (USE_INSTANCING) */
     const m0=JADE.monu&&JADE.monu.find(function(o){return o.L&&o.L[0];}); // les monuments changent de matière à 450 m (vrOM au loin → vrM de près) : la matière de PRÈS aussi
     if(m0)g.add(new THREE.Mesh(m0.L[0].geometry,m0.L[0].material===JADE_M.vrM?JADE_M.vrOM:JADE_M.vrM));
     scene.add(g);
@@ -27264,7 +27382,7 @@ function jadeChauffeNiveau(){ if(!JADE.root||!JADE.root.parent)return;
     for(const o of eau){if(!o)continue;vu.push([o,o.visible]);o.visible=true;const h=haut(o);if(h&&Q.indexOf(h)<0)Q.push(h);}
     chauffeRendu(Q);}
   catch(e){console.warn('jadeChauffeNiveau',e);}
-  finally{if(g)scene.remove(g);for(const v of vu)v[0].visible=v[1];
+  finally{if(g){scene.remove(g);for(const o of g.children)if(o.isInstancedMesh)o.dispose();}for(const v of vu)v[0].visible=v[1];
     try{for(const r9 of EAUR.L){r9.t=9;r9.m.visible=false;}for(const r9 of COUR.L){r9.t=9;r9.m.visible=false;}}catch(e){}} }
 /* (2026-10-14, passe perf mobile) LES PROGRAMMES DU SOLEIL DE JADE COMPILÉS AU MENU, SANS BÂTIR LA CARTE. MESURÉ (iPhone 7 émulé, ×4) : au
    portail ville → jade, 17 programmes naissaient d'un coup (163 → 180 liens, une image de ~580 ms ; 6,1 s vue au REJOUER tiré sur le jade) —
@@ -27284,7 +27402,7 @@ function jadeChauffeProgs(k){const lots=jadeChauffeLots();if(k>=lots.length)retu
   const L9=[],tmp=[],vu=[];let box=null;
   try{box=new THREE.BoxGeometry(1,1,1);
     if(lots[k][0][1]==='E'){
-      try{grueGeos();tmp.push(new THREE.Mesh(GRUE.gC,GRUE.M));}catch(e){}
+      try{grueGeos();tmp.push(grueChauffe());}catch(e){}
       try{if(!JADE_CHP.lam)JADE_CHP.lam=new THREE.MeshLambertMaterial({color:0xf4f8fa,emissive:0x2a3238});const im=new THREE.InstancedMesh(box,JADE_CHP.lam,1);im.setMatrixAt(0,JADE_CHP.m.identity());tmp.push(im);}catch(e){}
       try{const eau=[jadePeau(),sillonMesh(),jadeBullesIm(),eauPIm(),eauBIm()];eauRide(0,-1e5,0,0);eauCouronne(0,-1e5,0,{r0:1,r1:2,h:1,fl:0,d:1,fx:0,fz:0});
         for(const r9 of EAUR.L)eau.push(r9.m);for(const r9 of COUR.L)eau.push(r9.m);
@@ -29472,35 +29590,40 @@ BIOMES.jadeOrage=bioMet(BIOMES.jadePluie,{nm:'JADE · ORAGE',fogN:90,fogF:1150,s
    mirage, tempête, paillettes], dnK = [satin, rides, lumière enveloppée, —], dnW / dnX = l'eau claire / profonde de l'oasis. cyR = les dunes et les
    pyramides de l'horizon (uCyDn). Le temps « pluie » est un VENT DE SABLE (pas une goutte), l'« orage » une TEMPÊTE DE SABLE (orage sec : les éclairs
    dans la poussière). */
+/* (2026-11-03, passe « maps cohérentes », Sacha : « fais les dunes d'or de manière parfaite » — MESURÉ au banc, Lab des photos) L'OR RESTE DE L'OR : au SOIR (la
+   carte postale) le sable vu en contre-jour sortait LILAS (L* 65, teinte −36°, chroma 33-38) — l'ombre lavande `dnS` (la palette de Léo, 27/10 : gardée), poussée
+   à 1,2 (`dnE[0]`), REMPLAÇAIT la teinte du sable ; au MATIN la face à l'ombre était un indigo saturé (chroma 43). La lavande reste, moins forte (`dnE[0]` ,9 le soir,
+   ,85 le matin) : l'or du sable passe à travers ; le ciel du soir (variante rose) moins mauve. La NUIT devient d'ARGENT (le sable gris argent et non mauve, l'ombre
+   argent-bleu, voir aussi CONTI.nuits) ; le VENT DE SABLE moins orange (chroma 56 au sable). */
 {const dnB=function(b,o){return bioMet(BIOMES[b],o);};
  BIOMES.dunesMatin=dnB('canyonMatin',{nm:'DUNES · MATIN',jZen:[.08,.27,.66],jMid:[.34,.48,.78],jHor:[.98,.70,.58],jSol:[.7,.38,.20],
    fog:[.94,.72,.62],fogN:600,fogF:7800,fogCj:[1,.78,.60],fogIn:[.96,.86,.82],hemiS:[.40,.52,.86],hemiG:[.72,.46,.34],hemiI:.58,sunC:[1,.74,.48],sunI:1.6,fillC:[.38,.48,.90],fillI:.26,
    env:[[0,'#4E8FDA'],[.3,'#A9B2DA'],[.48,'#F8D6BC'],[.58,'#FFE2C4'],[.66,'#E2A27E'],[1,'#9A5A3E']],
    cyZ:[.08,.27,.66],cyM:[.34,.48,.78],cyH:[.98,.70,.58],cyS:[1,.68,.44],cyB:[.90,.50,.64],cyC:[1,.82,.74],cyD:[.46,.42,.60],cyR:[.94,.64,.54],
    cyK:[.58,.3,0,0],cyN:[.9,.9,1.3,0],cyA:[10,68,0,0],
-   dnA:[.96,.76,.54],dnB:[.86,.58,.38],dnL:[1,.88,.72],dnS:[.52,.56,1.0],dnC:[.98,.88,.84],dnV:[.17,.34,.11],dnH:[.98,.80,.70],dnQ:[.30,.20,0,.6],dnK:[.55,1,.25,1],dnW:[.14,.64,.66],dnX:[.03,.24,.36]});
+   dnA:[.96,.76,.54],dnB:[.86,.58,.38],dnL:[1,.88,.72],dnS:[.52,.56,1.0],dnC:[.98,.88,.84],dnV:[.17,.34,.11],dnH:[.98,.80,.70],dnQ:[.30,.20,0,.6],dnK:[.55,1,.25,1],dnW:[.14,.64,.66],dnX:[.03,.24,.36],dnE:[.85,1,.8,1]});
  BIOMES.dunesMidi=dnB('canyonMidi',{nm:'DUNES · MIDI',jZen:[.02,.20,.66],jMid:[.12,.48,.86],jHor:[.92,.80,.62],jSol:[.36,.30,.18],
    fog:[.90,.80,.64],fogN:900,fogF:9800,fogCj:[1,.86,.64],fogIn:[.96,.92,.84],hemiS:[.40,.62,1.0],hemiG:[.82,.56,.36],hemiI:.52,sunC:[1,.94,.82],sunI:1.35,fillC:[.44,.62,.95],fillI:.18,
    env:[[0,'#2F86E0'],[.3,'#6CC2EE'],[.48,'#E6E2D6'],[.58,'#FFF6E6'],[.66,'#EAB27E'],[1,'#A8643C']],
    cyZ:[.02,.20,.66],cyM:[.12,.48,.86],cyH:[.92,.80,.62],cyS:[1,.95,.86],cyB:[.72,.70,.78],cyC:[1,1,.98],cyD:[.56,.64,.78],cyR:[.94,.72,.52],
    cyK:[.74,.3,0,0],cyN:[0,.6,1.8,0],cyA:[50,205,0,0],
    dnA:[.92,.76,.46],dnB:[.82,.62,.34],dnL:[.99,.90,.70],dnS:[.42,.50,.92],dnC:[1,.94,.86],dnV:[.14,.34,.09],dnH:[.94,.86,.68],dnQ:[.22,1,0,1],dnK:[.45,1,.2,.62],dnW:[.10,.72,.70],dnX:[.02,.30,.40]});
- BIOMES.dunesSoir=dnB('canyonSoir',{nm:'DUNES · SOIR',jZen:[.08,.10,.40],jMid:[.50,.30,.46],jHor:[1,.58,.32],jSol:[1,.52,.22],
-   fog:[.96,.62,.42],fogN:700,fogF:8200,fogCj:[1,.68,.42],fogIn:[1,.84,.72],hemiS:[.62,.60,.78],hemiG:[.88,.70,.54],hemiI:.74,sunC:[1,.74,.46],sunI:1.7,fillC:[.42,.44,.95],fillI:.36,
+ BIOMES.dunesSoir=dnB('canyonSoir',{nm:'DUNES · SOIR',jZen:[.08,.10,.40],jMid:[.56,.36,.46],jHor:[1,.58,.32],jSol:[1,.52,.22],
+   fog:[.96,.62,.42],fogN:700,fogF:8200,fogCj:[1,.68,.42],fogIn:[1,.84,.72],hemiS:[.66,.62,.72],hemiG:[.88,.70,.54],hemiI:.74,sunC:[1,.74,.46],sunI:1.7,fillC:[.42,.44,.95],fillI:.36,
    env:[[0,'#4A4FA6'],[.3,'#B0749A'],[.48,'#FFB27E'],[.58,'#FFC88C'],[.66,'#E0663A'],[1,'#74301C']],
-   cyZ:[.08,.10,.40],cyM:[.50,.30,.46],cyH:[1,.58,.32],cyS:[1,.52,.22],cyB:[.82,.46,.58],cyC:[1,.68,.46],cyD:[.36,.26,.42],cyR:[.78,.46,.38],
+   cyZ:[.08,.10,.40],cyM:[.56,.36,.46],cyH:[1,.58,.32],cyS:[1,.52,.22],cyB:[.82,.46,.58],cyC:[1,.68,.46],cyD:[.40,.30,.40],cyR:[.78,.46,.38],
    cyK:[.55,.35,0,0],cyN:[.6,1.3,1.25,0],cyA:[5,-104,0,0],
-   dnA:[1,.84,.62],dnB:[.96,.72,.54],dnL:[1,.92,.78],dnS:[.76,.70,.94],dnC:[1,.84,.70],dnV:[.17,.30,.09],dnH:[1,.74,.52],dnQ:[.32,.40,0,.85],dnK:[.65,1,.30,1],dnW:[.16,.48,.56],dnX:[.03,.14,.26],dnE:[1.2,1,.9,1.2]});
+   dnA:[1,.84,.62],dnB:[.96,.72,.54],dnL:[1,.92,.78],dnS:[.76,.70,.94],dnC:[1,.84,.70],dnV:[.17,.30,.09],dnH:[1,.74,.52],dnQ:[.32,.40,0,.85],dnK:[.65,1,.30,1],dnW:[.16,.48,.56],dnX:[.03,.14,.26],dnE:[.9,1,.9,1.2]});
  BIOMES.dunesNuit=dnB('canyonNuit',{nm:'DUNES · NUIT',cyA:[34,150,0,0],cyR:[.10,.09,.20], /* (MESURÉ à la photo : un sable clair sous la lune sortait blanc rosé comme de la neige — le sable de nuit est sombre, la crête argentée) */
-   dnA:[.40,.34,.36],dnB:[.34,.27,.30],dnL:[.62,.66,.86],dnS:[.50,.56,1.15],dnC:[.55,.56,.66],dnV:[.10,.20,.14],dnH:[.10,.10,.24],dnQ:[.25,0,0,.4],dnK:[.7,1,.3,1],dnW:[.04,.10,.16],dnX:[.01,.03,.06],dnE:[1.1,1,.5,.9],dnP:[.62,.78,1,1]});
+   dnA:[.38,.37,.40],dnB:[.31,.29,.33],dnL:[.70,.76,.90],dnS:[.60,.66,.92],dnC:[.55,.56,.66],dnV:[.10,.20,.14],dnH:[.09,.11,.22],dnQ:[.25,0,0,.4],dnK:[.7,1,.3,1],dnW:[.04,.10,.16],dnX:[.01,.03,.06],dnE:[.8,1,.5,.9],dnP:[.62,.78,1,1]});
  BIOMES.dunesVent=dnB('canyonMidi',{nm:'DUNES · VENT DE SABLE',jZen:[.24,.30,.42],jMid:[.56,.48,.40],jHor:[.88,.66,.44],jSol:[.5,.36,.2],
    fog:[.80,.60,.40],fogN:140,fogF:2800,fogCj:[.92,.70,.46],fogIn:[.88,.70,.52],hemiS:[.62,.58,.62],hemiG:[.62,.44,.30],hemiI:.78,sunC:[1,.80,.58],sunI:.95,fillC:[.50,.50,.62],fillI:.2,
    env:[[0,'#7A7E8C'],[.3,'#A69A88'],[.48,'#D8B48A'],[.58,'#E6C49A'],[.66,'#B8865A'],[1,'#6A4428']],
    cyZ:[.24,.30,.42],cyM:[.56,.48,.40],cyH:[.88,.66,.44],cyS:[1,.78,.52],cyB:[0,0,0],cyC:[.96,.74,.48],cyD:[.58,.40,.26],cyR:[.80,.58,.40],
    cyK:[0,0,0,0],cyN:[0,1.1,.7,.55],cyA:[42,160,0,0],
-   dnA:[.98,.64,.34],dnB:[.90,.46,.24],dnL:[1,.80,.58],dnS:[.70,.66,.90],dnC:[.94,.86,.76],dnV:[.22,.40,.14],dnH:[.86,.64,.42],dnQ:[.85,0,.6,.15],dnK:[.35,.7,.35,1],dnW:[.30,.40,.36],dnX:[.10,.14,.14],dnE:[.7,.8,.3,.3],dnP:[1,.8,.5,.4]});
+   dnA:[.96,.68,.42],dnB:[.86,.52,.32],dnL:[1,.80,.58],dnS:[.70,.66,.90],dnC:[.94,.86,.76],dnV:[.22,.40,.14],dnH:[.86,.64,.42],dnQ:[.85,0,.6,.15],dnK:[.35,.7,.35,1],dnW:[.30,.40,.36],dnX:[.10,.14,.14],dnE:[.7,.8,.3,.3],dnP:[1,.8,.5,.4]});
  BIOMES.dunesTempete=dnB('canyonOrage',{nm:'DUNES · TEMPÊTE DE SABLE',jZen:[.10,.06,.05],jMid:[.30,.16,.09],jHor:[.58,.32,.16],jSol:[0,0,0],
-   fog:[.34,.19,.10],fogN:70,fogF:1300,fogCj:[.46,.26,.13],fogIn:[.42,.25,.15],hemiS:[.46,.34,.30],hemiG:[.30,.18,.09],hemiI:.55,sunC:[1,.60,.34],sunI:.55,fillC:[.48,.38,.50],fillI:.24,
+   fog:[.34,.19,.10],fogN:70,fogF:1300,fogCj:[.46,.26,.13],fogIn:[.42,.25,.15],hemiS:[.46,.34,.30],hemiG:[.26,.18,.11],hemiI:.55,sunC:[1,.60,.34],sunI:.55,fillC:[.48,.38,.50],fillI:.24,
    env:[[0,'#3A2A22'],[.3,'#5A3E2C'],[.48,'#8A5C38'],[.58,'#9A6A40'],[.66,'#5A3A24'],[1,'#20140C']],
    cyZ:[.10,.06,.05],cyM:[.30,.16,.09],cyH:[.58,.32,.16],cyS:[.9,.5,.25],cyB:[0,0,0],cyC:[.66,.38,.18],cyD:[.24,.12,.06],cyR:[.40,.22,.11],
    cyK:[0,0,0,0],cyN:[0,.8,.3,.9],cyA:[36,170,0,0],
@@ -29522,7 +29645,7 @@ BIOMES.foretMatin=bioMet(BIOMES.matin,{nm:'FORÊT · MATIN',jZen:[.11,.35,.72],j
   env:[[0,'#5E9FDD'],[.3,'#9CC4D6'],[.48,'#E8DCC0'],[.58,'#F2E6CC'],[.66,'#6E7A5A'],[1,'#2E3A26']],eS1:[255,236,200,.44],eS2:[170,210,235,.28]});
 BIOMES.foretMidi=bioMet(BIOMES.midi,{nm:'FORÊT · MIDI',jZen:[.05,.28,.74],jMid:[.21,.48,.82],jHor:[.62,.81,.93],jSol:[.30,.28,.20],sunTint:[1,.97,.90],sunHalo:.55,
   fogN:140,fogF:2700,fogCj:[.92,.93,.86],fogIn:[.86,.92,.90],hemiS:[.68,.80,.98],hemiG:[.32,.42,.22],hemiI:.78,sunI:1.6,fillC:[.48,.64,.90],fillI:.2,
-  expo:.98,con:1.18,rtK:.85,sh:[0,.008,.03],hi:[.01,.006,-.006],vigK:.2,vigC:[.03,.045,.05],bloomS:.42,
+  expo:.98,con:1.18,rtK:.72,sh:[0,.008,.03],hi:[.01,.006,-.006],vigK:.2,vigC:[.03,.045,.05],bloomS:.42,
   env:[[0,'#3F8FE0'],[.3,'#7FB8EA'],[.48,'#D8ECF2'],[.58,'#FFFFFF'],[.66,'#6E8A5E'],[1,'#2A3A24']],eS2:[150,205,250,.3]});
 BIOMES.foretSoir=bioMet(BIOMES.nuagesSoir,{nm:'FORÊT · SOIR',jZen:[.10,.115,.39],jMid:[.46,.30,.32],jHor:[1,.49,.25],jSol:[1,.50,.20],sunTint:[1,.62,.38],sunHalo:1,stars:.15,moon:0,
   fog:[.92,.50,.28],fogN:100,fogF:2200,fogCj:[1,.72,.48],fogIn:[1,.88,.78],hemiS:[.52,.50,.70],hemiG:[.30,.24,.16],sunC:[1,.68,.42],fillC:[.42,.40,.66],fillI:.2,
@@ -29538,7 +29661,8 @@ BIOMES.foretPluie=bioMet(BIOMES.nuagesPluie,{nm:'FORÊT · PLUIE',jZen:[.155,.21
   env:[[0,'#3a4450'],[.3,'#5a646e'],[.48,'#8a9298'],[.58,'#9aa2a6'],[.66,'#4a5650'],[1,'#262e2a']],eS1:[200,214,226,.3],eS2:[150,170,186,.25]});
 BIOMES.foretOrage=bioMet(BIOMES.tempete,{nm:'FORÊT · ORAGE',jour:1,jZen:[.013,.020,.051],jMid:[.035,.05,.10],jHor:[.068,.093,.162],sunTint:[.7,.75,.9],
   fog:[.10,.12,.13],fogN:50,fogF:1000,fogCj:[.24,.29,.31],fogIn:[.28,.32,.33],hemiS:[.36,.42,.50],hemiG:[.07,.09,.09],hemiI:.52,sunC:[.62,.70,.82],sunI:.5,fillC:[.30,.40,.52],fillI:.26,kickI:.18,
-  expo:.9,sat:.9,con:1.18,rtK:.85,sh:[0,.01,.02],hi:[0,0,0],daCon:.4,daExpo:1.1,vigK:.45,vigC:[.015,.02,.025],bloomS:.5,bloomT:.92});
+  expo:.9,sat:.9,con:1.18,rtK:1.15,sh:[0,.01,.02],hi:[0,0,0],daCon:.4,daExpo:1.1,vigK:.45,vigC:[.015,.02,.025],bloomS:.5,bloomT:.92});
+/* (2026-11-03, maps cohérentes : la route repère commun, L* 32-45 de jour) LE BÉTON DE LA FORÊT, MESURÉ au banc : à MIDI il sortait à L* 45-52 (le plus clair des maps, la caisse beige s'y perdait) → rtK ,85 → ,72 : L* 40-46 ; sous l'ORAGE il était NOIR (L* 0-4) → rtK ,85 → 1,15 (avec l'exposition rendue, voir « LA FORÊT CONTRASTÉE » dans continuite.js) : L* 19-20. */
 /* LA BANQUISE — SES SIX TEMPS (2026-10-14, Sacha : « fais une map absolument magnifique »). Écrites d'après la CHARTE (jour:1, couleurs du ciel et
    brume en LINÉAIRE, sat ≤ 1,03 de jour, ≤ 1,07 le soir, ≤ ,95 la nuit, la neige et le blizzard ; con ≤ 1,24). Identité de la map : le BLEU
    PROFOND du ciel d'altitude contre la neige, des OMBRES BLEUES (jamais grises), la glace TURQUOISE, le rose de l'alpenglow aux heures
@@ -30000,9 +30124,9 @@ const CONTI={
     canyonNuit:{cyZ:[.04,.05,.22],cyM:[.09,.07,.27],cyH:[.12,.06,.18],cyC:[.12,.12,.20],cyD:[.03,.03,.07],cyR:[.04,.04,.10],cyF:[.07,.06,.15],cyL:[.18,.15,.22],
       jZen:[.04,.05,.22],jMid:[.09,.07,.27],jHor:[.12,.06,.18],fog:[.05,.045,.12],fogCj:[.12,.12,.24],fogIn:[.14,.14,.24],
       hemiS:[.28,.32,.64],hemiG:[.10,.06,.09],hemiI:.46,sunC:[.60,.70,1],sunI:.62,fillC:[.48,.30,.78],fillI:.22,expo:.9}, // (mesuré : à .95 la lune blanchissait les parois des Étroits comme en plein jour)
-    dunesNuit:{cyZ:[.04,.05,.22],cyM:[.09,.07,.27],cyH:[.16,.10,.26],cyC:[.12,.12,.20],cyD:[.03,.03,.07],cyR:[.12,.11,.25],cyF:[.07,.06,.15],cyL:[.18,.15,.22], /* (MESURÉ à la photo : la brume du canyon, plus sombre que le sable lunaire, faisait une BANDE NOIRE à l'horizon — la bible : une brume indigo PLUS CLAIRE que les silhouettes) */
-      jZen:[.04,.05,.22],jMid:[.09,.07,.27],jHor:[.16,.10,.26],fog:[.13,.12,.27],fogCj:[.20,.17,.34],fogIn:[.18,.17,.30],
-      hemiS:[.30,.34,.66],hemiG:[.12,.08,.10],hemiI:.50,sunC:[.62,.72,1],sunI:.70,fillC:[.48,.30,.78],fillI:.22,expo:.92}, // (2026-10-18) LES DUNES D'OR : la nuit du canyon, la lune un peu plus forte (le sable la renvoie)
+    dunesNuit:{cyZ:[.03,.07,.26],cyM:[.07,.11,.30],cyH:[.13,.16,.28],cyC:[.12,.12,.20],cyD:[.03,.03,.07],cyR:[.11,.13,.25],cyF:[.07,.06,.15],cyL:[.18,.15,.22], /* (MESURÉ à la photo : la brume du canyon, plus sombre que le sable lunaire, faisait une BANDE NOIRE à l'horizon — la bible : une brume indigo PLUS CLAIRE que les silhouettes) */
+      jZen:[.03,.07,.26],jMid:[.07,.11,.30],jHor:[.13,.16,.28],fog:[.12,.14,.27],fogCj:[.17,.20,.33],fogIn:[.17,.19,.30],
+      hemiS:[.30,.38,.64],hemiG:[.12,.08,.10],hemiI:.50,sunC:[.62,.72,1],sunI:.70,fillC:[.24,.50,.56],fillI:.22,expo:.92}, // (2026-10-18) LES DUNES D'OR : la nuit du canyon, la lune un peu plus forte (le sable la renvoie) · (2026-11-03, passe « maps cohérentes ») LA NUIT D'ARGENT : le ciel marine (plus d'indigo-violet : la photo tenait L* 4-6, chroma 44-56 au ciel, le noir violet), l'horizon argent-bleu, le remplissage à l'ACCENT turquoise de la map (le violet était celui du canyon)
     foretNuit:{jZen:[.05,.07,.26],jMid:[.09,.10,.30],jHor:[.10,.09,.24],fog:[.07,.08,.16],fogCj:[.14,.16,.26],fogIn:[.16,.18,.26],
       hemiS:[.34,.42,.72],hemiG:[.06,.09,.09],hemiI:.66,sunC:[.68,.78,1],sunI:1.0,fillC:[.24,.52,.42],fillI:.26,expo:1.0},
     banqNuit:{jZen:[.04,.06,.24],jMid:[.07,.11,.30],jHor:[.06,.13,.22],fog:[.045,.06,.14],fogCj:[.12,.24,.28],fogIn:[.12,.20,.26],
@@ -30021,6 +30145,10 @@ const CONTI={
      un horizon qui brûle sans saturer tout l'écran */
   jours:{
     canyonMidi:{rtK:.6,sunI:1.6},dunesMidi:{rtK:.6,sunI:1.6},
+    /* (2026-11-03, passe maps cohérentes · canyon) LE SOIR du canyon : le ciel lavande et le remplissage bleu-violet peignaient la route et les gorges en MAUVE — un
+       bleu de crépuscule (la clé chaude, l'ombre froide, sans magenta) : la route redevient ardoise, la roche terre cuite. LA PLUIE : la gorge tombait au noir (ciel ,8) ; L'ORAGE aussi */
+    canyonSoir:{hemiS:[.38,.44,.70],fillC:[.40,.50,.88]},canyonPluie:{hemiI:1.05},canyonOrage:{hemiI:1,hemiS:[.30,.36,.50]}, /* L'ORAGE : la gorge était un trou noir (ciel ,55) — l'ardoise de la charte */
+    dunesVent:{rtK:.66,rtT:[.95,1,1.08]},dunesTempete:{rtA:.3,rtT:[.84,1,1.2]}, // (2026-11-03, passe « maps cohérentes », MESURÉ) le béton du VENT DE SABLE sortait à L* 48-54 (cible 32-45) et celui de la TEMPÊTE rouille (chroma 40-60 : les autres orages 8-13, la caisse rouge s'y perdait) — il garde la poussière, plus la rouille
     nuagesMatinCC:{rtT:[.97,1,1.05]},nuagesMidiCC:{rtT:[.97,1,1.05]}, // (mesuré) la route des nuages de jour était déjà NEUTRE (ROUTE_JOUR) : la teinte commune la faisait beige
     nuagesSoir:{volSun:[1.95,1.65,1.40]}}
 };
@@ -30048,7 +30176,7 @@ const CONTI={
      avait tourné les lumières en bleu franc : elles sont ramenées à moitié vers leur gris (jade garde son lavis vert-de-gris). */
 {const EQ9={
   vitreMatin:{sat:1.2},vitreMidi:{rtK:.7,sat:1.18},vitreSoir:{rtK:.78,sat:1.22},vitreNuit:{rtK:.78,sat:1.1},vitrePluie:{sat:1.1},
-  cryptoMatin:{sat:1.2},bullrun:{sat:1.2},cryptoSoir:{sat:1.26},cryptoNuit:{rtK:.55,sat:1.18}};
+  cryptoMatin:{sat:1.2,rtK:.86},bullrun:{sat:1.2,rtK:.88},cryptoSoir:{sat:1.26,rtK:.72},cryptoNuit:{rtK:.55,sat:1.18}}; /* (2026-11-03, passe maps cohérentes) rtK du JOUR de Crypto City — MESURÉ au départ : béton L* 46-54 au matin, 42-50 à midi, 40-42 au SOIR (la forêt du soir 14-31, le canyon 20-22, le glacier 24-28 : la cible du soir est 22-30) */
  for(const k in EQ9)if(BIOMES[k])Object.assign(BIOMES[k],EQ9[k]);
  for(const k of ['jadePluie','jadeOrage'])if(BIOMES[k]){const b=BIOMES[k];
   for(const f of ['fog','fogIn','fogCj','hemiS','hemiG','fillC','sunC','volSun','volSky','volGnd']){if(!Array.isArray(b[f])||b[f].length<3)continue;
@@ -30060,7 +30188,7 @@ grtConti(); // (2026-10-18) LES PROFONDEURS : ses 24 ambiances prennent la recet
    NOIRS (moins de ciel, moins d'exposition) — la lune, les lucioles, les éclats et les phares ressortent. */
 for(const k of ['foretMatin','foretMidi','foretSoir','foretNuit','foretPluie','foretOrage'])if(BIOMES[k]){const b=BIOMES[k],n9=k==='foretNuit'||k==='foretOrage';
   b.con=(b.con||1)+(n9?.08:.06);b.vigK=(b.vigK||.3)+(n9?.08:.03);b.bloomS=(b.bloomS||.45)+.06;
-  if(n9){b.expo=(b.expo||1)*.84;b.hemiI=(b.hemiI||.5)*.7;}}
+  if(n9&&k==='foretNuit'){b.expo=(b.expo||1)*.84;b.hemiI=(b.hemiI||.5)*.7;}} /* (2026-11-03, maps cohérentes) l'ORAGE garde le contraste et la vignette de Léo mais plus l'exposition ×,84 ni le ciel ×,7 : MESURÉ, la route y tombait à L* 0-4 (80 % du bas de l'image sous L* 6, un trou noir — la charte : jamais) ; sans eux et avec rtK 1,15, L* 19-20, les fûts et la brume se lisent */
 function planetesAlea(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};} // (même générateur que mulberry32, local : la Terre en dépend à la construction)
 /* (2026-10-24) Mars, Jupiter et leurs bandes sont supprimés : il ne reste que la Terre. */
 const PLANETES_PEINTRES={};
@@ -54211,7 +54339,7 @@ const SPIN_SPR=[ /* (2026-11-05, Sacha : « retravaille le design des items à g
     '....kkkk....']}];
 function spinSprites(){ // les sept symboles + la boule du levier peints UNE fois (canvas → data URL) ; la feuille <style id="spinSpr"> les pose sur .spS0 … .spS7
   if(spinSprites.ok)return;spinSprites.ok=true;let css='';
-  SPIN_SPR.forEach(function(S,i){const Z=8,cv=document.createElement('canvas');n=S.r.length;cv.width=cv.height=n*Z;const c=cv.getContext('2d');
+  SPIN_SPR.forEach(function(S,i){const Z=8,cv=document.createElement('canvas'),n=S.r.length;cv.width=cv.height=n*Z;const c=cv.getContext('2d');
     for(let y=0;y<n;y++)for(let x=0;x<n;x++){const ch=S.r[y][x];if(ch==='.')continue;c.fillStyle=S.pal[ch]||'#ff00ff';c.fillRect(x*Z,y*Z,Z,Z);}
     let u='';try{u=cv.toDataURL('image/png');}catch(e){}
     css+='#spinM .spS'+i+',.spIco.spS'+i+'{background-image:url('+u+');--z:'+S.z+'}';});
@@ -56342,6 +56470,7 @@ const JDM={pret:false,chaud:false,node:new THREE.Group(),D:[],mode:null,part:0,t
   cv:new THREE.Vector3(),c0:new THREE.Vector3(),H:new THREE.Vector3(0,0,1),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),Xr:new THREE.Vector3(),
   X:new THREE.Vector3(),Y:new THREE.Vector3(),Z:new THREE.Vector3(),UP:new THREE.Vector3(0,1,0),AX:new THREE.Vector3(1,0,0),m:new THREE.Matrix4(),q:new THREE.Quaternion()};
 JDM.node.visible=false;scene.add(JDM.node);
+if(typeof SANS_DAUPHIN!=='undefined'&&!!SANS_DAUPHIN!==JADE_SOBRE)console.warn('SANS_DAUPHIN (la page) ≠ JADE_SOBRE (le jeu) : le test de page/bibliotheques.html a dérivé de ALLEGE'); // (2026-11-03) les deux tests doivent dire pareil
 function jdmActif(){return !JADE_SOBRE&&!!(started&&!gameOver&&jadeEauOk()&&!TUTO.on);}
 function jdmFabrique(){ // les trois dauphins (le modèle est bâti au chargement de creatures/dauphin.js) — une fois
   if(typeof mkDauphin!=='function'||typeof DOL_GEO==='undefined'||!DOL_GEO)return false;
@@ -56367,6 +56496,7 @@ function jdmJailli(vx,vy,vz){ // appelée par jadeEauVol au JAILLISSEMENT : la v
   if(JDM.mode!=='mer'||JDM.part||!(JDM.force||Math.random()<JDM_SAUT))return;JDM.force=false;
   JDM.D.forEach(function(E,i){E.sautT=.05+i*.13+Math.random()*.06;E.sV=[vx,vy,vz];});}
 function jdmTick(dt){
+  if(JADE_SOBRE)return; /* (2026-11-03) le téléphone ne les montre jamais (jdmActif) : ni fabrique, ni programmes compilés au menu — et la page ne taille plus leurs maillages (SANS_DAUPHIN, page/bibliotheques.html) */
   if(!JDM.pret){if(!jdmFabrique())return;JDM.pret=true;return;}
   if(!JDM.chaud){if(started&&!gameOver&&jadeEauOk())return; // (au menu : les trois programmes se compilent hors écran, une fois)
     JDM.chaud=true;JDM.node.visible=true;for(const E of JDM.D)E.d.visible=true;try{chauffeRendu([JDM.node]);}catch(e){}for(const E of JDM.D)E.d.visible=false;JDM.node.visible=false;return;}
@@ -61433,7 +61563,7 @@ try{document.documentElement.classList.toggle('fil',LEFIL.on);}catch(e){}
 function filEl(){
   if(LEFIL.el&&LEFIL.el.isConnected)return LEFIL.el;
   const h=document.getElementById('auraV2');if(!h)return null;
-  const e=document.createElement('div');e.id='fil';e.setAttribute('aria-hidden','true');h.appendChild(e);LEFIL.el=e;return e;
+  const e=document.createElement('div');e.id='fil';e.setAttribute('aria-hidden','true');document.body.appendChild(e);LEFIL.el=e;return e; /* (2026-11-05) dans <body> : en bas au centre, plus sous le compteur d'aura */
 }
 function filBase(s){return String(s).replace(/\s*[+×]\s*[\d.,$].*$/,'').trim();} /* le nom du geste, sans ses points ni son × */
 function fil(txt,col,niv){
