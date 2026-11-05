@@ -9910,7 +9910,8 @@ function estCouche(){return COUCHE_MQ?COUCHE_MQ.matches:innerWidth>innerHeight;}
 /* ACHAT_EUR (2026-11-05, Opus : jury INT-01 / INT-20, décision D3 « masquer partout tant que StoreKit n'existe pas ») : faux = ni l'écran ACHAT
    (#mShop), ni ses portes (la tuile de l'accueil, la BOUTIQUE du bas du garage, la porte des offres éphémères), ni le rayon ACHAT de la boutique.
    shopPaye reste, inerte. Les caisses en € ne comptent plus nulle part (caisse équipée, étage, missions « toutes »). `?achat=ancien` : l'ancien. */
-const ACHAT_EUR=/[?&]achat=ancien\b/.test(location.search);
+/* (2026-11-05, Sacha : « remet le, c'est tout, je m'en fous du jury ») ACHAT REVIENT SUR LE SITE : seule l'app iPhone (EN_APP) le garde coupé (preparer-www l'y cache aussi) ; `?achat=non` : la coupe du jury. */
+const ACHAT_EUR=(!EN_APP&&!/[?&]achat=non\b/.test(location.search))||/[?&]achat=ancien\b/.test(location.search);
 if(!ACHAT_EUR)try{const s9=document.createElement('style');s9.id='sansAchat';
   s9.textContent='html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],#mShop,#bdShop,.fnPorte){display:none!important}';
   document.head.appendChild(s9);}catch(e){}
