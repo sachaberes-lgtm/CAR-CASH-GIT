@@ -377,6 +377,8 @@ function chargementTout(){ while(!CHARGEMENT.fini)chargementPas(); }
 function chargementTick(now){ if(CHARGEMENT.fini)return false;
   if(!CHARGEMENT.t0)CHARGEMENT.t0=now;if(now-CHARGEMENT.t0>15000){chargementTout();return false;}
   chargementPas();return true; }
+const PHOTO_APRES=ALLEGE&&!/[?&]photoapres=0\b/.test(location.search);document.addEventListener('cc:revele',function(){CHAUFFE_R.tMenu=performance.now();}); /* (A2.d) l'instant où le menu paraît : les photos de caisses attendent la fin de la chauffe, 12 s au plus (voir photoCalme) */
+function photoInvVu(){try{const e=document.getElementById('gInv');return !!(e&&e.getBoundingClientRect().width>0&&getComputedStyle(e).visibility!=='hidden');}catch(x){return false;}}
 window.__ccCharge=function(){return CHARGEMENT.fini;};window.__ccChargeTout=chargementTout;window.dbgChargement=function(){return {on:CHARGEMENT.on,fini:CHARGEMENT.fini,reste:CHARGEMENT.E.map(function(e){return e[0];}),ms:CHARGEMENT.ms};};
 function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ces sous-arbres, sous l'éclairage de la scène (l'atelier, au menu)
   if(!CHAUFFE_R.rt){const t9=(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
