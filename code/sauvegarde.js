@@ -62,7 +62,7 @@ const SAVE={
        valeur >1 sur `.volume` lève, elle, une exception qui tuerait la lecture. */
     if(d.vol&&typeof d.vol==='object'){const q=(k,dv)=>{const x=+d.vol[k];return isFinite(x)?Math.min(1,Math.max(0,x)):dv;};
       c.vol={mus:q('mus',.62),sfx:q('sfx',1),vox:q('vox',1)};}
-    {const v9=Math.round(+d.vu);if(isFinite(v9)&&v9>0)c.vu=v9;} // (2026-10-14, session SON) la DERNIÈRE VISITE (ms) : la musique qui revient après une longue absence (MUS_RETOUR_H) — absente = inconnue
+    {const v9=Math.round(+d.vu);if(isFinite(v9)&&v9>0)c.vu=v9;}c.musRet=d.musRet?1:0; /* (2026-11-05, SON-05) la musique n'est remise qu'UNE fois par installation (voir musRetour) */ // (2026-10-14, session SON) la DERNIÈRE VISITE (ms) : la musique qui revient après une longue absence (MUS_RETOUR_H) — absente = inconnue
     c.tctl=(d.tctl==='pad')?'pad':'stick';c.q=(d.q==='net'||d.q==='haute')?d.q:'fast';c.sand=(d.sand===true);c.carr={};if(d.carr&&typeof d.carr==='object')for(const k of ['nuages','ville','espace','paris'])c.carr[k]=Math.max(0,Math.min(10,d.carr[k]|0)); // réglages MOBILE
     /* (2026-10-14, passe perf mobile) « JAMAIS CHOISI » ≠ « A CHOISI RAPIDE » : qChoisi=1 posé par les trois bascules IMAGE. Une sauvegarde
        d'AVANT ce champ (qChoisi absent) en 'net' a forcément choisi (le défaut a toujours été RAPIDE) ; en 'fast' on ne peut pas savoir : elle
@@ -198,7 +198,7 @@ const SAVE={
   neuf:!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences)&&!/[?&]garde=1/.test(location.search),
   load(){
     let d=null;
-    if(!this.neuf)try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){}
+    if(!this.neuf)try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){try{window.__ccNote('sauvegarde','lecture illisible : '+(e&&e.message||e),String(localStorage[this.K]||'').slice(0,80));localStorage[this.K+'_casse']=localStorage[this.K];}catch(_){}} /* (2026-11-05, HYG-15) un compte neuf sans un mot : désormais la boîte noire le sait, et la sauvegarde rongée est gardée à côté (_casse) */
     if(!d&&!this.neuf){ // première fois (ou clé rongée) : on ramasse l'ancien monde éparpillé
       try{d={best:+localStorage.rrBest5||0,
         leaders:JSON.parse(localStorage.rrLeaders5||'[]'),
@@ -227,17 +227,47 @@ const SAVE={
   },
   mark(){this.dirty=true;},
   natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
-  flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
+  flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){this.echec('localStorage',e);} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
-    if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
-  }catch(e){}},
-  export(){return btoa(unescape(encodeURIComponent(JSON.stringify(this.d))));}, // code à copier-coller
-  import(code){ // rend true si le code est valide — la désinfection repasse derrière
+    if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{const p9=window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});if(p9&&p9.catch)p9.catch(e=>this.echec('miroir natif',e));}catch(e){this.echec('miroir natif',e);}}
+  }catch(e){this.echec('flush',e);}},
+  /* ===== LE FLUSH QUI ÉCHOUE SE DIT (2026-11-05, Fable : « HYG-15 : un flush qui échoue affiche un mot à l'écran ») ===== quota plein, Safari privé, miroir natif refusé :
+     la sauvegarde restait « sale » (dirty) en silence, nouvel essai dans 30 s, et le joueur croyait sauvegarder. Désormais : une ligne dans la boîte noire (par cause, une
+     fois par minute) et UN mot à l'écran par session (« SAUVEGARDE IMPOSSIBLE »), `SAVE.panne` pour le banc. */
+  panne:null,
+  echec(ou,e){try{this.dirty=true;const m=ou+' · '+((e&&e.message)||e||'?'),t=Date.now();if(!this.panne||this.panne.m!==m||t-this.panne.t>60000){this.panne={m:m,t:t,n:(this.panne&&this.panne.m===m?this.panne.n:0)+1};try{window.__ccNote('sauvegarde',m);}catch(_){}}
+    if(!this.panneDit){this.panneDit=true;try{if(typeof toast==='function')toast((typeof pxi==='function'?pxi('alerte')+' ':'')+(typeof TR==='function'?TR('SAUVEGARDE IMPOSSIBLE'):'SAUVEGARDE IMPOSSIBLE'));}catch(_){}}}catch(_){}},
+  /* ===== EFFACER MA PROGRESSION, MÊME PENDANT LA LECTURE DU MIROIR (2026-11-05, Fable : « ECO-10 : l'effacement pendant la lecture du miroir natif se fait écraser → jeton
+     d'effacement + Preferences.remove ») ===== l'ancien chemin (mobile-tactile.js : SAVE.d=san(null); flush(); natif=2; reload) n'écrivait pas le miroir natif quand
+     il n'était pas encore lu (natif===1) : au rechargement, local vierge + témoin → relecture du miroir → l'ancienne progression revenait. `SAVE.efface()` pose un JETON
+     (cashcarSave_efface) lu par la relecture du miroir (qui le saute et efface le miroir), demande Preferences.remove, puis recharge. À appeler À LA PLACE du bloc de
+     mobile-tactile.js:938 (hors zone Fable : noté dans le rapport). */
+  efface(){
+    this.d=this.san(null);this.natif=2; /* plus aucune écriture jusqu'au rechargement */
+    try{localStorage[this.K+'_efface']='1';}catch(e){}
+    try{localStorage.removeItem(this.K);localStorage.removeItem(this.K+'_natif');localStorage.removeItem('ccLang');}catch(e){}
+    const P=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences,K=this.K;
+    let fait=false;const fin=function(){if(fait)return;fait=true;try{location.reload();}catch(e){}};
+    if(P){try{const p9=P.remove({key:K});if(p9&&p9.then)p9.then(fin,fin);else fin();}catch(e){fin();}setTimeout(fin,1500);}else fin();},
+  /* ===== LE CODE EST SCELLÉ, L'IMPORT BORNÉ (2026-11-05, Fable : « ECO-04 : SAVE.import accepte n'importe quel JSON → signe le code d'export (HMAC court côté client) et
+     borne tout à l'import (banque, étage, caisses possédées jamais en €) ») ===== un code {"v":2,"bank":1e30} donnait 1e30 $, {"ex":{"floor":90}} rendait toutes les caisses
+     « à toi », les premium (en €) comprises. Le code = base64(JSON) + '.' + sceau(JSON, secret) : un code sans sceau (d'avant ce jour, ou recopié d'un autre jeu) ou dont le
+     sceau ne colle pas est refusé ; un code scellé est de plus BORNÉ : banque, record et max ≤ 1e9, étage (clause de grand-père) sous la première caisse premium, caisses
+     possédées jamais en €. Le secret est dans le code (lisible) : ça arrête le copier-coller, pas un lecteur de source — c'est le but. */
+  sceau(s){let h=2166136261,k=0x9e3779b9;const t=s+'|1.61|CASH CAR scelle son code|'+s.length;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);h^=c;h=Math.imul(h,16777619);k=Math.imul(k^c,1540483477);k^=k>>>15;}return (h>>>0).toString(36)+(k>>>0).toString(36);},
+  export(){const s=JSON.stringify(this.d);return btoa(unescape(encodeURIComponent(s)))+'.'+this.sceau(s);}, // code à copier-coller
+  import(code){ // rend true si le code est valide (scellé) — la désinfection repasse derrière, puis les bornes de l'import
     try{
-      const d=JSON.parse(decodeURIComponent(escape(atob(String(code).trim()))));
+      code=String(code).trim();const p=code.lastIndexOf('.');if(p<0)return false; /* pas de sceau : refusé */
+      const s=decodeURIComponent(escape(atob(code.slice(0,p))));if(this.sceau(s)!==code.slice(p+1))return false; /* sceau faux : refusé */
+      const d=JSON.parse(s);
       if(typeof d.v!=='number')return false; // pas un code à nous
-      this.d=this.san(d);this.flush();return true;
+      const c=this.san(d);
+      c.bank=Math.min(c.bank,1e9);c.bankMax=Math.min(c.bankMax||0,1e9);c.best=Math.min(c.best,1e9);
+      {let prem=CAR_UNLOCK.length;for(let i=0;i<CAR_UNLOCK.length;i++)if(CAR_UNLOCK[i]&&CAR_UNLOCK[i].k==='premium'){prem=i;break;}c.ex.floor=Math.min(c.ex.floor,Math.max(0,prem-1));}
+      c.owned=c.owned.filter(i=>!(CAR_UNLOCK[i]&&CAR_UNLOCK[i].k==='premium'));
+      this.d=c;this.flush();return true;
     }catch(e){return false;}
   }
 };
@@ -253,7 +283,10 @@ const SAVE={
 /* ===== LE MIROIR ATTEND SA LECTURE JUSQU'AU BOUT (2026-11-03, audit p3) ===== si `Preferences.get` échoue ou ne répond jamais, `natif` reste à 1 mais le filet de 30 s / un réglage écrit quand même dans localStorage une sauvegarde (vierge) lisible : au lancement suivant le bloc était sauté, natif=0 et le 1er flush écrasait le secours natif — perte totale. Le TÉMOIN `cashcarSave_natif` (posé par flush tant que natif===1) force la relecture du miroir ; une sauvegarde locale qui a de vraies parties (ex.runs>0) est gardée et rattrape le miroir, sinon le miroir est semé. */
 {const l9=(function(){try{const x=JSON.parse(localStorage[SAVE.K]||'null');return !!x&&typeof x==='object'?x:null;}catch(e){return null;}})();
 const raz9=function(){try{localStorage.removeItem(SAVE.K+'_natif');}catch(e){}};
-if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&(!l9||(function(){try{return localStorage[SAVE.K+'_natif']==='1';}catch(e){return false;}})())){ // (2026-10-14, chasse aux bugs) une sauvegarde locale ILLISIBLE (écriture tronquée) comptait comme présente : le miroir n'était pas lu, load repartait à neuf et le 1er flush écrasait le secours natif — perte totale. Illisible = absente
+/* (2026-11-05, ECO-10) LE JETON D'EFFACEMENT : posé par SAVE.efface() juste avant le rechargement — le miroir n'est pas relu, il est effacé (une 2e fois, au cas où la 1re demande n'a pas abouti) */
+const efface9=(function(){try{return localStorage[SAVE.K+'_efface']==='1';}catch(e){return false;}})();
+if(efface9){try{localStorage.removeItem(SAVE.K+'_efface');}catch(e){}try{const P9=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences;if(P9){const q9=P9.remove({key:SAVE.K});if(q9&&q9.catch)q9.catch(function(){});}}catch(e){}try{window.__ccNote('sauvegarde','effacée (jeton)');}catch(e){}}
+if(!efface9&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&(!l9||(function(){try{return localStorage[SAVE.K+'_natif']==='1';}catch(e){return false;}})())){ // (2026-10-14, chasse aux bugs) une sauvegarde locale ILLISIBLE (écriture tronquée) comptait comme présente : le miroir n'était pas lu, load repartait à neuf et le 1er flush écrasait le secours natif — perte totale. Illisible = absente
   SAVE.natif=1;
   try{window.Capacitor.Plugins.Preferences.get({key:SAVE.K}).then(function(r){
     /* ===== LE MIROIR ILLISIBLE NE SE SÈME PAS (24/10, débogage sortie iOS : « aucune progression perdue ») ===== semé tel quel, il rechargeait la page sur un localStorage
@@ -300,10 +333,14 @@ const MUSRET={n:0,dernier:null}; // n : réactivations de cette session · derni
 function musRetour(boot){try{
   const now=Date.now(),vu=(boot&&MUS_RETOUR_TEST)?now-25*36e5:(+SAVE.d.vu||0);
   const loin=vu>0&&now-vu>MUS_RETOUR_H*36e5,coupee=!SND.music||!(VOL.mus>0);
-  MUSRET.dernier={boot:!!boot,h:vu>0?+((now-vu)/36e5).toFixed(1):null,loin:loin,coupee:coupee};
+  /* (2026-11-05, Fable : « SON-05 : musRetour ne remet plus la musique toutes les 24 h contre un mus:false explicite ») UNE SEULE FOIS PAR INSTALLATION (SAVE.d.musRet) :
+     un joueur qui a coupé la MUSIQUE pour écouter la sienne la retrouvait rallumée chaque jour (et sa session audio passait en 'playback' : son Spotify coupé). La
+     première longue absence la rallume encore (la demande de Sacha du 14/10) ; ensuite, son réglage est le sien. `?retour=1` (banc) rejoue sans compter. */
+  const deja=!!SAVE.d.musRet&&!(boot&&MUS_RETOUR_TEST);
+  MUSRET.dernier={boot:!!boot,h:vu>0?+((now-vu)/36e5).toFixed(1):null,loin:loin,coupee:coupee,deja:deja};
   SAVE.d.vu=now;
-  if(!(loin&&coupee)){SAVE.mark();return;}
-  MUSRET.n++;
+  if(!(loin&&coupee)||deja){SAVE.mark();return;}
+  MUSRET.n++;SAVE.d.musRet=1;
   VOL.mus=SAVE.def().vol.mus;SAVE.d.vol.mus=VOL.mus; // le volume d'usine, depuis la SEULE source (SAVE.def)
   if(boot){SND.music=true;SAVE.d.mus=true;SAVE.flush();return;} // au lancement : sndRefresh et le menu partent juste après, sur l'état rallumé
   if(!SND.music)musBascule();else{SAVE.flush();volUI();} // au retour : le même chemin que le bouton MUSIQUE (session audio, relance selon le contexte)
@@ -313,3 +350,4 @@ document.addEventListener('visibilitychange',function(){if(document.hidden){SAVE
 window.dbgMusRetour=function(simH){ // (banc) l'état ; dbgMusRetour(26) simule un retour d'arrière-plan après 26 h d'absence
   if(simH>0){SAVE.d.vu=Date.now()-simH*36e5;musRetour(false);}
   return {vu:SAVE.d.vu,mus:SND.music,vol:VOL.mus,sfx:VOL.sfx,n:MUSRET.n,dernier:MUSRET.dernier,test:MUS_RETOUR_TEST,mode:musicMode,voulue:musicVoulue};};
+Object.assign(I18N,{'SAUVEGARDE IMPOSSIBLE':'SAVE FAILED'}); /* (2026-11-05, HYG-15) le mot à l'écran d'un flush qui échoue */

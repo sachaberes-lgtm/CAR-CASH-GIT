@@ -75,6 +75,11 @@ async function joueJusquALaMort(p,maxS){await p.ev("window.dbgAuto&&dbgAuto(1,0,
   return {mort:false,dur:maxS};}
 /* ---- les scénarios ---- */
 const SC={
+  async sauvegarde(){ /* ECO-04 : code scellé et borné · SON-05 : musique remise une fois · HYG-15 : un flush qui échoue se dit */
+    const p=await ouvrePage();await charge(p,U());await sauteIntro(p);
+    const r=await p.ev("dbgSauvegardeBanc()");console.log(JSON.stringify(r,null,1));
+    console.log('boîte noire :',JSON.stringify((await p.ev('dbgErreurs()')).filter(function(e){return e.g==='sauvegarde';}).map(function(e){return e.m;})));
+    console.log('erreurs console :',p.erreurs.slice(0,5));await fermePage(p);},
   async verif(){const p=await ouvrePage();await charge(p,U('&horloge=ancien'));
     console.log(await p.ev("(function(){let txt='';for(const sc of document.scripts){const i=sc.textContent.indexOf('const HOR_ANCIEN=');if(i>=0)txt=sc.textContent.slice(i,i+70);}return {ancien:dbgHorloge().ancien,search:location.search,test:/[?&]horloge=ancien/.test(location.search),txt:txt,sw:!!(navigator.serviceWorker&&navigator.serviceWorker.controller),ver:typeof CC_VER!=='undefined'?CC_VER:'?'};})()"));
     await fermePage(p);},

@@ -53,3 +53,12 @@ window.dbgTas=function(){const m=renderer.info.memory,pm=performance.memory;let 
   return {tasMo:pm?Math.round(pm.usedJSHeapSize/1048576):null,geometries:m.geometries,textures:m.textures,programmes:(renderer.info.programs||[]).length,enfants:scene.children.length,sons:son?son.decodes:null,sonsMo:son?son.mo:null,paquets:son?son.paquets:null};};
 /* (banc, 2026-11-05, GP-02) dbgMinuteurs() : les chronos et jauges qui s'égrènent sur l'horloge dtH — pour mesurer leur pente contre l'horloge murale */
 window.dbgMinuteurs=function(){return {nitro:+pwrNitroT.toFixed(3),air:+pwrAirT.toFixed(3),vit:+pwrSpdT.toFixed(3),grace:+graceT.toFixed(3),boost:+startBoostT.toFixed(3),fever:+fever.toFixed(3),styleM:+styleM.toFixed(2),comboT:+comboT.toFixed(3),msgT:+msgT.toFixed(3),runxT:+(RUNX.t||0).toFixed(3),frenT:+(FREN.t||0).toFixed(3),fallTR:+fallTR.toFixed(3),inv:+CHANCE.inv.toFixed(3)};};
+/* (banc, 2026-11-05) dbgSauvegardeBanc() : le code scellé (ECO-04), la musique remise une fois (SON-05), l'échec de flush qui se dit (HYG-15) — rend l'état, puis remet la vraie sauvegarde */
+window.dbgSauvegardeBanc=function(){const R={};const d0=SAVE.export();
+  R.codeTelQuel=SAVE.import(d0);R.sceauFaux=SAVE.import(d0.slice(0,-2)+'zz');R.sansSceau=SAVE.import(d0.slice(0,d0.lastIndexOf('.')));
+  {const s=JSON.stringify({v:2,bank:1e30,best:1e20,ex:{floor:90},owned:[47,3]});const c=btoa(unescape(encodeURIComponent(s)))+'.'+SAVE.sceau(s);
+   R.codeForce=SAVE.import(c);R.bank=SAVE.d.bank;R.best=SAVE.d.best;R.floor=SAVE.d.ex.floor;R.owned=SAVE.d.owned.slice();}
+  SAVE.import(d0);
+  SND.music=false;SAVE.d.mus=false;R.musRet1=dbgMusRetour(26).n;R.musApres1=SND.music;SND.music=false;SAVE.d.mus=false;R.musRet2=dbgMusRetour(26).n;R.musApres2=SND.music;R.musRetChamp=SAVE.d.musRet;
+  SAVE.echec('banc',new Error('essai'));R.panne=SAVE.panne;R.panneDit=!!SAVE.panneDit;
+  return R;};

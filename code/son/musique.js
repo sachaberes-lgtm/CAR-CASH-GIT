@@ -42,8 +42,8 @@ function musicSuitLieu(){
   musicLieu=v;
   if(FRENM.sw){FRENM.src='';return;} // en pleine FRÉNÉSIE : son morceau garde l'antenne — à la sortie, on reprendra sur celui du nouveau lieu
   if(DEPMUS.on&&started&&!gameOver){DEPMUS.f0=performance.now();musicVolCour=0;} // (2026-10-05, « le passage plus smooth ») le morceau du niveau suivant ENTRE en fondu (0,6 s, sous le voile) au lieu de tomber à plein
-  if(v){NIVEAU_FX=2.6;musicPlayCurrent();try{lvlBlast();}catch(e){}}
-  else{try{musicNext();}catch(e){}}
+  if(v){NIVEAU_FX=2.6;musicPlayCurrent();try{lvlBlast();}catch(e){gardeNote('musique · embrasement du niveau',e);}}
+  else{try{musicNext();}catch(e){gardeNote('musique · morceau suivant',e);}}
 }
 let musicCur=-1; // l'index EN COURS dans MUSIC_TRACKS (-1 = rien encore choisi)
 function musicPickNext(excludeIdx){
@@ -184,8 +184,8 @@ var MUS_WA=(function(){
   let f=MUS_WA_ON,ko=false,aS=false,flt=false;
   try{aS=!!(navigator.audioSession&&'type' in navigator.audioSession);}catch(e){}
   try{flt=typeof AnalyserNode!=='undefined'&&!!AnalyserNode.prototype.getFloatTimeDomainData;}catch(e){}
-  try{const m=/[?&]muswa=([01])/.exec(location.search);if(m)f=m[1]==='1';else if(localStorage.cc_muswa==='1')f=true;else if(localStorage.cc_muswa==='0')f=false;}catch(e){}
-  try{ko=localStorage.cc_muswa_ko==='1';}catch(e){}
+  try{const m=/[?&]muswa=([01])/.exec(location.search);if(m)f=m[1]==='1';else if(localStorage.cc_muswa==='1')f=true;else if(localStorage.cc_muswa==='0')f=false;}catch(e){gardeNote('musique · drapeau muswa',e);}
+  try{ko=localStorage.cc_muswa_ko==='1';}catch(e){gardeNote('musique · drapeau muswa_ko',e);}
   let wk=false;try{const u=navigator.userAgent||'';wk=/AppleWebKit/.test(u)&&!/Chrome\/|Chromium|Edg\/|Android/.test(u);}catch(e){} // le moteur de Safari (Mac, et tout navigateur d'iPhone)
   if(f==='auto')f=SON_VOL_VERROU?aS:!wk; /* (2026-10-15) volume verrouillé (iPhone) : avec audioSession seulement (iOS 17+, comme avant) ; volume libre :
      PARTOUT SAUF le moteur de Safari — au banc WebKit, la musique branchée s'y TAISAIT au bout de 8 à 15 s (l'élément jouait, la source rendait des
@@ -211,7 +211,7 @@ function musWaSon(){ // le bouton SON coupe les EFFETS (et les voix du graphe) p
 function musWaBranche(){
   const W=MUS_WA;
   if(!W.on||W.br||!AC||!MASTER||!musicEl)return;
-  try{musicSession();}catch(e){} // 'playback' AVANT : le bouton silencieux ne doit pas couper ce qu'on branche
+  try{musicSession();}catch(e){gardeNote('musique · session audio',e);} // 'playback' AVANT : le bouton silencieux ne doit pas couper ce qu'on branche
   try{
     W.el=musicEl;W.src=AC.createMediaElementSource(musicEl);
     W.g=AC.createGain();W.g.gain.value=(musicEl.paused||musicEl.muted)?0:(VOL_LOCKED?1:Math.max(0,Math.min(W.MAX,musicVolCour))); // branchée en pleine lecture, elle sortait à 100 % du fichier (iPhone) : on part de là, musicTick la ramène au mixage
@@ -234,7 +234,7 @@ function musWaBranche(){
     W.br=true;
   }catch(e){console.warn('musique WebAudio : branchement refusé',e);if(W.src)musWaCondamne('branchement');else W.on=false;return;}
   if(W.rythme&&!musicAna){musicAna=W.an;musicData=new Uint8Array(W.an.frequencyBinCount);} // (bonus) le décor bat sur la VRAIE musique, plus sur le métronome (iPhone n'a pas captureStream)
-  musWaSon();try{volApply();}catch(e){} // les effets retrouvent leur −3 dB sous la musique, comme à l'ordi (voir sfxVol)
+  musWaSon();try{volApply();}catch(e){gardeNote('musique · volume après branchement',e);} // les effets retrouvent leur −3 dB sous la musique, comme à l'ordi (voir sfxVol)
 }
 function musWaCondamne(pq){ // retour DÉFINITIF au chemin <audio> (la prochaine ouverture de l'appli ne réessaiera pas)
   const W=MUS_WA,el=W.el;W.pq=pq;W.ko=true;
@@ -326,7 +326,7 @@ function musicSilence(){ /* 0,1 s de silence (WAV 8 kHz, 8 bits, mono) en adress
 function musicDeverrouille(){ // appelé à CHAQUE toucher/touche (en capture) : le 1er libère le lecteur, les suivants relancent si besoin
   musicJoue._vu=1; // un toucher : la page est à l'écran (voir la garde de musicJoue)
   const el=musicElGet();musicSession();
-  if(MUS_WA.on){try{musWaBranche();musWaReveil();}catch(e){}} // (2026-10-14, session SON) dans le geste : brancher la musique au graphe, relancer un contexte « interrupted » (appel, Siri) avant l'élément
+  if(MUS_WA.on){try{musWaBranche();musWaReveil();}catch(e){gardeNote('musique · branchement au graphe',e);}} // (2026-10-14, session SON) dans le geste : brancher la musique au graphe, relancer un contexte « interrupted » (appel, Siri) avant l'élément
   if(!musicDeverrouille._ok){musicDeverrouille._ok=true;
     /* (2026-11-02 nuit, Léo, sur l'iPhone : « la musique de l'intro commence trop tôt et se coupe direct ») le déverrouillage jouait LE MORCEAU DU CIEL, muet et à volume 0 : sur l'iPhone ni l'un ni l'autre ne tient toujours (volume verrouillé, élément branché au graphe),
        et on l'entendait une fraction de seconde au toucher de la boule. Il joue désormais un SILENCE (un WAV vide, fabriqué ici) : l'élément est libéré pareil, et rien ne peut s'entendre ; le vrai morceau ne se charge qu'au ciel (playMusic). */
@@ -539,7 +539,7 @@ function pbjLobby(){
   const P=POUCE_JEU;if(P.phase==='lobby'||P.phase==='charge')return;
   const fixes=INTROSON.on&&!INTROSON.t0&&!/[?&]lobby=tout\b/.test(location.search); // pendant « PRESENTS » le jeu gèle dessous (sur un Mac lent : images de 0,2 à 1,3 s) : seuls les morceaux à paliers figés (des fichiers) tiennent, les autres (le générateur joue en direct) attendent l'accueil ; ?lobby=tout les laisse tous partir
   try{const p=P.lobby(AC,MASTER._lim,{brut:BASSES_BRUT,fixes:fixes,tier:LOBBY_TIER||1,tiers:LOBBY_TIER?null:LOBBY_PALIERS,doux:PBJ_DOUX});
-    if(p&&p.then)p.then(function(E){if(E||P.attente)return;if(P.phase==='erreur'||P.phase==='vide'){LOBBY_KO=1;console.warn('Lobby lié : '+(P.err||'liste vide'));if(musicMode==='menu')musicMenuAncien();}});}catch(e){LOBBY_KO=1;}}
+    if(p&&p.then)p.then(function(E){if(E||P.attente)return;if(P.phase==='erreur'||P.phase==='vide'){LOBBY_KO=1;console.warn('Lobby lié : '+(P.err||'liste vide'));if(musicMode==='menu')musicMenuAncien();}});}catch(e){gardeNote('musique · lobby (LOBBY_KO)',e);LOBBY_KO=1;}}
 function pbjDepart(vite,meme){try{if(window.CCSON)CCSON.paquet('course');}catch(e){} /* (2026-11-05, SON-02) le JOUER ouvre le paquet COURSE de la banque de sons (voir sfx.js, LES PAQUETS) */
   if(!vite&&!meme){PBJ_KO=0;PBJ_ESSAI=0;if(pbjTuto()){try{ecoleMusPique();}catch(e){}return;}}pbjLance(vite,meme);} // (sans argument = un JOUER : on réessaie) — (2026-10-16) le JOUER de la LEÇON lance la musique de la leçon
 function ecoleMusPique(){ // (2026-10-16) le JOUER de la leçon : SA musique part pendant le piqué, en fondu (DEPMUS), et la course la GARDE (musicStartRun)
