@@ -1,0 +1,71 @@
+{
+ "secs": 8.17,
+ "hudcache": "0",
+ "couche": true,
+ "palier": "0",
+ "selfMs": {
+  "hudColonne": 3.1,
+  "hudColMesure": 13.4,
+  "volgTick": 0.0,
+  "volgMesure": 0.0,
+  "zRect": 0.0,
+  "zK": 0.0,
+  "mepRappel": 10.2,
+  "apresMiseEnPage": 3.9
+ },
+ "selfMsParSec": 3.74,
+ "layout_s": 19.34,
+ "recalcstyle_s": 36.97,
+ "layoutDur_msParSec": 22.01,
+ "recalcDur_msParSec": 178.16,
+ "top": [
+  [
+   4725.7,
+   "(program)"
+  ],
+  [
+   668.1,
+   "(idle)"
+  ],
+  [
+   311.4,
+   "loop"
+  ],
+  [
+   148.9,
+   "renderBufferDirect"
+  ],
+  [
+   144.1,
+   "It"
+  ],
+  [
+   121.2,
+   "At"
+  ],
+  [
+   105.1,
+   "render"
+  ],
+  [
+   102.5,
+   "Oi"
+  ],
+  [
+   101.1,
+   "setup"
+  ],
+  [
+   95.1,
+   "(anon)"
+  ],
+  [
+   81.7,
+   "scene.updateMatrixWorld"
+  ],
+  [
+   81.6,
+   "update"
+  ]
+ ]
+}
