@@ -5833,6 +5833,8 @@ html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear){
   box-shadow:inset 3px 0 0 var(--nc),inset 34px 0 30px -28px color-mix(in srgb,var(--nc) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.06),
     0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)!important}
 html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres) .pxi{--pxs:3!important;color:var(--nc)!important;filter:drop-shadow(0 0 5px var(--nc))!important}
+/* (2026-11-05, Sacha : +« bug ici »+ — un CARRÉ CYAN plein au coin du bouton GARAGE) la pastille du GARAGE porte un panier en pixels (jury DIR-26) : la règle du dessus le prenait pour une icône de tuile (27 px, cyan comme le fond de la pastille = invisible, d'où le carré). Dans une pastille : 9 px, la couleur de la pastille. */
+html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres) .mBadge .pxi{--pxs:1!important;color:inherit!important;filter:none!important}
 html.hub:not(.poki) body #mHome.acc2 .mGear .pxi{--pxs:3!important;color:var(--nc,#5ee6ff)!important;filter:drop-shadow(0 0 5px var(--nc,#5ee6ff))!important}
 html.hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{
   background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
@@ -7898,8 +7900,6 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
   text-shadow:0 3px 0 var(--txO),0 0 24px color-mix(in srgb,var(--rc) 50%,transparent)}
 .mcNom::after{content:'';position:absolute;left:0;bottom:0;width:min(62vw,230px);height:3px;background:linear-gradient(90deg,var(--rc) 0 72%,transparent);box-shadow:0 0 12px color-mix(in srgb,var(--rc) 60%,transparent)}
 .mcSous{display:block;margin-top:8px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
-.mcNeuf{display:inline-block;margin-top:9px;padding:5px 9px 4px;font-style:normal;font-size:var(--f0);letter-spacing:2px;color:var(--txO);background:var(--neoV);box-shadow:0 0 14px color-mix(in srgb,var(--neoV) 60%,transparent);transform:skewX(var(--sk));animation:mcTampon .45s var(--ease) .75s backwards}
-@keyframes mcTampon{from{opacity:0;transform:skewX(var(--sk)) scale(2.2)}}
 /* LA VEDETTE : le portail flotte sur le décor, comme la caisse au garage */
 .mcHero{display:flex;justify-content:center;padding:10px 0 14px}
 .mcV{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:420px;text-align:center;cursor:pointer;animation:k4Nom var(--t-slow) var(--ease) backwards}
@@ -7942,7 +7942,6 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
   background:linear-gradient(180deg,rgba(26,21,50,.7) 0%,rgba(20,15,40,.7) 52%,rgba(15,12,32,.7) 100%);box-shadow:inset 0 0 0 1px var(--fil),0 22px 40px -14px rgba(0,0,0,.75);
   clip-path:polygon(var(--coupe) 0,100% 0,100% calc(100% - var(--coupe)),calc(100% - var(--coupe)) 100%,0 100%,0 var(--coupe));animation:gDeplie .34s var(--ease) both}
 .mcPan .gModeT{flex:none;height:30px;margin-bottom:8px}
-.mcSq{display:flex;gap:4px}.mcSq s{display:block;width:8px;height:8px;background:none;opacity:1;box-shadow:inset 0 0 0 1px var(--tx3)}.mcSq s.o{background:var(--rc);box-shadow:0 0 6px var(--rc)}
 /* une ligne : un bloc de l'inventaire (#gFigSel) */
 .mcL{display:flex;flex-direction:column;gap:8px;margin-bottom:6px;padding:10px 11px 10px;cursor:pointer;
   background:linear-gradient(180deg,rgba(11,8,24,.86),rgba(23,16,46,.86));box-shadow:inset 0 0 0 1px var(--fil),inset 0 2px 0 rgba(255,255,255,.05);
@@ -7960,19 +7959,17 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 .mcL.hab .mcLt b{color:color-mix(in srgb,var(--rc) 45%,#fff)}.mcL.hab .mcJ i{background:var(--rc);box-shadow:0 0 8px var(--rc)}
 .mcL.pret{box-shadow:inset 0 0 0 2px var(--cash),0 0 16px rgba(125,255,155,.25)}.mcL.pret .m2Pr{align-self:flex-start;margin-top:0}
 .mcL.ok{cursor:default;opacity:.62}
-.mcNx{display:flex;align-items:center;gap:10px;padding:8px 2px 2px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
-.mcNx span{flex:1;display:flex;gap:5px}.mcNx i{display:block;height:9px;background:#05030c;box-shadow:inset 0 0 0 1px var(--fil)}
 .mcFin{display:flex;align-items:center;gap:10px;min-height:40px;margin-top:6px;padding:0 4px;font-size:var(--f0);letter-spacing:1px;color:var(--tx2);cursor:pointer}
 .mcFin b{font-weight:400;color:var(--tx3)}.mcFin .pxi{--pxs:1;margin-left:auto}
 .mcL.flash{animation:gmFlash .5s var(--ease)}
 #gmListe.mcE.vu .mcL,#gmListe.mcE.vu .mcV,#gmListe.mcE.vu .mcPan{animation:none}
-/* ===== L'ÉCRAN MISSIONS PLEIN CADRE (2026-11-06, Sacha : « refonte de l'écran mission, l'espace est qu'à moitié occupé » — piste A de maquettes/missions) =====
-   Le portail retiré de l'onglet (05/11) laissait quatre lignes dans un panneau de 560 px : debout 40 % du bas vide, couché la moitié gauche vide et la 4e ligne sous JOUER.
-   Même écran, mêmes matières (laque, liseré, coins coupés, Press Start) — seulement tout étiré : le panneau va du titre à la barre du bas, les cartes se partagent la hauteur
-   (texte 10 → 12 px, récompense 10 → 16 px, jauge 5 → 10 px). Couché : titre en haut (le palier et ses carrés sur sa ligne), les cartes en 2 × 2 sur toute la largeur,
-   le palier suivant et les réussies en pied, RETOUR | JOUER sur toute la largeur — rien sous la barre. Plus de masque en bas : le panneau défile seul (carte coupée = suite). */
-#gmListe.mcE .mcSqT{display:none}
-#gmListe.mcE .mcPan .gModeT{height:34px;margin-bottom:10px}
+/* ===== L'ÉCRAN MISSIONS : TOUTES LES MISSIONS, ON DÉFILE (2026-11-06, Sacha : « refonte de l'écran mission, l'espace est qu'à moitié occupé » → piste A plein cadre de maquettes/missions, puis
+   « pas de palier pour les missions, on doit voir toutes les missions dans l'écran mission en défilant ») =====
+   Plus de paliers : une seule liste de TOUTES les missions (À RÉCUPÉRER d'abord, puis une section par famille, les réussies repliées en bas), dans le panneau du garage qui va du titre à la barre
+   du bas et défile seul (un fondu en bas dit qu'il y a la suite). Mêmes matières (laque, liseré, coins coupés, Press Start) ; texte 12 px, récompense 16 px, jauge 10 px.
+   Debout : une colonne. Couché : deux colonnes sur toute la largeur, le titre en haut, RETOUR | JOUER sur toute la largeur — rien sous la barre. */
+#gmListe.mcE .mcSec{flex:none;height:34px;margin:18px 0 8px}
+#gmListe.mcE .mcPan>.mcSec:first-child{margin-top:0}
 #gmListe.mcE .mcL .mcLt b{font-size:var(--f3);line-height:1.55}
 #gmListe.mcE .mcL .mcCash{font-size:var(--f5)}
 #gmListe.mcE .mcL .mcRarS{font-size:var(--f1)}
@@ -7980,17 +7977,16 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 #gmListe.mcE .mcL .mcJ small{font-size:var(--f1)}
 #gmListe.mcE .mcL .mcLt .mcSil{width:84px}
 #gmListe.mcE .mcL.pret .m2Pr{min-height:38px;padding:0 18px;font-size:var(--f1)}
-#gmListe.mcE .mcNx{padding:4px 2px 0;font-size:var(--f1)}
-#gmListe.mcE .mcNx i{height:14px}
-#gmListe.mcE .mcFin{flex:none;min-height:44px;margin-top:2px;font-size:var(--f1)}
+#gmListe.mcE .mcFin{flex:none;min-height:44px;margin-top:6px;font-size:var(--f1)}
 #gmListe.mcE .mcVide{flex:1 0 auto;display:flex;align-items:center;justify-content:center}
-/* debout : le titre fixe, le panneau prend tout le reste, ses cartes se partagent la place (et il défile si l'écran est petit) */
+#gmListe.mcE .mcPan{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent)}
+/* debout : le titre fixe, le panneau prend tout le reste et défile */
 #gmListe.mcE:not(.land) .mcDef{display:flex;flex-direction:column;overflow:hidden}
 #gmListe.mcE:not(.land) .mcTete{flex:none}
-#gmListe.mcE:not(.land) .mcPan{flex:1 1 0;min-height:0;max-width:720px;margin:10px auto 0;display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding:14px 14px 10px}
-#gmListe.mcE:not(.land) .mcL{flex:1 0 auto;max-height:150px;justify-content:center;gap:12px;padding:10px 14px;margin-bottom:9px} /* plafonnée (150 de contenu + 20 de marge intérieure = 170) : avec deux missions seulement, les cartes ne s'étirent pas en blocs creux */
+#gmListe.mcE:not(.land) .mcPan{flex:1 1 0;min-height:0;max-width:720px;margin:10px auto 0;display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:14px 14px 30px}
+#gmListe.mcE:not(.land) .mcL{flex:none;gap:10px;padding:10px 14px;margin-bottom:8px}
 #gmListe.mcE:not(.land) .mcFinL{flex:none}
-/* couché : RETOUR | JOUER sur toute la largeur, au-dessus d'eux un seul bloc pleine largeur (titre, puis les cartes en 2 × 2) */
+/* couché : RETOUR | JOUER sur toute la largeur, au-dessus d'eux un seul bloc pleine largeur (le titre, puis les missions sur deux colonnes) */
 #gMis.mbOn.m2land #gmBas{left:calc(var(--sL) + var(--gut));right:calc(var(--sR) + var(--gut));width:auto;transform:none;bottom:calc(var(--sB) + 12px)}
 #gMis.mbOn.m2land #gmBas .gmHome{width:112px;flex-direction:row;justify-content:center;gap:10px;padding:0 12px}
 #gMis.mbOn.m2land #gmBas .gmJouer{font-size:var(--f6)}
@@ -7998,20 +7994,20 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 #gmListe.mcE.land .mcTete{grid-column:1;grid-row:1;display:flex;align-items:flex-end;gap:18px;padding-top:0}
 #gmListe.mcE.land .mcNom{font-size:24px;padding-bottom:11px}
 #gmListe.mcE.land .mcTete .mcSous{margin:0 0 12px}
-#gmListe.mcE.land .mcTete .mcSqT{display:flex;margin:0 6px 12px auto}
-#gmListe.mcE.land .mcPan{grid-column:1;grid-row:2;max-width:none;height:100%;margin:0;overflow-y:auto;scrollbar-width:none;padding:10px 12px 6px;
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:1fr 1fr auto;column-gap:10px} /* colonnes ÉGALES : la carte « à récupérer » (bouton + silhouette sur une ligne) n'élargit pas la sienne */
-#gmListe.mcE.land .mcPan[data-n="0"],#gmListe.mcE.land .mcPan[data-n="1"],#gmListe.mcE.land .mcPan[data-n="2"]{grid-template-rows:1fr auto} /* moins de trois cartes : une seule rangée */
-#gmListe.mcE.land .mcPan .gModeT{display:none}
-#gmListe.mcE.land .mcL{margin-bottom:8px;justify-content:center;gap:8px;padding:8px 12px} /* pas de min-height:0 : une carte ne rétrécit jamais sous son contenu, le panneau défile à la place */
+#gmListe.mcE.land .mcPan{grid-column:1;grid-row:2;max-width:none;height:100%;margin:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:10px 12px 28px;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto;align-content:start;column-gap:10px}
+#gmListe.mcE.land .mcSec{grid-column:1/-1;height:28px;margin:12px 0 6px}
+#gmListe.mcE.land .mcL{margin-bottom:8px;gap:8px;padding:8px 12px}
 #gmListe.mcE.land .mcL .mcLt b{font-size:var(--f1);line-height:1.5}
+#gmListe.mcE.land .mcL.pret{grid-column:1/-1;flex-direction:row;align-items:center;gap:14px} /* la récompense à récupérer : toute la largeur, c'est l'appel à l'action */
+#gmListe.mcE.land .mcL.pret .mcLt{flex:1;min-width:0}
 #gmListe.mcE.land .mcL.pret .m2Pr{min-height:34px}
-#gmListe.mcE.land .mcNx{grid-column:1;padding:4px 2px 0}
-#gmListe.mcE.land .mcFin{grid-column:2;min-height:44px;margin:0}
-#gmListe.mcE.land .mcFinL,#gmListe.mcE.land .mcVide{grid-column:1/-1}
+#gmListe.mcE.land .mcFin{grid-column:1/-1;margin:0}
+#gmListe.mcE.land .mcFinL{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:10px}
+#gmListe.mcE.land .mcVide{grid-column:1/-1}
 /* les petits écrans : l'iPhone 7 / 8 / SE couché (375 de haut) et debout (667) — même mise en page, plus serrée */
 @media (orientation:landscape) and (max-height:400px){
-  #gmListe.mcE.land .mcPan{padding:8px 10px 4px}
+  #gmListe.mcE.land .mcPan{padding:8px 10px 26px}
   #gmListe.mcE.land .mcL{padding:6px 10px;gap:5px;margin-bottom:6px}
   #gmListe.mcE.land .mcL .mcJ u{height:8px}
   #gmListe.mcE.land .mcL .mcLt .mcSil{width:56px}
@@ -8019,14 +8015,13 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
   #gmListe.mcE.land .mcL.pret .mcLt .mcSil{width:44px}}
 @media (orientation:portrait) and (max-height:700px){
   #gmListe.mcE .mcL .mcLt b{font-size:var(--f1)}
-  #gmListe.mcE:not(.land) .mcPan{padding:12px 12px 8px}
+  #gmListe.mcE:not(.land) .mcPan{padding:12px 12px 26px}
   #gmListe.mcE:not(.land) .mcL{gap:8px;padding:8px 12px;margin-bottom:6px}
-  #gmListe.mcE .mcPan .gModeT{height:30px;margin-bottom:6px}
+  #gmListe.mcE .mcSec{height:30px;margin:14px 0 6px}
   #gmListe.mcE .mcL .mcJ u{height:7px}
   #gmListe.mcE .mcL .mcLt .mcSil{width:64px}
-  #gmListe.mcE .mcL.pret .m2Pr{min-height:32px;padding:0 14px}
-  #gmListe.mcE .mcNx i{height:10px}}
-@media (prefers-reduced-motion:reduce){.mcPo .rf,.mcPo .rf0,.mcV.pret .mcPo,.mcNeuf{animation:none}.mcL,.mcV,.mcPan{animation:none}.mcSil.duo img.n,.mcPo .hd{transition:none}}
+  #gmListe.mcE .mcL.pret .m2Pr{min-height:32px;padding:0 14px}}
+@media (prefers-reduced-motion:reduce){.mcPo .rf,.mcPo .rf0,.mcV.pret .mcPo{animation:none}.mcL,.mcV,.mcPan{animation:none}.mcSil.duo img.n,.mcPo .hd{transition:none}}
 .m2Rien{padding:16px 6px;font-size:var(--f0);color:#8fb8c8;text-align:center}
 /* LE POINT VERT des portes MISSIONS : une récompense attend */
 .m2Pt{position:absolute;top:5px;right:6px;width:10px;height:10px;background:var(--cash);box-shadow:0 0 0 2px var(--k0),0 0 10px var(--cash);pointer-events:none;
@@ -63398,20 +63393,13 @@ const M2_GROUPES=[[0,'À RÉCUPÉRER','vert','cadeau'],[1,'SUIVIES','or','cible'
    La hiérarchie : 1. LE PORTAIL — la mission vedette, gros : un canon (graduations, rayures qui tournent lentement) dont l'anneau vert se remplit, la récompense au fond ;
    2. son intitulé, son avancement ; 3. ENSUITE — trois blocs dans le panneau du garage ; 4. le palier suivant, caviardé.
    (même jour, Sacha : « ça colle pas assez avec la DA du reste ») habillée avec les matières de l'INVENTAIRE (voir le CSS « DANS LA DA DU GARAGE ») et la police unique.
-   LES PALIERS (M2_PAL) : 4 missions par palier, rangées à la main du plus simple au plus long ; le palier courant = le 1er dont moins de 3 / 4 sont réussies. */
-const M2_PAL=[
-  ['fig2','air5','eng10','fig3'],['fig5','aura10k','car5','ai5'],['parf10','eng20','cash100k','tr5'],['fren','pu100','aura20k','col5'],
-  ['figs500','maps','col10','tr10'],['nit2000','car10','ai10','fig8'],['kmh1000','tours5','parfmaps','fren30'],['nmax100','vie5min','cash500k','maps2'],
-  ['air1000','eng30','aura50k','mis10'],['meteo','verglas100','km100k','morts100'],['cash1m','car20','colall','trall'],['aiall','figall','carall','rares'],['cash2m','toutall']];
-Object.assign(I18N,{'PALIER':'TIER','ENSUITE':'NEXT UP','ENCORE':'NEEDS','MISSION':'MISSION','MISSIONS RÉUSSIES':'MISSIONS DONE','RÉCUPÉRER':'CLAIM','VOITURE':'CAR','TRAÎNÉE':'TRAIL',
-  'PEINTURE':'PAINT','FIGURE':'TRICK','CLASSIFIÉ':'CLASSIFIED','NOUVEAU PALIER':'NEW TIER','TOUTES LES MISSIONS SONT RÉUSSIES':'EVERY MISSION IS DONE','RÉCOMPENSE':'REWARD'});
-function m2PalierDe(id){for(let i=0;i<M2_PAL.length;i++)if(M2_PAL[i].indexOf(id)>=0)return i;return M2_PAL.length-1;} // une mission neuve, pas encore rangée : au dernier palier
-function m2Paliers(s){ // {T : par palier {n : missions au garage, ok : réussies} · cur : le palier courant · need : ce qu'il faut pour ouvrir le suivant}
-  const T=M2_PAL.map(function(){return {n:0,ok:0};});
-  for(const m of M2){if(m.f==='secret'||!m2Dispo(m))continue;const p=m2PalierDe(m.id);T[p].n++;if(s.ok.indexOf(m.id)>=0||(s.mq&&s.mq.indexOf(m.id)>=0))T[p].ok++;}
-  let cur=-1;for(let i=0;i<T.length;i++){if(T[i].n&&T[i].ok<Math.ceil(T[i].n*.75)){cur=i;break;}}
-  if(cur<0){cur=T.length-1;while(cur>0&&!T[cur].n)cur--;}
-  return {T:T,cur:cur,need:Math.ceil(T[cur].n*.75)};}
+   (2026-11-06, Sacha : « pas de palier pour les missions, on doit voir toutes les missions dans l'écran mission en défilant ») PLUS DE PALIERS : la table M2_PAL, le palier courant,
+   l'en-tête ENSUITE, le palier suivant caviardé et le tampon « NOUVEAU PALIER » sont retirés. L'onglet montre TOUTES les missions, qu'on défile : celles à récupérer d'abord, puis une
+   section par FAMILLE (exploits · aura · moteur · exploration · argent · collection), la plus avancée d'abord ; les réussies restent repliées tout en bas. */
+Object.assign(I18N,{'ENSUITE':'NEXT UP','MISSION':'MISSION','MISSIONS RÉUSSIES':'MISSIONS DONE','RÉCUPÉRER':'CLAIM','VOITURE':'CAR','TRAÎNÉE':'TRAIL',
+  'PEINTURE':'PAINT','FIGURE':'TRICK','TOUTES LES MISSIONS SONT RÉUSSIES':'EVERY MISSION IS DONE','RÉCOMPENSE':'REWARD',
+  'EXPLOITS':'FEATS','EXPLORATION':'EXPLORATION','ARGENT':'MONEY','COLLECTION':'COLLECTION'});
+const M2_FAM_NOM={exploit:'EXPLOITS',aura:'AURA',moteur:'MOTEUR',exploration:'EXPLORATION',secret:'SECRÈTES',argent:'ARGENT',collection:'COLLECTION'};
 const MC_CAT={aile:'AILES',trainee:'TRAÎNÉE',peinture:'PEINTURE',figure:'FIGURE'};
 function mcRec(m){ // ce que rapporte la mission : {k : 'car'|'cash'|'hab'|'vide', c : la couleur, et (car) i · (cash) v · (hab) rar, cat}
   const r=m.r||{};
@@ -63459,45 +63447,46 @@ function mcLigne(x,k,s){const m=x.m,pret=x.rg===0,ok=x.ok&&!pret,R=mcRec(m),w=mc
   return '<div class="mcL'+(pret?' pret':'')+(ok?' ok':'')+(hab?' hab':'')+'" data-m2="'+m.id+'" role="button" tabindex="0" style="--i:'+Math.min(k,12)+(hab?';--rc:'+R.c:'')+'">'
     +'<div class="mcLt"><b>'+(m.f==='secret'?sansAcc(TR('SECRÈTE'))+' · ':'')+sansAcc(m2Txt(m))+'</b><span class="mbR'+(m2CarVoir(m)&&!pret?' voir':'')+'">'+rec+'</span></div>'+bas+'</div>';}
 function mcLignePal(d){return '<div class="mcL ok" data-pal="'+d.id+'"><div class="mcLt"><b>'+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><span class="mbR voir">'+objFig({cat:'peinture',i:COSM.peinture.indexOf(d)})+'</span></div><small class="mcFait">'+sansAcc(TR('SECRÈTE'))+' · '+sansAcc(TR('RÉUSSIE'))+'</small></div>';}
-function m2Vue(L,s,vu){ // → {pal : le palier (coin haut droit) · ved : la vedette (l'écran de mort seulement, depuis le 2026-11-05) · listeTab : TOUTES les lignes de l'onglet MISSIONS, palier suivant compris · n : missions à l'écran}
-  const P=m2Paliers(s),T=P.T[P.cur],pal=function(x){return m2PalierDe(x.m.id);};
-  const cand=L.filter(function(x){return x.rg===0||((x.rg===1||x.rg===2)&&x.m.f!=='secret'&&pal(x)<=P.cur);});
-  cand.sort(function(a,b){const ra=a.rg===0?0:1,rb=b.rg===0?0:1;return ra-rb||(ra?pal(a)-pal(b)||b.p-a.p:0);});
-  const vis=cand.slice(0,4);let ved=vis.find(function(x){return x.rg===0;});
-  {const vc=function(x){return !!(x.m.r&&x.m.r.car);};if(vis.length===4&&!vis.some(vc)){const c9=cand.find(vc);if(c9)vis[3]=c9;}} /* une caisse à gagner ne reste jamais hors de l'écran : c'est la vedette naturelle */
-  if(!ved){let b=-1;for(const x of vis)if(x.m.r&&x.m.r.car&&x.p>b){b=x.p;ved=x;}}
-  if(!ved)for(const x of vis)if(!ved||x.p>ved.p)ved=x;
-  let sq='';for(let i=0;i<T.n;i++)sq+='<s'+(i<T.ok?' class="o"':'')+'></s>';
-  let listeTab='',k=0; /* (2026-11-05, Sacha : « enlève le portail de la mission ») plus de vedette à part dans l'onglet : TOUTES les lignes, dont celle qui joue le rôle de vedette à la mort */
-  for(const x of vis)listeTab+=mcLigne(x,k++,s);
-  if(vis.length&&P.cur<M2_PAL.length-1){const reste=Math.max(0,P.need-T.ok);
-    listeTab+='<div class="mcNx" aria-hidden="true"><small>'+sansAcc(TR('PALIER'))+' '+(P.cur+2)+'</small><span><i style="width:30%"></i><i style="width:46%"></i><i style="width:18%"></i></span>'
-      +'<small>'+(reste?sansAcc(TR('ENCORE'))+' '+reste:sansAcc(TR('CLASSIFIÉ')))+'</small></div>';}
-  return {palier:P.cur+1,sq:sq,ved:ved?mcVedette(ved,s,!vu):'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>',listeTab:listeTab,n:vis.length};}
+function mcEntete(ic,nom,cpt){return '<div class="gModeT mcSec">'+pxi(ic)+'<span>'+sansAcc(TR(nom))+'</span><s></s><b>'+cpt+'</b></div>';}
+function m2Vue(L,s,vu){ // → {ved : la vedette (l'écran de mort seulement, depuis le 2026-11-05) · listeTab : TOUTES les missions de l'onglet MISSIONS, en sections · n : missions à l'écran}
+  const prets=L.filter(function(x){return x.rg===0;}),reste=L.filter(function(x){return x.rg===1||x.rg===2;});
+  const fo=function(x){const o=M2_ORDRE[x.m.f];return o==null?9:o;};
+  reste.sort(function(a,b){return fo(a)-fo(b)||b.p-a.p||M2.indexOf(a.m)-M2.indexOf(b.m);}); // par famille, la plus avancée d'abord
+  /* la vedette (l'écran de mort) : une récompense à récupérer, sinon la caisse à gagner la plus avancée, sinon la mission la plus avancée */
+  let ved=prets[0];
+  if(!ved){let b=-1;for(const x of reste)if(x.m.r&&x.m.r.car&&x.p>b){b=x.p;ved=x;}}
+  if(!ved)for(const x of reste)if(!ved||x.p>ved.p)ved=x;
+  let listeTab='',k=0;
+  if(prets.length){listeTab+=mcEntete('cadeau','À RÉCUPÉRER',prets.length);for(const x of prets)listeTab+=mcLigne(x,k++,s);}
+  let fam='';
+  for(const x of reste){const f=x.m.f;
+    if(f!==fam){fam=f;let tot=0,ok=0;for(const m of M2){if(m.f!==f||!m2Dispo(m))continue;tot++;if(s.ok.indexOf(m.id)>=0)ok++;}
+      listeTab+=mcEntete((M2_FAM[f]||M2_FAM.exploit).ic,M2_FAM_NOM[f]||'MISSIONS',ok+' / '+tot);}
+    listeTab+=mcLigne(x,k++,s);}
+  return {ved:ved?mcVedette(ved,s,!vu):'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>',listeTab:listeTab,n:prets.length+reste.length};}
 function m2Render(vu){ /* (2026-11-03, refonte · 2026-11-05, plus de vedette : voir « L'ÉCRAN DES MISSIONS À LA MORT », aujourdhui.js) la page MISSIONS entière */
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';
   const old=$('gmListe'),d0=old&&old.querySelector('.mcDef'),sc0=d0?d0.scrollTop:0,s0=old&&old.querySelector('.mcPan'),sc1=s0?s0.scrollTop:0;
   const s=m2Etat(),L=m2Lignes(),pal=m2SecPal(),V=m2Vue(L,s,vu);
   const fin=L.filter(function(x){return x.rg===9;}),nf=fin.length+pal.length;
   let fh='';
-  const pv=s.pv|0,neuf=!!pv&&V.palier>pv&&!vu;if(s.pv!==V.palier&&!vu){s.pv=V.palier;SAVE.mark();} /* LE PALIER NEUF : on le dit une fois, à la 1re visite qui le montre (pv : le dernier palier vu) */
   if(nf){fh+='<div class="m2Fin mcFin'+(M2E.fin?' on':'')+'" role="button" tabindex="0" aria-expanded="'+M2E.fin+'"><span>'+sansAcc(TR('MISSIONS RÉUSSIES'))+'</span><b>'+nf+'</b>'+pxi(M2E.fin?'haut':'bas')+'</div>';
     if(M2E.fin){fh+='<div class="mcFinL">';fin.forEach(function(x,j){fh+=mcLigne(x,j,s);});pal.forEach(function(d){fh+=mcLignePal(d);});fh+='</div>';}}
   const gm=$('gMis');if(gm)gm.classList.add('mbOn');
   const c0=m2Compte();
   el.innerHTML='<div id="gmListe" class="m2 mcE'+(vu?' vu':'')+'"><div class="mcVoile"></div>'
-    +'<div class="mcDef"><div class="mcTete"><b class="mcNom">'+sansAcc(TR('MISSIONS'))+'</b><small class="mcSous">'+sansAcc(TR('PALIER'))+' '+V.palier+' / '+M2_PAL.length+' · '+c0.ok+' / '+c0.tot+'</small>'+(neuf?'<em class="mcNeuf">'+sansAcc(TR('NOUVEAU PALIER'))+'</em>':'')+'<em class="mcSq mcSqT" aria-hidden="true">'+V.sq+'</em></div>' /* (2026-11-06, plein cadre) couché, l'en-tête ENSUITE s'efface : ses carrés montent sur la ligne du titre */
-    +'<div class="mcPan" data-n="'+V.n+'"><div class="gModeT">'+pxi('cible')+'<span>'+sansAcc(TR('ENSUITE'))+'</span><s></s><em class="mcSq">'+V.sq+'</em></div>'
-    +(V.n?V.listeTab:'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>')+fh+'</div></div></div>';
+    +'<div class="mcDef"><div class="mcTete"><b class="mcNom">'+sansAcc(TR('MISSIONS'))+'</b><small class="mcSous">'+c0.ok+' / '+c0.tot+' '+sansAcc(TR('MISSIONS RÉUSSIES'))+'</small></div>'
+    +'<div class="mcPan" data-n="'+V.n+'">'+(V.n?V.listeTab:'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>')+fh+'</div></div></div>';
   GMIS.cards=[];GMIS.pts=[];GMIS.paths=[];GMIS.last=null;GMIS.lw=0;
   const c=m2Compte(),sous=$('gmSous');if(sous)sous.textContent=c.ok+' / '+c.tot;
   try{gmPlaceL(VP.w,VP.h);}catch(e){}
   const nl=$('gmListe');if(nl){const d1=nl.querySelector('.mcDef'),s1=nl.querySelector('.mcPan');if(d1)d1.scrollTop=sc0;if(s1)s1.scrollTop=sc1;}
   if(typeof GAR!=='undefined'&&GAR.aMisId){const id9=GAR.aMisId;GAR.aMisId=null;setTimeout(function(){const r9=document.querySelector('#gmListe [data-m2="'+id9+'"]');if(r9){try{r9.scrollIntoView({block:'center'});}catch(e){}r9.classList.add('flash');}},REDUCED_MOTION?0:380);} // VOIR LA MISSION hors du garage
-  el.querySelectorAll('img[data-ph]').forEach(function(im){const i=+im.getAttribute('data-ph');photoFile(i,function(u){if(u&&im.isConnected)im.src=u;});});
+  {const ph=function(im){const i=+im.getAttribute('data-ph');photoFile(i,function(u){if(u&&im.isConnected)im.src=u;});}, ims=el.querySelectorAll('img[data-ph]'); /* (2026-11-06) toutes les missions à l'écran : les photos de caisses se prennent quand leur ligne apparaît */
+   if(typeof IntersectionObserver==='function'){const io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){io.unobserve(e.target);ph(e.target);}});},{root:el.querySelector('.mcPan'),rootMargin:'160px 0px'});ims.forEach(function(im){io.observe(im);});}
+   else ims.forEach(ph);}
   const ems=el.querySelectorAll('.mcJ i[data-w]'),rgs=el.querySelectorAll('.mcPo .pr[data-o]'),hds=el.querySelectorAll('.mcPo .hd[data-r]'),go=function(){ems.forEach(function(e){e.style.width=e.getAttribute('data-w')+'%';});rgs.forEach(function(e){e.style.strokeDashoffset=e.getAttribute('data-o');});hds.forEach(function(e){e.style.transform='rotate('+e.getAttribute('data-r')+'deg)';});};
   if(REDUCED_MOTION||vu)go();else setTimeout(function(){requestAnimationFrame(go);},520);
-  if(neuf&&!REDUCED_MOTION)setTimeout(function(){const t9=document.querySelector('#gmListe .mcNeuf');if(!t9)return;try{pixBurst(t9,14);}catch(e){}try{if(SONV2)sfx('ui.debloque');}catch(e){}hap([12,40,30]);},900);
   let ch=false;for(const x of L){const p=Math.round(x.p*1000)/1000;if(s.vu[x.m.id]!==p){s.vu[x.m.id]=p;ch=true;}}if(ch)SAVE.mark();
   m2Portes();m2RevAuto(700);}
 function m2Voir(m){const o=m2CarVoir(m);if(!o){uiClic('refus');return;}uiClic('nav');
