@@ -81,8 +81,6 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
   text-shadow:0 3px 0 var(--txO),0 0 24px color-mix(in srgb,var(--rc) 50%,transparent)}
 .mcNom::after{content:'';position:absolute;left:0;bottom:0;width:min(62vw,230px);height:3px;background:linear-gradient(90deg,var(--rc) 0 72%,transparent);box-shadow:0 0 12px color-mix(in srgb,var(--rc) 60%,transparent)}
 .mcSous{display:block;margin-top:8px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
-.mcNeuf{display:inline-block;margin-top:9px;padding:5px 9px 4px;font-style:normal;font-size:var(--f0);letter-spacing:2px;color:var(--txO);background:var(--neoV);box-shadow:0 0 14px color-mix(in srgb,var(--neoV) 60%,transparent);transform:skewX(var(--sk));animation:mcTampon .45s var(--ease) .75s backwards}
-@keyframes mcTampon{from{opacity:0;transform:skewX(var(--sk)) scale(2.2)}}
 /* LA VEDETTE : le portail flotte sur le décor, comme la caisse au garage */
 .mcHero{display:flex;justify-content:center;padding:10px 0 14px}
 .mcV{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:420px;text-align:center;cursor:pointer;animation:k4Nom var(--t-slow) var(--ease) backwards}
@@ -125,7 +123,6 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
   background:linear-gradient(180deg,rgba(26,21,50,.7) 0%,rgba(20,15,40,.7) 52%,rgba(15,12,32,.7) 100%);box-shadow:inset 0 0 0 1px var(--fil),0 22px 40px -14px rgba(0,0,0,.75);
   clip-path:polygon(var(--coupe) 0,100% 0,100% calc(100% - var(--coupe)),calc(100% - var(--coupe)) 100%,0 100%,0 var(--coupe));animation:gDeplie .34s var(--ease) both}
 .mcPan .gModeT{flex:none;height:30px;margin-bottom:8px}
-.mcSq{display:flex;gap:4px}.mcSq s{display:block;width:8px;height:8px;background:none;opacity:1;box-shadow:inset 0 0 0 1px var(--tx3)}.mcSq s.o{background:var(--rc);box-shadow:0 0 6px var(--rc)}
 /* une ligne : un bloc de l'inventaire (#gFigSel) */
 .mcL{display:flex;flex-direction:column;gap:8px;margin-bottom:6px;padding:10px 11px 10px;cursor:pointer;
   background:linear-gradient(180deg,rgba(11,8,24,.86),rgba(23,16,46,.86));box-shadow:inset 0 0 0 1px var(--fil),inset 0 2px 0 rgba(255,255,255,.05);
@@ -143,19 +140,17 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 .mcL.hab .mcLt b{color:color-mix(in srgb,var(--rc) 45%,#fff)}.mcL.hab .mcJ i{background:var(--rc);box-shadow:0 0 8px var(--rc)}
 .mcL.pret{box-shadow:inset 0 0 0 2px var(--cash),0 0 16px rgba(125,255,155,.25)}.mcL.pret .m2Pr{align-self:flex-start;margin-top:0}
 .mcL.ok{cursor:default;opacity:.62}
-.mcNx{display:flex;align-items:center;gap:10px;padding:8px 2px 2px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
-.mcNx span{flex:1;display:flex;gap:5px}.mcNx i{display:block;height:9px;background:#05030c;box-shadow:inset 0 0 0 1px var(--fil)}
 .mcFin{display:flex;align-items:center;gap:10px;min-height:40px;margin-top:6px;padding:0 4px;font-size:var(--f0);letter-spacing:1px;color:var(--tx2);cursor:pointer}
 .mcFin b{font-weight:400;color:var(--tx3)}.mcFin .pxi{--pxs:1;margin-left:auto}
 .mcL.flash{animation:gmFlash .5s var(--ease)}
 #gmListe.mcE.vu .mcL,#gmListe.mcE.vu .mcV,#gmListe.mcE.vu .mcPan{animation:none}
-/* ===== L'ÉCRAN MISSIONS PLEIN CADRE (2026-11-06, Sacha : « refonte de l'écran mission, l'espace est qu'à moitié occupé » — piste A de maquettes/missions) =====
-   Le portail retiré de l'onglet (05/11) laissait quatre lignes dans un panneau de 560 px : debout 40 % du bas vide, couché la moitié gauche vide et la 4e ligne sous JOUER.
-   Même écran, mêmes matières (laque, liseré, coins coupés, Press Start) — seulement tout étiré : le panneau va du titre à la barre du bas, les cartes se partagent la hauteur
-   (texte 10 → 12 px, récompense 10 → 16 px, jauge 5 → 10 px). Couché : titre en haut (le palier et ses carrés sur sa ligne), les cartes en 2 × 2 sur toute la largeur,
-   le palier suivant et les réussies en pied, RETOUR | JOUER sur toute la largeur — rien sous la barre. Plus de masque en bas : le panneau défile seul (carte coupée = suite). */
-#gmListe.mcE .mcSqT{display:none}
-#gmListe.mcE .mcPan .gModeT{height:34px;margin-bottom:10px}
+/* ===== L'ÉCRAN MISSIONS : TOUTES LES MISSIONS, ON DÉFILE (2026-11-06, Sacha : « refonte de l'écran mission, l'espace est qu'à moitié occupé » → piste A plein cadre de maquettes/missions, puis
+   « pas de palier pour les missions, on doit voir toutes les missions dans l'écran mission en défilant ») =====
+   Plus de paliers : une seule liste de TOUTES les missions (À RÉCUPÉRER d'abord, puis une section par famille, les réussies repliées en bas), dans le panneau du garage qui va du titre à la barre
+   du bas et défile seul (un fondu en bas dit qu'il y a la suite). Mêmes matières (laque, liseré, coins coupés, Press Start) ; texte 12 px, récompense 16 px, jauge 10 px.
+   Debout : une colonne. Couché : deux colonnes sur toute la largeur, le titre en haut, RETOUR | JOUER sur toute la largeur — rien sous la barre. */
+#gmListe.mcE .mcSec{flex:none;height:34px;margin:18px 0 8px}
+#gmListe.mcE .mcPan>.mcSec:first-child{margin-top:0}
 #gmListe.mcE .mcL .mcLt b{font-size:var(--f3);line-height:1.55}
 #gmListe.mcE .mcL .mcCash{font-size:var(--f5)}
 #gmListe.mcE .mcL .mcRarS{font-size:var(--f1)}
@@ -163,17 +158,16 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 #gmListe.mcE .mcL .mcJ small{font-size:var(--f1)}
 #gmListe.mcE .mcL .mcLt .mcSil{width:84px}
 #gmListe.mcE .mcL.pret .m2Pr{min-height:38px;padding:0 18px;font-size:var(--f1)}
-#gmListe.mcE .mcNx{padding:4px 2px 0;font-size:var(--f1)}
-#gmListe.mcE .mcNx i{height:14px}
-#gmListe.mcE .mcFin{flex:none;min-height:44px;margin-top:2px;font-size:var(--f1)}
+#gmListe.mcE .mcFin{flex:none;min-height:44px;margin-top:6px;font-size:var(--f1)}
 #gmListe.mcE .mcVide{flex:1 0 auto;display:flex;align-items:center;justify-content:center}
-/* debout : le titre fixe, le panneau prend tout le reste, ses cartes se partagent la place (et il défile si l'écran est petit) */
+#gmListe.mcE .mcPan{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent)}
+/* debout : le titre fixe, le panneau prend tout le reste et défile */
 #gmListe.mcE:not(.land) .mcDef{display:flex;flex-direction:column;overflow:hidden}
 #gmListe.mcE:not(.land) .mcTete{flex:none}
-#gmListe.mcE:not(.land) .mcPan{flex:1 1 0;min-height:0;max-width:720px;margin:10px auto 0;display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding:14px 14px 10px}
-#gmListe.mcE:not(.land) .mcL{flex:1 0 auto;max-height:150px;justify-content:center;gap:12px;padding:10px 14px;margin-bottom:9px} /* plafonnée (150 de contenu + 20 de marge intérieure = 170) : avec deux missions seulement, les cartes ne s'étirent pas en blocs creux */
+#gmListe.mcE:not(.land) .mcPan{flex:1 1 0;min-height:0;max-width:720px;margin:10px auto 0;display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:14px 14px 30px}
+#gmListe.mcE:not(.land) .mcL{flex:none;gap:10px;padding:10px 14px;margin-bottom:8px}
 #gmListe.mcE:not(.land) .mcFinL{flex:none}
-/* couché : RETOUR | JOUER sur toute la largeur, au-dessus d'eux un seul bloc pleine largeur (titre, puis les cartes en 2 × 2) */
+/* couché : RETOUR | JOUER sur toute la largeur, au-dessus d'eux un seul bloc pleine largeur (le titre, puis les missions sur deux colonnes) */
 #gMis.mbOn.m2land #gmBas{left:calc(var(--sL) + var(--gut));right:calc(var(--sR) + var(--gut));width:auto;transform:none;bottom:calc(var(--sB) + 12px)}
 #gMis.mbOn.m2land #gmBas .gmHome{width:112px;flex-direction:row;justify-content:center;gap:10px;padding:0 12px}
 #gMis.mbOn.m2land #gmBas .gmJouer{font-size:var(--f6)}
@@ -181,20 +175,20 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 #gmListe.mcE.land .mcTete{grid-column:1;grid-row:1;display:flex;align-items:flex-end;gap:18px;padding-top:0}
 #gmListe.mcE.land .mcNom{font-size:24px;padding-bottom:11px}
 #gmListe.mcE.land .mcTete .mcSous{margin:0 0 12px}
-#gmListe.mcE.land .mcTete .mcSqT{display:flex;margin:0 6px 12px auto}
-#gmListe.mcE.land .mcPan{grid-column:1;grid-row:2;max-width:none;height:100%;margin:0;overflow-y:auto;scrollbar-width:none;padding:10px 12px 6px;
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:1fr 1fr auto;column-gap:10px} /* colonnes ÉGALES : la carte « à récupérer » (bouton + silhouette sur une ligne) n'élargit pas la sienne */
-#gmListe.mcE.land .mcPan[data-n="0"],#gmListe.mcE.land .mcPan[data-n="1"],#gmListe.mcE.land .mcPan[data-n="2"]{grid-template-rows:1fr auto} /* moins de trois cartes : une seule rangée */
-#gmListe.mcE.land .mcPan .gModeT{display:none}
-#gmListe.mcE.land .mcL{margin-bottom:8px;justify-content:center;gap:8px;padding:8px 12px} /* pas de min-height:0 : une carte ne rétrécit jamais sous son contenu, le panneau défile à la place */
+#gmListe.mcE.land .mcPan{grid-column:1;grid-row:2;max-width:none;height:100%;margin:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:10px 12px 28px;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto;align-content:start;column-gap:10px}
+#gmListe.mcE.land .mcSec{grid-column:1/-1;height:28px;margin:12px 0 6px}
+#gmListe.mcE.land .mcL{margin-bottom:8px;gap:8px;padding:8px 12px}
 #gmListe.mcE.land .mcL .mcLt b{font-size:var(--f1);line-height:1.5}
+#gmListe.mcE.land .mcL.pret{grid-column:1/-1;flex-direction:row;align-items:center;gap:14px} /* la récompense à récupérer : toute la largeur, c'est l'appel à l'action */
+#gmListe.mcE.land .mcL.pret .mcLt{flex:1;min-width:0}
 #gmListe.mcE.land .mcL.pret .m2Pr{min-height:34px}
-#gmListe.mcE.land .mcNx{grid-column:1;padding:4px 2px 0}
-#gmListe.mcE.land .mcFin{grid-column:2;min-height:44px;margin:0}
-#gmListe.mcE.land .mcFinL,#gmListe.mcE.land .mcVide{grid-column:1/-1}
+#gmListe.mcE.land .mcFin{grid-column:1/-1;margin:0}
+#gmListe.mcE.land .mcFinL{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:10px}
+#gmListe.mcE.land .mcVide{grid-column:1/-1}
 /* les petits écrans : l'iPhone 7 / 8 / SE couché (375 de haut) et debout (667) — même mise en page, plus serrée */
 @media (orientation:landscape) and (max-height:400px){
-  #gmListe.mcE.land .mcPan{padding:8px 10px 4px}
+  #gmListe.mcE.land .mcPan{padding:8px 10px 26px}
   #gmListe.mcE.land .mcL{padding:6px 10px;gap:5px;margin-bottom:6px}
   #gmListe.mcE.land .mcL .mcJ u{height:8px}
   #gmListe.mcE.land .mcL .mcLt .mcSil{width:56px}
@@ -202,14 +196,13 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
   #gmListe.mcE.land .mcL.pret .mcLt .mcSil{width:44px}}
 @media (orientation:portrait) and (max-height:700px){
   #gmListe.mcE .mcL .mcLt b{font-size:var(--f1)}
-  #gmListe.mcE:not(.land) .mcPan{padding:12px 12px 8px}
+  #gmListe.mcE:not(.land) .mcPan{padding:12px 12px 26px}
   #gmListe.mcE:not(.land) .mcL{gap:8px;padding:8px 12px;margin-bottom:6px}
-  #gmListe.mcE .mcPan .gModeT{height:30px;margin-bottom:6px}
+  #gmListe.mcE .mcSec{height:30px;margin:14px 0 6px}
   #gmListe.mcE .mcL .mcJ u{height:7px}
   #gmListe.mcE .mcL .mcLt .mcSil{width:64px}
-  #gmListe.mcE .mcL.pret .m2Pr{min-height:32px;padding:0 14px}
-  #gmListe.mcE .mcNx i{height:10px}}
-@media (prefers-reduced-motion:reduce){.mcPo .rf,.mcPo .rf0,.mcV.pret .mcPo,.mcNeuf{animation:none}.mcL,.mcV,.mcPan{animation:none}.mcSil.duo img.n,.mcPo .hd{transition:none}}
+  #gmListe.mcE .mcL.pret .m2Pr{min-height:32px;padding:0 14px}}
+@media (prefers-reduced-motion:reduce){.mcPo .rf,.mcPo .rf0,.mcV.pret .mcPo{animation:none}.mcL,.mcV,.mcPan{animation:none}.mcSil.duo img.n,.mcPo .hd{transition:none}}
 .m2Rien{padding:16px 6px;font-size:var(--f0);color:#8fb8c8;text-align:center}
 /* LE POINT VERT des portes MISSIONS : une récompense attend */
 .m2Pt{position:absolute;top:5px;right:6px;width:10px;height:10px;background:var(--cash);box-shadow:0 0 0 2px var(--k0),0 0 10px var(--cash);pointer-events:none;
