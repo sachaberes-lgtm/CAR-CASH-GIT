@@ -51,3 +51,34 @@ Debout (390×844) : accueil, réglages, garage, inventaire, boutique, missions, 
 
 ## Livraison
 Fusionné dans `main` (v1154), poussé. Vérifié après fusion : syntaxe des scripts 0 erreur, gardes charte / burn-out / allègement OK, 0 erreur JS ; menu → JOUER lancé en 667×375, 390×844 et dans le cadre de l'ordi (la course elle-même n'a été jouée qu'au démarrage, pas de partie complète : machine saturée).
+
+---
+# DEUXIÈME PASSE (2026-11-05 soir, « relance » de Sacha) — ce que le premier rapport laissait « pas fait »
+Mêmes règles : identité néon gardée (rien de re-peint), un commit par correctif, fenêtre intégrée, animations figées. Base : origin/main v1156, fusionnée sans conflit.
+
+## Mesuré et corrigé
+| # | Écran | Mesure | Correction | Commit |
+|---|---|---|---|---|
+| 6 | Écran de mort, 667×375 (EN) | « MISSIONS » (115 px) mordait de 13 px le compteur « 5 / 53 » (on lisait « / 53 ») ; « SECRET MISSION FOUND » 170 px dans 158 → « FO… » | titre à 8 px en couché étroit, mission secrète sur deux lignes (`finition-ecrans.css` §10) | 4eb95852 |
+| 7 | Boutique, 667×375 | le nom de la caisse (nowrap, 14 px) : **85 noms sur ~180 (FR+EN)** passaient sous la grille ou sur les rayons (« LA PIZZA EXPRESS » 240 px dans 163) | `boutique-scene-1.js` : le corps descend d'après la place libre (jusqu'à 10 px), puis deux lignes ; les 14 plus longs mesurés tiennent | af4dffdf |
+| 8 | Plaque, 667×375 (EN) | « NETHERLANDS » (88 px) dans 80 px de tuile → « NETHERLAN / DS », SWITZERLAND pareil | marge de tuile 6 → 2 px (`finition-ecrans.css` §11) ; SOUTH AFRICA / SAUDI ARABIA passent à la ligne à l'espace, normal | 127c7893 |
+| 9 | Final spin, 667×375 | l'enseigne « FINAL SPIN » 264 px dans une colonne de 250, à 7 px du bord (la machine garde 19) | marges internes .34 → .2 spH : elle finit au bord de la machine (648), centrée sur TIRER (§12) | b0a65b68 |
+| 10 | Sons | audit n° 2, 3, 4, 5, 7, 9 (voir « Sons » plus haut) | pas de tick sur touche `aria-disabled` / sous le verrou double-tap ; témoin EFFETS audible en pause (`ui.ok`) ; MAIN / VOL INVERSÉ / INCLINAISON sonnent `onglet` comme leurs voisines ; filet muet 600 ms après la mort ; GARAGE du PC avec `ui.nav` | 69c63196 |
+
+## Mesuré et trouvé juste
+- Pause : debout 390×844 (EN) et 667×375 (EN) : marges 18-19 / 18-19 et 23 / 23, RESTART · QUIT · RESUME même hauteur ; 0 texte coupé, 0 cible < 44. (Pause couché 844 : déjà mesurée.)
+- Écran de mort debout (EN) : home 13-80, GARAGE, SETTINGS, PLAY AGAIN 12-378, marges 12 / 12, bas à 12 px ; 0 défaut.
+- Missions 667×375 (nouvel écran « plein cadre » d'une autre session) : BACK 13-136 / PLAY 141-655, hauteur 56, marges 13 / 12 ; 0 défaut.
+- Boutique 667×375 : onglets CARS · BUY · PAINTS · WINGS · TRAILS · TRICKS (47 px de haut, le dernier finit à 363), **l'onglet BUY (ACHAT, revenu en v1149)** : cartes €, 0 chevauchement voulu hors défilement, 0 texte coupé.
+- Profil 667×375 (EN) : 0 texte coupé ; touches BACK 67 / CHANGE MY PLATE 159.
+- Révélation (?revelation=legendaire) 667×375 et 390×844 : tout centré sur 333 / 195 (CLAIM 220 × 56), 0 débordement.
+- Auto-école (compte neuf), 667×375 : PASSER / SKIP centré (139-527 pour 667), 56 px.
+- Chargement (ouroboros) : refait ce soir par une autre session (37d5c3e3, « l'Ouroboros centré comme la boule de l'intro en paysage ») ; non remesuré.
+
+## Laissé (choix de mise en scène — à entendre / décider)
+- Sons n° 8 (`gClose`/`ivFerme` sans garde : ajouter la garde pourrait empêcher de fermer pendant le lâcher, non testé), n° 10 (ancien panneau `#settings`, atteignabilité non établie), n° 11 (palier du moteur et aura de l'écran de mort muets : peut-être voulu), n° 12 (achat de caisse : 3-4 couches sans ducking, à juger à l'oreille), n° 13 (`uiClic('ok')` : sans effet audible), CONTINUER (tap puis refus si la pub n'est pas lancée).
+- Non remesurés faute de temps (machine à une charge de 130-200, pane intégré qui se met en pause tout seul) : final spin, auto-école et révélation en couché 844 (relevés au tour précédent ou équivalents), final spin / auto-école debout, ouroboros debout.
+
+## Les deux arbitrages ouverts — ma recommandation chiffrée (non appliquée)
+1. **Formes de RETOUR** : ramener à DEUX formes. (a) pages à gauche (réglages, profil, plaque) : 128 × 56 px, icône ◀ à gauche du mot, à 16 px du bord (+ zone sûre) et 12 px du bas — aujourd'hui 159×56, 67×56 (flèche seule), 137×66, à 31 / 13 / 12 px du bord ; (b) colonne de droite (inventaire, boutique, missions) : 128 × 52 — aujourd'hui 128×52 (inventaire, boutique) et 123×56 (missions). Coût : 3 feuilles (`plaque.css`, `charte-2-ecrans.css` `.mDock .mBack`, `missions.css`), ~1 h avec les 3 formats au banc ; risque faible (pas de changement de place, seulement de taille).
+2. **Durées d'entrée** : aujourd'hui 400 ms (`--t-in`) + 34 ms × jusqu'à 10 blocs = jusqu'à 776 ms, glissé de 16-30 px, sortie 150 ms. Recommandation : entrée 260 ms, glissé 12 px, cascade 30 ms plafonnée à 5 blocs (≤ 410 ms au total), sortie 120 ms en fondu ; jetons redéfinis seulement sur les racines des menus (`#overlay,#mob,#garage,#tPanel,#modale,#plq,#prof`), jamais sur `:root` (le HUD de course les utilise). Le bloc CSS prêt est au §5 de `FINITION-animations.md` ; à tester pause, fenêtre, boutique, mort sous « réduire les animations ».
