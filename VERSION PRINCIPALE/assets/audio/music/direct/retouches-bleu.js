@@ -127,12 +127,23 @@ const lofiReparer = (Mx, O, o) => {
   Mx.bpm1 = Math.round(Mx.bpm1 * (o.tempo || 1.08)); };
 
 // ---------------------------------------------------------------- LES RETOUCHES (base = le numéro de la musique 👍 ; note = la consigne de Léo)
+const retouche6167 = (Mx, O) => {
+  const t = Mx.ton, hira = [0, 2, 3, 7, 8].map(x => (t + x) % 12);
+  toutesLesGrilles(Mx).forEach(A => { if (A && Array.isArray(A.gamme)) { const g = A.gamme.filter(p => hira.includes(p)); if (g.length >= 3) A.gamme = g; } });
+  nomme(O, 'NOM_LEAD', 'koto', 'koto néon'); Mx.tim.lead = 'koto'; };
+const retouche1540 = Mx => { insere(Mx, 'arp', 15, ['perc', 'vinyl', 'octave']); if (Mx.pat) Mx.pat.arp = 'updown16'; };
+// LES VERSIONS D'AVANT (2026-11-02) : quand un morceau est refait directement, la salle d'écoute propose l'ancienne en petit (même forme qu'une entrée de V2)
+export const AVANT = { 'bleu-1540': { voix: { pluck: ARP_SF }, retouche: retouche1540 }, 'bleu-9664': {}, 'bleu-8042': { depart: 5, retouche: lofiReparer }, 'bleu-6167': { voix: { lead: KOTO_NEON }, retouche: retouche6167 } };
+
 export const V2 = [
   { id: 'bleu-1540-retouche', base: 1540, direct: true, titre: 'CAVALE ULTRA',
     note: 'ajoute un arpège un peu sci-fi qui danse autour du lead quelque part, ça dort trop au niv 15',
     idee: 'un arpège sci-fi AJOUTÉ (une goutte de synthé qui bippe), il entre au 15e moteur, là où ça dormait',
     voix: { pluck: ARP_SF },
-    retouche(Mx) { insere(Mx, 'arp', 15, ['perc', 'vinyl', 'octave']); if (Mx.pat) Mx.pat.arp = 'updown16'; } },
+    /* (2026-11-02, Léo : « celle du lobby, elle est bien ; sur le rythme de la corde, un tout petit peu plus poussé pour que ce soit moins fatigant, ça peut évoluer ») LA HARPE DE VERRE (le seul instrument du lobby) :
+       sa grille avait trois coups par mesure (0, 7, 10) ; elle en a cinq (un appel au 3, une relance au 14) et TROIS grilles qui tournent d'une phrase à l'autre (l'ancienne reste une des trois) : la même harpe, un peu plus poussée, qui évolue. */
+    retouche(Mx) { retouche1540(Mx); const kA = [[0, 6], [3, 2], [7, 3], [10, 5], [14, 2]], kB = [[0, 6], [7, 3], [10, 6]], kC = [[0, 4], [3, 2], [6, 3], [10, 4], [13, 3]];
+      if (Mx.pat) { Mx.pat.keys = kA; if (Mx.patL) Mx.patL.keys = [kA, kB, kC]; } } },
 
   { id: 'bleu-2221-retouche', base: 2221, direct: true, titre: 'COBRA ULTRA',
     note: 'affiner instruments un peu brut',
@@ -166,11 +177,13 @@ export const V2 = [
   { id: 'bleu-6167-retouche', base: 6167, direct: true, titre: 'LUNE DE JADE',
     note: 'plus asiatique dans la mélo, mais sinon ça va, mais asiatique cyberpunk',
     idee: 'asiatique cyberpunk : la mélodie dans la gamme japonaise (hirajoshi : 1, 2, ♭3, 5, ♭6), jouée au koto néon (la corde appuyée)',
-    voix: { lead: KOTO_NEON },
-    retouche(Mx, O) {
-      const t = Mx.ton, hira = [0, 2, 3, 7, 8].map(x => (t + x) % 12);
-      toutesLesGrilles(Mx).forEach(A => { if (A && Array.isArray(A.gamme)) { const g = A.gamme.filter(p => hira.includes(p)); if (g.length >= 3) A.gamme = g; } });
-      nomme(O, 'NOM_LEAD', 'koto', 'koto néon'); Mx.tim.lead = 'koto'; } },
+    voix: { lead: KOTO_NEON }, acc: { keys: CLAV_FIN },
+    /* (2026-11-02, Léo : « Lune de Jade est presque parfaite, juste le début pour être premiumisé ; avec ça tu peux améliorer la suite ; ce n'est pas une refonte, une retouche améliorative ») LE DÉBUT PREMIUM : les accords hachés adoucis (filtre plus bas), la nappe de verre dès le 2e moteur,
+       lente et large ; le clavinet sans grattement (CLAV_FIN) ; les klaxons (la signature) reculent du 6 au 12 : ils ne passent plus devant. LA SUITE, en conséquence : une petite cloche du koto au 8 (la mélodie asiatique s'annonce), l'espace qui s'élargit au 15. La mélodie et le reste ne bougent pas. */
+    retouche(Mx, O) { retouche6167(Mx, O);
+      try { const t = Mx.tim; t.padFc = Math.min(t.padFc, 1100); t.padAtt = Math.max(t.padAtt, .7); t.padLarge = Math.min(t.padLarge, 12); t.sfc = Math.min(t.sfc * .7, 1700);
+        insere(Mx, 'pad', 2, []); insere(Mx, 'sig', 12, []); insere(Mx, 'cloche', 8, ['i_pulse']); insere(Mx, 'i_large', 15, ['i_basseOct']);
+      } catch (e) { (globalThis.__retErr = globalThis.__retErr || []).push('6167 : ' + String(e && e.message || e)); } } },
 
   { id: 'bleu-8338-retouche', base: 8338, direct: true, titre: 'RUBIS ULTRA',
     note: 'plus d’assaisonnement et de vie, originalité à retravailler, sinon pas mal la continuité de la boucle',
@@ -230,7 +243,8 @@ export const V2 = [
     note: 'à réparer : les premiers bruits d’instruments sont mal gérés et ne donnent pas de musique, et le niveau 30 n’est pas assez excitant (puis : sauver toute l’évolution jusqu’au palier le plus intense)',
     idee: 'la harpe joue ses accords (elle ne les tenait plus : −38 dB aux moteurs 1-3), basse 808 et grosse caisse avant le charley, l’ocarina dès le 6e moteur, puis la montée chargée jusqu’au 30',
     depart: 5,
-    retouche(Mx, O) { lofiReparer(Mx, O); } },
+    /* (2026-11-03, Léo : « change le piano d'AVERSE DE CHROME ») LE PIANO : le piano d'avant (@piano, cassé et un peu boîte) cède la place au piano à queue (@pianoQueue, banque VCSL : tenue plus longue, marteau plus rond) ; la réparation (lofiReparer) et la partition ne bougent pas. */
+    retouche(Mx, O) { lofiReparer(Mx, O); Mx.tim.keys = '@pianoQueue'; } },
 
   { id: 'bleu-6104-retouche', base: 6104, direct: true, titre: 'TONNERRE DELUXE',
     note: 'à réparer : les premiers bruits d’instruments sont mal gérés et ne donnent pas de musique, et le niveau 30 n’est pas assez excitant (puis : sauver toute l’évolution jusqu’au palier le plus intense)',

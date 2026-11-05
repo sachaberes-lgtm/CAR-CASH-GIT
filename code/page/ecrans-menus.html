@@ -33,7 +33,7 @@
   <div id="runStats"></div>
   <!-- LE MOTEUR ATTEINT : on montre la pièce qu'on a réussi à monter, pas seulement son nom.
        Le rendu 3D vient du MÊME moteur que la vignette de course (voir engVigRender). -->
-  <div id="endEng"><canvas id="endEngCv" width="480" height="321"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div>
+  <div id="endEng"><canvas id="endEngCv" width="480" height="321"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div><!-- 480×321 : repli sans JS — affiné à la résolution du palier dès le chargement (voir ENG_RES_W) -->
   <div id="nameEntry"><span><i class="pxi pxi-etoile" aria-hidden="true"></i> NOUVEAU RECORD — TON NOM</span><input id="nameInput" maxlength="8" autocomplete="off" spellcheck="false" placeholder="________"><button id="nameSave">VALIDER</button></div>
   <div id="lbBox"></div>
   <button id="playBtn" aria-label="Jouer">Jouer</button>
@@ -212,7 +212,9 @@
   </div>
 </div>
 <div id="touchCtl">
-  <div id="tSteer" role="button" tabindex="0" aria-label="Volant"><div id="tStick"><div id="tKnob"></div></div></div>
+  <!-- (2026-11-03, Sacha : « enlève le HUD "glisse pour tourner", ça sert à rien, c'est tout le temps là » — le texte #tSteerHint est retiré ;
+       le volant garde son invite visuelle (l'anneau qui pulse, #tSteer:not(.used)::after) qui s'efface seule au premier braquage. -->
+  <div id="tSteer" role="button" tabindex="0" aria-label="Volant — glisse pour tourner"><div id="tStick"><div id="tKnob"></div></div></div>
   <div id="tLeft" class="tbtn" role="button" tabindex="0" aria-label="Gauche"><i class="pxi pxi-gauche" aria-hidden="true"></i></div>
   <div id="tRight" class="tbtn" role="button" tabindex="0" aria-label="Droite"><i class="pxi pxi-droite" aria-hidden="true"></i></div>
   <div id="tUp" class="tbtn" role="button" tabindex="0" aria-label="Haut"><i class="pxi pxi-haut" aria-hidden="true"></i></div><!-- (2026-10-27, Léo) FLÈCHES : haut / bas = l'assiette en vol -->

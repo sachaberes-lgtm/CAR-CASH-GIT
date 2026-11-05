@@ -325,7 +325,7 @@ const PHOTO={cache:{},rt:null,scene:null,cam:null};
 const PHDB={db:null,n:0,lu:false,t0:0}; /* lu : la base est lue (ou inutilisable) — voir phdbAttend */
 /* (2026-10-22, piste « démarrage ») LA VERSION DES PHOTOS n'est plus la version publiée : c'est CC_PHOTOS, l'empreinte des fichiers qui dessinent une photo (vercel-build.sh) — une publication qui ne touche ni les caisses, ni le rendu, ni le studio garde toutes les photos (MESURÉ au profil : 3,3 à 4,4 s de fil principal à CPU ×4 pour les refaire). Jeton non gravé : on retombe sur CC_BUILD (rien n'est gardé en local). La PEINTURE entre en entier (couleurs comprises), pas seulement son id : une teinte retouchée refait les photos. */
 function phdbVer(){return /^__/.test(CC_PHOTOS)?CC_BUILD:CC_PHOTOS;}
-function phdbSig(){let p='';try{const d=cosmSur('peinture');if(d){const j=JSON.stringify(d);let h=2166136261;for(let i=0;i<j.length;i++){h^=j.charCodeAt(i);h=Math.imul(h,16777619);}p=(d.id||'')+':'+(h>>>0).toString(36);}}catch(e){try{p=cosmSur('peinture').id||'';}catch(e2){}}return phdbVer()+'|'+p;} /* la peinture en entier, résumée en 6 lettres (FNV-1a) : la signature se range avec CHAQUE photo */
+function phdbSig(){if(PHOTO_USINE)return phdbVer()+'|usine-photo'; /* (2026-11-02) une photo de caisse ne dépend plus de la peinture portée */let p='';try{const d=cosmSur('peinture');if(d){const j=JSON.stringify(d);let h=2166136261;for(let i=0;i<j.length;i++){h^=j.charCodeAt(i);h=Math.imul(h,16777619);}p=(d.id||'')+':'+(h>>>0).toString(36);}}catch(e){try{p=cosmSur('peinture').id||'';}catch(e2){}}return phdbVer()+'|'+p;} /* la peinture en entier, résumée en 6 lettres (FNV-1a) : la signature se range avec CHAQUE photo */
 function phdbOuvre(){if(PHDB.db!==null)return;PHDB.db=false;PHDB.t0=performance.now();if(/^__/.test(CC_BUILD)||!window.indexedDB||!window.URL||!URL.createObjectURL){PHDB.lu=true;return;}
   try{const r=indexedDB.open('ccPhotos',1);r.onupgradeneeded=function(){try{r.result.createObjectStore('p');}catch(e){}};
     r.onsuccess=function(){PHDB.db=r.result;phdbLit();};r.onerror=function(){PHDB.db=false;PHDB.lu=true;};}catch(e){PHDB.db=false;PHDB.lu=true;}}
@@ -334,7 +334,7 @@ function phdbLit(){try{const sig=phdbSig(),st=PHDB.db.transaction('p','readwrite
   vs.onsuccess=function(){try{const K=ks.result||[],V=vs.result||[];
     for(let i=0;i<V.length;i++){const v=V[i],k=K[i];
       if(!v||String(v.s).split('|')[0]!==phdbVer()){try{st.delete(k);}catch(e){}}
-      else if(v.s===sig&&v.b&&!PHOTO.cache[k]){try{PHOTO.cache[k]=URL.createObjectURL(v.b);PHDB.n++;}catch(e){}}}
+      else if((v.s===sig||v.s===phdbVer()+'|usine-photo')&&v.b&&!PHOTO.cache[k]){try{PHOTO.cache[k]=URL.createObjectURL(v.b);PHDB.n++;}catch(e){}}}
   }catch(e){}PHDB.lu=true;};}catch(e){PHDB.lu=true;}}
 /* (2026-10-22, piste « démarrage ») LA FILE DES PHOTOS ATTEND LA BASE : sa lecture part 700 ms après le chargement, mais sur un téléphone le fil est pris par le démarrage bien plus longtemps — MESURÉ (CPU ×4) : la file prenait ses premières photos 8 à 18 s avant que la base ne soit lue, et refaisait donc celles qu'elle gardait déjà. Tant que la base n'est pas lue, photoTour et photoRafale attendent (avant que la lecture ne soit lancée, sans limite — son minuteur est posé ; ensuite au plus 4 s : une base muette ne bloque pas les vignettes). */
 function phdbAttend(){return !PHDB.lu&&(!PHDB.t0||performance.now()-PHDB.t0<4000);}

@@ -30,6 +30,7 @@
    `?intro=ancien` = l'intro d'avant (init.js) · `?intro=muet` = sans aucun son · « réduire les animations » = sans secousse ni
    éclats (le voile s'efface) · quelqu'un qui a déjà fini la leçon (SAVE.d.tuto) voit le même film en 20 % plus court · un 2e toucher passe. */
 (function(){
+  try{if(/[?&]lecon=non\b/.test(location.search)&&SAVE&&SAVE.d)SAVE.d.tuto=1;}catch(e){} /* (réglage de TEST, 2026-11-02) `?lecon=non` : la leçon est comptée comme faite (SAVE.d.tuto) : le menu joue alors le lobby lié (le morceau du niveau, en ambiance), pas « Premier matin » */
   if(!INTRO_NEUVE)return;
   const sp=document.getElementById('splash'),cv=document.getElementById('fxCv');
   if(!sp||!cv)return;
@@ -199,16 +200,55 @@
 
   /* 9. SPHÈRE (2026-10-23, Léo : « l'effet éclaboussure étincelle artifice qui fait la courbe φ, explose et laisse paraître 1.61 en sphère, écrit en masse pour former une boule qui tourne sur elle-même, se désintègre, et toutes les lettres tombent, effet terre qui s'écroule ; puis CASH CAR surgit de l'ombre, zoom, et boom : ça explose en écran ciel »).
      Le feu d'artifice en spirale (dLabFeu, sans son nombre en cubes), puis les caractères « 1 . 6 1 » en masse jaillissent du centre et se posent en sphère (spirale de Fibonacci) qui tourne, penchée ; elle tremble, puis lâche : le bas d'abord, tout choit. */
+  /* LA BOULE EST LA SUITE DU NOMBRE D'OR (2026-11-02, Léo : « ça ne va plus être que 1.61, la boule : la boule, c'est la suite du chiffre d'or ; ensuite, il y aura 1.61 PRESENTS ») : au lieu de « 1 . 6 1 » répété, chaque point de la sphère porte
+     le chiffre suivant de φ = 1,6180339887498948… (560 signes, plus qu'aucune taille d'écran n'en demande), dans l'ordre de la spirale de Fibonacci qui dessine la boule : de la tête à la base, la boule s'écrit. */
+  const PHI_CH="1.618033988749894848204586834365638117720309179805762862135448622705260462818902449707207204189391137484754088075386891752126633862223536931793180060766726354433389086595939582905638322661319928290267880675208766892501711696207032221043216269548626296313614438149758701220340805887954454749246185695364864449241044320771344947049565846788509874339442212544877066478091588460749988712400765217057517978834166256249407589069704000281210427621771117778053153171410117046665991466979873176135600670874807101317952368942752194843530567830022878569978297783478458782";
+  const GLYPHES='0123456789.';
+  /* LES COULEURS FORMENT UNE PLANÈTE, ET TOURNENT AUTOUR DE SES TONS (2026-11-02, Léo : « les couleurs forment la couleur du globe, on reconnaît une planète ; encore un peu abstrait : que ça tourne vraiment autour des tons de la planète ») :
+     la couleur d'un chiffre ne dépend pas de sa valeur mais de SA ZONE sur la sphère : un bruit de valeur à basse fréquence (PLANETE_BRUIT) sépare des océans profonds, des côtes, des terres (forêts ou déserts), des glaces aux pôles, et des nuages qui passent par-dessus ;
+     la sphère tourne, les continents défilent. Une seule planète, la TERRE : chaque zone ONDULE autour de son ton (le bleu de l'océan va du marine à l'azur, la forêt du vert franc au vert-jaune…), chacune à son rythme, comme la lumière sur l'eau : la planète change
+     de couleur sans jamais cesser d'en être une. NPAS pas par tour (2,2 pas par seconde : 5,5 s), une onde fermée : le dernier pas rejoint le premier. Le pouls (rayon, lueur) est celui de dBoule, inchangé. */
+  /* LA TERRE, SES TEINTES FIXES ET SA LUMIÈRE (2026-11-02, Léo : « retire les blancs et les marrons en trop ; amplifie la lueur et les nuances de bleu et de vert qui tirent vers le jaune, l'effet Terre ; pendant que la planète tourne et que je la manipule, ne change pas les couleurs :
+     fais varier l'éclat, l'ombre et le contraste de chaque teinte selon l'angle ») : plus d'onde de couleurs, plus de glaces ni de nuages blancs, plus de déserts bruns. Chaque zone a UNE teinte qui ne bouge jamais ; seule sa clarté (et un peu sa saturation) suit l'angle
+     de la surface à une lumière fixe, en haut à gauche : NLUM paliers, de l'ombre profonde à l'éclat. Chaque teinte a son propre contraste (gamma) et son propre éclat : l'océan est profond et brille en miroir, les terres jaunes restent claires dans l'ombre (un jaune sombre vire au brun). */
+  const NLUM=10;
+  const ZONES=[ /* [teinte, saturation d'ombre %, saturation d'éclat %, clarté d'ombre %, clarté d'éclat %, gamma (contraste)] */
+    [224,96,90,9,50,1.5],   /* 0 océan profond : du bleu nuit saturé à l'azur vif, sans blanc */
+    [208,98,92,14,54,1.3],  /* 1 azur : mers claires et pôles */
+    [176,96,88,15,52,1.2],  /* 2 turquoise : côtes, lagons */
+    [128,92,88,12,48,1.35], /* 3 vert franc : forêts, du vert bouteille au vert vif */
+    [96,94,90,15,52,1.2],   /* 4 vert-jaune : prairies */
+    [76,96,92,24,54,1.05]]; /* 5 vert-jaune doré : terres sèches (un jaune sombre vire au brun : sa teinte reste verte, son ombre reste claire) */
+  function couleurPlanete(z,u){ /* la couleur de la zone z au palier de lumière u (0 ombre … NLUM−1 éclat) : sa teinte ne change pas, sa clarté et sa saturation si */
+    const Z=ZONES[z],t=Math.pow(u/(NLUM-1),Z[5]);
+    return[Z[0],Math.round(Z[1]+(Z[2]-Z[1])*t),Math.round(Z[3]+(Z[4]-Z[3])*t)];
+  }
+  const PLANETE_BRUIT=(function(){ /* un bruit de valeur en 3D, lisse (courbe en S entre les sommets d'une grille) */
+    const h3=function(i,j,k){let h=Math.imul(i|0,374761393)+Math.imul(j|0,668265263)+Math.imul(k|0,1274126177)|0;h=Math.imul(h^h>>>13,1274126177);return((h^h>>>16)>>>0)/4294967296;};
+    return function(x,y,z){const i=Math.floor(x),j=Math.floor(y),k=Math.floor(z),u=x-i,v=y-j,w=z-k,su=u*u*(3-2*u),sv=v*v*(3-2*v),sw=w*w*(3-2*w),L=function(a,b,t){return a+(b-a)*t;};
+      return L(L(L(h3(i,j,k),h3(i+1,j,k),su),L(h3(i,j+1,k),h3(i+1,j+1,k),su),sv),L(L(h3(i,j,k+1),h3(i+1,j,k+1),su),L(h3(i,j+1,k+1),h3(i+1,j+1,k+1),su),sv),sw);};
+  })();
   function geoLabSphere(){
     const land=W>H*1.15,R=Math.min(W*.24,H*(land?.27:.19)),cx=W/2,cy=H*(land?.5:.46),n=Math.round(Math.max(260,Math.min(520,W*H/420))),Rn=hasard(161),ga=Math.PI*(3-Math.sqrt(5));
-    const F=()=>new Float32Array(n),px=F(),py=F(),pz=F(),dl=F(),tf=F(),fx=F(),gk=new Uint8Array(n),spr=[];
-    for(let i=0;i<n;i++){const y=1-2*(i+.5)/n,r=Math.sqrt(1-y*y),th=i*ga;px[i]=r*Math.cos(th);py[i]=y;pz[i]=r*Math.sin(th);dl[i]=Rn()*.4;gk[i]=i%4;
+    const F=()=>new Float32Array(n),px=F(),py=F(),pz=F(),dl=F(),tf=F(),fx=F(),gk=new Uint8Array(n);
+    for(let i=0;i<n;i++){const y=1-2*(i+.5)/n,r=Math.sqrt(1-y*y),th=i*ga;px[i]=r*Math.cos(th);py[i]=y;pz[i]=r*Math.sin(th);dl[i]=Rn()*.4;gk[i]=GLYPHES.indexOf(PHI_CH[i%PHI_CH.length]);
       tf[i]=TL.fondu-.95+(1-(y+1)/2)*.4+Rn()*.18;fx[i]=(Rn()-.5)*120*ku;}
-    const TEINTES=[['#fff0b0','#f0b030'],['#c8f0ff','#38b8ff'],['#ffc4d4','#ff4f86'],['#e4d4ff','#9a6bff']]; /* un « 1 . 6 1 » à quatre couleurs : or, bleu glace, rose, violet */
-    ['1','.','6','1'].forEach(function(ch,ci){const cc=document.createElement('canvas');cc.width=48;cc.height=64;const x=cc.getContext('2d'),d=x.createLinearGradient(0,8,0,56);d.addColorStop(0,TEINTES[ci][0]);d.addColorStop(1,TEINTES[ci][1]);x.fillStyle=d;x.font='44px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(ch,24,34);spr.push(cc);});
-    const sprH=[],HB=[42,200,340,265]; /* la boule qui change de couleur : 24 teintes par signe (départ : or, bleu glace, rose, violet), toutes décalées pareil au fil du temps */
-    for(let ci=0;ci<4;ci++){sprH.push([]);for(let st=0;st<24;st++){const h=(HB[ci]+15*st)%360,cc=document.createElement('canvas');cc.width=48;cc.height=64;const x=cc.getContext('2d'),d=x.createLinearGradient(0,8,0,56);d.addColorStop(0,'hsl('+h+',100%,86%)');d.addColorStop(1,'hsl('+h+',95%,56%)');x.fillStyle=d;x.font='44px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.fillText(['1','.','6','1'][ci],24,34);sprH[ci].push(cc);}}
-    return{sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:spr,gs:Math.max(9*ku,R*.2)};
+    const nv=new Float32Array(n),nd=new Float32Array(n),nn=new Float32Array(n); /* les zones : trois bruits posés sur la sphère. nv : les continents (les 38 % les plus hauts sont des terres, les 12 % d'après des côtes, le reste de l'océan) ; nd : forêt ou désert ; nn : les nuages (étirés en bandes) */
+    for(let i=0;i<n;i++){nv[i]=PLANETE_BRUIT(px[i]*1.15+4.1,py[i]*1.15+1.7,pz[i]*1.15+9.3)*.72+PLANETE_BRUIT(px[i]*2.5+8.2,py[i]*2.5+2.9,pz[i]*2.5+5.5)*.28;
+      nd[i]=PLANETE_BRUIT(px[i]*1.9+13.7,py[i]*1.9+6.3,pz[i]*1.9+2.1);nn[i]=PLANETE_BRUIT(px[i]*2.3+21.4,py[i]*3.9+9.1,pz[i]*2.3+17.8);}
+    const tri=Float32Array.from(nv).sort(),sTerre=tri[Math.floor(n*.62)],sCote=tri[Math.floor(n*.5)],sNuage=Float32Array.from(nn).sort()[Math.floor(n*.86)]; /* nn ne sert plus qu'à nuancer l'océan */
+    for(let i=0;i<n;i++){const ay=Math.abs(py[i]);
+      const z=ay>.89-.06*(nv[i]-.5)?1:nv[i]>=sTerre?(nd[i]>.62&&ay<.62?5:nd[i]>.38?4:3):nv[i]>=sCote?2:nn[i]>=sNuage?1:0; /* pôles en azur (plus de glace blanche), terres (forêt, prairie, terre dorée), côtes turquoise, océan (avec des plaques d'azur à la place des nuages) */
+      gk[i]+=z*GLYPHES.length;} /* gk : zone × 11 + signe */
+    const sprH=[]; /* la boule : NLUM paliers de lumière par signe et par zone, une teinte fixe par zone */
+    for(let z=0;z<ZONES.length;z++)for(let gi=0;gi<GLYPHES.length;gi++){const Lg=[];sprH.push(Lg);
+      for(let st=0;st<NLUM;st++){const c=couleurPlanete(z,st),cc=document.createElement('canvas');cc.width=48;cc.height=64;const x=cc.getContext('2d'),d=x.createLinearGradient(0,8,0,56);
+        d.addColorStop(0,'hsl('+c[0]+','+c[1]+'%,'+Math.min(70,c[2]+14)+'%)');d.addColorStop(1,'hsl('+c[0]+','+c[1]+'%,'+c[2]+'%)');
+        x.font='44px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';x.lineWidth=4;x.strokeStyle='hsl('+c[0]+','+c[1]+'%,'+Math.max(4,Math.round(c[2]*.35))+'%)';x.save();x.globalAlpha=.55;x.fillStyle=x.strokeStyle;x.strokeText(GLYPHES[gi],26,37);x.fillText(GLYPHES[gi],26,37);x.restore(); /* l'ombre portée, vers le bas à droite : le chiffre se détache */
+        x.strokeText(GLYPHES[gi],24,34);x.fillStyle=d;x.fillText(GLYPHES[gi],24,34);
+        x.globalCompositeOperation='source-atop';{const sh=x.createLinearGradient(6,8,34,50);sh.addColorStop(0,'rgba(255,255,255,.55)');sh.addColorStop(.38,'rgba(255,255,255,.08)');sh.addColorStop(.62,'rgba(0,0,0,0)');sh.addColorStop(1,'rgba(0,0,0,.38)');x.fillStyle=sh;x.fillRect(0,0,48,64);} /* le reflet en haut à gauche et l'ombre en bas à droite, dans le chiffre : du volume, comme un métal poli */
+        x.globalCompositeOperation='source-over';Lg.push(cc); /* contour sombre de la teinte : le chiffre a du corps et de la forme (comme les dorés) */}}
+    return{sprH:sprH,R:R,cx:cx,cy:cy,n:n,px:px,py:py,pz:pz,dl:dl,tf:tf,fx:fx,gk:gk,spr:[],gs:Math.max(9*ku,R*.2)};
   }
   /* 10. BOULE (2026-10-23 soir) : seulement la sphère de « 1.61 » ; elle tourne lentement tant que ça charge, s'arrête quand c'est prêt ; l'appui la fait exploser en CASH CAR (dActe3), puis le voile fond vers le jeu. */
   let pasSon=-1;
@@ -229,35 +269,63 @@
     const lache=function(){if(!bDown)return;bDown=false;if(bMove>12){bGlisse=true;setTimeout(function(){bGlisse=false;},400);}if(performance.now()-bLt>120){bVy=0;bVp=0;}};
     addEventListener('pointerup',lache);addEventListener('pointercancel',lache);
   }
+  /* LA GRAINE (2026-11-02, Léo : « l'écran noir au début donne l'impression que ça bug ; trouve un truc à mettre pendant le chargement ») : un point d'or au centre de la future boule, qui respire, et des ondes
+     qui s'en écartent comme un sonar. C'est de LUI que la boule naît (elle se construit du milieu). Dessiné dès l'attente, avant que le film parte (`attente`), puis jusqu'à ce que les premiers points de la boule
+     l'éteignent (`rendu`) : il ne dépend que de l'heure réelle, donc il continue sans à-coup à travers le départ du film. « Réduire les animations » : un point fixe, sans ondes. */
+  function dGraine(c,a){
+    if(a<=.004)return;
+    if(!SPR.or)SPR.or=lueur(255,190,80);
+    const land=W>H*1.15,cx=W/2,cy=H*(land?.5:.46),s=performance.now()/1000,R=reduit();
+    c.save();c.globalCompositeOperation='lighter';
+    const r=(5+(R?0:1.2*Math.sin(s*3.2)))*ku;
+    halo(c,SPR.or,cx,cy,r*5,r*5,.55*a);
+    if(!R)for(let j=0;j<2;j++){const k=(s*.55+j*.5)%1,rr=(8+k*46)*ku;c.globalAlpha=.5*(1-k)*(1-k)*a;c.strokeStyle='rgb(255,214,120)';c.lineWidth=Math.max(1,1.4*ku);c.beginPath();c.arc(cx,cy,rr,0,6.2832);c.stroke();}
+    c.globalAlpha=a;c.fillStyle='#fff1cf';const p=Math.max(2,Math.round(3*ku));c.fillRect(Math.round(cx-p/2),Math.round(cy-p/2),p,p);
+    c.restore();
+  }
+  function chCl(a){ /* l'anneau de chargement du HTML (spCharge) : visible jusqu'à ce que les premiers points de la boule se dessinent, puis il fond et disparaît (Léo, 02/11) */
+    const el=chCl.el===undefined?(chCl.el=document.getElementById('spCharge')):chCl.el;if(!el||chCl.fini)return;
+    if(a<=.004){chCl.fini=1;el.remove();return;}el.style.opacity=a;
+  }
+  function attente(){ /* avant le départ du film (page en chargement, police, fenêtre) : du noir, et la graine qui respire */
+    if(!W||!H)return;
+    g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.fillStyle='#000';g.fillRect(0,0,W,H);
+  }
   function dBoule(c,t,e){
     const dtf=bTP===null?0:borne(t-bTP,0,.1);bTP=t;
     if(!bDown){bYaw+=bVy*dtf;bPit+=bVp*dtf;const f=Math.exp(-dtf*2.5);bVy*=f;bVp*=f;bPit*=Math.exp(-dtf*.8);}
+    const LX=-.52,LY=-.5,LZ=.69; /* la lumière : en haut à gauche, devant ; elle ne tourne pas avec la planète */
     const W0=.5,tau=.7,pt=pretT,tp=tapT;
     const rot=.6+bYaw+W0*t; /* elle tourne sans jamais s'arrêter */
     const cr=Math.cos(rot),sr=Math.sin(rot),ct=Math.cos(.38+bPit),st=Math.sin(.38+bPit),pls=Math.sin(t*3.2),R=e.R*(1+.06*pls),gs=e.gs*(1+.05*pls),s=tp===null?-1:Math.max(0,t-tp); /* elle respire : un léger pouls */
     const ex=s>0?9*(1-Math.pow(1-borne(s/.7,0,1),3)):0,ea=s>0?1-lisse(.15,.75,s):1;
     c.save();
-    c.globalCompositeOperation='lighter';halo(c,SPR.or,e.cx,e.cy,R*1.7,R*1.7,(.2*lisse(.8,4,t)+.08*pls)*ea+(s>0?.9*Math.exp(-s*7):0));c.globalCompositeOperation='source-over';
-    const pas=Math.floor(t*2.2)%24; /* la teinte avance de 15° toutes les 0,45 s : un tour complet en 11 s */
-    if(pasSon!==Math.floor(t*2.2)){pasSon=Math.floor(t*2.2);if(t>3&&tp===null&&pasSon%2===0){try{if(SON&&!filmMuet&&iAC&&SON.dr)SON.note(iAC.currentTime+.02,pasSon>>1);}catch(x){}}} /* une cloche tous les deux pas : elle suit la couleur */
+    c.globalCompositeOperation='lighter';
+    if(!SPR.atmB){SPR.atmB=lueur(40,140,255);SPR.atmV=lueur(110,255,150);SPR.atmJ=lueur(235,255,90);} /* la lueur de la Terre : l'atmosphère bleue au large, une brume verte, et un cœur vert-jaune du côté du soleil */
+    const ga=lisse(.8,3.5,t)*ea,gp=ga*(.8+.2*pls);
+    halo(c,SPR.atmV,e.cx,e.cy,R*1.7,R*1.7,(.2*lisse(.8,4,t)+.08*pls)*ea); /* le halo du fond était d'or : sur le noir il brunissait (2026-11-02) */
+    if(s>0)halo(c,SPR.atmB,e.cx,e.cy,R*1.7,R*1.7,.9*Math.exp(-s*7)); /* l'éclat de l'explosion passe au bleu */
+    halo(c,SPR.atmB,e.cx,e.cy,R*2.25,R*2.25,.5*gp);halo(c,SPR.atmV,e.cx,e.cy,R*1.55,R*1.55,.3*gp);halo(c,SPR.atmJ,e.cx+R*LX*.35,e.cy+R*LY*.35,R*1.15,R*1.15,.2*gp);halo(c,SPR.bl,e.cx,e.cy,R*.95,R*.95,.11*gp); /* un tout petit peu de lueur blanche au cœur du globe (2026-11-02, Léo) */
+    c.globalCompositeOperation='source-over';
+    if(pasSon!==Math.floor(t*2.2)){pasSon=Math.floor(t*2.2);if(t>3&&tp===null&&pasSon%2===0){try{if(SON&&!filmMuet&&iAC&&SON.dr)SON.note(iAC.currentTime+.02,pasSon>>1);}catch(x){}}} /* une cloche tous les deux pas (le tempo de l'ancienne onde de couleurs) */
     if(PCI_ON){if(ea>0){ /* (passe perf PC, voir LE FILM SANS TRAVAIL REFAIT) le même dessin au bit près : mêmes expressions, même ordre (les points de derrière, puis ceux de devant, par i croissant) */
-      if(!e.pciT0){const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=.8+Math.pow(i/e.n,.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);
+      if(!e.pciT0){const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=.8+Math.pow(Math.abs(e.py[i]),.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);e.pciL=new Uint8Array(e.n);
         if(typeof createImageBitmap==='function')e.sprH.forEach(function(L,ci){L.forEach(function(cc,st){try{createImageBitmap(cc).then(function(b){if(e.sprH[ci][st]===cc)e.sprH[ci][st]=b;},function(){});}catch(x){}});});} /* les vignettes en ImageBitmap (mêmes pixels) dès qu'elles sont prêtes */
-      const T0=e.pciT0,Q=e.pciQ,Z=e.pciZ,gr=1+.6*borne(s/.7,0,1);
+      const T0=e.pciT0,Q=e.pciQ,Z=e.pciZ,LV=e.pciL,gr=1+.6*borne(s/.7,0,1);
       for(let i=0;i<e.n;i++){
         const k=borne((t-T0[i])/.55,0,1);if(k<=0){Z[i]=-1;continue;}
         const b=(1-Math.pow(1-k,3))*(1+ex),x1=e.px[i]*cr+e.pz[i]*sr,z1=-e.px[i]*sr+e.pz[i]*cr,y2=e.py[i]*ct-z1*st,z2=e.py[i]*st+z1*ct;
         const sx=e.cx+x1*R*b,sy=e.cy+y2*R*b;if(sx<-gs||sx>W+gs||sy<-gs||sy>H+gs){Z[i]=-1;continue;}
-        const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*gr;Z[i]=z2>=0?1:0;Q[4*i]=sx-sz*.35;Q[4*i+1]=sy-sz*.5;Q[4*i+2]=sz;Q[4*i+3]=(.5+.5*dp)*lisse(0,.15,k)*ea;
+        const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*gr;Z[i]=z2>=0?1:0;LV[i]=Math.round(borne((x1*LX+y2*LY+z2*LZ+.3)/1.3,0,1)*(NLUM-1));Q[4*i]=sx-sz*.35;Q[4*i+1]=sy-sz*.5;Q[4*i+2]=sz;Q[4*i+3]=(.42+.58*dp*dp)*lisse(0,.15,k)*ea;
       }
-      for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++)if(Z[i]===pass){c.globalAlpha=Q[4*i+3];c.drawImage(e.sprH[e.gk[i]][pas],Q[4*i],Q[4*i+1],Q[4*i+2]*.7,Q[4*i+2]);}
+      for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++)if(Z[i]===pass){c.globalAlpha=Q[4*i+3];c.drawImage(e.sprH[e.gk[i]][LV[i]],Q[4*i],Q[4*i+1],Q[4*i+2]*.7,Q[4*i+2]);}
     }}else
     if(ea>0)for(let pass=0;pass<2;pass++)for(let i=0;i<e.n;i++){
-      const k=borne((t-(.8+Math.pow(i/e.n,.9)*3.2))/.55,0,1);if(k<=0)continue; /* noir d'abord, puis la boule se dessine point après point, en spirale du bas vers le haut */
+      const k=borne((t-(.8+Math.pow(Math.abs(e.py[i]),.9)*3.2))/.55,0,1);if(k<=0)continue; /* noir d'abord, puis la boule se dessine point après point, du MILIEU (l'équateur) vers le haut et vers le bas en même temps (2026-11-02, Léo : « qu'il se construise du milieu et s'étende en haut et en bas ») ; même durée qu'avant, mais chaque front ne parcourt que la moitié de la hauteur : il avance deux fois moins vite à l'œil */
       const b=(1-Math.pow(1-k,3))*(1+ex),x1=e.px[i]*cr+e.pz[i]*sr,z1=-e.px[i]*sr+e.pz[i]*cr,y2=e.py[i]*ct-z1*st,z2=e.py[i]*st+z1*ct;
       if((z2>=0?1:0)!==pass)continue;
       const sx=e.cx+x1*R*b,sy=e.cy+y2*R*b;if(sx<-gs||sx>W+gs||sy<-gs||sy>H+gs)continue;
-      const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*(1+.6*borne(s/.7,0,1));c.globalAlpha=(.5+.5*dp)*lisse(0,.15,k)*ea;c.drawImage(e.sprH[e.gk[i]][pas],sx-sz*.35,sy-sz*.5,sz*.7,sz);
+      const dp=z2*.5+.5,sz=gs*(.55+.45*dp)*(1+.6*borne(s/.7,0,1));c.globalAlpha=(.42+.58*dp*dp)*lisse(0,.15,k)*ea;c.drawImage(e.sprH[e.gk[i]][Math.round(borne((x1*LX+y2*LY+z2*LZ+.3)/1.3,0,1)*(NLUM-1))],sx-sz*.35,sy-sz*.5,sz*.7,sz);
     }
     c.globalAlpha=1;c.restore();
   }
@@ -377,11 +445,20 @@
      lettre à lettre sur le noir (or, interlettrage qui se resserre), tient, s'éteint ; PUIS le voile fond sur le ciel, et c'est là, là seulement, que la musique du lobby démarre (`reveler`).
      Le gros logo CASH CAR du film (`dActe3`) n'est plus montré après l'appui : le premier CASH CAR du jeu est celui du menu. s = secondes depuis l'appui. */
   const PRES_FIN=4.1; /* l'instant (s après l'appui) où le texte est éteint ; le voile fond juste après (2026-10-24 : 2,5 → 4,1 s, Léo : « laisse le temps d'apprécier ») */
+  let presFin=PRES_FIN,tenuJeu=false; /* l'instant où le texte s'éteint : PRES_FIN, ou plus tard tant que le jeu gèle dessous (voir `ouvreQuandPret`) ; tenuJeu : le voile a dû attendre le jeu */
+  function dAttenteJeu(c,s,e){ /* le jeu se prépare encore dessous : trois petits carrés d'or s'allument tour à tour sous « PRESENTS », le seul signe de vie pendant que l'image se fige */
+    const a=lisse(PRES_FIN-.7,PRES_FIN,s)*(1-lisse(presFin-.7,presFin,s));if(a<=.004)return;
+    const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),y=e.cy+px*.62+px2*5.3,p=Math.max(3,Math.round(4*ku)),gp=p*2.6,tt=performance.now()/1000;
+    c.save();c.fillStyle='#ffd75e';
+    for(let i=0;i<3;i++){c.globalAlpha=a*(.22+.78*Math.max(0,Math.sin(tt*4.2-i*1.1)));c.fillRect(Math.round(W/2+(i-1)*gp-p/2),Math.round(y),p,p);}
+    c.restore();
+  }
   function dPresente(c,s,e){
-    const sor=1-lisse(PRES_FIN-.7,PRES_FIN,s);if(sor<=.004)return;
+    const sor=1-lisse(presFin-.7,presFin,s);if(sor<=.004)return;
     /* (2026-10-26, Sacha : « 1.61 Studio » → « 1.61 Game ») deux lignes : « 1.61 GAME » en grand (le « 1.61 » blanc chaud, GAME en or), un filet d'or qui s'ouvre depuis le centre,
-       puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier. */
-    const t1='1.61 GAME',t2='PRESENTS',n1=t1.length,n2=t2.length;
+       puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier.
+       (2026-11-02 nuit, Léo : « enlève le GAME, c'est juste 1.61 ») la ligne du haut n'est plus que « 1.61 ». */
+    const t1='1.61',t2='PRESENTS',n1=t1.length,n2=t2.length;
     const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),k=sort3((s-.7)/1.5),esp=px*(.95-.5*k);
     const tot=n1*px+(n1-1)*esp,y1=e.cy-px*.1,yR=e.cy+px*.62,y2=yR+px2*2.1;
     c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';
@@ -470,6 +547,24 @@
   /* ---- LE SON : tout est fabriqué ici (WebAudio) ; `A` peut être un AudioContext ou un OfflineAudioContext (le banc de mesure).
      Le travail est ÉTALÉ, pour qu'aucune image ne soit sacrifiée : au toucher seulement l'allumage ; `suite()` juste après (réverbération, blips,
      coup final) ; `acte3()` dans le noir complet (claquement, tension) ; `casse(q)` à l'instant de la casse. ---- */
+  /* LA NAPPE DU CIEL SOUS LA BOULE (2026-11-02, Léo : « une ancienne musique calme du ciel s'est mise par erreur pendant que la boule se construit : une erreur heureuse, le son était pas mal. Enlève-la, mais retouche le son de l'animation avec ce son ») :
+     la fuite est supprimée (voir musicDeverrouille) ; à sa place, le pad de l'attente est RETOUCHÉ avec la nappe du lobby du ciel, le palier 1 de CIEL · 30 (une nappe vapeur filtrée et une sous-basse tenue, en MI♭ MAJEUR) : elle monte avec la boule derrière un filtre qui s'ouvre,
+     bat avec son pouls, et se coupe à l'appui comme avant. Tout le reste du son de l'intro (cloches, étincelles, accord de la marque, coup de l'explosion) est TRANSPOSÉ d'un demi-ton vers le haut (TR : Ré → Mi♭) pour s'accorder avec elle.
+     Elle se charge au démarrage, avant le film (`essaiAuto` l'attend 3,5 s au plus) ; sans elle (réseau, bloqueur), l'ancien pad synthétique joue seul, transposé lui aussi. */
+  /* (2026-11-02, Léo : « je voulais que le pad du début soit touché par le son du ciel que j'ai appelé une erreur heureuse ») LA VRAIE NAPPE : la musique ancienne qui s'entendait par erreur pendant la construction de la boule était le DÉBUT d'un des trois morceaux de lobby du ciel
+     (le premier toucher en chargeait un au hasard : nuages, altitude, apesanteur). La nappe de l'intro est donc leur début, 8 mesures en boucle (assets/audio/music/intro/pad-*.m4a, 0,5 Mo chacun, coupés dans les originaux) ; `?lit=nuages|altitude|apesanteur` en choisit une pour comparer à l'oreille,
+     `?lit=p1` rend la nappe d'avant (le palier 1 de CIEL · 30). Chaque morceau a sa tonalité : tout le son synthétique de l'intro (cloches, étincelles, accord de la marque, coup de l'explosion), écrit en Ré majeur, est TRANSPOSÉ de LIT_DEMI demi-tons pour s'y accorder
+     (nuages : ré majeur, 0 ; altitude : si♭ majeur, −4 ; apesanteur : fa majeur, +3 ; p1 : mi♭ majeur, +1). Par défaut : NUAGES, qui joue dans la tonalité d'origine du pad. */
+  const LITS={nuages:['assets/audio/music/intro/pad-nuages.m4a',0],altitude:['assets/audio/music/intro/pad-altitude.m4a',-4],apesanteur:['assets/audio/music/intro/pad-apesanteur.m4a',3],p1:['assets/audio/music/paliers/rendus/ciel-30/p1.m4a',1]};
+  const LIT_ID=(function(){const m=/[?&]lit=(nuages|altitude|apesanteur|p1)\b/.exec(location.search);return m?m[1]:'nuages';})(),LIT_URL=LITS[LIT_ID][0],LIT_DEMI=LITS[LIT_ID][1];
+  let LIT=null,litEnCours=false;
+  function chargeLit(){
+    if(LIT||litEnCours||SANS_SON)return;litEnCours=true;
+    try{fetch(LIT_URL).then(function(r){return r.arrayBuffer();}).then(function(ab){
+      const C=new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(2,44100,44100);
+      return new Promise(function(ok,ko){const pr=C.decodeAudioData(ab,ok,ko);if(pr&&pr.then)pr.then(ok,ko);});
+    }).then(function(b){LIT=b;litEnCours=false;},function(){litEnCours=false;});}catch(e){litEnCours=false;}
+  }
   let IR48=null; /* la réponse de la réverbération, calculée À L'ATTENTE du toucher (10 ms), à 48 kHz */
   function pixelise(src,pq){ /* une copie en petit (1 pixel pour pq × pq) : redessinée sans lissage, elle donne de gros pixels */
     const c2=document.createElement('canvas');c2.width=Math.max(1,Math.ceil(W/pq));c2.height=Math.max(1,Math.ceil(H/pq));const x=c2.getContext('2d');x.imageSmoothingEnabled=true;x.drawImage(src,0,0,c2.width,c2.height);return c2;
@@ -537,53 +632,75 @@
       const revOut=A.createGain();revOut.gain.value=.62;rev.connect(revOut);revOut.connect(master);send.connect(rev);
     };
     R.acte3=function(){}; /* (plus de claquement programmé : il sonne à l'appui, `boum`) */
-    const ACC=[73.42,110,146.83,220,293.66,440]; /* l'accord de la marque : Ré, quintes et octaves, net et ouvert (pas de notes serrées) */
+    const TR=Math.pow(2,LIT_DEMI/12),ACC=[73.42,110,146.83,220,293.66,440].map(function(f){return f*TR;}); /* l'accord de la marque : Ré, transposé de LIT_DEMI demi-tons pour s'accorder à la nappe (voir LITS), quintes et octaves, net et ouvert (pas de notes serrées) */
     function accord(q,pk,att,dec,w){for(let i=0;i<ACC.length;i++){oscil(master,'sine',ACC[i],ACC[i],q,0,pk*(i<2?1.5:1),att,dec,(i-4)*.12,w);oscil(master,'triangle',ACC[i]*1.003,ACC[i]*1.003,q,0,pk*.6,att,dec,(4-i)*.12,w);}}
     R.charge=function(q,el,pret){ /* le chargement : un grave qui monte avec la boule, mais VIVANT : il bat au rythme du pouls de la boule (3,2 rad/s), un pad dont le filtre respire, un chœur de médiums qui s'ouvre en tremblant, un souffle, un voile qui scintille, et des étincelles à mesure que les chiffres apparaissent */
       el=el||0;const dur=Math.max(.8,4.6-el),top=pret?.45:1,gs=[],oc=[];
       const P=A.createGain();P.gain.value=.78;P.connect(master); /* le pouls : tout le chargement passe là, et la boule le fait battre */
       const lf=A.createOscillator(),lg=A.createGain();lf.type='sine';lf.frequency.value=3.2/6.2832;lg.gain.value=.22;lf.connect(lg);lg.connect(P.gain);lf.start(q);oc.push(lf);
-      const sub=A.createOscillator(),sg=A.createGain(),s2=A.createOscillator(),s2g=A.createGain();sub.type='sine';sub.frequency.setValueAtTime(41.2,q);sub.frequency.exponentialRampToValueAtTime(73.42,q+dur);
-      s2.type='triangle';s2.frequency.setValueAtTime(82.4,q);s2.frequency.exponentialRampToValueAtTime(146.83,q+dur);s2g.gain.value=.22;s2.connect(s2g);s2g.connect(sg); /* l'octave au-dessus, pour que le grave sonne aussi sur un petit haut-parleur */
-      sg.gain.setValueAtTime(.0003,q);sg.gain.exponentialRampToValueAtTime(.4*top,q+dur);sub.connect(sg);sg.connect(P);sub.start(q);s2.start(q);gs.push(sg);oc.push(sub,s2);
+      const sub=A.createOscillator(),sg=A.createGain(),s2=A.createOscillator(),s2g=A.createGain();sub.type='sine';sub.frequency.setValueAtTime(41.2*TR,q);sub.frequency.exponentialRampToValueAtTime(73.42*TR,q+dur);
+      s2.type='triangle';s2.frequency.setValueAtTime(82.4*TR,q);s2.frequency.exponentialRampToValueAtTime(146.83*TR,q+dur);s2g.gain.value=.22;s2.connect(s2g);s2g.connect(sg); /* l'octave au-dessus, pour que le grave sonne aussi sur un petit haut-parleur */
+      sg.gain.setValueAtTime(.0003,q);sg.gain.exponentialRampToValueAtTime(.4*top*(LIT?.12:1),q+dur); /* (avec la nappe : son grave est le sien, le sub synthétique n'est plus qu'un soutien) */sub.connect(sg);sg.connect(P);sub.start(q);s2.start(q);gs.push(sg);oc.push(sub,s2);
       const lp=A.createBiquadFilter(),pg=A.createGain(),pr=A.createGain();lp.type='lowpass';lp.Q.value=2.5;lp.frequency.setValueAtTime(180,q);lp.frequency.exponentialRampToValueAtTime(2600,q+dur);
       const fl=A.createOscillator(),fg=A.createGain();fl.type='sine';fl.frequency.value=.11;fg.gain.value=320;fl.connect(fg);fg.connect(lp.frequency);fl.start(q);oc.push(fl); /* le filtre respire, lentement */
-      pg.gain.setValueAtTime(.0003,q);pg.gain.exponentialRampToValueAtTime(.12*top,q+dur);pr.gain.value=.5;lp.connect(pg);pg.connect(P);pg.connect(pr);pr.connect(send);gs.push(pg);
-      const CH=[{b:73.42,u:[146.83,220,293.66,369.99]},{b:61.74,u:[123.47,185,246.94,293.66]},{b:98,u:[196,246.94,293.66,392]},{b:55,u:[164.81,220,277.18,329.63]}]; /* la progression du pad : Ré, Si mineur, Sol, La, en boucle sans fin */
+      pg.gain.setValueAtTime(.0003,q);pg.gain.exponentialRampToValueAtTime(.12*top*(LIT?.15:1),q+dur);pr.gain.value=.5;lp.connect(pg);pg.connect(P);pg.connect(pr);pr.connect(send);gs.push(pg);
+      const CH=[{b:73.42,u:[146.83,220,293.66,369.99]},{b:61.74,u:[123.47,185,246.94,293.66]},{b:98,u:[196,246.94,293.66,392]},{b:55,u:[164.81,220,277.18,329.63]}].map(function(c){return{b:c.b*TR,u:c.u.map(function(f){return f*TR;})};}); /* la progression du pad : Ré, Si mineur, Sol, La, en boucle sans fin */
       const vo=[];CH[0].u.forEach(function(f,i){const o=A.createOscillator();o.type='sawtooth';o.frequency.value=f;o.detune.value=[5,-8,6,-5][i];o.connect(lp);o.start(q);oc.push(o);vo.push(o);});
       let ci=0,iv=0;const suivant=function(){ /* l'accord suivant arrive en glissant (un cycle toutes les 7,85 s = quatre pulsations de la boule) */
         try{if(A.state==='closed'){clearInterval(iv);return;}ci=(ci+1)%CH.length;const tt=A.currentTime+.05,c=CH[ci];
           sub.frequency.setTargetAtTime(c.b,tt,.8);s2.frequency.setTargetAtTime(c.b*2,tt,.8);vo.forEach(function(o,i){o.frequency.setTargetAtTime(c.u[i],tt,.7);});}catch(x){clearInterval(iv);}};
-      if(!(typeof OfflineAudioContext!=='undefined'&&A instanceof OfflineAudioContext))iv=setInterval(suivant,7850);
+      if(!LIT&&!(typeof OfflineAudioContext!=='undefined'&&A instanceof OfflineAudioContext))iv=setInterval(suivant,7850); /* (avec la nappe du ciel, la progression de l'ancien pad ne change plus : la nappe tient sa tonalité) */
       const sh=A.createBufferSource(),bp=A.createBiquadFilter(),hg=A.createGain();sh.buffer=nz;sh.loop=true;bp.type='bandpass';bp.Q.value=2;bp.frequency.setValueAtTime(3500,q);bp.frequency.exponentialRampToValueAtTime(9000,q+dur);
-      hg.gain.setValueAtTime(.0003,q);hg.gain.exponentialRampToValueAtTime(.05*top,q+dur);sh.connect(bp);bp.connect(hg);hg.connect(P);sh.start(q);oc.push(sh);gs.push(hg);
+      hg.gain.setValueAtTime(.0003,q);hg.gain.exponentialRampToValueAtTime(.035*top,q+dur);sh.connect(bp);bp.connect(hg);hg.connect(P);sh.start(q);oc.push(sh);gs.push(hg);
       /* le chœur : les notes hautes de l'accord (Ré, La, Ré, La), chacune doublée et désaccordée, qui s'ouvrent en tremblant, de gauche à droite */
-      const cg=A.createGain(),cr=A.createGain();cg.gain.setValueAtTime(.0003,q);cg.gain.exponentialRampToValueAtTime(.06*top,q+dur*1.1);cr.gain.value=.55;cg.connect(P);cg.connect(cr);cr.connect(send);gs.push(cg);
-      [293.66,440,587.33,880].forEach(function(f,k){for(const dc of [-6,6]){const o=A.createOscillator(),pn=pan(dc>0?.6-k*.2:-.6+k*.2),tg=A.createGain(),tl=A.createOscillator(),tq=A.createGain();
+      const cg=A.createGain(),cr=A.createGain();cg.gain.setValueAtTime(.0003,q);cg.gain.exponentialRampToValueAtTime(.045*top,q+dur*1.1);cr.gain.value=.55;cg.connect(P);cg.connect(cr);cr.connect(send);gs.push(cg);
+      [293.66,440,587.33,880].forEach(function(f,k){f*=TR;for(const dc of [-6,6]){const o=A.createOscillator(),pn=pan(dc>0?.6-k*.2:-.6+k*.2),tg=A.createGain(),tl=A.createOscillator(),tq=A.createGain();
         o.type=k%2?'triangle':'sine';o.frequency.value=f;o.detune.value=dc;tg.gain.value=.5;tl.type='sine';tl.frequency.value=.23+.07*k+(dc>0?.04:0);tq.gain.value=.4;tl.connect(tq);tq.connect(tg.gain);
         o.connect(tg);tg.connect(pn);pn.connect(cg);o.start(q);tl.start(q);oc.push(o,tl);}});
       const br=A.createBufferSource(),bb=A.createBiquadFilter(),bg=A.createGain();br.buffer=nz;br.loop=true;bb.type='bandpass';bb.Q.value=.8;bb.frequency.setValueAtTime(600,q);bb.frequency.exponentialRampToValueAtTime(1500,q+dur);
       bg.gain.setValueAtTime(.0003,q);bg.gain.exponentialRampToValueAtTime(.035*top,q+dur);br.connect(bb);bb.connect(bg);bg.connect(P);br.start(q);oc.push(br);gs.push(bg); /* le souffle du médium : de l'air autour du grave */
-      const PF=[1174.7,1318.5,1480,1760,2349.3,2960];
-      for(let i=0;i<64;i++){const te=.8+Math.pow(i/64,.9)*3.2;if(te<el)continue;const f=PF[(i*5)%PF.length];oscil(master,'sine',f,f,q+(te-el),0,.045,.002,.35,(Math.random()-.5)*1.4,.55);}
-      R.dr={g:gs,o:oc,get iv(){return iv;}};
+      const PF=[1174.7,1318.5,1480,1760,2349.3,2960].map(function(f){return f*TR;});
+      for(let i=0;i<64;i++){const te=.8+Math.pow(i/64,.9)*3.2;if(te<el)continue;const f=PF[(i*5)%PF.length];oscil(master,'sine',f,f,q+(te-el),0,.03,.002,.35,(Math.random()-.5)*1.4,.55);}
+      let iv2=0;
+      if(LIT){ /* la nappe du ciel : un filtre qui s'ouvre, le même pouls que la boule (elle passe par P), et une boucle SANS COUPURE : des voix qui se chevauchent de 0,35 s (fondu croisé), programmées au fil de l'eau */
+        const lb=A.createBiquadFilter(),bg2=A.createGain();lb.type='lowpass';lb.Q.value=.7;lb.frequency.setValueAtTime(300,q);lb.frequency.exponentialRampToValueAtTime(1100,q+dur*1.6); /* (2026-11-02 soir, Léo : « la musique lobby qu'on est censé avoir enlevée joue en même temps que le nouveau pad, extrêmement dérangeant ») le morceau du ciel n'est plus JOUÉ, il est TRANSFORMÉ en nappe : ralenti de moitié (une octave plus bas : la mélodie s'étire en brume), filtré à 1 100 Hz au plus (plus d'attaque de piano ni de vibraphone), noyé dans la réverbération */
+        bg2.gain.setValueAtTime(.0003,q);bg2.gain.exponentialRampToValueAtTime(.28*top,q+Math.min(dur,2.6)); /* la nappe est là dès le début de la construction et elle ENTRE doucement (2026-11-02 : « un peu violent » → .34 en 3,4 s, puis « je n'entends pas le pad du début » : mesuré avec un vrai contexte audio, −40 dBFS à 2 s, trop bas → .46 en 2,2 s ; avant tout : .6 en 1,6 s) */lb.connect(bg2);bg2.connect(P);gs.push(bg2);const sw=A.createGain();sw.gain.value=.5;bg2.connect(sw);sw.connect(send); /* sw : la moitié de la nappe va à la salle */
+        const RATE=.5,D=LIT.duration/RATE,X=1.2,pas=D-X;let k=0; /* RATE .5 : deux fois plus lent, une octave plus bas ; X : un fondu croisé de 1,2 s entre deux tours */
+        const voix=function(){const t=q+k*pas,sv=A.createBufferSource(),gv=A.createGain();sv.buffer=LIT;sv.playbackRate.value=RATE;
+          gv.gain.setValueAtTime(k?.0001:1,t);if(k)gv.gain.linearRampToValueAtTime(1,t+X);gv.gain.setValueAtTime(1,t+pas);gv.gain.linearRampToValueAtTime(.0001,t+D);
+          sv.connect(gv);gv.connect(lb);sv.start(t);sv.stop(t+D+.05);oc.push(sv);k++;};
+        if(typeof OfflineAudioContext!=='undefined'&&A instanceof OfflineAudioContext){for(let j=0;j<3;j++)voix();}
+        else{const prog=function(){try{if(A.state==='closed'){clearInterval(iv2);return;}while(q+k*pas<A.currentTime+10)voix();}catch(x){clearInterval(iv2);}};prog();iv2=setInterval(prog,2000);}
+      }
+      R.dr={g:gs,o:oc,get iv(){return iv;},get iv2(){return iv2;}};
     };
-    const PENTA=[587.33,659.25,739.99,880,987.77,1174.66,987.77,880,739.99,659.25]; /* Ré majeur pentatonique, montée puis descente : jamais fausse avec l'accord */
+    const PENTA=[587.33,659.25,739.99,880,987.77,1174.66,987.77,880,739.99,659.25].map(function(f){return f*TR;}); /* Ré majeur pentatonique, montée puis descente : jamais fausse avec l'accord */
     R.note=function(q,k){ /* une cloche douce à chaque pas de couleur de la boule */
       const f=PENTA[k%PENTA.length],x=((k*7)%5-2)*.3;
-      oscil(master,'sine',f,f,q,0,.05,.004,1.1,x,.7);oscil(master,'triangle',f*2,f*2,q,0,.012,.004,.5,x,.7);
+      oscil(master,'sine',f,f,q,0,.036,.004,1.1,x,.7);oscil(master,'triangle',f*2,f*2,q,0,.008,.004,.5,x,.7);
     };
     R.pret=function(q){ /* c'est prêt : l'accord de la marque s'ouvre en grand, un grave l'ancre, puis le chargement retombe en nappe douce */
-      accord(q,.04,.15,1.5,.5);oscil(master,'sine',55,36,q,1,.4,.006,1,0,.3);oscil(master,'sine',2349.3,2349.3,q+.05,0,.04,.002,.6,0,.6);
-      souffle(master,q,.6,'highpass',2000,9000,1,.08,.05,.6,0,.5);
+      accord(q,.026,.35,1.8,.5);oscil(master,'sine',55*TR,36*TR,q,1,.16,.03,1,0,.3);oscil(master,'sine',2349.3*TR,2349.3*TR,q+.05,0,.026,.01,.6,0,.6);
+      souffle(master,q,.6,'highpass',2000,9000,1,.05,.12,.6,0,.5);
     };
     R.boum=function(q){ /* l'appui : la boule explose en CASH CAR : un coup de grave énorme, un métal qui sonne, un grand souffle, et l'accord de la marque en pleine puissance */
-      if(R.dr){clearInterval(R.dr.iv);for(const g of R.dr.g){g.gain.cancelScheduledValues(q);g.gain.setTargetAtTime(0,q,.08);}R.dr.o.forEach(function(o){try{o.stop(q+.5);}catch(e){}});R.dr=null;}
+      if(R.dr){clearInterval(R.dr.iv);clearInterval(R.dr.iv2);for(const g of R.dr.g){g.gain.cancelScheduledValues(q);g.gain.setTargetAtTime(0,q,.08);}R.dr.o.forEach(function(o){try{o.stop(q+.5);}catch(e){}});R.dr=null;}
       oscil(master,'sine',70,28,q,1.8,1.4,.003,1.8,0,.45);oscil(master,'sine',140,50,q,.4,.7,.003,.4,0,.2);
       souffle(master,q,.7,'lowpass',12000,300,.8,.6,.001,.7,0,.4);souffle(master,q,.02,'highpass',3000,0,1,.4,.001,.015,0,0);
       [1,2.76,5.4,8.93].forEach(function(r,i){oscil(master,'sine',190*r,190*r,q,0,.16/(i+1),.002,1.7-.3*i,i%2?.4:-.4,.5);});
       souffle(master,q,.6,'bandpass',500,9000,1.4,.28,.01,.6,0,.5);souffle(master,q+.05,1,'highpass',5000,0,.8,.08,.05,1,0,.6);
       accord(q+.02,.13,.004,2.2,.6);
+    };
+    /* LE SCINTILLEMENT D'OR (2026-11-02 nuit, Léo : « rajoute un sound effect au 1.61 PRESENTS », choisi : « un scintillement doré ») : chaque lettre qui s'allume tinte (une clochette de verre, très haut,
+       tirée au hasard dans l'accord de MI♭ de la nappe : pas une mélodie), le filet d'or souffle un air fin, « PRESENTS » scintille plus bas et plus doux. Calé sur dPresente : « 1.61 » de 0,7 s, le filet 1,55 s, PRESENTS 1,9 s. */
+    R.scintille=function(q){
+      const F=[1245,1568,1865,2489,3136];let der=-1;
+      const tinte=function(t,pk,x){let i=Math.floor(Math.random()*F.length);if(i===der)i=(i+2)%F.length;der=i;const f=F[i];
+        oscil(master,'sine',f,f,t,0,pk,.002,.9,x,.6);oscil(master,'sine',f*2.01,f*2.01,t,0,pk*.35,.001,.35,-x,.5);
+        souffle(master,t,.01,'highpass',7000,0,1,pk*.5,.0008,.03,x,.3);};
+      for(let i=0;i<4;i++)tinte(q+.72+i*.07,.05,(i-1.5)*.35);
+      souffle(master,q+1.55,.9,'bandpass',6000,9500,2,.035,.25,.8,0,.6);
+      for(let i=0;i<8;i++)tinte(q+1.92+i*.09,.022,(i-3.5)*.18);
     };
     /* 5. LA CASSE (programmée au dernier moment par `programmerCasse` : on peut passer le film) */
     R.casse=function(q){
@@ -629,7 +746,8 @@
     sp.style.cssText='position:fixed;inset:0;z-index:1000;display:block;pointer-events:none;overflow:hidden;background:transparent';
     setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},30); /* le jeu était en pause sous le film : s'il a été retaillé entre-temps (cadre tourné, volet agrandi), il recalcule sa taille (un bandeau blanc à droite, vu le 23/10) */
     setTimeout(function(){try{document.dispatchEvent(new Event('cc:revele'));}catch(e){}},60); /* le menu joue son entrée dessous */
-    setTimeout(function(){try{if(!started){if(musicEl&&musicEl.paused&&musicMenuUrl()&&musicEl.src.indexOf(musicMenuUrl())>=0)musicEl.currentTime=0;musicMenu();}}catch(e){}},260); /* la musique du ciel part avec le ciel */
+    if(INTROSON.on){INTROSON.t0=performance.now();setTimeout(function(){INTROSON.on=false;},INTROSON.d*1000+500);} /* l'accueil apparaît : le vent monte et la musique recule vers son niveau de ciel (voir INTROSON) */
+    setTimeout(function(){try{if(!started&&!musIntro){if(musicEl&&musicEl.paused&&musicMenuUrl()&&musicEl.src.indexOf(musicMenuUrl())>=0)musicEl.currentTime=0;musicMenu();}}catch(e){}},260); /* la musique du ciel part avec le ciel (sauf si l'intro l'a déjà lancée : c'est la même, elle continue sans couture) */
     setTimeout(function(){window.__intro=null;},1500); /* (le voile s'ouvre : on ne recharge pas encore) */
   }
   function finir(){
@@ -663,11 +781,33 @@
     if(!lance||fini||tapT!==null||pretT===null)return;
     tapT=(performance.now()-tLance)/1000-latV;passee=true;
     try{if(iAC&&iAC.state!=='running')acReveil(iAC);}catch(e){}
-    try{if(SON){SON.suite();SON.boum(iAC.currentTime+.02);}}catch(e){}
+    try{if(SON){SON.suite();SON.boum(iAC.currentTime+.02);SON.scintille(iAC.currentTime+.02);}}catch(e){}
     try{ouvrir();}catch(e){}
+    INTROSON.on=true;INTROSON.t0=0; /* le ciel, dessous, reste sans vent jusqu'à l'accueil */
+    /* (2026-11-02 nuit, Léo : « la musique commence trop tôt et se coupe direct, puis une autre démarre au ciel » puis « elle ne se lance qu'en fondu à partir du moment où le menu ciel a chargé ») la musique ne part plus pendant « PRESENTS » :
+       là, seuls les morceaux en fichiers pouvaient partir, les autres étaient mis en attente (pbjLobby, `fixes`) puis un autre partait à l'accueil. Elle part UNE fois, au ciel (`reveler`), avec le fondu du lobby (4 s) et la montée d'INTROSON. */
     setTimeout(function(){window.__introCouvre=false;},150);
-    setTimeout(fonduDoux,PRES_FIN*1000+80);
+    ouvreQuandPret();
   }
+  /* (2026-11-02, Léo : « ça saccade ») LE VOILE S'OUVRE QUAND LE JEU EST CALME. Mesuré sur son Mac (Safari, cadre 1226 × 566) : de l'appui à +10 s, le ciel se construit sous le voile par images de 0,2 à 1,3 s, puis ~20 i/s ;
+     le voile s'ouvrait à +4,2 s, en plein dans ces gels (rien avant l'appui : la boule y tourne fluide). « 1.61 PRESENTS » TIENT donc tant que le jeu gèle, avec ses trois carrés d'or qui s'allument, et le voile ne
+     fond qu'après 25 images d'affilée sous 100 ms (plafond : 15 s après l'appui). Sur une machine rapide les images sont courtes dès l'appui : le voile s'ouvre à l'heure d'avant (PRES_FIN), rien ne change. */
+  function ouvreQuandPret(){
+    let prev=performance.now(),calmes=0,tenu=false;
+    (function pas(now){
+      if(fini||doux)return;
+      const d=now-prev;prev=now;calmes=d<100?calmes+1:0;
+      const s=(now-tLance)/1000-latV-tapT;
+      if(!tenu&&s<PRES_FIN-.7){requestAnimationFrame(pas);return;} /* le texte ne commence à s'éteindre qu'à PRES_FIN − 0,7 : c'est là qu'on décide */
+      if(!tenu){
+        if(calmes>=25){setTimeout(fonduDoux,Math.max(0,(PRES_FIN-s)*1000+80));return;} /* le jeu est calme : l'horaire d'avant */
+        tenu=true;tenuJeu=true;presFin=1e9; /* il gèle encore : le texte reste affiché */
+      }
+      if(calmes>=25||s>=15){presFin=s+.7;setTimeout(fonduDoux,780);return;} /* calme (ou plafond) : le texte s'éteint en 0,7 s, puis le voile fond */
+      requestAnimationFrame(pas);
+    })(performance.now());
+  }
+  let musIntro=false; /* (plus rien ne la lance avant le ciel : voir tapBoule) */
   function passer(){
     if(BOULE){tapBoule();return;}
     if(!lance||fini||casse||passee)return;passee=true;
@@ -710,7 +850,7 @@
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
     g.fillStyle='#000';g.fillRect(0,0,W,H);
-    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());dBoule(g,t,e);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
+    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());chCl(1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
     let tl=t,id=forceId||(LABELS[LAB_ID]?LAB_ID:'neon'),idx=0;
     if(DEMO){const T=PERIODE_DEMO(),n=ORDRE_LABELS.length;idx=Math.floor(Math.max(0,t)/T);tl=Math.max(0,t)-idx*T;id=forceId||ORDRE_LABELS[idx%n];} /* la démo : les labels s'enchaînent en boucle */
     if(tl<TL.noir){const e=ETS[id]||(ETS[id]=LABELS[id].geo());LABELS[id].dessin(g,tl,e);}else if(!DEMO&&t>=TL.slam)dActe3(g,t,0);;
@@ -723,7 +863,7 @@
     raf=requestAnimationFrame(boucle);
     if(manuel)return;
     if(!casse){const t=PCI_ON?pciTaille(now):tailleEcran();if(t[0]!==W||t[1]!==H)remesure();} /* l'écran a changé de taille sans que `resize` nous le dise (cadre du volet, rotation) : tout se refait à la bonne taille (vu le 23/10 : logo énorme, coupé à droite) */
-    if(!lance)return;
+    if(!lance){try{attente();}catch(e){}return;}
     try{
       const t=(now-tLance)/1000-latV;
       if(BOULE){if(pretT===null&&t>=4.6&&document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')){pretT=t;try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
@@ -762,6 +902,7 @@
   function remesure(){pciDer=-1e9;if(fini||casse)return;mesure();if(lance){if(PCI_ON&&prepEn===W+'x'+H+'x'+S){PCI_N.prepEvitees++;return;}try{prepare();}catch(e){}}} /* (passe perf PC) un `resize` qui ne change ni la taille ni l'échelle (le zoom du cadre bureau en envoie) ne refait plus tout le film : boule, logo, fracture étaient refaits À L'IDENTIQUE (même règle que `lancer` et `chauffe`) */
 
   mesure();
+  chargeLit();
   setTimeout(irPret,500); /* pendant l'attente du toucher : 10 ms de calcul, hors de vue */
   setTimeout(chauffe,900); /* puis le reste (quelques dizaines de ms, hors de vue) */
   let remesureTO=0;
@@ -789,7 +930,7 @@
   }
   function essaiAuto(n){ /* attendre que la page soit chargée, la police prête et la fenêtre visible */
     if(lance||fini)return;
-    if(document.hidden||document.readyState!=='complete'||(n<24&&document.fonts&&document.fonts.status==='loading')){setTimeout(function(){essaiAuto(n+1);},250);return;}
+    if(document.hidden||document.readyState!=='complete'||(n<24&&document.fonts&&document.fonts.status==='loading')||(n<14&&litEnCours&&!LIT)){setTimeout(function(){essaiAuto(n+1);},250);return;}
     autoLance();
   }
   if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher\b/.test(location.search))setTimeout(function(){essaiAuto(0);},BOULE?500:1700); /* (?depart=toucher : l'ancien départ au toucher) */

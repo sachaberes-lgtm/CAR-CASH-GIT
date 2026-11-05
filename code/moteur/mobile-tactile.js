@@ -49,7 +49,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const padFin=function(e){ for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===padId){padId=null;padSet(0,0,0,0);} };
     pad.addEventListener('touchend',padFin,{passive:true}); pad.addEventListener('touchcancel',padFin,{passive:true});
     let msP=false; pad.addEventListener('mousedown',function(e){msP=true;padLit(e.clientX,e.clientY);start();}); addEventListener('mousemove',function(e){if(msP)padLit(e.clientX,e.clientY);}); addEventListener('mouseup',function(){if(msP){msP=false;padSet(0,0,0,0);}});
-    addEventListener('blur',function(){padId=null;msP=false;padSet(0,0,0,0);}); } // (2026-10-27) FLÈCHES : l'assiette en vol, et le drift (bas) comme au clavier
+    addEventListener('blur',function(){padId=null;msP=false;padSet(0,0,0,0);});
+    document.addEventListener('visibilitychange',function(){ if(document.hidden){padId=null;msP=false;padSet(0,0,0,0);} }); } /* (2026-11-03, audit) comme le volant (stDoigts, plus bas) : l'appli part derrière en plein appui, iOS n'envoie pas toujours touchcancel ni blur — `padId` gardait un identifiant mort et chaque touchstart suivant sortait sur `padId!==null` : plus moyen de tourner */ // (2026-10-27) FLÈCHES : l'assiette en vol, et le drift (bas) comme au clavier
   const nitroDown=function(){ if(!figGlisseOn())veqDoigt(true); if(boomSkip())return; start(); // (2026-10-15) en FIGURES › GLISSER, taper NITRO = booster, rien d'autre // (2026-10-14) l'appui compte pour le TONNEAU (double-tap) // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
     if(started&&!gameOver){ const n9=performance.now();
       lastSpaceT=n9; } }; // (double-tap « DÉCOLLAGE » retiré)
@@ -412,7 +413,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   let gearId=null,gearTt=0;
   if(gear){
     gear.addEventListener('touchstart',function(e){ if(gearId===null&&e.changedTouches.length)gearId=e.changedTouches[0].identifier; },{passive:true});
-    gear.addEventListener('touchcancel',function(){ gearId=null; },{passive:true});
+    gear.addEventListener('touchcancel',function(){ gearId=null; },{passive:true}); document.addEventListener('visibilitychange',function(){ if(document.hidden)gearId=null; }); // (2026-11-03, audit) même règle que le pavé : un doigt perdu en arrière-plan ne bloque pas le ⏸
     gear.addEventListener('touchend',function(e){
       let t=null; for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===gearId)t=e.changedTouches[i];
       if(!t)return; gearId=null;
@@ -659,7 +660,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
   }
   const MORT_FLOT=!/[?&]mort=ancien\b/.test(location.search); /* (2026-10-25) L'ÉCRAN DE MORT FLOTTANT (voir mFill) — `?mort=ancien` = les cartes d'avant */
-  Object.assign(I18N,{'PARTIE':'THIS RUN','MOYENNE':'AVERAGE','VS MOY':'VS AVG'});
+  Object.assign(I18N,{'PARTIE':'THIS RUN','MOYENNE':'AVERAGE','VS MOY':'VS AVG','MOY.':'AVG','MOTEUR':'ENGINE'});
   window.dbgMortAura=function(a,moy,n,rec){if(a!=null&&started&&!gameOver)auraRun=Math.max(0,+a||0);if(moy!=null){SAVE.d.auraH={s:Math.round(moy*(n||10)),n:n||10};}if(rec!=null)SAVE.d.auraMax=Math.round(rec);return {partie:Math.round(auraRun),moyenne:SAVE.d.auraH,record:SAVE.d.auraMax};}; /* (banc) l'aura de la partie en cours (et la moyenne, le record) pour voir le graphe de l'écran de mort */
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');
@@ -713,23 +714,37 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
            plus gros, avec son seul palier ; l'AURA devient un graphe en bougies, lisible d'un coup d'œil — la PARTIE (violet), ta MOYENNE et
            ton RECORD. La moyenne et le record sont ceux d'AVANT la partie (commitExploits) : le graphe dit si tu as fait mieux que d'habitude.
            `?mort=ancien` = les deux cartes d'avant. */
+        /* ===== L'ÉCRAN DE MORT v6 (2026-11-03, Sacha : « c'est calamiteux, recommence […] reprends chaque élément ») — voir css/mort-flottante.css.
+           MOTEUR et AURA sont deux PANNEAUX jumeaux (la même anatomie que la carte MISSIONS) : en-tête (icône + nom à la couleur de la bande,
+           pastille à droite), la grande valeur (le PALIER / l'aura de la partie), le visuel (la pièce 3D / les trois bougies), le pied
+           (le nom du moteur et la jauge des pièces vers le palier suivant / les libellés des bougies). */
         if(h&&MORT_FLOT){
           const n9=(SAVE.d.auraH&&SAVE.d.auraH.n)|0,moy0=commitExploits._moy||0,moyV=Math.round(moy0>0?moy0:(n9<=1?au:0)),
                 recV=Math.max(commitExploits._recAvant||0,SAVE.d.auraMax||0,au),M9=Math.max(1,au,moyV,recV),
-                hP=function(v){return Math.max(4,Math.round(v/M9*78));},
-                bg9=function(k,v,lb){return '<div class="m5Col m5'+k+'" style="--h:'+hP(v)+'%"><div class="m5Pied"><span class="m5Val">'+fA(v)+'</span><i class="m5Meche"></i><i class="m5Corps"></i></div><small>'+TR(lb)+'</small></div>';};
+                hP=function(v){return Math.max(3,Math.round(v/M9*100));},
+                lb9=LANG==='en'?['RUN','AVG','BEST']:['PARTIE','MOY.','RECORD'],
+                bg9=function(k,v,l){return '<div class="m6Col m6'+k+'" style="--h:'+hP(v)+'"><span class="m6Val">'+fA(v)+'</span><i class="m6Barre"></i><small>'+l+'</small></div>';},
+                pas9=function(c,t){return '<em class="m6Badge '+c+'">'+t+'</em>';};
           let vd9='';
-          if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9='<em class="m5Vd rec">'+pxi('etoile')+' '+TR('RECORD !')+'</em>';
-          else if(!tq9&&moy0>0&&au>0){const p9=Math.round((au-moy0)/moy0*100);vd9=p9>=1?'<em class="m5Vd up">▲ +'+p9+' % '+TR('VS MOY')+'</em>':p9<=-1?'<em class="m5Vd down">▼ '+p9+' % '+TR('VS MOY')+'</em>':'<em class="m5Vd">= '+TR('MOYENNE')+'</em>';}
+          if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9=pas9('rec',pxi('etoile')+'<span>'+TR('RECORD')+'</span>');
+          else if(!tq9&&moy0>0&&au>0){const p9=Math.round((au-moy0)/moy0*100);vd9=p9>=1?pas9('up','▲ +'+p9+'%'):p9<=-1?pas9('down','▼ '+p9+'%'):pas9('eq','= '+TR('MOY.'));}
+          const e0=E.coins|0,pc9=nx?Math.max(0,Math.min(1,(coinsGot-e0)/Math.max(1,nx.coins-e0))):1,
+                pied9=nx?'<span class="m6Pc">'+coinsGot+'/'+nx.coins+pxi('piece')+'</span>':'<span class="m6Pc max">'+TR('MAX')+'</span>';
           h.className='mHero m5Hero';
-          h.innerHTML='<div class="m5Mot" style="--ec:'+hx+'"><div class="m5Scene"><i class="m5Halo"></i><canvas class="hMotCv" width="480" height="321"></canvas><i class="m5Ombre"></i></div>'
-            +'<div class="m5Pal'+(eN&&!tq9?' rec':'')+'"><span>'+TR('PALIER')+'</span><b>'+(engTier+1)+'</b></div></div>'
-            +'<div class="m5Aura"><div class="m5Tete"><small>'+TR('AURA')+'</small><b id="mAuraV">0</b>'+vd9+'</div>'
-            +'<div class="m5Graphe"><i class="m5Ligne" style="--h:'+hP(recV)+'%"></i>'+bg9('P',au,'PARTIE')+bg9('M',moyV,'MOYENNE')+bg9('R',recV,'RECORD')+'</div></div>';
+          h.innerHTML='<div class="m6Carte m6Mot" style="--ec:'+hx+'">'
+            +'<div class="m6Tete"><span class="m6Lb">'+pxi('flamme')+'<span>'+TR('MOTEUR')+'</span></span>'+(eN&&!tq9?pas9('rec',pxi('etoile')+'<span>'+TR('RECORD')+'</span>'):'')+'</div>'
+            +'<div class="m6Big"><small>'+TR('PALIER')+'</small><b>'+(engTier+1)+'</b><small class="m6Sur">/'+ENGINE_TIERS.length+'</small></div>'
+            +'<div class="m6Scene"><i class="m6Halo"></i><canvas class="hMotCv" width="'+ENG_RES_W+'" height="'+ENG_RES_H+'"></canvas><i class="m6Ombre"></i></div>'
+            +'<div class="m6Pied"><span class="m6Nom">'+sansAcc(TR(E.n))+'</span>'+pied9+'</div>'
+            +'<div class="m6Jauge'+(nx?'':' max')+'"><em style="width:'+(pc9*100).toFixed(1)+'%"></em></div></div>'
+            +'<div class="m6Carte m6Aura">'
+            +'<div class="m6Tete"><span class="m6Lb">'+pxi('aile')+'<span>'+TR('AURA')+'</span></span>'+vd9+'</div>'
+            +'<div class="m6Big"><b id="mAuraV" style="--n:'+fA(au).length+'">0</b></div>'
+            +'<div class="m6Graphe"><i class="m6Ligne" style="--h:'+hP(recV)+'"></i>'+bg9('P',au,lb9[0])+bg9('M',moyV,lb9[1])+bg9('R',recV,lb9[2])+'</div></div>';
         }
         else if(h){h.className='mHero';h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
             +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em><div class="hNx hNxC6">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>' /* (2026-10-14, charte 6) cartes JUMELLES : la sous-ligne MEILLEUR est toujours là (.hNxC6 = celle que seule la charte 6 montre, quand le badge RECORD ! se tait) */
-          +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR ATTEINT')+'</small><canvas class="hMotCv" width="480" height="321"></canvas>'
+          +'<div class="hCard hMot hMot3" style="--ec:'+hx+'"><small>'+TR('MOTEUR ATTEINT')+'</small><canvas class="hMotCv" width="'+ENG_RES_W+'" height="'+ENG_RES_H+'"></canvas>'
             +'<div class="hMotN"><i>'+TR('PALIER')+'</i>'+(engTier+1)+'</div>'+(eN&&!tq9?'<em>'+TR('RECORD !')+'</em>':'')
             +(pr?'<div class="hNx hPres"><span>'+presqueTxt(mq)+'</span><span>'+pxi('haut')+' '+TR(nx.n)+'</span></div>':ci?'<div class="hNx hRec"><span>'+TR('RECORD')+'</span><span>'+TR('PALIER')+' '+(ea+1)+'</span></div>':'' /* (29/09, DEBUGGING) deux morceaux insécables : le chiffre ne tombe plus seul à la ligne */)+'</div>'; // (2026-09-28) « RECORD · PALIER 18 » : le nom du moteur (STATOREACTEUR) cassait la ligne ; la carte parle déjà en paliers
         }
@@ -806,7 +821,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function surAccueilCiel(){return MENU_PASSE&&garageOn&&!GAR.go&&!ecranWipe._on&&document.body.classList.contains('garMenuH');}
   function mTap(a,el){
     if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
-    if(a==='replay'&&started&&gameOver){ m2Rejoue(); /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); return rejoueAttend().then(function(){ if(started&&gameOver)resetGame(); }); } }); }; r9(); } /* (2026-10-31) rejoueAttend : le départ d'avance pas fini se finit SOUS le volet, en tranches */ // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
+    if(a==='replay'&&started&&gameOver){ m2Rejoue(); try{clearTimeout(M2REV.t);}catch(e){} /* (2026-11-03, audit) la RÉVÉLATION d'une secrète (m2RevAuto, 1,4 s après la mort) n'a plus à s'ouvrir : REJOUER est parti, elle se montrera à la prochaine fin de partie (m2RevFile la garde) */ /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); return rejoueAttend().then(function(){ if(started&&gameOver)resetGame(); }); } }); }; r9(); } /* (2026-10-31) rejoueAttend : le départ d'avance pas fini se finit SOUS le volet, en tranches */ // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
     else if(a==='play'&&jadePlayOk()){ const go9=function(){goImmersive();jadeJouer();}; // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE, avec sa musique
       if(SAVE.d.facile==null&&!SAVE.d.tuto)Promise.resolve().then(go9);else go9(); }
     else if(a==='play'&&sfPlayOk()){ const go9=function(){goImmersive();classiqueJouer();}; // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
@@ -834,7 +849,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     /* (2026-09-30, Sacha : « c'est buggé, les boutons ne sont pas connectés ») GARAGE et MISSIONS, APRÈS UNE PARTIE, depuis le menu : la course
        était finie (started && gameOver restent vrais jusqu'au prochain JOUER) → ils repassaient par accueilRetour, qui ne rejoue qu'une fois
        (MENUV.retour) → le bouton ne faisait RIEN jusqu'à la partie suivante. L'atelier déjà ouvert (garageOn) = on y va tout droit. */
-    else if(a==='garage'){ if(started&&gameOver&&!garageOn){ GAR.aGar=true; /* (2026-10-25) le bouton GARAGE de l'écran de mort ouvre le garage, pas l'écran titre */ }
+    else if(a==='garage'){ vroomGarage(); if(started&&gameOver&&!garageOn){ GAR.aGar=true; /* (2026-10-25) le bouton GARAGE de l'écran de mort ouvre le garage, pas l'écran titre */ }
       if(started&&gameOver&&!garageOn)ecranWipe(function(){ accueilRetour(); mGo('home','racine'); }); else ecranWipe(function(){ if(garageOn)garMode('boutique'); else openGarage(); }); } // (2026-09-30, Sacha : ses boutons) GARAGE = l'ATELIER (caisses, peinture, ailes, traînées) — le menu, on y est déjà
     else if(a==='surv'){ clic(survBtnEl); mFill(); }
     else if(a==='sand'){ SANDBOX=!SANDBOX; SAVE.d.sand=SANDBOX; SAVE.flush(); mFill(); }
@@ -911,6 +926,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     let vu0=0,mort=-1,prep=false,deja=false;
     const maj=function(){let e=null;try{e=dblEtat();}catch(_){e=null;}const ok=!!(e&&e.ok);
       if(mort!==TCTL.mortT){mort=TCTL.mortT;prep=false;deja=false;}
+      {const d9=$t('mDead');if(d9)d9.classList.toggle('m6Dbl',ok);} /* écran de mort v6 : la case du ×2 est RÉSERVÉE dès qu'il est dû — il entre 1,1 s plus tard sans rien pousser */
       if(!ok)vu0=0;else if(!vu0)vu0=performance.now();
       const voir=ok&&(deja||performance.now()-vu0>=1100); // (une pub fermée trop tôt : la plaque revient tout de suite, sans rejouer son entrée)
       if(voir)deja=true;

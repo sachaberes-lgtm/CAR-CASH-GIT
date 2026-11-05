@@ -168,8 +168,8 @@ function plqTex(){if(PLQ.tex)return PLQ.tex;
   plqRepeint();try{apresPolice(plqRepeint);}catch(e){}return t;}
 function plqRepeint(){if(!PLQ.ctx)return;const e=plqEtat();plqPeint(PLQ.ctx,512,128,plqModOk(e.m),String(e.x||'').trim(),'#101014');if(PLQ.tex)PLQ.tex.needsUpdate=true;}
 function plqMats(){if(PLQ.matF)return;plqTex();
-  PLQ.matF=new THREE.MeshBasicMaterial({map:PLQ.tex,color:0xd9d9d9});PLQ.matF.userData.plq=1; // la face : elle ne prend pas la lumière, comme une plaque éclairée par sa lampe (lisible de nuit)
-  PLQ.matC=new THREE.MeshPhongMaterial({color:0x101014,shininess:70,specular:0x4a4a4a});PLQ.matC.userData.plq=1;} // le cadre (le programme des plastiques noirs : rien de neuf à compiler)
+  PLQ.matF=new THREE.MeshBasicMaterial({map:PLQ.tex,color:0xd9d9d9,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4});PLQ.matF.userData.plq=1; /* (2026-11-03, Sacha : « la plaque est buggée ») de dos, la face (à +24 mm) et le cadre noir (front à +21 mm) se disputaient les mêmes pixels (z-fighting) : une plaque sombre et striée, illisible. La face passe devant (polygonOffset) et le cadre recule. */ // la face : elle ne prend pas la lumière, comme une plaque éclairée par sa lampe (lisible de nuit)
+  PLQ.matC=new THREE.MeshPhongMaterial({color:0x101014,shininess:70,specular:0x4a4a4a,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});PLQ.matC.userData.plq=1;} // le cadre (le programme des plastiques noirs : rien de neuf à compiler)
 /* ---- OÙ POSER LA PLAQUE : des rayons tirés vers la caisse, dans son repère (sd −1 = l'arrière, +1 = l'avant) ---- */
 function plqCherche(sd,W9,H9,L9,y0,pw,exclus,verre){
   const R=PLQ.ray||(PLQ.ray=new THREE.Raycaster()),o=new THREE.Vector3(),d=new THREE.Vector3(),n=new THREE.Vector3(),
@@ -217,7 +217,7 @@ function plqPose(lvl,A,W9,H9,L9,y0,exclus,verre,prims){ // appelée par buildCar
     const a=Math.max(-.3,Math.min(.7,Math.atan2(q.ny,Math.abs(q.nz)||1e-3))); // la pente de la tôle (vers le haut = la plaque regarde un peu le ciel)
     const nx9=0,ny9=Math.sin(a),nz9=sd*Math.cos(a);
     for(const k of [0,1]){const m=new THREE.Mesh(k?new THREE.PlaneGeometry(pw,ph):new THREE.BoxGeometry(pw+.035,ph+.035,.02),k?PLQ.matF:PLQ.matC);
-      const e=k?.024:.011;m.position.set(nx9*e,q.y+ny9*e,q.z+nz9*e);
+      const e=k?.034:.011;m.position.set(nx9*e,q.y+ny9*e,q.z+nz9*e);
       m.rotation.order='YXZ';m.rotation.y=sd<0?Math.PI:0;m.rotation.x=-a;
       m.userData.noShadow=true;m.userData.plaque=sd<0?'ar':'av';carGroup.add(m);}
   }

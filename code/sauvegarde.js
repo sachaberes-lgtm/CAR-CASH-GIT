@@ -7,7 +7,7 @@ const SAVE={
   V:2,K:'cashcarSave',d:null,dirty:false,
   def(){return{v:this.V,best:0,leaders:[],bestCar:0,equipped:0,sfx:true,vox:true,mus:true,fruits:[],
     vol:{mus:.62,sfx:1,vox:1}, // les trois curseurs de volume (1 = le mixage d'origine)
-    tctl:'stick',q:(PAL.b('qNetDefaut',0)?'net':'fast'),qChoisi:0,sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable // (2026-10-14, passe perf mobile) q d'une sauvegarde NEUVE = le défaut du palier (RAPIDE tant que qNetDefaut=[0,0,0]) ; qChoisi = 1 quand le joueur a touché IMAGE
+    tctl:'stick',q:((PAL.b('qNetDefaut',0)||!ALLEGE)?'net':'fast'),qChoisi:0,sand:false,carr:{}, // MOBILE : schéma de commandes · résolution d'image · bac à sable // (2026-10-14, passe perf mobile) q d'une sauvegarde NEUVE = le défaut du palier (RAPIDE tant que qNetDefaut=[0,0,0]) ; qChoisi = 1 quand le joueur a touché IMAGE
     volH:'monte',volHv:2, // (2026-10-10, Léo) POUCE HAUT EN VOL : MONTE d'origine (voir san)
     figG:'tap', // (2026-10-15, Léo) FIGURES : 'tap' = le double-tap NITRO (d'origine) · 'glisse' = glisser depuis NITRO puis lâcher (voir GLI)
     // EXPLOITS — les compteurs À VIE qui débloquent les caisses. Ils PERSISTENT : le moteur est la
@@ -50,6 +50,10 @@ const SAVE={
     c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;c.vib=d.vib!==false; // (2026-09-28) VIBRATIONS : leur propre interrupteur
     if(d.facile===1||d.facile===true)c.facile=1;else if(d.facile===0||d.facile===false)c.facile=0; // (2026-09-29) MODE FACILE : absent = jamais choisi (le 1er JOUER le propose)
     c.figG=d.figG==='glisse'?'glisse':'tap'; // (2026-10-15) LA FIGURE AU GLISSÉ
+    /* (audit p2) TROIS RÉGLAGES ÉCRITS MAIS JAMAIS RELUS : san() part d'un def() neuf et ne recopie que ce qu'il connaît — gaucher (MODE GAUCHER),
+       cmd (le schéma VOLANT/FLÈCHES/INCLINAISON, relu au boot par mobile-tactile) et volInv (haut/bas inversés en vol) revenaient au défaut à chaque relance.
+       Absent / invalide → le défaut d'avant (droitier, volant, vol normal). */
+    c.gaucher=(d.gaucher===1||d.gaucher===true)?1:0;c.volInv=(d.volInv===1||d.volInv===true)?1:0;c.cmd=(d.cmd==='fleches'||d.cmd==='incl')?d.cmd:'volant';
     c.vdep=Math.max(0,Math.min(5,Math.round(+d.vdep)||0)); // (2026-10-19) LA VITESSE DE DÉPART : le cran choisi au garage (0-5 ; vdepN le ramène au plus haut ouvert)
     c.volH=d.volH==='plonge'&&d.volHv>=2?'plonge':'monte';c.volHv=2; // pouce en HAUT en vol : monte (d'origine depuis le 2026-10-10, Léo : « plus logique, plus intuitif sur mobile ») ou plonge (manche d'avion, l'ancien défaut) — `volHv` < 2 : sauvegarde d'avant, basculée UNE fois sur MONTE, le choix fait après est gardé
     /* ⚠ LES VOLUMES SONT BORNÉS À [0,1], ET C'EST UNE VRAIE PROTECTION, pas une formalité : ces
@@ -63,7 +67,7 @@ const SAVE={
     /* (2026-10-14, passe perf mobile) « JAMAIS CHOISI » ≠ « A CHOISI RAPIDE » : qChoisi=1 posé par les trois bascules IMAGE. Une sauvegarde
        d'AVANT ce champ (qChoisi absent) en 'net' a forcément choisi (le défaut a toujours été RAPIDE) ; en 'fast' on ne peut pas savoir : elle
        suit le défaut du palier. Jamais choisi → le défaut du palier (qNetDefaut), relu à chaque chargement : qNetDefaut=[0,0,0] = RAPIDE, comme avant. */
-    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&(d.q==='net'||d.q==='haute')))?1:0;if(!c.qChoisi)c.q=PAL.b('qNetDefaut',0)?'net':'fast';
+    c.qChoisi=(d.qChoisi===1||(d.qChoisi===undefined&&(d.q==='net'||d.q==='haute')))?1:0;if(!c.qChoisi)c.q=(PAL.b('qNetDefaut',0)||!ALLEGE)?'net':'fast';
     if(d.carrSel&&typeof d.carrSel==='object'&&['nuages','ville','espace','paris'].includes(d.carrSel.id))c.carrSel={id:d.carrSel.id,i:Math.max(0,Math.min(9,d.carrSel.i|0))}; // (2026-10-07) LE NIVEAU DES PLAY (carrSel le revérifie contre la carrière)
     if(Array.isArray(d.fruits))c.fruits=d.fruits.slice(0,32).filter(e=>e&&typeof e.n==='string').map(e=>({ // réglages de l'ÉTAL (bornés : un import bidon ne casse rien)
       n:e.n.slice(0,24),
@@ -220,7 +224,7 @@ const SAVE={
   },
   mark(){this.dirty=true;},
   natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
-  flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;}catch(e){} /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
+  flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
     if(this.natif===0&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences){try{window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}}
@@ -243,15 +247,22 @@ const SAVE={
    rattrape le miroir ; réponse pleine → 2 : plus AUCUNE écriture jusqu'au rechargement (le passage en arrière-plan qui accompagne
    un rechargement flushait la sauvegarde vierge PAR-DESSUS celle qu'on venait de semer). Lecture en échec : on reste à 1 — on
    n'écrase pas un secours qu'on n'a pas pu lire. Et on ne recharge que si le localStorage a GARDÉ la valeur (sinon : boucle). */
-if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&!(function(){try{const x=JSON.parse(localStorage[SAVE.K]||'null');return !!x&&typeof x==='object';}catch(e){return false;}})()){ // (2026-10-14, chasse aux bugs) une sauvegarde locale ILLISIBLE (écriture tronquée) comptait comme présente : le miroir n'était pas lu, load repartait à neuf et le 1er flush écrasait le secours natif — perte totale. Illisible = absente
+/* ===== LE MIROIR ATTEND SA LECTURE JUSQU'AU BOUT (2026-11-03, audit p3) ===== si `Preferences.get` échoue ou ne répond jamais, `natif` reste à 1 mais le filet de 30 s / un réglage écrit quand même dans localStorage une sauvegarde (vierge) lisible : au lancement suivant le bloc était sauté, natif=0 et le 1er flush écrasait le secours natif — perte totale. Le TÉMOIN `cashcarSave_natif` (posé par flush tant que natif===1) force la relecture du miroir ; une sauvegarde locale qui a de vraies parties (ex.runs>0) est gardée et rattrape le miroir, sinon le miroir est semé. */
+{const l9=(function(){try{const x=JSON.parse(localStorage[SAVE.K]||'null');return !!x&&typeof x==='object'?x:null;}catch(e){return null;}})();
+const raz9=function(){try{localStorage.removeItem(SAVE.K+'_natif');}catch(e){}};
+if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences&&(!l9||(function(){try{return localStorage[SAVE.K+'_natif']==='1';}catch(e){return false;}})())){ // (2026-10-14, chasse aux bugs) une sauvegarde locale ILLISIBLE (écriture tronquée) comptait comme présente : le miroir n'était pas lu, load repartait à neuf et le 1er flush écrasait le secours natif — perte totale. Illisible = absente
   SAVE.natif=1;
   try{window.Capacitor.Plugins.Preferences.get({key:SAVE.K}).then(function(r){
     /* ===== LE MIROIR ILLISIBLE NE SE SÈME PAS (24/10, débogage sortie iOS : « aucune progression perdue ») ===== semé tel quel, il rechargeait la page sur un localStorage
        tout aussi illisible, qui relisait le miroir, rechargeait… à l'infini : appli inutilisable. Illisible = vide (le flush qui suit écrit une sauvegarde saine) */
-    if(r&&r.value&&(function(){try{const x9=JSON.parse(r.value);return !!x9&&typeof x9==='object';}catch(e){return false;}})()){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
-      if(ok)location.reload();else SAVE.natif=1;}
-    else{SAVE.natif=0;SAVE.flush();}
+    const mv9=!!(r&&r.value&&(function(){try{const x9=JSON.parse(r.value);return !!x9&&typeof x9==='object';}catch(e){return false;}})());
+    const lr9=l9?(+(l9.ex&&l9.ex.runs)||0):0,mr9=mv9?(function(){try{return +((JSON.parse(r.value).ex||{}).runs)||0;}catch(e){return 0;}})():0;
+    if(mv9&&lr9>0&&lr9>=mr9){SAVE.natif=0;raz9();SAVE.flush();} /* le local a de vraies parties (jouées après l'échec de lecture) ET au moins autant que le miroir : on le garde, il rattrape le miroir. (2026-11-03, relecture de l'audit) Un miroir PLUS RICHE (100 parties contre 1 jouée depuis l'échec) l'emporte : avant, le local pauvre l'écrasait */
+    else if(mv9){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
+      if(ok){raz9();location.reload();}else SAVE.natif=1;}
+    else{SAVE.natif=0;raz9();SAVE.flush();}
   }).catch(function(){});}catch(e){}
+}
 }
 SAVE.load();
 /* (2026-10-16) J'AI DÉJÀ JOUÉ, sans « ne plus me demander » : la leçon n'était sautée que pour l'ouverture d'avant — la question revient. */

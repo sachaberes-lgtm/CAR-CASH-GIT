@@ -494,7 +494,11 @@ function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin()){
 const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
   if(d.pack==='chat'&&m2Chat())return true; /* (2026-10-16, missions v2) l'ARC-EN-CIEL vient avec le chat */if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
 function shopEqD(cat){const id=SAVE.d.shop.eq[cat],d=COSM[cat].find(x=>x.id===id);return (d&&shopOwned(cat,d.id))?d:COSM[cat][0];}
-function cosm(cat){return (SHOP.prev&&SHOP.prev.cat===cat)?COSM[cat][SHOP.prev.i]:shopEqD(cat);} // ce que la caisse PORTE (essai compris)
+/* ===== LES PHOTOS DES CAISSES EN TEINTE D'ORIGINE (2026-11-02, Léo : « quand on va dans les paint des boutiques, ça met toutes les voitures dans ta peinture et on ne peut à peine les distinguer. Enlève-moi ce truc ») =====
+   Pendant que le studio photographie une caisse (carPhoto : vignettes de la boutique, de l'inventaire, vue de la fenêtre d'achat), PHOTO_USINE
+   est vrai : la caisse porte D'ORIGINE, ni la peinture équipée ni celle qu'on essaie. La caisse qu'on conduit et l'essai en 3D gardent la peinture. */
+let PHOTO_USINE=false;
+function cosm(cat){if(PHOTO_USINE&&cat==='peinture')return COSM.peinture[0];return (SHOP.prev&&SHOP.prev.cat===cat)?COSM[cat][SHOP.prev.i]:shopEqD(cat);} // ce que la caisse PORTE (essai compris)
 // ⚠ le TOUT PREMIER `buildCar` tourne à l'init, AVANT que `SAVE`/`SHOP` ne soient déclarés (zone morte) : on rend alors l'origine
 function cosmSur(cat){try{return cosm(cat);}catch(e){return null;}}
 function shopBuy(cat,i){ // ⚠ débit et possession dans la MÊME fonction, comme `carBuy` : jamais l'un sans l'autre
