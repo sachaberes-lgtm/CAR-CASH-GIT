@@ -9334,7 +9334,7 @@ html.ccApp body #mob #mDead #mDouble#mDouble,html.ccApp #pubR#pubR{display:none!
   <div class="plMods" id="plqMods" role="radiogroup" aria-label="Modeles"></div>
   <div class="plBas"><div class="pbtn plRet" data-p="ret" role="button" tabindex="0" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i><span data-fr="RETOUR">RETOUR</span></div><div class="pbtn pb-gold big plOk" data-p="ok" role="button" tabindex="0"><i class="pxi pxi-coche" aria-hidden="true"></i><span data-fr="VALIDER">VALIDER</span></div></div>
 </div></div>
-<div id="overlay" role="button" tabindex="0" aria-label="Menu principal CASH CAR">
+<div id="overlay" role="region" aria-label="Menu principal CASH CAR"><!-- (2026-11-05, Opus : jury INT-02) plus role="button" : VoiceOver ne voyait qu'UN bouton à la place de tout le menu (aucun clic n'y lance rien : le logo est un jouet, voir menu-logo.js) -->
   <div id="mEmbers" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <h1><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></h1>
   <div id="tagline">cours après le cash · ne tombe jamais</div>
@@ -9588,6 +9588,12 @@ const DEV=location.protocol==='file:'||/[?&]dev=/.test(location.search)||
 function qDev(re){return DEV&&re.test(location.search);}
 if(EN_APP)try{document.documentElement.classList.add('ccApp');}catch(e){}
 window.CC_DEV=DEV;window.CC_EN_APP=EN_APP;
+/* COUCHÉ, UNE SEULE DÉFINITION (2026-11-05, Opus : jury INT-26) : le CSS dit « couché » quand l'écran est en paysage ET bas (≤ 540 px), ou en
+   paysage large (≥ 3/2) jusqu'à 820 px de haut ; le JS avait deux autres règles (ratio > 1,25 aux missions, > 1 au HUD des figures). estCouche()
+   lit la MÊME requête que le CSS (et que GT_COUCHE du garage). `?couche=ancien` : les anciennes règles. */
+const COUCHE_MQ=(function(){try{return matchMedia('(orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px)');}catch(e){return null;}})();
+const COUCHE_ANCIEN=/[?&]couche=ancien\b/.test(location.search);
+function estCouche(){return COUCHE_MQ?COUCHE_MQ.matches:innerWidth>innerHeight;}
 /* ACHAT_EUR (2026-11-05, Opus : jury INT-01 / INT-20, décision D3 « masquer partout tant que StoreKit n'existe pas ») : faux = ni l'écran ACHAT
    (#mShop), ni ses portes (la tuile de l'accueil, la BOUTIQUE du bas du garage, la porte des offres éphémères), ni le rayon ACHAT de la boutique.
    shopPaye reste, inerte. Les caisses en € ne comptent plus nulle part (caisse équipée, étage, missions « toutes »). `?achat=ancien` : l'ancien. */
@@ -46164,6 +46170,7 @@ addEventListener('keydown',function(e){if(e.target&&e.target.id==='plqTx'){e.sto
 addEventListener('keyup',function(e){if(e.target&&e.target.id==='plqTx')e.stopImmediatePropagation();},true);
 /* LE PREMIER ACCUEIL : la plaque se choisit avant tout le reste (la question de bienvenue attend qu'elle soit refermée, voir bienvPret) */
 function plqVeut(){try{if(/[?&]plaque=1\b/.test(location.search))return !PLQ.fait;if(/[?&](plaque|bienvenue)=0\b/.test(location.search)||navigator.webdriver)return false; /* les BANCS (Puppeteer : navigator.webdriver) partent de sauvegardes neuves : l'atelier leur boucherait l'accueil — `?plaque=1` le rend */
+  if(!/[?&]plaque=ancien\b/.test(location.search)&&!((SAVE.d.ex&&SAVE.d.ex.runs)>0))return false; /* (2026-11-05, Opus : jury DIR-46, décision D8 — recommandation) la plaque se choisit APRÈS la 1re course, plus avant d'avoir vu le jeu ; `?plaque=ancien` = au 1er accueil */
   return !PLQ.fait&&!(SAVE.d.plq&&SAVE.d.plq.ok)&&!BALADE&&!SIMU_JEU&&!SANDBOX&&!(PARK&&PARK.on);}catch(e){return false;}}
 function plqGuette(){if(PLQ.iv)return;PLQ.iv=setInterval(function(){try{
   if(!plqVeut()){clearInterval(PLQ.iv);return;}
@@ -61709,6 +61716,7 @@ function gsolPose(F){const G=GSOL;if(!G.k||mode!=='drive')return; // (conduite, 
    · Le GLISSER de Léo n'est pas changé : au sol, slide 360 / wheelie / stoppie, et son salto part toujours avec le saut (joystick en avant).
    `?froute=0` = le saut nitro d'avant. Console : `dbgFRoute()` (l'état), `dbgFRoute(x,y)` (un double-tap au sol, le joystick en x, y). */
 const FR_K={k:.65,dMin:.4,dMax:.72,hMin:.35,hMax:2.4,marge:.1,cam:.8};
+const FR_REND_ANCIEN=/[?&]figrend=ancien\b/.test(location.search); /* (2026-11-05, Opus : GP-03, voir frFin) */
 const FR={ok:!/[?&]froute=0\b/.test(location.search),on:false,C:window.FIG&&FIG.Corps?new FIG.Corps():null,t:0,D:0,T:0,H:0,s:-1,r:null,f:null,pivK:0,lift:0,liftMax:0,n:0,fini:0,vols:0,
   qr:new THREE.Quaternion(),dq:new THREE.Quaternion(),pv:new THREE.Vector3(),pv2:new THREE.Vector3(),dv:new THREE.Vector3(),dv2:new THREE.Vector3(),cv:new THREE.Vector3(),
   p0:new THREE.Vector3(),p0ok:false,vel:new THREE.Vector3()};
@@ -61748,18 +61756,30 @@ function frBoum(e){const k=Math.min(1.6,e.k||1),n=Math.round(14+16*k),vx=FR.vel.
   sparkBurst(sparkGold,FX2.v,Math.round(8+8*k),12);}
 function frPaye(r){const c0=chainSeen['fig_'+r.f.id]|0;figPaye(r); // plantée : comme en vol — et le FLOW qu'addTrick ne donne qu'en l'air (celle du saut le nourrissait)
   if(mode==='drive'){const reps=Math.max(1,r.reps|0),a=(r.f.aura||60)*(reps>1?1+(reps-1)*1.25:1);flowAdd((a>=120||reps>=2?9:6)*Math.pow(.6,c0),'risque');}}
-function frEncaisse(){ // la caisse est retombée sur ses roues : ce que la POSE d'un vol fait pour ses figures (tryLand), sans le vol — grade ordinaire
+function frEncaisse(paye){ // (2026-11-05, Opus : GP-03) `paye` faux = aucune figure plantée : le nitro n'est PAS rendu — la caisse est retombée sur ses roues : ce que la POSE d'un vol fait pour ses figures (tryLand), sans le vol — grade ordinaire
   const q=chainVal*Math.min(6,chainMult)*(1+FLOW.lv*.5)*(fever>0?2:1);
   if(chain>0&&q>0){flowAdd(4,'style','n');runStats.tricks++;poseSndT=performance.now();addCoins(Math.max(2,Math.min(18,Math.round(2+q/6))));boost=Math.max(boost,1.2);
     if(FREN.arme&&FLOW.lv<4)frenDeclenche();} // jauge pleine + figure posée : la FRÉNÉSIE part (comme à la pose)
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;
-  figComboEncaisse();const g=figNitRend(true);if(SONV2&&g>.01)try{sfx('nitro.plein',{t:.2});}catch(e){}}
+  figComboEncaisse();const g=figNitRend(paye!==false);if(SONV2&&g>.01)try{sfx('nitro.plein',{t:.2});}catch(e){}}
 function frCoupe(){if(FR.C)FR.C.vide();FR.on=false;FR.lift=0;FX2.nitL=0;} // (la course s'arrête, la caisse explose) rien à rendre
 function frFin(){const C=FR.C,P=C.pose();for(let i=0;i<P.payees.length;i++)frPaye(P.payees[i]); // le bond fini : ce qui reste se juge (une figure presque finie compte)
-  FR.ecFin=+(C.ecart()*57.3).toFixed(1);C.vide();FR.on=false;FR.lift=0;FR.fini++;frEncaisse(); // (FX2.nitL gardé : frEncaisse rend ses 40 %) — ecFin (banc) : de combien elle se recale à la dernière image (°)
+  FR.ecFin=+(C.ecart()*57.3).toFixed(1);C.vide();FR.on=false;FR.lift=0;FR.fini++;frEncaisse(FR_REND_ANCIEN||P.payees.length>0); /* (2026-11-05, Opus : jury GP-03) la figure de route remboursait 40 % de nitro SANS condition (+20 % de jauge net par double-tap, sans quitter le sol) : seulement si une figure a été PLANTÉE ; `?figrend=ancien` = toujours */ // (FX2.nitL gardé : frEncaisse rend ses 40 %) — ecFin (banc) : de combien elle se recale à la dernière image (°)
   sensCoup(0,.6,-1.4);hap([8,18]);try{if(SONV2)sfx('pose.nette',{t:.02});}catch(e){} // elle retombe : la suspension encaisse, le petit son de la pose
   const sp9=CARS[level]||CARS[0];for(const sd of [-1,1]){FX2.v.set(sd*sp9.w*.45,.2,0);carGroup.localToWorld(FX2.v);for(let k=0;k<4;k++)spawnP(dust,FX2.v.x,FX2.v.y,FX2.v.z,FR.vel.x*.7+(Math.random()-.5)*5,1+Math.random()*2,FR.vel.z*.7+(Math.random()-.5)*5,.3+Math.random()*.25);}}
-function frTick(dt){if(!FR.on)return; // (la boucle, en course) le corps de la figure avance
+/* ===== LES RAILS DU DÉPART (2026-11-05, Opus : jury DIR-09, décision D7 — recommandation du jury, Sacha n'a pas tranché) =====
+   Sans aucune entrée, la caisse sortait de la route et mourait 5 à 7 s après JOUER : un testeur qui pose le téléphone au départ était mort.
+   Les RAIL_D premières secondes de conduite d'une partie (après le largage), tant que le joueur ne braque pas, la caisse est ramenée
+   doucement sur l'axe de la route (écart et cap) : elle suit la courbe toute seule. Au premier coup de volant, les rails disparaissent pour
+   toute la partie. Posés par resetGame (seconde-chance.js), tenus ici, à chaque image de la porte de simulation (frTick).
+   `?rails=0` : sans. `dbgRails()` : l'état. */
+const RAILS={on:!/[?&]rails=0\b/.test(location.search),d:3,t:0};
+function railsPose(){RAILS.t=RAILS.on?RAILS.d:0;}
+function railsTick(dt){if(!(RAILS.t>0))return;if(!started||gameOver||paused||SANDBOX||PARK.on||BALADE)return;if(introD||mode!=='drive')return;
+  if(Math.abs(steer)>.12){RAILS.t=0;return;} /* le joueur a pris le volant */
+  RAILS.t=Math.max(0,RAILS.t-dt);const k=Math.min(1,dt*4);lat-=lat*k;psi-=psi*k;vL-=vL*k;}
+window.dbgRails=function(){return {on:RAILS.on,reste:+RAILS.t.toFixed(2),lat:+lat.toFixed(2),psi:+psi.toFixed(3)};};
+function frTick(dt){railsTick(dt);if(!FR.on)return; // (la boucle, en course) le corps de la figure avance
   if(!started||gameOver||mode!=='drive'){frCoupe();return;}
   if(paused)return;
   const C=FR.C;FR.t+=dt;C.budget=Math.max(.05,FR.T-FR.t);C.poseK=FR.t>FR.D?1:0; // poseK : sa durée jouée, l'air la range VITE (un battement — le shimmy — mettait 1,3 s à se calmer, puis se recalait d'un coup)
@@ -61901,7 +61921,7 @@ function fhNom(t,c,g,dir,rp){const e=fhEl();t=fhNet(t);const b=FH.b;
   if(rp!==undefined){FH.rp=rp||'';if(rp)FH.nom.setAttribute('data-rp',rp);else FH.nom.removeAttribute('data-rp');} // (v5) la RARETÉ du nom : sa couleur et sa police ('' = Press Start 2P, la couleur c)
   t=fhTitre(t,FH.rp);
   if(b.textContent!==t||FH.rpT!==FH.rp){const K=FIG_RP[FH.rp]||FIG_RP.commun;FH.rpT=FH.rp;b.textContent=t;b.setAttribute('data-t',t); /* (v5) même hauteur de capitale que Press Start 2P (k), la largeur selon la chasse de SA police (w) */
-    b.style.fontSize=Math.round(K.k*Math.max(12,Math.min(FH_N[VP.w>VP.h?0:1],Math.floor(VP.w*.8/Math.max(1,(t.length+1.5)*K.w))-2)))+'px';}
+    b.style.fontSize=Math.round(K.k*Math.max(12,Math.min(FH_N[(COUCHE_ANCIEN?VP.w>VP.h:estCouche())?0:1],Math.floor(VP.w*.8/Math.max(1,(t.length+1.5)*K.w))-2)))+'px';}
   if(c)FH.nom.style.setProperty('--fc',c);else FH.nom.style.removeProperty('--fc');FH.nom.className='fhNom on'+(g==='ko'?' ko':'');e.classList.add('on');if(!FH.vu)document.body.classList.add('fhOn');FH.vu=true;
   if(g==='in')fhAnime(FH.nom,[{transform:'scale(2.3) rotate(-7deg)',opacity:0,filter:'brightness(3)'},{transform:'scale(.92) rotate(2deg)',opacity:1,filter:'brightness(1.6)',offset:.45},
     {transform:'scale(1.05) rotate(0deg)',offset:.72},{transform:'none',opacity:1,filter:'none'}],460);
@@ -62507,8 +62527,17 @@ function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
   if(row.classList.contains('pret')){if(m.f==='secret'&&m2Revele(id))return;m2Recupere(id,row);return;} // une SECRÈTE qui brille : sa révélation · (2026-10-31) AVANT la photo : sur une ligne prête, la photo récupère aussi (voir m2PrendIci)
   if(t.closest('.m2R.voir')&&!t.closest('.m2Pr')){m2Voir(m);return;}
   if(s.ok.indexOf(id)>=0){ /* (2026-11-01, Sacha : « quand on clique sur une mission achevée, elle se supprime automatiquement » ) */
+    /* ===== RETIRER UNE MISSION SE CONFIRME (2026-11-05, Opus : jury INT-05) =====
+       Un toucher par erreur effaçait la mission réussie pour toujours. Le 1er toucher ARME (la ligne se marque, « TOUCHE ENCORE POUR RETIRER »),
+       un 2e toucher sur la MÊME ligne dans les 3 s la retire, comme avant. `?retire=ancien` : un seul toucher. */
+    if(!/[?&]retire=ancien\b/.test(location.search)&&(M2E.arme!==id||performance.now()-(M2E.armeT||0)>3000)){
+      M2E.arme=id;M2E.armeT=performance.now();document.querySelectorAll('#gmListe .m2L.m2Arme').forEach(function(e9){e9.classList.remove('m2Arme');});
+      row.classList.add('m2Arme');try{toast(sansAcc(TR('TOUCHE ENCORE POUR RETIRER')));}catch(x){}uiClic('');hap(6);return;}
+    M2E.arme=null;
     if(!s.mq)s.mq=[];if(s.mq.indexOf(id)<0)s.mq.push(id);SAVE.flush();uiClic('off');hap(10);m2Render(true);return;}
-  uiClic('refus'); /* (2026-11-01) on ne peut plus suivre une mission : toucher une mission en cours ne fait plus rien */}
+  /* (2026-11-05, Opus : jury INT-05) une mission EN COURS ne se suit plus, mais son toucher n'est pas une faute : plus le son du refus, un toucher neutre */
+  uiClic('');hap(4);}
+Object.assign(I18N,{'TOUCHE ENCORE POUR RETIRER':'TAP AGAIN TO REMOVE'});
 /* LE POINT VERT DES PORTES (à la place des trois pastilles du carnet) : une récompense attend d'être récupérée */
 function m2Portes(){const n=m2NbPret();
   document.querySelectorAll('#gvMis,.ghT[data-h="mis"],#mHome [data-m="mis"]').forEach(function(d){let p=d.querySelector(':scope>.m2Pt');
@@ -65977,7 +66006,7 @@ function chanceRepart(bon){ // sous le volet : la course reprend où elle s'est 
   clearBoom();RALENTI.t=0;
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   airPie.style.display='none';airFlash=0;nitroX=0;boost=0;nitroR=Math.max(nitroR,nitroCap()*.5); // de quoi voler, pas un plein
-  M2R.vie=0;/* (missions v2) on est mort : « tiens 5 min sans mourir » repart de zéro */respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0; // elle RETOMBE sur sa ligne : on voit qu'on repart
+  M2R.vie=0;/* (missions v2) on est mort : « tiens 5 min sans mourir » repart de zéro */chanceSafe();respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0; // elle RETOMBE sur sa ligne : on voit qu'on repart
   if(CHANCE.moteurPerte>0&&engTier>0){engTier=Math.max(0,engTier-CHANCE.moteurPerte);coinsGot=ENGINE_TIERS[engTier].coins;MV.coup(.9);} // le MOTEUR encaisse le choc : un palier (ses pièces avec), la vignette et le timbre suivent seuls
   startBoostT=Math.max(startBoostT,2);paintMoney();dnRelance(); /* (2026-10-22, DEBUGGING) les DUNES : la reprise repart lancée, sinon la lèvre suivante la jette dans le sable (voir dnRelance) */
   if(GH.on&&!GH.fini&&!GH.pris)GH.g.visible=true; // campStop a caché la caisse-nuage : elle revient
@@ -65997,6 +66026,12 @@ function chanceRepart(bon){ // sous le volet : la course reprend où elle s'est 
     n--;CHANCE.tm=setTimeout(pas,500);};
   CHANCE.tm=setTimeout(pas,120);
 }
+/* ===== LA REPRISE NE RECULE PLUS DE CENTAINES DE MÈTRES (2026-11-05, Opus : jury GP-04) =====
+   respawn() repose la caisse à safeS − 8, et safeS n'est écrit que sur une route « à plat » (dessus, normale vers le haut) : sur la route sans
+   haut ni bas des NUAGES ou l'ORBITE libre, il restait des centaines de mètres en arrière (parfois au début de la zone). La seconde chance et la
+   chute sous bouclier repartent maintenant au plus loin de : safeS, ou l'endroit de la mort moins CH_RECUL m. `?reprise=ancien` : safeS seul. */
+const CH_RECUL=40,CH_SAFE_ANCIEN=/[?&]reprise=ancien\b/.test(location.search);
+function chanceSafe(){if(CH_SAFE_ANCIEN||!isFinite(s))return;if(s-safeS>CH_RECUL+20)safeS=Math.max(safeS,s-CH_RECUL);}
 function chanceTick(dt){ // dans la porte de simulation de loop : la pause fige le bouclier avec le reste
   CHANCE.inv=Math.max(0,CHANCE.inv-dt);
   if(mode==='boom')return;
@@ -66008,7 +66043,7 @@ function chanceProtege(cause){ // explode, pendant le bouclier
   if(!(CHANCE.inv>0)||gameOver||mode==='boom'||!started)return false;
   if(mode==='fall'||cause==='vide'||cause==='air'){ // une chute : replacée sans frais (comme le filet du mode facile)
     airPie.style.display='none';airFlash=0;
-    respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;dnRelance();CHANCE.inv=Math.max(CHANCE.inv,1);}
+    chanceSafe();respawn();hopY=2.2;hopV=0;graceT=Math.max(graceT,2.2);loop._camDriveT=0;dnRelance();CHANCE.inv=Math.max(CHANCE.inv,1);}
   return true; // un choc : ignoré
 }
 function chanceRefuse(){if(!CHANCE.offre)return false;clearTimeout(CHANCE.tm);CHANCE.offre=false;chanceSignal();return true;} // l'offre se ferme tout de suite (un geste ailleurs, la machine à sous d'IDEE qui veut sa place)
@@ -66169,6 +66204,7 @@ function finSonsCoupe(){
 function resetGame(){
   try{clearTimeout(M2REV.t);if(M2REV.on){M2REV.on=false;M2REV.id=null;const e9=document.getElementById('m2Rev');if(e9){e9.className='';e9.innerHTML='';}}}catch(e){} // (audit p7) REJOUER tapé tôt : `rejoueAttend` garde `started&&gameOver` jusqu'à 12 s, le délai de 1,4 s ouvrait la révélation d'une secrète (z-index 95) PAR-DESSUS la course qui part dessous — elle se ferme (ou ne s'ouvre pas) ici ; la secrète reste dans la file (m2RevFile) pour la prochaine mort
   dmtCoupe(); // (LE DEMI-TOUR) une nouvelle partie repart droite
+  railsPose(); /* (2026-11-05, Opus : D7) les rails du départ (figures-route.js) */
   SPIN.pose=0; // (2026-10-14) LE FINAL SPIN : le plafond de jetons posés est par partie (ceux qu'on a ramassés restent dans la sauvegarde)
   secReset(); // (2026-10-14) LES DÉFIS SECRETS : chaque partie repart de zéro
   evtPartie(); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : le tirage de la partie, AVANT newTrack (qui pose celui de la 1re zone)
@@ -69069,7 +69105,10 @@ function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=do
   if(b){const ret=m==='shop'||m==='tous';if(b._lib==null)b._lib=b.innerHTML;if(ret!==!!b._ret){b._ret=ret;b.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':b._lib;if(!ret){const s9=b.querySelector('span[data-fr]');if(s9)s9.textContent=TR(s9.dataset.fr);}b.setAttribute('aria-label',ret?TR('RETOUR'):TR('Boutique'));} /* (2026-10-12, passe qualité) _lib est figé dans la langue de la 1re visite : on repasse le libellé dans la langue du moment (sinon « BOUTIQUE » en anglais après FR→EN) */
     if(gEl)gEl.classList.toggle('shopRet',ret);} // (2026-10-12) BOUTIQUE devient RETOUR
   if(GATL.on&&m!=='inv')GATL.on=false; // l'atelier fermé n'existe qu'en INVENTAIRE
-  if(c){const ret=m==='inv'&&GATL.on;if(c._lib==null)c._lib=c.innerHTML;if(ret!==!!c._ret){c._ret=ret;c.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':c._lib;c.setAttribute('aria-label',ret?TR('RETOUR'):'Inventaire');}}
+  if(c){const ret=m==='inv'&&GATL.on;if(c._lib==null)c._lib=c.innerHTML;if(ret!==!!c._ret){c._ret=ret;c.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':c._lib;c.setAttribute('aria-label',ret?TR('RETOUR'):TR('Inventaire'));}
+    /* (2026-11-05, Opus : jury DIR-04) _lib est figé dans la langue de la 1re visite : « INVENTAIRE » restait en français au retour du garage depuis la mort
+       (anglais). Comme la BOUTIQUE juste au-dessus, le libellé repasse par TR à chaque fois qu'il revient. */
+    if(!c._ret){const s9=c.querySelector('span[data-fr]');if(s9&&s9.textContent!==TR(s9.dataset.fr))s9.textContent=TR(s9.dataset.fr);}}
   if(gEl){gEl.classList.remove('invRet');gEl.classList.toggle('modeInv',m==='inv');gEl.classList.toggle('atelierInv',GATL.on);} // (2026-10-12, Léo) à l'arrivée l'INVENTAIRE en aperçu, les cinq touches ; INVENTAIRE touché = L'ATELIER FERMÉ (gAtelier) : la touche devient ◀ RETOUR, en bas à gauche, les autres s'effacent
   if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop'||m==='tous');st.classList.toggle('gModeTous',m==='tous');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
   if(gEl)gEl.classList.toggle('modeShop',m==='shop');} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
@@ -74492,6 +74531,49 @@ function garSurCaisse(e){
     return e.clientX>=r.x0-mx&&e.clientX<=r.x1+mx&&e.clientY>=r.y0-my&&e.clientY<=r.y1+my;}catch(er){return false;}
 }
 function invHoldFin(){if(!INV||!INV.hold)return;INV.hold=null;cancelAnimationFrame(INV.raf);const a=$('gInvAnneau');if(a)a.classList.remove('on');}
+/* ===== UN SEUL ONGLET ÉCRIT LA SAUVEGARDE (2026-11-05, Opus : jury DIR-30) =====
+   Sur le site, deux onglets du jeu écrivaient la même cashcarSave sans verrou : le dernier qui écrivait gagnait (des caisses achetées dans
+   l'un disparaissaient en jouant dans l'autre). Chaque onglet porte un jeton (sessionStorage : il survit au rechargement de CET onglet) et
+   le pose dans localStorage.ccOngletActif à l'ouverture : c'est le DERNIER ouvert qui joue. L'événement `storage` prévient les autres, qui
+   passent en LECTURE SEULE (SAVE.flush / SAVE.mark ne font plus rien) et le disent ; recharger un onglet passif le rend actif.
+   Pas dans l'app (une seule vue). `?onglets=ancien` : sans verrou. */
+const ONGLET={id:'',passif:false};
+(function(){if(EN_APP||/[?&]onglets=ancien\b/.test(location.search))return;
+  try{ONGLET.id=sessionStorage.getItem('ccOnglet')||'';if(!ONGLET.id){ONGLET.id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);sessionStorage.setItem('ccOnglet',ONGLET.id);}
+    localStorage.setItem('ccOngletActif',ONGLET.id);}catch(e){return;}
+  addEventListener('storage',function(e){if(e.key!=='ccOngletActif'||!e.newValue||e.newValue===ONGLET.id||ONGLET.passif)return;
+    ONGLET.passif=true;try{SAVE.flush=function(){};SAVE.mark=function(){};}catch(x){}
+    try{toast(sansAcc(TR('LE JEU EST OUVERT DANS UN AUTRE ONGLET : CETTE PAGE NE SAUVEGARDE PLUS (RECHARGE POUR JOUER ICI)')));}catch(x){}});})();
+/* ===== POUCE HAUT ET VOL INVERSÉ NE FONT PLUS QU'UN (2026-11-05, Opus : jury INT-40) =====
+   Au doigt, les deux lignes des réglages se MULTIPLIAIENT (volSens × volInv) : deux interrupteurs, la même icône, le même effet, et un joueur qui
+   ne sait lequel toucher. Sur un vrai téléphone (TEL_NATIF : au doigt), VOL INVERSÉ disparaît et son choix est replié dans POUCE HAUT (même sens au doigt qu'avant). L'ordi
+   garde VOL INVERSÉ (POUCE HAUT y est déjà caché : c'est le seul réglage du clavier). `?volinv=ancien` : les deux lignes. */
+try{if(TEL_NATIF&&!/[?&]volinv=ancien\b/.test(location.search)){
+  if(SAVE.d&&SAVE.d.volInv){SAVE.d.volInv=0;SAVE.d.volH=SAVE.d.volH==='plonge'?'monte':'plonge';SAVE.flush();}
+  document.querySelectorAll('.mLigne[data-m="volinv"]').forEach(function(e9){e9.style.display='none';});}}catch(e){}
+/* ===== LA FENÊTRE À CHAMP AU-DESSUS DU CLAVIER (2026-11-05, Opus : jury INT-08) =====
+   #modale (ENTRER UN CODE, MA SAUVEGARDE) est une feuille collée en bas : sur iPhone le clavier la recouvrait, VALIDER et ANNULER passaient sous
+   les touches. Même recette que la plaque (plqClavier) : tant que son champ a le focus et que la partie visible a perdu plus de 90 px, la
+   fenêtre se pose sur la partie visible (visualViewport). Sur l'ordi rien ne rétrécit : rien ne change. `?modclavier=0` : sans. */
+(function(){const vv=window.visualViewport;if(!vv||/[?&]modclavier=0\b/.test(location.search))return;
+  const pose=function(){const md=document.getElementById('modale');if(!md)return;const ch=md.querySelector('input,textarea');
+    const h0=Math.max(innerHeight||0,document.documentElement.clientHeight||0),perdu=h0-vv.height;
+    const veut=md.classList.contains('on')&&!!ch&&document.activeElement===ch&&perdu>90;
+    if(veut){md.style.setProperty('top',Math.round(vv.offsetTop)+'px','important');md.style.setProperty('height',Math.round(vv.height)+'px','important');
+      md.style.setProperty('bottom','auto','important');md.classList.add('clavier');}
+    else if(md.classList.contains('clavier')){md.style.removeProperty('top');md.style.removeProperty('height');md.style.removeProperty('bottom');md.classList.remove('clavier');}};
+  vv.addEventListener('resize',pose);vv.addEventListener('scroll',pose);
+  document.addEventListener('focusin',function(){setTimeout(pose,80);});document.addEventListener('focusout',function(){setTimeout(pose,150);});})();
+window.dbgOnglet=function(){let a='';try{a=localStorage.getItem('ccOngletActif')||'';}catch(e){}return {id:ONGLET.id,actif:a,passif:ONGLET.passif};};
+Object.assign(I18N,{'LE JEU EST OUVERT DANS UN AUTRE ONGLET : CETTE PAGE NE SAUVEGARDE PLUS (RECHARGE POUR JOUER ICI)':'THE GAME IS OPEN IN ANOTHER TAB: THIS PAGE NO LONGER SAVES (RELOAD TO PLAY HERE)'});
+/* ===== LA CARTE DE LA CAISSE MÈNE À LA BOUTIQUE (2026-11-05, Opus : jury DIR-36) =====
+   #gCard (le nom et « 1 / 51 ») promettait une liste mais ne réagissait pas. Toucher la carte ouvre la BOUTIQUE sur cette caisse (rayon VOITURES).
+   `?carte=ancien` ne sert pas ici (`?carte=` choisit une map) : `?gcard=ancien` = la carte inerte. */
+try{if(!/[?&]gcard=ancien\b/.test(location.search)){const c9=$('gCard');if(c9){c9.style.cursor='pointer';
+  c9.addEventListener('click',function(e){if(!garageOn||GAR.go||ecranWipe._on)return;if(e.target&&e.target.closest&&e.target.closest('button,a,input,.pbtn'))return;
+    let m9='';try{m9=gModeM();}catch(x){}if(m9==='shop'||m9==='tous')return;
+    uiPop(c9);uiClic('nav');const i9=garageI;try{gModeVa('shop');}catch(x){return;}
+    setTimeout(function(){try{GBQ.cat='voiture';GBQ.ong='cat';bqEssaie('v:'+i9);}catch(x){}},60);});}}}catch(e){}
 /* ===== LE PREMIER BURN-OUT, REVENU (2026-10-08, Léo : « reviens sur le premier burn-out, celui où on ne pouvait pas faire de donuts ;
    reviens sur celui-là et laisse-moi juste faire des donuts avec lui aussi ; reviens sur les premiers petits carrés transparents ; si tu y
    arrives, intègre quelques cubes blancs comme tu as fait là ; remets-le sur le main — la fumée ET le mouvement, les deux »). Ce bloc est
@@ -75242,7 +75324,7 @@ function gmSuit(){return gmSuitS();} // chaque image : le panneau MISSIONS se re
 function gmHoloPlace(land){ // (2026-09-30) les hologrammes suivent l'ancre de l'orientation (voir `pp`)
   for(const h of GMIS.holo){const q=(!land&&h.a.pp)||h.a.p;h.beam.scale.set(.5,q[1]+.5,1);h.beam.position.set(q[0],(q[1]+.5)/2,q[2]);if(h.ring)h.ring.position.set(q[0],.05,q[2]);}}
 function gmPlaceL(W,H){ // couché : DEUX colonnes — la carte de la série à gauche sous le titre, la liste à droite au-dessus de JOUER (le CSS les pose : voir « L'ÉCRAN MISSIONS ÉPURÉ ») ; debout : UN panneau entre le titre et la barre du bas
-  const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),gm=$('gMis'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=W>H*1.25;
+  const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),gm=$('gMis'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=COUCHE_ANCIEN?W>H*1.25:estCouche(); /* (2026-11-05, Opus : INT-26) */
   const bt=rb&&rb.height?rb.top:H-90,g0=rh&&rh.width?rh.left:16,A=L.querySelector('.glA'),Bk=L.querySelector('.glB'),px=function(v){return Math.round(v)+'px';};
   L.classList.toggle('land',land);if(gm)gm.classList.toggle('m2land',land);
   if(hd)hd.style.maxWidth=''; // (2026-10-22) la largeur de l'en-tête vient du CSS (la colonne de gauche couché)
@@ -78667,6 +78749,7 @@ function goImmersive(){
   }
   /* 10. BOULE (2026-10-23 soir) : seulement la sphère de « 1.61 » ; elle tourne lentement tant que ça charge, s'arrête quand c'est prêt ; l'appui la fait exploser en CASH CAR (dActe3), puis le voile fond vers le jeu. */
   let pasSon=-1;
+  const GLISSE_ANCIEN=/[?&]glisse=ancien\b/.test(location.search);
   let bYaw=0,bPit=0,bVy=0,bVp=0,bDown=false,bMove=0,bLx=0,bLy=0,bLt=0,bTP=null,bGlisse=false; /* la boule se tourne au doigt : angle et pente ajoutés, vitesse (inertie), le doigt est-il posé, la distance parcourue, un glissement vient-il d'avoir lieu */
   function boulePointeur(){
     if(!BOULE)return;
@@ -78681,7 +78764,7 @@ function goImmersive(){
       const dx=ev.clientX-bLx,dy=ev.clientY-bLy,now=performance.now(),dtt=Math.max(.008,(now-bLt)/1000);
       bMove+=Math.abs(dx)+Math.abs(dy);bYaw+=dx*.012;bPit=borne(bPit+dy*.008,-1.1,1.1);bVy=borne(dx*.012/dtt,-8,8);bVp=borne(dy*.008/dtt,-5,5);bLx=ev.clientX;bLy=ev.clientY;bLt=now;
     });
-    const lache=function(){if(!bDown)return;bDown=false;if(bMove>12){bGlisse=true;setTimeout(function(){bGlisse=false;},400);}if(performance.now()-bLt>120){bVy=0;bVp=0;}};
+    const lache=function(){if(!bDown)return;bDown=false;if(bMove>(GLISSE_ANCIEN?12:32)){bGlisse=true; /* (2026-11-05, Opus : jury DIR-45) un doigt qui TOUCHE bouge de quelques pixels : à 12 px, 3 touchers sur 4 passaient pour un glissement (le film ne partait pas) ; 32 px — `?glisse=ancien` : 12 */setTimeout(function(){bGlisse=false;},400);}if(performance.now()-bLt>120){bVy=0;bVp=0;}};
     addEventListener('pointerup',lache);addEventListener('pointercancel',lache);
   }
   /* LA GRAINE (2026-11-02, Léo : « l'écran noir au début donne l'impression que ça bug ; trouve un truc à mettre pendant le chargement ») : un point d'or au centre de la future boule, qui respire, et des ondes
@@ -78832,6 +78915,13 @@ function goImmersive(){
       c.restore();}
     c.restore();
   }
+  /* ===== « TOUCHE » SOUS LA BOULE (2026-11-05, Opus : jury INT-06 / DIR-45) =====
+     L'intro BOULE attendait son toucher sans jamais le dire (dIndice ne vit que dans le film du logo) : un testeur qui ne touche pas voit une
+     planète qui tourne, sans fin. 2 s après que tout est prêt (pretT), le même « TOUCHE » discret que le logo, sous la boule. `?touche=ancien` : sans. */
+  const TOUCHE_BOULE=!/[?&]touche=ancien\b/.test(location.search);
+  function dToucheBoule(c,u){const a=lisse(2,2.8,u)*(.45+.25*Math.sin(u*3.1));if(a<=.01)return;
+    c.save();c.globalAlpha=a;c.fillStyle='#fff1cf';c.textAlign='center';c.textBaseline='middle';c.font=Math.max(9,Math.round(11*ku))+'px "Press Start 2P",monospace';
+    c.fillText(LANG==='fr'?'TOUCHE':'TAP',W/2,Math.min(H-24*ku,H/2+Math.min(W,H)*.40));c.restore();}
   function dIndice(c,t){ /* l'invitation, très discrète : le logo attend qu'on le touche */
     const a=lisse(0,.8,t-TL.slam-1.2)*(.45+.25*Math.sin((t-TL.slam)*3.1));if(a<=.01)return;
     c.save();c.globalAlpha=a;c.fillStyle='#fff1cf';c.textAlign='center';c.textBaseline='middle';c.font=Math.max(9,Math.round(11*ku))+'px "Press Start 2P",monospace';
@@ -79265,7 +79355,7 @@ function goImmersive(){
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
     g.fillStyle='#000';g.fillRect(0,0,W,H);
-    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());chCl(1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
+    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());chCl(1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT===null&&pretT!==null&&TOUCHE_BOULE)dToucheBoule(g,t-pretT);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
     let tl=t,id=forceId||(LABELS[LAB_ID]?LAB_ID:'neon'),idx=0;
     if(DEMO){const T=PERIODE_DEMO(),n=ORDRE_LABELS.length;idx=Math.floor(Math.max(0,t)/T);tl=Math.max(0,t)-idx*T;id=forceId||ORDRE_LABELS[idx%n];} /* la démo : les labels s'enchaînent en boucle */
     if(tl<TL.noir){const e=ETS[id]||(ETS[id]=LABELS[id].geo());LABELS[id].dessin(g,tl,e);}else if(!DEMO&&t>=TL.slam)dActe3(g,t,0);;
@@ -80182,7 +80272,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       soldeEcrit($t('mBankV'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop');
-      if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);} // tout ce qui s'achète en argent du jeu est au GARAGE
+      if(bg){if(/[?&]pastille=ancien\b/.test(location.search))bg.textContent=nG||'';else{const h9=nG>0?pxi('panier'):'';if(bg._h9!==h9){bg._h9=h9;bg.innerHTML=h9;}bg.setAttribute('aria-label',nG>0?(LANG==='en'?nG+' to buy':nG+' à ta portée'):'');}bg.classList.toggle('on',nG>0);} /* (2026-11-05, Opus : jury DIR-26) un « 19 » nu ne disait rien : un panier (il y a de quoi acheter), le nombre pour VoiceOver ; `?pastille=ancien` = le nombre */ // tout ce qui s'achète en argent du jeu est au GARAGE
       if(bs){bs.textContent='NEW';bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
     }else if(mCur==='modes'){
       const set9=function(id,sid,on){const c=$t(id),s=$t(sid);

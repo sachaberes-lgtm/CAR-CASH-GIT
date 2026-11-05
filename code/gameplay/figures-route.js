@@ -17,6 +17,7 @@
    · Le GLISSER de Léo n'est pas changé : au sol, slide 360 / wheelie / stoppie, et son salto part toujours avec le saut (joystick en avant).
    `?froute=0` = le saut nitro d'avant. Console : `dbgFRoute()` (l'état), `dbgFRoute(x,y)` (un double-tap au sol, le joystick en x, y). */
 const FR_K={k:.65,dMin:.4,dMax:.72,hMin:.35,hMax:2.4,marge:.1,cam:.8};
+const FR_REND_ANCIEN=/[?&]figrend=ancien\b/.test(location.search); /* (2026-11-05, Opus : GP-03, voir frFin) */
 const FR={ok:!/[?&]froute=0\b/.test(location.search),on:false,C:window.FIG&&FIG.Corps?new FIG.Corps():null,t:0,D:0,T:0,H:0,s:-1,r:null,f:null,pivK:0,lift:0,liftMax:0,n:0,fini:0,vols:0,
   qr:new THREE.Quaternion(),dq:new THREE.Quaternion(),pv:new THREE.Vector3(),pv2:new THREE.Vector3(),dv:new THREE.Vector3(),dv2:new THREE.Vector3(),cv:new THREE.Vector3(),
   p0:new THREE.Vector3(),p0ok:false,vel:new THREE.Vector3()};
@@ -56,18 +57,30 @@ function frBoum(e){const k=Math.min(1.6,e.k||1),n=Math.round(14+16*k),vx=FR.vel.
   sparkBurst(sparkGold,FX2.v,Math.round(8+8*k),12);}
 function frPaye(r){const c0=chainSeen['fig_'+r.f.id]|0;figPaye(r); // plantée : comme en vol — et le FLOW qu'addTrick ne donne qu'en l'air (celle du saut le nourrissait)
   if(mode==='drive'){const reps=Math.max(1,r.reps|0),a=(r.f.aura||60)*(reps>1?1+(reps-1)*1.25:1);flowAdd((a>=120||reps>=2?9:6)*Math.pow(.6,c0),'risque');}}
-function frEncaisse(){ // la caisse est retombée sur ses roues : ce que la POSE d'un vol fait pour ses figures (tryLand), sans le vol — grade ordinaire
+function frEncaisse(paye){ // (2026-11-05, Opus : GP-03) `paye` faux = aucune figure plantée : le nitro n'est PAS rendu — la caisse est retombée sur ses roues : ce que la POSE d'un vol fait pour ses figures (tryLand), sans le vol — grade ordinaire
   const q=chainVal*Math.min(6,chainMult)*(1+FLOW.lv*.5)*(fever>0?2:1);
   if(chain>0&&q>0){flowAdd(4,'style','n');runStats.tricks++;poseSndT=performance.now();addCoins(Math.max(2,Math.min(18,Math.round(2+q/6))));boost=Math.max(boost,1.2);
     if(FREN.arme&&FLOW.lv<4)frenDeclenche();} // jauge pleine + figure posée : la FRÉNÉSIE part (comme à la pose)
   chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;
-  figComboEncaisse();const g=figNitRend(true);if(SONV2&&g>.01)try{sfx('nitro.plein',{t:.2});}catch(e){}}
+  figComboEncaisse();const g=figNitRend(paye!==false);if(SONV2&&g>.01)try{sfx('nitro.plein',{t:.2});}catch(e){}}
 function frCoupe(){if(FR.C)FR.C.vide();FR.on=false;FR.lift=0;FX2.nitL=0;} // (la course s'arrête, la caisse explose) rien à rendre
 function frFin(){const C=FR.C,P=C.pose();for(let i=0;i<P.payees.length;i++)frPaye(P.payees[i]); // le bond fini : ce qui reste se juge (une figure presque finie compte)
-  FR.ecFin=+(C.ecart()*57.3).toFixed(1);C.vide();FR.on=false;FR.lift=0;FR.fini++;frEncaisse(); // (FX2.nitL gardé : frEncaisse rend ses 40 %) — ecFin (banc) : de combien elle se recale à la dernière image (°)
+  FR.ecFin=+(C.ecart()*57.3).toFixed(1);C.vide();FR.on=false;FR.lift=0;FR.fini++;frEncaisse(FR_REND_ANCIEN||P.payees.length>0); /* (2026-11-05, Opus : jury GP-03) la figure de route remboursait 40 % de nitro SANS condition (+20 % de jauge net par double-tap, sans quitter le sol) : seulement si une figure a été PLANTÉE ; `?figrend=ancien` = toujours */ // (FX2.nitL gardé : frEncaisse rend ses 40 %) — ecFin (banc) : de combien elle se recale à la dernière image (°)
   sensCoup(0,.6,-1.4);hap([8,18]);try{if(SONV2)sfx('pose.nette',{t:.02});}catch(e){} // elle retombe : la suspension encaisse, le petit son de la pose
   const sp9=CARS[level]||CARS[0];for(const sd of [-1,1]){FX2.v.set(sd*sp9.w*.45,.2,0);carGroup.localToWorld(FX2.v);for(let k=0;k<4;k++)spawnP(dust,FX2.v.x,FX2.v.y,FX2.v.z,FR.vel.x*.7+(Math.random()-.5)*5,1+Math.random()*2,FR.vel.z*.7+(Math.random()-.5)*5,.3+Math.random()*.25);}}
-function frTick(dt){if(!FR.on)return; // (la boucle, en course) le corps de la figure avance
+/* ===== LES RAILS DU DÉPART (2026-11-05, Opus : jury DIR-09, décision D7 — recommandation du jury, Sacha n'a pas tranché) =====
+   Sans aucune entrée, la caisse sortait de la route et mourait 5 à 7 s après JOUER : un testeur qui pose le téléphone au départ était mort.
+   Les RAIL_D premières secondes de conduite d'une partie (après le largage), tant que le joueur ne braque pas, la caisse est ramenée
+   doucement sur l'axe de la route (écart et cap) : elle suit la courbe toute seule. Au premier coup de volant, les rails disparaissent pour
+   toute la partie. Posés par resetGame (seconde-chance.js), tenus ici, à chaque image de la porte de simulation (frTick).
+   `?rails=0` : sans. `dbgRails()` : l'état. */
+const RAILS={on:!/[?&]rails=0\b/.test(location.search),d:3,t:0};
+function railsPose(){RAILS.t=RAILS.on?RAILS.d:0;}
+function railsTick(dt){if(!(RAILS.t>0))return;if(!started||gameOver||paused||SANDBOX||PARK.on||BALADE)return;if(introD||mode!=='drive')return;
+  if(Math.abs(steer)>.12){RAILS.t=0;return;} /* le joueur a pris le volant */
+  RAILS.t=Math.max(0,RAILS.t-dt);const k=Math.min(1,dt*4);lat-=lat*k;psi-=psi*k;vL-=vL*k;}
+window.dbgRails=function(){return {on:RAILS.on,reste:+RAILS.t.toFixed(2),lat:+lat.toFixed(2),psi:+psi.toFixed(3)};};
+function frTick(dt){railsTick(dt);if(!FR.on)return; // (la boucle, en course) le corps de la figure avance
   if(!started||gameOver||mode!=='drive'){frCoupe();return;}
   if(paused)return;
   const C=FR.C;FR.t+=dt;C.budget=Math.max(.05,FR.T-FR.t);C.poseK=FR.t>FR.D?1:0; // poseK : sa durée jouée, l'air la range VITE (un battement — le shimmy — mettait 1,3 s à se calmer, puis se recalait d'un coup)

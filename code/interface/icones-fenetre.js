@@ -13,6 +13,12 @@ const DEV=location.protocol==='file:'||/[?&]dev=/.test(location.search)||
 function qDev(re){return DEV&&re.test(location.search);}
 if(EN_APP)try{document.documentElement.classList.add('ccApp');}catch(e){}
 window.CC_DEV=DEV;window.CC_EN_APP=EN_APP;
+/* COUCHÉ, UNE SEULE DÉFINITION (2026-11-05, Opus : jury INT-26) : le CSS dit « couché » quand l'écran est en paysage ET bas (≤ 540 px), ou en
+   paysage large (≥ 3/2) jusqu'à 820 px de haut ; le JS avait deux autres règles (ratio > 1,25 aux missions, > 1 au HUD des figures). estCouche()
+   lit la MÊME requête que le CSS (et que GT_COUCHE du garage). `?couche=ancien` : les anciennes règles. */
+const COUCHE_MQ=(function(){try{return matchMedia('(orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px)');}catch(e){return null;}})();
+const COUCHE_ANCIEN=/[?&]couche=ancien\b/.test(location.search);
+function estCouche(){return COUCHE_MQ?COUCHE_MQ.matches:innerWidth>innerHeight;}
 /* ACHAT_EUR (2026-11-05, Opus : jury INT-01 / INT-20, décision D3 « masquer partout tant que StoreKit n'existe pas ») : faux = ni l'écran ACHAT
    (#mShop), ni ses portes (la tuile de l'accueil, la BOUTIQUE du bas du garage, la porte des offres éphémères), ni le rayon ACHAT de la boutique.
    shopPaye reste, inerte. Les caisses en € ne comptent plus nulle part (caisse équipée, étage, missions « toutes »). `?achat=ancien` : l'ancien. */
