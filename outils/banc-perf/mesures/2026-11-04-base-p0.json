@@ -1,40 +1,20 @@
 {
- "date": "2026-11-05 11:30",
+ "date": "2026-11-05 13:02",
  "palier": 0,
  "tel": true,
- "charge": 6.8,
+ "charge": 108.6,
+ "chargeFin": 85.0,
+ "tempsFiables": false,
  "cpu": 4,
  "mesures": [
   {
-   "appels": 133,
-   "triangles": 467550,
+   "appels": 129,
+   "triangles": 339120,
    "programmes": 238,
    "textures": 91,
-   "geometries": 555,
+   "geometries": 547,
    "toiles": 36,
-   "tas": 282842367,
-   "dpr": 1.25,
-   "px": 513785,
-   "passes": 2,
-   "ombre": 1024,
-   "bloom": 0,
-   "cpu": {
-    "n": 69,
-    "p50": 21.5,
-    "p90": 30.9,
-    "max": 44.4
-   },
-   "map": "nuages:midi",
-   "palier": 0
-  },
-  {
-   "appels": 130,
-   "triangles": 262491,
-   "programmes": 238,
-   "textures": 94,
-   "geometries": 550,
-   "toiles": 37,
-   "tas": 249045626,
+   "tas": 285349988,
    "dpr": 1.25,
    "px": 513785,
    "passes": 2,
@@ -42,272 +22,490 @@
    "bloom": 0,
    "cpu": {
     "n": 66,
-    "p50": 6.1,
-    "p90": 12.1,
-    "max": 15.8
+    "p50": 14,
+    "p90": 17.6,
+    "max": 67.4
    },
+   "s": 5694,
+   "lectures": [
+    [
+     128,
+     332875,
+     5549
+    ],
+    [
+     129,
+     336839,
+     5670
+    ],
+    [
+     130,
+     347646,
+     5694
+    ]
+   ],
+   "map": "nuages:midi",
+   "palier": 0
+  },
+  {
+   "appels": 98,
+   "triangles": 160515,
+   "programmes": 238,
+   "textures": 94,
+   "geometries": 559,
+   "toiles": 37,
+   "tas": 351139389,
+   "dpr": 1.25,
+   "px": 513785,
+   "passes": 2,
+   "ombre": 1024,
+   "bloom": 0,
+   "cpu": {
+    "n": 15,
+    "p50": 32.7,
+    "p90": 36.4,
+    "max": 37.2
+   },
+   "s": 5678,
+   "lectures": [
+    [
+     99,
+     160259,
+     5655
+    ],
+    [
+     98,
+     160619,
+     5668
+    ],
+    [
+     98,
+     160667,
+     5678
+    ]
+   ],
    "map": "ville:orage",
    "palier": 0,
-   "pire": 100,
-   "longues": 0,
-   "pireVol": 2000,
-   "longuesVol": 1,
-   "portail": true,
-   "compilations": 0
-  },
-  {
-   "appels": 113,
-   "triangles": 155637,
-   "programmes": 238,
-   "textures": 106,
-   "geometries": 609,
-   "toiles": 37,
-   "tas": 299942604,
-   "dpr": 1.25,
-   "px": 513785,
-   "passes": 2,
-   "ombre": 1024,
-   "bloom": 0,
-   "cpu": {
-    "n": 57,
-    "p50": 8.5,
-    "p90": 16.8,
-    "max": 28.7
-   },
-   "map": "jade:midi",
-   "palier": 0,
-   "pire": 1650,
-   "longues": 12,
-   "pireVol": 117,
-   "longuesVol": 1,
-   "portail": true,
-   "compilations": 0
-  },
-  {
-   "appels": 116,
-   "triangles": 249329,
-   "programmes": 238,
-   "textures": 107,
-   "geometries": 1043,
-   "toiles": 37,
-   "tas": 371646526,
-   "dpr": 1.25,
-   "px": 513785,
-   "passes": 2,
-   "ombre": 1024,
-   "bloom": 0,
-   "cpu": {
-    "n": 71,
-    "p50": 19.5,
-    "p90": 25.3,
-    "max": 36.4
-   },
-   "map": "grotte:matin",
-   "palier": 0,
-   "pire": 133,
-   "longues": 3,
+   "pire": 367,
+   "longues": 24,
    "pireVol": 67,
    "longuesVol": 0,
    "portail": true,
    "compilations": 0
   },
   {
-   "appels": 137,
-   "triangles": 387046,
+   "appels": 121,
+   "triangles": 279103,
    "programmes": 238,
-   "textures": 110,
-   "geometries": 637,
+   "textures": 106,
+   "geometries": 609,
    "toiles": 37,
-   "tas": 329566298,
+   "tas": 272933594,
    "dpr": 1.25,
    "px": 513785,
    "passes": 2,
    "ombre": 1024,
    "bloom": 0,
    "cpu": {
-    "n": 76,
-    "p50": 11.1,
-    "p90": 20.1,
-    "max": 31.8
+    "n": 16,
+    "p50": 17.5,
+    "p90": 24.5,
+    "max": 26.4
    },
+   "s": 4650,
+   "lectures": [
+    [
+     119,
+     280900,
+     4624
+    ],
+    [
+     122,
+     280242,
+     4636
+    ],
+    [
+     122,
+     276168,
+     4650
+    ]
+   ],
+   "map": "jade:midi",
+   "palier": 0,
+   "pire": 267,
+   "longues": 1,
+   "pireVol": 83,
+   "longuesVol": 0,
+   "portail": true,
+   "compilations": 0
+  },
+  {
+   "appels": 125,
+   "triangles": 161888,
+   "programmes": 238,
+   "textures": 107,
+   "geometries": 1146,
+   "toiles": 37,
+   "tas": 329275888,
+   "dpr": 1.25,
+   "px": 513785,
+   "passes": 2,
+   "ombre": 1024,
+   "bloom": 0,
+   "cpu": {
+    "n": 14,
+    "p50": 21.3,
+    "p90": 28.2,
+    "max": 39.9
+   },
+   "s": 8740,
+   "lectures": [
+    [
+     131,
+     174127,
+     8720
+    ],
+    [
+     127,
+     168893,
+     8729
+    ],
+    [
+     116,
+     142645,
+     8740
+    ]
+   ],
+   "map": "grotte:matin",
+   "palier": 0,
+   "pire": 183,
+   "longues": 2,
+   "pireVol": 67,
+   "longuesVol": 0,
+   "portail": true,
+   "compilations": 0
+  },
+  {
+   "appels": 90,
+   "triangles": 236121,
+   "programmes": 238,
+   "textures": 110,
+   "geometries": 620,
+   "toiles": 37,
+   "tas": 441301276,
+   "dpr": 1.25,
+   "px": 513785,
+   "passes": 2,
+   "ombre": 1024,
+   "bloom": 0,
+   "cpu": {
+    "n": 21,
+    "p50": 23.6,
+    "p90": 32.8,
+    "max": 70.8
+   },
+   "s": 9992,
+   "lectures": [
+    [
+     88,
+     237225,
+     9934
+    ],
+    [
+     91,
+     236041,
+     9971
+    ],
+    [
+     91,
+     235097,
+     9992
+    ]
+   ],
    "map": "dunes:soir",
    "palier": 0,
-   "pire": 167,
-   "longues": 3,
-   "pireVol": 250,
+   "pire": 200,
+   "longues": 2,
+   "pireVol": 233,
    "longuesVol": 4,
    "portail": true,
    "compilations": 0
   },
   {
    "appels": 109,
-   "triangles": 348942,
+   "triangles": 289400,
    "programmes": 238,
    "textures": 114,
-   "geometries": 640,
+   "geometries": 628,
    "toiles": 37,
-   "tas": 351290419,
+   "tas": 362038993,
    "dpr": 1.25,
    "px": 513785,
    "passes": 2,
    "ombre": 1024,
    "bloom": 0,
    "cpu": {
-    "n": 75,
-    "p50": 13.8,
-    "p90": 21.6,
-    "max": 30.9
+    "n": 32,
+    "p50": 13.3,
+    "p90": 34.6,
+    "max": 46.9
    },
+   "s": 3590,
+   "lectures": [
+    [
+     107,
+     283522,
+     3509
+    ],
+    [
+     116,
+     299877,
+     3560
+    ],
+    [
+     104,
+     284800,
+     3590
+    ]
+   ],
    "map": "canyon:soir",
    "palier": 0,
-   "pire": 183,
-   "longues": 38,
-   "pireVol": 150,
-   "longuesVol": 9,
-   "portail": true,
-   "compilations": 0
-  },
-  {
-   "appels": 110,
-   "triangles": 374087,
-   "programmes": 238,
-   "textures": 113,
-   "geometries": 687,
-   "toiles": 37,
-   "tas": 399188857,
-   "dpr": 1.25,
-   "px": 513785,
-   "passes": 2,
-   "ombre": 1024,
-   "bloom": 0,
-   "cpu": {
-    "n": 72,
-    "p50": 14.8,
-    "p90": 23.5,
-    "max": 64.2
-   },
-   "map": "foret:midi",
-   "palier": 0,
    "pire": 133,
-   "longues": 7,
+   "longues": 2,
    "pireVol": 100,
    "longuesVol": 0,
    "portail": true,
    "compilations": 0
   },
   {
-   "appels": 105,
-   "triangles": 158265,
+   "appels": 76,
+   "triangles": 235921,
    "programmes": 238,
-   "textures": 113,
-   "geometries": 722,
+   "textures": 114,
+   "geometries": 685,
    "toiles": 37,
-   "tas": 374148195,
+   "tas": 316927365,
    "dpr": 1.25,
    "px": 513785,
    "passes": 2,
    "ombre": 1024,
    "bloom": 0,
    "cpu": {
-    "n": 69,
-    "p50": 15.7,
-    "p90": 29.9,
-    "max": 43.2
+    "n": 43,
+    "p50": 22.6,
+    "p90": 27.9,
+    "max": 39
    },
+   "s": 5229,
+   "lectures": [
+    [
+     79,
+     239117,
+     5073
+    ],
+    [
+     79,
+     235409,
+     5095
+    ],
+    [
+     69,
+     233237,
+     5229
+    ]
+   ],
+   "map": "foret:midi",
+   "palier": 0,
+   "pire": 150,
+   "longues": 8,
+   "pireVol": 100,
+   "longuesVol": 1,
+   "portail": true,
+   "compilations": 0
+  },
+  {
+   "appels": 51,
+   "triangles": 159660,
+   "programmes": 238,
+   "textures": 114,
+   "geometries": 718,
+   "toiles": 37,
+   "tas": 367092266,
+   "dpr": 1.25,
+   "px": 513785,
+   "passes": 2,
+   "ombre": 1024,
+   "bloom": 0,
+   "cpu": {
+    "n": 45,
+    "p50": 5.6,
+    "p90": 26,
+    "max": 40.3
+   },
+   "s": 3474,
+   "lectures": [
+    [
+     52,
+     167229,
+     3352
+    ],
+    [
+     48,
+     152572,
+     3413
+    ],
+    [
+     53,
+     159178,
+     3474
+    ]
+   ],
    "map": "banquise:midi",
    "palier": 0,
-   "pire": 100,
-   "longues": 1,
-   "pireVol": 84,
-   "longuesVol": 0,
+   "pire": 250,
+   "longues": 20,
+   "pireVol": 250,
+   "longuesVol": 7,
    "portail": true,
    "compilations": 0
   },
   {
    "appels": 100,
-   "triangles": 192325,
+   "triangles": 281541,
    "programmes": 238,
    "textures": 114,
-   "geometries": 725,
+   "geometries": 716,
    "toiles": 37,
-   "tas": 302742118,
+   "tas": 325192640,
    "dpr": 1.25,
    "px": 513785,
    "passes": 2,
    "ombre": 1024,
    "bloom": 0,
    "cpu": {
-    "n": 74,
-    "p50": 14.9,
-    "p90": 18.7,
-    "max": 33.2
+    "n": 20,
+    "p50": 26.1,
+    "p90": 37.6,
+    "max": 60.6
    },
+   "s": 8327,
+   "lectures": [
+    [
+     101,
+     282145,
+     8252
+    ],
+    [
+     100,
+     282425,
+     8274
+    ],
+    [
+     98,
+     280053,
+     8327
+    ]
+   ],
    "map": "crypto:midi",
    "palier": 0,
-   "pire": 233,
-   "longues": 5,
-   "pireVol": 67,
-   "longuesVol": 0,
-   "portail": true,
-   "compilations": 0
-  },
-  {
-   "appels": 149,
-   "triangles": 279863,
-   "programmes": 238,
-   "textures": 114,
-   "geometries": 725,
-   "toiles": 37,
-   "tas": 363910664,
-   "dpr": 1.25,
-   "px": 513785,
-   "passes": 2,
-   "ombre": 1024,
-   "bloom": 0,
-   "cpu": {
-    "n": 69,
-    "p50": 22.1,
-    "p90": 29.3,
-    "max": 42.8
-   },
-   "map": "vitree:nuit",
-   "palier": 0,
-   "pire": 83,
-   "longues": 0,
+   "pire": 217,
+   "longues": 3,
    "pireVol": 50,
    "longuesVol": 0,
    "portail": true,
    "compilations": 0
   },
   {
-   "appels": 100,
-   "triangles": 231299,
+   "appels": 60,
+   "triangles": 212954,
    "programmes": 238,
    "textures": 114,
-   "geometries": 743,
+   "geometries": 731,
    "toiles": 37,
-   "tas": 357894248,
+   "tas": 358524552,
    "dpr": 1.25,
    "px": 513785,
    "passes": 2,
    "ombre": 1024,
    "bloom": 0,
    "cpu": {
-    "n": 64,
-    "p50": 17.3,
-    "p90": 27.9,
-    "max": 58.1
+    "n": 20,
+    "p50": 5.3,
+    "p90": 9.7,
+    "max": 12.8
    },
+   "s": 6970,
+   "lectures": [
+    [
+     60,
+     214555,
+     6836
+    ],
+    [
+     59,
+     214121,
+     6890
+    ],
+    [
+     60,
+     210187,
+     6970
+    ]
+   ],
+   "map": "vitree:nuit",
+   "palier": 0,
+   "pire": 150,
+   "longues": 5,
+   "pireVol": 133,
+   "longuesVol": 4,
+   "portail": true,
+   "compilations": 0
+  },
+  {
+   "appels": 50,
+   "triangles": 192639,
+   "programmes": 238,
+   "textures": 114,
+   "geometries": 749,
+   "toiles": 37,
+   "tas": 407792195,
+   "dpr": 1.25,
+   "px": 513785,
+   "passes": 2,
+   "ombre": 1024,
+   "bloom": 0,
+   "cpu": {
+    "n": 13,
+    "p50": 23.4,
+    "p90": 26.7,
+    "max": 28.1
+   },
+   "s": 11839,
+   "lectures": [
+    [
+     49,
+     194135,
+     11764
+    ],
+    [
+     49,
+     191687,
+     11804
+    ],
+    [
+     51,
+     192095,
+     11839
+    ]
+   ],
    "map": "espace:matin",
    "palier": 0,
-   "pire": 133,
-   "longues": 3,
+   "pire": 3983,
+   "longues": 28,
    "pireVol": 100,
-   "longuesVol": 1,
+   "longuesVol": 0,
    "portail": true,
    "compilations": 0
   }
- ],
- "tempsFiables": false,
- "note": "charge 6.8 au départ mais ≥ 8 en fin de banc (le log l'a signalé) : temps non fiables"
+ ]
 }

@@ -1,0 +1,7 @@
+MESURES DE BASE (passe perf mobile 2, 4-5/11/2026, main 846460c6)
+· base-p0/p1/p2.json : garde-perf.py --palier N --tel --json, 11 maps. Compteurs lus à un INSTANT FIXE (dbgPortail(1800), +80 m de route, 3 lectures moyennées).
+  Chaque JSON porte `charge`/`chargeFin`/`tempsFiables` : au-dessus de 8 les TEMPS (pire, longues, tas) ne valent rien, seuls les compteurs comptent.
+· REPRODUCTIBILITÉ (p2 contre p2 bis, mesurée le 5/11) : seules nuages, ville et jade tiennent appels ±2 et triangles ±2 % ; foret/vitree/banquise/crypto/canyon
+  bougent encore (position de lecture qui dérive sous charge ET décor non fixé par la graine). compare.cjs prend TOL_APPELS / TOL_TRI (défauts 2 et 2 %) :
+  pour juger une fusion, refaire les DEUX bancs (avant/après) à la suite, machine calme, et ne conclure que sur les maps qui tiennent ; le reste = capture A/B au pixel.
+· base-demarrage-p0.json : demarrage.py (touche dès 0,5 s), médiane de 3 passes.
