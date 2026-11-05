@@ -62169,7 +62169,7 @@ function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
 function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carRar(i)!=='rare'||R.car[CARS[i].name])continue;tot++;if(m2CarAMoi(i))n++;}return {n:n,tot:tot};}
 /* (2026-10-22) LA MÉTÉO D'UNE MAP (LA STRATOS) : pour chaque map, les temps (SF_CARTES[k].m : matin, midi, soir, nuit, pluie, orage…) déjà joués ; la meilleure map compte (n joués sur tot) */
 /* ===== LA MÉTÉO D'UNE MAP NE SE GAGNE PLUS EN UNE PARTIE (2026-11-05, Opus : jury DIR-08) =====
-   « JOUE UNE MAP SOUS TOUTES SES MÉTÉOS » (LA STRATOS) prenait la MEILLEURE map en proportion : EN ORBITE n'a qu'un temps (matin), donc une
+   « JOUE UNE MAP SOUS TOUTES SES MÉTÉOS » (sa caisse : voir table.js) prenait la MEILLEURE map en proportion : EN ORBITE n'a qu'un temps (matin), donc une
    seule partie en orbite faisait 1/1 = mission réussie (vu par le jury après 4 parties). Seules comptent maintenant les maps qui ont au
    moins M2_METEO_MIN temps (matin, midi, soir, nuit, pluie, orage…). `?meteo=ancien` : l'ancien calcul. */
 const M2_METEO_MIN=/[?&]meteo=ancien\b/.test(location.search)?1:3;
