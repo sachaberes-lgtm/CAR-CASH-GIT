@@ -7947,15 +7947,66 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 .mcFin b{font-weight:400;color:var(--tx3)}.mcFin .pxi{--pxs:1;margin-left:auto}
 .mcL.flash{animation:gmFlash .5s var(--ease)}
 #gmListe.mcE.vu .mcL,#gmListe.mcE.vu .mcV,#gmListe.mcE.vu .mcPan{animation:none}
-#gmListe.mcE:not(.land) .mcDef{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 20px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 20px),transparent)} /* petit écran : le bas du panneau se fond, on sait qu'il défile */
-/* couché : le titre et le portail à gauche sur le décor, le panneau à droite (comme #gBottom couché), RETOUR | JOUER sous le panneau */
-#gMis.mbOn.m2land #gmBas{left:auto;right:calc(var(--sR) + 14px);width:min(calc(50% - var(--sR) - 14px),430px);transform:none;bottom:calc(var(--sB) + 12px)}
-#gMis.mbOn.m2land #gmBas .gmHome{width:76px;flex-direction:column;gap:6px;padding:6px 4px 4px 8px}
-#gmListe.mcE.land .mcDef{display:grid;grid-template-columns:1fr min(50%,430px);grid-template-rows:auto 1fr;column-gap:16px;right:calc(var(--sR) + 14px);bottom:calc(var(--sB) + 12px);overflow:hidden}
-#gmListe.mcE.land .mcTete{grid-column:1;grid-row:1}
-#gmListe.mcE.land .mcHero{grid-column:1;grid-row:2;align-items:center;padding:0}
-#gmListe.mcE.land .mcPan{grid-column:2;grid-row:1/3;max-width:none;height:100%;margin:0;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(var(--mcJh,70px) + 8px)}
-#gmListe.mcE.land .mcPo{width:min(42vh,172px)}
+/* ===== L'ÉCRAN MISSIONS PLEIN CADRE (2026-11-06, Sacha : « refonte de l'écran mission, l'espace est qu'à moitié occupé » — piste A de maquettes/missions) =====
+   Le portail retiré de l'onglet (05/11) laissait quatre lignes dans un panneau de 560 px : debout 40 % du bas vide, couché la moitié gauche vide et la 4e ligne sous JOUER.
+   Même écran, mêmes matières (laque, liseré, coins coupés, Press Start) — seulement tout étiré : le panneau va du titre à la barre du bas, les cartes se partagent la hauteur
+   (texte 10 → 12 px, récompense 10 → 16 px, jauge 5 → 10 px). Couché : titre en haut (le palier et ses carrés sur sa ligne), les cartes en 2 × 2 sur toute la largeur,
+   le palier suivant et les réussies en pied, RETOUR | JOUER sur toute la largeur — rien sous la barre. Plus de masque en bas : le panneau défile seul (carte coupée = suite). */
+#gmListe.mcE .mcSqT{display:none}
+#gmListe.mcE .mcPan .gModeT{height:34px;margin-bottom:10px}
+#gmListe.mcE .mcL .mcLt b{font-size:var(--f3);line-height:1.55}
+#gmListe.mcE .mcL .mcCash{font-size:var(--f5)}
+#gmListe.mcE .mcL .mcRarS{font-size:var(--f1)}
+#gmListe.mcE .mcL .mcJ u{height:10px}
+#gmListe.mcE .mcL .mcJ small{font-size:var(--f1)}
+#gmListe.mcE .mcL .mcLt .mcSil{width:84px}
+#gmListe.mcE .mcL.pret .m2Pr{min-height:38px;padding:0 18px;font-size:var(--f1)}
+#gmListe.mcE .mcNx{padding:4px 2px 0;font-size:var(--f1)}
+#gmListe.mcE .mcNx i{height:14px}
+#gmListe.mcE .mcFin{flex:none;min-height:44px;margin-top:2px;font-size:var(--f1)}
+#gmListe.mcE .mcVide{flex:1 0 auto;display:flex;align-items:center;justify-content:center}
+/* debout : le titre fixe, le panneau prend tout le reste, ses cartes se partagent la place (et il défile si l'écran est petit) */
+#gmListe.mcE:not(.land) .mcDef{display:flex;flex-direction:column;overflow:hidden}
+#gmListe.mcE:not(.land) .mcTete{flex:none}
+#gmListe.mcE:not(.land) .mcPan{flex:1 1 0;min-height:0;max-width:720px;margin:10px auto 0;display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding:14px 14px 10px}
+#gmListe.mcE:not(.land) .mcL{flex:1 0 auto;max-height:150px;justify-content:center;gap:12px;padding:10px 14px;margin-bottom:9px} /* plafonnée (150 de contenu + 20 de marge intérieure = 170) : avec deux missions seulement, les cartes ne s'étirent pas en blocs creux */
+#gmListe.mcE:not(.land) .mcFinL{flex:none}
+/* couché : RETOUR | JOUER sur toute la largeur, au-dessus d'eux un seul bloc pleine largeur (titre, puis les cartes en 2 × 2) */
+#gMis.mbOn.m2land #gmBas{left:calc(var(--sL) + var(--gut));right:calc(var(--sR) + var(--gut));width:auto;transform:none;bottom:calc(var(--sB) + 12px)}
+#gMis.mbOn.m2land #gmBas .gmHome{width:112px;flex-direction:row;justify-content:center;gap:10px;padding:0 12px}
+#gMis.mbOn.m2land #gmBas .gmJouer{font-size:var(--f6)}
+#gmListe.mcE.land .mcDef{display:grid;grid-template-columns:1fr;grid-template-rows:auto 1fr;top:calc(var(--sT) + 6px);right:calc(var(--sR) + 14px);bottom:calc(var(--mcJh,89px) + 8px);overflow:hidden}
+#gmListe.mcE.land .mcTete{grid-column:1;grid-row:1;display:flex;align-items:flex-end;gap:18px;padding-top:0}
+#gmListe.mcE.land .mcNom{font-size:24px;padding-bottom:11px}
+#gmListe.mcE.land .mcTete .mcSous{margin:0 0 12px}
+#gmListe.mcE.land .mcTete .mcSqT{display:flex;margin:0 6px 12px auto}
+#gmListe.mcE.land .mcPan{grid-column:1;grid-row:2;max-width:none;height:100%;margin:0;overflow-y:auto;scrollbar-width:none;padding:10px 12px 6px;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:1fr 1fr auto;column-gap:10px} /* colonnes ÉGALES : la carte « à récupérer » (bouton + silhouette sur une ligne) n'élargit pas la sienne */
+#gmListe.mcE.land .mcPan[data-n="0"],#gmListe.mcE.land .mcPan[data-n="1"],#gmListe.mcE.land .mcPan[data-n="2"]{grid-template-rows:1fr auto} /* moins de trois cartes : une seule rangée */
+#gmListe.mcE.land .mcPan .gModeT{display:none}
+#gmListe.mcE.land .mcL{margin-bottom:8px;justify-content:center;gap:8px;padding:8px 12px} /* pas de min-height:0 : une carte ne rétrécit jamais sous son contenu, le panneau défile à la place */
+#gmListe.mcE.land .mcL .mcLt b{font-size:var(--f1);line-height:1.5}
+#gmListe.mcE.land .mcL.pret .m2Pr{min-height:34px}
+#gmListe.mcE.land .mcNx{grid-column:1;padding:4px 2px 0}
+#gmListe.mcE.land .mcFin{grid-column:2;min-height:44px;margin:0}
+#gmListe.mcE.land .mcFinL,#gmListe.mcE.land .mcVide{grid-column:1/-1}
+/* les petits écrans : l'iPhone 7 / 8 / SE couché (375 de haut) et debout (667) — même mise en page, plus serrée */
+@media (orientation:landscape) and (max-height:400px){
+  #gmListe.mcE.land .mcPan{padding:8px 10px 4px}
+  #gmListe.mcE.land .mcL{padding:6px 10px;gap:5px;margin-bottom:6px}
+  #gmListe.mcE.land .mcL .mcJ u{height:8px}
+  #gmListe.mcE.land .mcL .mcLt .mcSil{width:56px}
+  #gmListe.mcE.land .mcL.pret .m2Pr{min-height:28px;padding:0 12px}
+  #gmListe.mcE.land .mcL.pret .mcLt .mcSil{width:44px}}
+@media (orientation:portrait) and (max-height:700px){
+  #gmListe.mcE .mcL .mcLt b{font-size:var(--f1)}
+  #gmListe.mcE:not(.land) .mcPan{padding:12px 12px 8px}
+  #gmListe.mcE:not(.land) .mcL{gap:8px;padding:8px 12px;margin-bottom:6px}
+  #gmListe.mcE .mcPan .gModeT{height:30px;margin-bottom:6px}
+  #gmListe.mcE .mcL .mcJ u{height:7px}
+  #gmListe.mcE .mcL .mcLt .mcSil{width:64px}
+  #gmListe.mcE .mcL.pret .m2Pr{min-height:32px;padding:0 14px}
+  #gmListe.mcE .mcNx i{height:10px}}
 @media (prefers-reduced-motion:reduce){.mcPo .rf,.mcPo .rf0,.mcV.pret .mcPo,.mcNeuf{animation:none}.mcL,.mcV,.mcPan{animation:none}.mcSil.duo img.n,.mcPo .hd{transition:none}}
 .m2Rien{padding:16px 6px;font-size:var(--f0);color:#8fb8c8;text-align:center}
 /* LE POINT VERT des portes MISSIONS : une récompense attend */
@@ -62949,8 +63000,9 @@ function m2Render(vu){ /* (2026-11-03, refonte · 2026-11-05, plus de vedette : 
   const gm=$('gMis');if(gm)gm.classList.add('mbOn');
   const c0=m2Compte();
   el.innerHTML='<div id="gmListe" class="m2 mcE'+(vu?' vu':'')+'"><div class="mcVoile"></div>'
-    +'<div class="mcDef"><div class="mcTete"><b class="mcNom">'+sansAcc(TR('MISSIONS'))+'</b><small class="mcSous">'+sansAcc(TR('PALIER'))+' '+V.palier+' / '+M2_PAL.length+' · '+c0.ok+' / '+c0.tot+'</small>'+(neuf?'<em class="mcNeuf">'+sansAcc(TR('NOUVEAU PALIER'))+'</em>':'')+'</div>'
-    +'<div class="mcPan"><div class="gModeT">'+pxi('cible')+'<span>'+sansAcc(TR('ENSUITE'))+'</span><s></s><em class="mcSq">'+V.sq+'</em></div>'+V.listeTab+fh+'</div></div></div>';
+    +'<div class="mcDef"><div class="mcTete"><b class="mcNom">'+sansAcc(TR('MISSIONS'))+'</b><small class="mcSous">'+sansAcc(TR('PALIER'))+' '+V.palier+' / '+M2_PAL.length+' · '+c0.ok+' / '+c0.tot+'</small>'+(neuf?'<em class="mcNeuf">'+sansAcc(TR('NOUVEAU PALIER'))+'</em>':'')+'<em class="mcSq mcSqT" aria-hidden="true">'+V.sq+'</em></div>' /* (2026-11-06, plein cadre) couché, l'en-tête ENSUITE s'efface : ses carrés montent sur la ligne du titre */
+    +'<div class="mcPan" data-n="'+V.n+'"><div class="gModeT">'+pxi('cible')+'<span>'+sansAcc(TR('ENSUITE'))+'</span><s></s><em class="mcSq">'+V.sq+'</em></div>'
+    +(V.n?V.listeTab:'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>')+fh+'</div></div></div>';
   GMIS.cards=[];GMIS.pts=[];GMIS.paths=[];GMIS.last=null;GMIS.lw=0;
   const c=m2Compte(),sous=$('gmSous');if(sous)sous.textContent=c.ok+' / '+c.tot;
   try{gmPlaceL(VP.w,VP.h);}catch(e){}
