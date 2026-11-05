@@ -174,7 +174,7 @@ const SAVE={
     /* (2026-10-16) LES MISSIONS v2 : bornées comme le reste — ids a-z0-9 (2 à 12), listes courtes, nombres finis ; un code importé ne coche rien qu'il ne saurait dire */
     if(d.m2&&typeof d.m2==='object'){const s9=d.m2,o9=c.m2,I9=/^[a-z0-9]{2,12}$/,L9=function(a,n){return Array.isArray(a)?[...new Set(a.filter(function(x){return typeof x==='string'&&I9.test(x);}))].slice(0,n):[];},
       N9=function(x,hi){x=+x;return isFinite(x)?Math.max(0,Math.min(hi,x)):0;};
-      o9.v=s9.v===1?1:0;if(s9.vc===1)o9.vc=1;if(s9.vr===1)o9.vr=1;/* (2026-10-18) la reprise de la migration, faite */o9.ok=L9(s9.ok,200);o9.pr=L9(s9.pr,200);o9.su=L9(s9.su,3);o9.nv=L9(s9.nv,200);o9.fl=L9(s9.fl,60);
+      o9.v=s9.v===1?1:0;if(s9.vc===1)o9.vc=1;if(s9.vr===1)o9.vr=1;/* (2026-10-18) la reprise de la migration, faite */o9.ok=L9(s9.ok,200);o9.pr=L9(s9.pr,200);o9.mq=L9(s9.mq,200);/* (2026-11-05, ECO-03) les missions EFFACÉES : sans cette ligne elles revenaient au rechargement */o9.su=L9(s9.su,3);o9.nv=L9(s9.nv,200);o9.fl=L9(s9.fl,60);
       if(s9.vu&&typeof s9.vu==='object')for(const k of Object.keys(s9.vu).slice(0,200))if(I9.test(k))o9.vu[k]=N9(s9.vu[k],1e30);
       if(s9.r&&typeof s9.r==='object')for(const k of ['fig','airP','parf','frenN','frenT','kmh','vie','tours','vol','lac','rejoue','prof'])if(s9.r[k]!=null)o9.r[k]=N9(s9.r[k],1e7);
       const cc=s9.c&&typeof s9.c==='object'?s9.c:{};o9.c.morts=Math.round(N9(cc.morts,1e7));o9.c.gagne=N9(cc.gagne,1e30);o9.c.jours=Math.round(N9(cc.jours,1e5));
