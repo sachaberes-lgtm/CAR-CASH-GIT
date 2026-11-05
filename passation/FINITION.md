@@ -15,7 +15,7 @@ néon rose/cyan, plaques penchées, une seule police (Press Start)** (`DA-CARCAS
 on n'a rien re-peint, on n'a pas supprimé les plaques penchées, la livrée tricolore sous le logo ni le « escalier » de l'accueil (décision
 de Sacha du 25/10, `boutons-flottants.css` #accueilDiagonale, `translate:±30px` voulu). Si Sacha veut vraiment la charte 6, c'est un
 chantier à part, pas une finition.
-Autres faits : l'écran ACHAT (offres en €) est masqué dans cette version (v1146, `?achat=ancien` le rend) : non audité ; ses règles restent.
+Autres faits : l'écran ACHAT (offres en €) était masqué dans ma base v1147 et est revenu sur le site en v1149 (l'app iPhone le garde coupé) : il n'a donc PAS été audité (je ne l'ai jamais vu affiché).
 
 ## Corrigé (un commit chacun)
 | # | Écran | Mesure | Correction | Commit |
@@ -48,3 +48,6 @@ Laissé (mineurs du rapport, n° 2-5, 7-13) : `ui.appui` sur un bouton `aria-dis
 
 ## Pas fait ce soir (à reprendre)
 Debout (390×844) : accueil, réglages, garage, inventaire, boutique, missions, profil, plaque relevés (0 texte coupé, 0 chevauchement non voulu) ; pause et mort debout NON relevés (la course ne s'est pas arrêtée à temps au banc). i7couche : accueil, réglages, garage, inventaire relevés ; boutique, missions, profil, plaque, pause, mort non relevés. Chargement/ouroboros, révélation, final spin, auto-école : non relevés.
+
+## Livraison
+Fusionné dans `main` (v1154), poussé. Vérifié après fusion : syntaxe des scripts 0 erreur, gardes charte / burn-out / allègement OK, 0 erreur JS ; menu → JOUER lancé en 667×375, 390×844 et dans le cadre de l'ordi (la course elle-même n'a été jouée qu'au démarrage, pas de partie complète : machine saturée).
