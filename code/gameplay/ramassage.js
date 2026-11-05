@@ -92,13 +92,13 @@ function pickupsTick(dt){
     const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow&&!p.nitro; /* (2026-10-20, Léo : « l'aimant attire les PIÈCES seulement ») la pomme dorée n'attire plus les fruits */ // (2026-10-14, chasse aux bugs) RAM.q = l'objet AVANT l'attraction de l'image (ramD) — (OPTIMISATION) copié dans chaque branche APRÈS ses filtres bon marché : ~9 000 copies de moins par image en fin de partie, même valeur là où elle est lue
     if(p.hk>0){RAM.q.copy(p.mesh.position);if(saut9){p.hk=0;continue;}} // un saut de caisse DÉCROCHE : rien ne traverse la carte pour payer
     else if(enVol){ // EN VOL : le couloir, TA face, pas de jumeau — puis la sphère ACCROCHE
-      if(Math.abs(p.s-lastNearS)>(gros9?MAG_R+40:70))continue; // pré-filtre bon marché le long de la piste, AVANT toute distance 3D
+      if(p.air){if(p.mesh.position.distanceToSquared(carGroup.position)>22500)continue;}else if(Math.abs(p.s-lastNearS)>(gros9?MAG_R+40:70))continue; /* (2026-11-05, LES SENTIERS DE LUCIOLES) un fruit en l'air (p.air) se filtre à 150 m en 3D : sa dalle la plus proche n'est pas toujours celle de la caisse */ // pré-filtre bon marché le long de la piste, AVANT toute distance 3D
       if(p.face!==fV9&&!p.air)continue;                         // (passe qualité) pas le jumeau de l'autre face…
       if(!p.air){const tw=pickups[i9+p.face];if(tw&&tw.face===-p.face&&tw.s===p.s&&tw.lat===p.lat&&(tw.taken||tw.hk>0))continue;} // …ni celui dont le jumeau est pris ou en route (voir LE JUMEAU)
       // EN VOL L'AIMANT EST PLUS LARGE : viser une grappe en pleine parabole, sans volant, est déjà difficile — sans coup de pouce on
       // ne les attrape jamais. (v3) sous L'AIMANT, la sphère de MAG_R m.
       RAM.q.copy(p.mesh.position);const d9=p.mesh.position.distanceTo(carGroup.position);
-      if(ramD(p.mesh.position,RAM.q,p.ax,gros9?MAG_R:11+mag*3)>=(gros9?MAG_R:11+mag*3))continue; // (2026-10-14, chasse aux bugs) le TRAJET de l'image (ramD), même rayon ; hkD reste l'écart réel
+      if(ramD(p.mesh.position,RAM.q,p.ax,gros9?MAG_R:p.air?FOR_SENT.air:11+mag*3)>=(gros9?MAG_R:p.air?FOR_SENT.air:11+mag*3))continue; /* (LES SENTIERS DE LUCIOLES) les fruits du fil : 30 m — la trajectoire prévue n'est juste qu'à ± 25 m (la vitesse verticale du décollage varie), suivre le fil suffit */ // (2026-10-14, chasse aux bugs) le TRAJET de l'image (ramD), même rayon ; hkD reste l'écart réel
       p.hk=1e-4;p.hkD=d9;RAM.n[6]++; // ACCROCHÉ
     }else if(gros9){ // (v3) L'AIMANT AU SOL : la sphère
       if(Math.abs(p.s-s)>MAG_R+8)continue; // pré-filtre bon marché le long de la piste
@@ -156,7 +156,7 @@ function pickupsTick(dt){
         // ~2,3× moins et le combo se mérite (un palier toutes les 5 pièces, plafond ×4 au lieu de ×5)
         // → rendement max 8,8×denom contre 25×denom avant. La CHAÎNE DE FIGURES reste la vraie fortune.
         // LE MOTEUR MONTE À LA PIÈCE : c'est la ferraille ramassée qui paye le turbo
-        addCoins(1);RUNX.coins++;flowAdd(.7,'route');if(p.grp)coinSerie(p);try{piece1Plus();}catch(e){} /* (2026-10-14) le « +1 » à côté de la caisse */
+        addCoins(1);RUNX.coins++;flowAdd(.7,'route');if(p.grp)coinSerie(p);/* (2026-11-05, Sacha : « enlève les petits +3 à côté de la voiture ») le « +1 » flottant (piece1Plus) ne s'écrit plus */
         /* (2026-10-14, sensations · passages) LA RÉCOLTE SE SENT. La 5e, la 10e, la 15e — celles où la salve d'aura tombe et où
            `piece.recolte` sonne — soulèvent la caisse d'un rien (≈ 1 → 2 cm : elle s'allège).
            (2026-10-15, Sacha : « enlève les vibrations à chaque fois qu'on ramasse des pièces ») LA PIÈCE NE VIBRE PLUS : ni le tic de

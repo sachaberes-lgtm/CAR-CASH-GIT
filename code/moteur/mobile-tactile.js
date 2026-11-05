@@ -644,11 +644,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       x.classList.toggle('z',i<n-t.length);}
     M.cur=d;}
   function m6Ici(){return mCur==='dead'&&started&&gameOver&&overlay.style.display!=='none';} /* l'écran de mort est là (REJOUER tapé pendant le compte : plus rien ne vole sur la course) */
-  function m6Pieces(el){ /* trois pièces montent de dessous et se fondent dans le chiffre, là où il grandit (sa droite ; debout, son milieu) */
-    const r=zRect(el),c=getComputedStyle(el).textAlign==='center',x=r.left+r.width*(c?.5:.7),y=r.top+r.height*.6;
-    for(let i=0;i<3;i++){const p=document.createElement('i'),g=Math.random()<.5?-1:1;p.className='m6Piece';p.style.left=Math.round(x)+'px';p.style.top=Math.round(y)+'px';
-      p.style.setProperty('--dx',Math.round(g*(30+Math.random()*(c?110:90)))+'px');p.style.setProperty('--dy',Math.round(45+Math.random()*75)+'px');
-      p.style.animationDelay=(i*30)+'ms';document.body.appendChild(p);setTimeout(function(){p.remove();},720);}}
+  /* (2026-11-05, Sacha : « enlève le petit carré doré qui monte l'argent ») les petits carrés dorés qui venaient se fondre dans le chiffre pendant le compte (m6Pieces) sont retirés */
   function mCount(el,to,direct){ // égrène le montant : départ franc, arrivée en douceur
     if(!el)return;
     if(mCntT)clearInterval(mCntT);
@@ -656,14 +652,13 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       cpt=function(x){if(tot&&tot.firstChild&&tot.firstChild.nodeType===3)tot.firstChild.nodeValue=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(Math.round(x));};
     if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');m6Monte(el,fmtSolde(Math.max(0,to)));}
     if(to<=0||direct){if(v6)m6Pose(el,Math.max(0,to),false);else el.textContent=fmtC(Math.max(0,to));return;} // direct : on REVIENT sur l'écran (réglages, garage) — le compte ne se rejoue pas
-    if(v6)m6Pose(el,0,false);else el.textContent=fmtC(0);let t0=0,pc=0;const D=v6?M6_CPT:750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
+    if(v6)m6Pose(el,0,false);else el.textContent=fmtC(0);let t0=0;const D=v6?M6_CPT:750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
     if(v6&&!REDUCED_MOTION){cpt(sol-to);el.classList.add('m6Cpt');el.style.setProperty('--k','0');}
     mCntT=setInterval(function(){ if(performance.now()<T0)return;
       if(!t0)t0=performance.now(); /* (v6) la place du montant FINAL est prise d'avance (m6Monte) : le badge et le compte, à sa droite, ne bougent pas */
       const k=Math.min(1,(performance.now()-t0)/D),e=v6?1-Math.pow(1-k,2):1-Math.pow(1-k,3); /* v6 : ease-out quadratique, les crans du son (mCompteSon) tombent sur 1 - √(1 - j/N) */
       if(v6)m6Pose(el,Math.round(to*e),true);else el.textContent=fmtC(Math.round(to*e));
-      if(v6&&!REDUCED_MOTION){el.style.setProperty('--k',e.toFixed(3));cpt(sol-to+to*e);
-        if(k<.9&&performance.now()-pc>75&&m6Ici()){pc=performance.now();try{m6Pieces(el);}catch(x){}}}
+      if(v6&&!REDUCED_MOTION){el.style.setProperty('--k',e.toFixed(3));cpt(sol-to+to*e);}
       if(k>=1){clearInterval(mCntT);mCntT=0;
         if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');cpt(sol);if(!REDUCED_MOTION&&m6Ici())try{pixBurst(el,12);}catch(x){}}
         if(!REDUCED_MOTION){el.classList.remove('clac');void el.offsetWidth;el.classList.add('clac');}} // (charte v4) l'arrivée CLAQUE
@@ -816,8 +811,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       soldeEcrit($t('mBankV'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop');
-      if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);} // tout ce qui s'achète en argent du jeu est au GARAGE
-      if(bs){bs.textContent='NEW';bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
+      if(bg){if(/[?&]pastille=ancien\b/.test(location.search))bg.textContent=nG||'';else{const h9=nG>0?pxi('panier'):'';if(bg._h9!==h9){bg._h9=h9;bg.innerHTML=h9;}bg.setAttribute('aria-label',nG>0?(LANG==='en'?nG+' to buy':nG+' à ta portée'):'');}bg.classList.toggle('on',nG>0);} /* (2026-11-05, Opus : jury DIR-26) un « 19 » nu ne disait rien : un panier (il y a de quoi acheter), le nombre pour VoiceOver ; `?pastille=ancien` = le nombre */ // tout ce qui s'achète en argent du jeu est au GARAGE
+      if(bs){bs.textContent=sansAcc(TR('NOUVEAU'));bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
     }else if(mCur==='modes'){
       const set9=function(id,sid,on){const c=$t(id),s=$t(sid);
         if(c){c.classList.toggle('on',on);c.classList.toggle('off',!on);} if(s)s.textContent=on?'ON':'OFF';};
@@ -995,7 +990,6 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(REDUCED_MOTION){if(v6)m6Pose(c9,2*v,false);else c9.textContent=fmtC(2*v);return;}
       const t0=performance.now(),D=v6?900:600;
       mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,Math.round(v*(1+q)),true);else c9.textContent=fmtC(Math.round(v*(1+q)));
-        if(v6&&k<.9&&Math.random()<.4&&m6Ici())try{m6Pieces(c9);}catch(x){}
         if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');if(v6&&m6Ici())try{pixBurst(c9,12);}catch(x){}}},v6?16:28);};
     const apres=function(vue,v){if(vue)monte(v);maj();};window.__dblApres=apres;
     const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};

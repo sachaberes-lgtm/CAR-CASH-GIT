@@ -39,6 +39,7 @@ css/palier-leger.css                 # <style id="palierLeger"> : le CSS par pal
 css/ecrans-iphone.css                # <style id="ecransIphone"> : les écrans sur tous les iPhone (pause couchée, fin du SE, HOME, noms des caisses)
 css/mort-flottante.css               # <style id="mortFlottante"> : l'écran de mort flottant (argent et moteur sans cadre, graphe d'aura en bougies, GARAGE · RÉGLAGES)
 css/finition-ecrans.css              # <style id="finitionEcrans"> : la finition des écrans (2026-11-04) — détails mesurés au banc des écrans, posés après tout le reste
+css/peintures.css                    # <style id="peintures"> : le nuancier v3 (2026-11-05) — les pastilles vernies, le défi, les légendaires qui vivent ; les cartes des traînées en mouvement
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
@@ -64,10 +65,12 @@ maps/foret-route.js                  # LA FORÊT NOIRE : la pelote (route), les 
 maps/foret-decor.js                  # forêt : les géants, les fleurs, les matières, le relief
 maps/foret-construction.js           # forêt : construction, boucle, console
 maps/foret-embellie.js               # forêt : la passe d'embellissement (lanternes de conte, réglages FOR_EMB)
+maps/foret-sentiers.js               # forêt : les SENTIERS DE LUCIOLES (les raccourcis balisés : fil de fruits, couloir sans arbres, fruit-pouvoir à la pose)
 maps/canyon-route.js                 # LE CANYON DES GÉANTS : route, construction, monde, pose
 maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumière cuite
 maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
 maps/canyon-embellie.js               # canyon : la poussière dorée (détail vivant, une instance)
+maps/canyon-murs.js                  # canyon : les MURS (la dalle couchée à 86° le long des falaises, le plan de roche, le banc dbgCanyonMurs)
 maps/dunes-1.js                      # LES DUNES D'OR : la route CONTINUE (vagues, tremplins de crête), le terrain prescrit, la construction
 maps/dunes-2.js                      # dunes : sable à la puce (rides façon Journey), matière des décors, hiéroglyphes, tremplins, sable qui vole
 maps/dunes-3.js                      # dunes : la boîte à outils des décors (loft, oriflammes), les modèles (pharaon assis, pyramides de Gizeh, obélisque, pylône, sphinx, felouque…)
