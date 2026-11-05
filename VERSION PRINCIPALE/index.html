@@ -46326,7 +46326,7 @@ function engChauffe1(){
    DESSINE tout une fois, HORS écran (une cible 8×8 au MÊME format que la vraie — les états de pipeline en dépendent), tout rendu
    visible et sans tri de champ, les lumières intouchées (leur nombre changerait les programmes) : au menu une fois, et à chaque
    construction de niveau. Les géométries montent au GPU du même coup (elles montaient elles aussi au 1er dessin, en plein vol). */
-const CHAUFFE_R={t:0,rt:null,fait:false,div:0,ap:0,saute:0,rejoue:-1,refait:0,tr:0,dessines:new Set(),tranches:0,sansTranche:/[?&]tranche=0\b/.test(location.search)};
+const CHAUFFE_R={t:0,rt:null,fait:false,div:0,ap:0,saute:0,rejoue:-1,refait:0,tr:0,dessines:new Set(),cles:new Set(),compiles:new WeakSet(),tranches:0,sansTranche:/[?&]tranche=0\b/.test(location.search)};
 /* (2026-11-05, passe perf mobile 2, A1.c) CHAUFFE EN TRANCHES : une étape de la chauffe du menu n'accepte que `chauffeTranche` programmes JAMAIS dessinés (clé `cacheKey` absente de `dessines`) ;
    les objets des programmes en trop sont cachés pour ce dessin et l'étape est rejouée à l'image suivante (`encore`). MESURÉ (JOURNAL 28/10) : un dessin d'un bloc = 0,2 à 1,5 s à froid, « gels de 3 à 5,6 s ».
    Ancien · moyen · récent : le palier 2 garde 999 = tout d'un coup, comme avant. `?tranche=0` = avant. */
@@ -46340,18 +46340,19 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
   const kids=scene.children,sm=renderer.shadowMap,sa=sm.autoUpdate,sn=sm.needsUpdate;
   if(que){scene.children=kids.filter(function(o){return o.isLight||que.indexOf(o)>=0;});sm.autoUpdate=false;sm.needsUpdate=false;}
   try{
-  if(que)renderer.compile(scene,camera); // le sous-arbre compilé SEUL (compile() parcourt aussi le caché) — pas toute la scène
+  if(que&&!(CHAUFFE_R.tr&&!CHAUFFE_R.sansTranche&&PAL.b('chauffeTranche',999)<999&&que.every(function(o){return CHAUFFE_R.compiles.has(o);})))renderer.compile(scene,camera); /* (A1.c, rejeu d'une tranche : le sous-arbre est déjà compilé, pas deux fois) */ // le sous-arbre compilé SEUL (compile() parcourt aussi le caché) — pas toute la scène
   // Un objet CACHÉ dont la matière n'a encore jamais été compilée reste caché : on prépare le dessin de ce qui existe, on ne compile
   // rien d'inutile (mesuré : 4 programmes au 1er portail pour des objets qui ne s'affichent jamais — 100-400 ms perdus sur iPhone).
   const vis=[],cul=[],off=[],vus=new Set(),sansP=[],caches9=[],tranT=[],nvT=new Set();
   /* (2026-09-28, chasse aux gels) UN DESSIN PAR COUPLE (matière, géométrie). L'état de pipeline de la puce ne dépend que du programme, de la
      disposition des sommets, du mélange et de la cible ; la géométrie monte au GPU une fois : dessiner les 2 000-4 000 PIÈCES d'une piste
      (une géométrie, une matière) ne préparait rien de plus que d'en dessiner UNE. MESURÉ : ~4 700 appels de dessin → ~450 à chaque chauffe. */
+  const TR9=CHAUFFE_R.tr&&!CHAUFFE_R.sansTranche&&PAL.b('chauffeTranche',999)<999,gardes9=[];
   (function walk(o,h0){ if(o.isLight||(o===GAR.root&&!que))return;const h=h0||!o.visible; // l'ATELIER ne s'affiche jamais en course : il n'est dessiné qu'une fois, au menu (`que`) — (avant la chasse aux gels, son éclairage à lui recompilait 2 programmes au 1er portail)
     if(o.isMesh||o.isPoints||o.isSprite||o.isLine){const m=Array.isArray(o.material)?o.material[0]:o.material,pr=m&&renderer.properties.get(m).currentProgram;
       const cle=m&&o.geometry?(o.isInstancedMesh?'I':o.isSprite?'S':o.isPoints?'P':o.isLine?'L':'M')+m.id+':'+o.geometry.id:null;
-      if((h&&!pr)||(cle&&vus.has(cle))){if(h&&!pr)sansP.push(o);if(o.visible){o.visible=false;off.push(o);}}
-      else{if(cle)vus.add(cle);if(!o.visible){o.visible=true;vis.push(o);}if(o.frustumCulled){o.frustumCulled=false;cul.push(o);}}}
+      if((h&&!pr)||(cle&&vus.has(cle))||(cle&&TR9&&CHAUFFE_R.cles.has(cle))){ /* (A1.c) un couple déjà dessiné à une tranche précédente : caché d'emblée */if(h&&!pr)sansP.push(o);if(o.visible){o.visible=false;off.push(o);}}
+      else{if(cle){vus.add(cle);if(TR9)gardes9.push([o,cle]);}if(!o.visible){o.visible=true;vis.push(o);}if(o.frustumCulled){o.frustumCulled=false;cul.push(o);}}}
     else if(!o.visible){o.visible=true;vis.push(o);}
     for(let i=0;i<o.children.length;i++)walk(o.children[i],h);})(scene,false);
   if(LIER.doux&&LIER.X){ /* (LA LIAISON EN ARRIÈRE-PLAN) les programmes de ce dessin lancés ENSEMBLE (ils se lient en parallèle), sauf ceux des objets cachés jamais compilés (voir plus haut) ; le dessin attend ensuite le tout */
@@ -46375,6 +46376,7 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
   const cible=renderer.getRenderTarget(),t9=performance.now();renderer.setRenderTarget(CHAUFFE_R.rt);renderer.render(scene,camera);renderer.setRenderTarget(cible);
   CHAUFFE_R.appels=renderer.info.render.calls;CHAUFFE_R.ms=+(performance.now()-t9).toFixed(1); // (dev) dbgChauffe()
   scene.onBeforeRender=ob9;
+  if(TR9){for(const g of gardes9){const m=Array.isArray(g[0].material)?g[0].material[0]:g[0].material;if(g[0].visible&&m&&m.visible)CHAUFFE_R.cles.add(g[1]);}if(que)for(const o of que)CHAUFFE_R.compiles.add(o);} /* (A1.c) ce qui a été dessiné cette fois ne l'est plus */
   for(const k of nvT)CHAUFFE_R.dessines.add(k);for(const o of tranT)o.visible=true; /* (A1.c) les programmes dessinés sont gardés, les objets de la tranche suivante remis */
   for(const o of vis)o.visible=false;for(const o of off)o.visible=true;for(const o of cul)o.frustumCulled=true;
   for(const m of caches9)m.visible=true;
