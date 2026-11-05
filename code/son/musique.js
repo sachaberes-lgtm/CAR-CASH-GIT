@@ -625,6 +625,7 @@ function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit 
   musicMode='none';musicVoulue=false;MUSREP.att=false;
   DEPMUS.f0=-1; // (LE DÉPART EN MUSIQUE) un fondu d'entrée en cours s'arrête là
   clearInterval(FRENM.iv);FRENM.on=false;FRENM.sw=false;FRENM.surm=false; // la frénésie ne survit pas à la partie
+  if(FREN_WA_ON){try{frenWaStop(tape?.6:0);}catch(e){}frenWaLibere();} /* (2026-11-05, SON-03) le nœud de la frénésie s'étrangle avec le reste, son tampon est rendu */
   const el=musicEl;
   /* (2026-09-30) LA BANDE N'A PLUS QU'UN FIL : l'intervalle du tape-stop (~0,6 s) n'était jamais rangé — un REJOUER rapide (uiGarde
      libère au bout de 320 ms) relançait le morceau, et l'intervalle d'avant continuait de le ralentir, de baisser son volume, puis le

@@ -57679,6 +57679,7 @@ function musicStop(tape){ // fin de partie : « tape-stop » (la bande ralentit 
   musicMode='none';musicVoulue=false;MUSREP.att=false;
   DEPMUS.f0=-1; // (LE DÉPART EN MUSIQUE) un fondu d'entrée en cours s'arrête là
   clearInterval(FRENM.iv);FRENM.on=false;FRENM.sw=false;FRENM.surm=false; // la frénésie ne survit pas à la partie
+  if(FREN_WA_ON){try{frenWaStop(tape?.6:0);}catch(e){}frenWaLibere();} /* (2026-11-05, SON-03) le nœud de la frénésie s'étrangle avec le reste, son tampon est rendu */
   const el=musicEl;
   /* (2026-09-30) LA BANDE N'A PLUS QU'UN FIL : l'intervalle du tape-stop (~0,6 s) n'était jamais rangé — un REJOUER rapide (uiGarde
      libère au bout de 320 ms) relançait le morceau, et l'intervalle d'avant continuait de le ralentir, de baisser son volume, puis le
@@ -57708,7 +57709,7 @@ function musicBandeNette(el){if(el)try{el.playbackRate=1;el.preservesPitch=true;
    (vercel-build.sh la publie pour ça). `f` la cherchait en .mp3 sous music/, où rien n'a jamais été posé : deux 404 par chargement, et
    la frénésie ne changeait jamais de morceau. Depuis que Pouce bleu tient la course (15/10), le repli accélérait le lecteur <audio>…
    en pause : en course, la frénésie ne s'entendait plus du tout. Un autre morceau = un autre `f`. */
-const MUSIC_FREN={titre:'THE DARK TRIAD',f:'assets/audio/music/boucles/dark-triad.m4a',drop:0,surm:1.06};
+const MUSIC_FREN={titre:'THE DARK TRIAD',f:'assets/audio/music/boucles/dark-triad.m4a',drop:0,surm:1.06,loop:27.428571}; /* (2026-11-05) loop : la boucle EXACTE en secondes (16 mesures à 140 bpm), pour le lecteur WebAudio */
 const FRENM={on:false,ok:null,sw:false,surm:false,src:'',t:0,loop:false,iv:0};
 function frenMusSonde(){ // le fichier est-il là ? (une fois — une réponse muette, comme sur iPhone, laisse la question ouverte)
   if(FRENM.ok!==null||!MUSIC_FREN.f)return;
@@ -57743,6 +57744,9 @@ function frenMusRate(){ // le morceau de la triade a échoué : retour radio, pu
 }
 function frenMus(on){
   if(on===FRENM.on)return;FRENM.on=on;
+  if(FREN_WA_ON){ /* (2026-11-05, SON-03) LA FRÉNÉSIE EN WEBAUDIO — voir plus bas ; FRENM.sw n'est vrai que quand le nœud joue vraiment */
+    if(on){if(!SND.music||musicMode!=='run')return;frenWaCharge();if(FRENW.buf&&frenWaDepart()){FRENM.sw=true;try{lvlBlast();}catch(e){}}return;} /* pas encore décodé : la fin du décodage lancera le morceau (Pouce bleu joue en attendant, pas de trou) */
+    if(FRENW.s)frenWaStop(.4);FRENM.sw=false;FRENM.surm=false;return;} /* elle tombe : LE MORCEAU S'ÉTRANGLE (0,4 s), Pouce bleu revient par musicTick */
   const el=musicEl;
   if(on){
     if(!SND.music||musicMode!=='run'||!el)return;
@@ -57765,6 +57769,56 @@ function frenMus(on){
   else if(FRENM.surm){FRENM.surm=false;frenMusVit(el,1,450,function(){try{el.preservesPitch=true;el.webkitPreservesPitch=true;}catch(e){}});} // la radio RETOMBE
 }
 setTimeout(function(){try{frenMusSonde();}catch(e){}},2500);
+/* ===== LA FRÉNÉSIE EN WEBAUDIO (2026-11-05, Fable : « SON-03 : la frénésie passe par un <audio> qui peut devenir muet sur iPhone sans que FRENM.sw ne
+   redescende (Pouce bleu niveau 0 ensuite) ») =====
+   L'<audio> unique devait être « libéré » par un play() dans un geste (le silence WAV de musicDeverrouille) ; si iOS le refusait, le play() de la
+   frénésie — déclenchée par le flow, jamais par un toucher — était rejeté, musicEnAttente passait vrai, mais FRENM.sw restait vrai et musicTick
+   mettait Pouce bleu à 0 : plus AUCUNE musique jusqu'au prochain toucher, pile sur la récompense. Désormais THE DARK TRIAD se joue comme tout le
+   reste du jeu : un AudioBufferSourceNode bouclé (loopStart 0, loopEnd = la boucle exacte de 27,43 s : plus de couture d'AAC, SON-12) sur le
+   limiteur commun MASTER._lim, à côté de Pouce bleu — plus d'élément, plus de geste, plus de source à changer. Le fichier est DÉCODÉ À LA DEMANDE
+   (fetch + decodeAudioData, ~10 Mo de PCM) quand le flow atteint le palier 3, et RENDU à la fin de la partie (musicStop) : rien n'est gardé entre
+   deux courses (DIR-02). FRENM.sw dit la VÉRITÉ du nœud : vrai à partir de start(), faux dès que le nœud finit, que le contexte n'est plus
+   « running » (interruption iOS) ou que la frénésie tombe — Pouce bleu ne se tait donc jamais pour une musique qui ne joue pas. Si le décodage
+   n'est pas fini quand la frénésie part, Pouce bleu continue et le morceau tombe à l'arrivée du tampon (pas de trou). Elle tombe : la bande
+   s'étrangle (playbackRate → 0,12 en 0,4 s, sans la limite [0,5 ; 2] des <audio> de Safari, SON-14) et s'arrête. Le volume suit la loi de la
+   radio (musicVolCible : curseur × mouvement × annonceur). `?frenesie=ancien` : l'<audio> d'avant (une semaine). `dbgFrenWa()` : l'état. */
+const FREN_WA_ON=!/[?&]frenesie=ancien\b/.test(location.search);
+const FRENW={buf:null,charge:0,s:null,g:null,t0:0}; /* charge : 0 à faire · 1 en cours · 2 prêt · 3 échec */
+function frenWaCharge(){ /* décode THE DARK TRIAD (une fois par partie, à la demande) */
+  if(FRENW.buf||FRENW.charge===1||!AC||!MUSIC_FREN.f)return;FRENW.charge=1;
+  fetch(MUSIC_FREN.f).then(function(r){if(!r||!r.ok)throw new Error('HTTP '+(r&&r.status));return r.arrayBuffer();})
+   .then(function(ab){return new Promise(function(ok,ko){try{const p=AC.decodeAudioData(ab,ok,ko);if(p&&p.then)p.then(ok,ko);}catch(e){ko(e);}});})
+   .then(function(b){if(musicMode!=='run'){FRENW.charge=0;return;} /* la partie est finie entre-temps : on ne garde rien */
+     FRENW.buf=b;FRENW.charge=2;if(FRENM.on&&!FRENW.s&&SND.music&&frenWaDepart()){FRENM.sw=true;try{lvlBlast();}catch(e){}}}) /* la frénésie a commencé avant la fin du décodage : le morceau tombe maintenant */
+   .catch(function(e){FRENW.charge=3;try{window.__ccNote('panne','frénésie · '+(e&&e.message||e));}catch(_){}});
+}
+function frenWaVivant(){return !!(FRENW.s&&!FRENW.s._fini&&AC&&AC.state==='running');}
+function frenWaDepart(){ /* lance la boucle ; rend vrai si le nœud joue */
+  if(!FRENW.buf||!AC||!MASTER||!MASTER._lim)return false;
+  frenWaStop(0);
+  try{const s=AC.createBufferSource();s.buffer=FRENW.buf;s.loop=true;
+    const fin=FRENW.buf.duration,L=MUSIC_FREN.loop||0;s.loopStart=0;s.loopEnd=(L>0&&L<fin)?L:fin;
+    const g=AC.createGain();g.gain.value=0;s.connect(g);g.connect(MASTER._lim);
+    s.onended=function(){s._fini=true;if(FRENW.s===s){FRENW.s=null;FRENW.g=null;}};
+    s.start(AC.currentTime,Math.min(MUSIC_FREN.drop||0,fin));
+    FRENW.s=s;FRENW.g=g;FRENW.t0=AC.currentTime;
+    g.gain.setTargetAtTime(Math.max(0,Math.min(1,musicVolCible)),AC.currentTime,.08);
+    return true;}catch(e){try{window.__ccNote('panne','frénésie · départ : '+(e&&e.message||e));}catch(_){}return false;}
+}
+function frenWaStop(tape){ /* tape (s) : la bande ralentit à ×0,12 et s'éteint ; 0 = coupure en 20 ms */
+  const s=FRENW.s,g=FRENW.g;if(!s)return;FRENW.s=null;FRENW.g=null;
+  try{const t=AC.currentTime;
+    if(tape>0){s.playbackRate.cancelScheduledValues(t);s.playbackRate.setValueAtTime(s.playbackRate.value,t);s.playbackRate.linearRampToValueAtTime(.12,t+tape);g.gain.setTargetAtTime(0,t+tape*.5,tape*.25);s.stop(t+tape+.15);}
+    else{g.gain.setTargetAtTime(0,t,.02);s.stop(t+.15);}}catch(e){try{s.stop();}catch(_){}}
+}
+function frenWaLibere(){FRENW.buf=null;if(FRENW.charge!==1)FRENW.charge=0;} /* fin de partie : les ~10 Mo de PCM sont rendus */
+function frenWaTick(){ /* dans musicTick, à chaque image : le volume suit la radio, FRENM.sw suit le nœud, le décodage part d'avance */
+  if(FRENW.s&&FRENW.g)try{FRENW.g.gain.setTargetAtTime(Math.max(0,Math.min(1,musicVolCible)),AC.currentTime,.09);}catch(e){}
+  if(FRENM.sw&&!frenWaVivant())FRENM.sw=false; /* le nœud est fini, ou le contexte dort (interruption) : Pouce bleu reprend l'antenne */
+  else if(!FRENM.sw&&FRENM.on&&frenWaVivant())FRENM.sw=true;
+  if(!FRENW.buf&&FRENW.charge===0&&musicMode==='run'&&running&&!gameOver&&SND.music&&typeof FLOW!=='undefined'&&FLOW.lv>=3)frenWaCharge();
+}
+window.dbgFrenWa=function(){return {on:FREN_WA_ON,charge:['à faire','en cours','prêt','échec'][FRENW.charge],vivant:frenWaVivant(),sw:FRENM.sw,fren:FRENM.on,duree:FRENW.buf?+FRENW.buf.duration.toFixed(2):0,ac:AC?AC.state:null,depuis:FRENW.s&&AC?+(AC.currentTime-FRENW.t0).toFixed(1):0};};
 // la pause du jeu met la musique en pause (et la reprend) — elle ne passe plus par l'AudioContext suspendu
 function musicPause(p){try{if(!musicEl)return;if(p){if(!musicEl.paused)musicEl.pause();}else if(musicVoulue)musicJoue();}catch(e){}}
 /* <<<FOND>>> ==================================================================
@@ -57953,6 +58007,7 @@ function musicTick(dt,mvt){
   // v4 : le VOLUME de l'élément fait tout (iOS l'ignore — le son y joue à plein, c'est le bouton du téléphone qui règle)
   try{distTick(dt);}catch(e){}
   if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*(1-.3*Math.min(1,DIST.env));   // à l'arrêt un peu plus bas, lancé à plein
+  if(FREN_WA_ON)try{frenWaTick();}catch(e){} /* (2026-11-05, SON-03) la frénésie WebAudio : volume, vérité du nœud, décodage d'avance */
   if(window.POUCE_JEU&&POUCE_JEU.joue()){ /* (15/10) POUCE BLEU : son niveau = celui qu'aurait la radio (le curseur, le souffle du mouvement, l'annonceur), le moteur du jeu le pilote ; la musique coupée l'éteint */
     if(!SND.music)POUCE_JEU.fin(false);
     else{const fr9=musicMode==='run'&&!!FRENM.sw; /* (15/10 soir, Léo : « la frénésie doit rester ») le morceau de la FRÉNÉSIE joue : Pouce bleu s'efface (~0,3 s), puis revient */
