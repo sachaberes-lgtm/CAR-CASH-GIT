@@ -64,6 +64,7 @@ function garMissionsOuvre(){ // la porte des MISSIONS, d'où qu'on vienne : l'é
   ecranWipe(function(){if(garageOn){garMode('missions');GAR.aMis=false;return;}GAR.aMenu=true;openGarage();});
 }
 function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
+  if(!garAccueil._vu&&!garAccueil._diff&&!CHARGEMENT.fini){garAccueil._diff=1;chargeEtape('garage',garAccueil);return;} /* (2026-11-05, passe perf mobile 2, A2.a) le tout 1er atelier d'accueil (~0,6 s) se bâtit sous la boule, après la piste ; `?chargement=0` = tout de suite */
   if((started&&!gameOver)||pendingScore!=null)return;               // une course tourne, ou un nom se saisit
   if(garageOn){if(!GAR.go)garMode('menu');return;}
   if(!garAccueil._vu||ecranWipe._on){garAccueil._vu=true;GAR.aMenu=true;openGarage();return;} // le 1er (sous l'écran de démarrage), ou déjà sous un voile

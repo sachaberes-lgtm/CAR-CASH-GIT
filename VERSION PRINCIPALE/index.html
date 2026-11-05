@@ -47494,6 +47494,23 @@ function engChauffe1(){
    visible et sans tri de champ, les lumières intouchées (leur nombre changerait les programmes) : au menu une fois, et à chaque
    construction de niveau. Les géométries montent au GPU du même coup (elles montaient elles aussi au 1er dessin, en plein vol). */
 const CHAUFFE_R={t:0,rt:null,fait:false,div:0,ap:0,saute:0,rejoue:-1,refait:0}; // ap : l'étape des tôles des voitures (chauffeApres ; -1 = finies)
+/* ===== LE CHARGEMENT SOUS LA BOULE (2026-11-05, passe perf mobile 2, A2.a) =====
+   MESURÉ (Chrome iPhone émulé ×4, palier 0) : avant que l'intro soit touchable, la TÊTE du script bâtissait d'un bloc la 1re piste + la caisse du menu (`init.js`, ~0,9 s) et
+   l'atelier d'accueil (`garAccueil`, ~0,6 s), puis la boule tournait ≥ 4,6 s SANS que le jeu fasse rien. Désormais ces blocs sont des ÉTAPES (`chargeEtape`) : la tête du script
+   ne fait que les inscrire, la boucle en exécute UNE par image (`chargementTick`, en tête de loop(), sans dessiner), dans l'ordre d'inscription, donc l'ordre d'avant ; la boule
+   (intro-161.js) n'est « prête » qu'une fois la file vide (`__ccCharge`), et l'ouverture du jeu (`reveler` : toucher, intro sautée ou plantée) vide ce qui reste d'un trait
+   (`__ccChargeTout`). Au-delà de 15 s on vide d'un bloc. `?chargement=0` = tout en tête de script, comme avant. */
+const CHARGEMENT={on:!/[?&]chargement=0\b/.test(location.search),fini:false,E:[],t0:0,ms:[]};
+if(!CHARGEMENT.on)CHARGEMENT.fini=true;
+function chargeEtape(nom,fn){ if(CHARGEMENT.fini){fn();return;} CHARGEMENT.E.push([nom,fn]); }
+function chargementPas(){ const e=CHARGEMENT.E.shift();if(!e){CHARGEMENT.fini=true;return;}
+  const t9=performance.now();try{e[1]();}catch(x){console.warn('chargement · '+e[0],x);try{window.__ccNote('panne','chargement '+e[0]+' · '+(x&&x.message||x),x&&x.stack&&String(x.stack).split('\n')[1]);}catch(_){}}
+  CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
+function chargementTout(){ while(!CHARGEMENT.fini)chargementPas(); }
+function chargementTick(now){ if(CHARGEMENT.fini)return false;
+  if(!CHARGEMENT.t0)CHARGEMENT.t0=now;if(now-CHARGEMENT.t0>15000){chargementTout();return false;}
+  chargementPas();return true; }
+window.__ccCharge=function(){return CHARGEMENT.fini;};window.__ccChargeTout=chargementTout;window.dbgChargement=function(){return {on:CHARGEMENT.on,fini:CHARGEMENT.fini,reste:CHARGEMENT.E.map(function(e){return e[0];}),ms:CHARGEMENT.ms};};
 function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ces sous-arbres, sous l'éclairage de la scène (l'atelier, au menu)
   if(!CHAUFFE_R.rt){const t9=(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
     CHAUFFE_R.rt=new THREE.WebGLRenderTarget(8,8,{format:THREE.RGBAFormat,type:t9,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});}
@@ -76751,6 +76768,7 @@ function garMissionsOuvre(){ // la porte des MISSIONS, d'où qu'on vienne : l'é
   ecranWipe(function(){if(garageOn){garMode('missions');GAR.aMis=false;return;}GAR.aMenu=true;openGarage();});
 }
 function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
+  if(!garAccueil._vu&&!garAccueil._diff&&!CHARGEMENT.fini){garAccueil._diff=1;chargeEtape('garage',garAccueil);return;} /* (2026-11-05, passe perf mobile 2, A2.a) le tout 1er atelier d'accueil (~0,6 s) se bâtit sous la boule, après la piste ; `?chargement=0` = tout de suite */
   if((started&&!gameOver)||pendingScore!=null)return;               // une course tourne, ou un nom se saisit
   if(garageOn){if(!GAR.go)garMode('menu');return;}
   if(!garAccueil._vu||ecranWipe._on){garAccueil._vu=true;GAR.aMenu=true;openGarage();return;} // le 1er (sous l'écran de démarrage), ou déjà sous un voile
@@ -77657,6 +77675,7 @@ function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran
   HC.on=true;HC.der=now;return false;}
 function loop(now){
   requestAnimationFrame(loop);
+  if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
   if(window.__introCouvre){loop._pn=now;last=now;return;} // (2026-10-22, Léo : « ça bug ») l'INTRO DU STUDIO couvre tout l'écran : dessous, le jeu ne calcule ni ne dessine rien (il faisait saccader le film, surtout sur un Mac chargé) — voir moteur/intro-161.js
   if(lierDemarrage(now)){loop._pn=now;last=now;return;} /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : les programmes de la 1re image se lient à côté, le jeu ne dessine pas encore — voir interface/vignette-moteur.js */
   if(CAD.ok&&cadSaute(now))return; // (2026-10-14, passe perf mobile) LA CADENCE STABLE : cette image d'écran se saute, sans RIEN toucher — voir CAD
@@ -79473,6 +79492,7 @@ function loop(now){
   else if(QLR.sN>0)qlSonde(); // (tour 2) la règle de qualité veut le VRAI coût d'une image avant de baisser quoi que ce soit
 }
 // ---------- INIT ----------
+chargeEtape('piste',function(){ /* (2026-11-05, passe perf mobile 2, A2.a) la 1re piste et la caisse du menu se bâtissent sous la boule (une étape par image, voir CHARGEMENT) ; `?chargement=0` = ici, d'un trait */
 newTrack();
 respawn();
 setupIntroPig();
@@ -79483,6 +79503,7 @@ carSnapshot();   // photo des caisses DÉJÀ acquises : sans elle, le 1er scan l
 level=equippedCar();buildCar(CARS[level]); // on se présente au menu dans la caisse choisie au garage
 paintMoney(); // LE MENU AFFICHE LA MISE : $1.61 visible AVANT de lancer (le HTML disait « $00000000 »)
 paintCarHud(); // et la fiche de caisse porte le bon nom/palier dès l'écran d'accueil
+}); // fin de l'étape 'piste'
 applyLangDOM(); // la langue sauvegardée s'applique AU CHARGEMENT (elle ne prenait qu'en cliquant le sélecteur)
 setBestChip();
 renderLeaders(-1);
@@ -80614,6 +80635,7 @@ function goImmersive(){
   }
   function reveler(){ /* à l'instant où l'écran noir casse : le voile n'est plus l'écran titre, il ne prend plus les touchers */
     window.__introCouvre=false;if(revele)return;revele=true;
+    try{if(window.__ccChargeTout)window.__ccChargeTout();}catch(e){} /* (2026-11-05, passe perf mobile 2, A2.b) ce qui reste du chargement se fait d'un trait avant que le jeu paraisse */
     sp.id=''; /* ⚠ retire l'id AVANT tout : start() et les écrans d'accueil se gardent par `getElementById('splash')` ; et la règle CSS #splash part avec lui. z-index 1000 : les éclats volent PAR-DESSUS tout (la plaque du 1er accueil s'ouvre ~0,85 s après, à 200+) */
     sp.style.cssText='position:fixed;inset:0;z-index:1000;display:block;pointer-events:none;overflow:hidden;background:transparent';
     setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(e){}},30); /* le jeu était en pause sous le film : s'il a été retaillé entre-temps (cadre tourné, volet agrandi), il recalcule sa taille (un bandeau blanc à droite, vu le 23/10) */
@@ -80743,7 +80765,7 @@ function goImmersive(){
     if(!lance){try{attente();}catch(e){}return;}
     try{
       const t=(now-tLance)/1000-latV;
-      if(BOULE){if(pretT===null&&t>=4.6&&document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')){pretT=t;try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
+      if(BOULE){if(pretT===null&&t>=4.6&&document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')&&(!window.__ccCharge||window.__ccCharge())){pretT=t;try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
       if(DEMO){const T=PERIODE_DEMO(),idx=Math.floor(Math.max(0,t)/T);if(idx>0)sonDemo(idx,t-idx*T);else sonDemo(0,t);rendu(t);return;}
       if(!ouvert&&t>=TL.noir)ouvrir();
       if(!revele&&!doux&&!passee){ /* le jeu ne dessine rien derrière le film (voir `loop`), SAUF quelques images dans le NOIR COMPLET : ses accrocs du premier dessin (relecture du ciel, compilations) ne se voient pas là, et il reprend à chaud 0,5 s avant la casse */

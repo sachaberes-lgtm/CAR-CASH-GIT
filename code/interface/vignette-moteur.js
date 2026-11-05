@@ -361,6 +361,23 @@ function engChauffe1(){
    visible et sans tri de champ, les lumières intouchées (leur nombre changerait les programmes) : au menu une fois, et à chaque
    construction de niveau. Les géométries montent au GPU du même coup (elles montaient elles aussi au 1er dessin, en plein vol). */
 const CHAUFFE_R={t:0,rt:null,fait:false,div:0,ap:0,saute:0,rejoue:-1,refait:0}; // ap : l'étape des tôles des voitures (chauffeApres ; -1 = finies)
+/* ===== LE CHARGEMENT SOUS LA BOULE (2026-11-05, passe perf mobile 2, A2.a) =====
+   MESURÉ (Chrome iPhone émulé ×4, palier 0) : avant que l'intro soit touchable, la TÊTE du script bâtissait d'un bloc la 1re piste + la caisse du menu (`init.js`, ~0,9 s) et
+   l'atelier d'accueil (`garAccueil`, ~0,6 s), puis la boule tournait ≥ 4,6 s SANS que le jeu fasse rien. Désormais ces blocs sont des ÉTAPES (`chargeEtape`) : la tête du script
+   ne fait que les inscrire, la boucle en exécute UNE par image (`chargementTick`, en tête de loop(), sans dessiner), dans l'ordre d'inscription, donc l'ordre d'avant ; la boule
+   (intro-161.js) n'est « prête » qu'une fois la file vide (`__ccCharge`), et l'ouverture du jeu (`reveler` : toucher, intro sautée ou plantée) vide ce qui reste d'un trait
+   (`__ccChargeTout`). Au-delà de 15 s on vide d'un bloc. `?chargement=0` = tout en tête de script, comme avant. */
+const CHARGEMENT={on:!/[?&]chargement=0\b/.test(location.search),fini:false,E:[],t0:0,ms:[]};
+if(!CHARGEMENT.on)CHARGEMENT.fini=true;
+function chargeEtape(nom,fn){ if(CHARGEMENT.fini){fn();return;} CHARGEMENT.E.push([nom,fn]); }
+function chargementPas(){ const e=CHARGEMENT.E.shift();if(!e){CHARGEMENT.fini=true;return;}
+  const t9=performance.now();try{e[1]();}catch(x){console.warn('chargement · '+e[0],x);try{window.__ccNote('panne','chargement '+e[0]+' · '+(x&&x.message||x),x&&x.stack&&String(x.stack).split('\n')[1]);}catch(_){}}
+  CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
+function chargementTout(){ while(!CHARGEMENT.fini)chargementPas(); }
+function chargementTick(now){ if(CHARGEMENT.fini)return false;
+  if(!CHARGEMENT.t0)CHARGEMENT.t0=now;if(now-CHARGEMENT.t0>15000){chargementTout();return false;}
+  chargementPas();return true; }
+window.__ccCharge=function(){return CHARGEMENT.fini;};window.__ccChargeTout=chargementTout;window.dbgChargement=function(){return {on:CHARGEMENT.on,fini:CHARGEMENT.fini,reste:CHARGEMENT.E.map(function(e){return e[0];}),ms:CHARGEMENT.ms};};
 function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ces sous-arbres, sous l'éclairage de la scène (l'atelier, au menu)
   if(!CHAUFFE_R.rt){const t9=(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
     CHAUFFE_R.rt=new THREE.WebGLRenderTarget(8,8,{format:THREE.RGBAFormat,type:t9,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});}
