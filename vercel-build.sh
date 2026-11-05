@@ -66,6 +66,22 @@ node outils/publie-audio.cjs .vercel-static/jouer || echo "⚠ publie-audio : é
 # n'appelle ; le SOURCE garde tout. Chaque fichier n'est réécrit que si ses jetons restent identiques (voir outils/publie-allege.cjs) ;
 # en cas d'échec, la copie part telle quelle. AVANT l'empreinte : elle couvre donc ce qui est vraiment publié.
 node outils/publie-allege.cjs .vercel-static/jouer || echo "⚠ publie-allege : échec, la copie part avec ses commentaires"
+# (2026-11-05, passe perf mobile 2, A3) LES JETONS DE CONTENU : les .js du jeu hors assets/ et vendor/ (sons-banque, sfx, figures, creatures/*)
+# sont servis en cache IMMUABLE (vercel.json) ; leur ?v=N du source est donc remplacé, dans la copie publiée seulement, par ?v=<8 hex du sha1 du
+# fichier publié> — un octet changé = une autre URL. sons-banque.js : sha des DEUX moitiés (la 2e, sons-banque-2.js, hérite du jeton par sfx.js).
+# AVANT l'empreinte JEU (qui couvre donc les jetons). Opt-out : JETONS_CONTENU=0.
+if [ "${JETONS_CONTENU:-1}" != "0" ]; then
+  for F in $(grep -o '[A-Za-z0-9_/-]*\.js?v=[0-9A-Za-z]*' .vercel-static/jouer/index.html | sed 's/?v=.*//' | grep -v '^vendor/\|^assets/' | sort -u); do
+    if [ "$F" = "sons-banque.js" ] && [ -f .vercel-static/jouer/sons-banque-2.js ]; then
+      T=$(cat .vercel-static/jouer/sons-banque.js .vercel-static/jouer/sons-banque-2.js | sha1sum | cut -c1-8)
+    elif [ -f ".vercel-static/jouer/$F" ]; then
+      T=$(sha1sum ".vercel-static/jouer/$F" | cut -c1-8)
+    else
+      echo "⚠ jeton de contenu : $F absent de la copie publiée"; continue
+    fi
+    sed "s|\($F\)?v=[0-9A-Za-z]*|\1?v=$T|g" .vercel-static/jouer/index.html > .vercel-static/jouer/index.tmp && mv .vercel-static/jouer/index.tmp .vercel-static/jouer/index.html
+  done
+fi
 # LA MÊME VERSION POUR TOUT LE MONDE (2026-10-01, Léo) : le commit publié est gravé dans le jeu (jeton __CC_BUILD__ de
 # index.html) et posé dans version.json ; le jeu compare les deux et se recharge tout seul s'il est en retard.
 # ⚠ (2026-10-03, Léo : « le jeu coupe bizarrement la musique ») L'EMPREINTE DU JEU, PLUS LE COMMIT : graver le commit faisait croire à une
