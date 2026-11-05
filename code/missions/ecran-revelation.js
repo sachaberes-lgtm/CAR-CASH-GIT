@@ -74,32 +74,112 @@ function m2LignePal(d){ // une couleur secrète de la palette, trouvée : son in
    au-dessus de JOUER. Les titres de groupe n'apparaissent que s'il y a plusieurs groupes. Plus de défi du jour, plus de filtres de famille. */
 Object.assign(I18N,{'SUIVIES':'TRACKED'});
 const M2_GROUPES=[[0,'À RÉCUPÉRER','vert','cadeau'],[1,'SUIVIES','or','cible'],[2,'MISSIONS','','']];
-function m2Render(vu){
+/* ===== L'ÉCRAN MISSIONS — REFONTE (2026-11-03, Sacha, après la piste B : « horrible, refonte totale, mets-toi dans la peau d'un designer senior ») =====
+   UNE page à elle, plein écran, au lieu d'un panneau posé sur le garage : le décor s'efface sous un voile d'encre, l'ancien en-tête cyan et le panneau bleu partent.
+   La hiérarchie : 1. LE PORTAIL — la mission vedette, gros : un canon (graduations, rayures qui tournent lentement) dont l'anneau vert se remplit, la récompense au fond ;
+   2. son intitulé, son avancement ; 3. ENSUITE — trois blocs dans le panneau du garage ; 4. le palier suivant, caviardé.
+   (même jour, Sacha : « ça colle pas assez avec la DA du reste ») habillée avec les matières de l'INVENTAIRE (voir le CSS « DANS LA DA DU GARAGE ») et la police unique.
+   LES PALIERS (M2_PAL) : 4 missions par palier, rangées à la main du plus simple au plus long ; le palier courant = le 1er dont moins de 3 / 4 sont réussies. */
+const M2_PAL=[
+  ['fig2','air5','eng10','fig3'],['fig5','aura10k','car5','ai5'],['parf10','eng20','cash100k','tr5'],['fren','pu100','aura20k','col5'],
+  ['figs500','maps','col10','tr10'],['nit2000','car10','ai10','fig8'],['kmh1000','tours5','parfmaps','fren30'],['nmax100','vie5min','cash500k','maps2'],
+  ['air1000','eng30','aura50k','mis10'],['meteo','verglas100','km100k','morts100'],['cash1m','car20','colall','trall'],['aiall','figall','carall','rares'],['cash2m','toutall']];
+Object.assign(I18N,{'PALIER':'TIER','ENSUITE':'NEXT UP','ENCORE':'NEEDS','MISSION':'MISSION','MISSIONS RÉUSSIES':'MISSIONS DONE','RÉCUPÉRER':'CLAIM','VOITURE':'CAR','TRAÎNÉE':'TRAIL',
+  'PEINTURE':'PAINT','FIGURE':'TRICK','CLASSIFIÉ':'CLASSIFIED','NOUVEAU PALIER':'NEW TIER','TOUTES LES MISSIONS SONT RÉUSSIES':'EVERY MISSION IS DONE','RÉCOMPENSE':'REWARD'});
+function m2PalierDe(id){for(let i=0;i<M2_PAL.length;i++)if(M2_PAL[i].indexOf(id)>=0)return i;return M2_PAL.length-1;} // une mission neuve, pas encore rangée : au dernier palier
+function m2Paliers(s){ // {T : par palier {n : missions au garage, ok : réussies} · cur : le palier courant · need : ce qu'il faut pour ouvrir le suivant}
+  const T=M2_PAL.map(function(){return {n:0,ok:0};});
+  for(const m of M2){if(m.f==='secret'||!m2Dispo(m))continue;const p=m2PalierDe(m.id);T[p].n++;if(s.ok.indexOf(m.id)>=0||(s.mq&&s.mq.indexOf(m.id)>=0))T[p].ok++;}
+  let cur=-1;for(let i=0;i<T.length;i++){if(T[i].n&&T[i].ok<Math.ceil(T[i].n*.75)){cur=i;break;}}
+  if(cur<0){cur=T.length-1;while(cur>0&&!T[cur].n)cur--;}
+  return {T:T,cur:cur,need:Math.ceil(T[cur].n*.75)};}
+const MC_CAT={aile:'AILES',trainee:'TRAÎNÉE',peinture:'PEINTURE',figure:'FIGURE'};
+function mcRec(m){ // ce que rapporte la mission : {k : 'car'|'cash'|'hab'|'vide', c : la couleur, et (car) i · (cash) v · (hab) rar, cat}
+  const r=m.r||{};
+  if(r.car){const i=m2CarIdx(r.car);const ri=rarInfo(i>=0?carRar(i):'');return {k:'car',i:i,c:ri.c,rar:ri.n1};}
+  if(r.cash)return {k:'cash',v:r.cash,c:''};
+  if(r.cat){const d=(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});const ri=rarInfo(d&&d.r);return {k:'hab',c:ri.c,rar:ri.n1,cat:MC_CAT[r.cat]||''};}
+  return {k:'vide',c:''};}
+function mcSil(i,rev,duo){const ph=i>=0&&PHOTO.cache[i],a=ph?' src="'+ph+'"':i>=0&&!carRetiree(i)?' data-ph="'+i+'"':''; /* duo : la photo en couleur DESSOUS, la silhouette noire dessus — RÉCUPÈRE la fait fondre (voir m2Clic) */
+  return '<i class="mcSil'+(rev?' rev':'')+(duo?' duo':'')+'">'+(duo?'<img class="c" alt=""'+a+'>':'')+'<img class="n" alt=""'+a+'>'+(duo?'<s class="mcBal"></s>':'')+'</i>';}
+function mcVu(x,s){const vu=s.vu[x.m.id];return [Math.min(x.p,vu!=null?vu:x.p),x.p];}
+let MC_CANON='';
+function mcCanon(){ // le dessin du canon (graduations, rayures) : calculé une fois
+  if(MC_CANON)return MC_CANON;let tk='',rf='';const P=function(r,a){return (100+r*Math.cos(a)).toFixed(1)+' '+(100+r*Math.sin(a)).toFixed(1);};
+  for(let i=0;i<60;i++){const a=i*Math.PI/30,l=i%5?94:90;tk+='M'+P(98,a)+'L'+P(l,a);}
+  for(let i=0;i<8;i++){const a=i*Math.PI/4;rf+='M'+P(79,a)+'Q'+P(62,a+.42)+' '+P(36,a+.95);}
+  MC_CANON='<path class="tk" d="'+tk+'"/><circle class="fd" cx="100" cy="100" r="80"/><circle class="gl" cx="100" cy="100" r="80"/>'
+    +'<g class="rf0"><g class="rf"><path d="'+rf+'"/><circle cx="100" cy="100" r="35"/></g></g>';
+  return MC_CANON;}
+function mcVedette(x,s,arme){const m=x.m,pret=x.rg===0,R=mcRec(m),w=mcVu(x,s),C=2*Math.PI*88,pg=R.k==='hab'?R.c:'';if(arme)w[0]=0; /* arme : on arrive sur la page, l'anneau se charge depuis zéro */
+  let fond;
+  if(R.k==='car')fond=mcSil(R.i,false,pret&&m2Pret(m.id));
+  else if(R.k==='cash')fond='<b class="mcSom"><small>$</small>'+m2Nb(R.v)+'</b>';
+  else if(R.k==='hab')fond='<b class="mcRar">'+sansAcc(TR(R.rar))+'</b>';
+  else fond='<b class="mcSom">?</b>';
+  const lab=R.k==='car'?TR('VOITURE')+' · '+TR(R.rar):R.k==='hab'?TR(R.cat)+' · '+TR(R.rar):''; /* l'argent se lit tout seul au fond du portail */
+  return '<div class="mcV'+(pret?' pret':'')+'" data-m2="'+m.id+'" role="button" tabindex="0"'+(pg?' style="--pg:'+pg+'"':'')+'>'
+    +'<div class="mcPo"><svg viewBox="0 0 200 200" aria-hidden="true">'+mcCanon()
+    +'<circle class="tr" cx="100" cy="100" r="88"/><circle class="pr" cx="100" cy="100" r="88" style="stroke-dasharray:'+C.toFixed(1)+';stroke-dashoffset:'+(C*(1-w[0])).toFixed(1)+'" data-o="'+(C*(1-w[1])).toFixed(1)+'"/>'
+    +(w[1]>0&&!pret?'<g class="hd" style="transform:rotate('+(360*w[0]).toFixed(1)+'deg)" data-r="'+(360*w[1]).toFixed(1)+'"><circle cx="100" cy="12" r="5"/></g>':'')+'</svg>'
+    +'<div class="mcFond mbR'+(m2CarVoir(m)&&!pret?' voir':'')+'" aria-label="'+sansAcc(m2RecNom(m)).replace(/"/g,'')+'">'+fond+'</div></div>'
+    +'<div class="mcVt">'+(lab?'<small class="mcLab"'+(R.c?' style="color:'+R.c+'"':'')+'>'+sansAcc(lab)+'</small>':'')
+    +'<b class="mcTit">'+(m.f==='secret'?sansAcc(TR('SECRÈTE'))+' · ':'')+sansAcc(m2Txt(m))+'</b>'
+    +(pret?(m2Pret(m.id)?'<span class="m2Pr" aria-hidden="true"><span>'+pxi('cadeau')+' '+TR('RÉCUPÈRE')+'</span></span>':'<small class="mcAtt">'+sansAcc(TR('BIENTÔT AU GARAGE'))+'</small>')
+      :'<span class="mcAv">'+sansAcc(m2Prog(m,x.v,x.t))+'</span>')+'</div></div>';}
+function mcLigne(x,k,s){const m=x.m,pret=x.rg===0,ok=x.ok&&!pret,R=mcRec(m),w=mcVu(x,s),hab=R.k==='hab';
+  let rec;
+  if(R.k==='car')rec=mcSil(R.i,ok,pret&&m2Pret(m.id));
+  else if(R.k==='cash')rec='<b class="mcCash">'+fmtC(R.v)+'</b>';
+  else if(hab)rec='<b class="mcRarS">'+sansAcc(TR(R.rar))+'</b>';
+  else rec='';
+  let bas;
+  if(pret)bas=m2Pret(m.id)?'<span class="m2Pr" aria-hidden="true"><span>'+pxi('cadeau')+' '+TR('RÉCUPÈRE')+'</span></span>':'<small class="mcAtt">'+sansAcc(TR('BIENTÔT AU GARAGE'))+'</small>';
+  else if(ok)bas='<small class="mcFait">'+sansAcc(TR('RÉUSSIE'))+'</small>';
+  else bas='<div class="mcJ"><u><i style="width:'+Math.round(100*w[0])+'%" data-w="'+Math.round(100*w[1])+'"></i></u><small>'+sansAcc(m2Prog(m,x.v,x.t))+'</small></div>';
+  return '<div class="mcL'+(pret?' pret':'')+(ok?' ok':'')+(hab?' hab':'')+'" data-m2="'+m.id+'" role="button" tabindex="0" style="--i:'+Math.min(k,12)+(hab?';--rc:'+R.c:'')+'">'
+    +'<div class="mcLt"><b>'+(m.f==='secret'?sansAcc(TR('SECRÈTE'))+' · ':'')+sansAcc(m2Txt(m))+'</b><span class="mbR'+(m2CarVoir(m)&&!pret?' voir':'')+'">'+rec+'</span></div>'+bas+'</div>';}
+function mcLignePal(d){return '<div class="mcL ok" data-pal="'+d.id+'"><div class="mcLt"><b>'+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><span class="mbR voir">'+objFig({cat:'peinture',i:COSM.peinture.indexOf(d)})+'</span></div><small class="mcFait">'+sansAcc(TR('SECRÈTE'))+' · '+sansAcc(TR('RÉUSSIE'))+'</small></div>';}
+function m2Vue(L,s,vu){ // → {pal : le palier (coin haut droit) · ved : la vedette · suite : les lignes et le palier suivant · n : missions à l'écran}
+  const P=m2Paliers(s),T=P.T[P.cur],pal=function(x){return m2PalierDe(x.m.id);};
+  const cand=L.filter(function(x){return x.rg===0||((x.rg===1||x.rg===2)&&x.m.f!=='secret'&&pal(x)<=P.cur);});
+  cand.sort(function(a,b){const ra=a.rg===0?0:1,rb=b.rg===0?0:1;return ra-rb||(ra?pal(a)-pal(b)||b.p-a.p:0);});
+  const vis=cand.slice(0,4);let ved=vis.find(function(x){return x.rg===0;});
+  {const vc=function(x){return !!(x.m.r&&x.m.r.car);};if(vis.length===4&&!vis.some(vc)){const c9=cand.find(vc);if(c9)vis[3]=c9;}} /* une caisse à gagner ne reste jamais hors de l'écran : c'est la vedette naturelle */
+  if(!ved){let b=-1;for(const x of vis)if(x.m.r&&x.m.r.car&&x.p>b){b=x.p;ved=x;}}
+  if(!ved)for(const x of vis)if(!ved||x.p>ved.p)ved=x;
+  let sq='';for(let i=0;i<T.n;i++)sq+='<s'+(i<T.ok?' class="o"':'')+'></s>';
+  let suite='',k=0;
+  const autres=vis.filter(function(x){return x!==ved;});
+  for(const x of autres)suite+=mcLigne(x,k++,s);
+  if(vis.length&&P.cur<M2_PAL.length-1){const reste=Math.max(0,P.need-T.ok);
+    suite+='<div class="mcNx" aria-hidden="true"><small>'+sansAcc(TR('PALIER'))+' '+(P.cur+2)+'</small><span><i style="width:30%"></i><i style="width:46%"></i><i style="width:18%"></i></span>'
+      +'<small>'+(reste?sansAcc(TR('ENCORE'))+' '+reste:sansAcc(TR('CLASSIFIÉ')))+'</small></div>';}
+  return {palier:P.cur+1,sq:sq,ved:ved?mcVedette(ved,s,!vu):'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>',suite:suite,n:vis.length};}
+function m2Render(vu){ /* (2026-11-03, refonte) la page MISSIONS entière : voir « L'ÉCRAN MISSIONS — REFONTE » */
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';
-  const old=$('gmListe'),sc0=old?old.scrollTop:0,a0=old&&old.querySelector('.glA'),sc1=a0?a0.scrollTop:0,b0=old&&old.querySelector('.glB'),sc2=b0?b0.scrollTop:0;
-  const s=m2Etat(),L=m2Lignes(),pal=m2SecPal();let k=0,hb='',h='<div class="glA m2A">';
-  try{hb=serieHtml();}catch(e){console.warn('serieHtml',e);} /* la série de sept jours (missions/aujourdhui.js) */
-  const gr=M2_GROUPES.map(function(g){return {g:g,ls:L.filter(function(x){return x.rg===g[0];})};}).filter(function(o){return o.ls.length;});
-  for(const o of gr){if(gr.length>1)h+='<h4 class="m2Hd'+(o.g[2]?' '+o.g[2]:'')+'">'+(o.g[3]?pxi(o.g[3])+' ':'')+sansAcc(TR(o.g[1]))+' <b>'+(o.g[0]===1?o.ls.length+' / 3':o.ls.length)+'</b></h4>';
-    for(const x of o.ls)h+=m2Ligne(x,k++,s);}
+  const old=$('gmListe'),d0=old&&old.querySelector('.mcDef'),sc0=d0?d0.scrollTop:0,s0=old&&old.querySelector('.mcPan'),sc1=s0?s0.scrollTop:0;
+  const s=m2Etat(),L=m2Lignes(),pal=m2SecPal(),V=m2Vue(L,s,vu);
   const fin=L.filter(function(x){return x.rg===9;}),nf=fin.length+pal.length;
-  if(nf){h+='<div class="m2Fin'+(M2E.fin?' on':'')+'" role="button" tabindex="0" aria-expanded="'+M2E.fin+'">'+pxi('coche')+'<span>'+sansAcc(TR('TERMINÉES'))+' ('+nf+')</span>'+pxi(M2E.fin?'haut':'bas')+'</div>';
-    if(M2E.fin){h+='<div class="m2FinL">';fin.forEach(function(x,j){h+=m2Ligne(x,j,s);});pal.forEach(function(d){h+=m2LignePal(d);});h+='</div>';}}
-  if(!k&&!nf)h+='<div class="m2Rien">'+TR('TOUTES LES MISSIONS')+'</div>';
-  h+='</div>';
-  el.innerHTML='<div id="gmListe" class="m2'+(vu?' vu':'')+'">'+(hb?'<div class="glB m2B">'+hb+'</div>':'')+h+'</div>';
+  let fh='';
+  const pv=s.pv|0,neuf=!!pv&&V.palier>pv&&!vu;if(s.pv!==V.palier&&!vu){s.pv=V.palier;SAVE.mark();} /* LE PALIER NEUF : on le dit une fois, à la 1re visite qui le montre (pv : le dernier palier vu) */
+  if(nf){fh+='<div class="m2Fin mcFin'+(M2E.fin?' on':'')+'" role="button" tabindex="0" aria-expanded="'+M2E.fin+'"><span>'+sansAcc(TR('MISSIONS RÉUSSIES'))+'</span><b>'+nf+'</b>'+pxi(M2E.fin?'haut':'bas')+'</div>';
+    if(M2E.fin){fh+='<div class="mcFinL">';fin.forEach(function(x,j){fh+=mcLigne(x,j,s);});pal.forEach(function(d){fh+=mcLignePal(d);});fh+='</div>';}}
+  const gm=$('gMis');if(gm)gm.classList.add('mbOn');
+  const c0=m2Compte();
+  el.innerHTML='<div id="gmListe" class="m2 mcE'+(vu?' vu':'')+'"><div class="mcVoile"></div>'
+    +'<div class="mcDef"><div class="mcTete"><b class="mcNom">'+sansAcc(TR('MISSIONS'))+'</b><small class="mcSous">'+sansAcc(TR('PALIER'))+' '+V.palier+' / '+M2_PAL.length+' · '+c0.ok+' / '+c0.tot+'</small>'+(neuf?'<em class="mcNeuf">'+sansAcc(TR('NOUVEAU PALIER'))+'</em>':'')+'</div>'
+    +'<div class="mcHero">'+V.ved+'</div>'
+    +'<div class="mcPan"><div class="gModeT">'+pxi('cible')+'<span>'+sansAcc(TR('ENSUITE'))+'</span><s></s><em class="mcSq">'+V.sq+'</em></div>'+V.suite+fh+'</div></div></div>';
   GMIS.cards=[];GMIS.pts=[];GMIS.paths=[];GMIS.last=null;GMIS.lw=0;
-  const c=m2Compte(),sous=$('gmSous'),hd=$('gmHead');if(sous)sous.textContent=c.ok+' / '+c.tot;if(hd)hd.style.setProperty('--m2P',Math.round(100*c.ok/Math.max(1,c.tot))+'%'); /* le compte, et sa jauge sous le titre */
-  const aide=$('gmAide');if(aide)aide.textContent=''; /* (2026-11-01, Sacha : « enlève le texte touche une mission pour la suivre, on peut plus suivre » ) */
+  const c=m2Compte(),sous=$('gmSous');if(sous)sous.textContent=c.ok+' / '+c.tot;
   try{gmPlaceL(VP.w,VP.h);}catch(e){}
-  const nl=$('gmListe');if(nl){nl.scrollTop=sc0;const a1=nl.querySelector('.glA'),b1=nl.querySelector('.glB');if(a1)a1.scrollTop=sc1;if(b1)b1.scrollTop=sc2;}
-  if(typeof GAR!=='undefined'&&GAR.aMisId){const id9=GAR.aMisId;GAR.aMisId=null;setTimeout(function(){const r9=document.querySelector('#gmListe .m2L[data-m2="'+id9+'"]');if(r9){try{r9.scrollIntoView({block:'center'});}catch(e){}r9.classList.add('flash');}},REDUCED_MOTION?0:380);} // VOIR LA MISSION hors du garage
-  /* les photos : une à la fois (photoFile tourne au garage), posées si la ligne est encore là */
+  const nl=$('gmListe');if(nl){const d1=nl.querySelector('.mcDef'),s1=nl.querySelector('.mcPan');if(d1)d1.scrollTop=sc0;if(s1)s1.scrollTop=sc1;}
+  if(typeof GAR!=='undefined'&&GAR.aMisId){const id9=GAR.aMisId;GAR.aMisId=null;setTimeout(function(){const r9=document.querySelector('#gmListe [data-m2="'+id9+'"]');if(r9){try{r9.scrollIntoView({block:'center'});}catch(e){}r9.classList.add('flash');}},REDUCED_MOTION?0:380);} // VOIR LA MISSION hors du garage
   el.querySelectorAll('img[data-ph]').forEach(function(im){const i=+im.getAttribute('data-ph');photoFile(i,function(u){if(u&&im.isConnected)im.src=u;});});
-  el.querySelectorAll('img[data-ai]').forEach(function(im){try{aileFile(im.getAttribute('data-ai'),function(u){if(u&&im.isConnected)im.src=u;});}catch(e){}});
-  /* les jauges se remplissent depuis ce que l'écran avait montré (après une partie : on voit ce qu'elle a fait) */
-  const ems=el.querySelectorAll('.m2L u em[data-w]'),go=function(){ems.forEach(function(e){e.style.width=e.getAttribute('data-w')+'%';});};
-  if(REDUCED_MOTION||vu)go();else setTimeout(function(){requestAnimationFrame(go);},420);
+  const ems=el.querySelectorAll('.mcJ i[data-w]'),rgs=el.querySelectorAll('.mcPo .pr[data-o]'),hds=el.querySelectorAll('.mcPo .hd[data-r]'),go=function(){ems.forEach(function(e){e.style.width=e.getAttribute('data-w')+'%';});rgs.forEach(function(e){e.style.strokeDashoffset=e.getAttribute('data-o');});hds.forEach(function(e){e.style.transform='rotate('+e.getAttribute('data-r')+'deg)';});};
+  if(REDUCED_MOTION||vu)go();else setTimeout(function(){requestAnimationFrame(go);},520);
+  if(neuf&&!REDUCED_MOTION)setTimeout(function(){const t9=document.querySelector('#gmListe .mcNeuf');if(!t9)return;try{pixBurst(t9,14);}catch(e){}try{if(SONV2)sfx('ui.debloque');}catch(e){}hap([12,40,30]);},900);
   let ch=false;for(const x of L){const p=Math.round(x.p*1000)/1000;if(s.vu[x.m.id]!==p){s.vu[x.m.id]=p;ch=true;}}if(ch)SAVE.mark();
   m2Portes();m2RevAuto(700);}
 function m2Voir(m){const o=m2CarVoir(m);if(!o){uiClic('refus');return;}uiClic('nav');
@@ -117,14 +197,18 @@ function m2Recupere(id,row){
   try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}
   setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions'))m2Render(true);else m2Portes();},REDUCED_MOTION?0:560);}
 function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
-  if(t.closest('.m2Serie')){aujClic(t);return;} /* (2026-10-20) la carte de la série dit ce qu'elle donne */
+  if(t.closest('.mcBack')){uiClic('retour');garMisRetour();return;} /* (2026-11-03, refonte) le ◀ de la page */
   const fin=t.closest('.m2Fin');if(fin){M2E.fin=!M2E.fin;uiClic(M2E.fin?'on':'off');hap(8);m2Render(true);
     if(M2E.fin){const f2=document.querySelector('#gmListe .m2Fin');if(f2&&f2.scrollIntoView)try{f2.scrollIntoView({block:'start',behavior:REDUCED_MOTION?'auto':'smooth'});}catch(x){}}return;}
   const pal=t.closest('[data-pal]');if(pal){const j=COSM.peinture.findIndex(function(d){return d.id===pal.getAttribute('data-pal');});if(j<0)return;uiClic('nav');
     ecranWipe(function(){garMode('boutique');shopTab('peinture');shopShow('peinture',j);});return;}
-  const row=t.closest('.m2L');if(!row)return;const id=row.getAttribute('data-m2'),m=m2Def(id);if(!m)return;const s=m2Etat();
-  if(row.classList.contains('pret')){if(m.f==='secret'&&m2Revele(id))return;m2Recupere(id,row);return;} // une SECRÈTE qui brille : sa révélation · (2026-10-31) AVANT la photo : sur une ligne prête, la photo récupère aussi (voir m2PrendIci)
-  if(t.closest('.m2R.voir')&&!t.closest('.m2Pr')){m2Voir(m);return;}
+  const row=t.closest('.m2L,.mcL,.mcV');if(!row)return;const id=row.getAttribute('data-m2'),m=m2Def(id);if(!m)return;const s=m2Etat();
+  if(row.classList.contains('pret')){if(m.f==='secret'&&m2Revele(id))return;
+    if(row.classList.contains('revele'))return; /* (2026-11-03) la révélation est en cours */
+    if(row.querySelector('.mcSil.duo')&&m2Pret(id)){row.classList.add('revele');try{if(SONV2)sfx('ui.debloque');}catch(x){}hap([20,60,20,60,60]); /* la caisse sort du noir, PUIS elle est à toi */
+      setTimeout(function(){if(row.isConnected)m2Recupere(id,row);},REDUCED_MOTION?0:1400);return;}
+    m2Recupere(id,row);return;} // une SECRÈTE qui brille : sa révélation · (2026-10-31) AVANT la photo : sur une ligne prête, la photo récupère aussi (voir m2PrendIci)
+  if(t.closest('.m2R.voir,.mbR.voir')&&!t.closest('.m2Pr')){m2Voir(m);return;}
   if(s.ok.indexOf(id)>=0){ /* (2026-11-01, Sacha : « quand on clique sur une mission achevée, elle se supprime automatiquement » ) */
     if(!s.mq)s.mq=[];if(s.mq.indexOf(id)<0)s.mq.push(id);SAVE.flush();uiClic('off');hap(10);m2Render(true);return;}
   uiClic('refus'); /* (2026-11-01) on ne peut plus suivre une mission : toucher une mission en cours ne fait plus rien */}
@@ -235,7 +319,7 @@ function m2RevAuto(delai){if(M2REV.on||!m2RevFile().length)return;clearTimeout(M
    Ouverte 1,4 s après l'écran de fin, plein écran (z-index 95), elle passait PAR-DESSUS la plaque CONTINUER de la seconde chance, qui n'a que
    5,5 s : le joueur regardait la caisse se remplir de couleur pendant que l'offre filait. La machine FINAL SPIN attendait déjà l'offre
    (chanceAttend) ; la révélation l'attend aussi, et attend que la machine (z-index 250, par-dessus elle) soit refermée. Elle repasse toutes les 0,4 s. */
-function m2RevAttend(){try{return !!((typeof chanceAttend==='function'&&chanceAttend())||(typeof SPIN!=='undefined'&&SPIN.ouvert));}catch(e){return false;}}
+function m2RevAttend(){try{return !!((typeof chanceAttend==='function'&&chanceAttend())||(typeof SPIN!=='undefined'&&SPIN.ouvert)||(typeof serieWAttend==='function'&&serieWAttend()));}catch(e){return false;}}
 function m2Revele(id){const m=m2Def(id);if(!m||M2REV.on||m2EnC())return false;const i=m2CarIdx((m.r||{}).car);if(i<0||carRetiree(i))return false;
   M2REV.on=true;M2REV.id=id;
   let el=document.getElementById('m2Rev');if(!el){el=document.createElement('div');el.id='m2Rev';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);}

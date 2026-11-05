@@ -64,6 +64,101 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 .m2Fin{display:flex;align-items:center;gap:8px;min-height:44px;margin:10px 2px 4px;padding:0 4px;cursor:pointer;font-size:var(--f0);letter-spacing:1px;color:#b9b2e6;
   border-top:1px solid rgba(143,132,200,.3)}
 .m2Fin span{flex:1}.m2Fin .pxi{--pxs:1}.m2Fin.on{color:#dfeeff}
+/* ===== L'ÉCRAN MISSIONS — DANS LA DA DU GARAGE (2026-11-03, Sacha : « ça colle pas assez avec la DA du reste, inspire-toi des autres écrans ») =====
+   Les matières de l'INVENTAIRE, rien d'inventé : le décor du garage reste visible en haut ; le titre comme #gName (blanc penché, filet de couleur) ; le panneau comme #gBottom
+   (laque violet-encre à 70 %, liseré --fil, coins coupés --coupe) ; l'en-tête de section .gModeT (néon penché, filet, compte) ; les lignes comme #gFigSel (encre, liseré, coins à 7 px) ;
+   RETOUR penché + JOUER d'or (#gmBas). Une seule police (Press Start, règle du 15/10). La couleur des MISSIONS = celle de leur porte au garage : --neoV (vert néon) — le portail. */
+#gMis.mbOn{--rc:var(--neoV);--pg:var(--neoV)}
+#gMis.mbOn #gmHead,#gMis.mbOn #gmFils{display:none!important}
+#gmListe.mcE{position:absolute;inset:0;left:0;right:0;top:0;max-height:none;margin:0;padding:0;background:none;box-shadow:none;overflow:visible;pointer-events:none;animation:none}
+.mcVoile{position:absolute;inset:0;background:radial-gradient(ellipse 95% 46% at 50% 30%,rgba(7,5,15,.9),rgba(7,5,15,.62) 70%,rgba(7,5,15,.4));pointer-events:none} /* le plan d'ensemble de l'atelier reste là, en fond, mais ne se lit plus à travers le portail */
+#gMis.m2land .mcVoile{background:radial-gradient(ellipse 36% 72% at 25% 56%,rgba(7,5,15,.86),rgba(7,5,15,.5) 72%,rgba(7,5,15,.34))}
+.mcDef{position:absolute;left:calc(var(--sL) + 10px);right:calc(var(--sR) + 10px);top:calc(var(--sT) + 10px);bottom:var(--mcBas,96px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;pointer-events:auto}
+.mcDef::-webkit-scrollbar,.mcPan::-webkit-scrollbar{display:none}
+/* le titre : celui du garage (#gName) */
+.mcTete{padding:4px 6px 0}
+.mcNom{position:relative;display:inline-block;padding-bottom:13px;font-weight:400;font-size:clamp(20px,6.8vw,28px);line-height:1.2;letter-spacing:2px;color:#fff;transform:skewX(var(--sk));transform-origin:0 100%;
+  text-shadow:0 3px 0 var(--txO),0 0 24px color-mix(in srgb,var(--rc) 50%,transparent)}
+.mcNom::after{content:'';position:absolute;left:0;bottom:0;width:min(62vw,230px);height:3px;background:linear-gradient(90deg,var(--rc) 0 72%,transparent);box-shadow:0 0 12px color-mix(in srgb,var(--rc) 60%,transparent)}
+.mcSous{display:block;margin-top:8px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
+.mcNeuf{display:inline-block;margin-top:9px;padding:5px 9px 4px;font-style:normal;font-size:var(--f0);letter-spacing:2px;color:var(--txO);background:var(--neoV);box-shadow:0 0 14px color-mix(in srgb,var(--neoV) 60%,transparent);transform:skewX(var(--sk));animation:mcTampon .45s var(--ease) .75s backwards}
+@keyframes mcTampon{from{opacity:0;transform:skewX(var(--sk)) scale(2.2)}}
+/* LA VEDETTE : le portail flotte sur le décor, comme la caisse au garage */
+.mcHero{display:flex;justify-content:center;padding:10px 0 14px}
+.mcV{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:420px;text-align:center;cursor:pointer;animation:k4Nom var(--t-slow) var(--ease) backwards}
+.mcPo{position:relative;width:min(52vw,200px,26vh);aspect-ratio:1;flex:none;filter:drop-shadow(0 0 14px color-mix(in srgb,var(--pg) 35%,transparent))}
+.mcPo svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.mcPo .tk{fill:none;stroke:var(--tx3);stroke-width:1;opacity:.5}
+.mcPo .fd{fill:rgba(7,5,15,.88)}
+.mcPo .gl{fill:var(--pg);opacity:.08}
+.mcPo .rf{fill:none;stroke:var(--pg);stroke-width:1.3;opacity:.3;transform-origin:100px 100px;animation:mcTourne 48s linear infinite}
+.mcPo .rf0{transform-origin:100px 100px;animation:mcArme 1.5s var(--ease) backwards} /* l'armement : un tour et demi lancé, puis la rotation lente */
+@keyframes mcArme{from{transform:rotate(-260deg);opacity:0}30%{opacity:1}}
+.mcPo .hd{transform-origin:100px 100px;transition:transform 1.1s var(--ease)}.mcPo .hd circle{fill:#fff;filter:drop-shadow(0 0 4px var(--pg)) drop-shadow(0 0 9px var(--pg))}
+.mcPo{transition:transform .15s var(--ease)}.mcV:active .mcPo{transform:scale(.96)}
+.mcPo .tr{fill:none;stroke:rgba(200,184,255,.16);stroke-width:6}
+.mcPo .pr{fill:none;stroke:var(--pg);stroke-width:6;transform:rotate(-90deg);transform-origin:100px 100px;transition:stroke-dashoffset 1.1s var(--ease)}
+@keyframes mcTourne{to{transform:rotate(360deg)}}
+.mcFond{position:absolute;inset:20%;display:flex;align-items:center;justify-content:center}
+.mcSil{position:relative;display:block;width:100%;aspect-ratio:720/440;font-style:normal}
+.mcSil img{position:absolute;left:-8%;top:0;width:116%;height:100%;object-fit:contain;pointer-events:none;filter:brightness(0) drop-shadow(0 0 1px var(--pg)) drop-shadow(0 0 6px color-mix(in srgb,var(--pg) 45%,transparent))}
+.mcSil img:not([src]){display:none}.mcSil.rev img{filter:none}
+.mcSil.duo img.c{filter:drop-shadow(0 0 10px color-mix(in srgb,var(--pg) 45%,transparent))}.mcSil.duo img.n{clip-path:inset(0 0 0 0);transition:clip-path 1.2s var(--ease)}
+.revele .mcSil.duo img.n{clip-path:inset(0 0 100% 0)}
+.mcBal{position:absolute;left:2%;right:2%;top:100%;height:2px;background:var(--pg);box-shadow:0 0 10px var(--pg),0 0 22px var(--pg);opacity:0;text-decoration:none}
+.revele .mcBal{animation:m2RvBalaye 1.2s var(--ease) forwards}
+.mcV.revele .mcPo{animation:none;filter:drop-shadow(0 0 26px color-mix(in srgb,var(--pg) 75%,transparent))}
+.mcFond .mcSil{width:118%}
+.mcSom{font-weight:400;font-size:var(--f5);line-height:1.2;color:var(--cash);white-space:nowrap;text-shadow:0 0 10px rgba(125,255,155,.45)}.mcSom small{font-size:var(--f1);margin-right:4px}
+.mcRar{font-weight:400;font-size:var(--f1);letter-spacing:1px;color:var(--pg);text-shadow:0 0 8px var(--pg)}
+.mcVt{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.mcLab{font-size:var(--f0);letter-spacing:2px;color:var(--tx3)}
+.mcTit{font-weight:400;font-size:var(--f3);line-height:1.6;letter-spacing:1px;color:#fff;text-shadow:0 2px 0 var(--txO);text-wrap:balance;max-width:340px}
+.mcAv{font-size:var(--f1);letter-spacing:1px;color:var(--pg);text-shadow:0 0 8px color-mix(in srgb,var(--pg) 60%,transparent)}
+.mcV .m2Pr{margin-top:2px;min-height:34px;padding:0 18px}
+.mcV.pret .mcPo .pr{stroke-dashoffset:0!important}.mcV.pret .mcPo .gl{opacity:.18}.mcV.pret .mcPo{animation:mcPouls 1.4s var(--ease) infinite alternate}
+@keyframes mcPouls{to{filter:drop-shadow(0 0 22px color-mix(in srgb,var(--pg) 65%,transparent))}}
+.mcAtt,.mcFait{font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
+.mcVide{padding:30px 10px;font-size:var(--f2);line-height:1.7;color:#fff;text-align:center}
+/* LE PANNEAU : celui du garage (#gBottom) */
+.mcPan{box-sizing:border-box;width:100%;max-width:560px;margin:0 auto;padding:12px 12px 10px;
+  background:linear-gradient(180deg,rgba(26,21,50,.7) 0%,rgba(20,15,40,.7) 52%,rgba(15,12,32,.7) 100%);box-shadow:inset 0 0 0 1px var(--fil),0 22px 40px -14px rgba(0,0,0,.75);
+  clip-path:polygon(var(--coupe) 0,100% 0,100% calc(100% - var(--coupe)),calc(100% - var(--coupe)) 100%,0 100%,0 var(--coupe));animation:gDeplie .34s var(--ease) both}
+.mcPan .gModeT{flex:none;height:30px;margin-bottom:8px}
+.mcSq{display:flex;gap:4px}.mcSq s{display:block;width:8px;height:8px;background:none;opacity:1;box-shadow:inset 0 0 0 1px var(--tx3)}.mcSq s.o{background:var(--rc);box-shadow:0 0 6px var(--rc)}
+/* une ligne : un bloc de l'inventaire (#gFigSel) */
+.mcL{display:flex;flex-direction:column;gap:8px;margin-bottom:6px;padding:10px 11px 10px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(11,8,24,.86),rgba(23,16,46,.86));box-shadow:inset 0 0 0 1px var(--fil),inset 0 2px 0 rgba(255,255,255,.05);
+  clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);animation:gmIn .4s var(--ease) backwards;animation-delay:calc(140ms + var(--i) * 60ms)}
+.mcL:active{transform:translateY(2px)}
+.mcLt{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mcLt b{min-width:0;font-weight:400;font-size:var(--f1);line-height:1.6;letter-spacing:.5px;color:#fff7ee}
+.mcLt .mbR{flex:none;display:flex;justify-content:flex-end;min-width:44px}.mcLt .mcSil{width:56px}
+.mcCash{font-weight:400;font-size:var(--f1);color:var(--cash);white-space:nowrap;text-shadow:0 0 8px rgba(125,255,155,.35)}
+.mcRarS{font-weight:400;font-size:var(--f0);letter-spacing:1px;color:var(--rc);text-shadow:0 0 6px var(--rc)}
+.mcJ{display:flex;align-items:center;gap:10px}
+.mcJ u{flex:1;height:5px;background:#030914;box-shadow:0 0 0 1px rgba(200,184,255,.18);text-decoration:none}.mcJ i{display:block;height:100%;width:0;background:var(--neoV);box-shadow:0 0 8px var(--neoV);transition:width 1s var(--ease)}
+.mcJ small{flex:none;font-size:var(--f0);color:var(--tx3)}
+.mcL.hab{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc) 70%,transparent),inset 3px 0 0 var(--rc);background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 16%,rgba(11,8,24,.9)),rgba(23,16,46,.86))}
+.mcL.hab .mcLt b{color:color-mix(in srgb,var(--rc) 45%,#fff)}.mcL.hab .mcJ i{background:var(--rc);box-shadow:0 0 8px var(--rc)}
+.mcL.pret{box-shadow:inset 0 0 0 2px var(--cash),0 0 16px rgba(125,255,155,.25)}.mcL.pret .m2Pr{align-self:flex-start;margin-top:0}
+.mcL.ok{cursor:default;opacity:.62}
+.mcNx{display:flex;align-items:center;gap:10px;padding:8px 2px 2px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
+.mcNx span{flex:1;display:flex;gap:5px}.mcNx i{display:block;height:9px;background:#05030c;box-shadow:inset 0 0 0 1px var(--fil)}
+.mcFin{display:flex;align-items:center;gap:10px;min-height:40px;margin-top:6px;padding:0 4px;font-size:var(--f0);letter-spacing:1px;color:var(--tx2);cursor:pointer}
+.mcFin b{font-weight:400;color:var(--tx3)}.mcFin .pxi{--pxs:1;margin-left:auto}
+.mcL.flash{animation:gmFlash .5s var(--ease)}
+#gmListe.mcE.vu .mcL,#gmListe.mcE.vu .mcV,#gmListe.mcE.vu .mcPan{animation:none}
+#gmListe.mcE:not(.land) .mcDef{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 20px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 20px),transparent)} /* petit écran : le bas du panneau se fond, on sait qu'il défile */
+/* couché : le titre et le portail à gauche sur le décor, le panneau à droite (comme #gBottom couché), RETOUR | JOUER sous le panneau */
+#gMis.mbOn.m2land #gmBas{left:auto;right:calc(var(--sR) + 14px);width:min(calc(50% - var(--sR) - 14px),430px);transform:none;bottom:calc(var(--sB) + 12px)}
+#gMis.mbOn.m2land #gmBas .gmHome{width:76px;flex-direction:column;gap:6px;padding:6px 4px 4px 8px}
+#gmListe.mcE.land .mcDef{display:grid;grid-template-columns:1fr min(50%,430px);grid-template-rows:auto 1fr;column-gap:16px;right:calc(var(--sR) + 14px);bottom:calc(var(--sB) + 12px);overflow:hidden}
+#gmListe.mcE.land .mcTete{grid-column:1;grid-row:1}
+#gmListe.mcE.land .mcHero{grid-column:1;grid-row:2;align-items:center;padding:0}
+#gmListe.mcE.land .mcPan{grid-column:2;grid-row:1/3;max-width:none;height:100%;margin:0;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(var(--mcJh,70px) + 8px)}
+#gmListe.mcE.land .mcPo{width:min(42vh,172px)}
+@media (prefers-reduced-motion:reduce){.mcPo .rf,.mcPo .rf0,.mcV.pret .mcPo,.mcNeuf{animation:none}.mcL,.mcV,.mcPan{animation:none}.mcSil.duo img.n,.mcPo .hd{transition:none}}
 .m2Rien{padding:16px 6px;font-size:var(--f0);color:#8fb8c8;text-align:center}
 /* LE POINT VERT des portes MISSIONS : une récompense attend */
 .m2Pt{position:absolute;top:5px;right:6px;width:10px;height:10px;background:var(--cash);box-shadow:0 0 0 2px var(--k0),0 0 10px var(--cash);pointer-events:none;
@@ -185,29 +280,76 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 #m2Rev.fin .m2RvBloc{opacity:0;transform:scale(1.06)}#m2Rev.fin .m2RvFond,#m2Rev.fin .m2RvRayons{opacity:0}
 @media (orientation:landscape) and (max-height:540px){.m2RvPh{width:min(44vw,300px)}.m2RvNom{font-size:var(--f6)}.m2RvBloc{gap:5px}.m2RvTx{min-height:2.4em}}
 @media (prefers-reduced-motion:reduce){.m2RvRayons{animation:none}.m2RvBloc,.m2RvNom,.m2RvBt,.m2RvRar,.m2RvPh img.n,.m2RvFond,.m2RvRayons{transition:none}#m2Rev.plein .m2RvLigne{animation:none}}
-/* (2026-10-20, Léo) LA SÉRIE DE SEPT JOURS — sept cases : cochées en vert, celle du jour qui bat en or (l'or = ce qu'on vise, comme une mission suivie), DEMAIN
-   annoncé, la 7e case = la peinture exclusive, son nuancier. (2026-10-22, Sacha : « enlève le défi du jour ») le défi et son bloc AUJOURD'HUI sont partis :
-   la série tient dans une carte (.m2Serie) — titre, sept cases, une phrase. Rien ne bouge en continu sauf la case du jour. */
-.m2Serie .spIco{display:inline-block;flex:none;background-size:contain;background-repeat:no-repeat;background-position:center;image-rendering:pixelated}
-.m2Serie{position:relative;box-sizing:border-box;padding:10px 8px 11px;cursor:pointer;background:linear-gradient(180deg,#10294b,#0a1b36);
-  box-shadow:inset 0 0 0 1px rgba(95,240,255,.24),0 8px 22px rgba(0,0,0,.38);animation:gmIn .4s var(--ease) backwards;animation-delay:260ms}
-.m2Serie>b{display:flex;align-items:center;gap:7px;font-weight:400;font-size:var(--f1);letter-spacing:1px;line-height:1.4;color:#fff;margin-bottom:9px}
-.m2Serie>b .pxi{--pxs:2;color:var(--neoA)}
-.m2Serie>small{display:block;margin-top:9px;font-size:var(--f0);line-height:1.55;letter-spacing:.5px;color:#8fb8c8}
-.srL{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.srC{position:relative;font-style:normal;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;min-width:0;height:54px;padding:5px 0 3px;
-  box-sizing:border-box;background:#06142b;box-shadow:inset 0 0 0 1px rgba(95,240,255,.16);clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
-.srC>em{font-style:normal;font-size:var(--f0);letter-spacing:0;color:#6f93a6;white-space:nowrap}
-.srC .m2Cash{font-size:var(--f0);letter-spacing:-1px;line-height:22px}
-.srC .spIco{width:22px;height:22px}.srC>b{font-weight:400;font-size:var(--f0);color:var(--au1)}
-.srSw{display:block;width:80%;max-width:24px;height:22px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 0 8px rgba(255,120,200,.35)}
-.srC.fait{background:#0a2418;box-shadow:inset 0 0 0 1px rgba(94,227,122,.55)}.srC.fait>*:not(s):not(em){visibility:hidden}.srC.fait>em{color:#5ee37a}
-.srC>s{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#5ee37a;text-decoration:none}.srC>s .pxi{--pxs:2}
-.srC.auj{background:#2b240c;box-shadow:inset 0 0 0 2px var(--au2);animation:srBat 1.1s var(--ease) infinite alternate}.srC.auj>em{color:var(--au1)}
-@keyframes srBat{to{box-shadow:inset 0 0 0 2px var(--au2),0 0 14px rgba(255,201,58,.45)}}
-.srC.dem{box-shadow:inset 0 0 0 1px var(--au2)}.srC.dem>em{color:var(--au1)}
-.srC.ex:not(.fait){background:linear-gradient(180deg,#1a0f3a,#06142b)}
-@media (prefers-reduced-motion:reduce){.srC.auj{animation:none}}
+/* (2026-11-03, Sacha : « la série de connexions rapporte un peu plus d'argent chaque jour, puis une voiture épique à la fin — enlève-la de l'écran missions,
+   mets-la dans un écran en plus, à ta mort, 1re partie de la journée ») L'ÉCRAN DE SÉRIE (#serieW) : noir d'encre, l'or pour la case du jour, le vert
+   « portail » pour la voiture mystère seulement. Ouverture en œilleton (le cercle s'ouvre sur la scène), sept marches qui montent, le gain qui s'égrène,
+   la voiture du 7e jour qui sort du portail. Rien de penché, rien en continu sauf le portail et la case du jour. */
+#serieW{position:fixed;inset:0;z-index:96;display:none;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--pix);background:#000;color:#fff;
+  padding:calc(var(--sT,0px) + 12px) calc(var(--sR,0px) + 14px) calc(var(--sB,0px) + 12px) calc(var(--sL,0px) + 14px);overflow:hidden;cursor:pointer;
+  --pg:#8dff4a;--pg2:#1c7a2a;transition:opacity .4s var(--ease)}
+#serieW.on{display:flex}#serieW.fin{opacity:0;pointer-events:none}
+.swScene{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 38%,#15130d 0,#0a0a0c 55%,#040405 100%);clip-path:circle(0% at 50% 40%);transition:clip-path 1s var(--ease)}
+#serieW.on .swScene{clip-path:circle(150% at 50% 40%)}
+.swAnneau{position:absolute;left:50%;top:40%;width:24vmin;height:24vmin;margin:-12vmin 0 0 -12vmin;border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 22px rgba(255,255,255,.5);opacity:0;pointer-events:none}
+#serieW.on .swAnneau{animation:swIris 1s var(--ease) forwards}
+@keyframes swIris{0%{transform:scale(.08);opacity:1}70%{opacity:.9}100%{transform:scale(7);opacity:0}}
+.swBloc{position:relative;display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2.2vh,16px);width:min(100%,520px);text-align:center;opacity:0;transform:translateY(8px);transition:opacity .45s var(--ease) .5s,transform .45s var(--ease) .5s}
+#serieW.on .swBloc{opacity:1;transform:none}
+.swHd{display:flex;flex-direction:column;align-items:center;gap:6px}
+.swHd small{font-size:var(--f1);letter-spacing:3px;color:#8c8f98}
+.swHd b{font-weight:400;font-size:var(--f8);line-height:1;color:#fff;text-shadow:0 3px 0 #000}
+.swHd b i{font-style:normal;font-size:var(--f4);color:#6a6d76;margin-left:4px}
+.swHd em{font-style:normal;font-size:var(--f0);letter-spacing:1px;color:var(--au1)}
+.swPiste{display:grid;grid-template-columns:repeat(7,1fr);gap:clamp(3px,1.4vw,8px);align-items:end;width:100%;height:clamp(96px,26vh,170px);border-bottom:2px solid #2a2c33;box-sizing:border-box;padding:0 2px}
+.swC{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0;font-style:normal}
+.swBar{position:relative;display:flex;align-items:flex-start;justify-content:center;width:100%;height:calc(var(--h) * 1%);box-sizing:border-box;padding-top:5px;text-decoration:none;
+  background:#14151a;box-shadow:inset 0 0 0 1px #2a2c33;transform-origin:bottom;animation:swMonte .55s var(--ease) backwards;animation-delay:calc(.55s + var(--i) * 70ms)}
+@keyframes swMonte{from{transform:scaleY(0)}}
+.swBar b{font-weight:400;font-size:var(--f0);letter-spacing:-1px;color:#6a6d76;white-space:nowrap}
+.swC>em{position:absolute;top:100%;left:0;right:0;margin-top:6px;font-style:normal;font-size:var(--f0);color:#5b5e67;letter-spacing:0}
+.swC.fait .swBar{background:#1b1d23;box-shadow:inset 0 0 0 1px #3a3d46}.swC.fait .swBar b{color:#9a9da6}
+.swC.auj .swBar{background:#0a0a0c;box-shadow:inset 0 0 0 2px var(--au2)}.swC.auj .swBar b{color:var(--au1)}.swC.auj>em{color:var(--au1)}
+.swC.auj .swBar::before{content:"";position:absolute;left:0;right:0;bottom:0;height:0;background:var(--au2);transition:height 1s var(--ease)}
+#serieW.plein .swC.auj .swBar::before{height:100%}#serieW.plein .swC.auj .swBar b{position:relative;color:var(--auO)}
+.swC.voit .swBar{background:transparent;box-shadow:none;align-items:center;padding:0}
+.swC.voit .swBar::before{display:none}
+.swPortail{position:relative;width:100%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(var(--pg),var(--pg2),#d9ffb0,var(--pg2),var(--pg));box-shadow:0 0 14px color-mix(in srgb,var(--pg) 55%,transparent);animation:swTourne 3s linear infinite}
+.swPortail::after{content:"";position:absolute;inset:18%;border-radius:50%;background:#030b05}
+.swPortail s{position:relative;z-index:1;text-decoration:none;font-size:var(--f3);color:var(--pg);animation:swContre 3s linear infinite}
+@keyframes swTourne{to{transform:rotate(360deg)}}@keyframes swContre{to{transform:rotate(-360deg)}}
+.swC.voit.auj .swPortail{box-shadow:0 0 22px var(--pg)}
+.swC>s.swOk{position:absolute;left:0;right:0;top:6px;text-align:center;color:#5ee37a;text-decoration:none}.swC>s.swOk .pxi{--pxs:2}
+.swCentre{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:clamp(70px,20vh,150px);margin-top:14px}
+.swGain{font-size:var(--f7);line-height:1.1;color:var(--au1);text-shadow:0 3px 0 var(--auE),0 0 18px var(--auG);opacity:0;transform:scale(.9);transition:opacity .3s var(--ease),transform .4s var(--ease)}
+.swGain small{display:block;margin-bottom:6px;font-size:var(--f1);letter-spacing:3px;color:#8c8f98;text-shadow:none}
+#serieW.gain .swGain{opacity:1;transform:none}
+.swPh{position:relative;width:min(70vw,360px);aspect-ratio:720/440;display:none}
+.swPh img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}.swPh img:not([src]){display:none}
+.swPh img.n{filter:brightness(0) drop-shadow(0 0 2px var(--pg));clip-path:inset(0 0 0 0);transition:clip-path 1.4s var(--ease)}
+.swPh img.c{filter:drop-shadow(0 0 16px color-mix(in srgb,var(--rc,#fff) 55%,transparent))}
+#serieW.plein .swPh img.n{clip-path:inset(0 0 100% 0)}
+.swLigne{position:absolute;left:3%;right:3%;top:100%;height:3px;background:var(--pg);box-shadow:0 0 14px var(--pg);opacity:0}
+#serieW.plein .swLigne{animation:m2RvBalaye 1.4s var(--ease) forwards}
+#serieW.voiture .swPh{display:block}
+.swRar{font-size:var(--f0);letter-spacing:3px;color:var(--rc,#fff);opacity:0;transition:opacity .4s var(--ease)}
+.swNom{font-size:var(--f6);line-height:1.2;color:#fff;text-shadow:0 3px 0 #000,0 0 18px var(--rc,#fff);opacity:0;transform:scale(1.6);transition:transform .45s var(--ease),opacity .3s var(--ease)}
+#serieW.nom .swRar,#serieW.nom .swNom{opacity:1;transform:none}
+.swPied{font-size:var(--f1);line-height:1.7;letter-spacing:1px;color:#8c8f98;opacity:0;transition:opacity .4s var(--ease)}.swPied b{font-weight:400;color:var(--au1)}
+.swPied i{display:block;font-style:normal;color:#e0645a;font-size:var(--f0)}
+#serieW.bt .swPied{opacity:1}
+.swBt{min-width:220px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .3s var(--ease),transform .3s var(--ease)}
+#serieW.bt .swBt{opacity:1;pointer-events:auto;transform:none}
+.swG,.swD{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2.2vh,16px);width:100%;min-width:0}
+@media (orientation:landscape) and (max-height:540px){.swBloc{flex-direction:row;align-items:center;gap:26px;width:min(100%,800px)}.swG,.swD{flex:1 1 0;gap:10px}
+  .swHd b{font-size:var(--f6)}.swPiste{height:clamp(80px,34vh,130px)}.swCentre{min-height:0;margin-top:0}.swGain{font-size:var(--f6)}.swPh{width:min(34vw,230px)}.swNom{font-size:var(--f4)}.swBt{min-width:180px}}
+@media (prefers-reduced-motion:reduce){.swScene{transition:none}#serieW.on .swAnneau{animation:none}.swBar{animation:none}.swPortail,.swPortail s{animation:none}.swBloc{transition:none}}
+/* (2026-11-03) L'ÉCRAN DE SÉRIE dans la DA du garage : le fond violet-encre du jeu (body #07050f), les marches comme les blocs de l'inventaire (encre, liseré --fil). Une seule police. */
+.swScene{background:radial-gradient(ellipse at 50% 38%,#1c1636 0,#0d0a1c 55%,#07050f 100%)}
+.swBar{background:linear-gradient(180deg,rgba(11,8,24,.86),rgba(23,16,46,.86));box-shadow:inset 0 0 0 1px var(--fil)}
+.swC.fait .swBar{background:linear-gradient(180deg,rgba(26,21,50,.9),rgba(20,15,40,.9));box-shadow:inset 0 0 0 1px rgba(200,184,255,.28)}.swC.fait .swBar b{color:var(--tx2)}
+.swC.auj .swBar{background:#0b0818}.swPiste{border-bottom-color:var(--fil)}.swHd small,.swPied,.swC>em{color:var(--tx3)}
+.swHd b{transform:skewX(var(--sk));text-shadow:0 3px 0 var(--txO),0 0 24px rgba(255,201,58,.35)}
 /* (2026-10-22, Sacha : « enlève le défi du jour, enlève toutes les catégories en haut, c'est trop compliqué… mets-toi dans la peau d'un designer UX/UI senior : un truc beau,
    plus simple, chaque bouton mieux placé, plus ergonomique ») L'ÉCRAN MISSIONS ÉPURÉ.
    COUCHÉ (#gMis.m2land, posé par gmPlaceL) : UNE grille à deux colonnes pour le haut comme pour le bas. À gauche (--m2Gl) : le titre, le compte et sa jauge, la carte de la
@@ -246,5 +388,4 @@ html.misV2 #gmHead em{order:3}
 .m2A .m2L:not(.pret):not(.ok) .glTx>u{margin:5px 0 0}.m2A .m2L:not(.pret):not(.ok) .glTx>small{margin-top:5px;white-space:nowrap}
 .m2A .m2L{min-height:56px;margin-bottom:6px}
 @media (orientation:landscape) and (max-height:540px){.m2A .m2L{min-height:54px;padding:6px 9px 6px 8px;margin-bottom:6px}.m2A .m2R{width:74px;height:40px}.m2Serie{padding:9px 8px 10px}.srC{height:52px}.m2Pr{min-height:26px;margin-top:5px}}
-#gmListe.m2.vu .m2Serie{animation:none}
 </style>
