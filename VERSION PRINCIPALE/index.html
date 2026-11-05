@@ -5833,6 +5833,8 @@ html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear){
   box-shadow:inset 3px 0 0 var(--nc),inset 34px 0 30px -28px color-mix(in srgb,var(--nc) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.06),
     0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)!important}
 html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres) .pxi{--pxs:3!important;color:var(--nc)!important;filter:drop-shadow(0 0 5px var(--nc))!important}
+/* (2026-11-05, Sacha : +« bug ici »+ — un CARRÉ CYAN plein au coin du bouton GARAGE) la pastille du GARAGE porte un panier en pixels (jury DIR-26) : la règle du dessus le prenait pour une icône de tuile (27 px, cyan comme le fond de la pastille = invisible, d'où le carré). Dans une pastille : 9 px, la couleur de la pastille. */
+html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres) .mBadge .pxi{--pxs:1!important;color:inherit!important;filter:none!important}
 html.hub:not(.poki) body #mHome.acc2 .mGear .pxi{--pxs:3!important;color:var(--nc,#5ee6ff)!important;filter:drop-shadow(0 0 5px var(--nc,#5ee6ff))!important}
 html.hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{
   background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
