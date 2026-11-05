@@ -43,8 +43,15 @@ def attend(c,js,tmax):
     return False
 def mesure(c,nom,F,V,passe=None,lk=None):
     """Les COMPTEURS d'une map (2026-11-04, T0) : appels, triangles, programmes, textures/géométries, toiles, tas JS + images longues du portail. dbgCout est armé 2 s, hors des fenêtres d'images."""
-    c.ev("dbgAuto(1,0,{});dbgCout(1);1");c.pump(2.5)
-    r=c.ev("JSON.stringify((function(){var k=dbgCout(),t=dbgToiles(),m=performance.memory;return {appels:k.image&&k.image.calls,triangles:k.image&&k.image.tris,programmes:k.progs,textures:k.tex,geometries:k.geo,toiles:t.rendues,tas:m?m.usedJSHeapSize:null,dpr:k.dpr,px:k.px,passes:k.passes,ombre:k.ombre,bloom:k.bloom,cpu:k.cpu}})())")
+    # LECTURE À UN INSTANT FIXE (2026-11-05) : la caisse est reposée par dbgPortail(1800) à 1 800 m de la fin de la piste (même graine = même endroit,
+    # lat 0, cap 0), on attend 80 m de route puis on fait 3 lectures espacées de 0,6 s dont on prend la moyenne (appels, triangles) — deux bancs donnent les mêmes compteurs.
+    c.ev("dbgAuto(1,0,{});1");pos=c.ev("dbgPortail(1800)");s0=pos.get('s',0) if isinstance(pos,dict) else 0
+    t=time.time()
+    while time.time()-t<40 and (c.ev("dbgEco().s") or 0)<s0+80:c.pump(.02)
+    c.ev("dbgCout(1);1");c.pump(.25);L=[]
+    for k in range(3):
+        L.append(json.loads(c.ev("JSON.stringify((function(){var k=dbgCout(),t=dbgToiles(),m=performance.memory;return {appels:k.image&&k.image.calls,triangles:k.image&&k.image.tris,programmes:k.progs,textures:k.tex,geometries:k.geo,toiles:t.rendues,tas:m?m.usedJSHeapSize:null,dpr:k.dpr,px:k.px,passes:k.passes,ombre:k.ombre,bloom:k.bloom,cpu:k.cpu,s:dbgEco().s}})())")));c.pump(.1)
+    r=json.dumps(dict(L[-1],appels=round(sum(x['appels'] or 0 for x in L)/3),triangles=round(sum(x['triangles'] or 0 for x in L)/3),lectures=[[x['appels'],x['triangles'],x['s']] for x in L]))
     c.ev("dbgCout(0);1")
     try:d=json.loads(r)
     except Exception:d={'erreur':str(r)[:200]}

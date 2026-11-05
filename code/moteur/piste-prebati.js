@@ -270,7 +270,7 @@ function prebPart(c){ // on commence la piste d'en face
   if(PREB_PISTES.indexOf(W.piste)<0){PREB.non=c.t;return;}
   PREB.W=W;PREB.sd=(Math.random()*1e9)|0;PREB.t=c.t;PREB.z=c.z;PREB.eng=c.dep?c.eng:engTier;PREB.rh=W.ROAD_HALF;PREB.carte=c.t.carte+'-'+c.t.meteo;
   PREB.dep=!!c.dep;PREB.ctx=c.dep?c.st:null;
-  if(c.dep){const g9=+((/[?&]pistegraine=(\d+)/.exec(location.search)||[])[1])||0;if(g9)PREB.sd=g9;} // (banc) ?pistegraine=n : la 1re piste aussi (comme newTrack0)
+  {const g9=+((/[?&]pistegraine=(\d+)/.exec(location.search)||[])[1])||0;if(g9)PREB.sd=g9;} /* (banc) ?pistegraine=n : la 1re piste aussi (comme newTrack0) — (2026-11-05, passe perf mobile 2, T0) ET toutes les pistes d'avance des portails (avant : seule la 1re ; les suivantes tiraient un hasard, donc des compteurs non reproductibles). Sans le paramètre : inchangé. */
   PREB.fait=false;PREB.prend=false;PREB.t0=performance.now();PREB.tFin=0;PREB.cpu=0;PREB.img=0;PREB.jadeM=null;
   PREB.g=prebJob(PREB.sd,W);}
 function prebTravaille(lim){ // une tranche de travail, jusqu'à l'échéance lim (Infinity : jusqu'au bout)

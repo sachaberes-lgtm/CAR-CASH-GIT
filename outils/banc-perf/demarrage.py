@@ -15,7 +15,7 @@ from cdp import CDP
 RACINE=os.path.dirname(os.path.dirname(ICI));VP=os.path.join(RACINE,'VERSION PRINCIPALE')
 UA='Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'
 SAVE={'v':2,'sfx':False,'mus':False,'vox':False,'tuto':1,'permis':1,'lang':'fr','facile':0,'q':'net','qChoisi':1,'plq':{'m':0,'x':'BANC 01','ok':1}}
-HOOK=r"""(function(){window.__LT=[];try{new PerformanceObserver(function(l){l.getEntries().forEach(function(e){window.__LT.push([Math.round(e.startTime),Math.round(e.duration)]);});}).observe({type:'longtask',buffered:true});}catch(e){}
+HOOK=r"""(function(){window.__LT=[];window.__REV=null;document.addEventListener('cc:revele',function(){if(window.__REV==null)window.__REV=Math.round(performance.now());});try{new PerformanceObserver(function(l){l.getEntries().forEach(function(e){window.__LT.push([Math.round(e.startTime),Math.round(e.duration)]);});}).observe({type:'longtask',buffered:true});}catch(e){}
  window.__F=[];window.__Fon=false;var l=performance.now();function f(t){if(window.__Fon)window.__F.push(t-l);l=t;requestAnimationFrame(f);}requestAnimationFrame(f);})();"""
 BTN=r"""(function(){var e=[].slice.call(document.querySelectorAll('.mPlay')).filter(function(x){return x.getBoundingClientRect().width>0})[0];if(!e)return null;var b=e.getBoundingClientRect(),x=b.left+b.width/2,y=b.top+b.height/2,h=document.elementFromPoint(x,y);return (h===e||e.contains(h))?[x,y]:null})()"""
 def libre():
@@ -39,12 +39,14 @@ def une(palier,http,port):
     c.call('Emulation.setCPUThrottlingRate',rate=4) # ×4 AVANT la navigation : tout le chargement est ralenti
     t0=time.time()
     c.call('Page.navigate',url=base+'/index.html?tel=1&palier=%d&garde=1&pistegraine=777'%palier)
-    menu=None;tlast=0
+    menu=None;tlast=0;joue=None
     while time.time()-t0<240:
         r=c.ev(BTN)
         if r:menu=time.time()-t0;break
-        if time.time()-t0>20 and time.time()-tlast>4:tap(c,195,300);tlast=time.time() # l'écran titre attend un toucher (loin de JOUER)
-        c.pump(.2)
+        if joue is None and c.ev("window.__intro")=='joue':joue=time.time()-t0 # le film est lancé
+        # (2026-11-05) l'intro 1.61 attend un 1er toucher (lancer) puis un 2e après 4,6 s (la boule) : on touche le centre toutes les 0,5 s dès 0,5 s
+        if time.time()-t0>.5 and time.time()-tlast>.5:tap(c,195,422,.05);tlast=time.time()
+        c.pump(.1)
     if menu is None:return None
     tmenu=c.ev("Math.round(performance.now())")
     LT=c.ev("JSON.stringify(window.__LT)");LT=json.loads(LT) if isinstance(LT,str) else []
@@ -53,8 +55,10 @@ def une(palier,http,port):
     F=json.loads(c.ev("JSON.stringify(window.__F)"))
     ap=c.ev("JSON.stringify({progs:typeof dbgProgs==='function'?(dbgProgs().length|0):null,toiles:typeof dbgToiles==='function'?dbgToiles().rendues:null,lt2:window.__LT.length})")
     ap=json.loads(ap)
+    rev=c.ev('window.__REV')
     lt=[x for x in LT if x[0]<=tmenu]
-    return {'menu_s':round(menu,2),'menu_ms_page':tmenu,'taches_50':len(lt),'taches':[{'t':x[0],'ms':x[1]} for x in lt],'taches_ms':sum(x[1] for x in lt),'pire_tache':max([x[1] for x in lt] or [0]),
+    gel=[x for x in LT if rev is not None and rev-1000<=x[0]<=tmenu] # le gel caché par PRESENTS
+    return {'menu_s':round(menu,2),'film_lance_s':round(joue,2) if joue else None,'revele_ms_page':rev,'gel_presents':[{'t':x[0],'ms':x[1]} for x in gel],'gel_presents_ms':sum(x[1] for x in gel),'menu_ms_page':tmenu,'taches_50':len(lt),'taches':[{'t':x[0],'ms':x[1]} for x in lt],'taches_ms':sum(x[1] for x in lt),'pire_tache':max([x[1] for x in lt] or [0]),
       'script_s':round(M.get('ScriptDuration',0),3),'layout_s':round(M.get('LayoutDuration',0),3),'style_s':round(M.get('RecalcStyleDuration',0),3),'tas_mo':round(M.get('JSHeapUsedSize',0)/1048576,1),
       'menu10s':{'pire':round(max(F[1:] or [0])),'longues':sum(1 for x in F[1:] if x>100),'images':len(F)},'programmes':ap.get('progs'),'toiles':ap.get('toiles'),'taches_apres':ap['lt2']-len(LT)}
 def passe(palier):
