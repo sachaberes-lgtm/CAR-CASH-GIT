@@ -171,15 +171,19 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
         amphi:()=>{recentre(-.3);const sg=sens();arc(-sg*40,300*RS,-.35);ici('amphi0');arc(sg*96,(230+r()*40)*RS,-.42);ici('amphi1');},
         mine:()=>{ici('mine0');large(300*LL,-.16);large(300*LL,-.16);ici('mine1');},
         chameau:()=>{const l1=(150+r()*40)*LL,h=(24+r()*10)*SQ,l2=(250+r()*60)*LL;ici('chameau');droite(l1,h/l1,3);large(l2,-(h+80*SQ)/l2);},
-        bosses:()=>{ici('bosses');bosses(2);}};
+        bosses:()=>{ici('bosses');bosses(2);},
+        mur:()=>{recentre(-.3);ici('mur0');const sg=sens(),aT=70+r()*22,aR=aT/57.2958; /* (2026-11-05, LE CANYON SUR LES MURS — voir CY_MUR) l'approche à contre-courbe puis UN grand virage dont la dalle se couche à 86° : la falaise est à l'extérieur */
+          {const d=(-sg*38/57.2958-phi)*57.2958;if(Math.abs(d)>3)arc(d,(300+r()*100)*RS,-.30);}
+          ici('mur1');arc(sg*aT,Math.max(RMIN*1.6,CY_MUR.T*VW*(.92+r()*.16)/aR),-(.26+r()*.08));ici('mur2');large(140*LL,-.25);}};
       // LA LONGUEUR de chaque pièce, en moyenne (MESURÉ au banc des tracés, 40 graines × paliers 0 à 25) — pour savoir lesquelles la longueur visée tient ;
       // une liaison : un module (~8,4 × RMIN) ou un caractère (~1,75 × la longueur demandée : on finit le virage commencé)
-      const LIEN=(LC9?CY_HZ.lien:300)*LL,EST={rac:290*LL+1190*RS+190,etroits:(LC9?860:1290)*RS,arche:(90+360*(LC9?.6:1))*LL,amphi:783*RS,mine:600*LL,chameau:450*LL,bosses:410*LL},
+      const LIEN=(LC9?CY_HZ.lien:300)*LL,EST={rac:290*LL+1190*RS+190,etroits:(LC9?860:1290)*RS,arche:(90+360*(LC9?.6:1))*LL,amphi:783*RS,mine:600*LL,chameau:450*LL,bosses:410*LL,mur:CY_MUR.T*VW*1.05+330*LL},
         LI9=(rm?CY_HZ.mod*8.4*RMIN:0)+(1-(rm?CY_HZ.mod:0))*1.75*LIEN,FIN=LI9+80+(LC9?372:620)*LL+150,B=LC9?LC9*CY_HZ.kL*(.92+rh()*.16):0;
       // LE JEU DE PIÈCES : un raccourci et une pièce DUS (le plus souvent un monument : l'arche ou l'amphithéâtre) ; les autres, prises dans un ordre
       // mélangé, entrent si la longueur visée les tient ; puis l'ORDRE de toutes est mélangé à son tour
       const PDS={arche:3,amphi:3,etroits:2,mine:1.5,chameau:1,bosses:1};let deux='arche';{let t=rh()*11.5;for(const k in PDS){t-=PDS[k];if(t<0){deux=k;break;}}}
       const autres=Object.keys(PDS).filter(k=>k!==deux);let jeu=['rac',deux];
+      if(CY_MUR.on&&rh()<CY_MUR.proba){autres.push(deux);jeu=['rac','mur'];deux='mur';} /* (LE CANYON SUR LES MURS) dans ~4 canyons sur 10, la pièce DUE est le module des parois (la pièce tirée passe au rang des facultatives) : le budget de longueur ne change pas */
       if(!LC9)jeu=jeu.concat(autres,['rac','rac','rac','rac','rac','rac','rac']);
       else{let u=FIN+2*LI9+EST.rac+EST[deux]+820*LL*.35+98*RS+420*LL;for(const p of mel(autres.concat(['rac'])))if(u+LI9+EST[p]<=B){jeu.push(p);u+=LI9+EST[p];}}
       mel(jeu);
@@ -229,6 +233,7 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   CY.hz=best.hz||null;if(CY.hz)CY.hz.sep=Math.round(bestSep);
   lisserRaccords(best.C);adoucirCretes(best.C,1);
   for(const k in best.Q){const o=best.Q[k];let bi=0,bd=1e18;for(let j=0;j<best.C.length;j++){const d=best.C[j].distanceToSquared(o.p);if(d<bd){bd=d;bi=j;}}o.p.copy(best.C[bi]);}
+  cyMurPose(best.C,best.Q,VW); /* (LE CANYON SUR LES MURS) les normales de la dalle couchée (CY.murN) */
   CY.Q=best.Q;CY.sep=Math.round(bestSep);
   for(const m of best.MM||[])MODMARK.push(m); // (2026-10-18) LES MODULES DE CHAQUE MAP : ceux de l'essai gardé (voir cSlalom)
   return best.C;
@@ -351,7 +356,8 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
   for(let i=0;i<NS;i++){const s9=Math.min(L,i*DS),f=s9/st9,k=Math.min(NP-2,Math.floor(f)),u=f-k,a=pts[k],b=pts[k+1];
     S.x[i]=a.x+(b.x-a.x)*u;S.y[i]=a.y+(b.y-a.y)*u;S.z[i]=a.z+(b.z-a.z)*u;const tx=b.x-a.x,tz=b.z-a.z,tl=Math.hypot(tx,tz)||1;S.tx[i]=tx/tl;S.tz[i]=tz/tl;
     if(S.x[i]<x0)x0=S.x[i];if(S.x[i]>x1)x1=S.x[i];if(S.z[i]<z0)z0=S.z[i];if(S.z[i]>z1)z1=S.z[i];}
-  S.bb=[x0,x1,z0,z1];yield; // (le pré-bâti : une tranche par étape)
+  S.bb=[x0,x1,z0,z1];S.mu=null;if(CY_MUR.on&&TORD.murs&&Nn&&Nn.length>=NP)cyMurEchantillons(S,st9); // (LE CANYON SUR LES MURS) la dalle de chaque échantillon
+  yield; // (le pré-bâti : une tranche par étape)
   // ---- 2. LES SECTIONS (repères de genCanyon → leur abscisse) et le profil de chaque tronçon, fondu d'une clé à l'autre ----
   const sQ={};if(CY.Q)for(const k in CY.Q){const p=CY.Q[k].p;let bi=0,bd=1e18;for(let i=0;i<NS;i++){const d=(S.x[i]-p.x)**2+(S.y[i]-p.y)**2+(S.z[i]-p.z)**2;if(d<bd){bd=d;bi=i;}}sQ[k]=bi*DS;}
   const KEYS=[],q=k=>sQ[k]!=null?sQ[k]:null,key=(s9,o)=>{if(s9!=null&&isFinite(s9))KEYS.push([Math.max(0,Math.min(L,s9)),o]);};
@@ -362,6 +368,7 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
   key(q('fer0'),G({wF:130,H:700,st:.28}));key(q('fer1'),G({wF:128,H:760,st:.28}));
   {const e0=q('etroit0'),e1=q('etroit1');if(e0!=null){key(e0-280,G({wF:108,H:640,st:.30}));key(e0,G({wF:46,H:420,st:.07,D:74,zS:1,aw:8}));}
    if(e1!=null){key(e1,G({wF:46,H:420,st:.07,D:74,zS:1,aw:8}));key(e1+220,G({wF:104,H:600,st:.26}));}}
+  {const m0=q('mur0'),m2=q('mur2');if(m0!=null&&m2!=null){key(m0,G({wF:130,H:700,st:.28}));key(m2,G({wF:130,H:760,st:.28}));}} // (LE CANYON SUR LES MURS) la gorge s'élargit autour du grand virage
   key(q('arche0'),G({wF:98,H:620,st:.22,zA:1}));key(q('arche1'),G({wF:98,H:620,st:.22,zA:1}));
   {const a0=q('amphi0'),a1=q('amphi1');if(a0!=null){key(a0-170,G({wF:118,H:600,st:.30}));key(a0+140,G({wF:235,H:560,st:.92,V:.30,zH:1,aw:60}));}
    if(a1!=null){key(a1,G({wF:235,H:560,st:.92,V:.30,zH:1,aw:60}));key(a1+260,G({wF:124,H:820,st:.32,V:.08}));}}
@@ -384,6 +391,7 @@ function* cyBatitG(seed,av){ // av : (le pré-bâti) le travail de la route d'en
       const b9=CY_SERRE.pied+(CY_SERRE.pied2-CY_SERRE.pied)*kS,ex=Math.max(0,S.wF[i]-b9)*(CY_SERRE.k+(CY_SERRE.k2-CY_SERRE.k)*kS)/Math.sqrt(K); // (2026-10-15, Sacha : « les parois doivent être plus proches encore de la route ») LE CANYON SERRÉ : le pied des parois à 30 m de l'axe (2 m du bord), seul l'EXCÈS se garde au quart — et il ne gonfle plus avec le palier (les rayons, eux, si)
       const k9=1-zS;S.as[i]*=1-k9+k9*ex/Math.max(1,b9+ex);S.wF[i]+=(b9+ex-S.wF[i])*k9;S.aw[i]*=1-.7*k9-.15*kS;} // les ÉTROITS (zS) gardent leur fente : elle ondule de ±8 m et monte à pic, son couloir a déjà ses murs collés // les alcôves (le bruit qui recule la roche) : 9 m au lieu de 30
     S.wR[i]=Math.min(S.wF[i]-5,(16+9*Math.sin(s9/310+ph[4]))*K*(1-zS)+(S.wF[i]-5)*zS);S.wW[i]=Math.max(10,S.H[i]*S.st[i]*(1-(1-CY_SERRE.raide)*kS));} // (raide : la paroi atteint la hauteur de la route ~8 m après le bord au lieu de ~30)
+  if(S.mu)for(let i=0;i<NS;i++){const m9=S.mu[i];if(m9>.002){S.wF[i]+=(Math.max(S.wF[i],CY_MUR.larg)-S.wF[i])*m9;S.as[i]*=1-m9;S.aw[i]*=1-.7*m9;}} // (LE CANYON SUR LES MURS) le pied des parois à 235 m : la vallée s'élargit, la route longe la falaise
   yield;
   if(TUN2_ON){const a=L-CY_TUN2.ev0-60,b=L-CY_TUN2.ev1; /* (2026-10-19) LE TUNNEL DE GRÈS : la roche s'écarte de la SALLE DU PORTAIL (le dôme fait 78 m de large) — le pied des parois à 106 m de l'axe, sans asymétrie ni alcôve, sur 140 m de fondu (rien ne la traverse : dbgTunnel('test')) */
     for(let i=Math.max(0,Math.floor(a/DS));i<NS;i++){let u=(i*DS-a)/(b-a);u=u<0?0:u>1?1:u;u=u*u*(3-2*u);if(u<=0)continue;S.wF[i]+=(Math.max(S.wF[i],CY_TUN2.A+28)-S.wF[i])*u;S.as[i]*=1-u;S.aw[i]*=1-u;}}
@@ -512,10 +520,12 @@ function cyProfil(S,RE,i0,x,z,o){
     const px=ax+dx*u-x,pz=az+dz*u-z,d=px*px+pz*pz;if(d<bd){bd=d;bj=j;bu=u;}}
   if(bj<0)return false;const j=bj,u=bu,j1=j+1,d=Math.sqrt(bd);
   if(d>RE[j]+20)return false;
-  const tx=S.tx[j],tz=S.tz[j],side=((x-S.x[j])*tz-(z-S.z[j])*tx)>0?1:-1; // +1 = à droite de la route
-  const v=1-u,wF0=(S.wF[j]*v+S.wF[j1]*u)*(1+side*(S.as[j]*v+S.as[j1]*u)),wR=S.wR[j]*v+S.wR[j1]*u,Fl=S.F[u<.5?j:j1],H=S.H[j]*v+S.H[j1]*u,wW=S.wW[j]*v+S.wW[j1]*u,zS=S.zS[j]*v+S.zS[j1]*u,zH=S.zH[j]*v+S.zH[j1]*u,aw=S.aw[j]*v+S.aw[j1]*u,s9=(j+u)*S.ds;
+  const tx=S.tx[j],tz=S.tz[j],side0=((x-S.x[j])*tz-(z-S.z[j])*tx)>0?1:-1; // +1 = à droite de la route
+  const v=1-u,mu=S.mu?S.mu[j]*v+S.mu[j1]*u:0;let dm=d,side=side0; /* (LE CANYON SUR LES MURS) le profil se compte depuis l'axe VIRTUEL de la vallée, écarté de la route du côté du vide ; la falaise (S.mg) est de l'autre côté */
+  if(mu>.002){const cs=S.mg[u<.5?j:j1],w9=(side0===cs?d:-d)+mu*S.dec;dm=Math.abs(w9);side=w9>=0?cs:-cs;}
+  const wF0=(S.wF[j]*v+S.wF[j1]*u)*(1+side*(S.as[j]*v+S.as[j1]*u)),wR=S.wR[j]*v+S.wR[j1]*u,Fl=S.F[u<.5?j:j1],H=S.H[j]*v+S.H[j1]*u,wW=S.wW[j]*v+S.wW[j1]*u,zS=S.zS[j]*v+S.zS[j1]*u,zH=S.zH[j]*v+S.zH[j1]*u,aw=S.aw[j]*v+S.aw[j1]*u,s9=(j+u)*S.ds;
   const wF=zS<.5?Math.max(wF0,ROAD_HALF+5):wF0; // (2026-10-15) LE PIED DE PAROI ne passe jamais sous le bord + 5 m (sauf la fente des Étroits) : l'asymétrie, les alcôves et le 2e serrage s'additionnaient, la roche mordait la dalle
-  const Q9=CY.qw,dd=d+(d>wR+4?cyBil(Q9.d,Q9.nx,Q9.nz,1,0,(x-Q9.x0)/Q9.ts+.5,(z-Q9.z0)/Q9.ts+.5)*aw:0)+zS*8*Math.sin(s9/36+side*1.3);
+  const Q9=CY.qw,dd=dm+(dm>wR+4?cyBil(Q9.d,Q9.nx,Q9.nz,1,0,(x-Q9.x0)/Q9.ts+.5,(z-Q9.z0)/Q9.ts+.5)*aw:0)+zS*8*Math.sin(s9/36+side*1.3);
   o.dep=0;o.rk=0;o.veg=0;o.fo=0;
   if(dd<wR){const q=dd/wR;o.C=Fl-(1.2+2.6*(1-q*q));o.dep=Math.max(0,Fl-.7-o.C);o.fo=S.fo[j]*(1-q*.3);}
   else if(dd<wF){o.C=Fl+.10*(dd-wR)+1.6*(cyNz(x/40,z/40,3)-.5)*(1-zS);
@@ -523,6 +533,10 @@ function cyProfil(S,RE,i0,x,z,o){
   else{const t=(dd-wF)/Math.max(8,wW),tt=Math.min(1,t);
     const gor=.5*Math.pow(tt,.75)+.5*(1-Math.pow(1-tt,1.8)),slot=Math.pow(tt,.45);
     o.C=Fl+H*(gor*(1-zS-zH)+slot*zS+tt*zH)+Math.max(0,dd-wF-wW)*2.4;o.rk=Math.min(1,t/.06);}
+  if(mu>.002){ /* (LE CANYON SUR LES MURS) LE PLAN DE LA FALAISE : parallèle à la dalle, à `gap` m derrière elle (700 m plus bas quand elle est à plat) ; la roche vaut max(le canyon, le plan) */
+    const nx=S.nx[j]*v+S.nx[j1]*u,ny=S.ny[j]*v+S.ny[j1]*u,nz=S.nz[j]*v+S.nz[j1]*u,nl=Math.sqrt(nx*nx+ny*ny+nz*nz)||1,py=S.y[j]*v+S.y[j1]*u,qx=S.x[j]*v+S.x[j1]*u,qz=S.z[j]*v+S.z[j1]*u,
+      gp=S.gap+(1-mu)*(1-mu)*700,yP=py+(-gp-((x-qx)*nx+(z-qz)*nz)/nl)/Math.max(.04,ny/nl);
+    if(yP>o.C){o.C=yP;o.rk=1;o.dep=0;o.veg=0;o.fo=0;}}
   return true;
 }
 /* la butte de la case (cx, cz) de 760 m — ou null : mêmes octets que le shader (CY.rnd au texel, la densité du plateau au texel du centre) */
