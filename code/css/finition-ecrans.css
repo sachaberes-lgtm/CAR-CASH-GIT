@@ -56,4 +56,7 @@ html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMi
    de jour), la mission secrète a le droit à deux lignes */
 @media (orientation:landscape) and (max-width:700px){#mObj .obHd>span{font-size:8px;gap:4px}}
 #mObj .obM.sec>span{white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;line-height:11px}
+/* 11. LA PLAQUE, tuiles des pays (2026-11-05, finition — MESURÉ 667×375, en anglais) : « NETHERLANDS » (88 px) tombait dans 80 px de tuile et se coupait en « NETHERLAN / DS »,
+   « SWITZERLAND » pareil. 2 px de marge de chaque côté au lieu de 6 : les mots d'une seule pièce tiennent sur une ligne, les noms à espace (SOUTH AFRICA) passent à la ligne */
+#plq .plMod{padding-left:2px;padding-right:2px}
 </style>
