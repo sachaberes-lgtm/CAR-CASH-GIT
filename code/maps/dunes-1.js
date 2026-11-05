@@ -417,7 +417,7 @@ function buildDunes(seed,pre){
   if(pre&&!av){const a=pre;
     if(a.cle===[seed,L,NP,lvPiste(),ROAD_HALF].join('|')){Object.assign(DN,a.chg);DN.t0=performance.now();cyBruits();dnTerrain();
       if(a.R){DN.ms.avance='pret';if(a.it)while(!dnMonuPas(a));dnMondePose(a.R,a.mon);return;} /* (2026-11-01) les monuments bâtis d'avance (dnMonuPas : d'un trait si le pré-bâti ne les a pas finis) */
-      const W9=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null; // pas revenu : on le lui redemande, comme avant
+      const W9=dnTravToujours()&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null; // pas revenu : on le lui redemande, comme avant — (2026-11-05, RND-01) même avant le départ
       if(W9){const job=DN.job;DN.attente={job:job,S:a.S,opt:a.opt};try{W9.postMessage({job:job,S:a.S,opt:a.opt,nz:CY.nz});return;}catch(e){DN.attente=null;}}
       dnMondePose(dnMondeCalc(a.S,a.opt));return;}}
   const t0=performance.now(),LV=lvPiste(),K=Math.sqrt(LV),r=mulberry32((seed^0xD0E5A7)>>>0);
@@ -487,11 +487,17 @@ function buildDunes(seed,pre){
   const opt={K:K,seed:seed,RH:RH,TH:TH,sQ:sQ,sun:[cA[0],cA[1]],vent:DN.vent,lam:DN.lam,oa:oa,fin:{x:S.x[NS-1],z:S.z[NS-1]},sb:!DN_BUTTES,vol:DN.scnV||[],Af:210*K,deco:D9,pal:{dnPlat:PAL.b('dnPlat',64),dnFin:PAL.b('dnFin',12),dnOmbre:PAL.b('dnOmbre',44)}};
   DN.oa=oa;DN.fin=opt.fin;DN.sb=opt.sb;DN.t0=t0;
   if(av)return {S:S,opt:opt}; // (LES DUNES D'AVANCE) la préparation s'arrête ici : prebDunes envoie le calcul au travailleur
-  const W=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null;
-  if(W){const job=DN.job;DN.attente={job:job,S:S,opt:opt};try{W.postMessage({job:job,S:S,opt:opt,nz:CY.nz});return;}catch(e){console.warn('dunes : travailleur',e);DN.attente=null;}}
+  /* ===== LE MONDE TOUJOURS CHEZ LE TRAVAILLEUR (2026-11-05, Fable : « RND-01 : les dunes Arrakis (DN_VASTE=2) construites sur le fil principal quand !started : 5 à 9 s estimés
+     sur iPhone ») ===== `started&&` ne confiait le calcul au travailleur qu'en course : au JOUER depuis le menu sans départ d'avance (REJOUER rapide, ?play=, campagne, pré-bâti
+     annulé), dnMondeCalc passait d'un bloc sur le fil principal — grilles ∝ boîte de la route, ×2 à ×4 depuis Arrakis. Désormais le travailleur TOUJOURS ; le voile du JOUER
+     (departAttend) doit attendre DN.attente (une condition dans vignette-moteur.js, zone Opus) pour que le sable soit là à la 1re image. `?dunes=ancien` = comme avant. */
+  const W=dnTravToujours()&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null;
+  if(W){const job=DN.job;DN.attente={job:job,S:S,opt:opt,t0:performance.now()};try{W.postMessage({job:job,S:S,opt:opt,nz:CY.nz});return;}catch(e){console.warn('dunes : travailleur',e);DN.attente=null;}}
   dnMondePose(dnMondeCalc(S,opt));
 }
 /* le travailleur : les fonctions du MONDE recopiées par leur source (une seule écriture : elles servent aussi ici, à la collision) */
+const DN_TRAV_ANCIEN=/[?&]dunes=ancien\b/.test(location.search); /* (RND-01) `?dunes=ancien` rend l'ancienne règle « travailleur seulement en course » — voir buildDunes */
+function dnTravToujours(){return DN_TRAV_ANCIEN?started:true;} /* lu à l'appel (started est déclaré plus loin : jamais à l'évaluation du morceau) */
 function dnTravailleur(){if(DN.w!==undefined)return DN.w;
   try{const fns=[mulberry32,cyNz,cyNzS,cyBil,dnLis,dnDune,dnMesa,dnGeant,dnFar,dnHauteur,dnPf,dnProfil,dnPyr3,dnPrevoir,dnPrevoirDeco,dnOmbre,dnMondeCalc].map(function(f){return f.toString();}).join('\n');
     const code="'use strict';var CY={},DN={},DN_O9={},DN_STAR="+DN_STAR+",DN_PTE="+DN_PTE+",DN_PK="+DN_PK+",DN_IMM="+JSON.stringify(DN_IMM)+",PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
@@ -499,7 +505,7 @@ function dnTravailleur(){if(DN.w!==undefined)return DN.w;
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.O.h.buffer]);};";
     const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
     W.onmessage=function(e){const R=e.data;if(R.job<0){if(DN.pre&&DN.pre.job===R.job)DN.pre.R=R;return;} /* (LES DUNES D'AVANCE) le monde du pré-bâti */if(!DN.attente||R.job!==DN.job)return;DN.attente=null;try{dnMondePose(R);}catch(er){console.warn('dunes : pose',er);}};
-    W.onerror=function(e){console.warn('dunes : travailleur en erreur',e.message);DN.w=null;const a=DN.attente;DN.attente=null;if(a&&a.job===DN.job)try{dnMondePose(dnMondeCalc(a.S,a.opt));}catch(er){console.warn('dunes',er);}};
+    W.onerror=function(e){console.warn('dunes : travailleur en erreur',e.message);try{window.__ccNote('panne','dunes travailleur · '+(e&&e.message||'?')+' : repli fil principal');}catch(_){} /* (2026-11-05, RND-32) le repli se voit dans la boîte noire */DN.w=null;const a=DN.attente;DN.attente=null;if(a&&a.job===DN.job)try{dnMondePose(dnMondeCalc(a.S,a.opt));}catch(er){console.warn('dunes',er);}};
     DN.w=W;}catch(e){DN.w=null;}
   return DN.w;}
 /* LA POSE : les données du monde dans DN (la collision), à la puce (trois textures), les décors — et le sable s'allume */

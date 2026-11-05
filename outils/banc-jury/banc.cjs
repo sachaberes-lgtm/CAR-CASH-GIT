@@ -58,6 +58,7 @@ async function sauteIntro(p){ /* le film part tout seul ; un toucher pendant le 
   await p.attend('!window.__introCouvre',60000,200);await dort(800);}
 async function etat(p){return p.ev("({intro:!!window.__introCouvre,body:document.body.className.slice(0,120),boutons:[...document.querySelectorAll('button,[role=button],.mPlay,#mPlay')].filter(b=>{const r=b.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(b).visibility!=='hidden';}).slice(0,25).map(b=>(b.id||b.className||b.tagName).toString().slice(0,30)+' « '+b.textContent.trim().slice(0,24)+' »'),st:window.dbgState?dbgState():null})");}
 async function lanceCourse(p){ /* depuis le ciel/garage : JOUER */
+  await p.attend("document.body.classList.contains('titreCiel')",15000,250); /* le ciel du titre : le JOUER qui marche en headless passe par le piqué (chuteLance), pas par le lâcher du garage */
   for(let i=0;i<8&&await p.ev("!!document.getElementById('splash')");i++){const sp=await p.ev("(function(){const e=document.getElementById('splash'),r=e.getBoundingClientRect();try{e.click();}catch(x){}return {x:r.left+r.width/2,y:r.top+r.height/2};})()");await p.touche(sp.x,sp.y);await dort(1200);} /* l'écran titre d'avant (?intro=ancien) : start() refuse tant que #splash existe */
   if(opt.bouton!=='1'){let st=false,j=null;for(let k=0;k<3&&!st;k++){j=await p.ev('dbgJouer()');st=await p.attend('window.dbgState&&dbgState().started&&dbgState().running',k?20000:45000,250);if(!st)console.log('  (départ raté, essai '+(k+1)+' : '+JSON.stringify(j)+')');}return 'dbgJouer '+(j&&typeof j.appel==='string'?j.appel.slice(0,16):'')+(j&&j.goApres?' (lâcher)':'')+(j&&j.chuteGoApres?' (piqué)':'')+' → '+(st?'course lancée':'PAS lancée');} /* --bouton=1 : par le vrai bouton JOUER (touchers) */
   {const sp=await p.ev("(function(){const e=document.getElementById('splash');if(!e)return null;const r=e.getBoundingClientRect();return r.width>0?{x:r.left+r.width/2,y:r.top+r.height/2}:null;})()");if(sp){await p.touche(sp.x,sp.y);await dort(1500);}} /* l'ancien écran titre (?intro=ancien) attend un toucher */
@@ -75,6 +76,17 @@ async function joueJusquALaMort(p,maxS){await p.ev("window.dbgAuto&&dbgAuto(1,0,
   return {mort:false,dur:maxS};}
 /* ---- les scénarios ---- */
 const SC={
+  async prebcpu(){ /* RND-01 : PREB_CPU.dunes — la map d'en face imposée aux dunes, le pré-bâti travaille pendant la course, on relève son temps de calcul */
+    const p=await ouvrePage();await charge(p,U());await sauteIntro(p);console.log(await lanceCourse(p));await p.ev("dbgAuto(1,0,{nit:0})");await dort(1500);
+    console.log('impose :',await p.ev("dbgClassique('dunes')&&'dunes imposées en face'"));
+    let r=null;for(let i=0;i<60;i++){await dort(2000);r=await p.ev("(function(){const c=dbgPrebCpu();return {mesure:c.mesure,defaut:c.defaut,mort:dbgState().gameOver};})()");if(r.mesure.dunes||r.mort)break;}
+    console.log('PREB_CPU :',JSON.stringify(r));
+    await dort(3000);console.log('dunes.ms :',JSON.stringify(await p.ev("(function(){const d=dbgDunes();return {ms:d&&d.ms,attente:!!(d&&d.attente)};})()")),'· erreurs',p.erreurs.slice(0,3));await fermePage(p);},
+  async dunes(){ /* RND-01 : le premier JOUER sur les dunes (sans départ d'avance : ?prebati=0) — gels de plus d'une seconde, temps du travailleur, sable présent */
+    for(const v of (opt.ordre||'neuf,ancien').split(',')){const p=await ouvrePage();await charge(p,U('&prebati=0'+(v==='ancien'?'&dunes=ancien':'')));await sauteIntro(p);
+      await p.ev("dbgClassique('dunes');dbgErreurs(1)");const t0=Date.now();const lc=await lanceCourse(p);const tL=Date.now()-t0;await dort(6000);
+      const r=await p.ev("(function(){const d=window.dbgDunes?dbgDunes():null;const g=dbgErreurs().filter(function(e){return e.g==='gel';}).map(function(e){return e.m;});return {gels:g,ms:d&&d.ms,attente:!!(d&&d.attente),sable:d&&(d.on!=null?d.on:d.actif),carte:dbgState().level!=null?undefined:undefined,started:dbgState().started,horloge:dbgHorloge().images};})()");
+      console.log(v.padEnd(7),lc.slice(-14),'· lancement',tL,'ms · gels > 1 s :',JSON.stringify(r.gels),'· dunes.ms',JSON.stringify(r.ms),'· attente',r.attente,'· erreurs',p.erreurs.slice(0,3));await fermePage(p);}},
   async sauvegarde(){ /* ECO-04 : code scellé et borné · SON-05 : musique remise une fois · HYG-15 : un flush qui échoue se dit */
     const p=await ouvrePage();await charge(p,U());await sauteIntro(p);
     const r=await p.ev("dbgSauvegardeBanc()");console.log(JSON.stringify(r,null,1));

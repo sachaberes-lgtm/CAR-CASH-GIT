@@ -340,4 +340,4 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   {const ref=PREB_CPU[PREB.t.carte]||PREB_CPU_DEF[PREB.t.carte]||1500,re=ref*1.15-PREB.cpu;if(re>0)u9=Math.max(u9,Math.min(16,re/Math.max(1,(r9-1.5)*Math.max(8,Math.min(60,PREB.ips||25)))));}
   prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));
   if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;}
-const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500,foret:1500}; /* (ms de calcul) la dernière préparation d'avance de chaque map, en tranches — et une estimation large avant la 1re */
+const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500,foret:1500,dunes:2500}; /* (2026-11-05, RND-01) dunes : 655 ms mesurés au banc PC après Arrakis (dbgPrebCpu), x3 a x5 sur iPhone */ /* (ms de calcul) la dernière préparation d'avance de chaque map, en tranches — et une estimation large avant la 1re */

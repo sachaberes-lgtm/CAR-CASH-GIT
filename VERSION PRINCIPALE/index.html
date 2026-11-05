@@ -16273,7 +16273,7 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   {const ref=PREB_CPU[PREB.t.carte]||PREB_CPU_DEF[PREB.t.carte]||1500,re=ref*1.15-PREB.cpu;if(re>0)u9=Math.max(u9,Math.min(16,re/Math.max(1,(r9-1.5)*Math.max(8,Math.min(60,PREB.ips||25)))));}
   prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));
   if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;}
-const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500,foret:1500}; /* (ms de calcul) la dernière préparation d'avance de chaque map, en tranches — et une estimation large avant la 1re */
+const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500,foret:1500,dunes:2500}; /* (2026-11-05, RND-01) dunes : 655 ms mesurés au banc PC après Arrakis (dbgPrebCpu), x3 a x5 sur iPhone */ /* (ms de calcul) la dernière préparation d'avance de chaque map, en tranches — et une estimation large avant la 1re */
 /* LE DÉPART D'AVANCE (2026-10-19, session PERF — chantier du pré-bâti de Léo ; la passe perf du 18/10 : « JOUER : ~1,1 s d'image figée sous le
    nuage blanc · REJOUER : ~1 s de construction sous le volet · depuis l'accueil, la piste bâtie deux fois »). La 1re piste d'une partie se bâtit
    comme la map d'en face : AU MENU et À L'ÉCRAN DE FIN, quelques ms par image, par la même machine (pisteRoute, prebJade, prebDecorG), puis le
@@ -20543,7 +20543,7 @@ function buildDunes(seed,pre){
   if(pre&&!av){const a=pre;
     if(a.cle===[seed,L,NP,lvPiste(),ROAD_HALF].join('|')){Object.assign(DN,a.chg);DN.t0=performance.now();cyBruits();dnTerrain();
       if(a.R){DN.ms.avance='pret';if(a.it)while(!dnMonuPas(a));dnMondePose(a.R,a.mon);return;} /* (2026-11-01) les monuments bâtis d'avance (dnMonuPas : d'un trait si le pré-bâti ne les a pas finis) */
-      const W9=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null; // pas revenu : on le lui redemande, comme avant
+      const W9=dnTravToujours()&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null; // pas revenu : on le lui redemande, comme avant — (2026-11-05, RND-01) même avant le départ
       if(W9){const job=DN.job;DN.attente={job:job,S:a.S,opt:a.opt};try{W9.postMessage({job:job,S:a.S,opt:a.opt,nz:CY.nz});return;}catch(e){DN.attente=null;}}
       dnMondePose(dnMondeCalc(a.S,a.opt));return;}}
   const t0=performance.now(),LV=lvPiste(),K=Math.sqrt(LV),r=mulberry32((seed^0xD0E5A7)>>>0);
@@ -20613,11 +20613,17 @@ function buildDunes(seed,pre){
   const opt={K:K,seed:seed,RH:RH,TH:TH,sQ:sQ,sun:[cA[0],cA[1]],vent:DN.vent,lam:DN.lam,oa:oa,fin:{x:S.x[NS-1],z:S.z[NS-1]},sb:!DN_BUTTES,vol:DN.scnV||[],Af:210*K,deco:D9,pal:{dnPlat:PAL.b('dnPlat',64),dnFin:PAL.b('dnFin',12),dnOmbre:PAL.b('dnOmbre',44)}};
   DN.oa=oa;DN.fin=opt.fin;DN.sb=opt.sb;DN.t0=t0;
   if(av)return {S:S,opt:opt}; // (LES DUNES D'AVANCE) la préparation s'arrête ici : prebDunes envoie le calcul au travailleur
-  const W=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null;
-  if(W){const job=DN.job;DN.attente={job:job,S:S,opt:opt};try{W.postMessage({job:job,S:S,opt:opt,nz:CY.nz});return;}catch(e){console.warn('dunes : travailleur',e);DN.attente=null;}}
+  /* ===== LE MONDE TOUJOURS CHEZ LE TRAVAILLEUR (2026-11-05, Fable : « RND-01 : les dunes Arrakis (DN_VASTE=2) construites sur le fil principal quand !started : 5 à 9 s estimés
+     sur iPhone ») ===== `started&&` ne confiait le calcul au travailleur qu'en course : au JOUER depuis le menu sans départ d'avance (REJOUER rapide, ?play=, campagne, pré-bâti
+     annulé), dnMondeCalc passait d'un bloc sur le fil principal — grilles ∝ boîte de la route, ×2 à ×4 depuis Arrakis. Désormais le travailleur TOUJOURS ; le voile du JOUER
+     (departAttend) doit attendre DN.attente (une condition dans vignette-moteur.js, zone Opus) pour que le sable soit là à la 1re image. `?dunes=ancien` = comme avant. */
+  const W=dnTravToujours()&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null;
+  if(W){const job=DN.job;DN.attente={job:job,S:S,opt:opt,t0:performance.now()};try{W.postMessage({job:job,S:S,opt:opt,nz:CY.nz});return;}catch(e){console.warn('dunes : travailleur',e);DN.attente=null;}}
   dnMondePose(dnMondeCalc(S,opt));
 }
 /* le travailleur : les fonctions du MONDE recopiées par leur source (une seule écriture : elles servent aussi ici, à la collision) */
+const DN_TRAV_ANCIEN=/[?&]dunes=ancien\b/.test(location.search); /* (RND-01) `?dunes=ancien` rend l'ancienne règle « travailleur seulement en course » — voir buildDunes */
+function dnTravToujours(){return DN_TRAV_ANCIEN?started:true;} /* lu à l'appel (started est déclaré plus loin : jamais à l'évaluation du morceau) */
 function dnTravailleur(){if(DN.w!==undefined)return DN.w;
   try{const fns=[mulberry32,cyNz,cyNzS,cyBil,dnLis,dnDune,dnMesa,dnGeant,dnFar,dnHauteur,dnPf,dnProfil,dnPyr3,dnPrevoir,dnPrevoirDeco,dnOmbre,dnMondeCalc].map(function(f){return f.toString();}).join('\n');
     const code="'use strict';var CY={},DN={},DN_O9={},DN_STAR="+DN_STAR+",DN_PTE="+DN_PTE+",DN_PK="+DN_PK+",DN_IMM="+JSON.stringify(DN_IMM)+",PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
@@ -20625,7 +20631,7 @@ function dnTravailleur(){if(DN.w!==undefined)return DN.w;
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.O.h.buffer]);};";
     const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
     W.onmessage=function(e){const R=e.data;if(R.job<0){if(DN.pre&&DN.pre.job===R.job)DN.pre.R=R;return;} /* (LES DUNES D'AVANCE) le monde du pré-bâti */if(!DN.attente||R.job!==DN.job)return;DN.attente=null;try{dnMondePose(R);}catch(er){console.warn('dunes : pose',er);}};
-    W.onerror=function(e){console.warn('dunes : travailleur en erreur',e.message);DN.w=null;const a=DN.attente;DN.attente=null;if(a&&a.job===DN.job)try{dnMondePose(dnMondeCalc(a.S,a.opt));}catch(er){console.warn('dunes',er);}};
+    W.onerror=function(e){console.warn('dunes : travailleur en erreur',e.message);try{window.__ccNote('panne','dunes travailleur · '+(e&&e.message||'?')+' : repli fil principal');}catch(_){} /* (2026-11-05, RND-32) le repli se voit dans la boîte noire */DN.w=null;const a=DN.attente;DN.attente=null;if(a&&a.job===DN.job)try{dnMondePose(dnMondeCalc(a.S,a.opt));}catch(er){console.warn('dunes',er);}};
     DN.w=W;}catch(e){DN.w=null;}
   return DN.w;}
 /* LA POSE : les données du monde dans DN (la collision), à la puce (trois textures), les décors — et le sable s'allume */
@@ -77296,6 +77302,8 @@ window.dbgSauvegardeBanc=function(){const R={};const d0=SAVE.export();
   SND.music=false;SAVE.d.mus=false;R.musRet1=dbgMusRetour(26).n;R.musApres1=SND.music;SND.music=false;SAVE.d.mus=false;R.musRet2=dbgMusRetour(26).n;R.musApres2=SND.music;R.musRetChamp=SAVE.d.musRet;
   SAVE.echec('banc',new Error('essai'));R.panne=SAVE.panne;R.panneDit=!!SAVE.panneDit;
   return R;};
+/* (banc, 2026-11-05, RND-01) dbgPrebCpu() : le temps de calcul mesuré du pré-bâti par map (PREB_CPU), pour caler PREB_CPU_DEF */
+window.dbgPrebCpu=function(){return {mesure:Object.assign({},PREB_CPU),defaut:Object.assign({},PREB_CPU_DEF)};};
 /* ====================== LA CADENCE STABLE — CAD (2026-10-14, passe perf mobile ; Sacha : « fluide même sur un iPhone 7 », « sans bugger ») ======================
    Un téléphone qui ne tient pas 60 images/s n'en affiche pas « 45 » : il alterne des images de 16,7 ms et de 33,3 ms au hasard, et c'est
    CETTE irrégularité que le joueur appelle « ça bug ». 30 images/s RÉGULIÈRES (une image d'écran sur deux, toujours la même) se lisent

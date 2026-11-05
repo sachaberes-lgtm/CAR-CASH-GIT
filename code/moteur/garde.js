@@ -62,3 +62,5 @@ window.dbgSauvegardeBanc=function(){const R={};const d0=SAVE.export();
   SND.music=false;SAVE.d.mus=false;R.musRet1=dbgMusRetour(26).n;R.musApres1=SND.music;SND.music=false;SAVE.d.mus=false;R.musRet2=dbgMusRetour(26).n;R.musApres2=SND.music;R.musRetChamp=SAVE.d.musRet;
   SAVE.echec('banc',new Error('essai'));R.panne=SAVE.panne;R.panneDit=!!SAVE.panneDit;
   return R;};
+/* (banc, 2026-11-05, RND-01) dbgPrebCpu() : le temps de calcul mesuré du pré-bâti par map (PREB_CPU), pour caler PREB_CPU_DEF */
+window.dbgPrebCpu=function(){return {mesure:Object.assign({},PREB_CPU),defaut:Object.assign({},PREB_CPU_DEF)};};
