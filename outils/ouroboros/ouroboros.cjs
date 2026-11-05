@@ -1,6 +1,6 @@
 /* ===== L'OUROBOROS DU CHARGEMENT (2026-11-03, Sacha : « son corps ne doit pas tourner : c'est sa TÊTE qui avance autour de son corps en le mangeant ; le corps se nourrit de boules de matière qui passent et qu'il avale » ; 2026-11-05 : « la tête est trop grosse, pas assez détaillée, trop blanche » puis « plus détaillée, le délire reptile, écailles, pics, presque dragon mais pas trop, toujours sobre, noir et nuances de gris, corps animé, tête animée parfaitement ») =====
    Dessiné par Fable 5.1. `node outils/ouroboros/ouroboros.cjs` régénère tout dans ce dossier :
-   - ouroboros-64px-48img.png : la bande de 48 images de 64 × 64 px, 6 gris tranchés (PNG à 4 bits, 9 Ko)
+   - ouroboros-52px-48img.png : la bande de 48 images de 52 × 52 px (le rendu fait 64 × 64, on rogne 6 px de noir tout autour), 6 gris tranchés (PNG à 4 bits, 9 Ko)
    - ouroboros.css : le bloc CSS pur à coller dans la page (data-URL de la bande, steps(48) à 20 images/s = 2,4 s par tour, affiché ×2)
    - demo.html : la page de démo (?zoom=3 pour voir les pixels) ; planche-16-images.png, tete-6-angles.png, tete-dessin.png : des aperçus pour l'œil humain
    LE STYLE (05/11, Sacha : « rends-le un peu cartoon Undertale ») : pixels NETS, aplats de gris tranchés (noir, 4 gris, blanc), formes simples et épaisses, gros œil expressif, contour clair d'un pixel autour de la tête ET du corps (pics et bosses des boules compris).
@@ -16,6 +16,7 @@
    Miettes au CLAC, trois étincelles qui scintillent autour (fixes à l'écran). Boucle parfaite : 48 images = un tour de la tête, 4 boules, 8 bouchées, 3 reflets qui avancent d'un tiers de tour. */
 const fs=require('fs'),{pngIndexed,pngRGB}=require('./png.cjs');
 const N=64,F=48,FPS=20,SS=5,CX=32,CY=32,R=16,TH=4.6,HW=TH/2;
+const C0=6,CS=52; /* LE CADRE LIVRÉ : on rogne les 6 px de noir autour du rendu de 64 × 64 (l'encre tient dans 7 → 56) : 52 × 52 px, 34 % de pixels en moins, la bande reste sous 16 384 px de large même à 3 pixels d'écran par pixel CSS */
 const DEG=Math.PI/180,TAU=Math.PI*2;
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x)),sm=(a,b,x)=>{const k=clamp((x-a)/(b-a),0,1);return k*k*(3-2*k);};
 const LV=[0,44,92,146,200,255],PAL=LV.map(v=>[v,v,v]); /* 6 gris tranchés (PNG à 4 bits) : le noir est un vrai noir, le blanc est réservé aux reflets, à l'œil et aux dents */
@@ -121,7 +122,7 @@ function render(t){
     for(const q of rim)g[q]=4;}
   /* étincelles (fixes à l'écran) et miettes (au CLAC, qui tournent avec le serpent) */
   const W=LV.length-1,px=(x,y,lv=W)=>{x=Math.round(x);y=Math.round(y);if(x>=0&&y>=0&&x<N&&y<N&&g[y*N+x]===0)g[y*N+x]=lv;};
-  for(const [x,y,t0] of [[7,9,4],[57,56,20],[58,12,35]]){const k=(t-t0+F)%F;if(k>4)continue;
+  for(const [x,y,t0] of [[10,12,4],[54,53,20],[53,14,35]]) /* les trois étincelles, dans les coins vides du cadre rogné */{const k=(t-t0+F)%F;if(k>4)continue;
     px(x,y);if(k===1||k===3){px(x-1,y);px(x+1,y);px(x,y-1);px(x,y+1);}if(k===2){for(let dd=1;dd<=2;dd++){px(x-dd,y);px(x+dd,y);px(x,y-dd);px(x,y+dd);}}}
   const cr=c>=9&&c<=11?c-9:-1;if(cr>=0)for(const [da,dv] of [[[1,3],[3.5,5]],[[2,5],[5,7]],[[3,7.5],[6.5,9]]][cr]){const [x,y]=toScreen(...ringXY(6+da,dv+1.5));px(x,y);}
   /* la fumée de la narine, après chaque CLAC : deux volutes grises qui montent et se dissipent (un clin d'œil de dragon, sobre) */
@@ -132,7 +133,7 @@ function render(t){
 function sheet(frames,scale,cols,file){const rows=Math.ceil(frames.length/cols),W=cols*(N*scale+2),H=rows*(N*scale+2),rgb=new Uint8Array(W*H*3).fill(40);
   frames.forEach((g,k)=>{const ox=(k%cols)*(N*scale+2)+1,oy=Math.floor(k/cols)*(N*scale+2)+1;for(let y=0;y<N;y++)for(let x=0;x<N;x++){const col=PAL[g[y*N+x]];for(let sy=0;sy<scale;sy++)for(let sx=0;sx<scale;sx++){const p=((oy+y*scale+sy)*W+ox+x*scale+sx)*3;rgb[p]=col[0];rgb[p+1]=col[1];rgb[p+2]=col[2];}}});
   fs.writeFileSync(file,pngRGB(W,H,rgb));}
-function strip(frames,file){const W=N*frames.length,idx=new Uint8Array(W*N);frames.forEach((g,k)=>{for(let y=0;y<N;y++)for(let x=0;x<N;x++)idx[y*W+k*N+x]=g[y*N+x];});const png=pngIndexed(W,N,idx,PAL);fs.writeFileSync(file,png);return png;}
+function strip(frames,file){const W=CS*frames.length,idx=new Uint8Array(W*CS);frames.forEach((g,k)=>{for(let y=0;y<CS;y++)for(let x=0;x<CS;x++)idx[y*W+k*CS+x]=g[(y+C0)*N+x+C0];});const png=pngIndexed(W,CS,idx,PAL);fs.writeFileSync(file,png);return png;}
 function headCrop(ts,half,sc,file){const w=half*2,cw=w*sc+3,W=ts.length*cw,H=cw,rgb=new Uint8Array(W*H*3).fill(45);
   ts.forEach((t,k)=>{const {g}=render(t),ph=TAU*t/F,[hx,hy]=ringXY(0,.5),dx=hx-CX,dy=hy-CY,cx=CX+dx*Math.cos(ph)-dy*Math.sin(ph),cy=CY+dx*Math.sin(ph)+dy*Math.cos(ph),x0=Math.round(cx-half),y0=Math.round(cy-half);
     for(let y=0;y<w;y++)for(let x=0;x<w;x++){const gx=x0+x,gy=y0+y,c=(gx<0||gy<0||gx>=N||gy>=N)?PAL[0]:PAL[g[gy*N+gx]];
@@ -148,11 +149,11 @@ if(require.main===module){
   process.chdir(__dirname);
   const fr=[];for(let t=0;t<F;t++)fr.push(render(t).g);
   sheet(fr.filter((_,k)=>k%3===0),4,8,'planche-16-images.png');headCrop([0,6,12,18,24,30],12,12,'tete-6-angles.png');spriteSheet('tete-dessin.png');
-  let clip=0;for(const g of fr)for(let i=0;i<N;i++)if(g[i]||g[(N-1)*N+i]||g[i*N]||g[i*N+N-1])clip++;
-  const png=strip(fr,'ouroboros-64px-48img.png'),b64=png.toString('base64');
+  let clip=0;for(const g of fr){for(let i=0;i<CS;i++)if(g[C0*N+C0+i]||g[(C0+CS-1)*N+C0+i]||g[(C0+i)*N+C0]||g[(C0+i)*N+C0+CS-1])clip++;} /* de l'encre sur le bord du cadre rogné = on rognerait le dessin */
+  const png=strip(fr,'ouroboros-52px-48img.png'),b64=png.toString('base64');
   /* LE CSS PUR : aucun JS, visible dès la première image. La bande défile par pas (steps) sur un transform : le compositeur la joue même quand le script du jeu est occupé à construire la scène. */
-  const SCALE=2,D=N*SCALE,TOT=D*F;
-  const css=`#spCharge{position:absolute;left:50%;top:46%;width:${D}px;height:${D}px;margin:-${D/2}px 0 0 -${D/2}px;z-index:5;pointer-events:none;overflow:hidden;contain:strict}#spCharge::before{content:"";position:absolute;left:0;top:0;width:${TOT}px;height:${D}px;background:url("data:image/png;base64,${b64}") 0 0/100% 100% no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;animation:spOuro ${F/FPS}s steps(${F}) infinite;will-change:transform}@keyframes spOuro{to{transform:translate3d(-100%,0,0)}}@media(prefers-reduced-motion:reduce){#spCharge::before{animation:none}}`;
+  const SCALE=2,D=CS*SCALE,TOT=D*F;
+  const css=`#spCharge{position:absolute;left:50%;top:46%;width:${D}px;height:${D}px;margin:-${D/2}px 0 0 -${D/2}px;z-index:5;pointer-events:none;overflow:hidden;contain:strict}#spCharge::before{content:"";position:absolute;left:0;top:0;width:${TOT}px;height:${D}px;background:url("data:image/png;base64,${b64}") 0 0/100% 100% no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;animation:spOuro ${F/FPS}s steps(${F}) infinite;will-change:transform}@keyframes spOuro{to{transform:translate3d(-100%,0,0)}}@media(min-aspect-ratio:23/20){#spCharge{top:50%}}@media(prefers-reduced-motion:reduce){#spCharge::before{animation:none}}`;
   fs.writeFileSync('ouroboros.css',css);
   const html=`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Ouroboros — chargement CASH CAR</title>
 <style>@font-face{font-family:'Press Start 2P';src:url('../../VERSION%20PRINCIPALE/assets/fonts/pressstart2p.woff2') format('woff2')}
@@ -163,7 +164,7 @@ ${css}
 #leg{position:fixed;left:0;right:0;bottom:max(18px,env(safe-area-inset-bottom));text-align:center;font-size:8px;line-height:2;letter-spacing:1px;color:rgba(255,255,255,.38)}
 #leg b{color:#fff;font-weight:normal}
 </style></head><body><div id="splash"><div id="spCharge"></div></div>
-<div id="leg">OUROBOROS · ${N} PX · ${F} IMAGES · ${FPS} IM/S · CSS PUR · ${(b64.length/1024).toFixed(1)} KO<br><b>?zoom=3</b> POUR VOIR LES PIXELS</div>
+<div id="leg">OUROBOROS · ${CS} PX · ${F} IMAGES · ${FPS} IM/S · CSS PUR · ${(b64.length/1024).toFixed(1)} KO<br><b>?zoom=3</b> POUR VOIR LES PIXELS</div>
 <script>const z=+new URLSearchParams(location.search).get('zoom');if(z>0)document.getElementById('spCharge').style.setProperty('--z',z);</script>
 </body></html>`;
   fs.writeFileSync('demo.html',html);
