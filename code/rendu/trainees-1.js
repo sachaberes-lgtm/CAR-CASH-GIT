@@ -99,13 +99,13 @@ function trxPlanche(){
     const g=x.createRadialGradient(0,40,2,0,-6,62);g.addColorStop(0,q[2]);g.addColorStop(.38,q[1]);g.addColorStop(1,q[0]);x.fillStyle=g;x.fill();
     x.lineWidth=2;x.strokeStyle='rgba(214,74,124,.45)';x.stroke();
     x.lineWidth=1.6;x.strokeStyle='rgba(255,255,255,.45)';x.beginPath();x.moveTo(0,42);x.quadraticCurveTo(-4,4,0,-32);x.stroke();x.restore();});
-  // 30-31 LE BILLET : recto (le dollar), verso (CASH CAR) — il montre l'un puis l'autre en tournoyant
+  // 30-31 LE BILLET : recto (l'euro), verso (CASH CAR) — il montre l'un puis l'autre en tournoyant
   {const rr=function(X,Y,W,H,R){x.beginPath();x.moveTo(X+R,Y);x.arcTo(X+W,Y,X+W,Y+H,R);x.arcTo(X+W,Y+H,X,Y+H,R);x.arcTo(X,Y+H,X,Y,R);x.arcTo(X,Y,X+W,Y,R);x.closePath();};
    for(const vs of [0,1]){const p=O(30+vs),W=114,H=58;x.save();x.translate(p[0]+64,p[1]+64);
      rr(-W/2,-H/2,W,H,7);const g=x.createLinearGradient(0,-H/2,0,H/2);g.addColorStop(0,vs?'#52bd7c':'#5cc985');g.addColorStop(1,'#2b7f4d');x.fillStyle=g;x.fill();
      x.lineWidth=2;x.strokeStyle='#1d5c37';x.stroke();x.strokeStyle='rgba(220,255,228,.75)';x.lineWidth=1.6;x.strokeRect(-W/2+6,-H/2+6,W-12,H-12);
      x.textAlign='center';x.textBaseline='middle';x.fillStyle='#e8fdec';
-     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='24px "Press Start 2P",monospace';x.fillText('$',0,2);
+     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='24px "Press Start 2P",monospace';x.fillText('€',0,2);
        x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('100',-W/2+19,-H/2+15);x.fillText('100',W/2-19,H/2-14);}
      else{x.fillStyle='rgba(20,80,45,.9)';x.fillRect(-W/2+6,-8,W-12,16);x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('CASH CAR',0,1);
        x.beginPath();x.arc(-W/2+18,-H/2+17,6,0,Math.PI*2);x.moveTo(W/2-12,H/2-17);x.arc(W/2-18,H/2-17,6,0,Math.PI*2);x.fill();}
