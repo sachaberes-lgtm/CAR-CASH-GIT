@@ -248,7 +248,7 @@ window.dbgHud=function(k,n){
   if(k==='slam'){slam(n||'BOOST','','#ffd75e','#ff7a24',44,0);return 'ok';}
   // (vague 2) le texte sur la caisse · une carte d'astuce · la bannière de niveau · l'état de la FILE du couloir
   if(k==='pop'){popTexte(n||'DAUPHIN EN VOL +80','#ffd75e',0);return popTexte._w;}
-  if(k==='mis'){misBanniere('ASTUCE',TR("En l'air : pouce en HAUT = plonge, en BAS = monte."),'','eclair');return 'ok';}
+  if(k==='mis'){misBanniere('ASTUCE',TR('Tire le pouce vers le BAS en tournant : DRIFT !'),'','volant');return 'ok';}
   if(k==='lvl'){lvlAnnonce();return 'ok';}
   if(k==='plonge'){engPlonge();return engBig.on;}
   if(k==='verdict'){ // (vague 3) un verdict de pose tel que tryLand l'écrit : 'm1' 'm2' 'm3' · 'tags' (+ bonus) · 'lourd'

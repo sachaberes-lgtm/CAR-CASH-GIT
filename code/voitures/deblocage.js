@@ -1,5 +1,5 @@
 /* ============================================================================
-   DÉBLOCAGE DES 24 VOITURES (2026-08-03)
+   DÉBLOCAGE DES VOITURES (2026-08-03 ; 2026-11-05, jury ECO-28 : 91 lignes, 50 actives et 41 retirées — il y en avait 24 à l'origine)
    Le MOTEUR est la progression DANS une partie (il repart à zéro à chaque run) ; la VOITURE est la
    progression ENTRE les parties. Les deux échelles ne se marchent donc plus dessus — c'est pour ça
    que les conditions portent toutes sur des compteurs PERSISTANTS (`SAVE.d.ex`, + le record `best`),
@@ -19,14 +19,14 @@
                   et c'est ce qui empêche la banque de tout ouvrir à elle seule.
      `k:'surv'` = le trophée. ROSSO 40 se gagne en gagnant, point.
    ⚠ l'échelle des prix est géométrique (×5 environ) parce que l'économie du jeu l'est : les paliers
-   moteur vont de 5 à 2 854 et la valeur d'une pièce suit. Une échelle linéaire rendrait les
+   moteur vont de 60 à 4385 et la valeur d'une pièce suit. Une échelle linéaire rendrait les
    premières caisses interminables et les dernières gratuites. */
 /* ===== TOUS LES PRIX ×10, SAUF LA ZAGAIE (2026-10-25, Sacha : « tous les items du jeu, tous leurs prix des trucs que tu peux acheter, tu rajoutes un 0 à la fin de chacun de leurs prix. sauf la zagate ») =====
    Les `p:` ci-dessous (et ceux des habillages dans boutique.js, des figures dans figures.js, des quatre caisses de carnet PX9 dans missions/table.js) sont les prix
    d'AUJOURD'HUI ; les commentaires datés qui les accompagnent citent les prix d'AVANT. LA ZAGAIE (index 88) garde 3 500 000. Les caisses RETIRÉES gardent leur
    ancien prix : il ne sert qu'au REMBOURSEMENT de qui les avait payées à l'époque. Les prix en € des premium (`eur`) ne bougent pas. */
 const CAR_UNLOCK=[
-  /* (2026-10-06, Léo : « fiche-voitures-cash-car.txt — applique les changements ») LA GAMME RESSERRÉE : 43 caisses jouables. Prix et
+  /* (2026-10-06, Léo : « fiche-voitures-cash-car.txt — applique les changements ») LA GAMME RESSERRÉE : 43 caisses jouables (50 au 2026-11-05). Prix et
      familles de la fiche ; les 25 supprimées gardent leur ligne (`retire:1` dans CARS, leur prix ici sert au REMBOURSEMENT de san) ;
      `k:'bientot'` = un DÉFI encore à écrire (COMÈTE : verrouillée, « DÉFI À VENIR ») ; `k:'pubs'` = L'ÉTERNELLE,
      100 pubs regardées (`SAVE.d.ex.pubs` : seule l'édition des portails, retirée le 14/10, avait des pubs). */
@@ -109,11 +109,11 @@ const CAR_UNLOCK=[
   {p:9000000}, // (2026-10-06) ATCHOUM — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 900 000 : entre LA STRATOS et L'ORIGAMI, l'ordre de la fiche
   {k:'premium',eur:'1,61 €',rar:'leg'}, // (2026-10-21, Sacha : « remplace le shark par l'autre requin de Léo, à 1,61 € ») LE SQUALE passe en boutique, ex-700 000 (la mission secrète `abysse` ne le donne plus : elle paie de l'argent, voir missions/table.js — sinon le patch des missions le remettait en `k:'mis'` et il disparaissait de la boutique) ; (2026-10-08) LE SQUALE — RARE, à l'argent (2026-10-09, Léo, fiche de la salle blanche) ÉPIQUE à 700 000 : entre LA TAURINE et ACIDE, l'ordre de la fiche
   {p:3000000}, // (2026-10-09, Léo : « fais-en une hyper abstraite mais travaillée, concept, ajoute-la à la liste ») L'ABSTRAITE — ÉPIQUE, la plus chère des épiques (juste après ROSSO 40)
-  {p:32000000}, // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
+  {p:3200000}, /* (2026-11-05, jury ECO-07 : 32 000 000 → 3 200 000, c'était ×100 au lieu de ×10) */ // (2026-10-10, Léo : « une nouvelle abstraite, en glace, genre iceberg ») L'ICEBERG — ÉPIQUE, juste après L'ABSTRAITE
   {p:3400000}, // (2026-10-10, Léo : « une voiture flamme ») LA FOURNAISE — ÉPIQUE, juste après L'ICEBERG
   {p:3600000}, // (2026-10-10, Léo : « une abstraite type eau ») LA DÉFERLANTE — ÉPIQUE, juste après LA FOURNAISE
   {p:3800000}, // (2026-10-11, Léo : « génère-la en 3D dans mon jeu ») LA MERCURE — ÉPIQUE, juste après LA DÉFERLANTE
-  {p:40000000}, // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
+  {p:4000000}, /* (2026-11-05, jury ECO-07 : 40 000 000 → 4 000 000, ×100 au lieu de ×10) */ // (2026-10-14, Léo : « fais une voiture tête de doge ») LE DOGE — ÉPIQUE, juste après LA MERCURE
   {p:4200000}, // (2026-10-16, Léo : « une belle Porsche Cayenne rose Barbie ») LA POUPÉE — ÉPIQUE, juste après LE DOGE
   {p:2400000},/* (2026-10-22, Sacha : « tableau des voitures » 2 000 000 → 240 000) */ // (2026-10-19) 4 400 000 → 2 000 000 ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille) (2026-10-16, Léo : « Taycan 4S », blanche, « la perle ») LA PERLE — ÉPIQUE, juste après LA POUPÉE
   /* LES NOUVELLES VOITURES (2026-10-18) — prix provisoires (réglables dans la salle blanche) : communes 2 500 → 8 000 $, rares 25 000 → 50 000 $ */

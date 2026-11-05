@@ -224,10 +224,10 @@ function plqPose(lvl,A,W9,H9,L9,y0,exclus,verre,prims){ // appelée par buildCar
 }
 /* ---- LES ÉCRANS : l'atelier de la plaque (#plq) et le profil (#prof) ---- */
 Object.assign(I18N,{'TA PLAQUE':'YOUR PLATE','Elle roule sur toutes tes caisses':'It rides on all your cars','VALIDER':'CONFIRM','RETOUR':'BACK',
-  'MON PROFIL':'MY PROFILE','CHANGER MA PLAQUE':'CHANGE MY PLATE','TEMPS DE JEU':'PLAY TIME','JOUEUR DEPUIS':'PLAYER SINCE','PARTIES':'RUNS',
+  'MON PROFIL':'MY PROFILE','CHANGER MA PLAQUE':'CHANGE MY PLATE','TEMPS DANS L\'APP':'TIME IN APP','JOUEUR DEPUIS':'PLAYER SINCE','PARTIES':'RUNS',
   'FIGURES':'TRICKS','MEILLEUR TEMPS':'BEST TIME','RECORD':'BEST SCORE','FORTUNE MAX':'TOP FORTUNE','VITESSE MAX':'TOP SPEED',
   'AURA':'AURA','MEILLEURE AURA':'BEST AURA','RANG':'RANK','CAISSES':'CARS','MISSIONS':'MISSIONS','MEILLEUR COMBO':'BEST COMBO','SERIE':'STREAK',
-  'TEMPS EN COURSE':'RACE TIME','Au hasard':'Random','Le texte de ta plaque':'Your plate text','Modeles':'Styles','Profil':'Profile',
+  'EN COURSE':'IN RACES','Au hasard':'Random','Le texte de ta plaque':'Your plate text','Modeles':'Styles','Profil':'Profile',
   'JOURS':'DAYS','JOUR':'DAY','AUJOURD\'HUI':'TODAY','RETRO':'RETRO','COURSE':'RACING','BILLET':'BANKNOTE','LINGOT':'GOLD BAR','FRANCE':'FRANCE',
   'PLAQUE ENREGISTREE':'PLATE SAVED'});
 function $p(id){return document.getElementById(id);}
@@ -315,6 +315,7 @@ function plqVeut(){try{if(/[?&]plaque=1\b/.test(location.search))return !PLQ.fai
   return !PLQ.fait&&!(SAVE.d.plq&&SAVE.d.plq.ok)&&!BALADE&&!SIMU_JEU&&!SANDBOX&&!(PARK&&PARK.on);}catch(e){return false;}}
 function plqGuette(){if(PLQ.iv)return;PLQ.iv=setInterval(function(){try{
   if(!plqVeut()){clearInterval(PLQ.iv);return;}
+  if(!/[?&]plaque=ancien\b/.test(location.search)&&!((SAVE.d.ex&&SAVE.d.ex.runs)>0)){PLQ.t0=0;return;} /* (2026-11-05, Opus : jury DIR-46, décision D8 — recommandation) la plaque se choisit APRÈS la 1re course, plus avant d'avoir vu le jeu : la guette PATIENTE (elle ne s'arrête plus) jusqu'au retour à l'accueil après la 1re partie ; `?plaque=ancien` = au 1er accueil */
   const sp=document.getElementById('splash'),md=document.getElementById('modale');
   const pret=!sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play')&&!BIENV.on;
   if(!pret){PLQ.t0=0;return;}if(!PLQ.t0){PLQ.t0=performance.now();return;}
@@ -325,17 +326,17 @@ function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for
   let mis=0,misT=0;try{const s=m2Etat();mis=(s.ok||[]).length;misT=M2.length;}catch(e){}
   let rang='';try{rang=auraRankName();}catch(e){}
   return [
-    ['horloge','TEMPS DE JEU',plqDuree(Math.max(p.tA||0,tc)),'gros'],
+    ['horloge','TEMPS DANS L\'APP',plqDuree(Math.max(p.tA||0,tc)),'gros'],
     ['etoile','JOUEUR DEPUIS',plqDate(p.ne),''],
     ['drapeau','PARTIES',String(ex.runs|0),''],
     ['rotation','FIGURES',String(ex.tricks|0),''],
     ['horloge','MEILLEUR TEMPS',p.dMax?plqDuree(p.dMax):'—',''],
-    ['volant','TEMPS EN COURSE',plqDuree(tc),''],
+    ['volant','EN COURSE',plqDuree(tc),''],
     ['piece','RECORD',fmtC(d.best||0),'cash'],
     ['piece','FORTUNE MAX',fmtC(Math.max(d.bankMax||0,d.bank||0)),'cash'],
     ['eclair','VITESSE MAX',(ex.kmh|0)+' KM/H',''],
     ['etoile','AURA',String(Math.round(d.aura||0)),'aura'],
-    ['trophee','RANG',rang?sansAcc(rang):'—','aura'],
+    ...(auraSansNom()?[]:[['trophee','RANG',rang?sansAcc(rang):'—','aura']]), /* (2026-11-05, finition : « plus de surnom de rang, juste le chiffre » — la carte RANG écrivait encore ANONYME ; sans elle, 15 cartes = 5 rangées de 3 pleines, SERIE ne traîne plus seule dessous) */
     ['etoile','MEILLEURE AURA',String(Math.round(d.auraMax||0)),'aura'],
     ['rotation','MEILLEUR COMBO',d.figRec?'×'+(+d.figRec).toFixed(d.figRec%1?1:0):'—',''],
     ['voiture','CAISSES',own+' / '+tot,''],

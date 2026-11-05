@@ -5,7 +5,7 @@ html.colonne,html.colonne body{height:100%;margin:0;overflow:hidden;background:#
 html.colonne body{display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
-html.colonne:not(.poki) body>*:not(#tel):not(#tourne):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
+html.colonne:not(.poki) body>*:not(#tel):not(#ccBtns):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
 html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:8px/1 var(--pix);letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
 /* le BOÎTIER (#tel, posé en px par le script) : la lunette noire, le cerclage d'acier, l'ombre et le halo néon du jeu ;
    l'écran du 13 Pro dedans : coins de 47 pt (le zoom du cadre les agrandit avec lui) ; l'encoche dans la lunette, par-dessus l'image */
@@ -19,11 +19,14 @@ html.colonne.couche #encoche::after{left:0;bottom:calc(-1*var(--or));background:
 html.colonne.debout #encoche::before{top:0;left:calc(-1*var(--or));background:radial-gradient(circle at 0 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
 html.colonne.debout #encoche::after{top:0;right:calc(-1*var(--or));background:radial-gradient(circle at 100% 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
 /* (Léo) le bouton TOURNER, dans un coin de la page-cadre (hors du téléphone) */
-html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:10px/1 var(--pix);letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
+html.colonne #ccBtns{position:fixed;right:16px;bottom:16px;z-index:9;display:flex;gap:10px}
+html.colonne #tourne,html.colonne #nu{font:10px/1 var(--pix);letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
   background:linear-gradient(#7a6cff,#5143d9);box-shadow:0 4px 0 #2c2280,0 8px 18px rgba(0,0,0,.45);opacity:.85}
-html.colonne #tourne:hover{opacity:1}
-/* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien */
-html.colonne:not(.debout) #tourne{right:auto;left:50%;bottom:8px;transform:translateX(-50%);padding:7px 12px;font-size:10px;opacity:.6}
+html.colonne #nu{background:linear-gradient(#f6c453,#d99a1c);color:#2a1c00;box-shadow:0 4px 0 #8a5d08,0 8px 18px rgba(0,0,0,.45)}
+html.colonne #tourne:hover,html.colonne #nu:hover{opacity:1}
+/* couché, le cadre prend toute la largeur : les boutons se rangent au milieu du bas, là où le jeu n'a rien */
+html.colonne:not(.debout) #ccBtns{right:auto;left:50%;bottom:8px;transform:translateX(-50%);gap:8px}
+html.colonne:not(.debout) #tourne,html.colonne:not(.debout) #nu{padding:7px 12px;font-size:10px;opacity:.6}
 html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
 </style>
 <style>
@@ -233,7 +236,7 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
     color:#7dffec;
     /* plus de bandeau derrière : c'est l'ombre portée qui décolle le texte du ciel */
     text-shadow:0 0 8px rgba(125,255,236,.55),0 2px 4px rgba(0,0,0,.9),0 0 14px rgba(0,0,0,.75)}
-  #engVigTier{display:block;color:#ffd75e;font-size:6px;opacity:.9;margin-top:2px}
+  #engVigTier{display:block;color:#ffd75e;font-size:7px;opacity:.9;margin-top:2px}
   /* ---- LE BADGE DE PALIER : la récompense qui CLAQUE ----
      ⚠ il se pose SUR la vignette du moteur, jamais au centre de l'écran. Ce qui vient de
      changer, c'est CETTE pièce-là : l'œil doit y aller. Un bandeau de plus au milieu se

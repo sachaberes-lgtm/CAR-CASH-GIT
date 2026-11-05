@@ -68,7 +68,7 @@ function garageGo(d){
   if(GAR.go)return; // (2026-09-28) pendant la SORTIE (1,7 s), un glissé remplaçait la caisse qui roule vers la porte
   hap(8); // ◀ ▶, glissé, clavier : le doigt sent qu'on change de caisse (2026-09-26, charte règle 8) — (2026-10-14, session SON) l'oreille l'entend par l'ACTION (carte / bascule), plus par un tick nav EN PLUS ; le tick ne reste que là où rien d'autre ne sonne
   if(SHOP.tab!=='voiture'){ // BOUTIQUE : on feuillette les articles, la caisse reste la tienne
-    shopShow(SHOP.tab,SHOP.i[SHOP.tab]+d);try{if(SONV2)sfx('ui.carte',{vol:-3});else chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
+    shopShow(SHOP.tab,SHOP.tab==='peinture'?peintVoisine(SHOP.i.peinture,d):SHOP.i[SHOP.tab]+d);try{if(SONV2)sfx('ui.carte',{vol:-3});else chimeNote(d>0?880:660,0,.16,.14);}catch(e){}return;}
   if(!garageOn||!GAR.root||GAR.sw){uiClic('nav');garageShow(garageVoisin(garageI,d));return;}
   GAR.sw={t:0,fait:false,to:garageVoisin(garageI,d)};
   try{if(SONV2)sfx('garage.bascule');else{chimeNote(d>0?880:660,0,.16,.14);noiseBurst(.35,.09,900);}}catch(e){} /* (console de son) LA BASCULE, calée sur le retourneur de 1,06 s */
@@ -217,12 +217,16 @@ function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=do
   if(b){const ret=m==='shop'||m==='tous';if(b._lib==null)b._lib=b.innerHTML;if(ret!==!!b._ret){b._ret=ret;b.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':b._lib;if(!ret){const s9=b.querySelector('span[data-fr]');if(s9)s9.textContent=TR(s9.dataset.fr);}b.setAttribute('aria-label',ret?TR('RETOUR'):TR('Boutique'));} /* (2026-10-12, passe qualité) _lib est figé dans la langue de la 1re visite : on repasse le libellé dans la langue du moment (sinon « BOUTIQUE » en anglais après FR→EN) */
     if(gEl)gEl.classList.toggle('shopRet',ret);} // (2026-10-12) BOUTIQUE devient RETOUR
   if(GATL.on&&m!=='inv')GATL.on=false; // l'atelier fermé n'existe qu'en INVENTAIRE
-  if(c){const ret=m==='inv'&&GATL.on;if(c._lib==null)c._lib=c.innerHTML;if(ret!==!!c._ret){c._ret=ret;c.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':c._lib;c.setAttribute('aria-label',ret?TR('RETOUR'):'Inventaire');}}
+  if(c){const ret=m==='inv'&&GATL.on;if(c._lib==null)c._lib=c.innerHTML;if(ret!==!!c._ret){c._ret=ret;c.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':c._lib;c.setAttribute('aria-label',ret?TR('RETOUR'):TR('Inventaire'));}
+    /* (2026-11-05, Opus : jury DIR-04) _lib est figé dans la langue de la 1re visite : « INVENTAIRE » restait en français au retour du garage depuis la mort
+       (anglais). Comme la BOUTIQUE juste au-dessus, le libellé repasse par TR à chaque fois qu'il revient. */
+    if(!c._ret){const s9=c.querySelector('span[data-fr]');if(s9&&s9.textContent!==TR(s9.dataset.fr))s9.textContent=TR(s9.dataset.fr);}}
   if(gEl){gEl.classList.remove('invRet');gEl.classList.toggle('modeInv',m==='inv');gEl.classList.toggle('atelierInv',GATL.on);} // (2026-10-12, Léo) à l'arrivée l'INVENTAIRE en aperçu, les cinq touches ; INVENTAIRE touché = L'ATELIER FERMÉ (gAtelier) : la touche devient ◀ RETOUR, en bas à gauche, les autres s'effacent
   if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop'||m==='tous');st.classList.toggle('gModeTous',m==='tous');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
+  if(gEl)gEl.classList.toggle('bqEntre',(m==='shop'||m==='tous')&&typeof GBQ!=='undefined'&&!GBQ.on&&bqIndusVoulu()); /* (2026-11-05, Sacha : « pendant un bref instant, quand on clique sur boutique, ça ouvre une autre page qui ressemble à une boutique mais différente ») la vitrine du jour s'écrit ICI, d'un coup, mais la salle blanche (bqIndus) n'arrive que ~285 ms plus tard, sous le voile : entre les deux l'ancienne console se voyait seule. bqEntre la cache dès le geste (voir garage-hub-rayons.css), bqClasses la retire à la bascule */
   if(gEl)gEl.classList.toggle('modeShop',m==='shop');} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
 function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou « 15 / 46 » en INVENTAIRE
-  if(m==='tous'){bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>SEE ALL ITEMS</span><s></s><b>'+n+'</b></div>';return;} // (2026-10-10) SEE ALL ITEMS, en anglais (Léo)
+  if(m==='tous'){bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>'+sansAcc(TR('TOUT VOIR'))+'</span><s></s><b>'+n+'</b></div>';return;} // (2026-10-10) SEE ALL ITEMS, en anglais (Léo)
   bar.innerHTML='<div class="gModeT" style="--rc:'+(m==='inv'?'var(--neoC)':'var(--neoM)')+'">'+pxi(m==='inv'?'coffre':'panier')+'<span>'+sansAcc(TR(m==='inv'?'INVENTAIRE':'BOUTIQUE'))+'</span><s></s><b>'+n+'</b></div>';}
 /* LE LOGO DE LA RARETÉ (2026-10-10, Léo : « les raretés, tu peux ajouter le logo à côté de chaque voiture, au même endroit, pour créer un peu
    de logique visuelle ») : sur CHAQUE vignette de caisse (inventaire, SEE ALL ITEMS, vitrine du jour), le logo de sa famille (RAR_LOGO : roue,

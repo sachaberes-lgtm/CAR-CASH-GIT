@@ -34,6 +34,22 @@ function finArete(geo,deg){
   for(let i=0;i<n;i++)F[i*4+3]=i%3;
   geo.setAttribute('aArete',new THREE.Float32BufferAttribute(F,4));}
 function finZero(geo){const P=geo.attributes.position;if(!P)return;const F=new Float32Array(P.count*4);for(let i=0;i<P.count;i++)F[i*4+3]=i%3;geo.setAttribute('aArete',new THREE.Float32BufferAttribute(F,4));}
+/* ===== LA MARBRURE DE TÔLE (2026-11-05, Léo : « la voiture de la honte est magnifique dans le garage : il faut que toutes les autres le soient autant ») =====
+   Ce qui rend LA HONTE vivante, c'est que sa laque n'a pas le même ton partout (voir `patineGeo`, travail-caisse.js). Les autres caisses étaient d'un seul ton
+   par pièce. Ici : la MÊME marbrure, mais PROPRE (pas de crasse, pas de rouille, pas de poussière) et très douce (±4 %), posée UNE FOIS à la construction sur
+   la couleur des sommets de la tôle (laque, métallisé, nacre, motif) : zéro coût en jeu, la peinture de la boutique passe dessous (les couleurs sont multipliées).
+   Une graine par caisse (son nom) ; une géométrie déjà marbrée ne l'est jamais deux fois. `?marbre=0` = l'ancien rendu. */
+/* LA RETOUCHE PAR MODÈLE (2026-11-05, Léo : « une retouche voiture par voiture ») : les réglages de `patineGeo` propres à une forme, versés par-dessus la marbrure commune.
+   `crasse` (0-1) fonce le BAS de caisse jusqu'à `yCrasse` mètres (la peinture prend de la profondeur vers le bas, comme une laque vue de côté) ; `poussiere` éclaircit ce qui
+   regarde le ciel (capot, toit) — des DÉGRADÉS de peinture, jamais de saleté. Une entrée par voiture : ELDORADO (« un peu trop plate ») la première. */
+const FIN_PATINE={eldorado:{marbre:.035,echelle:.55,crasse:.62,yCrasse:.85,poussiere:.18}};
+const MARBRE_ON=!/[?&]marbre=0/.test(location.search);
+function finMarbre(spec){if(!MARBRE_ON||!spec||spec.shape==='epave'||typeof patineGeo!=='function')return;
+  let gr=7;const nm=String(spec.name||spec.shape||'');for(let i=0;i<nm.length;i++)gr=(gr*31+nm.charCodeAt(i))%997;
+  carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isArray(o.material)||!o.material||!o.material.userData)return;
+    const g=o.material.userData.g,G=o.geometry;if(!(g==='p'||g==='k'||g==='n'||(typeof g==='string'&&g.indexOf('pm:')===0)))return;
+    if(G.userData.marbre||!G.attributes.color||!G.attributes.position||!G.attributes.normal)return;G.userData.marbre=1;
+    try{patineGeo(G,Object.assign({marbre:.045,echelle:.42,graine:gr,crasse:.36,yCrasse:.70,poussiere:0},FIN_PATINE[spec.shape]||{}));}catch(e){console.warn('marbrure',e);}});}
 // toutes les pièces de la caisse dont la matière dessine les arêtes : la tôle (laque, métallisé, nacre) calcule ses arêtes, le reste porte des zéros
 function finCaisse(){carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isArray(o.material)||!o.material||!o.material.userData.arete)return;
   if(o.geometry.attributes.aArete)return;const g=o.material.userData.g;
@@ -99,7 +115,10 @@ function paintEnvStudio(){FSTU.env='studio';
    du studio), et porte des bandes de lumière NETTES aux hauteurs que regardent les pans (mesurées à la mire au garage) : la mer de nuages au
    soleil pour les flancs, l'horizon doré pour les épaules, un voile de ciel clair pour les capots ; le soleil en disque net. Le vernis profond et
    les reflets qui éclatent (plus doux qu'au garage : FSTU_MENU_HDR) suivent. REQUIN (FSTU_SANS) garde le ciel d'avant. */
-const FSTU_MENU_HDR=1;
+/* (2026-11-05, Léo : « dans le menu ciel la lumière est trop éblouissante, un peu gamine, ça rend la voiture moins jolie ») mesuré sur ROSSO 40 : un rouge sortait rose saumon délavé.
+   Reflets qui éclatent ÷ 1,4 (1 → .7 : en dessous, les grands panneaux lisses — ELDORADO — s'aplatissent) et exposition du MENU seulement ×.9 (`MENU_EXPO`, posée par menuVitrine) : le rouge reste rouge, le ciel prend de la profondeur.
+   `?menuexpo=1` rend l'exposition d'avant, `?menuhdr=1` les reflets d'avant. */
+const FSTU_MENU_HDR=(/[?&]menuhdr=([\d.]+)/.exec(location.search)||[0,.7])[1]*1,MENU_EXPO=(/[?&]menuexpo=([\d.]+)/.exec(location.search)||[0,.9])[1]*1;
 function paintEnvMenu(B){FSTU.env='menu';FSTU.envB=B;FSTU.garage=false; // (garage=false : finMenu repose la laque, au dosage de ce ciel)
   const S=256,stops=B.env,zen=stops[0][1],sol=stops[stops.length-1][1],s1=B.eS1,s2=B.eS2,
     sunF=Math.abs(SUN_DIR.x)>Math.abs(SUN_DIR.z)?(SUN_DIR.x>0?0:1):(SUN_DIR.z>0?4:5),

@@ -27,6 +27,7 @@ html.bqIndus body #garage::before,html.bqIndus body #garage::after{opacity:0!imp
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom{background:none!important;box-shadow:none!important;clip-path:none!important;padding-top:0}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) #gBottom::before{display:none}
 html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip,#gStrip.fnBande){display:none!important}
+html body #garage.modeShop.bqEntre:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gStrip){visibility:hidden!important} /* (2026-11-05) le geste BOUTIQUE → la salle blanche : la vitrine du jour est déjà écrite mais pas encore à montrer (la place reste, le display:none tombe avec bqIndus) */
 /* L'INTERFACE v3 (voir garBqPanneau) : blanc, du noir pour lire, un BLEU ÉLECTRIQUE (#3d4bff) pour ce qui compte — l'orange retiré */
 #gBqTete{position:absolute;top:calc(var(--sT,0px) + 16px);display:flex;align-items:flex-start;justify-content:space-between;font-family:var(--pix);animation:bqTete .5s var(--ease) .12s both}
 @keyframes bqTete{from{opacity:0;translate:0 -12px}to{opacity:1;translate:0 0}}
@@ -54,7 +55,7 @@ html.bqIndus body #garage.modeShop:not(.menu):not(.vitrine) :is(#gTabs,#gRar,#gS
   box-shadow:0 0 0 1px #dde1e6,0 6px 16px rgba(30,40,55,.07);font-family:var(--pix);font-size:8px;letter-spacing:0;text-align:left;-webkit-tap-highlight-color:transparent;
   transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),translate var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
 #gBqCats button .pxi{--pxs:2;flex:none;color:#14171c}
-#gBqCats button span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:clip}
+#gBqCats button span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 #gBqCats button::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent;transition:background var(--t-fast) var(--ease)}
 #gBqCats button.on{background:#14171c;color:#fff;box-shadow:0 8px 18px rgba(20,23,28,.22)}
 #gBqCats button.on .pxi{color:#fff}

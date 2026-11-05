@@ -38,9 +38,9 @@ const CONTI={
     canyonNuit:{cyZ:[.04,.05,.22],cyM:[.09,.07,.27],cyH:[.12,.06,.18],cyC:[.12,.12,.20],cyD:[.03,.03,.07],cyR:[.04,.04,.10],cyF:[.07,.06,.15],cyL:[.18,.15,.22],
       jZen:[.04,.05,.22],jMid:[.09,.07,.27],jHor:[.12,.06,.18],fog:[.05,.045,.12],fogCj:[.12,.12,.24],fogIn:[.14,.14,.24],
       hemiS:[.28,.32,.64],hemiG:[.10,.06,.09],hemiI:.46,sunC:[.60,.70,1],sunI:.62,fillC:[.48,.30,.78],fillI:.22,expo:.9}, // (mesuré : à .95 la lune blanchissait les parois des Étroits comme en plein jour)
-    dunesNuit:{cyZ:[.04,.05,.22],cyM:[.09,.07,.27],cyH:[.16,.10,.26],cyC:[.12,.12,.20],cyD:[.03,.03,.07],cyR:[.12,.11,.25],cyF:[.07,.06,.15],cyL:[.18,.15,.22], /* (MESURÉ à la photo : la brume du canyon, plus sombre que le sable lunaire, faisait une BANDE NOIRE à l'horizon — la bible : une brume indigo PLUS CLAIRE que les silhouettes) */
-      jZen:[.04,.05,.22],jMid:[.09,.07,.27],jHor:[.16,.10,.26],fog:[.13,.12,.27],fogCj:[.20,.17,.34],fogIn:[.18,.17,.30],
-      hemiS:[.30,.34,.66],hemiG:[.12,.08,.10],hemiI:.50,sunC:[.62,.72,1],sunI:.70,fillC:[.48,.30,.78],fillI:.22,expo:.92}, // (2026-10-18) LES DUNES D'OR : la nuit du canyon, la lune un peu plus forte (le sable la renvoie)
+    dunesNuit:{cyZ:[.03,.07,.26],cyM:[.07,.11,.30],cyH:[.13,.16,.28],cyC:[.12,.12,.20],cyD:[.03,.03,.07],cyR:[.11,.13,.25],cyF:[.07,.06,.15],cyL:[.18,.15,.22], /* (MESURÉ à la photo : la brume du canyon, plus sombre que le sable lunaire, faisait une BANDE NOIRE à l'horizon — la bible : une brume indigo PLUS CLAIRE que les silhouettes) */
+      jZen:[.03,.07,.26],jMid:[.07,.11,.30],jHor:[.13,.16,.28],fog:[.12,.14,.27],fogCj:[.17,.20,.33],fogIn:[.17,.19,.30],
+      hemiS:[.30,.38,.64],hemiG:[.12,.08,.10],hemiI:.50,sunC:[.62,.72,1],sunI:.70,fillC:[.24,.50,.56],fillI:.22,expo:.92}, // (2026-10-18) LES DUNES D'OR : la nuit du canyon, la lune un peu plus forte (le sable la renvoie) · (2026-11-03, passe « maps cohérentes ») LA NUIT D'ARGENT : le ciel marine (plus d'indigo-violet : la photo tenait L* 4-6, chroma 44-56 au ciel, le noir violet), l'horizon argent-bleu, le remplissage à l'ACCENT turquoise de la map (le violet était celui du canyon)
     foretNuit:{jZen:[.05,.07,.26],jMid:[.09,.10,.30],jHor:[.10,.09,.24],fog:[.07,.08,.16],fogCj:[.14,.16,.26],fogIn:[.16,.18,.26],
       hemiS:[.34,.42,.72],hemiG:[.06,.09,.09],hemiI:.66,sunC:[.68,.78,1],sunI:1.0,fillC:[.24,.52,.42],fillI:.26,expo:1.0},
     banqNuit:{jZen:[.04,.06,.24],jMid:[.07,.11,.30],jHor:[.06,.13,.22],fog:[.045,.06,.14],fogCj:[.12,.24,.28],fogIn:[.12,.20,.26],
@@ -59,6 +59,10 @@ const CONTI={
      un horizon qui brûle sans saturer tout l'écran */
   jours:{
     canyonMidi:{rtK:.6,sunI:1.6},dunesMidi:{rtK:.6,sunI:1.6},
+    /* (2026-11-03, passe maps cohérentes · canyon) LE SOIR du canyon : le ciel lavande et le remplissage bleu-violet peignaient la route et les gorges en MAUVE — un
+       bleu de crépuscule (la clé chaude, l'ombre froide, sans magenta) : la route redevient ardoise, la roche terre cuite. LA PLUIE : la gorge tombait au noir (ciel ,8) ; L'ORAGE aussi */
+    canyonSoir:{hemiS:[.38,.44,.70],fillC:[.40,.50,.88]},canyonPluie:{hemiI:1.05},canyonOrage:{hemiI:1,hemiS:[.30,.36,.50]}, /* L'ORAGE : la gorge était un trou noir (ciel ,55) — l'ardoise de la charte */
+    dunesVent:{rtK:.66,rtT:[.95,1,1.08]},dunesTempete:{rtA:.3,rtT:[.84,1,1.2]}, // (2026-11-03, passe « maps cohérentes », MESURÉ) le béton du VENT DE SABLE sortait à L* 48-54 (cible 32-45) et celui de la TEMPÊTE rouille (chroma 40-60 : les autres orages 8-13, la caisse rouge s'y perdait) — il garde la poussière, plus la rouille
     nuagesMatinCC:{rtT:[.97,1,1.05]},nuagesMidiCC:{rtT:[.97,1,1.05]}, // (mesuré) la route des nuages de jour était déjà NEUTRE (ROUTE_JOUR) : la teinte commune la faisait beige
     nuagesSoir:{volSun:[1.95,1.65,1.40]}}
 };
@@ -86,7 +90,7 @@ const CONTI={
      avait tourné les lumières en bleu franc : elles sont ramenées à moitié vers leur gris (jade garde son lavis vert-de-gris). */
 {const EQ9={
   vitreMatin:{sat:1.2},vitreMidi:{rtK:.7,sat:1.18},vitreSoir:{rtK:.78,sat:1.22},vitreNuit:{rtK:.78,sat:1.1},vitrePluie:{sat:1.1},
-  cryptoMatin:{sat:1.2},bullrun:{sat:1.2},cryptoSoir:{sat:1.26},cryptoNuit:{rtK:.55,sat:1.18}};
+  cryptoMatin:{sat:1.2,rtK:.86},bullrun:{sat:1.2,rtK:.88},cryptoSoir:{sat:1.26,rtK:.72},cryptoNuit:{rtK:.55,sat:1.18}}; /* (2026-11-03, passe maps cohérentes) rtK du JOUR de Crypto City — MESURÉ au départ : béton L* 46-54 au matin, 42-50 à midi, 40-42 au SOIR (la forêt du soir 14-31, le canyon 20-22, le glacier 24-28 : la cible du soir est 22-30) */
  for(const k in EQ9)if(BIOMES[k])Object.assign(BIOMES[k],EQ9[k]);
  for(const k of ['jadePluie','jadeOrage'])if(BIOMES[k]){const b=BIOMES[k];
   for(const f of ['fog','fogIn','fogCj','hemiS','hemiG','fillC','sunC','volSun','volSky','volGnd']){if(!Array.isArray(b[f])||b[f].length<3)continue;
@@ -98,7 +102,7 @@ grtConti(); // (2026-10-18) LES PROFONDEURS : ses 24 ambiances prennent la recet
    NOIRS (moins de ciel, moins d'exposition) — la lune, les lucioles, les éclats et les phares ressortent. */
 for(const k of ['foretMatin','foretMidi','foretSoir','foretNuit','foretPluie','foretOrage'])if(BIOMES[k]){const b=BIOMES[k],n9=k==='foretNuit'||k==='foretOrage';
   b.con=(b.con||1)+(n9?.08:.06);b.vigK=(b.vigK||.3)+(n9?.08:.03);b.bloomS=(b.bloomS||.45)+.06;
-  if(n9){b.expo=(b.expo||1)*.84;b.hemiI=(b.hemiI||.5)*.7;}}
+  if(n9&&k==='foretNuit'){b.expo=(b.expo||1)*.84;b.hemiI=(b.hemiI||.5)*.7;}} /* (2026-11-03, maps cohérentes) l'ORAGE garde le contraste et la vignette de Léo mais plus l'exposition ×,84 ni le ciel ×,7 : MESURÉ, la route y tombait à L* 0-4 (80 % du bas de l'image sous L* 6, un trou noir — la charte : jamais) ; sans eux et avec rtK 1,15, L* 19-20, les fûts et la brume se lisent */
 function planetesAlea(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};} // (même générateur que mulberry32, local : la Terre en dépend à la construction)
 /* (2026-10-24) Mars, Jupiter et leurs bandes sont supprimés : il ne reste que la Terre. */
 const PLANETES_PEINTRES={};

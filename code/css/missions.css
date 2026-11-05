@@ -64,6 +64,152 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 .m2Fin{display:flex;align-items:center;gap:8px;min-height:44px;margin:10px 2px 4px;padding:0 4px;cursor:pointer;font-size:var(--f0);letter-spacing:1px;color:#b9b2e6;
   border-top:1px solid rgba(143,132,200,.3)}
 .m2Fin span{flex:1}.m2Fin .pxi{--pxs:1}.m2Fin.on{color:#dfeeff}
+/* ===== L'ÉCRAN MISSIONS — DANS LA DA DU GARAGE (2026-11-03, Sacha : « ça colle pas assez avec la DA du reste, inspire-toi des autres écrans ») =====
+   Les matières de l'INVENTAIRE, rien d'inventé : le décor du garage reste visible en haut ; le titre comme #gName (blanc penché, filet de couleur) ; le panneau comme #gBottom
+   (laque violet-encre à 70 %, liseré --fil, coins coupés --coupe) ; l'en-tête de section .gModeT (néon penché, filet, compte) ; les lignes comme #gFigSel (encre, liseré, coins à 7 px) ;
+   RETOUR penché + JOUER d'or (#gmBas). Une seule police (Press Start, règle du 15/10). La couleur des MISSIONS = celle de leur porte au garage : --neoV (vert néon) — le portail. */
+#gMis.mbOn{--rc:var(--neoV);--pg:var(--neoV)}
+#gMis.mbOn #gmHead,#gMis.mbOn #gmFils{display:none!important}
+#gmListe.mcE{position:absolute;inset:0;left:0;right:0;top:0;max-height:none;margin:0;padding:0;background:none;box-shadow:none;overflow:visible;pointer-events:none;animation:none}
+.mcVoile{position:absolute;inset:0;background:radial-gradient(ellipse 95% 46% at 50% 30%,rgba(7,5,15,.9),rgba(7,5,15,.62) 70%,rgba(7,5,15,.4));pointer-events:none} /* le plan d'ensemble de l'atelier reste là, en fond, mais ne se lit plus à travers le portail */
+#gMis.m2land .mcVoile{background:radial-gradient(ellipse 36% 72% at 25% 56%,rgba(7,5,15,.86),rgba(7,5,15,.5) 72%,rgba(7,5,15,.34))}
+.mcDef{position:absolute;left:calc(var(--sL) + 10px);right:calc(var(--sR) + 10px);top:calc(var(--sT) + 10px);bottom:var(--mcBas,96px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;pointer-events:auto}
+.mcDef::-webkit-scrollbar,.mcPan::-webkit-scrollbar{display:none}
+/* le titre : celui du garage (#gName) */
+.mcTete{padding:4px 6px 0}
+.mcNom{position:relative;display:inline-block;padding-bottom:13px;font-weight:400;font-size:clamp(20px,6.8vw,28px);line-height:1.2;letter-spacing:2px;color:#fff;transform:skewX(var(--sk));transform-origin:0 100%;
+  text-shadow:0 3px 0 var(--txO),0 0 24px color-mix(in srgb,var(--rc) 50%,transparent)}
+.mcNom::after{content:'';position:absolute;left:0;bottom:0;width:min(62vw,230px);height:3px;background:linear-gradient(90deg,var(--rc) 0 72%,transparent);box-shadow:0 0 12px color-mix(in srgb,var(--rc) 60%,transparent)}
+.mcSous{display:block;margin-top:8px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
+.mcNeuf{display:inline-block;margin-top:9px;padding:5px 9px 4px;font-style:normal;font-size:var(--f0);letter-spacing:2px;color:var(--txO);background:var(--neoV);box-shadow:0 0 14px color-mix(in srgb,var(--neoV) 60%,transparent);transform:skewX(var(--sk));animation:mcTampon .45s var(--ease) .75s backwards}
+@keyframes mcTampon{from{opacity:0;transform:skewX(var(--sk)) scale(2.2)}}
+/* LA VEDETTE : le portail flotte sur le décor, comme la caisse au garage */
+.mcHero{display:flex;justify-content:center;padding:10px 0 14px}
+.mcV{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:420px;text-align:center;cursor:pointer;animation:k4Nom var(--t-slow) var(--ease) backwards}
+.mcPo{position:relative;width:min(52vw,200px,26vh);aspect-ratio:1;flex:none;filter:drop-shadow(0 0 14px color-mix(in srgb,var(--pg) 35%,transparent))}
+.mcPo svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.mcPo .tk{fill:none;stroke:var(--tx3);stroke-width:1;opacity:.5}
+.mcPo .fd{fill:rgba(7,5,15,.88)}
+.mcPo .gl{fill:var(--pg);opacity:.08}
+.mcPo .rf{fill:none;stroke:var(--pg);stroke-width:1.3;opacity:.3;transform-origin:100px 100px;animation:mcTourne 48s linear infinite}
+.mcPo .rf0{transform-origin:100px 100px;animation:mcArme 1.5s var(--ease) backwards} /* l'armement : un tour et demi lancé, puis la rotation lente */
+@keyframes mcArme{from{transform:rotate(-260deg);opacity:0}30%{opacity:1}}
+.mcPo .hd{transform-origin:100px 100px;transition:transform 1.1s var(--ease)}.mcPo .hd circle{fill:#fff;filter:drop-shadow(0 0 4px var(--pg)) drop-shadow(0 0 9px var(--pg))}
+.mcPo{transition:transform .15s var(--ease)}.mcV:active .mcPo{transform:scale(.96)}
+.mcPo .tr{fill:none;stroke:rgba(200,184,255,.16);stroke-width:6}
+.mcPo .pr{fill:none;stroke:var(--pg);stroke-width:6;transform:rotate(-90deg);transform-origin:100px 100px;transition:stroke-dashoffset 1.1s var(--ease)}
+@keyframes mcTourne{to{transform:rotate(360deg)}}
+.mcFond{position:absolute;inset:20%;display:flex;align-items:center;justify-content:center}
+.mcSil{position:relative;display:block;width:100%;aspect-ratio:720/440;font-style:normal}
+.mcSil img{position:absolute;left:-8%;top:0;width:116%;height:100%;object-fit:contain;pointer-events:none;filter:brightness(0) drop-shadow(0 0 1px var(--pg)) drop-shadow(0 0 6px color-mix(in srgb,var(--pg) 45%,transparent))}
+.mcSil img:not([src]){display:none}.mcSil.rev img{filter:none}
+.mcSil.duo img.c{filter:drop-shadow(0 0 10px color-mix(in srgb,var(--pg) 45%,transparent))}.mcSil.duo img.n{clip-path:inset(0 0 0 0);transition:clip-path 1.2s var(--ease)}
+.revele .mcSil.duo img.n{clip-path:inset(0 0 100% 0)}
+.mcBal{position:absolute;left:2%;right:2%;top:100%;height:2px;background:var(--pg);box-shadow:0 0 10px var(--pg),0 0 22px var(--pg);opacity:0;text-decoration:none}
+.revele .mcBal{animation:m2RvBalaye 1.2s var(--ease) forwards}
+.mcV.revele .mcPo{animation:none;filter:drop-shadow(0 0 26px color-mix(in srgb,var(--pg) 75%,transparent))}
+.mcFond .mcSil{width:118%}
+.mcSom{font-weight:400;font-size:var(--f5);line-height:1.2;color:var(--cash);white-space:nowrap;text-shadow:0 0 10px rgba(125,255,155,.45)}.mcSom small{font-size:var(--f1);margin-right:4px}
+.mcRar{font-weight:400;font-size:var(--f1);letter-spacing:1px;color:var(--pg);text-shadow:0 0 8px var(--pg)}
+.mcVt{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.mcLab{font-size:var(--f0);letter-spacing:2px;color:var(--tx3)}
+.mcTit{font-weight:400;font-size:var(--f3);line-height:1.6;letter-spacing:1px;color:#fff;text-shadow:0 2px 0 var(--txO);text-wrap:balance;max-width:340px}
+.mcAv{font-size:var(--f1);letter-spacing:1px;color:var(--pg);text-shadow:0 0 8px color-mix(in srgb,var(--pg) 60%,transparent)}
+.mcV .m2Pr{margin-top:2px;min-height:34px;padding:0 18px}
+.mcV.pret .mcPo .pr{stroke-dashoffset:0!important}.mcV.pret .mcPo .gl{opacity:.18}.mcV.pret .mcPo{animation:mcPouls 1.4s var(--ease) infinite alternate}
+@keyframes mcPouls{to{filter:drop-shadow(0 0 22px color-mix(in srgb,var(--pg) 65%,transparent))}}
+.mcAtt,.mcFait{font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
+.mcVide{padding:30px 10px;font-size:var(--f2);line-height:1.7;color:#fff;text-align:center}
+/* LE PANNEAU : celui du garage (#gBottom) */
+.mcPan{box-sizing:border-box;width:100%;max-width:560px;margin:0 auto;padding:12px 12px 10px;
+  background:linear-gradient(180deg,rgba(26,21,50,.7) 0%,rgba(20,15,40,.7) 52%,rgba(15,12,32,.7) 100%);box-shadow:inset 0 0 0 1px var(--fil),0 22px 40px -14px rgba(0,0,0,.75);
+  clip-path:polygon(var(--coupe) 0,100% 0,100% calc(100% - var(--coupe)),calc(100% - var(--coupe)) 100%,0 100%,0 var(--coupe));animation:gDeplie .34s var(--ease) both}
+.mcPan .gModeT{flex:none;height:30px;margin-bottom:8px}
+.mcSq{display:flex;gap:4px}.mcSq s{display:block;width:8px;height:8px;background:none;opacity:1;box-shadow:inset 0 0 0 1px var(--tx3)}.mcSq s.o{background:var(--rc);box-shadow:0 0 6px var(--rc)}
+/* une ligne : un bloc de l'inventaire (#gFigSel) */
+.mcL{display:flex;flex-direction:column;gap:8px;margin-bottom:6px;padding:10px 11px 10px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(11,8,24,.86),rgba(23,16,46,.86));box-shadow:inset 0 0 0 1px var(--fil),inset 0 2px 0 rgba(255,255,255,.05);
+  clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);animation:gmIn .4s var(--ease) backwards;animation-delay:calc(140ms + var(--i) * 60ms)}
+.mcL:active{transform:translateY(2px)}
+.mcLt{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mcLt b{min-width:0;font-weight:400;font-size:var(--f1);line-height:1.6;letter-spacing:.5px;color:#fff7ee}
+.mcLt .mbR{flex:none;display:flex;justify-content:flex-end;min-width:44px}.mcLt .mcSil{width:56px}
+.mcCash{font-weight:400;font-size:var(--f1);color:var(--cash);white-space:nowrap;text-shadow:0 0 8px rgba(125,255,155,.35)}
+.mcRarS{font-weight:400;font-size:var(--f0);letter-spacing:1px;color:var(--rc);text-shadow:0 0 6px var(--rc)}
+.mcJ{display:flex;align-items:center;gap:10px}
+.mcJ u{flex:1;height:5px;background:#030914;box-shadow:0 0 0 1px rgba(200,184,255,.18);text-decoration:none}.mcJ i{display:block;height:100%;width:0;background:var(--neoV);box-shadow:0 0 8px var(--neoV);transition:width 1s var(--ease)}
+.mcJ small{flex:none;font-size:var(--f0);color:var(--tx3)}
+.mcL.hab{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc) 70%,transparent),inset 3px 0 0 var(--rc);background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 16%,rgba(11,8,24,.9)),rgba(23,16,46,.86))}
+.mcL.hab .mcLt b{color:color-mix(in srgb,var(--rc) 45%,#fff)}.mcL.hab .mcJ i{background:var(--rc);box-shadow:0 0 8px var(--rc)}
+.mcL.pret{box-shadow:inset 0 0 0 2px var(--cash),0 0 16px rgba(125,255,155,.25)}.mcL.pret .m2Pr{align-self:flex-start;margin-top:0}
+.mcL.ok{cursor:default;opacity:.62}
+.mcNx{display:flex;align-items:center;gap:10px;padding:8px 2px 2px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
+.mcNx span{flex:1;display:flex;gap:5px}.mcNx i{display:block;height:9px;background:#05030c;box-shadow:inset 0 0 0 1px var(--fil)}
+.mcFin{display:flex;align-items:center;gap:10px;min-height:40px;margin-top:6px;padding:0 4px;font-size:var(--f0);letter-spacing:1px;color:var(--tx2);cursor:pointer}
+.mcFin b{font-weight:400;color:var(--tx3)}.mcFin .pxi{--pxs:1;margin-left:auto}
+.mcL.flash{animation:gmFlash .5s var(--ease)}
+#gmListe.mcE.vu .mcL,#gmListe.mcE.vu .mcV,#gmListe.mcE.vu .mcPan{animation:none}
+/* ===== L'ÉCRAN MISSIONS PLEIN CADRE (2026-11-06, Sacha : « refonte de l'écran mission, l'espace est qu'à moitié occupé » — piste A de maquettes/missions) =====
+   Le portail retiré de l'onglet (05/11) laissait quatre lignes dans un panneau de 560 px : debout 40 % du bas vide, couché la moitié gauche vide et la 4e ligne sous JOUER.
+   Même écran, mêmes matières (laque, liseré, coins coupés, Press Start) — seulement tout étiré : le panneau va du titre à la barre du bas, les cartes se partagent la hauteur
+   (texte 10 → 12 px, récompense 10 → 16 px, jauge 5 → 10 px). Couché : titre en haut (le palier et ses carrés sur sa ligne), les cartes en 2 × 2 sur toute la largeur,
+   le palier suivant et les réussies en pied, RETOUR | JOUER sur toute la largeur — rien sous la barre. Plus de masque en bas : le panneau défile seul (carte coupée = suite). */
+#gmListe.mcE .mcSqT{display:none}
+#gmListe.mcE .mcPan .gModeT{height:34px;margin-bottom:10px}
+#gmListe.mcE .mcL .mcLt b{font-size:var(--f3);line-height:1.55}
+#gmListe.mcE .mcL .mcCash{font-size:var(--f5)}
+#gmListe.mcE .mcL .mcRarS{font-size:var(--f1)}
+#gmListe.mcE .mcL .mcJ u{height:10px}
+#gmListe.mcE .mcL .mcJ small{font-size:var(--f1)}
+#gmListe.mcE .mcL .mcLt .mcSil{width:84px}
+#gmListe.mcE .mcL.pret .m2Pr{min-height:38px;padding:0 18px;font-size:var(--f1)}
+#gmListe.mcE .mcNx{padding:4px 2px 0;font-size:var(--f1)}
+#gmListe.mcE .mcNx i{height:14px}
+#gmListe.mcE .mcFin{flex:none;min-height:44px;margin-top:2px;font-size:var(--f1)}
+#gmListe.mcE .mcVide{flex:1 0 auto;display:flex;align-items:center;justify-content:center}
+/* debout : le titre fixe, le panneau prend tout le reste, ses cartes se partagent la place (et il défile si l'écran est petit) */
+#gmListe.mcE:not(.land) .mcDef{display:flex;flex-direction:column;overflow:hidden}
+#gmListe.mcE:not(.land) .mcTete{flex:none}
+#gmListe.mcE:not(.land) .mcPan{flex:1 1 0;min-height:0;max-width:720px;margin:10px auto 0;display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding:14px 14px 10px}
+#gmListe.mcE:not(.land) .mcL{flex:1 0 auto;max-height:150px;justify-content:center;gap:12px;padding:10px 14px;margin-bottom:9px} /* plafonnée (150 de contenu + 20 de marge intérieure = 170) : avec deux missions seulement, les cartes ne s'étirent pas en blocs creux */
+#gmListe.mcE:not(.land) .mcFinL{flex:none}
+/* couché : RETOUR | JOUER sur toute la largeur, au-dessus d'eux un seul bloc pleine largeur (titre, puis les cartes en 2 × 2) */
+#gMis.mbOn.m2land #gmBas{left:calc(var(--sL) + var(--gut));right:calc(var(--sR) + var(--gut));width:auto;transform:none;bottom:calc(var(--sB) + 12px)}
+#gMis.mbOn.m2land #gmBas .gmHome{width:112px;flex-direction:row;justify-content:center;gap:10px;padding:0 12px}
+#gMis.mbOn.m2land #gmBas .gmJouer{font-size:var(--f6)}
+#gmListe.mcE.land .mcDef{display:grid;grid-template-columns:1fr;grid-template-rows:auto 1fr;top:calc(var(--sT) + 6px);right:calc(var(--sR) + 14px);bottom:calc(var(--mcJh,89px) + 8px);overflow:hidden}
+#gmListe.mcE.land .mcTete{grid-column:1;grid-row:1;display:flex;align-items:flex-end;gap:18px;padding-top:0}
+#gmListe.mcE.land .mcNom{font-size:24px;padding-bottom:11px}
+#gmListe.mcE.land .mcTete .mcSous{margin:0 0 12px}
+#gmListe.mcE.land .mcTete .mcSqT{display:flex;margin:0 6px 12px auto}
+#gmListe.mcE.land .mcPan{grid-column:1;grid-row:2;max-width:none;height:100%;margin:0;overflow-y:auto;scrollbar-width:none;padding:10px 12px 6px;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:1fr 1fr auto;column-gap:10px} /* colonnes ÉGALES : la carte « à récupérer » (bouton + silhouette sur une ligne) n'élargit pas la sienne */
+#gmListe.mcE.land .mcPan[data-n="0"],#gmListe.mcE.land .mcPan[data-n="1"],#gmListe.mcE.land .mcPan[data-n="2"]{grid-template-rows:1fr auto} /* moins de trois cartes : une seule rangée */
+#gmListe.mcE.land .mcPan .gModeT{display:none}
+#gmListe.mcE.land .mcL{margin-bottom:8px;justify-content:center;gap:8px;padding:8px 12px} /* pas de min-height:0 : une carte ne rétrécit jamais sous son contenu, le panneau défile à la place */
+#gmListe.mcE.land .mcL .mcLt b{font-size:var(--f1);line-height:1.5}
+#gmListe.mcE.land .mcL.pret .m2Pr{min-height:34px}
+#gmListe.mcE.land .mcNx{grid-column:1;padding:4px 2px 0}
+#gmListe.mcE.land .mcFin{grid-column:2;min-height:44px;margin:0}
+#gmListe.mcE.land .mcFinL,#gmListe.mcE.land .mcVide{grid-column:1/-1}
+/* les petits écrans : l'iPhone 7 / 8 / SE couché (375 de haut) et debout (667) — même mise en page, plus serrée */
+@media (orientation:landscape) and (max-height:400px){
+  #gmListe.mcE.land .mcPan{padding:8px 10px 4px}
+  #gmListe.mcE.land .mcL{padding:6px 10px;gap:5px;margin-bottom:6px}
+  #gmListe.mcE.land .mcL .mcJ u{height:8px}
+  #gmListe.mcE.land .mcL .mcLt .mcSil{width:56px}
+  #gmListe.mcE.land .mcL.pret .m2Pr{min-height:28px;padding:0 12px}
+  #gmListe.mcE.land .mcL.pret .mcLt .mcSil{width:44px}}
+@media (orientation:portrait) and (max-height:700px){
+  #gmListe.mcE .mcL .mcLt b{font-size:var(--f1)}
+  #gmListe.mcE:not(.land) .mcPan{padding:12px 12px 8px}
+  #gmListe.mcE:not(.land) .mcL{gap:8px;padding:8px 12px;margin-bottom:6px}
+  #gmListe.mcE .mcPan .gModeT{height:30px;margin-bottom:6px}
+  #gmListe.mcE .mcL .mcJ u{height:7px}
+  #gmListe.mcE .mcL .mcLt .mcSil{width:64px}
+  #gmListe.mcE .mcL.pret .m2Pr{min-height:32px;padding:0 14px}
+  #gmListe.mcE .mcNx i{height:10px}}
+@media (prefers-reduced-motion:reduce){.mcPo .rf,.mcPo .rf0,.mcV.pret .mcPo,.mcNeuf{animation:none}.mcL,.mcV,.mcPan{animation:none}.mcSil.duo img.n,.mcPo .hd{transition:none}}
 .m2Rien{padding:16px 6px;font-size:var(--f0);color:#8fb8c8;text-align:center}
 /* LE POINT VERT des portes MISSIONS : une récompense attend */
 .m2Pt{position:absolute;top:5px;right:6px;width:10px;height:10px;background:var(--cash);box-shadow:0 0 0 2px var(--k0),0 0 10px var(--cash);pointer-events:none;
@@ -87,7 +233,7 @@ body:not(.play) #m2Focus{display:none!important}
 @media (orientation:portrait){#m2Focus{left:var(--hudG,16px);transform:none;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px);width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}}
 /* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « trop de pop-up mission pendant la partie : en ligne, plus discrète, en bas ») — une mission
    réussie en course : une ligne fine au-dessus des suivies (--m2lY = leur hauteur, posée par m2LigneSuit), à leur place et dans leur matière */
-#m2Ligne{position:fixed;z-index:3;left:50%;bottom:calc(var(--sB,0px) + 6px + var(--m2lY,0px));transform:translate(-50%,4px);opacity:0;
+#m2Ligne{position:fixed;z-index:8;left:50%;bottom:calc(var(--sB,0px) + 6px + var(--m2lY,0px));transform:translate(-50%,4px);opacity:0;
   display:flex;align-items:center;gap:6px;box-sizing:border-box;width:max-content;max-width:min(60vw,520px);padding:3px 7px 2px;pointer-events:none;
   background:color-mix(in srgb,var(--k1) 84%,transparent);box-shadow:inset 2px 0 0 var(--m2lC);font-family:var(--pix);font-size:var(--f0);
   line-height:1.3;color:var(--tx);--m2lC:var(--cash);transition:opacity var(--t-slow) var(--ease),transform var(--t-slow) var(--ease)}
@@ -103,6 +249,12 @@ body:not(.play) #m2Ligne{display:none!important}
   #m2Ligne.on{transform:none}
   #m2Ligne span{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3}}
 @media (prefers-reduced-motion:reduce){#m2Ligne{transition:opacity var(--t-slow) linear}}
+/* (2026-11-05, Sacha : « conflit de superposition en bas entre les missions et les infos générales, fais une animation où la barre de mission
+   est celle du dessus ») LE FIL (#fil, code/interface/fil.js) vit dans la même zone, en bas au centre, depuis sa descente du 05/11 — le temps
+   qu'une ligne de mission parle (body.m2Lon, posé par m2LigneSuit/m2LigneVide), il s'efface : des propriétés à PART de celles que filIn/filIn2
+   animent déjà (opacity, transform) — scale/translate/filter ne se battent pas avec elles (même règle que hudMaitrise). */
+body.m2Lon #fil{scale:.82;translate:0 6px;filter:opacity(.15);transition:scale .22s var(--ease),translate .22s var(--ease),filter .22s var(--ease)}
+@media (prefers-reduced-motion:reduce){body.m2Lon #fil{transition:none}}
 /* L'ÉCRAN DE MORT : la carte MISSIONS (objRenderV2) */
 .mObj.m2Ob .obHd span{display:inline-flex;align-items:center;gap:6px}
 .mObj.m2Ob .m2Cpt{font-weight:400;color:var(--neoC);letter-spacing:1px}
@@ -151,63 +303,225 @@ html.bqIndus body #garage #gAct>#gBqBtn[data-e="sec"],html:not(.c6):not(.ux8g).b
 #gBqPan .bqK.m2sec .bqKph img{width:100%;height:100%;min-width:0;max-width:100%;max-height:100%;transform:none} /* (2026-11-03) la silhouette secrète entière dans sa case, comme les autres photos */
 #gBqPan .bqK.m2sec .bqKr{display:none}
 html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-left:4px;padding-right:4px} /* debout, « MISSION SECRÈTE » (117 px de texte) était coupé dans une carte de 112 px : il passe sur deux lignes ; couché (128 px) il tient sur une, à 4 px des bords */
-/* LA RÉVÉLATION D'UNE SECRÈTE (étape 4, #m2Rev) : la nuit, les rayons à la couleur de la rareté, la silhouette qui se remplit de couleur
-   de bas en haut sous une ligne de lumière, le nom qui tombe, l'intitulé tapé, RÉCUPÈRE (le lingot de l'écran) */
-#m2Rev{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--pix);
-  padding:calc(var(--sT,0px) + 14px) calc(var(--sR,0px) + 16px) calc(var(--sB,0px) + 14px) calc(var(--sL,0px) + 16px);overflow:hidden;cursor:pointer}
-#m2Rev.on{display:flex}
-.m2RvFond{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,#22102f 0,#0b0614 55%,#05030a 100%);opacity:0;transition:opacity .45s var(--ease)}
-#m2Rev.on .m2RvFond{opacity:.97}
-.m2RvRayons{position:absolute;left:50%;top:44%;width:160vmax;height:160vmax;margin:-80vmax 0 0 -80vmax;opacity:0;
-  background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--rc) 20%,transparent) 0 5deg,transparent 5deg 15deg);transition:opacity 1.2s var(--ease);animation:m2RvTourne 22s linear infinite}
-#m2Rev.plein .m2RvRayons{opacity:1}
-@keyframes m2RvTourne{to{transform:rotate(360deg)}}
-.m2RvBloc{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;max-width:min(92vw,560px);text-align:center;opacity:0;transform:scale(.92);
-  transition:transform .5s var(--ease),opacity .4s var(--ease)}
-#m2Rev.on .m2RvBloc{opacity:1;transform:none}
-.m2RvHd{display:inline-flex;align-items:center;gap:8px;font-size:var(--f3);letter-spacing:3px;color:var(--neoM);text-shadow:0 0 12px rgba(255,62,200,.6)}.m2RvHd .pxi{--pxs:2}
-.m2RvPh{position:relative;width:min(84vw,440px);aspect-ratio:720/440}
-.m2RvPh img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+/* L'AVANT-PREMIÈRE (2026-11-05, Sacha : « beaucoup plus épique, beaucoup plus solennel » ; voir m2RevScene) — #m2Rev, la révélation d'une
+   secrète : le noir et ses bandes de cinéma, le projecteur qui grésille, la silhouette cernée de sa rareté, la charge, l'éclat, puis les
+   projecteurs d'avant-première qui balaient le ciel (à la place des rayons tournants). .p0…p5 = le palier de la rareté (M2RV_T). La boîte de
+   la caisse dans sa photo pose --cx --cy (son centre), --sol (le bas de ses roues), --cw (sa largeur) ; --fa = l'ouverture du projecteur. */
+#m2Rev{position:fixed;inset:0;z-index:93;display:none;box-sizing:border-box;font-family:var(--pix);overflow:hidden;cursor:pointer;
+  --rc:#fff;--ch:900ms;--cx:50%;--cy:49%;--sol:78%;--cw:84%;--fa:16deg;-webkit-tap-highlight-color:transparent}
+#m2Rev.on{display:block}
+.m2RvFond{position:absolute;inset:0;z-index:0;opacity:0;background:radial-gradient(ellipse 80% 70% at 50% 46%,#15151b 0,#08080b 58%,#020203 100%);transition:opacity .5s var(--ease)}
+#m2Rev.on .m2RvFond{opacity:1}
+.m2RvBandes{position:absolute;inset:0;z-index:3;pointer-events:none}
+.m2RvBandes::before,.m2RvBandes::after{content:'';position:absolute;left:0;right:0;height:11vh;background:#000;transition:transform .9s cubic-bezier(.65,0,.35,1)}
+.m2RvBandes::before{top:0;transform:translateY(-101%)}
+.m2RvBandes::after{bottom:0;transform:translateY(101%)}
+#m2Rev:not(.p0).on:not(.eclat) .m2RvBandes::before,#m2Rev:not(.p0).on:not(.eclat) .m2RvBandes::after{transform:none}
+.m2RvCadre{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;box-sizing:border-box;
+  padding:calc(var(--sT,0px) + 14px) calc(var(--sR,0px) + 16px) calc(var(--sB,0px) + 14px) calc(var(--sL,0px) + 16px)}
+.m2RvCv{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
+.m2RvBloc{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:10px;max-width:min(92vw,560px);text-align:center}
+.m2RvBloc{transform:translateY(var(--dy,0px))}
+#m2Rev.rar .m2RvBloc{transform:none;transition:transform 1s cubic-bezier(.65,0,.35,1)}
+.m2RvFlash{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;background:color-mix(in srgb,var(--rc) 16%,#fff)}
+#m2Rev.eclat:not(.bout) .m2RvFlash{animation:m2RvFlash .8s cubic-bezier(.2,.6,.3,1)}
+@keyframes m2RvFlash{0%{opacity:.96}10%{opacity:.85}100%{opacity:0}}
+#m2Rev.eclair .m2RvFlash{animation:m2RvEclair .32s steps(1,end)}
+@keyframes m2RvEclair{0%{opacity:.42}25%{opacity:0}45%{opacity:.24}65%,100%{opacity:0}}
+/* « MISSION SECRÈTE » : blanc cassé, très espacé, entre deux filets — un carton de générique, pas une enseigne */
+.m2RvHd{display:flex;align-items:center;justify-content:center;gap:14px;font-size:var(--f1);letter-spacing:5px;color:rgba(255,255,255,.78);white-space:nowrap;opacity:0;transition:opacity 1s var(--ease) .2s}
+.m2RvHd::before,.m2RvHd::after{content:'';flex:none;width:clamp(20px,7vw,60px);height:2px;background:rgba(255,255,255,.28)}
+.m2RvHd span{display:inline-flex;align-items:center;gap:8px}.m2RvHd .pxi{--pxs:2}
+#m2Rev.on .m2RvHd{opacity:1}
+/* LA SCÈNE : la caméra avance pendant la charge, recule d'un coup à l'éclat */
+.m2RvScene{position:relative;width:min(84vw,440px);aspect-ratio:720/440;transition:transform .6s var(--ease)}
+#m2Rev.charge .m2RvScene{transform:scale(1.08);transition:transform var(--ch) cubic-bezier(.45,0,.85,.55)}
+#m2Rev.eclat .m2RvScene{transform:none;transition:transform .6s cubic-bezier(.2,1.6,.35,1)}
+.m2RvScene>i{position:absolute;display:block;pointer-events:none}
+/* le projecteur au-dessus : un cône de lumière blanche dont la pointe est hors de l'écran ; il grésille avant de tenir */
+.m2RvFaisceau{left:var(--cx);bottom:calc(100% - var(--sol));width:170%;height:100vh;z-index:1;opacity:0;transform:translateX(-50%);
+  background:conic-gradient(from calc(180deg - var(--fa)) at 50% 0,transparent 0deg,rgba(255,255,255,.13) calc(var(--fa)*.5),rgba(255,255,255,.2) var(--fa),rgba(255,255,255,.13) calc(var(--fa)*1.5),transparent calc(var(--fa)*2),transparent 360deg);
+  -webkit-mask:linear-gradient(180deg,rgba(0,0,0,.2) 0,#000 80%,rgba(0,0,0,.5) 100%);mask:linear-gradient(180deg,rgba(0,0,0,.2) 0,#000 80%,rgba(0,0,0,.5) 100%)}
+#m2Rev.scene .m2RvFaisceau{opacity:1;animation:m2RvGresille 1.05s steps(1,end)}
+@keyframes m2RvGresille{0%{opacity:0}6%{opacity:.85}11%{opacity:.06}19%{opacity:1}25%{opacity:.3}33%{opacity:.95}39%{opacity:.55}47%,100%{opacity:1}}
+#m2Rev.eclat .m2RvFaisceau{opacity:.4;animation:none}
+/* la flaque du projecteur, au sol sous la caisse — elle prend la couleur de la rareté à l'éclat */
+.m2RvSol{left:var(--cx);top:var(--sol);width:calc(var(--cw)*1.35);height:30%;z-index:1;opacity:0;transform:translate(-50%,-58%);transition:opacity .7s var(--ease) .4s;
+  background:radial-gradient(closest-side,rgba(255,255,255,.22) 0,rgba(255,255,255,.07) 55%,transparent 100%)}
+#m2Rev.scene .m2RvSol{opacity:1}
+#m2Rev.eclat .m2RvSol{background:radial-gradient(closest-side,color-mix(in srgb,var(--rc) 50%,rgba(255,255,255,.3)) 0,color-mix(in srgb,var(--rc) 16%,transparent) 55%,transparent 100%)}
+/* le halo derrière la caisse : il bat avec elle pendant la charge, il éclate, puis il respire */
+.m2RvHalo{left:var(--cx);top:var(--cy);width:175%;height:165%;z-index:0;opacity:0;transform:translate(-50%,-50%);transition:opacity .9s var(--ease);
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--rc) 44%,transparent) 0,color-mix(in srgb,var(--rc) 15%,transparent) 48%,transparent 100%)}
+#m2Rev.charge .m2RvHalo{opacity:.3;transition:opacity var(--ch) ease-in}
+#m2Rev.bat .m2RvHalo{animation:m2RvHaloBat .6s ease-out}
+@keyframes m2RvHaloBat{0%{opacity:.3}12%{opacity:.95}100%{opacity:.3}}
+#m2Rev.eclat .m2RvHalo{opacity:1}
+#m2Rev.vit:not(.p0) .m2RvHalo{animation:m2RvHaloVit 4.2s ease-in-out infinite}
+@keyframes m2RvHaloVit{0%,100%{opacity:.8}50%{opacity:1}}
+/* LES PROJECTEURS D'AVANT-PREMIÈRE : des cônes fins qui partent de derrière la caisse et balaient le ciel en se croisant (2 · 4 · 5 selon le palier) */
+.m2RvPhares{position:absolute;left:var(--cx);top:calc(var(--sol) - 8%);width:0;height:0;z-index:0;opacity:0;transform:scaleY(.1);transform-origin:50% 0;
+  transition:opacity .9s var(--ease),transform 1.2s cubic-bezier(.2,.9,.25,1)}
+#m2Rev.eclat .m2RvPhares{opacity:1;transform:none}
+.m2RvPhare{position:absolute;bottom:0;left:calc(-8vmax + var(--x,0px));width:16vmax;height:90vmax;transform-origin:50% 100%;opacity:.34;
+  transform:rotate(calc((var(--k) - 1.5) * 16deg));
+  background:conic-gradient(from -5deg at 50% 100%,transparent 0deg,color-mix(in srgb,var(--pc) 50%,#fff) 3.5deg,color-mix(in srgb,var(--pc) 50%,#fff) 6.5deg,transparent 10deg,transparent 360deg);
+  -webkit-mask:linear-gradient(0deg,#000 0,rgba(0,0,0,.75) 35%,transparent 96%);mask:linear-gradient(0deg,#000 0,rgba(0,0,0,.75) 35%,transparent 96%);
+  animation:m2RvBalaie 7.5s ease-in-out infinite alternate;animation-delay:calc(var(--k) * -2.6s)}
+.m2RvPhare:nth-child(2n){animation-direction:alternate-reverse}
+.m2RvPhare:nth-child(1){--x:-15vmin}.m2RvPhare:nth-child(2){--x:15vmin}.m2RvPhare:nth-child(3){--x:-6vmin}.m2RvPhare:nth-child(4){--x:6vmin}
+@keyframes m2RvBalaie{from{transform:rotate(-36deg)}to{transform:rotate(36deg)}}
+#m2Rev.p5 .m2RvPhare{opacity:.4}
+/* LA CAISSE : g = son liseré de lumière (sous la silhouette), c = sa photo en couleur, n = la silhouette noire */
+.m2RvPh{position:absolute;inset:0;z-index:2;opacity:0;transform:translateY(8px);transition:opacity 1s var(--ease),transform 1.3s var(--ease)}
+#m2Rev.scene .m2RvPh{opacity:1;transform:none}
+.m2RvPh img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;-webkit-user-drag:none;user-select:none;pointer-events:none}
 .m2RvPh img:not([src]){display:none}
-.m2RvPh img.n{filter:brightness(0) drop-shadow(0 0 2px rgba(255,62,200,.9));clip-path:inset(0 0 0 0);transition:clip-path 1.4s var(--ease)}
-#m2Rev.plein .m2RvPh img.n{clip-path:inset(0 0 100% 0)}
-.m2RvPh img.c{filter:drop-shadow(0 0 18px color-mix(in srgb,var(--rc) 55%,transparent))}
+.m2RvPh img.g{filter:brightness(0) drop-shadow(0 0 2px var(--rc)) drop-shadow(0 0 10px var(--rc));opacity:0;transition:opacity .9s var(--ease) .3s}
+#m2Rev.scene .m2RvPh img.g{opacity:.45}
+#m2Rev.charge .m2RvPh img.g{opacity:1;transition:opacity var(--ch) ease-in}
+#m2Rev.eclat .m2RvPh img.g{opacity:0;transition:opacity .2s}
+.m2RvPh img.c{opacity:0;filter:drop-shadow(0 0 16px color-mix(in srgb,var(--rc) 40%,transparent))}
+#m2Rev.plein .m2RvPh img.c{opacity:1}
+.m2RvPh img.n{filter:brightness(0) drop-shadow(0 0 1px color-mix(in srgb,var(--rc) 70%,#fff));clip-path:inset(0 0 0 0);transition:clip-path 1.4s var(--ease)}
+#m2Rev.p0.plein .m2RvPh img.n{clip-path:inset(0 0 100% 0)}
+#m2Rev.eclat .m2RvPh img.n{opacity:0;transition:none}
+#m2Rev.bat .m2RvPh{animation:m2RvBat .5s cubic-bezier(.2,.8,.3,1)}
+@keyframes m2RvBat{0%{transform:scale(1)}14%{transform:scale(1.05)}100%{transform:scale(1)}}
+#m2Rev.vit .m2RvPh{animation:m2RvRespire 3.6s ease-in-out infinite}
+@keyframes m2RvRespire{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+/* commune : la couleur monte sous une ligne de lumière (la scène d'avant) */
 .m2RvLigne{position:absolute;left:3%;right:3%;top:100%;height:3px;background:var(--rc);box-shadow:0 0 14px var(--rc),0 0 30px var(--rc);opacity:0}
-#m2Rev.plein .m2RvLigne{animation:m2RvBalaye 1.4s var(--ease) forwards}
+#m2Rev.p0.plein:not(.bout) .m2RvLigne{animation:m2RvBalaye 1.4s var(--ease) forwards}
 @keyframes m2RvBalaye{0%{top:100%;opacity:1}88%{opacity:1}100%{top:0;opacity:0}}
-.m2RvRar{font-size:var(--f0);letter-spacing:3px;color:var(--rc);opacity:0;transition:opacity .4s var(--ease)}
-.m2RvNom{font-size:var(--f7);line-height:1.2;color:#fff;text-shadow:0 3px 0 #000,0 0 20px var(--rc);opacity:0;transform:scale(1.7);transition:transform .45s var(--ease),opacity .3s var(--ease)}
-#m2Rev.nom .m2RvRar,#m2Rev.nom .m2RvNom{opacity:1;transform:none}
-.m2RvTx{min-height:3.2em;max-width:min(86vw,520px);font-size:var(--f1);line-height:1.6;letter-spacing:1px;color:#ffd7f2}
-.m2RvBt{min-width:220px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .3s var(--ease),transform .3s var(--ease)}
+/* le reflet qui passe sur la carrosserie (la photo sert de masque) : à l'éclat, puis toutes les 5 s (pas pour la commune) */
+.m2RvReflet{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:0;
+  -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.m2RvReflet::before{content:'';position:absolute;top:0;bottom:0;left:0;width:42%;transform:translateX(-130%);
+  background:linear-gradient(100deg,transparent 0,rgba(255,255,255,.4) 42%,rgba(255,255,255,.8) 50%,rgba(255,255,255,.4) 58%,transparent 100%)}
+#m2Rev.eclat:not(.p0) .m2RvReflet{opacity:1}
+#m2Rev.eclat:not(.p0):not(.bout) .m2RvReflet::before{animation:m2RvReflet .95s cubic-bezier(.4,0,.2,1) .4s both}
+#m2Rev.vit:not(.p0) .m2RvReflet::before{animation:m2RvRefletVit 5s cubic-bezier(.4,0,.2,1) .8s infinite}
+@keyframes m2RvReflet{from{transform:translateX(-130%)}to{transform:translateX(260%)}}
+@keyframes m2RvRefletVit{0%{transform:translateX(-130%)}22%,100%{transform:translateX(260%)}}
+/* LE NOM : la rareté s'espace et se resserre, le nom tombe de haut et frappe */
+.m2RvRar{display:inline-flex;align-items:center;justify-content:center;gap:10px;margin-top:4px;font-size:var(--f2);color:var(--rc);letter-spacing:16px;opacity:0;
+  transition:letter-spacing 1.1s cubic-bezier(.16,1,.3,1),opacity .6s var(--ease)}
+.m2RvRar .pxi{--pxs:2;margin-top:0}
+#m2Rev.rar .m2RvRar{opacity:1;letter-spacing:6px}
+.m2RvNom{font-size:var(--f7);line-height:1.2;color:#fff;text-shadow:0 4px 0 #000;opacity:0;transform:scale(2.3)}
+#m2Rev.nom .m2RvNom{opacity:1;transform:none;animation:m2RvTombe .3s cubic-bezier(.6,0,.9,.4)}
+@keyframes m2RvTombe{0%{opacity:0;transform:scale(2.3)}55%{opacity:1}100%{opacity:1;transform:scale(1)}}
+#m2Rev:is(.p3,.p4) .m2RvNom{text-shadow:0 4px 0 #000,0 0 26px color-mix(in srgb,var(--rc) 65%,transparent)}
+#m2Rev.p5 :is(.m2RvNom,.m2RvRar span){color:transparent;text-shadow:none;background:linear-gradient(90deg,#ff4d6d,#ffb03a,#ffe85e,#5ee37a,#5ec8ff,#b07dff,#ff8af0,#ff4d6d);
+  background-size:200% 100%;-webkit-background-clip:text;background-clip:text}
+#m2Rev.p5 .m2RvNom{filter:drop-shadow(0 4px 0 #000)}
+#m2Rev.p5.nom .m2RvNom{animation:m2RvTombe .3s cubic-bezier(.6,0,.9,.4),m2RvArc 3s linear infinite}
+#m2Rev.p5 .m2RvRar span{animation:m2RvArc 3s linear infinite}
+#m2Rev.p5 .m2RvRar .pxi{background:linear-gradient(90deg,#ff4d6d,#ffb03a,#ffe85e,#5ee37a,#5ec8ff,#b07dff,#ff8af0)}
+@keyframes m2RvArc{to{background-position:-200% 0}}
+.m2RvTx{min-height:3.2em;max-width:min(86vw,520px);font-size:var(--f1);line-height:1.6;letter-spacing:1px;color:rgba(255,255,255,.7)}
+.m2RvBt{min-width:220px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .35s var(--ease),transform .35s var(--ease)}
 .m2RvBt .pxi{--pxs:2}
 #m2Rev.bt .m2RvBt{opacity:1;pointer-events:auto;transform:none}
-#m2Rev.fin .m2RvBloc{opacity:0;transform:scale(1.06)}#m2Rev.fin .m2RvFond,#m2Rev.fin .m2RvRayons{opacity:0}
-@media (orientation:landscape) and (max-height:540px){.m2RvPh{width:min(44vw,300px)}.m2RvNom{font-size:var(--f6)}.m2RvBloc{gap:5px}.m2RvTx{min-height:2.4em}}
-@media (prefers-reduced-motion:reduce){.m2RvRayons{animation:none}.m2RvBloc,.m2RvNom,.m2RvBt,.m2RvRar,.m2RvPh img.n,.m2RvFond,.m2RvRayons{transition:none}#m2Rev.plein .m2RvLigne{animation:none}}
-/* (2026-10-20, Léo) LA SÉRIE DE SEPT JOURS — sept cases : cochées en vert, celle du jour qui bat en or (l'or = ce qu'on vise, comme une mission suivie), DEMAIN
-   annoncé, la 7e case = la peinture exclusive, son nuancier. (2026-10-22, Sacha : « enlève le défi du jour ») le défi et son bloc AUJOURD'HUI sont partis :
-   la série tient dans une carte (.m2Serie) — titre, sept cases, une phrase. Rien ne bouge en continu sauf la case du jour. */
-.m2Serie .spIco{display:inline-block;flex:none;background-size:contain;background-repeat:no-repeat;background-position:center;image-rendering:pixelated}
-.m2Serie{position:relative;box-sizing:border-box;padding:10px 8px 11px;cursor:pointer;background:linear-gradient(180deg,#10294b,#0a1b36);
-  box-shadow:inset 0 0 0 1px rgba(95,240,255,.24),0 8px 22px rgba(0,0,0,.38);animation:gmIn .4s var(--ease) backwards;animation-delay:260ms}
-.m2Serie>b{display:flex;align-items:center;gap:7px;font-weight:400;font-size:var(--f1);letter-spacing:1px;line-height:1.4;color:#fff;margin-bottom:9px}
-.m2Serie>b .pxi{--pxs:2;color:var(--neoA)}
-.m2Serie>small{display:block;margin-top:9px;font-size:var(--f0);line-height:1.55;letter-spacing:.5px;color:#8fb8c8}
-.srL{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.srC{position:relative;font-style:normal;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;min-width:0;height:54px;padding:5px 0 3px;
-  box-sizing:border-box;background:#06142b;box-shadow:inset 0 0 0 1px rgba(95,240,255,.16);clip-path:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
-.srC>em{font-style:normal;font-size:var(--f0);letter-spacing:0;color:#6f93a6;white-space:nowrap}
-.srC .m2Cash{font-size:var(--f0);letter-spacing:-1px;line-height:22px}
-.srC .spIco{width:22px;height:22px}.srC>b{font-weight:400;font-size:var(--f0);color:var(--au1)}
-.srSw{display:block;width:80%;max-width:24px;height:22px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 0 8px rgba(255,120,200,.35)}
-.srC.fait{background:#0a2418;box-shadow:inset 0 0 0 1px rgba(94,227,122,.55)}.srC.fait>*:not(s):not(em){visibility:hidden}.srC.fait>em{color:#5ee37a}
-.srC>s{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#5ee37a;text-decoration:none}.srC>s .pxi{--pxs:2}
-.srC.auj{background:#2b240c;box-shadow:inset 0 0 0 2px var(--au2);animation:srBat 1.1s var(--ease) infinite alternate}.srC.auj>em{color:var(--au1)}
-@keyframes srBat{to{box-shadow:inset 0 0 0 2px var(--au2),0 0 14px rgba(255,201,58,.45)}}
-.srC.dem{box-shadow:inset 0 0 0 1px var(--au2)}.srC.dem>em{color:var(--au1)}
-.srC.ex:not(.fait){background:linear-gradient(180deg,#1a0f3a,#06142b)}
-@media (prefers-reduced-motion:reduce){.srC.auj{animation:none}}
+#m2Rev.bout .m2RvNom{animation:none}
+#m2Rev.fin .m2RvCadre{opacity:0;transform:scale(1.05)!important;transition:opacity .45s var(--ease),transform .5s var(--ease)}
+#m2Rev.fin .m2RvFond{opacity:0;transition:opacity .5s var(--ease) .05s}
+@media (orientation:landscape) and (max-height:540px){.m2RvScene{width:min(46vw,320px)}.m2RvNom{font-size:var(--f6)}.m2RvBloc{gap:5px}.m2RvTx{min-height:2.4em}.m2RvHd{font-size:var(--f0);letter-spacing:4px}}
+@media (prefers-reduced-motion:reduce){#m2Rev *,#m2Rev *::before,#m2Rev *::after{animation:none!important;transition:none!important}}
+/* (2026-11-03, Sacha : « la série de connexions rapporte un peu plus d'argent chaque jour, puis une voiture épique à la fin — enlève-la de l'écran missions,
+   mets-la dans un écran en plus, à ta mort, 1re partie de la journée ») L'ÉCRAN DE SÉRIE (#serieW) : noir d'encre, l'or pour la case du jour, le vert
+   « portail » pour la voiture mystère seulement. Ouverture en œilleton (le cercle s'ouvre sur la scène), sept marches qui montent, le gain qui s'égrène,
+   la voiture du 7e jour qui sort du portail. Rien de penché, rien en continu sauf le portail et la case du jour. */
+#serieW{position:fixed;inset:0;z-index:96;display:none;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--pix);background:#000;color:#fff;
+  padding:calc(var(--sT,0px) + 12px) calc(var(--sR,0px) + 14px) calc(var(--sB,0px) + 12px) calc(var(--sL,0px) + 14px);overflow:hidden;cursor:pointer;
+  --pg:#8dff4a;--pg2:#1c7a2a;transition:opacity .4s var(--ease)}
+#serieW.on{display:flex}#serieW.fin{opacity:0;pointer-events:none}
+.swScene{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 38%,#15130d 0,#0a0a0c 55%,#040405 100%);clip-path:circle(0% at 50% 40%);transition:clip-path 1s var(--ease)}
+#serieW.on .swScene{clip-path:circle(150% at 50% 40%)}
+.swAnneau{position:absolute;left:50%;top:40%;width:24vmin;height:24vmin;margin:-12vmin 0 0 -12vmin;border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 22px rgba(255,255,255,.5);opacity:0;pointer-events:none}
+#serieW.on .swAnneau{animation:swIris 1s var(--ease) forwards}
+@keyframes swIris{0%{transform:scale(.08);opacity:1}70%{opacity:.9}100%{transform:scale(7);opacity:0}}
+.swBloc{position:relative;display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2.2vh,16px);width:min(100%,520px);text-align:center;opacity:0;transform:translateY(8px);transition:opacity .45s var(--ease) .5s,transform .45s var(--ease) .5s}
+#serieW.on .swBloc{opacity:1;transform:none}
+.swHd{display:flex;flex-direction:column;align-items:center;gap:6px}
+.swHd small{font-size:var(--f1);letter-spacing:3px;color:#8c8f98}
+.swHd b{font-weight:400;font-size:var(--f8);line-height:1;color:#fff;text-shadow:0 3px 0 #000}
+.swHd b i{font-style:normal;font-size:var(--f4);color:#6a6d76;margin-left:4px}
+.swHd em{font-style:normal;font-size:var(--f0);letter-spacing:1px;color:var(--au1)}
+.swPiste{display:grid;grid-template-columns:repeat(7,1fr);gap:clamp(3px,1.4vw,8px);align-items:end;width:100%;height:clamp(96px,26vh,170px);border-bottom:2px solid #2a2c33;box-sizing:border-box;padding:0 2px}
+.swC{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0;font-style:normal}
+.swBar{position:relative;display:flex;align-items:flex-start;justify-content:center;width:100%;height:calc(var(--h) * 1%);box-sizing:border-box;padding-top:5px;text-decoration:none;
+  background:#14151a;box-shadow:inset 0 0 0 1px #2a2c33;transform-origin:bottom;animation:swMonte .55s var(--ease) backwards;animation-delay:calc(.55s + var(--i) * 70ms)}
+@keyframes swMonte{from{transform:scaleY(0)}}
+.swBar b{font-weight:400;font-size:var(--f0);letter-spacing:-1px;color:#6a6d76;white-space:nowrap}
+.swC>em{position:absolute;top:100%;left:0;right:0;margin-top:6px;font-style:normal;font-size:var(--f0);color:#5b5e67;letter-spacing:0}
+.swC.fait .swBar{background:#1b1d23;box-shadow:inset 0 0 0 1px #3a3d46}.swC.fait .swBar b{color:#9a9da6}
+.swC.auj .swBar{background:#0a0a0c;box-shadow:inset 0 0 0 2px var(--au2)}.swC.auj .swBar b{color:var(--au1)}.swC.auj>em{color:var(--au1)}
+.swC.auj .swBar::before{content:"";position:absolute;left:0;right:0;bottom:0;height:0;background:var(--au2);transition:height 1s var(--ease)}
+#serieW.plein .swC.auj .swBar::before{height:100%}#serieW.plein .swC.auj .swBar b{position:relative;color:var(--auO)}
+.swC.voit .swBar{background:transparent;box-shadow:none;align-items:center;padding:0}
+.swC.voit .swBar::before{display:none}
+.swPortail{position:relative;width:100%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(var(--pg),var(--pg2),#d9ffb0,var(--pg2),var(--pg));box-shadow:0 0 14px color-mix(in srgb,var(--pg) 55%,transparent);animation:swTourne 3s linear infinite}
+.swPortail::after{content:"";position:absolute;inset:18%;border-radius:50%;background:#030b05}
+.swPortail s{position:relative;z-index:1;text-decoration:none;font-size:var(--f3);color:var(--pg);animation:swContre 3s linear infinite}
+@keyframes swTourne{to{transform:rotate(360deg)}}@keyframes swContre{to{transform:rotate(-360deg)}}
+.swC.voit.auj .swPortail{box-shadow:0 0 22px var(--pg)}
+.swC>s.swOk{position:absolute;left:0;right:0;top:6px;text-align:center;color:#5ee37a;text-decoration:none}.swC>s.swOk .pxi{--pxs:2}
+.swCentre{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:clamp(70px,20vh,150px);margin-top:14px}
+.swGain{font-size:var(--f7);line-height:1.1;color:var(--au1);text-shadow:0 3px 0 var(--auE),0 0 18px var(--auG);opacity:0;transform:scale(.9);transition:opacity .3s var(--ease),transform .4s var(--ease)}
+.swGain small{display:block;margin-bottom:6px;font-size:var(--f1);letter-spacing:3px;color:#8c8f98;text-shadow:none}
+#serieW.gain .swGain{opacity:1;transform:none}
+.swPh{position:relative;width:min(70vw,360px);aspect-ratio:720/440;display:none}
+.swPh img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}.swPh img:not([src]){display:none}
+.swPh img.n{filter:brightness(0) drop-shadow(0 0 2px var(--pg));clip-path:inset(0 0 0 0);transition:clip-path 1.4s var(--ease)}
+.swPh img.c{filter:drop-shadow(0 0 16px color-mix(in srgb,var(--rc,#fff) 55%,transparent))}
+#serieW.plein .swPh img.n{clip-path:inset(0 0 100% 0)}
+.swLigne{position:absolute;left:3%;right:3%;top:100%;height:3px;background:var(--pg);box-shadow:0 0 14px var(--pg);opacity:0}
+#serieW.plein .swLigne{animation:m2RvBalaye 1.4s var(--ease) forwards}
+#serieW.voiture .swPh{display:block}
+.swRar{font-size:var(--f0);letter-spacing:3px;color:var(--rc,#fff);opacity:0;transition:opacity .4s var(--ease)}
+.swNom{font-size:var(--f6);line-height:1.2;color:#fff;text-shadow:0 3px 0 #000,0 0 18px var(--rc,#fff);opacity:0;transform:scale(1.6);transition:transform .45s var(--ease),opacity .3s var(--ease)}
+#serieW.nom .swRar,#serieW.nom .swNom{opacity:1;transform:none}
+.swPied{font-size:var(--f1);line-height:1.7;letter-spacing:1px;color:#8c8f98;opacity:0;transition:opacity .4s var(--ease)}.swPied b{font-weight:400;color:var(--au1)}
+.swPied i{display:block;font-style:normal;color:#e0645a;font-size:var(--f0)}
+#serieW.bt .swPied{opacity:1}
+.swBt{min-width:220px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .3s var(--ease),transform .3s var(--ease)}
+#serieW.bt .swBt{opacity:1;pointer-events:auto;transform:none}
+.swG,.swD{display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2.2vh,16px);width:100%;min-width:0}
+@media (orientation:landscape) and (max-height:540px){.swBloc{flex-direction:row;align-items:center;gap:26px;width:min(100%,800px)}.swG,.swD{flex:1 1 0;gap:10px}
+  .swHd b{font-size:var(--f6)}.swPiste{height:clamp(80px,34vh,130px)}.swCentre{min-height:0;margin-top:0}.swGain{font-size:var(--f6)}.swPh{width:min(34vw,230px)}.swNom{font-size:var(--f4)}.swBt{min-width:180px}}
+@media (prefers-reduced-motion:reduce){.swScene{transition:none}#serieW.on .swAnneau{animation:none}.swBar{animation:none}.swPortail,.swPortail s{animation:none}.swBloc{transition:none}}
+/* (2026-11-03) L'ÉCRAN DE SÉRIE dans la DA du garage : le fond violet-encre du jeu (body #07050f), les marches comme les blocs de l'inventaire (encre, liseré --fil). Une seule police. */
+.swScene{background:radial-gradient(ellipse at 50% 38%,#1c1636 0,#0d0a1c 55%,#07050f 100%)}
+.swBar{background:linear-gradient(180deg,rgba(11,8,24,.86),rgba(23,16,46,.86));box-shadow:inset 0 0 0 1px var(--fil)}
+.swC.fait .swBar{background:linear-gradient(180deg,rgba(26,21,50,.9),rgba(20,15,40,.9));box-shadow:inset 0 0 0 1px rgba(200,184,255,.28)}.swC.fait .swBar b{color:var(--tx2)}
+.swC.auj .swBar{background:#0b0818}.swPiste{border-bottom-color:var(--fil)}.swHd small,.swPied,.swC>em{color:var(--tx3)}
+.swHd b{transform:skewX(var(--sk));text-shadow:0 3px 0 var(--txO),0 0 24px rgba(255,201,58,.35)}
+/* (2026-11-05, Sacha : « prends le meilleur écran de mission que t'avais fait, mets-le à la mort, la 1re fois et chaque jour la 1re fois, enlève-le de la mission ») L'ÉCRAN
+   DES MISSIONS À LA MORT (#mvW) : le portail (.mcV, .mcPo, mcVedette — inchangé, voir plus haut) posé SEUL sur la scène et l'œilleton de l'écran de série (.swScene,
+   .swAnneau, mêmes matières, aujourdhui.js), avant lui. --pg/--rc valaient --neoV sous #gMis.mbOn (l'écran MISSIONS) : ici, hors du garage, on les repose à la main. */
+#mvW{position:fixed;inset:0;z-index:96;display:none;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--pix);background:#000;color:#fff;
+  padding:calc(var(--sT,0px) + 12px) calc(var(--sR,0px) + 14px) calc(var(--sB,0px) + 12px) calc(var(--sL,0px) + 14px);overflow:hidden;cursor:pointer;
+  --pg:var(--neoV);--rc:var(--neoV);transition:opacity .4s var(--ease)}
+#mvW.on{display:flex}#mvW.fin{opacity:0;pointer-events:none}
+.mvBloc{position:relative;display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2.6vh,18px);width:min(100%,460px);opacity:0;transform:translateY(8px);
+  transition:opacity .45s var(--ease) .5s,transform .45s var(--ease) .5s}
+#mvW.on .mvBloc{opacity:1;transform:none}
+.mvKick{font-size:var(--f1);letter-spacing:3px;color:var(--tx3)}
+.mvBloc .mcHero{padding:0}.mvBloc .mcV{cursor:default;animation:none}
+.mvBt{min-width:220px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .3s var(--ease) .3s,transform .3s var(--ease) .3s}
+#mvW.on .mvBt{opacity:1;pointer-events:auto;transform:none}
+@media (orientation:landscape) and (max-height:540px){.mvBloc{gap:10px}.mvBloc .mcPo{width:min(30vh,140px)}.mvBloc .mcTit{font-size:var(--f2);max-width:280px}}
+@media (prefers-reduced-motion:reduce){.mvBloc,.mvBt{transition:none}}
+#m2Rev.bout .m2RvNom{animation:none}
+#m2Rev.fin .m2RvCadre{opacity:0;transform:scale(1.05)!important;transition:opacity .45s var(--ease),transform .5s var(--ease)}
+#m2Rev.fin .m2RvFond{opacity:0;transition:opacity .5s var(--ease) .05s}
+@media (orientation:landscape) and (max-height:540px){.m2RvScene{width:min(46vw,320px)}.m2RvNom{font-size:var(--f6)}.m2RvBloc{gap:5px}.m2RvTx{min-height:2.4em}.m2RvHd{font-size:var(--f0);letter-spacing:4px}}
+@media (prefers-reduced-motion:reduce){#m2Rev *,#m2Rev *::before,#m2Rev *::after{animation:none!important;transition:none!important}}
+/* (2026-10-20, Léo, la série de sept jours ; 2026-11-03, Sacha : « enlève-la de l'écran missions ») LA CARTE .m2Serie DE L'ANCIEN ÉCRAN MISSIONS N'EST PLUS ÉCRITE NULLE
+   PART (voir aujourdhui.js : plus de serieHtml) — la série vit dans #serieW (ci-dessus), à la mort. Les règles .m2Serie/.srL/.srC sont donc parties avec elle. */
 /* (2026-10-22, Sacha : « enlève le défi du jour, enlève toutes les catégories en haut, c'est trop compliqué… mets-toi dans la peau d'un designer UX/UI senior : un truc beau,
    plus simple, chaque bouton mieux placé, plus ergonomique ») L'ÉCRAN MISSIONS ÉPURÉ.
    COUCHÉ (#gMis.m2land, posé par gmPlaceL) : UNE grille à deux colonnes pour le haut comme pour le bas. À gauche (--m2Gl) : le titre, le compte et sa jauge, la carte de la
@@ -246,5 +560,4 @@ html.misV2 #gmHead em{order:3}
 .m2A .m2L:not(.pret):not(.ok) .glTx>u{margin:5px 0 0}.m2A .m2L:not(.pret):not(.ok) .glTx>small{margin-top:5px;white-space:nowrap}
 .m2A .m2L{min-height:56px;margin-bottom:6px}
 @media (orientation:landscape) and (max-height:540px){.m2A .m2L{min-height:54px;padding:6px 9px 6px 8px;margin-bottom:6px}.m2A .m2R{width:74px;height:40px}.m2Serie{padding:9px 8px 10px}.srC{height:52px}.m2Pr{min-height:26px;margin-top:5px}}
-#gmListe.m2.vu .m2Serie{animation:none}
 </style>

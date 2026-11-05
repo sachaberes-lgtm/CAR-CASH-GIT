@@ -69,8 +69,8 @@ function buildForet(seed){jadeFini(buildForetG(seed));} // (2026-10-17, LE PRÉ-
 function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   foretVide();
   if(PARK.on||!LVL.cur||LVL.cur.id!=='foret'||!(NP>1))return;
-  const t0=performance.now(),M=foretMats(),PT=foretProtos(),fr=mulberry32((seed^0xF0E57)>>>0),fw=mulberry32((seed^0x5A01E)>>>0),MOB=PAL_B9('foretArbres',1)*(TEL_NATIF?.8:1),ds=L/(NP-1);FORET.b0=PAL_B9('foretB0',270);FORET.b1=PAL_B9('foretB1',760);
-  FORET.graine=(seed>>>0)%100000;FORET.seed=seed;FORET.zonesNu=[];FORET.met=LVL.cur.meteo||'midi';FORET.n={};
+  const t0=performance.now(),M=foretMats(),PT=foretProtos(),fr=mulberry32((seed^0xF0E57)>>>0),fw=mulberry32((seed^0x5A01E)>>>0),MOB=PAL_B9('foretArbres',1)*(ALLEGE?.8:1),ds=L/(NP-1);FORET.b0=PAL_B9('foretB0',270);FORET.b1=ALLEGE?Math.min(480,PAL_B9('foretB1',760)):PAL_B9('foretB1',760); /* (2026-11-03, maps cohérentes) LE TÉLÉPHONE RÉCENT PASSE AU DÉTAIL LOINTAIN À 480 m (le palier MOYEN) au lieu de 540 : MESURÉ, les géants au détail fin (5-8 k triangles chacun) font 70 % des triangles de la forêt ; le palier MOYEN (iPhone XR/11) bascule déjà à 480 — sur un écran de téléphone, l'écart entre les deux détails d'un géant à 500 m est minime. L'ordi garde 540. */
+  FORET.graine=(seed>>>0)%100000;FORET.seed=seed;FORET.zonesNu=[];yield* foretSentiersCalc(); /* (2026-11-05, LES SENTIERS DE LUCIOLES) les raccourcis balisés et leur couloir, avant tout arbre */ FORET.met=LVL.cur.meteo||'midi';FORET.n={};
   const DZ=FOR_DECOR?forDecoTire(seed):null,dz2=mulberry32((seed^0xB015E)>>>0);FORET.dz=DZ;FORET.deco=DZ?DZ.li:null; /* (LE DÉCOR AU HASARD) le tirage, et le flux des placements neufs */
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);FORET.root=root;trackMeshes.push(root);
   const S=yield* foretSol(),tS=performance.now();
@@ -98,7 +98,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
   const CLR=[];if(DZ)for(let k=0;k<DZ.clair+DZ.crom;k++){const cr9=k>=DZ.clair;for(let e=0;e<10;e++){const f=.08+dz2()*.84,i=Math.round(f*(NP-1)),l9=lat9(i),sd=dz2()<.5?-1:1,R=cr9?30+dz2()*10:48+dz2()*32,lat=ROAD_HALF+R+(cr9?35+dz2()*55:6+dz2()*40),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
     let ok=true;for(const c of CLR)if(Math.hypot(c[0]-x,c[1]-z)<c[2]+R+60)ok=false;proches(x,z,R+ROAD_HALF+20,function(j){if(ok&&Math.abs(j-i)*ds>500&&Math.hypot(pts[j].x-x,pts[j].z-z)<R+ROAD_HALF+20)ok=false;});
     if(!ok)continue;CLR.push([x,z,R,i,cr9?1:0]);zone(x,z,R);break;}}
-  FORET.clr=CLR;
+  FORET.clr=CLR;for(const c of FORET.sentZ||[])zone(c[0],c[1],c[2]); /* (LES SENTIERS DE LUCIOLES) le couloir du fil : ni arbre, ni rocher, ni fleur */
   // ---- 1. LES GÉANTS : à la corde de chaque virage, en quinconce le long des droites, au cœur des boucles, en colonnade, et LA FUTAIE ----
   /* (2026-10-15, LA PELOTE — Sacha : « des arbres beaucoup, beaucoup plus hauts, beaucoup plus grands » · « qu'on puisse passer entre les
      arbres pour changer de route ») Un géant pose son pied au fond et ouvre sa couronne AU-DESSUS DE LA ROUTE LA PLUS HAUTE à sa portée
@@ -108,8 +108,8 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
   const geantXZ=(x,z,sp)=>{if(CLR.length)for(const c of CLR)if(Math.hypot(c[0]-x,c[1]-z)<c[2]+12)return false;const meta=PT.geant[sp][0].m,base=solH(x,z)-3,cb=sp==='sequoia'?(meta.cb||178):(meta.cb||95),R9=meta.cr*2.2+ROAD_HALF+14;
     let yH=-1e9,dM=1e9,iM=-1;proches(x,z,R9,function(j){const q=pts[j],dh=Math.hypot(q.x-x,q.z-z);if(dh<R9&&q.y>yH)yH=q.y;if(dh<dM){dM=dh;iM=j;}});
     if(iM<0){const yb9=solBil(S.yb,x,z);yH=yb9<1e4?yb9:base+120;} // (aucune route à portée de couronne : la plus basse des environs sert de repère)
-    const sy=THREE.MathUtils.clamp((yH-base+(sp==='sequoia'?45+fr()*150:24+fr()*36))/cb,sp==='sequoia'?.9:.7,4.4),sxz=Math.sqrt(sy)*(.84+fr()*.2),rT=FOR_GEANT_RB[sp]*sxz,cr=meta.cr*sxz;
-    if(base+cb*sy-16<yH)return false; // (la couronne plafonnée passerait dans une route)
+    const sy=THREE.MathUtils.clamp((yH-base+(sp==='sequoia'?45+fr()*150:24+fr()*36)*(FORET_VASTE?FOR_VASTE.geant:1))/cb,sp==='sequoia'?.9:.7,FORET_VASTE?6:4.4),sxz=Math.sqrt(sy)*(.84+fr()*.2),rT=FOR_GEANT_RB[sp]*sxz,cr=meta.cr*sxz;
+    if(base+cb*sy-16<yH)return false;for(const c of FORET.sentZ||[])if(Math.hypot(c[0]-x,c[1]-z)<c[2]+rT)return false; /* (LES SENTIERS DE LUCIOLES) jamais un tronc dans le couloir d'un fil */ // (la couronne plafonnée passerait dans une route)
     for(const g of GE){const d=Math.hypot(g.x-x,g.z-z);if(d<Math.max((g.rT+rT)*2.4+25,(g.cr+cr)*.5))return false;}
     let ok=true;proches(x,z,rT+ROAD_HALF+6,function(j){if(!ok)return;const q=pts[j];if(Math.hypot(q.x-x,q.z-z)<rT+ROAD_HALF+5)ok=false;});
     if(!ok)return false;
@@ -122,22 +122,22 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
    const sm=K9.map(function(k,j){let s9=0,n9=0;for(let d=-4;d<=4;d++){const o=K9[j+d];if(o){s9+=o[1];n9++;}}return [k[0],s9/n9];});
    let der=-1e9;
    for(let j=1;j<sm.length-1;j++){if(performance.now()>JF.lim)yield;const k=sm[j],a=Math.abs(k[1]);if(a<1/1100||a<Math.abs(sm[j-1][1])||a<Math.abs(sm[j+1][1]))continue;
-     const sK=k[0]*ds;if(sK-der<110||sK<260||sK>L-180)continue;
+     const sK=k[0]*ds;if(sK-der<(FORET_VASTE?170:110)||sK<260||sK>L-180)continue;
      const sg=k[1]>0?1:-1,sp=ge[(fr()*ge.length)|0]; // le côté INTÉRIEUR du virage (θ<0 : le cap tourne vers −latéral)
      if(geant(k[0],sg,ROAD_HALF+8+FOR_GEANT_RB[sp]*1.5+fr()*10,sp)||geant(k[0],sg,ROAD_HALF+22+FOR_GEANT_RB[sp]*1.6+fr()*14,ge[(fr()*ge.length)|0]))der=sK; // à la CORDE
      if(fr()<.5){const i2=Math.min(NP-1,k[0]+Math.round((55+fr()*45)/ds));geant(i2,-sg,ROAD_HALF+14+fr()*18+FOR_GEANT_RB.chene*1.6,ge[(fr()*ge.length)|0]);}}} // …et parfois, à la sortie, de l'autre côté
-  {let sd=fr()<.5?-1:1;for(let s9=280;s9<L-200;s9+=95+fr()*70){if(performance.now()>JF.lim)yield;const i=Math.round(s9/ds);let pres=false;for(const g of GE){const d=Math.hypot(g.x-pts[i].x,g.z-pts[i].z);if(d<85){pres=true;break;}}
+  {let sd=fr()<.5?-1:1;for(let s9=280;s9<L-200;s9+=(95+fr()*70)*(FORET_VASTE?1.4:1)){if(performance.now()>JF.lim)yield;const i=Math.round(s9/ds);let pres=false;for(const g of GE){const d=Math.hypot(g.x-pts[i].x,g.z-pts[i].z);if(d<85){pres=true;break;}}
     if(pres)continue;sd=-sd;const sp=ge[(fr()*ge.length)|0];geant(i,sd,ROAD_HALF+10+FOR_GEANT_RB[sp]*1.5+fr()*22,sp);}}
   for(const o of FORET.boucles||[]){let bi=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(o.e);if(d<bd){bd=d;bi=i;}}
     geant(bi,-o.sg,o.R,'sequoia');} // LE SÉQUOIA DE LA BOUCLE : au centre du premier demi-tour, la route tourne autour de lui
   /* LES SÉQUOIAS-TOURS (2026-10-14 soir) : une COLONNADE le long de la route — un fût tous les 70-115 m, d'un côté puis de l'autre, au ras
      du bord (la route serpente entre les troncs). */
-  {let sd=fr()<.5?-1:1;for(let s9=300;s9<L-160;s9+=(70+fr()*45)*(DZ?DZ.gea.col:1)){if(performance.now()>JF.lim)yield;const i=Math.round(s9/ds);sd=-sd;
+  {let sd=fr()<.5?-1:1;for(let s9=300;s9<L-160;s9+=(70+fr()*45)*(DZ?DZ.gea.col:1)*(FORET_VASTE?1.5:1)){if(performance.now()>JF.lim)yield;const i=Math.round(s9/ds);sd=-sd;
      geant(i,sd,ROAD_HALF+FOR_GEANT_RB.sequoia*1.6+16+fr()*34,'sequoia');}}
   /* LA FUTAIE (2026-10-15, LA PELOTE) : partout à moins de 360 m d'une route, un géant tous les ~95 m (une grille décalée) — séquoias,
      chênes, hêtres, épicéas, vieux chênes ; la pelote serpente entre des troncs de 20 à 50 m de diamètre, et l'air entre ses étages
      n'appartient qu'à eux : c'est entre ces fûts qu'on saute d'une route à l'autre. (`foretFutaie` : l'écart de la grille par palier) */
-  {const PF=95*PAL_B9('foretFutaie',1);let bx0=1e9,bx1=-1e9,bz0=1e9,bz1=-1e9;for(let i=0;i<NP;i+=8){const p=pts[i];if(p.x<bx0)bx0=p.x;if(p.x>bx1)bx1=p.x;if(p.z<bz0)bz0=p.z;if(p.z>bz1)bz1=p.z;}
+  {const PF=95*PAL_B9('foretFutaie',1)*(FORET_VASTE?1.35:1);let bx0=1e9,bx1=-1e9,bz0=1e9,bz1=-1e9;for(let i=0;i<NP;i+=8){const p=pts[i];if(p.x<bx0)bx0=p.x;if(p.x>bx1)bx1=p.x;if(p.z<bz0)bz0=p.z;if(p.z>bz1)bz1=p.z;}
    for(let gx=bx0-360;gx<bx1+360;gx+=PF)for(let gz=bz0-360;gz<bz1+360;gz+=PF){if(performance.now()>JF.lim)yield;const x=gx+(fr()-.5)*PF*.8,z=gz+(fr()-.5)*PF*.8,d=solBil(S.d,x,z),r=fr();
      if(d>360||d<ROAD_HALF+24)continue;geantXZ(x,z,r<.42?'sequoia':ge[(fr()*ge.length)|0]);}}
   FORET.geants=GE;
@@ -165,7 +165,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
   const ESP={},LOINF=[],LOINC=[];for(const k of FOR_ESP_N)ESP[k]=[];
   /* (2026-10-15, LA PELOTE — « des arbres beaucoup plus grands ») la forêt ordinaire à l'échelle ×2,1 (des hêtres de 60 m, des épicéas de 80) :
      une case 2× plus large, 4× moins d'arbres pour le même couvert — et autant de triangles en moins. */
-  const FE=2.1,cell=15*2/Math.sqrt(Math.min(1,MOB*1.25)),Rt=PAL_B9('foretRayon',1650),metaE={};for(const k of FOR_ESP_N)metaE[k]=PT.esp[k][0].m;
+  const FE=2.1*(FORET_VASTE?FOR_VASTE.arbres:1),cell=15*2*FE/2.1/Math.sqrt(Math.min(1,MOB*1.25)), /* (2026-11-05, LA FORÊT VASTE) des arbres ×1,45, la case à la même échelle : le même couvert */Rt=PAL_B9('foretRayon',1650),metaE={};for(const k of FOR_ESP_N)metaE[k]=PT.esp[k][0].m;
   const ES9=DZ&&FOR_ESS[DZ.ess],choix=(d,r)=>{if(ES9){for(const e of ES9[d<175?0:d<620?1:2])if(r<e[0])return e[1];return 'epicea';}if(d<175)return r<.30?'hetre':r<.52?'bouleau':r<.70?'chene':r<.82?'epicea':r<.92?'pin':'sapin';
     if(d<620)return r<.40?'epicea':r<.58?'sapin':r<.82?'hetre':r<.90?'pin':r<.95?'chene':'bouleau';
     return r<.48?'epicea':r<.68?'sapin':r<.94?'hetre':'pin';};

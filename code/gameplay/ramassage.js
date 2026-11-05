@@ -92,13 +92,13 @@ function pickupsTick(dt){
     const mag=engTier>=ENG_CAP.aimant?1:0,gros9=MAG9&&!p.pow&&!p.nitro; /* (2026-10-20, Léo : « l'aimant attire les PIÈCES seulement ») la pomme dorée n'attire plus les fruits */ // (2026-10-14, chasse aux bugs) RAM.q = l'objet AVANT l'attraction de l'image (ramD) — (OPTIMISATION) copié dans chaque branche APRÈS ses filtres bon marché : ~9 000 copies de moins par image en fin de partie, même valeur là où elle est lue
     if(p.hk>0){RAM.q.copy(p.mesh.position);if(saut9){p.hk=0;continue;}} // un saut de caisse DÉCROCHE : rien ne traverse la carte pour payer
     else if(enVol){ // EN VOL : le couloir, TA face, pas de jumeau — puis la sphère ACCROCHE
-      if(Math.abs(p.s-lastNearS)>(gros9?MAG_R+40:70))continue; // pré-filtre bon marché le long de la piste, AVANT toute distance 3D
+      if(p.air){if(p.mesh.position.distanceToSquared(carGroup.position)>22500)continue;}else if(Math.abs(p.s-lastNearS)>(gros9?MAG_R+40:70))continue; /* (2026-11-05, LES SENTIERS DE LUCIOLES) un fruit en l'air (p.air) se filtre à 150 m en 3D : sa dalle la plus proche n'est pas toujours celle de la caisse */ // pré-filtre bon marché le long de la piste, AVANT toute distance 3D
       if(p.face!==fV9&&!p.air)continue;                         // (passe qualité) pas le jumeau de l'autre face…
       if(!p.air){const tw=pickups[i9+p.face];if(tw&&tw.face===-p.face&&tw.s===p.s&&tw.lat===p.lat&&(tw.taken||tw.hk>0))continue;} // …ni celui dont le jumeau est pris ou en route (voir LE JUMEAU)
       // EN VOL L'AIMANT EST PLUS LARGE : viser une grappe en pleine parabole, sans volant, est déjà difficile — sans coup de pouce on
       // ne les attrape jamais. (v3) sous L'AIMANT, la sphère de MAG_R m.
       RAM.q.copy(p.mesh.position);const d9=p.mesh.position.distanceTo(carGroup.position);
-      if(ramD(p.mesh.position,RAM.q,p.ax,gros9?MAG_R:11+mag*3)>=(gros9?MAG_R:11+mag*3))continue; // (2026-10-14, chasse aux bugs) le TRAJET de l'image (ramD), même rayon ; hkD reste l'écart réel
+      if(ramD(p.mesh.position,RAM.q,p.ax,gros9?MAG_R:p.air?FOR_SENT.air:11+mag*3)>=(gros9?MAG_R:p.air?FOR_SENT.air:11+mag*3))continue; /* (LES SENTIERS DE LUCIOLES) les fruits du fil : 30 m — la trajectoire prévue n'est juste qu'à ± 25 m (la vitesse verticale du décollage varie), suivre le fil suffit */ // (2026-10-14, chasse aux bugs) le TRAJET de l'image (ramD), même rayon ; hkD reste l'écart réel
       p.hk=1e-4;p.hkD=d9;RAM.n[6]++; // ACCROCHÉ
     }else if(gros9){ // (v3) L'AIMANT AU SOL : la sphère
       if(Math.abs(p.s-s)>MAG_R+8)continue; // pré-filtre bon marché le long de la piste
@@ -135,15 +135,15 @@ function pickupsTick(dt){
         const fd=FRUIT_DEFS[p.fruit]||FRUIT_DEFS[0],pw=Math.min(1,fd.boost/2);
         // (2026-09-26, user : « les fruits donnent du nitro BLEU ») : chaque fruit remplit la RÉSERVE BLEUE (la nitro la plus forte : poussée
         // 48 contre 30) de 20 % de la jauge — le bleu se voit sur la barre et sur l'anneau du bouton
-        {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?(p.don||LIGNE.don):.2*mx9)); /* (2026-10-21, Sacha : « l'ancien système ») comme avant : le fruit remplit la RÉSERVE BLEUE */if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9)-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
+        {const mx9=(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2,av9=nitroX;nitroX=Math.min(2,nitroX+(p.ligne?(p.don||LIGNE.don):.2*mx9*fruitK(p.fruit))); /* (2026-10-21, Sacha : « l'ancien système ») comme avant : le fruit remplit la RÉSERVE BLEUE · (2026-11-05, hiérarchie des fruits) × fruitK : 20 % pour le fruit MOYEN, 8 % la myrtille, 57 % le melon */if(LIVRE.on){livre('n+:'+(p.ligne?'fruit.ligne':'fruit'),nitroX-av9);livre('n0:'+(p.ligne?'fruit.ligne':'fruit'),(p.ligne?LIGNE.don:.2*mx9*fruitK(p.fruit))-(nitroX-av9));}if(p.ligne)LIGNE.pris[0]++; // (LIGNE PARFAITE) le fruit de la file rend de quoi tenir jusqu'au pad
          if(nitroX>av9+.01){if(SONV2)sfx('nitro.plein',{t:.14});nbPrend('x');}} /* (2026-10-21, Léo : « on voit directement la barre monter ») le fruit ne vole plus vers la barre : elle monte tout de suite */
-        RUNX.fruits++;try{m2Fruit(fd.n);}catch(e){}hap(fd.boost>=1.5?[20,40,30]:11);
+        RUNX.fruits++;try{m2Fruit(fd.n);}catch(e){}hap(fd.boost>=1.9?[20,40,30]:11);
         if(SENS&&!REDUCED_MOTION)try{sensCoup(0,-(.45+.6*pw),-(.3+.35*pw));}catch(e){} // (2026-10-14, sensations · passages) LE COUP DE REINS du plein : le fruit rend sa nitro, la caisse S'ASSOIT d'un coup sur son train arrière (nez levé ≈ 1,2° la myrtille → 2,7° la pastèque, ≈ 1 à 2,5 cm) puis se repose — le jus, le croc et la main existaient, la tôle ne bronchait pas. Au sol seulement (sensCoup dort en vol).
         fruitCroque(carGroup.position,fd.jus||0xffd75e,pw,fd.n,!!p.ligne&&PADS_OFF); // ON CROQUE : jus, crunch, et la rafale qui monte
         // (le fruit ne touche PAS au moteur : il ne sert qu'au boost — ce sont les pièces qui l'améliorent)
-        if(fd.boost>=1.5){ // LE GRAAL : la pastèque, ça se fête
-          trickMsg('🍉 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);
-        }else sparkBurst(fd.boost>=.8?sparkGold:sparkBlue,carGroup.position,fd.boost>=.8?8:5,7);
+        if(fd.boost>=1.9){ // LE GRAAL : le melon (la pastèque, avant), ça se fête · (2026-11-05, hiérarchie des fruits) seuils recalés : le graal = le plus gros, l'étincelle d'or = les GROS (pomme et au-dessus), le bleu = les petits
+          trickMsg('🍈 '+fd.n+' !',2);sparkBurst(sparkGold,carGroup.position,18,14);shake=Math.max(shake,.3);
+        }else sparkBurst(fd.boost>=1?sparkGold:sparkBlue,carGroup.position,fd.boost>=1?8:5,7);
       }
       else{
         sparkBurst(sparkGold,p.mesh.position,FLOW.lv===4?14:8,FLOW.lv===4?11:8); // (2026-09-28) là où la pièce disparaît · (×3) en FRÉNÉSIE la gerbe grossit : la pièce vaut trois fois plus
@@ -156,7 +156,7 @@ function pickupsTick(dt){
         // ~2,3× moins et le combo se mérite (un palier toutes les 5 pièces, plafond ×4 au lieu de ×5)
         // → rendement max 8,8×denom contre 25×denom avant. La CHAÎNE DE FIGURES reste la vraie fortune.
         // LE MOTEUR MONTE À LA PIÈCE : c'est la ferraille ramassée qui paye le turbo
-        addCoins(1);RUNX.coins++;flowAdd(.7,'route');if(p.grp)coinSerie(p);try{piece1Plus();}catch(e){} /* (2026-10-14) le « +1 » à côté de la caisse */
+        addCoins(1);RUNX.coins++;flowAdd(.7,'route');if(p.grp)coinSerie(p);/* (2026-11-05, Sacha : « enlève les petits +3 à côté de la voiture ») le « +1 » flottant (piece1Plus) ne s'écrit plus */
         /* (2026-10-14, sensations · passages) LA RÉCOLTE SE SENT. La 5e, la 10e, la 15e — celles où la salve d'aura tombe et où
            `piece.recolte` sonne — soulèvent la caisse d'un rien (≈ 1 → 2 cm : elle s'allège).
            (2026-10-15, Sacha : « enlève les vibrations à chaque fois qu'on ramasse des pièces ») LA PIÈCE NE VIBRE PLUS : ni le tic de

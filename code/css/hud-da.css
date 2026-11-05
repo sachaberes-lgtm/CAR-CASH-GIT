@@ -300,11 +300,11 @@ body.hTp:not(#ccH) #cashHud,body.dead #cashHud,body.coOn #cashHud{visibility:hid
    (--contourH/--contourP n'en contiennent pas). Les dégradés en hex purs (aura, points, ×cash, record, chrono) ne sont pas touchés. ---- */
 @supports not (color:color-mix(in srgb,red 50%,blue)){
   html body :is(#slam9 b,#verdHud b,#lvlNum i,#popTxt,#avX){background:none!important;filter:var(--contourH)!important}
-  html body :is(#verdHud .vM,#slam9 small,#lvlNom,#auraV2 .avTot em,#avList li,#pwrChip .pw span small,#pwrChip .pw span b,#tSteerHint,
+  html body :is(#verdHud .vM,#slam9 small,#lvlNom,#auraV2 .avTot em,#avList li,#pwrChip .pw span small,#pwrChip .pw span b,
     #misBan .mbTx small,#coach .coTx b,#campChip b,#campChip small,#tNitro span,#frenTraits b,#lvlNom em,#flowHud .fL,
     #airHud .ahS,#airHud em,#triade .trNom,#engBig .ebCarte>b){background:none!important;filter:var(--contourP)!important}
   html body :is(#slam9 b,#verdHud b,#lvlNum i,#verdHud .vM,#slam9 small,#lvlNom,#auraV2 .avTot em,#avList li,
-    #pwrChip .pw span small,#tSteerHint,#misBan .mbTx small,#coach .coTx b,#campChip b,#campChip small,#tNitro span,
+    #pwrChip .pw span small,#misBan .mbTx small,#coach .coTx b,#campChip b,#campChip small,#tNitro span,
     #frenTraits b,#lvlNom em,#airHud .ahS,#airHud em){color:var(--tc,#fff)!important;-webkit-text-fill-color:var(--tc,#fff)!important}
   html body #avX{color:var(--xc,#ff5ec8)!important;-webkit-text-fill-color:var(--xc,#ff5ec8)!important}
   html body #flowHud .fL{color:var(--fc,#fff)!important;-webkit-text-fill-color:var(--fc,#fff)!important}
@@ -513,12 +513,6 @@ html body.touch #pwrChip .pw{min-width:calc(112px / var(--hudK))!important;box-s
 html body.touch #pwrChip .pw span b{font-size:17px!important}
 /* EN BAS : la même marge que le haut */
 html body.touch #tNitro{right:calc(var(--hudD) + 8px)!important;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 16px)!important}
-/* la consigne du volant : debout, en bas sur la marge ; COUCHÉE (relevé de GAMEPLAY : à 20 px du bas, le pouce la couvrait), À GAUCHE de
-   l'anneau-fantôme (bas 96 px, 92 px de haut), sur deux lignes, à hauteur de son centre — au-dessus, elle tombait sur la route, et debout
-   sur l'arrière de la caisse (essayé au banc) */
-html body.touch #tSteerHint{left:var(--hudG)!important;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px)!important}
-@media (orientation:landscape) and (max-height:540px){html body.touch #tSteerHint{right:auto!important;width:calc(50% - 46px - var(--hudG) - 12px)!important;
-  white-space:normal!important;line-height:1.8!important;text-align:left;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 127px)!important}}
 /* le « $×1 » du FLOW au palier 0 était à 40 % d'opacité : gris sur bleu nuit, illisible sur un ciel clair (GAMEPLAY) — secondaire, mais lisible */
 html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
 </style>

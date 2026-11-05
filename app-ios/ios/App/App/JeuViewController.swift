@@ -28,7 +28,9 @@ class JeuViewController: CAPBridgeViewController {
         }
     }
 
-    // L'indicateur d'accueil qui s'efface : réglé par capacitor.config.json (SystemBars.hidden, intégré à Capacitor 8).
+    // L'INDICATEUR D'ACCUEIL QUI S'EFFACE (2026-11-05, Opus : jury IOS-21) : le bloc SystemBars de capacitor.config.json n'a aucun
+    // module installé (inerte) ; c'est ce contrôleur qui le demande à iOS. Il revient au premier toucher du bas de l'écran (règle d'iOS).
+    override var prefersHomeIndicatorAutoHidden: Bool { true }
     override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge { .all }
 }
 
