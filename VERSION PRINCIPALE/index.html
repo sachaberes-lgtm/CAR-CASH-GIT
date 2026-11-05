@@ -76022,6 +76022,61 @@ function nxfDessine(d,pal,a,clig){
   NX3.cx.putImageData(NX3.img,0,0);
 }
 function nxfRows(){const m=nxfMasque(.35,2),r=[];for(let y=0;y<20;y++){let t='';for(let x=0;x<15;x++)t+=m[y*15+x]?'#':'.';r.push(t);}return r;} // la flamme en lignes de cases, pour le dessin SVG du réglage des figures (même forme que NX3_G)
+/* ===== LA GARDE (2026-11-05, Fable : « HYG-03 : garde(zone, fn) qui exécute, attrape, journalise dans __ccNote (zone, message, compteur) et ne relance pas
+   la même erreur plus d'une fois par minute ») =====
+   92 % des 1 690 try/catch du jeu sont muets : une sauvegarde qui échoue, une chaîne d'aura perdue, une boutique figée, un graphe audio à moitié
+   branché ne laissaient aucune trace. `garde(zone, fn, repli)` exécute fn ; si elle jette, la panne est COMPTÉE par (zone, message), écrite dans la
+   boîte noire (`__ccNote('garde', …)`, visible dans VERSION › boîte noire) au plus une fois par minute pour la même signature, et `repli` est rendu.
+   Elle ne remplace que les catch DANGEREUX (la liste du rapport hygiène) : les 1 670 autres restent tels quels. `dbgGarde()` : les compteurs. */
+const GARDE={n:{},t:{},min:60000};
+function gardeNote(zone,e){ /* compte la panne ; l'écrit (boîte noire + console) au plus une fois par minute par signature ; rend vrai si écrite */
+  const msg=String((e&&e.message)||e||'?').slice(0,160),cle=zone+'|'+msg,t=Date.now();
+  GARDE.n[cle]=(GARDE.n[cle]||0)+1;
+  if(t-(GARDE.t[cle]||0)<GARDE.min)return false;
+  GARDE.t[cle]=t;
+  try{window.__ccNote('garde',zone+' · '+msg+(GARDE.n[cle]>1?' (×'+GARDE.n[cle]+')':''),(e&&e.stack?String(e.stack).split('\n').slice(1,3).join(' ¶ '):''));}catch(_){}
+  try{console.warn('garde · '+zone,e);}catch(_){}
+  return true;}
+function garde(zone,fn,repli){try{return fn();}catch(e){gardeNote(zone,e);return repli;}}
+window.dbgGarde=function(vider){if(vider){GARDE.n={};GARDE.t={};}return Object.assign({},GARDE.n);};
+/* ===== LE CHIEN DE GARDE DE LA BOUCLE (2026-11-05, Fable : « GP-01 / HYG-05 : un try par tranche, un compteur d'erreurs consécutives ; 3 de suite dans la même
+   tranche = explosion + endGame propre + note dans __ccNote ») =====
+   loop() tient sa simulation dans cinq try (voir moteur/boucle-1.js) : départ · physique (conduite + physique) · effets · sons · hud. Chaque panne
+   passe ici : notée dans la boîte noire avec sa tranche, dite UNE fois en console par signature, comptée par tranche — le compteur d'une tranche
+   retombe dès qu'une image passe sans panne (bouclePasse, en fin de simulation). Trois images de suite en panne dans la même tranche = la caisse
+   EXPLOSE (explode('panne') : l'écran de fin, la sauvegarde versée, REJOUER) ; si l'explosion elle-même échoue, endGame() de secours. Le filet NaN
+   du 2026-11-03 (vitesse, côté, cap non finis → 0 ; position s non finie → fin de partie) reste, dans toutes les tranches.
+   Banc : `dbgBoucle('physique')` fait jeter la tranche à la prochaine image (3 fois) ; `dbgBoucle()` décrit. */
+const BTR={n:{},vu:{},img:1,max:3,test:null,dern:''};
+function boucleTest(tr){if(BTR.test&&BTR.test.tr===tr){if(--BTR.test.n<=0)BTR.test=null;throw new Error('banc : panne forcée dans la tranche '+tr);}}
+function bouclePanne(tr,err){
+  const msg=String((err&&err.message)||err||'?'),pile=(err&&err.stack?String(err.stack):'').split('\n');
+  window.__loopErr=tr+' · '+msg+' | '+pile.slice(0,3).join(' ¶ ');
+  BTR.vu[tr]=BTR.img;BTR.n[tr]=(BTR.n[tr]||0)+1;
+  try{window.__ccNote('boucle',tr+' · '+msg,pile.slice(1,3).join(' ¶ '));}catch(_){}
+  {const cle=tr+'|'+msg;if(cle!==BTR.dern){BTR.dern=cle;console.error('boucle · tranche '+tr+' ('+BTR.n[tr]+')',err);}} /* une fois par signature, pas une fois pour toute la session */
+  try{if(started&&running&&!gameOver){if(!Number.isFinite(vA))vA=0;if(!Number.isFinite(vL))vL=0;if(!Number.isFinite(lat))lat=0;if(!Number.isFinite(psi))psi=0;
+    if(!Number.isFinite(s)){try{window.__ccNote('boucle','état non fini (s) : fin de partie');}catch(_){}endGame();}}}catch(e2){console.error('boucle · secours',e2);}
+  if(BTR.n[tr]>=BTR.max&&started&&running&&!gameOver&&mode!=='boom'){
+    try{window.__ccNote('boucle','tranche '+tr+' : '+BTR.n[tr]+' images en panne → explosion',msg);}catch(_){}
+    BTR.n[tr]=0;
+    try{explode('panne');}catch(e3){console.error('boucle · explosion de secours',e3);}
+    if(!gameOver&&mode!=='boom'){try{endGame();}catch(e4){console.error('boucle · fin de secours',e4);}}}}
+function bouclePasse(){ /* en fin de simulation : une tranche passée sans panne cette image repart de zéro */
+  for(const k in BTR.n)if(BTR.vu[k]!==BTR.img)delete BTR.n[k];
+  BTR.img++;}
+window.dbgBoucle=function(tr,n){if(tr!==undefined)BTR.test=tr?{tr:tr,n:n==null?3:+n}:null;return {tranches:['départ','physique','effets','sons','hud'],pannes:Object.assign({},BTR.n),test:BTR.test,max:BTR.max,derniere:window.__loopErr||''};};
+/* (banc, 2026-11-05) dbgJouer() : l'état des gardes du JOUER, puis le même départ que le bouton — pour le banc headless (outils/banc-jury) */
+window.dbgJouer=function(){const et={pendingScore:pendingScore,started:started,gameOver:gameOver,garageOn:garageOn,go:!!GAR.go,chute:!!CHUTE.on,chuteGo:!!CHUTE.go,wipe:!!ecranWipe._on,tuto:!!SAVE.d.tuto,sf:sfPlayOk()};
+  let r='';try{r=sfPlayOk()?String(classiqueJouer()):(playViaGarage(true),'playViaGarage');}catch(e){r='erreur '+(e&&e.message);}
+  return Object.assign(et,{appel:r,goApres:!!GAR.go,chuteGoApres:!!CHUTE.go});};
+/* (banc, 2026-11-05) dbgDepartEtat() : où en est la séquence du départ (lâcher, voile, pré-bâti) — pour le banc headless */
+window.dbgDepartEtat=function(){const g=GAR.go;return {go:g?{t:+(g.t||0).toFixed(2),chute:!!g.chute,voile:!!g.voile,attend:!!g.attend,son:!!g.son}:null,sous:!!GAR.sous,chuteSous:!!CHUTE.sous,wipe:!!ecranWipe._on,preb:{on:!!PREB.on,W:!!PREB.W,fait:!!PREB.fait,pas:PREB.pas,echecs:PREB.echecs},started:started,running:running,paused:paused,garageOn:garageOn,depart:window.dbgDepart?dbgDepart():null,lier:window.dbgLier?dbgLier().demarrage:null,body:document.body.className.slice(0,100)};};
+/* (banc, 2026-11-05, DIR-02) dbgTas() : la mémoire vue du jeu — tas JS, géométries/textures/programmes du moteur, enfants de scène, sons décodés */
+window.dbgTas=function(){const m=renderer.info.memory,pm=performance.memory;let son=null;try{son=window.CCSON&&CCSON.etat();}catch(e){}
+  return {tasMo:pm?Math.round(pm.usedJSHeapSize/1048576):null,geometries:m.geometries,textures:m.textures,programmes:(renderer.info.programs||[]).length,enfants:scene.children.length,sons:son?son.decodes:null};};
+/* (banc, 2026-11-05, GP-02) dbgMinuteurs() : les chronos et jauges qui s'égrènent sur l'horloge dtH — pour mesurer leur pente contre l'horloge murale */
+window.dbgMinuteurs=function(){return {nitro:+pwrNitroT.toFixed(3),air:+pwrAirT.toFixed(3),vit:+pwrSpdT.toFixed(3),grace:+graceT.toFixed(3),boost:+startBoostT.toFixed(3),fever:+fever.toFixed(3),styleM:+styleM.toFixed(2),comboT:+comboT.toFixed(3),msgT:+msgT.toFixed(3),runxT:+(RUNX.t||0).toFixed(3),frenT:+(FREN.t||0).toFixed(3),fallTR:+fallTR.toFixed(3),inv:+CHANCE.inv.toFixed(3)};};
 /* ====================== LA CADENCE STABLE — CAD (2026-10-14, passe perf mobile ; Sacha : « fluide même sur un iPhone 7 », « sans bugger ») ======================
    Un téléphone qui ne tient pas 60 images/s n'en affiche pas « 45 » : il alterne des images de 16,7 ms et de 33,3 ms au hasard, et c'est
    CETTE irrégularité que le joueur appelle « ça bug ». 30 images/s RÉGULIÈRES (une image d'écran sur deux, toujours la même) se lisent
@@ -76063,6 +76118,19 @@ const CAD30_REC=TEL_NATIF&&PAL.n===2&&!/[?&]cad30=0\b/.test(location.search);
 const CAD={ok:(PAL.b('cadence30',0)||CAD30_REC)?1:0,on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
   w:0,wMax:10,wh:0,calT:0,lT:0,vu:0,crs:false,calme:false,essT:0,murT:0,murD:30000,entrees:0,sorties:0};
 const FPS_CAP=!/[?&]fps=0\b/.test(location.search); /* (2026-10-20) le plafond à 60 i/s — voir le début de loop */
+/* ===== ?fps=N (2026-11-05, Fable : « GP-02 : vérifie avec ?fps=15 que 10 s de frénésie durent 10 s ») ===== banc : la boucle ne calcule qu'une image
+   toutes les 1000/N ms (5 ≤ N < 60) — un téléphone qui rame, simulé sur l'ordinateur (`?fps=0` reste « sans plafond »). Passe par fpsSaute : le rAF
+   tourne, l'image se saute sans RIEN toucher, le dt de la suivante absorbe (plafonné à 50 ms) et dtH mesure le temps vrai. */
+const HOR_ANCIEN=/[?&]horloge=ancien\b/.test(location.search); /* (2026-11-05, GP-02) `?horloge=ancien` : les jauges et chronos sur le dt de simulation, comme avant (une semaine) */
+const FPS_FORCE=(function(){const m=/[?&]fps=(\d+)\b/.exec(location.search);const n=m?+m[1]:0;return (n>=5&&n<60)?n:0;})();
+/* ===== L'HORLOGE DES JAUGES, côté mesure (2026-11-05, GP-02) ===== horlogeTick est appelée par loop à chaque image calculée (voir dtH dans boucle-1).
+   Elle relève le temps vrai, le dt de simulation et l'horloge, cumule l'écart (ce que les jauges auraient perdu sans dtH), et note UNE fois par session
+   dans la boîte noire un ralenti TENU (10 s d'images de plus de 55 ms, onglet visible) : on saura sur quels appareils le jeu passe au ralenti. */
+const HOR={raw:0,dt:0,dtH:0,ecart:0,lent:0,dit:false,n:0};
+function horlogeTick(rawMs,dt,dtH){HOR.raw=rawMs;HOR.dt=dt;HOR.dtH=dtH;HOR.n++;if(dtH>dt)HOR.ecart+=dtH-dt;
+  if(rawMs>55&&!document.hidden&&started&&running&&!paused){HOR.lent+=rawMs;if(HOR.lent>10000&&!HOR.dit){HOR.dit=true;try{window.__ccNote('ralenti','10 s sous 18 i/s · image '+Math.round(rawMs)+' ms',(typeof PAL!=='undefined'&&PAL.n!=null?'palier '+PAL.n:'')+(FPS_FORCE?' · ?fps='+FPS_FORCE:''));}catch(_){}}}
+  else HOR.lent=0;}
+window.dbgHorloge=function(){return {ancien:HOR_ANCIEN,rawMs:+HOR.raw.toFixed(1),dt:+HOR.dt.toFixed(4),dtH:+HOR.dtH.toFixed(4),ecartCumule:+HOR.ecart.toFixed(2),images:HOR.n,force:FPS_FORCE,lentMs:Math.round(HOR.lent),note:HOR.dit};};
 /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») LE PLAFOND EN IMAGES ENTIÈRES. L'horloge cumulée à 1000/60
    tombait entre deux images d'écran sur un écran qui n'est pas un multiple de 60 Hz — SIMULÉ : 90 Hz → 11 / 22 ms en alternance, 144 Hz →
    14 / 21 ms, 75 et 100 Hz idem (des à-coups là où l'écran était fluide), et sur un écran à ~61 Hz une image sautée chaque seconde. On saute
@@ -76072,6 +76140,7 @@ const FPS_CAP=!/[?&]fps=0\b/.test(location.search); /* (2026-10-20) le plafond �
    rame allonge la médiane, n baisse, on saute moins — jamais trop. Le seuil est à mi-chemin entre (n−1) et n images d'écran. */
 const FPS={rp:0,eN:0,n:1,per:1000/60,der:0,a:new Float32Array(90)};
 function fpsSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
+  if(FPS_FORCE){if(now-FPS.der<1000/FPS_FORCE-1)return true;FPS.der=now;return false;} /* (2026-11-05) ?fps=N : le banc du ralenti */
   const d=now-FPS.rp;FPS.rp=now;if(d>2&&d<100)FPS.a[FPS.eN++]=d;
   if(FPS.eN>=90){FPS.a.sort();FPS.per=FPS.a[45];FPS.n=Math.max(1,Math.floor(1000/FPS.per/60+.2));FPS.eN=0;}
   if(FPS.n<2)return false;
@@ -76127,7 +76196,7 @@ function loop(now){
      pas de « une sur deux » raté sur 144 Hz), sans RIEN toucher : le dt de la suivante absorbe l'écart, comme la cadence 30 Hz. Sur un
      écran 60 Hz (ou 30 Hz imposé) rien ne se saute. Coupé quand CAD cale déjà à 30 (même horloge, pas de double saut). `?fps=0` = sans plafond.
      (2026-10-20, même jour) une image d'écran sur n, n ENTIER — voir fpsSaute : l'horloge à 1000/60 hachait les écrans 75/90/100/144 Hz. */
-  if(FPS_CAP&&!CAD.on&&!HC.on&&fpsSaute(now))return;
+  if(FPS_CAP&&(FPS_FORCE||(!CAD.on&&!HC.on))&&fpsSaute(now))return; /* (2026-11-05) ?fps=N passe AUSSI quand la cadence 30 est calée (banc du ralenti) */
   if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
   QLR.t0=performance.now(); // (tour 2) début de l'image, pour la sonde de la règle de qualité
   if(QLR.sN>0)qlSondeDebut(); // (2026-10-08) sonde armée : la puce chronomètre l'image (voir qlSonde)
@@ -76135,7 +76204,7 @@ function loop(now){
   // ⚠ dt JAMAIS NÉGATIF (2026-09-25) : l'horodatage de rAF est celui du DÉBUT de l'image, et `last` peut avoir été posé
   // par `performance.now()` un peu plus tard (reprise d'onglet, pas-à-pas) — un dt < 0 rendait négatif le rayon
   // des taches de jus, et `arc()` lève alors une IndexSizeError qui cassait l'image entière (mesuré).
-  let dt=Math.max(0,Math.min((now-last)/1000,.05));last=Math.max(last,now);
+  let dt=Math.max(0,Math.min((now-last)/1000,.05));const dtBrut=dt;last=Math.max(last,now); /* (2026-11-05, GP-02) dtBrut : le dt plafonné AVANT le ralenti de la frénésie — l'horloge des jauges (dtH, plus bas) le compare au temps vrai */
   if(TCTL.on&&running&&!paused&&!gameOver)hudColonne(dt); // (2026-10-14) la colonne de droite se MESURE ici, avant toute écriture du HUD de l'image (voir hudColonne)
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
   if(PERF_MON)loop._brut=now-(loop._pn||now); // (OPTIMISATION, ?perf=1) l'intervalle VRAI, non plafonné : le relevé des à-coups (perfAcoup)
@@ -76260,9 +76329,29 @@ function loop(now){
   // pause, ultra-turbo, explosion) ni de HIT-STOP. Les déclencheurs posent encore slowT/hitT : on les vide ici, le temps ne ralentit JAMAIS.
   slowT=0;hitT=0;
   dt=ralentiDt(dt); // (2026-09-29) …SAUF le ralenti de la FRÉNÉSIE, demandé par Sacha (voir RALENTI) — le dt RÉEL reste celui des mesures de perf ci-dessus
+  /* ===== L'HORLOGE DES JAUGES — dtH (2026-11-05, Fable : « GP-02 : dt plafonné à ,05 : sous 20 i/s le jeu passe au ralenti et dilate jauges, chronos, nitro, frénésie ») =====
+     `dt` reste le temps de SIMULATION, plafonné à 50 ms : la physique, les ressorts et le choc balayé ne tolèrent pas plus, et sous 20 i/s la caisse
+     avance donc au ralenti (assumé : c'est stable). `dtH` est le temps d'HORLOGE : IDENTIQUE à dt tant que l'image dure 50 ms ou moins (60 i/s, 30 i/s
+     calés, le ralenti de la frénésie compris — règle d'or : rien ne change sur un appareil qui tient), et au-delà le temps RÉEL de l'image (borné à
+     100 ms comme rawMs), avec le même facteur de ralenti. S'égrènent sur dtH : les minuteurs des pouvoirs, l'élan du départ, la grâce, le bouclier,
+     la jauge d'airtime (fallTR), la jauge de style et la frénésie (fever, styleM), le flow et le chrono de frénésie (flowTick → FREN.t), RUNX.t
+     (missions, seconde chance), la fenêtre du combo, la rafale de fruits, le couperet du Survivant, le combo et les messages. À 12 i/s réels un vol
+     de 6 s dure 6 s, une nitro infinie de 9 s dure 9 s, le record de frénésie ne se bat plus « gratuitement ». Banc : `?fps=15`, `dbgHorloge()`. */
+  const dtH=(!HOR_ANCIEN&&dtBrut>=.05&&rawMs>50)?dt*Math.min(.1,rawMs*.001)/dtBrut:dt; /* ?horloge=ancien : dtH = dt */
+  horlogeTick(rawMs,dt,dtH);
   const t=now/1000;
   let speedKmh=0;
-  try{ if(running&&!paused&&!gameOver&&!BANC_FIGE){ // (banc ?banc=1) BANC_FIGE : la simulation s'arrête, le rendu continue
+  /* ===== UN TRY PAR TRANCHE (2026-11-05, Fable : « GP-01 / HYG-05 : la boucle avale ses exceptions dans un seul try : une exception déterministe = caisse
+     figée, pas de mort, pas de trace ») =====
+     Le bloc de simulation (d'ici à la fin du HUD : 1 800 lignes sur six morceaux) tenait dans UN try : une exception dans la physique sautait les effets,
+     les sons et le HUD de l'image, et si elle revenait à chaque image le joueur restait figé sans écran de fin (l'anti-idle ne tue pas une vitesse qui ne
+     bouge plus). Désormais CINQ try : départ (pouvoirs, nitro, volant) · physique (conduite + physique : le bloc if(mode==='drive') court sur deux morceaux,
+     c'est une seule tranche) · effets · sons · hud. Chaque panne est notée dans la boîte noire avec sa tranche et comptée (bouclePanne, moteur/garde.js) :
+     3 images de suite en panne dans la même tranche = explosion, puis endGame de secours. Les six noms lus par une tranche suivante (spec, maxSp, acc9,
+     up, dn, target : analyse de portée par acorn) sont hissés ici, hors des try. Banc : `dbgBoucle('physique')`. */
+  let spec,maxSp,acc9,up,dn,target;
+  if(running&&!paused&&!gameOver&&!BANC_FIGE){ // (banc ?banc=1) BANC_FIGE : la simulation s'arrête, le rendu continue
+  try{boucleTest('départ');
     // OVERDRIVE : passé le niveau 6, le jeu passe la surmultipliée — +8 %/niveau, jusqu'à +50 %
     // ⚠ JEU DE PROGRESSION : la VITESSE vient du MOTEUR, pas de la caisse équipée — sinon équiper une
     // caisse débloquée ferait démarrer la partie à 400 km/h et il n'y aurait plus rien à gagner.
@@ -76270,20 +76359,20 @@ function loop(now){
     // depuis que la caisse équipée s'applique, ce seul champ suffisait à donner à une caisse tardive
     // un rayon de braquage deux fois meilleur — de la performance déguisée en cosmétique. Toutes les
     // caisses PILOTENT donc pareil ; CARS[level] ne sert plus qu'à la carrosserie et au nom.
-    const spec=CARS[0],late=lateMul(),
-          eng9=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],
-          maxSp=CARS[0].maxKmh/3.6*late*eng9.push,acc9=CARS[0].accel*late*(1+(eng9.push-1)*.6);
-    const up=AUTO_GAS||keys.KeyW||keys.KeyZ||keys.ArrowUp,dn=keys.KeyS||keys.ArrowDown;
+    spec=CARS[0];const late=lateMul(),
+          eng9=ENGINE_TIERS[engTier]||ENGINE_TIERS[0];
+          maxSp=CARS[0].maxKmh/3.6*late*eng9.push;acc9=CARS[0].accel*late*(1+(eng9.push-1)*.6); /* (2026-11-05) spec, maxSp, acc9 : hissés hors du try (lus par les tranches suivantes) */
+    up=AUTO_GAS||keys.KeyW||keys.KeyZ||keys.ArrowUp;dn=keys.KeyS||keys.ArrowDown; /* (2026-11-05) hissés hors du try */
     gasOn=up;
     const lf=keys.KeyA||keys.KeyQ||keys.ArrowLeft,rt=keys.KeyD||keys.ArrowRight;
     // POUVOIRS : les minuteurs s'égrènent, l'airtime infini rend une jauge neuve en expirant
     {const pn9=pwrNitroT>0,ps9=pwrSpdT>0;
-    pwrNitroT=Math.max(0,pwrNitroT-dt);
-    pwrSpdT=Math.max(0,pwrSpdT-dt);pwrSpdK+=((pwrSpdT>0?1:0)-pwrSpdK)*(1-Math.exp(-dt*6));if(pwrSpdT<=0&&pwrSpdK<.003)pwrSpdK=0; /* (2026-10-17) le ×2 de VITESSE se prend et se rend en douceur (voir pwrSpdK) */
+    pwrNitroT=Math.max(0,pwrNitroT-dtH); /* (2026-11-05, GP-02) les minuteurs des pouvoirs sur l'horloge dtH */
+    pwrSpdT=Math.max(0,pwrSpdT-dtH);pwrSpdK+=((pwrSpdT>0?1:0)-pwrSpdK)*(1-Math.exp(-dt*6));if(pwrSpdT<=0&&pwrSpdK<.003)pwrSpdK=0; /* (2026-10-17) le ×2 de VITESSE se prend et se rend en douceur (voir pwrSpdK) */
     if(pn9&&pwrNitroT<=0)pwrFinSnd('n');else if(ps9&&pwrSpdT<=0)pwrFinSnd('v');} // (2026-09-26) la fin d'un pouvoir se dit aussi à l'oreille — (pouvoirs v2) avec sa clé (la session SON la lit)
-    if(startBoostT>0)startBoostT=Math.max(0,startBoostT-dt); // LE BOOST DE DÉPART : décroît tout seul, même hors mode 'drive' ne l'arrête pas plus tôt que prévu
-    if(pwrAirT>0){pwrAirT-=dt*pwrAirK();if(pwrAirT<=0){pwrAirT=0;if(!TUTO.on)pwrFinSnd('a');if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}} // (2026-09-28) l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir : il finit sans bruit
-    pwrTick(dt); // (pouvoirs v2) aimant · aura ×2
+    if(startBoostT>0)startBoostT=Math.max(0,startBoostT-dtH); // LE BOOST DE DÉPART : décroît tout seul, même hors mode 'drive' ne l'arrête pas plus tôt que prévu
+    if(pwrAirT>0){pwrAirT-=dtH*pwrAirK();if(pwrAirT<=0){pwrAirT=0;if(!TUTO.on)pwrFinSnd('a');if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}} // (2026-09-28) l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir : il finit sans bruit
+    pwrTick(dtH); // (pouvoirs v2) aimant · aura ×2 — (2026-11-05, GP-02) sur l'horloge
     mortsTick(Math.min(.05,rawMs*.001)); // (2026-09-30) le temps de course par niveau — le temps RÉEL de l'image (le dt de sim passe au ralenti en frénésie)
     ligneTick(dt); // (2026-09-29) LA LIGNE PARFAITE s'allonge devant la caisse
     // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
@@ -76330,16 +76419,18 @@ function loop(now){
     // PILOTE AUTO DE MESURE (`dbgAuto`) : le volant du bot de poursuite (mêmes équations) posé sur TA caisse —
     // sert à mesurer l'économie sur des dizaines de parties sans jouer à la main. Jamais armé en jeu.
     const mA9=DBG_AUTO.on&&mode==='drive'?vitMult():1; // (HAUTE VITESSE, 2026-09-30) le pilote de mesure connaît sa caisse : au sol, le lacet est ×spdMult, et l'écart latéral s'y referme en autant de SECONDES qu'à ×1
-    const target=DBG_AUTO.on&&DBG_AUTO.vol&&mode==='fall'?dbgAutoVol(dt):DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD*mA9)*.9),-.4,.4)-(DBG_AUTO.gl?psi-BKV.gl:psi))*3)/(lacetMax(vA)*mA9),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
+    target=DBG_AUTO.on&&DBG_AUTO.vol&&mode==='fall'?dbgAutoVol(dt):DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD*mA9)*.9),-.4,.4)-(DBG_AUTO.gl?psi-BKV.gl:psi))*3)/(lacetMax(vA)*mA9),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
       :TCTL.incl&&TCTL.play?THREE.MathUtils.clamp(TCTL.inclV+(lf?1:0)-(rt?1:0),-1,1) // (2026-10-27) INCLINAISON : le téléphone penché fait le volant, le pouce n'a plus à tenir le rond
       :TCTL.pad?padRampe(dt,(lf?1:0)-(rt?1:0)) // (2026-10-28) FLÈCHES TACTILES : un appui court = une correction fine, un appui tenu = le plein braquage (voir padRampe)
       :TCTL.act?TCTL.st:(lf?1:0)-(rt?1:0); // VOLANT TACTILE : le pouce prend la main sur le tout-ou-rien (même lissage derrière)
     if(lf||rt)TCTL.doigt=false; // (2026-10-14, sensations) une flèche du clavier reprend la main : son lissage à elle (le dernier qui a tenu le volant décide)
     steer+=(target-steer)*(1-Math.exp(-dt*(TCTL.doigt&&!TCTL.incl?VOL_LIS_D*(.5+.5*Math.min(1,Math.abs(target-steer)/.4)):TCTL.doigt?VOL_LIS_D:VOL_LIS))); /* (2026-10-28, Léo : « pas très smooth ») AU POUCE le lissage est ADAPTATIF : un petit écart se referme doucement (τ 60 ms : pas de grain, la ligne tient), un grand écart (coup de pouce, contre-braquage) garde les 30 ms du 14/10 — la vivacité d'un slide reste, le tremblement du verre s'efface */ /* (2026-10-14) τ 30 ms au pouce, 47 ms au clavier (voir VOL_LIS_D) · (2026-10-09) exponentielle EXACTE : à 60 i/s c'est l'ancien ×0,3 au millième ; à 30 i/s (l'iPhone bridé) le volant braquait plus sec que sur PC (τ 36 ms au lieu de 47) */
-    graceT=Math.max(0,graceT-dt);
-    if(CHANCE.inv>0)chanceTick(dt); // (2026-10-14) le bouclier de la SECONDE CHANCE
+    graceT=Math.max(0,graceT-dtH); /* (2026-11-05, GP-02) la grâce et le bouclier : sur l'horloge */
+    if(CHANCE.inv>0)chanceTick(dtH); // (2026-10-14) le bouclier de la SECONDE CHANCE
     sideCd=Math.max(0,sideCd-dt);
     if(DBG_AUTO.on&&DBG_AUTO.saut>0){if(mode==='drive'&&!introD&&graceT<=0){DBG_AUTO.tS+=dt;if(DBG_AUTO.tS>=DBG_AUTO.saut&&Math.abs(lat)<ROAD_HALF*.5&&Math.abs(vA)*3.6*SPD>110){DBG_AUTO.tS=0;DBG_AUTO.l0=null;startFall(DBG_AUTO.imp,1);}}else DBG_AUTO.tS=0;} /* banc : la boucle décoller / se poser */
+  }catch(err){bouclePanne('départ',err);} /* (2026-11-05) fin de la tranche DÉPART — voir « UN TRY PAR TRANCHE » plus haut */
+  try{boucleTest('physique'); /* tranche PHYSIQUE : conduite (boucle-2) + physique (boucle-3) */
     if(mode==='drive'){
       landMark.visible=false;LM.a=0; // (au sol : le prochain vol repart d'un viseur éteint)
       // ANTI-IDLE : la musique n'avance pas sans toi — reste quasi à l'arrêt trop longtemps et la caisse explose
@@ -76843,7 +76934,7 @@ function loop(now){
     }else if(mode==='fall'){ // ---- VOL : maniabilité aérienne propre ----
       if(DRIFT2&&TCTL.drift)TCTL.drift(false,false,true); /* (2026-11-01) en vol, le stick oublie le drift (le mot, la ligne, l'anneau) */
       const dtF=dt*AIR_RATE; // temps de vol accéléré : même arc dans l'espace, moins de temps réel à flotter
-      fallT+=dtF;fallTR+=dt; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6)
+      fallT+=dtF;fallTR+=dtH; // fallT = temps-sim (figures/paiements) ; fallTR = temps RÉEL (jauge des 6 s — sinon le chrono file à ×1,6) — (2026-11-05, GP-02) dtH : réel même sous 20 i/s
       NIT.vol+=dtF;if(nitroOn&&pwrNitroT<=0&&!PARK.on)NIT.nit+=dtF; /* (LA LOI DU RÉSERVOIR) la durée du vol et ce qu'on y a BRÛLÉ : la pose ne rend que la part volée nitro coupée */
       if(!nitroOn)loop._nAir=false; // (2026-09-26) l'impulsion se RÉARME au relâché
       if(bascOn){bascT+=dtF;if(bascT>1.1)bascOn=false;} /* (1/10, soir) la bascule dure UNE seconde au plus, puis c'est un vol comme un autre (ni portée, ni lèvre, ni gravité retenue) */
@@ -77211,6 +77302,8 @@ function loop(now){
       if(d.life<=0){scene.remove(d.m);if(!d.sh){if(d.m.material.dispose)d.m.material.dispose();if(d.m.geometry)d.m.geometry.dispose();}chips.splice(i9,1);} // géométrie unique des débris : libérer le GPU aussi
     }
     billsTick(dt); // (vague 2) billets volants : un seul appel de dessin (InstancedMesh)
+  }catch(err){bouclePanne('physique',err);} /* (2026-11-05) fin de la tranche PHYSIQUE */
+  try{boucleTest('effets'); /* tranche EFFETS (boucle-4) */
     // ---- LOD DE PROXIMITÉ : on ne s'occupe QUE du couloir utile ----
     // La scène porte ~1550 meshes (≈550 pièces + ≈590 plots). Avant, CHAQUE frame faisait tourner les
     // 600 pièces à l'autre bout de la piste : 600 quaternions + 600 matrices monde recalculées pour des
@@ -77421,6 +77514,8 @@ function loop(now){
     trailLight.position.copy(carGroup.position).addScaledVector(hsF,-9).addScaledVector(hsU,1.1);
     trailLight.intensity=0; // (2026-09-26, audit rendu) son reflet rond sur le bitume derrière la caisse est retiré — la lumière reste en scène à 0 (retirer une lumière recompile tout) // ×1.7→1.5 : le RUBAN garde la vedette, son reflet accompagne sans s'additionner brutalement au reste
     trailLight.color.setRGB(Math.min(1,tcr),Math.min(1,tcg),Math.min(1,tcb));
+  }catch(err){bouclePanne('effets',err);} /* (2026-11-05) fin de la tranche EFFETS */
+  try{boucleTest('sons'); /* tranche SONS (boucle-5) */
     // sons continus
     if(AC){
       const spd3=speedKmh;
@@ -77618,6 +77713,8 @@ function loop(now){
     if(SONV2&&portalMesh&&PORTAL.son!==portalMesh&&!PARK.on&&mode!=='boom'){const v9=Math.max(10,speedKmh/3.6),d9=carGroup.position.distanceTo(PORTAL.c)-PORTAL.R*.95;if(d9<v9*2&&L-(mode==='fall'?lastNearS:s)<v9*3+120){PORTAL.son=portalMesh;sfx('portail.proche');}}
     // pads turbo : on n'anime la texture (dessin canvas + upload GPU) que si un pad est réellement en vue
     {let pv9=false;for(const p9 of PADS)if(p9>s-80&&p9<s+520){pv9=true;break;}if(pv9)updatePadTex(t);}
+  }catch(err){bouclePanne('sons',err);} /* (2026-11-05) fin de la tranche SONS */
+  try{boucleTest('hud'); /* tranche HUD (boucle-6) */
     // HUD
     // FILÉS DE VITESSE — RÉTABLIS (2026-09-05) : ce commentaire prétendait qu'« un warp du shader »
     // avait pris leur place, mais ce warp n'a JAMAIS existé dans ce fichier (0 occurrence de `warp`
@@ -77631,9 +77728,9 @@ function loop(now){
     secTick(dt,speedKmh);m2Tick(dt,speedKmh); /* (2026-10-16) LES MISSIONS v2 */ // (2026-10-14) LES DÉFIS SECRETS : vitesse, bords, distances, maps traversées
     // ⚠ EN VOL, LA VITESSE NE SE « TIENT » PAS : on subit une parabole, il n'y a aucun mérite à
     // afficher 900 km/h en tombant. L'aura de vitesse ne compte donc qu'au sol, manette en main.
-    auraComboTick(dt); // la fenêtre du combo de figures se referme toute seule
-    fruitRafTick(dt);  // …et celle de la rafale de fruits
-    if(!paused){misTick(dt);tutoTick(dt);flowTick(dt);chaineTick(dt);orbFxTick(dt);} // …les CONTRATS se cochent en direct, l'AUTO-ÉCOLE suit tes gestes
+    auraComboTick(dtH); // la fenêtre du combo de figures se referme toute seule — (2026-11-05, GP-02) sur l'horloge dtH
+    fruitRafTick(dtH);  // …et celle de la rafale de fruits
+    if(!paused){misTick(dtH);tutoTick(dt);flowTick(dtH);chaineTick(dtH);orbFxTick(dt);} /* (2026-11-05, GP-02) missions (RUNX.t), flow + chrono de frénésie, chaîne : sur l'horloge */ // …les CONTRATS se cochent en direct, l'AUTO-ÉCOLE suit tes gestes
     /* LA CHARGE D'AURA. Trois choses à l'écran, et chacune répond à une question :
        le CHIFFRE (« combien j'ai »), la JAUGE (« où je vais » — le rang suivant), le MAX (« quoi
        battre »). Sans la troisième, il n'y a aucune raison de vouloir monter. */
@@ -77725,10 +77822,10 @@ function loop(now){
        prevT=ENGINE_TIERS[iT].coins,nextT=(ENGINE_TIERS[iT+1]||ENGINE_TIERS[iT]).coins;
      const w9=(iT>=ENGINE_TIERS.length-1?100:Math.round(1000*Math.min(1,(coinsGot-prevT)/Math.max(1,nextT-prevT)))/10)+'%';
      if(loop._fiW!==w9){loop._fiW=w9;elFill.style.width=w9;}} // (perf) écrite seulement quand elle bouge d'un pour-mille
-    if(fever>0)fever-=dt;
-    else if(feverArmed){styleM=Math.max(0,styleM-2*dt);if(styleM<=0)feverArmed=false;} // armé : la jauge FUIT — sers-toi ou perds-le
-    else styleM=Math.max(0,styleM-13*dt); // LÂCHER le boost fait retomber la jauge vite : c'est « sans lâcher » qui paye
-    survTick(dt); // SURVIVANT : la meute roule, saute, et le couperet de la minute tombe
+    if(fever>0)fever-=dtH; /* (2026-11-05, GP-02) la jauge et son chrono : sur l'horloge */
+    else if(feverArmed){styleM=Math.max(0,styleM-2*dtH);if(styleM<=0)feverArmed=false;} // armé : la jauge FUIT — sers-toi ou perds-le
+    else styleM=Math.max(0,styleM-13*dtH); // LÂCHER le boost fait retomber la jauge vite : c'est « sans lâcher » qui paye
+    survTick(dtH); // (2026-11-05, GP-02 : le couperet de la minute sur l'horloge) SURVIVANT : la meute roule, saute, et le couperet de la minute tombe
     AIP.tick(dt); // …et pendant ce temps, les IA T'OBSERVENT (même hors mode Survivant)
     evtTick(dt); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : la caisse-nuage — par surprise, une fois par partie au plus
     if(!PARK.on&&LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage))orageTick(dt); /* (2026-10-13) + l'ORAGE du mode classique, sur la ville et la jade */ // (2026-09-29) L'ORAGE du mode principal : les éclairs du niveau 9 (ECL) — l'éclair RÉVÈLE : il ouvre la brume (CAMP_FOG), le tonnerre suit ; remis à zéro à chaque piste par campDebut
@@ -77740,9 +77837,10 @@ function loop(now){
       // ARMÉ : le halo s'allume DÈS que la jauge est pleine — c'est lui qui réclame le double-tap
       {const d9=feverArmed?'block':'none';if(feverGlow.style.display!==d9)feverGlow.style.display=d9;}
       if(feverGlow.className!==(feverArmed?'armed':''))feverGlow.className=feverArmed?'armed':'';}
-    if(comboT>0){comboT-=dt;if(comboT<=0)combo=0;}
-    if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
-  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;} /* (2026-11-03, audit p4) UN ÉTAT NON FINI NE DOIT PAS BLOQUER LA PARTIE : un NaN dans s/vA fait jeter frameAt (pts[NaN]) AVANT le test de bord, la caméra, le HUD et endGame — chaque image rejoue la même exception (muette après la 1re), la physique d'avant le point d'erreur continue et aucune mort ne vient. Vitesse, côté, cap non finis → remis à 0 ; position le long du ruban non finie (irrécupérable) → fin de partie normale (endGame, gardée par !gameOver donc jamais deux fois). Sans exception, rien de tout ça ne tourne. */try{if(started&&running&&!gameOver){if(!Number.isFinite(vA))vA=0;if(!Number.isFinite(vL))vL=0;if(!Number.isFinite(lat))lat=0;if(!Number.isFinite(psi))psi=0;if(!Number.isFinite(s)){try{window.__ccNote('boucle','état non fini (s) : fin de partie');}catch(_){}endGame();}}}catch(e2){console.error('loop secours',e2);}}
+    if(comboT>0){comboT-=dtH;if(comboT<=0)combo=0;} /* (2026-11-05, GP-02) sur l'horloge */
+    if(msgT>0){msgT-=dtH;if(msgT<=0)elMsg.style.opacity=0;}
+  }catch(err){bouclePanne('hud',err);} /* (2026-11-05, GP-01) fin de la tranche HUD — l'ancien catch global (boîte noire, filet NaN du 2026-11-03) vit dans bouclePanne, moteur/garde.js */
+  bouclePasse(); } /* fin de la simulation : une tranche passée sans panne repart de zéro */
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
   try{vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||(gameOver&&!!PAL.b('vhdMort',1)&&!PCM_ON)||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn));}catch(e){loopWarnN('vitrine HD',e);} // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
   if(garageOn)try{garageRender(dt);}catch(e){loopWarnN('garage',e);}

@@ -39,6 +39,19 @@ const CAD30_REC=TEL_NATIF&&PAL.n===2&&!/[?&]cad30=0\b/.test(location.search);
 const CAD={ok:(PAL.b('cadence30',0)||CAD30_REC)?1:0,on:false,gel:false,force:0,per:1000/30,ecran:1000/60,tol:1000/120,der:0,rp:0,eMin:99,eN:0,
   w:0,wMax:10,wh:0,calT:0,lT:0,vu:0,crs:false,calme:false,essT:0,murT:0,murD:30000,entrees:0,sorties:0};
 const FPS_CAP=!/[?&]fps=0\b/.test(location.search); /* (2026-10-20) le plafond à 60 i/s — voir le début de loop */
+/* ===== ?fps=N (2026-11-05, Fable : « GP-02 : vérifie avec ?fps=15 que 10 s de frénésie durent 10 s ») ===== banc : la boucle ne calcule qu'une image
+   toutes les 1000/N ms (5 ≤ N < 60) — un téléphone qui rame, simulé sur l'ordinateur (`?fps=0` reste « sans plafond »). Passe par fpsSaute : le rAF
+   tourne, l'image se saute sans RIEN toucher, le dt de la suivante absorbe (plafonné à 50 ms) et dtH mesure le temps vrai. */
+const HOR_ANCIEN=/[?&]horloge=ancien\b/.test(location.search); /* (2026-11-05, GP-02) `?horloge=ancien` : les jauges et chronos sur le dt de simulation, comme avant (une semaine) */
+const FPS_FORCE=(function(){const m=/[?&]fps=(\d+)\b/.exec(location.search);const n=m?+m[1]:0;return (n>=5&&n<60)?n:0;})();
+/* ===== L'HORLOGE DES JAUGES, côté mesure (2026-11-05, GP-02) ===== horlogeTick est appelée par loop à chaque image calculée (voir dtH dans boucle-1).
+   Elle relève le temps vrai, le dt de simulation et l'horloge, cumule l'écart (ce que les jauges auraient perdu sans dtH), et note UNE fois par session
+   dans la boîte noire un ralenti TENU (10 s d'images de plus de 55 ms, onglet visible) : on saura sur quels appareils le jeu passe au ralenti. */
+const HOR={raw:0,dt:0,dtH:0,ecart:0,lent:0,dit:false,n:0};
+function horlogeTick(rawMs,dt,dtH){HOR.raw=rawMs;HOR.dt=dt;HOR.dtH=dtH;HOR.n++;if(dtH>dt)HOR.ecart+=dtH-dt;
+  if(rawMs>55&&!document.hidden&&started&&running&&!paused){HOR.lent+=rawMs;if(HOR.lent>10000&&!HOR.dit){HOR.dit=true;try{window.__ccNote('ralenti','10 s sous 18 i/s · image '+Math.round(rawMs)+' ms',(typeof PAL!=='undefined'&&PAL.n!=null?'palier '+PAL.n:'')+(FPS_FORCE?' · ?fps='+FPS_FORCE:''));}catch(_){}}}
+  else HOR.lent=0;}
+window.dbgHorloge=function(){return {ancien:HOR_ANCIEN,rawMs:+HOR.raw.toFixed(1),dt:+HOR.dt.toFixed(4),dtH:+HOR.dtH.toFixed(4),ecartCumule:+HOR.ecart.toFixed(2),images:HOR.n,force:FPS_FORCE,lentMs:Math.round(HOR.lent),note:HOR.dit};};
 /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») LE PLAFOND EN IMAGES ENTIÈRES. L'horloge cumulée à 1000/60
    tombait entre deux images d'écran sur un écran qui n'est pas un multiple de 60 Hz — SIMULÉ : 90 Hz → 11 / 22 ms en alternance, 144 Hz →
    14 / 21 ms, 75 et 100 Hz idem (des à-coups là où l'écran était fluide), et sur un écran à ~61 Hz une image sautée chaque seconde. On saute
@@ -48,6 +61,7 @@ const FPS_CAP=!/[?&]fps=0\b/.test(location.search); /* (2026-10-20) le plafond �
    rame allonge la médiane, n baisse, on saute moins — jamais trop. Le seuil est à mi-chemin entre (n−1) et n images d'écran. */
 const FPS={rp:0,eN:0,n:1,per:1000/60,der:0,a:new Float32Array(90)};
 function fpsSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
+  if(FPS_FORCE){if(now-FPS.der<1000/FPS_FORCE-1)return true;FPS.der=now;return false;} /* (2026-11-05) ?fps=N : le banc du ralenti */
   const d=now-FPS.rp;FPS.rp=now;if(d>2&&d<100)FPS.a[FPS.eN++]=d;
   if(FPS.eN>=90){FPS.a.sort();FPS.per=FPS.a[45];FPS.n=Math.max(1,Math.floor(1000/FPS.per/60+.2));FPS.eN=0;}
   if(FPS.n<2)return false;

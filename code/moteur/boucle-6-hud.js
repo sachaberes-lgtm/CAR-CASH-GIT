@@ -11,9 +11,9 @@
     secTick(dt,speedKmh);m2Tick(dt,speedKmh); /* (2026-10-16) LES MISSIONS v2 */ // (2026-10-14) LES DÉFIS SECRETS : vitesse, bords, distances, maps traversées
     // ⚠ EN VOL, LA VITESSE NE SE « TIENT » PAS : on subit une parabole, il n'y a aucun mérite à
     // afficher 900 km/h en tombant. L'aura de vitesse ne compte donc qu'au sol, manette en main.
-    auraComboTick(dt); // la fenêtre du combo de figures se referme toute seule
-    fruitRafTick(dt);  // …et celle de la rafale de fruits
-    if(!paused){misTick(dt);tutoTick(dt);flowTick(dt);chaineTick(dt);orbFxTick(dt);} // …les CONTRATS se cochent en direct, l'AUTO-ÉCOLE suit tes gestes
+    auraComboTick(dtH); // la fenêtre du combo de figures se referme toute seule — (2026-11-05, GP-02) sur l'horloge dtH
+    fruitRafTick(dtH);  // …et celle de la rafale de fruits
+    if(!paused){misTick(dtH);tutoTick(dt);flowTick(dtH);chaineTick(dtH);orbFxTick(dt);} /* (2026-11-05, GP-02) missions (RUNX.t), flow + chrono de frénésie, chaîne : sur l'horloge */ // …les CONTRATS se cochent en direct, l'AUTO-ÉCOLE suit tes gestes
     /* LA CHARGE D'AURA. Trois choses à l'écran, et chacune répond à une question :
        le CHIFFRE (« combien j'ai »), la JAUGE (« où je vais » — le rang suivant), le MAX (« quoi
        battre »). Sans la troisième, il n'y a aucune raison de vouloir monter. */
@@ -105,10 +105,10 @@
        prevT=ENGINE_TIERS[iT].coins,nextT=(ENGINE_TIERS[iT+1]||ENGINE_TIERS[iT]).coins;
      const w9=(iT>=ENGINE_TIERS.length-1?100:Math.round(1000*Math.min(1,(coinsGot-prevT)/Math.max(1,nextT-prevT)))/10)+'%';
      if(loop._fiW!==w9){loop._fiW=w9;elFill.style.width=w9;}} // (perf) écrite seulement quand elle bouge d'un pour-mille
-    if(fever>0)fever-=dt;
-    else if(feverArmed){styleM=Math.max(0,styleM-2*dt);if(styleM<=0)feverArmed=false;} // armé : la jauge FUIT — sers-toi ou perds-le
-    else styleM=Math.max(0,styleM-13*dt); // LÂCHER le boost fait retomber la jauge vite : c'est « sans lâcher » qui paye
-    survTick(dt); // SURVIVANT : la meute roule, saute, et le couperet de la minute tombe
+    if(fever>0)fever-=dtH; /* (2026-11-05, GP-02) la jauge et son chrono : sur l'horloge */
+    else if(feverArmed){styleM=Math.max(0,styleM-2*dtH);if(styleM<=0)feverArmed=false;} // armé : la jauge FUIT — sers-toi ou perds-le
+    else styleM=Math.max(0,styleM-13*dtH); // LÂCHER le boost fait retomber la jauge vite : c'est « sans lâcher » qui paye
+    survTick(dtH); // (2026-11-05, GP-02 : le couperet de la minute sur l'horloge) SURVIVANT : la meute roule, saute, et le couperet de la minute tombe
     AIP.tick(dt); // …et pendant ce temps, les IA T'OBSERVENT (même hors mode Survivant)
     evtTick(dt); // (2026-10-14, GAMEPLAY) LES ÉVÉNEMENTS RARES : la caisse-nuage — par surprise, une fois par partie au plus
     if(!PARK.on&&LVL.cur&&(LVL.cur.id==='orage'||LVL.cur.orage))orageTick(dt); /* (2026-10-13) + l'ORAGE du mode classique, sur la ville et la jade */ // (2026-09-29) L'ORAGE du mode principal : les éclairs du niveau 9 (ECL) — l'éclair RÉVÈLE : il ouvre la brume (CAMP_FOG), le tonnerre suit ; remis à zéro à chaque piste par campDebut
@@ -120,9 +120,10 @@
       // ARMÉ : le halo s'allume DÈS que la jauge est pleine — c'est lui qui réclame le double-tap
       {const d9=feverArmed?'block':'none';if(feverGlow.style.display!==d9)feverGlow.style.display=d9;}
       if(feverGlow.className!==(feverArmed?'armed':''))feverGlow.className=feverArmed?'armed':'';}
-    if(comboT>0){comboT-=dt;if(comboT<=0)combo=0;}
-    if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
-  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;} /* (2026-11-03, audit p4) UN ÉTAT NON FINI NE DOIT PAS BLOQUER LA PARTIE : un NaN dans s/vA fait jeter frameAt (pts[NaN]) AVANT le test de bord, la caméra, le HUD et endGame — chaque image rejoue la même exception (muette après la 1re), la physique d'avant le point d'erreur continue et aucune mort ne vient. Vitesse, côté, cap non finis → remis à 0 ; position le long du ruban non finie (irrécupérable) → fin de partie normale (endGame, gardée par !gameOver donc jamais deux fois). Sans exception, rien de tout ça ne tourne. */try{if(started&&running&&!gameOver){if(!Number.isFinite(vA))vA=0;if(!Number.isFinite(vL))vL=0;if(!Number.isFinite(lat))lat=0;if(!Number.isFinite(psi))psi=0;if(!Number.isFinite(s)){try{window.__ccNote('boucle','état non fini (s) : fin de partie');}catch(_){}endGame();}}}catch(e2){console.error('loop secours',e2);}}
+    if(comboT>0){comboT-=dtH;if(comboT<=0)combo=0;} /* (2026-11-05, GP-02) sur l'horloge */
+    if(msgT>0){msgT-=dtH;if(msgT<=0)elMsg.style.opacity=0;}
+  }catch(err){bouclePanne('hud',err);} /* (2026-11-05, GP-01) fin de la tranche HUD — l'ancien catch global (boîte noire, filet NaN du 2026-11-03) vit dans bouclePanne, moteur/garde.js */
+  bouclePasse(); } /* fin de la simulation : une tranche passée sans panne repart de zéro */
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
   try{vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||(gameOver&&!!PAL.b('vhdMort',1)&&!PCM_ON)||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn));}catch(e){loopWarnN('vitrine HD',e);} // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
   if(garageOn)try{garageRender(dt);}catch(e){loopWarnN('garage',e);}

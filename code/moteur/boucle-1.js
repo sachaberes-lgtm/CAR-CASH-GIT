@@ -9,7 +9,7 @@ function loop(now){
      pas de « une sur deux » raté sur 144 Hz), sans RIEN toucher : le dt de la suivante absorbe l'écart, comme la cadence 30 Hz. Sur un
      écran 60 Hz (ou 30 Hz imposé) rien ne se saute. Coupé quand CAD cale déjà à 30 (même horloge, pas de double saut). `?fps=0` = sans plafond.
      (2026-10-20, même jour) une image d'écran sur n, n ENTIER — voir fpsSaute : l'horloge à 1000/60 hachait les écrans 75/90/100/144 Hz. */
-  if(FPS_CAP&&!CAD.on&&!HC.on&&fpsSaute(now))return;
+  if(FPS_CAP&&(FPS_FORCE||(!CAD.on&&!HC.on))&&fpsSaute(now))return; /* (2026-11-05) ?fps=N passe AUSSI quand la cadence 30 est calée (banc du ralenti) */
   if(BANC_ON)BANC_T0=performance.now(); // (banc ?banc=1) début de l'image chronométrée
   QLR.t0=performance.now(); // (tour 2) début de l'image, pour la sonde de la règle de qualité
   if(QLR.sN>0)qlSondeDebut(); // (2026-10-08) sonde armée : la puce chronomètre l'image (voir qlSonde)
@@ -17,7 +17,7 @@ function loop(now){
   // ⚠ dt JAMAIS NÉGATIF (2026-09-25) : l'horodatage de rAF est celui du DÉBUT de l'image, et `last` peut avoir été posé
   // par `performance.now()` un peu plus tard (reprise d'onglet, pas-à-pas) — un dt < 0 rendait négatif le rayon
   // des taches de jus, et `arc()` lève alors une IndexSizeError qui cassait l'image entière (mesuré).
-  let dt=Math.max(0,Math.min((now-last)/1000,.05));last=Math.max(last,now);
+  let dt=Math.max(0,Math.min((now-last)/1000,.05));const dtBrut=dt;last=Math.max(last,now); /* (2026-11-05, GP-02) dtBrut : le dt plafonné AVANT le ralenti de la frénésie — l'horloge des jauges (dtH, plus bas) le compare au temps vrai */
   if(TCTL.on&&running&&!paused&&!gameOver)hudColonne(dt); // (2026-10-14) la colonne de droite se MESURE ici, avant toute écriture du HUD de l'image (voir hudColonne)
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
   if(PERF_MON)loop._brut=now-(loop._pn||now); // (OPTIMISATION, ?perf=1) l'intervalle VRAI, non plafonné : le relevé des à-coups (perfAcoup)
@@ -142,9 +142,29 @@ function loop(now){
   // pause, ultra-turbo, explosion) ni de HIT-STOP. Les déclencheurs posent encore slowT/hitT : on les vide ici, le temps ne ralentit JAMAIS.
   slowT=0;hitT=0;
   dt=ralentiDt(dt); // (2026-09-29) …SAUF le ralenti de la FRÉNÉSIE, demandé par Sacha (voir RALENTI) — le dt RÉEL reste celui des mesures de perf ci-dessus
+  /* ===== L'HORLOGE DES JAUGES — dtH (2026-11-05, Fable : « GP-02 : dt plafonné à ,05 : sous 20 i/s le jeu passe au ralenti et dilate jauges, chronos, nitro, frénésie ») =====
+     `dt` reste le temps de SIMULATION, plafonné à 50 ms : la physique, les ressorts et le choc balayé ne tolèrent pas plus, et sous 20 i/s la caisse
+     avance donc au ralenti (assumé : c'est stable). `dtH` est le temps d'HORLOGE : IDENTIQUE à dt tant que l'image dure 50 ms ou moins (60 i/s, 30 i/s
+     calés, le ralenti de la frénésie compris — règle d'or : rien ne change sur un appareil qui tient), et au-delà le temps RÉEL de l'image (borné à
+     100 ms comme rawMs), avec le même facteur de ralenti. S'égrènent sur dtH : les minuteurs des pouvoirs, l'élan du départ, la grâce, le bouclier,
+     la jauge d'airtime (fallTR), la jauge de style et la frénésie (fever, styleM), le flow et le chrono de frénésie (flowTick → FREN.t), RUNX.t
+     (missions, seconde chance), la fenêtre du combo, la rafale de fruits, le couperet du Survivant, le combo et les messages. À 12 i/s réels un vol
+     de 6 s dure 6 s, une nitro infinie de 9 s dure 9 s, le record de frénésie ne se bat plus « gratuitement ». Banc : `?fps=15`, `dbgHorloge()`. */
+  const dtH=(!HOR_ANCIEN&&dtBrut>=.05&&rawMs>50)?dt*Math.min(.1,rawMs*.001)/dtBrut:dt; /* ?horloge=ancien : dtH = dt */
+  horlogeTick(rawMs,dt,dtH);
   const t=now/1000;
   let speedKmh=0;
-  try{ if(running&&!paused&&!gameOver&&!BANC_FIGE){ // (banc ?banc=1) BANC_FIGE : la simulation s'arrête, le rendu continue
+  /* ===== UN TRY PAR TRANCHE (2026-11-05, Fable : « GP-01 / HYG-05 : la boucle avale ses exceptions dans un seul try : une exception déterministe = caisse
+     figée, pas de mort, pas de trace ») =====
+     Le bloc de simulation (d'ici à la fin du HUD : 1 800 lignes sur six morceaux) tenait dans UN try : une exception dans la physique sautait les effets,
+     les sons et le HUD de l'image, et si elle revenait à chaque image le joueur restait figé sans écran de fin (l'anti-idle ne tue pas une vitesse qui ne
+     bouge plus). Désormais CINQ try : départ (pouvoirs, nitro, volant) · physique (conduite + physique : le bloc if(mode==='drive') court sur deux morceaux,
+     c'est une seule tranche) · effets · sons · hud. Chaque panne est notée dans la boîte noire avec sa tranche et comptée (bouclePanne, moteur/garde.js) :
+     3 images de suite en panne dans la même tranche = explosion, puis endGame de secours. Les six noms lus par une tranche suivante (spec, maxSp, acc9,
+     up, dn, target : analyse de portée par acorn) sont hissés ici, hors des try. Banc : `dbgBoucle('physique')`. */
+  let spec,maxSp,acc9,up,dn,target;
+  if(running&&!paused&&!gameOver&&!BANC_FIGE){ // (banc ?banc=1) BANC_FIGE : la simulation s'arrête, le rendu continue
+  try{boucleTest('départ');
     // OVERDRIVE : passé le niveau 6, le jeu passe la surmultipliée — +8 %/niveau, jusqu'à +50 %
     // ⚠ JEU DE PROGRESSION : la VITESSE vient du MOTEUR, pas de la caisse équipée — sinon équiper une
     // caisse débloquée ferait démarrer la partie à 400 km/h et il n'y aurait plus rien à gagner.
@@ -152,20 +172,20 @@ function loop(now){
     // depuis que la caisse équipée s'applique, ce seul champ suffisait à donner à une caisse tardive
     // un rayon de braquage deux fois meilleur — de la performance déguisée en cosmétique. Toutes les
     // caisses PILOTENT donc pareil ; CARS[level] ne sert plus qu'à la carrosserie et au nom.
-    const spec=CARS[0],late=lateMul(),
-          eng9=ENGINE_TIERS[engTier]||ENGINE_TIERS[0],
-          maxSp=CARS[0].maxKmh/3.6*late*eng9.push,acc9=CARS[0].accel*late*(1+(eng9.push-1)*.6);
-    const up=AUTO_GAS||keys.KeyW||keys.KeyZ||keys.ArrowUp,dn=keys.KeyS||keys.ArrowDown;
+    spec=CARS[0];const late=lateMul(),
+          eng9=ENGINE_TIERS[engTier]||ENGINE_TIERS[0];
+          maxSp=CARS[0].maxKmh/3.6*late*eng9.push;acc9=CARS[0].accel*late*(1+(eng9.push-1)*.6); /* (2026-11-05) spec, maxSp, acc9 : hissés hors du try (lus par les tranches suivantes) */
+    up=AUTO_GAS||keys.KeyW||keys.KeyZ||keys.ArrowUp;dn=keys.KeyS||keys.ArrowDown; /* (2026-11-05) hissés hors du try */
     gasOn=up;
     const lf=keys.KeyA||keys.KeyQ||keys.ArrowLeft,rt=keys.KeyD||keys.ArrowRight;
     // POUVOIRS : les minuteurs s'égrènent, l'airtime infini rend une jauge neuve en expirant
     {const pn9=pwrNitroT>0,ps9=pwrSpdT>0;
-    pwrNitroT=Math.max(0,pwrNitroT-dt);
-    pwrSpdT=Math.max(0,pwrSpdT-dt);pwrSpdK+=((pwrSpdT>0?1:0)-pwrSpdK)*(1-Math.exp(-dt*6));if(pwrSpdT<=0&&pwrSpdK<.003)pwrSpdK=0; /* (2026-10-17) le ×2 de VITESSE se prend et se rend en douceur (voir pwrSpdK) */
+    pwrNitroT=Math.max(0,pwrNitroT-dtH); /* (2026-11-05, GP-02) les minuteurs des pouvoirs sur l'horloge dtH */
+    pwrSpdT=Math.max(0,pwrSpdT-dtH);pwrSpdK+=((pwrSpdT>0?1:0)-pwrSpdK)*(1-Math.exp(-dt*6));if(pwrSpdT<=0&&pwrSpdK<.003)pwrSpdK=0; /* (2026-10-17) le ×2 de VITESSE se prend et se rend en douceur (voir pwrSpdK) */
     if(pn9&&pwrNitroT<=0)pwrFinSnd('n');else if(ps9&&pwrSpdT<=0)pwrFinSnd('v');} // (2026-09-26) la fin d'un pouvoir se dit aussi à l'oreille — (pouvoirs v2) avec sa clé (la session SON la lit)
-    if(startBoostT>0)startBoostT=Math.max(0,startBoostT-dt); // LE BOOST DE DÉPART : décroît tout seul, même hors mode 'drive' ne l'arrête pas plus tôt que prévu
-    if(pwrAirT>0){pwrAirT-=dt*pwrAirK();if(pwrAirT<=0){pwrAirT=0;if(!TUTO.on)pwrFinSnd('a');if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}} // (2026-09-28) l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir : il finit sans bruit
-    pwrTick(dt); // (pouvoirs v2) aimant · aura ×2
+    if(startBoostT>0)startBoostT=Math.max(0,startBoostT-dtH); // LE BOOST DE DÉPART : décroît tout seul, même hors mode 'drive' ne l'arrête pas plus tôt que prévu
+    if(pwrAirT>0){pwrAirT-=dtH*pwrAirK();if(pwrAirT<=0){pwrAirT=0;if(!TUTO.on)pwrFinSnd('a');if(mode==='fall'){fallT=0;fallTR=0;airFlash=.6;}}} // (2026-09-28) l'airtime PRÊTÉ par l'auto-école n'est pas un pouvoir : il finit sans bruit
+    pwrTick(dtH); // (pouvoirs v2) aimant · aura ×2 — (2026-11-05, GP-02) sur l'horloge
     mortsTick(Math.min(.05,rawMs*.001)); // (2026-09-30) le temps de course par niveau — le temps RÉEL de l'image (le dt de sim passe au ralenti en frénésie)
     ligneTick(dt); // (2026-09-29) LA LIGNE PARFAITE s'allonge devant la caisse
     // nitro : 2s regen (10s de recharge) + 2s réserve (bidons bleus)
@@ -212,13 +232,15 @@ function loop(now){
     // PILOTE AUTO DE MESURE (`dbgAuto`) : le volant du bot de poursuite (mêmes équations) posé sur TA caisse —
     // sert à mesurer l'économie sur des dizaines de parties sans jouer à la main. Jamais armé en jeu.
     const mA9=DBG_AUTO.on&&mode==='drive'?vitMult():1; // (HAUTE VITESSE, 2026-09-30) le pilote de mesure connaît sa caisse : au sol, le lacet est ×spdMult, et l'écart latéral s'y referme en autant de SECONDES qu'à ×1
-    const target=DBG_AUTO.on&&DBG_AUTO.vol&&mode==='fall'?dbgAutoVol(dt):DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD*mA9)*.9),-.4,.4)-(DBG_AUTO.gl?psi-BKV.gl:psi))*3)/(lacetMax(vA)*mA9),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
+    target=DBG_AUTO.on&&DBG_AUTO.vol&&mode==='fall'?dbgAutoVol(dt):DBG_AUTO.on?THREE.MathUtils.clamp((routeLacet+(THREE.MathUtils.clamp((DBG_AUTO.lat-lat)/(Math.max(6,Math.abs(vA)*SPD*mA9)*.9),-.4,.4)-(DBG_AUTO.gl?psi-BKV.gl:psi))*3)/(lacetMax(vA)*mA9),-1,1) // (conduite v6) le pilote de mesure corrige son CAP vers la ligne visée // (conduite v4) le pilote de mesure VISE un cap
       :TCTL.incl&&TCTL.play?THREE.MathUtils.clamp(TCTL.inclV+(lf?1:0)-(rt?1:0),-1,1) // (2026-10-27) INCLINAISON : le téléphone penché fait le volant, le pouce n'a plus à tenir le rond
       :TCTL.pad?padRampe(dt,(lf?1:0)-(rt?1:0)) // (2026-10-28) FLÈCHES TACTILES : un appui court = une correction fine, un appui tenu = le plein braquage (voir padRampe)
       :TCTL.act?TCTL.st:(lf?1:0)-(rt?1:0); // VOLANT TACTILE : le pouce prend la main sur le tout-ou-rien (même lissage derrière)
     if(lf||rt)TCTL.doigt=false; // (2026-10-14, sensations) une flèche du clavier reprend la main : son lissage à elle (le dernier qui a tenu le volant décide)
     steer+=(target-steer)*(1-Math.exp(-dt*(TCTL.doigt&&!TCTL.incl?VOL_LIS_D*(.5+.5*Math.min(1,Math.abs(target-steer)/.4)):TCTL.doigt?VOL_LIS_D:VOL_LIS))); /* (2026-10-28, Léo : « pas très smooth ») AU POUCE le lissage est ADAPTATIF : un petit écart se referme doucement (τ 60 ms : pas de grain, la ligne tient), un grand écart (coup de pouce, contre-braquage) garde les 30 ms du 14/10 — la vivacité d'un slide reste, le tremblement du verre s'efface */ /* (2026-10-14) τ 30 ms au pouce, 47 ms au clavier (voir VOL_LIS_D) · (2026-10-09) exponentielle EXACTE : à 60 i/s c'est l'ancien ×0,3 au millième ; à 30 i/s (l'iPhone bridé) le volant braquait plus sec que sur PC (τ 36 ms au lieu de 47) */
-    graceT=Math.max(0,graceT-dt);
-    if(CHANCE.inv>0)chanceTick(dt); // (2026-10-14) le bouclier de la SECONDE CHANCE
+    graceT=Math.max(0,graceT-dtH); /* (2026-11-05, GP-02) la grâce et le bouclier : sur l'horloge */
+    if(CHANCE.inv>0)chanceTick(dtH); // (2026-10-14) le bouclier de la SECONDE CHANCE
     sideCd=Math.max(0,sideCd-dt);
     if(DBG_AUTO.on&&DBG_AUTO.saut>0){if(mode==='drive'&&!introD&&graceT<=0){DBG_AUTO.tS+=dt;if(DBG_AUTO.tS>=DBG_AUTO.saut&&Math.abs(lat)<ROAD_HALF*.5&&Math.abs(vA)*3.6*SPD>110){DBG_AUTO.tS=0;DBG_AUTO.l0=null;startFall(DBG_AUTO.imp,1);}}else DBG_AUTO.tS=0;} /* banc : la boucle décoller / se poser */
+  }catch(err){bouclePanne('départ',err);} /* (2026-11-05) fin de la tranche DÉPART — voir « UN TRY PAR TRANCHE » plus haut */
+  try{boucleTest('physique'); /* tranche PHYSIQUE : conduite (boucle-2) + physique (boucle-3) */
