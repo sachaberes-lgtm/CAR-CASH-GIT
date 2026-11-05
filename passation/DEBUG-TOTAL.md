@@ -5,10 +5,14 @@ du code sans jamais avoir de problème » — puis : « concentre-toi particuli�
 
 - Branche `debug-total` (worktree `/Users/sachaberes/cash-car/debug-total`), partie d'`origin/main` ac6cc6cb (v1152).
 - Serveur local : `.claude/launch.json` → `cashcar-debug-total` (port 8830, `VERSION PRINCIPALE/`).
-- **Fumée du son en une commande** : `node outils/banc-son/fumee-son.mjs [--fois 5] [--course 30] [--url "&colonne=portrait"] [--w 390 --h 844] [--mobile]`
-  (Chrome sans fenêtre, son muet mais contexte VIVANT, sauvegarde MUSIQUE+EFFETS+VOIX allumés ; sonde `outils/banc-son/sonde.js`).
-  Accueil → JOUER → course → arrière-plan 3 s → retour → mort → REJOUER → course → mort → accueil ; VERT = un seul AudioContext,
-  au plus une musique (jamais deux fois le même morceau), liaisons audio stables d'une course à l'autre, 0 erreur console, 0 promesse rejetée.
+- **Fumée du son en une commande** (UN Chrome à la fois, vérifier `uptime` avant) :
+  `node outils/banc-son/fumee-son.mjs [--fois 5] [--course 14] [--frenesie] [--chance] [--courses 10] [--colonne portrait --w 390 --h 844 --mobile] [--url "&tel=1"] [--simu]`
+  Chrome sans fenêtre, son muet mais contexte VIVANT, sauvegarde MUSIQUE+EFFETS+VOIX allumés, VRAI écran titre ; sonde `outils/banc-son/sonde.js`.
+  Titre → accueil → JOUER → course → arrière-plan 3 s → REPRENDRE → [frénésie] → [mort + CONTINUER] → mort → REJOUER → course → mort → accueil.
+  VERT = un seul AudioContext ouvert (celui de l'intro se ferme), au plus UNE musique audible (jamais deux fois le même morceau, pas d'`<audio>` sous
+  Pouce bleu), pas de musique de course sur l'accueil ni la mort, la seconde chance reprend son morceau, 0 erreur console, 0 promesse orpheline.
+  `--courses 10` : la pente des nœuds audio vivants (fuite) et du tas. Relevés : `$TMPDIR/cc-fumee-son-N.json`.
+- **Le cadre de l'ordinateur** (le jeu dans l'iframe #colonne, vrais clics) : `node outils/banc-son/cadre.mjs [--debout]`.
 
 ## Tableau des bugs
 
@@ -87,6 +91,11 @@ En cas de souci : `dbgAudio()` (état du contexte, refus de réveil), `dbgSonPan
 - Debout (`--colonne portrait --w 390 --h 844 --mobile`) et version téléphone (`--url "&tel=1" --mobile`) : musique, mort, REJOUER, accueil,
   0 erreur JS. (Le `play()` de déverrouillage refusé au `pointerdown` d'un doigt est rattrapé au `touchend` : voulu, rangé à part par la sonde.)
 - Trois lectures « reste du jeu » (sauvegarde · cycle de vie/PWA · pièges) : aucun bloquant ; corrigés G2-G5 ; le reste est listé ci-dessous.
+- Sauvegarde fuzzée (3 000 sauvegardes mutées, vrai `san`) : aucune exception, banque/record/aura finis, `owned` dans la table ; CARS = CAR_UNLOCK = 91 fiches
+  alignées ; achats et récompenses gardés contre le double débit. Pièges du code (AST de toute l'IIFE) : 0 `let/const` en double, 1 `function` en double
+  (dnGeos2), 6 appels « au chargement » qui touchent des `const` déclarés plus loin, tous protégés aujourd'hui — voir « Reste ».
+- Cadre de l'ordinateur couché ET debout (`cadre.mjs`) : VERT. Fusions de main v1161, v1177 (sons à la demande → S7), v1186 (Arrakis).
+- 21 h 10 — fumée finale après la dernière fusion (v1187) : couché `--frenesie --chance` VERT, debout VERT, cadre couché VERT (charge machine 283).
 
 ## Reste, non corrigé (mineur ou décision), par zone
 - **Sauvegarde** : l'import n'est pas signé (banque 1e30, `ex.floor`, `owned` libres ; remboursement des caisses retirées rejouable par import) —
