@@ -151,40 +151,132 @@ html.bqIndus body #garage #gAct>#gBqBtn[data-e="sec"],html:not(.c6):not(.ux8g).b
 #gBqPan .bqK.m2sec .bqKph img{width:100%;height:100%;min-width:0;max-width:100%;max-height:100%;transform:none} /* (2026-11-03) la silhouette secrète entière dans sa case, comme les autres photos */
 #gBqPan .bqK.m2sec .bqKr{display:none}
 html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-left:4px;padding-right:4px} /* debout, « MISSION SECRÈTE » (117 px de texte) était coupé dans une carte de 112 px : il passe sur deux lignes ; couché (128 px) il tient sur une, à 4 px des bords */
-/* LA RÉVÉLATION D'UNE SECRÈTE (étape 4, #m2Rev) : la nuit, les rayons à la couleur de la rareté, la silhouette qui se remplit de couleur
-   de bas en haut sous une ligne de lumière, le nom qui tombe, l'intitulé tapé, RÉCUPÈRE (le lingot de l'écran) */
-#m2Rev{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;box-sizing:border-box;font-family:var(--pix);
-  padding:calc(var(--sT,0px) + 14px) calc(var(--sR,0px) + 16px) calc(var(--sB,0px) + 14px) calc(var(--sL,0px) + 16px);overflow:hidden;cursor:pointer}
-#m2Rev.on{display:flex}
-.m2RvFond{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,#22102f 0,#0b0614 55%,#05030a 100%);opacity:0;transition:opacity .45s var(--ease)}
-#m2Rev.on .m2RvFond{opacity:.97}
-.m2RvRayons{position:absolute;left:50%;top:44%;width:160vmax;height:160vmax;margin:-80vmax 0 0 -80vmax;opacity:0;
-  background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--rc) 20%,transparent) 0 5deg,transparent 5deg 15deg);transition:opacity 1.2s var(--ease);animation:m2RvTourne 22s linear infinite}
-#m2Rev.plein .m2RvRayons{opacity:1}
-@keyframes m2RvTourne{to{transform:rotate(360deg)}}
-.m2RvBloc{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;max-width:min(92vw,560px);text-align:center;opacity:0;transform:scale(.92);
-  transition:transform .5s var(--ease),opacity .4s var(--ease)}
-#m2Rev.on .m2RvBloc{opacity:1;transform:none}
-.m2RvHd{display:inline-flex;align-items:center;gap:8px;font-size:var(--f3);letter-spacing:3px;color:var(--neoM);text-shadow:0 0 12px rgba(255,62,200,.6)}.m2RvHd .pxi{--pxs:2}
-.m2RvPh{position:relative;width:min(84vw,440px);aspect-ratio:720/440}
-.m2RvPh img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+/* L'AVANT-PREMIÈRE (2026-11-05, Sacha : « beaucoup plus épique, beaucoup plus solennel » ; voir m2RevScene) — #m2Rev, la révélation d'une
+   secrète : le noir et ses bandes de cinéma, le projecteur qui grésille, la silhouette cernée de sa rareté, la charge, l'éclat, puis les
+   projecteurs d'avant-première qui balaient le ciel (à la place des rayons tournants). .p0…p5 = le palier de la rareté (M2RV_T). La boîte de
+   la caisse dans sa photo pose --cx --cy (son centre), --sol (le bas de ses roues), --cw (sa largeur) ; --fa = l'ouverture du projecteur. */
+#m2Rev{position:fixed;inset:0;z-index:95;display:none;box-sizing:border-box;font-family:var(--pix);overflow:hidden;cursor:pointer;
+  --rc:#fff;--ch:900ms;--cx:50%;--cy:49%;--sol:78%;--cw:84%;--fa:16deg;-webkit-tap-highlight-color:transparent}
+#m2Rev.on{display:block}
+.m2RvFond{position:absolute;inset:0;z-index:0;opacity:0;background:radial-gradient(ellipse 80% 70% at 50% 46%,#15151b 0,#08080b 58%,#020203 100%);transition:opacity .5s var(--ease)}
+#m2Rev.on .m2RvFond{opacity:1}
+.m2RvBandes{position:absolute;inset:0;z-index:3;pointer-events:none}
+.m2RvBandes::before,.m2RvBandes::after{content:'';position:absolute;left:0;right:0;height:11vh;background:#000;transition:transform .9s cubic-bezier(.65,0,.35,1)}
+.m2RvBandes::before{top:0;transform:translateY(-101%)}
+.m2RvBandes::after{bottom:0;transform:translateY(101%)}
+#m2Rev:not(.p0).on:not(.eclat) .m2RvBandes::before,#m2Rev:not(.p0).on:not(.eclat) .m2RvBandes::after{transform:none}
+.m2RvCadre{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;box-sizing:border-box;
+  padding:calc(var(--sT,0px) + 14px) calc(var(--sR,0px) + 16px) calc(var(--sB,0px) + 14px) calc(var(--sL,0px) + 16px)}
+.m2RvCv{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
+.m2RvBloc{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:10px;max-width:min(92vw,560px);text-align:center}
+.m2RvBloc{transform:translateY(var(--dy,0px))}
+#m2Rev.rar .m2RvBloc{transform:none;transition:transform 1s cubic-bezier(.65,0,.35,1)}
+.m2RvFlash{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;background:color-mix(in srgb,var(--rc) 16%,#fff)}
+#m2Rev.eclat:not(.bout) .m2RvFlash{animation:m2RvFlash .8s cubic-bezier(.2,.6,.3,1)}
+@keyframes m2RvFlash{0%{opacity:.96}10%{opacity:.85}100%{opacity:0}}
+#m2Rev.eclair .m2RvFlash{animation:m2RvEclair .32s steps(1,end)}
+@keyframes m2RvEclair{0%{opacity:.42}25%{opacity:0}45%{opacity:.24}65%,100%{opacity:0}}
+/* « MISSION SECRÈTE » : blanc cassé, très espacé, entre deux filets — un carton de générique, pas une enseigne */
+.m2RvHd{display:flex;align-items:center;justify-content:center;gap:14px;font-size:var(--f1);letter-spacing:5px;color:rgba(255,255,255,.78);white-space:nowrap;opacity:0;transition:opacity 1s var(--ease) .2s}
+.m2RvHd::before,.m2RvHd::after{content:'';flex:none;width:clamp(20px,7vw,60px);height:2px;background:rgba(255,255,255,.28)}
+.m2RvHd span{display:inline-flex;align-items:center;gap:8px}.m2RvHd .pxi{--pxs:2}
+#m2Rev.on .m2RvHd{opacity:1}
+/* LA SCÈNE : la caméra avance pendant la charge, recule d'un coup à l'éclat */
+.m2RvScene{position:relative;width:min(84vw,440px);aspect-ratio:720/440;transition:transform .6s var(--ease)}
+#m2Rev.charge .m2RvScene{transform:scale(1.08);transition:transform var(--ch) cubic-bezier(.45,0,.85,.55)}
+#m2Rev.eclat .m2RvScene{transform:none;transition:transform .6s cubic-bezier(.2,1.6,.35,1)}
+.m2RvScene>i{position:absolute;display:block;pointer-events:none}
+/* le projecteur au-dessus : un cône de lumière blanche dont la pointe est hors de l'écran ; il grésille avant de tenir */
+.m2RvFaisceau{left:var(--cx);bottom:calc(100% - var(--sol));width:170%;height:100vh;z-index:1;opacity:0;transform:translateX(-50%);
+  background:conic-gradient(from calc(180deg - var(--fa)) at 50% 0,transparent 0deg,rgba(255,255,255,.13) calc(var(--fa)*.5),rgba(255,255,255,.2) var(--fa),rgba(255,255,255,.13) calc(var(--fa)*1.5),transparent calc(var(--fa)*2),transparent 360deg);
+  -webkit-mask:linear-gradient(180deg,rgba(0,0,0,.2) 0,#000 80%,rgba(0,0,0,.5) 100%);mask:linear-gradient(180deg,rgba(0,0,0,.2) 0,#000 80%,rgba(0,0,0,.5) 100%)}
+#m2Rev.scene .m2RvFaisceau{opacity:1;animation:m2RvGresille 1.05s steps(1,end)}
+@keyframes m2RvGresille{0%{opacity:0}6%{opacity:.85}11%{opacity:.06}19%{opacity:1}25%{opacity:.3}33%{opacity:.95}39%{opacity:.55}47%,100%{opacity:1}}
+#m2Rev.eclat .m2RvFaisceau{opacity:.4;animation:none}
+/* la flaque du projecteur, au sol sous la caisse — elle prend la couleur de la rareté à l'éclat */
+.m2RvSol{left:var(--cx);top:var(--sol);width:calc(var(--cw)*1.35);height:30%;z-index:1;opacity:0;transform:translate(-50%,-58%);transition:opacity .7s var(--ease) .4s;
+  background:radial-gradient(closest-side,rgba(255,255,255,.22) 0,rgba(255,255,255,.07) 55%,transparent 100%)}
+#m2Rev.scene .m2RvSol{opacity:1}
+#m2Rev.eclat .m2RvSol{background:radial-gradient(closest-side,color-mix(in srgb,var(--rc) 50%,rgba(255,255,255,.3)) 0,color-mix(in srgb,var(--rc) 16%,transparent) 55%,transparent 100%)}
+/* le halo derrière la caisse : il bat avec elle pendant la charge, il éclate, puis il respire */
+.m2RvHalo{left:var(--cx);top:var(--cy);width:175%;height:165%;z-index:0;opacity:0;transform:translate(-50%,-50%);transition:opacity .9s var(--ease);
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--rc) 44%,transparent) 0,color-mix(in srgb,var(--rc) 15%,transparent) 48%,transparent 100%)}
+#m2Rev.charge .m2RvHalo{opacity:.3;transition:opacity var(--ch) ease-in}
+#m2Rev.bat .m2RvHalo{animation:m2RvHaloBat .6s ease-out}
+@keyframes m2RvHaloBat{0%{opacity:.3}12%{opacity:.95}100%{opacity:.3}}
+#m2Rev.eclat .m2RvHalo{opacity:1}
+#m2Rev.vit:not(.p0) .m2RvHalo{animation:m2RvHaloVit 4.2s ease-in-out infinite}
+@keyframes m2RvHaloVit{0%,100%{opacity:.8}50%{opacity:1}}
+/* LES PROJECTEURS D'AVANT-PREMIÈRE : des cônes fins qui partent de derrière la caisse et balaient le ciel en se croisant (2 · 4 · 5 selon le palier) */
+.m2RvPhares{position:absolute;left:var(--cx);top:calc(var(--sol) - 8%);width:0;height:0;z-index:0;opacity:0;transform:scaleY(.1);transform-origin:50% 0;
+  transition:opacity .9s var(--ease),transform 1.2s cubic-bezier(.2,.9,.25,1)}
+#m2Rev.eclat .m2RvPhares{opacity:1;transform:none}
+.m2RvPhare{position:absolute;bottom:0;left:calc(-8vmax + var(--x,0px));width:16vmax;height:90vmax;transform-origin:50% 100%;opacity:.34;
+  transform:rotate(calc((var(--k) - 1.5) * 16deg));
+  background:conic-gradient(from -5deg at 50% 100%,transparent 0deg,color-mix(in srgb,var(--pc) 50%,#fff) 3.5deg,color-mix(in srgb,var(--pc) 50%,#fff) 6.5deg,transparent 10deg,transparent 360deg);
+  -webkit-mask:linear-gradient(0deg,#000 0,rgba(0,0,0,.75) 35%,transparent 96%);mask:linear-gradient(0deg,#000 0,rgba(0,0,0,.75) 35%,transparent 96%);
+  animation:m2RvBalaie 7.5s ease-in-out infinite alternate;animation-delay:calc(var(--k) * -2.6s)}
+.m2RvPhare:nth-child(2n){animation-direction:alternate-reverse}
+.m2RvPhare:nth-child(1){--x:-15vmin}.m2RvPhare:nth-child(2){--x:15vmin}.m2RvPhare:nth-child(3){--x:-6vmin}.m2RvPhare:nth-child(4){--x:6vmin}
+@keyframes m2RvBalaie{from{transform:rotate(-36deg)}to{transform:rotate(36deg)}}
+#m2Rev.p5 .m2RvPhare{opacity:.4}
+/* LA CAISSE : g = son liseré de lumière (sous la silhouette), c = sa photo en couleur, n = la silhouette noire */
+.m2RvPh{position:absolute;inset:0;z-index:2;opacity:0;transform:translateY(8px);transition:opacity 1s var(--ease),transform 1.3s var(--ease)}
+#m2Rev.scene .m2RvPh{opacity:1;transform:none}
+.m2RvPh img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;-webkit-user-drag:none;user-select:none;pointer-events:none}
 .m2RvPh img:not([src]){display:none}
-.m2RvPh img.n{filter:brightness(0) drop-shadow(0 0 2px rgba(255,62,200,.9));clip-path:inset(0 0 0 0);transition:clip-path 1.4s var(--ease)}
-#m2Rev.plein .m2RvPh img.n{clip-path:inset(0 0 100% 0)}
-.m2RvPh img.c{filter:drop-shadow(0 0 18px color-mix(in srgb,var(--rc) 55%,transparent))}
+.m2RvPh img.g{filter:brightness(0) drop-shadow(0 0 2px var(--rc)) drop-shadow(0 0 10px var(--rc));opacity:0;transition:opacity .9s var(--ease) .3s}
+#m2Rev.scene .m2RvPh img.g{opacity:.45}
+#m2Rev.charge .m2RvPh img.g{opacity:1;transition:opacity var(--ch) ease-in}
+#m2Rev.eclat .m2RvPh img.g{opacity:0;transition:opacity .2s}
+.m2RvPh img.c{opacity:0;filter:drop-shadow(0 0 16px color-mix(in srgb,var(--rc) 40%,transparent))}
+#m2Rev.plein .m2RvPh img.c{opacity:1}
+.m2RvPh img.n{filter:brightness(0) drop-shadow(0 0 1px color-mix(in srgb,var(--rc) 70%,#fff));clip-path:inset(0 0 0 0);transition:clip-path 1.4s var(--ease)}
+#m2Rev.p0.plein .m2RvPh img.n{clip-path:inset(0 0 100% 0)}
+#m2Rev.eclat .m2RvPh img.n{opacity:0;transition:none}
+#m2Rev.bat .m2RvPh{animation:m2RvBat .5s cubic-bezier(.2,.8,.3,1)}
+@keyframes m2RvBat{0%{transform:scale(1)}14%{transform:scale(1.05)}100%{transform:scale(1)}}
+#m2Rev.vit .m2RvPh{animation:m2RvRespire 3.6s ease-in-out infinite}
+@keyframes m2RvRespire{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+/* commune : la couleur monte sous une ligne de lumière (la scène d'avant) */
 .m2RvLigne{position:absolute;left:3%;right:3%;top:100%;height:3px;background:var(--rc);box-shadow:0 0 14px var(--rc),0 0 30px var(--rc);opacity:0}
-#m2Rev.plein .m2RvLigne{animation:m2RvBalaye 1.4s var(--ease) forwards}
+#m2Rev.p0.plein:not(.bout) .m2RvLigne{animation:m2RvBalaye 1.4s var(--ease) forwards}
 @keyframes m2RvBalaye{0%{top:100%;opacity:1}88%{opacity:1}100%{top:0;opacity:0}}
-.m2RvRar{font-size:var(--f0);letter-spacing:3px;color:var(--rc);opacity:0;transition:opacity .4s var(--ease)}
-.m2RvNom{font-size:var(--f7);line-height:1.2;color:#fff;text-shadow:0 3px 0 #000,0 0 20px var(--rc);opacity:0;transform:scale(1.7);transition:transform .45s var(--ease),opacity .3s var(--ease)}
-#m2Rev.nom .m2RvRar,#m2Rev.nom .m2RvNom{opacity:1;transform:none}
-.m2RvTx{min-height:3.2em;max-width:min(86vw,520px);font-size:var(--f1);line-height:1.6;letter-spacing:1px;color:#ffd7f2}
-.m2RvBt{min-width:220px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .3s var(--ease),transform .3s var(--ease)}
+/* le reflet qui passe sur la carrosserie (la photo sert de masque) : à l'éclat, puis toutes les 5 s (pas pour la commune) */
+.m2RvReflet{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:0;
+  -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.m2RvReflet::before{content:'';position:absolute;top:0;bottom:0;left:0;width:42%;transform:translateX(-130%);
+  background:linear-gradient(100deg,transparent 0,rgba(255,255,255,.4) 42%,rgba(255,255,255,.8) 50%,rgba(255,255,255,.4) 58%,transparent 100%)}
+#m2Rev.eclat:not(.p0) .m2RvReflet{opacity:1}
+#m2Rev.eclat:not(.p0):not(.bout) .m2RvReflet::before{animation:m2RvReflet .95s cubic-bezier(.4,0,.2,1) .4s both}
+#m2Rev.vit:not(.p0) .m2RvReflet::before{animation:m2RvRefletVit 5s cubic-bezier(.4,0,.2,1) .8s infinite}
+@keyframes m2RvReflet{from{transform:translateX(-130%)}to{transform:translateX(260%)}}
+@keyframes m2RvRefletVit{0%{transform:translateX(-130%)}22%,100%{transform:translateX(260%)}}
+/* LE NOM : la rareté s'espace et se resserre, le nom tombe de haut et frappe */
+.m2RvRar{display:inline-flex;align-items:center;justify-content:center;gap:10px;margin-top:4px;font-size:var(--f2);color:var(--rc);letter-spacing:16px;opacity:0;
+  transition:letter-spacing 1.1s cubic-bezier(.16,1,.3,1),opacity .6s var(--ease)}
+.m2RvRar .pxi{--pxs:2;margin-top:0}
+#m2Rev.rar .m2RvRar{opacity:1;letter-spacing:6px}
+.m2RvNom{font-size:var(--f7);line-height:1.2;color:#fff;text-shadow:0 4px 0 #000;opacity:0;transform:scale(2.3)}
+#m2Rev.nom .m2RvNom{opacity:1;transform:none;animation:m2RvTombe .3s cubic-bezier(.6,0,.9,.4)}
+@keyframes m2RvTombe{0%{opacity:0;transform:scale(2.3)}55%{opacity:1}100%{opacity:1;transform:scale(1)}}
+#m2Rev:is(.p3,.p4) .m2RvNom{text-shadow:0 4px 0 #000,0 0 26px color-mix(in srgb,var(--rc) 65%,transparent)}
+#m2Rev.p5 :is(.m2RvNom,.m2RvRar span){color:transparent;text-shadow:none;background:linear-gradient(90deg,#ff4d6d,#ffb03a,#ffe85e,#5ee37a,#5ec8ff,#b07dff,#ff8af0,#ff4d6d);
+  background-size:200% 100%;-webkit-background-clip:text;background-clip:text}
+#m2Rev.p5 .m2RvNom{filter:drop-shadow(0 4px 0 #000)}
+#m2Rev.p5.nom .m2RvNom{animation:m2RvTombe .3s cubic-bezier(.6,0,.9,.4),m2RvArc 3s linear infinite}
+#m2Rev.p5 .m2RvRar span{animation:m2RvArc 3s linear infinite}
+#m2Rev.p5 .m2RvRar .pxi{background:linear-gradient(90deg,#ff4d6d,#ffb03a,#ffe85e,#5ee37a,#5ec8ff,#b07dff,#ff8af0)}
+@keyframes m2RvArc{to{background-position:-200% 0}}
+.m2RvTx{min-height:3.2em;max-width:min(86vw,520px);font-size:var(--f1);line-height:1.6;letter-spacing:1px;color:rgba(255,255,255,.7)}
+.m2RvBt{min-width:220px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .35s var(--ease),transform .35s var(--ease)}
 .m2RvBt .pxi{--pxs:2}
 #m2Rev.bt .m2RvBt{opacity:1;pointer-events:auto;transform:none}
-#m2Rev.fin .m2RvBloc{opacity:0;transform:scale(1.06)}#m2Rev.fin .m2RvFond,#m2Rev.fin .m2RvRayons{opacity:0}
-@media (orientation:landscape) and (max-height:540px){.m2RvPh{width:min(44vw,300px)}.m2RvNom{font-size:var(--f6)}.m2RvBloc{gap:5px}.m2RvTx{min-height:2.4em}}
-@media (prefers-reduced-motion:reduce){.m2RvRayons{animation:none}.m2RvBloc,.m2RvNom,.m2RvBt,.m2RvRar,.m2RvPh img.n,.m2RvFond,.m2RvRayons{transition:none}#m2Rev.plein .m2RvLigne{animation:none}}
+#m2Rev.bout .m2RvNom{animation:none}
+#m2Rev.fin .m2RvCadre{opacity:0;transform:scale(1.05)!important;transition:opacity .45s var(--ease),transform .5s var(--ease)}
+#m2Rev.fin .m2RvFond{opacity:0;transition:opacity .5s var(--ease) .05s}
+@media (orientation:landscape) and (max-height:540px){.m2RvScene{width:min(46vw,320px)}.m2RvNom{font-size:var(--f6)}.m2RvBloc{gap:5px}.m2RvTx{min-height:2.4em}.m2RvHd{font-size:var(--f0);letter-spacing:4px}}
+@media (prefers-reduced-motion:reduce){#m2Rev *,#m2Rev *::before,#m2Rev *::after{animation:none!important;transition:none!important}}
 /* (2026-10-20, Léo) LA SÉRIE DE SEPT JOURS — sept cases : cochées en vert, celle du jour qui bat en or (l'or = ce qu'on vise, comme une mission suivie), DEMAIN
    annoncé, la 7e case = la peinture exclusive, son nuancier. (2026-10-22, Sacha : « enlève le défi du jour ») le défi et son bloc AUJOURD'HUI sont partis :
    la série tient dans une carte (.m2Serie) — titre, sept cases, une phrase. Rien ne bouge en continu sauf la case du jour. */
