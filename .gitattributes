@@ -1,0 +1,27 @@
+# Fins de ligne (2026-11-05, Fable — IOS-08) : LF partout dans le dépôt et dans les copies de travail, quel que soit core.autocrlf
+# (le PC avait core.autocrlf=true : index.html sortait en CRLF, et preparer-www.js / publier-maj.js hachaient les fichiers tels quels
+#  → des empreintes différentes PC/Mac pour un même contenu, donc des « mises à jour » Capgo fantômes). Les binaires ne sont jamais touchés.
+* text=auto eol=lf
+*.png -text
+*.jpg -text
+*.jpeg -text
+*.webp -text
+*.gif -text
+*.ico -text
+*.m4a -text
+*.mp3 -text
+*.wav -text
+*.ogg -text
+*.woff -text
+*.woff2 -text
+*.ttf -text
+*.otf -text
+*.zip -text
+*.ipa -text
+*.pdf -text
+*.glb -text
+*.bin -text
+*.mov -text
+*.mp4 -text
+*.psd -text
+*.xcarchive -text

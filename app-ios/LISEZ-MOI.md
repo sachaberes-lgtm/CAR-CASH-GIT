@@ -112,3 +112,45 @@ mot-symbole pixel CASH CAR (`ressources/icon.svg`, `ressources/icone-1024.png`).
 En version Debug, `natif.js` écrit dans la console de Xcode : `[natif] BILAN RÉSEAU` (doit dire « 0 adresse hors de
 l'app »), `[natif] POULS` (images/s, état du son, état du jeu) et toute erreur JS. La version App Store (Release)
 n'écrit rien.
+
+## Les mises à jour en direct, suite (2026-11-05, jury final — Fable : IOS-06, IOS-28, IOS-08, IOS-09)
+
+Quatre corrections dans `natif/natif.js` (partie 7), `capacitor.config.json` et `.gitattributes` (à la racine du dépôt) :
+
+- **Le feu vert part à `DOMContentLoaded`** (IOS-06), plus seulement à `__gameReady` (la fin du script de 9,6 Mo). Si le script a été
+  lu et exécuté sans erreur non rattrapée, `notifyAppReady` est envoyé ~0,3 s après `DOMContentLoaded` ; `__gameReady` le redonne
+  (sans effet) et lance la vérification des mises à jour. Une app tuée pendant son chargement ne bannit plus la version.
+  `appReadyTimeout` passe de 60 à **120 s** (un SE 2020 à froid, 100 Mo copiés par Capgo au premier passage).
+- **Deux échecs avant le bannissement** (IOS-06) : `ccMajEssaiN_<version>` compte ; au premier échec la version est retéléchargée et
+  retentée au lancement suivant ; au second elle part dans `ccMajRefus` pour de bon. (`ccMajRefus` reste la liste des versions à ne
+  plus jamais retenter ; pour la vider sur un téléphone : effacer les données de l'app, ou publier une nouvelle version.)
+- **Une mise à jour ne s'applique JAMAIS en pleine course** (IOS-28) : `U.next()` (appliqué par Capgo au passage en arrière-plan,
+  donc au milieu d'une course si un appel arrive) n'est plus utilisé. Une version téléchargée est seulement notée (`ccMajPrete` :
+  id + version) ; **au lancement suivant**, avant que le jeu ne se charge, `natif.js` la pose avec `U.set()` (qui recharge sur-le-champ).
+  Conséquence à connaître : une mise à jour publiée se voit au **deuxième** lancement de l'app (le premier la télécharge, le second la
+  pose), jamais pendant une session.
+- **Fins de ligne** (IOS-08) : `.gitattributes` impose `* text=auto eol=lf` (binaires en `-text`). Le PC avait `core.autocrlf=true` :
+  `index.html` sortait en CRLF dans la copie de travail, et `preparer-www.js` / `publier-maj.js` hachaient les fichiers tels qu'ils
+  sont sur le disque — des empreintes différentes PC/Mac pour un même contenu, donc des « nouvelles versions » fantômes et 17 Mo
+  retéléchargés par tous les iPhone pour rien. Après un `git pull` sur une copie qui avait des CRLF : `git add --renormalize .`
+  (le dépôt n'a changé que 4 fichiers de passation) puis `git checkout -- .` ne doit rien montrer. Contrôle avant de publier :
+  `git ls-files --eol | grep -v "w/lf\|w/-text\|w/none"` doit être vide dans `app-ios/www/`.
+
+### Signer les mises à jour (IOS-09) — procédure, à faire par Sacha (rien n'est fait dans le dépôt)
+
+Aujourd'hui rien ne signe les fichiers que l'app télécharge : Capgo vérifie l'empreinte sha256 de chaque fichier du manifeste (contre
+une corruption de téléchargement), pas l'origine du manifeste. La sécurité repose sur le compte GitHub de Sacha et sur la branche
+`app-maj` du dépôt public. Dans l'ordre :
+
+1. **Compte GitHub** : activer l'authentification à deux facteurs avec une clé matérielle ou une application (pas le SMS) ; révoquer les
+   jetons d'accès inutilisés (Settings › Developer settings › Personal access tokens).
+2. **Protéger la branche `app-maj`** (Settings › Branches › Add rule, pattern `app-maj`) : « Restrict who can push » (Sacha seul),
+   « Do not allow force pushes », « Do not allow deletions ». `publier-maj.js --envoyer` pousse en avance rapide : il continue de marcher.
+3. **Chiffrement Capgo (le vrai verrou)** : sur le Mac, dans `app-ios/`, `npx @capgo/cli key create` crée une paire de clés
+   (`.capgo_key` privée — à garder HORS du dépôt, dans le trousseau — et `.capgo_key.pub`). Mettre la clé publique dans
+   `capacitor.config.json` › `CapacitorUpdater.publicKey`, puis reconstruire l'app (c'est une mise à jour **App Store**, le build 3).
+   À partir de là, chaque `publier-maj.js` doit chiffrer la session de chaque fichier avec la clé privée (`npx @capgo/cli bundle
+   encrypt` sur l'archive, ou l'option `--key` du module) et publier `sessionKey`/`checksum` dans `latest.json` : à faire dans
+   `publier-maj.js` le jour où le build 3 est soumis, avec un essai complet au simulateur (une version non chiffrée est alors REFUSÉE
+   par l'app : c'est le but). Tant que le build 2 est en ligne, ne pas poser `publicKey` : les mises à jour cesseraient.
+4. **Revenir en arrière** = republier l'ancien jeu : une version republiée a la même empreinte, l'app l'accepte.

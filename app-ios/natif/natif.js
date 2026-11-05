@@ -105,12 +105,27 @@
     var ls=function(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}return null;};
     var refus=function(){try{return JSON.parse(ls('ccMajRefus')||'[]');}catch(e){return [];}};
     var ici0=fetch('maj.json',{cache:'no-store'}).then(function(r){return r.json();}).catch(function(){return {};});
+    /* ===== LA MISE À JOUR S'APPLIQUE AU LANCEMENT, JAMAIS EN COURSE (2026-11-05, Fable — IOS-28) ===== Capgo appliquait le `next` au passage en
+       arrière-plan : un appel reçu en pleine course rechargeait la WebView, course perdue. Désormais une version téléchargée est seulement NOTÉE
+       (ccMajPrete : id + version) ; au lancement suivant, ICI, avant que le jeu ne se charge, on la pose avec U.set (qui recharge sur-le-champ) :
+       il n'y a pas encore de partie à perdre. Une version refusée (ccMajRefus) n'est jamais posée. */
+    var prete=function(){try{return JSON.parse(ls('ccMajPrete')||'null');}catch(e){return null;}};
+    var appliquePrete=function(){var p=prete();if(!p||!p.id||!p.version)return Promise.resolve(false);ls('ccMajPrete',null);
+      if(refus().indexOf(p.version)>=0)return Promise.resolve(false);
+      return U.list().then(function(l){var b=((l&&l.bundles)||[]).filter(function(x){return x.id===p.id&&x.status!=='error'&&x.status!=='deleted'&&x.status!=='deleting';})[0];
+        if(!b){dit('maj : la version préparée',p.version,'n\'est plus là');return false;}
+        ls('ccMajEssai',p.version);dit('maj : on passe sur',p.version);return U.set({id:p.id}).then(function(){return true;});}).catch(function(e){dit('maj : set a échoué',e&&e.message);return false;});};
     var bilanEssai=function(){var essai=ls('ccMajEssai');if(!essai)return Promise.resolve();
       return ici0.then(function(ici){
         if(ici.version===essai){ls('ccMajEssai',null);dit('maj : la version '+essai+' a démarré');return;}
         return U.getNextBundle().then(function(n){if(n&&n.version===essai)return; // pas encore appliquée : elle attend son tour
-          var r=refus();if(r.indexOf(essai)<0)r.push(essai);ls('ccMajRefus',JSON.stringify(r.slice(-20)));ls('ccMajEssai',null);
-          dit('maj : la version '+essai+' a échoué, elle ne sera plus retentée');}).catch(function(){});});};
+          /* (2026-11-05, Fable — IOS-06) DEUX ÉCHECS AVANT LE BANNISSEMENT : un premier échec peut être une appli tuée pendant son chargement (ou un appareil
+             plus lent que appReadyTimeout). On compte (ccMajEssaiN_<version>) ; au premier, la version est retéléchargée par majVerif et retentée au lancement
+             suivant ; au second, elle part dans ccMajRefus pour de bon. */
+          var cle='ccMajEssaiN_'+essai,n9=(+ls(cle)||0)+1;ls('ccMajEssai',null);
+          if(n9<2){ls(cle,String(n9));dit('maj : la version '+essai+' n\'a pas démarré (1er échec) : elle sera retentée une fois');return;}
+          var r=refus();if(r.indexOf(essai)<0)r.push(essai);ls('ccMajRefus',JSON.stringify(r.slice(-20)));ls(cle,null);
+          dit('maj : la version '+essai+' a échoué deux fois, elle ne sera plus retentée');}).catch(function(){});});};
     var majVerif=function(){
       if(navigator.onLine===false)return;
       var der;
@@ -125,13 +140,23 @@
           dit('maj : téléchargement',der.version);
           return U.download({url:MAJ+'latest.json',version:der.version,
             manifest:der.manifest.map(function(e){return {file_name:e.f,file_hash:e.h,download_url:MAJ+'f/'+e.h};})});});})
-      .then(function(b){if(b&&b.id)return U.next({id:b.id}).then(function(){ls('ccMajEssai',der.version);dit('maj : prête pour le prochain lancement',der.version);});})
+      .then(function(b){if(b&&b.id){ls('ccMajPrete',JSON.stringify({id:b.id,version:der.version}));dit('maj : prête, elle s\'appliquera au prochain lancement (jamais en course)',der.version);}}) /* (2026-11-05, IOS-28) plus de U.next : voir appliquePrete */
       .catch(function(e){dit('maj : rien',e&&e.message);});};
-    var tours=0,guet=setInterval(function(){
-      if(!window.__gameReady&&++tours<240)return;clearInterval(guet);
-      if(!window.__gameReady)return; // jamais démarré : pas de feu vert, le module reviendra à la version d'avant
-      U.notifyAppReady().catch(function(){});
-      setTimeout(function(){bilanEssai().then(majVerif);},4000);},500);
+    /* ===== LE FEU VERT DÈS QUE LA PAGE EST LÀ (2026-11-05, Fable — IOS-06) ===== notifyAppReady n'était envoyé qu'à __gameReady, à la fin du script de 9,6 Mo :
+       une appli tuée (ou mise en arrière-plan) pendant son chargement ne le donnait jamais, Capgo revenait à la version d'avant et bilanEssai la bannissait pour
+       toujours. Désormais le feu vert part à DOMContentLoaded si aucune erreur non rattrapée n'a été vue (le script a été lu ET exécuté : c'est le vrai test « ça
+       charge ») ; __gameReady le redonne (sans effet) et lance la vérification des mises à jour. appReadyTimeout passe à 120 s (capacitor.config.json). */
+    var erreurs=0;addEventListener('error',function(){erreurs++;});
+    var feu=false,feuVert=function(){if(feu)return;feu=true;U.notifyAppReady().catch(function(){});dit('maj : feu vert');};
+    var auDom=function(){setTimeout(function(){if(!erreurs)feuVert();else dit('maj : erreur au chargement ('+erreurs+'), le feu vert attend __gameReady');},300);};
+    appliquePrete().then(function(posee){ /* une version préparée s'applique d'abord (U.set recharge : rien d'autre ne tourne) */
+      if(posee)return;
+      if(document.readyState!=='loading')auDom();else document.addEventListener('DOMContentLoaded',auDom);
+      var tours=0,guet=setInterval(function(){
+        if(!window.__gameReady&&++tours<240)return;clearInterval(guet);
+        if(!window.__gameReady)return; // jamais démarré : pas de feu vert ici (DOMContentLoaded sans erreur l'a peut-être donné)
+        feuVert();
+        setTimeout(function(){bilanEssai().then(majVerif);},4000);},500);});
     // une version qui ne démarre jamais ne donne pas le feu vert ; au lancement d'après (la version d'avant), bilanEssai la classe
   }
 
