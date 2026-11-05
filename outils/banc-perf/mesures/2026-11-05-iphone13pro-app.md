@@ -1,0 +1,5 @@
+# iPhone 13 Pro, DANS L'APP (bundle com.sachaberes.carcash.banc, build Debug depuis origin/main 37a9e595) — 5/11/2026
+- Construction : OK après retrait local de l'override `prefersHomeIndicatorAutoHidden` (`JeuViewController.swift:33`, erreur « overriding non-open property » sur main ; à corriger par le jury).
+- Lancement à froid ×3 (`devicectl process launch --terminate-existing`) : l'app démarre, `[natif] colle native prête`, écran titre en attente de toucher ; `cashcarErr` (boîte noire) ABSENT = 0 erreur. Chaque lancement émet `CapacitorUpdater reportWebViewError` (cause non investiguée).
+- Durée jusqu'à l'écran titre / gels / i/s en course : NON MESURÉS — le jeu attend un toucher (non automatisable) ; à 22:36 plus de 9 min de console ouverte (`/tmp/console13b.txt`) sans qu'aucun `[natif] POULS` n'arrive (personne n'a joué).
+- À faire : toucher l'écran titre, JOUER nuages 1 min, portail ; relire `devicectl process launch --console` (lignes POULS toutes les 4 s) et `cashcarErr` par `devicectl device copy from --domain-type appDataContainer` (localstorage.sqlite3 + -wal, valeurs UTF-16).
