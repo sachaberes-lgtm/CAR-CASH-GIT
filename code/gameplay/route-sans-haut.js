@@ -119,13 +119,14 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
   const FZ=[],ZDBG=[],lead=Math.max(520,5*vC);let fi=0;
   if(!sansVrille&&ROUTE_LIBRE){const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,sOf=function(j){const f=Math.max(0,Math.min(nC,j))/nC*dv,k=Math.min(dv-1,Math.floor(f));return lg[k]+(lg[k+1]-lg[k])*(f-k);};
     for(const m of MODMARK)if(m.g||m.f){const a=sOf(m.i0),b=sOf(m.i1);ZDBG.push([m.fig||'?',Math.round(a),Math.round(b),Math.round(s0),Math.round(fin),b>fin-40||a<s0+60?0:1]);if(b>fin-40||a<s0+60)continue;
-      FZ.push({a:a,b:b,ev:(m.f||[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};})});}
+      FZ.push({a:a,b:b,calme:m.calme?1:0,ev:(m.f||[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};})});}
     FZ.sort(function(x,y){return x.a-y.a;});}
   while(!sansVrille&&s<fin-120){
     if(fi<FZ.length&&FZ[fi].a-lead-s<60){const z=FZ[fi++];
       if(z.a>s+1){const w=Math.atan2(Math.sin(rho),Math.cos(rho));seg.push({s0:s,s1:z.a,r0:rho,r1:rho-w});rho-=w;} // à l'endroit avant la figure (le plus court)
       let c=Math.max(s,z.a);for(const e of z.ev){if(e.a>c+1)seg.push({s0:c,s1:e.a,r0:rho,r1:rho});seg.push({s0:e.a,s1:e.b,r0:rho,r1:rho+e.amt,fig:1});rho+=e.amt;c=e.b;}
-      if(z.b>c+1)seg.push({s0:c,s1:z.b,r0:rho,r1:rho});s=Math.max(s,z.b);continue;}
+      if(z.b>c+1)seg.push({s0:c,s1:z.b,r0:rho,r1:rho,calme:z.calme}); /* (2026-11-05, LES GÉANTS) m.calme : une figure SANS roulis tenue À L'ENDROIT — la dalle y est rappelée vers le ciel (dévers compris), comme dans une tenue calme ; sans ce rappel le repère dérive dans les virages et la dalle se couche */
+      s=Math.max(s,z.b);continue;}
     const lim=fi<FZ.length?FZ[fi].a-lead:fin; // la route ordinaire s'arrête `lead` m avant la prochaine figure
     const r=rg(),Z=O.zone?Object.assign({},O,O.zone(s/Lc)):O;let len,amt=0; /* (SUR LES PAROIS) Z : les réglages DE L'ENDROIT (O.zone(part de la route) → surcharges : chaque salle de la grotte a son caractère de roulis) */
     if(NV_CALME){const w=Math.atan2(Math.sin(rho),Math.cos(rho)); // (MOINS TORDUE, voir NV_CALME) w : le roulis ramené entre −π et π (0 = à l'endroit)

@@ -92,6 +92,22 @@ if(GRT_VASTE)Object.assign(GRT_FORME,{
   fin:   {rh:230,up:210,dn:160, ex:2,nz:.16}});
 /* (2026-10-25, SUR LES PAROIS) hug : le fond sous la route quand elle LONGE la paroi · lt : de combien (× rh) le creux se décale de côté — seules les salles qui roulent en ont */
 /* LA PROFONDEUR : le fond sous la route s'ouvre en gouffre ~25 % du temps (0 = la route longe la paroi, 1 = le fond entier de la salle) */
+/* ===== LES GÉANTS (2026-11-05, Sacha : « un module avec une salle pleine de stalagmites… je veux qu'il soit tellement imposant que ça devienne un obstacle à part entière ») =====
+   Dans la salle des stalactites, un MODULE : la route fait une serpentine de 1 à 3 virages larges et, au CENTRE de chaque virage, se dresse un stalagmite GÉANT (50-70 m de rayon,
+   150-210 m de haut, tiges de pierre superposées, petits piquants au pied, une stalactite qui descend presque à sa pointe). Le virage existe À CAUSE de lui : il cache la suite de la route,
+   couper le virage en vol, c'est le percuter (la roche tue en vol), et il est trop haut pour passer par-dessus. La route reste simple (longues droites, virages larges) : c'est le décor qui est l'obstacle.
+   · `gGeants` (grtTrace) trace la serpentine et note chaque virage (GROTTE.geants : abscisses d'entrée et de sortie) ; le module est marqué `f:[]` dans MODMARK : pisteTord y tient la dalle À L'ENDROIT (le géant est sur le sol).
+   · `grtEchantillons` relit le vrai virage dans la route finale (cap au début et à la fin → rayon, centre) : R.geants ; et ouvre la salle autour (RH, UP) pour que le géant tienne dans l'air.
+   · `grtDecorsG` plante le géant sur le sol (plancher), le plafonne sous la voûte, et l'inscrit aux collisions (cône à la mesure de la facette).
+   `?sans=geants` = la salle d'avant. Console : `dbgGrotte('geants')`. Les réglages sont ici, à un seul endroit. */
+const GRT_GEANT={on:!/[?&]sans=([^&]*,)?geants(,|&|$)/.test(location.search),
+  rayon:[48,72],  /* le rayon du pied (m) : 0,3 × le rayon du virage, borné ici */
+  jour:70,        /* l'air minimum entre le flanc du géant et le bord de la route (m) */
+  haut:[150,210], /* la pointe au-dessus de la ROUTE (m) — le fond peut être 200 m plus bas, dans un gouffre ; plus bas si la voûte est basse */
+  voute:38,       /* l'air gardé entre la pointe du géant et la voûte (m) */
+  salle:70,       /* la roche creusée de plus derrière le géant (m) */
+  up:300,         /* le plafond de la salle autour des géants (m au-dessus de la dalle) */
+  nMax:3};        /* le nombre de géants du module */
 function grtProfond(s){const v=.5+.5*Math.sin(s*.0069+1.3)*Math.cos(s*.0027+.4);return Math.max(0,Math.min(1,(v-.62)/.28));}
 /* long : la longueur · ent : l'entonnoir du puits au-delà de la spirale (m) · voute / bassin / eauP : sa voûte au-dessus du 1er tour, son fond et
    son eau sous le dernier · nzK : l'échelle du bruit de la roche · lacP, eauL : la lave et le lac sous le point le plus bas de leur salle ·
@@ -149,7 +165,7 @@ function* genGrotte(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   CAMPM.length=0;MODMARK.length=0;
   const LV=typeof lvPiste==='function'?lvPiste():1,gr=mulberry32((rnd()*4294967296)>>>0);let best=null;
   for(let e=0;e<6;e++){if(e)yield;const r=grtTrace(gr,LV);if(!best||r.conflits<best.conflits)best=r;if(!r.conflits)break;}
-  for(const k of ['Q','salles','sTot','conflits','croise'])GROTTE[k]=best[k];
+  for(const k of ['Q','salles','sTot','conflits','croise','geants'])GROTTE[k]=best[k];
   for(const m of best.mods||[])MODMARK.push(m);
   return best.ctrl;}
 function grtTrace(rnd,LV){
@@ -199,6 +215,12 @@ function grtTrace(rnd,LV){
   const gLacets=()=>{gAxe();const n=2+((rv()*2)|0),R=rM*(1.15+rv()*.25);let d=rel()>0?-1:1;arc(d*90,R);for(let k=0;k<n;k++){droite((80+rv()*90)*KV);arc(-d*180,R);d=-d;}droite((60+rv()*50)*KV);arc(-d*90,R);};
   const gEsses=()=>{gAxe();const n=3+((rv()*3)|0),a=56+rv()*12,R=rM*(1.2+rv()*.25);let s9=rel()>0?-1:1;tourne(s9*a*.5,R);for(let k=0;k<n;k++){s9=-s9;tourne(s9*a,R);droite((10+rv()*16)*KV);}tourne(-s9*a*.5,R);};
   const gDouce=()=>{gAxe();const s9=rel()>0?-1:1;droite(60*KV);tourne(s9*20,Rl());droite(80*KV);tourne(-s9*20,Rl());droite(60*KV);}; // un seul module : un S large
+  /* LES GÉANTS (2026-11-05, voir GRT_GEANT) : la serpentine de la salle des stalactites. Un virage large par géant (1er : ~44°, les suivants ~88°, de l'un à l'autre côté de l'axe), un stalagmite au centre de chacun.
+     Les rayons sont ceux des grandes courbes (≥ 1,7 rM, jamais sous 190 m) ; les droites entre deux virages laissent voir le suivant. Le module n'est PAS dans MJ (il n'est pas tiré au hasard : la salle des stalactites l'a toujours). */
+  const GEA=[],gGeants=(n,iZ)=>{gAxe();const i0=iZ!=null?iZ:ctrl.length-1,A=40+rv()*8,Rg=Math.max(rM*1.7,190)+rv()*45;let d=rel()>0?-1:1;
+    droite((130+rv()*60)*KV); /* de quoi poser la dalle à l'endroit avant le 1er virage */
+    for(let k=0;k<n;k++){const a=wrap(axe+d*A/57.2958-phi)*57.2958,sA=s;arc(a,Rg);GEA.push({s0:sA,s1:s,sg:a>0?1:-1,R:Rg});droite((60+rv()*50)*KV);d=-d;}
+    vers(0,Rg);droite(50*KV);MM.push({i0:i0,i1:ctrl.length-1,f:[],calme:1,geant:1});}; /* f:[] : pisteTord tient la dalle à l'endroit sur tout le module (une « figure » sans roulis) */
   const MJ=[gDouce];
   const gMod=()=>{let m=0;for(let e=0;e<6;e++){if(!paq.length){const t=MJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)paq.push(x);}m=paq.shift();if(m!==mLast)break;}
     mLast=m;const i0=ctrl.length-1;MJ[m]();MM.push({i0:i0,i1:ctrl.length-1});};
@@ -218,7 +240,9 @@ function grtTrace(rnd,LV){
   // ================= 2 · LE BOYAU DE CRISTAUX : un tube étroit qui tourne vite =================
   const sBoyau=len=>{salle('boyau');remplir(len,Math.max(1,Math.round(len/(520*KV))));droite(20*KV);};
   // ================= 3 · LES STALACTITES =================
-  const sStal=len=>{salle('stal');remplir(len,Math.max(1,Math.round(len/(700*KV))));};
+  const sStal=len=>{salle('stal');const s0=s;
+    if(GRT_GEANT.on){const iZ=ctrl.length-1;droite(120*KV);gGeants(Math.max(1,Math.min(GRT_GEANT.nMax,Math.floor((len-600*KV)/430))),iZ);nMod++;remplir(Math.max(0,len-(s-s0)),0);} /* (2026-11-05) LES GÉANTS : le module de la salle ; le reste, de longues droites et de rares courbes */
+    else remplir(len,Math.max(1,Math.round(len/(700*KV))));};
   // ================= 4 · LE LAC DE LAVE : de longues courbes au-dessus de la lave =================
   const sLave=len=>{salle('lave');{const s0=s;droite(60*KV);let m=0;
     while(s-s0<len-80){const r=len-(s-s0);if(m<2&&(nMod<2||r>700*KV)&&r>430*KV){gMod();m++;nMod++;continue;}
@@ -244,7 +268,7 @@ function grtTrace(rnd,LV){
         for(const j of L9){const sj=DN[j*4+3];if(sj-si<300)continue;const dh=Math.hypot(DN[j*4]-x,DN[j*4+2]-z);if(dh>2*RH+14)continue;
           const t=Math.round(si/150)+':'+Math.round(sj/150);if(vu.has(t))continue;vu.add(t);if(Math.abs(yy-DN[j*4+1])<32)conflits++;else croise++;}}}}
   if(HZ)Q.hasard=HZ;
-  return {ctrl:ctrl,Q:Q,salles:SL,conflits:conflits,croise:croise,mods:MM,sTot:s};
+  return {ctrl:ctrl,Q:Q,salles:SL,conflits:conflits,croise:croise,mods:MM,sTot:s,geants:GEA};
 }
 /* ---------------- LA ROCHE : un CHAMP DE DENSITÉ creusé autour de la route ----------------
    (2026-10-18, Sacha, au premier banc : « non, arrête, ça fait pas Minecraft — je veux une grotte, les biomes de grotte de Minecraft, mais avec la
@@ -293,6 +317,18 @@ function grtEchantillons(){
   for(let k=0;k<20;k++){const d=(20-k)*6;pose(k,p0.x-T0.x*d,p0.y-T0.y*d,p0.z-T0.z*d,T0.x,T0.z,-d,1,N0,T0);}
   for(let k=0;k<ns;k++){const i=Math.min(NP-1,k*st),p=pts[i];pose(20+k,p.x,p.y,p.z,T[i].x,T[i].z,i*ds,0,Nn[i],T[i]);}
   for(let k=0;k<20;k++){const d=(k+1)*6;pose(20+ns+k,p1.x+T1.x*d,p1.y+T1.y*d,p1.z+T1.z*d,T1.x,T1.z,L+d,1,N1,T1);}
+  /* LES GÉANTS (2026-11-05, voir GRT_GEANT) : le vrai virage relu dans la route finale (le cap à l'entrée et à la sortie → le rayon, le centre : pisteTord a pu la déplacer un peu), le rayon du géant,
+     et la salle OUVERTE autour de lui — le creux (RH) s'élargit jusqu'à l'envers du géant + sa marge, la voûte (UP) monte, le décalage latéral (LAT) s'efface — ~40 m avant le virage jusqu'à ~40 m après, fondu sur ~180 m. */
+  R.geants=[];
+  if(GRT_GEANT.on&&GROTTE.geants&&GROTTE.geants.length){const G9=GRT_GEANT,wA=function(a){while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;},
+      qAt=function(s9){let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s9)lo=m;else hi=m-1;}return lo;};
+    for(const g of GROTTE.geants){const q0=qAt(g.s0*kS),q1=qAt(g.s1*kS);if(q1-q0<4)continue;const qm=(q0+q1)>>1,
+        dpsi=wA(Math.atan2(R.TX[q1],R.TZ[q1])-Math.atan2(R.TX[q0],R.TZ[q0])),len=R.S[q1]-R.S[q0];if(Math.abs(dpsi)<.3)continue;
+      const Rb=len/Math.abs(dpsi),psi=Math.atan2(R.TX[qm],R.TZ[qm]),sg=dpsi>0?1:-1,rG=Math.min(G9.rayon[1],Math.max(G9.rayon[0],Rb*.3),Rb-ROAD_HALF-G9.jour);if(rG<30)continue;
+      const G={x:R.X[qm]+sg*Rb*Math.cos(psi),z:R.Z[qm]-sg*Rb*Math.sin(psi),y:R.Y[qm],q:qm,q0:q0,q1:q1,R:Rb,r:rG,sg:sg};R.geants.push(G);
+      const need=Rb+rG+G9.salle,sa=R.S[q0],sb=R.S[q1];
+      for(let q=R.i0;q<R.n-20;q++){const dd=Math.max(0,sa-R.S[q],R.S[q]-sb),f=1-sm(dd,40,220);if(f<=0)continue;
+        R.RH[q]=Math.max(R.RH[q],R.RH[q]+(need-R.RH[q])*f);R.UP[q]=Math.max(R.UP[q],R.UP[q]+(G9.up-R.UP[q])*f);R.LAT[q]*=1-f;}}}
   // LES LACS : la lave PLATE 70 m sous le point le plus bas de la salle de lave (elle déborde 300 m dans les salles voisines) ; l'eau de la grotte luxuriante
   const yMinDe=function(a,b){let m=1e9;for(let q=0;q<n;q++)if(!R.EXT[q]&&R.S[q]>=a&&R.S[q]<=b)m=Math.min(m,R.Y[q]);return m;};
   /* (AU HASARD) la lave ne déborde que vers les stalactites et les abysses (ses voisines d'avant) — jamais dans la mine, ni l'eau de la luxuriante ; sa LUMIÈRE n'éclaire qu'elle et les voisines où elle déborde
