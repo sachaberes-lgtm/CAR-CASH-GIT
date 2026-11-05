@@ -84,19 +84,11 @@
      paraissait brun. La lueur passe sur le CONTENEUR : l'extrusion repasse dessous, l'or de la face revient. */
   .lg.gold,.lg.grad{filter:none}
   #overlay h1:not(:hover),#spTitle:not(.boom),#launchLogo,#gPlayMain{filter:drop-shadow(0 0 .3em rgba(255,200,80,.42))}
-  /* ---- les consignes : lisibles (contraste relevé), jamais criardes ---- */
-  #tSteerHint{opacity:.72;color:#c8f4ff;white-space:nowrap;line-height:1.8} /* sur deux lignes, « TOURNER » venait chevaucher « GLISSE POUR » */
   #tNitro{flex-direction:column;--pxs:3}#tNitro .pxi{margin:0;filter:drop-shadow(0 2px 0 rgba(255,255,255,.35))}
 
   /* ======================= LA PASSE UX (2026-09-24) — audit mobile, 17 points =======================
      Tailles : 44 pt partout (Apple). Textes : 8 px minimum. Parcours : menu d'abord, REJOUER direct.
      Transitions : 180 ms, JAMAIS sous « Réduire les animations ». */
-  /* le VOLANT se montre au premier départ : un anneau-fantôme là où naît le stick, jusqu'au premier braquage */
-  @keyframes volantInvite{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.8;transform:scale(1.08)}}
-  body.touch.play #tSteer:not(.used)::after{content:'';position:absolute;left:calc(50% - 46px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 96px);
-    width:92px;height:92px;border-radius:50%;border:3px dashed rgba(159,232,255,.55);pointer-events:none;animation:volantInvite 1.6s ease-in-out infinite}
-  body.tpad #tSteer::after{display:none}
-  @media (prefers-reduced-motion:reduce){body.touch.play #tSteer:not(.used)::after{animation:none;opacity:.6}}
 
   /* ======================= LA CHARTE v2 — LE BOUTON D'ARCADE PIXEL (2026-09-24) =======================
      Verdict du user sur la v1 : « les boutons sont toujours aussi moches et mal faits ». Diagnostic de designer :
@@ -193,7 +185,7 @@
   @media (prefers-reduced-motion:reduce){#coach,#coach.on.entre,body.coNitro #tNitro::after{animation:none!important;transition:none}}
   /* LA GERBE DE PIXELS (réussites, achats) */
   @keyframes pxBurst{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),calc(var(--dy) + 60px)) scale(.4);opacity:0}} /* la pause passe DEVANT tout : la carte de l'auto-école attend derrière */
-  body.coOn #lvlBan,body.coOn #tSteerHint{opacity:0!important;visibility:hidden} /* la carte de l'auto-école parle seule : ni bannière de niveau dessous, ni aide en double */
+  body.coOn #lvlBan{opacity:0!important;visibility:hidden} /* la carte de l'auto-école parle seule : ni bannière de niveau dessous */
   .pxBurst{position:fixed;z-index:120;width:6px;height:6px;margin:-3px 0 0 -3px;pointer-events:none;animation:pxBurst .7s steps(10) forwards;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
   /* JOUER RESPIRE : un reflet balaie la plaque toutes les 3 s */
   @keyframes reflet{0%{background-position:160% 0,0 0}45%,100%{background-position:-60% 0,0 0}}

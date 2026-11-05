@@ -276,6 +276,14 @@ const CARS=[
    119 figures) versait 401 MILLIARDS — la pièce valait ×1,585 par palier (6,2 M au palier 30) alors que la caisse la plus chère
    coûte 2,5 M. Désormais la pièce monte DOUCEMENT (×1,06 par palier : 3 → 16 $). Une partie de débutant rapporte ~1-2 k (une
    COMMUNE en une à trois parties), une très grande partie ~1 M (une ÉPIQUE en deux ou trois) — les 16 k des rares se méritent. */
+/* ⚠ ÉCONOMIE v5 — LA ROSSO 40 APRÈS 100 PARTIES AU PALIER 20 (2026-11-01, Sacha : « redessine les pièces en 1 € et 2 €, et fais que
+   la ROSSO 40 s'achète après 100 parties au palier 20 »). MESURÉ (banc Node, outils/sim-palier20 : la VRAIE suite de paliers moteur,
+   le combo ×2,5 et le flow moyen d'un bon pilote rejoués jusqu'aux 844 pièces du palier 20) : la rampe du dessus ne payait que
+   ~10 000 $ une fois le palier 20 atteint, soit ~1 M$ sur 100 parties — il manquait ×4 pour les 4 M$ de la ROSSO 40. ⚠ Resserrer les
+   pièces sur la route n'y change RIEN : atteindre un palier, c'est ramasser un NOMBRE de pièces fixe (844), seule leur VALEUR compte.
+   Désormais la pente s'accélère à partir du palier 10 (les 10 premiers paliers, calés sur les premières caisses, ne bougent pas) pour
+   valoir 63 $ au palier 20 (×39 000 $ sur 100 parties mesurées) au lieu de 9 $, puis continue plus doucement (+~10 %/palier) jusqu'au
+   palier 30 : ~427 k$ la très grande partie (56 k$ avant) — une ÉPIQUE à 3 M se mérite encore en plusieurs. */
 const DENOMS=[3,3,3,4,4,4,4,5,5,5,
-              5,6,6,6,7,7,8,8,9,9,
-              10,11,11,12,12,13,14,15,16,16]; // 30 paliers moteur
+              5,10,14,18,26,30,40,45,57,63,
+              69,76,84,92,101,112,123,135,149,164]; // 30 paliers moteur — 0-9 inchangés, 10-29 recalés (voir ÉCONOMIE v5)
