@@ -60241,6 +60241,44 @@ function flamePop(dur,vol,freq){ // pop de combustion : tranche de bruit BROWN f
    et 10 sous le vent à 300 km/h (−56) : on l'entend quand rien ne couvre, jamais en premier. (Le .0075 de l'audit ne donnait que −64 dBFS : inaudible.) */
 const PLUIE_SON=true,PLUIE_NIV=.035; // (2026-10-14, session SON) .055 → .035 (−4 dB, ≈ −50 dBFS) : prudence — un souffle aigu de ce genre, au-dessus de la musique, a déjà été retiré par Léo (« LE SON PARASITE DU DÉPART DES NUAGES », 08/10) ; on l'entend sans qu'il passe devant
 let pluieG=null;
+/* ===== LA PLUIE v2 (2026-11-05, Sacha : « retravaille le bruit de la pluie, quelque chose de plus irrégulier et agréable à écouter ») =====
+   L'ancienne boucle (3 s de bruit rose filtré) faisait un « tssss » plat, le même à chaque seconde. La pluie vraie n'est pas un bruit : c'est un lit doux
+   (le fond mouillé, 0,7-3,6 kHz) sur lequel tombent des GOUTTES une par une, au hasard. Ici, un tampon STÉRÉO de 10 s synthétisé une fois (aucun fichier) :
+   · des RAFALES lentes (somme de 4 sinus à nombre entier de cycles sur la boucle : couture invisible) qui font respirer le fond et la densité des gouttes
+     (≈ 40 gouttes/s dans l'accalmie, ≈ 300 dans l'averse) ; · des gouttes en bruit de Poisson (intervalles exponentiels, jamais régulières) : un tic de bruit +
+     un petit « plink » sinusoïdal qui monte en fréquence, beaucoup de faibles, peu de fortes, quelques GROSSES gouttes plus graves et plus longues (feuilles, gouttière) ;
+     · chaque goutte à une position au hasard dans le champ stéréo, le fond décorrélé G/D : la pluie est AUTOUR de soi, pas dans le centre de la tête.
+   Normalisé à −21 dB RMS comme l'ancien bruit : PLUIE_NIV et les calages du mixage (−46 dBFS, 17 dB sous le moteur) ne bougent pas. */
+function pluieBuf(len){
+  const sr=AC.sampleRate,n=Math.floor(sr*len),b=AC.createBuffer(2,n,sr),C=[b.getChannelData(0),b.getChannelData(1)],TP=Math.PI*2,rnd=Math.random;
+  /* les rafales, calculées tous les 32 échantillons */
+  const gu=[[1,2,.5],[3,3,.3],[6,4,.2],[11,5,.12]].map(function(q){return {c:q[0]+((rnd()*q[1])|0),p:rnd()*TP,a:q[2]};});
+  const Gf=new Float32Array(Math.ceil(n/32)+1);
+  for(let k=0;k<Gf.length;k++){let s=0;for(const q of gu)s+=q.a*Math.sin(TP*q.c*(k*32/n)+q.p);const g=Math.min(1,Math.max(0,.5+.55*s/1.12));Gf[k]=g*g*(3-2*g);}
+  /* le fond : bruit blanc → passe-bande 0,7-3,6 kHz (deux passe-bas soustraits), décorrélé entre les deux oreilles, porté par la rafale */
+  const ka=1-Math.exp(-TP*3600/sr),kb=1-Math.exp(-TP*700/sr);let e2=0;
+  for(let ch=0;ch<2;ch++){const x=C[ch];let l1=0,l2=0;
+    for(let i=-3000;i<n;i++){const w=rnd()*2-1;l1+=ka*(w-l1);l2+=kb*(w-l2);if(i>=0){const v=(l1-l2)*(.35+.65*Gf[i>>5]);x[i]=v;e2+=v*v;}}}
+  const kf=.05/(Math.sqrt(e2/(2*n))||1);
+  for(let ch=0;ch<2;ch++){const x=C[ch];for(let i=0;i<n;i++)x[i]*=kf;}
+  /* les gouttes : processus de Poisson, taux suivant la rafale ; l'écriture revient au début de la boucle (queue qui déborde = couture invisible) */
+  for(let t=0;t<len;){
+    const i0=Math.min(n-1,Math.floor(t*sr)),g=Gf[i0>>5];
+    t+=-Math.log(1-rnd())/(40+260*g*g);
+    const gr=rnd()<.035,u=rnd(),a=gr?.28+.3*rnd():.025+.4*u*u*u,f=gr?560+rnd()*760:1500+rnd()*4300,tau=gr?.005+.006*rnd():.0011+.0022*rnd();
+    const pa=rnd()*Math.PI/2,gL=Math.cos(pa),gR=Math.sin(pa),m=Math.min(n,Math.floor(tau*6*sr)),dk=Math.exp(-1/(tau*sr)),dt2=Math.exp(-1/(tau*.35*sr));
+    let env=1,en2=1,ph=rnd()*TP;
+    for(let j=0;j<m;j++){
+      ph+=TP*f*(1-.4*env)/sr; /* le « plink » monte vers sa note */
+      const v=a*(.55*env*Math.sin(ph)+.45*en2*(rnd()*2-1)),i=(i0+j)%n;
+      C[0][i]+=v*gL;C[1][i]+=v*gR;env*=dk;en2*=dt2;}
+  }
+  /* −21 dB RMS comme l'ancien bruit ; un limiteur doux pour les rares gouttes qui crèteraient */
+  let e3=0;for(let ch=0;ch<2;ch++){const x=C[ch];for(let i=0;i<n;i++)e3+=x[i]*x[i];}
+  const kn=.089/(Math.sqrt(e3/(2*n))||1);
+  for(let ch=0;ch<2;ch++){const x=C[ch];for(let i=0;i<n;i++)x[i]=Math.tanh(x[i]*kn*1.25)/1.25;}
+  return b;
+}
 const PORTES=[];
 function porteOuvre(P){if(P.on)return;try{P.g.connect(P.d);}catch(e){}P.on=true;}
 function porteMarque(prm,P){prm._P=P;if(prm._pm)return;prm._pm=1;prm._cib=prm.value;prm._fin=0;const o=AudioParam.prototype.setTargetAtTime;
@@ -60496,10 +60534,10 @@ function initAudio(){
   whF=AC.createBiquadFilter();whF.type='bandpass';whF.frequency.value=2600;whF.Q.value=14;
   whG=AC.createGain();whG.gain.value=0;
   wsrc2.connect(whF);whF.connect(whG);whG.connect(MASTER);wsrc2.start();
-  // LA PLUIE (voir PLUIE_SON) : bruit rose bouclé → passe-haut 1,4 kHz → passe-bas 7,5 kHz (Q .4) → gain mené par la boucle (LVL.pluie)
-  {const rsrc=AC.createBufferSource();rsrc.buffer=pinkBuf(3);rsrc.loop=true;
-   const rhp=AC.createBiquadFilter();rhp.type='highpass';rhp.frequency.value=1400;rhp.Q.value=.7;
-   const rlp=AC.createBiquadFilter();rlp.type='lowpass';rlp.frequency.value=7500;rlp.Q.value=.4;
+  // LA PLUIE (voir PLUIE_SON, pluieBuf) : fond + gouttes au hasard, stéréo, bouclé → passe-haut 450 Hz → passe-bas 8 kHz (Q .4) → gain mené par la boucle (LVL.pluie)
+  {const rsrc=AC.createBufferSource();rsrc.buffer=pluieBuf(10);rsrc.loop=true;
+   const rhp=AC.createBiquadFilter();rhp.type='highpass';rhp.frequency.value=450;rhp.Q.value=.7;
+   const rlp=AC.createBiquadFilter();rlp.type='lowpass';rlp.frequency.value=8000;rlp.Q.value=.4;
    pluieG=AC.createGain();pluieG.gain.value=0;
    rsrc.connect(rhp);rhp.connect(rlp);rlp.connect(pluieG);pluieG.connect(MASTER);rsrc.start();}
   // réacteur nitro : souffle + grondement grave + sifflement de turbine (3 couches)
