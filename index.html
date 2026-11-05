@@ -4085,6 +4085,40 @@ function buildTrack(seed){
   }
   // PORTAIL D'ARRIVÉE : la cible
   frameAt(L-25,F);
+  /* DÉCHETS SPATIAUX (2026-11-05, Sacha : « la Terre avec les déchets »). Niveau `dechets:1` seulement.
+     Décor PUR (aucune collision, la route reste lisible) : éclats de ferraille, satellites à panneaux
+     solaires, étages de fusée — 4 draw calls (InstancedMesh), semés autour de la piste, jamais dessus
+     (décalage HORIZONTAL ≥ ROAD_HALF+24 : on évite B[i]/Nn[i], verticaux sur une boucle).
+     ⚠ flux aléatoire SÉPARÉ (`dr`) : `rnd` n'est pas touché, la piste en aval ne bouge pas.
+     Dans `trackMeshes` → libérés au prochain buildTrack comme le reste. */
+  if(LVL.cur&&LVL.cur.dechets){
+    const dr=mulberry32((seed^0xDEC4E7)>>>0),M4=new THREE.Matrix4(),Q=new THREE.Quaternion(),E=new THREE.Euler(),V=new THREE.Vector3(),W=new THREE.Vector3(),S=new THREE.Vector3(),C=new THREE.Color();
+    const nF=IS_MOBILE?130:240,nS=IS_MOBILE?9:18,nC=IS_MOBILE?7:14;
+    const mkM=(em)=>new THREE.MeshPhongMaterial({color:0xffffff,shininess:em?80:35,flatShading:true,emissive:em||0x000000});
+    const mkIM=(geo,n,m)=>{const im=new THREE.InstancedMesh(geo,m,n);im.frustumCulled=false;scene.add(im);trackMeshes.push(im);return im;};
+    const spot=(out)=>{const i=(NP*(.04+dr()*.9))|0;let hx=-T[i].z,hz=T[i].x,hl=Math.hypot(hx,hz);
+      if(hl<.3){hx=B[i].x;hz=B[i].z;hl=Math.hypot(hx,hz)||1;}
+      const sd=(dr()<.5?-1:1)*(ROAD_HALF+30+Math.pow(dr(),1.6)*170);
+      return out.set(pts[i].x+hx/hl*sd,pts[i].y-45+dr()*110,pts[i].z+hz/hl*sd);};
+    const rot=()=>Q.setFromEuler(E.set(dr()*6.283,dr()*6.283,dr()*6.283));
+    const put=(im,k,p,q,s,hex)=>{M4.compose(p,q,s);im.setMatrixAt(k,M4);im.setColorAt(k,C.setHex(hex));};
+    const fin=(im)=>{im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;};
+    const FC=[0x8d949c,0xb8bec6,0x5a5048,0x6e7076,0xd9d2c4,0x7a4a2b];
+    const fI=mkIM(new THREE.IcosahedronGeometry(1,0),nF,mkM());                     // éclats de ferraille
+    for(let k=0;k<nF;k++){spot(V);const s=2+Math.pow(dr(),2)*6.5;S.set(s*(.6+dr()*1.2),s*(.4+dr()*.8),s*(.6+dr()*1.2));put(fI,k,V,rot(),S,FC[(dr()*FC.length)|0]);}
+    fin(fI);
+    const bI=mkIM(new THREE.BoxGeometry(1,1,1),nS,mkM());                           // corps de satellite
+    const pI=mkIM(new THREE.BoxGeometry(1,1,1),nS*2,mkM(0x0a1a44));                 // panneaux solaires (bleu, lueur légère)
+    for(let k=0;k<nS;k++){spot(V);const q=rot().clone(),s=4+dr()*4.5;
+      S.set(s,s,s*1.4);put(bI,k,V,q,S,dr()<.5?0xc9a54a:0xcfd3d8);
+      const len=s*4.5;
+      for(const sg of [-1,1]){W.set(sg*(s*.5+len*.5+.5),0,0).applyQuaternion(q).add(V);S.set(len,.18,s*1.5);put(pI,k*2+(sg>0?1:0),W,q,S,0x2a4f9a);}}
+    fin(bI);fin(pI);
+    const cI=mkIM(new THREE.CylinderGeometry(1,1,1,10),nC,mkM());                   // étages de fusée
+    const CC=[0xe8e8e8,0xb8bec6,0xd9d2c4,0x7a4a2b];
+    for(let k=0;k<nC;k++){spot(V);const r=2+dr()*2.4;S.set(r,14+dr()*22,r);put(cI,k,V,rot(),S,CC[(dr()*CC.length)|0]);}
+    fin(cI);
+  }
   portalMesh=new THREE.Mesh(new THREE.TorusGeometry(24,2.2,12,48),
     new THREE.MeshBasicMaterial({color:0xff4fd8}));
   portalMesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone(),F.t.clone()));
@@ -4745,7 +4779,7 @@ Object.assign(I18N,{"FRÉNÉSIE": "FRENZY", "FRÉNÉSIE !": "FRENZY!"});Object.a
 /* LES CLÉS SANS LEUR SYMBOLE (2026-09-24) : les symboles de tête (✓ 🔒 ★ 📋…) sont devenus des ICÔNES PIXEL
    posées à côté du texte. Chaque clé « symbole + espace + texte » reçoit donc un ALIAS « texte » seul, qui
    traduit pareil — sans ça, retirer l'emoji d'un libellé lui aurait fait perdre sa traduction. */
-for(const [k,v] of Object.entries({"JOUER": "PLAY", "CARRIERE": "CAREER", "MODES": "MODES", "REGLAGES": "SETTINGS", "REJOUER": "PLAY AGAIN", "MEILLEUR :": "BEST:", "MEILLEUR": "BEST", "CAISSE": "CAR", "UNE SEULE VIE · TOUT LE CIEL": "ONE LIFE · THE WHOLE SKY", "AUDIO": "AUDIO", "JEU": "GAME", "SAUVEGARDE": "SAVE", "SON": "SOUND", "MUSIQUE": "MUSIC", "VOIX": "VOICE", "VOLUME": "VOLUME", "COMMANDES": "CONTROLS", "IMAGE": "GRAPHICS", "LANGUE": "LANGUAGE", "DEVISE": "CURRENCY", "COPIER MA SAUVEGARDE": "COPY MY SAVE", "RESTAURER UN CODE": "RESTORE A CODE", "EFFACER MA PROGRESSION": "ERASE MY PROGRESS", "SURVIVANT": "SURVIVOR", "PARC FREESTYLE": "FREESTYLE PARK", "BAC A SABLE": "SANDBOX", "REPRENDRE": "RESUME", "FERMER": "CLOSE", "REPLACER LA CAISSE": "RESET THE CAR", "RECOMMENCER": "RESTART", "QUITTER": "QUIT", "PAUSE": "PAUSE", "LA PARTIE": "THIS RUN", "VOLANT": "WHEEL", "FLECHES": "ARROWS", "RAPIDE": "FAST", "NETTE": "SHARP", "FIGURES": "TRICKS", "ENTRAINEMENT TERMINE": "TRAINING OVER", "NOUVEAU RECORD !": "NEW RECORD!", "MOTEUR ATTEINT": "ENGINE REACHED", "GLISSE POUR TOURNER": "SWIPE TO STEER", "glisse pour tourner · pince pour zoomer": "drag to turn · pinch to zoom", "touche CASH CAR — le son s'allume avec toi": "tap CASH CAR — sound comes alive with you", "MA SAUVEGARDE": "MY SAVE", "Garde ce code : il restaure toute ta progression.": "Keep this code: it restores all your progress.", "COPIER": "COPY", "COPIE !": "COPIED!", "RESTAURER": "RESTORE", "Colle ton code de sauvegarde.": "Paste your save code.", "ANNULER": "CANCEL", "RESTAURE — RECHARGE…": "RESTORED — RELOADING…", "CODE INVALIDE": "INVALID CODE", "TOUT EFFACER ?": "ERASE EVERYTHING?", "Records, caisses debloquees, carriere et reglages repartent de zero.": "Records, unlocked cars, career and settings start over.", "EFFACER": "ERASE", "TERMINE LE NIVEAU": "FINISH LEVEL", "NUAGES": "CLOUDS", "VILLE": "CITY", "ESPACE": "SPACE", "10 heures du jour, de l aurore au coucher du soleil.": "10 hours of the day, from dawn to sunset.", "Du coucher du soleil a midi, au-dessus du village de la pluie.": "From sunset to noon, above the hidden rain village.", "Au plus pres des planetes du systeme solaire.": "Up close to the planets of the solar system.", "AURORE": "DAWN", "PREMIERES LUEURS": "FIRST LIGHT", "LEVER DU SOLEIL": "SUNRISE", "MATIN FRAIS": "CRISP MORNING", "MATIN": "MORNING", "MIDI": "NOON", "APRES-MIDI": "AFTERNOON", "FIN D APRES-MIDI": "LATE AFTERNOON", "HEURE DOREE": "GOLDEN HOUR", "COUCHER DE SOLEIL": "SUNSET", "SOIREE": "EVENING", "PLUIE NEON": "NEON RAIN", "MINUIT": "MIDNIGHT", "ORAGE": "STORM", "AVANT L AUBE": "BEFORE DAWN", "AUBE": "DAYBREAK", "LEVER": "SUNRISE", "MERCURE": "MERCURY", "VENUS": "VENUS", "TERRE": "EARTH", "LUNE": "MOON", "MARS": "MARS", "JUPITER": "JUPITER", "SATURNE": "SATURN", "URANUS": "URANUS", "NEPTUNE": "NEPTUNE", "PLUTON": "PLUTO", "Elle démarre par pitié. Fais des thunes et oublie-la vite.": "It starts out of pity. Make cash and forget it fast.", "Ça roule. Vu d'où tu viens, c'est déjà un miracle.": "It runs. Given where you're from, that's already a miracle.", "Conçue pour rouler prudemment. Toi, prudent ? On y croit fort.": "Built to drive carefully. You, careful? Sure.", "Elle ne double pas. Elle DÉPLACE.": "It doesn't overtake. It RELOCATES.", "L'écologie te fait coucou dans le rétro. T'as pas de rétro.": "Ecology waves at you in the mirror. You don't have mirrors.", "Refuse de rouler sous 200. Toi aussi, maintenant.": "Refuses to go under 200. So do you, now.", "Elle découpe les virages. Les autres les négocient.": "It carves corners. Others negotiate them.", "Ceux qui l'ont doublée en parlent encore. Ah non : personne.": "Those who passed it still talk about it. Oh wait: nobody.", "Le taureau doré. Assurance résiliée d'office.": "The golden bull. Insurance cancelled on sight.", "Le circuit appelle ça tricher. Nous, du talent.": "The track calls it cheating. We call it talent.", "Prototype d'endurance. Faite pour rouler la nuit entière.": "Endurance prototype. Built to run all night.", "La reine du ciel, et elle le sait.": "Queen of the sky, and she knows it.", "Passée au bain d'acide. Ça se voit.": "Dipped in acid. It shows.", "Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "Nobody asked why. Everybody asked how.", "Au sol, il roule. En l'air, il chasse.": "On the ground, it drives. In the air, it hunts."}))if(!(k in I18N))I18N[k]=v; // la coque mobile, la carrière, les fenêtres, les fiches des caisses (2026-09-24)
+for(const [k,v] of Object.entries({"JOUER": "PLAY", "CARRIERE": "CAREER", "MODES": "MODES", "REGLAGES": "SETTINGS", "REJOUER": "PLAY AGAIN", "MEILLEUR :": "BEST:", "MEILLEUR": "BEST", "CAISSE": "CAR", "UNE SEULE VIE · TOUT LE CIEL": "ONE LIFE · THE WHOLE SKY", "AUDIO": "AUDIO", "JEU": "GAME", "SAUVEGARDE": "SAVE", "SON": "SOUND", "MUSIQUE": "MUSIC", "VOIX": "VOICE", "VOLUME": "VOLUME", "COMMANDES": "CONTROLS", "IMAGE": "GRAPHICS", "LANGUE": "LANGUAGE", "DEVISE": "CURRENCY", "COPIER MA SAUVEGARDE": "COPY MY SAVE", "RESTAURER UN CODE": "RESTORE A CODE", "EFFACER MA PROGRESSION": "ERASE MY PROGRESS", "SURVIVANT": "SURVIVOR", "PARC FREESTYLE": "FREESTYLE PARK", "BAC A SABLE": "SANDBOX", "REPRENDRE": "RESUME", "FERMER": "CLOSE", "REPLACER LA CAISSE": "RESET THE CAR", "RECOMMENCER": "RESTART", "QUITTER": "QUIT", "PAUSE": "PAUSE", "LA PARTIE": "THIS RUN", "VOLANT": "WHEEL", "FLECHES": "ARROWS", "RAPIDE": "FAST", "NETTE": "SHARP", "FIGURES": "TRICKS", "ENTRAINEMENT TERMINE": "TRAINING OVER", "NOUVEAU RECORD !": "NEW RECORD!", "MOTEUR ATTEINT": "ENGINE REACHED", "GLISSE POUR TOURNER": "SWIPE TO STEER", "glisse pour tourner · pince pour zoomer": "drag to turn · pinch to zoom", "touche CASH CAR — le son s'allume avec toi": "tap CASH CAR — sound comes alive with you", "MA SAUVEGARDE": "MY SAVE", "Garde ce code : il restaure toute ta progression.": "Keep this code: it restores all your progress.", "COPIER": "COPY", "COPIE !": "COPIED!", "RESTAURER": "RESTORE", "Colle ton code de sauvegarde.": "Paste your save code.", "ANNULER": "CANCEL", "RESTAURE — RECHARGE…": "RESTORED — RELOADING…", "CODE INVALIDE": "INVALID CODE", "TOUT EFFACER ?": "ERASE EVERYTHING?", "Records, caisses debloquees, carriere et reglages repartent de zero.": "Records, unlocked cars, career and settings start over.", "EFFACER": "ERASE", "TERMINE LE NIVEAU": "FINISH LEVEL", "NUAGES": "CLOUDS", "VILLE": "CITY", "ESPACE": "SPACE", "10 heures du jour, de l aurore au coucher du soleil.": "10 hours of the day, from dawn to sunset.", "Du coucher du soleil a midi, au-dessus du village de la pluie.": "From sunset to noon, above the hidden rain village.", "Orbite de la Terre, puis Mars.": "Earth orbit, then Mars.", "TERRE - DECHETS": "EARTH - DEBRIS", "AURORE": "DAWN", "PREMIERES LUEURS": "FIRST LIGHT", "LEVER DU SOLEIL": "SUNRISE", "MATIN FRAIS": "CRISP MORNING", "MATIN": "MORNING", "MIDI": "NOON", "APRES-MIDI": "AFTERNOON", "FIN D APRES-MIDI": "LATE AFTERNOON", "HEURE DOREE": "GOLDEN HOUR", "COUCHER DE SOLEIL": "SUNSET", "SOIREE": "EVENING", "PLUIE NEON": "NEON RAIN", "MINUIT": "MIDNIGHT", "ORAGE": "STORM", "AVANT L AUBE": "BEFORE DAWN", "AUBE": "DAYBREAK", "LEVER": "SUNRISE", "MERCURE": "MERCURY", "VENUS": "VENUS", "TERRE": "EARTH", "LUNE": "MOON", "MARS": "MARS", "JUPITER": "JUPITER", "SATURNE": "SATURN", "URANUS": "URANUS", "NEPTUNE": "NEPTUNE", "PLUTON": "PLUTO", "Elle démarre par pitié. Fais des thunes et oublie-la vite.": "It starts out of pity. Make cash and forget it fast.", "Ça roule. Vu d'où tu viens, c'est déjà un miracle.": "It runs. Given where you're from, that's already a miracle.", "Conçue pour rouler prudemment. Toi, prudent ? On y croit fort.": "Built to drive carefully. You, careful? Sure.", "Elle ne double pas. Elle DÉPLACE.": "It doesn't overtake. It RELOCATES.", "L'écologie te fait coucou dans le rétro. T'as pas de rétro.": "Ecology waves at you in the mirror. You don't have mirrors.", "Refuse de rouler sous 200. Toi aussi, maintenant.": "Refuses to go under 200. So do you, now.", "Elle découpe les virages. Les autres les négocient.": "It carves corners. Others negotiate them.", "Ceux qui l'ont doublée en parlent encore. Ah non : personne.": "Those who passed it still talk about it. Oh wait: nobody.", "Le taureau doré. Assurance résiliée d'office.": "The golden bull. Insurance cancelled on sight.", "Le circuit appelle ça tricher. Nous, du talent.": "The track calls it cheating. We call it talent.", "Prototype d'endurance. Faite pour rouler la nuit entière.": "Endurance prototype. Built to run all night.", "La reine du ciel, et elle le sait.": "Queen of the sky, and she knows it.", "Passée au bain d'acide. Ça se voit.": "Dipped in acid. It shows.", "Personne n'a demandé pourquoi. Tout le monde a demandé comment.": "Nobody asked why. Everybody asked how.", "Au sol, il roule. En l'air, il chasse.": "On the ground, it drives. In the air, it hunts."}))if(!(k in I18N))I18N[k]=v; // la coque mobile, la carrière, les fenêtres, les fiches des caisses (2026-09-24)
 for(const D of [I18N,I18N_ZH])for(const k of Object.keys(D)){
   const m=/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+(.+)$/.exec(k);
   if(m&&!(m[1] in D))D[m[1]]=String(D[k]).replace(/^[\u2190-\u2BFF\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF]+\s+/,'');
@@ -5092,8 +5126,8 @@ function lvlChoisir(){ // appelé par newTrack AVANT buildTrack
   ROAD_HALF=ROAD_HALF0*(PARK.on?1.4:LARGEUR[Math.min(LARGEUR.length-1,z)]);
   if(PARK.on){LVL.cur=null;lvlAstre(null);return null;}
   if(CARR.actif){ // CARRIÈRE : le niveau de départ + les portails franchis ; chaque portail TERMINE le précédent
-    const bi=CARR.actif.b,i=Math.min(9,CARR.actif.i+z);
-    if(z>0)carrMarque(bi,Math.min(9,CARR.actif.i+z-1));
+    const bi=CARR.actif.b,nMax=CARRIERE[bi].niveaux.length-1,i=Math.min(nMax,CARR.actif.i+z); // dernier niveau du monde = plafond (l'espace n'en a que 3)
+    if(z>0)carrMarque(bi,Math.min(nMax,CARR.actif.i+z-1));
     LVL.cur=carNiveau(bi,i);LVL.n=i+1;ROAD_HALF=ROAD_HALF0*CARR_LARG[i];lvlAstre(LVL.cur.astre);
     return LVL.cur;
   }
@@ -5219,14 +5253,13 @@ const CARRIERE=[
     {nm:'COUCHER DE SOLEIL',h:'couchant'},{nm:'SOIREE',h:'soir'},{nm:'PLUIE NEON',h:'pluie',pluie:1},{nm:'MINUIT',h:'nuit'},
     {nm:'ORAGE',h:'orage',pluie:1},{nm:'AVANT L AUBE',h:['nuit','aube',.5]},{nm:'AUBE',h:'aube'},{nm:'LEVER',h:'lever'},
     {nm:'MATIN',h:'matin'},{nm:'MIDI',h:'midi'}]},
-  {id:'espace',nm:'ESPACE',ic:'etoile',desc:'Au plus pres des planetes du systeme solaire.',niveaux:[
-    {nm:'MERCURE',astre:{teinte:0x8a8580,atmo:0xd8c9b0,echelle:1.05}},{nm:'VENUS',astre:{teinte:0xc9a15a,atmo:0xffd98a,echelle:1.25}},
-    {nm:'TERRE',astre:{teinte:0x55708c,atmo:0x8fd4ff,echelle:1.35}},{nm:'LUNE',astre:{teinte:0x9a9a9a,atmo:0xdfe6ee,echelle:1.1}},
-    {nm:'MARS',astre:{teinte:0xb5532e,atmo:0xffa27a,echelle:1.2}},{nm:'JUPITER',astre:{teinte:0xc49a6c,atmo:0xffd3a0,echelle:1.5}},
-    {nm:'SATURNE',astre:{teinte:0xd8c08a,atmo:0xfff0c0,echelle:1.45}},{nm:'URANUS',astre:{teinte:0x7fd6d8,atmo:0xb8ffff,echelle:1.35}},
-    {nm:'NEPTUNE',astre:{teinte:0x3a5fd0,atmo:0x7fa8ff,echelle:1.35}},{nm:'PLUTON',astre:{teinte:0xb8a48c,atmo:0xe8dccb,echelle:1.0}}]},
+  // ESPACE (2026-11-05, Sacha) : on ne garde que la TERRE et MARS — la Terre en 2 variantes (avec / sans DÉCHETS spatiaux), Mars propre.
+  {id:'espace',nm:'ESPACE',ic:'etoile',desc:'Orbite de la Terre, puis Mars.',niveaux:[
+    {nm:'TERRE - DECHETS',dechets:1,astre:{teinte:0x55708c,atmo:0x8fd4ff,echelle:1.35}},
+    {nm:'TERRE',astre:{teinte:0x55708c,atmo:0x8fd4ff,echelle:1.35}},
+    {nm:'MARS',astre:{teinte:0xb5532e,atmo:0xffa27a,echelle:1.2}}]},
 ];
-const CARR_LARG=[1.7,1.62,1.55,1.48,1.41,1.34,1.27,1.2,1.15,1.1];
+const CARR_LARG=[1.7,1.62,1.55,1.48,1.41,1.34,1.27,1.2,1.15,1.1]; // indexé par le n° du niveau DANS son monde (l'espace n'en a que 3)
 const CARR={actif:null}; // {b: index de biome, i: niveau de départ} — null = partie sans fin
 function bioMix(a,b,t){ // un biome INTERMÉDIAIRE, bâti une fois et rangé dans BIOMES
   const k=a+'>'+b+'@'+t;
@@ -5237,14 +5270,14 @@ function carNiveau(bi,i){ // le niveau de carrière, sous la forme d'un NIVEAU
   const B=CARRIERE[bi],N=B.niveaux[i],h=Array.isArray(N.h)?bioMix(N.h[0],N.h[1],N.h[2]):(N.h||'espace');
   return {id:B.id,nm:B.nm+' '+(i+1)+' — '+N.nm,bio:[h],piste:N.piste||null,sansNuages:!!N.sansNuages,
     planete:N.planete!=null?N.planete:(B.id==='espace'?((N.astre&&N.astre.echelle)||1.35):(B.id==='nuages'?.8:0)),
-    espace:B.id==='espace'?1:0,pluie:N.pluie||0,cielMusical:B.id==='ville',astre:N.astre||null,carr:{b:bi,i:i}};
+    espace:B.id==='espace'?1:0,pluie:N.pluie||0,cielMusical:B.id==='ville',astre:N.astre||null,dechets:!!N.dechets,carr:{b:bi,i:i}};
 }
 const PLANETE_DEF={teinte:0x55708c,atmo:0x8fd4ff};
 function lvlAstre(a){ // la planète du niveau d'espace : teinte du globe + couleur du limbe
   const g=planetGroup.userData;a=a||PLANETE_DEF;
   g.globe.material.color.setHex(a.teinte);g.atmo.material.color.setHex(a.atmo);
 }
-function carrFait(bi){return Math.max(0,Math.min(10,((SAVE.d.carr||{})[CARRIERE[bi].id])|0));}
+function carrFait(bi){return Math.max(0,Math.min(CARRIERE[bi].niveaux.length,((SAVE.d.carr||{})[CARRIERE[bi].id])|0));}
 function carrMarque(bi,i){ // le niveau i vient d'être TERMINÉ
   if(!SAVE.d.carr)SAVE.d.carr={};
   const id=CARRIERE[bi].id;SAVE.d.carr[id]=Math.max(carrFait(bi),i+1);SAVE.flush();
@@ -5255,7 +5288,7 @@ function carrVue(bi){
   let h='<div class="carrIn"><div class="mHead"><div class="pbtn pb-cyan mBack pbCarre" data-c="'+(bi==null?'fermer':'biomes')+'" role="button" aria-label="Retour">'+pxi('gauche')+'</div><h3>'+TR(bi==null?'CARRIERE':CARRIERE[bi].nm)+'</h3><div class="mSpacer"></div></div>';
   if(bi==null){
     CARRIERE.forEach(function(B,k){const f=carrFait(k);
-      h+='<div class="mMode carrBiome" data-c="biome" data-b="'+k+'" role="button"><div class="mmT"><span>'+pxi(B.ic)+' '+TR(B.nm)+'</span><span class="mmP">'+f+' / 10</span></div><div class="mmD">'+TR(B.desc)+'</div><div class="carrJauge"><i style="width:'+(f*10)+'%"></i></div></div>';});
+      h+='<div class="mMode carrBiome" data-c="biome" data-b="'+k+'" role="button"><div class="mmT"><span>'+pxi(B.ic)+' '+TR(B.nm)+'</span><span class="mmP">'+f+' / '+B.niveaux.length+'</span></div><div class="mmD">'+TR(B.desc)+'</div><div class="carrJauge"><i style="width:'+Math.round(f/B.niveaux.length*100)+'%"></i></div></div>';});
   }else{
     const f=carrFait(bi);h+='<div class="carrGrille">';
     CARRIERE[bi].niveaux.forEach(function(N,i){const ok=i<=f;
