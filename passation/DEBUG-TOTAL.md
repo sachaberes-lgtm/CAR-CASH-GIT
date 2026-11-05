@@ -25,6 +25,7 @@ du code sans jamais avoir de problème » — puis : « concentre-toi particuli�
 | G2 | sauvegarde / import | site, deux onglets : « RESTAURÉ — RECHARGE… » s'affiche, la page recharge… et l'ancienne sauvegarde revient | `SAVE.import` passait par `flush()`, neutralisé dans un onglet devenu passif (`ONGLET.passif`) ou pendant la restauration du miroir natif | l'import écrit lui-même (localStorage + miroir natif) et ne rend vrai que s'il a écrit | voir git log | `node passation/preuves/preuve-import-onglet.cjs code <ancien code/>` → OK (ancien : dit vrai, banque restée à 5) | web | non |
 | G3 | sauvegarde / habillages | un id « constructor » / « toString » (code importé trafiqué, stockage rongé) devenait une FONCTION dans la boutique | `PEINT_FUSION[x]` lisait le prototype d'objet | lecture par `hasOwnProperty` | voir git log | même preuve (cas 2) | toutes | non |
 | G4 | preuves | `preuve-sauvegarde`, `preuve-miroir-illisible`, `preuve-import-pause` plantaient (« PEINT_FUSION / ALLEGE is not defined ») : plus aucun filet sur SAVE | le bloc SAVE lit `PEINT_FUSION` et `ALLEGE` depuis le nuancier v3 ; la section H testait la règle d'avant le jury (D6) | extraits / bouchonnés ; section H à la règle du 05/11 (`?demo=1`) | voir git log | les trois → PREUVE OK | — | — |
+| G5 | rendu / contexte 3D | iPhone à mémoire graphique saturée : contexte perdu puis rendu à chaque relance = rechargement sans fin | les chemins « contexte rendu » et « retour d'arrière-plan » rechargeaient sans lire le compteur `ccCtxPerdu` (seul le filet des 5 s le lisait) | `ctxRecharge()` pour les trois chemins : 4e perte de la session → écran RELANCER ; et `resize`/`reflow` ignorent une fenêtre de 0 px | 81c6ca20 | lecture (une perte GPU répétée ne se simule pas au banc) | iPhone surtout | OUI |
 
 ## À vérifier sur un vrai iPhone
 (ce que le banc ne simule pas : la session audio d'iOS, le bouton Silencieux, le verrouillage, les interruptions, les écouteurs)
@@ -80,4 +81,24 @@ En cas de souci : `dbgAudio()` (état du contexte, refus de réveil), `dbgSonPan
   → mort (un autre lobby) → REJOUER → accueil ; un seul AudioContext ; 0 promesse rejetée ; 0 erreur JS.
 - FUITE AUDIO : NON. 10 courses enchaînées (`--courses 10`) : nœuds audio vivants après ramasse-miettes 293 → 345-625 selon le morceau, pente
   −1,3 nœud/course ; tas JS +0,8 Mo/course. (Le simple compte de liaisons d'une course à l'autre trompe : il suit le morceau tiré.)
-- Hors son, vu au banc : `assets/portail/grotte-glace.webp` en 404 (le portail de la grotte de glace).
+- Hors son, vu au banc : `assets/portail/grotte-glace.webp` en 404 (le portail de la grotte de glace) → G1.
+- 19 h 40 — **FUMÉE DU SON 5/5 VERTES** d'affilée (vrai écran titre, couché 844×390, `--frenesie --chance`), sur dd128731.
+- Debout (`--colonne portrait --w 390 --h 844 --mobile`) et version téléphone (`--url "&tel=1" --mobile`) : musique, mort, REJOUER, accueil,
+  0 erreur JS. (Le `play()` de déverrouillage refusé au `pointerdown` d'un doigt est rattrapé au `touchend` : voulu, rangé à part par la sonde.)
+- Trois lectures « reste du jeu » (sauvegarde · cycle de vie/PWA · pièges) : aucun bloquant ; corrigés G2-G5 ; le reste est listé ci-dessous.
+
+## Reste, non corrigé (mineur ou décision), par zone
+- **Sauvegarde** : l'import n'est pas signé (banque 1e30, `ex.floor`, `owned` libres ; remboursement des caisses retirées rejouable par import) —
+  décision (signer l'export ou corriger le commentaire de `san`) ; quota plein = échec silencieux (le filet de 30 s réessaie, rien n'avertit) ;
+  JSON illisible écrasé sans copie sur le web (l'app a le miroir) ; « Dupliquer l'onglet » copie le jeton d'onglet ; `bankMax` calculé avant les
+  remboursements ; `carBuy` ne regarde pas `ex.floor` (bouton normalement caché).
+- **Service worker** : `assets/` et `vendor/` sont servis `immutable` un an (vercel.json) → un fichier REMPLACÉ SOUS LE MÊME NOM reste l'ancien
+  chez les joueurs qui l'avaient, même après `cashcar-vNNN` +1 (le SW refait son fetch… depuis le cache HTTP). Règle : renommer (ou `?v=`) tout
+  asset remplacé. Correction possible (décision : coût en données à chaque version) : `fetch(req,{cache:'reload'})` pour `assets/`.
+- **Ordinateur `?pc=1`/`colonne=0`** : la partie se met en pause au changement d'onglet mais sans le panneau REPRENDRE (seul « PAUSE ») — le cadre
+  de Vercel (`colonne=1`) n'est pas concerné.
+- **Faux « la boucle plante à chaque image »** possible si deux erreurs d'écouteurs tombent autour de la 8e seconde (`debut-corps.html`, `__loopErr`
+  alimenté par toute erreur globale) — rare.
+- **natif.js** : `StatusBar.hide()` / `SplashScreen.hide()` sans `.catch` (un rejet avant `__gameReady` poserait l'écran « a calé ») — faible.
+- **Code** : `function dnGeos2` déclarée deux fois (`maps/dunes-2.js:358` et `maps/dunes-embellie.js:9` : la 2e gagne, le corps de la 1re est mort)
+  — zone de la session Arrakis, non touché.

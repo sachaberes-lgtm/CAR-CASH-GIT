@@ -6,7 +6,7 @@
 (function(){
   'use strict';
   if (window.__SONBANC) return;
-  var S = window.__SONBANC = { ctx: [], hors: 0, crees: {}, sources: new Set(), medias: new Set(), liens: new Map(), rejets: [], plays: {}, nPlays: 0, urlDe: new WeakMap() };
+  var S = window.__SONBANC = { refusPlay: [], ctx: [], hors: 0, crees: {}, sources: new Set(), medias: new Set(), liens: new Map(), rejets: [], plays: {}, nPlays: 0, urlDe: new WeakMap() };
   var AC0 = window.AudioContext || window.webkitAudioContext;
   if (AC0) {
     var W = function (o) { var c = o === undefined ? new AC0() : new AC0(o); S.ctx.push({ c: c, t: Math.round(performance.now()), pile: (new Error().stack || '').split('\n').slice(2, 4).join(' | ').replace(/\s+/g, ' ').slice(0, 240) }); return c; };
@@ -47,7 +47,7 @@
   AudioNode.prototype.disconnect = function (d) { var s = nbL.get(this); if (s) { if (d === undefined || typeof d === 'number') s.clear(); else s.delete(d); } return dc.apply(this, arguments); };
   /* les <audio> : play() les inscrit, l'état se lit au moment du relevé */
   var mp = HTMLMediaElement.prototype.play;
-  HTMLMediaElement.prototype.play = function () { S.medias.add(this); var p = mp.apply(this, arguments); var el = this; if (p && p.catch) p.catch(function (e) { S.rejets.push('play ' + ((el.currentSrc || el.src || '').split('/').pop()) + ' : ' + (e && e.name)); }); return p; };
+  HTMLMediaElement.prototype.play = function () { S.medias.add(this); var p = mp.apply(this, arguments); var el = this; if (p && p.catch) p.catch(function (e) { S.refusPlay.push('play ' + ((el.currentSrc || el.src || '').split('/').pop()) + ' : ' + (e && e.name)); }); /* (un play() refusé que le JEU rattrape — le déverrouillage au pointerdown d'un doigt, repris au touchend — n'est pas une panne : rangé à part ; les promesses que personne n'écoute restent dans rejets) */ return p; };
   window.addEventListener('unhandledrejection', function (e) { var r = e.reason; S.rejets.push('promesse : ' + (r && (r.stack || r.message) || String(r)).slice(0, 200)); });
   /* les sons de la banque : CCSON.play enveloppé dès qu'il existe */
   var tEnv = setInterval(function () { var C = window.CCSON; if (!C || !C.play || C.play.__banc) return; var p = C.play; C.play = function (id) { S.nPlays++; S.plays[id] = (S.plays[id] || 0) + 1; return p.apply(this, arguments); }; C.play.__banc = 1; clearInterval(tEnv); }, 50);
@@ -64,6 +64,6 @@
     S.medias.forEach(function (e) { if (!e.paused && !e.ended) med.push({ src: (e.currentSrc || e.src || '').split('/').slice(-2).join('/'), vol: +e.volume.toFixed(2), muet: e.muted, t: +e.currentTime.toFixed(1), boucle: e.loop }); });
     var nl = 0, nn = 0, parPile = {}; S.liens.forEach(function (v, w) { var n = w.deref(); if (!n) { S.liens.delete(w); return; } var s = nbL.get(n); if (s && s.size) { nl += s.size; nn++; parPile[v] = (parPile[v] || 0) + 1; } });
     var typ = {}; src.forEach(function (o) { typ[o.type] = (typ[o.type] || 0) + 1; });
-    return { contextes: rt, horsLigne: S.hors, sources: src.length, typesSources: typ, boucles: boucles, medias: med, liens: nl, noeudsLies: nn, parPile: parPile, crees: S.crees, rejets: S.rejets.slice(), histo: S.histo.slice(-25), nPlays: S.nPlays, plays: S.plays };
+    return { contextes: rt, horsLigne: S.hors, sources: src.length, typesSources: typ, boucles: boucles, medias: med, liens: nl, noeudsLies: nn, parPile: parPile, crees: S.crees, rejets: S.rejets.slice(), refusPlay: S.refusPlay.slice(-5), histo: S.histo.slice(-25), nPlays: S.nPlays, plays: S.plays };
   };
 })();

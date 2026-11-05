@@ -5,7 +5,7 @@
 // Vert si : un seul AudioContext temps réel · au plus UNE musique (même fichier jamais deux fois, jamais <audio> + boucle ensemble
 // sur le même morceau) · aucune musique de course sur l'accueil · liaisons stables d'une course à l'autre · 0 erreur console,
 // 0 promesse rejetée.
-//   node outils/banc-son/fumee-son.mjs [--fois 1] [--simu] [--frenesie] [--chance] [--courses N] [--course 30] [--w 844 --h 390] [--url "&colonne=portrait"] [--jeu 9830] [--port 9831]
+//   node outils/banc-son/fumee-son.mjs [--fois 1] [--colonne 0|portrait] [--simu] [--frenesie] [--chance] [--courses N] [--course 30] [--w 844 --h 390] [--url "&colonne=portrait"] [--jeu 9830] [--port 9831]
 // UN banc à la fois sur la machine (vérifier `uptime` avant). Le jeu est servi par ce script (python3 -m http.server), tué à la sortie.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -103,7 +103,7 @@ for (let tour = 1; tour <= FOIS; tour++) {
     const save = JSON.stringify({ v: 2, sfx: true, mus: true, vox: true, tuto: 1, permis: 1, facile: 0, bienv: 1, ex: { runs: 5 }, plq: { m: 'fr', x: 'BANC', ok: 1 } });
     await c.send('Page.addScriptToEvaluateOnNewDocument', { source: `try{if(!sessionStorage.ccBanc){sessionStorage.ccBanc=1;localStorage.cashcarSave=${JSON.stringify(save)};}}catch(e){}` });
     await c.send('Page.addScriptToEvaluateOnNewDocument', { source: SONDE });
-    const SIMU = a.includes('--simu'); const url = `http://127.0.0.1:${JEU}/index.html?colonne=0${SIMU ? '&simu=1' : ''}&garde=1${PLUS}`; /* par défaut le VRAI écran titre et l'intro, comme un joueur ; --simu : la page du simulateur (pas d'écran titre : le contexte audio y attend le 1er bouton, voulu) */
+    const SIMU = a.includes('--simu'); const url = `http://127.0.0.1:${JEU}/index.html?colonne=${opt('colonne', '0')}${SIMU ? '&simu=1' : ''}&garde=1${PLUS}`; /* par défaut le VRAI écran titre et l'intro, comme un joueur ; --simu : la page du simulateur (pas d'écran titre : le contexte audio y attend le 1er bouton, voulu) */
     await c.send('Page.navigate', { url });
     if (!await attends(c, '!!window.__gameReady', 90000)) throw new Error('__gameReady jamais venu');
     for (let i = 0; i < 30; i++) { const la = await c.ev(`(()=>{const s=document.getElementById('splash');if(!s)return 0;const cs=getComputedStyle(s);return (cs.display!=='none'&&cs.visibility!=='hidden'&&+cs.opacity>.05)?1:0;})()`); if (!la) break; await c.clic(W / 2, H / 2); await sleep(500); }
