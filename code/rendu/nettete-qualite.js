@@ -56,8 +56,23 @@ function qlSonde(){ try{ const g9=renderer.getContext();
       if(S!==QLR.S)return;if(gpu!=null){QLR.sA.push(Math.min(120,cpu+gpu));(QLR.cg||(QLR.cg=[])).push([+cpu.toFixed(1),+gpu.toFixed(1)]);if(QLR.cg.length>10)QLR.cg.shift();}qlSondeFin();};
     setTimeout(pas,8);return;}
   if(qlChrono(g9))return; // chrono pas encore lancé (la sonde vient d'être armée en cours d'image) : il partira à l'image suivante
+  if(QL_BARRIERE&&g9.fenceSync){qlSondeBarriere(g9);return;}
   renderer.setRenderTarget(null);g9.readPixels(0,0,1,1,g9.RGBA,g9.UNSIGNED_BYTE,QLR.px);QLR.sN--;QLR.sA.push(performance.now()-QLR.t0);qlSondeFin();
   }catch(e){QLR.sN=0;try{if(QLT.q){renderer.getContext().endQuery(QLT.ext.TIME_ELAPSED_EXT);QLT.q=null;}}catch(e2){QLT.ok=false;}} }
+/* ===== LA SONDE SANS ATTENTE SUR TÉLÉPHONE (2026-11-05, Opus : jury RND-05) =====
+   Sur iPhone, EXT_disjoint_timer_query_webgl2 n'existe pas : la sonde retombait sur readPixels, qui FORCE le processeur à attendre la puce
+   (mesuré sur Mac : 15 lectures = 510 ms de jeu gelé, pics de 120 ms) — justement quand les images ratent déjà. Sous ALLEGE (WebGL2) : une
+   BARRIÈRE (fenceSync) posée en fin d'image, relue sans bloquer toutes les ~2 ms ; la durée = du début de l'image au moment où la puce a fini
+   (un peu plus longue que la vraie, de la latence du minuteur : l'échelle QL en est un peu plus prudente). L'ordi garde l'ancienne sonde.
+   `?sonde=ancien` : readPixels partout, comme avant. */
+const QL_BARRIERE=ALLEGE&&!/[?&]sonde=ancien\b/.test(location.search)&&!!(renderer.capabilities&&renderer.capabilities.isWebGL2);
+function qlSondeBarriere(g9){const S=QLR.S,t0=QLR.t0;let sy=null;try{sy=g9.fenceSync(g9.SYNC_GPU_COMMANDS_COMPLETE,0);g9.flush();}catch(e){sy=null;}
+  if(!sy){QLR.sN=0;return;}QLR.sN--;S.pend++;
+  const pas=function(){let ok=false;try{ok=g9.getSyncParameter(sy,g9.SYNC_STATUS)===g9.SIGNALED;}catch(e){ok=true;}
+    const dt=performance.now()-t0;if(!ok&&dt<500){setTimeout(pas,2);return;}
+    try{g9.deleteSync(sy);}catch(e){}S.pend--;if(S!==QLR.S)return;if(ok)QLR.sA.push(Math.min(120,dt));qlSondeFin();};
+  setTimeout(pas,0);}
+window.dbgSonde=function(){return {barriere:QL_BARRIERE,chrono:!!QLT.ok,vrai:QLR.vrai,dern:QLR.dern};};
 const QL={k:0,mur:0,murT:0,roseT:0,up:0,efT:0,effondre:false,fr:0,N_EFF:5,ombre0:sun.shadow.mapSize.x,essai:null,plafK:0,plafT:0,
   nom:['ombre en vol ½','ombre 768','bloom ¾','ombre 512','flou radial']};
 /* (2026-09-27, tour 2 — « on repasse en mode pixel assez vite après avoir lancé ») LE MODE PIXEL, C'ÉTAIT LE PLANCHER : sous l'effondrement,

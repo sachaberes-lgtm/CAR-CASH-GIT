@@ -30,7 +30,7 @@
    `?intro=ancien` = l'intro d'avant (init.js) · `?intro=muet` = sans aucun son · « réduire les animations » = sans secousse ni
    éclats (le voile s'efface) · quelqu'un qui a déjà fini la leçon (SAVE.d.tuto) voit le même film en 20 % plus court · un 2e toucher passe. */
 (function(){
-  try{if(/[?&]lecon=non\b/.test(location.search)&&SAVE&&SAVE.d)SAVE.d.tuto=1;}catch(e){} /* (réglage de TEST, 2026-11-02) `?lecon=non` : la leçon est comptée comme faite (SAVE.d.tuto) : le menu joue alors le lobby lié (le morceau du niveau, en ambiance), pas « Premier matin » */
+  try{if(qDev(/[?&]lecon=non\b/)&&SAVE&&SAVE.d)SAVE.d.tuto=1;}catch(e){} /* (2026-11-05, Opus : HYG-10) en DEV seulement : sur le site il écrivait la sauvegarde (INT-45) */ /* (réglage de TEST, 2026-11-02) `?lecon=non` : la leçon est comptée comme faite (SAVE.d.tuto) : le menu joue alors le lobby lié (le morceau du niveau, en ambiance), pas « Premier matin » */
   if(!INTRO_NEUVE)return;
   const sp=document.getElementById('splash'),cv=document.getElementById('fxCv');
   if(!sp||!cv)return;
