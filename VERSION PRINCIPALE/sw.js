@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1174'; /* v1174 (2026-11-05, Sacha, après le bilan mémoire : « Résolution 4K ») LA 4K À LA MESURE DE LA MÉMOIRE : sur un écran de classe 4K (≥ 4,5 Mpx dans la colonne) la course se dessine à 2,0 Mpx (3,2 avant) et la vitrine à 2,6 Mpx (4,2) ; 1080p et 1440p inchangés ; `?4k=0` = avant ; `?vhdpc=` réparé. */ /* v1173 (2026-11-05, Sacha) LA PLUIE v2 : un fond doux en rafales et des gouttes au hasard, en stéréo (fini le souffle plat) ; rejouée sur v1172. */
+const CACHE = 'cashcar-v1175'; /* v1175 (2026-11-05, Sacha : « dans la map Pic de Jade rajoute un module où parfois la route passe juste au-dessus de l'eau, à ras ») LE RAS DE L'EAU : dans ~45 % des vallées les creux du relief sont rognés à plat (~420 m) et la mer se cale 7 m sous la route (`?ras=1` le force, `?sans=ras` l'ôte). v1174 (2026-11-05, Sacha, après le bilan mémoire : « Résolution 4K ») LA 4K À LA MESURE DE LA MÉMOIRE : sur un écran de classe 4K (≥ 4,5 Mpx dans la colonne) la course se dessine à 2,0 Mpx (3,2 avant) et la vitrine à 2,6 Mpx (4,2) ; 1080p et 1440p inchangés ; `?4k=0` = avant ; `?vhdpc=` réparé. */ /* v1173 (2026-11-05, Sacha) LA PLUIE v2 : un fond doux en rafales et des gouttes au hasard, en stéréo (fini le souffle plat) ; rejouée sur v1172. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
