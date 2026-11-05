@@ -1,7 +1,7 @@
 /* ===== L'OUROBOROS DU CHARGEMENT (2026-11-03, Sacha : « son corps ne doit pas tourner : c'est sa TÊTE qui avance autour de son corps en le mangeant ; le corps se nourrit de boules de matière qui passent et qu'il avale » ; 2026-11-05 : « la tête est trop grosse, pas assez détaillée, trop blanche » puis « plus détaillée, le délire reptile, écailles, pics, presque dragon mais pas trop, toujours sobre, noir et nuances de gris, corps animé, tête animée parfaitement ») =====
    Dessiné par Fable 5.1. `node outils/ouroboros/ouroboros.cjs` régénère tout dans ce dossier :
    - ouroboros-52px-48img.png : la bande de 48 images de 52 × 52 px (le rendu fait 64 × 64, on rogne 6 px de noir tout autour), 6 gris tranchés (PNG à 4 bits, 9 Ko)
-   - ouroboros.css : le bloc CSS pur à coller dans la page (data-URL de la bande, steps(48) à 20 images/s = 2,4 s par tour, affiché ×2)
+   - ouroboros.css : le bloc CSS pur à coller dans la page (data-URL de la bande, steps(48) à 60 images/s = 0,8 s par tour (2,4 s avant le 05/11 : « il tourne pas assez vite »), affiché ×2)
    - demo.html : la page de démo (?zoom=3 pour voir les pixels) ; planche-16-images.png, tete-6-angles.png, tete-dessin.png : des aperçus pour l'œil humain
    LE STYLE (05/11, Sacha : « rends-le un peu cartoon Undertale ») : pixels NETS, aplats de gris tranchés (noir, 4 gris, blanc), formes simples et épaisses, gros œil expressif, contour clair d'un pixel autour de la tête ET du corps (pics et bosses des boules compris).
    Chaque pixel vote sur 5 × 5 échantillons (le gris dominant gagne ; le blanc et le noir des détails passent avant), la lumière des formes est peinte en dégradé puis posterisée.
@@ -15,7 +15,7 @@
    LES BOULES DE MATIÈRE : des billes sombres qui voyagent dans le corps (de l'arrière du crâne, tout le tour, jusqu'à la gueule), clampées (CLAC) puis glissées sous le crâne ; une toutes les 12 images, deux visibles à la fois.
    Miettes au CLAC, trois étincelles qui scintillent autour (fixes à l'écran). Boucle parfaite : 48 images = un tour de la tête, 4 boules, 8 bouchées, 3 reflets qui avancent d'un tiers de tour. */
 const fs=require('fs'),{pngIndexed,pngRGB}=require('./png.cjs');
-const N=64,F=48,FPS=20,SS=5,CX=32,CY=32,R=16,TH=4.6,HW=TH/2;
+const N=64,F=48,FPS=60,SS=5,CX=32,CY=32,R=16,TH=4.6,HW=TH/2;
 const C0=6,CS=52; /* LE CADRE LIVRÉ : on rogne les 6 px de noir autour du rendu de 64 × 64 (l'encre tient dans 7 → 56) : 52 × 52 px, 34 % de pixels en moins, la bande reste sous 16 384 px de large même à 3 pixels d'écran par pixel CSS */
 const DEG=Math.PI/180,TAU=Math.PI*2;
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x)),sm=(a,b,x)=>{const k=clamp((x-a)/(b-a),0,1);return k*k*(3-2*k);};
