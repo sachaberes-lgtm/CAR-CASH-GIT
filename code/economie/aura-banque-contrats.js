@@ -90,7 +90,7 @@ function carEuros(i){const u=CAR_UNLOCK[i];return !!(u&&(u.k==='premium'||u.eur)
 /* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
    TEST_CAISSES : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue d'écrire la VRAIE condition (voir garageShow).
    ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur. */
-const TEST_CAISSES=true; // false : les caisses se GAGNENT (c'était l'édition des portails, retirée le 14/10)
+const TEST_CAISSES=false; /* (2026-11-05, Sonnet : jour 0 du jury, ECO-02 — garde-demarrage.cjs refuse true) false : les caisses se GAGNENT (c'était l'édition des portails, retirée le 14/10) */
 function carUnlocked(i){return !carRetiree(i)&&(TEST_CAISSES||carUnlockedVrai(i));}
 /* (2026-09-30) ⚠ carUnlocked OUVRE (équiper, JOUER) ; ce qui dit AU JOUEUR où il en est — « une caisse à ta portée » (objectif, garPortee,
    pastille du GARAGE), « nouvelle caisse gagnée » (carSnapshot/carScan) et le bouton ACHETER — lit carUnlockedVrai : en TEST tout était

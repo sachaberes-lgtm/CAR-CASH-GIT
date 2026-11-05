@@ -67,7 +67,8 @@ fs.copyFileSync(path.join(ICI,'ressources','icon.svg'),path.join(WWW,'icon.svg')
 let h=fs.readFileSync(path.join(WWW,'index.html'),'utf8');
 const une=(de,vers,quoi)=>{const n=h.split(de).length-1;if(n!==1)meurt(quoi+' : « '+de+' » trouvé '+n+' fois (1 attendu)');h=h.replace(de,()=>vers);};
 // la même, pour un texte qui doit changer à n endroits À LA FOIS (un texte de caisse = sa phrase dans CARS + sa clé dans la table de traduction)
-const toutes=(de,vers,n,quoi)=>{const k=h.split(de).length-1;if(k!==n)meurt(quoi+' : « '+de+' » trouvé '+k+' fois ('+n+' attendu)');h=h.split(de).join(vers);};
+/* (2026-11-05, Sonnet : jour 0 du jury, ECO-01) `souple` : le compte est un MINIMUM — un commentaire qui cite le nom (garage-menu-inventaire.js l.195) ajoute une occurrence sans casser la coupe ; moins que le minimum = le nom a bougé, on s'arrête. */
+const toutes=(de,vers,n,quoi,souple)=>{const k=h.split(de).length-1;if(souple?k<n:k!==n)meurt(quoi+' : « '+de+' » trouvé '+k+' fois ('+n+(souple?' au moins':'')+' attendu)');h=h.split(de).join(vers);};
 une('<meta charset="UTF-8">','<meta charset="UTF-8">\n<script src="natif.js"></script>','natif.js');
 let ver='ios';try{ver=execSync('git log -1 --format=%h -- "VERSION PRINCIPALE"',{cwd:path.join(SRC,'..'),stdio:['ignore','pipe','ignore']}).toString().trim()||ver;}catch(e){}
 une("const CC_BUILD='__CC_BUILD__';","const CC_BUILD='"+ver+"';",'version');
@@ -86,7 +87,10 @@ for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.c
    · pas de déblocage par CODE (2026-10-14, règle 3.1.1 d'Apple : on ne débloque pas de contenu par un code hors achat intégré) : la ligne
      ENTRER UN CODE des réglages (Léo, « LE CODE COUSIN ») est masquée, le code n'est plus reconnu, et un `cousin` venu d'une sauvegarde
      restaurée (code de sauvegarde du jeu web) ne débloque rien. */
-une("const TEST_CAISSES=true;","const TEST_CAISSES=false; /* (app iOS) */",'mode TEST des caisses'); // (T4 du 14/10 : plus de POKI dans le jeu)
+/* (2026-11-05, Sonnet : jour 0 du jury, ECO-02) le jeu livre maintenant TEST_CAISSES=false (garde-demarrage.cjs refuse true) : la coupe ne
+   force plus que l'ancien true, et exige l'un des deux (un drapeau disparu = la coupe ne sait plus ce qu'elle protège). (T4 du 14/10 : plus de POKI dans le jeu) */
+if(h.includes("const TEST_CAISSES=true;"))une("const TEST_CAISSES=true;","const TEST_CAISSES=false; /* (app iOS) */",'mode TEST des caisses');
+else if(!h.includes("const TEST_CAISSES=false;"))meurt('mode TEST des caisses : « const TEST_CAISSES= » (true ou false) introuvable');
 /* (la carrière et son mode TEST : retirés du jeu lui-même le 14/10, coupe ôtée le 24/10) */
 une("function carUnlockedVrai(i){",
   "/* (app iOS) le vrai argent passe à l'argent du jeu */CAR_UNLOCK.forEach(function(u,i){if(!u||(u.k!=='premium'&&u.k!=='pubs'&&u.k!=='bientot'))return;const c=CARS[i];"+
@@ -105,7 +109,7 @@ une("function carUnlockedVrai(i){",
 toutes('LA DAYTONA','LA GRANDE FLÈCHE',10,'nom LA DAYTONA (Ferrari)');une('"THE DAYTONA"','"THE GREAT ARROW"','nom LA DAYTONA en anglais');
 toutes('LA STRATOS','LA CALE',14,'nom LA STRATOS (Lancia)');une('"THE STRATOS"','"THE WEDGE"','nom LA STRATOS en anglais');
 toutes('LA VETTE','LA RAPIÈRE',6,'nom LA VETTE (Corvette)');une('"THE VETTE"','"THE RAPIER"','nom LA VETTE en anglais');
-toutes('LE CHARGEUR','LE FORBAN',13,'noms LE CHARGEUR et LE CHARGEUR 69 (Dodge)');toutes('"THE CHARGER','"THE CORSAIR',2,'noms LE CHARGEUR et LE CHARGEUR 69 en anglais');
+toutes('LE CHARGEUR','LE FORBAN',13,'noms LE CHARGEUR et LE CHARGEUR 69 (Dodge)',true);toutes('"THE CHARGER','"THE CORSAIR',2,'noms LE CHARGEUR et LE CHARGEUR 69 en anglais');
 une("À 88 à l\\'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (CARS)');
 une("À 88 à l'heure elle remonte le temps, paraît-il.","On la dit en avance sur son époque.",'phrase de LA DOLORÈS (clé de traduction)');
 une('At 88 it travels back in time, apparently.','Ahead of its time, they say.','phrase de LA DOLORÈS en anglais');
@@ -122,8 +126,9 @@ une("var CC_ADMOB={recompense:''};","var CC_ADMOB={recompense:''}; /* (app iOS) 
    vrai argent (PEINT_EUR / PEINT_EUR_ID : 0,50 € à 5 €, par shopPaye, la porte de StoreKit jamais branchée : « L'achat est indisponible pour le
    moment ») et LA PALETTE en pack (0,99 €). Dans l'app, comme les caisses : chaque prix en € devient un prix en argent du jeu (60 000 par euro,
    0,50 € → 30 000, 5 € → 300 000), et l'article du pack sans prix (une secrète) dit SECRÈTE au lieu du prix du pack. */
-une("{d.eur=PEINT_EUR_ID[d.id]||PEINT_EUR[r];delete d.p;}",
-  "{d.p=Math.round((parseFloat(String(PEINT_EUR_ID[d.id]||PEINT_EUR[r]).replace(',','.'))||1)*60)*1000;delete d.eur;} /* (app iOS) les peintures en € passent à l'argent du jeu */",
+/* (2026-11-05, Sonnet : jour 0 du jury) depuis le nuancier v3 la grille est unique (PEINT_EUR par rareté, plus de PEINT_EUR_ID) et la vitrine fait `o.eur=PEINT_EUR[o.r]` */
+une("o.eur=PEINT_EUR[o.r];if(e[5])",
+  "o.p=Math.round((parseFloat(String(PEINT_EUR[o.r]).replace(',','.'))||1)*60)*1000;/* (app iOS) les peintures en € passent à l'argent du jeu */if(e[5])",
   'peintures vendues en €');
 une("d.pack?eurTxt(PALETTE_PACK.eur):","d.pack?sansAcc(TR('SECRÈTE')):",'prix du pack LA PALETTE sur ses articles');
 /* (2026-10-24) la fenêtre ENTRER UN CODE ne parle plus de « code secret » (le code COUSIN est coupé plus haut) : elle restaure une sauvegarde. */
