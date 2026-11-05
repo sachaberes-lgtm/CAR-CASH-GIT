@@ -28,7 +28,7 @@
 //  v20 (2026-09-25) : boutique, défis, auto-école, charte v3, lecteur de musique unique, ville en 1er niveau, caisses premium.
 //  v21 (2026-09-25) : icon.svg = le mot-symbole pixel (plus l'émoji 💰), HUD en icônes pixel, VoiceOver traduit.
 //  v22 (2026-09-25) : l'installation contourne le cache HTTP (v21 avait ré-empoché l'ancienne icône).
-const CACHE = 'cashcar-v24';
+const CACHE = 'cashcar-v25';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

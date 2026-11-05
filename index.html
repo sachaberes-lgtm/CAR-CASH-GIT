@@ -4083,8 +4083,6 @@ function buildTrack(seed){
     if(LVL.cur&&(LVL.cur.id==='espace'||LVL.cur.sansNuages))sp9.visible=false; // ORBITE : pas de nuages d'horizon — mais le tirage `rnd` est CONSOMMÉ quand même (la piste en aval ne bouge pas)
     scene.add(sp9);trackMeshes.push(sp9);
   }
-  // PORTAIL D'ARRIVÉE : la cible
-  frameAt(L-25,F);
   /* DÉCHETS SPATIAUX (2026-11-05, Sacha : « la Terre avec les déchets »). Niveau `dechets:1` seulement.
      Décor PUR (aucune collision, la route reste lisible) : éclats de ferraille, satellites à panneaux
      solaires, étages de fusée — 4 draw calls (InstancedMesh), semés autour de la piste, jamais dessus
@@ -4119,12 +4117,17 @@ function buildTrack(seed){
     for(let k=0;k<nC;k++){spot(V);const r=2+dr()*2.4;S.set(r,14+dr()*22,r);put(cI,k,V,rot(),S,CC[(dr()*CC.length)|0]);}
     fin(cI);
   }
-  portalMesh=new THREE.Mesh(new THREE.TorusGeometry(24,2.2,12,48),
+  // PORTAIL D'ARRIVÉE : la cible
+  frameAt(L-25,F);
+  // 2026-11-05 : l'anneau suit la LARGEUR DE ROUTE (rayon 24 fixe = pile la route du niveau 1, collé aux bords) :
+  // il déborde maintenant des deux bords de ≥ 14 m, donc on le franchit aussi bien à gauche qu'à droite.
+  const PR9=Math.max(34,ROAD_HALF+16);
+  portalMesh=new THREE.Mesh(new THREE.TorusGeometry(PR9,2.2*PR9/24,12,64),
     new THREE.MeshBasicMaterial({color:0xff4fd8}));
   portalMesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(F.b.clone(),F.n.clone(),F.t.clone()));
   portalMesh.position.copy(F.p).addScaledVector(F.n,4);
   scene.add(portalMesh);trackMeshes.push(portalMesh);
-  const pdisc=new THREE.Mesh(new THREE.CircleGeometry(22,32),
+  const pdisc=new THREE.Mesh(new THREE.CircleGeometry(PR9-2,48),
     new THREE.MeshBasicMaterial({color:0xff4fd8,transparent:true,opacity:.15,side:THREE.DoubleSide,depthWrite:false}));
   pdisc.quaternion.copy(portalMesh.quaternion);pdisc.position.copy(portalMesh.position);
   scene.add(pdisc);trackMeshes.push(pdisc);
