@@ -30,7 +30,7 @@
    `?intro=ancien` = l'intro d'avant (init.js) · `?intro=muet` = sans aucun son · « réduire les animations » = sans secousse ni
    éclats (le voile s'efface) · quelqu'un qui a déjà fini la leçon (SAVE.d.tuto) voit le même film en 20 % plus court · un 2e toucher passe. */
 (function(){
-  try{if(/[?&]lecon=non\b/.test(location.search)&&SAVE&&SAVE.d)SAVE.d.tuto=1;}catch(e){} /* (réglage de TEST, 2026-11-02) `?lecon=non` : la leçon est comptée comme faite (SAVE.d.tuto) : le menu joue alors le lobby lié (le morceau du niveau, en ambiance), pas « Premier matin » */
+  try{if(qDev(/[?&]lecon=non\b/)&&SAVE&&SAVE.d)SAVE.d.tuto=1;}catch(e){} /* (2026-11-05, Opus : HYG-10) en DEV seulement : sur le site il écrivait la sauvegarde (INT-45) */ /* (réglage de TEST, 2026-11-02) `?lecon=non` : la leçon est comptée comme faite (SAVE.d.tuto) : le menu joue alors le lobby lié (le morceau du niveau, en ambiance), pas « Premier matin » */
   if(!INTRO_NEUVE)return;
   const sp=document.getElementById('splash'),cv=document.getElementById('fxCv');
   if(!sp||!cv)return;
@@ -129,27 +129,7 @@
   function bez(p0,p1,p2,p3,n){const o=[];for(let i=0;i<=n;i++){const t=i/n,u=1-t;o.push({x:u*u*u*p0[0]+3*u*u*t*p1[0]+3*u*t*t*p2[0]+t*t*t*p3[0],y:u*u*u*p0[1]+3*u*u*t*p1[1]+3*u*t*t*p2[1]+t*t*t*p3[1]});}return o;}
   function lig(p0,p1,n){const o=[];for(let i=0;i<=n;i++){const t=i/n;o.push({x:p0[0]+(p1[0]-p0[0])*t,y:p0[1]+(p1[1]-p0[1])*t});}return o;}
   function ell(cx,cy,rx,ry,a0,a1,n){const o=[];for(let i=0;i<=n;i++){const a=a0+(a1-a0)*i/n;o.push({x:cx+Math.cos(a)*rx,y:cy+Math.sin(a)*ry});}return o;}
-  function glyphes(o){ /* les quatre signes « 1 . 6 1 » : chacun un tracé continu (le centre du trait) en hauteurs de chiffre, posés côte à côte, puis penchés. o : sw (l'épaisseur), pente, gaps (entre les signes), rx/ry (le ventre du 6), fx/fy (le drapeau du 1), dr (le rayon du point) */
-    const sw=o.sw,t0=sw/2,rx=o.rx||.20,ry=o.ry||.29,fx=o.fx||.225,fy=o.fy||.1475,dr=o.dr||sw*.725,sx=fx+.045,NH=22,cyb=1-t0-ry,pente=o.pente||0;
-    const UN=()=>lig([sx-fx,t0+fy],[sx,t0],7).concat(lig([sx,t0],[sx,1-t0],24).slice(1)); /* le 1 : un drapeau, une hampe (un tableau neuf à chaque appel : les deux 1 ne partagent pas leurs points) */
-    const SIX=bez([2*rx,t0+.0875],[2*rx-.14,t0-.1525],[0,t0+.1375],[0,cyb],NH).concat(ell(rx,cyb,rx,ry,Math.PI,-Math.PI,52).slice(1)); /* le 6 : la crosse, qui descend et s'enroule en ventre (NH : où elle finit) */
-    const signes=[{pl:UN()},{pt:{x:dr,y:1-dr},dr:dr},{pl:SIX},{pl:UN()}];
-    let x0=0;
-    signes.forEach(function(g,i){
-      let m0=1e9,m1=-1e9;
-      if(g.pt){m0=g.pt.x-dr;m1=g.pt.x+dr;}else for(const q of g.pl){m0=Math.min(m0,q.x-sw/2);m1=Math.max(m1,q.x+sw/2);}
-      g.dx=x0-m0;x0+=m1-m0+(o.gaps[i]||0);
-    });
-    let bx0=1e9,bx1=-1e9,by0=1e9,by1=-1e9;
-    const borne4=function(x,y,r){bx0=Math.min(bx0,x-r);bx1=Math.max(bx1,x+r);by0=Math.min(by0,y-r);by1=Math.max(by1,y+r);};
-    for(const g of signes){
-      if(g.pt){g.pt.x+=g.dx+pente*(.5-g.pt.y);borne4(g.pt.x,g.pt.y,dr);continue;}
-      for(const q of g.pl){q.x+=g.dx+pente*(.5-q.y);borne4(q.x,q.y,sw/2);}
-      g.cum=[0];for(let i=1;i<g.pl.length;i++)g.cum.push(g.cum[i-1]+Math.hypot(g.pl[i].x-g.pl[i-1].x,g.pl[i].y-g.pl[i-1].y));
-      g.L=g.cum[g.cum.length-1];
-    }
-    return{signes:signes,sw:sw,dr:dr,NH:NH,bx0:bx0,bx1:bx1,by0:by0,by1:by1};
-  }
+  /* (2026-11-05, jury HYG-12) glyphes : fonction jamais appelée, retirée */
   function morceau(sg,a,b,P,h,sw){ /* le bout de tracé entre les fractions a et b de sa longueur, en pixels : un Path2D, son point d'arrivée, deux jeux de taches de lumière (serrées, larges) et des points serrés avec leur normale (pour les grains) */
     const pl=sg.pl,cum=sg.cum,d0=a*sg.L,d1=b*sg.L,p=new Path2D();
     const pt=function(d){let i=0;while(i<cum.length-2&&cum[i+1]<d)i++;const k=(d-cum[i])/Math.max(1e-9,cum[i+1]-cum[i]);return P(pl[i].x+(pl[i+1].x-pl[i].x)*k,pl[i].y+(pl[i+1].y-pl[i].y)*k);};
@@ -163,11 +143,7 @@
   function etoile(c,x,y,r,a){ /* une étoile à quatre branches effilées */
     const v=r*.62,q=r*.07;c.globalAlpha=a;c.fillStyle='#fff';c.beginPath();c.moveTo(x-r,y);c.quadraticCurveTo(x-q,y-q,x,y-v);c.quadraticCurveTo(x+q,y-q,x+r,y);c.quadraticCurveTo(x+q,y+q,x,y+v);c.quadraticCurveTo(x-q,y+q,x-r,y);c.fill();
   }
-  function allumage(c,t,cx,cy,sw,h){ /* le trait de lumière de l'allumage (le titre faible s'aplatit dedans) ; à poser en addition */
-    if(t>=.5)return;const L=W*.47*sort3(t/.2),a=1-lisse(.26,.5,t);
-    if(a>0){halo(c,SPR.bl,cx,cy,L*1.02,sw*.8,.55*a);c.globalAlpha=a;c.fillStyle='#fff';c.fillRect(cx-L,cy-1,2*L,2);}
-    halo(c,SPR.bl,cx,cy,h*.7,h*.7,Math.exp(-t/.09)*.4);
-  }
+  /* (2026-11-05, jury HYG-12) allumage : fonction jamais appelée, retirée */
 
   /* ---- 1. NÉON : le tube blanc que les blips allument morceau après morceau, dans le sens de l'écriture ---- */
 
@@ -252,6 +228,7 @@
   }
   /* 10. BOULE (2026-10-23 soir) : seulement la sphère de « 1.61 » ; elle tourne lentement tant que ça charge, s'arrête quand c'est prêt ; l'appui la fait exploser en CASH CAR (dActe3), puis le voile fond vers le jeu. */
   let pasSon=-1;
+  const GLISSE_ANCIEN=/[?&]glisse=ancien\b/.test(location.search);
   let bYaw=0,bPit=0,bVy=0,bVp=0,bDown=false,bMove=0,bLx=0,bLy=0,bLt=0,bTP=null,bGlisse=false; /* la boule se tourne au doigt : angle et pente ajoutés, vitesse (inertie), le doigt est-il posé, la distance parcourue, un glissement vient-il d'avoir lieu */
   function boulePointeur(){
     if(!BOULE)return;
@@ -266,23 +243,13 @@
       const dx=ev.clientX-bLx,dy=ev.clientY-bLy,now=performance.now(),dtt=Math.max(.008,(now-bLt)/1000);
       bMove+=Math.abs(dx)+Math.abs(dy);bYaw+=dx*.012;bPit=borne(bPit+dy*.008,-1.1,1.1);bVy=borne(dx*.012/dtt,-8,8);bVp=borne(dy*.008/dtt,-5,5);bLx=ev.clientX;bLy=ev.clientY;bLt=now;
     });
-    const lache=function(){if(!bDown)return;bDown=false;if(bMove>12){bGlisse=true;setTimeout(function(){bGlisse=false;},400);}if(performance.now()-bLt>120){bVy=0;bVp=0;}};
+    const lache=function(){if(!bDown)return;bDown=false;if(bMove>(GLISSE_ANCIEN?12:32)){bGlisse=true; /* (2026-11-05, Opus : jury DIR-45) un doigt qui TOUCHE bouge de quelques pixels : à 12 px, 3 touchers sur 4 passaient pour un glissement (le film ne partait pas) ; 32 px — `?glisse=ancien` : 12 */setTimeout(function(){bGlisse=false;},400);}if(performance.now()-bLt>120){bVy=0;bVp=0;}};
     addEventListener('pointerup',lache);addEventListener('pointercancel',lache);
   }
   /* LA GRAINE (2026-11-02, Léo : « l'écran noir au début donne l'impression que ça bug ; trouve un truc à mettre pendant le chargement ») : un point d'or au centre de la future boule, qui respire, et des ondes
      qui s'en écartent comme un sonar. C'est de LUI que la boule naît (elle se construit du milieu). Dessiné dès l'attente, avant que le film parte (`attente`), puis jusqu'à ce que les premiers points de la boule
      l'éteignent (`rendu`) : il ne dépend que de l'heure réelle, donc il continue sans à-coup à travers le départ du film. « Réduire les animations » : un point fixe, sans ondes. */
-  function dGraine(c,a){
-    if(a<=.004)return;
-    if(!SPR.or)SPR.or=lueur(255,190,80);
-    const land=W>H*1.15,cx=W/2,cy=H*(land?.5:.46),s=performance.now()/1000,R=reduit();
-    c.save();c.globalCompositeOperation='lighter';
-    const r=(5+(R?0:1.2*Math.sin(s*3.2)))*ku;
-    halo(c,SPR.or,cx,cy,r*5,r*5,.55*a);
-    if(!R)for(let j=0;j<2;j++){const k=(s*.55+j*.5)%1,rr=(8+k*46)*ku;c.globalAlpha=.5*(1-k)*(1-k)*a;c.strokeStyle='rgb(255,214,120)';c.lineWidth=Math.max(1,1.4*ku);c.beginPath();c.arc(cx,cy,rr,0,6.2832);c.stroke();}
-    c.globalAlpha=a;c.fillStyle='#fff1cf';const p=Math.max(2,Math.round(3*ku));c.fillRect(Math.round(cx-p/2),Math.round(cy-p/2),p,p);
-    c.restore();
-  }
+  /* (2026-11-05, jury HYG-12) dGraine : fonction jamais appelée, retirée */
   function chCl(a){ /* l'anneau de chargement du HTML (spCharge) : visible jusqu'à ce que les premiers points de la boule se dessinent, puis il fond et disparaît (Léo, 02/11) */
     const el=chCl.el===undefined?(chCl.el=document.getElementById('spCharge')):chCl.el;if(!el||chCl.fini)return;
     if(a<=.004){chCl.fini=1;el.remove();return;}el.style.opacity=a;
@@ -417,6 +384,13 @@
       c.restore();}
     c.restore();
   }
+  /* ===== « TOUCHE » SOUS LA BOULE (2026-11-05, Opus : jury INT-06 / DIR-45) =====
+     L'intro BOULE attendait son toucher sans jamais le dire (dIndice ne vit que dans le film du logo) : un testeur qui ne touche pas voit une
+     planète qui tourne, sans fin. 2 s après que tout est prêt (pretT), le même « TOUCHE » discret que le logo, sous la boule. `?touche=ancien` : sans. */
+  const TOUCHE_BOULE=!/[?&]touche=ancien\b/.test(location.search);
+  function dToucheBoule(c,u){const a=lisse(2,2.8,u)*(.45+.25*Math.sin(u*3.1));if(a<=.01)return;
+    c.save();c.globalAlpha=a;c.fillStyle='#fff1cf';c.textAlign='center';c.textBaseline='middle';c.font=Math.max(9,Math.round(11*ku))+'px "Press Start 2P",monospace';
+    c.fillText(LANG==='fr'?'TOUCHE':'TAP',W/2,Math.min(H-24*ku,H/2+Math.min(W,H)*.40));c.restore();}
   function dIndice(c,t){ /* l'invitation, très discrète : le logo attend qu'on le touche */
     const a=lisse(0,.8,t-TL.slam-1.2)*(.45+.25*Math.sin((t-TL.slam)*3.1));if(a<=.01)return;
     c.save();c.globalAlpha=a;c.fillStyle='#fff1cf';c.textAlign='center';c.textBaseline='middle';c.font=Math.max(9,Math.round(11*ku))+'px "Press Start 2P",monospace';
@@ -458,7 +432,7 @@
     /* (2026-10-26, Sacha : « 1.61 Studio » → « 1.61 Game ») deux lignes : « 1.61 GAME » en grand (le « 1.61 » blanc chaud, GAME en or), un filet d'or qui s'ouvre depuis le centre,
        puis « PRESENTS » plus petit, très espacé, crème. La ligne du haut s'écrit lettre à lettre (0,7 s), le filet suit, le mot du bas arrive en dernier.
        (2026-11-02 nuit, Léo : « enlève le GAME, c'est juste 1.61 ») la ligne du haut n'est plus que « 1.61 ». */
-    const t1='1.61',t2='PRESENTS',n1=t1.length,n2=t2.length;
+    const t1='1.61',t2=(function(){try{return TR('PRÉSENTE');}catch(e){return 'PRESENTS';}})(),n1=t1.length,n2=t2.length;
     const px=Math.max(9,Math.round(Math.min(W/23,H/9,30))),px2=Math.max(8,Math.round(px*.5)),k=sort3((s-.7)/1.5),esp=px*(.95-.5*k);
     const tot=n1*px+(n1-1)*esp,y1=e.cy-px*.1,yR=e.cy+px*.62,y2=yR+px2*2.1;
     c.save();c.textAlign='left';c.textBaseline='alphabetic';c.font=px+'px "Press Start 2P",monospace';
@@ -792,18 +766,23 @@
   /* (2026-11-02, Léo : « ça saccade ») LE VOILE S'OUVRE QUAND LE JEU EST CALME. Mesuré sur son Mac (Safari, cadre 1226 × 566) : de l'appui à +10 s, le ciel se construit sous le voile par images de 0,2 à 1,3 s, puis ~20 i/s ;
      le voile s'ouvrait à +4,2 s, en plein dans ces gels (rien avant l'appui : la boule y tourne fluide). « 1.61 PRESENTS » TIENT donc tant que le jeu gèle, avec ses trois carrés d'or qui s'allument, et le voile ne
      fond qu'après 25 images d'affilée sous 100 ms (plafond : 15 s après l'appui). Sur une machine rapide les images sont courtes dès l'appui : le voile s'ouvre à l'heure d'avant (PRES_FIN), rien ne change. */
+  /* (2026-11-05, Sacha : « des fois il y a ce genre de bug visuel sur vercel » — le menu sur un écran NOIR, ni ciel ni caisse) MESURÉ sur le site, profil de navigateur neuf, vrai processeur graphique :
+     l'appui à 69 s, le voile retiré à 73 s (PRES_FIN), et le jeu ne dessine RIEN (0 appel de dessin par seconde, contre ~8 500) de 66 s à 78 s : sa 1re image attend la liaison de ses programmes (`lierDemarrage`,
+     20 s au plus) pendant que l'intro, elle, tourne à 60 i/s « calmes » — la mesure d'avant (« 25 images sous 100 ms ») ne disait rien du jeu. Le voile ne compte plus une image pour calme que si le jeu a
+     DESSINÉ au moins 3 images depuis l'appui (`window.__imagesJeu`, voir boucle-6-hud.js) ; plafond 15 → 26 s (la liaison s'arrête à 20 s). */
+  let imgBase=0;
   function ouvreQuandPret(){
-    let prev=performance.now(),calmes=0,tenu=false;
+    let prev=performance.now(),calmes=0,tenu=false;imgBase=window.__imagesJeu|0;
     (function pas(now){
       if(fini||doux)return;
-      const d=now-prev;prev=now;calmes=d<100?calmes+1:0;
+      const d=now-prev;prev=now;calmes=(d<100&&(window.__imagesJeu|0)-imgBase>=3)?calmes+1:0;
       const s=(now-tLance)/1000-latV-tapT;
       if(!tenu&&s<PRES_FIN-.7){requestAnimationFrame(pas);return;} /* le texte ne commence à s'éteindre qu'à PRES_FIN − 0,7 : c'est là qu'on décide */
       if(!tenu){
         if(calmes>=25){setTimeout(fonduDoux,Math.max(0,(PRES_FIN-s)*1000+80));return;} /* le jeu est calme : l'horaire d'avant */
         tenu=true;tenuJeu=true;presFin=1e9; /* il gèle encore : le texte reste affiché */
       }
-      if(calmes>=25||s>=15){presFin=s+.7;setTimeout(fonduDoux,780);return;} /* calme (ou plafond) : le texte s'éteint en 0,7 s, puis le voile fond */
+      if(calmes>=25||s>=26){presFin=s+.7;setTimeout(fonduDoux,780);return;} /* calme (ou plafond) : le texte s'éteint en 0,7 s, puis le voile fond */
       requestAnimationFrame(pas);
     })(performance.now());
   }
@@ -850,7 +829,7 @@
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
     g.fillStyle='#000';g.fillRect(0,0,W,H);
-    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());chCl(1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
+    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());chCl(1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT===null&&pretT!==null&&TOUCHE_BOULE)dToucheBoule(g,t-pretT);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
     let tl=t,id=forceId||(LABELS[LAB_ID]?LAB_ID:'neon'),idx=0;
     if(DEMO){const T=PERIODE_DEMO(),n=ORDRE_LABELS.length;idx=Math.floor(Math.max(0,t)/T);tl=Math.max(0,t)-idx*T;id=forceId||ORDRE_LABELS[idx%n];} /* la démo : les labels s'enchaînent en boucle */
     if(tl<TL.noir){const e=ETS[id]||(ETS[id]=LABELS[id].geo());LABELS[id].dessin(g,tl,e);}else if(!DEMO&&t>=TL.slam)dActe3(g,t,0);;
@@ -925,15 +904,22 @@
     let A=null;if(!SANS_SON&&SND.sfx&&VOL.sfx>0){try{A=new (window.AudioContext||window.webkitAudioContext)();}catch(e){A=null;}}
     if(!A){lancer(false);return;}
     preAC=A;let fait=false;const go=function(){if(fait)return;fait=true;if(lance){if(A!==iAC)try{A.close();}catch(e){}return;}lancer(false);}; /* (24/10, relecture : « le son de l'intro coupé net ») un toucher pendant l'attente de A.resume() (≤ 0,3 s) lance le film SUR A (son() prend preAC) : A n'est fermé que s'il n'a pas servi — avant, le film tapé tôt passait muet */
-    try{A.resume().then(go,go);}catch(e){go();}
-    setTimeout(go,300);
+    try{if(!DEPART_LENT&&(A.state==='running'||(navigator.userActivation&&!navigator.userActivation.hasBeenActive))){go();return;}A.resume().then(go,go);}catch(e){go();} /* (2026-11-05) le navigateur le laisse sonner d'emblée, ou personne n'a encore touché la page (resume() ne répondrait jamais) : on part tout de suite, muet dans ce second cas (son() le voit), le toucher libérera le son */
+    setTimeout(go,DEPART_LENT?300:120); /* sans geste, resume() ne répond jamais : 300 ms de noir pour rien, 120 suffisent à un navigateur qui l'accepte */
   }
-  function essaiAuto(n){ /* attendre que la page soit chargée, la police prête et la fenêtre visible */
+  /* ===== LE DÉPART SANS ATTENDRE `load` (2026-11-05, Sacha : « l'animation du début a des latences sur la version Vercel, rends les titres de début plus rapides ») =====
+     Sur le site, `readyState==='complete'` n'arrive qu'APRÈS que tout ce que le jeu va chercher en arrivant a fini de descendre (ciel-*.jpg, mer-cumulus.png 850 Ko, 4 polices pixel, la boucle audio) :
+     de 2 à 3 s de noir en plus de la construction du script, mesurées sur le site (DOM prêt à 46,4 s, `load` à 48,8 s). Le film n'a besoin que de SA police (Press Start 2P, préchargée dans la page)
+     et du DOM : il part dès qu'elles sont là. L'attente se sonde toutes les 60 ms (au lieu de 250) et le premier essai tombe à 40 ms (au lieu de 500). `?depart=lent` = l'ancien départ (attend `load`). */
+  const DEPART_LENT=/[?&]depart=lent\b/.test(location.search);
+  const policeFilm=function(){try{return !document.fonts||document.fonts.check('44px "Press Start 2P"');}catch(e){return true;}}; /* SA police seule : les autres polices du jeu n'ont rien à faire dans le film */
+  function essaiAuto(n){ /* attendre que le DOM soit prêt, la police du film chargée et la fenêtre visible */
     if(lance||fini)return;
-    if(document.hidden||document.readyState!=='complete'||(n<24&&document.fonts&&document.fonts.status==='loading')||(n<14&&litEnCours&&!LIT)){setTimeout(function(){essaiAuto(n+1);},250);return;}
+    const dom=DEPART_LENT?document.readyState==='complete':document.readyState!=='loading';
+    if(document.hidden||!dom||(n<100&&!(DEPART_LENT?!(document.fonts&&document.fonts.status==='loading'):policeFilm()))||(n<58&&litEnCours&&!LIT)){setTimeout(function(){essaiAuto(n+1);},DEPART_LENT?250:60);return;}
     autoLance();
   }
-  if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher\b/.test(location.search))setTimeout(function(){essaiAuto(0);},BOULE?500:1700); /* (?depart=toucher : l'ancien départ au toucher) */
+  if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher\b/.test(location.search))setTimeout(function(){essaiAuto(0);},BOULE?(DEPART_LENT?500:40):1700); /* (?depart=toucher : l'ancien départ au toucher) */
   if(BALADE||SIMU_JEU)setTimeout(finRapide,80); /* (atelier des nuages, simulateur) droit au jeu, sans l'intro */
   raf=requestAnimationFrame(boucle);
   let vuRev=false;

@@ -32,8 +32,12 @@ function photoLie(sc,cam){try{
 function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
   /* (2026-10-25, Sacha : « les photos sont bof, la lumière… elles ne donnent pas envie d'acheter ») : un vrai studio de vente — grande lampe douce de face, remplissage clair côté ombre (le dessous ne bouchait plus en violet), contre-jours plus fins et moins fluo */
-  const hemi=new THREE.HemisphereLight(0xf2f5ff,0x5a5066,1.0),key=new THREE.DirectionalLight(0xfff6ea,2.1),fill=new THREE.DirectionalLight(0xe9f0ff,1.0),
-        rim=new THREE.DirectionalLight(0xffa8dc,.95),rim2=new THREE.DirectionalLight(0x9fe4ff,.8),bas=new THREE.PointLight(0xb9a0ff,.55,16);fill.position.set(6,3,9);
+  /* (2026-11-05, Sacha : « les voitures buggent visuellement ») LE STUDIO SURÉCLAIRÉ : lampe de face 2,1 + ciel 1,0, puis la pellicule qui relève encore
+     (photoDev) — chaque facette tournée vers le haut sortait BLANC PUR, en blocs (LA FIDÈLE, argent dans sa fiche, sortait blanc-lilas ; le contre-jour
+     rose teintait tout). L'éclairage est ramené à ce que la pellicule supporte : la couleur de la fiche se lit, les reflets restent. `?photolum=ancien` = avant. */
+  const PL9=/[?&]photolum=ancien\b/.test(location.search)?[1.0,2.1,1.0,.95,.8,.55]:[.78,1.45,.8,.55,.6,.4];
+  const hemi=new THREE.HemisphereLight(0xf2f5ff,0x5a5066,PL9[0]),key=new THREE.DirectionalLight(0xfff6ea,PL9[1]),fill=new THREE.DirectionalLight(0xe9f0ff,PL9[2]),
+        rim=new THREE.DirectionalLight(0xffa8dc,PL9[3]),rim2=new THREE.DirectionalLight(0x9fe4ff,PL9[4]),bas=new THREE.PointLight(0xb9a0ff,PL9[5],16);fill.position.set(6,3,9);
   key.position.set(-3,8,7);rim.position.set(7,3.5,-6);rim2.position.set(-7,2.5,-5);bas.position.set(0,-.4,3);
   PHOTO.scene.add(hemi,key,fill,rim,rim2,bas);PHOTO.key=key;}
 function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=w.userData.k||1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}
@@ -116,7 +120,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     {v9.set(ctr.x,bx.min.y,ctr.z).project(cam);ymin=v9.y;} // le sol SOUS le centre de la caisse, à l'écran (le coin avant de la boîte tombait plus bas : l'ombre se décollait)
     const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget();
     renderer.setRenderTarget(PHOTO.rt);renderer.setClearColor(0x000000,0);renderer.clear();
-    photoLie(PHOTO.scene,cam);renderer.render(PHOTO.scene,cam); // (voir photoLie : les shaders de cette caisse sont liés AVANT la prise)
+    photoLie(PHOTO.scene,cam);{const h9=FSTU.uHdr.value;FSTU.uHdr.value=Math.min(h9,BQ_HDR);try{renderer.render(PHOTO.scene,cam);}finally{FSTU.uHdr.value=h9;}} // (voir photoLie : les shaders de cette caisse sont liés AVANT la prise) — (2026-11-05, Sacha : « les voitures buggent visuellement ») la photo de vente se prend avec les reflets ADOUCIS (BQ_HDR), d'où qu'on la prenne : au garage, ils semaient des taches blanches sur les petites facettes des toits et des capots
     let gros=null;if(!PHOTO_DEV_JS)try{gros=photoDev(W,H);}catch(e){console.warn('photoDev',e);gros=null;PHOTO_DEV_JS=true;} // (2026-10-16) LA PELLICULE SUR LA PUCE (photoDev) : la toile sort déjà développée, retournée et réduite
     let buf=null;if(!gros){buf=new Uint8Array(RW*RH*4);renderer.readRenderTargetPixels(PHOTO.rt,0,0,RW,RH,buf);}
     renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);T9.rendu=performance.now()-T9.t0;

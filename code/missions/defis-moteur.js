@@ -64,7 +64,7 @@ function m2Cartes(){try{const u=[];for(const k of Object.keys(SF_CARTES)){if(SF_
 function m2Vues(L){const K=m2Cartes(),S=[];for(const k of L){const g=sfMapDe(k);if(K.indexOf(g)>=0&&S.indexOf(g)<0)S.push(g);}return S.length;} // les maps jouées qui comptent (une map sortie du tirage ne compte plus ; les anciennes sauvegardes « crypto » et « ville » valent CRYPTOVILLE)
 /* À TOI, SANS LE CODE COUSIN : le code cousin ouvre tout sur un appareil (« l'argent, l'aura et les records ne bougent pas ») — il ne
    doit pas non plus encaisser les primes de collection. Même règle que carUnlockedVrai / shopOwned / figPossede, le cousin en moins. */
-function m2CarAMoi(i){if(carRetiree(i))return false;if(carOwned(i))return true;if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0))return true;
+function m2CarAMoi(i){if(carRetiree(i))return false;if(carOwned(i))return true;if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0)&&!carEuros(i))return true;
   const u=CAR_UNLOCK[i];if(!u)return true;if(u.k==='mis'||u.p||u.k==='premium'||u.eur)return false;return carStat(u.k)>=u.v;}
 function m2HabAMoi(cat,d){if(cat==='figure')return d.id==='tailwhip'||(Array.isArray(SAVE.d.figs)&&SAVE.d.figs.indexOf(d.id)>=0);
   if(d.pack==='chat'&&m2Chat())return true;if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+d.id)>=0;}
@@ -76,13 +76,29 @@ function m2Reco(){if(M2_RECO)return M2_RECO;const R={car:{},hab:{}};for(const m 
 function m2HabReco(cat,d){return !!(m2Reco().hab[cat+':'+d.id]||(cat==='peinture'&&(d.sec||d.serie)));} /* (2026-10-20) les peintures de la SÉRIE se gagnent au 7e jour : hors des « toutes » */
 /* LA COLLECTION : n = possédés (tout compte), tot/nT = le lot « toutes » (sans les objets de mission) et ce qu'on en a */
 function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
-  if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a=m2CarAMoi(i);if(a)n++;if(!R.car[CARS[i].name]){tot++;if(a)nT++;}}}
-  else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)){tot++;if(a)nT++;}}}
+  /* (2026-11-05, Opus : jury ECO-05) le lot « toutes » (LE TRÔNE CENTRAL, colall, toutall) ne compte plus ce qui se paie en € (impossible tant que StoreKit
+   n'existe pas) ; dans l'app, preparer-www.js les passe à l'argent du jeu : ils y comptent de nouveau. */
+  if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a=m2CarAMoi(i);if(a)n++;if(!R.car[CARS[i].name]&&(!carEuros(i)||a)){tot++;if(a)nT++;}}}
+  else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)&&(!d.eur||a)){tot++;if(a)nT++;}}}
   return {n:n,tot:tot,nT:nT};}
 /* (2026-10-22) LES RARES À TOI : celles qui s'achètent (les rares gagnées par mission ne comptent pas — LA DOLORÈS se débloque en les ayant toutes) */
 function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carRar(i)!=='rare'||R.car[CARS[i].name])continue;tot++;if(m2CarAMoi(i))n++;}return {n:n,tot:tot};}
 /* (2026-10-22) LA MÉTÉO D'UNE MAP (LA STRATOS) : pour chaque map, les temps (SF_CARTES[k].m : matin, midi, soir, nuit, pluie, orage…) déjà joués ; la meilleure map compte (n joués sur tot) */
-function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const g of m2Cartes()){const P=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k]||sfMapDe(k)!==g)continue;for(const x of Object.keys((SF_CARTES[k].m)||{}))P.push([k,x]);}if(!P.length)continue;let j=0;for(const q of P)if((H[q[0]]||[]).indexOf(q[1])>=0)j++;if(j/P.length>f||(j/P.length===f&&P.length>tot)){f=j/P.length;n=j;tot=P.length;}}return {n:n,tot:tot};}
+/* ===== LA MÉTÉO D'UNE MAP NE SE GAGNE PLUS EN UNE PARTIE (2026-11-05, Opus : jury DIR-08) =====
+   « JOUE UNE MAP SOUS TOUTES SES MÉTÉOS » (sa caisse : voir table.js) prenait la MEILLEURE map en proportion : EN ORBITE n'a qu'un temps (matin), donc une
+   seule partie en orbite faisait 1/1 = mission réussie (vu par le jury après 4 parties). Seules comptent maintenant les maps qui ont au
+   moins M2_METEO_MIN temps (matin, midi, soir, nuit, pluie, orage…). `?meteo=ancien` : l'ancien calcul. */
+/* (M2_METEO_MIN est déclarée dans missions/table.js, à côté de M2K : voir là) */
+function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const g of m2Cartes()){const P=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k]||sfMapDe(k)!==g)continue;for(const x of Object.keys((SF_CARTES[k].m)||{}))P.push([k,x]);}if(P.length<M2_METEO_MIN)continue;let j=0;for(const q of P)if((H[q[0]]||[]).indexOf(q[1])>=0)j++;if(j/P.length>f||(j/P.length===f&&P.length>tot)){f=j/P.length;n=j;tot=P.length;}}return {n:n,tot:tot};}
+/* ===== LE JOURNAL DE LA BANQUE (2026-11-05, Opus : jury DIR-08 « +180 000 $ pendant la navigation des menus ») =====
+   `?journal=banque` (en DEV seulement) : chaque écriture de SAVE.d.bank est notée (avant, après, l'écart, l'écran, la pile d'appels courte),
+   et chaque temps de map gagné pour la mission des météos. `dbgBanque()` rend les 60 dernières lignes. Sans le paramètre : rien n'est posé. */
+const JBQ={on:qDev(/[?&]journal=banque\b/),L:[],d:null};
+function jbqNote(o){if(!JBQ.on)return;o.t=Math.round(performance.now());o.ecran=garageOn?'garage':(started&&!gameOver?'course':(gameOver?'mort':'menu'));JBQ.L.push(o);if(JBQ.L.length>400)JBQ.L.shift();}
+if(JBQ.on)setInterval(function(){try{const d=SAVE.d;if(!d||d===JBQ.d)return;JBQ.d=d;let v=d.bank;
+  Object.defineProperty(d,'bank',{configurable:true,enumerable:true,get:function(){return v;},
+    set:function(x){if(x!==v)jbqNote({de:v,a:x,dv:Math.round(x-v),pile:String(new Error().stack||'').split('\n').slice(2,6).map(function(s){return s.trim().replace(/^at /,'');}).join(' < ')});v=x;}});}catch(e){}},200);
+window.dbgBanque=function(){return JBQ.on?JBQ.L.slice(-60):'ajouter ?journal=banque (en DEV) à l\'adresse';};
 function m2Tout(){let tot=0,nT=0;for(const c of ['voiture','peinture','aile','trainee','figure']){const o=m2Col(c);tot+=o.tot;nT+=o.nT;}return {tot:tot,nT:nT};}
 /* (M2_COLK est déclarée plus haut, à côté de M2K : voir là) */
 /* LA VALEUR D'UNE MISSION, maintenant (les records de la partie en cours compris) */
@@ -164,7 +180,7 @@ function m2GagneEstime(){const d=SAVE.d;let t=bank();
   try{for(const k of (d.shop&&d.shop.own)||[]){const p=k.split(':'),h=(COSM[p[0]]||[]).find(function(x){return x.id===p[1];});if(h&&h.p)t+=h.p;}}catch(e){}
   return Math.max(t,d.bankMax||0);}
 /* ---- LA VÉRIFICATION : une mission tombe dès que sa valeur passe le seuil (en course : 4 fois par seconde, sans la collection) ---- */
-function m2Verifie(enC){const s=m2Etat();let n=0;
+function m2Verifie(enC){const s=m2Etat();let n=0;try{peintDefisVerifie(enC);}catch(e){console.warn('peintDefis',e);} /* (2026-11-05, le nuancier v3) les DÉFIS DES PEINTURES (« ou gagne-la ») : au même rythme que les missions */
   for(const m of M2){if(s.ok.indexOf(m.id)>=0||!m2Dispo(m))continue;if(enC&&m.f==='collection')continue;let v=0;try{v=m2Val(m);}catch(e){continue;}
     if(v>=m2Seuil(m)){s.ok.push(m.id);s.nv.push(m.id);if(enC||m2EnC())M2R.run.push(m.id);n++;try{m2Annonce(m,enC);}catch(e){}}}
   if(n){SAVE.mark();if(!enC)try{m2Portes();}catch(e){}}return n;}
@@ -188,12 +204,15 @@ function m2LigneSuit(){clearTimeout(M2L.t);let e=document.getElementById('m2Lign
   M2L.on=1;
   if(!e){e=document.createElement('div');e.id='m2Ligne';e.setAttribute('role','status');(document.getElementById('hud')||document.body).appendChild(e);}
   const f=document.getElementById('m2Focus');e.style.setProperty('--m2lY',(f&&f._on&&f.offsetHeight?f.offsetHeight+4:0)+'px'); // au-dessus des suivies
-  const dj=it.k==='dj',sec=it.k!=='ok'&&!dj,ti=it.n?it.n+' '+TR('MISSIONS RÉUSSIES'):TR(dj?'DÉFI DU JOUR':sec?'MISSION SECRÈTE':'MISSION RÉUSSIE');
-  e.innerHTML='<i>'+pxi(dj?'cible':sec?'oeil':'coche')+'</i><span><small>'+sansAcc(ti)+'</small>'+(it.tx?' '+it.tx:'')+'</span>'+(it.p?'<b>'+it.p+'</b>':'');
+  const dj=it.k==='dj',col=it.k==='col',sec=it.k!=='ok'&&!dj,ti=it.n?it.n+' '+TR('MISSIONS RÉUSSIES'):TR(dj?'DÉFI DU JOUR':col?'PEINTURE GAGNÉE':sec?'MISSION SECRÈTE':'MISSION RÉUSSIE'); /* (2026-11-05) col : une peinture gagnée par son défi */
+  e.innerHTML='<i>'+pxi(dj?'cible':col?'pinceau':sec?'oeil':'coche')+'</i><span><small>'+sansAcc(ti)+'</small>'+(it.tx?' '+it.tx:'')+'</span>'+(it.p?'<b>'+it.p+'</b>':'');
   e.classList.toggle('sec',sec);e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  document.body.classList.add('m2Lon'); /* (2026-11-05, Sacha : « conflit de superposition en bas entre les missions et les infos générales, fais une
+    animation où la barre de mission est celle du dessus ») le FIL (code/interface/fil.js) vit dans la même zone, en bas au centre — tant que la
+    ligne de mission parle, il s'efface (voir <style id="missionsV2"> : body.m2Lon #fil) */
   try{if(SONV2&&(it.k==='ok'||dj))sfx('ui.mission');}catch(x){}
-  M2L.t=setTimeout(function(){e.classList.remove('on');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
-function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');}
+  M2L.t=setTimeout(function(){e.classList.remove('on');document.body.classList.remove('m2Lon');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
+function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');document.body.classList.remove('m2Lon');}
 /* ---- LA RÉCOMPENSE (RÉCUPÈRE) : une fois, jamais deux ---- rend {cash|car|cat,hab} ou null */
 function m2Prend(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return null;const r=m.r||{},o={id:id};
   if(r.vide)return null; // la récompense de « tous les objets » n'existe pas encore (à définir par Sacha)
@@ -210,10 +229,14 @@ function m2Dispo(m){if(!M2DISPO)return true;const r=(m&&m.r)||{};if(r.vide)retur
 function m2Pret(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return false;const r=m.r||{};
   if(r.vide)return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}if(r.cat)return !!(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return true;}
 /* ---- LES BRANCHEMENTS DE LA COURSE ---- */
-function m2Raz(){M2R.lv='';M2R.sonne=false;M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.figV=0;M2R.volT=0;M2R.figMax=0;M2R.airPm=0;}
+function m2Raz(){M2R.lv='';M2R.sonne=false;M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.v0=null;M2R.figV=0;M2R.volT=0;M2R.figMax=0;M2R.airPm=0;}
 function m2Debut(){const s=m2Etat(),c=s.c,j=m2Jour();M2R.deb=true; // la 1re image de la partie qui compte : le jour, l'heure
   if(c.jd!==j){c.jd=j;c.jours=(c.jours|0)+1;SAVE.mark();}
-  if(new Date().getHours()===3)m2Flag('nuit3h');}
+  if(new Date().getHours()===3)m2Flag('nuit3h');
+  /* (2026-11-05, Sacha : « on voit seulement les missions sur lesquelles on a avancé ») D'OÙ PART CHAQUE MISSION : le cliché de leurs valeurs, pris
+     0,7 s après le départ (pas dans la première image : m2Val parcourt les collections). L'écran de mort compare ce cliché à la fin de partie
+     (m2Avant, missions/ecran-revelation.js) : seules les missions dont la valeur a monté y figurent, barre de « d'avant » à « maintenant ». */
+  setTimeout(function(){try{if(!M2R.deb||M2R.v0)return;const s9=m2Etat(),V={};for(const m of M2){if(m.f==='collection'||m.f==='secret'||s9.ok.indexOf(m.id)>=0||!m2Dispo(m))continue;try{V[m.id]=m2Val(m);}catch(e){}}M2R.v0=V;}catch(e){}},700);}
 function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R.deb)m2Debut();
   if(!introD&&(mode==='drive'||mode==='fall'))M2R.ctl+=dt;
   if(mode!=='boom'){M2R.vie+=dt;if(M2R.vie>(r.vie||0))r.vie=M2R.vie;}
@@ -227,7 +250,7 @@ function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R
   if(nitroOn&&(mode==='drive'||mode==='fall')){s.c.nitS=(s.c.nitS||0)+dt;if(pwrNitroT>0)s.c.nmaxS=(s.c.nmaxS||0)+dt;SAVE.mark();} /* (2026-10-22) les secondes de nitro, et celles brûlées pendant une NITRO MAX */
   if(FLOW.lv===4){r.frenN=1;if(FREN.t>(r.frenT||0))r.frenT=FREN.t;}
   const k=secCarte().c;if(k&&s.c.cartes.indexOf(k)<0){s.c.cartes.push(k);SAVE.mark();}
-  {const k9=secCarte();if(k9.c&&k9.m){const H=s.c.met||(s.c.met={}),L=H[k9.c]||(H[k9.c]=[]);if(L.indexOf(k9.m)<0){L.push(k9.m);SAVE.mark();}}} /* (2026-10-22) les temps joués, map par map (LA STRATOS) */
+  {const k9=secCarte();if(k9.c&&k9.m){const H=s.c.met||(s.c.met={}),L=H[k9.c]||(H[k9.c]=[]);if(L.indexOf(k9.m)<0){L.push(k9.m);SAVE.mark();jbqNote({meteo:k9.c+'/'+k9.m});}}} /* (2026-10-22) les temps joués, map par map (LA STRATOS) */
   if(k==='banquise'&&BANQ.sur>0){s.c.verglasKm=(s.c.verglasKm||0)+kmh*dt/3600;} /* (2026-10-22) les km sur le verglas du glacier (L'ICEBERG) */
   if(mode==='fall'){if(!JEAU.dans){M2R.volT+=dt;s.c.airS=(s.c.airS||0)+dt;SAVE.mark();}if(k==='nuages'&&M2R.volT>(r.vol||0))r.vol=M2R.volT;if(k==='ville')m2Tours(r);}
   if(k==='banquise'&&BANQ.glisse&&BANQ.sur===2){M2R.lac+=dt;if(M2R.lac>(r.lac||0))r.lac=M2R.lac;}else M2R.lac=0;
@@ -241,8 +264,8 @@ function m2Cpt(k,v,seuil,id){if(!m2Ok())return;const c=m2Etat().c,S=c.sc||(c.sc=
 function m2Fruit(nom){const T={CERISE:['cerise','bolide'],ORANGE:['orange','emeute'],MYRTILLE:['myrtille','azur']}[nom];if(T)m2Cpt(T[0],1,50,T[1]);} /* un fruit croqué (ramassage.js) */
 /* UN NIVEAU ENTRÉ (le portail franchi, ou le départ) : dix par temps / par map pour les peintures secrètes */
 function m2Niveau(k){const m=k.m,c=k.c;
-  if(m==='neige'||m==='blizzard')m2Cpt('neige',1,10,'menthe');if(m==='nuit')m2Cpt('nuit',1,10,'minuit');if(m==='matin')m2Cpt('matin',1,10,'dragee');if(m==='midi')m2Cpt('midi',1,10,'abricot');
-  if(c==='banquise')m2Cpt('glacier',1,10,'neige');if(c==='foret')m2Cpt('foret',1,10,'ogre');if(c==='ville'||c==='crypto'||c==='vitree')m2Cpt('ville',1,10,'gotham');
+  if(m==='neige'||m==='blizzard')m2Cpt('neige',1,10,'menthe');if(m==='nuit')m2Cpt('nuit',1,10,'minuit');if(m==='matin')m2Cpt('matin',1,10,'dragee');if(m==='midi')m2Cpt('midi',1,10,'piscine');
+  if(c==='banquise')m2Cpt('glacier',1,10,'neige');if(c==='foret')m2Cpt('foret',1,10,'camo');if(c==='ville'||c==='crypto'||c==='vitree')m2Cpt('ville',1,10,'gotham');
   if(m==='pluie'||m==='orage')m2Cpt('pluie',1,10,'orage');if(c==='espace')m2Cpt('espace',1,10,'lunaire');if(c==='nuages')m2Cpt('nuages',1,5,'chrome');} /* (2026-10-22, Sacha : « oui » aux deux points de la revue) MENTHE compte aussi le blizzard (le glacier en neige seule : un niveau sur 66) ; CHROME MIROIR : cinq niveaux sur la mer de nuages (un seul l'ouvrait dès la 1re course) */
 function m2Saut(){M2R.tourV.length=0;M2R.figV=0;M2R.volT=0;} // startFall : un saut neuf (le bump n'en est pas un : il prolonge le saut)
 /* FRÔLER UNE TOUR (la ville) : passer à moins de M2K.frole m d'un flanc, à hauteur de la tour, sans la toucher — la même grille que

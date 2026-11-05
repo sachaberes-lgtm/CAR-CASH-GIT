@@ -1,5 +1,5 @@
 // ---------- VOITURES & ÉCONOMIE ----------
-// 15 caisses, UNE SILHOUETTE CHACUNE (2026-08-05) — l'ancien roster de 24 faisait sortir 10 caisses
+// (2026-11-05, jury ECO-28 : 91 lignes dont 50 caisses actives et 41 retirées — l'index d'une ligne ne bouge JAMAIS) 15 caisses à l'origine, UNE SILHOUETTE CHACUNE (2026-08-05) — l'ancien roster de 24 faisait sortir 10 caisses
 // du même moule `rocket` : 20 paires au-dessus de 90 % de recouvrement. Mieux vaut 15 formes qu'on
 // reconnaît que 24 variantes d'une seule. ⚠ toutes au-dessus de l'ex-reine
 // (657 km/h) et de plus en plus extrêmes. Le skin = le palier visuel ; `desc` = la carte de déblocage.
@@ -26,7 +26,7 @@ const CARS=[
  {retire:1,name:'SA MAJESTÉ'},
  {name:'ROSSO 40',        shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,rar:'epique', /* (2026-10-22, Sacha : « tableau des voitures » ROSSO 40 épique à 400 000 $ : sans cette ligne le prix la ferait RARE) */
   desc:'Rouge course, aileron plateau. La caisse de rêve : 1,5 million, et chaque dollar se voit.'},
- {name:'POSTER 84',       shape:'poster',  color:0xffc414,accent:0x131417,maxKmh:480,accel:55,turn:3.15,h:1.07,w:2.00,l:4.14,spoiler:0,
+ {name:'POSTER 84',       shape:'poster',  color:0xffc414,accent:0x131417,maxKmh:480,accel:55,turn:3.15,h:1.07,w:2.00,l:4.14,spoiler:0,rar:'legendaire', /* (2026-11-05, jury ECO-11 : TABLEAU-VOITURES.md la veut LÉGENDAIRE ; sans `rar`, carRar la déduisait du prix (3,2 M) = ÉPIQUE) */
   desc:'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.'},
  // ---- LES CAISSES DE CONTRAT (2026-09-25) : elles ne s'achètent PAS — chacune est la récompense d'un
  // carnet de trois missions (voir `CARNETS`). Des silhouettes que tout le monde reconnaît de loin, sans
@@ -179,9 +179,11 @@ const CARS=[
  // (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») LE DOGE (voir SHAPES.doge) : le mème du
  // shiba en voxels, regard en coin, queue en tire-bouchon, et les phrases du mème qui surgissent autour de lui. Ajoutée EN DERNIER.
  // (2026-10-26) REDESSINÉ EN POLY (SHAPES.doge v3) : la grosse tête taillée en pans plans, ~2 800 triangles au lieu de 46 000 ; `?doge=ancien` rend la v2.
- {name:'LE DOGE',shape:'doge',color:0xd99545,accent:0xf6e6c6,maxKmh:440,accel:53,turn:3.1,h:2.0,w:2.0,l:2.3,spoiler:0,rar:'epique',
+ /* (2026-11-05, Opus : jury IOS-05 / IOS-18, décision D4 — recommandation du jury, Sacha n'a pas tranché) « Doge » est une marque déposée et le nom
+    d'une cryptomonnaie : LE DOGE devient LE SHIBA (la race du chien). Même index, même forme (shape 'doge'), même fiche : seuls le nom et la phrase changent. */
+ {name:'LE SHIBA',shape:'doge',color:0xd99545,accent:0xf6e6c6,maxKmh:440,accel:53,turn:3.1,h:2.0,w:2.0,l:2.3,spoiler:0,rar:'epique',
   fx:{jet:0xffc83a,core:0xfff2c0,trail:[1.5,1.1,.3],light:0xffb43a,wow:1}, // sa traînée : les phrases du mème (voir LA TRAÎNÉE WOW)
-  desc:'Wow. Très tête. Beaucoup roues. Il te regarde de côté, et il a raison.'},
+  desc:'Une grosse tête de chien sur quatre roues. Il te regarde de côté, et il a raison.'},
  // (2026-10-16, Léo : « fais une belle Porsche Cayenne rose Barbie », puis « un rose plus pâle, vraiment Cayenne ») LA POUPÉE (voir SHAPES.poupee) :
  // le grand SUV de luxe allemand, en rose poupée pâle. Pas de marque (ni le nom, ni le blason) : un petit cœur à la place. Ajoutée EN DERNIER.
  // (2026-10-17, Léo : « enlève la barbie » → « du jeu ») elle avait été RETIRÉE, et remboursée (4,2 M$) à qui l'avait achetée ; (2026-10-18, Sacha) la

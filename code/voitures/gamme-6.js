@@ -679,3 +679,6 @@ SHAPES.poupee=function(K){
           roueDeco:w=>{for(const g in JG){const m=new THREE.Mesh(JG[g],K.mats[g]||K.mats.c);m.userData.lp=1;w.add(m);}},
           lpw:{R:R,w:JW,style:'nyan',jante:0xe4e8ed}};
 };
+/* ===== LE SHIBA (2026-11-05, Opus : jury D4 « renommer au moins DOGE ») ===== le nom et la phrase de l'ex-DOGE, et leur anglais. Les anciennes
+   clés (« LE DOGE », sa phrase) restent dans traductions.js (zone de Sonnet) : mortes, sans effet. */
+Object.assign(I18N,{"LE SHIBA":"THE SHIBA","Une grosse tête de chien sur quatre roues. Il te regarde de côté, et il a raison.":"A big dog head on four wheels. He side-eyes you, and he is right."});

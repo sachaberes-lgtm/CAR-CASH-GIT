@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1129'; /* v1129 (2026-11-05, Sacha : « petite révision de l'HUD ») le RECORD (barre jaune) et le nom du palier de flow (FLOW 1, FLOW 2) disparaissent ; la pastille du FIL (Big Air, miraculé, backflip…) passe en bas au centre, sous la voiture, en petit. */
+const CACHE = 'cashcar-v1165'; /* v1165 (2026-11-05, Léo : « des vitrines de verre sur un socle noir, la voiture bien visible, les ailes seules qui battent ; fusionné avec le showroom de Sacha ») les cartes de la boutique deviennent des vitrines : le plateau de nuit de Sacha est l'intérieur, le verre (cube 3D au palier 2, projection oblique ailleurs), le socle noir, l'étiquette de prix et la banderole l'entourent ; la photo d'une aile ne garde que ses deux ailes, qui battent. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

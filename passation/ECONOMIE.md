@@ -1,4 +1,74 @@
-# ÉCONOMIE — mesure et proposition (GENERAL, 14/10/2026 soir) — RIEN N'EST CHANGÉ DANS LE JEU, Sacha tranche
+# ÉCONOMIE — les prix, aujourd'hui (réécrit le 2026-11-05, jury final ECO-09 ; table générée depuis CARS et CAR_UNLOCK)
+
+> L'ancienne version (mesure du 14/10, AVANT le ×10 des prix du 25/10) est gardée en bas, sous « ARCHIVE ». Ses prix (« ELDORADO 10 000 $ », « la gamme à l'argent fait ~34 M$ ») ne sont plus ceux du jeu.
+
+## 1. Les caisses actives : 50 sur 91 lignes (les autres sont retirées, leur index reste pour la sauvegarde)
+Prix en dollars du jeu (« $ »). **LA HONTE** (index 0) est la caisse du départ. Une rareté « déduite » vient de la règle de `carRar` (aura-banque-contrats.js) : boutique € = légendaire · prix ≥ 1 M = épique · ≥ 20 k = rare · sinon commune.
+
+| n° | caisse | rareté | prix · condition |
+|---|---|---|---|
+| 0 | LA HONTE | COMMUNE (déduite) | offerte au départ |
+| 1 | ELDORADO | RARE | 500 k $ à la boutique |
+| 2 | LE CAÏD | RARE (déduite du prix) | 600 k $ à la boutique |
+| 4 | ROSSO 40 | ÉPIQUE | 4 M $ à la boutique |
+| 5 | POSTER 84 | LÉGENDAIRE | 3,2 M $ à la boutique |
+| 6 | LE SCARABÉE | COMMUNE | MISSION — fig5 : FAIS {v} FIGURES DANS UN SEUL SAUT |
+| 7 | LE COMBI | COMMUNE | MISSION — parf10 : FAIS {v} POSES PARFAITES D'AFFILÉE |
+| 8 | LA DOLORÈS | COMMUNE (déduite) | MISSION — rares : DÉBLOQUE TOUTES LES VOITURES RARES |
+| 9 | CHAT POP-TART | LÉGENDAIRE (déduite : boutique €) | boutique en € (4,20 €) — ACHETER refuse tant que StoreKit n'est pas branché |
+| 15 | ACIDE | ÉPIQUE | 2 M $ à la boutique |
+| 19 | LA PIZZA EXPRESS | LÉGENDAIRE | boutique en € (161,00 €) — ACHETER refuse tant que StoreKit n'est pas branché |
+| 26 | LE CORBILLARD | RARE | 3 M $ à la boutique |
+| 31 | LE CHARGEUR | RARE | 600 k $ à la boutique |
+| 32 | LE DÉFIEUR | RARE | 1,2 M $ à la boutique |
+| 33 | LA BAVAROISE | RARE | 1 M $ à la boutique |
+| 39 | LE SAMOURAÏ | RARE | 1,2 M $ à la boutique |
+| 40 | LA VETTE | RARE | 900 k $ à la boutique |
+| 42 | LA GRANDE ANGLAISE | RARE | 1,3 M $ à la boutique |
+| 43 | LE CHARGEUR 69 | RARE | 700 k $ à la boutique |
+| 45 | LA QUEUE DE CANARD | ÉPIQUE | 8 M $ à la boutique |
+| 47 | LA TAURINE | ÉPIQUE | 12 M $ à la boutique |
+| 48 | LA STRATOS | ÉPIQUE | 7,5 M $ à la boutique |
+| 49 | LA NOCTAMBULE | RARE | 8,5 M $ à la boutique |
+| 52 | L'AIGLE DE FEU | RARE | 8 M $ à la boutique |
+| 54 | LA FÉLINE | LÉGENDAIRE | boutique en € (1,61 €) — ACHETER refuse tant que StoreKit n'est pas branché |
+| 55 | LA RAIE | ÉPIQUE | 2,6 M $ à la boutique |
+| 56 | L'ÉTERNELLE | LÉGENDAIRE | boutique en € (1,61 €) — ACHETER refuse tant que StoreKit n'est pas branché |
+| 57 | LE TRÔNE CENTRAL | LÉGENDAIRE | boutique en € (1,61 €) — ACHETER refuse tant que StoreKit n'est pas branché |
+| 58 | LE SPECTRE | ÉPIQUE | 4,2 M $ à la boutique |
+| 59 | LE BLINDÉ NOIR | LÉGENDAIRE | boutique en € (1,61 €) — ACHETER refuse tant que StoreKit n'est pas branché |
+| 60 | LE MUR DU SON | LÉGENDAIRE | boutique en € (1,61 €) — ACHETER refuse tant que StoreKit n'est pas branché |
+| 61 | LE DRAGON D'OR | LÉGENDAIRE | boutique en € (1,61 €) — ACHETER refuse tant que StoreKit n'est pas branché |
+| 62 | LE MASTODONTE | defi | MISSION — air1000 : PASSE {v} S EN L'AIR |
+| 64 | LE HOT ROD | defi | MISSION — palier10 : ATTEINS LE PALIER 10 SUR CHAQUE MUSIQUE DU JEU |
+| 68 | L'ORIGAMI | ÉPIQUE | 2,8 M $ à la boutique |
+| 69 | ATCHOUM | ÉPIQUE | 9 M $ à la boutique |
+| 70 | SQUALE | LÉGENDAIRE | boutique en € (1,61 €) — ACHETER refuse tant que StoreKit n'est pas branché |
+| 72 | L'ICEBERG | ÉPIQUE | 3,2 M $ à la boutique |
+| 76 | LE DOGE | ÉPIQUE | 4 M $ à la boutique |
+| 78 | LA PERLE | ÉPIQUE | 2,4 M $ à la boutique |
+| 79 | LA CABOSSÉE | COMMUNE | 25 k $ à la boutique |
+| 80 | LA DOLCE VITA | COMMUNE | 30 k $ à la boutique |
+| 81 | LA FIDÈLE | COMMUNE | 40 k $ à la boutique |
+| 82 | LE BAROUDEUR | COMMUNE | 80 k $ à la boutique |
+| 83 | LA CERISE | COMMUNE | 60 k $ à la boutique |
+| 84 | LE ROUGE-GORGE | RARE | 250 k $ à la boutique |
+| 85 | LA LAME | RARE | 800 k $ à la boutique |
+| 87 | LA BÊTE | ÉPIQUE | 2,2 M $ à la boutique |
+| 88 | LA ZAGAIE | ÉPIQUE | 3,5 M $ à la boutique |
+| 89 | LE LOUP | LÉGENDAIRE | 50 M $ à la boutique |
+
+Somme des prix en dollars des caisses actives vendues à l'argent : **149,39 M $** (hors missions et hors boutique €).
+
+## 2. Ce qui a changé depuis l'archive
+- Le ×10 du 25/10 : les prix, les habillages, les figures et les contrats ont été multipliés par 10 ; les gains d'une partie, non. Les sacs du FINAL SPIN l'ont été le 05/11 (60 000 / 150 000 / 500 000 : espérance ≈ 16 800 $ par tirage).
+- ICEBERG (3,2 M) et DOGE (4 M) avaient été multipliés par 100 par erreur (32 M / 40 M) : corrigés le 05/11.
+- POSTER 84 est LÉGENDAIRE (fiche) ; LE LOUP (50 M $) aussi : la règle « légendaire = boutique € seulement » n'est plus tenue.
+- **Trou de progression (ECO-09, à trancher par Sacha — rien n'est changé dans le jeu)** : les prix à l'argent, triés, font 25 k · 30 k · 40 k · 60 k · 80 k · **250 k · 500 k** · 600 k (×2) · 700 k · 800 k · 900 k · 1 M · 1,2 M (×2) · 1,3 M · 2 M · 2,2 M … 12 M · **50 M** (LE LOUP). Le saut de 80 k à 250 k puis 500 k est le trou : le jury propose une caisse à ~200 k.
+- Les caisses vendues en € (« premium ») n'ont pas de bouton ACHETER qui marche : décision D3 du jury (masquer l'achat tant que StoreKit n'existe pas).
+
+## ARCHIVE — la mesure du 14/10 (avant le ×10, ne plus s'y fier pour les prix)
+### ÉCONOMIE — mesure et proposition (GENERAL, 14/10/2026 soir) — RIEN N'EST CHANGÉ DANS LE JEU, Sacha tranche
 
 ## 1. Ce qu'une partie rapporte, MESURÉ au banc (main + combos, cache v400)
 Pilote de mesure `dbgAuto` (il tient le milieu, ramasse presque toutes les pièces, nitro au sol, ne slalome pas) ; sauvegarde NEUVE,
@@ -94,3 +164,4 @@ tient plus : la reprise ne vaut le coup que si l'on compte gagner plus que ce qu
   100 000 (LA BAVAROISE) · 120 000 (LE DÉFIEUR, LE SAMOURAÏ) · 140 000 (LA VETTE), soit ×1,2 à ×1,7 par marche.
 - Au rythme du §6 (~600 $ la partie d'un joueur moyen), 40 000 $ demandent ~60 parties sans compter les primes de mission, contre 3-4
   parties avant. À trancher si le début paraît long : une caisse d'entrée vers 3 000-6 000 $, ou les gains du début (§6, option B).
+

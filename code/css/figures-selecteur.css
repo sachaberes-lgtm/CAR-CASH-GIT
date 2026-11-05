@@ -1,0 +1,146 @@
+<style id="figuresSelecteur">
+/* ===== LE SÉLECTEUR DE FIGURES (2026-11-05, Sacha : « retravaille le système de sélection des figures de manière pro poussé et ingénieuse » · « manque d'ergonomie global ») =====
+   Le script : interface/figures-selecteur.js. Ce que ce fichier pose :
+   · #ivDock (inventaire, onglet FIGURES) : les trois cases hexagonales (64 × 56, au lieu de 8 px de texte), la ligne qui dit le mode, les pastilles ;
+   · les mêmes cases et pastilles agrandies dans #bqFigSel (boutique, salle blanche) ;
+   · .fsPas : la pastille (TOUT · À MOI · À ACHETER · TRI), 34 px de haut ;
+   · #fsUndo : la puce « ANNULER » qui vit 5 s après un équipement ;
+   · .ivD : les gestes d'une figure en pastilles sur sa tuile ; .bqKd2.pick : la pastille d'un autre geste sur sa carte (elle l'équipe dans CE sens). */
+
+/* ---- la puce ANNULER ---- */
+#fsUndo{position:fixed;left:50%;top:calc(var(--sT,0px) + 64px);z-index:97;display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box;width:max-content;max-width:min(92vw,420px);min-height:48px;padding:8px 8px 8px 14px;
+  border:0;font-family:var(--pix);color:var(--tx,#fff7ee);text-align:left;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  background:linear-gradient(180deg,#1b1438,#0e0a22);box-shadow:inset 0 0 0 1px var(--filF,rgba(200,184,255,.3)),inset 3px 0 0 var(--neoV,#5ee37a),0 10px 26px rgba(0,0,0,.4);
+  clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);
+  opacity:0;pointer-events:none;translate:-50% -10px;transition:opacity .2s var(--ease),translate .2s var(--ease)}
+#fsUndo.on{opacity:1;pointer-events:auto;translate:-50% 0}
+#fsUndo .fuTx{font-size:10px;line-height:1.5;letter-spacing:.3px;min-width:0}
+#fsUndo .fuTx b{font-weight:400;color:#fff}
+#fsUndo .fuTx .pxi{--pxs:1;margin-right:2px;color:var(--au1,#ffd75e)}
+#fsUndo .fuBt{flex:none;display:flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;font-size:10px;letter-spacing:1px;color:#14171c;background:var(--au1,#ffd75e);box-shadow:0 3px 0 #b98a1d}
+#fsUndo .fuBt .pxi{--pxs:1;color:#14171c}
+#fsUndo:active .fuBt{translate:0 2px;box-shadow:0 1px 0 #b98a1d}
+@media (prefers-reduced-motion:reduce){#fsUndo{transition:none}}
+html[data-reduced-motion] #fsUndo{transition:none}
+
+/* ---- les pastilles (communes) ---- */
+.fsBar,.fdBar{display:flex;flex-wrap:wrap;gap:3px}
+.fsAide:empty,.fdAide:empty{display:none}
+.fsPas{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:32px;padding:0 7px;border:0;cursor:pointer;font-family:var(--pix);font-size:8px;letter-spacing:.5px;white-space:nowrap;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),translate var(--t-fast) var(--ease)}
+.fsPas em{font-style:normal;font-size:8px;opacity:.75}
+.fsPas:active{translate:0 2px}
+.fsPas.fsTri{margin-left:auto}
+.fsPas.fsCib .pxi{--pxs:1;color:currentColor}
+.fsPas.fsCib{color:#14171c;background:var(--dc,#ffd75e)}
+#bqFigSel .fsPas.fsCib{color:#14171c;background:var(--dc)}
+
+/* ---- l'inventaire : le dock (sombre) ---- */
+#ivDock{display:none;flex:none;flex-direction:column;gap:6px;margin:0 6px;padding:10px 8px 8px;background:linear-gradient(180deg,rgba(11,8,24,.86),rgba(23,16,46,.86));box-shadow:inset 0 0 0 1px var(--fil),inset 0 2px 0 rgba(255,255,255,.05);
+  clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px)}
+#gInv.fsOn #ivDock{display:flex}
+#ivDock .fdRow{display:flex;gap:6px}
+#ivDock .fdAide{font-size:8px;line-height:1.5;letter-spacing:.3px;color:var(--tx2);text-align:center}
+#ivDock .fdAide b{font-weight:400;color:var(--dc,#fff)}
+#ivDock .fdAide .pxi{--pxs:1;color:currentColor}
+#ivDock .fsPas{color:var(--tx2);background:rgba(154,144,200,.16);box-shadow:inset 0 0 0 1px var(--fil)}
+#ivDock .fsPas.on{color:#14171c;background:var(--au1,#ffd75e);box-shadow:none}
+#ivDock .fsHex{position:relative;flex:1 1 0;min-width:0;min-height:70px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0 2px;border:0;background:none;cursor:pointer;font-family:var(--pix);color:var(--tx2);
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:translate var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
+#ivDock .fsHex:active{translate:0 2px}
+#ivDock .fsCase{position:relative;display:block;width:56px;height:48px;background:var(--fc);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);transition:background var(--t-fast) var(--ease)}
+#ivDock .fsIn{position:absolute;inset:3px 4px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#231a44,#0b0818 75%);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+#ivDock .fsQ{font-weight:400;font-size:var(--f3);color:#6c6390}
+#ivDock .fsJoy{position:absolute;left:calc(50% - 42px);top:0;display:flex;align-items:center;justify-content:center;width:24px;height:24px;color:#fff;background:radial-gradient(circle at 40% 35%,#4a3f7a,#1c1638 70%);
+  box-shadow:inset 0 0 0 2px var(--dc);clip-path:polygon(7px 0,17px 0,24px 7px,24px 17px,17px 24px,7px 24px,0 17px,0 7px);font-style:normal}
+#ivDock .fsJoy .pxi{--pxs:1;width:12px;height:12px;margin:0}
+#ivDock .fsNom{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-width:100%;overflow:hidden;overflow-wrap:break-word;text-align:center;font-weight:400;font-size:9px;line-height:11px;color:var(--tx)}
+#ivDock .fsHex.vide .fsCase{background:rgba(154,144,200,.32)}
+#ivDock .fsHex.vide .fsNom{color:#6c6390}
+#ivDock .fsHex.cible .fsCase{background:#fff;animation:fsBat .8s var(--ease) infinite alternate}
+#ivDock .fsHex.cible .fsNom{color:#fff}
+#ivDock .fdRow:has(.cible) .fsHex:not(.cible){opacity:.5}
+#ivDock .fsHex.flash .fsCase{animation:fsFlash .6s var(--ease)}
+#ivDock .fsHex .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
+#ivDock .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
+#ivDock .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
+@media (prefers-reduced-motion:reduce){#ivDock .fsHex.cible .fsCase,#ivDock .fsHex.flash .fsCase,#ivDock .fsHex .fgIl>.fgCv{animation:none!important}}
+html[data-reduced-motion] :is(#ivDock .fsHex.cible .fsCase,#ivDock .fsHex.flash .fsCase,#ivDock .fsHex .fgIl>.fgCv){animation:none!important}
+
+/* ---- les tuiles de l'inventaire : le dessin de la figure, ses gestes en pastilles ---- */
+.ivT .fgIl{flex:none;margin:2px 0 4px}
+.ivT.eq .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
+.ivD{position:absolute;left:5px;top:5px;display:flex;flex-direction:column;gap:3px;z-index:2}
+.ivD i{position:relative;display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-style:normal;color:var(--dc);background:rgba(7,5,15,.7);box-shadow:inset 0 0 0 1.5px var(--dc)}
+.ivD i::before{content:'';position:absolute;inset:-6px -6px -3px -6px} /* la zone de toucher dépasse la pastille (≈ 32 px) */
+.ivD i.on{color:#14171c;background:var(--dc);box-shadow:none}
+.ivD .pxi{--pxs:1;width:12px;height:12px;margin:0;color:currentColor}
+@media (prefers-reduced-motion:reduce){.ivT.eq .fgIl>.fgCv{animation:none!important}}
+html[data-reduced-motion] .ivT.eq .fgIl>.fgCv{animation:none!important}
+
+/* ---- la boutique : cases et textes agrandis, pastilles claires ---- */
+#bqFigSel .fsAide{font-size:8px;line-height:1.5;letter-spacing:.2px;color:#6a727c}
+#bqFigSel .fsAide b{font-weight:400;color:var(--dc,#3d4bff)}
+#bqFigSel .fsAide .pxi{--pxs:1;color:currentColor}
+#bqFigSel .fsHex{min-height:68px}
+#bqFigSel .fsCase{width:54px;height:47px}
+#bqFigSel .fsJoy{left:calc(50% - 42px);top:-5px}
+#bqFigSel .fsNom{font-size:9px;line-height:11px;overflow-wrap:break-word}
+#bqFigSel .fsHex.cible .fsCase{background:var(--dc);animation:bqFsBat .8s var(--ease) infinite alternate}
+#bqFigSel .fsRow:has(.cible) .fsHex:not(.cible){opacity:.5}
+@keyframes bqFsBat{from{filter:none}to{filter:brightness(1.18) saturate(1.2)}}
+#bqFigSel .fsBar{padding-top:0}
+html body #gBqPan.bqFigOn #bqFigSel{gap:4px;padding-top:8px}
+#bqFigSel .fsPas{color:#4a5360;background:#eef0f3}
+#bqFigSel .fsPas.on{color:#fff;background:#14171c}
+@media (prefers-reduced-motion:reduce){#bqFigSel .fsHex.cible .fsCase{animation:none}}
+html[data-reduced-motion] #bqFigSel .fsHex.cible .fsCase{animation:none}
+#gBqPan .bqVide{flex:0 0 100%;padding:24px 8px;text-align:center;font-family:var(--pix);font-size:9px;line-height:1.6;color:#8a929c}
+/* la pastille d'un AUTRE geste sur la carte (figure à deux sens) : plus grande, tapable, elle équipe dans CE sens */
+#gBqPan .bqK .bqKd2.pick{width:26px;height:26px;cursor:pointer;z-index:2}
+#gBqPan .bqK .bqKd2.pick::before{content:'';position:absolute;inset:-8px}
+#gBqPan .bqK .bqKd2.pick .pxi{width:12px;height:12px}
+#gBqPan.cote .bqK .bqKd2.pick{width:22px;height:22px}
+/* le bouton ÉQUIPER annonce ce qu'il remplace (sur deux lignes, sans changer sa hauteur) */
+html body #garage #gAct>#gBqBtn .bqBtnT{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;line-height:1}
+html body #garage #gAct>#gBqBtn .bqBtnT small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:7.5px;letter-spacing:.5px;opacity:.85}
+
+/* ---- l'atelier (l'inventaire vu du garage, #gFigSel + #gStrip) : mêmes cases agrandies, le mode écrit dessous, les gestes de la vignette tapables ---- */
+#gFigSel .fsHex{min-height:70px}
+#gFigSel .fsCase{width:56px;height:48px}
+#gFigSel .fsJoy{left:calc(50% - 42px)}
+#gFigSel .fsNom{font-size:9px;line-height:11px;min-height:0;max-height:22px;white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:break-word}
+#gFigSel.arme .fsHex.cible{opacity:1}
+#gFigSel .fsHex.cible .fsCase{background:#fff;animation:fsBat .8s var(--ease) infinite alternate}
+#gFigSel .fsHex.cible .fsNom{color:#fff}
+@media (prefers-reduced-motion:reduce){#gFigSel .fsHex.cible .fsCase{animation:none}}
+html[data-reduced-motion] #gFigSel .fsHex.cible .fsCase{animation:none}
+#gFigBar{display:none}
+html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{display:flex}
+#gFigBar{align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 10px;margin:2px 12px 4px;font-family:var(--pix)}
+#gFigBar .fsAide{flex:1 1 150px;min-width:0;font-size:8px;line-height:1.5;letter-spacing:.3px;color:var(--tx2)}
+#gFigBar .fsAide b{font-weight:400;color:var(--dc,#fff)}
+#gFigBar .fsAide .pxi{--pxs:1;color:currentColor}
+#gFigBar .fsBar{flex:none}
+#gFigBar .fsPas{color:var(--tx2);background:rgba(154,144,200,.16);box-shadow:inset 0 0 0 1px var(--fil)}
+#gFigBar .fsPas.on{color:#14171c;background:var(--au1,#ffd75e);box-shadow:none}
+.gT .fgDir{gap:4px}
+.gT .fgDir>i{position:relative;padding:4px}
+.gT .fgDir>i::before{content:'';position:absolute;inset:-6px}
+
+/* ---- couché / petit écran : tout reste, en plus compact ---- */
+@media (orientation:landscape) and (max-height:540px){
+  #ivDock{padding:8px 6px 6px;gap:4px}
+  #ivDock .fdAide{display:none}
+  #gFigBar .fsAide{display:none}
+  #ivDock .fsHex{min-height:62px;padding-top:2px}
+  #ivDock .fsCase{width:48px;height:42px}
+  #ivDock .fsJoy{left:calc(50% - 38px);width:20px;height:20px}
+  #ivDock .fsPas,#gFigBar .fsPas,#bqFigSel .fsPas{min-height:28px}
+  #bqFigSel .fsHex{min-height:60px}
+  #bqFigSel .fsCase{width:46px;height:40px}
+  #bqFigSel .fsJoy{left:calc(50% - 36px)}
+  #gFigSel .fsHex{min-height:60px}
+  #gFigSel .fsCase{width:46px;height:40px}
+}
+</style>

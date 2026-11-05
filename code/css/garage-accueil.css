@@ -303,14 +303,14 @@ html body #garage.deplie:not(.menu) #gBottom{animation:gDeplie .34s var(--ease,c
 .ivTab.on{color:#fff;background:linear-gradient(180deg,rgba(255,62,200,.32),rgba(255,62,200,.12));box-shadow:inset 0 -2px 0 var(--neoM),inset 0 0 0 1px rgba(255,62,200,.5)}
 .ivTab.on .pxi{color:var(--neoM);filter:drop-shadow(0 0 6px var(--neoM))}
 .ivTab.on em{color:#fff}
-.ivTab span{max-width:100%;overflow:hidden;text-overflow:clip;white-space:nowrap;font-size:7px}
+.ivTab span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:7px}
 /* LA PROGRESSION (2026-10-20, Sacha : « retravaille et améliore l'inventaire ») : une barre fine sous les onglets, « possédés / total » de l'onglet ouvert */
 .ivProg{display:flex;align-items:center;gap:10px;padding:0 6px}
 .ivProg i{position:relative;flex:1;height:6px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px var(--fil)}
 .ivProg i::before{content:'';position:absolute;left:0;top:0;bottom:0;width:calc(var(--p,0) * 100%);background:linear-gradient(90deg,var(--neoM),#ffd75e);box-shadow:0 0 8px rgba(255,62,200,.6);transition:width .4s var(--ease)}
 .ivProg b{font-weight:400;font-size:var(--f0);letter-spacing:1px;color:#fff;white-space:nowrap}
 .ivVide{grid-column:1/-1;align-self:center;margin:24px 0;text-align:center;font-size:var(--f0);line-height:1.8;color:var(--tx3);letter-spacing:1px}
-.ivT small{display:block;margin-top:2px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:clip;font-size:6px;letter-spacing:1px;color:var(--rc);text-shadow:0 0 6px var(--rg)}
+.ivT small{display:block;margin-top:2px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:7px;letter-spacing:1px;color:var(--rc);text-shadow:0 0 6px var(--rg)}
 #ivGrille{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;
   display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));grid-auto-rows:112px;gap:16px 12px;align-content:start;padding:12px 10px 16px;
   scrollbar-width:none;-webkit-mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 14px),transparent);mask:linear-gradient(180deg,transparent 0,#000 12px,#000 calc(100% - 14px),transparent)}

@@ -54,7 +54,7 @@ function pisteMaigre(att,c,lz,pas9){ // la tranche lointaine : mêmes attributs,
    en MOYENNE : les mêmes 11 colonnes, une rangée sur PISTE_MOY (4 m), les bords de trou gardés — 4 fois moins de triangles de bitume. À 400 m un pas de
    4 m fait moins d'un vingtième de pixel en profondeur, la flèche d'un virage serré (R 110 m) 2 cm : l'image ne bouge pas. Sur l'ordinateur : rien ne
    change (règle d'or). `?pistemoy=0` = avant ; `dbgPiste()` compte les tranches moyennes. */
-const PISTE_MOY=(TEL_NATIF&&!/[?&]pistemoy=0\b/.test(location.search))?4:0,PISTE_MOY_D=400;
+const PISTE_MOY=(ALLEGE&&!/[?&]pistemoy=0\b/.test(location.search))?4:0, /* (2026-11-05, jury RND-28 : ALLEGE et non TEL_NATIF — le téléphone en navigateur aussi) */ PISTE_MOY_D=400;
 function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
   if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
@@ -164,10 +164,10 @@ const PREB_V=new THREE.Vector3();
 const PREB_TAB=['trackMeshes','PISTE_LOD','NEON_RAILS','NEON_GLOW','PAD_MATS','MODMARK','FILETMARK','CAMPM','TROUMARK'];
 function prebTabDe(k){return k==='trackMeshes'?trackMeshes:k==='PISTE_LOD'?PISTE_LOD:k==='NEON_RAILS'?NEON_RAILS:k==='NEON_GLOW'?NEON_GLOW:k==='PAD_MATS'?PAD_MATS:k==='MODMARK'?MODMARK:k==='FILETMARK'?FILETMARK:k==='TROUMARK'?TROUMARK:CAMPM;}
 function prebChampsDe(piste){ // les champs de module qu'écrit la construction de la route : toutes les maps, plus ceux de la génération de CETTE map
-  const L9=[[TORD,['on','N','ctrl0','seed','info']],[JADE,['flank','ligne']],[LIGNE_PER,['v']]];
+  const L9=[[TORD,['on','N','ctrl0','seed','info','pente','murs']],[JADE,['flank','ligne']],[LIGNE_PER,['v']]];
   if(piste==='jade')L9.push([JADE,['Q','mk']]); /* (2026-10-20) mk : les modules de la vallée */
   else if(piste==='foret')L9.push([FORET,['Q','plg','boucles','noeuds','pel','plan','axe']]); // (2026-10-19) plan, axe : LA FORÊT AU HASARD
-  else if(piste==='canyon')L9.push([CY,['Q','rmin','sep','hz']]); // (+ hz : LE CANYON AU HASARD)
+  else if(piste==='canyon')L9.push([CY,['Q','rmin','sep','hz','murN','murI']]); // (+ hz : LE CANYON AU HASARD)
   else if(piste==='dunes')L9.push([DN,['Q','rmin','sep','hz','gp','fe']]); // (2026-10-18) LES DUNES D'OR (+ hz : LES DUNES AU HASARD · + fe : les vagues de LA ROUTE CONTINUE)
   else if(piste==='banquise')L9.push([BANQ,['Q','cas','spi','axe','plan','pres','essais']]); // (2026-10-19) axe, plan, pres, essais : LE GLACIER AU HASARD (l'axe tourne les aurores)
   else if(piste==='grotte')L9.push([GROTTE,['Q','salles','sTot','conflits','croise']]); // (2026-10-18) LES PROFONDEURS

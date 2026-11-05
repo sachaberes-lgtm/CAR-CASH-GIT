@@ -48,7 +48,7 @@ const TORD_AMP=1.1;
 const NV_CALME=!/[?&]nuages=tordu\b/.test(location.search);
 const TORD_W=[1,0,1.8,2,.5,1.8,.25,.2,2.2,.9,1,0,0]; // [loop,hélice,ÉPINGLE,ESSES,vague,VIRAGE,plongeon,droite,CHICANE,balayage,gap,tire-bouchon,entrelacs] — multiplie les poids de l'archétype
 const TORD_DEVERS={max:50/57.3,k:.75,g:23,lis:.9,vmax:30/57.3,roulis:62/57.3,fig:125/57.3}; // max : l'angle plafond · k : la part du virage relevé physique (atan v²/gR) · g : la gravité MONDE (FALL_G×SPD) · lis : le lissage (s de croisière) · vmax : le roulis du dévers seul au plus (rad/s) · roulis : le roulis TOTAL au plus, vrilles + dévers (rad/s) · fig : le roulis au plus DANS une figure dessinée (tonneau, à l'envers, mur : rad/s)
-const TORD={on:false,N:null,info:null};
+const TORD={on:false,N:null,info:null,pente:false,murs:false};
 /* LA DURÉE DES MAPS (2026-10-18, Léo : « trouve la longueur parfaite des maps — sur téléphone, ni trop courte pour être digérable, ni trop longue ;
    et plus la vitesse va vite, plus on doit avoir l'impression de traverser plein de dimensions ») — v644, essayée sur un lien à part puis validée.
    MESURÉ avant (banc, main v628) : une map du JOUER durait de 70 s (jade, forêt) à plus de 3 min (canyon), et elle S'ALLONGEAIT avec la
@@ -83,7 +83,7 @@ function hautOn(){const c=LVL.cur;return !PARK.on&&!!c&&(c.id==='nuages'||c.id==
 const ROUTE_LIBRE=!/[?&]sans=([^&]*,)?routelibre(,|&|$)/.test(location.search);
 const ROUTE_FIGURES=ROUTE_LIBRE&&!/[?&]sans=([^&]*,)?figures(,|&|$)/.test(location.search);
 function espTordOn(){const c=LVL.cur;return ROUTE_LIBRE&&!PARK.on&&!!c&&c.id==='espace'&&!c.piste&&!c.camp&&!window.dbgEspOff&&(started||SF.pret);} // (2026-10-22) l'ORBITE en course : sa route aussi se roule dans l'espace
-function hautPente(){return TORD.on?0:1;}
+function hautPente(){return TORD.on&&!TORD.pente?0:1;} /* (2026-11-05, LE CANYON SUR LES MURS) TORD.pente : la pente du canyon pousse et retient, même sur un mur */
 function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE SUR LES PAROIS) opts : les réglages d'une autre map que les nuages — f0 (part de la route avant laquelle on ne roule pas), tenueHaut/tenueBas (chance de tenir couché/à l'endroit), lenHaut/lenBas ([min, étendue] en s), quart/demi (part des quarts / demi-tours), dev (le dévers) */
   const O=opts||{},DVX=O.dev?Object.assign({},TORD_DEVERS,O.dev):TORD_DEVERS; // essai : (2026-10-18) le n° de tirage des vrilles — 0 = celui d'origine ; buildTrack en rejoue un autre quand la route se touche (voir tordContacts)
   const q=new THREE.Quaternion(),up=new THREE.Vector3(),c9=new THREE.Vector3();
@@ -119,13 +119,14 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
   const FZ=[],ZDBG=[],lead=Math.max(520,5*vC);let fi=0;
   if(!sansVrille&&ROUTE_LIBRE){const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,sOf=function(j){const f=Math.max(0,Math.min(nC,j))/nC*dv,k=Math.min(dv-1,Math.floor(f));return lg[k]+(lg[k+1]-lg[k])*(f-k);};
     for(const m of MODMARK)if(m.g||m.f){const a=sOf(m.i0),b=sOf(m.i1);ZDBG.push([m.fig||'?',Math.round(a),Math.round(b),Math.round(s0),Math.round(fin),b>fin-40||a<s0+60?0:1]);if(b>fin-40||a<s0+60)continue;
-      FZ.push({a:a,b:b,ev:(m.f||[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};})});}
+      FZ.push({a:a,b:b,calme:m.calme?1:0,ev:(m.f||[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};})});}
     FZ.sort(function(x,y){return x.a-y.a;});}
   while(!sansVrille&&s<fin-120){
     if(fi<FZ.length&&FZ[fi].a-lead-s<60){const z=FZ[fi++];
       if(z.a>s+1){const w=Math.atan2(Math.sin(rho),Math.cos(rho));seg.push({s0:s,s1:z.a,r0:rho,r1:rho-w});rho-=w;} // à l'endroit avant la figure (le plus court)
       let c=Math.max(s,z.a);for(const e of z.ev){if(e.a>c+1)seg.push({s0:c,s1:e.a,r0:rho,r1:rho});seg.push({s0:e.a,s1:e.b,r0:rho,r1:rho+e.amt,fig:1});rho+=e.amt;c=e.b;}
-      if(z.b>c+1)seg.push({s0:c,s1:z.b,r0:rho,r1:rho});s=Math.max(s,z.b);continue;}
+      if(z.b>c+1)seg.push({s0:c,s1:z.b,r0:rho,r1:rho,calme:z.calme}); /* (2026-11-05, LES GÉANTS) m.calme : une figure SANS roulis tenue À L'ENDROIT — la dalle y est rappelée vers le ciel (dévers compris), comme dans une tenue calme ; sans ce rappel le repère dérive dans les virages et la dalle se couche */
+      s=Math.max(s,z.b);continue;}
     const lim=fi<FZ.length?FZ[fi].a-lead:fin; // la route ordinaire s'arrête `lead` m avant la prochaine figure
     const r=rg(),Z=O.zone?Object.assign({},O,O.zone(s/Lc)):O;let len,amt=0; /* (SUR LES PAROIS) Z : les réglages DE L'ENDROIT (O.zone(part de la route) → surcharges : chaque salle de la grotte a son caractère de roulis) */
     if(NV_CALME){const w=Math.atan2(Math.sin(rho),Math.cos(rho)); // (MOINS TORDUE, voir NV_CALME) w : le roulis ramené entre −π et π (0 = à l'endroit)

@@ -5,12 +5,12 @@ function buildGarageRoom(){
   const BX=new THREE.BoxGeometry(1,1,1),CY=new THREE.CylinderGeometry(.5,.5,1,14),
         CY8=new THREE.CylinderGeometry(.5,.5,1,7),TOR=new THREE.TorusGeometry(.34,.16,7,16),
         CN=new THREE.ConeGeometry(.5,1,12),PL=new THREE.PlaneGeometry(1,1);
-  const L=(c,e,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c,emissive:e===undefined?0:e,flatShading:true,fog:false},o||{}));
+  const L=(c,e,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c,emissive:e===undefined?0:e,fog:false},o||{}));
   const BA=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c,fog:false},o||{}));
   // La PALETTE : béton froid, ferraille bleu nuit, et quatre couleurs franches (rouge servante,
   // jaune sécurité, bleu fût, orange palan) qui suffisent à faire lire « atelier » d'un coup d'œil.
   const M={
-    sol   :L(0xffffff,0x090b10,{flatShading:false}),
+    sol   :L(0xffffff,0x090b10),
     mur   :L(0x3c4557,0x1b212f), bas:L(0x1c2433,0x0e1422), toit:L(0x101319,0x0a0f1a), /* (garage-lumiere) émissifs remontés : on lit les murs */
     fer   :L(0x232a38,0x070910), acier:L(0x6b7688,0x101319), chrome:L(0xc2cbd8,0x171b21),
     noir  :L(0x15181f,0x040609), pneu:L(0x1a1c21,0x050608),
@@ -28,21 +28,39 @@ function buildGarageRoom(){
   /* (2026-09-30, L'ATELIER v2) LE SOL : un ÉPOXY sombre en grandes dalles de 2,2 m (joint noir + arête claire), moucheté, deux ou trois traces
      de pneus — et BRILLANT (Phong) : les deux lampes qui suivent la caméra y courent en reflets. L'ancien béton tacheté, mat, faisait de la
      moitié basse de l'écran du menu un aplat bleu nuit. */
+  /* (2026-11-05, Léo : « toute la texture de la salle, un peu plus mature, sans alourdir le jeu ») LA SALLE PLUS MÛRE : le quadrillé du sol (joints noirs épais, arête claire sur chaque dalle,
+     bleu-nuit saturé) s'adoucit — joints fins et discrets, plus d'arête claire, un graphite à peine bleuté, et de larges plages lisses (résine coulée) sous le grain. Même canvas, peint une fois :
+     rien de plus à dessiner. `?salle=ancien` = la salle d'avant. */
+  const SALLE_MURE=!/[?&]salle=ancien/.test(location.search);
   const solTex=cvT(512,512,(x,w,h)=>{const T9=128;
-    x.fillStyle='#1c2029';x.fillRect(0,0,w,h);
-    for(let i=0;i<4;i++)for(let j=0;j<4;j++){const l=(Math.random()*8-4)|0;x.fillStyle='rgb('+(30+l)+','+(35+l)+','+(46+l)+')';x.fillRect(i*T9+2,j*T9+2,T9-4,T9-4);}
+    x.fillStyle=SALLE_MURE?'#1d2026':'#1c2029';x.fillRect(0,0,w,h);
+    for(let i=0;i<4;i++)for(let j=0;j<4;j++){const l=(Math.random()*8-4)|0;x.fillStyle=SALLE_MURE?'rgb('+(31+l)+','+(34+l)+','+(41+l)+')':'rgb('+(30+l)+','+(35+l)+','+(46+l)+')';x.fillRect(i*T9+(SALLE_MURE?1:2),j*T9+(SALLE_MURE?1:2),T9-(SALLE_MURE?2:4),T9-(SALLE_MURE?2:4));}
+    if(SALLE_MURE){for(let k=0;k<9;k++){const px=Math.random()*w,py=Math.random()*h,R=90+Math.random()*130,gp=x.createRadialGradient(px,py,0,px,py,R);const c9=Math.random()<.5?'255,255,255':'0,0,0';gp.addColorStop(0,'rgba('+c9+',.05)');gp.addColorStop(1,'rgba('+c9+',0)');x.fillStyle=gp;x.fillRect(px-R,py-R,2*R,2*R);}}
     for(let i=0;i<9000;i++){const a=(Math.random()*.09).toFixed(3);x.fillStyle=(Math.random()<.5?'rgba(0,0,0,':'rgba(190,210,255,')+a+')';
       x.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*1.4,1+Math.random()*1.4);}
-    x.fillStyle='rgba(3,5,9,.9)';for(let i=0;i<=4;i++){x.fillRect(i*T9-2,0,3,h);x.fillRect(0,i*T9-2,w,3);}          // le joint
-    x.fillStyle='rgba(130,155,205,.13)';for(let i=0;i<4;i++){x.fillRect(i*T9+1,0,1,h);x.fillRect(0,i*T9+1,w,1);}    // l'arête qui accroche la lumière
+    x.fillStyle=SALLE_MURE?'rgba(3,5,9,.38)':'rgba(3,5,9,.9)';for(let i=0;i<=4;i++){x.fillRect(i*T9-(SALLE_MURE?1:2),0,SALLE_MURE?2:3,h);x.fillRect(0,i*T9-(SALLE_MURE?1:2),w,SALLE_MURE?2:3);}          // le joint
+    if(!SALLE_MURE){x.fillStyle='rgba(130,155,205,.13)';for(let i=0;i<4;i++){x.fillRect(i*T9+1,0,1,h);x.fillRect(0,i*T9+1,w,1);}}    // l'arête qui accroche la lumière (avant)
     x.lineWidth=7;for(let k=0;k<3;k++){x.strokeStyle='rgba(0,0,0,'+(.1+Math.random()*.1).toFixed(2)+')';x.beginPath();
       x.arc(Math.random()*w,Math.random()*h,70+Math.random()*140,Math.random()*6,Math.random()*6+1.3);x.stroke();}   // traces de gomme
+    if(SALLE_MURE){ /* (2026-11-05) LES DÉTAILS DU SOL : ce qui fait vivre un vrai atelier — taches d'huile à reflet, fissures fines, éclats de peinture, marquages au pochoir et, à qui sait
+        regarder, trois clins d'œil (un 1.61 à la craie, le code des anciens jeux, un compteur de caisses). Tout est peint UNE fois dans le même canvas : zéro objet, zéro appel de dessin. */
+      for(let k=0;k<7;k++){const px=Math.random()*w,py=Math.random()*h,R=14+Math.random()*30,go=x.createRadialGradient(px,py,0,px,py,R);
+        go.addColorStop(0,'rgba(6,5,10,.55)');go.addColorStop(.62,'rgba(12,10,18,.30)');go.addColorStop(.8,'rgba(70,90,140,.10)');go.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=go;x.save();x.translate(px,py);x.scale(1,.55+Math.random()*.4);x.translate(-px,-py);x.fillRect(px-R,py-R,2*R,2*R);x.restore();}     // taches d'huile (un bord irisé)
+      x.lineWidth=1;for(let k=0;k<6;k++){let cx=Math.random()*w,cy=Math.random()*h,th=Math.random()*6.283;x.strokeStyle='rgba(0,0,0,'+(.25+Math.random()*.2).toFixed(2)+')';x.beginPath();x.moveTo(cx,cy);
+        for(let st=0;st<22;st++){th+=(Math.random()-.5)*.9;cx+=Math.cos(th)*(4+Math.random()*5);cy+=Math.sin(th)*(4+Math.random()*5);x.lineTo(cx,cy);}x.stroke();}                                         // fissures fines
+      for(let k=0;k<40;k++){x.fillStyle='rgba('+(Math.random()<.5?'230,200,60':'210,70,50')+','+(.12+Math.random()*.2).toFixed(2)+')';x.fillRect(Math.random()*w,Math.random()*h,1+Math.random()*2,1+Math.random()*2);} // éclats de peinture (jaune sécurité, rouge)
+      x.save();x.fillStyle='rgba(225,225,215,.30)';x.font='bold 17px monospace';x.textAlign='left';
+      x.translate(30,66);x.rotate(-.03);x.fillText('BOX 07',0,0);x.restore();                                                                                                                     // le pochoir de la place
+      x.save();x.fillStyle='rgba(235,235,225,.24)';x.font='bold 10px monospace';x.translate(w-215,h-24);x.rotate(.02);x.fillText('\u2191\u2191\u2193\u2193\u2190\u2192\u2190\u2192 B A',0,0);x.restore();      // le code des anciens jeux, à la craie
+      x.save();x.fillStyle='rgba(235,235,225,.2)';x.font='bold 12px monospace';x.translate(w*.62,h-100);x.rotate(-.5);x.fillText('1.61',0,0);x.restore();                                       // la signature du studio
+      x.fillStyle='rgba(240,220,90,.34)';for(let i=0;i<6;i++){x.save();x.translate(30+i*13,h-56);x.rotate(-.55);x.fillRect(0,0,6,26);x.restore();}                                              // chevrons de sécurité
+      x.fillStyle='rgba(235,235,225,.26)';for(let i=0;i<9;i++){x.fillRect(w-150+(i>>2)*14+(i%4)*3*0,40+(i%4)*5,10,2);}x.font='bold 9px monospace';x.fillText('caisses : 0'+(Math.floor(Math.random()*9)+1),w-150,76);}   // le compteur au mur, rayé à la craie
   });
   solTex.wrapS=solTex.wrapT=THREE.RepeatWrapping;solTex.repeat.set(W/8.8,D/8.8);solTex.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());
   M.sol=new THREE.MeshPhongMaterial({color:0xffffff,map:solTex,specular:0x2c3850,shininess:90,emissive:0x0a1020,fog:false});
   // LES MURS : un bardage de panneaux de 2,6 m (nervures, joint, rivets, lisse) avec la lumière du plafond cuite (clair en haut, sombre
   // en bas) — une matière par mur, parce que la répétition d'une texture est une propriété de la TEXTURE (et les murs n'ont pas la même largeur)
-  const murTexB=cvT(128,256,(x,w,h)=>{const gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#566279');gr.addColorStop(.45,'#3c465a');gr.addColorStop(1,'#252c3a');
+  const murTexB=cvT(128,256,(x,w,h)=>{const gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,SALLE_MURE?'#5a6372':'#566279');gr.addColorStop(.45,SALLE_MURE?'#404857':'#3c465a');gr.addColorStop(1,SALLE_MURE?'#282e39':'#252c3a');
     x.fillStyle=gr;x.fillRect(0,0,w,h);
     for(let i=0;i<8;i++){const xx=8+i*15;x.fillStyle='rgba(255,255,255,.07)';x.fillRect(xx,0,3,h);x.fillStyle='rgba(0,0,0,.16)';x.fillRect(xx+3,0,3,h);}
     x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,0,3,h);x.fillStyle='rgba(255,255,255,.1)';x.fillRect(3,0,1,h);
