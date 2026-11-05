@@ -11777,7 +11777,13 @@ const FOVP_K=REDUCED_MOTION?.3:1; // (2026-09-30) « Réduire les animations » 
    d'un coup si un détail gêne). Rien de ce qui est gardé par SENS ne touche la physique, les vitesses ni l'économie : du ressenti seul. */
 var SENS=!/[?&]sens=0/.test(location.search); var SENSG=SENS; /* le même drapeau sous un nom que rien ne masque : le bloc tactile a un `const SENS` local (l interface), qui le cachait → « Cannot access SENS before initialization », le jeu ne démarrait plus */
 try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',function(e){if(e.matches)document.documentElement.setAttribute('data-reduced-motion','1');else document.documentElement.removeAttribute('data-reduced-motion');});}catch(e){} // (2026-09-29) le réglage d'iOS change en cours de partie : les règles qui ne lisent que l'attribut suivent
-const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END,powerPreference:'high-performance'});
+/* ===== LA TOILE SANS MSAA (2026-11-05, Sacha : « le lien Vercel a des latences et prend beaucoup de mémoire sur mon ordi, règle ça de manière durable ») =====
+   MESURÉ (memory-infra de Chrome, écran 2560×1440 ×1,5, colonne de l'ordi : toile 2631×1216) : `antialias:true` donnait à la toile un tampon multi-échantillons
+   ×4 et sa profondeur — 49 + 49 Mo dans le processus de rendu, autant à la carte graphique, et un « resolve » à chaque image. Or depuis le 25/10 (FXAA partout)
+   la toile ne reçoit plus que la passe finale du compositeur (un quad plein écran : rien à anticréneler) ; la scène se dessine dans la cible du compositeur,
+   et l'anticrénelage est le FXAA de la passe finale. Même image au pixel près, ~100 Mo de moins. `?msaa=1` (l'ancien choix, voir FXAA_ON) garde le tampon. */
+const MSAA_TOILE=/[?&]msaa=1\b/.test(location.search);
+const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
 try{palPuce(renderer.getContext());}catch(e){} // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
@@ -13666,10 +13672,18 @@ function cotonOuvrier(){
   if(COTON_OUV.w||COTON_OUV.ko)return COTON_OUV.w;
   try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';const nufDemi='+nufDemi.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);if(q.hf&&r.fant){r.fant.D=nufDemi(r.fant,q.dy||0,q.hf);r.fant.Dy=q.dy||0;}self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer].concat(r.skin?[r.skin.pos.buffer,r.skin.nor.buffer,r.skin.idx.buffer]:[]).concat(r.fant&&r.fant.D?[r.fant.D.buffer]:[]));};';
     const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
-    w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);};
+    w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);cotonOuvrierRepos(w);};
     w.onerror=function(ev){try{ev.preventDefault();}catch(e9){}cotonOuvrierKo();};COTON_OUV.w=w;
   }catch(e){COTON_OUV.ko=true;}
   return COTON_OUV.w;}
+/* ===== L'OUVRIER SE REPOSE (2026-11-05, Sacha : « le lien Vercel a des latences et prend beaucoup de mémoire sur mon ordi, règle ça de manière durable ») =====
+   MESURÉ (memory-infra de Chrome, ordi, au menu puis en course) : cet ouvrier, créé pour les 4 × COTON_KINDS formes de la vitrine, restait VIVANT toute la
+   partie avec 64 Mo de pépinière V8 et 18 à 51 Mo de grands objets (ses tableaux, jamais ramassés : rien ne le réveille) — ~80 à 115 Mo de mémoire pour rien.
+   Sa file vidée depuis 1,5 s, il est arrêté (terminate rend tout d'un coup) ; `cotonOuvrier()` le refait au prochain nuage (un Blob, quelques ms). `?ouvrier=garde` = avant. */
+const COTON_OUV_GARDE=/[?&]ouvrier=garde\b/.test(location.search);
+function cotonOuvrierRepos(w){if(COTON_OUV_GARDE||COTON_OUV.w!==w||COTON_OUV.att.size)return;
+  if(COTON_OUV.repos)clearTimeout(COTON_OUV.repos);
+  COTON_OUV.repos=setTimeout(function(){COTON_OUV.repos=0;if(COTON_OUV.w!==w||COTON_OUV.att.size)return;try{w.terminate();}catch(e){}COTON_OUV.w=null;COTON_OUV.reposes=(COTON_OUV.reposes|0)+1;},1500);}
 function cotonOuvrierKo(){COTON_OUV.ko=true;if(COTON_OUV.w){try{COTON_OUV.w.terminate();}catch(e){}COTON_OUV.w=null;} // refusé : sa file repart sur le fil principal
   for(const a of COTON_OUV.att.values())cotonTranche(a.job,a.cb);COTON_OUV.att.clear();}
 function cotonTranche(job,cb){COTON_OUV.file.push({job:job,cb:cb});if(!COTON_OUV.t)COTON_OUV.t=setTimeout(cotonTrancheSuite,0);}
@@ -45584,10 +45598,15 @@ function envOuvrier(){if(ENVC.w!==undefined)return ENVC.w;
   try{const src="'use strict';var FSTU_DIR=null;\n"+fstuDirs.toString()+"\n"+envCielCalc.toString()+"\nvar ECL="+JSON.stringify(FSTU_ECL)+";\n"+
       "onmessage=function(e){var m=e.data,a=m.a,F=envCielCalc(a[0],a[1],a[2],a[3],a[4],fstuDirs(128).T,ECL,128);postMessage({id:m.id,cle:m.cle,F:F},F.map(function(x){return x.buffer;}));};";
     const W=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
-    W.onmessage=function(e){const m=e.data;if(ENVC.att.get(m.cle)!==m.id)return;ENVC.att.delete(m.cle);envGarde(m.cle,m.F);ENVC.av++;};
+    W.onmessage=function(e){const m=e.data;if(ENVC.att.get(m.cle)!==m.id)return;ENVC.att.delete(m.cle);envGarde(m.cle,m.F);ENVC.av++;envOuvrierRepos(W);};
     W.onerror=function(e){try{e.preventDefault();}catch(x){}ENVC.w=null;ENVC.att.clear();};
     ENVC.w=W;}catch(e){ENVC.w=null;}
   return ENVC.w;}
+/* (2026-11-05, mémoire de l'ordi — même passe que « L'OUVRIER SE REPOSE » des nuages) le travailleur des ciels s'arrête 1,5 s après son dernier calcul (ses résultats
+   sont dans ENVC.cache) ; `envOuvrier()` le refait à la demande suivante (`ENVC.w` revient à undefined). `?ouvrier=garde` = avant. */
+function envOuvrierRepos(W){if(/[?&]ouvrier=garde\b/.test(location.search)||ENVC.w!==W||ENVC.att.size)return;
+  if(ENVC.repos)clearTimeout(ENVC.repos);
+  ENVC.repos=setTimeout(function(){ENVC.repos=0;if(ENVC.w!==W||ENVC.att.size)return;try{W.terminate();}catch(e){}ENVC.w=undefined;ENVC.reposes=(ENVC.reposes|0)+1;},1500);}
 function envPrepare(B){ // (le pré-bâti) le ciel d'un biome à venir, calculé par le travailleur (B : une entrée de BIOMES)
   if(!ENVC.on||!FSTU.on||!B||!B.env)return;const sh=B.sunHalo!=null?B.sunHalo:1,cle=envCle(B.env,B.eS1,B.eS2,sh,SUN_DIR);
   if(ENVC.cache.has(cle)||ENVC.att.has(cle))return;const W=envOuvrier();if(!W)return;
@@ -82244,6 +82263,10 @@ const CONTOUR2=(function(){
   if(/[?&]contour=v2\b/.test(location.search))C.allume(true);
   return C;})();
 window.dbgContour=function(on){if(on!=null)CONTOUR2.allume(on);return {on:document.documentElement.classList.contains('contourV2'),regles:CONTOUR2.regles.length,selecteurs:CONTOUR2.sels.length,convertis:CONTOUR2.n,refuses:CONTOUR2.refuses};}; // (2026-10-17) le contour d'encre sans filtre — voir CONTOUR2
+/* (banc, 2026-11-05, repris de jury/fable) dbgJouer() : l'état des gardes du JOUER, puis le même départ que le bouton — pour un banc headless (le bouton par toucher n'y marche pas) */
+window.dbgJouer=function(){const et={pendingScore:pendingScore,started:started,gameOver:gameOver,garageOn:garageOn,go:!!GAR.go,chute:!!CHUTE.on,chuteGo:!!CHUTE.go,wipe:!!ecranWipe._on,tuto:!!SAVE.d.tuto,sf:sfPlayOk()};
+  let r='';try{r=sfPlayOk()?String(classiqueJouer()):(playViaGarage(true),'playViaGarage');}catch(e){r='erreur '+(e&&e.message);}
+  return Object.assign(et,{appel:r,goApres:!!GAR.go,chuteGoApres:!!CHUTE.go});};
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
 try{plqDemarre();}catch(e){console.warn('plaque',e);} // (2026-10-17) LA PLAQUE : ses écrans, l'horloge du compte, et l'atelier au premier accueil (voir PLQ)
 try{bienvGuette();}catch(e){} // (2026-10-16) LA QUESTION DE BIENVENUE guette l'accueil (voir bienvMontre)

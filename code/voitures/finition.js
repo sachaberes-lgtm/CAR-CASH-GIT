@@ -212,10 +212,15 @@ function envOuvrier(){if(ENVC.w!==undefined)return ENVC.w;
   try{const src="'use strict';var FSTU_DIR=null;\n"+fstuDirs.toString()+"\n"+envCielCalc.toString()+"\nvar ECL="+JSON.stringify(FSTU_ECL)+";\n"+
       "onmessage=function(e){var m=e.data,a=m.a,F=envCielCalc(a[0],a[1],a[2],a[3],a[4],fstuDirs(128).T,ECL,128);postMessage({id:m.id,cle:m.cle,F:F},F.map(function(x){return x.buffer;}));};";
     const W=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
-    W.onmessage=function(e){const m=e.data;if(ENVC.att.get(m.cle)!==m.id)return;ENVC.att.delete(m.cle);envGarde(m.cle,m.F);ENVC.av++;};
+    W.onmessage=function(e){const m=e.data;if(ENVC.att.get(m.cle)!==m.id)return;ENVC.att.delete(m.cle);envGarde(m.cle,m.F);ENVC.av++;envOuvrierRepos(W);};
     W.onerror=function(e){try{e.preventDefault();}catch(x){}ENVC.w=null;ENVC.att.clear();};
     ENVC.w=W;}catch(e){ENVC.w=null;}
   return ENVC.w;}
+/* (2026-11-05, mémoire de l'ordi — même passe que « L'OUVRIER SE REPOSE » des nuages) le travailleur des ciels s'arrête 1,5 s après son dernier calcul (ses résultats
+   sont dans ENVC.cache) ; `envOuvrier()` le refait à la demande suivante (`ENVC.w` revient à undefined). `?ouvrier=garde` = avant. */
+function envOuvrierRepos(W){if(/[?&]ouvrier=garde\b/.test(location.search)||ENVC.w!==W||ENVC.att.size)return;
+  if(ENVC.repos)clearTimeout(ENVC.repos);
+  ENVC.repos=setTimeout(function(){ENVC.repos=0;if(ENVC.w!==W||ENVC.att.size)return;try{W.terminate();}catch(e){}ENVC.w=undefined;ENVC.reposes=(ENVC.reposes|0)+1;},1500);}
 function envPrepare(B){ // (le pré-bâti) le ciel d'un biome à venir, calculé par le travailleur (B : une entrée de BIOMES)
   if(!ENVC.on||!FSTU.on||!B||!B.env)return;const sh=B.sunHalo!=null?B.sunHalo:1,cle=envCle(B.env,B.eS1,B.eS2,sh,SUN_DIR);
   if(ENVC.cache.has(cle)||ENVC.att.has(cle))return;const W=envOuvrier();if(!W)return;
