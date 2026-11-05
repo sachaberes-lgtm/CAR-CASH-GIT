@@ -12,7 +12,7 @@
 # Appelée par vercel-build.sh juste après garde-burnout.sh, et par la procédure de poussée (CLAUDE.md du jeu).
 # Pour publier quand même (on a VRAIMENT décidé de changer le logo — avec Sacha) : GARDE_CHARTE=0 dans les variables de Vercel,
 # ou mettre EMPREINTE_LOGO / SEUIL_PIX à jour dans le même commit (sh garde-charte.sh --empreinte).
-EMPREINTE_LOGO="ae275166afc3d44114a5756a655871e8a321a3dc"
+EMPREINTE_LOGO="da67e95f2bbaeccbe28c13030a0801506ae42729" # (2026-11-05, Sacha : serpent de chargement) le voile du départ, avec son <div id="spTitle"> « CASH CAR », est passé en tête du <body> : les mêmes 31 lignes, dans un autre ordre (avant : ae275166afc3d44114a5756a655871e8a321a3dc)
 SEUIL_PIX=135
 MODE=""
 [ "$1" = "--empreinte" ] && { MODE="emp"; shift; }
