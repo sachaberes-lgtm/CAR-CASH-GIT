@@ -31,7 +31,7 @@ function m2Prog(m,v,t){v=Math.min(v,t); // « 3 / 5 », « 42 000 / 100 000 $ »
 function m2RecNom(m){const r=m.r||{};if(r.cash)return '+'+fmtC(r.cash);if(r.car)return TR(r.car);
   if(r.cat){const d=(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return d?TR(d.n):'';}return TR('RÉCOMPENSE À VENIR');}
 function m2NbPret(){const s=m2Etat();let n=0;for(const id of s.ok)if(s.pr.indexOf(id)<0&&m2Pret(id))n++;return n;}
-function m2SecPal(){const o=(SAVE.d.shop&&SAVE.d.shop.own)||[];return COSM.peinture.filter(function(d){return d.sec&&o.indexOf('peinture:'+d.id)>=0;});} // les couleurs secrètes TROUVÉES (le pack n'en fait pas des missions… mais on ne sait pas d'où elles viennent : elles comptent)
+function m2SecPal(){const o=(SAVE.d.shop&&SAVE.d.shop.own)||[];let g=[];try{g=m2Etat().c.pg||[];}catch(e){}return COSM.peinture.filter(function(d){return d.def&&g.indexOf(d.id)>=0&&o.indexOf('peinture:'+d.id)>=0;});} /* (2026-11-05, le nuancier v3) les peintures GAGNÉES par leur défi (m2.c.pg ; achetées, elles n'y sont pas) */ // les couleurs secrètes TROUVÉES (le pack n'en fait pas des missions… mais on ne sait pas d'où elles viennent : elles comptent)
 function m2Compte(){const s=m2Etat(),p=m2SecPal().length;let vis=0,sec=0,ok=0;for(const m of M2){if(!m2Dispo(m))continue;const r=s.ok.indexOf(m.id)>=0;if(r)ok++;if(m.f!=='secret')vis++;else if(r)sec++;}
   return {ok:ok+p,tot:vis+sec+p};} // (2026-10-19) ok : les réussies qu'on VOIT (une cachée par m2Dispo ne compte ni en haut ni en bas)
 /* les lignes, triées : 0 à récupérer · 1 suivies · 2 les autres, PAR FAMILLE (M2_ORDRE), la plus avancée d'abord · 9 terminées
@@ -66,7 +66,7 @@ function m2Ligne(x,k,s){const m=x.m,F=M2_FAM[m.f]||M2_FAM.exploit,pret=x.rg===0,
     +'<div class="m2R'+(voir?' voir':'')+'" aria-label="'+sansAcc(m2RecNom(m)).replace(/"/g,'')+'">'+m2Vign(m)+'</div></div>';}
 function m2LignePal(d){ // une couleur secrète de la palette, trouvée : son indice devient sa mission
   const j=COSM.peinture.indexOf(d);return '<div class="m2L m2F-secret ok" data-pal="'+d.id+'"><span class="m2Ic">'+pxi('coche')+'</span>'
-    +'<div class="glTx"><b><i class="m2Sec">'+TR('SECRÈTE')+'</i> '+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><small>'+TR('RÉUSSIE')+'</small></div>'
+    +'<div class="glTx"><b><i class="m2Sec">'+TR('PEINTURE')+'</i> '+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><small>'+TR('RÉUSSIE')+'</small></div>'
     +'<div class="m2R voir">'+objFig({cat:'peinture',i:j})+'</div></div>';}
 /* (2026-10-22, Sacha : « enlève le défi du jour, enlève toutes les catégories en haut, c'est trop compliqué : plus simple, plus beau, chaque bouton mieux placé »)
    Deux colonnes, rien d'autre. À GAUCHE (.glB) : la carte de la SÉRIE de sept jours (sous le titre et le compte, RETOUR en bas).
@@ -151,16 +151,25 @@ function m2FocusMaj(){let e=document.getElementById('m2Focus');const on=!MIS_FOC
 /* LA CARTE MISSIONS DE L'ÉCRAN DE MORT : les missions réussies pendant la partie, puis l'avancement des suivies (la jauge se remplit
    sous les yeux) ; à défaut, celle qui est la plus proche de tomber. Une SECRÈTE trouvée ne dit pas son nom (sa révélation est à venir).
    Le point vert : une récompense attend. Touchée : l'écran MISSIONS. */
-function objRenderV2(el){const s=m2Etat(),L=[];
+Object.assign(I18N,{'AUCUNE MISSION AVANCÉE':'NO MISSION PROGRESS'});
+/* d'où part la mission au début de cette partie : les missions « d'une partie » (aura, figures, vitesse…) partent de 0, le moteur de 1, les autres
+   du cliché pris au départ (M2R.v0, defis-moteur.js) ; null = on ne sait pas (partie trop courte, cliché pas encore pris) */
+function m2Avant(m){const k=m.k;if(k==='eng')return 1;if(/^(aura|parf|fig|vie|frenT|kmh|tours|airP)$/.test(k))return 0;const V=M2R.v0;return V&&(m.id in V)?V[m.id]:null;}
+function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search); /* l'écran de mort v6 (MORT_FLOT vit dans la coque, hors de portée ici) */
+  const s=m2Etat(),L=[];
   for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
-  for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
+  if(!flot9)for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
   /* (2026-11-03, Sacha : « améliorer encore un peu », puis « mission il prend trop de place ») le panneau ne reste plus à moitié vide :
      il se complète avec les missions les plus proches du but (avec leur barre), jusqu'à 2 (couché, le ×2 prend sa place sous le panneau) */
-  const flot9=!/[?&]mort=ancien\b/.test(location.search); /* l'écran de mort v6 (MORT_FLOT vit dans la coque, hors de portée ici) */
-  {const cible=2,C=[];
+  if(!flot9){const cible=2,C=[];
     if(L.length<cible)for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
       let v=0;try{v=m2Val(m);}catch(x){}const p=m2Frac(m,v,m2Seuil(m));if(p<1)C.push({m:m,p:p});}
     C.sort(function(a,b){return b.p-a.p;});for(const c of C){if(L.length>=cible)break;L.push({m:c.m,ok:0});}}
+  if(flot9){ /* (2026-11-05) SEULEMENT CE QUI A AVANCÉ : les réussies de la partie (déjà dans L), puis celles dont la valeur a monté, la plus grosse avance d'abord */
+    const A=[];for(const m of M2){if(m.f==='secret'||m.f==='collection'||s.ok.indexOf(m.id)>=0||!m2Dispo(m)||L.some(function(x){return x.m===m;}))continue;
+      const a=m2Avant(m);if(a==null)continue;let v=0;try{v=m2ValCourse(m);}catch(x){continue;}const t=m2Seuil(m);
+      if(!(v>a+1e-9)||!(t>0))continue;const p1=m2Frac(m,v,t);if(p1>=1)continue;A.push({m:m,a:a,v:v,t:t,d:p1-m2Frac(m,a,t)});}
+    A.sort(function(x,y){return y.d-x.d;});for(const c of A){if(L.length>=2)break;L.push({m:c.m,ok:0,a:c.a,v:c.v,t:c.t});}}
   const nP=m2NbPret(),c=m2Compte();
   el.className='mObj misPorte m2Ob';el.setAttribute('data-m','mis');el.style.removeProperty('--rc');
   let h='<div class="obHd"><span>'+pxi('cible')+' '+TR('MISSIONS')+(nP?' <i class="m2Pt in"></i>':'')+'</span><b class="m2Cpt">'+c.ok+' / '+c.tot+'<i class="obVoir">'+pxi('droite')+'</i></b></div>';
@@ -168,24 +177,27 @@ function objRenderV2(el){const s=m2Etat(),L=[];
   for(const x of L){const m=x.m;
     if(m.f==='secret')h+='<div class="obM ok sec">'+pxi('oeil')+'<span>'+sansAcc(TR('MISSION SECRÈTE TROUVÉE'))+'</span></div>';
     else if(x.ok)h+='<div class="obM ok">'+pxi('coche')+'<span>'+sansAcc(m2Txt(m))+'</span><em>'+sansAcc(m2RecNom(m))+'</em></div>';
-    else{let v=0;try{v=m2ValCourse(m);}catch(q){}const t=m2Seuil(m);
-      const ic9=pxi((M2_FAM[m.f]||M2_FAM.exploit).ic),tx9='<span>'+sansAcc(m2Txt(m))+'</span>',br9='<div class="obBar"><i style="width:0%" data-w="'+(100*m2Frac(m,v,t)).toFixed(1)+'"></i></div>',pg9='<b>'+m2Prog(m,v,t)+'</b>';
+    else{let v=x.v!=null?x.v:0;if(x.v==null)try{v=m2ValCourse(m);}catch(q){}const t=x.t!=null?x.t:m2Seuil(m);
+      const ic9=pxi((M2_FAM[m.f]||M2_FAM.exploit).ic),tx9='<span>'+sansAcc(m2Txt(m))+'</span>',br9='<div class="obBar"><i style="width:'+(flot9&&x.a!=null?(100*m2Frac(m,x.a,t)).toFixed(1):0)+'%" data-w0="'+(flot9&&x.a!=null?(100*m2Frac(m,x.a,t)).toFixed(1):0)+'" data-w="'+(100*m2Frac(m,v,t)).toFixed(1)+'"></i></div>',pg9='<b>'+m2Prog(m,v,t)+'</b>';
       /* écran de mort v6 : le texte sur toute la largeur (deux lignes au besoin), la barre dessous et le compte AU BOUT de sa barre */
-      if(flot9)P9.push({m:m,v:v,t:t});
+      if(flot9)P9.push({m:m,a:x.a!=null?x.a:0,v:v,t:t});
       h+=flot9?'<div class="obM obM6">'+ic9+tx9+br9+pg9+'</div>':'<div class="obM">'+ic9+tx9+pg9+'</div>'+br9;}}
+  if(flot9&&!L.length)h+='<div class="obM obVide"><span>'+sansAcc(TR('AUCUNE MISSION AVANCÉE'))+'</span></div>';
   h+='<div class="obFt"><span>'+sansAcc(TR(nP?'À RÉCUPÉRER':'TOUTES LES MISSIONS'))+'</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';
   el.innerHTML=h;
   const bars=el.querySelectorAll('.obBar i');
-  if(flot9){ /* (2026-11-04, Sacha : « des animations pour les missions ») écran de mort v6 : chaque barre et son compte (« 8 / 10 ») montent ENSEMBLE,
-       une image à la fois, à l'entrée de leur ligne (1,25 s, puis 0,15 s de plus par ligne) — une seule fois par mort ; au retour (garage,
-       réglages) tout est posé. La révélation d'une secrète attend que l'écran ait fini de se jouer (2,6 s). */
+  if(flot9){ /* (2026-11-04/05, Sacha : « des animations pour les missions », « les barres qui avancent ») écran de mort v6 : chaque barre PART de où elle
+       en était au début de la partie et monte à où elle en est, son compte (« 5 / 10 → 8 / 10 ») avec elle, image par image, quand sa ligne est
+       entrée (1,45 s, puis 0,2 s de plus par ligne : la vague de gauche à droite finit ici) — une seule fois par mort ; au retour (garage, réglages)
+       tout est posé. La révélation d'une secrète attend que l'écran ait fini de se jouer (3 s). */
     const go=!REDUCED_MOTION&&!!TCTL.mortT&&objRenderV2._a!==TCTL.mortT;if(TCTL.mortT)objRenderV2._a=TCTL.mortT;el.classList.toggle('m6Joue',go);
     el.querySelectorAll('.obM6').forEach(function(r,j){const q=P9[j],i=r.querySelector('.obBar i'),b=r.querySelector('b');if(!q||!i||!b)return;i.style.transition='none';
-      const W=+i.getAttribute('data-w')||0,iv=Number.isInteger(q.v),pose=function(k){const e=1-Math.pow(1-k,3);i.style.width=(W*e).toFixed(2)+'%';b.innerHTML=m2Prog(q.m,iv?Math.round(q.v*e):q.v*e,q.t);};
+      const W0=+i.getAttribute('data-w0')||0,W1=+i.getAttribute('data-w')||0,iv=Number.isInteger(q.v)&&Number.isInteger(q.a),
+        pose=function(k){const e=1-Math.pow(1-k,3);i.style.width=(W0+(W1-W0)*e).toFixed(2)+'%';const x=q.a+(q.v-q.a)*e;b.innerHTML=m2Prog(q.m,iv?Math.round(x):x,q.t);};
       if(!go){pose(1);return;}pose(0);
-      setTimeout(function(){const t0=performance.now();(function f(){if(!i.isConnected)return;const k=Math.min(1,(performance.now()-t0)/1000);pose(k);if(k<1)requestAnimationFrame(f);})();},1250+j*150);});
-    if(go&&el.querySelector('.obM6'))setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none'&&el.isConnected)sfx('ui.jauge');}catch(e){}},1250);
-    m2RevAuto(2600);return;}
+      setTimeout(function(){const t0=performance.now();(function f(){if(!i.isConnected)return;const k=Math.min(1,(performance.now()-t0)/1000);pose(k);if(k<1)requestAnimationFrame(f);else{i.classList.add('m6Fin');}})();},1450+j*200);});
+    if(go&&el.querySelector('.obM6'))setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none'&&el.isConnected)sfx('ui.jauge');}catch(e){}},1450);
+    m2RevAuto(3000);return;}
   if(bars.length&&!REDUCED_MOTION&&TCTL.mortT&&objRenderV2._k!==TCTL.mortT){objRenderV2._k=TCTL.mortT;setTimeout(function(){try{if(started&&gameOver&&overlay.style.display!=='none'&&el.isConnected)sfx('ui.jauge');}catch(e){}},520);}
   setTimeout(function(){requestAnimationFrame(function(){bars.forEach(function(i){i.style.width=i.getAttribute('data-w')+'%';});});},REDUCED_MOTION?0:520);
   m2RevAuto(1400);} // une SECRÈTE trouvée pendant la partie : sa révélation, par-dessus l'écran de mort
@@ -238,15 +250,42 @@ document.addEventListener('click',function(e){const t=e.target&&e.target.closest
   if(typeof GAR!=='undefined'&&(GAR.go||ecranWipe._on))return;try{uiPop(t);}catch(x){}m2VaMission(t.getAttribute('data-m2voir'));},true);
 /* ===== LES MISSIONS v2 — LA RÉVÉLATION D'UNE SECRÈTE (2026-10-16, Sacha : « pour une SECRÈTE, une vraie scène de révélation : la silhouette
    noire se remplit de couleur, avec le nom de la voiture et l'intitulé de la mission enfin dévoilé. C'est le moment fort ») =====
-   #m2Rev, par-dessus tout : la nuit et ses rayons ; MISSION SECRÈTE ; la caisse en SILHOUETTE NOIRE (sa photo de studio, `carPhoto`) ;
-   0,7 s plus tard la couleur la remplit de bas en haut sous une ligne de lumière à la couleur de sa rareté (1,4 s, `ui.debloque`) ; son
-   NOM tombe (gerbe de pixels) ; l'INTITULÉ de la mission s'écrit lettre à lettre (`ui.lettre`) ; RÉCUPÈRE — la caisse est à toi (`m2Prend`,
-   `ui.achat` + `ui.tampon`). Toucher avant la fin = aller au bout ; Entrée / Espace / Échap aussi.
+   ===== L'AVANT-PREMIÈRE (2026-11-05, Sacha : « plus la voiture débloquée est rare, plus il doit y avoir une animation stylée ; les bandes à
+   l'arrière en mode le cirque, c'est pas stylé ; beaucoup plus épique, beaucoup plus solennel ») =====
+   Une avant-première dans le noir, en six temps ; plus la caisse est rare, plus la scène en joue (M2RV_PAL : commune 0 · rare 1 · épique 2 ·
+   légendaire 3 · mythique 4 · infinie 5 ; M2RV_T dit ce que chaque palier ajoute). Les secrètes donnent aujourd'hui des RARES et des
+   ÉPIQUES : ce sont elles qu'on voit le plus, elles ont déjà le noir, les bandes, la charge et les projecteurs ; au-dessus, ça monte :
+   1. LE NOIR — l'encre tombe, « MISSION SECRÈTE » entre deux filets ; dès la rare, les bandes du cinéma se ferment (haut et bas).
+   2. LA SILHOUETTE — un projecteur grésille et s'allume au-dessus de la caisse, encore NOIRE, cernée d'un liseré à la couleur de sa rareté ;
+      de la poussière flotte dans le faisceau.
+   3. LA CHARGE (rare et plus) — la caméra avance ; des battements de cœur (1 à 4) font flamber le liseré ; l'énergie converge vers la caisse ;
+      mythique : la foudre frappe à chaque battement ; infinie : les étoiles tournent en spirale vers elle.
+   4. L'ÉCLAT — commune : la couleur monte de bas en haut sous une ligne de lumière (la scène d'avant) ; au-dessus : le flash, les ondes, la
+      gerbe d'étincelles, la secousse, les bandes qui se rouvrent, et derrière la caisse les PROJECTEURS d'une avant-première qui balaient
+      le ciel (ils remplacent les rayons tournants « de cirque »).
+   5. LE NOM — la rareté et son logo s'espacent, le NOM tombe et frappe, l'intitulé s'écrit lettre à lettre, RÉCUPÈRE.
+   6. LA VIE — la caisse respire, un reflet passe sur la carrosserie ; braises (rare, plus denses à l'épique), pluie d'or et éclats
+      (légendaire), cendres rouges
+      et éclairs lointains (mythique), poussière d'étoiles et projecteurs arc-en-ciel (infinie).
+   La lumière qui bouge vit dans UNE toile 2D (RVX, en `lighter`) ; le reste est en CSS (opacités, transformations). Toucher avant la fin =
+   aller au bout ; Entrée / Espace / Échap aussi. « Réduire les animations » : tout est posé d'un coup, sans toile.
+   VOIR CHAQUE RARETÉ sans rien gagner : `?revelation=legendaire` (commun · rare · epique · legendaire · mythique · infini, ou le nom d'une
+   caisse) — ou dbgRevelation('mythique') à la console. RÉCUPÈRE n'y donne rien.
    LA FILE (m2RevFile) : les secrètes réussies dont la caisse n'est pas encore à toi, et déjà au garage (une retirée qui n'est pas encore
    revenue attend). Elle se joue sur l'écran de mort (1,4 s après lui), en ouvrant l'écran MISSIONS, en touchant une secrète qui brille,
-   ou à la console (dbgMissions('gagne',id)). Une à la fois ; la suivante enchaîne. « Réduire les animations » : tout est posé d'un coup. */
-const M2REV={on:false,id:null,t:0};
+   ou à la console (dbgMissions('gagne',id)). Une à la fois ; la suivante enchaîne. */
+const M2REV={on:false,id:null,t:0,demo:false,tm:[],tx:'',n:0};
 Object.assign(I18N,{'CONTINUER':'CONTINUE'});
+const M2RV_PAL={commun:0,rare:1,exotique:1,epique:2,legendaire:3,mythique:4,infini:5};
+/* par palier : ch = la charge (ms) · bat = ses battements (où, en part de la charge) · on = les ondes · ge = la gerbe · se = la secousse (px) · ph = les projecteurs */
+const M2RV_T=[
+  {ch:0,   bat:[],                 on:0,ge:0,  se:0, ph:0},
+  {ch:1300,bat:[.4,.8],            on:1,ge:64, se:6, ph:2},
+  {ch:1800,bat:[.28,.6,.86],       on:2,ge:96, se:9, ph:3},
+  {ch:2200,bat:[.26,.58,.86],      on:2,ge:130,se:11,ph:4},
+  {ch:2300,bat:[.24,.54,.82],      on:2,ge:150,se:14,ph:4},
+  {ch:2700,bat:[.2,.43,.64,.86],   on:3,ge:170,se:14,ph:5}];
+const M2RV_ARC=['#ff4d6d','#ffb03a','#ffe85e','#5ee37a','#5ec8ff','#b07dff','#ff8af0'];
 function m2RevFile(){const s=m2Etat();return M2.filter(function(m){return m.f==='secret'&&!!(m.r&&m.r.car)&&s.ok.indexOf(m.id)>=0&&s.pr.indexOf(m.id)<0&&m2Pret(m.id);}).map(function(m){return m.id;});}
 function m2RevAuto(delai){if(M2REV.on||!m2RevFile().length)return;clearTimeout(M2REV.t);
   M2REV.t=setTimeout(function(){if(M2REV.on||m2EnC()||m2RevVolet())return;if(m2RevAttend()){m2RevAuto(400);return;}const L=m2RevFile();if(L.length)m2Revele(L[0]);},delai||0);}
@@ -257,39 +296,198 @@ function m2RevAuto(delai){if(M2REV.on||!m2RevFile().length)return;clearTimeout(M
 function m2RevVolet(){try{return !!(typeof ecranWipe==='function'&&ecranWipe._on);}catch(e){return false;}} /* (2026-11-03, audit) LE VOLET EST BAISSÉ = une course se prépare dessous (REJOUER → rejoueAttend, jusqu'à 12 s, pendant lesquelles started&&gameOver tient encore) : une révélation qui s'ouvrait là restait PAR-DESSUS la course lancée (plein écran, elle prend les taps — la caisse roulait sans personne). On ne révèle jamais sous le volet ; la secrète reste dans m2RevFile et se montre à la fin de partie suivante. */
 function m2RevAttend(){try{return !!((typeof chanceAttend==='function'&&chanceAttend())||(typeof SPIN!=='undefined'&&SPIN.ouvert));}catch(e){return false;}}
 function m2Revele(id){const m=m2Def(id);if(!m||M2REV.on||m2EnC()||m2RevVolet())return false;const i=m2CarIdx((m.r||{}).car);if(i<0||carRetiree(i))return false;
-  M2REV.on=true;M2REV.id=id;
+  M2REV.demo=false;return m2RevScene(i,sansAcc(m2Txt(m)),id);}
+function m2RevSon(n,o){try{if(SONV2)sfx(n,o);}catch(e){}}
+function m2RevStop(){for(const t of M2REV.tm)clearTimeout(t);M2REV.tm.length=0;}
+function m2RevScene(i,texte,id,rf){ /* rf : une rareté imposée (l'essai d'un palier qui n'a pas encore de caisse) */
+  M2REV.on=true;M2REV.id=id;M2REV.tx=texte;m2RevStop();
   let el=document.getElementById('m2Rev');if(!el){el=document.createElement('div');el.id='m2Rev';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);}
-  const ri=rarInfo(carRar(i));el.style.setProperty('--rc',ri.c);el.setAttribute('aria-label',sansAcc(TR('MISSION SECRÈTE')));
-  el.innerHTML='<div class="m2RvFond"></div><div class="m2RvRayons"></div>'
-    +'<div class="m2RvBloc"><div class="m2RvHd">'+pxi('oeil')+' '+sansAcc(TR('MISSION SECRÈTE'))+'</div>'
-    +'<div class="m2RvPh"><img class="c" alt=""><img class="n" alt=""><i class="m2RvLigne"></i></div>'
-    +'<div class="m2RvRar">'+sansAcc(TR(ri.n1))+'</div><div class="m2RvNom">'+sansAcc(TR(CARS[i].name))+'</div>'
+  const r=rf||carRar(i),ri=rarInfo(r),n=M2RV_PAL[r]!=null?M2RV_PAL[r]:1,P=M2RV_T[n];M2REV.n=n;
+  el.style.setProperty('--rc',ri.c);el.style.setProperty('--ch',(P.ch||900)+'ms');el.setAttribute('aria-label',sansAcc(TR('MISSION SECRÈTE')));
+  let ph='';for(let k=0;k<P.ph;k++)ph+='<i class="m2RvPhare" style="--k:'+k+';--pc:'+(n===5?M2RV_ARC[(k*3)%7]:'var(--rc)')+'"></i>';
+  el.innerHTML='<div class="m2RvFond"></div>'
+    +'<div class="m2RvCadre"><div class="m2RvBloc"><div class="m2RvHd"><span>'+pxi('oeil')+' '+sansAcc(TR('MISSION SECRÈTE'))+'</span></div>'
+    +'<div class="m2RvScene"><div class="m2RvPhares">'+ph+'</div><i class="m2RvHalo"></i><i class="m2RvFaisceau"></i><i class="m2RvSol"></i>'
+    +'<div class="m2RvPh"><img class="g" alt=""><img class="c" alt=""><img class="n" alt=""><i class="m2RvReflet"></i><i class="m2RvLigne"></i></div></div>'
+    +'<div class="m2RvRar">'+pxi(RAR_LOGO[r]||'etoile')+'<span>'+sansAcc(TR(ri.n1))+'</span></div><div class="m2RvNom">'+sansAcc(TR(CARS[i].name))+'</div>'
     +'<div class="m2RvTx"><span></span></div>'
-    +'<div class="pbtn pb-gold m2RvBt" role="button" tabindex="0"><span>'+pxi('cadeau')+' '+sansAcc(TR('RÉCUPÈRE'))+'</span></div></div>';
-  el.className='';void el.offsetWidth;el.classList.add('on');
-  try{if(SONV2)sfx('ui.volet');}catch(e){}hap(10);
-  const imC=el.querySelector('img.c'),imN=el.querySelector('img.n');
-  const go=function(url){if(!M2REV.on||M2REV.id!==id)return;if(url){imC.src=url;imN.src=url;}else el.querySelector('.m2RvPh').classList.add('vide');
-    const T=function(f,ms){setTimeout(function(){if(M2REV.on&&M2REV.id===id)f();},REDUCED_MOTION?0:ms);};
-    T(function(){el.classList.add('plein');try{if(SONV2)sfx('ui.debloque');}catch(e){}hap([20,60,20,60,60]);},700);        // la silhouette se remplit de couleur
-    T(function(){el.classList.add('nom');try{pixBurst(el.querySelector('.m2RvNom'),12);}catch(e){}},2000);                      // le nom tombe
-    T(function(){el.classList.add('tx');m2RevTape(el.querySelector('.m2RvTx span'),sansAcc(m2Txt(m)),id);},2500);             // l'intitulé, enfin dévoilé
-    T(function(){el.classList.add('bt');},3300);};
-  try{carPhoto(i,go);}catch(e){go(null);} // la photo de studio (asynchrone) : la scène part quand elle est prête
+    +'<div class="pbtn pb-gold m2RvBt" role="button" tabindex="0"><span>'+pxi('cadeau')+' '+sansAcc(TR('RÉCUPÈRE'))+'</span></div></div>'
+    +'<canvas class="m2RvCv" aria-hidden="true"></canvas></div>'
+    +'<div class="m2RvBandes"></div><div class="m2RvFlash"></div>';
+  el.className='p'+n;void el.offsetWidth;el.classList.add('on');
+  try{const cd=el.querySelector('.m2RvCadre').getBoundingClientRect(),sc=el.querySelector('.m2RvScene').getBoundingClientRect(); /* la caisse au MILIEU de l'écran tant que son nom n'est pas là (le bloc remonte avec la rareté) */
+    el.style.setProperty('--dy',Math.max(0,Math.round(cd.top+cd.height/2-(sc.top+sc.height/2)))+'px');}catch(e){}
+  m2RevSon('ui.volet');hap(10);
+  const imC=el.querySelector('img.c'),imN=el.querySelector('img.n'),imG=el.querySelector('img.g'),ref=el.querySelector('.m2RvReflet');
+  const go=function(url){if(!M2REV.on||M2REV.id!==id)return;
+    if(url){imC.src=url;imN.src=url;imG.src=url;ref.style.webkitMaskImage=ref.style.maskImage='url("'+url+'")';m2RevBoite(url,function(b){if(M2REV.on&&M2REV.id===id)joue(b);});}
+    else{el.querySelector('.m2RvPh').classList.add('vide');joue(null);}};
+  const joue=function(b){
+    RVX.bx=b||{x0:.08,x1:.92,y0:.2,y1:.78};m2RevCadre(el);
+    if(REDUCED_MOTION){el.classList.add('bout','scene','plein','eclat','rar','nom','tx','bt','vit');el.querySelector('.m2RvTx span').textContent=texte;m2RevSon(n>=3?'caisse.debloquee':'ui.debloque');return;}
+    rvxDemarre(el,n);
+    const T=function(f,ms){M2REV.tm.push(setTimeout(function(){if(M2REV.on&&M2REV.id===id)f();},REDUCED_MOTION?0:ms));};
+    T(function(){el.classList.add('scene');RVX.pou=true;rvxMesure();},450);                                   /* le projecteur, la silhouette */
+    let t=1250;
+    if(n>0){
+      T(function(){el.classList.add('charge');RVX.ch=P.ch/1000;RVX.chT=0;m2RevSon('triade.revele',{vol:n>=3?2:n>=2?0:-3});},t);  /* la charge */
+      P.bat.forEach(function(f,k){T(function(){m2RevBat(el,k,n);},t+P.ch*f);});
+      t+=P.ch;T(function(){m2RevEclat(el,n,P);},t);                                                            /* l'éclat */
+      T(function(){el.classList.add('rar');},t+500);
+      T(function(){m2RevNom(el,n);},t+950);
+      T(function(){el.classList.add('tx');m2RevTape(el.querySelector('.m2RvTx span'),texte,id);},t+1450);
+      T(function(){el.classList.add('bt','vit');},t+2150);
+    }else{
+      T(function(){el.classList.add('plein');m2RevSon('ui.debloque');hap([20,60,20,60,60]);},t);              /* la couleur monte */
+      T(function(){el.classList.add('rar');RVX.vie=true;},t+1250);
+      T(function(){m2RevNom(el,n);},t+1600);
+      T(function(){el.classList.add('tx');m2RevTape(el.querySelector('.m2RvTx span'),texte,id);},t+2050);
+      T(function(){el.classList.add('bt','vit');},t+2700);
+    }};
+  try{carPhoto(i,go);}catch(e){go(null);} /* la photo de studio (asynchrone) : la scène part quand elle est prête */
   return true;}
+/* LA CAISSE DANS SA PHOTO : sa boîte (les pixels presque opaques ; le reflet du sol verni, translucide, n'y entre pas), pour poser le
+   sol, le projecteur, les phares et la toile sur ELLE et pas sur le cadre — une caisse longue et basse n'a pas ses roues où en a un camion */
+function m2RevBoite(url,cb){const im=new Image();let fait=false;const fin=function(b){if(!fait){fait=true;cb(b);}};
+  im.onload=function(){let b=null;try{const W=144,H=88,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');g.drawImage(im,0,0,W,H);
+    const d=g.getImageData(0,0,W,H).data;let x0=W,x1=-1,y0=H,y1=-1;
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(d[(y*W+x)*4+3]>200){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
+    if(x1-x0>8&&y1-y0>4)b={x0:x0/W,x1:(x1+1)/W,y0:y0/H,y1:(y1+1)/H};}catch(e){}fin(b);};
+  im.onerror=function(){fin(null);};setTimeout(function(){fin(null);},700);im.src=url;}
+function m2RevCadre(el){const b=RVX.bx,pc=function(v){return (v*100).toFixed(1)+'%';};
+  el.style.setProperty('--cx',pc((b.x0+b.x1)/2));el.style.setProperty('--cy',pc((b.y0+b.y1)/2));el.style.setProperty('--sol',pc(b.y1));el.style.setProperty('--cw',pc(b.x1-b.x0));
+  try{const s=el.querySelector('.m2RvScene').getBoundingClientRect();el.style.setProperty('--fa',(Math.atan(.62*(b.x1-b.x0)*s.width/Math.max(200,innerHeight))*57.3).toFixed(1)+'deg');}catch(e){}}
+function m2RevBat(el,k,n){ /* un battement de cœur : le liseré flambe, la caisse bat, la caméra frémit */
+  el.classList.remove('bat');void el.offsetWidth;el.classList.add('bat');
+  m2RevSon('fig.battement',{var:0,st:k*2,vol:2+k});hap(28+k*12);
+  RVX.se=Math.max(RVX.se,2+k*1.5);rvxOnde(0,.55,2,.5);
+  if(n===4){rvxFoudre(1+(k>0?1:0));m2RevSon('foudre.eclair',{vol:-6+k*2});el.classList.remove('eclair');void el.offsetWidth;el.classList.add('eclair');}}
+function m2RevEclat(el,n,P){
+  el.classList.remove('charge','bat','eclair');el.classList.add('eclat','plein');
+  RVX.ch=0;rvxEclat(n,P);
+  if(n===1){m2RevSon('depart.logo');m2RevSon('ui.debloque',{t:.12});}
+  else if(n===2){m2RevSon('combo.sceau',{var:1});m2RevSon('caisse.debloquee',{t:.3});}
+  else if(n===3){m2RevSon('depart.logo');m2RevSon('pose.divin',{t:.06});}
+  else if(n===4){m2RevSon('combo.sceau',{var:2});m2RevSon('pose.divin',{t:.12});m2RevSon('foudre.eclair',{vol:-2});}
+  else{m2RevSon('frenesie.entre');m2RevSon('pose.divin',{t:.3});}
+  hap(n>=3?[60,40,90,50,140]:[40,40,80]);}
+function m2RevNom(el,n){el.classList.add('nom');m2RevSon('ui.tampon',{vol:n>=3?3:0});hap(n>=2?40:20);
+  setTimeout(function(){if(!M2REV.on)return;RVX.se=Math.max(RVX.se,n>=2?3+n:0);rvxPoussiere(el.querySelector('.m2RvNom'));},REDUCED_MOTION?0:230);}
 function m2RevTape(sp,t,id){if(!sp)return;if(REDUCED_MOTION){sp.textContent=t;return;}let k=0;
-  const pas=function(){if(!M2REV.on||M2REV.id!==id)return;k++;sp.textContent=t.slice(0,k);if(k%3===1)try{if(SONV2)sfx('ui.lettre',{vol:-8});}catch(e){}if(k<t.length)setTimeout(pas,28);};pas();}
-function m2RevFerme(){const el=document.getElementById('m2Rev'),id=M2REV.id,m=m2Def(id);if(!M2REV.on||!el)return;
-  if(!el.classList.contains('bt')){el.classList.add('plein','nom','tx','bt');const sp=el.querySelector('.m2RvTx span');if(sp&&m)sp.textContent=sansAcc(m2Txt(m));return;} // pas fini : au bout
-  m2Prend(id);try{carSnapshot();}catch(e){}
+  const pas=function(){if(!M2REV.on||M2REV.id!==id)return;k++;sp.textContent=t.slice(0,k);if(k%3===1)m2RevSon('ui.lettre',{vol:-8});if(k<t.length)setTimeout(pas,26);};pas();}
+function m2RevBout(el){ /* toucher avant la fin : tout est posé, sans flash ni battement en retard */
+  m2RevStop();el.classList.remove('charge','bat','eclair');el.classList.add('bout','scene','plein','eclat','rar','nom','tx','bt','vit');
+  const sp=el.querySelector('.m2RvTx span');if(sp)sp.textContent=M2REV.tx;
+  RVX.ch=0;RVX.pou=true;RVX.vie=true;RVX.P=RVX.P.filter(function(p){return p.k!=='imp'&&p.k!=='eto';});RVX.F.length=0;rvxMesure();}
+function m2RevFerme(){const el=document.getElementById('m2Rev'),id=M2REV.id;if(!M2REV.on||!el)return;
+  if(!el.classList.contains('bt')){m2RevBout(el);return;} /* pas fini : au bout */
+  const demo=M2REV.demo;
+  if(!demo){m2Prend(id);try{carSnapshot();}catch(e){}}
   try{pixBurst(el.querySelector('.m2RvBt'),12);}catch(e){}try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.2});}else uiClic('ok');}catch(e){}hap([12,40,30]);
-  el.classList.add('fin');M2REV.on=false;M2REV.id=null;
-  setTimeout(function(){el.className='';el.innerHTML='';
+  m2RevStop();el.classList.add('fin');M2REV.on=false;M2REV.id=null;M2REV.demo=false;
+  setTimeout(function(){if(M2REV.on)return;el.className='';el.innerHTML='';
+    if(demo)return;
     try{if(garageOn&&gEl.classList.contains('missions'))m2Render(true);}catch(e){}try{m2Portes();}catch(e){}
     try{const ob=document.querySelector('.mObj.misPorte');if(ob&&started&&gameOver)objRenderV2(ob);}catch(e){}
-    m2RevAuto(500);},REDUCED_MOTION?0:420);}
+    m2RevAuto(500);},REDUCED_MOTION?0:520);}
 document.addEventListener('click',function(e){const el=document.getElementById('m2Rev');if(!el||!M2REV.on||!el.contains(e.target))return;e.stopPropagation();e.preventDefault();m2RevFerme();},true);
 document.addEventListener('keydown',function(e){if(!M2REV.on)return;if(e.code==='Enter'||e.code==='Space'||e.code==='Escape'){e.preventDefault();e.stopPropagation();m2RevFerme();}},true);
+/* LA TOILE DE LUMIÈRE (RVX) : une toile plein écran dans le cadre (elle tremble avec lui), en `lighter`. Ses habitants (P) : pou = la poussière
+   du faisceau · imp = l'énergie qui converge (la charge) · eti = la gerbe d'étincelles · bra = les braises qui montent · or = la pluie d'or
+   (légendaire ; arc-en-ciel pour l'infinie) · eto = les étoiles (infinie). O = les ondes · F = la foudre · G = les éclats sur la carrosserie.
+   Le téléphone (ALLEGE) en fait moins et dessine la toile à 1,5 px par point au plus. Elle s'arrête d'elle-même quand #m2Rev se vide. */
+const RVX={bx:{x0:.08,x1:.92,y0:.2,y1:.78},cv:null,cx:null,raf:0,P:[],O:[],F:[],G:[],W:0,H:0,dpr:1,x:0,y:0,w:0,h:0,n:0,t:0,ch:0,chT:0,se:0,last:0,cadre:null,ph:null,pou:false,vie:false,gT:0,fT:0,col:['#fff']};
+function rvxAl(){try{return !!ALLEGE;}catch(e){return false;}}
+function rvxDemarre(el,n){const R=RVX;R.P.length=0;R.O.length=0;R.F.length=0;R.G.length=0;R.n=n;R.t=0;R.ch=0;R.se=0;R.pou=false;R.vie=false;R.gT=1;R.fT=3;R.last=0;
+  R.cv=el.querySelector('.m2RvCv');R.cadre=el.querySelector('.m2RvCadre');R.ph=el.querySelector('.m2RvPh');if(!R.cv||REDUCED_MOTION){R.cv=null;return;}
+  R.cx=R.cv.getContext('2d');const rc=getComputedStyle(el).getPropertyValue('--rc').trim()||'#fff';
+  R.col=n===5?M2RV_ARC:n===4?[rc,'#ff8a3d','#ffd0a0']:n===3?[rc,'#fff3c4','#ffb81f']:[rc,'#ffffff'];
+  rvxMesure();if(n===5)rvxEtoiles();if(!R.raf)R.raf=requestAnimationFrame(rvxBoucle);}
+function rvxMesure(){const R=RVX;if(!R.cv)return;const W=innerWidth,H=innerHeight,d=Math.min(window.devicePixelRatio||1,rvxAl()?1.5:2);
+  if(W!==R.W||H!==R.H||d!==R.dpr){R.W=W;R.H=H;R.dpr=d;R.cv.width=Math.round(W*d);R.cv.height=Math.round(H*d);}
+  const a=R.ph.getBoundingClientRect(),b=R.cadre.getBoundingClientRect(),x=R.bx;
+  R.w=a.width*(x.x1-x.x0);R.h=a.height*(x.y1-x.y0);R.x=a.left-b.left+a.width*(x.x0+x.x1)/2;R.y=a.top-b.top+a.height*(x.y0+x.y1)/2;}
+addEventListener('resize',function(){if(M2REV.on)rvxMesure();});
+function rvxNe(o){const R=RVX;if(R.P.length<(rvxAl()?320:520))R.P.push(o);}
+function rvxCoul(){const c=RVX.col;return c[(Math.random()*c.length)|0];}
+function rvxOnde(retard,duree,ep,al){const R=RVX;R.O.push({t:-(retard||0),d:duree||.8,r0:R.w*.12,r1:Math.max(R.W,R.H)*(duree<.6?.32:.8),ep:ep||6,al:al||1});}
+function rvxFoudre(nb){const R=RVX;for(let q=0;q<(nb||1);q++){const pts=[],x0=R.x+(Math.random()*2-1)*R.W*.3,y1=R.y-R.h*.12,N=12;
+  for(let k=0;k<=N;k++){const f=k/N;pts.push([x0+(R.x-x0)*f+(k&&k<N?(Math.random()*2-1)*28:0),-12+(y1+12)*f]);}
+  R.F.push({t:0,d:.26,pts:pts});}}
+function rvxEclat(n,P){const R=RVX;if(!R.cv)return;rvxMesure();
+  R.P=R.P.filter(function(p){return p.k!=='imp';});
+  const k9=Math.min(R.W,R.H)/420,N=rvxAl()?Math.round(P.ge*.7):P.ge;
+  for(let q=0;q<N;q++){const a=Math.random()*6.2832,v=(220+Math.random()*760)*k9;
+    rvxNe({k:'eti',x:R.x+Math.cos(a)*R.w*.08,y:R.y+Math.sin(a)*R.h*.08,vx:Math.cos(a)*v,vy:Math.sin(a)*v*.8-90*k9,v:.7+Math.random()*.9,V:1.6,s:2+Math.random()*2.2,c:q%4?rvxCoul():'#fff'});}
+  for(let q=0;q<P.on;q++)rvxOnde(q*.14,.75+q*.2,5-q*1.2,.85-q*.2);
+  for(const p of R.P)if(p.k==='eto'){const a=Math.atan2(p.y-R.y,p.x-R.x),v=(500+Math.random()*900)*k9;p.vx=Math.cos(a)*v;p.vy=Math.sin(a)*v;p.lib=1;p.v=Math.min(p.v,1.4);}
+  if(n===3||n===5){const nb=rvxAl()?44:80;for(let q=0;q<nb;q++)rvxNe({k:'or',x:Math.random()*R.W,y:-10-Math.random()*R.H*.7,vx:(Math.random()*2-1)*14,vy:(70+Math.random()*80)*k9,v:9,V:9,
+    s:3+Math.random()*3,a:Math.random()*6.3,w:4+Math.random()*7,c:n===5?M2RV_ARC[q%7]:(q%3?'#ffd75e':q%2?'#fff3c4':'#ffb81f')});}
+  R.se=P.se;R.vie=true;R.gT=.6;}
+function rvxEtoiles(){const R=RVX,N=rvxAl()?70:120,M=Math.hypot(R.W,R.H)*.55;
+  for(let q=0;q<N;q++)R.P.push({k:'eto',r:R.w*.5+Math.random()*M,a:Math.random()*6.2832,om:(.25+Math.random()*.3)*(q%5?1:-1),v:99,V:99,s:1+Math.random()*2,c:M2RV_ARC[q%7],x:0,y:0,vx:0,vy:0});}
+function rvxPoussiere(nom){const R=RVX;if(!R.cv||!nom)return;const a=nom.getBoundingClientRect(),b=R.cadre.getBoundingClientRect(),y=a.bottom-b.top-4;
+  for(let q=0;q<(R.n>=2?22:12);q++){const s=Math.random()<.5?-1:1;rvxNe({k:'eti',x:a.left-b.left+Math.random()*a.width,y:y,vx:s*(40+Math.random()*160),vy:-(20+Math.random()*70),v:.4+Math.random()*.4,V:.8,s:2,c:q%3?'#ffffff':rvxCoul(),g:.3});}}
+function rvxNaissances(dt){const R=RVX,al=rvxAl();
+  if(R.pou){let nb=0;for(const p of R.P)if(p.k==='pou')nb++;
+    if(nb<(al?16:28)&&Math.random()<dt*14)rvxNe({k:'pou',x:R.x+(Math.random()*2-1)*R.w*.42,y:R.y-R.h*(.2+Math.random()*1.3),vx:(Math.random()*2-1)*7,vy:3+Math.random()*7,v:3+Math.random()*3,V:6,s:1.5+Math.random(),c:'#ffffff',a:.25+Math.random()*.3});}
+  if(R.ch>0){R.chT+=dt;const f=Math.min(1,R.chT/R.ch),taux=(20+R.n*12)*(1+f*3)*(al?.6:1);
+    let q=taux*dt;while(q>0){if(Math.random()<q){const a=Math.random()*6.2832,d=Math.max(R.W,R.H)*(.32+Math.random()*.3);
+      rvxNe({k:'imp',x:R.x+Math.cos(a)*d,y:R.y+Math.sin(a)*d*.75,v:1.6,V:1.6,s:1.5+Math.random()*1.5,c:Math.random()<.35?'#fff':rvxCoul(),sp:120+Math.random()*120});}q-=1;}}
+  if(R.vie){
+    if(R.n>=1){let nb=0;for(const p of R.P)if(p.k==='bra')nb++;const cible=al?[0,6,10,12,18,14][R.n]:[0,10,16,20,30,24][R.n];
+      if(nb<cible&&Math.random()<dt*9)rvxNe({k:'bra',x:R.x+(Math.random()*2-1)*Math.min(R.W*.48,R.w*1.1),y:R.y+R.h*(.25+Math.random()*.4),vx:0,vy:-(18+Math.random()*44),v:2.6+Math.random()*2.8,V:5,s:2+Math.random()*1.6,c:rvxCoul(),ph:Math.random()*6.3});}
+    if(R.n>=3){R.gT-=dt;if(R.gT<=0){R.gT=.7+Math.random()*1.1;R.G.push({t:0,d:.55,x:R.x+(Math.random()*2-1)*R.w*.3,y:R.y+(Math.random()*.5-.32)*R.h,s:7+Math.random()*9});}}
+    if(R.n===4){R.fT-=dt;if(R.fT<=0){R.fT=2.6+Math.random()*3;const x0=Math.random()<.5?R.W*(.04+Math.random()*.2):R.W*(.76+Math.random()*.2),pts=[];
+      for(let k=0;k<=9;k++)pts.push([x0+(Math.random()*2-1)*(k?24:0),-10+k*R.H*.06]);R.F.push({t:0,d:.2,pts:pts,loin:1});}}
+    if(R.n===5){let nb=0;for(const p of R.P)if(p.k==='eto')nb++;if(nb<(al?40:70)&&Math.random()<dt*12)R.P.push({k:'eto',x:Math.random()*R.W,y:Math.random()*R.H,fixe:1,v:2+Math.random()*3,V:5,s:1+Math.random()*1.5,c:M2RV_ARC[(Math.random()*7)|0],vx:0,vy:0});}}}
+function rvxBoucle(ts){const R=RVX;
+  if(!R.cv||!R.cv.isConnected){R.raf=0;R.P.length=0;R.O.length=0;R.F.length=0;R.G.length=0;R.cv=null;return;}
+  const dt=Math.min(.05,R.last?(ts-R.last)/1000:.016);R.last=ts;R.t+=dt;
+  const c=R.cx,k9=Math.min(R.W,R.H)/420;c.setTransform(R.dpr,0,0,R.dpr,0,0);c.clearRect(0,0,R.W,R.H);c.globalCompositeOperation='lighter';
+  if(M2REV.on){rvxMesure();rvxNaissances(dt);} /* le bloc remonte, la caméra avance : la toile suit la caisse */
+  const ff=R.ch>0?Math.min(1,R.chT/R.ch):0;
+  for(let q=R.P.length-1;q>=0;q--){const p=R.P[q];p.v-=dt;if(p.v<=0||(p.k==='eto'&&p.lib&&(p.x<-20||p.x>R.W+20||p.y<-20||p.y>R.H+20))){R.P[q]=R.P[R.P.length-1];R.P.pop();continue;}
+    let al=1;
+    if(p.k==='pou'){p.x+=p.vx*dt;p.y+=p.vy*dt;al=p.a*Math.min(1,(p.V-p.v)/.8,p.v/.8);c.globalAlpha=al;c.fillStyle=p.c;c.fillRect(p.x,p.y,p.s,p.s);continue;}
+    if(p.k==='imp'){const dx=R.x-p.x,dy=R.y-p.y,d=Math.hypot(dx,dy);if(d<R.w*.1){R.P[q]=R.P[R.P.length-1];R.P.pop();continue;}
+      p.sp+=(500+ff*900)*k9*dt;const ux=dx/d,uy=dy/d,l=Math.min(d,6+p.sp*.05);p.x+=ux*p.sp*dt;p.y+=uy*p.sp*dt;
+      c.globalAlpha=Math.min(1,(p.V-p.v)/.25)*.85;c.strokeStyle=p.c;c.lineWidth=p.s;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x-ux*l,p.y-uy*l);c.stroke();continue;}
+    if(p.k==='eti'){const dr=Math.exp(-dt*2.6);p.vx*=dr;p.vy=p.vy*dr+(p.g!=null?p.g:1)*320*k9*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;al=Math.min(1,p.v/(p.V*.5));
+      c.globalAlpha=al;c.strokeStyle=p.c;c.lineWidth=p.s;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x-p.vx*.025,p.y-p.vy*.025);c.stroke();continue;}
+    if(p.k==='bra'){p.ph+=dt*2.2;p.x+=Math.sin(p.ph)*16*dt;p.y+=p.vy*dt;al=Math.min(1,(p.V-p.v)/.6,p.v/1.2)*(.55+.45*Math.sin(p.ph*3.1));
+      c.globalAlpha=Math.max(0,al);c.fillStyle=p.c;c.fillRect(p.x,p.y,p.s,p.s);continue;}
+    if(p.k==='or'){p.a+=dt*p.w;p.x+=(p.vx+Math.sin(p.a*.7)*22)*dt;p.y+=p.vy*dt;if(p.y>R.H+12)p.v=0;
+      c.globalCompositeOperation='source-over';c.globalAlpha=Math.min(1,p.v/1.5);c.fillStyle=p.c;const lw=Math.max(1,Math.abs(Math.cos(p.a))*p.s*1.6);c.fillRect(p.x-lw/2,p.y,lw,p.s);c.globalCompositeOperation='lighter';continue;}
+    if(p.k==='eto'){if(p.fixe){al=Math.sin(Math.PI*(1-p.v/p.V))*.9;}
+      else if(p.lib){p.x+=p.vx*dt;p.y+=p.vy*dt;al=1;}
+      else{p.a+=p.om*(1+ff*7)*dt;if(R.ch>0)p.r*=Math.exp(-dt*ff*1.4);p.x=R.x+Math.cos(p.a)*p.r;p.y=R.y+Math.sin(p.a)*p.r*.8;al=Math.min(1,R.t*.8)*(.5+.5*Math.sin(R.t*3+p.r));}
+      c.globalAlpha=Math.max(0,al);c.fillStyle=p.c;c.fillRect(p.x,p.y,p.s,p.s);if(p.lib){c.strokeStyle=p.c;c.lineWidth=p.s;c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x-p.vx*.03,p.y-p.vy*.03);c.stroke();}}}
+  for(let q=R.O.length-1;q>=0;q--){const o=R.O[q];o.t+=dt;if(o.t<0)continue;const f=o.t/o.d;if(f>=1){R.O.splice(q,1);continue;}
+    const e=1-Math.pow(1-f,3),rr=o.r0+(o.r1-o.r0)*e;c.globalAlpha=(1-f)*o.al;c.strokeStyle=R.col[0];c.lineWidth=o.ep*(1-f)+1;c.beginPath();c.ellipse(R.x,R.y+R.h*.18,rr,rr*.42,0,0,6.2832);c.stroke();
+    c.globalAlpha=(1-f)*o.al*.7;c.strokeStyle='#fff';c.lineWidth=Math.max(1,o.ep*.35*(1-f));c.stroke();}
+  for(let q=R.F.length-1;q>=0;q--){const b=R.F[q];b.t+=dt;if(b.t>=b.d){R.F.splice(q,1);continue;}if(((b.t*40)|0)%3===1)continue;
+    const al=(1-b.t/b.d)*(b.loin?.45:1);c.beginPath();c.moveTo(b.pts[0][0],b.pts[0][1]);for(const pt of b.pts)c.lineTo(pt[0],pt[1]);
+    c.globalAlpha=al*.45;c.strokeStyle=R.col[0];c.lineWidth=b.loin?5:11;c.stroke();c.globalAlpha=al;c.strokeStyle='#fff';c.lineWidth=b.loin?1.5:3;c.stroke();}
+  for(let q=R.G.length-1;q>=0;q--){const g=R.G[q];g.t+=dt;if(g.t>=g.d){R.G.splice(q,1);continue;}const s=Math.sin(Math.PI*g.t/g.d),l=g.s*s;
+    c.globalAlpha=s;c.fillStyle='#fff';c.fillRect(g.x-l,g.y-1,l*2,2);c.fillRect(g.x-1,g.y-l,2,l*2);c.fillRect(g.x-2,g.y-2,4,4);}
+  c.globalAlpha=1;c.globalCompositeOperation='source-over';
+  if(R.se>.25&&R.cadre){R.se*=Math.exp(-dt*6.5);R.cadre.style.transform='translate('+((Math.random()*2-1)*R.se).toFixed(1)+'px,'+((Math.random()*2-1)*R.se).toFixed(1)+'px)';}
+  else if(R.se&&R.cadre){R.se=0;R.cadre.style.transform='';}
+  R.raf=requestAnimationFrame(rvxBoucle);}
+/* VOIR UNE RARETÉ SANS RIEN GAGNER : dbgRevelation('legendaire' | nom de caisse | index) — et `?revelation=…` la joue sur l'accueil */
+window.dbgRevelation=function(q){if(M2REV.on)return 'déjà ouverte';let i=-1,rf=null;
+  if(typeof q==='number')i=q;else{const k=String(q||'legendaire').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/s$/,'');
+    const r=k==='commune'?'commun':k==='infinie'?'infini':k;
+    if(M2RV_PAL[r]!=null){let L=rarListe(r);if(!L.length){rf=r;for(const r2 of ['legendaire','epique','rare','commun']){L=rarListe(r2);if(L.length)break;}} /* pas encore de caisse de ce palier : la plus belle qu'on ait, jouée à ce palier */
+      i=L.length?L[L.length-1]:-1;}
+    else i=CARS.findIndex(function(c){return c&&String(c.name).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')===k;});}
+  if(i<0||!CARS[i])return 'aucune caisse pour : '+q;
+  const sec=M2.filter(function(m){return m.f==='secret'&&m.r&&m.r.car;}),m=sec.find(function(x){return x.r.car===CARS[i].name;})||sec[(Math.random()*sec.length)|0];
+  M2REV.demo=true;m2RevScene(i,m?sansAcc(m2Txt(m)):'','demo',rf);return CARS[i].name+' — '+(rf||carRar(i))+(rf?' (palier essayé avec '+carRar(i)+')':'');};
+(function(){let q='';try{q=new URLSearchParams(location.search).get('revelation')||'';}catch(e){}if(!q)return;let n=0;
+  const iv=setInterval(function(){n++;if(n>600){clearInterval(iv);return;}let ok=false;try{ok=bienvPret();}catch(e){}if(!ok)return;clearInterval(iv);
+    setTimeout(function(){try{console.log('révélation :',window.dbgRevelation(q));}catch(e){console.warn(e);}},600);},500);})();
 // rampCd empêche de re-déclencher un bec de glace en reposant dessus ; fallStartSide mémorise la FACE de décollage (la bascule du bord).
 let rampCd=0,fallStartSide=1;
 let bounceN=0,airFlash=0; // BUMPS : rebonds sur la tranche de la dalle pendant CE vol

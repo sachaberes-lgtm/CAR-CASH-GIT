@@ -6,10 +6,10 @@ function gStripHabits(cat,i){
   const st=$('gStrip'),bar=$('gRar');if(!st)return;const L=COSM[cat],md=gModeM(),fi=md==='inv'?'moi':md==='shop'?'achat':md==='tous'?'prix':(SHOP.filtre||'tout'); // (2026-10-09) INVENTAIRE = à moi, BOUTIQUE = à acheter
   try{gModeBoutons();}catch(e){}
   const k='cos:'+md+':'+cat+':'+fi+':'+L.map(function(x){return shopOwned(cat,x.id)?1:0;}).join('')+':'+shopEqD(cat).id+(cat==='figure'&&window.FIG?':'+figSlots().join(','):''); // (L'INVENTAIRE ILLUSTRÉ) une figure équipée ailleurs refait la bande
-  const garde=function(d){const a=shopOwned(cat,d.id);return fi==='tout'||(fi==='prix'?!!(d.p||d.eur):fi==='moi'?a:(!a&&!!(d.p||d.eur)));}; // (2026-10-10) SEE ALL ITEMS : tout ce qui a un prix, à toi ou pas // À ACHETER = en vente et pas à toi (les défis se gagnent)
+  const garde=function(d){const a=shopOwned(cat,d.id);if(cat==='peinture'&&peintCachee(d))return false;return fi==='tout'||(fi==='prix'?!!(d.p||d.eur):fi==='moi'?a:(!a&&!!(d.p||d.eur)));}; // (2026-10-10) SEE ALL ITEMS : tout ce qui a un prix, à toi ou pas // À ACHETER = en vente et pas à toi (les défis se gagnent)
   if(bar&&bar._k!==k&&md!=='tout'){bar._k=k;bar._on=null;let n9=0;for(const d of L)if(garde(d))n9++;gModeTete(bar,md,n9);} // (2026-10-09) en mode, la barre dit le MODE
   else if(bar&&bar._k!==k){bar._k=k;bar._on=null;bar.classList.remove('gModeBar'); // la barre des familles devient celle des FILTRES (même touche, même place)
-    const nb=function(f){let n=0;for(const d of L){const a=shopOwned(cat,d.id);if(f==='tout'||(f==='moi'?a:(!a&&!!(d.p||d.eur))))n++;}return n;};
+    const nb=function(f){let n=0;for(const d of L){const a=shopOwned(cat,d.id);if(cat==='peinture'&&peintCachee(d))continue;if(f==='tout'||(f==='moi'?a:(!a&&!!(d.p||d.eur))))n++;}return n;};
     bar.innerHTML=[['tout','TOUT','var(--tx2)'],['moi','À MOI','var(--neoV)'],['achat','À ACHETER','var(--neoC)']].map(function(f){
       return '<button class="gR gF'+(f[0]===fi?' on':'')+'" data-f="'+f[0]+'" role="tab" aria-selected="'+(f[0]===fi)+'" style="--rc:'+f[2]+'"><span class="gRn">'+sansAcc(TR(f[1]))+'</span><b>'+nb(f[0])+'</b></button>';}).join('');}
   if(st._r!==k){st._r=k;st._n=-1;

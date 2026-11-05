@@ -70,7 +70,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
   foretVide();
   if(PARK.on||!LVL.cur||LVL.cur.id!=='foret'||!(NP>1))return;
   const t0=performance.now(),M=foretMats(),PT=foretProtos(),fr=mulberry32((seed^0xF0E57)>>>0),fw=mulberry32((seed^0x5A01E)>>>0),MOB=PAL_B9('foretArbres',1)*(ALLEGE?.8:1),ds=L/(NP-1);FORET.b0=PAL_B9('foretB0',270);FORET.b1=ALLEGE?Math.min(480,PAL_B9('foretB1',760)):PAL_B9('foretB1',760); /* (2026-11-03, maps cohérentes) LE TÉLÉPHONE RÉCENT PASSE AU DÉTAIL LOINTAIN À 480 m (le palier MOYEN) au lieu de 540 : MESURÉ, les géants au détail fin (5-8 k triangles chacun) font 70 % des triangles de la forêt ; le palier MOYEN (iPhone XR/11) bascule déjà à 480 — sur un écran de téléphone, l'écart entre les deux détails d'un géant à 500 m est minime. L'ordi garde 540. */
-  FORET.graine=(seed>>>0)%100000;FORET.seed=seed;FORET.zonesNu=[];FORET.met=LVL.cur.meteo||'midi';FORET.n={};
+  FORET.graine=(seed>>>0)%100000;FORET.seed=seed;FORET.zonesNu=[];yield* foretSentiersCalc(); /* (2026-11-05, LES SENTIERS DE LUCIOLES) les raccourcis balisés et leur couloir, avant tout arbre */ FORET.met=LVL.cur.meteo||'midi';FORET.n={};
   const DZ=FOR_DECOR?forDecoTire(seed):null,dz2=mulberry32((seed^0xB015E)>>>0);FORET.dz=DZ;FORET.deco=DZ?DZ.li:null; /* (LE DÉCOR AU HASARD) le tirage, et le flux des placements neufs */
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);FORET.root=root;trackMeshes.push(root);
   const S=yield* foretSol(),tS=performance.now();
@@ -98,7 +98,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
   const CLR=[];if(DZ)for(let k=0;k<DZ.clair+DZ.crom;k++){const cr9=k>=DZ.clair;for(let e=0;e<10;e++){const f=.08+dz2()*.84,i=Math.round(f*(NP-1)),l9=lat9(i),sd=dz2()<.5?-1:1,R=cr9?30+dz2()*10:48+dz2()*32,lat=ROAD_HALF+R+(cr9?35+dz2()*55:6+dz2()*40),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
     let ok=true;for(const c of CLR)if(Math.hypot(c[0]-x,c[1]-z)<c[2]+R+60)ok=false;proches(x,z,R+ROAD_HALF+20,function(j){if(ok&&Math.abs(j-i)*ds>500&&Math.hypot(pts[j].x-x,pts[j].z-z)<R+ROAD_HALF+20)ok=false;});
     if(!ok)continue;CLR.push([x,z,R,i,cr9?1:0]);zone(x,z,R);break;}}
-  FORET.clr=CLR;
+  FORET.clr=CLR;for(const c of FORET.sentZ||[])zone(c[0],c[1],c[2]); /* (LES SENTIERS DE LUCIOLES) le couloir du fil : ni arbre, ni rocher, ni fleur */
   // ---- 1. LES GÉANTS : à la corde de chaque virage, en quinconce le long des droites, au cœur des boucles, en colonnade, et LA FUTAIE ----
   /* (2026-10-15, LA PELOTE — Sacha : « des arbres beaucoup, beaucoup plus hauts, beaucoup plus grands » · « qu'on puisse passer entre les
      arbres pour changer de route ») Un géant pose son pied au fond et ouvre sa couronne AU-DESSUS DE LA ROUTE LA PLUS HAUTE à sa portée
@@ -109,7 +109,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
     let yH=-1e9,dM=1e9,iM=-1;proches(x,z,R9,function(j){const q=pts[j],dh=Math.hypot(q.x-x,q.z-z);if(dh<R9&&q.y>yH)yH=q.y;if(dh<dM){dM=dh;iM=j;}});
     if(iM<0){const yb9=solBil(S.yb,x,z);yH=yb9<1e4?yb9:base+120;} // (aucune route à portée de couronne : la plus basse des environs sert de repère)
     const sy=THREE.MathUtils.clamp((yH-base+(sp==='sequoia'?45+fr()*150:24+fr()*36)*(FORET_VASTE?FOR_VASTE.geant:1))/cb,sp==='sequoia'?.9:.7,FORET_VASTE?6:4.4),sxz=Math.sqrt(sy)*(.84+fr()*.2),rT=FOR_GEANT_RB[sp]*sxz,cr=meta.cr*sxz;
-    if(base+cb*sy-16<yH)return false; // (la couronne plafonnée passerait dans une route)
+    if(base+cb*sy-16<yH)return false;for(const c of FORET.sentZ||[])if(Math.hypot(c[0]-x,c[1]-z)<c[2]+rT)return false; /* (LES SENTIERS DE LUCIOLES) jamais un tronc dans le couloir d'un fil */ // (la couronne plafonnée passerait dans une route)
     for(const g of GE){const d=Math.hypot(g.x-x,g.z-z);if(d<Math.max((g.rT+rT)*2.4+25,(g.cr+cr)*.5))return false;}
     let ok=true;proches(x,z,rT+ROAD_HALF+6,function(j){if(!ok)return;const q=pts[j];if(Math.hypot(q.x-x,q.z-z)<rT+ROAD_HALF+5)ok=false;});
     if(!ok)return false;
