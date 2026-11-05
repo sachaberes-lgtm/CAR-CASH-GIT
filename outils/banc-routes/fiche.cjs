@@ -10,9 +10,9 @@ for(const f of files){const o=JSON.parse(fs.readFileSync(path.join(dir,f),'utf8'
   const k=o.carte+' p'+o.palier;let A=agg[k];if(!A)A=agg[k]={carte:o.carte,pal:o.palier,n:0,note:[],L:[],s:[],virKm:[],serreKm:[],infr:[],droiteS:[],droites5:[],enchKm:[],spirMax:[],spirales:[],coudes:[],cretes:[],penteP95:[],montee:[],descente:[],rMinRP:[],ms:[]};
   A.n++;A.note.push(o.note);for(const key of Object.keys(A))if(Array.isArray(A[key])&&key!=='note'&&key!=='ms')A[key].push(o.fiche[key]);A.ms.push(o.ms);
   if(PNG)dessine(o,path.join(dir,f.replace(/\.json$/,'.png')));}
-console.log('map      pal  n  note   L     s   vir/km serré infr droite(s) >5s ench/km spir° spir coudes crêtes p95   montée desc  rMin/rP  ms');
+console.log('map      pal  n  note   L     s   vir/km serré infr droite(s) >5s ench/km spir°/max spir coudes crêtes p95   montée desc  rMin/rP  ms');
 for(const k of Object.keys(agg).sort()){const A=agg[k];
-  console.log(`${A.carte.padEnd(8)} ${String(A.pal).padStart(2)} ${String(A.n).padStart(2)}  ${mean(A.note).toFixed(1).padStart(5)} ${mean(A.L).toFixed(0).padStart(5)} ${mean(A.s).toFixed(0).padStart(4)}  ${mean(A.virKm).toFixed(1).padStart(5)} ${mean(A.serreKm).toFixed(2).padStart(5)} ${mean(A.infr).toFixed(0).padStart(4)} ${mean(A.droiteS).toFixed(1).padStart(5)}/${max(A.droiteS).toFixed(0).padStart(3)} ${mean(A.droites5).toFixed(1).padStart(3)} ${mean(A.enchKm).toFixed(2).padStart(6)} ${mean(A.spirMax).toFixed(0).padStart(5)} ${mean(A.spirales).toFixed(1).padStart(4)} ${mean(A.coudes).toFixed(1).padStart(5)}  ${mean(A.cretes).toFixed(1).padStart(5)} ${mean(A.penteP95).toFixed(2).padStart(5)} ${mean(A.montee).toFixed(2).padStart(5)} ${mean(A.descente).toFixed(3).padStart(5)} ${mean(A.rMinRP).toFixed(2).padStart(5)}  ${mean(A.ms).toFixed(0).padStart(4)}`);}
+  console.log(`${A.carte.padEnd(8)} ${String(A.pal).padStart(2)} ${String(A.n).padStart(2)}  ${mean(A.note).toFixed(1).padStart(5)} ${mean(A.L).toFixed(0).padStart(5)} ${mean(A.s).toFixed(0).padStart(4)}  ${mean(A.virKm).toFixed(1).padStart(5)} ${mean(A.serreKm).toFixed(2).padStart(5)} ${mean(A.infr).toFixed(0).padStart(4)} ${mean(A.droiteS).toFixed(1).padStart(5)}/${max(A.droiteS).toFixed(0).padStart(3)} ${mean(A.droites5).toFixed(1).padStart(3)} ${mean(A.enchKm).toFixed(2).padStart(6)} ${mean(A.spirMax).toFixed(0).padStart(4)}/${max(A.spirMax).toFixed(0).padStart(3)} ${mean(A.spirales).toFixed(1).padStart(4)} ${mean(A.coudes).toFixed(1).padStart(5)}  ${mean(A.cretes).toFixed(1).padStart(5)} ${mean(A.penteP95).toFixed(2).padStart(5)} ${mean(A.montee).toFixed(2).padStart(5)} ${mean(A.descente).toFixed(3).padStart(5)} ${mean(A.rMinRP).toFixed(2).padStart(5)}  ${mean(A.ms).toFixed(0).padStart(4)}`);}
 function dessine(o,sortie){
   const Q=o.ctrl0,n=Q.length,F=o.fiche;if(n<3)return;
   const T=new (require('./charge.cjs').ctx.THREE.CatmullRomCurve3)(Q.map(a=>new (require('./charge.cjs').ctx.THREE.Vector3)(a[0],a[1],a[2])),false,'centripetal');T.arcLengthDivisions=Math.max(200,n*16);
@@ -23,7 +23,7 @@ function dessine(o,sortie){
   const col=new Array(N+1).fill(null);
   const vP=o.vP,rP=o.rP;const kV=1/(4*rP),kS=1/(1.5*rP),kI=1/rP;const Wn=Math.max(1,Math.round(10/ds));
   for(let i=Wn;i<=N-Wn;i++){const a=S[i-Wn],b=S[i],c=S[i+Wn];const h1=Math.atan2(b.x-a.x,b.z-a.z),h2=Math.atan2(c.x-b.x,c.z-b.z);let d=h2-h1;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;
-    const l=Math.hypot(b.x-a.x,b.z-a.z)+Math.hypot(c.x-b.x,c.z-b.z),k=l>.5?Math.abs(d)/l:0;col[i]=k>=kI?[255,60,60]:k>=kS?[255,160,40]:k>=kV?[90,220,120]:null;}
+    const l=(Math.hypot(b.x-a.x,b.z-a.z)+Math.hypot(c.x-b.x,c.z-b.z))/2,k=l>.5?Math.abs(d)/l:0;col[i]=k>=kI?[255,60,60]:k>=kS?[255,160,40]:k>=kV?[90,220,120]:null;}
   /* les droites > 5 s en bleu : entre deux virages comptés (fiche.virages) */
   const V=F.virages||[];let last=0;const bleu=[];for(const v of V){if(v[0]-last>5*vP)bleu.push([last,v[0]]);last=v[1];}if(L-last>5*vP)bleu.push([last,L]);
   for(const [a,b] of bleu)for(let i=Math.round(a/ds);i<=Math.min(N,Math.round(b/ds));i++)col[i]=[80,140,255];
