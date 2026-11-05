@@ -62,9 +62,12 @@ window.dbgMusAp=function(){ // (banc) l'état de la musique autour de l'extrait 
 // ÉTAL : on recharge les réglages boost/fréquence par-dessus les valeurs d'usine
 // ⚠ indexés par NOM, pas par position : changer la liste des fruits ne doit PAS coller les réglages
 // de l'ancien étal sur les nouveaux (une pêche héritant du boost d'une pomme).
+/* (2026-11-05, hiérarchie des fruits) FRUITS_V : la version des réglages d'usine. Un réglage sauvé d'une AUTRE version (l'ancien étal : tous les fruits à égalité) est ignoré, sinon il
+   écraserait la nouvelle hiérarchie chez qui a touché aux curseurs. Pour refaire un tour de réglages d'usine : FRUITS_V + 1. */
+const FRUITS_V=2;
 (function(){const fr=SAVE.d.fruits;if(!fr||!fr.length)return;
-  for(const d of FRUIT_DEFS){const e=fr.find(z=>z.n===d.n);if(e){d.boost=e.b;d.freq=e.f;}}})();
-function saveFruits(){SAVE.d.fruits=FRUIT_DEFS.map(f=>({n:f.n,b:f.boost,f:f.freq}));SAVE.flush();}
+  for(const d of FRUIT_DEFS){const e=fr.find(z=>z.n===d.n);if(e&&e.v===FRUITS_V){d.boost=e.b;d.freq=e.f;}}})();
+function saveFruits(){SAVE.d.fruits=FRUIT_DEFS.map(f=>({n:f.n,b:f.boost,f:f.freq,v:FRUITS_V}));SAVE.flush();}
 const sndBtnEl=document.getElementById('sndBtn'),musBtnEl=document.getElementById('musBtn');
 function sndRefresh(){
   sndBtnEl.innerHTML=pxi(SND.sfx?'son':'muet')+' <span class="blabel">'+TR('SON')+'</span>';sndBtnEl.classList.toggle('off',!SND.sfx); // garde le span → masquable en icône seule sur mobile ; TR() sinon le libellé revient au français à chaque bascule, même en anglais

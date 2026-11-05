@@ -630,45 +630,51 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
                       se trace, un record fait flamber la bougie ;
      · 1,0 s →        les MISSIONS entrent une à une, leurs barres et leurs comptes montent ensemble (objRenderV2), les coches claquent.
      Une seule fois par mort ; REDUCED_MOTION : tout est posé d'un coup. Les mouvements sont dans css/mort-flottante.css (« LE FIL »). */
-  const M6_CPT=1800;
+  const M6_CPT=2000;
   function m6Fil(el,D,f,fin){const t0=performance.now();(function p(){if(!el.isConnected)return;const k=Math.min(1,(performance.now()-t0)/D);f(k);if(k<1)requestAnimationFrame(p);else if(fin)fin();})();} /* D ms, k de 0 à 1 à chaque image */
-  function m6Pieces(el){ /* deux pièces viennent se fondre dans le chiffre, par-dessous, là où il grandit (sa droite) */
-    const r=zRect(el),x=r.left+r.width*(el.closest('.mCashL')&&getComputedStyle(el).textAlign==='center'?.5:.72),y=r.top+r.height*.55;
-    for(let i=0;i<2;i++){const p=document.createElement('i');p.className='m6Piece';p.style.left=Math.round(x)+'px';p.style.top=Math.round(y)+'px';
-      p.style.setProperty('--dx',Math.round((Math.random()-.5)*150)+'px');p.style.setProperty('--dy',Math.round(50+Math.random()*60)+'px');
-      p.style.animationDelay=(i*45)+'ms';document.body.appendChild(p);setTimeout(function(){p.remove();},700);}}
+  /* LE COMPTEUR À ROULEAUX (2026-11-05, Sacha : « on voit tous les chiffres s'ajouter les uns les autres, avec un compteur ») : le montant s'écrit
+     en TOUS ses chiffres (« $ 7 210 », plus « 7,2 k »), une case par signe, réservée dès le départ à la largeur finale — les zéros d'avant le
+     premier chiffre sont là, éteints, et s'allument quand le nombre les atteint ; chaque chiffre qui change ROULE (il monte d'un cran). */
+  function m6Monte(el,F){el.textContent='';const S=[];
+    for(const c of Array.from(F)){const x=document.createElement('span');if(/\d/.test(c)){x.className='m6D';x.textContent='0';S.push(x);}else if(/\s/.test(c))x.className='m6S';else{x.className='m6X';x.textContent=c;}el.appendChild(x);}
+    el._m={S:S,cur:null};el.setAttribute('aria-label',F);}
+  function m6Pose(el,v,roule){const M=el._m;if(!M)return;const n=M.S.length,t=String(Math.max(0,Math.round(v))),d=t.padStart(n,'0').slice(-n);
+    for(let i=0;i<n;i++){const x=M.S[i];
+      if(!M.cur||M.cur[i]!==d[i]){x.textContent=d[i];if(roule&&!REDUCED_MOTION&&x.animate)x.animate([{transform:'translateY(.55em)',opacity:0},{transform:'none',opacity:1}],{duration:170,easing:'cubic-bezier(.2,.8,.2,1)'});}
+      x.classList.toggle('z',i<n-t.length);}
+    M.cur=d;}
+  function m6Ici(){return mCur==='dead'&&started&&gameOver&&overlay.style.display!=='none';} /* l'écran de mort est là (REJOUER tapé pendant le compte : plus rien ne vole sur la course) */
+  /* (2026-11-05, Sacha : « enlève le petit carré doré qui monte l'argent ») les petits carrés dorés qui venaient se fondre dans le chiffre pendant le compte (m6Pieces) sont retirés */
   function mCount(el,to,direct){ // égrène le montant : départ franc, arrivée en douceur
     if(!el)return;
     if(mCntT)clearInterval(mCntT);
     const v6=!!(el.closest&&el.closest('#mDead.m5')),tot=v6?$t('mCashTot'):null,sol=bank(),
       cpt=function(x){if(tot&&tot.firstChild&&tot.firstChild.nodeType===3)tot.firstChild.nodeValue=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(Math.round(x));};
-    if(v6){el.style.minWidth='';el.classList.remove('m6Cpt');el.style.removeProperty('--k');}
-    if(to<=0||direct){el.textContent=fmtC(Math.max(0,to));return;} // direct : on REVIENT sur l'écran (réglages, garage) — le compte ne se rejoue pas
-    el.textContent=fmtC(0);let t0=0,pc=0;const D=v6?M6_CPT:750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
+    if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');m6Monte(el,fmtSolde(Math.max(0,to)));}
+    if(to<=0||direct){if(v6)m6Pose(el,Math.max(0,to),false);else el.textContent=fmtC(Math.max(0,to));return;} // direct : on REVIENT sur l'écran (réglages, garage) — le compte ne se rejoue pas
+    if(v6)m6Pose(el,0,false);else el.textContent=fmtC(0);let t0=0;const D=v6?M6_CPT:750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
     if(v6&&!REDUCED_MOTION){cpt(sol-to);el.classList.add('m6Cpt');el.style.setProperty('--k','0');}
     mCntT=setInterval(function(){ if(performance.now()<T0)return;
-      if(!t0){t0=performance.now();
-        if(v6){el.textContent=fmtC(to);el.style.minWidth=el.offsetWidth+'px';}} /* (v6) la place du montant FINAL est prise d'avance : le badge et le compte, à sa droite, ne bougent pas */
+      if(!t0)t0=performance.now(); /* (v6) la place du montant FINAL est prise d'avance (m6Monte) : le badge et le compte, à sa droite, ne bougent pas */
       const k=Math.min(1,(performance.now()-t0)/D),e=v6?1-Math.pow(1-k,2):1-Math.pow(1-k,3); /* v6 : ease-out quadratique, les crans du son (mCompteSon) tombent sur 1 - √(1 - j/N) */
-      el.textContent=fmtC(Math.round(to*e));
-      if(v6&&!REDUCED_MOTION){el.style.setProperty('--k',e.toFixed(3));cpt(sol-to+to*e);
-        if(k<.92&&performance.now()-pc>90){pc=performance.now();try{m6Pieces(el);}catch(x){}}}
+      if(v6)m6Pose(el,Math.round(to*e),true);else el.textContent=fmtC(Math.round(to*e));
+      if(v6&&!REDUCED_MOTION){el.style.setProperty('--k',e.toFixed(3));cpt(sol-to+to*e);}
       if(k>=1){clearInterval(mCntT);mCntT=0;
-        if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');cpt(sol);if(!REDUCED_MOTION)try{pixBurst(el,12);}catch(x){}}
+        if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');cpt(sol);if(!REDUCED_MOTION&&m6Ici())try{pixBurst(el,12);}catch(x){}}
         if(!REDUCED_MOTION){el.classList.remove('clac');void el.offsetWidth;el.classList.add('clac');}} // (charte v4) l'arrivée CLAQUE
-    },28);
+    },v6?16:28);
   }
   /* le MOTEUR et l'AURA de l'écran v6 (voir plus haut) — p1 = le palier atteint (affiché à partir de 1) */
   function m6Anime(h,au,p1,fA){
     const av=$t('mAuraV'),bm=h.querySelector('.m6Mot .m6Big>b'),mo=h.querySelector('.m6Mot');
     if(REDUCED_MOTION){if(av)av.textContent=fA(au);return;}
     /* le palier grimpe : un cran toutes les 130 ms au plus (le tout en 1,1 s au plus), chaque cran TAPE ; le badge RECORD tombe après le dernier */
-    const n=Math.max(0,p1-1),pas=n?Math.min(130,Math.round(1100/n)):0,T=600;
+    const n=Math.max(0,p1-1),pas=n?Math.min(130,Math.round(1100/n)):0,T=700;
     if(mo)mo.style.setProperty('--m6Bd',(T+n*pas+120)+'ms');
     if(bm&&n){bm.textContent='1';
       for(let i=1;i<=n;i++)setTimeout(function(){if(!bm.isConnected)return;bm.textContent=String(1+i);bm.classList.remove('m6Tape');void bm.offsetWidth;bm.classList.add('m6Tape');},T+i*pas);}
     /* l'aura monte AVEC la bougie de la PARTIE (même départ, même durée : css .m6P .m6Barre) */
-    if(av){av.textContent=fA(0);if(au>0)setTimeout(function(){m6Fil(av,1100,function(k){av.textContent=fA(au*(1-Math.pow(1-k,3)));});},750);}}
+    if(av){av.textContent=fA(0);if(au>0)setTimeout(function(){m6Fil(av,1100,function(k){av.textContent=fA(au*(1-Math.pow(1-k,3)));});},950);}}
   window.dbgM6Fil={cpt:M6_CPT}; /* (banc) la durée du compte, pour filmer l'écran */
   /* L'ÉCRAN DE MORT A UNE VOIX (2026-09-26, audit son) : l'écran le plus vu était muet. 300 ms après son apparition (la traîne du son
      de mort passe d'abord), huit notes de la gamme des pièces montent avec les compteurs, puis l'arrivée sonne — en fanfare si record.
@@ -714,7 +720,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       {const d9=$t('mDead');if(d9)d9.classList.toggle('m5',MORT_FLOT);} /* (2026-10-25) l'écran flottant : son style (css/mort-flottante.css) ne vise que #mDead.m5 */
       const prem9=mFill._mort!==TCTL.mortT;mFill._mort=TCTL.mortT; // (2026-09-29) le compte (montant, aura) ne se joue qu'à la PREMIÈRE apparition de l'écran de cette mort
       {const v9=RUNX.verse!=null?RUNX.verse:Math.max(0,Math.floor(bank())-Math.floor(RUNX.bank0||0)),c9=$t('mCash'),t9=$t('mCashTot');
-       if(c9)c9.style.setProperty('--n',fmtC(v9).length); // le corps du montant se règle sur sa longueur finale (« $ 128,4 k » tient debout)
+       if(c9)c9.style.setProperty('--n',(MORT_FLOT?fmtSolde(v9):fmtC(v9)).length); // le corps du montant se règle sur sa longueur finale (v6 : tous les chiffres, « $ 1 284 000 » tient debout)
        if(t9){const j9=jourFinTexte();t9.textContent=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank()); /* (2026-10-14, GAMEPLAY) le ×2 du jour et la prime de série se disent dans la ligne qui existe déjà */
         if(j9){const i9=t9.appendChild(document.createElement('i'));i9.className='mJour';i9.appendChild(document.createElement('u')).textContent=' · ';i9.append(j9.replace(/^ · /,''));}} /* (2026-10-15) …mais sur SA ligne (.mJour) : le texte reste « COMPTE : $ N · ×2 DU JOUR », le « · » est seulement masqué */
        mCount(c9,v9,!prem9);}
@@ -806,7 +812,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop');
       if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);} // tout ce qui s'achète en argent du jeu est au GARAGE
-      if(bs){bs.textContent='NEW';bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
+      if(bs){bs.textContent=sansAcc(TR('NOUVEAU'));bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
     }else if(mCur==='modes'){
       const set9=function(id,sid,on){const c=$t(id),s=$t(sid);
         if(c){c.classList.toggle('on',on);c.classList.toggle('off',!on);} if(s)s.textContent=on?'ON':'OFF';};
@@ -978,11 +984,13 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(t9&&t9.firstChild&&t9.firstChild.nodeType===3)t9.firstChild.nodeValue=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank());
       try{if(SONV2)sfx('piece.serie');else rewardSfx('m3',2);}catch(_){}hap([10,30,10,30,24]);
       if(!c9)return;if(mCntT){clearInterval(mCntT);mCntT=0;}
-      c9.style.setProperty('--n',fmtC(2*v).length);
-      if(REDUCED_MOTION){c9.textContent=fmtC(2*v);return;}
-      const t0=performance.now(),D=600;
-      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);c9.textContent=fmtC(Math.round(v*(1+q)));
-        if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');}},28);};
+      const v6=!!(c9.closest&&c9.closest('#mDead.m5'));
+      c9.style.setProperty('--n',(v6?fmtSolde(2*v):fmtC(2*v)).length);
+      if(v6)m6Monte(c9,fmtSolde(2*v));
+      if(REDUCED_MOTION){if(v6)m6Pose(c9,2*v,false);else c9.textContent=fmtC(2*v);return;}
+      const t0=performance.now(),D=v6?900:600;
+      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,Math.round(v*(1+q)),true);else c9.textContent=fmtC(Math.round(v*(1+q)));
+        if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');if(v6&&m6Ici())try{pixBurst(c9,12);}catch(x){}}},v6?16:28);};
     const apres=function(vue,v){if(vue)monte(v);maj();};window.__dblApres=apres;
     const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};
     const go=function(ev){ev.preventDefault();ev.stopPropagation();if(sourd()||el.hidden)return;uiPop(el);uiClic('');hap(8);let r=false;

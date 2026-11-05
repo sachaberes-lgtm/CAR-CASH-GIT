@@ -157,7 +157,7 @@ html #mHome.on .mTitle::after,html #mHome .mTitle::after{background:var(--livree
    3. (2026-10-31, Sacha : « le JOUER un peu plus vers la gauche, meilleure proportion de diagonale ») les trois crans à la même largeur : logo −12,
       tuiles 0, JOUER +12 (au lieu de +24) — l'escalier descend d'un pas régulier au lieu d'accélérer sur la dernière marche. */
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){padding:0 3px!important;align-items:center!important;justify-content:center!important;overflow:visible}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear)>span{display:block!important;max-width:100%;box-sizing:border-box;font-size:9px!important;letter-spacing:0!important;white-space:nowrap;overflow:hidden;text-overflow:clip;text-align:center;padding:0!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear)>span{display:block!important;max-width:100%;box-sizing:border-box;font-size:9px!important;letter-spacing:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;padding:0!important}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2>.mTitle{translate:-12px 0}
 html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:12px 0}
 @media (orientation:landscape) and (max-height:540px){

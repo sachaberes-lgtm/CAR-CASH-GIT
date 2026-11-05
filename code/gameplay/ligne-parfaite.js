@@ -94,7 +94,7 @@ function villeForme(p,c,o,f9){
   if(f===5&&dy>H*(.5-(.05+.08*sv)*(.5+Math.min(.5,Math.max(-.5,dx/w))))+.5)return false; // la LAME : au-dessus de son toit en biais
   return true;}
 function villeHeurt(p){ // la caisse est-elle DANS une tour de la ville ? (marge : la demi-caisse)
-  const C=CITY.col;if(!C||!CITY.root)return false;if(CRYPTO.taureaux.length&&cryptoHeurt(p))return true; // (CRYPTOCITY) les taureaux sont durs
+  const C=CITY.col;if(!C||!CITY.root)return false;/* (2026-11-05) plus de taureau à CRYPTO CITY : rien de dur en plus des tours */
   const a=C.g.get(Math.floor(p.x/C.CG)+','+Math.floor(p.z/C.CG));if(!a)return false;const c=C.c;
   for(let j=0;j<a.length;j++){const o=a[j],f9=C.f?C.f[o/6]:0;if(f9){if(villeForme(p,c,o,f9))return true;continue;}if(Math.abs(p.x-c[o])<c[o+3]/2+.9&&Math.abs(p.z-c[o+2])<c[o+5]/2+.9&&Math.abs(p.y-c[o+1])<c[o+4]/2+.5)return true;}
   return false;
@@ -175,7 +175,7 @@ function lignePad(sp,pl){ // un pad d'OR, deux faces (même recette que la boucl
     m.position.copy(F.p).addScaledVector(F.b,pl).addScaledVector(F.n,fy>0?.1:-THICK-.1);scene.add(m);trackMeshes.push(m);}
 }
 function ligneFruit(sp,lt){ // un fruit, deux faces (même recette que `place` dans spawnPickups) — il rend LIGNE.don de nitro (× l'espacement du groupe : plus espacé, plus généreux)
-  const g9=LIGNE.grp,fi=(g9&&Math.random()<.7)?g9.fi:fruitPick(),lv=fruitLeve(fi),don9=LIGNE.don*((g9&&g9.mult)||1);frameAt(sp,F);
+  const g9=LIGNE.grp,fi=(g9&&Math.random()<.7)?g9.fi:fruitPick(),lv=fruitLeve(fi),don9=LIGNE.don*((g9&&g9.mult)||1)*(.6+.4*fruitK(fi)); /* (2026-11-05, hiérarchie des fruits) la file suit la hiérarchie, ADOUCIE : une myrtille rend ×0,77, un melon ×1,7 (au lieu de ×0,43 et ×2,9 hors file) — la file doit rester tenable de bout en bout, la moyenne reste ×1 */frameAt(sp,F);
   for(const face of [1,-1]){
     const m=mkFruit(fi);m.position.copy(F.p).addScaledVector(F.b,lt).addScaledVector(F.n,face>0?lv:-(THICK+lv)); // petits (FRUIT_K) : on les sème partout sans gêner la vue
     if(face<0)LM4.makeBasis(LV1.copy(F.b).negate(),LV2.copy(F.n).negate(),F.t);else LM4.makeBasis(F.b,F.n,F.t);

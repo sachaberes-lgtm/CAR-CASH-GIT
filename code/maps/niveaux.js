@@ -90,10 +90,9 @@ const SF_CARTES={
      retirée le 14/10 faute d'être dans le tirage) revient comme MAP : ses taureaux, ses bougies, ses pièces ₿ géantes, ses fusées, ses feux,
      le NOUVEL ATH, la pluie d'argent — et des façades en cinq matières. Quatre temps, jamais de pluie ni d'orage (c'est l'apogée). */
   crypto:{nm:'CRYPTO CITY',base:'crypto',m:{matin:{bio:'cryptoMatin'},midi:{bio:'bullrun',p:1.3},soir:{bio:'cryptoSoir',p:1.2}}}, /* (2026-11-03, Léo : « Crypto City, ça s'appelle jamais Cryptoville ou autre chose ») le nom affiché est CRYPTO CITY, jour et nuit, sans traduction ; 'cryptoville' ne reste que l'identifiant interne de SF_FUSION */
-  /* (2026-10-17, Léo) LA VILLE VITRÉE : quatre heures — le MATIN aux reflets dorés, le MIDI bleu (les nuages dans les vitres), le COUCHER où les tours
-     s'embrasent, la NUIT des bureaux allumés derrière le verre. Jamais de pluie ni d'orage. Voir « LA VILLE VITRÉE ». */
-  ...({vitree:{nm:'VILLE VITRÉE',base:'vitree',m:{matin:{bio:'vitreMatin',pr:'REFLETS DORES'},midi:{bio:'vitreMidi',p:1.2},soir:{bio:'vitreSoir',p:1.2,pr:'LES TOURS S EMBRASENT'},nuit:{bio:'vitreNuit',nuit:1,pr:'LES BUREAUX BRILLENT'},
-    pluie:{bio:'vitrePluie',pluie:.8,sheen:.2,pr:'IL PLEUT ENTRE LES VILLES'}}}}), // (v2) la PLUIE : elle tombe de la ville d'en haut
+  /* (2026-11-05, Sacha : « fusionne les trois maps de ville, Crypto City, Crypto Ville et la Ville Vitrée : toutes les villes deviennent CRYPTO CITY ») LA VILLE
+     VITRÉE n'est plus une map : ses GÉANTES DE VERRE vivent dans CRYPTO CITY, le jour (`crypto`) comme la nuit (`ville`) — voir « CRYPTO CITY, UNE SEULE VILLE »
+     (ville-verre.js). Avant : vitree:{nm:'VILLE VITRÉE',base:'vitree',m:{matin,midi,soir,nuit,pluie}} (biomes vitreMatin… gardés). */
   espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'}}}, // ni nuages, ni pluie, ni orage (Sacha) — (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de météo SATELLITES
   /* (2026-10-18, Sacha) LES PROFONDEURS : sous la terre, pas de ciel — ses quatre « temps » sont des lumières : TORCHES (la grotte explorée), CRISTAUX
      (minerais et améthyste à pleine lumière), MAGMA (la lave déborde), NOIR COMPLET (tes phares). La salle du moment choisit l'ambiance (grtBiomes). */

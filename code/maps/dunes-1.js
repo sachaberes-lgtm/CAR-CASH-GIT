@@ -360,7 +360,19 @@ function dnMondeCalc(S,opt){
   const R={Z:Z,F:F,O:DN.O,ob:pv.ob,pyr:pv.pyr,yMin:yMin-40,yMax:yMax+40,ms:ms};if(pv.pyrs){R.pyrs=pv.pyrs;R.mo=pv.mo;}return R;
 }
 /* ---- LA CONSTRUCTION (appelée en fin de buildTrack ; no-op hors des dunes) : les échantillons de la route ici, le MONDE dans un travailleur ---- */
-function dnEteindre(){DN.on=false;DN.lev=[];if(DN.mesh)DN.mesh.visible=false;if(DN.grp)DN.grp.visible=false;DN.oa=null;if(DN.mat)DN.mat.uniforms.uOA.value.set(0,0,0,0);}
+function dnEteindre(){DN.on=false;DN.lev=[];if(DN.mesh)DN.mesh.visible=false;if(DN.grp)DN.grp.visible=false;DN.oa=null;if(DN.mat)DN.mat.uniforms.uOA.value.set(0,0,0,0);if(DN_REND)dnLibere();}
+/* ===== LES DUNES RENDENT LA PUCE (2026-11-03, passe « maps cohérentes », Sacha : « cohérentes et optimisées » — « tout ce que la map crée est LIBÉRÉ quand on la quitte ») =====
+   Avant : quitter les dunes ne faisait que CACHER le groupe des décors et le sable — le décor cuit (une géométrie de ~10⁵ sommets), les instances (palmiers, papyrus,
+   caravanes, buttes…) et les trois textures flottantes du monde (relief fin, fond, ombre : quelques Mo) restaient dans la puce toute la partie suivante, jusqu'au
+   prochain passage aux dunes. Ici, à chaque extinction (le portail, REJOUER — buildDunes rebâtit tout de toute façon) : les décors quittent le groupe, leurs géométries
+   et leurs instances sont rendues (un modèle partagé se renvoie tout seul s'il resert), les textures du monde aussi (la matière reprend le texel vide). Les PROGRAMMES
+   restent (compilés au menu par dunesChauffe : 0 compilation en course, voulu). `dbgDunes('libere')` = ce qui a été rendu la dernière fois · `?sans=dunesrend` = comme avant (tout gardé). */
+const DN_REND=!/[?&]sans=([^&]*,)?dunesrend(,|&|$)/.test(location.search);
+function dnLibere(){let g=0,t=0;
+  if(DN.grp)for(const o of DN.grp.children.slice()){DN.grp.remove(o);if(o.geometry){o.geometry.dispose();g++;}if(o.isInstancedMesh&&typeof o.dispose==='function')o.dispose();}
+  for(const k of ['tC','tZ','tS'])if(DN[k]){DN[k].dispose();DN[k]=null;t++;}
+  if(DN.mat&&DN.z1){const U=DN.mat.uniforms;U.uTC.value=U.uTZ.value=U.uTS.value=DN.z1;}
+  DN.carIm=null;DN.torIm=null;if(g||t)DN.libere={geo:g,tex:t};}
 /* LE TIRAGE DU DÉCOR (2026-10-20, LE DÉSERT AU HASARD) : des choix INDÉPENDANTS, dans un flux né de la graine de la piste (ni `rnd`, ni `r`, ni le tracé) —
    un objet simple (il part au travailleur avec le reste). Les PALETTES restent dans la DA : le sable or / rouge / blanc d'argile / rose. */
 function dnTirage(seed){let h9=Math.imul((seed^0xDEC0D5)>>>0,0x9E3779B1);h9^=h9>>>15;h9=Math.imul(h9,0x85EBCA6B);h9^=h9>>>13;const rd=mulberry32(h9>>>0), /* (la graine brassée) */ch=(L9,P9)=>{let t=rd()*P9.reduce((a,b)=>a+b,0);for(let i=0;i<L9.length;i++){t-=P9[i];if(t<0)return L9[i];}return L9[L9.length-1];},
