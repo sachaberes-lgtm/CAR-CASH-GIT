@@ -46242,6 +46242,7 @@ function lierDemarrage(now){ /* (loop) vrai : cette image ne dessine pas, les pr
     LIER.t0=performance.now();
     try{const rt=renderer.getRenderTarget();if(POST_ON&&composer&&composer.renderTarget1)renderer.setRenderTarget(composer.renderTarget1);compileDoux(scene,camera);renderer.setRenderTarget(rt);}catch(e){console.warn('lierDemarrage',e);}
     try{if(POST_ON)lierPasses();}catch(e){console.warn('lierPasses',e);}
+    try{cielChauffeLier();}catch(e){console.warn('cielChauffeLier',e);} /* (2026-11-05, passe perf mobile 2, A1.b) les 7 programmes du ciel, lancés en doux avec ceux de la 1re image (voir ciel2.js) */
     return true;}
   if(lierPret()||performance.now()-LIER.t0>20000){LIER.dem=2;LIER.msDem=Math.round(performance.now()-LIER.t0);return false;}
   return true;}
@@ -46381,6 +46382,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{grotteChauffe();}catch(e){console.warn('grotteChauffe',e);}}, // (2026-10-18) LES PROFONDEURS : la roche en blocs (un programme) et les poussières, compilées au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
   function(){if(carWingL&&carWingR&&carGroup.parent===scene){const v9=carWingL.visible;carWingL.visible=carWingR.visible=true;chauffeRendu([carGroup]);carWingL.visible=carWingR.visible=v9;}}, // (2026-10-16, LES AILES VIVANTES) les AILES de la caisse équipée, cachées au sol, compilées au menu : rien ne naît au 1er envol (MESURÉ : 1 à 2 programmes par aile, au 1er déploiement de la session)
+  function(){if(!CIEL2.chauffeTete&&!CIEL2.dessine){CIEL2.dessine=1;cielChauffe();}}, /* (2026-11-05, passe perf mobile 2, A1.b) le dessin du ciel (8×8), lié en doux au démarrage, n'est plus au chargement */
   function(){try{bqChauffe(0);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(1);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(2);}catch(e){console.warn('bqChauffe',e);}}, // (2026-10-16, « la boutique rame de ouf ») LA BOUTIQUE bâtie et compilée au menu, en trois étapes : MESURÉ, sa 1re ouverture figeait l'image 1,2 s (10 programmes, la salle blanche, les bras, le trône) // (2026-10-16) LA PERLE : les traits de son plan projetés UNE fois ici (~0,2 s ordi), pas au 1er affichage de la caisse
   function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
   function(){const fx9=FX_EFF||(CARS[level]&&CARS[level].fx);if(fx9&&fx9.wow){wowPool();for(const q9 of wowTex())renderer.initTexture(q9.tx);}}, // (2026-10-14, passe perf mobile) LA TRAÎNÉE WOW (le DOGE, ou la traînée WOW) : ses 12 toiles en Comic Sans, ses 18 sprites et l'envoi des textures se faisaient à la 1re NITRO, en pleine course (~20-40 ms sur iPhone 7) — au menu, seulement si la caisse la porte (sinon rien ne change)
@@ -46470,7 +46472,18 @@ function cielChauffe(){ if(!CIEL2.on)return; try{
   renderer.setRenderTarget(b);for(const k of ['netN','netV','plein','cy','jd']){me.material=C[k];renderer.render(sc,camera);}
   renderer.setRenderTarget(cible);skyU.uBasTex.value=t0;a.dispose();b.dispose(); // (les matières restent : leurs programmes vivent)
 }catch(e){console.warn('cielChauffe',e);} }
-cielChauffe();
+/* (2026-11-05, passe perf mobile 2, A1.b) LE CIEL N'EST PLUS CHAUFFÉ AU CHARGEMENT : les 7 rendus synchrones du dôme (282 ms à froid sur iPhone, 1,5 s dans le JOURNAL) tenaient dans la tâche de tête du
+   script. Désormais : `cielChauffeLier` lance les 7 programmes EN DOUX (sans dessin) avec la liaison de la 1re image (lierDemarrage), et `cielChauffe` (le dessin) est la 1re étape de chauffeDivers au menu.
+   `?cielchauffe=tete` = avant (le dessin d'un bloc au chargement). */
+CIEL2.chauffeTete=/[?&]cielchauffe=tete\b/.test(location.search);
+function cielChauffeLier(){ if(!CIEL2.on||CIEL2.chauffeTete||CIEL2.lie)return; CIEL2.lie=1; try{
+  const C=skyDome.userData.ciel,a=cielCible(8,8,false),b=cielCible(8,8,true),cible=renderer.getRenderTarget();
+  const mk=function(L){const sc=new THREE.Scene();for(const k of L){const me=new THREE.Mesh(skyDome.geometry,C[k]);me.frustumCulled=false;sc.add(me);}return sc;};
+  renderer.setRenderTarget(a);compileDoux(mk(['basN','basV']),camera);
+  renderer.setRenderTarget(b);compileDoux(mk(['netN','netV','plein','cy','jd']),camera);
+  renderer.setRenderTarget(cible);a.dispose();b.dispose();
+}catch(e){console.warn('cielChauffeLier',e);} }
+if(CIEL2.chauffeTete)cielChauffe();
 {const ob=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt9){ob.call(this,r9,s9,cam,rt9);cielDeuxTemps(r9,cam);};} // ⚠ CHAÎNÉ (pisteLoin passe d'abord)
 /* (banc) `dbgCiel2(false)` = le ciel d'avant, pour des A/B dans la même page · `dbgCiel2(on,{rendre:1})` re-rend l'image courante tout de
    suite (même caméra, même horloge : deux captures comparables au pixel) · `{octets:1}` force la passe lisse en 8 bits (le cas d'un

@@ -279,6 +279,7 @@ function lierDemarrage(now){ /* (loop) vrai : cette image ne dessine pas, les pr
     LIER.t0=performance.now();
     try{const rt=renderer.getRenderTarget();if(POST_ON&&composer&&composer.renderTarget1)renderer.setRenderTarget(composer.renderTarget1);compileDoux(scene,camera);renderer.setRenderTarget(rt);}catch(e){console.warn('lierDemarrage',e);}
     try{if(POST_ON)lierPasses();}catch(e){console.warn('lierPasses',e);}
+    try{cielChauffeLier();}catch(e){console.warn('cielChauffeLier',e);} /* (2026-11-05, passe perf mobile 2, A1.b) les 7 programmes du ciel, lancés en doux avec ceux de la 1re image (voir ciel2.js) */
     return true;}
   if(lierPret()||performance.now()-LIER.t0>20000){LIER.dem=2;LIER.msDem=Math.round(performance.now()-LIER.t0);return false;}
   return true;}
@@ -418,6 +419,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){try{grotteChauffe();}catch(e){console.warn('grotteChauffe',e);}}, // (2026-10-18) LES PROFONDEURS : la roche en blocs (un programme) et les poussières, compilées au menu
   function(){try{banqChauffe();}catch(e){console.warn('banqChauffe',e);}}, // (2026-10-14) LA BANQUISE : neige, glace, lacs, traces, flocons, aurores, poudre et givre — compilés au menu
   function(){if(carWingL&&carWingR&&carGroup.parent===scene){const v9=carWingL.visible;carWingL.visible=carWingR.visible=true;chauffeRendu([carGroup]);carWingL.visible=carWingR.visible=v9;}}, // (2026-10-16, LES AILES VIVANTES) les AILES de la caisse équipée, cachées au sol, compilées au menu : rien ne naît au 1er envol (MESURÉ : 1 à 2 programmes par aile, au 1er déploiement de la session)
+  function(){if(!CIEL2.chauffeTete&&!CIEL2.dessine){CIEL2.dessine=1;cielChauffe();}}, /* (2026-11-05, passe perf mobile 2, A1.b) le dessin du ciel (8×8), lié en doux au démarrage, n'est plus au chargement */
   function(){try{bqChauffe(0);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(1);}catch(e){console.warn('bqChauffe',e);}},function(){try{bqChauffe(2);}catch(e){console.warn('bqChauffe',e);}}, // (2026-10-16, « la boutique rame de ouf ») LA BOUTIQUE bâtie et compilée au menu, en trois étapes : MESURÉ, sa 1re ouverture figeait l'image 1,2 s (10 programmes, la salle blanche, les bras, le trône) // (2026-10-16) LA PERLE : les traits de son plan projetés UNE fois ici (~0,2 s ordi), pas au 1er affichage de la caisse
   function(){const F=nyanPixPool();F.o.visible=true;chauffeRendu([F.o]);F.o.visible=false;}, // (2026-10-06) les PIXELS du chat (le programme du feu du burn-out) compilés au menu
   function(){const fx9=FX_EFF||(CARS[level]&&CARS[level].fx);if(fx9&&fx9.wow){wowPool();for(const q9 of wowTex())renderer.initTexture(q9.tx);}}, // (2026-10-14, passe perf mobile) LA TRAÎNÉE WOW (le DOGE, ou la traînée WOW) : ses 12 toiles en Comic Sans, ses 18 sprites et l'envoi des textures se faisaient à la 1re NITRO, en pleine course (~20-40 ms sur iPhone 7) — au menu, seulement si la caisse la porte (sinon rien ne change)
