@@ -210,10 +210,14 @@ function m2Dispo(m){if(!M2DISPO)return true;const r=(m&&m.r)||{};if(r.vide)retur
 function m2Pret(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return false;const r=m.r||{};
   if(r.vide)return false;if(r.car){const i=m2CarIdx(r.car);return i>=0&&!carRetiree(i);}if(r.cat)return !!(COSM[r.cat]||[]).find(function(x){return x.id===r.id;});return true;}
 /* ---- LES BRANCHEMENTS DE LA COURSE ---- */
-function m2Raz(){M2R.lv='';M2R.sonne=false;M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.figV=0;M2R.volT=0;M2R.figMax=0;M2R.airPm=0;}
+function m2Raz(){M2R.lv='';M2R.sonne=false;M2R.ctl=0;M2R.vie=0;M2R.parf=0;M2R.lac=0;M2R.tourV.length=0;M2R.run.length=0;M2R.t=0;M2R.deb=false;M2R.v0=null;M2R.figV=0;M2R.volT=0;M2R.figMax=0;M2R.airPm=0;}
 function m2Debut(){const s=m2Etat(),c=s.c,j=m2Jour();M2R.deb=true; // la 1re image de la partie qui compte : le jour, l'heure
   if(c.jd!==j){c.jd=j;c.jours=(c.jours|0)+1;SAVE.mark();}
-  if(new Date().getHours()===3)m2Flag('nuit3h');}
+  if(new Date().getHours()===3)m2Flag('nuit3h');
+  /* (2026-11-05, Sacha : « on voit seulement les missions sur lesquelles on a avancé ») D'OÙ PART CHAQUE MISSION : le cliché de leurs valeurs, pris
+     0,7 s après le départ (pas dans la première image : m2Val parcourt les collections). L'écran de mort compare ce cliché à la fin de partie
+     (m2Avant, missions/ecran-revelation.js) : seules les missions dont la valeur a monté y figurent, barre de « d'avant » à « maintenant ». */
+  setTimeout(function(){try{if(!M2R.deb||M2R.v0)return;const s9=m2Etat(),V={};for(const m of M2){if(m.f==='collection'||m.f==='secret'||s9.ok.indexOf(m.id)>=0||!m2Dispo(m))continue;try{V[m.id]=m2Val(m);}catch(e){}}M2R.v0=V;}catch(e){}},700);}
 function m2Tick(dt,kmh){if(!m2Ok()||paused)return;const s=m2Etat(),r=s.r;if(!M2R.deb)m2Debut();
   if(!introD&&(mode==='drive'||mode==='fall'))M2R.ctl+=dt;
   if(mode!=='boom'){M2R.vie+=dt;if(M2R.vie>(r.vie||0))r.vie=M2R.vie;}
