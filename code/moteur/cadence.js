@@ -49,6 +49,7 @@ const FPS_FORCE=(function(){const m=/[?&]fps=(\d+)\b/.exec(location.search);cons
    dans la boîte noire un ralenti TENU (10 s d'images de plus de 55 ms, onglet visible) : on saura sur quels appareils le jeu passe au ralenti. */
 const HOR={raw:0,dt:0,dtH:0,ecart:0,lent:0,dit:false,n:0};
 function horlogeTick(rawMs,dt,dtH){HOR.raw=rawMs;HOR.dt=dt;HOR.dtH=dtH;HOR.n++;if(dtH>dt)HOR.ecart+=dtH-dt;
+  if(started&&running&&!HOR.paqC){HOR.paqC=1;try{if(window.CCSON)CCSON.paquet('course');}catch(e){}} /* (2026-11-05, SON-02) filet : la 1re image de simulation ouvre le paquet COURSE si le JOUER ne l'a pas fait */
   if(rawMs>55&&!document.hidden&&started&&running&&!paused){HOR.lent+=rawMs;if(HOR.lent>10000&&!HOR.dit){HOR.dit=true;try{window.__ccNote('ralenti','10 s sous 18 i/s · image '+Math.round(rawMs)+' ms',(typeof PAL!=='undefined'&&PAL.n!=null?'palier '+PAL.n:'')+(FPS_FORCE?' · ?fps='+FPS_FORCE:''));}catch(_){}}}
   else HOR.lent=0;}
 window.dbgHorloge=function(){return {ancien:HOR_ANCIEN,rawMs:+HOR.raw.toFixed(1),dt:+HOR.dt.toFixed(4),dtH:+HOR.dtH.toFixed(4),ecartCumule:+HOR.ecart.toFixed(2),images:HOR.n,force:FPS_FORCE,lentMs:Math.round(HOR.lent),note:HOR.dit};};

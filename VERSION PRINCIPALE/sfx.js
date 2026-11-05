@@ -27,7 +27,32 @@
    ================================================================================================ */
 (function(G){
 'use strict';
-const S={ac:null,dest:null,bus:{},buf:{},off:{},voix:{},der:{},dern:{},ton:0,ok:false,grp:{},m:null,nDec:0,nTot:0,dec:false};
+const S={ac:null,dest:null,bus:{},buf:{},off:{},voix:{},der:{},dern:{},ton:0,ok:false,grp:{},m:null,nDec:0,nTot:0,dec:false,enc:{},paq:{}};
+/* ===== LES PAQUETS DE LA BANQUE (2026-11-05, Fable : « SON-02 / DIR-02 : ~45 Mo de PCM décodés au chargement, 30 à 40 de plus en course, jamais
+   libérés → audio décodé à la demande par paquets (menu / course / voix), libéré entre deux courses ») =====
+   MESURÉ (inventaire du 05/11 d'après les en-têtes MP3/WAV de sons-banque.js) : 384 tampons = 80,6 Mo de float32 à 32 kHz — 15,4 Mo pour le MENU
+   (interface, richesse, spin), 43 Mo pour la COURSE (figures, machine, campagne, flow, pose, mort, piste, aura, fruits, argent, ailes) et 22,2 Mo pour
+   deux MAPS (forêt 14, banquise 7,5). Les voix des moteurs ne sont pas dans la banque (synthèse pure, voix-moteur.js). Désormais :
+   · au chargement, le paquet MENU seul (et l'étalon) ;
+   · le paquet COURSE au JOUER (pbjDepart, musique.js : le piqué ou le lâcher laissent 2 à 4 s avant la 1re image de course ; filet : la 1re image
+     de simulation, horlogeTick) — un son pas encore décodé se tait, exactement comme avant au démarrage ;
+   · les paquets de MAP (forêt, banquise) quand le pré-bâti de la map part (prebPart, piste-prebati.js), et RENDUS à la fin de la partie (musicStop) :
+     leur base64 est gardé pour les redécoder à la prochaine visite.
+   `?sonsplein=1` : tout au chargement, comme avant (une semaine). `CCSON.paquet(nom)`, `CCSON.libere(nom)`, `CCSON.etat()` (paquets, Mo). */
+const PAQ_FAM={menu:['interface','richesse','spin'],course:['figures','machine','campagne','flow','pose','mort','piste','aura','fruits','argent','ailes'],foret:['foret'],banquise:['banquise']};
+const PAQ_CARTE={foret:1,banquise:1}; /* les paquets rendus entre deux courses */
+const PAQ_DE={};for(const p in PAQ_FAM)for(const f of PAQ_FAM[p])PAQ_DE[f]=p;
+const PAQ_TOUT=(function(){try{return /[?&]sonsplein=1/.test(G.location.search);}catch(e){return false;}})();
+S.paq=PAQ_TOUT?{menu:1,course:1,foret:1,banquise:1}:{menu:1};
+function famDe(k){const M=S.m||(G.CCSON_BANQUE&&G.CCSON_BANQUE.m)||{};return (M[k.split('#')[0]]||{}).fam||'';}
+function paqDe(k){return PAQ_DE[famDe(k)]||'menu';} /* une famille inconnue va au menu : toujours décodée */
+function permis(k){return k==='__etalon'||PAQ_TOUT||!!S.paq[paqDe(k)];}
+function paquet(nom){if(!PAQ_FAM[nom]||S.paq[nom])return false;S.paq[nom]=1;if(S.relance)S.relance();return true;} /* ouvre un paquet : ses sons entrent dans la file de décodage */
+function libere(nom){ /* rend les tampons d'un paquet de map (leur base64 reste : redécodés à la prochaine visite) ; rend le nombre de tampons rendus */
+  if(!PAQ_CARTE[nom]||!S.paq[nom])return 0;delete S.paq[nom];let n=0;
+  for(const k in S.buf){if(paqDe(k)!==nom)continue;delete S.buf[k];delete S.off[k];n++;S.nDec--;}
+  return n;}
+function tamponsMo(){let o=0;for(const k in S.buf){const b=S.buf[k];if(b)o+=b.length*b.numberOfChannels*4;}return Math.round(o/1048576*10)/10;}
 const TRIM=-10,FEN=.11,RECUL=-9;
 const BUS={ // niveau du bus (dB) · part envoyée dans la SALLE
   ui: {db:-5, rev:.05}, // (−3 → −5 : le clic neuf sortait 9 dB au-dessus de l’ancien, quasi inaudible ; on garde la présence sans crier)
@@ -84,12 +109,13 @@ function charge(){
           if(m>.05)S.t0=Math.max(0,(k-Math.round(.0015*buf.sampleRate))/buf.sampleRate);}
         B.d.__etalon=null;etalon=2;suivant();});
       return;}
-    while(enCours<4&&i<cles.length){
-      const cle=cles[i++],b64=B.d[cle];if(!b64)continue;
-      enCours++;
-      decode(c,b64,function(buf){enCours--;
+    while(enCours<4){ /* (2026-11-05, paquets) le prochain son PERMIS pas encore décodé ni en cours — un paquet qui s'ouvre relance la file (paquet → S.relance) */
+      let cle=null;for(let j=0;j<cles.length;j++){const k=cles[j];if(S.buf[k]||S.enc[k]||!B.d[k]||!permis(k))continue;cle=k;break;}
+      if(cle==null)break;
+      const b64=B.d[cle];S.enc[cle]=1;enCours++;
+      decode(c,b64,function(buf){enCours--;delete S.enc[cle];
         if(buf){S.buf[cle]=buf;S.off[cle]=(B.m[cle.split('#')[0]]||{}).pcm?Math.max(0,tete-.0015):attaque(buf);S.nDec++;} // (2026-10-16) un son rangé en WAV (`pcm:1`, cuire.js PCM=1) n'a pas le retard de l'encodeur MP3 : son attaque est à la tête exacte, pas sur l'étalon
-        B.d[cle]=null; // le texte base64 n'est plus utile : la mémoire est rendue
+        if(!PAQ_CARTE[paqDe(cle)])B.d[cle]=null; // le texte base64 n'est plus utile : la mémoire est rendue — sauf pour les paquets de map, redécodés à la prochaine visite
         suivant();});
     }
   };
@@ -197,10 +223,10 @@ function stopJeu(){if(!S.ac)return;const n=S.ac.currentTime;for(const k in S.voi
 function annuleFutur(apres){if(!S.ac)return;const n=S.ac.currentTime+(apres||0);for(const k in S.voix)for(const x of S.voix[k])if(x.t0>n&&x.fin>0){try{x.s.stop();}catch(e){}x.fin=0;}}
 function stop(id){const now=S.ac?S.ac.currentTime:0;S.coupe=Math.max(S.coupe||0,now+.08);for(const k in S.voix){if(id&&k!==id)continue;for(const x of S.voix[k]){try{x.g.gain.setTargetAtTime(0,now,.01);x.s.stop(now+.08);}catch(e){}}S.voix[k]=[];}}
 function liste(){const o={},M=S.m||(G.CCSON_BANQUE&&G.CCSON_BANQUE.m)||{};for(const id in M){const f=M[id];(o[f.fam]||(o[f.fam]=[])).push({id:id,dit:f.dit});}return o;}
-G.CCSON={charge:charge,init:init,play:play,ton:ton,stop:stop,liste:liste,annuleFutur:annuleFutur,stopJeu:stopJeu,
+G.CCSON={charge:charge,init:init,play:play,ton:ton,stop:stop,liste:liste,annuleFutur:annuleFutur,stopJeu:stopJeu,paquet:paquet,libere:libere, /* (2026-11-05) les paquets */
   bus:function(k){return S.bus[k]||null;},
   existe:function(id){return !!(S.m&&S.m[id]);},
-  etat:function(){return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn};},
+  etat:function(){return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,paquets:Object.keys(S.paq),mo:tamponsMo(),enCours:Object.keys(S.enc).length};},
   // le banc : où commence chaque son (ms) — tous doivent tomber près des 30 ms de tête (± le retard de l'encodeur)
   attaques:function(){const v=Object.keys(S.off).map(function(k){return Math.round(S.off[k]*1000);}).sort(function(a,b){return a-b;});
     return {etalon:S.t0==null?null:Math.round(S.t0*10000)/10,n:v.length,min:v[0],med:v[v.length>>1],max:v[v.length-1],hors:Object.keys(S.off).filter(function(k){return S.off[k]<.02||S.off[k]>.07;})};}};
