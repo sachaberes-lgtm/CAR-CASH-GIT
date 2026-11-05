@@ -4,6 +4,29 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+## LA MÉMOIRE DE L'ORDI (2026-11-05, v1169 — Sacha : « le lien Vercel a des latences et prend beaucoup de mémoire sur mon ordi, règle ça de manière durable »)
+- **La machine** : Ryzen 5 3600, RX 6600, 16 Go dont 1,5 Go libres au moment de la demande (Chrome déjà à 5 Go en 55 processus), écran 3840×2160 à 150 % :
+  dans la colonne de l'ordi le jeu voit une densité de 4,2 et dessine la course à 3,2 Mpx (le budget PC_PX), le menu à 4,2 Mpx. Sur le site publié,
+  MESURÉ par le banc (outils/banc-pc, Chrome headless, vrai GPU, même écran) : Chrome 1 360 Mo au menu (rendu 780, GPU 350), 1 640 à 1 800 Mo en course
+  (rendu jusqu'à 1 170, GPU 370-560). Avec 1,5 Go libres, c'est le swap : la « latence ».
+- **Où va la mémoire du processus de rendu** (memory-infra, au menu ~800 Mo) : partitions ~380 (≈ 130 de sons décodés — 229 sons en PCM 32 kHz —, ≈ 150 de
+  copies JavaScript des géométries, 3 × 19 de source d'index.html en copie locale), tuiles du compositeur ~210 (18 couches composées au menu : le halo du
+  splash `.spVoile::before` en 130vmax = 21 Mpx à lui seul, le boîtier #tel de la page-cadre et la racine du jeu composés parce que la page défile, chaque
+  effet plein écran du HUD), V8 ~155 dont 80 à 115 dans l'OUVRIER DES NUAGES (un Web Worker jamais arrêté : 64 Mo de pépinière, 18-51 de grands objets),
+  tampon MSAA ×4 de la toile 98 Mo (49 couleur + 49 profondeur) alors que la toile ne reçoit que la passe finale du compositeur depuis le FXAA du 25/10.
+- **Les trois corrections** (toutes sans changer un pixel) : LA TOILE SANS MSAA (`palier-appareil.js`, `?msaa=1` = avant) ; L'OUVRIER SE REPOSE
+  (`nuages-v8.js` : terminé 1,5 s après sa file vidée, refait au prochain nuage ; même chose pour le travailleur des ciels, `finition.js` ; `?ouvrier=garde` =
+  avant). A/B au banc, map NUAGES, même écran : « webgl » du rendu 333-342 → 209-262 Mo (le tampon MSAA : 98 à 128 Mo de carte graphique en moins), V8 en course 124 → 48 Mo (l ouvrier arrêté entre deux nuages : −76 Mo) ; mais les processus Chrome ne bougent que de 20 à 70 Mo sur ~1,9 Go (le bruit du banc est ±50) : les deux corrections sont sûres et gratuites, pas la solution à elles seules.
+- **Les latences mesurées, pas corrigées ici** : au 1er lancement (cache GPU froid) 9,9 s de tâche bloquante = la compilation D3D11 des ~110 à 210 programmes
+  (une fois par machine, Chrome les garde) ; à chaque lancement 2,5 s (lecture du script + scène) ; au garage des gels de 1,8 à 2,7 s (la boîte noire les note :
+  le pré-bâti de la map suivante sur le fil principal — grottes : grtCreuse1 / voxPilierG / voxMeshG ~1,4 s — et 0,5 s de liaison de programmes) ; au départ de
+  course 0,9 s dans `getProgramInfoLog` (des programmes de la map liés en course, hors de LIER : trois.js attend la liaison, programme après programme).
+- **Les gros postes restants, à trancher par Sacha** : la banque de sons décodée (~130 Mo ; décoder à la demande ferait taire le 1er appel d'un son) ; les
+  copies JS des nuages pré-bâtis en 4 finesses (~60 Mo au menu, les InstancedMesh à 0 instance ne sont jamais envoyées au GPU donc jamais libérées) ; les
+  toiles 2D du HUD (`canvas` 70-80 Mo) ; les couches composées (masquer les effets plein écran au repos : −50 Mo mesurés, à peine au-dessus du bruit ±50 Mo) ;
+  la banque et le script en copie UTF-16 (3 × 19 Mo en local, moins en ligne).
+- **Le banc** : `outils/banc-pc/LISEZMOI.txt`. `dbgJouer()` (desktop-banc.js, repris du jury) lance une course sans toucher le bouton, pour un Chrome headless.
+
 
 ## LES PROFONDEURS : LA ROUTE À RYTHME ET LES GÉANTS (2026-11-05, v1122-v1123 → v1146 — Sacha : « un module avec des stalagmites tellement imposants que ça devienne un obstacle » puis « pas assez de virages, pas assez de trucs fun, rajoute des modules : vitesse, exploration, fluidité »)
 - **Mesuré d'abord** (banc `outils/banc-routes/grotte.cjs`, les cibles de `passation/RACCOURCIS.md`) : la route simplifiée du 04/11 faisait 0,5 virage/km (cible ≥ 2,5), 0,2 enchaînement/km (≥ 1), 0 raccourci/km (≥ 0,6) — la grotte n'avait AUCUN raccourci, le cœur du jeu.

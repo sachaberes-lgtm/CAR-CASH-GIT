@@ -106,7 +106,13 @@ const FOVP_K=REDUCED_MOTION?.3:1; // (2026-09-30) « Réduire les animations » 
    d'un coup si un détail gêne). Rien de ce qui est gardé par SENS ne touche la physique, les vitesses ni l'économie : du ressenti seul. */
 var SENS=!/[?&]sens=0/.test(location.search); var SENSG=SENS; /* le même drapeau sous un nom que rien ne masque : le bloc tactile a un `const SENS` local (l interface), qui le cachait → « Cannot access SENS before initialization », le jeu ne démarrait plus */
 try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',function(e){if(e.matches)document.documentElement.setAttribute('data-reduced-motion','1');else document.documentElement.removeAttribute('data-reduced-motion');});}catch(e){} // (2026-09-29) le réglage d'iOS change en cours de partie : les règles qui ne lisent que l'attribut suivent
-const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END,powerPreference:'high-performance'});
+/* ===== LA TOILE SANS MSAA (2026-11-05, Sacha : « le lien Vercel a des latences et prend beaucoup de mémoire sur mon ordi, règle ça de manière durable ») =====
+   MESURÉ (memory-infra de Chrome, écran 2560×1440 ×1,5, colonne de l'ordi : toile 2631×1216) : `antialias:true` donnait à la toile un tampon multi-échantillons
+   ×4 et sa profondeur — 49 + 49 Mo dans le processus de rendu, autant à la carte graphique, et un « resolve » à chaque image. Or depuis le 25/10 (FXAA partout)
+   la toile ne reçoit plus que la passe finale du compositeur (un quad plein écran : rien à anticréneler) ; la scène se dessine dans la cible du compositeur,
+   et l'anticrénelage est le FXAA de la passe finale. Même image au pixel près, ~100 Mo de moins. `?msaa=1` (l'ancien choix, voir FXAA_ON) garde le tampon. */
+const MSAA_TOILE=/[?&]msaa=1\b/.test(location.search);
+const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance'});
 renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
 try{palPuce(renderer.getContext());}catch(e){} // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
