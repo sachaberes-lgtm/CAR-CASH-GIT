@@ -23,7 +23,7 @@ le seul truc animé, c'est sa tête qui tourne autour de son corps ». Dessin et
 ## Les fichiers
 - `ouroboros.cjs` — LE GÉNÉRATEUR. `node outils/ouroboros/ouroboros.cjs` régénère tout le reste. La tête (`SK`, `UPJ`, `LOWJ`, `STAMPS`, `EYE`, dans le repère courbe de l'anneau),
   le corps, les écailles, les boules et les étincelles sont calculés. Pour retoucher le dessin : modifier ce fichier, jamais le PNG.
-- `ouroboros-64px-48img.png` — la bande : 48 images de 64 × 64 px côte à côte (3072 × 64, PNG à 2 bits par pixel, 5 Ko).
+- `ouroboros-52px-48img.png` — la bande : 48 images de 52 × 52 px côte à côte (2496 × 52, PNG à 4 bits par pixel, 9 Ko). Le rendu fait 64 × 64 px ; on rogne les 6 px de noir autour (`C0`, `CS` dans le générateur) : 34 % de pixels en moins pour le compositeur et une bande qui reste sous 16 384 px de large même sur un écran à 3 pixels par pixel CSS.
 - `ouroboros.css` — le bloc CSS pur (`#spCharge`, la bande en data-URL, `steps(48)` sur un `transform` : le compositeur le joue même quand le script
   du jeu est occupé à construire la scène, comme l'ancien anneau de Léo). Affiché ×2 (128 px) : pixels nets sur iPhone (×3 d'écran = 6 px par pixel).
 - `demo.html` — la démo seule sur fond noir (`?zoom=3` pour voir les pixels ; à servir depuis la racine du dépôt pour retrouver la police).
@@ -31,6 +31,6 @@ le seul truc animé, c'est sa tête qui tourne autour de son corps ». Dessin et
 
 ## Où c'est branché dans le jeu
 `code/page/ecrans-garage.html`, dans `<div id="splash">` : le `<style>` qui suit le commentaire « LE CHARGEMENT » = le contenu de `ouroboros.css`.
-L'élément garde l'id `spCharge` : `chCl()` dans `code/moteur/intro-161.js` le fond en opacité puis le retire quand la boule de l'intro se dessine.
+CENTRAGE : le cadre est à `top:46%` (portrait) comme la boule de l'intro (`cy=H*(land?.5:.46)` dans `intro-161.js`), et à `top:50%` en paysage (`@media(min-aspect-ratio:23/20)`, le même seuil `W>H*1.15` que l'intro) : sinon il sauterait de 4 % de la hauteur au moment du fondu. L'élément garde l'id `spCharge` : `chCl()` dans `code/moteur/intro-161.js` le fond en opacité puis le retire quand la boule de l'intro se dessine.
 Pour mettre à jour après une retouche du dessin : régénérer, recoller le contenu de `ouroboros.css` à la place du `<style>`, `node code/assembler.cjs`,
 incrémenter `cashcar-vNNN` dans `VERSION PRINCIPALE/sw.js`.
