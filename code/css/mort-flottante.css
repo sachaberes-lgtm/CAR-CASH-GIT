@@ -38,8 +38,12 @@ html body #mob #mDead.m5 .mCashL>b{grid-column:1;grid-row:1;display:block;font-s
 html body #mob #mDead.m5 .mCashL>b::before{content:'+';margin-right:.1em;opacity:.85}
 /* le compteur à rouleaux : chaque chiffre a sa case (1ch : la police n'a pas la même chasse pour tous), les zéros d'avant le 1er chiffre sont éteints */
 html body #mob #mDead.m5 .mCashL>b>span{font-size:inherit;letter-spacing:inherit;line-height:inherit} /* (ux8 donne .mCashL span le corps d'une légende : ici ce sont les chiffres du compteur) */
-html body #mob #mDead.m5 .mCashL>b>.m6D{display:inline-block;width:1ch;text-align:center;transition:opacity .25s}
+html body #mob #mDead.m5 .mCashL>b>.m6D{display:inline-block;position:relative;width:1ch;text-align:center;transition:opacity .25s}
 html body #mob #mDead.m5 .mCashL>b>.m6D.z{opacity:.2}
+/* le compteur kilométrique : <i> = le chiffre courant (monte et s'efface), <u> = le suivant (monte d'en dessous et s'allume), --f de 0 à 1 (voir m6Pose) */
+html body #mob #mDead.m5 .mCashL>b>.m6D>i,html body #mob #mDead.m5 .mCashL>b>.m6D>u{display:block;font-style:normal;text-decoration:none;line-height:inherit;will-change:transform,opacity}
+html body #mob #mDead.m5 .mCashL>b>.m6D>i{transform:translateY(calc(var(--f,0) * -.6em));opacity:calc(1 - var(--f,0))}
+html body #mob #mDead.m5 .mCashL>b>.m6D>u{position:absolute;left:0;right:0;top:0;transform:translateY(calc((1 - var(--f,0)) * .6em));opacity:var(--f,0)}
 html body #mob #mDead.m5 .mCashL>b>.m6S{display:inline-block;width:.34em}
 html body #mob #mDead.m5 .mCashL>small{grid-column:1/-1;grid-row:2;font-size:var(--f0);line-height:1.6;letter-spacing:1px;word-spacing:-.4em;color:#a7f0bd;opacity:.9;
   text-align:left;max-width:none}

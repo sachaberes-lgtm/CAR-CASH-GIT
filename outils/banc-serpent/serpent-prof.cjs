@@ -23,6 +23,9 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     if(!web.test(fn))continue;tot[fn]=(tot[fn]||0)+dt;
     const chain=[];let c=par[n.id];let k=0;while(c&&k<14){const f=N[c].callFrame;if(f.functionName&&/index\.html|jeu\.|\.js/.test(f.url)&&!/three/.test(f.url)){chain.push(f.functionName+':'+f.lineNumber);}c=par[c];k++;}
     const key=fn+' <- '+chain.slice(0,4).join(' < ');agg[key]=(agg[key]||0)+dt;}
+  {const FN=process.env.QUI||'setSize',A={};for(let i=0;i<P.samples.length;i++){const dt=(P.timeDeltas[i]||0)/1000;const n=N[P.samples[i]];if(n.callFrame.functionName!==FN)continue;
+    const ch=[];let c=n.id,k=0;while(c&&k<30){const f=N[c].callFrame;if(f.functionName&&!/^((program)|(root))/.test(f.functionName))ch.push(f.functionName+':'+f.lineNumber);c=par[c];k++;}const key=ch.slice(0,7).join(' < ');A[key]=(A[key]||0)+dt;}
+    console.log('QUI APPELLE '+FN+' (QUI=nom pour changer)',JSON.stringify(Object.entries(A).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>[k,Math.round(v)])));}
   {const self={};let tt=0;for(let i=0;i<P.samples.length;i++){const dt=(P.timeDeltas[i]||0)/1000;tt+=dt;const n=N[P.samples[i]],f=n.callFrame;const k=(f.functionName||"(anonyme)")+" "+String(f.url).split("/").pop()+":"+f.lineNumber;self[k]=(self[k]||0)+dt;}
 console.log("TOP SELF",JSON.stringify(Object.entries(self).sort((a,b)=>b[1]-a[1]).slice(0,22).map(([k,v])=>[k,Math.round(v)])));}console.log('TOTAL profil ms',Math.round(T));console.log('PAR APPEL WEBGL (ms)',JSON.stringify(Object.entries(tot).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,Math.round(v)])));
   Object.entries(agg).sort((a,b)=>b[1]-a[1]).slice(0,10).forEach(([k,v])=>console.log(Math.round(v)+' ms',k));
