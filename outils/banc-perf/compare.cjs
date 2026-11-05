@@ -7,6 +7,7 @@ const fs=require('fs');const [,,A,B]=process.argv;if(!A||!B){console.error('usag
 const a=JSON.parse(fs.readFileSync(A,'utf8')),b=JSON.parse(fs.readFileSync(B,'utf8'));
 const R=s=>'\x1b[31m'+s+'\x1b[0m',V=s=>'\x1b[32m'+s+'\x1b[0m';let rouge=0;
 const pct=(x,y)=>x==null||y==null?'  n/a':(x===0?(y===0?'   0%':' +inf'):((y-x)/x*100>=0?'+':'')+((y-x)/x*100).toFixed(1)+'%');
+const fiable=a.tempsFiables!==false&&b.tempsFiables!==false;if(!fiable)console.log('ⓘ temps NON fiables (charge machine ≥ 8 : '+a.charge+' → '+b.charge+') : seuls les compteurs sont comparés');
 if(a.mediane&&b.mediane){const m=a.mediane,n=b.mediane;
   for(const k of ['menu_s','taches_50','taches_ms','pire_tache','script_s','tas_mo','programmes','toiles'])console.log(k.padEnd(12),String(m[k]).padStart(8),'→',String(n[k]).padStart(8),pct(m[k],n[k]));
   console.log('menu10s     ',JSON.stringify(m.menu10s),'→',JSON.stringify(n.menu10s));process.exit(0);}
@@ -18,6 +19,6 @@ for(const m of a.mesures){const n=idx[m.map];if(!n){console.log(m.map,'absente d
   let ligne=m.map.padEnd(14);
   for(const k of CPT){const bouge=m[k]!==n[k];const s=(m[k]+'→'+n[k]+' '+pct(m[k],n[k])).padStart(18);
     if(bouge&&a.palier===2&&b.palier===2){rouge++;ligne+=R(s);}else ligne+=(bouge?(n[k]<m[k]?V(s):s):s);}
-  console.log(ligne+'   | '+m.pire+'/'+m.longues+' → '+n.pire+'/'+n.longues);}
+  console.log(ligne+'   | '+m.pire+'/'+m.longues+' → '+n.pire+'/'+n.longues+(fiable?'':' (temps non fiables)'));}
 if(rouge){console.log(R('✘ '+rouge+' compteur(s) du palier 2 ont bougé : fusion refusée'));process.exit(1);}
 console.log('✔ rien n\'a bougé au palier 2 (ou comparaison hors palier 2)');

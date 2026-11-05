@@ -146,7 +146,7 @@ def tour(http,port,cartes):
         if e['method']=='Runtime.exceptionThrown':echecs.append('exception : '+(e['params']['exceptionDetails'].get('exception',{}).get('description') or '')[:160])
     print('\n'.join(lignes))
     if OPT['json']:
-        json.dump({'date':time.strftime('%Y-%m-%d %H:%M'),'palier':OPT['palier'],'tel':OPT['tel'],'charge':round(charge0,1),'cpu':4,'mesures':OPT['mesures']},open(OPT['json'],'w'),indent=1,ensure_ascii=False)
+        json.dump({'date':time.strftime('%Y-%m-%d %H:%M'),'palier':OPT['palier'],'tel':OPT['tel'],'charge':round(charge0,1),'chargeFin':round(os.getloadavg()[0],1),'tempsFiables':max(charge0,os.getloadavg()[0])<8,'cpu':4,'mesures':OPT['mesures']},open(OPT['json'],'w'),indent=1,ensure_ascii=False)
     if (os.getloadavg()[0] if hasattr(os,'getloadavg') else 0)>=8:print('ⓘ charge machine ≥ 8 : seuils de temps ignorés (compilations et erreurs comptent toujours)')
     for a in avert:print('⚠',a)
     if echecs:

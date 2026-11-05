@@ -51,12 +51,12 @@ def une(palier,http,port):
     M={m['name']:m['value'] for m in c.call('Performance.getMetrics')['metrics']}
     c.ev("window.__F.length=0;window.__Fon=true;1");c.pump(10);c.ev("window.__Fon=false;1")
     F=json.loads(c.ev("JSON.stringify(window.__F)"))
-    ap=c.ev("JSON.stringify({progs:typeof dbgProgs==='function'?dbgProgs().length:null,toiles:typeof dbgToiles==='function'?dbgToiles().rendues:null,lt2:window.__LT.length})")
+    ap=c.ev("JSON.stringify({progs:typeof dbgProgs==='function'?(dbgProgs().length|0):null,toiles:typeof dbgToiles==='function'?dbgToiles().rendues:null,lt2:window.__LT.length})")
     ap=json.loads(ap)
     lt=[x for x in LT if x[0]<=tmenu]
     return {'menu_s':round(menu,2),'menu_ms_page':tmenu,'taches_50':len(lt),'taches':[{'t':x[0],'ms':x[1]} for x in lt],'taches_ms':sum(x[1] for x in lt),'pire_tache':max([x[1] for x in lt] or [0]),
       'script_s':round(M.get('ScriptDuration',0),3),'layout_s':round(M.get('LayoutDuration',0),3),'style_s':round(M.get('RecalcStyleDuration',0),3),'tas_mo':round(M.get('JSHeapUsedSize',0)/1048576,1),
-      'menu10s':{'pire':round(max(F[1:] or [0])),'longues':sum(1 for x in F[1:] if x>100),'images':len(F)},'programmes':ap['progs'],'toiles':ap['toiles'],'taches_apres':ap['lt2']-len(LT)}
+      'menu10s':{'pire':round(max(F[1:] or [0])),'longues':sum(1 for x in F[1:] if x>100),'images':len(F)},'programmes':ap.get('progs'),'toiles':ap.get('toiles'),'taches_apres':ap['lt2']-len(LT)}
 def passe(palier):
     http=libre();port=libre()
     srv=subprocess.Popen([sys.executable,'-m','http.server',str(http),'--bind','127.0.0.1'],cwd=VP,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
@@ -92,6 +92,6 @@ def main():
         R.append(r);print('passe %d : menu à %.1f s · %d tâches > 50 ms (%d ms, pire %d) · ScriptDuration %.2f s · tas %.0f Mo · 10 s au menu : pire %d ms, %d images > 100 ms · %s programmes'%(k+1,r['menu_s'],r['taches_50'],r['taches_ms'],r['pire_tache'],r['script_s'],r['tas_mo'],r['menu10s']['pire'],r['menu10s']['longues'],r['programmes']))
     if not R:return 2
     med=sorted(R,key=lambda r:r['menu_s'])[len(R)//2]
-    if sortie:json.dump({'date':time.strftime('%Y-%m-%d %H:%M'),'palier':palier,'cpu':4,'charge':round(os.getloadavg()[0],1),'mediane':med,'passes':R},open(sortie,'w'),indent=1,ensure_ascii=False)
+    if sortie:json.dump({'date':time.strftime('%Y-%m-%d %H:%M'),'palier':palier,'cpu':4,'charge':round(os.getloadavg()[0],1),'tempsFiables':os.getloadavg()[0]<8,'mediane':med,'passes':R},open(sortie,'w'),indent=1,ensure_ascii=False)
     return 0
 if __name__=='__main__':sys.exit(main())
