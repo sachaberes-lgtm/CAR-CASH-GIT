@@ -53,14 +53,26 @@ function cielDeuxTemps(r9,cam){
   r9.setRenderTarget(CIEL2.rt);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);
   skyDome.material=md==='N'?C.netN:C.netV;CIEL2.n++;
 }
+/* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») LA CHAUFFE DU CIEL N'ATTEND PLUS LA LIAISON. MESURÉ (banc-serpent/serpent-gl.cjs, CPU ×4, cache de shaders froid) : cette
+   chauffe était un `renderer.render` des 7 programmes du ciel, lancé À LA LECTURE DU SCRIPT — three lit alors l'état de lien de chacun tout de suite (`getProgramInfoLog`, GetProgramiv synchrone) :
+   le fil principal attend le GPU, qui lie et ne dessine plus rien, serpent de chargement compris (trous de 300 à 900 ms dans `#spCharge`). Désormais en deux temps :
+   · `cielChauffeLance()` (appelée par `lierDemarrage`, avec la scène du menu et les passes) : les 7 programmes sont lancés en DOUX (`compileDoux`, KHR_parallel_shader_compile), sur les mêmes cibles 8×8 ;
+   · `cielChauffe()` : quand tout est lié (ou sans l'extension, ou `?lier=0`), les dessins d'avant, au pixel près — la puce d'Apple fabrique son état de pipeline au premier dessin — sur des programmes prêts. */
+CIEL2.ch=null;
+function cielChauffeLance(){ if(!CIEL2.on||CIEL2.ch)return; try{
+  const C=skyDome.userData.ciel,a=cielCible(8,8,false),b=cielCible(8,8,true),cible=renderer.getRenderTarget(),t0=skyU.uBasTex.value;
+  const fait=function(ks,rt){const sc=new THREE.Scene(),ms=[];ks.forEach(function(k){const m=new THREE.Mesh(skyDome.geometry,C[k]);m.frustumCulled=false;sc.add(m);ms.push(m);});
+    skyU.uBasTex.value=a.texture;renderer.setRenderTarget(rt);compileDoux(sc,camera);return {sc:sc,rt:rt,ks:ks};};
+  CIEL2.ch=[fait(['basN','basV'],a),fait(['netN','netV','plein','cy','jd'],b)];CIEL2.ch.a=a;CIEL2.ch.b=b;
+  renderer.setRenderTarget(cible);skyU.uBasTex.value=t0;
+}catch(e){console.warn('cielChauffeLance',e);CIEL2.ch=null;} }
 function cielChauffe(){ if(!CIEL2.on)return; try{
-  const C=skyDome.userData.ciel,a=cielCible(8,8,false),b=cielCible(8,8,true),sc=new THREE.Scene(),me=new THREE.Mesh(skyDome.geometry,C.plein);
+  const C=skyDome.userData.ciel,a=CIEL2.ch?CIEL2.ch.a:cielCible(8,8,false),b=CIEL2.ch?CIEL2.ch.b:cielCible(8,8,true),sc=new THREE.Scene(),me=new THREE.Mesh(skyDome.geometry,C.plein);
   me.frustumCulled=false;sc.add(me);const cible=renderer.getRenderTarget(),t0=skyU.uBasTex.value;skyU.uBasTex.value=a.texture;
   renderer.setRenderTarget(a);for(const k of ['basN','basV']){me.material=C[k];renderer.render(sc,camera);}
   renderer.setRenderTarget(b);for(const k of ['netN','netV','plein','cy','jd']){me.material=C[k];renderer.render(sc,camera);}
-  renderer.setRenderTarget(cible);skyU.uBasTex.value=t0;a.dispose();b.dispose(); // (les matières restent : leurs programmes vivent)
+  renderer.setRenderTarget(cible);skyU.uBasTex.value=t0;a.dispose();b.dispose();CIEL2.ch=null; // (les matières restent : leurs programmes vivent)
 }catch(e){console.warn('cielChauffe',e);} }
-cielChauffe();
 {const ob=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt9){ob.call(this,r9,s9,cam,rt9);cielDeuxTemps(r9,cam);};} // ⚠ CHAÎNÉ (pisteLoin passe d'abord)
 /* (banc) `dbgCiel2(false)` = le ciel d'avant, pour des A/B dans la même page · `dbgCiel2(on,{rendre:1})` re-rend l'image courante tout de
    suite (même caméra, même horloge : deux captures comparables au pixel) · `{octets:1}` force la passe lisse en 8 bits (le cas d'un

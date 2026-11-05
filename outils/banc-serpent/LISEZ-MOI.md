@@ -13,5 +13,10 @@ Chrome headless (CDP, Node ≥ 22, aucune dépendance), iPhone simulé 390×844 
 4. Le serpent n'existait dans la page qu'après 5-6 s (CPU ×4) : son HTML était à 625 Ko sur 770 Ko. Corrigé (v1157, le voile passe en tête du `<body>`).
 5. ⚠ Le banc headless a un blocage GPU aléatoire de 30-60 s (« un programme ne se lie jamais ») : ne pas juger un A/B sur une seule passe.
 
-## Piste pour finir (non faite)
-Le jeu a déjà `compileDoux` (vignette-moteur.js, KHR_parallel_shader_compile) pour `renderer.compile`. Restent les programmes créés par le PREMIER `renderer.render` du démarrage (derrière l'intro) : three les lie et lit leur état tout de suite. Piste : `renderer.debug.checkShaderErrors=false` + lecture d'état différée jusqu'à COMPLETION_STATUS_KHR pour ces programmes, ou étaler la 1re compilation (un programme par image) pendant que le serpent tourne. À mesurer avec `serpent-trace.cjs` (les « TROU » doivent disparaître) ET sur un vrai téléphone (cache de shaders froid : vider les données du site).
+- `node outils/banc-serpent/serpent-gl.cjs <url> <cpu> <secondes>` : les appels WebGL synchrones > 20 ms (getProgramInfoLog, getProgramParameter…) avec leur pile JS — dit QUI lit le lien d'un shader d'un bloc. `serpent-verif.cjs` : erreurs de console/shader, état `dbgLier`/`dbgCiel2`, capture.
+  ⚠ Un serveur peut déjà tenir le port 3178 (autre session, ancienne version) : vérifier que le fichier servi contient bien le code du jour.
+
+## Fait (v1176, 2026-11-05)
+La cause était `cielChauffe` : 7 `renderer.render` des programmes du ciel À LA LECTURE DU SCRIPT (three lit le lien tout de suite : 0,9 s + 0,3 s + 0,4 s de GetProgramiv, plus le blocage aléatoire de 30 s du banc). Désormais `cielChauffeLance` les lie en DOUX avec la scène du menu (`lierDemarrage`), `cielChauffe` dessine une fois liés. Et `photoTour` (vitrine) ne prend plus de photo tant que `#spCharge` existe (`photoLie` = compilation dure : 1,4 s à ~10 s, puis 8 × 100-140 ms). Résultat (CPU ×4, profil neuf, 5 passes) : plus aucun « TROU » GetProgramiv pendant le serpent.
+## Reste (hors GetProgramiv)
+Vers 12-14 s (début de l'intro, serpent encore plein) : trous de 0,5 à 1,2 s = tâche JS de 0,5-2,3 s (TimerFire) puis `SkiaOutputSurfaceImplOnGpu::FinishPaintRenderPass` ~1,1 s sur le GPU : le dessin du canvas 2D de l'intro à DPR 3, pas un lien de shader. Piste suivante : le canvas `fxCv` (résolution/DPR de l'intro pendant que le serpent tourne) — à mesurer sur un vrai téléphone.

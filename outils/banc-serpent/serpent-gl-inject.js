@@ -1,0 +1,10 @@
+(function(){Error.stackTraceLimit=40;var Z=window.top;Z.__gl=Z.__gl||{s:[],n:{}};var T0=performance.now();
+  ['WebGL2RenderingContext','WebGLRenderingContext'].forEach(function(C){var P=window[C]&&window[C].prototype;if(!P)return;
+    ['getProgramParameter','getProgramInfoLog','getUniformLocation','getActiveUniform','getActiveAttrib','getAttribLocation','getShaderParameter','getShaderInfoLog','linkProgram','useProgram','compileShader','getUniformBlockIndex','getActiveUniformBlockParameter'].forEach(function(k){var f=P[k];if(!f)return;
+      P[k]=function(){var a=performance.now();var r=f.apply(this,arguments);var d=performance.now()-a;Z.__gl.n[k]=(Z.__gl.n[k]||0)+1;
+        if(d>20){var st=(new Error()).stack.split('\n').slice(6,22).map(function(l){return l.replace(/^\s*at\s*/,'').replace(/http:\/\/[^ )]*\//g,'');}).join(' < ');
+          var arg=(k==='getProgramParameter'&&arguments[1]===37297)?'COMPLETION':String(arguments[1]).slice(0,30);
+          Z.__gl.s.push([Math.round(a-T0),Math.round(d),k,arg,st]);}return r;};});});
+})();
+(function(){var Z=window.top,T0=performance.now(),vu=null;Z.__gl=Z.__gl||{s:[],n:{}};Z.__gl.ev=Z.__gl.ev||[];
+  (function chk(){var e=document.getElementById('spCharge');var v=e?1:0;if(e&&!chk.f&&+e.style.opacity<1&&e.style.opacity!==''){chk.f=1;Z.__gl.ev.push([Math.round(performance.now()-T0),'spCharge opacité '+e.style.opacity]);}if(v!==vu){vu=v;Z.__gl.ev.push([Math.round(performance.now()-T0),'spCharge '+(v?'présent':'RETIRÉ')]);}setTimeout(chk,50);})();})();

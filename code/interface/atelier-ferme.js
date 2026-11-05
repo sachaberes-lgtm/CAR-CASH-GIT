@@ -554,7 +554,7 @@ function photoPrends(it){const u=PHOTO.cache[it[0]];
 function photoTour(){
   if(!PHQ.q.length||!garageOn||gEl.classList.contains('quiet')){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance) — (2026-09-28, chasse aux gels) et le garage du JOUER (`quiet`) n'affiche aucune vignette : MESURÉ, il y prenait 2 à 3 photos pendant le fondu (chacune reconstruit deux caisses, ~200 ms et 4 programmes) pour une bande que personne ne voit
   requestAnimationFrame(photoTour);
-  if(GAR.sw||GAR.go||phdbAttend())return;
+  if(GAR.sw||GAR.go||phdbAttend()||document.getElementById('spCharge'))return; /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») pas de photo tant que le SERPENT DE CHARGEMENT tourne : une photo lie ses programmes pour de bon (photoLie, voir photos-films.js) — MESURÉ CPU ×4, cache de shaders froid : 1,4 s de GetProgramiv d'un bloc, puis 8 × 100-140 ms, sous le serpent, à 10-12 s. Il s'éteint avec l'intro (chCl) ou avec le voile ; les photos reprennent derrière, la vitrine n'est pas ouverte sous l'intro */
   const t=performance.now();if(t<PHQ.pret||!photoCalme())return;
   const j=photoChoix(false);if(j<0){PHQ.pret=t+200;return;} // que des vignettes hors de vue : on regarde de nouveau dans 200 ms (pas de mesure de la page à chaque image)
   const it=PHQ.q.splice(j,1)[0];photoPrends(it);const d=performance.now()-t;PHQ.pret=performance.now()+Math.min(400,Math.max(150,d*2));
