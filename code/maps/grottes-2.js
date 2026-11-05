@@ -34,7 +34,7 @@ function* grtDecorsG(V,R,fr,MOB){ /* (2026-10-31, passe perf mobile) un généra
       grtBoite(D,V,x,y1+.6,z,la+1,1.1,1.1,GT.BOIS,yaw,'roche');n++;}nb.cadres=n;}
   if(performance.now()>JF.lim)yield;
   // ---- LES TORCHES (hors de la mine) ----
-  {let sd=1,der=-1e9;for(let q=R.i0;q<R.n-20;q++){const s9=R.S[q],sal=R.SAL[q];if(sal===0||s9-der<(sal===4?84:42))continue;der=s9;sd=-sd;
+  {let sd=1,der=-1e9;for(let q=R.i0;q<R.n-20;q++){const s9=R.S[q],sal=R.SAL[q];if(sal===0||s9-der<(sal===4?84:R.TUN&&R.TUN[q]?20:42))continue;der=s9;sd=-sd;
     const y=R.Y[q]+7,tk=GRV.torK,w=paroi(q,sd,y,RHd+4,VZ?Math.min(R.RH[q]*1.45,600):96);let ok=false;
     if(w&&w[4]>=RHd+3&&grtDensIci(V,w[0],w[5]+5,w[1])>0){torche(w[0],w[5],w[1],tk);ok=true;}
     if(!ok){const bx=R.TZ[q]*sd,bz=-R.TX[q]*sd,tx=R.X[q]+bx*(RHd+9),tz=R.Z[q]+bz*(RHd+9),yf=plancher(tx,R.Y[q]-THICK-3,tz,70);if(yf!=null&&grtLibre(R,tx,tz,yf,yf+5*tk,1))torche(tx,yf+4.6*tk,tz,tk);}}}
@@ -334,6 +334,17 @@ function grotteChauffe(){const M=grtMats(),g9=new THREE.BufferGeometry();
   const v=P.visible;P.visible=true;try{chauffeRendu([g,P]);}finally{scene.remove(g);P.visible=v;g9.dispose();}}
 /* ---------------- LA CONSOLE ---------------- */
 window.dbgGrotte=function(k,o){
+  if(k==='sonde'){const R=GROTTE.R,V=GROTTE.V;if(!R||!V)return 'pas de grotte bâtie'; /* (2026-11-05) {s} : ce que la grotte sait de la route à l'abscisse s — la salle, la dalle (NNY), le creux (RH, UP, DN, BAS, LAT), le noyau et la densité au-dessus/au-dessous du centre */
+    if(!o||o.s==null){const bad=[];for(let q=R.i0;q<R.n-20&&bad.length<12;q++){if(grtDensIci(V,R.X[q]+R.NNX[q]*1.5,R.Y[q]+R.NNY[q]*1.5,R.Z[q]+R.NNZ[q]*1.5)<=0||grtDensIci(V,R.X[q],R.Y[q],R.Z[q])<=0)bad.push({q:q,S:Math.round(R.S[q]),sal:R.SAL[q],ny:+R.NNY[q].toFixed(2),rh:Math.round(R.RH[q])});}return {mauvais:bad};} /* sans s : les premiers échantillons dont le centre est dans la roche */
+    let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=o.s)lo=m;else hi=m-1;}const q=lo,out=[];
+    for(const d of [-18,-12,-6,0,6,12,18]){const j=Math.max(R.i0,Math.min(R.n-21,q+d)),dens=[];for(const h of [-8,-2,1.5,8,14,30]){dens.push(Math.round(grtDensIci(V,R.X[j]+R.NNX[j]*h,R.Y[j]+R.NNY[j]*h,R.Z[j]+R.NNZ[j]*h)));}
+      out.push({S:Math.round(R.S[j]),sal:R.SAL[j],ny:+R.NNY[j].toFixed(2),rh:Math.round(R.RH[j]),up:Math.round(R.UP[j]),dn:Math.round(R.DN[j]),bas:R.BAS?Math.round(R.BAS[j]):null,lat:Math.round(R.LAT[j]),y:Math.round(R.Y[j]),dens:dens});}
+    return {q:q,lac:GROTTE.lac?Math.round(GROTTE.lac.y):null,piliers:(GROTTE.piliers||[]).filter(function(c){return Math.hypot(c.x-R.X[q],c.z-R.Z[q])<260;}).map(function(c){return {x:Math.round(c.x-R.X[q]),z:Math.round(c.z-R.Z[q]),r:Math.round(c.r),yb:Math.round(c.yb),yt:Math.round(c.yt),k:c.k};}),pts:out};}
+  if(k==='module'){const R=GROTTE.R; /* (2026-11-05) LES MODULES : sans argument la liste ([n, abscisse de début et de fin, ce que c'est]) ; {n, d, recul, haut, ahead, fov} la caméra SUR la route, d m après le début du module n, dans le repère de la dalle */
+    if(!R)return 'pas de grotte bâtie';const M9=MODMARK.map(function(m,i){const z=MODS&&MODS[i];return {n:i,nom:m.nom||(m.geant?'gGeants':''),s0:z?Math.round(z.s0+60):null,s1:z?Math.round(z.s1):null,fig:m.fig||'',geant:m.geant?1:0,tunnel:m.tunnel?1:0,rouli:m.f?m.f.length:0};});
+    if(!o||o.n==null)return M9;const z=MODS&&MODS[o.n];if(!z)return 'pas de module n° '+o.n;
+    const at=function(s9){let lo=R.i0,hi=R.n-21;while(lo<hi){const m=(lo+hi+1)>>1;if(R.S[m]<=s9)lo=m;else hi=m-1;}return lo;},s9=z.s0+60+(o.d||0)-(o.recul||0),q=at(s9),q2=at(s9+(o.ahead||160)),h9=o.haut==null?12:o.haut;
+    return window.dbgGrotte('vue',{p:[R.X[q]+R.NNX[q]*h9,R.Y[q]+R.NNY[q]*h9,R.Z[q]+R.NNZ[q]*h9],c:[R.X[q2]+R.NNX[q2]*h9*.5,R.Y[q2]+R.NNY[q2]*h9*.5,R.Z[q2]+R.NNZ[q2]*h9*.5],fov:o.fov||75,up:[R.NNX[q],R.NNY[q],R.NNZ[q]]});}
   if(k==='geants'){const R=GROTTE.R; /* (2026-11-05) LES GÉANTS : où ils sont (x, z, rayon du pied, rayon du virage, hauteur, sol, voûte) ou pourquoi il en manque ; o.vue : la caméra devant le n° o.vue, o.cote/o.haut pour la reculer */
     if(!R)return 'pas de grotte bâtie';const L9=GROTTE.geantsInfo||[];
     if(o&&o.vue!=null){const g=R.geants&&R.geants[o.vue];if(!g)return 'pas de géant n° '+o.vue;let qs=g.q;while(qs>R.i0&&R.S[qs]>R.S[g.q]-(o.recul==null?200:o.recul))qs--; /* la caméra SUR la route, o.recul m avant le milieu du virage, dans le repère de la dalle (ce que voit le joueur) ; elle vise le géant, ou la route devant (o.route) */
