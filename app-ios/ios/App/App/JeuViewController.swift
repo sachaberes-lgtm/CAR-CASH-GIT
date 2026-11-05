@@ -1,6 +1,7 @@
 import UIKit
 import WebKit
 import Capacitor
+import AVFoundation
 
 /// CASH CAR — le contrôleur de l'app (posé par SceneDelegate à la place de CAPBridgeViewController).
 /// Le jeu web occupe tout l'écran : barre d'état cachée (Info.plist UIStatusBarHidden + les plugins StatusBar et SystemBars),
@@ -11,6 +12,9 @@ class JeuViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
         // Aucun lien ne sort de l'app (le jeu n'en a pas : c'est la garantie).
         bridge?.registerPluginInstance(GardeNavigation())
+
+        // Le son sort par les haut-parleurs, jamais par l'écouteur du haut (voir GardeHautParleur).
+        GardeHautParleur.partage.demarre()
 
         if let defile = webView?.scrollView {
             defile.isScrollEnabled = false
@@ -45,6 +49,44 @@ class GardeNavigation: CAPPlugin, CAPBridgedPlugin {
         default:
             CAPLog.print("⚡️  [natif] navigation bloquée (on reste dans l'app) : \(url.absoluteString)")
             return true
+        }
+    }
+}
+
+/// LA GARDE DES HAUT-PARLEURS (2026-11-05, Léo : « dans l'app le son ne sort que du haut du téléphone, il faut que ça sorte en stéréo »).
+/// Le moteur web (WebKit) règle lui-même la session audio de l'app selon ce que le jeu joue (navigator.audioSession : 'playback'
+/// quand la musique joue, 'ambient' sinon, pour laisser vivre le Spotify du joueur). Il lui arrive de la passer en « lecture et
+/// enregistrement » : l'iPhone envoie alors TOUT le son dans l'écouteur du haut, celui des appels — un seul côté, petit et faible.
+/// La garde ne choisit pas la catégorie (le jeu garde la main sur 'ambient' / 'playback') : elle regarde seulement où sort le son,
+/// au lancement, à chaque retour dans l'app, à chaque changement de sortie ou de catégorie, et si c'est l'écouteur du haut alors
+/// qu'aucun casque n'est branché, elle renvoie le son vers les haut-parleurs — les deux, en stéréo. Casque, AirPods, voiture : rien ne change.
+final class GardeHautParleur {
+    static let partage = GardeHautParleur()
+    private var lance = false
+
+    func demarre() {
+        guard !lance else { return }
+        lance = true
+        let centre = NotificationCenter.default
+        let s = AVAudioSession.sharedInstance()
+        centre.addObserver(forName: AVAudioSession.routeChangeNotification, object: s, queue: .main) { [weak self] _ in self?.verifie() }
+        centre.addObserver(forName: AVAudioSession.interruptionNotification, object: s, queue: .main) { [weak self] _ in self?.verifie() }
+        centre.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: s, queue: .main) { [weak self] _ in self?.verifie() }
+        centre.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in self?.verifie() }
+        verifie()
+        // WebKit change la catégorie sans toujours changer de sortie : un coup d'œil de plus toutes les 2 s (lire la sortie ne coûte rien).
+        Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in self?.verifie() }
+    }
+
+    private func verifie() {
+        let s = AVAudioSession.sharedInstance()
+        let sorties = s.currentRoute.outputs
+        guard sorties.contains(where: { $0.portType == .builtInReceiver }) else { return }
+        do {
+            try s.overrideOutputAudioPort(.speaker)
+            CAPLog.print("⚡️  [natif] son renvoyé de l'écouteur vers les haut-parleurs (catégorie \(s.category.rawValue))")
+        } catch {
+            CAPLog.print("⚡️  [natif] haut-parleurs refusés : \(error.localizedDescription)")
         }
     }
 }
