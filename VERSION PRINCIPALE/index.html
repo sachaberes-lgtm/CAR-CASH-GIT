@@ -44014,6 +44014,18 @@ function finArete(geo,deg){
   for(let i=0;i<n;i++)F[i*4+3]=i%3;
   geo.setAttribute('aArete',new THREE.Float32BufferAttribute(F,4));}
 function finZero(geo){const P=geo.attributes.position;if(!P)return;const F=new Float32Array(P.count*4);for(let i=0;i<P.count;i++)F[i*4+3]=i%3;geo.setAttribute('aArete',new THREE.Float32BufferAttribute(F,4));}
+/* ===== LA MARBRURE DE TÔLE (2026-11-05, Léo : « la voiture de la honte est magnifique dans le garage : il faut que toutes les autres le soient autant ») =====
+   Ce qui rend LA HONTE vivante, c'est que sa laque n'a pas le même ton partout (voir `patineGeo`, travail-caisse.js). Les autres caisses étaient d'un seul ton
+   par pièce. Ici : la MÊME marbrure, mais PROPRE (pas de crasse, pas de rouille, pas de poussière) et très douce (±4 %), posée UNE FOIS à la construction sur
+   la couleur des sommets de la tôle (laque, métallisé, nacre, motif) : zéro coût en jeu, la peinture de la boutique passe dessous (les couleurs sont multipliées).
+   Une graine par caisse (son nom) ; une géométrie déjà marbrée ne l'est jamais deux fois. `?marbre=0` = l'ancien rendu. */
+const MARBRE_ON=!/[?&]marbre=0/.test(location.search);
+function finMarbre(spec){if(!MARBRE_ON||!spec||spec.shape==='epave'||typeof patineGeo!=='function')return;
+  let gr=7;const nm=String(spec.name||spec.shape||'');for(let i=0;i<nm.length;i++)gr=(gr*31+nm.charCodeAt(i))%997;
+  carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isArray(o.material)||!o.material||!o.material.userData)return;
+    const g=o.material.userData.g,G=o.geometry;if(!(g==='p'||g==='k'||g==='n'||(typeof g==='string'&&g.indexOf('pm:')===0)))return;
+    if(G.userData.marbre||!G.attributes.color||!G.attributes.position||!G.attributes.normal)return;G.userData.marbre=1;
+    try{patineGeo(G,{marbre:.045,echelle:.42,graine:gr});}catch(e){console.warn('marbrure',e);}});}
 // toutes les pièces de la caisse dont la matière dessine les arêtes : la tôle (laque, métallisé, nacre) calcule ses arêtes, le reste porte des zéros
 function finCaisse(){carGroup.traverse(o=>{if(!o.isMesh||!o.geometry||Array.isArray(o.material)||!o.material||!o.material.userData.arete)return;
   if(o.geometry.attributes.aArete)return;const g=o.material.userData.g;
@@ -45452,6 +45464,7 @@ function buildCar(spec){
   carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[wheels.length-1].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
   if(bodyM.userData.mot)carGroup.traverse(function(o9){const m9=o9.material;if(o9.isMesh&&m9&&!Array.isArray(m9)&&m9.userData&&m9.userData.mot&&!MOT_FAIT.has(m9))try{motGreffe(m9,m9.userData.mot);}catch(e){}}); // (2026-10-16) un gabarit qui CLONE la tôle (l'épave : K.body.clone()) : le clone garde la couleur blanche, il reprend le motif
+  finMarbre(spec); // (2026-11-05) la marbrure propre de la tôle, comme LA HONTE (voir finition.js)
   if(finAreteOk())finCaisse(); // (2026-10-20, FINITION STUDIO) les drapeaux d'arête de la tôle, AVANT la soudure (voir finition.js)
   if(FSTU.on)finLaque(FSTU.garage); // le vernis profond si on est au garage
   try{traduisLangage(spec);}catch(e){console.warn('langage',e);} // (25/10) ESSAI `?langage=1` : les caisses « hors langage » regroupées en grandes facettes (éteint par défaut)
