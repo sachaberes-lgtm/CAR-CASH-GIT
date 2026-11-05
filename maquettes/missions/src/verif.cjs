@@ -38,6 +38,11 @@ const MESURE = () => {
     await s.pg.evaluate(() => { const g = document.createElement('style'); g.textContent = '*,*::before,*::after{animation:none!important;transition:none!important}'; document.head.appendChild(g); });
     await B.sleep(400);
     await s.shot(`${fmt}-${sc}`);
+    const info = await s.pg.evaluate(() => { const p = document.querySelector('#gmListe .mcPan'); return { cartes: p.querySelectorAll('.mcL').length, sections: [...p.querySelectorAll('.mcSec span')].map(e => e.textContent + ' ' + (e.parentElement.querySelector('b') || {}).textContent), sh: p.scrollHeight, ch: p.clientHeight }; });
+    console.log(`   liste : ${info.cartes} cartes · sections ${JSON.stringify(info.sections)} · hauteur ${info.sh} dans ${info.ch}`);
+    await s.pg.evaluate(() => { const p = document.querySelector('#gmListe .mcPan'); p.scrollTop = p.scrollHeight; }); await B.sleep(500); await s.shot(`${fmt}-${sc}-bas`);
+    await s.pg.evaluate(() => { const p = document.querySelector('#gmListe .mcPan'); p.scrollTop = p.scrollHeight * .4; }); await B.sleep(500); await s.shot(`${fmt}-${sc}-mid`);
+    await s.pg.evaluate(() => { document.querySelector('#gmListe .mcPan').scrollTop = 0; });
     const m = await s.pg.evaluate(MESURE); fs.writeFileSync(path.join(dir, `${fmt}-${sc}.json`), JSON.stringify(m));
     const aud = await s.boutons({ min: 44 }).catch(e => ({ err: String(e).slice(0, 80) }));
     const pb = (aud && (aud.problemes || aud.pb || aud.issues)) || [];
