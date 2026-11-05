@@ -93,6 +93,6 @@ function langNext(){
   try{localStorage.ccLang=LANG;}catch(err){}
   return LANG;
 }
-const CUR=()=>'$';
+const CUR=()=>'€'; /* (2026-11-05, Sacha : « remplace les dollars par des euros, aucun symbole dollar ne doit rechapper ») la devise du jeu est l'EURO */
 const LOC=()=>LANG==='fr'?'fr-FR':'en-US';
 const fmt=v=>CUR()+' '+Math.round(v).toLocaleString(LOC());

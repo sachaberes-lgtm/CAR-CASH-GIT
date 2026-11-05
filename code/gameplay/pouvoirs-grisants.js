@@ -142,14 +142,23 @@ function pieceNeuve(){const m=PIECES_LIBRES.pop();if(m){m.visible=true;m.scale.s
 const COIN_CAP=4096; // pièces VISIBLES à la fois (le couloir, les deux faces en vol) — au-delà, les plus lointaines attendent l'image suivante
 const coinIM=new THREE.InstancedMesh(pickGeo,pickMat,COIN_CAP);
 coinIM.frustumCulled=false;coinIM.matrixAutoUpdate=false;coinIM.instanceMatrix.setUsage(THREE.DynamicDrawUsage);coinIM.count=0;scene.add(coinIM);
-let coinN=0;
-function coinPose(p){if(coinN<COIN_CAP)coinIM.setMatrixAt(coinN++,p.mesh.matrix);} // une pièce du couloir, rangée en tête
+/* (2026-11-05, Sacha : « à la place des pièces sur la route met des pièces de 1 et 2 euros ») DEUX instances : coinIM = les 1 €, coinIM2 = les 2 €
+   (anneau d'argent, cœur d'or, un peu plus grandes). Deux appels de dessin au lieu d'un — la pièce se tire 1 € ou 2 € à sa pose (`pk.deux`, même
+   tirage sur les deux faces) ; hors euros (sapèque de Jade, bitcoin) tout reste dans coinIM. */
+const COIN_CAP2=COIN_CAP;
+const coinIM2=new THREE.InstancedMesh(pickGeo2,pickMat2,COIN_CAP2);
+coinIM2.frustumCulled=false;coinIM2.matrixAutoUpdate=false;coinIM2.instanceMatrix.setUsage(THREE.DynamicDrawUsage);coinIM2.count=0;scene.add(coinIM2);
+let coinN=0,coinN2=0;
+function coinPose(p){if(p.deux&&COIN_DEUX){if(coinN2<COIN_CAP2)coinIM2.setMatrixAt(coinN2++,p.mesh.matrix);return;}
+  if(coinN<COIN_CAP)coinIM.setMatrixAt(coinN++,p.mesh.matrix);} // une pièce du couloir, rangée en tête
 function coinFlush(){const a=coinIM.instanceMatrix;coinIM.count=coinN;
-  a.updateRange.offset=0;a.updateRange.count=Math.max(1,coinN)*16;a.needsUpdate=true;coinN=0;}
+  a.updateRange.offset=0;a.updateRange.count=Math.max(1,coinN)*16;a.needsUpdate=true;coinN=0;
+  const a2=coinIM2.instanceMatrix;coinIM2.count=coinN2;
+  a2.updateRange.offset=0;a2.updateRange.count=Math.max(1,coinN2)*16;a2.needsUpdate=true;coinN2=0;}
 function spawnPickups(rnd){
   sceneRetire(pickups.map(function(p){return p.mesh;})); // (chasse aux gels) d'un seul passage : un par un, c'était ~15 ms par portail (voir sceneRetire)
   for(const p of pickups){const m9=p.mesh;if(m9&&m9.userData.pi===1&&!m9.parent)PIECES_LIBRES.push(m9);} // (chasse aux gels) nos pièces, hors scène, se recyclent
-  pickups.length=0;coinN=0;{const S9=serieEtat();S9.n=0;S9.g=0;S9.tot.length=0;S9.got={};}
+  pickups.length=0;coinN=0;coinN2=0;{const S9=serieEtat();S9.n=0;S9.g=0;S9.tot.length=0;S9.got={};}
   if(BALADE){coinFlush();return;} // (2026-10-09) LA BALADE : rien à ramasser, que la route // (v5) les séries repartent de zéro
   const HALF=ROAD_HALF-1.8;
   /* (2026-09-28, porté de la lignée car-crash) DEUX RÉGLAGES QUI NE TOUCHENT NI AU FLUX `rnd` NI À L'ÉCONOMIE :
@@ -176,6 +185,7 @@ function spawnPickups(rnd){
     frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
     const cl=dodge(sp,lt);
     const fi=isN?fruitPick():-1; // MÊME fruit sur les deux faces (miroir strict) — tiré hors du rnd seedé
+    const deux=!isN&&Math.random()<.34; // (2026-11-05) une pièce sur trois est une 2 € — tiré hors du rnd seedé, le MÊME sur les deux faces
     const lv=isN?fruitLeve(fi):1.3; // les fruits : posés AU-DESSUS du bitume d'après leur vraie taille (voir fruitLeve)
     for(const face of [1,-1]){
       const m=isN?mkFruit(fi):pieceNeuve(); // (chasse aux gels) une pièce recyclée de la piste d'avant, ou neuve — un FANTÔME
@@ -185,7 +195,7 @@ function spawnPickups(rnd){
       else m.quaternion.setFromRotationMatrix(mat4b);
       m.updateMatrix();m.matrixAutoUpdate=false; // (perf) gelé : seuls les objets du couloir visible se recalculent (voir le LOD)
       if(isN)scene.add(m); // la pièce n'entre pas dans la scène : coinIM la dessine
-      const pk={s:sp,lat:cl,face:face,nitro:isN,fruit:fi,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face)};
+      const pk={s:sp,lat:cl,face:face,nitro:isN,fruit:fi,mesh:m,taken:false,ax:F.n.clone().multiplyScalar(face),deux:deux};
       {const S9=serieEtat();if(!isN&&S9.g){pk.grp=S9.g;if(face>0)S9.tot[S9.g]=(S9.tot[S9.g]|0)+1;}} // (v5) la pièce appartient à SA série
       if(!isN){pk.ci=1;if(face>0&&sp<760)coinPose(pk);} // au MENU le LOD ne tourne pas : on montre d'emblée le couloir du départ
       pickups.push(pk);

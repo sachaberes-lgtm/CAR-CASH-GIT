@@ -275,12 +275,13 @@ function lierPasses(){ /* les matières des passes de l'image (bloom, ACES…), 
   geo.dispose();}
 function lierDemarrage(now){ /* (loop) vrai : cette image ne dessine pas, les programmes de la 1re image se lient encore */
   if(LIER.dem===2)return false;
-  if(LIER.dem===0){LIER.dem=1;lierInit();if(!LIER.X){LIER.dem=2;return false;}
+  if(LIER.dem===0){LIER.dem=1;lierInit();if(!LIER.X){LIER.dem=2;cielChauffe();return false;}
     LIER.t0=performance.now();
     try{const rt=renderer.getRenderTarget();if(POST_ON&&composer&&composer.renderTarget1)renderer.setRenderTarget(composer.renderTarget1);compileDoux(scene,camera);renderer.setRenderTarget(rt);}catch(e){console.warn('lierDemarrage',e);}
     try{if(POST_ON)lierPasses();}catch(e){console.warn('lierPasses',e);}
+    cielChauffeLance(); /* (2026-11-05) les 7 programmes du ciel, lancés avec le reste : ils se lient à côté (voir ciel2.js) */
     return true;}
-  if(lierPret()||performance.now()-LIER.t0>20000){LIER.dem=2;LIER.msDem=Math.round(performance.now()-LIER.t0);return false;}
+  if(lierPret()||performance.now()-LIER.t0>20000){LIER.dem=2;LIER.msDem=Math.round(performance.now()-LIER.t0);cielChauffe();return false;}
   return true;}
 function lierScene(sc){ /* (renderer.render d'une SCÈNE, HORS COURSE) un objet neuf (la caisse du menu, l'atelier, un décor bâti après le démarrage) : ses programmes sont lancés en doux, et
      ce qui n'est pas encore lié n'est pas dessiné cette fois (il apparaît une ou deux images plus tard) au lieu de figer l'écran. Rend les matières cachées, que `lierMenuFin` remet. */

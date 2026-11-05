@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1176'; /* v1176 (2026-11-05, Léo : « dans la glace ça donne l'aigle de feu ; de gros tas de neige sur la route ») : la lave figée de la grotte glacée tue en 'glace' (plus de mission ROULE DANS LA LAVE) ; les concrétions de glace sont écartées de la route selon leur vraie base. */
+const CACHE = 'cashcar-v1188'; /* v1188 (2026-11-05, Sacha : « remplace les dollars par des euros » + « pièces de 1 et 2 euros sur la route ») TOUT EN EUROS : plus un « $ » à l'écran (devise, HUD, textes FR/EN, plaques, billets), les billets du garage redessinés en série Europa (5 à 500), et des pièces de 1 € et 2 € sur la route ; */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

@@ -28,7 +28,7 @@ function cryptoTickerTex(){
   if(CRYPTO.mat.tick)return CRYPTO.mat.tick;
   const W=2048,H=96,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
   x.fillStyle='#020604';x.fillRect(0,0,W,H);x.fillStyle='rgba(61,255,154,.08)';for(let i=0;i<W;i+=4)x.fillRect(i,0,1,H);
-  const L9=[['BTC','$1 000 000','+420 %'],['ETH','$69 000','+69 %'],['CASH','$161 000','+161 %'],['DOGE','$4,20','+1 000 %'],['SOL','$9 000','+88 %'],['MOON','',''],['HODL','','']];
+  const L9=[['BTC','€1 000 000','+420 %'],['ETH','€69 000','+69 %'],['CASH','€161 000','+161 %'],['DOGE','€4,20','+1 000 %'],['SOL','€9 000','+88 %'],['MOON','',''],['HODL','','']];
   x.textBaseline='middle';x.font='34px "Press Start 2P",monospace';let px=20;
   for(const l of L9){x.fillStyle='#ffd75e';x.fillText(l[0],px,H/2);px+=x.measureText(l[0]).width+22;
     if(l[1]){x.fillStyle='#ffffff';x.fillText(l[1],px,H/2);px+=x.measureText(l[1]).width+22;}
@@ -131,7 +131,7 @@ function cryptoFuseeTick(f,dt){
 function cryptoAth(){ // LE NOUVEL ATH : le cours grimpe, la pluie redouble, le ciel tire ses feux
   const A=CRYPTO.ath;A.n++;A.prix=Math.round(A.prix*(1.18+Math.random()*.22)/100)*100;
   const pr=A.prix>=1e6?(A.prix/1e6).toFixed(A.prix>=1e7?1:2).replace('.',',')+' M':Math.round(A.prix/1000)+' K';
-  try{slam(TR('NOUVEL ATH !'),'BTC $ '+pr,'#3dff9a','#ffd75e',30,1,true);}catch(e){}
+  try{slam(TR('NOUVEL ATH !'),'BTC € '+pr,'#3dff9a','#ffd75e',30,1,true);}catch(e){}
   plaSurge(6);for(let i=0;i<5;i++)setTimeout(cryptoFeuDevant,i*260);
   try{if(SONV2)sfx('argent.palier');}catch(e){}
 }

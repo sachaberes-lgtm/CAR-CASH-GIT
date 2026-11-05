@@ -27,7 +27,8 @@
    ================================================================================================ */
 (function(G){
 'use strict';
-const S={ac:null,dest:null,bus:{},buf:{},off:{},voix:{},der:{},dern:{},ton:0,ok:false,grp:{},m:null,nDec:0,nTot:0,dec:false};
+const S={ac:null,dest:null,bus:{},buf:{},off:{},voix:{},der:{},dern:{},ton:0,ok:false,grp:{},m:null,nDec:0,nTot:0,dec:false,
+  att:{},use:{},enFile:{},tard:0,perdus:0,evinces:0,demande:null}; // (2026-11-05) LES SONS À LA DEMANDE : voir charge()
 const TRIM=-10,FEN=.11,RECUL=-9;
 const BUS={ // niveau du bus (dB) · part envoyée dans la SALLE
   ui: {db:-5, rev:.05}, // (−3 → −5 : le clic neuf sortait 9 dB au-dessus de l’ancien, quasi inaudible ; on garde la présence sans crier)
@@ -66,6 +67,18 @@ function charge(){
   const SKIP0=(function(){try{return document.documentElement.dataset.palier==='0'&&!/[?&]sonsplein=1/.test(location.search);}catch(e){return false;}})()?{foret:1,banquise:1,ailes:1}:null;
   const saute=function(k){return !!SKIP0&&k!=='__etalon'&&!!SKIP0[(B.m[k.split('#')[0]]||{}).fam];};
   const cles=Object.keys(B.d).filter(function(k){return k!=='__etalon'&&!saute(k);}).sort(function(a,b){const ia=a.split('#')[0],ib=b.split('#')[0];return ((B.m[ib]&&B.m[ib].pre)|0)-((B.m[ia]&&B.m[ia].pre)|0);});
+  /* ===== LES SONS À LA DEMANDE (2026-11-05, Sacha, après le bilan « LA MÉMOIRE DE L'ORDI » : « Sons à la demande ») =====
+     MESURÉ (memory-infra de Chrome, ordi de Sacha) : la banque entière décodée pesait ~130 Mo de PCM dans le processus de rendu, pour 229 sons
+     dont la plupart ne servent pas dans une partie (forêt, banquise, ailes, richesse, machine : 4,3 des 6,9 Mo de MP3). Désormais :
+       · au chargement on ne décode que les fiches `pre:1` et l'interface (`ui.*`), comme la 1re moitié publiée (scinde-banque) ;
+       · un son demandé par play() et pas encore décodé est DÉCODÉ EN PRIORITÉ (en tête de file) ; s'il est prêt dans les TARD ms, il part — un
+         peu en retard, quelques ms à quelques dizaines (`S.tard` les compte) ; sinon on se tait comme avant (`S.perdus`). Son texte base64 est
+         GARDÉ (pas `B.d[cle]=null`) pour pouvoir le refaire ;
+       · un son décodé qui n'a pas joué depuis VIE ms, sans voix vivante, est ÉVINCÉ (le tampon rendu, le base64 reste ; `S.evinces`).
+     `?sons=tout` = tout décoder au chargement et jeter le base64, comme avant. Les fiches `pre:1` et `ui.*` ne sont jamais évincées. */
+  const DEMANDE=!/[?&]sons=tout\b/.test(location.search),TARD=120,VIE=60000;
+  const garde=function(k){const f=B.m[k.split('#')[0]]||{};return !!f.pre||/^ui\./.test(k);}; // toujours décodé, jamais évincé
+  const fond=DEMANDE?cles.filter(garde):cles,file=[]; // fond : la file de fond ; file : les sons DEMANDÉS (servis d'abord)
   S.nTot=cles.length;let i=0,enCours=0,etalon=B.d.__etalon?0:2; // 0 à faire · 1 en cours · 2 fait
   const tete=B.tete||.03;
   const attaque=function(buf){ // l'instant d'attaque : la crête de l'étalon − 1,5 ms ; sans étalon, le premier échantillon audible
@@ -84,19 +97,26 @@ function charge(){
           if(m>.05)S.t0=Math.max(0,(k-Math.round(.0015*buf.sampleRate))/buf.sampleRate);}
         B.d.__etalon=null;etalon=2;suivant();});
       return;}
-    while(enCours<4&&i<cles.length){
-      const cle=cles[i++],b64=B.d[cle];if(!b64)continue;
+    while(enCours<4&&(file.length||i<fond.length)){
+      const cle=file.length?file.shift():fond[i++],b64=B.d[cle];if(!b64||S.buf[cle]){delete S.enFile[cle];continue;}
       enCours++;
-      decode(c,b64,function(buf){enCours--;
-        if(buf){S.buf[cle]=buf;S.off[cle]=(B.m[cle.split('#')[0]]||{}).pcm?Math.max(0,tete-.0015):attaque(buf);S.nDec++;} // (2026-10-16) un son rangé en WAV (`pcm:1`, cuire.js PCM=1) n'a pas le retard de l'encodeur MP3 : son attaque est à la tête exacte, pas sur l'étalon
-        B.d[cle]=null; // le texte base64 n'est plus utile : la mémoire est rendue
+      decode(c,b64,function(buf){enCours--;delete S.enFile[cle];
+        if(buf){S.buf[cle]=buf;S.off[cle]=(B.m[cle.split('#')[0]]||{}).pcm?Math.max(0,tete-.0015):attaque(buf);S.nDec++;S.use[cle]=performance.now();} // (2026-10-16) un son rangé en WAV (`pcm:1`, cuire.js PCM=1) n'a pas le retard de l'encodeur MP3 : son attaque est à la tête exacte, pas sur l'étalon
+        if(!DEMANDE||garde(cle))B.d[cle]=null; // le texte base64 n'est plus utile : la mémoire est rendue (à la demande : gardé, pour refaire un son évincé)
+        const a=S.att[cle];if(a){delete S.att[cle];if(buf&&performance.now()-a.t<TARD){S.tard++;try{play(a.id,a.o);}catch(e){}}else S.perdus++;} // le son demandé part, un peu tard — ou se tait
         suivant();});
     }
   };
+  S.demande=function(cle){if(!DEMANDE||S.buf[cle]||S.enFile[cle]||!B.d[cle])return false;S.enFile[cle]=1;file.push(cle);suivant();return true;};
+  if(DEMANDE)setInterval(function(){ // L'ÉVICTION : un son muet depuis VIE ms, sans voix vivante, rend son tampon (son base64 est gardé : il se refera)
+    const now=performance.now(),n=S.ac?S.ac.currentTime:0;
+    for(const cle in S.buf){if(!B.d[cle]||now-(S.use[cle]||0)<VIE)continue;
+      const L=S.voix[cle.split('#')[0]];let vive=false;if(L)for(const x of L)if(x.fin>n){vive=true;break;}if(vive)continue;
+      delete S.buf[cle];delete S.off[cle];S.nDec--;S.evinces++;}},10000);
   S.relance=suivant;suivant();
   /* (2026-10-24, passe perf — « le 1er lancement ») LA 2e MOITIÉ DE LA BANQUE : la copie PUBLIÉE ne porte d'abord que les fiches `pre:1` (outils/scinde-banque.cjs) ; le reste
      (sons-banque-2.js, ~4,3 Mo transférés) arrive après l'événement load, et ses sons entrent dans la même file de décodage. Un son pas encore là : play() se tait. */
-  S.ajoute=function(d){for(const k in d){if(B.d[k]!=null||!d[k]||saute(k))continue;B.d[k]=d[k];cles.push(k);}S.nTot=cles.length;suivant();};
+  S.ajoute=function(d){for(const k in d){if(B.d[k]!=null||!d[k]||saute(k))continue;B.d[k]=d[k];cles.push(k);if(!DEMANDE||garde(k))fond.push(k);}S.nTot=cles.length;suivant();};
   if(B.partiel)suite();
 }
 function suite(){
@@ -157,8 +177,9 @@ function play(id,o){
   // la variante : au hasard, jamais deux fois la même d'affilée (un doublon s'entend comme un bug)
   let v=0;if(o.var!=null)v=Math.max(0,Math.min(f.v-1,o.var|0));else if(f.v>1){v=Math.floor(Math.random()*f.v);if(v===S.dern[id])v=(v+1)%f.v;}
   let cle=id+'#'+v+'#'+base,ab=S.buf[cle];
-  if(!ab){for(let k=0;k<f.v&&!ab;k++){cle=id+'#'+k+'#'+base;ab=S.buf[cle];}if(!ab)return null;} // pas encore décodé : on se tait plutôt que d'attendre
-  S.dern[id]=v;
+  if(!ab){const voulu=cle;for(let k=0;k<f.v&&!ab;k++){cle=id+'#'+k+'#'+base;ab=S.buf[cle];}
+    if(!ab){if(S.demande&&S.demande(voulu))S.att[voulu]={id:id,o:o,t:performance.now()};return null;}} // pas encore décodé : demandé en priorité, il partira s'il arrive à temps (LES SONS À LA DEMANDE) ; sinon on se tait plutôt que d'attendre
+  S.use[cle]=performance.now();S.dern[id]=v;
   const dbC=chef(f,t0);if(dbC===null)return null;
   // la polyphonie de CE son : au-delà de `max`, la plus ancienne voix s'efface (en 15 ms, jamais coupée net)
   const L=S.voix[id]||(S.voix[id]=[]);for(let i=L.length-1;i>=0;i--)if(L[i].fin<now)L.splice(i,1);
@@ -200,7 +221,8 @@ function liste(){const o={},M=S.m||(G.CCSON_BANQUE&&G.CCSON_BANQUE.m)||{};for(co
 G.CCSON={charge:charge,init:init,play:play,ton:ton,stop:stop,liste:liste,annuleFutur:annuleFutur,stopJeu:stopJeu,
   bus:function(k){return S.bus[k]||null;},
   existe:function(id){return !!(S.m&&S.m[id]);},
-  etat:function(){return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn};},
+  etat:function(){let oct=0,n=0;for(const k in S.buf){const b=S.buf[k];if(b){n++;oct+=b.length*b.numberOfChannels*4;}}
+    return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,evinces:S.evinces,enAttente:Object.keys(S.att).length};}, // (2026-11-05) residents/mo : le PCM en mémoire ; tardifs/perdus/evinces : LES SONS À LA DEMANDE
   // le banc : où commence chaque son (ms) — tous doivent tomber près des 30 ms de tête (± le retard de l'encodeur)
   attaques:function(){const v=Object.keys(S.off).map(function(k){return Math.round(S.off[k]*1000);}).sort(function(a,b){return a-b;});
     return {etalon:S.t0==null?null:Math.round(S.t0*10000)/10,n:v.length,min:v[0],med:v[v.length>>1],max:v[v.length-1],hors:Object.keys(S.off).filter(function(k){return S.off[k]<.02||S.off[k]>.07;})};}};

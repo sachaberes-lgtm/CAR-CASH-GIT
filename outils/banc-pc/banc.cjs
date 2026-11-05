@@ -61,7 +61,7 @@ class Page{
   evF(expr,timeout){return this.ev("(function(){var f=document.getElementById('colonne');var w=f?f.contentWindow:window;return w.eval("+JSON.stringify(expr)+");})()",timeout);}
   async attendF(expr,ms,pas){const t0=Date.now();while(Date.now()-t0<(ms||60000)){try{if(await this.evF('!!('+expr+')'))return true;}catch(e){}await dort(pas||250);}return false;}
 }
-const SEME="try{var k='cashcarSave',d={};try{d=JSON.parse(localStorage.getItem(k)||'{}')||{};}catch(e){}if(!d.v){d={v:2,tuto:1,plq:{m:'fr',x:'BANC',ok:1},bank:50000,ex:{runs:3}};}d.sfx=false;d.mus=false;d.vox=false;d.tuto=1;localStorage.setItem(k,JSON.stringify(d));}catch(e){}"+
+const SEME="try{var k='cashcarSave',d={};try{d=JSON.parse(localStorage.getItem(k)||'{}')||{};}catch(e){}if(!d.v){d={v:2,tuto:1,plq:{m:'fr',x:'BANC',ok:1},bank:50000,ex:{runs:3}};}d.sfx=__SON__;d.mus=false;d.vox=false;d.tuto=1;localStorage.setItem(k,JSON.stringify(d));}catch(e){}"+
   "try{window.__lt=[];new PerformanceObserver(function(l){l.getEntries().forEach(function(e){window.__lt.push([Math.round(e.startTime),Math.round(e.duration)]);});}).observe({type:'longtask',buffered:true});}catch(e){}";
 async function ouvrePage(){
   const t=await putJson('http://127.0.0.1:'+PORT+'/json/new?about:blank');
@@ -70,7 +70,7 @@ async function ouvrePage(){
   await p.call('Runtime.enable');await p.call('Page.enable');await p.call('Network.enable');
   if(opt.sw!=='1')await p.call('Network.setBypassServiceWorker',{bypass:true});
   if(opt.bloque){await p.call('Network.setBlockedURLs',{urls:opt.bloque.split(',').map(s=>'*'+s+'*')});console.log('bloqué : '+opt.bloque);}
-  await p.call('Page.addScriptToEvaluateOnNewDocument',{source:SEME});
+  await p.call('Page.addScriptToEvaluateOnNewDocument',{source:SEME.replace('__SON__',opt.son==='1'?'true':'false')}); /* --son=1 : les effets restent allumés (Chrome est muet : --mute-audio) pour compter les sons joués */
   if(opt.couches==='1'){await p.call('DOM.enable');await p.call('LayerTree.enable');}
   if(opt.workers==='1'){try{await p.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:false,flatten:true});}catch(e){console.log('setAutoAttach : '+e.message);}}
   return p;}
@@ -84,6 +84,7 @@ const MESURE=`(function(){var o={};function t(f){try{return f();}catch(e){return
   o.state=t(function(){var s=dbgState();return {started:s.started,running:s.running,gameOver:s.gameOver,mode:s.mode};});
   o.lvl=t(function(){return (window.dbgLvl&&dbgLvl().id)||null;});o.palier=t(function(){var p=dbgPalier();return p.nom+' ('+p.src+') '+p.puce;});
   o.progs=t(function(){return dbgProgs().length;});
+  o.sons=t(function(){return window.CCSON&&CCSON.etat?CCSON.etat():null;});
   return o;})()`;
 const ETAT="({intro:!!window.__introCouvre,body:document.body.className.slice(0,160),html:document.documentElement.className.slice(0,120),splash:!!document.getElementById('splash'),boutons:[].slice.call(document.querySelectorAll('button,[role=button],.mPlay,#mPlay,[data-m]')).filter(function(b){var r=b.getBoundingClientRect();return r.width>0&&r.height>0&&getComputedStyle(b).visibility!=='hidden';}).slice(0,25).map(function(b){return (b.id||b.className||b.tagName).toString().slice(0,30)+' « '+b.textContent.trim().slice(0,24)+' »';}),st:dbgState(),lier:window.dbgLier?dbgLier():null,erreurs:(window.dbgErreurs?dbgErreurs():null)})";
 function fmtMo(x){return x==null?'?':x+' Mo';}
@@ -92,6 +93,7 @@ async function releve(p,nom,R){
   const m=await p.evF(MESURE);const pr=procs();let hu=null,dc=null;try{hu=await p.call('Runtime.getHeapUsage');}catch(e){}try{dc=await p.call('Memory.getDOMCounters');}catch(e){}
   const r={t:new Date().toISOString(),nom:nom,procs:pr,page:m,heapUsage:hu,dom:dc,erreurs:p.erreurs.slice()};R.releves.push(r);
   const c=m.cout||{};
+  if(m.sons&&typeof m.sons==='object')console.log('   SONS : '+JSON.stringify(m.sons));
   if(hu)console.log('   V8 : tas '+Math.round(hu.usedSize/1048576)+'/'+Math.round(hu.totalSize/1048576)+' Mo · tampons (ArrayBuffer) '+Math.round((hu.backingStorageSize||0)/1048576)+' Mo · embedder '+Math.round((hu.embedderHeapUsedSize||0)/1048576)+' Mo'+(dc?' · DOM nœuds '+dc.nodes+' documents '+dc.documents+' écouteurs '+dc.jsEventListeners:''));
   console.log('— '+nom+' — RAM : total '+fmtMo(pr.TOTAL&&pr.TOTAL.ws)+' (rendu '+fmtMo(pr.renderer&&pr.renderer.ws)+', GPU '+fmtMo(pr['gpu-process']&&pr['gpu-process'].ws)+', navigateur '+fmtMo(pr.navigateur&&pr.navigateur.ws)+') · tas JS '+(m.heap&&m.heap.used)+'/'+(m.heap&&m.heap.total)+' Mo');
   if(c.toile)console.log('   toile '+(c.toile&&c.toile.join('×'))+' ('+(c.px&&(c.px/1e6).toFixed(2))+' Mpx, dpr '+c.dpr+', cran '+c.ql+', vhd '+c.vhd+') · bloom '+JSON.stringify(c.bloom)+' · ombre '+c.ombre+' · progs '+c.progs+' · tex '+c.tex+' · geo '+c.geo+' · passes '+c.passes);
