@@ -86,7 +86,7 @@ const CONTI={
      avait tourné les lumières en bleu franc : elles sont ramenées à moitié vers leur gris (jade garde son lavis vert-de-gris). */
 {const EQ9={
   vitreMatin:{sat:1.2},vitreMidi:{rtK:.7,sat:1.18},vitreSoir:{rtK:.78,sat:1.22},vitreNuit:{rtK:.78,sat:1.1},vitrePluie:{sat:1.1},
-  cryptoMatin:{sat:1.2},bullrun:{sat:1.2},cryptoSoir:{sat:1.26},cryptoNuit:{rtK:.55,sat:1.18}};
+  cryptoMatin:{sat:1.2,rtK:.86},bullrun:{sat:1.2,rtK:.88},cryptoSoir:{sat:1.26,rtK:.72},cryptoNuit:{rtK:.55,sat:1.18}}; /* (2026-11-03, passe maps cohérentes) rtK du JOUR de Crypto City — MESURÉ au départ : béton L* 46-54 au matin, 42-50 à midi, 40-42 au SOIR (la forêt du soir 14-31, le canyon 20-22, le glacier 24-28 : la cible du soir est 22-30) */
  for(const k in EQ9)if(BIOMES[k])Object.assign(BIOMES[k],EQ9[k]);
  for(const k of ['jadePluie','jadeOrage'])if(BIOMES[k]){const b=BIOMES[k];
   for(const f of ['fog','fogIn','fogCj','hemiS','hemiG','fillC','sunC','volSun','volSky','volGnd']){if(!Array.isArray(b[f])||b[f].length<3)continue;
