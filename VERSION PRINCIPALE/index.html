@@ -9538,6 +9538,20 @@ html.ccApp body #mob #mDead #mDouble#mDouble,html.ccApp #pubR#pubR{display:none!
    la case ne grandit que de 10 px quand un nom est long */
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   #gFigSel .fsNom{white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;line-height:10px;min-height:0;max-height:20px;overflow-wrap:anywhere}}
+/* 8. L'ENFONCEMENT SE JOUE (2026-11-05, finition — audit des animations : `translate` n'était dans aucune liste de `transition`) : les tuiles d'accueil,
+   INVENTAIRE · MISSIONS · BOUTIQUE du garage, les vignettes de la bande et ⏏ s'enfoncent avec la propriété `translate` ; sans elle dans la transition,
+   la face sautait d'un coup (la tranche, elle, glissait). Même durée et même courbe que `transform` (140 ms au relâcher, 70 ms au doigt via `.appui`) */
+.pbtn,.gT{transition:transform var(--t-fast) var(--ease),translate var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),filter var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
+/* 9. « RÉDUIRE LES ANIMATIONS » va jusqu'au bout (2026-11-05, finition) : l'écran de mort (cartes, touches), l'ouverture de la boutique et le garage
+   glissaient encore de 20 px ; le rideau était une COUPE noire (#wipe n'avait pas d'opacité de départ : sa transition ne jouait jamais) — un fondu de 100 ms */
+@media (prefers-reduced-motion:reduce){
+  #wipe{opacity:0}
+  #wipe.in{opacity:1;background:#07050f;transition:opacity 100ms linear}
+  #wipe.out{opacity:0;background:#07050f;transition:opacity 100ms linear}
+  html body #mob #mDead.m5.on :is(.m6Mot,.m6Aura,.mDuo>.pbtn){animation:none}
+  #gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMis,#gvMis::before,#gvMis::after,#gvMis .gvFx,#gName.entre{animation:none}}
+html[data-reduced-motion="1"] body #mob #mDead.m5.on :is(.m6Mot,.m6Aura,.mDuo>.pbtn){animation:none}
+html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMis,#gvMis::before,#gvMis::after,#gvMis .gvFx,#gName.entre){animation:none}
 </style>
 <style id="peintures">
 /* ===== LE NUANCIER v3 — LES PASTILLES (2026-11-05, Sacha : « retravaille la présentation des peintures dans la boutique […] pro, fini, léché ») =====
