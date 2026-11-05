@@ -9572,6 +9572,40 @@ html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.
 /* « OU GAGNE-LA » sous le nom : la même ligne que SE DÉBLOQUE */
 #gBqNom .pDeb .m2DebT{color:#14171c}
 @media (prefers-reduced-motion:reduce){.pL,#gBqPan .bqK.hab.r-legendaire .bqKph.c-peinture::after,#gBqPan .bqRail .bqSec.bqRarS[data-rar="legendaire"] .bqRl{animation:none}}
+/* ===== LES TRAÎNÉES (2026-11-05, Sacha : « retravaille la présentation des traînées dans le même esprit ») =====
+   La carte montre la traînée EN MOUVEMENT : une plaque de nuit (lignes de vitesse qui filent), la tuyère qui brûle à droite, le ruban qui en coule
+   et s'effile vers la gauche (sa lumière court dedans), trois pictogrammes qui s'envolent. GLOUTON et LA GRILLE n'ont pas de ruban (leur effet EST
+   la traînée) ; l'ARC-EN-CIEL a le sien en arc-en-ciel. Le filet violet / or et l'éclat des légendaires sont ceux des peintures. */
+#gBq #gBqPan .bqK.hab .bqKph.c-trainee{position:relative;align-items:stretch;justify-content:stretch;padding:6px 6px 0;box-sizing:border-box}
+#gBq #gBqPan .bqK.hab .bqKph .tSw{position:relative;display:block;flex:1;min-height:0;border-radius:9px 9px 3px 3px;overflow:hidden;
+  background:radial-gradient(90% 120% at 88% 50%,color-mix(in srgb,var(--tc) 30%,#151829) 0,#0e1020 55%,#08090f 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),inset 0 -6px 10px -6px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.9)}
+#gBq #gBqPan .bqK.hab .bqKph .tSw::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.55;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent) 0 18%/38% 1px repeat-x,linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent) 30% 82%/52% 1px repeat-x,
+    linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent) 60% 34%/30% 1px repeat-x;animation:tVit 1.1s linear infinite}
+@keyframes tVit{to{background-position:-120px 18%,-150px 82%,-90px 34%}}
+#gBq #gBqPan .bqK.hab .bqKph .tSw::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(165deg,rgba(255,255,255,.18) 0,rgba(255,255,255,0) 32%)}
+.tSw .tRu{position:absolute;left:-6%;right:15%;top:50%;height:52%;translate:0 -50%;clip-path:polygon(0 47%,100% 0,100% 100%,0 53%);
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,0) 0 16px,rgba(255,255,255,.45) 16px 19px,rgba(255,255,255,0) 19px 30px),linear-gradient(90deg,transparent 0,color-mix(in srgb,var(--tc) 55%,transparent) 38%,var(--tc) 82%,#fff 100%);
+  filter:drop-shadow(0 0 5px var(--tc));animation:tCoule .7s linear infinite}
+@keyframes tCoule{to{background-position:-30px 0,0 0}}
+.tSw.arc .tRu{background:repeating-linear-gradient(90deg,rgba(255,255,255,0) 0 16px,rgba(255,255,255,.45) 16px 19px,rgba(255,255,255,0) 19px 30px),linear-gradient(90deg,transparent 0,#9b5bff 18%,#3bb4ff 34%,#3bff6a 50%,#ffe23a 66%,#ff9b1a 82%,#ff3b3b 100%)}
+.tSw.sansRuban .tRu{display:none}
+.tSw .tBuse{position:absolute;right:15%;top:50%;width:12px;height:12px;translate:50% -50%;border-radius:50%;background:radial-gradient(circle,#fff 0 30%,var(--tc) 55%,transparent 72%);
+  box-shadow:0 0 12px 4px color-mix(in srgb,var(--tc) 70%,transparent);animation:tBrule .18s steps(2) infinite alternate}
+@keyframes tBrule{to{scale:1.18}}
+.tSw .tPa{position:absolute;inset:0;pointer-events:none}
+#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi{position:absolute;right:16%;top:50%;--pxs:2;margin:0;opacity:0;filter:drop-shadow(1px 1px 0 rgba(0,0,0,.85)) drop-shadow(0 0 3px rgba(0,0,0,.5));animation:tPart 2.1s linear infinite}
+#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(2){top:28%;animation-delay:-.7s}
+#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(3){top:72%;animation-delay:-1.4s}
+.tSw.sansRuban .tPa .pxi{animation-duration:1.6s}
+@keyframes tPart{0%{transform:translate(0,-50%) scale(1.1);opacity:0}12%{opacity:1}80%{opacity:.9}100%{transform:translate(-78px,-50%) scale(.55);opacity:0}}
+#gBqPan .bqK.hab.r-legendaire .bqKph.c-trainee::after{content:'';position:absolute;inset:6px 6px 0;border-radius:9px 9px 3px 3px;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(115deg,rgba(255,255,255,0) 38%,rgba(255,255,255,.45) 50%,rgba(255,255,255,0) 62%) no-repeat;background-size:300% 100%;animation:pBrille 3.6s ease-in-out infinite}
+/* sa phrase sous le nom (la caisse ne boost pas sur le plateau : ce sont la carte et ces mots qui la vendent) */
+#gBqNom .tDesc{display:block;max-width:min(80vw,420px);margin:6px auto 0;font-size:var(--f0,8px);line-height:1.7;letter-spacing:.5px;color:#4a5260;text-align:center;white-space:normal}
+@media (orientation:landscape){#gBqNom .tDesc{max-width:none;font-size:7px;line-height:1.6}} /* couché : toute la largeur libre (garBq la donne à .bqM2) — deux lignes, pas trois : l'étiquette ne monte plus sur le logo */
+@media (prefers-reduced-motion:reduce){.tSw::before,.tSw .tRu,.tSw .tBuse,#gBqPan .bqK.hab.r-legendaire .bqKph.c-trainee::after{animation:none}#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi{animation:none;opacity:1}#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(2){right:42%}#gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(3){right:66%}}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -50843,6 +50877,25 @@ function peintDefHtml(d){const f=d&&d.def;if(!f||shopOwned('peinture',d.id))retu
   return '<span class="m2Deb pDeb"><span class="m2DebT">'+pxi('cible')+' '+sansAcc(TR('OU GAGNE-LA'))+' : '+sansAcc(TR(f.t)).toUpperCase()+'</span>'
     +(v<0?'':'<span class="m2DebB"><u><em style="width:'+Math.round(p*100)+'%"></em></u><b>'+peintDefNb(f,v)+'</b></span>')+'</span>';}
 window.dbgDefisPeint=function(){return COSM.peinture.filter(function(d){return d.def;}).map(function(d){const v=peintDefVal(d.def);return {id:d.id,r:d.r,defi:d.def.t,val:v,seuil:d.def.k==='b'||d.def.k==='serie'?null:peintDefSeuil(d.def),a:shopOwned('peinture',d.id)};});};
+/* ===== LES TRAÎNÉES EN VITRINE (2026-11-05, Sacha : « retravaille la présentation des traînées dans le même esprit » que le nuancier v3) =====
+   UNE TABLE, dans l'ordre de la vitrine (TRAINEE_CAT) : la rareté suit le SPECTACLE, le prix monte avec elle (les prix en $ ne bougent pas).
+   · COMMUNES    — les RUBANS : un sillage de couleur (NITRO, offerte ; ROSE NÉON) ;
+   · RARES       — les PARTICULES : ce qu'on sème (SAKURA, MATRICE, POUDRE D'OR, ANNEAUX D'OR) ;
+   · ÉPIQUES     — les EFFETS : un numéro à part entière (WOW, GLOUTON, HYPERESPACE, LA GRILLE) ;
+   · LÉGENDAIRES — le SPECTACLE : celles qui ne s'achètent pas comme les autres (FAIS PLEUVOIR, FOUDRE DIVINE par mission, ARC-EN-CIEL avec le chat).
+   Ce qui change : POUDRE D'OR épique → rare, WOW légendaire → épique, GLOUTON rare → épique, ARC-EN-CIEL (qui se lisait COMMUNE) → légendaire.
+   La carte de la boutique (traineeCarte) montre la traînée EN MOUVEMENT sur une route de nuit : le ruban qui coule hors de la tuyère, ses
+   particules qui s'envolent (css/peintures.css, « LES TRAÎNÉES ») — sur le plateau, la caisse ne boost pas : la carte est la seule à la montrer. */
+const TRAINEE_CAT=[['nitro','commun'],['rose','commun'],['sakura','rare'],['matrice','rare'],['or','rare'],['anneaux','rare'],
+  ['wow','epique'],['glouton','epique'],['hyper','epique'],['grille','epique'],['billets','legendaire'],['foudre','legendaire'],['arcenciel','legendaire']];
+Object.assign(I18N,{'RUBANS':'RIBBONS','PARTICULES':'PARTICLES','EFFETS':'EFFECTS','SPECTACLE':'SHOWSTOPPERS'});
+const TRAINEE_RANG={};TRAINEE_CAT.forEach(function(e,k){TRAINEE_RANG[e[0]]=k;const d=COSM.trainee.find(function(x){return x.id===e[0];});if(d)d.r=e[1];});
+function traineeOrdre(){return COSM.trainee.map(function(d,j){return j;}).sort(function(a,b){const ra=TRAINEE_RANG[COSM.trainee[a].id],rb=TRAINEE_RANG[COSM.trainee[b].id];return (ra!=null?ra:900+a)-(rb!=null?rb:900+b);});}
+function traineeCoul(d){if(d.rainbow)return '#ff5ad0';if(d.col)return d.col;if(d.rgb)return 'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')';return '#ff7a1a';}
+/* la plaque d'une carte : la nuit, des lignes de vitesse, la tuyère à droite, le ruban qui en coule (aucun pour celles dont l'effet EST la traînée :
+   GLOUTON, LA GRILLE), et trois fois son pictogramme qui s'envole */
+function traineeCarte(d){let I=null;try{I=illuTr(d);}catch(e){}const ic=I?illuPx(I,'tPx'):'';
+  return '<i class="tSw'+(d.rubOff?' sansRuban':'')+(d.rainbow?' arc':'')+'" style="--tc:'+traineeCoul(d)+'"><b class="tRu"></b><b class="tBuse"></b>'+(ic?'<span class="tPa">'+ic+ic+ic+'</span>':'')+'</i>';}
 function cosmSwCl(d){return (d.g==='c'?' chrome':d.g==='o'?' or':d.g==='s'?' mat':d.g==='k'?' metal':d.g==='n'?' nacre':'')+(d.anim?' pL pL-'+d.id:'');} /* la classe de finition d'une pastille (une seule table pour toutes les listes) — (2026-11-05) une légendaire : son animation (css/peintures.css) */
 /* (2026-10-14) LES FIGURES dans la console du garage : COSM.figure est la VUE du catalogue figures.js (même id, nom, prix) — la console
    (onglet, bande, fiche, ACHETER) la traite comme un habillage. Possédées : SAVE.d.figs (figPossede), achetées par shopBuy → figAchat ;
@@ -73346,6 +73399,7 @@ function garBqLueur(ay){const g=GBQ.lueur||0;garBqLueurBatit();const vis=g>.002;
 function bqFigHab(k){const o=bqCos(k),d=o.d,hx=function(c9){return '#'+(c9>>>0).toString(16).padStart(6,'0');};
   if(o.cat==='figure')return '<i class="bqFig">'+pxi('rotation')+'</i>';
   if(o.cat==='peinture')return peintCarte(d); /* (2026-11-05, le nuancier v3) la grande pastille vernie, la cible du défi et sa jauge (voir peintCarte) */
+  if(o.cat==='trainee')return traineeCarte(d); /* (2026-11-05) la traînée EN MOUVEMENT sur une route de nuit (voir traineeCarte) */
   if(o.cat==='trainee'){const I9=illuTr(d);if(I9)return illuPx(I9,'bqTrIc');} // (2026-10-14) une traînée POP : son pictogramme — (2026-10-16, TRAÎNÉES) TOUTES les traînées, et EN COULEUR (celui de l'inventaire) : en noir sur la salle blanche, SAKURA, MATRICE et LA GRILLE se ressemblaient ; NITRO, MENTHE, ROSE et OR n'étaient qu'un dégradé
   if(o.cat==='trainee')return '<i class="bqRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,rgba(255,255,255,0),'+(d.rgb?'rgb('+d.rgb.map(function(v){return Math.round(Math.min(1,v/1.45)*255);}).join(',')+')':'#ff6a14')+' 45%,#fff)')+'"></i>';
   return pxi(d.ico||'aile');}
@@ -73365,6 +73419,9 @@ function bqVoitRail(L){const fam=function(k){const i=+k.slice(2);return m2Secret
 /* LE RAYON DES PEINTURES (2026-11-05, le nuancier v3) : un intertitre par RARETÉ, comme les voitures — son logo, son nom, ce qu'elle est et son prix
    (UNIES · 1 €, DÉGRADÉS · 1 €, MOTIFS · 2 €, ANIMÉES · 3 €), le compte « à toi / total » ; D'ORIGINE ouvre les communes. */
 const BQ_PEINT_SOUS={commun:'UNIES',rare:'DÉGRADÉS',epique:'MOTIFS',legendaire:'ANIMÉES'};
+const BQ_TRAINEE_SOUS={commun:'RUBANS',rare:'PARTICULES',epique:'EFFETS',legendaire:'SPECTACLE'}; /* (2026-11-05) les traînées : ce qu'est la famille (leurs prix sont en $, différents d'une carte à l'autre) */
+function bqTraineeRail(L){const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+  return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,BQ_TRAINEE_SOUS[f]?sansAcc(TR(BQ_TRAINEE_SOUS[f])):''))+bqCarteHtml(k,n,false);});}
 function bqPeintRail(L){try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */const fam=function(k){return cosmRar('peinture',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k),sous=BQ_PEINT_SOUS[f]?sansAcc(TR(BQ_PEINT_SOUS[f]))+' · '+eurTxt(PEINT_EUR[f]):'';return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,sous))+bqCarteHtml(k,n,false);});}
 function bqPxT(v){return fmtSolde(v);} /* (clarté 15/10) les prix de la boutique de Léo au format GTA de GAMEPLAY (chiffres pleins, un seul « $ ») */
@@ -73421,7 +73478,7 @@ function bqFigSelMaj(pan,on){if(!on||!window.FIG)return;const el=bqFigSelEl(pan)
     if(P&&P[s]!==S[s]&&f){b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');}});}
 function bqAchat(){const eu=function(i){return parseFloat(String((CAR_UNLOCK[i]||{}).eur||'').replace(',','.'))||0;},une=function(i){return CAR_UNLOCK[i]&&CAR_UNLOCK[i].une?0:1;}; // l'offre de lancement (`une`) en tête, puis de la moins chère à la plus chère
   return bqPayantes().slice().sort(function(a,b){return (une(a)-une(b))||(eu(a)-eu(b))||(a-b);});}
-function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];if(cat==='peinture')return peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;}); /* (2026-10-16) rangées par RARETÉ (voir peintOrdre) */ return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
+function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];if(cat==='peinture')return peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;});if(cat==='trainee')return traineeOrdre().map(function(j){return 'trainee:'+COSM.trainee[j].id;}); /* (2026-11-05) les traînées par rareté (voir TRAINEE_CAT) */ /* (2026-10-16) rangées par RARETÉ (voir peintOrdre) */ return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
 function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),sec9=vo&&m2Secrete(i);let ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);if(sec9){ri={c:'#ff3ec8',n1:'SECRÈTE'};nom='? ? ?';} /* (2026-10-16) une SECRÈTE : ni nom, ni rareté, ni couleur */
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.pack==='chat'){px=sansAcc(TR('PACK CHAT'));c='eur';}else if(d.eur){px=eurTxt(d.eur);c='eur';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';} /* (2026-10-18 soir) l'ARC-EN-CIEL : PACK CHAT (voir chatPackI) */
@@ -73482,7 +73539,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
       if(C9&&s){const t=sansAcc(TR(C9[1]));if(s.textContent!==t){s.textContent=t;b.setAttribute('aria-label',t);b.title=t;}if(on)une.setAttribute('data-cur',t);}}); /* (2026-11-03, Sacha : « cet écran, il est horrible ») `data-cur` : le NOM du rayon ouvert, écrit sous les carrés quand les libellés n'ont plus la place (.duo) */
     rail.classList.remove('off','habs');rail.classList.add('entre');rail.scrollTop=0;rail.scrollLeft=0; /* (2026-10-15, Sacha : « un menu plus grand pour les figures, les ailes, les peintures ») tous les rayons en GRANDES cartes, trois par rangée comme les voitures — à quatre, « D'ORIGINE » se coupait en « D'ORIGIN / E » */
-    rail.innerHTML=(cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);bqAimant(rail);
+    rail.innerHTML=(cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):cat==='trainee'?bqTraineeRail(L):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);bqAimant(rail);
     pan.classList.toggle('bqFigOn',cat==='figure');BQFS.k='';} /* (2026-10-16, Sacha) les trois figures équipées en haut du rayon FIGURES (voir bqFigSelMaj) */
   if(cat==='figure')try{bqFigSelMaj(pan,true);}catch(e){console.warn('bqFigSel',e);}
   if(cat==='figure')try{filmJoue();}catch(e){} /* (2026-10-18) les films des cartes (voir LE FILM D'UNE FIGURE) */
@@ -73502,7 +73559,7 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
     {let mt=nm.querySelector('.bqM2');if(!mt){mt=document.createElement('span');mt.className='bqM2';nm.appendChild(mt);} /* (2026-10-16) SE DÉBLOQUE : la mission, sa jauge — une secrète : rien (son étiquette dit déjà MISSION SECRÈTE) */
       let h9='';if(cur[0]==='v'){const iv=+cur.slice(2),m9=m2DeCaisse(iv);if(m9&&!carUnlockedVrai(iv))h9=m9.f==='secret'?'':m2DebloqueHtml(m9,true);
         if(!h9)h9=shArcHtml(iv,carUnlockedVrai(iv));} /* (2026-10-20, Sacha) le CHAT POP-TART : « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous son nom (voir shArcHtml) */
-      else{const o9=bqCos(cur),m9=o9&&o9.d&&m2DeHab(o9.cat,o9.d);if(m9&&!shopOwned(o9.cat,o9.d.id))h9=m2DebloqueHtml(m9,true);else if(o9&&o9.cat==='peinture'&&o9.d)h9=peintDefHtml(o9.d);} /* (2026-11-05) une peinture à défi : OU GAGNE-LA, sa jauge */
+      else{const o9=bqCos(cur),m9=o9&&o9.d&&m2DeHab(o9.cat,o9.d);if(m9&&!shopOwned(o9.cat,o9.d.id))h9=m2DebloqueHtml(m9,true);else if(o9&&o9.cat==='peinture'&&o9.d)h9=peintDefHtml(o9.d);else if(o9&&o9.cat==='trainee'&&o9.d&&o9.d.d)h9='<span class="tDesc">'+sansAcc(TR(o9.d.d))+'</span>';} /* (2026-11-05) une traînée : sa phrase — la caisse ne boost pas sur le plateau, c'est la carte et ces mots qui la vendent */ /* (2026-11-05) une peinture à défi : OU GAGNE-LA, sa jauge */
       mt.innerHTML=h9;mt.hidden=!h9;}
     {const L9=bqSkins(cur);sk.classList.toggle('vide',!L9.length);sk.querySelector('.bqSk').innerHTML=L9.map(function(x,n){return '<button class="bqS'+(n===0?' on':'')+'" data-s="'+x.id+'" style="--sc:'+x.c+'"><i></i><span>'+sansAcc(TR(x.n))+'</span></button>';}).join('');}
     rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur&&(!el.hasAttribute('data-dir')||GBQ.figDir==null||+el.getAttribute('data-dir')===GBQ.figDir));});
