@@ -88,7 +88,7 @@ function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++)
    « JOUE UNE MAP SOUS TOUTES SES MÉTÉOS » (sa caisse : voir table.js) prenait la MEILLEURE map en proportion : EN ORBITE n'a qu'un temps (matin), donc une
    seule partie en orbite faisait 1/1 = mission réussie (vu par le jury après 4 parties). Seules comptent maintenant les maps qui ont au
    moins M2_METEO_MIN temps (matin, midi, soir, nuit, pluie, orage…). `?meteo=ancien` : l'ancien calcul. */
-const M2_METEO_MIN=/[?&]meteo=ancien\b/.test(location.search)?1:3;
+/* (M2_METEO_MIN est déclarée dans missions/table.js, à côté de M2K : voir là) */
 function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const g of m2Cartes()){const P=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k]||sfMapDe(k)!==g)continue;for(const x of Object.keys((SF_CARTES[k].m)||{}))P.push([k,x]);}if(P.length<M2_METEO_MIN)continue;let j=0;for(const q of P)if((H[q[0]]||[]).indexOf(q[1])>=0)j++;if(j/P.length>f||(j/P.length===f&&P.length>tot)){f=j/P.length;n=j;tot=P.length;}}return {n:n,tot:tot};}
 /* ===== LE JOURNAL DE LA BANQUE (2026-11-05, Opus : jury DIR-08 « +180 000 $ pendant la navigation des menus ») =====
    `?journal=banque` (en DEV seulement) : chaque écriture de SAVE.d.bank est notée (avant, après, l'écart, l'écran, la pile d'appels courte),
