@@ -222,7 +222,7 @@ function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=do
   if(r&&m==='tout')r.classList.remove('gModeBar');if(st){st.classList.toggle('gModeShop',m==='shop'||m==='tous');st.classList.toggle('gModeTous',m==='tous');st.classList.toggle('gModeInv',m==='inv');if(m!=='shop'&&st.classList.contains('fnBande')){st.classList.remove('fnBande');st._r=null;st._n=-1;if(r)r._k=null;}}
   if(gEl)gEl.classList.toggle('modeShop',m==='shop');} // (2026-10-10) LA BOUTIQUE DU JOUR : la console change de visage (voir gShopJour)
 function gModeTete(bar,m,n){bar.classList.add('gModeBar'); // n : un nombre, ou « 15 / 46 » en INVENTAIRE
-  if(m==='tous'){bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>SEE ALL ITEMS</span><s></s><b>'+n+'</b></div>';return;} // (2026-10-10) SEE ALL ITEMS, en anglais (Léo)
+  if(m==='tous'){bar.innerHTML='<div class="gModeT fnTete" style="--rc:var(--neoM)"><b class="fnRetour" role="button" aria-label="'+TR('RETOUR')+'">'+pxi('gauche')+'</b>'+pxi('panier')+'<span>'+sansAcc(TR('TOUT VOIR'))+'</span><s></s><b>'+n+'</b></div>';return;} // (2026-10-10) SEE ALL ITEMS, en anglais (Léo)
   bar.innerHTML='<div class="gModeT" style="--rc:'+(m==='inv'?'var(--neoC)':'var(--neoM)')+'">'+pxi(m==='inv'?'coffre':'panier')+'<span>'+sansAcc(TR(m==='inv'?'INVENTAIRE':'BOUTIQUE'))+'</span><s></s><b>'+n+'</b></div>';}
 /* LE LOGO DE LA RARETÉ (2026-10-10, Léo : « les raretés, tu peux ajouter le logo à côté de chaque voiture, au même endroit, pour créer un peu
    de logique visuelle ») : sur CHAQUE vignette de caisse (inventaire, SEE ALL ITEMS, vitrine du jour), le logo de sa famille (RAR_LOGO : roue,

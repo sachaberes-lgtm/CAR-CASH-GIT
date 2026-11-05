@@ -426,23 +426,12 @@ const FX_DIR='assets/audio/fx/';
    kaching −22 : tirés au hasard, le compteur claquait 13 dB au-dessus des autres (il couvrait la voix de l'annonceur), et sur iPhone
    `volume` est ignoré (VOL_LOCKED) : seuls les FICHIERS comptent. Ils ont été ramenés à −20 LUFS (crêtes ≤ −1 dB, étiquettes vidées) ;
    le `v` est donc le même pour tous. */
-const FX_ARGENT=[
-  {f:'kaching.mp3',   v:.7,max:2.4},  // le tiroir-caisse
-  {f:'cash.mp3',      v:.7,max:2.4},  // la liasse qu'on froisse
-  {f:'compteuse.mp3', v:.7,max:2.6},  // la machine à compter
-  {f:'compteur.mp3',  v:.7,max:2.8}   // le compteur à billets
-];
-let fxEls=[],fxArgLast=-1,fxArgCd=0;
-function fxStop(){for(const a of fxEls){try{a.pause();}catch(e){}}fxEls.length=0;}
-function fxPreload(){try{
-  const t=FX_ARGENT;
-  for(const d of t){const a=new Audio(FX_DIR+d.f);a.preload='auto';a.load();}
-}catch(e){}}
-/* L'ARGENT — tirage sans doublon consécutif (même règle que les morts : un doublon ne se lit pas
-   comme du hasard mais comme un bug) et 6 s de réfractaire, parce que l'argent tombe souvent. */
-function fxTick(dt){ // les réfractaires s'égrènent — hors gate de sim, sinon ils gèlent en pause
-  if(fxArgCd>0)fxArgCd=Math.max(0,fxArgCd-dt);
-}
+/* (2026-11-05, Sonnet : jury SON-09) LES QUATRE SAMPLES D'ARGENT (kaching, cash, compteuse, compteur .mp3) N'ONT JAMAIS ÉTÉ JOUÉS : FX_ARGENT n'avait aucun appelant, fxPreload en faisait quatre `new Audio()` à
+   chaque partie, et leur origine (soundboard) restait à éclaircir pour les droits. Tableau, préchargement et fichiers retirés ; les deux coquilles ci-dessous gardent les appels de init.js, curseurs.js,
+   seconde-chance.js et boucle-6-hud.js (fichiers d'autres mains) sans rien faire. */
+function fxStop(){}
+function fxPreload(){}
+function fxTick(dt){}
 function deathSound(){
   if(!SND.sfx)return;
   const n=DEATH_LIB.length;

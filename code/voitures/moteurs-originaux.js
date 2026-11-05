@@ -91,7 +91,7 @@ function prop10(B,K,x,y,z,R,n,s){  // une GRAPPE de n propulseurs autour de l'ax
     TX(B,K.glow,[[.001,0],[.16*s,0],[.16*s,.012]],x-.29*s,yy,zz,0,14);
     B.add(cone10(.11*s,.36*s,12),K.halo(K.glow.color.getHex(),.30),x-.30*s,yy,zz,0,PI10,0);}
 }
-function sphN10(r,seg){return new THREE.SphereGeometry(r,seg||14,10);}
+/* (2026-11-05, jury HYG-12) sphN10 : fonction jamais appelée, retirée */
 /* LA FINESSE (2026-10-26, Léo : « tout est encore un peu brut, ajoute une bonne touche de finesse, on fait de l'art là »).
    (1) PLUS AUCUN CUBE BRUT : chaque boîte a ses arêtes CHANFREINÉES (biseau absolu, pas mis à l'échelle : une plaque fine garde un
        biseau fin) — c'est l'arête qui attrape le filet de lumière, comme sur une pièce de joaillerie.

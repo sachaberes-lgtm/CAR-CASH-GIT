@@ -45,7 +45,7 @@ function carRetiree(i){const c=CARS[i];return !!(c&&c.retire);} // (2026-10-02) 
 function carPrice(i){const u=CAR_UNLOCK[i];return (!carRetiree(i)&&u&&u.p)||0;} // 0 = pas à vendre (une caisse retirée ne se vend plus)
 /* LES CINQ FAMILLES (2026-09-26) — une caisse porte sa famille (`rar` dans sa fiche) ; les 16 d'origine la déduisent de leur
    condition : boutique = LÉGENDAIRE, contrat/rang d'aura = DÉFI, prix ≥ 1 M = ÉPIQUE, ≥ 20 000 = RARE, sinon COMMUNE.
-   ⚠ LÉGENDAIRE = en BOUTIQUE seulement (vrai argent) : c'est la règle du joueur. */
+   ⚠ LÉGENDAIRE = en BOUTIQUE seulement (vrai argent) : c'était la règle du joueur ; (2026-11-05, jury ECO-12) elle n'est plus tenue — LE LOUP (50 M$) et POSTER 84 sont LÉGENDAIRES à l'argent du jeu : c'est le `rar` de la fiche qui prime sur la déduction. */
 const RARETES=[
   /* LES SEPT RARETÉS (2026-10-10, Léo : « les voitures DÉFI n'existent plus : il y en aura de plusieurs raretés, selon la difficulté du défi ;
      les principales : communes, rares, exotiques, épiques, légendaires, MYTHIQUE, INFINI » — on pourra en créer d'autres). DÉFI n'est plus une
@@ -91,7 +91,7 @@ function carEuros(i){const u=CAR_UNLOCK[i];return !!(u&&(u.k==='premium'||u.eur)
 /* (2026-09-26, user : « pour la version test donne-moi accès à toutes les voitures mais en laissant les conditions d'obtention »)
    TEST_CAISSES : toutes les caisses s'ÉQUIPENT, mais la fiche du garage continue d'écrire la VRAIE condition (voir garageShow).
    ⚠ à remettre à false pour la version publique : c'est l'unique interrupteur. */
-const TEST_CAISSES=true; // false : les caisses se GAGNENT (c'était l'édition des portails, retirée le 14/10)
+const TEST_CAISSES=false; /* (2026-11-05, Sonnet : jour 0 du jury, ECO-02 — garde-demarrage.cjs refuse true) false : les caisses se GAGNENT (c'était l'édition des portails, retirée le 14/10) */
 function carUnlocked(i){return !carRetiree(i)&&(TEST_CAISSES||carUnlockedVrai(i));}
 /* (2026-09-30) ⚠ carUnlocked OUVRE (équiper, JOUER) ; ce qui dit AU JOUEUR où il en est — « une caisse à ta portée » (objectif, garPortee,
    pastille du GARAGE), « nouvelle caisse gagnée » (carSnapshot/carScan) et le bouton ACHETER — lit carUnlockedVrai : en TEST tout était
