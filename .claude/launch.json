@@ -4,8 +4,28 @@
     {
       "name": "cashcar-serie-connexion",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["http-server", "VERSION PRINCIPALE", "-p", "3101", "-c-1"],
+      "runtimeArgs": [
+        "http-server",
+        "VERSION PRINCIPALE",
+        "-p",
+        "3101",
+        "-c-1"
+      ],
       "port": 3101
+    },
+    {
+      "name": "cashcar-debug-total",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8830",
+        "--bind",
+        "0.0.0.0",
+        "--directory",
+        "VERSION PRINCIPALE"
+      ],
+      "port": 8830
     }
   ]
 }
