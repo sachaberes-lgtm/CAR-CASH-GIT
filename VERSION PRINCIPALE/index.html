@@ -148,12 +148,17 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
     var tb=document.createElement('button');tb.id='tourne';tb.type='button';bw.appendChild(tb);
     /* (2026-11-04, Sacha : « rajoute un bouton à côté du bouton portrait paysage qui permet de switch vers la version mobile ») SANS BOÎTIER ⇄ TÉLÉPHONE :
        l'écran du jeu seul (même mise en page mobile, sans la lunette ni l'encoche du 13 Pro) — `?encoche=0`, déjà géré plus haut ; un 2e clic le rend. */
+    /* (2026-11-05, Sacha : « sur Vercel, la version PC : graphismes et performances au max, avec l'encoche du mobile ; et un bouton mobile qui passe sur les performances mobiles »)
+       LE BOUTON MOBILE ⇄ PC : MOBILE = la version téléphone en entier — sans boîtier (`?encoche=0`) ET le rendu allégé du vrai téléphone (`?allege=1`, le drapeau ALLEGE :
+       résolution, ombres, bloom, décors, cartes) ; PC (le défaut) = l'encoche du 13 Pro et tout au MAXIMUM. Un 2e clic revient au PC. L'adresse garde le choix. */
     var nu=document.createElement('button');nu.id='nu';nu.type='button';bw.appendChild(nu);
+    var MOB=!ENC||(/[?&](allege|tel|mobile)=1\b/.test(q)&&!/[?&]allege=0\b/.test(q));
     var nuLbl=function(){var lg9='';try{lg9=localStorage.ccLang||'';}catch(e){}var en=lg9?lg9!=='fr':!/^fr/i.test(navigator.language||'fr');
-      nu.textContent=ENC?(en?'\u25a3  MOBILE':'\u25a3  MOBILE'):(en?'\u25a3  PHONE':'\u25a3  TELEPHONE');
-      nu.setAttribute('aria-label',ENC?(en?'Mobile version without the phone frame':'Version mobile sans le bo\u00eetier'):(en?'Show the phone frame':'Remettre le bo\u00eetier du t\u00e9l\u00e9phone'));};
+      nu.textContent=MOB?'\u25a3  PC':'\u25a3  MOBILE';
+      nu.setAttribute('aria-label',MOB?(en?'Back to PC: phone frame, maximum graphics':'Retour au PC : bo\u00eetier du t\u00e9l\u00e9phone, graphismes au maximum'):(en?'Mobile version: no frame, mobile performance':'Version mobile : sans bo\u00eetier, performances mobiles'));};
     nuLbl();
-    nu.addEventListener('click',function(e){e.stopPropagation();try{var u=new URL(location.href);u.searchParams.set('encoche',ENC?'0':'1');location.href=u.toString();}catch(_){}});
+    nu.addEventListener('click',function(e){e.stopPropagation();try{var u=new URL(location.href);['allege','tel','mobile'].forEach(function(k){u.searchParams.delete(k);});
+      if(MOB)u.searchParams.set('encoche','1');else{u.searchParams.set('encoche','0');u.searchParams.set('allege','1');}location.href=u.toString();}catch(_){}});
     var tLbl=function(){var lg9='';try{lg9=localStorage.ccLang||'';}catch(e){}var en=lg9?lg9!=='fr':!/^fr/i.test(navigator.language||'fr'); /* (2026-10-07) la langue CHOISIE d'abord, comme l'écran de crash */
       tb.textContent=debout?(en?'\u21bb  LANDSCAPE':'\u21bb  PAYSAGE'):'\u21bb  PORTRAIT';var a9=debout?'Tenir le téléphone couché':'Tenir le téléphone debout';
       tb.dataset.frAria=a9;tb.setAttribute('aria-label',en?(debout?'Hold the phone sideways':'Hold the phone upright'):a9);};
@@ -7852,7 +7857,7 @@ body:not(.play) #m2Focus{display:none!important}
 @media (orientation:portrait){#m2Focus{left:var(--hudG,16px);transform:none;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 40px);width:calc(100vw - var(--hudG,16px) - var(--hudD,16px) - 118px)}}
 /* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « trop de pop-up mission pendant la partie : en ligne, plus discrète, en bas ») — une mission
    réussie en course : une ligne fine au-dessus des suivies (--m2lY = leur hauteur, posée par m2LigneSuit), à leur place et dans leur matière */
-#m2Ligne{position:fixed;z-index:3;left:50%;bottom:calc(var(--sB,0px) + 6px + var(--m2lY,0px));transform:translate(-50%,4px);opacity:0;
+#m2Ligne{position:fixed;z-index:8;left:50%;bottom:calc(var(--sB,0px) + 6px + var(--m2lY,0px));transform:translate(-50%,4px);opacity:0;
   display:flex;align-items:center;gap:6px;box-sizing:border-box;width:max-content;max-width:min(60vw,520px);padding:3px 7px 2px;pointer-events:none;
   background:color-mix(in srgb,var(--k1) 84%,transparent);box-shadow:inset 2px 0 0 var(--m2lC);font-family:var(--pix);font-size:var(--f0);
   line-height:1.3;color:var(--tx);--m2lC:var(--cash);transition:opacity var(--t-slow) var(--ease),transform var(--t-slow) var(--ease)}
@@ -7868,6 +7873,12 @@ body:not(.play) #m2Ligne{display:none!important}
   #m2Ligne.on{transform:none}
   #m2Ligne span{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3}}
 @media (prefers-reduced-motion:reduce){#m2Ligne{transition:opacity var(--t-slow) linear}}
+/* (2026-11-05, Sacha : « conflit de superposition en bas entre les missions et les infos générales, fais une animation où la barre de mission
+   est celle du dessus ») LE FIL (#fil, code/interface/fil.js) vit dans la même zone, en bas au centre, depuis sa descente du 05/11 — le temps
+   qu'une ligne de mission parle (body.m2Lon, posé par m2LigneSuit/m2LigneVide), il s'efface : des propriétés à PART de celles que filIn/filIn2
+   animent déjà (opacity, transform) — scale/translate/filter ne se battent pas avec elles (même règle que hudMaitrise). */
+body.m2Lon #fil{scale:.82;translate:0 6px;filter:opacity(.15);transition:scale .22s var(--ease),translate .22s var(--ease),filter .22s var(--ease)}
+@media (prefers-reduced-motion:reduce){body.m2Lon #fil{transition:none}}
 /* L'ÉCRAN DE MORT : la carte MISSIONS (objRenderV2) */
 .mObj.m2Ob .obHd span{display:inline-flex;align-items:center;gap:6px}
 .mObj.m2Ob .m2Cpt{font-weight:400;color:var(--neoC);letter-spacing:1px}
@@ -61807,9 +61818,12 @@ function m2LigneSuit(){clearTimeout(M2L.t);let e=document.getElementById('m2Lign
   const dj=it.k==='dj',sec=it.k!=='ok'&&!dj,ti=it.n?it.n+' '+TR('MISSIONS RÉUSSIES'):TR(dj?'DÉFI DU JOUR':sec?'MISSION SECRÈTE':'MISSION RÉUSSIE');
   e.innerHTML='<i>'+pxi(dj?'cible':sec?'oeil':'coche')+'</i><span><small>'+sansAcc(ti)+'</small>'+(it.tx?' '+it.tx:'')+'</span>'+(it.p?'<b>'+it.p+'</b>':'');
   e.classList.toggle('sec',sec);e.classList.remove('on');void e.offsetWidth;e.classList.add('on');
+  document.body.classList.add('m2Lon'); /* (2026-11-05, Sacha : « conflit de superposition en bas entre les missions et les infos générales, fais une
+    animation où la barre de mission est celle du dessus ») le FIL (code/interface/fil.js) vit dans la même zone, en bas au centre — tant que la
+    ligne de mission parle, il s'efface (voir <style id="missionsV2"> : body.m2Lon #fil) */
   try{if(SONV2&&(it.k==='ok'||dj))sfx('ui.mission');}catch(x){}
-  M2L.t=setTimeout(function(){e.classList.remove('on');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
-function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');}
+  M2L.t=setTimeout(function(){e.classList.remove('on');document.body.classList.remove('m2Lon');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
+function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');document.body.classList.remove('m2Lon');}
 /* ---- LA RÉCOMPENSE (RÉCUPÈRE) : une fois, jamais deux ---- rend {cash|car|cat,hab} ou null */
 function m2Prend(id){const s=m2Etat(),m=m2Def(id);if(!m||s.ok.indexOf(id)<0||s.pr.indexOf(id)>=0)return null;const r=m.r||{},o={id:id};
   if(r.vide)return null; // la récompense de « tous les objets » n'existe pas encore (à définir par Sacha)
