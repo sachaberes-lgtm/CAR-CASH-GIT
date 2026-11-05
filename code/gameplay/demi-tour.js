@@ -133,7 +133,7 @@ function dmtDecolle(){const D=DMT,mx=D.mx,q=D.chargeQ; // LA RELÂCHE
   try{VENT.pic=Math.max(VENT.pic,1.8);}catch(e){}try{hap([30,40,60]);}catch(e){}
   if(typeof sensCoup==='function')try{sensCoup(0,0,1.2);}catch(e){} // la suspension arrière s'écrase sous la poussée
   D.cabT=.5+.15*q;D.cabA=.17+.07*q; /* LE WHEELIE (dmtCabre) */
-  dmtAnneauFeu(q);dmtSigne('go');
+  dmtAnneauFeu(q); /* (2026-11-03, Sacha : « enlève le petit texte DÉCOLLAGE, c'est gênant ») plus de texte à la relâche */
   /* (2026-11-03, Sacha : « reprends le burn-out du garage — la texture au sol avec les donuts, et plein de fumée, très dense, genre
      comme dans le garage ; les flammes reviennent plus tard, à la fin du boost » — « inspire-toi des fichiers ») L'ANNEAU DE FUMÉE, comme
      `burnAnneau` du garage (interface/burn-out-1.js — même idée, pas le même réservoir : celui-ci est à LA ROUTE, pas protégé par

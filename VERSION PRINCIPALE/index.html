@@ -144,11 +144,20 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
        `version-leolei-2026`, 26/09) : le téléphone passe COUCHÉ ⇄ DEBOUT sans recharger — le jeu, dans la colonne, ne reçoit qu'un
        resize (fovFit, HUD, garage suivent seuls), on peut tourner en pleine course. L'adresse garde le choix (`?colonne=portrait`). */
     var vv=document.createElement('div');vv.id='ccVer';vv.textContent='VERSION '+CC_VER;document.body.appendChild(vv); // à comparer d'un coup d'œil avec les réglages du téléphone
-    var tb=document.createElement('button');tb.id='tourne';tb.type='button';document.body.appendChild(tb);
+    var bw=document.createElement('div');bw.id='ccBtns';document.body.appendChild(bw);
+    var tb=document.createElement('button');tb.id='tourne';tb.type='button';bw.appendChild(tb);
+    /* (2026-11-04, Sacha : « rajoute un bouton à côté du bouton portrait paysage qui permet de switch vers la version mobile ») SANS BOÎTIER ⇄ TÉLÉPHONE :
+       l'écran du jeu seul (même mise en page mobile, sans la lunette ni l'encoche du 13 Pro) — `?encoche=0`, déjà géré plus haut ; un 2e clic le rend. */
+    var nu=document.createElement('button');nu.id='nu';nu.type='button';bw.appendChild(nu);
+    var nuLbl=function(){var lg9='';try{lg9=localStorage.ccLang||'';}catch(e){}var en=lg9?lg9!=='fr':!/^fr/i.test(navigator.language||'fr');
+      nu.textContent=ENC?(en?'\u25a3  MOBILE':'\u25a3  MOBILE'):(en?'\u25a3  PHONE':'\u25a3  TELEPHONE');
+      nu.setAttribute('aria-label',ENC?(en?'Mobile version without the phone frame':'Version mobile sans le bo\u00eetier'):(en?'Show the phone frame':'Remettre le bo\u00eetier du t\u00e9l\u00e9phone'));};
+    nuLbl();
+    nu.addEventListener('click',function(e){e.stopPropagation();try{var u=new URL(location.href);u.searchParams.set('encoche',ENC?'0':'1');location.href=u.toString();}catch(_){}});
     var tLbl=function(){var lg9='';try{lg9=localStorage.ccLang||'';}catch(e){}var en=lg9?lg9!=='fr':!/^fr/i.test(navigator.language||'fr'); /* (2026-10-07) la langue CHOISIE d'abord, comme l'écran de crash */
       tb.textContent=debout?(en?'\u21bb  LANDSCAPE':'\u21bb  PAYSAGE'):'\u21bb  PORTRAIT';var a9=debout?'Tenir le téléphone couché':'Tenir le téléphone debout';
       tb.dataset.frAria=a9;tb.setAttribute('aria-label',en?(debout?'Hold the phone sideways':'Hold the phone upright'):a9);};
-    window.__tourneLbl=tLbl; /* applyLangDOM le rappelle quand on change de langue */
+    window.__tourneLbl=function(){tLbl();nuLbl();}; /* applyLangDOM le rappelle quand on change de langue */
     tLbl();
     tb.addEventListener('click',function(e){e.stopPropagation();debout=!debout;L=debout?390:844;H=debout?844:390;
       document.documentElement.classList.toggle('debout',debout);document.documentElement.classList.toggle('couche',!debout);
@@ -206,7 +215,7 @@ html.colonne,html.colonne body{height:100%;margin:0;overflow:hidden;background:#
 html.colonne body{display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse 70% 42% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
 html.colonne.debout body{background:radial-gradient(ellipse 42% 70% at 50% 50%,#241a4a 0,#120c2a 48%,#07050f 100%)}
-html.colonne:not(.poki) body>*:not(#tel):not(#tourne):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
+html.colonne:not(.poki) body>*:not(#tel):not(#ccBtns):not(#ccVer):not(#labNu):not(#labNuBtn){display:none!important}
 html.colonne #ccVer{position:fixed;left:14px;bottom:10px;z-index:9;font:8px/1 var(--pix);letter-spacing:1px;color:rgba(255,255,255,.38);pointer-events:none}
 /* le BOÎTIER (#tel, posé en px par le script) : la lunette noire, le cerclage d'acier, l'ombre et le halo néon du jeu ;
    l'écran du 13 Pro dedans : coins de 47 pt (le zoom du cadre les agrandit avec lui) ; l'encoche dans la lunette, par-dessus l'image */
@@ -220,11 +229,14 @@ html.colonne.couche #encoche::after{left:0;bottom:calc(-1*var(--or));background:
 html.colonne.debout #encoche::before{top:0;left:calc(-1*var(--or));background:radial-gradient(circle at 0 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
 html.colonne.debout #encoche::after{top:0;right:calc(-1*var(--or));background:radial-gradient(circle at 100% 100%,transparent calc(var(--or) - .5px),#050307 var(--or))}
 /* (Léo) le bouton TOURNER, dans un coin de la page-cadre (hors du téléphone) */
-html.colonne #tourne{position:fixed;right:16px;bottom:16px;z-index:9;font:10px/1 var(--pix);letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
+html.colonne #ccBtns{position:fixed;right:16px;bottom:16px;z-index:9;display:flex;gap:10px}
+html.colonne #tourne,html.colonne #nu{font:10px/1 var(--pix);letter-spacing:1px;color:#fff;cursor:pointer;padding:11px 16px;border:0;border-radius:12px;
   background:linear-gradient(#7a6cff,#5143d9);box-shadow:0 4px 0 #2c2280,0 8px 18px rgba(0,0,0,.45);opacity:.85}
-html.colonne #tourne:hover{opacity:1}
-/* couché, le cadre prend toute la largeur : le bouton se range au milieu du bas, là où le jeu n'a rien */
-html.colonne:not(.debout) #tourne{right:auto;left:50%;bottom:8px;transform:translateX(-50%);padding:7px 12px;font-size:10px;opacity:.6}
+html.colonne #nu{background:linear-gradient(#f6c453,#d99a1c);color:#2a1c00;box-shadow:0 4px 0 #8a5d08,0 8px 18px rgba(0,0,0,.45)}
+html.colonne #tourne:hover,html.colonne #nu:hover{opacity:1}
+/* couché, le cadre prend toute la largeur : les boutons se rangent au milieu du bas, là où le jeu n'a rien */
+html.colonne:not(.debout) #ccBtns{right:auto;left:50%;bottom:8px;transform:translateX(-50%);gap:8px}
+html.colonne:not(.debout) #tourne,html.colonne:not(.debout) #nu{padding:7px 12px;font-size:10px;opacity:.6}
 html.colonne #colonne{display:block;flex:none;border:0;background:#07050f}
 </style>
 <style>
@@ -22669,10 +22681,10 @@ function grtTrace(rnd,LV){
   const vers=(cible,R)=>{const a=wrap(axe+cible/57.2958-phi)*57.2958;if(Math.abs(a)>3)arc(a,R);};
   let sg=rnd()<.5?-1:1;
   let HC=null,dvH=1; // (AU HASARD) le CARACTÈRE de la salle (GRT_HUMEURS) et le côté de sa dérive
+  // (2026-11-04, Sacha : « la génération de route dans la grotte, c'est trop compliqué — plus simple, plus linéaire, moins de torsion serrée ») :
+  // plus de caractères de salle ni de virages serrés — de LONGUES droites et de rares courbes douces (12-26°, grands rayons), toujours ramenées vers l'axe.
   const virages=n=>{for(let k=0;k<n;k++){const r=rel();
-    if(HC){const H=HC;if(H.nm==='derive')sg=r*dvH>LIM-16?-dvH:(rh()<H.inv?-dvH:dvH);else sg=Math.abs(r)>30?(r>0?-1:1):(rh()<H.inv?-sg:sg);
-      tourne(sg*(H.a[0]+rh()*H.a[1]),rh()<H.t?Rs():H.Rk?rM*(H.Rk[0]+rh()*H.Rk[1]):Rn());if(rh()<H.dr[0])droite((H.dr[1]+rh()*H.dr[2])*KV);continue;}
-    sg=Math.abs(r)>30?(r>0?-1:1):-sg;tourne(sg*(36+rnd()*28),rnd()<.33?Rs():Rn());if(rnd()<.2)droite((30+rnd()*40)*KV);}};
+    sg=Math.abs(r)>16?(r>0?-1:1):-sg;tourne(sg*(12+rnd()*14),Rl());droite((70+rnd()*90)*KV);}};
   const SL=[],salle=k=>{sa=k;SL.push({k:k,p:P.clone(),s:s});};
   // LES MODULES DES PROFONDEURS (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON) : les quatre du volcan, cap borné par l'axe, hasard `rv`
   const rv=mulberry32((rnd()*4294967296)>>>0),MM=[],paq=[];let mLast=-1;
@@ -22690,7 +22702,8 @@ function grtTrace(rnd,LV){
   const gEpingle=()=>{gAxe();const s9=rel()>0?-1:1,a=140+rv()*30,R=rM*(1.15+rv()*.25);droite(30*KV);arc(s9*a,R);droite((16+rv()*26)*KV);arc(-s9*a,R*(1+rv()*.2));droite(24*KV);vers(0,rM*1.8);};
   const gLacets=()=>{gAxe();const n=2+((rv()*2)|0),R=rM*(1.15+rv()*.25);let d=rel()>0?-1:1;arc(d*90,R);for(let k=0;k<n;k++){droite((80+rv()*90)*KV);arc(-d*180,R);d=-d;}droite((60+rv()*50)*KV);arc(-d*90,R);};
   const gEsses=()=>{gAxe();const n=3+((rv()*3)|0),a=56+rv()*12,R=rM*(1.2+rv()*.25);let s9=rel()>0?-1:1;tourne(s9*a*.5,R);for(let k=0;k<n;k++){s9=-s9;tourne(s9*a,R);droite((10+rv()*16)*KV);}tourne(-s9*a*.5,R);};
-  const MJ=[gSlalom,gCorde,gChicane,gHoule,gEpingle,gLacets,gEsses];
+  const gDouce=()=>{gAxe();const s9=rel()>0?-1:1;droite(60*KV);tourne(s9*20,Rl());droite(80*KV);tourne(-s9*20,Rl());droite(60*KV);}; // un seul module : un S large
+  const MJ=[gDouce];
   const gMod=()=>{let m=0;for(let e=0;e<6;e++){if(!paq.length){const t=MJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rv()*(i+1))|0,x=t[i];t[i]=t[j];t[j]=x;}for(const x of t)paq.push(x);}m=paq.shift();if(m!==mLast)break;}
     mLast=m;const i0=ctrl.length-1;MJ[m]();MM.push({i0:i0,i1:ctrl.length-1});};
   /* LA PLACE DE CHAQUE SALLE (LA DURÉE DES MAPS, 2026-10-18 — voir DUREE) : l'entrée, la mine, le PUITS (la pièce maîtresse) et la salle du portail
@@ -22713,7 +22726,7 @@ function grtTrace(rnd,LV){
   // ================= 4 · LE LAC DE LAVE : de longues courbes au-dessus de la lave =================
   const sLave=len=>{salle('lave');{const s0=s;droite(60*KV);let m=0;
     while(s-s0<len-80){const r=len-(s-s0);if(m<2&&(nMod<2||r>700*KV)&&r>430*KV){gMod();m++;nMod++;continue;}
-      const rr=rel();sg=Math.abs(rr)>20?(rr>0?-1:1):-sg;tourne(sg*(30+rnd()*24),Rl());if(rnd()<.22&&r>260)droite((30+rnd()*40)*KV);}}};
+      const rr=rel();sg=Math.abs(rr)>20?(rr>0?-1:1):-sg;tourne(sg*(12+rnd()*14),Rl());droite((70+rnd()*90)*KV);}}};
   // ================= 5 · LES ABYSSES =================
   const sAbysse=len=>{salle('abysse');remplir(len,Math.max(nMod?1:2,Math.round(len/(700*KV))));if(!nMod){gMod();nMod++;}}; // (au moins un module dans la map)
   let HZ=null;
@@ -64192,7 +64205,7 @@ function dmtDecolle(){const D=DMT,mx=D.mx,q=D.chargeQ; // LA RELÂCHE
   try{VENT.pic=Math.max(VENT.pic,1.8);}catch(e){}try{hap([30,40,60]);}catch(e){}
   if(typeof sensCoup==='function')try{sensCoup(0,0,1.2);}catch(e){} // la suspension arrière s'écrase sous la poussée
   D.cabT=.5+.15*q;D.cabA=.17+.07*q; /* LE WHEELIE (dmtCabre) */
-  dmtAnneauFeu(q);dmtSigne('go');
+  dmtAnneauFeu(q); /* (2026-11-03, Sacha : « enlève le petit texte DÉCOLLAGE, c'est gênant ») plus de texte à la relâche */
   /* (2026-11-03, Sacha : « reprends le burn-out du garage — la texture au sol avec les donuts, et plein de fumée, très dense, genre
      comme dans le garage ; les flammes reviennent plus tard, à la fin du boost » — « inspire-toi des fichiers ») L'ANNEAU DE FUMÉE, comme
      `burnAnneau` du garage (interface/burn-out-1.js — même idée, pas le même réservoir : celui-ci est à LA ROUTE, pas protégé par
