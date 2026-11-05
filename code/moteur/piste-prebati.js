@@ -93,6 +93,26 @@ function dbgGenBilan1(n,graine0,detail){ /* la génération SEULE (sans décor n
     const P=[];for(let d=0;d<=N;d++)P.push(cv.getPointAt(d/N));{const b9=pisteBilan1(P,Lm);if(detail){b9.graine=seed;b9.plan=(pi==='banquise'&&BANQ.plan)?BANQ.plan.join(','):'';b9.marks=MODMARK.map(m=>(m.fig||'m')+'@'+Math.round(m.i0/Math.max(1,ctrl.length)*Lm/10)*10).join(',');}rs.push(b9);}}
   if(detail)return rs;
   const m={};for(const key of Object.keys(rs[0])){if(key==='runs'||key==='plan'||key==='graine')continue;m[key]=+(rs.reduce((a,x)=>a+x[key],0)/rs.length).toFixed(1);}m.n=rs.length;m.pire=Math.max.apply(null,rs.map(x=>x.plusLongueDroite));return m;};
+/* (2026-11-05, LE DIRECTEUR DE RYTHME) dbgGenRoute(carte, graine, palier) : la génération SEULE d'une map, au palier voulu, comme pisteRoute la ferait — rend le dessin À PLAT
+   (ctrl0), la route finale (ctrl, roulée par pisteTord quand la map se roule) et ses normales, les marques des modules, la fiche de rythme (rythmeMesure) et sa note.
+   ⚠ BANC SEULEMENT : les générateurs écrivent leurs repères (FORET.Q, CY.Q, DN.Q…) — ne pas s'en servir pendant une course ni avec une piste bâtie d'avance à garder. */
+window.dbgGenRoute=function(carte,graine,palier,o){o=o||{};const TAB={nuages:()=>NIVEAUX[0],orage:()=>NIVEAUX[3],ville:()=>NIVEAUX[1],minuit:()=>NIVEAUX[4],espace:()=>NIVEAUX[2],jade:()=>NIV_JADE,foret:()=>NIV_FORET,banquise:()=>NIV_BANQ,canyon:()=>NIV_CANYON,dunes:()=>NIV_DUNES,grotte:()=>NIV_GROTTE,crypto:()=>NIV_CRYPTO,vitree:()=>NIV_VITRE};
+  const cur0=LVL.cur,eT0=engTier,pret0=SF.pret,rh0=ROAD_HALF,mm0=MODMARK.slice(),fm0=FILETMARK.slice(),tm0=TROUMARK.slice();let out=null;
+  try{if(TAB[carte])LVL.cur=Object.assign({},TAB[carte](),{carte:carte,sansFin:1});engTier=palier|0;SF.pret=true;
+    const seed=(graine|0)||12345,rnd=mulberry32(seed),c=LVL.cur,pi=c&&c.piste,run=it=>{let r=it.next();while(!r.done)r=it.next();return r.value;},t0=performance.now();
+    MODMARK.length=0;FILETMARK.length=0;TROUMARK.length=0;
+    let ctrl=pi==='jade'?genJade(rnd):pi==='foret'?run(genForet(rnd)):pi==='canyon'?run(genCanyon(rnd)):pi==='dunes'?run(genDunes(rnd)):pi==='banquise'?genBanq(rnd):pi==='grotte'?run(genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0);
+    const tGen=performance.now()-t0,ctrl0=ctrl.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),+p.z.toFixed(2)];}),marks0=MODMARK.map(function(m){return Object.assign({},m,{f:undefined});});
+    let N=null,info=null,roule=false;const GRT9=grtTordOn();
+    if(hautOn()||espTordOn()||GRT9){const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined);ctrl=h9.ctrl;N=h9.N;info=TORD.info;roule=true;}
+    else if(pi==='dunes'&&DN.bankN)N=DN.bankN;else if(pi==='canyon'&&CY.murN&&CY_MUR.on)N=CY.murN;else if(pi==='foret'&&FORET.bankN)N=FORET.bankN;else if(pi==='jade'&&JADE.bankN)N=JADE.bankN;
+    const vP=vPalier(),rP=rayonPalier(),cible=rythmeCible(carte),fiche=rythmeMesure(ctrl.length===ctrl0.length?ctrl:ctrl0.map(function(a){return new THREE.Vector3(a[0],a[1],a[2]);}),{vP:vP,rP:rP,marks:marks0,spirMax:cible.spirMax});
+    out={carte:carte,piste:pi||'ctrl',graine:seed,palier:palier|0,vP:+vP.toFixed(1),rP:+rP.toFixed(1),lv:+lvPiste().toFixed(2),half:ROAD_HALF,ms:+tGen.toFixed(1),roule:roule,info:info,
+      ctrl0:ctrl0,ctrl:ctrl.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),+p.z.toFixed(2)];}),N:N?N.map(function(v){return [+v.x.toFixed(3),+v.y.toFixed(3),+v.z.toFixed(3)];}):null,
+      marks:marks0,marks1:MODMARK.map(function(m){return {i0:m.i0,i1:m.i1,fig:m.fig||null};}),fiche:fiche,note:rythmeNote(fiche,cible),cible:cible,rythme:RYTHME.der};
+  }catch(e){out={erreur:String(e&&e.stack||e)};}
+  finally{LVL.cur=cur0;engTier=eT0;SF.pret=pret0;ROAD_HALF=rh0;MODMARK.length=0;for(const m of mm0)MODMARK.push(m);FILETMARK.length=0;for(const m of fm0)FILETMARK.push(m);TROUMARK.length=0;for(const m of tm0)TROUMARK.push(m);}
+  return out;};
 window.dbgPisteBilan=function(n){if(!n)return pisteBilan1();const r=[];for(let k=0;k<n;k++){newTrack();r.push(pisteBilan1());}
   const m={};for(const key of Object.keys(r[0])){m[key]=+(r.reduce((a,x)=>a+x[key],0)/r.length).toFixed(1);}m.n=n;m.pire=Math.max.apply(null,r.map(x=>x.plusLongueDroite));return m;};
 function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée), np (rangées par bloc), pas (points de piste par rangée)}

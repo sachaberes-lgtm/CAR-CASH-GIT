@@ -288,6 +288,10 @@ const CONTOUR2=(function(){
   if(/[?&]contour=v2\b/.test(location.search))C.allume(true);
   return C;})();
 window.dbgContour=function(on){if(on!=null)CONTOUR2.allume(on);return {on:document.documentElement.classList.contains('contourV2'),regles:CONTOUR2.regles.length,selecteurs:CONTOUR2.sels.length,convertis:CONTOUR2.n,refuses:CONTOUR2.refuses};}; // (2026-10-17) le contour d'encre sans filtre — voir CONTOUR2
+/* (banc, 2026-11-05, repris de jury/fable) dbgJouer() : l'état des gardes du JOUER, puis le même départ que le bouton — pour un banc headless (le bouton par toucher n'y marche pas) */
+window.dbgJouer=function(){const et={pendingScore:pendingScore,started:started,gameOver:gameOver,garageOn:garageOn,go:!!GAR.go,chute:!!CHUTE.on,chuteGo:!!CHUTE.go,wipe:!!ecranWipe._on,tuto:!!SAVE.d.tuto,sf:sfPlayOk()};
+  let r='';try{r=sfPlayOk()?String(classiqueJouer()):(playViaGarage(true),'playViaGarage');}catch(e){r='erreur '+(e&&e.message);}
+  return Object.assign(et,{appel:r,goApres:!!GAR.go,chuteGoApres:!!CHUTE.go});};
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
 try{plqDemarre();}catch(e){console.warn('plaque',e);} // (2026-10-17) LA PLAQUE : ses écrans, l'horloge du compte, et l'atelier au premier accueil (voir PLQ)
 try{bienvGuette();}catch(e){} // (2026-10-16) LA QUESTION DE BIENVENUE guette l'accueil (voir bienvMontre)

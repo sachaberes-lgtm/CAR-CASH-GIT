@@ -97,7 +97,8 @@ const BK_LARG4=7,BK_PENTE4=[.92,.12,1.05,.17,.90,.72];
 const BK_HASARD=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacierhasard(,|&|$)/.test(location.search);
 const BK_MODULES=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glaciermodules(,|&|$)/.test(location.search); /* (2026-10-20) SIX MODULES (voir bkGodille) — `?sans=glaciermodules` = le paquet d'avant (slalom, grand S, double) */
 const BK_DECOR=typeof location==='undefined'||!/[?&]sans=([^&]*,)?glacierdecor(,|&|$)/.test(location.search); /* (2026-10-20) LE DÉCOR AU HASARD (voir bkDecoTire) — `?sans=glacierdecor` = le décor d'avant, au tirage près */ // (2026-10-19) LE GLACIER AU HASARD (voir genBanq) — `?sans=glacierhasard` = la descente d'avant, à l'identique
-function genBanq(rnd){
+function genBanq(rnd){return rythmeMeilleur(rnd,RYTHME.N,'banquise',genBanq1,{assez:1}).ctrl;} /* (2026-11-05, LE DIRECTEUR DE RYTHME) le meilleur-de-N (route-rythme.js) */
+function genBanq1(rnd){
   const ctrl=[];CAMPM.length=0;MODMARK.length=0;
   ROAD_HALF=ROAD_HALF0*BK_LARG4; // la PISTE : 123 m, puis 196 m (« beaucoup plus large »)
   let P=new THREE.Vector3(0,0,0),phi=0,sC=0;

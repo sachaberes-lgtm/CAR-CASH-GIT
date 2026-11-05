@@ -52,7 +52,7 @@ window.dbgMusAp=function(){ // (banc) l'état de la musique autour de l'extrait 
        pendant le glissé ; au relâcher du curseur EFFETS, une pièce témoin jouée au NOUVEAU volume (volSet vient de le poser sur MASTER) */
     e.addEventListener('pointerdown',function(){e._cran=Math.floor(+e.value/10);});
     e.addEventListener('input',function(){try{const c9=Math.floor(+e.value/10);if(e._cran==null)e._cran=c9;else if(c9!==e._cran){e._cran=c9;sfx('ui.curseur',{st:(c9-5)*2});}}catch(x){}});
-    e.addEventListener('change',function(){e._cran=null;if(k==='sfx')try{sfx('piece',{t:.06});}catch(x){}else if(k==='mus')try{musApercu();}catch(x){}}); // (2026-10-14, session SON) …et au relâcher du curseur MUSIQUE, un extrait (musApercu)
+    e.addEventListener('change',function(){e._cran=null;if(k==='sfx')try{sfx(paused?'ui.ok':'piece',{t:.06});}catch(x){} /* (2026-11-05, finition) en pause le contexte dort et le bus de la pièce est coupé : le témoin passe par le bus de l'interface */else if(k==='mus')try{musApercu();}catch(x){}}); // (2026-10-14, session SON) …et au relâcher du curseur MUSIQUE, un extrait (musApercu)
     e.addEventListener('click',function(ev){ev.stopPropagation();}); // ⚠ sinon le clic remonte à la ligne .setRow et rouvre/bascule autre chose
     e.addEventListener('pointerdown',function(ev){ev.stopPropagation();});
   };
@@ -159,7 +159,7 @@ function uiFiletRole(el){
 }
 addEventListener('pointerdown',function(){UI_SON.pd=performance.now();},{capture:true,passive:true});
 addEventListener('click',function(e){
-  if(!e.isTrusted||performance.now()<(uiGarde.t||0))return; // un .click() programmé (Entrée, interrupteurs) sonne par le bouton qu'il pousse · le verrou du double-tap avale ce clic-là
+  if(!e.isTrusted||performance.now()<(uiGarde.t||0)||(started&&gameOver&&TCTL.mortT&&performance.now()-TCTL.mortT<600))return; /* (2026-11-05, finition) les 600 ms « sourdes » après la mort : l'action est ignorée, le filet ne sonne pas non plus */ // un .click() programmé (Entrée, interrupteurs) sonne par le bouton qu'il pousse · le verrou du double-tap avale ce clic-là
   let el=e.target&&e.target.nodeType===1?e.target:(e.target&&e.target.parentElement);
   for(let n=0;el&&n<8&&el!==document.body&&el!==document.documentElement;n++,el=el.parentElement){
     if(el.tagName==='CANVAS'||el.hasAttribute('data-muet'))return;

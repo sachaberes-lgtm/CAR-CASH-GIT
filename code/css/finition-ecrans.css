@@ -51,4 +51,15 @@
   #gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMis,#gvMis::before,#gvMis::after,#gvMis .gvFx,#gName.entre{animation:none}}
 html[data-reduced-motion="1"] body #mob #mDead.m5.on :is(.m6Mot,.m6Aura,.mDuo>.pbtn){animation:none}
 html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMis,#gvMis::before,#gvMis::after,#gvMis .gvFx,#gName.entre){animation:none}
+/* 10. LA CARTE MISSIONS DE L'ÉCRAN DE MORT, couché étroit (2026-11-05, finition — MESURÉ 667×375, en anglais) : « MISSIONS » (115 px) mordait de 13 px
+   le compteur « 5 / 53 » — on lisait « / 53 » ; et « SECRET MISSION FOUND » (170 px dans 158) finissait en « FO… ». Le titre passe à 8 px (il tient, 5 px
+   de jour), la mission secrète a le droit à deux lignes */
+@media (orientation:landscape) and (max-width:700px){#mObj .obHd>span{font-size:8px;gap:4px}}
+#mObj .obM.sec>span{white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;line-height:11px}
+/* 11. LA PLAQUE, tuiles des pays (2026-11-05, finition — MESURÉ 667×375, en anglais) : « NETHERLANDS » (88 px) tombait dans 80 px de tuile et se coupait en « NETHERLAN / DS »,
+   « SWITZERLAND » pareil. 2 px de marge de chaque côté au lieu de 6 : les mots d'une seule pièce tiennent sur une ligne, les noms à espace (SOUTH AFRICA) passent à la ligne */
+#plq .plMod{padding-left:2px;padding-right:2px}
+/* 12. FINAL SPIN, couché étroit (2026-11-05, finition — MESURÉ 667×375) : l'enseigne « FINAL SPIN » (264 px) dépassait sa colonne (250, celle de TIRER) de 14 px et finissait à 7 px du bord
+   de l'écran, quand la machine garde 19 px de marge. Ses marges internes (.34 spH) passent à .2 spH : elle tient dans la colonne, centrée sur TIRER */
+@media (orientation:landscape){#spinM .spEnseigne{padding-left:calc(var(--spH)*.2);padding-right:calc(var(--spH)*.2);max-width:100%;box-sizing:border-box}}
 </style>
