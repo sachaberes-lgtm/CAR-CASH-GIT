@@ -81122,8 +81122,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');if(v6&&m6Ici())try{pixBurst(c9,12);}catch(x){}}},v6?16:28);};
     const apres=function(vue,v){if(vue)monte(v);maj();};window.__dblApres=apres;
     const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};
-    const go=function(ev){ev.preventDefault();ev.stopPropagation();if(sourd()||el.hidden)return;uiPop(el);uiClic('');hap(8);let r=false;
-      try{r=dblJoue(apres);}catch(_){r=false;}if(!r)uiClic('refus');maj();};
+    const go=function(ev){ev.preventDefault();ev.stopPropagation();if(sourd()||el.hidden)return;uiPop(el);hap(8);let r=false;
+      try{r=dblJoue(apres);}catch(_){r=false;}uiClic(r?'':'refus'); /* (2026-11-05, finition) UN son par tap : le tap OU le refus, plus les deux dans la même image */ maj();};
     el.addEventListener('click',go);el.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' ')go(ev);});
     setInterval(maj,250);maj();})();}catch(e){console.warn('double',e);}
   if(mob){
