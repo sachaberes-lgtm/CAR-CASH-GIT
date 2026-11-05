@@ -1,0 +1,130 @@
+<style id="boitesBlister">
+/* ===== LES VITRINES (2026-11-05, Léo : « on ne voit pas assez les voitures, pas d'effet de boîte… un truc un peu carré et transparent, comme une vitrine en verre sur un socle noir ; un angle où l'on voit bien la voiture, en 3D, sans que ça pèse sur téléphone ») =====
+   Une couche posée APRÈS toutes les autres : elle ne fait que REPEINDRE les cartes `.bqK` de la boutique (`#gBqPan`) — structure, tailles de grille et photos ne
+   bougent pas (bqCarteHtml ajoute seulement la classe `b-<rareté>`). Tout dérive de `--rc` (la couleur de rareté déjà posée) : aucune couleur de palette nouvelle (Sacha y travaille).
+   LE PRINCIPE (zéro 3D réelle, donc rien de lourd) : une projection OBLIQUE dessinée en CSS — la face avant est la carte, un dessus et un côté droit en verre
+   (`::before` et `::after` de la carte, deux parallélogrammes `skew`) donnent le volume du cube ; la voiture (photo transparente, déjà de trois quarts) se pose dans le verre
+   sur une ombre de sol ; le nom et le prix reposent sur un SOCLE NOIR (comme la vitrine acrylique de la référence). La rareté = le liseré lumineux du verre et le filet du socle.
+   Léo (25/10) a retiré le gros texte de rareté : il reste caché. La carte choisie se soulève. Allégé (palier 0 et 1) : mêmes aplats, plus de reflet qui balaie. */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK{
+  --rcd:color-mix(in srgb,var(--rc) 60%,#506070);
+  margin:0;border-radius:3px;overflow:visible;isolation:isolate;
+  background:linear-gradient(155deg,rgba(255,255,255,.75),rgba(150,185,225,.34) 45%,rgba(255,255,255,.5));
+  box-shadow:0 0 0 2px rgba(70,92,120,.75),inset 0 0 0 2px rgba(255,255,255,.85),0 12px 18px -6px rgba(30,40,55,.32);
+  border-top:3px solid var(--rc);transform:none;transition:translate .15s,box-shadow .15s}
+/* la place : le rail laisse sa marge au dessus et au côté de verre (sinon le défilement les coupe) ; les trois colonnes se recalculent ; la photo suit le CADRE de la photo (720 x 440), plus une hauteur fixe de 46 à 66 px */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqRail{gap:16px 14px;padding:16px 14px 12px 2px}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK.off,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK.off{width:calc((100% - 44px) / 3)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille.cote .bqK .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.off .bqKph{height:auto;aspect-ratio:720/440}
+/* les deux faces de verre : le dessus et le côté droit (projection oblique) */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK::before{content:"";position:absolute;left:0;right:0;top:-12px;height:9px;transform-origin:bottom left;transform:skewX(-45deg);
+  background:linear-gradient(90deg,rgba(255,255,255,.85),color-mix(in srgb,var(--rc) 30%,rgba(235,242,250,.75)));box-shadow:inset 0 0 0 1px rgba(110,130,150,.5);pointer-events:none;z-index:2}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK::after{content:"";position:absolute;top:-3px;bottom:0;right:-9px;width:9px;transform-origin:top left;transform:skewY(-45deg);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 22%,rgba(225,234,244,.8)),rgba(180,196,214,.55));box-shadow:inset 0 0 0 1px rgba(110,130,150,.5);pointer-events:none;z-index:2}
+/* la voiture : la plus grande place, sur son ombre de sol, derrière un reflet de verre */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph{position:relative;margin:2px 2px 0;border:0;border-radius:0;background:none;box-shadow:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph::before{content:"";position:absolute;left:12%;right:12%;bottom:3%;height:12%;border-radius:50%;background:radial-gradient(closest-side,rgba(30,40,55,.38),transparent);pointer-events:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph::after{content:"";position:absolute;left:10%;top:0;width:22%;height:100%;background:linear-gradient(100deg,rgba(255,255,255,.5),rgba(255,255,255,0));transform:skewX(-14deg);pointer-events:none}
+/* le SOCLE NOIR : le nom et le prix, bord à bord */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKn{margin:0;padding:4px 5px 1px;background:#0e0f12;color:#fff;border-radius:0}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp{margin:0;background:#0e0f12;border-radius:0;transform:none;box-shadow:0 3px 0 var(--rc)}
+/* la rareté : le liseré du verre et le filet du socle (déjà --rc) ; les plus hautes brillent un peu plus */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-rare,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-epique{box-shadow:0 0 0 1px var(--rcd),inset 0 0 0 2px rgba(255,255,255,.75),0 0 10px -2px var(--rc),0 12px 18px -6px rgba(30,40,55,.28)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-exotique .bqKph::before{background:radial-gradient(closest-side,color-mix(in srgb,var(--rc) 55%,#222),transparent)}
+/* LA DORÉE (légendaire) : verre doré, socle or, reflet qui balaie la vitrine */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire{background:linear-gradient(155deg,rgba(255,244,200,.85),rgba(255,215,94,.28) 45%,rgba(255,244,200,.55));border-top-color:#ffd75e;
+  box-shadow:0 0 0 1px #a67200,inset 0 0 0 2px #ffe58a,0 0 14px -2px rgba(255,200,60,.8),0 12px 18px -6px rgba(120,80,0,.4)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire::before{background:linear-gradient(90deg,#fff2b0,#ffd75e);box-shadow:inset 0 0 0 1px #a67200}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire::after{background:linear-gradient(180deg,#ffd75e,#b8860b);box-shadow:inset 0 0 0 1px #a67200}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKn{background:linear-gradient(#3a2400,#24160a);color:#ffe9a8}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKp{background:linear-gradient(#24160a,#3a2400);box-shadow:0 3px 0 #ffd75e}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph::after{left:-40%;width:34%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent);animation:bqBal 3.4s ease-in-out infinite}
+@keyframes bqBal{0%{left:-40%}55%,100%{left:130%}}
+/* MYTHIQUE (braise) et INFINI (arc-en-ciel) : seul le liseré change */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-mythique{background:linear-gradient(155deg,rgba(255,200,205,.6),rgba(255,77,109,.2) 50%,rgba(255,200,205,.4))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-infini{border-top-color:#8a7cff;background:linear-gradient(155deg,rgba(255,200,250,.55),rgba(138,124,255,.2) 40%,rgba(62,232,168,.25))}
+/* LA SECRÈTE : verre fumé, socle noir, ruban « scellé » en travers de la vitrine */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete{background:linear-gradient(155deg,rgba(60,60,72,.82),rgba(25,25,32,.9));box-shadow:0 0 0 1px #000,inset 0 0 0 2px rgba(255,255,255,.18),0 12px 18px -6px rgba(0,0,0,.4)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKph::before{left:-6%;right:-6%;bottom:auto;top:44%;height:12px;border-radius:0;background:repeating-linear-gradient(45deg,#ffd400 0 8px,#111 8px 16px);transform:rotate(-12deg);opacity:.9;z-index:2}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKn{color:var(--rc)}
+/* la carte choisie se soulève */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel{translate:0 -4px;box-shadow:0 0 0 2px #14171c,0 0 0 4px var(--rc),0 16px 22px -6px rgba(30,40,55,.35)}
+/* allégé (ANCIEN 0 et MOYEN 1) : plus de reflet qui balaie */
+html[data-palier="0"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph::after,html[data-palier="1"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph::after{animation:none;left:10%;width:22%;background:linear-gradient(100deg,rgba(255,255,255,.5),rgba(255,255,255,0))}
+@media (prefers-reduced-motion:reduce){#gBqPan .b-legendaire .bqKph::after{animation:none}}
+/* ===== LA VITRINE EN VRAI 3D (palier 2 : ordinateur et téléphones récents) =====
+   Un cube de verre (six faces CSS, `preserve-3d`) penché derrière la photo ; la voiture, une photo transparente de trois quarts, se tient devant ses faces arrière ;
+   le reflet de la face avant passe par-dessus. Tailles en `cqw` (la carte est un conteneur) : le cube suit la largeur de la carte, trois colonnes ou une rangée.
+   Ailleurs (palier 0 et 1) les faces `.bqKv` restent cachées et la projection oblique plate ci-dessus s'applique. */
+.bqKv{display:none}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK{container-type:inline-size;perspective:900px;background:none;box-shadow:none;border-top:0}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK::before,html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK::after{display:none}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv{--W:84cqw;--H:55cqw;--D:30cqw;--ry:-18deg;--rx:-12deg;display:block;position:absolute;left:50%;top:calc(2px + 30cqw);width:0;height:0;transform-style:preserve-3d;transform:rotateX(var(--rx)) rotateY(var(--ry));pointer-events:none;transition:transform .3s}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .f{position:absolute;display:block;background:linear-gradient(150deg,rgba(255,255,255,.55),rgba(160,195,235,.2) 55%,rgba(255,255,255,.3));border:2px solid color-mix(in srgb,var(--rc) 60%,rgba(255,255,255,.95))}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .fr{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:translateZ(calc(var(--D)/2))}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .bk{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:rotateY(180deg) translateZ(calc(var(--D)/2))}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .rt{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(90deg) translateZ(calc(var(--W)/2))}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .lf{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(-90deg) translateZ(calc(var(--W)/2))}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .tp{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/2));background:linear-gradient(135deg,rgba(255,255,255,.8),color-mix(in srgb,var(--rc) 28%,rgba(220,235,250,.55)))}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .fl{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/-2));background:radial-gradient(closest-side,rgba(20,30,45,.35),rgba(20,30,45,0) 70%);border:0}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph{z-index:1}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph::before{display:none}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel{box-shadow:none;translate:0 -4px}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel .bqKv{--ry:-14deg;--rx:-10deg}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel .bqKv .f{border-color:var(--rc);border-width:3px}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .f{background:linear-gradient(150deg,rgba(255,244,200,.7),rgba(255,215,94,.24) 55%,rgba(255,244,200,.45));border-color:#d9a21b}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .tp{background:linear-gradient(135deg,rgba(255,250,225,.9),rgba(255,215,94,.5))}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKv .f{background:linear-gradient(150deg,rgba(70,70,84,.82),rgba(25,25,32,.9));border-color:#ff3ec8}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-mythique .bqKv .f{background:linear-gradient(150deg,rgba(255,200,205,.6),rgba(255,77,109,.2) 55%,rgba(255,200,205,.4))}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-infini .bqKv .f{background:linear-gradient(150deg,rgba(255,200,250,.55),rgba(138,124,255,.2) 45%,rgba(62,232,168,.25))}
+/* la BANDEROLE de rareté : une petite étiquette de couleur sur le coin du verre, seulement pour les plus hautes (le gros texte reste banni, 25/10) */
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKr,html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-mythique .bqKr,html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-infini .bqKr{display:block;position:absolute;top:calc(100cqw * .47);bottom:auto;left:-4px;z-index:4;padding:2px 6px 1px;font:800 7px/1 var(--pix,system-ui);letter-spacing:.06em;background:var(--rc);color:#1a1200;box-shadow:0 1px 0 rgba(0,0,0,.35);transform:rotate(-4deg);pointer-events:none}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKr{background:linear-gradient(#fff2b0,#ffd75e)}
+
+/* le prix se lit sur le socle noir (avant : texte sombre sur noir) */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp{color:#ffe08a}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.eur{color:#fff}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.acq{color:#7ff0aa}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.defi,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.sec{color:#ff9ad9}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKp{color:#fff2b0}
+/* palier 2 : la voiture plus grande dans le verre ; la carte choisie garde son cube penché, en lueur douce */
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph img{transform:scale(1.14);transform-origin:50% 72%}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel .bqKv{--ry:-14deg;--rx:-10deg;filter:drop-shadow(0 0 7px var(--rc))}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel .bqKv .f{border-width:2px}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel{scale:1.04}
+
+/* ===== LA VITRINE, PLUS CRÉATIVE (palier 2) =====
+   Un DIORAMA : le fond du cube est un décor teinté de la rareté, avec un projecteur qui éclaire la voiture (elle ressort, le cube se lit) ; le socle se réduit à une ligne
+   (le nom) et le prix devient une ÉTIQUETTE qui déborde sur le verre ; chaque famille a son détail : brillance pour l'épique et la légendaire (étoiles fixes qui scintillent),
+   un grand « ? » derrière la silhouette secrète. Tout en aplats et dégradés : aucun filtre, aucune ombre floue. */
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .bk{background:radial-gradient(ellipse 60% 70% at 50% 62%,rgba(255,255,255,.95),rgba(255,255,255,0) 70%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 38%,#fff),color-mix(in srgb,var(--rc) 62%,#6a7686))}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .lf{background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 50%,rgba(150,170,195,.55)),rgba(255,255,255,.18))}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .rt{background:linear-gradient(90deg,rgba(255,255,255,.2),color-mix(in srgb,var(--rc) 45%,rgba(120,140,165,.6)))}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .fl{background:radial-gradient(closest-side,rgba(20,30,45,.55),rgba(20,30,45,0) 72%)}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph{filter:none}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph::before{display:block;content:"";position:absolute;inset:0;pointer-events:none;background:none}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-epique .bqKph::before,html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph::before{background:
+  radial-gradient(circle,#fff 0 1.4px,transparent 2.2px) 14% 22%/1px 1px no-repeat,radial-gradient(circle,#fff 0 1.8px,transparent 2.8px) 86% 30%/1px 1px no-repeat,
+  radial-gradient(circle,#fff 0 1.2px,transparent 2px) 74% 12%/1px 1px no-repeat,radial-gradient(circle,#fff 0 1.5px,transparent 2.4px) 26% 70%/1px 1px no-repeat;animation:bqScint 2.2s ease-in-out infinite;z-index:3}
+@keyframes bqScint{0%,100%{opacity:.35}50%{opacity:1}}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKph::before{content:"?";display:flex;align-items:center;justify-content:center;font:900 34cqw/1 system-ui;color:rgba(255,62,200,.32);top:-4%;bottom:auto;height:100%;transform:none;left:0;right:0;border-radius:0}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .bk{background:radial-gradient(ellipse 60% 70% at 50% 62%,#fffbe8,rgba(255,251,232,0) 70%),linear-gradient(180deg,#ffe9a0,#d9a21b)}
+/* le socle en une ligne, le prix en étiquette */
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKn{padding:3px 5px 2px 6px;box-sizing:border-box}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp{position:absolute;right:-5px;top:-7px;bottom:auto;margin:0;padding:3px 7px 3px 8px;background:var(--rc);color:#10131a;border-radius:3px 0 0 3px;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.4);transform:skewX(-10deg);z-index:5}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.acq{background:#7ff0aa;color:#06331b}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.defi,html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.sec{background:#ff9ad9;color:#3a0a2c}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKp{background:linear-gradient(#fff6c8,#ffd75e);color:#3a2400}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKp{background:#ff3ec8;color:#fff}
+@media (prefers-reduced-motion:reduce){#gBqPan .b-epique .bqKph::before,#gBqPan .b-legendaire .bqKph::before{animation:none}}
+
+/* LES AILES QUI BATTENT : la photo ne montre plus que les deux ailes, de face ; deux moitiés de la même image battent en alternance (comme des ailes vues de face qui se replient et s'ouvrent) */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph.c-aile img.aL,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph.c-aile img.aR{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;max-height:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph.c-aile img.aL{clip-path:inset(0 50% 0 0);transform-origin:100% 55%}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph.c-aile img.aR{clip-path:inset(0 0 0 50%);transform-origin:0 55%}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph.c-aile img.aL{animation:bqAilG 1.5s ease-in-out infinite}
+html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph.c-aile img.aR{animation:bqAilD 1.5s ease-in-out infinite}
+@keyframes bqAilG{0%,100%{transform:rotate(7deg) scaleX(1)}50%{transform:rotate(-9deg) scaleX(.84)}}
+@keyframes bqAilD{0%,100%{transform:rotate(-7deg) scaleX(1)}50%{transform:rotate(9deg) scaleX(.84)}}
+@media (prefers-reduced-motion:reduce){#gBqPan .bqKph.c-aile img{animation:none!important}}
+</style>
