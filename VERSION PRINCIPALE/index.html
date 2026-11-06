@@ -2062,6 +2062,79 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
     if(/[?&]erreurs=1/.test(location.search))addEventListener('load',function(){setTimeout(montre,1500);});
     addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer');if(L.length&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+L.length;}catch(_){}},3000);});
   })();
+  /* ===== LA SONDE DU SERPENT (2026-11-06, Sacha : « enlève la latence du temps de chargement, le serpent doit toujours être super fluide ») =====
+     Le banc Mac a épuisé ce qu'il sait voir (LISEZ-MOI de outils/banc-serpent) : le reste ne se verra que sur Metal. Ce petit guetteur tourne
+     du 1er script jusqu'à la disparition du serpent (`#spCharge` retiré par l'intro), 10 s après `__gameReady` ou 60 s au plus. Une boucle rAF
+     relève chaque TROU > 120 ms entre deux images et note dans la boîte noire (genre « serpent », 20 lignes au plus) : l'instant, la durée,
+     les travaux JS qui le recouvrent (tâches longues si le navigateur les donne ; sinon les rappels setTimeout/rAF de plus de 50 ms et les
+     ÉTAPES du chargement, `__ccSondeTache`), l'appel WebGL synchrone le plus long en vol (piégé sur le prototype : getProgramParameter,
+     texImage2D, bufferData… avec sa pile courte) et l'état du fil (« bloqué » = un minuteur de 30 ms a aussi pris du retard ; « libre » = c'est le
+     rendu / le GPU / le compositeur). Fin de guet : tous les pièges sont retirés, plus aucun coût. LIRE : `dbgSerpent()` ou la boîte noire (RÉGLAGES
+     › VERSION) ; par câble : localStorage `cashcarErr`. `?sonde=0` coupe tout. */
+  (function(){
+    if(/[?&]sonde=0\b/.test(location.search)||!window.requestAnimationFrame||!window.performance)return;
+    var SEUIL=120,MAXN=19,now=function(){return performance.now();},RAF=window.requestAnimationFrame,ST=window.setTimeout,
+        fini=false,vu=false,dern=0,vc=0,tPret=0,nN=0,HIST=[],GLS=[],TAC=[],TIM=[],hbT=now(),trous=0,pire=0,RES=[],PIEGES=[];
+    var pile=function(){try{var s=String(new Error().stack).split('\n'),o=[],i;if(/^Error/.test(s[0]))s.shift(); /* Chrome met « Error » en tête, Safari non */
+      s=s.slice(2); /* sans les deux étages de la sonde (pile, sondeGL) */
+      for(i=0;i<s.length&&o.length<4;i++)o.push(s[i].replace(/(https?|capacitor):\/\/[^\s)]*\//g,'').replace(/^\s*at /,'').replace(/^Object\./,'').trim().slice(0,48));
+      return o.join(' < ');}catch(_){return '';}};
+    var garde=function(L,x){L.push(x);if(L.length>90)L.splice(0,30);};
+    var tache=function(nom,t,d){if(!fini)garde(TAC,{n:nom,t:t,d:d});};
+    window.__ccSondeTache=function(nom,t,d){if(d>=40)tache('étape '+nom,t,d);};
+    /* les appels WebGL qui attendent le GPU (≥ 8 ms) */
+    ['getProgramParameter','getShaderParameter','getProgramInfoLog','getShaderInfoLog','linkProgram','compileShader','texImage2D','texSubImage2D','texImage3D','texSubImage3D',
+     'texStorage2D','bufferData','bufferSubData','readPixels','getError','getActiveUniform','getActiveAttrib','getUniformLocation','generateMipmap','compressedTexImage2D',
+     'finish','checkFramebufferStatus','blitFramebuffer','validateProgram'].forEach(function(n){
+      [window.WebGL2RenderingContext,window.WebGLRenderingContext].forEach(function(C){
+        if(!C)return;var pr=C.prototype,f=Object.prototype.hasOwnProperty.call(pr,n)?pr[n]:null;if(typeof f!=='function')return;
+        PIEGES.push([pr,n,f]);
+        pr[n]=function sondeGL(){var t=now();try{return f.apply(this,arguments);}finally{var d=now()-t;if(d>=8&&!fini)garde(GLS,{n:n,t:t,d:d,p:pile()});}};});});
+    /* les rappels de minuteur et d'image qui durent (≥ 50 ms) : le nom de la fonction, ou le début de son texte */
+    var nomFn=function(f){try{return f.name||String(f).replace(/\s+/g,' ').slice(0,38);}catch(_){return '?';}};
+    var enrobe=function(F,nom){return function(cb){
+      if(fini||typeof cb!=='function')return F.apply(this,arguments);
+      var a=Array.prototype.slice.call(arguments);
+      a[0]=function(){var t=now();try{return cb.apply(this,arguments);}finally{var d=now()-t;if(d>=50&&!fini)tache(nom+' '+nomFn(cb),t,d);}};
+      return F.apply(this,a);};};
+    var oST=ST,oRAF=RAF;
+    window.setTimeout=enrobe(oST,'minuteur');window.requestAnimationFrame=enrobe(oRAF,'image');
+    try{new PerformanceObserver(function(l){l.getEntries().forEach(function(e){tache('tâche longue',e.startTime,e.duration);});}).observe({entryTypes:['longtask']});}catch(_){}
+    document.addEventListener('visibilitychange',function(){vc=now();});
+    /* le pouls du fil principal : un minuteur de 30 ms ; un retard > 100 ms = le fil était pris */
+    var pouls=function(){if(fini)return;var n=now();if(n-hbT>100)garde(TIM,{t0:hbT,t1:n});hbT=n;ST(pouls,30);};ST(pouls,30);
+    var chev=function(L,a,b){var o=[];for(var i=0;i<L.length;i++){var t0=L[i].t,t1=t0+L[i].d;if(t1>a&&t0<b)o.push(L[i]);}return o.sort(function(x,y){return y.d-x.d;});};
+    var rapport=function(a,b){
+      var d=Math.round(b-a),js=chev(TAC,a-30,b+30).slice(0,2),gl=chev(GLS,a-30,b+30)[0],bloq=false,i;
+      for(i=0;i<TIM.length;i++)if(TIM[i].t1>a&&TIM[i].t0<b){bloq=true;break;}
+      trous++;if(d>pire)pire=d;
+      var sJs=js.length?js.map(function(x){return x.n+' '+Math.round(x.d);}).join(' + '):'-',
+          sGl=gl?(gl.n+' '+Math.round(gl.d)):'-',
+          msg=(Math.round(a/100)/10)+' s : trou '+d+' ms · JS '+sJs+' · GL '+sGl+' · fil '+(bloq?'bloqué':'libre'),
+          r={t:Math.round(a),d:d,js:sJs,gl:sGl,pile:gl?gl.p:'',fil:bloq?'bloqué':'libre',v:(typeof CC_VER==='string'?CC_VER:'?')};
+      RES.push(r);if(RES.length>60)RES.shift();
+      if(nN<MAXN){nN++;window.__ccNote('serpent',msg,gl&&gl.p);}
+    };
+    var fin=function(){
+      if(fini)return;fini=true;
+      PIEGES.forEach(function(p){try{p[0][p[1]]=p[2];}catch(_){}});
+      window.setTimeout=oST;window.requestAnimationFrame=oRAF;try{delete window.__ccSondeTache;}catch(_){window.__ccSondeTache=null;}
+      TAC=[];GLS=[];TIM=[];
+      window.__ccNote('serpent','fin du guet à '+(Math.round(now()/100)/10)+' s : '+trous+' trou(s) > '+SEUIL+' ms, le pire '+pire+' ms');
+    };
+    var tick=function(t){
+      if(fini)return;
+      if(dern&&t-dern>SEUIL&&document.visibilityState==='visible'&&vc<dern-50)rapport(dern,t);
+      dern=t;
+      if(document.getElementById('spCharge'))vu=true;
+      else if(vu){fin();return;}
+      if(window.__gameReady){if(!tPret)tPret=t;else if(t-tPret>10000){fin();return;}}
+      if(t>60000){fin();return;}
+      RAF.call(window,tick);
+    };
+    window.dbgSerpent=function(){return RES.slice();};
+    RAF.call(window,tick);
+  })();
   addEventListener('error',function(e){
     if(!e.message)return;
     try{window.__ccNote('erreur',e.message,(e.filename||'').split('/').pop()+':'+e.lineno+':'+(e.colno||0));}catch(_){}
@@ -50218,7 +50291,7 @@ if(!CHARGEMENT.on)CHARGEMENT.fini=true;
 function chargeEtape(nom,fn){ if(CHARGEMENT.fini){fn();return;} CHARGEMENT.E.push([nom,fn]); }
 function chargementPas(){ const e=CHARGEMENT.E.shift();if(!e){CHARGEMENT.fini=true;return;}
   const t9=performance.now();try{e[1]();}catch(x){console.warn('chargement · '+e[0],x);try{window.__ccNote('panne','chargement '+e[0]+' · '+(x&&x.message||x),x&&x.stack&&String(x.stack).split('\n')[1]);}catch(_){}}
-  CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
+  CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);try{if(window.__ccSondeTache)window.__ccSondeTache(e[0],t9,performance.now()-t9);}catch(_){} /* (2026-11-06) la SONDE du serpent (debut-corps.html) apprend quelle étape recouvre un trou */if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
 function chargementTout(){ while(!CHARGEMENT.fini)chargementPas(); }
 function chargementTick(now){ if(CHARGEMENT.fini)return false;
   if(!CHARGEMENT.t0)CHARGEMENT.t0=now;if(now-CHARGEMENT.t0>15000){chargementTout();return false;}

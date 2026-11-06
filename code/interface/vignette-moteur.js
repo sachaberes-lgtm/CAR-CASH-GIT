@@ -372,7 +372,7 @@ if(!CHARGEMENT.on)CHARGEMENT.fini=true;
 function chargeEtape(nom,fn){ if(CHARGEMENT.fini){fn();return;} CHARGEMENT.E.push([nom,fn]); }
 function chargementPas(){ const e=CHARGEMENT.E.shift();if(!e){CHARGEMENT.fini=true;return;}
   const t9=performance.now();try{e[1]();}catch(x){console.warn('chargement · '+e[0],x);try{window.__ccNote('panne','chargement '+e[0]+' · '+(x&&x.message||x),x&&x.stack&&String(x.stack).split('\n')[1]);}catch(_){}}
-  CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
+  CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);try{if(window.__ccSondeTache)window.__ccSondeTache(e[0],t9,performance.now()-t9);}catch(_){} /* (2026-11-06) la SONDE du serpent (debut-corps.html) apprend quelle étape recouvre un trou */if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
 function chargementTout(){ while(!CHARGEMENT.fini)chargementPas(); }
 function chargementTick(now){ if(CHARGEMENT.fini)return false;
   if(!CHARGEMENT.t0)CHARGEMENT.t0=now;if(now-CHARGEMENT.t0>15000){chargementTout();return false;}
