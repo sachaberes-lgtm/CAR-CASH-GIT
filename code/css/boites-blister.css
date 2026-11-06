@@ -183,4 +183,12 @@ html #gBq #gBqPan .bqK .bqKph{margin-bottom:-12px}
 html #gBq #gBqPan .bqK .bqKn{z-index:1;height:46px;padding:19px 6px 3px;margin-bottom:7px;box-shadow:inset 0 7px 8px -4px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.3)}
 html #gBq #gBqPan .bqRail.habs .bqK .bqKn,html #gBq #gBqPan .bqK.hab .bqKn{height:46px}
 html #gBq #gBqPan .bqK .bqKp{z-index:5}
+
+/* (2026-11-06, Léo : « dans les angles c'est encore imparfait, il faut que ce soit rejoint complètement, pas de truc plat qui dépasse ») plus de faces planes sur les côtés : le volume est une PILE de vitres aux mêmes coins ronds (avant, arrière et trois vitres au milieu) — l'épaisseur se lit à la tranche de chaque vitre, aucun angle vif */
+html #gBq #gBqPan .bqK .bqKv{--D:15cqw}
+html #gBq #gBqPan .bqK .bqKv :is(.lf,.rt,.tp){width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);border-radius:11cqw;border-width:2px;background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(255,255,255,.02) 55%,rgba(255,255,255,.1))}
+html #gBq #gBqPan .bqK .bqKv .lf{transform:translateZ(calc(var(--D)/4))}
+html #gBq #gBqPan .bqK .bqKv .tp{transform:translateZ(0)}
+html #gBq #gBqPan .bqK .bqKv .rt{transform:translateZ(calc(var(--D)/-4))}
+html #gBq #gBqPan .bqK .bqKv .fr,html #gBq #gBqPan .bqK .bqKv .bk{border-radius:11cqw}
 </style>
