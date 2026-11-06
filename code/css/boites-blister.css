@@ -214,4 +214,11 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fl{background:radial-gradient(ellipse 46
 html #gBq #gBqPan .bqK:is(.b-epique,.b-legendaire,.b-mythique,.b-infini):not(.pnt) .bqKv .bk{background:radial-gradient(circle,#fff 0 .5cqw,transparent .9cqw) 16% 24%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .7cqw,transparent 1.1cqw) 84% 30%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .45cqw,transparent .8cqw) 72% 14%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .6cqw,transparent 1cqw) 28% 74%/1px 1px no-repeat,radial-gradient(ellipse 62% 70% at 50% 64%,rgba(255,255,255,.95),rgba(255,255,255,0) 72%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 30%,#fff),color-mix(in srgb,var(--rc) 55%,#8a97aa))}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{box-shadow:inset 0 0 1.6cqw color-mix(in srgb,var(--rim) 70%,transparent)}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv{--D:42cqw} /* (le .bqKv porte ses propres --W --H --D : c'est ICI qu'on règle l'épaisseur, 30 → 42 cqw) */
+/* ===== LA VOITURE EN TRANCHES (2026-11-06, Léo : « une voiture pas plate dans le cube, essaie avec une petite et une grande ») =====
+   La photo de la caisse est empilée en 5 plans (.cL, --k = 0 devant … 4 au fond), espacés de 1,3 cqw dans la profondeur du cube, de plus en plus sombres vers le fond : une caisse qui a de l'ÉPAISSEUR ; avec l'inclinaison du cube, les
+   plans se décalent un peu (parallaxe) et la voiture se lit en volume, au milieu du verre. Seules les photos de voitures (data-ph) ; ailes, traînées, figures, peintures restent à un plan. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]{transform-style:preserve-3d}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%;
+  transform:translateZ(calc((2 - var(--k)) * 1.3cqw)) scaleX(-1);filter:brightness(calc(1 - var(--k) * .09))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL:first-child{filter:none}
 </style>
