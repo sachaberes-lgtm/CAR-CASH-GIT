@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1194'; /* v1194 (2026-11-06, Léo : « un bloc de neige sur la route, c'est pas jouable ») : les stalagmites GÉANTS de la salle des stalactites sont coupés (ils faisaient un bloc sur la route en grotte glacée) ; ?avec=geants les rend. */
+const CACHE = 'cashcar-v1195'; /* v1195 (2026-11-06, Léo : « la version satisfaisante de la capture ») les cartes de la boutique redeviennent la vitrine claire de verre sur socle noir (le décor teinté de la rareté, plus de nuit noire sur les voitures et les ailes) ; à l'achat la vitre se brise (DÉBLOQUÉ) ; les ailes sont seules et battent. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
