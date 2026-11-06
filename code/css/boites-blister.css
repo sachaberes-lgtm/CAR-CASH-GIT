@@ -198,12 +198,9 @@ html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw::before{content:"";positi
 html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw:is(.mat)::before{background:radial-gradient(circle at 36% 32%,rgba(255,255,255,.2),rgba(255,255,255,0) 42%),radial-gradient(circle at 70% 76%,rgba(255,255,255,0) 50%,rgba(0,0,0,.3) 100%)}
 
 /* ===== L'ÉTIQUETTE DE PRIX v3 (2026-11-06, Léo : « capture A, comme le local ; les missions montrent leur progression ») =====
-   Une pastille plus grosse, de travers en 3D, liseré blanc et ombre, posée devant le cube en haut à droite. Les MISSION ont une jauge (.jg, remplie à l'avancement réel) sous le mot. */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKp{top:-9px;right:-3px;left:auto;display:flex;align-items:center;justify-content:center;gap:3px;min-height:0;box-sizing:border-box;padding:4px 8px 4px 9px;font:800 10px/1 var(--pix,system-ui);letter-spacing:.02em;white-space:nowrap;z-index:9;border-radius:3px 6px 6px 3px;border:1.5px solid rgba(255,255,255,.75);box-shadow:0 3px 0 rgba(0,0,0,.4),0 6px 10px rgba(0,0,0,.25);transform:perspective(220px) rotateY(-16deg) rotateZ(-5deg) skewX(-8deg) translateZ(40px)}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKp.lg{font-size:8.5px}
-html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKp{border-color:#fff}
+   (v1225 : RETIRÉE à la demande de Léo — « les prix en diagonale chelou, je ne l'avais pas demandé » : la pastille revient à la petite étiquette d'avant.) Les MISSION ont une jauge (.jg, remplie à l'avancement réel) sous le mot. */
 html #gBq #gBqPan .bqK:not(.pnt) .bqKp.defi{flex-direction:column;gap:3px;padding:4px 8px 5px;font-size:8.5px;min-width:64%}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKp .jg{display:block;width:100%;height:4px;margin:0;background:rgba(58,10,44,.28);border-radius:2px;overflow:hidden}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp .jg{display:none /* (v1225 : la jauge des missions est masquée, les prix « comme juste avant ») */;width:100%;height:4px;margin:0;background:rgba(58,10,44,.28);border-radius:2px;overflow:hidden}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKp .jg u{display:block;height:100%;background:#3a0a2c;border-radius:2px;text-decoration:none}
 /* ===== LA VOITURE DANS LE CUBE (2026-11-06, Léo : « les voitures à l'intérieur du cube, comme les traînées ; le cube un peu plus épais ; le nez à droite, l'arrière à gauche, un peu penchée comme le cube ; petites idées en plus ») =====
    Le cube garde sa place et sa largeur mais passe à 46 cqw d'épaisseur (34 avant) : la voiture, plan debout tourné comme lui, flotte au milieu avec de l'air devant et derrière.
