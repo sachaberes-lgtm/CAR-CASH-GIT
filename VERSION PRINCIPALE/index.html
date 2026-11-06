@@ -9217,6 +9217,10 @@ html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:1
 @media (orientation:landscape) and (max-height:540px){
   html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2>.mTitle{translate:-30px 0}
   html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:30px 0}}
+/* (2026-11-06, Sacha : « sur la version mobile verticale le titre CASH CAR n'est pas centré ») en portrait le logo ne recule plus de 12 px :
+   il est pile au milieu de l'écran (le −12 ne vaut que pour l'escalier couché) ; JOUER garde son +12. */
+@media (orientation:portrait){
+  html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2>.mTitle{translate:0 0}}
 </style>
 <style id="palierLeger">
 /* ===== LE CSS PAR PALIER (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») =====
