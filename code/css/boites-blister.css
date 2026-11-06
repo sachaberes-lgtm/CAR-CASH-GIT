@@ -222,4 +222,13 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL:first-child{filter
 html #gBq #gBqPan .bqK .bqKph.c-peinture .pDef{left:14%;right:14%;bottom:1.6cqw;height:4.4cqw;padding:0 1.6cqw 0 1.2cqw;gap:1.2cqw;border-radius:2.2cqw}
 html #gBq #gBqPan .bqK .bqKph.c-peinture .pDef .pxi{width:2.6cqw;height:2.6cqw}
 html #gBq #gBqPan .bqK .bqKph.c-peinture .pDef u{height:1.1cqw}
+/* ===== LE PRIX EN DIAGONALE, PETIT (2026-11-06, Léo : « c'était mieux les prix en diagonale, mais petits, sans bug ») =====
+   La pastille de travers (rotateZ -5°, skew) de la v1205, mais à 70 % de sa taille : texte de 7 px, liseré fin, ombre courte ; elle reste DANS la largeur de sa carte (max-width) et ne passe plus sur la carte voisine ni
+   sur le bandeau de rareté. Les prix très longs (.lg) descendent à 6 px. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp{top:-6px;right:-2px;left:auto;bottom:auto;display:flex;align-items:center;justify-content:center;gap:2px;min-height:0;box-sizing:border-box;max-width:92%;padding:3px 6px 3px 7px;
+  font:800 7px/1 var(--pix,system-ui);letter-spacing:0;white-space:nowrap;z-index:9;border-radius:2px 5px 5px 2px;border:1px solid rgba(255,255,255,.75);
+  box-shadow:0 2px 0 rgba(0,0,0,.4),0 4px 6px rgba(0,0,0,.22);transform:perspective(220px) rotateY(-16deg) rotateZ(-5deg) skewX(-8deg) translateZ(40px)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp.lg{font-size:6px}
+html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKp{border-color:#fff}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp.defi{padding:3px 6px;font-size:6.5px}
 </style>
