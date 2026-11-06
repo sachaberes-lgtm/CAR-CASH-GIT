@@ -63363,7 +63363,7 @@ function m2Verifie(enC){const s=m2Etat();let n=0;try{peintDefisVerifie(enC);}cat
 function m2Annonce(m,enC){const r=m.r||{};
   if(m.f==='secret'){if(enC)m2LigneDit('sec','? ? ?','');return;}
   const p=r.cash?'+'+fmtC(r.cash):r.car?TR(r.car):r.cat?TR(((COSM[r.cat]||[]).find(function(x){return x.id===r.id;})||{n:''}).n):'';
-  if(enC&&m2LigneDit('ok',sansAcc(m2Txt(m)),p))return;try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
+  if(enC&&m2LigneDit('ok',sansAcc(m2Txt(m)),p))return;if(M2R.fin&&!m2AnnonceMort(m))return; /* (2026-11-06) à la mort, seule une mission qui donne une voiture s'annonce */try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
 /* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « il y a trop de pop-up mission pendant la partie, écris-le en ligne, un peu plus discrète,
    en bas de l'écran ») : en course, une mission réussie ne pose plus la bannière du haut (#misBan, qui reste aux astuces et aux combos) mais
    UNE ligne de texte en bas (#m2Ligne), juste au-dessus des missions suivies (#m2Focus) — couché au centre, debout à gauche (la colonne de
@@ -63470,7 +63470,7 @@ function m2Mort(cause){if(!m2Ok())return;const s=m2Etat();s.c.morts=(s.c.morts|0
 function m2Fin(){ // endGame (une mort, ou QUITTER) : la partie entière se juge ici
   try{if(BALADE||SANDBOX||(PARK&&PARK.on)||TUTO.on||TUTO.quitte)return;}catch(e){return;}
   if(mortCause&&M2R.ctl>=M2K.partie){if(!(RUNX.nitro>0))m2Flag('sansnit');if(!(RUNX.coins>0))m2Flag('sanspiece');if(!M2R.sonne)m2Flag('silence');}
-  m2Verifie(false);{const s9=m2Etat();s9.su=s9.su.filter(function(id){return s9.ok.indexOf(id)<0;});} /* une suivie réussie se récupère : elle quitte le suivi */SAVE.flush();}
+  M2R.fin=1;try{m2Verifie(false);}finally{M2R.fin=0;}{const s9=m2Etat();s9.su=s9.su.filter(function(id){return s9.ok.indexOf(id)<0;});} /* une suivie réussie se récupère : elle quitte le suivi */SAVE.flush();}
 function m2Rejoue(){const s=m2Etat();s.c.rejoue=(s.c.rejoue|0)+1;if(s.c.rejoue>(s.r.rejoue|0))s.r.rejoue=s.c.rejoue;SAVE.mark();}
 function m2Menu(){const s=m2Etat();if(s.c.rejoue){s.c.rejoue=0;SAVE.mark();}}
 /* CONSOLE : dbgMissions() = chaque mission (visibles ET secrètes) : sa valeur, son seuil, réussie, prise · dbgMissions('gagne',id) = la
@@ -63733,9 +63733,14 @@ Object.assign(I18N,{'AUCUNE MISSION AVANCÉE':'NO MISSION PROGRESS'});
 /* d'où part la mission au début de cette partie : les missions « d'une partie » (aura, figures, vitesse…) partent de 0, le moteur de 1, les autres
    du cliché pris au départ (M2R.v0, defis-moteur.js) ; null = on ne sait pas (partie trop courte, cliché pas encore pris) */
 function m2Avant(m){const k=m.k;if(k==='eng')return 1;if(/^(aura|parf|fig|vie|frenT|kmh|tours|airP)$/.test(k))return 0;const V=M2R.v0;return V&&(m.id in V)?V[m.id]:null;}
+/* (2026-11-06, Sacha : « enlève les écrans à la mort qui annoncent qu'on a réussi une mission qui rapporte de l'argent, fait que pour les voitures ») à la mort,
+   seule une mission qui donne une VOITURE s'annonce réussie (carte de mort, toast) ; celles qui rapportent de l'argent ou un habillage se récupèrent
+   dans l'écran MISSIONS, sans rien dire. ?sans=annoncemort = l'ancien comportement. */
+const M2MORT_TOUT=/[?&]sans=([^&]*,)?annoncemort(,|&|$)/.test(location.search);
+function m2AnnonceMort(m){return M2MORT_TOUT||!!(m&&m.r&&m.r.car);}
 function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search); /* l'écran de mort v6 (MORT_FLOT vit dans la coque, hors de portée ici) */
   const s=m2Etat(),L=[];
-  for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
+  for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&m2AnnonceMort(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
   if(!flot9)for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
   /* (2026-11-03, Sacha : « améliorer encore un peu », puis « mission il prend trop de place ») le panneau ne reste plus à moitié vide :
      il se complète avec les missions les plus proches du but (avec leur barre), jusqu'à 2 (couché, le ×2 prend sa place sous le panneau) */
