@@ -8400,6 +8400,32 @@ html.misV2 #gmHead em{order:3}
 .m2A .m2L:not(.pret):not(.ok) .glTx>u{margin:5px 0 0}.m2A .m2L:not(.pret):not(.ok) .glTx>small{margin-top:5px;white-space:nowrap}
 .m2A .m2L{min-height:56px;margin-bottom:6px}
 @media (orientation:landscape) and (max-height:540px){.m2A .m2L{min-height:54px;padding:6px 9px 6px 8px;margin-bottom:6px}.m2A .m2R{width:74px;height:40px}.m2Serie{padding:9px 8px 10px}.srC{height:52px}.m2Pr{min-height:26px;margin-top:5px}}
+/* ===== RÉCUPÉRER EN SPAMMANT (2026-11-06, Sacha : « une animation cool et se remplacer vite, on peut récupérer toutes les récompenses en spammant ») =====
+   La ligne verte touchée (.vite) : flash, reflet qui balaie, elle s'envole à droite et son hauteur se replie (--h posée par le script) — la suivante monte sous le doigt.
+   Le gain s'élève (.m2Gain), la série ×N s'affiche en haut (#m2Combo). Tout en transform/opacity sauf le repli de hauteur (350 ms, une ligne à la fois). */
+#gmListe.mcE .mcL.vite,#gmListe.mcE.vu .mcL.vite{position:relative;overflow:hidden;pointer-events:auto;animation:m2ViteOut .36s cubic-bezier(.3,.1,.3,1) forwards!important}
+#gmListe .mcL.vite::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 28%,rgba(255,255,255,.9) 50%,transparent 72%);transform:translateX(-130%);animation:m2ViteShine .24s ease-out forwards}
+#gmListe .mcL.vite .mcSil.duo img.n{transition-duration:.2s}
+#gmListe .mcL.vite .mcBal{animation-duration:.22s}
+@keyframes m2ViteOut{
+  0%{transform:scale(1);filter:brightness(1);opacity:1;height:var(--h)}
+  22%{transform:scale(1.05);filter:brightness(2.4) saturate(1.4);opacity:1;height:var(--h)}
+  50%{transform:translateX(14%) scale(.97);filter:brightness(1.5);opacity:.9;height:var(--h);margin-bottom:6px}
+  100%{transform:translateX(70%) scale(.82);filter:brightness(1);opacity:0;height:0;margin-bottom:0;padding-top:0;padding-bottom:0;gap:0}}
+@keyframes m2ViteShine{to{transform:translateX(130%)}}
+.mcRec9{transition:opacity .25s,max-height .3s;max-height:40px;overflow:hidden}.mcRec9.vide{opacity:0;max-height:0;margin:0}
+.m2Gain{position:fixed;z-index:125;pointer-events:none;white-space:nowrap;font-family:var(--pix,inherit);font-size:var(--f4,14px);letter-spacing:.5px;color:var(--cash,#7dff9b);
+  text-shadow:0 2px 0 #04120a,0 0 14px rgba(125,255,155,.85);display:flex;align-items:center;gap:6px;animation:m2GainUp .9s cubic-bezier(.2,.8,.3,1) forwards}
+.m2Gain.car{color:#ffe27a;text-shadow:0 2px 0 #241600,0 0 16px rgba(255,200,60,.9)}.m2Gain.hab{color:#c9a8ff;text-shadow:0 2px 0 #12082a,0 0 14px rgba(176,125,255,.9)}
+@keyframes m2GainUp{0%{transform:translate(-50%,-20%) scale(.4);opacity:0}16%{transform:translate(-50%,-60%) scale(1.3);opacity:1}30%{transform:translate(-50%,-70%) scale(1)}100%{transform:translate(-50%,-220%) scale(1);opacity:0}}
+#m2Combo{position:fixed;z-index:125;left:50%;top:calc(env(safe-area-inset-top,0px) + 13%);transform:translateX(-50%) scale(.6);opacity:0;pointer-events:none;display:flex;align-items:baseline;gap:10px;
+  padding:6px 14px;background:rgba(10,8,22,.82);box-shadow:inset 0 0 0 2px #ffe27a,0 0 22px rgba(255,200,60,.5);font-family:var(--pix,inherit);color:#fff7ee;transition:opacity .25s,transform .25s}
+#m2Combo.on{opacity:1;transform:translateX(-50%) scale(1)}
+#m2Combo small{font-size:var(--f0,8px);letter-spacing:1px;color:#ffe27a}#m2Combo b{font-weight:400;font-size:var(--f6,24px);color:#ffe27a;text-shadow:0 2px 0 #241600,0 0 12px rgba(255,200,60,.8)}
+#m2Combo em{font-style:normal;font-size:var(--f1,10px);color:var(--cash,#7dff9b)}
+#m2Combo.pop b{animation:m2ComboPop .22s cubic-bezier(.3,1.6,.5,1)}
+@keyframes m2ComboPop{0%{transform:scale(1.7) rotate(-6deg)}100%{transform:scale(1) rotate(0)}}
+@media (prefers-reduced-motion:reduce){#gmListe .mcL.vite::after,.m2Gain,#m2Combo.pop b{animation:none}#gmListe.mcE .mcL.vite{animation:none!important}}
 </style>
 <style>
 /* ===== LA PAUSE, MESURÉE (2026-10-24, Sacha : « cet écran est horrible, mets-toi sérieusement dessus, prends des mesures et corrige ça ») =====
@@ -9217,6 +9243,10 @@ html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:1
 @media (orientation:landscape) and (max-height:540px){
   html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2>.mTitle{translate:-30px 0}
   html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:30px 0}}
+/* (2026-11-06, Sacha : « sur la version mobile verticale le titre CASH CAR n'est pas centré ») en portrait le logo ne recule plus de 12 px :
+   il est pile au milieu de l'écran (le −12 ne vaut que pour l'escalier couché) ; JOUER garde son +12. */
+@media (orientation:portrait){
+  html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2>.mTitle{translate:0 0}}
 </style>
 <style id="palierLeger">
 /* ===== LE CSS PAR PALIER (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») =====
@@ -10072,9 +10102,9 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph::before,html #gBq #gBqPan .bqK:not
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph img{position:static;width:100%;height:100%;max-width:100%;object-fit:contain;object-position:50% 100%;transform:none;filter:none}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph.c-aile img{transform:none}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph:is(.c-trainee,.c-figure){align-items:stretch}
-/* la plaque du nom, au fond ; le prix devant */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKn{position:relative;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:50px;margin:0 6px 7px;padding:24px 6px 3px;
-  text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:12px;transform:translateZ(-50px) scale(1.07);
+/* la plaque du nom, au fond ; le prix devant (2026-11-06, Léo : « les noms sont très gros et dépassent le cube » : 50 → 34 px de haut, plus d'agrandissement à 107 %) */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKn{position:relative;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:34px;margin:0 6px 7px;padding:12px 6px 0;
+  text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:12px;transform:translateZ(-50px);
   background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 40%,#2b3246),color-mix(in srgb,var(--rc) 14%,#0f121b));box-shadow:inset 0 1px 0 rgba(255,255,255,.3);text-shadow:0 0 6px var(--rc),0 1px 0 rgba(0,0,0,.55)}
 html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKn{background:linear-gradient(#5a3a00,#24160a);color:#ffe9a8;text-shadow:0 1px 0 #000}
 html #gBq #gBqPan .bqK.b-secrete:not(.pnt) .bqKn{background:linear-gradient(#3a3a48,#16161d);color:var(--rc)}
@@ -48273,35 +48303,49 @@ function sapequePeint(c){
    · un éclat en croix, en haut à gauche. Les quatre coins de la toile, hors du disque, sont les deux pixels de la TRANCHE (voir pickGeo : clair, sombre,
      en alternance = la tranche cannelée).
    Palette PEINTE, comme avant : la pièce émet sa texture et l'étalonnage pousse le jaune vers l'orange (voir coinPeint). */
-const PIECE_PAL={or:{l:'#fffbe0',h:'#fff0a0',g:'#ffd75e',m:'#e9b53a',d:'#b07a10',s:'#6e4600'},ag:{l:'#ffffff',h:'#f1f5f8',g:'#d3dae1',m:'#aab4be',d:'#7f8b97',s:'#55616d'}};
+/* ===== (2026-11-06, Sacha : « améliore les pièces dans un délire plus réaliste et qu'elles arrêtent de briller autant ») =====
+   Avant : des métaux de dessin animé (blancs purs, jaune citron) que la pièce ÉMETTAIT à 105 % — le cœur d'argent de la 1 € virait au blanc et le chiffre
+   disparaissait. Maintenant : des métaux de PIÈCE DE POCHE — laiton nordique et cupronickel TERNIS, la lumière n'est plus qu'un ton plus clair (jamais
+   du blanc) —, un GRAIN de frappe, de la PATINE (le bord et le sillon noircis par les doigts), quelques RAYURES, et le chiffre barré de trois fines
+   RAINURES, comme la face commune des vraies pièces (la carte de l'Europe qui le traverse). Le grain est pseudo-aléatoire À GRAINE : la même pièce à chaque lancement. */
+const PIECE_PAL={or:{l:'#d9c07a',h:'#c9a85a',g:'#b08f3e',m:'#8c6e2c',d:'#62481a',s:'#3a2a0c'},ag:{l:'#cfd3d6',h:'#b9bfc4',g:'#9aa1a8',m:'#7b838b',d:'#575f68',s:'#383e46'}};
 const PIECE_CHIFFRE={ /* 10 × 12 pixels */
   '1':['....###...','...####...','..#####...','....###...','....###...','....###...','....###...','....###...','....###...','....###...','.########.','.########.'],
   '2':['..######..','.########.','###....###','###....###','.......###','......###.','.....###..','....###...','...###....','..###.....','##########','##########']};
+function pieceTeinte(hex,k){const n=parseInt(hex.slice(1),16);const f=v=>Math.max(0,Math.min(255,Math.round(v*k)));
+  return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')';}
 function pieceEuroPeint(cv,ann,coe,chiffre){
   const c=cv.getContext('2d'),N=32,px=(x,y,col)=>{c.fillStyle=col;c.fillRect(x,y,1,1);};
-  c.setTransform(1,0,0,1,0,0);c.fillStyle='#201400';c.fillRect(0,0,N,N); // tout en encre : le liseré, le sillon et les coins
+  let sd=chiffre==='1'?20261106:20261107;const rn=()=>{sd=(Math.imul(sd,1664525)+1013904223)>>>0;return sd/4294967296;}; // la graine : la même pièce à chaque lancement
+  c.setTransform(1,0,0,1,0,0);c.fillStyle='#1a1208';c.fillRect(0,0,N,N); // tout en encre : le liseré, le sillon et les coins
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const dx=x-15.5,dy=y-15.5,r=Math.hypot(dx,dy),L=-(dx+dy)/((r*1.4142)||1); // L : +1 vers le haut à gauche (la lumière), −1 vers le bas à droite
-    let col=null;
+    let col=null,ton=1;
     if(r>14.6)continue; // le liseré d'encre
     if(r>10.9){ // L'ANNEAU
-      if(r>13.8)col=L>.15?ann.l:(L<-.15?ann.d:ann.h);   // son biseau extérieur
+      if(r>13.8){col=L>.15?ann.l:(L<-.15?ann.d:ann.h);ton=.88;}   // son biseau extérieur : la frappe l'a usé, il est plus sombre que le corps
       else if(r>11.8)col=L>.5?ann.h:(L<-.5?ann.m:ann.g); // le corps
       else col=L<-.15?ann.h:(L>.15?ann.s:ann.m);         // son biseau intérieur, inversé (il regarde le cœur)
-    }else if(r>10.1)continue; // le SILLON d'encre entre les deux métaux
+    }else if(r>10.1){px(x,y,'#241a0c');continue;} // le SILLON entre les deux métaux : noirci par la crasse, plus un trou d'encre
     else{ // LE CŒUR
       if(r>9.2)col=L>.2?coe.s:(L<-.2?coe.h:coe.m);       // le biseau du cœur : en creux (ombre en haut à gauche)
       else col=L>.55?coe.h:(L<-.55?coe.m:coe.g);
-      if(r<8.6&&Math.abs((dx+dy)+7.6)<.8)col=coe.l;     // le reflet en biais
+      if(r<8.6&&Math.abs((dx+dy)+7.6)<.8)col=coe.h;     // le reflet en biais : un ton plus clair, plus un éclat
     }
-    px(x,y,col);
+    ton*=1+(rn()-.5)*.13;                                // le GRAIN de frappe
+    if(r>12.6&&rn()<.28)ton*=.80;                        // la PATINE du bord : des pixels noircis
+    px(x,y,pieceTeinte(col,ton));
   }
   for(let k=0;k<12;k++){const a=(k+.5)*Math.PI/6,sx=Math.floor(16+12.8*Math.cos(a)),sy=Math.floor(16+12.8*Math.sin(a)); // les DOUZE ÉTOILES
-    px(sx+1,sy+1,ann.s);px(sx,sy,ann.l);}
+    px(sx+1,sy+1,ann.s);px(sx,sy,ann.h);}
   const G=PIECE_CHIFFRE[chiffre];
-  for(let pass=0;pass<2;pass++)for(let gy=0;gy<G.length;gy++)for(let gx=0;gx<G[gy].length;gx++)if(G[gy][gx]==='#') // le CHIFFRE : l'ombre portée d'abord, la face claire par-dessus
-    pass?px(11+gx,10+gy,coe.l):px(12+gx,11+gy,coe.s);
-  for(const [ex,ey] of [[7,7],[6,7],[8,7],[7,6],[7,8]])px(ex,ey,ex===7&&ey===7?'#ffffff':ann.l); // l'ÉCLAT en croix
+  for(let pass=0;pass<2;pass++)for(let gy=0;gy<G.length;gy++)for(let gx=0;gx<G[gy].length;gx++)if(G[gy][gx]==='#') // le CHIFFRE : l'ombre portée d'abord, la face par-dessus
+    pass?px(11+gx,10+gy,(gy===3||gy===6||gy===9)?coe.h:coe.l):px(12+gx,11+gy,coe.s); // les trois RAINURES qui le barrent (la carte de l'Europe)
+  for(let k=0;k<7;k++){ // quelques RAYURES : une ligne fine, plus claire (elle accroche) ou plus sombre (elle est sale)
+    const x0=4+rn()*24,y0=4+rn()*24,a=rn()*Math.PI,l=2+rn()*4,clair=rn()<.5;
+    c.globalAlpha=.20;c.fillStyle=clair?'#ffffff':'#000000';
+    for(let t=0;t<l;t++){const X=Math.floor(x0+t*Math.cos(a)),Y=Math.floor(y0+t*Math.sin(a));if(Math.hypot(X-15.5,Y-15.5)<13.8)c.fillRect(X,Y,1,1);}
+    c.globalAlpha=1;}
   c.fillStyle=ann.h;c.fillRect(0,0,4,4);c.fillStyle=ann.d;c.fillRect(28,0,4,4); // les deux pixels de la TRANCHE : clair (haut gauche) · sombre (haut droite)
 }
 function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, « ¥ » au niveau SOLEIL DE JADE (voir coinSymbole)
@@ -48406,10 +48450,13 @@ const pickGeoY=(function(){
 /* (2026-09-26, vague 2) LA LUMIÈRE, C'EST L'ARGENT : la pièce ÉMET son or (émissif blanc × sa propre texture ×1,05) et ne prend plus que la
    moitié de la lumière de la scène (diffus ×.5) — elle garde son relief (facettes, jonc, reflet spéculaire) sans virer à l'orange au
    couchant ni au bronze la nuit. ⚠ Émissif BLANC et pas « teinté or » : l'or multiplié par une texture d'or, c'est de l'orange. */
-const pickMat=new THREE.MeshPhongMaterial({map:coinTex,color:0x808080,emissive:0xffffff,emissiveMap:coinTex,emissiveIntensity:1.05,
-  shininess:90,specular:0xfff0b0,flatShading:true});
-const pickMat2=new THREE.MeshPhongMaterial({map:coinTex2,color:0x808080,emissive:0xffffff,emissiveMap:coinTex2,emissiveIntensity:1.05,
-  shininess:90,specular:0xfff0b0,flatShading:true}); // la 2 € : la même matière, sa propre toile
+/* (2026-11-06, « qu'elles arrêtent de briller autant ») MATE : l'émission tombe de 1,05 à ,68 (la pièce n'est plus sa propre lampe — le halo de l'étalonnage ne la
+   fait plus fondre en blanc), le diffus remonte de ,5 à ,6 (elle reprend du relief à la lumière du jour) et le spéculaire passe d'un jaune clair dur
+   (brillance 90) à un reflet sourd de métal usé (brillance 22, gris-brun). */
+const pickMat=new THREE.MeshPhongMaterial({map:coinTex,color:0x999999,emissive:0xffffff,emissiveMap:coinTex,emissiveIntensity:.68,
+  shininess:22,specular:0x4a4434,flatShading:true});
+const pickMat2=new THREE.MeshPhongMaterial({map:coinTex2,color:0x999999,emissive:0xffffff,emissiveMap:coinTex2,emissiveIntensity:.68,
+  shininess:22,specular:0x4a4434,flatShading:true}); // la 2 € : la même matière, sa propre toile
 const pickGeo2=pickGeo.clone();pickGeo2.scale(1.107,1.107,1.107); // 25,75 mm contre 23,25 mm : la 2 € est un peu plus grande
 // ---------- L'ÉTAL : les orbes bleues de boost deviennent des FRUITS ET LÉGUMES ----------
 // Lisses, laqués, appétissants : shininess haut + spéculaire blanc + reflet du ciel (envMap).
@@ -63782,7 +63829,7 @@ function mcLigne(x,k,s){const m=x.m,pret=x.rg===0,ok=x.ok&&!pret,R=mcRec(m),w=mc
   return '<div class="mcL'+(pret?' pret':'')+(ok?' ok':'')+(hab?' hab':'')+'" data-m2="'+m.id+'" role="button" tabindex="0" style="--i:'+Math.min(k,12)+(hab?';--rc:'+R.c:'')+'">'
     +'<div class="mcLt"><b>'+(m.f==='secret'?sansAcc(TR('SECRÈTE'))+' · ':'')+sansAcc(m2Txt(m))+'</b><span class="mbR'+(m2CarVoir(m)&&!pret?' voir':'')+'">'+rec+'</span></div>'+bas+'</div>';}
 function mcLignePal(d){return '<div class="mcL ok" data-pal="'+d.id+'"><div class="mcLt"><b>'+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><span class="mbR voir">'+objFig({cat:'peinture',i:COSM.peinture.indexOf(d)})+'</span></div><small class="mcFait">'+sansAcc(TR('SECRÈTE'))+' · '+sansAcc(TR('RÉUSSIE'))+'</small></div>';}
-function mcEntete(ic,nom,cpt){return '<div class="gModeT mcSec">'+pxi(ic)+'<span>'+sansAcc(TR(nom))+'</span><s></s><b>'+cpt+'</b></div>';}
+function mcEntete(ic,nom,cpt,cl){return '<div class="gModeT mcSec'+(cl?' '+cl:'')+'">'+pxi(ic)+'<span>'+sansAcc(TR(nom))+'</span><s></s><b>'+cpt+'</b></div>';}
 function m2Vue(L,s,vu){ // → {ved : la vedette (l'écran de mort seulement, depuis le 2026-11-05) · listeTab : TOUTES les missions de l'onglet MISSIONS, en sections · n : missions à l'écran}
   const prets=L.filter(function(x){return x.rg===0;}),reste=L.filter(function(x){return x.rg===1||x.rg===2;});
   const fo=function(x){const o=M2_ORDRE[x.m.f];return o==null?9:o;};
@@ -63792,7 +63839,7 @@ function m2Vue(L,s,vu){ // → {ved : la vedette (l'écran de mort seulement, de
   if(!ved){let b=-1;for(const x of reste)if(x.m.r&&x.m.r.car&&x.p>b){b=x.p;ved=x;}}
   if(!ved)for(const x of reste)if(!ved||x.p>ved.p)ved=x;
   let listeTab='',k=0;
-  if(prets.length){listeTab+=mcEntete('cadeau','À RÉCUPÉRER',prets.length);for(const x of prets)listeTab+=mcLigne(x,k++,s);}
+  if(prets.length){listeTab+=mcEntete('cadeau','À RÉCUPÉRER',prets.length,'mcRec9');for(const x of prets)listeTab+=mcLigne(x,k++,s);}
   let fam='';
   for(const x of reste){const f=x.m.f;
     if(f!==fam){fam=f;let tot=0,ok=0;for(const m of M2){if(m.f!==f||!m2Dispo(m))continue;tot++;if(s.ok.indexOf(m.id)>=0)ok++;}
@@ -63838,15 +63885,72 @@ function m2Recupere(id,row){
   else toast(pxi('piece')+' +'+fmtC(o.cash)+' '+TR('VERSÉS AU COMPTE'),true);
   try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}
   setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions'))m2Render(true);else m2Portes();},REDUCED_MOTION?0:560);}
+/* ===== RÉCUPÉRER EN SPAMMANT (2026-11-06, Sacha : « quand on réussit une mission elle doit avoir une animation cool et se remplacer vite, genre on peut
+   récupérer toutes les récompenses en spammant ») =====
+   Avant : un toucher sur une ligne verte = le geste complet (pop, toast, 560 ms, PUIS toute la liste reconstruite) ; la ligne restait là et un 2e toucher
+   donnait le son du refus ; la caisse en silhouette attendait même 1,4 s. Maintenant, dans l'écran MISSIONS (lignes .mcL) :
+   · la récompense est versée AU TOUCHER (m2Prend), sans attente ;
+   · la ligne FLASHE, un reflet la balaie, elle s'envole à droite et son hauteur se replie en ~0,35 s (.vite) — la suivante MONTE sous le doigt ;
+   · le gain (« +1 500 € », le nom de la caisse) s'élève depuis la ligne ; l'éclat de pixels part de la ligne ; le compteur d'argent défile ;
+   · une SÉRIE : chaque toucher en moins d'1,5 s allonge « ×N » (et son cumul d'euros) et monte la note d'un cran (gamme pentatonique) ;
+   · un toucher sur une ligne qui s'envole encore prend la PROCHAINE ligne verte (aucun toucher n'est perdu) ;
+   · la liste n'est reconstruite qu'une fois, 0,9 s après le dernier toucher (les réussies passent au pli « MISSIONS RÉUSSIES »).
+   Une SECRÈTE à caisse garde sa révélation (le moment fort, jamais sautée par la série). `?recup=ancien` = l'ancien geste. */
+const M2VITE=!/[?&]recup=ancien\b/.test(location.search);
+const M2V={n:0,t:0,cash:0,rend:0,cb:0,g:[0,2,4,7,9,12,14,16,19,21,24]};
+Object.assign(I18N,{'SÉRIE':'COMBO'});
+function m2VitePret(row){ /* la ligne verte qui suit (sinon la première) : jamais une secrète à révélation, qui se touche exprès */
+  const sec=m2RevFile(),L=[].slice.call(document.querySelectorAll('#gmListe .mcL.pret:not(.vite)')).filter(function(e){return sec.indexOf(e.getAttribute('data-m2'))<0;});
+  if(!L.length)return null;
+  const p=row&&L.find(function(e){return !!(row.compareDocumentPosition(e)&4);});
+  return p||L[0];}
+function m2ViteEnTete(){ /* l'en-tête « À RÉCUPÉRER n » : le compte baisse, il s'efface à zéro */
+  const h=document.querySelector('#gmListe .mcRec9');if(!h)return;
+  const n=document.querySelectorAll('#gmListe .mcL.pret:not(.vite)').length,b=h.querySelector('b');
+  if(b)b.textContent=n;if(!n)h.classList.add('vide');}
+function m2ViteGain(row,o){ /* le gain qui s'élève depuis la ligne */
+  const r=row.getBoundingClientRect();let h,c='';
+  if(o.car!=null)h=pxi('voiture')+' '+sansAcc(TR(CARS[o.car].name));
+  else if(o.cat){const d=(COSM[o.cat]||[]).find(function(x){return x.id===o.hab;});h=pxi('coche')+' '+sansAcc(TR(d?d.n:'')) ;c=' hab';}
+  else h='+'+fmtC(o.cash);
+  const g=document.createElement('div');g.className='m2Gain'+(o.car!=null?' car':c);g.innerHTML=h;
+  g.style.left=Math.round(r.left+r.width*.5)+'px';g.style.top=Math.round(r.top+r.height*.5)+'px';
+  document.body.appendChild(g);setTimeout(function(){g.remove();},900);}
+function m2ViteSerie(o){ /* la pastille ×N de la série */
+  if(M2V.n<2)return;let e=document.getElementById('m2Combo');
+  if(!e){e=document.createElement('div');e.id='m2Combo';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
+  e.innerHTML='<small>'+sansAcc(TR('SÉRIE'))+'</small><b>×'+M2V.n+'</b>'+(M2V.cash?'<em>+'+fmtC(M2V.cash)+'</em>':'');
+  e.classList.remove('pop');void e.offsetWidth;e.classList.add('on','pop');
+  clearTimeout(M2V.cb);M2V.cb=setTimeout(function(){e.classList.remove('on');},1500);}
+function m2RecupVite(id,row){
+  if(!m2Pret(id)){m2Recupere(id,row);return;} /* « bientôt au garage » : le geste d'avant (secousse, toast) */
+  const o=m2Prend(id);if(!o){uiClic('refus');return;}
+  const now=performance.now();M2V.n=now-M2V.t<1500?M2V.n+1:1;M2V.t=now;M2V.cash=(M2V.n===1?0:M2V.cash)+(o.cash||0);
+  const st=M2V.g[Math.min(M2V.n-1,M2V.g.length-1)];
+  try{if(SONV2){sfx(o.cash?'ui.achat':'ui.debloque',{st:st});if(M2V.n===1&&!REDUCED_MOTION)sfx('ui.tampon',{t:.2,vol:-4});if(M2V.n%5===0)sfx('ui.mission');}else uiClic('ok');}catch(e){}
+  hap(M2V.n>2?[10]:[12,30,18]);
+  if(o.car!=null)try{carSnapshot();}catch(e){}
+  try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}
+  row.classList.add('vite');if(row.querySelector('.mcSil.duo'))row.classList.add('revele'); /* la caisse sort du noir pendant que la ligne part */
+  if(REDUCED_MOTION){row.remove();m2ViteEnTete();}
+  else{row.style.setProperty('--h',row.offsetHeight+'px');
+    try{pixBurst(row.querySelector('.m2Pr')||row,12);pixBurst(row.querySelector('.mbR')||row,10);}catch(e){}
+    m2ViteGain(row,o);m2ViteSerie(o);
+    setTimeout(function(){row.remove();m2ViteEnTete();},360);
+    m2ViteEnTete();}
+  clearTimeout(M2V.rend);M2V.rend=setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions')&&!document.querySelector('#gmListe .mcL.vite'))m2Render(true);else m2Portes();},900);}
 function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
   if(t.closest('.mcBack')){uiClic('retour');garMisRetour();return;} /* (2026-11-03, refonte) le ◀ de la page */
   const fin=t.closest('.m2Fin');if(fin){M2E.fin=!M2E.fin;uiClic(M2E.fin?'on':'off');hap(8);m2Render(true);
     if(M2E.fin){const f2=document.querySelector('#gmListe .m2Fin');if(f2&&f2.scrollIntoView)try{f2.scrollIntoView({block:'start',behavior:REDUCED_MOTION?'auto':'smooth'});}catch(x){}}return;}
   const pal=t.closest('[data-pal]');if(pal){const j=COSM.peinture.findIndex(function(d){return d.id===pal.getAttribute('data-pal');});if(j<0)return;uiClic('nav');
     ecranWipe(function(){garMode('boutique');shopTab('peinture');shopShow('peinture',j);});return;}
-  const row=t.closest('.m2L,.mcL,.mcV');if(!row)return;const id=row.getAttribute('data-m2'),m=m2Def(id);if(!m)return;const s=m2Etat();
+  let row=t.closest('.m2L,.mcL,.mcV');if(!row)return;
+  if(row.classList.contains('vite')){row=m2VitePret(row);if(!row)return;} /* (2026-11-06) un toucher sur la ligne qui s'envole prend la suivante : aucun toucher perdu */
+  const id=row.getAttribute('data-m2'),m=m2Def(id);if(!m)return;const s=m2Etat();
   if(row.classList.contains('pret')){if(m.f==='secret'&&m2Revele(id))return;
     if(row.classList.contains('revele'))return; /* (2026-11-03) la révélation est en cours */
+    if(M2VITE&&row.classList.contains('mcL')){m2RecupVite(id,row);return;} /* (2026-11-06) la récupération en série, voir plus haut */
     if(row.querySelector('.mcSil.duo')&&m2Pret(id)){row.classList.add('revele');try{if(SONV2)sfx('ui.debloque');}catch(x){}hap([20,60,20,60,60]); /* la caisse sort du noir, PUIS elle est à toi */
       setTimeout(function(){if(row.isConnected)m2Recupere(id,row);},REDUCED_MOTION?0:1400);return;}
     m2Recupere(id,row);return;} // une SECRÈTE qui brille : sa révélation · (2026-10-31) AVANT la photo : sur une ligne prête, la photo récupère aussi (voir m2PrendIci)

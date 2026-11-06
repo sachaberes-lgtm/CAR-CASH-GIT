@@ -34,35 +34,49 @@ function sapequePeint(c){
    · un éclat en croix, en haut à gauche. Les quatre coins de la toile, hors du disque, sont les deux pixels de la TRANCHE (voir pickGeo : clair, sombre,
      en alternance = la tranche cannelée).
    Palette PEINTE, comme avant : la pièce émet sa texture et l'étalonnage pousse le jaune vers l'orange (voir coinPeint). */
-const PIECE_PAL={or:{l:'#fffbe0',h:'#fff0a0',g:'#ffd75e',m:'#e9b53a',d:'#b07a10',s:'#6e4600'},ag:{l:'#ffffff',h:'#f1f5f8',g:'#d3dae1',m:'#aab4be',d:'#7f8b97',s:'#55616d'}};
+/* ===== (2026-11-06, Sacha : « améliore les pièces dans un délire plus réaliste et qu'elles arrêtent de briller autant ») =====
+   Avant : des métaux de dessin animé (blancs purs, jaune citron) que la pièce ÉMETTAIT à 105 % — le cœur d'argent de la 1 € virait au blanc et le chiffre
+   disparaissait. Maintenant : des métaux de PIÈCE DE POCHE — laiton nordique et cupronickel TERNIS, la lumière n'est plus qu'un ton plus clair (jamais
+   du blanc) —, un GRAIN de frappe, de la PATINE (le bord et le sillon noircis par les doigts), quelques RAYURES, et le chiffre barré de trois fines
+   RAINURES, comme la face commune des vraies pièces (la carte de l'Europe qui le traverse). Le grain est pseudo-aléatoire À GRAINE : la même pièce à chaque lancement. */
+const PIECE_PAL={or:{l:'#d9c07a',h:'#c9a85a',g:'#b08f3e',m:'#8c6e2c',d:'#62481a',s:'#3a2a0c'},ag:{l:'#cfd3d6',h:'#b9bfc4',g:'#9aa1a8',m:'#7b838b',d:'#575f68',s:'#383e46'}};
 const PIECE_CHIFFRE={ /* 10 × 12 pixels */
   '1':['....###...','...####...','..#####...','....###...','....###...','....###...','....###...','....###...','....###...','....###...','.########.','.########.'],
   '2':['..######..','.########.','###....###','###....###','.......###','......###.','.....###..','....###...','...###....','..###.....','##########','##########']};
+function pieceTeinte(hex,k){const n=parseInt(hex.slice(1),16);const f=v=>Math.max(0,Math.min(255,Math.round(v*k)));
+  return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')';}
 function pieceEuroPeint(cv,ann,coe,chiffre){
   const c=cv.getContext('2d'),N=32,px=(x,y,col)=>{c.fillStyle=col;c.fillRect(x,y,1,1);};
-  c.setTransform(1,0,0,1,0,0);c.fillStyle='#201400';c.fillRect(0,0,N,N); // tout en encre : le liseré, le sillon et les coins
+  let sd=chiffre==='1'?20261106:20261107;const rn=()=>{sd=(Math.imul(sd,1664525)+1013904223)>>>0;return sd/4294967296;}; // la graine : la même pièce à chaque lancement
+  c.setTransform(1,0,0,1,0,0);c.fillStyle='#1a1208';c.fillRect(0,0,N,N); // tout en encre : le liseré, le sillon et les coins
   for(let y=0;y<N;y++)for(let x=0;x<N;x++){
     const dx=x-15.5,dy=y-15.5,r=Math.hypot(dx,dy),L=-(dx+dy)/((r*1.4142)||1); // L : +1 vers le haut à gauche (la lumière), −1 vers le bas à droite
-    let col=null;
+    let col=null,ton=1;
     if(r>14.6)continue; // le liseré d'encre
     if(r>10.9){ // L'ANNEAU
-      if(r>13.8)col=L>.15?ann.l:(L<-.15?ann.d:ann.h);   // son biseau extérieur
+      if(r>13.8){col=L>.15?ann.l:(L<-.15?ann.d:ann.h);ton=.88;}   // son biseau extérieur : la frappe l'a usé, il est plus sombre que le corps
       else if(r>11.8)col=L>.5?ann.h:(L<-.5?ann.m:ann.g); // le corps
       else col=L<-.15?ann.h:(L>.15?ann.s:ann.m);         // son biseau intérieur, inversé (il regarde le cœur)
-    }else if(r>10.1)continue; // le SILLON d'encre entre les deux métaux
+    }else if(r>10.1){px(x,y,'#241a0c');continue;} // le SILLON entre les deux métaux : noirci par la crasse, plus un trou d'encre
     else{ // LE CŒUR
       if(r>9.2)col=L>.2?coe.s:(L<-.2?coe.h:coe.m);       // le biseau du cœur : en creux (ombre en haut à gauche)
       else col=L>.55?coe.h:(L<-.55?coe.m:coe.g);
-      if(r<8.6&&Math.abs((dx+dy)+7.6)<.8)col=coe.l;     // le reflet en biais
+      if(r<8.6&&Math.abs((dx+dy)+7.6)<.8)col=coe.h;     // le reflet en biais : un ton plus clair, plus un éclat
     }
-    px(x,y,col);
+    ton*=1+(rn()-.5)*.13;                                // le GRAIN de frappe
+    if(r>12.6&&rn()<.28)ton*=.80;                        // la PATINE du bord : des pixels noircis
+    px(x,y,pieceTeinte(col,ton));
   }
   for(let k=0;k<12;k++){const a=(k+.5)*Math.PI/6,sx=Math.floor(16+12.8*Math.cos(a)),sy=Math.floor(16+12.8*Math.sin(a)); // les DOUZE ÉTOILES
-    px(sx+1,sy+1,ann.s);px(sx,sy,ann.l);}
+    px(sx+1,sy+1,ann.s);px(sx,sy,ann.h);}
   const G=PIECE_CHIFFRE[chiffre];
-  for(let pass=0;pass<2;pass++)for(let gy=0;gy<G.length;gy++)for(let gx=0;gx<G[gy].length;gx++)if(G[gy][gx]==='#') // le CHIFFRE : l'ombre portée d'abord, la face claire par-dessus
-    pass?px(11+gx,10+gy,coe.l):px(12+gx,11+gy,coe.s);
-  for(const [ex,ey] of [[7,7],[6,7],[8,7],[7,6],[7,8]])px(ex,ey,ex===7&&ey===7?'#ffffff':ann.l); // l'ÉCLAT en croix
+  for(let pass=0;pass<2;pass++)for(let gy=0;gy<G.length;gy++)for(let gx=0;gx<G[gy].length;gx++)if(G[gy][gx]==='#') // le CHIFFRE : l'ombre portée d'abord, la face par-dessus
+    pass?px(11+gx,10+gy,(gy===3||gy===6||gy===9)?coe.h:coe.l):px(12+gx,11+gy,coe.s); // les trois RAINURES qui le barrent (la carte de l'Europe)
+  for(let k=0;k<7;k++){ // quelques RAYURES : une ligne fine, plus claire (elle accroche) ou plus sombre (elle est sale)
+    const x0=4+rn()*24,y0=4+rn()*24,a=rn()*Math.PI,l=2+rn()*4,clair=rn()<.5;
+    c.globalAlpha=.20;c.fillStyle=clair?'#ffffff':'#000000';
+    for(let t=0;t<l;t++){const X=Math.floor(x0+t*Math.cos(a)),Y=Math.floor(y0+t*Math.sin(a));if(Math.hypot(X-15.5,Y-15.5)<13.8)c.fillRect(X,Y,1,1);}
+    c.globalAlpha=1;}
   c.fillStyle=ann.h;c.fillRect(0,0,4,4);c.fillStyle=ann.d;c.fillRect(28,0,4,4); // les deux pixels de la TRANCHE : clair (haut gauche) · sombre (haut droite)
 }
 function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, « ¥ » au niveau SOLEIL DE JADE (voir coinSymbole)
@@ -167,10 +181,13 @@ const pickGeoY=(function(){
 /* (2026-09-26, vague 2) LA LUMIÈRE, C'EST L'ARGENT : la pièce ÉMET son or (émissif blanc × sa propre texture ×1,05) et ne prend plus que la
    moitié de la lumière de la scène (diffus ×.5) — elle garde son relief (facettes, jonc, reflet spéculaire) sans virer à l'orange au
    couchant ni au bronze la nuit. ⚠ Émissif BLANC et pas « teinté or » : l'or multiplié par une texture d'or, c'est de l'orange. */
-const pickMat=new THREE.MeshPhongMaterial({map:coinTex,color:0x808080,emissive:0xffffff,emissiveMap:coinTex,emissiveIntensity:1.05,
-  shininess:90,specular:0xfff0b0,flatShading:true});
-const pickMat2=new THREE.MeshPhongMaterial({map:coinTex2,color:0x808080,emissive:0xffffff,emissiveMap:coinTex2,emissiveIntensity:1.05,
-  shininess:90,specular:0xfff0b0,flatShading:true}); // la 2 € : la même matière, sa propre toile
+/* (2026-11-06, « qu'elles arrêtent de briller autant ») MATE : l'émission tombe de 1,05 à ,68 (la pièce n'est plus sa propre lampe — le halo de l'étalonnage ne la
+   fait plus fondre en blanc), le diffus remonte de ,5 à ,6 (elle reprend du relief à la lumière du jour) et le spéculaire passe d'un jaune clair dur
+   (brillance 90) à un reflet sourd de métal usé (brillance 22, gris-brun). */
+const pickMat=new THREE.MeshPhongMaterial({map:coinTex,color:0x999999,emissive:0xffffff,emissiveMap:coinTex,emissiveIntensity:.68,
+  shininess:22,specular:0x4a4434,flatShading:true});
+const pickMat2=new THREE.MeshPhongMaterial({map:coinTex2,color:0x999999,emissive:0xffffff,emissiveMap:coinTex2,emissiveIntensity:.68,
+  shininess:22,specular:0x4a4434,flatShading:true}); // la 2 € : la même matière, sa propre toile
 const pickGeo2=pickGeo.clone();pickGeo2.scale(1.107,1.107,1.107); // 25,75 mm contre 23,25 mm : la 2 € est un peu plus grande
 // ---------- L'ÉTAL : les orbes bleues de boost deviennent des FRUITS ET LÉGUMES ----------
 // Lisses, laqués, appétissants : shininess haut + spéculaire blanc + reflet du ciel (envMap).
