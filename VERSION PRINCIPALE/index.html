@@ -10095,6 +10095,14 @@ html #gBq #gBqPan .bqK.pnt .bqKph .bqSw.pSw::before{content:"";position:absolute
   background:radial-gradient(circle at 31% 26%,rgba(255,255,255,.95) 0 5%,rgba(255,255,255,.4) 12%,rgba(255,255,255,0) 30%),radial-gradient(circle at 72% 78%,rgba(255,255,255,0) 52%,rgba(0,0,0,.25) 100%)}
 html #gBq #gBqPan .bqK.pnt .bqKph .bqSw.pSw:is(.mat)::before{background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.22),rgba(255,255,255,0) 40%),radial-gradient(circle at 72% 78%,rgba(255,255,255,0) 52%,rgba(0,0,0,.28) 100%)}
 
+/* ===== L'ÉTIQUETTE DE PRIX v3 (2026-11-06, Léo : « capture A, comme le local ; les missions montrent leur progression ») =====
+   Une pastille plus grosse, de travers en 3D, liseré blanc et ombre, posée devant le cube en haut à droite. Les MISSION ont une jauge (.jg, remplie à l'avancement réel) sous le mot. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp{top:-9px;right:-3px;left:auto;display:flex;align-items:center;justify-content:center;gap:3px;min-height:0;box-sizing:border-box;padding:4px 8px 4px 9px;font:800 10px/1 var(--pix,system-ui);letter-spacing:.02em;white-space:nowrap;z-index:9;border-radius:3px 6px 6px 3px;border:1.5px solid rgba(255,255,255,.75);box-shadow:0 3px 0 rgba(0,0,0,.4),0 6px 10px rgba(0,0,0,.25);transform:perspective(220px) rotateY(-16deg) rotateZ(-5deg) skewX(-8deg) translateZ(40px)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp.lg{font-size:8.5px}
+html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKp{border-color:#fff}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp.defi{flex-direction:column;gap:3px;padding:4px 8px 5px;font-size:8.5px;min-width:64%}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp .jg{display:block;width:100%;height:4px;margin:0;background:rgba(58,10,44,.28);border-radius:2px;overflow:hidden}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp .jg u{display:block;height:100%;background:#3a0a2c;border-radius:2px;text-decoration:none}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -74317,6 +74325,8 @@ function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?n
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.pack==='chat'){px=sansAcc(TR('PACK CHAT'));c='eur';}else if(d.eur){px=eurTxt(d.eur);c='eur';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';} /* (2026-10-18 soir) l'ARC-EN-CIEL : PACK CHAT (voir chatPackI) */
   if(bqPxLg(px))c+=' lg';
+  /* (2026-11-06, Léo : « la mission doit montrer sa progression ») une caisse à MISSION (pas la secrète) : une jauge sous le mot, remplie à l'avancement réel */
+  if(vo&&c.indexOf('defi')>=0&&c.indexOf('sec')<0&&!a){try{const m9=m2DeCaisse(i);if(m9){const t9=m2Seuil(m9),f9=m2Frac(m9,m2Val(m9),t9),pc9=Math.round(100*f9);px+='<b class="jg" title="'+m2Prog(m9,m2Val(m9),t9).replace(/"/g,'')+'"><u style="width:'+pc9+'%"></u></b>';}}catch(e){}}
   /* (2026-10-31, clarté boutique) une figure à DEUX SENS a une carte dans chacune de ses sections : un petit badge dit qu'elle joue AUSSI
      dans l'autre emplacement (sinon ça ressemble à un doublon) — sa couleur reprend celle de CET autre emplacement (voir FIG_DC) */
   const autres=(!vo&&o.cat==='figure')?bqFigAutres(d.id,dir!=null?dir:figPeut(d.id)[0]):[];
