@@ -10095,6 +10095,18 @@ html #gBq #gBqPan .bqK .bqKv .lf{transform:translateZ(calc(var(--D)/4))}
 html #gBq #gBqPan .bqK .bqKv .tp{transform:translateZ(0)}
 html #gBq #gBqPan .bqK .bqKv .rt{transform:translateZ(calc(var(--D)/-4))}
 html #gBq #gBqPan .bqK .bqKv .fr,html #gBq #gBqPan .bqK .bqKv .bk{border-radius:11cqw}
+
+/* (2026-11-06, Léo : « on a perdu l'effet des voitures à l'intérieur, elles passent à travers en haut à droite, plus l'impression de boîte arrondie ») la voiture est DANS la boîte : plus petite que la vitre, derrière la vitre de face (une lame de verre posée par-dessus : ::before, au-dessus de la photo) mais devant le fond ; seul le bas de la boîte mord sur la plaque du nom */
+html #gBq #gBqPan .bqK .bqKv .fr{display:none}
+html #gBq #gBqPan .bqK .bqKph img{transform:translateY(3%) scale(.9);transform-origin:50% 72%}
+html #gBq #gBqPan .bqK .bqKph.c-aile img{transform:none}
+html #gBq #gBqPan .bqK::before{display:block;content:"";position:absolute;transform:none;right:auto;bottom:auto;left:50%;margin-left:-41cqw;top:calc(3px + 1cqw);width:78cqw;height:56cqw;box-sizing:border-box;border-radius:11cqw;pointer-events:none;z-index:4;
+  border:2.5px solid color-mix(in srgb,var(--rc) 60%,rgba(255,255,255,.95));
+  background:linear-gradient(120deg,rgba(255,255,255,.5) 0,rgba(255,255,255,.1) 22%,rgba(255,255,255,.04) 55%,rgba(255,255,255,.2) 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55),0 6px 8px -4px rgba(20,30,50,.3)}
+html #gBq #gBqPan .bqK.sel::before{border-color:var(--rc);border-width:3px}
+html #gBq #gBqPan .bqK.b-legendaire::before{border-color:#d9a21b;background:linear-gradient(120deg,rgba(255,244,200,.6) 0,rgba(255,215,94,.12) 25%,rgba(255,215,94,.05) 55%,rgba(255,244,200,.3) 100%)}
+html #gBq #gBqPan .bqK.b-secrete::before{border-color:#ff3ec8}
+html #gBq #gBqPan .bqK.brise::before{opacity:0}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
