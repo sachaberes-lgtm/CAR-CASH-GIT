@@ -1939,6 +1939,8 @@ if(window.CC_COLONNE&&!/[?&]cadre=ancien\b/.test(location.search))document.write
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <!-- LE CHARGEMENT : l'Ouroboros pixel de Fable (serpent organique mignon) : le corps est fixe, c'est la TÊTE qui fait le tour du corps en le rongeant (gueule qui claque, dents), des boules de matière traversent le corps et sont avalées ; CSS pur (48 images, steps(48) sur un transform) ; intro-161.js (chCl) l'éteint. Le dessin se retouche dans outils/ouroboros/ouroboros.cjs. -->
   <div id="spCharge"></div>
+  <script>/* (2026-11-06, Sacha : « le serpent doit toujours être super fluide ») DANS L'APP iOS le serpent est dessiné par iOS (plugin SerpentNatif, JeuViewController.swift) : une animation Core Animation qui tourne hors du processus de la page, donc fluide même quand la page calcule ; le serpent web se tait (sinon : deux serpents). Sans le plugin (navigateur, app plus ancienne) rien ne change. */
+  try{var C9=window.Capacitor;if(C9&&C9.isPluginAvailable&&C9.isPluginAvailable('SerpentNatif')&&!/[?&]serpentweb=1\b/.test(location.search)){window.__serpentNatif=1;document.getElementById('spCharge').style.display='none';}}catch(_){}</script>
   <canvas id="fxCv" aria-hidden="true"></canvas>
   <div id="spStage">
     <div id="spTitle" class="tease"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
@@ -85131,6 +85133,7 @@ function goImmersive(){
   /* (2026-11-05, jury HYG-12) dGraine : fonction jamais appelée, retirée */
   function chCl(a){ /* l'anneau de chargement du HTML (spCharge) : visible jusqu'à ce que les premiers points de la boule se dessinent, puis il fond et disparaît (Léo, 02/11) */
     const el=chCl.el===undefined?(chCl.el=document.getElementById('spCharge')):chCl.el;if(!el||chCl.fini)return;
+    if(window.__serpentNatif&&a<.999&&!chCl.nat){chCl.nat=1;try{window.Capacitor.Plugins.SerpentNatif.fondu({duree:.5});}catch(_){}} /* (2026-11-06) le serpent d'iOS fond à son tour (voir debut-corps.html) */
     if(a<=.004){chCl.fini=1;el.remove();return;}el.style.opacity=a;
   }
   function attente(){ /* avant le départ du film (page en chargement, police, fenêtre) : du noir, et la graine qui respire */

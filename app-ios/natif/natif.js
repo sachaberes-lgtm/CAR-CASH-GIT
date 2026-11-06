@@ -78,6 +78,8 @@
   var cache=function(){try{if(P.SplashScreen)P.SplashScreen.hide({fadeOutDuration:250});}catch(e){}};
   if(document.readyState!=='loading')setTimeout(cache,60);else document.addEventListener('DOMContentLoaded',function(){setTimeout(cache,60);});
   setTimeout(cache,30000);
+  /* LE SERPENT D'iOS (2026-11-06) : filet, si l'intro ne l'a pas éteint (intro sautée ou plantée), le menu qui paraît le retire. */
+  document.addEventListener('cc:revele',function(){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}});
 
   /* ---- 7. LES MISES À JOUR EN DIRECT (2026-10-14, oui de Sacha) ----
      Le jeu (les fichiers de www/) se met à jour SANS passer par l'App Store : publier-maj.js fabrique l'édition App Store d'une
