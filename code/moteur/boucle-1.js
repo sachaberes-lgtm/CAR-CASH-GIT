@@ -38,7 +38,7 @@ function loop(now){
   {const cad9=(loop._ms||16)>29.5&&(loop._ms||16)<37.5;if(cad9&&loop._jit<2)loop._r30T=now+2500; // tenu 2,5 s : une image sautée (66 ms) ne fait pas basculer
    loop._r30=cad9&&now<(loop._r30T||0);}
   loop._spk=(loop._spk||0)*.985+(ms9>(loop._r30?45:26)?1:0);
-  QLR.a[QLR.i]=ms9;QLR.i=(QLR.i+1)%QLR.a.length;if(QLR.n<QLR.a.length)QLR.n++; // (tour 2) l'anneau des 60 dernières images, lu par les centiles
+  QLR.a[QLR.i]=ms9;QLR.i=(QLR.i+1)%QLR.a.length;if(QLR.n<QLR.a.length)QLR.n++; sondeFluide(now,ms9); // (tour 2) l'anneau des 60 dernières images, lu par les centiles
   /* ⚠ LENTEUR SOUTENUE, JAMAIS UN PIC (2026-09-24) — toujours vrai : on ne dégrade que « calme » (ni reconstruction de zone, ni retour
      d'onglet, ni cadence 30 Hz imposée). Mais les paliers ne sont plus DÉFINITIFS et la résolution n'est plus la PREMIÈRE sacrifiée :
      (2026-09-27, passe perf iPhone) paliers MOYEN/BAS et résolution adaptative ne font plus qu'UNE échelle, `QL` — voir « LA NETTETÉ EN
