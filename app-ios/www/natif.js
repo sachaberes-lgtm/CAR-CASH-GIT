@@ -83,7 +83,18 @@
      Une fiche n'existe que tant que l'élément a une source : au départ on le vide (source mémorisée + position), au retour on
      le remplit AVANT que le jeu relance la musique (écouteur en capture, posé avant ceux du jeu : natif.js charge en premier). */
   var musSauve=null;
+  var ctxDort=function(){ // tout le son se coupe : les contextes Web Audio (effets, voix) qui tournaient s'endorment aussi
+    if(!AC0||!su)return;
+    for(var i=0;i<CTX.length;i++){var c=CTX[i];
+      if(c&&c.state==='running'&&!c.__ccParti){try{c.__ccParti=true;var p9=su.call(c);if(p9&&p9.catch)p9.catch(function(){});}catch(e){}}}
+  };
+  var ctxReveil=function(){ // au retour : seuls ceux que NOUS avons endormis sont relancés (les autres restent au jeu)
+    if(!AC0||!re)return;
+    for(var i=0;i<CTX.length;i++){var c=CTX[i];
+      if(c&&c.__ccParti){c.__ccParti=false;if(c.state!=='closed'&&!c.__ccVeille){try{var p9=re.call(c);if(p9&&p9.catch)p9.catch(function(){});}catch(e){}}}}
+  };
   var musVide=function(){try{
+    ctxDort();
     var el=document.getElementById('musique');if(!el||musSauve)return;
     var s=el.getAttribute('src');if(!s)return;
     musSauve={s:s,t:el.currentTime||0};
@@ -93,6 +104,7 @@
     dit('musique : source retirée (arrière-plan)');
   }catch(e){}};
   var musRend=function(){try{
+    ctxReveil();
     var m=musSauve;musSauve=null;if(!m)return;
     var el=document.getElementById('musique');if(!el||el.getAttribute('src'))return; // le jeu a déjà choisi autre chose : on n'y touche pas
     el.src=m.s;
