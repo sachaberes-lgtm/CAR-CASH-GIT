@@ -69531,7 +69531,7 @@ function chanfreinGeo(w,h,d,b){
    · L'ORDRE : chaque place s'ouvre à un seuil (`a`), puis c'est la place la MOINS remplie qui reçoit l'objet suivant — les tas montent
      ensemble, du bas vers le haut (jamais une liasse en l'air) ; une palette qui s'ouvre avale d'un coup ce qui tombe, puis tout
      repart ensemble. Les places VUES de la caméra (fixe, côté établi, qui regarde la porte) passent d'abord.
-   · LA COURBE : n = 12 × (compte / 50)^0,4 — 100 $ → 16 objets, 1 k → 40, 10 k → 100, 100 k → 250, 1 M → 630, 2,5 M (la plus chère de
+   · LA COURBE : n = 12 × (compte / 50)^0,4 — 100 € → 16 objets, 1 k → 40, 10 k → 100, 100 k → 250, 1 M → 630, 2,5 M (la plus chère de
      la boutique) → 910 ; ~1 100 au plus (six palettes pleines). Dépenser fait donc FONDRE les tas : l'argent part de l'atelier.
    `dbgArgent(compte)` force un compte (sans toucher la sauvegarde) · `dbgArgent()` rend l'état · `dbgArgent(null)` relâche. */
 const GARG={mesh:null,offs:null,n:-1,bank:-1,force:null,K:12,E:.4,places:0};
@@ -69554,14 +69554,24 @@ function garArgent(g){
   /* LA LIASSE (v2, après capture : des bandes or / rose / cyan et une tranche crème se lisaient comme des CONFETTIS) : tout est VERT
      BILLET, sombre (SON règle la clé de la boutique : pas de fluo) — tranche vert-de-gris, face vert foncé, bande papier kraft doré
      éteint ; et plus grosse (×3,2 d'une vraie liasse : de la caméra, à 10 m, une vraie serait une miette). */
-  const BAND=[0xbfa25c,0xbfa25c,0xa9884a],FACE=[0x28683c,0x245e37,0x2e7545],TRANCHE=0x668f62;
+  /* (2026-11-06, Sacha : « dans le garage remplace les liasses de billets de dollars par des liasses d'euros ») LES LIASSES EN EUROS : le billet du dessus
+     prend la couleur de sa coupure dans la série Europa (`TC_EUR` : 5 gris · 10 rouge · 20 bleu · 50 orange · 100 vert · 200 jaune · 500 violet), assombrie
+     comme l'ancien vert (×,62) ; la tranche est du papier pâle qui garde un soupçon de la couleur ; la bande reste kraft ; la bande argentée de l'hologramme
+     court sur le billet. UNE coupure par tas / pile / palette (des liasses de toutes les couleurs mélangées se lisaient comme des confettis) : les coupures
+     se suivent dans des listes fixes, sans toucher à la graine (les places des tas ne bougent pas) ; les palettes, les plus riches, sont en grosses coupures. */
+  const BAND=[0xbfa25c,0xbfa25c,0xa9884a],ARGENT=0xb4bec2;
+  const eurHex=(h,k)=>{const n=parseInt(h.slice(1),16);return (Math.round((n>>16&255)*k)<<16)|(Math.round((n>>8&255)*k)<<8)|Math.round((n&255)*k);};
+  const FACE=TC_EUR.map(e=>eurHex(e[3],.62)),TRANCHE=TC_EUR.map(e=>{const n=eurHex(e[3],.62),m=0x9aa098;  // la tranche : 70 % papier pâle, 30 % la couleur de la face
+    return (Math.round((m>>16&255)*.7+(n>>16&255)*.3)<<16)|(Math.round((m>>8&255)*.7+(n>>8&255)*.3)<<8)|Math.round((m&255)*.7+(n&255)*.3);}),SOL=TC_EUR.map(e=>eurHex(e[3],.85));
+  const DB=[1,2,0,3,2,1,3,2,0,4],DG=[3,2,4,1,3,5,2],DM=[2,1,3,0,2,3,1,2,4,3,2,1,3,5],DP=[3,4,5,6,4,5]; // les coupures : tas bas · gros tas · piles des meubles · palettes
   const LL=.5,LT=.11,LW=.24;
-  const liasse=(x,y,z,ry,rx,rz)=>{const u=rn(),f=FACE[(u*3)|0],b=BAND[(rn()*BAND.length)|0],c=Math.cos(ry),s=Math.sin(ry);
+  const liasse=(x,y,z,ry,rx,rz,d)=>{const u=rn(),f=FACE[d],b=BAND[(rn()*BAND.length)|0],c=Math.cos(ry),s=Math.sin(ry);
     const at=(lx,ly,lz)=>[x+c*lx+s*lz,y+ly,z-s*lx+c*lz]; // (tangage/roulis petits : la hauteur des pièces est prise au centre)
-    let q=at(0,.048,0);bx(LL-.014,.096,LW-.014,q[0],q[1],q[2],ry,rx,rz,TRANCHE,u);   // la tranche : la pile de billets vue de côté
+    let q=at(0,.048,0);bx(LL-.014,.096,LW-.014,q[0],q[1],q[2],ry,rx,rz,TRANCHE[d],u);   // la tranche : la pile de billets vue de côté
     q=at(0,.103,0);bx(LL,.014,LW,q[0],q[1],q[2],ry,rx,rz,f,u);                       // la face du billet du dessus
+    q=at(.13,.1105,0);bx(.034,.004,LW-.05,q[0],q[1],q[2],ry,rx,rz,ARGENT,.5);        // la bande argentée de l'hologramme, à droite de la bande kraft
     q=at(0,.055,0);bx(.09,LT+.004,LW+.01,q[0],q[1],q[2],ry,rx,rz,b,u);};             // la bande
-  const billet=(x,z,ry)=>bx(.24,.005,.11,x,.004,z,ry,(rn()-.5)*.06,(rn()-.5)*.06,0x3a8f55);
+  const billet=(x,z,ry,d)=>bx(.24,.005,.11,x,.004,z,ry,(rn()-.5)*.06,(rn()-.5)*.06,SOL[d]);
   const palette=(x,z,ry)=>{const c=Math.cos(ry),s=Math.sin(ry),at=(lx,lz)=>[x+c*lx+s*lz,z-s*lx+c*lz];
     for(const lz of [-.4,0,.4]){const q=at(0,lz);bx(1.12,.02,.12,q[0],.01,q[1],ry,0,0,0x6e4d2c);}
     for(const lx of [-.5,0,.5])for(const lz of [-.4,0,.4]){const q=at(lx,lz);bx(.12,.085,.12,q[0],.0625,q[1],ry,0,0,0x5f4226);}
@@ -69596,22 +69606,22 @@ function garArgent(g){
   // tirait ses points au hasard dans son propre rayon, sans lien avec celle du dessous — une liasse du sommet pouvait n'avoir RIEN sous
   // elle à cet endroit précis et semblait flotter. Désormais l'étage 0 seul est tiré au hasard (Poisson) ; chaque étage suivant reprend
   // les points de celui d'en dessous, resserrés vers le centre (×.72) puis triés du plus central au plus loin — la pyramide tient debout.
-  const tas=(x0,z0,couches)=>{const it=[];let y=0,bas=null;
-    const vole=()=>{const a=rn()*6.2832,d=.7+rn()*.45;it.push(()=>billet(x0+Math.cos(a)*d,z0+Math.sin(a)*d,rn()*6.2832));};
+  const tas=(x0,z0,couches,d)=>{const it=[];let y=0,bas=null;
+    const vole=()=>{const a=rn()*6.2832,dd=.7+rn()*.45;it.push(()=>billet(x0+Math.cos(a)*dd,z0+Math.sin(a)*dd,rn()*6.2832,d));};
     couches.forEach((cc,l)=>{const n=cc[0],R=cc[1],y9=y,tilt=l?.12:.04;let pts;
       if(!bas){pts=[];for(let k=0;k<80&&pts.length<n;k++){const a=rn()*6.2832,d=Math.sqrt(rn())*R,px=x0+Math.cos(a)*d,pz=z0+Math.sin(a)*d;
         if(pts.every(q=>Math.hypot(q[0]-px,q[1]-pz)>.27))pts.push([px,pz]);}}
       else{pts=bas.map(q=>[x0+(q[0]-x0)*.72+(rn()-.5)*.05,z0+(q[1]-z0)*.72+(rn()-.5)*.05])
         .sort((a,b)=>Math.hypot(a[0]-x0,a[1]-z0)-Math.hypot(b[0]-x0,b[1]-z0)).slice(0,n);}
-      for(const q of pts)it.push(()=>liasse(q[0],y9,q[1],rn()*6.2832,(rn()-.5)*tilt,(rn()-.5)*tilt));
+      for(const q of pts)it.push(()=>liasse(q[0],y9,q[1],rn()*6.2832,(rn()-.5)*tilt,(rn()-.5)*tilt,d));
       vole();y+=LT*.96;bas=pts;});
     return {it:it,a:0};};
   // LES TAS BAS du couloir de la caméra (3 couches : 33 cm, sous les 45 cm de la règle) — puis LES GROS TAS au pied des murs (5 couches)
   const bas=choisir(5.1,8.1,.72,1.7,10,[]),gros=choisir(8.4,11.2,1.0,2.2,7,bas);
-  const TB=bas.map(c=>tas(c[0],c[1],[[6,.55],[4,.4],[2,.22]])),TG=gros.map(c=>tas(c[0],c[1],[[9,.8],[7,.62],[5,.46],[3,.3],[1,.08]]));
+  const TB=bas.map((c,i)=>tas(c[0],c[1],[[6,.55],[4,.4],[2,.22]],DB[i%DB.length])),TG=gros.map((c,i)=>tas(c[0],c[1],[[9,.8],[7,.62],[5,.46],[3,.3],[1,.08]],DG[i%DG.length]));
   // LES MEUBLES : des piles bien rangées sur ce qui est plat (colonnes [dx, dz], couches)
-  const pile=(x,y,z,ry,cols,couches)=>{const it=[];for(let l=0;l<couches;l++)for(const c9 of cols)
-      it.push(()=>liasse(x+c9[0]+(rn()-.5)*.02,y+l*LT,z+c9[1]+(rn()-.5)*.02,ry+(rn()-.5)*.08,0,0));return {it:it,a:0};};
+  let np=0;const pile=(x,y,z,ry,cols,couches)=>{const it=[],d=DM[np++%DM.length];for(let l=0;l<couches;l++)for(const c9 of cols)
+      it.push(()=>liasse(x+c9[0]+(rn()-.5)*.02,y+l*LT,z+c9[1]+(rn()-.5)*.02,ry+(rn()-.5)*.08,0,0,d));return {it:it,a:0};};
   const M9=[pile(-6.6,1.0,10.42,.35,[[0,0]],3),                               // sur les fûts
     pile(10.3,2.13,8.4,Math.PI/2,[[0,-.27],[0,.27]],4),                        // sur le distributeur
     pile(9.6,.57,2.93,0,[[0,0]],3),pile(9.6,1.72,3.8,0,[[0,0]],3),            // les étagères du rack (places libres entre bacs, cartons, jantes)
@@ -69620,11 +69630,11 @@ function garArgent(g){
     pile(-3.1,.98,-11.95,0,[[-.27,0],[.27,0]],5),pile(.95,.98,-11.95,0,[[-.27,0],[.27,0]],4),pile(-7.45,.98,-11.95,Math.PI/2,[[0,0]],4), // l'établi (derrière la caméra)
     pile(9.6,1.72,5.2,0,[[0,0]],3),pile(9.6,2.87,1.55,0,[[0,0]],3),pile(9.6,4.02,3.55,0,[[0,0]],2)];
   // LES PALETTES (riche) : contre les murs, au-delà de l'orbite — 1 palette + 10 couches de 8 liasses (1,23 m)
-  const pal=(x,z,ry)=>{const it=[()=>palette(x,z,ry)],c=Math.cos(ry),s=Math.sin(ry);
+  const pal=(x,z,ry,d)=>{const it=[()=>palette(x,z,ry)],c=Math.cos(ry),s=Math.sin(ry);
     for(let l=0;l<10;l++)for(let j=0;j<4;j++)for(let i=0;i<2;i++){const lx=(i-.5)*.505+(rn()-.5)*.012,lz=(j-1.5)*.232+(rn()-.5)*.012;
-      it.push(()=>liasse(x+c*lx+s*lz,.127+l*LT,z-s*lx+c*lz,ry+(rn()-.5)*.03,0,0));}
+      it.push(()=>liasse(x+c*lx+s*lz,.127+l*LT,z-s*lx+c*lz,ry+(rn()-.5)*.03,0,0,d));}
     return {it:it,a:0};};
-  const P9=PAL.map(p9=>pal(p9[0],p9[1],p9[2]));
+  const P9=PAL.map((p9,i)=>pal(p9[0],p9[1],p9[2],DP[i%DP.length]));
   // les seuils d'ouverture : tas bas et meubles entremêlés (ce qu'on voit d'abord), les gros tas, puis les palettes quand on devient riche
   const ord=[],A1=[0,1,3,6,8,11,14,17,21,25,29,33,38,43,48,54,60,66,72,80,88,96,104,112];
   for(let i=0,ti=0,mi=0;ti<TB.length||mi<M9.length;i++){const p9=(i%2===0&&ti<TB.length)||mi>=M9.length?TB[ti++]:M9[mi++];p9.a=A1[Math.min(i,A1.length-1)]+Math.max(0,i-A1.length+1)*8;ord.push(p9);}
