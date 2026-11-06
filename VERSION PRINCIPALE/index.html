@@ -7175,6 +7175,20 @@ html body #coach.v2.bravo .ecT::before{animation:ecFlash .6s var(--ease) both}
 #ecMain.pousse .p::after{animation:ecMPousse 1.6s var(--ease) infinite;animation-delay:-.1s}
 @media (prefers-reduced-motion:reduce){html body #coach.v2.v2::after,html body #coach.v2 .ecT::before,#ecMain .p::after{display:none}}
 html[data-reduced-motion="1"] body #coach.v2.v2::after,html[data-reduced-motion="1"] #ecMain .p::after{display:none}
+/* ===== LA CARTE NE BARRE PLUS LA ROUTE (2026-11-06, Sacha : « en version mobile la fenêtre de tuto empêche de conduire ») =====
+   Deux causes, mesurées au banc mobile (844 × 390 couché) : 1) la carte (z-index 66, pointer-events:auto) est AU-DESSUS du volant flottant
+   (#tSteer plein écran) : tout pouce posé sur elle était avalé, la caisse n'obéissait plus ; 2) couchée elle faisait 162 px de haut sur 390 et
+   descendait jusqu'à l'horizon (218 px) — la route devant la caisse était cachée. Maintenant : la carte laisse passer TOUS les doigts (seul
+   PASSER reste cliquable), et couchée elle se range en bandeau bas (PASSER en colonne à droite) qui finit AU-DESSUS de l'horizon, dans le ciel. */
+html body #coach.v2.v2,html body #coach.v2.v2.on,html body #coach.v2.v2.sort{pointer-events:none}
+html body #coach.v2 .coSkip{pointer-events:auto}
+@media (orientation:landscape) and (max-height:540px){
+  html body #coach.v2.v2{width:min(560px,calc(100vw - 24px));top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 50px);
+    grid-template-columns:76px minmax(0,1fr) 88px;column-gap:10px;padding:8px 8px 8px 8px}
+  html body #coach.v2 .ecT{font-size:min(20px,calc((min(560px,100vw - 24px) - 116px - 98px) / var(--n,8)))}
+  html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
+    font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal}
+}
 </style>
 <style id="sansCarriere">
 /* (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » ; la carrière est retirée le 2026-10-18) : sur l'accueil,
