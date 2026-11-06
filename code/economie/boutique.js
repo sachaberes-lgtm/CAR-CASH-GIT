@@ -675,7 +675,7 @@ function peintDefisVerifie(enC){if(enC&&!m2Ok())return 0;let s;try{s=m2Etat();}c
 function peintFond(d,c0){const hx=function(c9){return '#'+((c9>>>0)&0xffffff).toString(16).padStart(6,'0');};return d.mot?motFond(d).replace('center/200% auto','center/100% auto'):d.grad?'linear-gradient(150deg,'+d.grad.map(hx).join(',')+')':hx(d.c!=null?d.c:(c0!=null?c0:0xff7a3a));}
 function peintPastille(d,cl,c0){return '<i class="'+cl+cosmSwCl(d)+'" style="background:'+peintFond(d,c0)+'"></i>';}
 /* la grande pastille d'une carte de la boutique : la tôle vernie, et pour une peinture à défi pas encore à toi, la cible et sa jauge */
-function peintCarte(d){let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;}catch(e){}let h=peintPastille(d,'bqSw pSw',c0);
+function peintCarte(d){let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;}catch(e){}let h=peintPastille(d,'bqSw pSw sp5',c0); /* (2026-11-06, Léo : « pour chacune des couleurs la forme et la taille sont différentes ») (v1228, Léo : « une seule forme aléatoire, la même pour toutes les couleurs ») le MÊME splash (sp5) pour toutes : voir css/boites-blister.css */
   if(d.def&&!shopOwned('peinture',d.id)){const p=peintDefFrac(d);h+='<span class="pDef" title="'+sansAcc(TR(d.def.t)).replace(/"/g,'')+'">'+pxi('cible')+(p>=0?'<u><em style="width:'+Math.round(p*100)+'%"></em></u>':'')+'</span>';}
   return h;}
 /* « OU GAGNE-LA » sous le nom de la peinture regardée (#gBqNom) : la phrase du défi, sa jauge (un exploit d'un coup n'en a pas) */
