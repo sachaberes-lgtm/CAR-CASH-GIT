@@ -252,6 +252,7 @@
   /* (2026-11-05, jury HYG-12) dGraine : fonction jamais appelée, retirée */
   function chCl(a){ /* l'anneau de chargement du HTML (spCharge) : visible jusqu'à ce que les premiers points de la boule se dessinent, puis il fond et disparaît (Léo, 02/11) */
     const el=chCl.el===undefined?(chCl.el=document.getElementById('spCharge')):chCl.el;if(!el||chCl.fini)return;
+    if(window.__serpentNatif&&a<.999&&!chCl.nat){chCl.nat=1;try{window.Capacitor.Plugins.SerpentNatif.fondu({duree:.5});}catch(_){}} /* (2026-11-06) le serpent d'iOS fond à son tour (voir debut-corps.html) */
     if(a<=.004){chCl.fini=1;el.remove();return;}el.style.opacity=a;
   }
   function attente(){ /* avant le départ du film (page en chargement, police, fenêtre) : du noir, et la graine qui respire */
