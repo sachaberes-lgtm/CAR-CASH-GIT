@@ -142,65 +142,65 @@ html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph.c-aile im
    Même vitrine, mais DOUCE : coins ronds sur le verre (palier 2 : les six faces du cube ; ailleurs : une seule carte ronde, plus de parallélogrammes), TOUTES les catégories
    (voitures, peintures, ailes, traînées, figures), la photo plus nette (reflet allégé), la voiture qui déborde sur le nom, des cartes toutes de la même hauteur (nom sur deux
    lignes fixes), le nom sur une plaque ronde teintée de la rareté au lieu du noir plein. Préfixe à deux #id : passe devant ux8, ecrans-iphone et peintures. */
-html #gBq #gBqPan .bqK{border-radius:16px;border-top:0;--rcl:color-mix(in srgb,var(--rc) 55%,#fff);
+html #gBq #gBqPan .bqK:not(.pnt){border-radius:16px;border-top:0;--rcl:color-mix(in srgb,var(--rc) 55%,#fff);
   box-shadow:0 0 0 2px var(--rcl),inset 0 0 0 2px rgba(255,255,255,.9),inset 0 -14px 22px -10px color-mix(in srgb,var(--rc) 40%,transparent),0 14px 20px -8px rgba(30,40,55,.34)}
-html #gBq #gBqPan .bqK::before,html #gBq #gBqPan .bqK::after{display:none}
-html #gBq #gBqPan .bqK .bqKph{overflow:visible;margin:4px 4px -8px;position:relative;z-index:3}
-html #gBq #gBqPan .bqK .bqKph::after{background:linear-gradient(100deg,rgba(255,255,255,.2),rgba(255,255,255,0))}
-html #gBq #gBqPan .bqK .bqKph img{filter:drop-shadow(0 3px 2px rgba(15,25,40,.3))}
+html #gBq #gBqPan .bqK:not(.pnt)::before,html #gBq #gBqPan .bqK:not(.pnt)::after{display:none}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKph{overflow:visible;margin:4px 4px -8px;position:relative;z-index:3}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKph::after{background:linear-gradient(100deg,rgba(255,255,255,.2),rgba(255,255,255,0))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKph img{filter:drop-shadow(0 3px 2px rgba(15,25,40,.3))}
 /* le nom : plaque ronde teintée de la rareté, deux lignes, hauteur fixe (toutes les cartes égales) */
-html #gBq #gBqPan .bqK .bqKn{position:relative;z-index:2;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:36px;margin:0 6px;padding:9px 6px 3px;
+html #gBq #gBqPan .bqK:not(.pnt) .bqKn{position:relative;z-index:2;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:36px;margin:0 6px;padding:9px 6px 3px;
   text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:10px 10px 0 0;
   background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 40%,#2b3246),color-mix(in srgb,var(--rc) 14%,#0f121b));box-shadow:inset 0 1px 0 rgba(255,255,255,.3);text-shadow:0 0 6px var(--rc),0 1px 0 rgba(0,0,0,.55)}
-html #gBq #gBqPan .bqK.b-legendaire .bqKn{background:linear-gradient(#5a3a00,#24160a);color:#ffe9a8;text-shadow:0 1px 0 #000}
-html #gBq #gBqPan .bqK.b-secrete .bqKn{background:linear-gradient(#3a3a48,#16161d);color:var(--rc)}
-html #gBq #gBqPan .bqRail.habs .bqK .bqKn,html #gBq #gBqPan .bqK.hab .bqKn{-webkit-line-clamp:2;height:36px;font-size:8px}
-html #gBq #gBqPan .bqK.sel{box-shadow:0 0 0 3px var(--rc),0 0 0 5px rgba(255,255,255,.9),0 16px 22px -6px rgba(30,40,55,.38)}
+html #gBq #gBqPan .bqK:not(.pnt).b-legendaire .bqKn{background:linear-gradient(#5a3a00,#24160a);color:#ffe9a8;text-shadow:0 1px 0 #000}
+html #gBq #gBqPan .bqK:not(.pnt).b-secrete .bqKn{background:linear-gradient(#3a3a48,#16161d);color:var(--rc)}
+html #gBq #gBqPan .bqRail.habs .bqK:not(.pnt) .bqKn,html #gBq #gBqPan .bqK:not(.pnt).hab .bqKn{-webkit-line-clamp:2;height:36px;font-size:8px}
+html #gBq #gBqPan .bqK:not(.pnt).sel{box-shadow:0 0 0 3px var(--rc),0 0 0 5px rgba(255,255,255,.9),0 16px 22px -6px rgba(30,40,55,.38)}
 /* palier 2 : le cube aux coins ronds ; le prix en étiquette ronde sur le verre ; le nom seul au pied */
-html #gBq #gBqPan .bqK{box-shadow:none;border-radius:16px}
-html #gBq #gBqPan .bqK .bqKv .f{border-radius:7cqw;border-width:2.5px}
-html #gBq #gBqPan .bqK .bqKv .fr,html #gBq #gBqPan .bqK .bqKv .bk{border-radius:11cqw}
-html #gBq #gBqPan .bqK .bqKv .fl{border-radius:50%}
-html #gBq #gBqPan .bqK .bqKv .fr{background:linear-gradient(150deg,rgba(255,255,255,.5),rgba(255,255,255,.06) 40%,rgba(255,255,255,.22))}
-html #gBq #gBqPan .bqK .bqKn{margin:0 6px 7px;border-radius:12px;padding:8px 6px 3px}
-html #gBq #gBqPan .bqK .bqKp{margin:0;min-height:0;border-radius:10px 4px 4px 10px;box-shadow:0 2px 0 rgba(0,0,0,.35)}
-html #gBq #gBqPan .bqK.sel{box-shadow:none}
+html #gBq #gBqPan .bqK:not(.pnt){box-shadow:none;border-radius:16px}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .f{border-radius:7cqw;border-width:2.5px}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr,html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bk{border-radius:11cqw}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fl{border-radius:50%}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{background:linear-gradient(150deg,rgba(255,255,255,.5),rgba(255,255,255,.06) 40%,rgba(255,255,255,.22))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKn{margin:0 6px 7px;border-radius:12px;padding:8px 6px 3px}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp{margin:0;min-height:0;border-radius:10px 4px 4px 10px;box-shadow:0 2px 0 rgba(0,0,0,.35)}
+html #gBq #gBqPan .bqK:not(.pnt).sel{box-shadow:none}
 
 /* (2026-11-06, Léo : « la vitre en face de nous dépasse un peu sur le coin du bas à droite, recadre pour toutes ») le cube un peu plus petit : plus aucune face ne sort à droite de la plaque du nom */
-html #gBq #gBqPan .bqK .bqKv{--W:78cqw;--H:52cqw;--D:24cqw;top:calc(3px + 29cqw)}
-html #gBq #gBqPan .bqK .bqKph.c-aile img{transform:none}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv{--W:78cqw;--H:52cqw;--D:24cqw;top:calc(3px + 29cqw)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKph.c-aile img{transform:none}
 /* LES TRAÎNÉES (2026-11-06, Léo : « des petites icônes comme avant, cachées par les cubes 3D ») : plus de plaque noire — le pictogramme de la traînée, bien en vue au fond du verre, avec son ruban qui coule derrière */
-html #gBq #gBqPan .bqK.hab .bqKph .tSw{background:none;box-shadow:none;overflow:visible}
-html #gBq #gBqPan .bqK.hab .bqKph .tSw::before,html #gBq #gBqPan .bqK.hab .bqKph .tSw::after,html #gBq #gBqPan .bqK.hab .bqKph .tSw .tBuse{display:none}
-html #gBq #gBqPan .bqK.hab .bqKph .tSw .tRu{left:8%;right:8%;opacity:.55;height:34%}
-html #gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi{left:50%;right:auto;top:48%;--pxs:4;translate:-50% -50%;opacity:1;animation:tFlotte 1.8s ease-in-out infinite alternate}
-html #gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(n+2){display:none}
+html #gBq #gBqPan .bqK:not(.pnt).hab .bqKph .tSw{background:none;box-shadow:none;overflow:visible}
+html #gBq #gBqPan .bqK:not(.pnt).hab .bqKph .tSw::before,html #gBq #gBqPan .bqK:not(.pnt).hab .bqKph .tSw::after,html #gBq #gBqPan .bqK:not(.pnt).hab .bqKph .tSw .tBuse{display:none}
+html #gBq #gBqPan .bqK:not(.pnt).hab .bqKph .tSw .tRu{left:8%;right:8%;opacity:.55;height:34%}
+html #gBq #gBqPan .bqK:not(.pnt).hab .bqKph .tSw .tPa .pxi{left:50%;right:auto;top:48%;--pxs:4;translate:-50% -50%;opacity:1;animation:tFlotte 1.8s ease-in-out infinite alternate}
+html #gBq #gBqPan .bqK:not(.pnt).hab .bqKph .tSw .tPa .pxi:nth-child(n+2){display:none}
 @keyframes tFlotte{from{transform:translateY(-2px)}to{transform:translateY(3px)}}
 
 /* (2026-11-06, Léo : « les boîtes dépassent le nom, il faut un effet 3D qui ressort ») le cube et la voiture passent DEVANT la plaque du nom : le verre mord sur son haut, la voiture déborde plus bas encore, la plaque se glisse sous le cube (ombre portée du verre) */
-html #gBq #gBqPan .bqK .bqKv{--H:56cqw;z-index:2}
-html #gBq #gBqPan .bqK .bqKph{margin-bottom:-12px}
-html #gBq #gBqPan .bqK .bqKn{z-index:1;height:46px;padding:19px 6px 3px;margin-bottom:7px;box-shadow:inset 0 7px 8px -4px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.3)}
-html #gBq #gBqPan .bqRail.habs .bqK .bqKn,html #gBq #gBqPan .bqK.hab .bqKn{height:46px}
-html #gBq #gBqPan .bqK .bqKp{z-index:5}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv{--H:56cqw;z-index:2}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKph{margin-bottom:-12px}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKn{z-index:1;height:46px;padding:19px 6px 3px;margin-bottom:7px;box-shadow:inset 0 7px 8px -4px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.3)}
+html #gBq #gBqPan .bqRail.habs .bqK:not(.pnt) .bqKn,html #gBq #gBqPan .bqK:not(.pnt).hab .bqKn{height:46px}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp{z-index:5}
 
 /* (2026-11-06, Léo : « dans les angles c'est encore imparfait, il faut que ce soit rejoint complètement, pas de truc plat qui dépasse ») plus de faces planes sur les côtés : le volume est une PILE de vitres aux mêmes coins ronds (avant, arrière et trois vitres au milieu) — l'épaisseur se lit à la tranche de chaque vitre, aucun angle vif */
-html #gBq #gBqPan .bqK .bqKv{--D:15cqw}
-html #gBq #gBqPan .bqK .bqKv :is(.lf,.rt,.tp){width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);border-radius:11cqw;border-width:2px;background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(255,255,255,.02) 55%,rgba(255,255,255,.1))}
-html #gBq #gBqPan .bqK .bqKv .lf{transform:translateZ(calc(var(--D)/4))}
-html #gBq #gBqPan .bqK .bqKv .tp{transform:translateZ(0)}
-html #gBq #gBqPan .bqK .bqKv .rt{transform:translateZ(calc(var(--D)/-4))}
-html #gBq #gBqPan .bqK .bqKv .fr,html #gBq #gBqPan .bqK .bqKv .bk{border-radius:11cqw}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv{--D:15cqw}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv :is(.lf,.rt,.tp){width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);border-radius:11cqw;border-width:2px;background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(255,255,255,.02) 55%,rgba(255,255,255,.1))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .lf{transform:translateZ(calc(var(--D)/4))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .tp{transform:translateZ(0)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .rt{transform:translateZ(calc(var(--D)/-4))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr,html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bk{border-radius:11cqw}
 
 /* (2026-11-06, Léo : « on a perdu l'effet des voitures à l'intérieur, elles passent à travers en haut à droite, plus l'impression de boîte arrondie ») la voiture est DANS la boîte : plus petite que la vitre, derrière la vitre de face (une lame de verre posée par-dessus : ::before, au-dessus de la photo) mais devant le fond ; seul le bas de la boîte mord sur la plaque du nom */
-html #gBq #gBqPan .bqK .bqKv .fr{display:none}
-html #gBq #gBqPan .bqK .bqKph img{transform:translateY(3%) scale(.9);transform-origin:50% 72%}
-html #gBq #gBqPan .bqK .bqKph.c-aile img{transform:none}
-html #gBq #gBqPan .bqK::before{display:block;content:"";position:absolute;transform:none;right:auto;bottom:auto;left:50%;margin-left:-41cqw;top:calc(3px + 1cqw);width:78cqw;height:56cqw;box-sizing:border-box;border-radius:11cqw;pointer-events:none;z-index:4;
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{display:none}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKph img{transform:translateY(3%) scale(.9);transform-origin:50% 72%}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKph.c-aile img{transform:none}
+html #gBq #gBqPan .bqK:not(.pnt)::before{display:block;content:"";position:absolute;transform:none;right:auto;bottom:auto;left:50%;margin-left:-41cqw;top:calc(3px + 1cqw);width:78cqw;height:56cqw;box-sizing:border-box;border-radius:11cqw;pointer-events:none;z-index:4;
   border:2.5px solid color-mix(in srgb,var(--rc) 60%,rgba(255,255,255,.95));
   background:linear-gradient(120deg,rgba(255,255,255,.5) 0,rgba(255,255,255,.1) 22%,rgba(255,255,255,.04) 55%,rgba(255,255,255,.2) 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55),0 6px 8px -4px rgba(20,30,50,.3)}
-html #gBq #gBqPan .bqK.sel::before{border-color:var(--rc);border-width:3px}
-html #gBq #gBqPan .bqK.b-legendaire::before{border-color:#d9a21b;background:linear-gradient(120deg,rgba(255,244,200,.6) 0,rgba(255,215,94,.12) 25%,rgba(255,215,94,.05) 55%,rgba(255,244,200,.3) 100%)}
-html #gBq #gBqPan .bqK.b-secrete::before{border-color:#ff3ec8}
-html #gBq #gBqPan .bqK.brise::before{opacity:0}
+html #gBq #gBqPan .bqK:not(.pnt).sel::before{border-color:var(--rc);border-width:3px}
+html #gBq #gBqPan .bqK:not(.pnt).b-legendaire::before{border-color:#d9a21b;background:linear-gradient(120deg,rgba(255,244,200,.6) 0,rgba(255,215,94,.12) 25%,rgba(255,215,94,.05) 55%,rgba(255,244,200,.3) 100%)}
+html #gBq #gBqPan .bqK:not(.pnt).b-secrete::before{border-color:#ff3ec8}
+html #gBq #gBqPan .bqK:not(.pnt).brise::before{opacity:0}
 </style>
