@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1193'; /* v1193 (2026-11-06, Sacha : « en version mobile la fenêtre de tuto empêche de conduire ») la carte de l'auto-école laisse passer les doigts (seul PASSER reste cliquable) et, couchée, se range en bandeau au-dessus de l'horizon */
+const CACHE = 'cashcar-v1194'; /* v1194 (2026-11-06, Léo : « un bloc de neige sur la route, c'est pas jouable ») : les stalagmites GÉANTS de la salle des stalactites sont coupés (ils faisaient un bloc sur la route en grotte glacée) ; ?avec=geants les rend. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
