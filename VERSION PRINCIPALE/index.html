@@ -42,6 +42,15 @@
    `node synchro-versions.js` (racine du dépôt) la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`.
    (Déclarée au niveau global — un `const` de script classique est visible du grand script, qui la lit.) */
 const EDITION='mobile';
+/* ===== LA NETTETÉ DANS LE CADRE SUR SAFARI / WEBKIT (2026-11-06, Léo : « sur mon ordi le jeu n'est pas à fond, ça ne vaut pas l'iPhone ») =====
+   Dans la page-cadre le jeu vit dans une iframe ZOOMÉE (844 × 390 agrandi à la fenêtre). Chrome donne au jeu la densité de l'écran × ce zoom (3,16 sur un Retina) : la 3D est dessinée aux pixels réels.
+   Safari / WebKit (et l'application CASH CAR) garde la densité de l'écran SANS le zoom (1 sur un iMac 1440p) : la 3D est dessinée en 844 × 390 puis étirée ×1,5 — le flou. Ici, dans le cadre, si la densité vue
+   ne contient pas déjà le zoom, `devicePixelRatio` rend densité de la page-cadre × zoom, en direct. Chrome (déjà bon) n'est pas touché. `?dprcadre=0` = avant. */
+(function(){try{if(!/[?&]colonne=1\b/.test(location.search)||/[?&]dprcadre=0\b/.test(location.search)||window.parent===window||!window.frameElement)return;
+  var base=window.devicePixelRatio||1,fe=window.frameElement,pd=window.parent.devicePixelRatio||1;
+  if(base>pd*1.05)return; /* Chrome : la densité du jeu contient déjà le zoom du cadre */
+  window.CC_DPR_CADRE=true; /* (2026-11-06) drapeau : `?vhd15=0` retire le ×1,5 de la vitrine du garage dans le cadre (voir vhdDpr). (2026-11-06, Léo, après comparaison A/B/C : « le rendu B est largement mieux, pour tout le monde ») la vitrine garde son ×1,5 : 1,4 × 1,5 = 2,1 */
+  Object.defineProperty(window,'devicePixelRatio',{configurable:true,get:function(){try{return pd*Math.max(1,fe.getBoundingClientRect().width/Math.max(1,window.innerWidth));}catch(e){return base;}}});}catch(e){}})();
 if(/[?&]portes=haut\b/.test(location.search))document.documentElement.classList.add('portesHaut'); /* (2026-10-20, Léo : « le mission, le shop, tu remets ça en dessous ») les portes du garage sous le nom (Sacha, 19/10) : seulement avec ?portes=haut */
 if(/[?&]garage=(leo|avant)\b/.test(location.search))document.documentElement.classList.add('garLeo'); /* (2026-10-19, Sacha) LE GARAGE QUI PREND TOUT L'ÉCRAN (la feuille garageHaut) est le défaut ; ?garage=leo (ou =avant) rend le garage d'avant */
 if(/[?&]garjouer=0\b/.test(location.search))document.documentElement.classList.add('sansGarJouer'); /* (2026-10-18) le JOUER de l'inventaire et de la boutique, coupé : voir <style id="jouerGarage"> */
@@ -132,7 +141,7 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
       s.setProperty('--or',(6*z)+'px');
       if(debout){s.width=lo+'px';s.height=ep+'px';s.left=(b+(L*z-lo)/2)+'px';s.top=b+'px';s.borderRadius='0 0 '+ro+' '+ro;}
       else{s.width=ep+'px';s.height=lo+'px';s.left=b+'px';s.top=(b+(H*z-lo)/2)+'px';s.borderRadius='0 '+ro+' '+ro+' 0';}};
-    cadre();addEventListener('resize',cadre);
+    cadre();addEventListener('resize',function(){cadre();try{f.contentWindow.dispatchEvent(new Event('resize'));}catch(_){}}); /* (2026-11-06) le jeu relit sa densité quand le zoom du cadre change */
     /* (2026-10-03, Léo : « pourquoi le menu du début est mal placé », sur ses deux liens) LE ZOOM NE PASSE PAS PARTOUT : Chrome applique le
        `zoom` de l'iframe à son contenu (le jeu s'y croit dans un écran de 844 × 390, en haute définition) ; un navigateur qui ne le fait
        pas (Safari ? Firefox ? — pas de banc pour eux ici) donne au jeu un écran de 1 400 px de large : le menu passe en disposition
@@ -10095,6 +10104,14 @@ html #gBq #gBqPan .bqK.pnt .bqKph .bqSw.pSw::before{content:"";position:absolute
   background:radial-gradient(circle at 31% 26%,rgba(255,255,255,.95) 0 5%,rgba(255,255,255,.4) 12%,rgba(255,255,255,0) 30%),radial-gradient(circle at 72% 78%,rgba(255,255,255,0) 52%,rgba(0,0,0,.25) 100%)}
 html #gBq #gBqPan .bqK.pnt .bqKph .bqSw.pSw:is(.mat)::before{background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.22),rgba(255,255,255,0) 40%),radial-gradient(circle at 72% 78%,rgba(255,255,255,0) 52%,rgba(0,0,0,.28) 100%)}
 
+/* ===== L'ÉTIQUETTE DE PRIX v3 (2026-11-06, Léo : « capture A, comme le local ; les missions montrent leur progression ») =====
+   Une pastille plus grosse, de travers en 3D, liseré blanc et ombre, posée devant le cube en haut à droite. Les MISSION ont une jauge (.jg, remplie à l'avancement réel) sous le mot. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp{top:-9px;right:-3px;left:auto;display:flex;align-items:center;justify-content:center;gap:3px;min-height:0;box-sizing:border-box;padding:4px 8px 4px 9px;font:800 10px/1 var(--pix,system-ui);letter-spacing:.02em;white-space:nowrap;z-index:9;border-radius:3px 6px 6px 3px;border:1.5px solid rgba(255,255,255,.75);box-shadow:0 3px 0 rgba(0,0,0,.4),0 6px 10px rgba(0,0,0,.25);transform:perspective(220px) rotateY(-16deg) rotateZ(-5deg) skewX(-8deg) translateZ(40px)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp.lg{font-size:8.5px}
+html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKp{border-color:#fff}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp.defi{flex-direction:column;gap:3px;padding:4px 8px 5px;font-size:8.5px;min-width:64%}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp .jg{display:block;width:100%;height:4px;margin:0;background:rgba(58,10,44,.28);border-radius:2px;overflow:hidden}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp .jg u{display:block;height:100%;background:#3a0a2c;border-radius:2px;text-decoration:none}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -13231,7 +13248,7 @@ window.dbgVhdEcran=function(){ const px=Math.max(1,innerWidth*innerHeight),bud=T
 const PFR_ON=TEL_NATIF&&!/[?&]frais=0\b/.test(location.search);
 const PCM_ON=(!TEL_NATIF||PFR_ON)&&!/[?&]pcmort=0\b/.test(location.search); /* (2026-10-24) le téléphone aussi, par le mode frais */
 function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):VHD_PX_PC; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
-  return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
+  return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE||(window.CC_DPR_CADRE&&/[?&]vhd15=0\b/.test(location.search))?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(ALLEGE?4:8,m);
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
 function vhdBascule(on){ if(VHD.off||on===VHD.on)return;
@@ -28180,13 +28197,13 @@ function* jadeAJG(g,jx){if(g.attributes.aJ&&g.attributes.aJ.array[0]===jx)return
   for(let k=0;k<n;k++){aJ[k*4]=jx;aJ[k*4+1]=1;if((k&16383)===16383&&performance.now()>JF.lim)yield;}
   g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
 function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur : ses cubes (voxMeshG, colMeshG) rendent la main à l'échéance JF.lim
-  const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),D=170;
-  let wG=560,wD=560;
+  const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),D=110; /* (2026-11-06, Léo : « la montagne de Jade fait bugger, pas une énorme forêt : une colline beaucoup plus petite avec des arbustes, comme en Thaïlande (Koh Phi Phi, Koh Lanta) ») la porte devient un îlot KARSTIQUE : 230 m de chaque côté (avant 560), 110 m d'épaisseur (170), 270 m de haut (520), arche de 124 m × 150 m (176 × 215) — environ le tiers des cubes */
+  let wG=230,wD=230;
   for(let i=0;i<NP;i+=4){if(Math.abs(i-i0)<Math.round(420/(L/(NP-1))))continue;const q=pts[i],dx=q.x-p.x,dz=q.z-p.z,u=dx*t.x+dz*t.z,v=dx*b.x+dz*b.z;
     if(Math.abs(u)>D/2+ROAD_HALF+40)continue;if(v>0)wD=Math.min(wD,v-ROAD_HALF-50);else wG=Math.min(wG,-v-ROAD_HALF-50);}
-  if(wG<180||wD<180)return;
+  if(wG<130||wD<130)return;
   wG=Math.floor(wG/VXG)*VXG;wD=Math.floor(wD/VXG)*VXG;
-  const y0=p.y,hb=-55,ht=215,hw=88,top=520,W=wG+wD,ab=ht-hw*.9;
+  const y0=p.y,hb=-55,ht=150,hw=62,top=270,W=wG+wD,ab=ht-hw*.9;
   const ph=[jr()*6.28,jr()*6.28,jr()*6.28],crete=f=>{const cr=Math.sin(Math.max(0,Math.min(1,f))*Math.PI);return top*(.62+.38*Math.sqrt(cr))-(1-cr)*90+
       70*Math.pow(Math.abs(Math.sin(f*5.1+ph[0])),2.5)+35*Math.sin(f*13.7+ph[1])+18*Math.sin(f*31.+ph[2]);};
   const vn=rocNoise2(jr()*100),vb=rocNoise2(jr()*100);
@@ -28202,7 +28219,7 @@ function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur
     C.reprises++;C.ms=Math.round(performance.now()-tG0);}
   else{const nJ0=nJ;
   const oy=Math.floor((y0-440)/VXG)*VXG,nx=Math.round(W/VXG),nz=Math.round(D/VXG),ny=Math.ceil((y0+top+130-oy)/VXG);G=voxG(nx,ny,nz);
-  const cretes=new Float32Array(nx);for(let x=0;x<nx;x++)cretes[x]=crete((x+.5)/nx)+(jr()-.5)*10;
+  const cretes=new Float32Array(nx);for(let x=0;x<nx;x++)cretes[x]=crete((x+.5)/nx)+(jr()-.5)*10+(vn(x*VXG/5*.9,7.7)>.52?6+9*vn(x*VXG/5*.4,2.2):0); /* (2026-11-06) les ARBUSTES : des boules de verdure sur la crête (la tête de la colline, comme les îlots de Thaïlande) */
   const basT=new Float32Array(nx*nz);for(let x=0;x<nx;x++){const v=-wG+(x+.5)*VXG,xn=(v-(wD-wG)/2)/(W/2);for(let z=0;z<nz;z++)basT[x*nz+z]=-300+180*xn*xn+90*(vb(x*VXG/5*.09,z*VXG/5*.12)-.5);} // le DESSOUS, en pointes : le massif flotte
   for(let x=0;x<nx;x++){if(performance.now()>JF.lim)yield;const v=-wG+(x+.5)*VXG;
     for(let y=0;y<ny;y++){const yr=oy+(y+.5)*VXG-y0;if(yr>cretes[x])break;
@@ -28211,7 +28228,7 @@ function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur
       for(let z=z0;z<z1;z++)if(yr>=basT[x*nz+z])G.d[x+nx*(z+nz*y)]=JM.roche;}}
   for(let x=0;x<nx;x++){if(performance.now()>JF.lim)yield;const ru=vn(x*VXG/5*.3,3.3)>.83;
     for(let y=0;y<ny;y++)for(let z=0;z<nz;z++){const k0=x+nx*(z+nz*y);if(G.d[k0]!==JM.roche)continue;const yr=oy+(y+.5)*VXG-y0;
-      if(!voxAt(G,x,y+1,z)&&yr>-60){G.d[k0]=JM.herbe;continue;}
+      if(!voxAt(G,x,y+1,z)&&yr>-60){G.d[k0]=vn(x*VXG/5*.9,7.7)>.52?JM.feuille:JM.herbe;continue;}
       if(ru&&(!voxAt(G,x,y,z-1)||!voxAt(G,x,y,z+1))&&jr()<.9)G.d[k0]=JM.rouille;}}
   o=p.clone().addScaledVector(b,-wG).addScaledVector(t,D/2);o.y=oy;
   JADE.porte={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,hw:hw,hb:y0+hb,ht:y0+ht,G:G,o:o,i:i0,tri:0};
@@ -28235,7 +28252,7 @@ function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur
       if(z1>z0){LO[u+NU*v]=z0;HI[u+NU*v]=z1;}}}
     TT.cols=Math.round(performance.now()-T0);const cache=new Map(),nb=(u,v)=>{const cx=Math.floor((xa*K+u)/K),cy=Math.floor((ya*K+v)/K);if(cx<0||cy<0||cx>=nx||cy>=ny)return null;const kk=cx*4096+cy;
       if(!cache.has(kk)){let z0=-1,z1=-1;for(let z=0;z<nz;z++)if(G.d[cx+nx*(z+nz*cy)]){if(z0<0)z0=z;z1=z;}cache.set(kk,z0<0?null:[z0*K,(z1+1)*K]);}return cache.get(kk);};
-    const mat=(kind,u,v,sg)=>{if(kind==='w')return vn((xa*K+u)/K*VXG/5*.3,3.3)>.83?JM.rouille:1;if(kind==='v'&&sg>0)return oy+(ya*K+v+1)/K*VXG-y0>-60?JM.herbe:1;return 1;};
+    const mat=(kind,u,v,sg)=>{if(kind==='w')return vn((xa*K+u)/K*VXG/5*.3,3.3)>.83?JM.rouille:1;if(kind==='v'&&sg>0)return oy+(ya*K+v+1)/K*VXG-y0>-60?(vn((xa*K+u)/K*VXG/5*.9,7.7)>.52?JM.feuille:JM.herbe):1;return 1;};
     const gF=yield* colMeshG(NU,NV,LO,HI,[0,1,2],mat,nb,12);TT.F=Math.round(performance.now()-T0);const oF=o.clone().addScaledVector(b,xa*VXG);oF.y+=ya*VXG;
     yield* jadeAJG(gA,.37);if(performance.now()>JF.lim)yield;jadeMonument(root,gA,jadeRepere(o,b,t),.37,M9);yield* jadeAJG(gB,.37);if(performance.now()>JF.lim)yield;JADE.porte.mL=jadeMonument(root,gB,jadeRepere(oB,b,t),.37,M9);yield* jadeAJG(gF,.37);if(performance.now()>JF.lim)yield;JADE.porte.mF=jadeMonument(root,gF,jadeRepere(oF,b,t,VXG/K),.37,M9);
     for(const m of JADE.porte.mF)m.visible=false;JADE.porte.pres=false;JADE.porte.tri=gA.index.count/3+gB.index.count/3;JADE.porte.triF=gF.index.count/3;fin9=true;PG9={gA:gA,gB:gB,gF:gF,oB:oB,oF:oF,K:K};}catch(e){console.warn('porte fine',e);}}
@@ -35498,6 +35515,15 @@ const SHAPES={
       U(.08,H*.25,L*.62,aV,sd*(W/2+.02),y0+H*.12,0,{seed:5+sd,rouille:.22,c:.012});
     }
     B(W*.55,H*.2,.07,K.dark,0,y0+H*.42,L/2+.10);
+    /* (2026-11-06, Léo : « LA HONTE, vue de face elle est fade : tous les autres angles sont plus jolis ») LA FACE AVANT : une vraie calandre (cadre chromé, cinq lames), des optiques cerclées de chrome, un pare-chocs chromé cabossé, une plaque — tout reste en tôle d'épave (le chrome est celui de la caisse : terni) */
+    {const zf=L/2+.15,yc=y0+H*.42;
+     for(const dy of [-.5,.5])B(W*.60,.03,.045,K.chrome,0,yc+dy*H*.2,zf);
+     for(const sd of [-1,1])B(.03,H*.2,.045,K.chrome,sd*W*.30,yc,zf);
+     for(let i=0;i<5;i++)B(W*.54,.016,.03,K.chrome,0,yc+(i-2)*H*.035,zf+.004);
+     for(const sd of [-1,1]){const hx=sd*W*.385,hy=y0+H*.46;
+       B(.27,.03,.05,K.chrome,hx,hy+.115,L/2+.10);B(.27,.03,.05,K.chrome,hx,hy-.115,L/2+.10);B(.03,.23,.05,K.chrome,hx-.12,hy,L/2+.10);B(.03,.23,.05,K.chrome,hx+.12,hy,L/2+.10);}
+     const pc=B(W*.98,H*.06,.07,K.chrome,0,y0+H*.205,L/2+.2);pc.rotation.z=-.02;
+     B(.34,.12,.02,K.acc,0,y0+H*.105,L/2+.25);} // la plaque
     for(const fz of [1,-1]){const bp=B(W*1.02,H*.24,.18,K.dark,0,y0+H*.15,fz*(L/2+.06));
       if(fz<0){bp.rotation.z=.14;bp.position.y-=.08;}}
     for(const sp of [[.30,.50,.35,.50,.30],[-.42,.45,-.10,.40,.50],[.10,.68,-.42,.60,.25],[-.25,.30,.42,.35,.40]])
@@ -58443,8 +58469,8 @@ window.dbgMusWa=function(k){ // console : l'état · dbgMusWa('raz') efface la c
    la boutique) — la musique s'efface en fondu puis se met en PAUSE (elle garde sa place), et RIEN ne la relance tant qu'il vaut vrai
    (ni le toucher, ni le retour d'arrière-plan : musicJoue l'ignore en mode menu). Le garage la rallume : elle repart de zéro en fondu. */
 /* (2/11 soir) MUS_CIEL_LOBBY : le niveau du lobby lié au ciel, 30 % de celui du garage (−10,5 dB ; avant : MUS_CIEL .15, −16 dB). MESURÉ au jeu : au ciel les morceaux clairsemés sortaient 9 dB SOUS le vent (inaudibles), les pleins 9 dB au-dessus ; le nivellement (pbjPlancher, jusqu'à 24 dB pour le lobby) les amène tous au même niveau final, ~4 dB au-dessus du vent. */
-const MUS_CIEL_LOBBY=.27;
-let MUS_TAIT=false;const MUS_CIEL=.15; // au ciel, la musique à 15 % de celle du garage (−16 dB), derrière le vent — (même soir, Léo : « vraiment très légère, comme si on l'entendait en tombant ») : .4 → .15, et elle RESPIRE avec le vent (voir musicTick)
+const MUS_CIEL_LOBBY=.36; /* (2026-11-06, Léo : « augmente un peu le son de la musique, sans dépasser le garage ») .27 → .36 (+2,5 dB) ; le garage reste à 1 */
+let MUS_TAIT=false;const MUS_CIEL=.2; /* (2026-11-06) .15 → .2, idem */ // au ciel, la musique à 15 % de celle du garage (−16 dB), derrière le vent — (même soir, Léo : « vraiment très légère, comme si on l'entendait en tombant ») : .4 → .15, et elle RESPIRE avec le vent (voir musicTick)
 const MUSIC_PASSIF={passive:true,capture:true};
 function musicElGet(){
   if(!musicEl){
@@ -63394,7 +63420,7 @@ function m2Verifie(enC){const s=m2Etat();let n=0;try{peintDefisVerifie(enC);}cat
 function m2Annonce(m,enC){const r=m.r||{};
   if(m.f==='secret'){if(enC)m2LigneDit('sec','? ? ?','');return;}
   const p=r.cash?'+'+fmtC(r.cash):r.car?TR(r.car):r.cat?TR(((COSM[r.cat]||[]).find(function(x){return x.id===r.id;})||{n:''}).n):'';
-  if(enC&&m2LigneDit('ok',sansAcc(m2Txt(m)),p))return;try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
+  if(enC&&m2LigneDit('ok',sansAcc(m2Txt(m)),p))return;if(M2R.fin&&!m2AnnonceMort(m))return; /* (2026-11-06) à la mort, seule une mission qui donne une voiture s'annonce */try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
 /* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « il y a trop de pop-up mission pendant la partie, écris-le en ligne, un peu plus discrète,
    en bas de l'écran ») : en course, une mission réussie ne pose plus la bannière du haut (#misBan, qui reste aux astuces et aux combos) mais
    UNE ligne de texte en bas (#m2Ligne), juste au-dessus des missions suivies (#m2Focus) — couché au centre, debout à gauche (la colonne de
@@ -63501,7 +63527,7 @@ function m2Mort(cause){if(!m2Ok())return;const s=m2Etat();s.c.morts=(s.c.morts|0
 function m2Fin(){ // endGame (une mort, ou QUITTER) : la partie entière se juge ici
   try{if(BALADE||SANDBOX||(PARK&&PARK.on)||TUTO.on||TUTO.quitte)return;}catch(e){return;}
   if(mortCause&&M2R.ctl>=M2K.partie){if(!(RUNX.nitro>0))m2Flag('sansnit');if(!(RUNX.coins>0))m2Flag('sanspiece');if(!M2R.sonne)m2Flag('silence');}
-  m2Verifie(false);{const s9=m2Etat();s9.su=s9.su.filter(function(id){return s9.ok.indexOf(id)<0;});} /* une suivie réussie se récupère : elle quitte le suivi */SAVE.flush();}
+  M2R.fin=1;try{m2Verifie(false);}finally{M2R.fin=0;}{const s9=m2Etat();s9.su=s9.su.filter(function(id){return s9.ok.indexOf(id)<0;});} /* une suivie réussie se récupère : elle quitte le suivi */SAVE.flush();}
 function m2Rejoue(){const s=m2Etat();s.c.rejoue=(s.c.rejoue|0)+1;if(s.c.rejoue>(s.r.rejoue|0))s.r.rejoue=s.c.rejoue;SAVE.mark();}
 function m2Menu(){const s=m2Etat();if(s.c.rejoue){s.c.rejoue=0;SAVE.mark();}}
 /* CONSOLE : dbgMissions() = chaque mission (visibles ET secrètes) : sa valeur, son seuil, réussie, prise · dbgMissions('gagne',id) = la
@@ -63764,9 +63790,14 @@ Object.assign(I18N,{'AUCUNE MISSION AVANCÉE':'NO MISSION PROGRESS'});
 /* d'où part la mission au début de cette partie : les missions « d'une partie » (aura, figures, vitesse…) partent de 0, le moteur de 1, les autres
    du cliché pris au départ (M2R.v0, defis-moteur.js) ; null = on ne sait pas (partie trop courte, cliché pas encore pris) */
 function m2Avant(m){const k=m.k;if(k==='eng')return 1;if(/^(aura|parf|fig|vie|frenT|kmh|tours|airP)$/.test(k))return 0;const V=M2R.v0;return V&&(m.id in V)?V[m.id]:null;}
+/* (2026-11-06, Sacha : « enlève les écrans à la mort qui annoncent qu'on a réussi une mission qui rapporte de l'argent, fait que pour les voitures ») à la mort,
+   seule une mission qui donne une VOITURE s'annonce réussie (carte de mort, toast) ; celles qui rapportent de l'argent ou un habillage se récupèrent
+   dans l'écran MISSIONS, sans rien dire. ?sans=annoncemort = l'ancien comportement. */
+const M2MORT_TOUT=/[?&]sans=([^&]*,)?annoncemort(,|&|$)/.test(location.search);
+function m2AnnonceMort(m){return M2MORT_TOUT||!!(m&&m.r&&m.r.car);}
 function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search); /* l'écran de mort v6 (MORT_FLOT vit dans la coque, hors de portée ici) */
   const s=m2Etat(),L=[];
-  for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
+  for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&m2AnnonceMort(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
   if(!flot9)for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
   /* (2026-11-03, Sacha : « améliorer encore un peu », puis « mission il prend trop de place ») le panneau ne reste plus à moitié vide :
      il se complète avec les missions les plus proches du but (avec leur barre), jusqu'à 2 (couché, le ×2 prend sa place sous le panneau) */
@@ -66546,8 +66577,11 @@ function dmtRattrape(net){const D=DMT,mx=D.mx,q=net?THREE.MathUtils.clamp(1-(D.t
      « beaucoup plus explosif » — « ×3 » — « tu arrives à contresens, la voiture fait le demi-tour, pendant que tu tournes ça prépare un boost, et
      dès que tu es en face de la route, ça décolle ») LE RATTRAPAGE EST LE DÉCOLLAGE : la charge a monté pendant tout le demi-tour (dmtCharge,
      appelée par dmtGlace) ; ici, la caisse est en face de la route : `dmtDecolle` la lâche — le boost additif ×3, le nitro, le wheelie. */
+  /* (2026-11-06, Sacha : « après un mauvais virage le texte reste affiché ») LE PANNEAU S'EFFACE DANS LES DEUX CAS : « DÉCOLLAGE ! » (le seul
+     qui rangeait « MAUVAIS SENS » dans le cas `net`) a été retiré le 03/11 ; depuis, un rattrapage propre laissait le panneau visible jusqu'à
+     la chute ou la mort suivante (dmtCoupe). */
+  dmtSigne(false);
   if(net){D.chargeQ=q;dmtDecolle();}
-  else dmtSigne(false);
 }
 /* ===== LE DÉCOLLAGE (2026-11-03, Sacha : « pas du tout assez puissant, il faut vraiment décollage, augmente le boost de 300 % — tu
    arrives à contresens, la voiture fait "chiii", zoom caméra qui se serre, les flammes se concentrent à l'intérieur du moteur, elles se
@@ -74356,6 +74390,8 @@ function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?n
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.pack==='chat'){px=sansAcc(TR('PACK CHAT'));c='eur';}else if(d.eur){px=eurTxt(d.eur);c='eur';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';} /* (2026-10-18 soir) l'ARC-EN-CIEL : PACK CHAT (voir chatPackI) */
   if(bqPxLg(px))c+=' lg';
+  /* (2026-11-06, Léo : « la mission doit montrer sa progression ») une caisse à MISSION (pas la secrète) : une jauge sous le mot, remplie à l'avancement réel */
+  if(vo&&c.indexOf('defi')>=0&&c.indexOf('sec')<0&&!a){try{const m9=m2DeCaisse(i);if(m9){const t9=m2Seuil(m9),f9=m2Frac(m9,m2Val(m9),t9),pc9=Math.round(100*f9);px+='<b class="jg" title="'+m2Prog(m9,m2Val(m9),t9).replace(/"/g,'')+'"><u style="width:'+pc9+'%"></u></b>';}}catch(e){}}
   /* (2026-10-31, clarté boutique) une figure à DEUX SENS a une carte dans chacune de ses sections : un petit badge dit qu'elle joue AUSSI
      dans l'autre emplacement (sinon ça ressemble à un doublon) — sa couleur reprend celle de CET autre emplacement (voir FIG_DC) */
   const autres=(!vo&&o.cat==='figure')?bqFigAutres(d.id,dir!=null?dir:figPeut(d.id)[0]):[];
