@@ -250,3 +250,25 @@ function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;tr
     +'\nÀ-COUPS en '+Math.round((now-(M.t0||now))/1000)+' s : '+(M.n50|0)+' > 50 ms · '+(M.n100|0)+' > 100 · '+(M.n250|0)+' > 250 · pire '+Math.round(M.max|0)+' ms'+(M.L&&M.L.length?'\n'+M.L.join('\n'):'');
   if(now-(M.p0||0)>1000){M.p0=now;M.pire=0;}
   if(tx!==M.txt){M.txt=tx;M.el.textContent=tx;}}
+/* ===== LA SONDE « FLUIDE » (2026-11-06, Sacha sur son 13 Pro : « des soucis de fluidité à grande vitesse, à partir du palier 16 » ; OPTI ULTIME) =====
+   Thermique ou contenu ? EN COURSE, toutes les 4 s, si la médiane des images dépasse 22 ms ou si une image atteint 100 ms, la boîte noire note UNE ligne (genre « fluide », 40 au plus) :
+   l'instant de la session, la carte, le palier du moteur, les km/h, p50 / p90 / pire, la cadence, le cran de qualité QL, le tas JS (si le navigateur le dit). Lecture : si le p50 se dégrade avec
+   le TEMPS quel que soit le palier, c'est la chaleur (le gouverneur thermique de la branche mobile-perf du 26/10) ; s'il suit la VITESSE, c'est un coût de contenu (décor diffusé, traînées, pré-bâti).
+   `dbgFluide()` rend la liste. `?sonde=0` coupe (comme la sonde du serpent). Coût : un tableau de durées déjà connues, trié une fois toutes les 4 s. */
+const FLU={on:!/[?&]sonde=0\b/.test(location.search),a:new Float32Array(300),n:0,t0:0,R:[]};
+function sondeFluide(now,ms){
+  if(!FLU.on)return;
+  if(!started||!running||paused||gameOver||garageOn||document.hidden){FLU.n=0;FLU.t0=0;return;}
+  if(!FLU.t0)FLU.t0=now;
+  if(FLU.n<300)FLU.a[FLU.n++]=ms;
+  if(now-FLU.t0<4000)return;
+  const n=FLU.n,v=Array.prototype.slice.call(FLU.a,0,n).sort(function(x,y){return x-y;});
+  FLU.n=0;FLU.t0=now;if(n<20)return;
+  const p50=v[n>>1],p90=v[Math.min(n-1,(n*.9)|0)],mx=v[n-1];
+  if(!(p50>22||mx>=99))return;
+  const pm=window.performance&&performance.memory,mem=pm&&pm.usedJSHeapSize?Math.round(pm.usedJSHeapSize/1048576)+' Mo':'-';
+  const msg=(Math.round(now/100)/10)+' s · '+(LVL.cur&&LVL.cur.id||'?')+' · palier moteur '+engTier+' · '+Math.round(Math.abs(vA)*3.6*SPD)+' km/h · p50 '+p50.toFixed(1)+' p90 '+p90.toFixed(1)+' pire '+Math.round(mx)+' · cadence '+(CAD.on?30:60)+' · cran QL '+QL.k+' · tas '+mem;
+  FLU.R.push(msg);if(FLU.R.length>40)FLU.R.shift();
+  try{window.__ccNote('fluide',msg);}catch(_){}
+}
+window.dbgFluide=function(){return FLU.R.slice();};
