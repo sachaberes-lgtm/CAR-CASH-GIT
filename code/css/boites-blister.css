@@ -231,4 +231,9 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKp{top:-6px;right:-2px;left:auto;bottom:auto
 html #gBq #gBqPan .bqK:not(.pnt) .bqKp.lg{font-size:6px}
 html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKp{border-color:#fff}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKp.defi{padding:3px 6px;font-size:6.5px}
+/* ===== LA VOITURE POSÉE SUR LE SOL DU CUBE (2026-11-06, Léo : « les voitures dans les cubes, c'est-à-dire POSÉES dans le cube ») =====
+   La photo d'une caisse garde sous elle ~16 % de vide (le reflet du sol verni, éteint) : la voiture flottait au-dessus du sol quadrillé. Chaque tranche est rognée de 16 % en bas (clip-path sur l'image, pas sur le plan :
+   un clip sur le plan aplatirait les tranches) et le plan descend d'autant : les roues touchent le sol du cube. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{clip-path:inset(0 0 16% 0)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]{top:calc(var(--H)/2 - var(--W)*.574*.84 - 1.2cqw)}
 </style>
