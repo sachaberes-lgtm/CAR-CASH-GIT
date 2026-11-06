@@ -49,7 +49,7 @@ const EDITION='mobile';
 (function(){try{if(!/[?&]colonne=1\b/.test(location.search)||/[?&]dprcadre=0\b/.test(location.search)||window.parent===window||!window.frameElement)return;
   var base=window.devicePixelRatio||1,fe=window.frameElement,pd=window.parent.devicePixelRatio||1;
   if(base>pd*1.05)return; /* Chrome : la densité du jeu contient déjà le zoom du cadre */
-  window.CC_DPR_CADRE=true; /* (2026-11-06) la vitrine du garage ne rajoute plus son ×1,5 par-dessus (voir vhdDpr) : 1,4 × 1,5 = 2,1 écrasait la carte graphique, la résolution adaptative la baissait par paliers (image floue) */
+  window.CC_DPR_CADRE=true; /* (2026-11-06) drapeau : `?vhd15=0` retire le ×1,5 de la vitrine du garage dans le cadre (voir vhdDpr). (2026-11-06, Léo, après comparaison A/B/C : « le rendu B est largement mieux, pour tout le monde ») la vitrine garde son ×1,5 : 1,4 × 1,5 = 2,1 */
   Object.defineProperty(window,'devicePixelRatio',{configurable:true,get:function(){try{return pd*Math.max(1,fe.getBoundingClientRect().width/Math.max(1,window.innerWidth));}catch(e){return base;}}});}catch(e){}})();
 if(/[?&]portes=haut\b/.test(location.search))document.documentElement.classList.add('portesHaut'); /* (2026-10-20, Léo : « le mission, le shop, tu remets ça en dessous ») les portes du garage sous le nom (Sacha, 19/10) : seulement avec ?portes=haut */
 if(/[?&]garage=(leo|avant)\b/.test(location.search))document.documentElement.classList.add('garLeo'); /* (2026-10-19, Sacha) LE GARAGE QUI PREND TOUT L'ÉCRAN (la feuille garageHaut) est le défaut ; ?garage=leo (ou =avant) rend le garage d'avant */
@@ -13240,7 +13240,7 @@ window.dbgVhdEcran=function(){ const px=Math.max(1,innerWidth*innerHeight),bud=T
 const PFR_ON=TEL_NATIF&&!/[?&]frais=0\b/.test(location.search);
 const PCM_ON=(!TEL_NATIF||PFR_ON)&&!/[?&]pcmort=0\b/.test(location.search); /* (2026-10-24) le téléphone aussi, par le mode frais */
 function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):VHD_PX_PC; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
-  return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE||(window.CC_DPR_CADRE&&!/[?&]vhd15=1\b/.test(location.search))?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
+  return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE||(window.CC_DPR_CADRE&&/[?&]vhd15=0\b/.test(location.search))?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(ALLEGE?4:8,m);
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
 function vhdBascule(on){ if(VHD.off||on===VHD.on)return;
