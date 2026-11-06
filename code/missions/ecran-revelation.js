@@ -133,7 +133,7 @@ function mcLigne(x,k,s){const m=x.m,pret=x.rg===0,ok=x.ok&&!pret,R=mcRec(m),w=mc
   return '<div class="mcL'+(pret?' pret':'')+(ok?' ok':'')+(hab?' hab':'')+'" data-m2="'+m.id+'" role="button" tabindex="0" style="--i:'+Math.min(k,12)+(hab?';--rc:'+R.c:'')+'">'
     +'<div class="mcLt"><b>'+(m.f==='secret'?sansAcc(TR('SECRÈTE'))+' · ':'')+sansAcc(m2Txt(m))+'</b><span class="mbR'+(m2CarVoir(m)&&!pret?' voir':'')+'">'+rec+'</span></div>'+bas+'</div>';}
 function mcLignePal(d){return '<div class="mcL ok" data-pal="'+d.id+'"><div class="mcLt"><b>'+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><span class="mbR voir">'+objFig({cat:'peinture',i:COSM.peinture.indexOf(d)})+'</span></div><small class="mcFait">'+sansAcc(TR('SECRÈTE'))+' · '+sansAcc(TR('RÉUSSIE'))+'</small></div>';}
-function mcEntete(ic,nom,cpt){return '<div class="gModeT mcSec">'+pxi(ic)+'<span>'+sansAcc(TR(nom))+'</span><s></s><b>'+cpt+'</b></div>';}
+function mcEntete(ic,nom,cpt,cl){return '<div class="gModeT mcSec'+(cl?' '+cl:'')+'">'+pxi(ic)+'<span>'+sansAcc(TR(nom))+'</span><s></s><b>'+cpt+'</b></div>';}
 function m2Vue(L,s,vu){ // → {ved : la vedette (l'écran de mort seulement, depuis le 2026-11-05) · listeTab : TOUTES les missions de l'onglet MISSIONS, en sections · n : missions à l'écran}
   const prets=L.filter(function(x){return x.rg===0;}),reste=L.filter(function(x){return x.rg===1||x.rg===2;});
   const fo=function(x){const o=M2_ORDRE[x.m.f];return o==null?9:o;};
@@ -143,7 +143,7 @@ function m2Vue(L,s,vu){ // → {ved : la vedette (l'écran de mort seulement, de
   if(!ved){let b=-1;for(const x of reste)if(x.m.r&&x.m.r.car&&x.p>b){b=x.p;ved=x;}}
   if(!ved)for(const x of reste)if(!ved||x.p>ved.p)ved=x;
   let listeTab='',k=0;
-  if(prets.length){listeTab+=mcEntete('cadeau','À RÉCUPÉRER',prets.length);for(const x of prets)listeTab+=mcLigne(x,k++,s);}
+  if(prets.length){listeTab+=mcEntete('cadeau','À RÉCUPÉRER',prets.length,'mcRec9');for(const x of prets)listeTab+=mcLigne(x,k++,s);}
   let fam='';
   for(const x of reste){const f=x.m.f;
     if(f!==fam){fam=f;let tot=0,ok=0;for(const m of M2){if(m.f!==f||!m2Dispo(m))continue;tot++;if(s.ok.indexOf(m.id)>=0)ok++;}
@@ -189,15 +189,72 @@ function m2Recupere(id,row){
   else toast(pxi('piece')+' +'+fmtC(o.cash)+' '+TR('VERSÉS AU COMPTE'),true);
   try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}
   setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions'))m2Render(true);else m2Portes();},REDUCED_MOTION?0:560);}
+/* ===== RÉCUPÉRER EN SPAMMANT (2026-11-06, Sacha : « quand on réussit une mission elle doit avoir une animation cool et se remplacer vite, genre on peut
+   récupérer toutes les récompenses en spammant ») =====
+   Avant : un toucher sur une ligne verte = le geste complet (pop, toast, 560 ms, PUIS toute la liste reconstruite) ; la ligne restait là et un 2e toucher
+   donnait le son du refus ; la caisse en silhouette attendait même 1,4 s. Maintenant, dans l'écran MISSIONS (lignes .mcL) :
+   · la récompense est versée AU TOUCHER (m2Prend), sans attente ;
+   · la ligne FLASHE, un reflet la balaie, elle s'envole à droite et son hauteur se replie en ~0,35 s (.vite) — la suivante MONTE sous le doigt ;
+   · le gain (« +1 500 € », le nom de la caisse) s'élève depuis la ligne ; l'éclat de pixels part de la ligne ; le compteur d'argent défile ;
+   · une SÉRIE : chaque toucher en moins d'1,5 s allonge « ×N » (et son cumul d'euros) et monte la note d'un cran (gamme pentatonique) ;
+   · un toucher sur une ligne qui s'envole encore prend la PROCHAINE ligne verte (aucun toucher n'est perdu) ;
+   · la liste n'est reconstruite qu'une fois, 0,9 s après le dernier toucher (les réussies passent au pli « MISSIONS RÉUSSIES »).
+   Une SECRÈTE à caisse garde sa révélation (le moment fort, jamais sautée par la série). `?recup=ancien` = l'ancien geste. */
+const M2VITE=!/[?&]recup=ancien\b/.test(location.search);
+const M2V={n:0,t:0,cash:0,rend:0,cb:0,g:[0,2,4,7,9,12,14,16,19,21,24]};
+Object.assign(I18N,{'SÉRIE':'COMBO'});
+function m2VitePret(row){ /* la ligne verte qui suit (sinon la première) : jamais une secrète à révélation, qui se touche exprès */
+  const sec=m2RevFile(),L=[].slice.call(document.querySelectorAll('#gmListe .mcL.pret:not(.vite)')).filter(function(e){return sec.indexOf(e.getAttribute('data-m2'))<0;});
+  if(!L.length)return null;
+  const p=row&&L.find(function(e){return !!(row.compareDocumentPosition(e)&4);});
+  return p||L[0];}
+function m2ViteEnTete(){ /* l'en-tête « À RÉCUPÉRER n » : le compte baisse, il s'efface à zéro */
+  const h=document.querySelector('#gmListe .mcRec9');if(!h)return;
+  const n=document.querySelectorAll('#gmListe .mcL.pret:not(.vite)').length,b=h.querySelector('b');
+  if(b)b.textContent=n;if(!n)h.classList.add('vide');}
+function m2ViteGain(row,o){ /* le gain qui s'élève depuis la ligne */
+  const r=row.getBoundingClientRect();let h,c='';
+  if(o.car!=null)h=pxi('voiture')+' '+sansAcc(TR(CARS[o.car].name));
+  else if(o.cat){const d=(COSM[o.cat]||[]).find(function(x){return x.id===o.hab;});h=pxi('coche')+' '+sansAcc(TR(d?d.n:'')) ;c=' hab';}
+  else h='+'+fmtC(o.cash);
+  const g=document.createElement('div');g.className='m2Gain'+(o.car!=null?' car':c);g.innerHTML=h;
+  g.style.left=Math.round(r.left+r.width*.5)+'px';g.style.top=Math.round(r.top+r.height*.5)+'px';
+  document.body.appendChild(g);setTimeout(function(){g.remove();},900);}
+function m2ViteSerie(o){ /* la pastille ×N de la série */
+  if(M2V.n<2)return;let e=document.getElementById('m2Combo');
+  if(!e){e=document.createElement('div');e.id='m2Combo';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
+  e.innerHTML='<small>'+sansAcc(TR('SÉRIE'))+'</small><b>×'+M2V.n+'</b>'+(M2V.cash?'<em>+'+fmtC(M2V.cash)+'</em>':'');
+  e.classList.remove('pop');void e.offsetWidth;e.classList.add('on','pop');
+  clearTimeout(M2V.cb);M2V.cb=setTimeout(function(){e.classList.remove('on');},1500);}
+function m2RecupVite(id,row){
+  if(!m2Pret(id)){m2Recupere(id,row);return;} /* « bientôt au garage » : le geste d'avant (secousse, toast) */
+  const o=m2Prend(id);if(!o){uiClic('refus');return;}
+  const now=performance.now();M2V.n=now-M2V.t<1500?M2V.n+1:1;M2V.t=now;M2V.cash=(M2V.n===1?0:M2V.cash)+(o.cash||0);
+  const st=M2V.g[Math.min(M2V.n-1,M2V.g.length-1)];
+  try{if(SONV2){sfx(o.cash?'ui.achat':'ui.debloque',{st:st});if(M2V.n===1&&!REDUCED_MOTION)sfx('ui.tampon',{t:.2,vol:-4});if(M2V.n%5===0)sfx('ui.mission');}else uiClic('ok');}catch(e){}
+  hap(M2V.n>2?[10]:[12,30,18]);
+  if(o.car!=null)try{carSnapshot();}catch(e){}
+  try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}
+  row.classList.add('vite');if(row.querySelector('.mcSil.duo'))row.classList.add('revele'); /* la caisse sort du noir pendant que la ligne part */
+  if(REDUCED_MOTION){row.remove();m2ViteEnTete();}
+  else{row.style.setProperty('--h',row.offsetHeight+'px');
+    try{pixBurst(row.querySelector('.m2Pr')||row,12);pixBurst(row.querySelector('.mbR')||row,10);}catch(e){}
+    m2ViteGain(row,o);m2ViteSerie(o);
+    setTimeout(function(){row.remove();m2ViteEnTete();},360);
+    m2ViteEnTete();}
+  clearTimeout(M2V.rend);M2V.rend=setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions')&&!document.querySelector('#gmListe .mcL.vite'))m2Render(true);else m2Portes();},900);}
 function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
   if(t.closest('.mcBack')){uiClic('retour');garMisRetour();return;} /* (2026-11-03, refonte) le ◀ de la page */
   const fin=t.closest('.m2Fin');if(fin){M2E.fin=!M2E.fin;uiClic(M2E.fin?'on':'off');hap(8);m2Render(true);
     if(M2E.fin){const f2=document.querySelector('#gmListe .m2Fin');if(f2&&f2.scrollIntoView)try{f2.scrollIntoView({block:'start',behavior:REDUCED_MOTION?'auto':'smooth'});}catch(x){}}return;}
   const pal=t.closest('[data-pal]');if(pal){const j=COSM.peinture.findIndex(function(d){return d.id===pal.getAttribute('data-pal');});if(j<0)return;uiClic('nav');
     ecranWipe(function(){garMode('boutique');shopTab('peinture');shopShow('peinture',j);});return;}
-  const row=t.closest('.m2L,.mcL,.mcV');if(!row)return;const id=row.getAttribute('data-m2'),m=m2Def(id);if(!m)return;const s=m2Etat();
+  let row=t.closest('.m2L,.mcL,.mcV');if(!row)return;
+  if(row.classList.contains('vite')){row=m2VitePret(row);if(!row)return;} /* (2026-11-06) un toucher sur la ligne qui s'envole prend la suivante : aucun toucher perdu */
+  const id=row.getAttribute('data-m2'),m=m2Def(id);if(!m)return;const s=m2Etat();
   if(row.classList.contains('pret')){if(m.f==='secret'&&m2Revele(id))return;
     if(row.classList.contains('revele'))return; /* (2026-11-03) la révélation est en cours */
+    if(M2VITE&&row.classList.contains('mcL')){m2RecupVite(id,row);return;} /* (2026-11-06) la récupération en série, voir plus haut */
     if(row.querySelector('.mcSil.duo')&&m2Pret(id)){row.classList.add('revele');try{if(SONV2)sfx('ui.debloque');}catch(x){}hap([20,60,20,60,60]); /* la caisse sort du noir, PUIS elle est à toi */
       setTimeout(function(){if(row.isConnected)m2Recupere(id,row);},REDUCED_MOTION?0:1400);return;}
     m2Recupere(id,row);return;} // une SECRÈTE qui brille : sa révélation · (2026-10-31) AVANT la photo : sur une ligne prête, la photo récupère aussi (voir m2PrendIci)
