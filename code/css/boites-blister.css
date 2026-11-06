@@ -160,7 +160,7 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph img{position:static;width:100%;hei
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph.c-aile img{transform:none}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph:is(.c-trainee,.c-figure){align-items:stretch}
 /* la plaque du nom, au fond ; le prix devant */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKn{position:relative;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:46px;margin:0 6px 7px;padding:19px 6px 3px;
+html #gBq #gBqPan .bqK:not(.pnt) .bqKn{position:relative;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:50px;margin:0 6px 7px;padding:24px 6px 3px;
   text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:12px;transform:translateZ(-50px) scale(1.07);
   background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 40%,#2b3246),color-mix(in srgb,var(--rc) 14%,#0f121b));box-shadow:inset 0 1px 0 rgba(255,255,255,.3);text-shadow:0 0 6px var(--rc),0 1px 0 rgba(0,0,0,.55)}
 html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKn{background:linear-gradient(#5a3a00,#24160a);color:#ffe9a8;text-shadow:0 1px 0 #000}
@@ -197,4 +197,13 @@ html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKp{border-color:#fff}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKp.defi{flex-direction:column;gap:3px;padding:4px 8px 5px;font-size:8.5px;min-width:64%}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKp .jg{display:block;width:100%;height:4px;margin:0;background:rgba(58,10,44,.28);border-radius:2px;overflow:hidden}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKp .jg u{display:block;height:100%;background:#3a0a2c;border-radius:2px;text-decoration:none}
+/* ===== LA VOITURE DANS LE CUBE (2026-11-06, Léo : « les voitures à l'intérieur du cube, comme les traînées ; le cube un peu plus épais ; le nez à droite, l'arrière à gauche, un peu penchée comme le cube ; petites idées en plus ») =====
+   Le cube garde sa place et sa largeur mais passe à 46 cqw d'épaisseur (34 avant) : la voiture, plan debout tourné comme lui, flotte au milieu avec de l'air devant et derrière.
+   Le nez à DROITE : la photo des caisses est prise le nez à gauche, on la retourne (scaleX(-1)). Idées légères (aucune animation, aucun filtre) : un sol quadrillé, un fond à étincelles pour les épiques et plus,
+   un liseré lumineux sur le verre de devant. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img{transform:scaleX(-1)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fl{background:radial-gradient(ellipse 46% 40% at 50% 52%,rgba(20,30,45,.26),rgba(20,30,45,0) 100%),repeating-linear-gradient(0deg,rgba(255,255,255,.35) 0 1px,transparent 1px 6cqw),repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 1px,transparent 1px 6cqw),linear-gradient(180deg,color-mix(in srgb,var(--rc) 24%,#e9eef5),color-mix(in srgb,var(--rc) 40%,#c6d0de))}
+html #gBq #gBqPan .bqK:is(.b-epique,.b-legendaire,.b-mythique,.b-infini):not(.pnt) .bqKv .bk{background:radial-gradient(circle,#fff 0 .5cqw,transparent .9cqw) 16% 24%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .7cqw,transparent 1.1cqw) 84% 30%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .45cqw,transparent .8cqw) 72% 14%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .6cqw,transparent 1cqw) 28% 74%/1px 1px no-repeat,radial-gradient(ellipse 62% 70% at 50% 64%,rgba(255,255,255,.95),rgba(255,255,255,0) 72%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 30%,#fff),color-mix(in srgb,var(--rc) 55%,#8a97aa))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{box-shadow:inset 0 0 1.6cqw color-mix(in srgb,var(--rim) 70%,transparent)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv{--D:42cqw} /* (le .bqKv porte ses propres --W --H --D : c'est ICI qu'on règle l'épaisseur, 30 → 42 cqw) */
 </style>
