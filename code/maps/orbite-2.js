@@ -235,7 +235,7 @@ const PHARE_FX=(function(){
   const cv=document.createElement('canvas');cv.width=4;cv.height=64;const c=cv.getContext('2d'),g=c.createLinearGradient(0,0,0,64);
   {g.addColorStop(0,'rgba(255,255,255,.12)');g.addColorStop(.06,'rgba(255,255,255,.5)');g.addColorStop(.22,'rgba(255,255,255,.42)');g.addColorStop(.6,'rgba(255,255,255,.12)');g.addColorStop(1,'rgba(255,255,255,0)');} /* (2026-10-17, les lumières de la caisse v2) le faisceau NAÎT au phare au lieu d'y flamber : vu de la poursuite, le pied du cône faisait un éventail blanc posé sur le capot */
   c.fillStyle=g;c.fillRect(0,0,4,64);const tx=new THREE.CanvasTexture(cv);
-  const geo=new THREE.ConeGeometry(6,70,18,1,true);geo.translate(0,-35,0);geo.rotateX(-Math.PI/2);geo.rotateX(.045); // la pointe au phare, l'ouverture 70 m devant, un rien vers le bitume
+  const geo=new THREE.ConeGeometry(3.6,70,18,1,true);geo.translate(0,-35,0);geo.rotateX(-Math.PI/2);geo.rotateX(.045); // la pointe au phare, l'ouverture 70 m devant, un rien vers le bitume
   const m=new THREE.MeshBasicMaterial({map:tx,color:0xffe6c4,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.FrontSide});
   const L=[new THREE.Mesh(geo,m),new THREE.Mesh(geo,m)];for(const o of L){o.visible=false;o.frustumCulled=false;o.renderOrder=7;scene.add(o);} // 7 : au-dessus du museau du dragon de NITROOO (renderOrder 6) — les phares restent nets
   return {L:L,m:m,d:new THREE.Vector3(),u:new THREE.Vector3(),r:new THREE.Vector3()};})();
