@@ -276,6 +276,8 @@ function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?n
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.pack==='chat'){px=sansAcc(TR('PACK CHAT'));c='eur';}else if(d.eur){px=eurTxt(d.eur);c='eur';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';} /* (2026-10-18 soir) l'ARC-EN-CIEL : PACK CHAT (voir chatPackI) */
   if(bqPxLg(px))c+=' lg';
+  /* (2026-11-06, Léo : « la mission doit montrer sa progression ») une caisse à MISSION (pas la secrète) : une jauge sous le mot, remplie à l'avancement réel */
+  if(vo&&c.indexOf('defi')>=0&&c.indexOf('sec')<0&&!a){try{const m9=m2DeCaisse(i);if(m9){const t9=m2Seuil(m9),f9=m2Frac(m9,m2Val(m9),t9),pc9=Math.round(100*f9);px+='<b class="jg" title="'+m2Prog(m9,m2Val(m9),t9).replace(/"/g,'')+'"><u style="width:'+pc9+'%"></u></b>';}}catch(e){}}
   /* (2026-10-31, clarté boutique) une figure à DEUX SENS a une carte dans chacune de ses sections : un petit badge dit qu'elle joue AUSSI
      dans l'autre emplacement (sinon ça ressemble à un doublon) — sa couleur reprend celle de CET autre emplacement (voir FIG_DC) */
   const autres=(!vo&&o.cat==='figure')?bqFigAutres(d.id,dir!=null?dir:figPeut(d.id)[0]):[];
