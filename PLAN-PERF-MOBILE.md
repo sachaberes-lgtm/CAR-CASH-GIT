@@ -160,3 +160,30 @@ Paramètres d'essai (à ajouter à l'adresse, ou me demander de les poser) : `?m
 ## LA DÉCOUVERTE DE LA NUIT (26/10, 00 h 58) : le 30 DÈS LE DÉPART supprime l'effondrement
 Séance de 7 min, 13 Pro, v903, dose du gouverneur forcée à 200 dès la 2e seconde (donc 30 calées du début à la fin) : **31,5 · 26,5 · 25,4 · 29,6 · 30,4 · 30,3 · 30,3 · 31,1 i/s**, 85 à 100 % des intervalles entre 28 et 39 ms, p99 35-68 ms, 14-53 images > 50 ms par minute aux minutes 4-8 (contre 330-430 sans), alors que la batterie monte à 38 °C. Les séances qui jouent les 60 à 100 premières secondes à 60 i/s s'effondrent à 5-13 i/s aux minutes 3-5, MÊME parties de 32,3 °C (témoin A1 : 51,9 · 26,4 · 19,2 · 7,6 · 5,6 · 6,8 · 5,8) et MÊME quand le gouverneur cale ensuite sur 30 (v901). Lecture : c'est la chaleur des premières minutes à 60 qui déclenche la bride d'iOS ; une fois bridé, caler sur 30 ne rattrape pas.
 **Décision à prendre par Sacha** : `?mob_g30=1` (v904, commit bf665320, INACTIF par défaut) = 30 calées dès le départ de chaque course sur téléphone récent. Contrepartie : plus de 60 i/s dans les premières minutes, là où le 13 Pro les tient quelques dizaines de secondes. Variante « 60 pendant ~40 s puis 30 » : non validée. La preuve complète est la séance F ci-dessus ; la reproduction par le paramètre (G30) et deux témoins suivent.
+
+## CORRECTION (26/10, 23 h 50) : le 30 dès le départ par le paramètre NE REPRODUIT PAS la séance F
+Suite `ordre4-suite.sh` (13 Pro, v904 Release, repos puis départ à 33,8 / 34,2 / 36,x °C). i/s rendues par minute de course (`.banc-optim/minutes.mjs`) :
+| Séance | Réglage | min 1 | 2 | 3 | 4 | 5 | 6 | 7 | Batterie |
+|---|---|---|---|---|---|---|---|---|---|
+| F (00 h 57) | dose forcée à 200 à la 2e s | 31,5 | 26,5 | 25,4 | 29,6 | 30,3 | 30,3 | 30,3 | 35,9 → 38 |
+| **G30 (02 h 25)** | `?mob_g30=1` | 30,5 | 24,2 | 16,7 | **5,7** | 5,8 | 8,1 | 6,0 | 33,8 → 37,9 |
+| B1 (02 h 44) | leviers coupés | 49,4 | 23,7 | 14,0 | 4,5 | 2,6 | 2,6 | 2,7 | |
+| A2 (03 h 04) | v904 par défaut | 53,2 | 26,1 | 19,8 | 20,8 | 17,3 | 15,3 | 19,0 | 34,2 → 36,7 |
+(A1 de la nuit, sans gouverneur : 51,9 · 26,4 · 19,2 · 7,6 · 5,6 · 6,8 · 5,8.)
+Lecture : G30 était bien calée sur 30 dès le départ (min 1 : 30,5 i/s, 92 % entre 28 et 39 ms, cadence 30 engagée à la 1re image) et s'effondre quand même à 5-8 i/s dès la minute 4, comme A1 et B1. La découverte « le 30 dès le départ supprime l'effondrement » n'est donc PAS établie : F est un échantillon isolé. Le code est le même pour F et G30 (tout passe par `mobChaud()`, cadence, échelle QL gelée). Seule différence mesurée : l'échelle de qualité de F est descendue à k = 9 (dpr 1,25, 254 k triangles) dès la minute 3-4 et y est restée ; celle de G30 est restée à k = 4-6 (dpr 1,44, 324 k triangles). Mais A2 va jusqu'à k = 14 (dpr 1,0) et tient 15-20 i/s seulement. A2 (le réglage par défaut) a fait mieux que G30 et B1 : la variance de la bride d'iOS est du même ordre que l'effet cherché (un seul échantillon par réglage).
+Conséquences : `?mob_g30=1` reste inactif et ne doit pas être recommandé à Sacha sur cette preuve ; le commentaire de `gouverneur-thermique.js` et le message de bf665320 (« mesurée sur le 13 Pro ») sont trop affirmatifs. Pour trancher : rejouer F à l'identique (étape `force` D = 200) pour savoir s'il est reproductible, puis seulement G30 avec l'échelle QL forcée à k = 9 dès le départ.
+
+## F2 (27/10, 00 h 06) : LA SÉANCE F SE REPRODUIT — mais pas par le paramètre
+F rejouée à l'identique (v904, étape `force` = `dbgGouv(200)` à la 2e seconde, 52 étapes, départ à 35,2 °C, fin à 38,8 °C, repos sauté à la demande de Sacha) : **27,9 · 27,3 · 27,8 · 28,0 · 25,4 · 27,8 · 26,2 · 28,9 i/s**, 74-94 % des intervalles entre 28 et 39 ms, aucune minute sous 25 i/s. Mesure faite à QUALITÉ MAXIMALE tout du long (échelle k = 0, résolution 1,5, 550 k triangles, 143 appels de dessin) : l'hypothèse « F a tenu parce que sa qualité est descendue au palier 9 » ci-dessus est RÉFUTÉE.
+Bilan des séances de 7 min au 13 Pro : dose forcée à 200 → **tient 25-31 i/s (2 sur 2, F et F2)** ; `?mob_g30=1` → s'effondre (G30, 1 sur 1) ; A1, B1 → s'effondrent ; A2 (défaut) → 15-20 i/s. Dans le code, F et G30 passent par le même `mobChaud()` : je n'ai pas trouvé pourquoi le paramètre ne donne pas la même chose. Soit G30 est un mauvais tirage, soit un chemin du code diffère (la dose forcée pose aussi `MOB_S.actif` et la sauvegarde `cashcarMobGouv`). À trancher : rejouer G30 une 2e fois ; s'il s'effondre encore, chercher la différence dans le code.
+
+## G30 d (31/10, 15 h 27) : `?mob_g30=1` TIENT cette fois, mais moins bien que la dose forcée
+Séance complète de 7 min, 13 Pro, v904, départ 34,5 °C, fin 38,1 °C, verrouillage automatique mis sur « Jamais » par Sacha (le wakeLock demandé par la page est refusé : `NotAllowedError`). i/s rendues par minute : **27,9 · 27,7 · 22,2 · 20,9 · 20,4 · 23,3 · 23,5** (8e minute partielle 21,8) ; 46-65 % des intervalles réguliers (28-39 ms) aux minutes 3-7, 267-417 images > 50 ms par minute, p99 120-160 ms.
+| Réglage | Séances | i/s aux minutes 4-7 | Intervalles réguliers (min 4-7) |
+|---|---|---|---|
+| dose forcée à 200 (F, F2) | 2 sur 2 tiennent | 25-30 | 74-88 % |
+| `?mob_g30=1` (G30, G30 d) | 1 s'effondre, 1 tient mollement | 6-8 puis 20-23 | 0-5 % puis 46-65 % |
+| v904 par défaut (A2) | 1 | 15-20 | 25-35 % |
+| sans gouverneur (A1), leviers coupés (B1) | 2 | 3-7 | 0-2 % |
+Lecture : le paramètre fait mieux que le défaut et que le sans-gouverneur, mais pas aussi bien que la dose forcée, et il a déjà donné un effondrement (n = 2, variance de la bride d'iOS du même ordre que l'écart). Dans le code les deux passent par `mobChaud()` ; la dose forcée pose en plus `MOB_S.D=200`, `MOB_S.actif=true` et la sauvegarde. Piste : faire poser par `?mob_g30=1` exactement cet état au départ de la course (D = 200, actif), puis une séance. Rien n'est commité.
+Pièges du banc rencontrés (4 essais de G30 bis) : voir `banc-iphone-pieges-25-10` (id réutilisé, verrouillage de l'écran, mesures effacées par le délai du chef).
