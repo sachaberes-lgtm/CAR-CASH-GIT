@@ -28164,13 +28164,13 @@ function* jadeAJG(g,jx){if(g.attributes.aJ&&g.attributes.aJ.array[0]===jx)return
   for(let k=0;k<n;k++){aJ[k*4]=jx;aJ[k*4+1]=1;if((k&16383)===16383&&performance.now()>JF.lim)yield;}
   g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
 function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur : ses cubes (voxMeshG, colMeshG) rendent la main à l'échéance JF.lim
-  const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),D=170;
-  let wG=560,wD=560;
+  const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),D=110; /* (2026-11-06, Léo : « la montagne de Jade fait bugger, pas une énorme forêt : une colline beaucoup plus petite avec des arbustes, comme en Thaïlande (Koh Phi Phi, Koh Lanta) ») la porte devient un îlot KARSTIQUE : 230 m de chaque côté (avant 560), 110 m d'épaisseur (170), 270 m de haut (520), arche de 124 m × 150 m (176 × 215) — environ le tiers des cubes */
+  let wG=230,wD=230;
   for(let i=0;i<NP;i+=4){if(Math.abs(i-i0)<Math.round(420/(L/(NP-1))))continue;const q=pts[i],dx=q.x-p.x,dz=q.z-p.z,u=dx*t.x+dz*t.z,v=dx*b.x+dz*b.z;
     if(Math.abs(u)>D/2+ROAD_HALF+40)continue;if(v>0)wD=Math.min(wD,v-ROAD_HALF-50);else wG=Math.min(wG,-v-ROAD_HALF-50);}
-  if(wG<180||wD<180)return;
+  if(wG<130||wD<130)return;
   wG=Math.floor(wG/VXG)*VXG;wD=Math.floor(wD/VXG)*VXG;
-  const y0=p.y,hb=-55,ht=215,hw=88,top=520,W=wG+wD,ab=ht-hw*.9;
+  const y0=p.y,hb=-55,ht=150,hw=62,top=270,W=wG+wD,ab=ht-hw*.9;
   const ph=[jr()*6.28,jr()*6.28,jr()*6.28],crete=f=>{const cr=Math.sin(Math.max(0,Math.min(1,f))*Math.PI);return top*(.62+.38*Math.sqrt(cr))-(1-cr)*90+
       70*Math.pow(Math.abs(Math.sin(f*5.1+ph[0])),2.5)+35*Math.sin(f*13.7+ph[1])+18*Math.sin(f*31.+ph[2]);};
   const vn=rocNoise2(jr()*100),vb=rocNoise2(jr()*100);
@@ -28186,7 +28186,7 @@ function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur
     C.reprises++;C.ms=Math.round(performance.now()-tG0);}
   else{const nJ0=nJ;
   const oy=Math.floor((y0-440)/VXG)*VXG,nx=Math.round(W/VXG),nz=Math.round(D/VXG),ny=Math.ceil((y0+top+130-oy)/VXG);G=voxG(nx,ny,nz);
-  const cretes=new Float32Array(nx);for(let x=0;x<nx;x++)cretes[x]=crete((x+.5)/nx)+(jr()-.5)*10;
+  const cretes=new Float32Array(nx);for(let x=0;x<nx;x++)cretes[x]=crete((x+.5)/nx)+(jr()-.5)*10+(vn(x*VXG/5*.9,7.7)>.52?6+9*vn(x*VXG/5*.4,2.2):0); /* (2026-11-06) les ARBUSTES : des boules de verdure sur la crête (la tête de la colline, comme les îlots de Thaïlande) */
   const basT=new Float32Array(nx*nz);for(let x=0;x<nx;x++){const v=-wG+(x+.5)*VXG,xn=(v-(wD-wG)/2)/(W/2);for(let z=0;z<nz;z++)basT[x*nz+z]=-300+180*xn*xn+90*(vb(x*VXG/5*.09,z*VXG/5*.12)-.5);} // le DESSOUS, en pointes : le massif flotte
   for(let x=0;x<nx;x++){if(performance.now()>JF.lim)yield;const v=-wG+(x+.5)*VXG;
     for(let y=0;y<ny;y++){const yr=oy+(y+.5)*VXG-y0;if(yr>cretes[x])break;
@@ -28195,7 +28195,7 @@ function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur
       for(let z=z0;z<z1;z++)if(yr>=basT[x*nz+z])G.d[x+nx*(z+nz*y)]=JM.roche;}}
   for(let x=0;x<nx;x++){if(performance.now()>JF.lim)yield;const ru=vn(x*VXG/5*.3,3.3)>.83;
     for(let y=0;y<ny;y++)for(let z=0;z<nz;z++){const k0=x+nx*(z+nz*y);if(G.d[k0]!==JM.roche)continue;const yr=oy+(y+.5)*VXG-y0;
-      if(!voxAt(G,x,y+1,z)&&yr>-60){G.d[k0]=JM.herbe;continue;}
+      if(!voxAt(G,x,y+1,z)&&yr>-60){G.d[k0]=vn(x*VXG/5*.9,7.7)>.52?JM.feuille:JM.herbe;continue;}
       if(ru&&(!voxAt(G,x,y,z-1)||!voxAt(G,x,y,z+1))&&jr()<.9)G.d[k0]=JM.rouille;}}
   o=p.clone().addScaledVector(b,-wG).addScaledVector(t,D/2);o.y=oy;
   JADE.porte={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,hw:hw,hb:y0+hb,ht:y0+ht,G:G,o:o,i:i0,tri:0};
@@ -28219,7 +28219,7 @@ function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur
       if(z1>z0){LO[u+NU*v]=z0;HI[u+NU*v]=z1;}}}
     TT.cols=Math.round(performance.now()-T0);const cache=new Map(),nb=(u,v)=>{const cx=Math.floor((xa*K+u)/K),cy=Math.floor((ya*K+v)/K);if(cx<0||cy<0||cx>=nx||cy>=ny)return null;const kk=cx*4096+cy;
       if(!cache.has(kk)){let z0=-1,z1=-1;for(let z=0;z<nz;z++)if(G.d[cx+nx*(z+nz*cy)]){if(z0<0)z0=z;z1=z;}cache.set(kk,z0<0?null:[z0*K,(z1+1)*K]);}return cache.get(kk);};
-    const mat=(kind,u,v,sg)=>{if(kind==='w')return vn((xa*K+u)/K*VXG/5*.3,3.3)>.83?JM.rouille:1;if(kind==='v'&&sg>0)return oy+(ya*K+v+1)/K*VXG-y0>-60?JM.herbe:1;return 1;};
+    const mat=(kind,u,v,sg)=>{if(kind==='w')return vn((xa*K+u)/K*VXG/5*.3,3.3)>.83?JM.rouille:1;if(kind==='v'&&sg>0)return oy+(ya*K+v+1)/K*VXG-y0>-60?(vn((xa*K+u)/K*VXG/5*.9,7.7)>.52?JM.feuille:JM.herbe):1;return 1;};
     const gF=yield* colMeshG(NU,NV,LO,HI,[0,1,2],mat,nb,12);TT.F=Math.round(performance.now()-T0);const oF=o.clone().addScaledVector(b,xa*VXG);oF.y+=ya*VXG;
     yield* jadeAJG(gA,.37);if(performance.now()>JF.lim)yield;jadeMonument(root,gA,jadeRepere(o,b,t),.37,M9);yield* jadeAJG(gB,.37);if(performance.now()>JF.lim)yield;JADE.porte.mL=jadeMonument(root,gB,jadeRepere(oB,b,t),.37,M9);yield* jadeAJG(gF,.37);if(performance.now()>JF.lim)yield;JADE.porte.mF=jadeMonument(root,gF,jadeRepere(oF,b,t,VXG/K),.37,M9);
     for(const m of JADE.porte.mF)m.visible=false;JADE.porte.pres=false;JADE.porte.tri=gA.index.count/3+gB.index.count/3;JADE.porte.triF=gF.index.count/3;fin9=true;PG9={gA:gA,gB:gB,gF:gF,oB:oB,oF:oF,K:K};}catch(e){console.warn('porte fine',e);}}
