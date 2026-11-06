@@ -66529,8 +66529,11 @@ function dmtRattrape(net){const D=DMT,mx=D.mx,q=net?THREE.MathUtils.clamp(1-(D.t
      « beaucoup plus explosif » — « ×3 » — « tu arrives à contresens, la voiture fait le demi-tour, pendant que tu tournes ça prépare un boost, et
      dès que tu es en face de la route, ça décolle ») LE RATTRAPAGE EST LE DÉCOLLAGE : la charge a monté pendant tout le demi-tour (dmtCharge,
      appelée par dmtGlace) ; ici, la caisse est en face de la route : `dmtDecolle` la lâche — le boost additif ×3, le nitro, le wheelie. */
+  /* (2026-11-06, Sacha : « après un mauvais virage le texte reste affiché ») LE PANNEAU S'EFFACE DANS LES DEUX CAS : « DÉCOLLAGE ! » (le seul
+     qui rangeait « MAUVAIS SENS » dans le cas `net`) a été retiré le 03/11 ; depuis, un rattrapage propre laissait le panneau visible jusqu'à
+     la chute ou la mort suivante (dmtCoupe). */
+  dmtSigne(false);
   if(net){D.chargeQ=q;dmtDecolle();}
-  else dmtSigne(false);
 }
 /* ===== LE DÉCOLLAGE (2026-11-03, Sacha : « pas du tout assez puissant, il faut vraiment décollage, augmente le boost de 300 % — tu
    arrives à contresens, la voiture fait "chiii", zoom caméra qui se serre, les flammes se concentrent à l'intérieur du moteur, elles se
