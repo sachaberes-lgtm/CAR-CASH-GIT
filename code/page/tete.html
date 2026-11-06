@@ -42,6 +42,14 @@
    `node synchro-versions.js` (racine du dépôt) la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`.
    (Déclarée au niveau global — un `const` de script classique est visible du grand script, qui la lit.) */
 const EDITION='mobile';
+/* ===== LA NETTETÉ DANS LE CADRE SUR SAFARI / WEBKIT (2026-11-06, Léo : « sur mon ordi le jeu n'est pas à fond, ça ne vaut pas l'iPhone ») =====
+   Dans la page-cadre le jeu vit dans une iframe ZOOMÉE (844 × 390 agrandi à la fenêtre). Chrome donne au jeu la densité de l'écran × ce zoom (3,16 sur un Retina) : la 3D est dessinée aux pixels réels.
+   Safari / WebKit (et l'application CASH CAR) garde la densité de l'écran SANS le zoom (1 sur un iMac 1440p) : la 3D est dessinée en 844 × 390 puis étirée ×1,5 — le flou. Ici, dans le cadre, si la densité vue
+   ne contient pas déjà le zoom, `devicePixelRatio` rend densité de la page-cadre × zoom, en direct. Chrome (déjà bon) n'est pas touché. `?dprcadre=0` = avant. */
+(function(){try{if(!/[?&]colonne=1\b/.test(location.search)||/[?&]dprcadre=0\b/.test(location.search)||window.parent===window||!window.frameElement)return;
+  var base=window.devicePixelRatio||1,fe=window.frameElement,pd=window.parent.devicePixelRatio||1;
+  if(base>pd*1.05)return; /* Chrome : la densité du jeu contient déjà le zoom du cadre */
+  Object.defineProperty(window,'devicePixelRatio',{configurable:true,get:function(){try{return pd*Math.max(1,fe.getBoundingClientRect().width/Math.max(1,window.innerWidth));}catch(e){return base;}}});}catch(e){}})();
 if(/[?&]portes=haut\b/.test(location.search))document.documentElement.classList.add('portesHaut'); /* (2026-10-20, Léo : « le mission, le shop, tu remets ça en dessous ») les portes du garage sous le nom (Sacha, 19/10) : seulement avec ?portes=haut */
 if(/[?&]garage=(leo|avant)\b/.test(location.search))document.documentElement.classList.add('garLeo'); /* (2026-10-19, Sacha) LE GARAGE QUI PREND TOUT L'ÉCRAN (la feuille garageHaut) est le défaut ; ?garage=leo (ou =avant) rend le garage d'avant */
 if(/[?&]garjouer=0\b/.test(location.search))document.documentElement.classList.add('sansGarJouer'); /* (2026-10-18) le JOUER de l'inventaire et de la boutique, coupé : voir <style id="jouerGarage"> */
@@ -132,7 +140,7 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
       s.setProperty('--or',(6*z)+'px');
       if(debout){s.width=lo+'px';s.height=ep+'px';s.left=(b+(L*z-lo)/2)+'px';s.top=b+'px';s.borderRadius='0 0 '+ro+' '+ro;}
       else{s.width=ep+'px';s.height=lo+'px';s.left=b+'px';s.top=(b+(H*z-lo)/2)+'px';s.borderRadius='0 '+ro+' '+ro+' 0';}};
-    cadre();addEventListener('resize',cadre);
+    cadre();addEventListener('resize',function(){cadre();try{f.contentWindow.dispatchEvent(new Event('resize'));}catch(_){}}); /* (2026-11-06) le jeu relit sa densité quand le zoom du cadre change */
     /* (2026-10-03, Léo : « pourquoi le menu du début est mal placé », sur ses deux liens) LE ZOOM NE PASSE PAS PARTOUT : Chrome applique le
        `zoom` de l'iframe à son contenu (le jeu s'y croit dans un écran de 844 × 390, en haute définition) ; un navigateur qui ne le fait
        pas (Safari ? Firefox ? — pas de banc pour eux ici) donne au jeu un écran de 1 400 px de large : le menu passe en disposition
