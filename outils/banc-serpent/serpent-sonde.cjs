@@ -28,6 +28,11 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const corps=`JSON.stringify({sonde:window.dbgSerpent&&window.dbgSerpent(),boite:(window.dbgErreurs?window.dbgErreurs():[]).filter(function(e){return e.g==='serpent'}).map(function(e){return e.m+(e.o?' ↳ '+e.o:'')}),t:Math.round(performance.now()/100)/10,ready:!!window.__gameReady,serpent:!!document.getElementById('spCharge')})`;
   /* ?tel=1 met le jeu dans l'iframe de la colonne : on cherche la fenêtre qui porte dbgSerpent */
   const expr=`(function(){var W=[window].concat(Array.prototype.slice.call(window.frames));for(var i=0;i<W.length;i++){try{if(W[i].dbgSerpent)return W[i].eval(${JSON.stringify(corps)});}catch(e){}}return '{}';})()`;
+  if(process.env.JOUER){ /* JOUER=<secondes> : lance une course (dbgJouer) puis lit dbgFluide() (la sonde de fluidité en course) et la boîte noire */
+    console.log('JOUER',await ev(`(function(){var W=[window].concat(Array.prototype.slice.call(window.frames));for(var i=0;i<W.length;i++){try{if(W[i].dbgJouer)return JSON.stringify(W[i].dbgJouer());}catch(e){}}return 'rien';})()`));
+    await sleep(+process.env.JOUER*1000);
+    console.log('FLUIDE',await ev(`(function(){var W=[window].concat(Array.prototype.slice.call(window.frames));for(var i=0;i<W.length;i++){try{if(W[i].dbgFluide)return JSON.stringify({f:W[i].dbgFluide(),err:W[i].dbgErreurs().filter(function(e){return e.g==='erreur'||e.g==='boucle'||e.g==='panne'}).map(function(e){return e.m}).slice(0,5)},null,1);}catch(e){}}return 'pas de dbgFluide';})()`));
+  }
   const r=JSON.parse(String(await ev(expr)||'{}'));
   console.log('SONDE',JSON.stringify({t:r.t,gameReady:r.ready,serpentEncorLa:r.serpent,trous:(r.sonde||[]).length}));
   (r.sonde||[]).forEach(x=>console.log('  ',(x.t/1000).toFixed(1)+' s','trou',x.d,'ms · JS',x.js,'· GL',x.gl,x.pile?'('+x.pile+')':'','· fil',x.fil));

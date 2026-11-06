@@ -93,12 +93,12 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
   /* ===== LA BOÎTE NOIRE (2026-10-27, Léo : « utilise les techniques Cloudflare pour soigner notre jeu, et fais en sorte que mon jeu ne bugge
      plus du tout » — choisi : « leur méthode anti-bugs ») =====
      On ne corrige que ce qu'on voit. Une erreur en pleine partie ne laissait qu'une ligne dans une console que personne ne lit sur un
-     téléphone. Le jeu la NOTE désormais lui-même, sur l'appareil (localStorage `cashcarErr`, 30 lignes au plus, une même erreur = une
+     téléphone. Le jeu la NOTE désormais lui-même, sur l'appareil (localStorage `cashcarErr`, 80 lignes au plus (les sondes ont leur plafond), une même erreur = une
      ligne avec son compteur) : erreurs JS, promesses rejetées, panne d'un morceau de la boucle (loopWarn), et les GELS (une image de plus
      d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
      quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
   (function(){
-    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0;
+    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0,CAPS={serpent:25,fluide:40};
     var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
     var ecrit=function(){attente=0;try{localStorage.setItem(CLE,JSON.stringify(L));}catch(_){}};
     window.__ccNote=function(genre,msg,ou){
@@ -108,7 +108,8 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
         lit();var e=null;for(var i=0;i<L.length;i++)if(L[i].k===cle){e=L[i];break;}
         var v=(typeof CC_VER==='string'?CC_VER:'?');
         if(e){e.n++;e.t=t;e.v=v;if(ou)e.o=String(ou).slice(0,160);}
-        else{L.push({k:cle,g:genre,m:msg,o:ou?String(ou).slice(0,160):'',n:1,t0:t,t:t,v:v,d:window.__gameReady?1:0});if(L.length>30)L.splice(0,L.length-30);}
+        else{L.push({k:cle,g:genre,m:msg,o:ou?String(ou).slice(0,160):'',n:1,t0:t,t:t,v:v,d:window.__gameReady?1:0});if(L.length>80)L.splice(0,L.length-80);
+          var cp=CAPS[genre];if(cp){var k9=0,j9;for(j9=L.length-1;j9>=0;j9--)if(L[j9].g===genre&&++k9>cp)L.splice(j9,1);}} /* (2026-11-06) les sondes (« serpent », « fluide ») ne chassent pas les vraies erreurs : un plafond par genre */
         if(!attente){attente=1;setTimeout(ecrit,400);}
         try{var vv=document.getElementById('mvVer');if(vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){}
       }catch(_){}
