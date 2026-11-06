@@ -12669,7 +12669,7 @@ function carVit(dt){
    LA NUIT (`LUM.nuit`) se lit à la lumière du lieu (le ciel et le soleil posés par bioApply : ~0,55 de jour, 0,34 au soir et sous la pluie, 0,10-0,16
    la nuit, mesuré sur les 32 couples map × météo) et au drapeau `nuit` du niveau : phares et feux ne MORDENT qu'à la nuit tombante ; le feu du nitro
    éclaire toujours un peu (c'est du feu). Réglages vivants : `LUMK` (dbgLum). */
-const LUMK={air:[.12,.9],hl:180000,hlC:[1,.88,.7],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8};
+const LUMK={air:[.12,.9],hl:45000,hlC:[1,.76,.48],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8};
 const LUM={on:false,nuit:0,hl:0,n:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
   k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
 function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet
@@ -16067,7 +16067,7 @@ const LM_N=6; /* deux feux, deux traits de nitro (ou la flamme du moteur), une t
 const LUM_U={uLmA:{value:[]},uLmB:{value:[]},uLmC:{value:[]},uLmN:{value:0},uLmS:{value:new THREE.Vector4(0,0,0,0)},uLmK:{value:new THREE.Vector3(0,0,1)},
   uLmW:{value:new THREE.Vector4(260,.1,.6,1.4)}, /* le reflet : x = finesse du lobe en travers (en long : ×0,05, la traînée) · y = béton sec · z = pellicule d'eau · w = flaques */
   uHlP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHlF:{value:new THREE.Vector3(0,0,-1)},uHlR:{value:new THREE.Vector3(1,0,0)},uHlU:{value:new THREE.Vector3(0,1,0)},
-  uHlN:{value:1},uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(-.012,.6,4,3)}}; /* les phares : x = la coupure (tangente) · y = la demi-ouverture de l'éventail (tangente) · z = le point chaud · w = l'adoucissement de près (m²) */
+  uHlN:{value:1},uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(-.012,.62,2.5,3)}}; /* les phares : x = la coupure (tangente) · y = la demi-ouverture de l'éventail (tangente) · z = le point chaud · w = l'adoucissement de près (m²) */
 for(let i=0;i<LM_N;i++){LUM_U.uLmA.value.push(new THREE.Vector4());LUM_U.uLmB.value.push(new THREE.Vector4());LUM_U.uLmC.value.push(new THREE.Vector4());}
 const LUM_GLSL=['#define LM_N '+LM_N,
   'uniform vec4 uLmA[LM_N],uLmB[LM_N],uLmC[LM_N],uLmS,uLmW,uHlP[2],uHlK;uniform vec3 uLmK,uHlF,uHlR,uHlU,uHlC;uniform float uLmN,uHlN;',
@@ -16093,6 +16093,20 @@ const LUM_GLSL=['#define LM_N '+LM_N,
   '        vec3 e=Ls*inversesqrt(s2)-R;float et=dot(e,T),eb=dot(e,B);',                               // l écart angulaire, en travers et en long
   '        lmSp9+=c.rgb*(c.w*lob*step(0.,dot(R,Ls))*exp(-et*et*uLmW.x-eb*eb*uLmW.x*.05)/(1.+.08*s2+r2));}}}', // un lobe ÉTIRÉ : fin en travers, long vers l œil — la TRAÎNÉE d une lumière sur l eau (un lobe rond faisait des taches)
   '  return E;}',''].join('\n');
+/* ===== LE FAISCEAU DE CROISEMENT SUR LE SABLE ET LA ROCHE (2026-11-06, Léo : « la lumière des phares est très, très gamine : blanche, ronde, sans sens ») =====
+   L'ancien phare des dunes et du canyon était un ROND : un cône de 18° autour de l'axe, plat, blanc. Maintenant, comme sur le bitume : DEUX lampes (à ±62 cm), chacune un éventail large et doux
+   en travers, une COUPURE nette à l'horizon de la lampe (rien au-dessus : le décor lointain n'est pas éclairé), une bande chaude juste dessous qui porte loin, puis la chute (l'inverse du carré
+   de la distance, adoucie) ; la teinte glisse du blanc-jaune au cœur au chaud ambré sur les bords (une ampoule, pas un projecteur), et la lumière rase épouse le relief (cosinus de la surface :
+   une crête s'allume, un creux reste noir). Quelques lignes par pixel, seulement la nuit (C = 0 le jour : le test sort au premier `if`). Partagé : dunes (DN_FS) et canyon (CY_FS). */
+const PH_GLSL=['vec3 phBeam(vec3 col,vec3 N,vec3 W,vec3 P,vec3 D,vec3 C){',
+  '  vec3 Rg=normalize(cross(vec3(0.,1.,0.),D)+vec3(1e-4,0.,0.)),Ug=cross(D,Rg),E=vec3(0.);float lm=dot(C,vec3(.3,.55,.15));',
+  '  for(int j=0;j<2;j++){float sd=j==0?-1.:1.;vec3 v=W-(P+Rg*(.62*sd)-Ug*.42);float fw=dot(v,D);',
+  '    if(fw>1.5){float iw=1./fw,hx=dot(v,Rg)*iw-.05*sd,vy=dot(v,Ug)*iw;',
+  '      float hz=exp(-hx*hx*5.)*(1.-smoothstep(.34,.62,abs(hx))),cut=1.-smoothstep(-.02,.03,vy),hot=exp(-pow((vy+.085)/.075,2.)),d2=dot(v,v);',
+  '      float I=hz*cut*(.30+.95*hot)*smoothstep(1.5,8.,fw)*exp(-fw*.010)/(1.+d2/3500.);',
+  '      vec3 tn=mix(vec3(1.,.80,.52),vec3(1.,.94,.82),clamp(hot*hz*1.4,0.,1.));',
+  '      E+=tn*(I*max(dot(N,-v*inversesqrt(d2)),0.));}}',
+  '  return col*E*lm*1.5;}',''].join('\n');
 const LUM_APPEL='\n{vec3 lmE9=lmRoute(geometry.position,geometry.normal,geometry.viewDir);reflectedLight.directDiffuse+=lmE9*diffuseColor.rgb;}\n';
 const LFB_ROUTE_LUM=LFB_ROUTE.replace(/#if \( NUM_SPOT_LIGHTS > 0 \) && defined\( RE_Direct \)[\s\S]*?#pragma unroll_loop_end\s*#endif/,''); // les phares du bitume sont les nôtres : le projecteur three n'y entre plus
 function roadMat(){
@@ -19860,7 +19874,7 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   'varying vec3 vW,vN;varying vec4 vA,vB;','#include <fog_pars_fragment>',
   'float gCs;', /* (2026-10-25, Sacha : « retravaille les textures, inspire-toi de la forêt : des gros pixels, mais lisses ») LES GROS PIXELS DE LA ROCHE : gCs = la case sous ce pixel (~10 px d'écran, par paliers doublés fondus l'un dans l'autre) */
   'vec4 tl(sampler2D t,vec2 uv,float sh){return texture2DLodEXT(t,uv,max(log2(gCs*256.*sh),0.));}', /* une lecture au niveau de mip de la case : elle montre la MOYENNE de ce qu'elle couvre (pas de trait aux arêtes, pas de grésillement) */
-  'float dhc(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}',
+  PH_GLSL,'float dhc(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}',
   'vec4 twp(sampler2D t,vec3 w,float k,float sh,float sv){return mix(tl(t,vec2(w.x*sh,w.y*sv),sh),tl(t,vec2(w.z*sh,w.y*sv),sh),k);}', /* une paroi lue par ses deux plans fixes (x·y et z·y), mélangés selon la normale */
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   '  float wat=vA.x,dep=vA.y,rk=clamp(vA.z,0.,1.),lit=clamp(vA.w,0.,1.),veg=vB.x,fo=vB.y,dk=clamp(vB.z,0.,1.),fl=vB.w,stp=clamp(1.-N.y,0.,1.);',
@@ -19900,7 +19914,7 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   '    float fs=smoothstep(.30,.80,texture2D(uNZ,vec2(dd*.09+hf,vW.y/38.+uTime*1.25)).g);c=mix(c,vec3(.80,.84,.88)*(mix(uGnd,uSky,.6)*1.2+uSunC*.4),cf*(.45+.55*fs));',
   '    c*=1.-.25*uWet*smoothstep(.55,.8,nv.g)*stp*rk;}', // et les coulées sombres de l'averse sur la pierre
       '  c+=uFlash*col*vec3(.70,.76,1.)*(.35+.65*max(N.y,0.));',
-      '  if(uPhC.r+uPhC.g>.001){vec3 lv=vW-uPhP;float dl=length(lv);vec3 ld=lv/max(dl,.01);c+=col*uPhC*smoothstep(.80,.95,dot(ld,uPhD))*max(dot(N,-ld),0.)/(1.+dl*dl/9000.);}', // les PHARES sur la roche
+      '  if(uPhC.r+uPhC.g>.001)c+=phBeam(col,N,vW,uPhP,uPhD,uPhC);', // les PHARES sur la roche
   '  c*=1.-.24*smoothstep(.45,.85,uSunD.y)*smoothstep(.55,1.3,max(c.r,max(c.g,c.b)));', /* le plein midi : les hautes lumières crème des parois sont rabattues vers l'ocre (le soleil bas, lui, n'est pas touché) */
   ...(CYD>=2?['  {float lo=smoothstep(700.,5200.,dist);c=mix(c,c*vec3(.80,.86,1.10)+uSkH*.07,lo*.38);}']:[]), /* trois plans : le proche chaud et contrasté, le lointain plus clair et plus froid, fondu dans la brume pêche */
   '  c=mix(c,uMist,uQ.x*(1.-smoothstep(fl+4.,fl+uQ.y,vW.y))*(.35+.65*smoothstep(0.,450.,dist)));',
@@ -21372,7 +21386,7 @@ const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 u
   '  vec4 mvPosition=viewMatrix*vec4(vW,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
 const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uSaA,uSaB,uSaL,uShd,uClay,uVeg,uHaze,uSkH,uSkZ,uWS,uWD,uPhP,uPhD,uPhC;uniform vec4 uQ,uK,uW,uMo,uPl,uLm,uEx,uSp;uniform float uTime,uFlash,uPoly,uLum;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying vec2 vGp;varying vec4 vF;','#include <fog_pars_fragment>',
-  'float dh2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
+  PH_GLSL,'float dh2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   /* LES FACETTES (poly) : Nf = la normale PLATE du triangle (dérivées de la position), ftn = sa teinte, hs9 = son tirage, jn = le joint (la distance, EN PIXELS, aux trois arêtes du triangle : vGp = la case, entiers aux sommets,
      l'interpolation en reste exacte même quand le sommet glisse vers le niveau grossier) — le joint ne se voit que sur des cases larges (> ~7 px) et là où la facette s'écarte de la normale lisse */
@@ -21448,6 +21462,16 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '    c+=col*uSunC*vec3(.46,.28,.15)*tm*lit*uLm.z;',
   '    c+=col*uSunC*vec3(.95,.58,.32)*(1.-lit)*(.5+.5*NL.y)*.12*uLm.w;',
   '    c+=uSunC*vec3(1.,.80,.52)*pow(vs,6.)*(1.-exp(-dist/2600.))*uLm.y*.5;}',
+  /* ===== LE SABLE v3 (2026-11-06, Léo : « le shading du sable beaucoup plus gourmand, type shader Minecraft ultra réaliste ») — quatre gestes, tous sous `uLum` (qualité haute ; le téléphone allégé les saute) :
+     (1) LA LUMIÈRE RASANTE SCULPTE LES RIDES : plus le soleil est bas sur la face (ndl petit), plus l'arête d'une ride est claire et son creux sombre (contraste ×~1,6, éteint au loin et à l'ombre : jamais de moiré) ;
+     (2) L'OMBRE PROPRE DES CRÊTES : le haut d'une dune prend un liseré clair, juste derrière lui la face sous le vent plonge (une arête nette, pas un dégradé mou) ;
+     (3) LE SUBSURFACE DOUX : la lumière qui traverse le grain ressort ROUGE-ORANGÉ dans une large bande au terminateur et jusque dans la pénombre (le sable fin est translucide sur quelques mm) ;
+     (4) LE GRAIN QUI SCINTILLE : de petits cristaux plus clairs que la teinte, nombreux de près, serrés en lumière rasante. */
+  '  if(uLum>.5&&wat<.5&&uMo.z>.001){float gz=1.-smoothstep(.04,.60,ndl),near=1.-smoothstep(50.,420.,dist),cs=smoothstep(.84,.97,du)*(1.-smoothstep(.985,1.,du));',
+  '    c*=1.+rpl*gz*.60*near*(.35+.65*lit)*(1.-pan);',
+  '    c*=1.-lee*smoothstep(.55,.90,du)*.20*lit*(1.-pan);c+=uSunC*vec3(1.,.78,.52)*cs*lit*max(ndl,0.)*.10*(1.-pan)*(1.-veg);',
+  '    float sb=smoothstep(-.40,.08,ndl)*(1.-smoothstep(.08,.55,ndl));c+=col*uSunC*vec3(1.,.46,.22)*sb*(.45+.55*lit)*.26*(1.-pan)*(1.-veg);',
+  '    float gs=dh2(floor(pp*38.)),gs2=dh2(floor(pp*38.)+9.1);c+=col*uSunC*step(.93,gs)*(.25+.75*step(.5,gs2))*lit*(.4+.9*gz)*(1.-smoothstep(8.,70.,dist))*.30*(1.-pan)*(1.-veg);}',
   /* LES ÉTINCELLES D'OR (l'éclat cash) : de rares grains qui s'allument un instant, or ou rose, jusqu'à 2 km — la cellule grandit avec la distance (≈ 3 px à l'écran) */
   '  if(uSp.w>.001&&wat<.5){float cs=exp2(floor(log2(max(dist,4.)*.0042)*2.)*.5),hq=dh2(floor(vW.xz/cs)+cs),tw=pow(.5+.5*sin(uTime*(2.4+3.*fract(hq*91.))+hq*600.),10.);',
   '    c+=mix(uSp.rgb,vec3(1.,.92,.74),step(.72,fract(hq*37.)))*step(.986,hq)*tw*lit*(1.-.9*pan)*(1.-smoothstep(500.,2400.,dist))*2.4*uSp.w;}',
@@ -21458,7 +21482,7 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '    vec3 Nw=normalize(vec3(0.,6.,0.)+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.));',
   '    float f9=.02+.98*pow(1.-max(dot(V,Nw),0.),5.);vec3 R=reflect(-V,Nw),sk=mix(uSkH,uSkZ,smoothstep(0.,.5,R.y));',
   '    vec3 cw=wc*(uSunC*(.3+.7*max(dot(Nw,uSunD),0.))*lit+mix(uGnd,uSky,.7))*.9+sk*f9+uSunC*pow(max(dot(R,uSunD),0.),160.)*1.2*lit;c=mix(c,cw,wat);}',
-  '  if(uPhC.r+uPhC.g>.001){vec3 lv=vW-uPhP;float dl=length(lv);vec3 ld=lv/max(dl,.01);c+=col*uPhC*smoothstep(.80,.95,dot(ld,uPhD))*max(dot(NL,-ld),0.)/(1.+dl*dl/9000.);}', // les PHARES sur le sable
+  '  if(uPhC.r+uPhC.g>.001)c+=phBeam(col,NL,vW,uPhP,uPhD,uPhC);', // les PHARES sur le sable
   /* LE MIRAGE : au loin, le sable presque à plat, vu en rasant, renvoie le ciel — et tremble */
   '  if(uQ.y>.001){float mi=uQ.y*smoothstep(800.,3200.,dist)*(1.-smoothstep('+(DN_IMM.on?'.012,.05':'.02,.10')+',abs(V.y)))*(1.-smoothstep(.06,.25,stp))'+(DN_IMM.on?'*smoothstep(-.015,.012,V.y)':'')+';',
   '   float sh=texture2D(uNZ,vec2(vW.x/260.+uTime*.04,vW.z/260.-uTime*.03)).r;c=mix(c,mix(mix(uSkH,uSkZ,.25),uWS*1.3+.06,.42*uEx.z)*(.92+.16*sh),mi*(.55+.45*sh));}',
@@ -32212,7 +32236,7 @@ const PHARE_FX=(function(){
   {g.addColorStop(0,'rgba(255,255,255,.12)');g.addColorStop(.06,'rgba(255,255,255,.5)');g.addColorStop(.22,'rgba(255,255,255,.42)');g.addColorStop(.6,'rgba(255,255,255,.12)');g.addColorStop(1,'rgba(255,255,255,0)');} /* (2026-10-17, les lumières de la caisse v2) le faisceau NAÎT au phare au lieu d'y flamber : vu de la poursuite, le pied du cône faisait un éventail blanc posé sur le capot */
   c.fillStyle=g;c.fillRect(0,0,4,64);const tx=new THREE.CanvasTexture(cv);
   const geo=new THREE.ConeGeometry(6,70,18,1,true);geo.translate(0,-35,0);geo.rotateX(-Math.PI/2);geo.rotateX(.045); // la pointe au phare, l'ouverture 70 m devant, un rien vers le bitume
-  const m=new THREE.MeshBasicMaterial({map:tx,color:0xdfe9ff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.FrontSide});
+  const m=new THREE.MeshBasicMaterial({map:tx,color:0xffe6c4,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.FrontSide});
   const L=[new THREE.Mesh(geo,m),new THREE.Mesh(geo,m)];for(const o of L){o.visible=false;o.frustumCulled=false;o.renderOrder=7;scene.add(o);} // 7 : au-dessus du museau du dragon de NITROOO (renderOrder 6) — les phares restent nets
   return {L:L,m:m,d:new THREE.Vector3(),u:new THREE.Vector3(),r:new THREE.Vector3()};})();
 // REFLET NITRO/BOOST : la flamme éclaire VRAIMENT le bitume — pool de lumière derrière la caisse,
@@ -33665,7 +33689,22 @@ const lampTex=(function(){
    sprite, jamais libérée) : la boucle (`carVit`) les fait répondre à l'ANGLE — un phare n'éblouit que celui qui le regarde en
    face, vu de profil il n'est plus qu'un point — et au FREIN : pouce tiré vers le bas (drift) ou ↓, les feux s'embrasent.
    `userData.k` = la taille d'origine du sprite, que la boucle module sans jamais la perdre. */
-const HALO={hM:new THREE.SpriteMaterial({map:lampTex,color:0xffe2a8,transparent:true,opacity:.95,depthWrite:false}),
+/* (2026-11-06, Léo : « la lumière des phares est très, très gamine : blanche, ronde, sans sens ») LE HALO DU PHARE, REFAIT : plus un disque blanc. Un cœur minuscule blanc-jaune (l'optique),
+   un éclat CHAUD AMBRÉ ovale (plus large que haut : un phare est une lentille allongée), un voile très doux, et un trait horizontal fin (l'étoile de l'objectif, comme sur une photo de nuit) ;
+   la couleur est DANS la texture (le matériau reste blanc), l'intensité est la moitié de l'ancien disque. */
+const phareTex=(function(){
+  const s=128,cv=document.createElement('canvas');cv.width=cv.height=s;const c=cv.getContext('2d');
+  c.translate(s/2,s/2);c.scale(1,.62);
+  const g=c.createRadialGradient(0,0,0,0,0,s/2);
+  g.addColorStop(0,'rgba(255,250,236,1)');g.addColorStop(.07,'rgba(255,246,222,.95)');g.addColorStop(.16,'rgba(255,226,170,.55)');
+  g.addColorStop(.34,'rgba(255,190,110,.20)');g.addColorStop(.62,'rgba(255,160,80,.05)');g.addColorStop(1,'rgba(255,150,70,0)');
+  c.fillStyle=g;c.fillRect(-s/2,-s/2,s,s);
+  c.setTransform(1,0,0,1,0,0);
+  const h=c.createLinearGradient(0,0,s,0);h.addColorStop(0,'rgba(255,200,130,0)');h.addColorStop(.5,'rgba(255,236,200,.55)');h.addColorStop(1,'rgba(255,200,130,0)');
+  c.fillStyle=h;c.fillRect(2,s/2-1,s-4,2);
+  const t=new THREE.CanvasTexture(cv);t.minFilter=THREE.LinearFilter;return t;
+})();
+const HALO={hM:new THREE.SpriteMaterial({map:phareTex,color:0xffffff,transparent:true,opacity:.8,depthWrite:false}),
             tM:new THREE.SpriteMaterial({map:lampTex,color:0xff2818,transparent:true,opacity:.85,depthWrite:false}),h:[],t:[]};
 /* LES PHARES ESCAMOTABLES ALLUMÉS SEULEMENT LEVÉS (2026-10-18, LA VETTE) : `CAR_PHK` = combien les phares de la caisse sont levés, de 0 (rangés)
    à 1 ; null = une caisse aux phares fixes (toutes les autres). La caisse qui a des escamotables le pose chaque image (son `BLING.anim`) ; il

@@ -118,7 +118,7 @@ const LM_N=6; /* deux feux, deux traits de nitro (ou la flamme du moteur), une t
 const LUM_U={uLmA:{value:[]},uLmB:{value:[]},uLmC:{value:[]},uLmN:{value:0},uLmS:{value:new THREE.Vector4(0,0,0,0)},uLmK:{value:new THREE.Vector3(0,0,1)},
   uLmW:{value:new THREE.Vector4(260,.1,.6,1.4)}, /* le reflet : x = finesse du lobe en travers (en long : ×0,05, la traînée) · y = béton sec · z = pellicule d'eau · w = flaques */
   uHlP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHlF:{value:new THREE.Vector3(0,0,-1)},uHlR:{value:new THREE.Vector3(1,0,0)},uHlU:{value:new THREE.Vector3(0,1,0)},
-  uHlN:{value:1},uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(-.012,.6,4,3)}}; /* les phares : x = la coupure (tangente) · y = la demi-ouverture de l'éventail (tangente) · z = le point chaud · w = l'adoucissement de près (m²) */
+  uHlN:{value:1},uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(-.012,.62,2.5,3)}}; /* les phares : x = la coupure (tangente) · y = la demi-ouverture de l'éventail (tangente) · z = le point chaud · w = l'adoucissement de près (m²) */
 for(let i=0;i<LM_N;i++){LUM_U.uLmA.value.push(new THREE.Vector4());LUM_U.uLmB.value.push(new THREE.Vector4());LUM_U.uLmC.value.push(new THREE.Vector4());}
 const LUM_GLSL=['#define LM_N '+LM_N,
   'uniform vec4 uLmA[LM_N],uLmB[LM_N],uLmC[LM_N],uLmS,uLmW,uHlP[2],uHlK;uniform vec3 uLmK,uHlF,uHlR,uHlU,uHlC;uniform float uLmN,uHlN;',
@@ -144,6 +144,20 @@ const LUM_GLSL=['#define LM_N '+LM_N,
   '        vec3 e=Ls*inversesqrt(s2)-R;float et=dot(e,T),eb=dot(e,B);',                               // l écart angulaire, en travers et en long
   '        lmSp9+=c.rgb*(c.w*lob*step(0.,dot(R,Ls))*exp(-et*et*uLmW.x-eb*eb*uLmW.x*.05)/(1.+.08*s2+r2));}}}', // un lobe ÉTIRÉ : fin en travers, long vers l œil — la TRAÎNÉE d une lumière sur l eau (un lobe rond faisait des taches)
   '  return E;}',''].join('\n');
+/* ===== LE FAISCEAU DE CROISEMENT SUR LE SABLE ET LA ROCHE (2026-11-06, Léo : « la lumière des phares est très, très gamine : blanche, ronde, sans sens ») =====
+   L'ancien phare des dunes et du canyon était un ROND : un cône de 18° autour de l'axe, plat, blanc. Maintenant, comme sur le bitume : DEUX lampes (à ±62 cm), chacune un éventail large et doux
+   en travers, une COUPURE nette à l'horizon de la lampe (rien au-dessus : le décor lointain n'est pas éclairé), une bande chaude juste dessous qui porte loin, puis la chute (l'inverse du carré
+   de la distance, adoucie) ; la teinte glisse du blanc-jaune au cœur au chaud ambré sur les bords (une ampoule, pas un projecteur), et la lumière rase épouse le relief (cosinus de la surface :
+   une crête s'allume, un creux reste noir). Quelques lignes par pixel, seulement la nuit (C = 0 le jour : le test sort au premier `if`). Partagé : dunes (DN_FS) et canyon (CY_FS). */
+const PH_GLSL=['vec3 phBeam(vec3 col,vec3 N,vec3 W,vec3 P,vec3 D,vec3 C){',
+  '  vec3 Rg=normalize(cross(vec3(0.,1.,0.),D)+vec3(1e-4,0.,0.)),Ug=cross(D,Rg),E=vec3(0.);float lm=dot(C,vec3(.3,.55,.15));',
+  '  for(int j=0;j<2;j++){float sd=j==0?-1.:1.;vec3 v=W-(P+Rg*(.62*sd)-Ug*.42);float fw=dot(v,D);',
+  '    if(fw>1.5){float iw=1./fw,hx=dot(v,Rg)*iw-.05*sd,vy=dot(v,Ug)*iw;',
+  '      float hz=exp(-hx*hx*5.)*(1.-smoothstep(.34,.62,abs(hx))),cut=1.-smoothstep(-.02,.03,vy),hot=exp(-pow((vy+.085)/.075,2.)),d2=dot(v,v);',
+  '      float I=hz*cut*(.30+.95*hot)*smoothstep(1.5,8.,fw)*exp(-fw*.010)/(1.+d2/3500.);',
+  '      vec3 tn=mix(vec3(1.,.80,.52),vec3(1.,.94,.82),clamp(hot*hz*1.4,0.,1.));',
+  '      E+=tn*(I*max(dot(N,-v*inversesqrt(d2)),0.));}}',
+  '  return col*E*lm*1.5;}',''].join('\n');
 const LUM_APPEL='\n{vec3 lmE9=lmRoute(geometry.position,geometry.normal,geometry.viewDir);reflectedLight.directDiffuse+=lmE9*diffuseColor.rgb;}\n';
 const LFB_ROUTE_LUM=LFB_ROUTE.replace(/#if \( NUM_SPOT_LIGHTS > 0 \) && defined\( RE_Direct \)[\s\S]*?#pragma unroll_loop_end\s*#endif/,''); // les phares du bitume sont les nôtres : le projecteur three n'y entre plus
 function roadMat(){

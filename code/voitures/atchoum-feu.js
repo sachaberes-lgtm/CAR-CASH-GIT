@@ -301,7 +301,22 @@ const lampTex=(function(){
    sprite, jamais libérée) : la boucle (`carVit`) les fait répondre à l'ANGLE — un phare n'éblouit que celui qui le regarde en
    face, vu de profil il n'est plus qu'un point — et au FREIN : pouce tiré vers le bas (drift) ou ↓, les feux s'embrasent.
    `userData.k` = la taille d'origine du sprite, que la boucle module sans jamais la perdre. */
-const HALO={hM:new THREE.SpriteMaterial({map:lampTex,color:0xffe2a8,transparent:true,opacity:.95,depthWrite:false}),
+/* (2026-11-06, Léo : « la lumière des phares est très, très gamine : blanche, ronde, sans sens ») LE HALO DU PHARE, REFAIT : plus un disque blanc. Un cœur minuscule blanc-jaune (l'optique),
+   un éclat CHAUD AMBRÉ ovale (plus large que haut : un phare est une lentille allongée), un voile très doux, et un trait horizontal fin (l'étoile de l'objectif, comme sur une photo de nuit) ;
+   la couleur est DANS la texture (le matériau reste blanc), l'intensité est la moitié de l'ancien disque. */
+const phareTex=(function(){
+  const s=128,cv=document.createElement('canvas');cv.width=cv.height=s;const c=cv.getContext('2d');
+  c.translate(s/2,s/2);c.scale(1,.62);
+  const g=c.createRadialGradient(0,0,0,0,0,s/2);
+  g.addColorStop(0,'rgba(255,250,236,1)');g.addColorStop(.07,'rgba(255,246,222,.95)');g.addColorStop(.16,'rgba(255,226,170,.55)');
+  g.addColorStop(.34,'rgba(255,190,110,.20)');g.addColorStop(.62,'rgba(255,160,80,.05)');g.addColorStop(1,'rgba(255,150,70,0)');
+  c.fillStyle=g;c.fillRect(-s/2,-s/2,s,s);
+  c.setTransform(1,0,0,1,0,0);
+  const h=c.createLinearGradient(0,0,s,0);h.addColorStop(0,'rgba(255,200,130,0)');h.addColorStop(.5,'rgba(255,236,200,.55)');h.addColorStop(1,'rgba(255,200,130,0)');
+  c.fillStyle=h;c.fillRect(2,s/2-1,s-4,2);
+  const t=new THREE.CanvasTexture(cv);t.minFilter=THREE.LinearFilter;return t;
+})();
+const HALO={hM:new THREE.SpriteMaterial({map:phareTex,color:0xffffff,transparent:true,opacity:.8,depthWrite:false}),
             tM:new THREE.SpriteMaterial({map:lampTex,color:0xff2818,transparent:true,opacity:.85,depthWrite:false}),h:[],t:[]};
 /* LES PHARES ESCAMOTABLES ALLUMÉS SEULEMENT LEVÉS (2026-10-18, LA VETTE) : `CAR_PHK` = combien les phares de la caisse sont levés, de 0 (rangés)
    à 1 ; null = une caisse aux phares fixes (toutes les autres). La caisse qui a des escamotables le pose chaque image (son `BLING.anim`) ; il
