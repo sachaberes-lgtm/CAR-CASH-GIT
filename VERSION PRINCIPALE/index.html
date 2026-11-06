@@ -2021,7 +2021,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
      d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
      quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
   (function(){
-    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0,CAPS={serpent:25,fluide:40};
+    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0,CAPS={serpent:25,fluide:40,memoire:15,contexte:10};
     var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
     var ecrit=function(){attente=0;try{localStorage.setItem(CLE,JSON.stringify(L));}catch(_){}};
     window.__ccNote=function(genre,msg,ou){
@@ -13699,7 +13699,14 @@ try{palPuce(renderer.getContext());}catch(e){} // (2026-10-14, passe perf mobile
    refus classique pour « l'app ne répond plus ». On empêche l'abandon (`preventDefault` = « je veux le récupérer »),
    et au retour du contexte on recharge proprement : la sauvegarde est sur le disque, rien n'est perdu. */
 // (2026-09-30) les trois chemins finissent par un RECHARGEMENT : la partie en cours est posée (enCoursPose) avant d'être perdue — SAVE.load la versera
-renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();try{sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){}try{enCoursPose();SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
+/* LA MÉMOIRE À LA LOUPE (2026-11-06, OPTI ULTIME : « à la fin d'une partie, parfois, retour à l'écran du début » = un rechargement ; la boîte noire doit dire si c'est le contexte 3D) :
+   une ligne de compteurs — temps de session, écran (classe du body), tas JS si le navigateur le dit, textures / géométries / programmes de three.js, parties finies de la session
+   (sessionStorage.ccParties, +1 à chaque endGame). Lue à la perte du contexte (genre « contexte ») et à la fin de chaque partie (genre « memoire ») : la pente d'une partie à l'autre
+   dit si la mémoire monte. Lecture seule, rien ne bouge ; `?sonde=0` coupe. */
+function ccMemLigne(){let r='';try{const m=renderer.info&&renderer.info.memory||{},pm=window.performance&&performance.memory,pr=renderer.info&&renderer.info.programs,k=+sessionStorage.ccParties||0;
+  r=(Math.round(performance.now()/100)/10)+' s · '+(document.body&&document.body.className||'').slice(0,60)+' · tas '+(pm&&pm.usedJSHeapSize?Math.round(pm.usedJSHeapSize/1048576)+' Mo':'-')+' · textures '+m.textures+' géométries '+m.geometries+' programmes '+(pr?pr.length:'-')+' · partie n°'+k;}catch(err){r='? '+(err&&err.message);}return r;}
+function ccMemNote(genre,pre){if(/[?&]sonde=0\b/.test(location.search))return;try{window.__ccNote(genre,(pre||'')+ccMemLigne());}catch(err){}}
+renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();ccMemNote('contexte','perdu ');try{sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){}try{enCoursPose();SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
 renderer.domElement.addEventListener('webglcontextrestored',function(){try{enCoursPose();SAVE.flush();}catch(e){}ctxRecharge();},false); /* (2026-11-05, DEBUG-TOTAL) par ctxRecharge : ce chemin rechargeait SANS lire le compteur — contexte perdu puis rendu à chaque relance (mémoire graphique saturée) = rechargement en boucle, le filet des 5 s n'y passant jamais */
 /* ===== LE CONTEXTE PERDU AU PREMIER PLAN (24/10, débogage sortie iOS : « zéro écran bloqué ») =====
    Les deux chemins du dessus attendent un événement : le contexte RENDU (webglcontextrestored) ou le RETOUR d'arrière-plan (visibilitychange).
@@ -71071,6 +71078,7 @@ function endGame(){
   try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
   try{wakeLache();}catch(e){} /* (2026-11-07) la course est finie : l'écran peut se rendormir */
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
+  try{sessionStorage.ccParties=(+sessionStorage.ccParties||0)+1;}catch(e){}try{ccMemNote('memoire','fin ');}catch(e){} // (2026-11-06, OPTI ULTIME) la mémoire à chaque fin de partie : la pente d'une partie à l'autre (voir ccMemLigne)
   musicStop(true);if(!MORT_MUSIQUE)musicMode='none';else setTimeout(function menuApres(){if(!gameOver)return;if(PUBR.on||ecranWipe._on){setTimeout(menuApres,400);return;}musicMenu();},1400); /* (chasse aux bugs) CONTINUER touché avant 1,4 s : le lobby ne repart pas PAR-DESSUS la pub récompensée (pubSilence l'a fait taire) ni sous le volet d'une reprise — il attend qu'ils rendent la main */ // TAPE-STOP de fin, puis la musique du menu revient, étouffée
   lastAlertEl.style.display='none';vChip('');for(const l9 of gyroLights)l9.intensity=0; // la poursuite s'éteint avec la caisse — (2026-09-30) et la plaque du Survivant au téléphone
   botJetLight.intensity=0;for(const tr9 of botTrails){tr9.init=false;tr9.m.visible=false;}
