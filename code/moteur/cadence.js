@@ -53,9 +53,15 @@ function fpsSaute(now){ // en tête de loop : rend true si cette image d'écran 
   if(FPS.n<2)return false;
   if(now-FPS.der<FPS.per*(FPS.n-.5))return true;
   FPS.der=now;return false;}
+/* ===== LA PÉRIODE D'ÉCRAN EN MÉDIANE (2026-10-25, passe perf mobile, mesure de base : « la cadence 30 est hachée ») =====
+   MESURÉ dans l'app (liv4, 13 Pro à 37 °C) : `dbgCadence().ecran` = 6,94 (écran lu à 144 Hz) alors que les images arrivent toutes les ~17 ms. Cause : le PLUS PETIT
+   intervalle de 90 images (`eMin`) tombe sous 7,7 ms dès qu'une image en retard est suivie d'une image de rattrapage. `tol` (demi-période) devient 3,5 ms au lieu
+   de 8,3 : une image qui arrive à 26-30 ms est SAUTÉE alors que la cadence 30 la voulait, et la suivante part à ~56 ms. `fpsSaute` (plafond à 60) lit déjà la
+   MÉDIANE depuis le 20/10 pour la même raison. Même règle ici. `?mob_ecran=0` = l'ancien minimum (banc A/B). */
+const MOB_ECRAN=!/[?&]mob_ecran=0\b/.test(location.search);const MOB_EA=new Float32Array(90);let MOB_EN=0;
 function cadSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
-  const d=now-CAD.rp;CAD.rp=now;if(d>3&&d<CAD.eMin)CAD.eMin=d;
-  if(++CAD.eN>=90){const m=CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=CAD.ecran*.5;} // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
+  const d=now-CAD.rp;CAD.rp=now;if(MOB_ECRAN){if(d>3&&d<100)MOB_EA[MOB_EN++]=d;}else if(d>3&&d<CAD.eMin)CAD.eMin=d;
+  if(MOB_ECRAN?MOB_EN>=90:++CAD.eN>=90){const m=MOB_ECRAN?(MOB_EA.sort(),MOB_EN=0,MOB_EA[45]):CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=CAD.ecran*.5;} // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
   if(CAD.on&&now-CAD.der<CAD.per-CAD.tol)return true;
   CAD.der=now;return false;}
 function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;CAD.gel=v&&!PAL.b('cadenceMonte',1);CAD.der=now;CAD.lT=0;CAD.calT=now;
