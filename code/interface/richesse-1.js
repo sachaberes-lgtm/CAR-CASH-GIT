@@ -262,43 +262,50 @@ function richTexUni(c){return richCv(4,4,function(x){x.fillStyle=c;x.fillRect(0,
    le jaune et le 200 s'en vont) LES BILLETS v3 : le papier de la 1re version (dégradé, guilloche, double cadre, rosace, bande), un voile clair
    au milieu (le filigrane), et la valeur en GRAND au milieu, en lettres carrées (la police pixel du jeu), frappée : ombre d'encre, contour,
    dégradé clair, un fil de lumière. Le 20 a sa tour Eiffel dans la rosace et sa bande BLEU-BLANC-ROUGE ; le 500 est violet et OR. */
-const RICH_BILLETS=[ // (2026-10-20, Léo : « chaque billet une plus belle couleur, un dégradé de DEUX couleurs sur chacun ; le 500 en blanc aussi ») c:[départ, arrivée] = le dégradé en diagonale ; l = la couleur des filets/guilloches ; sh = le reflet qui glisse
-  {v:'10', m:'DIX DOLLARS',       c:['#7a0c2c','#ff6a58'],l:[255,170,190],sh:[1,.6,.7]},   // grenat → framboise (peu saturé au départ : l'étalonnage du jeu sature ×1,4)
-  {v:'20', m:'VINGT FRANCS',      c:['#1a2cae','#30d8ff'],l:[150,215,255],sh:[.55,.85,1],fr:1}, // bleu roi → turquoise, à la française
-  {v:'50', m:'CINQUANTE DOLLARS', c:['#d0340a','#ffc83a'],l:[255,215,140],sh:[1,.82,.45]},  // orange brûlé → ambre doré
-  {v:'100',m:'CENT DOLLARS',      c:['#0a6a50','#86ec62'],l:[160,255,205],sh:[.5,1,.65]},  // vert sapin → vert menthe
-  {v:'500',m:'CINQ CENTS DOLLARS',c:['#4a14c4','#ee5ccc'],l:[225,175,255],sh:[.9,.7,1],or:1}]; // violet → magenta ; les filets restent dorés, le chiffre est BLANC
-const RICH_B100=3;
-function richTexBillet(B){return richCv(512,236,function(x,w,h){
-  const L=function(k,a){const c=B.l.map(function(v){return Math.round(v+(255-v)*k);});return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';}, // la couleur des traits, éclaircie de k
-    O=function(a){return 'rgba(255,214,128,'+a+')';},T=B.or?function(k,a){return O(a);}:L,F='"Press Start 2P",monospace';
-  const G=x.createLinearGradient(0,0,w,h);G.addColorStop(0,B.c[0]);G.addColorStop(1,B.c[1]);x.fillStyle=G;x.fillRect(0,0,w,h); // (2026-10-20) UN dégradé de deux couleurs, en diagonale
-  x.lineWidth=1;for(let k=0;k<26;k++){x.strokeStyle=L(0,.09);x.beginPath();for(let i=0;i<=w;i+=6)x.lineTo(i,h/2+Math.sin(i*.03+k*.5)*h*.42*Math.sin(k*.21+1));x.stroke(); // la guilloche, deux familles croisées
-    x.strokeStyle=L(.1,.05);x.beginPath();for(let i=0;i<=w;i+=6)x.lineTo(i,h/2-Math.sin(i*.024+k*.61)*h*.4*Math.sin(k*.17+2));x.stroke();}
-  x.strokeStyle=T(.25,.42);x.lineWidth=3;x.strokeRect(10,10,w-20,h-20);x.lineWidth=1;x.strokeRect(18,18,w-36,h-36);           // le double cadre
-  x.fillStyle=T(.3,.5);for(const [a,b] of [[14,14],[w-22,14],[14,h-22],[w-22,h-22]])x.fillRect(a,b,8,8);                      // ses coins
-  const rx=96,ry=118;for(let i=0;i<14;i++){x.strokeStyle=T(0,.07+i*.012);x.beginPath();x.ellipse(rx,ry,58-i*4,58-i*4,0,0,6.2832);x.stroke();} // la rosace
-  x.strokeStyle=T(.2,.16);for(let i=0;i<12;i++){x.save();x.translate(rx,ry);x.rotate(i*Math.PI/6);x.beginPath();x.ellipse(0,-30,9,26,0,0,6.2832);x.stroke();x.restore();}
-  if(B.fr){x.fillStyle=L(.6,.85);x.beginPath();x.moveTo(rx-22,ry+40);x.lineTo(rx-6,ry-6);x.lineTo(rx-2,ry-38);x.lineTo(rx,ry-50);x.lineTo(rx+2,ry-38);x.lineTo(rx+6,ry-6);x.lineTo(rx+22,ry+40); // la TOUR EIFFEL
-    x.lineTo(rx+12,ry+40);x.quadraticCurveTo(rx,ry+18,rx-12,ry+40);x.closePath();x.fill();x.fillRect(rx-13,ry+14,26,4);x.fillRect(rx-8,ry-10,16,3);x.fillRect(rx-1,ry-58,2,9);}
-  else{x.fillStyle=T(.55,.85);x.font='44px '+F;x.textAlign='center';x.textBaseline='middle';x.fillText('$',rx+2,ry+2);}
-  const n=B.v.length,fz=n>2?74:92,cx=w*.555,cy=h*.53;x.font=fz+'px '+F;x.textAlign='center';x.textBaseline='middle'; // LE GRAND CHIFFRE CARRÉ, là où le pose la toile de Léo
-  {const tw=x.measureText(B.v).width,px=cx-tw*.5-16,py=cy-fz*.5-13,pw=tw+32,ph=fz+26;x.fillStyle='rgba(0,0,0,.3)';richRond(x,px,py,pw,ph,10);x.fill(); // (2026-10-16, Léo : « plus visibles les numéros ») un CARTOUCHE sombre sous le chiffre (le voile clair d'avant le noyait)
-   x.strokeStyle=T(.45,.4);x.lineWidth=2;richRond(x,px+4,py+4,pw-8,ph-8,7);x.stroke();}
-  x.save();x.shadowColor=B.or?'rgba(255,232,170,.55)':'rgba(255,255,255,.55)';x.shadowBlur=28;x.shadowOffsetX=2000;x.fillStyle='#fff';x.fillText(B.v,cx-2000,cy);x.restore(); // (2026-10-20, Léo) LA LUEUR : un halo blanc doux autour du chiffre, peint dans la toile (le chiffre est dessiné hors toile, seule son ombre floue reste) — la lumière qu'il pose sur le papier ; le chiffre lui-même luit dans le programme (uLum)
-  x.fillStyle='rgba(0,0,0,.55)';x.fillText(B.v,cx+6,cy+7);                                                                  // son ombre d'encre
-  x.lineJoin='miter';x.lineWidth=9;x.strokeStyle='rgba(0,0,0,.72)';x.strokeText(B.v,cx,cy); /* (2026-10-20) contour, taille et ombre REMIS comme avant (Léo : « remets les numéros comme avant ») */                                  // son contour, épais
-  const Z=x.createLinearGradient(0,cy-fz*.5,0,cy+fz*.5);if(B.or){Z.addColorStop(0,'#fff8dc');Z.addColorStop(.5,'#ffd970');Z.addColorStop(1,'#e2a73c');}else{Z.addColorStop(0,'#ffffff');Z.addColorStop(.55,L(.88,1));Z.addColorStop(1,L(.7,1));} // (2026-10-20) le 500 aussi en BLANC (chaud à peine)
-  x.fillStyle=Z;x.fillText(B.v,cx,cy);x.save();x.beginPath();x.rect(0,cy-fz*.5,w,fz*.16);x.clip();x.fillStyle='rgba(255,255,255,.45)';x.fillText(B.v,cx,cy);x.restore(); // dégradé clair, et le fil de lumière en haut
-  x.font='20px '+F;x.fillStyle=T(.8,.95);x.textAlign='left';x.fillText(B.v,30,42);x.textAlign='right';x.fillText(B.v,w-30,h-38); // les petites valeurs aux coins (un cran plus grandes, plus claires)
-  x.textAlign='center';x.font='11px '+F;x.fillStyle=T(.55,.8);x.fillText('CASH CAR',cx,h*.2);
-  x.font='7px '+F;x.fillStyle=L(.3,.55);x.fillText((B.fr?'REPUBLIQUE DU CIEL':'BANQUE CENTRALE DU CIEL')+' · '+B.m,cx,h*.84);
-  x.textAlign='left';x.fillText('CC '+(4100+B.v.length*977+B.v.charCodeAt(0)*13),30,h-34);                                   // le numéro de série
-  const bx=w*.8,bw=w*.075;
-  if(B.fr){[['rgba(30,70,200,.75)',0],['rgba(245,245,250,.75)',1],['rgba(220,30,50,.75)',2]].forEach(function(q){x.fillStyle=q[0];x.fillRect(bx+q[1]*bw/3,0,bw/3+.5,h);});} // la bande BLEU-BLANC-ROUGE
-  else{const Bd=x.createLinearGradient(0,0,0,h);Bd.addColorStop(0,B.or?'rgba(255,220,140,.5)':'rgba(255,160,220,.38)');Bd.addColorStop(.5,B.or?'rgba(255,245,200,.62)':'rgba(150,250,255,.42)');Bd.addColorStop(1,B.or?'rgba(210,150,60,.5)':'rgba(255,230,140,.38)');x.fillStyle=Bd;x.fillRect(bx,0,bw,h); // la bande irisée
-    x.strokeStyle='rgba(255,255,255,.18)';for(let i=0;i<6;i++){x.beginPath();x.moveTo(bx+4+i*6,0);x.lineTo(bx+4+i*6,h);x.stroke();}}
-});}
+/* (2026-11-05, Sacha : « remplace les dollars par des euros, les billets de dollars dans le garage… on a déjà des billets d'euros dans le code, retravaille-les » puis
+   « ils sont moches, je veux qu'ils ressemblent aux vrais mais dans la DA du jeu ») LES BILLETS EUROPA EN PIXEL-ART : la même série que les billets en cubes de la traînée
+   (`TC_EUR`, rendu/trainees-1.js) — 5 gris · 10 rouge · 20 bleu · 50 orange · 100 vert · 200 jaune · 500 violet, les couleurs réelles — et la composition du vrai billet :
+   le DRAPEAU européen (12 étoiles) en haut à gauche, « EURO », le PORTAIL (la fenêtre d'architecture) à gauche, le panneau clair du centre et ses guillochis, le GROS CHIFFRE
+   en bas à gauche, la BANDE argentée de l'hologramme, le « € » à droite et le PONT en bas à droite. Dessiné sur une grille de 128 × 59 pixels (chaque pixel = 4 de la toile,
+   texture au plus proche, comme les pièces) ; le papier est un dégradé tramé, pas un dégradé lisse ; texte en police pixel seuillée (jamais flou). */
+const RICH_BILLETS=[ // e = la couleur du billet (celle de TC_EUR) · sh = le reflet qui glisse
+  {v:'5',  m:'CINQ EUROS',       e:'#aab2b2',sh:[.8,.95,.9]},
+  {v:'10', m:'DIX EUROS',        e:'#dc5a50',sh:[1,.6,.7]},
+  {v:'20', m:'VINGT EUROS',      e:'#4d92dc',sh:[.55,.85,1]},
+  {v:'50', m:'CINQUANTE EUROS',  e:'#f28d2e',sh:[1,.82,.45]},
+  {v:'100',m:'CENT EUROS',       e:'#68b866',sh:[.5,1,.65]},
+  {v:'200',m:'DEUX CENTS EUROS', e:'#e4c24c',sh:[1,.95,.5]},
+  {v:'500',m:'CINQ CENTS EUROS', e:'#9c6bb2',sh:[.9,.7,1]}];
+const RICH_B100=4; // la place du 100 € (vert) : il habille aussi la liasse
+function richTexBillet(B){const t=richCv(512,236,function(x,w,h){
+  const W=128,H=59,S=document.createElement('canvas');S.width=W;S.height=H;const g=S.getContext('2d'),T=document.createElement('canvas'),tg=T.getContext('2d'),
+    hx=function(s){return [parseInt(s.substr(1,2),16),parseInt(s.substr(3,2),16),parseInt(s.substr(5,2),16)];},
+    mx=function(a,b,k){return [Math.round(a[0]+(b[0]-a[0])*k),Math.round(a[1]+(b[1]-a[1])*k),Math.round(a[2]+(b[2]-a[2])*k)];},
+    cs=function(c){return 'rgb('+c[0]+','+c[1]+','+c[2]+')';},
+    P=hx(B.e),BL=[255,255,255],CL=mx(P,BL,.4),CM=mx(P,BL,.2),CD=mx(P,[0,0,0],.3),CK=mx(P,[8,6,20],.78),
+    R=function(a,b,c,d,col){g.fillStyle=cs(col);g.fillRect(a,b,c,d);},
+    txt=function(s,ox,oy,sz,col,ombre){ // la police pixel, SEUILLÉE : chaque pixel de la police = 1 pixel de la grille (sz = 8, 16, 24)
+      const F=sz+'px "Press Start 2P",monospace';tg.font=F;const tw=Math.ceil(tg.measureText(s).width)+2;T.width=tw;T.height=sz+2;tg.font=F;tg.textBaseline='top';tg.fillStyle='#000';tg.fillText(s,1,1);
+      const D=tg.getImageData(0,0,tw,sz+2).data;
+      for(const [dx,dy,c] of (ombre?[[1,1,ombre],[0,0,col]]:[[0,0,col]])){g.fillStyle=cs(c);for(let j=0;j<sz+2;j++)for(let i=0;i<tw;i++)if(D[(j*tw+i)*4+3]>110)g.fillRect(ox+i-1+dx,oy+j-1+dy,1,1);}},
+    BAY=[0,.5,.75,.25]; // la trame 2 × 2
+  for(let j=0;j<H;j++)for(let i=0;i<W;i++){const f=i/W*1.35+(BAY[(j&1)*2+(i&1)]-.4)*.9,ix=f<.5?0:f<1.1?1:2;R(i,j,1,1,ix===0?CM:ix===1?P:CD);} // LE PAPIER : clair à gauche, plus soutenu à droite, en trame
+  R(35,11,46,21,CL);R(35,11,46,1,CM);R(35,31,46,1,CD);R(35,11,1,21,CM);R(80,11,1,21,CD); // LE PANNEAU CLAIR du centre
+  for(let k=0;k<3;k++)for(let i=36;i<80;i++){const y=Math.round(21.5+Math.sin(i*.3+k*2.1)*(2.6+k*1.9)*Math.sin(k*.7+.9));if(y>11&&y<31)R(i,y,1,1,mx(P,BL,.28));} // ses guillochis (trois vagues croisées)
+  for(let a=0;a<24;a++){const ang=a*Math.PI/12,cx=Math.round(57.5+Math.cos(ang)*9),cy=Math.round(21.5+Math.sin(ang)*9);if(a%2===0)R(cx,cy,1,1,P);} // la rosace du centre
+  R(7,13,22,17,CL);R(7,13,22,1,CK);R(7,29,22,1,CK);R(7,13,1,17,CK);R(28,13,1,17,CK);R(8,14,20,1,CM);R(10,16,16,11,CD);R(11,17,14,9,P);R(17,17,2,9,CD);R(11,21,14,1,CD); // LE PORTAIL : cadre d'encre, baie, meneau, traverse
+  R(5,3,13,9,[18,52,160]);R(5,3,13,1,CK);R(5,11,13,1,CK);R(5,3,1,9,CK);R(17,3,1,9,CK); // LE DRAPEAU européen…
+  for(let a=0;a<12;a++){const ang=a*Math.PI/6;R(Math.round(11.5+Math.cos(ang)*3.2),Math.round(7+Math.sin(ang)*2.6),1,1,[255,214,60]);} // …et ses douze étoiles
+  txt('EURO',21,4,8,CK,CL); // « EURO »
+  R(84,1,8,H-2,[196,206,212]);for(let j=1;j<H-1;j++)for(let i=84;i<92;i++){const q=(i+(j>>1))%4;R(i,j,1,1,q===0?[250,252,253]:q===1?[218,226,231]:q===2?[176,188,196]:[232,238,242]);}R(83,1,1,H-2,CD);R(92,1,1,H-2,CD); // LA BANDE argentée de l'hologramme
+  const EU=['...#####.','..###..##','.###.....','#######..','#######..','.###.....','..###..##','...#####.']; // le « € » (9 × 8), dessiné à la main puis triplé : la police le rend mal à cette taille
+  for(let j=0;j<8;j++)for(let i=0;i<9;i++)if(EU[j][i]==='#')R(98+i*3,8+j*3,3,3,CK); // le « € » à droite
+  txt('BCE',98,37,8,CK,CL);
+  for(let n=0;n<3;n++){const cx=102+n*8;for(let a=0;a<=12;a++){const ang=Math.PI*a/12;R(Math.round(cx+Math.cos(ang)*3.4),Math.round(53-Math.sin(ang)*3.2),1,1,CK);}}R(98,53,26,1,CK); // LE PONT : trois arches et son tablier
+  txt(B.v,6,33,24,CK,CL); // LE GROS CHIFFRE, en bas à gauche, encre sur papier, un filet de lumière dessous
+  R(0,0,W,1,CK);R(0,H-1,W,1,CK);R(0,0,1,H,CK);R(W-1,0,1,H,CK);R(1,1,W-2,1,CL);R(1,H-2,W-2,1,CD);R(1,1,1,H-2,CL);R(W-2,1,1,H-2,CD); // le contour d'encre et son liseré
+  x.imageSmoothingEnabled=false;x.drawImage(S,0,0,w,h);});
+  t.magFilter=THREE.NearestFilter;return t;} // (pixels nets de près, comme la pièce)
 function richTexTrefle(){return richCv(256,256,function(x){x.clearRect(0,0,256,256);
   x.strokeStyle='#2f7a2a';x.lineWidth=9;x.lineCap='round';x.beginPath();x.moveTo(128,132);x.quadraticCurveTo(150,190,132,248);x.stroke(); // la tige
   for(let i=0;i<4;i++){x.save();x.translate(128,128);x.rotate(i*Math.PI/2+Math.PI/4);

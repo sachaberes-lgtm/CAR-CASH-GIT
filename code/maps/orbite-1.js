@@ -206,7 +206,7 @@ const SATS=[geoStarlink(),geoDebris(),geoEclat()].map(function(g,k){
   g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(N*4),4));
   g.setAttribute('aMov',new THREE.InstancedBufferAttribute(new Float32Array(N*4),4));   // ⚠ PRÉSENT PARTOUT (à zéro hors des trains) : un attribut absent vaut (0,0,0,1) — une vitesse de 1
   g.setAttribute('aTr',new THREE.InstancedBufferAttribute(new Float32Array(N*2).fill(1),2));
-  const im=new THREE.InstancedMesh(g,k===1?SAT_MAT_E:SAT_MAT,N);im.count=0;im.visible=false;im.frustumCulled=false; // un champ de plusieurs km : le culling par objet n'a pas de sens
+  const im=new THREE.InstancedMesh(g,k===1?SAT_MAT_E:SAT_MAT,N);im.count=0;im.visible=false;im.frustumCulled=false;im.name='orbite satellites'; // un champ de plusieurs km : le culling par objet n'a pas de sens
   scene.add(im);return im;});
 /* L'ÉCLAT DU SOLEIL SUR LES PANNEAUX — une étoile par Starlink, qui ne vit QUE pendant le reflet (sinon le sommet est jeté hors champ :
    zéro pixel). Le quad partage les tampons d'instances du maillage [0] (matrices, rotation propre, trains) : il suit son satellite. */

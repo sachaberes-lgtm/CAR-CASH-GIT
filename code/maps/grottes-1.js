@@ -100,7 +100,7 @@ if(GRT_VASTE)Object.assign(GRT_FORME,{
    · `grtEchantillons` relit le vrai virage dans la route finale (cap au début et à la fin → rayon, centre) : R.geants ; et ouvre la salle autour (RH, UP) pour que le géant tienne dans l'air.
    · `grtDecorsG` plante le géant sur le sol (plancher), le plafonne sous la voûte, et l'inscrit aux collisions (cône à la mesure de la facette).
    `?sans=geants` = la salle d'avant. Console : `dbgGrotte('geants')`. Les réglages sont ici, à un seul endroit. */
-const GRT_GEANT={on:!/[?&]sans=([^&]*,)?geants(,|&|$)/.test(location.search),
+const GRT_GEANT={on:/[?&]avec=geants(&|$)/.test(location.search), /* (2026-11-06, Léo : « un gros bloc de neige sur la route, c'est pas jouable ») COUPÉS par défaut : la salle d'avant ; `?avec=geants` les rend (banc) */
   rayon:[48,72],  /* le rayon du pied (m) : 0,3 × le rayon du virage, borné ici */
   jour:70,        /* l'air minimum entre le flanc du géant et le bord de la route (m) */
   haut:[150,210], /* la pointe au-dessus de la ROUTE (m) — le fond peut être 200 m plus bas, dans un gouffre ; plus bas si la voûte est basse */

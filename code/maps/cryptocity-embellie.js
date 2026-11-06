@@ -64,7 +64,7 @@ function crhBatit(){
       crhBoite(P,K,Math.sin(a)*d,Math.cos(a)*d,y0,y0+hgt+120,w,w*(.7+rr()*.5),rot,0,r);
       if(rr()<.28){const w2=w*.55,h2=hgt*(.4+rr()*.4);crhBoite(P,K,Math.sin(a+.012)*d,Math.cos(a+.012)*d,y0+hgt+60,y0+hgt+120+h2*.35,w2,w2,rot,0,r);} /* un étage en retrait sur quelques-unes */
     }
-    const m=new THREE.Mesh(crhGeo(P,K),crhMat(false));m.frustumCulled=false;m.renderOrder=-2;m.matrixAutoUpdate=true;m.visible=false;scene.add(m);CRH.tours=m;CRH.n=P.length/9;}
+    const m=new THREE.Mesh(crhGeo(P,K),crhMat(false));m.frustumCulled=false;m.name='crypto tours lointaines';m.renderOrder=-2;m.matrixAutoUpdate=true;m.visible=false;scene.add(m);CRH.tours=m;CRH.n=P.length/9;}
   if(NF>0){const P=[],K=[];
     /* les projecteurs : une base sur l'horizon, une direction qui penche vers l'extérieur ; trois rubans croisés à 60° (fondus sur leur largeur) */
     for(let i=0;i<NF;i++){const a=(i+.2+rr()*.6)/NF*PI2,d=1800+rr()*600,bx=Math.sin(a)*d,bz=Math.cos(a)*d,by=-140+rr()*60,lean=.18+rr()*.3,ph=rr()*PI2,
@@ -74,7 +74,7 @@ function crhBatit(){
           tx=bx+dir[0]*len,ty=by+dir[1]*len,tz=bz+dir[2]*len,A=[bx-sx*wB,by-sy*wB,bz-sz*wB],B=[bx+sx*wB,by+sy*wB,bz+sz*wB],C=[tx+sx*wT,ty+sy*wT,tz+sz*wT],E=[tx-sx*wT,ty-sy*wT,tz-sz*wT];
         P.push(A[0],A[1],A[2],B[0],B[1],B[2],C[0],C[1],C[2],A[0],A[1],A[2],C[0],C[1],C[2],E[0],E[1],E[2]);
         K.push(0,3,hue,-1, 0,3,hue,1, 1,3,hue,1, 0,3,hue,-1, 1,3,hue,1, 1,3,hue,-1);}}
-    const m=new THREE.Mesh(crhGeo(P,K),crhMat(true));m.frustumCulled=false;m.renderOrder=-1;m.visible=false;scene.add(m);CRH.fais=m;}
+    const m=new THREE.Mesh(crhGeo(P,K),crhMat(true));m.frustumCulled=false;m.name='crypto faisceaux';m.renderOrder=-1;m.visible=false;scene.add(m);CRH.fais=m;}
 }
 function crhTick(t,on){
   const T9=CRH.tours,F9=CRH.fais;if(!T9&&!F9)return;

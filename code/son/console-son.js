@@ -70,6 +70,7 @@ function pauseSon(id,o){const C=window.CCSON,n=++PSON.n;if(UI_SON)UI_SON.t=perfo
   }catch(e){pauseSonFin(n);}
   return null;}
 function sfx(id,o){
+  if(typeof id!=='string'){sonPanne('sfx sans identifiant',String(id));return null;} /* (2026-11-05, DEBUG-TOTAL) id.indexOf hors du try : un id absent LEVAIT chez l'appelant (souvent dans la boucle) */
   if(SONV2&&id.indexOf('ui.')===0&&pauseSonDort())return pauseSon(id,o); // (2026-10-16) LE CLIC DANS LA PAUSE (voir pauseSon)
   if(!SONV2||!sfxOk()||document.hidden)return null;
   try{if(UI_SON&&id!=='ui.appui'&&!(o&&o.loop))UI_SON.t=performance.now();if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(h&&SIG_RECUL[id])musRecul();return h;}catch(e){return null;}
@@ -217,8 +218,19 @@ function vroomGarage(){
     ng.gain.setValueAtTime(.0001,t);ng.gain.exponentialRampToValueAtTime(.06,t+.1);ng.gain.exponentialRampToValueAtTime(.0002,t+1.1);ns.connect(nf);nf.connect(ng);ng.connect(MASTER);ns.start(t);ns.stop(t+1.2);
   }catch(e){}
 }
+/* ===== LE SON NE FAIT JAMAIS TOMBER LA BOUCLE (2026-11-05, DEBUG-TOTAL : « qu'on puisse faire ce qu'on veut du code sans jamais avoir de problème ») =====
+   `setTargetAtTime` LÈVE une TypeError (« non-finite ») sur un NaN ou un Infinity. Une cinquantaine de `stt` par image (boucle-5-sons) suivent
+   la vitesse, le régime, la glisse : un seul NaN venu d'en amont (dt énorme au retour d'arrière-plan, une division par une vitesse nulle)
+   faisait sauter, À CHAQUE IMAGE, toute la fin de la simulation (HUD, caméra, test de bord, mort) — la caisse figée sans mourir.
+   La valeur non finie est refusée ici (le paramètre garde sa valeur) et dite UNE fois en console, préfixe [SON], et dans la boîte noire.
+   `sonPanne(nom,…)` sert à toute panne du son : une fois par nom, jamais muette, jamais bloquante. `dbgSonPannes()` : la liste. */
+const SON_PANNES={};
+function sonPanne(nom,e,x){if(SON_PANNES[nom]){SON_PANNES[nom].n++;return;}SON_PANNES[nom]={n:1,m:String(e&&e.message||e).slice(0,160)};
+  try{console.warn('[SON] '+nom,e,x===undefined?'':x);}catch(_){}try{window.__ccNote('son',nom+' · '+SON_PANNES[nom].m,e&&e.stack&&String(e.stack).split('\n')[1]);}catch(_){}}
+window.dbgSonPannes=function(){return JSON.parse(JSON.stringify(SON_PANNES));};
 function stt(p,v,t,tc){
   if(!AC||AC.state!=='running'||!p)return;
+  if(!isFinite(v)||!isFinite(t)||!isFinite(tc)){sonPanne('valeur non finie (stt)','v='+v+' t='+t+' tc='+tc);return;}
   const o=p._s9,now=AC.currentTime;
   if(o!==undefined&&p._c9===tc&&Math.abs(v-o)<=Math.abs(o)*.002+1e-5&&now-p._t9<.25)return;
   p._s9=v;p._c9=tc;p._t9=now;p.setTargetAtTime(v,t,tc);

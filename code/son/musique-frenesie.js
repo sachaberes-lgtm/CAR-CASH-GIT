@@ -258,7 +258,7 @@ function musicTick(dt,mvt){
   if(musicMode==='run')musicVolCible=musVol()*(.62+.38*musicBoostEnv)*(1-.3*Math.min(1,DIST.env));   // à l'arrêt un peu plus bas, lancé à plein
   if(window.POUCE_JEU&&POUCE_JEU.joue()){ /* (15/10) POUCE BLEU : son niveau = celui qu'aurait la radio (le curseur, le souffle du mouvement, l'annonceur), le moteur du jeu le pilote ; la musique coupée l'éteint */
     if(!SND.music)POUCE_JEU.fin(false);
-    else{const fr9=musicMode==='run'&&!!FRENM.sw; /* (15/10 soir, Léo : « la frénésie doit rester ») le morceau de la FRÉNÉSIE joue : Pouce bleu s'efface (~0,3 s), puis revient */
+    else{const fr9=musicMode==='run'&&!!FRENM.sw&&musicOn&&!!musicEl&&!musicEl.paused; /* (15/10 soir, Léo : « la frénésie doit rester ») le morceau de la FRÉNÉSIE joue : Pouce bleu s'efface (~0,3 s), puis revient — (2026-11-05, DEBUG-TOTAL) seulement quand la triade JOUE VRAIMENT (musicOn : son événement « playing ») : FRENM.sw passe à vrai dès le changement de source, Pouce bleu se taisait pendant tout le chargement du m4a (réseau mobile, play() refusé) — un trou de silence pile sur la récompense */
       const b9=VOL.mus/.62*PBJ_NIV*(musicMode==='run'?(.62+.38*musicBoostEnv):.62);
       POUCE_JEU.niveau(fr9?0:b9*pbjPlancher(dt,b9,PBJ_FORCE||(musicMode==='run'&&running?pbjTier(engTier+1):1))); /* (2026-10-16) LE PLANCHER DU DÉPART (pbjPlancher) */if(musicMode==='run'){POUCE_JEU.moteur(PBJ_FORCE||pbjTier(engTier+1));if(!fr9)musicVolCible=0;}}}
   else if(musicMode==='menu'){musicVolCible=musVol()*.5;                   // le menu : en fond
@@ -285,7 +285,7 @@ function musicTick(dt,mvt){
      const m9=musVol()*.5,r9=m9>1e-4?Math.min(2.5,musicVolCible/m9):0,b9=tait9?0:VOL.mus/.62*PBJ_NIV*.62*r9;
      try{PBJ_PL.max=24;POUCE_JEU.niveau(b9*pbjPlancher(dt,VOL.mus*PBJ_NIV,POUCE_JEU.tier0||pbjTier(1)));}catch(e){} /* (2/11 soir) le nivellement vise le niveau du GARAGE (base constante) et le lieu l'abaisse : au ciel, −10,5 dB de plus (MUS_CIEL_LOBBY) ; jusqu'à +24 dB (+11 en course) : un morceau clairsemé est enfin audible */
      musicVolCible=0;}
-   if(musicMode==='menu'&&!tait9&&musicEl&&musicEl.src&&musicEl.src!==musicSilence._u&&!musicTick._pz&&!lobbyActif()){ /* (2/11 nuit) le silence du déverrouillage n'est pas une musique de lieu : rien à remplacer */const u9=musicMenuUrl(); // LA MUSIQUE DU LIEU (ciel ↔ garage)
+   if(musicMode==='menu'&&!tait9&&musicEl&&musicEl.src&&musicEl.src!==musicSilence._u&&!musicTick._pz&&!lobbyPeut()){ /* (2026-11-05, DEBUG-TOTAL : DEUX MUSIQUES sur l'écran de mort, reproduit au banc --frenesie) !lobbyPeut() et non !lobbyActif() : pendant que le lobby lié SE CHARGE (phase « charge », 1 à 3 s), l'<audio> gardait l'adresse de la TRIADE de la frénésie, ce bloc y voyait un changement de lieu et relançait nuit-de-velours/p1 à plein volume SOUS le lobby jusqu'au JOUER. Le lobby lié a la main : le fichier du lieu ne joue que s'il est KO (musicMenuAncien). */ /* (2/11 nuit) le silence du déverrouillage n'est pas une musique de lieu : rien à remplacer */const u9=musicMenuUrl(); // LA MUSIQUE DU LIEU (ciel ↔ garage)
      if(u9&&musicEl.src!==MENU_MUS.abs(u9)){musicVolCible=0;                       // on a changé de lieu : la musique d'avant s'efface…
        if((VOL_LOCKED&&!musWaTient())||musicVolCour<.015||musicEl.paused)playMusic(u9,{loop:true,volume:0});}} // …puis celle du lieu prend sa place, en fondu depuis zéro (iPhone sans MUS_WA : franche)
    if(tait9){musicVolCible=0;if(!musicTick._pz&&((VOL_LOCKED&&!musWaTient())||musicVolCour<.012)){ /* (2026-10-14, session SON) branchée en WebAudio, l'iPhone fait comme l'ordi : un fondu, puis la pause */musicTick._pz=true;musicPause(true);}}
@@ -546,7 +546,7 @@ const billNoteTex=(function(){
   apresPolice(function(){c.fillStyle='#1c0430';c.fillRect(0,0,64,32);c.fillStyle='#2f9a52';c.fillRect(2,2,60,28);
   c.strokeStyle='#7fd89a';c.lineWidth=2;c.strokeRect(5,5,54,22);
   c.fillStyle='#ffd75e';c.font='8px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
-  c.fillText('$',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
+  c.fillText('€',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
   return tx;
 })();
 const billGeo=new THREE.PlaneGeometry(.5,.25);

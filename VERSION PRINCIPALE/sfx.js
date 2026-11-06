@@ -178,7 +178,7 @@ function play(id,o){
   let v=0;if(o.var!=null)v=Math.max(0,Math.min(f.v-1,o.var|0));else if(f.v>1){v=Math.floor(Math.random()*f.v);if(v===S.dern[id])v=(v+1)%f.v;}
   let cle=id+'#'+v+'#'+base,ab=S.buf[cle];
   if(!ab){const voulu=cle;for(let k=0;k<f.v&&!ab;k++){cle=id+'#'+k+'#'+base;ab=S.buf[cle];}
-    if(!ab){if(S.demande&&S.demande(voulu))S.att[voulu]={id:id,o:o,t:performance.now()};return null;}} // pas encore décodé : demandé en priorité, il partira s'il arrive à temps (LES SONS À LA DEMANDE) ; sinon on se tait plutôt que d'attendre
+    if(!ab){if(S.demande&&S.demande(voulu)&&!o.loop)S.att[voulu]={id:id,o:o,t:performance.now()};return null;}} /* (2026-11-05, DEBUG-TOTAL, preuve-boucle-tardive.cjs) PAS de départ en retard pour une BOUCLE : l'appelant a reçu null, il n'aurait aucune poignée pour l'arrêter (le slide qui frotte pour toujours, les rouleaux du Final Spin) — le décodage est lancé quand même, l'appel suivant (tick, chien de garde) la trouvera prête */ // pas encore décodé : demandé en priorité, il partira s'il arrive à temps (LES SONS À LA DEMANDE) ; sinon on se tait plutôt que d'attendre
   S.use[cle]=performance.now();S.dern[id]=v;
   const dbC=chef(f,t0);if(dbC===null)return null;
   // la polyphonie de CE son : au-delà de `max`, la plus ancienne voix s'efface (en 15 ms, jamais coupée net)
