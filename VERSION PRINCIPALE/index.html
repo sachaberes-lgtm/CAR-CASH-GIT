@@ -47895,6 +47895,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
     chauffeRendu(L9);for(const m of L9)scene.remove(m);},
+  function(){premiereFois(0);},function(){premiereFois(1);},function(){premiereFois(2);},function(){premiereFois(3);},function(){premiereFois(4);},function(){premiereFois(5);},function(){premiereFois(6);}, /* (2026-11-07, passe perf 3, P6) LES NAISSANCES DE COURSE dessinées une fois : billets et panneaux du cratère (instanciés à ZÉRO instance, donc jamais dessinés avant la 1re mort), pigeon (compilé seulement) — voir gameplay/premiere-fois.js */
   function(){jadeChauffeProgs(0);},function(){jadeChauffeProgs(1);},function(){jadeChauffeProgs(2);},function(){jadeChauffeProgs(3);}, // (2026-10-14, passe perf mobile) LE SOLEIL DE JADE : ses 17 programmes compilés au menu, ~4 par étape (jadeChauffeProgs) — plus rien ne naît au portail vers le jade ni au REJOUER tiré sur lui
   function(){engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
     renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}]; // …et son halo et son tampon montent au GPU dès le menu
@@ -69281,6 +69282,91 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','LIS LES FLA
   
   'LE LINGOT':'THE GOLD BAR',
   'Il dormait au fond du coffre-fort. Tu viens de le sortir : 999,9 millièmes de pure arrogance.':'It slept at the back of the vault. You just took it out: 999.9 fine, and pure arrogance.'}))if(!(k in I18N))I18N[k]=v;
+
+/* ===== LES NAISSANCES DE COURSE, DESSINÉES UNE FOIS AU MENU (2026-11-07, passe perf 3, P6 : « les gels en course à la première fois ») =====
+   MESURÉ (banc `outils/banc-perf/premiere-fois.py`, `passation/perf-2026-11/PREMIERE-FOIS.md`) : une course scénarisée qui déclenche chaque figure,
+   chaque pouvoir, un orage, un événement rare, la frénésie, une seconde chance et un portail par map ne lie plus AUCUN programme en course (la chauffe
+   du menu les compile tous) ; en revanche cinq familles de dessins ne sont JAMAIS dessinées avant leur première fois — or sur iPhone (Metal)
+   le vrai programme de la puce naît au PREMIER DESSIN (10 à 50 ms par couple programme × mélange, voir « LA CHAUFFE DE LA PUCE » dans
+   vignette-moteur.js) :
+   · LES BILLETS (`BILL_IM`), LES PANNEAUX DU CRATÈRE (`PAN_VOL`, `PAN_DARD` : volutes et dards de la mort) et LA PLUIE DE MONNAIES (`MONN`) sont des maillages INSTANCIÉS gardés à
+     ZÉRO instance. Leur « chauffe » (`onAfterRender` → `chaud=true`) se déclenchait sur une image où three NE DESSINE RIEN (`renderInstances`
+     rend la main si le nombre d'instances est 0) : le programme était lié, jamais dessiné — le 1er dessin avait lieu à la 1re mort ;
+   · LE PIGEON : `chauffeDivers` ne faisait que `renderer.compile` d'un pigeon (liaison) ; la 1re volée (heure aléatoire, en pleine course) le dessinait pour la 1re fois.
+   · LA CARTE MOTEUR (trois quads) et LES MOTEURS GARDÉS de l'écran de mort : voir plus bas.
+   Ici : UNE instance de taille nulle (dessin réel, rien à l'écran) passée par `chauffeRendu`, puis tout est remis comme avant. Interrupteur : `?premfois=0`
+   (= l'ancien comportement : rien n'est dessiné d'avance). Appelé par `chauffeDivers` (une étape par image) ; chaque étape se joue UNE fois. */
+const PREM_ON=!/[?&]premfois=0\b/.test(location.search);
+const PREM={degen:new THREE.Matrix4().makeScale(0,0,0),fait:{}};
+function premInstance(im,n,vis){ /* un maillage instancié dessiné pour de bon avec UNE instance invisible, puis remis à son état */
+  const c0=im.count,v0=im.visible;
+  try{im.setMatrixAt(0,PREM.degen);im.instanceMatrix.needsUpdate=true;im.count=1;im.visible=true;chauffeRendu([im]);}
+  finally{im.count=c0;im.visible=v0;}
+}
+function premPanneau(o){ /* les panneaux (instances par attributs, `instanceCount`) : S = 0 pour tout le monde, une instance dessinée */
+  if(!o||!o.mesh)return;const n0=o.g.instanceCount,v0=o.mesh.visible;
+  try{o.g.instanceCount=1;for(let i=0;i<o.at.length;i++)o.at[i].needsUpdate=true;o.mesh.visible=true;chauffeRendu([o.mesh]);}
+  finally{o.g.instanceCount=n0;o.mesh.visible=v0;}
+}
+function premiereFois(k){ /* l'étape k de la liste (une par image) ; vrai s'il y en a encore */
+  const L=[
+    function(){if(typeof BILL_IM!=='undefined')premInstance(BILL_IM);},
+    function(){premPanneau(PAN_VOL);},
+    function(){premPanneau(PAN_DARD);},
+    function(){premPanneau(MONN);}, /* la pluie de monnaies (600 panneaux, billets-devises.js) : même cas */
+    function(){const p=mkPigeon();scene.add(p);try{chauffeRendu([p]);}finally{scene.remove(p);}},
+    function(){premCartes();},
+    function(){setTimeout(premMoteursTic,1500);}
+  ];
+  if(!PREM_ON||PREM.fait[k])return k+1<L.length;
+  PREM.fait[k]=1;try{L[k]();}catch(e){console.warn('premiereFois',k,e);}
+  return k+1<L.length;
+}
+/* (2026-11-07, P6) LA CARTE MOTEUR et LE MOTEUR DE L'ÉCRAN DE MORT. MESURÉ : au 1er palier de la course (la carte « NOUVEAU MOTEUR » recollée dans l'image) et à
+   la 1re mort (le moteur rendu dans son tampon de 864 × 578), sept couples programme × mélange naissent d'un coup (3 Phong, 3 Basic, le cône de la flamme) et
+   quatre textures (192-512 px) montent : la chauffe du menu ne faisait que `renderer.compile` de ces moteurs gardés (`ENG_PRET`) et des trois quads de la carte.
+   · `premCartes` : les trois quads dessinés pour de bon, à l'échelle zéro, sur la toile (la cible de la vraie carte) ;
+   · `premMoteursTic` : une chaîne de petites tranches (350 ms), lancée par le menu, qui attend la fin de la chauffe des moteurs (`CHAUFFE_R.fait`), jamais pendant
+     une course, un lâcher ou un piqué, et dessine UN moteur gardé par tranche dans `engRT` — sauf si ses programmes ont déjà été dessinés. */
+function premCartes(){
+  if(typeof engCarteQuad==='undefined'||!engVigQuadScene)return;
+  const q=[engCarteQuad,engHalo,engNoir],v=q.map(function(o){return o.visible;}),s=q.map(function(o){return o.scale.clone();}),vq=engVigQuad.visible,ac=renderer.autoClear,t0=renderer.getRenderTarget();
+  try{engVigQuad.visible=false;for(const o of q){o.visible=true;o.scale.set(0,0,1);}renderer.setRenderTarget(null);renderer.autoClear=false;renderer.render(engVigQuadScene,engVigQuadCam);}
+  finally{renderer.autoClear=ac;renderer.setRenderTarget(t0);engVigQuad.visible=vq;q.forEach(function(o,i){o.visible=v[i];o.scale.copy(s[i]);});}
+}
+const PREMM={i:0,n:0,vus:new Set(),feu:null,fini:false};
+function premMoteurUn(){ /* dessine UN moteur gardé dont les programmes n'ont pas encore été dessinés ; vrai quand il n'y en a plus */
+  while(PREMM.i<ENGINE_TIERS.length&&!ENG_PRET[PREMM.i])PREMM.i++;
+  if(PREMM.i>=ENGINE_TIERS.length)return true;
+  const g=ENG_PRET[PREMM.i++];
+  if(g&&!g.parent){
+    const cles=[];g.traverse(function(o){if(!o.isMesh||!o.material||Array.isArray(o.material))return;const p=renderer.properties.get(o.material).currentProgram;cles.push(p?p.cacheKey:'?'+o.material.id);});
+    if(cles.some(function(k){return !PREMM.vus.has(k);})){
+      for(const k of cles)PREMM.vus.add(k);
+      if(!PREMM.feu){PREMM.feu=new THREE.Mesh(engVigFeuGeo,engVigFeuMat);PREMM.feu.frustumCulled=false;}
+      engVigScene.add(g);engVigScene.add(PREMM.feu);
+      try{engVigRendRT(engRT);}finally{engVigScene.remove(g);engVigScene.remove(PREMM.feu);}
+    }
+  }
+  return false;
+}
+function premMoteursTic(){
+  if(!PREM_ON||PREMM.fini||++PREMM.n>700)return;
+  let libre=false;
+  try{
+    libre=!started&&!gameOver&&CHAUFFE_R.fait&&!ecranWipe._on&&!GAR.go&&!CHUTE.go&&!garageOn;
+    if(libre&&premMoteurUn()){PREMM.fini=true;return;}
+  }catch(e){console.warn('premMoteursTic',e);}
+  setTimeout(premMoteursTic,libre?250:900);
+}
+window.dbgPremiere=function(a){
+  if(a==='tout'){ /* banc : toute la chauffe d'un coup, sans attendre celle du menu (le Chrome sans fenêtre ne la finit pas) — moteurs de tous les paliers fabriqués puis dessinés */
+    for(let k=0;k<7;k++){PREM.fait[k]=0;premiereFois(k);}
+    for(let i=0;i<ENGINE_TIERS.length;i++)engPret(i);
+    let g9=0;while(!premMoteurUn()&&++g9<80){}
+    PREMM.fini=true;
+  }
+  return {on:PREM_ON,chauffe:{div:CHAUFFE_R.div,fait:!!CHAUFFE_R.fait,ap:CHAUFFE_R.ap},fait:Object.keys(PREM.fait).length,moteurs:{i:PREMM.i,n:PREMM.n,fini:PREMM.fini,programmes:PREMM.vus.size}};}; /* banc (premiere-fois.py) : où en est la chauffe des premières fois ; ('tout') la joue d'un coup */
 /* ============================================================================
    LES ÉVÉNEMENTS RARES (2026-10-14, GAMEPLAY — Sacha : « les morceaux de bravoure de l'ex-carrière […] surgissent de temps en temps, PAR
    SURPRISE, pendant une partie NORMALE. Rares (pas plus d'UN par partie), annoncés CLAIREMENT, jamais mortels de façon injuste, avec une

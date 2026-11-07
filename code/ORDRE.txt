@@ -218,6 +218,7 @@ gameplay/seconde-chance.js           # la pub qui ressuscite, la seconde chance,
 interface/menu-logo.js               # le menu : le logo qu'on casse
 rendu/kit-lumiere.js                 # le kit lumière des autres caisses
 gameplay/zones-caisses.js            # systèmes de zone, orage, caisse-nuage, aiguillage, lingot
+gameplay/premiere-fois.js            # les naissances de course dessinées une fois au menu (billets, panneaux du cratère, pigeon) — passe perf 3, P6
 gameplay/evenements-rares.js         # les événements rares, le guide du jeu
 economie/argent-atelier.js           # l'argent de l'atelier
 interface/garage-salle.js            # buildGarageRoom : la salle du garage
