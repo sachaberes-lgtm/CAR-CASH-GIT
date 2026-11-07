@@ -1,0 +1,32 @@
+30 entrées (la plus ancienne en premier)
+06/11 15:05:06 x1 fluide | 85.9 s · grotte · palier moteur 1 · 456 km/h · p50 33.0 p90 36.0 pire 45 · cadence 60 · cran QL 0 · tas - |  | v b97e681
+06/11 15:05:10 x1 fluide | 89.9 s · grotte · palier moteur 1 · 470 km/h · p50 33.0 p90 36.0 pire 45 · cadence 60 · cran QL 0 · tas - |  | v b97e681
+06/11 15:05:14 x1 fluide | 93.9 s · grotte · palier moteur 1 · 341 km/h · p50 33.0 p90 37.0 pire 43 · cadence 60 · cran QL 0 · tas - |  | v b97e681
+06/11 15:05:18 x1 fluide | 97.9 s · grotte · palier moteur 1 · 356 km/h · p50 33.0 p90 39.0 pire 55 · cadence 60 · cran QL 0 · tas - |  | v b97e681
+06/11 15:05:22 x1 fluide | 101.9 s · grotte · palier moteur 1 · 359 km/h · p50 33.0 p90 40.0 pire 68 · cadence 60 · cran QL 0 · tas - |  | v b97e681
+06/11 15:05:26 x1 fluide | 105.9 s · grotte · palier moteur 1 · 442 km/h · p50 33.0 p90 36.0 pire 52 · cadence 60 · cran QL 0 · tas - |  | v b97e681
+06/11 15:05:30 x1 fluide | 109.9 s · grotte · palier moteur 1 · 442 km/h · p50 33.0 p90 35.0 pire 41 · cadence 60 · cran QL 0 · tas - |  | v b97e681
+06/11 15:05:34 x1 fluide | 114 s · grotte · palier moteur 1 · 178 km/h · p50 33.0 p90 40.0 pire 48 · cadence 60 · cran QL 0 · tas - |  | v b97e681
+06/11 15:05:38 x1 fluide | 118 s · jade · palier moteur 2 · 374 km/h · p50 33.0 p90 35.0 pire 100 · cadence 60 · cran QL 0 · tas - |  | v b97e681
+06/11 15:05:42 x1 fluide | 122 s · jade · palier moteur 2 · 388 km/h · p50 34.0 p90 38.0 pire 68 · cadence 60 · cran QL 0 · tas - |  | v b97e681
+06/11 16:17:09 x1 serpent | 0.2 s : trou 867 ms · JS - · GL - · fil libre |  | v b97e681
+06/11 16:17:11 x1 serpent | 1.1 s : trou 1261 ms · JS image loop 660 + étape piste 650 · GL texImage2D 10 · fil bloqué | texImage2D@three.min.js:6:303533 < Z@three.min.js:6:313204 < V@three.min.js:6:307980 < @three.min.js:6:357601 | v b97e681
+06/11 16:17:11 x1 serpent | 2.4 s : trou 169 ms · JS minuteur chauffe 69 · GL - · fil libre |  | v b97e681
+06/11 16:17:12 x1 serpent | 2.5 s : trou 1038 ms · JS image boucle 463 · GL - · fil bloqué |  | v b97e681
+06/11 16:17:12 x1 serpent | fin du guet à 4 s : 4 trou(s) > 120 ms, le pire 1261 ms |  | v b97e681
+06/11 16:18:58 x1 fluide | 110 s · ville · palier moteur 0 · 246 km/h · p50 33.0 p90 35.0 pire 100 · cadence 60 · cran QL 0 · tas - · dose 32 froid |  | v b97e681
+06/11 16:19:02 x1 fluide | 114 s · ville · palier moteur 0 · 292 km/h · p50 33.0 p90 38.0 pire 97 · cadence 60 · cran QL 0 · tas - · dose 36 froid |  | v b97e681
+06/11 16:20:12 x1 memoire | fin 183.5 s · post figDir bvF touch play · tas - · textures 102 géométries 311 programmes 195 · partie n°1 |  | v b97e681
+06/11 16:20:19 x1 fluide | 190.8 s · jade · palier moteur 0 · 236 km/h · p50 16.3 p90 25.3 pire 100 · cadence 30 · cran QL 0 · tas - · dose 47 chaud |  | v b97e681
+06/11 16:20:31 x1 fluide | 202.8 s · jade · palier moteur 0 · 399 km/h · p50 38.3 p90 52.3 pire 68 · cadence 30 · cran QL 4 · tas - · dose 53 chaud |  | v b97e681
+06/11 16:25:32 x1 fluide | 503.8 s · espace · palier moteur 2 · 397 km/h · p50 53.3 p90 83.3 pire 83 · cadence 30 · cran QL 9 · tas - · dose 148 chaud |  | v b97e681
+06/11 16:25:36 x1 fluide | 507.9 s · espace · palier moteur 2 · 405 km/h · p50 54.3 p90 83.3 pire 83 · cadence 30 · cran QL 9 · tas - · dose 150 chaud |  | v b97e681
+06/11 16:25:40 x1 fluide | 511.9 s · espace · palier moteur 2 · 426 km/h · p50 59.3 p90 83.3 pire 83 · cadence 30 · cran QL 9 · tas - · dose 152 chaud |  | v b97e681
+06/11 16:25:44 x1 fluide | 516 s · espace · palier moteur 2 · 445 km/h · p50 83.3 p90 83.3 pire 83 · cadence 30 · cran QL 11 · tas - · dose 154 chaud |  | v b97e681
+06/11 16:25:48 x1 fluide | 520.1 s · espace · palier moteur 2 · 445 km/h · p50 83.3 p90 83.3 pire 83 · cadence 30 · cran QL 9 · tas - · dose 156 chaud |  | v b97e681
+06/11 16:32:18 x1 memoire | fin 909.5 s · post figDir bvF touch play · tas - · textures 121 géométries 632 programmes 195 · partie n°2 |  | v b97e681
+06/11 16:48:31 x1 gel | 5.8 s | post figDir bvF touch play | v 027c1b7
+06/11 16:56:30 x1 gel | 1.6 s | post figDir bvF touch play hPwr figVol hAirPie | v 027c1b7
+06/11 17:02:39 x1 gel | 2.5 s | post figDir bvF touch inGarage garMenuH | v 817f34a
+06/11 17:02:41 x1 gel | 1.1 s | post figDir bvF touch inGarage garMenuH titreCiel | v 817f34a
+cashcarPalier|106 cashcarMobGouv|66 pbjVus|210 cashcarErr|17632 cashcarSave|8914 CapacitorUpdater.webViewSession|272 
