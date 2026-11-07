@@ -42,6 +42,7 @@ css/finition-ecrans.css              # <style id="finitionEcrans"> : la finition
 css/peintures.css                    # <style id="peintures"> : le nuancier v3 (2026-11-05) — les pastilles vernies, le défi, les légendaires qui vivent ; les cartes des traînées en mouvement ; le showroom des voitures et des ailes
 css/figures-selecteur.css            # <style id="figuresSelecteur"> : le sélecteur de figures (2026-11-05) — le dock, les pastilles, la puce ANNULER, les gestes en pastilles
 css/boites-blister.css             # <style id="boitesBlister"> : les cartes de la boutique en BOÎTES blister penchées en 3D, une couleur par rareté, la dorée
+css/ergonomie-mobile.css            # <style id="ergonomieMobile"> : l'ergonomie mobile (2026-11-07) — zones de touche de 44 px (pastilles du sélecteur), pictogrammes éteints plus lisibles, lignes de mission couchées
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
