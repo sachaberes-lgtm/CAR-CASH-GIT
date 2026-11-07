@@ -32,7 +32,7 @@ def run(http,port,carte,qs,ordi,cpu,dossier,tag,regle=None):
     c.call('Page.navigate',url=base+'/icon.svg');time.sleep(1)
     c.ev("localStorage.clear();localStorage.setItem('cashcarSave',%s);1"%json.dumps(json.dumps(gp.SAVE)))
     c.call('Page.addScriptToEvaluateOnNewDocument',source=gp.HOOK)
-    c.call('Page.navigate',url=base+'/index.html?garde=1&palier=2%s&pistegraine=777&carte=%s&meteo=%s%s'%('&tel=1' if ordi else '',carte[0],carte[1] if len(carte)>1 else 'midi',qs))
+    c.call('Page.navigate',url=base+'/index.html?garde=1&palier=%s%s&pistegraine=777&carte=%s&meteo=%s%s'%(os.environ.get('P2IMG_PALIER','2'),'&tel=1' if ordi else '',carte[0],carte[1] if len(carte)>1 else 'midi',qs))
     if not gp.attend(c,"!!window.__gameReady&&typeof dbgState==='function'",240):return {'err':'ne démarre pas'}
     def clic(x,y,h=.12):
         if ordi:souris(c,x,y)
