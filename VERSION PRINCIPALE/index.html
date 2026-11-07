@@ -10918,6 +10918,10 @@ html body #cashHud.b1 .chV{animation-name:hfCashA}html body #cashHud.b2 .chV{ani
 @media (orientation:landscape) and (max-height:540px){
   html body.touch #avCh .avBar{width:calc((34px + (min(50vw,440px) - 34px) * var(--ajK,.8)) / var(--hudK))}
 }
+/* ---- 7. (2026-11-07, Sacha : « la barre X2 est trop grosse, l'argent est trop proche du pause ») le × de la chaîne en 21 px (il en faisait 30, le double de ses points), sa barre à 5 px ; l'argent démarre 22 px sous le ⏸ (hudColMesure) — ce top ne sert que le temps de la 1re mesure ---- */
+html body.touch #avX{font-size:21px}
+html body.touch #avCh .avBar{height:5px}
+html body.touch.play #cashHud{top:calc(var(--hudH) + 84px)}
 /* ---- « Réduire les animations » ---- */
 @media (prefers-reduced-motion:reduce){
   html body.touch.play #cashHud,html body.touch.play #tNitro .nx3,html body.touch.play.bv #tNitro .bvIco,html body #cashHud.b1 .chV,html body #cashHud.b2 .chV,#nxVit.on b,#nxVit.bleu b,#nxVit.inf b{animation:none!important}
@@ -31642,7 +31646,7 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
   if(!(TCTL.on&&running&&!paused&&!gameOver))return; // (le rappel tombe en fin d'image : la partie a pu s'arrêter entre-temps)
   if(!HUDCOL.els)HUDCOL.els=['cashHud','triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
   const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
-  let y=g?zRect(g).bottom+10:66;P.length=0;
+  let y=g?zRect(g).bottom+22:78;P.length=0;
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
   for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade'))continue;
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
