@@ -293,7 +293,7 @@ function sondeFluide(now,ms){
   const p50=v[n>>1],p90=v[Math.min(n-1,(n*.9)|0)],mx=v[n-1];
   if(!(p50>(CAD.on?38:22)||mx>=99))return; /* (2026-11-06, vitesse-fluide) calé sur 30, l'image dure ~33 ms : seuil à 38 pour ne noter que ce qui dépasse le 30 tenu */
   const pm=window.performance&&performance.memory,mem=pm&&pm.usedJSHeapSize?Math.round(pm.usedJSHeapSize/1048576)+' Mo':'-';
-  const msg=(Math.round(now/100)/10)+' s · '+(LVL.cur&&LVL.cur.id||'?')+' · palier moteur '+engTier+' · '+Math.round(Math.abs(vA)*3.6*SPD)+' km/h · p50 '+p50.toFixed(1)+' p90 '+p90.toFixed(1)+' pire '+Math.round(mx)+' · cadence '+(CAD.on?30:60)+' · cran QL '+QL.k+' · tas '+mem+(function(){try{return ' · dose '+Math.round(MOB_S.D)+(mobChaud()?' chaud':' froid');}catch(e9){return '';}})(); /* (vitesse-fluide) la dose du gouverneur : le p50 suit-il la chaleur ? */
+  const msg=(Math.round(now/100)/10)+' s · '+(LVL.cur&&LVL.cur.id||'?')+' · palier moteur '+engTier+' · '+Math.round(Math.abs(vA)*3.6*SPD)+' km/h · p50 '+p50.toFixed(1)+' p90 '+p90.toFixed(1)+' pire '+Math.round(mx)+' · cadence '+(CAD.on?30:60)+' · cran QL '+QL.k+' · tas '+mem+(function(){try{return ' · dose '+Math.round(MOB_S.D)+(mobChaud()?' chaud':' froid')+' pal='+MOB_P.t+' basc='+MOB_P.n;}catch(e9){return '';}})(); /* (2026-11-07) le palier du gouverneur et ses bascules cumulées : les gels > 1 s tombent-ils dessus ? */ /* (vitesse-fluide) la dose du gouverneur : le p50 suit-il la chaleur ? */
   FLU.R.push(msg);if(FLU.R.length>40)FLU.R.shift();
   try{window.__ccNote('fluide',msg);}catch(_){}
 }
