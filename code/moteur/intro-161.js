@@ -101,6 +101,7 @@
     S=Math.max(.6,Math.min(devicePixelRatio||1,INTRO_S_MAX,Math.sqrt(2.2e6/(W*H)))); /* net sur un téléphone, borné en pixels : un grand écran ne coûte pas plus */
     cv.width=Math.round(W*S);cv.height=Math.round(H*S);cv.style.width=W+'px';cv.style.height=H+'px';cv.style.left='0';cv.style.top='0'; /* le dessin et l'écran font EXACTEMENT la même taille */
     ku=Math.max(.75,Math.min(W,H)/390);
+    try{if(window.__ccSondeCrea)window.__ccSondeCrea('#toile S='+S.toFixed(2)+' '+cv.width+'x'+cv.height+' cap '+INTRO_S_MAX,performance.now(),0);}catch(e){} /* (2026-11-07) la sonde du serpent note la taille réelle de la toile du film (le plafond a-t-il agi ?) */
   }
 
   /* ---- LES PETITS OUTILS DE DESSIN ---- */
