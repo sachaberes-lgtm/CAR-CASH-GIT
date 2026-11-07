@@ -29,6 +29,7 @@ const SAVE={
     mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip','saltov'], figS:1, figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, auraH:{s:0,n:0}, /* (2026-10-25) auraH : somme et nombre des parties comptées — l'aura MOYENNE du graphe de l'écran de mort */gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     jour:{d:'',n:0},cad:{t:0},dj:{d:'',k:'',v:0,b:0,ok:0,y:''}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
+    pass:null, // (2026-11-07) LE PASS DE MISSIONS (?pass=1) : les 3 emplacements et la jauge cachée (voir missions/pass-moteur.js)
     m2:m2Vierge(), // (2026-10-16) LES MISSIONS v2 : réussies, prises, suivies, records, compteurs à vie (voir m2Etat)
     plq:{m:'fr',x:(typeof plqHasard==='function'?plqHasard():'CASH CAR'),ok:0},prof:{ne:Date.now(),tA:0,dMax:0}, // (2026-10-17) LA PLAQUE (modèle, texte, validée) et LE PROFIL (né le, temps de jeu, plus longue partie) — voir PLQ
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
@@ -187,6 +188,9 @@ const SAVE={
       if(Array.isArray(cc.musP10))o9.c.musP10=[...new Set(cc.musP10.filter(function(x){return typeof x==='string'&&/^[a-z0-9-]{2,40}$/.test(x);}))].slice(0,80);
       if(cc.met&&typeof cc.met==='object')for(const k of Object.keys(cc.met).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.met||(o9.c.met={}))[k]=L9(cc.met[k],12);
       if(cc.sc&&typeof cc.sc==='object')for(const k of Object.keys(cc.sc).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.sc||(o9.c.sc={}))[k]=N9(cc.sc[k],1e9);}
+    /* (2026-11-07) LE PASS : ids a-z0-9, compteurs entiers bornés ; un code importé ne tire rien qu'il ne saurait dire */
+    c.pass=null;if(d.pass&&typeof d.pass=='object'&&d.pass.v===1){const p9=d.pass,I9=/^[a-z0-9]{2,12}$/,n9=function(x,hi){x=Math.round(+x);return isFinite(x)?Math.max(0,Math.min(hi,x)):0;},A9=function(a,i){return Array.isArray(a)?a[i]:undefined;};
+      c.pass={v:1,sl:[0,1,2].map(function(i){const x=A9(p9.sl,i);return typeof x==='string'&&I9.test(x)?x:'';}),cp:[0,1,2].map(function(i){return n9(A9(p9.cp,i),1e7);}),tir:n9(p9.tir,1e6),np:n9(p9.np,1e7),hab:n9(p9.hab,1e4),car:n9(p9.car,1e4),nh:n9(p9.nh,200)||12,nc:n9(p9.nc,200)||25,dep:n9(p9.dep,1e4),dc:n9(p9.dc,1e4),nbH:n9(p9.nbH,1e3),nbC:n9(p9.nbC,1e3),lh:typeof p9.lh==='string'&&/^[a-z_]{0,10}$/.test(p9.lh)?p9.lh:'',ech:Array.isArray(p9.ech)?p9.ech.filter(function(x){return typeof x==='string'&&I9.test(x);}).slice(0,6):[]};}
     c.cad={t:0};if(d.cad&&typeof d.cad==='object'){const tc=+d.cad.t;if(isFinite(tc)&&tc>0)c.cad.t=Math.min(Math.round(tc),Date.now());}
     /* (2026-10-17) LA PLAQUE et LE PROFIL (voir PLQ) — bornés : un code importé ne peint rien d'autre qu'une plaque de 9 signes ; une sauvegarde
        d'avant le profil part du temps de course qu'elle a déjà (ex.temps), née aujourd'hui. Le typeof : les preuves de sauvegarde n'exécutent que cette zone. */
