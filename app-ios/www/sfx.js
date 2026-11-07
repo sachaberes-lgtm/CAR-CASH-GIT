@@ -77,7 +77,8 @@ function charge(){
 
 
   const DEMANDE=!/[?&]sons=tout\b/.test(location.search),TARD=120,VIE=60000;
-  const garde=function(k){const f=B.m[k.split('#')[0]]||{};return !!f.pre||/^ui\./.test(k);};
+  S.gardes=S.gardes||{}; 
+  const garde=function(k){const f=B.m[k.split('#')[0]]||{};return !!f.pre||/^ui\./.test(k)||!!S.gardes[k];};
   const fond=DEMANDE?cles.filter(garde):cles,file=[];
   S.nTot=cles.length;let i=0,enCours=0,etalon=B.d.__etalon?0:2;
   const tete=B.tete||.03;
@@ -108,9 +109,14 @@ function charge(){
     }
   };
   S.demande=function(cle){if(!DEMANDE||S.buf[cle]||S.enFile[cle]||!B.d[cle])return false;S.enFile[cle]=1;file.push(cle);suivant();return true;};
+
+
+
+  S.chauffe=function(ids,fixe){let n9=0;try{for(const id of ids||[]){const f=B.m[id];if(!f)continue;const bases=f.bases&&f.bases.length?f.bases:[0],nv=Math.max(1,f.v|0);
+    for(let v=0;v<nv;v++)for(const b of bases){const cle=id+'#'+v+'#'+b;if(fixe)S.gardes[cle]=1;if(S.buf[cle]){S.use[cle]=performance.now();continue;}if(S.demande(cle))n9++;}}}catch(e){}return n9;}; 
   if(DEMANDE)setInterval(function(){
     const now=performance.now(),n=S.ac?S.ac.currentTime:0;
-    for(const cle in S.buf){if(!B.d[cle]||now-(S.use[cle]||0)<VIE)continue;
+    for(const cle in S.buf){if(!B.d[cle]||garde(cle)||now-(S.use[cle]||0)<VIE)continue; 
       const L=S.voix[cle.split('#')[0]];let vive=false;if(L)for(const x of L)if(x.fin>n){vive=true;break;}if(vive)continue;
       delete S.buf[cle];delete S.off[cle];S.nDec--;S.evinces++;}},10000);
   S.relance=suivant;suivant();
@@ -218,7 +224,7 @@ function stopJeu(){if(!S.ac)return;const n=S.ac.currentTime;for(const k in S.voi
 function annuleFutur(apres){if(!S.ac)return;const n=S.ac.currentTime+(apres||0);for(const k in S.voix)for(const x of S.voix[k])if(x.t0>n&&x.fin>0){try{x.s.stop();}catch(e){}x.fin=0;}}
 function stop(id){const now=S.ac?S.ac.currentTime:0;S.coupe=Math.max(S.coupe||0,now+.08);for(const k in S.voix){if(id&&k!==id)continue;for(const x of S.voix[k]){try{x.g.gain.setTargetAtTime(0,now,.01);x.s.stop(now+.08);}catch(e){}}S.voix[k]=[];}}
 function liste(){const o={},M=S.m||(G.CCSON_BANQUE&&G.CCSON_BANQUE.m)||{};for(const id in M){const f=M[id];(o[f.fam]||(o[f.fam]=[])).push({id:id,dit:f.dit});}return o;}
-G.CCSON={charge:charge,init:init,play:play,ton:ton,stop:stop,liste:liste,annuleFutur:annuleFutur,stopJeu:stopJeu,
+G.CCSON={charge:charge,init:init,play:play,chauffe:function(ids,fixe){try{return S.chauffe?S.chauffe(ids,fixe):0;}catch(e){return 0;}},ton:ton,stop:stop,liste:liste,annuleFutur:annuleFutur,stopJeu:stopJeu,
   bus:function(k){return S.bus[k]||null;},
   existe:function(id){return !!(S.m&&S.m[id]);},
   etat:function(){let oct=0,n=0;for(const k in S.buf){const b=S.buf[k];if(b){n++;oct+=b.length*b.numberOfChannels*4;}}
