@@ -30,7 +30,7 @@ qui affiche le jeu dans une vue web, sans navigateur autour). Le jeu n'est **pas
   de `capacitor.config.json` n'a aucun module installé : il est inerte (gardé, sans effet).
 - **L'écran de lancement attend le jeu** (IOS-20) : `launchAutoHide:false` ; c'est `natif.js` qui l'efface à `DOMContentLoaded`
   (après l'exécution du grand script), avec un filet à 30 s. Avant, il partait seul à 4 s et un iPhone lent montrait un fond violet nu.
-- **Une version native = un numéro de version** (IOS-19) : `publier-maj.js` met `natifMin` = `MARKETING_VERSION`, et l'app ne compare
+- **Une version native = un numéro de version** (IOS-19) : `publier-maj.js` met `natifMin` = `MARKETING_VERSION` par défaut (sauf si `--natif-min` est donné ; obligatoire pour une édition avec achats), et l'app ne compare
   que ce numéro (`getBuiltinVersion`, pas le numéro de build). Donc **chaque envoi qui change le natif** (un module Capacitor, une
   autorisation, `Info.plist`, Swift) **monte `MARKETING_VERSION`** (1.0.0 → 1.0.1 → 1.1.0) ; monter seulement le build ne suffit pas :
   une mise à jour en direct qui a besoin du nouveau natif irait aussi sur les anciens.
@@ -68,6 +68,9 @@ Le jeu embarqué (`www/`) se remplace par internet : les joueurs n'ont rien à t
 - **Publier** : `node publier-maj.js` (commit local sur `app-maj`, rien d'envoyé), puis `node publier-maj.js --envoyer`
   **seulement sur le oui de Sacha** (tous les iPhone la prennent). Ce qui part est l'ÉDITION APP STORE (preparer-www.js et
   toutes ses coupes), jamais le jeu web tel quel.
+  ⚠ **`--natif-min <x.y.z>` est OBLIGATOIRE tant que l'édition contient les achats** (`achats.js`, plugin StoreKit) : donner la version du
+  premier binaire App Store qui a le plugin Achats. Sans lui `publier-maj.js` refuse (par défaut il viserait `MARKETING_VERSION`, le
+  build 1 sans plugin, qui recevrait une boutique en € sans caisse). Test : `node outils/publier-maj-test.cjs`.
 - **Filet de sécurité (vérifié au simulateur le 14/10)** : une version qui ne démarre pas n'envoie pas de feu vert → au bout de
   60 s (`appReadyTimeout`) le module revient seul à la version d'avant, et `natif.js` la note dans `ccMajRefus` : elle n'est
   plus jamais retentée sur ce téléphone.
@@ -76,7 +79,7 @@ Le jeu embarqué (`www/`) se remplace par internet : les joueurs n'ont rien à t
 - **Règle d'Apple** : corriger, équilibrer, ajouter du contenu (caisses, cartes, musiques) : oui. Changer la nature du jeu,
   ajouter des achats ou de la pub, rallumer ce que l'édition App Store coupe : non (l'app peut être retirée).
 - **Essai au simulateur** : `node preparer-www.js --maj http://localhost:8765/`, build simulateur, puis
-  `node publier-maj.js --local <dossier> --maj http://localhost:8765/ --jeu <un VERSION PRINCIPALE modifié>` et
+  `node publier-maj.js --local <dossier> --maj http://localhost:8765/ --natif-min 1.1.0 --jeu <un VERSION PRINCIPALE modifié>` et
   `python3 -m http.server 8765 --directory <dossier>`. Pour appliquer : passer sur une autre app puis revenir (un arrêt forcé
   par `simctl terminate` ne déclenche pas l'arrière-plan). Remettre ensuite `node preparer-www.js` sans `--maj`.
 
