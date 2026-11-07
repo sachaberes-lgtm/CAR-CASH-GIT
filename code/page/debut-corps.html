@@ -98,9 +98,14 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
      d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
      quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
   (function(){
-    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0;
+    var CLE='cashcarErr',L=null,attente=0,attT=0,dern='',dernT=0,MAXO=20000,CAPS={serpent:25,fluide:40,memoire:15,contexte:10};
     var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
-    var ecrit=function(){attente=0;try{localStorage.setItem(CLE,JSON.stringify(L));}catch(_){}};
+    var ecrit=function(){clearTimeout(attT);attente=0;attT=0;try{ /* (2026-11-07, OPTI ULTIME : « 30 Ko réécrits à chaque ligne = on fausse la mesure ») plafond de MAXO octets : les plus anciennes lignes `fluide`/`vivant` partent d'abord, puis les autres sondes ; jamais gel, contexte, memoire, banc */
+      var s9=JSON.stringify(L),i9,k9;
+      while(s9.length>MAXO&&L.length>1){i9=-1;for(k9=0;k9<L.length;k9++)if(L[k9].g==='fluide'||L[k9].g==='vivant'){i9=k9;break;}
+        if(i9<0)for(k9=0;k9<L.length;k9++)if(!/^(gel|contexte|memoire|banc)$/.test(L[k9].g)){i9=k9;break;}
+        if(i9<0)break;L.splice(i9,1);s9=JSON.stringify(L);}
+      localStorage.setItem(CLE,s9);}catch(_){}};
     window.__ccNote=function(genre,msg,ou){
       try{
         msg=String(msg==null?'?':(msg&&msg.message)||msg).slice(0,240);var cle=genre+'|'+msg,t=Date.now();
@@ -108,8 +113,10 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
         lit();var e=null;for(var i=0;i<L.length;i++)if(L[i].k===cle){e=L[i];break;}
         var v=(typeof CC_VER==='string'?CC_VER:'?');
         if(e){e.n++;e.t=t;e.v=v;if(ou)e.o=String(ou).slice(0,160);}
-        else{L.push({k:cle,g:genre,m:msg,o:ou?String(ou).slice(0,160):'',n:1,t0:t,t:t,v:v,d:window.__gameReady?1:0});if(L.length>30)L.splice(0,L.length-30);}
-        if(!attente){attente=1;setTimeout(ecrit,400);}
+        else{L.push({k:cle,g:genre,m:msg,o:ou?String(ou).slice(0,160):'',n:1,t0:t,t:t,v:v,d:window.__gameReady?1:0});if(L.length>80)L.splice(0,L.length-80);
+          var cp=CAPS[genre];if(cp){var k9=0,j9;for(j9=L.length-1;j9>=0;j9--)if(L[j9].g===genre&&++k9>cp)L.splice(j9,1);}} /* (2026-11-06) les sondes (« serpent », « fluide ») ne chassent pas les vraies erreurs : un plafond par genre */
+        var lent=genre==='fluide'||genre==='vivant'; /* les lignes qui reviennent toutes les 4 s s'écrivent au plus toutes les 20 s ; une autre ligne ramène l'écriture à 0,4 s */
+        if(!attente||(!lent&&attT&&attente===2)){clearTimeout(attT);attente=lent?2:1;attT=setTimeout(ecrit,lent?20000:400);}
         try{var vv=document.getElementById('mvVer');if(vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){}
       }catch(_){}
     };
@@ -137,6 +144,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
       document.body.appendChild(o);
     };
     window.__ccBoite=montre;
+    addEventListener('pagehide',function(){if(attente)ecrit();});document.addEventListener('visibilitychange',function(){if(document.hidden&&attente)ecrit();}); /* rien ne se perd en partant en arrière-plan */
     document.addEventListener('click',function(ev){var t=ev.target;if(t&&t.id==='mvVer')montre();},true);
     if(/[?&]erreurs=1/.test(location.search))addEventListener('load',function(){setTimeout(montre,1500);});
     addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer');if(L.length&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+L.length;}catch(_){}},3000);});

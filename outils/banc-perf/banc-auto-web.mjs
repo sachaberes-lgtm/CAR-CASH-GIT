@@ -31,6 +31,7 @@ try {
   const t0 = Date.now();
   while ((Date.now() - t0) / 1000 < MAX && !fini) await sleep(2000); /* la fin se lit sur la console : « banc: fini » */
   if (fini && !echecs.length) code = 0; else if (echecs.length) console.log('✘ étapes en échec :\n  ' + echecs.join('\n  '));
+  try { await sleep(1500); console.log('TAILLES localStorage :', await ev("'cashcarErr '+(localStorage.cashcarErr||'').length+' o · cashcarBanc '+(localStorage.cashcarBanc||'').length+' o'")); } catch (e) {}
   if (code) console.log('✘ pas fini en ' + MAX + ' s');
 } catch (e) { console.log('✘', e.message); }
 const util = erreurs.filter(x => !/favicon|net::ERR|Failed to load resource/.test(x));
