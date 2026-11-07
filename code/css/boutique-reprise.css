@@ -174,4 +174,16 @@ html body #gBqPan .pN.pC .pCe u em,html body #gBqPan.bcOn .bcK .bcP.mis u em{bac
 html body #gBqPan .pN.pC .pCn{font-size:8px;line-height:10px;letter-spacing:.2px;min-height:20px}
 /* figures : le film plus grand (la caisse y était petite), calé sur le bas où elle retombe */
 html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKph .fgFilm{transform:scale(1.22);transform-origin:50% 78%}
+/* ---------- DEBOUT : LES RAYONS EN BANDEAU (boutique-scene-1.js, BQ_BANDEAU) : six touches de 44 px sur une rangée, l'icône seule ; le rayon
+   ouvert s'élargit et dit son nom ; son filet magenta passe dessous ---------- */
+html body #gBq.pan #gBqCats.bandeau{flex-direction:row;flex-wrap:nowrap;align-items:stretch;gap:4px;height:44px;margin-left:0}
+html body #gBq #gBqCats.bandeau button{flex:0 0 44px;width:44px;min-width:44px;height:44px;justify-content:center;gap:8px;padding:0;box-sizing:border-box}
+html body #gBq #gBqCats.bandeau button span{display:none}
+html body #gBq #gBqCats.bandeau button.on{flex:1 1 auto;width:auto;gap:6px;padding:0 8px}
+html body #gBq #gBqCats.bandeau button.on span{display:block;font-size:8px;letter-spacing:0;overflow:visible;text-overflow:clip}
+html body #gBq #gBqCats.bandeau button::before{left:0;right:0;top:auto;bottom:0;width:auto;height:3px}
+html body #gBq #gBqCats.bandeau::after{display:none}
+/* le compteur d'argent ne passe plus à la ligne sur un téléphone étroit (« € 85 180 / 000 » à 375 px) : une ligne, le corps descend un peu */
+html body #gBq #gBqArg{white-space:nowrap}
+@media (max-width:400px){html body #gBq #gBqArg{font-size:9px;letter-spacing:0}}
 </style>

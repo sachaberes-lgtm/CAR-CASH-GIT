@@ -11675,6 +11675,18 @@ html body #gBqPan .pN.pC .pCe u em,html body #gBqPan.bcOn .bcK .bcP.mis u em{bac
 html body #gBqPan .pN.pC .pCn{font-size:8px;line-height:10px;letter-spacing:.2px;min-height:20px}
 /* figures : le film plus grand (la caisse y était petite), calé sur le bas où elle retombe */
 html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKph .fgFilm{transform:scale(1.22);transform-origin:50% 78%}
+/* ---------- DEBOUT : LES RAYONS EN BANDEAU (boutique-scene-1.js, BQ_BANDEAU) : six touches de 44 px sur une rangée, l'icône seule ; le rayon
+   ouvert s'élargit et dit son nom ; son filet magenta passe dessous ---------- */
+html body #gBq.pan #gBqCats.bandeau{flex-direction:row;flex-wrap:nowrap;align-items:stretch;gap:4px;height:44px;margin-left:0}
+html body #gBq #gBqCats.bandeau button{flex:0 0 44px;width:44px;min-width:44px;height:44px;justify-content:center;gap:8px;padding:0;box-sizing:border-box}
+html body #gBq #gBqCats.bandeau button span{display:none}
+html body #gBq #gBqCats.bandeau button.on{flex:1 1 auto;width:auto;gap:6px;padding:0 8px}
+html body #gBq #gBqCats.bandeau button.on span{display:block;font-size:8px;letter-spacing:0;overflow:visible;text-overflow:clip}
+html body #gBq #gBqCats.bandeau button::before{left:0;right:0;top:auto;bottom:0;width:auto;height:3px}
+html body #gBq #gBqCats.bandeau::after{display:none}
+/* le compteur d'argent ne passe plus à la ligne sur un téléphone étroit (« € 85 180 / 000 » à 375 px) : une ligne, le corps descend un peu */
+html body #gBq #gBqArg{white-space:nowrap}
+@media (max-width:400px){html body #gBq #gBqArg{font-size:9px;letter-spacing:0}}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -77551,6 +77563,10 @@ function bqFigAutres(id,dir){return figPeut(id).filter(function(x){return x!==di
    reçoit ; la case de la figure qu'on regarde prend l'anneau d'encre, comme la carte choisie. */
 /* (2026-11-07, Sacha : « le système de figure est horrible, reviens à la version précédente avec les hexagones » · « remets l'ancien, il était bien ») LA PELLICULE (boutique-figure.js) EST COUPÉE : le rayon FIGURES redevient celui de la v1268 — les trois hexagones en haut (#bqFigSel, l'éclair ×2), les pastilles, puis la grille des cartes. `?pellicule=1` = la pellicule. */
 const BQ_PELLICULE=/[?&]pellicule=1\b/.test(location.search);
+/* (2026-11-07, Sacha : « oui, essaie » — la liste n'avait que 320 px de haut debout, la colonne des six rayons prenait toute la moitié haute à
+   gauche) LES RAYONS EN BANDEAU, DEBOUT : une rangée de six touches sous BOUTIQUE (l'icône seule, le rayon ouvert avec son nom) ; la caisse se
+   recentre sur toute la largeur (garLibre lit GBQ.zone) et la liste prend la place libérée. Couché : la colonne, inchangée. `?rayons=colonne` = la colonne debout aussi. */
+const BQ_BANDEAU=!/[?&]rayons=colonne\b/.test(location.search);
 const BQFS={k:'',S:null};
 function bqFigSelEl(pan){let el=document.getElementById('bqFigSel');if(el)return el;
   el=document.createElement('div');el.id='bqFigSel';el.setAttribute('role','group');
@@ -77693,12 +77709,15 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
   if(GBQ.lay!==lay){GBQ.lay=lay;
     const UW=Math.round(Math.min(124,W*.31)),top=tr.bottom+(cou?12:14);une.style.left=cou?'calc(var(--sL,0px) + 16px)':'16px'; /* (2026-11-07, finition) la colonne des rayons sur la ligne de BOUTIQUE (16 px du bord, l'encoche comprise) : elle était à 12 px debout, 36 px couché */une.style.width=UW+'px';une.style.top=top+'px';let fond;
     const aG=arc&&arc.width?Math.round(arc.left)-2:14,aD=arc&&arc.width?Math.round(W-arc.right)-2:14; /* (2026-11-07, finition) les cartes (2 px de marge dans la liste) tombent d'aplomb sur le bouton d'action et RETOUR | JOUER : la grille débordait de 6 px de chaque côté (debout) et de 4 et 12 px (couché) */
-    if(!cou){const ph=Math.round(Math.min(330,H*.4));pan.style.left=aG+'px';pan.style.right=aD+'px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');fond=bas-10-ph-10;}
+    const BAND=!cou&&BQ_BANDEAU;une.classList.toggle('bandeau',BAND);une.setAttribute('aria-orientation',BAND?'horizontal':'vertical');
+    if(BAND){une.style.left=aG+'px';une.style.width=Math.round(W-aG-aD)+'px';une.style.top=top+'px';}
+    if(!cou){const ph=BAND?Math.round(Math.min(bas-10-(top+44+Math.max(160,Math.min(210,H*.24))),H*.56)):Math.round(Math.min(330,H*.4)); /* bandeau : la scène garde 160 à 210 px sous les touches, la liste prend le reste */pan.style.left=aG+'px';pan.style.right=aD+'px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');fond=bas-10-ph-10;}
     else{const x0=Math.max(W*.5,arc&&arc.width?aG:W*.55-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.setProperty('--bqD',aD+'px');pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');fond=H-12-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sB'))||0);} /* (2026-10-17, session UI-REVUE) couché, la colonne des rayons s'arrête au-dessus de la barre d'accueil (FIGURES y entrait de 6 px) */
-    bqRayons(une,fond-top);garLibre._r=null;}
+    if(BAND){une.classList.remove('duo');une.style.setProperty('--cH','44px');une.style.setProperty('--cG','4px');}else bqRayons(une,fond-top);garLibre._r=null;}
   {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect(),SH=0,sb=cou?H-14:pr.top-10;
-   sk.style.left=(ru.right+6)+'px';sk.style.right=(W-(cou?pr.left-8:W-12))+'px';sk.style.top=(sb-40)+'px';
-   GBQ.zone=cou?{cote:true,x0:pr.left,g:ru.right+8,y0:tr.bottom+44,y1:sb-SH}:{g:ru.right+6,d:W-12,y0:tr.bottom+44,y1:sb-SH};}
+   const BD=!cou&&une.classList.contains('bandeau');if(GBQ.s161&&GBQ.s161.visible===BD)GBQ.s161.visible=!BD; /* le 1.61 du mur tombait derrière BOUTIQUE et le bandeau : debout, il se retire (couché, il reste) */
+   sk.style.left=(BD?12:ru.right+6)+'px';sk.style.right=(W-(cou?pr.left-8:W-12))+'px';sk.style.top=(sb-40)+'px';
+   GBQ.zone=cou?{cote:true,x0:pr.left,g:ru.right+8,y0:tr.bottom+44,y1:sb-SH}:BD?{g:12,d:W-12,y0:ru.bottom+40,y1:sb-SH,band:ru.bottom}:{g:ru.right+6,d:W-12,y0:tr.bottom+44,y1:sb-SH};}
   // le nom flotte AU-DESSUS de la caisse (son toit, projeté), sans sortir de sa place
   {const v=GBQ._vn||(GBQ._vn=new THREE.Vector3()),G=garGabarit();carGroup.getWorldPosition(v);v.y+=G.H*1.1+.5;v.project(camera);
    const z=GBQ.zone,m9=nm.querySelector('.bqM2'),mw9=m9?Math.max(110,Math.round((z.cote?z.x0-8:(z.d||W-12))-(z.g||0)))+'px':'';if(m9&&m9.style.width!==mw9)m9.style.width=mw9;
@@ -77706,7 +77725,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
    {const nn=nm.querySelector('.bqNom'),aw9=Math.round((z.cote?z.x0-8:(z.d||W-12))-(z.g||0)),L9=nn.textContent.length,k9=aw9+':'+L9; /* (2026-11-05, finition — MESURÉ 667×375 : 85 noms de caisses sur ~180 passaient sous la grille ou sur les rayons, « LA PIZZA EXPRESS » 240 px dans 163) LE NOM TIENT DANS SA PLACE : le corps descend (1 em + 1 px par lettre) jusqu'à 10 px, puis le nom passe sur deux lignes */
      if(nn._k9!==k9){nn._k9=k9;nn.style.fontSize='';nn.style.whiteSpace='';nn.style.maxWidth='';const base9=parseFloat(getComputedStyle(nn).fontSize)||13,fit9=Math.floor((aw9-8)/Math.max(1,L9))-1;
        if(aw9>40&&fit9<base9){if(fit9>=10)nn.style.fontSize=fit9+'px';else{nn.style.fontSize='10px';nn.style.whiteSpace='normal';nn.style.maxWidth=(aw9-8)+'px';nn.style.textAlign='center';}}}}
-   const w2=nm.offsetWidth/2,x=Math.max((z.g||0)+w2,Math.min((z.cote?z.x0-8:z.d)-w2,(v.x*.5+.5)*W)),y=Math.max(tr.bottom+8,(.5-v.y*.5)*H-nm.offsetHeight-8);
+   const w2=nm.offsetWidth/2,x=Math.max((z.g||0)+w2,Math.min((z.cote?z.x0-8:z.d)-w2,(v.x*.5+.5)*W)),y=Math.max(z.band?z.band+6:tr.bottom+8,(.5-v.y*.5)*H-nm.offsetHeight-8);
    nm.style.left=Math.round(x)+'px';nm.style.top=Math.round(y)+'px';}
 }
 function bqSkins(k){if(!k)return [];if(k[0]==='v'&&m2Secrete(+k.slice(2)))return [];if(k[0]!=='v'){const c=k.slice(0,k.indexOf(':'));if(c==='peinture')return [];} // une peinture EST un coloris
