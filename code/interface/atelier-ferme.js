@@ -531,6 +531,8 @@ try{Object.keys({'RIEN ICI':1,'TOUT EST A TOI':1}).forEach(function(k){if(!I18N[
      qu'une fois, à la fin, et la grille se découvre déjà remplie ;
    · les photos sont GARDÉES d'une session à l'autre pour la version publiée (PHDB) : la 2e ouverture n'en prend plus aucune. */
 const PHQ={q:[],on:false,pret:0,defile:0};
+/* (2026-11-07, Perf 3 — P5) JAMAIS DE PHOTO PENDANT UN DÉFILEMENT : tout `scroll` de la page (inventaire, bandes, boutique) date PHQ.defile — avant, seule la bande de la boutique 3D le faisait ; `photoTour` (une photo par 150 ms au moins) et `shopPhotoTour` s'y plient. `?menu=max` = comme avant. */
+document.addEventListener('scroll',function(){if(!MENU_MAX)PHQ.defile=performance.now();},{capture:true,passive:true});
 function photoFile(i,cb,el){if(PHOTO.cache[i]){cb(PHOTO.cache[i]);return;}PHQ.q.push([i,cb,undefined,el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 function photoCalme(){const t=performance.now();
   if(document.hidden||ecranWipe._on||garageDrag||t-PHQ.defile<260)return false;
