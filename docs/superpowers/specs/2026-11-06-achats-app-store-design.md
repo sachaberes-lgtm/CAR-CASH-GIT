@@ -1,6 +1,6 @@
 # Achats intégrés App Store (StoreKit 2) — spec de design
 
-Date : 2026-11-06 · Auteur : Claude (Sonnet 5.5) pour Sacha · Statut : **à relire par Sacha** (aucun code écrit)
+Date : 2026-11-06 · Auteur : Claude (Sonnet 5.5) pour Sacha · Statut : **réalisé en local le 07/11/2026, rien de poussé** (voir §11 « Réalisé » ; l'encaissement réel n'est pas vérifié)
 
 ## 1. Objectif
 
@@ -33,11 +33,11 @@ Tous **non consommables** (« à toi pour toujours », comme le dit déjà le je
 
 | Famille | Produits | Prix prévus dans le jeu | Identifiant |
 |---|---|---|---|
-| Caisses premium | **9 en vente** (index CAR_UNLOCK) : 9 CHAT POP-TART 4,20 € · 19 LA PIZZA EXPRESS 161,00 € · 54 LA FÉLINE · 56 L'ÉTERNELLE · 57 LE TRÔNE CENTRAL · 59 LE BLINDÉ NOIR · 60 LE MUR DU SON · 61 LE DRAGON D'OR · 70 SQUALE (les sept derniers à 1,61 €) | voir à gauche | `cashcar.car.<forme>` (la `shape` de la fiche, stable ; jamais l'index) |
-| Caisses « retirées » | index 10, 12, 13, 14 (REQUIN, FORMULE OR, LE MANS 24, EL PATRON) : lignes `retire`, **pas en vente** | — | aucun produit |
-| Peintures | toutes celles dont `COSM.peinture[i].eur` existe, **défi ou non** (`habPaye` n'exige que `d.eur` ; les peintures gagnées par mission perdent leur `eur`, `boutique.js:633-639`) ; jusqu'à 64 | 1 € commune/rare · 2 € épique · 3 € légendaire | `cashcar.peinture.<id>` (déjà prévu par le code) |
+| Caisses premium | **10 en vente** (règle : `k:'premium'` et non retirée ; LE REQUIN est revenu en boutique sur main le 07/11, décision R7) : CHAT POP-TART 4,20 € · REQUIN 9,99 € · LA PIZZA EXPRESS 161,00 € · LA FÉLINE · L'ÉTERNELLE · LE BLINDÉ NOIR · LE MUR DU SON · LE DRAGON D'OR · SQUALE · KELLY CHERRY (les sept derniers à 1,61 €) | voir à gauche | `cashcar.car.<forme>` (la `shape` de la fiche, stable ; jamais l'index) |
+| Caisses « retirées » | celles que `carRetiree(i)` donne vrai (FORMULE OR, LE MANS 24, EL PATRON…) : **pas en vente** | — | aucun produit |
+| Peintures | toutes celles dont `COSM.peinture[i].eur` existe, **défi ou non** (`habPaye` n'exige que `d.eur` ; les peintures gagnées par mission perdent leur `eur`, `boutique.js:633-639`) ; 61 au total (40 à 1 €, 15 à 2 €, 6 à 3 €) ; la peinture « usine » est exclue | 1 € commune/rare · 2 € épique · 3 € légendaire | `cashcar.peinture.<id>` (déjà prévu par le code) |
 
-La liste exacte des produits n'est **pas écrite à la main** : un script (`app-ios/outils/produits-store.js`) la lit dans le code du jeu et produit
+Au total **71 produits** (10 caisses + 61 peintures), **aucune palette**. La liste exacte n'est **pas écrite à la main** : un script (`app-ios/outils/produits-store.mjs`) la lit dans le code du jeu et produit
 (a) le fichier `Produits.storekit` pour le simulateur, (b) un tableau `produits.csv` pour que Sacha crée les produits dans App Store Connect. Une seule source.
 
 ## 4. Architecture
@@ -96,7 +96,7 @@ Argent du jeu : jamais touché par un achat en €.
 - **Sauvegarde cousin / export** : un objet acheté se rend par restauration. **En v1.0**, un `owned` importé par code de sauvegarde vaut possession (import accepté tel quel, voir §9 à rediscuter avec Sacha) ; à revoir avant toute suite, pour ne pas en faire un moyen de gratuit.
 
 ## 7. Tests
-1. `node app-ios/outils/produits-store.js --verifier` : tous les ids sont uniques, valides, le `.storekit` correspond au jeu.
+1. `node app-ios/outils/produits-store.mjs --verifier` : tous les ids sont uniques, valides, le `.storekit` correspond au jeu.
 2. Banc navigateur : `ccAchat` simulé (succès / annulation / attente / indisponible) — le jeu ne donne rien sur refus, donne une fois sur succès (idempotent).
 3. **Simulateur iOS** avec `Produits.storekit` branché au schéma (Debug seulement) : un achat par famille (caisse, peinture), annulation, restauration après désinstallation.
 4. `sh garde-burnout.sh` OK (boutique 3D intouchable), `assembler.cjs --verifier`, `sw.js` +1 si `code/` change.
@@ -117,3 +117,27 @@ Non vérifiable ici : l'encaissement réel et la validation par Apple.
 
 ## 10. Hors périmètre
 Serveur de reçus, RevenueCat ou autre SDK, abonnements, consommables, packs d'argent du jeu en €, codes promo, pubs.
+
+## 11. Réalisé (07/11/2026, branche `boutique-affichage`, tout en local, rien de poussé)
+
+**Ce qui a été construit**
+- Le jeu : `code/economie/achats-store.js` (catalogue des 71 produits, la porte `shopPaye` branchée sur l'app, la synchro du démarrage, RESTAURER, les prix d'Apple), les appels dans `boutique.js`, `mobile-tactile.js`, `desktop-banc.js` et les écrans qui affichent un prix (`prixTxt`). Le drapeau `ACHAT_EUR` (`icones-fenetre.js`) s'allume dans l'app quand le pont existe ; sur le web rien ne change.
+- Le pont JavaScript : `app-ios/natif/achats.js` (`window.ccAchat`), copié et chargé par `app-ios/preparer-www.js`, dont les coupes qui transformaient les € en argent du jeu sont retirées.
+- Le plugin Swift : `app-ios/ios/App/App/Achats.swift` (StoreKit 2), enregistré dans `JeuViewController.swift` et `project.pbxproj`.
+- Pour tester et créer les produits : `app-ios/ios/App/Produits.storekit`, le scheme partagé `App.xcscheme`, `app-ios/outils/produits.csv` et le générateur `app-ios/outils/produits-store.mjs` ; mode d'emploi dans `app-ios/LISEZ-MOI.md`.
+- Les bancs : `app-ios/outils/achats-test.cjs`, `outils/banc-achats/{produits,paye,app}.mjs`.
+- Les passations pour Sacha : `passation/ACHATS-APP-STORE.md` (la liste à faire), `passation/APP-STORE.md`, `passation/regard-apple.md`, et les textes de `app-ios/fiche/`.
+
+**Ce qui a été vérifié, et comment**
+- Le catalogue : 10 caisses + 61 peintures, ids uniques et valides, accord avec `Produits.storekit` et `produits.csv` (`produits-store.mjs --verifier`, bancs `produits.mjs`).
+- La logique d'achat dans le jeu, avec un FAUX pont (navigateur, `paye.mjs`) : seul `ok` donne l'objet ; annulé et en attente ne donnent rien ; un second achat en vol est refusé ; un doublon ne rejoue pas la fête ; RESTAURER et la synchro du démarrage rendent les achats sans fête ; les prix d'Apple remplacent ceux du jeu.
+- Le pont `achats.js` contre un faux plugin (`achats-test.cjs`) et le contenu de la page de l'app fabriquée (`--essai`) : drapeau `ACHAT_EUR` allumé avec le pont, éteint sans, inchangé sur le web (`app.mjs`).
+- Le plugin Swift **compile** (Xcode, simulateur, Capacitor 8.5.3, 0 erreur et 0 avertissement dans `Achats.swift`), mais seulement avec une ligne préexistante de `JeuViewController.swift` mise de côté (voir `passation/ACHATS-APP-STORE.md`, § bloquant).
+- Les gardes du dépôt (assembleur, burn-out, charte, allègement, démarrage) et l'intégration locale avec `origin/main` et `origin/ios-capacitor` : voir `.superpowers/sdd/2026-11-06-achats-app-store/task-6-report.md`.
+
+**Ce qui n'est PAS vérifié**
+- Aucun achat n'a été exécuté, ni au simulateur ni sur un téléphone : l'encaissement réel, la validation par Apple, Ask to Buy, les remboursements, la restauration après réinstallation.
+- Que Xcode retrouve `Produits.storekit` par le scheme (chemin relatif non testable en ligne de commande ; repli à la main documenté).
+- Le comportement réel de `Transaction.updates` (raisonné, pas exécuté).
+- Les prix : les paliers de prix d'Apple décideront (1,61 €, 4,20 €, 161,00 €, 1/2/3 €).
+- L'app ne se construit pas en l'état à cause du bloquant préexistant de `JeuViewController.swift`.

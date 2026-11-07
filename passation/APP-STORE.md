@@ -1,3 +1,13 @@
+# MISE À JOUR — 07/11 (soir) : LES ACHATS EN VRAI ARGENT ARRIVENT DANS L'APP (branche `boutique-affichage`, locale, rien de poussé)
+- **Ce qui change pour le build à venir** : la boutique en € **revient** dans l'app (71 produits non consommables : 10 caisses + 61 peintures,
+  achat par Apple/StoreKit, bouton RESTAURER MES ACHATS). Les anciens passages de ce fichier qui disent « boutique en $ / tout en argent du jeu,
+  aucun € », « Achats intégrés : aucun » ne sont **plus vrais pour ce build** (ils décrivent le build d'avant, laissés tels quels comme historique).
+- **Tout ce que Sacha doit faire, comment tester, ce qui n'est pas vérifié, et le bloquant de compilation `JeuViewController.swift`
+  (`prefersHomeIndicatorAutoHidden`, Capacitor 8.5.3)** : voir `passation/ACHATS-APP-STORE.md`.
+- La fiche (`app-ios/fiche/`) et `passation/regard-apple.md` sont à jour : achats intégrés = Oui, confidentialité inchangée (« aucune donnée
+  collectée », les paiements passent par Apple), pas de serveur.
+- Aucun achat n'a été exécuté : l'encaissement réel reste **non vérifié**.
+
 # MISE À JOUR — 07/11, 17 h (fusion `ios-capacitor` ← `main`, sur le PC, branche LOCALE, rien de poussé, rien d'envoyé)
 ## FAIT
 - **Une seule branche `ios-capacitor` qui fabrique une app complète.** Les deux `app-ios/` avaient divergé depuis `817f34a7` (3/11) :
@@ -42,7 +52,7 @@
    premier écran du jeu (jamais plus de 30 s, pas de fond violet nu) ; **interrupteur silencieux → le son joue** ; Spotify lancé avant →
    **continue** pendant le jeu (`.mixWithOthers`) ; **quitter l'app → pas de fiche « lecture en cours »** sur l'écran verrouillé ni au
    centre de contrôle, tout le son coupé ; **revenir → la musique reprend** à sa position ; le son sort des **deux haut-parleurs** (pas de
-   l'écouteur du haut, Léo) ; FR puis EN ; course, mort, garage, boutique (tout en argent du jeu, aucun €), réglages sans ENTRER UN CODE.
+   l'écouteur du haut, Léo) ; FR puis EN ; course, mort, garage, boutique (**build avec achats : prix en € d'Apple et RESTAURER, voir `passation/ACHATS-APP-STORE.md`** ; l'ancien build était tout en argent du jeu, aucun €), réglages sans ENTRER UN CODE.
 4. `MARKETING_VERSION` reste 1.0.0 / build 2 : rien n'a encore été envoyé à Apple, donc rien à monter. Si un build avait été envoyé entre
    temps : monter `MARKETING_VERSION` (le natif a changé : 16.4, session audio, `JeuViewController`), règle IOS-19 du LISEZ-MOI.
 5. Captures 6,9" (1320×2868) et 6,3" (1206×2622) FR + EN sur CE `www/`.
