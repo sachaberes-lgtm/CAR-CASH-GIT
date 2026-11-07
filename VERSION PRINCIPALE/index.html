@@ -28849,6 +28849,18 @@ window.dbgChamp=function(){ /* (2026-11-07, passe perf 3, P3, banc) LE CHAMP : p
     return o.apply(this,arguments);};
   try{renderer.render(scene,camera);}finally{renderer.renderBufferDirect=o;}
   return {appels:ap,dessines:Math.round(tot),dansLeChamp:Math.round(dans),derriere:Math.round(derT),auDelaDuBrouillard:Math.round(loinT),parDistance:PB.map(Math.round),brouillard:FG,fam:Object.keys(F).map(function(k){const q=F[k];return {k:k,n:q.n,dr:Math.round(q.dr),di:Math.round(q.di),gaspi:Math.round(q.dr-q.di),derriere:q.der,fc:q.fc};}).sort(function(a,b){return b.gaspi-a.gaspi;}).slice(0,25)};};
+window.dbgOmbre=function(){ /* (2026-11-07, passe perf 3, P3, banc) LA PASSE D'OMBRE SEULE : une image rendue avec la carte d'ombre forcée ; seuls les appels à matière de profondeur (la passe d'ombre) sont relevés : triangles et appels par famille, et par DISTANCE à la caisse (≤ 50 · 50-150 · 150-500 · 500+ m) du centre de l'objet (instancié : de chaque instance) */
+  const o=renderer.renderBufferDirect,F={},B=[0,0,0,0],BC=[0,0,0,0],c0=carGroup.getWorldPosition(new THREE.Vector3()),v=new THREE.Vector3(),M=new THREE.Matrix4(),sp=new THREE.Sphere();let ap=0,tri=0,tot=0,totT=0;
+  const bn=function(d){return d<=50?0:d<=150?1:d<=500?2:3;};
+  renderer.renderBufferDirect=function(cam,sc,geo,mat,obj,grp){
+    if(mat&&mat.isMeshDepthMaterial){const tpi=(geo.index?geo.index.count:(geo.attributes.position?geo.attributes.position.count:0))/3;ap++;let t=tpi;
+      if(obj.isInstancedMesh){t=tpi*obj.count;const A=obj.instanceMatrix.array;for(let i=0;i<obj.count;i++){v.set(A[i*16+12],A[i*16+13],A[i*16+14]).applyMatrix4(obj.matrixWorld);const b=bn(v.distanceTo(c0));B[b]+=tpi;}}
+      else{if(!geo.boundingSphere)geo.computeBoundingSphere();sp.copy(geo.boundingSphere).applyMatrix4(obj.matrixWorld);const b=bn(Math.max(0,sp.center.distanceTo(c0)-sp.radius));B[b]+=tpi;BC[b]++;}
+      tri+=t;const k=(obj.name||(obj.parent&&obj.parent.name)||obj.type)+(obj.isInstancedMesh?'[I]':'')+(obj.frustumCulled?'':' fc=0');const q=F[k]||(F[k]={n:0,t:0});q.n++;q.t+=t;}
+    return o.apply(this,arguments);};
+  const sa=renderer.shadowMap.autoUpdate;renderer.shadowMap.needsUpdate=true;
+  try{renderer.render(scene,camera);}finally{renderer.renderBufferDirect=o;renderer.shadowMap.autoUpdate=sa;}
+  return {appels:ap,triangles:Math.round(tri),parDistance:B.map(Math.round),maillagesParDistance:BC,fam:Object.keys(F).map(function(k){return {k:k,n:F[k].n,t:Math.round(F[k].t)};}).sort(function(a,b){return b.t-a.t;}).slice(0,12)};};
 window.dbgJadeRegle=function(){if(!JADE.root)return null;const ds=L/(NP-1),st=Math.max(1,Math.round(5/ds)),V9=new THREE.Vector3();let n=0,t=0;const ex=[]; /* (2026-10-20, banc) LA RÈGLE D'OR : aucun pilier ni rocher sur la route — la caisse tous les 5 m, à 3 places de la largeur, à 0,5 et 3 m */
   for(let i=0;i<NP;i+=st)for(const f of [-.9,0,.9])for(const h of [.5,3]){V9.copy(pts[i]).addScaledVector(B[i],f*ROAD_HALF).addScaledVector(Nn[i],h);t++;if(jadeHeurt(V9)){n++;if(ex.length<6)ex.push([Math.round(i*ds),f,h]);}}
   return {essais:t,heurts:n,ex:ex};};
