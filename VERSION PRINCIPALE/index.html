@@ -19256,7 +19256,7 @@ window.dbgForetAudit=function(o){o=o||{};if(!FORET.root||!FORET.sol)return null;
   /* 4. le sol sous la route, 5. la signature */
   {let m=1e9,ou=0;for(let i=0;i<NP;i+=4){const p=pts[i],d=p.y-solH(p.x,p.z);if(d<m){m=d;ou=i;}}R.sol={marge:Math.round(m),s:Math.round(ou*ds)};}
   {let h=2166136261>>>0;const mix=x=>{h=Math.imul(h^(Math.round(x*10)|0),16777619)>>>0;};mix(L);for(const F of FORET.fam){mix(F.lot.n);for(let k=0;k<F.lot.n;k+=7){mix(F.lot.M[k*16+12]);mix(F.lot.M[k*16+13]);mix(F.lot.M[k*16+14]);}}
-   for(let i=0;i<NP;i+=97){mix(pts[i].x);mix(pts[i].y);mix(pts[i].z);}R.sig=h.toString(16);R.archeRefus=FORET.archeRefus;R.archeDessin=FORET.archeDessin;R.n=Object.assign({arches:FORET.arche.length+'/'+['arche','archeB'].filter(k=>FORET.Q&&FORET.Q[k]).length},FORET.n);R.deco=FORET.deco;}
+   for(let i=0;i<NP;i+=97){mix(pts[i].x);mix(pts[i].y);mix(pts[i].z);}R.sig=h.toString(16);R.archeRefus=FORET.archeRefus;R.archeS=['arche','archeB'].filter(k=>FORET.Q&&FORET.Q[k]).map(k=>Math.round(FORET.Q[k].s));R.pel=FORET.pel&&{note:FORET.pel.note,essais:FORET.pel.essais,croise:FORET.pel.croise};{let pm=0,ps=0;for(let i=4;i<NP;i+=2){const g9=Math.abs(pts[i].y-pts[i-4].y)/Math.max(.1,pts[i].distanceTo(pts[i-4]));if(g9>pm){pm=g9;ps=i*L/(NP-1);}}R.penteMax4={p:+pm.toFixed(3),s:Math.round(ps)};}R.archeDessin=FORET.archeDessin;R.n=Object.assign({arches:FORET.arche.length+'/'+['arche','archeB'].filter(k=>FORET.Q&&FORET.Q[k]).length},FORET.n);R.deco=FORET.deco;}
   return R;};
 function PAL_B9(k,d){try{return (typeof PAL!=='undefined'&&PAL&&typeof PAL.b==='function')?PAL.b(k,d):d;}catch(e){return d;}} // les paliers d'optimisation (PAL), s'ils existent
 
