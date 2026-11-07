@@ -226,7 +226,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA CERISE',shape:'mx5na',color:0x8c0a14,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'commun', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
+ {name:'KELLY CHERRY',shape:'mx5na',color:0x8c0a14,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'legendaire', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
   desc:'Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.'},
  /* · */
  /* · */

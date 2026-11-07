@@ -263,5 +263,6 @@ moteur/init.js                       # init, intro du studio 1.61
 moteur/intro-161.js                  # l'intro du studio 1.61, version console : blips, noir, gros logo qui casse l'écran
 moteur/mobile-tactile.js             # mobile, tactile, pause, PWA
 moteur/enregistreur-perf.js          # l'enregistreur de parties (?perfrec=1) : chaque image de course notée par phase (sol, vol, figure), relue par dbgPerfRec()
+moteur/banc-iphone.js              # 🤖 le banc iPhone automatique (inerte sans localStorage.ccBancAuto / ?banc=auto) : l'app se joue seule le protocole P7 et note tout dans la boîte noire
 moteur/desktop-banc.js               # ⚙ du desktop, le banc du téléphone, démarrage (requestAnimationFrame), fin du jeu
 page/fin.html                        # </script></body></html>

@@ -10180,6 +10180,7 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph.c-aile img{transform:none}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph:is(.c-trainee,.c-figure){align-items:stretch}
 /* (2026-11-07, Léo : « le nom doit se trouver EN DESSOUS du cube 3D et ne pas cacher la voiture ») la plaque est maintenant SOUS le cube : l'espace du cube ne mord plus de 12 px dessus (+2 px d'air), plus de recul en 3D qui la faisait remonter, 28 px de haut (la marge basse est une bordure transparente, qui ne laisse pas voir un bout de 3e ligne). */
 /* (2026-11-07, Léo : « le cube passe légèrement au-dessus du nom en gris ») rechevauchement LÉGER : le cube mord 8 px sur le haut de la plaque (au lieu de 12), la plaque reste derrière lui (recul 3D) et carrée ; la voiture, dans le cube, n'est jamais cachée. */
+/* (2026-11-07, Léo, capture « THE ENGLISH… » : « les voitures dépassent toujours le cube ») la voiture est ancrée par le BAS, rétrécie à 90 % et remontée de ~3 cqw : ses roues ne touchent plus la plaque, elle reste franchement dans le verre (même les longues : ELDORADO, CHARGER, ROSSO n'avaient que 2 px de marge à droite). */
 /* la plaque du nom, juste sous le cube ; le prix devant (2026-11-06, Léo : « les noms sont très gros et dépassent le cube » : 50 → 34 px de haut, plus d'agrandissement à 107 %) */
 html #gBq #gBqPan .bqK:not(.pnt) .bqKn{position:relative;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:34px;margin:0 6px 7px;padding:9px 6px 0;border-bottom:3px solid transparent;
   text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:0;transform:translateZ(-50px);
@@ -10256,11 +10257,11 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKp.defi{padding:3px 6px;font-size:6.5px}
    La photo d'une caisse garde sous elle ~16 % de vide (le reflet du sol verni, éteint) : la voiture flottait au-dessus du sol quadrillé. Chaque tranche est rognée de 16 % en bas (clip-path sur l'image, pas sur le plan :
    un clip sur le plan aplatirait les tranches) et le plan descend d'autant : les roues touchent le sol du cube. */
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{clip-path:inset(0 0 16% 0)}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]{top:calc(var(--H)/2 - var(--W)*.574*.84 - 1.2cqw)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]{top:calc(var(--H)/2 - var(--W)*.574*.84 - 4cqw)}
 /* ===== LA VOITURE À L'INTÉRIEUR, PAS AU FOND (2026-11-06, Léo : « elle est encore derrière : garde le fond gris bleuté des vitres, garde seulement la voiture et son ombre, place-la un poil en avant ») =====
    Le plan de la voiture avance de 9 cqw vers la vitre de devant (il était au milieu du cube) : elle est DANS la boîte, près du verre, et non plus reculée contre le fond ; la vitre de devant s'éclaircit pour ne plus la voiler ;
    les tranches du fond s'assombrissent moins (plus de halo). Le gris bleuté des faces ne change pas. */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{transform:translateZ(calc(9cqw + (2 - var(--k)) * 1.1cqw)) scaleX(-1);filter:brightness(calc(1 - var(--k) * .055))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{transform:translateZ(calc(9cqw + (2 - var(--k)) * 1.1cqw)) scale(-.9,.9);transform-origin:50% 100%;filter:brightness(calc(1 - var(--k) * .055))}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{background:linear-gradient(118deg,rgba(255,255,255,.20) 0,rgba(255,255,255,.03) 30%,rgba(255,255,255,.015) 62%,rgba(255,255,255,.12) 100%)}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
@@ -29769,7 +29770,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA CERISE',shape:'mx5na',color:0x8c0a14,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'commun', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
+ {name:'KELLY CHERRY',shape:'mx5na',color:0x8c0a14,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'legendaire', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
   desc:'Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.'},
  /* · */
  /* · */
@@ -30059,7 +30060,7 @@ const I18N={
  'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.':'Three tons of cube. Nobody has ever asked you to move over.',
  'Rouge course, aileron plateau. La caisse de rêve : 1,5 million, et chaque euro se voit.':'Racing red, a wing like a tray. The dream car: 1.5 million, and every euro shows.',
  'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.':'She was pinned to your bedroom wall. Now you\'re the one driving her.',
- 'LA CERISE':'THE CHERRY','Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.':'It opens its eyes at every nitro hit. One ton, 115 horsepower, and the biggest smile in the parking lot.', // (JAPONAISES) 83 — la MX-5 NA
+ 'KELLY CHERRY':'KELLY CHERRY','Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.':'It opens its eyes at every nitro hit. One ton, 115 horsepower, and the biggest smile in the parking lot.', // (JAPONAISES) 83 — la MX-5 NA
  'LA HONTE':'THE DISGRACE',
  'ANTIMATIÈRE':'ANTIMATTER',
  'LA LAME':'THE BLADE','Le même petit roadster, avec un toit qui se range en treize secondes. Il ne pleut jamais assez vite pour la rattraper.':'The same little roadster, with a roof that tucks away in thirteen seconds. It never rains fast enough to catch her.', // (JAPONAISES) 85 — la MX-5 RF
@@ -46811,7 +46812,7 @@ SHAPES.d_corbillard=function(K){
 function carFicheOk(s){return !!s&&s.w>0&&s.h>0&&s.l>0;}
 /* LES 29 RÉFÉRENCES DE LÉO (25/10 : « à ne pas toucher », le langage visuel du jeu) : la traduction ci-dessous ne les regroupe jamais. Noms sans accent ni ponctuation.
    (26/10) + LE COMBI : sa forme « auto-04 » validée par Léo est FIGÉE (voir combi.js) — ~20 600 triangles dont ~8 700 de décor reposé ; la passe ÷2 l'abîmerait. */
-const LANGAGE_REF=new Set(['LE COMBI','LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','LA CERISE','LE SAMOURAI','L ORIGAMI','ROSSO 40','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
+const LANGAGE_REF=new Set(['LE COMBI','LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','KELLY CHERRY','LE SAMOURAI','L ORIGAMI','ROSSO 40','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
 /* LA TRADUCTION AU LANGAGE DU JEU (25/10, Léo : « quand les voitures ont trop de facettes, tu divises par deux le nombre de facettes » ; avant : « les traduire pour que ce soit comme les autres, mais que leur modèle soit toujours ressenti, juste ajusté ») —
    PAR DÉFAUT depuis la v912 ; `?langage=0` la coupe. Une caisse qui dépasse 12 000 triangles (tes références en font ~5 000) voit sa PEINTURE regroupée en grandes facettes planes : tous les sommets d'une même case de grille n'en font plus qu'un, au centre de leur
    groupe, les triangles qui s'effondrent disparaissent. La taille de la case est CHERCHÉE (recherche par dichotomie, mémorisée par voiture) pour que la caisse entière tombe à la MOITIÉ de ses triangles, sans dépasser 45 cm. La silhouette reste celle de la
@@ -49409,7 +49410,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:60000}, // 83 — COMMUNE : Mazda MX-5 NA (1989), phares escamotables
+  {k:'premium',eur:'1,61 €',rar:'leg'}, /* (2026-11-07, Léo : « la Cerise en voiture payante, 1,61 €, on l'appelle Kelly ») */ // 83 — KELLY CHERRY (ex-LA CERISE, était COMMUNE à 60 000) : Mazda MX-5 NA (1989), phares escamotables
   /* · */
   /* · */
   /* · */
@@ -70045,7 +70046,7 @@ function chanfreinGeo(w,h,d,b){
    · L'ORDRE : chaque place s'ouvre à un seuil (`a`), puis c'est la place la MOINS remplie qui reçoit l'objet suivant — les tas montent
      ensemble, du bas vers le haut (jamais une liasse en l'air) ; une palette qui s'ouvre avale d'un coup ce qui tombe, puis tout
      repart ensemble. Les places VUES de la caméra (fixe, côté établi, qui regarde la porte) passent d'abord.
-   · LA COURBE : n = 12 × (compte / 50)^0,4 — 100 $ → 16 objets, 1 k → 40, 10 k → 100, 100 k → 250, 1 M → 630, 2,5 M (la plus chère de
+   · LA COURBE : n = 12 × (compte / 50)^0,4 — 100 € → 16 objets, 1 k → 40, 10 k → 100, 100 k → 250, 1 M → 630, 2,5 M (la plus chère de
      la boutique) → 910 ; ~1 100 au plus (six palettes pleines). Dépenser fait donc FONDRE les tas : l'argent part de l'atelier.
    `dbgArgent(compte)` force un compte (sans toucher la sauvegarde) · `dbgArgent()` rend l'état · `dbgArgent(null)` relâche. */
 const GARG={mesh:null,offs:null,n:-1,bank:-1,force:null,K:12,E:.4,places:0};
@@ -70068,14 +70069,24 @@ function garArgent(g){
   /* LA LIASSE (v2, après capture : des bandes or / rose / cyan et une tranche crème se lisaient comme des CONFETTIS) : tout est VERT
      BILLET, sombre (SON règle la clé de la boutique : pas de fluo) — tranche vert-de-gris, face vert foncé, bande papier kraft doré
      éteint ; et plus grosse (×3,2 d'une vraie liasse : de la caméra, à 10 m, une vraie serait une miette). */
-  const BAND=[0xbfa25c,0xbfa25c,0xa9884a],FACE=[0x28683c,0x245e37,0x2e7545],TRANCHE=0x668f62;
+  /* (2026-11-06, Sacha : « dans le garage remplace les liasses de billets de dollars par des liasses d'euros ») LES LIASSES EN EUROS : le billet du dessus
+     prend la couleur de sa coupure dans la série Europa (`TC_EUR` : 5 gris · 10 rouge · 20 bleu · 50 orange · 100 vert · 200 jaune · 500 violet), assombrie
+     comme l'ancien vert (×,62) ; la tranche est du papier pâle qui garde un soupçon de la couleur ; la bande reste kraft ; la bande argentée de l'hologramme
+     court sur le billet. UNE coupure par tas / pile / palette (des liasses de toutes les couleurs mélangées se lisaient comme des confettis) : les coupures
+     se suivent dans des listes fixes, sans toucher à la graine (les places des tas ne bougent pas) ; les palettes, les plus riches, sont en grosses coupures. */
+  const BAND=[0xbfa25c,0xbfa25c,0xa9884a],ARGENT=0xb4bec2;
+  const eurHex=(h,k)=>{const n=parseInt(h.slice(1),16);return (Math.round((n>>16&255)*k)<<16)|(Math.round((n>>8&255)*k)<<8)|Math.round((n&255)*k);};
+  const FACE=TC_EUR.map(e=>eurHex(e[3],.62)),TRANCHE=TC_EUR.map(e=>{const n=eurHex(e[3],.62),m=0x9aa098;  // la tranche : 70 % papier pâle, 30 % la couleur de la face
+    return (Math.round((m>>16&255)*.7+(n>>16&255)*.3)<<16)|(Math.round((m>>8&255)*.7+(n>>8&255)*.3)<<8)|Math.round((m&255)*.7+(n&255)*.3);}),SOL=TC_EUR.map(e=>eurHex(e[3],.85));
+  const DB=[1,2,0,3,2,1,3,2,0,4],DG=[3,2,4,1,3,5,2],DM=[2,1,3,0,2,3,1,2,4,3,2,1,3,5],DP=[3,4,5,6,4,5]; // les coupures : tas bas · gros tas · piles des meubles · palettes
   const LL=.5,LT=.11,LW=.24;
-  const liasse=(x,y,z,ry,rx,rz)=>{const u=rn(),f=FACE[(u*3)|0],b=BAND[(rn()*BAND.length)|0],c=Math.cos(ry),s=Math.sin(ry);
+  const liasse=(x,y,z,ry,rx,rz,d)=>{const u=rn(),f=FACE[d],b=BAND[(rn()*BAND.length)|0],c=Math.cos(ry),s=Math.sin(ry);
     const at=(lx,ly,lz)=>[x+c*lx+s*lz,y+ly,z-s*lx+c*lz]; // (tangage/roulis petits : la hauteur des pièces est prise au centre)
-    let q=at(0,.048,0);bx(LL-.014,.096,LW-.014,q[0],q[1],q[2],ry,rx,rz,TRANCHE,u);   // la tranche : la pile de billets vue de côté
+    let q=at(0,.048,0);bx(LL-.014,.096,LW-.014,q[0],q[1],q[2],ry,rx,rz,TRANCHE[d],u);   // la tranche : la pile de billets vue de côté
     q=at(0,.103,0);bx(LL,.014,LW,q[0],q[1],q[2],ry,rx,rz,f,u);                       // la face du billet du dessus
+    q=at(.13,.1105,0);bx(.034,.004,LW-.05,q[0],q[1],q[2],ry,rx,rz,ARGENT,.5);        // la bande argentée de l'hologramme, à droite de la bande kraft
     q=at(0,.055,0);bx(.09,LT+.004,LW+.01,q[0],q[1],q[2],ry,rx,rz,b,u);};             // la bande
-  const billet=(x,z,ry)=>bx(.24,.005,.11,x,.004,z,ry,(rn()-.5)*.06,(rn()-.5)*.06,0x3a8f55);
+  const billet=(x,z,ry,d)=>bx(.24,.005,.11,x,.004,z,ry,(rn()-.5)*.06,(rn()-.5)*.06,SOL[d]);
   const palette=(x,z,ry)=>{const c=Math.cos(ry),s=Math.sin(ry),at=(lx,lz)=>[x+c*lx+s*lz,z-s*lx+c*lz];
     for(const lz of [-.4,0,.4]){const q=at(0,lz);bx(1.12,.02,.12,q[0],.01,q[1],ry,0,0,0x6e4d2c);}
     for(const lx of [-.5,0,.5])for(const lz of [-.4,0,.4]){const q=at(lx,lz);bx(.12,.085,.12,q[0],.0625,q[1],ry,0,0,0x5f4226);}
@@ -70110,22 +70121,22 @@ function garArgent(g){
   // tirait ses points au hasard dans son propre rayon, sans lien avec celle du dessous — une liasse du sommet pouvait n'avoir RIEN sous
   // elle à cet endroit précis et semblait flotter. Désormais l'étage 0 seul est tiré au hasard (Poisson) ; chaque étage suivant reprend
   // les points de celui d'en dessous, resserrés vers le centre (×.72) puis triés du plus central au plus loin — la pyramide tient debout.
-  const tas=(x0,z0,couches)=>{const it=[];let y=0,bas=null;
-    const vole=()=>{const a=rn()*6.2832,d=.7+rn()*.45;it.push(()=>billet(x0+Math.cos(a)*d,z0+Math.sin(a)*d,rn()*6.2832));};
+  const tas=(x0,z0,couches,d)=>{const it=[];let y=0,bas=null;
+    const vole=()=>{const a=rn()*6.2832,dd=.7+rn()*.45;it.push(()=>billet(x0+Math.cos(a)*dd,z0+Math.sin(a)*dd,rn()*6.2832,d));};
     couches.forEach((cc,l)=>{const n=cc[0],R=cc[1],y9=y,tilt=l?.12:.04;let pts;
       if(!bas){pts=[];for(let k=0;k<80&&pts.length<n;k++){const a=rn()*6.2832,d=Math.sqrt(rn())*R,px=x0+Math.cos(a)*d,pz=z0+Math.sin(a)*d;
         if(pts.every(q=>Math.hypot(q[0]-px,q[1]-pz)>.27))pts.push([px,pz]);}}
       else{pts=bas.map(q=>[x0+(q[0]-x0)*.72+(rn()-.5)*.05,z0+(q[1]-z0)*.72+(rn()-.5)*.05])
         .sort((a,b)=>Math.hypot(a[0]-x0,a[1]-z0)-Math.hypot(b[0]-x0,b[1]-z0)).slice(0,n);}
-      for(const q of pts)it.push(()=>liasse(q[0],y9,q[1],rn()*6.2832,(rn()-.5)*tilt,(rn()-.5)*tilt));
+      for(const q of pts)it.push(()=>liasse(q[0],y9,q[1],rn()*6.2832,(rn()-.5)*tilt,(rn()-.5)*tilt,d));
       vole();y+=LT*.96;bas=pts;});
     return {it:it,a:0};};
   // LES TAS BAS du couloir de la caméra (3 couches : 33 cm, sous les 45 cm de la règle) — puis LES GROS TAS au pied des murs (5 couches)
   const bas=choisir(5.1,8.1,.72,1.7,10,[]),gros=choisir(8.4,11.2,1.0,2.2,7,bas);
-  const TB=bas.map(c=>tas(c[0],c[1],[[6,.55],[4,.4],[2,.22]])),TG=gros.map(c=>tas(c[0],c[1],[[9,.8],[7,.62],[5,.46],[3,.3],[1,.08]]));
+  const TB=bas.map((c,i)=>tas(c[0],c[1],[[6,.55],[4,.4],[2,.22]],DB[i%DB.length])),TG=gros.map((c,i)=>tas(c[0],c[1],[[9,.8],[7,.62],[5,.46],[3,.3],[1,.08]],DG[i%DG.length]));
   // LES MEUBLES : des piles bien rangées sur ce qui est plat (colonnes [dx, dz], couches)
-  const pile=(x,y,z,ry,cols,couches)=>{const it=[];for(let l=0;l<couches;l++)for(const c9 of cols)
-      it.push(()=>liasse(x+c9[0]+(rn()-.5)*.02,y+l*LT,z+c9[1]+(rn()-.5)*.02,ry+(rn()-.5)*.08,0,0));return {it:it,a:0};};
+  let np=0;const pile=(x,y,z,ry,cols,couches)=>{const it=[],d=DM[np++%DM.length];for(let l=0;l<couches;l++)for(const c9 of cols)
+      it.push(()=>liasse(x+c9[0]+(rn()-.5)*.02,y+l*LT,z+c9[1]+(rn()-.5)*.02,ry+(rn()-.5)*.08,0,0,d));return {it:it,a:0};};
   const M9=[pile(-6.6,1.0,10.42,.35,[[0,0]],3),                               // sur les fûts
     pile(10.3,2.13,8.4,Math.PI/2,[[0,-.27],[0,.27]],4),                        // sur le distributeur
     pile(9.6,.57,2.93,0,[[0,0]],3),pile(9.6,1.72,3.8,0,[[0,0]],3),            // les étagères du rack (places libres entre bacs, cartons, jantes)
@@ -70134,11 +70145,11 @@ function garArgent(g){
     pile(-3.1,.98,-11.95,0,[[-.27,0],[.27,0]],5),pile(.95,.98,-11.95,0,[[-.27,0],[.27,0]],4),pile(-7.45,.98,-11.95,Math.PI/2,[[0,0]],4), // l'établi (derrière la caméra)
     pile(9.6,1.72,5.2,0,[[0,0]],3),pile(9.6,2.87,1.55,0,[[0,0]],3),pile(9.6,4.02,3.55,0,[[0,0]],2)];
   // LES PALETTES (riche) : contre les murs, au-delà de l'orbite — 1 palette + 10 couches de 8 liasses (1,23 m)
-  const pal=(x,z,ry)=>{const it=[()=>palette(x,z,ry)],c=Math.cos(ry),s=Math.sin(ry);
+  const pal=(x,z,ry,d)=>{const it=[()=>palette(x,z,ry)],c=Math.cos(ry),s=Math.sin(ry);
     for(let l=0;l<10;l++)for(let j=0;j<4;j++)for(let i=0;i<2;i++){const lx=(i-.5)*.505+(rn()-.5)*.012,lz=(j-1.5)*.232+(rn()-.5)*.012;
-      it.push(()=>liasse(x+c*lx+s*lz,.127+l*LT,z-s*lx+c*lz,ry+(rn()-.5)*.03,0,0));}
+      it.push(()=>liasse(x+c*lx+s*lz,.127+l*LT,z-s*lx+c*lz,ry+(rn()-.5)*.03,0,0,d));}
     return {it:it,a:0};};
-  const P9=PAL.map(p9=>pal(p9[0],p9[1],p9[2]));
+  const P9=PAL.map((p9,i)=>pal(p9[0],p9[1],p9[2],DP[i%DP.length]));
   // les seuils d'ouverture : tas bas et meubles entremêlés (ce qu'on voit d'abord), les gros tas, puis les palettes quand on devient riche
   const ord=[],A1=[0,1,3,6,8,11,14,17,21,25,29,33,38,43,48,54,60,66,72,80,88,96,104,112];
   for(let i=0,ti=0,mi=0;ti<TB.length||mi<M9.length;i++){const p9=(i%2===0&&ti<TB.length)||mi>=M9.length?TB[ti++]:M9[mi++];p9.a=A1[Math.min(i,A1.length-1)]+Math.max(0,i-A1.length+1)*8;ord.push(p9);}
@@ -81680,6 +81691,7 @@ function goImmersive(){
   if(BALADE||SIMU_JEU)setTimeout(finRapide,80); /* (atelier des nuages, simulateur) droit au jeu, sans l'intro */
   raf=requestAnimationFrame(boucle);
   let vuRev=false;
+  window.__ccIntroAuto={lancer:lancer,tapBoule:tapBoule,lance:function(){return lance;},pret:function(){return pretT!==null;},fini:function(){return fini;}}; /* (2026-11-07, banc iPhone automatique : banc-iphone.js touche l'écran titre tout seul ; inerte sinon) */
   window.dbgIntro={TL:TL,construitSon:function(A,t0,d){const r=construitSon(A,t0,d);r.suite();r.acte3();return r;},
     voir:function(t,id){manuel=true;forceId=id||null;if(!lance){lance=true;RM=reduit();eteintTitre();}if(!LOGO||!Object.keys(ETS).length){mesure();prepare();}
       if(t<TL.casse){casse=false;ECL=null;if(vuRev){vuRev=false;sp.id='splash';sp.style.cssText='';}}else if(!casse)casser(TL.casse,true);
@@ -82823,6 +82835,211 @@ window.dbgPerfRec=function(a){
   if(a==='resume')return C.map(function(c){return c.debut.slice(11,19)+' '+c.carte.join('>')+' '+c.duree+'s palier '+c.palier+' | '+Object.keys(c.phases).map(function(k){const p=c.phases[k];
     return k+' '+p.n+' img '+p.ips+' i/s >25:'+(p.b[2]+p.b[3]+p.b[4]+p.b[5])+' >33:'+(p.b[3]+p.b[4]+p.b[5])+' >50:'+(p.b[4]+p.b[5])+' pire '+p.max;}).join(' · ');});
   return {on:PREC.on,enCours:PREC.cours?{n:PREC.cours.n,carte:PREC.cours.carte,phases:PREC.cours.phases}:null,courses:C};};
+/* ===== LE BANC iPHONE AUTOMATIQUE (2026-11-07, passe 3 « au max », P7 : « l'app se joue toute seule, Sacha ne touche pas l'écran ») =====
+   INERTE sans le drapeau : `localStorage.ccBancAuto` (posé par natif.js dans une app construite par `preparer-www.js --banc "<scénario>"`) ou `?banc=auto` sur le web.
+   Sans drapeau, ce morceau lit une clé du localStorage et sort : aucun minuteur, aucun rAF, aucun écouteur. Jamais dans un build normal (natif.js EFFACE le drapeau
+   quand l'app n'a pas été construite avec --banc : le localStorage survit aux mises à jour de l'app).
+   Le scénario (une seule fonction async, des attentes sur l'état du jeu) :
+     titre   : l'intro est lancée toute seule ; la boule est touchée dès qu'elle est prête (`window.__ccIntroAuto`, exposé par intro-161.js)
+     menu    : « menu à t s », 5 s d'attente ; GARAGE → INVENTAIRE (défilement animé 3 s par scrollTop) → BOUTIQUE → retour à l'accueil
+     partie 1: JOUER, le pilote auto de mesure (`dbgAuto`) conduit 5 min ; toutes les 20 s un pouvoir (`dbgPwr`) ou une figure (`dbgFig('lance')`, en l'air) ;
+               à 5 min `dbgBoom()` (la mort) ; REJOUER
+     partie 2: 5 min encore, le moteur monté jusqu'au palier 16 (`dbgMoteur()`, un palier à la fois) puis mort ; MAISON
+     fin     : « fini t s » ; l'app reste à l'accueil, plus rien ne tourne.
+   Tout s'écrit dans la boîte noire. ⚠ `cashcarErr` est plafonnée à 30 lignes (debut-corps.html) et les sondes `serpent`/`fluide`/`memoire` en ont besoin :
+   le détail (une ligne par étape et toutes les 20 s de course) va dans `cashcarBanc` (même format, sans plafond serré : 400), et seules les lignes clés
+   (début, menu, mort, fini, échecs) passent aussi par `__ccNote('banc',…)`. Chaque ligne donne la PIRE IMAGE depuis la ligne d'avant. `cashcarBancEtat` garde
+   l'étape en cours : un lancement qui trouve une partie interrompue le dit (« ⚠ la session d'avant s'est arrêtée à … » = plantage ou rechargement).
+   Lecture côté Mac : outils/banc-perf/iphone-auto.sh. Réglages : ccBancAuto = JSON {scenario,partie,menu,pouv,palier} ou « 1 » ; ?bancT=40 raccourcit les parties (essai web). */
+(function(){
+  var FL=null,WEB=false;
+  try{FL=localStorage.getItem('ccBancAuto');}catch(e){}
+  try{WEB=/[?&]banc=auto\b/.test(location.search);}catch(e){}
+  if(!FL&&!WEB)return; /* le chemin normal : tout s'arrête ici */
+  var CFG={scenario:'p7',partie:300,menu:5,defile:3,pouv:20,palier:16,max:1800,nit:0,saut:0}; /* (essai web : nit 1 + saut 9 = une mort toutes les 20-30 s, le moteur retombe au palier 0 ; sans les deux : 0 mort en 160 s, palier 16 atteint) */;
+  try{var j=JSON.parse(FL);if(j&&typeof j==='object'){for(var k in j)CFG[k]=j[k];}else if(typeof j==='string')CFG.scenario=j;}catch(e){if(FL&&FL!=='1')CFG.scenario=String(FL);}
+  try{var mT=/[?&]bancT=(\d+)/.exec(location.search);if(mT)CFG.partie=+mT[1];}catch(e){}
+  try{var mN=/[?&]bancNit=(\d)/.exec(location.search),mS=/[?&]bancSaut=(\d+)/.exec(location.search);if(mN)CFG.nit=+mN[1];if(mS)CFG.saut=+mS[1];}catch(e){}
+  if(CFG.scenario==='court'&&CFG.partie>60)CFG.partie=45;
+  var CLE='cashcarBanc',CLE_ETAT='cashcarBancEtat';
+  var T0=performance.now(),ST=null,L=[],RUN=1,etape='?',seau=null,fini=false;
+  var sec=function(){return Math.round((performance.now()-T0)/100)/10;};
+  var att=function(ms){return new Promise(function(r){setTimeout(r,ms);});};
+  var V=function(){return typeof CC_VER==='string'?CC_VER:'?';};
+  /* ---- le registre : cashcarBanc (détail) + cashcarBancEtat (où l'on en est) ---- */
+  try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(e){L=[];}
+  var ecritTimer=0;
+  var ecrit=function(){ecritTimer=0;try{if(L.length>400)L.splice(0,L.length-400);localStorage.setItem(CLE,JSON.stringify(L));}catch(e){}};
+  var etatSauve=function(extra){try{localStorage.setItem(CLE_ETAT,JSON.stringify({run:RUN,etape:etape,t:sec(),ts:Date.now(),fini:fini?1:0,v:V(),x:extra||''}));}catch(e){}};
+  var note=function(msg,cle){
+    msg='banc: '+msg;
+    try{L.push({k:'banc|'+L.length,g:'banc',m:msg.slice(0,400),o:'',n:1,t0:Date.now(),t:Date.now(),v:V(),d:1});if(!ecritTimer)ecritTimer=setTimeout(ecrit,300);}catch(e){}
+    if(cle)try{window.__ccNote('banc',msg);}catch(e){}
+    try{console.log('['+'banc]',msg);}catch(e){}
+  };
+  /* ---- le chronomètre d'images : la pire image depuis la ligne d'avant ---- */
+  var nouveauSeau=function(){return{n:0,max:0,maxT:0,p100:0,p50c:0,h:[],fond:0};};
+  var dernier=0,vivant=true;
+  var rafs=function(t){
+    if(!vivant)return;
+    if(dernier&&seau){var d=t-dernier;
+      if(document.hidden||d>20000){seau.fond++;}
+      else{seau.n++;if(d>seau.max){seau.max=d;seau.maxT=sec();}if(d>100)seau.p100++;if(d>50)seau.p50c++;if(seau.h.length<40000)seau.h.push(d);}}
+    dernier=t;requestAnimationFrame(rafs);};
+  var ferme=function(){var s=seau;seau=nouveauSeau();if(!s||!s.n)return{txt:'0 image',max:0};
+    var h=s.h.slice().sort(function(a,b){return a-b;}),p50=h[(h.length*.5)|0]||0,p90=h[(h.length*.9)|0]||0;
+    return{max:s.max,txt:'pire '+Math.round(s.max)+' ms (à '+s.maxT+' s) · p50 '+(Math.round(p50*10)/10)+' · p90 '+(Math.round(p90*10)/10)+' ms · '+s.n+' images · >50 ms: '+s.p50c+' · >100 ms: '+s.p100+(s.fond?' · en fond: '+s.fond:'')};};
+  /* ---- l'état du jeu, lu sans rien casser ---- */
+  var etatJeu=function(){try{return window.dbgState()||{};}catch(e){return{};}};
+  var palierMot=function(){try{return typeof engTier==='number'?engTier:-1;}catch(e){return -1;}};
+  var memoire=function(){var o=[];try{var i=renderer.info;o.push('tex '+i.memory.textures,'géo '+i.memory.geometries,'prog '+(i.programs?i.programs.length:'?'));}catch(e){}
+    try{if(performance.memory)o.push('tas '+Math.round(performance.memory.usedJSHeapSize/1048576)+' Mo');}catch(e){}return o.join(' · ');};
+  var ligne=function(nom,extra,cle){
+    etape=nom;var f=ferme();
+    note(nom+' · t '+sec()+' s · '+f.txt+(extra?' · '+extra:''),cle);etatSauve();return f;};
+  /* ---- les gestes ---- */
+  var visible=function(e){if(!e||!e.isConnected)return false;var r=e.getBoundingClientRect();if(r.width<4||r.height<4)return false;
+    var cs=getComputedStyle(e);return cs.display!=='none'&&cs.visibility!=='hidden'&&+cs.opacity>.05;};
+  var clic=function(sel){var Ls=document.querySelectorAll(sel);for(var i=0;i<Ls.length;i++)if(visible(Ls[i])){try{Ls[i].click();}catch(e){return null;}return Ls[i];}return null;};
+  var jusque=function(cond,max,pas){return new Promise(function(res){var t0=performance.now();(function p(){var ok=false;try{ok=!!cond();}catch(e){}
+    if(ok)return res(true);if(performance.now()-t0>max*1000)return res(false);setTimeout(p,pas||250);})();});};
+  var modale=function(){try{var m=document.getElementById('modale');if(m&&m.classList.contains('on')){var b=m.querySelectorAll('.modB .pbtn');if(b.length){b[b.length-1].click();return true;}}}catch(e){}return false;};
+  var enCourse=function(){var s=etatJeu();return !!(s.started&&s.running&&!s.gameOver);};
+  var mort=function(){var s=etatJeu();return !!(s.started&&s.gameOver);};
+  var echec=function(msg){note('ÉCHEC · '+msg+' · t '+sec()+' s',true);};
+  var actions=0;
+  /* ---- les écrans du menu ---- */
+  var ecrans=async function(){
+    var ok;
+    clic('[data-m="garage"]');
+    ok=await jusque(function(){return typeof garageOn!=='undefined'&&garageOn;},15);
+    if(!ok){echec('le garage ne s\'ouvre pas');return;}
+    await att(1500);ligne('garage ouvert',memoire());
+    await att(2500);ligne('garage 2,5 s');
+    /* l'inventaire : ouverture, puis défilement de la grille par scrollTop sur CFG.defile s, aller puis retour */
+    try{window.dbgInv('ouvre');}catch(e){}
+    ok=await jusque(function(){return typeof INV!=='undefined'&&INV&&INV.on;},8);
+    if(!ok){echec('l\'inventaire ne s\'ouvre pas');}
+    else{await att(800);ligne('inventaire ouvert');
+      var g=document.getElementById('ivGrille'),m=g?g.scrollHeight-g.clientHeight:0;
+      if(!g||m<20)note('inventaire : rien à défiler (grille '+(g?g.scrollHeight+'/'+g.clientHeight:'absente')+')');
+      else{var D=CFG.defile*1000,a=performance.now();
+        await new Promise(function(res){(function p(){var k=Math.min(1,(performance.now()-a)/D),q=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;g.scrollTop=m*q;if(k<1)requestAnimationFrame(p);else res();})();});
+        await att(300);
+        a=performance.now();await new Promise(function(res){(function p(){var k=Math.min(1,(performance.now()-a)/(D/2)),q=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;g.scrollTop=m*(1-q);if(k<1)requestAnimationFrame(p);else res();})();});}
+      ligne('inventaire défilé',m>=20?'grille '+g.scrollHeight+' px':'');
+      try{invFerme();}catch(e){}await att(900);}
+    /* la boutique */
+    var ot=performance.now();clic('#gShopBas');
+    ok=await jusque(function(){var g=document.getElementById('garage');return g&&g.classList.contains('modeShop');},12);
+    if(!ok)echec('la boutique ne s\'ouvre pas');
+    else{note('boutique ouverte en '+Math.round(performance.now()-ot)+' ms');await att(2500);ligne('boutique ouverte 2,5 s');}
+    /* le retour : HOME (la rangée du bas) ferme la boutique ; l'ACCUEIL, ici, c'est l'atelier en mode « menu » (garageOn reste vrai) avec JOUER par-dessus */
+    var jouerVisible=function(){return visible(document.querySelector('#mHome [data-m="play"]'))||visible(document.querySelector('.mPlay'));};
+    for(var i=0;i<3&&!jouerVisible();i++){
+      modale();
+      if(i===0)clic('#gHomeBas')||clic('#gClose')||clic('#gHomeMini');
+      else if(i===1){try{if(typeof garageOn!=='undefined'&&garageOn&&!GAR.go)garMode('menu');}catch(e){}}
+      else {try{window.__mGo&&window.__mGo('home');}catch(e){}}
+      await jusque(jouerVisible,5);}
+    await att(1500);
+    ligne('retour accueil',jouerVisible()?'':'⚠ JOUER pas visible');
+  };
+  /* ---- une course : JOUER / REJOUER, le pilote, des actions toutes les CFG.pouv s, la mort forcée ---- */
+  var armePilote=function(){try{window.dbgAuto(true,0,{vol:true,nit:CFG.nit,saut:CFG.saut});}catch(e){echec('dbgAuto : '+(e&&e.message));}};
+  var demarre=async function(premier){
+    var ok=false;
+    for(var i=0;i<30&&!ok;i++){modale();
+      if(premier&&i%4===0){clic('[data-m="play"].mPlay')||clic('#mHome [data-m="play"]')||clic('[data-m="play"]');}
+      else if(!premier&&i%3===0){clic('[data-m="replay"]');}
+      if(i===9||i===20){try{note('dbgJouer → '+JSON.stringify(window.dbgJouer()));}catch(e){}}
+      ok=await jusque(enCourse,3.5);}
+    return ok;};
+  var cles=['n','a','v','m','x'],figI=0;
+  var actionCourse=function(){ /* UNE action : une figure si la caisse est en l'air, sinon le pouvoir suivant */
+    var s=etatJeu(),r='';actions++;
+    try{
+      if(s.mode==='fall'&&actions%2===0){var f=window.dbgFig('lance',figI++);r='figure '+(figI-1)+(f?' ok':' refusée');}
+      else{var k=cles[actions%cles.length];window.dbgPwr(k,1);r='pouvoir '+k;}
+    }catch(e){r='action en erreur '+(e&&e.message);}
+    return r;};
+  var course=async function(num,rampe){
+    var dur=CFG.partie,t0=performance.now(),runT=performance.now(),morts=0,derAct=0,pTarget=CFG.palier,maxPal=palierMot(),vmax=0;
+    var avant=ferme();
+    armePilote();
+    note('partie '+num+' : départ à t '+sec()+' s · '+memoire()+' · palier '+palierMot(),true);
+    var derLigne=performance.now();
+    while((performance.now()-t0)/1000<dur){
+      await att(500);
+      if(document.hidden){continue;}
+      var s=etatJeu(),dt=(performance.now()-t0)/1000;
+      if(s.gameOver&&s.started){ /* le pilote est mort avant l'heure : on le note, on rejoue, la partie continue jusqu'à sa durée */
+        morts++;ligne('partie '+num+' · mort anticipée n°'+morts+' à '+Math.round(dt)+' s','palier '+palierMot()+' · v max '+Math.round(vmax)+' km/h',true);
+        try{window.dbgAuto(false);}catch(e){}
+        await att(3000);
+        if(!await demarre(false)){echec('REJOUER après mort anticipée');return false;}
+        runT=performance.now();armePilote();derLigne=performance.now();continue;}
+      if(+s.vH>vmax)vmax=+s.vH;var pm=palierMot();if(pm>maxPal)maxPal=pm;
+      if(rampe){ /* partie 2 : monter le moteur d'un palier à la fois pour atteindre CFG.palier aux 70 % de la durée (le palier naturel est trop lent) */
+        var runDt=(runT-t0)/1000,den=Math.max(8,Math.min(dur*.7,(dur-runDt)*.8)),cible=Math.min(CFG.palier,Math.ceil(CFG.palier*((performance.now()-runT)/1000)/den)); /* après une mort anticipée la rampe se resserre : le palier cible reste atteignable avant la fin */
+        if(pm>=0&&pm<cible&&performance.now()-derAct>2500){derAct=performance.now();try{window.dbgMoteur();}catch(e){}}}
+      if((performance.now()-derLigne)/1000>=CFG.pouv){derLigne=performance.now();
+        var a=actionCourse();ligne('partie '+num+' · '+Math.round(dt)+' s','palier '+palierMot()+' · '+Math.round(+s.vH||0)+' km/h · mode '+s.mode+' · '+a);}}
+    /* l'heure : la mort forcée */
+    try{window.dbgAuto(false);}catch(e){}
+    ligne('partie '+num+' · fin de course','palier max '+maxPal+' (cible '+(rampe?CFG.palier:'—')+') · v max '+Math.round(vmax)+' km/h · '+morts+' mort(s) anticipée(s) · '+memoire(),true);
+    var bt=performance.now();
+    try{window.dbgBoom();}catch(e){echec('dbgBoom : '+(e&&e.message));}
+    var ok=await jusque(mort,15);
+    if(!ok)echec('la mort forcée n\'a pas eu lieu');
+    await jusque(function(){return visible(document.querySelector('#mDead [data-m="replay"]'))||visible(document.querySelector('[data-m="replay"]'));},25);
+    ligne('partie '+num+' · mort','écran de mort en '+Math.round(performance.now()-bt)+' ms · '+memoire(),true);
+    if(rampe&&maxPal<CFG.palier)note('⚠ palier '+CFG.palier+' non atteint (max '+maxPal+')',true);
+    return true;};
+  /* ---- le titre : l'intro, la boule ---- */
+  var titre=async function(){
+    var ok=await jusque(function(){return window.__ccIntroAuto||(window.__gameReady&&!window.__intro);},60);
+    var I=window.__ccIntroAuto;
+    if(I){
+      /* le film part tout seul ; s'il n'est pas lancé après 8 s, on le lance */
+      await jusque(function(){return I.lance();},8);if(!I.lance())try{I.lancer(true);}catch(e){}
+      ok=await jusque(function(){return I.pret()||I.fini();},90,200);
+      if(!ok)echec('la boule n\'est jamais prête');
+      else{note('boule prête à t '+sec()+' s');try{I.tapBoule();}catch(e){echec('tapBoule : '+(e&&e.message));}}}
+    ok=await jusque(function(){return window.__gameReady&&!window.__intro&&document.getElementById('mHome')&&document.getElementById('mHome').classList.contains('on')&&visible(document.querySelector('[data-m="play"]'));},120,300);
+    return ok;};
+  var tout=async function(){
+    var rep=null;try{rep=JSON.parse(localStorage.getItem(CLE_ETAT)||'null');}catch(e){}
+    if(rep&&!rep.fini&&Date.now()-rep.ts<45*60000){RUN=(rep.run|0)+1;
+      note('⚠ PLANTAGE OU RECHARGEMENT : la session d\'avant (run '+rep.run+', v '+rep.v+') s\'est arrêtée à « '+rep.etape+' » à t '+rep.t+' s ('+Math.round((Date.now()-rep.ts)/1000)+' s avant ce lancement)',true);
+      if(RUN>3){note('banc : 3 sessions interrompues, on arrête',true);fini=true;etatSauve('abandon');vivant=false;return;}}
+    else if(rep)RUN=(rep.run|0)+1;
+    note('début · run '+RUN+' · scénario '+CFG.scenario+' · partie '+CFG.partie+' s · v '+V()+' · '+(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()?'app native':'web')+' · '+screen.width+'×'+screen.height+' @'+(window.devicePixelRatio||1)+' · wakeLock '+(navigator.wakeLock?'oui':'non'),true);
+    try{if(navigator.wakeLock)navigator.wakeLock.request('screen').then(function(w){note('wakeLock obtenu');},function(e){note('wakeLock refusé : '+(e&&e.message));});}catch(e){}
+    seau=nouveauSeau();requestAnimationFrame(rafs);
+    etatSauve();
+    if(!await titre()){echec('le menu n\'apparaît pas');ligne('titre');return;}
+    ligne('titre → menu','',false);note('menu à '+sec()+' s',true);
+    await att(CFG.menu*1000);ligne('menu '+CFG.menu+' s');
+    await ecrans();
+    if(!await demarre(true)){echec('JOUER ne lance pas la course');return;}
+    await course(1,false);
+    if(!await demarre(false)){echec('REJOUER ne lance pas la partie 2');return;}
+    await course(2,true);
+    /* retour à l'accueil (MAISON), puis plus rien */
+    for(var i=0;i<6;i++){modale();clic('#mDead [data-m="menu"]')||clic('[data-m="menu"]');
+      if(await jusque(function(){return !mort()||(document.getElementById('mHome')&&document.getElementById('mHome').classList.contains('on'));},4))break;}
+    try{window.__mGo&&window.__mGo('home');}catch(e){}
+    await att(2000);
+    ligne('retour accueil final');
+  };
+  var lance=function(){
+    tout().then(function(){fini=true;note('fini '+sec()+' s',true);vivant=false;etatSauve();ecrit();},
+      function(e){fini=true;note('ÉCHEC du banc : '+(e&&e.stack||e),true);vivant=false;etatSauve();ecrit();});};
+  /* départ : dès que le jeu a posé window.__gameReady (ou son chien de garde), mais sans attendre l'intro : titre() s'en charge */
+  window.__ccBanc={cfg:CFG,note:note,etat:function(){return{run:RUN,etape:etape,fini:fini,t:sec()};},lignes:function(){return L.slice();}};
+  setTimeout(lance,300);
+})();
 // ============================================================================
 // LE MÊME ⚙ POUR LE DESKTOP (2026-09-05) — « enlève la mini app, déplace tous les boutons du
 // gameplay, par un petit logo réglages qui inclue tous les boutons qu'on vient de supprimer ».

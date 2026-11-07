@@ -127,7 +127,7 @@ const I18N={
  'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.':'Three tons of cube. Nobody has ever asked you to move over.',
  'Rouge course, aileron plateau. La caisse de rêve : 1,5 million, et chaque euro se voit.':'Racing red, a wing like a tray. The dream car: 1.5 million, and every euro shows.',
  'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.':'She was pinned to your bedroom wall. Now you\'re the one driving her.',
- 'LA CERISE':'THE CHERRY','Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.':'It opens its eyes at every nitro hit. One ton, 115 horsepower, and the biggest smile in the parking lot.', // (JAPONAISES) 83 — la MX-5 NA
+ 'KELLY CHERRY':'KELLY CHERRY','Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.':'It opens its eyes at every nitro hit. One ton, 115 horsepower, and the biggest smile in the parking lot.', // (JAPONAISES) 83 — la MX-5 NA
  'LA HONTE':'THE DISGRACE',
  'ANTIMATIÈRE':'ANTIMATTER',
  'LA LAME':'THE BLADE','Le même petit roadster, avec un toit qui se range en treize secondes. Il ne pleut jamais assez vite pour la rattraper.':'The same little roadster, with a roof that tucks away in thirteen seconds. It never rains fast enough to catch her.', // (JAPONAISES) 85 — la MX-5 RF
