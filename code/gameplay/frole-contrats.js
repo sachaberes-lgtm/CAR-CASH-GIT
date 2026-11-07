@@ -291,6 +291,7 @@ function misBanniere(titre,texte,prime,ico){if(titre==='ASTUCE')return; /* (2026
   hautPasse(function(){misBanMontre(titre,texte,prime,ico);},1800,'mis',2);} // un défi payé vaut un moteur
 function misBanMontre(titre,texte,prime,ico){
   if(titre==='ASTUCE')return;
+  try{if(titre==='MISSION RÉUSSIE')hap([14,40,22]);}catch(e){} /* (2026-11-07) la bannière se sent, comme elle s'entend */
   try{if(SONV2&&titre==='MISSION RÉUSSIE')sfx('ui.mission');}catch(e){} /* (débogage son 2026-09-29) pendant l'auto-école la bannière attend la fin : le son l'attend aussi */
   let b=document.getElementById('misBan');
   if(!b){b=document.createElement('div');b.id='misBan';b.setAttribute('role','status');document.body.appendChild(b);hasMaj();} // hasMaj : la bannière née, son état se suit (voir HAS_D)

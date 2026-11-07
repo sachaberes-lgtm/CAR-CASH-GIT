@@ -207,8 +207,10 @@ function ecranWipe(fn,apres){
   },REDUCED_MOTION?120:160); // (2026-10-11, passe UX) 210 → 160 ms : le volet entre en 150 ms (voir <style id="uxPasse">), l'écran change dès qu'il couvre
 }
 function uiPop(el){ // le rebond d'un bouton relâché (re-déclenchable : on retire, on force un reflow, on remet)
-  if(!el||!el.classList||REDUCED_MOTION)return;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
-  clearTimeout(el._popT);el._popT=setTimeout(function(){el.classList.remove('pop');},300);
+  if(!el||!el.classList||REDUCED_MOTION)return;
+  if(el._popFixe===undefined)el._popFixe=el.classList.contains('pop'); /* (2026-11-07) la vignette d'une traînée à icône PORTE 'pop' en permanence (c'est sa mise en page, charte-3-garage) : le rebond ne doit pas la lui retirer au bout de 300 ms */
+  el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
+  clearTimeout(el._popT);el._popT=setTimeout(function(){if(!el._popFixe)el.classList.remove('pop');},300);
 }
 /* L'APPUI SOUS LE DOIGT (2026-09-28, soir — Sacha : « travaille les animations quand tu cliques sur les boutons »). Sur iPhone, `:active`
    ne se peint pas pour un tap bref : la touche ne s'enfonçait jamais à l'œil. `.appui` est posée AU CONTACT (pointerdown, en capture) sur

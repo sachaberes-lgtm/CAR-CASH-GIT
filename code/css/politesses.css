@@ -1,0 +1,11 @@
+<style id="politesses">
+/* ===== LES PETITES POLITESSES (2026-11-07, Sacha : « plein de mini détails qui ne se voient même pas, pour rendre le jeu plus pro ») =====
+   Ce qu'on ne remarque que quand ça manque. Posé après tout le reste, une seule ligne par détail. */
+#toast{overflow-wrap:anywhere} /* un mot long sans espace (un nom de caisse en pixel, large) coupe au lieu de déborder du cadre */
+@media (prefers-reduced-motion:reduce){.secoue{animation:none!important}} /* le NON d'un achat refusé : « réduire les animations » l'éteint comme le rebond (le toast dit déjà pourquoi) */
+:where(button,[role=button]):focus-visible{outline:2px solid var(--nc,#00eaff);outline-offset:4px} /* le focus CLAVIER se voit sur tout bouton, même sans règle propre (`:where` : zéro spécificité, les règles .pbtn / .ghT gardent la leur) */
+body #tGear{transition:scale 70ms ease-out} /* le ⏸ est hors du filet d'enfoncement des boutons (zone de course) : il s'enfonce seul */
+body #tGear:active{scale:.88}
+html.introAncien #spCharge{display:none} /* (2026-11-07, Sacha : « ce genre de conflit est pas acceptable ») avec ?intro=ancien, le serpent de chargement restait posé SUR le titre CASH CAR, carré noir compris : seule la nouvelle intro l'éteint (chCl). L'ancienne intro a son propre signe d'attente (le titre qui pulse) */
+@media (prefers-reduced-motion:no-preference){html body #tSteer:not(.act) #tKnob{transition:transform 110ms cubic-bezier(.2,.8,.3,1)}} /* le bouton du volant REVIENT au centre quand le pouce lâche, au lieu de sauter (pendant le braquage (classe act) : aucune transition, il colle au doigt) */
+</style>

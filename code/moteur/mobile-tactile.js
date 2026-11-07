@@ -536,7 +536,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     // roule sans pause ni panneau — on la met en pause, REPRENDRE sous le pouce
     if(started&&!gameOver&&mode==='boom')boomSkip(); // (2026-10-14, chasse aux bugs) retour pendant l'explosion : comme le ⏸ (gearOpenHandler) — vers l'écran de fin, jamais une PAUSE sur la caisse qui brûle
     else if(started&&!gameOver&&!paused&&pan&&!pan.classList.contains('open'))panOpen(true);
-    wakeAsk(); audioKick(); });
+    if(started&&!gameOver)wakeAsk(); audioKick(); }); /* (2026-11-07) le verrou de l'écran ne revient qu'en course (voir wakeLache) */
   /* ===== L'APPEL ENTRANT MET LA COURSE EN PAUSE (24/10, débogage sortie iOS : « appel entrant / Siri / centre de contrôle ») =====
      Sur iPhone, un appel (la bannière), Siri ou une alarme passent PAR-DESSUS le jeu sans le cacher : pas de visibilitychange, la course
      continuait muette pendant que le pouce allait décrocher — la caisse tombait, la partie était perdue. Le seul signe fiable : le
@@ -710,11 +710,11 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(cpt){for(let j=0;j<N9;j++)s9(d9+Math.round(D9*(1-Math.sqrt(1-j/N9))),'ui.compte',{st:sonPd(j)});s9(d9+D9,'mort.compteFin');}
       if(rec)s9(MORT_FLOT?d9+M6_CPT-300:d9+450,'ui.record'); /* son TAAA (0,3 s) tombe pile sur la pose */
       if(commitExploits._neuves&&!document.body.classList.contains('touch'))s9(1750,'caisse.debloquee'); /* sur téléphone la caisse gagnée n'est pas affichée (#mNew masqué) : pas de son sans image */
-      if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900);
+      if(rec)setTimeout(function(){if(ici()){pixBurst($t('mOverT'),34);hap([18,50,30]);}},900);
       return;}
     for(let i=0;i<8;i++)setTimeout(function(){if(ici())try{chimeNote(noteP(i,1),0,.035,.06);}catch(e){}},320+i*85);
     setTimeout(function(){if(!ici())return;try{if(rec)rewardSfx('m3',3);else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(7,1),.06,.07,.36);}}catch(e){}},1040);
-    if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
+    if(rec)setTimeout(function(){if(ici()){pixBurst($t('mOverT'),34);hap([18,50,30]);}},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
   }
   const MORT_FLOT=!/[?&]mort=ancien\b/.test(location.search); /* (2026-10-25) L'ÉCRAN DE MORT FLOTTANT (voir mFill) — `?mort=ancien` = les cartes d'avant */
   Object.assign(I18N,{'PARTIE':'THIS RUN','MOYENNE':'AVERAGE','VS MOY':'VS AVG','MOY.':'AVG','MOTEUR':'ENGINE'});
