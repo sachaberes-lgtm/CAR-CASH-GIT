@@ -12,7 +12,7 @@ function forFamille(root,geo,mat,lot,b0,b1,attr,ordre){if(!lot||!lot.n)return nu
   if(ordre)F.im.renderOrder=ordre;root.add(F.im);FORET.fam.push(F);return F;}
 function foretVide(){
   for(const F of FORET.fam){const g=F.im.geometry;for(const k in g.attributes)if(k!==F.attr)g.deleteAttribute(k);g.setIndex(null);g.dispose();F.im.dispose();}
-  FORET.fam=[];FORET.quart=null;FORET.sig=0;FORET.geants=[];FORET.dz=null;FORET.deco=null;FORET.clr=[];FORET.lant=null;FORET.gcol=null;FORET.arche=[];FORET.chaum=[];FORET.rocs=[];FORET.sol=null;FORET.solM=null;
+  FORET.fam=[];FORET.quart=null;FORET.sig=0;FORET.geants=[];FORET.dz=null;FORET.deco=null;FORET.clr=[];FORET.lant=null;FORET.gcol=null;FORET.arche=[];FORET.chaum=[];FORET.rocs=[];FORET.archeRefus=null;FORET.archeDessin=null;FORET.sol=null;FORET.solM=null;
   if(FORET.root){FORET.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});FORET.root=null;}
   if(FORET.loup){FORET.loup.t=0;FORET.loup.on=false;FORET.loup.roc=null;} // (2026-10-14, chasse aux bugs) un portail pendant un hurlement laissait `on` et le rocher de l'ANCIENNE piste : à la forêt suivante le loup-garou y réapparaissait jusqu'à 7,4 s
 }
@@ -571,10 +571,12 @@ window.dbgForetAudit=function(o){o=o||{};if(!FORET.root||!FORET.sol)return null;
     for(let a=-r;a<=r;a++)for(let b=-r;b<=r;b++){const l=G.get((cx+a)*100003+cz+b);if(!l)continue;
       for(const i of l){const p=pts[i],t=T[i],n=Nn[i],bb=B[i],dx=x-p.x,dy=y-p.y,dz=z-p.z;if(Math.abs(dx*t.x+dy*t.y+dz*t.z)>ds*.6)continue;
         const h=dx*n.x+dy*n.y+dz*n.z;if(h<.3||h>7)continue;if(Math.abs(dx*bb.x+dy*bb.y+dz*bb.z)<HW)return i;}}return -1;};
+  const quiTue=p=>{const Gc=FORET.gcol,a9=Gc&&Gc.G.get(Math.floor(p.x/Gc.CG)+','+Math.floor(p.z/Gc.CG));if(a9)for(const c of a9){let q=c.a;if(c.g){const bx=c.b[0]-c.a[0],by=c.b[1]-c.a[1],bz=c.b[2]-c.a[2],l2=bx*bx+by*by+bz*bz;let u=l2>0?((p.x-c.a[0])*bx+(p.y-c.a[1])*by+(p.z-c.a[2])*bz)/l2:0;u=Math.max(0,Math.min(1,u));q=[c.a[0]+bx*u,c.a[1]+by*u,c.a[2]+bz*u];}
+    const d=Math.hypot(p.x-q[0],p.y-q[1],p.z-q[2]);if(d<c.r+(c.g?1.2:0)){let g9=null,dg=1e9;for(const g of FORET.geants){const e=Math.hypot(g.x-q[0],g.z-q[2]);if(e<dg){dg=e;g9=g;}}return (c.g?'gélule':'sphère')+' r'+c.r.toFixed(1)+' à '+d.toFixed(1)+' m, y '+Math.round(q[1])+FORET.arche.map(A=>' · arche à '+Math.round(Math.hypot(A.c.x-q[0],A.c.z-q[2]))+' m').join('')+(g9?' · géant '+g9.spV+' à '+Math.round(dg)+' m (sy '+g9.sy.toFixed(2)+')':'');}}return 'gélule ?';};
   /* 1. le couloir (ce qui tue) */
   {const st=Math.max(1,Math.round(3/ds)),V9=new THREE.Vector3();let n=0,t=0;const ex=[],par={};
    for(let i=Math.round(40/ds);i<NP-Math.round(30/ds);i+=st)for(const f of [-1,-.66,-.33,0,.33,.66,1])for(const h of [.5,1.5,4,6.5]){
-     V9.copy(pts[i]).addScaledVector(B[i],f*HW).addScaledVector(Nn[i],h);t++;const r=foretHeurt(V9);if(r){n++;par[r]=(par[r]||0)+1;if(ex.length<8)ex.push([Math.round(i*ds),+(f*HW).toFixed(1),h,r,V9.y<canH(V9.x,V9.z)?'canopée':V9.y<solH(V9.x,V9.z)+1.2?'sol':'gélule']);}}
+     V9.copy(pts[i]).addScaledVector(B[i],f*HW).addScaledVector(Nn[i],h);t++;const r=foretHeurt(V9);if(r){n++;par[r]=(par[r]||0)+1;if(ex.length<8)ex.push([Math.round(i*ds),+(f*HW).toFixed(1),h,r,V9.y<canH(V9.x,V9.z)?'canopée':V9.y<solH(V9.x,V9.z)+1.2?'sol':quiTue(V9)]);}}
    R.couloir={essais:t,heurts:n,par:par,ex:ex};}
   /* 2. les sommets (ce qu'on voit) */
   {const out=[],vu=new Set(),bx=new THREE.Box3(),M=new THREE.Matrix4(),v=new THREE.Vector3(),parNom={};let nI=0;
@@ -598,7 +600,7 @@ window.dbgForetAudit=function(o){o=o||{};if(!FORET.root||!FORET.sol)return null;
   /* 4. le sol sous la route, 5. la signature */
   {let m=1e9,ou=0;for(let i=0;i<NP;i+=4){const p=pts[i],d=p.y-solH(p.x,p.z);if(d<m){m=d;ou=i;}}R.sol={marge:Math.round(m),s:Math.round(ou*ds)};}
   {let h=2166136261>>>0;const mix=x=>{h=Math.imul(h^(Math.round(x*10)|0),16777619)>>>0;};mix(L);for(const F of FORET.fam){mix(F.lot.n);for(let k=0;k<F.lot.n;k+=7){mix(F.lot.M[k*16+12]);mix(F.lot.M[k*16+13]);mix(F.lot.M[k*16+14]);}}
-   for(let i=0;i<NP;i+=97){mix(pts[i].x);mix(pts[i].y);mix(pts[i].z);}R.sig=h.toString(16);R.n=Object.assign({},FORET.n);R.deco=FORET.deco;}
+   for(let i=0;i<NP;i+=97){mix(pts[i].x);mix(pts[i].y);mix(pts[i].z);}R.sig=h.toString(16);R.archeRefus=FORET.archeRefus;R.archeDessin=FORET.archeDessin;R.n=Object.assign({arches:FORET.arche.length+'/'+['arche','archeB'].filter(k=>FORET.Q&&FORET.Q[k]).length},FORET.n);R.deco=FORET.deco;}
   return R;};
 function PAL_B9(k,d){try{return (typeof PAL!=='undefined'&&PAL&&typeof PAL.b==='function')?PAL.b(k,d):d;}catch(e){return d;}} // les paliers d'optimisation (PAL), s'ils existent
 

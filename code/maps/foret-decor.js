@@ -584,19 +584,36 @@ function foretChampiGeo(){const K=fbNew(),rg=mulberry32(0xA3A);
 /* L'ARCHE : un géant tombé il y a mille ans, qui ENJAMBE la route — la souche et ses racines d'un côté, la couronne brisée de l'autre,
    moussue, des amanites qui luisent la nuit. Sous lui, au moins 24 m d'air au-dessus de la dalle. Les gélules de collision sont rendues. */
 function foretArche(root,fr,M,k9){const Q=FORET.Q,qa=Q&&Q[k9||'arche'];if(!qa)return null; // (2026-10-19, LA FORÊT AU HASARD) k9 : 'arche' ou 'archeB' — une forêt peut en avoir deux
-  let ia=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(qa.p);if(d<bd){bd=d;ia=i;}}
-  const p=pts[ia],t=T[ia],hl=Math.hypot(t.x,t.z)||1,bx=-t.z/hl,bz=t.x/hl,sg=fr()<.5?-1:1,K=fbNew(),C=[];
-  const A=[p.x-bx*sg*(ROAD_HALF+95)+t.x/hl*30,0,p.z-bz*sg*(ROAD_HALF+95)+t.z/hl*30],B9=[p.x+bx*sg*(ROAD_HALF+110)-t.x/hl*25,0,p.z+bz*sg*(ROAD_HALF+110)-t.z/hl*25];
-  A[1]=solH(A[0],A[2])+6;B9[1]=solH(B9[0],B9[2])+4;const top=p.y+24+8.5;
-  const cp=[],rad=[],n=26,ph=fr()*6.28;
-  for(let k=0;k<=n;k++){const u=k/n,x=A[0]+(B9[0]-A[0])*u,z=A[2]+(B9[2]-A[2])*u,yl=A[1]+(B9[1]-A[1])*u,arc=Math.sin(u*Math.PI);
-    cp.push([x+Math.sin(u*9+ph)*3,yl+(top-(A[1]+B9[1])/2)*Math.pow(arc,.62)+Math.sin(u*13+ph)*1.2,z+Math.cos(u*7+ph)*3]);rad.push((10.5-4.2*arc+(k===0?3:0))*(1+.14*Math.sin(k*1.9+ph)+.07*Math.sin(k*4.3+ph*2)));}
-  // (2026-10-15, LA PELOTE) l'arche enjambe SA route — et aucune autre : si un autre étage de la pelote passe dans son tronc, pas d'arche
-  {const ds9=L/(NP-1),j0=ia-Math.round(300/ds9),j1=ia+Math.round(300/ds9);
-   for(let j=0;j<NP;j+=3){if(j>j0&&j<j1)continue;const q=pts[j];
-     for(let k=0;k<n;k++){const a9=cp[k],b9=cp[k+1],r9=Math.max(rad[k],rad[k+1]);if(q.y<Math.min(a9[1],b9[1])-r9-10||q.y>Math.max(a9[1],b9[1])+r9+10)continue;
-       const ex=b9[0]-a9[0],ez=b9[2]-a9[2],l2=ex*ex+ez*ez||1,u=Math.max(0,Math.min(1,((q.x-a9[0])*ex+(q.z-a9[2])*ez)/l2));
-       if(Math.hypot(q.x-a9[0]-ex*u,q.z-a9[2]-ez*u)<r9+ROAD_HALF+5)return null;}}}
+  let ia0=0,bd=1e18;for(let i=0;i<NP;i+=2){const d=pts[i].distanceToSquared(qa.p);if(d<bd){bd=d;ia0=i;}}
+  const sg0=fr()<.5?-1:1,K=fbNew(),C=[],n=26,ph=fr()*6.28,ds9=L/(NP-1);let cp=null,rad=null,A=null,B9=null,ia=ia0,p=null,t=null,hl=1,bx=0,bz=0,top=0;
+  const ici=i=>{ia=Math.max(1,Math.min(NP-2,i));p=pts[ia];t=T[ia];hl=Math.hypot(t.x,t.z)||1;bx=-t.z/hl;bz=t.x/hl;top=p.y+24+8.5;};
+  /* ===== L'ARCHE QUI TROUVE SA PLACE (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+     MESURÉ (banc des maps, dbgForetAudit, midi, graines 1-10) : 1) « sous lui, au moins 24 m d'air » n'était vrai qu'à l'aplomb du milieu — le tronc croise la
+     route DE BIAIS (souche et couronne décalées de 30 et 25 m le long de la route) et son profil suit le sol des deux pieds : au bord de la chaussée, le dessous
+     de l'écorce tombait à ~8 m (graine 1 : sa gélule tuait en vol à 6,5 m au-dessus du bord) ; 2) un seul dessin était essayé : dès qu'un autre étage de la
+     pelote passait dans le tronc, PAS D'ARCHE (3 graines sur 10, la graine 3 n'en avait plus aucune). Désormais six dessins dans l'ordre — la souche du côté
+     tiré puis de l'autre, la portée entière, aux trois quarts, à 55 %, au milieu de sa droite puis 70 m avant ou après — et le premier qui tient gagne : le dessous est MESURÉ au-dessus de SA route (± 400 m,
+     toute la largeur) et le profil se relève au prorata de l'arc (les pieds restent au sol) jusqu'à 24 m ; aucune autre route dans le tronc. Aucun tirage de plus. */
+  const dessin=(sg,kS)=>{const a=[p.x-bx*sg*(ROAD_HALF+95*kS)+t.x/hl*30*kS,0,p.z-bz*sg*(ROAD_HALF+95*kS)+t.z/hl*30*kS],b=[p.x+bx*sg*(ROAD_HALF+110*kS)-t.x/hl*25*kS,0,p.z+bz*sg*(ROAD_HALF+110*kS)-t.z/hl*25*kS];
+    a[1]=solH(a[0],a[2])+6;b[1]=solH(b[0],b[2])+4;const c=[],r=[];
+    for(let k=0;k<=n;k++){const u=k/n,x=a[0]+(b[0]-a[0])*u,z=a[2]+(b[2]-a[2])*u,yl=a[1]+(b[1]-a[1])*u,arc=Math.sin(u*Math.PI);
+      c.push([x+Math.sin(u*9+ph)*3,yl+(top-(a[1]+b[1])/2)*Math.pow(arc,.62)+Math.sin(u*13+ph)*1.2,z+Math.cos(u*7+ph)*3]);r.push((10.5-4.2*arc+(k===0?3:0))*(1+.14*Math.sin(k*1.9+ph)+.07*Math.sin(k*4.3+ph*2)));}
+    /* le dessous au-dessus de SA route */
+    const j0=Math.max(0,ia-Math.round(400/ds9)),j1=Math.min(NP-1,ia+Math.round(400/ds9));let ok9=false;
+    for(let it=0;it<5&&!ok9;it++){let mn=1e9,am=1;
+      for(let j=j0;j<=j1;j+=2){const q=pts[j];for(let k=0;k<n;k++){const a9=c[k],b9=c[k+1],r9=Math.max(r[k],r[k+1]),ex=b9[0]-a9[0],ez=b9[2]-a9[2],l2=ex*ex+ez*ez||1,u=Math.max(0,Math.min(1,((q.x-a9[0])*ex+(q.z-a9[2])*ez)/l2));
+        if(Math.hypot(q.x-a9[0]-ex*u,q.z-a9[2]-ez*u)>r9+ROAD_HALF+1)continue;const h9=a9[1]+(b9[1]-a9[1])*u-r9-q.y;if(h9<mn){mn=h9;am=Math.pow(Math.sin((k+u)/n*Math.PI),.62);}}}
+      if(mn>=24){ok9=true;break;}if(am<.35)return 'sa route sous un pied';const d9=(24.5-mn)/am;for(let k=0;k<=n;k++)c[k][1]+=d9*Math.pow(Math.sin(k/n*Math.PI),.62);}
+    if(!ok9)return 'pas relevée';
+    /* (2026-10-15, LA PELOTE) l'arche enjambe SA route — et aucune autre : un autre étage de la pelote dans son tronc, ce dessin est refusé */
+    const i0=ia-Math.round(300/ds9),i1=ia+Math.round(300/ds9);
+    for(let j=0;j<NP;j+=3){if(j>i0&&j<i1)continue;const q=pts[j];
+      for(let k=0;k<n;k++){const a9=c[k],b9=c[k+1],r9=Math.max(r[k],r[k+1]);if(q.y<Math.min(a9[1],b9[1])-r9-10||q.y>Math.max(a9[1],b9[1])+r9+10)continue;
+        const ex=b9[0]-a9[0],ez=b9[2]-a9[2],l2=ex*ex+ez*ez||1,u=Math.max(0,Math.min(1,((q.x-a9[0])*ex+(q.z-a9[2])*ez)/l2));
+        if(Math.hypot(q.x-a9[0]-ex*u,q.z-a9[2]-ez*u)<r9+ROAD_HALF+5)return 'une autre route dans le tronc (s '+Math.round(j*ds9)+')';}}
+    cp=c;rad=r;A=a;B9=b;return '';};
+  const refus=[];for(const dS of [0,-70,70]){ici(ia0+Math.round(dS/ds9));for(const v of [[sg0,1],[-sg0,1],[sg0,.75],[-sg0,.75],[sg0,.55],[-sg0,.55]]){const e=dessin(v[0],v[1]);if(!e){FORET.archeDessin=(FORET.archeDessin||[]).concat(k9+' '+(v[0]===sg0?'côté tiré':'côté opposé')+' ×'+v[1]+(dS?' décalée de '+dS+' m':''));break;}refus.push(e);}if(cp)break;}
+  if(!cp){FORET.archeRefus=(FORET.archeRefus||[]).concat(k9+' : '+refus.join(' / '));return null;}
   const o=[cp[n>>1][0],0,cp[n>>1][2]];
   for(const q of cp){q[0]-=o[0];q[2]-=o[2];}
   fbTube(K,cp,rad,18,{col:[.27,.22,.17],ec:2,mousse:.75,ytop:1e4,rg:fr,rug:.13,fixe:1,aoK:.6});
