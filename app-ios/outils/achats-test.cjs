@@ -106,7 +106,7 @@ process.on('exit',c=>{if(!fini&&c===0){console.error('✗ achats-test : le test 
       if(!/#setBtn/.test(st))rate('(k) la feuille appStore doit garder le vieux panneau RÉGLAGES caché');
       ya("function cousinTout(){return false;}",'la coupe du code cousin (effet « tout »)');
       ya("function cousin(){return false;}",'la coupe du code cousin (effet)');
-      ya("window.ccAchat",'le drapeau ACHAT_EUR lit le pont ccAchat');
+      ya("(!EN_APP||!!window.ccAchat)",'le drapeau ACHAT_EUR doit s\'allumer aussi dans l\'app quand le pont ccAchat existe (expression exacte)');
       const iN=h.indexOf('<script src="natif.js"></script>'),iA=h.indexOf('<script src="achats.js"></script>');
       if(iN<0||iA<0||iA<iN)rate('(k) achats.js doit être chargé après natif.js (natif '+iN+', achats '+iA+')');
       if(!fs.existsSync(path.join(dos,'achats.js')))rate('(k) achats.js absent du dossier fabriqué');
