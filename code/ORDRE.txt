@@ -57,6 +57,7 @@ css/boutique-ensemble.css                 # <style id="bq-ensemble"> : la finiti
 css/boutique-voitures.css                 # <style id="bq-voitures"> : les boîtes des VOITURES (2026-11-07) — deux par rangée, une niche éclairée à la couleur de la rareté, la boîte de verre dedans, une plaque nom + prix dessous
 css/hud-fini.css                     # <style id="hudFini"> : la finition du HUD de course (2026-11-07) — colonne de droite d'une seule largeur, barre de la chaîne au bout du flow, centimes en petit, entrée de l'argent et de la flamme NITRO, éclat des gains ; posé après tout le HUD
 css/etalonnage.css                    # <style id="etalonnage"> : L'ÉTALONNAGE (2026-11-07) — LE nuancier (une encre, un or, les néons, la salle blanche), posé en dernier : il gagne sur tous les :root d'avant
+css/achat-boites.css                 # <style id="achatBoites"> : la page ACHAT de l'accueil en BOÎTES (2026-11-07) — chaque caisse dans sa boîte de verre (la vitrine de la boutique), une niche à la couleur de sa rareté, la plaque nom + prix
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu

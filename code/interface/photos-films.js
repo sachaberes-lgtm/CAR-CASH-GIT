@@ -391,19 +391,33 @@ window.dbgEssaiCaisse=function(src,fiche,vues){
    s'achète AVEC la traînée arc-en-ciel (voir chatPackI) ; la vitrine et la fenêtre d'achat le disent par une pastille aux couleurs de la traînée, « INCLUSE »
    (le prix couvre les deux). Rien tant qu'on a déjà le chat. Le style : `.shArc` dans <style id="achatPop">. */
 function shArcHtml(i,a){return (i===chatPackI()&&!a)?'<i class="shArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL INCLUSE')))+'</i>':'';}
-// LA VITRINE : l'offre à la une (la premium marquée `une`) et la grille des autres, par rareté
+/* ===== LA PAGE ACHAT EN BOÎTES (2026-11-07, Sacha : « la boutique du début avec le bouton achat est un peu en dessous du reste, retravaille-la et ajoute les boîtes qu'on a déjà mises dans la boutique » · « pas dans la boutique blanche : dans le bouton de l'écran d'accueil ») =====
+   La page ACHAT de l'accueil garde sa nuit violette, mais ses caisses sont rangées comme dans la boutique : chacune dans SA BOÎTE de verre, la
+   même image que le rayon ACHAT (vitrinePhoto de vitrine-miniature.js : socle, caisse, capot de verre), posée dans une niche éclairée à la couleur
+   de sa rareté, avec dessous une plaque sombre : le nom et le prix. En haut, l'offre à la une dans une grande boîte ; dessous, trois boîtes par
+   rangée debout, dans l'ordre du rayon ACHAT (bqAchat : l'offre de lancement, puis de la moins chère à la plus chère). Toucher une boîte ouvre
+   la fenêtre d'achat (shopPop), inchangée. Les images arrivent une par une (shopPhotoTour). Le style : achat-boites.css.
+   `?vitrine=0` : la photo de catalogue d'avant, dans la même niche. */
+const SHB_GRAND=720; /* la grande boîte de l'offre (314 px de large debout) : rendue en 720, comme l'ancienne photo de l'offre — à 480 (vitLarg d'un téléphone) elle était floue sur un écran ×3 */
+function shBoiteVt(){return typeof VITM!=='undefined'&&VITM.on;}
+function shBoiteCle(i,big){return shBoiteVt()?vitrineCle(i,false,carOwned(i),big?SHB_GRAND:0):i;} /* la clé de l'image de la boîte dans PHOTO.cache (une caisse À TOI : sa vitrine « sortie de sa boîte ») */
+function shBoiteImg(i,big){const u=PHOTO.cache[shBoiteCle(i,big)];return u?'<img class="shBxI" src="'+u+'" alt="" draggable="false">':'';}
 function shopRender(){
   const une=document.getElementById('shUne'),gr=document.getElementById('shGrille');if(!une||!gr)return;
-  const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'};let hU='',hG=''; // (2026-09-26) toutes LÉGENDAIRES : la boutique est leur seule porte
-  for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i))continue; // (2026-10-06) une caisse RETIRÉE quitte aussi la vitrine
-    const ph=PHOTO.cache[i],img=ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>',a=carOwned(i);if(!ph)shopPhotoVeut(i); // (revue GAMEPLAY) plus de carPhoto EN SYNCHRONE : 13 photos d'un bloc = 1,1 s de gel sur PC (2-3 s sur iPhone) à la 1re ouverture
-    if(u.une&&!hU&&!a){ // (charte v4) la VITRINE DE LÉGENDE : cadre d'or qui scintille autour (`.shUne`), le décor dedans (`.shUneCadre`)
-      hU='<div class="shUneCadre"><div class="shPhoto big">'+img+'</div>'
-        +'<div class="shUneTx"><b>'+insec(TR(CARS[i].name))+'</b>'+shArcHtml(i,a)+'</div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
-        +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn'+(a?' aToi':'')+'">'+pxi(a?'coche':'panier')+TR(a?'À TOI':'ACHETER')+'</span></div></div>';
-      une.setAttribute('data-car',i);continue;}
-    hG+='<div class="shCase '+(u.rar||'rar')+'" data-m="shopSoon" data-car="'+i+'" role="button"><span class="shRare">'+TR(RAR[u.rar||'rar'])+'</span>'
-      +'<div class="shPhoto">'+img+'</div><b class="shNom">'+TR(CARS[i].name)+'</b><span class="shPrix'+(a?' aToi':'')+'">'+(a?TR('À TOI'):eurTxt(u.eur))+'</span></div>';
-  }
-  une.innerHTML=hU;gr.innerHTML=hG;
+  let hU='',hG='',n=0;
+  bqAchat().forEach(function(i){if(!CARS[i])return;const u=CAR_UNLOCK[i],a=carOwned(i),big=!!u.une&&!hU&&!a,ri=rarInfo(carRar(i)),im=shBoiteImg(i,big),nom=insec(sansAcc(TR(CARS[i].name))),
+      bx='<span class="shBx'+(big?' big':'')+(im?' vt':'')+(shBoiteVt()?'':' photo')+'">'+im+'</span>';
+    if(!im)shopPhotoVeut(big?'u'+i:i); /* (revue GAMEPLAY) jamais d'image EN SYNCHRONE : la file les prend une par une ('u' : la grande boîte) */
+    if(big){ /* L'OFFRE À LA UNE : la grande boîte, dans le cadre qui scintille (`.shUne`) */
+      hU='<div class="shUneCadre shUneBoite b-'+ri.id+'" style="--rc:'+ri.c+'">'+bx
+        +'<div class="shUneTx"><b>'+nom+'</b>'+shArcHtml(i,a)+'</div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
+        +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn">'+pxi('panier')+TR('ACHETER')+'</span></div></div>';
+      une.setAttribute('data-car',i);return;}
+    const px=a?pxi('coche')+sansAcc(TR('À TOI')):eurTxt(u.eur),
+      lg=Math.max.apply(null,sansAcc(TR(CARS[i].name)).split(/\s+/).map(function(w){return w.length;}))>=10; /* un mot de 10 lettres et plus (L'ÉTERNELLE) : la plaque l'écrit plus petit quand la boîte est étroite, au lieu de le couper en deux (achat-boites.css) */
+    hG+='<div class="shCase shBoite b-'+ri.id+(a?' aToi':'')+'" data-m="shopSoon" data-car="'+i+'" role="button" style="--rc:'+ri.c+';--i:'+Math.min(n++,8)+'"'
+      +' aria-label="'+(nom+' · '+(a?sansAcc(TR('À TOI')):eurTxt(u.eur))).replace(/"/g,'')+'">'+bx
+      +'<span class="shBxPl"><b class="shBxN'+(lg?' lg':'')+'">'+nom+'</b>'+(i===chatPackI()&&!a?'<i class="shBxArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</i>':'')
+      +'<span class="shBxP">'+px+'</span></span></div>';});
+  une.innerHTML=hU;gr.innerHTML=hG;if(!hU)une.removeAttribute('data-car');
 }

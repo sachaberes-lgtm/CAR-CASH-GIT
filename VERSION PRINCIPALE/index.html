@@ -11209,6 +11209,88 @@ html[data-reduced-motion="1"] body #nxVit b{animation:none!important}
 html.bqIndus body #garage #gBqCats button.on{box-shadow:0 8px 18px rgba(23,19,43,.22)}
 html.bqIndus body #garage #gBqTete .bqArg{box-shadow:0 0 0 1px var(--bqFil),0 8px 20px rgba(23,19,43,.07)}
 </style>
+<style id="achatBoites">
+/* ===== LA PAGE ACHAT EN BOÎTES (2026-11-07, Sacha : « la boutique du début avec le bouton achat est un peu en dessous du reste, retravaille-la et ajoute les boîtes qu'on a déjà mises dans la boutique » · « pas dans la boutique blanche : dans le bouton de l'écran d'accueil ») — voir shopRender (interface/photos-films.js) =====
+   La page ACHAT de l'accueil (#mShop) garde sa nuit violette ; ses caisses passent dans les BOÎTES de la boutique (la même image de vitrine que
+   le rayon ACHAT, vitrinePhoto). Avant : deux grandes cartes par rangée, deux caisses à l'écran debout. Maintenant :
+   · une boîte = une NICHE éclairée à la couleur de sa rareté (le doré des légendaires), la boîte de verre posée au fond, et dessous une PLAQUE
+     sombre : le nom, puis le prix en or (À TOI : en vert, une coche) ; trois par rangée debout comme couché (colonne de droite) ;
+   · l'offre à la une : la grande boîte qui flotte devant ses rayons dorés, puis le nom, la traînée incluse, le prix et ACHETER (inchangés).
+   Des classes à elles (.shBoite, .shBx…) : rien de la boutique blanche (#gBqPan .bqK) n'est touché. Allégé (palier 0 et 1) et mouvement
+   réduit : ni flottement, ni rayons qui tournent, ni entrée en cascade. */
+
+/* LA GRILLE : trois boîtes par rangée */
+html #mShop .shGrille{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 12px}
+
+/* LA BOÎTE : la carte d'avant (cadre biseauté, fond laqué, filet rose) s'efface, la niche et la plaque prennent sa place */
+html #mShop .shGrille .shCase.shBoite{display:flex;flex-direction:column;gap:0;padding:0;overflow:visible;clip-path:none;background:none;box-shadow:none;
+  animation:shBxIn .38s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(.12s + var(--i,0) * 45ms)}
+@keyframes shBxIn{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+
+/* LA NICHE : un renfoncement sombre, éclairé d'en haut par un cône à la couleur de la rareté ; le sol en reçoit la lueur */
+#mShop .shBx{position:relative;display:block;aspect-ratio:1/.8;overflow:hidden;isolation:isolate;border-radius:3px 3px 0 0;
+  background:radial-gradient(70% 30% at 50% 90%,color-mix(in srgb,var(--rc) 46%,transparent),transparent 72%),
+    linear-gradient(180deg,color-mix(in srgb,var(--rc) 16%,#1a1236) 0,#110b24 68%,#0b0718 100%);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc) 32%,rgba(200,184,255,.12)),inset 0 2px 0 color-mix(in srgb,var(--rc) 75%,transparent),inset 0 -14px 18px -10px rgba(0,0,0,.6)}
+#mShop .shBx::before{content:"";position:absolute;z-index:-1;left:10%;right:10%;top:0;height:94%;pointer-events:none;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 40%,transparent),transparent 88%);clip-path:polygon(36% 0,64% 0,100% 100%,0 100%);opacity:.6}
+/* la boîte de verre : au fond de la niche, son socle entier (à 108 %, comme dans la boutique, la niche rognait les deux coins du socle) ; elle entre en fondu */
+#mShop .shBx .shBxI{position:absolute;left:1%;bottom:5%;width:98%;height:auto;aspect-ratio:720/440;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;
+  opacity:0;transform-origin:50% 88%;transition:opacity .22s ease-out,transform .16s cubic-bezier(.3,1.6,.5,1);filter:drop-shadow(0 4px 4px rgba(0,0,0,.5))}
+#mShop .shBx.vt .shBxI{opacity:1}
+/* `?vitrine=0` : la photo de catalogue d'avant, dans la même niche */
+#mShop .shBx.photo .shBxI{aspect-ratio:auto;left:-8%;width:116%;bottom:8%}
+/* en attendant son image : un socle vide qui respire, pas un trou */
+#mShop .shBx::after{content:"";position:absolute;left:16%;width:68%;bottom:13%;height:15%;border-radius:2px;transform:skewX(-14deg);pointer-events:none;
+  background:linear-gradient(180deg,#2a2e38,#0b0c10);box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 40%,transparent);transition:opacity .2s;animation:shAtt 1.1s var(--ease) infinite alternate}
+#mShop .shBx.vt::after{opacity:0;animation:none}
+
+/* LA PLAQUE : le nom (deux lignes au plus), puis le prix, posé en bas ; le filet du dessous à la couleur de la rareté */
+#mShop .shBxPl{position:relative;flex:1;display:flex;flex-direction:column;gap:6px;padding:7px 6px 8px;border-radius:0 0 3px 3px;
+  background:linear-gradient(180deg,#1d1538,#0d0820);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 3px 0 var(--rc)}
+#mShop .shBxN{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;
+  font-family:var(--pix);font-weight:400;font-size:8px;line-height:11px;letter-spacing:.3px;color:#fff;text-shadow:0 1px 0 #000}
+/* un mot long (`.lg`, voir shopRender) dans une boîte étroite (couché sur iPhone 8 : 96 px) : 7 px, sans approche — L'ÉTERNELLE tient sur une ligne au lieu de « L'ETERNELL / E » */
+#mShop .shGrille .shBoite{container-type:inline-size}
+@container (max-width:104px){#mShop .shBxN.lg{font-size:7px;letter-spacing:0}}
+#mShop .shBxP{display:flex;align-items:center;gap:5px;margin-top:auto;font-family:var(--pix);font-size:10px;line-height:1;white-space:nowrap;
+  color:var(--au1);text-shadow:0 1px 0 var(--auO),0 0 8px var(--auG)}
+#mShop .shBxP .pxi{--pxs:1;color:currentColor}
+#mShop .shBoite.aToi .shBxP{color:var(--neoV);text-shadow:none}
+/* la dorée (légendaire) : la plaque brun et or de la boutique */
+#mShop .b-legendaire .shBxPl{background:linear-gradient(180deg,#5a3a00,#24160a)}
+#mShop .b-legendaire .shBxN{color:#ffe9a8}
+/* le chat : la traînée arc-en-ciel incluse, une bande aux couleurs de la traînée (comme sa carte dans la boutique) */
+#mShop .shBxArc{align-self:flex-start;max-width:100%;box-sizing:border-box;padding:3px 4px 2px;font-family:var(--pix);font-style:normal;font-size:7px;line-height:1.35;color:#14171c;
+  background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff)}
+/* toucher une boîte : elle s'enfonce un peu sous le doigt, comme dans la boutique */
+#mShop .shBoite:is(:active,.appui) .shBxI{transform:scale(.965)}
+
+/* L'OFFRE À LA UNE : la grande boîte qui flotte devant ses rayons, sa lueur au sol (le cadre qui scintille, le nom, le prix, ACHETER : inchangés) */
+#mShop .shUneBoite .shBx.big{grid-area:photo;width:100%;aspect-ratio:720/440;overflow:visible;border-radius:0;box-shadow:none;
+  background:radial-gradient(48% 16% at 50% 90%,color-mix(in srgb,var(--rc) 55%,transparent),transparent 75%)}
+#mShop .shUneBoite .shBx.big::before{left:50%;top:52%;right:auto;width:118%;height:auto;aspect-ratio:1;translate:-50% -50%;clip-path:none;opacity:1;
+  background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--rc) 24%,transparent) 0 6deg,transparent 6deg 18deg);
+  -webkit-mask:radial-gradient(closest-side,#000 25%,transparent 72%);mask:radial-gradient(closest-side,#000 25%,transparent 72%);animation:k4Rayons 40s linear infinite}
+#mShop .shUneBoite .shBx.big .shBxI{left:-2%;bottom:0;width:104%;animation:k4Flotte 2.4s var(--ease) infinite alternate}
+#mShop .shUneBoite .shBx.big::after{left:14%;width:72%;bottom:8%;height:17%}
+
+/* COUCHÉ : l'offre à gauche, les boîtes à droite, trois par rangée (la colonne en tenait deux grandes) */
+@media (orientation:landscape) and (max-height:540px){
+  html #mShop>.shGrille{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 10px}
+  html #mShop .shUneBoite .shBx.big{align-self:center}
+  /* la grande boîte prend plus de place (1,25 contre 1 : +20 % de large) ; le nom passe à 13 px pour que POP-TART tienne dans sa colonne,
+     et la bande arc-en-ciel perd son approche : deux lignes au lieu de trois, ARC-EN-CIEL jamais coupé */
+  html #mShop .shUneCadre.shUneBoite{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+  html #mShop .shUneBoite .shUneTx b{font-size:13px}
+  html #mShop .shUneBoite .shArc{letter-spacing:0;padding:4px 6px 3px}
+}
+
+/* ALLÉGÉ (palier 0 et 1) et MOUVEMENT RÉDUIT : la page ne bouge plus d'elle-même */
+html:is([data-palier="0"],[data-palier="1"]) #mShop .shUneBoite .shBx.big .shBxI,html:is([data-palier="0"],[data-palier="1"]) #mShop .shUneBoite .shBx.big::before{animation:none}
+html[data-reduced-motion="1"] #mShop .shGrille .shBoite,html[data-reduced-motion="1"] #mShop .shBx .shBxI,html[data-reduced-motion="1"] #mShop .shBx::before,html[data-reduced-motion="1"] #mShop .shBx::after{animation:none!important}
+@media (prefers-reduced-motion:reduce){#mShop .shGrille .shBoite,#mShop .shBx .shBxI,#mShop .shBx::before,#mShop .shBx::after{animation:none!important}}
+</style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
 <nav id="gHub" role="tablist" aria-label="Garage">
@@ -52898,21 +52980,35 @@ window.dbgEssaiCaisse=function(src,fiche,vues){
    s'achète AVEC la traînée arc-en-ciel (voir chatPackI) ; la vitrine et la fenêtre d'achat le disent par une pastille aux couleurs de la traînée, « INCLUSE »
    (le prix couvre les deux). Rien tant qu'on a déjà le chat. Le style : `.shArc` dans <style id="achatPop">. */
 function shArcHtml(i,a){return (i===chatPackI()&&!a)?'<i class="shArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL INCLUSE')))+'</i>':'';}
-// LA VITRINE : l'offre à la une (la premium marquée `une`) et la grille des autres, par rareté
+/* ===== LA PAGE ACHAT EN BOÎTES (2026-11-07, Sacha : « la boutique du début avec le bouton achat est un peu en dessous du reste, retravaille-la et ajoute les boîtes qu'on a déjà mises dans la boutique » · « pas dans la boutique blanche : dans le bouton de l'écran d'accueil ») =====
+   La page ACHAT de l'accueil garde sa nuit violette, mais ses caisses sont rangées comme dans la boutique : chacune dans SA BOÎTE de verre, la
+   même image que le rayon ACHAT (vitrinePhoto de vitrine-miniature.js : socle, caisse, capot de verre), posée dans une niche éclairée à la couleur
+   de sa rareté, avec dessous une plaque sombre : le nom et le prix. En haut, l'offre à la une dans une grande boîte ; dessous, trois boîtes par
+   rangée debout, dans l'ordre du rayon ACHAT (bqAchat : l'offre de lancement, puis de la moins chère à la plus chère). Toucher une boîte ouvre
+   la fenêtre d'achat (shopPop), inchangée. Les images arrivent une par une (shopPhotoTour). Le style : achat-boites.css.
+   `?vitrine=0` : la photo de catalogue d'avant, dans la même niche. */
+const SHB_GRAND=720; /* la grande boîte de l'offre (314 px de large debout) : rendue en 720, comme l'ancienne photo de l'offre — à 480 (vitLarg d'un téléphone) elle était floue sur un écran ×3 */
+function shBoiteVt(){return typeof VITM!=='undefined'&&VITM.on;}
+function shBoiteCle(i,big){return shBoiteVt()?vitrineCle(i,false,carOwned(i),big?SHB_GRAND:0):i;} /* la clé de l'image de la boîte dans PHOTO.cache (une caisse À TOI : sa vitrine « sortie de sa boîte ») */
+function shBoiteImg(i,big){const u=PHOTO.cache[shBoiteCle(i,big)];return u?'<img class="shBxI" src="'+u+'" alt="" draggable="false">':'';}
 function shopRender(){
   const une=document.getElementById('shUne'),gr=document.getElementById('shGrille');if(!une||!gr)return;
-  const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'};let hU='',hG=''; // (2026-09-26) toutes LÉGENDAIRES : la boutique est leur seule porte
-  for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i))continue; // (2026-10-06) une caisse RETIRÉE quitte aussi la vitrine
-    const ph=PHOTO.cache[i],img=ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>',a=carOwned(i);if(!ph)shopPhotoVeut(i); // (revue GAMEPLAY) plus de carPhoto EN SYNCHRONE : 13 photos d'un bloc = 1,1 s de gel sur PC (2-3 s sur iPhone) à la 1re ouverture
-    if(u.une&&!hU&&!a){ // (charte v4) la VITRINE DE LÉGENDE : cadre d'or qui scintille autour (`.shUne`), le décor dedans (`.shUneCadre`)
-      hU='<div class="shUneCadre"><div class="shPhoto big">'+img+'</div>'
-        +'<div class="shUneTx"><b>'+insec(TR(CARS[i].name))+'</b>'+shArcHtml(i,a)+'</div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
-        +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn'+(a?' aToi':'')+'">'+pxi(a?'coche':'panier')+TR(a?'À TOI':'ACHETER')+'</span></div></div>';
-      une.setAttribute('data-car',i);continue;}
-    hG+='<div class="shCase '+(u.rar||'rar')+'" data-m="shopSoon" data-car="'+i+'" role="button"><span class="shRare">'+TR(RAR[u.rar||'rar'])+'</span>'
-      +'<div class="shPhoto">'+img+'</div><b class="shNom">'+TR(CARS[i].name)+'</b><span class="shPrix'+(a?' aToi':'')+'">'+(a?TR('À TOI'):eurTxt(u.eur))+'</span></div>';
-  }
-  une.innerHTML=hU;gr.innerHTML=hG;
+  let hU='',hG='',n=0;
+  bqAchat().forEach(function(i){if(!CARS[i])return;const u=CAR_UNLOCK[i],a=carOwned(i),big=!!u.une&&!hU&&!a,ri=rarInfo(carRar(i)),im=shBoiteImg(i,big),nom=insec(sansAcc(TR(CARS[i].name))),
+      bx='<span class="shBx'+(big?' big':'')+(im?' vt':'')+(shBoiteVt()?'':' photo')+'">'+im+'</span>';
+    if(!im)shopPhotoVeut(big?'u'+i:i); /* (revue GAMEPLAY) jamais d'image EN SYNCHRONE : la file les prend une par une ('u' : la grande boîte) */
+    if(big){ /* L'OFFRE À LA UNE : la grande boîte, dans le cadre qui scintille (`.shUne`) */
+      hU='<div class="shUneCadre shUneBoite b-'+ri.id+'" style="--rc:'+ri.c+'">'+bx
+        +'<div class="shUneTx"><b>'+nom+'</b>'+shArcHtml(i,a)+'</div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
+        +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn">'+pxi('panier')+TR('ACHETER')+'</span></div></div>';
+      une.setAttribute('data-car',i);return;}
+    const px=a?pxi('coche')+sansAcc(TR('À TOI')):eurTxt(u.eur),
+      lg=Math.max.apply(null,sansAcc(TR(CARS[i].name)).split(/\s+/).map(function(w){return w.length;}))>=10; /* un mot de 10 lettres et plus (L'ÉTERNELLE) : la plaque l'écrit plus petit quand la boîte est étroite, au lieu de le couper en deux (achat-boites.css) */
+    hG+='<div class="shCase shBoite b-'+ri.id+(a?' aToi':'')+'" data-m="shopSoon" data-car="'+i+'" role="button" style="--rc:'+ri.c+';--i:'+Math.min(n++,8)+'"'
+      +' aria-label="'+(nom+' · '+(a?sansAcc(TR('À TOI')):eurTxt(u.eur))).replace(/"/g,'')+'">'+bx
+      +'<span class="shBxPl"><b class="shBxN'+(lg?' lg':'')+'">'+nom+'</b>'+(i===chatPackI()&&!a?'<i class="shBxArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</i>':'')
+      +'<span class="shBxP">'+px+'</span></span></div>';});
+  une.innerHTML=hU;gr.innerHTML=hG;if(!hU)une.removeAttribute('data-car');
 }
 /* LA FENÊTRE D'ACHAT (2026-10-01, Sacha : « il faut que la fenêtre de la voiture sorte de la page en mode pop-up pour valider la
    transaction »). Toucher une caisse de la vitrine la fait SORTIR de la grille : sa carte quitte sa place (un trou reste dans la
@@ -53034,15 +53130,23 @@ function shopPopFerme(){
    attend en pulsant (une voiture pixel), et les photos se prennent une par une ENTRE deux images, après la transition d'écran — puis
    restent en cache pour la session. */
 const SHQ={q:[],on:false}; // (essayé : remonter la caisse d'avant UNE fois à la fin de la file au lieu d'après chaque photo — MESURÉ pire, 0,8 s contre 0,3 : gardé tel quel)
+/* (2026-11-07, LA PAGE ACHAT EN BOÎTES, voir shopRender) la file prend d'abord l'IMAGE DE LA BOÎTE de chaque caisse (vitrinePhoto, rangée sous
+   shBoiteCle), puis, une fois sa boîte posée, sa photo de catalogue (carPhoto) : la fenêtre d'achat (shopPop) la montre dès son ouverture, comme
+   avant. Une entrée de la file : `i` = la boîte de la caisse i, `'u'+i` = sa GRANDE boîte (l'offre à la une, SHB_GRAND), `'p'+i` = sa photo de catalogue. */
 function shopPhotoVeut(i){if(SHQ.q.indexOf(i)<0)SHQ.q.push(i);if(!SHQ.on){SHQ.on=true;setTimeout(shopPhotoTour,380);}}
 function shopPhotoTour(){
   const sc=document.getElementById('mShop');
-  if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} // hors de la boutique (ou en course) : la file attend la prochaine ouverture
-  const i=SHQ.q.shift();
-  const pose=function(u){if(u)sc.querySelectorAll('[data-car="'+i+'"] .shPhoto,[data-car="'+i+'"].shUne .shPhoto').forEach(function(ph){if(ph.querySelector('img'))return;const at=ph.querySelector('.shAttente');if(at)at.remove();
-    const im=document.createElement('img');im.alt='';im.src=u;im.className='shArrive';ph.insertBefore(im,ph.firstChild);});};
-  if(PHOTO.cache[i])pose(PHOTO.cache[i]);else try{carPhoto(i,pose);}catch(e){} // (OPTIMISATION) la photo s'encode hors du fil (toBlob) : elle se pose à son arrivée
-  setTimeout(shopPhotoTour,40); // une photo, puis on rend la main : l'écran respire entre deux
+  if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} /* hors de la page (ou en course) : la file attend la prochaine ouverture */
+  const e=SHQ.q.shift(),t=typeof e==='string'?e[0]:'',i=t?+e.slice(1):e;
+  if(t==='p'){if(!PHOTO.cache[i])try{carPhoto(i,function(){});}catch(_){}setTimeout(shopPhotoTour,40);return;}
+  const big=t==='u',vt=shBoiteVt(),k=shBoiteCle(i,big);
+  const pose=function(u){if(!u)return;
+    sc.querySelectorAll((big?'#shUne':'#shGrille ')+'[data-car="'+i+'"] .shBx').forEach(function(b){let im=b.querySelector('img');if(im&&im.getAttribute('src')===u)return;
+      if(!im){im=document.createElement('img');im.className='shBxI';im.alt='';im.draggable=false;b.appendChild(im);}
+      im.onload=function(){b.classList.add('vt');};im.src=u;if(im.complete&&im.naturalWidth)b.classList.add('vt');}); /* la boîte n'apparaît qu'une fois l'image décodée (fondu, voir achat-boites.css) */
+    if(vt&&!PHOTO.cache[i])shopPhotoVeut('p'+i);};
+  if(PHOTO.cache[k])pose(PHOTO.cache[k]);else try{if(vt)vitrinePhoto({i:i,own:carOwned(i),w:big?SHB_GRAND:0},pose);else carPhoto(i,pose);}catch(_){} /* (OPTIMISATION) l'image s'encode hors du fil (toBlob) : elle se pose à son arrivée */
+  setTimeout(shopPhotoTour,40); /* une image, puis on rend la main : l'écran respire entre deux */
 }
 function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if(d.p&&!shopOwned(cat,d.id)&&d.p<=bank())n++;return n;}
 /* ---------------- LA BOUTIQUE ---------------- */
@@ -77237,7 +77341,7 @@ const VITM={on:!/[?&]vitrine=0\b/.test(location.search),style:/[?&]vitrine=sacha
   remp:.97,                   /* la caisse prend au plus 97 % de la longueur du verre (et 84 % de sa hauteur, 90 % de sa profondeur) */
   cam:null,rt:null,fit:null};
 function vitLarg(){return (typeof ALLEGE!=='undefined'&&ALLEGE)?480:640;}
-function vitrineCle(i,sec,own){return 'vt'+VITM.ver+({leo:'L',route:'R'}[VITM.style]||'')+'_'+vitLarg()+'_'+i+(sec?'s':own?'o':'');} /* s : la silhouette d'une SECRÈTE · o : une caisse À TOI, sortie de sa boîte */
+function vitrineCle(i,sec,own,w){return 'vt'+VITM.ver+({leo:'L',route:'R'}[VITM.style]||'')+'_'+(w||vitLarg())+'_'+i+(sec?'s':own?'o':'');} /* s : la silhouette d'une SECRÈTE · o : une caisse À TOI, sortie de sa boîte · w : une largeur à part (2026-11-07, la grande boîte de la page ACHAT : 720, voir shopRender) */
 function vitrineFile(i,sec,own,cb,el){const k=vitrineCle(i,sec,own);if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
   PHQ.q.push([k,cb,{vt:1,i:i,sec:!!sec,own:!!own,k:k},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* les huit coins d'une boîte [x0,x1]×[y0,y1]×[z0,z1] */
@@ -77276,11 +77380,11 @@ function vitBloc(rc){const a=VITM.L/2+VITM.po,b=VITM.P/2+VITM.po,ph=VITM.ph,G=ne
 function vitBlocJette(G){if(!G)return;if(G.parent)G.parent.remove(G);G.traverse(function(o){if(o.geometry)o.geometry.dispose();const m=o.material;(Array.isArray(m)?m:m?[m]:[]).forEach(function(q){if(q.map&&q.map!==ASPH_TEX)q.map.dispose();q.dispose();});});}
 function vitHex(c,a){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6;return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';}
 function vitMix(c,k){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6,f=function(v){return Math.round(v+(255-v)*k);};return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')';}
-function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitrineCle(i,sec,own);
+function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitrineCle(i,sec,own,o.w); /* o.w : la largeur de l'image (par défaut vitLarg) */
   if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
   if(started&&!gameOver){if(cb)cb(null);return null;}
   if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
-  const T9=VITM.ms={i:i,t0:performance.now()},W=vitLarg(),H=Math.round(W*440/720);
+  const T9=VITM.ms={i:i,t0:performance.now()},W=o.w||vitLarg(),H=Math.round(W*440/720);
   photoStudio();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc0=carGroup.scale.clone(),vis=carGroup.visible;
   if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl;
