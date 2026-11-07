@@ -19,5 +19,7 @@ function bqVitreBrise(){
         h+='<span style="clip-path:polygon('+t[0]+'% '+t[1]+'%,'+t[2]+'% '+t[3]+'%,'+t[4]+'% '+t[5]+'%);--dx:'+dx+'px;--dy:'+dy+'px;--rz:'+rz+'deg;animation-delay:'+(n*12+i*8)+'ms"></span>';});}}
   h+='<b>'+sansAcc(TR('DÉBLOQUÉ'))+'</b>';ov.innerHTML=h;pan.appendChild(ov);
   el.classList.add('brise');setTimeout(function(){el.classList.remove('brise');},900);
+  /* (2026-11-07, Léo : « quand on appuie ACHETER, la vitre se casse, et là elle disparaît ; avec le code de la vitrine on l'avait supprimé ») LA VITRINE (vitrine-miniature.js) : la carte n'a plus de cube CSS à cacher, c'est une photo avec son verre. Sous les éclats, elle reçoit la photo de la caisse À TOI (sans verre) : vitrinePose relit la possession (bqA), déjà vraie ici. */
+  try{const ph=el.querySelector('[data-ph]');if(typeof VITM!=='undefined'&&VITM.on&&ph&&el.classList.contains('vo'))setTimeout(function(){try{vitrinePose(ph,+ph.getAttribute('data-ph'));}catch(e){}},90);}catch(e){}
   try{if(typeof sfx==='function')sfx('ui.debloque');}catch(e){}
   setTimeout(function(){if(ov.parentNode)ov.remove();},1100);}
