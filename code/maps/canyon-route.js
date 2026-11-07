@@ -431,13 +431,22 @@ function cyTravailleur(){if(CY.w!==undefined)return CY.w;
     const code="'use strict';var CY={},CY_O9={},L=0,ROAD_HALF=28,PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
       "\nonmessage=function(e){var m=e.data;CY={nz:m.nz,rnd:m.rnd};PAL.B=m.opt.pal;L=m.opt.L;ROAD_HALF=m.opt.RH;var R=cyMondeCalc(m.S,m.opt);R.job=m.job;"+
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.F.m.buffer,R.O.h.buffer,R.qw.d.buffer,R.bg.i.buffer]);};";
-    const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
+    const url=URL.createObjectURL(new Blob([code],{type:'text/javascript'})),W=new Worker(url);W._url=url; /* (2026-11-07) l'adresse Blob, révoquée au repos */
     W.onmessage=function(e){const R=e.data;
-      if(CY.av&&R.job===CY.av.job){CY.av.R=R;CY.av.ms=Math.round(performance.now()-CY.av.t0);return;} // (LE CANYON D'AVANCE) le monde d'en face attend le passage
-      const A=CY.attente;if(!A||R.job!==A.job||A.pour!==CY.job)return;CY.attente=null;try{cyMondePose(R);}catch(er){console.warn('canyon : pose',er);}};
+      if(CY.av&&R.job===CY.av.job){CY.av.R=R;CY.av.ms=Math.round(performance.now()-CY.av.t0);} // (LE CANYON D'AVANCE) le monde d'en face attend le passage
+      else{const A=CY.attente;if(A&&R.job===A.job&&A.pour===CY.job){CY.attente=null;try{cyMondePose(R);}catch(er){console.warn('canyon : pose',er);}}}
+      cyOuvrierRepos(W);};
     W.onerror=function(e){console.warn('canyon : travailleur en erreur',e.message);CY.w=null;CY.av=null;const a=CY.attente;CY.attente=null;if(a&&a.pour===CY.job)try{cyMondePose(cyMondeCalc(a.S,a.opt));}catch(er){console.warn('canyon',er);}};
     CY.w=W;}catch(e){CY.w=null;}
   return CY.w;}
+/* ===== LE TRAVAILLEUR DU CANYON SE REPOSE (2026-11-07, chasse MAP-N02 : « les Workers dunes et canyon ne sont jamais arrêtés ni leur URL Blob révoquée ») =====
+   Comme celui des dunes (dnOuvrierRepos) et l'ouvrier des nuages : sa réponse rendue et plus rien en vol (ni construction qui attend, ni monde d'avance sans
+   réponse), arrêté 1,5 s plus tard, adresse Blob révoquée, CY.w « à créer » : cyTravailleur() le refait au prochain monde. `?ouvrier=garde` = avant.
+   dbgCanyon().ouvrier = {vivant, reposes}. */
+function cyOuvrierRepos(W){if(COTON_OUV_GARDE||CY.w!==W)return;
+  if(CY.wRepos)clearTimeout(CY.wRepos);
+  CY.wRepos=setTimeout(function(){CY.wRepos=0;if(CY.w!==W||CY.attente||(CY.av&&!CY.av.R))return;
+    try{W.terminate();}catch(e){}try{URL.revokeObjectURL(W._url);}catch(e){}CY.w=undefined;CY.wReposes=(CY.wReposes|0)+1;},1500);}
 /* LE MONDE (ici ou dans le travailleur) : n'utilise que CY.nz, CY.rnd, ses arguments et les fonctions recopiées — rend tout ce que la pose
    et la collision lisent */
 function cyMondeCalc(S,opt){

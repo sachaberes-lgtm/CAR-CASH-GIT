@@ -453,13 +453,16 @@ function prebDunes(sd,W){ // (le pré-bâti, DANS une tranche : la route fantôm
   DN.pre=a;return a;}
 function buildDunes(seed,pre){
   const av=pre===true; // true : le pré-bâti prépare (rien n'est écrit dans DN, rien ne part) ; un objet : ce qu'il a préparé (W.dunes)
-  if(!av){dnEteindre();DN.job=(DN.job||0)+1;}
+  if(!av){dnEteindre();DN.job=(DN.job||0)+1;DN.attente=null;} /* (2026-11-07) une attente de la construction d'avant ne vaut plus rien */
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='dunes'||!(NP>1)||!DUNES_OK)return;
   if(pre&&!av){const a=pre;
     if(a.cle===[seed,L,NP,lvPiste(),ROAD_HALF].join('|')){Object.assign(DN,a.chg);DN.t0=performance.now();cyBruits();dnTerrain();
       if(a.R){DN.ms.avance='pret';if(a.it)while(!dnMonuPas(a));dnMondePose(a.R,a.mon);return;} /* (2026-11-01) les monuments bâtis d'avance (dnMonuPas : d'un trait si le pré-bâti ne les a pas finis) */
-      const W9=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null; // pas revenu : on le lui redemande, comme avant
-      if(W9){const job=DN.job;DN.attente={job:job,S:a.S,opt:a.opt};try{W9.postMessage({job:job,S:a.S,opt:a.opt,nz:CY.nz});return;}catch(e){DN.attente=null;}}
+      /* ===== LE PORTAIL ATTEND SON MONDE (2026-11-07, chasse MAP-N01 : « si le portail des dunes arrive avant la réponse du travailleur, buildDunes reposte un job identique au lieu d'attendre ») =====
+         Le calcul d'avance est encore chez le travailleur (DN.pre===a, sans réponse) : on l'ATTEND — DN.attente le désigne (`pour` : cette construction-ci), comme le canyon
+         (cyAvPrend). Avant, un second calcul identique partait, la première réponse était jetée, et le sable (la collision avec) arrivait deux fois plus tard. Travailleur perdu,
+         ou hors course (sous le voile du JOUER) : le calcul se fait ici, tout de suite, comme avant. */
+      if(started&&DN.w&&DN.pre===a&&!/[?&]dnw=0\b/.test(location.search)){DN.ms.avance='en vol';DN.attente={job:a.job,pour:DN.job,S:a.S,opt:a.opt};return;}
       dnMondePose(dnMondeCalc(a.S,a.opt));return;}}
   const t0=performance.now(),LV=lvPiste(),K=Math.sqrt(LV),r=mulberry32((seed^0xD0E5A7)>>>0);
   cyBruits();dnTerrain();
@@ -547,11 +550,23 @@ function dnTravailleur(){if(DN.w!==undefined)return DN.w;
     const code="'use strict';var CY={},DN={},DN_O9={},DN_STAR="+DN_STAR+",DN_PTE="+DN_PTE+",DN_PK="+DN_PK+",DN_FORME="+JSON.stringify(DN_FORME)+",DN_IMM="+JSON.stringify(DN_IMM)+",PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
       "\nonmessage=function(e){var m=e.data;CY={nz:m.nz};DN={};PAL.B=m.opt.pal;var R=dnMondeCalc(m.S,m.opt);R.job=m.job;"+
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.O.h.buffer]);};";
-    const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
-    W.onmessage=function(e){const R=e.data;if(R.job<0){if(DN.pre&&DN.pre.job===R.job)DN.pre.R=R;return;} /* (LES DUNES D'AVANCE) le monde du pré-bâti */if(!DN.attente||R.job!==DN.job)return;DN.attente=null;try{dnMondePose(R);}catch(er){console.warn('dunes : pose',er);}};
-    W.onerror=function(e){console.warn('dunes : travailleur en erreur',e.message);DN.w=null;const a=DN.attente;DN.attente=null;if(a&&a.job===DN.job)try{dnMondePose(dnMondeCalc(a.S,a.opt));}catch(er){console.warn('dunes',er);}};
+    const url=URL.createObjectURL(new Blob([code],{type:'text/javascript'})),W=new Worker(url);W._url=url; /* (2026-11-07) l'adresse Blob, révoquée au repos */
+    W.onmessage=function(e){const R=e.data,A=DN.attente;
+      if(R.job<0&&DN.pre&&DN.pre.job===R.job)DN.pre.R=R; /* (LES DUNES D'AVANCE) le monde du pré-bâti */
+      if(A&&R.job===A.job&&(A.pour!=null?A.pour:A.job)===DN.job){DN.attente=null;try{dnMondePose(R);}catch(er){console.warn('dunes : pose',er);}} /* la construction en cours — ou le pré-bâti qu'elle attendait au portail (MAP-N01) */
+      dnOuvrierRepos(W);};
+    W.onerror=function(e){console.warn('dunes : travailleur en erreur',e.message);DN.w=null;const a=DN.attente;DN.attente=null;if(a&&(a.pour!=null?a.pour:a.job)===DN.job)try{dnMondePose(dnMondeCalc(a.S,a.opt));}catch(er){console.warn('dunes',er);}};
     DN.w=W;}catch(e){DN.w=null;}
   return DN.w;}
+/* ===== LE TRAVAILLEUR DES DUNES SE REPOSE (2026-11-07, chasse MAP-N02 : « les Workers dunes et canyon ne sont jamais arrêtés ni leur URL Blob révoquée ») =====
+   Comme l'ouvrier des nuages (cotonOuvrierRepos) : sa réponse rendue et plus rien en vol (ni construction qui attend, ni pré-bâti sans réponse), il est arrêté 1,5 s
+   plus tard (terminate rend d'un coup son tas et ses tableaux — il gardait toute la partie les copies du dernier monde), son adresse Blob révoquée, et DN.w redevient
+   « à créer » : dnTravailleur() le refait au prochain monde (un Blob, quelques ms, sous le pré-bâti). `?ouvrier=garde` = avant (les trois ouvriers restent vivants).
+   dbgDunes().ouvrier = {vivant, reposes}. */
+function dnOuvrierRepos(W){if(COTON_OUV_GARDE||DN.w!==W)return;
+  if(DN.wRepos)clearTimeout(DN.wRepos);
+  DN.wRepos=setTimeout(function(){DN.wRepos=0;if(DN.w!==W||DN.attente||(DN.pre&&!DN.pre.R))return;
+    try{W.terminate();}catch(e){}try{URL.revokeObjectURL(W._url);}catch(e){}DN.w=undefined;DN.wReposes=(DN.wReposes|0)+1;},1500);}
 /* LA POSE : les données du monde dans DN (la collision), à la puce (trois textures), les décors — et le sable s'allume */
 const DN_SOL=!/[?&]sans=([^&]*,)?dunessoleil(,|&|$)/.test(location.search);
 /* (2026-10-24, Sacha : « pareil dans les dunes » — les décors mal imbriqués dans le sol) L'ANCRAGE DES MONUMENTS : ils étaient posés à la hauteur du sable de LEUR CENTRE ; sur une
