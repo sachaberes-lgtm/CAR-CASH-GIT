@@ -1,5 +1,5 @@
-/* LE PROCESSEUR AUDIO du NITRO VIVANT (AudioWorklet) — mêmes règles que worklet-moteur.js : le texte de moteur-vivant.js ET de nitro-vivant.js est mis devant.
-   Messages : { c: { nit, speed } } · { P: { …réglages… } } · { G: { roar: 1, … } } · { ev: 'ignite' | 'pshh' }. Renvoie { niv, a, sp } ≈ 20 fois par seconde. */
+
+
 class NitroVivantProc extends AudioWorkletProcessor {
   constructor(opt) {
     super();
