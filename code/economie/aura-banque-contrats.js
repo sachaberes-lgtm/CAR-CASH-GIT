@@ -181,6 +181,14 @@ function wipePxEnd(){const P=WIPEPX;P.ph='';if(P.raf){cancelAnimationFrame(P.raf
    d'une frame), puis le voile se RETIRE sur la courbe unique (`--ease`, `--t-slow`). `apres` (facultatif) part à l'instant
    où l'on redécouvre : c'est là que le LÂCHER du garage doit démarrer, sous les yeux du joueur. Pendant un fondu, un
    second est IGNORÉ : le voile intercepte déjà le doigt, et au clavier un double Entrée n'ouvrira pas l'atelier deux fois. */
+/* LE VOILE BLANC DU SERPENT NOIR (2026-11-07, Sacha : « quand on lance une partie ou qu'on fait une transition, la version noir sur fond blanc — pas un carré blanc sur un fond noir ») : un voile BLANC plein écran qui porte le serpent de chargement INVERSÉ
+   (la bande de `#spCharge`, classe `.serpentCh.neg`, voir debut-corps.html). Il n'existe que pour une ATTENTE : le départ d'une course qui attend la chauffe (departAttend, > 250 ms) et un fondu dont `fn` rend une promesse
+   (> 350 ms). Un fondu court n'en montre jamais. Créé à la demande, au-dessus du volet (301 > 300), il fond en 200 ms. */
+function voileSerpent(on){
+  let v=document.getElementById('voileSerpent');
+  if(!v){if(!on)return;v=document.createElement('div');v.id='voileSerpent';v.setAttribute('aria-hidden','true');v.innerHTML='<div class="serpentCh neg"></div>';document.body.appendChild(v);void v.offsetWidth;}
+  v.classList.toggle('on',!!on);
+}
 function ecranWipe(fn,apres){
   let w=document.getElementById('wipe');
   if(!w){w=document.createElement('div');w.id='wipe';w.setAttribute('aria-hidden','true');document.body.appendChild(w);}
@@ -192,7 +200,7 @@ function ecranWipe(fn,apres){
     /* (2026-10-31) `fn` peut rendre une PROMESSE : le volet reste baissé jusqu'à ce qu'elle tienne (le REJOUER finit d'y bâtir son départ — voir rejoueAttend) */
     const suite9=function(){
     let leve=false;
-    const lever=function(){ if(leve)return;leve=true;
+    const lever=function(){ if(leve)return;leve=true;clearTimeout(ecranWipe._att);voileSerpent(false);
       w.className='out';if(px)wipePxStart(w,'out');ecranWipe._on=false; // la main revient DÈS que l'écran se redécouvre (le voile qui s'efface ne bloque plus rien)
       try{typeof sfx==='function'&&sfx('ui.voletSort');}catch(e){}
       document.body.classList.add('voletSort');clearTimeout(ecranWipe._vs);ecranWipe._vs=setTimeout(function(){document.body.classList.remove('voletSort');},480); // (charte v4) le contenu est DÉJÀ en place quand le volet le découvre
@@ -203,7 +211,7 @@ function ecranWipe(fn,apres){
     requestAnimationFrame(function(){requestAnimationFrame(lever);});
     setTimeout(lever,160); // filet : onglet caché = aucune image, le voile ne doit jamais rester collé
     };
-    if(r9&&typeof r9.then==='function')r9.then(suite9,suite9);else suite9();
+    if(r9&&typeof r9.then==='function'){clearTimeout(ecranWipe._att);ecranWipe._att=setTimeout(function(){if(ecranWipe._id===id)voileSerpent(true);},350);r9.then(suite9,suite9);}else suite9(); /* (2026-11-07) une attente > 350 ms : voile blanc + serpent noir */
   },REDUCED_MOTION?120:160); // (2026-10-11, passe UX) 210 → 160 ms : le volet entre en 150 ms (voir <style id="uxPasse">), l'écran change dès qu'il couvre
 }
 function uiPop(el){ // le rebond d'un bouton relâché (re-déclenchable : on retire, on force un reflow, on remet)

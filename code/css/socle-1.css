@@ -332,6 +332,9 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
   #gFade{position:fixed;inset:0;background:#ffe3b8;opacity:0;pointer-events:none;z-index:70; /* (2026-09-29) blanc CHAUD : on sort du rideau de flammes du garage — toujours le voile d'une image, pas un effet */
     transition:opacity .18s ease-out}
   #gFade.on{opacity:.9;transition:opacity .08s ease-out}
+  /* LE VOILE BLANC DU SERPENT NOIR (2026-11-07, Sacha) : l'attente d'un départ de course ou d'un fondu long (voir voileSerpent). Au repos : invisible (visibility), il ne peint rien. */
+  #voileSerpent{position:fixed;inset:0;z-index:301;background:#fff;opacity:0;visibility:hidden;pointer-events:none;contain:strict;transition:opacity .2s linear,visibility 0s .2s}
+  #voileSerpent.on{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .2s linear}
   #garageRow{margin:2px 0 14px}
   .saveBtn.majeur{font-size:13px;letter-spacing:4px;padding:16px 40px;color:#dff6ff}
   .saveBtn.majeur::before{content:'\1F3CE\FE0F';margin-right:11px;font-size:15px;
