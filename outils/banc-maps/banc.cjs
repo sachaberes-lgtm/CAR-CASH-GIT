@@ -104,7 +104,7 @@ const AUDIT=String(function(){
      if(hit)out.obstacles.push(Object.assign({nom:nom,i:ii,taille:[Math.round(b.max.x-b.min.x),Math.round(b.max.y-b.min.y),Math.round(b.max.z-b.min.z)]},hit));};
    S.updateMatrixWorld(true);
    S.traverse(function(m){if(!m.isMesh||!m.geometry||!m.visible||route.has(m))return;let a=m;while(a){if(route.has(a))return;a=a.parent;}
-     if(!m.geometry.attributes||!m.geometry.attributes.position)return;try{if(!m.geometry.boundingBox)m.geometry.computeBoundingBox();}catch(e){return;}const gb=m.geometry.boundingBox;if(!gb||!isFinite(gb.min.x))return;const nom=(m.name||'')+'/'+(m.parent&&m.parent.name||'')+'/'+(m.material&&m.material.type||'');if(/pi[èe]ces|€|¥|₿|fruit|aura/i.test(nom))return; /* ce qu'on ramasse est SUR la route, c'est voulu */
+     if(!m.geometry.attributes||!m.geometry.attributes.position)return;try{if(!m.geometry.boundingBox)m.geometry.computeBoundingBox();}catch(e){return;}const gb=m.geometry.boundingBox;if(!gb||!isFinite(gb.min.x))return;const nom=(m.name||'')+'/'+(m.parent&&m.parent.name||'')+'/'+(m.material&&m.material.type||'');{let fa=m;while(fa){if(fa.userData&&fa.userData.fruit)return;fa=fa.parent;}}if(/pi[èe]ces|€|¥|₿|fruit|aura/i.test(nom))return; /* ce qu'on ramasse est SUR la route, c'est voulu (les fruits se reconnaissent à userData.fruit, pas au nom) */
      if(m.isInstancedMesh){if(m.count>6000)return;for(let i=0;i<m.count;i++){m.getMatrixAt(i,M);M.premultiply(m.matrixWorld);bx.copy(gb).applyMatrix4(M);teste(bx,nom,i);}}
      else{bx.copy(gb).applyMatrix4(m.matrixWorld);teste(bx,nom,-1);}});
    out.obstacles.sort((a,b)=>a.s-b.s);out.nObstacles=out.obstacles.length;out.obstacles=out.obstacles.slice(0,80);}
@@ -150,6 +150,7 @@ const SC={
     log('BILAN · '+CARTE+'/'+(METEO||'tirée')+(opt.tel==='1'?' (téléphone)':' (ordi)')+' · '+ok.length+'/'+R.length+' graines sans erreur · obstacles : '+R.map(r=>r.nObstacles==null?'?':r.nObstacles).join(',')+' · croisements : '+R.map(r=>r.route?r.route.croisements:'?').join(',')+(opt.roule?' · morts : '+R.map(r=>r.course?(r.course.mort?r.course.cause+'@'+r.course.s:'vivant@'+r.course.s):'?').join(', '):'')+' → '+f);},
   async vue(){
     const g=+(opt.graines||'1').split(',')[0]||1;const p=await ouvrePage();await charge(p,U(g));await sauteIntro(p);const lc=await lanceCourse(p);if(!lc.lance)throw new Error('course pas lancée '+JSON.stringify(lc.jouer));
+    await p.ev("window.dbgAuto&&dbgAuto(1,0,{nit:0})"); /* le pilote auto tient la caisse en vie pendant l'attente (la nuit en ville, elle mourait avant la 1re capture) */
     await dort((+opt.attente||4)*1000);const L=await p.ev('dbgRoute().L');
     const vues=[];
     if(opt.vues){for(const v of opt.vues.split(';')){const [a,b]=v.split(':');vues.push({p:a.split(',').map(Number),c:b.split(',').map(Number),nom:'libre'+vues.length});}}
