@@ -239,9 +239,15 @@ function ninfTick(dt){
 const MAGV=new THREE.Vector3(),MAGT=new THREE.Vector3();
 function magSpirale(p,d9,dt){
   const P=p.mesh.position;MAGV.copy(carGroup.position).sub(P);MAGT.crossVectors(MAGV,p.ax);const l=MAGT.length();if(l<1e-4)return;
-  MAGT.multiplyScalar(Math.min(d9,18)/l*dt*5.5);P.add(MAGT);
-  if(Math.random()<.04)sparkBurst(sparkGold,P,1,2);
+  /* (2026-11-07, Sacha : « rebosse l'animation quand tu récupères des pièces grâce à l'aimant ») la spirale se SERRE en approchant (plus vite près de la
+     caisse), et la pièce sème une TRAÎNÉE d'étincelles (budget : 5 par image au plus, pour ne pas noyer le GPU quand 100 pièces arrivent d'un coup) */
+  const k9=d9<14?1.35:1;MAGT.multiplyScalar(Math.min(d9,18)/l*dt*8*k9);P.add(MAGT);
+  const n9=performance.now();if(n9-MAGB.t>14){MAGB.t=n9;MAGB.n=0;}
+  if(MAGB.n<5&&Math.random()<.3){MAGB.n++;sparkBurst(sparkGold,P,1,d9<10?4:2.5);}
 }
+const MAGB={t:0,n:0,pop:0};
+/* LE « POP » D'ARRIVÉE : la pièce aspirée éclate en or SUR la caisse (au plus un pop toutes les 60 ms : on en prend parfois 30 d'un coup) */
+function magPop(){const n9=performance.now();if(n9-MAGB.pop<60)return;MAGB.pop=n9;try{sparkBurst(sparkGold,carGroup.position,5,10);}catch(e){}}
 Object.assign(PWR_DEFS.m,{col:0xffd24a,core:0xfff2c8,tint:'#ffd75e',c2:'#e0a010',fx:'rgba(255,210,74,.7)',fx2:'rgba(224,160,16,.25)',msg:'POMME DORÉE — LES PIÈCES VIENNENT À TOI !',sous:'LES PIECES VIENNENT A TOI'});
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.m.bd=f9(PWR_DEFS.m.fx);PWR_DEFS.m.bd2=f9(PWR_DEFS.m.fx2);}
 

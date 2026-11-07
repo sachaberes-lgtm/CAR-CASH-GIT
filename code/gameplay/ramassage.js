@@ -147,6 +147,7 @@ function pickupsTick(dt){
       }
       else{
         sparkBurst(sparkGold,p.mesh.position,FLOW.lv===4?14:8,FLOW.lv===4?11:8); // (2026-09-28) là où la pièce disparaît · (×3) en FRÉNÉSIE la gerbe grossit : la pièce vaut trois fois plus
+        if(MAG9)magPop(); /* (2026-11-07) aimant : le pop d'or sur la caisse */
         combo++;comboT=3;
         /* LA RÉCOLTE EN SÉRIE. Une pièce isolée ne donne RIEN en aura — sinon on récompense
            encore le simple fait d'avancer. C'est tous les 5 ramassages SANS laisser retomber le

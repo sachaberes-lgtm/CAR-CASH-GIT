@@ -36,10 +36,10 @@
   .lg::before{content:attr(data-t);position:absolute;left:0;top:0;width:100%;z-index:-1;color:#4a2a00;
     transform:translateY(.09em);
     text-shadow:0 .015em 0 #6e3f00,0 .03em 0 #5c3300,0 .05em 0 #472700,0 .07em 0 #331c00,0 .16em .3em rgba(0,0,0,.7)}
-  .lg.gold{background:linear-gradient(180deg,var(--au0) 0%,var(--orB) 28%,var(--au2) 52%,var(--orS) 74%,var(--orB) 96%);
+  .lg.gold{background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 0 .35em rgba(255,200,80,.5))}
-  .lg.grad{background:linear-gradient(180deg,#fff3c0,var(--or) 40%,#ff8a3d 72%,var(--neoM));
+  .lg.grad{background:linear-gradient(180deg,#fff3c0,#ffd75e 40%,#ff8a3d 72%,#ff3ec8);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 0 .35em rgba(255,110,190,.45))}
   .lg::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;

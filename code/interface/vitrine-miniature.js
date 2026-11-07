@@ -17,14 +17,14 @@
 /* (2026-11-07, Léo : « fais encore mieux, plus vendeur, que Sacha kiffe : son idée de boîte n'est pas dégueu, mais mon rendu est cool ; faire différent des autres cosmétiques ») DEUX STYLES, UN MOTEUR : `leo` (par défaut) = la vitrine de Sacha (la caisse photographiée sous l'angle exact de la boîte, son socle NOIR VERNI et son vrai reflet) habillée du langage de Léo — le QUADRILLAGE du sol en fils clairs, le fond de studio lumineux teinté de la rareté, les arêtes franches à la couleur de la rareté, l'ombre sous les roues ; `sacha` (`?vitrine=sacha`) = le socle noir verni d'origine. */
 /* (2026-11-07, Léo : « la plaque noire, c'est un bloc de route du jeu ; on essaie sur une branche ») TROISIÈME STYLE, `route` (par défaut) : le socle est un BLOC DE LA ROUTE DU JEU — son béton brut (asphTex, BETON), ses flancs, la ligne jaune du milieu, les lignes de bord — rendu en 3D par la même caméra que la caisse (vitBloc), avec le verre, le fond de studio et les arêtes du style `leo` ; `?vitrine=leo` = socle noir verni + quadrillage, `?vitrine=sacha` = l'original. */
 /* (2026-11-07, Léo : « oui, sur le main ») LA VITRINE BLOC DE ROUTE EST ALLUMÉE PAR DÉFAUT ; `?vitrine=0` = le cube CSS d'avant. */
-const VITM={on:!/[?&]vitrine=0\b/.test(location.search),style:/[?&]vitrine=sacha\b/.test(location.search)?'sacha':/[?&]vitrine=route\b/.test(location.search)?'route':'leo',ver:7, /* (2026-11-07, Léo : « laisse le socle noir de Sacha ; je ne vois plus les vitres ») le style par défaut redevient `leo` (socle noir verni + quadrillage, verre de Léo) ; le bloc de route : `?vitrine=route` */
+const VITM={on:!/[?&]vitrine=0\b/.test(location.search),style:/[?&]vitrine=sacha\b/.test(location.search)?'sacha':/[?&]vitrine=route\b/.test(location.search)?'route':'leo',ver:8, /* (2026-11-07, Sacha : « les boîtes donnent pas envie ») ver 8 : la boîte de verre resserrée sur la caisse (L, P, Hc, po, remp ci-dessous) — les photos d'avant (ver 7) ne servent plus ; */ /* (2026-11-07, Léo : « laisse le socle noir de Sacha ; je ne vois plus les vitres ») le style par défaut redevient `leo` (socle noir verni + quadrillage, verre de Léo) ; le bloc de route : `?vitrine=route` */
   az:.52,el:.36,fov:17,       /* l'objectif : 30° d'azimut (on voit l'avant et le côté droit), 21° de plongée (le dessus du socle et le toit), objectif long */
-  L:5.3,P:2.6,Hc:1.95,         /* le capot de verre : longueur (axe de la caisse), profondeur, hauteur — en mètres du jeu */
-  ph:.42,po:.30,              /* le socle : hauteur, débord autour du verre */
-  remp:.9,                    /* la caisse prend au plus 90 % de la longueur du verre (et 84 % de sa hauteur, 90 % de sa profondeur) */
+  L:4.5,P:2.2,Hc:1.5,          /* le capot de verre : longueur (axe de la caisse), profondeur, hauteur — en mètres du jeu. (2026-11-07, Sacha : « ça peut être beaucoup mieux ») resserré sur la caisse : 5,3 × 2,6 × 1,95 laissait la voiture à 60 % de la carte, elle en prend ~80 % ; la plus longue est réduite pour tenir */
+  ph:.42,po:.16,              /* le socle : hauteur, débord autour du verre (0,30 avant : un rebord noir épais) */
+  remp:.97,                   /* la caisse prend au plus 97 % de la longueur du verre (et 84 % de sa hauteur, 90 % de sa profondeur) */
   cam:null,rt:null,fit:null};
 function vitLarg(){return (typeof ALLEGE!=='undefined'&&ALLEGE)?480:640;}
-function vitrineCle(i,sec,own){return 'vt'+VITM.ver+({leo:'L',route:'R'}[VITM.style]||'')+'_'+vitLarg()+'_'+i+(sec?'s':own?'o':'');} /* s : la silhouette d'une SECRÈTE · o : une caisse À TOI, sortie de sa boîte */
+function vitrineCle(i,sec,own,w){return 'vt'+VITM.ver+({leo:'L',route:'R'}[VITM.style]||'')+'_'+(w||vitLarg())+'_'+i+(sec?'s':own?'o':'');} /* s : la silhouette d'une SECRÈTE · o : une caisse À TOI, sortie de sa boîte · w : une largeur à part (2026-11-07, la grande boîte de la page ACHAT : 720, voir shopRender) */
 function vitrineFile(i,sec,own,cb,el){const k=vitrineCle(i,sec,own);if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
   PHQ.q.push([k,cb,{vt:1,i:i,sec:!!sec,own:!!own,k:k},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* les huit coins d'une boîte [x0,x1]×[y0,y1]×[z0,z1] */
@@ -63,11 +63,11 @@ function vitBloc(rc){const a=VITM.L/2+VITM.po,b=VITM.P/2+VITM.po,ph=VITM.ph,G=ne
 function vitBlocJette(G){if(!G)return;if(G.parent)G.parent.remove(G);G.traverse(function(o){if(o.geometry)o.geometry.dispose();const m=o.material;(Array.isArray(m)?m:m?[m]:[]).forEach(function(q){if(q.map&&q.map!==ASPH_TEX)q.map.dispose();q.dispose();});});}
 function vitHex(c,a){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6;return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';}
 function vitMix(c,k){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6,f=function(v){return Math.round(v+(255-v)*k);};return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')';}
-function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitrineCle(i,sec,own);
+function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitrineCle(i,sec,own,o.w); /* o.w : la largeur de l'image (par défaut vitLarg) */
   if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
   if(started&&!gameOver){if(cb)cb(null);return null;}
   if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
-  const T9=VITM.ms={i:i,t0:performance.now()},W=vitLarg(),H=Math.round(W*440/720);
+  const T9=VITM.ms={i:i,t0:performance.now()},W=o.w||vitLarg(),H=Math.round(W*440/720);
   photoStudio();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc0=carGroup.scale.clone(),vis=carGroup.visible;
   if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl;
