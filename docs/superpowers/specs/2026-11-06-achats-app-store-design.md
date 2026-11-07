@@ -35,8 +35,7 @@ Tous **non consommables** (« à toi pour toujours », comme le dit déjà le je
 |---|---|---|---|
 | Caisses premium | **9 en vente** (index CAR_UNLOCK) : 9 CHAT POP-TART 4,20 € · 19 LA PIZZA EXPRESS 161,00 € · 54 LA FÉLINE · 56 L'ÉTERNELLE · 57 LE TRÔNE CENTRAL · 59 LE BLINDÉ NOIR · 60 LE MUR DU SON · 61 LE DRAGON D'OR · 70 SQUALE (les sept derniers à 1,61 €) | voir à gauche | `cashcar.car.<forme>` (la `shape` de la fiche, stable ; jamais l'index) |
 | Caisses « retirées » | index 10, 12, 13, 14 (REQUIN, FORMULE OR, LE MANS 24, EL PATRON) : lignes `retire`, **pas en vente** | — | aucun produit |
-| Peintures | celles de `PEINT_CAT` qui ont un prix et ne se gagnent pas par mission (`eur` présent, pas de `mis2`) ; jusqu'à 64 | 1 € commune/rare · 2 € épique · 3 € légendaire | `cashcar.peinture.<id>` (déjà prévu par le code) |
-| Pack LA PALETTE | 1 produit (communes + rares) | 0,99 € | `cashcar.palette40` (déjà prévu) |
+| Peintures | toutes celles dont `COSM.peinture[i].eur` existe, **défi ou non** (`habPaye` n'exige que `d.eur` ; les peintures gagnées par mission perdent leur `eur`, `boutique.js:633-639`) ; jusqu'à 64 | 1 € commune/rare · 2 € épique · 3 € légendaire | `cashcar.peinture.<id>` (déjà prévu par le code) |
 
 La liste exacte des produits n'est **pas écrite à la main** : un script (`app-ios/outils/produits-store.js`) la lit dans le code du jeu et produit
 (a) le fichier `Produits.storekit` pour le simulateur, (b) un tableau `produits.csv` pour que Sacha crée les produits dans App Store Connect. Une seule source.
@@ -73,7 +72,7 @@ Si le plugin manque ou StoreKit n'est pas disponible : `payer` rejette `'indispo
   `produitDe(id)` : `cashcar.car.<shape>` pour un index, `cashcar.peinture.<id>` pour `peinture:<id>`, `cashcar.palette40` pour `palette`.
 - Au démarrage de l'app et à RESTAURER : `possedes()` → pour chaque produit possédé, `shopDonne` / `habDonne` / `palDonne` s'il manque (**idempotent**, sans fête ni écrasement de l'équipement du joueur).
 - Prix affiché = prix StoreKit (localisé) quand il est connu ; sinon repli sur `eur` du jeu.
-- Bouton **RESTAURER MES ACHATS** (exigé par Apple) sur la page OFFRES et dans RÉGLAGES (les chaînes existent déjà, mortes).
+- Bouton **RESTAURER MES ACHATS** (exigé par Apple) : il existe déjà sur la page ACHAT (`code/page/ecrans-menus.html:124`, `data-m="shopRestore"`), où il n'affiche aujourd'hui qu'un message « AUCUN ACHAT À RESTAURER » (`code/moteur/mobile-tactile.js:896`) ; on le branche à `ccAchat.restaurer()`. Aucune ligne ajoutée dans RÉGLAGES.
 - Messages d'erreur existants (« L'achat est indisponible pour le moment. ») + un message « EN ATTENTE D'ACCORD » pour `attente` (Ask to Buy).
 
 ### 4.4 `app-ios/preparer-www.js`
@@ -111,10 +110,10 @@ Non vérifiable ici : l'encaissement réel et la validation par Apple.
 - Fiche : « Achats intégrés » = Oui ; réponses de classification d'âge (« caisses » = achat direct d'une voiture connue, jamais de tirage aléatoire : à garder dit tel quel) ; notes du testeur ; confidentialité (aucune donnée collectée par l'app elle-même) ; page `confidentialite` à rejouer si besoin.
 - Une capture d'écran de la boutique pour chaque type d'achat (exigée avec les produits).
 
-## 9. Questions ouvertes (à trancher avant le plan)
-1. Les peintures **à défi** (`def`) sont-elles aussi vendues en € ou seulement gagnées ? Le code leur met un prix ; la spec suppose « vendues seulement si pas de mission (`mis2`) ». À confirmer par Sacha.
-2. Import de sauvegarde : un `owned` venu d'un code de sauvegarde du web doit-il valoir « acheté » ? Proposition : non pour les produits en €, ils se reconstruisent par `possedes()` (sinon le code de sauvegarde contourne le paiement, règle 3.1.1).
-3. Le jeu se fige ~mi-nov 2026 : les achats entrent-ils dans le **build 2** (déjà prévu) ? Recommandation : oui, le même build, sinon une nouvelle soumission est nécessaire (les mises à jour en direct ne peuvent pas ajouter une capacité native).
+## 9. Questions (réponses)
+1. **Tranché :** les peintures **à défi** (`def`) sont vendues en € comme les autres ; seules les peintures gagnées uniquement par mission (qui perdent leur `eur`) ne le sont pas.
+2. **Tranché pour v1.0 : import accepté tel quel.** ENTRER UN CODE restaure toujours une sauvegarde dans l'app (`preparer-www.js:152`) ; à rediscuter avec Sacha.
+3. **Tranché :** oui, les achats entrent dans le **build 2** ; la capacité native exige un nouveau binaire (les mises à jour en direct ne suffisent pas).
 
 ## 10. Hors périmètre
 Serveur de reçus, RevenueCat ou autre SDK, abonnements, consommables, packs d'argent du jeu en €, codes promo, pubs.
