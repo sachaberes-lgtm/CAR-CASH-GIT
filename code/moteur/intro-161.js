@@ -843,7 +843,8 @@
     if(!iAC||!VOL9||SANS_SON)return;
     for(const k of [idx,idx+1]){if(SONS_DEMO[k]||(k>idx&&tl<1.4))continue;try{const r=construitSon(iAC,t0a+k*PERIODE_DEMO(),VOL9);r.suite();SONS_DEMO[k]=r;}catch(e){}}
   }
-  function rendu(t){
+  function rendu(t){const a9=performance.now();try{rendu0(t);}finally{const d9=performance.now()-a9;if(d9>=40&&window.__ccSondeTache){try{window.__ccSondeTache('rendu',a9,d9);}catch(_){}}}} /* (2026-11-07, OPTI ULTIME : « image boucle 373 ms : quelle étape ? ») la sonde du serpent nomme l'image du film qui dépasse 40 ms */
+  function rendu0(t){
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
     g.fillStyle='#000';g.fillRect(0,0,W,H);
@@ -884,6 +885,7 @@
   function lancer(geste){
     if(lance||fini)return;lance=true;RM=reduit();tLance=performance.now();window.__intro='joue'; /* l'intro passe : pas de rechargement */
     eteintTitre();
+    if(window.__ccSondeTache)try{const a9=performance.now();void document.body.offsetHeight;if(window.__ccSondeCrea)window.__ccSondeCrea('layout-lancer',a9,performance.now()-a9);}catch(e){} /* (2026-11-07, OPTI ULTIME) pendant le guet seulement : un layout forcé au départ du film, chronométré (le style + layout du DOM entier, natif, est-il le trou de 1,1 s ?) */
     window.__introCouvre=true; /* le film couvre l'écran : le jeu ne calcule ni ne dessine plus rien dessous, jusqu'à 0,5 s avant la casse (voir `boucle`) */
     try{if(prepEn!==W+'x'+H+'x'+S)crea('prepare',prepare);}catch(e){} /* (déjà prêt si on a attendu un peu sur l'écran titre) */
     try{crea('son',function(){son(geste);});}catch(e){} /* le son ne doit JAMAIS bloquer les visuels */
