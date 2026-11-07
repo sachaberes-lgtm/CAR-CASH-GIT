@@ -30,6 +30,7 @@
 <meta name="apple-mobile-web-app-title" content="CASH CAR">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" href="assets/fonts/pressstart2p.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/monnaie.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
 <!-- ================= L'ÉDITION, ET LA COLONNE DE L'ORDI (2026-09-28) =================
      Sacha : « quand on ouvre cette version, la disposition des affichages de la version PC et de la version mobile verticale doit
@@ -5101,6 +5102,24 @@ html body.touch #tNitro{right:calc(var(--hudD) + 8px)!important;bottom:calc(var(
 /* le « $×1 » du FLOW au palier 0 était à 40 % d'opacité : gris sur bleu nuit, illisible sur un ciel clair (GAMEPLAY) — secondaire, mais lisible */
 html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
 </style>
+<style id="monnaie">
+/* ===== LA MONNAIE DU JEU (2026-11-07, Léo : « le sketch en monnaie, partout, dorée en 3D ») =====
+   Le symbole vient de son sketch au stylo (formes gardées une à une, bords retaillés en facettes). Deux habits :
+   · UN GLYPHE (U+E000) d'une mini-police (assets/fonts/monnaie.woff2) ajoutée aux cinq polices du jeu par unicode-range : CUR() l'écrit
+     partout (textes, canvas), il prend la couleur du texte voisin ;
+   · L'IMAGE OR 3D (assets/monnaie/monnaie-or.png : biseau, reflet, halo, étincelles) au compteur d'argent, qui saute et brille à chaque gain.
+   Le vrai argent (les offres « 0,99 € ») reste écrit « € ». */
+@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Silkscreen';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Jersey';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Sixtyfour';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Jacquard';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+#cashHud .chV i.mOr{display:inline-block;width:1.5em;height:1.3em;font-size:var(--f6);align-self:center;margin-right:.1em;
+  background:url('./assets/monnaie/monnaie-or.png') center/contain no-repeat;-webkit-background-clip:border-box;background-clip:border-box;
+  filter:drop-shadow(0 0 5px rgba(255,200,60,.55));transform-origin:50% 60%}
+#cashHud .chV i.mOr.pop{animation:mOrPop .32s cubic-bezier(.2,1.6,.4,1)}
+@keyframes mOrPop{0%{transform:scale(1) rotate(0)}35%{transform:scale(1.4) rotate(-8deg);filter:drop-shadow(0 0 10px rgba(255,230,120,.95)) brightness(1.5)}100%{transform:scale(1) rotate(0)}}
+</style>
 <style id="garageV6">
 /* ======================= LE GARAGE v6 — LA REFONTE (2026-09-30, Sacha, capture couchée à l'appui : « améliore le garage, notamment les
    raretés, qui sont écrites deux fois alors qu'on peut juste mettre les couleurs — refonte totale du garage ») =======================
@@ -9032,7 +9051,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   <!-- (2026-09-29, Sacha : « rajoute un compteur d'argent stylé, inspiré de loin de GTA, mais avec notre DA ») LE COMPTEUR D'ARGENT DU
        TÉLÉPHONE : en haut à droite sous le ⏸ (la place de l'argent dans GTA), le total de la partie qui DÉFILE vers sa valeur, et sous lui le
        « +$ » qui s'additionne tant que ça tombe (1,8 s) — en or pendant la frénésie (×3). Typo ombrée VERTE (l'argent du jeu est vert). -->
-  <div id="cashHud" aria-hidden="true"><b class="chV"><i>€</i><span>0</span></b><em class="chD"></em></div>
+  <div id="cashHud" aria-hidden="true"><b class="chV"><i class="mOr">&#xE000;</i><span>0</span></b><em class="chD"></em></div>
   <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em><i id="avPlus"></i></div><div id="avRec" class="vide"><span id="avRecT"></span><i><s id="avRecF"></s></i></div>
     <div id="avCh"><div class="avChTop"><b id="avPts">0</b><span id="avX">×1</span></div><div class="avBar"><i id="avBarF"></i></div><ul id="avList"></ul></div></div>
   <!-- (2026-09-28, Sacha) L'EMBLÈME DE LA FRÉNÉSIE « THE DARK TRIAD » — v3 EN PIXEL (même soir : « toute l'interface est faite en pixel,
@@ -11001,7 +11020,7 @@ html body #gBqPan.cote.bqFigOn .bqRail .bqK.fgK{--fgW:calc((100% - 8px) / 2.2)}
     <div id="setHead"><span>Réglages</span><button id="setClose" class="pbtn pb-cyan pbCarre" aria-label="Fermer"><i class="pxi pxi-croix" aria-hidden="true"></i></button></div>
     <div class="setSec">Langue</div>
     <div class="setRow" id="langRow"><span>Langue · Language</span><b id="tgLang">FR</b></div>
-    <div class="setRow" id="curRow"><span>Devise</span><b id="tgCur">€</b></div>
+    <div class="setRow" id="curRow"><span>Devise</span><b id="tgCur">&#xE000;</b></div>
     <div class="setSec">Audio</div>
     <div class="setRow" data-tg="sndBtn"><span>Effets sonores</span><b id="tgSnd">ON</b></div>
     <div class="setRow" data-tg="musBtn"><span>Musique</span><b id="tgMus">ON</b></div>
@@ -30876,7 +30895,7 @@ function langNext(){
   try{localStorage.ccLang=LANG;}catch(err){}
   return LANG;
 }
-const CUR=()=>'€'; /* (2026-11-05, Sacha : « remplace les dollars par des euros, aucun symbole dollar ne doit rechapper ») la devise du jeu est l'EURO */
+const CUR=()=>'\uE000'; /* (2026-11-05, Sacha : « remplace les dollars par des euros, aucun symbole dollar ne doit rechapper ») la devise du jeu est l'EURO */
 const LOC=()=>LANG==='fr'?'fr-FR':'en-US';
 const fmt=v=>CUR()+(LANG==='fr'?' ':'')+Math.round(v).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' '); /* (2026-11-07) comme fmtSolde et fmtC : « €1,234 » en anglais (plus d'espace à la française), et l'espace fine U+202F de fr-FR remplacée par une vraie espace — la police pixel ne la dessine pas */
 /* ============================================================================
@@ -31452,16 +31471,17 @@ function cashTxt(v){v=Math.max(0,v);
   const e=Math.floor(v+1e-6);
   if(v<10&&v-e>.004){const t=v.toFixed(2);return LANG==='fr'?t.replace('.',','):t;} // la mise de départ (1,61) garde ses centimes
   return e.toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
+function monnaiePop(){const i=CASH.el&&CASH.el.querySelector('.mOr');if(!i||i.classList.contains('pop'))return;i.classList.add('pop');setTimeout(function(){i.classList.remove('pop');},330);} /* (2026-11-07, Léo : « rends-le encore plus juicy ») le symbole or saute et brille à chaque gain */
 function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
   const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
-  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;CASH.v.textContent=t;if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,VP.w*.58);}}}
+  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){if(!force&&CASH.disp>(CASH.dPrec||0))monnaiePop();CASH.dPrec=CASH.disp;CASH.tv=t;CASH.v.textContent=t;if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,VP.w*.58);}}}
   if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);
-    if(kd!==CASH.kd2){CASH.kd2=kd;const td='+€ '+cashTxt(CASH.delta)+(x3?' ×3':'');if(td!==CASH.td){CASH.td=td;CASH.d.textContent=td;}}
+    if(kd!==CASH.kd2){CASH.kd2=kd;const td='+'+CUR()+' '+cashTxt(CASH.delta)+(x3?' ×3':'');if(td!==CASH.td){CASH.td=td;CASH.d.textContent=td;}}
     if(x3!==CASH.d.classList.contains('x3'))CASH.d.classList.toggle('x3',x3);}
   if(vu!==CASH.d.classList.contains('vu'))CASH.d.classList.toggle('vu',vu);
 }
@@ -34102,7 +34122,7 @@ function trxPlanche(){
      rr(-W/2,-H/2,W,H,7);const g=x.createLinearGradient(0,-H/2,0,H/2);g.addColorStop(0,vs?'#52bd7c':'#5cc985');g.addColorStop(1,'#2b7f4d');x.fillStyle=g;x.fill();
      x.lineWidth=2;x.strokeStyle='#1d5c37';x.stroke();x.strokeStyle='rgba(220,255,228,.75)';x.lineWidth=1.6;x.strokeRect(-W/2+6,-H/2+6,W-12,H-12);
      x.textAlign='center';x.textBaseline='middle';x.fillStyle='#e8fdec';
-     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='24px "Press Start 2P",monospace';x.fillText('€',0,2);
+     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='24px "Press Start 2P",monospace';x.fillText('\uE000',0,2);
        x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('100',-W/2+19,-H/2+15);x.fillText('100',W/2-19,H/2-14);}
      else{x.fillStyle='rgba(20,80,45,.9)';x.fillRect(-W/2+6,-8,W-12,16);x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('CASH CAR',0,1);
        x.beginPath();x.arc(-W/2+18,-H/2+17,6,0,Math.PI*2);x.moveTo(W/2-12,H/2-17);x.arc(W/2-18,H/2-17,6,0,Math.PI*2);x.fill();}
@@ -50716,7 +50736,7 @@ const M2R={lv:'',sonne:false,ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:fa
    Le tableau lisible (et le calcul des parties) : `node outils/pass-table-md.cjs` -> passation/PASS-MISSIONS-TABLE.md. Console (case 3) : dbgPass().
    RÈGLES DE LA TABLE (Léo, points 6 à 9) : chaque mission demande une VRAIE action (aucune ne se remplit toute seule : « RÉUSSIS 10 MISSIONS » et le doublon `maps2` sont SORTIS,
    voir PASS_SORTIES) ; les collections comptent hors cadeaux (variante `T` de la mesure) ; jamais deux caisses proches ; une petite peinture de base tôt. */
-const PASS_ON=!/[?&]pass=0\b/.test(location.search);
+const PASS_ON=/[?&]pass=1\b/.test(location.search); /* (2026-11-07, Sacha : « retour à une liste plus classique ») la liste d'avant par défaut ; LE VISEUR de Léo reste derrière ?pass=1 */
 /* ---- LES MESURES DE LA PARTIE : LE SEUL ENDROIT À CORRIGER (Léo ne connaît pas la durée d'une partie ; ces chiffres sont DÉDUITS du dépôt) ----
    Sources : passation/ECONOMIE.md §1-2 (mesure au banc : 15-75 s tenues, 267 -> 2 456 $ la partie, « un humain moyen ~500-1 000 $ par partie au début »), outils/eco-debut-modele.cjs
    (profils de GAMEPLAY : moyen 45-90 s, la moitié des pièces ; fort 120-240 s, 75 % des pièces, frénésie), journal « LES MISSIONS v2 » (1 000 km/h en ~50 s, 55 d'aura/s au pilote auto).
@@ -51939,7 +51959,7 @@ function flowHudMaj(rest){
   h.classList.toggle('gele',FLOW.nit&&FLOW.v>0&&FLOW.lv<4); // (v3) le nitro TIENT la jauge de la montée : rien ne fuit tant qu'il brûle
   const tr=frenEl();if(tr){tr.classList.toggle('tremble',FLOW.lv===4&&lache);tr.classList.toggle('froid',FLOW.lv===4&&fuit&&!lache);}
   if(FLOW.lvAff!==FLOW.lv){const av=FLOW.lvAff;FLOW.lvAff=FLOW.lv;h.style.setProperty('--fc',FLOW_COL[FLOW.lv]);h.dataset.lv=FLOW.lv;
-    h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='€×'+fmtMul(flowMult());
+    h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='\uE000×'+fmtMul(flowMult());
     const g=FLOW.glow;g.style.setProperty('--fc',FLOW_COL[FLOW.lv]);g.dataset.lv=FLOW.lv;g.style.opacity=FLOW.lv?(.25+FLOW.lv*.15).toFixed(2):'0';
     if(FLOW.lv===4)frenEntre();else{h.classList.remove('embrase','sc1','sc2');if(av===4)frenSort();}} // (sans ça, un retour d'écran — display rendu — rejouerait l'embrasement)
 }
@@ -53016,9 +53036,9 @@ const MOTIFS={
       motTore(x,function(){x.fillStyle='rgba(255,255,255,.85)';x.fillRect(cx-r*1.4,cy-.8,r*2.8,1.6);x.fillRect(cx-.8,cy-r*1.4,1.6,r*2.8);});}}},
   cash:{s:.45,c:0x1d7f45,f:function(x,R){x.fillStyle='#1d7f45';x.fillRect(0,0,MOT_W,MOT_W);
     x.strokeStyle='rgba(255,255,255,.07)';x.lineWidth=10;for(let k=-5;k<5;k++){x.beginPath();x.moveTo(k*128,0);x.lineTo(k*128+MOT_W,MOT_W);x.stroke();} // le guillochage du billet
-    x.font='900 92px "Arial Black",Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
+    x.font='92px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
     for(let b=0;b<4;b++)for(let a=0;a<4;a++){const cx=(a+.5+(b&1)*.5)*128,cy=(b+.5)*128,ro=(R()-.5)*.5;
-      motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(ro);x.lineWidth=10;x.strokeStyle='#0c4425';x.strokeText('€',0,4);x.fillStyle='#ffd23a';x.fillText('€',0,4);x.restore();});}}}};
+      motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(ro);x.lineWidth=10;x.strokeStyle='#0c4425';x.strokeText('\uE000',0,4);x.fillStyle='#ffd23a';x.fillText('\uE000',0,4);x.restore();});}}}};
 /* ===== LES LIVRÉES « STICKERS » ET LES LÉGENDAIRES (2026-11-05, le nuancier v3) =====
    Six toiles épiques de plus (mêmes règles que les pelages : 512 px raccordées, un tirage fixe par id) et les six légendaires. Une légendaire a
    `anim` (la clé de son programme dans MOT_ANIM, posé par motGreffe) ; sa toile `f` ne sert qu'à la pastille des listes. */
@@ -61034,7 +61054,7 @@ const billNoteTex=(function(){
   apresPolice(function(){c.fillStyle='#1c0430';c.fillRect(0,0,64,32);c.fillStyle='#2f9a52';c.fillRect(2,2,60,28);
   c.strokeStyle='#7fd89a';c.lineWidth=2;c.strokeRect(5,5,54,22);
   c.fillStyle='#ffd75e';c.font='8px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
-  c.fillText('€',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
+  c.fillText('\uE000',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
   return tx;
 })();
 const billGeo=new THREE.PlaneGeometry(.5,.25);
@@ -61149,7 +61169,7 @@ function updatePool(pool,dt,grav){
    fête — en 15 couleurs pastel. Désormais : UN atlas cuit une fois (15 glyphes en OR de l'argent — clair en haut, ombre en bas — cerclés
    d'un LISERÉ d'encre #1c0430, comme tout ce qui rapporte), 600 panneaux instanciés (`mkPanneaux`), tableaux fixes, zéro allocation.
    Le mouvement est celui d'avant (ça tournoie en tombant, fondu la dernière seconde). */
-const CURR=['€','€','¥','£','€']; // (2026-10-15, UNE SEULE POLICE) les cinq que la police pixel DESSINE — ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ tombaient dans une police de secours (mesuré)
+const CURR=['\uE000','\uE000','¥','£','\uE000']; // (2026-10-15, UNE SEULE POLICE) les cinq que la police pixel DESSINE — ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ tombaient dans une police de secours (mesuré)
 const MONN_TEX=(function(){
   const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d'),tx=new THREE.CanvasTexture(cv);
   apresPolice(function(){c.clearRect(0,0,S*4,S*4);
@@ -65248,7 +65268,7 @@ function m2ValCourse(m){try{switch(m.k){case 'aura':return Math.round(auraRun)||
 function m2Frac(m,v,t){return t>0?Math.max(0,Math.min(1,v/t)):0;}
 function m2Prog(m,v,t){v=Math.min(v,t); // « 3 / 5 », « 42 000 / 100 000 $ », « 4,2 / 5 S », « 1:12 / 5:00 »
   switch(m.u){case 's':return decFr(Math.floor(v*10)/10,1)+' / '+t+' S';case 'kmh':return m2Nb(v)+' / '+m2Nb(t)+' KM/H';case 'km':return m2Nb(Math.floor(v))+' / '+m2Nb(t)+' KM';
-    case '$':return m2Nb(v)+' / '+m2Nb(t)+' €';case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
+    case '$':return m2Nb(v)+' / '+m2Nb(t)+' '+CUR();case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
     case 'b':return v>=t?TR('FAIT'):TR('PAS ENCORE');}
   return m2Nb(v)+' / '+m2Nb(t);}
 function m2RecNom(m){const r=m.r||{};if(r.cash)return '+'+fmtC(r.cash);if(r.car)return TR(r.car);
@@ -65330,7 +65350,7 @@ function mcCanon(){ // le dessin du canon (graduations, rayures) : calculé une 
 function mcVedette(x,s,arme){const m=x.m,pret=x.rg===0,R=mcRec(m),w=mcVu(x,s),C=2*Math.PI*88,pg=R.k==='hab'?R.c:'';if(arme)w[0]=0; /* arme : on arrive sur la page, l'anneau se charge depuis zéro */
   let fond;
   if(R.k==='car')fond=mcSil(R.i,false,pret&&m2Pret(m.id));
-  else if(R.k==='cash')fond='<b class="mcSom"><small>€</small>'+m2Nb(R.v)+'</b>';
+  else if(R.k==='cash')fond='<b class="mcSom"><small>'+CUR()+'</small>'+m2Nb(R.v)+'</b>';
   else if(R.k==='hab')fond='<b class="mcRar">'+sansAcc(TR(R.rar))+'</b>';
   else fond='<b class="mcSom">?</b>';
   const lab=R.k==='car'?TR('VOITURE')+' · '+TR(R.rar):R.k==='hab'?TR(R.cat)+' · '+TR(R.rar):''; /* l'argent se lit tout seul au fond du portail */
@@ -67765,7 +67785,7 @@ function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteu
   const x0=(flyV.x*.5+.5)*innerWidth,y0=(-flyV.y*.5+.5)*innerHeight;
   const r=elMoney.getBoundingClientRect(),x1=r.left+r.width/2,y1=r.top+r.height/2;
   for(let i=0;i<n;i++){
-    const b=document.createElement('div');b.className='bill';b.textContent='€';
+    const b=document.createElement('div');b.className='bill';b.textContent='\uE000';
     b.style.left=(x0+(Math.random()-.5)*70)+'px';b.style.top=(y0+(Math.random()-.5)*46)+'px';
     document.body.appendChild(b);
     setTimeout(()=>{b.style.left=x1+'px';b.style.top=y1+'px';b.style.opacity=0;b.style.fontSize='8px';},30+i*45);
@@ -69725,7 +69745,7 @@ function start(){
    qu'on voulait fuir. VS-15 force la présentation TEXTE, donc notre police et notre couleur. */
 const VS='\uFE0E';
 const JETONS=[
-  {g:'€',        c:'#ffd75e',n:'EURO',         p:46},
+  {g:'\uE000',    c:'#ffd75e',n:'EURO',         p:46},
   {g:'♦'+VS,     c:'#ff9d2e',n:'CARREAU',      p:15},
   {g:'♥'+VS,     c:'#ff5e8a',n:'CŒUR',         p:13},
   {g:'♣'+VS,     c:'#54e07a',n:'TRÈFLE',       p:11},
@@ -74758,7 +74778,7 @@ function richCarteGeo(){const g=new THREE.BoxGeometry(1,.63,.018),uv=g.attribute
   g.clearGroups();return g;}
 function richTexLiasse(){const b=RICH.texBillet.image;return richCv(512,512,function(x){ // la LIASSE : le billet du dessus et sa BANDE ; les feuilles empilées sur la tranche
   x.drawImage(b,0,0,512,236);x.fillStyle='#efe6cf';x.fillRect(228,0,56,236);x.fillStyle='rgba(150,110,40,.6)';x.fillRect(228,0,3,236);x.fillRect(281,0,3,236);
-  x.save();x.translate(256,118);x.rotate(-Math.PI/2);x.font='14px "Press Start 2P",monospace';x.fillStyle='#7a5a1a';x.textAlign='center';x.textBaseline='middle';x.fillText('€ 10 000',0,0);x.restore();
+  x.save();x.translate(256,118);x.rotate(-Math.PI/2);x.font='14px "Press Start 2P",monospace';x.fillStyle='#7a5a1a';x.textAlign='center';x.textBaseline='middle';x.fillText('\uE000 10 000',0,0);x.restore();
   for(let y=256;y<512;y+=4){x.fillStyle=(y/4)%2?'#cfe9e1':'#0c5a66';x.fillRect(0,y,512,4);}x.fillStyle='#efe6cf';x.fillRect(228,256,56,256);});}
 function richLiasseGeo(){const g=new THREE.BoxGeometry(1,.46,.12),uv=g.attributes.uv;
   for(const G9 of g.groups)for(let k=G9.start;k<G9.start+G9.count;k++){const i=g.index.getX(k),u=uv.getX(i),v=uv.getY(i);
@@ -82457,7 +82477,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
       dx:(Math.random()-.5)*14,dy:(Math.random()-.5)*14});
   }
   // ⚠ \uFE0E : même raison que pour les jetons — sans lui macOS remplace ♥ ♣ ☠ ♦ par ses emoji couleur.
-  const SYMS=[['€','#ffd75e'],['♥\uFE0E','#ff5e8a'],['♣\uFE0E','#54e07a'],['☠\uFE0E','#e8e8f0'],['£','#9ad8ff'],['¥','#ffc46b'],['1.61','#fff2be'],['♦\uFE0E','#ff9d2e']];
+  const SYMS=[['\uE000','#ffd75e'],['♥\uFE0E','#ff5e8a'],['♣\uFE0E','#54e07a'],['☠\uFE0E','#e8e8f0'],['£','#9ad8ff'],['¥','#ffc46b'],['1.61','#fff2be'],['♦\uFE0E','#ff9d2e']];
   function beat(k){ // battement de cœur du logo : pulsation + micro-flash + onde
     if(done)return;
     /* (2026-10-15) le battement faisait pulser « 1.61 »… encore INVISIBLE à ce moment-là (il ne se lève qu'après la fission, depuis l'ordre
