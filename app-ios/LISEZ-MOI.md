@@ -29,6 +29,9 @@ qui affiche le jeu dans une vue web, sans navigateur autour). Le jeu n'est **pas
   de `capacitor.config.json` n'a aucun module installé : il est inerte (gardé, sans effet).
 - **L'écran de lancement attend le jeu** (IOS-20) : `launchAutoHide:false` ; c'est `natif.js` qui l'efface à `DOMContentLoaded`
   (après l'exécution du grand script), avec un filet à 30 s. Avant, il partait seul à 4 s et un iPhone lent montrait un fond violet nu.
+- **L'écran de lancement est NOIR** (2026-11-07, Sacha : « enlève l'écran CASH CAR avec des néons au tout début ») : les images de
+  `Splash.imageset` sont du noir uni 2732 × 2732, le même noir que la 1re image du jeu ; `generer-icones.js` le refait noir (plus
+  `ressources/lancement-2732.png`). iOS garde l'ancien écran en cache : supprimer l'app du téléphone avant de réinstaller.
 - **Une version native = un numéro de version** (IOS-19) : `publier-maj.js` met `natifMin` = `MARKETING_VERSION`, et l'app ne compare
   que ce numéro (`getBuiltinVersion`, pas le numéro de build). Donc **chaque envoi qui change le natif** (un module Capacitor, une
   autorisation, `Info.plist`, Swift) **monte `MARKETING_VERSION`** (1.0.0 → 1.0.1 → 1.1.0) ; monter seulement le build ne suffit pas :
