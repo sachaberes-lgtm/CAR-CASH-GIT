@@ -11464,6 +11464,54 @@ html:is([data-palier="0"],[data-palier="1"]) #mShop .shUneBoite .shBx.big .shBxI
 html[data-reduced-motion="1"] #mShop .shGrille .shBoite,html[data-reduced-motion="1"] #mShop .shBx .shBxI,html[data-reduced-motion="1"] #mShop .shBx::before,html[data-reduced-motion="1"] #mShop .shBx::after{animation:none!important}
 @media (prefers-reduced-motion:reduce){#mShop .shGrille .shBoite,#mShop .shBx .shBxI,#mShop .shBx::before,#mShop .shBx::after{animation:none!important}}
 </style>
+<style id="inventaireGrand">
+/* ===== L'INVENTAIRE EN GRAND (2026-11-07, Sacha : « l'inventaire est un peu petit, il pourrait être plus haut, l'espace du haut de l'iPhone n'est pas occupé » · « les voitures sont mal présentées, ça donne pas envie : 2 par 2 au lieu de 3 par 3 » · « refais les ailes, là on voit pas les voitures ») — voir interface/inventaire-grand.js =====
+   1. DEBOUT, LE PANNEAU MONTE JUSQUE SOUS LE NOM. La grille était plafonnée à trois petites rangées (256 px) pour laisser la caisse en
+      vue : MESURÉ en 390 × 844, le panneau commençait à 355 px du haut, le nom finissait à 161. #garage est une colonne (le haut, la
+      jauge qui tourne la caisse, le panneau) : le panneau grandit désormais avec ce qu'il range, jusqu'à TOUTE la place qui reste sous
+      le nom (quelles que soient l'encoche et la taille de l'iPhone) ; au-delà, la grille défile. Un onglet presque vide (une seule
+      peinture) garde un petit panneau : la caisse qu'on peint reste en vue. Plein, la caisse est derrière le panneau : sa jauge
+      s'efface (les cases montrent les caisses). Couché, rien ne change. */
+@media (orientation:portrait){
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{flex:0 1 auto!important;min-height:0!important;height:auto!important;max-height:none!important;margin-top:8px!important}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gTourne{display:none!important}
+  /* le verre du panneau (22 à 34 % en haut) laissait voir la caisse floue derrière les onglets : il s'épaissit */
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{background:linear-gradient(180deg,rgba(24,18,48,.9) 0%,rgba(16,12,34,.94) 40%,rgba(11,8,24,.97) 100%)}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{flex:0 1 auto!important;height:auto!important;min-height:110px;max-height:none!important;align-content:start}}
+/* 2. VOITURES ET AILES, DEUX PAR RANGÉE. Une case = un petit studio : la lumière de la rareté (--rr) qui tombe d'en haut, un sol éclairé
+      sous la caisse, la grande photo (pour une aile : ta caisse qui la porte), une plaque d'encre avec le nom, cousue d'un filet de la
+      rareté. La pente de l'atelier (--sk) reste : la photo et les mots sont redressés (un pixel penché bave). Tout est à toi ici : plus
+      de coche à chaque case ; l'équipée dit ÉQUIPÉE en cyan (à la place du petit losange d'or). */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:max-content;align-content:start;gap:12px 12px;padding:10px 20px 16px}
+/* (MESURÉ) une case étirée dans sa rangée ignorait son rapport : les rangées tombaient à 8 px et les cases se chevauchaient — align-self:start */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT{height:auto!important;aspect-ratio:1.18;align-self:start;
+  background:radial-gradient(75% 62% at 50% -10%,color-mix(in srgb,var(--rr,#5ee6ff) 58%,transparent) 0%,color-mix(in srgb,var(--rr,#5ee6ff) 16%,transparent) 55%,transparent 82%),
+    radial-gradient(48% 13% at 50% 63%,color-mix(in srgb,var(--rr,#5ee6ff) 38%,rgba(255,255,255,.1)) 0%,transparent 100%),
+    linear-gradient(180deg,#241d48 0%,#16112e 58%,#0c0919 100%)}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT>.gTl,
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT>.gTv,
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT>em,
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT.eq::after{display:none}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT>img{left:4%!important;top:3px!important;width:92%!important;height:calc(100% - 36px)!important;object-fit:contain;
+  filter:drop-shadow(0 6px 5px rgba(3,1,9,.6))}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT.ill .gIc{top:calc((100% - 30px) / 2 - 18px)}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT>.rarLogo{top:7px;right:10px}
+/* la plaque */
+#garage.atelierInv #gStrip.ivDeux .ivPl{position:absolute;left:0;right:0;bottom:0;height:30px;display:flex;align-items:center;justify-content:center;padding:0 12px;box-sizing:border-box;
+  background:linear-gradient(180deg,rgba(9,7,20,.86),rgba(7,5,15,.97));box-shadow:inset 0 1px 0 color-mix(in srgb,var(--rr,#5ee6ff) 70%,transparent),inset 0 2px 0 rgba(255,255,255,.04)}
+#garage.atelierInv #gStrip.ivDeux .ivNom{display:block;width:100%;overflow:hidden;white-space:nowrap;text-align:center;font-weight:400;font-size:var(--f1);line-height:1.25;letter-spacing:.04em;color:#fff;
+  text-shadow:0 1px 0 rgba(3,1,9,.9);transform:skewX(var(--skI))}
+#garage.atelierInv #gStrip.ivDeux .ivNom.n7{font-size:var(--f0)}
+#garage.atelierInv #gStrip.ivDeux .ivNom.deux{white-space:normal;line-height:1.3;text-wrap:balance}
+#garage.atelierInv #gStrip.ivDeux .gT.on .ivNom{color:var(--neoC,#5ee6ff)}
+/* ÉQUIPÉE */
+#garage.atelierInv #gStrip.ivDeux .ivEq{position:absolute;left:12px;top:7px;z-index:2;display:flex;align-items:center;gap:4px;padding:3px 6px 2px;background:var(--neoC,#5ee6ff);color:#07050f;font-style:normal;
+  transform:skewX(var(--skI));box-shadow:0 0 10px rgba(94,230,255,.55)}
+#garage.atelierInv #gStrip.ivDeux .ivEq .pxi{--pxs:1;margin:0}
+#garage.atelierInv #gStrip.ivDeux .ivEq>span{font-weight:400;font-size:var(--f0);line-height:1;white-space:nowrap}
+/* hors de cette grille, la plaque n'existe pas (la bande du garage, la boutique du jour) */
+#gStrip:not(.ivDeux) .ivPl,#gStrip:not(.ivDeux) .ivEq,#garage:not(.atelierInv) #gStrip .ivPl,#garage:not(.atelierInv) #gStrip .ivEq{display:none}
+</style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
 <nav id="gHub" role="tablist" aria-label="Garage">
@@ -11767,7 +11815,7 @@ if(!ACHAT_EUR)try{const s9=document.createElement('style');s9.id='sansAchat';
 const PXI_G={coeur:'.........|.##...##.|####.####|#########|#########|.#######.|..#####..|...###...|....#....',vibre:'..#####..|#.#...#.#|#.#...#.#|..#...#..|#.#...#.#|#.#...#.#|..#...#..|..#.#.#..|..#####..',aimant:'##.....##|.........|##.....##|##.....##|##.....##|###...###|.#######.|..#####..|.........',bouclier:'#########|##.....##|##.....##|##.....##|.##...##.|.##...##.|..##.##..|...###...|....#....',nuage:'.........|.........|....##...|...####..|.##.####.|#########|#########|.#######.|.........',immeuble:'....#....|...###...|...###.##|##.###.##|##.###.##|#########|#########|#########|.........',flamme:'....#....|...##....|...###...|..####.#.|..######.|.###.###.|.##...##.|.##...##.|..#####..',pinceau:'......###|.....####|....####.|...####..|..####...|.#.##....|###......|###......|.#.......',aile:'.........|#........|##.......|###......|#####....|.#######.|..#######|....#####|.......##',trainee:'.........|##.......|.###.....|..####...|...######|..####...|.###.....|##.......|.........',pouce:'...##....|...##....|...##....|...####..|.#######.|.########|.#######.|..#####..|..#####..',cadeau:'.##...##.|#..#.#..#|.#######.|#########|#...#...#|####.####|.#..#..#.|.#..#..#.|.#######.',cible:'..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..',croix:'##.....##|###...###|.###.###.|..#####..|...###...|..#####..|.###.###.|###...###|##.....##',gauche:'....##...|...###...|..####...|.#####...|######...|.#####...|..####...|...###...|....##...',droite:'...##....|...###...|...####..|...#####.|...######|...#####.|...####..|...###...|...##....',haut:'.........|....#....|...###...|..#####..|.#######.|#########|...###...|...###...|...###...',bas:'...###...|...###...|...###...|#########|.#######.|..#####..|...###...|....#....|.........',lecture:'##.......|####.....|######...|########.|#########|########.|######...|####.....|##.......',pause:'.........|###...###|###...###|###...###|###...###|###...###|###...###|###...###|.........',son:'....#....|...##..#.|####.#..#|####.#..#|####.#..#|####.#..#|...##..#.|....#....|.........',muet:'....#....|...##....|####..#.#|####...#.|####..#.#|####.....|...##....|....#....|.........',musique:'...######|...#....#|...#....#|...#....#|.###..###|####.####|####.####|.##...##.|.........',volant:'..#####..|.#.....#.|#.......#|#..###..#|#########|#...#...#|#...#...#|.#..#..#.|..#####..',fleches:'.........|..#...#..|.##...##.|###...###|###...###|###...###|.##...##.|..#...#..|.........',eclair:'.....###.|....###..|...###...|..######.|.....##..|....##...|...##....|..##.....|.#.......',drapeau:'#.#.#.#.#|##.#.#.#.|#.#.#.#.#|##.#.#.#.|#.#.#.#.#|#........|#........|#........|#........',voiture:'.........|.........|..####...|.#..#.#..|########.|#########|#########|.##...##.|.##...##.',rampe:'.........|.........|........#|......###|.....####|...######|.########|#########|.........',brique:'#########|#...#...#|#########|..#...#..|#########|#...#...#|#########|..#...#..|#########',copier:'...###...|.##...##.|.#######.|.#.....#.|.#.###.#.|.#.....#.|.#.###.#.|.#.....#.|.#######.',importer:'....#....|....#....|..#.#.#..|...###...|....#....|#.......#|#.......#|#########|.........',corbeille:'...###...|#########|.#.....#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.#.#.#.|.#.....#.|..#####..',rejouer:'..#####..|.#.....##|#.....###|#........|#........|#.......#|#.......#|.#.....#.|..#####..',quitter:'#####....|#...#....|#...#.#..|#...#.##.|#..######|#...#.##.|#...#.#..|#...#....|#####....',verrou:'..#####..|.#.....#.|.#.....#.|#########|#########|####.####|####.####|#########|#########',coche:'.........|........#|.......##|#.....##.|##...##..|.##.##...|..###....|...#.....|.........',etoile:'....#....|....#....|...###...|#########|.#######.|..#####..|..##.##..|.##...##.|.#.....#.',trophee:'#########|#.#####.#|#.#####.#|.#######.|..#####..|...###...|....#....|..#####..|.#######.',rotation:'..#####..|.#.....##|#.....###|#........|#..###...|#..#.#..#|#..###..#|.#.....#.|..#####..',panier:'.........|#........|.#######.|.#.#.#.#.|.#######.|..#.#.#..|..#####..|..#...#..|.........',bulle:'.#######.|#.......#|#.#.#.#.#|#.......#|.###.###.|...#.#...|...##....|...#.....|.........',piece:'..#####..|.#.....#.|#..###..#|#.#.....#|#..###..#|#.....#.#|#..###..#|.#.....#.|..#####..',maison:'....#....|...###...|..#####..|.#######.|#########|.#######.|.##...##.|.##...##.|.##...##.',horloge:'..#####..|.#..#..#.|#...#...#|#...#...#|#...###.#|#.......#|#.......#|.#.....#.|..#####..',triade:'....#....|...###...|...###...|..##.##..|.##.#.##.|.###.###.|#########|#########|.........'};
 PXI_G.reglages='....###....|.##.###.##.|.#########.|..#######..|####...####|####...####|####...####|..#######..|.#########.|.##.###.##.|....###....'; // (2026-10-15, Sacha : « fais un truc qui ressemble vraiment à un engrenage ») l'ancien 9 × 9 lisait un SOLEIL (huit rayons d'un pixel) ; un rouage, ce sont des DENTS carrées séparées par des creux et un MOYEU percé — il faut 11 × 11 pour que les trois tiennent
 PXI_G.coffre='.#######.|#.......#|#.......#|#########|#...#...#|#..###..#|#...#...#|#.......#|#########'; // (2026-10-05) le COFFRE : l'inventaire (le coffre de la caisse)
-PXI_G.troisLosanges='.................|.................|.................|.................|.................|.................|..#.....#.....#..|.###...###...###.|#####.#####.#####|.###...###...###.|..#.....#.....#..|.................|.................|.................|.................|.................|.................'; /* (2026-10-25, Sacha : « les trois petits losanges pour choisir les figures ») l'inventaire : les trois EMPLACEMENTS de figures — (2026-10-26, Sacha : « les trois carrés du bouton inventaire doivent être alignés, pas en triangle ») sur une seule ligne, en 17 × 17 (même cadre, pixels plus fins) */
+PXI_G.troisLosanges='.................|.................|..#.....#.....#..|.###...###...###.|#####.#####.#####|.###...###...###.|..#.....#.....#..|.................|.................'; /* (2026-11-07, Sacha : « le bouton inventaire est toujours buggé ») dans le cadre 17 × 17, les losanges ne prenaient que 5 lignes : trois points de 1,6 px la case, flous, à côté de la cible de MISSIONS — la grille passe à 17 × 9 : la boîte a la HAUTEUR des autres icônes (le mot reste aligné sur celui de MISSIONS) et s'élargit (voir le rendu des icônes plus bas), une case = un pixel net */ /* (2026-10-25, Sacha : « les trois petits losanges pour choisir les figures ») l'inventaire : les trois EMPLACEMENTS de figures — (2026-10-26, Sacha : « les trois carrés du bouton inventaire doivent être alignés, pas en triangle ») sur une seule ligne, en 17 × 17 (même cadre, pixels plus fins) */
 PXI_G.roue='..#####..|.#.....#.|#..###..#|#.#...#.#|#.#.#.#.#|#.#...#.#|#..###..#|.#.....#.|..#####..'; // (2026-10-09) la famille COMMUNE : la roue
 PXI_G.gemme='.........|..#####..|.#..#..#.|#########|.#.....#.|..#...#..|...#.#...|....#....|.........'; // (2026-10-09) la famille RARE : la gemme taillée
 PXI_G.couronne='.........|#...#...#|#..###..#|##.###.##|#########|#########|.........|#########|.........'; // (2026-10-09) la famille LÉGENDAIRE : la couronne
@@ -11823,10 +11871,12 @@ PXI_G.foudre=PXI_G.eclair;if(!/[?&]boost=eclair/.test(location.search))PXI_G.ecl
   for(const k in PXI_G){
     const rows=PXI_G[k].split('|');let r='';
     const n=rows.length; // 9 × 9 d'ordinaire ; une grille plus fine (l'engrenage, 11 × 11) garde le même cadre, ses pixels sont juste plus petits
-    for(let y=0;y<n;y++)for(let x=0;x<n;x++)if(rows[y][x]==='#')r+='<rect x="'+x+'" y="'+y+'" width="1" height="1"/>';
-    const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+n+' '+n+'" shape-rendering="crispEdges">'+r+'</svg>';
+    const w=rows[0].length; /* (2026-11-07) une icône plus LARGE que haute (les trois losanges d'INVENTAIRE, 17 × 9) : sa boîte prend sa forme, une case = un pixel d'icône (--pxs) */
+    for(let y=0;y<n;y++)for(let x=0;x<w;x++)if(rows[y][x]==='#')r+='<rect x="'+x+'" y="'+y+'" width="1" height="1"/>';
+    const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+w+' '+n+'" shape-rendering="crispEdges">'+r+'</svg>';
     vars+='--pxi-'+k+':url("data:image/svg+xml,'+encodeURIComponent(svg)+'");'; // aussi pour les ::before du CSS
     css+='.pxi-'+k+'{--pxi:var(--pxi-'+k+')}';
+    if(w!==n)css+='.pxi.pxi-'+k+'{width:calc('+w+'px*var(--pxs,2));height:calc('+n+'px*var(--pxs,2))}';
   }
   const st=document.createElement('style');st.id='pxiCss';st.textContent=':root{'+vars+'}'+css;document.head.appendChild(st);
 })();
@@ -73027,8 +73077,10 @@ function gStripModeVoitures(){
       const u=CAR_UNLOCK[i],ouv=i===eq||carUnlockedVrai(i);
       const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?eurTxt(u.eur):u&&u.k==='mis'?sansAcc(TR(m2Secrete(i)?'SECRÈTE':'MISSION')):'');
       const sec9=!ouv&&m2Secrete(i);
-      return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':String(CARS[i].name).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+'">'
-        +'<i class="gTl"></i><i class="gTv"></i>'+rarLogo(i)+'<em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join('');
+      const iv9=m==='inv'?';--rr:'+rarInfo(carRar(i)).c:'',pl9=m==='inv'?ivPlaque(sansAcc(TR(CARS[i].name)),i===eq):''; /* (L'INVENTAIRE EN GRAND) la plaque du nom et la lumière de la rareté — voir inventaire-grand.css */
+      return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':String(CARS[i].name).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+iv9+'">'
+        +'<i class="gTl"></i><i class="gTv"></i>'+rarLogo(i)+'<em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em>'+pl9+'</div>';}).join('');
+    ivDeux(st,m==='inv');
      // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
     st.querySelectorAll('.gT[data-car]').forEach(function(el){const i=+el.getAttribute('data-car');
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
@@ -74088,10 +74140,13 @@ function gStripHabits(cat,i){
       else{fig=illuPx(illuAile(d),'gIc',!a);ill=true;} // (2026-10-14) les ailes POP ont leur pictogramme — (L'INVENTAIRE ILLUSTRÉ) celles d'origine aussi
       const et=a?(eqd&&cat==='peinture'&&d.id!=='usine'?pxi('croix'):eqd||S9?'':pxi('coche')):(d.eur?eurTxt(d.eur):d.p?fmtC(d.p):d.pack==='chat'?sansAcc(TR('PACK CHAT')):d.pack?eurTxt(PALETTE_PACK.eur):sansAcc(TR('MISSION'))); /* (2026-10-18 soir) l'ARC-EN-CIEL n'est pas de la palette (voir chatPackI) */ // (2026-10-14, palette) un article du PACK dit son prix en euros // (à gagner : le cadenas est déjà au coin)
       if(!garde(d))return '';
-      const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff"':md==='tous'?' style="--rc:#ff3ec8"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
-      return '<div class="gT cos c-'+cat+(d.ico&&cat==='trainee'?' pop':'')+(ill?' ill':'')+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'"'+(cat==='aile'?' data-aile="'+d.id+'"':'')+' role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'||cat==='figure'||ill?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');
-    if(cat==='aile'&&typeof aileFile==='function')st.querySelectorAll('.gT[data-aile]').forEach(function(el){try{aileFile(el.getAttribute('data-aile'),function(url){ // (L'INVENTAIRE ILLUSTRÉ) l'aile en PHOTO dès que la boutique sait la faire
-      if(!url||!el.isConnected||el.classList.contains('photo'))return;const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);el.classList.add('photo');});}catch(e){console.warn('aileFile',e);}});}
+      const ivA=md==='inv'&&cat==='aile'; /* (L'INVENTAIRE EN GRAND, 2026-11-07, Sacha : « refais les ailes, là on voit pas les voitures ») une aile = TA caisse qui la porte, deux par rangée, sa plaque */
+      const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff'+(ivA?';--rr:'+rarInfo(cosmRar(cat,d)).c:'')+'"':md==='tous'?' style="--rc:#ff3ec8"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
+      return '<div class="gT cos c-'+cat+(d.ico&&cat==='trainee'?' pop':'')+(ill?' ill':'')+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'"'+(cat==='aile'?' data-aile="'+d.id+'"':'')+' role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(ivA?ivPlaque(sansAcc(TR(d.n)),eqd):cat==='aile'||cat==='figure'||ill?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');
+    ivDeux(st,md==='inv'&&cat==='aile');
+    const fo9=md==='inv'&&typeof bcAileFile==='function'?bcAileFile:typeof aileFile==='function'?aileFile:null; /* l'inventaire : la caisse du joueur (sa peinture) qui porte l'aile, la photo du rayon AILES de la boutique ; ailleurs, l'aile seule */
+    if(cat==='aile'&&fo9)st.querySelectorAll('.gT[data-aile]').forEach(function(el){try{fo9(el.getAttribute('data-aile'),function(url){ // (L'INVENTAIRE ILLUSTRÉ) l'aile en PHOTO dès que la boutique sait la faire
+      if(!url||!el.isConnected||el.classList.contains('photo'))return;const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);el.classList.add('photo');},el);}catch(e){console.warn('aileFile',e);}});}
   if(cat==='figure')try{gFigSelMaj();gFigGrilleArme();}catch(e){console.warn('figSel',e);} // (LES TROIS FIGURES ÉQUIPÉES) le sélecteur au-dessus de la grille // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-cos')===i);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
@@ -79373,6 +79428,23 @@ function bqNomsVeille(){const g=document.getElementById('garage');if(!g||REVUE.o
   REVUE.ob=new MutationObserver(function(){if(!REVUE.raf)REVUE.raf=requestAnimationFrame(bqNomsAjuste);});
   REVUE.ob.observe(g,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});}
 try{bqNomsVeille();}catch(e){}
+/* ===== L'INVENTAIRE EN GRAND (2026-11-07, Sacha : « refais les ailes, là on voit pas les voitures, c'est moche » · « l'inventaire est un peu petit, il pourrait être plus haut, l'espace du haut de l'iPhone n'est pas occupé » · « les voitures sont mal présentées, ça donne pas envie : mets-les 2 par 2 au lieu de 3 par 3 ») =====
+   Dans l'atelier fermé (le bouton INVENTAIRE), les VOITURES et les AILES passent DEUX par rangée : chaque case est un petit studio (la
+   lumière de sa rareté qui tombe d'en haut, un sol éclairé), la grande photo de la caisse — pour une aile, TA caisse qui la porte, la photo
+   du rayon AILES de la boutique (bcAileFile) — et une plaque avec son nom ; la caisse ou l'aile équipée porte ÉQUIPÉE. Debout, le panneau
+   monte jusque sous le nom (css/inventaire-grand.css). `ivDeux` est appelé par gStripModeVoitures et gStripHabits à chaque pose de la grille.
+   `dbgInvGrand()` : la grille, ses cases, leurs noms et leurs photos (banc). */
+function ivPlaque(nom,eq){ /* des <span>, jamais de <b> : « .gT b » (et « .gT.c-aile b », top 36 px) posent tout <b> d'une case en étiquette */
+  return '<span class="ivPl"><span class="ivNom">'+nom+'</span></span>'+(eq?'<span class="ivEq">'+pxi('coche')+'<span>'+sansAcc(TR('ÉQUIPÉE'))+'</span></span>':'');}
+function ivDeux(st,on){if(!st)return;st.classList.toggle('ivDeux',!!on);if(!on)return;
+  requestAnimationFrame(function(){ivNoms(st);});
+  if(!ivDeux._r){ivDeux._r=1;window.addEventListener('resize',function(){const s=document.getElementById('gStrip');if(s&&s.classList.contains('ivDeux'))requestAnimationFrame(function(){ivNoms(s);});},{passive:true});}}
+/* le NOM tient sur sa plaque : le corps descend d'un cran, puis deux lignes équilibrées (jamais un mot coupé n'importe où) */
+function ivNoms(st){st.querySelectorAll('.ivNom').forEach(function(b){const w=b.clientWidth;if(!w)return;const k=w+'|'+b.textContent;if(b._k===k)return;b._k=k;
+  b.classList.remove('n7','deux');if(b.scrollWidth<=w+1)return;b.classList.add('n7');if(b.scrollWidth<=w+1)return;b.classList.add('deux');});}
+window.dbgInvGrand=function(){const st=document.getElementById('gStrip'),g=document.getElementById('gBottom'),r=function(x){if(!x)return null;const b=x.getBoundingClientRect();return [Math.round(b.left),Math.round(b.top),Math.round(b.width),Math.round(b.height)];};
+  return {deux:!!(st&&st.classList.contains('ivDeux')),bas:r(g),grille:r(st),nom:r(document.getElementById('gName')),cols:st&&getComputedStyle(st).gridTemplateColumns,
+    cases:st?[...st.querySelectorAll('.gT')].slice(0,6).map(function(el){const n=el.querySelector('.ivNom');return {b:r(el),nom:n&&[n.textContent,n.className,n.scrollWidth,n.clientWidth],photo:!!el.querySelector('img'),eq:!!el.querySelector('.ivEq')};}):[]};};
 /* ===== LE PREMIER BURN-OUT, REVENU (2026-10-08, Léo : « reviens sur le premier burn-out, celui où on ne pouvait pas faire de donuts ;
    reviens sur celui-là et laisse-moi juste faire des donuts avec lui aussi ; reviens sur les premiers petits carrés transparents ; si tu y
    arrives, intègre quelques cubes blancs comme tu as fait là ; remets-le sur le main — la fumée ET le mouvement, les deux »). Ce bloc est
