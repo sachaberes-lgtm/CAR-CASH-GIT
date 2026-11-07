@@ -15,7 +15,7 @@ ICI=os.path.dirname(os.path.abspath(__file__));sys.path.insert(0,ICI)
 from cdp import CDP
 sp=importlib.util.spec_from_file_location('gp',os.path.join(ICI,'garde-perf.py'));gp=importlib.util.module_from_spec(sp);sp.loader.exec_module(gp)
 RACINE=os.path.dirname(os.path.dirname(ICI));VP=os.path.join(RACINE,'VERSION PRINCIPALE')
-OPT={'portails':0,'cartes':'nuages:midi,ville:pluie,jade:midi,grotte:matin,dunes:midi,canyon:midi,foret:midi,banquise:midi,espace:matin,crypto:midi','trace':False,'ctrl':0,'parties':5,'json':None,'tas':[],'qs':'','carte':'nuages:midi','roule':8,'dossier':None,'palier':2}
+OPT={'tmax':90,'vp':None,'portails':0,'cartes':'nuages:midi,ville:pluie,jade:midi,grotte:matin,dunes:midi,canyon:midi,foret:midi,banquise:midi,espace:matin,crypto:midi','trace':False,'ctrl':0,'parties':5,'json':None,'tas':[],'qs':'','carte':'nuages:midi','roule':8,'dossier':None,'palier':2}
 def lire_args():
     av=sys.argv[1:];i=0
     while i<len(av):
@@ -27,6 +27,8 @@ def lire_args():
         elif a=='--carte':OPT['carte']=av[i+1];i+=2
         elif a=='--portails':OPT['portails']=int(av[i+1]);i+=2
         elif a=='--cartes':OPT['cartes']=av[i+1];i+=2
+        elif a=='--tmax':OPT['tmax']=int(av[i+1]);i+=2
+        elif a=='--vp':OPT['vp']=av[i+1];i+=2
         elif a=='--trace':OPT['trace']=True;i+=1
         elif a=='--roule':OPT['roule']=float(av[i+1]);i+=2
         elif a=='--dossier':OPT['dossier']=av[i+1];i+=2
@@ -101,14 +103,14 @@ def partie(c,i):
             if not ok:c.pump(.5)
         if not ok:
             c.ev("dbgEco('rejouer');1")
-    if not gp.attend(c,"dbgState().started&&!dbgState().gameOver",90):
+    if not gp.attend(c,"dbgState().started&&!dbgState().gameOver",OPT['tmax']):
         return {'erreur':'la partie %d ne part pas'%(i+1)}
     c.ev("dbgSable(0);dbgAuto(1,0,{});1");c.pump(OPT['roule'])
     return {'depart_s':round(time.time()-t0,1)}
 def main():
     lire_args()
     http=gp.libre();port=gp.libre()
-    srv=subprocess.Popen([sys.executable,'-m','http.server',str(http),'--bind','127.0.0.1'],cwd=VP,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    srv=subprocess.Popen([sys.executable,'-m','http.server',str(http),'--bind','127.0.0.1'],cwd=OPT['vp'] or VP,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     prof=tempfile.mkdtemp(prefix='banc-memoire-')
     ch=subprocess.Popen([gp.chrome(),'--headless=new','--remote-debugging-port=%d'%port,'--user-data-dir='+prof,'--mute-audio','--autoplay-policy=no-user-gesture-required','--enable-precise-memory-info','about:blank'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     try:
@@ -160,7 +162,7 @@ def corps(http,port):
             nxt=cartes[(i*OPT['portails']+k+1)%len(cartes)];z0=c.ev("dbgEco().zones")
             c.ev("dbgClassique(%s,%s);1"%(json.dumps(nxt[0]),json.dumps(nxt[1] if len(nxt)>1 else None)));c.ev("dbgPortail(2600);1");c.pump(1)
             t=time.time()
-            while time.time()-t<90 and c.ev("dbgEco().zones")==z0:c.pump(.3)
+            while time.time()-t<OPT['tmax'] and c.ev("dbgEco().zones")==z0:c.pump(.3)
             c.pump(4);gc(c);raw=c.ev(MESURE)
             if str(raw).startswith('{'):
                 q=json.loads(raw);au=q['audio'] if isinstance(q['audio'],dict) else {}

@@ -75,6 +75,16 @@
         return {geoVivantes: tot, geoHorsScene: hors, cpuHorsSceneMo: +(cpuHors / 1048576).toFixed(1), objetsScene: nObj, scenes: SCENES.size,
           groupes: gl, cpuSceneParNom: parNom, texVivantes: TEX.size, texHorsScene: th, texHorsGroupes: T2};
       },
+      scenes: function () { return Array.from(SCENES); },
+      inspecte: function (nomParent, max) { /* les maillages dont le parent (ou le grand-parent) s'appelle nomParent : état de leurs attributs */
+        var R = [], seen = new Set();
+        SCENES.forEach(function (sc) { sc.traverse(function (o) {
+          var pn = (o.parent && o.parent.name) || ''; if (pn !== nomParent || !o.geometry || seen.has(o.geometry)) return; seen.add(o.geometry);
+          var g = o.geometry, a = {}; for (var k in g.attributes) { var at = g.attributes[k]; a[k] = [at.count, at.array ? at.array.length : 'NULL', at.usage, at.onUploadCallback ? 'cb' : '-']; }
+          R.push({inst: !!o.isInstancedMesh, count: o.count, vis: o.visible, idx: g.index ? [g.index.count, g.index.array ? 'plein' : 'NULL'] : null, a: a, uuid: g.uuid.slice(0, 6), enGPU: GEO.has(g)});
+        }); });
+        return {n: R.length, ex: R.slice(0, max || 6)};
+      },
       cpuTotal: function () { var o = 0; GEO.forEach(function (t, g) { o += cpu(g); }); return +(o / 1048576).toFixed(1); }
     };
   }
