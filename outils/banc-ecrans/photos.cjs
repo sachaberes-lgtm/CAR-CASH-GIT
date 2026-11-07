@@ -28,6 +28,7 @@ const ETAPES = [
   { n: 'inventaire-peinture', tap: '.gTab[data-tab="peinture"]', att: 1500 },
   { n: 'garage-retour', tap: '#gvCof', att: 1500, sans: 1 },
   { n: 'boutique', tap: '#gShopBas', fx: .82, fy: .84, att: 4500 },
+  { n: 'boutique-achat', tap: '#gBqCats [data-c="achat"]', att: 2500 },
   { n: 'boutique-ailes', tap: '#gBqCats [data-c="aile"]', att: 1500 },
   { n: 'boutique-retour', tap: '#gShopBas', fx: .82, fy: .84, att: 2500, sans: 1 },
   { n: 'missions', tap: '#gvMis', att: 2500 },
@@ -88,6 +89,7 @@ const ETAPES = [
           const n0 = erreurs.length;
           const sh = await c.send('Page.captureScreenshot', { format: 'png' }, 30000);
           fs.writeFileSync(path.join(OUT, cle + '.png'), Buffer.from(sh.data, 'base64'));
+          if (A.eval) { try { console.log(cle, 'eval:', await c.ev(fs.readFileSync(A.eval, 'utf8'))); } catch (e) { console.log(cle, 'eval ÉCHEC', String(e).slice(0, 200)); } } /* (2026-11-07) --eval fichier.js : une mesure faite dans la page, à chaque prise */
           const audit = await c.ev('JSON.stringify(ccAudit())');
           const etat = await c.ev("JSON.stringify({body:document.body.className.slice(0,120),garage:document.getElementById('garage').className.slice(0,120),ecran:[...document.querySelectorAll('.mscr.on')].map(e=>e.id).join(' '),mort:document.getElementById('mDead').classList.contains('on')?['mObj','mChance','mChanceNon','mDouble','mDuo','mFin','mHero','mCashL'].map(function(k){var e=document.getElementById(k)||document.querySelector('#mDead .'+k);if(!e)return k+':absent';var b=e.getBoundingClientRect(),c=getComputedStyle(e);return k+':'+c.display+'/'+c.opacity.slice(0,4)+'/'+(e.hidden?'hidden':'')+'/'+Math.round(b.left)+','+Math.round(b.top)+','+Math.round(b.width)+'x'+Math.round(b.height)}):null})");
           const gaps = await c.ev('JSON.stringify(window.__gaps||[])');
