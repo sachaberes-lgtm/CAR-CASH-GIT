@@ -14,6 +14,8 @@
    Le reste ne change pas : toucher = bqEssaie (le bras pose la pièce), le bouton #gBqBtn achète / équipe (bqAction), les photos viennent
    d'aileFile (bqPhotos). La grille partagée (.bqRail) est vidée tant que le rayon AILES est ouvert : ses cartes cachées ne tiennent pas la
    file du studio photo. Crochet : garBqPanneau appelle bqAileMaj(pan, voulu) à chaque image. Banc : window.dbgBqAile(). */
+/* (2026-11-07, Sacha : « j'aime pas le système des ailes, fais un truc classique » · « ce système est désastreux : quelque chose de plus classique, deux par deux, où tu présentes correctement les ailes avec la voiture du joueur ») LA MOLETTE EST COUPÉE : le rayon AILES passe aux cartes deux par deux de boutique-classique.js (la caisse du joueur qui porte chaque aile). La caméra qui monte voir l'aile (bqAilePov) et le cap trois-quarts arrière (bqAileCap) restent. `?molette=1` = la molette. */
+const BQA_MOLETTE=/[?&]molette=1\b/.test(location.search);
 const BQA={el:null,k:'',essK:'',on:false,pose:0,doigt:0,scT:0,e:0,povS:null,angS:null,vu:'',lay:''};
 const BQA_ANG=2.45; /* le cap de la caisse dans le rayon AILES (GAR_TAB_ANG : 1.2 de profil, 3.5 trois-quarts arrière des traînées) */
 const BQA_POV={debout:{h:1.1,d:.97,ty:.05},couche:{h:.85,d:.98,ty:.05}}; /* la caméra monte (m) : on voit l'aile par-dessus, déployée */
@@ -107,9 +109,10 @@ function bqAileMaj(pan,voulu){const cat=BQ_CATS.some(function(c){return c[0]===G
   const dt=Math.min(.1,Math.max(0,(performance.now()-(BQA.t||0))/1000));BQA.t=performance.now();
   bqAilePov(on,dt);bqAileCap(on);
   if(pan.getAttribute('data-cat')!==cat)pan.setAttribute('data-cat',cat);
-  pan.classList.toggle('bqAileOn',on);
-  try{aileVitrineMaj(on,dt);}catch(e){} /* (2026-11-07, Léo) la boîte de verre 3D autour de l'aile essayée (aile-vitrine.js) */
-  if(!on){if(BQA.on){BQA.on=false;BQA.k='';BQA.essK='';BQA.vu='';}return;}
+  const onM=on&&BQA_MOLETTE; /* la molette : seulement avec ?molette=1 */
+  pan.classList.toggle('bqAileOn',onM);
+  try{aileVitrineMaj(onM,dt);}catch(e){} /* (2026-11-07, Léo) la boîte de verre 3D autour de l'aile essayée (aile-vitrine.js) */
+  if(!onM){if(BQA.on){BQA.on=false;BQA.k='';BQA.essK='';BQA.vu='';}return;}
   const rail=pan.querySelector('.bqRail');if(rail&&rail.firstChild)rail.textContent=''; /* la grille partagée se tait : la molette la remplace */
   const el=bqAileEl(pan),L=bqAileListe(),eqd=shopEqD('aile'),k=L.map(function(d){return d.id+(shopOwned('aile',d.id)?1:0)+(eqd===d?'e':'')+(d.p&&bank()<d.p?'c':'');}).join(',')+':'+LANG;
   const neuf=!BQA.on;BQA.on=true;

@@ -35,12 +35,15 @@ function bqNuancierHtml(L){try{peintDefisVerifie(false);}catch(e){} /* un défi 
   /* (2026-11-07, passe finale) le prix et « à toi / total » ne se disent qu'UNE fois, dans la barre des familles (ils l'étaient aussi dans
      l'intertitre) ; l'intertitre garde la rareté et la famille, et explique l'anneau cyan là où il y en a : « ◯ À GAGNER EN JEU » */
   const defi=function(f){return G[f].some(function(k){const d=bqCos(k).d;return d&&bqNuanceEtat(d).c==='defi';});};
+  /* (2026-11-07, Sacha : « dans l'onglet peinture, il y a marqué UNI, DÉGRADÉ, MOTIF : enlève, ça sert à rien » · « retravaille comment les couleurs sont présentées, ça peut être beaucoup mieux ») plus de barre des familles ni de sous-titre : un intertitre par RARETÉ (sa pastille, son nom, son prix, « à toi / total »), la légende de l'anneau dessous s'il y a des défis, puis les pastilles rondes vernies (boutique-peinture.css). La barre : `?nuancier=barre`. */
+  const barre=/[?&]nuancier=barre\b/.test(location.search);
   let n=0;const S=F.map(function(f){const ri=rarInfo(f);
-    return '<section class="pNs" data-pf="'+f+'" style="--rc:'+ri.c+'"><h4 class="pNh"><span class="bqRl">'+pxi(RAR_LOGO[f]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b><i>'+nom(f)+'</i><s></s>'+(defi(f)?'<em class="pNlg"><q aria-hidden="true"></q>'+sansAcc(TR('À GAGNER EN JEU'))+'</em>':'')+'</h4>'
+    return '<section class="pNs" data-pf="'+f+'" style="--rc:'+ri.c+'"><h4 class="pNh"><span class="bqRl">'+pxi(RAR_LOGO[f]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b><s></s>'+(px(f)?'<u class="pNpx">'+px(f)+'</u>':'')+'<em class="pNct"><i>'+nA(f)+'</i>/'+G[f].length+'</em></h4>'
+      +(defi(f)?'<p class="pNlg"><q aria-hidden="true"></q>'+sansAcc(TR('À GAGNER EN JEU'))+'</p>':'')
       +'<div class="pNg">'+G[f].map(function(k){return bqNuanceHtml(k,n++,cur);}).join('')+'</div></section>';});
   const nav='<nav class="pNav" style="--nf:'+F.length+'">'+F.map(function(f){return '<button type="button" data-pf="'+f+'" style="--rc:'+rarInfo(f).c+'"'+(f===F[0]?' class="on"':'')+'><b>'+nom(f)+'</b><em>'+(px(f)?px(f)+' · ':'')+nA(f)+'/'+G[f].length+'</em></button>';}).join('')+'</nav>';
   setTimeout(bqNuancierBranche,0);
-  return ['<div class="pNu">'+nav+S.join('')+'</div>'];}
+  return ['<div class="pNu">'+(barre?nav:'')+S.join('')+'</div>'];}
 /* le cadre de la pastille qu'on regarde (appelé par garBqPanneau quand ce qu'on regarde change) */
 function bqNuancierSel(rail,cur){rail.querySelectorAll('.pN').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur);});bqNuancierEq(rail);}
 /* l'équipée suit le grand bouton (ÉQUIPER / DÉSÉQUIPER ne changent pas la liste : le rail n'est pas refait) — sa coche bleue passe d'une pastille à l'autre */
