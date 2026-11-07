@@ -2086,10 +2086,14 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
     var garde=function(L,x){L.push(x);if(L.length>90)L.splice(0,30);};
     var tache=function(nom,t,d){if(!fini)garde(TAC,{n:nom,t:t,d:d});};
     window.__ccSondeTache=function(nom,t,d){if(d>=40)tache('étape '+nom,t,d);};
+    /* (2026-11-07, OPTI ULTIME : « le trou initial de ~1 s, fil libre : le contexte WebGL ? l'AudioContext ? ») les CRÉATIONS chronométrées de l'intérieur (renderer, palPuce, AudioContext, boule, prepare, son…) : toute durée ≥ 5 ms, au dos de la ligne « fin du guet » */
+    var CREA=[];window.__ccSondeCrea=function(nom,t,d){if(!fini&&d>=5&&CREA.length<30)CREA.push(nom+' '+Math.round(d)+' ms à '+(Math.round(t/100)/10)+' s');};
     /* les appels WebGL qui attendent le GPU (≥ 8 ms) */
     ['getProgramParameter','getShaderParameter','getProgramInfoLog','getShaderInfoLog','linkProgram','compileShader','texImage2D','texSubImage2D','texImage3D','texSubImage3D',
      'texStorage2D','bufferData','bufferSubData','readPixels','getError','getActiveUniform','getActiveAttrib','getUniformLocation','generateMipmap','compressedTexImage2D',
-     'finish','checkFramebufferStatus','blitFramebuffer','validateProgram'].forEach(function(n){
+     'finish','checkFramebufferStatus','blitFramebuffer','validateProgram',
+     /* (2026-11-07) élargi : les attentes synchrones de la puce que la liste d'avant ne voyait pas (650 ms avec 181 ms de JS au build 10) */
+     'getParameter','flush','bindFramebuffer','getExtension','getSupportedExtensions','drawElements','drawArrays','drawElementsInstanced','drawArraysInstanced','clear','copyTexImage2D','copyTexSubImage2D','createProgram','useProgram','attachShader','createShader','shaderSource','getContextAttributes','getShaderPrecisionFormat'].forEach(function(n){
       [window.WebGL2RenderingContext,window.WebGLRenderingContext].forEach(function(C){
         if(!C)return;var pr=C.prototype,f=Object.prototype.hasOwnProperty.call(pr,n)?pr[n]:null;if(typeof f!=='function')return;
         PIEGES.push([pr,n,f]);
@@ -2124,7 +2128,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
       PIEGES.forEach(function(p){try{p[0][p[1]]=p[2];}catch(_){}});
       window.setTimeout=oST;window.requestAnimationFrame=oRAF;try{delete window.__ccSondeTache;}catch(_){window.__ccSondeTache=null;}
       TAC=[];GLS=[];TIM=[];
-      window.__ccNote('serpent','fin du guet à '+(Math.round(now()/100)/10)+' s : '+trous+' trou(s) > '+SEUIL+' ms, le pire '+pire+' ms');
+      window.__ccNote('serpent','fin du guet à '+(Math.round(now()/100)/10)+' s : '+trous+' trou(s) > '+SEUIL+' ms, le pire '+pire+' ms'+(CREA.length?' · créations : '+CREA.join(' · '):''));
     };
     var tick=function(t){
       if(fini)return;
@@ -13821,11 +13825,12 @@ try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',fun
    la toile ne reçoit plus que la passe finale du compositeur (un quad plein écran : rien à anticréneler) ; la scène se dessine dans la cible du compositeur,
    et l'anticrénelage est le FXAA de la passe finale. Même image au pixel près, ~100 Mo de moins. `?msaa=1` (l'ancien choix, voir FXAA_ON) garde le tampon. */
 const MSAA_TOILE=/[?&]msaa=1\b/.test(location.search);
+const t9rend=performance.now();
 const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance'});
 const TOILE1=!/[?&]toile1=0\b/.test(location.search); /* (2026-11-05, passe perf mobile 2, A2.c) UNE seule allocation de la toile : sa taille se pose plus bas, une fois DPR_CAP connu (`?toile1=0` = l'ancien ordre : taille puis rapport de pixels) */
 if(!TOILE1)renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
-try{palPuce(renderer.getContext());}catch(e){} // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
+try{window.__ccSondeCrea&&window.__ccSondeCrea('renderer',t9rend,performance.now()-t9rend);}catch(e){}try{const t9p=performance.now();palPuce(renderer.getContext());window.__ccSondeCrea&&window.__ccSondeCrea('palPuce',t9p,performance.now()-t9p);}catch(e){} // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
 /* ⚠ LE CONTEXTE 3D PERDU (2026-09-25, audit App Store) : iOS reprend la carte graphique d'une app en arrière-plan
    (appel, appareil photo, jeu lourd). Sans ces deux écouteurs, le jeu revenait sur un ÉCRAN NOIR définitif — le
    refus classique pour « l'app ne répond plus ». On empêche l'abandon (`preventDefault` = « je veux le récupérer »),
@@ -85357,6 +85362,7 @@ function goImmersive(){
      qui s'en écartent comme un sonar. C'est de LUI que la boule naît (elle se construit du milieu). Dessiné dès l'attente, avant que le film parte (`attente`), puis jusqu'à ce que les premiers points de la boule
      l'éteignent (`rendu`) : il ne dépend que de l'heure réelle, donc il continue sans à-coup à travers le départ du film. « Réduire les animations » : un point fixe, sans ondes. */
   /* (2026-11-05, jury HYG-12) dGraine : fonction jamais appelée, retirée */
+  function crea(nom,f){const a=performance.now();try{return f();}finally{try{if(window.__ccSondeCrea)window.__ccSondeCrea(nom,a,performance.now()-a);}catch(_){}}} /* (2026-11-07, OPTI ULTIME) chronomètre une création pour la sonde du serpent (debut-corps.html) : transparent */
   function chCl(a){ /* l'anneau de chargement du HTML (spCharge) : visible jusqu'à ce que les premiers points de la boule se dessinent, puis il fond et disparaît (Léo, 02/11) */
     const el=chCl.el===undefined?(chCl.el=document.getElementById('spCharge')):chCl.el;if(!el||chCl.fini)return;
     if(window.__serpentNatif&&a<.999&&!chCl.nat){chCl.nat=1;try{window.Capacitor.Plugins.SerpentNatif.fondu({duree:.5});}catch(_){}} /* (2026-11-06) le serpent d'iOS fond à son tour (voir debut-corps.html) */
@@ -85953,7 +85959,7 @@ function goImmersive(){
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
     g.fillStyle='#000';g.fillRect(0,0,W,H);
-    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());chCl(1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT===null&&pretT!==null&&TOUCHE_BOULE)dToucheBoule(g,t-pretT);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
+    if(BOULE){const e=ETS.boule||(ETS.boule=crea('boule-geo',geoLabSphere));chCl(1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT===null&&pretT!==null&&TOUCHE_BOULE)dToucheBoule(g,t-pretT);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
     let tl=t,id=forceId||(LABELS[LAB_ID]?LAB_ID:'neon'),idx=0;
     if(DEMO){const T=PERIODE_DEMO(),n=ORDRE_LABELS.length;idx=Math.floor(Math.max(0,t)/T);tl=Math.max(0,t)-idx*T;id=forceId||ORDRE_LABELS[idx%n];} /* la démo : les labels s'enchaînent en boucle */
     if(tl<TL.noir){const e=ETS[id]||(ETS[id]=LABELS[id].geo());LABELS[id].dessin(g,tl,e);}else if(!DEMO&&t>=TL.slam)dActe3(g,t,0);;
@@ -85971,13 +85977,13 @@ function goImmersive(){
       const t=(now-tLance)/1000-latV;
       if(BOULE){if(pretT===null&&t>=4.6&&(t>=20||(document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')&&(!window.__ccCharge||window.__ccCharge())))){ /* (2026-11-07, chasse SON-N02) une ressource du load qui traîne (police, image, 3G) laissait la boule tourner sans fin, le toucher ignoré : à 20 s elle est prête quoi qu'il arrive */pretT=t;try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
       if(DEMO){const T=PERIODE_DEMO(),idx=Math.floor(Math.max(0,t)/T);if(idx>0)sonDemo(idx,t-idx*T);else sonDemo(0,t);rendu(t);return;}
-      if(!ouvert&&t>=TL.noir)ouvrir();
+      if(!ouvert&&t>=TL.noir)crea('ouvrir',ouvrir);
       if(!revele&&!doux&&!passee){ /* le jeu ne dessine rien derrière le film (voir `loop`), SAUF quelques images dans le NOIR COMPLET : ses accrocs du premier dessin (relecture du ciel, compilations) ne se voient pas là, et il reprend à chaud 0,5 s avant la casse */
         if(t>=TL.noir+.08&&t<TL.noir+.22){if(window.__introCouvre)window.__introCouvre=false;}
         else if(t>=TL.noir+.22){if(!window.__introCouvre)window.__introCouvre=true;} /* puis il se tait jusqu'au toucher */
       }
-      if(!SNAP&&t>=TL.noir+.30)prepSnap(); /* (le logo au repos, pour les tuiles) */
-      if(!priseFaite&&t>=TL.noir+.14)demanderPrise(); /* une photo du jeu, juste avant la casse : les tuiles en feront des loupes */ /* le jeu se remet à dessiner, juste avant que l'écran casse (il faut qu'il y ait une image dessous) */
+      if(!SNAP&&t>=TL.noir+.30)crea('prepSnap',prepSnap); /* (le logo au repos, pour les tuiles) */
+      if(!priseFaite&&t>=TL.noir+.14)crea('demanderPrise',demanderPrise); /* une photo du jeu, juste avant la casse : les tuiles en feront des loupes */ /* le jeu se remet à dessiner, juste avant que l'écran casse (il faut qu'il y ait une image dessous) */
       if(SON&&!filmMuet&&!SON.fait.acte3&&t>=TL.noir-.15)SON.acte3(); /* le claquement et la tension se fabriquent dans le noir complet */
       rendu(t);
     }catch(e){window.__introErr=String(e&&e.stack||e).slice(0,400);if(++erreurs>2)secours();} /* une image qui plante ne doit jamais laisser l'écran noir : on ouvre le jeu */
@@ -85991,8 +85997,8 @@ function goImmersive(){
     if(lance||fini)return;lance=true;RM=reduit();tLance=performance.now();window.__intro='joue'; /* l'intro passe : pas de rechargement */
     eteintTitre();
     window.__introCouvre=true; /* le film couvre l'écran : le jeu ne calcule ni ne dessine plus rien dessous, jusqu'à 0,5 s avant la casse (voir `boucle`) */
-    try{if(prepEn!==W+'x'+H+'x'+S)prepare();}catch(e){} /* (déjà prêt si on a attendu un peu sur l'écran titre) */
-    try{son(geste);}catch(e){} /* le son ne doit JAMAIS bloquer les visuels */
+    try{if(prepEn!==W+'x'+H+'x'+S)crea('prepare',prepare);}catch(e){} /* (déjà prêt si on a attendu un peu sur l'écran titre) */
+    try{crea('son',function(){son(geste);});}catch(e){} /* le son ne doit JAMAIS bloquer les visuels */
     if(!iAC)tLance=performance.now(); /* (sans son : le film part tout de suite) */
   }
   function chauffe(){ /* pendant l'attente du toucher, hors de vue : tout ce qui est lourd la première fois (le calcul du film, le code du son) se fait maintenant, pas au toucher */
@@ -86026,7 +86032,7 @@ function goImmersive(){
   });
   function autoLance(){ /* le film part TOUT SEUL : le navigateur dit si le son est permis sans toucher (sinon le film passe muet, la casse sonnera au toucher) */
     if(lance||fini)return;
-    let A=null;if(!SANS_SON&&SND.sfx&&VOL.sfx>0){try{A=new (window.AudioContext||window.webkitAudioContext)();}catch(e){A=null;}}
+    let A=null;if(!SANS_SON&&SND.sfx&&VOL.sfx>0){try{A=crea('AudioContext',function(){return new (window.AudioContext||window.webkitAudioContext)();});}catch(e){A=null;}}
     if(!A){lancer(false);return;}
     preAC=A;let fait=false;const go=function(){if(fait)return;fait=true;if(lance){if(A!==iAC)try{A.close();}catch(e){}return;}lancer(false);}; /* (24/10, relecture : « le son de l'intro coupé net ») un toucher pendant l'attente de A.resume() (≤ 0,3 s) lance le film SUR A (son() prend preAC) : A n'est fermé que s'il n'a pas servi — avant, le film tapé tôt passait muet */
     try{if(!DEPART_LENT&&(A.state==='running'||(navigator.userActivation&&!navigator.userActivation.hasBeenActive))){go();return;}A.resume().then(go,go);}catch(e){go();} /* (2026-11-05) le navigateur le laisse sonner d'emblée, ou personne n'a encore touché la page (resume() ne répondrait jamais) : on part tout de suite, muet dans ce second cas (son() le voit), le toucher libérera le son */
