@@ -1,0 +1,18 @@
+verrou pris par generation-photos
+[espace] prêt {"v":2,"best":0,"leaders":[],"bestCar":0,"equipped":0,"sfx":true,"vox":false,"mus":false,"fruits":[],"vol":{"mus":0.62,"sfx":1,"vox":1},"tctl":"stick","q":"net" ["ccOngletActif","cashcarErr","cashcarSave"]
+[espace] tuto avant {"on":false,"i":0,"tuto":1,"permis":1,"bank":0}
+[espace] {"L":7157.51,"ok":true,"mods":[{"fig":null,"climax":false,"s0":1260,"s1":2130},{"fig":null,"climax":false,"s0":2826,"s1":3858},{"fig":null,"climax":false,"s0":4518,"s1":5712}],"phrase":"TECHNIQUE"}
+[espace] module introuvable climax
+[nuages] prêt {"v":2,"best":0,"leaders":[],"bestCar":0,"equipped":0,"sfx":true,"vox":false,"mus":false,"fruits":[],"vol":{"mus":0.62,"sfx":1,"vox":1},"tctl":"stick","q":"net" ["ccOngletActif","cashcarErr","cashcarSave"]
+[nuages] tuto avant {"on":false,"i":0,"tuto":1,"permis":1,"bank":0}
+[nuages] {"L":7048.71,"ok":true,"mods":[{"fig":null,"climax":false,"s0":954,"s1":1896},{"fig":"puits","climax":false,"s0":2699,"s1":4217},{"fig":"surf","climax":true,"s0":5561,"s1":6773}],"phrase":"VITESSE"}
+[nuages] module {"fig":"surf","climax":true,"s0":5561,"s1":6773} départ à 5381
+[ville] prêt {"v":2,"best":0,"leaders":[],"bestCar":0,"equipped":0,"sfx":true,"vox":false,"mus":false,"fruits":[],"vol":{"mus":0.62,"sfx":1,"vox":1},"tctl":"stick","q":"net" ["ccOngletActif","cashcarErr","cashcarSave"]
+[ville] tuto avant {"on":false,"i":0,"tuto":1,"permis":1,"bank":0}
+[ville] {"L":6128.18,"ok":true,"mods":[{"fig":null,"climax":false,"s0":1491,"s1":2406},{"fig":null,"climax":false,"s0":3132,"s1":4028},{"fig":"rondpoint","climax":true,"s0":4981,"s1":5861}],"phrase":"TECHNIQUE"}
+[ville] module {"fig":"rondpoint","climax":true,"s0":4981,"s1":5861} départ à 4801
+[crypto] prêt {"v":2,"best":0,"leaders":[],"bestCar":0,"equipped":0,"sfx":true,"vox":false,"mus":false,"fruits":[],"vol":{"mus":0.62,"sfx":1,"vox":1},"tctl":"stick","q":"net" ["ccOngletActif","cashcarErr","cashcarSave"]
+[crypto] tuto avant {"on":false,"i":0,"tuto":1,"permis":1,"bank":0}
+[crypto] {"L":6926.64,"ok":true,"mods":[{"fig":null,"climax":false,"s0":1651,"s1":2464},{"fig":null,"climax":false,"s0":3079,"s1":3989},{"fig":"moon","climax":true,"s0":4689,"s1":5479}],"phrase":"TECHNIQUE"}
+[crypto] module {"fig":"moon","climax":true,"s0":4689,"s1":5479} départ à 4509
+verrou rendu
