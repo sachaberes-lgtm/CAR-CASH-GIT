@@ -248,10 +248,28 @@ function cotonTouche(x,y,z,r,ry){ // ce nuage (ellipsoïde r × ry autour de x,y
   for(let a=-n;a<=n;a++)for(let b=-n;b<=n;b++){const L9=g.get((cx+a)+','+(cz+b));if(!L9)continue;
     for(let j=0;j<L9.length;j++){const p=pts[L9[j]],dx=p.x-x,dz=p.z-z,dy=p.y-y;if((dx*dx+dz*dz)*ih+dy*dy*iv<1)return true;}}
   return false;}
+const COTON_PROF_N=24; /* (2026-11-07) le profil d'un gabarit : COTON_PROF_N tranches de sa hauteur (repère du gabarit, de base à top), la largeur en plan de chacune, lobes compris */
+function cotonProfil(S,sym){const k=sym?'profS':'prof';if(S[k])return S[k];const n=COTON_PROF_N,b0=S.base,hs=Math.max(1e-3,S.top-S.base),w=new Float32Array(n);
+  const lob=function(y,rr,fy,e){const a=Math.max(0,Math.floor((y-rr*fy-b0)/hs*n)),z=Math.min(n-1,Math.floor((y+rr*fy-b0)/hs*n));for(let q=a;q<=z;q++)if(e>w[q])w[q]=e;};
+  for(const b of S.B){const e=Math.hypot(b[0],b[2])+b[3],fy=b[4]||1;lob(b[1],b[3],fy,e);if(sym)lob(S.base+S.top-b[1],b[3],fy,e);}
+  return (S[k]={w:w,b0:b0,hs:hs});}
+function cotonToucheProfil(S,x,y0,z,rh0,rv0){ /* ce nuage (gabarit S, origine x,y0,z, échelle en plan rh0, en hauteur rv0) mord-il sur la route ? — voir cotonPose */
+  const g=COTON.grid;if(!g)return false;const P=cotonProfil(S,!!COTON.sym),n=COTON_PROF_N,w=P.w;let wm=0;for(let q=0;q<n;q++)if(w[q]>wm)wm=w[q];
+  const mh=ROAD_HALF+18+(COTON.corrH||0),mv=22+(COTON.corrV||0),R=wm*rh0+mh,nC=Math.ceil(R/120),cx=Math.floor(x/120),cz=Math.floor(z/120),yb=y0+P.b0*rv0,yt=y0+(P.b0+P.hs)*rv0;
+  for(let a=-nC;a<=nC;a++)for(let b=-nC;b<=nC;b++){const L9=g.get((cx+a)+','+(cz+b));if(!L9)continue;
+    for(let j=0;j<L9.length;j++){const p=pts[L9[j]];if(p.y<yb-mv||p.y>yt+mv)continue;const dx=p.x-x,dz=p.z-z,d2=dx*dx+dz*dz;if(d2>R*R)continue;
+      const qa=Math.max(0,Math.floor((p.y-mv-yb)/(yt-yb)*n)),qz=Math.min(n-1,Math.floor((p.y+mv-yb)/(yt-yb)*n));let e=0;for(let q=qa;q<=qz;q++)if(w[q]>e)e=w[q];
+      const lim=e*rh0+mh;if(e>0&&d2<lim*lim)return true;}}
+  return false;}
 function cotonPose(x,yB,z,r,k,cr,syF){ // un nuage dont le DESSOUS est à yB — refusé s'il toucherait le ruban · syF : étirement vertical imposé (les colonnes des cathédrales)
   if(COTON.n>=COTON.cap)return false;const S=COTON.S[k];
   const gn=cotonGenre(k),sx=.86+cr()*.44,sy0=(gn==='fractus'||gn==='altocumulus'||gn==='stratocumulus')?.75+cr()*.25:.85+cr()*.3,sy=syF||sy0,h=(S.top-S.base)*r*sy; // (v4) chaque nuage a SON étirement : deux nuages du même gabarit ne se ressemblent plus
-  if(cotonTouche(x,yB+h*.5,z,r*1.02*sx,h*.5+r*.05))return false;
+  /* (2026-11-07, Sacha : « génération aléatoire parfaite ») LA GARDE AU PROFIL DU NUAGE : elle testait un ELLIPSOÏDE r × sx de demi-hauteur h/2, or les lobes d'un gabarit
+     (cumulus8) débordent l'unité (~1,4 r pour un cumulus, plus pour une enclume), l'instance n'est étirée de sx qu'en x, et un cumulus est LARGE À SA BASE plate (et, sans dessus
+     dessous, à son sommet replié) : là où l'ellipsoïde se resserre. MESURÉ (dbgNuagesAudit) : graine 5 midi, un cumulus de r 364 à 15 m de l'axe, 2 m au-dessus de la dalle ;
+     graine 4 orage, r 335 à 8 m de l'axe. Désormais le PROFIL du gabarit (cotonProfil : sa largeur en plan par tranche de hauteur, lobes compris) contre chaque point du ruban.
+     Même tirage `cr`, mêmes marges qu'avant (largeur de route + 18 m + corrH en plan, 22 m + corrV en hauteur). */
+  if(cotonToucheProfil(S,x,yB-S.base*r*sy,z,r*1.02*Math.max(sx,1),r*sy))return false;
   const o=COTON.n*COTON_ST,I=COTON.I;I[o]=x;I[o+1]=yB-S.base*r*sy;I[o+2]=z;I[o+3]=r;I[o+4]=cr()*6.2832;I[o+5]=k;I[o+6]=cr()*6.28;I[o+7]=h;I[o+8]=sx;I[o+9]=sy;
   {const l9=.82+cr()*.22,w9=(cr()-.5)*2,lourd=cr()<.12;{const g9=(.88+(l9-.82)*.727)*(lourd?.94:1);I[o+10]=I[o+11]=I[o+12]=g9;}} /* (coton-blanc) un BLANC neutre .83-1,04 (vu à 30 % par le shader : ±3 % de luminance, 0 % de teinte) — mêmes trois tirages `cr` */ // (v6) SA TEINTE : clair/sourd, chaud/froid, parfois lourd (la moitié passe la lumière de peintre)
   COTON.n++;return true;}
@@ -377,7 +395,7 @@ function cotonInst(o,A,C,b,tt){const I=COTON.I,r=I[o+3];C[b*3]=I[o+10];C[b*3+1]=
   COTON.M.compose(COTON.P,COTON.Q,COTON.Sc);COTON.M.toArray(A,b*16);}
 function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le champ, en quelle finesse, du plus loin au plus près
   if(!COTON.root||!COTON.root.visible)return;
-  const t00=performance.now(),I=COTON.I,Ls=COTON.L,J=COTON.jd,pj=J?cotonPalier():2,fm=J?J.f[pj]:3,n=J?Math.min(COTON.n,J.lim[pj]):COTON.n,tt=(t00-COTON_T0)*.001; /* (2026-10-14, passe graphismes) J : les Pics de Jade — les `lim[palier]` premiers nuages, jusqu'à la finesse `fm` */N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
+  const t00=performance.now(),I=COTON.I,Ls=COTON.L,J=COTON.jd,pj=J?cotonPalier():2,fm=J?J.f[pj]:(C3_ON?PAL.b('nuFin',3):3),n=J?Math.min(COTON.n,J.lim[pj]):COTON.n,tt=(t00-COTON_T0)*.001; /* (2026-10-14, passe graphismes) J : les Pics de Jade — les `lim[palier]` premiers nuages, jusqu'à la finesse `fm` */N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
   COTON.pv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);COTON.fr.setFromProjectionMatrix(COTON.pv);
   const pl=COTON.fr.planes,cx=cam.position.x,cy=cam.position.y,cz=cam.position.z;
   const LV=(NUVIT.on&&!J&&COTON.LV)?COTON.LV:null,W9=COTON.W,WC9=COTON.WC;if(LV)for(const Lv of LV)Lv.n=0; // (2026-10-18, LE FONDU) pas aux Pics de Jade
@@ -386,7 +404,7 @@ function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le ch
     const x=I[o]+Math.sin(tt*.05+ph)*6,z=I[o+2]+Math.cos(tt*.04+ph)*6,yc=I[o+1]+S.base*r*I[o+9]+h*.5,R=Math.max(r*1.08*I[o+8],h*.56); // la ouate DÉRIVE au vent
     let vis=true;for(let q=0;q<6;q++){const P9=pl[q];if(P9.normal.x*x+P9.normal.y*yc+P9.normal.z*z+P9.constant<-R){vis=false;break;}}
     if(!vis)continue;
-    const dx=x-cx,dy=yc-cy,dz=z-cz,d=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d-R>fF)continue;const sg=COTON.FAC*R*(S.fin||1)/Math.max(1,d-R*.5); // les segments qu'il faut pour que la facette ne se voie pas — (v4) à la taille de SES bourgeons
+    const dx=x-cx,dy=yc-cy,dz=z-cz,d=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d-R>fF)continue;const sg=(C3_ON?PAL.b('nuFac',COTON.FAC):COTON.FAC)*R*(S.fin||1)/Math.max(1,d-R*.5); // les segments qu'il faut pour que la facette ne se voie pas — (v4) à la taille de SES bourgeons
     const fq=Math.min(fm,(sg<=10?0:sg<=16?1:sg<=32?2:3)),Lq=Ls[k*4+fq]; /* (v8) la surface : ~10 px par cellule à l'écran */
     let w=0,wc=0,vq=3;if(LV){const V9=COTON.vit[k*4+3];if(V9&&V9.ok){const x=Math.max(1,d-R)/R,c=2/((NUVIT.fant?NUVIT.fsz:NUVIT.nc)*x); /* (2026-10-18, Sacha) LE FONDU : les parts du corps (w) et des cubes (wc) ; avant, des bascules (lot 2 : 40 % des fantômes, lot 3 : tous, tout près : la v8) */
       if(NUVIT.fondu){const P9=nuvPoids(x,c);w=P9[0];wc=P9[1];vq=(NUVIT.fant&&wc*1.06<=NUVIT.loin)?2:3;}else if(fq>=2&&c<=NUVIT.ang){w=wc=1;vq=fq;}}} // le lot lointain (40 % des fantômes) suffit tant que les cubes n'en demandent pas plus
@@ -415,6 +433,43 @@ window.dbgCoton=function(q){ // q = 'max' : le plus gros nuage (centre du dessou
   return {nuages:COTON.n,pres:COTON.nN,loin:COTON.nF,triangles:COTON.tri,ms:+COTON.ms.toFixed(3),visible:!!(COTON.root&&COTON.root.visible),
   maillagesApart:CLOUDS.length,gabarits:COTON.im.map(function(im){return im.userData.tri;}),
   initMs:COTON.msInit==null?null:Math.round(COTON.msInit),toutPretMs:COTON.msPret?Math.round(COTON.msPret):null,prets:COTON.pret?COTON.pret.reduce(function(a,b){return a+b;},0):0,finsApart:CLOUDS.filter(function(c){return c.mesh&&c.mesh.userData.fin;}).length,ouvrier:COTON_OUV.ko?'refuse':COTON_OUV.w?'oui':'non'};};
+/* ===== L'AUDIT DES NUAGES CONTRE LA ROUTE (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+   `dbgNuagesAudit()` (lecture seule, pour le banc des maps) : la vraie surface de chaque nuage (les sommets de son gabarit le plus fin, posés par SA matrice) contre le
+   couloir de conduite, mesuré dans le REPÈRE DE LA ROUTE (T, B, Nn : la route des nuages se tord, le haut du monde n'y veut rien dire) : un sommet à moins de
+   demi-largeur + 1 m de côté et entre −THICK et +7 m de la dalle est DANS le couloir. Les bancs posés sur la route (onRoad) sont voulus : comptés à part.
+   Rend aussi une EMPREINTE (L, nombre de nuages, somme des positions) pour le déterminisme : la même graine doit rendre la même. */
+window.dbgNuagesAudit=function(o){o=o||{};const out={L:Math.round(L),NP:NP,coton:COTON.n,clouds:CLOUDS.length,bancs:CLOUDS.filter(function(c){return c.onRoad;}).length,dedans:[],bancsDedans:0,empreinte:0};
+  if(!(NP>1))return out;const K=40,G=new Map(),kc=function(x,z){return Math.floor(x/K)+':'+Math.floor(z/K);};
+  for(let i=0;i<NP;i+=2){const p=pts[i];const k=kc(p.x,p.z);let a=G.get(k);if(!a)G.set(k,a=[]);a.push(i);}
+  const v=new THREE.Vector3(),M=new THREE.Matrix4(),Q=new THREE.Quaternion(),Y=new THREE.Vector3(0,1,0),Pp=new THREE.Vector3(),Sc=new THREE.Vector3(),demi=ROAD_HALF+1,haut=o.haut||7,bas=-(THICK+(o.bas||0));
+  const pres=function(x,y,z,R){const n=Math.ceil((R+demi)/K);const cx=Math.floor(x/K),cz=Math.floor(z/K);for(let a=-n;a<=n;a++)for(let b=-n;b<=n;b++){const l9=G.get((cx+a)+':'+(cz+b));if(!l9)continue;for(const i of l9){const p=pts[i],dx=p.x-x,dy=p.y-y,dz=p.z-z;if(dx*dx+dy*dy+dz*dz<(R+demi+10)*(R+demi+10))return true;}}return false;};
+  /* les sommets d'une géométrie ne sont plus lisibles une fois partis au GPU (cotonBuf libère ses tableaux) : on sonde les LOBES du gabarit (S.B : x, y, z, rayon, aplatissement), 26 points
+     sur chaque sphère et son centre — repliés sur le plan du milieu quand le nuage est sans dessus dessous (COTON.sym) ; un nuage à part (CLOUDS) : son ellipsoïde r × ry. */
+  const DIR=[];for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(let c=-1;c<=1;c++){const l=Math.hypot(a,b,c);DIR.push(l?[a/l,b/l,c/l]:[0,0,0]);}
+  const teste=function(x,y,z,acc){const cx=Math.floor(x/K),cz=Math.floor(z/K);let best=-1,bd=1e18;
+    for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const l9=G.get((cx+a)+':'+(cz+b));if(!l9)continue;for(const i of l9){const p=pts[i],dx=x-p.x,dy=y-p.y,dz=z-p.z,d=dx*dx+dy*dy+dz*dz;if(d<bd){bd=d;best=i;}}}
+    if(best<0||bd>(demi+haut+12)*(demi+haut+12))return;const p=pts[best],dx=x-p.x,dy=y-p.y,dz=z-p.z,lat=dx*B[best].x+dy*B[best].y+dz*B[best].z,up=dx*Nn[best].x+dy*Nn[best].y+dz*Nn[best].z;
+    if(Math.abs(lat)<demi&&up>bas&&up<haut){acc.n++;if(!acc.pire||Math.abs(lat)<Math.abs(acc.pire.lat))acc.pire={s:Math.round(best/(NP-1)*L),lat:+lat.toFixed(1),up:+up.toFixed(1)};}};
+  const sondeLobes=function(S,mat,sym,nom,extra){const acc={n:0,pire:null},m=mat.elements;
+    const lob=function(x,y,z,r,fy){for(const d of DIR){const lx=x+d[0]*r,ly=Math.min(S.top,Math.max(S.base,y+d[1]*r*fy)),lz=z+d[2]*r; /* le champ est coupé à la boîte [base, sommet] (nuage8Calc : le dessous plat) */v.set(lx,ly,lz).applyMatrix4(mat);teste(v.x,v.y,v.z,acc);}};
+    for(const b9 of S.B){lob(b9[0],b9[1],b9[2],b9[3],b9[4]||1);if(sym)lob(b9[0],S.base+S.top-b9[1],b9[2],b9[3],b9[4]||1);}
+    return acc.n?Object.assign({nom:nom,points:acc.n},acc.pire,extra||{}):null;};
+  const I=COTON.I;
+  for(let j=0;j<COTON.n;j++){const b=j*COTON_ST,r=I[b+3],k=I[b+5];out.empreinte+=I[b]*1e-3+I[b+1]*1e-3+I[b+2]*1e-3+r*1e-2;const S=COTON.S[k],R=Math.max(r*Math.max(1,I[b+8]),(S.top-S.base)*r*I[b+9])*2.7+8;
+    if(!pres(I[b],I[b+1]+S.base*r*I[b+9]+I[b+7]*.5,I[b+2],R))continue;
+    Pp.set(I[b],I[b+1],I[b+2]);Q.setFromAxisAngle(Y,I[b+4]);Sc.set(r*I[b+8],r*I[b+9],r);M.compose(Pp,Q,Sc);
+    const h=sondeLobes(S,M,!!COTON.sym,'coton',{j:j,r:Math.round(r),gabarit:k,x:Math.round(I[b]),y:Math.round(I[b+1]),z:Math.round(I[b+2])});if(h)out.dedans.push(h);}
+  const UN={B:[[0,0,0,1,1]],base:-1,top:1};
+  for(let j=0;j<CLOUDS.length;j++){const c=CLOUDS[j];out.empreinte+=c.c.x*1e-3+c.c.y*1e-3+c.c.z*1e-3+c.r*1e-2;if(!pres(c.g.position.x,c.g.position.y,c.g.position.z,Math.max(c.r,c.ry)*1.6+8))continue;
+    Pp.copy(c.g.position);Q.identity();if(c.S){Pp.y+=c.dS;Sc.set(c.r,c.r,c.r);}else Sc.set(c.r,c.ry,c.r);M.compose(Pp,Q,Sc);
+    const h=sondeLobes(c.S||UN,M,false,c.onRoad?'banc':'nuage',{j:j,r:Math.round(c.r)});if(h){if(c.onRoad)out.bancsDedans++;else out.dedans.push(h);}}
+  /* LA ROUTE CONTRE ELLE-MÊME, dans SON repère : deux points à plus de 120 m d'abscisse dont l'un est dans la dalle de l'autre (|côté| et |devant| < 2 demi-largeurs, |hauteur| < THICK + 3 m : à côté, pas plus loin dans le même virage)
+     = deux dalles qui se coupent (le « croisements » du banc mesure en hauteur du MONDE : sur une route couchée, il compte les tours du puits et le pied du looping, voulus) */
+  {let n=0;const ex=[],ds=L/Math.max(1,NP-1),hz=THICK+3;for(let i=0;i<NP;i+=2){const p=pts[i],cx=Math.floor(p.x/K),cz=Math.floor(p.z/K);
+    for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const l9=G.get((cx+a)+':'+(cz+b));if(!l9)continue;for(const j of l9){if(j<=i||(j-i)*ds<120)continue;const q=pts[j],dx=q.x-p.x,dy=q.y-p.y,dz=q.z-p.z;
+      const up=dx*Nn[i].x+dy*Nn[i].y+dz*Nn[i].z,lat=dx*B[i].x+dy*B[i].y+dz*B[i].z;const av=dx*T[i].x+dy*T[i].y+dz*T[i].z;if(Math.abs(up)<hz&&Math.abs(lat)<2*ROAD_HALF&&Math.abs(av)<2*ROAD_HALF){n++;if(ex.length<6)ex.push({s1:Math.round(i*ds),s2:Math.round(j*ds),lat:+lat.toFixed(1),up:+up.toFixed(1)});}}}}
+   out.croisRepere=n;out.exCroisRepere=ex;out.figures=TORD.on&&TORD.info?TORD.info.zones:null;}
+  out.empreinte=+out.empreinte.toFixed(3);out.nDedans=out.dedans.length;out.dedans=out.dedans.slice(0,30);return out;};
 // Boules d'un nuage (metaballs) — coords LOCALES [-1,1] dans la boîte (x,y,z,rayon).
 // Chaque famille a sa silhouette : cumulus bourgeonnant, tour empilée, mer plate, voile épars.
 function mkBlobs(o,rng){
@@ -484,6 +539,13 @@ function nuageTouche(c,r,ry){
   for(let i=0;i<NP;i+=st){const p=pts[i],dx=p.x-c.x,dz=p.z-c.z,dy=p.y-c.y;if((dx*dx+dz*dz)*ih+dy*dy*iv<1)return true;}
   return false;
 }
+function nuageToucheProfil(S,c,r,dyU,sy){ /* (2026-11-07) la garde d'un nuage à part (coussin, tour) au PROFIL de son gabarit (voir cotonToucheProfil) : origine c + r·dyU en hauteur, échelle r — les deux profils (à plat et sans dessus dessous : sa surface arrive de l'ouvrier dans l'état de COTON.sym du moment) */
+  if(!(NP>1)||!pts.length)return false;if(sy===undefined)return nuageToucheProfil(S,c,r,dyU,false)||nuageToucheProfil(S,c,r,dyU,true);const P=cotonProfil(S,sy),n=COTON_PROF_N,w=P.w;let wm=0;for(let q=0;q<n;q++)if(w[q]>wm)wm=w[q];
+  const mh=ROAD_HALF+18,mv=22,R=wm*r+mh,y0=c.y+dyU*r,yb=y0+P.b0*r,yt=y0+(P.b0+P.hs)*r,st=Math.max(1,Math.round(18/Math.max(.5,L/(NP-1))));
+  for(let i=0;i<NP;i+=st){const p=pts[i];if(p.y<yb-mv||p.y>yt+mv)continue;const dx=p.x-c.x,dz=p.z-c.z,d2=dx*dx+dz*dz;if(d2>R*R)continue;
+    const qa=Math.max(0,Math.floor((p.y-mv-yb)/(yt-yb)*n)),qz=Math.min(n-1,Math.floor((p.y+mv-yb)/(yt-yb)*n));let e=0;for(let q=qa;q<=qz;q++)if(w[q]>e)e=w[q];
+    const lim=e*r+mh;if(e>0&&d2<lim*lim)return true;}
+  return false;}
 function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh opaque, point.
   if(!lvlNuageOk(o))return; // LES NIVEAUX : chaque monde garde ses familles de nuages (voir NIVEAUX)
   let ry=r*(o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16);
@@ -495,7 +557,8 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
             l'ouvrier ; l'ÉBAUCHE en boules tient la place en attendant. Le maillage est à l'échelle du nuage (mesh.scale = r) : la ouate bouillonne. */
     cotonInit();const gn=o.onRoad?(r>34?'mediocris':'humilis'):o.giant?'congestus':['mediocris','humilis','mediocris','humilis','congestus'][Math.floor(rr()*5)];
     const S=cumulus8(gn,rr);S.seed=Math.floor(rr()*997);const dyU=-(S.base+S.top)*.5;
-    if(!o.onRoad&&nuageTouche(center,r,(S.top-S.base)*r*.5)){rr();return;} /* (2026-10-18, DEBUGGING : la garde du ruban ci-dessus mesurait l'ellipsoïde PROVISOIRE — une tour v8 est ~2 fois plus haute (ry ≈ r au lieu de 0,55-0,73 r) : MESURÉ, 1 nuage de décor sur ~450 laissait passer la route DANS lui, que la caisse « défonçait » (la tour de 370 m réduite à rien puis reformée). On reteste avec sa VRAIE hauteur ; le rr() rend le tirage `ph` qu'il aurait pris : les nuages suivants ne bougent pas) */
+    if(!o.onRoad&&o.pousse)for(let e9=0;e9<5&&nuageToucheProfil(S,center,r,dyU);e9++){center.addScaledVector(o.pousse,12+r*.12);g.position.copy(center);} /* (2026-11-07, Sacha : « génération aléatoire parfaite ») un COUSSIN de vol qui mord sur le ruban s'en ÉLOIGNE (o.pousse : à l'opposé de la dalle) au lieu de disparaître — aucun tirage de plus */
+    if(!o.onRoad&&(nuageTouche(center,r,(S.top-S.base)*r*.5)||nuageToucheProfil(S,center,r,dyU))){rr();return;} /* (2026-11-07, Sacha : « génération aléatoire parfaite ») et au PROFIL de ses lobes (~1,4 r en plan, large à la base) : MESURÉ, graines 4 et 9, un coussin de vol de r 55-61 dont les lobes descendaient à 6-7 m au-dessus de la dalle (le coussin d'abord poussé, voir o.pousse ; refusé s'il mord encore) */ /* (2026-10-18, DEBUGGING : la garde du ruban ci-dessus mesurait l'ellipsoïde PROVISOIRE — une tour v8 est ~2 fois plus haute (ry ≈ r au lieu de 0,55-0,73 r) : MESURÉ, 1 nuage de décor sur ~450 laissait passer la route DANS lui, que la caisse « défonçait » (la tour de 370 m réduite à rien puis reformée). On reteste avec sa VRAIE hauteur ; le rr() rend le tirage `ph` qu'il aurait pris : les nuages suivants ne bougent pas) */
     geo9=NUVIT.vox?nuVide():cotonGeo({B:S.B.slice(0,12),base:S.base,top:S.top},CLOUD_SPH_LO);geo9.translate(0,dyU,0);geo9.computeBoundingSphere();fin9={S:S,dyU:dyU,v8:1};
     ry=(S.top-S.base)*r*.5;}
   else if(!o.onRoad&&!o.sea&&!o.veil&&!o.deco){ // (ciel de coton) les COUSSINS de vol et les TOURS qu'on traverse : la forme classique,
@@ -503,7 +566,7 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
     fin9={S:S,r:r,dy:-(S.base+S.top)*.5*r};geo9=cotonGeo(S,CLOUD_SPH_LO);geo9.scale(r,r,r);geo9.translate(0,fin9.dy,0);geo9.computeBoundingSphere(); // (2026-09-30) une ÉBAUCHE légère tout de suite, la forme fine arrive de l'ouvrier (≈10 ms par nuage : 0,2 s de gel à chaque portail)
     ry=h*.5;} // l'ellipsoïde « dedans » (white-out, airtime) suit la vraie hauteur du nuage
   else geo9=mergeSpheres(mkBlobs(o,rr),r,ry,r); // les 5-10 boules de CE nuage (RNG isolé : ne rebrasse pas la génération)
-  const mesh=new THREE.Mesh(geo9,v8?nuage8Solo():CLOUD_MAT);if(v8){mesh.scale.set(r,r,r);mesh.updateMatrix();mesh.userData.m8=nuage8Solo();}
+  const mesh=new THREE.Mesh(geo9,v8?nuage8Solo():CLOUD_MAT);mesh.name=v8?'nuages v8':'nuages boules';if(v8){mesh.scale.set(r,r,r);mesh.updateMatrix();mesh.userData.m8=nuage8Solo();}
   // Opaque : il s'occlut par le z-buffer comme n'importe quel décor. Aucun tri, aucun mélange,
   // donc AUCUN ordre de dessin ne peut le faire clignoter. Le frustum culling de three.js
   // redevient sûr (la géométrie est réelle et sa sphère englobante est exacte).
@@ -520,9 +583,9 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
         f9.onBeforeRender=function(r9,s9,c9b,g9,m9){m9.uniforms.uNvW.value=1;m9.uniformsNeedUpdate=true;};if(!NUVIT.on)f9.visible=false;}}
     else if(q.fant){const G=nuFantGeo(q,fin9.dyU,g2),MS=nuVitMats(true),f9=new THREE.Mesh(G.fan,nufMat(MS.fan,G)); /* (fantôme) les bancs, coussins et tours : le maillage devient le CORPS rentré, les cubes fantômes sont son enfant */
       f9.castShadow=f9.receiveShadow=false;f9.updateMatrix();f9.matrixAutoUpdate=false;mesh.add(f9);
-      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.fan=true;u9.nvw=1;f9.onBeforeRender=function(r9,s9,c9,g9,m9){m9.uniforms.uNvW.value=u9.nvw;m9.uniformsNeedUpdate=true;}; /* (2026-10-18, LE FONDU) la part de cubes de CE nuage */u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},Math.max(NUVIT.nc,Math.min(40,Math.round(r/8))),fin9.dyU);
+      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.fan=true;u9.nvw=1;f9.onBeforeRender=function(r9,s9,c9,g9,m9){m9.uniforms.uNvW.value=u9.nvw;m9.uniformsNeedUpdate=true;}; /* (2026-10-18, LE FONDU) la part de cubes de CE nuage */u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},Math.max(NUVIT.nc,Math.min(C3_ON?PAL.b('nuCub',40):40,Math.round(r/8))),fin9.dyU);
   else if(fin9)cotonCalcAsync(fin9.S,CLOUD_SPH,function(q){if(!g.parent)return; /* jeté entre-temps (portail) */ const g2=cotonBuf(q);g2.scale(fin9.r,fin9.r,fin9.r);g2.translate(0,fin9.dy,0);g2.computeBoundingSphere();const o9=mesh.geometry;mesh.geometry=g2;o9.dispose();mesh.userData.fin=true;});
-  CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
+  CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false,S:fin9?fin9.S:null,dS:fin9?(fin9.v8?fin9.dyU*r:fin9.dy):0}); /* S, dS : (2026-11-07) ses lobes et leur décalage, pour dbgNuagesAudit */
 }
 // (le repli SPRITES a été supprimé avec le raymarch : il n'y a plus qu'UN seul chemin de nuage)
 let BANC_LOG=[];
@@ -577,7 +640,7 @@ function buildClouds(rr){
       // Un coussin d'airtime doit se lire de loin pour qu'on aille le chercher.
       const r9=34+cr()*28; // (2026-09-26) décollé de la dalle d'au moins 30 m au-dessus de son ventre (il ne touche plus la route)
       mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*70)
-        .addScaledVector(Nn[i],above?r9*.55+30+cr()*44:-(r9*.55+THICK+32+cr()*60)),r9,{},cr);
+        .addScaledVector(Nn[i],above?r9*.55+30+cr()*44:-(r9*.55+THICK+32+cr()*60)),r9,{pousse:Nn[i].clone().multiplyScalar(above?1:-1)},cr);
     }
   }
   // TOURS GÉANTES façon simulateur de vol : des montagnes de ouate — une sur quatre est

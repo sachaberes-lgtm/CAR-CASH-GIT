@@ -65,7 +65,7 @@ const JADE_VR_FS=[
   '  else if(m==6)alb=vec3(.55,.13,.09);else if(m==7)alb=vec3(.16,.19,.19);else if(m==8)alb=vec3(.86,.66,.30);else if(m==10)alb=roc*.75;else alb=vec3(.62,.60,.55)*(.9+.2*rg);',
   '  vec3 V=normalize(cameraPosition-vW);',
   '  float cav=mix(.3,1.,vAO)*mix(.6,1.,smoothstep(.05,.5,h)),dif=max((dot(N,uSunDir)+.12)/1.12,0.);',
-  '  vec3 col=alb*(mix(uGnd,uSky,N.y*.5+.5)*cav*.85+uSunC*dif*mix(.5,1.,cav)*.85+uFillC*max(dot(N,-uFillD),0.)*cav);', // (v7) le soleil un cran plus doux : les grandes faces au soleil sortaient crème
+  '  vec3 col=alb*(mix(uGnd,uSky,N.y*.5+.5)*cav*.85+uSky*.7*(1.-dif)*mix(.4,1.,cav)+uSunC*dif*mix(.5,1.,cav)*.85+uFillC*max(dot(N,-uFillD),0.)*cav);', // (v7) le soleil un cran plus doux : les grandes faces au soleil sortaient crème · (2026-11-05, Sacha : « la face avant de la grande arche est noire ») LE JOUR DANS L'OMBRE : `uSky*.7*(1−dif)` — une face qui tourne le dos au soleil (l'axe de la vallée change de côté à chaque piste) ne recevait que l'ambiant × albédo ~.25 × (op·.6) ≈ 5 % : noir. Elle reçoit maintenant la lumière du ciel, qui s'éteint là où le soleil frappe (mesuré sur l'arche de la Porte, f = 0, .35, .7, 1,1 : .7 = l'ombre lisible, le côté éclairé garde son relief)
   (JMAT>=1?[
   '  {float dk9=1.-smoothstep(.35,1.1,dot(uSunC,vec3(.333)));',                                                                        // (embellie) 0 le jour · 1 la nuit
   '   col+=alb*uMist*vec3(1.05,.84,.72)*(smoothstep(.1,-.7,N.y)*.34+(1.-abs(N.y))*.10)*cav*(1.-smoothstep(120.,900.,vW.y-uMerY));', // le REBOND de la mer de brume : tiède sous les ventres et sur les flancs
@@ -204,6 +204,7 @@ const JADE_ARB_VS=['attribute vec4 aJ;uniform float uTime;varying vec2 vUv,vL;va
   '  vec4 mvPosition=viewMatrix*vec4(wp,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
 const JADE_ARB_FS=['uniform sampler2D uTex;uniform vec3 uSunC,uSky,uGnd,uMist,uSunDir;uniform float uMerY,uTime;varying vec2 vUv,vL;varying vec3 vW;varying float vCr;','#include <fog_pars_fragment>',
   'void main(){vec4 t=texture2D(uTex,vUv);if(t.a<.45||vW.y<uMerY+1.)discard;',
+  '  if(vCr>.5){float fd9=1.-smoothstep(900.,1250.,length(vW-cameraPosition));if(fd9<1.&&fract(52.9829189*fract(dot(gl_FragCoord.xy,vec2(.06711056,.00583715))))>fd9)discard;}', // (2026-11-05) les cristaux apparaissent en fondu tramé (voir la pose, jade-3.js)
   '  vec3 col=mix(t.rgb,vec3(dot(t.rgb,vec3(.3,.59,.11))),.15)*(.8+.25*vL.y)*(mix(uGnd,uSky,.35+.5*vL.x)*.9+uSunC*(.35+.4*vL.x));',
   '  col+=t.rgb*vCr*(.20+.60*(1.-smoothstep(.35,1.1,dot(uSunC,vec3(.333)))))*(.82+.18*sin(uTime*1.7+vL.y*50.));', // (embellie) les CRISTAUX luisent (un peu le jour, franchement la nuit) et scintillent chacun à son rythme
   '  float hm=((1.-smoothstep(0.,130.,vW.y-uMerY))*.38);col=mix(col,uMist,hm);gl_FragColor=vec4(col,1.);','#include <fog_fragment>','}'].join('\n');
@@ -284,7 +285,7 @@ function jadeQuart(r,ox,oz){const c=Math.round(Math.cos(r*Math.PI/2)),s=Math.rou
    aussi : hors du menu, jamais deux cartes. Rangée, elle rend à la carte graphique ce qu'elle seule y tenait (jadeRendGPU : la même mémoire
    GPU au menu qu'avant ; three renvoie ses tableaux au prochain rendu). Le menu garde SON ciel : la carte rangée n'est plus dans la scène. */
 const JADE_GARDE={m:null,reprises:0,ms:0};
-const JADE_CH=['root','fam','col','porte','pont','brume','monu','merY','eauY','quart','n9','nuages','nuTri','eauPil','eauT','depart','n','msPorte','msPont','tPorte','cle','dz','deco'],
+const JADE_CH=['root','fam','col','porte','pont','brume','monu','merY','eauY','quart','n9','nuages','nuTri','eauPil','eauT','depart','n','msPorte','msPont','tPorte','cle','dz','deco','audit'],
   FIN_CH=['fam','cap','vit','stamp','was','gen','mats','dans'],NUVOX_CH=['L','ims','S','sig'],JCH_CH=['L','fixe','splash','sp']; // TOUT ce qu'une carte écrit hors d'elle-même (voir jadeBatit)
 function jadeEtatLit(){const m={J:{},F:{},N:{},C:{}};for(const k of JADE_CH)m.J[k]=JADE[k];for(const k of FIN_CH)m.F[k]=FIN[k];for(const k of NUVOX_CH)m.N[k]=NUVOX[k];for(const k of JCH_CH)m.C[k]=JCH[k];return m;}
 function jadeEtatEcrit(m){for(const k of JADE_CH)JADE[k]=m.J[k];for(const k of FIN_CH)FIN[k]=m.F[k];for(const k of NUVOX_CH)NUVOX[k]=m.N[k];for(const k of JCH_CH)JCH[k]=m.C[k];}
@@ -329,7 +330,7 @@ function buildJade(seed){
   try{JADE_ESPRITS.visible=false;}catch(e){} // …et les lucioles s'éteignent : jadeTick ne tourne plus hors de la map, elles restaient figées dans le niveau suivant
   if(JADE.root)jadeRange(); // (2026-10-13) la carte en place n'est plus jetée : rangée (voir LA CARTE GARDÉE)
   jadeEtatVide();
-  try{coinSymbole((JADE_JEU||(LVL.cur&&LVL.cur.sansFin))&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on?'Y':LVL.cur&&LVL.cur.crypto&&!PARK.on?'B':'$');}catch(e){} // (2026-10-12) les pièces du SOLEIL DE JADE frappées du ¥
+  try{coinSymbole((JADE_JEU||(LVL.cur&&LVL.cur.sansFin))&&LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on?'Y':LVL.cur&&LVL.cur.crypto&&!PARK.on?'B':'E');}catch(e){} // (2026-10-12) les pièces du SOLEIL DE JADE frappées du ¥
   try{jadeEauRaz();}catch(e){} // (2026-10-13) la mer : rien sous l'eau d'une piste à l'autre
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='jade'||!(NP>1)){if(started&&!gameOver)jadeOublie();return;} // une course sur un autre niveau : la carte rangée est libérée (au menu, elle attend le prochain JOUER)
   const cle=jadeCle(seed);

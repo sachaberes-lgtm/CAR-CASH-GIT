@@ -29,16 +29,24 @@ function photoLie(sc,cam){try{
     lierPret();} // lus liés : la liste des attendus se vide, `lierScene` ne cachera rien
 }catch(e){}}
 // le studio (pellicule, scène, objectif, lumières), monté à la première photo — caisse, aile ou figure (2026-10-15 soir : sorti de carPhoto pour figPhoto)
+/* (2026-11-07) LA CAISSE DU JOUEUR QUI PORTE L'AILE (cartes des AILES, boutique-classique.js) : trois-quarts arrière, en plongée douce — on voit l'aile déployée ET la caisse qui la porte */
+const PHOTO_AILE_AVEC={el:.46,az:2.55};
 function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
   /* (2026-10-25, Sacha : « les photos sont bof, la lumière… elles ne donnent pas envie d'acheter ») : un vrai studio de vente — grande lampe douce de face, remplissage clair côté ombre (le dessous ne bouchait plus en violet), contre-jours plus fins et moins fluo */
-  const hemi=new THREE.HemisphereLight(0xf2f5ff,0x5a5066,1.0),key=new THREE.DirectionalLight(0xfff6ea,2.1),fill=new THREE.DirectionalLight(0xe9f0ff,1.0),
-        rim=new THREE.DirectionalLight(0xffa8dc,.95),rim2=new THREE.DirectionalLight(0x9fe4ff,.8),bas=new THREE.PointLight(0xb9a0ff,.55,16);fill.position.set(6,3,9);
+  /* (2026-11-05, Sacha : « les voitures buggent visuellement ») LE STUDIO SURÉCLAIRÉ : lampe de face 2,1 + ciel 1,0, puis la pellicule qui relève encore
+     (photoDev) — chaque facette tournée vers le haut sortait BLANC PUR, en blocs (LA FIDÈLE, argent dans sa fiche, sortait blanc-lilas ; le contre-jour
+     rose teintait tout). L'éclairage est ramené à ce que la pellicule supporte : la couleur de la fiche se lit, les reflets restent. `?photolum=ancien` = avant. */
+  const PL9=/[?&]photolum=ancien\b/.test(location.search)?[1.0,2.1,1.0,.95,.8,.55]:[.78,1.45,.8,.55,.6,.4];
+  const hemi=new THREE.HemisphereLight(0xf2f5ff,0x5a5066,PL9[0]),key=new THREE.DirectionalLight(0xfff6ea,PL9[1]),fill=new THREE.DirectionalLight(0xe9f0ff,PL9[2]),
+        rim=new THREE.DirectionalLight(0xffa8dc,PL9[3]),rim2=new THREE.DirectionalLight(0x9fe4ff,PL9[4]),bas=new THREE.PointLight(0xb9a0ff,PL9[5],16);fill.position.set(6,3,9);
   key.position.set(-3,8,7);rim.position.set(7,3.5,-6);rim2.position.set(-7,2.5,-5);bas.position.set(0,-.4,3);
   PHOTO.scene.add(hemi,key,fill,rim,rim2,bas);PHOTO.key=key;}
 function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=w.userData.k||1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}
   try{ailvPose();}catch(e){}} // (2026-10-16, LES AILES VIVANTES) l'aile au plus beau de son geste : boost tenu (les ailes en X ouvertes, la lave qui flambe…)
-function aileFile(id,cb,el){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a:'+id+':'+c;
+/* (2026-11-06, Léo : « enlever la voiture de l'affichage des ailes ») la photo d'une aile ne montre QUE les deux ailes : tout maillage hors des ailes est caché (le cadre se calcule sur ce qui reste) */
+function photoSeulesAiles(){const L=[carWingL,carWingR];carGroup.traverse(function(o){if(!o.isMesh&&!o.isSprite&&!o.isLine&&!o.isPoints)return;for(let a=o;a;a=a.parent){if(L.indexOf(a)>=0)return;if(a===carGroup)break;}o.visible=false;});}
+function aileFile(id,cb,el){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a3:'+id+':'+c;
   if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,j:j},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* (2026-10-14, OPTIMISATION — passation perf : « BOUTIQUE ~400 ms à l'ouverture = shopPhotoTour : 8 toDataURL 164 ms + 8 readPixels 66 ms ») —
    `carPhoto(i, cb)` : avec un rappel, la photo finit en `toBlob` (l'encodage PNG part hors du fil, le rappel reçoit une adresse `blob:` d'une
@@ -84,19 +92,19 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   photoStudio();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
   if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin) — (2026-10-16) en RAFALE, posée une fois par photoRafale
-  PHOTO_USINE=true; /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) */
+  PHOTO_USINE=!(aile&&aile.avec); /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) — (2026-11-07) sauf la caisse du JOUEUR qui porte une aile (aile.avec) : sa peinture à lui */
   const sig9=phdbSig();let url=null,asy=false;
   try{
     if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
     else buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
-    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile)photoAiles();
+    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile){photoAiles();if(!aile.avec)photoSeulesAiles();} /* (2026-11-07, Sacha : « présente correctement les ailes avec la voiture du joueur ») aile.avec : la caisse reste, elle porte l'aile (boutique-classique.js, bcAileFile) */
     carGroup.updateMatrixWorld(true);
     // LA BOÎTE de ce qu'on voit (maillages visibles seulement : les halos cachés gonfleraient le cadre)
     const bx=new THREE.Box3(),b9=new THREE.Box3();
     carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||o.userData.fx||o.isInstancedMesh)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
       if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();b9.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);bx.union(b9);});
     if(bx.isEmpty())bx.set(new THREE.Vector3(-1,0,-2),new THREE.Vector3(1,1.3,2));
-    const EL9=aile?PHOTO_AILE.el:PHOTO_EL,AZ9=aile?PHOTO_AILE.az:(az9!=null?az9:PHOTO_AZ),cam=PHOTO.cam,ctr=bx.getCenter(new THREE.Vector3()),dir=new THREE.Vector3(Math.sin(AZ9)*Math.cos(EL9),Math.sin(EL9),Math.cos(AZ9)*Math.cos(EL9));T9.box=bx.getSize(new THREE.Vector3()).toArray().map(function(v){return +v.toFixed(2);});T9.ailes=!!carWingL;
+    const EL9=aile?(aile.avec?PHOTO_AILE_AVEC.el:PHOTO_AILE.el):PHOTO_EL,AZ9=aile?(aile.avec?PHOTO_AILE_AVEC.az:PHOTO_AILE.az):(az9!=null?az9:PHOTO_AZ),cam=PHOTO.cam,ctr=bx.getCenter(new THREE.Vector3()),dir=new THREE.Vector3(Math.sin(AZ9)*Math.cos(EL9),Math.sin(EL9),Math.cos(AZ9)*Math.cos(EL9));T9.box=bx.getSize(new THREE.Vector3()).toArray().map(function(v){return +v.toFixed(2);});T9.ailes=!!carWingL;
     const C8=[];for(let k=0;k<8;k++)C8.push(new THREE.Vector3(k&1?bx.max.x:bx.min.x,k&2?bx.max.y:bx.min.y,k&4?bx.max.z:bx.min.z));
     let D=bx.getSize(new THREE.Vector3()).length()*2.4,tg=ctr.clone(),ymin=0;const v9=new THREE.Vector3();
     let PTS=C8;if(aile){PTS=[];carGroup.traverse(function(o){const pa=o.isMesh&&o.geometry&&o.geometry.attributes.position;if(!pa||o.userData.fx)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;} // une AILE : le cadre se cale sur la vraie silhouette (des sommets), pas sur les coins de sa boîte — les ailes ne la remplissent pas, la caisse sortait à moitié de la taille
@@ -112,7 +120,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     {v9.set(ctr.x,bx.min.y,ctr.z).project(cam);ymin=v9.y;} // le sol SOUS le centre de la caisse, à l'écran (le coin avant de la boîte tombait plus bas : l'ombre se décollait)
     const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget();
     renderer.setRenderTarget(PHOTO.rt);renderer.setClearColor(0x000000,0);renderer.clear();
-    photoLie(PHOTO.scene,cam);renderer.render(PHOTO.scene,cam); // (voir photoLie : les shaders de cette caisse sont liés AVANT la prise)
+    photoLie(PHOTO.scene,cam);{const h9=FSTU.uHdr.value;FSTU.uHdr.value=Math.min(h9,BQ_HDR);try{renderer.render(PHOTO.scene,cam);}finally{FSTU.uHdr.value=h9;}} // (voir photoLie : les shaders de cette caisse sont liés AVANT la prise) — (2026-11-05, Sacha : « les voitures buggent visuellement ») la photo de vente se prend avec les reflets ADOUCIS (BQ_HDR), d'où qu'on la prenne : au garage, ils semaient des taches blanches sur les petites facettes des toits et des capots
     let gros=null;if(!PHOTO_DEV_JS)try{gros=photoDev(W,H);}catch(e){console.warn('photoDev',e);gros=null;PHOTO_DEV_JS=true;} // (2026-10-16) LA PELLICULE SUR LA PUCE (photoDev) : la toile sort déjà développée, retournée et réduite
     let buf=null;if(!gros){buf=new Uint8Array(RW*RH*4);renderer.readRenderTargetPixels(PHOTO.rt,0,0,RW,RH,buf);}
     renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);T9.rendu=performance.now()-T9.t0;
@@ -128,7 +136,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
     const yb=Math.round((1-(ymin*.5+.5))*H); // la ligne du sol, en pixels de la photo
     // L'OMBRE DE CONTACT, douce, sous la caisse
-    {x.save();x.translate(W/2,yb);x.scale(1,.13);const g9=x.createRadialGradient(0,0,0,0,0,W*.44);g9.addColorStop(0,'rgba(0,0,0,.62)');g9.addColorStop(.55,'rgba(0,0,0,.30)');g9.addColorStop(1,'rgba(0,0,0,0)');
+    if(!aile||aile.avec){x.save();x.translate(W/2,yb);x.scale(1,.13);const g9=x.createRadialGradient(0,0,0,0,0,W*.44);g9.addColorStop(0,'rgba(0,0,0,.62)');g9.addColorStop(.55,'rgba(0,0,0,.30)');g9.addColorStop(1,'rgba(0,0,0,0)');
      x.fillStyle=g9;x.fillRect(-W*.5,-W*.5,W,W);x.restore();}
     // LE REFLET d'un sol verni : la photo retournée sous la ligne du sol, qui s'éteint en 20 % de la hauteur
     /* (2026-10-15) pas de reflet sous une AILE : en plongée, le sol verni dessinait un fantôme d'aile */
@@ -295,7 +303,7 @@ window.dbgFigFilm=function(id,dir,o){if(o)Object.assign(FILM_FIG,o);if(!id){for(
   const k='fa:'+id+':'+(dir||'cote')+':'+equippedCar();delete PHOTO.cache[k];
   const u=figFilm({k:k,fig:id,dir:dir||'cote'},null);const T=PHOTO.msF||{},r=function(v){return v==null?null:Math.round(v);};
   return {url:u,images:T.images,msCaisse:r(T.caisse),msRendu:r(T.rendu),msMontage:r(T.montage),msTotal:r(T.total),cartes:FILM.l.length,reglage:Object.assign({},FILM_FIG)};};
-window.dbgAile=function(id,o){if(o)Object.assign(PHOTO_AILE,o);const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return 'aile inconnue';const c=equippedCar(),k='a:'+id+':'+c;delete PHOTO.cache[k]; // (banc) la photo d'une aile, refaite (o : {el, az} du studio)
+window.dbgAile=function(id,o){if(o)Object.assign(PHOTO_AILE,o);const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return 'aile inconnue';const c=equippedCar(),k='a3:'+id+':'+c;delete PHOTO.cache[k]; // (banc) la photo d'une aile, refaite (o : {el, az} du studio)
   const u=carPhoto(c,null,{k:k,j:j});return {url:u,box:PHOTO.ms&&PHOTO.ms.box,ailes:PHOTO.ms&&PHOTO.ms.ailes,caisse:CARS[c].name,reglage:Object.assign({},PHOTO_AILE)};};
 window.dbgPhoto=function(){const T=PHOTO.ms;if(!T)return 'aucune photo';const r=v=>v==null?null:Math.round(v);return {caisse:CARS[T.i]&&CARS[T.i].name,msCaisse:r(T.caisse),msRendu:r(T.rendu),msPellicule:r(T.pellicule),msMontage:r(T.montage),msTotal:r(T.total),enAttente:PHOTO.att?Object.keys(PHOTO.att).length:0,enCache:Object.keys(PHOTO.cache).length};}; // (banc) le détail de la dernière photo
 /* L'ATELIER DES CAISSES (dev, 2026-09-26) — `dbgEssaiCaisse(src, fiche, vues)` : essaie un gabarit ÉCRIT EN TEXTE (une expression
@@ -385,19 +393,33 @@ window.dbgEssaiCaisse=function(src,fiche,vues){
    s'achète AVEC la traînée arc-en-ciel (voir chatPackI) ; la vitrine et la fenêtre d'achat le disent par une pastille aux couleurs de la traînée, « INCLUSE »
    (le prix couvre les deux). Rien tant qu'on a déjà le chat. Le style : `.shArc` dans <style id="achatPop">. */
 function shArcHtml(i,a){return (i===chatPackI()&&!a)?'<i class="shArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL INCLUSE')))+'</i>':'';}
-// LA VITRINE : l'offre à la une (la premium marquée `une`) et la grille des autres, par rareté
+/* ===== LA PAGE ACHAT EN BOÎTES (2026-11-07, Sacha : « la boutique du début avec le bouton achat est un peu en dessous du reste, retravaille-la et ajoute les boîtes qu'on a déjà mises dans la boutique » · « pas dans la boutique blanche : dans le bouton de l'écran d'accueil ») =====
+   La page ACHAT de l'accueil garde sa nuit violette, mais ses caisses sont rangées comme dans la boutique : chacune dans SA BOÎTE de verre, la
+   même image que le rayon ACHAT (vitrinePhoto de vitrine-miniature.js : socle, caisse, capot de verre), posée dans une niche éclairée à la couleur
+   de sa rareté, avec dessous une plaque sombre : le nom et le prix. En haut, l'offre à la une dans une grande boîte ; dessous, trois boîtes par
+   rangée debout, dans l'ordre du rayon ACHAT (bqAchat : l'offre de lancement, puis de la moins chère à la plus chère). Toucher une boîte ouvre
+   la fenêtre d'achat (shopPop), inchangée. Les images arrivent une par une (shopPhotoTour). Le style : achat-boites.css.
+   `?vitrine=0` : la photo de catalogue d'avant, dans la même niche. */
+const SHB_GRAND=720; /* la grande boîte de l'offre (314 px de large debout) : rendue en 720, comme l'ancienne photo de l'offre — à 480 (vitLarg d'un téléphone) elle était floue sur un écran ×3 */
+function shBoiteVt(){return typeof VITM!=='undefined'&&VITM.on;}
+function shBoiteCle(i,big){return shBoiteVt()?vitrineCle(i,false,carOwned(i),big?SHB_GRAND:0):i;} /* la clé de l'image de la boîte dans PHOTO.cache (une caisse À TOI : sa vitrine « sortie de sa boîte ») */
+function shBoiteImg(i,big){const u=PHOTO.cache[shBoiteCle(i,big)];return u?'<img class="shBxI" src="'+u+'" alt="" draggable="false">':'';}
 function shopRender(){
   const une=document.getElementById('shUne'),gr=document.getElementById('shGrille');if(!une||!gr)return;
-  const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'};let hU='',hG=''; // (2026-09-26) toutes LÉGENDAIRES : la boutique est leur seule porte
-  for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i))continue; // (2026-10-06) une caisse RETIRÉE quitte aussi la vitrine
-    const ph=PHOTO.cache[i],img=ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>',a=carOwned(i);if(!ph)shopPhotoVeut(i); // (revue GAMEPLAY) plus de carPhoto EN SYNCHRONE : 13 photos d'un bloc = 1,1 s de gel sur PC (2-3 s sur iPhone) à la 1re ouverture
-    if(u.une&&!hU&&!a){ // (charte v4) la VITRINE DE LÉGENDE : cadre d'or qui scintille autour (`.shUne`), le décor dedans (`.shUneCadre`)
-      hU='<div class="shUneCadre"><div class="shPhoto big">'+img+'</div>'
-        +'<div class="shUneTx"><b>'+insec(TR(CARS[i].name))+'</b>'+shArcHtml(i,a)+'</div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
-        +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn'+(a?' aToi':'')+'">'+pxi(a?'coche':'panier')+TR(a?'À TOI':'ACHETER')+'</span></div></div>';
-      une.setAttribute('data-car',i);continue;}
-    hG+='<div class="shCase '+(u.rar||'rar')+'" data-m="shopSoon" data-car="'+i+'" role="button"><span class="shRare">'+TR(RAR[u.rar||'rar'])+'</span>'
-      +'<div class="shPhoto">'+img+'</div><b class="shNom">'+TR(CARS[i].name)+'</b><span class="shPrix'+(a?' aToi':'')+'">'+(a?TR('À TOI'):eurTxt(u.eur))+'</span></div>';
-  }
-  une.innerHTML=hU;gr.innerHTML=hG;
+  let hU='',hG='',n=0;
+  bqAchat().forEach(function(i){if(!CARS[i])return;const u=CAR_UNLOCK[i],a=carOwned(i),big=!!u.une&&!hU&&!a,ri=rarInfo(carRar(i)),im=shBoiteImg(i,big),nom=insec(sansAcc(TR(CARS[i].name))),
+      bx='<span class="shBx'+(big?' big':'')+(im?' vt':'')+(shBoiteVt()?'':' photo')+'">'+im+'</span>';
+    if(!im)shopPhotoVeut(big?'u'+i:i); /* (revue GAMEPLAY) jamais d'image EN SYNCHRONE : la file les prend une par une ('u' : la grande boîte) */
+    if(big){ /* L'OFFRE À LA UNE : la grande boîte, dans le cadre qui scintille (`.shUne`) */
+      hU='<div class="shUneCadre shUneBoite b-'+ri.id+'" style="--rc:'+ri.c+'">'+bx
+        +'<div class="shUneTx"><b>'+nom+'</b>'+shArcHtml(i,a)+'</div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
+        +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn">'+pxi('panier')+TR('ACHETER')+'</span></div></div>';
+      une.setAttribute('data-car',i);return;}
+    const px=a?pxi('coche')+sansAcc(TR('À TOI')):eurTxt(u.eur),
+      lg=Math.max.apply(null,sansAcc(TR(CARS[i].name)).split(/\s+/).map(function(w){return w.length;}))>=10; /* un mot de 10 lettres et plus (L'ÉTERNELLE) : la plaque l'écrit plus petit quand la boîte est étroite, au lieu de le couper en deux (achat-boites.css) */
+    hG+='<div class="shCase shBoite b-'+ri.id+(a?' aToi':'')+'" data-m="shopSoon" data-car="'+i+'" role="button" style="--rc:'+ri.c+';--i:'+Math.min(n++,8)+'"'
+      +' aria-label="'+(nom+' · '+(a?sansAcc(TR('À TOI')):eurTxt(u.eur))).replace(/"/g,'')+'">'+bx
+      +'<span class="shBxPl"><b class="shBxN'+(lg?' lg':'')+'">'+nom+'</b>'+(i===chatPackI()&&!a?'<i class="shBxArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</i>':'')
+      +'<span class="shBxP">'+px+'</span></span></div>';});
+  une.innerHTML=hU;gr.innerHTML=hG;if(!hU)une.removeAttribute('data-car');
 }

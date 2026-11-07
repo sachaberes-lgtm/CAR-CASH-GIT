@@ -1,0 +1,14 @@
+<style id="revueInterfaces">
+/* ===== LA REVUE DES INTERFACES (2026-11-07, Sacha : « revois les interfaces, fais un screen de chaque écran et paufine tout parfaitement. pas de bouton
+   inutile. clarifie. ergonomie mobile ») =====
+   Trente-trois écrans photographiés au banc (outils/banc-ecrans/photos.cjs : debout et couché, français et anglais, compte riche et compte neuf, course,
+   pause et mort), chaque boîte mesurée (cibles < 44 px, chevauchements, textes coupés, touches hors écran) : 0 erreur JS, 0 cible trop petite,
+   0 texte coupé en français. Ce qui restait à corriger tient ici ; rien n'est redessiné.
+   1. LES NOMS LONGS DANS LES PLAQUES DE LA BOUTIQUE (anglais) : la plaque sous une boîte tient 9 lettres par ligne sur 2 lignes (77 px utiles, 8 px + 0,3
+      d'espacement) ; THE YELLOW CAB, THE TRAILBLAZER, THE CHARGER 69, THE ENGLISH DAME, THE CENTER THRONE en demandaient 3 et finissaient en
+      « THE YELLOW… ». bqNomsAjuste (interface/revue-interfaces.js) MESURE chaque plaque et pose .lg quand elle déborde : 7 px sans espacement,
+      11 lettres par ligne (la marge intérieure passe de 6 à 3 px : TRAILBLAZER, 11 lettres, tenait à un pixel près), les cinq rentrent — en français
+      aucune plaque ne déborde, rien ne change. Si une plaque déborde ENCORE à 7 px (une 2e mesure, même passage), .lg2 : 6 px, le dernier cran lisible. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKn.lg{font-size:7px;letter-spacing:0;line-height:11px;padding-left:3px;padding-right:3px}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKn.lg2{font-size:6px;line-height:10px;padding-left:2px;padding-right:2px}
+</style>

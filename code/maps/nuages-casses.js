@@ -28,7 +28,7 @@ function nuCasseInit(){
       '  gl_FragColor=vec4(vT*mix(ombre,soleil,lit),1.);','#include <fog_fragment>','}'].join('\n')});
   const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,NCB.cap);im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(NCB.cap*3).fill(1),3);im.instanceColor.setUsage(THREE.DynamicDrawUsage);
-  im.frustumCulled=false;im.count=0;im.castShadow=im.receiveShadow=false;im.matrixAutoUpdate=false;scene.add(im);NCB.mesh=im;
+  im.frustumCulled=false;im.count=0;im.castShadow=im.receiveShadow=false;im.matrixAutoUpdate=false;im.name='nuages cubes cassés';scene.add(im);NCB.mesh=im;
   for(let i=0;i<8;i++)NCB.hs.push({t:9,d:1,R:0,x:0,y:0,z:0});}
 function nuCubeNew(x,y,z,vx,vy,vz,s,life,spl,br){ // un bloc de plus ; -1 s'il n'y a plus de place
   if(NCB.n>=NCB.cap)return -1;const i=NCB.n++,j=i*3;

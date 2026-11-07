@@ -158,8 +158,8 @@ const VHD={on:false,dpr:1,max:1,ombre:2048,t:0,k0:0,lT:0,bT:0,sT:0,mur:0,murT:0,
 /* (2026-10-24, Sacha, après avoir regardé ?vhdecran=2 sur le site : « c'est bon, active-le par défaut sur ordi ») LA VARIANTE 2 PAR DÉFAUT sur l'ordi :
    les pixels de l'écran + ombre 2048 (menu : GPU 16 → 6,4 ms, 53 → 59 i/s). `?vhdecran=0` = l'ancienne vitrine (×1,5, ombre 4096), `?vhdecran=1` = sans l'ombre 2048. */
 const VHE_MODE=TEL_NATIF?0:(function(){const m=/[?&]vhdecran=([012])\b/.exec(location.search);return m?+m[1]:2;})();
-window.dbgVhdEcran=function(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):8.3e6,f9=function(d){return Math.max(DPR_CAP,Math.min(d,Math.sqrt(bud/px),4));},a9=f9(devicePixelRatio*(TEL_NATIF?1:1.5)),b9=f9(devicePixelRatio);
-  return {mode:VHE_MODE,tel:TEL_NATIF,vhd:VHD.on,dprEcran:+devicePixelRatio.toFixed(3),dprAvant:+a9.toFixed(3),dprApres:+b9.toFixed(3),pxEcran:Math.round(px*devicePixelRatio*devicePixelRatio),pxAvant:Math.round(px*a9*a9),pxApres:Math.round(px*b9*b9),
+window.dbgVhdEcran=function(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):VHD_PX_PC,f9=function(d){return Math.max(DPR_CAP,Math.min(d,Math.sqrt(bud/px),4));},a9=f9(devicePixelRatio*(TEL_NATIF?1:1.5)),b9=f9(devicePixelRatio);
+  return {mode:VHE_MODE,tel:TEL_NATIF,pc4k:PC_4K,ecran:ECRAN,retina:RETINA_OK,pcMin:PC_MIN,pcPx:PC_PX,vhdPx:VHD_PX_PC,vhd:VHD.on,dprEcran:+devicePixelRatio.toFixed(3),dprAvant:+a9.toFixed(3),dprApres:+b9.toFixed(3),pxEcran:Math.round(px*devicePixelRatio*devicePixelRatio),pxAvant:Math.round(px*a9*a9),pxApres:Math.round(px*b9*b9),
     toile:[renderer.domElement.width,renderer.domElement.height],ombre:sun.shadow.mapSize.x,bloom:bloomPass&&bloomPass.renderTargetsHorizontal?[bloomPass.renderTargetsHorizontal[0].width,bloomPass.renderTargetsHorizontal[0].height]:null};};
 /* ===== L'ÉCRAN DE FIN DE L'ORDI À LA RÉSOLUTION DE LA COURSE (2026-10-24, passe perf PC : « la carte graphique sature à l'écran de fin ») =====
    MESURÉ (Mac M4, cadre bureau, `dbgCout`) : à la mort la vitrine HD s'allume (`vhdMort` RÉCENT) — toile 3376×1560 (5,27 M de pixels), ombre 4096,
@@ -177,7 +177,7 @@ window.dbgVhdEcran=function(){ const px=Math.max(1,innerWidth*innerHeight),bud=T
 const PFR_ON=TEL_NATIF&&!/[?&]frais=0\b/.test(location.search);
 const PCM_ON=(!TEL_NATIF||PFR_ON)&&!/[?&]pcmort=0\b/.test(location.search); /* (2026-10-24) le téléphone aussi, par le mode frais */
 function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):VHD_PX_PC; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
-  return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
+  return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE||(window.CC_DPR_CADRE&&/[?&]vhd15=0\b/.test(location.search))?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(ALLEGE?4:8,m);
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
 function vhdBascule(on){ if(VHD.off||on===VHD.on)return;

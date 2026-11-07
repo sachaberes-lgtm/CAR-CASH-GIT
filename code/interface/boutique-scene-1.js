@@ -119,7 +119,7 @@ function bqSon(dt,on,force){ // force : la leçon (musique.js, leconAmbiance) jo
       a.connect(gv);b.connect(gv);a.start();b.start();V.push({a:a,b:b,g:gv});}
     const air=AC.createBufferSource();air.buffer=noiseBuf(2.7);air.loop=true;
     const ah=AC.createBiquadFilter();ah.type='highpass';ah.frequency.value=4200;const al=AC.createBiquadFilter();al.type='lowpass';al.frequency.value=9000;
-    const ag=AC.createGain();ag.gain.value=.0028;air.connect(ah); // l'air de la salle — (2026-10-14, Léo : « alléger un tout petit peu le bruit constant ») .004 → .0028 (−3 dB)ah.connect(al);al.connect(ag);ag.connect(g);air.start();
+    const ag=AC.createGain();ag.gain.value=.0028;air.connect(ah);ah.connect(al);al.connect(ag);ag.connect(g);air.start(); /* l'air de la salle — (2026-10-14, Léo : « alléger un tout petit peu le bruit constant ») .004 → .0028 (−3 dB) ; (2026-11-07, chasse SON2-N05) le branchement était tombé dans le commentaire : l'air ne jouait pas, et air.stop() jetait à la sortie en laissant l'écho branché sur MASTER à chaque visite */
     const ec=AC.createDelay(1);ec.delayTime.value=.38;const eg=AC.createGain();eg.gain.value=.35;const pg=AC.createGain();pg.gain.value=1;
     pg.connect(g);pg.connect(ec);ec.connect(eg);eg.connect(ec);eg.connect(g);
     n=BQSON.n={g:g,lp:lp,V:V,air:air,pg:pg,ec:ec,eg:eg,t:0,tA:0};BQSON.tP=1.5;
@@ -138,7 +138,7 @@ function bqSon(dt,on,force){ // force : la leçon (musique.js, leconAmbiance) jo
 }
 function bqSonCoupe(d){const n=BQSON.n;if(!n||!AC)return;
   try{n.g.gain.cancelScheduledValues(AC.currentTime);n.g.gain.setTargetAtTime(0,AC.currentTime,d/3);n.g.gain._s9=0;}catch(e){}
-  clearTimeout(BQSON.off);BQSON.off=setTimeout(function(){if(BQSON.n!==n)return;try{for(const v of n.V){v.a.stop();v.b.stop();}n.air.stop();n.g.disconnect();n.eg.disconnect();}catch(e){}BQSON.n=null;BQSON.off=0;},d*1000+500);}
+  clearTimeout(BQSON.off);BQSON.off=setTimeout(function(){if(BQSON.n!==n)return;for(const v of n.V){try{v.a.stop();v.b.stop();}catch(e){}}try{n.air.stop();}catch(e){}try{n.g.disconnect();}catch(e){}try{n.eg.disconnect();}catch(e){} /* (2026-11-07, chasse SON2-N05) chaque arrêt dans son propre filet : un stop qui jette ne saute plus les débranchements */BQSON.n=null;BQSON.off=0;},d*1000+500);}
 window.dbgBqSon=function(){return {on:!!BQSON.n,gain:BQSON.n?+BQSON.n.g.gain.value.toFixed(4):0,acc:BQSON.acc,veut:!!(typeof GBQ!=='undefined'&&GBQ.veut)};}; // (dev)
 function garBqAmbiance(on){garLibre._r=null; // (v3) au BASCULEMENT (pic de la lueur) : la lumière, et les voiles d'encre du garage retirés (#garage.bqBlanc)
   if(gEl)gEl.classList.toggle('bqBlanc',on);try{bioApply(on?bqBio():BIOMES.atelier);}catch(e){}}
@@ -207,13 +207,24 @@ function bqVoitRail(L){const fam=function(k){const i=+k.slice(2);return m2Secret
    (UNIES · 1 €, DÉGRADÉS · 1 €, MOTIFS · 2 €, ANIMÉES · 3 €), le compte « à toi / total » ; D'ORIGINE ouvre les communes. */
 const BQ_PEINT_SOUS={commun:'UNIES',rare:'DÉGRADÉS',epique:'MOTIFS',legendaire:'ANIMÉES'};
 const BQ_TRAINEE_SOUS={commun:'RUBANS',rare:'PARTICULES',epique:'EFFETS',legendaire:'SPECTACLE'}; /* (2026-11-05) les traînées : ce qu'est la famille (leurs prix sont en $, différents d'une carte à l'autre) */
-function bqTraineeRail(L){const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+/* LES AILES EN VITRINE (2026-11-05, Sacha : « les photos boutique des ailes et des voitures, ça ne donne pas assez envie ») : rangées par RARETÉ (l'ordre de
+   RARETES), puis du moins cher au plus cher, celles des missions en dernier ; un intertitre par famille, comme les voitures et les traînées. */
+function bqAilesOrdre(){const rg=function(d){return Math.max(0,RARETES.findIndex(function(x){return x.id===cosmRar('aile',d);}));},px=function(d){return d.p||(d.mis2?1e12:0);};
+  return COSM.aile.map(function(d,j){return j;}).sort(function(a,b){const A=COSM.aile[a],B=COSM.aile[b];return (rg(A)-rg(B))||(px(A)-px(B))||(a-b);});}
+function bqHabRail(L,cat,SOUS){const fam=function(k){return cosmRar(cat,bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+  return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,SOUS&&SOUS[f]?sansAcc(TR(SOUS[f])):''))+bqCarteHtml(k,n,false);});}
+function bqTraineeRail(L){if(typeof trPisteHtml==='function'&&/[?&]piste=1\b/.test(location.search))return trPisteHtml(L);try{if(typeof bqRayonRegarde==='function')bqRayonRegarde('trainee');}catch(e){} /* (2026-11-07, Sacha : « chaque type d'item doit avoir un système propre ») en entrant, les cartes en cube regardent aussi la traînée PORTÉE (bqRayonRegarde, comme les autres rayons) */ /* (2026-11-07, Léo : « les trails, mets tous les nouveaux, mais remets les effets d'avant, avec le cube : pour les trails c'était mieux ; fais seulement ça ») la PISTE de Sacha est éteinte pour les traînées : retour aux cartes en cube (la traînée animée sur sa route de nuit, traineeCarte), avec TOUTES les traînées de la liste ; `?piste=1` = la piste. Les autres rayons gardent leur système. */ /* (2026-11-07) LA PISTE : le rayon des traînées a son propre système (interface/boutique-trainee.js) */const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,BQ_TRAINEE_SOUS[f]?sansAcc(TR(BQ_TRAINEE_SOUS[f])):''))+bqCarteHtml(k,n,false);});}
-function bqPeintRail(L){try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */const fam=function(k){return cosmRar('peinture',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+function bqPeintRail(L){if(typeof bqNuancierHtml==='function')return bqNuancierHtml(L); /* (2026-11-07) LE NUANCIER : le rayon des peintures a son propre système (interface/boutique-peinture.js) */try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */const fam=function(k){return cosmRar('peinture',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k),sous=BQ_PEINT_SOUS[f]?sansAcc(TR(BQ_PEINT_SOUS[f]))+' · '+eurTxt(PEINT_EUR[f]):'';return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,sous))+bqCarteHtml(k,n,false);});}
+/* LES REFLETS DANS LA SALLE BLANCHE (2026-11-05, Sacha : « les voitures buggent visuellement ») : les « reflets qui éclatent » de la finition studio (fstuHdr :
+   le presque-blanc du cube de reflets ×4,5) font de belles bandes dans le garage sombre ; sur les petites facettes des caisses, dans la boutique blanche,
+   ils tombaient en taches blanches au hasard — on aurait dit une texture cassée (photos des cartes comprises : elles se prennent boutique ouverte).
+   Boutique ouverte, ils sont ramenés à BQ_HDR ; le garage les retrouve en entier. `?bqhdr=1` = avant. */
+const BQ_HDR=+((/[?&]bqhdr=([\d.]+)/.exec(location.search)||[0,.15])[1]);
 function bqPxT(v){return fmtSolde(v);} /* (clarté 15/10) les prix de la boutique de Léo au format GTA de GAMEPLAY (chiffres pleins, un seul « $ ») */
 function bqPxLg(t){return String(t).replace(/<[^>]*>/g,'').length>9;} /* un prix long (≥ 1 000 000) passe un corps en dessous : il tient dans sa carte */
-function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sansAcc(TR('À TOI')),c:'acq'};if(m2Secrete(i))return {t:sansAcc(TR('MISSION SECRÈTE')),c:'defi sec'};if(u.k==='premium')return {t:eurTxt(u.eur),c:'eur'};
+function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sansAcc(TR('À TOI')),c:'acq'};if(m2Secrete(i))return {t:sansAcc(TR('SECRÈTE')),c:'defi sec'}; /* (2026-11-07, finition) « MISSION SECRÈTE » débordait de la carte (114 px dans 101) ; la section le dit déjà */if(u.k==='premium')return {t:eurTxt(u.eur),c:'eur'};
   if(u.p)return {t:bqPxT(u.p),c:'pc'};return {t:sansAcc(TR('MISSION')),c:'defi'};}
 /* L'INTERFACE v4 (2026-10-12, Léo : « l'argent à côté de BOUTIQUE, et la boutique peut encore prendre tout cet espace ; le bouton VOITURES
    laisse choisir entre les traînées… ; sur le côté gauche qui défile, ce sont les objets hebdomadaires ») :
@@ -229,8 +240,8 @@ const BQ_CATS=[['voiture','VOITURES','voiture'],['achat','ACHAT','panier'],['pei
    Dans chaque section, l'ordre du catalogue (du moins cher au plus cher). Un intertitre `.bqSec` (bqFigSec) ouvre chaque section : ce n'est
    pas une carte — ni clic, ni compte (le compte de l'onglet reste celui des figures, une fois chacune : bqListe). */
 function bqFigSec(c){const F=FIG_FAM[c];return '<div class="bqSec" data-fam="'+c+'" style="--dc:'+FIG_DC[c]+'">'+pxi(F[2])+'<b>'+sansAcc(TR(F[0]))+'</b><em>'+sansAcc(TR(F[1]))+'</em></div>';}
-function bqFigRail(){const R=[];if(!window.FIG)return R;for(let c=0;c<FIG_NB;c++)FIG.liste.forEach(function(f){if(figPeut(f.id).indexOf(c)>=0)R.push({k:'figure:'+f.id,c:c});});return R;}
-function bqFigDir(id){const P=figPeut(id);return GBQ.figDir!=null&&P.indexOf(GBQ.figDir)>=0?GBQ.figDir:P[0];} // la direction de la carte touchée (sinon la 1re de la figure)
+function bqFigRail(){const R=[];if(!window.FIG)return R;fsListe(FIG.liste.map(function(f){return f.id;}),'bq').forEach(function(id){R.push({k:'figure:'+id,c:fsAuto(id)});});return R;} /* (2026-11-05, le sélecteur : figures-selecteur.js) UNE carte par figure, filtrée et triée — plus d'intertitre par direction ni de carte en double ; c : le geste où elle ira */
+function bqFigDir(id){const P=figPeut(id);return GBQ.figDir!=null&&P.indexOf(GBQ.figDir)>=0?GBQ.figDir:fsAuto(id);} // la direction de la carte touchée (sinon la 1re de la figure)
 function bqFigAutres(id,dir){return figPeut(id).filter(function(x){return x!==dir;});} // (2026-10-31, clarté boutique) les AUTRES emplacements où cette même figure joue aussi (le badge « aussi » d'une carte à deux sens)
 /* LES TROIS FIGURES ÉQUIPÉES, EN HAUT DU RAYON FIGURES (2026-10-16, Sacha : « dans la boutique, quand on arrive dans les figures, le truc des
    hexagones que tu avais mis dans l'inventaire, faut que tu le remettes, version adaptée, dans la boutique » · « tout en haut, tu remets les
@@ -240,52 +251,69 @@ function bqFigAutres(id,dir){return figPeut(id).filter(function(x){return x!==di
    dessin : <style id="bqFigHex">). Toucher une case = toucher la carte de SA figure dans SA direction (essayée sur le plateau, le bouton dit
    ÉQUIPÉE) et l'amener en vue ; une case VIDE amène l'intertitre de sa direction. ÉQUIPER une figure (bqAction) fait flasher la case qui la
    reçoit ; la case de la figure qu'on regarde prend l'anneau d'encre, comme la carte choisie. */
+/* (2026-11-07, Sacha : « le système de figure est horrible, reviens à la version précédente avec les hexagones » · « remets l'ancien, il était bien ») LA PELLICULE (boutique-figure.js) EST COUPÉE : le rayon FIGURES redevient celui de la v1268 — les trois hexagones en haut (#bqFigSel, l'éclair ×2), les pastilles, puis la grille des cartes. `?pellicule=1` = la pellicule. */
+const BQ_PELLICULE=/[?&]pellicule=1\b/.test(location.search);
 const BQFS={k:'',S:null};
 function bqFigSelEl(pan){let el=document.getElementById('bqFigSel');if(el)return el;
   el=document.createElement('div');el.id='bqFigSel';el.setAttribute('role','group');
-  el.innerHTML='<div class="fsTete"><b data-fr="TES 3 EMPLACEMENTS">'+sansAcc(TR('TES 3 EMPLACEMENTS'))+'</b><span data-fr="TOUCHE UNE FIGURE EN DESSOUS POUR L\'ÉQUIPER ICI">'+sansAcc(TR('TOUCHE UNE FIGURE EN DESSOUS POUR L\'ÉQUIPER ICI'))+'</span></div>'
-    +'<div class="fsRow"><div class="fsNitro" aria-hidden="true">'+gFigNitroSvg()+'<b>×2</b></div>'
-    +FIG_FAM.map(function(F,k){return '<button type="button" class="fsHex" data-k="'+k+'" style="--dc:'+FIG_DC[k]+'"><span class="fsCase"><span class="fsIn"></span></span><i class="fsJoy">'+pxi(F[2])+'</i><b class="fsNom"></b></button>';}).join('')+'</div>';
+  el.innerHTML='<div class="fsRow"><div class="fsNitro" aria-hidden="true">'+gFigNitroSvg()+'<b>×2</b></div>'
+    +[0,1,2].map(fsHexHtml).join('')+'</div><div class="fsAide"></div><div class="fsBar"></div>'; /* (2026-11-05) la ligne du mode (fsAideHtml) et les pastilles (fsBarreHtml) : voir figures-selecteur.js */
   pan.insertBefore(el,pan.firstChild);
-  el.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('.fsHex');if(!b)return;e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;
-    const k=+b.getAttribute('data-k'),id=figSlots()[k],rail=pan.querySelector('.bqRail');uiPop(b);if(!rail)return;
-    const sec=rail.querySelector('.bqSec[data-fam="'+k+'"]'),ci=id?rail.querySelector('.bqK[data-k="figure:'+id+'"][data-dir="'+k+'"]'):sec;
-    if(ci){const r0=rail.getBoundingClientRect().top,rc=ci.getBoundingClientRect(),rs=sec&&sec.getBoundingClientRect(); // l'intertitre de la direction reste en vue si la carte tient dessous
-      const y=Math.max(0,rail.scrollTop+(rs&&rc.bottom-rs.top<=rail.clientHeight?rs.top-r0-2:rc.top-r0-6));try{rail.scrollTo({top:y,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e2){rail.scrollTop=y;}}
-    if(id&&ci)ci.click();else{uiClic('onglet');hap(6);}}); // la carte touchée fait le reste : l'essai, le son, le cadre .sel
+  el.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('.fsHex'),c=e.target.closest&&e.target.closest('[data-fs]');if(!b&&!c)return;e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;
+    if(b){fsCase(+b.getAttribute('data-k'),b);return;} // une case : viser ce geste (le filtre), essayer sa figure ; la retoucher revient à TOUT
+    uiPop(c);uiClic('onglet');hap(6);fsBarreClic(c.getAttribute('data-fs'));});
   return el;}
 function bqFigSelMaj(pan,on){if(!on||!window.FIG)return;const el=bqFigSelEl(pan);
-  const S=figSlots(),cur=bqCourant(),k=S.join(',')+'|'+cur+'|'+GBQ.figDir+'|'+LANG;if(BQFS.k===k)return;BQFS.k=k;
+  const S=figSlots(),cur=bqCourant(),k=S.join(',')+'|'+cur+'|'+GBQ.figDir+'|'+LANG+'|'+fsCle()+'|'+FIG.liste.filter(function(f){return figPossede(f.id);}).length;if(BQFS.k===k)return;BQFS.k=k;
   const P=BQFS.S;BQFS.S=S.slice();el.setAttribute('aria-label',sansAcc(TR('FIGURES ÉQUIPÉES')));
-  el.querySelectorAll('.fsHex').forEach(function(b){const s=+b.getAttribute('data-k'),id=S[s],f=id&&FIG.par[id],c=f?rarInfo(cosmRar('figure',f)).c:'#d3d8de',nm=f?sansAcc(TR(f.n)):sansAcc(TR('VIDE'));
-    const vu=!!f&&cur==='figure:'+id&&(GBQ.figDir==null?bqFigDir(id)===s:GBQ.figDir===s),ik=(id||'')+c;
-    b.style.setProperty('--fc',c);b.classList.toggle('vide',!f);b.classList.toggle('on',vu);b.setAttribute('aria-pressed',vu);
-    if(b._ik!==ik){b._ik=ik;b.querySelector('.fsIn').innerHTML=f?illuFig(id,c,s===0):'<b class="fsQ">?</b>';} // réécrit seulement si la figure change : sa rotation ne repart pas à chaque carte touchée
-    b.querySelector('.fsNom').textContent=nm;b.setAttribute('aria-label',sansAcc(TR(FIG_FAM[s][0]))+' : '+nm);
-    if(P&&P[s]!==S[s]&&f){b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');}});}
+  el.querySelectorAll('.fsHex').forEach(function(b){const s=+b.getAttribute('data-k'),id=S[s],f=id&&FIG.par[id],
+      vu=!!f&&cur==='figure:'+id&&(GBQ.figDir==null?bqFigDir(id)===s:GBQ.figDir===s);
+    fsHexMaj(b,S,'#d3d8de',vu,!!P&&P[s]!==S[s]);}); /* (2026-11-05) la mise à jour d'une case est commune à la boutique et à l'inventaire (fsHexMaj) */
+  {const ai=el.querySelector('.fsAide'),h=fsAideHtml();if(ai&&ai._h!==h){ai._h=h;ai.innerHTML=h;}
+   const ba=el.querySelector('.fsBar'),bh=fsBarreHtml('bq');if(ba&&ba._h!==bh){ba._h=bh;ba.innerHTML=bh;}}}
 function bqAchat(){const eu=function(i){return parseFloat(String((CAR_UNLOCK[i]||{}).eur||'').replace(',','.'))||0;},une=function(i){return CAR_UNLOCK[i]&&CAR_UNLOCK[i].une?0:1;}; // l'offre de lancement (`une`) en tête, puis de la moins chère à la plus chère
   return bqPayantes().slice().sort(function(a,b){return (une(a)-une(b))||(eu(a)-eu(b))||(a-b);});}
-function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];if(cat==='peinture')return peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;});if(cat==='trainee')return traineeOrdre().map(function(j){return 'trainee:'+COSM.trainee[j].id;}); /* (2026-11-05) les traînées par rareté (voir TRAINEE_CAT) */ /* (2026-10-16) rangées par RARETÉ (voir peintOrdre) */ return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
+function bqListe(cat){if(cat==='voiture')return bqPieces().map(function(i){return 'v:'+i;});if(cat==='achat')return bqAchat().map(function(i){return 'v:'+i;});if(cat==='figure')return window.FIG?FIG.liste.map(function(f){return 'figure:'+f.id;}):[];if(cat==='peinture')return peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;});if(cat==='trainee')return traineeOrdre().map(function(j){return 'trainee:'+COSM.trainee[j].id;});if(cat==='aile')return bqAilesOrdre().map(function(j){return 'aile:'+COSM.aile[j].id;}); /* (2026-11-05) les ailes par rareté */ /* (2026-11-05) les traînées par rareté (voir TRAINEE_CAT) */ /* (2026-10-16) rangées par RARETÉ (voir peintOrdre) */ return (COSM[cat]||[]).map(function(d){return cat+':'+d.id;});}
 function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?null:bqCos(k),d=o&&o.d,a=bqA(k),sec9=vo&&m2Secrete(i);let ri=rarInfo(vo?carRar(i):cosmRar(o.cat,d)),nom=vo?TR(CARS[i].name):TR(d.n);if(sec9){ri={c:'#ff3ec8',n1:'SECRÈTE'};nom='? ? ?';} /* (2026-10-16) une SECRÈTE : ni nom, ni rareté, ni couleur */
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.pack==='chat'){px=sansAcc(TR('PACK CHAT'));c='eur';}else if(d.eur){px=eurTxt(d.eur);c='eur';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';} /* (2026-10-18 soir) l'ARC-EN-CIEL : PACK CHAT (voir chatPackI) */
   if(bqPxLg(px))c+=' lg';
+  /* (2026-11-06, Léo : « la mission doit montrer sa progression ») une caisse à MISSION (pas la secrète) : une jauge sous le mot, remplie à l'avancement réel */
+  if(vo&&c.indexOf('defi')>=0&&c.indexOf('sec')<0&&!a){try{const m9=m2DeCaisse(i);if(m9){const t9=m2Seuil(m9),f9=m2Frac(m9,m2Val(m9),t9),pc9=Math.round(100*f9);px+='<b class="jg" title="'+m2Prog(m9,m2Val(m9),t9).replace(/"/g,'')+'"><u style="width:'+pc9+'%"></u></b>';}}catch(e){}}
   /* (2026-10-31, clarté boutique) une figure à DEUX SENS a une carte dans chacune de ses sections : un petit badge dit qu'elle joue AUSSI
      dans l'autre emplacement (sinon ça ressemble à un doublon) — sa couleur reprend celle de CET autre emplacement (voir FIG_DC) */
   const autres=(!vo&&o.cat==='figure')?bqFigAutres(d.id,dir!=null?dir:figPeut(d.id)[0]):[];
-  const badgeAutre=autres.map(function(x){return '<span class="bqKd2" style="--dc:'+FIG_DC[x]+'" title="'+sansAcc(TR('AUSSI'))+' : '+sansAcc(TR(FIG_FAM[x][0]))+'">'+pxi(FIG_FAM[x][2])+'</span>';}).join('');
-  return '<div class="bqK'+(sec9?' m2sec':'')+(lim?' off':'')+(vo?'':' hab r-'+cosmRar(o.cat,d))+'" data-k="'+k+'"'+(dir!=null?' data-dir="'+dir+'"':'')+' role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+(autres.length?' · '+sansAcc(TR('AUSSI'))+' '+autres.map(function(x){return sansAcc(TR(FIG_FAM[x][0]));}).join(', '):'')+'">'
-    +(vo?'<span class="bqKph" data-ph="'+i+'"></span>':o.cat==='aile'?'<span class="bqKph c-aile" data-pha="'+d.id+'"></span>':o.cat==='figure'?'<span class="bqKph c-figure" data-phf="'+d.id+'|'+FIG_DIR[dir!=null?dir:figPeut(d.id)[0]]+'">'+bqFigHab(k)+'</span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')+(vo&&!a&&i===chatPackI()?'<span class="bqKl arc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</span>':'')+badgeAutre
+  const badgeAutre=autres.map(function(x){return '<span class="bqKd2'+(FSEL.dir<0?' pick':'')+'"'+(FSEL.dir<0?' data-pick="'+x+'"':'')+' style="--dc:'+FIG_DC[x]+'" title="'+sansAcc(TR('AUSSI'))+' : '+sansAcc(TR(FIG_FAM[x][0]))+'">'+pxi(FIG_FAM[x][2])+'</span>';}).join('');
+  return '<div class="bqK'+' b-'+(sec9?'secrete':ri.id||'commun')+(sec9?' m2sec':'')+(lim?' off':'')+(vo?' vo r-'+(sec9?'secret':carRar(i)):' hab r-'+cosmRar(o.cat,d))+'" data-k="'+k+'"'+(dir!=null?' data-dir="'+dir+'"':'')+' role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+(autres.length?' · '+sansAcc(TR('AUSSI'))+' '+autres.map(function(x){return sansAcc(TR(FIG_FAM[x][0]));}).join(', '):'')+'">'
+    +('<i class="bqKv" aria-hidden="true"><i class="f bk"></i><i class="f lf"></i><i class="f fl"></i><i class="f rt"></i><i class="f tp"></i><i class="f fr"></i>') /* (2026-11-06, Léo : « les boules de peinture dans les mêmes cubes de verre ») toutes les cartes, peintures comprises, ont leur cube ; (2026-11-06 : la photo est maintenant DANS le cube, au milieu des six faces) (2026-11-05, la VITRINE : les six faces du verre, dessinées par le CSS du palier 2 ; ailleurs elles restent cachées — (2026-11-05, Léo/Sacha) (2026-11-06, Léo : « les peintures, les ailes, les traînées aussi dans des vitres ») sur TOUTES les cartes, arrondies */
+    +(vo?'<span class="bqKph scene" data-ph="'+i+'"></span>':o.cat==='aile'?'<span class="bqKph c-aile scene" data-pha="'+d.id+'"></span>':o.cat==='figure'?'<span class="bqKph c-figure" data-phf="'+d.id+'|'+FIG_DIR[dir!=null?dir:figPeut(d.id)[0]]+'">'+bqFigHab(k)+'</span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+'</i>'+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')+(vo&&!a&&i===chatPackI()?'<span class="bqKl arc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</span>':'')+badgeAutre
     +'<span class="bqKr'+(sansAcc(TR(ri.n1)).length>8?' lg':'')+'">'+sansAcc(TR(ri.n1))+'</span><span class="bqKn">'+sansAcc(String(nom))+'</span><span class="bqKp '+c+'">'+px+'</span></div>';} /* (clarté 14/10) la RARETÉ s'écrit sur la carte */
 /* LES PHOTOS DES DEUX BOUTIQUES (2026-10-14, session OPTIMISATION — PILOTAGE : « les photos des cartes de la boutique du jour ne s'affichent
    plus »). `bqPhotos` était déclarée DEUX fois : celle des cartes du bandeau de l'atelier (`.fnC` + `.fnPh`, OFFRES ÉPHÉMÈRES / DU JOUR) et
    celle de la boutique de Léo (`[data-ph]`) ; la seconde, hissée, écrasait la première — les cartes du bandeau restaient sans photo. Une
    seule fonction fait les deux (le `[data-ph]` couvre aussi `.fpPh i` et `.fpSlPh` de l'ancienne). */
+/* ===== LA VOITURE POSÉE SUR LE SOL DU CUBE, À LA ROUE PRÈS (2026-11-07, Léo : « les roues sont coupées, pour certaines une seule, l'ombre est mal mise, un trait ») =====
+   La photo est redressée de 15° (skewY) : un bout de la voiture descendait sous le plancher du cube, que le plancher coupait (roue, ombre, trait). On mesure donc, UNE fois par voiture, la ligne la plus basse de la photo (image réduite à 240 × 147, alpha > 12, ombre comprise) : `--bas` = sa hauteur en fraction de la photo ; le CSS pose alors cette ligne pile sur le sol. Photo illisible : 0,84 (l'ancien repère). Tant que `--bas` manque, la photo reste cachée (pas de saut). */
+const BQ_BAS={};
+/* (2026-11-07, Léo : « arrière de la voiture face à la gauche du cube, avant face au côté droit, complètement alignée au bas, sur TOUTES les voitures ») Chaque photo est mesurée UNE fois (réduite à 240 × 147). La photo contient un reflet de sol sous la voiture (alpha faible) : on s'appuie sur la CARROSSERIE seule (alpha > 230). L'échelle `--ech` est COMMUNE à toutes les voitures (1,2, réduite seulement si la caisse dépasserait 78 % de la hauteur du cube) : les longues restent longues, les petites petites (2026-11-07, Léo : « les tailles plus cohérentes entre elles »), son centre `--dx`, la pente de sa ligne de roues (droite des moindres carrés sur le bas des colonnes, bornée à 16°), posée sur le point le plus bas de la carrosserie (la roue la plus basse) : rien n'est coupé le redressement `--pen` (ligne des roues À PLAT, parallèle à l'arête du bas), cette droite coupe la photo (`--cl` à gauche, `--cr` à droite, entre `--gl` et `--gr` : le reflet et l'ombre cuite sous et autour des roues disparaissent), et sa hauteur redressée `--bas` est posée sur le sol. `--bas` est écrit EN DERNIER : tant qu'il manque, la photo est cachée (voir boites-blister.css). */
+function bqBas(x,url){const r0=BQ_BAS[url];if(r0){for(const k in r0)x.style.setProperty(k,r0[k]);return;}
+  const p=new Image();p.onload=function(){let r={'--ech':.86,'--dx':0,'--pen':'0deg','--cl':.84,'--cr':.84,'--bas':.84};try{const W=240,H=147,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(p,0,0,W,H);const d=g.getImageData(0,0,W,H).data;
+    let l=1e9,rr=-1,t=1e9,bt=-1;const bas=new Array(W).fill(-1);
+    for(let i=0;i<W;i++)for(let j=H-1;j>=0;j--){if(d[(j*W+i)*4+3]>230){bas[i]=j;if(i<l)l=i;if(i>rr)rr=i;if(j>bt)bt=j;break;}}
+    for(let i=l;i<=rr;i++)for(let j=0;j<H;j++){if(d[(j*W+i)*4+3]>230){if(j<t)t=j;break;}}
+    if(rr-l>20){const fw=(rr-l+1)/W,fh=(bt-t+1)/H;let ech=Math.min(1.2,.78*46/(36.7*fh));ech=Math.max(.5,ech);
+      const i0=l+Math.round((rr-l)*.12),i1=rr-Math.round((rr-l)*.12);let n=0,sx=0,sy=0,sxx=0,sxy=0;for(let i=i0;i<=i1;i++){if(bas[i]<0)continue;n++;sx+=i;sy+=bas[i];sxx+=i*i;sxy+=i*bas[i];}
+      let m=n>3?(n*sxy-sx*sy)/(n*sxx-sx*sx):0;if(!isFinite(m))m=0;m=Math.max(-.29,Math.min(0,m));let q=-1e9;for(let i=l;i<=rr;i++){if(bas[i]>=0&&bas[i]-m*i>q)q=bas[i]-m*i;}const th=Math.max(0,Math.min(.29,-m));
+      const xl=Math.max(0,l-3),xr=Math.min(W-1,rr+3),yl=Math.max(.3,Math.min(1,(q+m*xl+.5)/H+.012)),yr=Math.max(.3,Math.min(1,(q+m*xr+.5)/H+.012));
+      const nv=(q+m*((l+rr)/2)+.5)/H+(((l+rr)/2)/W-.5)*1.6376*th;
+      r={'--ech':ech,'--dx':((l+rr+1)/2/W-.5),'--pen':(Math.atan(th)*180/Math.PI).toFixed(2)+'deg','--cl':yl,'--cr':yr,'--gl':xl/W,'--gr':(xr+1)/W,'--bas':Math.min(1,nv>0?nv:.84)};}
+  }catch(e){}BQ_BAS[url]=r;for(const k in r)x.style.setProperty(k,r[k]);};
+  p.onerror=function(){x.style.setProperty('--bas',.84);};p.src=url;}
 function bqPhotos(el){
   el.querySelectorAll('.fnC[data-fn^="v:"],.fnC[data-fn^="o:"]').forEach(function(c){const i=+c.getAttribute('data-fn').slice(2);
     photoFile(i,function(url){const ph=c.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}},c);});
-  el.querySelectorAll('[data-ph]').forEach(function(x){photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const im=document.createElement('img');im.alt='';im.src=url;x.appendChild(im);}},x);}); /* (2026-10-16) l'élément : la photo attend que la carte soit EN VUE (voir LE STUDIO SANS À-COUPS) */
-  el.querySelectorAll('[data-pha]:not(.ok)').forEach(function(x){aileFile(x.getAttribute('data-pha'),function(url){if(x.classList.contains('ok')||!url)return;const im=document.createElement('img');im.alt='';im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');},x);}); /* (2026-10-15) les AILES ont leur photo (aileFile) */
+  el.querySelectorAll('[data-ph]').forEach(function(x){if(VITM.on&&x.closest('.bqK.vo .bqKv')){vitrinePose(x,+x.getAttribute('data-ph'));return;} /* (2026-11-07) une VOITURE de la boutique : sa photo de VITRINE (vitrine-miniature.js) */ photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const cube=!!x.closest('.bqKv');for(let k=0;k<(cube?5:1);k++){const im=document.createElement('img');im.alt='';im.src=url;if(cube){im.className='cL';im.style.setProperty('--k',k);}x.appendChild(im);}if(cube)bqBas(x,url);}},x);}); /* (2026-11-06, Léo : « une voiture pas plate dans le cube ») dans un cube, la photo est empilée en 5 tranches (k = 0 devant … 4 au fond) : l'épaisseur de la caisse, qui se lit au moindre mouvement (voir boites-blister.css `.cL`) */ /* (2026-10-16) l'élément : la photo attend que la carte soit EN VUE (voir LE STUDIO SANS À-COUPS) */
+  el.querySelectorAll('[data-pha]:not(.ok)').forEach(function(x){aileFile(x.getAttribute('data-pha'),function(url){if(x.classList.contains('ok')||!url)return;const im=document.createElement('img');im.alt='';im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok'); /* (2026-11-06, Léo : « les ailes fixes, qui ne bougent pas ») une seule photo, immobile */},x);}); /* (2026-10-15) les AILES ont leur photo (aileFile) — (2026-11-05) les ailes battantes en deux moitiés sont retirées : les ailes gardent leur carte d'avant */
   el.querySelectorAll('[data-phf]:not(.ok)').forEach(function(x){const p=x.getAttribute('data-phf').split('|');figFile(p[0],p[1],function(url){if(x.classList.contains('ok')||!url)return;x.classList.add('ok');filmPose(x,url,p[0]);},x);});} /* (2026-10-15 soir) et les FIGURES leur photo-séquence (figFile), dans le sens de leur carte — (2026-10-18) leur FILM au ralenti (filmPose) */
 function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   ui=document.createElement('div');ui.id='gBq';
@@ -301,8 +329,9 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
     bt.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(bt);bqAction();});}}
   const pan=ui.querySelector('#gBqPan'),ok=function(){return garageOn&&!GAR.go&&!ecranWipe._on&&GBQ.on;};
   ui.querySelector('#gBqCats').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();if(!ok())return;
-    uiPop(b);uiClic('onglet');hap(6);const c=b.getAttribute('data-c');if(c!==GBQ.cat||GBQ.ong!=='cat'){GBQ.cat=c;GBQ.ong='cat';GBQ.rk='';bqTourne(c);}});
-  const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);GSON9=false;pan.classList.remove('menu');{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}bqEssaie(t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');/* (2026-10-14, session SON) essayer un objet = la bascule / le geste de l'atelier / la figure : le tick nav ne s'y ajoute plus */};};
+    uiPop(b);uiClic('onglet');hap(6);const c=b.getAttribute('data-c');if(c!==GBQ.cat||GBQ.ong!=='cat'){if(c==='figure'&&GBQ.cat!=='figure')fsRaz();GBQ.cat=c;GBQ.ong='cat';GBQ.rk='';{const t9=c==='achat'?'voiture':c;if(SHOP_CATS.indexOf(t9)>=0&&SHOP.tab!==t9)shopTab(t9);} /* (2026-11-07, chasse TEL-N01) la vedette suit le rayon, comme quand on touche une vitrine (bqEssaie) */bqTourne(c);}});
+  const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);GSON9=false;pan.classList.remove('menu');
+    {const pk=e.target.closest&&e.target.closest('[data-pick]');if(pk&&String(t.getAttribute('data-k')).indexOf('figure:')===0){const dp=pk.getAttribute('data-pick');FSEL.pick[t.getAttribute('data-k').slice(7)]=+dp;t.setAttribute('data-dir',dp);GBQ.rk='';}} /* (2026-11-05) la pastille d'un AUTRE geste (figure à deux sens) : la carte passe dans ce sens */{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}bqEssaie(t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');/* (2026-10-14, session SON) essayer un objet = la bascule / le geste de l'atelier / la figure : le tick nav ne s'y ajoute plus */};};
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));
   ui.querySelector('.bqRail').addEventListener('scroll',function(){PHQ.defile=performance.now();},{passive:true}); // (2026-10-16) pas de photo pendant qu'on fait défiler (voir LE STUDIO SANS À-COUPS)
   return ui;}
@@ -314,26 +343,30 @@ function bqAimant(rail){clearTimeout(GBQ.aimT);const K=rail.querySelectorAll('.b
   if(K.length){const y0=K[0].offsetTop;while(j+1<K.length&&K[j+1].offsetTop===y0)j++;}
   const d=K.length?(parseFloat(K[j].style.getPropertyValue('--i'))||j):0; /* bqK : délai .25 s + --i × 45 ms, puis .38 s de glissé */
   GBQ.aimT=setTimeout(function(){rail.classList.remove('entre');},250+d*45+380+80);}
-function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
-  if(voulu!==GBQ.panOn){GBQ.panOn=voulu;ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
+function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carGroup.userData.shape])FSTU.uHdr.value=GBQ.on?BQ_HDR:1;}catch(e){} /* (2026-11-05) les reflets qui éclatent, adoucis dans la salle blanche (voir BQ_HDR) */const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
+  if(voulu!==GBQ.panOn){GBQ.panOn=voulu;if(voulu){const t9=SHOP.tab;if(GBQ.cat!==t9&&BQ_CATS.some(function(c){return c[0]===t9;})){GBQ.cat=t9;GBQ.ong='cat';}} /* (2026-11-07, chasse TEL-N01) FIGURES au garage puis BOUTIQUE : le rayon VOITURES s'allumait avec une figure en vedette et « ÉQUIPER — REMPLACE TONNEAU » */ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
   soldeEcrit(document.getElementById('gBqArg'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
   if((!voulu||SHOP.tab!=='voiture')&&GBQ.sec!=null)GBQ.sec=null; // (missions v2) hors du rayon des caisses, plus de secrète regardée
+  try{bqAileMaj(pan,voulu);}catch(e){console.warn('bqAile',e);} /* (2026-11-07) le rayon AILES a sa molette (interface/boutique-aile.js) */
   if(!voulu)return;
   // LA BOUTIQUE : le rayon choisi dans la colonne de gauche (2026-10-15 : plus d'onglet OFFRES)
   const ong='cat',cat=BQ_CATS.some(function(c){return c[0]===GBQ.cat;})?GBQ.cat:'voiture',L=bqListe(cat),rail=pan.querySelector('.bqRail'),une=document.getElementById('gBqCats');
-  const rk=ong+':'+cat+':'+L.map(function(k){return k+(bqA(k)?1:0);}).join(',')+':'+LANG;
+  const rk=ong+':'+cat+':'+L.map(function(k){return k+(bqA(k)?1:0);}).join(',')+':'+LANG+(cat==='figure'?':'+fsCle():'');
   if(GBQ.rk!==rk){GBQ.rk=rk;GBQ.vu=-1;
+    const fk9=cat+(cat==='figure'?FSEL.dir+FSEL.part+FSEL.tri:''),sc9=(GBQ.rkF===fk9&&!rail.classList.contains('off'))?rail.scrollTop:0;GBQ.rkF=fk9; /* (2026-11-05) un équipement ou une pastille de geste ne remonte pas la grille ; un filtre, un autre rayon, si */
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
       if(C9&&s){const t=sansAcc(TR(C9[1]));if(s.textContent!==t){s.textContent=t;b.setAttribute('aria-label',t);b.title=t;}if(on)une.setAttribute('data-cur',t);}}); /* (2026-11-03, Sacha : « cet écran, il est horrible ») `data-cur` : le NOM du rayon ouvert, écrit sous les carrés quand les libellés n'ont plus la place (.duo) */
     rail.classList.remove('off','habs');rail.classList.add('entre');rail.scrollTop=0;rail.scrollLeft=0; /* (2026-10-15, Sacha : « un menu plus grand pour les figures, les ailes, les peintures ») tous les rayons en GRANDES cartes, trois par rangée comme les voitures — à quatre, « D'ORIGINE » se coupait en « D'ORIGIN / E » */
-    rail.innerHTML=(cat==='figure'?bqFigRail().map(function(e,n,R){return (n&&R[n-1].c===e.c?'':bqFigSec(e.c))+bqCarteHtml(e.k,n,false,e.c);}):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):cat==='trainee'?bqTraineeRail(L):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-10-15) les figures : un intertitre par direction, une carte par direction */bqPhotos(rail);bqAimant(rail);
-    pan.classList.toggle('bqFigOn',cat==='figure');BQFS.k='';} /* (2026-10-16, Sacha) les trois figures équipées en haut du rayon FIGURES (voir bqFigSelMaj) */
-  if(cat==='figure')try{bqFigSelMaj(pan,true);}catch(e){console.warn('bqFigSel',e);}
+    rail.innerHTML=(cat==='figure'?(BQ_PELLICULE?bqFigRailHtml():(function(R){return R.length?R.map(function(e,n){return (n===0&&FSEL.dir>=0?bqFigSec(FSEL.dir):'')+bqCarteHtml(e.k,n,false,e.c);}):['<div class="bqVide">'+sansAcc(TR(FSEL.dir>=0?'AUCUNE FIGURE POUR CE GESTE':'RIEN À AFFICHER'))+'</div>'];})(bqFigRail())):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):cat==='trainee'?(BQC.on?bcRail('trainee',L):bqTraineeRail(L)):cat==='aile'?(BQC.on?bcRail('aile',L):bqHabRail(L,'aile')):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-11-05) les figures : une carte par figure (un seul intertitre quand on vise un geste) */bqPhotos(rail);bqAimant(rail);if(sc9)rail.scrollTop=sc9;
+    pan.classList.toggle('bqFigOn',cat==='figure');pan.classList.toggle('bqFigPel',BQ_PELLICULE&&cat==='figure');pan.classList.toggle('bcOn',BQC.on&&(cat==='aile'||cat==='trainee')); /* (2026-11-07) AILES et TRAÎNÉES : les rayons classiques (boutique-classique.js) */BQFS.k='';} /* (2026-10-16, Sacha) les trois figures équipées en haut du rayon FIGURES (voir bqFigSelMaj) */
+  if(cat==='figure')try{bqFigSelMaj(pan,true);if(BQ_PELLICULE)bqFigApres(pan,rail);}catch(e){console.warn('bqFigSel',e);} /* (2026-11-07) le rayon FIGURES a sa pellicule (boutique-figure.js : bqFigRailHtml, bqFigApres) */
   if(cat==='figure')try{filmJoue();}catch(e){} /* (2026-10-18) les films des cartes (voir LE FILM D'UNE FIGURE) */
   /* (clarté 14/10) des cartes restaient blanches : la file du studio photo s'arrête hors garage / sous `quiet` et ne repart qu'à la photo suivante — on la relance, et on re-demande ce qui manque */
   if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}
   else if(!PHQ.q.length&&rail.querySelector('[data-ph]:empty,[data-pha]:not(.ok),[data-phf]:not(.ok)'))bqPhotos(rail);
   bqBoutonMaj();
+  if(BQC.on&&(cat==='aile'||cat==='trainee'))try{bcMaj(rail,cat);}catch(e){console.warn('bqc',e);} /* (2026-11-07) l'état des cartes suit l'équipement, les noms la largeur (boutique-classique.js) */
+  if(VITM.on)try{vitrineEq(rail);}catch(e){} /* (2026-11-07) la caisse portée dit « ÉQUIPÉE » dans la grille (vitrine-miniature.js) */
   /* CE QU'ON REGARDE (2026-10-12, Léo : « le nom de la voiture et la rareté au-dessus de la voiture ; en dessous, les différents skins —
      coloris — de la voiture, pareil pour les ailes et les traînées ; pour l'instant ORIGINAL partout ») : #gBqNom suit la caisse (projeté au-
      dessus d'elle chaque image) ; #gBqSkins, sous elle, liste les COLORIS de l'objet (bqSkins) — une peinture n'en a pas : c'est un coloris. */
@@ -349,16 +382,18 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
       else{const o9=bqCos(cur),m9=o9&&o9.d&&m2DeHab(o9.cat,o9.d);if(m9&&!shopOwned(o9.cat,o9.d.id))h9=m2DebloqueHtml(m9,true);else if(o9&&o9.cat==='peinture'&&o9.d)h9=peintDefHtml(o9.d);else if(o9&&o9.cat==='trainee'&&o9.d&&o9.d.d)h9='<span class="tDesc">'+sansAcc(TR(o9.d.d))+'</span>';} /* (2026-11-05) une traînée : sa phrase — la caisse ne boost pas sur le plateau, c'est la carte et ces mots qui la vendent */ /* (2026-11-05) une peinture à défi : OU GAGNE-LA, sa jauge */
       mt.innerHTML=h9;mt.hidden=!h9;}
     {const L9=bqSkins(cur);sk.classList.toggle('vide',!L9.length);sk.querySelector('.bqSk').innerHTML=L9.map(function(x,n){return '<button class="bqS'+(n===0?' on':'')+'" data-s="'+x.id+'" style="--sc:'+x.c+'"><i></i><span>'+sansAcc(TR(x.n))+'</span></button>';}).join('');}
-    rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur&&(!el.hasAttribute('data-dir')||GBQ.figDir==null||+el.getAttribute('data-dir')===GBQ.figDir));});
+    rail.querySelectorAll('.bqK,.bcK').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur&&(!el.hasAttribute('data-dir')||GBQ.figDir==null||+el.getAttribute('data-dir')===GBQ.figDir));});
+    if(cat==='peinture'&&typeof bqNuancierSel==='function')bqNuancierSel(rail,cur); /* (2026-11-07) les pastilles du nuancier (boutique-peinture.js) */
 }
   {const t=nm.querySelector('.bqLim em'),r=bqHebdoReste();if(t&&lim&&t.textContent!==r)t.textContent=r;}
   // LA PLACE : la colonne des rayons à gauche ; la boutique en bas (debout) ou à droite jusqu'en haut (couché)
   const W=VP.w,H=VP.h,ac=document.getElementById('gAct'),tr=te.getBoundingClientRect(),arc=ac&&ac.getBoundingClientRect(),cou=W>H*1.2;
   const bas=arc&&arc.height?arc.top:H-80,lay=W+'x'+H+':'+Math.round(bas)+':'+(arc?Math.round(arc.left):0)+':'+ong+':'+Math.round(tr.bottom);
   if(GBQ.lay!==lay){GBQ.lay=lay;
-    const UW=Math.round(Math.min(124,W*.31)),top=tr.bottom+(cou?6:14);une.style.left=(cou?36:12)+'px';une.style.width=UW+'px';une.style.top=top+'px';let fond;
-    if(!cou){const ph=Math.round(Math.min(330,H*.4));pan.style.left='14px';pan.style.right='14px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');fond=bas-10-ph-10;}
-    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');fond=H-12-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sB'))||0);} /* (2026-10-17, session UI-REVUE) couché, la colonne des rayons s'arrête au-dessus de la barre d'accueil (FIGURES y entrait de 6 px) */
+    const UW=Math.round(Math.min(124,W*.31)),top=tr.bottom+(cou?12:14);une.style.left=cou?'calc(var(--sL,0px) + 16px)':'16px'; /* (2026-11-07, finition) la colonne des rayons sur la ligne de BOUTIQUE (16 px du bord, l'encoche comprise) : elle était à 12 px debout, 36 px couché */une.style.width=UW+'px';une.style.top=top+'px';let fond;
+    const aG=arc&&arc.width?Math.round(arc.left)-2:14,aD=arc&&arc.width?Math.round(W-arc.right)-2:14; /* (2026-11-07, finition) les cartes (2 px de marge dans la liste) tombent d'aplomb sur le bouton d'action et RETOUR | JOUER : la grille débordait de 6 px de chaque côté (debout) et de 4 et 12 px (couché) */
+    if(!cou){const ph=Math.round(Math.min(330,H*.4));pan.style.left=aG+'px';pan.style.right=aD+'px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');fond=bas-10-ph-10;}
+    else{const x0=Math.max(W*.5,arc&&arc.width?aG:W*.55-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.setProperty('--bqD',aD+'px');pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');fond=H-12-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sB'))||0);} /* (2026-10-17, session UI-REVUE) couché, la colonne des rayons s'arrête au-dessus de la barre d'accueil (FIGURES y entrait de 6 px) */
     bqRayons(une,fond-top);garLibre._r=null;}
   {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect(),SH=0,sb=cou?H-14:pr.top-10;
    sk.style.left=(ru.right+6)+'px';sk.style.right=(W-(cou?pr.left-8:W-12))+'px';sk.style.top=(sb-40)+'px';
@@ -366,6 +401,9 @@ function garBqPanneau(dt,t9){const ui=garBqUI(),pan=document.getElementById('gBq
   // le nom flotte AU-DESSUS de la caisse (son toit, projeté), sans sortir de sa place
   {const v=GBQ._vn||(GBQ._vn=new THREE.Vector3()),G=garGabarit();carGroup.getWorldPosition(v);v.y+=G.H*1.1+.5;v.project(camera);
    const z=GBQ.zone,m9=nm.querySelector('.bqM2'),mw9=m9?Math.max(150,Math.round((z.cote?z.x0-8:(z.d||W-12))-(z.g||0)))+'px':'';if(m9&&m9.style.width!==mw9)m9.style.width=mw9; /* (2026-10-17, Sacha) SE DÉBLOQUE prend TOUTE la place libre à côté des rayons (couché : jusqu'à la grille, qu'il ne passe plus — le compteur passait dessous ; debout : il tenait sur 180 px, quatre lignes) */
+   {const nn=nm.querySelector('.bqNom'),aw9=Math.round((z.cote?z.x0-8:(z.d||W-12))-(z.g||0)),L9=nn.textContent.length,k9=aw9+':'+L9; /* (2026-11-05, finition — MESURÉ 667×375 : 85 noms de caisses sur ~180 passaient sous la grille ou sur les rayons, « LA PIZZA EXPRESS » 240 px dans 163) LE NOM TIENT DANS SA PLACE : le corps descend (1 em + 1 px par lettre) jusqu'à 10 px, puis le nom passe sur deux lignes */
+     if(nn._k9!==k9){nn._k9=k9;nn.style.fontSize='';nn.style.whiteSpace='';nn.style.maxWidth='';const base9=parseFloat(getComputedStyle(nn).fontSize)||13,fit9=Math.floor((aw9-8)/Math.max(1,L9))-1;
+       if(aw9>40&&fit9<base9){if(fit9>=10)nn.style.fontSize=fit9+'px';else{nn.style.fontSize='10px';nn.style.whiteSpace='normal';nn.style.maxWidth=(aw9-8)+'px';nn.style.textAlign='center';}}}}
    const w2=nm.offsetWidth/2,x=Math.max((z.g||0)+w2,Math.min((z.cote?z.x0-8:z.d)-w2,(v.x*.5+.5)*W)),y=Math.max(tr.bottom+8,(.5-v.y*.5)*H-nm.offsetHeight-8);
    nm.style.left=Math.round(x)+'px';nm.style.top=Math.round(y)+'px';}
 }
@@ -375,7 +413,7 @@ function bqTourne(cat){if(GAR_TAB_ANG[cat]==null||!garageOn||GAR.go)return;garTo
 function bqEssaie(k){if(String(k).indexOf('figure:')===0){GBQ.figK=k;garFigEssai(k.slice(7),bqFigDir(k.slice(7)));try{gShopJour();}catch(e){}GBQ.ck='';return;}GBQ.figK=null; // (2026-10-14) une FIGURE : la caisse la fait sur le plateau
   // toucher = ESSAYER (2026-10-12, Léo : « à droite un bouton ÉQUIPER / DÉSÉQUIPER / ACHETER qui change en fonction ») : c'est le bouton qui équipe (bqAction)
   if(k[0]==='v'&&m2Secrete(+k.slice(2))){GBQ.sec=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');GBQ.vu=-1;GBQ.ck='';return;}GBQ.sec=null; /* (2026-10-16) une SECRÈTE n'est jamais construite : le plateau se vide (garageRender la tait) */
-  if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');if(i!==garageI){garageSaute(i);try{bqGeste('voiture');}catch(e){}}}
+  if(k[0]==='v'){const i=+k.slice(2);if(SHOP.tab!=='voiture')shopTab('voiture');bqTourne('voiture');if(i!==garageI){garageSaute(i);try{bqGeste('voiture');}catch(e){}}}
   else{const o=bqCos(k),j=COSM[o.cat].indexOf(o.d);if(SHOP.tab!==o.cat)shopTab(o.cat);bqTourne(o.cat);if(j>=0){SHOP.i[o.cat]=j; /* (2026-10-14, UX 8) la clé COURANTE se pose AU TOUCHER : le geste du bras ne pose la pièce qu'à 0,71 s, et ACHETER/ÉQUIPER agissait sur l'objet d'AVANT */ bqOutil(o.cat,'essai',o.d,function(){shopShow(o.cat,j);try{gShopJour();}catch(e){}});}} // (2026-10-13) LES BRAS D'ATELIER posent la pièce (voir bqOutil)
   try{gShopJour();}catch(e){}GBQ.ck='';}
 /* LE BOUTON QUI CHANGE (#gBqBtn, à droite de RETOUR) : ACHETER (+ le prix) · ÉQUIPER · DÉSÉQUIPER (un habillage équipé, sauf celui d'origine) ·
@@ -394,6 +432,7 @@ function bqRayons(el,dispo){const n=el.children.length||1;let g=6,h=Math.floor((
   const duo=h<44;if(duo){g=8;const r=Math.ceil(n/2);h=Math.floor((dispo-18-g*(r-1))/r);} /* 18 px : la ligne du nom du rayon ouvert sous les carrés */
   h=Math.max(44,Math.min(duo?56:52,h));el.classList.toggle('duo',duo);el.style.setProperty('--cH',h+'px');el.style.setProperty('--cG',g+'px');}
 function bqEtat(){const k=bqCourant();if(!k)return null;
+  if(GBQ.panOn&&GBQ.cat==='figure'&&!GBQ.figK)return null; /* (2026-11-05, Sacha : « on a toujours le bouton de l'écran peinture ») rayon FIGURES, aucune figure touchée : bqCourant retombe sur la caisse du plateau et le bouton vendait ACHETER 3 € la voiture — pas de figure, pas de bouton */
   {const m9=bqManque(k);if(m9)return m9;} // (2026-10-14, boutique P1) pas assez d'argent : voir bqManque
   if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{},eq=(SAVE.d.equipped|0)===i,a=carUnlockedVrai(i)||eq;
     if(eq)return {e:'eq',t:'ÉQUIPÉE'};if(a)return {e:'equip',t:'ÉQUIPER'};
@@ -402,10 +441,10 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
   const o=bqCos(k),d=o.d;if(!d)return null;
   if(o.cat==='figure'){if(!figPossede(d.id))return {e:'achat',t:'ACHETER',p:bqPxT(d.p)}; // (2026-10-14) une figure : on l'a, ou on l'achète
     if(!FIGV2.on)return {e:'eq',t:'ACQUISE'};
-    const dir9=bqFigDir(d.id); // (2026-10-31, clarté boutique) le bouton montre l'icône de CET emplacement : sur une figure à deux sens, on sait où elle va se ranger avant de toucher
-    return figSlots()[dir9]===d.id?{e:'eq',t:'ÉQUIPÉE',dir:dir9}:{e:'figeq',t:'ÉQUIPER',dir:dir9};} // (2026-10-15, les directions) dans la direction de SA carte : on en change en ÉQUIPANT une autre de cette direction, on ne la retire plus
+    const dir9=bqFigDir(d.id);if(GBQ.panOn&&GBQ.cat==='figure'&&BQ_PELLICULE&&typeof bqFigCarte==='function'&&figSlots()[dir9]!==d.id)return {e:'eq',t:'À TOI'}; /* (2026-11-07, passe finale) la pellicule : ÉQUIPER vit sur l'AFFICHE (un toucher, dans son emplacement) ; le grand bouton reste l'achat */ // (2026-10-31, clarté boutique) le bouton montre l'icône de CET emplacement : sur une figure à deux sens, on sait où elle va se ranger avant de toucher
+    return figSlots()[dir9]===d.id?{e:'eq',t:'ÉQUIPÉE',dir:dir9}:{e:'figeq',t:'ÉQUIPER',dir:dir9,rem:fsRem(d.id,dir9)};} // (2026-11-05) le bouton dit AVANT le toucher ce que l'équipement remplace (rem) // (2026-10-15, les directions) dans la direction de SA carte : on en change en ÉQUIPANT une autre de cette direction, on ne la retire plus
   const a=shopOwned(o.cat,d.id),eq=shopEqD(o.cat)===d,j=COSM[o.cat].indexOf(d);
-  if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉ'};if(a)return {e:'equip',t:'ÉQUIPER'};
+  if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉE'};if(a)return {e:'equip',t:'ÉQUIPER'};
   if(d.mis2)return {e:'mis',t:m2Pret(d.mis2)?'RÉCUPÈRE':'VOIR LA MISSION',m:d.mis2}; // (2026-10-16) LES MISSIONS v2
   if(d.pack==='chat'){const u9=CAR_UNLOCK[chatPackI()]||{};return {e:'chat',t:'AVEC LE CHAT',p:u9.eur?eurTxt(u9.eur):''};} // (2026-10-18 soir) l'ARC-EN-CIEL : il mène à l'offre du chat (voir chatPackI)
   if(d.eur)return {e:'achat',t:'ACHETER',p:eurTxt(d.eur)};if(d.p)return {e:'achat',t:'ACHETER',p:bqPxT(d.p)};return {e:'defi',t:'À GAGNER'};}
@@ -434,9 +473,9 @@ function figAchete(id,bt){const f=window.FIG&&FIG.par[id];if(!f||figPossede(id))
   try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}}catch(e){}try{gTampon(sansAcc(TR('À TOI !')));}catch(e){}hap([10,40,10]);GBQ.rk='';garFigEssai(id,c9);return true;} /* (2026-10-14, session SON) le même « À TOI ! » que l'achat d'une peinture ou d'une caisse : le même tampon qui s'abat (il manquait à la figure) */
 const GFIG={lect:null,t:0,D:0,corps:null,pl:null,pulse:0,kick:0,vu:0}; // pl : le plan du saut en cours (garage-saut.js) · pulse : l'anneau du plateau qui s'allume à la pose · kick : le choc de la pose (0 → 1,3)
 /* (2026-10-14, LES FIGURES v2) un emplacement pris ou rendu, et ce qu'on en dit */
-function figEqToast(id,c){const f=window.FIG&&FIG.par[id];if(!f)return;const r=figEquipe(id,c);if(!r)return;const F=FIG_FAM[r.slot],fam=pxi(F[2])+' '+sansAcc(TR(F[0])); // (2026-10-15, les directions) équiper dans la direction c (sans c : la 1re libre, voir figEquipe) ; le toast dit la DIRECTION (le geste)
+function figEqToast(id,c){const f=window.FIG&&FIG.par[id];if(!f)return;const av=figSlots().slice(),r=figEquipe(id,c);if(!r)return;const F=FIG_FAM[r.slot],fam=pxi(F[2])+' '+sansAcc(TR(F[0])); // (2026-10-15, les directions) équiper dans la direction c (sans c : la 1re libre, voir figEquipe) ; le toast dit la DIRECTION (le geste)
   if(!r.deja){try{if(SONV2)sfx('ui.equipe');}catch(e){}
-    toast(pxi('rotation')+' '+sansAcc(TR(f.n))+' · '+fam+(r.parti&&r.parti!==id&&FIG.par[r.parti]?' · '+sansAcc(TR('REMPLACE'))+' '+sansAcc(TR(FIG.par[r.parti].n)):''));}
+    fsMontre(id,r,av);} /* (2026-11-05) la puce « ANNULER » (figures-selecteur.js) remplace le toast : le même texte, plus le retour en arrière */
   else{uiClic('nav');toast(pxi('rotation')+' '+sansAcc(TR(f.n))+' · '+sansAcc(TR('ÉQUIPÉE'))+' · '+fam);}} // déjà là : une par direction, toujours — on en change en équipant une autre de cette direction
 function figEquipee(id){return figSlots().indexOf(id);} // son 1er emplacement (0 avant · 1 arrière · 2 côté), −1 sinon
 function garFigEssai(id,c,libre){let f=window.FIG&&FIG.par[id];if(!f)return;if(c!=null&&c<2&&FIG.oriente)f=FIG.oriente(f,FIG_DIR[c]);
@@ -471,8 +510,28 @@ function garFigPas(dt){
 window.dbgFigEssai=function(id,c){garFigEssai(id,c==null?-1:c);return {D:+GFIG.D.toFixed(3),plat:!!GFIG.plat,plan:window.dbgFigPlan?window.dbgFigPlan():null};};
 window.dbgFigEtat=function(){const o=GBQ.omb;return {t:+GFIG.t.toFixed(3),D:+GFIG.D.toFixed(3),plat:!!GFIG.plat,gel:GFIG.gel==null?null:GFIG.gel,omb:o?{vis:!!(o.visible&&GBQ.grp&&GBQ.grp.visible),y:+o.position.y.toFixed(3),x:+o.position.x.toFixed(3),z:+o.position.z.toFixed(3),s:[+o.scale.x.toFixed(2),+o.scale.y.toFixed(2)],o:+o.material.opacity.toFixed(2)}:null};};
 window.dbgFigGel=function(t){GFIG.gel=t==null?null:+t;return GFIG.gel;};
-function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+(s.dir!=null?s.dir:'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
-  bt.dataset.e=s?s.e:'';bt.innerHTML=s?((s.dir!=null?'<i class="bqBtnDir" style="--dc:'+FIG_DC[s.dir]+'">'+pxi(FIG_FAM[s.dir][2])+'</i>':'')+'<span>'+sansAcc(TR(s.t))+'</span>'+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):(s.e==='mis'||s.e==='chat')?pxi('droite'):s.e==='sec'?pxi('oeil'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
+/* ===== L'ACHAT SE VOIT DANS LA BOUTIQUE (2026-11-07, Sacha : « une boutique pro, game designer senior » — passe finale) =====
+   Un achat en pièces débitait sans rien montrer : le tampon « À TOI ! » et l'éclat partent sur la fiche du garage (#gCard), CACHÉE en
+   boutique ; seul le bouton passait à ÉQUIPÉE. Les sons (ui.achat, ui.tampon) partaient déjà : on n'en ajoute aucun. Ici, le même retour
+   dans TOUS les rayons : le tampon d'or « À TOI ! » s'abat sur l'objet acheté (carte, pastille, voie, vignette, affiche) avec son éclat
+   de pixels, et l'argent (#gBqArg) dit ce qui est parti (« − $ 40 000 ») pendant qu'il descend. Écouté avant le bouton (capture) : on note
+   l'objet et la banque, puis on regarde ce qui a changé ; un achat en euros (StoreKit) se guette quelques secondes. */
+document.addEventListener('click',function(e){if(!e.target.closest||!e.target.closest('#gBqBtn')||!GBQ.on)return;const k=bqCourant(),s=bqEtat();if(!k||!s||s.e!=='achat')return;if(k[0]==='v'||k.indexOf('aile:')===0)return; /* une caisse et une aile ont déjà LEUR achat : la vitre qui éclate (vitre-brisee.js) */
+  const b0=bank(),t0=performance.now(),vu=function(){const a=k[0]==='v'?carUnlockedVrai(+k.slice(2)):k.indexOf('figure:')===0?figPossede(k.slice(7)):bqA(k);
+    if(a){bqAchatVu(k,b0-bank());return;}if(performance.now()-t0<8000)setTimeout(vu,250);};setTimeout(vu,30);},true);
+function bqAchatVu(k,paye){const pan=document.getElementById('gBqPan');if(!pan)return;
+  const L=[].slice.call(pan.querySelectorAll('[data-k="'+k+'"]')).filter(function(x){const r=x.getBoundingClientRect();return r.width>0&&r.height>0;});
+  const el=L.filter(function(x){return x.classList.contains('sel');})[0]||L[0];
+  if(el){const r=el.getBoundingClientRect(),t=document.createElement('i');t.className='bqTampon';t.textContent=sansAcc(TR('À TOI !'));
+    t.style.left=Math.round(r.left+r.width/2)+'px';t.style.top=Math.round(r.top+Math.min(r.height,140)/2)+'px';document.body.appendChild(t);setTimeout(function(){t.remove();},1700);
+    el.classList.remove('bqAchete');void el.offsetWidth;el.classList.add('bqAchete');setTimeout(function(){el.classList.remove('bqAchete');},900);try{pixBurst(el,12);}catch(e){}}
+  const ar=document.getElementById('gBqArg');if(ar&&paye>0){const r=ar.getBoundingClientRect(),d=document.createElement('i');d.className='bqDebit';d.textContent='− '+bqPxT(paye);
+    d.style.left=Math.round(r.left+r.width/2)+'px';d.style.top=Math.round(r.bottom+4)+'px';document.body.appendChild(d);setTimeout(function(){d.remove();},1600);
+    ar.classList.remove('bqPaye');void ar.offsetWidth;ar.classList.add('bqPaye');setTimeout(function(){ar.classList.remove('bqPaye');},1100);}}
+window.dbgBqAchatVu=function(k,p){bqAchatVu(k||bqCourant(),p==null?40000:p);return k||bqCourant();}; /* (banc) le retour d'achat, sans rien acheter */
+function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+(s.dir!=null?s.dir:'')+'|'+(s.rem||'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
+  bt.style.display=s?'':'none'; /* (2026-11-05) rien à proposer : le bouton disparaît (la grille reprend sa place) */
+  bt.dataset.e=s?s.e:'';bt.classList.toggle('rem',!!(s&&s.rem));bt.innerHTML=s?((s.dir!=null?'<i class="bqBtnDir" style="--dc:'+FIG_DC[s.dir]+'">'+pxi(FIG_FAM[s.dir][2])+'</i>':'')+(s.rem?'<span class="bqBtnT"><span>'+sansAcc(TR(s.t))+'</span><small>'+sansAcc(TR('REMPLACE'))+' '+sansAcc(TR(FIG.par[s.rem]?FIG.par[s.rem].n:s.rem))+'</small></span>':'<span>'+sansAcc(TR(s.t))+'</span>')+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):(s.e==='mis'||s.e==='chat')?pxi('droite'):s.e==='sec'?pxi('oeil'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
 try{Object.assign(I18N,{"VERS L'ARRIÈRE":'BACKWARD','POUCE EN ARRIÈRE':'THUMB BACK',"VERS L'AVANT":'FORWARD','SUR LES CÔTÉS':'SIDEWAYS','POUCE EN AVANT':'THUMB FORWARD','POUCE À GAUCHE OU À DROITE':'THUMB LEFT OR RIGHT'});}catch(e){} // (2026-10-15) les deux familles de figures
 try{Object.assign(I18N,{'ÉQUIPER':'EQUIP','DÉSÉQUIPER':'UNEQUIP','ÉQUIPÉE':'EQUIPPED','ÉQUIPÉ':'EQUIPPED','ACHETER':'BUY','À GAGNER':'TO EARN'});}catch(e){}
 try{Object.assign(I18N,{'TES 3 EMPLACEMENTS':'YOUR 3 SLOTS',"TOUCHE UNE FIGURE EN DESSOUS POUR L'ÉQUIPER ICI":'TAP A TRICK BELOW TO EQUIP IT HERE','AUSSI':'ALSO'});}catch(e){} // (2026-10-31, clarté boutique)

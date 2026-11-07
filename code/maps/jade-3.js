@@ -43,6 +43,7 @@ function* jadeBatit(seed,cle){
   const root=new THREE.Group();root.matrixAutoUpdate=false;JADE.root=root;
   let yMin=1e9,yMax=-1e9;for(let i=0;i<NP;i+=4){if(pts[i].y<yMin)yMin=pts[i].y;if(pts[i].y>yMax)yMax=pts[i].y;}
   JADE.merY=yMin-230;JADE.eauY=JADE.merY+(DZ?DZ.eau:185); // (v17, Léo : « l'eau plus haute, elle vient frapper les montagnes ») les montagnes sont posées comme avant (pied ≥ merY + 90) ; l'eau monte à merY + 140 : celles du bas trempent
+  if(JADE.ras&&JADE_RAS.on){JADE.eauY=yMin-JADE_RAS.haut;JADE.merY=JADE.eauY-(DZ?DZ.eau:185);} /* (2026-11-05) LE RAS DE L'EAU (jade-1.js) : la mer se cale sur le creux où la route la frôle */
    // LA MER DE NUAGES, loin sous les montagnes : elles flottent — (v14, Léo : « remonte le niveau de l'eau ») 470 → 230 m sous le point le plus bas de la route
   const HB=120,grille=new Map(),pas=Math.max(1,Math.round(10/(L/(NP-1))));
   for(let i=0;i<NP;i+=pas){const p=pts[i],k=Math.floor(p.x/HB)*100003+Math.floor(p.z/HB);let a=grille.get(k);if(!a)grille.set(k,a=[]);a.push(i);}
@@ -89,7 +90,7 @@ function* jadeBatit(seed,cle){
    for(const v of m.values()){if(v[0]<700||jr()>.55*MOB*(DZ?DZ.loin:1))continue;
      touffe(v[2]+(jr()-.5)*S*.7,v[3]+(jr()-.5)*S*.7,20+jr()*36,pts[v[1]].y,-260,420,1+((jr()*4)|0),.85,v[0]);}}
   const ARB=[];
-  const tP0=performance.now();if(iPorte>0){try{yield* jadePorte(root,iPorte,jr,M9,function(x,z,r,yt){return tente(x,z,r,yt,1,60,true);});}catch(e){console.warn('porte',e);JADE.porte=null;}}
+  const tP0=performance.now();if(iPorte>0){try{yield* jadePorte(root,iPorte,jr,M9,function(x,z,r,yt){return tente(x,z,r,yt,1,60,true);},cle);}catch(e){console.warn('porte',e);JADE.porte=null;}}
   const tP1=performance.now();if(iPont>0){try{yield* jadePont(root,iPont,jr,M9,pose,ARB);}catch(e){console.warn('pont',e);JADE.pont=null;}}JADE.msPorte=Math.round(tP1-tP0);JADE.msPont=Math.round(performance.now()-tP1);
   if(performance.now()>JF.lim)yield;
   // ---- LES ROCHERS EN CUBES qui flottent autour des montagnes (des gabarits à part : JADE_NTPL et suivants) ----
@@ -107,7 +108,13 @@ function* jadeBatit(seed,cle){
     const nA=Math.min(DZ?72:60,Math.round(T9.tops.length*.9*(VX/3.5)*(VX/3.5)*(DZ?DZ.pins.k:1))); // (v7) la même forêt au m² qu'avec des cubes de 3,5 m
     for(let k=0;k<nA&&T9.tops.length;k++){const c=T9.tops[(jr()*T9.tops.length)|0];V3.set(c[0]+.15+jr()*.7,c[1]+1,c[2]+.15+jr()*.7).applyMatrix4(mP);const pin=jr()<(DZ?DZ.pins.pin:.62),h=pin?11+jr()*11:5+jr()*5;arb(V3.x,V3.y,V3.z,h*(pin?.95:1.35),h,pin?(jr()*4)|0:4+((jr()*2)|0));}
     for(let k=0;k<Math.min(12,T9.cor.length);k++){const c=T9.cor[(jr()*T9.cor.length)|0];V3.set(c[0]+.5,c[1]+1,c[2]+.5).applyMatrix4(mP);const h=7+jr()*9;arb(V3.x,V3.y,V3.z,h,h,jr()<.6?(jr()*4)|0:4+((jr()*2)|0));}
-    for(let k=0;k<Math.min(DZ?Math.round(16*DZ.lian):16,T9.des.length);k++){const c=T9.des[(jr()*T9.des.length)|0];V3.set(c[0]+.5,c[1],c[2]+.5).applyMatrix4(mP);const h=24+jr()*50;arb(V3.x,V3.y,V3.z,14+jr()*12,-h,6+((jr()*2)|0));}
+    for(let k=0;k<Math.min(DZ?Math.round(16*DZ.lian):16,T9.des.length);k++){const c=T9.des[(jr()*T9.des.length)|0];V3.set(c[0]+.5,c[1],c[2]+.5).applyMatrix4(mP);let h=24+jr()*50;const w=14+jr()*12,cel=6+((jr()*2)|0);
+      /* (2026-11-07, Sacha : « génération aléatoire parfaite ») LA LIANE NE DESCEND PAS SUR LA ROUTE. MESURÉ (banc, dbgJadeAudit, graine 47 orage, s 3532) : une montagne
+         posée AU-DESSUS de la dalle par la règle d'or a sa pointe à 70 m, mais ses lianes pendent jusqu'à 74 m — un rideau de 22 m de large qui descendait jusqu'au bord
+         du couloir de conduite. La liane s'arrête désormais 10 m au-dessus de toute route sous son panneau (sa demi-largeur + la demi-route + 4 m) ; trop courte (< 8 m),
+         elle n'est pas posée. Les tirages `jr` restent les mêmes (h, w, la case) : le reste de la vallée ne bouge pas. */
+      {const rr=w*.5+ROAD_HALF+4;proches(V3.x,V3.z,rr,function(i){const p=pts[i];if(p.y<V3.y&&Math.hypot(p.x-V3.x,p.z-V3.z)<rr)h=Math.min(h,V3.y-p.y-10);});}
+      if(h>=8)arb(V3.x,V3.y,V3.z,w,-h,cel);else jr();} /* (le jr() que arb aurait tiré) */
     if(q[5]>=3&&d<700&&T9.tops.length){let bc=null,bd=1e9;for(const c of T9.tops){const e=Math.hypot(c[0]+.5-T9.M,c[2]+.5-T9.M);if(e<bd){bd=e;bc=c;}}
       V3.set(bc[0]+.5,bc[1]+1,bc[2]+.5).applyMatrix4(mP);if(PAG.length<7&&jr()<.16){PAG.push([V3.x,V3.y,V3.z,1.1+jr()*.4]);JCH.fixe.add(q);}else if(PAV.length<10&&jr()<.14){PAV.push([V3.x,V3.y,V3.z,1.3+jr()*.4]);JCH.fixe.add(q);}}
     if(CHU.length<(JADE_SOBRE?4:DZ?DZ.casc.n:16)&&T9.H*VX>260&&jr()<(DZ?DZ.casc.p:.11)){ // UNE CASCADE : d'une cellule au bord (l'air à côté), vers le vide
@@ -124,12 +131,18 @@ function* jadeBatit(seed,cle){
      const r0=jc(),nn=1+((jc()*2.4)|0);if(r0>.62*kc)continue;
      const T9=G.p[q[5]],mP=jadeMatPilier(q,0);
      for(let k=0;k<nn;k++){let best=null,bd=1e9;
-       for(let t=0;t<6;t++){const lst=jc()<.5&&T9.cor.length?T9.cor:T9.tops;if(!lst.length)continue;const c=lst[(jc()*lst.length)|0];
+       /* (2026-11-05, Sacha : « les cristaux sont mal générés, ils sortent de nulle part ») une grappe est un dessin de ~.32·h de rayon : posée sur une
+          case de corniche (le bord d'un palier) elle débordait dans le vide ou s'enfonçait dans le flanc. Désormais le sol plein doit PORTER toute
+          son emprise (les cases du disque, sommet libre au-dessus) — sinon la case est refusée ; les plateaux des cimes passent, les arêtes non. */
+       const h=13+jc()*15,rc=Math.max(1,Math.min(6,Math.round(.32*h/VX)));
+       for(let t=0;t<14;t++){const lst=jc()<.35&&T9.cor.length?T9.cor:T9.tops;if(!lst.length)continue;const c=lst[(jc()*lst.length)|0];
+         let nb=0,ok=0;for(let dx=-rc;dx<=rc;dx++)for(let dz=-rc;dz<=rc;dz++){if(dx*dx+dz*dz>rc*rc)continue;nb++;if(voxAt(T9.G,c[0]+dx,c[1],c[2]+dz)&&!voxAt(T9.G,c[0]+dx,c[1]+1,c[2]+dz))ok++;}
+         if(ok<nb*.92)continue;
          V9.set(c[0]+.5,c[1]+1,c[2]+.5).applyMatrix4(mP);let d=1e9;
          proches(V9.x,V9.z,640,function(i){const e=pts[i],dd=Math.hypot(e.x-V9.x,e.z-V9.z);if(dd<d)d=dd;});
          if(d<bd){bd=d;best=[V9.x,V9.y,V9.z];}}
        if(!best||bd>=640||bd<ROAD_HALF+25)continue;
-       const h=15+jc()*20;CRI.push({x:best[0],y:best[1],z:best[2],j:[h*(.9+jc()*.3),h,jc()<.6?8:9,jc()],pq:q});}}}
+       CRI.push({x:best[0],y:best[1],z:best[2],j:[h*(.9+jc()*.3),h,jc()<.6?8:9,jc()],pq:q});}}}
   if(performance.now()>JF.lim)yield;
   // ---- LA POSE : par QUARTIERS de 360 m (le tri, c'est jadeTri) ----
   const QC=160,quart=new Map(),qDe=(x,z,tag)=>{const k=tag!=null?'t:'+tag:(Math.floor(x/QC)+','+Math.floor(z/QC));let o=quart.get(k);if(!o)quart.set(k,o={k:quart.size,x0:1e9,x1:-1e9,y0:1e9,y1:-1e9,z0:1e9,z1:-1e9});return o;}; // tag : force un même quartier (10e champ de q, voir jadePont — « l'arche grise sur une moitié »)
@@ -156,7 +169,9 @@ function* jadeBatit(seed,cle){
   FIN.cap=parT.map(function(a){return Math.min(a[0].length,48);});FIN.vit=false;
   if(FIN.on)for(let t=0;t<G.p.length;t++)if(G.p[t].fin)finFamille(t);
   FIN.stamp=new Int32Array(PIL.length);FIN.was=new Uint8Array(PIL.length);FIN.gen=0;
-  famille(G.arbreQ,M9.arb,ARB.concat(CRI).map(function(a){const o=qDe(a.x,a.z);ext(o,a.x,a.y-80,a.y+25,a.z,20);return {q:o,m:Mt.makeTranslation(a.x,a.y,a.z).toArray(),j:a.j,pq:a.pq};}),0,2);
+  {const enArb=function(a){const o=qDe(a.x,a.z);ext(o,a.x,a.y-80,a.y+25,a.z,20);return {q:o,m:Mt.makeTranslation(a.x,a.y,a.z).toArray(),j:a.j,pq:a.pq};};
+   famille(G.arbreQ,M9.arb,ARB.map(enArb),0,2);
+   famille(G.arbreQ,M9.arb,CRI.map(enArb),0,3);} /* (2026-11-05) les cristaux : leur propre famille, dessinée jusqu'à la bande 3 (1 300 m) et fondue en trame dans le shader (900 → 1 250 m) — ils apparaissaient d'un coup à 900 m, 25 m de haut, « de nulle part » */
   // (v16, « évite les clichés en mode Chine ») plus de pagodes ni de pavillons sur les cimes
   JADE.quart=[];for(const o of quart.values())JADE.quart[o.k]={c:new THREE.Vector3((o.x0+o.x1)/2,(o.y0+o.y1)/2,(o.z0+o.z1)/2),r:Math.hypot(o.x1-o.x0,o.y1-o.y0,o.z1-o.z0)/2+10,b:[o.x0,o.x1,o.y0,o.y1,o.z0,o.z1]};
   if(CHU.length){const m=new THREE.Mesh(jadeChutes(CHU),JADE_CHUTE_M);m.userData.jeter=true;m.frustumCulled=false;m.renderOrder=5;root.add(m);}
@@ -197,6 +212,7 @@ function* jadeBatit(seed,cle){
   JADE.n={montagnes:PIL.filter(function(q){return q[5]<JADE_NTPL;}).length,rochers:PIL.filter(function(q){return q[5]>=JADE_NTPL;}).length,arbres:ARB.length,cristaux:CRI.length,temples:PAG.length+PAV.length,cascades:CHU.length,
     brume:JADE.brume?JADE.brume.count:0,quartiers:JADE.quart.length,porte:!!JADE.porte,pont:!!JADE.pont,ms:Math.round(performance.now()-t00),gabaritsMs:G.ms,
     L:Math.round(L),merY:Math.round(JADE.merY),eauY:Math.round(JADE.eauY),trempees:JADE.eauPil?JADE.eauPil.length:0,triGabarits:G.p.map(function(T9){return (T9.geo||T9.peau||[]).map(function(g){return g.index.count/3;});}),vitrail:false};
+  JADE.audit={arb:ARB,cri:CRI,chu:CHU}; /* (2026-11-07, banc) ce que dbgJadeAudit relit : les arbres, lianes, cristaux et cascades posés (de simples références) */
   JADE.cle=cle; // bâtie jusqu'au bout : elle pourra être gardée
 }
 function jadeRoute(){ // la route du jeu sur la jade : rails, lueur, liseré, flancs et ligne comme partout ailleurs (leurs valeurs de buildTrack)

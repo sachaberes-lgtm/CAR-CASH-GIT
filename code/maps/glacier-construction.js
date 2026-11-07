@@ -82,7 +82,7 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
   const t0=performance.now(),M=banqMats(),fr=mulberry32((seed^0xB4A9C)>>>0),ds=L/(NP-1),KP=PAL_BK('banqPics',1)*(TEL_NATIF?.85:1)*.3; /* (2026-10-25, Sacha : « réduis de 70 % les pics de glace dans la map de glace ») dômes, séracs et aiguilles : 70 % de moins */
   BANQ.graine=(seed>>>0)%100000;BANQ.met=LVL.cur.meteo||'midi';BANQ.n={};
   const DZ=BK_DECOR?bkDecoTire(seed):null,dz2=mulberry32((seed^0xB4DEC)>>>0);BANQ.dz=DZ;BANQ.deco=DZ?DZ.li:null; /* (LE DÉCOR AU HASARD) le tirage, et le flux des pièces neuves */
-  const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);BANQ.root=root;trackMeshes.push(root);
+  const root=new THREE.Group();root.name='banquise décor';root.matrixAutoUpdate=false;scene.add(root);BANQ.root=root;trackMeshes.push(root);
   const TP=BANQ.tp={},tp=k=>{const n=performance.now();TP[k]=Math.round((n-(tp.t||t0))*10)/10;tp.t=n;};
   banqSol();tp('sol');if(performance.now()>JF.lim)yield;const tS=performance.now();
   banqSolMesh(root);tp('solMesh');if(performance.now()>JF.lim)yield;

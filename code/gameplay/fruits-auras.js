@@ -239,9 +239,15 @@ function ninfTick(dt){
 const MAGV=new THREE.Vector3(),MAGT=new THREE.Vector3();
 function magSpirale(p,d9,dt){
   const P=p.mesh.position;MAGV.copy(carGroup.position).sub(P);MAGT.crossVectors(MAGV,p.ax);const l=MAGT.length();if(l<1e-4)return;
-  MAGT.multiplyScalar(Math.min(d9,18)/l*dt*5.5);P.add(MAGT);
-  if(Math.random()<.04)sparkBurst(sparkGold,P,1,2);
+  /* (2026-11-07, Sacha : « rebosse l'animation quand tu récupères des pièces grâce à l'aimant ») la spirale se SERRE en approchant (plus vite près de la
+     caisse), et la pièce sème une TRAÎNÉE d'étincelles (budget : 5 par image au plus, pour ne pas noyer le GPU quand 100 pièces arrivent d'un coup) */
+  const k9=d9<14?1.35:1;MAGT.multiplyScalar(Math.min(d9,18)/l*dt*8*k9);P.add(MAGT);
+  const n9=performance.now();if(n9-MAGB.t>14){MAGB.t=n9;MAGB.n=0;}
+  if(MAGB.n<5&&Math.random()<.3){MAGB.n++;sparkBurst(sparkGold,P,1,d9<10?4:2.5);}
 }
+const MAGB={t:0,n:0,pop:0};
+/* LE « POP » D'ARRIVÉE : la pièce aspirée éclate en or SUR la caisse (au plus un pop toutes les 60 ms : on en prend parfois 30 d'un coup) */
+function magPop(){const n9=performance.now();if(n9-MAGB.pop<60)return;MAGB.pop=n9;try{sparkBurst(sparkGold,carGroup.position,5,10);}catch(e){}}
 Object.assign(PWR_DEFS.m,{col:0xffd24a,core:0xfff2c8,tint:'#ffd75e',c2:'#e0a010',fx:'rgba(255,210,74,.7)',fx2:'rgba(224,160,16,.25)',msg:'POMME DORÉE — LES PIÈCES VIENNENT À TOI !',sous:'LES PIECES VIENNENT A TOI'});
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.m.bd=f9(PWR_DEFS.m.fx);PWR_DEFS.m.bd2=f9(PWR_DEFS.m.fx2);}
 
@@ -257,7 +263,7 @@ function dragonJus(){
   try{const p2=new THREE.Vector3().copy(carGroup.position);p2.y+=1.1;
     juiceScreen(0xe0157a,.8,1);juiceScreen(0x7ad040,.55,1);juiceSplash(p2,(n9&1)?0xe0157a:0x7ad040,.85);}catch(e){}
 }
-Object.assign(PWR_DEFS.x,{col:0xe0157a,core:0xffd6ea,tint:'#ff5a9a',c2:'#8a0c4a',fx:'rgba(220,20,90,.8)',fx2:'rgba(120,20,160,.35)',msg:'FRUIT DU DRAGON — AURA ×2 · ×3 SI TU ENCHAÎNES !',sous:'AURA x2, x3 SI TU ENCHAINES'});
+Object.assign(PWR_DEFS.x,{col:0xe0157a,core:0xffd6ea,tint:'#ff5a9a',c2:'#8a0c4a',fx:'rgba(220,20,90,.8)',fx2:'rgba(120,20,160,.35)',msg:'FRUIT DU DRAGON — AURA ×2 · ×3 SI TU ENCHAÎNES !',sous:'AURA ×2, ×3 SI TU ENCHAINES'});
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.x.bd=f9(PWR_DEFS.x.fx);PWR_DEFS.x.bd2=f9(PWR_DEFS.x.fx2);}
 let DRG_DEC=null;const DRG_V=new THREE.Vector3(),DRG_EL={e:null};
 function dragonDecorBuild(){
@@ -376,7 +382,7 @@ function raisinHud(double,fr2){ // la 2e barre sous le chrono de vol
   const d=double?'1':'0';if(el.dataset.d!==d)el.dataset.d=d;
   if(double){const q=fr2.toFixed(2);if(raisinHud._q!==q){raisinHud._q=q;el.style.setProperty('--a2',q);}}
 }
-Object.assign(PWR_DEFS.a,{col:0xffffff,core:0xfff4e8,tint:'#ffd6f0',c2:'#d070d0',fx:'rgba(255,214,240,.8)',fx2:'rgba(208,112,208,.3)',msg:'🍇 RAISIN — AIRTIME ×2 : DEUX JAUGES !',sous:'AIRTIME x2, 2 JAUGES'});
+Object.assign(PWR_DEFS.a,{col:0xffffff,core:0xfff4e8,tint:'#ffd6f0',c2:'#d070d0',fx:'rgba(255,214,240,.8)',fx2:'rgba(208,112,208,.3)',msg:'🍇 RAISIN — AIRTIME ×2 : DEUX JAUGES !',sous:'AIRTIME ×2, 2 JAUGES'});
 Object.assign(I18N,{'PIMENT — NITRO INFINIE 7 s À FOND !':'CHILI — INFINITE NITRO 7 s FLAT OUT!','POMME DORÉE — LES PIÈCES VIENNENT À TOI !':'GOLDEN APPLE — THE COINS COME TO YOU!','FRUIT DU DRAGON — AURA ×2 · ×3 SI TU ENCHAÎNES !':'DRAGON FRUIT — AURA ×2 · ×3 IF YOU CHAIN!','⚡ CITRON — VITESSE ×2 — 8 s !':'⚡ LEMON — SPEED ×2 — 8 s!','🍇 RAISIN — AIRTIME ×2 : DEUX JAUGES !':'🍇 GRAPES — AIRTIME ×2: TWO GAUGES!'}); /* (24/10) les messages des fruits-pouvoirs en anglais (showMsg les passe par TR) */
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.a.bd=f9(PWR_DEFS.a.fx);PWR_DEFS.a.bd2=f9(PWR_DEFS.a.fx2);}
 /* banc (dev) : `dbgRaisin()` l'état de la double jauge ; `dbgRaisin('vide')` vide la jauge en cours (pour voir les ailes exploser / la 2e jauge démarrer). */

@@ -1,0 +1,105 @@
+<style id="bq-peinture">
+/* ===== BOUTIQUE : LE NUANCIER DES PEINTURES (2026-11-07, Sacha : « les boîtes de Léo sont bien pour les voitures mais pas adaptées aux peintures, traînées, figures… » · « chaque type d'item doit avoir un système propre ») =====
+   Le dessin du rayon PEINTURES (interface/boutique-peinture.js) : la barre des familles collée en haut, un intertitre d'une ligne par famille, des
+   pastilles carrées de tôle vernie en grille serrée (six par rangée sur un téléphone debout, ≥ 48 px), leur état en un seul signe, la loupe. */
+#gBqPan .bqRail .pNu{flex:0 0 100%;min-width:0;font-family:var(--pix);color:var(--bqInk)}
+/* 1. LA BARRE DES FAMILLES : collée en haut du rail, quatre touches de 44 px */
+#gBqPan .pNav{position:sticky;top:-3px;z-index:3;margin-top:-3px;padding-top:3px!important;display:grid;grid-template-columns:repeat(var(--nf,4),minmax(0,1fr));gap:4px;padding:0 0 6px;
+  background:linear-gradient(180deg,rgba(241,243,246,.97) 82%,rgba(241,243,246,0));-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#gBqPan .pNav button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;height:44px;padding:0 3px;border:0;border-radius:9px;
+  background:#fff;color:var(--bqInk);font-family:var(--pix);box-shadow:0 0 0 1px var(--bqFil),0 3px 8px rgba(30,40,55,.06);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#gBqPan .pNav button::before{content:'';position:absolute;left:8px;right:8px;bottom:4px;height:2px;border-radius:2px;background:var(--rc);opacity:.75}
+#gBqPan .pNav button b{font-weight:400;font-size:8px;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:clip;max-width:100%}
+#gBqPan .pNav button em{font-style:normal;font-size:6px;letter-spacing:0;color:var(--bqGris);white-space:nowrap}
+#gBqPan .pNav button.on{background:var(--bqInk);color:#fff;box-shadow:0 0 0 1px var(--bqInk),0 0 0 3px rgba(255,255,255,.9),0 4px 12px rgba(20,23,28,.22)}
+#gBqPan .pNav button.on em{color:#c3cad4}
+#gBqPan .pNav button.on::before{opacity:1;left:6px;right:6px}
+#gBqPan .pNav button:active{translate:0 1px}
+/* 2. LES FAMILLES (2026-11-07, Sacha : « enlève UNI, DÉGRADÉ, MOTIF » · « retravaille comment les couleurs sont présentées ») : l'intertitre
+   d'une RARETÉ, le même que les rayons AILES et TRAÎNÉES (boutique-classique.css) — sa pastille, son nom, un filet, son prix, « à toi / total » */
+#gBqPan .pNs{margin-top:12px;scroll-margin-top:8px}
+#gBqPan .pNs:first-of-type{margin-top:2px}
+#gBqPan .pNh{display:flex;align-items:center;gap:8px;min-height:28px;margin:0 2px 4px;padding:0;font-weight:400;min-width:0;box-sizing:border-box;background:none;box-shadow:none}
+#gBqPan .pNh .bqRl{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:color-mix(in srgb,var(--rc) 80%,#17132b);
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.3),0 4px 10px -4px var(--rc)}
+#gBqPan .pNh .bqRl .pxi{--pxs:2;margin:0;color:#fff;filter:drop-shadow(0 1px 0 rgba(0,0,0,.35))}
+#gBqPan .pNh b{flex:none;font-weight:400;font-size:9px;letter-spacing:2px;color:var(--bqInk)}
+#gBqPan .pNh s{flex:1;min-width:6px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--rc),transparent);text-decoration:none;opacity:.75}
+#gBqPan .pNh .pNpx{flex:none;display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;font-size:7px;letter-spacing:.5px;text-decoration:none;color:var(--bqInk);background:var(--bqFond2);box-shadow:inset 0 0 0 1px var(--bqFil)}
+#gBqPan .pNh .pNct{flex:none;font-style:normal;font-size:8px;letter-spacing:1px;color:var(--bqGris)}
+#gBqPan .pNh .pNct i{font-style:normal;color:var(--bqInk)}
+/* la légende de l'anneau des défis, sous l'intertitre */
+#gBqPan .pNlg{display:flex;align-items:center;gap:6px;margin:0 2px 2px 34px;font-size:7px;line-height:10px;letter-spacing:.5px;color:color-mix(in srgb,var(--bqMis,#b07bff) 70%,#17132b)}
+#gBqPan .pNlg q{flex:none;width:10px;height:10px;border-radius:50%;box-sizing:border-box;border:2px solid var(--bqMis,#b07bff);quotes:none}
+#gBqPan .pNlg q::before,#gBqPan .pNlg q::after{content:none}
+#gBqPan .pNs[data-pf="legendaire"] .pNh .bqRl{animation:pLueur 2.4s ease-in-out infinite alternate}
+/* 3. LA GRILLE : cinq pastilles par rangée sur un téléphone debout (≥ 52 px chacune), plus quand la place le permet */
+#gBqPan .pNg{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:12px 8px;padding:8px 4px 6px;justify-items:center}
+#gBqPan.cote .pNg{grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:10px 6px}
+/* 4. LA PASTILLE : une goutte de peinture de carrosserie — ronde, vernie, le ciel qui s'y reflète (la ligne d'horizon claire en haut, le sol
+   plus sombre en bas), le reflet du spot, une ombre posée dessous ; la finition (chrome, or, métal, nacre, mat) et l'animation des légendaires
+   restent celles de la peinture */
+#gBqPan .pN{position:relative;display:block;width:100%;max-width:54px;aspect-ratio:1;min-width:0;min-height:44px;padding:0;border:0;border-radius:50%;background:none;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:pan-y;outline:none;
+  transition:scale .16s var(--ease,ease-out);animation:pNEntre .34s var(--ease,ease-out) both;animation-delay:calc(var(--i,0) * 14ms)}
+@keyframes pNEntre{from{opacity:0;transform:scale(.8)}}
+/* l'ombre posée sous la goutte */
+#gBqPan .pN::before{content:'';position:absolute;left:12%;right:12%;bottom:-7px;height:10px;border-radius:50%;pointer-events:none;background:radial-gradient(closest-side,rgba(23,19,43,.32),rgba(23,19,43,0))}
+#gBqPan .pN .pNsw{position:absolute;inset:0;display:block;border-radius:50%;overflow:hidden;
+  box-shadow:inset 0 0 0 1px rgba(23,19,43,.16),inset 0 -6px 10px -4px rgba(0,0,0,.35),inset 0 3px 6px -3px rgba(255,255,255,.7),0 6px 12px -8px rgba(23,19,43,.55)}
+#gBqPan .pN .pNsw::before{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:radial-gradient(48% 30% at 34% 22%,rgba(255,255,255,.85),rgba(255,255,255,0) 72%),
+    linear-gradient(180deg,rgba(255,255,255,.34) 0%,rgba(255,255,255,.12) 44%,rgba(255,255,255,0) 45%,rgba(0,0,0,0) 62%,rgba(0,0,0,.22) 100%)}
+#gBqPan .pN .pNsw.mat::before{background:radial-gradient(60% 40% at 36% 24%,rgba(255,255,255,.22),rgba(255,255,255,0) 75%),linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.16))}
+#gBqPan .pN .pNsw:is(.chrome,.or,.metal,.nacre)::before{background:radial-gradient(48% 28% at 34% 20%,rgba(255,255,255,.95),rgba(255,255,255,0) 72%),
+    linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,.18) 42%,rgba(0,0,0,.14) 43%,rgba(0,0,0,0) 58%,rgba(255,255,255,.28) 80%,rgba(0,0,0,.2) 100%)}
+#gBqPan .pN .pNsw.pL{background-size:64px 64px!important}
+/* la rareté : un fin anneau autour de la goutte (rien pour les communes) */
+#gBqPan .pN::after{content:'';position:absolute;inset:-4px;border-radius:50%;pointer-events:none;box-shadow:0 0 0 1.5px transparent;transition:box-shadow .16s}
+#gBqPan .pN.r-rare::after{box-shadow:0 0 0 1.5px color-mix(in srgb,#4db8ff 55%,#fff)}
+#gBqPan .pN.r-epique::after{box-shadow:0 0 0 1.5px color-mix(in srgb,#c77dff 60%,#fff)}
+#gBqPan .pN.r-legendaire::after{box-shadow:0 0 0 1.5px #f2c23a,0 0 12px -2px rgba(255,200,60,.75)}
+#gBqPan .pN.r-legendaire .pNsw::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(115deg,rgba(255,255,255,0) 38%,rgba(255,255,255,.6) 50%,rgba(255,255,255,0) 62%) no-repeat;background-size:300% 100%;animation:pBrille 3.6s ease-in-out infinite}
+/* celle qu'on regarde : l'anneau d'encre détaché de la goutte par un filet blanc, elle se soulève */
+#gBqPan .pN.sel{z-index:1;scale:1.08}
+#gBqPan .pN.sel::after{box-shadow:0 0 0 2.5px var(--bqInk),0 8px 16px -6px rgba(23,19,43,.4)}
+#gBqPan .pN:active{scale:.93}
+#gBqPan .pN.sel:active{scale:1.02}
+#gBqPan .pN:focus-visible::after{box-shadow:0 0 0 3px var(--bqMis,#b07bff)}
+/* 5. L'ÉTAT EN UN SIGNE, dans un petit rond en bas à droite : la coche (à toi), la coche sur l'encre (équipée), la pièce, le cadenas de la
+   MISSION au violet-bleu du bouton MISSIONS du garage ; le défi (à gagner en jeu) est un anneau de la même couleur, rempli à sa jauge */
+#gBqPan .pN .pNb{position:absolute;right:-3px;bottom:-3px;z-index:2;display:grid;place-items:center;width:19px;height:19px;border-radius:50%;background:var(--bqInk);box-shadow:0 0 0 2px #fff,0 2px 4px rgba(23,19,43,.3);font-weight:400}
+#gBqPan .pN .pNb .pxi{--pxs:1;width:9px;height:9px;margin:0;color:#fff}
+#gBqPan .pN.e-eq .pNb{width:21px;height:21px;background:var(--bqInk)}
+#gBqPan .pN.e-a .pNb{background:#fff;box-shadow:0 0 0 2px #fff,inset 0 0 0 1.5px var(--bqInk),0 2px 4px rgba(23,19,43,.25)}
+#gBqPan .pN.e-a .pNb .pxi{color:var(--bqInk)}
+#gBqPan .pN.e-pc .pNb{background:#fff;box-shadow:0 0 0 2px #fff,inset 0 0 0 1.5px var(--bqFil),0 2px 4px rgba(23,19,43,.25)}
+#gBqPan .pN.e-pc .pNb .pxi{color:#e0a400}
+#gBqPan .pN.e-mis .pNb{background:var(--bqMis,#b07bff)}
+#gBqPan .pN .pNj{position:absolute;inset:-5px;border-radius:50%;padding:2.5px;pointer-events:none;text-decoration:none;
+  background:conic-gradient(from 0deg,var(--bqMis,#b07bff) calc(var(--pj,0) * 1%),color-mix(in srgb,var(--bqMis,#b07bff) 26%,transparent) 0);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+#gBqPan .pN .pNj.coup{background:repeating-conic-gradient(var(--bqMis,#b07bff) 0 8deg,color-mix(in srgb,var(--bqMis,#b07bff) 18%,transparent) 8deg 20deg)}
+#gBqPan .pN.sel .pNj{inset:-8px}
+/* 6. LA LOUPE (garder le doigt) : au-dessus du doigt, la pastille en grand, la rareté, le nom, l'état ou le défi et sa jauge */
+#pNLoupe{position:fixed;z-index:9000;display:flex;align-items:center;gap:10px;max-width:min(300px,calc(100vw - 16px));padding:8px 12px 8px 8px;border-radius:12px;box-sizing:border-box;
+  background:var(--bqInk);color:#fff;font-family:var(--pix);box-shadow:0 0 0 1px var(--rc),0 12px 28px rgba(0,0,0,.35);pointer-events:none;opacity:0;transform:translateY(6px) scale(.96);transition:opacity .14s,transform .18s var(--ease,ease-out);visibility:hidden}
+#pNLoupe.on{opacity:1;transform:none;visibility:visible}
+#pNLoupe .pLsw{flex:none;position:relative;display:block;width:46px;height:46px;border-radius:9px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+#pNLoupe .pLsw.pL{background-size:64px 64px!important}
+#pNLoupe .pLt{display:flex;flex-direction:column;gap:5px;min-width:0}
+#pNLoupe .pLt i{font-style:normal;font-size:7px;letter-spacing:1px;color:var(--rc)}
+#pNLoupe .pLt b{font-weight:400;font-size:10px;line-height:13px;letter-spacing:.5px}
+#pNLoupe .pLe{font-size:7px;color:#c3cad4;display:flex;align-items:center;gap:4px}
+#pNLoupe .pLe .pxi{--pxs:1;width:8px;height:8px;margin:0;color:currentColor}
+#pNLoupe .pLe.e-eq{color:#8f99ff}
+#pNLoupe .pLe.e-eur{color:#fff}
+#pNLoupe .pLd{font-size:7px;line-height:10px;color:var(--dol)}
+#pNLoupe .pLd .pxi{--pxs:1;width:8px;height:8px;margin:0;color:var(--dol);vertical-align:-1px}
+#pNLoupe .pLj{display:flex;align-items:center;gap:6px}
+#pNLoupe .pLj u{display:block;flex:1;min-width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.18);overflow:hidden}
+#pNLoupe .pLj u em{display:block;height:100%;background:var(--dol);box-shadow:0 0 4px var(--dol)}
+#pNLoupe .pLj b{font-size:7px;color:#fff;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){#gBqPan .pN,#gBqPan .pN.r-legendaire .pNsw::after,#gBqPan .pN.r-legendaire::after,#gBqPan .pNs[data-pf="legendaire"] .pNh .bqRl{animation:none}#gBqPan .pN,#pNLoupe{transition:none}}
+</style>

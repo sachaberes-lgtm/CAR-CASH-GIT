@@ -4,7 +4,7 @@
    l'écran de mort ne transparaît) ; aucun flou d'arrière-plan. --spH = la hauteur d'un symbole : elle se règle sur la hauteur ET la largeur. */
 #spinM{position:fixed;inset:0;z-index:250;display:none;align-items:center;justify-content:center;box-sizing:border-box;overflow:hidden;
   padding:calc(var(--sT) + 10px) calc(var(--sR) + 14px) calc(var(--sB) + 14px) calc(var(--sL) + 14px);
-  background:radial-gradient(90% 60% at 50% 42%,#2a1f52 0%,#160f2e 48%,#07050f 100%);font-family:var(--pix);color:var(--tx);
+  background:radial-gradient(90% 60% at 50% 42%,#2a1f52 0%,#160f2e 48%,var(--k0) 100%);font-family:var(--pix);color:var(--tx);
   opacity:0;transition:opacity var(--t-slow) var(--ease);-webkit-user-select:none;user-select:none;touch-action:none;
   --spH:clamp(46px,min(9.2vh,calc((100vw - var(--sL) - var(--sR) - 40px)/4.95)),96px);--spW:calc(var(--spH)*1.12)}
 #spinM.on{display:flex}
@@ -13,7 +13,7 @@
 #spinM.vu .spBox{transform:none}
 /* L'ENSEIGNE : la plaque sombre, le nom en or néon, ses ampoules */
 /* (2026-10-31, Sacha : « le levier passe devant le final spin ») l'enseigne reste TOUJOURS au-dessus du levier (z-index 5) : plus de bras doré ni de boule qui mordent sur le mot FINAL SPIN */
-#spinM .spEnseigne{position:relative;z-index:6;padding:calc(var(--spH)*.2) calc(var(--spH)*.34);background:linear-gradient(180deg,#1b1634,#07050f);
+#spinM .spEnseigne{position:relative;z-index:6;padding:calc(var(--spH)*.2) calc(var(--spH)*.34);background:linear-gradient(180deg,var(--k3),var(--k0));
   box-shadow:inset 0 0 0 2px var(--auE),inset 0 0 0 4px var(--k0),0 0 0 3px var(--au2),0 6px 0 var(--k0),0 0 34px rgba(255,62,200,.28)}
 #spinM .spNeon{display:block;font-weight:400;font-size:min(calc(var(--spH)*.42),calc((100vw - var(--sL) - var(--sR) - 96px)/11.5)); /* (banc) debout, l'enseigne débordait de l'écran */line-height:1;letter-spacing:2px;color:var(--au1);white-space:nowrap;
   text-shadow:0 3px 0 var(--auE),0 0 10px var(--au2),0 0 26px rgba(255,62,200,.65)}
@@ -35,9 +35,9 @@
   padding:calc(var(--spH)*.34) calc(var(--spH)*.3) calc(var(--spH)*.3);
   background:linear-gradient(112deg,transparent 0 30%,rgba(255,255,255,.07) 30% 36%,transparent 36%),linear-gradient(180deg,#3a2a6e 0%,#251b4c 40%,#160f30 100%);
   box-shadow:inset 3px 3px 0 rgba(255,255,255,.12),inset -4px -6px 0 rgba(0,0,0,.45),inset 0 0 0 2px var(--au2),inset 0 0 0 5px var(--k0),inset 0 0 0 6px var(--auE),
-    0 calc(var(--spH)*.16) 0 #0b0818,0 calc(var(--spH)*.16 + 3px) 0 var(--auE),0 18px 30px rgba(0,0,0,.65),0 0 46px rgba(255,62,200,.2)}
+    0 calc(var(--spH)*.16) 0 var(--tranche),0 calc(var(--spH)*.16 + 3px) 0 var(--auE),0 18px 30px rgba(0,0,0,.65),0 0 46px rgba(255,62,200,.2)}
 /* LA VITRE : le cadre d'or biseauté, les rouleaux ivoire */
-#spinM .spVitre{position:relative;padding:calc(var(--spH)*.12);background:#07050f;
+#spinM .spVitre{position:relative;padding:calc(var(--spH)*.12);background:var(--k0);
   box-shadow:0 0 0 3px var(--auE),0 0 0 6px var(--au2),0 0 0 8px var(--k0),inset 0 0 0 2px var(--k0)}
 #spinM .spFens{position:relative;display:flex;gap:calc(var(--spH)*.1)}
 #spinM .spRou{position:relative;width:var(--spW);height:calc(var(--spH)*3);overflow:hidden;
@@ -60,17 +60,20 @@
 #spinM .spReflet{position:absolute;inset:0;z-index:4;pointer-events:none;
   background:linear-gradient(118deg,transparent 0 18%,rgba(255,255,255,.16) 18% 24%,transparent 24% 30%,rgba(255,255,255,.08) 30% 32%,transparent 32%)}
 /* L'ÉCRAN DES LOTS : le petit écran sous la vitre */
-#spinM .spEcran{width:100%;min-height:calc(var(--spH)*.9);display:flex;align-items:center;justify-content:center;padding:6px 10px;box-sizing:border-box;
+/* (2026-11-07, Sacha : « cet écran est bugger en mobile, retravaille-le ») l'écran des lots ne dicte plus la largeur de la caisse (width:0 + min-width:100%) :
+   un long texte (UN TIRAGE DE PLUS) la dilatait et le levier partait loin de la vitre ; il retourne à la ligne dans la vitre */
+#spinM .spEcran{width:0;min-width:100%;min-height:calc(var(--spH)*.9);display:flex;align-items:center;justify-content:center;padding:6px 10px;box-sizing:border-box;
   background:linear-gradient(180deg,#05030c,#120b26);box-shadow:inset 0 0 0 2px var(--k0),inset 0 0 0 3px var(--kl),inset 0 6px 12px rgba(0,0,0,.6)}
-#spinM .spGain{display:flex;align-items:center;justify-content:center;gap:10px;text-align:center}
+#spinM .spGain{display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;max-width:100%;min-width:0;line-height:1.3}
 #spinM .spGain.attente span{font-size:var(--f1);color:var(--tx2);letter-spacing:1px;animation:spRespire 1.6s var(--ease) infinite}
 @keyframes spRespire{50%{opacity:.45}}
-#spinM .spGTx{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+#spinM .spGTx{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;text-align:left;overflow-wrap:anywhere}
 #spinM .spGain small{font-size:var(--f1);color:var(--tx2);letter-spacing:1px}
 #spinM .spGain b{font-weight:400;font-size:var(--f6);color:var(--cash);text-shadow:0 2px 0 var(--cashO)}
 #spinM .spGain b.bon{font-size:var(--f1);color:var(--neoC);text-shadow:none}
 #spinM .spGain.gros small,#spinM .spGain.lot small{color:var(--au1)}
 #spinM .spGain.gros b{font-size:var(--f9)}
+#spinM .spGain.gros b.bon,#spinM .spGain.lot b.bon,#spinM .spGain.jackpot b.bon{font-size:var(--f1);color:var(--neoC);text-shadow:none} /* un lot « bon » (UN TIRAGE DE PLUS…) gardait la taille d'un gros gain (24 px) : la règle .gros b passait devant */
 #spinM .spGain.jackpot small{color:var(--au1);font-size:var(--f3)}
 #spinM .spGain.jackpot b{font-size:var(--f7);color:var(--au1);text-shadow:0 3px 0 var(--auE),0 0 18px var(--auG);animation:spJack .5s var(--ease) 3}
 @keyframes spJack{40%{transform:scale(1.14)}}
@@ -89,21 +92,21 @@
 #spinM .spLevier{--u:calc(var(--spH)*.06);position:absolute;right:0;top:50%;width:calc(var(--spH)*.72);height:calc(var(--spH)*3.4);transform:translateY(-50%);cursor:grab;touch-action:none;z-index:5}
 #spinM .spLevier.mort{opacity:.35;pointer-events:none}
 #spinM .spSocle{position:absolute;left:0;top:50%;width:calc(var(--u)*7);height:calc(var(--u)*12);transform:translateY(-50%);image-rendering:pixelated;
-  background:linear-gradient(90deg,#fff3c0 0 calc(var(--u)*1),#ffc72a calc(var(--u)*1) calc(var(--u)*4),#e09a10 calc(var(--u)*4) calc(var(--u)*6),#9c5200 calc(var(--u)*6));
+  background:linear-gradient(90deg,#fff3c0 0 calc(var(--u)*1),var(--au2) calc(var(--u)*1) calc(var(--u)*4),#e09a10 calc(var(--u)*4) calc(var(--u)*6),var(--auE) calc(var(--u)*6));
   box-shadow:0 0 0 2px var(--k0),calc(var(--u)*-1) 0 0 0 var(--k0),0 calc(var(--u)*1) 0 var(--k0)}
 #spinM .spSocle::before,#spinM .spSocle::after{content:'';position:absolute;left:calc(var(--u)*2);width:calc(var(--u)*2);height:calc(var(--u)*2);background:#5a3000;box-shadow:calc(var(--u)*1) calc(var(--u)*1) 0 rgba(255,243,192,.55)} /* les deux vis, un reflet d'un pixel dessous */
 #spinM .spSocle::before{top:calc(var(--u)*1.5)}
 #spinM .spSocle::after{bottom:calc(var(--u)*1.5)}
 #spinM .spBras{position:absolute;left:calc(var(--spH)*.3);top:0;width:calc(var(--spH)*.36);height:50%;--L:calc(var(--spH)*1.7)}
 #spinM .spTige{position:absolute;left:50%;bottom:0;width:calc(var(--u)*4);height:var(--L);margin-left:calc(var(--u)*-2);transform-origin:50% 100%;transform:scaleY(var(--lc,1));
-  background:linear-gradient(90deg,#9c5200 0 calc(var(--u)*1),#ffc72a calc(var(--u)*1) calc(var(--u)*2),#fff3c0 calc(var(--u)*2) calc(var(--u)*3),#e09a10 calc(var(--u)*3));
+  background:linear-gradient(90deg,var(--auE) 0 calc(var(--u)*1),var(--au2) calc(var(--u)*1) calc(var(--u)*2),#fff3c0 calc(var(--u)*2) calc(var(--u)*3),#e09a10 calc(var(--u)*3));
   box-shadow:0 0 0 2px var(--k0),calc(var(--u)*1) 0 0 2px var(--k0)}
 #spinM .spBoule{position:absolute;left:50%;bottom:var(--L);width:calc(var(--u)*12);height:calc(var(--u)*12);background-size:100% 100%;background-repeat:no-repeat;image-rendering:pixelated;
   transform:translate(-50%,calc(50% + var(--lb,0)*2*var(--L))) scale(calc(1 + var(--lb,0)*.18));filter:drop-shadow(0 calc(var(--u)*1) 0 rgba(0,0,0,.4)) drop-shadow(0 0 10px rgba(255,42,74,.5))}
 #spinM .spBoule::before{content:'';position:absolute;left:50%;top:50%;width:64px;height:64px;transform:translate(-50%,-50%)} /* la cible du doigt : 64 px, plus grande que la boule */
 /* LE PLATEAU : les jetons qui restent, des pièces à couronne sur un rail d'or (plus de compteur « ×0 ») */
 #spinM .spPlateau{display:flex;gap:6px;align-items:center;justify-content:center;min-height:calc(var(--spH)*.5);padding:4px 12px;
-  background:linear-gradient(180deg,#120b26,#07050f);box-shadow:inset 0 0 0 2px var(--auE),0 3px 0 var(--k0)}
+  background:linear-gradient(180deg,#120b26,var(--k0));box-shadow:inset 0 0 0 2px var(--auE),0 3px 0 var(--k0)}
 #spinM .spPlateau.vide{visibility:hidden}
 #spinM .spIco{display:inline-block;flex:none;background-repeat:no-repeat;background-position:center;background-size:contain;image-rendering:pixelated}
 #spinM .spPiece{width:calc(var(--spH)*.42);height:calc(var(--spH)*.42)}
@@ -125,7 +128,8 @@
   #spinM .spBox{display:grid;grid-template-columns:auto minmax(0,240px);grid-template-rows:1fr auto auto 1fr;column-gap:calc(var(--spH)*.95); /* (banc) la boule du levier mordait sur l'enseigne */row-gap:12px;align-items:center;justify-items:center}
   #spinM .spCorps{grid-column:1;grid-row:1/5}
   #spinM .spEnseigne{grid-column:2;grid-row:1;align-self:end}
-  #spinM .spNeon{font-size:var(--f6)}
+  #spinM .spEnseigne{max-width:100%;box-sizing:border-box}
+  #spinM .spNeon{font-size:min(var(--f6),calc(var(--spH)*.36));letter-spacing:1px} /* (2026-11-07) FINAL SPIN débordait de la colonne de droite */
   #spinM .spPlateau{grid-column:2;grid-row:2}
   #spinM .spTire{grid-column:2;grid-row:3;width:100%;min-height:52px}}
 @media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:3s}#spinM.gagne .spNeon{animation:none}}

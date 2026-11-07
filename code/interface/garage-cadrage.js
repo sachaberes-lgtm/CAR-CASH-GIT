@@ -177,7 +177,7 @@ $('stBoost').addEventListener('change',saveFruits);
 $('stFreq').addEventListener('change',saveFruits);
 addEventListener('keydown',e=>{if(!stallOn)return;
   if(e.code==='Escape')closeStall();else if(e.code==='ArrowLeft')stallShow(stallI-1);else if(e.code==='ArrowRight')stallShow(stallI+1);});
-$('garageBtn').addEventListener('click',e=>{e.stopPropagation();vroomGarage();openGarage();});
+$('garageBtn').addEventListener('click',e=>{e.stopPropagation();uiClic('nav');vroomGarage();openGarage();}); /* (2026-11-05, finition) l'ancien bouton GARAGE du PC n'avait pas son son de navigation, comme celui du téléphone */
 /* (2026-09-29, Léo) la MAISON de l'atelier = le MENU de l'écran de mort : on rentre à l'ACCUEIL (venu de la mort, la course est rangée
    comme par son MENU — accueilRetour) ; venu des MISSIONS (VOIR), on y retourne comme avant (`__mRetour`, lu à la fermeture). */
 $('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic('retour');

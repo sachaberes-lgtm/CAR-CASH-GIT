@@ -79,7 +79,7 @@ function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
   /* (2026-11-05, Opus : jury ECO-05) le lot « toutes » (LE TRÔNE CENTRAL, colall, toutall) ne compte plus ce qui se paie en € (impossible tant que StoreKit
    n'existe pas) ; dans l'app, preparer-www.js les passe à l'argent du jeu : ils y comptent de nouveau. */
   if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a=m2CarAMoi(i);if(a)n++;if(!R.car[CARS[i].name]&&(!carEuros(i)||a)){tot++;if(a)nT++;}}}
-  else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)&&(!d.eur||a)){tot++;if(a)nT++;}}}
+  else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)&&(!d.eur||d.def||a)){tot++;if(a)nT++;}}} /* (2026-11-07, chasse ECO-N01) `d.def` : une peinture en € qui se gagne par son défi reste dans le lot, sinon colall était réussie d'office sur le web */
   return {n:n,tot:tot,nT:nT};}
 /* (2026-10-22) LES RARES À TOI : celles qui s'achètent (les rares gagnées par mission ne comptent pas — LA DOLORÈS se débloque en les ayant toutes) */
 function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carRar(i)!=='rare'||R.car[CARS[i].name])continue;tot++;if(m2CarAMoi(i))n++;}return {n:n,tot:tot};}
@@ -88,8 +88,8 @@ function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++)
    « JOUE UNE MAP SOUS TOUTES SES MÉTÉOS » (sa caisse : voir table.js) prenait la MEILLEURE map en proportion : EN ORBITE n'a qu'un temps (matin), donc une
    seule partie en orbite faisait 1/1 = mission réussie (vu par le jury après 4 parties). Seules comptent maintenant les maps qui ont au
    moins M2_METEO_MIN temps (matin, midi, soir, nuit, pluie, orage…). `?meteo=ancien` : l'ancien calcul. */
-const M2_METEO_MIN=/[?&]meteo=ancien\b/.test(location.search)?1:3;
-function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const g of m2Cartes()){const P=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k]||sfMapDe(k)!==g)continue;for(const x of Object.keys((SF_CARTES[k].m)||{}))P.push([k,x]);}if(P.length<M2_METEO_MIN)continue;let j=0;for(const q of P)if((H[q[0]]||[]).indexOf(q[1])>=0)j++;if(j/P.length>f||(j/P.length===f&&P.length>tot)){f=j/P.length;n=j;tot=P.length;}}return {n:n,tot:tot};}
+/* (M2_METEO_MIN est déclarée dans missions/table.js, à côté de M2K : voir là) */
+function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const g of m2Cartes()){const P=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k]||sfMapDe(k)!==g)continue;for(const x of Object.keys((SF_CARTES[k].m)||{}))if(SF_CARTES[k].m[x].p!==0)P.push([k,x]);} /* (2026-11-05) une météo hors du tirage (p:0 : la pluie du canyon, de la forêt) ne compte plus : elle ne sort jamais */if(P.length<M2_METEO_MIN)continue;let j=0;for(const q of P)if((H[q[0]]||[]).indexOf(q[1])>=0)j++;if(j/P.length>f||(j/P.length===f&&P.length>tot)){f=j/P.length;n=j;tot=P.length;}}return {n:n,tot:tot};}
 /* ===== LE JOURNAL DE LA BANQUE (2026-11-05, Opus : jury DIR-08 « +180 000 $ pendant la navigation des menus ») =====
    `?journal=banque` (en DEV seulement) : chaque écriture de SAVE.d.bank est notée (avant, après, l'écart, l'écran, la pile d'appels courte),
    et chaque temps de map gagné pour la mission des météos. `dbgBanque()` rend les 60 dernières lignes. Sans le paramètre : rien n'est posé. */
@@ -186,9 +186,10 @@ function m2Verifie(enC){const s=m2Etat();let n=0;try{peintDefisVerifie(enC);}cat
   if(n){SAVE.mark();if(!enC)try{m2Portes();}catch(e){}}return n;}
 /* l'annonce d'une mission réussie : EN COURSE, la LIGNE du bas (#m2Ligne) ; hors course, le toast. Une secrète ne dit rien d'elle */
 function m2Annonce(m,enC){const r=m.r||{};
+  if(PASS_ON&&m.pass&&passEtat().sl.indexOf(m.id)<0)return; /* (2026-11-07) le pass : seule une mission des trois emplacements s'annonce */
   if(m.f==='secret'){if(enC)m2LigneDit('sec','? ? ?','');return;}
   const p=r.cash?'+'+fmtC(r.cash):r.car?TR(r.car):r.cat?TR(((COSM[r.cat]||[]).find(function(x){return x.id===r.id;})||{n:''}).n):'';
-  if(enC&&m2LigneDit('ok',sansAcc(m2Txt(m)),p))return;try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
+  if(enC&&m2LigneDit('ok',sansAcc(m2Txt(m)),p))return;if(M2R.fin&&!m2AnnonceMort(m))return; /* (2026-11-06) à la mort, seule une mission qui donne une voiture s'annonce */try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
 /* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « il y a trop de pop-up mission pendant la partie, écris-le en ligne, un peu plus discrète,
    en bas de l'écran ») : en course, une mission réussie ne pose plus la bannière du haut (#misBan, qui reste aux astuces et aux combos) mais
    UNE ligne de texte en bas (#m2Ligne), juste au-dessus des missions suivies (#m2Focus) — couché au centre, debout à gauche (la colonne de
@@ -211,6 +212,7 @@ function m2LigneSuit(){clearTimeout(M2L.t);let e=document.getElementById('m2Lign
     animation où la barre de mission est celle du dessus ») le FIL (code/interface/fil.js) vit dans la même zone, en bas au centre — tant que la
     ligne de mission parle, il s'efface (voir <style id="missionsV2"> : body.m2Lon #fil) */
   try{if(SONV2&&(it.k==='ok'||dj))sfx('ui.mission');}catch(x){}
+  try{if(it.k==='ok'||dj)hap([14,40,22]);}catch(x){} /* (2026-11-07) une mission réussie se sent aussi, pas seulement s'entend */
   M2L.t=setTimeout(function(){e.classList.remove('on');document.body.classList.remove('m2Lon');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
 function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');document.body.classList.remove('m2Lon');}
 /* ---- LA RÉCOMPENSE (RÉCUPÈRE) : une fois, jamais deux ---- rend {cash|car|cat,hab} ou null */
@@ -294,8 +296,9 @@ function m2Mort(cause){if(!m2Ok())return;const s=m2Etat();s.c.morts=(s.c.morts|0
   m2Verifie(true);SAVE.mark();}
 function m2Fin(){ // endGame (une mort, ou QUITTER) : la partie entière se juge ici
   try{if(BALADE||SANDBOX||(PARK&&PARK.on)||TUTO.on||TUTO.quitte)return;}catch(e){return;}
+  if(PASS_ON)try{passPartie();}catch(e){console.warn('pass',e);} /* (2026-11-07) le pass : une partie de plus (le garde-fou des emplacements) */
   if(mortCause&&M2R.ctl>=M2K.partie){if(!(RUNX.nitro>0))m2Flag('sansnit');if(!(RUNX.coins>0))m2Flag('sanspiece');if(!M2R.sonne)m2Flag('silence');}
-  m2Verifie(false);{const s9=m2Etat();s9.su=s9.su.filter(function(id){return s9.ok.indexOf(id)<0;});} /* une suivie réussie se récupère : elle quitte le suivi */SAVE.flush();}
+  M2R.fin=1;try{m2Verifie(false);}finally{M2R.fin=0;}{const s9=m2Etat();s9.su=s9.su.filter(function(id){return s9.ok.indexOf(id)<0;});} /* une suivie réussie se récupère : elle quitte le suivi */SAVE.flush();}
 function m2Rejoue(){const s=m2Etat();s.c.rejoue=(s.c.rejoue|0)+1;if(s.c.rejoue>(s.r.rejoue|0))s.r.rejoue=s.c.rejoue;SAVE.mark();}
 function m2Menu(){const s=m2Etat();if(s.c.rejoue){s.c.rejoue=0;SAVE.mark();}}
 /* CONSOLE : dbgMissions() = chaque mission (visibles ET secrètes) : sa valeur, son seuil, réussie, prise · dbgMissions('gagne',id) = la

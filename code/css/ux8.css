@@ -32,7 +32,10 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .p
 /* (14/10 ~21 h, Sacha : « enlève cadeau, touche et mission » de l'ACCUEIL — les missions restent au garage, le cadeau dans MISSIONS) */
 html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{display:none!important}
 html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:0 auto minmax(16px,1fr) 0 0 68px 12px 74px 0}
-@media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:minmax(0,1fr) auto 34px 0 0 56px 8px 58px minmax(0,1fr)}} /* (2026-10-15) 34 px : les tuiles ne mordent plus le trait néon du logo */
+@media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:minmax(0,1fr) auto 44px 0 0 56px 8px 58px minmax(0,1fr)}} /* (2026-10-15) 34 px : les tuiles ne mordent plus le trait néon du logo ; (2026-11-05) 44 px : la pastille NOUVEAU (dépasse de 9 px) ne le touche plus non plus */
+/* (2026-11-05, Sacha : « la disposition des boutons : NOUVEAU est trop proche de la barre de flow ») le trait néon descend à 20 px sous le logo ; la pastille,
+   large de ~77 px sur une tuile de 100, débordait de 9 px à droite (à 1 px de RÉGLAGES) et montait à 4 px du trait. Elle se CENTRE sur sa tuile, à cheval sur le bord haut. */
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mOffres.mAccB .mBadge{top:-9px!important;left:0!important;right:0!important;width:max-content;margin:0 auto!important} /* centrée sans transform : `.mOffres *{transform:none!important}` (boutons-flottants.css) l'annule */
 /* (2026-10-16, Sacha : « dans l'écran d'accueil GARAGE, OFFRE et RÉGLAGES doivent être de couleur rose, bleu et jaune — comme les bandes sous le logo CAR CASH »)
    LES TROIS TUILES AUX COULEURS DE LA LIVRÉE : dans l'ordre des trois bandes du trait néon sous le logo (rose · cyan · or, `--livree`), de gauche à droite.
    Tout passe par `--nc` (liseré, lueur intérieure, pictogramme) : le dessin des plaques ne bouge pas, le libellé reste blanc. */
@@ -50,7 +53,7 @@ html:not(.c6):not(.ux8g) #gBqTete .bqTl .bqArg b{font-size:11px}
 /* LA CARTE : photo, rareté, nom, prix */
 html:not(.c6):not(.ux8g) :is(#gBqPan .bqK,#gBqUne .bqU){padding-bottom:0}
 /* (15/10) les vignettes restent celles de Léo (photo zoomée, mêmes hauteurs) : la voiture en GRAND, autant de cartes à l'écran */
-html:not(.c6):not(.ux8g) :is(.bqKr,.bqUrr){position:absolute;top:6px;right:6px;z-index:1;margin:0;padding:3px 5px 2px;max-width:calc(100% - 12px);box-sizing:border-box;overflow:hidden;white-space:nowrap;background:#14171c;color:var(--rc);font-size:10px;line-height:1.1;letter-spacing:0}
+html:not(.c6):not(.ux8g) :is(.bqKr,.bqUrr){position:absolute;top:6px;right:6px;z-index:1;margin:0;padding:3px 5px 2px;max-width:calc(100% - 12px);box-sizing:border-box;overflow:hidden;white-space:nowrap;background:var(--bqInk);color:var(--rc);font-size:10px;line-height:1.1;letter-spacing:0}
 html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKn,#gBqUne .bqUn){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;overflow:hidden;overflow-wrap:anywhere;text-overflow:clip;font-size:9px;line-height:11px;letter-spacing:0;padding:5px 6px 0}
 html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKp,#gBqUne .bqUp){font-size:10px;letter-spacing:0;padding:4px 6px 8px;white-space:nowrap}
 /* (2026-11-03) un nom sur deux lignes (LA DOLCE VITA) poussait son prix plus bas que ceux des voisines : le prix colle au bas de la carte, tous alignés sur la rangée */
@@ -67,19 +70,19 @@ html:not(.c6):not(.ux8g) #gBqNom .bqNom{font-size:14px;letter-spacing:1px}
 /* L'ACTION SUIT L'ÉTAT : ACHETER (or) · ÉQUIPER · ÉQUIPÉE ✓ (discret) · IL TE MANQUE (éteint) */
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn{font-size:11px;letter-spacing:1px;gap:8px;flex-wrap:nowrap;white-space:nowrap;position:relative;overflow:hidden}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn b{font-size:12px;letter-spacing:0}
-html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="achat"]{background:var(--or);color:#14171c;box-shadow:0 4px 0 var(--orF),0 10px 24px rgba(20,23,28,.22)}
-html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="equip"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="figeq"]{background:#3d4bff;color:#fff}
-html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:#fff;color:#14171c;box-shadow:0 0 0 1px #dde1e6,inset 3px 0 0 #3d4bff;font-size:11px;cursor:default} /* (2026-11-03, Sacha : « cet écran, il est horrible ») ÉQUIPÉE ✓ n'est plus un texte gris fantôme sur le fond : une plaque blanche, encre pleine, le liseré bleu du rayon ouvert */
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="achat"]{background:var(--or);color:var(--bqInk);box-shadow:0 4px 0 var(--orF),0 10px 24px rgba(20,23,28,.22)}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="equip"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="figeq"]{background:var(--bqAcc);color:#fff}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:#fff;color:var(--bqInk);box-shadow:0 0 0 1px var(--bqFil),inset 3px 0 0 var(--bqAcc);font-size:11px;cursor:default} /* (2026-11-03, Sacha : « cet écran, il est horrible ») ÉQUIPÉE ✓ n'est plus un texte gris fantôme sur le fond : une plaque blanche, encre pleine, le liseré bleu du rayon ouvert */
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{height:44px}
-html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"]{background:#e3e6ea;color:#5b6572;box-shadow:inset 0 0 0 1px #c7ccd3;cursor:default;translate:none}
-html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"] b{color:#14171c;font-size:9px}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"]{background:var(--bqFil);color:var(--bqGris);box-shadow:inset 0 0 0 1px var(--bqFil);cursor:default;translate:none}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"] b{color:var(--bqInk);font-size:9px}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"]{font-size:9px;gap:6px;padding-left:8px;padding-right:8px}
 /* (15/10) prix au format GTA : un prix long (≥ 1 000 000) passe un corps en dessous pour tenir dans sa carte / son bouton */
 html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKp,#gBqUne .bqUp).lg{font-size:8px}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn b.lg{font-size:10px}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"] b.lg{font-size:8px}
-html:not(.c6):not(.ux8g) #gBqBtn .bqJ{position:absolute;left:0;right:0;bottom:0;height:4px;background:#c7ccd3}
-html:not(.c6):not(.ux8g) #gBqBtn .bqJ::before{content:'';display:block;height:100%;width:calc(var(--v,0) * 100%);min-width:3px;background:#14171c}
+html:not(.c6):not(.ux8g) #gBqBtn .bqJ{position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--bqFil)}
+html:not(.c6):not(.ux8g) #gBqBtn .bqJ::before{content:'';display:block;height:100%;width:calc(var(--v,0) * 100%);min-width:3px;background:var(--bqInk)}
 /* LE GARAGE (hub de Léo) : seulement la lecture — « $ » seul, rien de coupé */
 html:not(.c6):not(.ux8g) #garage #gLvl{font-size:10px!important}
 html:not(.c6):not(.ux8g) #garage #gAuraC small{font-size:10px}
@@ -139,14 +142,14 @@ html:not(.c6) .hModale:not(#ccH) #tPanel{visibility:hidden} /* la pause se retir
 html:not(.c6) #modale .modIn:has(.pb-red) .modB{gap:20px}
 html:not(.c6) #modale .modIn:has(.pb-red) .modB>.pbtn:last-child{--nc:var(--auT);color:var(--auT);min-height:64px;font-size:var(--f3);
   background:linear-gradient(105deg,transparent 0 38%,rgba(255,255,255,.78) 46%,rgba(255,255,255,0) 54%) no-repeat,
-    linear-gradient(180deg,#fffadf 0%,#ffe78e 15%,#ffd044 40%,#f7ae16 68%,#ea930a 86%,#ffc84e 100%);
+    linear-gradient(180deg,#fffadf 0%,#ffe78e 15%,#ffd044 40%,#f7ae16 68%,var(--au3) 86%,#ffc84e 100%);
   background-size:250% 100%,auto;background-position:180% 0,0 0;
   box-shadow:inset 0 2px 0 rgba(255,255,255,.95),inset 0 -2px 0 rgba(255,238,170,.55),inset 0 0 0 1px rgba(150,72,0,.35),
-    0 0 0 1px #331600,0 6px 0 0 var(--auE),0 6px 0 1px #331600,0 18px 28px -10px rgba(70,24,0,.75),0 0 34px -6px var(--auG);
+    0 0 0 1px var(--auO),0 6px 0 0 var(--auE),0 6px 0 1px var(--auO),0 18px 28px -10px rgba(70,24,0,.75),0 0 34px -6px var(--auG);
   text-shadow:0 1px 0 rgba(255,247,210,.9);animation:k4Lingot 4.2s var(--ease) 1.2s infinite}
 html:not(.c6) #modale .modIn:has(.pb-red) .modB>.pbtn:last-child .pxi{color:var(--auT);filter:none}
 html:not(.c6) #modale .modIn:has(.pb-red) .modB>.pbtn:last-child:is(:active,.appui){transform:skewX(var(--sk)) translateY(6px);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 1px #331600,0 0 0 0 var(--auE),0 5px 10px rgba(40,10,0,.5),0 0 44px rgba(255,190,40,.62)}
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 0 0 1px var(--auO),0 0 0 0 var(--auE),0 5px 10px rgba(40,10,0,.5),0 0 44px rgba(255,190,40,.62)}
 html:not(.c6) #modale .modB>.pbtn.pb-red{--nc:var(--neoR);color:var(--neoR);min-height:48px;background:transparent;text-shadow:none;
   box-shadow:inset 0 0 0 2px var(--neoR)}
 html:not(.c6) #modale .modB>.pbtn.pb-red .pxi{color:var(--neoR)}
@@ -304,7 +307,7 @@ html[data-reduced-motion="1"]:not(.c6) :is(#modale.sortant .modIn,#tPanel.sortan
    de niveau, la signature du balayage doré. Il passe au-dessus du HUD (dont les chiffres se figeaient aussi), sous les fenêtres.
    Rien ne change dans le JS du portail (l'opacité .94 → 0 reste posée par portVoile / portVoileSort). */
 html:not(.c6) #portV{z-index:8;overflow:hidden;contain:strict;
-  background:radial-gradient(120% 90% at 50% 58%,rgba(242,74,160,.55) 0,rgba(242,74,160,0) 55%),linear-gradient(180deg,#141d3a 0%,#0b0f24 60%,#07050f 100%)}
+  background:radial-gradient(120% 90% at 50% 58%,rgba(242,74,160,.55) 0,rgba(242,74,160,0) 55%),linear-gradient(180deg,#141d3a 0%,#0b0f24 60%,var(--k0) 100%)}
 /* (2026-10-15, Sacha : « au lieu du vieux temps de chargement, mets des feux de course : 3 feux rouges qui passent au vert, dans la même DA
    que le logo CASH CAR ») LES FEUX DU DÉPART remplacent la pluie de pixels et le cœur qui bat. Un portique en OR EXTRUDÉ — le dégradé et
    la profondeur brune de `.lg.gold`, coins coupés en octogone — porte trois lentilles en laque noire : rouge… rouge… rouge… VERT (150 ms
@@ -313,7 +316,7 @@ html:not(.c6) #portV{z-index:8;overflow:hidden;contain:strict;
 html:not(.c6) #portV::before{content:none}
 #portV .pfx{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:clamp(10px,2.6vmin,18px);
   padding:clamp(12px,3vmin,20px) clamp(14px,3.4vmin,24px);
-  background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%);
+  background:linear-gradient(180deg,var(--au0) 0%,var(--orB) 28%,var(--au2) 52%,var(--orS) 74%,var(--orB) 96%);
   clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px)}
 #portV .pfxW{position:absolute;inset:0;z-index:1;filter:drop-shadow(0 7px 0 #4a2a00) drop-shadow(0 12px 18px rgba(0,0,0,.7))}
 #portV .pfx i{position:relative;display:block;width:clamp(44px,13vmin,78px);height:clamp(44px,13vmin,78px);background:#14080c;
@@ -321,8 +324,8 @@ html:not(.c6) #portV::before{content:none}
   clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px)}
 #portV .pfx i::before,#portV .pfx i::after{content:"";position:absolute;inset:4px;opacity:0;will-change:opacity;
   clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px)}
-#portV .pfx i::before{background:radial-gradient(circle at 38% 34%,#fff4ec 0 12%,#ff6a52 30%,#ff3924 55%,#8a0d0d 100%)}
-#portV .pfx i::after{background:radial-gradient(circle at 38% 34%,#f4fff0 0 12%,#9cff8a 30%,#62e062 55%,#0f6a1c 100%)}
+#portV .pfx i::before{background:radial-gradient(circle at 38% 34%,#fff4ec 0 12%,#ff6a52 30%,var(--fren) 55%,#8a0d0d 100%)}
+#portV .pfx i::after{background:radial-gradient(circle at 38% 34%,#f4fff0 0 12%,#9cff8a 30%,var(--neoV) 55%,#0f6a1c 100%)}
 #portV.go .pfx i:nth-child(1)::before{animation:pfR1 .5s linear both}
 #portV.go .pfx i:nth-child(2)::before{animation:pfR2 .5s linear both}
 #portV.go .pfx i:nth-child(3)::before{animation:pfR3 .5s linear both}
@@ -374,4 +377,6 @@ html body.touch #auraV2{top:calc(var(--hudH) + 84px)!important}
    (2e ligne de la grille, 10 px) : l'AURA, calée avant lui à +76 / +72, se retrouvait dessous — elle passe sous l'étiquette. */
 html body #avList{display:none!important}
 html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
+/* (2026-11-05, Sacha : « enlève les carrés de couleur cadeau et boutique ») plus de pastille sur les tuiles de l'accueil : ni le panier cyan du GARAGE (#bdGar), ni le NOUVEAU rose d'ACHAT (#bdShop) */
+html body #bdGar,html body #bdShop{display:none!important}
 </style>

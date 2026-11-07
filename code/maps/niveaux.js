@@ -100,7 +100,7 @@ const SF_CARTES={
     soir:{bio:'grt-soir-mine',mt:'MAGMA',pr:'LA LAVE MONTE'},nuit:{bio:'grt-nuit-mine',mt:'NOIR COMPLET',nuit:1,p:.8,pr:'TES PHARES, TA SEULE LUMIERE'},
     glace:{bio:'grt-glace-mine',mt:'GLACE',pr:'LA GROTTE A GELE'}}}, /* (2026-10-26, Sacha : « une nouvelle météo pour la grotte : la grotte glacée, inspirée de la grotte intérieure de Fight Club ») */
   ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
-    pluie:{bio:'canyonPluie',pluie:.6,sheen:.18},orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2}}}}:{}),
+    pluie:{bio:'canyonPluie',pluie:.6,sheen:.18,p:0}, /* (2026-11-05, Sacha : « enlève la pluie dans le biome canyon des géants ») hors du tirage (l'orage aussi, plus bas) ; `?carte=canyon&meteo=pluie` la joue encore */ orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2,p:0}}}}:{}), /* (2026-11-05, Sacha : « l'orage aussi ») hors du tirage ; `?carte=canyon&meteo=orage` le joue encore */
   /* (2026-10-18, Sacha : « fais les dunes d'or de manière parfaite ») LES DUNES D'OR : le matin rose, le midi turquoise et or (les mirages), le SOIR (la carte postale :
      un peu plus souvent), la nuit d'argent, le VENT DE SABLE (pas une goutte : `pluie` reste 0), la TEMPÊTE DE SABLE (un orage sec). Voir genDunes, buildDunes. */
   ...(DUNES_OK?{dunes:{nm:"LES DUNES D'OR",base:'dunes',m:{matin:{bio:'dunesMatin'},soir:{bio:'dunesSoir',p:1.3},nuit:{bio:'dunesNuit',nuit:1,pr:'LA LUNE ARGENTE LE SABLE'},

@@ -22,6 +22,7 @@
    il n'y a rien à retourner — mais si un jour la porte déménage, c'est ici que ça se règle. */
 function garageLaunch(){
   if(GAR.go||!garageOn)return;
+  sonsChauffe(SONS_COURSE); /* (2026-11-07, chasse SONDE-N01) les sons de la course en file pendant le lâcher */
   // (2026-09-28) JOUER PENDANT UNE BASCULE : la bascule dure 1,06 s et le LÂCHER refusait de partir tant qu'elle tournait — changer
   // de caisse puis taper JOUER dans la seconde ne lançait RIEN. On la TERMINE sur-le-champ, exactement comme sa dernière image
   // (l'échange s'il n'a pas eu lieu, puis scanner éteint, échelle rendue) : la caisse qui sort est bien celle qu'on vient de choisir.

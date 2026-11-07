@@ -275,12 +275,13 @@ function lierPasses(){ /* les matières des passes de l'image (bloom, ACES…), 
   geo.dispose();}
 function lierDemarrage(now){ /* (loop) vrai : cette image ne dessine pas, les programmes de la 1re image se lient encore */
   if(LIER.dem===2)return false;
-  if(LIER.dem===0){LIER.dem=1;lierInit();if(!LIER.X){LIER.dem=2;return false;}
+  if(LIER.dem===0){LIER.dem=1;lierInit();if(!LIER.X){LIER.dem=2;cielChauffe();return false;}
     LIER.t0=performance.now();
     try{const rt=renderer.getRenderTarget();if(POST_ON&&composer&&composer.renderTarget1)renderer.setRenderTarget(composer.renderTarget1);compileDoux(scene,camera);renderer.setRenderTarget(rt);}catch(e){console.warn('lierDemarrage',e);}
     try{if(POST_ON)lierPasses();}catch(e){console.warn('lierPasses',e);}
+    cielChauffeLance(); /* (2026-11-05) les 7 programmes du ciel, lancés avec le reste : ils se lient à côté (voir ciel2.js) */
     return true;}
-  if(lierPret()||performance.now()-LIER.t0>20000){LIER.dem=2;LIER.msDem=Math.round(performance.now()-LIER.t0);return false;}
+  if(lierPret()||performance.now()-LIER.t0>20000){LIER.dem=2;LIER.msDem=Math.round(performance.now()-LIER.t0);cielChauffe();return false;}
   return true;}
 function lierScene(sc){ /* (renderer.render d'une SCÈNE, HORS COURSE) un objet neuf (la caisse du menu, l'atelier, un décor bâti après le démarrage) : ses programmes sont lancés en doux, et
      ce qui n'est pas encore lié n'est pas dessiné cette fois (il apparaît une ou deux images plus tard) au lieu de figer l'écran. Rend les matières cachées, que `lierMenuFin` remet. */
@@ -320,7 +321,7 @@ function departAttend(G){ /* vrai : cette image, la course ne part pas encore (l
   const chaud=engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait&&lierPret();
   let pb=true;try{pb=!PREB.on||!PREB.W||PREB.fait||!prebDepCible();}catch(e){} /* le départ d'avance n'est attendu que s'il est DÉJÀ en route (MESURÉ, iPhone à froid : pas commencé avant le JOUER, il ne démarre pas sous le voile — le voile tenait jusqu'aux 20 s pour rien ; la piste se bâtit alors au départ, ~0,6 s de JS, sans compilation) */
   if(chaud&&pb||now-G.att0>20000){if(G.attend){DEPART_ATT.n++;DEPART_ATT.ms=Math.round(now-G.att0);DEPART_ATT.sortie=chaud&&pb?'prêt':'20 s';G.attend=false;}return false;}
-  G.attend=true;chauffeGrace();return true;}
+  G.attend=true;if(now-G.att0>250)voileSerpent(true); /* (2026-11-07, Sacha : « quand on lance une partie, le serpent noir sur fond blanc ») l'attente se VOIT : voile blanc plein écran, serpent noir (voir voileSerpent) */chauffeGrace();return true;}
 window.dbgDepart=function(){return Object.assign({},DEPART_ATT);};
 function engChauffe(){ /* (LA LIAISON EN ARRIÈRE-PLAN) l'étape d'avant se lie encore : le menu tourne, la suivante attend ; l'étape compile en doux */
   if(!lierPret())return;
@@ -360,6 +361,25 @@ function engChauffe1(){
    visible et sans tri de champ, les lumières intouchées (leur nombre changerait les programmes) : au menu une fois, et à chaque
    construction de niveau. Les géométries montent au GPU du même coup (elles montaient elles aussi au 1er dessin, en plein vol). */
 const CHAUFFE_R={t:0,rt:null,fait:false,div:0,ap:0,saute:0,rejoue:-1,refait:0}; // ap : l'étape des tôles des voitures (chauffeApres ; -1 = finies)
+/* ===== LE CHARGEMENT SOUS LA BOULE (2026-11-05, passe perf mobile 2, A2.a) =====
+   MESURÉ (Chrome iPhone émulé ×4, palier 0) : avant que l'intro soit touchable, la TÊTE du script bâtissait d'un bloc la 1re piste + la caisse du menu (`init.js`, ~0,9 s) et
+   l'atelier d'accueil (`garAccueil`, ~0,6 s), puis la boule tournait ≥ 4,6 s SANS que le jeu fasse rien. Désormais ces blocs sont des ÉTAPES (`chargeEtape`) : la tête du script
+   ne fait que les inscrire, la boucle en exécute UNE par image (`chargementTick`, en tête de loop(), sans dessiner), dans l'ordre d'inscription, donc l'ordre d'avant ; la boule
+   (intro-161.js) n'est « prête » qu'une fois la file vide (`__ccCharge`), et l'ouverture du jeu (`reveler` : toucher, intro sautée ou plantée) vide ce qui reste d'un trait
+   (`__ccChargeTout`). Au-delà de 15 s on vide d'un bloc. `?chargement=0` = tout en tête de script, comme avant. */
+const CHARGEMENT={on:!/[?&]chargement=0\b/.test(location.search),fini:false,E:[],t0:0,ms:[]};
+if(!CHARGEMENT.on)CHARGEMENT.fini=true;
+function chargeEtape(nom,fn){ if(CHARGEMENT.fini){fn();return;} CHARGEMENT.E.push([nom,fn]); }
+function chargementPas(){ const e=CHARGEMENT.E.shift();if(!e){CHARGEMENT.fini=true;return;}
+  const t9=performance.now();try{e[1]();}catch(x){console.warn('chargement · '+e[0],x);try{window.__ccNote('panne','chargement '+e[0]+' · '+(x&&x.message||x),x&&x.stack&&String(x.stack).split('\n')[1]);}catch(_){}}
+  CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
+function chargementTout(){ while(!CHARGEMENT.fini)chargementPas(); }
+function chargementTick(now){ if(CHARGEMENT.fini)return false;
+  if(!CHARGEMENT.t0)CHARGEMENT.t0=now;if(now-CHARGEMENT.t0>15000){chargementTout();return false;}
+  chargementPas();return true; }
+const PHOTO_APRES=ALLEGE&&!/[?&]photoapres=0\b/.test(location.search);document.addEventListener('cc:revele',function(){CHAUFFE_R.tMenu=performance.now();}); /* (A2.d) l'instant où le menu paraît : les photos de caisses attendent la fin de la chauffe, 12 s au plus (voir photoCalme) */
+function photoInvVu(){try{const e=document.getElementById('gInv');return !!(e&&e.getBoundingClientRect().width>0&&getComputedStyle(e).visibility!=='hidden');}catch(x){return false;}}
+window.__ccCharge=function(){return CHARGEMENT.fini;};window.__ccChargeTout=chargementTout;window.dbgChargement=function(){return {on:CHARGEMENT.on,fini:CHARGEMENT.fini,reste:CHARGEMENT.E.map(function(e){return e[0];}),ms:CHARGEMENT.ms};};
 function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ces sous-arbres, sous l'éclairage de la scène (l'atelier, au menu)
   if(!CHAUFFE_R.rt){const t9=(composer&&composer.renderTarget1)?composer.renderTarget1.texture.type:THREE.UnsignedByteType;
     CHAUFFE_R.rt=new THREE.WebGLRenderTarget(8,8,{format:THREE.RGBAFormat,type:t9,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter});}

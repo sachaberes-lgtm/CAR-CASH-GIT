@@ -10,7 +10,7 @@
    règles, celle-ci passe devant toutes sans les toucher.
    ===================================================================================================================== */
 html body #coach.v2.v2{
-  --ecC:var(--neoC,#00eaff);
+  --ecC:var(--neoC,var(--neoC));
   left:50%;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 56px);width:min(410px,calc(100vw - 24px));box-sizing:border-box;
   display:grid;grid-template-columns:76px minmax(0,1fr);grid-template-rows:auto auto 1fr; /* (24/10, débogage sortie iOS) minmax(0,…) : un 1fr ne descend jamais sous son contenu le plus long — le message rouge d un raté (« ENCORE ! NITRO EN L AIR », sur une ligne) élargissait la colonne à 385 px dans une carte de 351 : consigne coupée, message sous PASSER, sur tous les iPhone */column-gap:12px;row-gap:3px;align-items:center;
   padding:10px 12px 11px 10px;border:0!important;border-radius:0!important;overflow:visible;font-family:var(--pix);color:#fff;
@@ -35,21 +35,21 @@ html body #coach.v2.v2.rate{animation:ecTremble .42s steps(6)}
 html body #coach.v2 .ecH{grid-column:2;display:flex;align-items:center;gap:8px;min-height:14px;padding-right:0} /* (la place de PASSER, au coin) */
 html body #coach.v2 .ecPips{display:flex;gap:5px}
 html body #coach.v2 .ecPips i{width:10px;height:10px;background:#2a2158;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);transform:skewX(-11deg)}
-html body #coach.v2 .ecPips i.ok{background:var(--neoV,#5ee37a);box-shadow:0 0 6px rgba(94,227,122,.6)}
+html body #coach.v2 .ecPips i.ok{background:var(--neoV,var(--neoV));box-shadow:0 0 6px rgba(94,227,122,.6)}
 html body #coach.v2 .ecPips i.on{background:var(--or);animation:ecPip 1s steps(2) infinite}
 @keyframes ecPip{50%{background:#fff4b8;box-shadow:0 0 8px rgba(255,215,94,.9)}}
 html body #coach.v2 .ecPips i.vient{animation:ecPipOk .5s var(--ease)}
 @keyframes ecPipOk{0%{transform:skewX(-11deg) scale(2.2);background:#fff}100%{transform:skewX(-11deg) scale(1)}}
-html body #coach.v2 .coN{flex:1;min-width:0;font-size:9px;letter-spacing:1px;color:var(--neoR,#ff4a64);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body #coach.v2 .coN{flex:1;min-width:0;font-size:9px;letter-spacing:1px;color:var(--neoR,var(--neoR));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html body #coach.v2.passe .coN{color:var(--or)}
 html body #coach.v2 .coSkip{grid-column:1/-1;display:block;width:100%;min-height:48px;padding:12px;margin:10px 0 0;border:0;
-  font:10px var(--pix);letter-spacing:2px;color:#2a1700;background:var(--or);box-shadow:inset 0 -3px 0 #b87400,0 3px 0 rgba(0,0,0,.35);cursor:pointer} /* PASSER : un gros bouton or pleine largeur, impossible à rater */
+  font:10px var(--pix);letter-spacing:2px;color:#2a1700;background:var(--or);box-shadow:inset 0 -3px 0 var(--orS),0 3px 0 rgba(0,0,0,.35);cursor:pointer} /* PASSER : un gros bouton or pleine largeur, impossible à rater */
 html body #coach.v2 .coSkip:active{transform:translateY(2px)}
-html body #coach.v2 .coSkip.sur{color:var(--neoR,#ff4a64);opacity:1}
+html body #coach.v2 .coSkip.sur{color:var(--neoR,var(--neoR));opacity:1}
 /* — LE MOT : en or, il arrive lettre par lettre — */
 html body #coach.v2 .ecT{grid-column:2;position:relative;display:block;margin:2px 0 1px;white-space:nowrap;line-height:1.15;
   font-size:min(22px,calc((min(410px,100vw - 24px) - 116px) / var(--n,8)));letter-spacing:1px;color:var(--or);
-  text-shadow:0 3px 0 #7a4400,0 0 16px rgba(255,215,94,.35)}
+  text-shadow:0 3px 0 var(--orF),0 0 16px rgba(255,215,94,.35)}
 html body #coach.v2 .ecT .l{display:inline-block;animation:ecLettre .38s var(--ease) both;animation-delay:calc(var(--i) * 32ms)}
 @keyframes ecLettre{from{opacity:0;transform:translateY(12px) scale(.6)}to{opacity:1;transform:none}}
 html body #coach.v2.bravo .ecT{color:#fff;text-shadow:0 3px 0 #0b5a24,0 0 18px rgba(125,255,155,.6)}
@@ -57,8 +57,8 @@ html body #coach.v2.bravo .ecT .l{animation:ecHourra .5s cubic-bezier(.3,1.7,.5,
 @keyframes ecHourra{from{opacity:0;transform:translateY(-14px) scale(1.8)}to{opacity:1;transform:none}}
 /* — LA LIGNE : courte, les mots à retenir surlignés — */
 html body #coach.v2 .ecD{grid-column:2;align-self:start;font:var(--f1)/1.6 var(--pix);letter-spacing:0;color:#eae6ff;animation:ecLigne .5s var(--ease) .18s both}
-html body #coach.v2 .ecD em{font-style:normal;color:#0a0616;background:var(--or);padding:0 4px;margin:0 1px;box-shadow:0 2px 0 #7a4400;white-space:nowrap}
-html body #coach.v2 .ecD kbd{font:9px var(--pix);color:#0a0616;background:#fff;padding:3px 5px 2px;margin:0 1px;box-shadow:0 2px 0 #8a83b8;white-space:nowrap}
+html body #coach.v2 .ecD em{font-style:normal;color:var(--txO);background:var(--or);padding:0 4px;margin:0 1px;box-shadow:0 2px 0 var(--orF);white-space:nowrap}
+html body #coach.v2 .ecD kbd{font:9px var(--pix);color:var(--txO);background:#fff;padding:3px 5px 2px;margin:0 1px;box-shadow:0 2px 0 #8a83b8;white-space:nowrap}
 @keyframes ecLigne{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 html body #coach.v2.bravo .ecD{visibility:hidden} /* le bravo parle seul */
 /* — LE PETIT FILM du geste (76 × 76) : une scène en pixels qui tourne en boucle — */
@@ -68,24 +68,24 @@ html body #coach.v2 .ecScene{grid-column:1;grid-row:1/4;position:relative;width:
 html body #coach.v2 .ecScene i{position:absolute;display:block;background:currentColor;
   -webkit-mask:var(--m) center/100% 100% no-repeat;mask:var(--m) center/100% 100% no-repeat}
 html body #coach.v2 .ecScene i.nm{-webkit-mask:none;mask:none}
-html body #coach.v2 .ecScene .car{--m:var(--pxi-voiture);width:30px;height:30px;color:#ff8d2e}
+html body #coach.v2 .ecScene .car{--m:var(--pxi-voiture);width:30px;height:30px;color:var(--nP)}
 html body #coach.v2 .ecScene .main{--m:var(--pxi-pouce);width:22px;height:22px;color:#fff}
 html body #coach.v2 .ecScene .flam{--m:var(--pxi-flamme);width:13px;height:13px;color:#ffb02a;transform:rotate(-90deg)}
-html body #coach.v2 .ecScene .cible{--m:var(--pxi-cible);width:26px;height:26px;color:#7dff9a}
-html body #coach.v2 .ecScene .ok{--m:var(--pxi-coche);width:40px;height:40px;left:18px;top:18px;color:#7dff9b;opacity:0}
-html body #coach.v2 .ecScene .btn{width:20px;height:20px;background:linear-gradient(180deg,#ffe58a,#ff9a1a);box-shadow:inset 0 -3px 0 #a14c00,0 0 0 2px #0a0616}
-html body #coach.v2 .ecScene .btn::after{content:'';position:absolute;inset:3px;background:#0a0616;-webkit-mask:var(--pxi-eclair) center/100% 100% no-repeat;mask:var(--pxi-eclair) center/100% 100% no-repeat}
-html body #coach.v2 .ecScene .sol{left:0;right:0;bottom:0;height:16px;background:#2b2350;box-shadow:inset 0 2px 0 rgba(0,234,255,.55)}
+html body #coach.v2 .ecScene .cible{--m:var(--pxi-cible);width:26px;height:26px;color:var(--cash)}
+html body #coach.v2 .ecScene .ok{--m:var(--pxi-coche);width:40px;height:40px;left:18px;top:18px;color:var(--cash);opacity:0}
+html body #coach.v2 .ecScene .btn{width:20px;height:20px;background:linear-gradient(180deg,#ffe58a,#ff9a1a);box-shadow:inset 0 -3px 0 #a14c00,0 0 0 2px var(--txO)}
+html body #coach.v2 .ecScene .btn::after{content:'';position:absolute;inset:3px;background:var(--txO);-webkit-mask:var(--pxi-eclair) center/100% 100% no-repeat;mask:var(--pxi-eclair) center/100% 100% no-repeat}
+html body #coach.v2 .ecScene .sol{left:0;right:0;bottom:0;height:16px;background:var(--k4);box-shadow:inset 0 2px 0 rgba(0,234,255,.55)}
 html body #coach.v2 .ecScene .tirets{left:0;right:0;bottom:7px;height:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.6) 0 6px,transparent 6px 14px);animation:ecTirets .42s steps(7) infinite}
 @keyframes ecTirets{to{background-position:-14px 0}}
 html body #coach.v2 .ecScene .vit{height:2px;width:14px;background:rgba(255,255,255,.65);animation:ecVit .5s steps(5) infinite}
 @keyframes ecVit{from{transform:translateX(14px);opacity:1}to{transform:translateX(-26px);opacity:0}}
-html body #coach.v2 .ecScene .x2{left:44px;top:30px;font:9px var(--pix);color:#0a0616;background:var(--or);padding:3px 3px 2px;-webkit-mask:none;mask:none;opacity:0}
+html body #coach.v2 .ecScene .x2{left:44px;top:30px;font:9px var(--pix);color:var(--txO);background:var(--or);padding:3px 3px 2px;-webkit-mask:none;mask:none;opacity:0}
 html body #coach.v2.bravo .ecScene>*{animation-play-state:paused}
 html body #coach.v2.bravo .ecScene .ok{opacity:1;animation:ecOk .5s cubic-bezier(.3,1.7,.5,1) both!important;animation-play-state:running!important}
 @keyframes ecOk{from{transform:scale(2.4) rotate(-12deg);opacity:0}to{transform:none;opacity:1}}
 /* 1 · TOURNE — la route file en perspective, la caisse va et vient, le pouce la mène */
-html body #coach.v2 .f-glisse .route{left:4px;right:4px;bottom:0;height:46px;background:#2b2350;clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);box-shadow:none}
+html body #coach.v2 .f-glisse .route{left:4px;right:4px;bottom:0;height:46px;background:var(--k4);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);box-shadow:none}
 html body #coach.v2 .f-glisse .axe{left:36px;width:4px;bottom:0;height:46px;background:repeating-linear-gradient(180deg,rgba(255,255,255,.7) 0 6px,transparent 6px 12px);animation:ecAxe .4s steps(6) infinite}
 @keyframes ecAxe{to{background-position:0 12px}}
 html body #coach.v2 .f-glisse .car{left:23px;bottom:14px;animation:ecVire 1.8s steps(18) infinite}
@@ -113,7 +113,7 @@ html body #coach.v2 .f-bord .fleche{--m:var(--pxi-droite);width:14px;height:14px
 html body #coach.v2 .f-vole .car{left:20px;top:22px;animation:ecPlane 1.6s steps(16) infinite}
 html body #coach.v2 .f-vole .flam{left:9px;top:31px;animation:ecPlane 1.6s steps(16) infinite,ecFeu .2s steps(2) infinite}
 @keyframes ecPlane{0%,100%{translate:0 6px}50%{translate:0 -6px}}
-html body #coach.v2 .f-vole .route{left:18px;right:10px;bottom:4px;height:6px;background:#2b2350;box-shadow:inset 0 2px 0 rgba(0,234,255,.55)}
+html body #coach.v2 .f-vole .route{left:18px;right:10px;bottom:4px;height:6px;background:var(--k4);box-shadow:inset 0 2px 0 rgba(0,234,255,.55)}
 html body #coach.v2 .f-vole .btn{right:5px;top:5px;transform:translateY(2px) scale(.88);filter:brightness(1.3)}
 html body #coach.v2 .f-vole .main{right:2px;top:15px}
 /* 5 · POSE-TOI — la caisse descend en arc et se pose pile dans l'anneau, qui flambe en or */
@@ -121,7 +121,7 @@ html body #coach.v2 .f-pose .cible{left:38px;bottom:8px;animation:ecCible 2s ste
 html body #coach.v2 .f-pose .car{left:0;top:0;animation:ecPose 2s steps(20) infinite}
 @keyframes ecPose{0%{transform:translate(-6px,4px) rotate(10deg);opacity:0}10%{opacity:1}60%{transform:translate(34px,30px) rotate(0)}
   64%{transform:translate(36px,33px)}68%,88%{transform:translate(36px,31px);opacity:1}100%{transform:translate(36px,31px);opacity:0}}
-@keyframes ecCible{0%,60%{color:#7dff9a;transform:none}64%,90%{color:var(--or);transform:scale(1.3)}}
+@keyframes ecCible{0%,60%{color:var(--cash);transform:none}64%,90%{color:var(--or);transform:scale(1.3)}}
 /* 6 · FIGURE — deux tapes sur NITRO (×2) : la caisse saute et fait un tonneau */
 html body #coach.v2 .f-figure .btn{right:6px;top:6px;animation:ecDouble 2.2s steps(22) infinite}
 html body #coach.v2 .f-figure .main{right:3px;top:16px;animation:ecDoubleM 2.2s steps(22) infinite}
@@ -133,19 +133,19 @@ html body #coach.v2 .f-figure .car{left:16px;bottom:15px;animation:ecSalto 2.2s 
 @keyframes ecSalto{0%,24%{transform:none}38%{transform:translateY(-22px) rotate(-180deg)}52%{transform:translateY(-22px) rotate(-360deg)}66%,100%{transform:none}}
 /* L'ACCUEIL — « six gestes, impossible de perdre » : la caisse roule tranquille */
 html body #coach.v2 .f-accueil .car{left:22px;bottom:15px;animation:ecTremblote .5s steps(2) infinite}
-html body #coach.v2 .f-accueil .coeur{--m:var(--pxi-coeur);width:16px;height:16px;left:46px;top:8px;color:var(--neoM,#ff3ec8);animation:ecPip 1s steps(2) infinite}
+html body #coach.v2 .f-accueil .coeur{--m:var(--pxi-coeur);width:16px;height:16px;left:46px;top:8px;color:var(--neoM,var(--neoM));animation:ecPip 1s steps(2) infinite}
 /* — LA MAIN FANTÔME : le geste montré SUR la commande (le volant, le bouton NITRO) — */
 #ecMain{position:fixed;left:0;top:0;width:46px;height:46px;z-index:67;pointer-events:none;opacity:0;transition:opacity var(--t-slow) var(--ease)}
 #ecMain.on{opacity:1}
 #ecMain .p{position:absolute;inset:0}
 #ecMain .m,#ecMain .o{position:absolute;inset:0;-webkit-mask:var(--pxi-pouce) center/100% 100% no-repeat;mask:var(--pxi-pouce) center/100% 100% no-repeat}
-#ecMain .o{background:#0a0616;transform:translate(3px,3px);opacity:.7}
+#ecMain .o{background:var(--txO);transform:translate(3px,3px);opacity:.7}
 #ecMain .m{background:#fff}
 #ecMain .r{position:absolute;left:23px;top:5px;width:18px;height:18px;margin:-9px 0 0 -9px;border:3px solid var(--or);opacity:0}
 #ecMain .fg,#ecMain .fd{position:absolute;top:10px;width:18px;height:18px;background:var(--or);opacity:0;
   -webkit-mask:var(--pxi-gauche) center/100% 100% no-repeat;mask:var(--pxi-gauche) center/100% 100% no-repeat}
 #ecMain .fd{-webkit-mask-image:var(--pxi-droite);mask-image:var(--pxi-droite)}
-#ecMain .x2{position:absolute;left:-34px;top:-14px;font:10px var(--pix);color:#0a0616;background:var(--or);padding:4px 4px 3px;opacity:0;box-shadow:0 2px 0 #7a4400}
+#ecMain .x2{position:absolute;left:-34px;top:-14px;font:10px var(--pix);color:var(--txO);background:var(--or);padding:4px 4px 3px;opacity:0;box-shadow:0 2px 0 var(--orF)}
 #ecMain.glisse .p{animation:ecMGlisse 1.8s var(--ease) infinite}
 #ecMain.glisse .fg{left:-44px;opacity:1;animation:ecFleche .6s steps(2) infinite}
 #ecMain.glisse .fd{left:72px;opacity:1;animation:ecFleche .6s steps(2) infinite .3s}
@@ -165,9 +165,9 @@ html body #coach.v2 .f-accueil .coeur{--m:var(--pxi-coeur);width:16px;height:16p
 #ecMain.glisseN .fg{left:-46px;opacity:1;animation:ecFleche .6s steps(2) infinite}
 @keyframes ecMGlisseN{0%,14%{transform:none;opacity:1}22%{transform:translateY(3px)}62%{transform:translate(-58px,3px)}70%,100%{transform:translate(-58px,-6px);opacity:0}}
 #figGl{position:fixed;left:0;top:0;z-index:66;display:none;align-items:center;gap:7px;padding:7px 10px 6px;pointer-events:none;white-space:nowrap;
-  font:10px/1 var(--pix);letter-spacing:1px;color:#fff;background:rgba(10,6,22,.86);border:2px solid var(--or,#ffd75e);box-shadow:0 3px 0 #1c0430}
+  font:10px/1 var(--pix);letter-spacing:1px;color:#fff;background:rgba(10,6,22,.86);border:2px solid var(--or,var(--or));box-shadow:0 3px 0 var(--encre)}
 #figGl.on{display:flex}
-#figGl .pxi{--pxs:2;background:var(--or,#ffd75e)}
+#figGl .pxi{--pxs:2;background:var(--or,var(--or))}
 body.dead #figGl,body:not(.play) #figGl{display:none}
 html body.figGlisse #fhLeg{display:none!important} /* en GLISSER, le rappel du double-tap au joystick se tait */
 @keyframes ecMDouble{0%,100%{transform:translateY(-10px);opacity:.4}10%,22%{transform:none;opacity:1}14%,28%{transform:translateY(5px) scale(.88);opacity:1}34%{transform:none;opacity:1}}
@@ -199,6 +199,39 @@ html body #coach.v2.bravo .ecT::before{animation:ecFlash .6s var(--ease) both}
 #ecMain.pousse .p::after{animation:ecMPousse 1.6s var(--ease) infinite;animation-delay:-.1s}
 @media (prefers-reduced-motion:reduce){html body #coach.v2.v2::after,html body #coach.v2 .ecT::before,#ecMain .p::after{display:none}}
 html[data-reduced-motion="1"] body #coach.v2.v2::after,html[data-reduced-motion="1"] #ecMain .p::after{display:none}
+/* ===== LA CARTE NE BARRE PLUS LA ROUTE (2026-11-06, Sacha : « en version mobile la fenêtre de tuto empêche de conduire ») =====
+   Deux causes, mesurées au banc mobile (844 × 390 couché) : 1) la carte (z-index 66, pointer-events:auto) est AU-DESSUS du volant flottant
+   (#tSteer plein écran) : tout pouce posé sur elle était avalé, la caisse n'obéissait plus ; 2) couchée elle faisait 162 px de haut sur 390 et
+   descendait jusqu'à l'horizon (218 px) — la route devant la caisse était cachée. Maintenant : la carte laisse passer TOUS les doigts (seul
+   PASSER reste cliquable), et couchée elle se range en bandeau bas (PASSER en colonne à droite) qui finit AU-DESSUS de l'horizon, dans le ciel. */
+html body #coach.v2.v2,html body #coach.v2.v2.on,html body #coach.v2.v2.sort{pointer-events:none}
+html body #coach.v2 .coSkip{pointer-events:auto}
+@media (orientation:landscape) and (max-height:540px){
+  html body #coach.v2.v2{width:min(560px,calc(100vw - 24px));top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 50px);
+    grid-template-columns:76px minmax(0,1fr) 88px;column-gap:10px;padding:8px 8px 8px 8px}
+  html body #coach.v2 .ecT{font-size:min(20px,calc((min(560px,100vw - 24px) - 116px - 98px) / var(--n,8)))}
+  html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
+    font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal}
+}
+/* ===== LA CARTE COMPACTE, DEBOUT COMME COUCHÉ, ET ELLE S'EFFACE PENDANT LE GESTE (2026-11-07, Sacha : « le tutoriel est pas jouable parce que la fenêtre de tuto
+   masque la voiture ») Debout, la carte faisait 162 px de haut (MESURÉ 390 × 844 : de 56 à 218) à cause du gros bouton PASSER pleine largeur sous le texte ; elle prend
+   maintenant la forme du bandeau couché : le petit film à gauche, le mot et la ligne au milieu, PASSER en colonne à droite (≥ 44 px) — environ 94 px au lieu de 162.
+   Et dès que le pouce touche le volant ou NITRO (.joue, posé par tutoTick), la carte s'estompe à 38 % : on voit la route et la caisse pendant qu'on fait le geste ;
+   elle revient à pleine force quand le pouce se lève. Seul PASSER reste cliquable, comme avant (la carte laisse passer tous les doigts). */
+@media (orientation:portrait){
+  html body #coach.v2.v2{width:min(430px,calc(100vw - 20px));top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 52px);
+    grid-template-columns:76px minmax(0,1fr) 84px;column-gap:10px;padding:8px}
+  html body #coach.v2 .ecT{font-size:min(20px,calc((min(430px,100vw - 20px) - 76px - 92px - 46px) / var(--n,8)))}
+  html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
+    font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal;text-wrap:balance}
+}
+/* le bouton PASSER : une colonne de 92 px, le mot en 8 px — « PASSER LE / TUTO › » sur deux lignes (trois avant : le « LE » seul) */
+@media (orientation:portrait),(orientation:landscape) and (max-height:540px){
+  html body #coach.v2.v2{grid-template-columns:76px minmax(0,1fr) 92px}
+  html body #coach.v2 .coSkip{font-size:8px;letter-spacing:.5px;text-wrap:balance}
+}
+html body #coach.v2.v2.on.joue:not(.bravo){opacity:.38;transition-duration:var(--t-fast)}
+html body #coach.v2.v2.on.joue .coSkip{opacity:1}
 </style>
 <style id="sansCarriere">
 /* (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » ; la carrière est retirée le 2026-10-18) : sur l'accueil,

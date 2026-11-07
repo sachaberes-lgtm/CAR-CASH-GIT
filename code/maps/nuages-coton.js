@@ -153,6 +153,8 @@ function mergeSpheres(blobs,rx,ry,rz){
      géantes qu'on traverse (white-out) — eux aussi prennent la forme classique —, la mer, les voiles et tout ce que pose la campagne.
    · Traversé, un nuage de coton s'efface autour de l'objectif (fondu 10-40 m dans le shader) au lieu de claquer.
    Hook : `dbgCoton()` (nuages, envoyés près/loin, triangles, ms). */
+/* (2026-11-05, passe perf mobile 2, C3, `?c3=0` = avant) BUDGETS DES NUAGES : `nuFin` = la plus fine des quatre finesses de la ouate (3 = 22×15) permise ; `nuFac` = le facteur de finesse (73 : une facette sous ~1,7° ; plus petit = on passe plus tôt à la finesse légère). Palier 2 : inchangé. */
+PAL.B.nuFin=[2,3,3];PAL.B.nuFac=[56,64,73];PAL.B.nuCub=[30,36,40]; /* nuCub : au plus N cellules de cubes sur la plus grande dimension d'un nuage (40 avant) */
 const COTON={S:[],im:[],I:null,n:0,cap:560,mat:null,grid:null,root:null,L:null,M:new THREE.Matrix4(),Q:new THREE.Quaternion(),Sc:new THREE.Vector3(), // (v4) 420 → 480 : les petits nuages en plus
   P:new THREE.Vector3(),Y:new THREE.Vector3(0,1,0),fr:new THREE.Frustum(),pv:new THREE.Matrix4(),nN:0,nF:0,tri:0,ms:0,
   SEG:[[7,5],[10,7],[16,11],[22,15]],FAC:73,CH:.45}; // les QUATRE finesses d'un gabarit ; FAC : on prend la plus légère dont une facette reste sous ~1,7° à l'écran (segments ≥ 73·R/d)

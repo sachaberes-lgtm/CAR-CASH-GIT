@@ -137,6 +137,11 @@ une(' https://opengameart.org/content/5-low-poly-animals · https://opengameart.
 /* (2026-10-24) LA RÉGIE ADSENSE du site (19/10) : déjà inerte dans l'app (elle sort sous window.Capacitor), son adresse est vidée pour que
    l'inventaire reste à 0 adresse réseau. L'emplacement AdMob de l'app (CC_ADMOB.recompense) est VIDE = éteint, et le module n'est pas installé. */
 une("s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client='+","s.src=''+",'régie AdSense du site (adresse)');
+/* (2026-11-07, LES PETITES POLITESSES) l'APERÇU DE LIEN du site (Open Graph / Twitter) cite l'icône par son adresse complète : un lien
+   collé dans un message n'a pas d'autre moyen de la trouver. Dans l'app il ne sert à rien : les deux balises sont retirées pour que
+   l'inventaire reste à 0 adresse réseau (la publication du 07/11 avait échoué ici). */
+une('<meta property="og:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">','','aperçu de lien du site (og:image)');
+une('<meta name="twitter:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">','','aperçu de lien du site (twitter:image)');
 une("var CC_ADMOB={recompense:''};","var CC_ADMOB={recompense:''}; /* (app iOS) aucune régie : ni AdMob ni AdSense */",'emplacement AdMob éteint');
 /* (2026-10-24, session APP STORE « directement sortable », règle 3.1.1) LES PEINTURES EN EUROS : depuis le 16/10 le jeu vend chaque peinture en
    vrai argent (PEINT_EUR / PEINT_EUR_ID : 0,50 € à 5 €, par shopPaye, la porte de StoreKit jamais branchée : « L'achat est indisponible pour le

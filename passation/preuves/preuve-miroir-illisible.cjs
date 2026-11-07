@@ -28,7 +28,9 @@ async function essai(chemin){
   const unique=rep=>{const i=src.indexOf(rep);if(i<0)throw new Error('repère introuvable : '+rep);if(src.indexOf(rep,i+1)>=0)throw new Error('repère non unique : '+rep);return i;};
   const fonction=entete=>{const i=unique(entete);return src.slice(i,finBloc(src,i+entete.length-1,'{','}'));};
   const iHab=unique('const HAB_RETIRES={'),habTxt=src.slice(iHab,finBloc(src,iHab+'const HAB_RETIRES='.length,'{','}'))+';';
-  const avant=[fonction('function m2Vierge(){'),fonction('function gagneAjoute(x){'),fonction('function carRetiree(i){'),fonction('function carOwned(i){'),habTxt,'function m2Etat(){}'].join('\n');
+  /* (2026-11-05, DEBUG-TOTAL) le bloc SAVE lit aussi PEINT_FUSION et ALLEGE : extrait / bouchonné (la preuve plantait « ALLEGE is not defined ») */
+  const iPf=unique('const PEINT_FUSION={'),pfTxt=src.slice(iPf,finBloc(src,iPf+'const PEINT_FUSION='.length,'{','}'))+';';
+  const avant=[fonction('function m2Vierge(){'),fonction('function gagneAjoute(x){'),fonction('function carRetiree(i){'),fonction('function carOwned(i){'),habTxt,pfTxt,'function m2Etat(){}'].join('\n');
   const bloc=avant+'\n'+src.slice(unique('const SAVE={'),unique('if(BALADE){SAVE.d.tuto=1'));
   const iE=unique('const ENGINE_TIERS=[')+'const ENGINE_TIERS='.length,NE=(function(){const t=src.slice(iE,finBloc(src,iE,'[',']'));let n=0,d=0;
     for(let i=0;i<t.length;i++){const s=sauteTexte(t,i);if(s>=0){i=s;continue;}if(t[i]==='{'){if(d===1)n++;d++;}else if(t[i]==='}')d--;else if(t[i]==='[')d=d||1;}return n;})();
@@ -39,7 +41,7 @@ async function essai(chemin){
     const reload={n:0};
     const sb={localStorage:store,window:{Capacitor:avecCap===false?undefined:{Plugins:{Preferences:P}}},location:{reload(){reload.n++;},search:'?garde=1'},console,
       THREE:{MathUtils:{clamp:(x,a,b)=>Math.min(b,Math.max(a,x))}},ECO3:{gain:.25},ENGINE_TIERS:new Array(NE).fill(0),
-      CARS:new Array(77).fill(0).map(()=>({})),CAR_UNLOCK:new Array(77).fill(null),pk:()=>null,SANS_CARRIERE:false,PAL:{b:(k,d)=>d}};
+      CARS:new Array(77).fill(0).map(()=>({})),CAR_UNLOCK:new Array(77).fill(null),pk:()=>null,SANS_CARRIERE:false,PAL:{b:(k,d)=>d},ALLEGE:true};
     const ctx=vm.createContext(sb);let err=null;try{vm.runInContext(bloc+';',ctx);}catch(e){err=e;}
     await attends();await attends();await attends();
     return {store,P,reload,err};}

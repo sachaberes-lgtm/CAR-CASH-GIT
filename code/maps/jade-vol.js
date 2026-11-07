@@ -401,10 +401,60 @@ window.dbgAppels=function(n){ // (2026-10-14, banc) QUI fait les appels de dessi
 window.dbgJadeRegle=function(){if(!JADE.root)return null;const ds=L/(NP-1),st=Math.max(1,Math.round(5/ds)),V9=new THREE.Vector3();let n=0,t=0;const ex=[]; /* (2026-10-20, banc) LA RÈGLE D'OR : aucun pilier ni rocher sur la route — la caisse tous les 5 m, à 3 places de la largeur, à 0,5 et 3 m */
   for(let i=0;i<NP;i+=st)for(const f of [-.9,0,.9])for(const h of [.5,3]){V9.copy(pts[i]).addScaledVector(B[i],f*ROAD_HALF).addScaledVector(Nn[i],h);t++;if(jadeHeurt(V9)){n++;if(ex.length<6)ex.push([Math.round(i*ds),f,h]);}}
   return {essais:t,heurts:n,ex:ex};};
+/* ===== L'AUDIT DE LA VALLÉE (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+   (banc, lecture seule) `dbgJadeAudit()` relit la vallée bâtie contre le COULOIR de conduite (demi-largeur + 1 m, de 0,3 à 7 m au-dessus de la dalle) :
+   · couloir : la caisse tous les 2 m, à 5 places de la largeur et 5 hauteurs, contre les cubes des montagnes, des rochers, de la Porte et du Pont (`jadeHeurt` sans
+     son pied de 1,4 m) — `frole` : les mêmes essais à 1 à 3 m au-delà du bord ;
+   · arbres, lianes, cristaux (`JADE.audit`) : leur panneau (largeur aJ.x, hauteur aJ.y, vers le bas pour une liane) contre le couloir, et leur PIED (la case
+     sous un arbre, au-dessus d'une liane : pleine dans sa montagne, sinon il flotte) ; cascades : leur nappe (le chemin du shader) contre le couloir ;
+   · l'eau : la dalle au plus bas au-dessus de la mer (`eauMin`) ; les monuments : l'écart de la route au milieu de la Porte et du Pont ;
+   · `emp` : une empreinte des montagnes posées (le déterminisme : même graine, même empreinte). */
+window.dbgJadeAudit=function(){if(!JADE.root||!JADE.col)return null;
+  const ds=L/(NP-1),C=JADE.col,V=new THREE.Vector3(),demi=ROAD_HALF,o={};
+  const cube=function(p){const a=C.g.get(Math.floor(p.x/C.CG)*100003+Math.floor(p.z/C.CG));
+    if(a)for(let j=0;j<a.length;j++){const q=C.P[a[j]];if(p.y<q[3]-1||p.y>q[4]+1)continue;const dx=p.x-q[0],dz=p.z-q[1];if(dx*dx+dz*dz>(q[2]+1)*(q[2]+1))continue;
+      if(jadePilierDans(q,p.x,p.y,p.z))return q[5]>=JADE_NTPL?'rocher':'montagne';}
+    if(JADE.porte&&jadeDansGrille(JADE.porte,p))return 'porte';if(JADE.pont&&jadeDansGrille(JADE.pont,p))return 'pont';return null;};
+  const st=Math.max(1,Math.round(2/ds)),hits=[],fro=[];let nH=0,nF=0;
+  for(let i=Math.round(40/ds);i<NP;i+=st){
+    for(const f of [-1,-.5,0,.5,1])for(const h of [.3,1.5,3,5,7]){V.copy(pts[i]).addScaledVector(B[i],f*(demi+1)).addScaledVector(Nn[i],h);const k=cube(V);if(k){nH++;if(hits.length<12)hits.push([Math.round(i*ds),f,h,k]);}}
+    for(const f of [-1,1])for(const e of [1,2,3])for(const h of [.3,1.5,3,5]){V.copy(pts[i]).addScaledVector(B[i],f*(demi+1+e)).addScaledVector(Nn[i],h);const k=cube(V);if(k){nF++;if(fro.length<12)fro.push([Math.round(i*ds),f*(demi+1+e),h,k]);break;}}}
+  o.couloir={heurts:nH,ex:hits};o.frole={n:nF,ex:fro};
+  /* la grille de la route (cases de 40 m), pour les panneaux */
+  const K=40,gr=new Map();for(let i=0;i<NP;i+=2){const p=pts[i],k=Math.floor(p.x/K)*100003+Math.floor(p.z/K);let a=gr.get(k);if(!a)gr.set(k,a=[]);a.push(i);}
+  const coupe=function(x,z,r,y0,y1){const bx=Math.floor(x/K),bz=Math.floor(z/K),n=Math.ceil((r+demi+1)/K);
+    for(let a=-n;a<=n;a++)for(let b=-n;b<=n;b++){const c=gr.get((bx+a)*100003+bz+b);if(!c)continue;
+      for(const i of c){const p=pts[i];if(i*ds<40)continue;const dx=x-p.x,dz=z-p.z,lat=Math.abs(dx*B[i].x+dz*B[i].z),lon=Math.abs(dx*T[i].x+dz*T[i].z);
+        if(lat>demi+1+r||lon>2+r)continue;if(y1<p.y+.3||y0>p.y+7)continue;return Math.round(i*ds);}}return -1;};
+  const A=JADE.audit||{arb:[],cri:[],chu:[]},pan=[],flo=[];let nP=0,nFl=0;
+  for(const [nom,L9] of [['arbre',A.arb],['cristal',A.cri]])for(const a of L9){const w=a.j[0],h=a.j[1],lia=h<0,y0=lia?a.y+h:a.y,y1=lia?a.y:a.y+h*1.1;
+    const s9=coupe(a.x,a.z,w*.5,y0,y1);if(s9>=0){nP++;if(pan.length<12)pan.push([lia?'liane':nom,s9,Math.round(a.x),Math.round(a.y),Math.round(a.z),+w.toFixed(1),+h.toFixed(1)]);}
+    if(a.pq){const q=a.pq,yy=lia?a.y+VX*.5:a.y-VX*.5;if(!jadePilierDans(q,a.x,yy,a.z)){nFl++;if(flo.length<8)flo.push([lia?'liane':nom,Math.round(a.x),Math.round(a.y),Math.round(a.z)]);}}}
+  const cas=[];for(const c of A.chu){for(let t=0;t<=1;t+=.05){const x=c[0]+c[3]*(c[5]*.4+t*t*c[6]*.07),z=c[2]+c[4]*(c[5]*.4+t*t*c[6]*.07),y=c[1]-t*c[6];
+      const s9=coupe(x,z,c[5]*(.5+t*1.4)*.5,y-2,y+2);if(s9>=0){cas.push([s9,Math.round(x),Math.round(y),Math.round(z)]);break;}}}
+  o.panneaux={n:nP,ex:pan};o.flottants={n:nFl,ex:flo};o.cascades={n:cas.length,ex:cas.slice(0,6)};
+  let eMin=1e9,sMin=0,sous=0;for(let i=0;i<NP;i+=2){const d=pts[i].y-JADE.eauY;if(d<eMin){eMin=d;sMin=i*ds;}if(d<1.5)sous++;}
+  o.eau={eauY:Math.round(JADE.eauY),eauMin:+eMin.toFixed(1),s:Math.round(sMin),sous:sous*2,ras:JADE.ras||null};
+  const ecart=function(M){if(!M)return null;let mx=0,dy=0;const n=Math.round((M.D/2+40)/ds);for(let i=Math.max(0,M.i-n);i<=Math.min(NP-1,M.i+n);i++){const p=pts[i],dx=p.x-M.c.x,dz=p.z-M.c.z;mx=Math.max(mx,Math.abs(dx*M.b.x+dz*M.b.z));dy=Math.max(dy,Math.abs(p.y-M.c.y));}return {s:Math.round(M.i*ds),lat:+mx.toFixed(1),dy:+dy.toFixed(1)};};
+  o.porte=JADE.porte?ecart(JADE.porte):'absente';o.pont=JADE.pont?ecart(JADE.pont):'absent';
+  let h=0x811c9dc5;const mx=function(x){h=Math.imul(h^(Math.round(x*10)|0),16777619);};for(const q of C.P){mx(q[0]);mx(q[1]);mx(q[3]);mx(q[5]);mx(q[6]);}mx(A.arb.length);mx(A.cri.length);
+  /* le témoin (l'audit voit-il les cubes ?) : le cœur de chaque montagne, aux 3/5 de sa hauteur, doit être plein ; et l'approche la plus courte (m) d'une montagne posée à hauteur de route — son cercle englobant, pas ses cubes */
+  {let n=0,ok=0,dm=1e9,sm=0;for(const q of C.P){const T9=JADE.geos.p[q[5]];n++;if(jadePilierDans(q,q[0],q[3]+T9.H*VX*.6,q[1]))ok++;}
+   for(let i=0;i<NP;i+=4){const p=pts[i];for(const q of C.P){if(p.y+7<q[3]||p.y>q[4])continue;const d=Math.hypot(p.x-q[0],p.z-q[1])-q[2];if(d<dm){dm=d;sm=i*ds;}}}
+   o.temoin={montagnes:n,coeursPleins:ok,approche:Math.round(dm),s:Math.round(sm),porte:!!JADE.porte,pont:!!JADE.pont};}
+  o.emp=(h>>>0).toString(16);o.n=JADE.n&&{montagnes:JADE.n.montagnes,rochers:JADE.n.rochers,arbres:JADE.n.arbres,cristaux:JADE.n.cristaux,cascades:JADE.n.cascades,ms:JADE.n.ms};o.mods=JADE.mk;o.deco=JADE.deco;o.bank=JADE.bankMax;
+  return o;};
+window.dbgJadeRefaire=function(){ /* (2026-11-05, B2, banc) la MÊME vallée rebâtie sans la carte rangée : la Porte gardée doit se reposer à l'identique — renvoie les ms, les reprises et une empreinte (porte, montagnes) */
+  if(!JADE.root||!JADE.cle)return 'pas de map';const sd=+JADE.cle.split(':')[0],cle0=JADE.cle,t=performance.now(),n0=JADE_PORTE_C.reprises;
+  const emp=function(){let h=0x811c9dc5,tri=0;const mx=function(x){h=Math.imul(h^(x*1000|0),16777619);};
+    for(const o of JADE.monu||[]){const g=o.L&&o.L[0].geometry;if(!g)continue;tri+=g.index.count/3;mx(g.index.count);const P=g.attributes.position.array;for(let i=0;i<P.length;i+=997)mx(P[i]);}
+    for(const q of (JADE.col&&JADE.col.P)||[])for(let i=0;i<9;i++)mx(+q[i]||0);return [tri,(h>>>0).toString(16),(JADE.col&&JADE.col.P||[]).length];};
+  const e0=emp();jadeRange();jadeEtatVide();jadeOublie();buildJade(sd);const e1=emp();
+  return {ms:Math.round(performance.now()-t),reprises:JADE_PORTE_C.reprises-n0,memeCle:JADE.cle===cle0,avant:e0,apres:e1,egal:e0.join()===e1.join()};};
 window.dbgJade=function(){let tri=0;for(const F of JADE.fam)tri+=F.im.count*F.tri;
   let triF=0;for(const FF of FIN.fam)if(FF)triF+=FF.im.count*FF.tri;
   return Object.assign({},JADE.n,{deco:JADE.deco||null,mods:JADE.mk||null,bank:JADE.bankMax||0,fins:FIN.dans.size,triFins:Math.round(triF),finPrets:JADE.geos?JADE.geos.p.filter(function(T9){return T9.fin;}).length+'/'+JADE.geos.p.length:0,finMs:JADE.geos&&JADE.geos.p.map(function(T9){return T9.finMs||0;}),triFinGab:JADE.geos&&JADE.geos.p.map(function(T9){return T9.fin?T9.fin.index.count/3:0;}),triangles:Math.round(tri+triF)+(JADE.porte?JADE.porte.tri:0)+(JADE.pont?JADE.pont.tri:0),porteFin:JADE.porte&&JADE.porte.triF,nuTri:JADE.nuTri,msPorte:JADE.msPorte,tPorte:JADE.tPorte,msPont:JADE.msPont,pontFin:JADE.pont&&JADE.pont.triF,appels:JADE.fam.filter(function(F){return F.im.count>0;}).length,
-    tri:{ms:JT.n?+(JT.ms/JT.n).toFixed(3):0,envois:JT.up},garde:{reprises:JADE_GARDE.reprises,msReprise:JADE_GARDE.ms,rangee:!!JADE_GARDE.m},grues:GRUE.L.length,balade:BALADE,niveau:LVL.cur&&LVL.cur.id,err:window.__jadeErr?String(window.__jadeErr):null});};
+    tri:{ms:JT.n?+(JT.ms/JT.n).toFixed(3):0,envois:JT.up},garde:{reprises:JADE_GARDE.reprises,msReprise:JADE_GARDE.ms,rangee:!!JADE_GARDE.m},porteGardee:{reprises:JADE_PORTE_C.reprises,ms:JADE_PORTE_C.ms,cle:JADE_PORTE_C.cle},grues:GRUE.L.length,balade:BALADE,niveau:LVL.cur&&LVL.cur.id,err:window.__jadeErr?String(window.__jadeErr):null});};
 window.dbgJadeAller=function(k,d){if(typeof k==='number'){if(!started||gameOver)return 'non';if(paused)togglePause();s=Math.max(0,Math.min(L-40,k));lat=0;psi=0;prevTvalid=false;mode='drive';return Math.round(s);} // (v14) un nombre : la caisse à s m
   const P=k==='pont'?JADE.pont:JADE.porte;if(!P||!started||gameOver)return 'non';if(paused)togglePause(); // (dev) la caisse d m avant un monument, sur la route
   s=Math.max(0,P.i/(NP-1)*L-(d||350));lat=0;psi=0;prevTvalid=false;mode='drive';return Math.round(s);};

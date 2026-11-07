@@ -40,7 +40,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
     else if(a==='q'){ SAVE.d.q=qSuivant(SAVE.d.q); SAVE.d.qChoisi=1; SAVE.flush(); applyQ9(SAVE.d.q==='fast'); dPanSync(); }
     else if(a==='surv'){ dClic(survBtnEl); dPanSync(); }
     else if(a==='resp'){ dPanOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
-    else if(a==='reset'){ dPanOpen(false); if(started){ if(!gameOver&&mode==='boom')endGame(); else resetGame(); } } /* (2026-10-24) comme le mobile (12/10) : la caisse EXPLOSE déjà, la partie est finie — RECOMMENCER la solde (virement, aura, record, écran de fin) au lieu de la jeter */
+    else if(a==='reset'){ dPanOpen(false); if(started){ if(!gameOver&&mode==='boom')endGame(); else { try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} resetGame(); } } } /* (2026-11-07, chasse SON2-N03) comme le mobile : le morceau abandonné s'éteint avant la partie neuve */ /* (2026-10-24) comme le mobile (12/10) : la caisse EXPLOSE déjà, la partie est finie — RECOMMENCER la solde (virement, aura, record, écran de fin) au lieu de la jeter */
     else if(a==='quit'){ dPanOpen(false); if(started&&!gameOver){ if(TUTO.on)tutoQuitte(); /* (2026-09-28) pas tutoFin(true) : QUITTER n'est pas PASSER */ const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb; } } // QUITTER pendant l'auto-école : on sort vraiment (sinon « RATÉ ! » et la caisse replacée)
   });
   // ⚠ NOM DÉDIÉ (`applyQ9`, pas `applyQ`) : `applyQ` est déclarée `const` À L'INTÉRIEUR du bloc
@@ -288,8 +288,13 @@ const CONTOUR2=(function(){
   if(/[?&]contour=v2\b/.test(location.search))C.allume(true);
   return C;})();
 window.dbgContour=function(on){if(on!=null)CONTOUR2.allume(on);return {on:document.documentElement.classList.contains('contourV2'),regles:CONTOUR2.regles.length,selecteurs:CONTOUR2.sels.length,convertis:CONTOUR2.n,refuses:CONTOUR2.refuses};}; // (2026-10-17) le contour d'encre sans filtre — voir CONTOUR2
+/* (banc, 2026-11-05, repris de jury/fable) dbgJouer() : l'état des gardes du JOUER, puis le même départ que le bouton — pour un banc headless (le bouton par toucher n'y marche pas) */
+window.dbgJouer=function(){const et={pendingScore:pendingScore,started:started,gameOver:gameOver,garageOn:garageOn,go:!!GAR.go,chute:!!CHUTE.on,chuteGo:!!CHUTE.go,wipe:!!ecranWipe._on,tuto:!!SAVE.d.tuto,sf:sfPlayOk()};
+  let r='';try{r=sfPlayOk()?String(classiqueJouer()):(playViaGarage(true),'playViaGarage');}catch(e){r='erreur '+(e&&e.message);}
+  return Object.assign(et,{appel:r,goApres:!!GAR.go,chuteGoApres:!!CHUTE.go});};
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
 try{plqDemarre();}catch(e){console.warn('plaque',e);} // (2026-10-17) LA PLAQUE : ses écrans, l'horloge du compte, et l'atelier au premier accueil (voir PLQ)
 try{bienvGuette();}catch(e){} // (2026-10-16) LA QUESTION DE BIENVENUE guette l'accueil (voir bienvMontre)
+addEventListener('dragstart',function(e){if(e.target&&e.target.tagName==='IMG')e.preventDefault();}); /* (2026-11-07, finition) sous Firefox sur l'ordi, `-webkit-user-drag:none` est ignoré : les photos de vitrine se laissaient glisser en fantôme à la souris */
 requestAnimationFrame(loop);
 })();

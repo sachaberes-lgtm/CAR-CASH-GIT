@@ -66,3 +66,6 @@ AUTRE VERSION/
 # --- Outils de session (2026-11-05, jury IOS-15) ---
 .claude/
 .playwright-mcp/
+outils/banc-routes/sorties/*/*.json
+outils/banc-routes/sorties/*/*.png
+!outils/banc-routes/sorties/*/garde-*.png

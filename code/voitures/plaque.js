@@ -70,7 +70,7 @@ function plqModOk(m){for(const o of PLQ_MOD)if(o.id===m)return m;return 'fr';}
 function plqNet(s){ // le texte tel qu'il peut se peindre : capitales, sans accent, 9 signes, rien que la police sache dessiner
   s=String(s==null?'':s).toUpperCase();
   try{s=s.normalize('NFD').replace(/[̀-ͯ]/g,'');}catch(e){}
-  return s.replace(/[^A-Z0-9 \-.!?$]/g,'').replace(/\s+/g,' ').replace(/^ /,'').slice(0,PLQ_MAX);}
+  return s.replace(/\$/g,'€').replace(/[^A-Z0-9 \-.!?€]/g,'').replace(/\s+/g,' ').replace(/^ /,'').slice(0,PLQ_MAX);}
 function plqHasard(){const L='ABCDEFGHJKLMNPQRSTVWXYZ',c=function(){return L[Math.random()*L.length|0];},n=function(){return String(Math.random()*10|0);};
   return c()+c()+'-'+n()+n()+n()+'-'+c()+c();} // le format d'une vraie plaque française (sans I, O ni U, comme la vraie)
 function plqEtat(){try{const p=SAVE.d&&SAVE.d.plq;if(p&&typeof p==='object')return p;}catch(e){} // (1er buildCar : SAVE n'existe pas encore)
@@ -127,7 +127,7 @@ function plqPeint(x,W,H,m,t,fond){
       x.save();oct(4);x.clip();x.strokeStyle='rgba(13,77,42,.16)';x.lineWidth=2;
       for(let j=0;j<7;j++){x.beginPath();for(let i=0;i<=64;i++){const px=i*8,py=14+j*17+Math.sin(i*.45+j)*6;if(i)x.lineTo(px,py);else x.moveTo(px,py);}x.stroke();}
       x.restore();x.strokeStyle='#2f7d4c';x.lineWidth=2;x.strokeRect(13,13,486,102);
-      for(const p of [[30,32],[482,32],[30,98],[482,98]])mot('$',16,p[0],p[1],'#0d4d2a');
+      for(const p of [[30,32],[482,32],[30,98],[482,98]])mot('€',16,p[0],p[1],'#0d4d2a');
       col='#0b3a20';zx=52;zw=408;break;
     case 'lingot':
       oct(0,'#5a3000');oct(3,deg(3,125,'#fff2b8','#e89a12'));oct(8,deg(8,120,'#22180a','#0d0904'));
@@ -150,7 +150,7 @@ function plqPeint(x,W,H,m,t,fond){
       x.save();oct(4);x.clip();x.fillStyle='#1d3fae';x.fillRect(0,0,62,128);x.fillRect(450,0,62,128);x.restore();
       x.fillStyle='#ffd400';for(let i=0;i<12;i++){const a=i/12*Math.PI*2;x.fillRect(Math.round(33+Math.cos(a)*17)-2,Math.round(42+Math.sin(a)*17)-2,4,4);}
       mot('F',24,33,94,'#fff');
-      x.fillStyle='#ffd400';x.beginPath();x.arc(481,44,15,0,7);x.fill();mot('$',16,481,45,'#1d3fae');mot('CC',16,481,94,'#fff');
+      x.fillStyle='#ffd400';x.beginPath();x.arc(481,44,15,0,7);x.fill();mot('€',16,481,45,'#1d3fae');mot('CC',16,481,94,'#fff');
       col='#121418';zx=66;zw=380;
   }
   x.restore();

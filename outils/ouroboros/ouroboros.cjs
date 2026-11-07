@@ -1,7 +1,7 @@
 /* ===== L'OUROBOROS DU CHARGEMENT (2026-11-03, Sacha : « son corps ne doit pas tourner : c'est sa TÊTE qui avance autour de son corps en le mangeant ; le corps se nourrit de boules de matière qui passent et qu'il avale » ; 2026-11-05 : « la tête est trop grosse, pas assez détaillée, trop blanche » puis « plus détaillée, le délire reptile, écailles, pics, presque dragon mais pas trop, toujours sobre, noir et nuances de gris, corps animé, tête animée parfaitement ») =====
    Dessiné par Fable 5.1. `node outils/ouroboros/ouroboros.cjs` régénère tout dans ce dossier :
    - ouroboros-52px-48img.png : la bande de 48 images de 52 × 52 px (le rendu fait 64 × 64, on rogne 6 px de noir tout autour), 6 gris tranchés (PNG à 4 bits, 9 Ko)
-   - ouroboros.css : le bloc CSS pur à coller dans la page (data-URL de la bande, steps(48) à 20 images/s = 2,4 s par tour, affiché ×2)
+   - ouroboros.css : le bloc CSS pur à coller dans la page (data-URL de la bande, steps(48) à 60 images/s = 0,8 s par tour (2,4 s avant le 05/11 : « il tourne pas assez vite »), affiché ×2)
    - demo.html : la page de démo (?zoom=3 pour voir les pixels) ; planche-16-images.png, tete-6-angles.png, tete-dessin.png : des aperçus pour l'œil humain
    LE STYLE (05/11, Sacha : « rends-le un peu cartoon Undertale ») : pixels NETS, aplats de gris tranchés (noir, 4 gris, blanc), formes simples et épaisses, gros œil expressif, contour clair d'un pixel autour de la tête ET du corps (pics et bosses des boules compris).
    Chaque pixel vote sur 5 × 5 échantillons (le gris dominant gagne ; le blanc et le noir des détails passent avant), la lumière des formes est peinte en dégradé puis posterisée.
@@ -15,11 +15,11 @@
    LES BOULES DE MATIÈRE : des billes sombres qui voyagent dans le corps (de l'arrière du crâne, tout le tour, jusqu'à la gueule), clampées (CLAC) puis glissées sous le crâne ; une toutes les 12 images, deux visibles à la fois.
    Miettes au CLAC, trois étincelles qui scintillent autour (fixes à l'écran). Boucle parfaite : 48 images = un tour de la tête, 4 boules, 8 bouchées, 3 reflets qui avancent d'un tiers de tour. */
 const fs=require('fs'),{pngIndexed,pngRGB}=require('./png.cjs');
-const N=64,F=48,FPS=20,SS=5,CX=32,CY=32,R=16,TH=4.6,HW=TH/2;
+const N=64,F=48,FPS=60,SS=5,CX=32,CY=32,R=16,TH=4.6,HW=TH/2;
 const C0=6,CS=52; /* LE CADRE LIVRÉ : on rogne les 6 px de noir autour du rendu de 64 × 64 (l'encre tient dans 7 → 56) : 52 × 52 px, 34 % de pixels en moins, la bande reste sous 16 384 px de large même à 3 pixels d'écran par pixel CSS */
 const DEG=Math.PI/180,TAU=Math.PI*2;
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x)),sm=(a,b,x)=>{const k=clamp((x-a)/(b-a),0,1);return k*k*(3-2*k);};
-const LV=[0,44,92,146,200,255],PAL=LV.map(v=>[v,v,v]); /* 6 gris tranchés (PNG à 4 bits) : le noir est un vrai noir, le blanc est réservé aux reflets, à l'œil et aux dents */
+const LV=[0,44,92,146,200,255],PAL=LV.map(v=>[v,v,v]); /* (2026-11-07) LA PALETTE EST POSITIVE : fond noir, serpent clair (blanc sur noir, pour le chargement de l'interface). Le NÉGATIF (noir sur fond blanc : lancement d'une partie, transitions longues) n'a PAS sa propre bande : `.serpentCh.neg{filter:invert(1)}` inverse exactement les gris (255 - v) — même image, zéro octet de plus. */
 const quant=l=>{const x=clamp(l,0,1)*255;let bi=0,bd=1e9;for(let i=0;i<LV.length;i++){const d=Math.abs(LV[i]-x);if(d<bd){bd=d;bi=i;}}return bi;};
 const JAW=[11,10,6,1,0,3,9,11,7,1,0,3].map(d=>d*DEG); /* l'angle dont la mâchoire du haut se relève, sur 12 images : deux bouchées (CLAC aux images 4 et 10) */
 /* LE REPÈRE DE LA TÊTE : a = l'abscisse le long de l'anneau (px, vers l'avant = sens horaire), v = l'écart au fil du corps (px, vers l'extérieur = le dessus de la tête). */
@@ -153,7 +153,7 @@ if(require.main===module){
   const png=strip(fr,'ouroboros-52px-48img.png'),b64=png.toString('base64');
   /* LE CSS PUR : aucun JS, visible dès la première image. La bande défile par pas (steps) sur un transform : le compositeur la joue même quand le script du jeu est occupé à construire la scène. */
   const SCALE=2,D=CS*SCALE,TOT=D*F;
-  const css=`#spCharge{position:absolute;left:50%;top:46%;width:${D}px;height:${D}px;margin:-${D/2}px 0 0 -${D/2}px;z-index:5;pointer-events:none;overflow:hidden;contain:strict}#spCharge::before{content:"";position:absolute;left:0;top:0;width:${TOT}px;height:${D}px;background:url("data:image/png;base64,${b64}") 0 0/100% 100% no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;animation:spOuro ${F/FPS}s steps(${F}) infinite;will-change:transform}@keyframes spOuro{to{transform:translate3d(-100%,0,0)}}@media(min-aspect-ratio:23/20){#spCharge{top:50%}}@media(prefers-reduced-motion:reduce){#spCharge::before{animation:none}}`;
+  const css=`#spCharge,.serpentCh{position:absolute;left:50%;top:46%;width:${D}px;height:${D}px;margin:-${D/2}px 0 0 -${D/2}px;z-index:5;pointer-events:none;overflow:hidden;contain:strict}#spCharge::before,.serpentCh::before{content:"";position:absolute;left:0;top:0;width:${TOT}px;height:${D}px;background:url("data:image/png;base64,${b64}") 0 0/100% 100% no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;animation:spOuro ${F/FPS}s steps(${F}) infinite;will-change:transform}@keyframes spOuro{to{transform:translate3d(-100%,0,0)}}.serpentCh.neg{filter:invert(1)}@media(min-aspect-ratio:23/20){#spCharge,.serpentCh{top:50%}}@media(prefers-reduced-motion:reduce){#spCharge::before,.serpentCh::before{animation:none}}`;
   fs.writeFileSync('ouroboros.css',css);
   const html=`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Ouroboros — chargement CASH CAR</title>
 <style>@font-face{font-family:'Press Start 2P';src:url('../../VERSION%20PRINCIPALE/assets/fonts/pressstart2p.woff2') format('woff2')}

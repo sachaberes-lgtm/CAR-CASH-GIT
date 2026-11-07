@@ -186,7 +186,7 @@ function cryptoPubAtlas(){
   const C=256,cv=document.createElement('canvas');cv.width=2048;cv.height=1024;const x=cv.getContext('2d'); // (2026-10-15) 8 × 4 écrans
   const PUB=[['BTC','#3dff9a','#03170c','+420 %','up'],['TO THE MOON','#ffd75e','#140c3a','NEXT STOP','fusee'],['HODL','#7df9ff','#2a0c4a','DIAMOND HANDS','diam'],['ATH','#3dff9a','#062014','ALL TIME HIGH','up'],
     ['BULL RUN','#ffd75e','#0b3a1c','GREEN ONLY','taureau'],['WAGMI','#ffffff','#0f7a3a','WE ALL MAKE IT','up'],['100X','#ffd75e','#3a1206','LEVIER MAX','up'],['ETH','#d8e2ff','#2b1d6e','+69 %','eth'],
-    ['LAMBO','#ffe23e','#0a0a0a','WEN ? NOW.','up'],['PUMP','#3dff9a','#0c0c18','IT. ALWAYS.','bougies'],['GM','#ff9a2e','#1a0f04','GOOD MORNING','btc'],['$1 000 000','#ffd75e','#08130c','1 BTC','btc'],
+    ['LAMBO','#ffe23e','#0a0a0a','WEN ? NOW.','up'],['PUMP','#3dff9a','#0c0c18','IT. ALWAYS.','bougies'],['GM','#ff9a2e','#1a0f04','GOOD MORNING','btc'],['€1 000 000','#ffd75e','#08130c','1 BTC','btc'],
     ['NUMBER','#3dff9a','#03170c','GO UP','bougies'],['CASH CAR','#ffd75e','#b0106a','LA CAISSE QUI PAIE','btc'],['BUY','#3dff9a','#062014','QUEL DIP ?','up'],['MOON','#ffffff','#0d1640','MISSION','lune'],
     /* (2026-10-15, Sacha : « pleine de références à la token culture, à l'argent et à la tech ») seize de plus */
     ['NFT','#ff6ad5','#1a0630','JPEG MILLIONAIRE','diam'],['SATOSHI','#ffb347','#1a0f04','NAKAMOTO','btc'],['WEB3','#7df9ff','#04162a','THE FUTURE','up'],['DEFI','#3dff9a','#062014','APY 1000 %','bougies'],

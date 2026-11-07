@@ -12,6 +12,7 @@ const SC = {
   neuf: () => { const s = clone(BASE); s.m2.pv = 1; return s; },                                          // « NOUVEAU PALIER » (le tampon sous le titre)
   fin: () => clone(BASE),                                                                                 // + les réussies dépliées (on tape la ligne)
   n2: () => { const s = clone(BASE); s.m2.pr.push('fig5'); s.m2.ok.push('ai5'); s.m2.pr.push('ai5'); return s; }, // 2 cartes seulement
+  videfin: () => { const s = clone(BASE); s.m2.ok = TOUS.slice(); s.m2.pr = TOUS.slice(); return s; },                       // idem + on déplie les réussies (la ligne est visible)
   vide: () => { const s = clone(BASE); s.m2.ok = TOUS.slice(); s.m2.pr = TOUS.slice(); return s; },       // tout réussi et récupéré : 0 carte
   depart: () => { const s = clone(BASE); delete s.m2; s.owned = [0, 1, 2, 3]; return s; },                // premier jour : palier 1, rien de fait
 };
@@ -34,10 +35,15 @@ const MESURE = () => {
     if (!br) { br = s.br; s0 = s; }
     const garage = await s.tapSel('#mHome [data-m="garage"]', { attente: 4500, optionnel: true }); if (!garage) await B.sleep(3500);
     for (let k = 0; k < 12; k++) { if (await s.tapSel('#gvMis', { attente: 3200, optionnel: true })) break; await B.sleep(2500); } // le garage met du temps sur une machine chargée
-    if (sc === 'fin') { await s.tapSel('#gmListe .mcFin', { attente: 1200 }); }
+    if (sc === 'fin' || sc === 'videfin') { await s.tapSel('#gmListe .mcFin', { attente: 1200 }); }
     await s.pg.evaluate(() => { const g = document.createElement('style'); g.textContent = '*,*::before,*::after{animation:none!important;transition:none!important}'; document.head.appendChild(g); });
     await B.sleep(400);
     await s.shot(`${fmt}-${sc}`);
+    const info = await s.pg.evaluate(() => { const p = document.querySelector('#gmListe .mcPan'); return { cartes: p.querySelectorAll('.mcL').length, sections: [...p.querySelectorAll('.mcSec span')].map(e => e.textContent + ' ' + (e.parentElement.querySelector('b') || {}).textContent), sh: p.scrollHeight, ch: p.clientHeight }; });
+    console.log(`   liste : ${info.cartes} cartes · sections ${JSON.stringify(info.sections)} · hauteur ${info.sh} dans ${info.ch}`);
+    await s.pg.evaluate(() => { const p = document.querySelector('#gmListe .mcPan'); p.scrollTop = p.scrollHeight; }); await B.sleep(500); await s.shot(`${fmt}-${sc}-bas`);
+    await s.pg.evaluate(() => { const p = document.querySelector('#gmListe .mcPan'); p.scrollTop = p.scrollHeight * .4; }); await B.sleep(500); await s.shot(`${fmt}-${sc}-mid`);
+    await s.pg.evaluate(() => { document.querySelector('#gmListe .mcPan').scrollTop = 0; });
     const m = await s.pg.evaluate(MESURE); fs.writeFileSync(path.join(dir, `${fmt}-${sc}.json`), JSON.stringify(m));
     const aud = await s.boutons({ min: 44 }).catch(e => ({ err: String(e).slice(0, 80) }));
     const pb = (aud && (aud.problemes || aud.pb || aud.issues)) || [];

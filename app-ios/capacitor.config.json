@@ -2,13 +2,13 @@
   "appId": "com.sachaberes.carcash",
   "appName": "CASH CAR",
   "webDir": "www",
-  "backgroundColor": "#12081f",
+  "backgroundColor": "#000000",
   "loggingBehavior": "debug",
   "ios": {
     "contentInset": "never",
     "scrollEnabled": false,
     "allowsLinkPreview": false,
-    "backgroundColor": "#12081f",
+    "backgroundColor": "#000000",
     "preferredContentMode": "mobile"
   },
   "plugins": {
@@ -16,7 +16,7 @@
       "launchShowDuration": 30000,
       "launchAutoHide": false,
       "launchFadeOutDuration": 250,
-      "backgroundColor": "#12081f",
+      "backgroundColor": "#000000",
       "showSpinner": false
     },
     "StatusBar": {

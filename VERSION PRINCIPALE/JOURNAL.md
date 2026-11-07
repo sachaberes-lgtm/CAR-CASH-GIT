@@ -4,6 +4,71 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+## LA MÉMOIRE DES MAPS (2026-11-07, v1256 — chasse aux bugs MAP-N01 / MAP-N02 / PC-N03 / TEL-N02 : « rendre la mémoire des maps stable d'une course à l'autre »)
+Trois chantiers, tous mesurés au banc de l'ordi (`outils/banc-pc`, Chrome headless 1280×720, 3 courses enchaînées au pilote auto, ramasse-miettes forcé avant chaque relevé).
+- **Les travailleurs des dunes et du canyon se reposent** (`dnOuvrierRepos`, `cyOuvrierRepos` : dunes-1.js, canyon-route.js), comme l'ouvrier des nuages depuis le 05-11 : leur réponse rendue et plus rien en vol (ni construction qui attend, ni monde d'avance sans réponse), ils sont arrêtés 1,5 s plus tard, leur adresse Blob révoquée (celle des nuages aussi : chaque réveil en laissait une), et `DN.w` / `CY.w` redeviennent « à créer » (refaits à la demande, sous le pré-bâti). Avant, chacun vivait toute la partie avec les copies du dernier monde (mesuré, 3 courses sur les dunes : le travailleur des dunes gardait 1-2 Mo de tas + 6 à 20 Mo de tampons d'un bout à l'autre ; après : plus aucun travailleur vivant entre deux mondes, `dbgDunes().ouvrier` / `dbgCanyon().ouvrier` = {vivant, reposes}). `?ouvrier=garde` = avant.
+- **Le portail des dunes attend son monde** (MAP-N01, `buildDunes`) : si le portail arrive avant la réponse du travailleur au calcul d'avance, `DN.attente` désigne ce calcul (`pour` : la construction en cours, comme `cyAvPrend`) au lieu de reposter un job identique — avant, la première réponse était jetée et le sable (et sa collision) arrivait deux fois plus tard. Reproduit au banc (canyon → dunes, portail franchi 20 m après l'envoi au travailleur : `dbgPrebati().pris` +1, `avance:'en vol'`, un seul calcul, puis le sable posé et l'ouvrier au repos). `dunes:1500` ajouté à `PREB_CPU_DEF` (préparation mesurée 510-590 ms sur l'ordi).
+- **Les géométries d'une course à l'autre** : nouveau crochet `dbgGeoVie` (ciel2.js, banc `--vie=1`) qui note, au premier dessin, le nom de chaque géométrie montée à la puce (référence faible, écouteur de dispose) et classe au bilan : dans la scène, hors scène (détachée, jamais rendue), ramassée sans dispose (tampons orphelins). RÉSULTAT : aucune géométrie ramassée sans dispose, jamais ; les « hors scène » qui s'ajoutent (+10 à +15 par course) sont les MOTEURS GARDÉS (`ENG_PRET`, vignette-moteur.js : palette chrome #eef3f9 / brosse #d6dce8 / lame #242834) — un cache voulu depuis le 31-10, borné aux paliers de moteur, montés à la puce la première fois que la vignette les montre. Pas de fuite à corriger.
+- **Les chiffres (écran de mort des courses 1 / 2 / 3, même map forcée pour les deux builds — `--force=carte,meteo`, nouveau au banc : sans lui les portails tirent les maps au hasard et deux lancements ne se comparent pas)** :
+  nuages, tas JS : avant 241 / 235 / 239 Mo → après 230 / 233 / 235 Mo ; géométries à la puce : avant 453 / 515 / 529 → après 476 / 513 / 523.
+  dunes, tas JS : avant 350 / 410 / 263 Mo → après 351 / 401 / 263 Mo ; géométries : avant 264 / 285 / 509 → après 261 / 476 / 500 (la marche vers ~500 est la 2e météo des dunes, dans les deux builds) ; travailleur des dunes : avant vivant aux 9 relevés de course, après 0.
+  Le « 197 → 590 Mo en 3 courses » de la chasse ne se reproduit pas à map fixée : c'était la suite de maps tirées au hasard (jade, nuages, grotte), chaque map ayant son plateau ; à map fixée le tas est un plateau dans les deux builds. Non vérifié : un vrai téléphone (TEL-N02, la cadence après trois portails).
+
+## LES PETITES POLITESSES (2026-11-07, v1255 — Sacha : « cherche plein de mini détails qui ne se voient même pas, pour rendre le jeu plus pro »)
+Audit en quatre axes (page et PWA, robustesse, textes et nombres, sensations), puis ce qui a été posé :
+- **Page** : `color-scheme: dark` (meta et CSS : curseurs, champ du code de sauvegarde, barres natives en sombre), `translate="no"` + `google notranslate` (Chrome ne propose plus de traduire), `format-detection telephone=no`, aperçu de lien Open Graph / Twitter (icône 512), un `<noscript>` bilingue.
+- **Manifeste** : `id`, `categories`, fond `#07050f` (le noir du body : plus de saut de couleur au lancement), icône **maskable** `assets/icons/icon-maskable-512.png` (le logo à 80 %, dans la zone sûre d'Android), l'entrée `icon.svg` retirée (elle portait encore l'emoji 💰 d'Apple).
+- **Sauvegarde** : écrite aussi sur `pagehide` (onglet fermé sans visibilitychange) ; une sauvegarde ILLISIBLE n'est plus écrasée en silence : son texte brut est gardé sous `cashcarSave_corrompue`.
+- **Écran** : le verrou d'éveil (Wake Lock) est rendu à la fin de la course (`wakeLache` dans endGame) et repris par `start()` ; au retour d'arrière-plan, seulement en course.
+- **Boutique du jour** : change à minuit HEURE LOCALE (`bqDecLoc`), plus à 1 h ou 2 h du matin (UTC). Le jour du déploiement, une vitrine peut se renouveler une fois.
+- **Audio** : `latencyHint:'interactive'` sur les deux contextes.
+- **Nombres** : `fmt` (record, classement, score) écrit « €1,234 » en anglais et remplace l'espace fine U+202F que la police pixel ne dessine pas ; « AIRTIME ×2 », « AURA ×2, ×3 » (clés I18N suivies) ; durée des pouvoirs « 3,2s » en français.
+- **Sensations** : `uiPop` ne retire plus la classe `pop` PERMANENTE des vignettes de traînée à icône (leur mise en page sautait après un toucher) ; le motif de vibration du refus n'est plus écrasé par le tic de `uiClic` sur Android ; vibrations ajoutées (équiper une caisse, mission réussie, bannière de mission, record de fin de partie) ; un 2e toast re-claque ; caisse verrouillée de l'inventaire = « refus » ; le ⏸ s'enfonce ; le bouton du volant revient au centre en douceur au lâcher.
+- **Accessibilité** : `aria-label` des curseurs et du champ du nom, canvas d'effets `aria-hidden`, `aria-modal` de l'inventaire, focus clavier visible sur tout bouton (`:where`, zéro spécificité), `overflow-wrap` du toast, la secousse du NON coupée en mouvement réduit.
+- **?intro=ancien** : le serpent de chargement restait posé sur le titre (carré noir) — masqué dans ce mode (Sacha : « ce genre de conflit est pas acceptable »).
+Laissé de côté : le compte à rebours au départ de course (il figerait un départ pensé comme un largage avec 3 s de nitro offert), le retrait de trois emoji (il en reste des dizaines dans les annonces : rien de plus cohérent).
+Nouveau morceau : `code/css/politesses.css` (après finition-ecrans.css).
+
+## LES SONS À LA DEMANDE (2026-11-05, v1177 — Sacha, après le bilan « LA MÉMOIRE DE L'ORDI » : « Sons à la demande »)
+- La banque entière décodée pesait ~130 Mo de PCM dans le processus de rendu (229 sons, 384 fichiers avec leurs bases d'octave), pour une partie
+  qui n'en joue qu'une fraction (forêt, banquise, ailes, richesse, machine : 4,3 des 6,9 Mo de MP3 dorment). `sfx.js` (v9) : au chargement, seuls
+  les sons `pre:1` et l'interface `ui.*` sont décodés (la 1re moitié publiée, 0,8 Mo) ; un son demandé par `play()` et pas encore prêt est décodé
+  EN PRIORITÉ et part s'il est prêt dans les 120 ms (en retard de quelques ms ; `tardifs`), sinon il se tait comme avant (`perdus`) ; son base64
+  est gardé ; un son muet depuis 60 s sans voix vivante rend son tampon (`evinces`) et se refera. `?sons=tout` = tout décoder au chargement et
+  jeter le base64, comme avant. `CCSON.etat()` : residents, mo, tardifs, perdus, evinces. Téléphone : même logique (rien ne dépend d'ALLEGE).
+- MESURÉ (outils/banc-pc `--son=1`, map NUAGES, 30 s de course au pilote auto, effets allumés dans un Chrome muet) : PCM résident 15,5 Mo au menu, 19 Mo après 40 s de course (141 → 165 sons décodés sur 384 ; tout décodé ≈ 45 Mo), 27 sons partis en retard de moins de 120 ms, 0 perdu, 4 évincés ; partitions du rendu en course 530 → 420 Mo (A/B, bruit ±50), Chrome 1 760-1 900 → 1 680-1 770 Mo.
+## LA 4K À LA MESURE DE LA MÉMOIRE (2026-11-05, v1173 — Sacha, après le bilan « LA MÉMOIRE DE L'ORDI » : « Résolution 4K »)
+- Sur un écran de CLASSE 4K (≥ 4,5 Mpx vus par le jeu dans la colonne : 4K à 100 ou 150 %), les budgets de pixels de l'ordi baissent — course 3,2 → 2,0 Mpx
+  (toile 2631×1216 → 2080×961, 1,7 pixel d'écran par pixel 3D), vitrine du menu 4,2 → 2,6 Mpx (3014×1393 → 2372×1096) ; `palier-appareil.js`, PC_4K.
+  Un écran 1080p ou 1440p ne change pas : il est sous les budgets et dessine à ses pixels réels. `?4k=0` = avant ; `?pcpx=` / `?vhdpc=` priment
+  (le `?vhdpc=` ne marchait pas depuis le 25/10 : `[d.]` au lieu de `[\d.]`, corrigé).
+- MESURÉ (outils/banc-pc, map NUAGES, écran de Sacha, A/B `?4k=0`) : processus GPU en course 627-632 → 575-577 Mo, au menu 440 → 410 ; « webgl » du rendu
+  250-262 → 229-237 Mo ; le total Chrome 1 890-1 900 → 1 860-1 900 Mo. C'est −50 Mo de carte graphique et un tiers de pixels en moins à remplir par image ;
+  le reste (partitions ~530, tuiles du compositeur ~240 — le HUD est rastérisé au zoom du cadre, pas au budget 3D —, toiles 2D ~75) ne dépend pas de la
+  résolution 3D. Captures avant/après : `--capture=1` du banc.
+## LA MÉMOIRE DE L'ORDI (2026-11-05, v1169 — Sacha : « le lien Vercel a des latences et prend beaucoup de mémoire sur mon ordi, règle ça de manière durable »)
+- **La machine** : Ryzen 5 3600, RX 6600, 16 Go dont 1,5 Go libres au moment de la demande (Chrome déjà à 5 Go en 55 processus), écran 3840×2160 à 150 % :
+  dans la colonne de l'ordi le jeu voit une densité de 4,2 et dessine la course à 3,2 Mpx (le budget PC_PX), le menu à 4,2 Mpx. Sur le site publié,
+  MESURÉ par le banc (outils/banc-pc, Chrome headless, vrai GPU, même écran) : Chrome 1 360 Mo au menu (rendu 780, GPU 350), 1 640 à 1 800 Mo en course
+  (rendu jusqu'à 1 170, GPU 370-560). Avec 1,5 Go libres, c'est le swap : la « latence ».
+- **Où va la mémoire du processus de rendu** (memory-infra, au menu ~800 Mo) : partitions ~380 (≈ 130 de sons décodés — 229 sons en PCM 32 kHz —, ≈ 150 de
+  copies JavaScript des géométries, 3 × 19 de source d'index.html en copie locale), tuiles du compositeur ~210 (18 couches composées au menu : le halo du
+  splash `.spVoile::before` en 130vmax = 21 Mpx à lui seul, le boîtier #tel de la page-cadre et la racine du jeu composés parce que la page défile, chaque
+  effet plein écran du HUD), V8 ~155 dont 80 à 115 dans l'OUVRIER DES NUAGES (un Web Worker jamais arrêté : 64 Mo de pépinière, 18-51 de grands objets),
+  tampon MSAA ×4 de la toile 98 Mo (49 couleur + 49 profondeur) alors que la toile ne reçoit que la passe finale du compositeur depuis le FXAA du 25/10.
+- **Les trois corrections** (toutes sans changer un pixel) : LA TOILE SANS MSAA (`palier-appareil.js`, `?msaa=1` = avant) ; L'OUVRIER SE REPOSE
+  (`nuages-v8.js` : terminé 1,5 s après sa file vidée, refait au prochain nuage ; même chose pour le travailleur des ciels, `finition.js` ; `?ouvrier=garde` =
+  avant). A/B au banc, map NUAGES, même écran : « webgl » du rendu 333-342 → 209-262 Mo (le tampon MSAA : 98 à 128 Mo de carte graphique en moins), V8 en course 124 → 48 Mo (l ouvrier arrêté entre deux nuages : −76 Mo) ; mais les processus Chrome ne bougent que de 20 à 70 Mo sur ~1,9 Go (le bruit du banc est ±50) : les deux corrections sont sûres et gratuites, pas la solution à elles seules.
+- **Les latences mesurées, pas corrigées ici** : au 1er lancement (cache GPU froid) 9,9 s de tâche bloquante = la compilation D3D11 des ~110 à 210 programmes
+  (une fois par machine, Chrome les garde) ; à chaque lancement 2,5 s (lecture du script + scène) ; au garage des gels de 1,8 à 2,7 s (la boîte noire les note :
+  le pré-bâti de la map suivante sur le fil principal — grottes : grtCreuse1 / voxPilierG / voxMeshG ~1,4 s — et 0,5 s de liaison de programmes) ; au départ de
+  course 0,9 s dans `getProgramInfoLog` (des programmes de la map liés en course, hors de LIER : trois.js attend la liaison, programme après programme).
+- **Les gros postes restants, à trancher par Sacha** : la banque de sons décodée (~130 Mo ; décoder à la demande ferait taire le 1er appel d'un son) ; les
+  copies JS des nuages pré-bâtis en 4 finesses (~60 Mo au menu, les InstancedMesh à 0 instance ne sont jamais envoyées au GPU donc jamais libérées) ; les
+  toiles 2D du HUD (`canvas` 70-80 Mo) ; les couches composées (masquer les effets plein écran au repos : −50 Mo mesurés, à peine au-dessus du bruit ±50 Mo) ;
+  la banque et le script en copie UTF-16 (3 × 19 Mo en local, moins en ligne).
+- **Le banc** : `outils/banc-pc/LISEZMOI.txt`. `dbgJouer()` (desktop-banc.js, repris du jury) lance une course sans toucher le bouton, pour un Chrome headless.
+
 
 ## LES PROFONDEURS : LA ROUTE À RYTHME ET LES GÉANTS (2026-11-05, v1122-v1123 → v1146 — Sacha : « un module avec des stalagmites tellement imposants que ça devienne un obstacle » puis « pas assez de virages, pas assez de trucs fun, rajoute des modules : vitesse, exploration, fluidité »)
 - **Mesuré d'abord** (banc `outils/banc-routes/grotte.cjs`, les cibles de `passation/RACCOURCIS.md`) : la route simplifiée du 04/11 faisait 0,5 virage/km (cible ≥ 2,5), 0,2 enchaînement/km (≥ 1), 0 raccourci/km (≥ 0,6) — la grotte n'avait AUCUN raccourci, le cœur du jeu.

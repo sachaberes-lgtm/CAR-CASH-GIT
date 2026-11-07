@@ -70,6 +70,10 @@ function musicPickNext(excludeIdx){
    monte et la musique recule vers son niveau de ciel (MUS_CIEL), en `d` secondes, une même courbe pour les deux (`ventIntro`, 0 → 1). Hors de l'intro, `ventIntro` vaut 1 : rien ne change. */
 const INTROSON={on:false,t0:0,d:8,m0:.3}; /* m0 : le niveau de départ de la musique (30 % de celui du garage, −10 dB) ; au ciel elle finit à MUS_CIEL (15 %) */
 function ventIntro(){if(!INTROSON.on)return 1;if(!INTROSON.t0)return 0;const k=(performance.now()-INTROSON.t0)/(INTROSON.d*1000);return k>=1?1:k*k*(3-2*k);}
+/* (2026-11-05, Sacha : « remets le léger bruit de vent dans l'écran d'accueil » — au lancement) LE VENT DU CIEL AU LANCEMENT : `chuteDoux` ne suivait que ventIntro (0 pendant « 1.61 PRESENTS », puis 8 s de montée) : on
+   n'entendait le vent qu'après l'accueil. Il a maintenant son propre fondu : un léger souffle (35 %) dès que le ciel se construit sous le film, qui rejoint son niveau en 3 s quand l'accueil apparaît.
+   La musique, elle, garde ventIntro (inchangé). */
+function ventCiel(){if(!INTROSON.on)return 1;if(!INTROSON.t0)return .35;const k=(performance.now()-INTROSON.t0)/3000;return k>=1?1:.35+.65*k*k*(3-2*k);}
 /* LE LOBBY JOUE LE PALIER 1 (2026-11-02, Léo : « enlever les musiques de lobby, libérer un maximum d'espace, et mettre à la place le palier numéro 1 : quelque chose qui fasse partie de la musique de la course ») : au lieu des trois
    morceaux de 3 à 4 Mo (nuages, altitude, apesanteur), le ciel et le garage jouent le PALIER 1 de CIEL · 30 (0,35 Mo, 22 s, en boucle) : le début, calme, du morceau qui monte avec le moteur en course. Un seul morceau :
    `MENU_MUS.ciel.length` vaut 1, donc il boucle (voir playMusic) et `musicMenuSuivant` n'a plus rien à tirer. Les trois anciens fichiers restent sur le disque tant que le palier 1 n'est pas validé à l'oreille.
@@ -201,6 +205,7 @@ function musGraphe(){return musWaTient()||!!window.POUCE_JEU;} /* (15/10, pôle 
    qui joue chaque course PARTOUT (WebAudio pur) — le bouton SON ne suspend alors jamais le contexte, il ferme l'entrée des effets (musWaSon) */
 function musWaReveil(){ // le contexte doit tourner pour qu'on entende la musique (appel, Siri, iOS « interrupted ») — au toucher, avant de relancer l'élément
   if(!musGraphe()||!AC||AC.state==='running'||paused||document.hidden)return;
+  if(!SND.sfx&&!SND.music&&!(MUSAP.t>performance.now()))return; /* (2026-11-07, chasse SON-N04) tout coupé : rien à réveiller */
   try{const p=AC.resume();if(p&&p.catch)p.catch(function(){});}catch(e){}
 }
 function musWaSon(){ // le bouton SON coupe les EFFETS (et les voix du graphe) par l'entrée du limiteur, jamais par AC.suspend : la musique y passe à côté
@@ -278,8 +283,8 @@ window.dbgMusWa=function(k){ // console : l'état · dbgMusWa('raz') efface la c
    la boutique) — la musique s'efface en fondu puis se met en PAUSE (elle garde sa place), et RIEN ne la relance tant qu'il vaut vrai
    (ni le toucher, ni le retour d'arrière-plan : musicJoue l'ignore en mode menu). Le garage la rallume : elle repart de zéro en fondu. */
 /* (2/11 soir) MUS_CIEL_LOBBY : le niveau du lobby lié au ciel, 30 % de celui du garage (−10,5 dB ; avant : MUS_CIEL .15, −16 dB). MESURÉ au jeu : au ciel les morceaux clairsemés sortaient 9 dB SOUS le vent (inaudibles), les pleins 9 dB au-dessus ; le nivellement (pbjPlancher, jusqu'à 24 dB pour le lobby) les amène tous au même niveau final, ~4 dB au-dessus du vent. */
-const MUS_CIEL_LOBBY=.27;
-let MUS_TAIT=false;const MUS_CIEL=.15; // au ciel, la musique à 15 % de celle du garage (−16 dB), derrière le vent — (même soir, Léo : « vraiment très légère, comme si on l'entendait en tombant ») : .4 → .15, et elle RESPIRE avec le vent (voir musicTick)
+const MUS_CIEL_LOBBY=.36; /* (2026-11-06, Léo : « augmente un peu le son de la musique, sans dépasser le garage ») .27 → .36 (+2,5 dB) ; le garage reste à 1 */
+let MUS_TAIT=false;const MUS_CIEL=.2; /* (2026-11-06) .15 → .2, idem */ // au ciel, la musique à 15 % de celle du garage (−16 dB), derrière le vent — (même soir, Léo : « vraiment très légère, comme si on l'entendait en tombant ») : .4 → .15, et elle RESPIRE avec le vent (voir musicTick)
 const MUSIC_PASSIF={passive:true,capture:true};
 function musicElGet(){
   if(!musicEl){
