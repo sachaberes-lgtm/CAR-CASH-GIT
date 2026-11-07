@@ -1,0 +1,20 @@
+<style id="vitrineMiniature">
+/* ===== LA VITRINE MINIATURE (2026-11-07, Sacha : « un effet 3D en mode voiture miniature ») — voir interface/vitrine-miniature.js =====
+   La carte d'une VOITURE (.bqK.vo) ne dessine plus son cube en CSS : UNE image (.vtI) prise sous l'angle de la boîte (socle verni, caisse,
+   capot de verre) se pose à la place du cube, un peu plus large que la carte (108 %, elle mord la gouttière de la grille) et le bas du socle
+   posé pile sur le haut de la plaque du nom ; la plaque du nom reste dessous, l'étiquette
+   de prix dessus. En attendant sa photo, la carte montre un socle vide (::after), pas un trou. Ailes, traînées, figures, peintures : inchangées. */
+html.vtOn #gBq #gBqPan .bqK.vo .bqKv{display:none}
+html.vtOn #gBq #gBqPan .bqK.vo>.vtI{position:absolute;left:-4%;top:calc(6px - 4.89cqw);z-index:1;display:block;width:108%;height:auto;aspect-ratio:720/440;margin:0;padding:0;border:0;
+  object-fit:contain;pointer-events:none;-webkit-user-drag:none;user-select:none;opacity:0;transform-origin:50% 88%;transition:opacity .22s ease-out,transform .16s cubic-bezier(.3,1.6,.5,1)}
+html.vtOn #gBq #gBqPan .bqK.vo.vt>.vtI{opacity:1}
+/* le socle vide qui attend sa photo (même place, mêmes proportions que celui de la photo) */
+html.vtOn #gBq #gBqPan .bqK.vo::after{display:block;content:"";position:absolute;z-index:0;left:9%;right:6%;top:calc(100cqw*440/720*.62);height:calc(100cqw*440/720*.24);
+  background:linear-gradient(180deg,#2a2e38 0,#14161c 55%,#0b0c10 100%);border-radius:2px;opacity:.16;transform:skewX(-14deg);pointer-events:none;mask-image:none;-webkit-mask-image:none;max-height:none;bottom:auto;transition:opacity .2s}
+html.vtOn #gBq #gBqPan .bqK.vo.vt::after{opacity:0}
+/* la carte qu'on touche : la boîte s'enfonce un peu sous le doigt, comme une boîte qu'on prend en main */
+html.vtOn #gBq #gBqPan .bqK.vo:active>.vtI{transform:scale(.965)}
+/* la carte choisie : la boîte se soulève (la carte entière, comme avant) et le socle prend une ombre portée plus longue */
+html.vtOn #gBq #gBqPan .bqK.vo.sel>.vtI{filter:drop-shadow(0 6px 5px rgba(20,24,34,.28))}
+@media (prefers-reduced-motion:reduce){html.vtOn #gBq #gBqPan .bqK.vo>.vtI{transition:none}}
+</style>
