@@ -517,6 +517,7 @@ function endGame(){
   try{campStop();}catch(e){} // (2026-09-27) éclairs, caisse-nuage, plaque : rien ne reste figé derrière l'écran de fin
   try{rainbowCoupe();nfeuCoupe();}catch(e){} // (2026-10-07) l'arc-en-ciel de pixels brûle encore pendant l'explosion : la boucle s'arrête ici, il ne doit pas rester figé
   try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
+  try{wakeLache();}catch(e){} /* (2026-11-07) la course est finie : l'écran peut se rendormir */
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   musicStop(true);setTimeout(function menuApres(){if(!gameOver)return;if(PUBR.on||ecranWipe._on){setTimeout(menuApres,400);return;}musicMenu();},1400); /* (chasse aux bugs) CONTINUER touché avant 1,4 s : le lobby ne repart pas PAR-DESSUS la pub récompensée (pubSilence l'a fait taire) ni sous le volet d'une reprise — il attend qu'ils rendent la main */ // TAPE-STOP de fin, puis la musique du menu revient, étouffée
   lastAlertEl.style.display='none';vChip('');for(const l9 of gyroLights)l9.intensity=0; // la poursuite s'éteint avec la caisse — (2026-09-30) et la plaque du Survivant au téléphone
@@ -580,6 +581,7 @@ function endGame(){
 }
 function start(){
   if(started||document.getElementById('splash'))return;started=true;
+  try{wakeAsk();}catch(e){} /* (2026-11-07) le verrou d'écran suit la course, même un REJOUER qui ne repasse pas par goImmersive */
   SF.neuf=false; // (2026-10-13) la 1re partie roule sur la piste bâtie sous le voile du JOUER : son tirage est consommé
   loop._rebuildT=performance.now();loop._rebuildD=5000; // (tour 2) le départ hache (1ers shaders Metal, 1res textures) : pas une lenteur — 5 s de grâce
   runxReset(); // les compteurs de CONTRAT partent de zéro dès la 1re partie de la session

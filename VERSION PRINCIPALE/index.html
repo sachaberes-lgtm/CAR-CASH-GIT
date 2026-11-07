@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" translate="no">
 <head>
 <meta charset="UTF-8">
 <title>CASH CAR</title>
@@ -7,7 +7,22 @@
 <!-- ICÔNES (2026-09-24) : le 💰 était l'EMOJI D'APPLE (image protégée — risque de rejet App Store, et hors DA) ;
      remplacé par le mot-symbole pixel CASH CAR. apple-touch-icon en PNG : iOS n'accepte pas le SVG. -->
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/icon-32.png">
+<!-- L'APERCU DU LIEN (2026-11-07) : un lien CASH CAR collé dans un message montre le titre, la phrase et l'icône au lieu d'une adresse nue. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CASH CAR">
+<meta property="og:title" content="CASH CAR">
+<meta property="og:description" content="Runner arcade 3D : fonce, saute, vrille, surfe les nuages et amasse une fortune. Une seule vie.">
+<meta property="og:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CASH CAR">
+<meta name="twitter:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<!-- LES PETITES POLITESSES (2026-11-07, Sacha : « plein de mini détails qui rendent le jeu plus pro ») : le jeu est sombre (les contrôles natifs — curseurs, champ du code de sauvegarde — le savent) ; Chrome ne propose plus de TRADUIRE une page dont les textes pixel sont déjà dans les deux langues ; Safari ne transforme plus un nombre en lien téléphone. -->
+<meta name="color-scheme" content="dark">
+<meta name="google" content="notranslate">
+<meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#12081f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1901,6 +1916,7 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
 </style>
 </head>
 <body>
+<noscript><div style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:#07050f;color:#ffd75e;font:14px/1.8 monospace;text-align:center">CASH CAR a besoin de JavaScript pour tourner. Active-le puis recharge la page.<br>CASH CAR needs JavaScript to run. Turn it on and reload the page.</div></noscript>
 <script>/* ===== LA PAGE-CADRE NE CHARGE PAS LE JEU (2026-11-05, Opus : jury DIR-07) =====
    Sur l'ordi, /jouer/ est une page-cadre qui montre le jeu dans une colonne (iframe, voir <head> : CC_COLONNE). Son grand script s'arrêtait à
    sa 1re ligne, mais tout le reste du corps partait quand même : three.js, figures.js, le post-traitement, la banque de sons (7 Mo), sfx.js,
@@ -1917,7 +1933,7 @@ if(window.CC_COLONNE&&!/[?&]cadre=ancien\b/.test(location.search))document.write
   <!-- LE CHARGEMENT : l'Ouroboros pixel de Fable (serpent organique mignon) : le corps est fixe, c'est la TÊTE qui fait le tour du corps en le rongeant (gueule qui claque, dents), des boules de matière traversent le corps et sont avalées ; CSS pur (48 images, steps(48) sur un transform) ; intro-161.js (chCl) l'éteint. Le dessin se retouche dans outils/ouroboros/ouroboros.cjs. -->
   <style>#spCharge{position:absolute;left:50%;top:46%;width:104px;height:104px;margin:-52px 0 0 -52px;z-index:5;pointer-events:none;overflow:hidden;contain:strict}#spCharge::before{content:"";position:absolute;left:0;top:0;width:4992px;height:104px;background:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAACcAAAAA0BAMAAABVvBS+AAAAElBMVEUAAAAsLCxcXFySkpLIyMj///9tu8qSAAAi20lEQVR42u2dy3bjuK6GWQk1L6eTuQPK87RIz2kSmiu2+P6vchZkXXhDykmnenf3sUZV+RYlmgJ/AeBNiPt1v+7X/bpf9Uvem+B+3a/79a8WMcsi/CK7X/frfv3Xroe/93HDR6SAaBHRCvFY6hvSVVc+xxAq9eRaXvo4zw/FR+huQ/frft2vX15vpXqcWoCuJQnZp8RKCA8AWFMXhGaoEyEB5INlZNG1ri5WCNjKukZbh6z2SXvXvvt1v/5pqvIXI0chGsbXQWwe638nN60mE64Jj6rTFZ8LXTMMnQJTk6N9aB6hraiLdOoYQmvrKgbNaKsy5gFi7RvSUi3W3VPp2pZtprv0ffrCLyQr7tf/j+vxm00NOZOS6OoQEaHucGFrH0B1bVVzQnPRJlRUzKlmGLTW2lbQMTSPunpHr5uheWhrYiX1WwhbX2nCRggNKwlh2NRcqq5pa2Umb3Hz+4aY0I+W1W8D/9X4VxJOeiSbQ+DyDgJRM045eoPsvSxHLPv8/9xb+AeR5jc9x/6ijKy81skGqpaIoIysWSKiA61NxXrkazPJUaUOrh8G3dWUSjgVxBCGMFSq0DXDEEIYK79Gv5HAMXc8Do2GmvZRMXFuK9KHSHfcOmtErNfHSPs24q2QXScq/cjTnxxUomFkXxP7Qflugjz5QBKYXCiS9DBfO6wSiQZ99W5o+tGbWhGP/eix/pQeTf35pl5niWS+lpFkpnXod3LtJj3b1v9h0nwDYY3Us6boK180idNbqBRC0Fagr7xWCVqfvcG+ICgetW7DWNbA9UPQxz6UlkAJs3AMIdhKwqxrgiDDlhVX7C0I9N1Y+9SrvWhCULZiiQpIabu8GQT2DlRoLjWCrnsLzUObypic+ikJXJPFvFeCXr2Fc5Wg9ABpgm4lReZuI+W37OsEq6Qfa9YzkVDThCsZfelcSYGevj+lKFGLXknlO3sltiJ8IcDLWMqV9McAh4pdCWn6cyBbLC1Ek73ViNemD6HSbtKT8tWIQK+NN9W2JvOoE4nIEPGvIQ1LwsCQJoSCYL3MJlbNFofK+duUvzqJV7sex/yL5jROX7oQMnuTSh8Emsl8MctjgQoXg/0hs0SJ/TB0YTxDuJhcqpohNOEQSkuUFGs2IYxlnCG1fgNJna4weTQdgCADKoimWHiPaHLJJB13ACDCJXfhPIZAaHjMA1uJIdANKauXCc9IXQHgODRZIRmIoOtI+3IyTu9HK5Gq4kqsbFPSrCR37q6kr0hSM3JEzqTS2ldScXpmEirfOpzqFgKaOulZAi+lKE5EHUJZN9IW3fbFzejNoW4xlL/U90G3VIHiMdpDizWCmsbfa8RrT+5otYxHr3U/lsRrIqYkZIlEKm6KxyupivyXCX6e4F8gTUn6OvFkcDViqEtW7K1KpDcTIR1LTQTV8RpI9OGQSo9Tx8tEXIeJiKB71EeN3rjuJbM3yvu/oO+6Q5+1gYMmDNJ1LWKuSE69BeFwLImQnlTMa60LxZ5UTGCNmEngfEm8QUMqJjFok8kl6RHdscmcO0kqMZUSeVKPGtMb0r6hS7WPPhdem0n7akQblyT1ZqJ9R7/Hd6n89mHUaiK5c0fEd7riWfUBZ2JrxGjEC7IkV7iVFL7VL8kJ2jrpVDuaaq1B4aVaa1BYEHkcUQNQDQoHDimVonHMiTd/auXrBJSuEam7VmtdJcZorbsqQcrKaMzzKGSJE9FFhgUXUv4eXEglM/RbyPhpYvrRMiSMmMkYrq1TBI8rSSRB0pyxuQIpceq4ENfGRCodZuJc4sJJUGFqa9N1mBBsAhmV1h20qWclIQTSHDLRrGdJtQ972YEpWpR8f9g7ZSptPcmHcEBWZ7PvXHtFFeJJj/auQlB3Bl73Uvt02AINqc50Rx+SIdspyNDQAuxFSLXvSoCe9SNN9+EkUhMaQqKKsh8nQvcLISHhSpQ2SnfxCMRGyLmLFW4mSpncuZNh1DPJxGojJnfMw2Ui9B02HBnzMv5Kuo4hHbSjrRGANv8KLkSZPrMEHOfnFIQ8oaXWGZlez0Rs7sARqBHjoU48Kug4oqtEeuM1U2YmoGp1uxKdN5tfSaEHPDHMc4S8geSO9F8jvbccye3NzO1GmVobR5ujWVs0LkMythDoYkJu2kw6MHENnNIXfa0BaBP1X+lCI2eitTHpwOakYgBapUQ41QFIgFFR5bJ3CrCXoEAVowIeAZ5+NmF0kL4HaZxxr68/X8K5IOChPe1+NiUZvWrxtPvpIO0nUo+oWrSn3U9pfOK/+Ikg7mAvfZKfozCTyOkJRJ+oouzHiZBLuH+MnbuNOJrJItMy5lrGKd1IrBFjfDz3RfZhJp1BKzEl7UIShZNhJZnHHJPUFiPiICPL7+m6A0Og7Y2oE+RItwQ0Rbt1OGYOtucJzKTniM6IR80Rr+pE6ifgCHc3qbkaSL8S1YesbguBY0pIlmdiRo6wbaBubp3bSBY7bgQzS4xJrC/kHtSJOo4rUa8RcREBMInAhah1NumTeAjHmEQ324dBeDi0BSEhfQB5oDyKS+VSUBhBQjAURJAivooQ8rtdg4zX3W73bKVTOm4eSR2HdGeHGfGuU62VeNq9QEZ61K0VEk8v51RLZyLk6aejb8E2NRBxnIjAnfD6GAW2ciFy9yT1MdY+PxNx2oHo4ydRUtXOaUxy7iIyroQynNF3MCKt0xriMn4hmrRvc+4wRARNlC7GgCtJHbWYuNak4eFa6+TzKPrtOZmjFpGsNyTEs8SkLvHcolOtU9KtJHUI0X+aSMMS1E91Qq4dQxx0XBm9kTDWiTcJIa9mKZMRH90tbeuE4OcJMsTrVKwS4vm7GYboiDgdk7aNSdgIQKRWoC8RiSI3qWIS93o3NFJ3h5Vsv0fuQ9jLw7u9EhP9Ukd+nTjtbF7mOlX2laSqQhzAbrfDCsGuncdSpEsCTj/bNaWlUoLuSuSk8xGRBhZL3L2cE4Kjn8np5az7MVbYmYjTM+j+Ytb5ub5fyU8Kebemwx5nInd7GYe8GxGnybmLyfLLJTl3QVaJg26b7ZqQ1uvNuUuIRtPVy+j484j9uBHV+ZhcorrFRoohIuYDYjkSd8fkOZgSz5P218SnZFHLX5CQCg9LupjEsypj0ifEaY7EzznGxKckroFJ7maTAJX7pQlBjqyuyJARp9es1T4nsfZlRHNky5tJOI4RUQkx6/ddutdI4FRCNrmUNvwY9WHYam03Qpr0bkvilHjYi/fngpCb1pFWYUkEuY67a0vmxKDbXdPkGaHPc6TFJjWrOpFHBIb0aiF4GmPiT7DcTe5CQnpMSMBlxrQ8jht5Uea4Jb/7lYjTT2/6yyZjG5G7veg3gfMbIe0LW0YNo2zqpH3vtkZaiJw7GRNFDotcB1djAn9svzUhEEeiTUjudolJ/K2M482MIEtsPPDLk+42Ek2X7G8jOiaYkMARE5PeM0QaBwz5ExjiDX+3zxNyVZlf6mOi4qgyJYYnsYdwMzHbrI6YQPfH8h/XHROyDVE5fYwmhUXPkVYcfbcq+1ZriQcxVAnFoeSm7WypFJKSraJGaKwUXp+xRiTiuqApI77DOhHo2zjDaOKXyhG2jB+3sUmZkvNG8OUck4Ac6Tdy2p01TdR7m4U0+rQ804zB9a3GZCfksVvfZJxmJecu8uAiIgEO29hr4vEjqLd1iDUhzikNWCvjVGtaWyfR/1ISu2MZ8SxBwRD8PPEfkGhwr7+R9AlpOeIZIlMSDYqmlhgT7zqWAPMccuBuIhjHHxwRSRmaKRZFjgmJ3mlODEeQI7DGm/7IEacv2d02gRv1YazUzYkg/OHdlr9HhmGQ/a5GoDmDOD1XlILi0Ncd1jREILw+2yrxprWiXoZTJCFNlyT4osQ7fp7EH+GMxAk0dBuhqHYjp3NM4k/6KcR3ix1xKtNsAhc95yT8NmiREPkEQmxEJx+Qw9CsopgS1ayJu4RQ4mztUClp0UP1bjIWuJzYz5Mx9vJTIhiiY3lJiLmN+E8TmZHAkrhMx5DM3mKCUCfSKJYgdzefkmjwlSd5z+LJJmNFb7wSimjyPre8FJuTbiZSHdK7rZkPilC7UKsBLX3swnNM5pu1jRDyUCG0kv0sflQJDX1HYhXpAc2AeH2uKkW6nCclnLp8QHKxiiKlkSP+80T2Z2AIxgIncfMvZRznUPTLkNOLMhZrNZAvyhyW/6dkJ+Qfq8AltaboNfAEq60D8LassM1IC0sCtmhRY6QVDOHeQh/FQyzxf51saabcQlgSzfnOav3bSC5wfS2Hkf7SwhL7uiUmxHPtJjXbokUZw7X1nGJ/rJCtm/jM3hYZM5kdbESddd2qpDrq7t1WyLS+MSVLwNIMe3GqEAmHAJAI3JrLBXLTaneb6vnMEM8qEk9YFRMSk/muLsrj88RwpOfKyCNLeuDIqUb21zg0njGyOzPPIbL6H2ndTtKfO1v7paenfTOswpMQgGFJ3KVEPkGzJO7yFgW1uAw5QXRtnWzxZlEmEriU9BzxH5BtQwOfknALwa8Qk5JIxgxT6/7zRH5AHNM60jmmRWWv8jdXzeMQGVmyJlZR52VsLdoUwv25peV1blV2jkMvGVkcKIpDkwnwa7zpHo86csa2qFJOnWtny2iPFknBPiWLn6Z1ImMbkUrFblqiFNKhZYjn1OUrRPgMbb4DT/DzRPJkdAzx544jY3I3jO4WEnI6ryMTaSJHnJxZpS+tm/wpxGIzGSEZk7XWkTs4iHlFrL/kpige6sStu7vkZBO44i2w5DgyxPOk/5vIEf8KwZys9tZn7XbcMhUsCZ4hOALT1njmSGaJYhuzLi3+SoZS+uaNfIbynao5bSZtTpaJaO6o886Nq8D5Q1XgrBCYClzkwYGoEQTxkInVTOSUTqveTWIHr5ZRF/y87nyFSKOzxRDrsMnxWwlyBHlyhs+TbN3Jy5ZeSJ9zetH9LGNpCk7In7iS9PfInRBDnTzBoRmrbXCCfThfx7yP2dxEUPo69FqQrZuYbFGbZskauRXk+K0kqpu+mVw4or9AtudkE/ej1uFJ4Ajy5NIxdcNRcSS3a90j0xe6mVgseuMrLipc9BKzkrHaF5we4zh0I5PJnZ5rZC8eYGfrd8vEakvPqY4pQ448MnrA6863EiEvLkNrAP03Ec8SHIEjiiXv6d3cRtLnyBd1nG0zq5t8VsdF4C7pyoGf0jJkJ0S4+mkZoTGLOXGXE0qXXIde0+TCNDIxB0EF2WTsX0V6lhxtLY3yIWk34jgy8sQzBHmSf1DXuuFTQXC5m7uVwJ/zyz4W5IDLTIMut3gzp9Mwl7F5IrfSlzpxQjzsf1TLgCjEap0WDvBc7XM0XvDM9Hpk9aD8Pb8m+vPqkg0/pAMdnyfyW0maQY5zh6UHpzmDW/On6fgHCdwyHbwgcJjjm6xu8qdbSZ8RYR+vf5HHLvPgDmIelO1zopo5eM3bwK15u6Lbj9xb4In+VqK+l+BfuFvhXd5CyrtZzt7wl6QvPrXLWEJ/zny711msjMzvBt3ipxXP6WcZC6YbqwSOJpcxvXhjEn8wHtxDLkmrn1bIGK5DWgyhGfDfqCHfTPJOFyGW5F34JvIJgfOsWS2k5wxOHguDW5LaeZle9XM0gYXAdb4ucC+AnMDheLk+WeYyRptw2Vqno0HZ4TqtLm8DAE7gWlyWWfxm4fk3kM8I3MWyZdag8naBW8LNvvjUrgQgl7Elh5HtnS3hdZwFLhQydvXwwfYcOR65QHQQoi5we5EmzTYCrMAhAi9j7n8tY7yKlV3LcMLzJaKr8yCmMr8kfuzY4LXusOeTnKIZ5Ol0u6uIYFXgRL96cIX0qX6eUSxLMudp8t9D/5mD13RQa8rOzcFrQdQywu8h3xJryc5mRG7pDg/c6/5Xkrx1NuGRmpOkIhT+gPRscLQQj5zAFZb4OpOxsESYl+aNx/MxFSuYy/jjyMiYPqLOZKy3S4iKaVAJV4Klnzb3rJN6zGVs7qeTwDE9WDjH9HpeQ/4B5CuFPpAx5ILKDyLr8XbyQchgFvJUN0XJGlyR6+svhwsjfaq/MAKn8TIbSXo3ucMlRS19IXCiYQQO3rrnauemvJ2tC1z7XxM4+yvygfQVZfobSMeEm96zAlf0hdmqskl10dI8dzxDVcaEPxTDArPAqWNJ7Daxo/Z7sAkPjIypItxcerDDbJPaWA/+nQL3hRD1M2QbX2UJX6Z0SfFXIUNBYFl4UmRLAMbrtuh9lrcTPlzsUBe4UPftRK9GCbVAVL6oy6VOfvLB6xMs27BjEdZqJnh1gEzw2v7vcyLfG6JuM8puJ8iGqDzZxj0LMjK+HXSXORVbemNzIGoUVGVMuCPmZD5ABI59nk+7BtaSTmB6roTcUjYDABOIdsB8ZvCDcPM3K8VvIl+Ka78gcB9IX88aHH7C4JAJa5fMh8Bz5tt1i/SVY7L9vDCiDJKX6VW+EDg/b8yUhU00UYUTOLRL8Fpk5/bLctiKwLWiTraRllz6WvuPSfr+bmK/TsqAt0eGLKObpW8Hr0vEUIxu9svEjjOwpP1RFTj1JkVd4AZxzmXssvh2xbDAuPSJjs2n5dNrbiL6W8m3KlIxdSEaevWcIRSDsixpedJzxHxAkKnbanBYkFeOtKvX9weU5K06WtsuAxNl0IJz6jgLdGi0dg1Rc3LUdfLz4SCuKyVysgMloFbmKn0MWTZ4qExH+ULOiiXrrjslOf6TiWEIrPbmmXFPIm16t5e5qbt8kkY7TxNx+tKdbK1uTkubytg8HUXugxC7GsEQsknIKynzacvkFtrkjOv1wf8byciRcmquZiftbqSYROmrq9bTKZm3k8ATZOqmjhzptuA1/z1bwJtP1lxzfU/55IllB3JfTMBdFiPk3ljPERqY0FVyehaNqAavtGIiVL0++UTThkW9jOpstW7o2PBse6f/M3L5VsL/0sUOCrJ+Nnni80kay3Re2pbj/blWA6fHLNxcJhS7Jpex5ff0wzmbZjsTPBSZtplYmprLTbfOe3BE2Mm0hbxs5PKdpPe3kkirOEKOTbrrebTsiiU+J1ui+MIuHyqIZci2ljpf7LJ+UUuymmKfL9pYEsUlWUze54t31j2J0j135jawVw8uX7yzLJyX+UpDo1eBS0+iOJtlQnG21OR0RrHs75MRAQeGPMFezDs2FUQtuxv6fOnZ6o7li13wNy2d+RaCXyGWIWssUS6UOpiNYM2q5PHis0VPs/VKPfo2JYuM6Wz6xlprG4Z8adPsDh7EOZ2Auy6UokC0vvSMFgIyi9KK/nO8YRlmvvgtJpxSZCuCfxvhtUrIdFJOdMAZv/i5IONXiK0T10YkM8VoY7WUdOO26RsjVsVy/40UWwTgvL+qNH9kxCykY7cIMJko6uMy8poJHOhV4FJRPJ315W2RvuQgip0VQ3NeulBCHiAEqJIn0Msf0iXbpydYd8uT2TFALbuo33wr4TcP2Laky4lnybYdW0Eu7LL1kSXPGzkky8mX5fGStk9LyWXbrMg+1+omm+EhXbu5/FIrmnRcYFnuL18K6VsIdLklLlNCXYvsRg25jEVvgd/cYWSXumc9WEc7vLIkGMZCbid4A8k8z2QDna+QMSObKebb14wMgUMkcNlGMMiQaE/3gqxt6rktiYrNcAy7GU5Esq11eKLt6hDm271sWzn5dJMnve1il5JWNE0tMSSfxcO2lVNMTj8BwpJLTMvsntb5xBk5xdvhaqYNPkHwC+SDjaHMp0lsVb6L7X+xqv1ERpvY6JKqkL57f64Qqc4+3XhoDRjUn1bsqiSERMa2X4ockTY81rdyohMIwFXbjRbo37yVE7tJWn/D9mlFn7uFhFsJsrqDNyiSECHbZjDaUPFGongS7aOdEkCWREcVZHfbjtqQ7NaRH5Fsm8HtdRuWYEke54wKs8We1Concr1baqTbhk1pDYLqL1BLGZ2CsttWTgkht65xlVTb6ac4hKEthxDlFLt2FTJFtaY6VCmT42G/sgEhcm1dlPkC6ePpAVFUuSVpJxJv3BjvHI9diLdnXM3PD2mZLW2njsaI50pfkEqI2OmKyNAk4wLxav+hy8gaLatkIcFGJJhkxCDexLTYjDN6jV8gfcdulpoSjDPQLPHs3W4kt229mga2Ltl2OiHJ7YKpJBcqBDmiooN80ucAS+JtmpMtsT8iyWkWzBbSaeyYbLTOEyzJ45y4A65MTi7b3On0bmvsmtatP69boKS/R76cjYhkLCK70TZNqGw4dnoWcBigQnC3jVikhESR2XpbJkf+pptlG/wCYTfyjq2KiI2StPFG3od3jJK0HMHNLq3Xh91z1BfWFNxBazhFn71NxmhSxq5ChA0PsTu2bWYum3CO3bF1e3gp7WOXNO/6MUHaNbWtEemyzdmjDxCd1VMn2VbvMTEcEcgT/ArhtsjvbyWcViUkO+7kg6NLWBJLX0KS89ZTAn9wx6qYqJ/kxN5CkiNf0pMKksM5kh3dGZIeNvIRiQyWJfJPlR7Ws4XcyeEpylxUW3tOr0y0vWFUaxmUuQhp66QR53Jqh9yd7UMID60oidjWwiaEzqdNXIztOeiSc6NigvnxIMxRLBkxDIH4SB7pu349oASSCNN3YTvUBJ63hHRIyCpjbzRi0L1vpF+f446jN+umtXF+xalRPOxspZdYEcebUfQsX8IDxCnOfjvDQMfxZkSsU/F+6lLHWzH/CcyxN8nyxJQckTv6x7NH//CHAskbSc+R5MCi5lYS607S62MiZEgOuUOWJOc5RUSlJD4YL974KiHREWZELswxezIlsVYkd4t9B5kc2ueT3dlZYjxDfHqMW/Sli4+YS4nmieNJF5EtQqXP0dNKQPuE6ITEprSS5qz7n0HagsgXWs9SI6cXOtJtmwu6EtztpqPQRf4cSYd2Q5u06HzULeKuRV8SeT0QOZGxicxHvxUEl+PiVPacw6xJdIxn9KHrR314f14OOV2PJX2kFZ8aTsuBdSbKe9DJ7fbHSsboiJRg7KJjdHTi5gCqt81RS4gNkY7RgYJbyC8UtDVCx40aVy+j0kMVR8beUmJUfKjimDiHUd2OKfHx0YlJ/2FJzxNknpMQwxGXE3MDSVRsO1x5OoA1CWUj8qqRIekxxcnd4mjzehD8egQspmQ9jLgkW5mkbn30nOy46oSI2whyxG/HSC9kmK2nIPvVq2bu5lFzxLmYRCGZx/WoWTowOw4KjY7IUcdf6/gg3mOUb48OMD4rbYdmiz79fCCzfLm6dkUZuXsm1y6uwZXI0273BJC220RwR5rYloSK7J4wOcB4InTMOE4njmcE3nfPaCUdOR5biNbd4f0Z7WTXSZxCBxj/eL4e9xsR6/VFG7HD5UBmjBJ1F22vu2+nRzVLrUcB1+h1OjA7Sq2FZn0/Pu5ZGEK36Jj0OgqAyFFrXYVICcb7dbq2icpY9BiRWENie/OYEtdyZDtK22NIHJ7eQXQstqj2uZwYlniWpAeNc/30A626jcz1nr6noNMN8yPSGY7Aa7q3bXw3jpiMhLFbiUnJBTaS1sCvJJvl14882Z5jBVe3GwkiQ+RkcVWibyPJsUL6qVtJn2wt6z1ARJJsR9Q6ISYyJpdwjicIXIk7gxHNFrtODi6RPpwt7NPRyYk0YRQAoFOLIxKCeALI5lET6cPw4xUge6fo4RDefzw9tb5NNxQlMvzYPTswkB7rO3pof+ye0XUmzjS/+aPx9sfuWaLrMM5108CAfYBJRzvsk4wt/ZDX5+k483g0RcLkqF3bLT3Y3g7kqFUI2kF37bWMT4ikpvdVglaiVzMJY2ZVM3E50YgrCel6h5El0HLkrBaSnHBN0asDjiBD5FaDnPQbGTlS9kb12X46WQ8dJg2QC8JKVOqmxUTzZIv7VjI9ZiKZxuqF6LwGKzEsweL3zMTzJGsDSsx8G5FmZIhHhpAo4txuRZm1RX2fzNSiz/BCQiE8aibHRPqk9hquNSDXLrmd13omdghtoqS6I6TsQxiSMlS1jrY+A1DZoiWtO+jAPgDk79RQpVvSxNwOiEzAYUla0hhv8lNrjLYPT+CVTtLWU1g53UlrY5IYWekgHgAcaG3SxKHWP+kZcCXxza6OGjWBwZRQJApuIqny0aF584szSd+W0tnZejNCmTuy0a5CJoWbSK4UAo1nyGI7Sh/zMj1PlLoSk9egd5NVVQiObu6MIe8lV4uvk/k5fdZP11pnL3tTF3qpjIoVGiJE36P2ZFuZvc1Ea+1UXoiI0lp7X5CAmi6sED0TkxNcSPZTaWv7K8llOSLiG0j/eSL70dcJ9qFOJK6tkxP9AekXIjO3z7ULuaTy4k3bziSVPuENKuWntg7pWh5p0JG6aewvYUjdMcSOEIp1NnHUon5SvofOFm3tSZW0NiXRpD4qtwMiSLKEuiTmgUBmVV4HtEDKl1mVVHqgO9FnPbUqp7S4lsAxbU8693aSXQwh27JtaC4AXhuTkyY86tbrkrhJDLVWRudlpJ1+qep0n5LrL0UqUxI5EywIHnHqwQWRniWm/wJx8FwlwveuU1VC4xmgGIId1IigGlBI0F+qWtVBmtyIVKzTfxQqJiSGkby7VmON0EdTm4L0I33nTKVMT+8bC8+KjoybSO6MUdNdCZZ1uxJf6NtHBL9C8DvJyBEcR2pNX9HrEND4X5G0d1NHxIlk3ww05+ubQ3vp0oM/NPn/RI6ZKAqP74pcJH3Rb9lpITielTL43jRDtmGYprGC1jZhgJLQGpHwmD2GlBT70cKjzmVMTp4TgCp87+ARJ4HL7M3BMVx1LLcqp94aAtR46b3gbSAdo2bNi0w6Rg3eZ2QIlyk4CiELtJzoKJylCD4n5KjVyNVRm8lQsarxY9IXBP1Mio7lyeBqhH5LnZBVTXXDChnrROI71InAcO7qxONIqYBQ61mBsgQB61pFQTqjYg5KB45SmNRTfKFiVzL1VVsh3vhSxa4kc/5jgmhZIv77BDkymXyVTH3BV4j02PcEhc1b25NDQSRbGkva15P2oThnmwDRt/s8oj9Sdjy/3THAoQ+qaUbM46MQzmEIzQC50+WplzbN0OX1tt70owiDguIzTBni8Fh+Tzvq8A9d6d8qrZsButLepDoO9EvGot3cfgiPqsWCSNIxMt2ireUhPHYTyIiUAMYi1spIK+pktpBvJMgRsqp+ZKzKhxqRqCcTqdmb6UMIpnK3KxlrNZhJ2eul798hhIobQFZ1hm0ORVLtPoTD6BkSLrpUpDmC1ZUHLW1XJ4YBQpr634mIO+GIRMP8ffFtHyuiaNgi01uoeISIBmlNWZkPIK+PZrWWRo99cFq/CazY4njRoRnbog5kb6R8RZkmNKERoSuKkIk2zaCgiNO1fhvCY/l1dqCH5lLeSQh3ELUCtIiJ7oSVjiAbEjiJleYUStnam5Pt5LlW3+m8ty9rB38TQRSsWQm2yzMywfR5SV/geiGyNl8vRB86Xy9k+hFNvRCO7JPQcz9WIEs4rbqTfzSpesrLq77ORKtatvUd1Ho4fQIpo1U+n3J9zfBktzk0qyop3VSUjzZw0cchFM+R062aodQrp0jgKkIm3X5ohkrwQSs46wJ3TZxVW8cNtNCuQqybJs1WCf4/sippxYdWxeklJ7GaQySlltXlz0r2/frXX/bb7iS5rzeuk9OGFFBCay40pKrUwV66kjiturcwVJQPOkV5Pix1jDJnDzXpdYGEr+ap9QNA7bfI1qXT9rZu5eol6MyVluvzd+P7+sXrkbT31rlf6/X4G+45cCJKBwFkqaH5n2lqXOIW7CRlaBY4uGWN1ZCK5T6AlRV9hVqwO+2JZgFsXcfattpPrMO6jlmJbV2w5L3D3a/79Q+83r7pPg0nfY8ckXW53M/SJ5HN/3DJ4Lpcufa1XsJKW/cQrORcBynuMc79ul/369de39tXvU3J5n/wU3+/X/frfv3Hr4e/U9KyPw/f/ah7kHi/7tf9ul/3634J8X9rdirG28BG3QAAAABJRU5ErkJggg==") 0 0/100% 100% no-repeat;image-rendering:pixelated;image-rendering:crisp-edges;animation:spOuro 0.8s steps(48) infinite;will-change:transform}@keyframes spOuro{to{transform:translate3d(-100%,0,0)}}@media(min-aspect-ratio:23/20){#spCharge{top:50%}}@media(prefers-reduced-motion:reduce){#spCharge::before{animation:none}}</style>
   <div id="spCharge"></div>
-  <canvas id="fxCv"></canvas>
+  <canvas id="fxCv" aria-hidden="true"></canvas>
   <div id="spStage">
     <div id="spTitle" class="tease"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
     <div id="spNum">1.61<b id="spGam">GAMES</b></div><!-- (2026-09-25, user : « marque juste 1.61 GAMES et enlève le phi ») -->
@@ -3903,7 +3919,7 @@ html #mDead .mHero{margin-top:18px}
    (App Store, logique des écrans, iPhone) ont relevé et qu'un vrai téléphone montrerait ---- */
 /* iOS : ni flash gris sur les grands conteneurs qui portent les clics (#mob, #tPanel…), ni loupe/sélection à l'appui long, ni
    texte grossi en paysage (les libellés en nowrap débordaient), ni image qu'on soulève pour la glisser */
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;-webkit-tap-highlight-color:transparent;color-scheme:dark} /* (2026-11-07) le jeu est sombre : curseurs, champs et barres natifs le sont aussi */
 html,body{-webkit-user-select:none;-webkit-touch-callout:none}
 html{touch-action:manipulation} /* (24/10, débogage sortie iOS) Safari ignore user-scalable=no : un double-tap hors bouton zoomait la page. `manipulation` ne retire QUE le zoom au double-tap (défilement et pincement gardés ; le canvas et le HUD restent en `none`) */
 input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
@@ -5084,6 +5100,14 @@ html body.touch #pwrChip .pw span b{font-size:17px!important}
 html body.touch #tNitro{right:calc(var(--hudD) + 8px)!important;bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 16px)!important}
 /* le « $×1 » du FLOW au palier 0 était à 40 % d'opacité : gris sur bleu nuit, illisible sur un ciel clair (GAMEPLAY) — secondaire, mais lisible */
 html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
+</style>
+<style id="monnaie">
+/* ===== LA MONNAIE DU JEU (2026-11-07, Léo : « le sketch en monnaie, on confondait les euros du jeu et les vrais ») =====
+   Le symbole vient de son sketch au stylo (formes gardées une à une, extrudées), en masque : il prend la couleur du texte voisin
+   (vert billet du compteur) et son contour. Le vrai argent (€ des offres) reste écrit « € ». */
+#cashHud .chV i.mC{display:inline-block;width:1.4em;height:1.17em;font-size:var(--f5);align-self:center;
+  -webkit-mask:url(data:image/png;base64,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) center/contain no-repeat;mask:url(data:image/png;base64,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) center/contain no-repeat;
+  -webkit-background-clip:border-box;background-clip:border-box}
 </style>
 <style id="garageV6">
 /* ======================= LE GARAGE v6 — LA REFONTE (2026-09-30, Sacha, capture couchée à l'appui : « améliore le garage, notamment les
@@ -7198,6 +7222,25 @@ html body #coach.v2 .coSkip{pointer-events:auto}
   html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
     font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal}
 }
+/* ===== LA CARTE COMPACTE, DEBOUT COMME COUCHÉ, ET ELLE S'EFFACE PENDANT LE GESTE (2026-11-07, Sacha : « le tutoriel est pas jouable parce que la fenêtre de tuto
+   masque la voiture ») Debout, la carte faisait 162 px de haut (MESURÉ 390 × 844 : de 56 à 218) à cause du gros bouton PASSER pleine largeur sous le texte ; elle prend
+   maintenant la forme du bandeau couché : le petit film à gauche, le mot et la ligne au milieu, PASSER en colonne à droite (≥ 44 px) — environ 94 px au lieu de 162.
+   Et dès que le pouce touche le volant ou NITRO (.joue, posé par tutoTick), la carte s'estompe à 38 % : on voit la route et la caisse pendant qu'on fait le geste ;
+   elle revient à pleine force quand le pouce se lève. Seul PASSER reste cliquable, comme avant (la carte laisse passer tous les doigts). */
+@media (orientation:portrait){
+  html body #coach.v2.v2{width:min(430px,calc(100vw - 20px));top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 52px);
+    grid-template-columns:76px minmax(0,1fr) 84px;column-gap:10px;padding:8px}
+  html body #coach.v2 .ecT{font-size:min(20px,calc((min(430px,100vw - 20px) - 76px - 92px - 46px) / var(--n,8)))}
+  html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
+    font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal;text-wrap:balance}
+}
+/* le bouton PASSER : une colonne de 92 px, le mot en 8 px — « PASSER LE / TUTO › » sur deux lignes (trois avant : le « LE » seul) */
+@media (orientation:portrait),(orientation:landscape) and (max-height:540px){
+  html body #coach.v2.v2{grid-template-columns:76px minmax(0,1fr) 92px}
+  html body #coach.v2 .coSkip{font-size:8px;letter-spacing:.5px;text-wrap:balance}
+}
+html body #coach.v2.v2.on.joue:not(.bravo){opacity:.38;transition-duration:var(--t-fast)}
+html body #coach.v2.v2.on.joue .coSkip{opacity:1}
 </style>
 <style id="sansCarriere">
 /* (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » ; la carrière est retirée le 2026-10-18) : sur l'accueil,
@@ -8747,8 +8790,8 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
 <div id="hud">
 <div id="launchGlow" aria-hidden="true"></div>
 <div id="launchLogo" aria-hidden="true"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
-  <canvas id="slCv"></canvas>
-  <canvas id="juiceCv"></canvas>
+  <canvas id="slCv" aria-hidden="true"></canvas>
+  <canvas id="juiceCv" aria-hidden="true"></canvas>
   <div id="cloudFx"></div>
   <div id="vig"></div>
   <div id="beatFx"></div>
@@ -8829,7 +8872,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
          jamais fait ; l'anneau se remplit sous le doigt pendant qu'on tient. -->
     <div id="gInvAide" aria-hidden="true"><i class="ivDoigt"></i><span data-fr="MAINTIENS TA CAISSE">MAINTIENS TA CAISSE</span><b data-fr="BURN-OUT">BURN-OUT</b></div>
     <div id="gInvAnneau" aria-hidden="true"></div>
-    <div id="gInv" role="dialog" aria-label="Inventaire">
+    <div id="gInv" role="dialog" aria-modal="true" aria-label="Inventaire">
       <div class="ivTete"><b data-fr="INVENTAIRE">INVENTAIRE</b><small id="ivCompte"></small><button id="ivFerme" class="pbtn pbCarre" aria-label="Fermer"><i class="pxi pxi-croix" aria-hidden="true"></i></button></div>
       <div class="ivTabs" role="tablist">
         <button class="ivTab on" data-c="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span><em></em></button><!-- (2026-10-14) les FIGURES qu'on a (double-tap nitro) ; (2026-10-25, Sacha) en premier -->
@@ -8852,9 +8895,9 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
       <div id="gCard">
         <div id="stName">POMME</div>
         <div class="stRow"><span>Boost rendu</span><b id="stBoostV">0.50</b></div>
-        <input id="stBoost" class="stSlider" type="range" min="0" max="2" step="0.05">
+        <input id="stBoost" class="stSlider" type="range" aria-label="Boost rendu" min="0" max="2" step="0.05">
         <div class="stRow"><span>Fréquence d'apparition</span><b id="stFreqV">10</b></div>
-        <input id="stFreq" class="stSlider" type="range" min="0" max="30" step="1">
+        <input id="stFreq" class="stSlider" type="range" aria-label="Fréquence d'apparition" min="0" max="30" step="1">
         <div id="stRare">soit 12 % des fruits de la piste</div>
       </div>
       <button id="stNext" class="gNav pbtn pb-cyan pbCarre" aria-label="Fruit suivant"><i class="pxi pxi-droite" aria-hidden="true"></i></button>
@@ -8865,7 +8908,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   <!-- (2026-09-29, Sacha : « rajoute un compteur d'argent stylé, inspiré de loin de GTA, mais avec notre DA ») LE COMPTEUR D'ARGENT DU
        TÉLÉPHONE : en haut à droite sous le ⏸ (la place de l'argent dans GTA), le total de la partie qui DÉFILE vers sa valeur, et sous lui le
        « +$ » qui s'additionne tant que ça tombe (1,8 s) — en or pendant la frénésie (×3). Typo ombrée VERTE (l'argent du jeu est vert). -->
-  <div id="cashHud" aria-hidden="true"><b class="chV"><i>€</i><span>0</span></b><em class="chD"></em></div>
+  <div id="cashHud" aria-hidden="true"><b class="chV"><i class="mC"></i><span>0</span></b><em class="chD"></em></div>
   <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em><i id="avPlus"></i></div><div id="avRec" class="vide"><span id="avRecT"></span><i><s id="avRecF"></s></i></div>
     <div id="avCh"><div class="avChTop"><b id="avPts">0</b><span id="avX">×1</span></div><div class="avBar"><i id="avBarF"></i></div><ul id="avList"></ul></div></div>
   <!-- (2026-09-28, Sacha) L'EMBLÈME DE LA FRÉNÉSIE « THE DARK TRIAD » — v3 EN PIXEL (même soir : « toute l'interface est faite en pixel,
@@ -8914,13 +8957,13 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   <div id="chainHud"></div>
   <div id="caseHud"></div>
   <div id="turnHint"></div>
-  <canvas id="airPie" width="156" height="156"></canvas>
+  <canvas id="airPie" width="156" height="156" aria-hidden="true"></canvas>
   <!-- (2026-09-28, Sacha : « le camembert air time ne ressemble pas à la barre de nitro ni au compteur ») LE CHRONO DE VOL, FRÈRE DE LA JAUGE
        NITRO : l'aile pixel, les secondes dans la typo ombrée du compteur d'aura, et une barre de la même recette que la nitro (cadre
        d'encre, remplissage en quatre bandes, curseur blanc) qui se vide. Il se montre et se cache AVEC #airPie (sélecteur frère) : le
        canvas garde son rôle d'état (display, .danger) — plus rien n'y est dessiné. -->
   <div id="airHud" aria-hidden="true"><div class="ahTop"><i class="pxi pxi-aile"></i><b class="ahS">6.0</b><em>AIR</em></div><div class="ahBar"><i class="hanAhM"></i><i class="ahF"><i class="hanAhR"></i></i></div></div>
-  <canvas id="minimap" width="176" height="176"></canvas>
+  <canvas id="minimap" width="176" height="176" aria-hidden="true"></canvas>
   <div id="survHud"></div>
   <div id="lastAlert"></div>
   <!-- LES NIVEAUX (2026-09-24) : « NIVEAU n — LIEU » au départ et à chaque portail (voir lvlAnnonce) -->
@@ -9681,6 +9724,17 @@ html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMi
    de l'écran, quand la machine garde 19 px de marge. Ses marges internes (.34 spH) passent à .2 spH : elle tient dans la colonne, centrée sur TIRER */
 @media (orientation:landscape){#spinM .spEnseigne{padding-left:calc(var(--spH)*.2);padding-right:calc(var(--spH)*.2);max-width:100%;box-sizing:border-box}}
 </style>
+<style id="politesses">
+/* ===== LES PETITES POLITESSES (2026-11-07, Sacha : « plein de mini détails qui ne se voient même pas, pour rendre le jeu plus pro ») =====
+   Ce qu'on ne remarque que quand ça manque. Posé après tout le reste, une seule ligne par détail. */
+#toast{overflow-wrap:anywhere} /* un mot long sans espace (un nom de caisse en pixel, large) coupe au lieu de déborder du cadre */
+@media (prefers-reduced-motion:reduce){.secoue{animation:none!important}} /* le NON d'un achat refusé : « réduire les animations » l'éteint comme le rebond (le toast dit déjà pourquoi) */
+:where(button,[role=button]):focus-visible{outline:2px solid var(--nc,#00eaff);outline-offset:4px} /* le focus CLAVIER se voit sur tout bouton, même sans règle propre (`:where` : zéro spécificité, les règles .pbtn / .ghT gardent la leur) */
+body #tGear{transition:scale 70ms ease-out} /* le ⏸ est hors du filet d'enfoncement des boutons (zone de course) : il s'enfonce seul */
+body #tGear:active{scale:.88}
+html.introAncien #spCharge{display:none} /* (2026-11-07, Sacha : « ce genre de conflit est pas acceptable ») avec ?intro=ancien, le serpent de chargement restait posé SUR le titre CASH CAR, carré noir compris : seule la nouvelle intro l'éteint (chCl). L'ancienne intro a son propre signe d'attente (le titre qui pulse) */
+@media (prefers-reduced-motion:no-preference){html body #tSteer:not(.act) #tKnob{transition:transform 110ms cubic-bezier(.2,.8,.3,1)}} /* le bouton du volant REVIENT au centre quand le pouce lâche, au lieu de sauter (pendant le braquage (classe act) : aucune transition, il colle au doigt) */
+</style>
 <style id="peintures">
 /* ===== LE NUANCIER v3 — LES PASTILLES (2026-11-05, Sacha : « retravaille la présentation des peintures dans la boutique […] pro, fini, léché ») =====
    1. La carte d'une peinture montre la PEINTURE, pas un timbre de 42 px : une plaque vernie qui prend toute la case (le reflet du vernis par-dessus,
@@ -9941,6 +9995,42 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{display:fl
   #gFigSel .fsCase{width:46px;height:40px}
 }
 </style>
+<style id="paufinageBoutons">
+/* ===== LE PAUFINAGE DES BOUTONS (2026-11-07, Sacha : « paufine la disposition des boutons de chaque écran, leurs optimisation, leurs
+   animations ; chaque écran doit être parfait — en vertical et horizontale ») =====
+   Une couche posée APRÈS la finition du 04/11, nourrie du même banc (outils/banc-ecrans/photos.cjs, désormais aussi sous Windows) :
+   17 écrans photographiés debout ET couchés, chaque boîte mesurée. Rien de redessiné — la même touche, la même pente, la même main —
+   seulement ce qui n'était pas d'équerre, écran par écran. */
+
+/* 1. L'INVENTAIRE DES FIGURES, COUCHÉ : le panneau sortait de l'écran par le HAUT (MESURÉ 844 × 390 : haut à −27 px, la rangée des
+   onglets coupée à mi-hauteur) — la barre TOUT · TRI ORDRE du sélecteur (05/11) s'est ajoutée sous le dock sans que la colonne ne lui
+   fasse de place. Le dock se tasse (cases 42 × 36, 52 px de haut), la barre perd ses marges, la grille rend 16 px : −39 px, le panneau
+   démarre à 12 px du bord, comme l'onglet VOITURES. */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel{margin:2px 12px 0;padding:5px 6px 4px 4px}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel .fsHex{min-height:52px}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel .fsCase{width:42px;height:36px}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel .fsJoy{left:calc(50% - 34px);top:-5px;width:20px;height:20px}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{margin:2px 12px 2px}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar .fsPas{min-height:26px}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 296px)}
+}
+
+/* 2. LES PASTILLES DU SÉLECTEUR (TOUT · À MOI · À ACHETER · TRI) : 32 px de haut debout, 28 couchées — sous les 44 px de la charte. Le
+   dessin ne bouge pas (la barre n'a pas la place), la ZONE DE TOUCHE prend ses 44 px autour, comme les onglets de l'inventaire (::after). */
+.fsPas::before{content:'';position:absolute;left:0;right:0;top:50%;height:44px;margin-top:-22px}
+
+/* 3. L'ÉCRAN MISSIONS, COUCHÉ : le panneau descendait jusqu'au bas de l'écran, SOUS RETOUR et JOUER (MESURÉ : panneau 10 → 378, boutons
+   322 → 378 ; la ligne MISSIONS RÉUSSIES et la 4e mission passaient derrière les touches, lisibles en fantôme). Le panneau s'arrête 10 px
+   au-dessus des boutons (--mcBas, posée par l'atelier depuis la boîte de #gmBas) : plus rien ne passe sous une touche. RETOUR prend la
+   forme des RETOUR de l'inventaire et de la boutique (l'icône à gauche du mot, 112 px : « RETOUR » en colonne de 76 px mordait sur le biais). */
+html #gmListe.mcE.land .mcDef{bottom:var(--mcBas,calc(var(--sB) + 78px))}
+html #gmListe.mcE.land .mcPan{padding-bottom:12px}
+html #gMis.mbOn.m2land #gmBas .gmHome{flex-direction:row;width:auto;min-width:112px;gap:10px;padding:0 12px;font-size:var(--f1)}
+html #gMis.mbOn.m2land #gmBas .gmHome .pxi{--pxs:2}
+/* la ligne MISSIONS RÉUSSIES : 41 px (le .mcFin à 40 l'emportait sur les 44 du .m2Fin) */
+.m2Fin.mcFin{min-height:44px}
+</style>
 <style id="boitesBlister">
 /* ===== LES VITRINES (2026-11-05, Léo : « on ne voit pas assez les voitures, pas d'effet de boîte… un truc un peu carré et transparent, comme une vitrine en verre sur un socle noir ; un angle où l'on voit bien la voiture, en 3D, sans que ça pèse sur téléphone ») =====
    Une couche posée APRÈS toutes les autres : elle ne fait que REPEINDRE les cartes `.bqK` de la boutique (`#gBqPan`) — structure, tailles de grille et photos ne
@@ -10080,9 +10170,9 @@ html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKp{background:#ff3ec8;co
    poussé devant la plaque du nom, qu'il mord. Un espaceur (::before) donne sa hauteur à la carte. Les PEINTURES n'ont pas de cube (.pnt) : une sphère vernie. Préfixe à deux #id. */
 html #gBq #gBqPan .bqK:not(.pnt){isolation:auto;transform-style:preserve-3d;perspective:760px;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;margin:0;
   --W:64cqw;--H:46cqw;--D:34cqw;--ry:-26deg;--rx:-14deg;--rim:color-mix(in srgb,var(--rc) 62%,#fff)}
-html #gBq #gBqPan .bqK:not(.pnt)::before{display:block;content:"";position:static;transform:none;width:auto;height:auto;aspect-ratio:720/440;margin:0 0 2px;background:none;box-shadow:none;border:0}
+html #gBq #gBqPan .bqK:not(.pnt)::before{display:block;content:"";position:static;transform:none;width:auto;height:auto;aspect-ratio:720/440;margin:0 0 6px;background:none;box-shadow:none;border:0}
 html #gBq #gBqPan .bqK:not(.pnt)::after{display:none}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv{display:block;position:absolute;left:50%;top:calc(var(--H)/2 + 7cqw);width:0;height:0;transform-style:preserve-3d;pointer-events:none;
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv{display:block;position:absolute;z-index:2;left:50%;top:calc(var(--H)/2 + 7cqw);width:0;height:0;transform-style:preserve-3d;pointer-events:none;
   transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform .3s} /* (pas de translateZ sur le cube : le navigateur le fait disparaître ; c'est la plaque qui recule) */
 html #gBq #gBqPan .bqK:not(.pnt).sel{--ry:-18deg;--rx:-10deg;translate:0 -3px;scale:1.03;box-shadow:none}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .f{position:absolute;display:block;box-sizing:border-box;border:2px solid var(--rim);border-radius:2.2cqw;background:none}
@@ -10094,7 +10184,7 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKv .lf{width:var(--D);height:var(--H);left:c
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .rt{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(90deg) translateZ(calc(var(--W)/2));background:linear-gradient(90deg,rgba(255,255,255,.3),color-mix(in srgb,var(--rc) 40%,#b9c4d3))}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .tp{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/2));background:linear-gradient(180deg,rgba(255,255,255,.9),color-mix(in srgb,var(--rc) 22%,#fff))}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fl{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/-2));
-  background:radial-gradient(ellipse 50% 42% at 50% 50%,rgba(20,30,45,.22),rgba(20,30,45,0) 100%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 24%,#e9eef5),color-mix(in srgb,var(--rc) 40%,#c6d0de))}
+  background:radial-gradient(ellipse 44% 17% at 50% 80%,rgba(20,30,45,.15),rgba(20,30,45,0) 100%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 24%,#e9eef5),color-mix(in srgb,var(--rc) 40%,#c6d0de))}
 /* la photo : un plan debout au milieu du cube, posée sur le sol */
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph{position:absolute;display:flex;align-items:flex-end;justify-content:center;margin:0;padding:0;overflow:visible;background:none;border:0;box-shadow:none;aspect-ratio:auto;
   width:calc(var(--W)*.94);height:calc(var(--W)*.574);left:calc(var(--W)*-.47);top:calc(var(--H)/2 - var(--W)*.574 - 1cqw);transform:none;z-index:auto}
@@ -10103,9 +10193,22 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph img{position:static;width:100%;hei
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph.c-aile img{transform:none}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph:is(.c-trainee,.c-figure){align-items:stretch}
 /* (2026-11-07, Léo : « le nom doit se trouver EN DESSOUS du cube 3D et ne pas cacher la voiture ») la plaque est maintenant SOUS le cube : l'espace du cube ne mord plus de 12 px dessus (+2 px d'air), plus de recul en 3D qui la faisait remonter, 28 px de haut (la marge basse est une bordure transparente, qui ne laisse pas voir un bout de 3e ligne). */
-/* la plaque du nom, sous le cube ; le prix devant (2026-11-06, Léo : « les noms sont très gros et dépassent le cube » : 50 → 34 px de haut, plus d'agrandissement à 107 %) */
+/* (2026-11-07, Léo : « le cube passe légèrement au-dessus du nom en gris ») rechevauchement LÉGER : le cube mord 8 px sur le haut de la plaque (au lieu de 12), la plaque reste derrière lui (recul 3D) et carrée ; la voiture, dans le cube, n'est jamais cachée. */
+/* (2026-11-07, Léo, capture « THE ENGLISH… » : « les voitures dépassent toujours le cube ») la voiture est ancrée par le BAS, rétrécie à 90 % et remontée de ~3 cqw : ses roues ne touchent plus la plaque, elle reste franchement dans le verre (même les longues : ELDORADO, CHARGER, ROSSO n'avaient que 2 px de marge à droite). */
+/* (2026-11-07, Léo : « la plaque entièrement sous le cube ») plus AUCUN chevauchement : 3 px d'air entre le bas du cube et la plaque, plaque à plat (plus de recul 3D qui la remontait), 28 px de haut. */
+/* (2026-11-07, Léo : « le coin devant, en bas à droite du cube, est encore un peu caché : il faut qu'il passe PAR-DESSUS la plaque grise ») MESURÉ : la plaque (dessinée après le cube) recouvrait le bas du cube (arête avant + quadrillage) ; le recul 3D ne la mettait pas derrière. Maintenant le cube a z-index 2 (au-dessus) et la plaque z-index 1 ; le cube ne mord que de ~2,5 px sur le haut de la plaque : son coin avant-bas-droit passe par-dessus le gris. */
+/* (2026-11-07, Léo : « la voiture sur le quadrillage du bas du cube ») la voiture redescend sur le sol du cube : la plaque n'est plus dessous, plus de raison de la tenir haut (4 cqw au-dessus du sol → 2,2 cqw SOUS le repère du sol, car le bas de l image est transparent) ; elle garde sa taille de 90 % ancrée par le bas. */
+/* (2026-11-07, Léo : « il faut avancer vers nous, qu'elle reste dans le cube ») la voiture avance de 9 à 14 cqw vers la vitre de devant (qui est à D/2 = 17 cqw ; la tranche la plus en avant est à 16,2) : elle est plus près de nous et reste DANS le verre. */
+/* (2026-11-07, Léo : « l'arrière est sur un autre sol : l'ombre sous les roues arrière devrait être sur le sol quadrillé ; l'angle est bien ; avance-la juste au-dessus du nom, droite, parallèle ») MESURÉ sur 37 photos : la ligne du bas de la voiture (roues) penche de 0,21 en moyenne (de 0,15 à 0,26, soit ~12°), l'arrière flottait au-dessus du sol. Correctif : skewY(15deg) (appliqué AVANT le retournement, ancré au bas-centre) remet la ligne des roues à plat dans le plan, donc sur le quadrillage ; la voiture avance à 15 cqw (vitre à 17) avec des tranches plus fines (0,7 cqw au lieu de 1,1 : la plus avancée est à 16,4). */
+/* (2026-11-07, Léo : « les roues sont coupées, l'ombre mal mise, un trait ») la voiture ne descend plus d'une valeur fixe : `--bas` (mesuré par bqBas, boutique-scene-1.js) donne la ligne la plus basse de SA photo après le redressement, et c'est elle qui est posée sur le sol (0,4 cqw au-dessus) : plus rien ne passe sous le plancher, donc plus de roue coupée ni de trait. */
+/* ===== LA VOITURE FACE À NOUS, POSÉE AU CENTRE DU SOL (2026-11-07, Léo : « on dirait que les voitures volent, revois complètement l'angle et la position, c'est le 2D / 3D ») =====
+   Une photo de voiture est une image PLATE prise sous son propre angle : la coller dans le cube penché (rotateX/rotateY) la déformait et la faisait flotter, quelle que soit la retouche (skew, décalages…). Maintenant la photo reste FACE à l'écran : le plan de la voiture tourne en sens inverse du cube (rotateY(-ry) rotateX(-rx), mêmes variables que le cube, donc aussi quand la carte est choisie), il est posé sur le sol, à 4 cqw devant le centre (l'arrière et le nez restent dans le verre : la vitre est à 17), et sa ligne la plus basse (`--bas`, mesurée par bqBas) touche le sol. Plus de redressement (skewY retiré), tranches de 0,7 cqw dans l'axe de l'écran. */
+/* (2026-11-07, Léo : « la voiture a son propre angle, elle est un peu en biais ; j'aimerais qu'elle soit alignée au sens du cube, comme ça elle rentre dedans ») la voiture n'est plus contre-tournée en lacet : elle TOURNE AVEC le cube (parallèle à la vitre de devant, comme les faces), seul le roulis du cube (rotateX) reste annulé pour qu'elle ne se couche pas ; posée à 2 cqw du centre, plus compacte, tout dedans. */
+/* ===== LA VOITURE ALIGNÉE SUR LE BAS DU CUBE, DE LA GAUCHE À LA DROITE (2026-11-07, Léo : « l'arrière de la voiture face à la partie gauche du cube sur la largeur, l'avant face au côté droit ; complètement alignée au bas, cohérent ; sur toutes les voitures ») =====
+   Le plan de la voiture est PARALLÈLE à la vitre de devant (aucune contre-rotation), collé juste derrière elle (13 cqw, la vitre est à 17). Chaque voiture est réglée par SA photo (bqBas, boutique-scene-1.js) : `--ech` (la caisse prend 90 % de la largeur du cube), `--dx` (centrée), `--pen` (la ligne de ses roues, qui penche de ~12° dans la photo, est remise À PLAT = parallèle à l'arête du bas du cube), `--bas` (sa ligne la plus basse, ombre comprise, est posée sur le sol : rien ne passe dessous). Arrière près du coin bas-gauche, avant près du coin bas-droit. */
+/* la plaque du nom, juste sous le cube, derrière lui ; le prix devant (2026-11-06, Léo : « les noms sont très gros et dépassent le cube » : 50 → 34 px de haut, plus d'agrandissement à 107 %) */
 html #gBq #gBqPan .bqK:not(.pnt) .bqKn{position:relative;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:28px;margin:0 6px 7px;padding:3px 6px 0;border-bottom:3px solid transparent;
-  text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:0;transform:none;
+  text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:0;transform:none;z-index:1;
   background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 40%,#2b3246),color-mix(in srgb,var(--rc) 14%,#0f121b));box-shadow:inset 0 1px 0 rgba(255,255,255,.3);text-shadow:0 0 6px var(--rc),0 1px 0 rgba(0,0,0,.55)}
 html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKn{background:linear-gradient(#5a3a00,#24160a);color:#ffe9a8;text-shadow:0 1px 0 #000}
 html #gBq #gBqPan .bqK.b-secrete:not(.pnt) .bqKn{background:linear-gradient(#3a3a48,#16161d);color:var(--rc)}
@@ -10178,13 +10281,28 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKp.defi{padding:3px 6px;font-size:6.5px}
 /* ===== LA VOITURE POSÉE SUR LE SOL DU CUBE (2026-11-06, Léo : « les voitures dans les cubes, c'est-à-dire POSÉES dans le cube ») =====
    La photo d'une caisse garde sous elle ~16 % de vide (le reflet du sol verni, éteint) : la voiture flottait au-dessus du sol quadrillé. Chaque tranche est rognée de 16 % en bas (clip-path sur l'image, pas sur le plan :
    un clip sur le plan aplatirait les tranches) et le plan descend d'autant : les roues touchent le sol du cube. */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{clip-path:inset(0 0 16% 0)}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]{top:calc(var(--H)/2 - var(--W)*.574*.84 - 1.2cqw)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{clip-path:polygon(calc(var(--gl,0) * 100%) 0,calc(var(--gr,1) * 100%) 0,calc(var(--gr,1) * 100%) calc(var(--cr,.84) * 100%),calc(var(--gl,0) * 100%) calc(var(--cl,.84) * 100%))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]{top:calc(var(--H)/2 - var(--W)*.574*(1 - var(--ech,.86)*(1 - var(--bas,.84))) - .3cqw);transform-origin:50% 100%;transform:translateZ(13cqw)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]:not([style*="--bas"]) img.cL{visibility:hidden}
 /* ===== LA VOITURE À L'INTÉRIEUR, PAS AU FOND (2026-11-06, Léo : « elle est encore derrière : garde le fond gris bleuté des vitres, garde seulement la voiture et son ombre, place-la un poil en avant ») =====
    Le plan de la voiture avance de 9 cqw vers la vitre de devant (il était au milieu du cube) : elle est DANS la boîte, près du verre, et non plus reculée contre le fond ; la vitre de devant s'éclaircit pour ne plus la voiler ;
    les tranches du fond s'assombrissent moins (plus de halo). Le gris bleuté des faces ne change pas. */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{transform:translateZ(calc(9cqw + (2 - var(--k)) * 1.1cqw)) scaleX(-1);filter:brightness(calc(1 - var(--k) * .055))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{transform:translateZ(calc((2 - var(--k)) * .7cqw)) translateX(calc(var(--W) * .94 * var(--dx,0) * var(--ech,.86))) scale(calc(var(--ech,.86) * -1),var(--ech,.86)) skewY(var(--pen,0deg));transform-origin:50% 100%;filter:brightness(calc(1 - var(--k) * .03))}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{background:linear-gradient(118deg,rgba(255,255,255,.20) 0,rgba(255,255,255,.03) 30%,rgba(255,255,255,.015) 62%,rgba(255,255,255,.12) 100%)}
+</style>
+<style id="ergonomieMobile">
+/* ===== L'ERGONOMIE MOBILE, LES DÉTAILS (2026-11-07, Sacha : « retravaille la version mobile et l'ergonomie dans le détail : certains éléments paraissent un peu
+   ternes, certains boutons sont un peu petits ») Relevé au banc des écrans (outils/banc-ecrans/photos.cjs, 390 × 844 et 844 × 390, cibles < 44 px) ; une couche posée
+   APRÈS la finition, qui ne redessine rien : elle donne aux petites touches leur zone de 44 px et rend leur couleur aux éléments éteints. =====
+   1. LES PASTILLES DU SÉLECTEUR (TOUT · TRI ORDRE…) : 32 px de haut debout, 28 couchées — le dessin ne bouge pas (la barre n'a pas la place), la ZONE DE TOUCHE prend ses
+      44 px autour, comme les onglets (::before). Au repos elles étaient presque noires sur noir (texte --tx2 sur un fond à 16 %) : le texte s'éclaircit, le fond monte à 26 %. */
+.fsPas::before{content:'';position:absolute;left:0;right:0;top:50%;height:44px;margin-top:-22px}
+#ivDock .fsPas:not(.on),#gFigBar .fsPas:not(.on){color:#e2ddff;background:rgba(154,144,200,.26)}
+/* 2. LES ONGLETS DE L'INVENTAIRE : les pictogrammes éteints (voitures, peintures, ailes, spoilers) étaient d'un lavande à 85 % sur le verre sombre — on les voit à peine à côté
+      de l'onglet allumé. Lavande clair, plein ; l'onglet actif garde son blanc et sa lueur rose. */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab:not(.on) .pxi{color:#cfc8ff}
+/* 3. LES LIGNES DE MISSION, COUCHÉ : 42 px de haut (395 × 42) — 44 minimum, la ligne se touche au pouce. */
+@media (orientation:landscape) and (max-height:540px){html #gmListe.mcE .mcL{min-height:44px}}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -10221,8 +10339,8 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{background:linear-gradient(118deg,rgb
   <div id="runStats"></div>
   <!-- LE MOTEUR ATTEINT : on montre la pièce qu'on a réussi à monter, pas seulement son nom.
        Le rendu 3D vient du MÊME moteur que la vignette de course (voir engVigRender). -->
-  <div id="endEng"><canvas id="endEngCv" width="480" height="321"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div><!-- 480×321 : repli sans JS — affiné à la résolution du palier dès le chargement (voir ENG_RES_W) -->
-  <div id="nameEntry"><span><i class="pxi pxi-etoile" aria-hidden="true"></i> NOUVEAU RECORD — TON NOM</span><input id="nameInput" maxlength="8" autocomplete="off" spellcheck="false" placeholder="________"><button id="nameSave">VALIDER</button></div>
+  <div id="endEng"><canvas id="endEngCv" width="480" height="321" aria-hidden="true"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div><!-- 480×321 : repli sans JS — affiné à la résolution du palier dès le chargement (voir ENG_RES_W) -->
+  <div id="nameEntry"><span><i class="pxi pxi-etoile" aria-hidden="true"></i> NOUVEAU RECORD — TON NOM</span><input id="nameInput" type="text" aria-label="Ton nom pour le record" maxlength="8" autocomplete="off" spellcheck="false" placeholder="________"><button id="nameSave">VALIDER</button></div>
   <div id="lbBox"></div>
   <button id="playBtn" aria-label="Jouer">Jouer</button>
   <!-- LE GARAGE : deuxième destination du jeu, donc deuxième niveau de hiérarchie — ni l'action
@@ -10375,8 +10493,8 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{background:linear-gradient(118deg,rgb
     <div class="setRow" data-tg="sndBtn"><span>Effets sonores</span><b id="tgSnd">ON</b></div>
     <div class="setRow" data-tg="musBtn"><span>Musique</span><b id="tgMus">ON</b></div>
     <div class="setSec">Volumes</div>
-    <div class="setRow volRow" id="volRowMus"><div class="volHd"><span data-fr="Musique">Musique</span><b id="volMusV">70%</b></div><input type="range" class="volS" id="volMus" min="0" max="100" step="5" value="70"></div>
-    <div class="setRow volRow" id="volRowSfx"><div class="volHd"><span data-fr="Effets et moteur">Effets et moteur</span><b id="volSfxV">100%</b></div><input type="range" class="volS" id="volSfx" min="0" max="100" step="5" value="100"></div>
+    <div class="setRow volRow" id="volRowMus"><div class="volHd"><span data-fr="Musique">Musique</span><b id="volMusV">70%</b></div><input type="range" class="volS" id="volMus" aria-label="Volume de la musique" min="0" max="100" step="5" value="70"></div>
+    <div class="setRow volRow" id="volRowSfx"><div class="volHd"><span data-fr="Effets et moteur">Effets et moteur</span><b id="volSfxV">100%</b></div><input type="range" class="volS" id="volSfx" aria-label="Volume des effets et du moteur" min="0" max="100" step="5" value="100"></div>
     <div class="setSec">Commandes</div>
     <div class="setKeys" id="setKb">
       <span><i data-fr="Z Q S D">Z Q S D</i> / <i><i class="pxi pxi-gauche" aria-hidden="true"></i><i class="pxi pxi-haut" aria-hidden="true"></i><i class="pxi pxi-bas" aria-hidden="true"></i><i class="pxi pxi-droite" aria-hidden="true"></i></i></span><span>conduire · piloter en vol</span>
@@ -10618,7 +10736,8 @@ function bienvJoue(){ // la leçon part par le JOUER de l'accueil : le même che
   setTimeout(function(){const b=document.querySelector('#mHome [data-m="play"]');if(b)b.click();else try{playViaGarage(true);}catch(e){}},180);}
 window.dbgBienvenue=function(k){if(k==='raz'){SAVE.d.tuto=0;SAVE.d.permis=0;SAVE.d.bienv=0;SAVE.d.tutoProv=0;SAVE.flush();BIENV.fait=false;return 'remis à neuf';}bienvMontre(true);return {on:BIENV.on,tuto:SAVE.d.tuto,bienv:SAVE.d.bienv,prov:SAVE.d.tutoProv};};
 let toastT=0;
-function toast(h,muet){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');
+function toast(h,muet){const t=document.getElementById('toast');if(!t)return;const deja=t.classList.contains('on');t.innerHTML=h;t.classList.add('on');
+  if(deja&&!REDUCED_MOTION&&t.animate)try{t.animate([{translate:'0 -7px'},{translate:'0 0'}],{duration:180,easing:'ease-out'});}catch(e){} /* (2026-11-07) un 2e toast pendant que le 1er est visible : il re-claque au lieu de changer de texte sans bouger */
   try{if(SONV2&&!muet){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ /* (2026-10-14, session SON) `muet` : l'appelant a DÉJÀ sonné ce que le toast dit (refus, déblocage, achat) — pas de 2e « non-non » ni de ui.ok sous une récompense */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
 // une ligne de panneau : icône · libellé · pastille d'état (l'ÉTAT se lit dans la pastille, la plaque ne se grise plus)
 function tpLbl(ic,txt,etat,on){const tg=(etat==='ON'||etat==='OFF'); // ON/OFF → un INTERRUPTEUR pixel ; une valeur → une étiquette or à chevron
@@ -29430,7 +29549,9 @@ const CARS=[
   // (2026-10-06) en voxels : 1,7 × 3 m, oreilles à 1,5 m — plus de bandes néon (`glow`) : elles barraient les murs noirs
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (2026-10-07) son arc-en-ciel EN FEU DE PIXELS (voir ARC_*) + ses pixels qui scintillent (NY_PIX), à la nitro et en vol — branché par NYAN.on
   desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
- {retire:1,name:'REQUIN'}, /* (2026-10-21, Sacha : « suprime la voiture shark dans la boutique ») RETIRÉ : remplacé en boutique par LE SQUALE (le requin de Léo) ; sa ligne reste (index de sauvegarde) */
+ {name:'REQUIN',          shape:'requin',  color:0x3a6ea8,accent:0xdfe9f2,maxKmh:600,accel:68,turn:3.22,h:.95,w:1.98,l:3.3,spoiler:0,glow:0x9adfff,rar:'legendaire',
+  fx:{jet:0x86f2ff,core:0xffffff,trail:[.42,1.30,1.45],light:0x62d8ff,spray:1},
+  desc:'Bulle de verre, museau de grand blanc, quatre bras d\'hélices repliés dans les flancs. Au sol il roule. En l\'air, il chasse.'}, /* (2026-10-21, Sacha : « suprime la voiture shark dans la boutique ») RETIRÉ : remplacé en boutique par LE SQUALE (le requin de Léo) ; sa ligne reste (index de sauvegarde) */
  {retire:1,name:'COMÈTE',          shape:'proto',   color:0x3c16ae,accent:0xffd75e,maxKmh:657,accel:75,turn:3.25,h:1.2,w:2.08,l:5.05,spoiler:1, /* (2026-10-27, au kit) h = sa vraie hauteur de toit ; ni `glow` (deux traits blancs sur la tôle) ni `rocket` (deux tubes gris génériques) : ses propulseurs sont dans son gabarit */
   desc:'Coin furtif, bulle de verre, dérive dorsale. La reine du ciel, et elle le sait. Personne ne l\'a jamais vue de face.'},
  {retire:1,name:'FORMULE OR'},
@@ -29448,8 +29569,10 @@ const CARS=[
     (2026-10-18) Toutes les caisses retirées sont RÉDUITES à `{retire:1,name:'…'}` : plus de cotes, de couleurs ni de punchline — aucune boucle
     ne lit la fiche d'une retirée (carRetiree d'abord). Le NOM reste : la mission qui la donne et le message de remboursement l'écrivent. */
  {retire:1,name:'LA POSTIÈRE'},
- {retire:1,name:'LA DEUCHE'},
- {retire:1,name:'LE TAXI JAUNE'},
+ {name:'LA DEUCHE',color:0x7a1426,accent:0x121212,maxKmh:185,accel:20,turn:2.6,h:1.6,w:1.48,l:3.83,spoiler:0,shape:'a_deuche',rar:'commun',
+  desc:'Deux chevaux sous le capot, un moteur de jet dans le coffre. Le toit s\'ouvre, les rivaux se referment.'},
+ {name:'LE TAXI JAUNE',color:0xffc61a,accent:0x141414,maxKmh:215,accel:24,turn:2.45,h:1.5,w:2,l:5.4,spoiler:0,shape:'a_taxi',rar:'commun',
+  desc:'Le compteur tourne en millions. Tu montes, tu t\'accroches, tu ne négocies pas le prix.'},
  {name:'LA PIZZA EXPRESS',color:0xf4f1ea,accent:0xd8261e,maxKmh:190,accel:21,turn:2.9,h:1.45,w:1.5,l:3.4,spoiler:0,shape:'b_pizza',rar:'legendaire',
   desc:'30 minutes chrono ou la pizza est offerte. Spoiler : elle n\'a jamais été offerte.'},
  {retire:1,name:'LE MONOSPACE'},
@@ -29611,7 +29734,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA CERISE',shape:'mx5na',color:0x8c0a14,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'commun', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
+ {name:'KELLY CHERRY',shape:'mx5na',color:0x8c0a14,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'legendaire', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
   desc:'Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.'},
  /* · */
  /* · */
@@ -29771,7 +29894,7 @@ function langNext(){
 }
 const CUR=()=>'€'; /* (2026-11-05, Sacha : « remplace les dollars par des euros, aucun symbole dollar ne doit rechapper ») la devise du jeu est l'EURO */
 const LOC=()=>LANG==='fr'?'fr-FR':'en-US';
-const fmt=v=>CUR()+' '+Math.round(v).toLocaleString(LOC());
+const fmt=v=>CUR()+(LANG==='fr'?' ':'')+Math.round(v).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' '); /* (2026-11-07) comme fmtSolde et fmtC : « €1,234 » en anglais (plus d'espace à la française), et l'espace fine U+202F de fr-FR remplacée par une vraie espace — la police pixel ne la dessine pas */
 /* ============================================================================
    TRADUCTION FR / EN (2026-08-03)
    La mécanique de langue existait (sélecteur + devise) mais TOUS les textes étaient en français.
@@ -29901,7 +30024,7 @@ const I18N={
  'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.':'Three tons of cube. Nobody has ever asked you to move over.',
  'Rouge course, aileron plateau. La caisse de rêve : 1,5 million, et chaque euro se voit.':'Racing red, a wing like a tray. The dream car: 1.5 million, and every euro shows.',
  'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.':'She was pinned to your bedroom wall. Now you\'re the one driving her.',
- 'LA CERISE':'THE CHERRY','Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.':'It opens its eyes at every nitro hit. One ton, 115 horsepower, and the biggest smile in the parking lot.', // (JAPONAISES) 83 — la MX-5 NA
+ 'KELLY CHERRY':'KELLY CHERRY','Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.':'It opens its eyes at every nitro hit. One ton, 115 horsepower, and the biggest smile in the parking lot.', // (JAPONAISES) 83 — la MX-5 NA
  'LA HONTE':'THE DISGRACE',
  'ANTIMATIÈRE':'ANTIMATTER',
  'LA LAME':'THE BLADE','Le même petit roadster, avec un toit qui se range en treize secondes. Il ne pleut jamais assez vite pour la rattraper.':'The same little roadster, with a roof that tucks away in thirteen seconds. It never rains fast enough to catch her.', // (JAPONAISES) 85 — la MX-5 RF
@@ -30176,7 +30299,7 @@ Object.assign(I18N,{"INCLINAISON":"TILT STEERING","MAIN":"HAND","GAUCHER":"LEFTY
 /* ===== LES CLÉS MANQUANTES DU JURY (2026-11-05, Sonnet : « clés I18N manquantes : CAPTEUR REFUSÉ, RACCOURCI, CHAMPION !… et les aria-label sans traduction ») =====
    Relevées par un script qui liste tout appel de TR, sous:, data-fr et aria-label sans clé. RACCOURCI, CHAMPION !, DERNIER !, EXPLOSION DANS, COUPERET DANS, ACCROCHE !,
    ELLE T'A SEME et LA CAISSE-NUAGE existent déjà (zones-caisses.js). RARES (boutique) : le nom d'une rareté, au singulier en anglais comme COMMON / EPIC. */
-Object.assign(I18N,{"LES PIECES VIENNENT A TOI":"COINS COME TO YOU","AURA x2, x3 SI TU ENCHAINES":"AURA x2, x3 IF YOU CHAIN","AIRTIME x2, 2 JAUGES":"AIRTIME x2, 2 GAUGES",
+Object.assign(I18N,{"LES PIECES VIENNENT A TOI":"COINS COME TO YOU","AURA ×2, ×3 SI TU ENCHAINES":"AURA ×2, ×3 IF YOU CHAIN","AIRTIME ×2, 2 JAUGES":"AIRTIME ×2, 2 GAUGES",
   "DONUT":"DONUT","BOOST":"BOOST","RIEN ICI":"NOTHING HERE","BURN-OUT":"BURN-OUT","SECONDE CHANCE":"SECOND CHANCE","PREMIER MATIN":"FIRST MORNING","THE DARK TRIAD":"THE DARK TRIAD",
   "CAPTEUR REFUSÉ : RÉGLAGES › SAFARI":"SENSOR DENIED: SETTINGS > SAFARI","PENCHE LE TÉLÉPHONE POUR TOURNER":"TILT YOUR PHONE TO STEER","EARLY DEAD":"CHAIN LOST",
   "NOUVEAU":"NEW"}); /* (la pastille NEW de la boutique, le bandeau « chaîne perdue » de la mort précoce) */
@@ -46646,6 +46769,153 @@ SHAPES.d_corbillard=function(K){
   return {hl:[.66,.95,2.97],tl:[.64,.80,-2.97],wx:.86,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.27,style:'enjoliveur',jante:0xe6dcc4}};
 };}
+/* ===== LA DEUCHE ET LE TAXI JAUNE REVIENNENT (2026-11-07, Léo : « la douche a disparu… le taxi remets ») =====
+   Leurs dessins (`a_deuche`, `a_taxi`) avaient été supprimés du code à la gamme resserrée du 07/10 : repris tels quels de l'index.html d'avant (commit ccfbb021^). Leurs fiches sont dans CARS (cars.js), leurs prix dans CAR_UNLOCK (deblocage.js). */
+SHAPES.a_deuche=function(K){
+  /* LA DEUCHE — la 2 CV Charleston : caisse étroite et haute, bordeaux dessus, NOIR dessous en coup de
+     pinceau ; ailes galbées posées À PART sur les roues, phares ronds perchés sur leurs tiges, capot à
+     nervures, et le toit de toile ROULÉ à l'arrière (on voit les sièges). */
+  const U=LPU,R=.30,ZF=1.18,ZR=-1.22;
+  const P=K.kit({p:{g:'p',c:0x7a1426},n:{g:'p',c:0x121212,f:0},s:{g:'s',c:0x1e1e22},S:{g:'s',c:0x3a3438},
+    k:{g:'m',c:0x141518},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1b2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
+  const AR=[[0,2*R+.06],[R*.70,2*R+.04],[R+.10,R*1.10],[R+.16,.34]];
+  const zs=[-1.88,-1.76,-1.55,-1.35,-1.12,-.92,-.71,-.70,-.62,-.02,.04,.38,.40,.72,1.40,1.72,1.88];
+  for(const w of [ZF,ZR])for(const d of [R*.70,R+.16])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  const CW=.72,HD=.40,
+        yC=z=>U.lin([[-1.88,.62],[-1.76,.86],[-1.55,1.10],[-1.35,1.27],[-1.10,1.40],[-.71,1.50],[-.30,1.53],[HD,1.52],[CW,1.03],[1.40,.93],[1.88,.82]],z),
+        xW=z=>U.lin([[-1.88,.50],[-1.72,.58],[-1.35,.62],[CW,.62],[1.00,.56],[1.88,.44]],z),
+        open=z=>z<.385&&z>-.705;
+  P.loft(zs,z=>{
+    const yb=U.arch(z,[ZF,ZR],AR,.32),c=yC(z),xw=xW(z);
+    if(z>CW){return [[0,yb],[xw-.04,yb],[xw,yb+.04],[xw,Math.max(yb+.05,c-.16)],[xw-.02,c-.09],[xw*.80,c-.04],[xw*.55,c-.015],[xw*.30,c-.004],[xw*.12,c],[0,c+.002]];}
+    const bl=Math.min(.98,c-.14),xg=xw-.03,xr=xw-.09;
+    const s=[[0,yb],[xw-.04,yb],[xw,yb+.04],[xw,bl],[xg,bl+.02],[xr,Math.max(bl+.03,c-.08)],[xr-.05,Math.max(bl+.04,c-.01)]];
+    if(open(z))s.push([xr-.09,c-.07],[xr-.12,.80],[0,.78]);
+    else s.push([xr*.62,c+.004],[xr*.30,c+.012],[0,c+.015]);
+    return s;
+  },(j,z,y)=>{
+    if(j===0)return 'k';
+    if(j<0)return j===-1?'k':'p';
+    if(z>CW)return 'n';                                              /* le capot noir */
+    if(j===1)return 'n';
+    if(j===4){if(z>.04&&z<.70)return 'g';if(z>-.60&&z<-.02)return 'g';if(z>-1.12&&z<-.66&&y>1.02)return 'g';return 'p';}
+    if(j<=5)return 'p';
+    if(z>HD)return 'g';                                              /* pare-brise */
+    if(open(z))return j===6?'p':'S';                                 /* l'habitacle, à ciel ouvert */
+    if(z>-.72)return 'p';
+    if(z>-1.36){if(j>=8&&z<-.91&&z>-1.13)return 'g';return 's';}   /* la toile et sa petite lunette */
+    return 'p';});
+  /* LES AILES À PART : deux lofts ouverts, galbés sur les roues */
+  const wing=(z0,z1,zsW,top,lo,xo)=>{P.loft(zsW,z=>{const t=U.lin(top,z),l=Math.min(lo(z),t-.05),x=U.lin(xo,z);
+      return [[.47,l],[x-.03,l],[x,l+.03],[x,t-.07],[x-.07,t],[.47,t-.01]];},(j)=>j<0?'x':'n');};
+  const zF=[.40,.52,.70,ZF-R-.10,ZF-R*.7,ZF+R*.7,ZF+R+.10,1.70,1.84,1.92];
+  wing(.40,1.95,zF,[[.40,.36],[.52,.50],[.70,.66],[ZF,.84],[1.55,.80],[1.84,.62],[1.92,.44]],
+       z=>U.arch(z,[ZF],[[0,2*R+.07],[R*.70,2*R+.05],[R+.10,R*1.10],[R+.17,.34]],.33),[[.40,.66],[.70,.73],[1.60,.73],[1.92,.62]]);
+  const zR=[-1.80,-1.70,-1.52,ZR-R*.7,ZR+R*.7,-.78,-.66,-.60];
+  wing(-1.80,-.60,zR,[[-1.80,.50],[-1.70,.64],[-1.50,.76],[ZR,.80],[-.80,.70],[-.66,.54],[-.60,.40]],
+       z=>U.arch(z,[ZR],[[0,.56],[R*.75,.54],[R+.06,.42]],.40),[[-1.80,.64],[-1.60,.74],[-.78,.74],[-.60,.70]]);
+  /* le coup de pinceau noir de la Charleston, et le bas de caisse */
+  P.sym(sd=>{
+    P.prism('n',[[.72,.99],[.40,.96],[.10,.89],[-.20,.77],[-.42,.62],[-.62,.46],[-.62,.33],[.72,.33]],.008,sd*.624);
+    P.box('k',.10,.06,1.06,sd*.60,.33,-.10);
+    for(const z of [.72,.02,-.62])P.box('k',.01,.62,.012,sd*.623,.66,z);
+    P.box('c',.03,.12,.03,sd*.63,.70,.66);P.box('c',.03,.12,.03,sd*.63,.70,.08);
+    P.box('c',.03,.025,.10,sd*.63,.90,.10);P.box('c',.03,.025,.10,sd*.63,.90,-.54);
+    /* LES PHARES RONDS SUR LEURS TIGES */
+    P.box('n',.04,.12,.04,sd*.52,.84,1.60);
+    P.lathe('c',[[0,-.09],[.07,-.08],[.10,-.02],[.10,.06]],10,sd*.52,.94,1.60,'z');
+    P.cyl('W',.085,.02,10,sd*.52,.94,1.665,'z');
+    P.box('O',.05,.04,.06,sd*.64,.76,1.70);
+    /* rétro rond sur la portière */
+    P.box('k',.02,.10,.02,sd*.64,1.04,.64);P.cyl('c',.05,.02,8,sd*.66,1.12,.64,'z');
+    /* feux arrière sur la poupe */
+    P.box('L',.10,.12,.04,sd*.42,.74,-1.80,.55);P.box('O',.10,.05,.04,sd*.42,.65,-1.83,.55);
+    /* butoirs */
+    P.box('c',.05,.12,.05,sd*.36,.40,1.945);P.box('c',.05,.12,.05,sd*.36,.40,-1.935);
+  });
+  /* LE CAPOT À NERVURES : cinq côtes d'acier */
+  for(let i=-2;i<=2;i++){const x=i*.10,zc=1.30;P.box('n',.03,.03,1.02,x,yC(zc)+.012-.035*Math.abs(i)*Math.abs(i)*.25,zc,.19);}
+  /* la calandre à lamelles, cerclée de chrome */
+  P.plate('c',[[-.30,.44],[.30,.44],[.33,.76],[-.33,.76]],.02,1.88);
+  P.plate('k',[[-.26,.47],[.26,.47],[.29,.73],[-.29,.73]],.02,1.89);
+  for(let i=0;i<5;i++)P.box('c',.54,.018,.02,0,.50+i*.055,1.91);
+  /* pare-chocs tubulaires */
+  P.cyl('c',.03,1.30,8,0,.40,1.94,'x');P.cyl('c',.03,1.30,8,0,.40,-1.93,'x');
+  /* le toit ouvert : banquette, sièges hamac, volant, et la TOILE ROULÉE */
+  P.sym(sd=>{P.box('s',.40,.40,.08,sd*.24,.98,-.10,-.20);P.box('s',.40,.08,.40,sd*.24,.80,.08);});
+  P.box('s',.96,.36,.08,0,.96,-.62,-.18);
+  P.lathe('k',[[.14,-.012],[.14,.012]],10,.26,1.00,.34,'z');
+  P.cyl('s',.075,1.02,10,0,1.52,-.70,'x');
+  P.cyl('c',.035,.10,8,.40,.33,-1.90,'z');
+  K.commit(P);
+  return {hl:[.52,.94,1.68],tl:[.42,.74,-1.84],wx:.62,wzF:ZF,wzR:-ZR,
+          lpw:{R:R,w:.15,style:'enjoliveur',jante:0x8a1a2c}};
+};
+SHAPES.a_taxi=function(K){
+  /* LE TAXI JAUNE — la grosse propulsion de Manhattan : trois volumes interminables, calandre chromée
+     en caisson, le lumineux sur le toit, le DAMIER noir et blanc sur les flancs, pare-chocs de tank. */
+  const U=LPU,R=.34,ZF=1.62,ZR=-1.29;
+  const P=K.kit({p:{g:'p',c:0xffc61a},n:{g:'p',c:0x141414,f:0},w:{g:'p',c:0xf4f2ec,f:0},k:{g:'m',c:0x141518},
+    K:{g:'g',c:0x0c0d10},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1b2733},W:{g:'l',c:0xfff3d6},T:{g:'l',c:0xfff0b8},
+    L:{g:'l',c:0xff1f2e},r:{g:'l',c:0x8a0d16},O:{g:'l',c:0xffa21a}});
+  const AR=[[0,2*R+.05],[R*.60,2*R+.03],[R*.98,R*1.18],[R+.12,.32]];
+  const CW=1.32,RF=.52,RR=-.78,RB=-1.46;
+  const zs=[-2.62,-2.54,-2.34,RB,RR,-.52,-.02,.08,RF,CW,2.26,2.54,2.62];
+  for(const w of [ZF,ZR])for(const d of [R*.60,R*.98,R+.12])zs.push(w-d,w+d);
+  zs.sort((a,b)=>a-b);
+  const yC=z=>U.lin([[-2.62,.94],[-2.54,1.00],[-2.34,1.02],[RB,1.04],[RR,1.42],[-.60,1.44],[RF,1.44],[CW,1.00],[2.26,.96],[2.54,.92],[2.62,.82]],z),
+        xW=z=>U.lin([[-2.62,.92],[-2.48,.96],[2.40,.96],[2.62,.90]],z),cab=z=>z>RB-.001&&z<CW+.001;
+  P.loft(zs,z=>{
+    const yb=U.arch(z,[ZF,ZR],AR,.32),c=yC(z),xw=xW(z),y2=Math.max(.58,yb+.06);
+    if(cab(z)){const xr=U.lin([[RB,.84],[RR,.74],[RF,.74],[CW,.84]],z);
+      return [[0,yb],[xw-.07,yb],[xw,y2],[xw,.90],[xw-.03,1.00],[xw-.08,1.02],[xr,Math.max(1.03,c-.06)],[xr-.10,c],[0,c+.015]];}
+    const y4=Math.min(1.00,c-.03);
+    return [[0,yb],[xw-.07,yb],[xw,y2],[xw,Math.min(.90,c-.10)],[xw-.03,y4],[xw-.10,Math.max(y4+.002,c-.01)],[xw-.30,c],[xw-.62,c+.006],[0,c+.01]];
+  },(j,z)=>{
+    if(j===0)return 'k';
+    if(j===5&&cab(z)){if(z>.08&&z<1.26)return 'g';if(z>-.52&&z<-.02)return 'g';if(z>-.02&&z<.08)return 'K';return 'p';}
+    if(j===7&&((z>RF&&z<CW)||(z>RB&&z<RR)))return 'g';
+    return 'p';});
+  /* LE DAMIER : bande blanche, carreaux noirs posés à plat sur le flanc */
+  const sq=.09,z0=-1.02,nC=24;
+  P.sym(sd=>{const x=sd*.966;
+    P.box('w',.004,2*sq+.02,nC*sq+.02,sd*.960,.80,z0+nC*sq/2);
+    for(let i=0;i<nC;i++)for(let r=0;r<2;r++){if((i+r)%2)continue;
+      const za=z0+i*sq,zb=za+sq,ya=.80-sq+r*sq,yb2=ya+sq;
+      P.tri('n',[x,ya,za],[x,ya,zb],[x,yb2,zb]);P.tri('n',[x,ya,za],[x,yb2,zb],[x,yb2,za]);}
+  });
+  /* LA FACE : calandre-caisson chromée, phares rectangulaires, pare-chocs de tank */
+  P.plate('c',[[-.44,.60],[.44,.60],[.50,.66],[.50,.88],[.44,.94],[-.44,.94],[-.50,.88],[-.50,.66]],.03,2.61);
+  P.plate('K',[[-.42,.63],[.42,.63],[.46,.68],[.46,.86],[.42,.90],[-.42,.90],[-.46,.86],[-.46,.68]],.02,2.635);
+  for(let i=0;i<2;i++)P.box('c',.90,.02,.02,0,.72+i*.09,2.655);
+  for(let i=-2;i<=2;i++)P.box('c',.02,.26,.02,i*.18,.77,2.655);
+  P.box('p',1.90,.26,.20,0,.44,2.60);P.box('n',1.94,.08,.04,0,.48,2.695);P.box('k',1.50,.08,.03,0,.34,2.702);
+  P.box('p',1.88,.28,.20,0,.46,-2.60);P.box('n',1.92,.08,.04,0,.50,-2.695);
+  P.sym(sd=>{
+    P.box('k',.36,.18,.02,sd*.72,.80,2.622);P.box('W',.32,.14,.03,sd*.72,.80,2.625);
+    P.box('O',.03,.12,.20,sd*.955,.80,2.48);P.box('O',.10,.06,.02,sd*.60,.62,2.705);
+    /* feux arrière enveloppants et le catadioptre central */
+    P.box('L',.44,.20,.03,sd*.70,.86,-2.625);P.box('L',.03,.20,.18,sd*.935,.86,-2.52);
+    P.box('W',.12,.08,.035,sd*.58,.86,-2.628);
+    P.box('K',.08,.30,.03,sd*.80,1.16,.54,0,0,0);
+    /* rétros, poignées, joncs chromés de caisse */
+    P.box('k',.06,.05,.10,sd*.93,1.05,1.18);P.box('k',.08,.13,.18,sd*.97,1.08,1.16);
+    P.box('c',.03,.03,.16,sd*.965,.98,.62);P.box('c',.03,.03,.16,sd*.965,.98,-.36);
+    P.box('c',.012,.02,2.66,sd*.958,.975,-.08);
+    for(const z of [1.30,.06,-.52])P.box('k',.012,.36,.012,sd*.962,.84,z);
+    P.cyl('c',.05,.10,8,sd*.44,.36,-2.67,'z');
+  });
+  P.box('r',.46,.16,.02,0,.86,-2.625);
+  /* LE LUMINEUX DE TOIT, sur son socle noir */
+  P.box('n',.86,.05,.30,0,1.475,-.10);
+  P.prism('T',[[-.16,1.50],[.16,1.50],[.10,1.68],[-.10,1.68]],.78,0);
+  P.prism('n',[[-.11,1.68],[.11,1.68],[.10,1.70],[-.10,1.70]],.80,0);
+  P.sym(sd=>P.prism('n',[[-.16,1.50],[.16,1.50],[.10,1.68],[-.10,1.68]],.02,sd*.40));
+  K.commit(P);
+  return {hl:[.72,.80,2.64],tl:[.70,.86,-2.64],wx:.83,wzF:ZF,wzR:-ZR,
+          lpw:{R:R,w:.24,style:'enjoliveur',jante:0xd6dade}};
+};
 // (2026-10-20) UNE FICHE SANS COTES NE SE CONSTRUIT PAS. Les caisses retirées sont réduites à `{retire:1,name}` (voir cars.js) : montées
 // quand même (dbgEquipe des bancs), le repli `gt` recevait une largeur `undefined` — coque, ancrages et gabarit en NaN, le cadrage du
 // garage (GAR.vD, cdx…) passait en NaN et toute l'image 3D sortait NOIRE. Le joueur n'y arrive pas (equippedCar, garageListe et
@@ -46653,7 +46923,7 @@ SHAPES.d_corbillard=function(K){
 function carFicheOk(s){return !!s&&s.w>0&&s.h>0&&s.l>0;}
 /* LES 29 RÉFÉRENCES DE LÉO (25/10 : « à ne pas toucher », le langage visuel du jeu) : la traduction ci-dessous ne les regroupe jamais. Noms sans accent ni ponctuation.
    (26/10) + LE COMBI : sa forme « auto-04 » validée par Léo est FIGÉE (voir combi.js) — ~20 600 triangles dont ~8 700 de décor reposé ; la passe ÷2 l'abîmerait. */
-const LANGAGE_REF=new Set(['LE COMBI','LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','LA CERISE','LE SAMOURAI','L ORIGAMI','ROSSO 40','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
+const LANGAGE_REF=new Set(['LE COMBI','LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','KELLY CHERRY','LE SAMOURAI','L ORIGAMI','ROSSO 40','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
 /* LA TRADUCTION AU LANGAGE DU JEU (25/10, Léo : « quand les voitures ont trop de facettes, tu divises par deux le nombre de facettes » ; avant : « les traduire pour que ce soit comme les autres, mais que leur modèle soit toujours ressenti, juste ajusté ») —
    PAR DÉFAUT depuis la v912 ; `?langage=0` la coupe. Une caisse qui dépasse 12 000 triangles (tes références en font ~5 000) voit sa PEINTURE regroupée en grandes facettes planes : tous les sommets d'une même case de grille n'en font plus qu'un, au centre de leur
    groupe, les triangles qui s'effondrent disparaissent. La taille de la case est CHERCHÉE (recherche par dichotomie, mémorisée par voiture) pour que la caisse entière tombe à la MOITIÉ de ses triangles, sans dépasser 45 cm. La silhouette reste celle de la
@@ -49135,7 +49405,7 @@ const CAR_UNLOCK=[
   {k:'carnet',v:3},     // LA DOLORÈS — contrat n° 3
   // LES PREMIUM : en BOUTIQUE, contre du vrai argent (StoreKit à brancher). `eur` = le prix affiché, `rar` = la rareté de la carte
   {k:'premium',eur:'4,20 €',rar:'leg',une:1}, // (2026-10-06 : 4,99 → 4,20 €) CHAT POP-TART — l'offre à la une
-  {k:'premium',eur:'9,99 €',rar:'leg'},       // REQUIN — RETIRÉ (2026-10-21, Sacha : remplacé en boutique par LE SQUALE) ; (2026-10-18, Sacha) REMIS dans le jeu : de nouveau en boutique à 9,99 € (il était « DÉFI À VENIR » du 6 au 14/10, caché ensuite)
+  {k:'premium',eur:'9,99 €',rar:'leg'},       // REQUIN — RETIRÉ (2026-10-21, Sacha : remplacé en boutique par LE SQUALE) ; (2026-11-07, Léo : « le roquet a disparu ») REMIS ; (2026-10-18, Sacha) REMIS dans le jeu : de nouveau en boutique à 9,99 € (il était « DÉFI À VENIR » du 6 au 14/10, caché ensuite)
   {k:'bientot',v:1},                          // COMÈTE — (2026-10-06) DÉFI à définir (était en boutique, 4,99 €)
   {k:'premium',eur:'4,99 €',rar:'leg'},       // FORMULE OR — (2026-10-06) RETIRÉE
   {k:'premium',eur:'2,99 €',rar:'leg'},       // LE MANS 24 — (2026-10-06) RETIRÉE
@@ -49143,8 +49413,8 @@ const CAR_UNLOCK=[
   {p:2000000},/* (2026-10-22, Sacha : « tableau des voitures » 550 000 → 200 000) */ // (2026-10-19 : 750 000 → 550 000, la plus abordable des épiques ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) ACIDE — (2026-10-06) ÉPIQUE à l'argent du jeu (était en boutique, 1,99 €)
 /* ===== LES CONDITIONS DES 50 — DÉBUT ===== */
   {p:1500}, // LA POSTIÈRE — (2026-10-06) RETIRÉE
-  {p:2000}, // LA DEUCHE — (2026-10-06) RETIRÉE
-  {p:2500}, // LE TAXI JAUNE — (2026-10-06) RETIRÉE
+  {p:2000}, // LA DEUCHE — (2026-10-06) retirée ; (2026-11-07, Léo : « la douche a disparu ») REMISE
+  {p:2500}, // LE TAXI JAUNE — (2026-10-06) retiré ; (2026-11-07, Léo : « le taxi remets ») REMIS
   {k:'premium',eur:'161,00 €',rar:'leg'}, // LA PIZZA EXPRESS — (2026-10-06) revient, LÉGENDAIRE en boutique
   {p:3500}, // LE MONOSPACE
   {p:4000}, // LE BREAK SUÉDOIS
@@ -49226,7 +49496,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:60000}, // 83 — COMMUNE : Mazda MX-5 NA (1989), phares escamotables
+  {k:'premium',eur:'1,61 €',rar:'leg'}, /* (2026-11-07, Léo : « la Cerise en voiture payante, 1,61 €, on l'appelle Kelly ») */ // 83 — KELLY CHERRY (ex-LA CERISE, était COMMUNE à 60 000) : Mazda MX-5 NA (1989), phares escamotables
   /* · */
   /* · */
   /* · */
@@ -49586,8 +49856,10 @@ function ecranWipe(fn,apres){
   },REDUCED_MOTION?120:160); // (2026-10-11, passe UX) 210 → 160 ms : le volet entre en 150 ms (voir <style id="uxPasse">), l'écran change dès qu'il couvre
 }
 function uiPop(el){ // le rebond d'un bouton relâché (re-déclenchable : on retire, on force un reflow, on remet)
-  if(!el||!el.classList||REDUCED_MOTION)return;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
-  clearTimeout(el._popT);el._popT=setTimeout(function(){el.classList.remove('pop');},300);
+  if(!el||!el.classList||REDUCED_MOTION)return;
+  if(el._popFixe===undefined)el._popFixe=el.classList.contains('pop'); /* (2026-11-07) la vignette d'une traînée à icône PORTE 'pop' en permanence (c'est sa mise en page, charte-3-garage) : le rebond ne doit pas la lui retirer au bout de 300 ms */
+  el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
+  clearTimeout(el._popT);el._popT=setTimeout(function(){if(!el._popFixe)el.classList.remove('pop');},300);
 }
 /* L'APPUI SOUS LE DOIGT (2026-09-28, soir — Sacha : « travaille les animations quand tu cliques sur les boutons »). Sur iPhone, `:active`
    ne se peint pas pour un tap bref : la touche ne s'enfonçait jamais à l'œil. `.appui` est posée AU CONTACT (pointerdown, en capture) sur
@@ -50627,6 +50899,7 @@ function misBanniere(titre,texte,prime,ico){if(titre==='ASTUCE')return; /* (2026
   hautPasse(function(){misBanMontre(titre,texte,prime,ico);},1800,'mis',2);} // un défi payé vaut un moteur
 function misBanMontre(titre,texte,prime,ico){
   if(titre==='ASTUCE')return;
+  try{if(titre==='MISSION RÉUSSIE')hap([14,40,22]);}catch(e){} /* (2026-11-07) la bannière se sent, comme elle s'entend */
   try{if(SONV2&&titre==='MISSION RÉUSSIE')sfx('ui.mission');}catch(e){} /* (débogage son 2026-09-29) pendant l'auto-école la bannière attend la fin : le son l'attend aussi */
   let b=document.getElementById('misBan');
   if(!b){b=document.createElement('div');b.id='misBan';b.setAttribute('role','status');document.body.appendChild(b);hasMaj();} // hasMaj : la bannière née, son état se suit (voir HAS_D)
@@ -52045,6 +52318,7 @@ function tutoTick(dt){
   if(!TUTO.on||!started||gameOver||paused)return;
   const c=document.getElementById('coach');if(!c||!c.classList.contains('on')||c.classList.contains('bravo'))return;
   TUTO.t+=dt;
+  {const j=!!((typeof TCTL!=='undefined'&&TCTL.act)||nitroOn||Math.abs(steer)>.05);if(j!==TUTO.joue){TUTO.joue=j;c.classList.toggle('joue',j);}} /* (2026-11-07) le pouce est sur le volant ou NITRO : la carte s'estompe (voir LA CARTE COMPACTE) */
   TUTO.mT=(TUTO.mT||0)+dt;if(TUTO.mT>.25){TUTO.mT=0;tutoMain();} // la main suit sa commande (rotation, clavier qui sort, réglage COMMANDES)
   /* (2026-09-26, audit UX : 3 essais sur 3, la caisse sortait de la route juste après TOURNE, et l'étape NITRO ne se validait
      pas en l'air → 6 s de vol, explosion, « RATÉ »). Aux deux premières étapes, une sortie de route (plus d'une demi-seconde
@@ -55575,7 +55849,7 @@ function dragonJus(){
   try{const p2=new THREE.Vector3().copy(carGroup.position);p2.y+=1.1;
     juiceScreen(0xe0157a,.8,1);juiceScreen(0x7ad040,.55,1);juiceSplash(p2,(n9&1)?0xe0157a:0x7ad040,.85);}catch(e){}
 }
-Object.assign(PWR_DEFS.x,{col:0xe0157a,core:0xffd6ea,tint:'#ff5a9a',c2:'#8a0c4a',fx:'rgba(220,20,90,.8)',fx2:'rgba(120,20,160,.35)',msg:'FRUIT DU DRAGON — AURA ×2 · ×3 SI TU ENCHAÎNES !',sous:'AURA x2, x3 SI TU ENCHAINES'});
+Object.assign(PWR_DEFS.x,{col:0xe0157a,core:0xffd6ea,tint:'#ff5a9a',c2:'#8a0c4a',fx:'rgba(220,20,90,.8)',fx2:'rgba(120,20,160,.35)',msg:'FRUIT DU DRAGON — AURA ×2 · ×3 SI TU ENCHAÎNES !',sous:'AURA ×2, ×3 SI TU ENCHAINES'});
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.x.bd=f9(PWR_DEFS.x.fx);PWR_DEFS.x.bd2=f9(PWR_DEFS.x.fx2);}
 let DRG_DEC=null;const DRG_V=new THREE.Vector3(),DRG_EL={e:null};
 function dragonDecorBuild(){
@@ -55694,7 +55968,7 @@ function raisinHud(double,fr2){ // la 2e barre sous le chrono de vol
   const d=double?'1':'0';if(el.dataset.d!==d)el.dataset.d=d;
   if(double){const q=fr2.toFixed(2);if(raisinHud._q!==q){raisinHud._q=q;el.style.setProperty('--a2',q);}}
 }
-Object.assign(PWR_DEFS.a,{col:0xffffff,core:0xfff4e8,tint:'#ffd6f0',c2:'#d070d0',fx:'rgba(255,214,240,.8)',fx2:'rgba(208,112,208,.3)',msg:'🍇 RAISIN — AIRTIME ×2 : DEUX JAUGES !',sous:'AIRTIME x2, 2 JAUGES'});
+Object.assign(PWR_DEFS.a,{col:0xffffff,core:0xfff4e8,tint:'#ffd6f0',c2:'#d070d0',fx:'rgba(255,214,240,.8)',fx2:'rgba(208,112,208,.3)',msg:'🍇 RAISIN — AIRTIME ×2 : DEUX JAUGES !',sous:'AIRTIME ×2, 2 JAUGES'});
 Object.assign(I18N,{'PIMENT — NITRO INFINIE 7 s À FOND !':'CHILI — INFINITE NITRO 7 s FLAT OUT!','POMME DORÉE — LES PIÈCES VIENNENT À TOI !':'GOLDEN APPLE — THE COINS COME TO YOU!','FRUIT DU DRAGON — AURA ×2 · ×3 SI TU ENCHAÎNES !':'DRAGON FRUIT — AURA ×2 · ×3 IF YOU CHAIN!','⚡ CITRON — VITESSE ×2 — 8 s !':'⚡ LEMON — SPEED ×2 — 8 s!','🍇 RAISIN — AIRTIME ×2 : DEUX JAUGES !':'🍇 GRAPES — AIRTIME ×2: TWO GAUGES!'}); /* (24/10) les messages des fruits-pouvoirs en anglais (showMsg les passe par TR) */
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.a.bd=f9(PWR_DEFS.a.fx);PWR_DEFS.a.bd2=f9(PWR_DEFS.a.fx2);}
 /* banc (dev) : `dbgRaisin()` l'état de la double jauge ; `dbgRaisin('vide')` vide la jauge en cours (pour voir les ailes exploser / la 2e jauge démarrer). */
@@ -60510,7 +60784,7 @@ function acReessaie(A){ /* au prochain toucher (touchend : le geste qu'iOS accep
     if(acVeut(A)){AC_REV.essais++;acReveil(A);}};
   addEventListener('touchend',f,true);addEventListener('pointerup',f,true);}
 function initAudio(){
-  AC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000});}catch(e){return new C();}})(); /* (2026-10-25, Sacha/Léo : « sons très aigus chez lui, grésillements chez moi, même lien ») 48 kHz IMPOSÉS : le contexte prenait la cadence de la carte son de chaque ordinateur (44,1 · 48 · 96 kHz, Bluetooth 16-24 kHz) et tout le DSP tournait à une cadence différente d'une machine à l'autre ; le navigateur rééchantillonne vers la sortie. */
+  AC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000,latencyHint:'interactive'});}catch(e){return new C();}})(); /* (2026-10-25, Sacha/Léo : « sons très aigus chez lui, grésillements chez moi, même lien ») 48 kHz IMPOSÉS : le contexte prenait la cadence de la carte son de chaque ordinateur (44,1 · 48 · 96 kHz, Bluetooth 16-24 kHz) et tout le DSP tournait à une cadence différente d'une machine à l'autre ; le navigateur rééchantillonne vers la sortie. */
   if(!SND.sfx&&!(MUS_WA&&MUS_WA.on)&&!musGraphe())try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage — (2026-10-14, session SON) sauf si la musique passe par WebAudio (MUS_WA) : suspendu, le contexte la rendait MUETTE au lancement (SON coupé, MUSIQUE allumée) ; musWaSon coupe alors les effets par l'entrée du limiteur
   // BUS MASTER : tout le WebAudio passe par compresseur + limiteur doux tanh — niveau perçu
   // stable, jamais de clip numérique, pas de fatigue d'oreille sur une longue session
@@ -61594,7 +61868,7 @@ const SAVE={
   neuf:/[?&]demo=1\b/.test(location.search)&&!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences),
   load(){
     let d=null;
-    if(!this.neuf)try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){}
+    if(!this.neuf)try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){try{const brut=localStorage[this.K];if(brut&&brut.length>2)localStorage[this.K+'_corrompue']=brut;}catch(e2){}} /* (2026-11-07) une sauvegarde illisible n'est plus écrasée en silence par une partie vierge : on en garde le texte brut (clé cashcarSave_corrompue), récupérable à la main */
     if(!d&&!this.neuf){ // première fois (ou clé rongée) : on ramasse l'ancien monde éparpillé
       try{d={best:+localStorage.rrBest5||0,
         leaders:JSON.parse(localStorage.rrLeaders5||'[]'),
@@ -61713,7 +61987,8 @@ function musRetour(boot){try{
   if(!SND.music)musBascule();else{SAVE.flush();volUI();} // au retour : le même chemin que le bouton MUSIQUE (session audio, relance selon le contexte)
 }catch(e){}}
 musRetour(true);
-document.addEventListener('visibilitychange',function(){if(document.hidden){SAVE.d.vu=Date.now();SAVE.mark();}else musRetour(false);}); // départ : le flush de l'arrière-plan (plus bas) l'écrit
+document.addEventListener('visibilitychange',function(){if(document.hidden){SAVE.d.vu=Date.now();SAVE.mark();}else musRetour(false);});
+addEventListener('pagehide',function(){try{if(SAVE.d){SAVE.d.vu=Date.now();SAVE.flush();}}catch(e){}}); /* (2026-11-07) l'onglet se ferme (ordi, ou iOS qui tue la page) sans passer par visibilitychange : ce qui était marqué depuis moins de 30 s (le filet) partait avec */ // départ : le flush de l'arrière-plan (plus bas) l'écrit
 window.dbgMusRetour=function(simH){ // (banc) l'état ; dbgMusRetour(26) simule un retour d'arrière-plan après 26 h d'absence
   if(simH>0){SAVE.d.vu=Date.now()-simH*36e5;musRetour(false);}
   return {vu:SAVE.d.vu,mus:SND.music,vol:VOL.mus,sfx:VOL.sfx,n:MUSRET.n,dernier:MUSRET.dernier,test:MUS_RETOUR_TEST,mode:musicMode,voulue:musicVoulue};};
@@ -61854,7 +62129,7 @@ function uiClic(k){ if(UI_SON)UI_SON.t=performance.now(); try{ const id9=uiClicI
   if(SND.sfx&&!paused){ if(AC&&AC.state!=='running')acReveil(AC).then(function(ok9){if(ok9)f9();}); else f9(); } /* (2026-11-05, DEBUG-TOTAL) par acReveil, comme partout : un resume() REFUSÉ (iPhone : appel, Siri, retour d'arrière-plan) arme le réessai au prochain toucher au lieu de se perdre en silence */
   else if(SND.sfx&&paused&&SONV2&&PSON_ON)f9(); /* (2026-10-16) LE CLIC DANS LA PAUSE : il sonne tout de suite (sfx → pauseSon réveille le contexte le temps du clic) — l'attente ci-dessous reste pour ?pauseson=0 */
   else if(SND.sfx&&paused&&SONV2){const r9=k==='retour',t9=performance.now(),j9=uiClic._att=(uiClic._att|0)+1,w9=function(){if(j9!==uiClic._att)return;if((!paused||r9)&&AC&&AC.state==='running')f9();else if(performance.now()-t9<(r9?1200:700))setTimeout(w9,60);};setTimeout(w9,60);} /* (2026-10-14, session SON — relevé par DEBUGGING) UNE seule attente à la fois : la ligne QUITTER puis sa confirmation ouvraient chacune la leur, la sortie de pause les relâchait dans la même image (le son de danger doublé, 14-27 ms d'écart) ; la nouvelle remplace l'ancienne */ /* (QA 2026-09-29) REPRENDRE (« retour ») n'attend plus la fin de la pause : le 3-2-1 la tient ≥ 0,9 s, le clic était perdu — il part dès que le compte a réveillé le son */ /* (débogage son 2026-09-29) en pause : le clic attend (0,7 s au plus) que REPRENDRE réveille le son ; un interrupteur du panneau, lui, reste muet */
-  }catch(e){} hap(k==='jouer'?[8,230,30]:8); } /* (2026-10-16) JOUER : le tic de la clé, puis le coup de gaz dans le pouce (≈ 250 ms, avec le VROUUM) */ // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
+  }catch(e){} if(!(k==='refus'&&performance.now()-(hap._t||-1e9)<80))hap(k==='jouer'?[8,230,30]:8) /* (2026-11-07) le NON d'un achat refusé : gSecoue vient de lancer son motif [8,40,8] — sur Android, ce tic de 8 ms le REMPLAÇAIT (navigator.vibrate ne s'empile pas) */; } /* (2026-10-16) JOUER : le tic de la clé, puis le coup de gaz dans le pouce (≈ 250 ms, avec le VROUUM) */ // (2026-09-26) REPRENDRE : le contexte se réveille en asynchrone — la note attend qu'il tourne // en pause le moteur audio dort : la note s'empilerait et partirait en rafale à la reprise
 /* LE FILET DES BOUTONS MUETS (2026-10-16, Sacha : « chaque bouton doit avoir un son lorsqu'on clique dessus dans l'interface, chaque curseur »).
    Les 94 uiClic sont posés à la main, bouton par bouton : ceux qu'on avait oubliés restaient muets. Le filet écoute tout clic d'un VRAI doigt
    (isTrusted), en capture : il retient le bouton touché puis, l'appui traité (setTimeout 0 : après tous les gestionnaires), si AUCUN son n'est
@@ -63596,6 +63871,7 @@ function m2LigneSuit(){clearTimeout(M2L.t);let e=document.getElementById('m2Lign
     animation où la barre de mission est celle du dessus ») le FIL (code/interface/fil.js) vit dans la même zone, en bas au centre — tant que la
     ligne de mission parle, il s'efface (voir <style id="missionsV2"> : body.m2Lon #fil) */
   try{if(SONV2&&(it.k==='ok'||dj))sfx('ui.mission');}catch(x){}
+  try{if(it.k==='ok'||dj)hap([14,40,22]);}catch(x){} /* (2026-11-07) une mission réussie se sent aussi, pas seulement s'entend */
   M2L.t=setTimeout(function(){e.classList.remove('on');document.body.classList.remove('m2Lon');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
 function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');document.body.classList.remove('m2Lon');}
 /* ---- LA RÉCOMPENSE (RÉCUPÈRE) : une fois, jamais deux ---- rend {cash|car|cat,hab} ou null */
@@ -68074,6 +68350,7 @@ function endGame(){
   try{campStop();}catch(e){} // (2026-09-27) éclairs, caisse-nuage, plaque : rien ne reste figé derrière l'écran de fin
   try{rainbowCoupe();nfeuCoupe();}catch(e){} // (2026-10-07) l'arc-en-ciel de pixels brûle encore pendant l'explosion : la boucle s'arrête ici, il ne doit pas rester figé
   try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
+  try{wakeLache();}catch(e){} /* (2026-11-07) la course est finie : l'écran peut se rendormir */
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   musicStop(true);setTimeout(function menuApres(){if(!gameOver)return;if(PUBR.on||ecranWipe._on){setTimeout(menuApres,400);return;}musicMenu();},1400); /* (chasse aux bugs) CONTINUER touché avant 1,4 s : le lobby ne repart pas PAR-DESSUS la pub récompensée (pubSilence l'a fait taire) ni sous le volet d'une reprise — il attend qu'ils rendent la main */ // TAPE-STOP de fin, puis la musique du menu revient, étouffée
   lastAlertEl.style.display='none';vChip('');for(const l9 of gyroLights)l9.intensity=0; // la poursuite s'éteint avec la caisse — (2026-09-30) et la plaque du Survivant au téléphone
@@ -68137,6 +68414,7 @@ function endGame(){
 }
 function start(){
   if(started||document.getElementById('splash'))return;started=true;
+  try{wakeAsk();}catch(e){} /* (2026-11-07) le verrou d'écran suit la course, même un REJOUER qui ne repasse pas par goImmersive */
   SF.neuf=false; // (2026-10-13) la 1re partie roule sur la piste bâtie sous le voile du JOUER : son tirage est consommé
   loop._rebuildT=performance.now();loop._rebuildD=5000; // (tour 2) le départ hache (1ers shaders Metal, 1res textures) : pas une lenteur — 5 s de grâce
   runxReset(); // les compteurs de CONTRAT partent de zéro dès la 1re partie de la session
@@ -69879,7 +70157,7 @@ function chanfreinGeo(w,h,d,b){
    · L'ORDRE : chaque place s'ouvre à un seuil (`a`), puis c'est la place la MOINS remplie qui reçoit l'objet suivant — les tas montent
      ensemble, du bas vers le haut (jamais une liasse en l'air) ; une palette qui s'ouvre avale d'un coup ce qui tombe, puis tout
      repart ensemble. Les places VUES de la caméra (fixe, côté établi, qui regarde la porte) passent d'abord.
-   · LA COURBE : n = 12 × (compte / 50)^0,4 — 100 $ → 16 objets, 1 k → 40, 10 k → 100, 100 k → 250, 1 M → 630, 2,5 M (la plus chère de
+   · LA COURBE : n = 12 × (compte / 50)^0,4 — 100 € → 16 objets, 1 k → 40, 10 k → 100, 100 k → 250, 1 M → 630, 2,5 M (la plus chère de
      la boutique) → 910 ; ~1 100 au plus (six palettes pleines). Dépenser fait donc FONDRE les tas : l'argent part de l'atelier.
    `dbgArgent(compte)` force un compte (sans toucher la sauvegarde) · `dbgArgent()` rend l'état · `dbgArgent(null)` relâche. */
 const GARG={mesh:null,offs:null,n:-1,bank:-1,force:null,K:12,E:.4,places:0};
@@ -69902,14 +70180,24 @@ function garArgent(g){
   /* LA LIASSE (v2, après capture : des bandes or / rose / cyan et une tranche crème se lisaient comme des CONFETTIS) : tout est VERT
      BILLET, sombre (SON règle la clé de la boutique : pas de fluo) — tranche vert-de-gris, face vert foncé, bande papier kraft doré
      éteint ; et plus grosse (×3,2 d'une vraie liasse : de la caméra, à 10 m, une vraie serait une miette). */
-  const BAND=[0xbfa25c,0xbfa25c,0xa9884a],FACE=[0x28683c,0x245e37,0x2e7545],TRANCHE=0x668f62;
+  /* (2026-11-06, Sacha : « dans le garage remplace les liasses de billets de dollars par des liasses d'euros ») LES LIASSES EN EUROS : le billet du dessus
+     prend la couleur de sa coupure dans la série Europa (`TC_EUR` : 5 gris · 10 rouge · 20 bleu · 50 orange · 100 vert · 200 jaune · 500 violet), assombrie
+     comme l'ancien vert (×,62) ; la tranche est du papier pâle qui garde un soupçon de la couleur ; la bande reste kraft ; la bande argentée de l'hologramme
+     court sur le billet. UNE coupure par tas / pile / palette (des liasses de toutes les couleurs mélangées se lisaient comme des confettis) : les coupures
+     se suivent dans des listes fixes, sans toucher à la graine (les places des tas ne bougent pas) ; les palettes, les plus riches, sont en grosses coupures. */
+  const BAND=[0xbfa25c,0xbfa25c,0xa9884a],ARGENT=0xb4bec2;
+  const eurHex=(h,k)=>{const n=parseInt(h.slice(1),16);return (Math.round((n>>16&255)*k)<<16)|(Math.round((n>>8&255)*k)<<8)|Math.round((n&255)*k);};
+  const FACE=TC_EUR.map(e=>eurHex(e[3],.62)),TRANCHE=TC_EUR.map(e=>{const n=eurHex(e[3],.62),m=0x9aa098;  // la tranche : 70 % papier pâle, 30 % la couleur de la face
+    return (Math.round((m>>16&255)*.7+(n>>16&255)*.3)<<16)|(Math.round((m>>8&255)*.7+(n>>8&255)*.3)<<8)|Math.round((m&255)*.7+(n&255)*.3);}),SOL=TC_EUR.map(e=>eurHex(e[3],.85));
+  const DB=[1,2,0,3,2,1,3,2,0,4],DG=[3,2,4,1,3,5,2],DM=[2,1,3,0,2,3,1,2,4,3,2,1,3,5],DP=[3,4,5,6,4,5]; // les coupures : tas bas · gros tas · piles des meubles · palettes
   const LL=.5,LT=.11,LW=.24;
-  const liasse=(x,y,z,ry,rx,rz)=>{const u=rn(),f=FACE[(u*3)|0],b=BAND[(rn()*BAND.length)|0],c=Math.cos(ry),s=Math.sin(ry);
+  const liasse=(x,y,z,ry,rx,rz,d)=>{const u=rn(),f=FACE[d],b=BAND[(rn()*BAND.length)|0],c=Math.cos(ry),s=Math.sin(ry);
     const at=(lx,ly,lz)=>[x+c*lx+s*lz,y+ly,z-s*lx+c*lz]; // (tangage/roulis petits : la hauteur des pièces est prise au centre)
-    let q=at(0,.048,0);bx(LL-.014,.096,LW-.014,q[0],q[1],q[2],ry,rx,rz,TRANCHE,u);   // la tranche : la pile de billets vue de côté
+    let q=at(0,.048,0);bx(LL-.014,.096,LW-.014,q[0],q[1],q[2],ry,rx,rz,TRANCHE[d],u);   // la tranche : la pile de billets vue de côté
     q=at(0,.103,0);bx(LL,.014,LW,q[0],q[1],q[2],ry,rx,rz,f,u);                       // la face du billet du dessus
+    q=at(.13,.1105,0);bx(.034,.004,LW-.05,q[0],q[1],q[2],ry,rx,rz,ARGENT,.5);        // la bande argentée de l'hologramme, à droite de la bande kraft
     q=at(0,.055,0);bx(.09,LT+.004,LW+.01,q[0],q[1],q[2],ry,rx,rz,b,u);};             // la bande
-  const billet=(x,z,ry)=>bx(.24,.005,.11,x,.004,z,ry,(rn()-.5)*.06,(rn()-.5)*.06,0x3a8f55);
+  const billet=(x,z,ry,d)=>bx(.24,.005,.11,x,.004,z,ry,(rn()-.5)*.06,(rn()-.5)*.06,SOL[d]);
   const palette=(x,z,ry)=>{const c=Math.cos(ry),s=Math.sin(ry),at=(lx,lz)=>[x+c*lx+s*lz,z-s*lx+c*lz];
     for(const lz of [-.4,0,.4]){const q=at(0,lz);bx(1.12,.02,.12,q[0],.01,q[1],ry,0,0,0x6e4d2c);}
     for(const lx of [-.5,0,.5])for(const lz of [-.4,0,.4]){const q=at(lx,lz);bx(.12,.085,.12,q[0],.0625,q[1],ry,0,0,0x5f4226);}
@@ -69944,22 +70232,22 @@ function garArgent(g){
   // tirait ses points au hasard dans son propre rayon, sans lien avec celle du dessous — une liasse du sommet pouvait n'avoir RIEN sous
   // elle à cet endroit précis et semblait flotter. Désormais l'étage 0 seul est tiré au hasard (Poisson) ; chaque étage suivant reprend
   // les points de celui d'en dessous, resserrés vers le centre (×.72) puis triés du plus central au plus loin — la pyramide tient debout.
-  const tas=(x0,z0,couches)=>{const it=[];let y=0,bas=null;
-    const vole=()=>{const a=rn()*6.2832,d=.7+rn()*.45;it.push(()=>billet(x0+Math.cos(a)*d,z0+Math.sin(a)*d,rn()*6.2832));};
+  const tas=(x0,z0,couches,d)=>{const it=[];let y=0,bas=null;
+    const vole=()=>{const a=rn()*6.2832,dd=.7+rn()*.45;it.push(()=>billet(x0+Math.cos(a)*dd,z0+Math.sin(a)*dd,rn()*6.2832,d));};
     couches.forEach((cc,l)=>{const n=cc[0],R=cc[1],y9=y,tilt=l?.12:.04;let pts;
       if(!bas){pts=[];for(let k=0;k<80&&pts.length<n;k++){const a=rn()*6.2832,d=Math.sqrt(rn())*R,px=x0+Math.cos(a)*d,pz=z0+Math.sin(a)*d;
         if(pts.every(q=>Math.hypot(q[0]-px,q[1]-pz)>.27))pts.push([px,pz]);}}
       else{pts=bas.map(q=>[x0+(q[0]-x0)*.72+(rn()-.5)*.05,z0+(q[1]-z0)*.72+(rn()-.5)*.05])
         .sort((a,b)=>Math.hypot(a[0]-x0,a[1]-z0)-Math.hypot(b[0]-x0,b[1]-z0)).slice(0,n);}
-      for(const q of pts)it.push(()=>liasse(q[0],y9,q[1],rn()*6.2832,(rn()-.5)*tilt,(rn()-.5)*tilt));
+      for(const q of pts)it.push(()=>liasse(q[0],y9,q[1],rn()*6.2832,(rn()-.5)*tilt,(rn()-.5)*tilt,d));
       vole();y+=LT*.96;bas=pts;});
     return {it:it,a:0};};
   // LES TAS BAS du couloir de la caméra (3 couches : 33 cm, sous les 45 cm de la règle) — puis LES GROS TAS au pied des murs (5 couches)
   const bas=choisir(5.1,8.1,.72,1.7,10,[]),gros=choisir(8.4,11.2,1.0,2.2,7,bas);
-  const TB=bas.map(c=>tas(c[0],c[1],[[6,.55],[4,.4],[2,.22]])),TG=gros.map(c=>tas(c[0],c[1],[[9,.8],[7,.62],[5,.46],[3,.3],[1,.08]]));
+  const TB=bas.map((c,i)=>tas(c[0],c[1],[[6,.55],[4,.4],[2,.22]],DB[i%DB.length])),TG=gros.map((c,i)=>tas(c[0],c[1],[[9,.8],[7,.62],[5,.46],[3,.3],[1,.08]],DG[i%DG.length]));
   // LES MEUBLES : des piles bien rangées sur ce qui est plat (colonnes [dx, dz], couches)
-  const pile=(x,y,z,ry,cols,couches)=>{const it=[];for(let l=0;l<couches;l++)for(const c9 of cols)
-      it.push(()=>liasse(x+c9[0]+(rn()-.5)*.02,y+l*LT,z+c9[1]+(rn()-.5)*.02,ry+(rn()-.5)*.08,0,0));return {it:it,a:0};};
+  let np=0;const pile=(x,y,z,ry,cols,couches)=>{const it=[],d=DM[np++%DM.length];for(let l=0;l<couches;l++)for(const c9 of cols)
+      it.push(()=>liasse(x+c9[0]+(rn()-.5)*.02,y+l*LT,z+c9[1]+(rn()-.5)*.02,ry+(rn()-.5)*.08,0,0,d));return {it:it,a:0};};
   const M9=[pile(-6.6,1.0,10.42,.35,[[0,0]],3),                               // sur les fûts
     pile(10.3,2.13,8.4,Math.PI/2,[[0,-.27],[0,.27]],4),                        // sur le distributeur
     pile(9.6,.57,2.93,0,[[0,0]],3),pile(9.6,1.72,3.8,0,[[0,0]],3),            // les étagères du rack (places libres entre bacs, cartons, jantes)
@@ -69968,11 +70256,11 @@ function garArgent(g){
     pile(-3.1,.98,-11.95,0,[[-.27,0],[.27,0]],5),pile(.95,.98,-11.95,0,[[-.27,0],[.27,0]],4),pile(-7.45,.98,-11.95,Math.PI/2,[[0,0]],4), // l'établi (derrière la caméra)
     pile(9.6,1.72,5.2,0,[[0,0]],3),pile(9.6,2.87,1.55,0,[[0,0]],3),pile(9.6,4.02,3.55,0,[[0,0]],2)];
   // LES PALETTES (riche) : contre les murs, au-delà de l'orbite — 1 palette + 10 couches de 8 liasses (1,23 m)
-  const pal=(x,z,ry)=>{const it=[()=>palette(x,z,ry)],c=Math.cos(ry),s=Math.sin(ry);
+  const pal=(x,z,ry,d)=>{const it=[()=>palette(x,z,ry)],c=Math.cos(ry),s=Math.sin(ry);
     for(let l=0;l<10;l++)for(let j=0;j<4;j++)for(let i=0;i<2;i++){const lx=(i-.5)*.505+(rn()-.5)*.012,lz=(j-1.5)*.232+(rn()-.5)*.012;
-      it.push(()=>liasse(x+c*lx+s*lz,.127+l*LT,z-s*lx+c*lz,ry+(rn()-.5)*.03,0,0));}
+      it.push(()=>liasse(x+c*lx+s*lz,.127+l*LT,z-s*lx+c*lz,ry+(rn()-.5)*.03,0,0,d));}
     return {it:it,a:0};};
-  const P9=PAL.map(p9=>pal(p9[0],p9[1],p9[2]));
+  const P9=PAL.map((p9,i)=>pal(p9[0],p9[1],p9[2],DP[i%DP.length]));
   // les seuils d'ouverture : tas bas et meubles entremêlés (ce qu'on voit d'abord), les gros tas, puis les palettes quand on devient riche
   const ord=[],A1=[0,1,3,6,8,11,14,17,21,25,29,33,38,43,48,54,60,66,72,80,88,96,104,112];
   for(let i=0,ti=0,mi=0;ti<TB.length||mi<M9.length;i++){const p9=(i%2===0&&ti<TB.length)||mi>=M9.length?TB[ti++]:M9[mi++];p9.a=A1[Math.min(i,A1.length-1)]+Math.max(0,i-A1.length+1)*8;ord.push(p9);}
@@ -70902,7 +71190,8 @@ function gStripModeVoitures(){
    Dans la console (BOUTIQUE) : les onglets se taisent, la barre dit « BOUTIQUE DU JOUR » + l'horloge, la bande devient des CARTES à la
    couleur de leur rareté. Toucher une carte montre l'objet sur le plateau (rien ne change avant), et ÉQUIPER devient ACHETER + le prix.
    Triche possible en avançant l'horloge du téléphone : jeu hors ligne, on l'accepte. `dbgBoutiqueJour(j)` : la vitrine d'un autre jour. */
-function bqJour(){return Math.floor(Date.now()/864e5)+(BQ_DECALE|0);}
+function bqDecLoc(){return new Date().getTimezoneOffset()*6e4;} /* (2026-11-07) UTC − heure locale, en ms : la vitrine change à MINUIT CHEZ LE JOUEUR (en France elle tombait à 1 h ou 2 h du matin, l'heure UTC) */
+function bqJour(){return Math.floor((Date.now()-bqDecLoc())/864e5)+(BQ_DECALE|0);}
 var BQ_DECALE=0;
 function bqCles(){const V=[],C=[];
   for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const u=CAR_UNLOCK[i];if(u&&u.p>0)V.push('v:'+i);} // (2026-10-10) les caisses en € passent dans les OFFRES (bqOffres)
@@ -70925,7 +71214,7 @@ var BQ_N={une:2,jour:6,hab:3};
 function bqVitrine(){const j=bqJour();let b=SAVE.d.bq;
   if(!b||b.j!==j||!Array.isArray(b.l)||b.l.length!==BQ_N.une+BQ_N.jour||!b.l.every(bqValide)||b.l.some(function(k){return k[0]==='v'&&CAR_UNLOCK[+k.slice(2)]&&CAR_UNLOCK[+k.slice(2)].k==='premium';})){b={j:j,l:bqTire(j)};SAVE.d.bq=b;try{SAVE.mark();}catch(e){}}
   return b;}
-function bqReste(){const ms=Math.max(0,(bqJour()+1-(BQ_DECALE|0))*864e5-Date.now()),t=Math.floor(ms/1000),d2=function(n){return (n<10?'0':'')+n;};
+function bqReste(){const ms=Math.max(0,(bqJour()+1-(BQ_DECALE|0))*864e5+bqDecLoc()-Date.now()),t=Math.floor(ms/1000),d2=function(n){return (n<10?'0':'')+n;};
   return d2(Math.floor(t/3600))+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}
 function bqFig(cat,d){const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
   if(cat==='peinture')return '<i class="fnSw'+cosmSwCl(d)+'" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
@@ -74640,10 +74929,27 @@ function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?n
    plus »). `bqPhotos` était déclarée DEUX fois : celle des cartes du bandeau de l'atelier (`.fnC` + `.fnPh`, OFFRES ÉPHÉMÈRES / DU JOUR) et
    celle de la boutique de Léo (`[data-ph]`) ; la seconde, hissée, écrasait la première — les cartes du bandeau restaient sans photo. Une
    seule fonction fait les deux (le `[data-ph]` couvre aussi `.fpPh i` et `.fpSlPh` de l'ancienne). */
+/* ===== LA VOITURE POSÉE SUR LE SOL DU CUBE, À LA ROUE PRÈS (2026-11-07, Léo : « les roues sont coupées, pour certaines une seule, l'ombre est mal mise, un trait ») =====
+   La photo est redressée de 15° (skewY) : un bout de la voiture descendait sous le plancher du cube, que le plancher coupait (roue, ombre, trait). On mesure donc, UNE fois par voiture, la ligne la plus basse de la photo (image réduite à 240 × 147, alpha > 12, ombre comprise) : `--bas` = sa hauteur en fraction de la photo ; le CSS pose alors cette ligne pile sur le sol. Photo illisible : 0,84 (l'ancien repère). Tant que `--bas` manque, la photo reste cachée (pas de saut). */
+const BQ_BAS={};
+/* (2026-11-07, Léo : « arrière de la voiture face à la gauche du cube, avant face au côté droit, complètement alignée au bas, sur TOUTES les voitures ») Chaque photo est mesurée UNE fois (réduite à 240 × 147). La photo contient un reflet de sol sous la voiture (alpha faible) : on s'appuie sur la CARROSSERIE seule (alpha > 230). L'échelle `--ech` est COMMUNE à toutes les voitures (1,2, réduite seulement si la caisse dépasserait 78 % de la hauteur du cube) : les longues restent longues, les petites petites (2026-11-07, Léo : « les tailles plus cohérentes entre elles »), son centre `--dx`, la pente de sa ligne de roues (droite des moindres carrés sur le bas des colonnes, bornée à 16°), posée sur le point le plus bas de la carrosserie (la roue la plus basse) : rien n'est coupé le redressement `--pen` (ligne des roues À PLAT, parallèle à l'arête du bas), cette droite coupe la photo (`--cl` à gauche, `--cr` à droite, entre `--gl` et `--gr` : le reflet et l'ombre cuite sous et autour des roues disparaissent), et sa hauteur redressée `--bas` est posée sur le sol. `--bas` est écrit EN DERNIER : tant qu'il manque, la photo est cachée (voir boites-blister.css). */
+function bqBas(x,url){const r0=BQ_BAS[url];if(r0){for(const k in r0)x.style.setProperty(k,r0[k]);return;}
+  const p=new Image();p.onload=function(){let r={'--ech':.86,'--dx':0,'--pen':'0deg','--cl':.84,'--cr':.84,'--bas':.84};try{const W=240,H=147,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.drawImage(p,0,0,W,H);const d=g.getImageData(0,0,W,H).data;
+    let l=1e9,rr=-1,t=1e9,bt=-1;const bas=new Array(W).fill(-1);
+    for(let i=0;i<W;i++)for(let j=H-1;j>=0;j--){if(d[(j*W+i)*4+3]>230){bas[i]=j;if(i<l)l=i;if(i>rr)rr=i;if(j>bt)bt=j;break;}}
+    for(let i=l;i<=rr;i++)for(let j=0;j<H;j++){if(d[(j*W+i)*4+3]>230){if(j<t)t=j;break;}}
+    if(rr-l>20){const fw=(rr-l+1)/W,fh=(bt-t+1)/H;let ech=Math.min(1.2,.78*46/(36.7*fh));ech=Math.max(.5,ech);
+      const i0=l+Math.round((rr-l)*.12),i1=rr-Math.round((rr-l)*.12);let n=0,sx=0,sy=0,sxx=0,sxy=0;for(let i=i0;i<=i1;i++){if(bas[i]<0)continue;n++;sx+=i;sy+=bas[i];sxx+=i*i;sxy+=i*bas[i];}
+      let m=n>3?(n*sxy-sx*sy)/(n*sxx-sx*sx):0;if(!isFinite(m))m=0;m=Math.max(-.29,Math.min(0,m));let q=-1e9;for(let i=l;i<=rr;i++){if(bas[i]>=0&&bas[i]-m*i>q)q=bas[i]-m*i;}const th=Math.max(0,Math.min(.29,-m));
+      const xl=Math.max(0,l-3),xr=Math.min(W-1,rr+3),yl=Math.max(.3,Math.min(1,(q+m*xl+.5)/H+.012)),yr=Math.max(.3,Math.min(1,(q+m*xr+.5)/H+.012));
+      const nv=(q+m*((l+rr)/2)+.5)/H+(((l+rr)/2)/W-.5)*1.6376*th;
+      r={'--ech':ech,'--dx':((l+rr+1)/2/W-.5),'--pen':(Math.atan(th)*180/Math.PI).toFixed(2)+'deg','--cl':yl,'--cr':yr,'--gl':xl/W,'--gr':(xr+1)/W,'--bas':Math.min(1,nv>0?nv:.84)};}
+  }catch(e){}BQ_BAS[url]=r;for(const k in r)x.style.setProperty(k,r[k]);};
+  p.onerror=function(){x.style.setProperty('--bas',.84);};p.src=url;}
 function bqPhotos(el){
   el.querySelectorAll('.fnC[data-fn^="v:"],.fnC[data-fn^="o:"]').forEach(function(c){const i=+c.getAttribute('data-fn').slice(2);
     photoFile(i,function(url){const ph=c.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}},c);});
-  el.querySelectorAll('[data-ph]').forEach(function(x){photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const cube=!!x.closest('.bqKv');for(let k=0;k<(cube?5:1);k++){const im=document.createElement('img');im.alt='';im.src=url;if(cube){im.className='cL';im.style.setProperty('--k',k);}x.appendChild(im);}}},x);}); /* (2026-11-06, Léo : « une voiture pas plate dans le cube ») dans un cube, la photo est empilée en 5 tranches (k = 0 devant … 4 au fond) : l'épaisseur de la caisse, qui se lit au moindre mouvement (voir boites-blister.css `.cL`) */ /* (2026-10-16) l'élément : la photo attend que la carte soit EN VUE (voir LE STUDIO SANS À-COUPS) */
+  el.querySelectorAll('[data-ph]').forEach(function(x){photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const cube=!!x.closest('.bqKv');for(let k=0;k<(cube?5:1);k++){const im=document.createElement('img');im.alt='';im.src=url;if(cube){im.className='cL';im.style.setProperty('--k',k);}x.appendChild(im);}if(cube)bqBas(x,url);}},x);}); /* (2026-11-06, Léo : « une voiture pas plate dans le cube ») dans un cube, la photo est empilée en 5 tranches (k = 0 devant … 4 au fond) : l'épaisseur de la caisse, qui se lit au moindre mouvement (voir boites-blister.css `.cL`) */ /* (2026-10-16) l'élément : la photo attend que la carte soit EN VUE (voir LE STUDIO SANS À-COUPS) */
   el.querySelectorAll('[data-pha]:not(.ok)').forEach(function(x){aileFile(x.getAttribute('data-pha'),function(url){if(x.classList.contains('ok')||!url)return;const im=document.createElement('img');im.alt='';im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok'); /* (2026-11-06, Léo : « les ailes fixes, qui ne bougent pas ») une seule photo, immobile */},x);}); /* (2026-10-15) les AILES ont leur photo (aileFile) — (2026-11-05) les ailes battantes en deux moitiés sont retirées : les ailes gardent leur carte d'avant */
   el.querySelectorAll('[data-phf]:not(.ok)').forEach(function(x){const p=x.getAttribute('data-phf').split('|');figFile(p[0],p[1],function(url){if(x.classList.contains('ok')||!url)return;x.classList.add('ok');filmPose(x,url,p[0]);},x);});} /* (2026-10-15 soir) et les FIGURES leur photo-séquence (figFile), dans le sens de leur carte — (2026-10-18) leur FILM au ralenti (filmPose) */
 function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
@@ -76309,7 +76615,7 @@ function invFerme(sec){
 function invEquipe(i,el){
   if(!INV.on||GAR.go)return;uiPop(el);const cat=INV.cat;let des=false;if(GAR_TAB_ANG[cat]!=null)garTourneVers(GAR_TAB_ANG[cat]); /* (2026-10-24, Léo : « quand on sélectionne, ça ne tourne pas vers l'autre ») toucher un objet ramène la caisse face à ce qu'il habille (le plateau l'avait fait dériver) */
   if(cat==='figure'){const f=window.FIG&&FIG.liste[i];if(f){const k9=fsAuto(f.id);if(FIGV2.on)figEqToast(f.id,k9);delete FSEL.pick[f.id];garFigEssai(f.id,k9);}hap(8);invRender();return;} /* (2026-11-05) un toucher : l'emplacement juste (fsAuto), et la puce ANNULER (figEqToast) */ // (2026-10-14) toucher une figure : la caisse la fait sur le plateau — (LES FIGURES v2) et elle prend (ou rend) son emplacement
-  if(cat==='voiture'){if(i===equippedCar()){uiClic('nav');return;}if(!carUnlocked(i))return;
+  if(cat==='voiture'){if(i===equippedCar()){uiClic('nav');return;}if(!carUnlocked(i)){uiClic('refus');return;} /* (2026-11-07) une caisse verrouillée répond « non » au lieu de rester muette */
     SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;garageSaute(i);}       // le même geste que ÉQUIPER : la caisse de départ — et la bascule du plateau
   else{let d=COSM[cat][i];if(!d)return;if(shopEqD(cat)===d){const u9=cat==='peinture'&&d.id!=='usine'?COSM.peinture.findIndex(function(x){return x.id==='usine';}):-1;if(u9<0){uiClic('nav');return;}i=u9;d=COSM.peinture[u9];des=true;} /* (2026-10-26, Léo : « quand on appuie sur une peinture sélectionnée, ça la désélectionne et laisse la couleur originale ») retoucher la peinture ÉQUIPÉE équipe D'ORIGINE à sa place */if(!shopEquip(cat,i))return; /* (2026-10-14, session SON) toucher ce qui est DÉJÀ équipé répond d'un tick (muet avant) */
     SHOP.prev=null;buildCar(CARS[equippedCar()]);GAR.pressT=GAR.PRESS_D;}     // l'habillage se pose sur la caisse (elle accuse le coup)
@@ -77287,6 +77593,7 @@ $('gEquip').addEventListener('click',e=>{e.stopPropagation();
   SAVE.d.equipped=garageI;SAVE.flush();
   level=garageI;levelCash=0;                                // la caisse choisie devient la caisse de départ — ⚠ plus de levelCash pré-rempli : il offrait un magot de départ égal au seuil de la caisse (la tirelire à 320 000 d'anciennes sessions venait de là)
   garageShow(garageI);                                      // rafraîchit l'étiquette du bouton
+  hap(8); /* (2026-11-07) équiper une caisse se sent, comme équiper un habillage (ci-dessus) */
   try{if(SONV2)sfx('ui.equipe');else fanfare();}catch(err){} /* (console de son) équiper = le loquet + la quinte, pas la fanfare d'une victoire */
 });
 /* L'ACHAT. ⚠ on n'ÉQUIPE pas dans la foulée : acheter et choisir sont deux gestes, et les enchaîner
@@ -79756,7 +80063,7 @@ function loop(now){
       pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+sansAcc(TR(x[3]))+'</small><b>0.0</b></span><u></u></div>';}).join('');
       pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
-      if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=tx+'s';}
+      if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=(LANG==='fr'?tx.replace('.',','):tx)+'s';}
       el.style.setProperty('--p',Math.min(1,t9/PWR_DEFS[pwL[j][0]].t).toFixed(3));const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
       const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
@@ -80104,7 +80411,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
   const INTRO_SON=/[?&]intro=muet\b/.test(location.search)?0:/[?&]intro=musique\b/.test(location.search)?2:1, INTRO_NOTES=INTRO_SON===2;
   function introSound(){
     if(!SND.sfx||!(VOL.sfx>0))return; // mute SON : l'intro reste muette aussi — (2026-09-28) et le curseur EFFETS à zéro aussi
-    try{iAC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000});}catch(e){return new C();}})();}catch(e){return;}
+    try{iAC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000,latencyHint:'interactive'});}catch(e){return new C();}})();}catch(e){return;}
     const A=iAC;acReveil(A); /* (2026-10-28) acReveil : un refus d'iOS se réessaie au toucher, sans promesse rejetée */
     const t0=A.currentTime+.05,PHI=1.6180339;
     const phi=k=>110*Math.pow(PHI,k); // l'échelle d'or : 110·φ^k
@@ -80391,6 +80698,8 @@ addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!ga
 let wakeLock=null;
 function wakeAsk(){ try{ if(navigator.wakeLock&&!wakeLock)navigator.wakeLock.request('screen').then(function(w){
   wakeLock=w;w.addEventListener('release',function(){wakeLock=null;}); },function(){}); }catch(e){} }
+/* (2026-11-07) L'ÉCRAN NE RESTE ALLUMÉ QUE PENDANT LA COURSE : le verrou, pris au JOUER, n'était jamais rendu — l'écran restait allumé au garage, à la boutique, au menu, des heures. endGame le rend ; start() le reprend. */
+function wakeLache(){ try{ if(wakeLock){const w=wakeLock;wakeLock=null;w.release().catch(function(){});} }catch(e){} }
 function goImmersive(){
   if(!IS_MOBILE)return;
   // Sous Capacitor (app native) : la WebView est déjà plein écran et requestFullscreen n'est pas
@@ -81435,7 +81744,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   //      IMMÉDIATEMENT) et se recentre au lâcher. Axe X = braquage · axe Y = assiette en vol.
   // (2026-09-28, user : « augmente la sensibilité de l'axe haut bas du joystick ») : assiette pleine à 44 px au lieu de 66 (×1,5), zone morte
   // 14 % → 10 %, courbe 1,25 → 1,15. Le geste du DRIFT (pouce tiré vers le bas au sol) garde SA distance : il lit les pixels (`TCTL.dy`).
-  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=SENSG?VOLANT_PX:54,LOCKV=44,LOCKU=SENSG?38:44,PIQ_K=SENSG?1.12:1,ARC_B=.45,ARC_P=1.5,ARC_M=6,ARC_MAX=42.5,ARC_R0=38*Math.pow(LOCK/54,1.2); // 46 px = braquage plein (54 avant le 14/10) · 44 px = la course du BAS (le drift s'y mesure) · 38 px = assiette pleine vers le HAUT · ARC_* : l'arc du pouce (voir stMove)
+  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=SENSG?VOLANT_PX:54,LOCKV=44,LOCKU=SENSG?30:44,PIT_DK=SENSG?.82:1,PIQ_K=SENSG?1.12:1,ARC_B=.45,ARC_P=1.5,ARC_M=6,ARC_MAX=42.5,ARC_R0=38*Math.pow(LOCK/54,1.2); // 46 px = braquage plein (54 avant le 14/10) · 44 px = la course du BAS (le drift s'y mesure) · 38 px = assiette pleine vers le HAUT · ARC_* : l'arc du pouce (voir stMove)
   /* (2026-10-14, passe SENSATIONS — Sacha : « sur mobile le joystick n'est pas assez sensible, améliore un petit peu la sensibilité »)
      UN PETIT PEU, sur toute la chaîne du pouce, sans toucher à ce que la caisse SAIT faire (plafonds de lacet et de tangage, VOL_TAU : inchangés) :
      · braquage plein à 46 px au lieu de 54 (−15 % de course : le même geste braque ~18 % de plus) ; la zone morte reste 6 % (2,8 px au lieu de 3,2) ;
@@ -81451,6 +81760,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   /* (2026-10-28, Léo : « le slide joystick doit visuellement montrer ce que ça fait d'aller en haut et en bas ») DEUX REPÈRES sur la glissière : un chevron
      AU-DESSUS, un EN DESSOUS, qui s'allument à mesure que le pouce monte ou descend (--su / --sd). En VOL ils disent ce que fait le geste (MONTE / PLONGE,
      selon les réglages POUCE HAUT et VOL INVERSÉ) ; AU SOL le bas dit DRIFT et le haut s'éteint. */
+  /* ===== L'ASSIETTE EN VOL, PLUS VIVE (2026-11-07, Sacha : « la sensibilité haut bas est un peu light ») =====
+     Le pouce vers le HAUT atteint l'assiette pleine à 30 px au lieu de 38 (+27 %), vers le BAS à 82 % de sa course (36 px sur 44 : +22 % en plus des 12 % de
+     PIQ_K), et la zone morte verticale de base passe de 10 à 8 %. Ce que lit le DRIFT n'a pas bougé : `TCTL.dy` reste en pixels sur la course de 44 px (seuil
+     34,9), seule la lecture de l'assiette (`ny`) est plus courte vers le bas. Plafonds de tangage et lissage de la caisse inchangés. `?sens=0` rend tout comme avant. */
   let skU=null,skD=null,skK='';
   if(stk){skU=document.createElement('div');skU.className='skU';skD=document.createElement('div');skD.className='skD';stk.appendChild(skU);stk.appendChild(skD);}
   function skMaj(){ if(!skU)return; const vol=(mode==='fall'),sg=volSens()*volInv(),k=(vol?1:0)+'|'+sg; if(k===skK)return; skK=k;
@@ -81530,14 +81843,14 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(rawY<-LOCKU){TCTL.oy=y-cr+LOCKU;gy=Math.max(gy,Math.min(LOCKV,sB-TCTL.oy-6));} // (2026-10-14) vers le HAUT le socle flotte dès 38 px (LOCKU)
       if(TCTL.ox!==ox0||TCTL.oy!==oy0){stk.style.left=dispL(TCTL.ox);stk.style.top=(TCTL.oy-sT)+'px';} // (2026-09-30) l'ANNEAU suit la base flottante (il restait planté où le pouce s'était posé) — écrit seulement quand la base bouge
       const px=Math.max(-gx,Math.min(LOCK,pxr)),py=Math.max(-LOCKU,Math.min(gy,y-TCTL.oy-cr)),
-            nx=px<0?px/gx:px/LOCK,ny=py<0?py/LOCKU:py/gy,
+            nx=px<0?px/gx:px/LOCK,ny=py<0?py/LOCKU:Math.min(1,py/(gy*PIT_DK)),
             ax=Math.abs(nx)<.06?0:nx, // zone morte : le pouce tremble, pas la caisse
             /* (2026-09-30) ZONE MORTE CROISÉE : le pouce pivote à sa base, un glissé « de côté » décrit un ARC — 54 px de braquage portent
                15 à 30 px de vertical, soit 35 à 70 % d'assiette avec l'ancienne zone morte fixe de 10 % (tourner en vol faisait piquer ou
                cabrer). La zone morte verticale s'ÉLARGIT avec le braquage (10 % au neutre → 55 % = 24 px au plein braquage) et la sortie est
                re-étalée sur ce qui reste : une poussée franche (44 px) donne toujours l'assiette pleine. Au neutre la courbe linéaire
                re-étalée colle à l'ancienne (ny^1,15) à 0,015 près au-delà de 40 % de course — la sensibilité réglée le 28/09 est gardée. */
-            dz=.10+.45*Math.abs(nx),ay=Math.abs(ny)<=dz?0:(ny<0?-1:1)*Math.min(1,(Math.abs(ny)-dz)/(1-dz)*(ny>0?PIQ_K:1)); // (2026-10-14) vers le BAS l'assiette monte 12 % plus vite (PIQ_K) : la course, elle, reste celle du drift
+            dz=(SENSG?.08:.10)+.45*Math.abs(nx),ay=Math.abs(ny)<=dz?0:(ny<0?-1:1)*Math.min(1,(Math.abs(ny)-dz)/(1-dz)*(ny>0?PIQ_K:1)); // (2026-10-14) vers le BAS l'assiette monte 12 % plus vite (PIQ_K) : la course, elle, reste celle du drift
       TCTL.dy=py>0?py*LOCKV/gy:py; // le pouce en PIXELS vers le bas (le drift s'y mesure, indépendant de la sensibilité) — rapporté aux 44 px d'une course pleine quand le bas de l'écran la raccourcit
       /* (2026-09-30) L'ENTRÉE EN DRIFT CONNAÎT L'ARC DU JOUEUR. Dans la course, l'arc d'un pouce tendu descend déjà de 37,6 px à la butée
          droite (> 34,9 : drift sans rien tirer), celui d'une prise basse de 21,7. `ar` = la descente de CET arc à la butée, relevée pendant
@@ -81877,7 +82190,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     // roule sans pause ni panneau — on la met en pause, REPRENDRE sous le pouce
     if(started&&!gameOver&&mode==='boom')boomSkip(); // (2026-10-14, chasse aux bugs) retour pendant l'explosion : comme le ⏸ (gearOpenHandler) — vers l'écran de fin, jamais une PAUSE sur la caisse qui brûle
     else if(started&&!gameOver&&!paused&&pan&&!pan.classList.contains('open'))panOpen(true);
-    wakeAsk(); audioKick(); });
+    if(started&&!gameOver)wakeAsk(); audioKick(); }); /* (2026-11-07) le verrou de l'écran ne revient qu'en course (voir wakeLache) */
   /* ===== L'APPEL ENTRANT MET LA COURSE EN PAUSE (24/10, débogage sortie iOS : « appel entrant / Siri / centre de contrôle ») =====
      Sur iPhone, un appel (la bannière), Siri ou une alarme passent PAR-DESSUS le jeu sans le cacher : pas de visibilitychange, la course
      continuait muette pendant que le pouce allait décrocher — la caisse tombait, la partie était perdue. Le seul signe fiable : le
@@ -82051,11 +82364,11 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(cpt){for(let j=0;j<N9;j++)s9(d9+Math.round(D9*(1-Math.sqrt(1-j/N9))),'ui.compte',{st:sonPd(j)});s9(d9+D9,'mort.compteFin');}
       if(rec)s9(MORT_FLOT?d9+M6_CPT-300:d9+450,'ui.record'); /* son TAAA (0,3 s) tombe pile sur la pose */
       if(commitExploits._neuves&&!document.body.classList.contains('touch'))s9(1750,'caisse.debloquee'); /* sur téléphone la caisse gagnée n'est pas affichée (#mNew masqué) : pas de son sans image */
-      if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900);
+      if(rec)setTimeout(function(){if(ici()){pixBurst($t('mOverT'),34);hap([18,50,30]);}},900);
       return;}
     for(let i=0;i<8;i++)setTimeout(function(){if(ici())try{chimeNote(noteP(i,1),0,.035,.06);}catch(e){}},320+i*85);
     setTimeout(function(){if(!ici())return;try{if(rec)rewardSfx('m3',3);else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(7,1),.06,.07,.36);}}catch(e){}},1040);
-    if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
+    if(rec)setTimeout(function(){if(ici()){pixBurst($t('mOverT'),34);hap([18,50,30]);}},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
   }
   const MORT_FLOT=!/[?&]mort=ancien\b/.test(location.search); /* (2026-10-25) L'ÉCRAN DE MORT FLOTTANT (voir mFill) — `?mort=ancien` = les cartes d'avant */
   Object.assign(I18N,{'PARTIE':'THIS RUN','MOYENNE':'AVERAGE','VS MOY':'VS AVG','MOY.':'AVG','MOTEUR':'ENGINE'});

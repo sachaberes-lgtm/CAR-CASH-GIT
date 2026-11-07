@@ -211,6 +211,7 @@ function m2LigneSuit(){clearTimeout(M2L.t);let e=document.getElementById('m2Lign
     animation où la barre de mission est celle du dessus ») le FIL (code/interface/fil.js) vit dans la même zone, en bas au centre — tant que la
     ligne de mission parle, il s'efface (voir <style id="missionsV2"> : body.m2Lon #fil) */
   try{if(SONV2&&(it.k==='ok'||dj))sfx('ui.mission');}catch(x){}
+  try{if(it.k==='ok'||dj)hap([14,40,22]);}catch(x){} /* (2026-11-07) une mission réussie se sent aussi, pas seulement s'entend */
   M2L.t=setTimeout(function(){e.classList.remove('on');document.body.classList.remove('m2Lon');M2L.t=setTimeout(m2LigneSuit,520);},2400);}
 function m2LigneVide(){M2L.q.length=0;clearTimeout(M2L.t);M2L.on=0;const e=document.getElementById('m2Ligne');if(e)e.classList.remove('on');document.body.classList.remove('m2Lon');}
 /* ---- LA RÉCOMPENSE (RÉCUPÈRE) : une fois, jamais deux ---- rend {cash|car|cat,hab} ou null */

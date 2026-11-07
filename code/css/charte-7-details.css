@@ -230,7 +230,7 @@ html #mDead .mHero{margin-top:18px}
    (App Store, logique des écrans, iPhone) ont relevé et qu'un vrai téléphone montrerait ---- */
 /* iOS : ni flash gris sur les grands conteneurs qui portent les clics (#mob, #tPanel…), ni loupe/sélection à l'appui long, ni
    texte grossi en paysage (les libellés en nowrap débordaient), ni image qu'on soulève pour la glisser */
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;-webkit-tap-highlight-color:transparent;color-scheme:dark} /* (2026-11-07) le jeu est sombre : curseurs, champs et barres natifs le sont aussi */
 html,body{-webkit-user-select:none;-webkit-touch-callout:none}
 html{touch-action:manipulation} /* (24/10, débogage sortie iOS) Safari ignore user-scalable=no : un double-tap hors bouton zoomait la page. `manipulation` ne retire QUE le zoom au double-tap (défilement et pincement gardés ; le canvas et le HUD restent en `none`) */
 input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}

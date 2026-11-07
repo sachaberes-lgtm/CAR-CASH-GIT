@@ -17,6 +17,7 @@ css/charte-6-signatures.css          # charte 4 : signatures v5, HUD v5, objecti
 css/charte-7-details.css             # charte 4 : le mouvement (21), les détails (22), écran de mort resserré, la sortie, critiques
 css/hud-maitrise.css                 # <style id="hudMaitrise">
 css/hud-da.css                       # achatPop, pouvoirsV2, hudDA, tailles du HUD et des figures, frénésie ×3, hudOrdre
+css/monnaie.css                      # le symbole de la monnaie du jeu (masque, d'après le sketch de Léo)
 css/garage-accueil.css               # garageV6, lueurs, accueilCiel, garageV7, garageVitrine
 css/garage-hub-barre.css             # hubGarage : la barre, les jauges, le HOME, la console à trois modes
 css/garage-hub-boutique.css          # hubGarage : boutique du jour, offres, grille, DA du menu ciel, inventaire en pictogrammes
@@ -39,9 +40,12 @@ css/palier-leger.css                 # <style id="palierLeger"> : le CSS par pal
 css/ecrans-iphone.css                # <style id="ecransIphone"> : les écrans sur tous les iPhone (pause couchée, fin du SE, HOME, noms des caisses)
 css/mort-flottante.css               # <style id="mortFlottante"> : l'écran de mort flottant (argent et moteur sans cadre, graphe d'aura en bougies, GARAGE · RÉGLAGES)
 css/finition-ecrans.css              # <style id="finitionEcrans"> : la finition des écrans (2026-11-04) — détails mesurés au banc des écrans, posés après tout le reste
+css/politesses.css                   # <style id="politesses"> : les petites politesses (2026-11-07) — toast qui coupe les mots longs, focus clavier partout, NON sans secousse en mouvement réduit, enfoncement du ⏸
 css/peintures.css                    # <style id="peintures"> : le nuancier v3 (2026-11-05) — les pastilles vernies, le défi, les légendaires qui vivent ; les cartes des traînées en mouvement ; le showroom des voitures et des ailes
 css/figures-selecteur.css            # <style id="figuresSelecteur"> : le sélecteur de figures (2026-11-05) — le dock, les pastilles, la puce ANNULER, les gestes en pastilles
+css/paufinage-boutons.css           # <style id="paufinageBoutons"> : le paufinage des boutons (2026-11-07) — mesuré au banc des écrans debout ET couché : inventaire des figures couché, pastilles du sélecteur (44 px), missions couchées
 css/boites-blister.css             # <style id="boitesBlister"> : les cartes de la boutique en BOÎTES blister penchées en 3D, une couleur par rareté, la dorée
+css/ergonomie-mobile.css            # <style id="ergonomieMobile"> : l'ergonomie mobile (2026-11-07) — zones de touche de 44 px (pastilles du sélecteur), pictogrammes éteints plus lisibles, lignes de mission couchées
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
@@ -154,6 +158,7 @@ voitures/zagato.js                   # la Zagaie : la 5-95 de Zagato (gueule cre
 voitures/countach.js                 # le Loup : la Countach blanche du film (coin à arêtes vives, aileron, portes à ciseaux, l'épave)
 voitures/stratos-meteo.js            # LA STRATOS, station météo : anémomètre, manche à air, radars Doppler, gyroscope, barre de prévision (?stratos=ancien)
 voitures/corbillard-mort.js          # LE CORBILLARD de la mort : cercueil, crâne, squelette (?corbillard=ancien)
+voitures/retour-deuche-taxi.js         # la Deuche et le Taxi jaune reviennent (dessins d'avant le 07/10)
 voitures/buildcar.js                 # buildCar : construire une voiture
 voitures/plaque.js                   # la plaque d'immatriculation, le profil
 interface/vignette-moteur.js         # vignette moteur, étapes de chauffe
