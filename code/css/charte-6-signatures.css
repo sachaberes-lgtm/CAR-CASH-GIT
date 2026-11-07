@@ -59,30 +59,30 @@ html body.touch.coOn #pwrChip{top:calc(var(--hudH) + 236px)}
 .obFig img{width:118%;max-width:none;height:auto;filter:drop-shadow(0 6px 6px rgba(0,0,0,.5))}
 .obFig .pxi{--pxs:4;color:var(--tx2)}
 .obSw{display:block;width:56px;height:34px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.35),0 0 0 1px var(--anneau)}
-.obSw.chrome{background:linear-gradient(160deg,#fff 0%,#b9c3d2 30%,#f4f7fb 48%,#7d8796 70%,#e9eef5 100%)!important}
-.obSw.or{background:linear-gradient(160deg,#fff4c2 0%,#ffc93a 35%,#fff0a8 50%,#b87400 78%,#ffd65a 100%)!important}
+.obSw.chrome{background:linear-gradient(160deg,#fff 0%,#b9c3d2 30%,var(--bqFond2) 48%,var(--bqGris2) 70%,var(--bqFond2) 100%)!important}
+.obSw.or{background:linear-gradient(160deg,#fff4c2 0%,var(--au2) 35%,var(--orB) 50%,var(--orS) 78%,#ffd65a 100%)!important}
 .obRub{display:block;width:70px;height:10px;transform:skewX(-20deg);filter:drop-shadow(0 0 6px currentColor)}
 /* ---- 17. LA SECONDE CRITIQUE (2026-09-28) — un DA indépendant a relu les 66 captures (portrait + paysage) ; ce qui suit applique ce
    qui ne contredit aucun verdict de Sacha. Chaque règle dit le défaut qu'elle corrige. */
 /* (a) UNE SEULE FAÇON DE DIRE « SÉLECTIONNÉ » : liseré de sa couleur + fond teinté, jamais un aplat — la famille LÉGENDES, pleine d'or,
    faisait un DEUXIÈME lingot à côté d'ÉQUIPER */
-html .gR.on{color:var(--rc);background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 22%,#120e26),color-mix(in srgb,var(--rc) 10%,#0c0919));
+html .gR.on{color:var(--rc);background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 22%,#120e26),color-mix(in srgb,var(--rc) 10%,var(--k1)));
   box-shadow:inset 0 0 0 1px var(--rc),inset 0 1px 0 rgba(255,255,255,.14),0 0 0 1px var(--anneau),0 4px 0 1px var(--anneau),0 0 16px color-mix(in srgb,var(--rc) 40%,transparent)}
 html .gR.on::before{background:var(--rc);box-shadow:0 0 8px var(--rc)}
 html .gR.on b{color:var(--tx)}
 /* (c) L'ARGENT DU JEU EST VERT, PARTOUT : la prime d'un défi réussi (une plaque d'or — « jamais un fond de plaque ») et ce que rapporte
    une pose (« +$ 45 » sous le verdict) passent au vert billet ; le prix en € du garage passe à l'or */
-html body #misBan .mbPrime{color:#03240e;background:linear-gradient(180deg,#d6ffe0 0 2px,#7df29a 2px 60%,#35c05c 60%);box-shadow:inset 0 0 0 2px #1c0430,inset 0 -4px 0 #1d7a3a}
-html #verdHud .vM{color:var(--cash);text-shadow:2px 0 0 #1c0430,-2px 0 0 #1c0430,0 2px 0 #1c0430,0 -2px 0 #1c0430,2px 2px 0 #1c0430,-2px 2px 0 #1c0430,2px -2px 0 #1c0430,
-  -2px -2px 0 #1c0430,0 5px 0 #1c0430,0 0 14px rgba(125,255,155,.5)}
+html body #misBan .mbPrime{color:#03240e;background:linear-gradient(180deg,var(--cashL) 0 2px,#7df29a 2px 60%,#35c05c 60%);box-shadow:inset 0 0 0 2px var(--encre),inset 0 -4px 0 #1d7a3a}
+html #verdHud .vM{color:var(--cash);text-shadow:2px 0 0 var(--encre),-2px 0 0 var(--encre),0 2px 0 var(--encre),0 -2px 0 var(--encre),2px 2px 0 var(--encre),-2px 2px 0 var(--encre),2px -2px 0 var(--encre),
+  -2px -2px 0 var(--encre),0 5px 0 var(--encre),0 0 14px rgba(125,255,155,.5)}
 #gDesc .gEur{font-weight:400;color:var(--au1)}
 #gDesc .gTest{font-style:normal;padding:3px 6px 2px;margin-right:4px;color:var(--tx3);box-shadow:inset 0 0 0 1px var(--kl2)}
 /* (d) LES PASTILLES DES HÉROS parlent UNE langue : liseré + texte de la couleur de leur carte (NOUVEAU RANG rose plein, RECORD crème :
    deux langages) */
-html .hCard em{color:var(--hc);background:color-mix(in srgb,var(--hc) 14%,#0c0919);box-shadow:inset 0 0 0 1px var(--hc),0 0 14px color-mix(in srgb,var(--hc) 30%,transparent);text-shadow:none}
+html .hCard em{color:var(--hc);background:color-mix(in srgb,var(--hc) 14%,var(--k1));box-shadow:inset 0 0 0 1px var(--hc),0 0 14px color-mix(in srgb,var(--hc) 30%,transparent);text-shadow:none}
 /* (e) LE CURSEUR de volume : un patin cyan, pas un rectangle gris de navigateur */
-.volS::-webkit-slider-thumb{background:linear-gradient(180deg,#e9fdff 0%,#7ff0ff 50%,#00b6d2 100%)}
-.volS::-moz-range-thumb{background:linear-gradient(180deg,#e9fdff 0%,#7ff0ff 50%,#00b6d2 100%)}
+.volS::-webkit-slider-thumb{background:linear-gradient(180deg,#e9fdff 0%,var(--dol) 50%,var(--cyanM) 100%)}
+.volS::-moz-range-thumb{background:linear-gradient(180deg,#e9fdff 0%,var(--dol) 50%,var(--cyanM) 100%)}
 /* (f) MODES : l'icône d'un mode éteint reste cyan (comme partout), verte quand il est allumé ; les titres sur deux lignes respirent */
 html .mMode.off .mmT .pxi{color:var(--neoC);filter:none}
 html .mmT>span:first-child{min-width:0;line-height:1.4}
@@ -209,8 +209,8 @@ html #mDead .mStat.mFren.zero b{color:var(--tx3);text-shadow:0 2px 0 var(--txO)}
 .mObj.misPorte .obHd{color:var(--neoV)}
 .mObj.misPorte .obHd .pxi{--pxs:2}
 .mObj.misPorte .mMisPips{margin-left:auto}
-.mObj.misPorte .obBar i{background:linear-gradient(90deg,#0a8fa8,var(--neoC));box-shadow:0 0 10px rgba(0,234,255,.45);transition:width 1.1s var(--ease)}
-.mObj.misPorte .obBar.ok i{background:linear-gradient(90deg,#23b853,var(--neoV));box-shadow:0 0 12px rgba(94,227,122,.6)}
+.mObj.misPorte .obBar i{background:linear-gradient(90deg,var(--cyanS),var(--neoC));box-shadow:0 0 10px rgba(0,234,255,.45);transition:width 1.1s var(--ease)}
+.mObj.misPorte .obBar.ok i{background:linear-gradient(90deg,var(--cashS),var(--neoV));box-shadow:0 0 12px rgba(94,227,122,.6)}
 .mObj.misPorte .obFt{color:var(--tx2)}
 /* LE PAYSAGE (ce que l'ordi montre) : titre et règle en tête, défis → objet sur toute la largeur, ENSUITE dans la rangée du RETOUR ;
    la maison de l'écran de mort passe en ligne */

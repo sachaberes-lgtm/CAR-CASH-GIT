@@ -107,7 +107,7 @@ html body #pwrFx{z-index:1}
    HUD de course sont OMBRÉS COMME DU PIXEL ART — une rangée de pixels blancs en tête de lettre (la lèvre), un ton clair, le ton plein, un
    ton sombre au pied — cernés d'encre par des drop-shadow (un text-shadow passerait PAR-DESSUS un texte découpé dans son fond). Les
    étiquettes restent en couleur pleine, cernées. Le contour d'encre et l'extrusion dessous sont les mêmes partout (--contourH). */
-:root{--inkH:#1c0430;
+:root{--inkH:var(--encre);
   --contourH:drop-shadow(2px 0 0 var(--inkH)) drop-shadow(-2px 0 0 var(--inkH)) drop-shadow(0 2px 0 var(--inkH)) drop-shadow(0 -2px 0 var(--inkH)) drop-shadow(0 4px 0 var(--inkH));
   --contourP:drop-shadow(1px 0 0 var(--inkH)) drop-shadow(-1px 0 0 var(--inkH)) drop-shadow(0 1px 0 var(--inkH)) drop-shadow(0 -1px 0 var(--inkH)) drop-shadow(0 2px 0 var(--inkH))}
 /* l'AURA : le dégradé VIOLET CLAIR — blanc en tête, lilas, orchidée, violet au pied — et un halo mauve */
@@ -118,9 +118,9 @@ html body.touch #auraV2 .avTot em{color:#eac8ff}
 html body.touch #avPlus{color:#f3c6ff}
 /* le × de la CHAÎNE : ombré dans SA couleur (l'échelle des paliers) ; « en feu » il pulse de lumière (plus d'arc-en-ciel : il effaçait le contour) */
 html body.touch #avX{line-height:1;text-shadow:none;color:transparent;-webkit-text-fill-color:transparent;
-  background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--xc,#ff5ec8) 42%,#fff) 12% 38%,var(--xc,#ff5ec8) 38% 74%,color-mix(in srgb,var(--xc,#ff5ec8) 68%,var(--inkH)) 74%);
-  -webkit-background-clip:text;background-clip:text;filter:var(--contourH) drop-shadow(0 0 12px color-mix(in srgb,var(--xc,#ff5ec8) 60%,transparent))}
-@keyframes hmFeu{50%{filter:var(--contourH) drop-shadow(0 0 20px var(--xc,#ff5ec8)) brightness(1.3)}}
+  background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--xc,var(--neoM)) 42%,#fff) 12% 38%,var(--xc,var(--neoM)) 38% 74%,color-mix(in srgb,var(--xc,var(--neoM)) 68%,var(--inkH)) 74%);
+  -webkit-background-clip:text;background-clip:text;filter:var(--contourH) drop-shadow(0 0 12px color-mix(in srgb,var(--xc,var(--neoM)) 60%,transparent))}
+@keyframes hmFeu{50%{filter:var(--contourH) drop-shadow(0 0 20px var(--xc,var(--neoM))) brightness(1.3)}}
 html body.touch #avX.feu{animation:avBat .42s ease-in-out infinite alternate,hmFeu .84s var(--ease) infinite}
 html body.touch #avX.feu.up{animation:hmX .5s var(--ease),avBat .42s ease-in-out .5s infinite alternate,hmFeu .84s var(--ease) infinite}
 /* les POINTS de la chaîne : blanc sur lavande */
@@ -128,20 +128,20 @@ html body.touch #avPts{line-height:1;text-shadow:none;color:transparent;-webkit-
   background:linear-gradient(180deg,#fff 0 55%,#d8ccff 55%);-webkit-background-clip:text;background-clip:text;filter:var(--contourH)}
 /* le ×CASH du flow : vert billet ombré ; le NOM du palier : sa couleur, deux tons */
 html body.touch #flowHud .fM{line-height:1.1;text-shadow:none;color:transparent;-webkit-text-fill-color:transparent;
-  background:linear-gradient(180deg,#f0fff4 0 22%,#9dffb6 22% 50%,#46de76 50% 82%,#25a552 82%);-webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
+  background:linear-gradient(180deg,#f0fff4 0 22%,#9dffb6 22% 50%,var(--neoV) 50% 82%,#25a552 82%);-webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
 html body.touch #flowHud .fL{line-height:1.1;text-shadow:none;color:transparent;-webkit-text-fill-color:transparent;
   background:linear-gradient(180deg,color-mix(in srgb,var(--fc,#fff) 45%,#fff) 0 50%,var(--fc,#fff) 50%);-webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
 /* le RECORD : or deux tons */
 html body.touch #avRecT{text-shadow:none;color:transparent;-webkit-text-fill-color:transparent;line-height:1.2;
-  background:linear-gradient(180deg,#fff4c8 0 50%,#ffc93a 50%);-webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
+  background:linear-gradient(180deg,#fff4c8 0 50%,var(--au2) 50%);-webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
 /* le MINUTEUR des pouvoirs : ombré dans la couleur du pouvoir */
 html body.touch #pwrChip .pw span b{line-height:1;text-shadow:none;color:transparent;-webkit-text-fill-color:transparent;
   background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--pc) 42%,#fff) 12% 40%,var(--pc) 40% 76%,color-mix(in srgb,var(--pc) 68%,var(--inkH)) 76%);
   -webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
 /* le GESTE qui jaillit sur la caisse : ombré lui aussi (sa couleur arrive par --pc) */
 html body #popTxt{color:transparent!important;-webkit-text-fill-color:transparent;text-shadow:none!important;
-  background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--pc,#ffd75e) 42%,#fff) 12% 40%,var(--pc,#ffd75e) 40% 76%,color-mix(in srgb,var(--pc,#ffd75e) 66%,var(--inkH)) 76%);
-  -webkit-background-clip:text;background-clip:text;filter:var(--contourH) drop-shadow(0 0 14px color-mix(in srgb,var(--pc,#ffd75e) 55%,transparent))}
+  background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--pc,var(--or)) 42%,#fff) 12% 40%,var(--pc,var(--or)) 40% 76%,color-mix(in srgb,var(--pc,var(--or)) 66%,var(--inkH)) 76%);
+  -webkit-background-clip:text;background-clip:text;filter:var(--contourH) drop-shadow(0 0 14px color-mix(in srgb,var(--pc,var(--or)) 55%,transparent))}
 /* ---------------------------------------------- 10. LA BANDE DU FLOW : LA TRIADE SE MÉRITE -------------------------- */
 /* au départ, trois cellules seulement (cyan, or, rose) ; la 4e — la TRIADE violette et sa zone rouge — naît quand on s'en approche :
    elle pousse de 0 à sa pleine largeur entre 55 et 75 (--rv, posé par flowHudMaj), pâle puis franche ; révélée, elle reste */
@@ -172,37 +172,37 @@ html body #triade .trPiece{transform-style:flat;transform-origin:50% 62%;animati
 /* (a) le CHRONO de la frénésie (#frenChrono, posé par la logique v3 sous l'emblème — il ne tourne pas avec lui) : des chiffres ombrés
    ROUGE frénésie ; quand la plus longue tenue tombe (.rec), ils passent à l'OR et battent */
 html body #frenChrono{top:calc(100% + 4px);font-size:14px;line-height:1;letter-spacing:1px;color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;
-  background:linear-gradient(180deg,#fff 0 12%,#ffd0d5 12% 40%,var(--fren) 40% 76%,#a8001a 76%);-webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
-html body #frenChrono.rec{background:linear-gradient(180deg,#fff 0 12%,#fff0b8 12% 40%,#ffc93a 40% 76%,#b86a00 76%);-webkit-background-clip:text;background-clip:text;
+  background:linear-gradient(180deg,#fff 0 12%,var(--frenC) 12% 40%,var(--fren) 40% 76%,var(--frenS) 76%);-webkit-background-clip:text;background-clip:text;filter:var(--contourP)}
+html body #frenChrono.rec{background:linear-gradient(180deg,#fff 0 12%,#fff0b8 12% 40%,var(--au2) 40% 76%,#b86a00 76%);-webkit-background-clip:text;background-clip:text;
   animation:hmChronoRec .7s var(--ease) infinite}
 @keyframes hmChronoRec{50%{filter:var(--contourP) drop-shadow(0 0 10px rgba(255,201,58,.8)) brightness(1.25)}}
 /* (b) la jauge GELÉE par le nitro (#flowHud.gele — rien ne fuit tant qu'il brûle) : un liseré de GIVRE autour de la bande, les cellules
    refroidies, la vague blanchie — on voit que le flow est « tenu » */
-html body #flowHud.gele .fSeg{box-shadow:inset 0 0 0 3px #bff4ff,0 3px 0 #170f55,0 0 14px rgba(159,232,255,.65);transition:box-shadow var(--t-fast) var(--ease)}
+html body #flowHud.gele .fSeg{box-shadow:inset 0 0 0 3px #bff4ff,0 3px 0 var(--jEncre),0 0 14px rgba(159,232,255,.65);transition:box-shadow var(--t-fast) var(--ease)}
 html body #flowHud.gele .fSeg>i>s{filter:saturate(.75) brightness(1.15)}
 html body #flowHud.gele::before{background:#e6fbff}
 /* (c) l'ÉCRAN DE MORT compte QUATRE chiffres (la frénésie tenue s'ajoute) : quatre colonnes, étiquettes sans chasse pour tenir */
 html #mDead .mStats{grid-template-columns:repeat(4,minmax(0,1fr))}
 html #mDead .mStat span{letter-spacing:0}
-html #mDead .mStat.mFren b{color:#ff6b78;text-shadow:0 2px 0 var(--txO),0 0 12px rgba(255,42,61,.45)}
-html #mDead .mStat.mFren.rec b{color:#ffd0d5;text-shadow:0 2px 0 var(--txO),0 0 16px rgba(255,42,61,.8)}
-html #mDead .mStat.mFren.rec span{color:#ff6b78}
+html #mDead .mStat.mFren b{color:var(--frenV);text-shadow:0 2px 0 var(--txO),0 0 12px rgba(255,42,61,.45)}
+html #mDead .mStat.mFren.rec b{color:var(--frenC);text-shadow:0 2px 0 var(--txO),0 0 16px rgba(255,42,61,.8)}
+html #mDead .mStat.mFren.rec span{color:var(--frenV)}
 @media (prefers-reduced-motion:reduce){html body #frenChrono.rec{animation:none}}
 /* ---------------------------------------------- 14. « TRIPLE MONSTER » : LE TITRE DE LA FRÉNÉSIE -------------------- */
 /* (JS : frenTitre, FT_G — lettres gothiques au pixel) il CLAQUE au centre du couloir, grésille trois fois comme une enseigne qui
    s'allume, le sang coule par crans puis ses gouttes tombent, et il s'efface en remontant. Cerné d'encre, auréolé de rouge. */
 #frenTitre{position:fixed;left:50%;top:var(--laneA,34%);z-index:42;display:none;flex-direction:column;align-items:center;gap:6px;pointer-events:none;
   width:min(92vw,540px,88vh);transform:translate(-50%,-58%);
-  filter:drop-shadow(2px 0 0 #1c0006) drop-shadow(-2px 0 0 #1c0006) drop-shadow(0 2px 0 #1c0006) drop-shadow(0 -2px 0 #1c0006) drop-shadow(0 4px 0 #1c0006) drop-shadow(0 0 18px rgba(255,42,61,.7))}
+  filter:drop-shadow(2px 0 0 var(--frenO)) drop-shadow(-2px 0 0 var(--frenO)) drop-shadow(0 2px 0 var(--frenO)) drop-shadow(0 -2px 0 var(--frenO)) drop-shadow(0 4px 0 var(--frenO)) drop-shadow(0 0 18px rgba(255,42,61,.7))}
 #frenTitre.on{display:flex;animation:ftVie 2.7s var(--ease) both}
 #frenTitre svg{display:block;overflow:visible}
 #frenTitre .ftL1{width:60%}
 #frenTitre .ftL2{width:100%;margin-top:-4%}
 #frenTitre .ftFilet{fill:url(#ftSang);transform-box:fill-box;transform-origin:50% 0;transform:scaleY(0)}
 #frenTitre.on .ftFilet{animation:ftCoule 1.3s steps(8) calc(var(--d) + .25s) forwards}
-#frenTitre .ftGoutte{fill:#ff2a3d;opacity:0;transform-box:fill-box}
+#frenTitre .ftGoutte{fill:var(--fren);opacity:0;transform-box:fill-box}
 #frenTitre.on .ftGoutte{animation:ftGoutte .75s cubic-bezier(.55,0,1,.45) calc(var(--d) + 1.5s) forwards}
-#frenTitre .ftSous{font-family:var(--pix);font-weight:normal;font-size:11px;letter-spacing:.4em;color:#ffd0d5;margin-top:-7%}   /* il remonte entre les filets de sang : sous MONSTER, pas sous ses gouttes */
+#frenTitre .ftSous{font-family:var(--pix);font-weight:normal;font-size:11px;letter-spacing:.4em;color:var(--frenC);margin-top:-7%}   /* il remonte entre les filets de sang : sous MONSTER, pas sous ses gouttes */
 @keyframes ftVie{0%{opacity:0;transform:translate(-50%,-58%) scale(1.8)}7%{opacity:1;transform:translate(-50%,-58%) scale(.95)}11%{transform:translate(-50%,-58%) scale(1)}
   13%{opacity:.25}16%{opacity:1}19%{opacity:.45}22%,86%{opacity:1;transform:translate(-50%,-58%) scale(1)}100%{opacity:0;transform:translate(-50%,-66%) scale(1)}}
 @keyframes ftCoule{to{transform:scaleY(1)}}
@@ -221,15 +221,15 @@ body.ftOn #frenChrono,body.ftOn #frenTraits{visibility:hidden}
    texte ; le contour d'encre passe en drop-shadow. La « lèvre » dessinée à part (::after sur data-t) n'a plus lieu d'être : la bande
    blanche la remplace. */
 html body :is(#slam9 b,#verdHud b,#lvlNum i){color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;-webkit-text-stroke:0!important;
-  background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--tc) 42%,#fff) 12% 40%,var(--tc) 40% 76%,color-mix(in srgb,var(--tc) 66%,#1c0430) 76%)!important;
+  background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--tc) 42%,#fff) 12% 40%,var(--tc) 40% 76%,color-mix(in srgb,var(--tc) 66%,var(--encre)) 76%)!important;
   -webkit-background-clip:text!important;background-clip:text!important;background-size:100% 1lh!important;
-  filter:drop-shadow(3px 0 0 #1c0430) drop-shadow(-3px 0 0 #1c0430) drop-shadow(0 3px 0 #1c0430) drop-shadow(0 -3px 0 #1c0430) drop-shadow(0 6px 0 #1c0430) drop-shadow(0 0 18px color-mix(in srgb,var(--tc) 60%,transparent))}
-html body #slam9 b{--tc:var(--s1,#ffd75e)}
-html body #verdHud b{--tc:var(--vc,#ff5ec8)}
-html body #lvlNum i{--tc:#ffd75e;display:inline-block}
+  filter:drop-shadow(3px 0 0 var(--encre)) drop-shadow(-3px 0 0 var(--encre)) drop-shadow(0 3px 0 var(--encre)) drop-shadow(0 -3px 0 var(--encre)) drop-shadow(0 6px 0 var(--encre)) drop-shadow(0 0 18px color-mix(in srgb,var(--tc) 60%,transparent))}
+html body #slam9 b{--tc:var(--s1,var(--or))}
+html body #verdHud b{--tc:var(--vc,var(--neoM))}
+html body #lvlNum i{--tc:var(--or);display:inline-block}
 html body #slam9 b::after,html body #verdHud b::after{display:none}
 html body :is(#verdHud .vM){color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;
-  background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--tc) 42%,#fff) 12% 40%,var(--tc) 40% 76%,color-mix(in srgb,var(--tc) 66%,#1c0430) 76%)!important;
+  background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--tc) 42%,#fff) 12% 40%,var(--tc) 40% 76%,color-mix(in srgb,var(--tc) 66%,var(--encre)) 76%)!important;
   -webkit-background-clip:text!important;background-clip:text!important;background-size:100% 1lh!important;filter:var(--contourH) drop-shadow(0 0 12px color-mix(in srgb,var(--tc) 55%,transparent))}
 html body #verdHud .vM{--tc:var(--cash)}
 /* les PETITS textes : deux tons */
@@ -238,28 +238,28 @@ html body :is(#slam9 small,#lvlNom,#auraV2 .avTot em,#avList li,#pwrChip .pw spa
   background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 38%,#fff) 0 50%,var(--tc) 50%)!important;-webkit-background-clip:text!important;background-clip:text!important;background-size:100% 1lh!important;
   filter:var(--contourP)}
 html body #slam9 small{--tc:#ffe9ff}
-html body #lvlNom{--tc:#9fe8ff}
+html body #lvlNom{--tc:var(--cyan)}
 html body #auraV2 .avTot em{--tc:#e2b6ff}
 html body #avList li{--tc:#e6ddff}
-html body #avList li:first-child{--tc:#ffd75e}
+html body #avList li:first-child{--tc:var(--or)}
 html body #pwrChip .pw span small{--tc:#ece6ff}
-html body #misBan .mbTx small{--tc:var(--mbC,#62e062)}
-html body #campChip b{--tc:var(--cc,#fff7ee)}
-html body #campChip small{--tc:#c9bdf0}
+html body #misBan .mbTx small{--tc:var(--mbC,var(--neoV))}
+html body #campChip b{--tc:var(--cc,var(--tx))}
+html body #campChip small{--tc:var(--tx2)}
 html body #tNitro span{--tc:#fff3e0}
-html body #frenTraits b{--tc:var(--frenC,#ffd0d5)}
-html body #lvlNom em{--tc:#ffd75e}
+html body #frenTraits b{--tc:var(--frenC,var(--frenC))}
+html body #lvlNom em{--tc:var(--or)}
 /* ---------------------------------------------- 16. LA TRIADE : NARCISSE · MACHIAVEL · PSYCHO ----------------------- */
 /* (logique : frenTraitsMaj) trois barres sous le chrono de l'emblème — le nom en deux tons, une jauge fine à diodes rouges ; le trait
    qui FAIBLIT bat, le trait MORT s'éteint en gris, le trait NOURRI s'illumine */
 html body #frenTraits{gap:4px;left:-6px;right:-6px}
 html body #frenTraits b{letter-spacing:1px;line-height:1.3}
-html body #frenTraits s{height:4px;margin-top:2px;background:#2a0610;box-shadow:0 0 0 1px #1c0006}
+html body #frenTraits s{height:4px;margin-top:2px;background:#2a0610;box-shadow:0 0 0 1px var(--frenO)}
 html body #frenTraits s::after{background:linear-gradient(180deg,#ffb3bd 0 1px,var(--fren) 1px);box-shadow:0 0 6px rgba(255,42,61,.8)}
 html body #frenTraits i.mort b{--tc:#9a8aa8}
 /* la frénésie ARMÉE (jauge pleine, en attente d'une figure posée) : la zone rouge bat et toute la bande s'illumine au rythme */
 html body #flowHud.arme .fSeg{animation:hmArme .5s steps(2) infinite}
-@keyframes hmArme{50%{box-shadow:inset 0 0 0 3px #ff2a3d,0 3px 0 #170f55,0 0 16px rgba(255,42,61,.8)}}
+@keyframes hmArme{50%{box-shadow:inset 0 0 0 3px var(--fren),0 3px 0 var(--jEncre),0 0 16px rgba(255,42,61,.8)}}
 /* EN FRÉNÉSIE, l'emblème porte son chrono et ses trois traits dessous : les POUVOIRS descendent pour ne pas s'y poser (portrait) */
 @media (prefers-reduced-motion:reduce){html body #flowHud.arme .fSeg{animation:none}}
 /* ---------------------------------------------- 17. LES TRAITS PARLENT SUR LA LIGNE DU FLOW ------------------------- */

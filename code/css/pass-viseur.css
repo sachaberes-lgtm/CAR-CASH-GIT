@@ -1,37 +1,37 @@
 <style id="passViseur">
 /* ===== LE PASS DE MISSIONS — LE VISEUR (2026-11-07, Léo : « premium futuriste, mix ciel + garage ») =====
    Tout est scopé à `#gMis.pv`, classe posée par pvRender (missions/pass-viseur.js) UNIQUEMENT sous ?pass=1 : sans elle, rien ici ne touche l'écran d'avant.
-   Du CIEL : voile de nuit #22305C → #141D3A → #07050F, cartes en VERRE arrondi (voile givré, SANS flou de fond), liseré dégradé cyan · magenta · or (jamais de pente).
-   Du GARAGE : police pixel, capitales, vert billet #7DFF9B, or #FFD75E, rose #F24AA0, anneau de sol cyan. Aucune lumière ni matière 3D en plus. */
+   Du CIEL : voile de nuit #22305C → #141D3A → var(--k0), cartes en VERRE arrondi (voile givré, SANS flou de fond), liseré dégradé cyan · magenta · or (jamais de pente).
+   Du GARAGE : police pixel, capitales, vert billet var(--cash), or var(--or), rose #F24AA0, anneau de sol cyan. Aucune lumière ni matière 3D en plus. */
 #gMis.pv::before{background:repeating-linear-gradient(0deg,rgba(95,240,255,.12) 0 1px,transparent 1px 24px),repeating-linear-gradient(90deg,rgba(95,240,255,.12) 0 1px,transparent 1px 24px),linear-gradient(rgba(8,16,48,.32),rgba(8,16,48,.32)),linear-gradient(180deg,rgba(7,5,15,.78) 0,rgba(20,29,58,.34) 22%,rgba(34,48,92,0) 40%,rgba(7,5,15,0) 62%,rgba(7,5,15,.74) 100%);animation:none}  /* ciel de nuit qui baisse sur le haut et le bas ; plus de trame ni de balayage */
 /* quatre coins de viseur aux angles de l'écran */
 #gMis.pv::after{content:'';display:block;position:absolute;left:12px;right:12px;top:calc(var(--sT) + 52px);bottom:calc(var(--sB) + 92px);height:auto;pointer-events:none;animation:none;opacity:.7;
-  background:linear-gradient(#5ff0ff,#5ff0ff) 0 0/22px 2px no-repeat,linear-gradient(#5ff0ff,#5ff0ff) 0 0/2px 22px no-repeat,linear-gradient(#5ff0ff,#5ff0ff) 100% 0/22px 2px no-repeat,linear-gradient(#5ff0ff,#5ff0ff) 100% 0/2px 22px no-repeat,
-  linear-gradient(#5ff0ff,#5ff0ff) 0 100%/22px 2px no-repeat,linear-gradient(#5ff0ff,#5ff0ff) 0 100%/2px 22px no-repeat,linear-gradient(#5ff0ff,#5ff0ff) 100% 100%/22px 2px no-repeat,linear-gradient(#5ff0ff,#5ff0ff) 100% 100%/2px 22px no-repeat}
+  background:linear-gradient(var(--dol),var(--dol)) 0 0/22px 2px no-repeat,linear-gradient(var(--dol),var(--dol)) 0 0/2px 22px no-repeat,linear-gradient(var(--dol),var(--dol)) 100% 0/22px 2px no-repeat,linear-gradient(var(--dol),var(--dol)) 100% 0/2px 22px no-repeat,
+  linear-gradient(var(--dol),var(--dol)) 0 100%/22px 2px no-repeat,linear-gradient(var(--dol),var(--dol)) 0 100%/2px 22px no-repeat,linear-gradient(var(--dol),var(--dol)) 100% 100%/22px 2px no-repeat,linear-gradient(var(--dol),var(--dol)) 100% 100%/2px 22px no-repeat}
 /* le trait de scan : UNE fois à l'ouverture, de haut en bas */
 .pvScan{position:absolute;left:0;right:0;top:0;height:3px;pointer-events:none;background:linear-gradient(90deg,rgba(95,240,255,0),#bff7ff 50%,rgba(95,240,255,0));box-shadow:0 0 14px 2px rgba(95,240,255,.7);opacity:0;animation:pvScan 1.3s .35s ease-in-out 1 both}
 @keyframes pvScan{0%{opacity:0;transform:translateY(80px)}12%{opacity:.95}88%{opacity:.95}100%{opacity:0;transform:translateY(calc(100vh - 160px))}}
 #gMis.pv #gmHead{left:0;right:0;top:calc(var(--sT) + 10px);max-width:none;align-items:center;gap:5px;text-align:center}
-#gMis.pv #gmHead b{font-size:13px;letter-spacing:2px;color:#fff;text-shadow:0 0 10px rgba(95,240,255,.55),2px 2px 0 #07050F}
-#gMis.pv #gmHead small{font-size:10px;letter-spacing:2px;color:#5ff0ff}
+#gMis.pv #gmHead b{font-size:13px;letter-spacing:2px;color:#fff;text-shadow:0 0 10px rgba(95,240,255,.55),2px 2px 0 var(--k0)}
+#gMis.pv #gmHead small{font-size:10px;letter-spacing:2px;color:var(--dol)}
 #gMis.pv #gmHead small:empty{display:none}
 #pvEcran{position:absolute;inset:0;pointer-events:none}
 /* la carte : verre arrondi + liseré dégradé (le trait est un masque : le centre reste du verre) */
 .pvC{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:5px;width:104px;padding:10px 7px 9px;border-radius:20px;pointer-events:auto;cursor:pointer;color:#fff;text-align:center;font-family:var(--pix);isolation:isolate;
   background:linear-gradient(165deg,rgba(255,255,255,.17) 0,rgba(255,255,255,.05) 38%,rgba(20,29,58,.58) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 22px rgba(7,5,15,.45);animation:pvEntre .5s var(--ease) backwards;transition:left .35s var(--ease),top .35s var(--ease),scale .38s var(--ease),opacity .3s,filter .3s,box-shadow .3s;scale:.9;opacity:.8;filter:brightness(.82) saturate(.9);z-index:1}
-.pvC::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;background:linear-gradient(135deg,#5ff0ff,#f24aa0 55%,#ffd75e);
+.pvC::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;background:linear-gradient(135deg,var(--dol),#f24aa0 55%,var(--or));
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
 #pvEcran.pose .pvC{transition:none}
 /* la grille holographique, la même que sur la caisse : pas de 8 px (3 pas = 24 px sur le voile), teinte = la récompense (--gc : vert argent, or voiture, rose habillage) */
-.pvC::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:.16;background:repeating-linear-gradient(0deg,var(--gc,#5ff0ff) 0 1px,transparent 1px 8px),repeating-linear-gradient(90deg,var(--gc,#5ff0ff) 0 1px,transparent 1px 8px)}
+.pvC::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:.16;background:repeating-linear-gradient(0deg,var(--gc,var(--dol)) 0 1px,transparent 1px 8px),repeating-linear-gradient(90deg,var(--gc,var(--dol)) 0 1px,transparent 1px 8px)}
 .pvC.pvG::after{opacity:.22}
 .pvC.pvG.nog{width:104px;padding:10px 7px 9px;border-radius:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 22px rgba(7,5,15,.45)}
-.pvC.pvG.nog::before{padding:1.5px;background:linear-gradient(135deg,#5ff0ff,#f24aa0 55%,#ffd75e)}
+.pvC.pvG.nog::before{padding:1.5px;background:linear-gradient(135deg,var(--dol),#f24aa0 55%,var(--or))}
 .pvC.pvG.nog .pvAn{width:60px;height:60px}.pvC.pvG.nog .pvAn.jg{width:30px}
 .pvC.pvGa{animation-delay:.12s}.pvC.pvDr{animation-delay:.24s}
 @keyframes pvEntre{0%{opacity:0;transform:translateY(10px) scale(.94)}100%{opacity:1;transform:none}}
 .pvC.pvG{width:136px;padding:12px 9px 11px;border-radius:24px}
-.pvC.pvG::before{padding:2px;background:linear-gradient(135deg,#fff3b0,#ffd75e 40%,#b8790a 70%,#ffd75e)}
+.pvC.pvG::before{padding:2px;background:linear-gradient(135deg,var(--orB),var(--or) 40%,var(--orS) 70%,var(--or))}
 .pvC.pvG{box-shadow:inset 0 1px 0 rgba(255,243,176,.4),0 0 22px rgba(255,215,94,.16),0 8px 22px rgba(7,5,15,.45)}
 .pvC.pvG.pulse{animation:pvEntre .5s var(--ease) backwards,pvPouls 1.8s ease-in-out .6s infinite}  /* la seule animation permanente : le dernier tiers du cadeau */
 @keyframes pvPouls{0%,100%{box-shadow:inset 0 1px 0 rgba(255,243,176,.4),0 0 16px rgba(255,215,94,.14),0 8px 22px rgba(7,5,15,.45)}50%{box-shadow:inset 0 1px 0 rgba(255,243,176,.5),0 0 34px rgba(255,215,94,.5),0 8px 22px rgba(7,5,15,.45)}}
@@ -41,30 +41,30 @@
 .pvAn svg{display:block;width:100%;height:100%;transform:rotate(-90deg)}
 .pvAn circle{fill:none;stroke-width:5;stroke-linecap:round}
 .pvPiste{stroke:rgba(143,184,200,.22)}
-.pvJauge{stroke:#7DFF9B;stroke-dasharray:100;transition:stroke-dashoffset .9s var(--ease)}
-.pvG .pvJauge{stroke:#ffd75e}
-.pvN{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:400;font-size:15px;color:#fff;text-shadow:2px 2px 0 #07050F}
+.pvJauge{stroke:var(--cash);stroke-dasharray:100;transition:stroke-dashoffset .9s var(--ease)}
+.pvG .pvJauge{stroke:var(--or)}
+.pvN{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:400;font-size:15px;color:#fff;text-shadow:2px 2px 0 var(--k0)}
 .pvN small{font-size:8px;margin-left:1px;color:#8fb8c8}
 .pvG .pvN{font-size:19px}
-.pvN .pxi{--pxs:3;color:#7DFF9B}
+.pvN .pxi{--pxs:3;color:var(--cash)}
 /* le titre court, le gain */
 .pvT{display:flex;align-items:flex-start;justify-content:center;gap:5px;font-size:9px;line-height:1.5;letter-spacing:.5px;color:#e6f3fa;min-height:24px}
-.pvT .pxi{--pxs:1;flex:none;margin-top:1px;color:#5ff0ff}
+.pvT .pxi{--pxs:1;flex:none;margin-top:1px;color:var(--dol)}
 .pvT>span{min-width:0}
 .pvR{display:inline-flex;align-items:center;gap:5px;font-size:10px;letter-spacing:.5px}
 .pvR .pxi{--pxs:1}
-.pvR.cash{color:#7DFF9B}.pvR.cash .pxi{color:#7DFF9B}
-.pvR.obj{color:#ffd75e;font-size:9px}.pvR.obj .pxi{color:#ffd75e}
+.pvR.cash{color:var(--cash)}.pvR.cash .pxi{color:var(--cash)}
+.pvR.obj{color:var(--or);font-size:9px}.pvR.obj .pxi{color:var(--or)}
 .pvC.pret{background:linear-gradient(165deg,rgba(125,255,155,.26) 0,rgba(125,255,155,.08) 40%,rgba(20,29,58,.58) 100%)}
-.pvC.pret .pvJauge{stroke:#7DFF9B}
+.pvC.pret .pvJauge{stroke:var(--cash)}
 .pvC.pris{animation:gmFlash .5s var(--ease)}
 .pvC:is(:active,.appui){transform:scale(.97)}
 /* les fils de visée : pointillés cyan, découverts par un masque (tracé « tac, tac, tac »), un nœud sur la caisse ; l'anneau de sol cyan */
-#gMis.pv #gmFils path.pvF{stroke:#5ff0ff;stroke-width:1.6;stroke-dasharray:1 7;stroke-linecap:round;opacity:.9;animation:none}
-#gMis.pv #gmFils path.pvF.or{stroke:#ffd75e}
+#gMis.pv #gmFils path.pvF{stroke:var(--dol);stroke-width:1.6;stroke-dasharray:1 7;stroke-linecap:round;opacity:.9;animation:none}
+#gMis.pv #gmFils path.pvF.or{stroke:var(--or)}
 #gMis.pv #gmFils path.pvMk{stroke:#fff;stroke-width:10;stroke-dasharray:1;stroke-dashoffset:1;stroke-linecap:butt;opacity:1;animation:none;transition:stroke-dashoffset .34s linear}
 #gMis.pv #gmFils path.pvMk.fait{stroke-dashoffset:0}
-#gMis.pv #gmFils circle.pvNd{fill:#5ff0ff;opacity:0;transition:opacity .2s linear}
+#gMis.pv #gmFils circle.pvNd{fill:var(--dol);opacity:0;transition:opacity .2s linear}
 #gMis.pv #gmFils circle.pvNd.fait{opacity:1}
 /* couché (844 x 390) : cartes compactes, le ciel de la caisse reste libre */
 #gMis.pv.m2land .pvC{width:104px;padding:7px 6px 7px;gap:3px;border-radius:18px}
@@ -79,26 +79,26 @@
 /* ---- les formes : jauge en cases · pastilles · arc de cadran · anneau (cible) ---- */
 .pvAn.jg{width:30px}.pvAn.pp{width:auto;min-width:60px;display:flex;align-items:center;justify-content:center}
 .pvJg{position:absolute;left:3px;right:3px;top:0;bottom:0;border-radius:8px;background:rgba(143,184,200,.2);box-shadow:inset 0 0 0 1.5px rgba(143,184,200,.35);overflow:hidden;display:flex;align-items:flex-end}
-.pvJg i{display:block;width:100%;height:0;background:linear-gradient(0deg,#3fd873,#7DFF9B);transition:height .9s var(--ease)}
+.pvJg i{display:block;width:100%;height:0;background:linear-gradient(0deg,#3fd873,var(--cash));transition:height .9s var(--ease)}
 .pvJg::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 8px,rgba(7,5,15,.75) 8px 10px)}
-.pvG .pvJg i{background:linear-gradient(0deg,#e0a41c,#ffd75e)}
+.pvG .pvJg i{background:linear-gradient(0deg,#e0a41c,var(--or))}
 .pvPips{display:grid;gap:4px 4px;justify-items:center}
 .pvPips u{display:block;width:12px;height:12px;border-radius:50%;background:rgba(143,184,200,.22);box-shadow:inset 0 0 0 1.5px rgba(143,184,200,.5)}
-.pvPips u.on{background:radial-gradient(circle at 35% 30%,#d9ffe4,#7DFF9B 55%,#2fb862);box-shadow:0 0 7px #7DFF9B}
-.pvG .pvPips u.on{background:radial-gradient(circle at 35% 30%,#fff3b0,#ffd75e 55%,#b8790a);box-shadow:0 0 7px #ffd75e}
+.pvPips u.on{background:radial-gradient(circle at 35% 30%,#d9ffe4,var(--cash) 55%,#2fb862);box-shadow:0 0 7px var(--cash)}
+.pvG .pvPips u.on{background:radial-gradient(circle at 35% 30%,var(--orB),var(--or) 55%,var(--orS));box-shadow:0 0 7px var(--or)}
 .pvAn.pm .pvPips u{width:9px;height:9px;gap:3px}
 .pvAn.cad svg{transform:rotate(135deg)}
 .pvAn.cad circle{stroke-dasharray:75 200}
 .pvAn.cad .pvJauge{stroke-dasharray:75 200}
 /* ---- la récompense, EN GRAND ---- */
 .pvVed{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:54px;justify-content:flex-end}
-.pvVed b{font-weight:400;font-size:12px;letter-spacing:.5px;text-shadow:2px 2px 0 #07050F}
-.pvVed.cash b{color:#7DFF9B}.pvVed.car b,.pvVed.hab b{color:#ffd75e;font-size:10px}
+.pvVed b{font-weight:400;font-size:12px;letter-spacing:.5px;text-shadow:2px 2px 0 var(--k0)}
+.pvVed.cash b{color:var(--cash)}.pvVed.car b,.pvVed.hab b{color:var(--or);font-size:10px}
 .pvPiles{display:flex;align-items:flex-end;gap:6px;height:44px}
 .pvPile{display:flex;flex-direction:column-reverse;gap:0}
-.pvPile u{display:block;width:26px;height:7px;margin-top:-1px;border-radius:50%;background:linear-gradient(180deg,#fff3b0,#ffd75e 45%,#b8790a);box-shadow:0 0 0 1px #6b4a05,0 0 6px rgba(255,215,94,.55)}
-.pvChip{display:flex;align-items:center;justify-content:center;width:88px;height:42px;border-radius:14px;background:linear-gradient(160deg,rgba(255,243,176,.42),rgba(255,215,94,.14) 55%,rgba(184,121,10,.3));box-shadow:inset 0 0 0 2px #ffd75e,0 0 14px rgba(255,215,94,.6);font-style:normal}
-.pvChip svg{display:block;width:64px;height:30px;filter:drop-shadow(0 0 5px #ffd75e)}
+.pvPile u{display:block;width:26px;height:7px;margin-top:-1px;border-radius:50%;background:linear-gradient(180deg,var(--orB),var(--or) 45%,var(--orS));box-shadow:0 0 0 1px #6b4a05,0 0 6px rgba(255,215,94,.55)}
+.pvChip{display:flex;align-items:center;justify-content:center;width:88px;height:42px;border-radius:14px;background:linear-gradient(160deg,rgba(255,243,176,.42),rgba(255,215,94,.14) 55%,rgba(184,121,10,.3));box-shadow:inset 0 0 0 2px var(--or),0 0 14px rgba(255,215,94,.6);font-style:normal}
+.pvChip svg{display:block;width:64px;height:30px;filter:drop-shadow(0 0 5px var(--or))}
 .pvChip.rose{width:46px;height:42px;background:linear-gradient(160deg,rgba(255,200,236,.4),rgba(242,74,160,.16));box-shadow:inset 0 0 0 2px #f24aa0,0 0 14px rgba(242,74,160,.65)}
 .pvChip.rose .pxi{--pxs:4;color:#ffd3ee;filter:drop-shadow(0 0 6px #f24aa0)}
 .pvPast{display:block;width:40px;height:40px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(255,255,255,.7),inset -5px -6px 10px rgba(7,5,15,.35),0 0 16px rgba(255,255,255,.35);position:relative}
@@ -113,7 +113,7 @@
 #gMis.pv.m2land .pvPast{width:28px;height:28px}
 #gMis.pv.m2land .pvG .pvVed{min-height:44px}#gMis.pv.m2land .pvG .pvChip{width:78px;height:38px}
 /* ---- l'onde sous le doigt ---- */
-.pvOnde{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;pointer-events:none;border:2px solid var(--gc,#5ff0ff);box-shadow:0 0 16px var(--gc,#5ff0ff),inset 0 0 14px var(--gc,#5ff0ff);animation:pvOnde .85s cubic-bezier(.1,.7,.3,1) both}
+.pvOnde{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;pointer-events:none;border:2px solid var(--gc,var(--dol));box-shadow:0 0 16px var(--gc,var(--dol)),inset 0 0 14px var(--gc,var(--dol));animation:pvOnde .85s cubic-bezier(.1,.7,.3,1) both}
 @keyframes pvOnde{0%{opacity:.95;transform:scale(.4)}100%{opacity:0;transform:scale(15)}}
 html[data-reduced-motion="1"] .pvOnde{display:none}
 @media (prefers-reduced-motion:reduce){.pvC,.pvC.pvG.pulse{animation:none!important}.pvScan{display:none}.pvJauge{transition:none}}
@@ -121,8 +121,8 @@ html[data-reduced-motion="1"] .pvC,html[data-reduced-motion="1"] .pvC.pvG.pulse{
 html[data-reduced-motion="1"] .pvScan{display:none}
 /* (2026-11-07, Léo : « un peu plus petites mais cliquables, un aspect flottant plus reculé ; on clique, elle s'avance et fait reculer celle mise en avant ; on reclique, ça la sélectionne ») la PROFONDEUR : toutes flottent en retrait, une seule est en avant, une seule est choisie */
 #pvEcran.pose .pvC{scale:.9}
-.pvC.av{scale:1.08;opacity:1;filter:none;z-index:3;box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 0 22px color-mix(in srgb,var(--gc,#5ff0ff) 45%,transparent),0 14px 30px rgba(7,5,15,.6)}
-.pvC.sel::before{padding:3px;background:linear-gradient(135deg,#fff,var(--gc,#5ff0ff) 50%,#fff)}
-.pvC.sel{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 30px color-mix(in srgb,var(--gc,#5ff0ff) 70%,transparent),0 14px 30px rgba(7,5,15,.6)}
+.pvC.av{scale:1.08;opacity:1;filter:none;z-index:3;box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 0 22px color-mix(in srgb,var(--gc,var(--dol)) 45%,transparent),0 14px 30px rgba(7,5,15,.6)}
+.pvC.sel::before{padding:3px;background:linear-gradient(135deg,#fff,var(--gc,var(--dol)) 50%,#fff)}
+.pvC.sel{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 30px color-mix(in srgb,var(--gc,var(--dol)) 70%,transparent),0 14px 30px rgba(7,5,15,.6)}
 @media (prefers-reduced-motion:reduce){.pvC{transition:none}}
 </style>

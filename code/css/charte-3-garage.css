@@ -24,7 +24,7 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 #gPlayMain,#lbBoxG{display:none!important}
 /* LA FICHE — l'identité, en haut, on la LIT : famille, rang, NOM (et la condition si elle est à gagner) */
 #gCard{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:0 14px;width:100%;margin:22px 0 0;pointer-events:auto;cursor:default}
-#gEclat{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;background:radial-gradient(42% 26% at 50% 44%,var(--rc,#ffd75e),transparent 72%)}
+#gEclat{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;background:radial-gradient(42% 26% at 50% 44%,var(--rc,var(--or)),transparent 72%)}
 #gEclat.on{animation:k4Eclat .9s var(--ease) forwards}
 @keyframes k4Eclat{0%{opacity:0}18%{opacity:.75}100%{opacity:0}}
 /* LE TAMPON : un achat se FÊTE — « À TOI ! » frappé en or sur la fiche (la seule surimpression du garage) */
@@ -55,15 +55,15 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
   padding:0 calc(var(--sR) + 14px) calc(var(--sB) + 16px) calc(var(--sL) + 14px);pointer-events:none}
 #gBottom>*{pointer-events:auto}
 /* LES ONGLETS : un sélecteur segmenté penché — un rail de laque sombre, le segment actif allumé en magenta */
-#gTabs{display:flex;gap:4px;margin:0 6px;padding:4px;transform:skewX(var(--sk));background:linear-gradient(180deg,#0b0818,#110d22);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 0 0 1px var(--fil)}
+#gTabs{display:flex;gap:4px;margin:0 6px;padding:4px;transform:skewX(var(--sk));background:linear-gradient(180deg,var(--tranche),#110d22);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 0 0 1px var(--fil)}
 .gTab{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:50px;padding:8px 0 6px;border:0;border-radius:0;cursor:pointer;
   font-family:var(--pix);font-size:var(--f0);letter-spacing:0;color:var(--tx3);background:transparent;-webkit-tap-highlight-color:transparent;
   transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
 .gTab .pxi{--pxs:2;color:var(--tx3);transition:color var(--t-fast) var(--ease)}
-.gTab.on{color:#fff;background:linear-gradient(180deg,#ff72d9,#e0249d 60%,#c01585);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 0 18px rgba(255,62,200,.5);text-shadow:0 1px 0 #8a0f5c}
+.gTab.on{color:#fff;background:linear-gradient(180deg,var(--aura),var(--neoMs) 60%,var(--neoMf));box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 0 18px rgba(255,62,200,.5);text-shadow:0 1px 0 #8a0f5c}
 .gTab.on .pxi{color:#fff}
 .gTab:active,.gTab.appui{background:rgba(255,255,255,.06)}
-.gTab.on:active,.gTab.on.appui{background:linear-gradient(180deg,#ff72d9,#e0249d 60%,#c01585)}
+.gTab.on:active,.gTab.on.appui{background:linear-gradient(180deg,var(--aura),var(--neoMs) 60%,var(--neoMf))}
 /* LES FAMILLES : des puces penchées, la couleur de la rareté en filet, un losange qui brille */
 #gRar{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;margin:0 -14px;padding:4px 20px 6px;
   -webkit-mask:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 56px),transparent);mask:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 56px),transparent);scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
@@ -100,8 +100,8 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 /* les vignettes d'HABILLAGE : un nuancier, une aile, un ruban */
 .gT.cos{background:var(--laqueP)}
 .gT .gSwc{position:absolute;left:14px;right:14px;top:12px;bottom:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.35),0 0 0 1px var(--anneau)}
-.gT .gSwc.chrome{background:linear-gradient(160deg,#fff 0%,#b9c3d2 30%,#f4f7fb 48%,#7d8796 70%,#e9eef5 100%)!important}
-.gT .gSwc.or{background:linear-gradient(160deg,#fff4c2 0%,#ffc93a 35%,#fff0a8 50%,#b87400 78%,#ffd65a 100%)!important}
+.gT .gSwc.chrome{background:linear-gradient(160deg,#fff 0%,#b9c3d2 30%,var(--bqFond2) 48%,var(--bqGris2) 70%,var(--bqFond2) 100%)!important}
+.gT .gSwc.or{background:linear-gradient(160deg,#fff4c2 0%,var(--au2) 35%,var(--orB) 50%,var(--orS) 78%,#ffd65a 100%)!important}
 .gT .gSwc.mat{box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),0 0 0 1px var(--anneau)}
 /* (2026-10-14, passe graphismes · palette) MÉTALLISÉ : un biseau clair en haut-gauche, une ombre dure en bas-droite — NACRE : un liseré blanc rosé (aucun flou) */
 .gSwc.metal,.obSw.metal,.ivSw.metal,.fnSw.metal{box-shadow:inset 2px 2px 0 rgba(255,255,255,.42),inset -2px -2px 0 rgba(0,0,0,.32)!important}
@@ -149,8 +149,8 @@ body.inGarage #hud>:not(#garage):not(#gFade){display:none!important}
 #gEquip[data-etat="eq"]{--nc:var(--neoV);color:var(--neoV);animation:none;outline:0;background:linear-gradient(180deg,#0f2a1d,#0a1d14);
   box-shadow:inset 3px 0 0 var(--neoV),inset 60px 0 44px -34px rgba(94,227,122,.35),inset 0 2px 6px rgba(0,0,0,.55),inset 0 0 0 1px rgba(94,227,122,.3),0 0 0 1px var(--anneau),0 0 18px rgba(94,227,122,.18);text-shadow:0 2px 0 var(--txO)}
 #gEquip[data-etat="eq"] .pxi{color:var(--neoV)}
-#gEquip[data-etat="verrou"]{--nc:#4a4270;color:var(--tx3);animation:none;outline:0;background:linear-gradient(180deg,#141128,#0d0a1c);
-  box-shadow:inset 3px 0 0 #4a4270,inset 0 2px 6px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.05),0 0 0 1px var(--anneau);text-shadow:0 2px 0 var(--txO)}
+#gEquip[data-etat="verrou"]{--nc:var(--kl2);color:var(--tx3);animation:none;outline:0;background:linear-gradient(180deg,#141128,#0d0a1c);
+  box-shadow:inset 3px 0 0 var(--kl2),inset 0 2px 6px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.05),0 0 0 1px var(--anneau);text-shadow:0 2px 0 var(--txO)}
 #gEquip[data-etat="verrou"] .pxi{color:var(--tx3);filter:none}
 /* (2026-09-29, Léo : « replace mieux le bouton play, reprends les boutons du menu d'après le crash et mets-les dans le garage »)
    L'ATELIER REPREND LES BOUTONS DE L'ÉCRAN DE MORT — BOUTIQUE · RÉGLAGES en haut à droite (le coin vide, en touches carrées comme le ⚙
@@ -221,7 +221,7 @@ html #garage.missions #gPlayMain{display:none!important}
 html.misS #gMis::before{background:repeating-linear-gradient(0deg,rgba(95,240,255,.04) 0 1px,transparent 1px 4px),radial-gradient(ellipse 80% 75% at 50% 45%,rgba(10,40,80,0) 35%,rgba(3,8,22,.7) 100%),linear-gradient(rgba(4,8,20,.38),rgba(4,8,20,.38))} /* un voile de plus : l'atelier ne dispute plus la lecture */
 html.misS #gmFils path{stroke-width:1.2;stroke-dasharray:none;animation:none}
 html.misS #gmFils path.ch{stroke-dasharray:3 6;opacity:.32;animation:gmFlux 2.2s linear infinite} /* la constellation : discrète, elle ne barre plus les cartes */
-html.misS #gmFils path.ch.r{stroke:#ffd75e;opacity:.42}
+html.misS #gmFils path.ch.r{stroke:var(--or);opacity:.42}
 html.misS #gmHead small{line-height:1.6}
 /* L'ÉCRAN MISSIONS EN LISTE (2026-10-15, Sacha : « plus de petits groupes de trois, l'interface la plus claire possible, toujours dans
    l'écran caméra de surveillance du garage ») — un seul panneau opaque, posé sur la vue caméra (sa trame et son balayage restent autour) :
@@ -244,17 +244,17 @@ html.misS #gmHead small{line-height:1.6}
 @media (prefers-reduced-motion:reduce){#gmListe{animation:none!important}}
 @keyframes gmBalaye{to{transform:translateY(654.5%)}} /* (2026-10-23, audit mobile) transform au lieu de top : -22% → 122% du parent = 144 % / 22 % de sa propre hauteur */
 #gmFils{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
-#gmFils path{fill:none;stroke:#5ff0ff;stroke-width:1.6;stroke-dasharray:7 7;stroke-linecap:round;animation:gmFlux 1.1s linear infinite}
+#gmFils path{fill:none;stroke:var(--dol);stroke-width:1.6;stroke-dasharray:7 7;stroke-linecap:round;animation:gmFlux 1.1s linear infinite}
 #gmFils path.hl{stroke-width:6;stroke-dasharray:none;opacity:.16;animation:none}
 #gmFils path.n{stroke:#8f84c8;opacity:.55;animation-duration:2.6s}
-#gmFils path.r{stroke:#ffd75e}
+#gmFils path.r{stroke:var(--or)}
 @keyframes gmFlux{to{stroke-dashoffset:-28}}
 @keyframes gmIn{0%{opacity:0;filter:brightness(3);clip-path:inset(0 0 100% 0)}60%{opacity:1;clip-path:inset(0 0 0 0)}80%{filter:brightness(1.6)}100%{filter:none}}
 @keyframes gmFlash{30%{filter:brightness(2.2)}}
 #gmHead{position:absolute;left:calc(var(--sL) + var(--gut));top:calc(var(--sT) + 12px);display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:min(60vw,420px)}
-#gmHead b{font-weight:400;font-size:22px;letter-spacing:3px;color:#5ff0ff;text-shadow:0 0 12px rgba(95,240,255,.8),2px 2px 0 #07050f}
+#gmHead b{font-weight:400;font-size:22px;letter-spacing:3px;color:var(--dol);text-shadow:0 0 12px rgba(95,240,255,.8),2px 2px 0 var(--k0)}
 #gmHead small{font-size:8px;letter-spacing:1px;color:#8fb8c8}
-#gmHead em{font-style:normal;font-size:8px;letter-spacing:1px;color:#ffd75e;line-height:1.6}
+#gmHead em{font-style:normal;font-size:8px;letter-spacing:1px;color:var(--or);line-height:1.6}
 #gmBas{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--sB) + 14px);display:flex;gap:12px;pointer-events:auto;width:min(calc(100vw - 2 * var(--gut)),460px)}
 #gmBas .gmHome{flex:none;width:76px;min-width:76px;flex-direction:column;gap:6px;padding:6px 4px 4px 8px;font-size:var(--f1);letter-spacing:1px;--nc:var(--tx2);color:var(--tx2)}
 #gmBas .gmJouer{flex:1;min-width:0}

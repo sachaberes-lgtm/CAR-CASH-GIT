@@ -6,24 +6,24 @@
 #gBq #gBqPan.bqAileOn{top:auto!important;gap:0}
 #gBq #gBqPan.bqAileOn>.bqRail{display:none}
 #gBq #gBqPan:not(.bqAileOn) #bqAile{display:none}
-#bqAile{--baW:124px;--baPh:70px;position:relative;display:flex;flex-direction:column;gap:6px;padding:8px 0 6px;background:#fff;box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.08);
-  font-family:var(--pix);color:#14171c;pointer-events:auto;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+#bqAile{--baW:124px;--baPh:70px;position:relative;display:flex;flex-direction:column;gap:6px;padding:8px 0 6px;background:#fff;box-shadow:0 0 0 1px var(--bqFil),0 8px 20px rgba(30,40,55,.08);
+  font-family:var(--pix);color:var(--bqInk);pointer-events:auto;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 /* l'en-tête : la famille de l'aile du milieu à gauche, sa place à droite */
 #bqAile .baTete{display:flex;align-items:center;gap:8px;min-height:22px;padding:0 10px}
 #bqAile .baFam{display:flex;align-items:center;gap:7px;min-width:0;flex:1}
-#bqAile .baFam .bqRl,#bqAile .baTr .bqRl{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:6px;background:#14171c;box-shadow:0 0 0 1px var(--rc),0 0 8px -2px var(--rc)}
+#bqAile .baFam .bqRl,#bqAile .baTr .bqRl{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:6px;background:var(--bqInk);box-shadow:0 0 0 1px var(--rc),0 0 8px -2px var(--rc)}
 #bqAile .baFam .bqRl .pxi,#bqAile .baTr .bqRl .pxi{--pxs:2;color:var(--rc)}
 #bqAile .baFam b{font-weight:400;font-size:9px;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#bqAile .baFam em{font-style:normal;font-size:8px;letter-spacing:1px;color:#5b6470;white-space:nowrap}
-#bqAile .baFam em i{font-style:normal;color:#14171c}
-#bqAile .baPos{flex:none;font-size:8px;letter-spacing:1px;color:#5b6470;white-space:nowrap}
-#bqAile .baPos b{font-weight:400;font-size:10px;color:#14171c}
+#bqAile .baFam em{font-style:normal;font-size:8px;letter-spacing:1px;color:var(--bqGris);white-space:nowrap}
+#bqAile .baFam em i{font-style:normal;color:var(--bqInk)}
+#bqAile .baPos{flex:none;font-size:8px;letter-spacing:1px;color:var(--bqGris);white-space:nowrap}
+#bqAile .baPos b{font-weight:400;font-size:10px;color:var(--bqInk)}
 /* la réglette : un trait par aile, couleur de sa rareté — plein : à toi ; le trait de l'aile du milieu monte, noir. La bande entière se
    balaie du doigt (44 px de haut pour le doigt, 6 px dessinés). */
 #bqAile .baRg{position:relative;display:flex;align-items:center;gap:3px;height:44px;margin:-14px 10px -12px;cursor:pointer;touch-action:none}
-#bqAile .baRg i{flex:1;height:6px;border-radius:2px;background:color-mix(in srgb,var(--rc) 28%,#eef1f5);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc) 70%,#14171c 10%);transition:height .18s,background .18s}
+#bqAile .baRg i{flex:1;height:6px;border-radius:2px;background:color-mix(in srgb,var(--rc) 28%,#eef1f5);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc) 70%,var(--bqInk) 10%);transition:height .18s,background .18s}
 #bqAile .baRg i.a{background:var(--rc)}
-#bqAile .baRg i.on{height:14px;background:#14171c;box-shadow:0 -3px 0 -1px var(--rc),0 3px 0 -1px var(--rc)}
+#bqAile .baRg i.on{height:14px;background:var(--bqInk);box-shadow:0 -3px 0 -1px var(--rc),0 3px 0 -1px var(--rc)}
 #bqAile .baRg.tient i{height:10px}
 #bqAile .baRg.tient i.on{height:18px}
 /* la piste : la molette et ses deux flèches posées dessus */
@@ -32,10 +32,10 @@
   padding:6px calc(50% - var(--baW) / 2) 6px;scroll-padding-inline:0}
 #bqAile .baRail::-webkit-scrollbar{display:none}
 #bqAile .baK{position:relative;flex:none;display:flex;flex-direction:column;width:var(--baW);padding:0;margin:0;border:0;border-radius:10px;overflow:hidden;background:#fff;color:inherit;font:inherit;text-align:left;cursor:pointer;
-  scroll-snap-align:center;box-shadow:0 0 0 1px #dde1e6,0 6px 14px rgba(30,40,55,.07);transform:scale(.9);opacity:.82;transition:transform .22s var(--ease,ease),opacity .22s,box-shadow .22s}
+  scroll-snap-align:center;box-shadow:0 0 0 1px var(--bqFil),0 6px 14px rgba(30,40,55,.07);transform:scale(.9);opacity:.82;transition:transform .22s var(--ease,ease),opacity .22s,box-shadow .22s}
 #bqAile .baK::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--rc);z-index:1}
-#bqAile .baK.mil{transform:none;opacity:1;box-shadow:0 0 0 1px #c9ced6,0 10px 22px rgba(30,40,55,.14)}
-#bqAile .baK.sel{box-shadow:0 0 0 2px #14171c,0 10px 24px rgba(30,40,55,.18)}
+#bqAile .baK.mil{transform:none;opacity:1;box-shadow:0 0 0 1px var(--bqFil),0 10px 22px rgba(30,40,55,.14)}
+#bqAile .baK.sel{box-shadow:0 0 0 2px var(--bqInk),0 10px 24px rgba(30,40,55,.18)}
 #bqAile .baK:active{transform:scale(.86)}
 #bqAile .baK.mil:active{transform:scale(.96)}
 #bqAile .baPh{display:flex;align-items:center;justify-content:center;height:var(--baPh);overflow:hidden;background:radial-gradient(ellipse 70% 80% at 50% 60%,color-mix(in srgb,var(--rc) 22%,#fff),#eef1f5 75%)}
@@ -46,21 +46,21 @@
 #bqAile .baP{display:flex;align-items:center;gap:4px;min-width:0;font-size:9px;line-height:11px;white-space:nowrap}
 #bqAile .baP span{overflow:hidden;text-overflow:ellipsis}
 #bqAile .baP .pxi{--pxs:1;flex:none;color:currentColor}
-#bqAile .baP.cher{color:#8a929c}
-#bqAile .baP.acq{color:#5b6572}
-#bqAile .baP.eq{align-self:flex-start;padding:2px 5px 1px 3px;border-radius:4px;background:#3d4bff;color:#fff}
-#bqAile .baP.eur{color:#3d4bff}
-#bqAile .baP.defi{color:#5b6572}
+#bqAile .baP.cher{color:var(--bqGris2)}
+#bqAile .baP.acq{color:var(--bqGris)}
+#bqAile .baP.eq{align-self:flex-start;padding:2px 5px 1px 3px;border-radius:4px;background:var(--bqAcc);color:#fff}
+#bqAile .baP.eur{color:var(--bqAcc)}
+#bqAile .baP.defi{color:var(--bqGris)}
 /* la tranche d'une famille : noire, le logo à la couleur de la rareté, son nom couché, « à toi / total » */
-#bqAile .baTr{flex:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:6px;width:28px;padding:6px 0;border-radius:8px;background:#14171c;color:#fff;margin:6px 0;box-sizing:border-box}
+#bqAile .baTr{flex:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:6px;width:28px;padding:6px 0;border-radius:8px;background:var(--bqInk);color:#fff;margin:6px 0;box-sizing:border-box}
 #bqAile .baTr b{display:none;font-weight:400;font-size:8px;letter-spacing:2px;white-space:nowrap;overflow:hidden;color:var(--rc)}
-#bqAile .baTr em{font-style:normal;font-size:7px;color:#aab2bd;white-space:nowrap}
+#bqAile .baTr em{font-style:normal;font-size:7px;color:var(--bqGris2);white-space:nowrap}
 #bqAile .baTr em i{font-style:normal;color:#fff}
 /* ◀ ▶ : 48 px, sur les bords de la piste, en fondu blanc (la vignette d'à côté se devine dessous) */
-#bqAile .baFl{position:absolute;top:0;bottom:0;z-index:2;display:grid;place-items:center;width:48px;padding:0;margin:0;border:0;background:none;color:#14171c;cursor:pointer}
+#bqAile .baFl{position:absolute;top:0;bottom:0;z-index:2;display:grid;place-items:center;width:48px;padding:0;margin:0;border:0;background:none;color:var(--bqInk);cursor:pointer}
 #bqAile .baFl.g{left:0;background:linear-gradient(90deg,#fff 30%,rgba(255,255,255,0))}
 #bqAile .baFl.d{right:0;background:linear-gradient(270deg,#fff 30%,rgba(255,255,255,0))}
-#bqAile .baFl .pxi{--pxs:3;color:#14171c;transition:transform .15s}
+#bqAile .baFl .pxi{--pxs:3;color:var(--bqInk);transition:transform .15s}
 #bqAile .baFl .pxi-haut,#bqAile .baFl .pxi-bas{display:none}
 #bqAile .baFl:active .pxi{transform:scale(.8)}
 #bqAile .baFl.off{opacity:.25}
@@ -86,7 +86,7 @@
 #gBqPan.cote #bqAile .baFl .pxi-gauche,#gBqPan.cote #bqAile .baFl .pxi-droite{display:none}
 #gBqPan.cote #bqAile .baFl .pxi-haut,#gBqPan.cote #bqAile .baFl .pxi-bas{display:block}
 /* sa phrase, sous la molette : trois lignes au plus, la place réservée (rien ne saute quand on tourne) */
-#bqAile .baDesc{min-height:33px;max-height:33px;padding:0 12px;font-size:7px;line-height:11px;letter-spacing:0;color:#5b6470;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;text-transform:none}
+#bqAile .baDesc{min-height:33px;max-height:33px;padding:0 12px;font-size:7px;line-height:11px;letter-spacing:0;color:var(--bqGris);overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;text-transform:none}
 #gBqPan.cote #bqAile .baDesc{flex:none}
 @media (prefers-reduced-motion:reduce){#bqAile .baK,#bqAile .baRg i{transition:none}}
 html[data-reduced-motion] :is(#bqAile .baK,#bqAile .baRg i){transition:none}
@@ -104,4 +104,22 @@ html[data-reduced-motion] :is(#bqAile .baK,#bqAile .baRg i){transition:none}
 #bqAile .baK .bqBrisSur{position:absolute;z-index:5;pointer-events:none;border-radius:inherit}
 @media (prefers-reduced-motion:reduce){#bqAile .baK.mil:not(.a)::after{animation:none}}
 html[data-reduced-motion] #bqAile .baK.mil:not(.a)::after{animation:none}
+/* ===== LA BOÎTE QUI DÉFILE (2026-11-07, Léo : « un effet de cube rectangle qui défile ; à cause du plat, des ailes ne se voient pas bien, comme les blanches ») =====
+   · L'INTÉRIEUR de la boîte (.baPh) : le fond n'est plus blanc — une paroi du fond teintée de la rareté, sombre, éclairée au centre, un plancher
+     et deux parois en tranche : une aile blanche, argent ou pâle s'y détache.
+   · LA BOÎTE 3D : chaque carte tourne en perspective selon sa distance au milieu de la molette (--o, de -1 à 1, posé à chaque image par
+     aileVitrineMaj) et montre sa TRANCHE du côté où elle tourne (une ombre pleine décalée, de la couleur de la rareté assombrie) : une boîte
+     rectangulaire qu'on fait défiler ; celle du milieu est de face. Couché, la molette défile de haut en bas : la boîte bascule en hauteur. */
+#gBq #bqAile .baPh{position:relative;background:radial-gradient(ellipse 62% 70% at 50% 46%,color-mix(in srgb,var(--rc) 30%,#5d6884) 0,rgba(0,0,0,0) 70%),
+    linear-gradient(180deg,color-mix(in srgb,var(--rc) 26%,#3a4358) 0,color-mix(in srgb,var(--rc) 18%,#222837) 100%);
+  box-shadow:inset 0 -9px 0 -1px color-mix(in srgb,var(--rc) 22%,#1a1f2a),inset 9px 0 0 -2px rgba(255,255,255,.07),inset -9px 0 0 -2px rgba(0,0,0,.22),inset 0 9px 0 -2px rgba(0,0,0,.18)}
+#gBq #bqAile .baPh img{filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))}
+#gBq #bqAile .baPh:empty::before{background:rgba(255,255,255,.35)}
+#gBq #bqAile .baK{transform:perspective(560px) rotateY(calc(var(--o,0) * -30deg)) scale(calc(1 - var(--oa,0) * .08));
+  box-shadow:calc(var(--o,0) * -7px) 3px 0 0 color-mix(in srgb,var(--rc) 45%,#262c38),0 8px 16px rgba(20,28,40,.16);will-change:transform}
+#gBq #bqAile .baK.sel{box-shadow:0 0 0 2px var(--bqInk),calc(var(--o,0) * -7px) 3px 0 0 color-mix(in srgb,var(--rc) 45%,#262c38),0 10px 22px rgba(20,28,40,.2)}
+#gBq #gBqPan.cote #bqAile .baK{transform:perspective(560px) rotateX(calc(var(--o,0) * 30deg)) scale(calc(1 - var(--oa,0) * .08));
+  box-shadow:3px calc(var(--o,0) * -7px) 0 0 color-mix(in srgb,var(--rc) 45%,#262c38),0 8px 16px rgba(20,28,40,.16)}
+#gBq #gBqPan.cote #bqAile .baK.sel{box-shadow:0 0 0 2px var(--bqInk),3px calc(var(--o,0) * -7px) 0 0 color-mix(in srgb,var(--rc) 45%,#262c38),0 10px 22px rgba(20,28,40,.2)}
+#gBq #bqAile .baK:active{scale:.95}
 </style>

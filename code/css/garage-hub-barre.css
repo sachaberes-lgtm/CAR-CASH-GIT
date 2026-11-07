@@ -135,11 +135,11 @@ html[data-reduced-motion="1"] #gTourne{animation:none!important}
 #gAuraC{position:relative;display:inline-flex;align-items:center;gap:8px;height:34px;margin-top:6px;padding:0 12px 0 11px;pointer-events:none;
   background:linear-gradient(180deg,rgba(18,14,36,.92),rgba(8,6,18,.92));box-shadow:inset 0 0 0 1px var(--fil),inset 0 -3px 0 rgba(180,107,255,.22);
   clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
-#gAuraC .pxi{--pxs:2;color:#b46bff;filter:drop-shadow(0 0 4px rgba(180,107,255,.6))}
+#gAuraC .pxi{--pxs:2;color:var(--neoL);filter:drop-shadow(0 0 4px rgba(180,107,255,.6))}
 #gAuraC b{display:inline-block;font-weight:400;font-size:var(--f3);letter-spacing:1px;color:#d6a8ff;text-shadow:0 2px 0 #3a1260,0 0 10px rgba(180,107,255,.45);transform:skewX(var(--sk))}
 #gAuraC small{font-size:var(--f0);letter-spacing:1px;color:var(--tx3);white-space:nowrap;transform:skewX(var(--sk))}
 #gAuraC u{position:absolute;left:0;right:0;bottom:0;height:3px;display:block;text-decoration:none}
-#gAuraC u em{display:block;height:100%;width:0;background:#b46bff;box-shadow:0 0 8px #b46bff;transition:width var(--t-slow) var(--ease)}
+#gAuraC u em{display:block;height:100%;width:0;background:var(--neoL);box-shadow:0 0 8px var(--neoL);transition:width var(--t-slow) var(--ease)}
 #garage.menu #gAuraC{display:none!important}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){#gAuraC{height:30px;margin-top:5px}}
 /* LA JAUGE MONTE, LES BOUTONS DESCENDENT (même jour, Léo : « mets la jauge plus haut en portrait : échange l'emplacement de HOME ·
@@ -165,7 +165,7 @@ html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip{display:flex!important;
   box-shadow:inset 0 0 0 1px var(--fil),inset 0 -3px 0 var(--ton),0 6px 14px -8px var(--ton)}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip .pxi{--pxs:1;color:var(--ton);filter:drop-shadow(0 0 4px var(--ton))}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip[data-ton="bleu"]{--ton:#4f8cff;color:#fff}
-html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip[data-ton="vert"]{--ton:#3ee87a}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip[data-ton="vert"]{--ton:var(--neoV)}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
 @media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
   html body #garage:not(.menu):not(.vitrine) #gAct{column-gap:10px;row-gap:5px}
@@ -286,5 +286,5 @@ html body #garage.vueSeule:not(.menu):not(.vitrine) :is(#gAct,#gCoin,#gRang1)>#g
 /* ÉQUIPER → ACHETER (2026-10-10) : le verbe en petit, le prix dessous, en vert billet (or pour l'euro) — voir gEqTon. */
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat{flex-direction:column;gap:2px;line-height:1}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqV{font-size:var(--f0);color:var(--tx2)}
-html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP{font-weight:400;color:var(--cash,#3ee87a);text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(62,232,122,.45)}
-html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP.eur{color:var(--au2,#ffd75e);text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(255,215,94,.45)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP{font-weight:400;color:var(--cash,var(--neoV));text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(62,232,122,.45)}
+html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP.eur{color:var(--au2,var(--or));text-shadow:0 1px 0 rgba(7,5,15,.9),0 0 8px rgba(255,215,94,.45)}
