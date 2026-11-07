@@ -9727,24 +9727,6 @@ html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMi
 /* 12. FINAL SPIN, couché étroit (2026-11-05, finition — MESURÉ 667×375) : l'enseigne « FINAL SPIN » (264 px) dépassait sa colonne (250, celle de TIRER) de 14 px et finissait à 7 px du bord
    de l'écran, quand la machine garde 19 px de marge. Ses marges internes (.34 spH) passent à .2 spH : elle tient dans la colonne, centrée sur TIRER */
 @media (orientation:landscape){#spinM .spEnseigne{padding-left:calc(var(--spH)*.2);padding-right:calc(var(--spH)*.2);max-width:100%;box-sizing:border-box}}
-/* 13. LES TUILES DU MENU CIEL, EN BONBON CLAIR (2026-11-07, Sacha : « sur l'écran d'accueil, dans le ciel, les boutons sont trop foncés — retravaille ça comme un pro »)
-   Le 05/11 les tuiles étaient passées en verre anthracite (64-72 %) pour tenir tête aux ciels dorés ou roses : elles tenaient, mais en grosses pastilles
-   noires sur un ciel lumineux. Même fonction, autre matière : le CORPS prend la couleur de la tuile (cyan GARAGE · magenta ACHAT · or REGLAGES, la bande du logo),
-   plus clair en haut, plus profond en bas, avec un reflet de moitié et un biseau ; la lisibilité ne vient plus d'un fond noir mais d'un CONTOUR D'ENCRE net
-   (2,5 px) + d'une épaisseur dessous — la même langue que JOUER, le bouton violet du garage et les touches de la charte. Icône et mot en encre (contraste
-   mesuré > 7:1 sur les trois couleurs), plus de lueur néon : sur un ciel clair elle se noie. Aucune ombre portée large, aucun flou : rien à relire de la 3D. */
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte){
-  --ink:#1c1238;
-  background:
-    linear-gradient(180deg,rgba(255,255,255,.3) 0,rgba(255,255,255,.2) 40%,rgba(255,255,255,0) 58%),
-    linear-gradient(180deg,color-mix(in srgb,var(--nc) 58%,#fff) 0%,var(--nc) 52%,color-mix(in srgb,var(--nc) 80%,#34104f) 100%)!important;
-  box-shadow:inset 0 2px 0 rgba(255,255,255,.75),inset 0 -5px 0 color-mix(in srgb,var(--nc) 62%,#34104f),inset 0 0 0 1px rgba(255,255,255,.28),
-    0 0 0 2.5px var(--ink),0 6px 0 2.5px var(--ink),0 11px 12px -3px rgba(20,10,60,.38)!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::before{border-color:transparent!important;box-shadow:none!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::after{opacity:.55!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)>.pxi{color:var(--ink)!important;filter:drop-shadow(0 1.5px 0 rgba(255,255,255,.6))!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)>span{color:var(--ink)!important;text-shadow:0 1px 0 rgba(255,255,255,.55)!important}
-html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte):is(:active,.appui){translate:0 3px}
 </style>
 <style id="politesses">
 /* ===== LES PETITES POLITESSES (2026-11-07, Sacha : « plein de mini détails qui ne se voient même pas, pour rendre le jeu plus pro ») =====

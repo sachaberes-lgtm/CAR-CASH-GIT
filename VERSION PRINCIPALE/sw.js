@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1258'; /* v1258 (2026-11-07, Léo : « oui, partout ») LA MONNAIE PARTOUT : le symbole du sketch est un glyphe (U+E000, assets/fonts/monnaie.woff2) ajouté aux cinq polices du jeu ; CUR(), le compteur, les gains, les billets, les pièces, les pluies et le logo l'écrivent, les vrais euros des offres restent en €. */ /* v1257 (2026-11-07, Sacha : « départ boosté = tous les power-up ; seconde chance gratuite = réanimation automatique ») */ /* v1256 (2026-11-07, Sacha : « sur l'écran d'accueil, dans le ciel, les boutons sont trop foncés ») menu ciel : les tuiles GARAGE / ACHAT / REGLAGES passent de l'anthracite à un corps clair coloré (cyan, magenta, or) avec contour d'encre. */
+const CACHE = 'cashcar-v1259'; /* v1259 (2026-11-07, Sacha : « horrible, retourne en arrière ») menu ciel : retour aux tuiles GARAGE / ACHAT / REGLAGES d'avant (verre anthracite) ; les tuiles en bonbon clair de v1256 sont retirées. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
