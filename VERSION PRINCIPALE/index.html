@@ -10852,54 +10852,6 @@ html body #gBqPan.cote.bqFigOn #bqFigSel .fsPas{min-height:32px;padding:0 6px;le
 #gBqPan.cote.bqFigOn .bqRail{grid-column:2;grid-row:2}
 html body #gBqPan.cote.bqFigOn .bqRail .bqK.fgK{--fgW:calc((100% - 8px) / 2.2)}
 </style>
-<<<<<<< HEAD
-<style id="etalonnage">
-/* ===== L'ÉTALONNAGE (2026-11-07, Sacha : « fais une session de finition d'étalonnage pour que toutes les couleurs soient jolies entre elles et forment un jeu complet pensé pour mobile ») =====
-   LE CONSTAT (mesuré sur les 48 feuilles de code/css) : 704 teintes différentes pour une charte qui en nomme vingt — 84 ors, 67 oranges,
-   109 violets, 74 bleus, 162 encres — et DEUX encres (le violet 273° du HUD, l'indigo 250° des menus), DEUX familles de plaques (bleu nuit
-   de la v3, laque violette de la charte 4), une boutique blanche qui parle gris neutre et bleu électrique quand tout le jeu parle encre
-   violette, or, magenta et cyan.
-   LA MÉTHODE : UN nuancier, déclaré ICI en dernier (il gagne sur tous les :root d'avant), et chaque teinte en dur rattachée à son jeton
-   par outils/etalonnage/nuancier.cjs (hex → var(--jeton), hors url()) : 1 080 occurrences dans 46 feuilles. Une teinte qui n'a pas de
-   jeton (un dégradé unique, un pictogramme) reste en dur : une échelle a droit à ses barreaux.
-   CE QUI CHANGE À L'ŒIL : une seule encre (indigo-violet 258°) sous les chiffres du HUD, les jauges et les menus ; un seul or (le lingot) ;
-   un seul rouge, un seul vert, une seule nitro ; la salle blanche de la boutique prend l'encre du jeu (violet-noir au lieu du gris neutre),
-   des filets lavande, et son accent passe du bleu électrique au MAGENTA PROFOND de la marque (« MAGENTA = la boutique », charte 4 ; le
-   bouton BOUTIQUE du garage est magenta : on arrive dans une page magenta). L'ancien bleu tient en une ligne : --bqAcc:#3d4bff.
-   Les raretés gardent leur échelle (gris · bleu · vert · violet · or · rouge · rose).
-   POUR UNE COULEUR NOUVELLE : prendre un jeton d'ici ; si aucun ne convient, l'ajouter ICI (et à MAP dans nuancier.cjs), pas en dur. */
-:root{
-  /* L'ENCRE : une seule teinte, indigo-violet, du noir du fond au filet (les menus, le HUD, les jauges) */
-  --k0:#07050f;--k1:#0c0919;--k2:#130f25;--k3:#1b1634;--k4:#272046;--kl:#3a3168;--kl2:#564a8e;
-  --encre:#190d35;--inkH:var(--encre);--jInk:var(--encre);--jEncre:#1a1150;--jFond:#0d0a26;--dolOmbre:var(--encre);
-  --tranche:#0a0818;--txO:#0a0616;--cyanF:#0f0c26;--auraOmbre:#3a1252;
-  --plaque:linear-gradient(180deg,var(--k4),var(--k3));--cadre:linear-gradient(180deg,var(--k3),var(--k1));
-  /* L'OR : lèvre, clair, plein, vif, sombre, brun, ombre — le lingot, le prix, la voix des annonces */
-  --au0:#fff8d6;--au1:#ffe27a;--or:#ffd75e;--au2:#ffc72a;--au3:#f29a00;--auE:#9c5200;--auO:#2a1200;--auT:#3a1800;--auG:rgba(255,190,40,.38);
-  --orB:#fff0a0;--orS:#b87400;--orF:#7a4400;--neoA:#ffb000;--frenA:var(--neoA);
-  --oL:var(--au0);--oP:var(--au2);--oS:var(--au3);--oO:var(--orF);
-  --ttrOr:linear-gradient(180deg,var(--au0),var(--or) 45%,var(--nP) 82%,var(--orF));
-  /* LA NITRO (orange), sa réserve bleue, son éclair ; l'air (cyan), le temps (or), le rouge, la menthe */
-  --nL:#ffd58f;--nP:#ff8d2e;--nS:#ff7415;--nO:#ad4200;--nEcl:var(--neoA);--nEclC:var(--au0);--nEclS:#e07a00;
-  --bL:#b5c4ff;--bP:#4a68f0;--bS:#2a44c8;--bO:#16247a;
-  --vL:#ffd9d4;--vP:#ff2b2b;--vS:#e00d0d;--vO:#6e0505;--vG:rgba(255,40,40,.9);
-  --aL:#d8fbff;--aP:var(--dol);--aS:#18b0e2;--aO:#0b4f7a;
-  --rL:var(--frenC);--rP:var(--neoR);--rS:#e0203c;--rO:#6e0014;
-  --mL:#e6fffa;--mP:#7dffec;--mS:#22d6bd;--mO:#0b5e55;
-  /* LES NÉONS, un sens chacun : magenta = la marque et la boutique · cyan = aller voir · vert = allumé, gagné · rouge = danger, fin */
-  --neoM:#ff3ec8;--neoMs:#e0249d;--neoMf:#c01585;--aura:#ff7ad5;--auraRose:var(--aura);--neoL:#b58cff;
-  --neoC:#00eaff;--cyan:#9fe8ff;--dol:#5ee6ff;--dolNom:#fff;--cyanM:#00b8d4;--cyanS:#0a8fa8;--cyanL:rgba(0,234,255,.42);
-  --neoV:#5ee37a;--cash:#7dff9b;--cashL:#a7f0bd;--cashS:#23b853;--cashO:#05240f;
-  --neoR:#ff4a64;--fren:#ff2a3d;--frenV:#ff6b78;--frenC:#ffd0d5;--frenS:#a8001a;--frenN:#4a0010;--frenO:#1c0006;
-  /* LE TEXTE : blanc chaud, lavande, lavande sourde */
-  --tx:#fff7ee;--tx2:#c9bdf0;--tx3:#aea5d8;--texte:#d9d2f2;--texteF:var(--tx3);
-  /* LA SALLE BLANCHE de la boutique : l'encre du jeu (violet-noir), des filets lavande, des gris violacés, l'accent magenta profond */
-  --bqInk:#17132b;--bqGris:#6b6587;--bqGris2:#9a95ad;--bqFil:#dfdbe9;--bqFond2:#f1eff6;--bqAcc:#d81b7f;
-}
-/* la salle blanche : les ombres portées étaient gris-bleu (rgba(20,23,28,…) et rgba(30,40,55,…)) — elles prennent l'encre du jeu */
-html.bqIndus body #garage #gBqCats button.on{box-shadow:0 8px 18px rgba(23,19,43,.22)}
-html.bqIndus body #garage #gBqTete .bqArg{box-shadow:0 0 0 1px var(--bqFil),0 8px 20px rgba(23,19,43,.07)}
-=======
 <style id="hudFini">
 /* =====================================================================================================================================
    LA FINITION DU HUD (2026-11-07, Sacha : « revois le HUD parfaitement, tout doit être parfait, bien proportionné et placé, de jolies
@@ -10958,7 +10910,53 @@ html body #cashHud.b1 .chV{animation-name:hfCashA}html body #cashHud.b2 .chV{ani
 }
 html[data-reduced-motion="1"] body.touch.play #cashHud,html[data-reduced-motion="1"] body.touch.play #tNitro .nx3,html[data-reduced-motion="1"] body.touch.play.bv #tNitro .bvIco,
 html[data-reduced-motion="1"] body #nxVit b{animation:none!important}
->>>>>>> origin/main
+</style>
+<style id="etalonnage">
+/* ===== L'ÉTALONNAGE (2026-11-07, Sacha : « fais une session de finition d'étalonnage pour que toutes les couleurs soient jolies entre elles et forment un jeu complet pensé pour mobile ») =====
+   LE CONSTAT (mesuré sur les 48 feuilles de code/css) : 704 teintes différentes pour une charte qui en nomme vingt — 84 ors, 67 oranges,
+   109 violets, 74 bleus, 162 encres — et DEUX encres (le violet 273° du HUD, l'indigo 250° des menus), DEUX familles de plaques (bleu nuit
+   de la v3, laque violette de la charte 4), une boutique blanche qui parle gris neutre et bleu électrique quand tout le jeu parle encre
+   violette, or, magenta et cyan.
+   LA MÉTHODE : UN nuancier, déclaré ICI en dernier (il gagne sur tous les :root d'avant), et chaque teinte en dur rattachée à son jeton
+   par outils/etalonnage/nuancier.cjs (hex → var(--jeton), hors url()) : 1 080 occurrences dans 46 feuilles. Une teinte qui n'a pas de
+   jeton (un dégradé unique, un pictogramme) reste en dur : une échelle a droit à ses barreaux.
+   CE QUI CHANGE À L'ŒIL : une seule encre (indigo-violet 258°) sous les chiffres du HUD, les jauges et les menus ; un seul or (le lingot) ;
+   un seul rouge, un seul vert, une seule nitro ; la salle blanche de la boutique prend l'encre du jeu (violet-noir au lieu du gris neutre),
+   des filets lavande, et son accent passe du bleu électrique au MAGENTA PROFOND de la marque (« MAGENTA = la boutique », charte 4 ; le
+   bouton BOUTIQUE du garage est magenta : on arrive dans une page magenta). L'ancien bleu tient en une ligne : --bqAcc:#3d4bff.
+   Les raretés gardent leur échelle (gris · bleu · vert · violet · or · rouge · rose).
+   POUR UNE COULEUR NOUVELLE : prendre un jeton d'ici ; si aucun ne convient, l'ajouter ICI (et à MAP dans nuancier.cjs), pas en dur. */
+:root{
+  /* L'ENCRE : une seule teinte, indigo-violet, du noir du fond au filet (les menus, le HUD, les jauges) */
+  --k0:#07050f;--k1:#0c0919;--k2:#130f25;--k3:#1b1634;--k4:#272046;--kl:#3a3168;--kl2:#564a8e;
+  --encre:#190d35;--inkH:var(--encre);--jInk:var(--encre);--jEncre:#1a1150;--jFond:#0d0a26;--dolOmbre:var(--encre);
+  --tranche:#0a0818;--txO:#0a0616;--cyanF:#0f0c26;--auraOmbre:#3a1252;
+  --plaque:linear-gradient(180deg,var(--k4),var(--k3));--cadre:linear-gradient(180deg,var(--k3),var(--k1));
+  /* L'OR : lèvre, clair, plein, vif, sombre, brun, ombre — le lingot, le prix, la voix des annonces */
+  --au0:#fff8d6;--au1:#ffe27a;--or:#ffd75e;--au2:#ffc72a;--au3:#f29a00;--auE:#9c5200;--auO:#2a1200;--auT:#3a1800;--auG:rgba(255,190,40,.38);
+  --orB:#fff0a0;--orS:#b87400;--orF:#7a4400;--neoA:#ffb000;--frenA:var(--neoA);
+  --oL:var(--au0);--oP:var(--au2);--oS:var(--au3);--oO:var(--orF);
+  --ttrOr:linear-gradient(180deg,var(--au0),var(--or) 45%,var(--nP) 82%,var(--orF));
+  /* LA NITRO (orange), sa réserve bleue, son éclair ; l'air (cyan), le temps (or), le rouge, la menthe */
+  --nL:#ffd58f;--nP:#ff8d2e;--nS:#ff7415;--nO:#ad4200;--nEcl:var(--neoA);--nEclC:var(--au0);--nEclS:#e07a00;
+  --bL:#b5c4ff;--bP:#4a68f0;--bS:#2a44c8;--bO:#16247a;
+  --vL:#ffd9d4;--vP:#ff2b2b;--vS:#e00d0d;--vO:#6e0505;--vG:rgba(255,40,40,.9);
+  --aL:#d8fbff;--aP:var(--dol);--aS:#18b0e2;--aO:#0b4f7a;
+  --rL:var(--frenC);--rP:var(--neoR);--rS:#e0203c;--rO:#6e0014;
+  --mL:#e6fffa;--mP:#7dffec;--mS:#22d6bd;--mO:#0b5e55;
+  /* LES NÉONS, un sens chacun : magenta = la marque et la boutique · cyan = aller voir · vert = allumé, gagné · rouge = danger, fin */
+  --neoM:#ff3ec8;--neoMs:#e0249d;--neoMf:#c01585;--aura:#ff7ad5;--auraRose:var(--aura);--neoL:#b58cff;
+  --neoC:#00eaff;--cyan:#9fe8ff;--dol:#5ee6ff;--dolNom:#fff;--cyanM:#00b8d4;--cyanS:#0a8fa8;--cyanL:rgba(0,234,255,.42);
+  --neoV:#5ee37a;--cash:#7dff9b;--cashL:#a7f0bd;--cashS:#23b853;--cashO:#05240f;
+  --neoR:#ff4a64;--fren:#ff2a3d;--frenV:#ff6b78;--frenC:#ffd0d5;--frenS:#a8001a;--frenN:#4a0010;--frenO:#1c0006;
+  /* LE TEXTE : blanc chaud, lavande, lavande sourde */
+  --tx:#fff7ee;--tx2:#c9bdf0;--tx3:#aea5d8;--texte:#d9d2f2;--texteF:var(--tx3);
+  /* LA SALLE BLANCHE de la boutique : l'encre du jeu (violet-noir), des filets lavande, des gris violacés, l'accent magenta profond */
+  --bqInk:#17132b;--bqGris:#6b6587;--bqGris2:#9a95ad;--bqFil:#dfdbe9;--bqFond2:#f1eff6;--bqAcc:#d81b7f;
+}
+/* la salle blanche : les ombres portées étaient gris-bleu (rgba(20,23,28,…) et rgba(30,40,55,…)) — elles prennent l'encre du jeu */
+html.bqIndus body #garage #gBqCats button.on{box-shadow:0 8px 18px rgba(23,19,43,.22)}
+html.bqIndus body #garage #gBqTete .bqArg{box-shadow:0 0 0 1px var(--bqFil),0 8px 20px rgba(23,19,43,.07)}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
