@@ -57,7 +57,7 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 @keyframes m2Tombe{to{transform:translateY(26px) scale(.55);opacity:0}}
 /* TERMINÉE : posée, cochée, en retrait */
 .m2L.ok:not(.pret){background:#0b1a33;box-shadow:inset 0 0 0 1px rgba(95,240,255,.10);cursor:default}
-.m2L.ok:not(.pret) .glTx b{color:#a9bfd6}.m2L.ok:not(.pret) .glTx small{color:#5ee37a}.m2L.ok:not(.pret) .m2Ic{color:#5ee37a;box-shadow:inset 0 0 0 1px #5ee37a}
+.m2L.ok:not(.pret) .glTx b{color:#a9bfd6}.m2L.ok:not(.pret) .glTx small{color:var(--neoV)}.m2L.ok:not(.pret) .m2Ic{color:var(--neoV);box-shadow:inset 0 0 0 1px var(--neoV)}
 .m2L.ok:not(.pret) .m2R{opacity:.75}
 .m2L.flash{animation:gmFlash .5s var(--ease)}
 #gmListe.m2.vu .m2L:not(.pret){animation:none}#gmListe.m2.vu .m2L.pret{animation:m2Brille 1.4s var(--ease) infinite alternate}#gmListe.m2.vu .m2L.flash{animation:gmFlash .5s var(--ease)}
@@ -81,8 +81,6 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
   text-shadow:0 3px 0 var(--txO),0 0 24px color-mix(in srgb,var(--rc) 50%,transparent)}
 .mcNom::after{content:'';position:absolute;left:0;bottom:0;width:min(62vw,230px);height:3px;background:linear-gradient(90deg,var(--rc) 0 72%,transparent);box-shadow:0 0 12px color-mix(in srgb,var(--rc) 60%,transparent)}
 .mcSous{display:block;margin-top:8px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
-.mcNeuf{display:inline-block;margin-top:9px;padding:5px 9px 4px;font-style:normal;font-size:var(--f0);letter-spacing:2px;color:var(--txO);background:var(--neoV);box-shadow:0 0 14px color-mix(in srgb,var(--neoV) 60%,transparent);transform:skewX(var(--sk));animation:mcTampon .45s var(--ease) .75s backwards}
-@keyframes mcTampon{from{opacity:0;transform:skewX(var(--sk)) scale(2.2)}}
 /* LA VEDETTE : le portail flotte sur le décor, comme la caisse au garage */
 .mcHero{display:flex;justify-content:center;padding:10px 0 14px}
 .mcV{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:420px;text-align:center;cursor:pointer;animation:k4Nom var(--t-slow) var(--ease) backwards}
@@ -125,14 +123,13 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
   background:linear-gradient(180deg,rgba(26,21,50,.7) 0%,rgba(20,15,40,.7) 52%,rgba(15,12,32,.7) 100%);box-shadow:inset 0 0 0 1px var(--fil),0 22px 40px -14px rgba(0,0,0,.75);
   clip-path:polygon(var(--coupe) 0,100% 0,100% calc(100% - var(--coupe)),calc(100% - var(--coupe)) 100%,0 100%,0 var(--coupe));animation:gDeplie .34s var(--ease) both}
 .mcPan .gModeT{flex:none;height:30px;margin-bottom:8px}
-.mcSq{display:flex;gap:4px}.mcSq s{display:block;width:8px;height:8px;background:none;opacity:1;box-shadow:inset 0 0 0 1px var(--tx3)}.mcSq s.o{background:var(--rc);box-shadow:0 0 6px var(--rc)}
 /* une ligne : un bloc de l'inventaire (#gFigSel) */
 .mcL{display:flex;flex-direction:column;gap:8px;margin-bottom:6px;padding:10px 11px 10px;cursor:pointer;
   background:linear-gradient(180deg,rgba(11,8,24,.86),rgba(23,16,46,.86));box-shadow:inset 0 0 0 1px var(--fil),inset 0 2px 0 rgba(255,255,255,.05);
   clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);animation:gmIn .4s var(--ease) backwards;animation-delay:calc(140ms + var(--i) * 60ms)}
 .mcL:active{transform:translateY(2px)}
 .mcLt{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.mcLt b{min-width:0;font-weight:400;font-size:var(--f1);line-height:1.6;letter-spacing:.5px;color:#fff7ee}
+.mcLt b{min-width:0;font-weight:400;font-size:var(--f1);line-height:1.6;letter-spacing:.5px;color:var(--tx)}
 .mcLt .mbR{flex:none;display:flex;justify-content:flex-end;min-width:44px}.mcLt .mcSil{width:56px}
 .mcCash{font-weight:400;font-size:var(--f1);color:var(--cash);white-space:nowrap;text-shadow:0 0 8px rgba(125,255,155,.35)}
 .mcRarS{font-weight:400;font-size:var(--f0);letter-spacing:1px;color:var(--rc);text-shadow:0 0 6px var(--rc)}
@@ -143,19 +140,17 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 .mcL.hab .mcLt b{color:color-mix(in srgb,var(--rc) 45%,#fff)}.mcL.hab .mcJ i{background:var(--rc);box-shadow:0 0 8px var(--rc)}
 .mcL.pret{box-shadow:inset 0 0 0 2px var(--cash),0 0 16px rgba(125,255,155,.25)}.mcL.pret .m2Pr{align-self:flex-start;margin-top:0}
 .mcL.ok{cursor:default;opacity:.62}
-.mcNx{display:flex;align-items:center;gap:10px;padding:8px 2px 2px;font-size:var(--f0);letter-spacing:1px;color:var(--tx3)}
-.mcNx span{flex:1;display:flex;gap:5px}.mcNx i{display:block;height:9px;background:#05030c;box-shadow:inset 0 0 0 1px var(--fil)}
 .mcFin{display:flex;align-items:center;gap:10px;min-height:40px;margin-top:6px;padding:0 4px;font-size:var(--f0);letter-spacing:1px;color:var(--tx2);cursor:pointer}
 .mcFin b{font-weight:400;color:var(--tx3)}.mcFin .pxi{--pxs:1;margin-left:auto}
 .mcL.flash{animation:gmFlash .5s var(--ease)}
 #gmListe.mcE.vu .mcL,#gmListe.mcE.vu .mcV,#gmListe.mcE.vu .mcPan{animation:none}
-/* ===== L'ÉCRAN MISSIONS PLEIN CADRE (2026-11-06, Sacha : « refonte de l'écran mission, l'espace est qu'à moitié occupé » — piste A de maquettes/missions) =====
-   Le portail retiré de l'onglet (05/11) laissait quatre lignes dans un panneau de 560 px : debout 40 % du bas vide, couché la moitié gauche vide et la 4e ligne sous JOUER.
-   Même écran, mêmes matières (laque, liseré, coins coupés, Press Start) — seulement tout étiré : le panneau va du titre à la barre du bas, les cartes se partagent la hauteur
-   (texte 10 → 12 px, récompense 10 → 16 px, jauge 5 → 10 px). Couché : titre en haut (le palier et ses carrés sur sa ligne), les cartes en 2 × 2 sur toute la largeur,
-   le palier suivant et les réussies en pied, RETOUR | JOUER sur toute la largeur — rien sous la barre. Plus de masque en bas : le panneau défile seul (carte coupée = suite). */
-#gmListe.mcE .mcSqT{display:none}
-#gmListe.mcE .mcPan .gModeT{height:34px;margin-bottom:10px}
+/* ===== L'ÉCRAN MISSIONS : TOUTES LES MISSIONS, ON DÉFILE (2026-11-06, Sacha : « refonte de l'écran mission, l'espace est qu'à moitié occupé » → piste A plein cadre de maquettes/missions, puis
+   « pas de palier pour les missions, on doit voir toutes les missions dans l'écran mission en défilant ») =====
+   Plus de paliers : une seule liste de TOUTES les missions (À RÉCUPÉRER d'abord, puis une section par famille, les réussies repliées en bas), dans le panneau du garage qui va du titre à la barre
+   du bas et défile seul (un fondu en bas dit qu'il y a la suite). Mêmes matières (laque, liseré, coins coupés, Press Start) ; texte 12 px, récompense 16 px, jauge 10 px.
+   Debout : une colonne. Couché : deux colonnes sur toute la largeur, le titre en haut, RETOUR | JOUER sur toute la largeur — rien sous la barre. */
+#gmListe.mcE .mcSec{flex:none;height:34px;margin:18px 0 8px}
+#gmListe.mcE .mcPan>.mcSec:first-child{margin-top:0}
 #gmListe.mcE .mcL .mcLt b{font-size:var(--f3);line-height:1.55}
 #gmListe.mcE .mcL .mcCash{font-size:var(--f5)}
 #gmListe.mcE .mcL .mcRarS{font-size:var(--f1)}
@@ -163,17 +158,16 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 #gmListe.mcE .mcL .mcJ small{font-size:var(--f1)}
 #gmListe.mcE .mcL .mcLt .mcSil{width:84px}
 #gmListe.mcE .mcL.pret .m2Pr{min-height:38px;padding:0 18px;font-size:var(--f1)}
-#gmListe.mcE .mcNx{padding:4px 2px 0;font-size:var(--f1)}
-#gmListe.mcE .mcNx i{height:14px}
-#gmListe.mcE .mcFin{flex:none;min-height:44px;margin-top:2px;font-size:var(--f1)}
+#gmListe.mcE .mcFin{flex:none;min-height:44px;margin-top:6px;font-size:var(--f1)}
 #gmListe.mcE .mcVide{flex:1 0 auto;display:flex;align-items:center;justify-content:center}
-/* debout : le titre fixe, le panneau prend tout le reste, ses cartes se partagent la place (et il défile si l'écran est petit) */
+#gmListe.mcE .mcPan{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 26px),transparent)}
+/* debout : le titre fixe, le panneau prend tout le reste et défile */
 #gmListe.mcE:not(.land) .mcDef{display:flex;flex-direction:column;overflow:hidden}
 #gmListe.mcE:not(.land) .mcTete{flex:none}
-#gmListe.mcE:not(.land) .mcPan{flex:1 1 0;min-height:0;max-width:720px;margin:10px auto 0;display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:none;padding:14px 14px 10px}
-#gmListe.mcE:not(.land) .mcL{flex:1 0 auto;max-height:150px;justify-content:center;gap:12px;padding:10px 14px;margin-bottom:9px} /* plafonnée (150 de contenu + 20 de marge intérieure = 170) : avec deux missions seulement, les cartes ne s'étirent pas en blocs creux */
+#gmListe.mcE:not(.land) .mcPan{flex:1 1 0;min-height:0;max-width:720px;margin:10px auto 0;display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:14px 14px 30px}
+#gmListe.mcE:not(.land) .mcL{flex:none;gap:10px;padding:10px 14px;margin-bottom:8px}
 #gmListe.mcE:not(.land) .mcFinL{flex:none}
-/* couché : RETOUR | JOUER sur toute la largeur, au-dessus d'eux un seul bloc pleine largeur (titre, puis les cartes en 2 × 2) */
+/* couché : RETOUR | JOUER sur toute la largeur, au-dessus d'eux un seul bloc pleine largeur (le titre, puis les missions sur deux colonnes) */
 #gMis.mbOn.m2land #gmBas{left:calc(var(--sL) + var(--gut));right:calc(var(--sR) + var(--gut));width:auto;transform:none;bottom:calc(var(--sB) + 12px)}
 #gMis.mbOn.m2land #gmBas .gmHome{width:112px;flex-direction:row;justify-content:center;gap:10px;padding:0 12px}
 #gMis.mbOn.m2land #gmBas .gmJouer{font-size:var(--f6)}
@@ -181,20 +175,20 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
 #gmListe.mcE.land .mcTete{grid-column:1;grid-row:1;display:flex;align-items:flex-end;gap:18px;padding-top:0}
 #gmListe.mcE.land .mcNom{font-size:24px;padding-bottom:11px}
 #gmListe.mcE.land .mcTete .mcSous{margin:0 0 12px}
-#gmListe.mcE.land .mcTete .mcSqT{display:flex;margin:0 6px 12px auto}
-#gmListe.mcE.land .mcPan{grid-column:1;grid-row:2;max-width:none;height:100%;margin:0;overflow-y:auto;scrollbar-width:none;padding:10px 12px 6px;
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:1fr 1fr auto;column-gap:10px} /* colonnes ÉGALES : la carte « à récupérer » (bouton + silhouette sur une ligne) n'élargit pas la sienne */
-#gmListe.mcE.land .mcPan[data-n="0"],#gmListe.mcE.land .mcPan[data-n="1"],#gmListe.mcE.land .mcPan[data-n="2"]{grid-template-rows:1fr auto} /* moins de trois cartes : une seule rangée */
-#gmListe.mcE.land .mcPan .gModeT{display:none}
-#gmListe.mcE.land .mcL{margin-bottom:8px;justify-content:center;gap:8px;padding:8px 12px} /* pas de min-height:0 : une carte ne rétrécit jamais sous son contenu, le panneau défile à la place */
+#gmListe.mcE.land .mcPan{grid-column:1;grid-row:2;max-width:none;height:100%;margin:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding:10px 12px 28px;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto;align-content:start;column-gap:10px}
+#gmListe.mcE.land .mcSec{grid-column:1/-1;height:28px;margin:12px 0 6px}
+#gmListe.mcE.land .mcL{margin-bottom:8px;gap:8px;padding:8px 12px}
 #gmListe.mcE.land .mcL .mcLt b{font-size:var(--f1);line-height:1.5}
+#gmListe.mcE.land .mcL.pret{grid-column:1/-1;flex-direction:row;align-items:center;gap:14px} /* la récompense à récupérer : toute la largeur, c'est l'appel à l'action */
+#gmListe.mcE.land .mcL.pret .mcLt{flex:1;min-width:0}
 #gmListe.mcE.land .mcL.pret .m2Pr{min-height:34px}
-#gmListe.mcE.land .mcNx{grid-column:1;padding:4px 2px 0}
-#gmListe.mcE.land .mcFin{grid-column:2;min-height:44px;margin:0}
-#gmListe.mcE.land .mcFinL,#gmListe.mcE.land .mcVide{grid-column:1/-1}
+#gmListe.mcE.land .mcFin{grid-column:1/-1;margin:0}
+#gmListe.mcE.land .mcFinL{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:10px}
+#gmListe.mcE.land .mcVide{grid-column:1/-1}
 /* les petits écrans : l'iPhone 7 / 8 / SE couché (375 de haut) et debout (667) — même mise en page, plus serrée */
 @media (orientation:landscape) and (max-height:400px){
-  #gmListe.mcE.land .mcPan{padding:8px 10px 4px}
+  #gmListe.mcE.land .mcPan{padding:8px 10px 26px}
   #gmListe.mcE.land .mcL{padding:6px 10px;gap:5px;margin-bottom:6px}
   #gmListe.mcE.land .mcL .mcJ u{height:8px}
   #gmListe.mcE.land .mcL .mcLt .mcSil{width:56px}
@@ -202,14 +196,13 @@ html.misV2 .gvPips,html.misV2 .ghPips,html.misV2 .mMisPips{display:none!importan
   #gmListe.mcE.land .mcL.pret .mcLt .mcSil{width:44px}}
 @media (orientation:portrait) and (max-height:700px){
   #gmListe.mcE .mcL .mcLt b{font-size:var(--f1)}
-  #gmListe.mcE:not(.land) .mcPan{padding:12px 12px 8px}
+  #gmListe.mcE:not(.land) .mcPan{padding:12px 12px 26px}
   #gmListe.mcE:not(.land) .mcL{gap:8px;padding:8px 12px;margin-bottom:6px}
-  #gmListe.mcE .mcPan .gModeT{height:30px;margin-bottom:6px}
+  #gmListe.mcE .mcSec{height:30px;margin:14px 0 6px}
   #gmListe.mcE .mcL .mcJ u{height:7px}
   #gmListe.mcE .mcL .mcLt .mcSil{width:64px}
-  #gmListe.mcE .mcL.pret .m2Pr{min-height:32px;padding:0 14px}
-  #gmListe.mcE .mcNx i{height:10px}}
-@media (prefers-reduced-motion:reduce){.mcPo .rf,.mcPo .rf0,.mcV.pret .mcPo,.mcNeuf{animation:none}.mcL,.mcV,.mcPan{animation:none}.mcSil.duo img.n,.mcPo .hd{transition:none}}
+  #gmListe.mcE .mcL.pret .m2Pr{min-height:32px;padding:0 14px}}
+@media (prefers-reduced-motion:reduce){.mcPo .rf,.mcPo .rf0,.mcV.pret .mcPo{animation:none}.mcL,.mcV,.mcPan{animation:none}.mcSil.duo img.n,.mcPo .hd{transition:none}}
 .m2Rien{padding:16px 6px;font-size:var(--f0);color:#8fb8c8;text-align:center}
 /* LE POINT VERT des portes MISSIONS : une récompense attend */
 .m2Pt{position:absolute;top:5px;right:6px;width:10px;height:10px;background:var(--cash);box-shadow:0 0 0 2px var(--k0),0 0 10px var(--cash);pointer-events:none;
@@ -277,8 +270,8 @@ body.m2Lon #fil{scale:.82;translate:0 6px;filter:opacity(.15);transition:scale .
 .m2DebB u em{display:block;height:100%;background:var(--neoC);box-shadow:0 0 6px var(--neoC)}
 .m2DebB b{font-weight:400;font-size:var(--f0);color:#dfeeff;white-space:nowrap}
 .m2DebV{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;font-size:var(--f0);letter-spacing:1px;color:#031b24;
-  background:var(--neoC);transform:skewX(var(--sk));cursor:pointer;box-shadow:0 3px 0 #0a6f80;transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
-.m2DebV:active{transform:skewX(var(--sk)) translateY(2px);box-shadow:0 1px 0 #0a6f80}.m2DebV .pxi{--pxs:1}
+  background:var(--neoC);transform:skewX(var(--sk));cursor:pointer;box-shadow:0 3px 0 var(--cyanS);transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+.m2DebV:active{transform:skewX(var(--sk)) translateY(2px);box-shadow:0 1px 0 var(--cyanS)}.m2DebV .pxi{--pxs:1}
 .m2Deb.sec .m2DebT{color:var(--neoM)}
 .m2Nw{white-space:nowrap}
 /* dans la salle blanche de la boutique : l'étiquette au-dessus de l'objet, encre sombre sur blanc */
@@ -286,15 +279,15 @@ body.m2Lon #fil{scale:.82;translate:0 6px;filter:opacity(.15);transition:scale .
 #gBqNom .bqM2[hidden]{display:none}
 @media (orientation:landscape){#gBqNom .bqM2{max-width:min(33vw,290px)}} /* couché : la place entre les rayons et le panneau (garBq la resserre à la place réelle) */
 #gBqNom .m2Deb{align-items:center}
-#gBqNom .m2DebT{color:#0b7183;font-size:var(--f1);line-height:1.6}#gBqNom .m2Deb.sec .m2DebT{color:#c2187f}
-#gBqNom .m2DebB{width:100%;min-width:min(60vw,180px)}#gBqNom .m2DebB u{height:8px;background:#cfd5dc;box-shadow:none}#gBqNom .m2DebB u em{background:#00b8d4;box-shadow:none}#gBqNom .m2DebB b{color:#14171c;font-size:var(--f1)}
+#gBqNom .m2DebT{color:var(--cyanS);font-size:var(--f1);line-height:1.6}#gBqNom .m2Deb.sec .m2DebT{color:var(--neoMs)}
+#gBqNom .m2DebB{width:100%;min-width:min(60vw,180px)}#gBqNom .m2DebB u{height:8px;background:#cfd5dc;box-shadow:none}#gBqNom .m2DebB u em{background:var(--cyanM);box-shadow:none}#gBqNom .m2DebB b{color:var(--bqInk);font-size:var(--f1)}
 /* (2026-10-17, Sacha : « SE DÉBLOQUE en plus gros avec son compteur entier ») 8 → 10 px, la jauge de 6 → 8 px et sur toute la largeur de
    l'étiquette ; la règle couchée de la jauge (230 px) était écrasée par celle-ci, écrite après : la jauge restait à 260 px et le compteur
    passait sous la grille. */
-html.bqIndus body #garage #gAct>#gBqBtn[data-e="mis"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="mis"]{background:#00b8d4;color:#fff;box-shadow:0 4px 0 #087a8c}
-html.bqIndus body #garage #gAct>#gBqBtn[data-e="sec"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="sec"]{background:#f3eef2;color:#c2187f;box-shadow:none;cursor:default}
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="mis"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="mis"]{background:var(--cyanM);color:#fff;box-shadow:0 4px 0 #087a8c}
+html.bqIndus body #garage #gAct>#gBqBtn[data-e="sec"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="sec"]{background:#f3eef2;color:var(--neoMs);box-shadow:none;cursor:default}
 .bqK.m2sec .bqKph img,.gT.m2sec>img{filter:brightness(0) drop-shadow(0 0 1px rgba(255,62,200,.9))}
-.bqK.m2sec .bqKp.sec{color:#c2187f}
+.bqK.m2sec .bqKp.sec{color:var(--neoMs)}
 /* (2026-10-17, Sacha : « les silhouettes secrètes pas rognées ») la grille agrandit chaque photo (118 %) et la centre : le toit et les bouts
    sortaient de la case — une caisse en couleur se lit quand même, une silhouette noire devenait une tache. La silhouette tient ENTIÈRE :
    la photo au plus 110 % de large et 148 % de haut (la caisse = 83 % × 59 % de la photo : ~90 % de la case), descendue de 10 % (le milieu de
@@ -413,12 +406,12 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 #m2Rev.nom .m2RvNom{opacity:1;transform:none;animation:m2RvTombe .3s cubic-bezier(.6,0,.9,.4)}
 @keyframes m2RvTombe{0%{opacity:0;transform:scale(2.3)}55%{opacity:1}100%{opacity:1;transform:scale(1)}}
 #m2Rev:is(.p3,.p4) .m2RvNom{text-shadow:0 4px 0 #000,0 0 26px color-mix(in srgb,var(--rc) 65%,transparent)}
-#m2Rev.p5 :is(.m2RvNom,.m2RvRar span){color:transparent;text-shadow:none;background:linear-gradient(90deg,#ff4d6d,#ffb03a,#ffe85e,#5ee37a,#5ec8ff,#b07dff,#ff8af0,#ff4d6d);
+#m2Rev.p5 :is(.m2RvNom,.m2RvRar span){color:transparent;text-shadow:none;background:linear-gradient(90deg,var(--neoR),var(--neoA),#ffe85e,var(--neoV),var(--dol),var(--neoL),var(--aura),var(--neoR));
   background-size:200% 100%;-webkit-background-clip:text;background-clip:text}
 #m2Rev.p5 .m2RvNom{filter:drop-shadow(0 4px 0 #000)}
 #m2Rev.p5.nom .m2RvNom{animation:m2RvTombe .3s cubic-bezier(.6,0,.9,.4),m2RvArc 3s linear infinite}
 #m2Rev.p5 .m2RvRar span{animation:m2RvArc 3s linear infinite}
-#m2Rev.p5 .m2RvRar .pxi{background:linear-gradient(90deg,#ff4d6d,#ffb03a,#ffe85e,#5ee37a,#5ec8ff,#b07dff,#ff8af0)}
+#m2Rev.p5 .m2RvRar .pxi{background:linear-gradient(90deg,var(--neoR),var(--neoA),#ffe85e,var(--neoV),var(--dol),var(--neoL),var(--aura))}
 @keyframes m2RvArc{to{background-position:-200% 0}}
 .m2RvTx{min-height:3.2em;max-width:min(86vw,520px);font-size:var(--f1);line-height:1.6;letter-spacing:1px;color:rgba(255,255,255,.7)}
 .m2RvBt{min-width:220px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .35s var(--ease),transform .35s var(--ease)}
@@ -445,16 +438,16 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 .swBloc{position:relative;display:flex;flex-direction:column;align-items:center;gap:clamp(8px,2.2vh,16px);width:min(100%,520px);text-align:center;opacity:0;transform:translateY(8px);transition:opacity .45s var(--ease) .5s,transform .45s var(--ease) .5s}
 #serieW.on .swBloc{opacity:1;transform:none}
 .swHd{display:flex;flex-direction:column;align-items:center;gap:6px}
-.swHd small{font-size:var(--f1);letter-spacing:3px;color:#8c8f98}
+.swHd small{font-size:var(--f1);letter-spacing:3px;color:var(--tx3)}
 .swHd b{font-weight:400;font-size:var(--f8);line-height:1;color:#fff;text-shadow:0 3px 0 #000}
-.swHd b i{font-style:normal;font-size:var(--f4);color:#6a6d76;margin-left:4px}
+.swHd b i{font-style:normal;font-size:var(--f4);color:var(--kl2);margin-left:4px}
 .swHd em{font-style:normal;font-size:var(--f0);letter-spacing:1px;color:var(--au1)}
-.swPiste{display:grid;grid-template-columns:repeat(7,1fr);gap:clamp(3px,1.4vw,8px);align-items:end;width:100%;height:clamp(96px,26vh,170px);border-bottom:2px solid #2a2c33;box-sizing:border-box;padding:0 2px}
+.swPiste{display:grid;grid-template-columns:repeat(7,1fr);gap:clamp(3px,1.4vw,8px);align-items:end;width:100%;height:clamp(96px,26vh,170px);border-bottom:2px solid var(--k4);box-sizing:border-box;padding:0 2px}
 .swC{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0;font-style:normal}
 .swBar{position:relative;display:flex;align-items:flex-start;justify-content:center;width:100%;height:calc(var(--h) * 1%);box-sizing:border-box;padding-top:5px;text-decoration:none;
-  background:#14151a;box-shadow:inset 0 0 0 1px #2a2c33;transform-origin:bottom;animation:swMonte .55s var(--ease) backwards;animation-delay:calc(.55s + var(--i) * 70ms)}
+  background:#14151a;box-shadow:inset 0 0 0 1px var(--k4);transform-origin:bottom;animation:swMonte .55s var(--ease) backwards;animation-delay:calc(.55s + var(--i) * 70ms)}
 @keyframes swMonte{from{transform:scaleY(0)}}
-.swBar b{font-weight:400;font-size:var(--f0);letter-spacing:-1px;color:#6a6d76;white-space:nowrap}
+.swBar b{font-weight:400;font-size:var(--f0);letter-spacing:-1px;color:var(--kl2);white-space:nowrap}
 .swC>em{position:absolute;top:100%;left:0;right:0;margin-top:6px;font-style:normal;font-size:var(--f0);color:#5b5e67;letter-spacing:0}
 .swC.fait .swBar{background:#1b1d23;box-shadow:inset 0 0 0 1px #3a3d46}.swC.fait .swBar b{color:#9a9da6}
 .swC.auj .swBar{background:#0a0a0c;box-shadow:inset 0 0 0 2px var(--au2)}.swC.auj .swBar b{color:var(--au1)}.swC.auj>em{color:var(--au1)}
@@ -468,10 +461,10 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 .swPortail s{position:relative;z-index:1;text-decoration:none;font-size:var(--f3);color:var(--pg);animation:swContre 3s linear infinite}
 @keyframes swTourne{to{transform:rotate(360deg)}}@keyframes swContre{to{transform:rotate(-360deg)}}
 .swC.voit.auj .swPortail{box-shadow:0 0 22px var(--pg)}
-.swC>s.swOk{position:absolute;left:0;right:0;top:6px;text-align:center;color:#5ee37a;text-decoration:none}.swC>s.swOk .pxi{--pxs:2}
+.swC>s.swOk{position:absolute;left:0;right:0;top:6px;text-align:center;color:var(--neoV);text-decoration:none}.swC>s.swOk .pxi{--pxs:2}
 .swCentre{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:clamp(70px,20vh,150px);margin-top:14px}
 .swGain{font-size:var(--f7);line-height:1.1;color:var(--au1);text-shadow:0 3px 0 var(--auE),0 0 18px var(--auG);opacity:0;transform:scale(.9);transition:opacity .3s var(--ease),transform .4s var(--ease)}
-.swGain small{display:block;margin-bottom:6px;font-size:var(--f1);letter-spacing:3px;color:#8c8f98;text-shadow:none}
+.swGain small{display:block;margin-bottom:6px;font-size:var(--f1);letter-spacing:3px;color:var(--tx3);text-shadow:none}
 #serieW.gain .swGain{opacity:1;transform:none}
 .swPh{position:relative;width:min(70vw,360px);aspect-ratio:720/440;display:none}
 .swPh img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}.swPh img:not([src]){display:none}
@@ -484,7 +477,7 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 .swRar{font-size:var(--f0);letter-spacing:3px;color:var(--rc,#fff);opacity:0;transition:opacity .4s var(--ease)}
 .swNom{font-size:var(--f6);line-height:1.2;color:#fff;text-shadow:0 3px 0 #000,0 0 18px var(--rc,#fff);opacity:0;transform:scale(1.6);transition:transform .45s var(--ease),opacity .3s var(--ease)}
 #serieW.nom .swRar,#serieW.nom .swNom{opacity:1;transform:none}
-.swPied{font-size:var(--f1);line-height:1.7;letter-spacing:1px;color:#8c8f98;opacity:0;transition:opacity .4s var(--ease)}.swPied b{font-weight:400;color:var(--au1)}
+.swPied{font-size:var(--f1);line-height:1.7;letter-spacing:1px;color:var(--tx3);opacity:0;transition:opacity .4s var(--ease)}.swPied b{font-weight:400;color:var(--au1)}
 .swPied i{display:block;font-style:normal;color:#e0645a;font-size:var(--f0)}
 #serieW.bt .swPied{opacity:1}
 .swBt{min-width:220px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .3s var(--ease),transform .3s var(--ease)}
@@ -493,11 +486,11 @@ html #gBqPan .bqK.m2sec .bqKp.sec{white-space:normal;line-height:1.5;padding-lef
 @media (orientation:landscape) and (max-height:540px){.swBloc{flex-direction:row;align-items:center;gap:26px;width:min(100%,800px)}.swG,.swD{flex:1 1 0;gap:10px}
   .swHd b{font-size:var(--f6)}.swPiste{height:clamp(80px,34vh,130px)}.swCentre{min-height:0;margin-top:0}.swGain{font-size:var(--f6)}.swPh{width:min(34vw,230px)}.swNom{font-size:var(--f4)}.swBt{min-width:180px}}
 @media (prefers-reduced-motion:reduce){.swScene{transition:none}#serieW.on .swAnneau{animation:none}.swBar{animation:none}.swPortail,.swPortail s{animation:none}.swBloc{transition:none}}
-/* (2026-11-03) L'ÉCRAN DE SÉRIE dans la DA du garage : le fond violet-encre du jeu (body #07050f), les marches comme les blocs de l'inventaire (encre, liseré --fil). Une seule police. */
-.swScene{background:radial-gradient(ellipse at 50% 38%,#1c1636 0,#0d0a1c 55%,#07050f 100%)}
+/* (2026-11-03) L'ÉCRAN DE SÉRIE dans la DA du garage : le fond violet-encre du jeu (body var(--k0)), les marches comme les blocs de l'inventaire (encre, liseré --fil). Une seule police. */
+.swScene{background:radial-gradient(ellipse at 50% 38%,#1c1636 0,#0d0a1c 55%,var(--k0) 100%)}
 .swBar{background:linear-gradient(180deg,rgba(11,8,24,.86),rgba(23,16,46,.86));box-shadow:inset 0 0 0 1px var(--fil)}
 .swC.fait .swBar{background:linear-gradient(180deg,rgba(26,21,50,.9),rgba(20,15,40,.9));box-shadow:inset 0 0 0 1px rgba(200,184,255,.28)}.swC.fait .swBar b{color:var(--tx2)}
-.swC.auj .swBar{background:#0b0818}.swPiste{border-bottom-color:var(--fil)}.swHd small,.swPied,.swC>em{color:var(--tx3)}
+.swC.auj .swBar{background:var(--tranche)}.swPiste{border-bottom-color:var(--fil)}.swHd small,.swPied,.swC>em{color:var(--tx3)}
 .swHd b{transform:skewX(var(--sk));text-shadow:0 3px 0 var(--txO),0 0 24px rgba(255,201,58,.35)}
 /* (2026-11-05, Sacha : « prends le meilleur écran de mission que t'avais fait, mets-le à la mort, la 1re fois et chaque jour la 1re fois, enlève-le de la mission ») L'ÉCRAN
    DES MISSIONS À LA MORT (#mvW) : le portail (.mcV, .mcPo, mcVedette — inchangé, voir plus haut) posé SEUL sur la scène et l'œilleton de l'écran de série (.swScene,
@@ -560,4 +553,30 @@ html.misV2 #gmHead em{order:3}
 .m2A .m2L:not(.pret):not(.ok) .glTx>u{margin:5px 0 0}.m2A .m2L:not(.pret):not(.ok) .glTx>small{margin-top:5px;white-space:nowrap}
 .m2A .m2L{min-height:56px;margin-bottom:6px}
 @media (orientation:landscape) and (max-height:540px){.m2A .m2L{min-height:54px;padding:6px 9px 6px 8px;margin-bottom:6px}.m2A .m2R{width:74px;height:40px}.m2Serie{padding:9px 8px 10px}.srC{height:52px}.m2Pr{min-height:26px;margin-top:5px}}
+/* ===== RÉCUPÉRER EN SPAMMANT (2026-11-06, Sacha : « une animation cool et se remplacer vite, on peut récupérer toutes les récompenses en spammant ») =====
+   La ligne verte touchée (.vite) : flash, reflet qui balaie, elle s'envole à droite et son hauteur se replie (--h posée par le script) — la suivante monte sous le doigt.
+   Le gain s'élève (.m2Gain), la série ×N s'affiche en haut (#m2Combo). Tout en transform/opacity sauf le repli de hauteur (350 ms, une ligne à la fois). */
+#gmListe.mcE .mcL.vite,#gmListe.mcE.vu .mcL.vite{position:relative;overflow:hidden;pointer-events:auto;animation:m2ViteOut .36s cubic-bezier(.3,.1,.3,1) forwards!important}
+#gmListe .mcL.vite::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 28%,rgba(255,255,255,.9) 50%,transparent 72%);transform:translateX(-130%);animation:m2ViteShine .24s ease-out forwards}
+#gmListe .mcL.vite .mcSil.duo img.n{transition-duration:.2s}
+#gmListe .mcL.vite .mcBal{animation-duration:.22s}
+@keyframes m2ViteOut{
+  0%{transform:scale(1);filter:brightness(1);opacity:1;height:var(--h)}
+  22%{transform:scale(1.05);filter:brightness(2.4) saturate(1.4);opacity:1;height:var(--h)}
+  50%{transform:translateX(14%) scale(.97);filter:brightness(1.5);opacity:.9;height:var(--h);margin-bottom:6px}
+  100%{transform:translateX(70%) scale(.82);filter:brightness(1);opacity:0;height:0;margin-bottom:0;padding-top:0;padding-bottom:0;gap:0}}
+@keyframes m2ViteShine{to{transform:translateX(130%)}}
+.mcRec9{transition:opacity .25s,max-height .3s;max-height:40px;overflow:hidden}.mcRec9.vide{opacity:0;max-height:0;margin:0}
+.m2Gain{position:fixed;z-index:125;pointer-events:none;white-space:nowrap;font-family:var(--pix,inherit);font-size:var(--f4,14px);letter-spacing:.5px;color:var(--cash,var(--cash));
+  text-shadow:0 2px 0 #04120a,0 0 14px rgba(125,255,155,.85);display:flex;align-items:center;gap:6px;animation:m2GainUp .9s cubic-bezier(.2,.8,.3,1) forwards}
+.m2Gain.car{color:var(--au1);text-shadow:0 2px 0 #241600,0 0 16px rgba(255,200,60,.9)}.m2Gain.hab{color:#c9a8ff;text-shadow:0 2px 0 #12082a,0 0 14px rgba(176,125,255,.9)}
+@keyframes m2GainUp{0%{transform:translate(-50%,-20%) scale(.4);opacity:0}16%{transform:translate(-50%,-60%) scale(1.3);opacity:1}30%{transform:translate(-50%,-70%) scale(1)}100%{transform:translate(-50%,-220%) scale(1);opacity:0}}
+#m2Combo{position:fixed;z-index:125;left:50%;top:calc(env(safe-area-inset-top,0px) + 13%);transform:translateX(-50%) scale(.6);opacity:0;pointer-events:none;display:flex;align-items:baseline;gap:10px;
+  padding:6px 14px;background:rgba(10,8,22,.82);box-shadow:inset 0 0 0 2px var(--au1),0 0 22px rgba(255,200,60,.5);font-family:var(--pix,inherit);color:var(--tx);transition:opacity .25s,transform .25s}
+#m2Combo.on{opacity:1;transform:translateX(-50%) scale(1)}
+#m2Combo small{font-size:var(--f0,8px);letter-spacing:1px;color:var(--au1)}#m2Combo b{font-weight:400;font-size:var(--f6,24px);color:var(--au1);text-shadow:0 2px 0 #241600,0 0 12px rgba(255,200,60,.8)}
+#m2Combo em{font-style:normal;font-size:var(--f1,10px);color:var(--cash,var(--cash))}
+#m2Combo.pop b{animation:m2ComboPop .22s cubic-bezier(.3,1.6,.5,1)}
+@keyframes m2ComboPop{0%{transform:scale(1.7) rotate(-6deg)}100%{transform:scale(1) rotate(0)}}
+@media (prefers-reduced-motion:reduce){#gmListe .mcL.vite::after,.m2Gain,#m2Combo.pop b{animation:none}#gmListe.mcE .mcL.vite{animation:none!important}}
 </style>

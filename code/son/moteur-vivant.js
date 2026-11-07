@@ -49,6 +49,7 @@ MV.creuse=function(p){
 /* UNE IMAGE de conduite : appelée par la boucle (au sol : engRpm de la boîte ; en l'air : la roue libre). `fall` : le moteur emballé en vol, plus discret. */
 MV.drive=function(dt,rpmN,thr,charge,nA,dk,fall){
   if(!MV.on||!MV.ok||!MV.use||!AC)return;
+  rpmN=+rpmN||0;thr=+thr||0;charge=+charge||0;nA=+nA||0;if(!isFinite(dk))dk=1; /* (2026-11-05, DEBUG-TOTAL) un NaN envoyé au worklet y restait POUR TOUJOURS (this.rpm+=…) et sa sortie NaN traversait le limiteur commun : tout le son du jeu pouvait mourir jusqu'au rechargement */
   const C=MV.cfg[MV.nom];if(!C)return;
   if(MV.mort){MV.mort=false;MV.envoi({ev:'allume'});}
   MV.vu=performance.now();

@@ -180,6 +180,7 @@ function tutoTick(dt){
   if(!TUTO.on||!started||gameOver||paused)return;
   const c=document.getElementById('coach');if(!c||!c.classList.contains('on')||c.classList.contains('bravo'))return;
   TUTO.t+=dt;
+  {const j=!!((typeof TCTL!=='undefined'&&TCTL.act)||nitroOn||Math.abs(steer)>.05);if(j!==TUTO.joue){TUTO.joue=j;c.classList.toggle('joue',j);}} /* (2026-11-07) le pouce est sur le volant ou NITRO : la carte s'estompe (voir LA CARTE COMPACTE) */
   TUTO.mT=(TUTO.mT||0)+dt;if(TUTO.mT>.25){TUTO.mT=0;tutoMain();} // la main suit sa commande (rotation, clavier qui sort, réglage COMMANDES)
   /* (2026-09-26, audit UX : 3 essais sur 3, la caisse sortait de la route juste après TOURNE, et l'étape NITRO ne se validait
      pas en l'air → 6 s de vol, explosion, « RATÉ »). Aux deux premières étapes, une sortie de route (plus d'une demi-seconde

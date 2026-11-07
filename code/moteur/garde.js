@@ -42,15 +42,12 @@ function bouclePasse(){ /* en fin de simulation : une tranche passée sans panne
   for(const k in BTR.n)if(BTR.vu[k]!==BTR.img)delete BTR.n[k];
   BTR.img++;}
 window.dbgBoucle=function(tr,n){if(tr!==undefined)BTR.test=tr?{tr:tr,n:n==null?3:+n}:null;return {tranches:['départ','physique','effets','sons','hud'],pannes:Object.assign({},BTR.n),test:BTR.test,max:BTR.max,derniere:window.__loopErr||''};};
-/* (banc, 2026-11-05) dbgJouer() : l'état des gardes du JOUER, puis le même départ que le bouton — pour le banc headless (outils/banc-jury) */
-window.dbgJouer=function(){const et={pendingScore:pendingScore,started:started,gameOver:gameOver,garageOn:garageOn,go:!!GAR.go,chute:!!CHUTE.on,chuteGo:!!CHUTE.go,wipe:!!ecranWipe._on,tuto:!!SAVE.d.tuto,sf:sfPlayOk()};
-  let r='';try{r=sfPlayOk()?String(classiqueJouer()):(playViaGarage(true),'playViaGarage');}catch(e){r='erreur '+(e&&e.message);}
-  return Object.assign(et,{appel:r,goApres:!!GAR.go,chuteGoApres:!!CHUTE.go});};
+/* (2026-11-07) dbgJouer() vit désormais dans moteur/desktop-banc.js (repris par main) : plus de doublon ici */
 /* (banc, 2026-11-05) dbgDepartEtat() : où en est la séquence du départ (lâcher, voile, pré-bâti) — pour le banc headless */
 window.dbgDepartEtat=function(){const g=GAR.go;return {go:g?{t:+(g.t||0).toFixed(2),chute:!!g.chute,voile:!!g.voile,attend:!!g.attend,son:!!g.son}:null,sous:!!GAR.sous,chuteSous:!!CHUTE.sous,wipe:!!ecranWipe._on,preb:{on:!!PREB.on,W:!!PREB.W,fait:!!PREB.fait,pas:PREB.pas,echecs:PREB.echecs},started:started,running:running,paused:paused,garageOn:garageOn,depart:window.dbgDepart?dbgDepart():null,lier:window.dbgLier?dbgLier().demarrage:null,body:document.body.className.slice(0,100)};};
 /* (banc, 2026-11-05, DIR-02) dbgTas() : la mémoire vue du jeu — tas JS, géométries/textures/programmes du moteur, enfants de scène, sons décodés */
 window.dbgTas=function(){const m=renderer.info.memory,pm=performance.memory;let son=null;try{son=window.CCSON&&CCSON.etat();}catch(e){}
-  return {tasMo:pm?Math.round(pm.usedJSHeapSize/1048576):null,geometries:m.geometries,textures:m.textures,programmes:(renderer.info.programs||[]).length,enfants:scene.children.length,sons:son?son.decodes:null,sonsMo:son?son.mo:null,paquets:son?son.paquets:null};};
+  return {tasMo:pm?Math.round(pm.usedJSHeapSize/1048576):null,geometries:m.geometries,textures:m.textures,programmes:(renderer.info.programs||[]).length,enfants:scene.children.length,sons:son?son.decodes:null,sonsMo:son&&son.mo!=null?son.mo:null};};
 /* (banc, 2026-11-05, GP-02) dbgMinuteurs() : les chronos et jauges qui s'égrènent sur l'horloge dtH — pour mesurer leur pente contre l'horloge murale */
 window.dbgMinuteurs=function(){return {nitro:+pwrNitroT.toFixed(3),air:+pwrAirT.toFixed(3),vit:+pwrSpdT.toFixed(3),grace:+graceT.toFixed(3),boost:+startBoostT.toFixed(3),fever:+fever.toFixed(3),styleM:+styleM.toFixed(2),comboT:+comboT.toFixed(3),msgT:+msgT.toFixed(3),runxT:+(RUNX.t||0).toFixed(3),frenT:+(FREN.t||0).toFixed(3),fallTR:+fallTR.toFixed(3),inv:+CHANCE.inv.toFixed(3)};};
 /* (banc, 2026-11-05) dbgSauvegardeBanc() : le code scellé (ECO-04), la musique remise une fois (SON-05), l'échec de flush qui se dit (HYG-15) — rend l'état, puis remet la vraie sauvegarde */

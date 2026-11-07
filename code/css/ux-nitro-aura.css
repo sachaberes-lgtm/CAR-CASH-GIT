@@ -85,7 +85,7 @@ html.hub:not(.poki) body #mHome.acc2 .mTitle{filter:drop-shadow(0 0 .3em rgba(25
 #wipe.out::before{animation-duration:320ms!important}
 #wipe::before{background:linear-gradient(90deg,var(--neoC) 0 8px,transparent 8px 12px,var(--neoM) 12px 20px,transparent 20px 24px,var(--au2) 24px 32px,transparent 32px 34px,
   rgba(7,5,15,1) 34px calc(100% - 34px),transparent calc(100% - 34px) calc(100% - 32px),var(--au2) calc(100% - 32px) calc(100% - 24px),transparent calc(100% - 24px) calc(100% - 20px),
-  var(--neoM) calc(100% - 20px) calc(100% - 12px),transparent calc(100% - 12px) calc(100% - 8px),var(--neoC) calc(100% - 8px)),var(--matrice),#07050f!important}
+  var(--neoM) calc(100% - 20px) calc(100% - 12px),transparent calc(100% - 12px) calc(100% - 8px),var(--neoC) calc(100% - 8px)),var(--matrice),var(--k0)!important}
 /* L'ŒIL : la console s'EFFACE en 200 ms (elle disparaissait d'un coup), pendant que la caméra glisse sur la caisse ; elle revient en fondu */
 /* (2026-10-11) le fondu de la console sous l'œil est retiré avec le garage d'avant : l'œil vit DANS la console, une opacité 0 l'éteindrait aussi */
 </style>
@@ -159,25 +159,25 @@ html body.touch #nitroBar.boost #nitroR,html body.touch #nitroBar.bleu #nitroX,h
   background-size:100% 100%,19.8px 100%,100% 100%!important;background-repeat:no-repeat,repeat-x,no-repeat!important;animation:nbRaye .3s linear infinite!important}
 html body.touch #nitroBar.boost #nitroR{background-image:linear-gradient(180deg,rgba(255,255,255,.42) 0 2px,rgba(255,255,255,.12) 2px 5px,transparent 5px),
   repeating-linear-gradient(-45deg,rgba(255,246,220,.55) 0 4px,rgba(255,236,190,.22) 4px 6px,transparent 6px 14px),
-  linear-gradient(180deg,#ffd58f 0 3px,#ff8d2e 3px 50%,#ff7415 50% calc(100% - 3px),#ad4200 calc(100% - 3px))!important}
+  linear-gradient(180deg,var(--nL) 0 3px,var(--nP) 3px 50%,var(--nS) 50% calc(100% - 3px),var(--nO) calc(100% - 3px))!important}
 html body.touch #nitroBar.bleu #nitroX{background-image:linear-gradient(180deg,rgba(255,255,255,.42) 0 2px,rgba(255,255,255,.12) 2px 5px,transparent 5px),
   repeating-linear-gradient(-45deg,rgba(236,242,255,.55) 0 4px,rgba(210,222,255,.22) 4px 6px,transparent 6px 14px),
-  linear-gradient(180deg,#b5c4ff 0 3px,#4a68f0 3px 50%,#2a44c8 50% calc(100% - 3px),#16247a calc(100% - 3px))!important}
+  linear-gradient(180deg,var(--bL) 0 3px,var(--bP) 3px 50%,var(--bS) 50% calc(100% - 3px),var(--bO) calc(100% - 3px))!important}
 html body.touch #nitroBar.inf #nitroR,html body.touch #nitroBar.inf #nitroX{background-image:linear-gradient(180deg,rgba(255,255,255,.45) 0 2px,rgba(255,255,255,.14) 2px 5px,transparent 5px),
   repeating-linear-gradient(-45deg,rgba(250,240,255,.6) 0 4px,rgba(236,214,255,.25) 4px 6px,transparent 6px 14px),
   linear-gradient(var(--bandes4),var(--vL) 0 3px,var(--vP) 3px 50%,var(--vS) 50% calc(100% - 3px),var(--vO) calc(100% - 3px))!important}
 @keyframes nbRaye{from{background-position:0 0,0 0,0 0}to{background-position:0 0,-19.8px 0,0 0}}
 /* le bout qui brûle : le curseur crépite (deux crans, de l'éclat) */
 html body.touch #nitroBar.boost #nitroR::after,html body.touch #nitroBar.inf #nitroR::after{animation:nbBout .14s steps(2) infinite}
-@keyframes nbBout{50%{box-shadow:0 0 14px #fff1c8,0 0 26px #ff8d2e;background:#fff}}
+@keyframes nbBout{50%{box-shadow:0 0 14px #fff1c8,0 0 26px var(--nP);background:#fff}}
 /* ---- 2. LA JAUGE D'AURA = la barre flow d'origine ---- */
 #ajVols{display:none}
 /* ---- 3. LE FLOW, juste dessous (toute sa logique intacte) — (2026-10-24, Sacha : « la barre de flow est trop discrète ») : 11 px au lieu de 6, icône 17 px, nom du palier réaffiché, halo ---- */
 html body.touch #flowHud{right:calc(var(--hudD) + 70px)!important;padding:0 var(--nxV) 0 34px!important;
   grid-template-rows:11px!important;gap:0!important}
 html body.touch #flowHud .fSeg{height:11px!important;padding:2px!important;gap:2px!important;border-radius:3px!important;
-  box-shadow:inset 0 0 0 2px #170f55,0 2px 0 #170f55,0 0 10px color-mix(in srgb,var(--fc) 55%,transparent),0 4px 8px rgba(0,0,0,.35)!important}
-html body.touch #flowHud[data-lv="0"] .fSeg{box-shadow:inset 0 0 0 2px #170f55,0 2px 0 #170f55,0 4px 8px rgba(0,0,0,.35)!important}
+  box-shadow:inset 0 0 0 2px var(--jEncre),0 2px 0 var(--jEncre),0 0 10px color-mix(in srgb,var(--fc) 55%,transparent),0 4px 8px rgba(0,0,0,.35)!important}
+html body.touch #flowHud[data-lv="0"] .fSeg{box-shadow:inset 0 0 0 2px var(--jEncre),0 2px 0 var(--jEncre),0 4px 8px rgba(0,0,0,.35)!important}
 html body.touch #flowHud[data-lv="4"] .fSeg{box-shadow:inset 0 0 0 2px var(--frenN),0 2px 0 var(--frenO),0 0 14px color-mix(in srgb,var(--fren) 80%,transparent)!important}
 html body.touch #flowHud .fSeg i{background:rgba(255,255,255,.14)!important}
 html body.touch #flowHud .fSeg s::after,html body.touch #flowHud .fSeg i.cur s::after{width:3px!important}
@@ -200,10 +200,10 @@ html body.touch.play #ajVols{display:block;position:fixed;inset:0;z-index:31;poi
 /* (2026-10-12, Léo : « ça flotte, puis la gravité le tire vers la jauge ») la NITRO vole aussi : un éclair pixel (la lueur sur le <b>, le
    masque sur le <i> — un drop-shadow sur l'élément masqué ne se verrait pas), orange vers le réservoir, bleu vers la réserve des fruits */
 #ajVols b.n{font-size:0;filter:drop-shadow(0 2px 0 #2a0e00) drop-shadow(0 0 6px rgba(255,141,46,.95))}
-#ajVols b.n>i{display:block;width:24px;height:24px;background:linear-gradient(180deg,#fff3c4 0 22%,#ffb81f 22% 62%,#ff8d2e 62%);
+#ajVols b.n>i{display:block;width:24px;height:24px;background:linear-gradient(180deg,var(--au0) 0 22%,var(--neoA) 22% 62%,var(--nP) 62%);
   -webkit-mask:var(--pxi-eclair) center/100% 100% no-repeat;mask:var(--pxi-eclair) center/100% 100% no-repeat}
 #ajVols b.n.x{filter:drop-shadow(0 2px 0 #0b1250) drop-shadow(0 0 6px rgba(110,140,255,.95))}
-#ajVols b.n.x>i{background:linear-gradient(180deg,#eef2ff 0 22%,#8fa4ff 22% 62%,#4a68f0 62%)}
+#ajVols b.n.x>i{background:linear-gradient(180deg,#eef2ff 0 22%,#8fa4ff 22% 62%,var(--bP) 62%)}
 /* l'arrivée : un anneau de pixels qui s'ouvre là où il tombe */
 #ajVols u{position:absolute;left:-11px;top:-11px;width:22px;height:22px;opacity:0;box-shadow:inset 0 0 0 3px var(--c,#fff);pointer-events:none}
 #ajVols u.on{animation:volImpact .34s steps(4) forwards}

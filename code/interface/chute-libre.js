@@ -22,7 +22,7 @@ function chuteDoux(t,u){
   }
   clearTimeout(CHDOUX.off);CHDOUX.off=0;
   const now=AC.currentTime,houle=.78+.16*Math.sin(t*.41)+.08*Math.sin(t*1.07+1.3);CHDOUX.h=houle; // (la musique du ciel la lit : elle plonge sous les rafales)
-  stt(n.g.gain,CHDOUX_VOL*houle*(1+.6*u)*ventIntro(),now,.5);                  // au piqué de JOUER il gonfle (+4 dB ; +8 avant le 16/10 : voir LE PIQUÉ QUI NE CRIE PLUS)…
+  stt(n.g.gain,CHDOUX_VOL*houle*(1+.6*u)*ventCiel(),now,.5);                  // au piqué de JOUER il gonfle (+4 dB ; +8 avant le 16/10 : voir LE PIQUÉ QUI NE CRIE PLUS)…
   stt(n.f1.frequency,330+70*Math.sin(t*.29)+300*u,now,.6);         // …et s'éclaircit un peu
   stt(n.f2.frequency,820+260*Math.sin(t*.53+2)+500*u,now,.6);
   stt(n.g2.gain,.2+.08*Math.sin(t*.67),now,.6);

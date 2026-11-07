@@ -23,7 +23,7 @@
 
   /* ---- 1. LE RENDU NATIF ---- (la page du jeu est déjà en position fixe : on ne fait que fermer les fuites) */
   try{var st=document.createElement('style');st.id='natifCss';
-    st.textContent='html,body{background:#12081f;overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%;'+
+    st.textContent='html,body{background:#000;overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%;'+
       '-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}'+
       'input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}';
     (document.head||document.documentElement).appendChild(st);}catch(e){}

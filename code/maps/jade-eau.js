@@ -291,7 +291,7 @@ function jadeRedemarre(){if(!started||gameOver||mode==='boom')return; // (2026-1
 function jadeRepere(o,b,t,sc){const m=new THREE.Matrix4(),z=t.clone().negate(),k=sc||VXG;
   m.set(b.x*k,0,z.x*k,o.x, b.y*k,k,z.y*k,o.y, b.z*k,0,z.z*k,o.z, 0,0,0,1);return m;}
 function jadeMonument(root,g,Mr,jx,M9){ // un monument en verre de jade : ses trois passes (lumière, absorption, profondeur) — rend les trois maillages
-  const aJ=new Float32Array(g.attributes.position.count*4);for(let k=0;k<aJ.length;k+=4){aJ[k]=jx;aJ[k+1]=1;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));
+  if(!(g.attributes.aJ&&g.attributes.aJ.array[0]===jx)){const aJ=new Float32Array(g.attributes.position.count*4);for(let k=0;k<aJ.length;k+=4){aJ[k]=jx;aJ[k+1]=1;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));} /* (B2) le maillage gardé a déjà son aJ */
   /* (v17, « ça bugue énormément ») MESURÉ : la porte du ciel (519 k triangles × 3 passes) était dessinée À CHAQUE IMAGE, de n'importe où dans
      le niveau (frustumCulled faux). Désormais chaque monument vit dans un groupe éteint au-delà de la brume, et le champ le trie. */
   if(!g.boundingSphere)g.computeBoundingSphere();const gr=new THREE.Group();gr.matrixAutoUpdate=false;root.add(gr);
@@ -337,26 +337,51 @@ window.dbgMonuLoin=function(){return (JADE.monu||[]).filter(function(o){return o
   return {etat:o.lo?'pret':o.loIt?'tranche '+S.n:S.err?'erreur':S.n?'vide':'en attente',tranches:S.n||0,msTravail:+(S.ms||0).toFixed(1),msMur:Math.round(S.mur||0),tri:o.loTri||0,loin:!!o.loin,err:S.err||null};});};
 function jadeMonuLoinPose(o,g){
   if(!g.index||!g.index.count)return;
-  const aJ=new Float32Array(g.attributes.position.count*4);for(let k=0;k<aJ.length;k+=4){aJ[k]=o.dJ;aJ[k+1]=1;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));
+  if(!(g.attributes.aJ&&g.attributes.aJ.array[0]===o.dJ)){const aJ=new Float32Array(g.attributes.position.count*4);for(let k=0;k<aJ.length;k+=4){aJ[k]=o.dJ;aJ[k+1]=1;}g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
+  if(o.dP&&JADE_PORTE_C.G&&o.dP.G===JADE_PORTE_C.G)JADE_PORTE_C.gLoin=g; /* (B2) le monument de loin est gardé avec la porte */
   const m=new THREE.Mesh(g,jadeMats().vrOM);m.matrixAutoUpdate=false;m.matrix.copy(o.dM);m.matrixWorldNeedsUpdate=true;m.renderOrder=0;m.frustumCulled=true;m.userData.jeter=true;
   m.visible=!!o.loin;if(o.loin)o.L[0].visible=false;o.g.add(m);o.lo=m;o.loTri=g.index.count/3;}
 function jadeDansGrille(R,p){const dx=p.x-R.o.x,dy=p.y-R.o.y,dz=p.z-R.o.z; // un point du monde est-il dans un cube de cette grille ?
   return voxAt(R.G,Math.floor((dx*R.b.x+dz*R.b.z)/VXG),Math.floor(dy/VXG),Math.floor(-(dx*R.t.x+dz*R.t.z)/VXG))>0;}
 /* LA PORTE DU CIEL — un massif FLOTTANT en cubes, percé d'une arche (176 m) : faces bosselées, crête en pitons, un DESSOUS en pointes
    d'escalier d'où pendent des lianes ; rouille, herbe, touffes ; rogné si la route repasse derrière ; des montagnes soudées à ses faces. */
-function* jadePorte(root,i0,jr,M9,pose){ // (LE PRÉ-BÂTI) un générateur : ses cubes (voxMeshG, colMeshG) rendent la main à l'échéance JF.lim
-  const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),D=170;
-  let wG=560,wD=560;
+/* (2026-11-05, passe perf mobile 2, B2) LA PORTE GARDÉE d'une visite à l'autre. MESURÉ : la muraille (grille + voxMeshG + colMeshG) est le plus gros
+   poste de la jade, et elle était refaite à chaque visite (jadeOublie libère la carte dès qu'on joue une autre map). Même vallée (`jadeCle` : même
+   graine, même ruban, mêmes réglages) = même grille et mêmes maillages au bit près : on les GARDE (côté processeur seulement : la carte graphique
+   les rend déjà à jadeRendGPU/jadeJette) et la visite d'après les repose sans les recalculer. Le hasard `jr` doit tomber dans le même ordre : on
+   compte les tirages de la muraille et on les rejoue (nJr) — les montagnes, le pont et les rochers sont donc exactement les mêmes.
+   `?jadegarde=0` : la porte est refaite à chaque fois, comme avant. Une seule entrée (la dernière vallée vue). */
+const JADE_PORTE_GARDE_ON=!/[?&]jadegarde=0\b/.test(location.search);
+const JADE_PORTE_C={cle:null,fin:false,nJr:0,G:null,o:null,P:null,gs:null,gLoin:null,reprises:0,ms:0};
+function jadePorteOublie(){JADE_PORTE_C.cle=null;JADE_PORTE_C.G=JADE_PORTE_C.o=JADE_PORTE_C.P=JADE_PORTE_C.gs=JADE_PORTE_C.gLoin=null;}
+/* (2026-11-05, passe perf mobile 2, B2) LES TRANCHES DE LA PORTE : l'attribut aJ d'un monument (4 flottants par sommet, ~1 M de sommets pour la muraille) se remplissait d'un coup dans jadeMonument ; ici il est rempli par tranches (rendez-vous JF.lim), jadeMonument le trouve fait. Même valeurs, même ordre : le maillage ne change pas. */
+function* jadeAJG(g,jx){if(g.attributes.aJ&&g.attributes.aJ.array[0]===jx)return;const n=g.attributes.position.count,aJ=new Float32Array(n*4);
+  for(let k=0;k<n;k++){aJ[k*4]=jx;aJ[k*4+1]=1;if((k&16383)===16383&&performance.now()>JF.lim)yield;}
+  g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
+function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur : ses cubes (voxMeshG, colMeshG) rendent la main à l'échéance JF.lim
+  const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),D=110; /* (2026-11-06, Léo : « la montagne de Jade fait bugger, pas une énorme forêt : une colline beaucoup plus petite avec des arbustes, comme en Thaïlande (Koh Phi Phi, Koh Lanta) ») la porte devient un îlot KARSTIQUE : 230 m de chaque côté (avant 560), 110 m d'épaisseur (170), 270 m de haut (520), arche de 124 m × 150 m (176 × 215) — environ le tiers des cubes */
+  let wG=230,wD=230;
   for(let i=0;i<NP;i+=4){if(Math.abs(i-i0)<Math.round(420/(L/(NP-1))))continue;const q=pts[i],dx=q.x-p.x,dz=q.z-p.z,u=dx*t.x+dz*t.z,v=dx*b.x+dz*b.z;
     if(Math.abs(u)>D/2+ROAD_HALF+40)continue;if(v>0)wD=Math.min(wD,v-ROAD_HALF-50);else wG=Math.min(wG,-v-ROAD_HALF-50);}
-  if(wG<180||wD<180)return;
+  if(wG<130||wD<130)return;
   wG=Math.floor(wG/VXG)*VXG;wD=Math.floor(wD/VXG)*VXG;
-  const y0=p.y,hb=-55,ht=215,hw=88,top=520,W=wG+wD,ab=ht-hw*.9;
+  const y0=p.y,hb=-55,ht=150,hw=62,top=270,W=wG+wD,ab=ht-hw*.9;
   const ph=[jr()*6.28,jr()*6.28,jr()*6.28],crete=f=>{const cr=Math.sin(Math.max(0,Math.min(1,f))*Math.PI);return top*(.62+.38*Math.sqrt(cr))-(1-cr)*90+
       70*Math.pow(Math.abs(Math.sin(f*5.1+ph[0])),2.5)+35*Math.sin(f*13.7+ph[1])+18*Math.sin(f*31.+ph[2]);};
   const vn=rocNoise2(jr()*100),vb=rocNoise2(jr()*100);
-  const oy=Math.floor((y0-440)/VXG)*VXG,nx=Math.round(W/VXG),nz=Math.round(D/VXG),ny=Math.ceil((y0+top+130-oy)/VXG),G=voxG(nx,ny,nz);
-  const cretes=new Float32Array(nx);for(let x=0;x<nx;x++)cretes[x]=crete((x+.5)/nx)+(jr()-.5)*10;
+  const cle0=JADE_PORTE_GARDE_ON&&cle9?cle9+'|'+(FIN.on?1:0)+'|'+i0+'|'+wG+'|'+wD:null,tG0=performance.now(),jr1=jr;let nJ=0;jr=function(){nJ++;return jr1();}; /* (B2) le compte des tirages de la muraille */
+  const hit=cle0&&JADE_PORTE_C.cle===cle0&&JADE_PORTE_C.gs;
+  let G,o;
+  if(hit){const C=JADE_PORTE_C;for(let k=0;k<C.nJr;k++)jr1();G=C.G;o=C.o.clone();const P0=C.P;
+    JADE.porte={c:P0.c.clone(),t:P0.t,b:P0.b,D:P0.D,hw:P0.hw,hb:P0.hb,ht:P0.ht,G:G,o:o,i:P0.i,tri:P0.tri,triF:P0.triF};
+    if(C.fin){const gs=C.gs;jadeMonument(root,gs.gA,jadeRepere(o,b,t),.37,M9);JADE.porte.mL=jadeMonument(root,gs.gB,jadeRepere(gs.oB,b,t),.37,M9);JADE.porte.mF=jadeMonument(root,gs.gF,jadeRepere(gs.oF,b,t,VXG/gs.K),.37,M9);
+      for(const m of JADE.porte.mF)m.visible=false;JADE.porte.pres=false;JADE.porte.tT={garde:1};}
+    else{jadeMonument(root,C.gs.g,jadeRepere(o,b,t),.37,M9);
+      if(PAL.b('jadeMonuLoin',0)){const e9=JADE.monu[JADE.monu.length-1];e9.dG=G;e9.dM=jadeRepere(o,b,t,VXG*2);e9.dJ=.37;e9.dP=JADE.porte;if(C.gLoin){e9.dG=null;jadeMonuLoinPose(e9,C.gLoin);}}}
+    C.reprises++;C.ms=Math.round(performance.now()-tG0);}
+  else{const nJ0=nJ;
+  const oy=Math.floor((y0-440)/VXG)*VXG,nx=Math.round(W/VXG),nz=Math.round(D/VXG),ny=Math.ceil((y0+top+130-oy)/VXG);G=voxG(nx,ny,nz);
+  const cretes=new Float32Array(nx);for(let x=0;x<nx;x++)cretes[x]=crete((x+.5)/nx)+(jr()-.5)*10+(vn(x*VXG/5*.9,7.7)>.52?6+9*vn(x*VXG/5*.4,2.2):0); /* (2026-11-06) les ARBUSTES : des boules de verdure sur la crête (la tête de la colline, comme les îlots de Thaïlande) */
   const basT=new Float32Array(nx*nz);for(let x=0;x<nx;x++){const v=-wG+(x+.5)*VXG,xn=(v-(wD-wG)/2)/(W/2);for(let z=0;z<nz;z++)basT[x*nz+z]=-300+180*xn*xn+90*(vb(x*VXG/5*.09,z*VXG/5*.12)-.5);} // le DESSOUS, en pointes : le massif flotte
   for(let x=0;x<nx;x++){if(performance.now()>JF.lim)yield;const v=-wG+(x+.5)*VXG;
     for(let y=0;y<ny;y++){const yr=oy+(y+.5)*VXG-y0;if(yr>cretes[x])break;
@@ -365,19 +390,19 @@ function* jadePorte(root,i0,jr,M9,pose){ // (LE PRÉ-BÂTI) un générateur : se
       for(let z=z0;z<z1;z++)if(yr>=basT[x*nz+z])G.d[x+nx*(z+nz*y)]=JM.roche;}}
   for(let x=0;x<nx;x++){if(performance.now()>JF.lim)yield;const ru=vn(x*VXG/5*.3,3.3)>.83;
     for(let y=0;y<ny;y++)for(let z=0;z<nz;z++){const k0=x+nx*(z+nz*y);if(G.d[k0]!==JM.roche)continue;const yr=oy+(y+.5)*VXG-y0;
-      if(!voxAt(G,x,y+1,z)&&yr>-60){G.d[k0]=JM.herbe;continue;}
+      if(!voxAt(G,x,y+1,z)&&yr>-60){G.d[k0]=vn(x*VXG/5*.9,7.7)>.52?JM.feuille:JM.herbe;continue;}
       if(ru&&(!voxAt(G,x,y,z-1)||!voxAt(G,x,y,z+1))&&jr()<.9)G.d[k0]=JM.rouille;}}
-  const o=p.clone().addScaledVector(b,-wG).addScaledVector(t,D/2);o.y=oy;
+  o=p.clone().addScaledVector(b,-wG).addScaledVector(t,D/2);o.y=oy;
   JADE.porte={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,hw:hw,hb:y0+hb,ht:y0+ht,G:G,o:o,i:i0,tri:0};
   // (v8) LES CUBES MINUSCULES de la porte : la RÉGION que la route traverse (l'arche ± 110 m, de 140 m sous la route à 360 m au-dessus) devient
   // FANTÔME dans la muraille (ni faces ni trou, voxMesh) ; elle a deux habits : de LOIN ses cubes de 2,5 m (une petite grille découpée autour
   // d'elle), de PRÈS (< 780 m) ses colonnes fines (colMesh, les marches avec la muraille posées des deux côtés). Les chocs lisent toujours G.
-  let fin9=false;const T0=performance.now(),TT=JADE.tPorte={};
+  let PG9=null;let fin9=false;const T0=performance.now(),TT=JADE.tPorte={};
   if(FIN.on){try{const K=FIN.k,RW=hw+110,xa=Math.max(0,Math.floor((wG-RW)/VXG)),xb=Math.min(nx,Math.ceil((wG+RW)/VXG)),ya=Math.max(0,Math.floor((y0-140-oy)/VXG)),yb=Math.min(ny,Math.ceil((y0+360-oy)/VXG));
-    const Gc={nx:nx,ny:ny,nz:nz,d:G.d.slice()};for(let y=ya;y<yb;y++)for(let z=0;z<nz;z++)for(let x=xa;x<xb;x++){const k=x+nx*(z+nz*y);if(Gc.d[k])Gc.d[k]=255;}
+    const Gc={nx:nx,ny:ny,nz:nz,d:G.d.slice()};for(let y=ya;y<yb;y++){if(performance.now()>JF.lim)yield;for(let z=0;z<nz;z++)for(let x=xa;x<xb;x++){const k=x+nx*(z+nz*y);if(Gc.d[k])Gc.d[k]=255;}}
     TT.ghost=Math.round(performance.now()-T0);const gA=yield* voxMeshG(Gc,4);TT.A=Math.round(performance.now()-T0);
     const x0=Math.max(0,Math.floor((xa-1)/4)*4),y09=Math.max(0,Math.floor((ya-1)/4)*4),x1=Math.min(nx,xb+1),y1=Math.min(ny,yb+1),Gb=voxG(x1-x0,y1-y09,nz); // la région seule, en 2,5 m (de loin)
-    for(let y=y09;y<y1;y++)for(let z=0;z<nz;z++)for(let x=x0;x<x1;x++){const m9=G.d[x+nx*(z+nz*y)];if(!m9)continue;Gb.d[(x-x0)+Gb.nx*(z+nz*(y-y09))]=(x>=xa&&x<xb&&y>=ya&&y<yb)?m9:255;}
+    for(let y=y09;y<y1;y++){if(performance.now()>JF.lim)yield;for(let z=0;z<nz;z++)for(let x=x0;x<x1;x++){const m9=G.d[x+nx*(z+nz*y)];if(!m9)continue;Gb.d[(x-x0)+Gb.nx*(z+nz*(y-y09))]=(x>=xa&&x<xb&&y>=ya&&y<yb)?m9:255;}}
     const gB=yield* voxMeshG(Gb,4);TT.B=Math.round(performance.now()-T0);const oB=o.clone().addScaledVector(b,x0*VXG);oB.y+=y09*VXG;
     const NU=(xb-xa)*K,NV=(yb-ya)*K,LO=new Int32Array(NU*NV),HI=new Int32Array(NU*NV),kz=5/VXG;
     for(let v=0;v<NV;v++){if(performance.now()>JF.lim)yield;for(let u=0;u<NU;u++){const x=(xa*K+u+.5)/K,y=(ya*K+v+.5)/K,vv=-wG+x*VXG,yr=oy+y*VXG-y0;
@@ -389,12 +414,14 @@ function* jadePorte(root,i0,jr,M9,pose){ // (LE PRÉ-BÂTI) un générateur : se
       if(z1>z0){LO[u+NU*v]=z0;HI[u+NU*v]=z1;}}}
     TT.cols=Math.round(performance.now()-T0);const cache=new Map(),nb=(u,v)=>{const cx=Math.floor((xa*K+u)/K),cy=Math.floor((ya*K+v)/K);if(cx<0||cy<0||cx>=nx||cy>=ny)return null;const kk=cx*4096+cy;
       if(!cache.has(kk)){let z0=-1,z1=-1;for(let z=0;z<nz;z++)if(G.d[cx+nx*(z+nz*cy)]){if(z0<0)z0=z;z1=z;}cache.set(kk,z0<0?null:[z0*K,(z1+1)*K]);}return cache.get(kk);};
-    const mat=(kind,u,v,sg)=>{if(kind==='w')return vn((xa*K+u)/K*VXG/5*.3,3.3)>.83?JM.rouille:1;if(kind==='v'&&sg>0)return oy+(ya*K+v+1)/K*VXG-y0>-60?JM.herbe:1;return 1;};
+    const mat=(kind,u,v,sg)=>{if(kind==='w')return vn((xa*K+u)/K*VXG/5*.3,3.3)>.83?JM.rouille:1;if(kind==='v'&&sg>0)return oy+(ya*K+v+1)/K*VXG-y0>-60?(vn((xa*K+u)/K*VXG/5*.9,7.7)>.52?JM.feuille:JM.herbe):1;return 1;};
     const gF=yield* colMeshG(NU,NV,LO,HI,[0,1,2],mat,nb,12);TT.F=Math.round(performance.now()-T0);const oF=o.clone().addScaledVector(b,xa*VXG);oF.y+=ya*VXG;
-    jadeMonument(root,gA,jadeRepere(o,b,t),.37,M9);JADE.porte.mL=jadeMonument(root,gB,jadeRepere(oB,b,t),.37,M9);JADE.porte.mF=jadeMonument(root,gF,jadeRepere(oF,b,t,VXG/K),.37,M9);
-    for(const m of JADE.porte.mF)m.visible=false;JADE.porte.pres=false;JADE.porte.tri=gA.index.count/3+gB.index.count/3;JADE.porte.triF=gF.index.count/3;fin9=true;}catch(e){console.warn('porte fine',e);}}
-  if(!fin9){const g=yield* voxMeshG(G,4);jadeMonument(root,g,jadeRepere(o,b,t),.37,M9);JADE.porte.tri=g.index.count/3;
+    yield* jadeAJG(gA,.37);if(performance.now()>JF.lim)yield;jadeMonument(root,gA,jadeRepere(o,b,t),.37,M9);yield* jadeAJG(gB,.37);if(performance.now()>JF.lim)yield;JADE.porte.mL=jadeMonument(root,gB,jadeRepere(oB,b,t),.37,M9);yield* jadeAJG(gF,.37);if(performance.now()>JF.lim)yield;JADE.porte.mF=jadeMonument(root,gF,jadeRepere(oF,b,t,VXG/K),.37,M9);
+    for(const m of JADE.porte.mF)m.visible=false;JADE.porte.pres=false;JADE.porte.tri=gA.index.count/3+gB.index.count/3;JADE.porte.triF=gF.index.count/3;fin9=true;PG9={gA:gA,gB:gB,gF:gF,oB:oB,oF:oF,K:K};}catch(e){console.warn('porte fine',e);}}
+  if(!fin9){const g=yield* voxMeshG(G,4);yield* jadeAJG(g,.37);if(performance.now()>JF.lim)yield;jadeMonument(root,g,jadeRepere(o,b,t),.37,M9);JADE.porte.tri=g.index.count/3;
     if(PAL.b('jadeMonuLoin',0)){const e9=JADE.monu[JADE.monu.length-1];e9.dG=G;e9.dM=jadeRepere(o,b,t,VXG*2);e9.dJ=.37;e9.dP=JADE.porte;}} // (2026-10-14, passe perf mobile) de loin : la demi-grille posée ×2 (voir jadeMonuLoin)
+    if(cle0&&JADE.porte){const C=JADE_PORTE_C;C.cle=cle0;C.fin=fin9;C.nJr=nJ-nJ0;C.G=G;C.o=o.clone();C.P=JADE.porte;C.gLoin=null;
+      C.gs=fin9?Object.assign({},PG9):{g:JADE.monu[JADE.monu.length-1].L[0].geometry};}} /* (B2) la muraille est gardée (le prochain jadePorte de la même vallée la repose) */
   if(pose){for(const sg of [-1,1]){const W9=sg<0?wG:wD;
       for(const fa of [-1,1])pose(p.x+b.x*sg*(hw+62)+t.x*fa*(D*.5-18),p.z+b.z*sg*(hw+62)+t.z*fa*(D*.5-18),40,y0+crete(.5+sg*(hw+62)/W)+40+jr()*80);
       for(let v=hw+140;v<W9-40;v+=75+jr()*60)for(const fa of [-1,1])if(jr()<.7){const r=24+jr()*26,f9=(v*sg+wG)/W;

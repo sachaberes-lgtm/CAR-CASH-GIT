@@ -184,7 +184,7 @@
     const jeton = ++PB.n; PB.phase = 'charge'; PB.err = null; PB.ac = ac; let ch = null;
     try {
       await PB.charge(); if (jeton !== PB.n) return null;
-      const E = (opt.meme && PB.dernier) || PB.tire(); if (!E) { PB.phase = 'vide'; return null; } PB.dernier = E;   // (la seconde chance : le MÊME morceau repart)
+      const E = (opt.meme && (PB.enCourse || PB.dernier)) || PB.tire(); if (!E) { PB.phase = 'vide'; return null; } PB.dernier = E;   // (la seconde chance : le MÊME morceau repart) — (2026-11-05, DEBUG-TOTAL, prouvé au banc --chance) PB.enCourse et non PB.dernier : le lobby de l'écran de mort (1,4 s après la mort) tire déjà le morceau SUIVANT et écrase PB.dernier ; CONTINUER relançait ce morceau-là au lieu de celui de la course
       ch = chaine(ac, sortie); if (ch.bus) { ch.bus.brut(!!opt.brut); ch.bus.piste('jeu:' + E.id); ch.bus.course(true); }
       const Ej = E.course ? Object.assign({}, E, { type: 'html', f: E.course }) : E;   /* (2026-11-02) un morceau refait : la page de course */
       const J = await (Ej.type === 'genv' ? joueurGen : Ej.type === 'paliers' ? joueurPaliers : joueurHtml)(ac, ch.entree, Ej);
@@ -244,7 +244,7 @@
     const vc = vieux.ch; if (vc) { if (vc.lfo) { try { vc.lfo.o.stop(); } catch (e) {} vc.lfo = null; } try { t9(vc.g.gain, 0, t, .08); } catch (e) {}
       setTimeout(() => { try { vieux.J.stop(); } catch (e) {} setTimeout(() => { try { vc.e.disconnect(); } catch (e) {} }, 600); }, 700); }
     try { N.J.lance(); } catch (e) {}
-    PB.J = N.J; PB.ch = ch; PB.tier0 = 0; PB.tIntro = t + T; PB.phase = 'course';
+    PB.J = N.J; PB.ch = ch; PB.tier0 = 0; PB.tIntro = t + T; PB.phase = 'course'; PB.enCourse = E;
     return E;
   };
   /* LE JOUER, VU DU MENU : le morceau déjà en route se transforme. Le filtre s'ouvre sur 1,8 s, la salle s'efface, le niveau (musicTick) monte ; le morceau est alors « en course ». */
@@ -260,14 +260,14 @@
     boumDe(ch, ac, t, opt);
     if (ch.bus) { try { ch.bus.brut(!!opt.brut); ch.bus.piste('jeu:' + E.id); ch.bus.course(true); } catch (e) {} }
     try { PB.J.regle(typeof W.pbjTier === 'function' ? W.pbjTier(1, E.id) : 6); } catch (e) {}   // le palier du lobby monte au palier de départ de la course, au même instant que le filtre et le coup : « boum, ça démarre comme la musique »
-    PB.tier0 = 0; PB.tIntro = t + T; PB.phase = 'course';
+    PB.tier0 = 0; PB.tIntro = t + T; PB.phase = 'course'; PB.enCourse = E;
     return E;
   };
   /* LA COURSE : l'intro finit (au plus vite si elle n'a pas fini), le morceau joue au moteur 1 et suit le moteur */
   PB.course = function () {
     const ch = PB.ch, ac = PB.ac; if (!ch || !ac) return;
     const t = ac.currentTime; if (PB.tIntro > t + .5) { ch.f.frequency.cancelScheduledValues(t); ch.f.frequency.setValueAtTime(Math.max(320, ch.f.frequency.value), t); ch.f.frequency.exponentialRampToValueAtTime(18000, t + .5); PB.tIntro = t + .5; }
-    PB.phase = 'course';
+    PB.phase = 'course'; PB.enCourse = PB.E;   /* le morceau de CETTE course : la seconde chance le reprend (PB.depart, opt.meme) */
   };
   PB.moteur = function (m) { if (PB.J) try { PB.J.regle(Math.max(1, Math.min(30, m | 0))); } catch (e) {} };
   PB.niveau = function (v) { if (PB.ch && PB.ac) { if (PB.phase === 'lobby' && PB.tLobby != null) { const k = Math.min(1, Math.max(0, (PB.ac.currentTime - PB.tLobby) / 4)); v *= k * k * (3 - 2 * k); }   // le fondu d'entrée du lobby (4 s)

@@ -372,10 +372,18 @@ function cotonOuvrier(){
   if(COTON_OUV.w||COTON_OUV.ko)return COTON_OUV.w;
   try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';const nufDemi='+nufDemi.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);if(q.hf&&r.fant){r.fant.D=nufDemi(r.fant,q.dy||0,q.hf);r.fant.Dy=q.dy||0;}self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer].concat(r.skin?[r.skin.pos.buffer,r.skin.nor.buffer,r.skin.idx.buffer]:[]).concat(r.fant&&r.fant.D?[r.fant.D.buffer]:[]));};';
     const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
-    w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);};
+    w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);cotonOuvrierRepos(w);};
     w.onerror=function(ev){try{ev.preventDefault();}catch(e9){}cotonOuvrierKo();};COTON_OUV.w=w;
   }catch(e){COTON_OUV.ko=true;}
   return COTON_OUV.w;}
+/* ===== L'OUVRIER SE REPOSE (2026-11-05, Sacha : « le lien Vercel a des latences et prend beaucoup de mémoire sur mon ordi, règle ça de manière durable ») =====
+   MESURÉ (memory-infra de Chrome, ordi, au menu puis en course) : cet ouvrier, créé pour les 4 × COTON_KINDS formes de la vitrine, restait VIVANT toute la
+   partie avec 64 Mo de pépinière V8 et 18 à 51 Mo de grands objets (ses tableaux, jamais ramassés : rien ne le réveille) — ~80 à 115 Mo de mémoire pour rien.
+   Sa file vidée depuis 1,5 s, il est arrêté (terminate rend tout d'un coup) ; `cotonOuvrier()` le refait au prochain nuage (un Blob, quelques ms). `?ouvrier=garde` = avant. */
+const COTON_OUV_GARDE=/[?&]ouvrier=garde\b/.test(location.search);
+function cotonOuvrierRepos(w){if(COTON_OUV_GARDE||COTON_OUV.w!==w||COTON_OUV.att.size)return;
+  if(COTON_OUV.repos)clearTimeout(COTON_OUV.repos);
+  COTON_OUV.repos=setTimeout(function(){COTON_OUV.repos=0;if(COTON_OUV.w!==w||COTON_OUV.att.size)return;try{w.terminate();}catch(e){}COTON_OUV.w=null;COTON_OUV.reposes=(COTON_OUV.reposes|0)+1;},1500);}
 function cotonOuvrierKo(){COTON_OUV.ko=true;if(COTON_OUV.w){try{COTON_OUV.w.terminate();}catch(e){}COTON_OUV.w=null;} // refusé : sa file repart sur le fil principal
   for(const a of COTON_OUV.att.values())cotonTranche(a.job,a.cb);COTON_OUV.att.clear();}
 function cotonTranche(job,cb){COTON_OUV.file.push({job:job,cb:cb});if(!COTON_OUV.t)COTON_OUV.t=setTimeout(cotonTrancheSuite,0);}

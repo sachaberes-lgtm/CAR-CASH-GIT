@@ -69,8 +69,8 @@ html[data-reduced-motion="1"] #shPop.on .spCarte,html[data-reduced-motion="1"] #
 /* LA PASTILLE ARC-EN-CIEL (2026-10-20, Sacha : « il faut que ça soit plus clair que Pop-Tart-Cat est vendu avec la traînée arc-en-ciel ») : le CHAT POP-TART s'achète
    AVEC sa traînée ; la pastille porte les couleurs de la traînée (le dégradé de la carte du garage, `.bqKl.arc`) et dit « INCLUSE » (JS : shArcHtml). Elle se coupe
    en deux lignes dans la colonne étroite de l'écran couché plutôt que de déborder. */
-.shArc{align-self:flex-start;display:block;max-width:100%;box-sizing:border-box;padding:5px 8px 4px;font-family:var(--pix);font-style:normal;font-weight:400;font-size:var(--f0);line-height:1.5;letter-spacing:1px;text-wrap:balance;color:#14171c;
-  background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff);box-shadow:0 0 14px rgba(255,170,60,.35)}
+.shArc{align-self:flex-start;display:block;max-width:100%;box-sizing:border-box;padding:5px 8px 4px;font-family:var(--pix);font-style:normal;font-weight:400;font-size:var(--f0);line-height:1.5;letter-spacing:1px;text-wrap:balance;color:var(--bqInk);
+  background:linear-gradient(90deg,var(--neoR),#ffa024 22%,#ffe23a 40%,var(--neoV) 60%,#3bb4ff 80%,#a066ff);box-shadow:0 0 14px rgba(255,170,60,.35)}
 .spArc{margin-top:-2px}
 #gBqNom .shArc{display:inline-block} /* la boutique du garage : sous le nom de la caisse (la place de « SE DÉBLOQUE »), centrée comme lui */
 @media (orientation:landscape) and (max-height:540px){
@@ -103,14 +103,14 @@ html body.touch #pwrChip .pw.cumul u{height:5px;box-shadow:0 0 12px var(--pc),0 
    Ce bloc est le DERNIER du HUD (après hudMaitrise) : il gagne sans rien effacer. Les couleurs sortent de :root.
    ===================================================================================================================================== */
 :root{
-  --jEncre:#170f55;--jFond:#0d0a2a;--jInk:#1c0430;--jCurs:#fff6d8;             /* la jauge : cadre, fond, encre des textes, curseur */
-  --nL:#ffd58f;--nP:#ff8d2e;--nS:#ff7415;--nO:#ad4200;--nEcl:#ffb81f;--nEclC:#fff3c4;--nEclS:#e07a00;   /* la NITRO (orange) et son éclair */
-  --bL:#b5c4ff;--bP:#4a68f0;--bS:#2a44c8;--bO:#16247a;                        /* la réserve BLEUE */
+  --jEncre:var(--jEncre);--jFond:var(--jFond);--jInk:var(--encre);--jCurs:var(--au0);             /* la jauge : cadre, fond, encre des textes, curseur */
+  --nL:var(--nL);--nP:var(--nP);--nS:var(--nS);--nO:var(--nO);--nEcl:var(--neoA);--nEclC:var(--au0);--nEclS:#e07a00;   /* la NITRO (orange) et son éclair */
+  --bL:var(--bL);--bP:var(--bP);--bS:var(--bS);--bO:var(--bO);                        /* la réserve BLEUE */
   --vL:#ffd9d4;--vP:#ff2b2b;--vS:#e00d0d;--vO:#6e0505;--vG:rgba(255,40,40,.9); /* la NITRO INFINIE : ROUGE VIF (2026-10-22, Sacha) */
-  --aL:#d8fbff;--aP:#5ee6ff;--aS:#18b0e2;--aO:#0b4f7a;                        /* l'AIR : cyan (la couleur du pouvoir AIRTIME) */
-  --oL:#fff0b8;--oP:#ffc93a;--oS:#f29a00;--oO:#7a4200;                        /* l'or : le temps qui presse */
-  --rL:#ffd0d6;--rP:#ff5a6e;--rS:#e0203c;--rO:#6e0014;                        /* le rouge : il ne reste plus rien */
-  --mL:#e6fffa;--mP:#7dffec;--mS:#22d6bd;--mO:#0b5e55;                        /* AIRTIME INFINI : menthe */
+  --aL:#d8fbff;--aP:var(--dol);--aS:#18b0e2;--aO:#0b4f7a;                        /* l'AIR : cyan (la couleur du pouvoir AIRTIME) */
+  --oL:#fff0b8;--oP:var(--au2);--oS:var(--au3);--oO:#7a4200;                        /* l'or : le temps qui presse */
+  --rL:#ffd0d6;--rP:var(--neoR);--rS:#e0203c;--rO:#6e0014;                        /* le rouge : il ne reste plus rien */
+  --mL:#e6fffa;--mP:var(--mP);--mS:#22d6bd;--mO:#0b5e55;                        /* AIRTIME INFINI : menthe */
   --nbW:96px;--nbH:84px;--nbJ:70px;                                           /* le bouton NITRO : largeur, hauteur, longueur de sa jauge */
   --ahW:92px;                                                                  /* le chrono de vol */
   --bandes4:180deg;
@@ -264,7 +264,7 @@ html body #flowHud .fT{display:none!important}
 html body.touch.play #cashHud{display:block;position:fixed;top:calc(var(--hudH) + 72px);right:var(--hudD);z-index:6;pointer-events:none;text-align:right}
 #cashHud .chV{display:flex;align-items:baseline;justify-content:flex-end;gap:5px;font-weight:normal;white-space:nowrap}
 #cashHud .chV i,#cashHud .chV span,#cashHud .chD{font-family:var(--pix);font-style:normal;line-height:1;letter-spacing:0;color:transparent;-webkit-text-fill-color:transparent;
-  background:linear-gradient(var(--bandes4),#f0fff4 0 16%,#9dffb6 16% 46%,#46de76 46% 80%,#1f9a4a 80%);-webkit-background-clip:text;background-clip:text}
+  background:linear-gradient(var(--bandes4),#f0fff4 0 16%,#9dffb6 16% 46%,var(--neoV) 46% 80%,#1f9a4a 80%);-webkit-background-clip:text;background-clip:text}
 #cashHud .chV i{font-size:var(--f5);filter:drop-shadow(2px 0 0 var(--jInk)) drop-shadow(-2px 0 0 var(--jInk)) drop-shadow(0 2px 0 var(--jInk)) drop-shadow(0 -2px 0 var(--jInk)) drop-shadow(0 3px 0 var(--jInk))}
 #cashHud .chV span{font-size:var(--f6);filter:drop-shadow(2px 0 0 var(--jInk)) drop-shadow(-2px 0 0 var(--jInk)) drop-shadow(0 2px 0 var(--jInk)) drop-shadow(0 -2px 0 var(--jInk)) drop-shadow(0 4px 0 var(--jInk)) drop-shadow(0 0 10px rgba(70,222,118,.45))}
 #cashHud .chD{display:block;margin-top:7px;font-size:var(--f3);opacity:0;transition:opacity .4s var(--ease);
@@ -306,16 +306,16 @@ body.hTp:not(#ccH) #cashHud,body.dead #cashHud,body.coOn #cashHud{visibility:hid
   html body :is(#slam9 b,#verdHud b,#lvlNum i,#verdHud .vM,#slam9 small,#lvlNom,#auraV2 .avTot em,#avList li,
     #pwrChip .pw span small,#misBan .mbTx small,#coach .coTx b,#campChip b,#campChip small,#tNitro span,
     #frenTraits b,#lvlNom em,#airHud .ahS,#airHud em){color:var(--tc,#fff)!important;-webkit-text-fill-color:var(--tc,#fff)!important}
-  html body #avX{color:var(--xc,#ff5ec8)!important;-webkit-text-fill-color:var(--xc,#ff5ec8)!important}
+  html body #avX{color:var(--xc,var(--neoM))!important;-webkit-text-fill-color:var(--xc,var(--neoM))!important}
   html body #flowHud .fL{color:var(--fc,#fff)!important;-webkit-text-fill-color:var(--fc,#fff)!important}
-  html body :is(#pwrChip .pw span b,#popTxt){color:var(--pc,#ffd75e)!important;-webkit-text-fill-color:var(--pc,#ffd75e)!important}
+  html body :is(#pwrChip .pw span b,#popTxt){color:var(--pc,var(--or))!important;-webkit-text-fill-color:var(--pc,var(--or))!important}
   html body #triade .trNom{color:var(--fren)!important;-webkit-text-fill-color:var(--fren)!important}
   html body #engBig .ebCarte>b{color:var(--ec)!important;-webkit-text-fill-color:var(--ec)!important}
   /* ===== LE BADGE « RECORD ! » DE L'ÉCRAN DE FIN SANS color-mix() (24/10, relecture CSS : « texte et fond de la même couleur ») =====
      charte-6 pose `color:var(--hc)` ET `background:color-mix(...)` sur `.hCard em` : sans color-mix() seul le fond tombe, et le fond de
      charte-4 (`background:var(--hc)`) l'emporte — texte rose sur fond rose. Même pastille sombre à liseré de la teinte, sans mélange ;
      `.hMot` retrouve sa teinte simple (son --hc à color-mix() ne vaudrait rien). */
-  html body .hCard em{background:#0c0919;color:var(--hc,var(--aura));box-shadow:inset 0 0 0 1px var(--hc,var(--aura)),0 0 14px var(--auG)}
+  html body .hCard em{background:var(--k1);color:var(--hc,var(--aura));box-shadow:inset 0 0 0 1px var(--hc,var(--aura)),0 0 14px var(--auG)}
   html body .hMot{--hc:var(--ec,var(--au2))}
 }
 /* ---- 6. L'ASTUCE / LE DÉFI (#misBan) NE SE POSE PLUS SUR LES POUVOIRS (portrait) : centrée, elle couvrait la colonne de droite (plaques
@@ -443,17 +443,17 @@ html body #popTxt.cache{opacity:0!important}
    · le « ×3 » qui jaillit de la pièce ramassée : or plein cerné d'encre, braise rouge autour ; il claque, monte de 34 px, reste lisible
      les deux tiers du trajet et s'éteint (0,7 s — vu au banc : à 0,6 s avec un fondu dès le premier quart, on le lisait à moitié éteint).
    Aucune plaque nouvelle dans les colonnes du HUD : rien à ajouter à hudTaille. Hex purs : rien à replier pour les vieux iPhone. */
-html body:not(.touch) #flowHud[data-lv="4"] .fM{color:#ffc93a;text-shadow:0 2px 0 #1c0430,0 0 10px #ff2a3d}
+html body:not(.touch) #flowHud[data-lv="4"] .fM{color:var(--au2);text-shadow:0 2px 0 var(--encre),0 0 10px var(--fren)}
 html body.touch #flowHud[data-lv="4"] .fM{color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;
-  background:linear-gradient(180deg,#fffbe8 0 22%,#ffe38a 22% 50%,#ffc93a 50% 82%,#c77800 82%);-webkit-background-clip:text;background-clip:text;
-  filter:var(--contourP) drop-shadow(0 0 7px #ff2a3d);animation:fx3Bat .9s steps(1,end) infinite}
-@keyframes fx3Bat{50%{background-image:linear-gradient(180deg,#fff 0 22%,#ffc2c9 22% 50%,#ff3b4f 50% 82%,#9a0018 82%);filter:var(--contourP) drop-shadow(0 0 9px #ffc93a)}}
+  background:linear-gradient(180deg,var(--au0) 0 22%,#ffe38a 22% 50%,var(--au2) 50% 82%,#c77800 82%);-webkit-background-clip:text;background-clip:text;
+  filter:var(--contourP) drop-shadow(0 0 7px var(--fren));animation:fx3Bat .9s steps(1,end) infinite}
+@keyframes fx3Bat{50%{background-image:linear-gradient(180deg,#fff 0 22%,#ffc2c9 22% 50%,#ff3b4f 50% 82%,#9a0018 82%);filter:var(--contourP) drop-shadow(0 0 9px var(--au2))}}
 html body.touch #flowHud[data-lv="4"] .fM.cj1{animation:fx3Bat .9s steps(1,end) infinite,fx3Frappe1 .32s var(--ease)}
 html body.touch #flowHud[data-lv="4"] .fM.cj2{animation:fx3Bat .9s steps(1,end) infinite,fx3Frappe2 .32s var(--ease)}
 @keyframes fx3Frappe1{0%{scale:1.5}100%{scale:1}}
 @keyframes fx3Frappe2{0%{scale:1.5}100%{scale:1}}
 .fx3{position:fixed;left:0;top:0;z-index:40;pointer-events:none;display:block;font-family:var(--pix);font-style:normal;font-weight:normal;font-size:var(--f4);
-  line-height:1;letter-spacing:1px;white-space:nowrap;color:#ffc93a;opacity:0;filter:var(--contourP) drop-shadow(0 0 8px #ff2a3d)}
+  line-height:1;letter-spacing:1px;white-space:nowrap;color:var(--au2);opacity:0;filter:var(--contourP) drop-shadow(0 0 8px var(--fren))}
 .fx3.on{animation:fx3Monte1 .7s var(--ease) both}
 .fx3.on2{animation:fx3Monte2 .7s var(--ease) both}
 @keyframes fx3Monte1{0%{opacity:1;transform:translate(-50%,-50%) scale(1.6)}18%{opacity:1;transform:translate(-50%,calc(-50% - 10px)) scale(1)}65%{opacity:1;transform:translate(-50%,calc(-50% - 26px)) scale(1)}100%{opacity:0;transform:translate(-50%,calc(-50% - 34px)) scale(.9)}}
@@ -464,7 +464,7 @@ body.dead .fx3,body.hTp:not(#ccH) .fx3{visibility:hidden}
    gauche (translate 0) : il pousse vers l'extérieur, pas vers la caisse. Le « +$ » sous le compteur d'argent (.chD) est éteint : le total reste. */
 #cashHud .chD{display:none!important}
 .p1f{position:fixed;left:0;top:0;z-index:40;pointer-events:none;display:block;font-family:var(--pix);font-style:normal;font-weight:normal;font-size:var(--f3);
-  line-height:1;letter-spacing:1px;white-space:nowrap;color:#46de76;opacity:0;filter:var(--contourP)}
+  line-height:1;letter-spacing:1px;white-space:nowrap;color:var(--neoV);opacity:0;filter:var(--contourP)}
 .p1f.on{animation:p1fMonte1 .6s var(--ease) both}
 .p1f.on2{animation:p1fMonte2 .6s var(--ease) both}
 @keyframes p1fMonte1{0%{opacity:1;transform:translate(0,-50%) scale(1.4)}18%{opacity:1;transform:translate(0,calc(-50% - 6px)) scale(1)}65%{opacity:1;transform:translate(0,calc(-50% - 18px)) scale(1)}100%{opacity:0;transform:translate(0,calc(-50% - 26px)) scale(.9)}}

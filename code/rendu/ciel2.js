@@ -24,6 +24,7 @@
    joue hors de la ville (accueil), à l'atelier, à l'étal, dôme caché, et avec `?ciel=plein` (pour comparer sur le téléphone).
    Zéro compilation en course : les cinq programmes sont compilés ET dessinés une fois au chargement (`cielChauffe`, cibles 8×8 au
    format des vraies — la puce d'Apple fabrique son état de pipeline au premier dessin). Bancs : `dbgCiel2()`. */
+PAL.B.cielImg=[2,1,1]; /* (2026-11-05, C4) voir cielDeuxTemps : la passe lisse une image sur N (ancien 2, moyen 1, récent 1) */
 const CIEL2={on:!/[?&]ciel=plein/.test(location.search),rt:null,sc:new THREE.Scene(),me:null,v:new THREE.Vector2(),mode:'',n:0};
 CIEL2.sc.autoUpdate=false; // la matrice du maillage est recopiée de celle du dôme (déjà à jour) : rien à recalculer
 CIEL2.me=new THREE.Mesh(skyDome.geometry,skyDome.userData.ciel.basN);CIEL2.me.frustumCulled=false;CIEL2.me.matrixAutoUpdate=false;CIEL2.sc.add(CIEL2.me);
@@ -50,17 +51,32 @@ function cielDeuxTemps(r9,cam){
   const cible=r9.getRenderTarget();
   if(cible)U.uBasInv.value.set(1/cible.width,1/cible.height);else U.uBasInv.value.set(1/CIEL2.v.x,1/CIEL2.v.y); // le pixel de l'écran → la cible lisse
   CIEL2.me.material=md==='N'?C.basN:C.basV;CIEL2.me.matrixWorld.copy(skyDome.matrixWorld);
-  r9.setRenderTarget(CIEL2.rt);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);
+  /* (2026-11-05, passe perf mobile 2, C4) LA PASSE LISSE UNE IMAGE SUR N AU PALIER 0. Mesuré (banc-perf/passes.py, p0, nuages/ville/forêt) : 4 framebuffers par image dessinée (scène, ombre, CETTE passe, écran) ; la puce à tuiles de l'iPhone 7 paie chaque changement de cible. La base lisse est un fond à basses fréquences lu à la position de l'écran : la recopier une image sur deux (ancien) ne se voit pas, le détail (netN/netV) est redessiné à chaque image. Redessinée tout de suite si le mode, la taille ou la cible changent. PAL.B.cielImg=[2,1,1] (ancien, moyen, récent) ; `?cielimg=0` = avant. */
+  const nI=/[?&]cielimg=0/.test(location.search)?1:(PAL.b('cielImg',1)|0),K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
+  if(nI>1&&K.m===md&&K.w===w&&K.h===h&&(K.i=(K.i+1)%nI)!==0){CIEL2.sautes=(CIEL2.sautes|0)+1;}
+  else{K.m=md;K.w=w;K.h=h;K.i=0;r9.setRenderTarget(CIEL2.rt);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);}
   skyDome.material=md==='N'?C.netN:C.netV;CIEL2.n++;
 }
+/* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») LA CHAUFFE DU CIEL N'ATTEND PLUS LA LIAISON. MESURÉ (banc-serpent/serpent-gl.cjs, CPU ×4, cache de shaders froid) : cette
+   chauffe était un `renderer.render` des 7 programmes du ciel, lancé À LA LECTURE DU SCRIPT — three lit alors l'état de lien de chacun tout de suite (`getProgramInfoLog`, GetProgramiv synchrone) :
+   le fil principal attend le GPU, qui lie et ne dessine plus rien, serpent de chargement compris (trous de 300 à 900 ms dans `#spCharge`). Désormais en deux temps :
+   · `cielChauffeLance()` (appelée par `lierDemarrage`, avec la scène du menu et les passes) : les 7 programmes sont lancés en DOUX (`compileDoux`, KHR_parallel_shader_compile), sur les mêmes cibles 8×8 ;
+   · `cielChauffe()` : quand tout est lié (ou sans l'extension, ou `?lier=0`), les dessins d'avant, au pixel près — la puce d'Apple fabrique son état de pipeline au premier dessin — sur des programmes prêts. */
+CIEL2.ch=null;
+function cielChauffeLance(){ if(!CIEL2.on||CIEL2.ch)return; try{
+  const C=skyDome.userData.ciel,a=cielCible(8,8,false),b=cielCible(8,8,true),cible=renderer.getRenderTarget(),t0=skyU.uBasTex.value;
+  const fait=function(ks,rt){const sc=new THREE.Scene(),ms=[];ks.forEach(function(k){const m=new THREE.Mesh(skyDome.geometry,C[k]);m.frustumCulled=false;sc.add(m);ms.push(m);});
+    skyU.uBasTex.value=a.texture;renderer.setRenderTarget(rt);compileDoux(sc,camera);return {sc:sc,rt:rt,ks:ks};};
+  CIEL2.ch=[fait(['basN','basV'],a),fait(['netN','netV','plein','cy','jd'],b)];CIEL2.ch.a=a;CIEL2.ch.b=b;
+  renderer.setRenderTarget(cible);skyU.uBasTex.value=t0;
+}catch(e){console.warn('cielChauffeLance',e);CIEL2.ch=null;} }
 function cielChauffe(){ if(!CIEL2.on)return; try{
-  const C=skyDome.userData.ciel,a=cielCible(8,8,false),b=cielCible(8,8,true),sc=new THREE.Scene(),me=new THREE.Mesh(skyDome.geometry,C.plein);
+  const C=skyDome.userData.ciel,a=CIEL2.ch?CIEL2.ch.a:cielCible(8,8,false),b=CIEL2.ch?CIEL2.ch.b:cielCible(8,8,true),sc=new THREE.Scene(),me=new THREE.Mesh(skyDome.geometry,C.plein);
   me.frustumCulled=false;sc.add(me);const cible=renderer.getRenderTarget(),t0=skyU.uBasTex.value;skyU.uBasTex.value=a.texture;
   renderer.setRenderTarget(a);for(const k of ['basN','basV']){me.material=C[k];renderer.render(sc,camera);}
   renderer.setRenderTarget(b);for(const k of ['netN','netV','plein','cy','jd']){me.material=C[k];renderer.render(sc,camera);}
-  renderer.setRenderTarget(cible);skyU.uBasTex.value=t0;a.dispose();b.dispose(); // (les matières restent : leurs programmes vivent)
+  renderer.setRenderTarget(cible);skyU.uBasTex.value=t0;a.dispose();b.dispose();CIEL2.ch=null; // (les matières restent : leurs programmes vivent)
 }catch(e){console.warn('cielChauffe',e);} }
-cielChauffe();
 {const ob=scene.onBeforeRender;scene.onBeforeRender=function(r9,s9,cam,rt9){ob.call(this,r9,s9,cam,rt9);cielDeuxTemps(r9,cam);};} // ⚠ CHAÎNÉ (pisteLoin passe d'abord)
 /* (banc) `dbgCiel2(false)` = le ciel d'avant, pour des A/B dans la même page · `dbgCiel2(on,{rendre:1})` re-rend l'image courante tout de
    suite (même caméra, même horloge : deux captures comparables au pixel) · `{octets:1}` force la passe lisse en 8 bits (le cas d'un
@@ -291,7 +307,7 @@ window.dbgEco=function(a){if(a==='rejouer'&&gameOver){playViaGarage();}
     eco:ECO3,best:Math.round(best)};}; // les réglages ECO3
 window.dbgStep=function(n,ms){
   n=n||60;ms=ms||16;
-  for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());}
+  for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());cancelAnimationFrame(loop._raf);} /* (2026-11-07, finition) chaque appel manuel programmait une rAF de plus : dbgStep(60) laissait 61 boucles tourner */
   return window.dbgState();
 };
 window.CASHCAR_BUILD='2026-07-20 v5 (anti-flicker + anti-cache)'; // vérif version : taper CASHCAR_BUILD en console

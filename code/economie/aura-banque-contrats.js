@@ -55,7 +55,7 @@ const RARETES=[
   {id:'exotique',  n:'EXOTIQUES',  n1:'EXOTIQUE',  c:'#3ee8a8'},
   {id:'epique',    n:'ÉPIQUES',    n1:'ÉPIQUE',    c:'#c77dff'},
   {id:'legendaire',n:'LÉGENDAIRES',n1:'LÉGENDAIRE',c:'#ffd75e'},
-  {id:'mythique',  n:'MYTHIQUES',  n1:'MYTHIQUE',  c:'#ff4d6d'},
+  {id:'mythique',  n:'MYTHIQUES',  n1:'MYTHIQUE',  c:'#ff4a64'},
   {id:'infini',    n:'INFINIS',    n1:'INFINI',    c:'#ff8af0'}];
 const RAR_FAM=RARETES.filter(function(x){return x.id!=='exotique';}); /* (2026-10-18, Sacha) les familles du garage : EXOTIQUE n'a plus d'objet (tout est passé RARE) — elle reste dans RARETES pour le BUMP x3 de la course */
 /* la rareté d'une caisse qui se GAGNE = la difficulté de son défi (2026-10-10, posée par Claude, à revoir par Léo dans la salle blanche) :
@@ -207,8 +207,10 @@ function ecranWipe(fn,apres){
   },REDUCED_MOTION?120:160); // (2026-10-11, passe UX) 210 → 160 ms : le volet entre en 150 ms (voir <style id="uxPasse">), l'écran change dès qu'il couvre
 }
 function uiPop(el){ // le rebond d'un bouton relâché (re-déclenchable : on retire, on force un reflow, on remet)
-  if(!el||!el.classList||REDUCED_MOTION)return;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
-  clearTimeout(el._popT);el._popT=setTimeout(function(){el.classList.remove('pop');},300);
+  if(!el||!el.classList||REDUCED_MOTION)return;
+  if(el._popFixe===undefined)el._popFixe=el.classList.contains('pop'); /* (2026-11-07) la vignette d'une traînée à icône PORTE 'pop' en permanence (c'est sa mise en page, charte-3-garage) : le rebond ne doit pas la lui retirer au bout de 300 ms */
+  el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
+  clearTimeout(el._popT);el._popT=setTimeout(function(){if(!el._popFixe)el.classList.remove('pop');},300);
 }
 /* L'APPUI SOUS LE DOIGT (2026-09-28, soir — Sacha : « travaille les animations quand tu cliques sur les boutons »). Sur iPhone, `:active`
    ne se peint pas pour un tap bref : la touche ne s'enfonçait jamais à l'œil. `.appui` est posée AU CONTACT (pointerdown, en capture) sur
@@ -224,7 +226,7 @@ const APPUI_SEL='.pbtn,.mLigne,.tp,.gT,.gTab,.gR,.mMode,.misPrix.voir,.mObj[data
     const el=e.target&&e.target.closest?e.target.closest(APPUI_SEL):null;
     if(!el||el.closest('#tNitroZone,#tSteer,#touchCtl,#tNitro'))return;
     if(cur&&cur!==el)cur.classList.remove('appui');clearTimeout(el._apT);cur=el;t0=performance.now();el.classList.add('appui');
-    if(!el.classList.contains('off')&&!el.classList.contains('arme'))try{typeof sfx==='function'&&sfx('ui.appui');}catch(err){}},{capture:true,passive:true});
+    if(!el.classList.contains('off')&&!el.classList.contains('arme')&&el.getAttribute('aria-disabled')!=='true'&&performance.now()>=(uiGarde.t||0))try{typeof sfx==='function'&&sfx('ui.appui');}catch(err){}},{capture:true,passive:true}); /* (2026-11-05, finition) pas de tick sur une touche éteinte (aria-disabled) ni sous le verrou du double-tap */
   addEventListener('pointerup',lache,{capture:true,passive:true});
   addEventListener('pointercancel',lache,{capture:true,passive:true});
   addEventListener('blur',lache);
@@ -270,7 +272,7 @@ const APPUI_TOUS=!/[?&]appui=0\b/.test(location.search);
     try{if(el._apA)el._apA.cancel();}catch(x){} /* un appui rapide après un autre : on repart de l'échelle VRAIE de la touche */
     cur=el;t0=performance.now();base=echelle(el);
     if(!REDUCED_MOTION)try{anim=el._apA=el.animate([{scale:String(base)},{scale:String(base*.94)}],{duration:70,easing:EASE,fill:'forwards'});}catch(x){anim=null;}
-    if(!el.classList.contains('off')&&el.getAttribute('aria-disabled')!=='true')try{typeof sfx==='function'&&sfx('ui.appui');}catch(err){}},{capture:true,passive:true});
+    if(!el.classList.contains('off')&&el.getAttribute('aria-disabled')!=='true'&&performance.now()>=(uiGarde.t||0))try{typeof sfx==='function'&&sfx('ui.appui');}catch(err){}},{capture:true,passive:true});
   addEventListener('pointerup',lache,{capture:true,passive:true});
   addEventListener('pointercancel',lache,{capture:true,passive:true});
   addEventListener('blur',lache);

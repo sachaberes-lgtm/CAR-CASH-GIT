@@ -62,6 +62,7 @@ function pauseSonFin(n){if(n!==PSON.n)return;const C=window.CCSON;
     setTimeout(function(){if(n!==PSON.n)return;try{if(paused&&(busPlein.n|0)===PSON.bp&&!(MUSAP.t>performance.now())&&AC.state==='running')AC.suspend();}catch(e){}rend();},90);
   }catch(e){rend();}}
 function pauseSon(id,o){const C=window.CCSON,n=++PSON.n;if(UI_SON)UI_SON.t=performance.now();
+  if(!SND.sfx&&!SND.music)return null; /* (2026-11-07, chasse SON-N04) tout coupé : la feuille de pause ne réveille pas le contexte pour un clic muet */
   try{if(!PSON.sav){PSON.sav={};for(const k of ['rec','fx','amb']){const g=C.bus(k);if(g){PSON.sav[k]=g.gain.value;g.gain.value=0;}}PSON.bp=busPlein.n|0;}
     clearTimeout(togglePause._t); // la mise en sommeil programmée par la pause attendra la fin du clic
     const t=AC.currentTime;BUSOUT.gain.cancelScheduledValues(t);BUSOUT.gain.setValueAtTime(1,t);
@@ -69,7 +70,16 @@ function pauseSon(id,o){const C=window.CCSON,n=++PSON.n;if(UI_SON)UI_SON.t=perfo
     if(AC.state!=='running'){const p=AC.resume();if(p&&p.then)p.then(joue,function(){pauseSonFin(n);});else joue();}else joue();
   }catch(e){pauseSonFin(n);}
   return null;}
+/* (2026-11-07, chasse SONDE-N01) LES SONS CHAUFFÉS : avec les sons à la demande (sfx.js, 2026-11-05), le PREMIER jeu de chaque son d'une session partait en
+   retard (décodé au moment du play) : le logo du départ, le plein de nitro, les pouvoirs, l'entrée en frénésie, l'explosion… On les met en file dès que le
+   son existe (SONS_TITRE au premier geste, pour la gerbe du titre) et avant chaque départ (SONS_COURSE : au lâcher, à resetGame, au portail). Déjà décodé : rien. */
+const SONS_FIXES=['explosion','explosion.loin','mort.vide','mort.enseigne','mort.compteFin','defaite','victoire','pwr.fin','pwr.bientot','frenesie.entre','frenesie.sort','triade.revele','triade.meurt','triade.renait','nitro.plein','nitro.sec','moteur.palier','moteur.cylindre','portail','portail.proche','depart.logo','pad']; /* le noyau d'une course, gardé décodé comme `pre:1` (une course de 3 min sans portail évinçait l'explosion avant la mort) */
+const SONS_COURSE=['nitro.vide','nitro.pleine','turbo.mini','pwr.a','pwr.m','pwr.n','pwr.double','pwr.x','frenesie.arme','frenesie.record','frenesie.pose','frenesie.cash','pose.lourde','pose.cheveu','aura.perdue','aura.record','aura.encaisse1','aura.encaisse2','flow.perdu','flow.1','piece.recolte','piece.serie','respawn','chute','decollage','debris.tole','cratere','drift.charge','virage','air.regain','plus.vite','argent.palier','argent.gros','citron.zap','foudre.eclair','tonnerre','fig.bigair','fig.monstre','fig.jackpot','fig.essoreuse','fig.slide','fig.slide.debut','fig.slide.fin','jeu.miracule','jeu.palierVitesse','raccourci','report','fronde','combo.frappe','garage.lacher','nuage.entre'];
+const SONS_TITRE=['riche.bon','riche.gemme','riche.verre','riche.piece','riche.petit','riche.fleurs','riche.coeur','riche.bouchon','riche.coup','riche.combo','fourgon.billets','pluie.billets','garage.tole','garage.bascule','ui.jouer'];
+const SONS_SPIN=['spin.levier','spin.jeton','spin.roule','spin.tease','spin.piece','spin.gain','spin.jackpot','spin.ouvre']; /* à l'ouverture de la machine : son premier tirage n'avait ni levier ni jeton */
+function sonsChauffe(L,fixe){try{if(SONV2&&window.CCSON&&window.CCSON.chauffe)window.CCSON.chauffe(L,!!fixe);}catch(e){}}
 function sfx(id,o){
+  if(typeof id!=='string'){sonPanne('sfx sans identifiant',String(id));return null;} /* (2026-11-05, DEBUG-TOTAL) id.indexOf hors du try : un id absent LEVAIT chez l'appelant (souvent dans la boucle) */
   if(SONV2&&id.indexOf('ui.')===0&&pauseSonDort())return pauseSon(id,o); // (2026-10-16) LE CLIC DANS LA PAUSE (voir pauseSon)
   if(!SONV2||!sfxOk()||document.hidden)return null;
   try{if(UI_SON&&id!=='ui.appui'&&!(o&&o.loop))UI_SON.t=performance.now();if(o&&o.st!=null&&SON_PENTA[id])o.st=sonPd(Math.min(SON_PENTA[id],o.st));const h=window.CCSON.play(id,o);if(h&&SON_DUCK[id])duckT=Math.max(duckT,SON_DUCK[id]);if(h&&SIG_RECUL[id])musRecul();return h;}catch(e){return null;}
@@ -78,14 +88,14 @@ function son(id,repli,o){if(SONV2&&window.CCSON.existe(id)){sfx(id,o);return tru
 function echSt(){return sonPdAR(ECH++);} // (2026-10-14, session SON) aller-retour au-delà du 9e degré (sonPdAR), au lieu de Math.min(9,…) // plafond au 9e degré (+21 demi-tons) : au-delà la transposition dépasse l'octave de la base // le degré SUIVANT de la gamme du vol
 function sonConsole(){ // branche la console sur le contexte du jeu (fin d'initAudio ; rejoué si sfx.js arrive après le 1er geste)
   if(SONV2||!AC||!MASTER||!window.CCSON)return;
-  try{window.CCSON.init(AC,MASTER);SONV2=!!(window.CCSON.etat().ok&&window.CCSON.existe('ui.tap'));sonTonSuit._t=null;}catch(e){SONV2=false;} // (débogage 2026-09-29) sans banque chargée, l'ancien son reprend la main
+  try{window.CCSON.init(AC,MASTER);SONV2=!!(window.CCSON.etat().ok&&window.CCSON.existe('ui.tap'));sonTonSuit._t=null;sonsChauffe(SONS_TITRE);sonsChauffe(SONS_FIXES,true);sonsChauffe(SONS_COURSE);}catch(e){SONV2=false;} // (débogage 2026-09-29) sans banque chargée, l'ancien son reprend la main
   try{waPrecharge();}catch(e){} // les voix et les samples, décodés pour le mixage (voir LES VOIX ET LES SAMPLES DANS LE MIXAGE)
 }
 addEventListener('load',function(){try{sonConsole();}catch(e){}});
 const SON_TON={'ciel-nuages':-2,'ciel-altitude':-6,'ciel-apesanteur':1,'garage-atelier':3,'garage-huile':-4,'garage-cle':5,'chris-matin':-2}; // la tonalité de chaque morceau qui joue encore (le ciel et le garage du menu, l'auto-école) — 18/10 : celles des morceaux partis (NÉON, VITESSE, NOITE, GLASSY, SWAG, ADDICTIVE, CIEL, VILLE, les autres Chris) sont retirées
 function sonTonSuit(){
   if(!SONV2)return;let t=0;
-  try{const el=musicEl;if(SND.music&&el&&el.src){for(const k in SON_TON)if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
+  try{const el=musicEl;if(SND.music&&el&&el.src&&!el.paused){for(const k in SON_TON) /* (2026-11-07, chasse SON2-N06) un morceau en pause (Pouce bleu joue à sa place) ne transpose plus les effets */if(el.src.indexOf(k)>=0){t=SON_TON[k];break;}if(FRENM.surm)t+=1;}}catch(e){}
   if(t!==sonTonSuit._t){sonTonSuit._t=t;window.CCSON.ton(t);}
 }
 const FRUIT_SON={'PÊCHE PLATE':'fruit.peche','BANANE':'fruit.banane','GRENADE':'fruit.grenade','ORANGE':'fruit.orange','MYRTILLE':'fruit.myrtille','PASTÈQUE':'fruit.pasteque',
@@ -217,8 +227,19 @@ function vroomGarage(){
     ng.gain.setValueAtTime(.0001,t);ng.gain.exponentialRampToValueAtTime(.06,t+.1);ng.gain.exponentialRampToValueAtTime(.0002,t+1.1);ns.connect(nf);nf.connect(ng);ng.connect(MASTER);ns.start(t);ns.stop(t+1.2);
   }catch(e){}
 }
+/* ===== LE SON NE FAIT JAMAIS TOMBER LA BOUCLE (2026-11-05, DEBUG-TOTAL : « qu'on puisse faire ce qu'on veut du code sans jamais avoir de problème ») =====
+   `setTargetAtTime` LÈVE une TypeError (« non-finite ») sur un NaN ou un Infinity. Une cinquantaine de `stt` par image (boucle-5-sons) suivent
+   la vitesse, le régime, la glisse : un seul NaN venu d'en amont (dt énorme au retour d'arrière-plan, une division par une vitesse nulle)
+   faisait sauter, À CHAQUE IMAGE, toute la fin de la simulation (HUD, caméra, test de bord, mort) — la caisse figée sans mourir.
+   La valeur non finie est refusée ici (le paramètre garde sa valeur) et dite UNE fois en console, préfixe [SON], et dans la boîte noire.
+   `sonPanne(nom,…)` sert à toute panne du son : une fois par nom, jamais muette, jamais bloquante. `dbgSonPannes()` : la liste. */
+const SON_PANNES={};
+function sonPanne(nom,e,x){if(SON_PANNES[nom]){SON_PANNES[nom].n++;return;}SON_PANNES[nom]={n:1,m:String(e&&e.message||e).slice(0,160)};
+  try{console.warn('[SON] '+nom,e,x===undefined?'':x);}catch(_){}try{window.__ccNote('son',nom+' · '+SON_PANNES[nom].m,e&&e.stack&&String(e.stack).split('\n')[1]);}catch(_){}}
+window.dbgSonPannes=function(){return JSON.parse(JSON.stringify(SON_PANNES));};
 function stt(p,v,t,tc){
   if(!AC||AC.state!=='running'||!p)return;
+  if(!isFinite(v)||!isFinite(t)||!isFinite(tc)){sonPanne('valeur non finie (stt)','v='+v+' t='+t+' tc='+tc);return;}
   const o=p._s9,now=AC.currentTime;
   if(o!==undefined&&p._c9===tc&&Math.abs(v-o)<=Math.abs(o)*.002+1e-5&&now-p._t9<.25)return;
   p._s9=v;p._c9=tc;p._t9=now;p.setTargetAtTime(v,t,tc);

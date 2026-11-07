@@ -52,7 +52,7 @@ async function ouvrePage(url){
   return p;}
 async function fermePage(p){try{p.ws.close();}catch(e){}try{await getJson('http://127.0.0.1:'+PORT+'/json/close/'+p.id);}catch(e){}}
 /* ---- les étapes communes ---- */
-async function charge(p,url){const t0=Date.now();if(opt.v)console.log('→',url);await p.nav(url);const ok=await p.attend('window.__gameReady',120000,200);const pret=Date.now()-t0;if(!ok)throw new Error('__gameReady jamais posé');return pret;}
+async function charge(p,url){const t0=Date.now();if(opt.v)console.log('→',url);await p.nav(url);const ok=await p.attend('window.__gameReady||typeof window.dbgState==="function"',120000,200); /* (2026-11-07) sur main, __gameReady n'est posé qu'au départ de la boucle : le script exécuté suffit */const pret=Date.now()-t0;if(!ok){console.log('erreurs de la page :',JSON.stringify(p.erreurs.slice(0,8)));throw new Error('__gameReady jamais posé');}return pret;}
 async function sauteIntro(p){ /* le film part tout seul ; un toucher pendant le film le saute ; on attend la fin du voile */
   for(let i=0;i<60&&await p.ev('!!window.__introCouvre');i++){await p.call('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter'});await p.call('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter'});await dort(1500);} /* une touche du clavier : lance le film, puis le passe (kd dans intro-161) */
   await p.attend('!window.__introCouvre',60000,200);await dort(800);}
@@ -76,6 +76,7 @@ async function joueJusquALaMort(p,maxS){await p.ev("window.dbgAuto&&dbgAuto(1,0,
   return {mort:false,dur:maxS};}
 /* ---- les scénarios ---- */
 const SC={
+  async page(){const p=await ouvrePage();await p.nav(U());await dort(8000);console.log(JSON.stringify(await p.ev("(function(){return {html:document.documentElement.outerHTML.length,scripts:[...document.scripts].map(function(s){return s.src?s.src.split('/').slice(-2).join('/'):'inline '+s.textContent.length;}),body:document.body.className,pret:!!window.__gameReady,dbg:typeof window.dbgState,titre:document.title};})()")));console.log('erreurs :',JSON.stringify(p.erreurs.slice(0,6)),'console :',JSON.stringify(p.console.filter(function(c){return c.t!=='warning';}).slice(0,6)));await fermePage(p);},
   async prebcpu(){ /* RND-01 : PREB_CPU.dunes — la map d'en face imposée aux dunes, le pré-bâti travaille pendant la course, on relève son temps de calcul */
     const p=await ouvrePage();await charge(p,U());await sauteIntro(p);console.log(await lanceCourse(p));await p.ev("dbgAuto(1,0,{nit:0})");await dort(1500);
     console.log('impose :',await p.ev("dbgClassique('dunes')&&'dunes imposées en face'"));

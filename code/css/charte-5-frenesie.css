@@ -18,7 +18,7 @@
        départ, même courbe) ; le halo de la jauge bat avec eux.
    PLACE (mesurée en capture 390×844) : ses pointes balaient un disque de ~51 px de rayon — sous la jauge, à gauche de la case du chrono
    de vol, au-dessus des pouvoirs et de l'objectif de campagne ; la barre du record se contracte pour le laisser passer. */
-:root{--fren:#ff2a3d;--frenV:#ff6b78;--frenC:#ffd0d5;--frenS:#a8001a;--frenN:#4a0010;--frenO:#1c0006;--frenA:#ffb000;
+:root{--fren:var(--fren);--frenV:var(--frenV);--frenC:var(--frenC);--frenS:var(--frenS);--frenN:#4a0010;--frenO:var(--frenO);--frenA:var(--neoA);
   --frenGr:linear-gradient(180deg,var(--frenC) 0 2px,var(--fren) 2px 50%,var(--frenS) 50% calc(100% - 2px),var(--frenN) calc(100% - 2px));
   --frenT:108px;--frenH:72px;--frenD:80px;   /* l'emblème : largeur × hauteur (54 × 49 cases de 2 px), hauteur sous l'encoche, écart au bord droit */
   --frenCycle:5.2s;                          /* deux tours à gauche + un arrêt, deux tours à droite + un arrêt */
@@ -195,7 +195,7 @@ html[data-reduced-motion="1"] #triade .trAura{opacity:.5}
 html body.touch #tNitro,html body.touch #tNitro:active,html body.touch #tNitro.on{box-shadow:none!important;overflow:visible}
 html body.touch #tNitro>.nxArt,html body.touch #tNitro>.nxJauge{position:absolute;left:0;top:0;width:104px;height:108px;display:block;pointer-events:none}
 html body.touch #tNitro>.nxJauge{-webkit-mask:var(--nxMasque) 0 0/100% 100% no-repeat;mask:var(--nxMasque) 0 0/100% 100% no-repeat;
-  background:conic-gradient(from 220deg at 52px 52px,#ffd23a 0deg,#ff6a0e calc(var(--nr)*280deg),#3f6bff calc(var(--nr)*280deg),var(--neoC) calc(min(1,var(--nr) + var(--nx))*280deg),
+  background:conic-gradient(from 220deg at 52px 52px,var(--au2) 0deg,var(--nS) calc(var(--nr)*280deg),#3f6bff calc(var(--nr)*280deg),var(--neoC) calc(min(1,var(--nr) + var(--nx))*280deg),
     rgba(255,255,255,.13) calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.13) 280deg,transparent 280deg)}
 html body.touch #tNitro>i,html body.touch #tNitro>span{position:relative}   /* l'éclair et le mot passent DEVANT le disque */
 #tNitro .nx-ep,#tNitro .nx-encre{fill:var(--k0)}
@@ -209,11 +209,11 @@ html body.touch #tNitro>i,html body.touch #tNitro>span{position:relative}   /* l
 #tNitro .nx-reflet{fill:var(--k4)}
 /* l'APPUI : 2 cases de descente sur l'épaisseur (elle s'efface), la face s'embrase, la jauge blanchit */
 #tNitro:active .nx-ep,#tNitro.on .nx-ep{visibility:hidden}
-#tNitro:active .nx-face,#tNitro.on .nx-face{fill:#ff6a0e}
+#tNitro:active .nx-face,#tNitro.on .nx-face{fill:var(--nS)}
 #tNitro:active .nx-face2,#tNitro.on .nx-face2{fill:#e2520a}
 #tNitro:active .nx-reflet,#tNitro.on .nx-reflet{fill:#ffb35c}
 html body.touch #tNitro:active>.nxJauge,html body.touch #tNitro.on>.nxJauge{
-  background:conic-gradient(from 220deg at 52px 52px,#fff3b0 0deg,#ffd23a calc(var(--nr)*280deg),#8fb0ff calc(var(--nr)*280deg),#b8f6ff calc(min(1,var(--nr) + var(--nx))*280deg),
+  background:conic-gradient(from 220deg at 52px 52px,var(--orB) 0deg,var(--au2) calc(var(--nr)*280deg),#8fb0ff calc(var(--nr)*280deg),#b8f6ff calc(min(1,var(--nr) + var(--nx))*280deg),
     rgba(255,255,255,.13) calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.13) 280deg,transparent 280deg)}
 /* le CHRONO DE VOL : une toile nette au pixel (plus d'ombre floue : l'épaisseur est dessinée), il tremble de 2 px entiers sous 1,5 s */
 html body.touch #airPie{width:78px!important;height:78px!important;filter:none;image-rendering:pixelated;image-rendering:crisp-edges}

@@ -1,11 +1,11 @@
 /* ===== LES RUINES ENSABLÉES (2026-10-26, Léo : « parfois, dans ces milieux-là, il y a du solide… des gens qui font des constructions solides, il y en a pas mal d'insolites… je veux vraiment un peu l'immensité, un effet d'immensité ») =====
    Ce que le désert n'avait pas : de la pierre que le sable AVALE. Des sites de 1 à 4 pièces, semés tout le long de la route à 40-900 m de son bord (≈ un par 700 m, le 1er tôt, visible dès le départ) : un PAN DE MUR à créneaux brisés,
-   une RANGÉE DE COLONNES tronquées (les fûts sortent à des hauteurs différentes, un chapiteau d'or sur le plus grand), une ARCHE dont la clé est tombée, un ESCALIER de temple qui plonge sous la dune (deux pylônes au sommet), un CHAPITEAU
-   couché (un fût de papyrus), une TÊTE de colosse qui regarde le ciel (les têtes d'animaux de dunes-dieux.js), un OBÉLISQUE couché, la pointe sous le sable — et des blocs tombés. Chaque pièce est ENFONCÉE de 30 à 70 % de sa hauteur dans le sable (le sol est lu sous toute
+   une ARCHE dont la clé est tombée, un éclat de ROCHE érodée, un MONOLITHE couché, la pointe sous le sable — et des blocs tombés (ARRAKIS, 2026-11-05, Sacha : « on enlève toutes les références à l'Égypte » : plus de colonnes, d'escalier de temple ni de chapiteau).
+   Chaque pièce est ENFONCÉE de 30 à 70 % de sa hauteur dans le sable (le sol est lu sous toute
    l'emprise : jamais de coin qui flotte : la base inclinée est comparée au sable sur 25 points), inclinée comme la pente, jamais dans l'eau ni sur la route. Le site se choisit parmi jusqu'à 48 emplacements (on s'arrête à 9 visibles) : il faut qu'on le VOIE (un rayon part de la route, avant le site et à sa hauteur : le relief ne doit pas le cacher) et on préfère
    les CREUX entre les dunes ; plus il est loin, plus il est grand (jusqu'à 5,6 ×, un mur de 60 m : l'immensité), plus il est seul. Même matière que tous les décors (assises, gravure : DN_AFS), tout CUIT dans la géométrie du décor tiré (dnCuiseur) : 0 appel de dessin de plus, 0 programme de plus,
    ≤ 8 000 triangles (`PAL.B.dnRuinesEns` = la part du budget par palier). Son hasard est LOCAL, né du tracé (comme dnEmbellir) : rien dans `rnd` ni dans le tirage du décor. `?sans=dunesruines` = sans elles. Console : `dbgRuines()` (la liste des sites), `dbgRuines('vue', n, recul, haut, cap)`,
-   `dbgDunes('galerie', s, ['ruMur','ruColonnes','ruArche','ruEscalier','ruChapiteau'])` (les modèles). */
+   `dbgDunes('galerie', s, ['ruMur','ruArche'])` (les modèles). */
 const DN_RUE={on:!/[?&]sans=([^&]*,)?dunesruines(,|&|$)/.test(location.search)};
 PAL.B.dnRuinesEns=[.45,.75,1];if(DN_MOB)PAL.B.dnRuinesEns[2]=PAL.B.dnRuinesEns[1]; /* la part du budget (8 000 triangles) : [ancien, moyen, récent] — le téléphone reste au palier moyen */
 /* LA PIERRE : un grès patiné, ocre-gris, un peu plus sombre que le sable ; tout ce qui touche le sable en prend la couleur (matière 40 + u de DN_AFS : la pierre tire vers `mix(uSaA, uSaB)`, les mêmes uniformes que le terrain — elle suit donc chaque météo) ; plus d'accent, plus de capitel : des fûts, des pans, des arcs CASSÉS */
@@ -15,33 +15,16 @@ Object.assign(DN_MOD,{
   ruMur:function(){const g=dnKit(61),C=ruC(),Hs=[9,7.4,4.6,7,2.8,5.6,1.8,4];g.box(0,0,0,25.6,1.1,4.1,C.gres2,1,1);
     Hs.forEach(function(h,i){const x=-10.5+i*3,ox=((i*5)%7-3)*.28,w1=2.98*(.45+.35*((i*3)%4)/3),d1=3*(.5+.3*((i*5)%3)/2);g.frus(x,1.1,0,2.98,3,w1,d1,h,i%3===1?C.gres2:C.gres,1,ox,((i%3)-1)*.5,0,.07);});
     for(let j=0;j<5;j++){g.push();g.T(-12+j*5.2+((j*7)%3),.6,2.9+(j%2)*.7);g.Ry(j*1.3);g.Rz(((j*5)%7-3)*.09);g.box(0,0,0,1.8+(j%3)*.7,1.2+(j%2)*.5,1.6+(j%3)*.4,j&1?C.gres:C.gres2,1,1);g.pop();}return g.fin();},
-  /* LES COLONNES (cinq fûts sur un stylobate, 31 × 7,6 : de 2 à 11 m, des tambours décalés, chaque fût brisé en pointe, un tambour et un architrave à terre) */
-  ruColonnes:function(){const g=dnKit(62),C=ruC(),r=1.5,X=[-12,-6,0,6,12],Hh=[9.2,7.4,4,9.4,2];g.box(0,0,0,31,1,7.6,C.gres2,1,1);g.box(0,1,0,29.2,.5,6.2,C.gres,1,0);
-    X.forEach(function(x,i){const h=Hh[i],nd=Math.max(1,Math.round(h/4.5)),dh=h/nd;
-      for(let k=0;k<nd;k++){const sh=k?((i+k)%2?.16:-.14):0;g.cyl(x+sh,1.5+k*dh,sh*.6,r*(k?1-.05*k:1.16),r*(1-.05*(k+1)),dh,8,k&1?C.gres2:C.gres,1,(i+k)*.4);}
-      g.cyl(x+(i%2?.3:-.25),1.5+h,((i%3)-1)*.2,r*.8*(1-.05*nd),r*.4,.6+.5*((i*5)%3),7,C.gres2,1,i*.9);});
-    g.push();g.T(4.5,r,5.6);g.Ry(.5);g.Rz(Math.PI/2);g.cyl(0,-2,0,r*1.02,r*.98,4,8,C.gres,1,0,1);g.pop();g.push();g.T(-8,.4,-5.5);g.Ry(.9);g.Rz(.14);g.box(0,0,0,9,1.6,2.4,C.gres2,1,1);g.pop();return g.fin();},
   /* L'ARCHE (large 15, épaisse 3,2, haute 11,6, face à +z) : deux piédroits à bandes de lapis, des voussoirs (la clé a disparu : 7 à 9 manquent), deux claveaux tombés devant */
   ruArche:function(){const g=dnKit(63),C=ruC(),ri=3.9,ro=6.2,sp=5.4,T=1.6,N=12;g.box(0,0,0,15.2,.7,5.4,C.gres2,1,1);
     for(const sx of [-1,1]){g.box(sx*5.05,.7,0,2.3,sp-.7,3.2,C.gres,1,0);for(const sz of [-1,1]){}}
     g.push();g.Rx(Math.PI/2); /* le plan (x, y) de l'arche devient le plan (x, −z) du prisme : l'épaisseur est l'axe local y */
     for(let j=0;j<N;j++){if(j>=7&&j<=9)continue;const a0=Math.PI-j*Math.PI/N,a1=Math.PI-(j+1)*Math.PI/N,P=(a,rr)=>[Math.cos(a)*rr,-(sp+Math.sin(a)*rr)];g.ext([P(a0,ri),P(a0,ro),P(a1,ro),P(a1,ri)],-T,T,j&1?C.gres2:C.gres,1,.04);}
-    g.pop();g.push();g.T(-1.5,0,3.4);g.Ry(.5);g.Rz(.2);g.box(0,0,0,4.6,1.9,3.2,C.gres,1,1);g.pop();g.push();g.T(2.6,0,-3.3);g.Ry(-.4);g.box(0,0,0,3.6,1.7,3,C.gres2,1,1);g.pop();return g.fin();},
-  /* L'ESCALIER (large 13, long 28,5 centré, haut 17 ; il MONTE vers +z) : neuf marches, deux joues, une terrasse, deux pylônes brisés d'inégale hauteur à bande de lapis, une baie de 6,6 m entre eux */
-  ruEscalier:function(){const g=dnKit(64),C=ruC(),N=9,rise=1.05,run=2.5,w=13,Lz=N*run,hT=N*rise;g.T(0,0,-(Lz+6)/2);
-    for(let i=0;i<N;i++)g.box(0,0,i*run+run/2,w,(i+1)*rise,run,i&1?C.gres:C.gres2,1,0);
-    g.push();g.Ry(Math.PI/2);g.Rx(Math.PI/2); /* le plan (z, y) de la joue : x_local = −z, z_local = −y, l'épaisseur = l'axe local y = le monde x */
-    for(const sx of [-1,1]){const x0=sx*(w/2+.7);g.ext([[0,0],[-Lz,0],[-Lz,-(hT+1.5)],[0,-(rise+1.5)]],x0-.7,x0+.7,C.gres2,1,.05);}g.pop();
-    g.box(0,0,Lz+3,w+2.8,hT,6,C.gres2,1,0);
-    for(const sx of [-1,1]){g.frus(sx*5.5,hT,Lz+3,4.4,4.4,3.7,3.6,sx<0?7.5:4.2,C.gres,1,sx*.3,0,0,.06);}return g.fin();},
-  /* LE CHAPITEAU COUCHÉ (long ~14) : un fût de colonne de papyrus tombé sur le flanc, le collier d'or, le bouton, l'abaque ; un tambour à côté */
-  ruChapiteau:function(){const g=dnKit(65),C=ruC(),r=2.3;g.T(-1.9,0,0);g.push();g.T(-5.4,3.5,0);g.Rz(-Math.PI/2);g.cyl(0,0,0,.86*r,.84*r,7,10,C.gres,1,0,0);g.cyl(0,6.6,0,.92*r,.92*r,.5,10,C.or,3,0);
-    g.lathe(0,0,[[.86*r,7],[1.12*r,7.7],[1.5*r,8.9],[1.38*r,10.4],[1.1*r,10.7]],10,[C.gres,C.cre],1);g.box(0,10.7,0,6.6,.9,6.6,C.gres2,1,0);g.pop();
-    g.push();g.T(7.5,1.8,5);g.Ry(.7);g.Rz(Math.PI/2);g.cyl(0,-1.7,0,1.8,1.8,3.4,10,C.gres,1,0,1);g.pop();return g.fin();}});
-Object.assign(DN_ECH,{ruMur:1,ruColonnes:1,ruArche:1,ruEscalier:1,ruChapiteau:1});
+    g.pop();g.push();g.T(-1.5,0,3.4);g.Ry(.5);g.Rz(.2);g.box(0,0,0,4.6,1.9,3.2,C.gres,1,1);g.pop();g.push();g.T(2.6,0,-3.3);g.Ry(-.4);g.box(0,0,0,3.6,1.7,3,C.gres2,1,1);g.pop();return g.fin();}});
+Object.assign(DN_ECH,{ruMur:1,ruArche:1});
 /* LES PIÈCES : le modèle, la demi-emprise (x, z) et la hauteur (en unités du modèle), la part enterrée [min, max] (de la hauteur), `tk` : combien la pièce suit la pente du sable (0 : à plat, 1 : parallèle) */
-const DN_RUP={mur:{m:'ruMur',hx:12.8,hz:2.2,H:10.7,f:[.58,.8],tk:.3},col:{m:'ruColonnes',hx:15.5,hz:3.8,H:14.4,f:[.58,.82],tk:.3},arc:{m:'ruArche',hx:7.6,hz:5,H:11.6,f:[.5,.74],tk:.3},
-  esc:{m:'ruEscalier',hx:7.8,hz:14.3,H:16.5,f:[.5,.7],tk:.8},cha:{m:'ruChapiteau',hx:7.3,hz:4.4,H:7,f:[.3,.6],tk:.5},tet:{m:null,u:7,hx:.75,hz:.75,H:1.35,f:[.35,.55],tk:.3},obe:{m:'obelisque',u:.42,hx:9.2,hz:32,H:9.2,f:[-.05,.25],tk:.8}};
+const DN_RUP={mur:{m:'ruMur',hx:12.8,hz:2.2,H:10.7,f:[.58,.8],tk:.3},arc:{m:'ruArche',hx:7.6,hz:5,H:11.6,f:[.5,.74],tk:.3},
+  tet:{m:null,u:7,hx:.75,hz:.75,H:1.35,f:[.35,.55],tk:.3},obe:{m:'monolithe',u:.42,hx:9.2,hz:32,H:9.2,f:[-.05,.25],tk:.8}}; // (2026-11-05, ARRAKIS) le monolithe couché remplace l'obélisque
 function dnRuinesEns(X){return jadeFini(dnRuinesEnsG(X));}
 function* dnRuinesEnsG(X){ /* (2026-11-01) en pas : voir dnMonumentsTiresG */
   DN.ruEns=null;if(!DN_RUE.on||!DN.S||!DN.Z)return;X=X||{};const t0=performance.now(),S=DN.S,RH=ROAD_HALF,Ks=Math.min(1.25,Math.sqrt(lvPiste())),L9=(S.n-1)*S.ds,mult=PAL.b('dnRuinesEns',1),propre=!X.CU,CU=X.CU||dnCuiseur(),v0=CU.n(),
@@ -85,7 +68,7 @@ function* dnRuinesEnsG(X){ /* (2026-11-01) en pas : voir dnMonumentsTiresG */
   /* LES BLOCS tombés : de gros cubes de pierre à moitié dans le sable, autour d'une pièce */
   const blocs=(cx,cz,rad,s,n)=>{for(let k=0;k<n;k++){const an=r()*6.2832,d=rad*(.7+r()*.7),x=cx+Math.sin(an)*d,z=cz+Math.cos(an)*d,w=s*(1.3+r()*2.2),h=w*(.5+.5*r()),dp=w*(.7+.6*r()),g=dnHauteur(x,z,o9);
       if(o9.eau||dmin(x,z)<RH+w+18||dnPresRoute(x,z,RH+w+10,g+h)||!libre(x,z,w))continue;if((CU.n()-v0)/3>capT)return;
-      e9.set((r()-.5)*.5,r()*6.28,(r()-.5)*.5);q9.setFromEuler(e9);mt.compose(v9.set(x,g-h*.4,z),q9,s9.set(w,h,dp));CU.ajoute(ensable(dnMod('bloc'),Math.max(2.5,h*.7)),mt,[.84*(.95+.1*r()),.77*(.95+.1*r()),.66*(.95+.1*r())]);placed.push([x,z,w*.8]);}};
+      e9.set((r()-.5)*.5,r()*6.28,(r()-.5)*.5);q9.setFromEuler(e9);const lo=dnSolBas(x,z,w*.5,dp*.5,e9.y); /* (2026-11-07) MESURÉ : posé au sable du centre, un bloc tombé de 20 m pendait jusqu'à 24 m au-dessus de la pente (graine 2) : il s'enfonce sous le sable le plus bas de son emprise, plus de quoi cacher son inclinaison (±0,25 rad) */mt.compose(v9.set(x,Math.min(g-h*.4,lo-.25*Math.max(w,dp)),z),q9,s9.set(w,h,dp));CU.ajoute(ensable(dnMod('bloc'),Math.max(2.5,h*.7)),mt,[.84*(.95+.1*r()),.77*(.95+.1*r()),.66*(.95+.1*r())]);placed.push([x,z,w*.8]);}};
   /* la LIGNE DE VUE : d'un point de la route (l'œil de la caméra de poursuite : 3,5 m au-dessus de la dalle, à 14 m de l'axe du côté du site — on roule souvent près du bord) au haut de la pièce — ni la dalle elle-même (elle cache tout ce qui plonge de plus de quelques degrés au-delà de son bord) ni le relief ne doivent la couper */
   const voit=(ei,x,z,yt,sg)=>{const ex=S.x[ei]-S.tz[ei]*sg*14,ey=S.y[ei]+3.5,ez=S.z[ei]+S.tx[ei]*sg*14,d=Math.hypot(x-ex,z-ez),n=Math.max(2,Math.ceil(d/14)),ux=(x-ex)/d,uz=(z-ez)/d;
     for(let t=8;t<Math.min(d,110);t+=8){const px=ex+ux*t,pz=ez+uz*t,py=ey+(yt-ey)*t/d;let bj=-1,bd=1e18;for(let j=Math.max(0,ei-40);j<Math.min(S.n,ei+40);j++){const dx=S.x[j]-px,dz=S.z[j]-pz,q=dx*dx+dz*dz;if(q<bd){bd=q;bj=j;}}if(bd<RH*RH&&py<S.y[bj]+.5)return false;}
@@ -98,20 +81,20 @@ function* dnRuinesEnsG(X){ /* (2026-11-01) en pas : voir dnMonumentsTiresG */
       const s0=Math.max(40,Math.min(L9-320,sB+(k?(r()-.5)*300:(r()-.5)*60))),i=Math.max(0,Math.min(S.n-1,Math.round(s0/S.ds))),sg=r()<.5?-1:1,u=r(),lat0=k===0?(u<.5?110+r()*150:260+r()*170):u<.5?42+r()*190:u<.85?230+r()*300:520+r()*380;
       const x=S.x[i]-S.tz[i]*sg*(RH+lat0),z=S.z[i]+S.tx[i]*sg*(RH+lat0),ar=Math.atan2(S.x[i]-x,S.z[i]-z),far=lat0>260,ia=Math.max(0,i-Math.round(130/S.ds)),dd=Math.hypot(x-S.x[ia],z-S.z[ia],dnHauteur(x,z,o1)-S.y[ia]),
         ss=Ks*(k%2===0?1.2:1)*Math.max(k===0?4.6:1.3,Math.min(9,1.4+dd/(52+25*r())));
-      const kd=poids(far?[['arc',3],['mur',2.2],['col',2.4],['esc',1.4],['obe',1.1]]:[['mur',3],['col',2.4],['arc',2],['esc',1.4],['obe',1.2]]);
+      const kd=poids(far?[['mur',4],['obe',1.6]]:[['mur',4],['obe',1.6]] /* (2026-11-05, Arrakis) plus d'arche de pierre taillée : des pans de mur et des monolithes couchés seulement */);
       const gx=dnHauteur(x+6,z,o1)-dnHauteur(x-6,z,o2),gz=(dnHauteur(x,z+6,o1)-dnHauteur(x,z-6,o2)),gl=Math.hypot(gx,gz)/12; /* la pente du sable (le sens de la descente : −gradient) */
       let ry=ar+(r()-.5)*.7,ex={};
-      if(kd==='esc'||kd==='obe')ry=gl>.08?Math.atan2(-gx,-gz)+(r()-.5)*.5:ar+(r()<.5?1:-1)*PI/2+(r()-.5)*.4; /* l'escalier descend dans le sable, l'obélisque couché a la pointe en bas */
-      if(kd==='mur'||kd==='col'||kd==='arc'){ex.tx0=(r()<.5?-1:1)*(.1+.2*r());ex.tz0=(r()<.5?-1:1)*(.08+.17*r());} /* des pièces penchées de 6 à 18° : effondrées, pas posées */
+      if(kd==='obe')ry=gl>.08?Math.atan2(-gx,-gz)+(r()-.5)*.5:ar+(r()<.5?1:-1)*PI/2+(r()-.5)*.4; /* le monolithe couché a la pointe en bas */
+      if(kd==='mur'||kd==='arc'){ex.tx0=(r()<.5?-1:1)*(.1+.2*r());ex.tz0=(r()<.5?-1:1)*(.08+.17*r());} /* des pièces penchées de 6 à 18° : effondrées, pas posées */
       if(kd==='obe')ex.tx0=PI/2+.08+.1*r();if(kd==='tet'){ex.tx0=-(.25+.35*r());ex.tz0=(r()-.5)*.4;}
-      const pl=plan(kd,x,z,ry,kd==='esc'?Math.min(ss,3.2):ss,ex);if(!pl||S.y[i]-pl.hm>38||pl.vis<14*Ks){rj.pente++;continue;} /* le sable à plus de 38 m sous la dalle est caché par son bord ; une pièce qui ne dépasse pas de 14 m ne se lit pas */
+      const pl=plan(kd,x,z,ry,ss,ex);if(!pl||S.y[i]-pl.hm>38||pl.vis<14*Ks){rj.pente++;continue;} /* le sable à plus de 38 m sous la dalle est caché par son bord ; une pièce qui ne dépasse pas de 14 m ne se lit pas */
       const yt=pl.y+(kd==='obe'?P9H(pl)*.7:(DN_RUP[kd].H*pl.s-(pl.hm-pl.y))*.55+(pl.hm-pl.y)),va=voit(ia,x,z,yt,sg),vb=voit(i,x,z,yt,sg),ic=Math.max(0,i-Math.round(330/S.ds)),vc=voit(ic,x,z,yt,sg),vis=(va?1:0)+(vb?1:0)+(vc?1:0);if((vis<(k||pass?1:2))){rj.vue++;continue;}rj.ok++;nOk++;nOk++;
       const bx=x-S.x[ic],bz=z-S.z[ic],fwd=(bx*S.tx[ic]+bz*S.tz[ic])/(Math.hypot(bx,bz)||1)>.72&&vc,sc=vis*1.4+(fwd?2.2:0)+r()*.6+Math.min(1.5,pl.vis/(14*Ks))+1.3*Math.max(-2.5,Math.min(2.5,(pl.hm-S.y[i]+30)/25))+Math.min(2,12*pl.vis/dd); /* le sable AU-DESSUS de la dalle ou à son niveau : la dalle ne cache pas ce qui est plus bas que son bord */if(!best||sc>best.sc)best={sc:sc,pl:pl,i:i,lat:lat0,far:far,ss:ss,ry:ry,dd:dd};if(nOk>=(DN_MOB?9:14))break;}
     if(!best)continue;
     if(!mettre(best.pl))break;nP++;const b=best;let np=1;
     /* les COMPAGNONS (le site fait 1 à 4 pièces : plus il est loin, plus il est seul) et les blocs tombés */
     const ne=k%2===0?(r()<.4?3:2):0; /* un GRAND ENSEMBLE un site sur deux, les autres sont des pièces seules, des silhouettes */
-    for(let q=0;q<ne;q++){const kd2=poids([['mur',2],['col',2],['arc',1.2],['esc',.8]]),s2=b.ss*(.55+.4*r()),P2=DN_RUP[kd2],rad2=Math.hypot(P2.hx,P2.hz)*s2*(P2.u||1),ex2={};if(kd2==='mur'||kd2==='col'||kd2==='arc'){ex2.tx0=(r()<.5?-1:1)*(.1+.2*r());ex2.tz0=(r()<.5?-1:1)*(.08+.17*r());}
+    for(let q=0;q<ne;q++){const kd2=poids([['mur',2]]),s2=b.ss*(.55+.4*r()),P2=DN_RUP[kd2],rad2=Math.hypot(P2.hx,P2.hz)*s2*(P2.u||1),ex2={};if(kd2==='mur'||kd2==='arc'){ex2.tx0=(r()<.5?-1:1)*(.1+.2*r());ex2.tz0=(r()<.5?-1:1)*(.08+.17*r());}
       for(let t=0;t<4;t++){const an=r()*6.2832,d=(b.pl.rad+rad2)*.8+4*b.ss,x2=b.pl.x+Math.sin(an)*d,z2=b.pl.z+Math.cos(an)*d,pl2=plan(kd2,x2,z2,b.ry+(r()-.5)*.8+(r()<.3?PI:0),s2,ex2);if(pl2){if(mettre(pl2))np++;break;}}}
     blocs(b.pl.x,b.pl.z,b.pl.rad,b.ss,k%2===0?3+((r()*2)|0):1);
     sites.push({k:b.pl.kd,s:Math.round(b.i*S.ds),lat:Math.round(b.lat),dd:Math.round(b.dd),dy:Math.round(S.y[b.i]-b.pl.hm),x:Math.round(b.pl.x),z:Math.round(b.pl.z),pieces:np,s_:+b.ss.toFixed(2)});}

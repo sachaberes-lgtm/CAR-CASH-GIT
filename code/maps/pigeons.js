@@ -33,8 +33,11 @@ function spawnPigeonFlock(){
   const fwd9=new THREE.Vector3(0,0,1).applyQuaternion(carGroup.quaternion);
   const sd9=Math.random()<.5?-1:1;
   const base=new THREE.Vector3().copy(carGroup.position).addScaledVector(fwd9,150+Math.random()*160);
-  base.x+=sd9*(60+Math.random()*90);base.y+=22+Math.random()*46;
-  const dir9=new THREE.Vector3(-sd9*(.7+Math.random()*.5),(Math.random()-.35)*.12,(Math.random()-.5)*.7).normalize();
+  /* (2026-11-07, Sacha : « génération aléatoire parfaite ») DANS LE REPÈRE DE LA CAISSE : le côté et le haut étaient ceux du MONDE (x, y) — sur la route tordue des nuages
+     (couchée, à l'envers) la volée naissait sous la dalle ou droit devant, dans l'axe. Côté et haut de la caisse : mêmes tirages, même volée sur une route à l'endroit. */
+  const rt9=new THREE.Vector3(1,0,0).applyQuaternion(carGroup.quaternion),up9=new THREE.Vector3(0,1,0).applyQuaternion(carGroup.quaternion);
+  base.addScaledVector(rt9,sd9*(60+Math.random()*90)).addScaledVector(up9,22+Math.random()*46);
+  const dir9=new THREE.Vector3(-sd9*(.7+Math.random()*.5),(Math.random()-.35)*.12,(Math.random()-.5)*.7).normalize().applyQuaternion(carGroup.quaternion);
   const sp9=9+Math.random()*5;
   for(let k=0;k<n;k++){
     const p=mkPigeon();

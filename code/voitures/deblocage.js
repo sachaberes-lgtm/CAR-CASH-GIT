@@ -39,13 +39,13 @@ const CAR_UNLOCK=[
   {p:600e3},/* (2026-10-22, Sacha : « tableau des voitures » 180 000 → 60 000) */ // LE CAÏD — RARE (2026-10-06 : 60 000 → 50 000) ; 50 000 → 180 000 : c'est le HUMMER EV désormais ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)
   {p:180e3},            // (2026-10-06 : RETIRÉE, le prix sert au remboursement) SA MAJESTÉ — RARE, la plus chère des rares : l'argent achète la Rolls, c'est même à ça qu'il sert
   {p:4e6},/* (2026-10-22, Sacha : « tableau des voitures » 4 000 000 → 400 000) */ // (2026-10-19 : 2,5 M → 4 M, la plus chère des caisses à l'argent du jeu ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) (2026-10-06 : 1,5 M → 2,5 M) ROSSO 40 — (2026-09-25 : le mode Survivant est retiré, un seul mode de jeu) la caisse de RÊVE, à 1,5 M
-  {p:32e5},/* (2026-10-26, Sacha : « la POSTER 84 ne doit plus être en boutique ni à vendre en vrai argent : 20 % moins chère que la ROSSO 40 ») : 4 000 000 × 0,8 = 3 200 000 $ au garage ; avant : premium 1,61 € (2026-10-22, « tableau des voitures »), avant encore : rang d'aura MYTHE */
+  {p:132e5},/* (2026-11-05, Sacha : « poster 84 doit coûter 13200000 ») : 3 200 000 → 13 200 000 $ ; (2026-10-26, Sacha : « la POSTER 84 ne doit plus être en boutique ni à vendre en vrai argent : 20 % moins chère que la ROSSO 40 ») : 4 000 000 × 0,8 = 3 200 000 $ au garage ; avant : premium 1,61 € (2026-10-22, « tableau des voitures »), avant encore : rang d'aura MYTHE */
   {k:'carnet',v:1},     // LA BULLE — contrat n° 1
   {k:'carnet',v:2},     // LE COMBI — contrat n° 2
   {k:'carnet',v:3},     // LA DOLORÈS — contrat n° 3
   // LES PREMIUM : en BOUTIQUE, contre du vrai argent (StoreKit à brancher). `eur` = le prix affiché, `rar` = la rareté de la carte
   {k:'premium',eur:'4,20 €',rar:'leg',une:1}, // (2026-10-06 : 4,99 → 4,20 €) CHAT POP-TART — l'offre à la une
-  {k:'premium',eur:'9,99 €',rar:'leg'},       // REQUIN — RETIRÉ (2026-10-21, Sacha : remplacé en boutique par LE SQUALE) ; (2026-10-18, Sacha) REMIS dans le jeu : de nouveau en boutique à 9,99 € (il était « DÉFI À VENIR » du 6 au 14/10, caché ensuite)
+  {k:'premium',eur:'9,99 €',rar:'leg'},       // REQUIN — RETIRÉ (2026-10-21, Sacha : remplacé en boutique par LE SQUALE) ; (2026-11-07, Léo : « le roquet a disparu ») REMIS ; (2026-10-18, Sacha) REMIS dans le jeu : de nouveau en boutique à 9,99 € (il était « DÉFI À VENIR » du 6 au 14/10, caché ensuite)
   {k:'bientot',v:1},                          // COMÈTE — (2026-10-06) DÉFI à définir (était en boutique, 4,99 €)
   {k:'premium',eur:'4,99 €',rar:'leg'},       // FORMULE OR — (2026-10-06) RETIRÉE
   {k:'premium',eur:'2,99 €',rar:'leg'},       // LE MANS 24 — (2026-10-06) RETIRÉE
@@ -53,8 +53,8 @@ const CAR_UNLOCK=[
   {p:2000000},/* (2026-10-22, Sacha : « tableau des voitures » 550 000 → 200 000) */ // (2026-10-19 : 750 000 → 550 000, la plus abordable des épiques ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) ACIDE — (2026-10-06) ÉPIQUE à l'argent du jeu (était en boutique, 1,99 €)
 /* ===== LES CONDITIONS DES 50 — DÉBUT ===== */
   {p:1500}, // LA POSTIÈRE — (2026-10-06) RETIRÉE
-  {p:2000}, // LA DEUCHE — (2026-10-06) RETIRÉE
-  {p:2500}, // LE TAXI JAUNE — (2026-10-06) RETIRÉE
+  {p:2000}, // LA DEUCHE — (2026-10-06) RETIRÉE ; (2026-11-07) remise puis retirée de nouveau (« enlève la tin snail »)
+  {p:2500}, // LE TAXI JAUNE — (2026-10-06) retiré ; (2026-11-07, Léo : « le taxi remets ») REMIS
   {k:'premium',eur:'161,00 €',rar:'leg'}, // LA PIZZA EXPRESS — (2026-10-06) revient, LÉGENDAIRE en boutique
   {p:3500}, // LE MONOSPACE
   {p:4000}, // LE BREAK SUÉDOIS
@@ -136,7 +136,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:60000}, // 83 — COMMUNE : Mazda MX-5 NA (1989), phares escamotables
+  {k:'premium',eur:'1,61 €',rar:'leg'}, /* (2026-11-07, Léo : « la Cerise en voiture payante, 1,61 €, on l'appelle Kelly ») */ // 83 — KELLY CHERRY (ex-LA CERISE, était COMMUNE à 60 000) : Mazda MX-5 NA (1989), phares escamotables
   /* · */
   /* · */
   /* · */

@@ -8,7 +8,8 @@
    Dans la console (BOUTIQUE) : les onglets se taisent, la barre dit « BOUTIQUE DU JOUR » + l'horloge, la bande devient des CARTES à la
    couleur de leur rareté. Toucher une carte montre l'objet sur le plateau (rien ne change avant), et ÉQUIPER devient ACHETER + le prix.
    Triche possible en avançant l'horloge du téléphone : jeu hors ligne, on l'accepte. `dbgBoutiqueJour(j)` : la vitrine d'un autre jour. */
-function bqJour(){return Math.floor(Date.now()/864e5)+(BQ_DECALE|0);}
+function bqDecLoc(){return new Date().getTimezoneOffset()*6e4;} /* (2026-11-07) UTC − heure locale, en ms : la vitrine change à MINUIT CHEZ LE JOUEUR (en France elle tombait à 1 h ou 2 h du matin, l'heure UTC) */
+function bqJour(){return Math.floor((Date.now()-bqDecLoc())/864e5)+(BQ_DECALE|0);}
 var BQ_DECALE=0;
 function bqCles(){const V=[],C=[];
   for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const u=CAR_UNLOCK[i];if(u&&u.p>0)V.push('v:'+i);} // (2026-10-10) les caisses en € passent dans les OFFRES (bqOffres)
@@ -31,7 +32,7 @@ var BQ_N={une:2,jour:6,hab:3};
 function bqVitrine(){const j=bqJour();let b=SAVE.d.bq;
   if(!b||b.j!==j||!Array.isArray(b.l)||b.l.length!==BQ_N.une+BQ_N.jour||!b.l.every(bqValide)||b.l.some(function(k){return k[0]==='v'&&CAR_UNLOCK[+k.slice(2)]&&CAR_UNLOCK[+k.slice(2)].k==='premium';})){b={j:j,l:bqTire(j)};SAVE.d.bq=b;try{SAVE.mark();}catch(e){}}
   return b;}
-function bqReste(){const ms=Math.max(0,(bqJour()+1-(BQ_DECALE|0))*864e5-Date.now()),t=Math.floor(ms/1000),d2=function(n){return (n<10?'0':'')+n;};
+function bqReste(){const ms=Math.max(0,(bqJour()+1-(BQ_DECALE|0))*864e5+bqDecLoc()-Date.now()),t=Math.floor(ms/1000),d2=function(n){return (n<10?'0':'')+n;};
   return d2(Math.floor(t/3600))+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}
 function bqFig(cat,d){const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
   if(cat==='peinture')return '<i class="fnSw'+cosmSwCl(d)+'" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';

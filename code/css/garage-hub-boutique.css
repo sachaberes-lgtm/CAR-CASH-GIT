@@ -4,7 +4,7 @@
    À LA UNE : deux cartes larges, bandeau or. ACQUIS : la coche à la place du prix. La carte touchée s'allume (cadre blanc). */
 html body #garage.modeShop:not(.menu):not(.vitrine) #gTabs{display:none!important}
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnT{display:inline-flex;align-items:center;gap:6px;color:#fff;letter-spacing:1px;font-weight:400}
-html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnT .pxi{--pxs:1;color:#ffd75e}
+html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnT .pxi{--pxs:1;color:var(--or)}
 html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnT i:not(.pxi){font-style:normal;font-variant-numeric:tabular-nums}
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:auto;grid-auto-flow:row;
   gap:10px 8px;height:auto;max-height:226px;padding:4px 14px 18px;overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;scroll-snap-type:y proximity;
@@ -15,14 +15,14 @@ html body #garage.consoleCachee:not(.menu):not(.vitrine) #gStrip.fnBande{display
    de la boutique du jour, une plaque d'or sur toute la largeur — OFFRES, « toutes les voitures payantes », le nombre, trois d'entre elles en
    éventail. Touchée : la page OFFRES de l'accueil (gOffresPage). Voir « LA BOUTIQUE DU GARAGE, SON PLAN ». */
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnPorte{position:relative;grid-column:1/-1;height:92px;overflow:hidden;cursor:pointer;transform:skewX(var(--sk));
-  background:linear-gradient(105deg,rgba(64,40,8,.95),rgba(26,16,4,.96) 62%,rgba(48,30,6,.9));box-shadow:inset 0 0 0 1px rgba(255,215,94,.62),inset 4px 0 0 #ffd75e,0 0 20px -6px #ffc23a;
+  background:linear-gradient(105deg,rgba(64,40,8,.95),rgba(26,16,4,.96) 62%,rgba(48,30,6,.9));box-shadow:inset 0 0 0 1px rgba(255,215,94,.62),inset 4px 0 0 var(--or),0 0 20px -6px #ffc23a;
   clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
 html body #garage:not(.menu):not(.vitrine) #gStrip.fnBande .fnPorte:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px)}
 #gStrip.fnBande .fnPorte>*{pointer-events:none}
 #gStrip.fnBande .fnPorte .fnFond{opacity:.35}
-html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnRetour{display:inline-flex;align-items:center;justify-content:center;width:40px;height:34px;margin:0 -4px 0 -6px;pointer-events:auto;cursor:pointer;color:#ffd75e}
-html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnRetour .pxi{--pxs:2;color:#ffd75e}
-html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnCompte{color:#ffd75e}
+html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnRetour{display:inline-flex;align-items:center;justify-content:center;width:40px;height:34px;margin:0 -4px 0 -6px;pointer-events:auto;cursor:pointer;color:var(--or)}
+html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnRetour .pxi{--pxs:2;color:var(--or)}
+html body #garage:not(.menu):not(.vitrine) #gRar .fnTete .fnCompte{color:var(--or)}
 /* SEE ALL ITEMS EN GRILLE (2026-10-10, Léo : « comme il y en aura plus, agrandis un tout petit peu la place des items ; on glisse vers le
    bas, on voit trois voitures par trois voitures ») : la bande du mode `tous` devient une grille de trois qui défile vers le BAS (même
    mécanique que la vitrine du jour) — un peu plus haute qu'une rangée, la suivante dépasse et se fond : il y a une suite. */
@@ -32,9 +32,9 @@ html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous{display:grid!import
 html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous.finBas{-webkit-mask:none;mask:none}
 html body #garage:not(.menu):not(.vitrine) #gStrip.gModeTous>.gT{width:auto!important;min-width:0!important;max-width:none!important;flex:none!important;margin:0!important;scroll-snap-align:start}
 #gStrip .rarLogo{position:absolute;top:7px;right:8px;z-index:3;display:flex;line-height:0;pointer-events:none;transform:skewX(calc(-1 * var(--sk,0deg)));
-  filter:drop-shadow(1px 0 0 #07050f) drop-shadow(-1px 0 0 #07050f) drop-shadow(0 1px 0 #07050f) drop-shadow(0 -1px 0 #07050f) drop-shadow(0 0 3px var(--rl)) drop-shadow(0 0 7px var(--rl))} /* (2026-10-10, Léo : « enlève le cube qui encadre le pictogramme ») le logo seul, cerné d'encre (sur l'enveloppe : posé sur la .pxi, le masque le rognerait) — (2026-10-11, Léo : « une touche de lueur chacun ») un halo de sa couleur, en deux crans */
+  filter:drop-shadow(1px 0 0 var(--k0)) drop-shadow(-1px 0 0 var(--k0)) drop-shadow(0 1px 0 var(--k0)) drop-shadow(0 -1px 0 var(--k0)) drop-shadow(0 0 3px var(--rl)) drop-shadow(0 0 7px var(--rl))} /* (2026-10-10, Léo : « enlève le cube qui encadre le pictogramme ») le logo seul, cerné d'encre (sur l'enveloppe : posé sur la .pxi, le masque le rognerait) — (2026-10-11, Léo : « une touche de lueur chacun ») un halo de sa couleur, en deux crans */
 #gStrip .rarLogo .pxi{--pxs:2;color:var(--rl);filter:none}
-#gStrip .rarLogo.r-infini .pxi{background:linear-gradient(90deg,#ff4d6d,#ffb03a,#ffe85e,#5ee37a,#5ec8ff,#b07dff,#ff8af0)} /* INFINI : le ∞ en arc-en-ciel */
+#gStrip .rarLogo.r-infini .pxi{background:linear-gradient(90deg,var(--neoR),var(--neoA),#ffe85e,var(--neoV),var(--dol),var(--neoL),var(--aura))} /* INFINI : le ∞ en arc-en-ciel */
 #gStrip.fnBande .fnC .rarLogo{top:8px;right:10px}
 /* (2026-10-11) LE COIN DU GARAGE (HOME + l'œil en haut à gauche, l'argent et l'aura à droite) a été essayé puis RETIRÉ le même jour (Léo :
    « reviens comme avant ») : HOME et l'œil restent dans la rangée au-dessus d'INVENTAIRE · BOUTIQUE. Reste : ÉQUIPER AU TOUCHER. */
@@ -64,7 +64,7 @@ html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas .gLueur .pxi{--pxs:
 /* HOME EN CIEL QUI BOUGE (2026-10-11, Léo : « le HOME en mode ciel qui bouge ») : HOME ramène au ciel — il en porte un morceau : le dégradé
    de l'accueil (bleu de zénith → lavande → pêche de l'horizon) et deux rangées de nuages pixel qui défilent (deux vitesses : la profondeur).
    Seule la position du fond bouge (pas de repeinte de mise en page) ; « Réduire les animations » le fige. */
-html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{color:#fff;text-shadow:0 1px 0 #07050f,0 0 6px rgba(7,5,15,.7);
+html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas{color:#fff;text-shadow:0 1px 0 var(--k0),0 0 6px rgba(7,5,15,.7);
   background:
     radial-gradient(ellipse 15px 6px at 30px 30%,rgba(255,255,255,.95) 92%,transparent 100%),
     radial-gradient(ellipse 9px 5px at 42px 26%,rgba(255,255,255,.95) 92%,transparent 100%),
@@ -93,21 +93,23 @@ html body #garage:not(.menu):not(.vitrine) #gRang1>#gHomeBas>.gHomeCielCv.on{opa
    JOUER garde le sien (« je préfère le JOUER du ciel ») — et le garage le reprend (voir mPlayMot / #gJouer .lg). */
 html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres,.mGear){
   background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
-    linear-gradient(180deg,#272049 0%,#1c1738 46%,#141029 100%)!important;
+    linear-gradient(180deg,var(--k4) 0%,#1c1738 46%,#141029 100%)!important;
   box-shadow:inset 3px 0 0 var(--nc),inset 34px 0 30px -28px color-mix(in srgb,var(--nc) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.06),
-    0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)!important}
+    0 0 0 1px rgba(3,1,9,.92),0 5px 0 var(--tranche),0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)!important}
 html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres) .pxi{--pxs:3!important;color:var(--nc)!important;filter:drop-shadow(0 0 5px var(--nc))!important}
-html.hub:not(.poki) body #mHome.acc2 .mGear .pxi{--pxs:3!important;color:var(--nc,#5ee6ff)!important;filter:drop-shadow(0 0 5px var(--nc,#5ee6ff))!important}
+/* (2026-11-05, Sacha : +« bug ici »+ — un CARRÉ CYAN plein au coin du bouton GARAGE) la pastille du GARAGE porte un panier en pixels (jury DIR-26) : la règle du dessus le prenait pour une icône de tuile (27 px, cyan comme le fond de la pastille = invisible, d'où le carré). Dans une pastille : 9 px, la couleur de la pastille. */
+html.hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mAccB,.mOffres) .mBadge .pxi{--pxs:1!important;color:inherit!important;filter:none!important}
+html.hub:not(.poki) body #mHome.acc2 .mGear .pxi{--pxs:3!important;color:var(--nc,var(--dol))!important;filter:drop-shadow(0 0 5px var(--nc,var(--dol)))!important}
 html.hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{
   background:linear-gradient(112deg,transparent 0 37%,rgba(255,255,255,.055) 37% 45%,transparent 45% 49%,rgba(255,255,255,.03) 49% 51%,transparent 51%),
-    linear-gradient(180deg,#272049 0%,#1c1738 46%,#141029 100%)!important;
+    linear-gradient(180deg,var(--k4) 0%,#1c1738 46%,#141029 100%)!important;
   box-shadow:inset 3px 0 0 var(--nc),inset 34px 0 30px -28px color-mix(in srgb,var(--nc) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.06),
-    0 0 0 1px rgba(3,1,9,.92),0 5px 0 #0a0818,0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)!important}
+    0 0 0 1px rgba(3,1,9,.92),0 5px 0 var(--tranche),0 5px 0 1px rgba(3,1,9,.92),0 14px 24px -10px rgba(0,0,0,.72)!important}
 html.hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .pxi{--pxs:3!important;color:var(--nc)!important;filter:drop-shadow(0 0 5px var(--nc))!important}
 /* le mot JOUER du ciel au garage : les lettres du logo (.lg, leur relief ::before), en brun sur l'or — les valeurs de la passe UX pour l'accueil */
 html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .gjMot{display:inline-flex;gap:.06em}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg{font-family:var(--pix);background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;
-  color:#3a1800!important;-webkit-text-fill-color:#3a1800!important;text-shadow:0 1px 0 rgba(255,247,210,.9)!important;filter:none!important;font-size:24px!important;letter-spacing:0}
+  color:var(--auT)!important;-webkit-text-fill-color:var(--auT)!important;text-shadow:0 1px 0 rgba(255,247,210,.9)!important;filter:none!important;font-size:24px!important;letter-spacing:0}
 html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg::after{display:none!important}
 @media (orientation:portrait){html body #garage:not(.menu):not(.vitrine) #gAct>#gJouer .lg{font-size:21px!important}}
 @keyframes gHomeCielPan{from{translate:-5% 0;scale:1.04}to{translate:5% -2%;scale:1.1}}
@@ -174,12 +176,15 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill>b
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill>em{top:4px;bottom:auto;right:4px;padding:3px 4px 2px}
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>.gIc{display:none}
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>img{left:-6%;top:-10%;width:112%}
+/* (2026-11-07, Sacha : « les photos des voitures sont coupées » · « les photos des ailes sont buggées ») la photo (720×440) posée à 124 % de large, hauteur libre, dépassait de la tuile et se faisait rogner en bas : elle tient maintenant ENTIÈRE dans la tuile (contain) ; les ailes gardent 16 px dessous pour le nom */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT>img{left:0!important;top:0!important;width:100%!important;height:100%!important;object-fit:contain}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>img{height:calc(100% - 16px)!important}
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>b{left:0;right:0;bottom:0;padding:12px 4px 5px;background:linear-gradient(180deg,rgba(7,5,15,0),rgba(7,5,15,.88) 55%)} /* le nom posé sur la photo : un fondu d'encre dessous, il se lisait mal sur la tôle orange */
 /* une FIGURE dessinée (partout où illuFig la pose) : l'anneau 12 × 12 en cases de 3 px, la caisse 9 × 9 en cases de 2 px au milieu */
-.fgIl{position:relative;display:block;width:36px;height:36px;color:var(--fc,#ffd75e)}
+.fgIl{position:relative;display:block;width:36px;height:36px;color:var(--fc,var(--or))}
 .gT .fgIl.gIc{position:absolute;left:50%;top:6px;margin-left:-18px}
 .fgIl>.pxi{position:absolute;margin:0}
-.fgIl>.fgAn{left:0;top:0;--pxs:4;color:var(--fc,#ffd75e)}
+.fgIl>.fgAn{left:0;top:0;--pxs:4;color:var(--fc,var(--or))}
 .fgIl>.fgAn.mir{transform:scaleX(-1)}
 .fgIl>.fgCv{left:9px;top:9px;--pxs:2;color:#eef3ff;transform-origin:var(--fgO,50% 60%);filter:drop-shadow(0 1px 0 rgba(7,5,15,.7))}
 /* la figure JOUE (la vignette choisie, les cases du sélecteur) : un geste, puis une pause — 3,2 s la boucle, la courbe unique de la charte */
@@ -204,7 +209,7 @@ html[data-reduced-motion] .fgIl>.fgCv{animation:none!important}
 .gT .fgDir{position:absolute;right:5px;top:5px;display:flex;gap:2px;text-decoration:none;transform:skewX(var(--skI))}
 .gT .fgDir>i{display:block;padding:2px;background:rgba(7,5,15,.72);box-shadow:inset 0 0 0 1px rgba(154,144,200,.35);color:rgba(154,144,200,.85)}
 .gT .fgDir>i .pxi{--pxs:1;display:block;margin:0}
-.gT .fgDir>i.on{background:var(--neoC);box-shadow:0 0 8px rgba(94,230,255,.7);color:#07050f}
+.gT .fgDir>i.on{background:var(--neoC);box-shadow:0 0 8px rgba(94,230,255,.7);color:var(--k0)}
 #gStrip .gT.horsDir{opacity:.3;filter:saturate(.3)}
 /* · LE SÉLECTEUR DES TROIS FIGURES (#gFigSel) : l'éclair du NITRO et son « ×2 » (le double-tap), puis trois cases hexagonales — la figure
      équipée qui tourne dedans, le JOYSTICK de sa direction sur le coin, son nom dessous. Une case touchée s'ARME (elle bat, les autres
@@ -221,16 +226,16 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel{display:fl
 #gFigSel .fsHex:active{translate:0 2px}
 #gFigSel .fsCase{position:relative;display:block;width:60px;height:52px;background:var(--fc);opacity:.95;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);
   transition:background var(--t-fast) var(--ease)}
-#gFigSel .fsIn{position:absolute;inset:3px 4px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#231a44,#0b0818 75%);
+#gFigSel .fsIn{position:absolute;inset:3px 4px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#231a44,var(--tranche) 75%);
   clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
-#gFigSel .fsQ{font-weight:400;font-size:var(--f3);color:#6c6390}
+#gFigSel .fsQ{font-weight:400;font-size:var(--f3);color:var(--kl2)}
 #gFigSel .fsJoy{position:absolute;left:calc(50% - 42px);top:-6px;display:flex;align-items:center;justify-content:center;width:24px;height:24px;color:#fff;
   background:radial-gradient(circle at 40% 35%,#4a3f7a,#1c1638 70%);box-shadow:inset 0 0 0 2px var(--fc);
   clip-path:polygon(7px 0,17px 0,24px 7px,24px 17px,17px 24px,7px 24px,0 17px,0 7px);font-style:normal}
 #gFigSel .fsJoy .pxi{--pxs:1;width:12px;height:12px;margin:0}
 #gFigSel .fsNom{display:block;max-width:100%;min-height:2.6em;max-height:2.6em;overflow:hidden;white-space:normal;text-align:center;font-weight:400;font-size:var(--f0);line-height:1.3;color:var(--tx)}
 #gFigSel .fsHex.vide .fsCase{background:rgba(154,144,200,.32)}
-#gFigSel .fsHex.vide .fsNom{color:#6c6390}
+#gFigSel .fsHex.vide .fsNom{color:var(--kl2)}
 #gFigSel.arme .fsHex:not(.on){opacity:.42}
 #gFigSel .fsHex.on .fsCase{background:#fff;animation:fsBat .8s var(--ease) infinite alternate}
 #gFigSel .fsHex.on .fsNom{color:#fff}

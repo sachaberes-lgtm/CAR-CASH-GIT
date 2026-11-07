@@ -5,7 +5,7 @@ chargement ; animation simple, pas de ressources, mais très belle ». Puis, apr
 c'est sa TÊTE qui avance autour de son corps en le mangeant ; le corps se nourrit de boules de matière qui passent et qu'il avale ;
 le seul truc animé, c'est sa tête qui tourne autour de son corps ». Dessin et animation : Fable 5.1.
 
-## Ce que fait l'animation (boucle de 2,4 s, 48 images à 20 images/s)
+## Ce que fait l'animation (boucle de 0,8 s, 48 images à 60 images/s : une image par rafraîchissement d'écran, donc sans saut (2,4 s à 20 i/s jusqu'au 05/11, Sacha : « il tourne pas assez vite »))
 - LE CORPS NE TOURNE PAS : un anneau fixe, des écailles (carrés noirs) fixes à l'écran.
 - LA TÊTE FAIT LE TOUR DU CORPS (un tour par boucle, sens horaire) en le mangeant : devant sa gueule la queue s'effile jusque dans ses dents, les écailles rapetissent
   et disparaissent (croquées) ; derrière elle le corps reprend son épaisseur et les écailles reviennent.

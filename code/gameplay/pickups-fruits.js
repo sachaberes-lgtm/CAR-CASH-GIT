@@ -3,7 +3,8 @@
    (tranche + deux faces) : trois appels de dessin par pièce, ×2 faces de route, sur des centaines de pièces — et une
    facture « clip-art » au milieu d'un jeu en pixels et en facettes. Désormais : un OCTOGONE épais (la coupe low-poly
    des caisses), frappé d'un « $ » en VRAIS pixels (texture 16×16, filtrage au plus proche), UNE matière, UN appel. */
-const COIN_CV=document.createElement('canvas');COIN_CV.width=COIN_CV.height=16;
+const COIN_CV=document.createElement('canvas');COIN_CV.width=COIN_CV.height=32;
+const COIN_CV2=document.createElement('canvas');COIN_CV2.width=COIN_CV2.height=32; /* (2026-11-05, Sacha : « à la place des pièces sur la route, met des pièces de 1 et 2 euros ») la 2 €, peinte avec la 1 € : anneau d'ARGENT, cœur d'OR (l'inverse) */
 /* (2026-10-14, passe graphismes) LA SAPÈQUE DES PICS DE JADE — Sacha : « dans la map montagne chinoise, change les pièces qui sont pour
    l'instant vertes en pièces chinoises avec un carré, un trou carré à l'intérieur ». Le vert venait de la palette 'Y' de coinPeint (champ
    de jade #6ff0ae). Sur la piste jade (mode classique ET Soleil de Jade : la clé 'Y' de coinSymbole, l'appel de buildJade ne bouge pas) la
@@ -25,22 +26,63 @@ function sapequePeint(c){
     else k='g';                                       // le champ
     c.fillStyle=SAPEQUE[k];c.fillRect(x,y,1,1);}
 }
-function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, « ¥ » au niveau SOLEIL DE JADE (voir coinSymbole)
-  const N=16,cv=COIN_CV;const c=cv.getContext('2d');
-  if(sym==='Y'){sapequePeint(c);return;} // (2026-10-14, passe graphismes) sur la piste jade : la SAPÈQUE de laiton (même toile 16 × 16, repeinte)
-  if(sym!=='B'){ // (2026-11-01, Sacha : « redessine les pièces en 1 et 2 € ») LA PIÈCE BIMÉTAL : un anneau et un cœur dans deux
-    // métaux — le seul trait qui dit « pièce d'euro » à 16 px, plus net qu'un symbole frappé. ⚠ UNE SEULE texture pour toutes les
-    // pièces de la route (coinIM : une matière, un appel) : impossible de mélanger 1 € et 2 € pièce à pièce sans dédoubler le
-    // dessin — on prend l'alliage de la 1 €, la plus répandue (anneau d'or, cœur d'argent), plutôt que l'inverse de la 2 €.
-    const ANN={h:'#fff6c8',g:'#ffd75e',d:'#8a5a00'},COE={h:'#f6f9fb',g:'#d8dee4',d:'#8a97a2'}; // l'ANNEAU (or) · le CŒUR (cupronickel)
-    for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-      const dx=x-7.5,dy=y-7.5,r=Math.hypot(dx,dy);
-      if(r>6.9||(r>3&&r<=3.35)){c.fillStyle='#201400';c.fillRect(x,y,1,1);continue;} // le liseré sombre, et le SILLON entre les deux métaux
-      const COL=r>3.35?ANN:COE,k=r>5.7?((dx+dy<-1)?'h':(dx+dy>2?'d':'g')):((dx+dy<(r>3.35?-6:-2))?'h':'g');
-      c.fillStyle=COL[k];c.fillRect(x,y,1,1);
+/* ===== LES PIÈCES 1 € ET 2 € REFAITES (2026-11-06, Sacha : « retravaille les pièces d'euro, il faut qu'elles soient belles, travaille des pièces de 2 et de 1 ») =====
+   Avant : une toile de 16 × 16 (deux aplats d'or et d'argent) sur un disque lisse. Maintenant, la VRAIE pièce bimétal sur une toile de 32 × 32 :
+   · UN ANNEAU en relief (1 € : or · 2 € : argent) biseauté — lumière en haut à gauche, ombre en bas à droite — avec ses DOUZE ÉTOILES frappées ;
+   · UN SILLON d'encre entre les deux métaux, puis le CŒUR (1 € : argent · 2 € : or), son biseau inversé et un reflet en biais ;
+   · le CHIFFRE « 1 » / « 2 » en gros, en relief (face claire + ombre portée) : c'est lui qui dit la valeur de loin ;
+   · un éclat en croix, en haut à gauche. Les quatre coins de la toile, hors du disque, sont les deux pixels de la TRANCHE (voir pickGeo : clair, sombre,
+     en alternance = la tranche cannelée).
+   Palette PEINTE, comme avant : la pièce émet sa texture et l'étalonnage pousse le jaune vers l'orange (voir coinPeint). */
+/* ===== (2026-11-06, Sacha : « améliore les pièces dans un délire plus réaliste et qu'elles arrêtent de briller autant ») =====
+   Avant : des métaux de dessin animé (blancs purs, jaune citron) que la pièce ÉMETTAIT à 105 % — le cœur d'argent de la 1 € virait au blanc et le chiffre
+   disparaissait. Maintenant : des métaux de PIÈCE DE POCHE — laiton nordique et cupronickel TERNIS, la lumière n'est plus qu'un ton plus clair (jamais
+   du blanc) —, un GRAIN de frappe, de la PATINE (le bord et le sillon noircis par les doigts), quelques RAYURES, et le chiffre barré de trois fines
+   RAINURES, comme la face commune des vraies pièces (la carte de l'Europe qui le traverse). Le grain est pseudo-aléatoire À GRAINE : la même pièce à chaque lancement. */
+const PIECE_PAL={or:{l:'#d9c07a',h:'#c9a85a',g:'#b08f3e',m:'#8c6e2c',d:'#62481a',s:'#3a2a0c'},ag:{l:'#cfd3d6',h:'#b9bfc4',g:'#9aa1a8',m:'#7b838b',d:'#575f68',s:'#383e46'}};
+const PIECE_CHIFFRE={ /* 10 × 12 pixels */
+  '1':['....###...','...####...','..#####...','....###...','....###...','....###...','....###...','....###...','....###...','....###...','.########.','.########.'],
+  '2':['..######..','.########.','###....###','###....###','.......###','......###.','.....###..','....###...','...###....','..###.....','##########','##########']};
+function pieceTeinte(hex,k){const n=parseInt(hex.slice(1),16);const f=v=>Math.max(0,Math.min(255,Math.round(v*k)));
+  return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')';}
+function pieceEuroPeint(cv,ann,coe,chiffre){
+  const c=cv.getContext('2d'),N=32,px=(x,y,col)=>{c.fillStyle=col;c.fillRect(x,y,1,1);};
+  let sd=chiffre==='1'?20261106:20261107;const rn=()=>{sd=(Math.imul(sd,1664525)+1013904223)>>>0;return sd/4294967296;}; // la graine : la même pièce à chaque lancement
+  c.setTransform(1,0,0,1,0,0);c.fillStyle='#1a1208';c.fillRect(0,0,N,N); // tout en encre : le liseré, le sillon et les coins
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const dx=x-15.5,dy=y-15.5,r=Math.hypot(dx,dy),L=-(dx+dy)/((r*1.4142)||1); // L : +1 vers le haut à gauche (la lumière), −1 vers le bas à droite
+    let col=null,ton=1;
+    if(r>14.6)continue; // le liseré d'encre
+    if(r>10.9){ // L'ANNEAU
+      if(r>13.8){col=L>.15?ann.l:(L<-.15?ann.d:ann.h);ton=.88;}   // son biseau extérieur : la frappe l'a usé, il est plus sombre que le corps
+      else if(r>11.8)col=L>.5?ann.h:(L<-.5?ann.m:ann.g); // le corps
+      else col=L<-.15?ann.h:(L>.15?ann.s:ann.m);         // son biseau intérieur, inversé (il regarde le cœur)
+    }else if(r>10.1){px(x,y,'#241a0c');continue;} // le SILLON entre les deux métaux : noirci par la crasse, plus un trou d'encre
+    else{ // LE CŒUR
+      if(r>9.2)col=L>.2?coe.s:(L<-.2?coe.h:coe.m);       // le biseau du cœur : en creux (ombre en haut à gauche)
+      else col=L>.55?coe.h:(L<-.55?coe.m:coe.g);
+      if(r<8.6&&Math.abs((dx+dy)+7.6)<.8)col=coe.h;     // le reflet en biais : un ton plus clair, plus un éclat
     }
-    return;
+    ton*=1+(rn()-.5)*.13;                                // le GRAIN de frappe
+    if(r>12.6&&rn()<.28)ton*=.80;                        // la PATINE du bord : des pixels noircis
+    px(x,y,pieceTeinte(col,ton));
   }
+  for(let k=0;k<12;k++){const a=(k+.5)*Math.PI/6,sx=Math.floor(16+12.8*Math.cos(a)),sy=Math.floor(16+12.8*Math.sin(a)); // les DOUZE ÉTOILES
+    px(sx+1,sy+1,ann.s);px(sx,sy,ann.h);}
+  const G=PIECE_CHIFFRE[chiffre];
+  for(let pass=0;pass<2;pass++)for(let gy=0;gy<G.length;gy++)for(let gx=0;gx<G[gy].length;gx++)if(G[gy][gx]==='#') // le CHIFFRE : l'ombre portée d'abord, la face par-dessus
+    pass?px(11+gx,10+gy,(gy===3||gy===6||gy===9)?coe.h:coe.l):px(12+gx,11+gy,coe.s); // les trois RAINURES qui le barrent (la carte de l'Europe)
+  for(let k=0;k<7;k++){ // quelques RAYURES : une ligne fine, plus claire (elle accroche) ou plus sombre (elle est sale)
+    const x0=4+rn()*24,y0=4+rn()*24,a=rn()*Math.PI,l=2+rn()*4,clair=rn()<.5;
+    c.globalAlpha=.20;c.fillStyle=clair?'#ffffff':'#000000';
+    for(let t=0;t<l;t++){const X=Math.floor(x0+t*Math.cos(a)),Y=Math.floor(y0+t*Math.sin(a));if(Math.hypot(X-15.5,Y-15.5)<13.8)c.fillRect(X,Y,1,1);}
+    c.globalAlpha=1;}
+  c.fillStyle=ann.h;c.fillRect(0,0,4,4);c.fillStyle=ann.d;c.fillRect(28,0,4,4); // les deux pixels de la TRANCHE : clair (haut gauche) · sombre (haut droite)
+}
+function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, « ¥ » au niveau SOLEIL DE JADE (voir coinSymbole)
+  const N=16,cv=COIN_CV;const c=cv.getContext('2d');c.setTransform(2,0,0,2,0,0); /* (2026-11-06) toiles de 32 × 32 : la sapèque et le ₿ restent peints sur leur grille de 16 (un pixel = un carré de 2) */
+  if(sym==='Y'){sapequePeint(c);c.setTransform(1,0,0,1,0,0);return;} // (2026-10-14, passe graphismes) sur la piste jade : la SAPÈQUE de laiton (même toile, repeinte)
+  if(sym!=='B'){c.setTransform(1,0,0,1,0,0);pieceEuroPeint(COIN_CV,PIECE_PAL.or,PIECE_PAL.ag,'1');pieceEuroPeint(COIN_CV2,PIECE_PAL.ag,PIECE_PAL.or,'2');return;} /* (2026-11-06) l'euro : voir pieceEuroPeint */
   /* (2026-10-13) CRYPTOCITY : la pièce BITCOIN — champ orange, ₿ blanc, inchangée */
   const COL={k:'#5a2600',d:'#d8780c',g:'#ffab2e',l:'#fff1d0',h:'#ffd38a',s:'#fffaf0'};
   const DOL=['.#.#.','####.','#...#','#...#','####.','#...#','#...#','####.','.#.#.'];
@@ -52,8 +94,9 @@ function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, �
     c.fillStyle=COL[k];c.fillRect(x,y,1,1);
   }
   for(let y=0;y<9;y++)for(let x=0;x<5;x++)if(DOL[y][x]==='#'){c.fillStyle=COL.s;c.fillRect(6+x,3+y,1,1);}
+  c.setTransform(1,0,0,1,0,0);c.fillStyle='#ffd38a';c.fillRect(0,0,4,4);c.fillStyle='#d8780c';c.fillRect(28,0,4,4); // la tranche du ₿ : clair · sombre (les coins de la toile, voir pickGeo)
 }
-const coinTex=(function(){coinPeint('$');const cv=COIN_CV;
+const coinTex=(function(){coinPeint('E');const cv=COIN_CV;
   /* (2026-09-26, vague 2) LES PIÈCES NE SCINTILLENT PLUS AU LOIN. Filtrée au plus proche EN RÉDUCTION et sans mipmaps, la pièce de
      16 pixels tirait un texel au hasard à chaque image dès 40 m : moiré, et une rangée de pièces clignotait comme des lampadaires.
      Désormais des mipmaps (la pièce lointaine devient un disque d'or moyen, stable) ; en AGRANDISSEMENT on garde le plus proche : de
@@ -61,7 +104,10 @@ const coinTex=(function(){coinPeint('$');const cv=COIN_CV;
   const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;
   return t; // (pas d'anisotropie : sous D3D/ANGLE elle force un filtrage LINÉAIRE à l'agrandissement — adieu les vrais pixels de près)
 })();
-function coinSymbole(yen){const k=yen===true?'Y':yen||'$';if(coinSymbole.k===k)return;coinSymbole.k=k;coinPeint(k);coinTex.needsUpdate=true;
+let COIN_DEUX=true; // vrai tant que la piste est en euros : une pièce sur ~3 est une 2 €
+const coinTex2=(function(){const t=new THREE.CanvasTexture(COIN_CV2);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;return t;})();
+function coinSymbole(yen){const k=yen===true?'Y':yen||'E';if(coinSymbole.k===k)return;coinSymbole.k=k;coinPeint(k);coinTex.needsUpdate=true;coinTex2.needsUpdate=true;COIN_DEUX=(k==='E'); // la 2 € n'existe qu'en euros : sapèque et bitcoin n'ont qu'une pièce
+  try{coinIM2.visible=COIN_DEUX;}catch(e){}
   try{coinIM.geometry=k==='Y'?pickGeoY:pickGeo;}catch(e){}} // (2026-10-14, passe graphismes, Sacha : « le vrai trou percé ») la piste jade troque aussi la FORME : deux géométries bâties UNE fois au chargement, la même instance, la même matière, le même programme
 /* (2026-09-26, user : « les items sur la route plus gros, plus beaux, mieux travaillés ») : la pièce grossit (Ø 2,6 m), passe à 12 pans
    et reçoit un JONC en relief — un tore fusionné à la galette, dont les UV lisent le pixel clair de la tranche : on voit une vraie
@@ -72,11 +118,32 @@ function geoFusion(gs){ // fusionne des géométries (position/normale/uv) en un
   const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(P,3));o.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
   o.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));return o;
 }
+/* (2026-11-06, Sacha : « retravaille les pièces d'euro ») LA FORME DE LA PIÈCE : un vrai profil de pièce, tourné en 16 pans — le CŒUR légèrement en
+   creux, une MARCHE de 0,09 m jusqu'à l'ANNEAU en relief (le sillon de la toile tombe pile dessus : la lumière sépare les deux métaux), puis le
+   chanfrein du bord et la TRANCHE, cannelée (un pan clair, un pan sombre : les deux pixels des coins de la toile). Les deux faces lisent la toile
+   À PLAT (1 px = R/16 m) ; le chiffre se lit à l'endroit des deux côtés. 256 triangles (avant : 336 avec le jonc en tore), mêmes attributs que
+   l'ancienne, donc la même instance, la même matière, le même programme. */
 const pickGeo=(function(){
-  const g=new THREE.CylinderGeometry(1.18,1.18,.30,12);g.rotateX(Math.PI/2);
-  const uv=g.attributes.uv;for(let i=0;i<26;i++)uv.setXY(i,.47,.16); // la TRANCHE : tout le pourtour lit un pixel « ombre d'or »
-  const t=new THREE.TorusGeometry(1.18,.13,6,24);const tu=t.attributes.uv;for(let i=0;i<tu.count;i++)tu.setXY(i,.47,.91); // le JONC : le pixel clair
-  return geoFusion([g,t]);
+  const P=[],Nn=[],U=[],R=1.31,N=16,ZB=.15;
+  const PROFIL=[[0,.12],[.86,.12],[.92,.21],[1.24,.21],[R,ZB]]; // (rayon, z) du centre vers le bord, face avant
+  const tri=(a,b,c,hx,hy,hz)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+    let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;const l=Math.hypot(nx,ny,nz)||1;nx/=l;ny/=l;nz/=l;
+    if(nx*hx+ny*hy+nz*hz<0){const t=b;b=c;c=t;nx=-nx;ny=-ny;nz=-nz;}
+    for(const p of [a,b,c]){P.push(p[0],p[1],p[2]);Nn.push(nx,ny,nz);U.push(p[3],p[4]);}};
+  const quad=(a,b,c,d,hx,hy,hz)=>{tri(a,b,c,hx,hy,hz);tri(a,c,d,hx,hy,hz);};
+  const th=i=>i*2*Math.PI/N+Math.PI/N;
+  const vt=(r,i,z,sz)=>{const x=r*Math.cos(th(i)),y=r*Math.sin(th(i));return [x,y,sz*z,.5-sz*x/(2*R),.5+y/(2*R)];}; // sz=+1 : la face avant (z>0) · −1 : l'arrière, en miroir
+  const ET=[[.0625,.9375],[.9375,.9375]]; // les deux pixels de tranche : coin haut gauche (clair) · coin haut droit (sombre)
+  for(const sz of [1,-1]){
+    const cen=[0,0,sz*PROFIL[0][1],.5,.5];
+    for(let i=0;i<N;i++)tri(cen,vt(PROFIL[1][0],i,PROFIL[1][1],sz),vt(PROFIL[1][0],i+1,PROFIL[1][1],sz),0,0,sz);
+    for(let j=1;j<PROFIL.length-1;j++){const [r1,z1]=PROFIL[j],[r2,z2]=PROFIL[j+1],nr=-(z2-z1),nz=r2-r1;
+      for(let i=0;i<N;i++){const am=th(i+.5);quad(vt(r1,i,z1,sz),vt(r1,i+1,z1,sz),vt(r2,i+1,z2,sz),vt(r2,i,z2,sz),nr*Math.cos(am),nr*Math.sin(am),nz*sz);}}}
+  for(let i=0;i<N;i++){const am=th(i+.5),e=ET[i&1],a=vt(R,i,ZB,1),b=vt(R,i+1,ZB,1),c=vt(R,i+1,ZB,-1),d=vt(R,i,ZB,-1);
+    for(const q of [a,b,c,d]){q[3]=e[0];q[4]=e[1];}
+    quad(a,b,c,d,Math.cos(am),Math.sin(am),0);}
+  const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(P,3));o.setAttribute('normal',new THREE.Float32BufferAttribute(Nn,3));
+  o.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));return o;
 })();
 /* (2026-10-14, passe graphismes, Sacha : « le vrai trou percé ») LA FORME DE LA SAPÈQUE : un disque à 16 pans PERCÉ d'un trou carré — de vraies
    parois, on voit la montagne au travers, sans alphaTest ni transparence. En relief : le listel du bord (chanfrein d'encre, plat, pente) et
@@ -114,8 +181,14 @@ const pickGeoY=(function(){
 /* (2026-09-26, vague 2) LA LUMIÈRE, C'EST L'ARGENT : la pièce ÉMET son or (émissif blanc × sa propre texture ×1,05) et ne prend plus que la
    moitié de la lumière de la scène (diffus ×.5) — elle garde son relief (facettes, jonc, reflet spéculaire) sans virer à l'orange au
    couchant ni au bronze la nuit. ⚠ Émissif BLANC et pas « teinté or » : l'or multiplié par une texture d'or, c'est de l'orange. */
-const pickMat=new THREE.MeshPhongMaterial({map:coinTex,color:0x808080,emissive:0xffffff,emissiveMap:coinTex,emissiveIntensity:1.05,
-  shininess:90,specular:0xfff0b0,flatShading:true});
+/* (2026-11-06, « qu'elles arrêtent de briller autant ») MATE : l'émission tombe de 1,05 à ,68 (la pièce n'est plus sa propre lampe — le halo de l'étalonnage ne la
+   fait plus fondre en blanc), le diffus remonte de ,5 à ,6 (elle reprend du relief à la lumière du jour) et le spéculaire passe d'un jaune clair dur
+   (brillance 90) à un reflet sourd de métal usé (brillance 22, gris-brun). */
+const pickMat=new THREE.MeshPhongMaterial({map:coinTex,color:0x999999,emissive:0xffffff,emissiveMap:coinTex,emissiveIntensity:.68,
+  shininess:22,specular:0x4a4434,flatShading:true});
+const pickMat2=new THREE.MeshPhongMaterial({map:coinTex2,color:0x999999,emissive:0xffffff,emissiveMap:coinTex2,emissiveIntensity:.68,
+  shininess:22,specular:0x4a4434,flatShading:true}); // la 2 € : la même matière, sa propre toile
+const pickGeo2=pickGeo.clone();pickGeo2.scale(1.107,1.107,1.107); // 25,75 mm contre 23,25 mm : la 2 € est un peu plus grande
 // ---------- L'ÉTAL : les orbes bleues de boost deviennent des FRUITS ET LÉGUMES ----------
 // Lisses, laqués, appétissants : shininess haut + spéculaire blanc + reflet du ciel (envMap).
 // Géométries et matériaux PARTAGÉS (créés une fois) — un fruit ne coûte que 2-3 meshes.

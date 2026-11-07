@@ -38,7 +38,9 @@ function fonction(entete){const i=unique(entete);return src.slice(i,finBloc(src,
 const iSave=unique('const SAVE={'),iFin=unique('if(BALADE){SAVE.d.tuto=1');
 /* (24/10) ce que le bloc SAVE appelle hors de lui-même : le vrai code, hissé avant lui (dans le jeu ce sont des déclarations de fonction de la même IIFE) */
 const iHab=unique('const HAB_RETIRES={'),habTxt=src.slice(iHab,finBloc(src,iHab+'const HAB_RETIRES='.length,'{','}'))+';';
-const avantSave=[fonction('function m2Vierge(){'),fonction('function gagneAjoute(x){'),fonction('function carRetiree(i){'),fonction('function carOwned(i){'),habTxt,
+/* (2026-11-05, DEBUG-TOTAL) le bloc SAVE lit aussi PEINT_FUSION (le nuancier v3) : extrait comme HAB_RETIRES — sans lui la preuve plantait dès A1 */
+const iPf=unique('const PEINT_FUSION={'),pfTxt=src.slice(iPf,finBloc(src,iPf+'const PEINT_FUSION='.length,'{','}'))+';';
+const avantSave=[fonction('function m2Vierge(){'),fonction('function gagneAjoute(x){'),fonction('function carRetiree(i){'),fonction('function carOwned(i){'),habTxt,pfTxt,
   'function m2Etat(){} /* bouchon : la migration des missions (preuve-carnets-pop) */'].join('\n');
 const blocSave=avantSave+'\n'+src.slice(iSave,iFin);
 const F={enCoursPose:fonction('function enCoursPose(){'),enCoursRetire:fonction('function enCoursRetire(){'),
@@ -219,14 +221,16 @@ console.log('G  premier lancement — l\'état écrit à chaque étape ramène a
     const ex=ecran(b2.S.d),bien=ex===attendu[i]&&formeOK(b2.S.d).length===0;verifie(bien,'G'+(i+1)+' '+e[0]+' → '+ex);});
   const b=boot({cashcarSave:JSON.stringify({v:2,gamme:3,eco:3,tuto:0,permis:1,bank:700,ex:{runs:9}})});verifie(b.S.d.tuto===0&&b.S.d.bank===700,'G6 « REVOIR L\'AUTO-ÉCOLE » (tuto 0 écrit) est respecté malgré les parties jouées');}
 
-// ---------- H : le lien web sans sauvegarde (22/10, Sacha) ----------
-console.log('H  lien web (sans Capacitor) : compte NEUF à chaque ouverture, rien d\'écrit');
+// ---------- H : le lien web (22/10, Sacha : sans sauvegarde ; 05/11, jury D6 : la sauvegarde REVIENT, `?demo=1` = le compte neuf) ----------
+console.log('H  lien web (sans Capacitor) : la sauvegarde est lue et écrite ; ?demo=1 : compte NEUF, rien d\'écrit');
 {const vraie=JSON.stringify({v:2,best:9000,bank:250000,owned:[],gamme:3,eco:3,tuto:1,permis:1});
-  const b=boot({cashcarSave:vraie},{search:''});
-  verifie(!b.err&&b.S.neuf===true&&b.S.d.bank===0&&b.S.d.tuto===0&&formeOK(b.S.d).length===0,'H1 web sans ?garde=1 : partie neuve, forme complète',b.err&&String(b.err));
-  b.S.d.bank=77;b.S.flush();verifie(b.store.cashcarSave===vraie,'H2 web : rien n\'est écrit (la clé présente n\'est ni lue ni écrasée)');
-  const cap=fauxCap(undefined);const bc=boot({cashcarSave:vraie},{search:'',cap});await sleep();await sleep();
-  verifie(bc.S.neuf===false&&bc.S.d.bank===250000,'H3 app native (Capacitor + Preferences) : la sauvegarde est lue, même sans ?garde=1',String(bc.S.d.bank));}
+  const bw=boot({cashcarSave:vraie},{search:''});
+  verifie(!bw.err&&bw.S.neuf===false&&bw.S.d.bank===250000,'H0 web sans paramètre : la sauvegarde est lue (jury D6, 05/11)',bw.err&&String(bw.err));
+  const b=boot({cashcarSave:vraie},{search:'?demo=1'});
+  verifie(!b.err&&b.S.neuf===true&&b.S.d.bank===0&&b.S.d.tuto===0&&formeOK(b.S.d).length===0,'H1 web ?demo=1 : partie neuve, forme complète',b.err&&String(b.err));
+  b.S.d.bank=77;b.S.flush();verifie(b.store.cashcarSave===vraie,'H2 web ?demo=1 : rien n\'est écrit (la clé présente n\'est ni lue ni écrasée)');
+  const cap=fauxCap(undefined);const bc=boot({cashcarSave:vraie},{search:'?demo=1',cap});await sleep();await sleep();
+  verifie(bc.S.neuf===false&&bc.S.d.bank===250000,'H3 app native (Capacitor + Preferences) : la sauvegarde est lue, même avec ?demo=1',String(bc.S.d.bank));}
 
 console.log('');
 if(KO.length){console.log('PREUVE KO — '+KO.join(' ; '));process.exit(1);}
