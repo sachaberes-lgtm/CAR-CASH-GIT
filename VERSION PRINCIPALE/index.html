@@ -10104,6 +10104,7 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph.c-aile img{transform:none}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph:is(.c-trainee,.c-figure){align-items:stretch}
 /* (2026-11-07, Léo : « le nom doit se trouver EN DESSOUS du cube 3D et ne pas cacher la voiture ») la plaque est maintenant SOUS le cube : l'espace du cube ne mord plus de 12 px dessus (+2 px d'air), plus de recul en 3D qui la faisait remonter, 28 px de haut (la marge basse est une bordure transparente, qui ne laisse pas voir un bout de 3e ligne). */
 /* (2026-11-07, Léo : « le cube passe légèrement au-dessus du nom en gris ») rechevauchement LÉGER : le cube mord 8 px sur le haut de la plaque (au lieu de 12), la plaque reste derrière lui (recul 3D) et carrée ; la voiture, dans le cube, n'est jamais cachée. */
+/* (2026-11-07, Léo, capture « THE ENGLISH… » : « les voitures dépassent toujours le cube ») la voiture est ancrée par le BAS, rétrécie à 90 % et remontée de ~3 cqw : ses roues ne touchent plus la plaque, elle reste franchement dans le verre (même les longues : ELDORADO, CHARGER, ROSSO n'avaient que 2 px de marge à droite). */
 /* la plaque du nom, juste sous le cube ; le prix devant (2026-11-06, Léo : « les noms sont très gros et dépassent le cube » : 50 → 34 px de haut, plus d'agrandissement à 107 %) */
 html #gBq #gBqPan .bqK:not(.pnt) .bqKn{position:relative;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:34px;margin:0 6px 7px;padding:9px 6px 0;border-bottom:3px solid transparent;
   text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:0;transform:translateZ(-50px);
@@ -10180,11 +10181,11 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKp.defi{padding:3px 6px;font-size:6.5px}
    La photo d'une caisse garde sous elle ~16 % de vide (le reflet du sol verni, éteint) : la voiture flottait au-dessus du sol quadrillé. Chaque tranche est rognée de 16 % en bas (clip-path sur l'image, pas sur le plan :
    un clip sur le plan aplatirait les tranches) et le plan descend d'autant : les roues touchent le sol du cube. */
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{clip-path:inset(0 0 16% 0)}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]{top:calc(var(--H)/2 - var(--W)*.574*.84 - 1.2cqw)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]{top:calc(var(--H)/2 - var(--W)*.574*.84 - 4cqw)}
 /* ===== LA VOITURE À L'INTÉRIEUR, PAS AU FOND (2026-11-06, Léo : « elle est encore derrière : garde le fond gris bleuté des vitres, garde seulement la voiture et son ombre, place-la un poil en avant ») =====
    Le plan de la voiture avance de 9 cqw vers la vitre de devant (il était au milieu du cube) : elle est DANS la boîte, près du verre, et non plus reculée contre le fond ; la vitre de devant s'éclaircit pour ne plus la voiler ;
    les tranches du fond s'assombrissent moins (plus de halo). Le gris bleuté des faces ne change pas. */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{transform:translateZ(calc(9cqw + (2 - var(--k)) * 1.1cqw)) scaleX(-1);filter:brightness(calc(1 - var(--k) * .055))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{transform:translateZ(calc(9cqw + (2 - var(--k)) * 1.1cqw)) scale(-.9,.9);transform-origin:50% 100%;filter:brightness(calc(1 - var(--k) * .055))}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{background:linear-gradient(118deg,rgba(255,255,255,.20) 0,rgba(255,255,255,.03) 30%,rgba(255,255,255,.015) 62%,rgba(255,255,255,.12) 100%)}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
