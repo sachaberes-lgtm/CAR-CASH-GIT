@@ -422,3 +422,40 @@ window.dbgVilleDeco=function(k,v){
   if(k==='vue'){if(started&&!gameOver&&!paused)togglePause();if(acesPass)acesPass.uniforms.uSpeed.value=0;camera.position.fromArray(v.p);camera.lookAt(v.c[0],v.c[1],v.c[2]);if(v.fov){camera.fov=v.fov;camera.updateProjectionMatrix();}camera.updateMatrixWorld(); // (banc) la caméra en p, qui regarde c
     try{if(CITY.dz&&CITY.dz.genre==='crypto'){plaTick(0,false);cryptoTick(0,false);}if(LVL.cur&&LVL.cur.vitre)vitreTick(0,false);}catch(e){}if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'vue';}
   return {pret:!!CITY.root,genre:CITY.dz?CITY.dz.genre:null,deco:CITY.deco||null,reperes:CITY.n&&CITY.n.reperes,places:CITY.n&&CITY.n.places,ville9:CITY.n};}; // (banc) le tirage du décor de la ville en cours
+/* ===== L'AUDIT DE LA VILLE (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+   Lecture seule, pour le banc des maps (`--audit="dbgVilleAudit()"`) : chaque volume de la ville (tours, lames, mâts), chaque néon (enseignes,
+   feux, couronnes), chaque réclame et chaque objet du ciel de CRYPTO CITY, mesurés contre TOUS les points de la route (tous ses étages) :
+   · `dans` : la boîte coupe le couloir de conduite (demi-largeur + 1 m, de 0,3 à 7 m au-dessus du bitume) ;
+   · `frole` : la boîte passe à moins de 6 m du bord, entre 1 m sous la route et 12 m au-dessus (à hauteur de caisse) ;
+   · `flotte` : une enseigne, une réclame ou une lame qu'aucune façade ne porte (moins de la moitié de sa hauteur adossée à un volume, à 3 m près) ;
+   · `ciel` : la plus courte distance d'une pièce ₿, d'un diamant, d'un dirigeable au bitume (moins son rayon). */
+window.dbgVilleAudit=function(){
+  const A=CITY.aud;if(!A||!CITY.root||!(NP>1))return null;const C=A.corps,G=A.genre,N=A.neon,NC=A.neonC,P=A.pubs,dsA=L/(NP-1),K=40,g=new Map();
+  for(let i=0;i<NP;i++){const p=pts[i],k=Math.floor(p.x/K)*100003+Math.floor(p.z/K);let a=g.get(k);if(!a)g.set(k,a=[]);a.push(i);}
+  const out={volumes:C.length/6,neons:N.length/6,pubs:P.length/6,dans:0,frole:0,flotte:0,flottes:{},exDans:[],exFrole:[],exFlotte:[],ciel:null,ms:0},t0=performance.now();
+  const nomV=function(k){return G[k]===0?'tour':G[k]===1?'lame':'mât';},nomN=function(c){return c<5?'enseigne':c===5?'feu':'couronne';};
+  const teste=function(x0,x1,y0,y1,z0,z1,nom){let dans=null,fr=null;const M=ROAD_HALF+6;
+    for(let gx=Math.floor((x0-M)/K);gx<=Math.floor((x1+M)/K);gx++)for(let gz=Math.floor((z0-M)/K);gz<=Math.floor((z1+M)/K);gz++){const a=g.get(gx*100003+gz);if(!a)continue;
+      for(const i of a){const p=pts[i],dx=Math.max(x0-p.x,0,p.x-x1),dz=Math.max(z0-p.z,0,p.z-z1),d=Math.hypot(dx,dz);if(d>=M)continue;
+        if(!dans&&d<ROAD_HALF+1&&y1>p.y+.3&&y0<p.y+7)dans={nom:nom,s:Math.round(i*dsA),d:+d.toFixed(1),bas:+(y0-p.y).toFixed(1),haut:+(y1-p.y).toFixed(1),x:Math.round((x0+x1)/2),z:Math.round((z0+z1)/2)};
+        else if(!fr&&y1>p.y-1&&y0<p.y+12)fr={nom:nom,s:Math.round(i*dsA),d:+d.toFixed(1),bas:+(y0-p.y).toFixed(1),haut:+(y1-p.y).toFixed(1),x:Math.round((x0+x1)/2),z:Math.round((z0+z1)/2)};}}
+    if(dans){out.dans++;if(out.exDans.length<12)out.exDans.push(dans);}else if(fr){out.frole++;if(out.exFrole.length<12)out.exFrole.push(fr);}};
+  for(let k=0;k<C.length/6;k++){const o=k*6;teste(C[o]-C[o+3]/2,C[o]+C[o+3]/2,C[o+1]-C[o+4]/2,C[o+1]+C[o+4]/2,C[o+2]-C[o+5]/2,C[o+2]+C[o+5]/2,nomV(k));}
+  for(let k=0;k<N.length/6;k++){const o=k*6;teste(N[o]-N[o+3]/2,N[o]+N[o+3]/2,N[o+1]-N[o+4]/2,N[o+1]+N[o+4]/2,N[o+2]-N[o+5]/2,N[o+2]+N[o+5]/2,nomN(NC[k]));}
+  const boitePub=function(o){const r=P[o+3],hx=Math.abs(Math.cos(r))*P[o+4]/2+.2,hz=Math.abs(Math.sin(r))*P[o+4]/2+.2;return [P[o]-hx,P[o]+hx,P[o+1]-P[o+5]/2,P[o+1]+P[o+5]/2,P[o+2]-hz,P[o+2]+hz];};
+  for(let k=0;k<P.length/6;k++){const b=boitePub(k*6);teste(b[0],b[1],b[2],b[3],b[4],b[5],'réclame');}
+  /* l'adossement : les volumes de béton et de verre (genre 0) rangés par cases de 60 m */
+  const gv=new Map(),KV=60;for(let k=0;k<C.length/6;k++){if(G[k]!==0)continue;const o=k*6;for(let gx=Math.floor((C[o]-C[o+3]/2)/KV);gx<=Math.floor((C[o]+C[o+3]/2)/KV);gx++)for(let gz=Math.floor((C[o+2]-C[o+5]/2)/KV);gz<=Math.floor((C[o+2]+C[o+5]/2)/KV);gz++){const kk=gx*100003+gz;let a=gv.get(kk);if(!a)gv.set(kk,a=[]);a.push(o);}}
+  const adosse=function(x0,x1,y0,y1,z0,z1,m){let best=0;const vu=new Set();
+    for(let gx=Math.floor((x0-m)/KV);gx<=Math.floor((x1+m)/KV);gx++)for(let gz=Math.floor((z0-m)/KV);gz<=Math.floor((z1+m)/KV);gz++){const a=gv.get(gx*100003+gz);if(!a)continue;
+      for(const o of a){if(vu.has(o))continue;vu.add(o);const dx=Math.max(C[o]-C[o+3]/2-x1,0,x0-C[o]-C[o+3]/2),dz=Math.max(C[o+2]-C[o+5]/2-z1,0,z0-C[o+2]-C[o+5]/2);if(Math.hypot(dx,dz)>m)continue;
+        const c=Math.max(0,Math.min(y1,C[o+1]+C[o+4]/2)-Math.max(y0,C[o+1]-C[o+4]/2))/Math.max(.01,y1-y0);if(c>best)best=c;}}return best;};
+  const flotte=function(b,nom){const c=adosse(b[0],b[1],b[2],b[3],b[4],b[5],3);if(c<.5){out.flotte++;out.flottes[nom]=(out.flottes[nom]||0)+1;if(out.exFlotte.length<12)out.exFlotte.push({nom:nom,x:Math.round((b[0]+b[1])/2),y:Math.round((b[2]+b[3])/2),z:Math.round((b[4]+b[5])/2),porte:+c.toFixed(2)});}};
+  for(let k=0;k<N.length/6;k++){if(NC[k]>=5)continue;const o=k*6;flotte([N[o]-N[o+3]/2,N[o]+N[o+3]/2,N[o+1]-N[o+4]/2,N[o+1]+N[o+4]/2,N[o+2]-N[o+5]/2,N[o+2]+N[o+5]/2],'enseigne');}
+  for(let k=0;k<P.length/6;k++)flotte(boitePub(k*6),'réclame');
+  for(let k=0;k<C.length/6;k++){if(G[k]!==1)continue;const o=k*6;flotte([C[o]-C[o+3]/2,C[o]+C[o+3]/2,C[o+1]-C[o+4]/2,C[o+1]+C[o+4]/2,C[o+2]-C[o+5]/2,C[o+2]+C[o+5]/2],'lame');}
+  /* le ciel de CRYPTO CITY : la plus courte distance au bitume, rayon déduit (le dirigeable : 16 m de rayon, 60 m de demi-longueur — compté 60) */
+  if(CRYPTO.sites){const S=CRYPTO.sites,cl={};const mesure=function(nom,x,y,z,r){let m=1e9,sm=0;for(let i=0;i<NP;i+=2){const p=pts[i],d=Math.hypot(p.x-x,p.y-y,p.z-z)-r;if(d<m){m=d;sm=i;}}
+      if(!cl[nom]||m<cl[nom].min)cl[nom]={min:Math.round(m),s:Math.round(sm*dsA)};};
+    for(const p of S.pieces)mesure('pièces',p.x,p.y,p.z,p.r);for(const d of S.diam)mesure('diamants',d.x,d.y,d.z,d.r*1.45);for(const d of S.dirig)mesure('dirigeables',d.x,d.y,d.z,60);out.ciel=cl;}
+  out.ms=Math.round(performance.now()-t0);return out;};
