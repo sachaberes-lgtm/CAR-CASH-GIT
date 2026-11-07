@@ -65,11 +65,8 @@ html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct{margin-
 /* 10. ACHETER ET JOUER, DEUX LINGOTS D'OR L'UN SUR L'AUTRE : en boutique, l'or désignait deux gestes contraires (dépenser, partir). DÉCISION
    (passe finale) : dans la boutique SEULEMENT, l'or est à l'ACHAT — JOUER passe en plaque d'ENCRE, ses lettres d'or gardées (le mot reste
    le même lingot frappé, il ne crie plus). Partout ailleurs (garage, accueil) JOUER garde sa plaque d'or. */
-html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer{background:linear-gradient(180deg,#2a2f38,var(--bqInk) 60%)!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 0 0 1px #000,0 6px 0 #000,0 14px 24px -10px rgba(20,23,28,.55)!important}
-html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer .mChev{filter:none!important}
+/* (2026-11-07, Sacha : « le bouton JOUER en noir, il est horrible ; remets un truc jaune classique ») LA PLAQUE D ENCRE EST RETIRÉE : en boutique aussi, JOUER garde sa plaque jaune du garage. */
 /* DÉSÉQUIPER retrouve la plaque blanche cerclée d'encre (garage-hub-rayons.css) que la couche ux8 noircissait : un retrait n'est pas l'action
    principale, et deux plaques noires se seraient empilées au-dessus de JOUER */
 html:not(.c6):not(.ux8g).bqIndus body #garage#garage #gAct#gAct>#gBqBtn[data-e="desequip"]{background:#fff;color:var(--bqInk);box-shadow:inset 0 0 0 2px var(--bqInk)}
-html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer .mChev .pxi{color:#ffd23a!important;background-color:#ffd23a!important;opacity:.8}
 </style>

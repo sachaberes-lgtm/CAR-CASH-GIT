@@ -95,7 +95,8 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   PHOTO_USINE=!(aile&&aile.avec); /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) — (2026-11-07) sauf la caisse du JOUEUR qui porte une aile (aile.avec) : sa peinture à lui */
   const sig9=phdbSig();let url=null,asy=false;
   try{
-    if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
+    if(aile&&aile.peint){const pv=SHOP.prev;SHOP.prev={cat:'peinture',i:aile.j};try{buildCar(CARS[i]);}finally{SHOP.prev=pv;}aile=null;} /* (2026-11-07, Sacha : « les peintures en boule, c'est nul, trouve autre chose ») LA CAISSE DU JOUEUR DANS UNE PEINTURE (boutique-peinture.js, bqPeintFile) : la même photo qu'une caisse du catalogue (son angle, son reflet), sous SA clé */
+    else if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
     else buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
     PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile){photoAiles();if(!aile.avec)photoSeulesAiles();} /* (2026-11-07, Sacha : « présente correctement les ailes avec la voiture du joueur ») aile.avec : la caisse reste, elle porte l'aile (boutique-classique.js, bcAileFile) */
     carGroup.updateMatrixWorld(true);

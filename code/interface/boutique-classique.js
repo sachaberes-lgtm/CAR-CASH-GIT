@@ -31,10 +31,15 @@ function bcAileCarte(k,n){const d=bqCos(k).d;if(!d)return '';const f=cosmRar('ai
   return '<div class="bcK bcA r-'+f+' e-'+E.c.split(' ')[0]+'" data-k="'+k+'" role="button" tabindex="0" style="--rc:'+ri.c+';--i:'+Math.min(n,10)+'" aria-label="'+(nom+' · '+bcT(ri.n1)+' · '+E.t).replace(/"/g,'')+'">'
     +'<span class="bcSc"><i class="bcRay" aria-hidden="true"></i><i class="bcSol" aria-hidden="true"></i><span class="bcPh" data-bca="'+d.id+'"><i class="bcAtt">'+pxi('aile')+'</i></span><i class="bcEcl" aria-hidden="true"></i></span>'
     +'<span class="bcTx"><b class="bcN">'+nom+'</b><span class="bcP '+E.c+'">'+E.h+'</span></span></div>';}
-/* une LIGNE de traînée : la route de nuit et la traînée qui coule (traineeCarte), la caisse au bout ; le nom, l'état */
+/* une LIGNE de traînée : la route de nuit et la traînée qui coule (traineeCarte), la caisse au bout ; le nom, l'état
+   (2026-11-07, Sacha : « on reconnaît pas assez les traînées : tu as fait un pictogramme simplifié, il faudrait un aperçu réel de ce à quoi elles
+   ressemblent ») LA VRAIE TRAÎNÉE : une photo prise dans la salle 3D de la boutique (la caisse de départ de profil sur son plateau, la traînée qui
+   file derrière elle, telle que le jeu la dessine), rangée dans assets/boutique/trainees/<id>.jpg (refaire : outils/banc-boutique/trainees.cjs).
+   Une traînée sans photo garde la plaque dessinée. */
+const BQ_TR_PHOTO={nitro:1,rose:1,sakura:1,matrice:1,or:1,anneaux:1,wow:1,glouton:1,hyper:1,grille:1,billets:1,foudre:1,arcenciel:1};
 function bcTraineeLigne(k,n){const d=bqCos(k).d;if(!d)return '';const f=cosmRar('trainee',d),ri=rarInfo(f),E=bcEtat('trainee',d,k),nom=bcT(d.n);
   return '<div class="bcK bcT r-'+f+' e-'+E.c.split(' ')[0]+'" data-k="'+k+'" role="button" tabindex="0" style="--rc:'+ri.c+';--tc:'+traineeCoul(d)+';--i:'+Math.min(n,10)+'" aria-label="'+(nom+' · '+bcT(ri.n1)+' · '+E.t).replace(/"/g,'')+'">'
-    +'<span class="bcTv" aria-hidden="true">'+traineeCarte(d)+'<i class="bcTc">'+pxi('voiture')+'</i></span>'
+    +'<span class="bcTv'+(BQ_TR_PHOTO[d.id]?' ph':'')+'" aria-hidden="true">'+(BQ_TR_PHOTO[d.id]?'<img class="bcTp" src="assets/boutique/trainees/'+d.id+'.jpg" alt="" decoding="async" draggable="false">':traineeCarte(d)+'<i class="bcTc">'+pxi('voiture')+'</i>')+'</span>'
     +'<span class="bcTx"><b class="bcN">'+nom+'</b><span class="bcP '+E.c+'">'+E.h+'</span></span></div>';}
 /* LE RAYON (appelé par garBqPanneau à la place des anciennes cartes) : les intertitres et les cartes, dans une seule grille */
 function bcRail(cat,L){try{bqRayonRegarde(cat);}catch(e){} /* en entrant, on regarde déjà ce qu'on porte : le nom et le bouton parlent de l'aile / de la traînée */

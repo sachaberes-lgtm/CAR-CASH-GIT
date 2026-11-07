@@ -1,75 +1,58 @@
 <style id="bq-voitures">
-/* ===== LES BOÎTES DES VOITURES (2026-11-07, Sacha : « retravaille bien les boîtes dans la boutique pour les voitures, là ça rend mal » · « elles donnent pas envie, ça peut être beaucoup mieux ») =====
-   VU AU BANC (390 × 844 et 844 × 390) : chaque carte était TROIS objets qui ne se tenaient pas — une étiquette de prix penchée posée SUR la
-   vitre (21 étiquettes grises de travers, des MISSION roses qui criaient plus fort que les voitures), la boîte de verre plus large que la carte,
-   et une plaque de nom plus étroite, décalée à gauche. La voiture ne prenait que 60 % de la carte ; la rareté ne se lisait qu'à un filet.
-   UNE carte = UN objet, comme un mur de vitrines de collection :
-   · en haut, la NICHE : un fond de studio à la couleur de la rareté (clair en haut, plus profond en bas, une lumière qui tombe sur la voiture,
-     une ombre sous le rebord du haut : elle est creusée) — gris pour les communes, bleu les rares, violet les épiques, or les légendaires, nuit
-     et rose les secrètes ; la boîte de verre (vitrine-miniature.js, resserrée sur la caisse) posée dedans, à pleine largeur ;
-   · en bas, la PLAQUE à l'encre du jeu, cousue à la niche par un filet de la rareté : le nom (deux lignes réservées, toutes les cartes d'une
-     rangée ont la même hauteur), puis le prix — vert billet si la banque le couvre, lavande sourde s'il fait encore rêver (plus le rouge, qui
-     dit « danger » dans le nuancier), or pour l'euro, une coche verte « À TOI », ÉQUIPÉE en vert vif, le cadenas rose et sa jauge pour une mission ;
-   · la carte choisie se soulève, cerclée du magenta de la boutique ; le doigt l'enfonce un peu ;
-   · la LÉGENDAIRE a le seul mouvement : un reflet qui traverse la niche dorée toutes les cinq secondes (rien en palier 0 et 1, rien en
-     mouvement réduit).
-   Seulement les cartes des caisses avec la vitrine (html.vtOn … .bqK.vo) : peintures, ailes, traînées, figures ont leur système. */
-html.vtOn body #gBq #gBqPan .bqRail:has(>.bqK.vo){column-gap:12px;row-gap:16px;align-items:stretch}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo{--nh:66cqw;container-type:inline-size;width:calc((100% - 12px) / 2);display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
-  height:auto;min-height:0;margin:0;padding:0;background:none;border:0;border-radius:5px;box-shadow:0 6px 12px -8px rgba(23,19,43,.45);transform:none;translate:none;scale:none;overflow:visible;
-  transition:translate .16s ease-out,scale .12s ease-out,box-shadow .16s ease-out}
-/* la niche */
-html.vtOn body #gBq #gBqPan .bqK.vo.vo::before{content:"";display:block;position:absolute;left:0;right:0;top:0;width:auto;min-width:0;max-width:none;aspect-ratio:auto;height:var(--nh);z-index:0;margin:0;padding:0;
-  border:0;border-radius:5px 5px 0 0;transform:none;opacity:1;pointer-events:none;mask-image:none;-webkit-mask-image:none;
-  background:radial-gradient(ellipse 62% 55% at 50% 40%,rgba(255,255,255,.9),rgba(255,255,255,0) 72%),
-    linear-gradient(180deg,color-mix(in srgb,var(--rc) 22%,#fff) 0%,color-mix(in srgb,var(--rc) 46%,var(--bqFond2)) 58%,color-mix(in srgb,var(--rc) 72%,var(--kl)) 100%);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.5),inset 0 9px 10px -7px rgba(23,19,43,.4),inset 0 -1px 0 rgba(23,19,43,.25)}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo::after{display:none}
-/* la boîte de verre, à pleine largeur, son socle à 2,5 % du fond de la niche (la photo est calée sur le bas : le socle touche son bord) */
-html.vtOn body #gBq #gBqPan .bqK.vo.vo>.vtI{left:0;width:100%;top:calc(var(--nh) - 61.11cqw - 2.5cqw);transform:none;filter:none}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo:active>.vtI,html.vtOn body #gBq #gBqPan .bqK.vo.vo.sel>.vtI{transform:none;filter:none}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKr{display:none} /* la rareté se lit à la niche et à l'intertitre de la famille : plus de banderole en travers du socle */
-/* la plaque : le nom */
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKn{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:flex-start;box-sizing:border-box;
-  flex:1 1 auto;margin:var(--nh) 0 0;padding:8px 9px 2px;min-height:0;max-height:none;width:auto;max-width:none;
-  background:var(--bqInk);color:var(--tx);border:0;border-top:2px solid var(--rc);border-radius:0;box-shadow:none;transform:none;
-  font-size:8px;line-height:11px;letter-spacing:.03em;text-align:left;white-space:normal;text-wrap:balance;overflow:hidden;text-shadow:none}
-/* la plaque : le prix, ou l'état */
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp{position:relative;inset:auto;z-index:1;display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:5px;box-sizing:border-box;
-  margin:0;padding:3px 9px 9px;width:auto;max-width:none;height:auto;min-height:0;background:var(--bqInk);color:var(--cash);border:0;border-radius:0 0 5px 5px;box-shadow:none;
-  transform:none;rotate:none;translate:none;font-size:8px;line-height:10px;font-weight:400;letter-spacing:0;text-shadow:none;white-space:nowrap}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp .pxi{--pxs:1;margin:0;filter:none;opacity:1}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.eur{color:var(--or)}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo.trop .bqKp.pc{color:var(--tx3)}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo.trop .bqKp.pc .pxi{opacity:.45}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq{color:var(--cashL)}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq::before{content:"";display:block;flex:none;box-sizing:content-box;width:7px;height:3px;margin:0 1px 3px 1px;padding:0;border:solid currentColor;border-width:0 0 2px 2px;border-radius:0;background:none;box-shadow:none;transform:rotate(-45deg);position:static}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq.eqp{color:var(--cash)}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp:is(.defi,.sec){color:var(--bqMis,#b07bff)} /* MISSION : le violet du bouton MISSIONS du garage (Sacha, 07/11), le même sur tous les rayons */
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.sec{color:var(--neoM)}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp .jg{display:block;width:28px;height:3px;margin-left:auto;margin:0;background:rgba(255,255,255,.18);border:0;border-radius:2px;overflow:hidden}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp .jg u{display:block;height:100%;background:var(--bqMis,#b07bff)}
-/* LIMITÉE, + TRAÎNÉE ARC-EN-CIEL : un petit fanion dans le coin de la niche */
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKl{position:absolute;left:4px;top:4px;right:auto;bottom:auto;z-index:3;margin:0;padding:2px 4px 1px;transform:none;rotate:none;
-  background:var(--bqInk);color:var(--or);font-size:6px;line-height:7px;border-radius:2px;box-shadow:none}
-/* la carte choisie, le doigt, la souris */
-html.vtOn body #gBq #gBqPan .bqK.vo.vo.sel{translate:0 -3px;scale:none;box-shadow:0 0 0 2px var(--bqAcc),0 12px 16px -8px rgba(23,19,43,.5)}
+/* ===== LES BOÎTES DES VOITURES, LA BOÎTE FAIT LA CARTE (2026-11-07, Sacha : « c'est une boîte dans une boîte, ça n'a aucun sens ; reprends la
+   base de Léo, mais avec la boîte : de base, la boîte faisait fenêtre ») =====
+   Avant : une NICHE colorée (un cadre), la boîte de verre posée dedans, une plaque noire dessous : trois objets, une fenêtre autour d'une boîte.
+   Maintenant, comme les cubes de Léo : la carte, c'est LA BOÎTE et rien d'autre. Le fond de la boîte est imprimé à la couleur de la rareté et
+   éclaire la caisse (vitrine-miniature.js, ver 9), elle tient seule sur le blanc de la boutique, une ombre douce sous son socle. Dessous, sans
+   cadre : le nom à l'encre du jeu, puis la pastille d'état, la même que sur les cartes des ailes et des traînées (prix, À TOI, ÉQUIPÉE, MISSION).
+   La carte choisie se soulève et prend un trait magenta sous le socle. Deux par rangée (trois quand le panneau est large). */
+html.vtOn body #gBq #gBqPan .bqRail:has(>.bqK.vo){column-gap:14px;row-gap:18px;align-items:stretch}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo{--bh:61.11cqw;container-type:inline-size;width:calc((100% - 14px) / 2);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;
+  height:auto;min-height:0;margin:0;padding:0 0 2px;background:none;border:0;border-radius:0;box-shadow:none;transform:none;translate:none;scale:none;overflow:visible;
+  transition:translate .16s ease-out}
+/* l'ombre de la boîte sur l'étagère */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo::before{content:"";display:block;position:absolute;left:3%;right:1%;top:calc(var(--bh) - 6cqw);width:auto;min-width:0;max-width:none;aspect-ratio:auto;height:11cqw;z-index:0;margin:0;padding:0;
+  border:0;border-radius:50%;transform:none;opacity:1;pointer-events:none;mask-image:none;-webkit-mask-image:none;box-shadow:none;
+  background:radial-gradient(closest-side,rgba(23,19,43,.34),rgba(23,19,43,.12) 60%,rgba(23,19,43,0))}
+/* le trait de la carte choisie (et rien en attendant) */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo::after{content:"";display:block;position:absolute;left:6%;right:6%;top:calc(var(--bh) + 4px);width:auto;height:3px;z-index:1;margin:0;
+  background:var(--bqAcc);border-radius:2px;opacity:0;transform:scaleX(.4);transition:opacity .16s,transform .2s cubic-bezier(.3,1.4,.5,1);skew:none;mask-image:none;-webkit-mask-image:none;max-height:none;bottom:auto;min-width:0}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.sel::after{opacity:1;transform:none}
+/* la boîte, à pleine largeur de la carte, le socle à sa base */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo>.vtI{left:0;width:100%;top:0;z-index:1;transform:none;filter:none}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo:active>.vtI{transform:scale(.97)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.sel>.vtI{transform:translateY(-3px);filter:none}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKr{display:none} /* la rareté se lit à la boîte et à l'intertitre de la famille */
+/* le nom */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKn{position:relative;z-index:1;display:block;box-sizing:border-box;align-self:stretch;
+  margin:calc(var(--bh) + 13px) 0 0;padding:0 2px;height:auto;min-height:0;max-height:none;width:auto;max-width:none;
+  background:none;color:var(--bqInk,#17132b);border:0;border-radius:0;box-shadow:none;transform:none;
+  font-size:9px;line-height:12px;letter-spacing:.5px;text-align:left;white-space:normal;text-wrap:balance;overflow:hidden;text-shadow:none}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKn.lg{font-size:8px;line-height:11px;letter-spacing:0}
 html.vtOn body #gBq #gBqPan .bqK.vo.vo.sel .bqKn{box-shadow:none}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo:active{scale:.97}
-@media (hover:hover){html.vtOn body #gBq #gBqPan .bqK.vo.vo:not(.sel):hover{translate:0 -2px;box-shadow:0 10px 14px -8px rgba(23,19,43,.5)}}
-/* LA LÉGENDAIRE : la niche dorée, la plaque brun-or, le reflet qui passe */
-html.vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire::before{background:radial-gradient(ellipse 62% 55% at 50% 40%,rgba(255,255,255,.95),rgba(255,255,255,0) 72%),
-  linear-gradient(180deg,var(--au0) 0%,var(--au1) 52%,var(--au3) 100%)}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire :is(.bqKn,.bqKp){background:var(--auO)}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire .bqKn{color:var(--au0);border-top-color:var(--au2)}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire.trop .bqKp.pc{color:var(--orS)} /* le prix qui fait rêver, en or sourd sur la plaque brune */
-html.vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire::after{content:"";display:block;position:absolute;left:0;right:0;top:0;width:auto;min-width:0;max-width:none;aspect-ratio:auto;height:var(--nh);z-index:2;margin:0;opacity:1;transform:none;
-  border-radius:5px 5px 0 0;pointer-events:none;mask-image:none;-webkit-mask-image:none;
-  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.6) 50%,transparent 60%) no-repeat;background-size:300% 100%;animation:bqvBrille 5s ease-in-out infinite}
-@keyframes bqvBrille{0%,60%{background-position:100% 0}100%{background-position:0 0}}
-html[data-palier="0"].vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire::after,html[data-palier="1"].vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire::after{display:none}
-@media (prefers-reduced-motion:reduce){html.vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire::after{display:none}html.vtOn body #gBq #gBqPan .bqK.vo.vo{transition:none}}
-/* LA SECRÈTE : la niche de nuit, une lueur rose derrière la silhouette */
-html.vtOn body #gBq #gBqPan .bqK.vo.vo:is(.b-secrete,.m2sec)::before{background:radial-gradient(ellipse 62% 55% at 50% 45%,rgba(255,62,200,.35),rgba(255,62,200,0) 72%),linear-gradient(180deg,var(--k4),var(--k1))}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo:is(.b-secrete,.m2sec) .bqKn{color:var(--neoM);border-top-color:var(--neoM)}
+/* la pastille d'état : la même que les ailes et les traînées */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp{position:relative;inset:auto;z-index:1;display:inline-flex;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:5px;box-sizing:border-box;
+  margin:6px 0 0 2px;padding:0 7px 0 5px;width:auto;max-width:calc(100% - 4px);height:20px;min-height:0;border:0;border-radius:6px;
+  background:var(--bqFond2,#f1eff6);color:var(--bqInk,#17132b);box-shadow:inset 0 0 0 1px var(--bqFil,#dfdbe9);
+  transform:none;rotate:none;translate:none;font-size:8px;line-height:1;font-weight:400;letter-spacing:.5px;text-shadow:none;white-space:nowrap;overflow:hidden}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp .pxi{--pxs:1;flex:none;width:12px;height:12px;margin:0;filter:none;opacity:1}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.eur{color:#7a5300;background:#fff3c8;box-shadow:inset 0 0 0 1px #f0d68a}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.trop .bqKp.pc{color:var(--bqGris2,#9a95ad);background:var(--bqFond2,#f1eff6)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.trop .bqKp.pc .pxi{opacity:.5}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq{padding-left:0;background:none;box-shadow:none;color:var(--bqGris,#6b6587)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq::before{content:"";display:block;flex:none;box-sizing:content-box;width:7px;height:3px;margin:0 2px 3px 2px;padding:0;border:solid var(--bqInk,#17132b);border-width:0 0 2px 2px;border-radius:0;background:none;box-shadow:none;transform:rotate(-45deg);position:static}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq.eqp{padding-left:6px;color:#fff;background:var(--bqInk,#17132b)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq.eqp::before{border-color:#fff}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp:is(.defi,.sec){color:#fff;background:var(--bqMis,#b07bff);box-shadow:inset 0 -2px 0 rgba(23,19,43,.18);text-shadow:0 1px 0 rgba(23,19,43,.35)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.sec{background:var(--neoM,#ff3ec8)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp .jg{display:block;flex:none;width:26px;height:4px;margin:0 0 0 2px;background:rgba(255,255,255,.35);border:0;border-radius:2px;overflow:hidden}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp .jg u{display:block;height:100%;background:#fff}
+/* LIMITÉE, + TRAÎNÉE ARC-EN-CIEL : un petit fanion sur le coin du verre */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKl{position:absolute;left:4px;top:4px;right:auto;bottom:auto;z-index:3;margin:0;padding:3px 5px 2px;transform:none;rotate:none;
+  background:var(--bqInk,#17132b);color:var(--or,#ffd75e);font-size:6px;line-height:7px;border-radius:3px;box-shadow:none}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo:active{scale:none}
+@media (hover:hover){html.vtOn body #gBq #gBqPan .bqK.vo.vo:not(.sel):hover>.vtI{transform:translateY(-2px)}}
+@media (prefers-reduced-motion:reduce){html.vtOn body #gBq #gBqPan .bqK.vo.vo,html.vtOn body #gBq #gBqPan .bqK.vo.vo::after{transition:none}}
+/* le panneau large (l'ordinateur, couché) : trois boîtes par rangée */
+@container (min-width:560px){html.vtOn body #gBq #gBqPan .bqK.vo.vo{width:calc((100% - 28px) / 3)}}
 </style>

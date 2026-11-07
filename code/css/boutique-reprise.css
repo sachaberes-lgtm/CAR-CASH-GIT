@@ -1,0 +1,121 @@
+<style id="bqReprise">
+/* ===== LA BOUTIQUE, REPRISE (2026-11-07, Sacha : « la boutique, c'est un peu n'importe quoi ; on reprend jusqu'à ce que ça marche ») =====
+   Posée APRÈS toutes les feuilles de la boutique. Un rayon, un objet, une seule façon de lire une carte (la photo, le nom, la pastille d'état) :
+   · PEINTURES — plus de boules : TA caisse photographiée dans chaque peinture, trois par rangée (boutique-peinture.js, bqPeintFile) ;
+   · AILES — plus de rayons de spot ni de studio noir : la caisse qui porte l'aile est EN VOL, dans un ciel à l'heure de sa rareté (gris
+     d'orage, bleu de midi, violet du soir, or du couchant) au-dessus d'une mer de nuages ;
+   · TRAÎNÉES — la ligne garde sa place, mais montre la VRAIE traînée (photo de la salle 3D, assets/boutique/trainees) ;
+   · FIGURES — plus de boîtes : le film de la figure sur une carte claire, son geste écrit dessus ; en haut, le geste ÉCRIT au-dessus de chaque
+     case du dock (fini la pastille carrée posée sur l'hexagone) ; plus de pastilles TOUT · À MOI · À ACHETER · TRI. */
+
+/* ---------- PEINTURES : la caisse peinte ---------- */
+html body #gBqPan .pNg{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 8px;padding:8px 2px 6px;justify-items:stretch;align-items:stretch}
+html body #gBqPan.cote .pNg{grid-template-columns:repeat(4,minmax(0,1fr))}
+html body #gBqPan .pN.pC{position:relative;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;width:auto;max-width:none;aspect-ratio:auto;min-width:0;min-height:0;height:auto;
+  padding:0;margin:0;border:0;border-radius:12px;background:#fff;cursor:pointer;text-align:left;font-family:var(--pix);color:var(--bqInk,#17132b);scale:none;
+  box-shadow:0 0 0 1px var(--bqFil,#dfdbe9),0 6px 14px -10px rgba(23,19,43,.45);transition:box-shadow .16s ease,scale .12s ease;-webkit-tap-highlight-color:transparent}
+html body #gBqPan .pN.pC::before,html body #gBqPan .pN.pC::after{display:none}
+html body #gBqPan .pN.pC:active{scale:.96}
+html body #gBqPan .pN.pC.sel{scale:none;box-shadow:0 0 0 2px var(--bqInk,#17132b),0 10px 18px -10px rgba(23,19,43,.55)}
+html body #gBqPan .pN.pC .pCsc{position:relative;display:block;margin:4px 4px 0;aspect-ratio:720/440;border-radius:9px;overflow:hidden;
+  background:radial-gradient(80% 60% at 50% 30%,#ffffff 0%,#eef0f5 60%,#dfe2ea 100%);box-shadow:inset 0 -10px 14px -12px rgba(23,19,43,.35)}
+html body #gBqPan .pN.pC.r-rare .pCsc{background:radial-gradient(80% 60% at 50% 30%,#ffffff 0%,#e9f3fd 60%,#d3e6f8 100%)}
+html body #gBqPan .pN.pC.r-epique .pCsc{background:radial-gradient(80% 60% at 50% 30%,#ffffff 0%,#f3ebfd 60%,#e4d5f8 100%)}
+html body #gBqPan .pN.pC.r-legendaire .pCsc{background:radial-gradient(80% 60% at 50% 30%,#fffdf4 0%,#fbf0cf 60%,#f3dc98 100%)}
+html body #gBqPan .pN.pC .pCph{position:absolute;inset:0;display:grid;place-items:center}
+html body #gBqPan .pN.pC .pCim{display:block;width:100%;height:100%;margin:0;transform:scale(1.2) translateY(3%);object-fit:contain;pointer-events:none;-webkit-user-drag:none;animation:pCvient .35s ease both}
+@keyframes pCvient{from{opacity:0}to{opacity:1}}
+html body #gBqPan .pN.pC .pCatt{font-style:normal;opacity:.18;animation:pCatt 1.2s ease-in-out infinite alternate}
+html body #gBqPan .pN.pC .pCatt .pxi{--pxs:2;margin:0;color:var(--bqInk,#17132b)}
+@keyframes pCatt{to{opacity:.07}}
+html body #gBqPan .pN.pC .pCn{display:block;min-width:0;padding:6px 6px 0;font-size:7px;line-height:9px;letter-spacing:.3px;color:var(--bqInk,#17132b);white-space:normal;text-wrap:balance;overflow-wrap:normal;word-break:normal;min-height:18px}
+html body #gBqPan .pN.pC .pCe{align-self:flex-start;display:inline-flex;align-items:center;gap:4px;max-width:calc(100% - 10px);height:18px;margin:5px 5px 6px;padding:0 6px 0 4px;border-radius:5px;
+  font-size:7px;letter-spacing:.3px;line-height:1;white-space:nowrap;overflow:hidden;color:var(--bqInk,#17132b);background:var(--bqFond2,#f1eff6);box-shadow:inset 0 0 0 1px var(--bqFil,#dfdbe9)}
+html body #gBqPan .pN.pC .pCe b{font-weight:400;min-width:0;overflow:hidden;text-overflow:ellipsis}
+html body #gBqPan .pN.pC .pCe .pxi{--pxs:1;flex:none;width:10px;height:10px;margin:0}
+html body #gBqPan .pN.pC .pCe.cher{color:var(--bqGris2,#9a95ad)}
+html body #gBqPan .pN.pC .pCe.e-eur{color:#7a5300;background:#fff3c8;box-shadow:inset 0 0 0 1px #f0d68a}
+html body #gBqPan .pN.pC .pCe.e-a{padding-left:0;background:none;box-shadow:none;color:var(--bqGris,#6b6587)}
+html body #gBqPan .pN.pC .pCe.e-a .pxi{color:var(--bqInk,#17132b)}
+html body #gBqPan .pN.pC .pCe.e-eq{color:#fff;background:var(--bqInk,#17132b);box-shadow:none}
+html body #gBqPan .pN.pC .pCe.e-eq .pxi{color:#fff}
+html body #gBqPan .pN.pC .pCe:is(.e-mis,.e-defi){color:#fff;background:var(--bqMis,#b07bff);box-shadow:inset 0 -2px 0 rgba(23,19,43,.18);text-shadow:0 1px 0 rgba(23,19,43,.35)}
+html body #gBqPan .pN.pC .pCe:is(.e-mis,.e-defi) .pxi{color:#fff}
+html body #gBqPan .pN.pC .pCe u{flex:none;display:block;width:18px;height:4px;margin-left:1px;border-radius:2px;background:rgba(255,255,255,.35);overflow:hidden;text-decoration:none}
+html body #gBqPan .pN.pC .pCe u em{display:block;height:100%;background:#fff}
+
+/* ---------- AILES : en vol, dans un ciel à l'heure de la rareté ---------- */
+#gBqPan.bcOn .bcA .bcRay{display:none}
+#gBqPan.bcOn .bcA .bcSc{--s0:#8d9ab3;--s1:#c9d2e2;--s2:#eef2f8;
+  background:linear-gradient(180deg,var(--s0) 0%,var(--s1) 58%,var(--s2) 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+#gBqPan.bcOn .bcA.r-rare .bcSc{--s0:#2a74d6;--s1:#79b8f5;--s2:#dff0ff}
+#gBqPan.bcOn .bcA.r-exotique .bcSc{--s0:#14937a;--s1:#6fd8bb;--s2:#e2fbf3}
+#gBqPan.bcOn .bcA.r-epique .bcSc{--s0:#3d2384;--s1:#9a6fdc;--s2:#f3dcf6}
+#gBqPan.bcOn .bcA.r-legendaire .bcSc{--s0:#d2611a;--s1:#f8b450;--s2:#fff0c6}
+#gBqPan.bcOn .bcA.r-mythique .bcSc{--s0:#8e1530;--s1:#e65a6e;--s2:#ffe0e4}
+#gBqPan.bcOn .bcA.r-infini .bcSc{--s0:#7a2a8e;--s1:#e58ae0;--s2:#ffe6fb}
+/* la mer de nuages, sous la caisse (le sol éclairé d'avant devient le dessus des nuages) */
+#gBqPan.bcOn .bcA .bcSol{left:-6%;right:-6%;bottom:-8%;height:34%;border-radius:0;box-shadow:none;opacity:.95;
+  background:radial-gradient(22% 46% at 10% 70%,#fff 60%,rgba(255,255,255,0) 62%),radial-gradient(20% 52% at 30% 62%,#fff 60%,rgba(255,255,255,0) 62%),
+    radial-gradient(24% 48% at 52% 72%,#fff 60%,rgba(255,255,255,0) 62%),radial-gradient(20% 56% at 73% 60%,#fff 60%,rgba(255,255,255,0) 62%),
+    radial-gradient(22% 46% at 92% 70%,#fff 60%,rgba(255,255,255,0) 62%),linear-gradient(180deg,rgba(255,255,255,0) 55%,#fff 56%)}
+#gBqPan.bcOn .bcA .bcSc::before{content:'';position:absolute;left:-10%;right:-10%;bottom:22%;height:16%;z-index:1;pointer-events:none;opacity:.55;
+  background:radial-gradient(18% 50% at 18% 60%,#fff 58%,rgba(255,255,255,0) 61%),radial-gradient(16% 46% at 46% 55%,#fff 58%,rgba(255,255,255,0) 61%),radial-gradient(18% 50% at 80% 60%,#fff 58%,rgba(255,255,255,0) 61%)}
+#gBqPan.bcOn .bcA .bcIm{filter:drop-shadow(0 12px 8px rgba(20,30,60,.22))}
+#gBqPan.bcOn .bcA .bcAtt .pxi{color:rgba(255,255,255,.9)}
+
+/* ---------- TRAÎNÉES : la vraie traînée ---------- */
+#gBqPan.bcOn .bcT{min-height:86px}
+#gBqPan.bcOn .bcT .bcTv.ph{flex:0 0 60%;background:#eceef3;box-shadow:inset 0 0 0 1px rgba(23,19,43,.06)}
+#gBqPan.bcOn .bcT .bcTv.ph .bcTp{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:62% 50%;pointer-events:none;-webkit-user-drag:none}
+#gBqPan.bcOn .bcT .bcTv.ph::after{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(23,19,43,.07)}
+@media (orientation:landscape){#gBqPan.bcOn .bcT{min-height:74px}}
+
+/* ---------- FIGURES : le dock (le geste écrit au-dessus de chaque case) ---------- */
+.fsJoy>b{display:none} /* (l'inventaire garde sa pastille) */
+html body #gBqPan.bqFigOn #bqFigSel{border-radius:14px}
+html body #gBqPan.bqFigOn #bqFigSel .fsHex{gap:4px;padding-top:0}
+html body #gBqPan.bqFigOn #bqFigSel .fsHex .fsJoy{position:static;order:-1;display:flex;align-items:center;justify-content:center;gap:4px;width:auto;height:12px;left:auto;top:auto;margin:0;padding:0;
+  background:none;box-shadow:none;clip-path:none;color:color-mix(in srgb,var(--dc) 72%,#17132b);font-style:normal}
+html body #gBqPan.bqFigOn #bqFigSel .fsHex .fsJoy .pxi{--pxs:1;width:10px;height:10px;margin:0;color:inherit}
+html body #gBqPan.bqFigOn #bqFigSel .fsHex .fsJoy>b{display:block;font-weight:400;font-size:7px;line-height:1;letter-spacing:1px;color:inherit;white-space:nowrap}
+html body #gBqPan.bqFigOn #bqFigSel .fsBar,html body #gBqPan.bqFigOn #bqFigSel .fsAide{display:none}
+html body #gBqPan.bqFigOn #bqFigSel .fsRow:has(.cible) .fsHex:not(.cible){opacity:1}
+
+/* ---------- FIGURES : les cartes, sans boîte ---------- */
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail{display:flex;flex-wrap:wrap;align-content:flex-start;gap:12px 10px;padding:10px 2px 12px}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab{position:relative;flex:none;width:calc((100% - 10px) / 2);height:auto;min-height:0;max-height:none;
+  display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;margin:0;padding:0;border:0;border-radius:14px;background:#fff;
+  box-shadow:0 0 0 1px var(--bqFil,#dfdbe9),0 8px 18px -12px rgba(23,19,43,.45);transform:none;translate:none;scale:none;rotate:none;overflow:visible;perspective:none;filter:none;animation:none}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab::before,html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab::after{display:none}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab:active{scale:.97}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab.sel{box-shadow:0 0 0 2px var(--bqInk,#17132b),0 12px 22px -12px rgba(23,19,43,.55)}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKv{position:relative;display:block;inset:auto;width:auto;height:auto;margin:5px 5px 0;aspect-ratio:160/105;
+  border-radius:10px;overflow:hidden;transform:none;transform-style:flat;perspective:none;filter:none;animation:none;
+  background:radial-gradient(85% 70% at 50% 35%,#ffffff 0%,color-mix(in srgb,var(--rc) 14%,#f1f3f7) 62%,color-mix(in srgb,var(--rc) 30%,#dfe3ea) 100%);box-shadow:inset 0 -10px 14px -12px rgba(23,19,43,.35)}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKv>.f{display:none}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKph{position:absolute;inset:0;width:auto;height:auto;margin:0;padding:0;display:block;transform:none;background:none;border:0;box-shadow:none;filter:none}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKph::before,html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKph::after{display:none}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKph .fgFilm{display:block;width:100%;height:100%}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKr{display:none}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKn{position:static;inset:auto;display:block;min-width:0;width:auto;height:auto;max-width:none;margin:0;padding:8px 9px 0;
+  background:none;border:0;border-radius:0;box-shadow:none;transform:none;text-shadow:none;color:var(--bqInk,#17132b);font-size:9px;line-height:12px;letter-spacing:.5px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:clip}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKp{position:static;inset:auto;align-self:flex-start;display:inline-flex;align-items:center;gap:5px;width:auto;max-width:calc(100% - 18px);height:20px;
+  margin:6px 9px 9px;padding:0 7px 0 5px;border:0;border-radius:6px;transform:none;rotate:none;translate:none;text-shadow:none;font-size:8px;line-height:1;letter-spacing:.5px;white-space:nowrap;overflow:hidden;
+  color:var(--bqInk,#17132b);background:var(--bqFond2,#f1eff6);box-shadow:inset 0 0 0 1px var(--bqFil,#dfdbe9)}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKp::before,html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKp::after{display:none}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKp .pxi{--pxs:1;width:12px;height:12px;margin:0}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKp.acq{padding-left:0;background:none;box-shadow:none;color:var(--bqGris,#6b6587)}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKp.acq::before{content:"";display:block;flex:none;box-sizing:content-box;position:static;width:7px;height:3px;margin:0 2px 3px 2px;padding:0;border:solid var(--bqInk,#17132b);border-width:0 0 2px 2px;border-radius:0;background:none;box-shadow:none;transform:rotate(-45deg)}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKp.acq.eqp{padding-left:6px;color:#fff;background:var(--bqInk,#17132b)}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKp.acq.eqp::before{border-color:#fff}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKp:is(.defi,.sec){color:#fff;background:var(--bqMis,#b07bff);box-shadow:inset 0 -2px 0 rgba(23,19,43,.18)}
+/* le geste de la carte, dans le coin du film */
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKdir{position:absolute;left:10px;top:10px;z-index:3;display:inline-flex;align-items:center;gap:3px;height:16px;padding:0 5px 0 3px;border-radius:5px;
+  background:color-mix(in srgb,var(--dc) 85%,#17132b);color:#fff;font-style:normal;box-shadow:0 2px 6px -2px rgba(23,19,43,.4)}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKdir .pxi{--pxs:1;width:10px;height:10px;margin:0;color:#fff}
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKdir b{font-weight:400;font-size:6px;line-height:1;letter-spacing:.8px}
+/* une figure à deux sens : l'autre geste, une pastille ronde à droite (la toucher l'équipe dans ce sens) */
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKd2{position:absolute;right:10px;left:auto;top:10px;bottom:auto;z-index:3;transform:none}
+@media (prefers-reduced-motion:reduce){html body #gBqPan .pN.pC,html body #gBqPan .pN.pC .pCim,html body #gBqPan .pN.pC .pCatt{transition:none;animation:none}}
+</style>

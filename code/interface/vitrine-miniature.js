@@ -17,14 +17,14 @@
 /* (2026-11-07, Léo : « fais encore mieux, plus vendeur, que Sacha kiffe : son idée de boîte n'est pas dégueu, mais mon rendu est cool ; faire différent des autres cosmétiques ») DEUX STYLES, UN MOTEUR : `leo` (par défaut) = la vitrine de Sacha (la caisse photographiée sous l'angle exact de la boîte, son socle NOIR VERNI et son vrai reflet) habillée du langage de Léo — le QUADRILLAGE du sol en fils clairs, le fond de studio lumineux teinté de la rareté, les arêtes franches à la couleur de la rareté, l'ombre sous les roues ; `sacha` (`?vitrine=sacha`) = le socle noir verni d'origine. */
 /* (2026-11-07, Léo : « la plaque noire, c'est un bloc de route du jeu ; on essaie sur une branche ») TROISIÈME STYLE, `route` (par défaut) : le socle est un BLOC DE LA ROUTE DU JEU — son béton brut (asphTex, BETON), ses flancs, la ligne jaune du milieu, les lignes de bord — rendu en 3D par la même caméra que la caisse (vitBloc), avec le verre, le fond de studio et les arêtes du style `leo` ; `?vitrine=leo` = socle noir verni + quadrillage, `?vitrine=sacha` = l'original. */
 /* (2026-11-07, Léo : « oui, sur le main ») LA VITRINE BLOC DE ROUTE EST ALLUMÉE PAR DÉFAUT ; `?vitrine=0` = le cube CSS d'avant. */
-const VITM={on:!/[?&]vitrine=0\b/.test(location.search),style:/[?&]vitrine=sacha\b/.test(location.search)?'sacha':/[?&]vitrine=route\b/.test(location.search)?'route':'leo',ver:8, /* (2026-11-07, Sacha : « les boîtes donnent pas envie ») ver 8 : la boîte de verre resserrée sur la caisse (L, P, Hc, po, remp ci-dessous) — les photos d'avant (ver 7) ne servent plus ; */ /* (2026-11-07, Léo : « laisse le socle noir de Sacha ; je ne vois plus les vitres ») le style par défaut redevient `leo` (socle noir verni + quadrillage, verre de Léo) ; le bloc de route : `?vitrine=route` */
+const VITM={on:!/[?&]vitrine=0\b/.test(location.search),style:/[?&]vitrine=sacha\b/.test(location.search)?'sacha':/[?&]vitrine=route\b/.test(location.search)?'route':'leo',ver:9, /* ver 9 (2026-11-07) : le fond de boîte opaque, la vitre sur toutes les caisses */ /* (2026-11-07, Sacha : « les boîtes donnent pas envie ») ver 8 : la boîte de verre resserrée sur la caisse (L, P, Hc, po, remp ci-dessous) — les photos d'avant (ver 7) ne servent plus ; */ /* (2026-11-07, Léo : « laisse le socle noir de Sacha ; je ne vois plus les vitres ») le style par défaut redevient `leo` (socle noir verni + quadrillage, verre de Léo) ; le bloc de route : `?vitrine=route` */
   az:.52,el:.36,fov:17,       /* l'objectif : 30° d'azimut (on voit l'avant et le côté droit), 21° de plongée (le dessus du socle et le toit), objectif long */
   L:4.5,P:2.2,Hc:1.5,          /* le capot de verre : longueur (axe de la caisse), profondeur, hauteur — en mètres du jeu. (2026-11-07, Sacha : « ça peut être beaucoup mieux ») resserré sur la caisse : 5,3 × 2,6 × 1,95 laissait la voiture à 60 % de la carte, elle en prend ~80 % ; la plus longue est réduite pour tenir */
   ph:.42,po:.16,              /* le socle : hauteur, débord autour du verre (0,30 avant : un rebord noir épais) */
   remp:.97,                   /* la caisse prend au plus 97 % de la longueur du verre (et 84 % de sa hauteur, 90 % de sa profondeur) */
   cam:null,rt:null,fit:null};
 function vitLarg(){return (typeof ALLEGE!=='undefined'&&ALLEGE)?480:640;}
-function vitrineCle(i,sec,own,w){return 'vt'+VITM.ver+({leo:'L',route:'R'}[VITM.style]||'')+'_'+(w||vitLarg())+'_'+i+(sec?'s':own?'o':'');} /* s : la silhouette d'une SECRÈTE · o : une caisse À TOI, sortie de sa boîte · w : une largeur à part (2026-11-07, la grande boîte de la page ACHAT : 720, voir shopRender) */
+function vitrineCle(i,sec,own,w){return 'vt'+VITM.ver+({leo:'L',route:'R'}[VITM.style]||'')+'_'+(w||vitLarg())+'_'+i+(sec?'s':'');} /* s : la silhouette d'une SECRÈTE · o : une caisse À TOI, sortie de sa boîte · w : une largeur à part (2026-11-07, la grande boîte de la page ACHAT : 720, voir shopRender) */
 function vitrineFile(i,sec,own,cb,el){const k=vitrineCle(i,sec,own);if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
   PHQ.q.push([k,cb,{vt:1,i:i,sec:!!sec,own:!!own,k:k},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* les huit coins d'une boîte [x0,x1]×[y0,y1]×[z0,z1] */
@@ -62,8 +62,9 @@ function vitBloc(rc){const a=VITM.L/2+VITM.po,b=VITM.P/2+VITM.po,ph=VITM.ph,G=ne
   return G;}
 function vitBlocJette(G){if(!G)return;if(G.parent)G.parent.remove(G);G.traverse(function(o){if(o.geometry)o.geometry.dispose();const m=o.material;(Array.isArray(m)?m:m?[m]:[]).forEach(function(q){if(q.map&&q.map!==ASPH_TEX)q.map.dispose();q.dispose();});});}
 function vitHex(c,a){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6;return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';}
-function vitMix(c,k){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6,f=function(v){return Math.round(v+(255-v)*k);};return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')';}
-function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitrineCle(i,sec,own,o.w); /* o.w : la largeur de l'image (par défaut vitLarg) */
+function vitMix(c,k,al){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6,f=function(v){return Math.round(v+(255-v)*k);};return (al==null?'rgb(':'rgba(')+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+(al==null?'':','+al)+')';} /* al : une transparence (rgba) */
+function vitFonce(c,k){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6,D=[18,15,30],f=function(v,d){return Math.round(v+(d-v)*k);};return 'rgb('+f(n>>16&255,D[0])+','+f(n>>8&255,D[1])+','+f(n&255,D[2])+')';} /* la teinte vers l'encre de nuit du jeu (k = 1 : l'encre) */
+function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=false,ck=vitrineCle(i,sec,own,o.w); /* (2026-11-07, Sacha : « certaines voitures n'ont pas de vitres, c'est lamentable ») TOUTES les boîtes ont leur verre, à toi ou pas : `own` n'enlève plus rien */ /* o.w : la largeur de l'image (par défaut vitLarg) */
   if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
   if(started&&!gameOver){if(cb)cb(null);return null;}
   if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
@@ -110,17 +111,27 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitri
     {let g=x.createLinearGradient(sF[0][0],sF[0][1],sF[3][0],sF[3][1]);g.addColorStop(0,'#1d2029');g.addColorStop(1,'#0b0c10');x.fillStyle=g;poly(sF);x.fill();
      g=x.createLinearGradient(sR[0][0],sR[0][1],sR[1][0],sR[1][1]);g.addColorStop(0,'#101218');g.addColorStop(1,'#060709');x.fillStyle=g;poly(sR);x.fill();
      g=x.createLinearGradient(sT[0][0],sT[0][1],sT[2][0],sT[2][1]);g.addColorStop(0,'#3a3f4c');g.addColorStop(.45,'#1a1d25');g.addColorStop(1,'#0e1015');x.fillStyle=g;poly(sT);x.fill();}
-    /* le fond de studio : la vitre du fond (teinte de la rareté, plus claire en haut) et son halo blanc derrière la caisse ; la vitre de gauche à peine teintée */
-    if(!own){let g=x.createLinearGradient(0,Q.bk[2][1],0,Q.bk[0][1]);g.addColorStop(0,vitHex(rc,.42));g.addColorStop(1,vitHex(rc,.18));x.fillStyle=g;poly(Q.bk);x.fill();
-     const m0=c(0,h*.42,-b),R0=Math.hypot(Q.bk[1][0]-Q.bk[0][0],Q.bk[1][1]-Q.bk[0][1])*.42;x.save();poly(Q.bk);x.clip();
-     g=x.createRadialGradient(m0[0],m0[1],0,m0[0],m0[1],R0);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,W,H);x.restore();
-     g=x.createLinearGradient(Q.lf[1][0],0,Q.lf[0][0],0);g.addColorStop(0,vitHex(rc,.18));g.addColorStop(1,vitHex(rc,.05));x.fillStyle=g;poly(Q.lf);x.fill();}
+    /* (2026-11-07, Sacha : « les voitures font toujours pas envie, retravaille la boîte, encore mieux ») LE FOND DE LA BOÎTE : un carton imprimé,
+       OPAQUE, à la couleur de la rareté — profond en haut, une lumière qui tombe derrière la caisse, plus clair au ras du sol — et la paroi de
+       gauche dans son ombre. La caisse se détache dessus comme dans une boîte de collection, et la carte n'a plus besoin de fond à elle. */
+    {const fo=vitFonce(rc,.74),mi=vitFonce(rc,.5),cl=vitFonce(rc,.3);
+     let g=x.createLinearGradient(0,Q.bk[2][1],0,Q.bk[0][1]);g.addColorStop(0,fo);g.addColorStop(.6,mi);g.addColorStop(1,cl);x.fillStyle=g;poly(Q.bk);x.fill();
+     const m0=c(-a*.08,h*.5,-b),R0=Math.hypot(Q.bk[1][0]-Q.bk[0][0],Q.bk[1][1]-Q.bk[0][1])*.46;x.save();poly(Q.bk);x.clip();
+     g=x.createRadialGradient(m0[0],m0[1],0,m0[0],m0[1],R0);g.addColorStop(0,vitMix(rc,.6,.9));g.addColorStop(.42,vitHex(rc,.42));g.addColorStop(1,vitHex(rc,0));x.fillStyle=g;x.fillRect(0,0,W,H);
+     /* le bandeau de lumière du plafond : la rampe qui éclaire la caisse, au haut du fond */
+     g=x.createLinearGradient(0,Q.bk[2][1],0,Q.bk[2][1]+(Q.bk[1][1]-Q.bk[2][1])*.14);g.addColorStop(0,'rgba(255,255,255,.32)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,W,H);x.restore();
+     g=x.createLinearGradient(Q.lf[1][0],0,Q.lf[0][0],0);g.addColorStop(0,vitFonce(rc,.62));g.addColorStop(1,vitFonce(rc,.84));x.fillStyle=g;poly(Q.lf);x.fill();
+     /* l'arête du fond et du sol, et celle du coin : un pli plus sombre */
+     x.save();x.lineCap='round';x.strokeStyle='rgba(10,8,20,.45)';x.lineWidth=1.4*u;x.beginPath();x.moveTo(Q.bk[0][0],Q.bk[0][1]);x.lineTo(Q.bk[3][0],Q.bk[3][1]);x.stroke();x.restore();}
     /* le QUADRILLAGE du sol (le sol du cube de Léo), dans l'emprise du verre, qui s'efface vers le fond */
     if(VITM.style!=='route'){x.save();poly([c(-a,0,-b),c(a,0,-b),c(a,0,b),c(-a,0,b)]);x.clip();const nx=10,nz=5;
      const gc=vitMix(rc,.45).replace('rgb(','').replace(')','');for(let k=0;k<=nx;k++){const X=-a+2*a*k/nx;arete(c(X,0,-b),c(X,0,b),.7*u,'rgba('+gc+',.20)');}
      for(let k=0;k<=nz;k++){const Z=-b+2*b*k/nz;arete(c(-a,0,Z),c(a,0,Z),.7*u,'rgba('+gc+','+(.10+.22*k/nz).toFixed(2)+')');} /* le quadrillage de Léo, en fils clairs teintés de la rareté sur le noir verni, plus marqués vers l'avant */
      x.restore();}
     if(!own){const col=vitHex(rc,.60);arete(c(-a,0,-b),c(a,0,-b),1.1*u,col);arete(c(-a,0,-b),c(-a,0,b),1.1*u,col);arete(c(-a,0,-b),c(-a,h,-b),1.1*u,col);}
+    /* la flaque de lumière de la rampe sur le sol, autour de la caisse */
+    {const o9=c(0,0,0),e1=c(a*.95,0,0),e2=c(0,0,b*.95);x.save();poly([c(-a,0,-b),c(a,0,-b),c(a,0,b),c(-a,0,b)]);x.clip();x.setTransform(e1[0]-o9[0],e1[1]-o9[1],e2[0]-o9[0],e2[1]-o9[1],o9[0],o9[1]);
+     const g=x.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,vitMix(rc,.5,.55));g.addColorStop(.6,vitMix(rc,.2,.18));g.addColorStop(1,vitMix(rc,.3,0));x.fillStyle=g;x.fillRect(-1.2,-1.2,2.4,2.4);x.restore();}
     /* le reflet dans le sol de verre : la prise en miroir, discrète, qui s'éteint en s'éloignant des roues */
     const yb=P(0,0,0)[1];
     if(cvR){const t=document.createElement('canvas');t.width=W;t.height=H;const tx=t.getContext('2d');tx.drawImage(cvR,0,0);
@@ -138,7 +149,7 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitri
     toileRend(cvC);
     /* le verre de devant, clair (la caisse reste nette) : deux reflets en biais, les arêtes à la couleur de la rareté avec leur cœur blanc */
     if(!own){let g=x.createLinearGradient(Q.rt[0][0],0,Q.rt[1][0],0);g.addColorStop(0,'rgba(255,255,255,.14)');g.addColorStop(1,'rgba(255,255,255,.04)');x.fillStyle=g;poly(Q.rt);x.fill();
-     g=x.createLinearGradient(0,Q.tp[0][1],0,Q.tp[2][1]);g.addColorStop(0,'rgba(255,255,255,.10)');g.addColorStop(1,'rgba(255,255,255,.26)');x.fillStyle=g;poly(Q.tp);x.fill();
+     g=x.createLinearGradient(0,Q.tp[0][1],0,Q.tp[2][1]);g.addColorStop(0,'rgba(255,255,255,.04)');g.addColorStop(1,'rgba(255,255,255,.15)');x.fillStyle=g;poly(Q.tp);x.fill();
      const f0=Q.fr[3],f1=Q.fr[1];g=x.createLinearGradient(f0[0],f0[1],f1[0],f1[1]);
      g.addColorStop(0,'rgba(255,255,255,.06)');g.addColorStop(.14,'rgba(255,255,255,.26)');g.addColorStop(.21,'rgba(255,255,255,.03)');g.addColorStop(.27,'rgba(255,255,255,.12)');g.addColorStop(.31,'rgba(255,255,255,0)');
      g.addColorStop(.72,'rgba(255,255,255,0)');g.addColorStop(.86,'rgba(255,255,255,.08)');g.addColorStop(1,'rgba(255,255,255,.02)');x.fillStyle=g;poly(Q.fr);x.fill();

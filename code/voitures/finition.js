@@ -87,7 +87,7 @@ const FSTU_V='attribute vec4 aArete;varying vec3 vArF;varying vec3 vArB;\n',
 /* (2026-10-20, Léo, sur la page AVANT | APRÈS de toute la gamme : « juste le requin était mieux ») LES CAISSES QUI GARDENT LE GARAGE D'AVANT :
    pour elles, au garage, le reflet de l'atelier d'origine (paintEnvAtelier), leur vernis d'origine et pas de reflets qui éclatent. Une seule
    caisse est au garage à la fois : le cube de reflets se repeint quand on passe de l'une à l'autre (64² ↔ 256²). */
-const FSTU_SANS={requin:1};
+const FSTU_SANS={}; /* (2026-11-07) le REQUIN, seule caisse qui gardait le garage d'avant, est supprimé */
 /* `on` : false (course, ciel d'un niveau) · true (le GARAGE : la lumière de studio) · 'menu' (LE MENU CIEL : le ciel du menu en reflets nets, voir
    paintEnvMenu). FSTU.env dit quel cube est peint ('ciel', 'atelier', 'studio', 'menu') : on ne repeint que s'il le faut. */
 function finLaque(on){FSTU.garage=on||false;const sans=!!FSTU_SANS[carGroup.userData.shape];

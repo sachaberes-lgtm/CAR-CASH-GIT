@@ -30,23 +30,25 @@ function fsAuto(id){const P=figPeut(id),S=figSlots();
   return b;}
 function fsRem(id,k){const o=figSlots()[k];return o&&o!==id&&window.FIG&&FIG.par[o]?FIG.par[o].n:'';} // le nom de la figure qu'équiper `id` en k remplacerait
 /* LE FILTRE ET LE TRI d'une liste d'id (ctx : 'bq' la boutique, 'inv' l'inventaire — qui ne montre que ce qu'on possède) */
-function fsListe(ids,ctx){const L=ids.filter(function(id){const P=figPeut(id);if(FSEL.dir>=0&&P.indexOf(FSEL.dir)<0)return false;
+function fsListe(ids,ctx){if(ctx==='bq')return ids.slice(); /* (2026-11-07, Sacha : « enlève le bouton TOUT, À MOI, ACHETER, TRI, ORDRE, ça sert à rien ») la boutique montre TOUTES les figures, dans l'ordre du catalogue : ni filtre ni tri */
+  const L=ids.filter(function(id){const P=figPeut(id);if(FSEL.dir>=0&&P.indexOf(FSEL.dir)<0)return false;
     if(ctx==='bq'){const own=figPossede(id);if(FSEL.part==='moi'&&!own)return false;if(FSEL.part==='acheter'&&own)return false;}return true;});
   if(FSEL.tri==='rar')L.sort(function(a,b){return (fsRang(b)-fsRang(a))||(fsPrix(b)-fsPrix(a));});
   else if(FSEL.tri==='prix')L.sort(function(a,b){return fsPrix(a)-fsPrix(b);});
   return L;}
 /* LA BARRE DE PASTILLES (la même dans les deux écrans ; `data-fs` dit laquelle) */
-function fsBarreHtml(ctx){const bq=ctx==='bq';if(!bq)return '';/* (inventaire : plus de pastilles TOUT · TRI — retoucher une case revient à tout) */let nm=0,na=0;if(bq&&window.FIG)FIG.liste.forEach(function(f){if(figPossede(f.id))nm++;else na++;});
+function fsBarreHtml(ctx){const bq=ctx==='bq';if(bq||!bq)return ''; /* (2026-11-07, Sacha) plus aucune pastille, en boutique non plus *//* (inventaire : plus de pastilles TOUT · TRI — retoucher une case revient à tout) */let nm=0,na=0;if(bq&&window.FIG)FIG.liste.forEach(function(f){if(figPossede(f.id))nm++;else na++;});
   const P=function(k,t,on,n){return '<button type="button" class="fsPas'+(on?' on':'')+'" data-fs="'+k+'" aria-pressed="'+(on?'true':'false')+'">'+sansAcc(TR(t))+(n!=null?'<em>'+n+'</em>':'')+'</button>';};
   return (FSEL.dir>=0?'<button type="button" class="fsPas on fsCib" data-fs="tout" style="--dc:'+FIG_DC[FSEL.dir]+'" aria-label="'+sansAcc(TR(FIG_FAM[FSEL.dir][0]))+'">'+pxi(FIG_FAM[FSEL.dir][2])+sansAcc(TR(FS_COURT[FSEL.dir]))+pxi('croix')+'</button>':P('tout','TOUT',FSEL.part==='tout'))+(bq?P('moi','À MOI',FSEL.part==='moi',nm)+P('acheter','À ACHETER',FSEL.part==='acheter',na):'')
     +'<button type="button" class="fsPas fsTri" data-fs="tri">'+sansAcc(TR('TRI'))+' '+sansAcc(TR(FS_TRI_N[FSEL.tri]))+'</button>';}
 function fsAideHtml(){return '';} /* (plus de phrase : le geste visé s'écrit sur la pastille de tête « ↑ AVANT ✕ » — toucher une figure l'y équipe, la retoucher revient à TOUT) */
 /* UNE CASE du dock (hexagone) : son balisage, et sa mise à jour — la même en boutique et à l'inventaire */
-function fsHexHtml(s){return '<button type="button" class="fsHex" data-k="'+s+'" style="--dc:'+FIG_DC[s]+'"><span class="fsCase"><span class="fsIn"></span></span><i class="fsJoy">'+pxi(FIG_FAM[s][2])+'</i><b class="fsNom"></b></button>';}
+function fsHexHtml(s){return '<button type="button" class="fsHex" data-k="'+s+'" style="--dc:'+FIG_DC[s]+'"><span class="fsCase"><span class="fsIn"></span></span><i class="fsJoy">'+pxi(FIG_FAM[s][2])+'<b></b></i><b class="fsNom"></b></button>';}
 function fsHexMaj(b,S,vide,vu,flash){const s=+b.getAttribute('data-k'),id=S[s],f=id&&FIG.par[id],c=f?rarInfo(cosmRar('figure',f)).c:vide,nm=f?sansAcc(TR(f.n)):sansAcc(TR('VIDE')),ik=(id||'')+c;
   b.style.setProperty('--fc',c);b.classList.toggle('vide',!f);b.classList.toggle('on',!!vu);b.classList.toggle('cible',FSEL.dir===s);b.setAttribute('aria-pressed',FSEL.dir===s?'true':'false');
   if(b._ik!==ik){b._ik=ik;b.querySelector('.fsIn').innerHTML=f?illuFig(id,c,s===0):'<b class="fsQ">?</b>';} // réécrit seulement si la figure change : sa rotation ne repart pas à chaque retouche
   b.querySelector('.fsNom').textContent=nm;
+  {const g=b.querySelector('.fsJoy>b');if(g){const tg=sansAcc(TR(FS_COURT[s]));if(g.textContent!==tg)g.textContent=tg;}} /* (2026-11-07) le geste ÉCRIT au-dessus de la case (« AVANT »), à la place de la pastille carrée sur l'hexagone */
   b.setAttribute('aria-label',sansAcc(TR(FIG_FAM[s][0]))+' : '+nm);
   if(flash&&f){b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');}}
 /* TOUCHER UNE CASE : viser ce geste (filtre + cible), le rejouer sur le plateau ; la retoucher revient à TOUT */

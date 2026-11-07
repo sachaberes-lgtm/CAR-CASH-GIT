@@ -302,7 +302,6 @@ const ECH_POTS={  // (⚠ pas `ECH` : le banc du téléphone a déjà le sien)
  c_hotrod:{garde:1,enc:0,p:[{t:'rond',r:.042,n:8,ev:1.12,k:'c',len:.30,pts:[[.30,.30,-1.79],[-.30,.30,-1.79]]}]}, // (2026-10-26, LE HOT ROD v4) deux pots réels sous la poupe, de part et d'autre du pont ; `garde` : aucun vieil embout à ôter, `enc:0` : ils pendent à l'air libre sous le plancher
  a_mastodonte:{ote:[[0.47,0.42,-2.43,0.67,1.27,-1.74],[-0.67,0.42,-2.43,-0.47,1.27,-1.74]],p:[{t:'cheminee',h:1.35,r:0.075,k:'c',pts:[[0.8,1.62,-0.46],[-0.8,1.62,-0.46]]}]},
  poster:{p:[{t:'rect',w:0.19,h:0.085,k:'c',e:0.014,cloison:1,pts:[[0.4,0.38,-2.15],[-0.4,0.38,-2.15]]}]},
- requin:{p:[{t:'rond',r:0.07,k:'s',kb:'C',dbl:1,k2:'n',lueur:'G',len:0.4,pts:[[0.44,0.43,-2.12],[-0.44,0.43,-2.12]]}]},
  proto:{garde:1,enc:0,p:[]}, /* (2026-10-27, LA COMÈTE au kit) ses deux propulseurs SONT ses pots : dessinés par le gabarit (tuyères d'or), déclarés dans `pots` — ici rien à ôter ni à poser ; avant : deux cloches à (±0,54 ; 0,55 ; −3,4) sur les propulseurs génériques */
  e_raie:{p:[{t:'sidepipe',r:0.045,k:'c',kb:'a',pts:[[0.8905,0.3,0.8,-0.78],[-0.8905,0.3,0.8,-0.78]]}]},
  a_eternelle:{p:[{t:'rond',r:0.04,k:'b',kb:'x',dbl:1,k2:'x',pts:[[-0.23,0.47,-2.349],[-0.08,0.47,-2.349],[0.08,0.47,-2.349],[0.23,0.47,-2.349]]}]},
