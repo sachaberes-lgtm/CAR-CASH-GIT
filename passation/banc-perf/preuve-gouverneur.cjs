@@ -37,8 +37,8 @@ function monde(opts) {
     let DPR_CAP=1.25;const DPR_MIN=.5,SAVE={d:{q:'net'}},devicePixelRatio=3;
     function dprPlafond(f){return f?1:1.25;} /* le plafond NETTE du départ de P2 */
     const IR={ok:false,cap:0,S:{},calls:[]};
-    window.imgRegle=function(o){if(o==='reset'){if(IR.ok){DPR_CAP=IR.cap;IR.S={};IR.ok=false;}IR.calls.push('reset');return Object.assign({cap:DPR_CAP},IR.S);}
-      if(o&&typeof o==='object'){if(!IR.ok){IR.ok=true;IR.cap=DPR_CAP;}Object.assign(IR.S,o);if('dpr' in o)DPR_CAP=o.dpr;IR.calls.push(o);}return Object.assign({cap:DPR_CAP},IR.S);};
+    window.imgRegle=function(o){if(o==='reset'){if(IR.ok){DPR_CAP=IR.cap;IR.S={};IR.ok=false;}IR.calls.push('reset');qlPose(QL.k);return Object.assign({cap:DPR_CAP},IR.S);}
+      if(o&&typeof o==='object'){if(!IR.ok){IR.ok=true;IR.cap=DPR_CAP;}Object.assign(IR.S,o);if('dpr' in o)DPR_CAP=o.dpr;IR.calls.push(o);qlPose(QL.k);}return Object.assign({cap:DPR_CAP},IR.S);};
     function qlBornes(){const cap=DPR_CAP,pl=Math.min(cap,1.25),bas=Math.min(pl,Math.max(DPR_MIN,1)),nA=Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=Math.max(0,Math.ceil((pl-bas)/.08-1e-6)),kNet=QL.N_EFF+nA,kBas=kNet+nB;return {cap,kMax:kBas+1};}
     const qlPose=function(k){const dem=k;const b=qlBornes();k=Math.max(PAL.b('qlMin',0),Math.min(b.kMax,k|0));if(dem===QL.k+1)QL.plus=(QL.plus||0)+1;QL.k=k;QL.pose=(QL.pose||0)+1;};
     const qlReprise=function(){QL.reprise=(QL.reprise||0)+1;QL.k=Math.min(QL.k,QL.N_EFF);qlPose(QL.k);};
@@ -155,6 +155,7 @@ console.log('8. paliers de coût GPU de la dose (gouverneur-paliers.js, par imgR
   ok('palier 1 vers 2 min (dose 60 à 0,5/s)', t[1] > 110 && t[1] < 135, t[1] && t[1].toFixed(0) + ' s');
   ok('palier 2 vers 3 min 20 (dose 100)', t[2] > 190 && t[2] < 215, t[2] && t[2].toFixed(0) + ' s');
   ok('palier 3 vers 4 min 40 (dose 140)', t[3] > 270 && t[3] < 295, t[3] && t[3].toFixed(0) + ' s');
+  ok('UN SEUL appel à imgRegle par bascule (3 montées = 3 appels, jamais de reset entre deux paliers)', M.IR.calls.length === 3 && M.IR.calls.every(c => typeof c === 'object'), M.IR.calls.length + ' appels');
   const g = g0(), S = M.IR.S;
   ok('palier 3 : plafond 0,8, halo coupé, ombre 512, ciel 1 sur 8, traits ×½, vent et émission ×½, plancher d\'échelle au cran maximal (6)',
      g.palier === 3 && g.dprCap === .8 && S.halo === 'off' && S.ombre === 512 && S.ciel === 8 && S.stries === .5 && g.ventK === .5 && g.emiK === .5 && g.qlMin === 6, JSON.stringify({ g: g.palier, cap: g.dprCap, S, vent: g.ventK, emi: g.emiK, ql: g.qlMin }));
@@ -167,6 +168,7 @@ console.log('8. paliers de coût GPU de la dose (gouverneur-paliers.js, par imgR
   console.log('     repos : ' + pr.map(x => Math.round(x[0]) + ' s → palier ' + x[1]).join(' · '));
   ok('au repos : le palier 3 tient au moins 60 s', pr[1] && pr[1][1] === 2 && pr[1][0] >= 59, pr[1] && pr[1][0].toFixed(0) + ' s');
   ok('au repos : un palier à la fois (3 → 2 → 1 → 0), jamais de saut', pr.map(x => x[1]).join('') === '3210', pr.map(x => x[1]).join(' '));
+  ok('la descente : 3 → 2 → 1 par un seul appel chacun, 1 → 0 par reset (+1 appel du plafond repris)', M.IR.calls.length === 3 + 1 + 3 && M.IR.calls[M.IR.calls.length - 1] === 'reset', M.IR.calls.length + ' appels au total');
   ok('palier 0 retrouvé : le départ de P2 est rendu (plafond 1,25, rien posé, vent/émission/plancher d\'origine)',
      g0().palier === 0 && M.dprCap() === 1.25 && Object.keys(M.IR.S).length === 0 && M.pal.b('qlMin', 0) === 0 && M.pal.b('ventK', 1) === 1 && M.pal.b('emiK', 1) === 1);
   const X = monde({ search: '?gouv=max', p75: 10 }); X.dbgGouv(200); course(X, 5, 16.7, 12);
@@ -179,10 +181,10 @@ console.log('8. paliers de coût GPU de la dose (gouverneur-paliers.js, par imgR
   T.ev['cc:thermique'][0]({ detail: { etat: 2 } }); course(T, 3, 16.7, 12);
   ok('état iOS 2 : la dose passe à 160 (gouverneur-thermique) donc palier 3 tout de suite', T.dbgGouv().D >= 160 && T.dbgGouv().gpu.palier === 3 && T.dprCap() === .8);
 }
-console.log('9. remontée vers l\'image de l\'ordinateur (paliers négatifs)');
+console.log('9. remontée vers l\'image de l\'ordinateur (paliers négatifs ; ?mob_raise=1, inactive par défaut)');
 {
   // frais et fluide : la dose tenue à 10, travail de l'image 6 ms → −1 à 60 s, −2 à 120 s, pas de −3
-  const M = monde({ p75: 10 }), pas = []; const t0 = M.t.now;
+  const M = monde({ search: '?mob_raise=1', p75: 10 }), pas = []; const t0 = M.t.now;
   while (M.t.now - t0 < 200000) { M.dbgGouv(10); image(M, 16.7, 6); const p = M.dbgGouv().gpu.palier; if (!pas.length || pas[pas.length - 1][1] !== p) pas.push([(M.t.now - t0) / 1000, p]); }
   console.log('     ' + pas.map(x => Math.round(x[0]) + ' s → palier ' + x[1]).join(' · '));
   ok('frais et fluide : palier −1 vers 60 s, −2 vers 120 s, jamais plus', pas.map(x => x[1]).join(' ') === '0 -1 -2' && pas[1][0] > 58 && pas[1][0] < 64 && pas[2][0] > 118 && pas[2][0] < 126, JSON.stringify(pas));
@@ -194,13 +196,13 @@ console.log('9. remontée vers l\'image de l\'ordinateur (paliers négatifs)');
   ok('pas de nouvelle remontée dans la même course', M.dbgGouv().gpu.palier === 0 && M.dbgGouv().gpu.interdit === true);
   M.set({ gameOver: true }); course(M, 3, 16.7, 6); M.set({ gameOver: false });
   ok('après la course (repos), la remontée est de nouveau permise', M.dbgGouv().gpu.interdit === false);
-  const N = monde({ p75: 10 }); const n0 = N.t.now; while (N.t.now - n0 < 100000) { N.dbgGouv(10); image(N, 16.7, 14); }
+  const N = monde({ search: '?mob_raise=1', p75: 10 }); const n0 = N.t.now; while (N.t.now - n0 < 100000) { N.dbgGouv(10); image(N, 16.7, 14); }
   ok('travail de l\'image à 14 ms (> 12) : jamais de remontée', N.dbgGouv().gpu.palier === 0);
-  const Q = monde({ p75: 10 }); const q0 = Q.t.now; while (Q.t.now - q0 < 100000) { Q.dbgGouv(45); image(Q, 16.7, 6); }
+  const Q = monde({ search: '?mob_raise=1', p75: 10 }); const q0 = Q.t.now; while (Q.t.now - q0 < 100000) { Q.dbgGouv(45); image(Q, 16.7, 6); }
   ok('dose >= 40 (pas frais) : jamais de remontée', Q.dbgGouv().gpu.palier === 0);
-  const Z = monde({ search: '?mob_raise=0', p75: 10 }); const z0 = Z.t.now; while (Z.t.now - z0 < 100000) { Z.dbgGouv(10); image(Z, 16.7, 6); }
-  ok('?mob_raise=0 : jamais de remontée', Z.dbgGouv().gpu.palier === 0);
-  const G = monde({ p75: 10 }), gp = []; const g1 = G.t.now;
+  const Z = monde({ p75: 10 }); const z0 = Z.t.now; while (Z.t.now - z0 < 100000) { Z.dbgGouv(10); image(Z, 16.7, 6); }
+  ok('PAR DÉFAUT (sans ?mob_raise=1) : jamais de remontée', Z.dbgGouv().gpu.palier === 0 && Z.IR.calls.length === 0);
+  const G = monde({ search: '?mob_raise=1', p75: 10 }), gp = []; const g1 = G.t.now;
   while (G.t.now - g1 < 230000) { image(G, 16.7, 6); const p = G.dbgGouv().gpu.palier; if (!gp.length || gp[gp.length - 1][1] !== p) gp.push([(G.t.now - g1) / 1000, p]); }
   console.log('     course normale (30 calé, dose +0,5/s, travail 6 ms) : ' + gp.map(x => Math.round(x[0]) + ' s → palier ' + x[1]).join(' · '));
   ok('course normale : −1 vers 60 s (dose 30), puis le palier 1 dès la dose 60 (~2 min), puis 2 vers 3 min 20', gp.map(x => x[1]).join(' ') === '0 -1 1 2' && gp[1][0] > 58 && gp[1][0] < 64 && gp[2][0] > 118 && gp[2][0] < 125, JSON.stringify(gp.map(x => [Math.round(x[0]), x[1]])));
