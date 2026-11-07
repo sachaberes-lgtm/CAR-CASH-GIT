@@ -36,7 +36,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
       dx:(Math.random()-.5)*14,dy:(Math.random()-.5)*14});
   }
   // ⚠ \uFE0E : même raison que pour les jetons — sans lui macOS remplace ♥ ♣ ☠ ♦ par ses emoji couleur.
-  const SYMS=[['€','#ffd75e'],['♥\uFE0E','#ff5e8a'],['♣\uFE0E','#54e07a'],['☠\uFE0E','#e8e8f0'],['£','#9ad8ff'],['¥','#ffc46b'],['1.61','#fff2be'],['♦\uFE0E','#ff9d2e']];
+  const SYMS=[['\uE000','#ffd75e'],['♥\uFE0E','#ff5e8a'],['♣\uFE0E','#54e07a'],['☠\uFE0E','#e8e8f0'],['£','#9ad8ff'],['¥','#ffc46b'],['1.61','#fff2be'],['♦\uFE0E','#ff9d2e']];
   function beat(k){ // battement de cœur du logo : pulsation + micro-flash + onde
     if(done)return;
     /* (2026-10-15) le battement faisait pulser « 1.61 »… encore INVISIBLE à ce moment-là (il ne se lève qu'après la fission, depuis l'ordre
@@ -123,7 +123,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
   const INTRO_SON=/[?&]intro=muet\b/.test(location.search)?0:/[?&]intro=musique\b/.test(location.search)?2:1, INTRO_NOTES=INTRO_SON===2;
   function introSound(){
     if(!SND.sfx||!(VOL.sfx>0))return; // mute SON : l'intro reste muette aussi — (2026-09-28) et le curseur EFFETS à zéro aussi
-    try{iAC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000});}catch(e){return new C();}})();}catch(e){return;}
+    try{iAC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000,latencyHint:'interactive'});}catch(e){return new C();}})();}catch(e){return;}
     const A=iAC;acReveil(A); /* (2026-10-28) acReveil : un refus d'iOS se réessaie au toucher, sans promesse rejetée */
     const t0=A.currentTime+.05,PHI=1.6180339;
     const phi=k=>110*Math.pow(PHI,k); // l'échelle d'or : 110·φ^k
@@ -410,6 +410,8 @@ addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!ga
 let wakeLock=null;
 function wakeAsk(){ try{ if(navigator.wakeLock&&!wakeLock)navigator.wakeLock.request('screen').then(function(w){
   wakeLock=w;w.addEventListener('release',function(){wakeLock=null;}); },function(){}); }catch(e){} }
+/* (2026-11-07) L'ÉCRAN NE RESTE ALLUMÉ QUE PENDANT LA COURSE : le verrou, pris au JOUER, n'était jamais rendu — l'écran restait allumé au garage, à la boutique, au menu, des heures. endGame le rend ; start() le reprend. */
+function wakeLache(){ try{ if(wakeLock){const w=wakeLock;wakeLock=null;w.release().catch(function(){});} }catch(e){} }
 function goImmersive(){
   if(!IS_MOBILE)return;
   // Sous Capacitor (app native) : la WebView est déjà plein écran et requestFullscreen n'est pas

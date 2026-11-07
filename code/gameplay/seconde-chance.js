@@ -89,22 +89,41 @@ window.dbgPub=function(k){ // banc : dbgPub() l'état · ('fin') la pub maison f
    Contrat avec l'écran de mort (INTERFACE, plaque #mChance) : `chanceEtat()` → {ok, prix, reste} et `chanceJoue()`. L'événement `cc:chance`
    (sur document) part quand l'offre s'ouvre, s'éteint ou sert : la plaque relit alors chanceEtat(). `?chance=0` éteint tout. Banc : dbgChance(). */
 const CHANCE={on:!qDev(/[?&]chance=0\b/),plancher:300,tMin:20,moteurPerte:1,fen:5500,invD:3,
-  offre:false,used:false,pub:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0};
+  offre:false,used:false,pub:false,fin:0,prix:0,m0:0,a0:0,v1:0,rs:null,lb:null,inv:0,tm:0,auto:false,autoD:950};
 function chanceBase(){return CHANCE.used?CHANCE.m0:START_CASH;} // ce que la prochaine fin de partie NE verse PAS (déjà versé avant la reprise)
 function chanceSignal(){try{document.dispatchEvent(new Event('cc:chance'));}catch(e){}}
-function chanceRaz(){try{railsPose();}catch(e){} /* (2026-11-05, Opus : D7) chanceRaz = le crochet « partie neuve » (frole-contrats.js) : les rails du départ s'y arment, 1re partie comprise */resuFin(false);RESU.plein=0;clearTimeout(CHANCE.tm);CHANCE.gratuit=false;CHANCE.pub=false;const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;chanceCompteFin();if(f)chanceSignal();}
+function chanceRaz(){try{railsPose();}catch(e){} /* (2026-11-05, Opus : D7) chanceRaz = le crochet « partie neuve » (frole-contrats.js) : les rails du départ s'y arment, 1re partie comprise */resuFin(false);RESU.plein=0;clearTimeout(CHANCE.tm);CHANCE.gratuit=false;CHANCE.auto=false;CHANCE.pub=false;const f=CHANCE.offre;CHANCE.offre=false;CHANCE.used=false;CHANCE.inv=0;CHANCE.fin=0;CHANCE.prix=0;CHANCE.m0=0;CHANCE.a0=0;CHANCE.v1=0;CHANCE.rs=null;CHANCE.lb=null;chanceCompteFin();if(f)chanceSignal();}
 function chanceCompteFin(){const s9=avE('slam9');if(s9&&s9.classList.contains('compte'))s9.classList.remove('compte','on');} /* (chasse aux bugs) le 3 · 2 · 1 de la reprise interrompu (pause puis RECOMMENCER ou QUITTER : son minuteur CHANCE.tm est tué) ne reste pas figé au centre de l'écran */
 function chanceOuvre(boom,sc,q){ // fin de endGame : la partie est versée, l'écran de mort s'ouvre — l'offre aussi, si elle a lieu d'être
-  clearTimeout(CHANCE.tm);chanceCompteFin();CHANCE.offre=false;
+  clearTimeout(CHANCE.tm);chanceCompteFin();CHANCE.offre=false;CHANCE.auto=false;
   const bon=(SAVE.d.chanceG|0)>0; // (FINAL SPIN d'IDEE) un BON de seconde chance GRATUITE gagné à la machine : pas de prix, pas de durée minimale — il faut toujours une explosion
   CHANCE.gratuit=false;
   if(!CHANCE.on||CHANCE.used||!boom||SANDBOX||TUTO.on||TUTO.quitte||PARK.on||SURV.on||BALADE||(!bon&&(RUNX.t||0)<CHANCE.tMin))return;
   CHANCE.prix=0;CHANCE.gratuit=bon; /* (2026-10-15 soir, Sacha : « au lieu de payer il faut regarder une pub pour ressusciter ») plus de PRIX : la reprise se gagne en regardant une pub (chanceJoue → pubRecompense) ; le bon de la machine à sous s'en passe. Avant : */ /* le prix = bon?0:Math.max(1,Math.round(commitExploits._vire||0)) — (2026-10-15 soir, Sacha : « le bouton continuer quand on meurt doit couter au joueur tout ce qu'il a gagne dans la partie ») le prix = TOUT l'encaissé de la partie (commitExploits._vire, ce que endGame vient de verser), au dollar près ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-15, Sacha : « le prix doit être égal au nombre de pièces que tu as ramassées ») le prix = les PIÈCES ramassées de la partie, une pièce = 1 $ (RUNX.coins, compté au ramassage) ; 1 $ au moins, sinon la reprise s'afficherait GRATUIT. Avant : */ /* (2026-10-14 soir, Sacha : « continuer doit coûter la même somme que ce qu'il a gagné durant la partie ») le prix = 100 % de l'encaissé, au dollar près ; CHANCE.plancher seulement pour une partie qui n'a presque rien rapporté (sinon la reprise serait gratuite) */
   CHANCE.lb=q?sc:null;CHANCE.v1=commitExploits._vire||0;CHANCE.a0=commitExploits._aura||0;
+  if(bon){CHANCE.auto=true;chanceAuto();return;} /* (2026-11-06, Sacha : « deuxième chance doit réanimer automatiquement ») le BON de la machine ne se propose pas : il SERT, tout seul — pas de plaque, pas d'écran de mort */
   CHANCE.offre=true;CHANCE.fin=performance.now()+CHANCE.fen;
   if(!bon)pubPrepare('seconde-chance'); // (15/10 soir) la régie (AdSense) va chercher sa pub pendant que la plaque monte
   CHANCE.tm=setTimeout(function(){CHANCE.offre=false;chanceSignal();},CHANCE.fen+30);
   chanceSignal();
+}
+/* ===== LA RÉANIMATION AUTOMATIQUE (2026-11-06, Sacha : « deuxième chance doit réanimer automatiquement, on avait déjà une animation pour ça ») =====
+   Un BON de seconde chance gagné à la machine (`SAVE.d.chanceG`) ne passe plus par la plaque de l'écran de mort : à l'explosion, la caisse
+   est réanimée toute seule. L'écran de fin ne s'ouvre PAS (endGame lit `CHANCE.auto`) ; la caisse en miettes reste à l'écran `CHANCE.autoD` ms
+   sous l'annonce « SECONDE CHANCE » (le cœur du jeu), puis le volet et la RÉSURRECTION (RESU, juste plus bas) font le reste — c'est `chancePrend`,
+   le même chemin qu'avant, qui dépense le bon. Rien n'est payé ni compté en plus : la fin de la 1re partie a déjà tout versé (endGame).
+   Le bon n'est dépensé qu'au moment de la reprise : un REJOUER / un retour au menu pendant ce battement ne le perd pas. */
+Object.assign(I18N,{'SECONDE CHANCE':'SECOND CHANCE','RÉANIMATION AUTOMATIQUE':'AUTOMATIC REVIVAL'});
+function chanceAuto(){
+  clearTimeout(CHANCE.tm);
+  try{slam('SECONDE CHANCE','RÉANIMATION AUTOMATIQUE','#ff7aa8','#ffd75e',40,9);}catch(e){}
+  try{if(SONV2)sfx('ui.ok');}catch(e){}hap([10,30,10]);
+  const va=function(){
+    if(!CHANCE.auto)return;
+    if(!(started&&gameOver)||garageOn||CHANCE.used){CHANCE.auto=false;return;} // REJOUER / menu / garage entre-temps : on laisse tomber, le bon reste dans la sauvegarde
+    if(ecranWipe._on||PUBR.on){CHANCE.tm=setTimeout(va,150);return;}
+    CHANCE.auto=false;chancePrend();};
+  CHANCE.tm=setTimeout(va,CHANCE.autoD);
 }
 /* ===== LA SECONDE CHANCE NE FILE PAS EN ARRIÈRE-PLAN (24/10, débogage sortie iOS : « pas de minuteur de jeu qui avance en arrière-plan ») =====
    L'offre se comptait à l'horloge murale (CHANCE.fin) et par un setTimeout : l'appli quittée une seconde pendant l'offre (une notification,
@@ -291,7 +310,13 @@ function resuFin(fete){ // la caisse revient (fete : la dernière pièce posée)
   for(let i=0;i<30;i++){const a=i/30*Math.PI*2;RESU_V.set(Math.cos(a),0,Math.sin(a)).applyQuaternion(q); // L'ANNEAU DE NÉON qui part au ras de la route
     spawnP(neonPool,p.x+RESU_V.x*.8,p.y+.35,p.z+RESU_V.z*.8,vc.x+RESU_V.x*15,vc.y+RESU_V.y*15+.5,vc.z+RESU_V.z*15,.45);}
   for(let i=0;i<34;i++)spawnP(sparkGold,p.x,p.y+.6,p.z,vc.x+(Math.random()-.5)*16,vc.y+3+Math.random()*9,vc.z+(Math.random()-.5)*16,.45+Math.random()*.3);
-  try{flashEcran('rgba(255,215,94,.4)');}catch(e){}
+  /* (2026-11-06, Sacha : « retravaille l'animation ») LA RENAISSANCE : la réanimation étant automatique, c'est LE moment — un second anneau ROSE
+     (la couleur du cœur de la machine) qui monte en spirale, une gerbe rose, le champ qui s'ouvre d'un coup, un flash rose puis or */
+  for(let i=0;i<22;i++){const a=i/22*Math.PI*2;RESU_V.set(Math.cos(a),0,Math.sin(a)).applyQuaternion(q);
+    spawnP(sparkPink,p.x+RESU_V.x*.6,p.y+.5+i*.05,p.z+RESU_V.z*.6,vc.x+RESU_V.x*9+Math.sin(a*3)*2,vc.y+4+i*.25,vc.z+RESU_V.z*9,.7+Math.random()*.3);}
+  for(let i=0;i<16;i++)spawnP(sparkPink,p.x,p.y+.8,p.z,vc.x+(Math.random()-.5)*10,vc.y+5+Math.random()*8,vc.z+(Math.random()-.5)*10,.8+Math.random()*.4);
+  try{fovPunch=Math.max(fovPunch,9);shake=Math.max(shake,.3);}catch(e){}
+  try{flashEcran('rgba(255,110,170,.45)');setTimeout(function(){try{flashEcran('rgba(255,215,94,.4)');}catch(e){}},110);}catch(e){}
   try{if(SONV2)sfx('jeu.miracule',{vol:-2});}catch(e){}hap([18,40,26,60,40]);}
 function resuVue(){ // au rendu : les éclats calés sur la caisse (qui a bougé cette image) — et le ménage si la course s'est arrêtée
   if(!started||gameOver||garageOn||mode==='boom'||!(CHANCE.inv>0)){resuFin(false);return;}
@@ -310,7 +335,8 @@ window.dbgChance=function(k){ // banc : dbgChance() l'état · ('mort') explose 
   if(k==='t'&&arguments.length>1)RUNX.t=+arguments[1];
   if(k==='$'&&arguments.length>1){money=START_CASH+(+arguments[1]);try{paintMoney();}catch(e){}}
   if(k==='choc'&&started&&!gameOver)explode('tour'); // pendant le bouclier : rien ne doit se passer
-  const e=chanceEtat();return {ok:e.ok,prix:e.prix,reste:e.reste,offre:CHANCE.offre,used:CHANCE.used,inv:+CHANCE.inv.toFixed(2),bank:Math.round(bank()),money:Math.round(money),t:+(RUNX.t||0).toFixed(1),gameOver:gameOver,mode:mode,base:chanceBase()};};
+  if((k==='bon'||k==='boost')&&arguments.length>1){const c9=k==='bon'?'chanceG':'spinBoost';SAVE.d[c9]=Math.max(0,Math.min(3,+arguments[1]|0));SAVE.mark();} // (2026-11-06) ('bon',n) / ('boost',n) : les bons de la machine à sous (réanimation automatique, départ boosté)
+  const e=chanceEtat();return {ok:e.ok,prix:e.prix,reste:e.reste,offre:CHANCE.offre,auto:CHANCE.auto,bons:{chanceG:SAVE.d.chanceG|0,spinBoost:SAVE.d.spinBoost|0},used:CHANCE.used,inv:+CHANCE.inv.toFixed(2),bank:Math.round(bank()),money:Math.round(money),t:+(RUNX.t||0).toFixed(1),gameOver:gameOver,mode:mode,base:chanceBase()};};
 /* LE ×2 DU GAIN (2026-10-19, Sacha au quiz : « ×2 sur le gain » ; « pub maison de 5 s » tant qu'AdMob n'est pas branché) — à l'écran de fin,
    la plaque ×2 · +$ N · ▶ PUB (#mDouble, voir « LE ×2 DU GAIN À L'ÉCRAN DE FIN ») : une pub vue jusqu'au bout, et ce que la partie a VERSÉ
    AU COMPTE (le grand chiffre vert, RUNX.verse) est versé une 2e fois. UNE fois par PARTIE (une seconde chance prise ne la rouvre pas : elle
@@ -491,6 +517,7 @@ function endGame(){
   try{campStop();}catch(e){} // (2026-09-27) éclairs, caisse-nuage, plaque : rien ne reste figé derrière l'écran de fin
   try{rainbowCoupe();nfeuCoupe();}catch(e){} // (2026-10-07) l'arc-en-ciel de pixels brûle encore pendant l'explosion : la boucle s'arrête ici, il ne doit pas rester figé
   try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
+  try{wakeLache();}catch(e){} /* (2026-11-07) la course est finie : l'écran peut se rendormir */
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
   musicStop(true);setTimeout(function menuApres(){if(!gameOver)return;if(PUBR.on||ecranWipe._on){setTimeout(menuApres,400);return;}musicMenu();},1400); /* (chasse aux bugs) CONTINUER touché avant 1,4 s : le lobby ne repart pas PAR-DESSUS la pub récompensée (pubSilence l'a fait taire) ni sous le volet d'une reprise — il attend qu'ils rendent la main */ // TAPE-STOP de fin, puis la musique du menu revient, étouffée
   lastAlertEl.style.display='none';vChip('');for(const l9 of gyroLights)l9.intensity=0; // la poursuite s'éteint avec la caisse — (2026-09-30) et la plaque du Survivant au téléphone
@@ -548,12 +575,13 @@ function endGame(){
   }
   renderLeaders(q?leaders.findIndex(function(e){return e.s===sc;}):-1);
   try{chanceOuvre(mode==='boom',sc,q);}catch(e){} // (2026-10-14) LA SECONDE CHANCE (voir CHANCE)
-  overlay.style.display='flex';
+  overlay.style.display=CHANCE.auto?'none':'flex'; // (2026-11-06) réanimation automatique : l'écran de mort ne s'ouvre pas, la caisse revient
   hautVide(); // l'écran de mort récapitule moteur et défis : la file du haut n'a plus rien à dire
   try{document.dispatchEvent(new Event('cc:jeu'));}catch(e){} // la course part ou s'arrête : les commandes le savent À L'INSTANT, pas au prochain tick
 }
 function start(){
   if(started||document.getElementById('splash'))return;started=true;
+  try{wakeAsk();}catch(e){} /* (2026-11-07) le verrou d'écran suit la course, même un REJOUER qui ne repasse pas par goImmersive */
   SF.neuf=false; // (2026-10-13) la 1re partie roule sur la piste bâtie sous le voile du JOUER : son tirage est consommé
   loop._rebuildT=performance.now();loop._rebuildD=5000; // (tour 2) le départ hache (1ers shaders Metal, 1res textures) : pas une lenteur — 5 s de grâce
   runxReset(); // les compteurs de CONTRAT partent de zéro dès la 1re partie de la session

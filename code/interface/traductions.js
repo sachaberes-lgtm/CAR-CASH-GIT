@@ -402,7 +402,7 @@ Object.assign(I18N,{"INCLINAISON":"TILT STEERING","MAIN":"HAND","GAUCHER":"LEFTY
 /* ===== LES CLÉS MANQUANTES DU JURY (2026-11-05, Sonnet : « clés I18N manquantes : CAPTEUR REFUSÉ, RACCOURCI, CHAMPION !… et les aria-label sans traduction ») =====
    Relevées par un script qui liste tout appel de TR, sous:, data-fr et aria-label sans clé. RACCOURCI, CHAMPION !, DERNIER !, EXPLOSION DANS, COUPERET DANS, ACCROCHE !,
    ELLE T'A SEME et LA CAISSE-NUAGE existent déjà (zones-caisses.js). RARES (boutique) : le nom d'une rareté, au singulier en anglais comme COMMON / EPIC. */
-Object.assign(I18N,{"LES PIECES VIENNENT A TOI":"COINS COME TO YOU","AURA x2, x3 SI TU ENCHAINES":"AURA x2, x3 IF YOU CHAIN","AIRTIME x2, 2 JAUGES":"AIRTIME x2, 2 GAUGES",
+Object.assign(I18N,{"LES PIECES VIENNENT A TOI":"COINS COME TO YOU","AURA ×2, ×3 SI TU ENCHAINES":"AURA ×2, ×3 IF YOU CHAIN","AIRTIME ×2, 2 JAUGES":"AIRTIME ×2, 2 GAUGES",
   "DONUT":"DONUT","BOOST":"BOOST","RIEN ICI":"NOTHING HERE","BURN-OUT":"BURN-OUT","SECONDE CHANCE":"SECOND CHANCE","PREMIER MATIN":"FIRST MORNING","THE DARK TRIAD":"THE DARK TRIAD",
   "CAPTEUR REFUSÉ : RÉGLAGES › SAFARI":"SENSOR DENIED: SETTINGS > SAFARI","PENCHE LE TÉLÉPHONE POUR TOURNER":"TILT YOUR PHONE TO STEER","EARLY DEAD":"CHAIN LOST",
   "NOUVEAU":"NEW"}); /* (la pastille NEW de la boutique, le bandeau « chaîne perdue » de la mort précoce) */

@@ -4,6 +4,21 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+## LES PETITES POLITESSES (2026-11-07, v1255 — Sacha : « cherche plein de mini détails qui ne se voient même pas, pour rendre le jeu plus pro »)
+Audit en quatre axes (page et PWA, robustesse, textes et nombres, sensations), puis ce qui a été posé :
+- **Page** : `color-scheme: dark` (meta et CSS : curseurs, champ du code de sauvegarde, barres natives en sombre), `translate="no"` + `google notranslate` (Chrome ne propose plus de traduire), `format-detection telephone=no`, aperçu de lien Open Graph / Twitter (icône 512), un `<noscript>` bilingue.
+- **Manifeste** : `id`, `categories`, fond `#07050f` (le noir du body : plus de saut de couleur au lancement), icône **maskable** `assets/icons/icon-maskable-512.png` (le logo à 80 %, dans la zone sûre d'Android), l'entrée `icon.svg` retirée (elle portait encore l'emoji 💰 d'Apple).
+- **Sauvegarde** : écrite aussi sur `pagehide` (onglet fermé sans visibilitychange) ; une sauvegarde ILLISIBLE n'est plus écrasée en silence : son texte brut est gardé sous `cashcarSave_corrompue`.
+- **Écran** : le verrou d'éveil (Wake Lock) est rendu à la fin de la course (`wakeLache` dans endGame) et repris par `start()` ; au retour d'arrière-plan, seulement en course.
+- **Boutique du jour** : change à minuit HEURE LOCALE (`bqDecLoc`), plus à 1 h ou 2 h du matin (UTC). Le jour du déploiement, une vitrine peut se renouveler une fois.
+- **Audio** : `latencyHint:'interactive'` sur les deux contextes.
+- **Nombres** : `fmt` (record, classement, score) écrit « €1,234 » en anglais et remplace l'espace fine U+202F que la police pixel ne dessine pas ; « AIRTIME ×2 », « AURA ×2, ×3 » (clés I18N suivies) ; durée des pouvoirs « 3,2s » en français.
+- **Sensations** : `uiPop` ne retire plus la classe `pop` PERMANENTE des vignettes de traînée à icône (leur mise en page sautait après un toucher) ; le motif de vibration du refus n'est plus écrasé par le tic de `uiClic` sur Android ; vibrations ajoutées (équiper une caisse, mission réussie, bannière de mission, record de fin de partie) ; un 2e toast re-claque ; caisse verrouillée de l'inventaire = « refus » ; le ⏸ s'enfonce ; le bouton du volant revient au centre en douceur au lâcher.
+- **Accessibilité** : `aria-label` des curseurs et du champ du nom, canvas d'effets `aria-hidden`, `aria-modal` de l'inventaire, focus clavier visible sur tout bouton (`:where`, zéro spécificité), `overflow-wrap` du toast, la secousse du NON coupée en mouvement réduit.
+- **?intro=ancien** : le serpent de chargement restait posé sur le titre (carré noir) — masqué dans ce mode (Sacha : « ce genre de conflit est pas acceptable »).
+Laissé de côté : le compte à rebours au départ de course (il figerait un départ pensé comme un largage avec 3 s de nitro offert), le retrait de trois emoji (il en reste des dizaines dans les annonces : rien de plus cohérent).
+Nouveau morceau : `code/css/politesses.css` (après finition-ecrans.css).
+
 ## LES SONS À LA DEMANDE (2026-11-05, v1177 — Sacha, après le bilan « LA MÉMOIRE DE L'ORDI » : « Sons à la demande »)
 - La banque entière décodée pesait ~130 Mo de PCM dans le processus de rendu (229 sons, 384 fichiers avec leurs bases d'octave), pour une partie
   qui n'en joue qu'une fraction (forêt, banquise, ailes, richesse, machine : 4,3 des 6,9 Mo de MP3 dorment). `sfx.js` (v9) : au chargement, seuls

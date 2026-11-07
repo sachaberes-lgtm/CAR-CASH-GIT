@@ -95,6 +95,7 @@ $('gEquip').addEventListener('click',e=>{e.stopPropagation();
   SAVE.d.equipped=garageI;SAVE.flush();
   level=garageI;levelCash=0;                                // la caisse choisie devient la caisse de départ — ⚠ plus de levelCash pré-rempli : il offrait un magot de départ égal au seuil de la caisse (la tirelire à 320 000 d'anciennes sessions venait de là)
   garageShow(garageI);                                      // rafraîchit l'étiquette du bouton
+  hap(8); /* (2026-11-07) équiper une caisse se sent, comme équiper un habillage (ci-dessus) */
   try{if(SONV2)sfx('ui.equipe');else fanfare();}catch(err){} /* (console de son) équiper = le loquet + la quinte, pas la fanfare d'une victoire */
 });
 /* L'ACHAT. ⚠ on n'ÉQUIPE pas dans la foulée : acheter et choisir sont deux gestes, et les enchaîner

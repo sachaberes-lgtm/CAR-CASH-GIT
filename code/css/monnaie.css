@@ -1,0 +1,11 @@
+<style id="monnaie">
+/* ===== LA MONNAIE DU JEU (2026-11-07, Léo : « le sketch en monnaie, partout ») =====
+   Le symbole de son sketch au stylo (formes gardées une à une) est UN GLYPHE (U+E000) d'une mini-police (assets/fonts/monnaie.woff2, 900 octets),
+   ajouté à chacune des cinq polices du jeu par unicode-range : il prend la couleur, le contour et la taille du texte voisin (DOM et canvas).
+   CUR() rend ce glyphe ; le vrai argent (les offres « 0,99 € ») reste écrit « € ». */
+@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Silkscreen';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Jersey';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Sixtyfour';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Jacquard';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+</style>

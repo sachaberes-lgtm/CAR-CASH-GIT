@@ -213,6 +213,25 @@ html body #coach.v2 .coSkip{pointer-events:auto}
   html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
     font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal}
 }
+/* ===== LA CARTE COMPACTE, DEBOUT COMME COUCHÉ, ET ELLE S'EFFACE PENDANT LE GESTE (2026-11-07, Sacha : « le tutoriel est pas jouable parce que la fenêtre de tuto
+   masque la voiture ») Debout, la carte faisait 162 px de haut (MESURÉ 390 × 844 : de 56 à 218) à cause du gros bouton PASSER pleine largeur sous le texte ; elle prend
+   maintenant la forme du bandeau couché : le petit film à gauche, le mot et la ligne au milieu, PASSER en colonne à droite (≥ 44 px) — environ 94 px au lieu de 162.
+   Et dès que le pouce touche le volant ou NITRO (.joue, posé par tutoTick), la carte s'estompe à 38 % : on voit la route et la caisse pendant qu'on fait le geste ;
+   elle revient à pleine force quand le pouce se lève. Seul PASSER reste cliquable, comme avant (la carte laisse passer tous les doigts). */
+@media (orientation:portrait){
+  html body #coach.v2.v2{width:min(430px,calc(100vw - 20px));top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 52px);
+    grid-template-columns:76px minmax(0,1fr) 84px;column-gap:10px;padding:8px}
+  html body #coach.v2 .ecT{font-size:min(20px,calc((min(430px,100vw - 20px) - 76px - 92px - 46px) / var(--n,8)))}
+  html body #coach.v2 .coSkip{grid-column:3;grid-row:1/4;align-self:stretch;width:auto;min-height:44px;margin:0;padding:6px 4px;
+    font-size:9px;line-height:1.6;letter-spacing:1px;white-space:normal;text-wrap:balance}
+}
+/* le bouton PASSER : une colonne de 92 px, le mot en 8 px — « PASSER LE / TUTO › » sur deux lignes (trois avant : le « LE » seul) */
+@media (orientation:portrait),(orientation:landscape) and (max-height:540px){
+  html body #coach.v2.v2{grid-template-columns:76px minmax(0,1fr) 92px}
+  html body #coach.v2 .coSkip{font-size:8px;letter-spacing:.5px;text-wrap:balance}
+}
+html body #coach.v2.v2.on.joue:not(.bravo){opacity:.38;transition-duration:var(--t-fast)}
+html body #coach.v2.v2.on.joue .coSkip{opacity:1}
 </style>
 <style id="sansCarriere">
 /* (2026-10-14, Sacha : « supprime complètement de main le mode challenge pour l'instant » ; la carrière est retirée le 2026-10-18) : sur l'accueil,
