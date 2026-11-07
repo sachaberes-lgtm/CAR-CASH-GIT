@@ -24,9 +24,10 @@ function bqFigCarte(k,n,dir){const o=bqCos(k),d=o.d,id=d.id,own=figPossede(id),S
   if(own&&ici){pied='<span class="fgPied fgOk">'+pxi('coche')+'<b>'+sansAcc(TR('ÉQUIPÉE'))+'</b></span>';etat=sansAcc(TR('ÉQUIPÉE'));}
   else if(own){pied='<span class="fgPied fgEq1" role="button" data-fgeq="1" aria-label="'+sansAcc(TR('ÉQUIPER'))+' : '+g+'"><i class="fgEqDir">'+pxi(FIG_FAM[dir][2])+'</i><b>'+sansAcc(TR('ÉQUIPER'))+'</b></span>';etat=sansAcc(TR('À TOI'));}
   else if(d.p){const cher=bank()<d.p;pied='<span class="fgPied fgPx'+(cher?' cher':'')+'">'+pxi('piece')+'<b>'+bqPxT(d.p)+'</b></span>';etat=bqPxT(d.p);}
-  else{pied='<span class="fgPied fgPx">'+sansAcc(TR('MISSION'))+'</span>';etat=sansAcc(TR('MISSION'));}
+  else{pied='<span class="fgPied fgPx fgMis">'+pxi('verrou')+'<b>'+sansAcc(TR('MISSION'))+'</b></span>'; /* (2026-11-07, passe finale) le cadenas, comme partout */etat=sansAcc(TR('MISSION'));}
   return '<div class="bqK hab fgK r-'+r+(own?' own':'')+(ici?' ici':'')+'" data-k="'+k+'" data-dir="'+dir+'" role="button" style="--rc:'+ri.c+';--dc:'+FIG_DC[dir]+';--i:'+Math.min(n,8)+'" aria-label="'+nom.replace(/"/g,'')+' · '+g+' · '+etat+'">'
     +'<span class="bqKph c-figure" data-phf="'+id+'|'+FIG_DIR[dir]+'">'+bqFigHab(k)+'</span>'
+    +'<span class="fgFond" aria-hidden="true">'+pxi(FIG_FAM[dir][2])+'<b>'+sansAcc(TR(FIG_FAM[dir][1]))+'</b></span>' /* le geste en grand, au-dessus du film (là où la caisse saute) : quand l'affiche a la hauteur */
     +bqFigGestes(id,dir)+'<span class="fgRe" aria-hidden="true">'+pxi('rotation')+'<b>'+sansAcc(TR('REJOUER'))+'</b></span>'
     +'<span class="fgRar">'+sansAcc(TR(ri.n1))+'</span><span class="bqKn">'+nom+'</span>'+pied+'</div>';}
 /* la pellicule entière (appelée par garBqPanneau à la place des cartes communes) ; elle note où on en était, pour y revenir après un équipement */
@@ -38,8 +39,9 @@ function bqFigRailHtml(){const R=bqFigRail(),pan=document.getElementById('gBqPan
    l'éclosion du pied qu'on vient d'équiper */
 function bqFigApres(pan,rail){
   if(BQFG.rest!=null){const r=BQFG.rest;BQFG.rest=null;if(r)rail.scrollLeft=r;}
+  bqFigBords(rail);
   if(!rail._fg){rail._fg=1;
-    rail.addEventListener('scroll',function(){if(pan.classList.contains('bqFigOn'))BQFG.sl=rail.scrollLeft;},{passive:true});
+    rail.addEventListener('scroll',function(){if(pan.classList.contains('bqFigOn')){BQFG.sl=rail.scrollLeft;bqFigBords(rail);}},{passive:true});
     rail.addEventListener('wheel',function(e){if(!pan.classList.contains('bqFigOn')||Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;rail.scrollLeft+=e.deltaY;e.preventDefault();},{passive:false});} /* la molette d'une souris fait défiler la pellicule de côté */
   const sel=document.getElementById('bqFigSel');
   if(sel&&sel._fgL!==LANG){sel._fgL=LANG;sel.querySelectorAll('.fsHex').forEach(function(b){let g=b.querySelector('.fgSlotG');if(!g){g=document.createElement('em');g.className='fgSlotG';b.insertBefore(g,b.querySelector('.fsNom'));}g.textContent=sansAcc(TR(FS_COURT[+b.getAttribute('data-k')]));});}
@@ -49,6 +51,9 @@ function bqFigApres(pan,rail){
     else if(s&&s.getAttribute('data-k')===GBQ.figK){BQFG.vu=vu;const rr=rail.getBoundingClientRect(),b=s.getBoundingClientRect();
       if(b.left<rr.left+2||b.right>rr.right-2)rail.scrollTo({left:Math.max(0,rail.scrollLeft+(b.left-rr.left)-(rr.width-b.width)/2),behavior:REDUCED_MOTION?'auto':'smooth'});}}
   if(BQFG.vient){const c=rail.querySelector('.fgK[data-k="'+BQFG.vient+'"]');BQFG.vient='';if(c){c.classList.remove('fgVient');void c.offsetWidth;c.classList.add('fgVient');}}}
+/* (2026-11-07, passe finale) les fondus des bords de la pellicule : à gauche dès qu'on a quitté le début, à droite tant qu'il reste à voir */
+function bqFigBords(rail){const sl=rail.scrollLeft,fin=sl+rail.clientWidth>=rail.scrollWidth-4;
+  if(rail.classList.contains('fgDeb')!==sl>4)rail.classList.toggle('fgDeb',sl>4);if(rail.classList.contains('fgFin')!==fin)rail.classList.toggle('fgFin',fin);}
 /* ÉQUIPER sur l'affiche : un toucher, dans l'emplacement de CETTE affiche — la figure se joue (bqEssaie) et se range (figEqToast : le son, la puce
    ANNULER) ; capturé avant le toucher de la carte (qui ne ferait que l'essayer) */
 document.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('#gBqPan.bqFigOn .fgK [data-fgeq]');if(!b)return;e.stopPropagation();

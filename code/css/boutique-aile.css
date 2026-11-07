@@ -47,11 +47,11 @@
 #bqAile .baP span{overflow:hidden;text-overflow:ellipsis}
 #bqAile .baP .pxi{--pxs:1;flex:none;color:currentColor}
 #bqAile .baP.cher{color:#8a929c}
-#bqAile .baP.acq{color:#5b6572}
+#bqAile .baP.acq{color:#3d4bff} /* (2026-11-07, passe finale) À TOI : le bleu et la coche, comme partout dans la boutique (il était gris, comme MISSION) */
 #bqAile .baP.eq{align-self:flex-start;padding:2px 5px 1px 3px;border-radius:4px;background:#3d4bff;color:#fff}
 #bqAile .baP.eur{color:#3d4bff}
 #bqAile .baP.defi{color:#5b6572}
-/* la tranche d'une famille : noire, le logo à la couleur de la rareté, son nom couché, « à toi / total » */
+/* la tranche d'une famille : noire, le logo à la couleur de la rareté et « à toi / total » (son nom est dans l'en-tête ; couché, la tranche est une ligne et l'écrit) */
 #bqAile .baTr{flex:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:6px;width:28px;padding:6px 0;border-radius:8px;background:#14171c;color:#fff;margin:6px 0;box-sizing:border-box}
 #bqAile .baTr b{display:none;font-weight:400;font-size:8px;letter-spacing:2px;white-space:nowrap;overflow:hidden;color:var(--rc)}
 #bqAile .baTr em{font-style:normal;font-size:7px;color:#aab2bd;white-space:nowrap}
@@ -63,31 +63,43 @@
 #bqAile .baFl .pxi{--pxs:3;color:#14171c;transition:transform .15s}
 #bqAile .baFl .pxi-haut,#bqAile .baFl .pxi-bas{display:none}
 #bqAile .baFl:active .pxi{transform:scale(.8)}
-#bqAile .baFl.off{opacity:.25}
+/* (2026-11-07, passe finale) au bout de la molette, la flèche s'EFFACE (elle restait là, grisée à 25 % : un bouton « cassé ») ; le fondu
+   au bout, la molette n'a plus rien à cacher : son fondu blanc part avec elle (couché, il laissait un halo sur la tranche noire) ; la touche ne
+   prend plus le doigt */
+#bqAile .baFl{transition:opacity .2s var(--ease,ease)}
+#bqAile .baFl .pxi{transition:transform .15s,scale .2s var(--ease,ease)}
+#bqAile .baFl.off{opacity:0;pointer-events:none}
+#bqAile .baFl.off .pxi{scale:.6}
 /* COUCHÉ : une colonne étroite à droite (la caisse a toute la gauche), la molette défile de haut en bas, les vignettes en ligne
    (la photo à gauche, le nom et le prix à droite) */
-#gBq #gBqPan.cote.bqAileOn{left:auto!important;width:min(296px,36vw);top:12px!important}
-#gBqPan.cote #bqAile{--baW:100%;--baH:64px;flex:1;min-height:0}
+#gBq #gBqPan.cote.bqAileOn{left:auto!important;width:max(min(296px,36vw),min(380px,26vw));top:16px!important} /* l'ordinateur (1 400 px) : 364 px */
+/* (2026-11-07, passe finale) la molette d'aplomb sur la barre du bas : le panneau déborde de 2 px de chaque côté (garBqPanneau : la marge
+   intérieure des cartes de la grille) — la boîte blanche de la molette, elle, n'a pas de marge intérieure : elle finissait 2 px à droite de
+   JOUER (couché) et de part et d'autre (debout). Couché, elle part aussi du haut de BOUTIQUE (16 px, comme les autres rayons). */
+#gBq #gBqPan.bqAileOn #bqAile{margin:0 2px}
+#gBqPan.cote #bqAile{--baW:100%;--baH:56px;flex:1;min-height:0;gap:4px}
 #gBqPan.cote #bqAile .baPiste{flex:1}
 #gBqPan.cote #bqAile .baRail{position:absolute;inset:0;flex-direction:column;align-items:stretch;overflow-x:hidden;overflow-y:auto;scroll-snap-type:y mandatory;touch-action:pan-y;padding:0 10px} /* le pourcentage d'un rembourrage se compte sur la LARGEUR : deux cales (::before/::after) centrent les bouts */
 #gBqPan.cote #bqAile .baRail::before,#gBqPan.cote #bqAile .baRail::after{content:'';flex:none;height:calc(50% - var(--baH) / 2 - 8px)}
 #gBqPan.cote #bqAile .baK{flex-direction:row;align-items:stretch;width:auto;height:var(--baH);transform:scale(.94)}
 #gBqPan.cote #bqAile .baK.mil{transform:none}
 #gBqPan.cote #bqAile .baK::before{left:0;top:0;bottom:0;right:auto;width:3px;height:auto}
-#gBqPan.cote #bqAile .baPh{flex:none;width:104px;height:auto}
+#gBqPan.cote #bqAile .baPh{flex:none;width:92px;height:auto}
 #gBqPan.cote #bqAile .baTx{flex:1;min-width:0;justify-content:center;padding:6px 8px}
 #gBqPan.cote #bqAile .baN{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
 #gBqPan.cote #bqAile .baTr{flex-direction:row;width:auto;height:28px;margin:0;padding:0 8px 0 4px;align-self:stretch}
 #gBqPan.cote #bqAile .baTr b{display:block;flex:1}
 #gBqPan.cote #bqAile .baTr .bqRl{width:20px;height:20px}
-#gBqPan.cote #bqAile .baFl{left:0;right:0;width:auto;height:44px;top:auto;bottom:auto}
-#gBqPan.cote #bqAile .baFl.g{top:0;background:linear-gradient(180deg,#fff 55%,rgba(255,255,255,0))}
-#gBqPan.cote #bqAile .baFl.d{bottom:0;background:linear-gradient(0deg,#fff 55%,rgba(255,255,255,0))}
+#gBqPan.cote #bqAile .baFl{left:auto;right:0;width:64px;height:44px;top:auto;bottom:auto} /* couché, la flèche à droite, sous le pouce : la photo d'à côté reste visible */
+#gBqPan.cote #bqAile .baFl.g{top:0;background:radial-gradient(closest-side,#fff 55%,rgba(255,255,255,0))}
+#gBqPan.cote #bqAile .baFl.d{bottom:0;background:radial-gradient(closest-side,#fff 55%,rgba(255,255,255,0))}
 #gBqPan.cote #bqAile .baFl .pxi-gauche,#gBqPan.cote #bqAile .baFl .pxi-droite{display:none}
 #gBqPan.cote #bqAile .baFl .pxi-haut,#gBqPan.cote #bqAile .baFl .pxi-bas{display:block}
 /* sa phrase, sous la molette : trois lignes au plus, la place réservée (rien ne saute quand on tourne) */
 #bqAile .baDesc{min-height:33px;max-height:33px;padding:0 12px;font-size:7px;line-height:11px;letter-spacing:0;color:#5b6470;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;text-transform:none}
-#gBqPan.cote #bqAile .baDesc{flex:none}
+#gBqPan.cote #bqAile .baDesc{flex:none;min-height:22px;max-height:22px;-webkit-line-clamp:2} /* couché, la place va à la molette : deux lignes */
+/* GRAND ÉCRAN (l'ordinateur, une tablette couchée) : la colonne est haute, les vignettes grandissent */
+@media (min-width:1000px) and (min-height:600px){#gBqPan.cote #bqAile{--baH:76px}#gBqPan.cote #bqAile .baPh{width:128px}#gBqPan.cote #bqAile .baN{font-size:9px;line-height:11px;height:22px}#gBqPan.cote #bqAile .baP{font-size:10px;line-height:12px}#gBqPan.cote #bqAile .baDesc{font-size:8px;line-height:12px;min-height:36px;max-height:36px;-webkit-line-clamp:3}}
 @media (prefers-reduced-motion:reduce){#bqAile .baK,#bqAile .baRg i{transition:none}}
 html[data-reduced-motion] :is(#bqAile .baK,#bqAile .baRg i){transition:none}
 /* ===== LA VITRE DES AILES (2026-11-07, Léo : « une vitre devant les wings, qu'on peut casser ; autour du choix entre les deux flèches, un mini-effet 3D sur le rectangle arrondi, en bonne résolution ») — voir interface/aile-vitrine.js =====

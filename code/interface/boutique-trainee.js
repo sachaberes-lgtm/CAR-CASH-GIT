@@ -13,23 +13,23 @@
    `dbgTrPiste()` : l'état de la piste (banc). */
 const TRV={fam:'',io:null,eqT:0,eqId:null};
 const TRV_SOUS={commun:'RUBANS',rare:'PARTICULES',epique:'EFFETS',legendaire:'SPECTACLE'};
-function trPrix(k,d){if(bqA(k))return {t:'<i class="trAt">'+sansAcc(TR('À TOI'))+'</i><i class="trEqT">'+sansAcc(TR('ÉQUIPÉE'))+'</i>',c:'acq'};
+function trPrix(k,d){if(bqA(k))return {t:pxi('coche')+'<i class="trAt">'+sansAcc(TR('À TOI'))+'</i><i class="trEqT">'+sansAcc(TR('ÉQUIPÉE'))+'</i>',c:'acq'};
   if(d.pack==='chat')return {t:sansAcc(TR('PACK CHAT')),c:'eur'};if(d.eur)return {t:eurTxt(d.eur),c:'eur'};
-  if(d.p)return {t:pxi('piece')+bqPxT(d.p),c:'pc'};return {t:pxi('cible')+sansAcc(TR('MISSION')),c:'defi'};}
+  if(d.p)return {t:pxi('piece')+bqPxT(d.p),c:'pc'};return {t:pxi('verrou')+sansAcc(TR('MISSION')),c:'defi'};} /* (2026-11-07, passe finale) À TOI : la coche ; MISSION : le cadenas — comme les cartes des voitures */
 function trVoie(k,n,f){const d=bqCos(k).d,ri=rarInfo(f),nom=sansAcc(TR(d.n)),px=trPrix(k,d);
   return '<div class="bqK trK hab r-'+f+'" data-k="'+k+'" data-fam="'+f+'" role="button" style="--rc:'+ri.c+';--tc:'+traineeCoul(d)+';--i:'+Math.min(n,8)+'" aria-label="'+nom.replace(/"/g,'')+'">'
     +'<span class="trVue">'+traineeCarte(d)+'<i class="trCaisse">'+pxi('voiture')+'</i></span>'
     +'<span class="trTx"><span class="bqKn">'+nom+'</span><span class="bqKp '+px.c+'">'+px.t+'</span></span></div>';}
-function trPisteHtml(L){const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={},F=[];
+function trPisteHtml(L){bqRayonRegarde('trainee'); /* (2026-11-07, passe finale) en entrant, on regarde la traînée PORTÉE (voir bqRayonRegarde) */const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={},F=[];
   L.forEach(function(k){const f=fam(k);if(!nb[f]){nb[f]=0;F.push(f);}nb[f]++;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   if(TRV.fam&&!nb[TRV.fam])TRV.fam='';
   const lib=function(f){return sansAcc(TR(TRV_SOUS[f]||rarInfo(f).n));};
   const fil='<div class="trFil" role="tablist" aria-label="'+sansAcc(TR('TRAÎNÉES'))+'">'
     +['' ].concat(F).map(function(f){const tot=f?nb[f]:L.length,a=f?(ok[f]|0):L.filter(bqA).length;
       return '<button type="button" role="tab" class="trCh'+(TRV.fam===f?' on':'')+'" data-trf="'+f+'" aria-selected="'+(TRV.fam===f)+'"'+(f?' style="--rc:'+rarInfo(f).c+'"':'')+'>'
-        +'<span><b>'+(f?lib(f):sansAcc(TR('TOUT')))+'</b><em>'+a+'/'+tot+'</em></span></button>';}).join('')+'</div>';
+        +'<span><b'+((f?lib(f):'').length>10?' class="lg"':'')+'>'+(f?lib(f):sansAcc(TR('TOUT')))+'</b><em>' /* (2026-11-07, passe finale) un nom long (SHOWSTOPPERS) passe un corps en dessous : la réglette tient à 375 px */+a+'/'+tot+'</em></span></button>';}).join('')+'</div>';
   const R=[fil];L.forEach(function(k,n){const f=fam(k);
-    if(!n||fam(L[n-1])!==f)R.push('<div class="trSec" data-fam="'+f+'" style="--rc:'+rarInfo(f).c+'"><i>'+pxi(RAR_LOGO[f]||'etoile')+'</i><b>'+lib(f)+'</b><span>'+sansAcc(TR(rarInfo(f).n))+'</span><s></s><em>'+(ok[f]|0)+'/'+nb[f]+'</em></div>');
+    if(!n||fam(L[n-1])!==f)R.push('<div class="trSec" data-fam="'+f+'" style="--rc:'+rarInfo(f).c+'"><i>'+pxi(RAR_LOGO[f]||'etoile')+'</i><b>'+lib(f)+'</b><span>'+sansAcc(TR(rarInfo(f).n))+'</span><s></s></div>'); /* (2026-11-07, passe finale) « à toi / total » n'est dit qu'une fois : sur la réglette (comme le nuancier) */
     R.push(trVoie(k,n,f));});
   queueMicrotask(trApres); /* la piste est posée dans le rail juste après (garBqPanneau) : on la branche ensuite */
   return R;}
