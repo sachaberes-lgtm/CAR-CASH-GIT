@@ -281,7 +281,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   /* ===== LA CLAIRIÈRE (LA RÈGLE v2, le module unique de la forêt, une fois par route, entre 60 et 75 % de la course) : 3,5 s de droite franche (la forêt s'ouvre),
      puis une épingle de 160° à 1,8 rM, puis 1 s de droite — déclarée `fig:'clairiere'` (marks1) ===== */
   const clairiere=()=>{clair=true;recadre();const i0=C.length-1,sg=sgD(sgC());
-    zone(-.02,()=>{droite(3.5*v9);arc(aD(sg*160),rM*1.8);droite(v9);});
+    zone(-.02,()=>{droite((DROIT[der]?1.6:3.2)*v9);arc(aD(sg*160),rM*1.8);droite(v9);}); /* (2026-11-07 soir) après une allée ou un toboggan, l'ouverture fait 1,6 s et non 3,5 : les deux droites collées faisaient 7,5 s */
     MM.push({i0:i0,i1:C.length-1,fig:'clairiere'});MK.push('clairiere');PLAN.push('clairiere');};
   let nP9=0;if(nPel===0)paq.push('spirale'); /* sans pelote, une spirale tout de suite : le premier croisement */
   for(let e=0;e<40;e++){

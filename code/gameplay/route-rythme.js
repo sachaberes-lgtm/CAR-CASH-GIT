@@ -101,7 +101,7 @@ function rythmeMesure(ctrl,o){
   let cretes=0;for(let i=1;i<n0-1;i++){const a=ctrl[i-1],b=ctrl[i],c=ctrl[i+1],h1=Math.hypot(b.x-a.x,b.z-a.z),h2=Math.hypot(c.x-b.x,c.z-b.z);if(h1<4||h2<4)continue;
     const g1=(b.y-a.y)/h1,g2=(c.y-b.y)/h2;if(g1-g2>.30)cretes++;}
   const km=L/1000;
-  return {L:Math.round(L),s:+(L/vP).toFixed(1),vir:V.length,virKm:+(V.length/km).toFixed(2),virFKm:+((V.length+2*FZ.length)/km).toFixed(2),serreKm:+((serreL/90)/km).toFixed(2),infr:+(infrL).toFixed(0),infrS:sInfr,
+  return {L:Math.round(L),s:+(L/vP).toFixed(1),vir:V.length,virKm:+(V.length/km).toFixed(2),virFKm:+((V.length+2*FZ.length)/km).toFixed(2),virFMin:+((V.length+2*FZ.length)/Math.max(1e-6,L/vP/60)).toFixed(2),serreKm:+((serreL/90)/km).toFixed(2),infr:+(infrL).toFixed(0),infrS:sInfr,
     droiteMax:Math.round(droiteMax),droiteS:+(droiteMax/vP).toFixed(1),droites5:droites5,ench:ench,enchKm:+(ench/km).toFixed(2),spirMax:Math.round(spirMax),spirales:spirales,
     figures:FZ.length,coudes:coudes,cretes:cretes,pente:+(g.length?g[g.length>>1]:0).toFixed(3),penteP95:+(g.length?g[Math.floor(g.length*.95)]:0).toFixed(3),penteMax:+(g.length?g[g.length-1]:0).toFixed(3),
     montee:+(g.length?up/g.length:0).toFixed(2),descente:+((-dyT)/L).toFixed(3),rMin:Math.round(rMin===1e9?0:rMin),rMinRP:+((rMin===1e9?0:rMin)/rP).toFixed(2),rMed:Math.round(rMed),pts:n0,
@@ -110,8 +110,11 @@ function rythmeMesure(ctrl,o){
 /* la NOTE : 0 = la route tient toutes les cibles ; chaque manquement coûte proportionnellement (les coudes et l'infranchissable coûtent cher) */
 function rythmeNote(f,c){
   if(!f||!f.L)return 1e9;let n=0;
-  const vk=GEN_V2&&f.virFKm!=null?f.virFKm:f.virKm; /* (LA RÈGLE v2) une figure déclarée vaut deux virages : une map courte faite d'un looping et d'un surf n'est pas « sans virage » */
-  if(vk<c.vir[0])n+=(c.vir[0]-vk)*2;if(vk>c.vir[1])n+=(vk-c.vir[1])*1.2;
+  if(GEN_V2&&f.virFMin!=null){ /* (LA RÈGLE v2, 2026-11-07 soir) la cible de virages se lit par MINUTE, pas par km : à 340 m/s une route de 28 s n'a plus que 4-5 virages par km et la note montait à 7-8 sans que la route soit en cause.
+       La cible par km (réglée au palier 0, 78 m/s) devient une cible par minute (× 4,68) ; le plancher s'adoucit avec la vitesse (× √(78/vP)) : à haut palier les modules et la fin prennent une plus grande part d'une route courte. Une figure déclarée vaut deux virages. */
+    const vP9=f.L/Math.max(1,f.s),k9=Math.sqrt(Math.min(1,78/Math.max(78,vP9))),m0=c.vir[0]*4.68*k9,m1=c.vir[1]*4.68;
+    if(f.virFMin<m0)n+=(m0-f.virFMin)*2/4.68;if(f.virFMin>m1)n+=(f.virFMin-m1)*1.2/4.68;}
+  else{const vk=f.virKm;if(vk<c.vir[0])n+=(c.vir[0]-vk)*2;if(vk>c.vir[1])n+=(vk-c.vir[1])*1.2;}
   if(f.serreKm<c.serre)n+=(c.serre-f.serreKm)*1.5;
   n+=f.infr*.2; /* 0,2 par mètre infranchissable */
   if(f.droiteS>c.droiteS)n+=(f.droiteS-c.droiteS)*1.5;n+=f.droites5*.8;

@@ -15621,7 +15621,7 @@ function rythmeMesure(ctrl,o){
   let cretes=0;for(let i=1;i<n0-1;i++){const a=ctrl[i-1],b=ctrl[i],c=ctrl[i+1],h1=Math.hypot(b.x-a.x,b.z-a.z),h2=Math.hypot(c.x-b.x,c.z-b.z);if(h1<4||h2<4)continue;
     const g1=(b.y-a.y)/h1,g2=(c.y-b.y)/h2;if(g1-g2>.30)cretes++;}
   const km=L/1000;
-  return {L:Math.round(L),s:+(L/vP).toFixed(1),vir:V.length,virKm:+(V.length/km).toFixed(2),virFKm:+((V.length+2*FZ.length)/km).toFixed(2),serreKm:+((serreL/90)/km).toFixed(2),infr:+(infrL).toFixed(0),infrS:sInfr,
+  return {L:Math.round(L),s:+(L/vP).toFixed(1),vir:V.length,virKm:+(V.length/km).toFixed(2),virFKm:+((V.length+2*FZ.length)/km).toFixed(2),virFMin:+((V.length+2*FZ.length)/Math.max(1e-6,L/vP/60)).toFixed(2),serreKm:+((serreL/90)/km).toFixed(2),infr:+(infrL).toFixed(0),infrS:sInfr,
     droiteMax:Math.round(droiteMax),droiteS:+(droiteMax/vP).toFixed(1),droites5:droites5,ench:ench,enchKm:+(ench/km).toFixed(2),spirMax:Math.round(spirMax),spirales:spirales,
     figures:FZ.length,coudes:coudes,cretes:cretes,pente:+(g.length?g[g.length>>1]:0).toFixed(3),penteP95:+(g.length?g[Math.floor(g.length*.95)]:0).toFixed(3),penteMax:+(g.length?g[g.length-1]:0).toFixed(3),
     montee:+(g.length?up/g.length:0).toFixed(2),descente:+((-dyT)/L).toFixed(3),rMin:Math.round(rMin===1e9?0:rMin),rMinRP:+((rMin===1e9?0:rMin)/rP).toFixed(2),rMed:Math.round(rMed),pts:n0,
@@ -15630,8 +15630,11 @@ function rythmeMesure(ctrl,o){
 /* la NOTE : 0 = la route tient toutes les cibles ; chaque manquement coûte proportionnellement (les coudes et l'infranchissable coûtent cher) */
 function rythmeNote(f,c){
   if(!f||!f.L)return 1e9;let n=0;
-  const vk=GEN_V2&&f.virFKm!=null?f.virFKm:f.virKm; /* (LA RÈGLE v2) une figure déclarée vaut deux virages : une map courte faite d'un looping et d'un surf n'est pas « sans virage » */
-  if(vk<c.vir[0])n+=(c.vir[0]-vk)*2;if(vk>c.vir[1])n+=(vk-c.vir[1])*1.2;
+  if(GEN_V2&&f.virFMin!=null){ /* (LA RÈGLE v2, 2026-11-07 soir) la cible de virages se lit par MINUTE, pas par km : à 340 m/s une route de 28 s n'a plus que 4-5 virages par km et la note montait à 7-8 sans que la route soit en cause.
+       La cible par km (réglée au palier 0, 78 m/s) devient une cible par minute (× 4,68) ; le plancher s'adoucit avec la vitesse (× √(78/vP)) : à haut palier les modules et la fin prennent une plus grande part d'une route courte. Une figure déclarée vaut deux virages. */
+    const vP9=f.L/Math.max(1,f.s),k9=Math.sqrt(Math.min(1,78/Math.max(78,vP9))),m0=c.vir[0]*4.68*k9,m1=c.vir[1]*4.68;
+    if(f.virFMin<m0)n+=(m0-f.virFMin)*2/4.68;if(f.virFMin>m1)n+=(f.virFMin-m1)*1.2/4.68;}
+  else{const vk=f.virKm;if(vk<c.vir[0])n+=(c.vir[0]-vk)*2;if(vk>c.vir[1])n+=(vk-c.vir[1])*1.2;}
   if(f.serreKm<c.serre)n+=(c.serre-f.serreKm)*1.5;
   n+=f.infr*.2; /* 0,2 par mètre infranchissable */
   if(f.droiteS>c.droiteS)n+=(f.droiteS-c.droiteS)*1.5;n+=f.droites5*.8;
@@ -17837,7 +17840,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   /* ===== LA CLAIRIÈRE (LA RÈGLE v2, le module unique de la forêt, une fois par route, entre 60 et 75 % de la course) : 3,5 s de droite franche (la forêt s'ouvre),
      puis une épingle de 160° à 1,8 rM, puis 1 s de droite — déclarée `fig:'clairiere'` (marks1) ===== */
   const clairiere=()=>{clair=true;recadre();const i0=C.length-1,sg=sgD(sgC());
-    zone(-.02,()=>{droite(3.5*v9);arc(aD(sg*160),rM*1.8);droite(v9);});
+    zone(-.02,()=>{droite((DROIT[der]?1.6:3.2)*v9);arc(aD(sg*160),rM*1.8);droite(v9);}); /* (2026-11-07 soir) après une allée ou un toboggan, l'ouverture fait 1,6 s et non 3,5 : les deux droites collées faisaient 7,5 s */
     MM.push({i0:i0,i1:C.length-1,fig:'clairiere'});MK.push('clairiere');PLAN.push('clairiere');};
   let nP9=0;if(nPel===0)paq.push('spirale'); /* sans pelote, une spirale tout de suite : le premier croisement */
   for(let e=0;e<40;e++){
@@ -19576,12 +19579,14 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
       if((LIM-sg*phi)*57.2958<a*.6)sg=-sg;const lib=Math.max(4,(LIM-sg*phi)*57.2958);
       if(V2){const a9=Math.min(a,lib);if(a9<A28&&R<6*RMIN){droite(len,pe);return;}arc(sg*a9,R,pe);if(a>a9+.5){const rm9=a-a9;if(rm9>=A28)arc(-sg*Math.min(rm9,(LIM+sg*phi)*57.2958),R,pe);else droite(rm9/57.2958*R,pe);}return;} /* v2 : jamais un arc sous 26° à moins de 6 RMIN ; le reste devient une droite, pas un S minuscule */
       if(a<=lib){arc(sg*a,R,pe);return;}arc(sg*lib,R,pe);arc(-sg*Math.min(a-lib,(LIM+sg*phi)*57.2958),R,pe);}; // trop long d'un côté : il repart en S
-    const virages=(len,p0,p1)=>{let fait=0,sg=r()<.5?-1:1;
+    const virages=(len,p0,p1)=>{let fait=0,sg=r()<.5?-1:1,sgP=0,RP=0; /* sgP, RP (2026-11-07 soir) : le côté et le rayon de l'arc précédent, pour l'inflexion */
       while(fait<len){if(r()<.8)sg=-sg;if(V2&&cDette)sg=cDette<0?-1:1;const lg=r()<.4;let a=lg?40+r()*35:30+r()*45;const a0=a,R=RMIN*(lg?2.4+r()*1.2:1.5+r()*1.0); // 4 sur 10 sont des GRANDS virages (2,4-3,6 rP) : on tient l'appui longtemps
         const lib=(LIM-sg*phi)*57.2958;if(lib<(V2?A28+2:18)){sg=-sg;a=Math.min(a,(LIM-sg*phi)*57.2958);}else a=Math.min(a,lib);
         if(V2){if(a<A28){sg=-sg;a=Math.max(A28,Math.min(a0,(LIM-sg*phi)*57.2958));}if(cDette){if(sg*cDette>0)a=Math.min(Math.abs(briqueDette(sg*a,cDette)),(LIM-sg*phi)*57.2958);cDette=0;}}
-        const pe=-(p0+r()*(p1-p0));arc(sg*a,R,pe);fait+=R*a/57.2958;
-        if(r()<.12){const l=(50+r()*70)*LL,p2=-(p0+r()*(p1-p0))*.8;droite(l,p2);fait+=l;}}};
+        const pe=-(p0+r()*(p1-p0));
+        if(V2&&sgP&&sg!==sgP&&(R<2*RMIN||RP<2*RMIN)){const l=Math.max(40*LL,.3*VW);droite(l,pe*.6);fait+=l;} /* (2026-11-07 soir) deux arcs OPPOSÉS serrés collés faisaient une pointe à l'inflexion (5-25 m sous rP au palier 20) : 0,3 s de droite entre les deux */
+        arc(sg*a,R,pe);fait+=R*a/57.2958;sgP=sg;RP=R;
+        if(r()<.12){const l=(50+r()*70)*LL,p2=-(p0+r()*(p1-p0))*.8;droite(l,p2);fait+=l;sgP=0;}}};
     const bosses=n=>{for(let k=0;k<n;k++){const l1=(70+r()*25)*LL,l2=(105+r()*30)*LL,h=(14+r()*8)*SQ,h2=(26+r()*14)*SQ;droite(l1,h/l1,2);droite(l2,-(h+h2)/l2,3);}};
     /* LES MODULES DU CANYON (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON). 5 ou 6 des 6 « virages » de liaison (tirés au sort) deviennent
        un module — jamais les boucles à raccourci, la route 67, les étroits, l'arche, l'amphithéâtre, la mine ni la finale. Paquet mélangé, jamais

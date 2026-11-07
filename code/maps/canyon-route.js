@@ -91,12 +91,14 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
       if((LIM-sg*phi)*57.2958<a*.6)sg=-sg;const lib=Math.max(4,(LIM-sg*phi)*57.2958);
       if(V2){const a9=Math.min(a,lib);if(a9<A28&&R<6*RMIN){droite(len,pe);return;}arc(sg*a9,R,pe);if(a>a9+.5){const rm9=a-a9;if(rm9>=A28)arc(-sg*Math.min(rm9,(LIM+sg*phi)*57.2958),R,pe);else droite(rm9/57.2958*R,pe);}return;} /* v2 : jamais un arc sous 26° à moins de 6 RMIN ; le reste devient une droite, pas un S minuscule */
       if(a<=lib){arc(sg*a,R,pe);return;}arc(sg*lib,R,pe);arc(-sg*Math.min(a-lib,(LIM+sg*phi)*57.2958),R,pe);}; // trop long d'un côté : il repart en S
-    const virages=(len,p0,p1)=>{let fait=0,sg=r()<.5?-1:1;
+    const virages=(len,p0,p1)=>{let fait=0,sg=r()<.5?-1:1,sgP=0,RP=0; /* sgP, RP (2026-11-07 soir) : le côté et le rayon de l'arc précédent, pour l'inflexion */
       while(fait<len){if(r()<.8)sg=-sg;if(V2&&cDette)sg=cDette<0?-1:1;const lg=r()<.4;let a=lg?40+r()*35:30+r()*45;const a0=a,R=RMIN*(lg?2.4+r()*1.2:1.5+r()*1.0); // 4 sur 10 sont des GRANDS virages (2,4-3,6 rP) : on tient l'appui longtemps
         const lib=(LIM-sg*phi)*57.2958;if(lib<(V2?A28+2:18)){sg=-sg;a=Math.min(a,(LIM-sg*phi)*57.2958);}else a=Math.min(a,lib);
         if(V2){if(a<A28){sg=-sg;a=Math.max(A28,Math.min(a0,(LIM-sg*phi)*57.2958));}if(cDette){if(sg*cDette>0)a=Math.min(Math.abs(briqueDette(sg*a,cDette)),(LIM-sg*phi)*57.2958);cDette=0;}}
-        const pe=-(p0+r()*(p1-p0));arc(sg*a,R,pe);fait+=R*a/57.2958;
-        if(r()<.12){const l=(50+r()*70)*LL,p2=-(p0+r()*(p1-p0))*.8;droite(l,p2);fait+=l;}}};
+        const pe=-(p0+r()*(p1-p0));
+        if(V2&&sgP&&sg!==sgP&&(R<2*RMIN||RP<2*RMIN)){const l=Math.max(40*LL,.3*VW);droite(l,pe*.6);fait+=l;} /* (2026-11-07 soir) deux arcs OPPOSÉS serrés collés faisaient une pointe à l'inflexion (5-25 m sous rP au palier 20) : 0,3 s de droite entre les deux */
+        arc(sg*a,R,pe);fait+=R*a/57.2958;sgP=sg;RP=R;
+        if(r()<.12){const l=(50+r()*70)*LL,p2=-(p0+r()*(p1-p0))*.8;droite(l,p2);fait+=l;sgP=0;}}};
     const bosses=n=>{for(let k=0;k<n;k++){const l1=(70+r()*25)*LL,l2=(105+r()*30)*LL,h=(14+r()*8)*SQ,h2=(26+r()*14)*SQ;droite(l1,h/l1,2);droite(l2,-(h+h2)/l2,3);}};
     /* LES MODULES DU CANYON (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON). 5 ou 6 des 6 « virages » de liaison (tirés au sort) deviennent
        un module — jamais les boucles à raccourci, la route 67, les étroits, l'arche, l'amphithéâtre, la mine ni la finale. Paquet mélangé, jamais
