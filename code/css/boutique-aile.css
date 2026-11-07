@@ -90,4 +90,18 @@
 #gBqPan.cote #bqAile .baDesc{flex:none}
 @media (prefers-reduced-motion:reduce){#bqAile .baK,#bqAile .baRg i{transition:none}}
 html[data-reduced-motion] :is(#bqAile .baK,#bqAile .baRg i){transition:none}
+/* ===== LA VITRE DES AILES (2026-11-07, Léo : « une vitre devant les wings, qu'on peut casser ; autour du choix entre les deux flèches, un mini-effet 3D sur le rectangle arrondi, en bonne résolution ») — voir interface/aile-vitrine.js =====
+   Une carte pas encore à toi (.baK:not(.a)) est sous verre : ::after couvre tout le rectangle arrondi — le reflet en biais, la teinte de la
+   rareté, le liseré de sa couleur, une TRANCHE en haut et à droite (l'épaisseur du verre, le mini-effet 3D), le reflet du coin. La carte du
+   milieu (.mil) reçoit une vitre neuve qui se pose (bqVitrePose) à chaque changement d'aile. Pas de vitre sur une aile à toi. */
+#bqAile .baK:not(.a)::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(118deg,rgba(255,255,255,.7) 0,rgba(255,255,255,.16) 20%,rgba(255,255,255,0) 44%,rgba(255,255,255,0) 72%,rgba(255,255,255,.22) 100%),
+    linear-gradient(180deg,color-mix(in srgb,var(--rc) 14%,transparent),color-mix(in srgb,var(--rc) 6%,transparent));
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--rc) 75%,#fff),inset 0 8px 0 -1px color-mix(in srgb,var(--rc) 26%,rgba(255,255,255,.85)),
+    inset -8px 0 0 -1px color-mix(in srgb,var(--rc) 40%,rgba(196,206,220,.9)),inset 0 0 0 7px rgba(255,255,255,.08),inset -9px 9px 16px -10px rgba(20,30,45,.25)}
+#bqAile .baK.mil:not(.a)::after{animation:bqVitrePose .38s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes bqVitrePose{0%{opacity:0;transform:scale(1.12)}60%{opacity:1}100%{opacity:1;transform:none}}
+#bqAile .baK .bqBrisSur{position:absolute;z-index:5;pointer-events:none;border-radius:inherit}
+@media (prefers-reduced-motion:reduce){#bqAile .baK.mil:not(.a)::after{animation:none}}
+html[data-reduced-motion] #bqAile .baK.mil:not(.a)::after{animation:none}
 </style>

@@ -10512,6 +10512,20 @@ html #gBq #gBqPan .bqK.vo .bqKp.acq.eqp{background:#3ddc84;color:#04220f}
 #gBqPan.cote #bqAile .baDesc{flex:none}
 @media (prefers-reduced-motion:reduce){#bqAile .baK,#bqAile .baRg i{transition:none}}
 html[data-reduced-motion] :is(#bqAile .baK,#bqAile .baRg i){transition:none}
+/* ===== LA VITRE DES AILES (2026-11-07, Léo : « une vitre devant les wings, qu'on peut casser ; autour du choix entre les deux flèches, un mini-effet 3D sur le rectangle arrondi, en bonne résolution ») — voir interface/aile-vitrine.js =====
+   Une carte pas encore à toi (.baK:not(.a)) est sous verre : ::after couvre tout le rectangle arrondi — le reflet en biais, la teinte de la
+   rareté, le liseré de sa couleur, une TRANCHE en haut et à droite (l'épaisseur du verre, le mini-effet 3D), le reflet du coin. La carte du
+   milieu (.mil) reçoit une vitre neuve qui se pose (bqVitrePose) à chaque changement d'aile. Pas de vitre sur une aile à toi. */
+#bqAile .baK:not(.a)::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(118deg,rgba(255,255,255,.7) 0,rgba(255,255,255,.16) 20%,rgba(255,255,255,0) 44%,rgba(255,255,255,0) 72%,rgba(255,255,255,.22) 100%),
+    linear-gradient(180deg,color-mix(in srgb,var(--rc) 14%,transparent),color-mix(in srgb,var(--rc) 6%,transparent));
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--rc) 75%,#fff),inset 0 8px 0 -1px color-mix(in srgb,var(--rc) 26%,rgba(255,255,255,.85)),
+    inset -8px 0 0 -1px color-mix(in srgb,var(--rc) 40%,rgba(196,206,220,.9)),inset 0 0 0 7px rgba(255,255,255,.08),inset -9px 9px 16px -10px rgba(20,30,45,.25)}
+#bqAile .baK.mil:not(.a)::after{animation:bqVitrePose .38s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes bqVitrePose{0%{opacity:0;transform:scale(1.12)}60%{opacity:1}100%{opacity:1;transform:none}}
+#bqAile .baK .bqBrisSur{position:absolute;z-index:5;pointer-events:none;border-radius:inherit}
+@media (prefers-reduced-motion:reduce){#bqAile .baK.mil:not(.a)::after{animation:none}}
+html[data-reduced-motion] #bqAile .baK.mil:not(.a)::after{animation:none}
 </style>
 <style id="bq-trainee">
 /* ===== BOUTIQUE : LE RAYON DES TRAÎNÉES, LA PISTE (2026-11-07, Sacha : « les boîtes de Léo sont bien pour les voitures mais pas adaptées aux peintures, traînées, figures… chaque type d'item doit avoir un système propre ») =====
@@ -76479,6 +76493,19 @@ function bqVitreBrise(){
   try{const ph=el.querySelector('[data-ph]');if(typeof VITM!=='undefined'&&VITM.on&&ph&&el.classList.contains('vo'))setTimeout(function(){try{vitrinePose(ph,+ph.getAttribute('data-ph'));}catch(e){}},90);}catch(e){}
   try{if(typeof sfx==='function')sfx('ui.debloque');}catch(e){}
   setTimeout(function(){if(ov.parentNode)ov.remove();},1100);}
+
+/* (2026-11-07, Léo : « la vitre des ailes, qu'on peut casser aussi ») LA MÊME VITRE QUI SE BRISE, posée SUR un élément donné (la carte d'une aile dans la molette, aile-vitrine.js) : le calque d'éclats couvre l'élément (inset 0), l'éclair de la rareté, DÉBLOQUÉ, le son. */
+function bqVitreBriseSur(el){if(!el)return;const r=el.getBoundingClientRect();if(!r.width||!r.height)return;
+  const vieux=el.querySelector(':scope>.bqBris');if(vieux)vieux.remove();
+  const rc=el.style.getPropertyValue('--rc')||'#ffffff',lourd=!(typeof PAL!=='undefined'&&PAL.n<2),mouv=!(typeof REDUCED_MOTION!=='undefined'&&REDUCED_MOTION);
+  const ov=document.createElement('div');ov.className='bqBris bqBrisSur';ov.setAttribute('aria-hidden','true');ov.style.cssText='left:0;top:0;width:100%;height:100%;--rc:'+rc;
+  let h='<i class="bqF"></i>';
+  if(mouv){const C=lourd?4:2,R=lourd?2:2;for(let j=0;j<R;j++)for(let i=0;i<C;i++){const x0=i*100/C,x1=(i+1)*100/C,y0=j*100/R,y1=(j+1)*100/R,cx=(x0+x1)/2-50,cy=(y0+y1)/2-50;
+    [[x0,y0,x1,y0,x0,y1],[x1,y0,x1,y1,x0,y1]].forEach(function(t,n){const dx=Math.round(cx*1.4+(Math.random()-.5)*40),dy=Math.round(cy*1.4+50+Math.random()*60),rz=Math.round((Math.random()-.5)*160);
+      h+='<span style="clip-path:polygon('+t[0]+'% '+t[1]+'%,'+t[2]+'% '+t[3]+'%,'+t[4]+'% '+t[5]+'%);--dx:'+dx+'px;--dy:'+dy+'px;--rz:'+rz+'deg;animation-delay:'+(n*12+i*8)+'ms"></span>';});}}
+  h+='<b>'+sansAcc(TR('DÉBLOQUÉ'))+'</b>';ov.innerHTML=h;el.appendChild(ov);
+  try{if(typeof sfx==='function')sfx('ui.debloque');}catch(e){}try{hap([10,30,20,30,40]);}catch(e){}
+  setTimeout(function(){if(ov.parentNode)ov.remove();},1100);}
 /* ===== LA VITRINE MINIATURE (2026-11-07, Sacha : « le truc des boîtes de Léo pour les voitures, tu peux les améliorer pour faire un truc qui donne plus un effet 3D en mode voiture miniature ») =====
    Le cube de Léo (six faces CSS) recevait une photo de catalogue prise sous SON angle à elle (trois-quarts, 40° d'azimut) : une image plate
    collée dans une boîte vue sous un AUTRE angle ne s'y pose jamais (la voiture flottait, penchait, ses roues passaient sous le plancher —
@@ -78072,6 +78099,7 @@ function bqAileMaj(pan,voulu){const cat=BQ_CATS.some(function(c){return c[0]===G
   bqAilePov(on,dt);bqAileCap(on);
   if(pan.getAttribute('data-cat')!==cat)pan.setAttribute('data-cat',cat);
   pan.classList.toggle('bqAileOn',on);
+  try{aileVitrineMaj(on,dt);}catch(e){} /* (2026-11-07, Léo) la boîte de verre 3D autour de l'aile essayée (aile-vitrine.js) */
   if(!on){if(BQA.on){BQA.on=false;BQA.k='';BQA.essK='';BQA.vu='';}return;}
   const rail=pan.querySelector('.bqRail');if(rail&&rail.firstChild)rail.textContent=''; /* la grille partagée se tait : la molette la remplace */
   const el=bqAileEl(pan),L=bqAileListe(),eqd=shopEqD('aile'),k=L.map(function(d){return d.id+(shopOwned('aile',d.id)?1:0)+(eqd===d?'e':'')+(d.p&&bank()<d.p?'c':'');}).join(',')+':'+LANG;
@@ -78096,6 +78124,22 @@ window.dbgBqAile=function(o){if(o&&o.pov)Object.assign(BQA_POV,o.pov);const el=B
   return {on:BQA.on,e:+BQA.e.toFixed(2),ess:BQA.essK,cur:bqCourant(),mil:(bqAileMilieu()||{getAttribute:function(){return null;}}).getAttribute('data-k'),pan:r(document.getElementById('gBqPan')),el:r(el),
     rail:r(el&&el.querySelector('.baRail')),k:el?[].slice.call(el.querySelectorAll('.baK')).slice(0,3).map(r):null,fl:el?[].slice.call(el.querySelectorAll('.baFl')).map(r):null,rg:r(el&&el.querySelector('.baRg')),
     photos:el?el.querySelectorAll('.baPh.ok').length:0,zone:GBQ.zone,pov:BQ_POV,ang:GAR_TAB_ANG.aile};};
+/* ===== LA VITRE DES AILES (2026-11-07, Léo : « ce qu'il a fait sur les WINGS c'est super ; ajoute une vitre devant les wings, qu'on peut casser aussi » puis « pas autour de la voiture : autour du choix, entre les deux flèches — un mini-effet 3D, sur le rectangle arrondi, en bonne résolution ») =====
+   Chaque carte de la molette d'ailes (boutique-aile.js) qui n'est pas encore à toi est SOUS VERRE : une vitre en CSS (boutique-aile.css,
+   « LA VITRE DES AILES ») posée sur tout le rectangle arrondi — reflet en biais, teinte et liseré de la rareté, une tranche sur le haut et le
+   côté droit qui donne l'épaisseur. Nette à toute résolution (pas d'image).
+   · On change d'aile : la carte du milieu reçoit une NOUVELLE vitre (elle se pose en se dépliant) — un nouveau truc, une nouvelle boîte.
+   · Une aile À TOI (.a) : pas de vitre.
+   · On l'achète : la vitre de SA carte éclate (les éclats et le DÉBLOQUÉ de vitre-brisee.js, posés sur la carte), puis la carte reste sans verre.
+   Le crochet : bqAileMaj appelle aileVitrineMaj(on, dt) à chaque image ; il ne fait que guetter l'aile essayée qui devient à toi. */
+const AVT={k:'',avant:false,casse:''};
+function aileVitrineMaj(on){
+  const ess=on&&typeof BQA!=='undefined'?String(BQA.essK||''):'',id=ess.indexOf('aile:')===0?ess.slice(5):'';
+  if(!id){AVT.k='';AVT.avant=false;return;}
+  const a=shopOwned('aile',id);
+  if(AVT.k===id&&!AVT.avant&&a&&AVT.casse!==id){AVT.casse=id; /* achetée à l'instant : sa carte (re-dessinée par la molette) perd sa vitre en éclats */
+    requestAnimationFrame(function(){const k=BQA.el&&BQA.el.querySelector('.baK[data-k="aile:'+id+'"]');if(k)try{bqVitreBriseSur(k);}catch(e){}});}
+  AVT.k=id;AVT.avant=a;}
 /* ===== BOUTIQUE : LE RAYON DES TRAÎNÉES, LA PISTE (2026-11-07, Sacha : « dans la boutique les boîtes de Léo sont bien pour les voitures et achats, mais pas adaptées pour les peintures, traînées, figures… chaque type d'item doit avoir un système propre ») =====
    Une traînée est un EFFET EN MOUVEMENT, long et horizontal : la case carrée d'une voiture photographiée la tassait dans 100 px. Le rayon
    devient une PISTE : une voie par traînée, sur toute la largeur du panneau (deux voies côte à côte quand le panneau dépasse 520 px, sur

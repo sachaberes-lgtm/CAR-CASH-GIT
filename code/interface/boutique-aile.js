@@ -102,6 +102,7 @@ function bqAileMaj(pan,voulu){const cat=BQ_CATS.some(function(c){return c[0]===G
   bqAilePov(on,dt);bqAileCap(on);
   if(pan.getAttribute('data-cat')!==cat)pan.setAttribute('data-cat',cat);
   pan.classList.toggle('bqAileOn',on);
+  try{aileVitrineMaj(on,dt);}catch(e){} /* (2026-11-07, Léo) la boîte de verre 3D autour de l'aile essayée (aile-vitrine.js) */
   if(!on){if(BQA.on){BQA.on=false;BQA.k='';BQA.essK='';BQA.vu='';}return;}
   const rail=pan.querySelector('.bqRail');if(rail&&rail.firstChild)rail.textContent=''; /* la grille partagée se tait : la molette la remplace */
   const el=bqAileEl(pan),L=bqAileListe(),eqd=shopEqD('aile'),k=L.map(function(d){return d.id+(shopOwned('aile',d.id)?1:0)+(eqd===d?'e':'')+(d.p&&bank()<d.p?'c':'');}).join(',')+':'+LANG;

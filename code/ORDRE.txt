@@ -254,6 +254,7 @@ interface/garage-menu-inventaire.js  # le garage est le menu, hub, accueil du ci
 interface/figures-selecteur.js      # le sélecteur de figures commun à la boutique et à l'inventaire : emplacement automatique, ANNULER, filtres, tri, dock
 interface/boutique-peinture.js           # boutique : le rayon peinture (ergonomie mobile)
 interface/boutique-aile.js           # boutique : le rayon aile (ergonomie mobile)
+interface/aile-vitrine.js            # LA VITRE DES AILES : la carte d une aile pas à toi est sous verre (CSS), la vitre éclate à l achat
 interface/boutique-trainee.js           # boutique : le rayon trainee (ergonomie mobile)
 interface/boutique-figure.js           # boutique : le rayon figure (ergonomie mobile)
 interface/burn-out-1.js              # le premier burn-out
