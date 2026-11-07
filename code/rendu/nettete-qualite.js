@@ -104,6 +104,29 @@ function qlNet(){try{return !!(SAVE.d&&(SAVE.d.q==='net'||SAVE.d.q==='haute'));}
    résolution NETTE, tout au plus haut, jamais baissé). */
 function qHaute(){try{return !!(SAVE.d&&SAVE.d.q==='haute');}catch(e){return false;}}
 PAL.B.imgQlP75=[24,24,19]; /* (2026-11-07, P2 · levier f) le seuil p75 (ms) au-delà duquel l'échelle QL baisse d'un cran sur téléphone récent ; colonnes ancien/moyen non lues (24 comme avant) */
+/* (2026-11-07, passe perf 3, P2) LA COUCHE DYNAMIQUE DE L'IMAGE : `imgRegle({halo,mips,ombre,dpr,ciel,stries})` pose à CHAUD, sans recompiler un seul programme, les mêmes leviers que les budgets statiques a-e — pour le gouverneur thermique
+   (session vitesse-fluide : la puce du 13 Pro est bridée ~3× après quelques minutes de course). Toutes les clés sont facultatives ; `imgRegle()` lit l'état ; `imgRegle('reset')` rend les valeurs du départ.
+     halo   : 'demi' (entrée du halo en ½ résolution) · 'tout' (pleine, comme l'ordi) · un nombre (part de résolution) · 'off' (halo coupé : le cran kMax de l'échelle QL le fait aussi)
+     mips   : 3 à 5, les étages de flou du halo
+     ombre  : 512 · 768 · 1024 (une carte d'ombre refaite : un à-coup, zéro programme) — le filtre PCF ne change pas (il est dans les programmes)
+     dpr    : le plafond de résolution de course (1,25 · 1 · 0,8 …) — `qlPose` recalcule les crans dessus
+     ciel   : la passe lisse du ciel une image sur N (plancher ; le budget `cielImg` du gouverneur reste plus fort s'il est plus haut)
+     stries : la densité (0 à 1) des traits d'air et de l'émission des traînées, à toute vitesse (`null` = le régime des budgets)
+   Rend l'état courant : {halo,mips,ombre,dpr,ciel,stries}. Ne fait rien de plus que poser ces valeurs : la décision (quand, de combien) reste à l'appelant. */
+const IMG_REGLE0={};
+function imgRegle(o){
+  if(o==='reset'){if(IMG_REGLE0.ok){BLOOM_BASE=IMG_REGLE0.bb;if(bloomPass)bloomPass._nM=IMG_REGLE0.nM;QL.ombre0=IMG_REGLE0.om;DPR_CAP=IMG_REGLE0.cap;IMG_DYN.ciel=0;PAL.B.bloomOff[PAL.n]=IMG_REGLE0.boff;IMG_DYN.dens=null;IMG_REGLE0.ok=false;curDPR=-1;qlPose(QL.k);}return imgRegle();}
+  if(o&&typeof o==='object'){
+    if(!IMG_REGLE0.ok){IMG_REGLE0.ok=true;IMG_REGLE0.bb=BLOOM_BASE;IMG_REGLE0.nM=bloomPass?bloomPass._nM:5;IMG_REGLE0.om=QL.ombre0;IMG_REGLE0.cap=DPR_CAP;IMG_REGLE0.boff=PAL.B.bloomOff[PAL.n];}
+    if('halo' in o){const h=o.halo;if(h==='off')PAL.B.bloomOff[PAL.n]=1;else{PAL.B.bloomOff[PAL.n]=IMG_REGLE0.boff;BLOOM_BASE=h==='demi'?.5:h==='tout'?1:Math.max(.2,Math.min(1,+h||1));}}
+    if('mips' in o&&bloomPass)bloomPass._nM=Math.max(1,Math.min(5,o.mips|0));
+    if('ombre' in o)QL.ombre0=Math.max(256,Math.min(2048,o.ombre|0));
+    if('dpr' in o)DPR_CAP=Math.max(DPR_MIN,Math.min(+o.dpr||1,devicePixelRatio));
+    if('ciel' in o)IMG_DYN.ciel=Math.max(0,o.ciel|0);
+    if('stries' in o)IMG_DYN.dens=o.stries==null?null:Math.max(0,Math.min(1,+o.stries)),IMG_DYN.vmin=0;
+    curDPR=-1;qlPose(QL.k);}
+  return {halo:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,mips:bloomPass?bloomPass._nM:null,ombre:sun.shadow.mapSize.x,dpr:+curDPR.toFixed(2),cap:+DPR_CAP.toFixed(2),ciel:IMG_DYN.ciel,stries:IMG_DYN.dens,ql:QL.k};}
+window.imgRegle=imgRegle;
 function qlAuto(){return TEL_NATIF&&!qHaute()&&started&&!gameOver;}
 function qSuivant(q){return q==='fast'?'net':q==='net'?'haute':'fast';}
 function qLbl(){const q=SAVE.d.q;return q==='haute'?'HAUTE':q==='net'?'NETTE':'RAPIDE';}

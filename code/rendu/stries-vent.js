@@ -21,7 +21,7 @@ function emiN(k,dt){const K=PAL.b('emiK',1);if(K>=1){const a=(EMI[k]||0)+Math.mi
    naissent deux fois moins (report fractionnaire : la moyenne tient) — à cette vitesse tout file, l'œil ne compte plus les traits et le remplissage additif est ce que la puce paie le plus cher ;
    `PAL.B.imgDensVit=[1,1,.5]` (colonnes ancien/moyen non lues) ; `?img=max` / `?imgsans=e` = comme avant ; l'ordinateur ne change pas. */
 PAL.B.imgDensVit=[1,1,.5];
-function densVit(kmh){return kmh>200?PAL.bT('imgDensVit',1,'e'):1;}
+function densVit(kmh){if(IMG_DYN.dens!=null)return kmh>IMG_DYN.vmin?IMG_DYN.dens:1; /* `imgRegle({stries:f})` : imposé à chaud */return kmh>200?PAL.bT('imgDensVit',1,'e'):1;}
 function emiVit(k,n,kmh){const f=densVit(kmh);if(f>=1)return n;const a=(EMI[k+'v']||0)+n*f,m=Math.round(a);EMI[k+'v']=a-m;return m;}
 /* (2026-10-28, Léo : « il y a toujours quelques traits moins droits et exacts que ceux autour, trouve-les ») LES ANCIENS TRAITS D'AIR s'effacent : ces points posés dans le monde
    filent en perspective vers un point de fuite un peu différent de celui des filets de l'écran (shader final) — d'où les quelques traits de travers parmi les droits. Les filets les remplacent ; `?traits=0` rend les deux. */

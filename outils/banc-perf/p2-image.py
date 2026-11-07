@@ -3,7 +3,7 @@
     python3 outils/banc-perf/p2-image.py --tag avant --maps nuages:midi,ville:pluie [--qs '&img=max'] [--ordi] [--cpu 4] [--sortie dossier]
 iPhone 13 Pro émulé (390×844 ×3, tactile → TEL_NATIF vrai), `?garde=1&palier=2&pistegraine=777`, JOUER, échelle QL figée (dbgPin) à son cran de départ,
 caisse posée à 1 800 m (dbgPortail) puis 80 m de route : 6 s de `dbgCout()` (gpu p50/p90 de la puce, passes, toile, ombre, halo) + une capture à l'instant fixe.
---ordi : pas d'émulation tactile (TEL_NATIF faux), fenêtre 844×390 ×2 : l'ordinateur jouant la version téléphone (?tel=1), souris. Sortie JSON sur stdout.
+--vp <dossier> : servir ce dossier (ex. l'index d'origin/main pour l'AVANT du pixel) · --ordi : pas d'émulation tactile (TEL_NATIF faux), fenêtre 844×390 ×2 : l'ordinateur jouant la version téléphone (?tel=1), souris. Sortie JSON sur stdout.
 Un seul banc à la fois : sh ~/cash-car/verrou-banc.sh prendre "P2" … rendre."""
 import sys,os,json,time,subprocess,tempfile,shutil,urllib.request,importlib.util,base64
 ICI=os.path.dirname(os.path.abspath(__file__));sys.path.insert(0,ICI)
@@ -15,7 +15,7 @@ def arg(n,d=None):
 def souris(c,x,y):
     for t in ('mousePressed','mouseReleased'):
         c.call('Input.dispatchMouseEvent',type=t,x=x,y=y,button='left',clickCount=1);c.pump(.08)
-def run(http,port,carte,qs,ordi,cpu,dossier,tag):
+def run(http,port,carte,qs,ordi,cpu,dossier,tag,regle=None):
     base='http://127.0.0.1:%d'%http
     c=CDP(port);c.keep={'Runtime.exceptionThrown'}
     for m in ('Network.enable','Page.enable','Runtime.enable'):c.call(m)
@@ -56,8 +56,10 @@ def run(http,port,carte,qs,ordi,cpu,dossier,tag):
     pos=c.ev("dbgPortail(1800)");s0=pos.get('s',0) if isinstance(pos,dict) else 0
     t=time.time()
     while time.time()-t<60 and (c.ev("dbgEco().s") or 0)<s0+80:c.pump(.05)
+    lk0=c.ev('window.__LK');rg=None
+    if regle:rg=c.ev('JSON.stringify(imgRegle(%s))'%regle);c.pump(1.5)
     c.ev("dbgCout(1);1");c.pump(7)
-    R=json.loads(c.ev("JSON.stringify({cout:dbgCout(),img:dbgImg(),pal:dbgPalier().n,nette:dbgNette(),perf:dbgPerf()})"))
+    R=json.loads(c.ev("JSON.stringify({cout:dbgCout(),img:dbgImg(),pal:dbgPalier().n,nette:dbgNette(),perf:dbgPerf(),lk:window.__LK,rg:(typeof imgRegle==='function'?imgRegle():null)})"));R['lk0']=lk0;R['regle']=rg
     if dossier:
         os.makedirs(dossier,exist_ok=True)
         c.ev("dbgCout(0);1")
@@ -69,7 +71,7 @@ def run(http,port,carte,qs,ordi,cpu,dossier,tag):
 def main():
     maps=[m.split(':') for m in arg('--maps','nuages:midi,ville:pluie,foret:midi,dunes:midi').split(',')]
     qs=arg('--qs','');ordi='--ordi' in sys.argv;cpu=int(arg('--cpu','4'));dossier=arg('--sortie');tag=arg('--tag','x')
-    http=gp.libre();srv=subprocess.Popen([sys.executable,'-m','http.server',str(http),'--bind','127.0.0.1'],cwd=gp.VP,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    http=gp.libre();srv=subprocess.Popen([sys.executable,'-m','http.server',str(http),'--bind','127.0.0.1'],cwd=arg('--vp',gp.VP),stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     out=[]
     try:
         for m in maps:
@@ -80,7 +82,7 @@ def main():
                     time.sleep(.5)
                     try:urllib.request.urlopen('http://127.0.0.1:%d/json/version'%pt,timeout=2).read();break
                     except Exception:pass
-                R=run(http,pt,m,qs,ordi,cpu,dossier,tag)
+                R=run(http,pt,m,qs,ordi,cpu,dossier,tag,arg('--regle'))
             finally:
                 ch.terminate()
                 try:ch.wait(5)
