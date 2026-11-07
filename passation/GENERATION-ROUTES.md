@@ -140,3 +140,17 @@ Variante : `?gen=ancien` = la génération et la règle d'avant (phrase et briqu
 4. les neuf modules uniques ;
 5. banc « après » (mêmes graines), plans PNG, photos dans le jeu (espace, nuages, dunes, grotte), course au pilote auto ;
 6. sw.js, fusion dans main, lien de test.
+
+## 5. LES CHIFFRES D'APRÈS (banc réel `toutes.mjs`, mêmes graines 1-6 : `sorties/apres-0711/`, journal `journal-ctrl.txt`)
+Colonnes de la fiche v2 : vir/km · douilles (lobes de 4-26° sous 5 rP, par route) · zigzags · dF% (part de droites franches, voulue 5-22 %) · hors (part de route hors de l'endroit, ≤ 25 %) · note.
+| map | p0 | p10 | p20 |
+|---|---|---|---|
+| nuages | 2,2 · 0,2 · 0 · 13 % · 9 % · 0,8 | 1,2 · 0 · 0 · 20 % · 9 % · 3,2 | 0,4 · 0 · 0 · 20 % · 14 % · 6,0 |
+| espace | 2,0 · 0 · 0 · 15 % · 8 % · 0,7 | 1,2 · 0 · 0 · 17 % · 10 % · 1,8 | 0,5 · 0 · 0 · 21 % · 13 % · 4,5 |
+| ville | 2,6 · 0,2 · 0 · 16 % · 0 · 1,3 | 1,6 · 0 · 0 · 21 % · 0 · 4,0 | 0,5 · 0 · 0 · 19 % · 0 · 6,9 |
+| crypto | 3,1 · 0,2 · 0 · 16 % · 0 · 1,1 | 2,0 · 0,8 · 0 · 17 % · 0 · 2,6 | 0,5 · 0 · 0 · 16 % · 0 · 7,4 |
+Avant (même fiche v2 sur l'ancienne génération, banc Node) : nuages p0 **4,1 douilles/route**, espace p0 **2,3**, 30-40 % de route hors de l'endroit, droites franches ~0.
+- **Douilles : zéro** (une par route au pire sur 24 routes de crypto p10). **Zigzags : zéro. Hors de l'endroit : 8-14 %** (c'était 30-40 %). Les droites franches font 13-21 % de la route.
+- **Les routes sont à la longueur visée** (ville p0 : 77 s de croisière au lieu de 94, p20 : 28 s au lieu de 38) : l'ancienne recette collait un dernier module APRÈS la longueur visée et la dépassait de 15-20 %. Ce n'est pas une régression, c'est la durée voulue (45 s → 20 s, `DUREE`).
+- **La note monte au palier 20** (ville 6,9, crypto 7,4) : la cible `vir` est par km et une route de 28 s à 340 m/s n'a plus que 4-5 virages (chacun long). C'est la cible qui est mal posée à haut palier, pas la route (dessins propres dans `apres-0711/*-p20-*.png`). À reprendre si on retouche le directeur : viser des virages par MINUTE.
+- **Le climax** (SURF, COULOIR, ROND-POINT, TO THE MOON) : d'abord absent de 5 routes roulées sur 36 (la phrase ne le déclenchait qu'à l'état « fort » et un module plus long que ses 5 s la faisait basculer en fin) ; corrigé (déclenchement à tout état, après un souffle tout de suite) : **96 routes sur 96** au banc Node l'ont. Photos dans le jeu : `sorties/photos-0711/`.
