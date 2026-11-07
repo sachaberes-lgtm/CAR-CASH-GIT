@@ -10852,6 +10852,7 @@ html body #gBqPan.cote.bqFigOn #bqFigSel .fsPas{min-height:32px;padding:0 6px;le
 #gBqPan.cote.bqFigOn .bqRail{grid-column:2;grid-row:2}
 html body #gBqPan.cote.bqFigOn .bqRail .bqK.fgK{--fgW:calc((100% - 8px) / 2.2)}
 </style>
+<<<<<<< HEAD
 <style id="etalonnage">
 /* ===== L'ÉTALONNAGE (2026-11-07, Sacha : « fais une session de finition d'étalonnage pour que toutes les couleurs soient jolies entre elles et forment un jeu complet pensé pour mobile ») =====
    LE CONSTAT (mesuré sur les 48 feuilles de code/css) : 704 teintes différentes pour une charte qui en nomme vingt — 84 ors, 67 oranges,
@@ -10898,6 +10899,66 @@ html body #gBqPan.cote.bqFigOn .bqRail .bqK.fgK{--fgW:calc((100% - 8px) / 2.2)}
 /* la salle blanche : les ombres portées étaient gris-bleu (rgba(20,23,28,…) et rgba(30,40,55,…)) — elles prennent l'encre du jeu */
 html.bqIndus body #garage #gBqCats button.on{box-shadow:0 8px 18px rgba(23,19,43,.22)}
 html.bqIndus body #garage #gBqTete .bqArg{box-shadow:0 0 0 1px var(--bqFil),0 8px 20px rgba(23,19,43,.07)}
+=======
+<style id="hudFini">
+/* =====================================================================================================================================
+   LA FINITION DU HUD (2026-11-07, Sacha : « revois le HUD parfaitement, tout doit être parfait, bien proportionné et placé, de jolies
+   animations, tout bien léché »)
+   -------------------------------------------------------------------------------------------------------------------------------------
+   MESURÉ au banc du HUD (outils/banc-hud/photos.cjs : debout 390 × 844 et couché 844 × 390 — départ, course, HUD chargé, discret, pause ;
+   la boîte de chaque bloc dans rects.json). Le dessin du HUD est celui que Sacha a validé (hudDA, hudTaille, hudOrdre, hudMaitrise) : ce
+   bloc, posé APRÈS tous les autres, ne redessine rien — il règle ce qui se MESURE et complète ce qui se SENT.
+   1. LA COLONNE DE DROITE, UNE SEULE LARGEUR (--hudColW). Mesuré debout : la plaque NITRO MAX faisait 129 px, AIR MAX 122 (leur bord gauche
+      en dents de scie, leur largeur au gré du nom), le chrono de vol 74, l'argent 101. Tout tombe désormais sur la même largeur et le même
+      bord droit : l'argent, le chrono de vol, chaque plaque de pouvoir, l'objectif de campagne.
+   2. LA BARRE DE LA CHAÎNE finit au bout de la barre du FLOW : les trois barres du bloc de gauche (boost, flow, chaîne) forment un seul
+      tableau (elle s'arrêtait à 142 px quand le flow allait à 189).
+   3. LES CENTIMES EN PETIT : « $8,21 » se lisait « 8, 21 » — la virgule de la police pixel occupe une case entière. cashEcrit enveloppe les
+      centimes dans <small> : les unités en grand, les centimes serrés contre elles, sur la même ligne de base (comme sur une étiquette).
+   4. L'ENTRÉE EN SCÈNE, COMPLÉTÉE : le ⏸, les barres et l'aura arrivaient en cascade (hudMaitrise) mais l'argent et la flamme NITRO
+      apparaissaient d'un coup. L'argent descend de la droite juste après le ⏸ ; la flamme monte du bas, tout de suite (elle se touche dès
+      la première seconde : 0,15 s de retard, pas plus).
+   5. LES GAINS SE VOIENT : l'argent FRAPPE avec un éclat vert (il ne faisait que sauter de 3 px — toujours par paliers, jamais de ressort :
+      la règle du compteur) ; la vitesse frappe quand la nitro s'allume (le chiffre grossit depuis sa droite et retombe).
+   6. LE PAYSAGE : la barre de la chaîne suit la largeur du flow couché (la moitié de l'écran) ; les plaques de pouvoir y sont déjà dans la
+      colonne, sous le chrono (hudOrdre les y cale en !important : la règle « à gauche du chrono » de hudDA ne s'applique plus).
+   Règles : propriétés individuelles (translate / scale / opacity / filter), la courbe unique --ease, et « Réduire les animations » coupe tout.
+   ===================================================================================================================================== */
+:root{--hudColW:132px}
+/* ---- 1. LA COLONNE DE DROITE : une largeur, un bord (dans un bloc rétréci par `zoom`, les px s'écrivent ÷ --hudK pour tomber juste à l'écran) ---- */
+html body.touch #airHud{width:calc(var(--hudColW) / var(--hudK))!important}
+html body.touch #pwrChip .pw{width:calc(var(--hudColW) / var(--hudK))!important;min-width:0!important;box-sizing:border-box}
+html body.touch #campChip{min-width:calc(var(--hudColW) / var(--hudK));box-sizing:border-box}
+html body.touch.play #cashHud{min-width:var(--hudColW)}
+/* ---- 2. LA CHAÎNE : sa barre finit au bout de la barre du FLOW (la longueur du flow = 34 px d'icône + --ajK de la barre de boost ; ÷ --hudK : l'aura est zoomée) ---- */
+html body.touch #avCh .avBar{width:calc((34px + (100vw - var(--ccL,env(safe-area-inset-left,0px)) - var(--ccR,env(safe-area-inset-right,0px)) - 214px) * var(--ajK,.8)) / var(--hudK))}
+/* ---- 3. LES CENTIMES EN PETIT (cashEcrit : « 8 » puis <small>,21</small>) — le dégradé et le cerne d'encre du nombre les couvrent (ils sont dans le même span) ---- */
+#cashHud .chV span small{font-size:.6em;letter-spacing:-1px;margin-left:-.1em}
+/* ---- 4. L'ENTRÉE EN SCÈNE, complétée : l'argent de la droite (après le ⏸, avant l'aura), la flamme NITRO du bas ---- */
+@keyframes hfMonte{0%{opacity:0;translate:0 18px}100%{opacity:1;translate:0 0}}
+@keyframes hfEclot{0%{opacity:0;scale:.6}100%{opacity:1;scale:1}}
+html body.touch.play #cashHud{animation:hmDroite .5s var(--ease) 1.2s both}
+html body.touch.play #tNitro .nx3{animation:hfMonte .4s var(--ease) .15s both}   /* la flamme pixel (bvF) — #tNitro lui-même est verrouillé sans animation (nitroEclair) */
+html body.touch.play.bv #tNitro .bvIco{animation:hfEclot .4s var(--ease) .15s both} /* les icônes SVG (?boost=bouteille…) : scale et opacité seules, leur transform centre l'icône */
+/* ---- 5. LES GAINS : l'argent frappe avec un éclat vert (mêmes paliers que daCash : steps(3), 0,24 s) ; la vitesse frappe quand la nitro s'allume ---- */
+html body #cashHud .chV{transform-origin:100% 60%}
+html body #cashHud.b1 .chV{animation-name:hfCashA}html body #cashHud.b2 .chV{animation-name:hfCashB}
+@keyframes hfCashA{0%{transform:translateY(-3px) scale(1.07);filter:brightness(1.75) drop-shadow(0 0 12px rgba(125,255,155,.95))}100%{transform:none;filter:none}}
+@keyframes hfCashB{0%{transform:translateY(-3px) scale(1.07);filter:brightness(1.75) drop-shadow(0 0 12px rgba(125,255,155,.95))}100%{transform:none;filter:none}}
+#nxVit b{transform-origin:100% 100%}
+@keyframes hfVit{0%{scale:1.22}100%{scale:1}}
+#nxVit.on b,#nxVit.bleu b,#nxVit.inf b{animation:hfVit .28s var(--ease)}
+/* ---- 6. LE PAYSAGE : la barre de la chaîne au bout du flow couché ---- */
+@media (orientation:landscape) and (max-height:540px){
+  html body.touch #avCh .avBar{width:calc((34px + (min(50vw,440px) - 34px) * var(--ajK,.8)) / var(--hudK))}
+}
+/* ---- « Réduire les animations » ---- */
+@media (prefers-reduced-motion:reduce){
+  html body.touch.play #cashHud,html body.touch.play #tNitro .nx3,html body.touch.play.bv #tNitro .bvIco,html body #cashHud.b1 .chV,html body #cashHud.b2 .chV,#nxVit.on b,#nxVit.bleu b,#nxVit.inf b{animation:none!important}
+}
+html[data-reduced-motion="1"] body.touch.play #cashHud,html[data-reduced-motion="1"] body.touch.play #tNitro .nx3,html[data-reduced-motion="1"] body.touch.play.bv #tNitro .bvIco,
+html[data-reduced-motion="1"] body #nxVit b{animation:none!important}
+>>>>>>> origin/main
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -31533,12 +31594,14 @@ function cashTxt(v){v=Math.max(0,v);
   const e=Math.floor(v+1e-6);
   if(v<10&&v-e>.004){const t=v.toFixed(2);return LANG==='fr'?t.replace('.',','):t;} // la mise de départ (1,61) garde ses centimes
   return e.toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
+/* (2026-11-07, finition du HUD) LES CENTIMES EN PETIT : « 8 » puis <small>,21</small> — t vient de toLocaleString / toFixed (chiffres, espaces, une virgule ou un point) : rien d'autre n'entre dans le HTML */
+function cashPose(el,t){const m=/^(\d[\d ]*)([.,]\d+)$/.exec(t);if(m)el.innerHTML=m[1]+'<small>'+m[2]+'</small>';else el.textContent=t;}
 function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
   const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
-  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;CASH.v.textContent=t;if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,VP.w*.58);}}}
+  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,VP.w*.58);}}}
   if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);
