@@ -117,7 +117,10 @@ function nx3Tick(dt,kmh){
   let g=-1;if(NX3.gl>=0){NX3.gl+=dt/.5;if(NX3.gl>1){NX3.gl=-1;NX3.glT=plein?1.6:3.5;}else g=Math.floor(-2+NX3.gl*36);}
   if(NX3.flame){NX3.fh=Math.round(fh*20)/20;NX3.ft=rm?0:Math.floor(NX3.t*(7+9*fh));}
   const cle=d+'|'+pal+'|'+aQ+'|'+g+'|'+clig+(NX3.flame?'|'+NX3.fh+'|'+NX3.ft:'');
-  if(cle!==NX3.cle){NX3.cle=cle;nx3Dessine(d,pal,aQ,g,clig);}
+  if(cle!==NX3.cle){
+    if(mobhChaud()){const t9=performance.now();if(d===MOBH_nx3D&&t9-MOBH_nx3T<MOBH_R.nx3Ms)return; /* (2026-10-25, A6) régime chaud : l'appui (d) se redessine à l'instant, la lueur et le reflet au plus tous les 66 ms */
+      MOBH_nx3T=t9;}
+    MOBH_nx3D=d;NX3.cle=cle;nx3Dessine(d,pal,aQ,g,clig);}
 }
 window.dbgNitro3=function(a,b){
   if(a==='k'){NX3.kF=b==null?null:+b;return NX3.kF;}

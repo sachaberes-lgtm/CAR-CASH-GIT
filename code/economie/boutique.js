@@ -125,6 +125,9 @@ function shopPhotoVeut(i){if(SHQ.q.indexOf(i)<0)SHQ.q.push(i);if(!SHQ.on){SHQ.on
 function shopPhotoTour(){
   const sc=document.getElementById('mShop');
   if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} /* hors de la page (ou en course) : la file attend la prochaine ouverture */
+  if(!MENU_MAX){const t9=performance.now(); /* (2026-11-07, Perf 3 — P5) une photo par 150 ms au moins, une par image (rAF), jamais pendant un défilement, un geste ou le voile : la boutique ne gèle plus à l'ouverture */
+    if(document.hidden||t9-PHQ.defile<260||t9<(SHQ.pret||0)||ecranWipe._on||GFIG.D>0&&t9-GFIG.vu<700){setTimeout(shopPhotoTour,100);return;}
+    SHQ.pret=t9+150;}
   const e=SHQ.q.shift(),t=typeof e==='string'?e[0]:'',i=t?+e.slice(1):e;
   if(t==='p'){if(!PHOTO.cache[i])try{carPhoto(i,function(){});}catch(_){}setTimeout(shopPhotoTour,40);return;}
   const big=t==='u',vt=shBoiteVt(),k=shBoiteCle(i,big);
@@ -134,7 +137,7 @@ function shopPhotoTour(){
       im.onload=function(){b.classList.add('vt');};im.src=u;if(im.complete&&im.naturalWidth)b.classList.add('vt');}); /* la boîte n'apparaît qu'une fois l'image décodée (fondu, voir achat-boites.css) */
     if(vt&&!PHOTO.cache[i])shopPhotoVeut('p'+i);};
   if(PHOTO.cache[k])pose(PHOTO.cache[k]);else try{if(vt)vitrinePhoto({i:i,own:carOwned(i),w:big?SHB_GRAND:0},pose);else carPhoto(i,pose);}catch(_){} /* (OPTIMISATION) l'image s'encode hors du fil (toBlob) : elle se pose à son arrivée */
-  setTimeout(shopPhotoTour,40); /* une image, puis on rend la main : l'écran respire entre deux */
+  if(MENU_MAX)setTimeout(shopPhotoTour,40);else requestAnimationFrame(function(){setTimeout(shopPhotoTour,0);}); // une photo, puis on rend la main : l'écran respire entre deux — (2026-11-07, P5) l'espacement de 150 ms est tenu plus haut (SHQ.pret)
 }
 function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if(d.p&&!shopOwned(cat,d.id)&&d.p<=bank())n++;return n;}
 /* ---------------- LA BOUTIQUE ---------------- */

@@ -1,0 +1,12 @@
+  … chauffe {"atelier":false,"divers":0,"moteurs":-1,"sur":31,"rendu":false,"apres":0,"lier":4,"programmes":112}
+  … chauffe {"atelier":false,"divers":0,"moteurs":-1,"sur":31,"rendu":false,"apres":0,"lier":4,"programmes":112}
+chauffe des premières fois : {"on":true,"chauffe":{"div":0,"fait":false,"ap":0},"fait":0,"moteurs":{"i":0,"n":0,"fini":false,"programmes":0}}
+chauffe forcée : {"on":true,"chauffe":{"div":38,"fait":true,"ap":0},"fait":8,"moteurs":{"i":30,"n":11,"fini":true,"programmes":10}}
+portail → ville:pluie                          lie  0 | CT  0 cv  8 | pire img  100 ms (0>100) | GL>20ms: - | 1er dessin prog 8 état 0 | envoi tex 10 (1245 kpx) tampons 84 (16367 Ko) | Δprog +0 tex +4 geo -181 | style+page 4304 ms | drive
+portail → jade:midi                            lie  0 | CT  0 cv  0 | pire img  200 ms (1>100) | GL>20ms: - | 1er dessin prog 0 état 0 | envoi tex 8 (917 kpx) tampons 430 (112236 Ko) | Δprog +0 tex +0 geo +184 | style+page 3797 ms | drive
+portail → grotte:matin                         lie  0 | CT  0 cv  0 | pire img  133 ms (2>100) | GL>20ms: - | 1er dessin prog 0 état 0 | envoi tex 8 (917 kpx) tampons 75 (14565 Ko) | Δprog +0 tex +0 geo +476 | style+page 3718 ms | drive
+portail → dunes:midi                           lie  0 | CT  0 cv  0 | pire img  100 ms (0>100) | GL>20ms: - | 1er dessin prog 0 état 0 | envoi tex 29 (1595 kpx) tampons 83 (16093 Ko) | Δprog +0 tex +4 geo -474 | style+page 5588 ms | drive
+portail → canyon:midi                          lie  0 | CT  0 cv  0 | pire img  250 ms (2>100) | GL>20ms: - | 1er dessin prog 0 état 0 | envoi tex 12 (1347 kpx) tampons 54 (10397 Ko) | Δprog +0 tex +2 geo +11 | style+page 4909 ms | drive
+portail → nuages:orage                         lie  0 | CT  0 cv  0 | pire img  733 ms (9>100) | GL>20ms: - | 1er dessin prog 0 état 0 | envoi tex 8 (917 kpx) tampons 102 (19901 Ko) | Δprog +0 tex -3 geo +56 | style+page 4328 ms | drive
+erreurs de page : {"l":null,"p":null}
+étapes fautives (hors portails) : 0 []

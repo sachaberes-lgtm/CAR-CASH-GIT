@@ -1,0 +1,868 @@
+{
+ "date": "2026-11-07 16:57",
+ "qs": "",
+ "carte": "nuages:midi",
+ "palier": 2,
+ "accueil": {
+  "cout": 1,
+  "tex": 9,
+  "geo": 1,
+  "progs": 112,
+  "toiles": 0,
+  "tasJS": 213268163,
+  "audio": {
+   "ok": false,
+   "ton": 0,
+   "decodes": 141,
+   "total": 384,
+   "salle": false,
+   "residents": 141,
+   "mo": 15.5,
+   "tardifs": 0,
+   "perdus": 0,
+   "evinces": 0,
+   "enAttente": 0
+  },
+  "scene": null,
+  "etat": {
+   "st": false,
+   "go": false
+  },
+  "lieu": "nuages/matin n1",
+  "trace": {
+   "geoVivantes": 1,
+   "geoHorsScene": 0,
+   "cpuHorsSceneMo": 0,
+   "objetsScene": 9,
+   "scenes": 2,
+   "groupes": [],
+   "cpuSceneParNom": [
+    {
+     "nom": "(sans nom) <ShaderMaterial>",
+     "n": 1,
+     "cpuMo": 0
+    }
+   ],
+   "texVivantes": 4,
+   "texHorsScene": 4,
+   "texHorsGroupes": {
+    "128x128 canvas": 1,
+    "640x640": 1,
+    "512x128 canvas": 1,
+    "0x0": 1
+   }
+  },
+  "cpuGeoMo": 0,
+  "cdp": {
+   "JSHeapUsedSize": 32564132,
+   "JSHeapTotalSize": 34504704,
+   "Nodes": 3254,
+   "JSEventListeners": 325,
+   "Documents": 14
+  }
+ },
+ "parties": [
+  {
+   "cout": 1,
+   "tex": 120,
+   "geo": 1174,
+   "progs": 210,
+   "toiles": 37,
+   "tasJS": 251402540,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 143,
+    "total": 384,
+    "salle": false,
+    "residents": 143,
+    "mo": 15.7,
+    "tardifs": 43,
+    "perdus": 11,
+    "evinces": 55,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": true
+   },
+   "lieu": "grotte/grt-matin-boyau n4",
+   "trace": {
+    "geoVivantes": 1174,
+    "geoHorsScene": 61,
+    "cpuHorsSceneMo": 3.3,
+    "texVivantes": 102,
+    "texHorsScene": 15
+   },
+   "cpuGeoMo": 16.3,
+   "cdp": {
+    "JSHeapUsedSize": 60478324,
+    "JSHeapTotalSize": 64897024,
+    "Nodes": 3549,
+    "JSEventListeners": 335,
+    "Documents": 23
+   },
+   "partie": 1,
+   "depart_s": 50.9
+  },
+  {
+   "cout": 1,
+   "tex": 153,
+   "geo": 662,
+   "progs": 211,
+   "toiles": 38,
+   "tasJS": 251640109,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 141,
+    "total": 384,
+    "salle": false,
+    "residents": 141,
+    "mo": 15.5,
+    "tardifs": 55,
+    "perdus": 15,
+    "evinces": 104,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": true
+   },
+   "lieu": "dunes/dunesNuit n2",
+   "trace": {
+    "geoVivantes": 662,
+    "geoHorsScene": 63,
+    "cpuHorsSceneMo": 3.7,
+    "texVivantes": 135,
+    "texHorsScene": 17
+   },
+   "cpuGeoMo": 24.1,
+   "cdp": {
+    "JSHeapUsedSize": 58704932,
+    "JSHeapTotalSize": 63324160,
+    "Nodes": 3607,
+    "JSEventListeners": 343,
+    "Documents": 23
+   },
+   "partie": 2,
+   "depart_s": 44.1
+  },
+  {
+   "cout": 1,
+   "tex": 150,
+   "geo": 694,
+   "progs": 219,
+   "toiles": 38,
+   "tasJS": 243570240,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 143,
+    "total": 384,
+    "salle": false,
+    "residents": 143,
+    "mo": 15.7,
+    "tardifs": 72,
+    "perdus": 27,
+    "evinces": 178,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": true
+   },
+   "lieu": "ville/bullrun n4",
+   "trace": {
+    "geoVivantes": 694,
+    "geoHorsScene": 83,
+    "cpuHorsSceneMo": 5.5,
+    "texVivantes": 132,
+    "texHorsScene": 13
+   },
+   "cpuGeoMo": 26.1,
+   "cdp": {
+    "JSHeapUsedSize": 59280640,
+    "JSHeapTotalSize": 63504384,
+    "Nodes": 3643,
+    "JSEventListeners": 343,
+    "Documents": 23
+   },
+   "partie": 3,
+   "depart_s": 47.5
+  },
+  {
+   "cout": 1,
+   "tex": 150,
+   "geo": 707,
+   "progs": 221,
+   "toiles": 38,
+   "tasJS": 273541698,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 143,
+    "total": 384,
+    "salle": false,
+    "residents": 143,
+    "mo": 15.7,
+    "tardifs": 89,
+    "perdus": 32,
+    "evinces": 252,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": true
+   },
+   "lieu": "jade/jadeMidi n4",
+   "trace": {
+    "geoVivantes": 707,
+    "geoHorsScene": 100,
+    "cpuHorsSceneMo": 6.4,
+    "texVivantes": 132,
+    "texHorsScene": 13
+   },
+   "cpuGeoMo": 38.8,
+   "cdp": {
+    "JSHeapUsedSize": 58382448,
+    "JSHeapTotalSize": 63291392,
+    "Nodes": 3647,
+    "JSEventListeners": 343,
+    "Documents": 23
+   },
+   "partie": 4,
+   "depart_s": 49.5
+  },
+  {
+   "cout": 1,
+   "tex": 154,
+   "geo": 699,
+   "progs": 222,
+   "toiles": 38,
+   "tasJS": 247654837,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 143,
+    "total": 384,
+    "salle": false,
+    "residents": 143,
+    "mo": 15.7,
+    "tardifs": 102,
+    "perdus": 45,
+    "evinces": 333,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": true
+   },
+   "lieu": "canyon/canyonNuit n4",
+   "trace": {
+    "geoVivantes": 699,
+    "geoHorsScene": 100,
+    "cpuHorsSceneMo": 5.8,
+    "texVivantes": 136,
+    "texHorsScene": 17
+   },
+   "cpuGeoMo": 27.8,
+   "cdp": {
+    "JSHeapUsedSize": 59056388,
+    "JSHeapTotalSize": 63766528,
+    "Nodes": 3685,
+    "JSEventListeners": 343,
+    "Documents": 24
+   },
+   "partie": 5,
+   "depart_s": 48.1
+  }
+ ],
+ "portails": [
+  {
+   "cout": 1,
+   "tex": 106,
+   "geo": 368,
+   "progs": 210,
+   "toiles": 37,
+   "tasJS": 210149383,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 167,
+    "total": 384,
+    "salle": true,
+    "residents": 167,
+    "mo": 20.3,
+    "tardifs": 30,
+    "perdus": 4,
+    "evinces": 11,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": false
+   },
+   "lieu": "ville/villeOrage_jaune n2",
+   "trace": {
+    "geoVivantes": 368,
+    "geoHorsScene": 25,
+    "cpuHorsSceneMo": 0.1,
+    "texVivantes": 89,
+    "texHorsScene": 14
+   },
+   "cpuGeoMo": 11.6,
+   "partie": 1,
+   "k": 1,
+   "voulu": "ville:pluie"
+  },
+  {
+   "cout": 1,
+   "tex": 118,
+   "geo": 537,
+   "progs": 210,
+   "toiles": 37,
+   "tasJS": 258944663,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 164,
+    "total": 384,
+    "salle": true,
+    "residents": 164,
+    "mo": 21,
+    "tardifs": 34,
+    "perdus": 7,
+    "evinces": 21,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": false
+   },
+   "lieu": "jade/jadeMidi n3",
+   "trace": {
+    "geoVivantes": 537,
+    "geoHorsScene": 57,
+    "cpuHorsSceneMo": 2.6,
+    "texVivantes": 101,
+    "texHorsScene": 14
+   },
+   "cpuGeoMo": 27.1,
+   "partie": 1,
+   "k": 2,
+   "voulu": "jade:midi"
+  },
+  {
+   "cout": 1,
+   "tex": 118,
+   "geo": 1144,
+   "progs": 210,
+   "toiles": 37,
+   "tasJS": 213965564,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 164,
+    "total": 384,
+    "salle": true,
+    "residents": 164,
+    "mo": 19.7,
+    "tardifs": 40,
+    "perdus": 7,
+    "evinces": 27,
+    "enAttente": 1
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": false
+   },
+   "lieu": "grotte/grt-matin-boyau n4",
+   "trace": {
+    "geoVivantes": 1144,
+    "geoHorsScene": 61,
+    "cpuHorsSceneMo": 3.3,
+    "texVivantes": 101,
+    "texHorsScene": 15
+   },
+   "cpuGeoMo": 16,
+   "partie": 1,
+   "k": 3,
+   "voulu": "grotte:matin"
+  },
+  {
+   "cout": 1,
+   "tex": 153,
+   "geo": 633,
+   "progs": 211,
+   "toiles": 38,
+   "tasJS": 219653527,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 183,
+    "total": 384,
+    "salle": true,
+    "residents": 183,
+    "mo": 29.3,
+    "tardifs": 51,
+    "perdus": 14,
+    "evinces": 57,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": false
+   },
+   "lieu": "dunes/dunesNuit n2",
+   "trace": {
+    "geoVivantes": 633,
+    "geoHorsScene": 60,
+    "cpuHorsSceneMo": 3.7,
+    "texVivantes": 135,
+    "texHorsScene": 17
+   },
+   "cpuGeoMo": 23.9,
+   "partie": 2,
+   "k": 1,
+   "voulu": "dunes:midi"
+  },
+  {
+   "cout": 1,
+   "tex": 153,
+   "geo": 662,
+   "progs": 211,
+   "toiles": 38,
+   "tasJS": 242019873,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 141,
+    "total": 384,
+    "salle": false,
+    "residents": 141,
+    "mo": 15.5,
+    "tardifs": 55,
+    "perdus": 15,
+    "evinces": 104,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": true
+   },
+   "lieu": "dunes/dunesNuit n2",
+   "trace": {
+    "geoVivantes": 662,
+    "geoHorsScene": 63,
+    "cpuHorsSceneMo": 3.7,
+    "texVivantes": 135,
+    "texHorsScene": 17
+   },
+   "cpuGeoMo": 24.1,
+   "partie": 2,
+   "k": 2,
+   "voulu": "canyon:midi"
+  },
+  {
+   "cout": 1,
+   "tex": 153,
+   "geo": 662,
+   "progs": 211,
+   "toiles": 38,
+   "tasJS": 251379525,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 141,
+    "total": 384,
+    "salle": false,
+    "residents": 141,
+    "mo": 15.5,
+    "tardifs": 55,
+    "perdus": 15,
+    "evinces": 104,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": true
+   },
+   "lieu": "dunes/dunesNuit n2",
+   "trace": {
+    "geoVivantes": 662,
+    "geoHorsScene": 63,
+    "cpuHorsSceneMo": 3.7,
+    "texVivantes": 135,
+    "texHorsScene": 17
+   },
+   "cpuGeoMo": 24.1,
+   "partie": 2,
+   "k": 3,
+   "voulu": "foret:midi"
+  },
+  {
+   "cout": 1,
+   "tex": 150,
+   "geo": 682,
+   "progs": 219,
+   "toiles": 38,
+   "tasJS": 228396687,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 170,
+    "total": 384,
+    "salle": true,
+    "residents": 170,
+    "mo": 23.6,
+    "tardifs": 57,
+    "perdus": 16,
+    "evinces": 124,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": false
+   },
+   "lieu": "banquise/banqMidi n2",
+   "trace": {
+    "geoVivantes": 682,
+    "geoHorsScene": 68,
+    "cpuHorsSceneMo": 3.8,
+    "texVivantes": 132,
+    "texHorsScene": 16
+   },
+   "cpuGeoMo": 27,
+   "partie": 3,
+   "k": 1,
+   "voulu": "banquise:midi"
+  },
+  {
+   "cout": 1,
+   "tex": 150,
+   "geo": 647,
+   "progs": 219,
+   "toiles": 38,
+   "tasJS": 222193441,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 170,
+    "total": 384,
+    "salle": true,
+    "residents": 170,
+    "mo": 22.7,
+    "tardifs": 63,
+    "perdus": 21,
+    "evinces": 136,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": false
+   },
+   "lieu": "espace/espaceMatin n3",
+   "trace": {
+    "geoVivantes": 647,
+    "geoHorsScene": 75,
+    "cpuHorsSceneMo": 3.8,
+    "texVivantes": 132,
+    "texHorsScene": 16
+   },
+   "cpuGeoMo": 23.6,
+   "partie": 3,
+   "k": 2,
+   "voulu": "espace:matin"
+  },
+  {
+   "cout": 1,
+   "tex": 150,
+   "geo": 664,
+   "progs": 219,
+   "toiles": 38,
+   "tasJS": 223437549,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 165,
+    "total": 384,
+    "salle": true,
+    "residents": 165,
+    "mo": 20.8,
+    "tardifs": 69,
+    "perdus": 24,
+    "evinces": 150,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": false
+   },
+   "lieu": "ville/bullrun n4",
+   "trace": {
+    "geoVivantes": 664,
+    "geoHorsScene": 83,
+    "cpuHorsSceneMo": 5.5,
+    "texVivantes": 132,
+    "texHorsScene": 14
+   },
+   "cpuGeoMo": 25.9,
+   "partie": 3,
+   "k": 3,
+   "voulu": "crypto:midi"
+  },
+  {
+   "cout": 1,
+   "tex": 150,
+   "geo": 628,
+   "progs": 221,
+   "toiles": 38,
+   "tasJS": 239729415,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 166,
+    "total": 384,
+    "salle": true,
+    "residents": 166,
+    "mo": 20.4,
+    "tardifs": 76,
+    "perdus": 30,
+    "evinces": 214,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": false
+   },
+   "lieu": "nuages/nuagesMidiCC n2",
+   "trace": {
+    "geoVivantes": 628,
+    "geoHorsScene": 100,
+    "cpuHorsSceneMo": 6,
+    "texVivantes": 132,
+    "texHorsScene": 16
+   },
+   "cpuGeoMo": 26.3,
+   "partie": 4,
+   "k": 1,
+   "voulu": "nuages:midi"
+  },
+  {
+   "cout": 1,
+   "tex": 150,
+   "geo": 609,
+   "progs": 221,
+   "toiles": 38,
+   "tasJS": 230273355,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 162,
+    "total": 384,
+    "salle": true,
+    "residents": 162,
+    "mo": 19.8,
+    "tardifs": 81,
+    "perdus": 30,
+    "evinces": 223,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": false
+   },
+   "lieu": "ville/villeOrage n3",
+   "trace": {
+    "geoVivantes": 609,
+    "geoHorsScene": 99,
+    "cpuHorsSceneMo": 6.5,
+    "texVivantes": 132,
+    "texHorsScene": 15
+   },
+   "cpuGeoMo": 26,
+   "partie": 4,
+   "k": 2,
+   "voulu": "ville:pluie"
+  },
+  {
+   "cout": 1,
+   "tex": 150,
+   "geo": 680,
+   "progs": 221,
+   "toiles": 38,
+   "tasJS": 248644305,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 164,
+    "total": 384,
+    "salle": true,
+    "residents": 164,
+    "mo": 20.3,
+    "tardifs": 86,
+    "perdus": 30,
+    "evinces": 226,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": false
+   },
+   "lieu": "jade/jadeMidi n4",
+   "trace": {
+    "geoVivantes": 680,
+    "geoHorsScene": 101,
+    "cpuHorsSceneMo": 5.8,
+    "texVivantes": 132,
+    "texHorsScene": 14
+   },
+   "cpuGeoMo": 38.4,
+   "partie": 4,
+   "k": 3,
+   "voulu": "jade:midi"
+  },
+  {
+   "cout": 1,
+   "tex": 150,
+   "geo": 1171,
+   "progs": 222,
+   "toiles": 38,
+   "tasJS": 238272815,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 167,
+    "total": 384,
+    "salle": true,
+    "residents": 167,
+    "mo": 19.4,
+    "tardifs": 89,
+    "perdus": 35,
+    "evinces": 286,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": false
+   },
+   "lieu": "grotte/grt-matin-luxe n2",
+   "trace": {
+    "geoVivantes": 1171,
+    "geoHorsScene": 102,
+    "cpuHorsSceneMo": 6.2,
+    "texVivantes": 132,
+    "texHorsScene": 16
+   },
+   "cpuGeoMo": 26.1,
+   "partie": 5,
+   "k": 1,
+   "voulu": "grotte:matin"
+  },
+  {
+   "cout": 1,
+   "tex": 153,
+   "geo": 697,
+   "progs": 222,
+   "toiles": 38,
+   "tasJS": 273809098,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 167,
+    "total": 384,
+    "salle": true,
+    "residents": 167,
+    "mo": 20.1,
+    "tardifs": 93,
+    "perdus": 41,
+    "evinces": 296,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": false
+   },
+   "lieu": "dunes/dunesSoir n3",
+   "trace": {
+    "geoVivantes": 697,
+    "geoHorsScene": 100,
+    "cpuHorsSceneMo": 5.9,
+    "texVivantes": 135,
+    "texHorsScene": 16
+   },
+   "cpuGeoMo": 27.1,
+   "partie": 5,
+   "k": 2,
+   "voulu": "dunes:midi"
+  },
+  {
+   "cout": 1,
+   "tex": 154,
+   "geo": 680,
+   "progs": 222,
+   "toiles": 38,
+   "tasJS": 228372010,
+   "audio": {
+    "ok": true,
+    "ton": 0,
+    "decodes": 172,
+    "total": 384,
+    "salle": true,
+    "residents": 172,
+    "mo": 21.6,
+    "tardifs": 98,
+    "perdus": 44,
+    "evinces": 299,
+    "enAttente": 0
+   },
+   "scene": null,
+   "etat": {
+    "st": true,
+    "go": false
+   },
+   "lieu": "canyon/canyonNuit n4",
+   "trace": {
+    "geoVivantes": 680,
+    "geoHorsScene": 100,
+    "cpuHorsSceneMo": 5.8,
+    "texVivantes": 136,
+    "texHorsScene": 17
+   },
+   "cpuGeoMo": 27.5,
+   "partie": 5,
+   "k": 3,
+   "voulu": "canyon:midi"
+  }
+ ],
+ "instantanes": {
+  "2": "/Users/sachaberes/cash-car/perf3/mesures-p1/tas/tas-partie2.heapsnapshot",
+  "4": "/Users/sachaberes/cash-car/perf3/mesures-p1/tas/tas-partie4.heapsnapshot"
+ },
+ "erreurs": [],
+ "deltaTasMo": -3.8,
+ "verdict": [
+  "geo : 662 → 699 (> 5 %)",
+  "progs : 211 → 222 (> 5 %)"
+ ]
+}

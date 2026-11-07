@@ -86,9 +86,13 @@ function traceTick(actif){
                          puis 'chauffe' (chauffeRendu de la piste neuve, ~120 ms après 'fin' : la dernière image lourde du changement de niveau).
    Un voile qui couvre de `cc:portail` (ou du geste JOUER) jusqu'à 'chauffe' cache TOUT le gel du changement de niveau, à tous les portails. */
 function ccConstr(etape,ms){try{document.dispatchEvent(new CustomEvent('cc:construction',{detail:{etape:etape,ms:ms||0}}));}catch(e){}}
-function newTrack(){
-  const t0NT=performance.now();ccConstr('debut');try{newTrack0();}finally{ccConstr('fin',Math.round(performance.now()-t0NT));}}
-function newTrack0(){
+/* (2026-11-07, OPTI ULTIME, build 6 sur iPhone 13 Pro : la piste du chargement = 650 ms d'un bloc) newTrack est un GÉNÉRATEUR (`newTrackG`) : le même code, qui peut rendre la main entre deux tranches
+   de la route et entre deux décors (voir `pisteDirecteG`, `buildTrackG`). Partout ailleurs `newTrack()` le mène d'un trait, comme avant ; seul le chargement sous le serpent le mène par tranches
+   de PISTE_TRANCHE ms (`chargeTranches`, vignette-moteur.js). */
+function* newTrackG(){
+  const t0NT=performance.now();ccConstr('debut');try{yield* newTrack0G();}finally{ccConstr('fin',Math.round(performance.now()-t0NT));}}
+function newTrack(){const g=newTrackG();while(!g.next().done);}
+function* newTrack0G(){
   PORTV.paye=0; // (audit p8) une piste neuve est bâtie : son portail paiera de nouveau
   const leger9=PREB.ntLeger;PREB.ntLeger=false; // (LE DÉPART D'AVANCE) la piste que resetGame rebâtit dans la même image : jamais dessinée, seul son ciel compte (voir sous9)
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) portail / nouvelle piste : la tension du vol repart de zéro
@@ -104,7 +108,7 @@ function newTrack0(){
    if(started&&!gameOver&&runStats.zones>0&&!PARK.on&&av9&&id9&&av9!==id9){if(id9==='espace')orbWarp();else if(av9==='espace')orbFeu();}}
   if(!leger9){const s9=prebGraine(niv);if(s9!=null)sd=s9;} // (2026-10-17) LE PRÉ-BÂTI : au passage du portail, la piste d'en face bâtie d'avance garde SA graine (voir PREB)
   if(niv&&niv.graine)sd=niv.graine; // (2026-09-27) CAMPAGNE : la même piste, les mêmes pièces, les mêmes nuages à chaque essai
-  if(!leger9){const e9=prebPalier();try{buildTrack(sd);}finally{if(e9!=null)engTier=e9;} // (LE PRÉ-BÂTI) le décor d'une piste bâtie d'avance se bâtit à son palier (prebPalier)
+  if(!leger9){const e9=prebPalier();try{yield* buildTrackG(sd);}finally{if(e9!=null)engTier=e9;} // (LE PRÉ-BÂTI) le décor d'une piste bâtie d'avance se bâtit à son palier (prebPalier)
   padsInstancier();} // (2026-09-27, passe perf iPhone) …et les plaques turbo : 82 appels de dessin → 1
   // LE CIEL : chaque NIVEAU tire le sien dans sa propre liste (voir NIVEAUX). Hors niveaux (parc
   // freestyle), l'ancien CYCLE DU CIEL : une heure du jour au hasard, jamais deux fois la même de

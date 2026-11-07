@@ -20,6 +20,13 @@
   var P=C.Plugins||{}, DEBUG=!!C.DEBUG, ICI=location.origin; // capacitor://localhost
   var dit=function(){if(DEBUG)try{console.log.apply(console,['[natif]'].concat([].slice.call(arguments)));}catch(e){}};
   document.documentElement.classList.add('natif');
+  /* ---- 0. LE BANC iPHONE (2026-11-07, passe 3 P7) : preparer-www.js --banc "<scénario>" remplace BANC par le scénario (aussi écrit dans www/banc.json) ;
+     banc-iphone.js (dans le jeu) joue alors toute seule le protocole et note tout dans la boîte noire. Une app normale EFFACE le drapeau (le localStorage survit aux mises à jour). */
+  var BANC=null; /*@BANC@*/
+  try{if(BANC)localStorage.setItem('ccBancAuto',JSON.stringify(BANC));else localStorage.removeItem('ccBancAuto');}catch(e){}
+  /* ---- 0 bis. DES INTERRUPTEURS DANS L'APP (2026-11-07, passe 3) : preparer-www.js --qs "&gouv=max&img=max" remplace QS ; la page de l'app est capacitor://localhost SANS query : on pose la query avant les scripts du jeu (natif.js est chargé en premier), tous les /[?&]x=/.test(location.search) la voient. Sans --qs : rien. */
+  var QS=null; /*@QS@*/
+  try{if(QS&&!location.search)history.replaceState(null,'',location.pathname+'?'+String(QS).replace(/^[?&]/,''));}catch(e){}
 
   /* ---- 1. LE RENDU NATIF ---- (la page du jeu est déjà en position fixe : on ne fait que fermer les fuites) */
   try{var st=document.createElement('style');st.id='natifCss';
@@ -78,6 +85,8 @@
   var cache=function(){try{if(P.SplashScreen)P.SplashScreen.hide({fadeOutDuration:250});}catch(e){}};
   if(document.readyState!=='loading')setTimeout(cache,60);else document.addEventListener('DOMContentLoaded',function(){setTimeout(cache,60);});
   setTimeout(cache,30000);
+  /* LE SERPENT D'iOS (2026-11-06) : filet, si l'intro ne l'a pas éteint (intro sautée ou plantée), le menu qui paraît le retire. */
+  document.addEventListener('cc:revele',function(){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}});
 
   /* ---- 7. LES MISES À JOUR EN DIRECT (2026-10-14, oui de Sacha) ----
      Le jeu (les fichiers de www/) se met à jour SANS passer par l'App Store : publier-maj.js fabrique l'édition App Store d'une
@@ -137,6 +146,33 @@
       setTimeout(function(){bilanEssai().then(majVerif);},4000);},500);
     // une version qui ne démarre jamais ne donne pas le feu vert ; au lancement d'après (la version d'avant), bilanEssai la classe
   }
+
+  /* ---- 8. LE RELEVÉ DU CHARGEMENT ---- (2026-11-07, Perf 3 / P4) combien de temps entre le lancement de la page (performance.timeOrigin) et le jeu prêt ?
+     Mesure si WKWebView garde le bytecode d'un script EXTERNE (www/ fabriqué avec --jeu-fichier) d'un lancement à l'autre.
+     Écrit dans la boîte noire (__ccNote 'chargement', lisible par câble : outils/banc-perf/boite-noire.sh) et, en DEBUG, dans la console. Rien ne sort de l'appareil. */
+  (function(){
+    var t={dcl:null,pret:null},fini=false;
+    var ms=function(x){return x==null?'?':Math.round(x);};
+    var rapport=function(){
+      if(fini)return;fini=true;
+      var jeu='en ligne',tr='-',du='-',fi=null;
+      try{var R=performance.getEntriesByType('resource');
+        for(var i=0;i<R.length;i++)if(/\/jeu(\.[0-9a-f]+)?\.js(\?|$)/.test(R[i].name)){fi=R[i];break;}
+        if(fi){tr=Math.round(fi.transferSize||0);du=ms(fi.duration);}}catch(e){}
+      /* (build 14, 13 Pro) le schéma capacitor:// ne remonte PAS toujours le script dans les entrées resource : le mode se lit sur la balise de la page */
+      try{var sc=document.querySelector('script[src*="jeu."]');if(sc||fi)jeu='fichier';}catch(e){}
+      var m='jeu '+jeu+' · origine→DCL '+ms(t.dcl)+' ms · origine→prêt '+ms(t.pret)+' ms · DCL→prêt '+ms(t.pret==null||t.dcl==null?null:t.pret-t.dcl)+' ms'+
+        (fi?' · jeu.js transfert '+tr+' o, durée '+du+' ms (début '+ms(fi.startTime)+', fin '+ms(fi.responseEnd)+')':(jeu==='fichier'?' · jeu.js : aucune entrée resource':''));
+      dit('CHARGEMENT '+m);
+      try{if(window.__ccNote)window.__ccNote('chargement',m);}catch(e){}
+    };
+    var pret=function(){if(t.pret!=null)return;t.pret=performance.now();setTimeout(rapport,300);};
+    document.addEventListener('DOMContentLoaded',function(){t.dcl=performance.now();});
+    var v=window.__gameReady;
+    if(v){pret();}
+    else{try{Object.defineProperty(window,'__gameReady',{configurable:true,enumerable:true,get:function(){return v;},set:function(x){v=x;if(x)pret();}});}catch(e){}
+      var n=0,g=setInterval(function(){if(window.__gameReady)pret();if(t.pret!=null||++n>400)clearInterval(g);},50);}
+  })();
 
   /* ---- 6. LE BANC DU HORS-LIGNE (DEBUG seulement) ---- */
   if(!DEBUG)return;
