@@ -20,6 +20,10 @@
   var P=C.Plugins||{}, DEBUG=!!C.DEBUG, ICI=location.origin; // capacitor://localhost
   var dit=function(){if(DEBUG)try{console.log.apply(console,['[natif]'].concat([].slice.call(arguments)));}catch(e){}};
   document.documentElement.classList.add('natif');
+  /* ---- 0. LE BANC iPHONE (2026-11-07, passe 3 P7) : preparer-www.js --banc "<scénario>" remplace BANC par le scénario (aussi écrit dans www/banc.json) ;
+     banc-iphone.js (dans le jeu) joue alors toute seule le protocole et note tout dans la boîte noire. Une app normale EFFACE le drapeau (le localStorage survit aux mises à jour). */
+  var BANC=null; /*@BANC@*/
+  try{if(BANC)localStorage.setItem('ccBancAuto',JSON.stringify(BANC));else localStorage.removeItem('ccBancAuto');}catch(e){}
 
   /* ---- 1. LE RENDU NATIF ---- (la page du jeu est déjà en position fixe : on ne fait que fermer les fuites) */
   try{var st=document.createElement('style');st.id='natifCss';
