@@ -23,7 +23,7 @@
    3 : en plus UN cran de l'échelle QL de moins (une fois par épisode) ; 0 ou 1 : le modèle reprend la main.
    Banc : `dbgGouv()` rend {D, seuilHaut, seuilBas, actif, thermo, pourquoi} ; `dbgGouv(n)` pose la dose ; `dbgThermique(n)` simule l'événement. */
 const MOB_GOUV=CAD30_REC&&!/[?&]mob_gouv=0\b/.test(location.search);
-const MOB_G={course60:1,course30:.5,menu:.3,repos:.25,haut:160,tiede:50,g30:/[?&]mob_g30=1\b/.test(location.search),bas:40,max:230,trou:1,perime:600,cle:'cashcarMobGouv'}; /* tout se règle ici (secondes équivalentes, par seconde réelle) */
+const MOB_G={course60:1,course30:.5,menu:.3,repos:.25,haut:160,tiede:50,g30:!/[?&]mob_g30=0\b/.test(location.search),bas:40,max:230,trou:1,perime:600,cle:'cashcarMobGouv'}; /* tout se règle ici (secondes équivalentes, par seconde réelle) */
 const MOB_S={D:0,actif:false,thermo:0,t:0,sauveT:0,q3:false};
 function mobGouvEval(){ /* l'hystérésis : haut → entre, bas → sort, entre les deux on garde */
   if(MOB_S.D>=MOB_G.haut)MOB_S.actif=true;else if(MOB_S.D<MOB_G.bas)MOB_S.actif=false;}
@@ -38,6 +38,12 @@ function mobReactif(){if(MOB_GOUV&&!MOB_S.actif&&MOB_S.D>=MOB_G.tiede){MOB_S.act
    p99 35-68 ms, alors que la batterie monte à 38 °C. Toutes les séances qui jouent les 60-100 premières secondes à 60 i/s s'effondrent à 5-13 i/s aux minutes 3-5 (la chaleur des premières minutes
    à 60 déclenche la bride d'iOS), même quand le gouverneur cale ensuite sur 30. `?mob_g30=1` = le gouverneur est TOUJOURS actif en course : 30 calées dès le départ (INACTIF par défaut :
    c'est un choix de fluidité, Sacha tranche). */
+/* ===== LE 30 DÈS LE DÉPART, PAR DÉFAUT (2026-11-07, vitesse-fluide : lecture du build 6 sur le 13 Pro, palier 2) =====
+   MESURÉ (boîte noire, lignes `fluide`) : le p50 suit le TEMPS, pas la vitesse — l'effondrement arrive au palier moteur 0-2 (pas 16) : jade 191 s p50 16 → 38 ms au calage (dose 47),
+   espace 504-520 s p50 53 → 83 ms (12 i/s) MALGRÉ le 30 calé et les crans de qualité 9-11. Même constat que la séance du 26/10 (branche mobile-perf) : jouer les premières minutes à 60 chauffe la
+   puce, iOS bride, et caler sur 30 ensuite est trop tard ; calé dès la 1re seconde, 7 min tiennent à 30 stables. Le palier 16 n'est que le moment où Sacha a ressenti la bride (plusieurs minutes de jeu).
+   Désormais le gouverneur est TOUJOURS actif en course sur téléphone récent (TEL_NATIF, palier 2) : 30 calées dès le départ. Règle du 7/11 : sur vrai téléphone le palier 2 peut perdre de l'image
+   (ici : de la cadence). `?mob_g30=0` = la dose de chaleur d'avant (calage à 160, ou 50 si la cadence réactive cale) ; `?mob_gouv=0` = plus de gouverneur du tout. L'ordinateur n'est pas touché. */
 function mobChaud(){return MOB_GOUV&&(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif);} /* vrai : le gouverneur veut le téléphone calé sur 30 */
 function mobGouvSauve(){try{localStorage.setItem(MOB_G.cle,JSON.stringify({D:+MOB_S.D.toFixed(1),a:MOB_S.actif?1:0,t:Date.now()}));}catch(e){}}
 function mobGouvCharge(){try{const o=JSON.parse(localStorage.getItem(MOB_G.cle)||'null');if(!o||!(o.D>0))return;

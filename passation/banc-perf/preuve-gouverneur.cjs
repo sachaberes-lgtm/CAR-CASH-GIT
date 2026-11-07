@@ -64,7 +64,7 @@ const ok = (nom, cond, detail) => { console.log((cond ? '  ✔ ' : '  ✘ ') + n
 
 console.log('1. téléphone, images à 24 ms, la cadence réactive ne dit rien (p75 10 ms) : 7 min de course');
 {
-  const M = monde({ p75: 10 });
+  const M = monde({ search: '?mob_g30=0', p75: 10 });
   const premier = course(M, 420, 24, 12, m => m.CAD.on);
   ok('le gouverneur est actif sur téléphone', M.MOB_GOUV === true);
   ok('bascule à 30 avant la 3e minute', premier !== null && premier < 180, 'bascule à ' + (premier && premier.toFixed(0)) + ' s (dose ' + M.dbgGouv().D + ')');
@@ -88,15 +88,21 @@ for (const [nom, o] of [['ordinateur (TEL_NATIF faux)', { tel: false, p75: 10 }]
   const M = monde(o); let calee = false; course(M, 420, 24, 12, m => (calee = calee || m.CAD.on, false));
   ok(nom + ' : 7 min sans jamais caler', !calee && M.dbgGouv().D === 0 && M.dbgGouv().actif === false, 'dose ' + M.dbgGouv().D + ' · ' + M.dbgGouv().pourquoi);
 }
-console.log('4. ?mob_g30=1 : calé dès le départ');
+console.log('4. PAR DÉFAUT (g30) : 30 calé dès le départ, 7 min tenues ; ?mob_g30=0 : pas calé à froid');
 {
-  const M = monde({ search: '?mob_g30=1', p75: 10 }); const p = course(M, 5, 16.7, 12, m => m.CAD.on);
-  ok('calé dans la 1re seconde', p !== null && p < 1, 'à ' + (p && p.toFixed(2)) + ' s');
+  const M = monde({ p75: 10 }); const p = course(M, 5, 16.7, 12, m => m.CAD.on);
+  ok('calé dans la 1re seconde par défaut', p !== null && p < 1, 'à ' + (p && p.toFixed(2)) + ' s');
+  let sorti = false; course(M, 420, 33.3, 6, m => (sorti = sorti || !m.CAD.on, false));
+  ok('7 min : jamais relâché, même avec un travail de 6 ms (la sortie réactive ne joue pas)', !sorti && M.CAD.on);
+  const A = monde({ search: '?mob_g30=0', p75: 10 }); course(A, 5, 16.7, 12);
+  ok('?mob_g30=0 : pas calé à froid', A.CAD.on === false);
+  const B = monde({ search: '?mob_g30=1', p75: 10 }); course(B, 2, 16.7, 12);
+  ok('?mob_g30=1 : calé (compatible avec l\'ancienne adresse)', B.CAD.on === true);
 }
 console.log('5. état thermique d\'iOS (cc:thermique)');
 {
-  const M = monde({ p75: 10 }); course(M, 5, 16.7, 12);
-  ok('froid : pas calé', M.CAD.on === false);
+  const M = monde({ search: '?mob_g30=0', p75: 10 }); course(M, 5, 16.7, 12);
+  ok('froid (?mob_g30=0) : pas calé', M.CAD.on === false);
   M.ev['cc:thermique'][0]({ detail: { etat: 2 } }); course(M, 1, 16.7, 12);
   ok('état 2 : calage immédiat', M.CAD.on === true && M.mobChaud(), JSON.stringify(M.dbgGouv()));
   ok('état 2 : aucun cran de qualité retiré', !M.QL.pose);
@@ -107,7 +113,7 @@ console.log('5. état thermique d\'iOS (cc:thermique)');
 }
 console.log('6. la cadence réactive cale (p75 24 ms) après plus d\'une minute de course : le gouverneur retient le 30');
 {
-  const M = monde({ p75: 24 });
+  const M = monde({ search: '?mob_g30=0', p75: 24 });
   // 75 s à 60 sans que rien ne cale (calme faux = la réactive ne joue pas), puis la réactive joue
   M.CAD.calme = false; course(M, 75, 16.7, 12); const D = M.dbgGouv().D; M.CAD.calme = true;
   ok('dose > 50 après 75 s', D > 50 && D < 160, 'dose ' + D);
@@ -115,15 +121,15 @@ console.log('6. la cadence réactive cale (p75 24 ms) après plus d\'une minute 
   ok('le gouverneur s\'enclenche (actif) par la cadence réactive', M.dbgGouv().actif === true);
   M.set({ p75: 5 }); course(M, 30, 33.3, 6); // le travail repasse sous 10 ms pendant 30 s : sans gouverneur la sortie réactive ramènerait à 60
   ok('travail < 10 ms pendant 30 s : reste calé à 30', M.CAD.on === true);
-  const S = monde({ search: '?mob_gouv=0', p75: 24 }); S.CAD.calme = true; course(S, 8, 16.7, 12);
+  const S = monde({ search: '?mob_gouv=0&mob_g30=0', p75: 24 }); S.CAD.calme = true; course(S, 8, 16.7, 12);
   S.set({ p75: 5 }); course(S, 30, 33.3, 6);
   ok('contrôle ?mob_gouv=0 : la sortie réactive ramène bien à 60', S.CAD.on === false);
 }
 console.log('7. régime chaud mobh (inactif par défaut)');
 {
-  const M = monde({ p75: 10 }); course(M, 200, 16.7, 12);
+  const M = monde({ search: '?mob_g30=0', p75: 10 }); course(M, 200, 16.7, 12);
   ok('chaud (dose ≥ 160) mais ?mobh_chaud absent : mobhChaud() faux', M.mobChaud() && !M.mobhChaud());
-  const N = monde({ search: '?mobh_chaud=1', p75: 10 });
+  const N = monde({ search: '?mobh_chaud=1&mob_g30=0', p75: 10 });
   ok('?mobh_chaud=1, froid : faux', !N.mobhChaud()); course(N, 200, 16.7, 12);
   ok('?mobh_chaud=1, chaud : vrai', N.mobhChaud());
 }
