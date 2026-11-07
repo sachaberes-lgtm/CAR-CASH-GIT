@@ -30921,7 +30921,7 @@ const CARS=[
  {name:'LA TAURINE',color:0xff8a14,accent:0x121212,maxKmh:370,accel:41,turn:2.9,h:1.05,w:1.78,l:4.36,spoiler:0,shape:'c_taurine',rar:'epique',
   desc:'Elle a des cils. Et un V12 juste derrière ta nuque. Elle te fait les yeux doux, pas de cadeaux.'},
  {name:'LA STRATOS',color:0xf4f4f0,accent:0x1ea050,maxKmh:340,accel:38,turn:3.2,h:1.11,w:1.75,l:3.71,spoiler:0,shape:'c_stratos',rar:'epique',
-  desc:'Trois titres mondiaux, un mètre onze de haut. La visière, c’est pour voir les autres dans le rétro.'},
+  desc:"Trois titres mondiaux, un mètre onze de haut. La visière, c'est pour voir les autres dans le rétro."},
  {name:'LA NOCTAMBULE',color:0xf4f4f0,accent:0x3b2a8c,maxKmh:360,accel:40,turn:2.9,h:1.37,w:1.73,l:4.63,spoiler:0,shape:'d_batmobile',rar:'rare',
   desc:'Un aileron si grand qu\'on l\'a interdite sur route. Toi, tu roules dans le ciel : personne ne dira rien.'},
  {retire:1,name:'LA PAGODE'},
@@ -30938,7 +30938,7 @@ const CARS=[
  {name:'LE TRÔNE CENTRAL',color:0xff7a10,accent:0x121316,maxKmh:560,accel:62,turn:3,h:1.14,w:1.82,l:4.29,spoiler:0,shape:'b_trone',rar:'legendaire',
   desc:'Un seul siège, au milieu. Les passagers regardent de côté : ils ne sont pas là pour conduire.'},
  {name:'LE SPECTRE',color:0x1a1d22,accent:0x5cff1e,maxKmh:560,accel:62,turn:3,h:1.13,w:2,l:4.5,spoiler:0,shape:'c_spectre',rar:'epique',
-  desc:'Tu l’as vu passer ? Non. Personne ne l’a jamais vu passer. D’où le nom.'},
+  desc:"Tu l'as vu passer ? Non. Personne ne l'a jamais vu passer. D'où le nom."},
  {name:'LE BLINDÉ NOIR',color:0x17181b,accent:0x4a4e56,maxKmh:520,accel:58,turn:2.6,h:1.6,w:2.6,l:4.6,spoiler:0,shape:'d_chevalier',rar:'legendaire',
   desc:'Pas de capot, pas de pitié, pas de feu rouge. Quand il passe, la rue se range toute seule.'},
  {name:'LE MUR DU SON',color:0xf4f4f0,accent:0xd9a520,maxKmh:620,accel:68,turn:2.4,h:1.4,w:2.2,l:6,spoiler:0,shape:'e_murduson',rar:'legendaire',
@@ -30949,7 +30949,7 @@ const CARS=[
   desc:'Il ne double personne : il passe dessus. Les dos d\'âne, c\'est lui qui les fabrique.'},
  {retire:1,name:'LA GROUPE B'}, /* (2026-10-18 soir, Sacha : « enlève la groupe B ») RETIRÉE : sa ligne reste (index de sauvegarde), qui l'avait est remboursé par `san` ; son gabarit b_groupeb reste dans SHAPES */
  {name:'LE HOT ROD',color:0xc8141c,accent:0xe9ecf0,maxKmh:380,accel:42,turn:2.5,h:1.4,w:1.7,l:3.9,spoiler:0,shape:'c_hotrod',rar:'defi',
-  desc:'Un capot ? Pour cacher un compresseur pareil ? Tu rigoles. Même les flammes sont d’époque.'},
+  desc:"Un capot ? Pour cacher un compresseur pareil ? Tu rigoles. Même les flammes sont d'époque."},
  {retire:1,name:'LA PUCE'}, /* (2026-10-22, Sacha : « tableau des voitures » : à supprimer) RETIRÉE ; sa ligne reste (index de sauvegarde), son prix dans CAR_UNLOCK sert au remboursement */
 /* ===== LES FICHES DES 50 — FIN ===== */
  // (2026-09-27) LA CAISSE-NUAGE — la récompense de la CAMPAGNE NUAGES : un petit cumulus monté comme une vraie voiture (châssis, roues,
@@ -31226,7 +31226,7 @@ const I18N={
  'Audio':'Audio','Effets sonores':'Sound effects','Devise':'Currency',
  'Commandes':'Controls','Sauvegarde':'Save','📋 Copier ma sauvegarde':'📋 Copy my save',
  'conduire · piloter en vol':'drive · steer in flight','nitro · double-tap = DÉCOLLAGE':'nitro · double-tap = LIFT-OFF',
- 'drift':'drift','replacer la caisse':'respawn the car','pause':'pause','rejouer':'play again',
+ 'drift':'drift','replacer la caisse':'reset the car','pause':'pause','rejouer':'play again',
  'Espace':'Space','Entrée':'Enter','Pad gauche':'Left pad','Pad + frein':'Pad + brake','En vol':'In flight',
  'volant · tirer vers le bas = frein':'steering · pull down = brake',
  'le pad devient un joystick (haut/bas)':'the pad becomes a joystick (up/down)',
@@ -31277,14 +31277,14 @@ const I18N={
  '💸 IL PLEUT DES BILLETS — PARAPLUIE INUTILE':'💸 IT\'S RAINING CASH — UMBRELLA USELESS',
  '💸 LA BANQUE A APPELÉ : ELLE ABANDONNE':'💸 THE BANK CALLED: IT GIVES UP','💸 TON COMPTE A LE VERTIGE':'💸 YOUR ACCOUNT IS DIZZY',
  '💸 L\'ARGENT TOMBE PLUS VITE QUE TOI':'💸 MONEY FALLS FASTER THAN YOU',
- 'LA ROUTE GAGNE. CETTE FOIS.':'THE ROAD WINS. THIS TIME.','LE BITUME SE SOUVIENDRA DE TOI':'THE TARMAC WILL REMEMBER YOU',
- 'MÊME LES LÉGENDES TOUCHENT LE SOL':'EVEN LEGENDS HIT THE GROUND','CRASH TEST RÉUSSI. ENFIN… TEST.':'CRASH TEST PASSED. WELL… THE CRASH PART.',
- 'LA GRAVITÉ : 1 — TOI : 0':'GRAVITY: 1 — YOU: 0','T\'ES MORT. LES THUNES, ELLES, RESTENT.':'YOU\'RE DEAD. THE CASH STAYS.',
- 'REVIENS. LA VITESSE S\'ENNUIE DÉJÀ.':'COME BACK. SPEED IS ALREADY BORED.',
+ 'LA ROUTE GAGNE. CETTE FOIS':'THE ROAD WINS. THIS TIME','LE BITUME SE SOUVIENDRA DE TOI':'THE TARMAC WILL REMEMBER YOU',
+ 'MÊME LES LÉGENDES TOUCHENT LE SOL':'EVEN LEGENDS HIT THE GROUND','CRASH TEST RÉUSSI. ENFIN… TEST':'CRASH TEST PASSED. WELL… THE CRASH PART',
+ 'LA GRAVITÉ : 1 — TOI : 0':'GRAVITY: 1 — YOU: 0','T\'ES MORT. LES THUNES, ELLES, RESTENT':'YOU\'RE DEAD. THE CASH STAYS',
+ 'REVIENS. LA VITESSE S\'ENNUIE DÉJÀ':'COME BACK. SPEED IS ALREADY BORED',
  '🏆 RECORD — LES AUTRES JOUENT À UN AUTRE JEU':'🏆 RECORD — EVERYONE ELSE IS PLAYING ANOTHER GAME',
  '🏆 LE LEADERBOARD A DEMANDÉ TON AUTOGRAPHE':'🏆 THE LEADERBOARD ASKED FOR YOUR AUTOGRAPH',
  '🏆 RECORD ÉCRASÉ — COMME TES SUSPENSIONS':'🏆 RECORD SMASHED — LIKE YOUR SUSPENSION',
- '🏆 HISTORIQUE. LA ROUTE S\'EN REMET À PEINE.':'🏆 HISTORIC. THE ROAD IS BARELY RECOVERING.',
+ '🏆 HISTORIQUE. LA ROUTE S\'EN REMET À PEINE':'🏆 HISTORIC. THE ROAD IS BARELY RECOVERING',
  // ---- moteurs ----
  'MOTEUR ROUILLÉ':'RUSTY ENGINE','BICYLINDRE':'TWIN-CYLINDER','3 CYLINDRES':'3-CYLINDER','4 EN LIGNE':'INLINE-4',
  '4 SOUPAPES':'FOUR-VALVE','4 EN LIGNE TURBO':'TURBO INLINE-4','5 CYLINDRES':'5-CYLINDER','V6 BITURBO':'TWIN-TURBO V6',
@@ -31344,7 +31344,7 @@ const I18N={
 
 // ---- L'ÉCONOMIE v3 (2026-09-25) : boutique, contrats, objectif ----
 Object.assign(I18N,{"BOUTIQUE": "SHOP", "CONTRAT": "CONTRACT", "REMPLI !": "COMPLETE!", "OBJECTIF": "GOAL", "TU PEUX TE L'OFFRIR": "YOU CAN AFFORD IT", "ACHETER": "BUY", "ARTICLES À TA PORTÉE": "ITEMS YOU CAN AFFORD", "ARTICLE À TA PORTÉE": "ITEM YOU CAN AFFORD", "EST À TOI — VA LA VOIR": "IS YOURS — GO SEE IT", "EST À TOI — ESSAIE-LA": "IS YOURS — TRY IT ON", "VERSÉS SUR TON COMPTE": "PAID INTO YOUR ACCOUNT", "VOITURES": "CARS", "PEINTURE": "PAINT", "AILES": "WINGS", "TRAÎNÉES": "TRAILS", "TRAÎNÉE": "TRAIL", "ÉQUIPÉE": "EQUIPPED", "D'ORIGINE": "FACTORY", "MENTHE GLACÉE": "ICE MINT", "BLEU MINUIT": "MIDNIGHT BLUE", "NOIR MAT": "MATTE BLACK", "COUCHER DE SOLEIL": "SUNSET", "CHROME MIROIR": "MIRROR CHROME", "OR MASSIF": "SOLID GOLD", "PANNEAUX": "PANELS", "HÉLICES": "PROPELLERS", "PLUMES D'ANGE": "ANGEL FEATHERS", "CHAUVE-SOURIS": "BAT", "NITRO": "NITRO", "MENTHE": "MINT", "ROSE NÉON": "NEON PINK", "POUDRE D'OR": "GOLD DUST", "ARC-EN-CIEL": "RAINBOW", "LA BULLE": "THE BUBBLE", "LE SCARABÉE": "THE SCARAB", "LE COMBI": "THE CAMPER", "LA DOLORÈS": "LA DOLORES", "La teinte du constructeur. Elle a fait ses preuves.": "The factory color. It has proved itself.", "Fraîche comme un billet qui sort du distributeur.": "Fresh as a bill straight out of the ATM.", "Le bleu des néons de la ville, à trois heures du matin.": "The blue of the city neons, at 3 a.m.", "Pas un reflet. Même la police hésite.": "Not a single reflection. Even the cops hesitate.", "Du miel en bas, du violet en haut : le ciel de 19 h, en laque.": "Honey at the bottom, violet on top: the 7 p.m. sky, in lacquer.", "Tu te vois dedans. Les autres aussi.": "You can see yourself in it. So can everyone else.", "Ne s'achète pas : se mérite au contrat n° 4.": "Not for sale: earned with contract #4.", "Deux planches de planeur qui sortent des flancs. Sobre.": "Two glider boards sliding out of the sides. Understated.", "Quatre rotors. Ça ne vole pas mieux, mais ça brasse de l'air.": "Four rotors. It does not fly any better, but it moves a lot of air.", "Blanches, en éventail. Le ciel te prend pour un des siens.": "White, fanned out. The sky takes you for one of its own.", "Membranes noires et doigts d'os. Pour les vols de nuit.": "Black membranes and bony fingers. For night flights.", "Orange brûlé. Le classique des tuyères.": "Burnt orange. The exhaust classic.", "Un sillage vert d'eau qui sent le propre.": "A sea-green wake that smells clean.", "Le rose des enseignes. On te suit à la trace.": "Neon-sign pink. Everyone can follow you.", "Tu ne laisses pas de la fumée derrière toi. Tu laisses de l'or.": "You do not leave smoke behind. You leave gold.", "Ne s'achète pas : se mérite au contrat n° 5.": "Not for sale: earned with contract #5.", "Ronde comme un sou neuf. Tout le monde lui sourit, même la police.": "Round as a shiny penny. Everyone smiles at it, even the cops.", "Des fleurs sur la tôle, la paix sur le nez, et 45 chevaux qui font de leur mieux.": "Flowers on the bodywork, peace on the nose, and 45 horses doing their best.", "Inox brossé, portes papillon. À 88 à l'heure elle remonte le temps, paraît-il. Toi, tu vas plus vite.": "Brushed steel, gullwing doors. At 88 it travels back in time, apparently. You go faster.", "IL TE MANQUE": "YOU ARE SHORT", "COMPTE": "ACCOUNT"});
-Object.assign(I18N,{"TOURNE": "TURN", "VOLE": "FLY", "Glisse ton *pouce* à gauche, puis à droite": "Slide your *thumb* left, then right", "Flèches [←] puis [→]": "Arrows [←] then [→]", "Garde le doigt sur *NITRO*": "Keep your finger on *NITRO*", "Maintiens [ESPACE]": "Hold [SPACE]", "Sors de la route *par le bord* !": "Drive off the road *over the edge*!", "En l'air : garde *NITRO* et reviens sur la route": "In the air: hold *NITRO* and get back over the road", "En l'air : [ESPACE] et reviens sur la route": "In the air: hold [SPACE] and get back over the road", "Vise *l'anneau* sur la route. Doré = parfait !": "Aim for *the ring* on the road. Gold = perfect!", "Tape *2 fois* vite sur *NITRO*": "Tap *NITRO* *twice*, fast", "Tape *2 fois* vite sur [ESPACE]": "Tap [SPACE] *twice*, fast", "6 gestes. Ici, *impossible de perdre* !": "6 moves. Here, *you can't lose*!", "BIEN !": "NICE!", "PARFAIT !": "PERFECT!", "ÇA DÉCOLLE !": "LIFTOFF!", "TU VOLES !": "YOU'RE FLYING!", "POSÉ !": "LANDED!", "STYLÉ !": "STYLISH!", "TAPE 2 FOIS VITE SUR NITRO": "TAP NITRO TWICE, FAST", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN"}); // (2026-10-14) L'AUTO-ÉCOLE v2
+Object.assign(I18N,{"TOURNE": "TURN", "VOLE": "FLY", "Glisse ton *pouce* à gauche, puis à droite": "Slide your *thumb* left, then right", "Flèches [←] puis [→]": "Arrows [←] then [→]", "Garde le doigt sur *NITRO*": "Keep your finger on *NITRO*", "Maintiens [ESPACE]": "Hold [SPACE]", "Sors de la route *par le bord* !": "Drive off the road *over the edge*!", "En l'air : garde *NITRO* et reviens sur la route": "In the air: hold *NITRO* and get back over the road", "En l'air : [ESPACE] et reviens sur la route": "In the air: hold [SPACE] and get back over the road", "Vise *l'anneau* sur la route. Doré = parfait !": "Aim for *the ring* on the road. Gold = perfect!", "Tape *2 fois* vite sur *NITRO*": "Tap *NITRO* *twice*, fast", "Tape *2 fois* vite sur [ESPACE]": "Tap [SPACE] *twice*, fast", "6 gestes. Ici, *impossible de perdre* !": "6 moves. Here, *you can't lose*!", "BIEN !": "NICE!", "PARFAIT !": "PERFECT!", "ÇA DÉCOLLE !": "LIFT-OFF!", "TU VOLES !": "YOU'RE FLYING!", "POSÉ !": "LANDED!", "STYLÉ !": "STYLISH!", "TAPE 2 FOIS VITE SUR NITRO": "TAP NITRO TWICE, FAST", "SORTI ! SUIS LA ROUTE": "OFF THE ROAD! FOLLOW IT", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN"}); // (2026-10-14) L'AUTO-ÉCOLE v2
 Object.assign(I18N,{"SOIR": "EVENING", "NUIT": "NIGHT", "PLUIE": "RAIN", "LA VILLE": "THE CITY", "Restaurer un code": "Restore a code", "REPORT": "CARRY-OVER", "(au garage)": "(in your garage)", "Copie ce code :": "Copy this code:", "Colle ton code de sauvegarde :": "Paste your save code:", "PARFAIT ! ": "PERFECT! ", "PARFAIT !": "PERFECT!", "DIVIN !!": "DIVINE!!", "POSÉ LOURD — AÏE…": "HEAVY LANDING — OUCH…", "PARFAIT (BOOST ×2) !": "PERFECT (BOOST ×2)!", "DOUBLE MONSTRE": "DOUBLE MONSTER", "TRIPLE MONSTRE": "TRIPLE MONSTER", "🍉 PASTÈQUE !": "🍉 WATERMELON!", "🧃 RAFALE": "🧃 FRUIT RUSH", "⏱ AU CHEVEU —": "⏱ BY A HAIR —", "⏱ À L'ARRACHÉE —": "⏱ CLUTCH —", "ESSOREUSE COSMIQUE !!": "COSMIC SPIN CYCLE!!", "CHAÎNE ×": "CHAIN ×", "CARREAU": "DIAMOND", "CŒUR": "HEART", "TRÈFLE": "CLUB", "TÊTE DE MORT": "SKULL", "LE NOMBRE D'OR": "THE GOLDEN RATIO", "Z Q S D": "W A S D", "HORS DE L'EAU !": "OUT OF THE WATER!", "HORS DE L'EAU": "OUT OF THE WATER"}); // (2026-10-14) LES TEXTES : les clés qui manquaient (audits A, B, C du 14/10)
 Object.assign(I18N,{"VERT OGRE": "OGRE GREEN", "Le vert des marais. Ça sent un peu, mais c'est chez toi.": "Swamp green. It smells a bit, but it's home.", "BLEU HÉRISSON": "HEDGEHOG BLUE", "Le bleu d'un hérisson pressé. Les anneaux sont en option.": "The blue of a hedgehog in a hurry. Rings sold separately.", "ROSE POUPÉE": "DOLL PINK", "Rose bonbon, laque parfaite. Tu n'es pas en plastique, tu es en carbone.": "Candy pink, flawless lacquer. You're not plastic, you're carbon fiber.", "BANANA": "BANANA", "Salopette en bas, jaune en haut. Elle dit « banana » à chaque virage.": "Overalls at the bottom, yellow on top. It says \"banana\" at every turn.", "NUIT DE GOTHAM": "GOTHAM NIGHT", "Noir laqué, la ville qui brille dedans. Les toits sont à toi.": "Gloss black with the city shining in it. The rooftops are yours.", "MONDE À L'ENVERS": "UPSIDE DOWN", "Noir en bas, rouge sang en haut : cette caisse vient de l'autre côté. Les guirlandes clignotent.": "Black at the bottom, blood red on top: this car came from the other side. The lights are flickering.", "VAPORWAVE": "VAPORWAVE", "Cyan, rose, violet : un coucher de soleil de 1986 sur une cassette usée.": "Cyan, pink, purple: a 1986 sunset on a worn-out tape.", "LAVE": "LAVA", "Du volcan au toit, la coulée ne refroidit jamais. N'y jette pas d'anneau.": "From the volcano to the roof, the flow never cools down. Don't throw a ring in.", "HOLOGRAMME": "HOLOGRAM", "Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.": "Iridescent chrome that changes color at every angle. A rare card… on wheels.", "SUPER GUERRIER": "SUPER WARRIOR", "Doré du toit aux pneus. Les cheveux se dressent, le niveau dépasse les 9 000.": "Gold from roof to tires. Hair standing up, power level over 9,000.", "PIGEON": "PIGEON", "Gris, deux barres noires, un reflet vert au cou. Le roi des toits bat des ailes trop vite et ne sait pas pourquoi.": "Gray, two black bars, a green sheen on the neck. The king of the rooftops flaps too fast and has no idea why.", "AVION EN PAPIER": "PAPER PLANE", "Une feuille à grands carreaux, trois plis, zéro aérodynamique. Ça plane quand même : c'est toi qui pilotes.": "A sheet of school paper, three folds, zero aerodynamics. It glides anyway: you're the pilot.", "MONARQUE": "MONARCH", "Des ailes de papillon orange et noir qui battent en plein vol. Délicates. Jusqu'à 900 à l'heure.": "Orange-and-black butterfly wings that flap mid-flight. Delicate. Up to 900 km/h.", "8-BIT": "8-BIT", "Des ailes d'ange en gros pixels, qui battent par à-coups. La console de ton grand frère approuve.": "Angel wings in chunky pixels, flapping frame by frame. Your big brother's console approves.", "BARON ROUGE": "RED BARON", "Deux plans de toile rouge, des haubans, une odeur d'huile de ricin. Un chien sur sa niche en rêve encore.": "Two red canvas wings, bracing wires, a whiff of castor oil. A dog on his doghouse still dreams about it.", "ENGRENAGES": "GEARWORKS", "Du laiton, de la toile et des rouages qui tournent. Léonard l'avait dessinée, toi tu la pilotes.": "Brass, canvas and spinning gears. Leonardo drew it; you fly it.", "AILES EN X": "X-FOILS", "Quatre plans qui s'écartent en X une fois dépliés. Verrouillez les ailes en position d'attaque.": "Four foils that split into an X once deployed. Lock wings in attack position.", "FÉE": "FAIRY", "Quatre voiles irisés qui bourdonnent. Il suffit d'y croire. Et d'un plein de nitro.": "Four shimmering veils that buzz. You just have to believe. And have a full tank of nitro.", "DRAGON": "DRAGON", "Membranes veinées de lave, griffe au poignet. Elles battent lentement : la puissance n'a pas besoin de se presser.": "Lava-veined membranes, a claw at the wrist. They beat slowly: real power never rushes.", "PHÉNIX": "PHOENIX", "Des plumes de feu qui ne s'éteignent jamais. Tu exploses ? Tu renais de tes cendres. Au prochain run.": "Feathers of fire that never go out. You blow up? You rise from your ashes. Next run.", "SAKURA": "SAKURA", "Des pétales de cerisier, comme dans un générique d'animé. Le drame, c'est pour les autres.": "Cherry blossom petals, straight out of an anime opening. The drama is for everyone else.", "MATRICE": "MATRIX", "Pilule rouge avalée : du code vert ruisselle derrière toi. La route, c'est toi qui la réécris.": "Red pill swallowed: green code streams behind you. You rewrite the road as you go.", "ANNEAUX D'OR": "GOLD RINGS", "Tu sèmes des anneaux comme un hérisson qui vient de se cogner. Sauf que toi, tu ne ralentis pas.": "You spill rings like a hedgehog that just got hit. Except you never slow down.", "PLUIE DE BLOCS": "BLOCK RAIN", "Des pièces de quatre carrés tombent en tournant. Aucune ligne ne disparaît : tout reste à toi.": "Four-square pieces tumble down. No line ever clears: you keep it all.", "GLOUTON": "CHOMPER", "Une ligne de pastilles et quatre fantômes à tes trousses. Lâche la nitro : ils deviennent bleus.": "A line of dots and four ghosts on your tail. Let go of the nitro: they turn blue.", "HYPERESPACE": "HYPERSPACE", "Les étoiles s'étirent en traits. Tu passes en vitesse lumière, les autres restent des touristes.": "Stars stretch into streaks. You jump to light speed; everyone else stays a tourist.", "LA GRILLE": "THE GRID", "Un mur de lumière dans ton sillage. Celui qui te colle finit en pixels.": "A wall of light in your wake. Whoever tailgates you ends up in pixels.", "FAIS PLEUVOIR": "MAKE IT RAIN", "Des liasses qui s'envolent à chaque nitro. Ce n'est pas du gaspillage, c'est de la communication.": "Cash flies out with every nitro. It's not a waste, it's marketing.", "FOUDRE DIVINE": "DIVINE LIGHTNING", "Des éclairs crépitent derrière toi. Le marteau, tu l'as laissé au garage.": "Lightning crackles behind you. You left the hammer in the garage."}); // (2026-10-14) LES PEINTURES, LES AILES ET LES TRAÎNÉES POP
 Object.assign(I18N,{"SORTI ! GLISSE TON POUCE POUR SUIVRE LA ROUTE": "OFF THE ROAD! SLIDE YOUR THUMB TO FOLLOW IT", "TROP LONGTEMPS EN L'AIR : POSE-TOI AVANT": "TOO LONG IN THE AIR: LAND SOONER", "TOMBE DANS LE VIDE": "FELL INTO THE VOID", "ENCASTRE DANS UNE TOUR": "CRASHED INTO A TOWER", "6 S A L'ARRET : ROULE OU CREVE": "6 S STANDING STILL: DRIVE OR DIE", "DERNIER DE LA MEUTE": "LAST OF THE PACK", "CHAINE MAX": "BEST CHAIN", "ASTUCE": "TIP", "Tire le pouce vers le BAS en tournant : DRIFT !": "Pull your thumb DOWN while steering: DRIFT!", "AUTO-ÉCOLE": "DRIVING SCHOOL", "PASSER": "SKIP", "TOURNE": "STEER", "DÉCOLLE": "TAKE OFF", "VOLE À LA NITRO": "FLY ON NITRO", "POSE-TOI": "LAND IT", "Glisse ton pouce à gauche… puis à droite.": "Slide your thumb left… then right.", "Maintiens NITRO : ça pousse fort.": "Hold NITRO: it pushes hard.", "Fonce hors de la route, par le bord. N'aie pas peur.": "Drive off the road, over the edge. Don't be scared.", "En l'air, MAINTIENS NITRO et reviens au-dessus de la route.": "In the air, HOLD NITRO and steer back over the road.", "Au-dessus de la route, l'anneau apparaît : pose-toi dessus (or = parfait).": "Over the road, the ring appears: land on it (gold = perfect).", "PERMIS OBTENU !": "LICENSE EARNED!", "ENCORE ! ET CETTE FOIS, NITRO EN L'AIR": "AGAIN! AND THIS TIME, NITRO IN THE AIR", "RATÉ ! ON RECOMMENCE": "MISSED! TRY AGAIN", "L'AUTO-ÉCOLE T'ATTEND AU PROCHAIN JOUER": "DRIVING SCHOOL AWAITS ON YOUR NEXT PLAY", "REVOIR L'AUTO-ECOLE": "REPLAY DRIVING SCHOOL"});
@@ -31453,7 +31453,7 @@ Object.assign(I18N,{
  "LA TAURINE":"THE TAURINE",
  "Elle a des cils. Et un V12 juste derrière ta nuque. Elle te fait les yeux doux, pas de cadeaux.":"She has eyelashes. And a V12 right behind your neck. She bats her eyes at you, but don't expect favors.",
  "LA STRATOS":"THE STRATOS",
- "Trois titres mondiaux, un mètre onze de haut. La visière, c’est pour voir les autres dans le rétro.":"Three world titles, 1.11 meters tall. The visor is for watching everyone else in the mirror.",
+ "Trois titres mondiaux, un mètre onze de haut. La visière, c'est pour voir les autres dans le rétro.":"Three world titles, 1.11 meters tall. The visor is for watching everyone else in the mirror.",
  "LA NOCTAMBULE":"THE NIGHT OWL",
  "Un aileron si grand qu'on l'a interdite sur route. Toi, tu roules dans le ciel : personne ne dira rien.":"A wing so big it got banned from the road. You drive in the sky: nobody's going to say a word.",
  "LA PAGODE":"THE PAGODA",
@@ -31471,7 +31471,7 @@ Object.assign(I18N,{
  "LE TRÔNE CENTRAL":"THE CENTER THRONE",
  "Un seul siège, au milieu. Les passagers regardent de côté : ils ne sont pas là pour conduire.":"One seat, dead center. The passengers sit off to the side: they're not here to drive.",
  "LE SPECTRE":"THE SPECTER",
- "Tu l’as vu passer ? Non. Personne ne l’a jamais vu passer. D’où le nom.":"Did you see it go by? No. Nobody's ever seen it go by. Hence the name.",
+ "Tu l'as vu passer ? Non. Personne ne l'a jamais vu passer. D'où le nom.":"Did you see it go by? No. Nobody's ever seen it go by. Hence the name.",
  "LE BLINDÉ NOIR":"BLACK ARMOR",
  "Pas de capot, pas de pitié, pas de feu rouge. Quand il passe, la rue se range toute seule.":"No hood, no mercy, no red lights. When it rolls by, the street clears itself.",
  "LE MUR DU SON":"THE SOUND BARRIER",
@@ -31483,7 +31483,7 @@ Object.assign(I18N,{
  "LA GROUPE B":"THE GROUP B",
  "Tellement rapide qu'on l'a interdite. Ici, personne n'interdit rien : bon courage pour la rattraper.":"So fast they banned it. Nobody bans anything here: good luck catching it.",
  "LE HOT ROD":"THE HOT ROD",
- "Un capot ? Pour cacher un compresseur pareil ? Tu rigoles. Même les flammes sont d’époque.":"A hood? To hide a blower like that? You're kidding. Even the flames are vintage.",
+ "Un capot ? Pour cacher un compresseur pareil ? Tu rigoles. Même les flammes sont d'époque.":"A hood? To hide a blower like that? You're kidding. Even the flames are vintage.",
  "LA PUCE":"THE FLEA",
  "Trois mètres, quatre phares, zéro complexe. Elle a battu des monstres sur la neige : toi, c'est l'apéro.":"Ten feet long, four headlights, zero complexes. It beat monsters in the snow: you're just the appetizer."
 });
@@ -31604,12 +31604,13 @@ Object.assign(I18N,{"INCLINAISON":"TILT STEERING","MAIN":"HAND","GAUCHER":"LEFTY
    Relevées par un script qui liste tout appel de TR, sous:, data-fr et aria-label sans clé. RACCOURCI, CHAMPION !, DERNIER !, EXPLOSION DANS, COUPERET DANS, ACCROCHE !,
    ELLE T'A SEME et LA CAISSE-NUAGE existent déjà (zones-caisses.js). RARES (boutique) : le nom d'une rareté, au singulier en anglais comme COMMON / EPIC. */
 Object.assign(I18N,{"LES PIECES VIENNENT A TOI":"COINS COME TO YOU","AURA ×2, ×3 SI TU ENCHAINES":"AURA ×2, ×3 IF YOU CHAIN","AIRTIME ×2, 2 JAUGES":"AIRTIME ×2, 2 GAUGES",
-  "DONUT":"DONUT","BOOST":"BOOST","RIEN ICI":"NOTHING HERE","BURN-OUT":"BURN-OUT","SECONDE CHANCE":"SECOND CHANCE","PREMIER MATIN":"FIRST MORNING","THE DARK TRIAD":"THE DARK TRIAD",
+  "DONUT":"DONUT","BOOST":"BOOST","RIEN ICI":"NOTHING HERE","BURN-OUT":"BURNOUT","SECONDE CHANCE":"SECOND CHANCE","PREMIER MATIN":"FIRST MORNING","THE DARK TRIAD":"THE DARK TRIAD",
   "CAPTEUR REFUSÉ : RÉGLAGES › SAFARI":"SENSOR DENIED: SETTINGS > SAFARI","PENCHE LE TÉLÉPHONE POUR TOURNER":"TILT YOUR PHONE TO STEER","EARLY DEAD":"CHAIN LOST",
   "NOUVEAU":"NEW"}); /* (la pastille NEW de la boutique, le bandeau « chaîne perdue » de la mort précoce) */
 Object.assign(I18N,{"Final spin":"Final spin","Levier":"Lever","Achat":"Buy","Aura":"Aura","Vitesse de départ":"Starting speed","Plaque":"License plate","Cadeau":"Gift",
   "Volume du son":"Sound volume","Volume de la musique":"Music volume","Haut":"Up","Bas":"Down","Figures":"Tricks"}); /* les étiquettes VoiceOver (applyLangDOM les passe par I18N) */
 Object.assign(I18N,{"LA CAISSE-NUAGE":"THE CLOUD CAR","LE LINGOT":"THE GOLD BAR"}); /* (2026-11-07, chasse CAR-N03) deux caisses retirées : leur nom dans le toast de remboursement */
+Object.assign(I18N,{"Ton nom pour le record":"Your name for the record","Volume des effets et du moteur":"Effects and engine volume","Pouce gauche":"Left thumb","volant (glisse le pouce)":"steering (slide your thumb)","En vol + NITRO":"In flight + NITRO","pouce en haut / en bas = assiette":"thumb up / down = pitch","pouce droit":"right thumb","+ direction":"+ steer"}); /* (2026-11-07, finition : « des détails plus pro sans vraie différence ») deux étiquettes VoiceOver (le nom du record, le volume) et le panneau des commandes tactiles (#setTouch) restaient en français en anglais */
 /* ============================================================================================================================
    LA PASSE DES TEXTES (2026-10-14) — un seul mot par rôle dans les trois langues, plus d'anglais dans l'interface française.
    I18N_FR : le FRANÇAIS AFFICHÉ quand il diffère de la clé (la clé reste la phrase d'origine, le code ne bouge pas). Écrire ici avec
@@ -53115,25 +53116,25 @@ const PEINT_CAT=[ /* [id, nom, rareté, aspect, description, défi] */
   ['ocean','ABYSSES','legendaire',{mot:'ocean'},"La lumière qui danse au fond d'un lagon, sur toute la carrosserie."],
   ['rgb','RGB','legendaire',{mot:'rgb'},'Toutes les couleurs, en boucle, comme un clavier de gamer. Elle ne choisit pas : elle prend tout.']];
 const PALETTE_PACK={id:'palette',produit:'cashcar.palette40',eur:'0,99 €',n:'LA PALETTE',ids:PEINT_CAT.filter(function(e){return e[2]==="commun"||e[2]==="rare";}).map(function(e){return e[0];})}; /* l'ancien pack (plus vendu) : palDonne le rend encore à qui restaure ses achats */
-Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOUR","PEINTURE":"PAINT","PEINTURE GAGNÉE":"PAINT EARNED","OU GAGNE-LA":"OR EARN IT","DÉFI":"CHALLENGE",
+Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOR","PEINTURE":"PAINT","PEINTURE GAGNÉE":"PAINT EARNED","OU GAGNE-LA":"OR EARN IT","DÉFI":"CHALLENGE",
   "UNIES":"SOLID","DÉGRADÉS":"GRADIENTS","MOTIFS":"PATTERNS","ANIMÉES":"ANIMATED","L'achat est indisponible pour le moment.":"Buying is unavailable right now.",
   "ROUGE BOLIDE":"RACING RED","Le rouge des grandes marques. Sans le cheval, avec l'arrogance.":"The red of the big brands. Without the horse, with the arrogance.","Croque 50 cerises.":"Eat 50 cherries.",
   "ORANGE ÉMEUTE":"RIOT ORANGE","Visible depuis l'espace. C'est le but.":"Visible from space. That's the point.","Croque 50 oranges.":"Eat 50 oranges.",
   "JAUNE TAXI":"TAXI YELLOW","Tout le monde te fait signe. Tu ne t'arrêtes pas.":"Everyone waves at you. You don't stop.","Ramasse 50 citrons.":"Pick up 50 lemons.",
-  "VERT BILLET":"CASH GREEN","La couleur préférée de ton banquier.":"Your banker's favourite colour.","Gagne 100 000 € au total.":"Earn €100,000 in total.",
+  "VERT BILLET":"CASH GREEN","La couleur préférée de ton banquier.":"Your banker's favorite color.","Gagne 100 000 € au total.":"Earn €100,000 in total.",
   "LAGON":"LAGOON","L'eau des îles où tu dépenses tes primes.":"The water of the islands where you spend your bonuses.",
   "AZUR":"AZURE","Le ciel sans un nuage. Le tien.":"A sky without a single cloud. Yours.","Croque 50 myrtilles.":"Eat 50 blueberries.",
   "BLEU MINUIT":"MIDNIGHT BLUE","Le bleu des néons de la ville, à trois heures du matin.":"The blue of city neons at three in the morning.","Joue 10 niveaux de nuit.":"Play 10 levels at night.",
-  "VIOLET ROYAL":"ROYAL PURPLE","La couleur des rois. Et de ceux qui roulent comme eux.":"The colour of kings. And of those who drive like them.","Ramasse 50 raisins.":"Pick up 50 grapes.",
+  "VIOLET ROYAL":"ROYAL PURPLE","La couleur des rois. Et de ceux qui roulent comme eux.":"The color of kings. And of those who drive like them.","Ramasse 50 raisins.":"Pick up 50 grapes.",
   "FUCHSIA":"FUCHSIA","Trop voyant ? Juste assez.":"Too loud? Exactly loud enough.","Ramasse 50 fruits du dragon.":"Pick up 50 dragon fruits.",
   "ROSE POUPÉE":"DOLL PINK","Rose bonbon, laque parfaite. Tu n'es pas en plastique, tu es en carbone.":"Candy pink, perfect gloss. You're not plastic, you're carbon.",
   "BLANC NEIGE":"SNOW WHITE","Propre comme un compte en Suisse.":"Clean as a Swiss bank account.","Joue 10 niveaux sur le glacier.":"Play 10 levels on the glacier.",
-  "GRIS NARDO":"NARDO GREY","Le gris des supercars allemandes : presque du béton. Il ne dit rien, il se fait respecter.":"The grey of German supercars: almost concrete. It says nothing and commands respect.",
+  "GRIS NARDO":"NARDO GRAY","Le gris des supercars allemandes : presque du béton. Il ne dit rien, il se fait respecter.":"The gray of German supercars: almost concrete. It says nothing and commands respect.",
   "NOIR MAT":"MATTE BLACK","Pas un reflet. Même la police hésite.":"Not a single reflection. Even the police hesitate.",
   "ROSE DRAGÉE":"SUGAR PINK","Le rose des baptêmes. Tu roules quand même à 300.":"Christening pink. You're still doing 300.","Joue 10 niveaux le matin.":"Play 10 levels in the morning.",
   "LILAS":"LILAC","Une fleur de printemps qui double par la droite.":"A spring flower that overtakes on the right.",
   "BLEU PISCINE":"POOL BLUE","Le bleu d'une piscine de palace. Plongeoir compris.":"Five-star hotel pool blue. Diving board included.","Joue 10 niveaux en plein jour.":"Play 10 levels in broad daylight.",
-  "PISTACHE":"PISTACHIO","Le vert des glaciers italiens. Les pneus, eux, sont chauds.":"Italian gelato green. The tyres, though, are hot.",
+  "PISTACHE":"PISTACHIO","Le vert des glaciers italiens. Les pneus, eux, sont chauds.":"Italian gelato green. The tires, though, are hot.",
   "LAVE":"LAVA","Du volcan au toit, la coulée ne refroidit jamais. N'y jette pas d'anneau.":"From the volcano to the roof, the flow never cools. Don't throw a ring in.",
   "BRAISE FIDÈLE":"LOYAL EMBER","Sept jours d'affilée sur l'asphalte : la laque en garde la chaleur.":"Seven days in a row on the asphalt: the paint keeps the heat.","Le 7e jour d'une série de 7 jours.":"Day 7 of a 7-day streak.",
   "COUCHER DE SOLEIL":"SUNSET","Du miel en bas, du violet en haut : le ciel de 19 h, en laque.":"Honey below, violet above: the 7 pm sky, in gloss.",
@@ -53148,9 +53149,9 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOUR","PEINTURE":"PA
   "CAMÉLÉON":"CHAMELEON","Vert, bleu, violet : elle change de peau à chaque monde.":"Green, blue, purple: it changes skin in every world.","Traverse 4 maps dans la même partie.":"Cross 4 maps in the same run.",
   "CHROME MIROIR":"MIRROR CHROME","Tu te vois dedans. Les autres aussi.":"You can see yourself in it. So can everyone else.","Joue 5 niveaux dans les nuages.":"Play 5 levels in the clouds.",
   "OR ROSE":"ROSE GOLD","L'or des montres dont personne ne regarde l'heure.":"The gold of watches nobody checks the time on.","Pose-toi en DIVIN à plus de 900 km/h.":"Land a DIVINE at over 900 km/h.",
-  "SUPER GUERRIER":"SUPER WARRIOR","Doré du toit aux pneus. Les cheveux se dressent, le niveau dépasse les 9 000.":"Gold from roof to tyres. Hair stands up, the power level is over 9,000.","Atteins le palier 24 du moteur.":"Reach engine tier 24.",
+  "SUPER GUERRIER":"SUPER WARRIOR","Doré du toit aux pneus. Les cheveux se dressent, le niveau dépasse les 9 000.":"Gold from roof to tires. Hair stands up, the power level is over 9,000.","Atteins le palier 24 du moteur.":"Reach engine tier 24.",
   "CUIVRE":"COPPER","Le métal des vieux tuyaux. Passé au polish.":"Old-pipe metal. Freshly polished.",
-  "HOLOGRAMME":"HOLOGRAM","Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.":"Iridescent chrome that changes colour at every angle. A rare card… on wheels.",
+  "HOLOGRAMME":"HOLOGRAM","Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.":"Iridescent chrome that changes color at every angle. A rare card… on wheels.",
   "NACRE":"PEARL","L'intérieur d'un coquillage, poli par cinq vagues parfaites.":"The inside of a shell, polished by five perfect waves.","Fais 5 poses parfaites d'affilée.":"Land 5 perfects in a row.",
   "FANTÔME":"GHOST","Blanc nacré, presque transparent. Personne ne t'a vu passer.":"Pearl white, almost see-through. Nobody saw you pass.","Roule 2 minutes sans toucher un bord.":"Drive 2 minutes without touching an edge.",
   "NUIT DE GOTHAM":"GOTHAM NIGHT","Noir laqué, la ville qui brille dedans. Les toits sont à toi.":"Gloss black, the city shining in it. The rooftops are yours.","Joue 10 niveaux dans la ville.":"Play 10 levels in the city.",
@@ -53167,7 +53168,7 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOUR","PEINTURE":"PA
   "POP ART":"POP ART","Trames, bulles et BOOM ! Ta caisse sort tout droit d'une BD.":"Halftones, bubbles and BOOM! Your car jumped straight out of a comic.",
   "GRANDE VAGUE":"GREAT WAVE","Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.":"The waves of Japanese prints, in scales. The calm before your nitro.","Descends au fond de la mer de Jade.":"Dive to the bottom of the Jade Sea.",
   "PLEIN AUX AS":"LOADED","Des euros d'or sur fond vert billet. Discret ? Non.":"Gold euros on cash green. Subtle? No.","Gagne 1 000 000 € au total.":"Earn €1,000,000 in total.",
-  "TIGRE":"TIGER","Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.":"Burnt orange, black stripes. The king of the jungle traded his claws for tyres.",
+  "TIGRE":"TIGER","Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.":"Burnt orange, black stripes. The king of the jungle traded his claws for tires.",
   "LÉOPARD":"LEOPARD","Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles.":"Black rosettes on gold. You don't hunt: you overtake.",
   "ZÈBRE":"ZEBRA","Noir sur blanc ou blanc sur noir ? Personne ne sait. Toi, tu fonces.":"Black on white or white on black? Nobody knows. You just floor it.",
   "VACHE":"COW","Des taches noires sur fond blanc. Meuh, à 300 à l'heure.":"Black patches on white. Moo, at 300 km/h.",
@@ -53180,7 +53181,7 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOUR","PEINTURE":"PA
   "SAKURA.EXE":"SAKURA.EXE","Des fleurs de cerisier en pixels tombent sur un écran noir. Parfois l'écran bugue. C'est voulu.":"Pixel cherry blossoms fall across a black screen. Sometimes the screen glitches. On purpose.",
   "MAGMA":"MAGMA","La roche se fend, la lave coule dans les fissures et respire. Elle ne refroidit jamais.":"The rock cracks, lava flows through the fissures and breathes. It never cools.",
   "ABYSSES":"ABYSS","La lumière qui danse au fond d'un lagon, sur toute la carrosserie.":"The light dancing at the bottom of a lagoon, all over your bodywork.",
-  "RGB":"RGB","Toutes les couleurs, en boucle, comme un clavier de gamer. Elle ne choisit pas : elle prend tout.":"Every colour, on loop, like a gaming keyboard. It doesn't choose: it takes them all."});
+  "RGB":"RGB","Toutes les couleurs, en boucle, comme un clavier de gamer. Elle ne choisit pas : elle prend tout.":"Every color, on loop, like a gaming keyboard. It doesn't choose: it takes them all."});
 /* LES PRIX EN EUROS ET LES MOTIFS (2026-11-05, le nuancier v3 — voir PEINT_CAT) : le prix suit la RARETÉ, une seule grille (`PEINT_EUR`), par la même
    porte que les caisses en € : `shopPaye('peinture:'+id)` (produit App Store : `cashcar.peinture.<id>`), puis `habDonne`. Tant que StoreKit n'est pas
    branché, ACHETER le DIT (« L'achat est indisponible pour le moment. ») et ne donne rien (`habPaye`). Les peintures déjà à toi le restent.
@@ -65489,7 +65490,7 @@ function m2ValCourse(m){try{switch(m.k){case 'aura':return Math.round(auraRun)||
 function m2Frac(m,v,t){return t>0?Math.max(0,Math.min(1,v/t)):0;}
 function m2Prog(m,v,t){v=Math.min(v,t); // « 3 / 5 », « 42 000 / 100 000 $ », « 4,2 / 5 S », « 1:12 / 5:00 »
   switch(m.u){case 's':return decFr(Math.floor(v*10)/10,1)+' / '+t+' S';case 'kmh':return m2Nb(v)+' / '+m2Nb(t)+' KM/H';case 'km':return m2Nb(Math.floor(v))+' / '+m2Nb(t)+' KM';
-    case '$':return m2Nb(v)+' / '+m2Nb(t)+' €';case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
+    case '$':return LANG==='fr'?m2Nb(v)+' / '+m2Nb(t)+' €':CUR()+m2Nb(v)+' / '+CUR()+m2Nb(t); /* (2026-11-07, finition) en anglais le symbole passe devant, comme fmtSolde partout ailleurs */case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
     case 'b':return v>=t?TR('FAIT'):TR('PAS ENCORE');}
   return m2Nb(v)+' / '+m2Nb(t);}
 function m2RecNom(m){const r=m.r||{};if(r.cash)return '+'+fmtC(r.cash);if(r.car)return TR(r.car);
@@ -67989,12 +67990,12 @@ const ZONE_LINES=[ // le portail : chaque zone avalée se célèbre
 const RAIN_LINES=[ // la pluie de billets : le compte en banque a le vertige
  '💸 IL PLEUT DES BILLETS — PARAPLUIE INUTILE','💸 LA BANQUE A APPELÉ : ELLE ABANDONNE','💸 TON COMPTE A LE VERTIGE','💸 L\'ARGENT TOMBE PLUS VITE QUE TOI'];
 const END_LINES=[ // fin de run (même en crash) : la punchline sous le GAME OVER
- 'LA ROUTE GAGNE. CETTE FOIS.','LE BITUME SE SOUVIENDRA DE TOI','MÊME LES LÉGENDES TOUCHENT LE SOL',
- 'CRASH TEST RÉUSSI. ENFIN… TEST.','LA GRAVITÉ : 1 — TOI : 0','T\'ES MORT. LES THUNES, ELLES, RESTENT.',
- 'REVIENS. LA VITESSE S\'ENNUIE DÉJÀ.'];
+ 'LA ROUTE GAGNE. CETTE FOIS','LE BITUME SE SOUVIENDRA DE TOI','MÊME LES LÉGENDES TOUCHENT LE SOL',
+ 'CRASH TEST RÉUSSI. ENFIN… TEST','LA GRAVITÉ : 1 — TOI : 0','T\'ES MORT. LES THUNES, ELLES, RESTENT',
+ 'REVIENS. LA VITESSE S\'ENNUIE DÉJÀ'];
 const END_TOP=[ // fin de run AVEC record : là on s'incline
  '🏆 RECORD — LES AUTRES JOUENT À UN AUTRE JEU','🏆 LE LEADERBOARD A DEMANDÉ TON AUTOGRAPHE',
- '🏆 RECORD ÉCRASÉ — COMME TES SUSPENSIONS','🏆 HISTORIQUE. LA ROUTE S\'EN REMET À PEINE.'];
+ '🏆 RECORD ÉCRASÉ — COMME TES SUSPENSIONS','🏆 HISTORIQUE. LA ROUTE S\'EN REMET À PEINE'];
 // ---- L'ÉCHELLE : chaque palier de multiplicateur se CRIE — le plafond ×6 devient un objectif nommé ----
 const LADDER=[[2,'ÇA CHAUFFE !'],[3,'EN FEU !!'],[4.5,'AURA EN FUSION'],[6,'MULTI MAX !!']]; // (2026-09-29, passe qualité) « IL PLEUT DES BILLETS » / « JACKPOT MAX » : les figures ne paient plus qu'en aura
 const flyV=new THREE.Vector3();
