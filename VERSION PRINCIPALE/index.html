@@ -29181,7 +29181,13 @@ function villeChauffe(){ // une instance de chaque, compilée hors écran puis r
   // (passe perf) les deux matières NUES n'ont pas de couleur par instance. ⚠ L'ORDRE DE COMPILATION fait l'ordre de dessin (three trie les opaques par
   // numéro de programme) : TOUTES les tours avant TOUS les néons, comme avant — le dessus d'une couronne est au ras du toit, à égalité c'est le néon qui gagne.
   g.add(villeRaisChauffe()); /* (2026-10-20, VILLE EMBELLIE) le programme des rais, compilé au menu avec les autres */
-  scene.add(g);try{renderer.compile(scene,camera);}catch(e){}scene.remove(g);geo.dispose();
+  scene.add(g);
+  /* (2026-11-07, passe perf 3, P3 / P6 : « 8 premiers dessins de programme à l'arrivée de ville:pluie ») `renderer.compile` LIE les programmes mais ne dessine rien : sur Metal le programme de la puce
+     naît au PREMIER DESSIN (10 à 50 ms chacun), qui avait donc lieu au portail — tours, tours au loin, verre, néons, pubs, rais. Désormais chaque couple (matière, géométrie) est dessiné pour de
+     bon une fois, hors écran (chauffeRendu, cible de 8 px), au menu. `?villedessin=0` = l'ancien (compile seul). */
+  if(!/[?&]villedessin=0\b/.test(location.search)&&typeof chauffeRendu==='function'){try{chauffeRendu([g]);}catch(e){try{renderer.compile(scene,camera);}catch(e2){}}}
+  else{try{renderer.compile(scene,camera);}catch(e){}}
+  scene.remove(g);geo.dispose();
 }
 /* (2026-09-28, passe perf iPhone) LE TRI PAR QUARTIERS — chaîné sur scene.onBeforeRender (après pisteLoin : caméra et lumières
    ont leurs matrices de l'image). Chaque quartier (cube de 320 m du monde, sphère englobante de ses boîtes) est jugé à chaque rendu :
