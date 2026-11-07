@@ -24,7 +24,7 @@ function bqNuanceEtat(d){const a=shopOwned('peinture',d.id);let eq=false;try{eq=
    (celle que tu conduis, avec son aile) photographiée DANS cette peinture, comme au catalogue — trois par rangée ; dessous, le nom et la pastille d'état
    (la même que les ailes et les traînées). Toucher = l'essayer sur le plateau ; garder le doigt = la loupe (inchangé). */
 function bqNuanceEtiq(E){if(E.c==='eq')return pxi('coche')+'<b>'+sansAcc(TR('ÉQUIPÉE'))+'</b>';if(E.c==='a')return pxi('coche')+'<b>'+sansAcc(TR('À TOI'))+'</b>';
-  if(E.c==='defi')return pxi('cible')+'<b>'+(E.eur||sansAcc(TR('DÉFI')))+'</b>'+(E.p>=0?'<u><em style="width:'+Math.round(E.p*100)+'%"></em></u>':'');
+  if(E.c==='defi')return pxi('cible')+'<b>'+sansAcc(TR('DÉFI'))+'</b>'+ /* (2026-11-07) « DÉFI » et sa jauge (le prix en € de la famille est écrit une fois, dans l'intertitre) */(E.p>=0?'<u><em style="width:'+Math.round(E.p*100)+'%"></em></u>':'');
   if(E.c==='mis')return pxi('verrou')+'<b>'+E.t+'</b>';return '<b>'+E.t+'</b>';}
 function bqNuanceHtml(k,n,cur){const d=bqCos(k).d;if(!d)return '';
   const r=cosmRar('peinture',d),ri=rarInfo(r),E=bqNuanceEtat(d),nom=sansAcc(TR(d.n)),cher=E.c==='pc'&&d.p&&bank()<d.p;
