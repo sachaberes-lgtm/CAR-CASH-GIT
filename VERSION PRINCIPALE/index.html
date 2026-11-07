@@ -10842,6 +10842,9 @@ html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBq
 html[data-metal="legendaire"] #gCompteur b{animation:mReflet 3.5s ease-in-out infinite,mRgbChiffres 2.4s linear infinite,mFlotte 3.6s ease-in-out infinite!important}
 @keyframes mReflet{0%,60%{background-position:100% 0}100%{background-position:0 0}}
 @media (prefers-reduced-motion:reduce){html[data-metal] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){animation:none!important}}
+/* L'EURO : chiffres ARGENT cerclés d'OR (2026-11-07, Léo : « les numéros argentés ne vont pas avec, fais des contours dorés ») — comme la
+   pièce : cœur d'argent, couronne d'or. */
+html[data-metal="euro"] body.touch.play #cashHud .chV span,html[data-metal="euro"] body #cashHud .chV span,html[data-metal="euro"] body #gCompteur b,html[data-metal="euro"] body #moneyTxt,html[data-metal="euro"] body #gBqArg,html[data-metal="euro"] body #mBankV,html[data-metal="euro"] body #mob #mDead.m5 .mCashL>b#mCash{filter:drop-shadow(0 2px 0 #6a4300) drop-shadow(0 2px 0 #6a4300) drop-shadow(2px 0 0 #f2b630) drop-shadow(-2px 0 0 #f2b630) drop-shadow(0 2px 0 #f2b630) drop-shadow(0 -2px 0 #f2b630) drop-shadow(1px 0 0 #3a2400) drop-shadow(-1px 0 0 #3a2400) drop-shadow(0 1px 0 #3a2400) drop-shadow(0 -1px 0 #3a2400) drop-shadow(0 0 10px rgba(255,200,70,.45))!important}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
