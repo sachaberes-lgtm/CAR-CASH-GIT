@@ -31,7 +31,7 @@ function bqFigCarte(k,n,dir){const o=bqCos(k),d=o.d,id=d.id,own=figPossede(id),S
     +bqFigGestes(id,dir)+'<span class="fgRe" aria-hidden="true">'+pxi('rotation')+'<b>'+sansAcc(TR('REJOUER'))+'</b></span>'
     +'<span class="fgRar">'+sansAcc(TR(ri.n1))+'</span><span class="bqKn">'+nom+'</span>'+pied+'</div>';}
 /* la pellicule entière (appelée par garBqPanneau à la place des cartes communes) ; elle note où on en était, pour y revenir après un équipement */
-function bqFigRailHtml(){const R=bqFigRail(),pan=document.getElementById('gBqPan'),fk=FSEL.dir+'|'+FSEL.part+'|'+FSEL.tri,deja=!!pan&&pan.classList.contains('bqFigOn');
+function bqFigRailHtml(){const R=bqFigRail(),pan=document.getElementById('gBqPan'),fk=FSEL.dir+'|'+FSEL.part+'|'+FSEL.tri,deja=!!pan&&pan.classList.contains('bqFigPel');
   BQFG.rest=deja&&BQFG.fk===fk?BQFG.sl:0;BQFG.fk=fk;if(!deja)BQFG.vu='';
   if(!R.length)return ['<div class="bqVide">'+sansAcc(TR(FSEL.dir>=0?'AUCUNE FIGURE POUR CE GESTE':'RIEN À AFFICHER'))+'</div>'];
   return R.map(function(e,n){return bqFigCarte(e.k,n,e.c);});}
@@ -41,8 +41,8 @@ function bqFigApres(pan,rail){
   if(BQFG.rest!=null){const r=BQFG.rest;BQFG.rest=null;if(r)rail.scrollLeft=r;}
   bqFigBords(rail);
   if(!rail._fg){rail._fg=1;
-    rail.addEventListener('scroll',function(){if(pan.classList.contains('bqFigOn')){BQFG.sl=rail.scrollLeft;bqFigBords(rail);}},{passive:true});
-    rail.addEventListener('wheel',function(e){if(!pan.classList.contains('bqFigOn')||Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;rail.scrollLeft+=e.deltaY;e.preventDefault();},{passive:false});} /* la molette d'une souris fait défiler la pellicule de côté */
+    rail.addEventListener('scroll',function(){if(pan.classList.contains('bqFigPel')){BQFG.sl=rail.scrollLeft;bqFigBords(rail);}},{passive:true});
+    rail.addEventListener('wheel',function(e){if(!pan.classList.contains('bqFigPel')||Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;rail.scrollLeft+=e.deltaY;e.preventDefault();},{passive:false});} /* la molette d'une souris fait défiler la pellicule de côté */
   const sel=document.getElementById('bqFigSel');
   if(sel&&sel._fgL!==LANG){sel._fgL=LANG;sel.querySelectorAll('.fsHex').forEach(function(b){let g=b.querySelector('.fgSlotG');if(!g){g=document.createElement('em');g.className='fgSlotG';b.insertBefore(g,b.querySelector('.fsNom'));}g.textContent=sansAcc(TR(FS_COURT[+b.getAttribute('data-k')]));});}
   const vu=(GBQ.figK||'')+'@'+GBQ.figDir+'|'+BQFG.fk;
@@ -56,6 +56,6 @@ function bqFigBords(rail){const sl=rail.scrollLeft,fin=sl+rail.clientWidth>=rail
   if(rail.classList.contains('fgDeb')!==sl>4)rail.classList.toggle('fgDeb',sl>4);if(rail.classList.contains('fgFin')!==fin)rail.classList.toggle('fgFin',fin);}
 /* ÉQUIPER sur l'affiche : un toucher, dans l'emplacement de CETTE affiche — la figure se joue (bqEssaie) et se range (figEqToast : le son, la puce
    ANNULER) ; capturé avant le toucher de la carte (qui ne ferait que l'essayer) */
-document.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('#gBqPan.bqFigOn .fgK [data-fgeq]');if(!b)return;e.stopPropagation();
+document.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('#gBqPan.bqFigPel .fgK [data-fgeq]');if(!b)return;e.stopPropagation();
   if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;const t=b.closest('.fgK'),k=t.getAttribute('data-k'),dir=+t.getAttribute('data-dir'),id=k.slice(7);
   if(!figPossede(id))return;uiPop(b);GSON9=false;GBQ.figDir=dir;bqEssaie(k);figEqToast(id,dir);GBQ.rk='';BQFG.vient=k;try{gShopJour();}catch(e9){}hap(8);},true);

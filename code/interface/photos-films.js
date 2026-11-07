@@ -29,6 +29,8 @@ function photoLie(sc,cam){try{
     lierPret();} // lus liés : la liste des attendus se vide, `lierScene` ne cachera rien
 }catch(e){}}
 // le studio (pellicule, scène, objectif, lumières), monté à la première photo — caisse, aile ou figure (2026-10-15 soir : sorti de carPhoto pour figPhoto)
+/* (2026-11-07) LA CAISSE DU JOUEUR QUI PORTE L'AILE (cartes des AILES, boutique-classique.js) : trois-quarts arrière, en plongée douce — on voit l'aile déployée ET la caisse qui la porte */
+const PHOTO_AILE_AVEC={el:.46,az:2.55};
 function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
   /* (2026-10-25, Sacha : « les photos sont bof, la lumière… elles ne donnent pas envie d'acheter ») : un vrai studio de vente — grande lampe douce de face, remplissage clair côté ombre (le dessous ne bouchait plus en violet), contre-jours plus fins et moins fluo */
@@ -90,19 +92,19 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   photoStudio();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
   if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin) — (2026-10-16) en RAFALE, posée une fois par photoRafale
-  PHOTO_USINE=true; /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) */
+  PHOTO_USINE=!(aile&&aile.avec); /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) — (2026-11-07) sauf la caisse du JOUEUR qui porte une aile (aile.avec) : sa peinture à lui */
   const sig9=phdbSig();let url=null,asy=false;
   try{
     if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
     else buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
-    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile){photoAiles();photoSeulesAiles();}
+    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile){photoAiles();if(!aile.avec)photoSeulesAiles();} /* (2026-11-07, Sacha : « présente correctement les ailes avec la voiture du joueur ») aile.avec : la caisse reste, elle porte l'aile (boutique-classique.js, bcAileFile) */
     carGroup.updateMatrixWorld(true);
     // LA BOÎTE de ce qu'on voit (maillages visibles seulement : les halos cachés gonfleraient le cadre)
     const bx=new THREE.Box3(),b9=new THREE.Box3();
     carGroup.traverse(function(o){if(!o.isMesh||!o.geometry||o.userData.fx||o.isInstancedMesh)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;}
       if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();b9.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);bx.union(b9);});
     if(bx.isEmpty())bx.set(new THREE.Vector3(-1,0,-2),new THREE.Vector3(1,1.3,2));
-    const EL9=aile?PHOTO_AILE.el:PHOTO_EL,AZ9=aile?PHOTO_AILE.az:(az9!=null?az9:PHOTO_AZ),cam=PHOTO.cam,ctr=bx.getCenter(new THREE.Vector3()),dir=new THREE.Vector3(Math.sin(AZ9)*Math.cos(EL9),Math.sin(EL9),Math.cos(AZ9)*Math.cos(EL9));T9.box=bx.getSize(new THREE.Vector3()).toArray().map(function(v){return +v.toFixed(2);});T9.ailes=!!carWingL;
+    const EL9=aile?(aile.avec?PHOTO_AILE_AVEC.el:PHOTO_AILE.el):PHOTO_EL,AZ9=aile?(aile.avec?PHOTO_AILE_AVEC.az:PHOTO_AILE.az):(az9!=null?az9:PHOTO_AZ),cam=PHOTO.cam,ctr=bx.getCenter(new THREE.Vector3()),dir=new THREE.Vector3(Math.sin(AZ9)*Math.cos(EL9),Math.sin(EL9),Math.cos(AZ9)*Math.cos(EL9));T9.box=bx.getSize(new THREE.Vector3()).toArray().map(function(v){return +v.toFixed(2);});T9.ailes=!!carWingL;
     const C8=[];for(let k=0;k<8;k++)C8.push(new THREE.Vector3(k&1?bx.max.x:bx.min.x,k&2?bx.max.y:bx.min.y,k&4?bx.max.z:bx.min.z));
     let D=bx.getSize(new THREE.Vector3()).length()*2.4,tg=ctr.clone(),ymin=0;const v9=new THREE.Vector3();
     let PTS=C8;if(aile){PTS=[];carGroup.traverse(function(o){const pa=o.isMesh&&o.geometry&&o.geometry.attributes.position;if(!pa||o.userData.fx)return;for(let a=o;a;a=a.parent){if(!a.visible)return;if(a===carGroup)break;} // une AILE : le cadre se cale sur la vraie silhouette (des sommets), pas sur les coins de sa boîte — les ailes ne la remplissent pas, la caisse sortait à moitié de la taille
@@ -134,7 +136,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
     const yb=Math.round((1-(ymin*.5+.5))*H); // la ligne du sol, en pixels de la photo
     // L'OMBRE DE CONTACT, douce, sous la caisse
-    if(!aile){x.save();x.translate(W/2,yb);x.scale(1,.13);const g9=x.createRadialGradient(0,0,0,0,0,W*.44);g9.addColorStop(0,'rgba(0,0,0,.62)');g9.addColorStop(.55,'rgba(0,0,0,.30)');g9.addColorStop(1,'rgba(0,0,0,0)');
+    if(!aile||aile.avec){x.save();x.translate(W/2,yb);x.scale(1,.13);const g9=x.createRadialGradient(0,0,0,0,0,W*.44);g9.addColorStop(0,'rgba(0,0,0,.62)');g9.addColorStop(.55,'rgba(0,0,0,.30)');g9.addColorStop(1,'rgba(0,0,0,0)');
      x.fillStyle=g9;x.fillRect(-W*.5,-W*.5,W,W);x.restore();}
     // LE REFLET d'un sol verni : la photo retournée sous la ligne du sol, qui s'éteint en 20 % de la hauteur
     /* (2026-10-15) pas de reflet sous une AILE : en plongée, le sol verni dessinait un fantôme d'aile */
