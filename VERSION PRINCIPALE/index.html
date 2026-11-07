@@ -30,6 +30,7 @@
 <meta name="apple-mobile-web-app-title" content="CASH CAR">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" href="assets/fonts/pressstart2p.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/monnaie.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
 <!-- ================= L'ÉDITION, ET LA COLONNE DE L'ORDI (2026-09-28) =================
      Sacha : « quand on ouvre cette version, la disposition des affichages de la version PC et de la version mobile verticale doit
@@ -5102,12 +5103,15 @@ html body.touch #tNitro{right:calc(var(--hudD) + 8px)!important;bottom:calc(var(
 html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
 </style>
 <style id="monnaie">
-/* ===== LA MONNAIE DU JEU (2026-11-07, Léo : « le sketch en monnaie, on confondait les euros du jeu et les vrais ») =====
-   Le symbole vient de son sketch au stylo (formes gardées une à une, extrudées), en masque : il prend la couleur du texte voisin
-   (vert billet du compteur) et son contour. Le vrai argent (€ des offres) reste écrit « € ». */
-#cashHud .chV i.mC{display:inline-block;width:1.4em;height:1.17em;font-size:var(--f5);align-self:center;
-  -webkit-mask:url(data:image/png;base64,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) center/contain no-repeat;mask:url(data:image/png;base64,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) center/contain no-repeat;
-  -webkit-background-clip:border-box;background-clip:border-box}
+/* ===== LA MONNAIE DU JEU (2026-11-07, Léo : « le sketch en monnaie, partout ») =====
+   Le symbole de son sketch au stylo (formes gardées une à une) est UN GLYPHE (U+E000) d'une mini-police (assets/fonts/monnaie.woff2, 900 octets),
+   ajouté à chacune des cinq polices du jeu par unicode-range : il prend la couleur, le contour et la taille du texte voisin (DOM et canvas).
+   CUR() rend ce glyphe ; le vrai argent (les offres « 0,99 € ») reste écrit « € ». */
+@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Silkscreen';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Jersey';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Sixtyfour';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Jacquard';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
 </style>
 <style id="garageV6">
 /* ======================= LE GARAGE v6 — LA REFONTE (2026-09-30, Sacha, capture couchée à l'appui : « améliore le garage, notamment les
@@ -8908,7 +8912,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   <!-- (2026-09-29, Sacha : « rajoute un compteur d'argent stylé, inspiré de loin de GTA, mais avec notre DA ») LE COMPTEUR D'ARGENT DU
        TÉLÉPHONE : en haut à droite sous le ⏸ (la place de l'argent dans GTA), le total de la partie qui DÉFILE vers sa valeur, et sous lui le
        « +$ » qui s'additionne tant que ça tombe (1,8 s) — en or pendant la frénésie (×3). Typo ombrée VERTE (l'argent du jeu est vert). -->
-  <div id="cashHud" aria-hidden="true"><b class="chV"><i class="mC"></i><span>0</span></b><em class="chD"></em></div>
+  <div id="cashHud" aria-hidden="true"><b class="chV"><i>&#xE000;</i><span>0</span></b><em class="chD"></em></div>
   <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em><i id="avPlus"></i></div><div id="avRec" class="vide"><span id="avRecT"></span><i><s id="avRecF"></s></i></div>
     <div id="avCh"><div class="avChTop"><b id="avPts">0</b><span id="avX">×1</span></div><div class="avBar"><i id="avBarF"></i></div><ul id="avList"></ul></div></div>
   <!-- (2026-09-28, Sacha) L'EMBLÈME DE LA FRÉNÉSIE « THE DARK TRIAD » — v3 EN PIXEL (même soir : « toute l'interface est faite en pixel,
@@ -10488,7 +10492,7 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab:not(.on) .pxi
     <div id="setHead"><span>Réglages</span><button id="setClose" class="pbtn pb-cyan pbCarre" aria-label="Fermer"><i class="pxi pxi-croix" aria-hidden="true"></i></button></div>
     <div class="setSec">Langue</div>
     <div class="setRow" id="langRow"><span>Langue · Language</span><b id="tgLang">FR</b></div>
-    <div class="setRow" id="curRow"><span>Devise</span><b id="tgCur">€</b></div>
+    <div class="setRow" id="curRow"><span>Devise</span><b id="tgCur">&#xE000;</b></div>
     <div class="setSec">Audio</div>
     <div class="setRow" data-tg="sndBtn"><span>Effets sonores</span><b id="tgSnd">ON</b></div>
     <div class="setRow" data-tg="musBtn"><span>Musique</span><b id="tgMus">ON</b></div>
@@ -29892,7 +29896,7 @@ function langNext(){
   try{localStorage.ccLang=LANG;}catch(err){}
   return LANG;
 }
-const CUR=()=>'€'; /* (2026-11-05, Sacha : « remplace les dollars par des euros, aucun symbole dollar ne doit rechapper ») la devise du jeu est l'EURO */
+const CUR=()=>'\uE000'; /* (2026-11-05, Sacha : « remplace les dollars par des euros, aucun symbole dollar ne doit rechapper ») la devise du jeu est l'EURO */
 const LOC=()=>LANG==='fr'?'fr-FR':'en-US';
 const fmt=v=>CUR()+(LANG==='fr'?' ':'')+Math.round(v).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' '); /* (2026-11-07) comme fmtSolde et fmtC : « €1,234 » en anglais (plus d'espace à la française), et l'espace fine U+202F de fr-FR remplacée par une vraie espace — la police pixel ne la dessine pas */
 /* ============================================================================
@@ -30476,7 +30480,7 @@ function cashEcrit(force){
   if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);
-    if(kd!==CASH.kd2){CASH.kd2=kd;const td='+€ '+cashTxt(CASH.delta)+(x3?' ×3':'');if(td!==CASH.td){CASH.td=td;CASH.d.textContent=td;}}
+    if(kd!==CASH.kd2){CASH.kd2=kd;const td='+'+CUR()+' '+cashTxt(CASH.delta)+(x3?' ×3':'');if(td!==CASH.td){CASH.td=td;CASH.d.textContent=td;}}
     if(x3!==CASH.d.classList.contains('x3'))CASH.d.classList.toggle('x3',x3);}
   if(vu!==CASH.d.classList.contains('vu'))CASH.d.classList.toggle('vu',vu);
 }
@@ -33044,7 +33048,7 @@ function trxPlanche(){
      rr(-W/2,-H/2,W,H,7);const g=x.createLinearGradient(0,-H/2,0,H/2);g.addColorStop(0,vs?'#52bd7c':'#5cc985');g.addColorStop(1,'#2b7f4d');x.fillStyle=g;x.fill();
      x.lineWidth=2;x.strokeStyle='#1d5c37';x.stroke();x.strokeStyle='rgba(220,255,228,.75)';x.lineWidth=1.6;x.strokeRect(-W/2+6,-H/2+6,W-12,H-12);
      x.textAlign='center';x.textBaseline='middle';x.fillStyle='#e8fdec';
-     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='24px "Press Start 2P",monospace';x.fillText('€',0,2);
+     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='24px "Press Start 2P",monospace';x.fillText('\uE000',0,2);
        x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('100',-W/2+19,-H/2+15);x.fillText('100',W/2-19,H/2-14);}
      else{x.fillStyle='rgba(20,80,45,.9)';x.fillRect(-W/2+6,-8,W-12,16);x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('CASH CAR',0,1);
        x.beginPath();x.arc(-W/2+18,-H/2+17,6,0,Math.PI*2);x.moveTo(W/2-12,H/2-17);x.arc(W/2-18,H/2-17,6,0,Math.PI*2);x.fill();}
@@ -50713,7 +50717,7 @@ function flowHudMaj(rest){
   h.classList.toggle('gele',FLOW.nit&&FLOW.v>0&&FLOW.lv<4); // (v3) le nitro TIENT la jauge de la montée : rien ne fuit tant qu'il brûle
   const tr=frenEl();if(tr){tr.classList.toggle('tremble',FLOW.lv===4&&lache);tr.classList.toggle('froid',FLOW.lv===4&&fuit&&!lache);}
   if(FLOW.lvAff!==FLOW.lv){const av=FLOW.lvAff;FLOW.lvAff=FLOW.lv;h.style.setProperty('--fc',FLOW_COL[FLOW.lv]);h.dataset.lv=FLOW.lv;
-    h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='€×'+fmtMul(flowMult());
+    h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='\uE000×'+fmtMul(flowMult());
     const g=FLOW.glow;g.style.setProperty('--fc',FLOW_COL[FLOW.lv]);g.dataset.lv=FLOW.lv;g.style.opacity=FLOW.lv?(.25+FLOW.lv*.15).toFixed(2):'0';
     if(FLOW.lv===4)frenEntre();else{h.classList.remove('embrase','sc1','sc2');if(av===4)frenSort();}} // (sans ça, un retour d'écran — display rendu — rejouerait l'embrasement)
 }
@@ -51790,9 +51794,9 @@ const MOTIFS={
       motTore(x,function(){x.fillStyle='rgba(255,255,255,.85)';x.fillRect(cx-r*1.4,cy-.8,r*2.8,1.6);x.fillRect(cx-.8,cy-r*1.4,1.6,r*2.8);});}}},
   cash:{s:.45,c:0x1d7f45,f:function(x,R){x.fillStyle='#1d7f45';x.fillRect(0,0,MOT_W,MOT_W);
     x.strokeStyle='rgba(255,255,255,.07)';x.lineWidth=10;for(let k=-5;k<5;k++){x.beginPath();x.moveTo(k*128,0);x.lineTo(k*128+MOT_W,MOT_W);x.stroke();} // le guillochage du billet
-    x.font='900 92px "Arial Black",Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
+    x.font='92px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
     for(let b=0;b<4;b++)for(let a=0;a<4;a++){const cx=(a+.5+(b&1)*.5)*128,cy=(b+.5)*128,ro=(R()-.5)*.5;
-      motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(ro);x.lineWidth=10;x.strokeStyle='#0c4425';x.strokeText('€',0,4);x.fillStyle='#ffd23a';x.fillText('€',0,4);x.restore();});}}}};
+      motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(ro);x.lineWidth=10;x.strokeStyle='#0c4425';x.strokeText('\uE000',0,4);x.fillStyle='#ffd23a';x.fillText('\uE000',0,4);x.restore();});}}}};
 /* ===== LES LIVRÉES « STICKERS » ET LES LÉGENDAIRES (2026-11-05, le nuancier v3) =====
    Six toiles épiques de plus (mêmes règles que les pelages : 512 px raccordées, un tirage fixe par id) et les six légendaires. Une légendaire a
    `anim` (la clé de son programme dans MOT_ANIM, posé par motGreffe) ; sa toile `f` ne sert qu'à la pastille des listes. */
@@ -59802,7 +59806,7 @@ const billNoteTex=(function(){
   apresPolice(function(){c.fillStyle='#1c0430';c.fillRect(0,0,64,32);c.fillStyle='#2f9a52';c.fillRect(2,2,60,28);
   c.strokeStyle='#7fd89a';c.lineWidth=2;c.strokeRect(5,5,54,22);
   c.fillStyle='#ffd75e';c.font='8px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
-  c.fillText('€',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
+  c.fillText('\uE000',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
   return tx;
 })();
 const billGeo=new THREE.PlaneGeometry(.5,.25);
@@ -59917,7 +59921,7 @@ function updatePool(pool,dt,grav){
    fête — en 15 couleurs pastel. Désormais : UN atlas cuit une fois (15 glyphes en OR de l'argent — clair en haut, ombre en bas — cerclés
    d'un LISERÉ d'encre #1c0430, comme tout ce qui rapporte), 600 panneaux instanciés (`mkPanneaux`), tableaux fixes, zéro allocation.
    Le mouvement est celui d'avant (ça tournoie en tombant, fondu la dernière seconde). */
-const CURR=['€','€','¥','£','€']; // (2026-10-15, UNE SEULE POLICE) les cinq que la police pixel DESSINE — ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ tombaient dans une police de secours (mesuré)
+const CURR=['\uE000','\uE000','¥','£','\uE000']; // (2026-10-15, UNE SEULE POLICE) les cinq que la police pixel DESSINE — ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ tombaient dans une police de secours (mesuré)
 const MONN_TEX=(function(){
   const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d'),tx=new THREE.CanvasTexture(cv);
   apresPolice(function(){c.clearRect(0,0,S*4,S*4);
@@ -63998,7 +64002,7 @@ function m2ValCourse(m){try{switch(m.k){case 'aura':return Math.round(auraRun)||
 function m2Frac(m,v,t){return t>0?Math.max(0,Math.min(1,v/t)):0;}
 function m2Prog(m,v,t){v=Math.min(v,t); // « 3 / 5 », « 42 000 / 100 000 $ », « 4,2 / 5 S », « 1:12 / 5:00 »
   switch(m.u){case 's':return decFr(Math.floor(v*10)/10,1)+' / '+t+' S';case 'kmh':return m2Nb(v)+' / '+m2Nb(t)+' KM/H';case 'km':return m2Nb(Math.floor(v))+' / '+m2Nb(t)+' KM';
-    case '$':return m2Nb(v)+' / '+m2Nb(t)+' €';case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
+    case '$':return m2Nb(v)+' / '+m2Nb(t)+' '+CUR();case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
     case 'b':return v>=t?TR('FAIT'):TR('PAS ENCORE');}
   return m2Nb(v)+' / '+m2Nb(t);}
 function m2RecNom(m){const r=m.r||{};if(r.cash)return '+'+fmtC(r.cash);if(r.car)return TR(r.car);
@@ -64080,7 +64084,7 @@ function mcCanon(){ // le dessin du canon (graduations, rayures) : calculé une 
 function mcVedette(x,s,arme){const m=x.m,pret=x.rg===0,R=mcRec(m),w=mcVu(x,s),C=2*Math.PI*88,pg=R.k==='hab'?R.c:'';if(arme)w[0]=0; /* arme : on arrive sur la page, l'anneau se charge depuis zéro */
   let fond;
   if(R.k==='car')fond=mcSil(R.i,false,pret&&m2Pret(m.id));
-  else if(R.k==='cash')fond='<b class="mcSom"><small>€</small>'+m2Nb(R.v)+'</b>';
+  else if(R.k==='cash')fond='<b class="mcSom"><small>'+CUR()+'</small>'+m2Nb(R.v)+'</b>';
   else if(R.k==='hab')fond='<b class="mcRar">'+sansAcc(TR(R.rar))+'</b>';
   else fond='<b class="mcSom">?</b>';
   const lab=R.k==='car'?TR('VOITURE')+' · '+TR(R.rar):R.k==='hab'?TR(R.cat)+' · '+TR(R.rar):''; /* l'argent se lit tout seul au fond du portail */
@@ -66513,7 +66517,7 @@ function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteu
   const x0=(flyV.x*.5+.5)*innerWidth,y0=(-flyV.y*.5+.5)*innerHeight;
   const r=elMoney.getBoundingClientRect(),x1=r.left+r.width/2,y1=r.top+r.height/2;
   for(let i=0;i<n;i++){
-    const b=document.createElement('div');b.className='bill';b.textContent='€';
+    const b=document.createElement('div');b.className='bill';b.textContent='\uE000';
     b.style.left=(x0+(Math.random()-.5)*70)+'px';b.style.top=(y0+(Math.random()-.5)*46)+'px';
     document.body.appendChild(b);
     setTimeout(()=>{b.style.left=x1+'px';b.style.top=y1+'px';b.style.opacity=0;b.style.fontSize='8px';},30+i*45);
@@ -68444,7 +68448,7 @@ function start(){
    qu'on voulait fuir. VS-15 force la présentation TEXTE, donc notre police et notre couleur. */
 const VS='\uFE0E';
 const JETONS=[
-  {g:'€',        c:'#ffd75e',n:'EURO',         p:46},
+  {g:'\uE000',    c:'#ffd75e',n:'EURO',         p:46},
   {g:'♦'+VS,     c:'#ff9d2e',n:'CARREAU',      p:15},
   {g:'♥'+VS,     c:'#ff5e8a',n:'CŒUR',         p:13},
   {g:'♣'+VS,     c:'#54e07a',n:'TRÈFLE',       p:11},
@@ -73474,7 +73478,7 @@ function richCarteGeo(){const g=new THREE.BoxGeometry(1,.63,.018),uv=g.attribute
   g.clearGroups();return g;}
 function richTexLiasse(){const b=RICH.texBillet.image;return richCv(512,512,function(x){ // la LIASSE : le billet du dessus et sa BANDE ; les feuilles empilées sur la tranche
   x.drawImage(b,0,0,512,236);x.fillStyle='#efe6cf';x.fillRect(228,0,56,236);x.fillStyle='rgba(150,110,40,.6)';x.fillRect(228,0,3,236);x.fillRect(281,0,3,236);
-  x.save();x.translate(256,118);x.rotate(-Math.PI/2);x.font='14px "Press Start 2P",monospace';x.fillStyle='#7a5a1a';x.textAlign='center';x.textBaseline='middle';x.fillText('€ 10 000',0,0);x.restore();
+  x.save();x.translate(256,118);x.rotate(-Math.PI/2);x.font='14px "Press Start 2P",monospace';x.fillStyle='#7a5a1a';x.textAlign='center';x.textBaseline='middle';x.fillText('\uE000 10 000',0,0);x.restore();
   for(let y=256;y<512;y+=4){x.fillStyle=(y/4)%2?'#cfe9e1':'#0c5a66';x.fillRect(0,y,512,4);}x.fillStyle='#efe6cf';x.fillRect(228,256,56,256);});}
 function richLiasseGeo(){const g=new THREE.BoxGeometry(1,.46,.12),uv=g.attributes.uv;
   for(const G9 of g.groups)for(let k=G9.start;k<G9.start+G9.count;k++){const i=g.index.getX(k),u=uv.getX(i),v=uv.getY(i);
@@ -80293,7 +80297,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
       dx:(Math.random()-.5)*14,dy:(Math.random()-.5)*14});
   }
   // ⚠ \uFE0E : même raison que pour les jetons — sans lui macOS remplace ♥ ♣ ☠ ♦ par ses emoji couleur.
-  const SYMS=[['€','#ffd75e'],['♥\uFE0E','#ff5e8a'],['♣\uFE0E','#54e07a'],['☠\uFE0E','#e8e8f0'],['£','#9ad8ff'],['¥','#ffc46b'],['1.61','#fff2be'],['♦\uFE0E','#ff9d2e']];
+  const SYMS=[['\uE000','#ffd75e'],['♥\uFE0E','#ff5e8a'],['♣\uFE0E','#54e07a'],['☠\uFE0E','#e8e8f0'],['£','#9ad8ff'],['¥','#ffc46b'],['1.61','#fff2be'],['♦\uFE0E','#ff9d2e']];
   function beat(k){ // battement de cœur du logo : pulsation + micro-flash + onde
     if(done)return;
     /* (2026-10-15) le battement faisait pulser « 1.61 »… encore INVISIBLE à ce moment-là (il ne se lève qu'après la fission, depuis l'ordre

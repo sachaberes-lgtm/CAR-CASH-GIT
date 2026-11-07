@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1255'; /* v1255 (2026-11-07, Sacha : « cherche plein de mini détails qui ne se voient même pas, pour rendre le jeu plus pro ») LES PETITES POLITESSES : aperçu de lien, icône maskable, color-scheme, sauvegarde sur pagehide et copie d'une sauvegarde illisible, écran rendu au menu, boutique du jour à minuit local, retours haptiques, accessibilité (voir JOURNAL.md). */
+const CACHE = 'cashcar-v1256'; /* v1256 (2026-11-07, Léo : « oui, partout ») LA MONNAIE PARTOUT : le symbole du sketch est un glyphe (U+E000, assets/fonts/monnaie.woff2) ajouté aux cinq polices du jeu ; CUR(), le compteur, les gains, les billets, les pièces, les pluies et le logo l'écrivent, les vrais euros des offres restent en €. */ /* v1255 (2026-11-07, Sacha : « cherche plein de mini détails qui ne se voient même pas, pour rendre le jeu plus pro ») LES PETITES POLITESSES : aperçu de lien, icône maskable, color-scheme, sauvegarde sur pagehide et copie d'une sauvegarde illisible, écran rendu au menu, boutique du jour à minuit local, retours haptiques, accessibilité (voir JOURNAL.md). */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
