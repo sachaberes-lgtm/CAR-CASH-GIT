@@ -68,11 +68,12 @@ Les notes sont bonnes : **la règle actuelle ne mesure pas ce qui gêne**. C'est
 
 ### 3.1 La règle commune v2 (`code/gameplay/route-rythme.js`)
 « **Une courbe ou une droite, jamais entre les deux.** »
-- un **VIRAGE** = ≥ 28° à un rayon < 4 rP (20° aujourd'hui) ; sous 28°, c'est soit un **BALAYAGE** (≥ 5 rP : la courbe au pouce, une
+- un **VIRAGE** = ≥ 26° à un rayon < 4 rP (20° aujourd'hui) ; sous 26°, c'est soit un **BALAYAGE** (≥ 6,5 rP : la courbe au pouce, une
   droite qui penche, bienvenue) soit une **DOUILLE** (interdite) ;
-- une **DOUILLE** = un lobe de 4 à 27° à moins de 5 rP ; un **ZIGZAG** = trois douilles alternées d'affilée. Cible : ≤ 0,4 douille/km ;
+- une **DOUILLE** = un lobe de 4 à 26° à moins de 5 rP ; un **ZIGZAG** = trois douilles alternées d'affilée. Cible : ≤ 0,4 douille/km ;
   note : 0,8 par douille, 2 par zigzag (plus cher qu'un coude) ;
-- une **DROITE FRANCHE** = ≤ 4° de cap sur ≥ 1,8 s : voulue, **0,6 à 1,2 par km** (la ligne nitro). Une droite de plus de **6,5 s** coûte (5 aujourd'hui) ;
+- une **DROITE FRANCHE** = ≤ 8° de cap sur ≥ 1,8 s à plus de 6 rP : voulue, **5 à 22 % de la route** (la ligne nitro). Une droite de plus de **6,5 s** coûte (5 aujourd'hui) ;
+  une figure déclarée vaut deux virages dans la cible virages/km (une map courte faite d'un looping et d'un surf n'est pas « sans virage ») ;
   une « droite » entre deux temps forts qui n'est pas franche n'est plus comptée comme un souffle ;
 - **routes roulées** (nuages, espace, grotte) : part hors de l'endroit **≤ 25 %** ; aucune vrille sur un virage < 3 rP ; une figure au plus par 20 s.
 Ces mesures vont dans la fiche (`douilles`, `zigzags`, `droitesF`, `horsEndroit`) et dans `rythmeNote` : le meilleur-de-N de TOUS les
@@ -80,13 +81,13 @@ générateurs les respecte sans qu'on touche à chacun — et le banc (`fiche.cj
 
 ### 3.2 Les briques propres (`code/gameplay/route-briques.js`, nouveau morceau)
 Des primitives de plan partagées, que chaque générateur branche à la place des siennes :
-- `briqueArc(a, R)` : refuse |a| < 28° sauf si R ≥ 5 rP ; pas de 8°, cordes ≥ 12 m ; entrée/sortie en **clothoïde** au-delà de 60° (comme les dunes) ;
-- `briqueDroite(l)` : des segments de ≥ 40 m ;
+- la règle d'arc : |a| ≥ 26° sauf si R ≥ 6,5 rP (chaque générateur l'applique à son `arc`) ; des segments de droite de ≥ 40 m ;
 - `briqueRecadre(dPhi)` : **ne dessine rien** sous 8° (le cap n'a pas à être tenu au degré) ; de 8 à 28°, garde une **dette de cap** reportée
   sur le prochain vrai virage (qui tourne un peu plus ou un peu moins) ; au-delà, un vrai virage à 2,4-3,2 rP. Remplace `recentre`, `jCap`,
   `cmRe`, l'alignement de la Porte, `gAxe`/`vers`/`tourne` plafonné, `cap`/`bkVers`, `recadre`, `large()` et son reste ;
-- `briqueSouffle(s)` : le souffle entre deux temps forts = une droite franche de 1,8-4 s (70 %) ou un balayage ≥ 5 rP (30 %). Plus jamais
+- `briqueSouffle(rnd, vP, genre)` : le souffle entre deux temps forts = une droite franche de 1,6-3,4 s ou un balayage de 30-60° à ≥ 6,5 rP (part selon le genre). Plus jamais
   des S de 8-20°.
+- `phraser(rnd, L, vP, genre)` : le phraseur, qui décide du prochain temps d'après la position RÉELLE du dessin (`suivant(pos)`).
 
 ### 3.3 La phrase de rythme (`phraser()` dans route-rythme.js)
 La map est **planifiée en secondes** avant d'être dessinée, comme une phrase musicale, puis chaque générateur remplit les cases avec SON
@@ -130,7 +131,7 @@ Chacun est unique à sa map, tiré **une fois par route** comme climax (jamais d
 ### 3.6 Ce qu'on ne change pas
 Les modules existants, les monuments (Porte, Pont, ras de l'eau, géants, raccourci du canyon, tremplins des dunes), le relief et les décors,
 la longueur visée (`DUREE`), le hasard par graine (même graine = même route pour tout le monde), le pré-bâti. `?rythme=0` reste.
-Variante : `?routes=ancien` = la génération d'avant (phrase et briques débrayées).
+Variante : `?gen=ancien` = la génération et la règle d'avant (phrase et briques débrayées).
 
 ## 4. L'ORDRE DU CHANTIER (chaque étape mesurée au banc, commitée, poussée)
 1. règle v2 + fiche (douilles, droites franches, hors-endroit) + banc Node étendu — les chiffres « avant » sont déjà là ;
