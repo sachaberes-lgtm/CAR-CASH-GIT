@@ -9941,6 +9941,42 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{display:fl
   #gFigSel .fsCase{width:46px;height:40px}
 }
 </style>
+<style id="paufinageBoutons">
+/* ===== LE PAUFINAGE DES BOUTONS (2026-11-07, Sacha : « paufine la disposition des boutons de chaque écran, leurs optimisation, leurs
+   animations ; chaque écran doit être parfait — en vertical et horizontale ») =====
+   Une couche posée APRÈS la finition du 04/11, nourrie du même banc (outils/banc-ecrans/photos.cjs, désormais aussi sous Windows) :
+   17 écrans photographiés debout ET couchés, chaque boîte mesurée. Rien de redessiné — la même touche, la même pente, la même main —
+   seulement ce qui n'était pas d'équerre, écran par écran. */
+
+/* 1. L'INVENTAIRE DES FIGURES, COUCHÉ : le panneau sortait de l'écran par le HAUT (MESURÉ 844 × 390 : haut à −27 px, la rangée des
+   onglets coupée à mi-hauteur) — la barre TOUT · TRI ORDRE du sélecteur (05/11) s'est ajoutée sous le dock sans que la colonne ne lui
+   fasse de place. Le dock se tasse (cases 42 × 36, 52 px de haut), la barre perd ses marges, la grille rend 16 px : −39 px, le panneau
+   démarre à 12 px du bord, comme l'onglet VOITURES. */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel{margin:2px 12px 0;padding:5px 6px 4px 4px}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel .fsHex{min-height:52px}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel .fsCase{width:42px;height:36px}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigSel .fsJoy{left:calc(50% - 34px);top:-5px;width:20px;height:20px}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{margin:2px 12px 2px}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar .fsPas{min-height:26px}
+  html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gStrip.gModeInv{max-height:calc(100vh - 296px)}
+}
+
+/* 2. LES PASTILLES DU SÉLECTEUR (TOUT · À MOI · À ACHETER · TRI) : 32 px de haut debout, 28 couchées — sous les 44 px de la charte. Le
+   dessin ne bouge pas (la barre n'a pas la place), la ZONE DE TOUCHE prend ses 44 px autour, comme les onglets de l'inventaire (::after). */
+.fsPas::before{content:'';position:absolute;left:0;right:0;top:50%;height:44px;margin-top:-22px}
+
+/* 3. L'ÉCRAN MISSIONS, COUCHÉ : le panneau descendait jusqu'au bas de l'écran, SOUS RETOUR et JOUER (MESURÉ : panneau 10 → 378, boutons
+   322 → 378 ; la ligne MISSIONS RÉUSSIES et la 4e mission passaient derrière les touches, lisibles en fantôme). Le panneau s'arrête 10 px
+   au-dessus des boutons (--mcBas, posée par l'atelier depuis la boîte de #gmBas) : plus rien ne passe sous une touche. RETOUR prend la
+   forme des RETOUR de l'inventaire et de la boutique (l'icône à gauche du mot, 112 px : « RETOUR » en colonne de 76 px mordait sur le biais). */
+html #gmListe.mcE.land .mcDef{bottom:var(--mcBas,calc(var(--sB) + 78px))}
+html #gmListe.mcE.land .mcPan{padding-bottom:12px}
+html #gMis.mbOn.m2land #gmBas .gmHome{flex-direction:row;width:auto;min-width:112px;gap:10px;padding:0 12px;font-size:var(--f1)}
+html #gMis.mbOn.m2land #gmBas .gmHome .pxi{--pxs:2}
+/* la ligne MISSIONS RÉUSSIES : 41 px (le .mcFin à 40 l'emportait sur les 44 du .m2Fin) */
+.m2Fin.mcFin{min-height:44px}
+</style>
 <style id="boitesBlister">
 /* ===== LES VITRINES (2026-11-05, Léo : « on ne voit pas assez les voitures, pas d'effet de boîte… un truc un peu carré et transparent, comme une vitrine en verre sur un socle noir ; un angle où l'on voit bien la voiture, en 3D, sans que ça pèse sur téléphone ») =====
    Une couche posée APRÈS toutes les autres : elle ne fait que REPEINDRE les cartes `.bqK` de la boutique (`#gBqPan`) — structure, tailles de grille et photos ne
