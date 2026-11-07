@@ -137,9 +137,9 @@ html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKp{background:#ff3ec8;co
    poussé devant la plaque du nom, qu'il mord. Un espaceur (::before) donne sa hauteur à la carte. Les PEINTURES n'ont pas de cube (.pnt) : une sphère vernie. Préfixe à deux #id. */
 html #gBq #gBqPan .bqK:not(.pnt){isolation:auto;transform-style:preserve-3d;perspective:760px;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;margin:0;
   --W:64cqw;--H:46cqw;--D:34cqw;--ry:-26deg;--rx:-14deg;--rim:color-mix(in srgb,var(--rc) 62%,#fff)}
-html #gBq #gBqPan .bqK:not(.pnt)::before{display:block;content:"";position:static;transform:none;width:auto;height:auto;aspect-ratio:720/440;margin:0 0 3px;background:none;box-shadow:none;border:0}
+html #gBq #gBqPan .bqK:not(.pnt)::before{display:block;content:"";position:static;transform:none;width:auto;height:auto;aspect-ratio:720/440;margin:0 0 6px;background:none;box-shadow:none;border:0}
 html #gBq #gBqPan .bqK:not(.pnt)::after{display:none}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv{display:block;position:absolute;left:50%;top:calc(var(--H)/2 + 7cqw);width:0;height:0;transform-style:preserve-3d;pointer-events:none;
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv{display:block;position:absolute;z-index:2;left:50%;top:calc(var(--H)/2 + 7cqw);width:0;height:0;transform-style:preserve-3d;pointer-events:none;
   transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform .3s} /* (pas de translateZ sur le cube : le navigateur le fait disparaître ; c'est la plaque qui recule) */
 html #gBq #gBqPan .bqK:not(.pnt).sel{--ry:-18deg;--rx:-10deg;translate:0 -3px;scale:1.03;box-shadow:none}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .f{position:absolute;display:block;box-sizing:border-box;border:2px solid var(--rim);border-radius:2.2cqw;background:none}
@@ -163,9 +163,10 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph:is(.c-trainee,.c-figure){align-ite
 /* (2026-11-07, Léo : « le cube passe légèrement au-dessus du nom en gris ») rechevauchement LÉGER : le cube mord 8 px sur le haut de la plaque (au lieu de 12), la plaque reste derrière lui (recul 3D) et carrée ; la voiture, dans le cube, n'est jamais cachée. */
 /* (2026-11-07, Léo, capture « THE ENGLISH… » : « les voitures dépassent toujours le cube ») la voiture est ancrée par le BAS, rétrécie à 90 % et remontée de ~3 cqw : ses roues ne touchent plus la plaque, elle reste franchement dans le verre (même les longues : ELDORADO, CHARGER, ROSSO n'avaient que 2 px de marge à droite). */
 /* (2026-11-07, Léo : « la plaque entièrement sous le cube ») plus AUCUN chevauchement : 3 px d'air entre le bas du cube et la plaque, plaque à plat (plus de recul 3D qui la remontait), 28 px de haut. */
-/* la plaque du nom, entièrement sous le cube ; le prix devant (2026-11-06, Léo : « les noms sont très gros et dépassent le cube » : 50 → 34 px de haut, plus d'agrandissement à 107 %) */
+/* (2026-11-07, Léo : « le coin devant, en bas à droite du cube, est encore un peu caché : il faut qu'il passe PAR-DESSUS la plaque grise ») MESURÉ : la plaque (dessinée après le cube) recouvrait le bas du cube (arête avant + quadrillage) ; le recul 3D ne la mettait pas derrière. Maintenant le cube a z-index 2 (au-dessus) et la plaque z-index 1 ; le cube ne mord que de ~2,5 px sur le haut de la plaque : son coin avant-bas-droit passe par-dessus le gris. */
+/* la plaque du nom, juste sous le cube, derrière lui ; le prix devant (2026-11-06, Léo : « les noms sont très gros et dépassent le cube » : 50 → 34 px de haut, plus d'agrandissement à 107 %) */
 html #gBq #gBqPan .bqK:not(.pnt) .bqKn{position:relative;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:28px;margin:0 6px 7px;padding:3px 6px 0;border-bottom:3px solid transparent;
-  text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:0;transform:none;
+  text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:0;transform:none;z-index:1;
   background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 40%,#2b3246),color-mix(in srgb,var(--rc) 14%,#0f121b));box-shadow:inset 0 1px 0 rgba(255,255,255,.3);text-shadow:0 0 6px var(--rc),0 1px 0 rgba(0,0,0,.55)}
 html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKn{background:linear-gradient(#5a3a00,#24160a);color:#ffe9a8;text-shadow:0 1px 0 #000}
 html #gBq #gBqPan .bqK.b-secrete:not(.pnt) .bqKn{background:linear-gradient(#3a3a48,#16161d);color:var(--rc)}
