@@ -24,10 +24,12 @@ function gmHoloBuild(g){ // les hologrammes 3D des ancres : un faisceau (sprite)
     let ring=null;if(a.k!=='r'){ring=new THREE.Mesh(rg,new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
       ring.rotation.x=-Math.PI/2;ring.position.set(a.p[0],.05,a.p[2]);g.add(ring);}
     GMIS.holo.push({beam:beam,ring:ring,a:a});}
+  if(PASS_ON)try{pvSolBuild(g);}catch(e){console.warn('pass sol',e);} /* (2026-11-07) ?pass=1 : l'anneau de sol du viseur, en vrai objet 3D */
 }
 function gmHoloTick(t9){const e=GMIS.e;for(let i=0;i<GMIS.holo.length;i++){const h=GMIS.holo[i],o=e*(.34+.12*Math.sin(t9*2.7+i*1.3));
   h.beam.material.opacity=o;if(h.ring){h.ring.material.opacity=e*.8;const k=1+.12*Math.sin(t9*3.1+i);h.ring.scale.set(k,k,k);}}}
 function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les cartes ne rejouent pas leur entrée
+  if(PASS_ON)return pvRender(vu); /* (2026-11-07) ?pass=1 : LE VISEUR (missions/pass-viseur.js), la caméra reste sur la caisse */
   return m2Render(vu); /* (2026-10-16) LES MISSIONS v2 : la liste unique */
 }
 function gmSuit(){return gmSuitS();} // chaque image : le panneau MISSIONS se recale, les hologrammes suivent l'orientation
@@ -50,7 +52,7 @@ function gmPlaceL(W,H){ // couché : DEUX colonnes — la carte de la série à 
 }
 function gmSuitS(){ // chaque image : (2026-10-15) le panneau MISSIONS se recale si l'écran change ; les hologrammes suivent l'orientation
   {const W=VP.w,H=VP.h,now=performance.now();
-   if(GMIS.lw!==W||GMIS.lh!==H||!GMIS.bT||now-GMIS.bT>600){GMIS.bT=now;GMIS.lw=W;GMIS.lh=H;gmPlaceL(W,H);}
+   if(GMIS.lw!==W||GMIS.lh!==H||!GMIS.bT||now-GMIS.bT>600){GMIS.bT=now;GMIS.lw=W;GMIS.lh=H;gmPlaceL(W,H);if(PASS_ON)pvPlace(W,H,false);}
    const land=W>H*1.25;if(GMIS.land!==land){GMIS.land=land;gmHoloPlace(land);}}
 }
 /* (2026-10-05) MISSIONS depuis la VITRINE : l'écran des missions de l'atelier, et HOME / Échap y RAMÈNENT (pas au menu) */
