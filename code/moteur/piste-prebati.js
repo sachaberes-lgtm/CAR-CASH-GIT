@@ -140,6 +140,7 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
       for(let b=0;b<lay.blocs;b++)B9.set(A.subarray((b*np+r0)*pr*sz,(b*np+r1+1)*pr*sz),b*nr*pr*sz);
       g.setAttribute(nm,new THREE.BufferAttribute(B9,sz));}
     g.setIndex(new THREE.BufferAttribute(w<li.length?li.subarray(0,w):li,1));
+    memLibere(g); /* (2026-11-07, Perf 3 P1) la tranche de route est à elle seule : sa copie JavaScript part au GPU */
     sphere9(g);if(o.marge)g.boundingSphere.radius+=o.marge; // (chasse aux gels) sphere9 = computeBoundingSphere, au flottant près
     const m=new THREE.Mesh(g,mat);if(o.nom)m.name=o.nom;if(o.ombre)m.receiveShadow=true;if(o.ordre)m.renderOrder=o.ordre;
     m.updateMatrix();m.matrixAutoUpdate=false; // sommets en coordonnées MONDE : la tranche ne bouge jamais
@@ -147,12 +148,12 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
     if(o.loin===undefined)continue;
     yield;
     let lo=null;const g2=o.loin?pisteMaigre(att,c,o.loin,o.loin.pas):null;
-    if(g2){lo=new THREE.Mesh(g2,mat);if(o.nom)lo.name=o.nom+' maigre';lo.receiveShadow=m.receiveShadow;lo.renderOrder=m.renderOrder;lo.visible=false;lo.userData.maigre=true;
+    if(g2){memLibere(g2);lo=new THREE.Mesh(g2,mat);if(o.nom)lo.name=o.nom+' maigre';lo.receiveShadow=m.receiveShadow;lo.renderOrder=m.renderOrder;lo.visible=false;lo.userData.maigre=true;
       lo.updateMatrix();lo.matrixAutoUpdate=false;trackMeshes.push(lo);}
     let mo=null; // (LA TRANCHE MOYENNE, téléphone) toutes les colonnes, une rangée sur PISTE_MOY
     if(PISTE_MOY>1&&o.loin&&lay.pas===1){yield;const cols9=[];for(let j=0;j<lay.pr;j++)cols9.push(j);
       const g3=pisteMaigre(att,c,{blocs:lay.blocs,pr:lay.pr,cols:cols9,inv:lay.inv},PISTE_MOY);
-      if(g3){mo=new THREE.Mesh(g3,mat);if(o.nom)mo.name=o.nom+' moyen';mo.receiveShadow=m.receiveShadow;mo.renderOrder=m.renderOrder;mo.visible=false;mo.userData.moyenne=true;
+      if(g3){memLibere(g3);mo=new THREE.Mesh(g3,mat);if(o.nom)mo.name=o.nom+' moyen';mo.receiveShadow=m.receiveShadow;mo.renderOrder=m.renderOrder;mo.visible=false;mo.userData.moyenne=true;
         mo.updateMatrix();mo.matrixAutoUpdate=false;trackMeshes.push(mo);}}
     PISTE_LOD.push({hi:m,lo,mo,s:g.boundingSphere,loin:false,et:0});
   }

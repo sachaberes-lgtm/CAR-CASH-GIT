@@ -350,6 +350,7 @@ function finSonsCoupe(){
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
 }
 function resetGame(){
+  try{if(window.CCSON)window.CCSON.debutCourse();}catch(e){} /* (2026-11-07, Perf 3 P1) les sons de la course d'avant sont redemandés d'avance, sous le volet */
   try{clearTimeout(M2REV.t);if(M2REV.on){M2REV.on=false;M2REV.id=null;const e9=document.getElementById('m2Rev');if(e9){e9.className='';e9.innerHTML='';}}}catch(e){} // (audit p7) REJOUER tapé tôt : `rejoueAttend` garde `started&&gameOver` jusqu'à 12 s, le délai de 1,4 s ouvrait la révélation d'une secrète (z-index 95) PAR-DESSUS la course qui part dessous — elle se ferme (ou ne s'ouvre pas) ici ; la secrète reste dans la file (m2RevFile) pour la prochaine mort
   dmtCoupe(); // (LE DEMI-TOUR) une nouvelle partie repart droite
   railsPose(); /* (2026-11-05, Opus : D7) les rails du départ (figures-route.js) */
@@ -485,6 +486,7 @@ function endGame(){
   try{busPlein();}catch(e){} // (2026-09-28) même filet : QUITTER depuis la pause (sortie en fondu) ne doit pas rendre le menu muet
   if(SANDBOX&&started&&!gameOver){ sandRevive(); return; } // ENTRAÎNEMENT : la mort n'est qu'un replacement — aucun score n'est enregistré
   if(TUTO.on&&started&&!gameOver){ sandRevive(); if(TUTO.i>=TUTO_ETAPES.length)return; if(TUTO.i>=3&&TUTO.i<5){TUTO.i=2;TUTO.air=0;} tutoAffiche('RATÉ ! ON RECOMMENCE'); return; } /* (2026-10-14) à l'étape FIGURE on reste à la FIGURE */ // AUTO-ÉCOLE : on ne meurt pas en apprenant
+  try{if(window.CCSON)window.CCSON.finCourse();}catch(e){} /* (2026-11-07, Perf 3 P1) la course est un paquet de sons : rendus 4 s après la mort (voir sfx.js, LA COURSE EST UN PAQUET) */
   try{mortsVerse();}catch(e){} // (2026-09-30) le temps du dernier niveau rejoint la sauvegarde (flush plus bas)
   if(FLOW.lv===4)frenFin(true); // (v3) une frénésie encore en cours (QUITTER, fin de campagne) compte pour l'écran de fin et le record
   if(mode!=='boom')mortCause=''; // (2026-09-26) QUITTER n'est pas une mort : pas la cause de la partie d'avant
