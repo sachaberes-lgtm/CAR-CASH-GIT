@@ -117,8 +117,9 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   if(gen9)sEnt=Math.max(sEnt,2.5*vC9);
   MODS=[]; // les tronçons des MODULES (voir MODMARK) : index de contrôle → abscisse exacte, par la table de longueurs de la courbe elle-même
   if(MODMARK.length){const lg9=curve.getLengths(),n9=Math.max(1,ctrl.length-1),sDe=i=>{const f=i/n9*(lg9.length-1),k=Math.max(0,Math.min(lg9.length-2,Math.floor(f)));return lg9[k]+(lg9[k+1]-lg9[k])*(f-k);};
-    for(const m of MODMARK)MODS.push({s0:sDe(m.i0)-60,s1:sDe(m.i1)+vC9});} // −60 m : un groupe de plots (≤ 45 m) ne déborde pas dedans · +1 s de croisière : la réception du voltigeur
+    for(const m of MODMARK)MODS.push({s0:sDe(m.i0)-60,s1:sDe(m.i1)+vC9,fig:m.fig||null,climax:!!m.climax});} /* (2026-11-07) fig/climax : pour le banc (dbgMods) */ // −60 m : un groupe de plots (≤ 45 m) ne déborde pas dedans · +1 s de croisière : la réception du voltigeur
   const inModule=sp=>{for(const m of MODS)if(sp>m.s0&&sp<m.s1)return true;return false;};
+  window.dbgMods=function(){return MODS.map(function(m){return {fig:m.fig,climax:m.climax,s0:Math.round(m.s0+60),s1:Math.round(m.s1)};});}; /* (banc, LA GÉNÉRATION PROPRE) les modules de la piste en cours, avec leur abscisse et leur nom */
   /* (LES TROUS, 2026-10-20) les vides entre les segments de route des DUNES : index de contrôle → abscisse (la même table de longueurs que les modules) → lignes de pts.
      TROU[k] = 1 : pas de ruban entre pts[k] et pts[k+1]. Les segments restent entiers : le trou va de la dernière ligne du segment (a) à la première du suivant (b). */
   TROUS=[];TROU=null;
@@ -162,7 +163,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   }
   ROULIS.brut=ROULIS.lisse=null;
   if(ROUTE_LISSE&&gen9){ /* LA DALLE LISSE : voir ROUTE_LISSE */
-    const ds9=L/(NP-1),sg9=THREE.MathUtils.clamp(.12*vC9,12,30)/ds9,R9=Math.ceil(sg9*3),nr9=new Float64Array(3*NP),psi9=new Float64Array(NP),lis9=new Float64Array(NP),gw9=new Float64Array(R9+1);
+    const ds9=L/(NP-1),sg9=(GEN_V2?THREE.MathUtils.clamp(.3*vC9,20,80):THREE.MathUtils.clamp(.12*vC9,12,30))/ds9 /* (2026-11-07, LA GÉNÉRATION PROPRE) le roulis lissé sur 0,3 s de croisière (12-30 m avant) : plus de cassure de roulis d'un point de contrôle à l'autre */,R9=Math.ceil(sg9*3),nr9=new Float64Array(3*NP),psi9=new Float64Array(NP),lis9=new Float64Array(NP),gw9=new Float64Array(R9+1);
     const m9=new THREE.Vector3(),c9=new THREE.Vector3(),TWO9=2*Math.PI;let sw9=0;
     m9.copy(Nn[0]); /* repère transporté sans torsion (RMF) : n9[i], et le roulis psi9[i] = l'angle qui l'amène à la dalle Nn[i] */
     for(let i=0;i<NP;i++){if((i&1023)===1023)yield;
