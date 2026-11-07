@@ -101,8 +101,8 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
 <div id="hud">
 <div id="launchGlow" aria-hidden="true"></div>
 <div id="launchLogo" aria-hidden="true"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
-  <canvas id="slCv"></canvas>
-  <canvas id="juiceCv"></canvas>
+  <canvas id="slCv" aria-hidden="true"></canvas>
+  <canvas id="juiceCv" aria-hidden="true"></canvas>
   <div id="cloudFx"></div>
   <div id="vig"></div>
   <div id="beatFx"></div>
@@ -183,7 +183,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
          jamais fait ; l'anneau se remplit sous le doigt pendant qu'on tient. -->
     <div id="gInvAide" aria-hidden="true"><i class="ivDoigt"></i><span data-fr="MAINTIENS TA CAISSE">MAINTIENS TA CAISSE</span><b data-fr="BURN-OUT">BURN-OUT</b></div>
     <div id="gInvAnneau" aria-hidden="true"></div>
-    <div id="gInv" role="dialog" aria-label="Inventaire">
+    <div id="gInv" role="dialog" aria-modal="true" aria-label="Inventaire">
       <div class="ivTete"><b data-fr="INVENTAIRE">INVENTAIRE</b><small id="ivCompte"></small><button id="ivFerme" class="pbtn pbCarre" aria-label="Fermer"><i class="pxi pxi-croix" aria-hidden="true"></i></button></div>
       <div class="ivTabs" role="tablist">
         <button class="ivTab on" data-c="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span><em></em></button><!-- (2026-10-14) les FIGURES qu'on a (double-tap nitro) ; (2026-10-25, Sacha) en premier -->
@@ -206,9 +206,9 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
       <div id="gCard">
         <div id="stName">POMME</div>
         <div class="stRow"><span>Boost rendu</span><b id="stBoostV">0.50</b></div>
-        <input id="stBoost" class="stSlider" type="range" min="0" max="2" step="0.05">
+        <input id="stBoost" class="stSlider" type="range" aria-label="Boost rendu" min="0" max="2" step="0.05">
         <div class="stRow"><span>Fréquence d'apparition</span><b id="stFreqV">10</b></div>
-        <input id="stFreq" class="stSlider" type="range" min="0" max="30" step="1">
+        <input id="stFreq" class="stSlider" type="range" aria-label="Fréquence d'apparition" min="0" max="30" step="1">
         <div id="stRare">soit 12 % des fruits de la piste</div>
       </div>
       <button id="stNext" class="gNav pbtn pb-cyan pbCarre" aria-label="Fruit suivant"><i class="pxi pxi-droite" aria-hidden="true"></i></button>
@@ -219,7 +219,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   <!-- (2026-09-29, Sacha : « rajoute un compteur d'argent stylé, inspiré de loin de GTA, mais avec notre DA ») LE COMPTEUR D'ARGENT DU
        TÉLÉPHONE : en haut à droite sous le ⏸ (la place de l'argent dans GTA), le total de la partie qui DÉFILE vers sa valeur, et sous lui le
        « +$ » qui s'additionne tant que ça tombe (1,8 s) — en or pendant la frénésie (×3). Typo ombrée VERTE (l'argent du jeu est vert). -->
-  <div id="cashHud" aria-hidden="true"><b class="chV"><i>€</i><span>0</span></b><em class="chD"></em></div>
+  <div id="cashHud" aria-hidden="true"><b class="chV"><i class="mC"></i><span>0</span></b><em class="chD"></em></div>
   <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em><i id="avPlus"></i></div><div id="avRec" class="vide"><span id="avRecT"></span><i><s id="avRecF"></s></i></div>
     <div id="avCh"><div class="avChTop"><b id="avPts">0</b><span id="avX">×1</span></div><div class="avBar"><i id="avBarF"></i></div><ul id="avList"></ul></div></div>
   <!-- (2026-09-28, Sacha) L'EMBLÈME DE LA FRÉNÉSIE « THE DARK TRIAD » — v3 EN PIXEL (même soir : « toute l'interface est faite en pixel,
@@ -268,13 +268,13 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   <div id="chainHud"></div>
   <div id="caseHud"></div>
   <div id="turnHint"></div>
-  <canvas id="airPie" width="156" height="156"></canvas>
+  <canvas id="airPie" width="156" height="156" aria-hidden="true"></canvas>
   <!-- (2026-09-28, Sacha : « le camembert air time ne ressemble pas à la barre de nitro ni au compteur ») LE CHRONO DE VOL, FRÈRE DE LA JAUGE
        NITRO : l'aile pixel, les secondes dans la typo ombrée du compteur d'aura, et une barre de la même recette que la nitro (cadre
        d'encre, remplissage en quatre bandes, curseur blanc) qui se vide. Il se montre et se cache AVEC #airPie (sélecteur frère) : le
        canvas garde son rôle d'état (display, .danger) — plus rien n'y est dessiné. -->
   <div id="airHud" aria-hidden="true"><div class="ahTop"><i class="pxi pxi-aile"></i><b class="ahS">6.0</b><em>AIR</em></div><div class="ahBar"><i class="hanAhM"></i><i class="ahF"><i class="hanAhR"></i></i></div></div>
-  <canvas id="minimap" width="176" height="176"></canvas>
+  <canvas id="minimap" width="176" height="176" aria-hidden="true"></canvas>
   <div id="survHud"></div>
   <div id="lastAlert"></div>
   <!-- LES NIVEAUX (2026-09-24) : « NIVEAU n — LIEU » au départ et à chaque portail (voir lvlAnnonce) -->
