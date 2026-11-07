@@ -186,7 +186,7 @@ def portail(dossier,cran,dist,suivante,qs):
             if c.ev("dbgEco().zones")!=z0:passe=True;break
         c.pump(4);c.ev("window.__Son=false;1")
         S=json.loads(c.ev("JSON.stringify(window.__S)"))
-        return {'cran':cran,'dist':dist,'suivante':suivante,'passe':passe,'secondes':round(time.time()-t,1),'frames':S,'prebati':json.loads(c.ev("JSON.stringify(dbgPrebati())")),'charge':os.getloadavg()[0]}
+        return {'cran':cran,'dist':dist,'suivante':suivante,'passe':passe,'secondes':round(time.time()-t,1),'frames':S,'prebati':json.loads(c.ev("JSON.stringify(dbgPrebati())")),'grotte':json.loads(c.ev("JSON.stringify(typeof dbgGrotteHash==='function'?[dbgGrotteHash(),dbgGrotteTrav()]:null)")),'charge':os.getloadavg()[0]}
     finally:ferme(srv,ch,prof)
 
 if __name__=='__main__':
