@@ -1,5 +1,5 @@
 # MISE À JOUR — 07/11 (soir) : LES ACHATS EN VRAI ARGENT ARRIVENT DANS L'APP (branche `boutique-affichage`, locale, rien de poussé)
-- **Ce qui change pour le build à venir** : la boutique en € **revient** dans l'app (74 produits non consommables : 10 caisses + 64 peintures,
+- **Ce qui change pour le build à venir** : la boutique en € **revient** dans l'app (92 produits non consommables : 10 caisses + 82 peintures,
   achat par Apple/StoreKit, bouton RESTAURER MES ACHATS). Les anciens passages de ce fichier qui disent « boutique en $ / tout en argent du jeu,
   aucun € », « Achats intégrés : aucun » ne sont **plus vrais pour ce build** (ils décrivent le build d'avant, laissés tels quels comme historique).
 - **Tout ce que Sacha doit faire, comment tester, ce qui n'est pas vérifié, et le bloquant de compilation `JeuViewController.swift`
