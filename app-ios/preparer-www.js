@@ -82,6 +82,12 @@ fs.copyFileSync(path.join(ICI,'ressources','icon.svg'),path.join(WWW,'icon.svg')
     if(n.split('/*@BANC@*/').length!==2){console.error('✗ preparer-www : natif.js doit porter /*@BANC@*/ une fois');process.exit(1);}
     n=n.replace('var BANC=null; /*@BANC@*/','var BANC='+JSON.stringify(v)+'; /*@BANC@*/');
     fs.writeFileSync(path.join(WWW,'banc.json'),JSON.stringify(v)+'\n');nFic++;console.log('⚠ APP DE BANC : scénario '+JSON.stringify(v)+' — à ne JAMAIS soumettre à l\'App Store');}
+  /* --qs "<paramètres>" (2026-11-07, passe 3) : des interrupteurs d'URL cuits dans l'app de dev (ex. --qs "&gouv=max&img=max") — natif.js les pose dans location.search avant le jeu ; www/qs.json en garde la trace. Sans --qs : rien. */
+  const iQ=process.argv.indexOf('--qs');
+  if(iQ>=0){const q=process.argv[iQ+1];if(!q||/^--/.test(q)){console.error('✗ preparer-www : --qs attend des paramètres (ex. "&gouv=max")');process.exit(1);}
+    if(n.split('/*@QS@*/').length!==2){console.error('✗ preparer-www : natif.js doit porter /*@QS@*/ une fois');process.exit(1);}
+    n=n.replace('var QS=null; /*@QS@*/','var QS='+JSON.stringify(q)+'; /*@QS@*/');
+    fs.writeFileSync(path.join(WWW,'qs.json'),JSON.stringify(q)+'\n');nFic++;console.log('⚠ INTERRUPTEURS CUITS : '+q+' — app de dev seulement');}
   fs.writeFileSync(path.join(WWW,'natif.js'),n.split("'"+MAJ_PROD+"'").join("'"+MAJ+"'"));nFic++;}
 
 // ---- les retouches de la page ----
