@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1255'; /* v1255 (2026-11-07, Sacha : « cherche plein de mini détails qui ne se voient même pas, pour rendre le jeu plus pro ») LES PETITES POLITESSES : aperçu de lien, icône maskable, color-scheme, sauvegarde sur pagehide et copie d'une sauvegarde illisible, écran rendu au menu, boutique du jour à minuit local, retours haptiques, accessibilité (voir JOURNAL.md). */
+const CACHE = 'cashcar-v1256'; /* v1256 (2026-11-07, Sacha : « sur l'écran d'accueil, dans le ciel, les boutons sont trop foncés ») menu ciel : les tuiles GARAGE / ACHAT / REGLAGES passent de l'anthracite à un corps clair coloré (cyan, magenta, or) avec contour d'encre. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
