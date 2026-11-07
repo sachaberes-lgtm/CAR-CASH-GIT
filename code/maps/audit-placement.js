@@ -46,3 +46,7 @@ window.dbgAudit=function(k,o){
     return {n:n,flottants:bad.length,pire:R.slice(0,12)};}
   return 'glacier | dunes | vue';
 };
+/* ===== LA ROUTE VUE DU BANC (2026-11-07, Sacha : « un sous-agent par map pour déboguer la génération aléatoire ») =====
+   `dbgRoute()` : la piste telle que le jeu la roule (pts équidistants, repères, longueur, demi-largeur, trous) et les maillages de la route,
+   pour que le banc des maps (outils/banc-maps/banc.cjs) compare le décor à la route sans rien deviner. Lecture seule. */
+window.dbgRoute=function(){return {pts:pts,T:T,Nn:Nn,B:B,L:L,NP:NP,demi:ROAD_HALF,trou:TROU,trackMeshes:trackMeshes,niveau:LVL.cur,zone:runStats.zones|0,cause:mortCause,tord:{on:TORD.on,seed:TORD.seed},s:s,lat:lat,vA:vA,mode:mode};};

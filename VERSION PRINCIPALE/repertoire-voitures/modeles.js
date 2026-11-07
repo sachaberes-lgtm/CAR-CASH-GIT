@@ -32,7 +32,7 @@ window.MODELES = {
   "LE HOT ROD": "? Ford coupé 3 fenêtres (1932)",
   "LE MASTODONTE": "? Monster truck Bigfoot (Ford F-250)",
   "LE LINGOT": "création originale · lingot d'or",
-  "ROSSO 40": "Ferrari F40 (1987)",
+  "LÉONIE": "Ferrari F40 (1987)",
   "L'ABSTRAITE": "création originale · concept abstrait",
   "L'ICEBERG": "création originale · bloc de glace",
   "LA PERLE": "Porsche Taycan 4S (2019)",
