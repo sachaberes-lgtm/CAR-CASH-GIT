@@ -18697,6 +18697,10 @@ function prebEchange(W,entrees){ // l'état de la piste vivante ⇄ celui du tra
 }
 function prebObj(O,S){const ks=new Set(Object.keys(O).concat(Object.keys(S)));for(const k of ks){const a=k in O,b=k in S,x=O[k];if(b)O[k]=S[k];else delete O[k];if(a)S[k]=x;else delete S[k];}} // deux états d'un module ⇄ (toutes ses clés)
 function prebAvec(W,fn){prebEchange(W,true);try{return fn();}finally{prebEchange(W,true);}} // une tranche : le travail sur l'état de W, puis la piste vivante revient
+let PISTE_TRANCHE=Infinity; // (2026-11-07) ms par tranche quand le chargement bâtit la 1re piste sous le serpent (chargeTranches) ; Infinity : la route d'un trait, partout ailleurs
+function* pisteDirecteG(seed){const W=pisteTravail(null),g=pisteRoute(seed,W);let fini=false; // la même route que pisteDirecte, rendue en tranches de PISTE_TRANCHE ms : la piste vivante revient entre deux tranches (prebAvec)
+  while(!fini){prebAvec(W,function(){const t9=performance.now();do{fini=g.next().done;}while(!fini&&performance.now()-t9<PISTE_TRANCHE);});if(!fini)yield;}
+  return W;}
 function pisteDirecte(seed){const W=pisteTravail(null),g=pisteRoute(seed,W);prebAvec(W,function(){while(!g.next().done);});return W;} // la route d'un trait (tout newTrack qui n'a rien de bâti d'avance)
 function pisteInstalle(W){ // la route bâtie (d'un trait ou d'avance) devient LA route : l'ancienne sort de la scène, la neuve y entre dans l'ordre où elle a été bâtie
   sceneRetire(trackMeshes); // (chasse aux gels) d'un seul passage (voir sceneRetire)
@@ -19257,15 +19261,16 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   for(let sp=300+rnd()*220;sp<L-170;sp+=340+rnd()*520){rnd();rnd();} // les plots de chantier (voir plus haut) : leurs tirages restent consommés
   W.rnd=rnd;W.gen9=gen9;W.vC9=vC9;W.accC=accC;
 }
-function buildTrack(seed){
+function buildTrack(seed){const g=buildTrackG(seed);while(!g.next().done);} // (2026-11-07) d'un trait, comme avant : le même code que buildTrackG
+function* buildTrackG(seed){ // (2026-11-07, OPTI ULTIME) rend la main entre la route (par tranches : pisteDirecteG) et entre deux décors — seul le chargement sous le serpent s'en sert (PISTE_TRANCHE)
   /* (2026-10-17) LE PRÉ-BÂTI (voir PREB) : la route — génération, courbe, repères, bitume, flancs, rails, nappe, ligne, pads,
      flaques — sort du générateur `pisteRoute` : bâtie d'avance en roulant vers le portail, ou ici d'un trait (même code, mêmes tirages
      rnd, dans le même ordre). `pisteInstalle` l'échange avec l'ancienne ; le décor qui suit se bâtit ici sur la route installée. */
-  const W=prebPrend(seed)||pisteDirecte(seed);
+  const W=prebPrend(seed)||(yield* pisteDirecteG(seed));
   pisteInstalle(W);
   const rnd=W.rnd,gen9=W.gen9,vC9=W.vC9,accC=W.accC;
   // NUAGES : on roule DANS le ciel — grappes volumétriques traversables + couche lointaine diaphane
-  buildClouds(rnd);
+  buildClouds(rnd);yield;
   /* (2026-09-30, revue GAMEPLAY) les 14 NUAGES D'HORIZON (sprites roses, fog:false) sont RETIRÉS : ils restaient en VILLE (où aucun nuage
      n'a sa place), perçaient la brume de l'ORAGE (650-1850 m contre une brume à 70/660) et la moitié tombait sous l'horizon dans l'abîme
      des NUAGES. Aucun tirage `rnd` n'avait lieu après eux dans buildTrack : la piste ne bouge pas. Le ciel lointain, c'est COTON. */
@@ -19297,11 +19302,11 @@ function buildTrack(seed){
   scene.add(plight);trackMeshes.push(plight);PORTAL.lum=plight;
   if(PCUBE.on){pcubeDest();plight.intensity=1.1;} // les couleurs et la vue de la map d'en face (tirée d'avance) · une lumière un peu plus douce que l'ovule (de près, elle blanchissait le bitume)
   if(portalMesh)portailVisible(true); // le portail de la piste neuve se montre
-  buildVoxCity(seed,accC); // LA VILLE SOUS LES NUAGES : le fond de scène, en briques (no-op au parc)
-  try{buildJade(seed);}catch(e){window.__jadeErr=e;console.warn('Jade',e);} // (2026-10-09) LES PICS DE JADE : les piliers, les pins, la brume, la Porte et le Pont du ciel (no-op ailleurs) // (2026-09-28) PARIS LA NUIT : les toits et la Dame de fer (no-op hors Paris)
+  yield;buildVoxCity(seed,accC); // LA VILLE SOUS LES NUAGES : le fond de scène, en briques (no-op au parc)
+  yield;try{buildJade(seed);}catch(e){window.__jadeErr=e;console.warn('Jade',e);} // (2026-10-09) LES PICS DE JADE : les piliers, les pins, la brume, la Porte et le Pont du ciel (no-op ailleurs) // (2026-09-28) PARIS LA NUIT : les toits et la Dame de fer (no-op hors Paris)
   try{if(!prebDecor(W,'foret'))buildForet(seed);}catch(e){window.__foretErr=e;console.warn('Forêt',e);} // (2026-10-14) LA FORÊT NOIRE : la vallée, les arbres, les géants du slalom, l'arche, les rochers du loup (no-op ailleurs)
-  try{buildCanyon(seed);}catch(e){window.__cyErr=e;console.warn('Canyon',e);} // (2026-10-14) LE CANYON DES GÉANTS : le relief, la rivière, l'ombre de l'heure (no-op ailleurs)
-  try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);try{window.__ccNote('panne','dunes · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
+  yield;try{buildCanyon(seed);}catch(e){window.__cyErr=e;console.warn('Canyon',e);} // (2026-10-14) LE CANYON DES GÉANTS : le relief, la rivière, l'ombre de l'heure (no-op ailleurs)
+  yield;try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);try{window.__ccNote('panne','dunes · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
   try{if(!prebDecor(W,'grotte'))buildGrotte(seed);}catch(e){window.__grotteErr=e;console.warn('Grotte',e);try{window.__ccNote('panne','grotte · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES PROFONDEURS : la grotte en blocs, ses décors, ses lumières (no-op ailleurs)
   try{if(!prebDecor(W,'banquise'))buildBanq(seed);}catch(e){window.__banqErr=e;console.warn('Banquise',e);} // (2026-10-14) LA BANQUISE : la neige sous la route, les lacs gelés, les pics de glace, les stalactites (no-op ailleurs)
   try{orbiteBuild(seed);}catch(e){window.__orbErr=e;} // (vague 3) L'ORBITE : les Starlink et les débris autour de la piste (no-op hors orbite)
@@ -50324,6 +50329,30 @@ function chargeEtape(nom,fn){ if(CHARGEMENT.fini){fn();return;} CHARGEMENT.E.pus
 function chargementPas(){ const e=CHARGEMENT.E.shift();if(!e){CHARGEMENT.fini=true;return;}
   const t9=performance.now();try{e[1]();}catch(x){console.warn('chargement · '+e[0],x);try{window.__ccNote('panne','chargement '+e[0]+' · '+(x&&x.message||x),x&&x.stack&&String(x.stack).split('\n')[1]);}catch(_){}}
   CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);try{if(window.__ccSondeTache)window.__ccSondeTache(e[0],t9,performance.now()-t9);}catch(_){} /* (2026-11-06) la SONDE du serpent (debut-corps.html) apprend quelle étape recouvre un trou */if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
+/* (2026-11-07, OPTI ULTIME) UNE ÉTAPE EN TRANCHES : `mk` rend un générateur (newTrackG) ; sur téléphone, chaque image du chargement en mène `ms` millisecondes (PISTE_TRANCHE : la route rend la main entre deux tranches)
+   puis rend l'image — la boule du film d'intro, la seule chose qui bouge sous le serpent, ne voit plus un bloc de 650 ms. Même code, mêmes tirages, même ordre qu'un trait. Ordinateur, `?chargement=0`, `?tranches=0` : d'un trait. */
+function chargeTranches(nom,mk,ms){
+  chargeEtape(nom,function(){
+    const g=mk();
+    if(CHARGEMENT.fini||!CHARGEMENT.on||!(ALLEGE||TEL_NATIF)||/[?&]tranches=0\b/.test(location.search)){while(!g.next().done);return;}
+    const suite=function(){let r;PISTE_TRANCHE=ms;try{const t0=performance.now();do{r=g.next();}while(!r.done&&performance.now()-t0<ms);}finally{PISTE_TRANCHE=Infinity;}
+      if(!r.done)CHARGEMENT.E.unshift([nom,suite]);};
+    suite();
+  });
+}
+/* (2026-11-07, OPTI ULTIME : « 10 envois de textures (texImage2D) dans une même image ») LES TEXTURES DU MENU MONTENT UNE À UNE : sous le serpent, une par pas de tranche (chargeTranches), au lieu de toutes d'un coup
+   au 1er dessin (la chauffe, la 1re image). Seulement celles des objets VISIBLES de la scène (la chauffe, elle, montrera aussi le caché : rien de plus au GPU que ce qu'elle monterait) ; une texture dont l'image
+   n'est pas prête (ni image chargée, ni canevas, ni octets) est laissée au 1er dessin. `?textures=0` = avant. */
+function* chargeTexturesG(){
+  if(/[?&]textures=0\b/.test(location.search))return;
+  const vus=new Set(),L=[];
+  const prete=function(t){const im=t&&t.image;return !!im&&!t.isCubeTexture&&!t.isDepthTexture&&!t.isVideoTexture&&!t.isCompressedTexture&&im.complete!==false&&!!(im.data||im.nodeName||(typeof ImageBitmap!=='undefined'&&im instanceof ImageBitmap)||(typeof OffscreenCanvas!=='undefined'&&im instanceof OffscreenCanvas));};
+  const ajoute=function(t){if(t&&t.isTexture&&!vus.has(t)){vus.add(t);if(prete(t))L.push(t);}};
+  scene.traverseVisible(function(o){const m9=o.material;if(!m9)return;for(const m of (Array.isArray(m9)?m9:[m9])){for(const k in m){const v=m[k];if(v&&v.isTexture)ajoute(v);}
+    if(m.uniforms)for(const k in m.uniforms){const u=m.uniforms[k];if(u&&u.value&&u.value.isTexture)ajoute(u.value);}}});
+  yield;
+  for(const t of L){try{renderer.initTexture(t);}catch(e){}yield;}
+}
 function chargementTout(){ while(!CHARGEMENT.fini)chargementPas(); }
 function chargementTick(now){ if(CHARGEMENT.fini)return false;
   if(!CHARGEMENT.t0)CHARGEMENT.t0=now;if(now-CHARGEMENT.t0>15000){chargementTout();return false;}
@@ -70374,9 +70403,13 @@ function traceTick(actif){
                          puis 'chauffe' (chauffeRendu de la piste neuve, ~120 ms après 'fin' : la dernière image lourde du changement de niveau).
    Un voile qui couvre de `cc:portail` (ou du geste JOUER) jusqu'à 'chauffe' cache TOUT le gel du changement de niveau, à tous les portails. */
 function ccConstr(etape,ms){try{document.dispatchEvent(new CustomEvent('cc:construction',{detail:{etape:etape,ms:ms||0}}));}catch(e){}}
-function newTrack(){
-  const t0NT=performance.now();ccConstr('debut');try{newTrack0();}finally{ccConstr('fin',Math.round(performance.now()-t0NT));}}
-function newTrack0(){
+/* (2026-11-07, OPTI ULTIME, build 6 sur iPhone 13 Pro : la piste du chargement = 650 ms d'un bloc) newTrack est un GÉNÉRATEUR (`newTrackG`) : le même code, qui peut rendre la main entre deux tranches
+   de la route et entre deux décors (voir `pisteDirecteG`, `buildTrackG`). Partout ailleurs `newTrack()` le mène d'un trait, comme avant ; seul le chargement sous le serpent le mène par tranches
+   de PISTE_TRANCHE ms (`chargeTranches`, vignette-moteur.js). */
+function* newTrackG(){
+  const t0NT=performance.now();ccConstr('debut');try{yield* newTrack0G();}finally{ccConstr('fin',Math.round(performance.now()-t0NT));}}
+function newTrack(){const g=newTrackG();while(!g.next().done);}
+function* newTrack0G(){
   PORTV.paye=0; // (audit p8) une piste neuve est bâtie : son portail paiera de nouveau
   const leger9=PREB.ntLeger;PREB.ntLeger=false; // (LE DÉPART D'AVANCE) la piste que resetGame rebâtit dans la même image : jamais dessinée, seul son ciel compte (voir sous9)
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) portail / nouvelle piste : la tension du vol repart de zéro
@@ -70392,7 +70425,7 @@ function newTrack0(){
    if(started&&!gameOver&&runStats.zones>0&&!PARK.on&&av9&&id9&&av9!==id9){if(id9==='espace')orbWarp();else if(av9==='espace')orbFeu();}}
   if(!leger9){const s9=prebGraine(niv);if(s9!=null)sd=s9;} // (2026-10-17) LE PRÉ-BÂTI : au passage du portail, la piste d'en face bâtie d'avance garde SA graine (voir PREB)
   if(niv&&niv.graine)sd=niv.graine; // (2026-09-27) CAMPAGNE : la même piste, les mêmes pièces, les mêmes nuages à chaque essai
-  if(!leger9){const e9=prebPalier();try{buildTrack(sd);}finally{if(e9!=null)engTier=e9;} // (LE PRÉ-BÂTI) le décor d'une piste bâtie d'avance se bâtit à son palier (prebPalier)
+  if(!leger9){const e9=prebPalier();try{yield* buildTrackG(sd);}finally{if(e9!=null)engTier=e9;} // (LE PRÉ-BÂTI) le décor d'une piste bâtie d'avance se bâtit à son palier (prebPalier)
   padsInstancier();} // (2026-09-27, passe perf iPhone) …et les plaques turbo : 82 appels de dessin → 1
   // LE CIEL : chaque NIVEAU tire le sien dans sa propre liste (voir NIVEAUX). Hors niveaux (parc
   // freestyle), l'ancien CYCLE DU CIEL : une heure du jour au hasard, jamais deux fois la même de
@@ -84461,18 +84494,22 @@ function loop(now){
   else if(QLR.sN>0)qlSonde(); // (tour 2) la règle de qualité veut le VRAI coût d'une image avant de baisser quoi que ce soit
 }
 // ---------- INIT ----------
-chargeEtape('piste',function(){ /* (2026-11-05, passe perf mobile 2, A2.a) la 1re piste et la caisse du menu se bâtissent sous la boule (une étape par image, voir CHARGEMENT) ; `?chargement=0` = ici, d'un trait */
-newTrack();
+/* (2026-11-07, OPTI ULTIME, build 6 sur iPhone 13 Pro : « étape piste » 650 ms d'un bloc = un trou de 1,26 s sous le serpent) l'étape se coupe en TROIS, une par image, dans le MÊME ordre : la piste, le départ (caisse posée, caméra), la caisse du menu et ses affichages. `?chargement=0` = tout d'un trait, comme avant. */
+chargeTranches('piste',newTrackG,8); /* (2026-11-05, passe perf mobile 2, A2.a) la 1re piste et la caisse du menu se bâtissent sous la boule (une étape par image, voir CHARGEMENT) ; `?chargement=0` = ici, d'un trait · (2026-11-07) la piste, en tranches de 8 ms sur téléphone (chargeTranches) */
+chargeEtape('depart',function(){
 respawn();
 setupIntroPig();
 frameAt(0,F);
 camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);
 elRecord.textContent=TR('record : ')+fmt(best);
+});
+chargeEtape('caisse',function(){
 carSnapshot();   // photo des caisses DÉJÀ acquises : sans elle, le 1er scan les annoncerait toutes d'un coup
 level=equippedCar();buildCar(CARS[level]); // on se présente au menu dans la caisse choisie au garage
 paintMoney(); // LE MENU AFFICHE LA MISE : $1.61 visible AVANT de lancer (le HTML disait « $00000000 »)
 paintCarHud(); // et la fiche de caisse porte le bon nom/palier dès l'écran d'accueil
-}); // fin de l'étape 'piste'
+}); // fin des étapes 'piste', 'depart' et 'caisse'
+chargeTranches('textures',chargeTexturesG,6); /* (2026-11-07) les textures des objets visibles montent une à une, sous le serpent, au lieu de toutes d'un coup au 1er dessin */
 applyLangDOM(); // la langue sauvegardée s'applique AU CHARGEMENT (elle ne prenait qu'en cliquant le sélecteur)
 setBestChip();
 renderLeaders(-1);
