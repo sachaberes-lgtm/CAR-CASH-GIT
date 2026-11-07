@@ -50,6 +50,7 @@ css/boutique-peinture.css                  # <style id="bq-peinture"> : rayon pe
 css/boutique-aile.css                  # <style id="bq-aile"> : rayon aile de la boutique, ergonomie mobile
 css/boutique-trainee.css                  # <style id="bq-trainee"> : rayon trainee de la boutique, ergonomie mobile
 css/boutique-figure.css                  # <style id="bq-figure"> : rayon figure de la boutique, ergonomie mobile
+css/etalonnage.css                    # <style id="etalonnage"> : L'ÉTALONNAGE (2026-11-07) — LE nuancier (une encre, un or, les néons, la salle blanche), posé en dernier : il gagne sur tous les :root d'avant
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu

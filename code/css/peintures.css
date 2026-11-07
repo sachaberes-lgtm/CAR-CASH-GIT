@@ -16,9 +16,9 @@
 /* 2. le défi */
 #gBqPan .bqK .bqKph .pDef{position:absolute;left:11px;bottom:5px;display:flex;align-items:center;gap:4px;height:13px;padding:0 5px 0 3px;border-radius:7px;background:rgba(9,11,17,.78);box-shadow:0 0 0 1px rgba(95,240,255,.35)}
 #gBqPan .bqK .bqKph .pDef:has(u){right:11px}
-#gBqPan .bqK .bqKph .pDef .pxi{--pxs:1;width:8px;height:8px;margin:0;color:#5ff0ff}
+#gBqPan .bqK .bqKph .pDef .pxi{--pxs:1;width:8px;height:8px;margin:0;color:var(--dol)}
 #gBqPan .bqK .bqKph .pDef u{display:block;flex:1;min-width:14px;height:3px;border-radius:2px;background:rgba(255,255,255,.2);overflow:hidden}
-#gBqPan .bqK .bqKph .pDef u em{display:block;height:100%;background:#5ff0ff;box-shadow:0 0 4px #5ff0ff}
+#gBqPan .bqK .bqKph .pDef u em{display:block;height:100%;background:var(--dol);box-shadow:0 0 4px var(--dol)}
 /* 3. épique, légendaire */
 #gBqPan .bqK.hab.r-epique:not(.sel){box-shadow:0 0 0 1px #d6b6f2,0 8px 20px rgba(30,40,55,.07)}
 #gBqPan .bqK.hab.r-legendaire:not(.sel){box-shadow:0 0 0 1.5px #f2c23a,0 0 14px -2px rgba(255,200,60,.65),0 8px 22px rgba(255,180,40,.18)}
@@ -40,11 +40,11 @@
 .pL-ocean{animation:pLDefile 12s linear infinite,pLRespire 2.4s ease-in-out infinite alternate}
 .pL-rgb{animation:pLGlisse 2.8s linear infinite,pLTeinte 5s linear infinite}
 /* 4. les intertitres */
-#gBqPan .bqRail .bqSec.bqRarS .bqSecSous{font-style:normal;font-size:7px;letter-spacing:1px;color:#5b6470;white-space:nowrap}
+#gBqPan .bqRail .bqSec.bqRarS .bqSecSous{font-style:normal;font-size:7px;letter-spacing:1px;color:var(--bqGris);white-space:nowrap}
 #gBqPan .bqRail .bqSec.bqRarS[data-rar="legendaire"] .bqRl{animation:pLueur 2.4s ease-in-out infinite alternate}
 @keyframes pLueur{from{box-shadow:0 0 0 1px var(--rc),0 0 6px -2px var(--rc)}to{box-shadow:0 0 0 1px var(--rc),0 0 14px 1px var(--rc)}}
 /* « OU GAGNE-LA » sous le nom : la même ligne que SE DÉBLOQUE */
-#gBqNom .pDeb .m2DebT{color:#14171c}
+#gBqNom .pDeb .m2DebT{color:var(--bqInk)}
 @media (prefers-reduced-motion:reduce){.pL,#gBqPan .bqK.hab.r-legendaire .bqKph.c-peinture::after,#gBqPan .bqRail .bqSec.bqRarS[data-rar="legendaire"] .bqRl{animation:none}}
 /* ===== LES TRAÎNÉES (2026-11-05, Sacha : « retravaille la présentation des traînées dans le même esprit ») =====
    La carte montre la traînée EN MOUVEMENT : une plaque de nuit (lignes de vitesse qui filent), la tuyère qui brûle à droite, le ruban qui en coule

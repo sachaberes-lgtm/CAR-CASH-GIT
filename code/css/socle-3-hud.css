@@ -32,12 +32,12 @@
        · L'ÉTAT se lit dans une PASTILLE (`.etat` : or = actif / valeur, gris = coupé) — un bouton ne se
          grise plus parce que son réglage vaut « RAPIDE ».
      Ce bloc vient EN DERNIER : il gagne sur les règles historiques sans les réécrire une à une. */
-  :root{--or:#ffd75e;--orF:#7a4400;--cyan:#9fe8ff;--cyanL:rgba(0,234,255,.42);--cyanF:#06122e;
-    --texte:#d9d2f2;--texteF:#a79ed0;
+  :root{--or:var(--or);--orF:var(--orF);--cyan:var(--cyan);--cyanL:rgba(0,234,255,.42);--cyanF:var(--cyanF);
+    --texte:var(--texte);--texteF:var(--tx3);
     --plaque:linear-gradient(180deg,#22305c,#141d3a);--cadre:linear-gradient(180deg,#1a2248,#0e1329);
     --coupe7:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);
     --biseau:inset 0 0 0 2px var(--cyanL),inset 3px 3px 0 rgba(255,255,255,.10),inset -3px -3px 0 rgba(0,0,0,.45);
-    --ttrOr:linear-gradient(180deg,#fffbe8,#ffd75e 45%,#ff9d2e 82%,#8a4d00)}
+    --ttrOr:linear-gradient(180deg,var(--au0),var(--or) 45%,var(--nP) 82%,var(--orF))}
   /* ---- les icônes ---- */
   .pxi{display:inline-block;flex:none;width:calc(9px*var(--pxs,2));height:calc(9px*var(--pxs,2));
     vertical-align:middle;margin-top:-.2em;background:currentColor;font-style:normal;
@@ -48,7 +48,7 @@
   /* ---- LES TITRES D'ÉCRAN : ils parlent comme le logo ---- */
   #setHead>span{font-family:var(--pix);font-weight:400;letter-spacing:4px;
     background:var(--ttrOr);-webkit-background-clip:text;background-clip:text;color:transparent;
-    filter:drop-shadow(0 2px 0 #5c3600) drop-shadow(0 2px 0 #2a1500);text-shadow:none}
+    filter:drop-shadow(0 2px 0 var(--orF)) drop-shadow(0 2px 0 #2a1500);text-shadow:none}
   #setHead>span{font-size:14px}
   /* ---- LES CLASSEMENTS : cadres, pas des verres dépolis ---- */
   #lbBox{border:0;border-radius:0;background:var(--cadre);clip-path:var(--coupe7);box-shadow:var(--biseau)}
@@ -109,7 +109,7 @@
   #tGear:focus-visible,.saveBtn:focus-visible{outline:3px solid #fff;outline-offset:6px}
   /* les couleurs de la charte */
   #playBtn{--hi:#fff3ad}
-  #tNitro{--hi:#ffd58f}
+  #tNitro{--hi:var(--nL)}
   /* les tailles : une échelle, pas des cas particuliers */
   #settings #setClose{width:50px!important;height:50px!important}
   /* ---- LES PANNEAUX : ce qui se LIT ---- */
@@ -117,7 +117,7 @@
     clip-path:none!important;border-radius:0!important;border:0!important;
     background:linear-gradient(180deg,#1c2552,#131a3d)!important;
     box-shadow:inset 0 var(--px) 0 0 #313f86,inset 0 calc(var(--px)*-1) 0 0 #0b1030,
-      0 calc(var(--px)*-1) 0 0 #04061a,0 var(--px) 0 0 #04061a,calc(var(--px)*-1) 0 0 0 #04061a,var(--px) 0 0 0 #04061a,
+      0 calc(var(--px)*-1) 0 0 var(--k1),0 var(--px) 0 0 var(--k1),calc(var(--px)*-1) 0 0 0 var(--k1),var(--px) 0 0 0 var(--k1),
       0 calc(var(--px)*3) 0 0 rgba(0,0,0,.35)!important}
   /* ---- les commandes en course ---- */
   #tGear{width:50px!important;height:50px!important;font-size:0}
@@ -131,7 +131,7 @@
     display:flex;align-items:center;gap:12px;padding:10px 12px 10px 10px;pointer-events:none;overflow:hidden;
     font-family:var(--pix);color:#fff;border-radius:18px;
     background:linear-gradient(135deg,rgba(38,32,98,.97),rgba(18,14,52,.97));
-    border:2px solid rgba(94,227,122,.55);box-shadow:0 0 0 3px #0b0730,0 10px 26px rgba(0,0,0,.5),0 0 28px rgba(94,227,122,.25);
+    border:2px solid rgba(94,227,122,.55);box-shadow:0 0 0 3px var(--encre),0 10px 26px rgba(0,0,0,.5),0 0 28px rgba(94,227,122,.25);
     transform:translate(-50%,-12px) scale(.92);opacity:0;transition:transform .3s cubic-bezier(.3,1.6,.5,1),opacity .18s}
   #misBan.on{transform:translate(-50%,0) scale(1);opacity:1}
   #misBan::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:30%;transform:skewX(-20deg);
@@ -153,15 +153,15 @@
      claire, l'éclair pixel devant. Elle FLASHE quand une figure ou un bump la recharge, et bat quand elle est pleine. */
   body.touch #nitroWrap{padding-left:34px}
   body.touch #nitroBar{position:relative;height:22px;padding:3px;box-sizing:border-box;overflow:visible;border:0!important}
-  body.touch #nitroBar::before{content:'';position:absolute;top:-2px;background:#ffb81f;
+  body.touch #nitroBar::before{content:'';position:absolute;top:-2px;background:var(--neoA);
     -webkit-mask:var(--pxi-eclair) center/100% 100% no-repeat;mask:var(--pxi-eclair) center/100% 100% no-repeat;filter:drop-shadow(0 2px 0 #2a0e00)}
   body.touch #nitroBar::after{content:'';position:absolute;pointer-events:none;
     background:repeating-linear-gradient(90deg,transparent 0 calc(12.5% - 3px),#090c1e calc(12.5% - 3px) 12.5%)}
-  body.touch #nitroR{background:linear-gradient(180deg,#ffd58f 0 3px,#ff8d2e 3px 50%,#ff7415 50% calc(100% - 3px),#ad4200 calc(100% - 3px))!important;transition:width .12s steps(3)}
-  body.touch #nitroX{background:linear-gradient(180deg,#b5c4ff 0 3px,#4a68f0 3px 50%,#2a44c8 50% calc(100% - 3px),#16247a calc(100% - 3px))!important;transition:width .12s steps(3)}
+  body.touch #nitroR{background:linear-gradient(180deg,var(--nL) 0 3px,var(--nP) 3px 50%,var(--nS) 50% calc(100% - 3px),var(--nO) calc(100% - 3px))!important;transition:width .12s steps(3)}
+  body.touch #nitroX{background:linear-gradient(180deg,var(--bL) 0 3px,var(--bP) 3px 50%,var(--bS) 50% calc(100% - 3px),var(--bO) calc(100% - 3px))!important;transition:width .12s steps(3)}
   @keyframes nitroGain{0%{filter:brightness(2.2)}100%{filter:brightness(1)}}
-  @keyframes nitroPlein{0%,100%{box-shadow:0 -3px 0 #04061a,0 3px 0 #04061a,-3px 0 0 #04061a,3px 0 0 #04061a,0 7px 0 rgba(0,0,0,.35)}
-    50%{box-shadow:0 -3px 0 #ffb81f,0 3px 0 #ffb81f,-3px 0 0 #ffb81f,3px 0 0 #ffb81f,0 7px 0 rgba(0,0,0,.35)}}
+  @keyframes nitroPlein{0%,100%{box-shadow:0 -3px 0 var(--k1),0 3px 0 var(--k1),-3px 0 0 var(--k1),3px 0 0 var(--k1),0 7px 0 rgba(0,0,0,.35)}
+    50%{box-shadow:0 -3px 0 var(--neoA),0 3px 0 var(--neoA),-3px 0 0 var(--neoA),3px 0 0 var(--neoA),0 7px 0 rgba(0,0,0,.35)}}
   body.touch #nitroBar.gain{animation:nitroGain .45s steps(4)}
   body.touch #nitroBar.plein{animation:nitroPlein .9s steps(2) infinite}
   @media (prefers-reduced-motion:reduce){body.touch #nitroBar.gain,body.touch #nitroBar.plein{animation:none}}
@@ -169,7 +169,7 @@
   #coach{position:fixed;left:50%;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 62px);z-index:66;width:min(340px,calc(100vw - 32px));box-sizing:border-box;
     transform:translate(-50%,-30px);opacity:0;pointer-events:none;font-family:var(--pix);color:#fff;padding:12px 14px 12px;
     background:linear-gradient(180deg,#1c2552,#131a3d);
-    box-shadow:inset 0 3px 0 #313f86,inset 0 -3px 0 #0b1030,0 -3px 0 #04061a,0 3px 0 #04061a,-3px 0 0 #04061a,3px 0 0 #04061a,0 9px 0 rgba(0,0,0,.35);
+    box-shadow:inset 0 3px 0 #313f86,inset 0 -3px 0 #0b1030,0 -3px 0 var(--k1),0 3px 0 var(--k1),-3px 0 0 var(--k1),3px 0 0 var(--k1),0 9px 0 rgba(0,0,0,.35);
     transition:transform var(--t-slow) var(--ease),opacity var(--t-fast) var(--ease)}
   #coach.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
   #coach .coSkip{font:inherit;letter-spacing:1px;color:#c9c2ff;background:none;border:0;cursor:pointer;min-width:44px;min-height:44px;
@@ -206,7 +206,7 @@
      Ce bloc est le DERNIER : il gagne sur les chartes v1/v2 sans les effacer. */
   :root{--rb:16px}
   #tGear,#tNitro,.saveBtn,#playBtn,.tbtn{
-    --fc:#5646f0;--fc2:#7d6dff;--lo:#3a2bc0;--ol:#170f55;--tx:#fff;--txs:#170f55;
+    --fc:#5646f0;--fc2:#7d6dff;--lo:#3a2bc0;--ol:var(--jEncre);--tx:#fff;--txs:var(--jEncre);
     border:3px solid var(--ol)!important;border-radius:var(--rb)!important;overflow:visible;
     background:linear-gradient(180deg,var(--fc2) 0%,var(--fc) 100%)!important;
     box-shadow:inset 0 -6px 0 var(--lo),inset 0 2px 0 rgba(255,255,255,.35),0 5px 0 var(--ol),0 12px 20px rgba(0,0,0,.35)!important;
@@ -218,16 +218,16 @@
   /* la palette : saturée, chaude pour ce qui paie, électrique pour le reste */
   #playBtn{--fc:#ffab1a;--fc2:#ffe15c;--lo:#d4700a;--ol:#4d2300;--tx:#4a2200;--txs:rgba(255,248,210,.55)}
   #playBtn{text-shadow:0 2px 0 rgba(255,250,220,.6)!important}
-  #tNitro{--fc:#ff6a0e;--fc2:#ffa545;--lo:#bf4a00;--ol:#431600;--tx:#fff;--txs:#431600}
+  #tNitro{--fc:var(--nS);--fc2:#ffa545;--lo:#bf4a00;--ol:#431600;--tx:#fff;--txs:#431600}
   #tGear{--rb:14px}
   /* LES PANNEAUX (ce qui se lit) : verre sombre arrondi, liseré clair, ombre douce */
   #setCard,#coach:not(.bravo),#lbBox{
     border-radius:20px!important;border:2px solid rgba(170,160,255,.28)!important;
     background:linear-gradient(180deg,rgba(40,34,104,.92),rgba(22,18,62,.94))!important;
     box-shadow:inset 0 2px 0 rgba(255,255,255,.10),0 10px 24px rgba(0,0,0,.40)!important;overflow:hidden}
-  #coach.bravo{border-radius:20px!important;border:3px solid #063d18!important;background:linear-gradient(180deg,#5ee37a,#1faa47)!important}
+  #coach.bravo{border-radius:20px!important;border:3px solid #063d18!important;background:linear-gradient(180deg,var(--neoV),#1faa47)!important}
   /* la JAUGE de nitro et le CAMEMBERT suivent : coins arrondis, verre sombre */
-  body.touch #nitroBar{border-radius:12px;box-shadow:inset 0 0 0 3px #170f55,0 4px 0 #170f55,0 8px 14px rgba(0,0,0,.35)!important;background:#0d0a2a}
+  body.touch #nitroBar{border-radius:12px;box-shadow:inset 0 0 0 3px var(--jEncre),0 4px 0 var(--jEncre),0 8px 14px rgba(0,0,0,.35)!important;background:var(--jFond)}
   body.touch #nitroR,body.touch #nitroX{border-radius:8px}
   /* -- LE RIDEAU entre les écrans -- */
   /* ======================= LE BOUTON NITRO v2 (2026-09-25) — « pas joli, fais beaucoup mieux et moderne » =======================
@@ -237,15 +237,15 @@
   body.touch #tNitro{--nr:.5;--nx:0;width:104px!important;height:104px!important;border-radius:50%!important;
     right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 16px);bottom:calc(var(--ccB,env(safe-area-inset-bottom,0px)) + 20px);
     background:radial-gradient(circle at 50% 34%,#4a3bb5 0%,#241a78 55%,#140d4a 100%) padding-box,
-      conic-gradient(from 220deg,#ffa545 0deg,#ff6a0e calc(var(--nr)*280deg),#6f86ff calc(var(--nr)*280deg),#3a58f0 calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.14) calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.14) 280deg,transparent 280deg) border-box!important;
-    box-shadow:0 0 0 3px #0b0730,0 7px 0 #0b0730,0 12px 26px rgba(0,0,0,.5)!important;
+      conic-gradient(from 220deg,#ffa545 0deg,var(--nS) calc(var(--nr)*280deg),#6f86ff calc(var(--nr)*280deg),#3a58f0 calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.14) calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.14) 280deg,transparent 280deg) border-box!important;
+    box-shadow:0 0 0 3px var(--encre),0 7px 0 var(--encre),0 12px 26px rgba(0,0,0,.5)!important;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
     font-size:8px!important;letter-spacing:2px!important}
   body.touch #tNitro:active,body.touch #tNitro.on{transform:translateY(4px) scale(.96)!important;
-    background:radial-gradient(circle at 50% 34%,#ffb35c 0%,#ff6a0e 55%,#b33c00 100%) padding-box,
+    background:radial-gradient(circle at 50% 34%,#ffb35c 0%,var(--nS) 55%,#b33c00 100%) padding-box,
       conic-gradient(from 220deg,#ffe15c 0deg,#ffa545 calc(var(--nr)*280deg),#9fb0ff calc(var(--nr)*280deg),#6f86ff calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.14) calc(min(1,var(--nr) + var(--nx))*280deg),rgba(255,255,255,.14) 280deg,transparent 280deg) border-box!important;
-    box-shadow:0 0 0 3px #0b0730,0 3px 0 #0b0730,0 0 34px rgba(255,140,40,.75)!important;color:#fff!important}
-  @keyframes nitroPret{0%,100%{box-shadow:0 0 0 3px #0b0730,0 7px 0 #0b0730,0 0 0 rgba(255,170,60,0)}50%{box-shadow:0 0 0 3px #0b0730,0 7px 0 #0b0730,0 0 26px rgba(255,170,60,.7)}}
+    box-shadow:0 0 0 3px var(--encre),0 3px 0 var(--encre),0 0 34px rgba(255,140,40,.75)!important;color:#fff!important}
+  @keyframes nitroPret{0%,100%{box-shadow:0 0 0 3px var(--encre),0 7px 0 var(--encre),0 0 0 rgba(255,170,60,0)}50%{box-shadow:0 0 0 3px var(--encre),0 7px 0 var(--encre),0 0 26px rgba(255,170,60,.7)}}
   body.touch #tNitro.plein:not(.on){animation:nitroPret 1.1s ease-in-out infinite}
   @media (prefers-reduced-motion:reduce){body.touch #tNitro.plein:not(.on){animation:none}}
   /* ======================= LA BOUTIQUE — LA VITRINE EN VRAI ARGENT (2026-09-25) =======================
@@ -260,9 +260,9 @@
   #engBig .ebCarte{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;
     font-family:var(--pix);text-align:center;color:#fff} /* plus de fond ni de cadre : le moteur flotte dans le décor */
   #engBig small{font-size:9px;letter-spacing:3px;color:var(--ec);text-shadow:0 2px 0 #000,0 0 10px rgba(0,0,0,.9)}
-  #engBig b{font-size:22px;line-height:1.35;letter-spacing:1px;background:linear-gradient(180deg,#fffbe8,#ffd75e 45%,#ff9d2e);
+  #engBig b{font-size:22px;line-height:1.35;letter-spacing:1px;background:linear-gradient(180deg,var(--au0),var(--or) 45%,var(--nP));
     -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #4d2300)}
-  #engBig.rec small{color:#ffd75e}
+  #engBig.rec small{color:var(--or)}
   #engBig em{font-style:normal;font-size:8px;letter-spacing:2px;color:#fff;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.08)}
   @media (prefers-reduced-motion:reduce){#engBig.on{animation:none;opacity:1;transform:translate(-50%,-100%)}}
   /* -- LA JAUGE DE NITRO v3 : vivante -- */
@@ -271,16 +271,16 @@
     background-size:300% 100%!important;animation:nbReflet 3.6s ease-in-out infinite}
   @keyframes nbReflet{0%,60%{background-position:150% 0}100%{background-position:-50% 0}}
   body.touch #nitroR,body.touch #nitroX{position:relative;transition:width .14s linear!important}
-  body.touch #nitroR::after{content:'';position:absolute;right:-2px;top:-3px;bottom:-3px;width:6px;border-radius:3px;background:#fff6d8;box-shadow:0 0 10px #ffb35c,0 0 18px #ff7415}
+  body.touch #nitroR::after{content:'';position:absolute;right:-2px;top:-3px;bottom:-3px;width:6px;border-radius:3px;background:var(--au0);box-shadow:0 0 10px #ffb35c,0 0 18px var(--nS)}
   body.touch #nitroR[style*="width: 0%"]::after{display:none}
   body.touch #nitroBar.boost #nitroR,body.touch #nitroBar.bleu #nitroX{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.28) 0 6px,transparent 6px 14px),
-    linear-gradient(180deg,#ffd58f 0 3px,#ff8d2e 3px 50%,#ff7415 50% calc(100% - 3px),#ad4200 calc(100% - 3px))!important;background-size:20px 20px,100% 100%!important;animation:nbFile .35s linear infinite}
+    linear-gradient(180deg,var(--nL) 0 3px,var(--nP) 3px 50%,var(--nS) 50% calc(100% - 3px),var(--nO) calc(100% - 3px))!important;background-size:20px 20px,100% 100%!important;animation:nbFile .35s linear infinite}
   body.touch #nitroBar.bleu #nitroX{background-image:repeating-linear-gradient(-45deg,rgba(255,255,255,.3) 0 6px,transparent 6px 14px),
-    linear-gradient(180deg,#b5c4ff 0 3px,#4a68f0 3px 50%,#2a44c8 50% calc(100% - 3px),#16247a calc(100% - 3px))!important}
+    linear-gradient(180deg,var(--bL) 0 3px,var(--bP) 3px 50%,var(--bS) 50% calc(100% - 3px),var(--bO) calc(100% - 3px))!important}
   @keyframes nbFile{to{background-position:-20px 0,0 0}}
-  body.touch #nitroBar.boost{box-shadow:inset 0 0 0 3px #170f55,0 4px 0 #170f55,0 0 22px rgba(255,120,30,.75)!important}
-  body.touch #nitroBar.bleu{box-shadow:inset 0 0 0 3px #170f55,0 4px 0 #170f55,0 0 22px rgba(90,120,255,.8)!important}
-  @keyframes nbBas{0%,100%{box-shadow:inset 0 0 0 3px #170f55,0 4px 0 #170f55}50%{box-shadow:inset 0 0 0 3px #ff5a6e,0 4px 0 #170f55,0 0 16px rgba(255,90,110,.7)}}
+  body.touch #nitroBar.boost{box-shadow:inset 0 0 0 3px var(--jEncre),0 4px 0 var(--jEncre),0 0 22px rgba(255,120,30,.75)!important}
+  body.touch #nitroBar.bleu{box-shadow:inset 0 0 0 3px var(--jEncre),0 4px 0 var(--jEncre),0 0 22px rgba(90,120,255,.8)!important}
+  @keyframes nbBas{0%,100%{box-shadow:inset 0 0 0 3px var(--jEncre),0 4px 0 var(--jEncre)}50%{box-shadow:inset 0 0 0 3px var(--neoR),0 4px 0 var(--jEncre),0 0 16px rgba(255,90,110,.7)}}
   body.touch #nitroBar.bas:not(.boost):not(.bleu){animation:nbBas .7s steps(2) infinite}
   body.touch #nitroBar::before{transition:transform .1s}
   body.touch #nitroBar.boost::before,body.touch #nitroBar.bleu::before{transform:scale(1.25) rotate(-8deg);filter:drop-shadow(0 0 8px #ffb21f)}
@@ -288,7 +288,7 @@
   /* -- la vitrine : les PHOTOS des caisses premium -- */
   /* -- le texte qui jaillit (drift mini-turbo) -- */
   #popTxt{position:fixed;left:50%;z-index:40;pointer-events:none;font-family:var(--pix);letter-spacing:2px;white-space:nowrap;
-    color:#fff;text-shadow:0 3px 0 #0b0730,0 0 18px var(--pc);-webkit-text-stroke:1px var(--pc);opacity:0;transform:translate(-50%,0) scale(.4)}
+    color:#fff;text-shadow:0 3px 0 var(--encre),0 0 18px var(--pc);-webkit-text-stroke:1px var(--pc);opacity:0;transform:translate(-50%,0) scale(.4)}
   #popTxt.on{animation:popTxt .9s cubic-bezier(.3,1.7,.5,1) forwards}
   @keyframes popTxt{0%{opacity:0;transform:translate(-50%,10px) scale(.4)}18%{opacity:1;transform:translate(-50%,0) scale(1.15)}30%{transform:translate(-50%,0) scale(1)}
     75%{opacity:1;transform:translate(-50%,-14px) scale(1)}100%{opacity:0;transform:translate(-50%,-30px) scale(.9)}}
@@ -307,7 +307,7 @@
     background:rgba(11,7,48,.78);box-shadow:0 0 0 2px var(--fc),0 0 16px color-mix(in srgb,var(--fc) 60%,transparent);transition:opacity .2s,transform .2s}
   #flowHud.on{opacity:1;transform:translate(-50%,0)}
   body:not(.play) #flowHud,body:not(.play) #flowGlow{display:none}
-  #flowHud b{font-size:9px;letter-spacing:1px;color:var(--fc);text-shadow:0 2px 0 #0b0730;white-space:nowrap}
+  #flowHud b{font-size:9px;letter-spacing:1px;color:var(--fc);text-shadow:0 2px 0 var(--encre);white-space:nowrap}
   #flowHud i{display:block;width:64px;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
   #flowHud s{display:block;height:100%;background:var(--fc);transition:width .15s linear}
   #flowGlow{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .4s; /* z 1 (c'était 4) : SOUS #hud (z 2) — la lueur teinte la scène, jamais la jauge nitro, le chrono ni l'emblème (capture du 28/09 : la frénésie rouge les délavait) */
@@ -315,7 +315,7 @@
   /* (2026-09-28) la FRÉNÉSIE ne tourne plus à l'arc-en-ciel (hue-rotate) : elle est ROUGE et elle BAT — voir « LA FRÉNÉSIE » en fin de charte4 */
   /* -- (2026-10-15 : l'étiquette du DAUPHIN est partie avec les dauphins ; ses couleurs restent, --auraRose sert ailleurs) LE DAUPHIN (2026-09-25) : l'étiquette qui dit POURQUOI l'aura monte. En vol la caméra CENTRE la caisse : on s'affiche
      au-dessus d'elle, SOUS la pilule du FLOW et le camembert, jamais dessus. Lecture seule (aucun geste). -- */
-  :root{--dol:#5ee6ff;--dolNom:#ffffff;--dolOmbre:#0b0730;--auraRose:#ff7ad5;--auraOmbre:#3a0f4a}
+  :root{--dol:var(--dol);--dolNom:#ffffff;--dolOmbre:var(--encre);--auraRose:var(--aura);--auraOmbre:var(--auraOmbre)}
   #slideHud{position:fixed;left:50%;top:max(22vh,calc(env(safe-area-inset-top,0px) + 150px));transform:translateX(-50%);z-index:7;pointer-events:none;
-    font:14px/1 var(--pix);color:#ffd75e;text-shadow:0 2px 0 #3a1a00;opacity:0;transition:opacity .12s}
+    font:14px/1 var(--pix);color:var(--or);text-shadow:0 2px 0 #3a1a00;opacity:0;transition:opacity .12s}
   body:not(.play) #slideHud{display:none}
