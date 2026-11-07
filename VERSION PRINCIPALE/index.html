@@ -10917,6 +10917,20 @@ html body #gBqPan.cote.bqFigOn .bqRail .bqK.fgK{--fgW:calc((100% - 8px) / 1.8)}
   html:has(#gBq.pan #gBqPan.cote.bqFigOn) #fsUndo .fuBt{margin-left:auto}
 }
 </style>
+<style id="revueInterfaces">
+/* ===== LA REVUE DES INTERFACES (2026-11-07, Sacha : « revois les interfaces, fais un screen de chaque écran et paufine tout parfaitement. pas de bouton
+   inutile. clarifie. ergonomie mobile ») =====
+   Trente-trois écrans photographiés au banc (outils/banc-ecrans/photos.cjs : debout et couché, français et anglais, compte riche et compte neuf, course,
+   pause et mort), chaque boîte mesurée (cibles < 44 px, chevauchements, textes coupés, touches hors écran) : 0 erreur JS, 0 cible trop petite,
+   0 texte coupé en français. Ce qui restait à corriger tient ici ; rien n'est redessiné.
+   1. LES NOMS LONGS DANS LES PLAQUES DE LA BOUTIQUE (anglais) : la plaque sous une boîte tient 9 lettres par ligne sur 2 lignes (77 px utiles, 8 px + 0,3
+      d'espacement) ; THE YELLOW CAB, THE TRAILBLAZER, THE CHARGER 69, THE ENGLISH DAME, THE CENTER THRONE en demandaient 3 et finissaient en
+      « THE YELLOW… ». bqNomsAjuste (interface/revue-interfaces.js) MESURE chaque plaque et pose .lg quand elle déborde : 7 px sans espacement,
+      11 lettres par ligne (la marge intérieure passe de 6 à 3 px : TRAILBLAZER, 11 lettres, tenait à un pixel près), les cinq rentrent — en français
+      aucune plaque ne déborde, rien ne change. Si une plaque déborde ENCORE à 7 px (une 2e mesure, même passage), .lg2 : 6 px, le dernier cran lisible. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKn.lg{font-size:7px;letter-spacing:0;line-height:11px;padding-left:3px;padding-right:3px}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKn.lg2{font-size:6px;line-height:10px;padding-left:2px;padding-right:2px}
+</style>
 <style id="bq-ensemble">
 /* ===== LA BOUTIQUE, FINITION GÉNÉRALE (2026-11-07, Sacha : « plein de petits problèmes d alignement, de détails qui font pas pro : travaille la boutique à fond en mode game designer senior ») =====
    L'ossature commune (en-tête, colonne des rayons, panneau, bouton d'action, RETOUR) et les cartes des VOITURES, mesurées au banc
@@ -76534,7 +76548,7 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
     const dir9=bqFigDir(d.id);if(GBQ.panOn&&GBQ.cat==='figure'&&typeof bqFigCarte==='function'&&figSlots()[dir9]!==d.id)return {e:'eq',t:'À TOI'}; /* (2026-11-07, passe finale) la pellicule : ÉQUIPER vit sur l'AFFICHE (un toucher, dans son emplacement) ; le grand bouton reste l'achat */ // (2026-10-31, clarté boutique) le bouton montre l'icône de CET emplacement : sur une figure à deux sens, on sait où elle va se ranger avant de toucher
     return figSlots()[dir9]===d.id?{e:'eq',t:'ÉQUIPÉE',dir:dir9}:{e:'figeq',t:'ÉQUIPER',dir:dir9,rem:fsRem(d.id,dir9)};} // (2026-11-05) le bouton dit AVANT le toucher ce que l'équipement remplace (rem) // (2026-10-15, les directions) dans la direction de SA carte : on en change en ÉQUIPANT une autre de cette direction, on ne la retire plus
   const a=shopOwned(o.cat,d.id),eq=shopEqD(o.cat)===d,j=COSM[o.cat].indexOf(d);
-    if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉE'}; /* (2026-11-07, finition) une peinture, une aile, une traînée : ÉQUIPÉE, comme leur carte (le bouton disait ÉQUIPÉ) */if(a)return {e:'equip',t:'ÉQUIPER'};
+  if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉE'};if(a)return {e:'equip',t:'ÉQUIPER'};
   if(d.mis2)return {e:'mis',t:m2Pret(d.mis2)?'RÉCUPÈRE':'VOIR LA MISSION',m:d.mis2}; // (2026-10-16) LES MISSIONS v2
   if(d.pack==='chat'){const u9=CAR_UNLOCK[chatPackI()]||{};return {e:'chat',t:'AVEC LE CHAT',p:u9.eur?eurTxt(u9.eur):''};} // (2026-10-18 soir) l'ARC-EN-CIEL : il mène à l'offre du chat (voir chatPackI)
   if(d.eur)return {e:'achat',t:'ACHETER',p:eurTxt(d.eur)};if(d.p)return {e:'achat',t:'ACHETER',p:bqPxT(d.p)};return {e:'defi',t:'À GAGNER'};}
@@ -78864,6 +78878,25 @@ function bqFigBords(rail){const sl=rail.scrollLeft,fin=sl+rail.clientWidth>=rail
 document.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('#gBqPan.bqFigOn .fgK [data-fgeq]');if(!b)return;e.stopPropagation();
   if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;const t=b.closest('.fgK'),k=t.getAttribute('data-k'),dir=+t.getAttribute('data-dir'),id=k.slice(7);
   if(!figPossede(id))return;uiPop(b);GSON9=false;GBQ.figDir=dir;bqEssaie(k);figEqToast(id,dir);GBQ.rk='';BQFG.vient=k;try{gShopJour();}catch(e9){}hap(8);},true);
+/* ===== LA REVUE DES INTERFACES (2026-11-07, Sacha : « revois les interfaces, fais un screen de chaque écran et paufine tout parfaitement. pas de bouton
+   inutile. clarifie. ergonomie mobile ») : LES PLAQUES DE NOM QUI DÉBORDENT =====
+   Relevé au banc des écrans en anglais : la plaque sous une boîte de la boutique (.bqKn, boites-blister.css) tient 9 lettres par ligne sur deux lignes ;
+   cinq noms anglais en demandent trois et finissaient en « THE YELLOW… ». Plutôt que de deviner la largeur (elle change debout, couché, par rayon), on
+   MESURE : dès qu'une plaque est posée dans le panneau de la boutique, si son texte dépasse sa hauteur, elle reçoit .lg (7 px sans espacement, voir
+   css/revue-interfaces.css). Un seul passage par plaque (data-lg), lectures groupées avant les écritures (une seule mise en page), déclenché par
+   un MutationObserver sur le garage (le panneau #gBqPan n'existe qu'à la première ouverture de la boutique), débité à une image. */
+const REVUE={ob:null,raf:0};
+function bqNomsAjuste(){REVUE.raf=0;const pan=document.getElementById('gBqPan');if(!pan)return;
+  const L=pan.querySelectorAll('.bqKn:not([data-lg])');if(!L.length)return;
+  const deb=[];for(let i=0;i<L.length;i++){const e=L[i];if(!e.clientHeight)continue; /* pas encore visible (rayon caché) : on repassera */
+    e.setAttribute('data-lg','1');if(e.scrollHeight>e.clientHeight+1)deb.push(e);}
+  for(let i=0;i<deb.length;i++)deb[i].classList.add('lg');
+  const deb2=[];for(let i=0;i<deb.length;i++){const e=deb[i];if(e.scrollHeight>e.clientHeight+1)deb2.push(e);} /* 2e mesure (une mise en page de plus, seulement s'il y a eu un .lg) */
+  for(let i=0;i<deb2.length;i++)deb2[i].classList.add('lg2');}
+function bqNomsVeille(){const g=document.getElementById('garage');if(!g||REVUE.ob||typeof MutationObserver!=='function')return;
+  REVUE.ob=new MutationObserver(function(){if(!REVUE.raf)REVUE.raf=requestAnimationFrame(bqNomsAjuste);});
+  REVUE.ob.observe(g,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});}
+try{bqNomsVeille();}catch(e){}
 /* ===== LE PREMIER BURN-OUT, REVENU (2026-10-08, Léo : « reviens sur le premier burn-out, celui où on ne pouvait pas faire de donuts ;
    reviens sur celui-là et laisse-moi juste faire des donuts avec lui aussi ; reviens sur les premiers petits carrés transparents ; si tu y
    arrives, intègre quelques cubes blancs comme tu as fait là ; remets-le sur le main — la fumée ET le mouvement, les deux »). Ce bloc est

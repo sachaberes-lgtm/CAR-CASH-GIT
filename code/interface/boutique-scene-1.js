@@ -441,7 +441,7 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
     const dir9=bqFigDir(d.id);if(GBQ.panOn&&GBQ.cat==='figure'&&typeof bqFigCarte==='function'&&figSlots()[dir9]!==d.id)return {e:'eq',t:'À TOI'}; /* (2026-11-07, passe finale) la pellicule : ÉQUIPER vit sur l'AFFICHE (un toucher, dans son emplacement) ; le grand bouton reste l'achat */ // (2026-10-31, clarté boutique) le bouton montre l'icône de CET emplacement : sur une figure à deux sens, on sait où elle va se ranger avant de toucher
     return figSlots()[dir9]===d.id?{e:'eq',t:'ÉQUIPÉE',dir:dir9}:{e:'figeq',t:'ÉQUIPER',dir:dir9,rem:fsRem(d.id,dir9)};} // (2026-11-05) le bouton dit AVANT le toucher ce que l'équipement remplace (rem) // (2026-10-15, les directions) dans la direction de SA carte : on en change en ÉQUIPANT une autre de cette direction, on ne la retire plus
   const a=shopOwned(o.cat,d.id),eq=shopEqD(o.cat)===d,j=COSM[o.cat].indexOf(d);
-    if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉE'}; /* (2026-11-07, finition) une peinture, une aile, une traînée : ÉQUIPÉE, comme leur carte (le bouton disait ÉQUIPÉ) */if(a)return {e:'equip',t:'ÉQUIPER'};
+  if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉE'};if(a)return {e:'equip',t:'ÉQUIPER'};
   if(d.mis2)return {e:'mis',t:m2Pret(d.mis2)?'RÉCUPÈRE':'VOIR LA MISSION',m:d.mis2}; // (2026-10-16) LES MISSIONS v2
   if(d.pack==='chat'){const u9=CAR_UNLOCK[chatPackI()]||{};return {e:'chat',t:'AVEC LE CHAT',p:u9.eur?eurTxt(u9.eur):''};} // (2026-10-18 soir) l'ARC-EN-CIEL : il mène à l'offre du chat (voir chatPackI)
   if(d.eur)return {e:'achat',t:'ACHETER',p:eurTxt(d.eur)};if(d.p)return {e:'achat',t:'ACHETER',p:bqPxT(d.p)};return {e:'defi',t:'À GAGNER'};}
