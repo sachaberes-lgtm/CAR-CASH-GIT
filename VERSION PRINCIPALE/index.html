@@ -12154,8 +12154,9 @@ const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([\d.]+)/.exec(location.search);r
    et le plancher le retenait à 1,25 : la 3D était dessinée à 62 % des pixels de l'écran, puis agrandie ×1,6 (floue) pendant que l'interface DOM restait nette. Sur un écran de densité ≥ 2, le plancher monte à 1,5 (le plafond « NETTE »
    des téléphones) ; la résolution adaptative (QL) sait toujours baisser si la machine tire. `?pcmin=1.25` = avant. */
 const PC_MIN=(function(){const m=/[?&]pcmin=([\d.]+)/.exec(location.search);return m?+m[1]:(RETINA_OK?1.5:1.25);})();
+PAL.B.imgDprCap=[1.25,1.35,1.25];PAL.B.imgQlDepart=[5,2,1];/* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : plafond NETTE 1,25 au lieu de 1,5 (−31 % de pixels : 513 000 au lieu de 740 000 sur un 390×844) et la course part au cran 1 de l'échelle QL ; `?img=max` / `?imgsans=c` = comme avant */
 function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
-  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));
+  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
   return Math.min(devicePixelRatio,Math.max(PC_MIN,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
 /* ===== UNE SEULE ALLOCATION DE LA TOILE (2026-11-05, passe perf mobile 2, A2.c) =====
    MESURÉ (Chrome iPhone émulé ×4, palier 0) : `renderer.setSize` 2 fois avant le menu — la 1re à 1 pixel/point avec DPR_CAP provisoire, la 2e (`applyQ` → `qlReprise` → `applyDPR`, ~1,1 s) une fois le choix RAPIDE/NETTE connu :
@@ -13368,7 +13369,7 @@ addEventListener('resize',function(){if(VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.mur
        de la course (plus de réallocation des cibles et de la carte d'ombre à chaque mort ET à chaque REJOUER).
    `dbgQual(k)` (banc) passe outre qlMin. `?palier=2` rend exactement le comportement d'avant. */
 PAL.B.bloomOff=[/[?&]bloom=1/.test(location.search)?0:1,0,0];PAL.B.qlDepart=[5,2,0];PAL.B.qlMin=[4,0,0];PAL.B.vhdPx=[.45e6,1.4e6,1.4e6]; /* (2026-10-20, Léo) MOYEN et RÉCENT plafonnés à 1,4 M (densité ~2 sur iPhone 15) : à 3,2 M (densité 3) le garage et la boutique tombaient à 41-58 i/s avec des accrocs de 200-700 ms, mesuré sur l'iPhone 15 de Léo le 16/10 ; c'est le réglage de son appli */PAL.B.vhdOmbre=[1024,2048,2048];PAL.B.vhdMort=[0,0,1];
-if(PAL.b('qlDepart',0)>0){try{qlPose(PAL.b('qlDepart',0));}catch(e){}}
+{const qd9=PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c');if(qd9>0){try{qlPose(qd9);}catch(e){}}} /* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : départ au cran 1 (voir `imgQlDepart`), avant 0 */
 window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),max:+VHD.max.toFixed(2),baisses:VHD.bas,remontees:VHD.haut,bride:VHD.bride?Math.round((performance.now()-VHD.bride)/1000)+' s':null,mur:(VHD.murT&&performance.now()-VHD.murT<45000)?+VHD.mur.toFixed(2):null,vrai:QLR.vraiT?+QLR.vrai.toFixed(1):null,journal:VHD.log,dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
   px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
