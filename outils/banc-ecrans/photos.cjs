@@ -3,6 +3,8 @@
 // touches hors écran, polices hors Press Start, corps employés) avec outils/banc-ecrans/audit.js. Aucune dépendance (cdp.cjs du banc des traînées).
 //   node outils/banc-ecrans/photos.cjs --out /chemin [--formats debout,couche,i7couche] [--ecrans accueil,reglages,...] [--http 9741 --cdp 9742]
 //   [--save riche|neuf]  (riche : tout débloqué, argent ; neuf : premier lancement)
+//   [--lang en]  (2026-11-07) la langue du jeu (localStorage.ccLang) : les mots anglais ont d'autres longueurs
+//   [--q "intro=ancien&attente=0"]  (2026-11-07) paramètres d'URL en plus : en headless le départ de course attend un programme GPU qui ne se lie jamais, attente=0 le libère
 const fs = require('fs'), path = require('path');
 const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir, tmp } = require('../banc-trainees/cdp.cjs');
 
@@ -13,6 +15,8 @@ const P_HTTP = +(A.http || 9741), P_CDP = +(A.cdp || 9742);
 const FORMATS = { debout: [390, 844], couche: [844, 390], i7couche: [667, 375], i7debout: [375, 667], maxdebout: [430, 932], maxcouche: [932, 430] };
 const FMTS = (A.formats || 'debout,couche').split(',');
 const ECRANS = A.ecrans ? A.ecrans.split(',') : null;
+const Q = A.q ? '&' + A.q.replace(/^[?&]/, '') : '';
+const LANG = A.lang || '';
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 const SAVE = A.save === 'neuf' ? null : { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, bank: 48500, aura: 1200, auraMax: 3000, cousin: A.save === 'riche' ? 1 : 0, owned: [0, 1, 2, 3], ex: { runs: 12 }, plq: { m: 'fr', x: 'CC-161-RZ', ok: 1 } };
 const AUDIT = fs.readFileSync(path.join(__dirname, 'audit.js'), 'utf8');
@@ -29,6 +33,10 @@ const ETAPES = [
   { n: 'garage-retour', tap: '#gvCof', att: 1500, sans: 1 },
   { n: 'boutique', tap: '#gShopBas', fx: .82, fy: .84, att: 4500 },
   { n: 'boutique-ailes', tap: '#gBqCats [data-c="aile"]', att: 1500 },
+  { n: 'boutique-peintures', tap: '#gBqCats [data-c="peinture"]', att: 1500 }, /* (2026-11-07) les autres rayons, refaits ce jour */
+  { n: 'boutique-trainees', tap: '#gBqCats [data-c="trainee"]', att: 1500 },
+  { n: 'boutique-figures', tap: '#gBqCats [data-c="figure"]', att: 1500 },
+  { n: 'boutique-achat', tap: '#gBqCats [data-c="achat"]', att: 1800 },
   { n: 'boutique-retour', tap: '#gShopBas', fx: .82, fy: .84, att: 2500, sans: 1 },
   { n: 'missions', tap: '#gvMis', att: 2500 },
   { n: 'missions-retour', tap: '#gMis .gmHome', att: 1500, sans: 1 },
@@ -67,7 +75,8 @@ const ETAPES = [
       await c.send('Emulation.setUserAgentOverride', { userAgent: UA, platform: 'iPhone' });
       await c.send('Emulation.setEmulatedMedia', { features: [{ name: 'hover', value: 'none' }, { name: 'pointer', value: 'coarse' }] });
       if (SAVE) await c.send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{localStorage.setItem("cashcarSave",' + JSON.stringify(JSON.stringify(SAVE)) + ')}catch(e){}' });
-      await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&tel=1&simu=1&garde=1` });
+      if (LANG) await c.send('Page.addScriptToEvaluateOnNewDocument', { source: 'try{localStorage.setItem("ccLang",' + JSON.stringify(LANG) + ')}catch(e){}' });
+      await c.send('Page.navigate', { url: `http://127.0.0.1:${P_HTTP}/index.html?colonne=0&tel=1&simu=1&garde=1${Q}` });
       for (let i = 0; i < 240; i++) { await dormir(500); try { if (await c.ev("!!window.__gameReady&&typeof dbgState==='function'&&document.getElementById('mHome').classList.contains('on')", 8000)) break; } catch (e) {} }
       await dormir(2500);
       await c.ev(AUDIT);

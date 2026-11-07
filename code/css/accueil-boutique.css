@@ -15,16 +15,16 @@
 #chDoigt .cdOnde{position:absolute;left:-24px;top:-24px;width:48px;height:48px;border-radius:50%;box-sizing:border-box;opacity:0;
   border:3px solid #fff;box-shadow:0 0 0 2px rgba(255,215,94,.85),inset 0 0 0 2px rgba(255,215,94,.85)}
 #chDoigt.on .cdOnde{animation:cdOnde 1.6s steps(6,end) .55s infinite}
-#chDoigt .cdEcl{position:absolute;left:-3px;top:-3px;width:6px;height:6px;background:#ffd75e;box-shadow:0 0 0 2px #1c0430;opacity:0}
+#chDoigt .cdEcl{position:absolute;left:-3px;top:-3px;width:6px;height:6px;background:var(--or);box-shadow:0 0 0 2px var(--encre);opacity:0}
 #chDoigt.on .cdEcl{animation:cdEcl 1.6s var(--ease) .55s infinite}
 #chDoigt .cdEcl:nth-of-type(1){--ex:-26px;--ey:-22px}#chDoigt .cdEcl:nth-of-type(2){--ex:26px;--ey:-22px}
 #chDoigt .cdEcl:nth-of-type(3){--ex:-32px;--ey:4px}#chDoigt .cdEcl:nth-of-type(4){--ex:32px;--ey:4px}
 #chDoigt .cdBul{position:absolute;left:0;top:70px;translate:-50% 0;display:flex;flex-direction:column;align-items:center;gap:7px;white-space:nowrap;
-  padding:9px 13px 10px;background:linear-gradient(180deg,#2a1e56,#140c2c);box-shadow:inset 0 0 0 2px #ffd75e,inset 0 0 0 4px #1c0430,0 4px 0 #0a0818,0 0 18px rgba(255,215,94,.3)}
-#chDoigt .cdBul::before{content:'';position:absolute;left:50%;top:-8px;width:12px;height:8px;translate:-50% 0;background:#ffd75e;
+  padding:9px 13px 10px;background:linear-gradient(180deg,#2a1e56,#140c2c);box-shadow:inset 0 0 0 2px var(--or),inset 0 0 0 4px var(--encre),0 4px 0 var(--tranche),0 0 18px rgba(255,215,94,.3)}
+#chDoigt .cdBul::before{content:'';position:absolute;left:50%;top:-8px;width:12px;height:8px;translate:-50% 0;background:var(--or);
   clip-path:polygon(0 100%,33% 50%,33% 0,67% 0,67% 50%,100% 100%)}
-#chDoigt .cdBul b{font-weight:400;font-size:8px;letter-spacing:2px;color:#ffd75e;text-shadow:0 2px 0 #1c0430}
-#chDoigt .cdBul span{font-size:10px;letter-spacing:1px;color:#fff;text-shadow:0 2px 0 #1c0430}
+#chDoigt .cdBul b{font-weight:400;font-size:8px;letter-spacing:2px;color:var(--or);text-shadow:0 2px 0 var(--encre)}
+#chDoigt .cdBul span{font-size:10px;letter-spacing:1px;color:#fff;text-shadow:0 2px 0 var(--encre)}
 #chDoigt.on .cdBul{animation:cdBul .6s var(--ease) .25s both,cdFlotte 2.4s ease-in-out .85s infinite}
 #chDoigt.fini{opacity:0;visibility:hidden;transition:opacity .35s var(--ease) .1s,visibility 0s linear .45s}
 #chDoigt.fini .cdMain{animation:cdPart .45s var(--ease) both}
@@ -55,35 +55,35 @@ html[data-reduced-motion] #chDoigt.on .cdMain{transform:translate(3px,10px) rota
      le joystick de la direction en pastille blanche cerclée d'encre, flèche bleue (le bleu des intertitres VERS L'AVANT…). La case de la figure
      qu'on regarde prend l'anneau d'encre, comme la carte choisie (.sel). Vide : anneau gris, « ? », VIDE. */
 #bqFigSel{display:none}
-#gBqPan.bqFigOn #bqFigSel{display:flex;flex:none;flex-direction:column;gap:6px;padding:10px 8px 8px;background:#fff;box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.07);pointer-events:auto;font-family:var(--pix);animation:bqSec .38s var(--ease) both}
+#gBqPan.bqFigOn #bqFigSel{display:flex;flex:none;flex-direction:column;gap:6px;padding:10px 8px 8px;background:#fff;box-shadow:0 0 0 1px var(--bqFil),0 8px 20px rgba(30,40,55,.07);pointer-events:auto;font-family:var(--pix);animation:bqSec .38s var(--ease) both}
 /* (2026-10-31, clarté boutique, Sacha : « le système du choix des figures est bof, pas assez clair ») LE TITRE, enfin écrit : ce bloc restait
    muet (un simple aria-label) — « TES 3 EMPLACEMENTS » + la marche à suivre, lues avant même de toucher quoi que ce soit. */
 #bqFigSel .fsTete{display:flex;flex-direction:column;gap:1px;padding:0 2px}
-#bqFigSel .fsTete b{font-weight:400;font-size:9px;letter-spacing:1.5px;color:#14171c}
-#bqFigSel .fsTete span{font-size:7.5px;letter-spacing:.2px;color:#8a929c}
+#bqFigSel .fsTete b{font-weight:400;font-size:9px;letter-spacing:1.5px;color:var(--bqInk)}
+#bqFigSel .fsTete span{font-size:7.5px;letter-spacing:.2px;color:var(--bqGris2)}
 #bqFigSel .fsRow{display:flex;align-items:flex-start;gap:4px}
 #bqFigSel .fsNitro{flex:none;align-self:center;display:flex;flex-direction:column;align-items:center;gap:3px;width:40px}
 #bqFigSel .fsBolt{display:block;width:26px;height:37px}
-#bqFigSel .fsNitro b{font-weight:400;font-size:9px;line-height:1;color:#14171c}
+#bqFigSel .fsNitro b{font-weight:400;font-size:9px;line-height:1;color:var(--bqInk)}
 #bqFigSel .fsHex{position:relative;flex:1 1 0;min-width:0;min-height:44px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;border:0;background:none;cursor:pointer;
   font-family:var(--pix);-webkit-tap-highlight-color:transparent;transition:translate var(--t-fast) var(--ease)}
 #bqFigSel .fsHex:active{translate:0 2px}
-#bqFigSel .fsCase{position:relative;display:block;width:56px;height:48px;background:color-mix(in srgb,var(--fc) 82%,#14171c);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);transition:background var(--t-fast) var(--ease)}
+#bqFigSel .fsCase{position:relative;display:block;width:56px;height:48px;background:color-mix(in srgb,var(--fc) 82%,var(--bqInk));clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);transition:background var(--t-fast) var(--ease)}
 #bqFigSel .fsIn{position:absolute;inset:3px 4px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#fbfcfd,#e9edf1);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
-#bqFigSel .fgIl>.fgCv{color:#14171c;filter:none;animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
-#bqFigSel .fgIl>.fgAn{color:color-mix(in srgb,var(--fc) 62%,#14171c)} /* l'anneau du sens : foncé d'un cran, sinon l'or et le gris des communes se perdent dans le clair */
+#bqFigSel .fgIl>.fgCv{color:var(--bqInk);filter:none;animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
+#bqFigSel .fgIl>.fgAn{color:color-mix(in srgb,var(--fc) 62%,var(--bqInk))} /* l'anneau du sens : foncé d'un cran, sinon l'or et le gris des communes se perdent dans le clair */
 #bqFigSel .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
 #bqFigSel .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
-#bqFigSel .fsQ{font-weight:400;font-size:14px;color:#a3abb5}
-#bqFigSel .fsJoy{position:absolute;left:calc(50% - 39px);top:-7px;display:flex;align-items:center;justify-content:center;width:22px;height:22px;background:#fff;color:var(--dc,#3d4bff);
-  box-shadow:inset 0 0 0 2px #14171c;clip-path:polygon(6px 0,16px 0,22px 6px,22px 16px,16px 22px,6px 22px,0 16px,0 6px);font-style:normal} /* (2026-10-31) la couleur de l'EMPLACEMENT (--dc), la même que sur l'intertitre de sa section plus bas : l'œil relie les deux sans réfléchir */
+#bqFigSel .fsQ{font-weight:400;font-size:14px;color:var(--bqGris2)}
+#bqFigSel .fsJoy{position:absolute;left:calc(50% - 39px);top:-7px;display:flex;align-items:center;justify-content:center;width:22px;height:22px;background:#fff;color:var(--dc,var(--bqAcc));
+  box-shadow:inset 0 0 0 2px var(--bqInk);clip-path:polygon(6px 0,16px 0,22px 6px,22px 16px,16px 22px,6px 22px,0 16px,0 6px);font-style:normal} /* (2026-10-31) la couleur de l'EMPLACEMENT (--dc), la même que sur l'intertitre de sa section plus bas : l'œil relie les deux sans réfléchir */
 #bqFigSel .fsJoy .pxi{--pxs:1;width:12px;height:12px;margin:0}
-#bqFigSel .fsNom{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-width:100%;overflow:hidden;overflow-wrap:anywhere;text-align:center;font-weight:400;font-size:8px;line-height:10px;letter-spacing:0;color:#14171c}
-#bqFigSel .fsHex.vide .fsCase{background:#d3d8de}
+#bqFigSel .fsNom{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-width:100%;overflow:hidden;overflow-wrap:anywhere;text-align:center;font-weight:400;font-size:8px;line-height:10px;letter-spacing:0;color:var(--bqInk)}
+#bqFigSel .fsHex.vide .fsCase{background:var(--bqFil)}
 #bqFigSel .fsHex.vide .fsIn{background:#f4f6f8}
-#bqFigSel .fsHex.vide .fsNom{color:#8a929c}
+#bqFigSel .fsHex.vide .fsNom{color:var(--bqGris2)}
 #bqFigSel .fsHex.on{translate:0 -2px}
-#bqFigSel .fsHex.on .fsCase{background:#14171c}
+#bqFigSel .fsHex.on .fsCase{background:var(--bqInk)}
 #bqFigSel .fsHex.flash .fsCase{animation:bqFsFlash .6s var(--ease)}
 @keyframes bqFsFlash{0%{filter:brightness(1.8)}100%{filter:none}}
 @media (prefers-reduced-motion:reduce){#gBqPan.bqFigOn #bqFigSel,#bqFigSel .fsHex.flash .fsCase{animation:none}}
@@ -94,12 +94,12 @@ html[data-reduced-motion] :is(#gBqPan.bqFigOn #bqFigSel,#bqFigSel .fsHex.flash .
      sans ombre, une ombre douce dessous ; appuyé, il s'enfonce et grise. Droit, comme ACHETER et ÉQUIPER (le magasin de Léo est droit). */
 html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:10px!important;
   width:auto!important;min-width:118px!important;height:44px!important;min-height:44px!important;padding:0 16px 0 12px!important;
-  background:#fff!important;background-image:none!important;outline:0!important;box-shadow:inset 0 0 0 2px #14171c,0 6px 16px rgba(20,23,28,.16)!important;
-  clip-path:none!important;filter:none!important;transform:none!important;translate:none!important;color:#14171c!important;text-shadow:none!important}
+  background:#fff!important;background-image:none!important;outline:0!important;box-shadow:inset 0 0 0 2px var(--bqInk),0 6px 16px rgba(20,23,28,.16)!important;
+  clip-path:none!important;filter:none!important;transform:none!important;translate:none!important;color:var(--bqInk)!important;text-shadow:none!important}
 html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas::before,html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas::after{display:none!important}
-html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas span{font-size:10px!important;line-height:1!important;letter-spacing:2px!important;font-style:normal!important;color:#14171c!important;text-shadow:none!important;transform:none!important}
-html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi{--pxs:2!important;margin:0!important;color:#3d4bff!important;filter:none!important;text-shadow:none!important;transform:none!important}
-html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas:is(:active,.appui){translate:0 2px!important;background:#eef0f3!important;box-shadow:inset 0 0 0 2px #14171c,0 2px 6px rgba(20,23,28,.14)!important}
+html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas span{font-size:10px!important;line-height:1!important;letter-spacing:2px!important;font-style:normal!important;color:var(--bqInk)!important;text-shadow:none!important;transform:none!important}
+html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas .pxi{--pxs:2!important;margin:0!important;color:var(--bqAcc)!important;filter:none!important;text-shadow:none!important;transform:none!important}
+html.bqIndus:not(.c6) body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct>#gShopBas:is(:active,.appui){translate:0 2px!important;background:var(--bqFond2)!important;box-shadow:inset 0 0 0 2px var(--bqInk),0 2px 6px rgba(20,23,28,.14)!important}
 </style>
 <style id="policeUnique">
 /* UNE SEULE POLICE (2026-10-15, Sacha : « c'est partout la même police ») — LE FILET CSS. Tout élément, tout pseudo-élément, tout champ

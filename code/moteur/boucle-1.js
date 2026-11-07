@@ -1,5 +1,5 @@
 function loop(now){
-  requestAnimationFrame(loop);
+  loop._raf=requestAnimationFrame(loop); /* (2026-11-07, finition) l'identifiant : dbgStep annule l'image qu'un appel manuel programme (il empilait n boucles) */
   if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
   if(window.__introCouvre){loop._pn=now;last=now;return;} // (2026-10-22, Léo : « ça bug ») l'INTRO DU STUDIO couvre tout l'écran : dessous, le jeu ne calcule ni ne dessine rien (il faisait saccader le film, surtout sur un Mac chargé) — voir moteur/intro-161.js
   if(lierDemarrage(now)){loop._pn=now;last=now;return;} /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : les programmes de la 1re image se lient à côté, le jeu ne dessine pas encore — voir interface/vignette-moteur.js */

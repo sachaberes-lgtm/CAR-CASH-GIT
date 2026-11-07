@@ -19,7 +19,7 @@ const N=64,F=48,FPS=60,SS=5,CX=32,CY=32,R=16,TH=4.6,HW=TH/2;
 const C0=6,CS=52; /* LE CADRE LIVRÉ : on rogne les 6 px de noir autour du rendu de 64 × 64 (l'encre tient dans 7 → 56) : 52 × 52 px, 34 % de pixels en moins, la bande reste sous 16 384 px de large même à 3 pixels d'écran par pixel CSS */
 const DEG=Math.PI/180,TAU=Math.PI*2;
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,x)),sm=(a,b,x)=>{const k=clamp((x-a)/(b-a),0,1);return k*k*(3-2*k);};
-const LV=[0,44,92,146,200,255],PAL=LV.map(v=>[v,v,v]); /* 6 gris tranchés (PNG à 4 bits) : le noir est un vrai noir, le blanc est réservé aux reflets, à l'œil et aux dents */
+const LV=[0,44,92,146,200,255],PAL=LV.map(v=>{const iv=255-v;return [iv,iv,iv];}); /* (2026-11-07, Sacha : « au lieu du serpent blanc sur fond noir, un serpent noir sur fond blanc ») LV reste la même échelle de luminance pour `quant` (les mêmes paliers de lumière), mais la COULEUR posée à chaque palier est inversée (255-v) : le fond (palier 0, luminance la plus sombre) devient blanc, les reflets/l'œil/les dents (palier le plus clair) deviennent noirs — tout le dessin se lit en négatif, sans toucher au modèle de lumière */
 const quant=l=>{const x=clamp(l,0,1)*255;let bi=0,bd=1e9;for(let i=0;i<LV.length;i++){const d=Math.abs(LV[i]-x);if(d<bd){bd=d;bi=i;}}return bi;};
 const JAW=[11,10,6,1,0,3,9,11,7,1,0,3].map(d=>d*DEG); /* l'angle dont la mâchoire du haut se relève, sur 12 images : deux bouchées (CLAC aux images 4 et 10) */
 /* LE REPÈRE DE LA TÊTE : a = l'abscisse le long de l'anneau (px, vers l'avant = sens horaire), v = l'écart au fil du corps (px, vers l'extérieur = le dessus de la tête). */

@@ -8,7 +8,8 @@
    ⚠ LE MOTEUR DU TIRAGE (case 3) N'EXISTE PAS ENCORE : les trois cartes lisent les premières missions du réservoir (PASS_POOL) pas encore récupérées (pvChoix) ; la carte du milieu est la
    première mission « cadeau voiture » dont la caisse n'est pas à toi (sinon un habillage, sinon la première). Le jour où le moteur existe, seul pvChoix() change. */
 const PV_TITRE='LE DÉBUT DE LA FIN';
-Object.assign(I18N,{'LE DÉBUT DE LA FIN':'THE BEGINNING OF THE END'});
+Object.assign(I18N,{'LE DÉBUT DE LA FIN':'THE BEGINNING OF THE END','FOCUS':'FOCUS','RENOUVELER':'REPLACE','MISSION SUIVIE':'MISSION FOLLOWED','SUIVI RETIRÉ':'FOCUS REMOVED','NOUVELLE MISSION':'NEW MISSION','RESTANT AUJOURD\'HUI':'LEFT TODAY','PLUS DE RENOUVELLEMENT AUJOURD\'HUI':'NO MORE REPLACES TODAY','IMPOSSIBLE POUR CETTE MISSION':'NOT FOR THIS MISSION'});
+function pvHaut(){const E=$('pvEcran'),c=E&&E.querySelector('.pvC.sel');if(!c)return;c.classList.toggle('haut',c.offsetTop+c.offsetHeight>E.clientHeight-150);} /* près du bas : les boutons passent au-dessus de la carte */
 /* UNE SEULE MATIÈRE « HOLOGRAMME » : la grille fine. Sa couleur et son pas disent la récompense (or = voiture, rose = habillage, vert = argent, cyan = rien) ; le pas (px) est le même sur les cartes (CSS) et sur la caisse (mètres x PV_PAS) */
 const PV_TEINTE={cyan:{css:'#5ff0ff',hex:0x5ff0ff,pas:.5},vert:{css:'#7DFF9B',hex:0x7dff9b,pas:.55},rose:{css:'#f24aa0',hex:0xf24aa0,pas:.4},or:{css:'#ffd75e',hex:0xffd75e,pas:.3}};
 const PV_PAS=.5; /* le pas de la cage de la caisse (m) : fixe, la teinte de la récompense ne la resserre jamais */
@@ -61,18 +62,23 @@ function pvForme(m,v,t,ok,pret,p){ /* le dessin de l'avancement, dans .pvAn */
   return {c:cad?'cad':'',h:'<svg viewBox="0 0 64 64" aria-hidden="true"><circle class="pvPiste" cx="32" cy="32" r="28"/><circle class="pvJauge" cx="32" cy="32" r="28" pathLength="'+PV_CERCLE+'" data-off="'+off+'" style="stroke-dashoffset:'+PV_CERCLE+'"/></svg>'
     +'<b class="pvN">'+(pret?pxi('coche'):f==='cible'?pxi('cible'):pc+'<small>%</small>')+'</b>'};
 }
+function pvActions(m,gift,ok){ /* sous la carte choisie : FOCUS (la suivre) et RENOUVELER (×3 par jour, pas pour un cadeau ni une mission prête) */
+  const E=passEtat(),n=passReste(),peut=!gift&&!ok&&n>0;
+  return '<span class="pvAct"><button type="button" class="pvB pvBf'+(E.fo===m.id?' on':'')+'" data-a="foc" aria-label="'+sansAcc(TR('FOCUS'))+'">'+pxi('cible')+'</button>'
+    +(gift?'':'<button type="button" class="pvB pvBr'+(peut?'':' off')+'" data-a="ren" aria-label="'+sansAcc(TR('RENOUVELER'))+'">'+pxi('rotation')+'<b>'+n+'</b></button>')+'</span>';}
 function pvCarte(x,cls){
   if(!x)return '';
   const m=x.m,s=m2Etat(),ok=s.ok.indexOf(m.id)>=0;let v=0;try{v=m2Val(m);}catch(e){}const t=m2Seuil(m),p=ok?1:m2Frac(m,v,t);
   const r=m.r||{},gc=r.cash?'vert':r.car?'or':r.cat?'rose':'cyan',gift=cls==='pvG'&&x.cadeau!==false;
   const pret=ok&&m2Pret(m.id),ic=(M2_FAM[m.f]||M2_FAM.exploit).ic,F=pvForme(m,v,t,ok,pret,p);
-  return '<div class="pvC '+cls+(cls==='pvG'&&!gift?' nog':'')+(pret?' pret':'')+(gift&&p>=.667&&!ok&&p<1?' pulse':'')+'" role="button" tabindex="0" data-m2="'+m.id+'" data-gc="'+gc+'" style="--gc:'+PV_TEINTE[gc].css+'" aria-label="'+sansAcc(m2Txt(m))+'">'
+  return '<div class="pvC '+cls+(cls==='pvG'&&!gift?' nog':'')+(pret?' pret':'')+(GMIS.pvAv===m.id?' av':'')+(PASS_ON&&passEtat().fo===m.id?' foc':'')+(GMIS.pvSel===m.id?' sel av':'')+(gift&&p>=.667&&!ok&&p<1?' pulse':'')+'" role="button" tabindex="0" data-m2="'+m.id+'" data-gc="'+gc+'" style="--gc:'+PV_TEINTE[gc].css+'" aria-label="'+sansAcc(m2Txt(m))+'">'
     +(gift?pvVedette(m,true):'')+'<span class="pvAn '+F.c+'">'+F.h+'</span>'
-    +'<span class="pvT">'+pxi(ic)+'<span>'+m2TxtH(m)+'</span></span>'+(gift?'':pvVedette(m,false))+'</div>';
+    +'<span class="pvT">'+pxi(ic)+'<span>'+m2TxtH(m)+'</span></span>'+(gift?'':pvVedette(m,false))+pvActions(m,gift,ok)+'</div>';
 }
 function pvRender(vu){ /* vu : l'écran est déjà là (une carte vient d'être prise) — les fils ne se retracent pas */
   const el=$('gmNoeuds'),gm=$('gMis');if(!el||!gm)return;
   const c=pvChoix(),s=m2Etat();
+  if(!vu){GMIS.pvAv=(passEtat().fo&&passEtat().sl.indexOf(passEtat().fo)>=0)?passEtat().fo:(c.don?c.don.m.id:'');GMIS.pvSel='';} /* à l'ouverture : le cadeau est en avant, rien n'est choisi */
   if(!vu||GMIS.pvTpl==null){let k;do{k=Math.floor(Math.random()*PV_GAB.length);}while(k===GMIS.pvTpl);GMIS.pvTpl=k;GMIS.pvMir=!GMIS.pvMir;} /* un gabarit au hasard, jamais deux fois le même d'affilée */
   gm.classList.add('pv');gm.classList.toggle('m2land',VP.w>VP.h*1.25);GMIS.pvAnime=!vu;GMIS.pvCle='';
   el.innerHTML='<div id="pvEcran" class="pose">'+pvCarte(c.g,'pvS pvGa')+pvCarte(c.don,'pvG')+pvCarte(c.d,'pvS pvDr')+(vu||REDUCED_MOTION?'':'<i class="pvScan"></i>')+'</div>';
@@ -81,7 +87,7 @@ function pvRender(vu){ /* vu : l'écran est déjà là (une carte vient d'être 
   if(b)b.textContent=sansAcc(TR(PV_TITRE));if(sous)sous.textContent=fait+' / '+PASS_N;if(hd)hd.style.setProperty('--m2P',Math.round(100*fait/Math.max(1,PASS_N))+'%');if(aide)aide.textContent='';
   /* la caisse à gagner sur le plateau (celle du cadeau voiture) ; sinon la tienne */
   try{const cib=c.don&&c.don.car!=null?c.don.car:equippedCar();if(cib!==garageI&&!GAR.go)garageSaute(cib);}catch(e){console.warn('pass viseur',e);}
-  pvPlace(VP.w,VP.h,true);pvTeinte('cyan');
+  pvPlace(VP.w,VP.h,true);pvTeinte('cyan');pvHaut();
   if(!vu&&!REDUCED_MOTION)try{if(SONV2)sfx('ui.on',{vol:-12});}catch(e){} /* un souffle discret à l'ouverture */
   requestAnimationFrame(function(){requestAnimationFrame(function(){const e=$('pvEcran');if(e)e.classList.remove('pose');});}); /* les cartes se posent sans glisser depuis le coin ; ensuite elles suivent la caméra */
   /* les anneaux se remplissent (une fois) */
@@ -161,8 +167,19 @@ function pvClic(e){
   const t=e.target,card=t&&t.closest&&t.closest('.pvC');if(!card||!garageOn||GAR.go)return;
   e.stopPropagation();uiPop(card);
   const id=card.getAttribute('data-m2');
+  const E=$('pvEcran'),bt=t.closest('.pvB');
+  if(bt){ /* un bouton de la carte choisie */
+    if(!card.classList.contains('sel'))return;
+    if(bt.getAttribute('data-a')==='foc'){const on=passFocus(id);E.querySelectorAll('.pvC').forEach(function(q){q.classList.toggle('foc',on&&q===card);});bt.classList.toggle('on',on);uiClic(on?'ok':'nav');hap(10);toast(pxi('cible')+' '+TR(on?'MISSION SUIVIE':'SUIVI RETIRÉ'));return;}
+    if(bt.classList.contains('off')||!passRenouvelle(id)){uiClic('refus');try{gSecoue(card);}catch(e){}toast(pxi('horloge')+' '+TR(passReste()<=0?'PLUS DE RENOUVELLEMENT AUJOURD\'HUI':'IMPOSSIBLE POUR CETTE MISSION'));return;}
+    uiClic('ok');hap([10,30,14]);GMIS.pvSel='';GMIS.pvAv='';toast(pxi('rotation')+' '+TR('NOUVELLE MISSION')+' — '+passReste()+' '+TR('RESTANT AUJOURD\'HUI'));pvRender(true);return;}
+  if(!card.classList.contains('av')){ /* 1er toucher : elle s'avance, celle qui était en avant recule */
+    E.querySelectorAll('.pvC.av').forEach(function(q){q.classList.remove('av');});card.classList.add('av');GMIS.pvAv=id;
+    uiClic('nav');hap(8);pvTeinte(card.getAttribute('data-gc'),true);return;}
+  /* 2e toucher sur celle qui est en avant : elle est CHOISIE (et récupérée si elle est prête) */
+  E.querySelectorAll('.pvC.sel').forEach(function(q){q.classList.remove('sel');});card.classList.add('sel');GMIS.pvSel=id;pvHaut();
   if(card.classList.contains('pret')){pvRecupere(id,card);return;}
-  uiClic('nav');hap(8);pvTeinte(card.getAttribute('data-gc'),true); /* une mission en cours : rien à prendre, mais la grille de la caisse prend la couleur de sa récompense */
+  uiClic('ok');hap([8,30,14]);pvTeinte(card.getAttribute('data-gc'),true);
 }
 if(PASS_ON){const nd=$('gmNoeuds');if(nd){nd.addEventListener('click',pvClic);
   nd.addEventListener('keydown',function(e){if((e.code==='Enter'||e.code==='Space')&&e.target.closest&&e.target.closest('.pvC')){e.preventDefault();e.stopPropagation();e.target.click();}});}}

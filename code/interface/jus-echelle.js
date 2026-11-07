@@ -249,12 +249,12 @@ const ZONE_LINES=[ // le portail : chaque zone avalée se célèbre
 const RAIN_LINES=[ // la pluie de billets : le compte en banque a le vertige
  '💸 IL PLEUT DES BILLETS — PARAPLUIE INUTILE','💸 LA BANQUE A APPELÉ : ELLE ABANDONNE','💸 TON COMPTE A LE VERTIGE','💸 L\'ARGENT TOMBE PLUS VITE QUE TOI'];
 const END_LINES=[ // fin de run (même en crash) : la punchline sous le GAME OVER
- 'LA ROUTE GAGNE. CETTE FOIS.','LE BITUME SE SOUVIENDRA DE TOI','MÊME LES LÉGENDES TOUCHENT LE SOL',
- 'CRASH TEST RÉUSSI. ENFIN… TEST.','LA GRAVITÉ : 1 — TOI : 0','T\'ES MORT. LES THUNES, ELLES, RESTENT.',
- 'REVIENS. LA VITESSE S\'ENNUIE DÉJÀ.'];
+ 'LA ROUTE GAGNE. CETTE FOIS','LE BITUME SE SOUVIENDRA DE TOI','MÊME LES LÉGENDES TOUCHENT LE SOL',
+ 'CRASH TEST RÉUSSI. ENFIN… TEST','LA GRAVITÉ : 1 — TOI : 0','T\'ES MORT. LES THUNES, ELLES, RESTENT',
+ 'REVIENS. LA VITESSE S\'ENNUIE DÉJÀ'];
 const END_TOP=[ // fin de run AVEC record : là on s'incline
  '🏆 RECORD — LES AUTRES JOUENT À UN AUTRE JEU','🏆 LE LEADERBOARD A DEMANDÉ TON AUTOGRAPHE',
- '🏆 RECORD ÉCRASÉ — COMME TES SUSPENSIONS','🏆 HISTORIQUE. LA ROUTE S\'EN REMET À PEINE.'];
+ '🏆 RECORD ÉCRASÉ — COMME TES SUSPENSIONS','🏆 HISTORIQUE. LA ROUTE S\'EN REMET À PEINE'];
 // ---- L'ÉCHELLE : chaque palier de multiplicateur se CRIE — le plafond ×6 devient un objectif nommé ----
 const LADDER=[[2,'ÇA CHAUFFE !'],[3,'EN FEU !!'],[4.5,'AURA EN FUSION'],[6,'MULTI MAX !!']]; // (2026-09-29, passe qualité) « IL PLEUT DES BILLETS » / « JACKPOT MAX » : les figures ne paient plus qu'en aura
 const flyV=new THREE.Vector3();
@@ -266,7 +266,7 @@ function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteu
   const x0=(flyV.x*.5+.5)*innerWidth,y0=(-flyV.y*.5+.5)*innerHeight;
   const r=elMoney.getBoundingClientRect(),x1=r.left+r.width/2,y1=r.top+r.height/2;
   for(let i=0;i<n;i++){
-    const b=document.createElement('div');b.className='bill';b.textContent='\uE000';
+    const b=document.createElement('div');b.className='bill';b.textContent='€';
     b.style.left=(x0+(Math.random()-.5)*70)+'px';b.style.top=(y0+(Math.random()-.5)*46)+'px';
     document.body.appendChild(b);
     setTimeout(()=>{b.style.left=x1+'px';b.style.top=y1+'px';b.style.opacity=0;b.style.fontSize='8px';},30+i*45);

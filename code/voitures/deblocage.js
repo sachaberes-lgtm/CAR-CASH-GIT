@@ -53,7 +53,7 @@ const CAR_UNLOCK=[
   {p:2000000},/* (2026-10-22, Sacha : « tableau des voitures » 550 000 → 200 000) */ // (2026-10-19 : 750 000 → 550 000, la plus abordable des épiques ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) ACIDE — (2026-10-06) ÉPIQUE à l'argent du jeu (était en boutique, 1,99 €)
 /* ===== LES CONDITIONS DES 50 — DÉBUT ===== */
   {p:1500}, // LA POSTIÈRE — (2026-10-06) RETIRÉE
-  {p:2000}, // LA DEUCHE — (2026-10-06) retirée ; (2026-11-07, Léo : « la douche a disparu ») REMISE
+  {p:2000}, // LA DEUCHE — (2026-10-06) RETIRÉE ; (2026-11-07) remise puis retirée de nouveau (« enlève la tin snail »)
   {p:2500}, // LE TAXI JAUNE — (2026-10-06) retiré ; (2026-11-07, Léo : « le taxi remets ») REMIS
   {k:'premium',eur:'161,00 €',rar:'leg'}, // LA PIZZA EXPRESS — (2026-10-06) revient, LÉGENDAIRE en boutique
   {p:3500}, // LE MONOSPACE

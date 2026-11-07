@@ -17,7 +17,6 @@ css/charte-6-signatures.css          # charte 4 : signatures v5, HUD v5, objecti
 css/charte-7-details.css             # charte 4 : le mouvement (21), les détails (22), écran de mort resserré, la sortie, critiques
 css/hud-maitrise.css                 # <style id="hudMaitrise">
 css/hud-da.css                       # achatPop, pouvoirsV2, hudDA, tailles du HUD et des figures, frénésie ×3, hudOrdre
-css/monnaie.css                      # le symbole de la monnaie du jeu (masque, d'après le sketch de Léo)
 css/garage-accueil.css               # garageV6, lueurs, accueilCiel, garageV7, garageVitrine
 css/garage-hub-barre.css             # hubGarage : la barre, les jauges, le HOME, la console à trois modes
 css/garage-hub-boutique.css          # hubGarage : boutique du jour, offres, grille, DA du menu ciel, inventaire en pictogrammes
@@ -49,6 +48,14 @@ css/paufinage-boutons.css           # <style id="paufinageBoutons"> : le paufina
 css/boites-blister.css             # <style id="boitesBlister"> : les cartes de la boutique en BOÎTES blister penchées en 3D, une couleur par rareté, la dorée
 css/ergonomie-mobile.css            # <style id="ergonomieMobile"> : l'ergonomie mobile (2026-11-07) — zones de touche de 44 px (pastilles du sélecteur), pictogrammes éteints plus lisibles, lignes de mission couchées
 css/vitrine-miniature.css          # <style id="vitrineMiniature"> : la carte d'une voiture = UNE image de vitrine (socle, caisse, verre) au lieu du cube CSS ; finitions de la boutique (2026-11-07)
+css/boutique-peinture.css                  # <style id="bq-peinture"> : rayon peinture de la boutique, ergonomie mobile
+css/boutique-aile.css                  # <style id="bq-aile"> : rayon aile de la boutique, ergonomie mobile
+css/boutique-trainee.css                  # <style id="bq-trainee"> : rayon trainee de la boutique, ergonomie mobile
+css/boutique-figure.css                  # <style id="bq-figure"> : rayon figure de la boutique, ergonomie mobile
+css/revue-interfaces.css             # <style id="revueInterfaces"> : la revue des interfaces (2026-11-07) — 33 écrans photographiés ; les plaques de nom de la boutique qui débordent (anglais)
+css/boutique-ensemble.css                 # <style id="bq-ensemble"> : la finition générale de la boutique (ossature, alignements), posée après les rayons
+css/hud-fini.css                     # <style id="hudFini"> : la finition du HUD de course (2026-11-07) — colonne de droite d'une seule largeur, barre de la chaîne au bout du flow, centimes en petit, entrée de l'argent et de la flamme NITRO, éclat des gains ; posé après tout le HUD
+css/etalonnage.css                    # <style id="etalonnage"> : L'ÉTALONNAGE (2026-11-07) — LE nuancier (une encre, un or, les néons, la salle blanche), posé en dernier : il gagne sur tous les :root d'avant
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
@@ -161,7 +168,7 @@ voitures/zagato.js                   # la Zagaie : la 5-95 de Zagato (gueule cre
 voitures/countach.js                 # le Loup : la Countach blanche du film (coin à arêtes vives, aileron, portes à ciseaux, l'épave)
 voitures/stratos-meteo.js            # LA STRATOS, station météo : anémomètre, manche à air, radars Doppler, gyroscope, barre de prévision (?stratos=ancien)
 voitures/corbillard-mort.js          # LE CORBILLARD de la mort : cercueil, crâne, squelette (?corbillard=ancien)
-voitures/retour-deuche-taxi.js         # la Deuche et le Taxi jaune reviennent (dessins d'avant le 07/10)
+voitures/retour-deuche-taxi.js         # le Taxi jaune revient (dessin d'avant le 07/10) ; la Deuche est retirée de nouveau
 voitures/buildcar.js                 # buildCar : construire une voiture
 voitures/plaque.js                   # la plaque d'immatriculation, le profil
 interface/vignette-moteur.js         # vignette moteur, étapes de chauffe
@@ -254,6 +261,12 @@ interface/garage-rendu.js            # le doigt sur la scène, garageRender
 interface/garage-cadrage.js          # cadrage mesuré, lampes de l'atelier
 interface/garage-menu-inventaire.js  # le garage est le menu, hub, accueil du ciel, l'inventaire
 interface/figures-selecteur.js      # le sélecteur de figures commun à la boutique et à l'inventaire : emplacement automatique, ANNULER, filtres, tri, dock
+interface/boutique-peinture.js           # boutique : le rayon peinture (ergonomie mobile)
+interface/boutique-aile.js           # boutique : le rayon aile (ergonomie mobile)
+interface/aile-vitrine.js            # LA VITRE DES AILES : la carte d une aile pas à toi est sous verre (CSS), la vitre éclate à l achat
+interface/boutique-trainee.js           # boutique : le rayon trainee (ergonomie mobile)
+interface/boutique-figure.js           # boutique : le rayon figure (ergonomie mobile)
+interface/revue-interfaces.js        # la revue des interfaces (2026-11-07) : bqNomsAjuste, les plaques de nom de la boutique mesurées, .lg quand elles débordent
 interface/burn-out-1.js              # le premier burn-out
 interface/burn-out-2.js              # burn-out : la caisse dans la fumée, la balade
 interface/bouton-rouge.js            # le bouton rouge et ses outils

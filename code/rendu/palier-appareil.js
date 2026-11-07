@@ -156,8 +156,19 @@ let DPR_CAP=Math.min(devicePixelRatio,ALLEGE?1:1.5),curDPR=Math.min(DPR_CAP,devi
 /* (2026-11-06, Léo : « le jeu est de mauvaise qualité sur iMac Safari ») UN ÉCRAN RETINA N'EST PAS UN 4K À 100 % : un iMac (densité 2) dans une fenêtre de taille normale (≤ 2,6 Mpx de points CSS, soit 1920 × 1350) a plus de 4,5 Mpx
    de pixels physiques, donc la règle « classe 4K » (budget 2,0 Mpx, vitrine 2,6) le prenait pour un téléviseur 4K : la 3D était dessinée à ~1,4 pixel par point, agrandie ×1,4 (floue) pendant que l'interface restait nette.
    Elle retrouve les budgets des écrans normaux (3,2 Mpx en course, 4,2 à la vitrine) et un plancher de 1,5 ; la résolution adaptative (QL) sait toujours baisser. `?retina=0` = avant. */
-const RETINA_OK=!/[?&]retina=0\b/.test(location.search)&&devicePixelRatio>=2&&innerWidth*innerHeight<=2.6e6;
-const PC_4K=!/[?&]4k=0\b/.test(location.search)&&!RETINA_OK&&innerWidth*innerHeight*devicePixelRatio*devicePixelRatio>=4.5e6;
+/* ===== LA 4K SE MESURE SUR L'ÉCRAN, PAS SUR LA COLONNE (2026-11-07, chasse aux bugs RND-N01 : « RETINA_OK est calculé sur l'iframe, donc VRAI sur un écran 4K ») =====
+   Dans la page-cadre de l'ordi le jeu voit 844×390 POINTS à densité 3 à 4,5 (le zoom du cadre est compté dans devicePixelRatio) : 0,33 Mpx de points, loin sous les 2,6 Mpx
+   de la règle Retina, et une densité ≥ 2 — un 4K à 150 % passait donc pour un iMac (RETINA_OK vrai), PC_4K tombait FAUX et les budgets remontaient à 3,2 / 4,2 Mpx : les
+   300 à 600 Mo de carte graphique que la v1173 voulait retirer revenaient. ECRAN = la fenêtre du PARENT (ses points CSS, SA densité : celle de l'écran, sans le zoom du
+   cadre — ce que tete.html lit aussi pour CC_DPR_CADRE) ; hors cadre, la fenêtre elle-même ; parent inaccessible : screen.width × screen.height à la densité vue.
+   MESURÉ (Chrome headless, page-cadre de l'ordi, dbgVhdEcran / dbgNette, course sur les nuages) : fenêtre 1920×1080 ×1 → ECRAN 1898×982 pts, 1,9 Mpx : pas 4K, pas Retina, course aux pixels réels (1757×812, 1,43 Mpx) ;
+   2560×1440 ×1,5 (le 4K à 150 %, l'ordi de Sacha) → 2538×1342 pts, 7,7 Mpx physiques : 4K, course 2080×961 = 2,0 Mpx et vitrine 2,6 (avec `?ecran4k=0`, l'ancienne mesure : 2631×1216 = 3,2 Mpx, vitrine 4,2) ;
+   3840×2160 ×2 → 31,5 Mpx : 4K, 2,0 / 2,6 ; 1920×1080 ×2 et 1920×1350 ×2 (iMac Retina) → RETINA_OK, 3,2 / 4,2 et plancher 1,5 : inchangés. `?ecran4k=0` = l'ancienne mesure, sur la colonne. */
+const ECRAN=(function(){let w=innerWidth,h=innerHeight,d=devicePixelRatio||1,src='fenetre';
+  if(window.parent!==window&&!/[?&]ecran4k=0\b/.test(location.search)){try{const p=window.parent;w=p.innerWidth;h=p.innerHeight;d=p.devicePixelRatio||d;src='parent';}catch(e){w=screen.width;h=screen.height;src='screen';}}
+  return {w:w,h:h,d:+d.toFixed(3),src:src,pts:w*h,px:Math.round(w*h*d*d)};})();
+const RETINA_OK=!/[?&]retina=0\b/.test(location.search)&&ECRAN.d>=2&&ECRAN.pts<=2.6e6;
+const PC_4K=!/[?&]4k=0\b/.test(location.search)&&!RETINA_OK&&ECRAN.px>=4.5e6;
 const PC_PX=(function(){const m=/[?&]pcpx=([\d.]+)/.exec(location.search);return m?+m[1]*1e6:PC_4K?2.0e6:3.2e6;})(); /* (2026-10-25, Sacha : « Chrome prend 1 700 Mo de GPU ») budget 4,5 M → 3,2 M : toujours les pixels réels d'un écran 1080p, mais plus la 4K/2 ; `?pcpx=4.5` = avant */
 const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([\d.]+)/.exec(location.search);return m?+m[1]*1e6:PC_4K?2.6e6:4.2e6;})(); /* budget de pixels de la vitrine du menu sur ordinateur (8,3 M avant) ; `?vhdpc=8.3` = avant */
 /* (2026-11-06, Léo : « le jeu est de mauvaise qualité sur iMac Safari ») LE PLANCHER D'UN ÉCRAN RETINA : sur un iMac (densité 2), le budget de pixels (PC_PX) tombe sous 1,25 dès que la fenêtre dépasse ~1,3 Mpx de points CSS,
@@ -221,7 +232,11 @@ addEventListener('resize',()=>{VP.w=innerWidth;VP.h=innerHeight;});
 let DPR_VU=devicePixelRatio,DPR_VU_T=0;
 addEventListener('resize',function(){if(ALLEGE||TEL_NATIF||Math.abs(devicePixelRatio-DPR_VU)<.01)return;clearTimeout(DPR_VU_T);
   DPR_VU_T=setTimeout(function(){DPR_VU=devicePixelRatio;try{DPR_CAP=dprPlafond(!!(typeof SAVE!=='undefined'&&SAVE.d&&SAVE.d.q==='fast'));if(typeof VHD!=='undefined'&&VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.murT=0;}qlReprise();}catch(e){}},150);});
-addEventListener('resize',()=>{if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) une fenêtre à 0 px (iframe du cadre cachée, rotation de WebView) : aspect infini, matrice NaN et toiles à 0 jusqu'au resize suivant — on attend une vraie taille */camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);slCv.width=innerWidth;slCv.height=innerHeight;if(juiceCv){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}});
+/* ===== LE RESIZE REGROUPÉ (2026-11-07, finition : « des détails plus pro sans vraie différence ») ===== sur l'ordi, tirer le bord de la fenêtre
+   lance des dizaines de `resize` par seconde : chacun réallouait les cibles du bloom (composer.setSize) et EFFAÇAIT les toiles 2D en réécrivant leur
+   largeur. Désormais UNE retaille par image (rAF), et une toile n'est retaillée que si sa taille change. */
+let retailleRaf=0;
+addEventListener('resize',()=>{cancelAnimationFrame(retailleRaf);retailleRaf=requestAnimationFrame(()=>{retailleRaf=0;if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) une fenêtre à 0 px (iframe du cadre cachée, rotation de WebView) : aspect infini, matrice NaN et toiles à 0 jusqu'au resize suivant — on attend une vraie taille */camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);if(slCv.width!==innerWidth||slCv.height!==innerHeight){slCv.width=innerWidth;slCv.height=innerHeight;}if(juiceCv&&(juiceCv.width!==innerWidth||juiceCv.height!==innerHeight)){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}});});
 const hemi=new THREE.HemisphereLight(0xba86b6,0x18162e,0.40);scene.add(hemi); // ambiance VICE CITY NUIT (assombrie) : ciel rose-mauve baissé, sol indigo — la pénombre gagne, les lumières de la caisse vivent (nommée : les BIOMES la pilotent)
 const sun=new THREE.DirectionalLight(0xff6a3c,1.45);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // BRAISE ROUGE-CORAIL : la lumière rasante peint le bitume en rouge sombre — golden hour devenue red hour
 const fill=new THREE.DirectionalLight(0x4f74e8,.24);fill.position.set(-200,-400,-100);scene.add(fill); // fill BLEU NÉON par en dessous : les ventres de caisse prennent la ville

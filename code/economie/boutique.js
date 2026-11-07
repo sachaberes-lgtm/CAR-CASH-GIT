@@ -279,25 +279,25 @@ const PEINT_CAT=[ /* [id, nom, rareté, aspect, description, défi] */
   ['ocean','ABYSSES','legendaire',{mot:'ocean'},"La lumière qui danse au fond d'un lagon, sur toute la carrosserie."],
   ['rgb','RGB','legendaire',{mot:'rgb'},'Toutes les couleurs, en boucle, comme un clavier de gamer. Elle ne choisit pas : elle prend tout.']];
 const PALETTE_PACK={id:'palette',produit:'cashcar.palette40',eur:'0,99 €',n:'LA PALETTE',ids:PEINT_CAT.filter(function(e){return e[2]==="commun"||e[2]==="rare";}).map(function(e){return e[0];})}; /* l'ancien pack (plus vendu) : palDonne le rend encore à qui restaure ses achats */
-Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOUR","PEINTURE":"PAINT","PEINTURE GAGNÉE":"PAINT EARNED","OU GAGNE-LA":"OR EARN IT","DÉFI":"CHALLENGE",
+Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOR","PEINTURE":"PAINT","PEINTURE GAGNÉE":"PAINT EARNED","OU GAGNE-LA":"OR EARN IT","DÉFI":"CHALLENGE",
   "UNIES":"SOLID","DÉGRADÉS":"GRADIENTS","MOTIFS":"PATTERNS","ANIMÉES":"ANIMATED","L'achat est indisponible pour le moment.":"Buying is unavailable right now.",
   "ROUGE BOLIDE":"RACING RED","Le rouge des grandes marques. Sans le cheval, avec l'arrogance.":"The red of the big brands. Without the horse, with the arrogance.","Croque 50 cerises.":"Eat 50 cherries.",
   "ORANGE ÉMEUTE":"RIOT ORANGE","Visible depuis l'espace. C'est le but.":"Visible from space. That's the point.","Croque 50 oranges.":"Eat 50 oranges.",
   "JAUNE TAXI":"TAXI YELLOW","Tout le monde te fait signe. Tu ne t'arrêtes pas.":"Everyone waves at you. You don't stop.","Ramasse 50 citrons.":"Pick up 50 lemons.",
-  "VERT BILLET":"CASH GREEN","La couleur préférée de ton banquier.":"Your banker's favourite colour.","Gagne 100 000 € au total.":"Earn €100,000 in total.",
+  "VERT BILLET":"CASH GREEN","La couleur préférée de ton banquier.":"Your banker's favorite color.","Gagne 100 000 € au total.":"Earn €100,000 in total.",
   "LAGON":"LAGOON","L'eau des îles où tu dépenses tes primes.":"The water of the islands where you spend your bonuses.",
   "AZUR":"AZURE","Le ciel sans un nuage. Le tien.":"A sky without a single cloud. Yours.","Croque 50 myrtilles.":"Eat 50 blueberries.",
   "BLEU MINUIT":"MIDNIGHT BLUE","Le bleu des néons de la ville, à trois heures du matin.":"The blue of city neons at three in the morning.","Joue 10 niveaux de nuit.":"Play 10 levels at night.",
-  "VIOLET ROYAL":"ROYAL PURPLE","La couleur des rois. Et de ceux qui roulent comme eux.":"The colour of kings. And of those who drive like them.","Ramasse 50 raisins.":"Pick up 50 grapes.",
+  "VIOLET ROYAL":"ROYAL PURPLE","La couleur des rois. Et de ceux qui roulent comme eux.":"The color of kings. And of those who drive like them.","Ramasse 50 raisins.":"Pick up 50 grapes.",
   "FUCHSIA":"FUCHSIA","Trop voyant ? Juste assez.":"Too loud? Exactly loud enough.","Ramasse 50 fruits du dragon.":"Pick up 50 dragon fruits.",
   "ROSE POUPÉE":"DOLL PINK","Rose bonbon, laque parfaite. Tu n'es pas en plastique, tu es en carbone.":"Candy pink, perfect gloss. You're not plastic, you're carbon.",
   "BLANC NEIGE":"SNOW WHITE","Propre comme un compte en Suisse.":"Clean as a Swiss bank account.","Joue 10 niveaux sur le glacier.":"Play 10 levels on the glacier.",
-  "GRIS NARDO":"NARDO GREY","Le gris des supercars allemandes : presque du béton. Il ne dit rien, il se fait respecter.":"The grey of German supercars: almost concrete. It says nothing and commands respect.",
+  "GRIS NARDO":"NARDO GRAY","Le gris des supercars allemandes : presque du béton. Il ne dit rien, il se fait respecter.":"The gray of German supercars: almost concrete. It says nothing and commands respect.",
   "NOIR MAT":"MATTE BLACK","Pas un reflet. Même la police hésite.":"Not a single reflection. Even the police hesitate.",
   "ROSE DRAGÉE":"SUGAR PINK","Le rose des baptêmes. Tu roules quand même à 300.":"Christening pink. You're still doing 300.","Joue 10 niveaux le matin.":"Play 10 levels in the morning.",
   "LILAS":"LILAC","Une fleur de printemps qui double par la droite.":"A spring flower that overtakes on the right.",
   "BLEU PISCINE":"POOL BLUE","Le bleu d'une piscine de palace. Plongeoir compris.":"Five-star hotel pool blue. Diving board included.","Joue 10 niveaux en plein jour.":"Play 10 levels in broad daylight.",
-  "PISTACHE":"PISTACHIO","Le vert des glaciers italiens. Les pneus, eux, sont chauds.":"Italian gelato green. The tyres, though, are hot.",
+  "PISTACHE":"PISTACHIO","Le vert des glaciers italiens. Les pneus, eux, sont chauds.":"Italian gelato green. The tires, though, are hot.",
   "LAVE":"LAVA","Du volcan au toit, la coulée ne refroidit jamais. N'y jette pas d'anneau.":"From the volcano to the roof, the flow never cools. Don't throw a ring in.",
   "BRAISE FIDÈLE":"LOYAL EMBER","Sept jours d'affilée sur l'asphalte : la laque en garde la chaleur.":"Seven days in a row on the asphalt: the paint keeps the heat.","Le 7e jour d'une série de 7 jours.":"Day 7 of a 7-day streak.",
   "COUCHER DE SOLEIL":"SUNSET","Du miel en bas, du violet en haut : le ciel de 19 h, en laque.":"Honey below, violet above: the 7 pm sky, in gloss.",
@@ -312,9 +312,9 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOUR","PEINTURE":"PA
   "CAMÉLÉON":"CHAMELEON","Vert, bleu, violet : elle change de peau à chaque monde.":"Green, blue, purple: it changes skin in every world.","Traverse 4 maps dans la même partie.":"Cross 4 maps in the same run.",
   "CHROME MIROIR":"MIRROR CHROME","Tu te vois dedans. Les autres aussi.":"You can see yourself in it. So can everyone else.","Joue 5 niveaux dans les nuages.":"Play 5 levels in the clouds.",
   "OR ROSE":"ROSE GOLD","L'or des montres dont personne ne regarde l'heure.":"The gold of watches nobody checks the time on.","Pose-toi en DIVIN à plus de 900 km/h.":"Land a DIVINE at over 900 km/h.",
-  "SUPER GUERRIER":"SUPER WARRIOR","Doré du toit aux pneus. Les cheveux se dressent, le niveau dépasse les 9 000.":"Gold from roof to tyres. Hair stands up, the power level is over 9,000.","Atteins le palier 24 du moteur.":"Reach engine tier 24.",
+  "SUPER GUERRIER":"SUPER WARRIOR","Doré du toit aux pneus. Les cheveux se dressent, le niveau dépasse les 9 000.":"Gold from roof to tires. Hair stands up, the power level is over 9,000.","Atteins le palier 24 du moteur.":"Reach engine tier 24.",
   "CUIVRE":"COPPER","Le métal des vieux tuyaux. Passé au polish.":"Old-pipe metal. Freshly polished.",
-  "HOLOGRAMME":"HOLOGRAM","Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.":"Iridescent chrome that changes colour at every angle. A rare card… on wheels.",
+  "HOLOGRAMME":"HOLOGRAM","Chrome irisé qui change de couleur à chaque angle. Une carte rare… en voiture.":"Iridescent chrome that changes color at every angle. A rare card… on wheels.",
   "NACRE":"PEARL","L'intérieur d'un coquillage, poli par cinq vagues parfaites.":"The inside of a shell, polished by five perfect waves.","Fais 5 poses parfaites d'affilée.":"Land 5 perfects in a row.",
   "FANTÔME":"GHOST","Blanc nacré, presque transparent. Personne ne t'a vu passer.":"Pearl white, almost see-through. Nobody saw you pass.","Roule 2 minutes sans toucher un bord.":"Drive 2 minutes without touching an edge.",
   "NUIT DE GOTHAM":"GOTHAM NIGHT","Noir laqué, la ville qui brille dedans. Les toits sont à toi.":"Gloss black, the city shining in it. The rooftops are yours.","Joue 10 niveaux dans la ville.":"Play 10 levels in the city.",
@@ -331,7 +331,7 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOUR","PEINTURE":"PA
   "POP ART":"POP ART","Trames, bulles et BOOM ! Ta caisse sort tout droit d'une BD.":"Halftones, bubbles and BOOM! Your car jumped straight out of a comic.",
   "GRANDE VAGUE":"GREAT WAVE","Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.":"The waves of Japanese prints, in scales. The calm before your nitro.","Descends au fond de la mer de Jade.":"Dive to the bottom of the Jade Sea.",
   "PLEIN AUX AS":"LOADED","Des euros d'or sur fond vert billet. Discret ? Non.":"Gold euros on cash green. Subtle? No.","Gagne 1 000 000 € au total.":"Earn €1,000,000 in total.",
-  "TIGRE":"TIGER","Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.":"Burnt orange, black stripes. The king of the jungle traded his claws for tyres.",
+  "TIGRE":"TIGER","Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.":"Burnt orange, black stripes. The king of the jungle traded his claws for tires.",
   "LÉOPARD":"LEOPARD","Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles.":"Black rosettes on gold. You don't hunt: you overtake.",
   "ZÈBRE":"ZEBRA","Noir sur blanc ou blanc sur noir ? Personne ne sait. Toi, tu fonces.":"Black on white or white on black? Nobody knows. You just floor it.",
   "VACHE":"COW","Des taches noires sur fond blanc. Meuh, à 300 à l'heure.":"Black patches on white. Moo, at 300 km/h.",
@@ -344,7 +344,7 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOUR","PEINTURE":"PA
   "SAKURA.EXE":"SAKURA.EXE","Des fleurs de cerisier en pixels tombent sur un écran noir. Parfois l'écran bugue. C'est voulu.":"Pixel cherry blossoms fall across a black screen. Sometimes the screen glitches. On purpose.",
   "MAGMA":"MAGMA","La roche se fend, la lave coule dans les fissures et respire. Elle ne refroidit jamais.":"The rock cracks, lava flows through the fissures and breathes. It never cools.",
   "ABYSSES":"ABYSS","La lumière qui danse au fond d'un lagon, sur toute la carrosserie.":"The light dancing at the bottom of a lagoon, all over your bodywork.",
-  "RGB":"RGB","Toutes les couleurs, en boucle, comme un clavier de gamer. Elle ne choisit pas : elle prend tout.":"Every colour, on loop, like a gaming keyboard. It doesn't choose: it takes them all."});
+  "RGB":"RGB","Toutes les couleurs, en boucle, comme un clavier de gamer. Elle ne choisit pas : elle prend tout.":"Every color, on loop, like a gaming keyboard. It doesn't choose: it takes them all."});
 /* LES PRIX EN EUROS ET LES MOTIFS (2026-11-05, le nuancier v3 — voir PEINT_CAT) : le prix suit la RARETÉ, une seule grille (`PEINT_EUR`), par la même
    porte que les caisses en € : `shopPaye('peinture:'+id)` (produit App Store : `cashcar.peinture.<id>`), puis `habDonne`. Tant que StoreKit n'est pas
    branché, ACHETER le DIT (« L'achat est indisponible pour le moment. ») et ne donne rien (`habPaye`). Les peintures déjà à toi le restent.
@@ -421,9 +421,9 @@ const MOTIFS={
       motTore(x,function(){x.fillStyle='rgba(255,255,255,.85)';x.fillRect(cx-r*1.4,cy-.8,r*2.8,1.6);x.fillRect(cx-.8,cy-r*1.4,1.6,r*2.8);});}}},
   cash:{s:.45,c:0x1d7f45,f:function(x,R){x.fillStyle='#1d7f45';x.fillRect(0,0,MOT_W,MOT_W);
     x.strokeStyle='rgba(255,255,255,.07)';x.lineWidth=10;for(let k=-5;k<5;k++){x.beginPath();x.moveTo(k*128,0);x.lineTo(k*128+MOT_W,MOT_W);x.stroke();} // le guillochage du billet
-    x.font='92px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
+    x.font='900 92px "Arial Black",Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
     for(let b=0;b<4;b++)for(let a=0;a<4;a++){const cx=(a+.5+(b&1)*.5)*128,cy=(b+.5)*128,ro=(R()-.5)*.5;
-      motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(ro);x.lineWidth=10;x.strokeStyle='#0c4425';x.strokeText('\uE000',0,4);x.fillStyle='#ffd23a';x.fillText('\uE000',0,4);x.restore();});}}}};
+      motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(ro);x.lineWidth=10;x.strokeStyle='#0c4425';x.strokeText('€',0,4);x.fillStyle='#ffd23a';x.fillText('€',0,4);x.restore();});}}}};
 /* ===== LES LIVRÉES « STICKERS » ET LES LÉGENDAIRES (2026-11-05, le nuancier v3) =====
    Six toiles épiques de plus (mêmes règles que les pelages : 512 px raccordées, un tirage fixe par id) et les six légendaires. Une légendaire a
    `anim` (la clé de son programme dans MOT_ANIM, posé par motGreffe) ; sa toile `f` ne sert qu'à la pastille des listes. */
@@ -564,7 +564,7 @@ const MOT_ANIM={
 const MOT_TU={value:0};let MOT_HORL=false;
 function motHorloge(){if(MOT_HORL)return;MOT_HORL=true;const t0=performance.now();(function f(){MOT_TU.value=(performance.now()-t0)/1000;requestAnimationFrame(f);})();}
 const MOT_TX={},MOT_URL={};
-function motToile(id,w){const M=MOTIFS[id];if(!M)return null;const cv=document.createElement('canvas');cv.width=cv.height=w;const x=cv.getContext('2d');
+function motToile(id,w){const M=MOTIFS[id];if(!M)return null;const cv=document.createElement('canvas');cv.width=cv.height=w;const x=cv.getContext('2d',{willReadFrequently:true}); /* (2026-11-07, finition) relue par motMasque */
   let h=7;for(let i=0;i<id.length;i++)h=Math.imul(h^id.charCodeAt(i),16777619);x.scale(w/MOT_W,w/MOT_W);M.f(x,motAlea(h));return cv;} // le même tirage à chaque fois : la peinture ne change pas d'une caisse à l'autre
 function motTex(id){if(MOT_TX[id])return MOT_TX[id];const cv=motToile(id,MOT_W);if(!cv)return null;const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return MOT_TX[id]=t;}
 function motUrl(id){if(MOT_URL[id]!=null)return MOT_URL[id];let u='';try{const cv=motToile(id,192);u=cv?cv.toDataURL('image/jpeg',.86):'';}catch(e){}return MOT_URL[id]=u;} /* (2026-11-05) 192 px : la grande pastille des cartes de la boutique reste nette */

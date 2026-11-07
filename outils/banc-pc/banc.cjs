@@ -1,6 +1,6 @@
 /* BANC PC — mémoire et latence du jeu dans un Chrome headless (vrai GPU), page-cadre de l'ordi.
    node banc.cjs <url> [--q=params] [--w=2560] [--h=1350] [--dsf=1.5] [--duree=40] [--courses=1] [--port=9444] [--profil=chaud|neuf] [--tag=nom]
-                      [--cpu=1 : profil CPU du chargement] [--tas=1 : profil d'allocations vivantes] [--gc=1 : ramasse-miettes forcé avant chaque relevé]
+                      [--vie=1 : les géométries jamais rendues, par nom] [--force=carte,meteo : tous les portails mènent à cette map] [--cpu=1 : profil CPU du chargement] [--tas=1 : profil d'allocations vivantes] [--gc=1 : ramasse-miettes forcé avant chaque relevé]
    Relève : mémoire des processus Chrome (navigateur, rendu, GPU), tas JS, toile 3D, cibles (bloom, ombre), programmes, textures,
    tâches longues, coût d'image (CPU+GPU) — au menu, puis en course (pilote auto), puis après la mort. JSON dans resultats/<tag>.json */
 const {spawn,spawnSync}=require('child_process'),fs=require('fs'),path=require('path');
@@ -82,7 +82,7 @@ const MESURE=`(function(){var o={};function t(f){try{return f();}catch(e){return
   o.canvas=t(function(){var L=[].slice.call(document.querySelectorAll('canvas')),px=0,n=0;L.forEach(function(c){if(c.width&&c.height){px+=c.width*c.height;n++;}});var ims=[].slice.call(document.images).length;return {n:L.length,vivants:n,Mpx:+(px/1e6).toFixed(2),images:ims,dom:document.getElementsByTagName('*').length};});
   o.lt=t(function(){var L=window.__lt||[];var s=0,mx=0;L.forEach(function(e){s+=e[1];if(e[1]>mx)mx=e[1];});return {n:L.length,totalMs:s,maxMs:mx,gros:L.filter(function(e){return e[1]>=500;}).slice(0,12)};});
   o.state=t(function(){var s=dbgState();return {started:s.started,running:s.running,gameOver:s.gameOver,mode:s.mode};});
-  o.lvl=t(function(){return (window.dbgLvl&&dbgLvl().id)||null;});o.palier=t(function(){var p=dbgPalier();return p.nom+' ('+p.src+') '+p.puce;});
+  o.lvl=t(function(){var n=dbgClassique().niveau;return n?n.carte+'-'+n.meteo:null;});o.palier=t(function(){var p=dbgPalier();return p.nom+' ('+p.src+') '+p.puce;});
   o.progs=t(function(){return dbgProgs().length;});
   o.sons=t(function(){return window.CCSON&&CCSON.etat?CCSON.etat():null;});
   return o;})()`;
@@ -117,6 +117,7 @@ async function releve(p,nom,R){
   if(opt.capture==='1'&&/course 1 à 10 s|menu/.test(nom)){try{const cl=opt.clip?opt.clip.split(',').map(Number):[880,420,800,450];
       const sh=await p.call('Page.captureScreenshot',{format:'png',clip:{x:cl[0],y:cl[1],width:cl[2],height:cl[3],scale:+(opt.dsf||1.5)},captureBeyondViewport:false});
       const f=path.join(HERE,'resultats',TAG+'-'+(/menu/.test(nom)?'menu':'course')+'.png');fs.writeFileSync(f,Buffer.from(sh.data,'base64'));console.log('   capture : '+f);}catch(e){console.log('   capture : '+e.message);}}
+  if(opt.vie==='1'){try{const v=await p.evF("(function(){try{return dbgGeoVie(null,900);}catch(e){return {err:e.message};}})()");r.vie=v;console.log('   VIE DES GÉOMÉTRIES : puce '+v.total+' · notées '+v.notees+' (scène '+v.scene+', HORS SCÈNE '+v.horsScene+', ramassées sans dispose '+v.ramassees+')'+(v.err?' '+v.err:''));for(const [k,n] of (v.familles||[]))if(!/^scène/.test(k))console.log('        '+String(n).padStart(5)+'  '+k);}catch(e){console.log('   vie : '+e.message);}} /* (2026-11-07, chasse PC-N03) --vie=1 : les géométries montées à la puce et jamais rendues, par nom (dbgGeoVie) */
   if(opt.geo==='1'){try{const g=await p.evF(GEO);r.geo=g;console.log('   GÉOMÉTRIES (copies JS dans la scène) : '+g.totalMo+' Mo, '+g.n+' géométries · textures (images) '+g.texMo+' Mo, '+g.nTex);for(const [mo,k] of g.top)if(mo>=1)console.log('        '+String(mo).padStart(6)+' Mo  '+k);}catch(e){console.log('   géométries : '+e.message);}}
   return r;}
 const GEO=`(function(){var S=dbgScene().scene,M={},tot=0,n=0,seen={},tex={},texMo=0,nTex=0;
@@ -158,7 +159,7 @@ function resumeTas(prof){const self={};const vis=(n)=>{const cf=n.callFrame,k=(c
   if(opt.csstop||opt.cssjeu)await dort(2500);
   if(opt.cpu==='1'){const pr=await p.call('Profiler.stop');fs.writeFileSync(path.join(HERE,'resultats',TAG+'.cpuprofile'),JSON.stringify(pr.profile));R.cpu=resumeCpu(pr.profile);
     console.log('PROFIL CPU du chargement ('+R.cpu.totalMs+' ms échantillonnés) :');for(const [ms,k] of R.cpu.top)console.log('   '+String(ms).padStart(6)+' ms  '+k);}
-  await p.evF('try{dbgCout(1)}catch(e){}');await dort(3000);
+  await p.evF('try{dbgCout(1)}catch(e){}');if(opt.vie==='1')await p.evF("try{dbgGeoVie(1);dbgGeoVie('menu');}catch(e){}");await dort(3000);
   await releve(p,'menu (vitrine)',R);
   for(let c=0;c<COURSES;c++){
     if(opt.cpu==='2'){await p.call('Profiler.enable');await p.call('Profiler.setSamplingInterval',{interval:1000});await p.call('Profiler.start');}
@@ -176,7 +177,8 @@ function resumeTas(prof){const self={};const vis=(n)=>{const cf=n.callFrame,k=(c
       dep=await p.attendF('dbgState().started&&!dbgState().gameOver',30000,250);if(!dep)console.log('ÉTAT après le 2e essai : '+JSON.stringify(await p.evF(ETAT)));}
     if(opt.cpu==='2'){await dort(3000);const pr=await p.call('Profiler.stop');const c9=resumeCpu(pr.profile);R.cpuDepart=c9;console.log('PROFIL CPU garage → course ('+c9.totalMs+' ms) :');for(const [ms,k] of c9.top.slice(0,16))console.log('   '+String(ms).padStart(6)+' ms  '+k);}
     if(!dep){console.log('course '+(c+1)+' : jamais partie');await releve(p,'course jamais partie',R);break;}
-    await p.evF('try{dbgAuto(true,0)}catch(e){}');await p.evF('try{dbgCout(1)}catch(e){}');
+    if(opt.force)await p.evF("(function(){var c="+JSON.stringify(opt.force.split(',')[0])+",m="+JSON.stringify(opt.force.split(',')[1]||null)+";if(!window.__forceInt)window.__forceInt=setInterval(function(){try{dbgClassique(c,m);}catch(e){}},1500);try{dbgClassique(c,m);}catch(e){}})()"); /* (2026-11-07) --force=carte,meteo : tous les portails mènent à cette map (même suite de maps d'un lancement à l'autre) */
+    await p.evF('try{dbgAuto(true,0)}catch(e){}');await p.evF('try{dbgCout(1)}catch(e){}');if(opt.vie==='1')await p.evF("try{dbgGeoVie('course "+(c+1)+"');}catch(e){}");
     const tc=Date.now();let mort=false;
     for(let s=10;s<=DUREE;s+=10){await dort(10000);const st=await p.evF('dbgState()');if(st.gameOver){mort=true;await releve(p,'course '+(c+1)+' morte à '+Math.round((Date.now()-tc)/1000)+' s',R);break;}
       try{await p.evF('try{dbgAuto(true,0)}catch(e){}');}catch(e){}

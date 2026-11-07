@@ -278,7 +278,7 @@ const RICH_BILLETS=[ // e = la couleur du billet (celle de TC_EUR) · sh = le re
   {v:'500',m:'CINQ CENTS EUROS', e:'#9c6bb2',sh:[.9,.7,1]}];
 const RICH_B100=4; // la place du 100 € (vert) : il habille aussi la liasse
 function richTexBillet(B){const t=richCv(512,236,function(x,w,h){
-  const W=128,H=59,S=document.createElement('canvas');S.width=W;S.height=H;const g=S.getContext('2d'),T=document.createElement('canvas'),tg=T.getContext('2d'),
+  const W=128,H=59,S=document.createElement('canvas');S.width=W;S.height=H;const g=S.getContext('2d'),T=document.createElement('canvas'),tg=T.getContext('2d',{willReadFrequently:true}),
     hx=function(s){return [parseInt(s.substr(1,2),16),parseInt(s.substr(3,2),16),parseInt(s.substr(5,2),16)];},
     mx=function(a,b,k){return [Math.round(a[0]+(b[0]-a[0])*k),Math.round(a[1]+(b[1]-a[1])*k),Math.round(a[2]+(b[2]-a[2])*k)];},
     cs=function(c){return 'rgb('+c[0]+','+c[1]+','+c[2]+')';},

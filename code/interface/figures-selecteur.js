@@ -36,7 +36,7 @@ function fsListe(ids,ctx){const L=ids.filter(function(id){const P=figPeut(id);if
   else if(FSEL.tri==='prix')L.sort(function(a,b){return fsPrix(a)-fsPrix(b);});
   return L;}
 /* LA BARRE DE PASTILLES (la même dans les deux écrans ; `data-fs` dit laquelle) */
-function fsBarreHtml(ctx){const bq=ctx==='bq';let nm=0,na=0;if(bq&&window.FIG)FIG.liste.forEach(function(f){if(figPossede(f.id))nm++;else na++;});
+function fsBarreHtml(ctx){const bq=ctx==='bq';if(!bq)return '';/* (inventaire : plus de pastilles TOUT · TRI — retoucher une case revient à tout) */let nm=0,na=0;if(bq&&window.FIG)FIG.liste.forEach(function(f){if(figPossede(f.id))nm++;else na++;});
   const P=function(k,t,on,n){return '<button type="button" class="fsPas'+(on?' on':'')+'" data-fs="'+k+'" aria-pressed="'+(on?'true':'false')+'">'+sansAcc(TR(t))+(n!=null?'<em>'+n+'</em>':'')+'</button>';};
   return (FSEL.dir>=0?'<button type="button" class="fsPas on fsCib" data-fs="tout" style="--dc:'+FIG_DC[FSEL.dir]+'" aria-label="'+sansAcc(TR(FIG_FAM[FSEL.dir][0]))+'">'+pxi(FIG_FAM[FSEL.dir][2])+sansAcc(TR(FS_COURT[FSEL.dir]))+pxi('croix')+'</button>':P('tout','TOUT',FSEL.part==='tout'))+(bq?P('moi','À MOI',FSEL.part==='moi',nm)+P('acheter','À ACHETER',FSEL.part==='acheter',na):'')
     +'<button type="button" class="fsPas fsTri" data-fs="tri">'+sansAcc(TR('TRI'))+' '+sansAcc(TR(FS_TRI_N[FSEL.tri]))+'</button>';}

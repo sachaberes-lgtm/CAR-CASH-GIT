@@ -45,8 +45,8 @@
    glissaient encore de 20 px ; le rideau était une COUPE noire (#wipe n'avait pas d'opacité de départ : sa transition ne jouait jamais) — un fondu de 100 ms */
 @media (prefers-reduced-motion:reduce){
   #wipe{opacity:0}
-  #wipe.in{opacity:1;background:#07050f;transition:opacity 100ms linear}
-  #wipe.out{opacity:0;background:#07050f;transition:opacity 100ms linear}
+  #wipe.in{opacity:1;background:var(--k0);transition:opacity 100ms linear}
+  #wipe.out{opacity:0;background:var(--k0);transition:opacity 100ms linear}
   html body #mob #mDead.m5.on :is(.m6Mot,.m6Aura,.mDuo>.pbtn){animation:none}
   #gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMis,#gvMis::before,#gvMis::after,#gvMis .gvFx,#gName.entre{animation:none}}
 html[data-reduced-motion="1"] body #mob #mDead.m5.on :is(.m6Mot,.m6Aura,.mDuo>.pbtn){animation:none}
