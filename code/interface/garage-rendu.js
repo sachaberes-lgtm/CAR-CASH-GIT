@@ -328,8 +328,8 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   if(GAR.roll)camera.rotateZ(GAR.roll);
   if((BURN.k>.02||BURN.kick>.01)&&!REDUCED_MOTION){const a9=BURN.k*(.8+.5*BURN.chaud+.6*BURN.donK);camera.rotateZ((Math.sin(t9*47.1)*.6+Math.sin(t9*73.3+1.7)*.4)*.0015*a9);camera.position.y+=(Math.sin(t9*53.9+.5)*.6+Math.sin(t9*81.7+2.9)*.4)*.005*a9-.07*BURN.kick;} /* (BURN-OUT v2) la secousse suit la chaleur et le donut ; au DÉPART la caméra encaisse (BURN.kick) */ // (2026-10-06) même amplitude, en BRUIT LISSE (7-13 Hz) : tiré au hasard à chaque image, il grésillait (et deux fois plus vite à 120 Hz) // (BURN-OUT) la caméra vibre à peine // (le glissé fondu) la caméra penche un peu dans le sens où elle tourne
   if(GFIG.kick>.01&&!REDUCED_MOTION)camera.position.y-=.04*GFIG.kick; // (2026-10-23) la pose d'une figure : la caméra encaisse le choc (4 à 5 cm, ça retombe en 0,3 s)
-  { // LES MISSIONS : la caméra s'élève (sous ?pass=1 elle RESTE sur la caisse : GMIS.mk reste à 0) sous la porte relevée et regarde tout l'atelier (fondu en S ; le départ la ramène, voir GAR.go.pre)
-    if(!GAR.go)GMIS.mk+=(((gEl.classList.contains('missions')&&!PASS_ON)?1:0)-GMIS.mk)*Math.min(1,dt*2.4);
+  { // LES MISSIONS : la caméra s'élève sous la porte relevée et regarde tout l'atelier (fondu en S ; le départ la ramène, voir GAR.go.pre)
+    if(!GAR.go)GMIS.mk+=(((gEl.classList.contains('missions'))?1:0)-GMIS.mk)*Math.min(1,dt*2.4);
     const u9=Math.min(1,Math.max(0,GMIS.mk)),e=u9*u9*u9*(u9*(u9*6-15)+10);GMIS.e=e;
     if(e>.0005){const L9=GAR.lk,tx=L9?L9.x:-Math.sin(cA)*1.5,ty=L9?L9.y:ay+1.0-POR*.65-vG*1.35,tz=L9?L9.z:-Math.cos(cA)*1.5,cp9=camera.position; /* (2026-10-06, LA MISE EN PLACE) le vol part du VRAI regard de l'atelier : il visait la caisse (le regard d'avant la vitrine) — au retour, la visée sautait de la caisse à la porte quand le vol s'achevait (le « déclic ») */
       cp9.set(cp9.x+(0-cp9.x)*e,cp9.y+(ay+4.4-cp9.y)*e,cp9.z+(11-cp9.z)*e); // ⚠ y 4,4 : les panneaux de la porte relevée sont empilés à 4,92-5,05 m
@@ -353,6 +353,5 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   garCadre(1-(GMIS.e||0),1-(GAR.wD||0)); // (missions) le décentrement du menu s'efface pendant le vol vers la vue d'ensemble · (vitrine) face à l'entrée, pas de décentrement en largeur : c'est la place de la caméra qui pose la caisse
   if(GAR.misCible)GAR.misCible.rotation.y+=dt*1.1; // la cible des missions tourne sur elle-même
   if(GMIS.holo.length)gmHoloTick(t9);
-  if(GMIS.sol)pvSolTick(dt); /* (?pass=1) l'anneau de sol et son balayage radar : rien ne tourne hors de l'écran MISSIONS */
   if(gEl.classList.contains('missions'))gmSuit();
 }
