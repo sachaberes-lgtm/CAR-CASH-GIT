@@ -70,6 +70,7 @@ maps/foret-construction.js           # forêt : construction, boucle, console
 maps/foret-embellie.js               # forêt : la passe d'embellissement (lanternes de conte, réglages FOR_EMB)
 maps/foret-sentiers.js               # forêt : les SENTIERS DE LUCIOLES (les raccourcis balisés : fil de fruits, couloir sans arbres, fruit-pouvoir à la pose)
 maps/canyon-route.js                 # LE CANYON DES GÉANTS : route, construction, monde, pose
+maps/instances-segments.js          # les instances statiques d'un décor en segments de 400 m (le tri par le champ de vision joue, passe perf 3 P3)
 maps/canyon-relief.js                # canyon : relief, monuments, voûte, lumière cuite
 maps/canyon-mine.js                  # canyon : la mine abandonnée, la route 66
 maps/canyon-embellie.js               # canyon : la poussière dorée (détail vivant, une instance)

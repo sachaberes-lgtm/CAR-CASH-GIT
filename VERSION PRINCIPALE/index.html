@@ -19890,6 +19890,44 @@ function cyOmbre(elDeg,azDeg){const F=CY.F,TS=PAL.b('cyOmbre',27),nx=Math.ceil(F
   if(Math.abs(sx)>=Math.abs(sz)){const dx=sx>0?-1:1;for(let jx=sx>0?nx-1:0;jx>=0&&jx<nx;jx+=dx)for(let jz=0;jz<nz;jz++)fait(jx,jz);}
   else{const dz=sz>0?-1:1;for(let jz=sz>0?nz-1:0;jz>=0&&jz<nz;jz+=dz)for(let jx=0;jx<nx;jx++)fait(jx,jz);}
   O.h=hS;CY.O=O;}
+/* ===== LES INSTANCES EN SEGMENTS (2026-11-07, passe perf 3, P3 : « le niveau en tranches ») =====
+   MESURÉ (p2 émulé, `dbgChamp`, instant fixe) : un décor posé en UNE InstancedMesh sur toute la piste porte `frustumCulled=false` (three r128 ne sait pas
+   calculer la sphère d'un InstancedMesh : celle de la géométrie de base ne dit rien de ses instances) — il est donc redessiné ENTIER à chaque image, derrière
+   la caméra comprise : le canyon dessinait 164 000 triangles de peupliers et de cheminées pour 8 000 dans le champ (5 %).
+   `instSegmente(im, o)` coupe une InstancedMesh STATIQUE en une InstancedMesh par cellule de ~400 m (grille 3D sur la position des instances) : même
+   matière (même programme), mêmes instances (copie exacte des matrices et des couleurs), géométrie PROXY qui partage les tampons de la base mais porte
+   SA sphère englobante (centres des instances + rayon de la géométrie × échelle + marge) : le tri par le champ de vision de three joue. Aucun pixel ne change :
+   une cellule n'est jetée que si sa sphère (conservatrice) est entièrement hors du tronc de vue.
+   `o` : {cell:400, marge:20}. Rend la liste des maillages à ajouter À LA PLACE de `im` (ou [im] tel quel : `?tranches=0`, une seule instance, ou instances animées).
+   ⚠ À n'employer que sur des instances qui NE BOUGENT PAS (pas de `count` piloté, pas de matrices réécrites par image) et opaques (le tri des transparents
+   se fait par objet). `dbgSegments(false)` = la sphère coupée (tout dessiné comme avant) pour comparer l'image dans la même tâche ; `dbgSegments()` = l'état. */
+const SEG_ON=!/[?&]tranches=0\b/.test(location.search),SEG_L=[],SEG_CELL=+((/[?&]segcell=(\d+)/.exec(location.search)||[])[1])||0; /* `?segcell=800` : la taille des cellules (banc) */
+function instSegmente(im,o){
+  o=o||{};const cell=SEG_CELL||o.cell||400,marge=o.marge==null?20:o.marge,n=im.count,geo=im.geometry,A=im.instanceMatrix.array;
+  if(!SEG_ON||n<2||!geo||!geo.attributes.position||im.isSkinnedMesh)return [im];
+  if(!geo.boundingSphere)geo.computeBoundingSphere();
+  const gc=geo.boundingSphere.center,gr=geo.boundingSphere.radius,M=new THREE.Matrix4(),v=new THREE.Vector3(),cel=new Map();
+  for(let i=0;i<n;i++){M.fromArray(A,i*16);const x=A[i*16+12],y=A[i*16+13],z=A[i*16+14],k=Math.floor(x/cell)+','+Math.floor(y/cell)+','+Math.floor(z/cell);
+    let L=cel.get(k);if(!L)cel.set(k,L=[]);L.push(i);}
+  if(cel.size<2)return [im];
+  const out=[],col=im.instanceColor?im.instanceColor.array:null;
+  for(const L of cel.values()){
+    const m=L.length,C=new Float32Array(m*3),R=new Float32Array(m);let cx=0,cy=0,cz=0;
+    for(let j=0;j<m;j++){M.fromArray(A,L[j]*16);v.copy(gc).applyMatrix4(M);C[j*3]=v.x;C[j*3+1]=v.y;C[j*3+2]=v.z;R[j]=gr*M.getMaxScaleOnAxis();cx+=v.x;cy+=v.y;cz+=v.z;}
+    cx/=m;cy/=m;cz/=m;let rad=0;for(let j=0;j<m;j++)rad=Math.max(rad,Math.hypot(C[j*3]-cx,C[j*3+1]-cy,C[j*3+2]-cz)+R[j]);
+    const g=new THREE.BufferGeometry();for(const k in geo.attributes)g.setAttribute(k,geo.attributes[k]);if(geo.index)g.setIndex(geo.index);
+    g.groups=geo.groups.slice();g.drawRange.start=geo.drawRange.start;g.drawRange.count=geo.drawRange.count;
+    g.boundingSphere=new THREE.Sphere(new THREE.Vector3(cx,cy,cz),rad+marge);g.userData.segment=1;
+    const s=new THREE.InstancedMesh(g,im.material,m);
+    for(let j=0;j<m;j++)s.instanceMatrix.array.set(A.subarray(L[j]*16,L[j]*16+16),j*16);
+    if(col){s.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(m*3),3);for(let j=0;j<m;j++)s.instanceColor.array.set(col.subarray(L[j]*3,L[j]*3+3),j*3);}
+    s.instanceMatrix.needsUpdate=true;
+    s.name=im.name;s.renderOrder=im.renderOrder;s.castShadow=im.castShadow;s.receiveShadow=im.receiveShadow;s.visible=im.visible;s.userData=Object.assign({},im.userData,{segment:1});
+    s.matrixAutoUpdate=im.matrixAutoUpdate;s.matrix.copy(im.matrix);s.frustumCulled=true;
+    out.push(s);SEG_L.push(s);}
+  im.dispose();return out;}
+window.dbgSegments=function(on){if(on!=null)for(let i=SEG_L.length-1;i>=0;i--){const s=SEG_L[i];if(!s.parent&&!s.geometry){SEG_L.splice(i,1);continue;}s.frustumCulled=!!on;}
+  let n=0,t=0;for(const s of SEG_L)if(s.parent){n++;t+=s.count;}return {segments:n,instances:t,coupe:SEG_L.length?SEG_L[0].frustumCulled:null,on:SEG_ON};};
 /* LA HAUTEUR DU RELIEF — la même que la puce (cyHt du shader), lue dans les mêmes données. `o` (facultatif) reçoit la roche, l'eau, le fond.
    `sans` : sans les corniches (le balayage de l'ombre). */
 const CY_O9={};
@@ -20583,11 +20621,11 @@ function cyMonuments(seed){
    const gA=D9&&D9.arbres.nm!=='vert'?(CY_ARB.g[D9.arbres.nm]||(CY_ARB.g[D9.arbres.nm]=cyArbreGeo(CY_ARB[D9.arbres.nm]))):(CY.gArb||(CY.gArb=cyArbreGeo())); // les peupliers : verts, dorés d'automne, sombres
    if(L9.length){const im=new THREE.InstancedMesh(gA,M9.t,L9.length),mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),ax=new THREE.Vector3(0,1,0);
      L9.forEach(function(a,k){q9.setFromAxisAngle(ax,a[4]);mt.compose(new THREE.Vector3(a[0],a[1],a[2]),q9,new THREE.Vector3(a[3]*.9,a[3],a[3]*.9));im.setMatrixAt(k,mt);});
-     im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;CY.grp.add(im);}CY.nArb=L9.length;}
+     im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;for(const s9 of instSegmente(im,{cell:400,marge:20}))CY.grp.add(s9);}CY.nArb=L9.length;} /* (2026-11-07, P3) en segments de 400 m : le champ de vision trie */
   if(CY.chem.length){if(!CY.gChem)CY.gChem=[cyChemGeo(0),cyChemGeo(1)];const mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),s9=new THREE.Vector3(),p9=new THREE.Vector3(),ax=new THREE.Vector3(0,1,0);
     for(let v=0;v<2;v++){const L9=CY.chem.filter(c=>c.v===v);if(!L9.length)continue;const im=new THREE.InstancedMesh(CY.gChem[v],M9.i,L9.length);
       L9.forEach(function(c,k){q9.setFromAxisAngle(ax,c.a);s9.set(c.r/.5,c.h,c.r/.5);p9.set(c.x,c.y,c.z);mt.compose(p9,q9,s9);im.setMatrixAt(k,mt);});
-      im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;CY.grp.add(im);}}
+      im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;for(const s9 of instSegmente(im,{cell:400,marge:20}))CY.grp.add(s9);}} /* (2026-11-07, P3) idem les cheminées */
   CY.r66=0;CY.r66m=null;CY.r66m2=[];try{const g9=cyRoute66();if(g9){const m=new THREE.InstancedMesh(g9,M9.t,1);m.setMatrixAt(0,new THREE.Matrix4());m.instanceMatrix.needsUpdate=true;m.userData.jeter=1;m.matrixAutoUpdate=false;m.updateMatrix();m.frustumCulled=false;m.name='canyon route 66';CY.grp.add(m);CY.r66=g9.attributes.position.count;}}catch(e){console.warn('canyon : route 66',e);} /* une INSTANCE : le même programme que les arbres (canyonChauffe le compile au menu) — un Mesh simple en compilait un neuf en course */ // (2026-10-15 soir) la station-service et le panneau ROUTE 66 du départ
   CY.rais=null; // (14/10 soir) les RAIS DE LUMIÈRE retirés : sur la paroi ils se lisaient comme des traînées de ciel étalé (verdict de Sacha)
   CY.decoN=null;if(D9){try{cyEboulis(D9,M9);}catch(e){console.warn('canyon : éboulis',e);}}
@@ -28788,7 +28826,7 @@ window.dbgAppelsBrut=function(){ /* (2026-11-07, passe perf 3, P3, banc) CHAQUE 
   const o=renderer.renderBufferDirect,R=[];
   renderer.renderBufferDirect=function(cam,sc,geo,mat,obj,grp){const ch=[];let p=obj;for(let k=0;k<6&&p;k++){ch.push((p.name||p.type||'?')+(p===scene?'#scène':''));p=p.parent;}
     const t=(geo.index?geo.index.count:(geo.attributes.position?geo.attributes.position.count:0))/3*(obj.isInstancedMesh?obj.count:1),w=obj.getWorldPosition(new THREE.Vector3());
-    R.push({o:obj.type+(obj.name?'<'+obj.name+'>':''),ch:ch.join('<'),g:geo.type,m:(mat.type||'?')+(mat.name?':'+mat.name:''),tri:Math.round(t),ro:obj.renderOrder,T:!!mat.transparent,add:mat.blending===THREE.AdditiveBlending,ud:Object.keys(obj.userData||{}).join(','),cs:!!obj.castShadow,rs:!!obj.receiveShadow,vc:!!mat.vertexColors,map:!!mat.map,fog:mat.fog,pos:[w.x|0,w.y|0,w.z|0],id:obj.id,col:mat.color?mat.color.getHexString():null,dep:!!mat.isMeshDepthMaterial,inst:!!obj.isInstancedMesh});
+    R.push({o:obj.type+(obj.name?'<'+obj.name+'>':''),ch:ch.join('<'),g:geo.type,m:(mat.type||'?')+(mat.name?':'+mat.name:''),tri:Math.round(t),ro:obj.renderOrder,T:!!mat.transparent,add:mat.blending===THREE.AdditiveBlending,ud:Object.keys(obj.userData||{}).join(','),cs:!!obj.castShadow,rs:!!obj.receiveShadow,vc:!!mat.vertexColors,map:!!mat.map,fog:mat.fog,pos:[w.x|0,w.y|0,w.z|0],id:obj.id,col:mat.color?mat.color.getHexString():null,dep:!!mat.isMeshDepthMaterial,inst:!!obj.isInstancedMesh,gp:geo.parameters?JSON.stringify(geo.parameters):null,tx:mat.map?((mat.map.image&&mat.map.image.width)||0)+'x'+((mat.map.image&&mat.map.image.height)||0):null,sc:[+obj.scale.x.toFixed(2),+obj.scale.y.toFixed(2),+obj.scale.z.toFixed(2)],cnt:obj.isInstancedMesh?obj.count:null,fc:obj.frustumCulled,br:geo.boundingSphere?+geo.boundingSphere.radius.toFixed(1):null});
     return o.apply(this,arguments);};
   try{renderer.render(scene,camera);}finally{renderer.renderBufferDirect=o;}
   return R;};
@@ -28800,6 +28838,17 @@ window.dbgImgEmpreinte=function(){ /* (2026-11-07, passe perf 3, P3, banc) L'IMA
   return {w:W,h:H,img:(h>>>0).toString(16),ombre:hs};};
 window.dbgImgDiff=function(i,j){ /* (banc P3) les deux dernières lectures i et j (0 = la plus ancienne gardée) : nombre de pixels qui diffèrent, plus grand écart d'un canal, premier pixel différent */
   const P=dbgImgEmpreinte.px,a=P[i],b=P[j];let n=0,mx=0,f=-1;for(let k=0;k<a.length;k+=4){const d=Math.max(Math.abs(a[k]-b[k]),Math.abs(a[k+1]-b[k+1]),Math.abs(a[k+2]-b[k+2]));if(d){n++;if(d>mx)mx=d;if(f<0)f=k/4;}}return {n:n,max:mx,premier:f};};
+window.dbgChamp=function(){ /* (2026-11-07, passe perf 3, P3, banc) LE CHAMP : pour chaque appel de dessin de la scène, les triangles DESSINÉS contre ceux qui sont DANS le champ de la caméra (maillage : sa sphère coupe le tronc ; instancié : chaque instance dont le centre, élargi du rayon de la géométrie, est dans le tronc) et, pour un instancié, combien d'instances sont DERRIÈRE la caméra. Rend les familles (nom ou matière) triées par triangles gaspillés. */
+  const fr=new THREE.Frustum(),m4=new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);fr.setFromProjectionMatrix(m4);
+  const e=camera.matrixWorld.elements,fx=-e[8],fy=-e[9],fz=-e[10],px=e[12],py=e[13],pz=e[14],o=renderer.renderBufferDirect,F={},sp=new THREE.Sphere(),v=new THREE.Vector3(),M=new THREE.Matrix4();let tot=0,dans=0,ap=0;
+  renderer.renderBufferDirect=function(cam,sc,geo,mat,obj,grp){ap++;const tpi=(geo.index?geo.index.count:(geo.attributes.position?geo.attributes.position.count:0))/3;let dr=tpi,di=tpi,der=0,n=1;
+    if(obj.isInstancedMesh){n=obj.count;dr=tpi*n;di=0;const R=geo.boundingSphere?geo.boundingSphere.radius:1,A=obj.instanceMatrix.array,sx=obj.matrixWorld;
+      for(let i=0;i<n;i++){M.fromArray(A,i*16);v.setFromMatrixPosition(M).applyMatrix4(sx);const sc9=Math.max(M.getMaxScaleOnAxis(),1e-6);sp.center.copy(v);sp.radius=R*sc9;if(fr.intersectsSphere(sp))di+=tpi;if((v.x-px)*fx+(v.y-py)*fy+(v.z-pz)*fz<-sp.radius)der++;}}
+    else{if(geo.boundingSphere===null)geo.computeBoundingSphere();if(geo.boundingSphere){sp.copy(geo.boundingSphere).applyMatrix4(obj.matrixWorld);di=fr.intersectsSphere(sp)?tpi:0;if((sp.center.x-px)*fx+(sp.center.y-py)*fy+(sp.center.z-pz)*fz<-sp.radius)der=1;}}
+    tot+=dr;dans+=di;const k=(obj.name||(obj.parent&&obj.parent.name)||'')+' | '+(mat.type||'?')+(mat.name?':'+mat.name:'')+(obj.isInstancedMesh?'[I]':'');const q=F[k]||(F[k]={n:0,dr:0,di:0,der:0,fc:obj.frustumCulled});q.n++;q.dr+=dr;q.di+=di;q.der+=der;
+    return o.apply(this,arguments);};
+  try{renderer.render(scene,camera);}finally{renderer.renderBufferDirect=o;}
+  return {appels:ap,dessines:Math.round(tot),dansLeChamp:Math.round(dans),fam:Object.keys(F).map(function(k){const q=F[k];return {k:k,n:q.n,dr:Math.round(q.dr),di:Math.round(q.di),gaspi:Math.round(q.dr-q.di),derriere:q.der,fc:q.fc};}).sort(function(a,b){return b.gaspi-a.gaspi;}).slice(0,25)};};
 window.dbgJadeRegle=function(){if(!JADE.root)return null;const ds=L/(NP-1),st=Math.max(1,Math.round(5/ds)),V9=new THREE.Vector3();let n=0,t=0;const ex=[]; /* (2026-10-20, banc) LA RÈGLE D'OR : aucun pilier ni rocher sur la route — la caisse tous les 5 m, à 3 places de la largeur, à 0,5 et 3 m */
   for(let i=0;i<NP;i+=st)for(const f of [-.9,0,.9])for(const h of [.5,3]){V9.copy(pts[i]).addScaledVector(B[i],f*ROAD_HALF).addScaledVector(Nn[i],h);t++;if(jadeHeurt(V9)){n++;if(ex.length<6)ex.push([Math.round(i*ds),f,h]);}}
   return {essais:t,heurts:n,ex:ex};};
