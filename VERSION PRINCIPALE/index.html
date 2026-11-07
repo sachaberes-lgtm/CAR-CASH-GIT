@@ -53773,7 +53773,7 @@ function motToile(id,w){const M=MOTIFS[id];if(!M)return null;const cv=document.c
   let h=7;for(let i=0;i<id.length;i++)h=Math.imul(h^id.charCodeAt(i),16777619);x.scale(w/MOT_W,w/MOT_W);M.f(x,motAlea(h));return cv;} // le même tirage à chaque fois : la peinture ne change pas d'une caisse à l'autre
 function motTex(id){if(MOT_TX[id])return MOT_TX[id];const cv=motToile(id,MOT_W);if(!cv)return null;const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return MOT_TX[id]=t;}
 function motUrl(id){if(MOT_URL[id]!=null)return MOT_URL[id];let u='';try{const cv=motToile(id,192);u=cv?cv.toDataURL('image/jpeg',.86):'';}catch(e){}return MOT_URL[id]=u;} /* (2026-11-05) 192 px : la grande pastille des cartes de la boutique reste nette */
-function motFond(d){const c='#'+((d.c||0)>>>0).toString(16).padStart(6,'0'),u=motUrl(d.mot);return u?'url('+u+') center/200% auto,'+c:c;} // la PASTILLE d'un motif (le fond CSS des listes)
+function motFond(d){const c='#'+((d.c||0)>>>0).toString(16).padStart(6,'0'),u=motUrl(d.mot);return u?'url('+u+') center/'+(MOTIFS[d.mot]&&MOTIFS[d.mot].liv?'cover':'200% auto')+','+c:c;} // la PASTILLE d'un motif (le fond CSS des listes)
 /* la projection : chaque face prend la toile du plan qui lui fait face (pondérée par sa normale ^12 : un pan en biais prend surtout le plan le plus proche — à ^6 le damier virait au gris en fondant deux plans),
    retournée là où il faut pour se lire À L'ENDROIT de l'extérieur — dans le repère de la caisse : le motif colle à la tôle quand elle roule */
 const MOT_GLSL='vec3 mN9=normalize(vMotN),mA9=pow(abs(mN9),vec3(12.));mA9/=max(1e-4,mA9.x+mA9.y+mA9.z);vec3 mP9=vMotP*uMotS;\n'+
@@ -53783,11 +53783,14 @@ const MOT_GLSL_MEL='vec3 mN9=normalize(vMotN),mA9=pow(abs(mN9),vec3(12.));mA9/=m
   'vec3 motC=texture2D(uMot,vec2(mN9.x<0.?mP9.z:-mP9.z,mP9.y)).rgb*mA9.x+texture2D(uMot,vec2(mN9.y<0.?mP9.x:-mP9.x,mP9.z)).rgb*mA9.y+texture2D(uMot,vec2(mN9.z<0.?-mP9.x:mP9.x,mP9.y)).rgb*mA9.z;\n'+
   'float motK=1.-smoothstep(.93,.985,min(motC.r,min(motC.g,motC.b)));vec3 motM=mix(vec3(1.),motC,motK);diffuseColor.rgb=mix(diffuseColor.rgb,motC*.72,motK);\n'; /* (2026-11-01) le MÉLANGE : le blanc pur de la toile laisse la couleur de la caisse, le reste (la mousse) la recouvre */
 const MOT_FAIT=new WeakSet(); // les matières déjà greffées (un clone de matière perd la greffe : la fin de buildCar le rattrape)
-function motGreffe(m,id){const M=MOTIFS[id];if(!M||MOT_FAIT.has(m))return m;const A=M.anim&&MOT_ANIM[M.anim],T=A?null:motTex(id);if(!A&&!T)return m;MOT_FAIT.add(m);
-  const prev=m.onBeforeCompile,pk=String(prev),uT={value:T},uS={value:M.s};if(A)motHorloge();
+function motGreffe(m,id){const M=MOTIFS[id];if(!M||MOT_FAIT.has(m))return m;const A=M.anim&&MOT_ANIM[M.anim],L=M.liv?livTex(id):null,T=A||L?null:motTex(id);if(!A&&!T&&!L)return m;MOT_FAIT.add(m);
+  const prev=m.onBeforeCompile,pk=String(prev),uT={value:T},uS={value:M.s},sp=MOT_SPEC||{},uD={value:new THREE.Vector4(sp.w||2,sp.h||1.2,sp.l||4.3,.35)},uN={value:LIV_NEZ};if(A)motHorloge();
   m.onBeforeCompile=function(sh,r){if(prev)prev.call(this,sh,r);sh.uniforms.uMotS=uS;
     sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vMotP;varying vec3 vMotN;'+(A?'varying vec3 vMotD;':''))
       .replace('#include <begin_vertex>','#include <begin_vertex>\nvMotP=transformed;vMotN=objectNormal;'+(A?'vMotD=(vec4((modelMatrix*vec4(transformed,1.)).xyz-cameraPosition,0.)*modelMatrix).xyz;':''));
+    if(L){sh.uniforms.uLvS={value:L.S};sh.uniforms.uLvT={value:L.T};sh.uniforms.uLvF={value:L.F};sh.uniforms.uLvD=uD;sh.uniforms.uLvN=uN; /* (2026-11-05) UNE LIVRÉE : trois toiles non répétées, lues à la position réelle dans la caisse (voir livrees.js) */
+      sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D uLvS;uniform sampler2D uLvT;uniform sampler2D uLvF;uniform vec4 uLvD;uniform float uLvN;varying vec3 vMotP;varying vec3 vMotN;')
+        .replace('#include <color_fragment>','#include <color_fragment>\n'+LIV_GLSL).replace('vColor*uGlow','vColor*motC*uGlow');return;}
     if(A){sh.uniforms.uMotT=MOT_TU; /* (2026-11-05) UNE LÉGENDAIRE : son programme (MOT_ANIM) remplace la toile ; sa lumière propre s'ajoute à la toute fin (le bloom la prend) */
       sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uMotS;uniform float uMotT;varying vec3 vMotP;varying vec3 vMotN;varying vec3 vMotD;\n'+MOT_ANIM_FN)
         .replace('#include <color_fragment>','#include <color_fragment>\nvec3 motC=vec3(1.),motE=vec3(0.);float motK=0.;{\n'+A+'}\ndiffuseColor.rgb*=motC;\n').replace('vColor*uGlow','vColor*motC*uGlow')
@@ -53795,7 +53798,7 @@ function motGreffe(m,id){const M=MOTIFS[id];if(!M||MOT_FAIT.has(m))return m;cons
     sh.uniforms.uMot=uT;
     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform sampler2D uMot;uniform float uMotS;varying vec3 vMotP;varying vec3 vMotN;')
       .replace('#include <color_fragment>','#include <color_fragment>\n'+(M.mel?MOT_GLSL_MEL:MOT_GLSL)).replace('vColor*uGlow',M.mel?'vColor*motM*uGlow':'vColor*motC*uGlow');}; // le plancher lumineux du kit prend le motif aussi
-  m.customProgramCacheKey=function(){return 'motif|'+(A?'anim:'+M.anim+'|':M.mel?'mel|':'')+pk;}; // ⚠ r128 réutilise un programme d'une matière à l'autre par cette clé : une par greffe d'origine (la laque du kit, le vernis rimify) ; le motif, lui, vit dans un uniform — une légendaire a SON programme
+  m.customProgramCacheKey=function(){return 'motif|'+(A?'anim:'+M.anim+'|':L?'liv|':M.mel?'mel|':'')+pk;}; // ⚠ r128 réutilise un programme d'une matière à l'autre par cette clé : une par greffe d'origine (la laque du kit, le vernis rimify) ; le motif, lui, vit dans un uniform — une légendaire a SON programme
   m.userData.mot=id;return m;}
 /* LES TOUFFES EN RELIEF (2026-11-01, Léo : « plus 3D, un truc qui s'ajoute sur la voiture ») : un motif à `touffes` (la MOUSSE) pose, sur les faces du dessus de la tôle,
    de petits dômes à facettes — UNE SEULE pièce (les dômes fondus en une géométrie, couleur par sommet : un seul dessin, ~230 × 20 triangles) — et SEULEMENT là où la toile a de la
