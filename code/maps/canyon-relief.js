@@ -219,6 +219,15 @@ function cyMitaines(S,F,sQ,K,r,D){
     for(let k=M.length-1;k>=0;k--)if(k===0&&!m9.g||k===1&&!m9.d||k===2&&!m9.mesa)M.splice(k,1);}
   for(let k=M.length-1;k>=0;k--){const m=M[k],R9=Math.max(1.65*Math.max(m.rx,m.rz),m.pouce?m.rx+100*K4:0)+ROAD_HALF+10,pres=()=>{for(let j=0;j<S.n;j+=2){const dx=S.x[j]-m.x,dz=S.z[j]-m.z;if(dx*dx+dz*dz<R9*R9)return true;}return false;};
     if(!pres())continue;let ux=m.x-S.x[i],uz=m.z-S.z[i];const ul=Math.hypot(ux,uz)||1;ux/=ul;uz/=ul;let n9=0;while(n9<12&&pres()){m.x+=ux*60;m.z+=uz*60;n9++;}if(pres())M.splice(k,1);}
+  /* (2026-11-07, Sacha : « génération aléatoire parfaite ») LES MITAINES ENTIÈRES : leur empreinte s'écrit dans la taille fine, dont le domaine ne couvre que la portée
+     de la route (+80 m) — MESURÉ (soir, graines 3, 6, 7 : 1 canyon sur 2) une butte en débordait de 140 à 365 m et en sortait COUPÉE au cordeau (un mur droit,
+     le plateau plat derrière). Le domaine s'agrandit (en place, sur la même grille) jusqu'à les contenir : les cases neuves sont vides (ni creusées ni levées). */
+  {const TF=F.ts;let ax=0,bx=0,az=0,bz=0;for(const m of M){const R9=Math.max(m.rx,m.rz)*2.1+60+TF;
+     ax=Math.max(ax,F.x0-(m.x-R9));bx=Math.max(bx,m.x+R9-(F.x0+(F.nx-1)*TF));az=Math.max(az,F.z0-(m.z-R9));bz=Math.max(bz,m.z+R9-(F.z0+(F.nz-1)*TF));}
+   const gx=Math.ceil(ax/TF),hx=Math.ceil(bx/TF),gz=Math.ceil(az/TF),hz=Math.ceil(bz/TF);
+   if(gx+hx+gz+hz>0){const nx=F.nx+gx+hx,nz=F.nz+gz+hz,c2=new Float32Array(nx*nz*2),m2=new Uint8Array(nx*nz*4);for(let o=0;o<nx*nz;o++){c2[o*2]=1e5;c2[o*2+1]=-1e5;}
+     for(let j=0;j<F.nz;j++){c2.set(F.c.subarray(j*F.nx*2,(j+1)*F.nx*2),((j+gz)*nx+gx)*2);m2.set(F.m.subarray(j*F.nx*4,(j+1)*F.nx*4),((j+gz)*nx+gx)*4);}
+     F.c=c2;F.m=m2;F.x0-=gx*TF;F.z0-=gz*TF;F.nx=nx;F.nz=nz;F.grand=[gx,hx,gz,hz];}}
   const fc=F.c,fm=F.m,TF=F.ts;CY.mit=[];
   for(const m of M){const base=cyHauteurVite(m.x,m.z)-4,R9=Math.max(m.rx,m.rz)*2.1+60;CY.mit.push({x:m.x,z:m.z,r:Math.max(m.rx,m.rz)*1.1,y0:base,y1:base+m.h});
     const th={x:m.x+m.ax*(m.rx+48*K4)*(m.pouce||0),z:m.z+m.az*(m.rx+48*K4)*(m.pouce||0),r:26*K4,h:m.h*.93};
