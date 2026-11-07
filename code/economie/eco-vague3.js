@@ -93,6 +93,6 @@ function langNext(){
   try{localStorage.ccLang=LANG;}catch(err){}
   return LANG;
 }
-const CUR=()=>'€'; /* (2026-11-05, Sacha : « remplace les dollars par des euros, aucun symbole dollar ne doit rechapper ») la devise du jeu est l'EURO */
+const CUR=()=>'\uE000'; /* (2026-11-05, Sacha : « remplace les dollars par des euros, aucun symbole dollar ne doit rechapper ») la devise du jeu est l'EURO */
 const LOC=()=>LANG==='fr'?'fr-FR':'en-US';
 const fmt=v=>CUR()+(LANG==='fr'?' ':'')+Math.round(v).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' '); /* (2026-11-07) comme fmtSolde et fmtC : « €1,234 » en anglais (plus d'espace à la française), et l'espace fine U+202F de fr-FR remplacée par une vraie espace — la police pixel ne la dessine pas */
