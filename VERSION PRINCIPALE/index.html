@@ -30,6 +30,7 @@
 <meta name="apple-mobile-web-app-title" content="CASH CAR">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" href="assets/fonts/pressstart2p.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/monnaie.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
 <!-- ================= L'ÉDITION, ET LA COLONNE DE L'ORDI (2026-09-28) =================
      Sacha : « quand on ouvre cette version, la disposition des affichages de la version PC et de la version mobile verticale doit
@@ -5101,6 +5102,24 @@ html body.touch #tNitro{right:calc(var(--hudD) + 8px)!important;bottom:calc(var(
 /* le « $×1 » du FLOW au palier 0 était à 40 % d'opacité : gris sur bleu nuit, illisible sur un ciel clair (GAMEPLAY) — secondaire, mais lisible */
 html body #flowHud[data-lv="0"] .fM{opacity:.8!important}
 </style>
+<style id="monnaie">
+/* ===== LA MONNAIE DU JEU (2026-11-07, Léo : « le sketch en monnaie, partout, dorée en 3D ») =====
+   Le symbole vient de son sketch au stylo (formes gardées une à une, bords retaillés en facettes). Deux habits :
+   · UN GLYPHE (U+E000) d'une mini-police (assets/fonts/monnaie.woff2) ajoutée aux cinq polices du jeu par unicode-range : CUR() l'écrit
+     partout (textes, canvas), il prend la couleur du texte voisin ;
+   · L'IMAGE OR 3D (assets/monnaie/monnaie-or.png : biseau, reflet, halo, étincelles) au compteur d'argent, qui saute et brille à chaque gain.
+   Le vrai argent (les offres « 0,99 € ») reste écrit « € ». */
+@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Silkscreen';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Jersey';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Sixtyfour';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+@font-face{font-family:'CC Jacquard';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
+#cashHud .chV i.mOr{display:inline-block;width:1.5em;height:1.3em;font-size:var(--f6);align-self:center;margin-right:.1em;
+  background:url('./assets/monnaie/monnaie-or.png') center/contain no-repeat;-webkit-background-clip:border-box;background-clip:border-box;
+  filter:drop-shadow(0 0 5px rgba(255,200,60,.55));transform-origin:50% 60%}
+#cashHud .chV i.mOr.pop{animation:mOrPop .32s cubic-bezier(.2,1.6,.4,1)}
+@keyframes mOrPop{0%{transform:scale(1) rotate(0)}35%{transform:scale(1.4) rotate(-8deg);filter:drop-shadow(0 0 10px rgba(255,230,120,.95)) brightness(1.5)}100%{transform:scale(1) rotate(0)}}
+</style>
 <style id="garageV6">
 /* ======================= LE GARAGE v6 — LA REFONTE (2026-09-30, Sacha, capture couchée à l'appui : « améliore le garage, notamment les
    raretés, qui sont écrites deux fois alors qu'on peut juste mettre les couleurs — refonte totale du garage ») =======================
@@ -5937,6 +5956,9 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill>b
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill>em{top:4px;bottom:auto;right:4px;padding:3px 4px 2px}
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>.gIc{display:none}
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>img{left:-6%;top:-10%;width:112%}
+/* (2026-11-07, Sacha : « les photos des voitures sont coupées » · « les photos des ailes sont buggées ») la photo (720×440) posée à 124 % de large, hauteur libre, dépassait de la tuile et se faisait rogner en bas : elle tient maintenant ENTIÈRE dans la tuile (contain) ; les ailes gardent 16 px dessous pour le nom */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT>img{left:0!important;top:0!important;width:100%!important;height:100%!important;object-fit:contain}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>img{height:calc(100% - 16px)!important}
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.photo>b{left:0;right:0;bottom:0;padding:12px 4px 5px;background:linear-gradient(180deg,rgba(7,5,15,0),rgba(7,5,15,.88) 55%)} /* le nom posé sur la photo : un fondu d'encre dessous, il se lisait mal sur la tôle orange */
 /* une FIGURE dessinée (partout où illuFig la pose) : l'anneau 12 × 12 en cases de 3 px, la caisse 9 × 9 en cases de 2 px au milieu */
 .fgIl{position:relative;display:block;width:36px;height:36px;color:var(--fc,#ffd75e)}
@@ -8904,7 +8926,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   <!-- (2026-09-29, Sacha : « rajoute un compteur d'argent stylé, inspiré de loin de GTA, mais avec notre DA ») LE COMPTEUR D'ARGENT DU
        TÉLÉPHONE : en haut à droite sous le ⏸ (la place de l'argent dans GTA), le total de la partie qui DÉFILE vers sa valeur, et sous lui le
        « +$ » qui s'additionne tant que ça tombe (1,8 s) — en or pendant la frénésie (×3). Typo ombrée VERTE (l'argent du jeu est vert). -->
-  <div id="cashHud" aria-hidden="true"><b class="chV"><i>€</i><span>0</span></b><em class="chD"></em></div>
+  <div id="cashHud" aria-hidden="true"><b class="chV"><i class="mOr">&#xE000;</i><span>0</span></b><em class="chD"></em></div>
   <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em><i id="avPlus"></i></div><div id="avRec" class="vide"><span id="avRecT"></span><i><s id="avRecF"></s></i></div>
     <div id="avCh"><div class="avChTop"><b id="avPts">0</b><span id="avX">×1</span></div><div class="avBar"><i id="avBarF"></i></div><ul id="avList"></ul></div></div>
   <!-- (2026-09-28, Sacha) L'EMBLÈME DE LA FRÉNÉSIE « THE DARK TRIAD » — v3 EN PIXEL (même soir : « toute l'interface est faite en pixel,
@@ -10873,7 +10895,7 @@ html body #gBqPan.cote.bqFigOn .bqRail .bqK.fgK{--fgW:calc((100% - 8px) / 2.2)}
     <div id="setHead"><span>Réglages</span><button id="setClose" class="pbtn pb-cyan pbCarre" aria-label="Fermer"><i class="pxi pxi-croix" aria-hidden="true"></i></button></div>
     <div class="setSec">Langue</div>
     <div class="setRow" id="langRow"><span>Langue · Language</span><b id="tgLang">FR</b></div>
-    <div class="setRow" id="curRow"><span>Devise</span><b id="tgCur">€</b></div>
+    <div class="setRow" id="curRow"><span>Devise</span><b id="tgCur">&#xE000;</b></div>
     <div class="setSec">Audio</div>
     <div class="setRow" data-tg="sndBtn"><span>Effets sonores</span><b id="tgSnd">ON</b></div>
     <div class="setRow" data-tg="musBtn"><span>Musique</span><b id="tgMus">ON</b></div>
@@ -30425,8 +30447,7 @@ const CARS=[
     (2026-10-18) Toutes les caisses retirées sont RÉDUITES à `{retire:1,name:'…'}` : plus de cotes, de couleurs ni de punchline — aucune boucle
     ne lit la fiche d'une retirée (carRetiree d'abord). Le NOM reste : la mission qui la donne et le message de remboursement l'écrivent. */
  {retire:1,name:'LA POSTIÈRE'},
- {name:'LA DEUCHE',color:0x7a1426,accent:0x121212,maxKmh:185,accel:20,turn:2.6,h:1.6,w:1.48,l:3.83,spoiler:0,shape:'a_deuche',rar:'commun',
-  desc:'Deux chevaux sous le capot, un moteur de jet dans le coffre. Le toit s\'ouvre, les rivaux se referment.'},
+ {retire:1,name:'LA DEUCHE'}, /* (2026-11-07, Léo : « enlève la tin snail ») retirée de nouveau (elle était revenue le même jour) ; son dessin `a_deuche` est dans l'historique git (commit ccfbb021^) */
  {name:'LE TAXI JAUNE',color:0xffc61a,accent:0x141414,maxKmh:215,accel:24,turn:2.45,h:1.5,w:2,l:5.4,spoiler:0,shape:'a_taxi',rar:'commun',
   desc:'Le compteur tourne en millions. Tu montes, tu t\'accroches, tu ne négocies pas le prix.'},
  {name:'LA PIZZA EXPRESS',color:0xf4f1ea,accent:0xd8261e,maxKmh:190,accel:21,turn:2.9,h:1.45,w:1.5,l:3.4,spoiler:0,shape:'b_pizza',rar:'legendaire',
@@ -30748,7 +30769,7 @@ function langNext(){
   try{localStorage.ccLang=LANG;}catch(err){}
   return LANG;
 }
-const CUR=()=>'€'; /* (2026-11-05, Sacha : « remplace les dollars par des euros, aucun symbole dollar ne doit rechapper ») la devise du jeu est l'EURO */
+const CUR=()=>'\uE000'; /* (2026-11-05, Sacha : « remplace les dollars par des euros, aucun symbole dollar ne doit rechapper ») la devise du jeu est l'EURO */
 const LOC=()=>LANG==='fr'?'fr-FR':'en-US';
 const fmt=v=>CUR()+(LANG==='fr'?' ':'')+Math.round(v).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' '); /* (2026-11-07) comme fmtSolde et fmtC : « €1,234 » en anglais (plus d'espace à la française), et l'espace fine U+202F de fr-FR remplacée par une vraie espace — la police pixel ne la dessine pas */
 /* ============================================================================
@@ -31324,16 +31345,17 @@ function cashTxt(v){v=Math.max(0,v);
   const e=Math.floor(v+1e-6);
   if(v<10&&v-e>.004){const t=v.toFixed(2);return LANG==='fr'?t.replace('.',','):t;} // la mise de départ (1,61) garde ses centimes
   return e.toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
+function monnaiePop(){const i=CASH.el&&CASH.el.querySelector('.mOr');if(!i||i.classList.contains('pop'))return;i.classList.add('pop');setTimeout(function(){i.classList.remove('pop');},330);} /* (2026-11-07, Léo : « rends-le encore plus juicy ») le symbole or saute et brille à chaque gain */
 function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
   const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
-  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;CASH.v.textContent=t;if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,VP.w*.58);}}}
+  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){if(!force&&CASH.disp>(CASH.dPrec||0))monnaiePop();CASH.dPrec=CASH.disp;CASH.tv=t;CASH.v.textContent=t;if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,VP.w*.58);}}}
   if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);
-    if(kd!==CASH.kd2){CASH.kd2=kd;const td='+€ '+cashTxt(CASH.delta)+(x3?' ×3':'');if(td!==CASH.td){CASH.td=td;CASH.d.textContent=td;}}
+    if(kd!==CASH.kd2){CASH.kd2=kd;const td='+'+CUR()+' '+cashTxt(CASH.delta)+(x3?' ×3':'');if(td!==CASH.td){CASH.td=td;CASH.d.textContent=td;}}
     if(x3!==CASH.d.classList.contains('x3'))CASH.d.classList.toggle('x3',x3);}
   if(vu!==CASH.d.classList.contains('vu'))CASH.d.classList.toggle('vu',vu);
 }
@@ -33974,7 +33996,7 @@ function trxPlanche(){
      rr(-W/2,-H/2,W,H,7);const g=x.createLinearGradient(0,-H/2,0,H/2);g.addColorStop(0,vs?'#52bd7c':'#5cc985');g.addColorStop(1,'#2b7f4d');x.fillStyle=g;x.fill();
      x.lineWidth=2;x.strokeStyle='#1d5c37';x.stroke();x.strokeStyle='rgba(220,255,228,.75)';x.lineWidth=1.6;x.strokeRect(-W/2+6,-H/2+6,W-12,H-12);
      x.textAlign='center';x.textBaseline='middle';x.fillStyle='#e8fdec';
-     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='24px "Press Start 2P",monospace';x.fillText('€',0,2);
+     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='24px "Press Start 2P",monospace';x.fillText('\uE000',0,2);
        x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('100',-W/2+19,-H/2+15);x.fillText('100',W/2-19,H/2-14);}
      else{x.fillStyle='rgba(20,80,45,.9)';x.fillRect(-W/2+6,-8,W-12,16);x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('CASH CAR',0,1);
        x.beginPath();x.arc(-W/2+18,-H/2+17,6,0,Math.PI*2);x.moveTo(W/2-12,H/2-17);x.arc(W/2-18,H/2-17,6,0,Math.PI*2);x.fill();}
@@ -47699,89 +47721,8 @@ SHAPES.d_corbillard=function(K){
   return {hl:[.66,.95,2.97],tl:[.64,.80,-2.97],wx:.86,wzF:ZF,wzR:-ZR,
           lpw:{R:R,w:.27,style:'enjoliveur',jante:0xe6dcc4}};
 };}
-/* ===== LA DEUCHE ET LE TAXI JAUNE REVIENNENT (2026-11-07, Léo : « la douche a disparu… le taxi remets ») =====
-   Leurs dessins (`a_deuche`, `a_taxi`) avaient été supprimés du code à la gamme resserrée du 07/10 : repris tels quels de l'index.html d'avant (commit ccfbb021^). Leurs fiches sont dans CARS (cars.js), leurs prix dans CAR_UNLOCK (deblocage.js). */
-SHAPES.a_deuche=function(K){
-  /* LA DEUCHE — la 2 CV Charleston : caisse étroite et haute, bordeaux dessus, NOIR dessous en coup de
-     pinceau ; ailes galbées posées À PART sur les roues, phares ronds perchés sur leurs tiges, capot à
-     nervures, et le toit de toile ROULÉ à l'arrière (on voit les sièges). */
-  const U=LPU,R=.30,ZF=1.18,ZR=-1.22;
-  const P=K.kit({p:{g:'p',c:0x7a1426},n:{g:'p',c:0x121212,f:0},s:{g:'s',c:0x1e1e22},S:{g:'s',c:0x3a3438},
-    k:{g:'m',c:0x141518},c:{g:'c',c:0xe9ecf0},g:{g:'g',c:0x1b2733},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a}});
-  const AR=[[0,2*R+.06],[R*.70,2*R+.04],[R+.10,R*1.10],[R+.16,.34]];
-  const zs=[-1.88,-1.76,-1.55,-1.35,-1.12,-.92,-.71,-.70,-.62,-.02,.04,.38,.40,.72,1.40,1.72,1.88];
-  for(const w of [ZF,ZR])for(const d of [R*.70,R+.16])zs.push(w-d,w+d);
-  zs.sort((a,b)=>a-b);
-  const CW=.72,HD=.40,
-        yC=z=>U.lin([[-1.88,.62],[-1.76,.86],[-1.55,1.10],[-1.35,1.27],[-1.10,1.40],[-.71,1.50],[-.30,1.53],[HD,1.52],[CW,1.03],[1.40,.93],[1.88,.82]],z),
-        xW=z=>U.lin([[-1.88,.50],[-1.72,.58],[-1.35,.62],[CW,.62],[1.00,.56],[1.88,.44]],z),
-        open=z=>z<.385&&z>-.705;
-  P.loft(zs,z=>{
-    const yb=U.arch(z,[ZF,ZR],AR,.32),c=yC(z),xw=xW(z);
-    if(z>CW){return [[0,yb],[xw-.04,yb],[xw,yb+.04],[xw,Math.max(yb+.05,c-.16)],[xw-.02,c-.09],[xw*.80,c-.04],[xw*.55,c-.015],[xw*.30,c-.004],[xw*.12,c],[0,c+.002]];}
-    const bl=Math.min(.98,c-.14),xg=xw-.03,xr=xw-.09;
-    const s=[[0,yb],[xw-.04,yb],[xw,yb+.04],[xw,bl],[xg,bl+.02],[xr,Math.max(bl+.03,c-.08)],[xr-.05,Math.max(bl+.04,c-.01)]];
-    if(open(z))s.push([xr-.09,c-.07],[xr-.12,.80],[0,.78]);
-    else s.push([xr*.62,c+.004],[xr*.30,c+.012],[0,c+.015]);
-    return s;
-  },(j,z,y)=>{
-    if(j===0)return 'k';
-    if(j<0)return j===-1?'k':'p';
-    if(z>CW)return 'n';                                              /* le capot noir */
-    if(j===1)return 'n';
-    if(j===4){if(z>.04&&z<.70)return 'g';if(z>-.60&&z<-.02)return 'g';if(z>-1.12&&z<-.66&&y>1.02)return 'g';return 'p';}
-    if(j<=5)return 'p';
-    if(z>HD)return 'g';                                              /* pare-brise */
-    if(open(z))return j===6?'p':'S';                                 /* l'habitacle, à ciel ouvert */
-    if(z>-.72)return 'p';
-    if(z>-1.36){if(j>=8&&z<-.91&&z>-1.13)return 'g';return 's';}   /* la toile et sa petite lunette */
-    return 'p';});
-  /* LES AILES À PART : deux lofts ouverts, galbés sur les roues */
-  const wing=(z0,z1,zsW,top,lo,xo)=>{P.loft(zsW,z=>{const t=U.lin(top,z),l=Math.min(lo(z),t-.05),x=U.lin(xo,z);
-      return [[.47,l],[x-.03,l],[x,l+.03],[x,t-.07],[x-.07,t],[.47,t-.01]];},(j)=>j<0?'x':'n');};
-  const zF=[.40,.52,.70,ZF-R-.10,ZF-R*.7,ZF+R*.7,ZF+R+.10,1.70,1.84,1.92];
-  wing(.40,1.95,zF,[[.40,.36],[.52,.50],[.70,.66],[ZF,.84],[1.55,.80],[1.84,.62],[1.92,.44]],
-       z=>U.arch(z,[ZF],[[0,2*R+.07],[R*.70,2*R+.05],[R+.10,R*1.10],[R+.17,.34]],.33),[[.40,.66],[.70,.73],[1.60,.73],[1.92,.62]]);
-  const zR=[-1.80,-1.70,-1.52,ZR-R*.7,ZR+R*.7,-.78,-.66,-.60];
-  wing(-1.80,-.60,zR,[[-1.80,.50],[-1.70,.64],[-1.50,.76],[ZR,.80],[-.80,.70],[-.66,.54],[-.60,.40]],
-       z=>U.arch(z,[ZR],[[0,.56],[R*.75,.54],[R+.06,.42]],.40),[[-1.80,.64],[-1.60,.74],[-.78,.74],[-.60,.70]]);
-  /* le coup de pinceau noir de la Charleston, et le bas de caisse */
-  P.sym(sd=>{
-    P.prism('n',[[.72,.99],[.40,.96],[.10,.89],[-.20,.77],[-.42,.62],[-.62,.46],[-.62,.33],[.72,.33]],.008,sd*.624);
-    P.box('k',.10,.06,1.06,sd*.60,.33,-.10);
-    for(const z of [.72,.02,-.62])P.box('k',.01,.62,.012,sd*.623,.66,z);
-    P.box('c',.03,.12,.03,sd*.63,.70,.66);P.box('c',.03,.12,.03,sd*.63,.70,.08);
-    P.box('c',.03,.025,.10,sd*.63,.90,.10);P.box('c',.03,.025,.10,sd*.63,.90,-.54);
-    /* LES PHARES RONDS SUR LEURS TIGES */
-    P.box('n',.04,.12,.04,sd*.52,.84,1.60);
-    P.lathe('c',[[0,-.09],[.07,-.08],[.10,-.02],[.10,.06]],10,sd*.52,.94,1.60,'z');
-    P.cyl('W',.085,.02,10,sd*.52,.94,1.665,'z');
-    P.box('O',.05,.04,.06,sd*.64,.76,1.70);
-    /* rétro rond sur la portière */
-    P.box('k',.02,.10,.02,sd*.64,1.04,.64);P.cyl('c',.05,.02,8,sd*.66,1.12,.64,'z');
-    /* feux arrière sur la poupe */
-    P.box('L',.10,.12,.04,sd*.42,.74,-1.80,.55);P.box('O',.10,.05,.04,sd*.42,.65,-1.83,.55);
-    /* butoirs */
-    P.box('c',.05,.12,.05,sd*.36,.40,1.945);P.box('c',.05,.12,.05,sd*.36,.40,-1.935);
-  });
-  /* LE CAPOT À NERVURES : cinq côtes d'acier */
-  for(let i=-2;i<=2;i++){const x=i*.10,zc=1.30;P.box('n',.03,.03,1.02,x,yC(zc)+.012-.035*Math.abs(i)*Math.abs(i)*.25,zc,.19);}
-  /* la calandre à lamelles, cerclée de chrome */
-  P.plate('c',[[-.30,.44],[.30,.44],[.33,.76],[-.33,.76]],.02,1.88);
-  P.plate('k',[[-.26,.47],[.26,.47],[.29,.73],[-.29,.73]],.02,1.89);
-  for(let i=0;i<5;i++)P.box('c',.54,.018,.02,0,.50+i*.055,1.91);
-  /* pare-chocs tubulaires */
-  P.cyl('c',.03,1.30,8,0,.40,1.94,'x');P.cyl('c',.03,1.30,8,0,.40,-1.93,'x');
-  /* le toit ouvert : banquette, sièges hamac, volant, et la TOILE ROULÉE */
-  P.sym(sd=>{P.box('s',.40,.40,.08,sd*.24,.98,-.10,-.20);P.box('s',.40,.08,.40,sd*.24,.80,.08);});
-  P.box('s',.96,.36,.08,0,.96,-.62,-.18);
-  P.lathe('k',[[.14,-.012],[.14,.012]],10,.26,1.00,.34,'z');
-  P.cyl('s',.075,1.02,10,0,1.52,-.70,'x');
-  P.cyl('c',.035,.10,8,.40,.33,-1.90,'z');
-  K.commit(P);
-  return {hl:[.52,.94,1.68],tl:[.42,.74,-1.84],wx:.62,wzF:ZF,wzR:-ZR,
-          lpw:{R:R,w:.15,style:'enjoliveur',jante:0x8a1a2c}};
-};
+/* ===== LE TAXI JAUNE REVIENT (2026-11-07, Léo : « le taxi remets ») =====
+   Son dessin (`a_taxi`) avait été supprimé du code à la gamme resserrée du 07/10 : repris tel quel de l'index.html d'avant (commit ccfbb021^). Sa fiche est dans CARS (cars.js), son prix dans CAR_UNLOCK (deblocage.js). LA DEUCHE (THE TIN SNAIL), revenue le même jour, est retirée de nouveau (« enlève la tin snail ») : son dessin `a_deuche` est dans l'historique git. */
 SHAPES.a_taxi=function(K){
   /* LE TAXI JAUNE — la grosse propulsion de Manhattan : trois volumes interminables, calandre chromée
      en caisson, le lumineux sur le toit, le DAMIER noir et blanc sur les flancs, pare-chocs de tank. */
@@ -50343,7 +50284,7 @@ const CAR_UNLOCK=[
   {p:2000000},/* (2026-10-22, Sacha : « tableau des voitures » 550 000 → 200 000) */ // (2026-10-19 : 750 000 → 550 000, la plus abordable des épiques ; (2026-10-19, Léo : la grille des prix — le prix suit le prestige de la vraie voiture, chaque prix dans sa famille)) ACIDE — (2026-10-06) ÉPIQUE à l'argent du jeu (était en boutique, 1,99 €)
 /* ===== LES CONDITIONS DES 50 — DÉBUT ===== */
   {p:1500}, // LA POSTIÈRE — (2026-10-06) RETIRÉE
-  {p:2000}, // LA DEUCHE — (2026-10-06) retirée ; (2026-11-07, Léo : « la douche a disparu ») REMISE
+  {p:2000}, // LA DEUCHE — (2026-10-06) RETIRÉE ; (2026-11-07) remise puis retirée de nouveau (« enlève la tin snail »)
   {p:2500}, // LE TAXI JAUNE — (2026-10-06) retiré ; (2026-11-07, Léo : « le taxi remets ») REMIS
   {k:'premium',eur:'161,00 €',rar:'leg'}, // LA PIZZA EXPRESS — (2026-10-06) revient, LÉGENDAIRE en boutique
   {p:3500}, // LE MONOSPACE
@@ -51643,7 +51584,7 @@ function flowHudMaj(rest){
   h.classList.toggle('gele',FLOW.nit&&FLOW.v>0&&FLOW.lv<4); // (v3) le nitro TIENT la jauge de la montée : rien ne fuit tant qu'il brûle
   const tr=frenEl();if(tr){tr.classList.toggle('tremble',FLOW.lv===4&&lache);tr.classList.toggle('froid',FLOW.lv===4&&fuit&&!lache);}
   if(FLOW.lvAff!==FLOW.lv){const av=FLOW.lvAff;FLOW.lvAff=FLOW.lv;h.style.setProperty('--fc',FLOW_COL[FLOW.lv]);h.dataset.lv=FLOW.lv;
-    h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='€×'+fmtMul(flowMult());
+    h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='\uE000×'+fmtMul(flowMult());
     const g=FLOW.glow;g.style.setProperty('--fc',FLOW_COL[FLOW.lv]);g.dataset.lv=FLOW.lv;g.style.opacity=FLOW.lv?(.25+FLOW.lv*.15).toFixed(2):'0';
     if(FLOW.lv===4)frenEntre();else{h.classList.remove('embrase','sc1','sc2');if(av===4)frenSort();}} // (sans ça, un retour d'écran — display rendu — rejouerait l'embrasement)
 }
@@ -52720,9 +52661,9 @@ const MOTIFS={
       motTore(x,function(){x.fillStyle='rgba(255,255,255,.85)';x.fillRect(cx-r*1.4,cy-.8,r*2.8,1.6);x.fillRect(cx-.8,cy-r*1.4,1.6,r*2.8);});}}},
   cash:{s:.45,c:0x1d7f45,f:function(x,R){x.fillStyle='#1d7f45';x.fillRect(0,0,MOT_W,MOT_W);
     x.strokeStyle='rgba(255,255,255,.07)';x.lineWidth=10;for(let k=-5;k<5;k++){x.beginPath();x.moveTo(k*128,0);x.lineTo(k*128+MOT_W,MOT_W);x.stroke();} // le guillochage du billet
-    x.font='900 92px "Arial Black",Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
+    x.font='92px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
     for(let b=0;b<4;b++)for(let a=0;a<4;a++){const cx=(a+.5+(b&1)*.5)*128,cy=(b+.5)*128,ro=(R()-.5)*.5;
-      motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(ro);x.lineWidth=10;x.strokeStyle='#0c4425';x.strokeText('€',0,4);x.fillStyle='#ffd23a';x.fillText('€',0,4);x.restore();});}}}};
+      motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(ro);x.lineWidth=10;x.strokeStyle='#0c4425';x.strokeText('\uE000',0,4);x.fillStyle='#ffd23a';x.fillText('\uE000',0,4);x.restore();});}}}};
 /* ===== LES LIVRÉES « STICKERS » ET LES LÉGENDAIRES (2026-11-05, le nuancier v3) =====
    Six toiles épiques de plus (mêmes règles que les pelages : 512 px raccordées, un tirage fixe par id) et les six légendaires. Une légendaire a
    `anim` (la clé de son programme dans MOT_ANIM, posé par motGreffe) ; sa toile `f` ne sert qu'à la pastille des listes. */
@@ -60738,7 +60679,7 @@ const billNoteTex=(function(){
   apresPolice(function(){c.fillStyle='#1c0430';c.fillRect(0,0,64,32);c.fillStyle='#2f9a52';c.fillRect(2,2,60,28);
   c.strokeStyle='#7fd89a';c.lineWidth=2;c.strokeRect(5,5,54,22);
   c.fillStyle='#ffd75e';c.font='8px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
-  c.fillText('€',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
+  c.fillText('\uE000',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
   return tx;
 })();
 const billGeo=new THREE.PlaneGeometry(.5,.25);
@@ -60853,7 +60794,7 @@ function updatePool(pool,dt,grav){
    fête — en 15 couleurs pastel. Désormais : UN atlas cuit une fois (15 glyphes en OR de l'argent — clair en haut, ombre en bas — cerclés
    d'un LISERÉ d'encre #1c0430, comme tout ce qui rapporte), 600 panneaux instanciés (`mkPanneaux`), tableaux fixes, zéro allocation.
    Le mouvement est celui d'avant (ça tournoie en tombant, fondu la dernière seconde). */
-const CURR=['€','€','¥','£','€']; // (2026-10-15, UNE SEULE POLICE) les cinq que la police pixel DESSINE — ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ tombaient dans une police de secours (mesuré)
+const CURR=['\uE000','\uE000','¥','£','\uE000']; // (2026-10-15, UNE SEULE POLICE) les cinq que la police pixel DESSINE — ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ tombaient dans une police de secours (mesuré)
 const MONN_TEX=(function(){
   const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d'),tx=new THREE.CanvasTexture(cv);
   apresPolice(function(){c.clearRect(0,0,S*4,S*4);
@@ -64946,7 +64887,7 @@ function m2ValCourse(m){try{switch(m.k){case 'aura':return Math.round(auraRun)||
 function m2Frac(m,v,t){return t>0?Math.max(0,Math.min(1,v/t)):0;}
 function m2Prog(m,v,t){v=Math.min(v,t); // « 3 / 5 », « 42 000 / 100 000 $ », « 4,2 / 5 S », « 1:12 / 5:00 »
   switch(m.u){case 's':return decFr(Math.floor(v*10)/10,1)+' / '+t+' S';case 'kmh':return m2Nb(v)+' / '+m2Nb(t)+' KM/H';case 'km':return m2Nb(Math.floor(v))+' / '+m2Nb(t)+' KM';
-    case '$':return m2Nb(v)+' / '+m2Nb(t)+' €';case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
+    case '$':return m2Nb(v)+' / '+m2Nb(t)+' '+CUR();case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
     case 'b':return v>=t?TR('FAIT'):TR('PAS ENCORE');}
   return m2Nb(v)+' / '+m2Nb(t);}
 function m2RecNom(m){const r=m.r||{};if(r.cash)return '+'+fmtC(r.cash);if(r.car)return TR(r.car);
@@ -65028,7 +64969,7 @@ function mcCanon(){ // le dessin du canon (graduations, rayures) : calculé une 
 function mcVedette(x,s,arme){const m=x.m,pret=x.rg===0,R=mcRec(m),w=mcVu(x,s),C=2*Math.PI*88,pg=R.k==='hab'?R.c:'';if(arme)w[0]=0; /* arme : on arrive sur la page, l'anneau se charge depuis zéro */
   let fond;
   if(R.k==='car')fond=mcSil(R.i,false,pret&&m2Pret(m.id));
-  else if(R.k==='cash')fond='<b class="mcSom"><small>€</small>'+m2Nb(R.v)+'</b>';
+  else if(R.k==='cash')fond='<b class="mcSom"><small>'+CUR()+'</small>'+m2Nb(R.v)+'</b>';
   else if(R.k==='hab')fond='<b class="mcRar">'+sansAcc(TR(R.rar))+'</b>';
   else fond='<b class="mcSom">?</b>';
   const lab=R.k==='car'?TR('VOITURE')+' · '+TR(R.rar):R.k==='hab'?TR(R.cat)+' · '+TR(R.rar):''; /* l'argent se lit tout seul au fond du portail */
@@ -67462,7 +67403,7 @@ function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteu
   const x0=(flyV.x*.5+.5)*innerWidth,y0=(-flyV.y*.5+.5)*innerHeight;
   const r=elMoney.getBoundingClientRect(),x1=r.left+r.width/2,y1=r.top+r.height/2;
   for(let i=0;i<n;i++){
-    const b=document.createElement('div');b.className='bill';b.textContent='€';
+    const b=document.createElement('div');b.className='bill';b.textContent='\uE000';
     b.style.left=(x0+(Math.random()-.5)*70)+'px';b.style.top=(y0+(Math.random()-.5)*46)+'px';
     document.body.appendChild(b);
     setTimeout(()=>{b.style.left=x1+'px';b.style.top=y1+'px';b.style.opacity=0;b.style.fontSize='8px';},30+i*45);
@@ -69422,7 +69363,7 @@ function start(){
    qu'on voulait fuir. VS-15 force la présentation TEXTE, donc notre police et notre couleur. */
 const VS='\uFE0E';
 const JETONS=[
-  {g:'€',        c:'#ffd75e',n:'EURO',         p:46},
+  {g:'\uE000',    c:'#ffd75e',n:'EURO',         p:46},
   {g:'♦'+VS,     c:'#ff9d2e',n:'CARREAU',      p:15},
   {g:'♥'+VS,     c:'#ff5e8a',n:'CŒUR',         p:13},
   {g:'♣'+VS,     c:'#54e07a',n:'TRÈFLE',       p:11},
@@ -74455,7 +74396,7 @@ function richCarteGeo(){const g=new THREE.BoxGeometry(1,.63,.018),uv=g.attribute
   g.clearGroups();return g;}
 function richTexLiasse(){const b=RICH.texBillet.image;return richCv(512,512,function(x){ // la LIASSE : le billet du dessus et sa BANDE ; les feuilles empilées sur la tranche
   x.drawImage(b,0,0,512,236);x.fillStyle='#efe6cf';x.fillRect(228,0,56,236);x.fillStyle='rgba(150,110,40,.6)';x.fillRect(228,0,3,236);x.fillRect(281,0,3,236);
-  x.save();x.translate(256,118);x.rotate(-Math.PI/2);x.font='14px "Press Start 2P",monospace';x.fillStyle='#7a5a1a';x.textAlign='center';x.textBaseline='middle';x.fillText('€ 10 000',0,0);x.restore();
+  x.save();x.translate(256,118);x.rotate(-Math.PI/2);x.font='14px "Press Start 2P",monospace';x.fillStyle='#7a5a1a';x.textAlign='center';x.textBaseline='middle';x.fillText('\uE000 10 000',0,0);x.restore();
   for(let y=256;y<512;y+=4){x.fillStyle=(y/4)%2?'#cfe9e1':'#0c5a66';x.fillRect(0,y,512,4);}x.fillStyle='#efe6cf';x.fillRect(228,256,56,256);});}
 function richLiasseGeo(){const g=new THREE.BoxGeometry(1,.46,.12),uv=g.attributes.uv;
   for(const G9 of g.groups)for(let k=G9.start;k<G9.start+G9.count;k++){const i=g.index.getX(k),u=uv.getX(i),v=uv.getY(i);
@@ -76554,6 +76495,8 @@ function bqVitreBrise(){
         h+='<span style="clip-path:polygon('+t[0]+'% '+t[1]+'%,'+t[2]+'% '+t[3]+'%,'+t[4]+'% '+t[5]+'%);--dx:'+dx+'px;--dy:'+dy+'px;--rz:'+rz+'deg;animation-delay:'+(n*12+i*8)+'ms"></span>';});}}
   h+='<b>'+sansAcc(TR('DÉBLOQUÉ'))+'</b>';ov.innerHTML=h;pan.appendChild(ov);
   el.classList.add('brise');setTimeout(function(){el.classList.remove('brise');},900);
+  /* (2026-11-07, Léo : « quand on appuie ACHETER, la vitre se casse, et là elle disparaît ; avec le code de la vitrine on l'avait supprimé ») LA VITRINE (vitrine-miniature.js) : la carte n'a plus de cube CSS à cacher, c'est une photo avec son verre. Sous les éclats, elle reçoit la photo de la caisse À TOI (sans verre) : vitrinePose relit la possession (bqA), déjà vraie ici. */
+  try{const ph=el.querySelector('[data-ph]');if(typeof VITM!=='undefined'&&VITM.on&&ph&&el.classList.contains('vo'))setTimeout(function(){try{vitrinePose(ph,+ph.getAttribute('data-ph'));}catch(e){}},90);}catch(e){}
   try{if(typeof sfx==='function')sfx('ui.debloque');}catch(e){}
   setTimeout(function(){if(ov.parentNode)ov.remove();},1100);}
 /* ===== LA VITRINE MINIATURE (2026-11-07, Sacha : « le truc des boîtes de Léo pour les voitures, tu peux les améliorer pour faire un truc qui donne plus un effet 3D en mode voiture miniature ») =====
@@ -76655,7 +76598,7 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitri
     const v9=new THREE.Vector3(),P=function(X,Y,Z){v9.set(X,Y,Z).project(cam);return [(v9.x*.5+.5)*W,(1-(v9.y*.5+.5))*H];};
     const poly=function(L){x.beginPath();x.moveTo(L[0][0],L[0][1]);for(let k=1;k<L.length;k++)x.lineTo(L[k][0],L[k][1]);x.closePath();};
     const a=VITM.L/2,b=VITM.P/2,A=a+VITM.po,B=b+VITM.po,h=VITM.Hc,ph=VITM.ph;
-    if(VITM.style!=='sacha'){ /* styles leo ET route — (2026-11-07, Léo : « je ne vois plus les vitres ») la vitre reste aussi sur une caisse à toi : son étiquette À TOI / ÉQUIPÉE dit qu'elle est à toi */
+    if(VITM.style!=='sacha'){ /* styles leo ET route — (2026-11-07, Léo : « sa règle compte : quand on appuie ACHETER la vitre se casse, et elle disparaît ») une caisse À TOI n'a pas de verre ; à l'achat, bqVitreBrise (vitre-brisee.js) fait éclater la vitre et la carte reçoit sa vitrine sans verre */
     /* ===== LE STYLE DE LÉO : sol de verre quadrillé, fond de studio, ombre douce ===== */
     const a=VITM.L/2,b=VITM.P/2,A=a+VITM.po,B=b+VITM.po,h=VITM.Hc,ph=VITM.ph,c=function(X,Y,Z){return P(X,Y,Z);};
     const arete=function(p,q,w,col){x.strokeStyle=col;x.lineWidth=w;x.beginPath();x.moveTo(p[0],p[1]);x.lineTo(q[0],q[1]);x.stroke();};
@@ -76669,7 +76612,7 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitri
      g=x.createLinearGradient(sR[0][0],sR[0][1],sR[1][0],sR[1][1]);g.addColorStop(0,'#101218');g.addColorStop(1,'#060709');x.fillStyle=g;poly(sR);x.fill();
      g=x.createLinearGradient(sT[0][0],sT[0][1],sT[2][0],sT[2][1]);g.addColorStop(0,'#3a3f4c');g.addColorStop(.45,'#1a1d25');g.addColorStop(1,'#0e1015');x.fillStyle=g;poly(sT);x.fill();}
     /* le fond de studio : la vitre du fond (teinte de la rareté, plus claire en haut) et son halo blanc derrière la caisse ; la vitre de gauche à peine teintée */
-    {let g=x.createLinearGradient(0,Q.bk[2][1],0,Q.bk[0][1]);g.addColorStop(0,vitHex(rc,.42));g.addColorStop(1,vitHex(rc,.18));x.fillStyle=g;poly(Q.bk);x.fill();
+    if(!own){let g=x.createLinearGradient(0,Q.bk[2][1],0,Q.bk[0][1]);g.addColorStop(0,vitHex(rc,.42));g.addColorStop(1,vitHex(rc,.18));x.fillStyle=g;poly(Q.bk);x.fill();
      const m0=c(0,h*.42,-b),R0=Math.hypot(Q.bk[1][0]-Q.bk[0][0],Q.bk[1][1]-Q.bk[0][1])*.42;x.save();poly(Q.bk);x.clip();
      g=x.createRadialGradient(m0[0],m0[1],0,m0[0],m0[1],R0);g.addColorStop(0,'rgba(255,255,255,.95)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,W,H);x.restore();
      g=x.createLinearGradient(Q.lf[1][0],0,Q.lf[0][0],0);g.addColorStop(0,vitHex(rc,.18));g.addColorStop(1,vitHex(rc,.05));x.fillStyle=g;poly(Q.lf);x.fill();}
@@ -76678,7 +76621,7 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitri
      const gc=vitMix(rc,.45).replace('rgb(','').replace(')','');for(let k=0;k<=nx;k++){const X=-a+2*a*k/nx;arete(c(X,0,-b),c(X,0,b),.7*u,'rgba('+gc+',.20)');}
      for(let k=0;k<=nz;k++){const Z=-b+2*b*k/nz;arete(c(-a,0,Z),c(a,0,Z),.7*u,'rgba('+gc+','+(.10+.22*k/nz).toFixed(2)+')');} /* le quadrillage de Léo, en fils clairs teintés de la rareté sur le noir verni, plus marqués vers l'avant */
      x.restore();}
-    {const col=vitHex(rc,.60);arete(c(-a,0,-b),c(a,0,-b),1.1*u,col);arete(c(-a,0,-b),c(-a,0,b),1.1*u,col);arete(c(-a,0,-b),c(-a,h,-b),1.1*u,col);}
+    if(!own){const col=vitHex(rc,.60);arete(c(-a,0,-b),c(a,0,-b),1.1*u,col);arete(c(-a,0,-b),c(-a,0,b),1.1*u,col);arete(c(-a,0,-b),c(-a,h,-b),1.1*u,col);}
     /* le reflet dans le sol de verre : la prise en miroir, discrète, qui s'éteint en s'éloignant des roues */
     const yb=P(0,0,0)[1];
     if(cvR){const t=document.createElement('canvas');t.width=W;t.height=H;const tx=t.getContext('2d');tx.drawImage(cvR,0,0);
@@ -76695,7 +76638,7 @@ function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitri
     else x.drawImage(cvC,0,0);
     toileRend(cvC);
     /* le verre de devant, clair (la caisse reste nette) : deux reflets en biais, les arêtes à la couleur de la rareté avec leur cœur blanc */
-    {let g=x.createLinearGradient(Q.rt[0][0],0,Q.rt[1][0],0);g.addColorStop(0,'rgba(255,255,255,.14)');g.addColorStop(1,'rgba(255,255,255,.04)');x.fillStyle=g;poly(Q.rt);x.fill();
+    if(!own){let g=x.createLinearGradient(Q.rt[0][0],0,Q.rt[1][0],0);g.addColorStop(0,'rgba(255,255,255,.14)');g.addColorStop(1,'rgba(255,255,255,.04)');x.fillStyle=g;poly(Q.rt);x.fill();
      g=x.createLinearGradient(0,Q.tp[0][1],0,Q.tp[2][1]);g.addColorStop(0,'rgba(255,255,255,.10)');g.addColorStop(1,'rgba(255,255,255,.26)');x.fillStyle=g;poly(Q.tp);x.fill();
      const f0=Q.fr[3],f1=Q.fr[1];g=x.createLinearGradient(f0[0],f0[1],f1[0],f1[1]);
      g.addColorStop(0,'rgba(255,255,255,.06)');g.addColorStop(.14,'rgba(255,255,255,.26)');g.addColorStop(.21,'rgba(255,255,255,.03)');g.addColorStop(.27,'rgba(255,255,255,.12)');g.addColorStop(.31,'rgba(255,255,255,0)');
@@ -77903,7 +77846,7 @@ function fsListe(ids,ctx){const L=ids.filter(function(id){const P=figPeut(id);if
   else if(FSEL.tri==='prix')L.sort(function(a,b){return fsPrix(a)-fsPrix(b);});
   return L;}
 /* LA BARRE DE PASTILLES (la même dans les deux écrans ; `data-fs` dit laquelle) */
-function fsBarreHtml(ctx){const bq=ctx==='bq';let nm=0,na=0;if(bq&&window.FIG)FIG.liste.forEach(function(f){if(figPossede(f.id))nm++;else na++;});
+function fsBarreHtml(ctx){const bq=ctx==='bq';if(!bq)return '';/* (inventaire : plus de pastilles TOUT · TRI — retoucher une case revient à tout) */let nm=0,na=0;if(bq&&window.FIG)FIG.liste.forEach(function(f){if(figPossede(f.id))nm++;else na++;});
   const P=function(k,t,on,n){return '<button type="button" class="fsPas'+(on?' on':'')+'" data-fs="'+k+'" aria-pressed="'+(on?'true':'false')+'">'+sansAcc(TR(t))+(n!=null?'<em>'+n+'</em>':'')+'</button>';};
   return (FSEL.dir>=0?'<button type="button" class="fsPas on fsCib" data-fs="tout" style="--dc:'+FIG_DC[FSEL.dir]+'" aria-label="'+sansAcc(TR(FIG_FAM[FSEL.dir][0]))+'">'+pxi(FIG_FAM[FSEL.dir][2])+sansAcc(TR(FS_COURT[FSEL.dir]))+pxi('croix')+'</button>':P('tout','TOUT',FSEL.part==='tout'))+(bq?P('moi','À MOI',FSEL.part==='moi',nm)+P('acheter','À ACHETER',FSEL.part==='acheter',na):'')
     +'<button type="button" class="fsPas fsTri" data-fs="tri">'+sansAcc(TR('TRI'))+' '+sansAcc(TR(FS_TRI_N[FSEL.tri]))+'</button>';}
@@ -81827,7 +81770,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
       dx:(Math.random()-.5)*14,dy:(Math.random()-.5)*14});
   }
   // ⚠ \uFE0E : même raison que pour les jetons — sans lui macOS remplace ♥ ♣ ☠ ♦ par ses emoji couleur.
-  const SYMS=[['€','#ffd75e'],['♥\uFE0E','#ff5e8a'],['♣\uFE0E','#54e07a'],['☠\uFE0E','#e8e8f0'],['£','#9ad8ff'],['¥','#ffc46b'],['1.61','#fff2be'],['♦\uFE0E','#ff9d2e']];
+  const SYMS=[['\uE000','#ffd75e'],['♥\uFE0E','#ff5e8a'],['♣\uFE0E','#54e07a'],['☠\uFE0E','#e8e8f0'],['£','#9ad8ff'],['¥','#ffc46b'],['1.61','#fff2be'],['♦\uFE0E','#ff9d2e']];
   function beat(k){ // battement de cœur du logo : pulsation + micro-flash + onde
     if(done)return;
     /* (2026-10-15) le battement faisait pulser « 1.61 »… encore INVISIBLE à ce moment-là (il ne se lève qu'après la fission, depuis l'ordre
