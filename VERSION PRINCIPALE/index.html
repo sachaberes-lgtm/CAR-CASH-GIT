@@ -8474,6 +8474,128 @@ html.misV2 #gmHead em{order:3}
 @keyframes m2ComboPop{0%{transform:scale(1.7) rotate(-6deg)}100%{transform:scale(1) rotate(0)}}
 @media (prefers-reduced-motion:reduce){#gmListe .mcL.vite::after,.m2Gain,#m2Combo.pop b{animation:none}#gmListe.mcE .mcL.vite{animation:none!important}}
 </style>
+<style id="passViseur">
+/* ===== LE PASS DE MISSIONS — LE VISEUR (2026-11-07, Léo : « premium futuriste, mix ciel + garage ») =====
+   Tout est scopé à `#gMis.pv`, classe posée par pvRender (missions/pass-viseur.js) UNIQUEMENT sous ?pass=1 : sans elle, rien ici ne touche l'écran d'avant.
+   Du CIEL : voile de nuit #22305C → #141D3A → #07050F, cartes en VERRE arrondi (voile givré, SANS flou de fond), liseré dégradé cyan · magenta · or (jamais de pente).
+   Du GARAGE : police pixel, capitales, vert billet #7DFF9B, or #FFD75E, rose #F24AA0, anneau de sol cyan. Aucune lumière ni matière 3D en plus. */
+#gMis.pv::before{background:repeating-linear-gradient(0deg,rgba(95,240,255,.12) 0 1px,transparent 1px 24px),repeating-linear-gradient(90deg,rgba(95,240,255,.12) 0 1px,transparent 1px 24px),linear-gradient(rgba(8,16,48,.32),rgba(8,16,48,.32)),linear-gradient(180deg,rgba(7,5,15,.78) 0,rgba(20,29,58,.34) 22%,rgba(34,48,92,0) 40%,rgba(7,5,15,0) 62%,rgba(7,5,15,.74) 100%);animation:none}  /* ciel de nuit qui baisse sur le haut et le bas ; plus de trame ni de balayage */
+/* quatre coins de viseur aux angles de l'écran */
+#gMis.pv::after{content:'';display:block;position:absolute;left:12px;right:12px;top:calc(var(--sT) + 52px);bottom:calc(var(--sB) + 92px);height:auto;pointer-events:none;animation:none;opacity:.7;
+  background:linear-gradient(#5ff0ff,#5ff0ff) 0 0/22px 2px no-repeat,linear-gradient(#5ff0ff,#5ff0ff) 0 0/2px 22px no-repeat,linear-gradient(#5ff0ff,#5ff0ff) 100% 0/22px 2px no-repeat,linear-gradient(#5ff0ff,#5ff0ff) 100% 0/2px 22px no-repeat,
+  linear-gradient(#5ff0ff,#5ff0ff) 0 100%/22px 2px no-repeat,linear-gradient(#5ff0ff,#5ff0ff) 0 100%/2px 22px no-repeat,linear-gradient(#5ff0ff,#5ff0ff) 100% 100%/22px 2px no-repeat,linear-gradient(#5ff0ff,#5ff0ff) 100% 100%/2px 22px no-repeat}
+/* le trait de scan : UNE fois à l'ouverture, de haut en bas */
+.pvScan{position:absolute;left:0;right:0;top:0;height:3px;pointer-events:none;background:linear-gradient(90deg,rgba(95,240,255,0),#bff7ff 50%,rgba(95,240,255,0));box-shadow:0 0 14px 2px rgba(95,240,255,.7);opacity:0;animation:pvScan 1.3s .35s ease-in-out 1 both}
+@keyframes pvScan{0%{opacity:0;transform:translateY(80px)}12%{opacity:.95}88%{opacity:.95}100%{opacity:0;transform:translateY(calc(100vh - 160px))}}
+#gMis.pv #gmHead{left:0;right:0;top:calc(var(--sT) + 10px);max-width:none;align-items:center;gap:5px;text-align:center}
+#gMis.pv #gmHead b{font-size:13px;letter-spacing:2px;color:#fff;text-shadow:0 0 10px rgba(95,240,255,.55),2px 2px 0 #07050F}
+#gMis.pv #gmHead small{font-size:10px;letter-spacing:2px;color:#5ff0ff}
+#gMis.pv #gmHead small:empty{display:none}
+#pvEcran{position:absolute;inset:0;pointer-events:none}
+/* la carte : verre arrondi + liseré dégradé (le trait est un masque : le centre reste du verre) */
+.pvC{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:5px;width:116px;padding:11px 8px 10px;border-radius:22px;pointer-events:auto;cursor:pointer;color:#fff;text-align:center;font-family:var(--pix);isolation:isolate;
+  background:linear-gradient(165deg,rgba(255,255,255,.17) 0,rgba(255,255,255,.05) 38%,rgba(20,29,58,.58) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 22px rgba(7,5,15,.45);animation:pvEntre .5s var(--ease) backwards;transition:left .35s var(--ease),top .35s var(--ease)}
+.pvC::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;background:linear-gradient(135deg,#5ff0ff,#f24aa0 55%,#ffd75e);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+#pvEcran.pose .pvC{transition:none}
+/* la grille holographique, la même que sur la caisse : pas de 8 px (3 pas = 24 px sur le voile), teinte = la récompense (--gc : vert argent, or voiture, rose habillage) */
+.pvC::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:.16;background:repeating-linear-gradient(0deg,var(--gc,#5ff0ff) 0 1px,transparent 1px 8px),repeating-linear-gradient(90deg,var(--gc,#5ff0ff) 0 1px,transparent 1px 8px)}
+.pvC.pvG::after{opacity:.22}
+.pvC.pvG.nog{width:116px;padding:11px 8px 10px;border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 22px rgba(7,5,15,.45)}
+.pvC.pvG.nog::before{padding:1.5px;background:linear-gradient(135deg,#5ff0ff,#f24aa0 55%,#ffd75e)}
+.pvC.pvG.nog .pvAn{width:60px;height:60px}.pvC.pvG.nog .pvAn.jg{width:30px}
+.pvC.pvGa{animation-delay:.12s}.pvC.pvDr{animation-delay:.24s}
+@keyframes pvEntre{0%{opacity:0;transform:translateY(10px) scale(.94)}100%{opacity:1;transform:none}}
+.pvC.pvG{width:150px;padding:13px 10px 12px;border-radius:26px}
+.pvC.pvG::before{padding:2px;background:linear-gradient(135deg,#fff3b0,#ffd75e 40%,#b8790a 70%,#ffd75e)}
+.pvC.pvG{box-shadow:inset 0 1px 0 rgba(255,243,176,.4),0 0 22px rgba(255,215,94,.16),0 8px 22px rgba(7,5,15,.45)}
+.pvC.pvG.pulse{animation:pvEntre .5s var(--ease) backwards,pvPouls 1.8s ease-in-out .6s infinite}  /* la seule animation permanente : le dernier tiers du cadeau */
+@keyframes pvPouls{0%,100%{box-shadow:inset 0 1px 0 rgba(255,243,176,.4),0 0 16px rgba(255,215,94,.14),0 8px 22px rgba(7,5,15,.45)}50%{box-shadow:inset 0 1px 0 rgba(255,243,176,.5),0 0 34px rgba(255,215,94,.5),0 8px 22px rgba(7,5,15,.45)}}
+/* l'anneau de progression, le chiffre au centre */
+.pvAn{position:relative;width:60px;height:60px;flex:none}.pvAn.jg,.pvG .pvAn.jg{height:60px}
+.pvG .pvAn{width:78px;height:78px}
+.pvAn svg{display:block;width:100%;height:100%;transform:rotate(-90deg)}
+.pvAn circle{fill:none;stroke-width:5;stroke-linecap:round}
+.pvPiste{stroke:rgba(143,184,200,.22)}
+.pvJauge{stroke:#7DFF9B;stroke-dasharray:100;transition:stroke-dashoffset .9s var(--ease)}
+.pvG .pvJauge{stroke:#ffd75e}
+.pvN{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:400;font-size:15px;color:#fff;text-shadow:2px 2px 0 #07050F}
+.pvN small{font-size:8px;margin-left:1px;color:#8fb8c8}
+.pvG .pvN{font-size:19px}
+.pvN .pxi{--pxs:3;color:#7DFF9B}
+/* le titre court, le gain */
+.pvT{display:flex;align-items:flex-start;justify-content:center;gap:5px;font-size:9px;line-height:1.5;letter-spacing:.5px;color:#e6f3fa;min-height:24px}
+.pvT .pxi{--pxs:1;flex:none;margin-top:1px;color:#5ff0ff}
+.pvT>span{min-width:0}
+.pvR{display:inline-flex;align-items:center;gap:5px;font-size:10px;letter-spacing:.5px}
+.pvR .pxi{--pxs:1}
+.pvR.cash{color:#7DFF9B}.pvR.cash .pxi{color:#7DFF9B}
+.pvR.obj{color:#ffd75e;font-size:9px}.pvR.obj .pxi{color:#ffd75e}
+.pvC.pret{background:linear-gradient(165deg,rgba(125,255,155,.26) 0,rgba(125,255,155,.08) 40%,rgba(20,29,58,.58) 100%)}
+.pvC.pret .pvJauge{stroke:#7DFF9B}
+.pvC.pris{animation:gmFlash .5s var(--ease)}
+.pvC:is(:active,.appui){transform:scale(.97)}
+/* les fils de visée : pointillés cyan, découverts par un masque (tracé « tac, tac, tac »), un nœud sur la caisse ; l'anneau de sol cyan */
+#gMis.pv #gmFils path.pvF{stroke:#5ff0ff;stroke-width:1.6;stroke-dasharray:1 7;stroke-linecap:round;opacity:.9;animation:none}
+#gMis.pv #gmFils path.pvF.or{stroke:#ffd75e}
+#gMis.pv #gmFils path.pvMk{stroke:#fff;stroke-width:10;stroke-dasharray:1;stroke-dashoffset:1;stroke-linecap:butt;opacity:1;animation:none;transition:stroke-dashoffset .34s linear}
+#gMis.pv #gmFils path.pvMk.fait{stroke-dashoffset:0}
+#gMis.pv #gmFils circle.pvNd{fill:#5ff0ff;opacity:0;transition:opacity .2s linear}
+#gMis.pv #gmFils circle.pvNd.fait{opacity:1}
+/* couché (844 x 390) : cartes compactes, le ciel de la caisse reste libre */
+#gMis.pv.m2land .pvC{width:104px;padding:7px 6px 7px;gap:3px;border-radius:18px}
+#gMis.pv.m2land .pvC.pvG{width:128px;padding:8px 8px 8px}
+#gMis.pv.m2land .pvAn{width:42px;height:42px}
+#gMis.pv.m2land .pvG .pvAn{width:50px;height:50px}
+#gMis.pv.m2land .pvN{font-size:11px}
+#gMis.pv.m2land .pvG .pvN{font-size:13px}
+#gMis.pv.m2land .pvT{min-height:0;font-size:8px}
+#gMis.pv.m2land #gmHead{top:calc(var(--sT) + 4px);gap:3px;width:auto;max-width:none;left:0;right:0}
+#gMis.pv.m2land #gmHead::after{width:min(260px,40vw)}
+/* ---- les formes : jauge en cases · pastilles · arc de cadran · anneau (cible) ---- */
+.pvAn.jg{width:30px}.pvAn.pp{width:auto;min-width:60px;display:flex;align-items:center;justify-content:center}
+.pvJg{position:absolute;left:3px;right:3px;top:0;bottom:0;border-radius:8px;background:rgba(143,184,200,.2);box-shadow:inset 0 0 0 1.5px rgba(143,184,200,.35);overflow:hidden;display:flex;align-items:flex-end}
+.pvJg i{display:block;width:100%;height:0;background:linear-gradient(0deg,#3fd873,#7DFF9B);transition:height .9s var(--ease)}
+.pvJg::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 8px,rgba(7,5,15,.75) 8px 10px)}
+.pvG .pvJg i{background:linear-gradient(0deg,#e0a41c,#ffd75e)}
+.pvPips{display:grid;gap:4px 4px;justify-items:center}
+.pvPips u{display:block;width:12px;height:12px;border-radius:50%;background:rgba(143,184,200,.22);box-shadow:inset 0 0 0 1.5px rgba(143,184,200,.5)}
+.pvPips u.on{background:radial-gradient(circle at 35% 30%,#d9ffe4,#7DFF9B 55%,#2fb862);box-shadow:0 0 7px #7DFF9B}
+.pvG .pvPips u.on{background:radial-gradient(circle at 35% 30%,#fff3b0,#ffd75e 55%,#b8790a);box-shadow:0 0 7px #ffd75e}
+.pvAn.pm .pvPips u{width:9px;height:9px;gap:3px}
+.pvAn.cad svg{transform:rotate(135deg)}
+.pvAn.cad circle{stroke-dasharray:75 200}
+.pvAn.cad .pvJauge{stroke-dasharray:75 200}
+/* ---- la récompense, EN GRAND ---- */
+.pvVed{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:54px;justify-content:flex-end}
+.pvVed b{font-weight:400;font-size:12px;letter-spacing:.5px;text-shadow:2px 2px 0 #07050F}
+.pvVed.cash b{color:#7DFF9B}.pvVed.car b,.pvVed.hab b{color:#ffd75e;font-size:10px}
+.pvPiles{display:flex;align-items:flex-end;gap:6px;height:44px}
+.pvPile{display:flex;flex-direction:column-reverse;gap:0}
+.pvPile u{display:block;width:26px;height:7px;margin-top:-1px;border-radius:50%;background:linear-gradient(180deg,#fff3b0,#ffd75e 45%,#b8790a);box-shadow:0 0 0 1px #6b4a05,0 0 6px rgba(255,215,94,.55)}
+.pvChip{display:flex;align-items:center;justify-content:center;width:88px;height:42px;border-radius:14px;background:linear-gradient(160deg,rgba(255,243,176,.42),rgba(255,215,94,.14) 55%,rgba(184,121,10,.3));box-shadow:inset 0 0 0 2px #ffd75e,0 0 14px rgba(255,215,94,.6);font-style:normal}
+.pvChip svg{display:block;width:64px;height:30px;filter:drop-shadow(0 0 5px #ffd75e)}
+.pvChip.rose{width:46px;height:42px;background:linear-gradient(160deg,rgba(255,200,236,.4),rgba(242,74,160,.16));box-shadow:inset 0 0 0 2px #f24aa0,0 0 14px rgba(242,74,160,.65)}
+.pvChip.rose .pxi{--pxs:4;color:#ffd3ee;filter:drop-shadow(0 0 6px #f24aa0)}
+.pvPast{display:block;width:40px;height:40px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(255,255,255,.7),inset -5px -6px 10px rgba(7,5,15,.35),0 0 16px rgba(255,255,255,.35);position:relative}
+.pvPast::after{content:'';position:absolute;left:7px;top:5px;width:12px;height:8px;border-radius:50%;background:rgba(255,255,255,.7);transform:rotate(-30deg)}
+.pvG .pvVed{min-height:70px;order:-1}
+.pvG .pvChip{width:122px;height:62px;border-radius:20px}.pvG .pvChip svg{width:100px;height:47px}
+.pvG .pvVed.car b{font-size:11px}
+.pvG .pvPiles{height:50px}
+#gMis.pv.m2land .pvVed{min-height:30px}.pvJg{}
+#gMis.pv.m2land .pvChip{width:60px;height:30px}.pvG .pvChip{}#gMis.pv.m2land .pvChip svg{width:44px;height:21px}#gMis.pv.m2land .pvPiles{height:24px}#gMis.pv.m2land .pvPile u{width:18px;height:5px}
+#gMis.pv.m2land .pvAn.jg{width:22px}
+#gMis.pv.m2land .pvPast{width:28px;height:28px}
+#gMis.pv.m2land .pvG .pvVed{min-height:44px}#gMis.pv.m2land .pvG .pvChip{width:78px;height:38px}
+/* ---- l'onde sous le doigt ---- */
+.pvOnde{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;pointer-events:none;border:2px solid var(--gc,#5ff0ff);box-shadow:0 0 16px var(--gc,#5ff0ff),inset 0 0 14px var(--gc,#5ff0ff);animation:pvOnde .85s cubic-bezier(.1,.7,.3,1) both}
+@keyframes pvOnde{0%{opacity:.95;transform:scale(.4)}100%{opacity:0;transform:scale(15)}}
+html[data-reduced-motion="1"] .pvOnde{display:none}
+@media (prefers-reduced-motion:reduce){.pvC,.pvC.pvG.pulse{animation:none!important}.pvScan{display:none}.pvJauge{transition:none}}
+html[data-reduced-motion="1"] .pvC,html[data-reduced-motion="1"] .pvC.pvG.pulse{animation:none!important}
+html[data-reduced-motion="1"] .pvScan{display:none}
+</style>
 <style>
 /* ===== LA PAUSE, MESURÉE (2026-10-24, Sacha : « cet écran est horrible, mets-toi sérieusement dessus, prends des mesures et corrige ça ») =====
    Mesuré au banc, iPhone couché 844×390, sur la pause de la v866 :
@@ -50208,6 +50330,174 @@ const M2R={lv:'',sonne:false,ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:fa
      trophées de la carrière ; leur rareté ne bouge pas ; `exK`/`exV` gardent le carnet — qui l'avait relevé l'a dans `owned` (m2MigreV2). */
   const PX9={6:300e3,7:5e6,8:8e6,9:10e6}; // (2026-10-19, Léo : la grille des prix) LA PUCE 400 000 → 30 000 : une Mini, la moins chère des rares
   CAR_UNLOCK.forEach(function(u,i){if(!u||u.k!=='carnet'||!PX9[u.v])return;const rr=carRar(i);CAR_UNLOCK[i]={p:PX9[u.v],exK:'carnet',exV:u.v};CARS[i].rar=rr;});}
+/* ===== LE PASS DE MISSIONS — LE RÉSERVOIR DU CHAPITRE 1 (2026-11-07, Léo : « un nouveau système, un peu similaire à un pass de combat, pour que les gens aient plus envie
+   de faire des missions. Actuellement c'est vraiment mis comme un contrôle. Refonte totale. Une suite logique : les premières missions plus simples, plus on avance plus
+   c'est dur, mais les récompenses sont plus grosses » · puis « 3 missions actives en même temps, remplacées au tirage dès qu'une est réussie ») =====
+   LE MODÈLE : TROIS missions actives pour tous les joueurs ; réussie + récompense prise -> elle est remplacée par une autre TIRÉE dans le réservoir du chapitre.
+   Le tirage est au hasard mais BORNÉ par la difficulté : on ne tire que dans la tranche atteinte (selon le nombre de missions réussies du chapitre) et celle d'avant.
+   Ce morceau est de la DONNÉE : le réservoir (PASS_POOL), les tranches, les chapitres, les mesures de la partie. Le moteur du tirage vient après (case 3).
+   ⚠ INERTE tant que l'URL n'a pas `?pass=1` : sans lui, M2 (table.js) n'est PAS touchée, rien ne change dans le jeu. Avec lui : les missions de départ `ps01`..
+   sont AJOUTÉES à M2, les primes du réservoir remplacent `m.r`, deux caisses sont re-liées (voir PASS_LIEN). Les `id` de M2 sont des clés de sauvegarde : aucun n'est renommé.
+   Le tableau lisible (et le calcul des parties) : `node outils/pass-table-md.cjs` -> passation/PASS-MISSIONS-TABLE.md. Console (case 3) : dbgPass().
+   RÈGLES DE LA TABLE (Léo, points 6 à 9) : chaque mission demande une VRAIE action (aucune ne se remplit toute seule : « RÉUSSIS 10 MISSIONS » et le doublon `maps2` sont SORTIS,
+   voir PASS_SORTIES) ; les collections comptent hors cadeaux (variante `T` de la mesure) ; jamais deux caisses proches ; une petite peinture de base tôt. */
+const PASS_ON=!/[?&]pass=0\b/.test(location.search);
+/* ---- LES MESURES DE LA PARTIE : LE SEUL ENDROIT À CORRIGER (Léo ne connaît pas la durée d'une partie ; ces chiffres sont DÉDUITS du dépôt) ----
+   Sources : passation/ECONOMIE.md §1-2 (mesure au banc : 15-75 s tenues, 267 -> 2 456 $ la partie, « un humain moyen ~500-1 000 $ par partie au début »), outils/eco-debut-modele.cjs
+   (profils de GAMEPLAY : moyen 45-90 s, la moitié des pièces ; fort 120-240 s, 75 % des pièces, frénésie), journal « LES MISSIONS v2 » (1 000 km/h en ~50 s, 55 d'aura/s au pilote auto).
+   Le DÉBUTANT = le profil « moyen » (~67 s, ~800 $) ; l'HABITUÉ = le profil « fort » (~3 min, ~4 000 $ : 3 min x ~1 000 $/min x 0,75 de pièces x flow 1,9). Léo corrigera avec ses vraies parties. */
+const PARTIE_MN={debutant:1.1,habitue:3.0};        // minutes tenues par partie
+const GAIN_PARTIE={debutant:800,habitue:4000};     // $ gagnés par partie, AU DÉBUT ; le gain grandit : g(n)=GAIN*(1+n/PASS_CROIS) à la n-ième partie (le moteur monte de palier, les pièces valent plus)
+const PASS_CROIS={debutant:24,habitue:60};
+/* ce qu'une partie MOYENNE ajoute aux compteurs à vie (km = vitesse moyenne x durée ; le reste : combien en une partie) */
+const PASS_TAUX={
+  debutant:{km:8,fig:5,pu:3,nit:9,nmax:2.5,air:12,verg:6,mort:1},
+  habitue:{km:45,fig:20,pu:10,nit:30,nmax:8,air:35,verg:25,mort:1}};
+/* les classes de durée (parties du DÉBUTANT) : Léo a dit COURT <= 1, MOYEN 3 à 10 ; les trous (2 et 11-12) sont rattachés au voisin */
+const PASS_COURT=2,PASS_MOYEN=12;
+/* ---- LES CHAPITRES : un seul pour commencer, la structure en accepte d'autres sans toucher le moteur ----
+   Un chapitre = un nom, un seuil d'entrée (`apres` : l'id du chapitre à avoir fini ; null = le premier), des TRANCHES (`entree` = missions réussies DU CHAPITRE pour l'ouvrir),
+   et son réservoir (les entrées de PASS_POOL qui portent son id). Pour en ajouter un : une ligne ici + des entrées `ch:2` dans PASS_POOL. */
+const PASS_TRANCHES=[ // [numéro, missions réussies pour l'ouvrir, prime de base de la tranche ($)]
+  [1,0,600],[2,5,1500],[3,10,3500],[4,16,9000],[5,24,24000],[6,34,60000],[7,46,150000],[8,58,350000]];
+const PASS_CHAPITRES=[{id:1,nom:'CHAPITRE 1',en:'CHAPTER 1',apres:null,tranches:PASS_TRANCHES}];
+/* ---- LE TIRAGE (lu par le moteur, case 3) ---- */
+const PASS_REGLES={
+  emplacements:3,        // missions actives en même temps
+  fenetre:2,             // on tire dans la tranche atteinte et la précédente
+  ecartCaisses:5,        // missions réussies entre deux caisses tirées (jamais deux caisses proches)
+  memeFamille:false,     // pas deux missions de même famille en même temps, si possible
+  garanti:{ps04:4},      // la petite peinture de base : tirée au plus tard au 4e tirage
+  echangeParties:12,     // garde-fou : un emplacement non fini après max(12, 2 x ses parties) parties peut être ÉCHANGÉ (la mission retourne au réservoir)
+  ecarteDejaRemplie:true};// une mission déjà remplie à l'instant du tirage n'est pas tirée
+/* ---- LES NOUVELLES MISSIONS (ajoutées à M2 sous ?pass=1) : les petites, pour que les premières soient simples ---- */
+const PASS_NOUV=[
+  {id:'ps01',f:'exploration',k:'kmTot',v:1,u:'km',t:'ROULE {v} KM',en:'DRIVE {v} KM'},
+  {id:'ps02',f:'exploit',k:'figs',v:3,u:'',t:'FAIS {v} FIGURES',en:'LAND {v} TRICKS'},
+  {id:'ps03',f:'moteur',k:'eng',v:4,u:'',t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
+  {id:'ps04',f:'moteur',k:'nitS',v:30,u:'s',t:'BRÛLE {v} S DE NITRO',en:'BURN {v} S OF NITRO'},
+  {id:'ps05',f:'argent',k:'gagne',v:5000,u:'$',t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
+  {id:'ps06',f:'exploration',k:'airS',v:30,u:'s',t:'PASSE {v} S EN L\'AIR',en:'SPEND {v} S IN THE AIR'},
+  {id:'ps07',f:'aura',k:'aura',v:2000,u:'aura',t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
+  {id:'ps08',f:'exploration',k:'pu',v:8,u:'',t:'RAMASSE {v} POWER-UPS',en:'PICK UP {v} POWER-UPS'},
+  {id:'ps09',f:'exploit',k:'kmh',v:500,u:'kmh',t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
+  {id:'ps10',f:'moteur',k:'nitS',v:60,u:'s',t:'BRÛLE {v} S DE NITRO',en:'BURN {v} S OF NITRO'},
+  {id:'ps11',f:'exploit',k:'figs',v:30,u:'',t:'FAIS {v} FIGURES',en:'LAND {v} TRICKS'},
+  {id:'ps12',f:'exploration',k:'pu',v:20,u:'',t:'RAMASSE {v} POWER-UPS',en:'PICK UP {v} POWER-UPS'},
+  {id:'ps13',f:'exploration',k:'kmTot',v:50,u:'km',t:'ROULE {v} KM',en:'DRIVE {v} KM'},
+  {id:'ps14',f:'exploration',k:'airS',v:90,u:'s',t:'PASSE {v} S EN L\'AIR',en:'SPEND {v} S IN THE AIR'},
+  {id:'ps15',f:'exploit',k:'figs',v:60,u:'',t:'FAIS {v} FIGURES',en:'LAND {v} TRICKS'},
+  {id:'ps16',f:'exploration',k:'pu',v:36,u:'',t:'RAMASSE {v} POWER-UPS',en:'PICK UP {v} POWER-UPS'},
+  {id:'ps17',f:'exploit',k:'frenT',v:10,u:'s',t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'},
+  {id:'ps18',f:'moteur',k:'nitS',v:100,u:'s',t:'BRÛLE {v} S DE NITRO',en:'BURN {v} S OF NITRO'},
+  {id:'ps19',f:'exploit',k:'kmh',v:1400,u:'kmh',t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
+  {id:'ps20',f:'exploit',k:'airP',v:8,u:'s',t:'RESTE {v} S EN L\'AIR, PUIS POSE-TOI EN PARFAIT',en:'STAY {v} S IN THE AIR, THEN LAND A PERFECT'},
+  {id:'ps21',f:'exploit',k:'frenT',v:15,u:'s',t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'},
+  {id:'ps22',f:'exploration',k:'airS',v:140,u:'s',t:'PASSE {v} S EN L\'AIR',en:'SPEND {v} S IN THE AIR'},
+  {id:'ps23',f:'exploration',k:'kmTot',v:90,u:'km',t:'ROULE {v} KM',en:'DRIVE {v} KM'},
+  {id:'ps24',f:'exploit',k:'airP',v:10,u:'s',t:'RESTE {v} S EN L\'AIR, PUIS POSE-TOI EN PARFAIT',en:'STAY {v} S IN THE AIR, THEN LAND A PERFECT'},
+  {id:'ps25',f:'aura',k:'aura',v:15000,u:'aura',t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
+  {id:'ps26',f:'exploration',k:'kmTot',v:150,u:'km',t:'ROULE {v} KM',en:'DRIVE {v} KM'},
+  {id:'ps27',f:'exploit',k:'figs',v:100,u:'',t:'FAIS {v} FIGURES',en:'LAND {v} TRICKS'},
+  {id:'ps28',f:'exploration',k:'pu',v:50,u:'',t:'RAMASSE {v} POWER-UPS',en:'PICK UP {v} POWER-UPS'},
+  {id:'ps29',f:'moteur',k:'nitS',v:180,u:'s',t:'BRÛLE {v} S DE NITRO',en:'BURN {v} S OF NITRO'},
+  {id:'ps30',f:'exploration',k:'airS',v:250,u:'s',t:'PASSE {v} S EN L\'AIR',en:'SPEND {v} S IN THE AIR'},
+  {id:'ps31',f:'exploit',k:'kmh',v:1800,u:'kmh',t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
+  {id:'ps32',f:'exploit',k:'parf',v:15,u:'',t:'FAIS {v} POSES PARFAITES D\'AFFILÉE',en:'LAND {v} PERFECTS IN A ROW'},
+  {id:'ps33',f:'exploit',k:'airP',v:15,u:'s',t:'RESTE {v} S EN L\'AIR, PUIS POSE-TOI EN PARFAIT',en:'STAY {v} S IN THE AIR, THEN LAND A PERFECT'},
+  {id:'ps34',f:'exploit',k:'frenT',v:20,u:'s',t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'},
+  {id:'ps35',f:'aura',k:'aura',v:30000,u:'aura',t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
+  {id:'ps36',f:'moteur',k:'eng',v:25,u:'',t:'MONTE AU PALIER {v} DU MOTEUR',en:'REACH ENGINE TIER {v}'},
+  {id:'ps37',f:'exploit',k:'vie',v:600,u:'mn',t:'TIENS 10 MIN SANS MOURIR',en:'SURVIVE 10 MIN WITHOUT DYING'},
+  {id:'ps38',f:'exploit',k:'fig',v:8,u:'',t:'FAIS {v} FIGURES DANS UN SEUL SAUT',en:'LAND {v} TRICKS IN A SINGLE JUMP'},
+  {id:'ps39',f:'exploration',k:'kmTot',v:400,u:'km',t:'ROULE {v} KM',en:'DRIVE {v} KM'},
+  {id:'ps40',f:'exploit',k:'figs',v:250,u:'',t:'FAIS {v} FIGURES',en:'LAND {v} TRICKS'},
+  {id:'ps41',f:'moteur',k:'nitS',v:600,u:'s',t:'BRÛLE {v} S DE NITRO',en:'BURN {v} S OF NITRO'},
+  {id:'ps42',f:'exploration',k:'airS',v:500,u:'s',t:'PASSE {v} S EN L\'AIR',en:'SPEND {v} S IN THE AIR'},
+  {id:'ps43',f:'exploit',k:'kmh',v:2200,u:'kmh',t:'DÉPASSE {v} KM/H',en:'GO PAST {v} KM/H'},
+  {id:'ps44',f:'exploit',k:'frenT',v:45,u:'s',t:'TIENS LA FRÉNÉSIE {v} S',en:'HOLD FRENZY FOR {v} S'},
+  {id:'ps45',f:'aura',k:'aura',v:70000,u:'aura',t:'ATTEINS {v} D\'AURA EN UNE PARTIE',en:'REACH {v} AURA IN ONE RUN'},
+  {id:'ps46',f:'exploration',k:'kmTot',v:1500,u:'km',t:'ROULE {v} KM',en:'DRIVE {v} KM'},
+  {id:'ps47',f:'argent',k:'gagne',v:25000,u:'$',t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'},
+  {id:'ps48',f:'argent',k:'gagne',v:50000,u:'$',t:'ACCUMULE {v}',en:'EARN {v} IN TOTAL'}];
+/* ---- CE QUI SORT DU PASS (et pourquoi) : leurs clés de sauvegarde restent ---- */
+const PASS_SORTIES={
+  mis10:'« RÉUSSIS 10 MISSIONS » : une méta-mission, elle se remplit toute seule (point 6). Sa caisse, LE CHARGEUR, passe à aura20k (PASS_LIEN).',
+  maps2:'« AVOIR EXPLORÉ CHAQUE MAP » : la même mesure que `maps` (deux missions identiques, point 6). Sa caisse, LE ROUGE-GORGE, passe à `maps` (PASS_LIEN).'};
+/* ---- LES CAISSES RE-LIÉES : { caisse : l'id de la mission qui la donne désormais } (la fiche `CAR_UNLOCK[i]={k:'mis',id}` suit ; point 7 : la mission d'origine était mal placée) ---- */
+const PASS_LIEN={'LE CHARGEUR':'aura20k','LE ROUGE-GORGE':'maps'};
+/* ---- LES MISSIONS « CADEAU » (point 11, Léo 07/11) : celles dont la récompense est une VOITURE ou un habillage sont plus RARES que les missions d'argent, mais toujours là ----
+   Apparition à INTERVALLE VARIABLE AVEC PLAFOND GARANTI (le « pity timer ») : après chaque mission réussie, le moteur compte ; le prochain cadeau est tiré dans une fenêtre
+   [min, max] de missions réussies (le joueur ne peut pas le calculer), et `max` est une GARANTIE. Une jauge cachée monte avec le compte ; elle n'annonce rien, sauf `presque`
+   (l'écran de fin de partie dit « une mission cadeau est proche », sans chiffre). Le tirage est SAUVEGARDÉ (jamais de re-tirage à la réouverture). Carte DORÉE + silhouette (voiture
+   noire floutée / aperçu de la peinture) + message « NOUVELLE MISSION CADEAU » ; une mission cadeau commencée reste dans ses emplacements jusqu'à réussite ; récupération = la révélation
+   (m2Revele). Variété : voiture / habillage en alternance, pas deux peintures de suite, jamais un objet déjà possédé. Tout se règle ICI. */
+const PASS_CADEAU={
+  debut:{hab:5,voiture:[10,12]},     // début généreux : un habillage (la petite peinture) au plus tard à la 5e mission réussie, la première voiture entre la 10e et la 12e
+  hab:{min:4,max:12},                // ensuite : un habillage tous les 4 à 12 missions réussies (jamais plus de 12 sans) ; l'écart s'allonge de `croit` par cadeau déjà donné
+  voiture:{min:10,max:25},           // une voiture tous les 10 à 25 (jamais plus de 25 sans)
+  croit:{hab:.5,voiture:1},          // missions de plus ajoutées à min ET max à chaque cadeau du même genre
+  plafondCroit:{hab:20,voiture:40},  // l'écart ne dépasse jamais ça
+  ecartCadeaux:2,                    // jamais deux cadeaux de suite : au moins 2 missions réussies entre deux
+  ecartCaisses:5,                    // jamais deux caisses proches (point 7)
+  presque:.75,                       // la jauge cachée (compte / max) à partir de laquelle l'écran de fin dit « une mission cadeau est proche »
+  alterne:true,                      // voiture / habillage en alternance quand les deux sont dus ; pas deux peintures de suite
+  dore:true,                         // carte dorée + silhouette + message à l'arrivée
+  tiersFinal:true};                  // la carte cadeau pulse doucement dans son dernier tiers de progression
+/* ---- LE RÉSERVOIR : [id, mesure de durée, récompense, options] ----
+   Durée (spec) : {c:'km'|'fig'|'pu'|'nit'|'nmax'|'air'|'verg'|'mort',n} un compteur À VIE (n / ce qu'une partie ajoute) · {g:$} de l'argent à ACCUMULER (la somme à avoir gagnée) ·
+   {r:[débutant,habitué]} un exploit ou un record (parties pour y arriver, estimées) · {inf:1} hors de portée sans le pack de peintures ou des dizaines de millions.
+   Récompense : 'auto' = la prime de la tranche · null = celle d'origine (une caisse, l'aile PHÉNIX, la traînée FOUDRE) · {cash} · {cat,id} un habillage.
+   Options : tr = tranche forcée (sinon calculée sur les parties du débutant) · k = la mesure remplacée (les collections comptent HORS cadeaux : variante `T`) · v = le seuil remplacé. */
+const PASS_POOL_DEF=[
+  // départ : une à deux parties chacune (les trois premières missions sont toujours là)
+  ['ps01',{c:'km',n:1},'auto'],['ps02',{c:'fig',n:3},'auto'],['ps03',{r:[1,1]},'auto'],['fig2',{r:[2,1]},'auto'],['ps07',{r:[2,1]},'auto'],['ps09',{r:[2,1]},'auto'],['eng10',{r:[2,1]},'auto'],
+  ['ps04',{c:'nit',n:30},{cat:'peinture',id:'lagon'},{tr:1}],           // la petite peinture de base (point 9), garantie dans les premiers tirages
+  ['ps05',{g:5000},'auto'],['ps06',{c:'air',n:30},'auto'],['ps08',{c:'pu',n:8},'auto'],['air5',{r:[6,2]},'auto'],['ps11',{c:'fig',n:30},{cat:'trainee',id:'rose'}],
+  // un peu plus loin
+  ['fig5',{r:[8,2]},null],['fig3',{g:7500},'auto',{k:'figureT'}],['ps10',{c:'nit',n:60},'auto'],['ps12',{c:'pu',n:20},'auto'],['fren',{r:[7,2]},'auto'],['ps13',{c:'km',n:50},'auto'],
+  ['aura10k',{r:[12,3]},'auto'],['kmh1000',{r:[4,1]},'auto'],['ps14',{c:'air',n:90},'auto'],['ps15',{c:'fig',n:60},'auto'],['ps16',{c:'pu',n:36},'auto'],['ps17',{r:[11,3]},'auto'],
+  ['ps18',{c:'nit',n:100},'auto'],['ps19',{r:[11,2]},'auto'],['ps20',{r:[10,3]},'auto'],['ps21',{r:[12,3]},'auto'],['ps22',{c:'air',n:140},'auto'],['ps23',{c:'km',n:90},'auto'],
+  ['ps24',{r:[12,4]},'auto'],['ps47',{g:25000},'auto'],['ps48',{g:50000},'auto'],['eng20',{r:[12,3]},{cat:'trainee',id:'sakura'}],
+  // la montée : une dizaine de parties, puis plusieurs dizaines
+  ['parf10',{r:[14,4]},null],['maps',{r:[15,8]},null],['verglas100',{c:'verg',n:100},null,{tr:5}],['ps25',{r:[14,3]},'auto'],['ps26',{c:'km',n:150},'auto'],['ps27',{c:'fig',n:100},'auto'],
+  ['ps28',{c:'pu',n:50},'auto'],['ps29',{c:'nit',n:180},'auto'],['ps30',{c:'air',n:250},'auto'],['tours5',{r:[20,6]},'auto'],['vie5min',{r:[22,5]},'auto'],
+  ['aura20k',{r:[30,6]},null],['ps31',{r:[25,4]},{cat:'peinture',id:'couchant'}],['ps32',{r:[25,6]},'auto'],['ps33',{r:[28,8]},'auto'],['ps34',{r:[24,5]},'auto'],['ps36',{r:[28,6]},'auto'],
+  ['pu100',{c:'pu',n:100},null],['meteo',{r:[35,12]},null],['nmax100',{c:'nmax',n:100},null],['fren30',{r:[40,8]},'auto'],['parfmaps',{r:[40,14]},'auto'],['ps38',{r:[40,9]},'auto'],
+  ['cash100k',{g:100000},'auto'],['fig8',{g:85000},'auto',{k:'figureT'}],['car5',{g:250000},'auto',{k:'carsT'}],['col5',{g:560000},'auto',{k:'peintT'}],['tr5',{g:380000},'auto',{k:'traineeT'}],
+  ['ps35',{r:[55,10]},'auto'],['ps37',{r:[55,12]},'auto'],['eng30',{r:[60,12]},null],['ps39',{c:'km',n:400},'auto'],['ps40',{c:'fig',n:250},'auto'],
+  // le fond : des centaines de parties
+  ['aura50k',{r:[120,22]},null],['ps41',{c:'nit',n:600},'auto'],['ps42',{c:'air',n:500},'auto'],['ps43',{r:[90,12]},'auto'],['ps44',{r:[90,15]},'auto'],['ps45',{r:[250,40]},'auto'],
+  ['morts100',{c:'mort',n:100},null],['figs500',{c:'fig',n:500},null],['cash500k',{g:500000},'auto'],['car10',{g:1200000},'auto',{k:'carsT'}],['figall',{g:300000},'auto'],
+  ['km100k',{c:'km',n:3000},null,{v:3000}],['air1000',{c:'air',n:1000},null],['cash1m',{g:1000000},{cat:'peinture',id:'vaporwave'}],['ps46',{c:'km',n:1500},'auto'],
+  ['nit2000',{c:'nit',n:2000},null],['tr10',{g:4200000},'auto',{k:'traineeT'}],['cash2m',{g:2000000},'auto'],['car20',{g:6000000},'auto',{k:'carsT'}],['rares',{g:6000000},null],
+  ['col10',{g:7000000},'auto',{k:'peintT'}],['ai5',{g:3000000},'auto',{k:'aileT'}],
+  // hors de portée sans le pack (0,99 €) ou sans des dizaines de millions : l'horizon du chapitre
+  ['ai10',{g:23000000},'auto',{k:'aileT'}],['trall',{g:9200000},'auto'],['colall',{inf:1},'auto'],['aiall',{inf:1},'auto'],['carall',{inf:1},null],['toutall',{inf:1},{cash:1000000}]];
+/* ---- LES CALCULS (purs : le moteur et le générateur du tableau les partagent) ---- */
+function passGainCumul(P,n){const g=GAIN_PARTIE[P],c=PASS_CROIS[P];return g*(n+n*n/(2*c));} // $ gagnés en n parties
+function passPartiesArgent(P,G){const g=GAIN_PARTIE[P],c=PASS_CROIS[P];return c*(-1+Math.sqrt(1+2*G/(g*c)));} // n tel que passGainCumul(P,n)=G
+function passParties(spec,P){ // parties pour y arriver, pour le profil P ('debutant' | 'habitue') ; 9999 = hors de portée
+  if(spec.inf)return 9999;if(spec.r)return spec.r[P==='debutant'?0:1];
+  if(spec.g)return Math.max(1,Math.ceil(passPartiesArgent(P,spec.g)));
+  return Math.max(1,Math.ceil(spec.n/PASS_TAUX[P][spec.c]));}
+function passTranche(pDeb){const L=[2,5,8,12,30,100,400];for(let i=0;i<L.length;i++)if(pDeb<=L[i])return i+1;return 8;}
+function passClasse(pDeb){return pDeb<=PASS_COURT?'COURT':pDeb<=PASS_MOYEN?'MOYEN':'LONG';}
+function passPrime(tr){return PASS_TRANCHES[tr-1][2];}
+const PASS_POOL=PASS_POOL_DEF.map(function(e){const o=e[3]||{},pd=passParties(e[1],'debutant'),ph=passParties(e[1],'habitue'),tr=o.tr||passTranche(pd);
+  var rec=e[2]==='auto'?{cash:passPrime(tr)}:e[2],r0=rec||(M2.find(function(x){return x.id===e[0];})||{}).r||{},car=!!r0.car||Object.keys(PASS_LIEN).some(function(n){return PASS_LIEN[n]===e[0];}),hab=!!r0.cat;
+  return {id:e[0],ch:1,tr:tr,spec:e[1],p:{debutant:pd,habitue:ph},rec:rec,opt:o,cadeau:car?'voiture':hab?'hab':null};}); // cadeau : le genre de la récompense (le moteur tire ces missions à part, selon PASS_CADEAU)
+const PASS_N=PASS_POOL.length;
+function passDef(id){for(let i=0;i<PASS_POOL.length;i++)if(PASS_POOL[i].id===id)return PASS_POOL[i];return null;}
+Object.assign(I18N,{'CHAPITRE 1':'CHAPTER 1'});
+/* ---- LA MISE EN PLACE, UNIQUEMENT SOUS ?pass=1 : M2 reçoit les nouvelles missions, les primes du réservoir, les mesures « hors cadeaux » ; deux caisses changent de mission ---- */
+if(PASS_ON){
+  for(const m of PASS_NOUV)if(!M2.some(function(x){return x.id===m.id;}))M2.push(Object.assign({r:{cash:0}},m));
+  for(const d of PASS_POOL){const m=M2.find(function(x){return x.id===d.id;});if(!m){console.warn('pass : mission inconnue',d.id);continue;}
+    m.pass=d.tr;if(d.rec)m.r=d.rec;if(d.opt.k)m.k=d.opt.k;if(d.opt.v!=null)m.v=d.opt.v;}
+  for(const nom in PASS_LIEN){const i=CARS.findIndex(function(c){return c&&c.name===nom;}),m=M2.find(function(x){return x.id===PASS_LIEN[nom];});
+    if(i<0||!m)continue;const u=CAR_UNLOCK[i];if(u&&u.k==='mis'){u.id=m.id;m.r={car:nom};}}
+  for(const id in PASS_SORTIES){const m=M2.find(function(x){return x.id===id;});if(m){m.pass=0;m.sortie=1;if(m.r&&m.r.car)m.r={cash:0};}}}
 /* ============================================================================
    L'AURA ET LA BANQUE (2026-08-17) — la nouvelle règle
    ----------------------------------------------------------------------------
@@ -62256,6 +62546,7 @@ const SAVE={
     mis:{n:0,ok:[0,0,0],best:[0,0,0],f:-1}, shop:{own:[],eq:{peinture:'usine',aile:'panneaux',trainee:'nitro'}}, figs:['tailwhip','saltov'], figS:1, figT0:0, figEq:[], pseudo:'', tuto:0, shopVu:0, ast:0, // CONTRATS · BOUTIQUE · nom du Top 10 · 1re partie guidée faite
     bank:0, aura:0, owned:[], auraMax:0, auraH:{s:0,n:0}, /* (2026-10-25) auraH : somme et nombre des parties comptées — l'aura MOYENNE du graphe de l'écran de mort */gamme:3, eco:3, frenRec:0, // `frenRec` : la plus longue FRÉNÉSIE jamais tenue (s) // `eco` : échelle de l'argent de course (vague 3, voir la migration des records en fin de san) // `gamme` : version de la GAMME de caisses (voir la migration dans san) // `auraMax` : la meilleure aura d'UNE partie — le chiffre à battre, affiché en jeu
     jour:{d:'',n:0},cad:{t:0},dj:{d:'',k:'',v:0,b:0,ok:0,y:''}, // (2026-10-14, GAMEPLAY) LE RETOUR DU JOUR : `d` = la date locale de la dernière partie COMPTÉE ('AAAA-MM-JJ'), `n` = la série à cette date · LE CADEAU : `t` = l'heure (ms) du dernier cadeau ouvert, 0 = jamais (voir JOUR / CAD)
+    pass:null, // (2026-11-07) LE PASS DE MISSIONS (?pass=1) : les 3 emplacements et la jauge cachée (voir missions/pass-moteur.js)
     m2:m2Vierge(), // (2026-10-16) LES MISSIONS v2 : réussies, prises, suivies, records, compteurs à vie (voir m2Etat)
     plq:{m:'fr',x:(typeof plqHasard==='function'?plqHasard():'CASH CAR'),ok:0},prof:{ne:Date.now(),tA:0,dMax:0}, // (2026-10-17) LA PLAQUE (modèle, texte, validée) et LE PROFIL (né le, temps de jeu, plus longue partie) — voir PLQ
     ai:{air:.5,boost:.35,caution:.5,skill:.86,aggr:.55,airDur:1.1,runs:0}};}, // profil d'apprentissage des IA
@@ -62413,6 +62704,9 @@ const SAVE={
       if(Array.isArray(cc.musP10))o9.c.musP10=[...new Set(cc.musP10.filter(function(x){return typeof x==='string'&&/^[a-z0-9-]{2,40}$/.test(x);}))].slice(0,80);
       if(cc.met&&typeof cc.met==='object')for(const k of Object.keys(cc.met).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.met||(o9.c.met={}))[k]=L9(cc.met[k],12);
       if(cc.sc&&typeof cc.sc==='object')for(const k of Object.keys(cc.sc).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.sc||(o9.c.sc={}))[k]=N9(cc.sc[k],1e9);}
+    /* (2026-11-07) LE PASS : ids a-z0-9, compteurs entiers bornés ; un code importé ne tire rien qu'il ne saurait dire */
+    c.pass=null;if(d.pass&&typeof d.pass=='object'&&d.pass.v===1){const p9=d.pass,I9=/^[a-z0-9]{2,12}$/,n9=function(x,hi){x=Math.round(+x);return isFinite(x)?Math.max(0,Math.min(hi,x)):0;},A9=function(a,i){return Array.isArray(a)?a[i]:undefined;};
+      c.pass={v:1,sl:[0,1,2].map(function(i){const x=A9(p9.sl,i);return typeof x==='string'&&I9.test(x)?x:'';}),cp:[0,1,2].map(function(i){return n9(A9(p9.cp,i),1e7);}),tir:n9(p9.tir,1e6),np:n9(p9.np,1e7),hab:n9(p9.hab,1e4),car:n9(p9.car,1e4),nh:n9(p9.nh,200)||12,nc:n9(p9.nc,200)||25,dep:n9(p9.dep,1e4),dc:n9(p9.dc,1e4),nbH:n9(p9.nbH,1e3),nbC:n9(p9.nbC,1e3),lh:typeof p9.lh==='string'&&/^[a-z_]{0,10}$/.test(p9.lh)?p9.lh:'',ech:Array.isArray(p9.ech)?p9.ech.filter(function(x){return typeof x==='string'&&I9.test(x);}).slice(0,6):[]};}
     c.cad={t:0};if(d.cad&&typeof d.cad==='object'){const tc=+d.cad.t;if(isFinite(tc)&&tc>0)c.cad.t=Math.min(Math.round(tc),Date.now());}
     /* (2026-10-17) LA PLAQUE et LE PROFIL (voir PLQ) — bornés : un code importé ne peint rien d'autre qu'une plaque de 9 signes ; une sauvegarde
        d'avant le profil part du temps de course qu'elle a déjà (ex.temps), née aujourd'hui. Le typeof : les preuves de sauvegarde n'exécutent que cette zone. */
@@ -64407,6 +64701,7 @@ function m2Verifie(enC){const s=m2Etat();let n=0;try{peintDefisVerifie(enC);}cat
   if(n){SAVE.mark();if(!enC)try{m2Portes();}catch(e){}}return n;}
 /* l'annonce d'une mission réussie : EN COURSE, la LIGNE du bas (#m2Ligne) ; hors course, le toast. Une secrète ne dit rien d'elle */
 function m2Annonce(m,enC){const r=m.r||{};
+  if(PASS_ON&&m.pass&&passEtat().sl.indexOf(m.id)<0)return; /* (2026-11-07) le pass : seule une mission des trois emplacements s'annonce */
   if(m.f==='secret'){if(enC)m2LigneDit('sec','? ? ?','');return;}
   const p=r.cash?'+'+fmtC(r.cash):r.car?TR(r.car):r.cat?TR(((COSM[r.cat]||[]).find(function(x){return x.id===r.id;})||{n:''}).n):'';
   if(enC&&m2LigneDit('ok',sansAcc(m2Txt(m)),p))return;if(M2R.fin&&!m2AnnonceMort(m))return; /* (2026-11-06) à la mort, seule une mission qui donne une voiture s'annonce */try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
@@ -64516,6 +64811,7 @@ function m2Mort(cause){if(!m2Ok())return;const s=m2Etat();s.c.morts=(s.c.morts|0
   m2Verifie(true);SAVE.mark();}
 function m2Fin(){ // endGame (une mort, ou QUITTER) : la partie entière se juge ici
   try{if(BALADE||SANDBOX||(PARK&&PARK.on)||TUTO.on||TUTO.quitte)return;}catch(e){return;}
+  if(PASS_ON)try{passPartie();}catch(e){console.warn('pass',e);} /* (2026-11-07) le pass : une partie de plus (le garde-fou des emplacements) */
   if(mortCause&&M2R.ctl>=M2K.partie){if(!(RUNX.nitro>0))m2Flag('sansnit');if(!(RUNX.coins>0))m2Flag('sanspiece');if(!M2R.sonne)m2Flag('silence');}
   M2R.fin=1;try{m2Verifie(false);}finally{M2R.fin=0;}{const s9=m2Etat();s9.su=s9.su.filter(function(id){return s9.ok.indexOf(id)<0;});} /* une suivie réussie se récupère : elle quitte le suivi */SAVE.flush();}
 function m2Rejoue(){const s=m2Etat();s.c.rejoue=(s.c.rejoue|0)+1;if(s.c.rejoue>(s.r.rejoue|0))s.r.rejoue=s.c.rejoue;SAVE.mark();}
@@ -64690,6 +64986,7 @@ function m2Vue(L,s,vu){ // → {ved : la vedette (l'écran de mort seulement, de
     listeTab+=mcLigne(x,k++,s);}
   return {ved:ved?mcVedette(ved,s,!vu):'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>',listeTab:listeTab,n:prets.length+reste.length};}
 function m2Render(vu){ /* (2026-11-03, refonte · 2026-11-05, plus de vedette : voir « L'ÉCRAN DES MISSIONS À LA MORT », aujourdhui.js) la page MISSIONS entière */
+  if(PASS_ON&&typeof gEl!=='undefined'&&gEl&&gEl.classList.contains('missions'))return pvRender(vu); /* (2026-11-07) le pass : toute remise à jour de l'écran MISSIONS passe par LE VISEUR */
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';
   const old=$('gmListe'),d0=old&&old.querySelector('.mcDef'),sc0=d0?d0.scrollTop:0,s0=old&&old.querySelector('.mcPan'),sc1=s0?s0.scrollTop:0;
   const s=m2Etat(),L=m2Lignes(),pal=m2SecPal(),V=m2Vue(L,s,vu);
@@ -64845,7 +65142,7 @@ function m2AnnonceMort(m){return M2MORT_TOUT||!!(m&&m.r&&m.r.car);}
 function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search); /* l'écran de mort v6 (MORT_FLOT vit dans la coque, hors de portée ici) */
   const s=m2Etat(),L=[];
   for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&m2AnnonceMort(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
-  if(!flot9)for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
+  if(!flot9)for(const id of (PASS_ON?passEnsure():s.su)){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
   /* (2026-11-03, Sacha : « améliorer encore un peu », puis « mission il prend trop de place ») le panneau ne reste plus à moitié vide :
      il se complète avec les missions les plus proches du but (avec leur barre), jusqu'à 2 (couché, le ×2 prend sa place sous le panneau) */
   if(!flot9){const cible=2,C=[];
@@ -64870,7 +65167,7 @@ function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search);
       if(flot9)P9.push({m:m,a:x.a!=null?x.a:0,v:v,t:t});
       h+=flot9?'<div class="obM obM6">'+ic9+tx9+br9+pg9+'</div>':'<div class="obM">'+ic9+tx9+pg9+'</div>'+br9;}}
   if(flot9&&!L.length)h+='<div class="obM obVide"><span>'+sansAcc(TR('AUCUNE MISSION AVANCÉE'))+'</span></div>';
-  h+='<div class="obFt"><span>'+sansAcc(TR(nP?'À RÉCUPÉRER':'TOUTES LES MISSIONS'))+'</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';
+  h+='<div class="obFt"><span>'+((PASS_ON&&passPresque())?pxi('cadeau')+' ':'')+sansAcc(TR(nP?'À RÉCUPÉRER':'TOUTES LES MISSIONS'))+'</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';
   el.innerHTML=h;
   const bars=el.querySelectorAll('.obBar i');
   if(flot9){ /* (2026-11-04/05, Sacha : « des animations pour les missions », « les barres qui avancent ») écran de mort v6 : chaque barre PART de où elle
@@ -76795,8 +77092,8 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   if(GAR.roll)camera.rotateZ(GAR.roll);
   if((BURN.k>.02||BURN.kick>.01)&&!REDUCED_MOTION){const a9=BURN.k*(.8+.5*BURN.chaud+.6*BURN.donK);camera.rotateZ((Math.sin(t9*47.1)*.6+Math.sin(t9*73.3+1.7)*.4)*.0015*a9);camera.position.y+=(Math.sin(t9*53.9+.5)*.6+Math.sin(t9*81.7+2.9)*.4)*.005*a9-.07*BURN.kick;} /* (BURN-OUT v2) la secousse suit la chaleur et le donut ; au DÉPART la caméra encaisse (BURN.kick) */ // (2026-10-06) même amplitude, en BRUIT LISSE (7-13 Hz) : tiré au hasard à chaque image, il grésillait (et deux fois plus vite à 120 Hz) // (BURN-OUT) la caméra vibre à peine // (le glissé fondu) la caméra penche un peu dans le sens où elle tourne
   if(GFIG.kick>.01&&!REDUCED_MOTION)camera.position.y-=.04*GFIG.kick; // (2026-10-23) la pose d'une figure : la caméra encaisse le choc (4 à 5 cm, ça retombe en 0,3 s)
-  { // LES MISSIONS : la caméra s'élève sous la porte relevée et regarde tout l'atelier (fondu en S ; le départ la ramène, voir GAR.go.pre)
-    if(!GAR.go)GMIS.mk+=(((gEl.classList.contains('missions'))?1:0)-GMIS.mk)*Math.min(1,dt*2.4);
+  { // LES MISSIONS : la caméra s'élève (sous ?pass=1 elle RESTE sur la caisse : GMIS.mk reste à 0) sous la porte relevée et regarde tout l'atelier (fondu en S ; le départ la ramène, voir GAR.go.pre)
+    if(!GAR.go)GMIS.mk+=(((gEl.classList.contains('missions')&&!PASS_ON)?1:0)-GMIS.mk)*Math.min(1,dt*2.4);
     const u9=Math.min(1,Math.max(0,GMIS.mk)),e=u9*u9*u9*(u9*(u9*6-15)+10);GMIS.e=e;
     if(e>.0005){const L9=GAR.lk,tx=L9?L9.x:-Math.sin(cA)*1.5,ty=L9?L9.y:ay+1.0-POR*.65-vG*1.35,tz=L9?L9.z:-Math.cos(cA)*1.5,cp9=camera.position; /* (2026-10-06, LA MISE EN PLACE) le vol part du VRAI regard de l'atelier : il visait la caisse (le regard d'avant la vitrine) — au retour, la visée sautait de la caisse à la porte quand le vol s'achevait (le « déclic ») */
       cp9.set(cp9.x+(0-cp9.x)*e,cp9.y+(ay+4.4-cp9.y)*e,cp9.z+(11-cp9.z)*e); // ⚠ y 4,4 : les panneaux de la porte relevée sont empilés à 4,92-5,05 m
@@ -76820,6 +77117,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   garCadre(1-(GMIS.e||0),1-(GAR.wD||0)); // (missions) le décentrement du menu s'efface pendant le vol vers la vue d'ensemble · (vitrine) face à l'entrée, pas de décentrement en largeur : c'est la place de la caméra qui pose la caisse
   if(GAR.misCible)GAR.misCible.rotation.y+=dt*1.1; // la cible des missions tourne sur elle-même
   if(GMIS.holo.length)gmHoloTick(t9);
+  if(GMIS.sol)pvSolTick(dt); /* (?pass=1) l'anneau de sol et son balayage radar : rien ne tourne hors de l'écran MISSIONS */
   if(gEl.classList.contains('missions'))gmSuit();
 }
 /* LE CADRAGE MESURÉ (2026-09-30, Léo : « la voiture est toujours pas cadrée, c'est chelou »). Deux décalages FIXES d'objectif faisaient le
@@ -78238,10 +78536,12 @@ function gmHoloBuild(g){ // les hologrammes 3D des ancres : un faisceau (sprite)
     let ring=null;if(a.k!=='r'){ring=new THREE.Mesh(rg,new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
       ring.rotation.x=-Math.PI/2;ring.position.set(a.p[0],.05,a.p[2]);g.add(ring);}
     GMIS.holo.push({beam:beam,ring:ring,a:a});}
+  if(PASS_ON)try{pvSolBuild(g);}catch(e){console.warn('pass sol',e);} /* (2026-11-07) ?pass=1 : l'anneau de sol du viseur, en vrai objet 3D */
 }
 function gmHoloTick(t9){const e=GMIS.e;for(let i=0;i<GMIS.holo.length;i++){const h=GMIS.holo[i],o=e*(.34+.12*Math.sin(t9*2.7+i*1.3));
   h.beam.material.opacity=o;if(h.ring){h.ring.material.opacity=e*.8;const k=1+.12*Math.sin(t9*3.1+i);h.ring.scale.set(k,k,k);}}}
 function gmRender(vu){ // vu : l'écran est déjà là (un défi coché) — les cartes ne rejouent pas leur entrée
+  if(PASS_ON)return pvRender(vu); /* (2026-11-07) ?pass=1 : LE VISEUR (missions/pass-viseur.js), la caméra reste sur la caisse */
   return m2Render(vu); /* (2026-10-16) LES MISSIONS v2 : la liste unique */
 }
 function gmSuit(){return gmSuitS();} // chaque image : le panneau MISSIONS se recale, les hologrammes suivent l'orientation
@@ -78264,7 +78564,7 @@ function gmPlaceL(W,H){ // couché : DEUX colonnes — la carte de la série à 
 }
 function gmSuitS(){ // chaque image : (2026-10-15) le panneau MISSIONS se recale si l'écran change ; les hologrammes suivent l'orientation
   {const W=VP.w,H=VP.h,now=performance.now();
-   if(GMIS.lw!==W||GMIS.lh!==H||!GMIS.bT||now-GMIS.bT>600){GMIS.bT=now;GMIS.lw=W;GMIS.lh=H;gmPlaceL(W,H);}
+   if(GMIS.lw!==W||GMIS.lh!==H||!GMIS.bT||now-GMIS.bT>600){GMIS.bT=now;GMIS.lw=W;GMIS.lh=H;gmPlaceL(W,H);if(PASS_ON)pvPlace(W,H,false);}
    const land=W>H*1.25;if(GMIS.land!==land){GMIS.land=land;gmHoloPlace(land);}}
 }
 /* (2026-10-05) MISSIONS depuis la VITRINE : l'écran des missions de l'atelier, et HOME / Échap y RAMÈNENT (pas au menu) */
@@ -78562,6 +78862,321 @@ function sensPassages(dt){
       if(!REDUCED_MOTION){sensCoup(0,.5,-1.2);const sp9=CARS[level];
         if(sp9)for(let sd=-1;sd<2;sd+=2){DRIFT_V.set(sd*sp9.w*.45,.06,-sp9.l*.32);carGroup.localToWorld(DRIFT_V);sparkBurst(dust,DRIFT_V,2,2.5);}}}}
 }
+/* ===== LE PASS DE MISSIONS — LE MOTEUR DES TROIS EMPLACEMENTS (2026-11-07, Léo : « 3 missions actives en même temps, remplacées au tirage dès qu'une est réussie ; tirage au hasard borné par la difficulté ; cadeaux à intervalle variable avec plafond garanti ») =====
+   ⚠ INERTE sans ?pass=1 (PASS_ON) : rien n'est appelé, SAVE.d.pass reste null. Les données (réservoir, tranches, règles, PASS_CADEAU) sont dans pass-table.js ; l'écran dans pass-viseur.js.
+   L'ÉTAT (SAVE.d.pass, borné dans sauvegarde.js) : sl = les 3 ids · cp = la partie où chaque emplacement a été tiré · tir = tirages faits · np = parties jouées · hab / car = missions prises depuis le dernier cadeau de ce genre (la JAUGE CACHÉE)
+     · nh / nc = le seuil tiré dans la fenêtre [min,max] (le joueur ne peut pas le calculer ; `max` est une GARANTIE) · dep = missions prises depuis le dernier cadeau · dc = depuis la dernière caisse · nbH / nbC = cadeaux déjà donnés (l'écart s'allonge)
+     · lh = la dernière famille d'habillage (pas deux peintures de suite) · ech = les missions échangées par le garde-fou (pas retirées tout de suite).
+   LE TIRAGE (passTire), dans l'ordre : 1. une mission du réservoir DÉJÀ réussie et pas encore prise (migration, ou réussie hors emplacement) : elle se récupère une fois ; 2. LAGON, la petite peinture de base, au plus tard au 4e tirage ;
+     3. un CADEAU si la jauge l'exige (voiture ou habillage, jamais deux de suite, jamais deux caisses à moins de 5 missions, jamais un objet déjà à toi) ; 4. sinon une mission d'argent/d'exploit au hasard dans les 2 tranches atteintes
+     (jamais deux de la même famille en même temps si possible, jamais une mission déjà remplie). Anciennes missions réussies : elles comptent dans l'avancement du chapitre et ne sont jamais re-tirées ; les primes déjà prises (pr) ne sont jamais reversées. */
+function passAl(a,b){a=Math.round(a);b=Math.round(b);return a+Math.floor(Math.random()*(Math.max(a,b)-a+1));}
+function passVierge(){const P=PASS_CADEAU;return {v:1,sl:['','',''],cp:[0,0,0],tir:0,np:0,hab:0,car:0,nh:passAl(P.debut.hab-2,P.debut.hab),nc:passAl(P.debut.voiture[0],P.debut.voiture[1]),dep:9,dc:99,nbH:0,nbC:0,lh:'',ech:[]};}
+function passEtat(){const d=SAVE.d;if(!d.pass||d.pass.v!==1)d.pass=passVierge();return d.pass;}
+function passCompte(){const s=m2Etat();let n=0;for(const d of PASS_POOL)if(s.ok.indexOf(d.id)>=0)n++;return n;} /* missions du chapitre réussies (les anciennes comptent) */
+function passTrancheAtteinte(){const n=passCompte();let t=1;for(const T of PASS_TRANCHES)if(n>=T[1])t=T[0];return t;}
+function passEstCadeau(id){const d=passDef(id);return d?d.cadeau:null;}
+function passPossede(m){const r=m.r||{};if(r.car){const i=m2CarIdx(r.car);return i<0||carOwned(i)||carRetiree(i);}if(r.cat)return shopOwned(r.cat,r.id);return false;}
+function passEligible(d,E){ /* une mission qu'on peut tirer maintenant */
+  if(d.spec&&d.spec.inf)return false; /* l'horizon du chapitre (hors de portée) n'est jamais tiré */
+  const m=m2Def(d.id),s=m2Etat();if(!m||!m.pass||m.sortie||m.f==='secret'||!m2Dispo(m))return false;
+  if(s.ok.indexOf(d.id)>=0||s.pr.indexOf(d.id)>=0||E.sl.indexOf(d.id)>=0||E.ech.indexOf(d.id)>=0)return false;
+  if(passPossede(m))return false; /* jamais un objet déjà à toi */
+  let v=0;try{v=m2Val(m);}catch(e){return false;}if(v>=m2Seuil(m))return false; /* jamais une mission déjà remplie à l'instant du tirage */
+  return true;}
+function passTire(E){
+  const s=m2Etat(),P=PASS_CADEAU,R=PASS_REGLES,t=passTrancheAtteinte(),lo=Math.max(1,t-(R.fenetre-1));
+  /* 1. réussie, pas encore prise : à récupérer une fois */
+  for(const d of PASS_POOL){if(s.ok.indexOf(d.id)>=0&&s.pr.indexOf(d.id)<0&&E.sl.indexOf(d.id)<0&&m2Pret(d.id))return d.id;}
+  const cand=PASS_POOL.filter(function(d){return passEligible(d,E);});
+  /* 2. LAGON : la petite peinture de base, au plus tard au 4e tirage */
+  for(const id in R.garanti)if(E.tir+1>=R.garanti[id]&&cand.some(function(d){return d.id===id;}))return id;
+  /* 3. un cadeau si la jauge cachée l'exige */
+  const dansCadeau=E.sl.some(function(id){return id&&passEstCadeau(id);});
+  if(!dansCadeau&&E.dep>=P.ecartCadeaux){
+    const vDu=E.car>=E.nc&&E.dc>=P.ecartCaisses,hDu=E.hab>=E.nh;let genre=null;
+    if(vDu&&hDu)genre=E.lh==='_v'?'hab':'voiture';else if(vDu)genre='voiture';else if(hDu)genre='hab';
+    if(genre){let L=cand.filter(function(d){return d.cadeau===genre;});
+      if(genre==='hab'&&E.lh){const L2=L.filter(function(d){return ((d.rec||(m2Def(d.id)||{}).r||{}).cat||'')!==E.lh;});if(L2.length)L=L2;}
+      if(L.length){const F=L.filter(function(d){return d.tr<=t+1&&d.tr>=lo;});const B=F.length?F:L.slice().sort(function(a,b){return a.tr-b.tr;}).slice(0,3);return B[Math.floor(Math.random()*B.length)].id;}}}
+  /* 4. une mission « ordinaire » au hasard dans la fenêtre */
+  const fams=E.sl.map(function(id){const m=id&&m2Def(id);return m?m.f:'';});
+  const ord=cand.filter(function(d){return !d.cadeau;});
+  let L=ord.filter(function(d){return d.tr>=lo&&d.tr<=t;});
+  if(!L.length)L=ord.filter(function(d){return d.tr<=t+1;});
+  if(!L.length)L=ord.slice().sort(function(a,b){return a.tr-b.tr;}).slice(0,4);
+  if(!L.length)return '';
+  const L2=L.filter(function(d){return R.memeFamille||fams.indexOf((m2Def(d.id)||{}).f)<0;});
+  const B=L2.length?L2:L;return B[Math.floor(Math.random()*B.length)].id;}
+/* les trois emplacements, remplis (au besoin) et sauvegardés ; le garde-fou échange une mission restée bloquée trop longtemps */
+function passEnsure(){
+  const E=passEtat(),s=m2Etat();let ch=false;
+  for(let i=0;i<3;i++){
+    let id=E.sl[i];
+    if(id){const m=m2Def(id);if(!m||s.pr.indexOf(id)>=0){id='';E.sl[i]='';ch=true;}
+      else if(!passEstCadeau(id)&&s.ok.indexOf(id)<0&&E.np-E.cp[i]>=Math.max(PASS_REGLES.echangeParties,2*(passDef(id)?passDef(id).p.debutant:0))){ /* garde-fou : trop longtemps bloquée */
+        let v=0;try{v=m2Frac(m,m2Val(m),m2Seuil(m));}catch(e){}if(v<.9){E.ech.push(id);if(E.ech.length>6)E.ech.shift();E.sl[i]='';id='';ch=true;}}}
+    if(!id){const n=passTire(E);if(n){E.sl[i]=n;E.cp[i]=E.np;E.tir++;ch=true;}}}
+  if(ch)SAVE.mark();return E.sl.slice();}
+function passApresPrise(id){ /* une récompense vient d'être prise : la jauge cachée monte, l'emplacement est tiré de nouveau */
+  const E=passEtat(),P=PASS_CADEAU,d=passDef(id),k=E.sl.indexOf(id);if(k>=0)E.sl[k]='';
+  E.hab++;E.car++;E.dep++;E.dc++;
+  if(d&&d.cadeau==='voiture'){E.car=0;E.dc=0;E.dep=0;E.lh='_v';E.nc=Math.min(P.plafondCroit.voiture+P.voiture.max,passAl(P.voiture.min,P.voiture.max)+Math.floor(P.croit.voiture*E.nbC));E.nbC++;}
+  else if(d&&d.cadeau==='hab'){E.hab=0;E.dep=0;const r=(m2Def(id)||{}).r||{};E.lh=r.cat||'';E.nh=Math.min(P.plafondCroit.hab+P.hab.max,passAl(P.hab.min,P.hab.max)+Math.floor(P.croit.hab*E.nbH));E.nbH++;}
+  SAVE.mark();return passEnsure();}
+function passPartie(){const E=passEtat();E.np++;SAVE.mark();passEnsure();} /* une partie jouée (m2Fin) */
+function passPresque(){const E=passEtat(),P=PASS_CADEAU;return Math.max(E.car/Math.max(1,P.voiture.max),E.hab/Math.max(1,P.hab.max))>=P.presque;} /* « un cadeau est proche » (écran de fin), sans chiffre */
+/* ---- LE CROCHET : dbgPass() · ('raz') · ('gagne',id) · ('sim',n) · ('voitures') ---- */
+window.dbgPass=function(a,b){
+  if(!PASS_ON)return 'sans ?pass=1';
+  const E=passEtat();
+  if(a==='raz'){SAVE.d.pass=null;passEnsure();return passEtat();}
+  if(a==='gagne'){const s=m2Etat();if(s.ok.indexOf(b)<0){s.ok.push(b);s.nv.push(b);SAVE.flush();}return passEnsure();}
+  if(a==='parties'){for(let i=0;i<(b|0||1);i++)passPartie();return passEtat().sl.slice();} /* banc : n parties de plus (le garde-fou d'échange) */
+  if(a==='voitures'){const R={ok:[],perdues:[]};for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='mis'||carRetiree(i))continue;const m=m2Def(u.id);
+      if(m&&(passDef(u.id)||m.f==='secret'))R.ok.push(CARS[i].name+' <- '+u.id+(m.f==='secret'?' (secrète)':' (pass, tranche '+passDef(u.id).tr+')'));else R.perdues.push(CARS[i].name+' <- '+u.id);}return R;}
+  if(a==='sim'){ /* sans rien payer : n missions prises à la suite, puis tout est remis */
+    const s=m2Etat(),sv=JSON.stringify([SAVE.d.pass,s.ok,s.pr,SAVE.d.owned,SAVE.d.shop.own]),log=[];let err=[];
+    try{for(let n=1;n<=(b|0||60);n++){const sl=passEnsure(),pk=sl.findIndex(function(x){return x&&passEstCadeau(x);}),i=pk>=0?pk:0,id=sl[i];if(!id){err.push('vide à '+n);break;}
+        if(new Set(sl).size<sl.filter(Boolean).length)err.push('doublon à '+n);
+        const m=m2Def(id),d=passDef(id);if(s.ok.indexOf(id)<0)s.ok.push(id);s.pr.push(id);const r=m.r||{};
+        if(r.car){const ci=m2CarIdx(r.car);if(ci>=0&&SAVE.d.owned.indexOf(ci)<0)SAVE.d.owned.push(ci);}if(r.cat){const kk=r.cat+':'+r.id;if(SAVE.d.shop.own.indexOf(kk)<0)SAVE.d.shop.own.push(kk);}
+        log.push(n+':'+id+(d.cadeau?'*'+d.cadeau:'')+' t'+passTrancheAtteinte());passApresPrise(id);}}
+    finally{const o=JSON.parse(sv);SAVE.d.pass=o[0];s.ok.length=0;s.ok.push.apply(s.ok,o[1]);s.pr.length=0;s.pr.push.apply(s.pr,o[2]);SAVE.d.owned.length=0;SAVE.d.owned.push.apply(SAVE.d.owned,o[3]);SAVE.d.shop.own.length=0;SAVE.d.shop.own.push.apply(SAVE.d.shop.own,o[4]);}
+    return {log:log.join(' '),erreurs:err};}
+  return {slots:passEnsure(),compte:passCompte(),tranche:passTrancheAtteinte(),jauge:{hab:E.hab+'/'+E.nh,car:E.car+'/'+E.nc,dep:E.dep,dc:E.dc},tirages:E.tir,parties:E.np,presque:passPresque()};
+};
+/* ===== LE PASS DE MISSIONS — L'ÉCRAN « LE VISEUR » (2026-11-07, Léo : « on clique sur MISSIONS dans le garage, c'est autour de la voiture ; peu d'énergie ; simple » · DA premium futuriste, mix ciel + garage) =====
+   ⚠ UNIQUEMENT SOUS ?pass=1 (PASS_ON, pass-table.js) : sans lui, gmRender rend la liste d'avant (m2Render) et rien de ce morceau ne tourne.
+   LA FORME (cahier PASS-MISSIONS.md, points 15 et 16) : la caméra RESTE sur la caisse, qui tourne doucement toute seule (GMIS.mk reste à 0 : voir garage-rendu.js) ; TROIS cartes
+   en verre arrondies, liseré dégradé cyan · magenta · or, un anneau de progression autour d'un chiffre ; la carte CADEAU (liseré or) en haut au centre, une carte de chaque côté ;
+   des fils de visée cyan pointillés vers la caisse, tracés un à un à l'ouverture, puis immobiles ; un anneau de sol cyan sous la caisse ; en-tête : le nom du chapitre + « faites / total ».
+   ÉNERGIE : aucune matière ni lumière nouvelle ; 3 éléments DOM + un SVG de quelques lignes ; une seule animation permanente (la pulsation du dernier tiers de la carte cadeau) ;
+   tout est vidé hors de l'écran MISSIONS (le fondu GMIS.e reste à 0, les faisceaux 3D de l'ancien écran restent éteints).
+   ⚠ LE MOTEUR DU TIRAGE (case 3) N'EXISTE PAS ENCORE : les trois cartes lisent les premières missions du réservoir (PASS_POOL) pas encore récupérées (pvChoix) ; la carte du milieu est la
+   première mission « cadeau voiture » dont la caisse n'est pas à toi (sinon un habillage, sinon la première). Le jour où le moteur existe, seul pvChoix() change. */
+const PV_TITRE='LE DÉBUT DE LA FIN';
+Object.assign(I18N,{'LE DÉBUT DE LA FIN':'THE BEGINNING OF THE END'});
+/* UNE SEULE MATIÈRE « HOLOGRAMME » : la grille fine. Sa couleur et son pas disent la récompense (or = voiture, rose = habillage, vert = argent, cyan = rien) ; le pas (px) est le même sur les cartes (CSS) et sur la caisse (mètres x PV_PAS) */
+const PV_TEINTE={cyan:{css:'#5ff0ff',hex:0x5ff0ff,pas:.5},vert:{css:'#7DFF9B',hex:0x7dff9b,pas:.55},rose:{css:'#f24aa0',hex:0xf24aa0,pas:.4},or:{css:'#ffd75e',hex:0xffd75e,pas:.3}};
+const PV_PAS=.5; /* le pas de la cage de la caisse (m) : fixe, la teinte de la récompense ne la resserre jamais */
+/* la silhouette d'une caisse (profil), en or : la vraie est déjà au centre de l'écran */
+const PV_SILHOUETTE='<svg viewBox="0 0 64 30" aria-hidden="true"><defs><linearGradient id="pvOr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset="1" stop-color="#e0a41c"/></linearGradient></defs><path d="M3 22V18Q3 15 8 14L15 13L21 6Q23 4 27 4H40Q44 4 47 7L52 13L58 15Q61 16 61 20V22Z" fill="url(#pvOr)" stroke="#fff3b0" stroke-width="1.5" stroke-linejoin="round"/><path d="M24 7H33V13H20ZM36 7H41Q43 7 45 9L48 13H36Z" fill="#07050F" opacity=".55"/><circle cx="16" cy="23" r="4.6" fill="#07050F" stroke="#ffd75e" stroke-width="2"/><circle cx="48" cy="23" r="4.6" fill="#07050F" stroke="#ffd75e" stroke-width="2"/></svg>';
+const PV_CERCLE=100; /* l'anneau a pathLength 100 : le décalage du trait = 100 - le pourcentage */
+/* ---- QUELLES TROIS MISSIONS (doublure du moteur de tirage) ---- */
+function pvChoix(){ /* les trois emplacements du moteur (pass-moteur.js) : le cadeau au milieu s'il y en a un, les deux autres sur les côtés */
+  if(GMIS.pvForce){const f=GMIS.pvForce.map(function(id){const m=m2Def(id);return m&&{m:m,d:passDef(id)};});if(f[0]&&f[0].m.r&&f[0].m.r.car)f[0].car=m2CarIdx(f[0].m.r.car);return {don:f[0],g:f[1],d:f[2]};} /* banc : dbgPassViseur('ids',[cadeau,gauche,droite]) */
+  const L=passEnsure().filter(Boolean).map(function(id){return {m:m2Def(id),d:passDef(id)};}).filter(function(x){return x.m;});
+  let k=L.findIndex(function(x){return x.d&&x.d.cadeau==='voiture';});if(k<0)k=L.findIndex(function(x){return x.d&&x.d.cadeau==='hab';});
+  const don=L.splice(k>=0?k:0,1)[0]||null;if(don){don.cadeau=k>=0;const r=don.m.r||{};if(r.car){const ci=m2CarIdx(r.car);if(ci>=0&&garageListe().indexOf(ci)>=0)don.car=ci;}}
+  return {don:don,g:L[0]||null,d:L[1]||null};
+}
+/* ---- LES CARTES : la FORME suit la mesure (4 familles, repli = l'anneau) et la RÉCOMPENSE se voit en grand ---- */
+const PV_ANNEAU_CIBLE=['aura','fren','flag','prof','vol','lac','rejoue','airP','toutT','raresT']; /* tout-ou-rien ou exploit d'une partie : anneau + cible */
+function pvFamille(m,t){ /* a) cumul long = jauge · b) petit compte = pastilles · c) vitesse ou durée = arc de cadran · d) exploit = anneau + cible ; repli = anneau */
+  const u=m.u;
+  if(u==='kmh'||u==='s'||u==='mn')return 'cadran';
+  if(u==='$'||u==='km')return 'jauge';
+  if(PV_ANNEAU_CIBLE.indexOf(m.k)>=0||u==='b'||t<2)return 'cible';
+  if(t>=2&&t<=12&&t===Math.floor(t))return 'pips';
+  if(t>12)return 'jauge';
+  return 'anneau';
+}
+function pvCouleurHab(d){ /* la vraie couleur d'une peinture, en CSS */
+  const h=function(n){return '#'+('000000'+(n>>>0).toString(16)).slice(-6);};
+  if(d.grad)return 'linear-gradient(160deg,'+d.grad.map(h).join(',')+')';
+  if(d.c!=null)return h(d.c);
+  if(d.rgb)return 'rgb('+d.rgb.map(function(v){return Math.round(255*Math.min(1,v/1.2));}).join(',')+')';
+  return '#ffd75e';
+}
+function pvVedette(m,gift){ /* la récompense, en vedette : silhouette de caisse dorée · pastille de couleur · icône à éclat · piles de pièces */
+  const r=m.r||{};
+  if(r.cash){const a=r.cash,n=a<2000?1:a<20000?2:3,h=Math.max(3,Math.min(9,Math.round(Math.log10(a)*1.6)));let p='';
+    for(let i=0;i<n;i++){const k=Math.max(2,h-i);let c='';for(let j=0;j<k;j++)c+='<u></u>';p+='<span class="pvPile">'+c+'</span>';}
+    return '<span class="pvVed cash"><span class="pvPiles">'+p+'</span><b>'+sansAcc(m2RecNom(m))+'</b></span>';}
+  if(r.car)return '<span class="pvVed car"><i class="pvChip">'+PV_SILHOUETTE+'</i>'+(gift?'<b>'+sansAcc(TR(r.car))+'</b>':'')+'</span>';
+  if(r.cat){const d=(COSM[r.cat]||[]).find(function(x){return x.id===r.id;})||{};
+    if(r.cat==='peinture')return '<span class="pvVed hab"><i class="pvPast" style="background:'+pvCouleurHab(d)+'"></i><b>'+sansAcc(TR(d.n||''))+'</b></span>';
+    return '<span class="pvVed hab"><i class="pvChip rose">'+pxi(r.cat==='aile'?'aile':r.cat==='trainee'?'trainee':'etoile')+'</i><b>'+sansAcc(TR(d.n||''))+'</b></span>';}
+  return '';
+}
+function pvForme(m,v,t,ok,pret,p){ /* le dessin de l'avancement, dans .pvAn */
+  const f=pvFamille(m,t),pc=Math.round(p*100);
+  if(f==='jauge')return {c:'jg',h:'<span class="pvJg"><i data-h="'+pc+'" style="height:0"></i></span>'};
+  if(f==='pips'){const N=Math.round(t),on=ok?N:Math.min(N,Math.floor(v));let h='';for(let i=0;i<N;i++)h+='<u'+(i<on?' class="on"':'')+'></u>';
+    return {c:'pp'+(N>8?' pm':''),h:'<span class="pvPips" style="grid-template-columns:repeat('+(N<=5?N:Math.ceil(N/2))+',auto)">'+h+'</span>'};}
+  const cad=f==='cadran',off=cad?75*(1-p):PV_CERCLE-pc;
+  return {c:cad?'cad':'',h:'<svg viewBox="0 0 64 64" aria-hidden="true"><circle class="pvPiste" cx="32" cy="32" r="28"/><circle class="pvJauge" cx="32" cy="32" r="28" pathLength="'+PV_CERCLE+'" data-off="'+off+'" style="stroke-dashoffset:'+PV_CERCLE+'"/></svg>'
+    +'<b class="pvN">'+(pret?pxi('coche'):f==='cible'?pxi('cible'):pc+'<small>%</small>')+'</b>'};
+}
+function pvCarte(x,cls){
+  if(!x)return '';
+  const m=x.m,s=m2Etat(),ok=s.ok.indexOf(m.id)>=0;let v=0;try{v=m2Val(m);}catch(e){}const t=m2Seuil(m),p=ok?1:m2Frac(m,v,t);
+  const r=m.r||{},gc=r.cash?'vert':r.car?'or':r.cat?'rose':'cyan',gift=cls==='pvG'&&x.cadeau!==false;
+  const pret=ok&&m2Pret(m.id),ic=(M2_FAM[m.f]||M2_FAM.exploit).ic,F=pvForme(m,v,t,ok,pret,p);
+  return '<div class="pvC '+cls+(cls==='pvG'&&!gift?' nog':'')+(pret?' pret':'')+(gift&&p>=.667&&!ok&&p<1?' pulse':'')+'" role="button" tabindex="0" data-m2="'+m.id+'" data-gc="'+gc+'" style="--gc:'+PV_TEINTE[gc].css+'" aria-label="'+sansAcc(m2Txt(m))+'">'
+    +(gift?pvVedette(m,true):'')+'<span class="pvAn '+F.c+'">'+F.h+'</span>'
+    +'<span class="pvT">'+pxi(ic)+'<span>'+m2TxtH(m)+'</span></span>'+(gift?'':pvVedette(m,false))+'</div>';
+}
+function pvRender(vu){ /* vu : l'écran est déjà là (une carte vient d'être prise) — les fils ne se retracent pas */
+  const el=$('gmNoeuds'),gm=$('gMis');if(!el||!gm)return;
+  const c=pvChoix(),s=m2Etat();
+  if(!vu||GMIS.pvTpl==null){let k;do{k=Math.floor(Math.random()*PV_GAB.length);}while(k===GMIS.pvTpl);GMIS.pvTpl=k;GMIS.pvMir=!GMIS.pvMir;} /* un gabarit au hasard, jamais deux fois le même d'affilée */
+  gm.classList.add('pv');gm.classList.toggle('m2land',VP.w>VP.h*1.25);GMIS.pvAnime=!vu;GMIS.pvCle='';
+  el.innerHTML='<div id="pvEcran" class="pose">'+pvCarte(c.g,'pvS pvGa')+pvCarte(c.don,'pvG')+pvCarte(c.d,'pvS pvDr')+(vu||REDUCED_MOTION?'':'<i class="pvScan"></i>')+'</div>';
+  let fait=0;for(const d of PASS_POOL)if(s.ok.indexOf(d.id)>=0)fait++;
+  const hd=$('gmHead'),b=hd&&hd.querySelector('b'),sous=$('gmSous'),aide=$('gmAide');
+  if(b)b.textContent=sansAcc(TR(PV_TITRE));if(sous)sous.textContent=fait+' / '+PASS_N;if(hd)hd.style.setProperty('--m2P',Math.round(100*fait/Math.max(1,PASS_N))+'%');if(aide)aide.textContent='';
+  /* la caisse à gagner sur le plateau (celle du cadeau voiture) ; sinon la tienne */
+  try{const cib=c.don&&c.don.car!=null?c.don.car:equippedCar();if(cib!==garageI&&!GAR.go)garageSaute(cib);}catch(e){console.warn('pass viseur',e);}
+  pvPlace(VP.w,VP.h,true);pvTeinte('cyan');
+  if(!vu&&!REDUCED_MOTION)try{if(SONV2)sfx('ui.on',{vol:-12});}catch(e){} /* un souffle discret à l'ouverture */
+  requestAnimationFrame(function(){requestAnimationFrame(function(){const e=$('pvEcran');if(e)e.classList.remove('pose');});}); /* les cartes se posent sans glisser depuis le coin ; ensuite elles suivent la caméra */
+  /* les anneaux se remplissent (une fois) */
+  const go=function(){el.querySelectorAll('.pvJauge').forEach(function(j){j.style.strokeDashoffset=j.getAttribute('data-off');});el.querySelectorAll('.pvJg i').forEach(function(i){i.style.height=i.getAttribute('data-h')+'%';});};
+  if(REDUCED_MOTION||vu)go();else setTimeout(function(){requestAnimationFrame(go);},380);
+}
+/* ---- LA PLACE : cartes, fils (recalculée seulement si l'écran ou la caisse change) ----
+   Six GABARITS de disposition, tirés au hasard à chaque ouverture (jamais deux fois le même d'affilée) : [x (part de la largeur), bande (0 = au-dessus de la caisse, 1 = en dessous), y (part de la bande), inclinaison en degrés]
+   pour la carte cadeau, puis les deux autres. Mêmes marges, calage sur une grille de 8 px, aucune carte dans la boîte de la caisse (elles vivent dans les bandes du haut et du bas). */
+const PV_GAB=[[[.5,0,.55,0],[.25,1,.3,-2],[.75,1,.3,2]],[[.27,0,.2,-3],[.76,0,.8,3],[.62,1,.35,-1.5]],[[.73,0,.25,3],[.24,0,.78,-3],[.38,1,.4,1.5]],
+  [[.5,1,.55,0],[.27,0,.45,-2.5],[.74,0,.45,2.5]],[[.5,0,.15,0],[.2,1,.2,-3.5],[.8,1,.75,3.5]],[[.32,0,.4,-2],[.3,1,.7,2.5],[.78,1,.25,-3]]];
+function pvPlace(W,H,force){
+  const gm=$('gMis'),sv=$('gmFils'),E=$('pvEcran');if(!gm||!sv||!E)return;
+  if(GAR.sw&&!force)return; /* la caisse change de plateau : on attend qu'elle soit posée */
+  const o=gm.getBoundingClientRect();
+  let sx0=W/2,sy0=H*.5; /* le sol : l'origine de la caisse projetée, pour savoir quand la caméra a fini de glisser */
+  try{const v=GMIS.pvV||(GMIS.pvV=new THREE.Vector3());carGroup.getWorldPosition(v);v.project(camera);sx0=(v.x*.5+.5)*VP.w-o.left;sy0=(.5-v.y*.5)*VP.h-o.top;}catch(e){}
+  const cle=W+'x'+H+'/'+garageI+'/'+Math.round(sx0/8)+'/'+Math.round(sy0/8);
+  if(!force&&GMIS.pvCle===cle)return;
+  GMIS.pvCle=cle;
+  const land=W>H*1.25,hd=$('gmHead'),bs=$('gmBas'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect();
+  const hb=(rh&&rh.height?rh.bottom-o.top:70)+8,bt=(rb&&rb.height?rb.top-o.top:H-90)-8;
+  let r=null;try{r=garCaisseRect();}catch(e){}
+  const rc=r?{x0:r.x0-o.left,x1:r.x1-o.left,y0:r.y0-o.top,y1:r.y1-o.top}:{x0:W*.1,x1:W*.9,y0:H*.4,y1:H*.58};
+  const cx=(rc.x0+rc.x1)/2,w=rc.x1-rc.x0,h=rc.y1-rc.y0; /* les fils visent le centre de la boîte écran de la caisse : les nœuds tombent sur la voiture */
+  const cards=[E.querySelector('.pvG'),E.querySelector('.pvGa'),E.querySelector('.pvDr')],px=function(e,x,y,rot){e.style.left=Math.round(x)+'px';e.style.top=Math.round(y)+'px';e.style.rotate=rot?rot+'deg':'';};
+  const wire=[],box=[];
+  if(!land){
+    const T=PV_GAB[GMIS.pvTpl|0]||PV_GAB[0],sn=function(v){return Math.round(v/8)*8;};
+    const bandes=[[hb,rc.y0-8],[rc.y1+8,bt]];
+    cards.forEach(function(c,i){if(!c)return;const g=T[i],cw=c.offsetWidth,ch=c.offsetHeight,B=bandes[g[1]],bh=Math.max(0,B[1]-B[0]-ch);
+      let x=Math.max(10,Math.min(W-cw-10,g[0]*W-cw/2)),y=B[0]+g[2]*bh;
+      x=sn(x);y=sn(y);if(y+ch>B[1]&&B[1]-ch>B[0])y=B[1]-ch;
+      for(const q of box){if(x<q.x+q.w+8&&q.x<x+cw+8&&y<q.y+q.h+8&&q.y<y+ch+8){x=q.x+q.w+8+cw>W-10?Math.max(10,q.x-cw-8):q.x+q.w+8;}} /* deux cartes ne se touchent pas */
+      box.push({x:x,y:y,w:cw,h:ch});px(c,x,y,g[3]);
+      wire.push({a:[x+cw/2,g[1]?y:y+ch],cx:x+cw/2,c:c.getAttribute('data-gc')});});
+    const ord=wire.slice().sort(function(a,b){return a.cx-b.cx;});
+    ord.forEach(function(q,k){q.b=k===1?[cx,rc.y0+h*.30]:[cx+(k?1:-1)*w*.26,rc.y0+h*.58];});
+  }else{ /* couché : la carte cadeau au-dessus, une carte de chaque côté (le côté change à chaque ouverture) */
+    const G=cards[0],mi=GMIS.pvMir?-1:1;
+    if(G){const gw=G.offsetWidth,gh=G.offsetHeight,gy=Math.max(hb,Math.min(rc.y0-gh-22,bt-gh-90)),gx=Math.max(gw/2+8,Math.min(W-gw/2-8,cx));px(G,gx-gw/2,gy,0);wire.push({a:[gx,gy+gh],b:[cx,rc.y0+h*.30],c:G.getAttribute('data-gc')});}
+    [cards[1],cards[2]].forEach(function(S,i){if(!S)return;const sw=S.offsetWidth,sh=S.offsetHeight,sg=(i?1:-1)*mi;
+      const sx=Math.max(sw/2+8,Math.min(W-sw/2-8,cx+sg*(w/2+sw/2+14))),sy=Math.max(hb,Math.min(bt-sh,(rc.y0+rc.y1)/2-sh/2));
+      px(S,sx-sw/2,sy,0);wire.push({a:[sx-sg*sw/2,sy+sh/2],b:[cx+sg*w*.26,rc.y0+h*.58],c:S.getAttribute('data-gc')});});
+  }
+  const pa=function(q){return 'M'+q.a[0].toFixed(1)+' '+q.a[1].toFixed(1)+'L'+q.b[0].toFixed(1)+' '+q.b[1].toFixed(1);};
+  const ex=sv.querySelectorAll('path.pvF');
+  if(!force&&ex.length===wire.length&&GMIS.pvWH===W+'x'+H){ /* déjà tracé : les éléments se déplacent sur place (un tracé en cours n'est pas coupé) */
+    wire.forEach(function(q,i){const p=pa(q),m=sv.querySelector('#pvM'+i+' path'),n=sv.querySelectorAll('circle.pvNd')[i];ex[i].setAttribute('d',p);if(m)m.setAttribute('d',p);if(n){n.setAttribute('cx',q.b[0].toFixed(1));n.setAttribute('cy',q.b[1].toFixed(1));}});
+    return;}
+  GMIS.pvWH=W+'x'+H;
+  const an=GMIS.pvAnime&&!REDUCED_MOTION;let d='<defs>',f='';
+  wire.forEach(function(q,i){const p=pa(q),dl=(i*.34).toFixed(2);
+    d+='<mask id="pvM'+i+'" maskUnits="userSpaceOnUse" x="0" y="0" width="'+W+'" height="'+H+'"><path class="pvMk'+(an?'':' fait')+'" pathLength="1" d="'+p+'" style="transition-delay:'+dl+'s"/></mask>';
+    const col=(PV_TEINTE[q.c]||PV_TEINTE.cyan).css;f+='<path class="pvF" style="stroke:'+col+'" d="'+p+'" mask="url(#pvM'+i+')"/><circle class="pvNd'+(an?'':' fait')+'" style="fill:'+col+'" cx="'+q.b[0].toFixed(1)+'" cy="'+q.b[1].toFixed(1)+'" r="3.5" style="transition-delay:'+(i*.34+.3).toFixed(2)+'s"/>';});
+  sv.setAttribute('viewBox','0 0 '+W+' '+H);sv.innerHTML=d+'</defs>'+f;
+  if(an){GMIS.pvAnime=false;const T=GMIS.pvT=(GMIS.pvT||0)+1;
+    setTimeout(function(){if(GMIS.pvT!==T)return;sv.querySelectorAll('.pvMk,.pvNd').forEach(function(e){e.classList.add('fait');});},60);
+    wire.forEach(function(q,i){setTimeout(function(){if(GMIS.pvT===T&&garageOn&&gEl.classList.contains('missions'))try{uiClic('nav');}catch(e){}},60+i*340+200);});}
+}
+/* ---- PRENDRE ET TOUCHER ---- */
+function pvRecupere(id,card){
+  if(!m2Pret(id)){uiClic('refus');try{gSecoue(card);}catch(e){}toast(pxi('horloge')+' '+TR('BIENTÔT AU GARAGE'));return;}
+  const o=m2Prend(id);if(!o){uiClic('refus');return;}
+  card.classList.add('pris');
+  try{pixBurst(card.querySelector('.pvAn')||card,12);}catch(e){}
+  try{if(SONV2){sfx(o.cash?'ui.achat':'ui.debloque');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.27});}else uiClic('ok');}catch(e){}
+  hap([12,40,18,40,30]);
+  if(o.car!=null){try{carSnapshot();}catch(e){}toast(pxi('voiture')+' '+TR(CARS[o.car].name)+' — '+TR('EST À TOI'),true);}
+  else if(o.cat){const d=(COSM[o.cat]||[]).find(function(x){return x.id===o.hab;});toast(pxi('coche')+' '+(d?TR(d.n):'')+' — '+TR('EST À TOI'),true);}
+  else toast(pxi('piece')+' +'+fmtC(o.cash)+' '+TR('VERSÉS AU COMPTE'),true);
+  try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}
+  try{passApresPrise(id);}catch(e){console.warn('pass',e);} /* l'emplacement est tiré de nouveau, la jauge cachée monte */
+  setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions'))pvRender(true);else m2Portes();},REDUCED_MOTION?0:560);
+}
+function pvClic(e){
+  const t=e.target,card=t&&t.closest&&t.closest('.pvC');if(!card||!garageOn||GAR.go)return;
+  e.stopPropagation();uiPop(card);
+  const id=card.getAttribute('data-m2');
+  if(card.classList.contains('pret')){pvRecupere(id,card);return;}
+  uiClic('nav');hap(8);pvTeinte(card.getAttribute('data-gc'),true); /* une mission en cours : rien à prendre, mais la grille de la caisse prend la couleur de sa récompense */
+}
+if(PASS_ON){const nd=$('gmNoeuds');if(nd){nd.addEventListener('click',pvClic);
+  nd.addEventListener('keydown',function(e){if((e.code==='Enter'||e.code==='Space')&&e.target.closest&&e.target.closest('.pvC')){e.preventDefault();e.stopPropagation();e.target.click();}});}}
+/* ---- LA MATIÈRE HOLOGRAMME EN 3D : l'anneau de sol (compact, centré sous la caisse, derrière elle par la profondeur) + la CAGE en grille fine autour de la caisse ----
+   Matières simples additives (MeshBasic pour les anneaux, LineBasicMaterial pour la grille), aucune lumière. Groupe caché hors de l'écran MISSIONS : rien n'est dessiné ni animé. */
+function pvSolBuild(g){
+  const G=new THREE.Group(),R=new THREE.Group(),mat=function(o){return new THREE.MeshBasicMaterial({color:0x7fe9ff,transparent:true,opacity:o,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide});};
+  const un=function(geo,o){const m=new THREE.Mesh(geo,mat(o));m.rotation.x=-Math.PI/2;return m;};
+  R.add(un(new THREE.RingGeometry(3.05,3.13,72),.85),un(new THREE.RingGeometry(2.45,2.48,72),.4)); /* l'anneau fin et l'intérieur */
+  const piv=new THREE.Object3D();piv.add(un(new THREE.RingGeometry(2.5,3.1,40,1,0,1.1),.32));R.add(piv); /* l'arc du radar */
+  const gm=new THREE.LineBasicMaterial({color:0x5ff0ff,transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false,fog:false});
+  const cage=new THREE.LineSegments(new THREE.BufferGeometry(),gm);cage.frustumCulled=false;
+  /* LA SALLE EN GRILLE : sol + quatre murs (pas de 1 m) jusqu'aux bords de la vue, mêmes lignes fines, la perspective les ouvre vers l'extérieur ; fixe (ne tourne pas avec la caisse), profondeur testée : la caisse la cache */
+  const E=6,Hh=4.6,P=[],L=function(a,b,c,d,e,f){P.push(a,b,c,d,e,f);};
+  for(let i=-E;i<=E;i++){L(i,0,-E,i,0,E);L(-E,0,i,E,0,i);L(i,0,-E,i,Hh,-E);L(i,0,E,i,Hh,E);L(-E,0,i,-E,Hh,i);L(E,0,i,E,Hh,i);}
+  for(let i=-E;i<=E;i++){L(i,Hh,-E,i,Hh,E);L(-E,Hh,i,E,Hh,i);} /* le plafond : la grille couvre aussi le haut de l'écran, à l'intérieur de l'atelier (la profondeur reste testée) */
+  for(let y=1;y<=Hh;y++){L(-E,y,-E,E,y,-E);L(-E,y,E,E,y,E);L(-E,y,-E,-E,y,E);L(E,y,-E,E,y,E);}
+  const rg=new THREE.BufferGeometry();rg.setAttribute('position',new THREE.Float32BufferAttribute(P,3));
+  const rm=new THREE.LineBasicMaterial({color:0x5ff0ff,transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}),room=new THREE.LineSegments(rg,rm);room.frustumCulled=false;
+  const GR=new THREE.Group();GR.add(room);GR.visible=false;g.add(GR);
+  G.add(R,cage);G.visible=false;g.add(G);
+  GMIS.sol={g:G,gr:GR,rm:rm,r:R,piv:piv,cage:cage,gm:gm,a:0,k:-1,pas:0,cible:'cyan',p:0,c:new THREE.Color(0x5ff0ff),mn:new THREE.Vector3(),mx:new THREE.Vector3(),off:new THREE.Vector3(),cc:new THREE.Color()};
+}
+function pvTeinte(gc,pouls){ /* la grille de la caisse prend la couleur (et le pas) de la récompense, avec une petite pulsation */
+  const S=GMIS.sol;if(!S||!PV_TEINTE[gc])return;S.cible=gc;if(pouls&&!REDUCED_MOTION)S.p=1;
+}
+function pvCageGeo(S,pas){ /* les lignes de la grille sur les six faces de la boîte de la caisse (au repère de la caisse) */
+  const a=S.mn,b=S.mx,P=[],nx=Math.max(2,Math.round((b.x-a.x)/pas)),ny=Math.max(2,Math.round((b.y-a.y)/pas)),nz=Math.max(2,Math.round((b.z-a.z)/pas));
+  const L=function(x0,y0,z0,x1,y1,z1){P.push(x0,y0,z0,x1,y1,z1);};
+  for(const z of [a.z,b.z]){for(let i=0;i<=nx;i++){const x=a.x+(b.x-a.x)*i/nx;L(x,a.y,z,x,b.y,z);}for(let j=0;j<=ny;j++){const y=a.y+(b.y-a.y)*j/ny;L(a.x,y,z,b.x,y,z);}}
+  for(const x of [a.x,b.x]){for(let k=1;k<nz;k++){const z=a.z+(b.z-a.z)*k/nz;L(x,a.y,z,x,b.y,z);}for(let j=0;j<=ny;j++){const y=a.y+(b.y-a.y)*j/ny;L(x,y,a.z,x,y,b.z);}}
+  for(const y of [a.y,b.y]){for(let i=1;i<nx;i++){const x=a.x+(b.x-a.x)*i/nx;L(x,y,a.z,x,y,b.z);}for(let k=1;k<nz;k++){const z=a.z+(b.z-a.z)*k/nz;L(a.x,y,z,b.x,y,z);}}
+  const geo=S.cage.geometry;geo.setAttribute('position',new THREE.Float32BufferAttribute(P,3));geo.computeBoundingSphere();
+}
+function pvSolMesure(S){ /* une fois par caisse : sa boîte locale (tournée à zéro), son centre et sa longueur */
+  const ry=carGroup.rotation.y,bx=GAR._pvB||(GAR._pvB=new THREE.Box3());
+  carGroup.rotation.y=0;carGroup.updateMatrixWorld(true);bx.setFromObject(carBody||carGroup);carGroup.rotation.y=ry;carGroup.updateMatrixWorld(true);
+  if(bx.isEmpty())return false;
+  S.mn.copy(bx.min).sub(carGroup.position).addScalar(-.1);S.mx.copy(bx.max).sub(carGroup.position).addScalar(.1);
+  S.off.set((S.mn.x+S.mx.x)/2,0,(S.mn.z+S.mx.z)/2);
+  const r=.6*Math.max(S.mx.x-S.mn.x,S.mx.z-S.mn.z),k=r/3.05;S.r.scale.set(k,1,k);S.k=garageI;S.pas=0;return true;
+}
+function pvSolTick(dt){
+  const S=GMIS.sol,on=PASS_ON&&garageOn&&gEl&&gEl.classList.contains('missions')&&!GAR.go&&(GMIS.e||0)<.01;
+  if(S.g.visible!==on){S.g.visible=on;S.gr.visible=on;}if(!on)return;
+  if(carGroup.parent&&S.g.parent!==carGroup.parent){carGroup.parent.add(S.g);carGroup.parent.add(S.gr);} /* même repère que la caisse */
+  if(S.k!==garageI&&!GAR.sw&&!pvSolMesure(S))return;
+  const T=PV_TEINTE[S.cible];
+  if(S.pas!==PV_PAS){S.pas=PV_PAS;pvCageGeo(S,PV_PAS);}
+  S.g.position.copy(carGroup.position);S.gr.position.set(0,carGroup.position.y+.02,0);S.g.quaternion.copy(carGroup.quaternion);
+  S.r.position.set(S.off.x,.03,S.off.z);S.r.quaternion.copy(S.g.quaternion).invert(); /* l'anneau reste à plat, centré sous la boîte de la caisse */
+  S.c.lerp(S.cc.setHex(T.hex),Math.min(1,dt*6));S.gm.color.copy(S.c);S.rm.color.copy(S.c);
+  S.p=Math.max(0,S.p-dt*1.6);S.gm.opacity=.26+.5*S.p;S.rm.opacity=.2+.4*S.p;
+  if(!REDUCED_MOTION)S.piv.rotation.y=(S.a+=dt*1.1);
+}
+window.dbgPassViseur=function(a,b){if(a==='ids'){GMIS.pvForce=b;pvRender(false);return b;}const S=GMIS.sol;return S?{vis:S.g.visible,pos:S.g.position.toArray(),n:S.cage.geometry.attributes.position?S.cage.geometry.attributes.position.count/2:0,cible:S.cible,k:S.k}:null;}; /* banc : l'anneau et la grille du viseur */
+/* ---- TOUCHER L'ÉCRAN : une onde sous le doigt (couleur de la teinte courante) et un éclat de toute la grille ; la teinte seule reste en REDUCED_MOTION ---- */
+function pvOnde(e){
+  if(!garageOn||!gEl||GAR.go||REDUCED_MOTION||!gEl.classList.contains('missions'))return;
+  const t=e.target;if(t&&t.closest&&t.closest('.pvC,.pbtn,#gmBas,#gmHead'))return;
+  const E=$('pvEcran');if(!E)return;
+  const o=E.getBoundingClientRect(),i=document.createElement('i');i.className='pvOnde';i.style.left=Math.round(e.clientX-o.left)+'px';i.style.top=Math.round(e.clientY-o.top)+'px';
+  i.style.setProperty('--gc',PV_TEINTE[(GMIS.sol&&GMIS.sol.cible)||'cyan'].css);E.appendChild(i);setTimeout(function(){i.remove();},900);
+  if(GMIS.sol)GMIS.sol.p=Math.max(GMIS.sol.p,.7);
+}
+if(PASS_ON)document.addEventListener('pointerdown',pvOnde,true);
 /* ===== LE RAMASSAGE — pickupsTick, AU SOL ET EN VOL (2026-09-30) =====
    ⚠ BUG DE STRUCTURE : cette boucle vivait DANS la branche `if(mode==='drive'){…}` de `loop`. Sa garde (`mode==='drive'||mode==='fall'`)
    et tout son code de vol (couloir `lastNearS`, face du vol, AIMANT v3 « au sol comme en vol ») ne tournaient donc qu'à l'image EXACTE du
