@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1259'; /* v1259 (2026-11-07, Sacha : « les boîtes des voitures en mode voiture miniature ») LA VITRINE MINIATURE : chaque voiture de la boutique sur son socle verni sous son capot de verre (sans verre une fois à toi), ÉQUIPÉE dans la grille, carte choisie au liseré bleu, prix trop cher en rouge */
+const CACHE = 'cashcar-v1260'; /* v1260 (2026-11-07, Sacha : « horrible, retourne en arrière ») menu ciel : retour aux tuiles GARAGE / ACHAT / REGLAGES d'avant (verre anthracite) ; les tuiles en bonbon clair de v1256 sont retirées. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
