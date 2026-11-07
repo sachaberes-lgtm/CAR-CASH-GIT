@@ -10,8 +10,8 @@
    · LES ROULEAUX : l'élan (un cran en arrière), la course (19 symboles/s, filé : les symboles s'étirent), la pose un par un avec du poids
      (easeOutBack raccordée à la vitesse), le 3e qui fait durer le suspense quand les deux premiers sont pareils (ampoules en folie).
    · LES LOTS SONT LES SYMBOLES (`SPIN.lots`, une ligne par lot, réglée par GENERAL) : trois PETITS SACS, trois SACS, trois GROS SACS (de
-     l'argent du jeu), trois CŒURS = une SECONDE CHANCE GRATUITE (un bon `SAVE.d.chanceG`, servi par l'offre de GENERAL à la prochaine
-     explosion), trois ÉCLAIRS = un DÉPART BOOSTÉ (`SAVE.d.spinBoost` : la partie suivante part nitro pleine, moteur au palier 1), trois
+     l'argent du jeu), trois CŒURS = une SECONDE CHANCE GRATUITE (un bon `SAVE.d.chanceG`, servi TOUT SEUL à la prochaine explosion :
+     réanimation automatique, voir seconde-chance.js), trois ÉCLAIRS = un DÉPART BOOSTÉ (`SAVE.d.spinBoost` : la partie suivante part nitro pleine, moteur au palier 1, les cinq pouvoirs), trois
      JETONS = un tirage de plus, trois 7 = le JACKPOT (flash à 3 éclats par seconde au plus, pluie de billets, pièces, vibration). Sans
      brelan : un lot de consolation. Symboles en pixel art de couleur (`SPIN_SPR`, peints une fois dans des canvas).
    · Sons de la session SON : spin.levier, spin.cran, spin.arret (une note par rouleau), spin.piece, spin.gain, spin.jackpot.
@@ -21,7 +21,7 @@
 Object.assign(I18N,{'FINAL SPIN':'FINAL SPIN','JETON SPIN':'SPIN TOKEN','TIRER':'PULL','CONTINUER':'CONTINUE','JACKPOT !':'JACKPOT!',
   'PETIT SAC':'SMALL BAG',"SAC D'ARGENT":'MONEY BAG','GROS SAC':'BIG BAG','SECONDE CHANCE GRATUITE':'FREE SECOND CHANCE','DÉPART BOOSTÉ':'BOOSTED START',
   '+1 JETON':'+1 TOKEN','LOT DE CONSOLATION':'CONSOLATION PRIZE','TIRE LE LEVIER':'PULL THE LEVER','À TA PROCHAINE CHUTE':'ON YOUR NEXT CRASH',
-  'NITRO PLEINE · MOTEUR +1':'FULL NITRO · ENGINE +1','UN TIRAGE DE PLUS':'ONE MORE PULL','GRATUIT':'FREE','À LA PROCHAINE PARTIE':'ON YOUR NEXT RUN',
+  'TOUS LES POUVOIRS · MOTEUR +1':'ALL POWER-UPS · ENGINE +1','UN TIRAGE DE PLUS':'ONE MORE PULL','GRATUIT':'FREE','À LA PROCHAINE PARTIE':'ON YOUR NEXT RUN',
   'VOITURE ÉPIQUE':'EPIC CAR'}); // (2026-10-19) le jackpot donne une caisse
 const SPIN={on:!qDev(/[?&]spin=0\b/), /* (2026-11-05, Opus : HYG-10) ?spin=0 en DEV seulement */pZone:.28,max:3,pose:0,ouvert:false,vu0:0,roule:false,force:null,total:0,el:null,N:20,
   /* LES LOTS — une ligne par lot, l'index = le symbole des rouleaux. p = probabilité par tirage (le reste : la consolation).
@@ -34,7 +34,7 @@ const SPIN={on:!qDev(/[?&]spin=0\b/), /* (2026-11-05, Opus : HYG-10) ?spin=0 en 
         {id:'sac',nm:"SAC D'ARGENT",p:.04,cash:150000},
         {id:'gros',nm:'GROS SAC',p:.012,cash:500000},
         {id:'coeur',nm:'SECONDE CHANCE GRATUITE',p:.19,bon:'chanceG',sous:'À TA PROCHAINE CHUTE'}, // (2026-10-31, Sacha : « augmente un peu la probabilité d'avoir une seconde chance ») ,15 → ,19
-        {id:'boost',nm:'DÉPART BOOSTÉ',p:.07,bon:'spinBoost',sous:'NITRO PLEINE · MOTEUR +1'},
+        {id:'boost',nm:'DÉPART BOOSTÉ',p:.07,bon:'spinBoost',sous:'TOUS LES POUVOIRS · MOTEUR +1'},
         {id:'jeton',nm:'+1 JETON',p:.05,jeton:1,sous:'UN TIRAGE DE PLUS'},
         {id:'sept',nm:'JACKPOT !',p:.012,voiture:'epique',cash:500000}],
   conso:{nm:'LOT DE CONSOLATION',cash:40},
@@ -405,12 +405,17 @@ function spinExplose(n){ // les pièces qui jaillissent de la machine
     try{d.animate([{transform:'translate(-50%,-50%) scale(.4) rotate(0deg)',opacity:1},{transform:'translate(calc(-50% + '+(dx*.7).toFixed(0)+'px),calc(-50% + '+(dy*.7).toFixed(0)+'px)) scale(1.1) rotate('+(rot*.6).toFixed(0)+'deg)',opacity:1,offset:.55},
       {transform:'translate(calc(-50% + '+dx.toFixed(0)+'px),calc(-50% + '+(dy+160).toFixed(0)+'px)) scale(.85) rotate('+rot.toFixed(0)+'deg)',opacity:0}],{duration:1100+Math.random()*700,easing:'cubic-bezier(.32,.72,0,1)',delay:Math.random()*120}).onfinish=function(){d.remove();};}catch(e){d.remove();}}}
 /* LE DÉPART BOOSTÉ : appliqué quand une partie DÉMARRE (le guetteur voit passer « fin ou menu » → « en course », hors reprise de seconde chance),
-   après les remises à zéro de resetGame — la nitro pleine du palier, le moteur au palier 1 (ses pièces comptées). */
+   après les remises à zéro de resetGame — la nitro pleine du palier, le moteur au palier 1 (ses pièces comptées)
+   ET (2026-11-06, Sacha : « départ boosté donne aussi tous les power-up au début ») LES CINQ POUVOIRS d'un coup (PWR_ORDRE : nitro infinie,
+   air, vitesse ×2, aimant, aura ×2), chacun pour sa durée pleine (`PWR_DEFS[k].t`) — pas de « DOUBLE/TRIPLE POUVOIR » en prime : l'aura
+   ne se gagne pas sans rien faire ; ce que pwrPrend écrit à chaque ramassage (message, aura, mission) est laissé de côté. */
 function spinDepart(){
   if(!((SAVE.d.spinBoost|0)>0)||SANDBOX||TUTO.on||PARK.on||BALADE)return;
   SAVE.d.spinBoost=(SAVE.d.spinBoost|0)-1;SAVE.mark();
   const T=ENGINE_TIERS[1];if(T){coinsGot=Math.max(coinsGot,T.coins|0);engTier=Math.max(engTier,1);}
   nitroR=Math.max(nitroR,(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2);
+  try{for(const k9 of PWR_ORDRE){const d9=PWR_DEFS[k9];if(d9)pwrSet(k9,Math.max(pwrT(k9),d9.t));}}catch(e){console.warn('depart boosté',e);} // les cinq pouvoirs, durée pleine
+  try{shake=Math.max(shake,.35);flashEcran('rgba(255,215,94,.45)');}catch(e){}try{if(SONV2)sfx('pwr.triple');}catch(e){}
   try{spinSprites();toast(spinIco(4,'mini')+' '+sansAcc(TR('DÉPART BOOSTÉ')),true);}catch(e){}try{if(SONV2)sfx('nitro.pleine');}catch(e){}hap([10,30,20]);}
 setInterval(function(){try{ // le guetteur : la machine après l'écran de fin (et l'offre de seconde chance) ; le départ boosté au début d'une partie
   if(!SPIN.on)return;

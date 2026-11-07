@@ -16,13 +16,14 @@ function serveur(dir, port) {
   return new Promise(ok => s.listen(port, '127.0.0.1', () => ok(s)));
 }
 
-function portLibre(port) {
-  try { return cp.execSync(`lsof -iTCP:${port} -sTCP:LISTEN -P -n || true`).toString().trim() === ''; } catch (e) { return true; }
+function portLibre(port) { /* (2026-11-07) Windows : netstat ; ailleurs lsof */
+  try { if (process.platform === 'win32') return !cp.execSync('netstat -an -p TCP').toString().split(/\r?\n/).some(l => /LISTENING/.test(l) && new RegExp(':' + port + '\\s').test(l));
+    return cp.execSync(`lsof -iTCP:${port} -sTCP:LISTEN -P -n || true`).toString().trim() === ''; } catch (e) { return true; }
 }
 
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const CHROME = process.env.CHROME || (process.platform === 'win32' ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' : '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'); /* (2026-11-07) Windows aussi */
 async function lanceChrome(port, prof, w, h) {
-  const ch = cp.spawn(CHROME, ['--headless=new', '--mute-audio', '--autoplay-policy=no-user-gesture-required', '--no-first-run',
+  const ch = cp.spawn(CHROME, ['--headless=new', ...(process.platform === 'win32' ? ['--use-angle=d3d11'] : []), '--mute-audio', '--autoplay-policy=no-user-gesture-required', '--no-first-run',
     '--remote-debugging-port=' + port, '--user-data-dir=' + prof, `--window-size=${w},${h}`, 'about:blank'], { stdio: 'ignore', detached: true });
   for (let i = 0; i < 240; i++) {
     await new Promise(r => setTimeout(r, 500));
@@ -43,4 +44,6 @@ class CDP {
   close() { try { this.ws.close(); } catch (e) {} }
 }
 
-module.exports = { serveur, portLibre, lanceChrome, CDP, dormir: ms => new Promise(r => setTimeout(r, ms)), tmp: () => fs.mkdtempSync(path.join(os.tmpdir(), 'banc-trainees-')) };
+/* tuer Chrome et ses fils : kill du groupe (Mac/Linux), taskkill /T (Windows) */
+function tueChrome(ch) { try { if (process.platform === 'win32') cp.execSync('taskkill /pid ' + ch.pid + ' /T /F', { stdio: 'ignore' }); else process.kill(-ch.pid); } catch (e) { try { ch.kill(); } catch (_) {} } }
+module.exports = { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir: ms => new Promise(r => setTimeout(r, ms)), tmp: () => fs.mkdtempSync(path.join(os.tmpdir(), 'banc-trainees-')) };

@@ -203,7 +203,7 @@ const SAVE={
   neuf:/[?&]demo=1\b/.test(location.search)&&!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences),
   load(){
     let d=null;
-    if(!this.neuf)try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){}
+    if(!this.neuf)try{d=JSON.parse(localStorage[this.K]||'null');}catch(e){try{const brut=localStorage[this.K];if(brut&&brut.length>2)localStorage[this.K+'_corrompue']=brut;}catch(e2){}} /* (2026-11-07) une sauvegarde illisible n'est plus écrasée en silence par une partie vierge : on en garde le texte brut (clé cashcarSave_corrompue), récupérable à la main */
     if(!d&&!this.neuf){ // première fois (ou clé rongée) : on ramasse l'ancien monde éparpillé
       try{d={best:+localStorage.rrBest5||0,
         leaders:JSON.parse(localStorage.rrLeaders5||'[]'),
@@ -322,7 +322,8 @@ function musRetour(boot){try{
   if(!SND.music)musBascule();else{SAVE.flush();volUI();} // au retour : le même chemin que le bouton MUSIQUE (session audio, relance selon le contexte)
 }catch(e){}}
 musRetour(true);
-document.addEventListener('visibilitychange',function(){if(document.hidden){SAVE.d.vu=Date.now();SAVE.mark();}else musRetour(false);}); // départ : le flush de l'arrière-plan (plus bas) l'écrit
+document.addEventListener('visibilitychange',function(){if(document.hidden){SAVE.d.vu=Date.now();SAVE.mark();}else musRetour(false);});
+addEventListener('pagehide',function(){try{if(SAVE.d){SAVE.d.vu=Date.now();SAVE.flush();}}catch(e){}}); /* (2026-11-07) l'onglet se ferme (ordi, ou iOS qui tue la page) sans passer par visibilitychange : ce qui était marqué depuis moins de 30 s (le filet) partait avec */ // départ : le flush de l'arrière-plan (plus bas) l'écrit
 window.dbgMusRetour=function(simH){ // (banc) l'état ; dbgMusRetour(26) simule un retour d'arrière-plan après 26 h d'absence
   if(simH>0){SAVE.d.vu=Date.now()-simH*36e5;musRetour(false);}
   return {vu:SAVE.d.vu,mus:SND.music,vol:VOL.mus,sfx:VOL.sfx,n:MUSRET.n,dernier:MUSRET.dernier,test:MUS_RETOUR_TEST,mode:musicMode,voulue:musicVoulue};};

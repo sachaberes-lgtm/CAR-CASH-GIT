@@ -90,7 +90,7 @@
       pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+sansAcc(TR(x[3]))+'</small><b>0.0</b></span><u></u></div>';}).join('');
       pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
-      if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=tx+'s';}
+      if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=(LANG==='fr'?tx.replace('.',','):tx)+'s';}
       el.style.setProperty('--p',Math.min(1,t9/PWR_DEFS[pwL[j][0]].t).toFixed(3));const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
       const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
