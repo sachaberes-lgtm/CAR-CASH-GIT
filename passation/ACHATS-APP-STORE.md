@@ -4,7 +4,7 @@ Branche `boutique-affichage` (locale : rien n'est poussé, rien n'est envoyé à
 `docs/superpowers/specs/2026-11-06-achats-app-store-design.md` (la section 11 dit ce qui est vérifié et ce qui ne l'est pas).
 
 ## a. Ce qui est fait (en 8 lignes)
-1. Le jeu connaît ses **74 produits** : 10 caisses premium (dont REQUIN, revenu en boutique) + 64 peintures. Pas de palette. Tous « non consommables » (à toi pour toujours).
+1. Le jeu connaît ses **92 produits** : 10 caisses premium (dont REQUIN, revenu en boutique) + 82 peintures. Pas de palette. Tous « non consommables » (à toi pour toujours).
 2. ACHETER dans l'app passe par Apple (StoreKit 2) : l'objet n'est donné que si Apple a encaissé ; annulé ou « en attente » ne donnent rien.
 3. Le bouton **RESTAURER MES ACHATS** de la page ACHAT rend les achats après une réinstallation ; au démarrage, l'app relit aussi ses achats sans fête.
 4. Partout où un prix en euros s'affiche (cartes et boîtes, page ACHAT, fenêtre d'achat, garage, rayon PEINTURES de la boutique 3D : loupe, étiquette lue et prix de chaque rareté), c'est le prix d'Apple dans la monnaie du joueur **dès que la réponse d'Apple est arrivée** ; avant (ou si elle échoue, ou hors de l'app), le jeu montre son propre prix en €, par secours. Les prix sont redemandés à l'ouverture de la page ACHAT tant qu'Apple n'a rien répondu.
@@ -15,12 +15,12 @@ Branche `boutique-affichage` (locale : rien n'est poussé, rien n'est envoyé à
 
 ## b. CE QUE SACHA DOIT FAIRE (App Store Connect, compte développeur)
 1. **Signer le contrat « Apps payantes »** (Accords, fiscalité et banque) et remplir les coordonnées bancaires et fiscales. Sans lui, Apple refuse de vendre.
-2. **Créer les 74 produits** : App Store Connect › ton app CASH CAR › Monétisation › Achats intégrés › « + », type **Non consommable**. Le fichier `app-ios/outils/produits.csv` donne, une ligne par produit : `id,nom,type,prix_eur`. Recopie **l'identifiant exact** (ex. `cashcar.car.requin`, `cashcar.peinture.bolide`) comme « ID de produit » : une faute et l'app ne trouve pas le produit. Le nom du CSV sert de nom de référence et de nom affiché (ajoute une courte description FR et EN). Laisse « Partage familial » désactivé. Le nombre de peintures grandit quand le jeu en ajoute (74 produits au 07/11, v1302) : `produits.csv` fait foi ; si le jeu change, `node app-ios/outils/produits-store.mjs --verifier` dit s'il faut le refaire (sans `--verifier` il le réécrit).
+2. **Créer les 92 produits** : App Store Connect › ton app CASH CAR › Monétisation › Achats intégrés › « + », type **Non consommable**. Le fichier `app-ios/outils/produits.csv` donne, une ligne par produit : `id,nom,type,prix_eur`. Recopie **l'identifiant exact** (ex. `cashcar.car.requin`, `cashcar.peinture.bolide`) comme « ID de produit » : une faute et l'app ne trouve pas le produit. Le nom du CSV sert de nom de référence et de nom affiché (ajoute une courte description FR et EN). Laisse « Partage familial » désactivé. Le nombre de peintures grandit quand le jeu en ajoute (92 produits au 07/11, v1306) : `produits.csv` fait foi ; si le jeu change, `node app-ios/outils/produits-store.mjs --verifier` dit s'il faut le refaire (sans `--verifier` il le réécrit).
 3. **Vérifier les prix.** Apple impose ses paliers ; les prix du jeu n'en sont peut-être pas. Prends le palier le plus proche (une fois la réponse d'Apple arrivée, le jeu affiche le prix d'Apple, pas celui du tableau) :
    - **LA PIZZA EXPRESS, 161,00 €** (`cashcar.car.b_pizza`) : très probablement hors palier ;
    - **CHAT POP-TART, 4,20 €** (`cashcar.car.poptart`) ;
    - les **7 caisses à 1,61 €** : LA FÉLINE, L'ÉTERNELLE, LE BLINDÉ NOIR, LE MUR DU SON, LE DRAGON D'OR, SQUALE, KELLY CHERRY ;
-   - les peintures à **1 €** (43), **2 €** (15) et **3 €** (6) : à confirmer (les paliers d'Apple tournent souvent autour de 0,99 / 1,99 / 2,99) ;
+   - les peintures à **1 €** (43), **2 €** (33) et **3 €** (6) : à confirmer (les paliers d'Apple tournent souvent autour de 0,99 / 1,99 / 2,99) ;
    - REQUIN, 9,99 € : en général un palier valable.
 4. **Mettre la fiche à jour** (les textes sont prêts dans `app-ios/fiche/FICHE-APP-STORE.md`) :
    - **Achats intégrés = Oui** dans la classification d'âge ; « caisses » = achat direct d'une voiture connue, **jamais de tirage aléatoire** : à répondre « Non » aux boîtes à butin ;

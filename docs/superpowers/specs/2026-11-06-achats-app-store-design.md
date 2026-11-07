@@ -37,7 +37,7 @@ Tous **non consommables** (« à toi pour toujours », comme le dit déjà le je
 | Caisses « retirées » | celles que `carRetiree(i)` donne vrai (FORMULE OR, LE MANS 24, EL PATRON…) : **pas en vente** | — | aucun produit |
 | Peintures | toutes celles dont `COSM.peinture[i].eur` existe, **défi ou non** (`habPaye` n'exige que `d.eur` ; les peintures gagnées par mission perdent leur `eur`, `boutique.js:633-639`) ; 64 au total au 07/11 (43 à 1 €, 15 à 2 €, 6 à 3 €) ; la peinture « usine » est exclue | 1 € commune/rare · 2 € épique · 3 € légendaire | `cashcar.peinture.<id>` (déjà prévu par le code) |
 
-Au total **74 produits** (10 caisses + 64 peintures), **aucune palette**. La liste exacte n'est **pas écrite à la main** : un script (`app-ios/outils/produits-store.mjs`) la lit dans le code du jeu et produit
+Au total **92 produits** (10 caisses + 82 peintures), **aucune palette**. La liste exacte n'est **pas écrite à la main** : un script (`app-ios/outils/produits-store.mjs`) la lit dans le code du jeu et produit
 (a) le fichier `Produits.storekit` pour le simulateur, (b) un tableau `produits.csv` pour que Sacha crée les produits dans App Store Connect. Une seule source.
 
 ## 4. Architecture
@@ -121,7 +121,7 @@ Serveur de reçus, RevenueCat ou autre SDK, abonnements, consommables, packs d'a
 ## 11. Réalisé (07/11/2026, branche `boutique-affichage`, tout en local, rien de poussé)
 
 **Ce qui a été construit**
-- Le jeu : `code/economie/achats-store.js` (catalogue des 74 produits, la porte `shopPaye` branchée sur l'app, la synchro du démarrage, RESTAURER, les prix d'Apple), les appels dans `boutique.js`, `mobile-tactile.js`, `desktop-banc.js` et les écrans qui affichent un prix (`prixTxt`). Le drapeau `ACHAT_EUR` (`icones-fenetre.js`) s'allume dans l'app quand le pont existe ; sur le web rien ne change.
+- Le jeu : `code/economie/achats-store.js` (catalogue des 92 produits, la porte `shopPaye` branchée sur l'app, la synchro du démarrage, RESTAURER, les prix d'Apple), les appels dans `boutique.js`, `mobile-tactile.js`, `desktop-banc.js` et les écrans qui affichent un prix (`prixTxt`). Le drapeau `ACHAT_EUR` (`icones-fenetre.js`) s'allume dans l'app quand le pont existe ; sur le web rien ne change.
 - Le pont JavaScript : `app-ios/natif/achats.js` (`window.ccAchat`), copié et chargé par `app-ios/preparer-www.js`, dont les coupes qui transformaient les € en argent du jeu sont retirées.
 - Le plugin Swift : `app-ios/ios/App/App/Achats.swift` (StoreKit 2), enregistré dans `JeuViewController.swift` et `project.pbxproj`.
 - Pour tester et créer les produits : `app-ios/ios/App/Produits.storekit`, le scheme partagé `App.xcscheme`, `app-ios/outils/produits.csv` et le générateur `app-ios/outils/produits-store.mjs` ; mode d'emploi dans `app-ios/LISEZ-MOI.md`.
@@ -129,7 +129,7 @@ Serveur de reçus, RevenueCat ou autre SDK, abonnements, consommables, packs d'a
 - Les passations pour Sacha : `passation/ACHATS-APP-STORE.md` (la liste à faire), `passation/APP-STORE.md`, `passation/regard-apple.md`, et les textes de `app-ios/fiche/`.
 
 **Ce qui a été vérifié, et comment**
-- Le catalogue : 10 caisses + 64 peintures, ids uniques et valides, accord avec `Produits.storekit` et `produits.csv` (`produits-store.mjs --verifier`, bancs `produits.mjs`).
+- Le catalogue : 10 caisses + 82 peintures, ids uniques et valides, accord avec `Produits.storekit` et `produits.csv` (`produits-store.mjs --verifier`, bancs `produits.mjs`).
 - La logique d'achat dans le jeu, avec un FAUX pont (navigateur, `paye.mjs`) : seul `ok` donne l'objet ; annulé et en attente ne donnent rien ; un second achat en vol est refusé ; un doublon ne rejoue pas la fête ; RESTAURER et la synchro du démarrage rendent les achats sans fête ; les prix d'Apple remplacent ceux du jeu.
 - Le pont `achats.js` contre un faux plugin (`achats-test.cjs`) et le contenu de la page de l'app fabriquée (`--essai`) : drapeau `ACHAT_EUR` allumé avec le pont, éteint sans, inchangé sur le web (`app.mjs`).
 - Le plugin Swift **compile** (Xcode, simulateur, Capacitor 8.5.3, 0 erreur et 0 avertissement dans `Achats.swift`), mais seulement avec une ligne préexistante de `JeuViewController.swift` mise de côté (voir `passation/ACHATS-APP-STORE.md`, § bloquant).

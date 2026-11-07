@@ -168,7 +168,7 @@ d'abonnement payant à Suno au moment de la génération (Apple peut la demander
 | Violence réaliste, contenu sexuel, nudité, grossièretés, alcool/tabac/drogues, horreur, contenu médical | Aucun |
 | Jeux d'argent simulés, concours, paris | Aucun (l'argent du jeu se ramasse en course, il n'y a ni mise ni tirage payant) |
 | Navigation web libre, contenu généré par les utilisateurs, messagerie, pubs | Non |
-| Achats intégrés | **Oui** — 74 produits non consommables (10 voitures + 64 peintures), achetés une fois ; « caisse » = achat direct d'une voiture connue, jamais de tirage aléatoire (boîtes à butin : Non) |
+| Achats intégrés | **Oui** — 92 produits non consommables (10 voitures + 82 peintures), achetés une fois ; « caisse » = achat direct d'une voiture connue, jamais de tirage aléatoire (boîtes à butin : Non) |
 
 ## 6. Notes pour le testeur d'Apple (App Review Information)
 
