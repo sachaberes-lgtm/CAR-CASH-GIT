@@ -140,6 +140,31 @@
     // une version qui ne démarre jamais ne donne pas le feu vert ; au lancement d'après (la version d'avant), bilanEssai la classe
   }
 
+  /* ---- 8. LE RELEVÉ DU CHARGEMENT ---- (2026-11-07, Perf 3 / P4) combien de temps entre le lancement de la page (performance.timeOrigin) et le jeu prêt ?
+     Mesure si WKWebView garde le bytecode d'un script EXTERNE (www/ fabriqué avec --jeu-fichier) d'un lancement à l'autre.
+     Écrit dans la boîte noire (__ccNote 'chargement', lisible par câble : outils/banc-perf/boite-noire.sh) et, en DEBUG, dans la console. Rien ne sort de l'appareil. */
+  (function(){
+    var t={dcl:null,pret:null},fini=false;
+    var ms=function(x){return x==null?'?':Math.round(x);};
+    var rapport=function(){
+      if(fini)return;fini=true;
+      var jeu='en ligne',tr='-',du='-',fi=null;
+      try{var R=performance.getEntriesByType('resource');
+        for(var i=0;i<R.length;i++)if(/\/jeu(\.[0-9a-f]+)?\.js(\?|$)/.test(R[i].name)){fi=R[i];break;}
+        if(fi){jeu='fichier';tr=Math.round(fi.transferSize||0);du=ms(fi.duration);}}catch(e){}
+      var m='jeu '+jeu+' · origine→DCL '+ms(t.dcl)+' ms · origine→prêt '+ms(t.pret)+' ms · DCL→prêt '+ms(t.pret==null||t.dcl==null?null:t.pret-t.dcl)+' ms'+
+        (fi?' · jeu.js transfert '+tr+' o, durée '+du+' ms (début '+ms(fi.startTime)+', fin '+ms(fi.responseEnd)+')':'');
+      dit('CHARGEMENT '+m);
+      try{if(window.__ccNote)window.__ccNote('chargement',m);}catch(e){}
+    };
+    var pret=function(){if(t.pret!=null)return;t.pret=performance.now();setTimeout(rapport,300);};
+    document.addEventListener('DOMContentLoaded',function(){t.dcl=performance.now();});
+    var v=window.__gameReady;
+    if(v){pret();}
+    else{try{Object.defineProperty(window,'__gameReady',{configurable:true,enumerable:true,get:function(){return v;},set:function(x){v=x;if(x)pret();}});}catch(e){}
+      var n=0,g=setInterval(function(){if(window.__gameReady)pret();if(t.pret!=null||++n>400)clearInterval(g);},50);}
+  })();
+
   /* ---- 6. LE BANC DU HORS-LIGNE (DEBUG seulement) ---- */
   if(!DEBUG)return;
   var dehors={},nDehors=0,nIci=0;
