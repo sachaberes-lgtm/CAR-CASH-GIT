@@ -23,7 +23,8 @@ function estCouche(){return COUCHE_MQ?COUCHE_MQ.matches:innerWidth>innerHeight;}
    (#mShop), ni ses portes (la tuile de l'accueil, la BOUTIQUE du bas du garage, la porte des offres éphémères), ni le rayon ACHAT de la boutique.
    shopPaye reste, inerte. Les caisses en € ne comptent plus nulle part (caisse équipée, étage, missions « toutes »). `?achat=ancien` : l'ancien. */
 /* (2026-11-05, Sacha : « remet le, c'est tout, je m'en fous du jury ») ACHAT REVIENT SUR LE SITE : seule l'app iPhone (EN_APP) le garde coupé (preparer-www l'y cache aussi) ; `?achat=non` : la coupe du jury. */
-const ACHAT_EUR=(!EN_APP&&!/[?&]achat=non\b/.test(location.search))||/[?&]achat=ancien\b/.test(location.search);
+/* (2026-11-07, Sacha : « les achats en vrai argent, via StoreKit ») ACHAT REVIENT DANS L'APP, mais SEULEMENT si le pont des achats existe : achats.js (chargé avant le jeu) pose window.ccAchat quand le plugin natif StoreKit est là. Une app sans le plugin (pas de ccAchat) garde ACHAT caché : on ne vend rien qu'on ne peut pas encaisser. Le site ne change pas. */
+const ACHAT_EUR=((!EN_APP||!!window.ccAchat)&&!/[?&]achat=non\b/.test(location.search))||/[?&]achat=ancien\b/.test(location.search);
 if(!ACHAT_EUR)try{const s9=document.createElement('style');s9.id='sansAchat';
   s9.textContent='html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],#mShop,#bdShop,.fnPorte){display:none!important}';
   document.head.appendChild(s9);}catch(e){}

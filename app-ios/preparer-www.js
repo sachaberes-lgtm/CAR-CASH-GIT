@@ -6,6 +6,11 @@
    musiques, police Press Start 2P, icônes), le manifeste. Ce qui reste dehors (comme sur Vercel, vercel-build.sh) : les
    notes (CLAUDE.md, README), les outils de travail (atelier du son, maps-ciel, simulateur, salle blanche, boîtes, atelier des
    nuages), tout script Python, et sw.js (pas de service worker dans l'app).
+   (2026-11-07, achats App Store) LA BOUTIQUE EN € EST DE RETOUR DANS L'APP : plus aucune coupe ne transforme le vrai argent en argent du jeu
+   (caisses premium, peintures à prix, page OFFRES / ACHAT et ses portes) ; elle passe par StoreKit, via le pont window.ccAchat (natif/achats.js,
+   copié et chargé juste après natif.js) que la fabrication pose à côté du jeu. Le drapeau ACHAT_EUR du jeu (icones-fenetre.js) allume la page
+   dès que ce pont existe et la garde cachée sans lui. Les coupes qui RESTENT : mode TEST, ENTRER UN CODE (code cousin), plus de pub (ni texte
+   ni maison), plus de « BIENTÔT », noms de marques, ancien panneau RÉGLAGES, adresses réseau.
    Trois retouches de la page, chacune vérifiée (le script REFUSE si le texte attendu n'est pas trouvé une fois exactement) :
    1. natif.js chargé en TOUT PREMIER (juste après <meta charset>) ;
    2. la version gravée (le jeton __CC_BUILD__ → le commit du jeu) : RÉGLAGES affiche « VERSION xxxxxxx » au lieu de « LOCALE » ;
@@ -94,12 +99,11 @@ for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.c
   if(h.indexOf(u)>=0)une("src:'"+u+"'","src:''",'kit de portail'); // (T4 du 14/10 : l'édition des portails est retirée du jeu ; l'inventaire plus bas garde l'œil)
 /* L'ÉDITION APP STORE (2026-10-13, Sacha : « couper dans l'app seulement ») — le jeu web de main n'est pas touché.
    · plus de mode TEST : les caisses et la carrière se GAGNENT (Apple refuse une version de test) ;
-   · plus de vrai argent (pas d'achats intégrés pour l'instant) : les caisses vendues en € et L'ÉTERNELLE (100 pubs : l'app n'a pas
-     de pubs) passent À L'ARGENT DU JEU, au prix que l'édition POKI leur donne déjà ; la page OFFRES (en €) et ses portes disparaissent ;
-   · plus de « BIENTÔT » (2026-10-14) : Apple refuse ce qui est annoncé mais absent. Les trois caisses « DÉFI À VENIR » (REQUIN, COMÈTE,
-     LA RAIE : leur défi n'est pas écrit) passent aussi à l'argent du jeu — REQUIN et COMÈTE au prix POKI de leur ancien prix en €
-     (9,99 et 4,99), LA RAIE à ses 2,5 M d'avant ; le bouton verrouillé « BIENTÔT » du menu du garage est masqué ; l'affiche RECORD
-     PERSO touchée ne disait plus « BIENTÔT EN DÉTAIL » (le jeu lui-même l'a retiré depuis) ; les blocs « ? » des raretés à venir, au bout de SEE ALL ITEMS, ne sont plus posés ;
+   · (2026-11-07) le vrai argent REVIENT (achats intégrés StoreKit, voir l'en-tête) : les coupes qui le convertissaient en argent du jeu sont ôtées ;
+     L'ÉTERNELLE (100 pubs : l'app n'a pas de pubs) reste à l'argent du jeu s'il en existe encore une ;
+   · plus de « BIENTÔT » (2026-10-14) : Apple refuse ce qui est annoncé mais absent. Une caisse « DÉFI À VENIR » (k:'bientot', aujourd'hui COMÈTE : son
+     défi n'est pas écrit) passe à l'argent du jeu (au prix POKI de son ancien prix en €, ou 3 M) ; le bouton verrouillé « BIENTÔT » du menu du garage
+     est masqué ; l'affiche RECORD PERSO touchée ne disait plus « BIENTÔT EN DÉTAIL » (le jeu lui-même l'a retiré depuis) ; les blocs « ? » des raretés à venir, au bout de SEE ALL ITEMS, ne sont plus posés ;
    · plus de marque d'autrui dans un texte (2026-10-14, audit « regard d'Apple », règle 5.2) : la phrase du MONOSPACE ne double plus
      « une Ferrari » mais « une voiture de course » (la phrase de CARS et sa clé de traduction changent ensemble, puis l'anglais) ;
    · pas de déblocage par CODE (2026-10-14, règle 3.1.1 d'Apple : on ne débloque pas de contenu par un code hors achat intégré) : la ligne
@@ -110,11 +114,13 @@ for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.c
 if(h.includes("const TEST_CAISSES=true;"))une("const TEST_CAISSES=true;","const TEST_CAISSES=false; /* (app iOS) */",'mode TEST des caisses');
 else if(!h.includes("const TEST_CAISSES=false;"))meurt('mode TEST des caisses : « const TEST_CAISSES= » (true ou false) introuvable');
 /* (la carrière et son mode TEST : retirés du jeu lui-même le 14/10, coupe ôtée le 24/10) */
+/* (2026-11-07) les caisses vendues en € ne sont PLUS converties (achats StoreKit). Restent : « DÉFI À VENIR » (k:'bientot') et L'ÉTERNELLE (k:'pubs',
+   si elle revient : l'app n'a pas de pubs) qui passent à l'argent du jeu ; une caisse k:'premium' garde sa condition et sa rareté. */
 une("function carUnlockedVrai(i){",
-  "/* (app iOS) le vrai argent passe à l'argent du jeu */CAR_UNLOCK.forEach(function(u,i){if(!u||(u.k!=='premium'&&u.k!=='pubs'&&u.k!=='bientot'))return;const c=CARS[i];"+
+  "/* (app iOS) pas de « bientôt », pas de pubs */CAR_UNLOCK.forEach(function(u,i){if(!u||(u.k!=='pubs'&&u.k!=='bientot'))return;const c=CARS[i];"+
   "if(u.k==='bientot'){CAR_UNLOCK[i]={p:(c&&{'REQUIN':6.5e6,'COMÈTE':4.2e6,'LA RAIE':2.5e6}[c.name])||3e6};if(c&&c.rar==='defi')delete c.rar;return;}"+
-  "const e=u.k==='pubs'?9.99:(parseFloat(String(u.eur).replace(',','.'))||5);CAR_UNLOCK[i]={p:Math.round((2e6+e*450e3)/1e5)*1e5};if(c){c.rar='legendaire';}});\n"+
-  "function carUnlockedVrai(i){",'caisses en €'); // (T4 du 14/10 : l'ancrage d'avant, le bloc des prix de l'édition POKI, est parti avec elle)
+  "CAR_UNLOCK[i]={p:6500000};if(c){c.rar='legendaire';}});\n"+
+  "function carUnlockedVrai(i){",'caisses « bientôt » et aux pubs');
 /* (l'annonce « BIENTÔT EN DÉTAIL / EN LIGNE » de l'affiche du garage : retirée du jeu lui-même au train T2 du 14/10, coupe ôtée) */
 /* (les blocs « ? — BIENTÔT » de SEE ALL ITEMS : le jeu ne les pose plus sous la charte 6 depuis le train T2 du 14/10, coupe ôtée) */
 /* (la phrase « on vient de doubler une Ferrari » du MONOSPACE : réécrite par le jeu lui-même, coupe ôtée le 24/10 ; « Ferrari » ne reste que
@@ -147,16 +153,9 @@ une("s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?clien
 une('<meta property="og:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">','','aperçu de lien du site (og:image)');
 une('<meta name="twitter:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">','','aperçu de lien du site (twitter:image)');
 une("var CC_ADMOB={recompense:''};","var CC_ADMOB={recompense:''}; /* (app iOS) aucune régie : ni AdMob ni AdSense */",'emplacement AdMob éteint');
-/* (2026-10-24, session APP STORE « directement sortable », règle 3.1.1) LES PEINTURES EN EUROS : depuis le 16/10 le jeu vend chaque peinture en
-   vrai argent (PEINT_EUR / PEINT_EUR_ID : 0,50 € à 5 €, par shopPaye, la porte de StoreKit jamais branchée : « L'achat est indisponible pour le
-   moment ») et LA PALETTE en pack (0,99 €). Dans l'app, comme les caisses : chaque prix en € devient un prix en argent du jeu (60 000 par euro,
-   0,50 € → 30 000, 5 € → 300 000), et l'article du pack sans prix (une secrète) dit SECRÈTE au lieu du prix du pack. */
-/* (2026-11-05, Sonnet : jour 0 du jury) depuis le nuancier v3 la grille est unique (PEINT_EUR par rareté, plus de PEINT_EUR_ID) et la vitrine fait `o.eur=PEINT_EUR[o.r]` */
-une("o.eur=PEINT_EUR[o.r];if(e[5])",
-  "o.p=Math.round((parseFloat(String(PEINT_EUR[o.r]).replace(',','.'))||1)*60)*1000;/* (app iOS) les peintures en € passent à l'argent du jeu */if(e[5])",
-  'peintures vendues en €');
-une("sansAcc(TR(BQ_PEINT_SOUS[f]))+' · '+eurTxt(PEINT_EUR[f])","sansAcc(TR(BQ_PEINT_SOUS[f]))+' · '+fmtC(Math.round((parseFloat(String(PEINT_EUR[f]).replace(',','.'))||1)*60)*1000)",
-  'prix des peintures sous le titre de leur rareté');
+/* (2026-11-07) LES PEINTURES EN EUROS reviennent aussi (PEINT_EUR, par shopPaye / StoreKit) : les deux coupes qui les passaient à l'argent du jeu
+   (60 000 par euro) sont ôtées. RESTE, par prudence, l'article du pack LA PALETTE : le pack n'est plus vendu (PALETTE_PACK, aucun produit) ;
+   un article « pack » encore posé dirait 0,99 € sans rien à acheter, il dit SECRÈTE (la coupe est sans effet si plus aucun article n'est un pack). */
 une("d.pack?eurTxt(PALETTE_PACK.eur):","d.pack?sansAcc(TR('SECRÈTE')):",'prix du pack LA PALETTE sur ses articles');
 /* (2026-10-24) la fenêtre ENTRER UN CODE ne parle plus de « code secret » (le code COUSIN est coupé plus haut) : elle restaure une sauvegarde. */
 toutes('Colle un code de sauvegarde, ou un code secret.','Colle un code de sauvegarde.',2,'fenêtre ENTRER UN CODE (texte + clé de traduction)');
@@ -173,16 +172,17 @@ une("k9=nom==='double-gain'?'TON GAIN ×2 APRÈS LA PUB':'TA COURSE REPREND APR�
 une("pxi('lecture')+'<span>'+TR('PUB')+'</span>'","(LANG==='en'?'FREE':'GRATUIT')",'CONTINUER ▶ PUB');
 une("<b class=\"dbP\">'+pxi('lecture')+'<span data-fr=\"PUB\">'+TR('PUB')+'</span></b>","<b class=\"dbP\"></b>",'×2 ▶ PUB');
 une("el.setAttribute('aria-label','×2 '+s9+' '+TR('PUB'));","el.setAttribute('aria-label','×2 '+s9);",'×2 ▶ PUB (VoiceOver)');
-une('</head>','<style id="appStore">/* (app iOS) pas de page OFFRES en € : ni l\'écran, ni ses portes (mêmes sélecteurs que l\'édition POKI ; les deux :not(#…) passent devant\n'+
-  '   la règle de l\'accueil v2 qui réaffiche la tuile OFFRES) */\n'+
-  'html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],.gBoutique,#mShop,#bdShop){display:none!important}\n'+
-  '/* le vieux panneau RÉGLAGES de l\'écran-titre d\'ordinateur (déjà caché au doigt) : ses boutons de sauvegarde ouvrent un prompt() du système */\n'+
+/* (2026-11-07) la page OFFRES et ses portes ne sont plus masquées ici : c'est le jeu qui décide (ACHAT_EUR, icones-fenetre.js : allumée avec le pont ccAchat,
+   cachée sans lui, par sa propre feuille #sansAchat). */
+une('</head>','<style id="appStore">/* le vieux panneau RÉGLAGES de l\'écran-titre d\'ordinateur (déjà caché au doigt) : ses boutons de sauvegarde ouvrent un prompt() du système */\n'+
   '#setBtn,#settings{display:none!important}\n'+
-  '</style>\n</head>','page OFFRES');
-/* LES TÉMOINS — une coupe faite en CSS ne casse rien si sa cible change de nom : elle cesse juste de couper, en silence. Chaque porte
-   masquée ci-dessus doit donc encore exister dans le jeu ; sinon l'écran a été refait et la coupe est à revoir (au navigateur). */
-for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil'],['id="mShop"','la page OFFRES (#mShop)'],['id="bdShop"','le fond de la page OFFRES (#bdShop)'],
-  ["k:'premium'",'les caisses vendues en €'],["k:'pubs'",'la caisse aux 100 pubs'],["k:'bientot'",'les caisses « DÉFI À VENIR »'],
+  '</style>\n</head>','vieux panneau RÉGLAGES (feuille appStore)');
+/* LES TÉMOINS — une coupe faite en CSS ne casse rien si sa cible change de nom : elle cesse juste de couper, en silence. Chaque cible
+   encore coupée ou protégée doit donc encore exister dans le jeu ; sinon l'écran a été refait et la coupe est à revoir (au navigateur).
+   (2026-11-07) la porte OFFRES (tuile, #mShop, #bdShop) et les caisses premium ne sont plus coupées : leurs témoins disent « cette cible doit
+   exister, intacte » (la boutique en € est de retour). k:'pubs' n'existe plus dans les données du jeu : plus de témoin. */
+for(const[t,quoi]of[['data-m="shop"','la tuile OFFRES de l\'accueil (laissée intacte)'],['id="mShop"','la page OFFRES (#mShop, laissée intacte)'],['id="bdShop"','le fond de la page OFFRES (#bdShop, laissé intact)'],
+  ["k:'premium'",'les caisses vendues en € (laissées intactes)'],["k:'bientot'",'les caisses « DÉFI À VENIR »'],
   ['id="setBtn"','le bouton du vieux panneau RÉGLAGES (#setBtn)'],['id="settings"','le vieux panneau RÉGLAGES (#settings)']])
   if(h.indexOf(t)<0)meurt('témoin perdu — '+quoi+' : « '+t+' » n\'existe plus dans le jeu. L\'écran a changé : revoir la coupe de l\'édition App Store.');
 fs.writeFileSync(path.join(WWW,'index.html'),h);

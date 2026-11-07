@@ -86,5 +86,31 @@ process.on('exit',c=>{if(!fini&&c===0){console.error('✗ achats-test : le test 
   p.ecouteurs.achatRecu.forEach(cb=>cb({id:'q'}));
   egal(recus.join(','),'q','(j) onRecu appelé avec l\'id');
 
+  /* (k) LA FABRICATION DE L'APP (tâche 4) : la boutique en € revient — les coupes en vrai argent sont parties, celles du code cousin restent.
+     preparer-www.js --essai --sortie <dossier jetable> : on lit le index.html produit (pas www/, jamais touché). */
+  {const os=require('os'),{execFileSync}=require('child_process');
+    const dos=fs.mkdtempSync(path.join(os.tmpdir(),'cc-achats-app-'));
+    try{
+      try{execFileSync(process.execPath,[path.join(__dirname,'..','preparer-www.js'),'--essai','--sortie',dos],{stdio:['ignore','pipe','pipe']});}
+      catch(e){rate('(k) la fabrication d\'essai échoue : '+String(e.stderr||e.stdout||e.message).trim().slice(0,600));}
+      const h=fs.readFileSync(path.join(dos,'index.html'),'utf8');
+      const ya=(t,m)=>{if(h.indexOf(t)<0)rate('(k) '+m+' : « '+t+' » absent de la page de l\'app');};
+      const non=(t,m)=>{if(h.indexOf(t)>=0)rate('(k) '+m+' : « '+t+' » reste dans la page de l\'app');};
+      ya("k:'premium'",'les caisses en € gardent leur condition premium');
+      non("(u.k!=='premium'&&u.k!=='pubs'",'la conversion des caisses en argent du jeu');
+      non("2e6+e*450e3",'le prix en argent du jeu calculé depuis l\'euro des caisses');
+      non("*60)*1000",'la conversion des peintures en argent du jeu');
+      non("PEINT_EUR[o.r]).replace",'la conversion du prix des peintures en argent du jeu');
+      const st=(h.match(/<style id="appStore">[\s\S]*?<\/style>/)||[''])[0];
+      if(/mShop|bdShop|data-m="shop"|data-go="shop"|gBoutique/.test(st))rate('(k) la feuille appStore cache encore la page OFFRES : '+st.slice(0,300));
+      if(!/#setBtn/.test(st))rate('(k) la feuille appStore doit garder le vieux panneau RÉGLAGES caché');
+      ya("function cousinTout(){return false;}",'la coupe du code cousin (effet « tout »)');
+      ya("function cousin(){return false;}",'la coupe du code cousin (effet)');
+      ya("window.ccAchat",'le drapeau ACHAT_EUR lit le pont ccAchat');
+      const iN=h.indexOf('<script src="natif.js"></script>'),iA=h.indexOf('<script src="achats.js"></script>');
+      if(iN<0||iA<0||iA<iN)rate('(k) achats.js doit être chargé après natif.js (natif '+iN+', achats '+iA+')');
+      if(!fs.existsSync(path.join(dos,'achats.js')))rate('(k) achats.js absent du dossier fabriqué');
+    }finally{try{fs.rmSync(dos,{recursive:true,force:true});}catch(e){}}}
+
   fini=true;console.log('OK achats');
 })().catch(e=>rate('exception inattendue : '+(e&&e.stack||e)));
