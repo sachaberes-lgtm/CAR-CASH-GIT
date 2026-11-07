@@ -258,6 +258,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
       closeGarage(wasStarted);
       if(wasStarted)resetGame();else{start();fireLaunchBoost();}
       const f=$('gFade');if(f)setTimeout(function(){f.classList.remove('on');},60); // il se retire SUR la piste
+      voileSerpent(false); // le voile blanc de l'attente (s'il a paru) se lève sur la piste
     }
     return;                                                // ⚠ on ne rejoue pas l'orbite derrière
   }
