@@ -78380,12 +78380,14 @@ window.dbgThermique=function(n){if(MOB_GOUV)mobThermo(+n);return MOB_S.thermo;};
    REMONTE (règle de Sacha : « fluidité d'abord ; une fois atteinte, remonter le rendu vers celui de l'ordinateur ») — paliers NÉGATIFS : le téléphone est FRAIS (dose < `MOB_R.frais`) et FLUIDE pendant 60 s
    d'affilée (travail de l'image médian < 12 ms, jamais > 16 ms, images à l'heure : p75 de l'échelle QL ≤ 19 ms) → un cran de plus : −1 = plafond de résolution du réglage du joueur (1,5 en NETTE) ; −2 = + halo plein
    (5 mips) et ombre 1024. Chaque cran demande SES 60 s. Un cran de remontée tombe d'un coup au palier 0 dès que la fluidité manque 5 s de suite, ou que la dose atteint le palier 1 ; il ne revient pas dans la même course.
-   Seulement sur téléphone récent (TEL_NATIF, palier 2 : c'est MOB_GOUV). `?gouv=max` = rien de tout cela (et pas de régime chaud par défaut) ; `?mob_raise=0` = pas de remontée ; `?mob_gouv=0` = plus de gouverneur.
+   Seulement sur téléphone récent (TEL_NATIF, palier 2 : c'est MOB_GOUV). `?gouv=max` = rien de tout cela (et pas de régime chaud par défaut) ; `?mob_raise=1` = la remontée (INACTIVE par défaut depuis le 07/11 soir : build 13, 15 gels > 1 s en course, hypothèse = les bascules réallouent les cibles) ; `?mob_gouv=0` = plus de gouverneur.
    Banc : `dbgGouv()` donne `gpu` (palier, ce qui est posé) ; `dbgGouv(dose)` pose la dose et lève la garde d'une minute. */
 const MOB_PALS=MOB_GOUV&&!/[?&]gouv=max\b/.test(location.search);
 const MOB_PP=[{d:0},{d:60,dpr:1.1,halo:'demi',mips:2,ql:3},{d:100,dpr:1,halo:'off',ombre:512,ciel:4,stries:.5,k:.5,ql:99},{d:140,dpr:.8,halo:'off',ombre:512,ciel:8,stries:.5,k:.5,ql:99}]; /* tout se règle ici ; ql 99 = le cran maximal de l'échelle */
+/* LE DÉPART DE P2 (nettete-qualite.js `imgRegle`, palier-appareil.js `PAL.B.imgBloomRes`) : halo ½, 3 mips, ombre 768, ciel sans plancher, traits d'air aux budgets — à tenir d'accord avec P2 ; chaque palier est posé en UN SEUL appel qui redit ces clés (jamais reset puis pose : chaque appel d'imgRegle repasse par applyDPR) */
+const MOB_P0={halo:'demi',mips:3,ombre:768,ciel:0,stries:null};
 const MOB_RA=[null,{dpr:'cap'},{dpr:'cap',halo:'tout',mips:5,ombre:1024}]; /* la remontée, par cran (palier −1, −2) */
-const MOB_R={on:!/[?&]mob_raise=0\b/.test(location.search),frais:40,fen:60,wMed:12,wMax:16,p75:19,mal:5};
+const MOB_R={on:/[?&]mob_raise=1\b/.test(location.search),frais:40,fen:60,wMed:12,wMax:16,p75:19,mal:5};
 const MOB_PQ=['qlMin','ventK','emiK'],MOB_P={t:0,chg:-1e9,tk:0,b:null,n:0,s:[],mal:0,non:false};
 function mobPalBase(){ /* les valeurs d'origine du palier, lues une fois, avant la 1re écriture */
   if(MOB_P.b)return MOB_P.b;const b={};for(const k of MOB_PQ)b[k]=PAL.b(k,k==='qlMin'?0:1);return(MOB_P.b=b);}
@@ -78394,20 +78396,18 @@ function mobPalCible(){let t=0;for(let i=1;i<MOB_PP.length;i++)if(MOB_S.D>=MOB_P
   if(MOB_S.thermo>=3)t=3;else if(MOB_S.thermo>=2)t=Math.max(t,2);return t;}
 function mobPalCapJoueur(){let c=DPR_CAP;try{c=dprPlafond(SAVE.d.q==='fast');}catch(e){}return c;} /* le plafond du réglage du joueur (RAPIDE 1, NETTE ce que le départ de P2 en fait) */
 function mobPalCapPlein(){let c=1.5;try{c=SAVE.d.q==='fast'?1:Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));}catch(e){}return c;} /* « vers l'ordinateur » : le plafond de la NETTE d'avant la passe 3 */
-function mobPalVoulu(t){ /* ce qu'on pose à ce palier : un objet pour imgRegle, null au palier 0 */
-  if(!t)return null;const P=t>0?MOB_PP[t]:MOB_RA[-t],o={};
+function mobPalVoulu(t){ /* ce qu'on pose à ce palier : TOUTES les clés (le départ de P2, puis les écarts du palier) pour un seul appel à imgRegle ; null au palier 0 (c'est `reset`) */
+  if(!t)return null;const P=t>0?MOB_PP[t]:MOB_RA[-t],o=Object.assign({dpr:mobPalCapJoueur()},MOB_P0);
   for(const k of ['dpr','halo','mips','ombre','ciel','stries'])if(P[k]!=null)o[k]=P[k];
-  if(o.dpr==='cap')o.dpr=mobPalCapPlein();else if(o.dpr!=null)o.dpr=Math.min(o.dpr,mobPalCapJoueur());
+  if(o.dpr==='cap')o.dpr=mobPalCapPlein();else o.dpr=Math.min(o.dpr,mobPalCapJoueur());
   return o;}
-function mobPalApplique(t){
+function mobPalApplique(t){ /* UN seul appel à imgRegle par bascule (chaque appel refait applyDPR : cibles du compositeur, halo, ombre) */
   const B=mobPalBase(),P=t>0?MOB_PP[t]:null,baisse=t<MOB_P.t&&t>=0,o=mobPalVoulu(t);
-  window.imgRegle('reset'); /* le départ de P2, puis le palier par-dessus */
-  if(o)window.imgRegle(o);
   mobPalEcrit('ventK',B.ventK*((P&&P.k)||1));mobPalEcrit('emiK',B.emiK*((P&&P.k)||1));
   const kMax=qlBornes().kMax;mobPalEcrit('qlMin',P?Math.min(kMax,Math.max(B.qlMin,P.ql)):B.qlMin);
+  if(baisse)QL.k=Math.min(QL.k,t===0?1:t===1?3:kMax); /* descente : l'échelle se desserre d'un coup — posé AVANT imgRegle, dont le qlPose le prend */
   MOB_P.t=t;MOB_P.chg=performance.now();MOB_P.n++;MOB_P.s.length=0;
-  if(baisse)qlPose(Math.min(QL.k,t===0?1:t===1?3:kMax)); /* descente : l'échelle se desserre d'un coup, la résolution et le halo reviennent */
-  else qlPose(QL.k);}
+  if(o)window.imgRegle(o);else window.imgRegle('reset');} /* imgRegle rejoue qlPose(QL.k) : le plancher, le cran et le plafond se posent ensemble */
 function mobPalSain(){ /* l'image de cette seconde : le travail de l'image (CAD.w, lissé sur ~10 images) et la synchro (p75 de l'échelle QL, ramené à une image d'écran) */
   return {w:CAD.w,ok:QLR.p75<=MOB_R.p75};}
 function mobPalMediane(a){const v=a.slice().sort(function(x,y){return x-y;});return v[v.length>>1];}
