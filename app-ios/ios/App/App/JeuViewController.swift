@@ -27,6 +27,10 @@ class JeuViewController: CAPBridgeViewController {
             defile.pinchGestureRecognizer?.isEnabled = false
             defile.contentInsetAdjustmentBehavior = .never // les marges de l'encoche, c'est la page qui les lit (env(safe-area-inset-*))
         }
+        #if DEBUG
+        // (2026-11-07, passe 3) BUILDS DE DEV SEULEMENT : la page est inspectable (Safari › Développement, ou pymobiledevice3 webinspector) — jamais dans une édition Release/App Store.
+        if #available(iOS 16.4, *) { webView?.isInspectable = true }
+        #endif
     }
 
     // L'INDICATEUR D'ACCUEIL QUI S'EFFACE (2026-11-05, Opus : jury IOS-21) : le bloc SystemBars de capacitor.config.json n'a aucun
