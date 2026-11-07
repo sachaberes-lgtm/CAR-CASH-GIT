@@ -1,0 +1,58 @@
+<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vitrine de l'argent</title>
+<!-- BRANCHE argent-metaux (2026-11-07, Léo : « une page où je vois tout défiler ») : les six paliers de l'argent côte à côte, puis un compteur qui les traverse. -->
+<style>
+@font-face{font-family:'Press Start 2P';src:url('assets/fonts/pressstart2p.woff2') format('woff2')}
+@font-face{font-family:'Press Start 2P';src:url('assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000}
+:root{--ink:#1c0430}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#3a2470,#120a26 70%);color:#fff;font-family:'Press Start 2P',monospace;padding:20px 16px 40px;box-sizing:border-box}
+h1{font-size:14px;letter-spacing:2px;color:#ffe9a8;margin:0 0 18px;text-align:center}
+.t-centime{--mL:#ffe2b4;--mM:#d68f44;--mS:#8e5418;--mX:#3e2208;--mH:rgba(214,143,68,.4);--mImg:url('assets/monnaie/sym-centime.png');}
+.t-euro{--mL:#ffffff;--mM:#dfe4ee;--mS:#a9b2c4;--mX:#b8860b;--mH:rgba(255,205,80,.45);--mImg:url('assets/monnaie/sym-euro.png')}
+.t-or{--mL:#fff4b0;--mM:#ffc928;--mS:#e08a00;--mX:#7a4200;--mH:rgba(255,200,60,.55);--mImg:url('assets/monnaie/sym-or.png')}
+.t-emeraude{--mL:#d8ffe2;--mM:#3ee08a;--mS:#12955a;--mX:#06401f;--mH:rgba(60,230,140,.5);--mImg:url('assets/monnaie/sym-emeraude.png')}
+.t-rubis{--mL:#ffd0d6;--mM:#ff3b4e;--mS:#b0102a;--mX:#4a0010;--mH:rgba(255,60,80,.5);--mImg:url('assets/monnaie/sym-rubis.png')}
+.t-legendaire{--mL:#ffffff;--mM:#f3d9ff;--mS:#b9c8ff;--mX:#5a3a9a;--mH:rgba(230,200,255,.85);--mImg:url('assets/monnaie/sym-legendaire.png')}
+.grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:22px 14px;max-width:1100px;margin:0 auto 44px}
+.carte{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 6px;border-radius:12px;background:rgba(255,255,255,.04)}
+.carte small{font-size:8px;letter-spacing:2px;color:var(--mL)}
+.piece{display:block;width:96px;height:84px;background:var(--mImg) center/contain no-repeat;filter:drop-shadow(0 0 10px var(--mH));animation:saute 2.2s cubic-bezier(.2,1.6,.4,1) infinite}
+@keyframes saute{0%,70%,100%{transform:scale(1) rotate(0)}80%{transform:scale(1.25) rotate(-8deg)}}
+.chiffres{font-size:11px;letter-spacing:1px;white-space:nowrap;color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(180deg,var(--mL) 0 22%,var(--mM) 22% 58%,var(--mS) 58% 100%);-webkit-background-clip:text;background-clip:text;padding:2px 0 6px;
+  filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--ink)) drop-shadow(-2px 0 0 var(--ink)) drop-shadow(0 2px 0 var(--ink)) drop-shadow(0 -2px 0 var(--ink)) drop-shadow(0 0 10px var(--mH))}
+.t-legendaire .chiffres{background:linear-gradient(100deg,#ffffff 0%,#ffd6f6 14%,#d6c4ff 28%,#b4f2ff 42%,#c8ffe0 56%,#fff7c2 70%,#ffd6f6 85%,#ffffff 100%) 0 0/200% 100%;-webkit-background-clip:text;background-clip:text;animation:glisse 3s linear infinite}
+.t-legendaire .piece{animation:saute 2.2s cubic-bezier(.2,1.6,.4,1) infinite,rgb 2.4s linear infinite}
+@keyframes glisse{to{background-position:-200% 0}}
+@keyframes rgb{from{filter:drop-shadow(0 0 12px var(--mH)) hue-rotate(0)}to{filter:drop-shadow(0 0 12px var(--mH)) hue-rotate(360deg)}}
+.defile{display:flex;flex-direction:column;align-items:center;gap:14px}
+.defile .piece{width:150px;height:130px}
+.defile .chiffres{font-size:30px}
+.defile small{font-size:11px;letter-spacing:3px}
+#msg{height:14px;font-size:9px;color:#fff;opacity:0;transition:opacity .3s}
+#msg.on{opacity:1}
+</style>
+<h1>L'ARGENT · LES SIX PALIERS</h1>
+<div class="grille">
+<div class="carte t-centime"><i class="piece"></i><b class="chiffres">&#xE000; 1 250</b><small>CENTIME</small></div>
+<div class="carte t-euro"><i class="piece"></i><b class="chiffres">&#xE000; 48 000</b><small>EURO</small></div>
+<div class="carte t-or"><i class="piece"></i><b class="chiffres">&#xE000; 650 000</b><small>OR</small></div>
+<div class="carte t-emeraude"><i class="piece"></i><b class="chiffres">&#xE000; 4 200 000</b><small>ÉMERAUDE</small></div>
+<div class="carte t-rubis"><i class="piece"></i><b class="chiffres">&#xE000; 32 000 000</b><small>RUBIS</small></div>
+<div class="carte t-legendaire"><i class="piece"></i><b class="chiffres">&#xE000; 250 000 000</b><small>LÉGENDAIRE</small></div>
+</div>
+<h1>LE DÉFILÉ</h1>
+<div class="defile carte t-centime" id="d"><i class="piece"></i><b class="chiffres" id="dn">&#xE000; 0</b><small id="dl">CENTIME</small><div id="msg"></div></div>
+<script>
+(function(){
+  var T=[["centime", "CENTIME"], ["euro", "EURO"], ["or", "OR"], ["emeraude", "ÉMERAUDE"], ["rubis", "RUBIS"], ["legendaire", "LÉGENDAIRE"]], SEUILS=[0,5e3,1e5,1e6,1e7,5e7,4e8];
+  var d=document.getElementById('d'),dn=document.getElementById('dn'),dl=document.getElementById('dl'),msg=document.getElementById('msg');
+  var t0=performance.now(),DUREE=18000,k=0;
+  function fmt(v){return '\uE000 '+Math.floor(v).toLocaleString('fr-FR').replace(/[\u202f\u00a0]/g,' ');}
+  function f(now){var p=((now-t0)%DUREE)/DUREE,v=Math.pow(10,p*Math.log10(4e8));
+    var n=0;while(n<5&&v>=SEUILS[n+1])n++;
+    if(n!==k){k=n;d.className='defile carte t-'+T[n][0];dl.textContent=T[n][1];if(n>0){msg.textContent='TON ARGENT PASSE EN '+T[n][1]+' !';msg.classList.add('on');setTimeout(function(){msg.classList.remove('on');},1400);}}
+    dn.textContent=fmt(v);requestAnimationFrame(f);}
+  requestAnimationFrame(f);
+})();
+</script>
+</html>

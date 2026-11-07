@@ -10710,7 +10710,7 @@ html[data-metal="euro"]{--mL:#ffffff;--mM:#dfe4ee;--mS:#a9b2c4;--mX:#b8860b;--mH
 html[data-metal="or"]{--mL:#fff4b0;--mM:#ffc928;--mS:#e08a00;--mX:#7a4200;--mH:rgba(255,200,60,.55);--mImg:url('./assets/monnaie/sym-or.png')}
 html[data-metal="emeraude"]{--mL:#d8ffe2;--mM:#3ee08a;--mS:#12955a;--mX:#06401f;--mH:rgba(60,230,140,.5);--mImg:url('./assets/monnaie/sym-emeraude.png')}
 html[data-metal="rubis"]{--mL:#ffd0d6;--mM:#ff3b4e;--mS:#b0102a;--mX:#4a0010;--mH:rgba(255,60,80,.5);--mImg:url('./assets/monnaie/sym-rubis.png')}
-html[data-metal="legendaire"]{--mL:#ffffff;--mM:#ff7ad5;--mS:#7a7cff;--mX:#2a1050;--mH:rgba(255,140,230,.6);--mImg:url('./assets/monnaie/sym-legendaire.png')}
+html[data-metal="legendaire"]{--mL:#ffffff;--mM:#f3d9ff;--mS:#b9c8ff;--mX:#5a3a9a;--mH:rgba(230,200,255,.85);--mImg:url('./assets/monnaie/sym-legendaire.png')}
 html[data-metal]{--cash:var(--mM)}
 /* les compteurs d'argent : le métal en relief */
 html #cashHud .chV span,html #moneyTxt,html #gCompteur b,html #gBqArg,html #mBankV,html #mCash{
@@ -10718,9 +10718,9 @@ html #cashHud .chV span,html #moneyTxt,html #gCompteur b,html #gBqArg,html #mBan
   -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;
   filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 0 8px var(--mH))!important}
 html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){
-  background:linear-gradient(100deg,#ff5a5a 0 14%,#ffb03a 14% 28%,#fff35a 28% 42%,#5aff8a 42% 56%,#5ad8ff 56% 70%,#8a6bff 70% 84%,#ff6be0 84%) 0 0/200% 100%!important;
+  background:linear-gradient(100deg,#ffffff 0%,#ffd6f6 14%,#d6c4ff 28%,#b4f2ff 42%,#c8ffe0 56%,#fff7c2 70%,#ffd6f6 85%,#ffffff 100%) 0 0/200% 100%!important;
   -webkit-background-clip:text!important;background-clip:text!important;animation:mDiam 2.4s linear infinite}
-@keyframes mDiam{to{background-position:-200% 0}}
+@keyframes mDiam{to{background-position:-200% 0}} /* LÉGENDAIRE (Léo : « plus lumineux et plus flou, pas un bonnet rasta ») : des pastels fondus qui glissent, pas des bandes */
 html #moneyTxt .cts{-webkit-text-fill-color:var(--mL);color:var(--mL)}
 /* le symbole 3D du compteur de course */
 #cashHud .chV i.mOr{display:inline-block;width:1.5em;height:1.3em;font-size:var(--f6);align-self:center;margin-right:.1em;
@@ -10752,7 +10752,7 @@ html body #mob #mDead.m5 .mCashL>b#mCash{text-shadow:none!important;color:transp
 html body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html body #mob #mDead.m5 .mCashL>b#mCash>.m6X,html body #mob #mDead.m5 .mCashL>b#mCash::before{
   background:linear-gradient(180deg,var(--mL) 0 22%,var(--mM) 22% 58%,var(--mS) 58% 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
 html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6X,html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash::before{
-  background:linear-gradient(100deg,#ff5a5a 0 14%,#ffb03a 14% 28%,#fff35a 28% 42%,#5aff8a 42% 56%,#5ad8ff 56% 70%,#8a6bff 70% 84%,#ff6be0 84%) 0 0/200% 100%;-webkit-background-clip:text;background-clip:text;animation:mDiam 2.4s linear infinite}
+  background:linear-gradient(100deg,#ffffff 0%,#ffd6f6 14%,#d6c4ff 28%,#b4f2ff 42%,#c8ffe0 56%,#fff7c2 70%,#ffd6f6 85%,#ffffff 100%) 0 0/200% 100%;-webkit-background-clip:text;background-clip:text;animation:mDiam 2.4s linear infinite}
 /* la BOUTIQUE est claire et son compte est petit (11 px) : l'encre et le relief le noircissaient (Léo : « bizarrement entouré de noir »).
    Ici : le métal seul, un filet d'ombre de sa couleur et une lueur douce. */
 html #gBqArg{filter:drop-shadow(0 1px 0 var(--mX)) drop-shadow(0 0 3px var(--mH))!important}
