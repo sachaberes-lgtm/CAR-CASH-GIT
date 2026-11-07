@@ -307,7 +307,7 @@ window.dbgEco=function(a){if(a==='rejouer'&&gameOver){playViaGarage();}
     eco:ECO3,best:Math.round(best)};}; // les réglages ECO3
 window.dbgStep=function(n,ms){
   n=n||60;ms=ms||16;
-  for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());}
+  for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());cancelAnimationFrame(loop._raf);} /* (2026-11-07, finition) chaque appel manuel programmait une rAF de plus : dbgStep(60) laissait 61 boucles tourner */
   return window.dbgState();
 };
 window.CASHCAR_BUILD='2026-07-20 v5 (anti-flicker + anti-cache)'; // vérif version : taper CASHCAR_BUILD en console

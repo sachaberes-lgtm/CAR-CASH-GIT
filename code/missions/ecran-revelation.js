@@ -498,7 +498,7 @@ function m2RevScene(i,texte,id,rf){ /* rf : une rareté imposée (l'essai d'un p
 /* LA CAISSE DANS SA PHOTO : sa boîte (les pixels presque opaques ; le reflet du sol verni, translucide, n'y entre pas), pour poser le
    sol, le projecteur, les phares et la toile sur ELLE et pas sur le cadre — une caisse longue et basse n'a pas ses roues où en a un camion */
 function m2RevBoite(url,cb){const im=new Image();let fait=false;const fin=function(b){if(!fait){fait=true;cb(b);}};
-  im.onload=function(){let b=null;try{const W=144,H=88,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');g.drawImage(im,0,0,W,H);
+  im.onload=function(){let b=null;try{const W=144,H=88,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0,W,H);
     const d=g.getImageData(0,0,W,H).data;let x0=W,x1=-1,y0=H,y1=-1;
     for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(d[(y*W+x)*4+3]>200){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
     if(x1-x0>8&&y1-y0>4)b={x0:x0/W,x1:(x1+1)/W,y0:y0/H,y1:(y1+1)/H};}catch(e){}fin(b);};

@@ -8,4 +8,10 @@ body #tGear{transition:scale 70ms ease-out} /* le ⏸ est hors du filet d'enfonc
 body #tGear:active{scale:.88}
 html.introAncien #spCharge{display:none} /* (2026-11-07, Sacha : « ce genre de conflit est pas acceptable ») avec ?intro=ancien, le serpent de chargement restait posé SUR le titre CASH CAR, carré noir compris : seule la nouvelle intro l'éteint (chCl). L'ancienne intro a son propre signe d'attente (le titre qui pulse) */
 @media (prefers-reduced-motion:no-preference){html body #tSteer:not(.act) #tKnob{transition:transform 110ms cubic-bezier(.2,.8,.3,1)}} /* le bouton du volant REVIENT au centre quand le pouce lâche, au lieu de sauter (pendant le braquage (classe act) : aucune transition, il colle au doigt) */
+/* ===== DEUXIÈME PASSE (2026-11-07, Sacha : « des détails qui pourraient rendre le jeu beaucoup plus pro sans qu'on remarque de vraie différence ») ===== */
+#shPop,#setCard{scrollbar-width:none;-ms-overflow-style:none} /* la fenêtre d'achat et les réglages de l'ordi : les deux seules listes qui montraient encore une barre de défilement (Android, cadre téléphone) */
+#shPop::-webkit-scrollbar,#setCard::-webkit-scrollbar{display:none;width:0;height:0}
+html body #gEquip:focus-visible,html body #gBuy:focus-visible,html body #gShopBas:focus-visible{outline:2px solid var(--nc,#00eaff)!important;outline-offset:4px} /* ÉQUIPER, ACHETER et la porte de la boutique posaient `outline:0` à forte spécificité : au clavier (Tab sur l'ordi), leur focus ne se voyait jamais */
+#modC:focus-visible{box-shadow:inset 0 0 0 2px var(--nc,#00eaff)} /* le champ du code de sauvegarde avait `outline:0` sans rien à la place */
+#toast{z-index:270} /* le toast (96) passait SOUS la machine à sous (250) et la pub récompense (260) : un message parti à ce moment-là n'était jamais lu — au-dessus de tout, sauf le rideau (#wipe, 300) */
 </style>

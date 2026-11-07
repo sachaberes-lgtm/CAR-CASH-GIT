@@ -123,7 +123,7 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
   document.addEventListener('DOMContentLoaded',function(){
     var f=document.createElement('iframe'),u=location.href.split('#')[0];
     f.id='colonne';f.setAttribute('aria-label','CASH CAR'); // (2026-10-08, Léo : « c'est un peu goofy ici ») le NOM du cadre sans `title` : un title affichait l'infobulle grise « CASH CAR » dès que la souris s'arrêtait sur le jeu
-    f.setAttribute('allow','autoplay; fullscreen; gamepad');f.setAttribute('allowfullscreen','');
+    f.setAttribute('allow','autoplay; fullscreen; gamepad'); /* (2026-11-07, finition) plus d'`allowfullscreen` à côté : `allow` le couvre, et Chrome écrivait un avertissement en console à chaque lancement */
     f.src=u+(u.indexOf('?')<0?'?':'&')+'colonne=1';
     f.style.width=L+'px';f.style.height=H+'px';
     /* LE CORPS DU TÉLÉPHONE (2026-10-01, Léo : « le truc iPhone c'est mal mis ») : l'écran collait aux bords de la fenêtre (une
@@ -9861,6 +9861,12 @@ body #tGear{transition:scale 70ms ease-out} /* le ⏸ est hors du filet d'enfonc
 body #tGear:active{scale:.88}
 html.introAncien #spCharge{display:none} /* (2026-11-07, Sacha : « ce genre de conflit est pas acceptable ») avec ?intro=ancien, le serpent de chargement restait posé SUR le titre CASH CAR, carré noir compris : seule la nouvelle intro l'éteint (chCl). L'ancienne intro a son propre signe d'attente (le titre qui pulse) */
 @media (prefers-reduced-motion:no-preference){html body #tSteer:not(.act) #tKnob{transition:transform 110ms cubic-bezier(.2,.8,.3,1)}} /* le bouton du volant REVIENT au centre quand le pouce lâche, au lieu de sauter (pendant le braquage (classe act) : aucune transition, il colle au doigt) */
+/* ===== DEUXIÈME PASSE (2026-11-07, Sacha : « des détails qui pourraient rendre le jeu beaucoup plus pro sans qu'on remarque de vraie différence ») ===== */
+#shPop,#setCard{scrollbar-width:none;-ms-overflow-style:none} /* la fenêtre d'achat et les réglages de l'ordi : les deux seules listes qui montraient encore une barre de défilement (Android, cadre téléphone) */
+#shPop::-webkit-scrollbar,#setCard::-webkit-scrollbar{display:none;width:0;height:0}
+html body #gEquip:focus-visible,html body #gBuy:focus-visible,html body #gShopBas:focus-visible{outline:2px solid var(--nc,#00eaff)!important;outline-offset:4px} /* ÉQUIPER, ACHETER et la porte de la boutique posaient `outline:0` à forte spécificité : au clavier (Tab sur l'ordi), leur focus ne se voyait jamais */
+#modC:focus-visible{box-shadow:inset 0 0 0 2px var(--nc,#00eaff)} /* le champ du code de sauvegarde avait `outline:0` sans rien à la place */
+#toast{z-index:270} /* le toast (96) passait SOUS la machine à sous (250) et la pub récompense (260) : un message parti à ce moment-là n'était jamais lu — au-dessus de tout, sauf le rideau (#wipe, 300) */
 </style>
 <style id="peintures">
 /* ===== LE NUANCIER v3 — LES PASTILLES (2026-11-05, Sacha : « retravaille la présentation des peintures dans la boutique […] pro, fini, léché ») =====
@@ -12874,7 +12880,11 @@ addEventListener('resize',()=>{VP.w=innerWidth;VP.h=innerHeight;});
 let DPR_VU=devicePixelRatio,DPR_VU_T=0;
 addEventListener('resize',function(){if(ALLEGE||TEL_NATIF||Math.abs(devicePixelRatio-DPR_VU)<.01)return;clearTimeout(DPR_VU_T);
   DPR_VU_T=setTimeout(function(){DPR_VU=devicePixelRatio;try{DPR_CAP=dprPlafond(!!(typeof SAVE!=='undefined'&&SAVE.d&&SAVE.d.q==='fast'));if(typeof VHD!=='undefined'&&VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.murT=0;}qlReprise();}catch(e){}},150);});
-addEventListener('resize',()=>{if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) une fenêtre à 0 px (iframe du cadre cachée, rotation de WebView) : aspect infini, matrice NaN et toiles à 0 jusqu'au resize suivant — on attend une vraie taille */camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);slCv.width=innerWidth;slCv.height=innerHeight;if(juiceCv){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}});
+/* ===== LE RESIZE REGROUPÉ (2026-11-07, finition : « des détails plus pro sans vraie différence ») ===== sur l'ordi, tirer le bord de la fenêtre
+   lance des dizaines de `resize` par seconde : chacun réallouait les cibles du bloom (composer.setSize) et EFFAÇAIT les toiles 2D en réécrivant leur
+   largeur. Désormais UNE retaille par image (rAF), et une toile n'est retaillée que si sa taille change. */
+let retailleRaf=0;
+addEventListener('resize',()=>{cancelAnimationFrame(retailleRaf);retailleRaf=requestAnimationFrame(()=>{retailleRaf=0;if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) une fenêtre à 0 px (iframe du cadre cachée, rotation de WebView) : aspect infini, matrice NaN et toiles à 0 jusqu'au resize suivant — on attend une vraie taille */camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);if(slCv.width!==innerWidth||slCv.height!==innerHeight){slCv.width=innerWidth;slCv.height=innerHeight;}if(juiceCv&&(juiceCv.width!==innerWidth||juiceCv.height!==innerHeight)){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}});});
 const hemi=new THREE.HemisphereLight(0xba86b6,0x18162e,0.40);scene.add(hemi); // ambiance VICE CITY NUIT (assombrie) : ciel rose-mauve baissé, sol indigo — la pénombre gagne, les lumières de la caisse vivent (nommée : les BIOMES la pilotent)
 const sun=new THREE.DirectionalLight(0xff6a3c,1.45);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // BRAISE ROUGE-CORAIL : la lumière rasante peint le bitume en rouge sombre — golden hour devenue red hour
 const fill=new THREE.DirectionalLight(0x4f74e8,.24);fill.position.set(-200,-400,-100);scene.add(fill); // fill BLEU NÉON par en dessous : les ventres de caisse prennent la ville
@@ -49504,7 +49514,7 @@ window.dbgEco=function(a){if(a==='rejouer'&&gameOver){playViaGarage();}
     eco:ECO3,best:Math.round(best)};}; // les réglages ECO3
 window.dbgStep=function(n,ms){
   n=n||60;ms=ms||16;
-  for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());}
+  for(let k=0;k<n;k++){last=performance.now()-ms;loop(performance.now());cancelAnimationFrame(loop._raf);} /* (2026-11-07, finition) chaque appel manuel programmait une rAF de plus : dbgStep(60) laissait 61 boucles tourner */
   return window.dbgState();
 };
 window.CASHCAR_BUILD='2026-07-20 v5 (anti-flicker + anti-cache)'; // vérif version : taper CASHCAR_BUILD en console
@@ -53112,7 +53122,7 @@ const MOT_ANIM={
 const MOT_TU={value:0};let MOT_HORL=false;
 function motHorloge(){if(MOT_HORL)return;MOT_HORL=true;const t0=performance.now();(function f(){MOT_TU.value=(performance.now()-t0)/1000;requestAnimationFrame(f);})();}
 const MOT_TX={},MOT_URL={};
-function motToile(id,w){const M=MOTIFS[id];if(!M)return null;const cv=document.createElement('canvas');cv.width=cv.height=w;const x=cv.getContext('2d');
+function motToile(id,w){const M=MOTIFS[id];if(!M)return null;const cv=document.createElement('canvas');cv.width=cv.height=w;const x=cv.getContext('2d',{willReadFrequently:true}); /* (2026-11-07, finition) relue par motMasque */
   let h=7;for(let i=0;i<id.length;i++)h=Math.imul(h^id.charCodeAt(i),16777619);x.scale(w/MOT_W,w/MOT_W);M.f(x,motAlea(h));return cv;} // le même tirage à chaque fois : la peinture ne change pas d'une caisse à l'autre
 function motTex(id){if(MOT_TX[id])return MOT_TX[id];const cv=motToile(id,MOT_W);if(!cv)return null;const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return MOT_TX[id]=t;}
 function motUrl(id){if(MOT_URL[id]!=null)return MOT_URL[id];let u='';try{const cv=motToile(id,192);u=cv?cv.toDataURL('image/jpeg',.86):'';}catch(e){}return MOT_URL[id]=u;} /* (2026-11-05) 192 px : la grande pastille des cartes de la boutique reste nette */
@@ -65674,7 +65684,7 @@ function m2RevScene(i,texte,id,rf){ /* rf : une rareté imposée (l'essai d'un p
 /* LA CAISSE DANS SA PHOTO : sa boîte (les pixels presque opaques ; le reflet du sol verni, translucide, n'y entre pas), pour poser le
    sol, le projecteur, les phares et la toile sur ELLE et pas sur le cadre — une caisse longue et basse n'a pas ses roues où en a un camion */
 function m2RevBoite(url,cb){const im=new Image();let fait=false;const fin=function(b){if(!fait){fait=true;cb(b);}};
-  im.onload=function(){let b=null;try{const W=144,H=88,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');g.drawImage(im,0,0,W,H);
+  im.onload=function(){let b=null;try{const W=144,H=88,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0,W,H);
     const d=g.getImageData(0,0,W,H).data;let x0=W,x1=-1,y0=H,y1=-1;
     for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(d[(y*W+x)*4+3]>200){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
     if(x1-x0>8&&y1-y0>4)b={x0:x0/W,x1:(x1+1)/W,y0:y0/H,y1:(y1+1)/H};}catch(e){}fin(b);};
@@ -74596,7 +74606,7 @@ const RICH_BILLETS=[ // e = la couleur du billet (celle de TC_EUR) · sh = le re
   {v:'500',m:'CINQ CENTS EUROS', e:'#9c6bb2',sh:[.9,.7,1]}];
 const RICH_B100=4; // la place du 100 € (vert) : il habille aussi la liasse
 function richTexBillet(B){const t=richCv(512,236,function(x,w,h){
-  const W=128,H=59,S=document.createElement('canvas');S.width=W;S.height=H;const g=S.getContext('2d'),T=document.createElement('canvas'),tg=T.getContext('2d'),
+  const W=128,H=59,S=document.createElement('canvas');S.width=W;S.height=H;const g=S.getContext('2d'),T=document.createElement('canvas'),tg=T.getContext('2d',{willReadFrequently:true}),
     hx=function(s){return [parseInt(s.substr(1,2),16),parseInt(s.substr(3,2),16),parseInt(s.substr(5,2),16)];},
     mx=function(a,b,k){return [Math.round(a[0]+(b[0]-a[0])*k),Math.round(a[1]+(b[1]-a[1])*k),Math.round(a[2]+(b[2]-a[2])*k)];},
     cs=function(c){return 'rgb('+c[0]+','+c[1]+','+c[2]+')';},
@@ -76140,7 +76150,7 @@ function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?n
 const BQ_BAS={};
 /* (2026-11-07, Léo : « arrière de la voiture face à la gauche du cube, avant face au côté droit, complètement alignée au bas, sur TOUTES les voitures ») Chaque photo est mesurée UNE fois (réduite à 240 × 147). La photo contient un reflet de sol sous la voiture (alpha faible) : on s'appuie sur la CARROSSERIE seule (alpha > 230). L'échelle `--ech` est COMMUNE à toutes les voitures (1,2, réduite seulement si la caisse dépasserait 78 % de la hauteur du cube) : les longues restent longues, les petites petites (2026-11-07, Léo : « les tailles plus cohérentes entre elles »), son centre `--dx`, la pente de sa ligne de roues (droite des moindres carrés sur le bas des colonnes, bornée à 16°), posée sur le point le plus bas de la carrosserie (la roue la plus basse) : rien n'est coupé le redressement `--pen` (ligne des roues À PLAT, parallèle à l'arête du bas), cette droite coupe la photo (`--cl` à gauche, `--cr` à droite, entre `--gl` et `--gr` : le reflet et l'ombre cuite sous et autour des roues disparaissent), et sa hauteur redressée `--bas` est posée sur le sol. `--bas` est écrit EN DERNIER : tant qu'il manque, la photo est cachée (voir boites-blister.css). */
 function bqBas(x,url){const r0=BQ_BAS[url];if(r0){for(const k in r0)x.style.setProperty(k,r0[k]);return;}
-  const p=new Image();p.onload=function(){let r={'--ech':.86,'--dx':0,'--pen':'0deg','--cl':.84,'--cr':.84,'--bas':.84};try{const W=240,H=147,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.drawImage(p,0,0,W,H);const d=g.getImageData(0,0,W,H).data;
+  const p=new Image();p.onload=function(){let r={'--ech':.86,'--dx':0,'--pen':'0deg','--cl':.84,'--cr':.84,'--bas':.84};try{const W=240,H=147,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(p,0,0,W,H);const d=g.getImageData(0,0,W,H).data;
     let l=1e9,rr=-1,t=1e9,bt=-1;const bas=new Array(W).fill(-1);
     for(let i=0;i<W;i++)for(let j=H-1;j>=0;j--){if(d[(j*W+i)*4+3]>230){bas[i]=j;if(i<l)l=i;if(i>rr)rr=i;if(j>bt)bt=j;break;}}
     for(let i=l;i<=rr;i++)for(let j=0;j<H;j++){if(d[(j*W+i)*4+3]>230){if(j<t)t=j;break;}}
@@ -78721,7 +78731,7 @@ function burnPrepare(){ // à chaque départ : les essieux de l'arrière, les pn
    ça noircit sous les pneus, en dérapage ça dessine les DONUTS. Elle s'efface en ~45 s (alpha décrémenté une fois par seconde : la
    composition `destination-out` resterait bloquée par l'arrondi sur 8 bits). */
 function burnGommeInit(){
-  if(BURN.gom||!GAR.pod)return;const N=128,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
+  if(BURN.gom||!GAR.pod)return;const N=128,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d',{willReadFrequently:true}); /* (2026-11-07, finition) la toile est relue chaque seconde (getImageData) : Chrome la garde en mémoire vive, sans l'avertissement « willReadFrequently » */
   const tex=new THREE.CanvasTexture(cv);tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestFilter;tex.generateMipmaps=false;
   const m=new THREE.Mesh(new THREE.CircleGeometry(4.4,48),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,fog:false,opacity:.9}));
   m.rotation.x=-Math.PI/2;m.position.y=GAR.POD+.004;m.renderOrder=1;GAR.pod.add(m);
@@ -80589,7 +80599,7 @@ function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran
   if(HC.on&&now-HC.der<CAD.per-CAD.tol)return true;
   HC.on=true;HC.der=now;return false;}
 function loop(now){
-  requestAnimationFrame(loop);
+  loop._raf=requestAnimationFrame(loop); /* (2026-11-07, finition) l'identifiant : dbgStep annule l'image qu'un appel manuel programme (il empilait n boucles) */
   if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
   if(window.__introCouvre){loop._pn=now;last=now;return;} // (2026-10-22, Léo : « ça bug ») l'INTRO DU STUDIO couvre tout l'écran : dessous, le jeu ne calcule ni ne dessine rien (il faisait saccader le film, surtout sur un Mac chargé) — voir moteur/intro-161.js
   if(lierDemarrage(now)){loop._pn=now;last=now;return;} /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : les programmes de la 1re image se lient à côté, le jeu ne dessine pas encore — voir interface/vignette-moteur.js */
@@ -82812,7 +82822,7 @@ addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!ga
   if(document.hidden)try{enCoursPose();SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir · (2026-09-30) et la PARTIE en cours avec (enCoursPose)
   // (2026-09-30) au retour la partie continue : l'instantané part — SAUF contexte 3D perdu, que suit un rechargement (voir webglcontextlost) : il est alors le seul à porter la partie
   if(!document.hidden){let perdu=false;try{perdu=renderer.getContext().isContextLost();}catch(e){}if(!perdu)enCoursRetire();}
-  if(!document.hidden){loop._pn=0;loop._rebuildT=performance.now();} }); // retour d'onglet : la frame « absente » n'est pas une lenteur
+  if(!document.hidden){loop._pn=0;loop._rebuildT=performance.now();last=performance.now();} }); /* (2026-11-07, finition) `last` repart d'ici : la première image du retour vaut ~0 s au lieu des 50 ms plafonnés (le décor du menu ne saute plus d'un cran) */ // retour d'onglet : la frame « absente » n'est pas une lenteur
 // IMMERSION : plein écran + verrou PORTRAIT + veille désactivée. Les trois exigent un GESTE
 // utilisateur — on les redemande à chaque contact utile, et on ne râle jamais si elles sont refusées.
 let wakeLock=null;
@@ -85205,6 +85215,7 @@ window.dbgJouer=function(){const et={pendingScore:pendingScore,started:started,g
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
 try{plqDemarre();}catch(e){console.warn('plaque',e);} // (2026-10-17) LA PLAQUE : ses écrans, l'horloge du compte, et l'atelier au premier accueil (voir PLQ)
 try{bienvGuette();}catch(e){} // (2026-10-16) LA QUESTION DE BIENVENUE guette l'accueil (voir bienvMontre)
+addEventListener('dragstart',function(e){if(e.target&&e.target.tagName==='IMG')e.preventDefault();}); /* (2026-11-07, finition) sous Firefox sur l'ordi, `-webkit-user-drag:none` est ignoré : les photos de vitrine se laissaient glisser en fantôme à la souris */
 requestAnimationFrame(loop);
 })();
 </script>
