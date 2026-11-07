@@ -8930,7 +8930,6 @@ function fruitPick(rnd){ // tirage PONDÉRÉ par la fréquence (un brocoli reste
   return FRUIT_DEFS.length-1;
 }
 function mkFruit(i){ const g=new THREE.Mesh(fruitGeo(i),FRUIT_MAT);g.scale.setScalar(1.9);g.userData.fruit=i;return g; } // 1,15 → 1,9 : on les repère de loin · UN mesh par fruit
-function mkNitro(rnd){ return mkFruit(fruitPick(rnd)); }
 // POUVOIRS : grosses orbes rares — sphère de verre teinté + cœur brûlant + anneau qui tourne
 const pwrGeo=new THREE.SphereGeometry(1.5,18,14),pwrCoreGeo=new THREE.SphereGeometry(.6,12,10),
       pwrRingGeo=new THREE.TorusGeometry(2,.13,8,28);
@@ -9056,28 +9055,6 @@ let pigGroup=null,introD=false;
 const pigPinkM=new THREE.MeshPhongMaterial({color:0xff9ec4,emissive:0x7a2a48,emissiveIntensity:.14,shininess:220,specular:0xffffff,envMap:envTex,reflectivity:.3,combine:THREE.MixOperation});
 const pigDarkM=new THREE.MeshPhongMaterial({color:0xd66d98,shininess:130,specular:0xffd0e0});
 const pigEyeM=new THREE.MeshBasicMaterial({color:0x241018});
-function mkPig(){
-  const g=new THREE.Group();
-  const body=new THREE.Mesh(new THREE.SphereGeometry(.85,16,12),pigPinkM);
-  body.scale.set(1,.82,1.12);body.position.y=.78;g.add(body);
-  const snout=new THREE.Mesh(new THREE.CylinderGeometry(.2,.24,.2,12),pigDarkM);
-  snout.rotation.x=Math.PI/2;snout.position.set(0,.76,1.0);g.add(snout);
-  for(const sd of [-1,1]){
-    const ear=new THREE.Mesh(new THREE.ConeGeometry(.15,.3,8),pigPinkM);
-    ear.position.set(sd*.38,1.42,.3);ear.rotation.x=-.2;g.add(ear);
-    const eye=new THREE.Mesh(new THREE.SphereGeometry(.055,6,5),pigEyeM);
-    eye.position.set(sd*.3,.96,.9);g.add(eye);
-    for(const fz of [-1,1]){
-      const leg=new THREE.Mesh(new THREE.CylinderGeometry(.12,.14,.44,8),pigPinkM);
-      leg.position.set(sd*.4,.2,fz*.48);g.add(leg);
-    }
-  }
-  const slot=new THREE.Mesh(new THREE.BoxGeometry(.06,.05,.3),pigEyeM); // fente à pièces
-  slot.position.set(0,1.43,-.1);g.add(slot);
-  const tail=new THREE.Mesh(new THREE.TorusGeometry(.1,.032,6,12,4.6),pigDarkM); // queue en tire-bouchon
-  tail.position.set(0,.95,-1.0);tail.rotation.y=Math.PI/2;g.add(tail);
-  return g;
-}
 /* ⚠ PLUS DE TIRELIRE AU MENU (2026-09-25, user, capture à l'appui : « c'est quoi cette chose ? »). Le largage sur le
    cochon a été retiré des parties le 2026-09-05, mais le FOND du menu le rejouait encore : la caisse suspendue à 13 m
    au-dessus d'une tirelire rose, que la caméra montrait de haut et en gros plan — méconnaissable. Le menu montre
@@ -9304,18 +9281,6 @@ const heartTex=(function(){ // cœur rose (COMÈTE)
   c.fill();
   return new THREE.CanvasTexture(cv);
 })();
-function mkFruitS(){ // un fruit au hasard : pomme, orange ou citron
-  const kinds=[[0xff4030,.34,0x207020],[0xffa020,.36,0x805010],[0xffe040,.30,0x807010]];
-  const k=kinds[Math.floor(Math.random()*3)];
-  const g=new THREE.Group();
-  const b=new THREE.Mesh(new THREE.SphereGeometry(k[1],10,8),
-    new THREE.MeshPhongMaterial({color:k[0],shininess:120,specular:0xffffff,envMap:envTex,reflectivity:.25}));
-  if(k[0]===0xffe040)b.scale.set(1,.8,1.25);
-  g.add(b);
-  const st=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.16,5),new THREE.MeshPhongMaterial({color:k[2]}));
-  st.position.y=k[1];g.add(st);
-  return g;
-}
 function mkCaneS(){ // la canne du gentleman
   const g=new THREE.Group();
   const wood=new THREE.MeshPhongMaterial({color:0x6b4a26,shininess:80,specular:0xd0b090});
@@ -9349,22 +9314,6 @@ function mkIngotS(){ // lingot d'or
 function mkDiamS(){ // diamant bleu vif brillant
   return new THREE.Mesh(new THREE.OctahedronGeometry(.22),
     new THREE.MeshPhongMaterial({color:0x55c8ff,emissive:0x1560ff,emissiveIntensity:.7,shininess:400,specular:0xffffff,envMap:envTex,reflectivity:.9,transparent:true,opacity:.92}));
-}
-function mkAstroS(){ // le passager clandestin de la fusée
-  const g=new THREE.Group();
-  const suit=new THREE.MeshPhongMaterial({color:0xf2f2f6,shininess:60,specular:0xdddddd});
-  const body=new THREE.Mesh(new THREE.BoxGeometry(.36,.44,.24),suit);g.add(body);
-  const helm=new THREE.Mesh(new THREE.SphereGeometry(.19,10,8),suit);helm.position.y=.38;g.add(helm);
-  const visor=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),
-    new THREE.MeshPhongMaterial({color:0x182030,shininess:300,specular:0xffffff,envMap:envTex,reflectivity:.6}));
-  visor.position.set(0,.38,.10);g.add(visor);
-  const pack=new THREE.Mesh(new THREE.BoxGeometry(.28,.34,.14),new THREE.MeshPhongMaterial({color:0xc8ccd4}));
-  pack.position.set(0,.02,-.2);g.add(pack);
-  for(const sd of [-1,1]){
-    const arm=new THREE.Mesh(new THREE.BoxGeometry(.1,.36,.1),suit);arm.position.set(sd*.26,.02,0);arm.rotation.z=sd*.5;g.add(arm);
-    const leg=new THREE.Mesh(new THREE.BoxGeometry(.11,.38,.11),suit);leg.position.set(sd*.1,-.42,0);g.add(leg);
-  }
-  return g;
 }
 function signatureBoom(lvl){
   const toss=(m,sp)=>{ // éjection « logique » : vers l'extérieur et vers le haut, en tournoyant
@@ -9625,21 +9574,6 @@ function juiceSplash(pos,col,power){
     spawnP(juicePool,pos.x,pos.y+.3,pos.z,
       Math.cos(a)*Math.cos(el)*sp,2+Math.sin(el)*sp*.9,Math.sin(a)*Math.cos(el)*sp,.22+Math.random()*.26);
   }
-}
-function juiceSfx(power){ // le « ploc » d'une goutte qui éclate — court, mat, jamais envahissant
-  if(!AC||!SND.sfx||!MASTER)return;
-  try{
-    const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();
-    o.type='sine';
-    o.frequency.setValueAtTime(520+power*300,t);
-    o.frequency.exponentialRampToValueAtTime(110,t+.10);   // la chute de hauteur = la goutte qui s'écrase
-    f.type='lowpass';f.frequency.value=1700;f.Q.value=.7;
-    g.gain.setValueAtTime(.0001,t);
-    g.gain.exponentialRampToValueAtTime(.05+power*.035,t+.008);
-    g.gain.exponentialRampToValueAtTime(.0001,t+.14);
-    o.connect(f);f.connect(g);g.connect(MASTER);o.start(t);o.stop(t+.16);
-    noiseBurst(.05,.022+power*.02,2400);                    // le voile d'éclaboussure
-  }catch(e){}
 }
 function shatterCloud(pos,power){
   const n=Math.floor(18+power*28);
@@ -9975,7 +9909,7 @@ function musicAnalyse(){
     musicAnaEl.connect(musicAna); // l'analyseur n'a pas de sortie : rien de ce qui passe ici ne s'entend
   }catch(e){}
 }
-function musicGraph(){} // (v4 : plus de graphe Web Audio pour la bande-son — gardée vide pour les anciens appelants)
+ // (v4 : plus de graphe Web Audio pour la bande-son — gardée vide pour les anciens appelants)
 function playMusic(url,opt){opt=opt||{};
   const el=musicElGet();
   let abs=url;try{abs=new URL(url,location.href).href;}catch(e){}
@@ -10824,11 +10758,6 @@ const ENGINES=[
    l'atelier aux siens, et les deux ne peuvent pas diverger.
    ⚠ NE RIEN METTRE ICI QUI DÉPENDE DE `AC`, de `loop`, de `mode` ou d'un global de partie.
    ------------------------------------------------------------------------------------------ */
-function engCurve9(k){ // la courbe de saturation, dupliquée ici pour que le bloc se suffise
-  const n=1024,c=new Float32Array(n);
-  for(let i=0;i<n;i++){const x=i*2/n-1;c[i]=Math.tanh(x*k)/Math.tanh(k);}
-  return c;
-}
 /* L'ONDE DU PALIER : les harmoniques de `h` deviennent une PeriodicWave. Mise en cache SUR la
    fiche (`e.w`) — 30 moteurs × un tableau de Fourier, autant ne le construire qu'une fois. */
 function engWave9(AC9,e){
@@ -11333,16 +11262,6 @@ function blip(){ // pièce : ding cristallin qui monte avec le combo
     o2b.type='sine';o2b.frequency.value=f*2;g2b.gain.value=.035;
     g2b.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.11);
     o2b.connect(g2b);g2b.connect(MASTER);o2b.start();o2b.stop(AC.currentTime+.13);
-  }catch(e){}
-}
-function nBlip(){
-  if(!AC)return;
-  try{
-    const o=AC.createOscillator(),g=AC.createGain();
-    o.type='triangle';o.frequency.setValueAtTime(300,AC.currentTime);
-    o.frequency.exponentialRampToValueAtTime(900,AC.currentTime+.15);
-    g.gain.value=.08;g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+.18);
-    o.connect(g);g.connect(MASTER);o.start();o.stop(AC.currentTime+.2);
   }catch(e){}
 }
 function boostSnd(){
@@ -12848,14 +12767,6 @@ function newTrack(){
 // console : dbgSaut() → franchit le portail tout de suite (niveau suivant), comme le vrai portail le fait
 window.dbgSaut=function(){ if(!started||gameOver||PARK.on)return 'pas de course en cours';
   runStats.zones++;SURV.pBase+=s;newTrack();return window.dbgNiveau(); };
-function die(){
-  if(PARK.on){parkRespawn();return;} // FREESTYLE : la mort n'existe pas ici, on respawn
-  if(gameOver)return;
-  dieSnd();
-  flashEl.style.opacity=.7;setTimeout(function(){flashEl.style.opacity=0;},260);
-  shake=Math.max(shake,.8);
-  endGame();
-}
 function resetGame(){
   clearBoom();
   money=START_CASH; // on repart avec la mise de départ, jamais à sec
