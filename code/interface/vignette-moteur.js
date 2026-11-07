@@ -370,7 +370,8 @@ const CHAUFFE_R={t:0,rt:null,fait:false,div:0,ap:0,saute:0,rejoue:-1,refait:0}; 
 const CHARGEMENT={on:!/[?&]chargement=0\b/.test(location.search),fini:false,E:[],t0:0,ms:[]};
 if(!CHARGEMENT.on)CHARGEMENT.fini=true;
 function chargeEtape(nom,fn){ if(CHARGEMENT.fini){fn();return;} CHARGEMENT.E.push([nom,fn]); }
-function chargementPas(){ const e=CHARGEMENT.E.shift();if(!e){CHARGEMENT.fini=true;return;}
+function chargementPas(){ if(!CHARGEMENT.lay&&window.__ccSondeTache){CHARGEMENT.lay=1;const a9=performance.now();try{void document.body.offsetHeight;}catch(_){}try{if(window.__ccSondeCrea)window.__ccSondeCrea('layout-1er',a9,performance.now()-a9);}catch(_){}} /* (2026-11-07, OPTI ULTIME : « le 1er style/layout du DOM entier, natif, 640-1340 ms ? ») pendant le guet seulement : un layout forcé avant la 1re étape, chronométré */
+  const e=CHARGEMENT.E.shift();if(!e){CHARGEMENT.fini=true;return;}
   const t9=performance.now();try{e[1]();}catch(x){console.warn('chargement · '+e[0],x);try{window.__ccNote('panne','chargement '+e[0]+' · '+(x&&x.message||x),x&&x.stack&&String(x.stack).split('\n')[1]);}catch(_){}}
   CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);try{if(window.__ccSondeTache)window.__ccSondeTache(e[0],t9,performance.now()-t9);}catch(_){} /* (2026-11-06) la SONDE du serpent (debut-corps.html) apprend quelle étape recouvre un trou */if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
 /* (2026-11-07, OPTI ULTIME) UNE ÉTAPE EN TRANCHES : `mk` rend un générateur (newTrackG) ; sur téléphone, chaque image du chargement en mène `ms` millisecondes (PISTE_TRANCHE : la route rend la main entre deux tranches)

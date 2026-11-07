@@ -42,6 +42,9 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   if(process.env.EMPREINTE){ /* EMPREINTE=1 : de quoi comparer deux pistes bâties (même ?pistegraine) : dbgPas() + dbgPiste() + les étapes */
     console.log('EMPREINTE',await ev(`(function(){var W=[window].concat(Array.prototype.slice.call(window.frames));for(var i=0;i<W.length;i++){try{if(W[i].dbgPas)return JSON.stringify({pas:W[i].dbgPas(),piste:W[i].dbgPiste?W[i].dbgPiste():null,etapes:W[i].dbgChargement?W[i].dbgChargement().ms.map(function(e){return e[0]}):null});}catch(e){return 'ERR '+e.message}}return 'rien';})()`));
   }
+  if(process.env.DOM){ /* DOM=1 : les enfants directs du body, avec ce qui coûte un layout : affichés (display), cachés autrement (visibility/opacity/hors cadre), nombre de descendants */
+    console.log('DOM',await ev(`(function(){var W=[window].concat(Array.prototype.slice.call(window.frames));for(var i=0;i<W.length;i++){try{var w=W[i];if(!w.dbgChargement)continue;var o=[],tot=w.document.body.getElementsByTagName('*').length;Array.prototype.forEach.call(w.document.body.children,function(e){var c=w.getComputedStyle(e),r=e.getBoundingClientRect(),n=e.getElementsByTagName('*').length;if(n>=15||c.display!=='none'&&n>=5)o.push([e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(e.className&&typeof e.className==='string'?'.'+e.className.split(' ')[0]:''),c.display,c.visibility,c.opacity,c.position,Math.round(r.left)+','+Math.round(r.top)+' '+Math.round(r.width)+'x'+Math.round(r.height),n].join('|'));});return JSON.stringify({total:tot,w:w.innerWidth,h:w.innerHeight,top:o});}catch(e){return 'ERR '+e.message}}return 'rien';})()`));
+  }
   const r=JSON.parse(String(await ev(expr)||'{}'));
   console.log('SONDE',JSON.stringify({t:r.t,gameReady:r.ready,serpentEncorLa:r.serpent,trous:(r.sonde||[]).length}));
   (r.sonde||[]).forEach(x=>console.log('  ',(x.t/1000).toFixed(1)+' s','trou',x.d,'ms · JS',x.js,'· GL',x.gl,x.pile?'('+x.pile+')':'','· fil',x.fil));
