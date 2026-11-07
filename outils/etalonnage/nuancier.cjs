@@ -47,7 +47,18 @@ function norm(h){h=h.toLowerCase();if(h.length===4)h='#'+h[1]+h[1]+h[2]+h[2]+h[3
 /* les zones url(...) : on n'y touche pas */
 function zonesUrl(t){const z=[];const r=/url\(/g;let m;while((m=r.exec(t))){let i=m.index+4,p=1;for(;i<t.length&&p;i++){if(t[i]==='(')p++;else if(t[i]===')')p--;}z.push([m.index,i]);}return z;}
 function dansUrl(z,i){return z.some(function(a){return i>=a[0]&&i<a[1];});}
-function rattache(t,compte){const z=zonesUrl(t);return t.replace(RE,function(m,h,i){if(dansUrl(z,i))return m;const k=norm('#'+h),j=MAP[k];if(!j)return m;if(compte)compte[k]=(compte[k]||0)+1;return 'var('+j+')';});}
+/* (2026-11-07, Sacha : « débloque ») LE LOGO DE L'ACCUEIL EST INTOUCHABLE (garde-charte.sh fige l'empreinte de ses lignes) : le rattachement du
+   07/11 avait passé ses ors en jetons, l'empreinte a changé et Vercel a refusé toutes les publications (le site est resté en v1286). On saute
+   donc les mêmes lignes que la garde : la balise du logo, `.mTitle .lg`, et chaque règle qui COMMENCE par `.lg` ou `@keyframes lgShine`,
+   jusqu'à son accolade fermante. */
+function zonesLogo(t){const z=[],L=t.split('\n');let p=0,d=0,dans=false,deb=0;const acc=function(l){return (l.match(/\{/g)||[]).length-(l.match(/\}/g)||[]).length;};
+  for(const l of L){const fin=p+l.length;
+    if(dans){d+=acc(l);if(d<=0){dans=false;z.push([deb,fin]);}}
+    else if(/class="lg (gold|grad)" data-t="(CASH|CAR)"/.test(l)||/\.mTitle \.lg/.test(l))z.push([p,fin]);
+    else if(/^[ \t]*(\.lg[.:, {]|@keyframes lgShine)/.test(l)){d=acc(l);if(d>0){dans=true;deb=p;}else z.push([p,fin]);}
+    p=fin+1;}
+  if(dans)z.push([deb,t.length]);return z;}
+function rattache(t,compte){const z=zonesUrl(t).concat(zonesLogo(t));return t.replace(RE,function(m,h,i){if(dansUrl(z,i))return m;const k=norm('#'+h),j=MAP[k];if(!j)return m;if(compte)compte[k]=(compte[k]||0)+1;return 'var('+j+')';});}
 function somme(c){return Object.values(c).reduce(function(a,b){return a+b;},0);}
 if(mode==='--compter'){const dir=path.join(__dirname,'..','..','code','css');const L=files.length?files:fs.readdirSync(dir).filter(function(f){return f.endsWith('.css');}).map(function(f){return path.join(dir,f);});
   let tot=0;for(const f of L){const c={};rattache(fs.readFileSync(f,'utf8'),c);const n=somme(c);tot+=n;if(n)console.log(String(n).padStart(4),path.basename(f));}console.log('total',tot);}

@@ -763,10 +763,10 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
   .lg::before{content:attr(data-t);position:absolute;left:0;top:0;width:100%;z-index:-1;color:#4a2a00;
     transform:translateY(.09em);
     text-shadow:0 .015em 0 #6e3f00,0 .03em 0 #5c3300,0 .05em 0 #472700,0 .07em 0 #331c00,0 .16em .3em rgba(0,0,0,.7)}
-  .lg.gold{background:linear-gradient(180deg,var(--au0) 0%,var(--orB) 28%,var(--au2) 52%,var(--orS) 74%,var(--orB) 96%);
+  .lg.gold{background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 0 .35em rgba(255,200,80,.5))}
-  .lg.grad{background:linear-gradient(180deg,#fff3c0,var(--or) 40%,#ff8a3d 72%,var(--neoM));
+  .lg.grad{background:linear-gradient(180deg,#fff3c0,#ffd75e 40%,#ff8a3d 72%,#ff3ec8);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 0 .35em rgba(255,110,190,.45))}
   .lg::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;
@@ -6395,9 +6395,9 @@ html.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{background:none!importa
    une bande ambrée sombre à l'horizon de la lettre, puis l'or qui remonte) ; CAR : un coucher de soleil (crème, or, orange, corail, rose,
    violet au pied) ; le TITRE porte un double halo (or serré, rose large). Le reflet qui passe (lgShine) devient plus lent et plus franc. Le logo grandit (debout
    jusqu'au bord de la colonne ; couché 64 px) et, couché, descend au quart de l'écran. Rien d'autre ne bouge. */
-html.hub body #mHome.acc2 .mTitle .lg.gold{background:linear-gradient(180deg,#fffef6 0%,#fff2bd 16%,#ffd84f 34%,var(--neoA) 48%,#8f4c00 60%,#c57800 70%,#ffcf48 84%,#fff1ba 100%);
+html.hub body #mHome.acc2 .mTitle .lg.gold{background:linear-gradient(180deg,#fffef6 0%,#fff2bd 16%,#ffd84f 34%,#ffb000 48%,#8f4c00 60%,#c57800 70%,#ffcf48 84%,#fff1ba 100%);
   -webkit-background-clip:text;background-clip:text}
-html.hub body #mHome.acc2 .mTitle .lg.grad{background:linear-gradient(180deg,#fff5c8 0%,var(--or) 20%,#ff9d3a 40%,#ff5d5a 58%,#ff2f8e 76%,#b13cff 100%);
+html.hub body #mHome.acc2 .mTitle .lg.grad{background:linear-gradient(180deg,#fff5c8 0%,#ffd75e 20%,#ff9d3a 40%,#ff5d5a 58%,#ff2f8e 76%,#b13cff 100%);
   -webkit-background-clip:text;background-clip:text} /* ⚠ PAS de filter sur un .lg : il ferait passer l'extrusion brune (::before) devant la face d'or — la lueur est portée par le TITRE */
 html.hub body #mHome.acc2 .mTitle .lg::after{background:linear-gradient(105deg,transparent 36%,rgba(255,255,255,.95) 50%,transparent 64%) 180% 0/240% 100% no-repeat;
   -webkit-background-clip:text;background-clip:text;animation:lgShine 5.2s ease-in-out infinite}
@@ -6569,8 +6569,8 @@ html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:44px!important}
 html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:translateY(3px) scale(.97)!important}
 /* LE LOGO D'AVANT (Sacha : « le logo CASH CAR est trop rose, remets l'ancien ») : « la brillance du logo » (Léo, 10/10, 98b905c — CAR
    en coucher de soleil, du corail au violet) est neutralisée ici : les dégradés et le reflet d'origine (.lg.gold / .lg.grad / lgShine) */
-html.hub:not(.poki) body #mHome.acc2 .mTitle .lg.gold{background:linear-gradient(180deg,var(--au0) 0%,var(--orB) 28%,var(--au2) 52%,var(--orS) 74%,var(--orB) 96%);-webkit-background-clip:text;background-clip:text}
-html.hub:not(.poki) body #mHome.acc2 .mTitle .lg.grad{background:linear-gradient(180deg,#fff3c0,var(--or) 40%,#ff8a3d 72%,var(--neoM));-webkit-background-clip:text;background-clip:text}
+html.hub:not(.poki) body #mHome.acc2 .mTitle .lg.gold{background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%);-webkit-background-clip:text;background-clip:text}
+html.hub:not(.poki) body #mHome.acc2 .mTitle .lg.grad{background:linear-gradient(180deg,#fff3c0,#ffd75e 40%,#ff8a3d 72%,#ff3ec8);-webkit-background-clip:text;background-clip:text}
 html.hub:not(.poki) body #mHome.acc2 .mTitle .lg::after{background:linear-gradient(105deg,transparent 32%,rgba(255,255,255,.95) 50%,transparent 68%) 180% 0/240% 100% no-repeat;
   -webkit-background-clip:text;background-clip:text;animation:lgShine 3.4s ease-in-out infinite}
 html.hub:not(.poki) body #mHome.acc2 .mTitle .lg.grad::after{animation-delay:0s}
@@ -11035,6 +11035,81 @@ html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#g
 html:not(.c6):not(.ux8g).bqIndus body #garage#garage #gAct#gAct>#gBqBtn[data-e="desequip"]{background:#fff;color:var(--bqInk);box-shadow:inset 0 0 0 2px var(--bqInk)}
 html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer .mChev .pxi{color:#ffd23a!important;background-color:#ffd23a!important;opacity:.8}
 </style>
+<style id="bq-voitures">
+/* ===== LES BOÎTES DES VOITURES (2026-11-07, Sacha : « retravaille bien les boîtes dans la boutique pour les voitures, là ça rend mal » · « elles donnent pas envie, ça peut être beaucoup mieux ») =====
+   VU AU BANC (390 × 844 et 844 × 390) : chaque carte était TROIS objets qui ne se tenaient pas — une étiquette de prix penchée posée SUR la
+   vitre (21 étiquettes grises de travers, des MISSION roses qui criaient plus fort que les voitures), la boîte de verre plus large que la carte,
+   et une plaque de nom plus étroite, décalée à gauche. La voiture ne prenait que 60 % de la carte ; la rareté ne se lisait qu'à un filet.
+   UNE carte = UN objet, comme un mur de vitrines de collection :
+   · en haut, la NICHE : un fond de studio à la couleur de la rareté (clair en haut, plus profond en bas, une lumière qui tombe sur la voiture,
+     une ombre sous le rebord du haut : elle est creusée) — gris pour les communes, bleu les rares, violet les épiques, or les légendaires, nuit
+     et rose les secrètes ; la boîte de verre (vitrine-miniature.js, resserrée sur la caisse) posée dedans, à pleine largeur ;
+   · en bas, la PLAQUE à l'encre du jeu, cousue à la niche par un filet de la rareté : le nom (deux lignes réservées, toutes les cartes d'une
+     rangée ont la même hauteur), puis le prix — vert billet si la banque le couvre, lavande sourde s'il fait encore rêver (plus le rouge, qui
+     dit « danger » dans le nuancier), or pour l'euro, une coche verte « À TOI », ÉQUIPÉE en vert vif, le cadenas rose et sa jauge pour une mission ;
+   · la carte choisie se soulève, cerclée du magenta de la boutique ; le doigt l'enfonce un peu ;
+   · la LÉGENDAIRE a le seul mouvement : un reflet qui traverse la niche dorée toutes les cinq secondes (rien en palier 0 et 1, rien en
+     mouvement réduit).
+   Seulement les cartes des caisses avec la vitrine (html.vtOn … .bqK.vo) : peintures, ailes, traînées, figures ont leur système. */
+html.vtOn body #gBq #gBqPan .bqRail:has(>.bqK.vo){column-gap:12px;row-gap:16px;align-items:stretch}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo{--nh:66cqw;container-type:inline-size;width:calc((100% - 12px) / 2);display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
+  height:auto;min-height:0;margin:0;padding:0;background:none;border:0;border-radius:5px;box-shadow:0 6px 12px -8px rgba(23,19,43,.45);transform:none;translate:none;scale:none;overflow:visible;
+  transition:translate .16s ease-out,scale .12s ease-out,box-shadow .16s ease-out}
+/* la niche */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo::before{content:"";display:block;position:absolute;left:0;right:0;top:0;width:auto;min-width:0;max-width:none;aspect-ratio:auto;height:var(--nh);z-index:0;margin:0;padding:0;
+  border:0;border-radius:5px 5px 0 0;transform:none;opacity:1;pointer-events:none;mask-image:none;-webkit-mask-image:none;
+  background:radial-gradient(ellipse 62% 55% at 50% 40%,rgba(255,255,255,.9),rgba(255,255,255,0) 72%),
+    linear-gradient(180deg,color-mix(in srgb,var(--rc) 22%,#fff) 0%,color-mix(in srgb,var(--rc) 46%,var(--bqFond2)) 58%,color-mix(in srgb,var(--rc) 72%,var(--kl)) 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.5),inset 0 9px 10px -7px rgba(23,19,43,.4),inset 0 -1px 0 rgba(23,19,43,.25)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo::after{display:none}
+/* la boîte de verre, à pleine largeur, son socle à 2,5 % du fond de la niche (la photo est calée sur le bas : le socle touche son bord) */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo>.vtI{left:0;width:100%;top:calc(var(--nh) - 61.11cqw - 2.5cqw);transform:none;filter:none}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo:active>.vtI,html.vtOn body #gBq #gBqPan .bqK.vo.vo.sel>.vtI{transform:none;filter:none}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKr{display:none} /* la rareté se lit à la niche et à l'intertitre de la famille : plus de banderole en travers du socle */
+/* la plaque : le nom */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKn{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:flex-start;box-sizing:border-box;
+  flex:1 1 auto;margin:var(--nh) 0 0;padding:8px 9px 2px;min-height:0;max-height:none;width:auto;max-width:none;
+  background:var(--bqInk);color:var(--tx);border:0;border-top:2px solid var(--rc);border-radius:0;box-shadow:none;transform:none;
+  font-size:8px;line-height:11px;letter-spacing:.03em;text-align:left;white-space:normal;text-wrap:balance;overflow:hidden;text-shadow:none}
+/* la plaque : le prix, ou l'état */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp{position:relative;inset:auto;z-index:1;display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:5px;box-sizing:border-box;
+  margin:0;padding:3px 9px 9px;width:auto;max-width:none;height:auto;min-height:0;background:var(--bqInk);color:var(--cash);border:0;border-radius:0 0 5px 5px;box-shadow:none;
+  transform:none;rotate:none;translate:none;font-size:8px;line-height:10px;font-weight:400;letter-spacing:0;text-shadow:none;white-space:nowrap}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp .pxi{--pxs:1;margin:0;filter:none;opacity:1}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.eur{color:var(--or)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.trop .bqKp.pc{color:var(--tx3)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.trop .bqKp.pc .pxi{opacity:.45}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq{color:var(--cashL)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq::before{content:"";display:block;flex:none;box-sizing:content-box;width:7px;height:3px;margin:0 1px 3px 1px;padding:0;border:solid currentColor;border-width:0 0 2px 2px;border-radius:0;background:none;box-shadow:none;transform:rotate(-45deg);position:static}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq.eqp{color:var(--cash)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp:is(.defi,.sec){color:var(--bqMis,#b07bff)} /* MISSION : le violet du bouton MISSIONS du garage (Sacha, 07/11), le même sur tous les rayons */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.sec{color:var(--neoM)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp .jg{display:block;width:28px;height:3px;margin-left:auto;margin:0;background:rgba(255,255,255,.18);border:0;border-radius:2px;overflow:hidden}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp .jg u{display:block;height:100%;background:var(--bqMis,#b07bff)}
+/* LIMITÉE, + TRAÎNÉE ARC-EN-CIEL : un petit fanion dans le coin de la niche */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKl{position:absolute;left:4px;top:4px;right:auto;bottom:auto;z-index:3;margin:0;padding:2px 4px 1px;transform:none;rotate:none;
+  background:var(--bqInk);color:var(--or);font-size:6px;line-height:7px;border-radius:2px;box-shadow:none}
+/* la carte choisie, le doigt, la souris */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.sel{translate:0 -3px;scale:none;box-shadow:0 0 0 2px var(--bqAcc),0 12px 16px -8px rgba(23,19,43,.5)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.sel .bqKn{box-shadow:none}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo:active{scale:.97}
+@media (hover:hover){html.vtOn body #gBq #gBqPan .bqK.vo.vo:not(.sel):hover{translate:0 -2px;box-shadow:0 10px 14px -8px rgba(23,19,43,.5)}}
+/* LA LÉGENDAIRE : la niche dorée, la plaque brun-or, le reflet qui passe */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire::before{background:radial-gradient(ellipse 62% 55% at 50% 40%,rgba(255,255,255,.95),rgba(255,255,255,0) 72%),
+  linear-gradient(180deg,var(--au0) 0%,var(--au1) 52%,var(--au3) 100%)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire :is(.bqKn,.bqKp){background:var(--auO)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire .bqKn{color:var(--au0);border-top-color:var(--au2)}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire.trop .bqKp.pc{color:var(--orS)} /* le prix qui fait rêver, en or sourd sur la plaque brune */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire::after{content:"";display:block;position:absolute;left:0;right:0;top:0;width:auto;min-width:0;max-width:none;aspect-ratio:auto;height:var(--nh);z-index:2;margin:0;opacity:1;transform:none;
+  border-radius:5px 5px 0 0;pointer-events:none;mask-image:none;-webkit-mask-image:none;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.6) 50%,transparent 60%) no-repeat;background-size:300% 100%;animation:bqvBrille 5s ease-in-out infinite}
+@keyframes bqvBrille{0%,60%{background-position:100% 0}100%{background-position:0 0}}
+html[data-palier="0"].vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire::after,html[data-palier="1"].vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire::after{display:none}
+@media (prefers-reduced-motion:reduce){html.vtOn body #gBq #gBqPan .bqK.vo.vo.b-legendaire::after{display:none}html.vtOn body #gBq #gBqPan .bqK.vo.vo{transition:none}}
+/* LA SECRÈTE : la niche de nuit, une lueur rose derrière la silhouette */
+html.vtOn body #gBq #gBqPan .bqK.vo.vo:is(.b-secrete,.m2sec)::before{background:radial-gradient(ellipse 62% 55% at 50% 45%,rgba(255,62,200,.35),rgba(255,62,200,0) 72%),linear-gradient(180deg,var(--k4),var(--k1))}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo:is(.b-secrete,.m2sec) .bqKn{color:var(--neoM);border-top-color:var(--neoM)}
+</style>
 <style id="bqClassique">
 /* ===== BOUTIQUE : LES AILES ET LES TRAÎNÉES EN RAYONS CLASSIQUES (2026-11-07, Sacha : « fais un truc classique, deux par deux, présente correctement les ailes avec la voiture du joueur, joliment, avec des beaux éclairages » · « les traînées, on les met par ligne ») =====
    Le script : interface/boutique-classique.js (bcRail, bcMaj). Ce que pose cette feuille, rayons AILES et TRAÎNÉES seulement (#gBqPan.bcOn) :
@@ -11306,6 +11381,88 @@ html[data-reduced-motion="1"] body #nxVit b{animation:none!important}
 /* la salle blanche : les ombres portées étaient gris-bleu (rgba(20,23,28,…) et rgba(30,40,55,…)) — elles prennent l'encre du jeu */
 html.bqIndus body #garage #gBqCats button.on{box-shadow:0 8px 18px rgba(23,19,43,.22)}
 html.bqIndus body #garage #gBqTete .bqArg{box-shadow:0 0 0 1px var(--bqFil),0 8px 20px rgba(23,19,43,.07)}
+</style>
+<style id="achatBoites">
+/* ===== LA PAGE ACHAT EN BOÎTES (2026-11-07, Sacha : « la boutique du début avec le bouton achat est un peu en dessous du reste, retravaille-la et ajoute les boîtes qu'on a déjà mises dans la boutique » · « pas dans la boutique blanche : dans le bouton de l'écran d'accueil ») — voir shopRender (interface/photos-films.js) =====
+   La page ACHAT de l'accueil (#mShop) garde sa nuit violette ; ses caisses passent dans les BOÎTES de la boutique (la même image de vitrine que
+   le rayon ACHAT, vitrinePhoto). Avant : deux grandes cartes par rangée, deux caisses à l'écran debout. Maintenant :
+   · une boîte = une NICHE éclairée à la couleur de sa rareté (le doré des légendaires), la boîte de verre posée au fond, et dessous une PLAQUE
+     sombre : le nom, puis le prix en or (À TOI : en vert, une coche) ; trois par rangée debout comme couché (colonne de droite) ;
+   · l'offre à la une : la grande boîte qui flotte devant ses rayons dorés, puis le nom, la traînée incluse, le prix et ACHETER (inchangés).
+   Des classes à elles (.shBoite, .shBx…) : rien de la boutique blanche (#gBqPan .bqK) n'est touché. Allégé (palier 0 et 1) et mouvement
+   réduit : ni flottement, ni rayons qui tournent, ni entrée en cascade. */
+
+/* LA GRILLE : trois boîtes par rangée */
+html #mShop .shGrille{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 12px}
+
+/* LA BOÎTE : la carte d'avant (cadre biseauté, fond laqué, filet rose) s'efface, la niche et la plaque prennent sa place */
+html #mShop .shGrille .shCase.shBoite{display:flex;flex-direction:column;gap:0;padding:0;overflow:visible;clip-path:none;background:none;box-shadow:none;
+  animation:shBxIn .38s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(.12s + var(--i,0) * 45ms)}
+@keyframes shBxIn{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+
+/* LA NICHE : un renfoncement sombre, éclairé d'en haut par un cône à la couleur de la rareté ; le sol en reçoit la lueur */
+#mShop .shBx{position:relative;display:block;aspect-ratio:1/.8;overflow:hidden;isolation:isolate;border-radius:3px 3px 0 0;
+  background:radial-gradient(70% 30% at 50% 90%,color-mix(in srgb,var(--rc) 46%,transparent),transparent 72%),
+    linear-gradient(180deg,color-mix(in srgb,var(--rc) 16%,#1a1236) 0,#110b24 68%,#0b0718 100%);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc) 32%,rgba(200,184,255,.12)),inset 0 2px 0 color-mix(in srgb,var(--rc) 75%,transparent),inset 0 -14px 18px -10px rgba(0,0,0,.6)}
+#mShop .shBx::before{content:"";position:absolute;z-index:-1;left:10%;right:10%;top:0;height:94%;pointer-events:none;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 40%,transparent),transparent 88%);clip-path:polygon(36% 0,64% 0,100% 100%,0 100%);opacity:.6}
+/* la boîte de verre : au fond de la niche, son socle entier (à 108 %, comme dans la boutique, la niche rognait les deux coins du socle) ; elle entre en fondu */
+#mShop .shBx .shBxI{position:absolute;left:1%;bottom:5%;width:98%;height:auto;aspect-ratio:720/440;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;
+  opacity:0;transform-origin:50% 88%;transition:opacity .22s ease-out,transform .16s cubic-bezier(.3,1.6,.5,1);filter:drop-shadow(0 4px 4px rgba(0,0,0,.5))}
+#mShop .shBx.vt .shBxI{opacity:1}
+/* `?vitrine=0` : la photo de catalogue d'avant, dans la même niche */
+#mShop .shBx.photo .shBxI{aspect-ratio:auto;left:-8%;width:116%;bottom:8%}
+/* en attendant son image : un socle vide qui respire, pas un trou */
+#mShop .shBx::after{content:"";position:absolute;left:16%;width:68%;bottom:13%;height:15%;border-radius:2px;transform:skewX(-14deg);pointer-events:none;
+  background:linear-gradient(180deg,#2a2e38,#0b0c10);box-shadow:0 0 0 1px color-mix(in srgb,var(--rc) 40%,transparent);transition:opacity .2s;animation:shAtt 1.1s var(--ease) infinite alternate}
+#mShop .shBx.vt::after{opacity:0;animation:none}
+
+/* LA PLAQUE : le nom (deux lignes au plus), puis le prix, posé en bas ; le filet du dessous à la couleur de la rareté */
+#mShop .shBxPl{position:relative;flex:1;display:flex;flex-direction:column;gap:6px;padding:7px 6px 8px;border-radius:0 0 3px 3px;
+  background:linear-gradient(180deg,#1d1538,#0d0820);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 3px 0 var(--rc)}
+#mShop .shBxN{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;
+  font-family:var(--pix);font-weight:400;font-size:8px;line-height:11px;letter-spacing:.3px;color:#fff;text-shadow:0 1px 0 #000}
+/* un mot long (`.lg`, voir shopRender) dans une boîte étroite (couché sur iPhone 8 : 96 px) : 7 px, sans approche — L'ÉTERNELLE tient sur une ligne au lieu de « L'ETERNELL / E » */
+#mShop .shGrille .shBoite{container-type:inline-size}
+@container (max-width:104px){#mShop .shBxN.lg{font-size:7px;letter-spacing:0}}
+#mShop .shBxP{display:flex;align-items:center;gap:5px;margin-top:auto;font-family:var(--pix);font-size:10px;line-height:1;white-space:nowrap;
+  color:var(--au1);text-shadow:0 1px 0 var(--auO),0 0 8px var(--auG)}
+#mShop .shBxP .pxi{--pxs:1;color:currentColor}
+#mShop .shBoite.aToi .shBxP{color:var(--neoV);text-shadow:none}
+/* la dorée (légendaire) : la plaque brun et or de la boutique */
+#mShop .b-legendaire .shBxPl{background:linear-gradient(180deg,#5a3a00,#24160a)}
+#mShop .b-legendaire .shBxN{color:#ffe9a8}
+/* le chat : la traînée arc-en-ciel incluse, une bande aux couleurs de la traînée (comme sa carte dans la boutique) */
+#mShop .shBxArc{align-self:flex-start;max-width:100%;box-sizing:border-box;padding:3px 4px 2px;font-family:var(--pix);font-style:normal;font-size:7px;line-height:1.35;color:#14171c;
+  background:linear-gradient(90deg,#ff4a4a,#ffa024 22%,#ffe23a 40%,#46f07a 60%,#3bb4ff 80%,#a066ff)}
+/* toucher une boîte : elle s'enfonce un peu sous le doigt, comme dans la boutique */
+#mShop .shBoite:is(:active,.appui) .shBxI{transform:scale(.965)}
+
+/* L'OFFRE À LA UNE : la grande boîte qui flotte devant ses rayons, sa lueur au sol (le cadre qui scintille, le nom, le prix, ACHETER : inchangés) */
+#mShop .shUneBoite .shBx.big{grid-area:photo;width:100%;aspect-ratio:720/440;overflow:visible;border-radius:0;box-shadow:none;
+  background:radial-gradient(48% 16% at 50% 90%,color-mix(in srgb,var(--rc) 55%,transparent),transparent 75%)}
+#mShop .shUneBoite .shBx.big::before{left:50%;top:52%;right:auto;width:118%;height:auto;aspect-ratio:1;translate:-50% -50%;clip-path:none;opacity:1;
+  background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--rc) 24%,transparent) 0 6deg,transparent 6deg 18deg);
+  -webkit-mask:radial-gradient(closest-side,#000 25%,transparent 72%);mask:radial-gradient(closest-side,#000 25%,transparent 72%);animation:k4Rayons 40s linear infinite}
+#mShop .shUneBoite .shBx.big .shBxI{left:-2%;bottom:0;width:104%;animation:k4Flotte 2.4s var(--ease) infinite alternate}
+#mShop .shUneBoite .shBx.big::after{left:14%;width:72%;bottom:8%;height:17%}
+
+/* COUCHÉ : l'offre à gauche, les boîtes à droite, trois par rangée (la colonne en tenait deux grandes) */
+@media (orientation:landscape) and (max-height:540px){
+  html #mShop>.shGrille{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 10px}
+  html #mShop .shUneBoite .shBx.big{align-self:center}
+  /* la grande boîte prend plus de place (1,25 contre 1 : +20 % de large) ; le nom passe à 13 px pour que POP-TART tienne dans sa colonne,
+     et la bande arc-en-ciel perd son approche : deux lignes au lieu de trois, ARC-EN-CIEL jamais coupé */
+  html #mShop .shUneCadre.shUneBoite{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+  html #mShop .shUneBoite .shUneTx b{font-size:13px}
+  html #mShop .shUneBoite .shArc{letter-spacing:0;padding:4px 6px 3px}
+}
+
+/* ALLÉGÉ (palier 0 et 1) et MOUVEMENT RÉDUIT : la page ne bouge plus d'elle-même */
+html:is([data-palier="0"],[data-palier="1"]) #mShop .shUneBoite .shBx.big .shBxI,html:is([data-palier="0"],[data-palier="1"]) #mShop .shUneBoite .shBx.big::before{animation:none}
+html[data-reduced-motion="1"] #mShop .shGrille .shBoite,html[data-reduced-motion="1"] #mShop .shBx .shBxI,html[data-reduced-motion="1"] #mShop .shBx::before,html[data-reduced-motion="1"] #mShop .shBx::after{animation:none!important}
+@media (prefers-reduced-motion:reduce){#mShop .shGrille .shBoite,#mShop .shBx .shBxI,#mShop .shBx::before,#mShop .shBx::after{animation:none!important}}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -51131,7 +51288,7 @@ const M2R={lv:'',sonne:false,ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:fa
    Le tableau lisible (et le calcul des parties) : `node outils/pass-table-md.cjs` -> passation/PASS-MISSIONS-TABLE.md. Console (case 3) : dbgPass().
    RÈGLES DE LA TABLE (Léo, points 6 à 9) : chaque mission demande une VRAIE action (aucune ne se remplit toute seule : « RÉUSSIS 10 MISSIONS » et le doublon `maps2` sont SORTIS,
    voir PASS_SORTIES) ; les collections comptent hors cadeaux (variante `T` de la mesure) ; jamais deux caisses proches ; une petite peinture de base tôt. */
-const PASS_ON=!/[?&]pass=0\b/.test(location.search);
+const PASS_ON=/[?&]pass=1\b/.test(location.search); /* (2026-11-07 au soir, Sacha : « remet l'ancien système de mission en mode liste ») la liste d'avant par défaut ; LE VISEUR de Léo reste entier derrière ?pass=1 */
 /* ---- LES MESURES DE LA PARTIE : LE SEUL ENDROIT À CORRIGER (Léo ne connaît pas la durée d'une partie ; ces chiffres sont DÉDUITS du dépôt) ----
    Sources : passation/ECONOMIE.md §1-2 (mesure au banc : 15-75 s tenues, 267 -> 2 456 $ la partie, « un humain moyen ~500-1 000 $ par partie au début »), outils/eco-debut-modele.cjs
    (profils de GAMEPLAY : moyen 45-90 s, la moitié des pièces ; fort 120-240 s, 75 % des pièces, frénésie), journal « LES MISSIONS v2 » (1 000 km/h en ~50 s, 55 d'aura/s au pilote auto).
@@ -52998,21 +53155,35 @@ window.dbgEssaiCaisse=function(src,fiche,vues){
    s'achète AVEC la traînée arc-en-ciel (voir chatPackI) ; la vitrine et la fenêtre d'achat le disent par une pastille aux couleurs de la traînée, « INCLUSE »
    (le prix couvre les deux). Rien tant qu'on a déjà le chat. Le style : `.shArc` dans <style id="achatPop">. */
 function shArcHtml(i,a){return (i===chatPackI()&&!a)?'<i class="shArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL INCLUSE')))+'</i>':'';}
-// LA VITRINE : l'offre à la une (la premium marquée `une`) et la grille des autres, par rareté
+/* ===== LA PAGE ACHAT EN BOÎTES (2026-11-07, Sacha : « la boutique du début avec le bouton achat est un peu en dessous du reste, retravaille-la et ajoute les boîtes qu'on a déjà mises dans la boutique » · « pas dans la boutique blanche : dans le bouton de l'écran d'accueil ») =====
+   La page ACHAT de l'accueil garde sa nuit violette, mais ses caisses sont rangées comme dans la boutique : chacune dans SA BOÎTE de verre, la
+   même image que le rayon ACHAT (vitrinePhoto de vitrine-miniature.js : socle, caisse, capot de verre), posée dans une niche éclairée à la couleur
+   de sa rareté, avec dessous une plaque sombre : le nom et le prix. En haut, l'offre à la une dans une grande boîte ; dessous, trois boîtes par
+   rangée debout, dans l'ordre du rayon ACHAT (bqAchat : l'offre de lancement, puis de la moins chère à la plus chère). Toucher une boîte ouvre
+   la fenêtre d'achat (shopPop), inchangée. Les images arrivent une par une (shopPhotoTour). Le style : achat-boites.css.
+   `?vitrine=0` : la photo de catalogue d'avant, dans la même niche. */
+const SHB_GRAND=720; /* la grande boîte de l'offre (314 px de large debout) : rendue en 720, comme l'ancienne photo de l'offre — à 480 (vitLarg d'un téléphone) elle était floue sur un écran ×3 */
+function shBoiteVt(){return typeof VITM!=='undefined'&&VITM.on;}
+function shBoiteCle(i,big){return shBoiteVt()?vitrineCle(i,false,carOwned(i),big?SHB_GRAND:0):i;} /* la clé de l'image de la boîte dans PHOTO.cache (une caisse À TOI : sa vitrine « sortie de sa boîte ») */
+function shBoiteImg(i,big){const u=PHOTO.cache[shBoiteCle(i,big)];return u?'<img class="shBxI" src="'+u+'" alt="" draggable="false">':'';}
 function shopRender(){
   const une=document.getElementById('shUne'),gr=document.getElementById('shGrille');if(!une||!gr)return;
-  const RAR={leg:'LÉGENDAIRE',epi:'ÉPIQUE',rar:'RARE'};let hU='',hG=''; // (2026-09-26) toutes LÉGENDAIRES : la boutique est leur seule porte
-  for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i))continue; // (2026-10-06) une caisse RETIRÉE quitte aussi la vitrine
-    const ph=PHOTO.cache[i],img=ph?'<img src="'+ph+'" alt="">':'<i class="pxi pxi-voiture shAttente"></i>',a=carOwned(i);if(!ph)shopPhotoVeut(i); // (revue GAMEPLAY) plus de carPhoto EN SYNCHRONE : 13 photos d'un bloc = 1,1 s de gel sur PC (2-3 s sur iPhone) à la 1re ouverture
-    if(u.une&&!hU&&!a){ // (charte v4) la VITRINE DE LÉGENDE : cadre d'or qui scintille autour (`.shUne`), le décor dedans (`.shUneCadre`)
-      hU='<div class="shUneCadre"><div class="shPhoto big">'+img+'</div>'
-        +'<div class="shUneTx"><b>'+insec(TR(CARS[i].name))+'</b>'+shArcHtml(i,a)+'</div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
-        +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn'+(a?' aToi':'')+'">'+pxi(a?'coche':'panier')+TR(a?'À TOI':'ACHETER')+'</span></div></div>';
-      une.setAttribute('data-car',i);continue;}
-    hG+='<div class="shCase '+(u.rar||'rar')+'" data-m="shopSoon" data-car="'+i+'" role="button"><span class="shRare">'+TR(RAR[u.rar||'rar'])+'</span>'
-      +'<div class="shPhoto">'+img+'</div><b class="shNom">'+TR(CARS[i].name)+'</b><span class="shPrix'+(a?' aToi':'')+'">'+(a?TR('À TOI'):eurTxt(u.eur))+'</span></div>';
-  }
-  une.innerHTML=hU;gr.innerHTML=hG;
+  let hU='',hG='',n=0;
+  bqAchat().forEach(function(i){if(!CARS[i])return;const u=CAR_UNLOCK[i],a=carOwned(i),big=!!u.une&&!hU&&!a,ri=rarInfo(carRar(i)),im=shBoiteImg(i,big),nom=insec(sansAcc(TR(CARS[i].name))),
+      bx='<span class="shBx'+(big?' big':'')+(im?' vt':'')+(shBoiteVt()?'':' photo')+'">'+im+'</span>';
+    if(!im)shopPhotoVeut(big?'u'+i:i); /* (revue GAMEPLAY) jamais d'image EN SYNCHRONE : la file les prend une par une ('u' : la grande boîte) */
+    if(big){ /* L'OFFRE À LA UNE : la grande boîte, dans le cadre qui scintille (`.shUne`) */
+      hU='<div class="shUneCadre shUneBoite b-'+ri.id+'" style="--rc:'+ri.c+'">'+bx
+        +'<div class="shUneTx"><b>'+nom+'</b>'+shArcHtml(i,a)+'</div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
+        +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn">'+pxi('panier')+TR('ACHETER')+'</span></div></div>';
+      une.setAttribute('data-car',i);return;}
+    const px=a?pxi('coche')+sansAcc(TR('À TOI')):eurTxt(u.eur),
+      lg=Math.max.apply(null,sansAcc(TR(CARS[i].name)).split(/\s+/).map(function(w){return w.length;}))>=10; /* un mot de 10 lettres et plus (L'ÉTERNELLE) : la plaque l'écrit plus petit quand la boîte est étroite, au lieu de le couper en deux (achat-boites.css) */
+    hG+='<div class="shCase shBoite b-'+ri.id+(a?' aToi':'')+'" data-m="shopSoon" data-car="'+i+'" role="button" style="--rc:'+ri.c+';--i:'+Math.min(n++,8)+'"'
+      +' aria-label="'+(nom+' · '+(a?sansAcc(TR('À TOI')):eurTxt(u.eur))).replace(/"/g,'')+'">'+bx
+      +'<span class="shBxPl"><b class="shBxN'+(lg?' lg':'')+'">'+nom+'</b>'+(i===chatPackI()&&!a?'<i class="shBxArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</i>':'')
+      +'<span class="shBxP">'+px+'</span></span></div>';});
+  une.innerHTML=hU;gr.innerHTML=hG;if(!hU)une.removeAttribute('data-car');
 }
 /* LA FENÊTRE D'ACHAT (2026-10-01, Sacha : « il faut que la fenêtre de la voiture sorte de la page en mode pop-up pour valider la
    transaction »). Toucher une caisse de la vitrine la fait SORTIR de la grille : sa carte quitte sa place (un trou reste dans la
@@ -53134,15 +53305,23 @@ function shopPopFerme(){
    attend en pulsant (une voiture pixel), et les photos se prennent une par une ENTRE deux images, après la transition d'écran — puis
    restent en cache pour la session. */
 const SHQ={q:[],on:false}; // (essayé : remonter la caisse d'avant UNE fois à la fin de la file au lieu d'après chaque photo — MESURÉ pire, 0,8 s contre 0,3 : gardé tel quel)
+/* (2026-11-07, LA PAGE ACHAT EN BOÎTES, voir shopRender) la file prend d'abord l'IMAGE DE LA BOÎTE de chaque caisse (vitrinePhoto, rangée sous
+   shBoiteCle), puis, une fois sa boîte posée, sa photo de catalogue (carPhoto) : la fenêtre d'achat (shopPop) la montre dès son ouverture, comme
+   avant. Une entrée de la file : `i` = la boîte de la caisse i, `'u'+i` = sa GRANDE boîte (l'offre à la une, SHB_GRAND), `'p'+i` = sa photo de catalogue. */
 function shopPhotoVeut(i){if(SHQ.q.indexOf(i)<0)SHQ.q.push(i);if(!SHQ.on){SHQ.on=true;setTimeout(shopPhotoTour,380);}}
 function shopPhotoTour(){
   const sc=document.getElementById('mShop');
-  if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} // hors de la boutique (ou en course) : la file attend la prochaine ouverture
-  const i=SHQ.q.shift();
-  const pose=function(u){if(u)sc.querySelectorAll('[data-car="'+i+'"] .shPhoto,[data-car="'+i+'"].shUne .shPhoto').forEach(function(ph){if(ph.querySelector('img'))return;const at=ph.querySelector('.shAttente');if(at)at.remove();
-    const im=document.createElement('img');im.alt='';im.src=u;im.className='shArrive';ph.insertBefore(im,ph.firstChild);});};
-  if(PHOTO.cache[i])pose(PHOTO.cache[i]);else try{carPhoto(i,pose);}catch(e){} // (OPTIMISATION) la photo s'encode hors du fil (toBlob) : elle se pose à son arrivée
-  setTimeout(shopPhotoTour,40); // une photo, puis on rend la main : l'écran respire entre deux
+  if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} /* hors de la page (ou en course) : la file attend la prochaine ouverture */
+  const e=SHQ.q.shift(),t=typeof e==='string'?e[0]:'',i=t?+e.slice(1):e;
+  if(t==='p'){if(!PHOTO.cache[i])try{carPhoto(i,function(){});}catch(_){}setTimeout(shopPhotoTour,40);return;}
+  const big=t==='u',vt=shBoiteVt(),k=shBoiteCle(i,big);
+  const pose=function(u){if(!u)return;
+    sc.querySelectorAll((big?'#shUne':'#shGrille ')+'[data-car="'+i+'"] .shBx').forEach(function(b){let im=b.querySelector('img');if(im&&im.getAttribute('src')===u)return;
+      if(!im){im=document.createElement('img');im.className='shBxI';im.alt='';im.draggable=false;b.appendChild(im);}
+      im.onload=function(){b.classList.add('vt');};im.src=u;if(im.complete&&im.naturalWidth)b.classList.add('vt');}); /* la boîte n'apparaît qu'une fois l'image décodée (fondu, voir achat-boites.css) */
+    if(vt&&!PHOTO.cache[i])shopPhotoVeut('p'+i);};
+  if(PHOTO.cache[k])pose(PHOTO.cache[k]);else try{if(vt)vitrinePhoto({i:i,own:carOwned(i),w:big?SHB_GRAND:0},pose);else carPhoto(i,pose);}catch(_){} /* (OPTIMISATION) l'image s'encode hors du fil (toBlob) : elle se pose à son arrivée */
+  setTimeout(shopPhotoTour,40); /* une image, puis on rend la main : l'écran respire entre deux */
 }
 function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if(d.p&&!shopOwned(cat,d.id)&&d.p<=bank())n++;return n;}
 /* ---------------- LA BOUTIQUE ---------------- */
@@ -77333,14 +77512,14 @@ function bqVitreBriseSur(el){if(!el)return;const r=el.getBoundingClientRect();if
 /* (2026-11-07, Léo : « fais encore mieux, plus vendeur, que Sacha kiffe : son idée de boîte n'est pas dégueu, mais mon rendu est cool ; faire différent des autres cosmétiques ») DEUX STYLES, UN MOTEUR : `leo` (par défaut) = la vitrine de Sacha (la caisse photographiée sous l'angle exact de la boîte, son socle NOIR VERNI et son vrai reflet) habillée du langage de Léo — le QUADRILLAGE du sol en fils clairs, le fond de studio lumineux teinté de la rareté, les arêtes franches à la couleur de la rareté, l'ombre sous les roues ; `sacha` (`?vitrine=sacha`) = le socle noir verni d'origine. */
 /* (2026-11-07, Léo : « la plaque noire, c'est un bloc de route du jeu ; on essaie sur une branche ») TROISIÈME STYLE, `route` (par défaut) : le socle est un BLOC DE LA ROUTE DU JEU — son béton brut (asphTex, BETON), ses flancs, la ligne jaune du milieu, les lignes de bord — rendu en 3D par la même caméra que la caisse (vitBloc), avec le verre, le fond de studio et les arêtes du style `leo` ; `?vitrine=leo` = socle noir verni + quadrillage, `?vitrine=sacha` = l'original. */
 /* (2026-11-07, Léo : « oui, sur le main ») LA VITRINE BLOC DE ROUTE EST ALLUMÉE PAR DÉFAUT ; `?vitrine=0` = le cube CSS d'avant. */
-const VITM={on:!/[?&]vitrine=0\b/.test(location.search),style:/[?&]vitrine=sacha\b/.test(location.search)?'sacha':/[?&]vitrine=route\b/.test(location.search)?'route':'leo',ver:7, /* (2026-11-07, Léo : « laisse le socle noir de Sacha ; je ne vois plus les vitres ») le style par défaut redevient `leo` (socle noir verni + quadrillage, verre de Léo) ; le bloc de route : `?vitrine=route` */
+const VITM={on:!/[?&]vitrine=0\b/.test(location.search),style:/[?&]vitrine=sacha\b/.test(location.search)?'sacha':/[?&]vitrine=route\b/.test(location.search)?'route':'leo',ver:8, /* (2026-11-07, Sacha : « les boîtes donnent pas envie ») ver 8 : la boîte de verre resserrée sur la caisse (L, P, Hc, po, remp ci-dessous) — les photos d'avant (ver 7) ne servent plus ; */ /* (2026-11-07, Léo : « laisse le socle noir de Sacha ; je ne vois plus les vitres ») le style par défaut redevient `leo` (socle noir verni + quadrillage, verre de Léo) ; le bloc de route : `?vitrine=route` */
   az:.52,el:.36,fov:17,       /* l'objectif : 30° d'azimut (on voit l'avant et le côté droit), 21° de plongée (le dessus du socle et le toit), objectif long */
-  L:5.3,P:2.6,Hc:1.95,         /* le capot de verre : longueur (axe de la caisse), profondeur, hauteur — en mètres du jeu */
-  ph:.42,po:.30,              /* le socle : hauteur, débord autour du verre */
-  remp:.9,                    /* la caisse prend au plus 90 % de la longueur du verre (et 84 % de sa hauteur, 90 % de sa profondeur) */
+  L:4.5,P:2.2,Hc:1.5,          /* le capot de verre : longueur (axe de la caisse), profondeur, hauteur — en mètres du jeu. (2026-11-07, Sacha : « ça peut être beaucoup mieux ») resserré sur la caisse : 5,3 × 2,6 × 1,95 laissait la voiture à 60 % de la carte, elle en prend ~80 % ; la plus longue est réduite pour tenir */
+  ph:.42,po:.16,              /* le socle : hauteur, débord autour du verre (0,30 avant : un rebord noir épais) */
+  remp:.97,                   /* la caisse prend au plus 97 % de la longueur du verre (et 84 % de sa hauteur, 90 % de sa profondeur) */
   cam:null,rt:null,fit:null};
 function vitLarg(){return (typeof ALLEGE!=='undefined'&&ALLEGE)?480:640;}
-function vitrineCle(i,sec,own){return 'vt'+VITM.ver+({leo:'L',route:'R'}[VITM.style]||'')+'_'+vitLarg()+'_'+i+(sec?'s':own?'o':'');} /* s : la silhouette d'une SECRÈTE · o : une caisse À TOI, sortie de sa boîte */
+function vitrineCle(i,sec,own,w){return 'vt'+VITM.ver+({leo:'L',route:'R'}[VITM.style]||'')+'_'+(w||vitLarg())+'_'+i+(sec?'s':own?'o':'');} /* s : la silhouette d'une SECRÈTE · o : une caisse À TOI, sortie de sa boîte · w : une largeur à part (2026-11-07, la grande boîte de la page ACHAT : 720, voir shopRender) */
 function vitrineFile(i,sec,own,cb,el){const k=vitrineCle(i,sec,own);if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
   PHQ.q.push([k,cb,{vt:1,i:i,sec:!!sec,own:!!own,k:k},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* les huit coins d'une boîte [x0,x1]×[y0,y1]×[z0,z1] */
@@ -77379,11 +77558,11 @@ function vitBloc(rc){const a=VITM.L/2+VITM.po,b=VITM.P/2+VITM.po,ph=VITM.ph,G=ne
 function vitBlocJette(G){if(!G)return;if(G.parent)G.parent.remove(G);G.traverse(function(o){if(o.geometry)o.geometry.dispose();const m=o.material;(Array.isArray(m)?m:m?[m]:[]).forEach(function(q){if(q.map&&q.map!==ASPH_TEX)q.map.dispose();q.dispose();});});}
 function vitHex(c,a){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6;return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';}
 function vitMix(c,k){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6,f=function(v){return Math.round(v+(255-v)*k);};return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')';}
-function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitrineCle(i,sec,own);
+function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitrineCle(i,sec,own,o.w); /* o.w : la largeur de l'image (par défaut vitLarg) */
   if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
   if(started&&!gameOver){if(cb)cb(null);return null;}
   if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
-  const T9=VITM.ms={i:i,t0:performance.now()},W=vitLarg(),H=Math.round(W*440/720);
+  const T9=VITM.ms={i:i,t0:performance.now()},W=o.w||vitLarg(),H=Math.round(W*440/720);
   photoStudio();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc0=carGroup.scale.clone(),vis=carGroup.visible;
   if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl;
