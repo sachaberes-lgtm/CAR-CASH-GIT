@@ -32,6 +32,7 @@ def main():
         elif a=='--json':OPT['json']=av[i+1];i+=2
         elif a=='--shots':OPT['shots']=av[i+1];i+=2
         elif a=='--js':OPT['js'].append(av[i+1]);i+=2
+        elif a=='--ab':OPT['ab']=1;i+=1
         elif a=='--cpu':OPT['cpu']=int(av[i+1]);i+=2
         else:i+=1
     http=G.libre();port=G.libre();RAC=os.path.dirname(os.path.dirname(ICI));VP=os.path.join(RAC,'VERSION PRINCIPALE')
@@ -58,13 +59,18 @@ def main():
         c.call('Page.navigate',url=base+'/index.html?garde=1&palier=2&tel=1&pistegraine=777'+OPT['qs'])
         if not G.attend(c,"!!window.__gameReady&&typeof dbgState==='function'",240):print('jeu ne demarre pas');return 2
         t=time.time()
-        while time.time()-t<60 and not c.ev("document.body.className.indexOf('inGarage')>=0||(function(){var e=[].slice.call(document.querySelectorAll('.mPlay')).filter(function(x){return x.getBoundingClientRect().width>0})[0];return !!e})()"):
-            G.tap(c,195,300);c.pump(1.2)
+        while time.time()-t<120 and not c.ev("!window.__introCouvre&&(window.__imagesJeu|0)>5"):
+            G.tap(c,195,300);c.pump(1.5)
         G.attend(c,"dbgPrebati().etat==='pret'",60);c.pump(8) # la chauffe du menu passe d'abord
         c.call('Emulation.setCPUThrottlingRate',rate=OPT['cpu'])
         print(c.ev('JSON.stringify(dbgHC())'))
         for j in OPT['js']:print('JS>',j[:60],'=>',c.ev(j))
         if OPT['js']:return 0
+        if OPT.get('ab'):
+            c.ev("GAR&&0;1");c.pump(1)
+            for nom,v in (('A-cull',1),('B-nocull',0),('C-cull',1)):
+                c.ev("dbgMenuCull(%d);1"%v);c.pump(2);c.shot('/tmp/p5/ab-%s.png'%nom);print(nom,c.ev("JSON.stringify(dbgMenuCull())"))
+            return 0
         R.append(lire(c,'1-accueil'))
         # garage
         print(c.ev("(function(){try{if(!garageOn)openGarage();}catch(e){return String(e)}return 'ok'})()") ) if False else None
