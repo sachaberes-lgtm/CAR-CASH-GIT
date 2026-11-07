@@ -241,11 +241,13 @@ function cyMonuPrevoir(S,sQ,K,r,D){
       P.push({x:S.x[i]+px*u,z:S.z[i]+pz*u,y:ys,u:u,e:e});}
     CY.arche={P:P,tx:tx,tz:tz,px:px,pz:pz,W:(44+r()*10)*K4,T:(34+r()*8)*K4,cx:S.x[i],cz:S.z[i],yb:yb,rise:rise,Ua:Ua};}
   const h0=sQ.amphi0,h1=sQ.amphi1;
+  const libre=(x,z,r9,top)=>{const R2=(r9*1.1+ROAD_HALF+8)**2;for(let j=0;j<S.n;j++){const dx=S.x[j]-x,dz=S.z[j]-z;if(dx*dx+dz*dz<R2&&top>S.y[j]-10)return false;}return true;}; /* (2026-11-07) rien sous aucune dalle de la route plus haut que 10 m sous son bitume (l'épaisseur 5,2 m + 4,8 m de garde) */
   if(h0!=null&&h1!=null){const N=Math.round(PAL.b('cyChem',300)*(D?D.chem:1));let n=0; // (2026-10-20) × le nombre de cheminées tiré
     for(let k=0;k<4000&&n<N;k++){const s9=h0-120+r()*(h1-h0+380),i=Math.max(0,Math.min(S.n-2,Math.round(s9/S.ds))),sg=r()<.5?-1:1,tx=S.tx[i],tz=S.tz[i];
       if(S.zH[i]<.35)continue;const wF=S.wF[i]*(1-sg*S.as[i]),t=.08+r()*.82,lat=wF+t*S.wW[i]+(r()-.5)*30,x=S.x[i]-tz*sg*lat+tx*(r()-.5)*20,z=S.z[i]+tx*sg*lat+tz*(r()-.5)*20;
       const hg=cyHauteur(x,z),ht=(28+r()*r()*95)*Math.pow(K,.3),rad=ht*(.15+r()*.09);
       if(hg+ht>S.y[i]-6&&lat<ROAD_HALF+rad+40)continue; // la règle d'or
+      if(!libre(x,z,rad,hg+ht))continue; /* (2026-11-07, Sacha : « génération aléatoire parfaite ») la règle d'or contre TOUTE la route : l'échantillon i ne voit que sa route — MESURÉ (graine 8, soir) une cheminée de l'amphithéâtre perçait de 4 m la dalle du raccourci suivant (s 3210-3236), et tuait */
       CY.chem.push({x:x,z:z,y:hg-4,h:ht+4,r:rad,a:r()*6.28,v:r()<.5?0:1});n++;}}
 }
 const CY_MVS=['uniform sampler2D uTZ,uTS;uniform vec4 uZD,uSD;uniform vec2 uZN,uSN;varying vec3 vW,vN;varying vec4 vA,vB;','#ifdef USE_COLOR','varying vec3 vCol;','#endif','#include <fog_pars_vertex>',
@@ -503,7 +505,7 @@ function cyTun2Heurt(p,C){const S=CY.S;if(!C||!S)return '';let bi=-1,bd=1e18;
   if(a+1.2<B.max&&h<=B.lo+.8&&B.sol)return f<-8&&a>ROAD_HALF+.5?'canyon':''; // sous le sol : le fond du GOUFFRE tue ; les trottoirs de la galerie, non (une pose au ras du bord)
   return 'paroi';}
 window.dbgTunnel=function(k,o){const C=CY.tunT;if(!C)return 'pas de tunnel';if(!C.v2)return {v2:0,i0:C.i0,i1:C.i1};
-  if(k==='regle'){if(o)Object.assign(CY_T2L,o);cyMonuments(CY.job);return {regle:Object.assign({},CY_T2L),tunnel:!!CY.tunT};} // (banc) changer la lumière cuite et tout rebâtir
+  if(k==='regle'){if(o)Object.assign(CY_T2L,o);cyMonuments(CY.seed>>>0);return {regle:Object.assign({},CY_T2L),tunnel:!!CY.tunT};} // (banc) changer la lumière cuite et tout rebâtir
   if(k==='heurt')return (o||[]).map(function(q){const f=cyT2Fr(L-q[0],{}),p={x:f.x-f.tz*q[1],y:f.y+q[2],z:f.z+f.tx*q[1]};return q.join('/')+' '+(cyTun2Heurt(p,C)||'libre');}); // (banc) [[m avant le bout, côté, hauteur], …] → ce que la coque fait d'une caisse en vol là
   if(k==='test'){ // LA SALLE : aucun relief au-dessus de la moitié basse de la coque (le sol du gouffre, le bas du dôme) — sinon il traverse
     let n=0,pire=-1e9,ou=[];for(let s9=L-CY_TUN2.ev0;s9<=C.s1;s9+=8){const o=cyT2Fr(s9,T2F),k9=cyT2k(s9);cyT2Prof(k9,T2P);

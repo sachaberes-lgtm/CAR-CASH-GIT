@@ -13,7 +13,7 @@ function cyMineMats(){if(CY_MINE.m)return CY_MINE.m;
   const f=new THREE.MeshBasicMaterial({color:0xffc04a,fog:false,side:THREE.DoubleSide});f.dispose=function(){};
   CY_MINE.m=m;CY_MINE.f=f;return m;}
 function cyMine(iv){const S=CY.S;if(!S)return null;const i0=Math.max(1,Math.round(iv[0]/S.ds)),i1=Math.min(S.n-2,Math.round(iv[1]/S.ds));if(i1-i0<8)return null;
-  const M=CY_MINE,L0=ROAD_HALF+M.g,MH=M.MH,FL=-THICK-.6,rg=mulberry32(0x3157E^(CY.job||0)),P=[],C=[],I=[],FP=[],FI=[];
+  const M=CY_MINE,L0=ROAD_HALF+M.g,MH=M.MH,FL=-THICK-.6,rg=mulberry32((0x3157E^(CY.seed>>>0))>>>0) /* (2026-11-07) la graine de la piste, plus le numéro de construction */,P=[],C=[],I=[],FP=[],FI=[];
   const DM=CY.deco&&CY.deco.mine,cad=DM?DM.cad:M.cad,tq=DM?DM.tq:2; // (2026-10-20, LE DÉCOR TIRÉ) les cadres tous les 16 ou 24 m, une torche par cadre ou un sur deux, les filons, le bois
   const at=(i,l,h)=>[S.x[i]-S.tz[i]*l,S.y[i]+h,S.z[i]+S.tx[i]*l];
   // LES TORCHES (sur un cadre sur deux, en quinconce) : la lumière se cuit dans les blocs voisins
@@ -174,7 +174,7 @@ function cyMonuments(seed){
   const D9=CY.deco;
   {const S=CY.S,N9=Math.round(PAL.b('cyArbres',700)*(D9?D9.arbres.k:1)),rg=mulberry32((seed^0x7A33)>>>0),L9=[]; // (2026-10-20) × la ripisylve tirée
    if(S)for(let k=0;k<N9*6&&L9.length<N9;k++){const i=Math.floor(rg()*(S.n-1));if(S.zS[i]>.5)continue;const sg=rg()<.5?-1:1,lat=S.wR[i]+3+rg()*26,tx=S.tx[i],tz=S.tz[i],x=S.x[i]-tz*sg*lat,z=S.z[i]+tx*sg*lat,o9={};
-     const h=cyHauteur(x,z,o9);if(o9.eau||o9.rk>.3||h>S.F[i]+6||TUN2_ON&&i*S.ds>L-CY_TUN2.ev0-80)continue;const ht=(9+rg()*13)*(1+.4*rg());if(h+ht>S.y[i]-THICK-4)continue;L9.push([x,h-.5,z,ht,rg()*6.28]);}
+     const h=cyHauteur(x,z,o9);if(o9.eau||o9.rk>.3||h>S.F[i]+6||TUN2_ON&&i*S.ds>L-CY_TUN2.ev0-80)continue;const ht=(9+rg()*13)*(1+.4*rg());if(h+ht>S.y[i]-THICK-4)continue;if(!cyLibre(x,z,ht*.3,h+ht))continue; /* (2026-11-07) contre TOUTE la route (cyLibre) */L9.push([x,h-.5,z,ht,rg()*6.28]);}
    const gA=D9&&D9.arbres.nm!=='vert'?(CY_ARB.g[D9.arbres.nm]||(CY_ARB.g[D9.arbres.nm]=cyArbreGeo(CY_ARB[D9.arbres.nm]))):(CY.gArb||(CY.gArb=cyArbreGeo())); // les peupliers : verts, dorés d'automne, sombres
    if(L9.length){const im=new THREE.InstancedMesh(gA,M9.t,L9.length),mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),ax=new THREE.Vector3(0,1,0);
      L9.forEach(function(a,k){q9.setFromAxisAngle(ax,a[4]);mt.compose(new THREE.Vector3(a[0],a[1],a[2]),q9,new THREE.Vector3(a[3]*.9,a[3],a[3]*.9));im.setMatrixAt(k,mt);});
@@ -201,12 +201,16 @@ function decoCuiseur(){const P=[],C=[],v=new THREE.Vector3();
 const CY_ARB={automne:[[.86,.66,.16],[.78,.54,.12],[.94,.76,.26]],sombre:[[.22,.40,.14],[.18,.34,.10],[.27,.45,.16]],g:{}}; // (2026-10-20) les houppiers des peupliers tirés
 /* LES ÉBOULIS (2026-10-20) : des blocs tombés des parois, sur le fond de la gorge (et dans le lit quand la rivière est à sec), dans les couleurs des strates
    de leur hauteur — jamais à moins de 4 m sous la dalle ; cuits en une géométrie */
+/* (2026-11-07, Sacha : « génération aléatoire parfaite ») LA RÈGLE D'OR CONTRE TOUTE LA ROUTE : un décor posé depuis UN échantillon ne regardait que sa dalle ; une autre
+   branche (le raccourci qui repasse dessous, la sortie d'un demi-tour) pouvait passer juste au-dessus. Faux si un échantillon de route à moins de r + demi-largeur + 8 m a
+   son bitume à moins de THICK + 4 m au-dessus du sommet (top). */
+function cyLibre(x,z,r,top){const S=CY.S,R2=(r+ROAD_HALF+8)**2;for(let j=0;j<S.n;j++){const dx=S.x[j]-x,dz=S.z[j]-z;if(dx*dx+dz*dz<R2&&top>S.y[j]-THICK-4)return false;}return true;}
 function cyEboulis(D,M9){const S=CY.S,t9=performance.now();if(!S||!D.eboulis)return;
   const rg=mulberry32((D.sd^0xEB0E1)>>>0),o9={},c9=[0,0,0],CU=decoCuiseur(),mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),e9=new THREE.Euler(),v9=new THREE.Vector3(),s9=new THREE.Vector3(),K=Math.sqrt(lvPiste());
   if(!CY.gBloc)CY.gBloc=new THREE.IcosahedronGeometry(1,0);let n=0;
   for(let k=0;k<D.eboulis*4&&n<D.eboulis;k++){const i=1+Math.floor(rg()*(S.n-2));if(S.zS[i]>.5||TUN2_ON&&i*S.ds>L-CY_TUN2.ev0-80)continue;
     const sg=rg()<.5?-1:1,l0=D.eau>0?S.wR[i]+1:2,lat=l0+rg()*Math.max(4,S.wF[i]-l0),x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,h=cyHauteur(x,z,o9),sz=(2+rg()*rg()*9)*Math.sqrt(K);
-    if(o9.eau||o9.rk>.5||h+sz>S.y[i]-THICK-4)continue;cyT2Strate(h+rg()*40,c9);const f=.78+rg()*.2;
+    if(o9.eau||o9.rk>.5||h+sz>S.y[i]-THICK-4)continue;if(!cyLibre(x,z,sz*1.2,h+sz))continue;cyT2Strate(h+rg()*40,c9);const f=.78+rg()*.2;
     e9.set(rg()*3,rg()*6.28,rg()*3);q9.setFromEuler(e9);mt.compose(v9.set(x,h-sz*.3,z),q9,s9.set(sz,sz*(.6+rg()*.3),sz*(.8+rg()*.4)));CU.ajoute(CY.gBloc,mt,[c9[0]*f,c9[1]*f,c9[2]*f]);n++;}
   if(CU.n()){const g=CU.fin(),im=new THREE.InstancedMesh(g,M9.t,1);im.setMatrixAt(0,mt.identity());im.instanceMatrix.needsUpdate=true;im.matrixAutoUpdate=false;im.updateMatrix();im.frustumCulled=false;
     im.userData.jeter=1;im.name='canyon éboulis';CY.grp.add(im);}
@@ -270,3 +274,41 @@ window.dbgCanyon=function(k,a,b,c){
   return {on:CY.on,r66:CY.r66|0,ms:CY.ms,noeuds:CY.n,sep:CY.sep,hz:CY.hz||null,deco:CY.deco?Object.assign({},CY.deco,{pose:CY.decoN,mine:Object.assign({},CY.deco.mine,{posee:!!CY.mineT}),mitaines:(CY.mit||[]).length,cheminees:(CY.chem||[]).length,nArbres:CY.nArb|0}):null,F:CY.F?[CY.F.nx,CY.F.nz,CY.F.ts]:null,Z:CY.Z?[CY.Z.nx,CY.Z.nz,CY.Z.ts]:null,O:CY.O?[CY.O.nx,CY.O.nz,CY.O.ts]:null,
     ciel:CIEL2.mode,attente:!!CY.attente,sQ:CY.sQ,L:Math.round(L),buttes:CY.buttes?CY.buttes.length:0,soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+CY.ombre.toFixed(2),prof:+CY.prof.toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     carHaut:CY.on?+(carGroup.position.y-cyHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
+/* ===== L'AUDIT DU CANYON (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+   `dbgCanyonAudit()` — lecture seule, pour le banc des maps (--audit) : le relief et chaque décor du canyon contre le COULOIR de conduite (demi-largeur
+   + 1 m, de 0,3 à 7 m au-dessus de la dalle, dans le repère penché de la route : les murs aussi) et contre la DALLE (un décor qui perce le bitume par-dessous : de −5 cm à 0,3 m).
+   Le relief : des points du couloir sous la roche (cyHauteur). Les décors : chaque sommet (instances comprises) relu dans le repère du point de route le
+   plus proche. Rend les comptes par pièce, les premières abscisses, la règle d'or (dbgCanyon('test')) et le tirage. */
+window.dbgCanyonAudit=function(){if(!CY.on||!CY.S)return 'pas de canyon';const RH=ROAD_HALF,F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},q=new THREE.Vector3();
+  const R={L:Math.round(L),regle:dbgCanyon('test'),relief:{n:0,ou:[]},deco:{},pieces:[]};
+  for(let s9=40;s9<L;s9+=4){frameAt(s9,F9);for(let lt=-(RH+1);lt<=RH+1.01;lt+=(RH+1)/4)for(const u of [.3,2,4.5,7]){q.copy(F9.p).addScaledVector(F9.b,lt).addScaledVector(F9.n,u);
+    if(cyHauteur(q.x,q.z)>q.y){R.relief.n++;if(R.relief.ou.length<30)R.relief.ou.push(s9+'/'+Math.round(lt)+'/'+u);break;}}}
+  const K=40,gr={},kc=(x,z)=>Math.floor(x/K)+':'+Math.floor(z/K),ds=L/Math.max(1,NP-1);for(let i=0;i<NP;i+=2){const p=pts[i];(gr[kc(p.x,p.z)]||(gr[kc(p.x,p.z)]=[])).push(i);}
+  const M=new THREE.Matrix4(),v=new THREE.Vector3(),d=new THREE.Vector3();
+  const nomDe=o=>o.name||(o===CY.couT_m?'couloir':'')||(o.material===cyMonuMats().a?'arche':o.material===cyMonuMats().i?'cheminées':o.material===cyMonuMats().t&&o.isInstancedMesh&&o.count>1?'peupliers':o.material===CY_MINE.m?'mine':o.material===CY_MINE.f?'mine (feux)':(o.material&&o.material.type||'?')+'#'+o.id);
+  const vu=function(o){if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;const nm=nomDe(o),P=o.geometry.attributes.position,nI=o.isInstancedMesh?o.count:1,e=R.deco[nm]||(R.deco[nm]={som:0,couloir:0,dalle:0,ou:[]});
+    R.pieces.push([nm,P.count,nI]);o.updateMatrixWorld(true);
+    for(let k9=0;k9<nI;k9++){if(o.isInstancedMesh){o.getMatrixAt(k9,M);M.premultiply(o.matrixWorld);}else M.copy(o.matrixWorld);
+      for(let j=0;j<P.count;j++){v.fromBufferAttribute(P,j).applyMatrix4(M);e.som++;const x0=Math.floor(v.x/K),z0=Math.floor(v.z/K);let bi=-1,bd=1e18;
+        for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const c=gr[(x0+a)+':'+(z0+b)];if(!c)continue;for(const i of c){const p=pts[i],dd=(p.x-v.x)**2+(p.z-v.z)**2+(p.y-v.y)**2*.02;if(dd<bd){bd=dd;bi=i;}}}
+        if(bi<0)continue;for(let i=Math.max(0,bi-2);i<=Math.min(NP-1,bi+2);i++){d.copy(v).sub(pts[i]);const al=d.dot(T[i]);if(Math.abs(al)>.75)continue;const lt=d.dot(B[i]),up=d.dot(Nn[i]);
+          if(Math.abs(lt)<RH+1&&up>.3&&up<7){e.couloir++;if(e.ou.length<12)e.ou.push('C'+Math.round(i*ds)+'/'+lt.toFixed(1)+'/'+up.toFixed(1));break;}
+          if(Math.abs(lt)<RH&&up>-.05&&up<=.3){e.dalle++;if(e.ou.length<12)e.ou.push('D'+Math.round(i*ds)+'/'+lt.toFixed(1)+'/'+up.toFixed(1));break;}}}}};
+  if(CY.grp)CY.grp.traverse(vu);
+  /* au sol : les pieds des peupliers et des cheminées contre le relief (flotte : pied > sol + 1 m) ; les MITAINES contre le domaine de la taille fine (coupées : leur empreinte déborde) ; la salle du tunnel */
+  {const fl={peupliers:0,cheminees:0,ou:[]},M9=cyMonuMats();if(CY.grp)CY.grp.children.forEach(function(o){if(!o.isInstancedMesh||o.count<2)return;const nm=o.material===M9.i?'cheminees':o.material===M9.t?'peupliers':null;if(!nm)return;
+     for(let k=0;k<o.count;k++){o.getMatrixAt(k,M);v.setFromMatrixPosition(M);const h=cyHauteur(v.x,v.z);if(v.y>h+1){fl[nm]++;if(fl.ou.length<10)fl.ou.push(nm[0]+Math.round(v.x)+','+Math.round(v.z)+'+'+(v.y-h).toFixed(1));}}});R.flotte=fl;}
+  {const F=CY.F,x1=F.x0+F.nx*F.ts,z1=F.z0+F.nz*F.ts;R.mitaines=(CY.mit||[]).map(function(m){const r9=m.r/1.1*2.1+60,deb=Math.max(F.x0-(m.x-r9),m.x+r9-x1,F.z0-(m.z-r9),m.z+r9-z1);return [Math.round(deb),Math.round(m.x),Math.round(m.z),Math.round(m.y0),Math.round(m.y1)];});R.domF=[Math.round(F.x0),Math.round(x1),Math.round(F.z0),Math.round(z1)];}
+  try{R.tunnel=dbgTunnel('test');}catch(e){R.tunnel='erreur '+e.message;}
+  R.tirage=CY.deco?{strates:CY.deco.strates,riviere:CY.deco.riviere,mine:!!CY.mineT,r66:CY.deco.r66}:null;R.hz=CY.hz?CY.hz.p.map(function(a){return a[0];}).join(','):null;R.ms=CY.ms;
+  return R;};
+/* `dbgCanyonEmpreinte(rebatir)` — l'empreinte du canyon posé (la route, le relief, chaque décor : des sommes de positions et de couleurs) ; rebatir : le MÊME
+   canyon (même graine) rebâti dans la même page, puis l'empreinte — deux empreintes égales = le déterminisme tient d'une construction à l'autre (une 2e partie,
+   un portail qui ramène la même graine). Rend une promesse. */
+window.dbgCanyonEmpreinte=function(rebatir){
+  const emp=function(){if(!CY.on||!CY.S)return null;const h=(a,n)=>{let t=0;const st=Math.max(1,Math.floor(a.length/(n||4000)));for(let i=0;i<a.length;i+=st)t+=a[i]*((i%7)+1);return +t.toFixed(1);},o={L:Math.round(L),NP:NP,y:h(CY.S.y),relief:h(CY.F.c),plat:h(CY.Z.d)};
+    if(CY.grp)CY.grp.children.forEach(function(m,k){if(!m.geometry)return;const P=m.geometry.attributes.position,C=m.geometry.attributes.color;o[(m.name||'p')+k]=[P.count,h(P.array),C?h(C.array):0,m.isInstancedMesh?m.count:1,m.isInstancedMesh?h(m.instanceMatrix.array):0].join('|');});
+    return o;};
+  const a=emp();if(!rebatir)return Promise.resolve(a);
+  buildCanyon(CY.seed);
+  return new Promise(function(ok){let n=0;const t=setInterval(function(){if((!CY.attente&&CY.on)||++n>200){clearInterval(t);const b=emp(),dif=[];for(const k in Object.assign({},a,b))if(JSON.stringify(a&&a[k])!==JSON.stringify(b&&b[k]))dif.push(k);ok({egal:!dif.length,dif:dif,job:CY.job,a:a,b:b});}},100);});};
