@@ -32280,12 +32280,20 @@ function orbiteLumiere(dt9){ // LA LUMIÈRE SPATIALE : le soleil dur, la Terre q
   const e=LVL.espace;
   if(e<.001){if(ORB.lumOn){fill.position.copy(FILL_P0);kick.position.copy(KICK_P0);ORB.lumOn=false;}L_DIR.copy(SUN_DIR);FLARE.visible=false;return;}
   ORB.lumOn=true;
-  const cf=ORB.t3;camera.getWorldDirection(cf);cf.y=0;if(cf.lengthSq()<1e-6)cf.set(0,0,-1);cf.normalize();
-  const dr=ORB.dr.crossVectors(cf,ORB.haut).normalize(); // la droite de l'image, à plat
-  // LE SOLEIL : une lumière RASANTE de côté — à gauche de l'image, ~20° au-dessus de l'horizon, un rien devant l'œil (hors cadre) — rejoint avec retard (comme la lune).
+  /* ===== LE SOLEIL SUIT LA DALLE (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+     MESURÉ (banc des maps, dbgOrbAudit) : le soleil était bâti dans le repère du MONDE (le ciel du monde, le cap de la caméra mis à plat). Sur la
+     route libre (vrilles, murs, passages à l'envers, piqués à 70°), la dalle s'en détourne : 43 % de la route de la graine 4 ne recevait plus
+     rien (cos < 0,05 ; de 7 600 à 7 900 m, un piqué roulé, cos −0,89 : une route NOIRE où seule la ligne jaune se lisait). Le « haut » du soleil
+     est donc la NORMALE DE LA DALLE sous la caisse (frameAt) — sur une route à plat c'est le ciel du monde : la même lumière au bit près.
+     Le retard (1,1/s) reste pour les virages ; il se raccourcit quand la dalle échappe au soleil (une vrille) : la route ne passe plus au noir. */
+  const hz=ORB.hz||(ORB.hz=new THREE.Vector3()),FL=ORB.FL||(ORB.FL={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()});
+  if(NP>1&&ORB.actif){frameAt(ORB.sLum!=null?ORB.sLum:s,FL);hz.copy(FL.n);}else hz.copy(ORB.haut);
+  const cf=ORB.t3;camera.getWorldDirection(cf);cf.addScaledVector(hz,-cf.dot(hz));if(cf.lengthSq()<1e-6)cf.copy(FL.t).addScaledVector(hz,-FL.t.dot(hz));if(cf.lengthSq()<1e-6)cf.set(0,0,-1);cf.normalize();
+  const dr=ORB.dr.crossVectors(cf,hz).normalize(); // la droite de l'image, dans le plan de la dalle
+  // LE SOLEIL : une lumière RASANTE de côté — à gauche de l'image, ~20° au-dessus de la dalle, un rien devant l'œil (hors cadre) — rejoint avec retard (comme la lune).
   // Rasant : la route reste sombre, le flanc de la caisse prend tout, les ombres s'allongent en travers de la chaussée.
-  ORB.cleC.copy(dr).multiplyScalar(-.92).addScaledVector(ORB.haut,.34).addScaledVector(cf,.16).normalize();
-  if(!ORB.cleOk){ORB.cle.copy(ORB.cleC);ORB.cleOk=true;}else ORB.cle.lerp(ORB.cleC,Math.min(1,dt9*1.1)).normalize();
+  ORB.cleC.copy(dr).multiplyScalar(-.92).addScaledVector(hz,.34).addScaledVector(cf,.16).normalize();
+  if(!ORB.cleOk){ORB.cle.copy(ORB.cleC);ORB.cleOk=true;}else ORB.cle.lerp(ORB.cleC,Math.min(1,dt9*(1.1+14*Math.max(0,.25-ORB.cle.dot(hz))))).normalize();
   L_DIR.copy(SUN_DIR).lerp(ORB.cle,e).normalize();
   ORB.terre.subVectors(planetGroup.position,camera.position).normalize();
   fill.position.copy(FILL_P0).lerp(ORB.t1.copy(ORB.terre).multiplyScalar(450),e); // la Terre éclaire depuis LA Terre (la cible de `fill` est l'origine)
@@ -32369,6 +32377,67 @@ function lvlAstre(a){ // la planète du niveau d'espace : teinte du globe + coul
   g.globe.material.color.setHex(a.teinte);g.atmo.material.color.setHex(a.atmo);
   if(PLANETES_ON)planetesPeint(a); // la toile et le limbe suivent la planète du niveau
 }
+/* ===== LE CONTRÔLE DE L'ORBITE (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+   `dbgOrbAudit()` (lecture seule, pour le banc des maps) : ce que la pose a fait de la graine en cours.
+   · sats : par famille (starlink, débris, éclats), le dégagement le plus petit entre l'objet (sa sphère : rayon du maillage × échelle) et le
+     COULOIR de conduite de TOUTE portion de route (la boîte du repère de la route : ±(demi-largeur + 1 m) en travers, de 1 m sous la dalle
+     à 7 m au-dessus) ; les trains sont suivis sur toute leur file (ils glissent). `dedans` : les objets qui coupent le couloir, `frole` : < 2 m.
+   · (la Terre n'est pas mesurée : elle se peint sur le PLAN LOINTAIN, sans écrire de profondeur — voir soleil-planete.js — la route la couvre toujours.)
+   · lumiere : le soleil de régime établi (orbiteLumiere) contre la normale de la dalle, tous les 10 m — la part de route qu'il n'éclaire pas
+     (`ORB.lumMonde=true` : l'ancienne recette, le soleil bâti sur le ciel du monde).
+   · route : les portions éloignées (> 250 m d'abscisse) dont les couloirs se touchent dans le repère de la route (en travers < 2 demi-largeurs
+     + 2 m et en hauteur < 8 m) — la vraie mesure de `croisements`, les vrilles comprises.
+   · empreinte : un condensé des matrices posées (même graine ⇒ même nombre). */
+window.dbgOrbAudit=function(k,SS){
+  if(!ORB.actif)return 'pas en orbite';
+  if(k==='lum'){const dS=L/Math.max(1,NP-1),f=v=>v.toArray().map(x=>+x.toFixed(2));return SS.map(function(s){const i=Math.max(1,Math.min(NP-2,Math.round(s/dS)));dbgOrbVue([s]); /* (dbgOrbAudit('lum',[s…])) le soleil de la caméra de poursuite contre la dalle */
+    return {s:s,N:f(Nn[i]),T:f(T[i]),cle:f(ORB.cle),cos:+ORB.cle.dot(Nn[i]).toFixed(2)};});}
+  if(k==='monde'){ORB.lumMonde=true;try{const o=window.dbgOrbAudit();o.lumiereNouvelle=o.lumiere;ORB.lumMonde=false;o.lumiere=window.dbgOrbAudit().lumiere;o.lumiereMonde=o.lumiereNouvelle;delete o.lumiereNouvelle;return o;}finally{ORB.lumMonde=false;}} /* dbgOrbAudit('monde') : + la lumière de l'ancienne recette, pour comparer */
+  const RH=ROAD_HALF,HB=40,g=new Map(),cle=(x,z)=>(Math.floor(x/HB)+4096)*8192+Math.floor(z/HB)+4096,dS=L/Math.max(1,NP-1);
+  for(let i=0;i<NP;i+=2){const p=pts[i],k=cle(p.x,p.z);let a=g.get(k);if(!a)g.set(k,a=[]);a.push(i);}
+  const rL=SATS.map(function(im,k){let m=0;const G=im.geometry.attributes;
+    for(const nm of (k===1?['aQ0','aQ1','aQ2','aQ3']:['position'])){const A=G[nm],st=A.itemSize;for(let i=0;i<A.count;i++){if(st===4&&A.array[i*4+3]<-.5)continue;const x=A.array[i*st],y=A.array[i*st+1],z=A.array[i*st+2];m=Math.max(m,Math.hypot(x,y,z));}}
+    return m;});
+  const M=new THREE.Matrix4(),P=new THREE.Vector3(),Q=new THREE.Quaternion(),S=new THREE.Vector3();
+  const degage=function(x,y,z,r){let best=1e9,bi=-1;const rr=Math.ceil((r+RH+12)/HB);const bx=Math.floor(x/HB),bz=Math.floor(z/HB);
+    for(let dx=-rr;dx<=rr;dx++)for(let dz=-rr;dz<=rr;dz++){const a=g.get((bx+dx+4096)*8192+bz+dz+4096);if(!a)continue;
+      for(const i of a){const p=pts[i],ex=x-p.x,ey=y-p.y,ez=z-p.z;if(ex*ex+ey*ey+ez*ez>(r+RH+12)*(r+RH+12))continue;
+        const t=T[i],n=Nn[i],b=B[i],ua=ex*t.x+ey*t.y+ez*t.z,ub=ex*b.x+ey*b.y+ez*b.z,un=ex*n.x+ey*n.y+ez*n.z;
+        const da=Math.max(0,Math.abs(ua)-1.5),db=Math.max(0,Math.abs(ub)-(RH+1)),dn=un<-1?-1-un:(un>7?un-7:0),d=Math.hypot(da,db,dn)-r;
+        if(d<best){best=d;bi=i;}}}
+    return [best,bi];};
+  const out={sats:{}},noms=['starlink','debris','eclats'];let emp=0;
+  SATS.forEach(function(im,k){const A=im.geometry.attributes;let mn=1e9,ms=-1,dedans=0,frole=0;const ex=[];
+    for(let i=0;i<im.count;i++){im.getMatrixAt(i,M);M.decompose(P,Q,S);const r=rL[k]*Math.max(S.x,S.y,S.z);emp=(emp*31+Math.round(P.x*10)+Math.round(P.y*10)*7+Math.round(P.z*10)*13+Math.round(r*100))%1000000007;
+      const v=A.aMov.getW(i);let d;
+      if(v){const ox=A.aMov.getX(i),oy=A.aMov.getY(i),oz=A.aMov.getZ(i),s0=A.aTr.getX(i),Lt=A.aTr.getY(i);d=[1e9,-1];
+        for(let u=0;u<=Lt;u+=10){const q=degage(P.x+ox*(u-s0),P.y+oy*(u-s0),P.z+oz*(u-s0),r);if(q[0]<d[0])d=q;}}
+      else d=degage(P.x,P.y,P.z,r);
+      if(d[0]<mn){mn=d[0];ms=d[1];}if(d[0]<0){dedans++;if(ex.length<6)ex.push({i:i,s:Math.round(d[1]*dS),r:+r.toFixed(1),d:+d[0].toFixed(1),train:!!v});}else if(d[0]<2)frole++;}
+    out.sats[noms[k]]={n:im.count,rMaillage:+rL[k].toFixed(2),degageMin:mn>1e8?null:+mn.toFixed(1),sMin:ms<0?null:Math.round(ms*dS),dedans:dedans,frole:frole,ex:ex};});
+  out.empreinte=emp;
+  {const cf=new THREE.Vector3(),dr=new THREE.Vector3(),k=new THREE.Vector3();let n=0,nb=0,pire=1,ps=-1; /* la LUMIÈRE : le soleil de régime établi (orbiteLumiere, caméra dans l'axe de la route) contre la normale de la dalle */
+    for(let i=0;i<NP;i+=Math.round(10/dS)){const hz=ORB.lumMonde?ORB.haut:Nn[i];cf.copy(T[i]).addScaledVector(hz,-T[i].dot(hz));if(cf.lengthSq()<1e-6)continue;cf.normalize();dr.crossVectors(cf,hz).normalize();
+      k.copy(dr).multiplyScalar(-.92).addScaledVector(hz,.34).addScaledVector(cf,.16).normalize();const e=k.dot(Nn[i]);n++;if(e<.05)nb++;if(e<pire){pire=e;ps=i;}}
+    out.lumiere={partNoire:+(nb/Math.max(1,n)).toFixed(3),pireCos:+pire.toFixed(2),s:ps<0?null:Math.round(ps*dS)};}
+  {let n=0,vu=-1e9;const ex=[];const st=Math.max(1,Math.round(2/dS));
+    for(let i=0;i<NP;i+=st){const p=pts[i],b=B[i],nn=Nn[i],bx=Math.floor(p.x/HB),bz=Math.floor(p.z/HB);let hit=null;
+      for(let dx=-2;dx<=2&&!hit;dx++)for(let dz=-2;dz<=2&&!hit;dz++){const a=g.get((bx+dx+4096)*8192+bz+dz+4096);if(!a)continue;
+        for(const j of a){if(Math.abs(j-i)*dS<250)continue;const q=pts[j],ex9=q.x-p.x,ey=q.y-p.y,ez=q.z-p.z;
+          const ub=Math.abs(ex9*b.x+ey*b.y+ez*b.z),un=Math.abs(ex9*nn.x+ey*nn.y+ez*nn.z),ua=Math.abs(ex9*T[i].x+ey*T[i].y+ez*T[i].z);if(ua<6&&ub<2*RH+2&&un<8){ /* ua : à côté, pas 200 m plus loin dans un piqué */hit={s1:Math.round(i*dS),s2:Math.round(j*dS),travers:+ub.toFixed(1),haut:+un.toFixed(1),long:+ua.toFixed(1)};break;}}}
+      if(hit&&hit.s1-vu>100){n++;vu=hit.s1;if(ex.length<8)ex.push(hit);}}
+    out.route={demi:+RH.toFixed(1),contacts:n,ex:ex,tord:TORD.info?{essai:TORD.info.essai,contacts:TORD.info.contacts}:null};}
+  return out;};
+/* `dbgOrbVue([s…],{dos,haut,fov,planete})` (banc, lecture seule) : UNE image par abscisse, caméra de poursuite (dos m derrière, haut m au-dessus,
+   dans le repère roulé de la route), la Terre posée à sa place de régime établi (celle de lvlPlanete) — renvoie les JPEG. */
+window.dbgOrbVue=function(S,o){o=o||{};if(started&&!gameOver&&!paused)togglePause();const out=[],dS=L/Math.max(1,NP-1),hd=new THREE.Vector3(),d=new THREE.Vector3(),c=new THREE.Vector3();
+  for(const s of S){const i=Math.max(1,Math.min(NP-2,Math.round(s/dS))),p=pts[i],t=T[i],n=Nn[i],j=Math.min(NP-1,i+Math.round(60/dS));
+    camera.position.copy(p).addScaledVector(t,-(o.dos||14)).addScaledVector(n,o.haut||6);camera.up.copy(n);camera.lookAt(c.copy(pts[j]));camera.fov=o.fov||75;camera.updateProjectionMatrix();camera.updateMatrixWorld();
+    hd.set(t.x,0,t.z);if(hd.lengthSq()<1e-6)hd.set(0,0,-1);hd.normalize().applyAxisAngle(ORB.haut,.5);hd.y=-.70;hd.normalize();
+    d.copy(PLANET_DIR).lerp(hd,LVL.espace).normalize();planetGroup.position.copy(camera.position).addScaledVector(d,PLANET_D);if(o.planete===0)planetGroup.visible=false;
+    skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);ORB.cleOk=false;ORB.sLum=s;orbiteTick(skyU.uTime.value);ORB.sLum=null;camera.up.set(0,1,0);sun.target.position.copy(p);sun.position.copy(p).addScaledVector(L_DIR,160);sun.target.updateMatrixWorld(); /* la lampe du soleil (et sa fenêtre d'ombre) comme la boucle la pose, mais ICI */ /* cleOk : le soleil rejoint d'un coup le cap de CETTE caméra (sinon il garde celui de la course en pause) */
+    if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);out.push(renderer.domElement.toDataURL('image/jpeg',.85));planetGroup.visible=LVL.planete>.02;}
+  return out;};
 window.dbgNiveau=function(){return LVL.cur?{niveau:LVL.n,lieu:LVL.cur.id,ciel:BIO.name,largeurRoute:+(ROAD_HALF*2).toFixed(1),uSpace:+LVL.espace.toFixed(2),
   planete:+LVL.planete.toFixed(2),ville:!!CITY.root,nuages:CLOUDS.length,nuit:+LVL.nuit.toFixed(2),graine:LVL.cur.graine|0,pr:LVL.cur.pr||''}:'parc freestyle (pas de niveaux)';}; // (2026-09-30) + nuit, graine, promesse
 window.dbgEtatLum=function(){ /* (2026-10-14, passe graphismes · hasard-bugs) banc : l'ÉTAT CHIFFRÉ de la lumière d'un couple map × météo — comparé entre « arrivé par un portail » et « démarré dessus » pour trouver les fuites d'état */ const n=function(v){return typeof v==='number'?+v.toFixed(4):typeof v==='boolean'?v:v&&v.isColor?[+v.r.toFixed(4),+v.g.toFixed(4),+v.b.toFixed(4)]:v&&(v.isVector3||v.isVector2||v.isVector4)?v.toArray().map(function(x){return +x.toFixed(4);}):Array.isArray(v)&&typeof v[0]==='number'?v.map(function(x){return +x.toFixed(4);}):undefined;},U=function(u){const o={};for(const k in u){let x;try{x=n(u[k]&&u[k].value!==undefined?u[k].value:u[k]);}catch(e){}if(x!==undefined)o[k]=x;}return o;},r={},T=function(k,f){try{r[k]=f();}catch(e){r[k]='ERR '+e.message;}},Lm=function(l){return {c:n(l.color),g:l.groundColor?n(l.groundColor):undefined,i:n(l.intensity),p:n(l.position),vis:l.visible,ombre:!!l.castShadow};};
