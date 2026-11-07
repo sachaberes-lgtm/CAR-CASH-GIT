@@ -14196,7 +14196,7 @@ const PORTAL={c:new THREE.Vector3(),R:55,noy:null,halo:null,geo:null,mat:null};
    L'ovule rose d'avant ne reste que dans le PARC (Freestyle). Console : `dbgPortailCubes()`, `dbgVuePortail(d,h)`, `dbgCartePostale()`.
    ========================================================================== */
 const PCUBE_VITE=/[?&]portail=vite\b/.test(location.search); // (essai) `?portail=vite` : 2,5 s après chaque départ, la caisse est posée à 450 m du portail — pour enchaîner les passages sans rouler 2 minutes
-const PCUBE={on:false,S:5.2,Ri:44,Ro:54,H:20,grp:null,cub:null,mem:null,halo:null,mU:null,cU:null,G:null,n:0,dest:null,cle:'',tex:null,img:{},
+const PCUBE={on:false,S:5.2,Ri:44,Ro:54,H:20,sc:1,grp:null,cub:null,mem:null,halo:null,mU:null,cU:null,G:null,n:0,dest:null,cle:'',tex:null,img:{},
   inv:new THREE.Matrix3(),x:new THREE.Vector3(),y:new THREE.Vector3(),z:new THREE.Vector3(),M:new THREE.Matrix4(),asp:0};
 /* LES COULEURS DE L'AUTRE CÔTÉ : [cube A, cube B, la lumière de la fenêtre] — la ville a les siennes par teinte */
 const PCUBE_PAL={nuages:[0xff5ec8,0x5ee6ff,0xffd0f4],orage:[0x8a7bff,0x5ee6ff,0xd8d0ff],jade:[0x2fd39a,0xffd75e,0xb8ffe0],foret:[0x5fd35a,0xffb347,0xd8ff9a],
@@ -14316,10 +14316,16 @@ function pcubeDest(){ if(!PCUBE.grp)return;
   if(t.pret){PCUBE.mU.uTex.value=t;PCUBE.mU.uHas.value=1;}}
 function pcubePose(F){ // le portail de la piste neuve : au bout de la route, centre à H m au-dessus du bitume, la fenêtre face à la caisse
   pcubeInit();
+  /* (2026-11-07, Sacha : « les portails ne sont pas assez gros pour être pris des deux côtés de la route ») LE GABARIT EST BÂTI
+     POUR 28 m DE DEMI-ROUTE (Ri 44, Ro 54) : sur une route plus large (BANQUISE : jusqu'à 98 m de demi-route), l'anneau restait à sa
+     taille d'origine — trop étroit pour couvrir les deux bords. On REDIMENSIONNE le repère du portail (jamais sa géométrie, réutilisée
+     par tous les portails) : la même accumulation de cubes, agrandie par l'échelle `sc`. */
+  const sc=PCUBE.sc=Math.max(1,(typeof ROAD_HALF==='number'&&ROAD_HALF>0?ROAD_HALF:28)/28);
   PCUBE.z.copy(F.t).negate();PCUBE.y.copy(F.n);PCUBE.x.crossVectors(PCUBE.y,PCUBE.z);
+  if(sc!==1){PCUBE.x.multiplyScalar(sc);PCUBE.y.multiplyScalar(sc);PCUBE.z.multiplyScalar(sc);}
   const g=PCUBE.grp;g.matrix.makeBasis(PCUBE.x,PCUBE.y,PCUBE.z).setPosition(PORTAL.c);g.visible=true;g.updateMatrixWorld(true);
-  PCUBE.inv.setFromMatrix4(g.matrix).transpose(); // monde → portail (rotation pure)
-  PCUBE.halo.position.copy(PORTAL.c);PCUBE.halo.scale.setScalar(PCUBE.Ro*2.5);PCUBE.halo.updateMatrix();PCUBE.halo.updateMatrixWorld(true);PCUBE.halo.visible=true;
+  PCUBE.inv.setFromMatrix4(g.matrix).transpose().multiplyScalar(1/(sc*sc)); // monde → portail (rotation pure, puis l'échelle défaite : transpose(s·R) = s·Rᵗ = s²·(s·R)⁻¹)
+  PCUBE.halo.position.copy(PORTAL.c);PCUBE.halo.scale.setScalar(PCUBE.Ro*2.5*sc);PCUBE.halo.updateMatrix();PCUBE.halo.updateMatrixWorld(true);PCUBE.halo.visible=true;
   PCUBE.zp=null;PCUBE.on=true;
   if(PCUBE_VITE)setTimeout(function(){try{if(started&&!gameOver&&mode==='drive'&&L-s>900)window.dbgPortail(450);}catch(e){}},2500);}
 const PCF=new THREE.Vector3();
@@ -14330,7 +14336,7 @@ function pcubeFranchi(p){ // la caisse TRAVERSE LA FENÊTRE (le plan de l'anneau
 function pcubeTick(t,kmh,dt){ if(!PCUBE.on)return;
   PCUBE.cU.uT.value=t;PCUBE.mU.uT.value=t;
   // L'ASPIRATION : à moins de ~4 s de la caisse, l'anneau se penche vers elle
-  let a=0;if(started&&!gameOver){const v9=Math.max(15,(kmh||0)/3.6),d9=carGroup.position.distanceTo(PORTAL.c);a=THREE.MathUtils.clamp(1-(d9-PCUBE.Ri)/(v9*4),0,1);}
+  let a=0;if(started&&!gameOver){const v9=Math.max(15,(kmh||0)/3.6),d9=carGroup.position.distanceTo(PORTAL.c);a=THREE.MathUtils.clamp(1-(d9-PCUBE.Ri*(PCUBE.sc||1))/(v9*4),0,1);}
   PCUBE.asp+=(a-PCUBE.asp)*(1-Math.pow(.92,(dt>0?Math.min(dt,.1):1/60)*60));PCUBE.cU.uAsp.value=PCUBE.asp*PCUBE.asp;
   PCUBE.halo.material.opacity=.2+.07*Math.sin(t*2.2);}
 window.dbgPortailCubes=function(){const d=PCUBE.dest;let cam=null;
