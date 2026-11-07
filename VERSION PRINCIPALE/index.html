@@ -86989,9 +86989,10 @@ window.dbgPerfRec=function(a){
   try{FL=localStorage.getItem('ccBancAuto');}catch(e){}
   try{WEB=/[?&]banc=auto\b/.test(location.search);}catch(e){}
   if(!FL&&!WEB)return; /* le chemin normal : tout s'arrête ici */
-  var CFG={scenario:'p7',partie:300,menu:5,defile:3,pouv:20,palier:16,max:1800};
+  var CFG={scenario:'p7',partie:300,menu:5,defile:3,pouv:20,palier:16,max:1800,nit:0,saut:0}; /* (essai web : nit 1 + saut 9 = une mort toutes les 20-30 s, le moteur retombe au palier 0 ; sans les deux : 0 mort en 160 s, palier 16 atteint) */;
   try{var j=JSON.parse(FL);if(j&&typeof j==='object'){for(var k in j)CFG[k]=j[k];}else if(typeof j==='string')CFG.scenario=j;}catch(e){if(FL&&FL!=='1')CFG.scenario=String(FL);}
   try{var mT=/[?&]bancT=(\d+)/.exec(location.search);if(mT)CFG.partie=+mT[1];}catch(e){}
+  try{var mN=/[?&]bancNit=(\d)/.exec(location.search),mS=/[?&]bancSaut=(\d+)/.exec(location.search);if(mN)CFG.nit=+mN[1];if(mS)CFG.saut=+mS[1];}catch(e){}
   if(CFG.scenario==='court'&&CFG.partie>60)CFG.partie=45;
   var CLE='cashcarBanc',CLE_ETAT='cashcarBancEtat';
   var T0=performance.now(),ST=null,L=[],RUN=1,etape='?',seau=null,fini=false;
@@ -87078,7 +87079,7 @@ window.dbgPerfRec=function(a){
     ligne('retour accueil',jouerVisible()?'':'⚠ JOUER pas visible');
   };
   /* ---- une course : JOUER / REJOUER, le pilote, des actions toutes les CFG.pouv s, la mort forcée ---- */
-  var armePilote=function(){try{window.dbgAuto(true,0,{vol:true,nit:1,saut:9});}catch(e){echec('dbgAuto : '+(e&&e.message));}};
+  var armePilote=function(){try{window.dbgAuto(true,0,{vol:true,nit:CFG.nit,saut:CFG.saut});}catch(e){echec('dbgAuto : '+(e&&e.message));}};
   var demarre=async function(premier){
     var ok=false;
     for(var i=0;i<30&&!ok;i++){modale();
@@ -87113,7 +87114,7 @@ window.dbgPerfRec=function(a){
         runT=performance.now();armePilote();derLigne=performance.now();continue;}
       if(+s.vH>vmax)vmax=+s.vH;var pm=palierMot();if(pm>maxPal)maxPal=pm;
       if(rampe){ /* partie 2 : monter le moteur d'un palier à la fois pour atteindre CFG.palier aux 70 % de la durée (le palier naturel est trop lent) */
-        var cible=Math.min(CFG.palier,Math.ceil(CFG.palier*((performance.now()-runT)/1000)/(dur*.7)));
+        var runDt=(runT-t0)/1000,den=Math.max(8,Math.min(dur*.7,(dur-runDt)*.8)),cible=Math.min(CFG.palier,Math.ceil(CFG.palier*((performance.now()-runT)/1000)/den)); /* après une mort anticipée la rampe se resserre : le palier cible reste atteignable avant la fin */
         if(pm>=0&&pm<cible&&performance.now()-derAct>2500){derAct=performance.now();try{window.dbgMoteur();}catch(e){}}}
       if((performance.now()-derLigne)/1000>=CFG.pouv){derLigne=performance.now();
         var a=actionCourse();ligne('partie '+num+' · '+Math.round(dt)+' s','palier '+palierMot()+' · '+Math.round(+s.vH||0)+' km/h · mode '+s.mode+' · '+a);}}
