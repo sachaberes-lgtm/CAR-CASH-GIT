@@ -151,9 +151,11 @@
       var jeu='en ligne',tr='-',du='-',fi=null;
       try{var R=performance.getEntriesByType('resource');
         for(var i=0;i<R.length;i++)if(/\/jeu(\.[0-9a-f]+)?\.js(\?|$)/.test(R[i].name)){fi=R[i];break;}
-        if(fi){jeu='fichier';tr=Math.round(fi.transferSize||0);du=ms(fi.duration);}}catch(e){}
+        if(fi){tr=Math.round(fi.transferSize||0);du=ms(fi.duration);}}catch(e){}
+      /* (build 14, 13 Pro) le schéma capacitor:// ne remonte PAS toujours le script dans les entrées resource : le mode se lit sur la balise de la page */
+      try{var sc=document.querySelector('script[src*="jeu."]');if(sc||fi)jeu='fichier';}catch(e){}
       var m='jeu '+jeu+' · origine→DCL '+ms(t.dcl)+' ms · origine→prêt '+ms(t.pret)+' ms · DCL→prêt '+ms(t.pret==null||t.dcl==null?null:t.pret-t.dcl)+' ms'+
-        (fi?' · jeu.js transfert '+tr+' o, durée '+du+' ms (début '+ms(fi.startTime)+', fin '+ms(fi.responseEnd)+')':'');
+        (fi?' · jeu.js transfert '+tr+' o, durée '+du+' ms (début '+ms(fi.startTime)+', fin '+ms(fi.responseEnd)+')':(jeu==='fichier'?' · jeu.js : aucune entrée resource':''));
       dit('CHARGEMENT '+m);
       try{if(window.__ccNote)window.__ccNote('chargement',m);}catch(e){}
     };
