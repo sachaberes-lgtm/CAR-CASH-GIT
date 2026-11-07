@@ -1,7 +1,7 @@
 <style id="monnaie">
 /* ===== LA MONNAIE DU JEU ET L'ARGENT QUI ÉVOLUE (2026-11-07, Léo : « le sketch en monnaie, dorée en 3D » ; « l'argent, plus tu en as, plus ça évolue ») =====
-   · le symbole du sketch est UN GLYPHE (U+E000, assets/fonts/monnaie.woff2) ajouté aux cinq polices par unicode-range : CUR() l'écrit partout ;
-   · au compteur de course c'est l'IMAGE 3D du symbole, dans le métal du moment (assets/monnaie/sym-*.png), qui saute à chaque gain ;
+   · la monnaie est UNE PIÈCE 3D (2026-11-07, Léo : « fais juste une pièce 3D, qui changera de matière par palier ») : UN GLYPHE (U+E000, assets/fonts/monnaie.woff2) ajouté aux cinq polices par unicode-range : CUR() l'écrit partout ;
+   · au compteur de course c'est l'IMAGE de la pièce 3D (tranche cannelée, rebord, bossage), dans le métal du moment (assets/monnaie/sym-*.png), qui saute à chaque gain ;
    · <html data-metal> (metalMaj, passe-textes.js) : CUIVRE → ARGENT → OR → ÉMERAUDE → DIAMANT. Les compteurs prennent le métal en relief
      (bandes dures façon pixel, corps extrudé, contour d'encre), les prix en argent du jeu (--cash) sa couleur ;
    · le VRAI argent (offres en €) passe en ROSE NÉON pour ne plus se confondre. */
