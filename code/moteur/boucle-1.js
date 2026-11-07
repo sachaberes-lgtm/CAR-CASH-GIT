@@ -23,7 +23,7 @@ function loop(now){
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
   if(PERF_MON)loop._brut=now-(loop._pn||now); // (OPTIMISATION, ?perf=1) l'intervalle VRAI, non plafonné : le relevé des à-coups (perfAcoup)
   const rawMs=Math.min(100,now-(loop._pn||now));
-  const ms9=(CAD.on||HC.on)?Math.max(0,rawMs-(CAD.per-CAD.ecran)):rawMs; // (2026-10-14, passe perf mobile) calé à 30 i/s : la durée RAMENÉE à une image d'écran, pour toute la règle de qualité — voir CAD (rawMs reste la durée vraie)
+  const ms9=(CAD.on||HC.on)?Math.max(0,rawMs-((HC.on&&HC.per>CAD.per?HC.per:CAD.per)-CAD.ecran)):rawMs; // (2026-10-14, passe perf mobile) calé à 30 i/s : la durée RAMENÉE à une image d'écran, pour toute la règle de qualité — voir CAD (rawMs reste la durée vraie)
   loop._ms=(loop._ms||16)*.96+ms9*.04;loop._pn=now;
   // DÉTECTEUR D'À-COUPS : l'EMA (constante ~25 frames) lisse les PICS ponctuels (titan de nuage plein écran) —
   // ce compteur fuyant attrape la saccade VÉCUE : ~10 frames >26 ms sur les 2-3 dernières secondes = on allège.

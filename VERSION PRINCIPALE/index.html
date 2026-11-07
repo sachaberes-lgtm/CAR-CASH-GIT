@@ -78631,15 +78631,22 @@ function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran
   const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&!CAD.on&&(!started||garageOn)&&!document.hidden;
   if(!hc){HC.on=false;return false;}
   if(!MENU_MAX&&hcGeste(now)){HC.on=false;return false;} /* (2026-11-07, Perf 3 — P5) un geste ou une transition : 60 i/s, voir HC GESTE */
-  if(HC.on&&now-HC.der<CAD.per-CAD.tol)return true;
+  HC.per=hcRepos(now)||CAD.per; /* (2026-11-07, Perf 3 — P5) au REPOS (aucun geste depuis 3 s) 15 i/s, depuis 8 s 10 i/s — voir HC REPOS */
+  if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;
   HC.on=true;HC.der=now;return false;}
 /* HC GESTE (2026-11-07, Perf 3 — P5, Sacha : « les menus fluides et froids ») le repos se dessine à 30 i/s (le téléphone au frais, PFR_ON) mais un doigt posé, un défilement, un
    changement d'écran ou de caisse rendent les 60 i/s — 0,35 s après le dernier signe — puis le repos reprend. `?menu=max` = comme avant (30 i/s en continu). */
 HC.gT=0;
 (function(){const m=function(){HC.gT=performance.now();};['touchstart','touchmove','pointerdown','wheel'].forEach(function(e){document.addEventListener(e,m,{capture:true,passive:true});});
   document.addEventListener('pointermove',function(e){if(e.buttons)HC.gT=performance.now();},{capture:true,passive:true});})();
+/* HC REPOS (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le menu est le premier chauffe-téléphone de l'app » — mesuré au banc : l'accueil rendait 28 images/s de 146 appels et 800 k triangles, 23 M de triangles par seconde, sans que personne touche) : sur
+   un vrai téléphone, sans geste depuis 3 s l'accueil, le garage et la boutique se dessinent à 15 i/s, depuis 8 s à 10 i/s (la caisse tourne à 0,24 rad/s : 1 à 1,4° par image) ; un toucher rend les 60 aussitôt (HC GESTE).
+   `PAL.B.reposMs=[66,66,66]` (période à 3 s) et `PAL.B.reposLongMs=[100,100,100]` (à 8 s) ; 0 = coupé ; `?repos=0` ou `?menu=max` = 30 i/s en continu comme avant. */
+PAL.B.reposMs=[66.7,66.7,66.7];PAL.B.reposLongMs=[100,100,100];
+const HC_REPOS_OFF=/[?&]repos=0\b/.test(location.search);
+function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF)return 0;const d=now-HC.gT;return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
 function hcGeste(now){return now-HC.gT<350||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag;}
-window.dbgHC=function(){return {on:HC.on,off:HC.off,pfr:PFR_ON,hors30:PAL.b('hors30',0),cadOk:CAD.ok,cadOn:CAD.on,started:started,gameOver:gameOver,garageOn:garageOn,quiet:!!(gEl&&gEl.classList.contains('quiet')),garGo:!!GAR.go,stall:(typeof stallOn!=='undefined')?stallOn:null,vhd:VHD.on,hidden:document.hidden};}; /* (2026-11-07, Perf 3 P5) (banc) l'état des menus */
+window.dbgHC=function(){return {on:HC.on,per:HC.per,off:HC.off,pfr:PFR_ON,hors30:PAL.b('hors30',0),cadOk:CAD.ok,cadOn:CAD.on,started:started,gameOver:gameOver,garageOn:garageOn,quiet:!!(gEl&&gEl.classList.contains('quiet')),garGo:!!GAR.go,stall:(typeof stallOn!=='undefined')?stallOn:null,vhd:VHD.on,hidden:document.hidden};}; /* (2026-11-07, Perf 3 P5) (banc) l'état des menus */
 /* ===== LE GOUVERNEUR THERMIQUE — MOB_G (2026-10-25, passe perf mobile : « 30 i/s stables si chaud » — Sacha ; mesure du 25/10 sur l'iPhone 13 Pro, dans l'app, jeu v897) =====
    MESURÉ : cinq courses de 75 s de suite (nuages niv. 1, puis niv. 2 à 9 en 25 s, tenue en ville niv. 9, pilote automatique) : 56,8 / 57,7 / 51,2 / 49,4 / 37,9 i/s
    (niveau 9 : 56,0 / 56,6 / 43,4 / 52,4 / 33,4), images > 25 ms : 52 / 38 / 262 / 109 / 425, sonde CPU 4 → 3, 4 → 3, 5 → 7, 4 → 5, 8 → 9. Le capteur de batterie ne gagne
@@ -78821,7 +78828,7 @@ function loop(now){
   // qualité auto : si le GPU peine (<45 fps soutenus après l'échauffement), on allège la ouate une fois pour toutes
   if(PERF_MON)loop._brut=now-(loop._pn||now); // (OPTIMISATION, ?perf=1) l'intervalle VRAI, non plafonné : le relevé des à-coups (perfAcoup)
   const rawMs=Math.min(100,now-(loop._pn||now));
-  const ms9=(CAD.on||HC.on)?Math.max(0,rawMs-(CAD.per-CAD.ecran)):rawMs; // (2026-10-14, passe perf mobile) calé à 30 i/s : la durée RAMENÉE à une image d'écran, pour toute la règle de qualité — voir CAD (rawMs reste la durée vraie)
+  const ms9=(CAD.on||HC.on)?Math.max(0,rawMs-((HC.on&&HC.per>CAD.per?HC.per:CAD.per)-CAD.ecran)):rawMs; // (2026-10-14, passe perf mobile) calé à 30 i/s : la durée RAMENÉE à une image d'écran, pour toute la règle de qualité — voir CAD (rawMs reste la durée vraie)
   loop._ms=(loop._ms||16)*.96+ms9*.04;loop._pn=now;
   // DÉTECTEUR D'À-COUPS : l'EMA (constante ~25 frames) lisse les PICS ponctuels (titan de nuage plein écran) —
   // ce compteur fuyant attrape la saccade VÉCUE : ~10 frames >26 ms sur les 2-3 dernières secondes = on allège.
