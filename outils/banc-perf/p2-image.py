@@ -56,6 +56,16 @@ def run(http,port,carte,qs,ordi,cpu,dossier,tag,regle=None):
     pos=c.ev("dbgPortail(1800)");s0=pos.get('s',0) if isinstance(pos,dict) else 0
     t=time.time()
     while time.time()-t<60 and (c.ev("dbgEco().s") or 0)<s0+80:c.pump(.05)
+    if '--bascule' in sys.argv: # le coût de CHAQUE réglage à chaud, dans les deux sens : durée de l'appel + pire image dans la seconde qui suit + programmes compilés
+        B=[('halo demi',{'halo':'demi'},{'halo':'tout'}),('mips 3',{'mips':3},{'mips':4}),('ombre 768',{'ombre':768},{'ombre':1024}),('ombre 512',{'ombre':512},{'ombre':1024}),('dpr 1,25',{'dpr':1.25},{'dpr':1.5}),('dpr 1',{'dpr':1},{'dpr':1.25}),('ciel 1/2',{'ciel':2},{'ciel':0}),('stries .5',{'stries':.5},{'stries':None})]
+        res=[]
+        for nom,a,b in B:
+            for sens,o in (('baisse',a),('remonte',b)):
+                c.ev("window.__F.length=0;window.__Fon=true;1");lk=c.ev('window.__LK')
+                ms=c.ev('(function(){var t=performance.now();imgRegle(%s);return performance.now()-t})()'%json.dumps(o));c.pump(1.2)
+                F=json.loads(c.ev("JSON.stringify(window.__F)"));c.ev("window.__Fon=false;1")
+                res.append({'reglage':nom,'sens':sens,'appel_ms':round(ms,1),'pire_image_ms':round(max(F[1:] or [0])),'compilations':c.ev('window.__LK')-lk})
+        return {'bascule':res,'cout':{'gpu':None}}
     lk0=c.ev('window.__LK');rg=None
     if regle:rg=c.ev('JSON.stringify(imgRegle(%s))'%regle);c.pump(1.5)
     c.ev("dbgCout(1);1");c.pump(7)
@@ -88,6 +98,8 @@ def main():
                 try:ch.wait(5)
                 except Exception:ch.kill()
                 shutil.rmtree(prof,ignore_errors=True)
+            if 'bascule' in R:
+                for x in R['bascule']:print(x)
             R['map']=':'.join(m);R['tag']=tag;R['qs']=qs;R['charge']=round(os.getloadavg()[0],1)
             out.append(R)
             k=R.get('cout') or {}
