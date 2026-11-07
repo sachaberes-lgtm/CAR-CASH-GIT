@@ -10,8 +10,8 @@
 @font-face{font-family:'CC Jersey';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
 @font-face{font-family:'CC Sixtyfour';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
 @font-face{font-family:'CC Jacquard';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
-html{--mL:#ffd6b0;--mM:#e0874a;--mS:#a14a1c;--mX:#4a1c08;--mH:rgba(230,130,60,.4);--mImg:url('./assets/monnaie/sym-centime.png');--vraiEur:#ff5fd2}
-html[data-metal="euro"]{--mL:#ffffff;--mM:#d6dce8;--mS:#c9962a;--mX:#5a4010;--mH:rgba(235,225,190,.45);--mImg:url('./assets/monnaie/sym-euro.png')}
+html{--mL:#ffe2b4;--mM:#d68f44;--mS:#8e5418;--mX:#3e2208;--mH:rgba(214,143,68,.4);--mImg:url('./assets/monnaie/sym-centime.png');--vraiEur:#ff5fd2}
+html[data-metal="euro"]{--mL:#ffffff;--mM:#dfe4ee;--mS:#a9b2c4;--mX:#b8860b;--mH:rgba(255,205,80,.45);--mImg:url('./assets/monnaie/sym-euro.png')}
 html[data-metal="or"]{--mL:#fff4b0;--mM:#ffc928;--mS:#e08a00;--mX:#7a4200;--mH:rgba(255,200,60,.55);--mImg:url('./assets/monnaie/sym-or.png')}
 html[data-metal="emeraude"]{--mL:#d8ffe2;--mM:#3ee08a;--mS:#12955a;--mX:#06401f;--mH:rgba(60,230,140,.5);--mImg:url('./assets/monnaie/sym-emeraude.png')}
 html[data-metal="rubis"]{--mL:#ffd0d6;--mM:#ff3b4e;--mS:#b0102a;--mX:#4a0010;--mH:rgba(255,60,80,.5);--mImg:url('./assets/monnaie/sym-rubis.png')}
