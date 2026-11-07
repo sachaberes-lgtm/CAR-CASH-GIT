@@ -75,6 +75,13 @@ for(const m of fs.readFileSync(path.join(SRC,'index.html'),'utf8').matchAll(/<sc
 fs.copyFileSync(path.join(ICI,'ressources','icon.svg'),path.join(WWW,'icon.svg'));nFic++;
 {let n=fs.readFileSync(path.join(ICI,'natif','natif.js'),'utf8');const k=n.split("'"+MAJ_PROD+"'").length-1;
   if(k!==1){console.error('✗ preparer-www : natif.js doit citer l\'adresse des mises à jour une fois exactement ('+k+')');process.exit(1);}
+  /* --banc "<scénario>" (2026-11-07) : app de BANC — natif.js pose localStorage.ccBancAuto et le jeu se joue tout seul (banc-iphone.js) ; www/banc.json en garde la trace.
+     Le scénario : « p7 » (2 parties de 5 min), « court » (45 s, pour un essai), ou un JSON {"scenario":"p7","partie":300,"palier":16}. Sans --banc : rien (natif.js efface le drapeau). */
+  const iB=process.argv.indexOf('--banc');
+  if(iB>=0){let sc=process.argv[iB+1];if(!sc||/^--/.test(sc))sc='p7';let v;try{v=JSON.parse(sc);}catch(e){v=sc;}if(typeof v==='string')v={scenario:v};
+    if(n.split('/*@BANC@*/').length!==2){console.error('✗ preparer-www : natif.js doit porter /*@BANC@*/ une fois');process.exit(1);}
+    n=n.replace('var BANC=null; /*@BANC@*/','var BANC='+JSON.stringify(v)+'; /*@BANC@*/');
+    fs.writeFileSync(path.join(WWW,'banc.json'),JSON.stringify(v)+'\n');nFic++;console.log('⚠ APP DE BANC : scénario '+JSON.stringify(v)+' — à ne JAMAIS soumettre à l\'App Store');}
   fs.writeFileSync(path.join(WWW,'natif.js'),n.split("'"+MAJ_PROD+"'").join("'"+MAJ+"'"));nFic++;}
 
 // ---- les retouches de la page ----
