@@ -20,7 +20,7 @@ Réussite =
 | « La porte » `shopPaye(i)` | `code/economie/boutique.js:12` | rejette toujours `Error('storekit')` : c'est LA seule porte à brancher (commentaire d'origine) |
 | `shopDonne(i)` / `habDonne(cat,id)` | `boutique.js:13`, `:642` | donnent l'objet dans la sauvegarde, sans toucher à la banque du jeu |
 | `habPaye(cat,i,bt)` | `boutique.js:643` | appelle `shopPaye(cat+':'+d.id)` puis `habDonne` ; message « L'achat est indisponible… » si refus |
-| Pack LA PALETTE | `boutique.js:277` | `PALETTE_PACK`, produit prévu `cashcar.palette40`, 0,99 € |
+| Pack LA PALETTE (ancien) | `boutique.js:277` | `PALETTE_PACK` : ancien pack, **plus vendu** ; `palDonne` retiré ; aucun produit `cashcar.palette40` |
 | Prix en € | `deblocage.js` (`k:'premium', eur`), `PEINT_EUR` (`boutique.js:354`) | présents dans le jeu |
 | Les coupes de l'app | `app-ios/preparer-www.js` l. ~100-180 | convertit les € en argent du jeu (60 000 $ par €), masque OFFRES / tuile cadeau, vide la palette |
 | Plugin natif local | `JeuViewController.swift` | `bridge?.registerPluginInstance(GardeNavigation())` : le modèle à suivre |
@@ -69,14 +69,14 @@ Si le plugin manque ou StoreKit n'est pas disponible : `payer` rejette `'indispo
 
 ### 4.3 Le jeu (`code/economie/boutique.js` + `code/interface/…`)
 - `shopPaye(id)` : si `window.ccAchat` existe → `ccAchat.payer(produitDe(id))`, **promesse tenue seulement sur `ok`** ; sinon le rejet actuel (web : rien ne change).
-  `produitDe(id)` : `cashcar.car.<shape>` pour un index, `cashcar.peinture.<id>` pour `peinture:<id>`, `cashcar.palette40` pour `palette`.
-- Au démarrage de l'app et à RESTAURER : `possedes()` → pour chaque produit possédé, `shopDonne` / `habDonne` / `palDonne` s'il manque (**idempotent**, sans fête ni écrasement de l'équipement du joueur).
+  `produitDe(id)` : `cashcar.car.<shape>` pour un index, `cashcar.peinture.<id>` pour `peinture:<id>`. Pas de produit palette (pack plus vendu).
+- Au démarrage de l'app et à RESTAURER : `possedes()` → pour chaque produit possédé, `shopDonne` / `habDonne` s'il manque (**idempotent**, sans fête ni écrasement de l'équipement du joueur).
 - Prix affiché = prix StoreKit (localisé) quand il est connu ; sinon repli sur `eur` du jeu.
 - Bouton **RESTAURER MES ACHATS** (exigé par Apple) : il existe déjà sur la page ACHAT (`code/page/ecrans-menus.html:124`, `data-m="shopRestore"`), où il n'affiche aujourd'hui qu'un message « AUCUN ACHAT À RESTAURER » (`code/moteur/mobile-tactile.js:896`) ; on le branche à `ccAchat.restaurer()`. Aucune ligne ajoutée dans RÉGLAGES.
 - Messages d'erreur existants (« L'achat est indisponible pour le moment. ») + un message « EN ATTENTE D'ACCORD » pour `attente` (Ask to Buy).
 
 ### 4.4 `app-ios/preparer-www.js`
-Retirer les coupes qui transforment le vrai argent : conversion `CAR_UNLOCK`, `PEINT_EUR → $`, palette → SECRÈTE, prix du pack, masquage OFFRES / tuile cadeau (`#mShop`, `#bdShop`, `data-m="shop"`).
+Retirer les coupes qui transforment le vrai argent : conversion `CAR_UNLOCK`, `PEINT_EUR → $`, prix du pack, masquage OFFRES / tuile cadeau (`#mShop`, `#bdShop`, `data-m="shop"`). La coupe « palette → SECRÈTE » peut rester : sans objet, le pack n'est plus vendu.
 **Gardées** : ENTRER UN CODE masqué (règle 3.1.1 : pas de déblocage par code), pubs maison, panneau RÉGLAGES d'ordinateur, mode TEST.
 Les « témoins » (une coupe dont la cible disparaît fait échouer la fabrication) restent, adaptés aux coupes retirées.
 
@@ -93,12 +93,12 @@ Argent du jeu : jamais touché par un achat en €.
 - **Coupure réseau** pendant l'achat : StoreKit reprend la transaction (`Transaction.updates`) à la relance.
 - **Double touche** : `habPaye.on` existant + verrou côté Swift (un seul achat à la fois).
 - **Version web / Vercel / portails** : aucun changement de comportement (`window.ccAchat` absent).
-- **Sauvegarde cousin / export** : un objet acheté se rend par restauration ; un code de sauvegarde ne doit **pas** devenir un moyen de gratuit : à vérifier, un `owned` importé depuis le web ne vaut pas achat (voir §9).
+- **Sauvegarde cousin / export** : un objet acheté se rend par restauration. **En v1.0**, un `owned` importé par code de sauvegarde vaut possession (import accepté tel quel, voir §9 à rediscuter avec Sacha) ; à revoir avant toute suite, pour ne pas en faire un moyen de gratuit.
 
 ## 7. Tests
 1. `node app-ios/outils/produits-store.js --verifier` : tous les ids sont uniques, valides, le `.storekit` correspond au jeu.
 2. Banc navigateur : `ccAchat` simulé (succès / annulation / attente / indisponible) — le jeu ne donne rien sur refus, donne une fois sur succès (idempotent).
-3. **Simulateur iOS** avec `Produits.storekit` branché au schéma (Debug seulement) : un achat par famille (caisse, peinture, palette), annulation, restauration après désinstallation.
+3. **Simulateur iOS** avec `Produits.storekit` branché au schéma (Debug seulement) : un achat par famille (caisse, peinture), annulation, restauration après désinstallation.
 4. `sh garde-burnout.sh` OK (boutique 3D intouchable), `assembler.cjs --verifier`, `sw.js` +1 si `code/` change.
 5. **TestFlight bac à sable** (par Sacha) : un vrai achat, une restauration, un refus.
 Non vérifiable ici : l'encaissement réel et la validation par Apple.
