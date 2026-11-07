@@ -15314,7 +15314,9 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
     if(ty<.7&&n.y>0){up.set(-t9.x*t9.y,1-t9.y*t9.y,-t9.z*t9.y);if(up.lengthSq()>1e-8){up.normalize();
       const th=Math.atan2(c9.crossVectors(n,up).dot(t9),n.dot(up)),mx=.05*P[i+1].distanceTo(P[i])*(1-ty/.7),a=THREE.MathUtils.clamp(th,-mx,mx);
       om[i]=a;n.applyAxisAngle(t9,a);n.addScaledVector(t9,-n.dot(t9)).normalize();}}}
-  c1={ctrl:ctrl,cv:cv,Lc:Lc,K:K,P:P,n1:n1,h:h,Tv:Tv,Nv:Nv,om:om};pisteTord._c1=c1;}
+  const kp=new Float32Array(n1);{const a9=new THREE.Vector3();for(let i=0;i<K;i++){a9.crossVectors(Tv[i],Tv[i+1]);kp[i]=Math.atan2(a9.length(),Tv[i].dot(Tv[i+1]))/h;}kp[K]=kp[K-1];} /* (2026-11-07, LA GÉNÉRATION PROPRE) la courbure de la route d'origine, par pas */
+  const kp2=new Float32Array(n1);{const r9=Math.max(1,Math.round(15/h));let s9=0,c9n=0;for(let i=-r9;i<n1+r9;i++){const ia=i+r9,io=i-r9-1;if(ia<n1){s9+=kp[ia];c9n++;}if(io>=0){s9-=kp[io];c9n--;}if(i>=0&&i<n1)kp2[i]=s9/Math.max(1,c9n);}} /* lissée sur ~30 m */
+  c1={ctrl:ctrl,cv:cv,Lc:Lc,K:K,P:P,n1:n1,h:h,Tv:Tv,Nv:Nv,om:om,kp:kp2};pisteTord._c1=c1;}
   const cv=c1.cv,Lc=c1.Lc,K=c1.K,P=c1.P,n1=c1.n1,h=c1.h,Tv=c1.Tv,Nv=c1.Nv,om=c1.om;
   // 2) LES VRILLES : le roulis voulu `rho(s)`, par segments lissés (smoothstep) — tenue, quart de tour, demi-tour, tour complet
   /* LES TRONÇONS DROITS — l'arrivée au portail — ne suivent pas le plan : la dalle s'y redresse vers le
@@ -15322,16 +15324,26 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
      des virages pris sur la tranche, tout le repère a tourné — seul un rappel vers la verticale remet la route à l'endroit. Le DÉPART,
      lui, n'a rien à corriger : la route d'origine y est déjà droite, on la reprend telle quelle. */
   const rg=mulberry32((seed^0x70D5E11A^(essai?Math.imul(essai,0x9E3779B1):0))>>>0),vC=Math.max(70,70+(lvPiste()-1)*100),seg=[],TOUR=Math.PI*2;
-  const s0=O.f0!=null?Math.max(450,O.f0*Lc):ROUTE_LIBRE?Math.max(450,1.8*vC):Math.max(500,3*vC),fin=Lc-Math.max((ROUTE_LIBRE?700:1200)*lvPiste(),6*vC); // (EN GRAND) plus de vrille dans le geste de fin AGRANDI (un virage de fin fait ~1,1 km) : on se redresse AVANT lui, sinon il part à la verticale et le rappel n'y peut rien (mesuré : portail à 45-50°)
+  const s0=O.f0!=null?Math.max(450,O.f0*Lc):ROUTE_LIBRE?Math.max(450,1.8*vC):Math.max(500,3*vC),fin=Lc-(GEN_V2?Math.max(450*lvPiste(),4*vC):Math.max((ROUTE_LIBRE?700:1200)*lvPiste(),6*vC)); /* (LA GÉNÉRATION PROPRE) le geste de fin n'est plus agrandi : 4 s tenues à l'endroit suffisent */ // (EN GRAND) plus de vrille dans le geste de fin AGRANDI (un virage de fin fait ~1,1 km) : on se redresse AVANT lui, sinon il part à la verticale et le rappel n'y peut rien (mesuré : portail à 45-50°)
   let s=s0,rho=0;seg.push({s0:0,s1:s0,r0:0,r1:0});
   /* LES FIGURES DESSINÉES (ROUTE LIBRE) : les zones {a,b} (abscisses en m) des modules marqués `g` ou `f` par genCtrl, avec leurs roulis scriptés {a,b,amt}. La route y est tenue
      (aucune vrille au hasard) ; `lead` m avant la zone, la dalle est ramenée À L'ENDROIT — on entre dans un looping debout. Une zone trop près du départ ou du portail est laissée à
      la route ordinaire (la figure plate reste une courbe). */
+  /* (2026-11-07, LA GÉNÉRATION PROPRE — Sacha : « dans l'espace la route s'emmêle bizarrement, trop de tournicotis ») LE CALME : un pas est calme quand la route d'origine y tourne à plus de
+     5 rP (pas de virage) et qu'aucun module ne s'y trouve (ni 1 s avant). Une vrille ne part et ne se joue que sur du calme : la dalle ne roule plus pendant une épingle ou un slalom —
+     c'était ça, le tire-bouchon. Le tour complet n'existe plus hors des figures (le tonneau). Et jamais plus de ~22 % de la route hors de l'endroit (horsL). */
+  const calmeI=new Uint8Array(n1+1);let horsL=0;
+  if(GEN_V2&&!sansVrille&&!O.zone){const kL=1/(3.5*(40+.3*vC)); /* calme = plus large que 3,5 rP (une courbe au pouce, que le dévers couche à peine) */for(let i=0;i<=n1;i++)calmeI[i]=c1.kp[Math.min(i,n1-1)]<kL?1:0;
+    const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,sOf=function(j){const f=Math.max(0,Math.min(nC,j))/nC*dv,k=Math.min(dv-1,Math.floor(f));return lg[k]+(lg[k+1]-lg[k])*(f-k);};
+    for(const m of MODMARK){const a=sOf(m.i0)-vC,b=sOf(m.i1);for(let i=Math.max(0,Math.floor(a/h));i<=Math.min(n1,Math.ceil(b/h));i++)calmeI[i]=0;}}
+  const calmeDe=function(a,b){for(let i=Math.max(0,Math.floor(a/h));i<=Math.min(n1,Math.ceil(b/h));i++)if(!calmeI[i])return false;return true;};
+  const prochainCalme=function(a,need,lim){const nI=Math.max(1,Math.ceil(need/h)),iL=Math.min(n1,Math.floor(lim/h));let run=0;for(let i=Math.max(0,Math.floor(a/h));i<=iL;i++){run=calmeI[i]?run+1:0;if(run>=nI)return (i-nI+1)*h;}return -1;};
   const FZ=[],ZDBG=[],lead=Math.max(520,5*vC);let fi=0;
   if(!sansVrille&&ROUTE_LIBRE){const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,sOf=function(j){const f=Math.max(0,Math.min(nC,j))/nC*dv,k=Math.min(dv-1,Math.floor(f));return lg[k]+(lg[k+1]-lg[k])*(f-k);};
     for(const m of MODMARK)if(m.g||m.f){const a=sOf(m.i0),b=sOf(m.i1);ZDBG.push([m.fig||'?',Math.round(a),Math.round(b),Math.round(s0),Math.round(fin),b>fin-40||a<s0+60?0:1]);if(b>fin-40||a<s0+60)continue;
       FZ.push({a:a,b:b,calme:m.calme?1:0,ev:(m.f||[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};})});}
     FZ.sort(function(x,y){return x.a-y.a;});}
+  if(O.zero&&!sansVrille){seg.push({s0:s0,s1:Lc,r0:0,r1:0,calme:1});s=Lc;} /* (LA GÉNÉRATION PROPRE) zéro vrille : le dévers seul, la dalle rappelée vers le ciel — quand la route s'est touchée à tous les essais */
   while(!sansVrille&&s<fin-120){
     if(fi<FZ.length&&FZ[fi].a-lead-s<60){const z=FZ[fi++];
       if(z.a>s+1){const w=Math.atan2(Math.sin(rho),Math.cos(rho));seg.push({s0:s,s1:z.a,r0:rho,r1:rho-w});rho-=w;} // à l'endroit avant la figure (le plus court)
@@ -15343,13 +15355,20 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
     if(NV_CALME){const w=Math.atan2(Math.sin(rho),Math.cos(rho)); // (MOINS TORDUE, voir NV_CALME) w : le roulis ramené entre −π et π (0 = à l'endroit)
       if(Math.abs(w)>.3){if(r<(Z.tenueHaut!=null?Z.tenueHaut:.35))len=Math.max(250,vC*((Z.lenHaut?Z.lenHaut[0]:2)+rg()*(Z.lenHaut?Z.lenHaut[1]:2))); // là-haut (couchée, retournée) : 2-4 s de tenue, une fois sur trois…
         else{amt=-w;len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}} // …puis on revient à l'endroit, par le plus court
-      else if(r<(Z.tenueBas!=null?Z.tenueBas:.6)){len=Math.max(Z.lenBas?250:450,vC*((Z.lenBas?Z.lenBas[0]:6)+rg()*(Z.lenBas?Z.lenBas[1]:6)));const v9=len;len=Math.min(len,lim-s);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
-      else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<(Z.quart!=null?Z.quart:.6)?Math.PI/2:k<(Z.demi!=null?Z.demi:.95)?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}}
+      else if(r<(Z.tenueBas!=null?Z.tenueBas:.6)||(GEN_V2&&!O.zone&&horsL>.22*Math.max(1,s))){len=Math.max(Z.lenBas?250:450,vC*((Z.lenBas?Z.lenBas[0]:6)+rg()*(Z.lenBas?Z.lenBas[1]:6)));const v9=len;len=Math.min(len,lim-s);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
+      else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<(Z.quart!=null?Z.quart:.6)?Math.PI/2:k<(Z.demi!=null?Z.demi:.95)?Math.PI:(GEN_V2&&!O.zone?Math.PI:TOUR));len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}}
     else if(r<.4)len=Math.max(400,vC*(4+rg()*5)); // une tenue : la dalle reste où elle est (couchée, retournée…) 4-9 s — de quoi respirer entre deux vrilles
     else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.45?Math.PI/2:k<.9?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));} // (EN GRAND) ~3× plus lentes qu'au premier jet, le tour complet rare
     const veut=len;len=Math.min(len,lim-s);if(len<60)break;
     if(amt&&len<veut*.7)amt=0; // pas la place de la vrille entière avant le portail : on tient, on ne la serre pas
-    seg.push({s0:s,s1:s+len,r0:rho,r1:rho+amt});s+=len;rho+=amt;}
+    if(GEN_V2&&!O.zone&&amt){ /* (LA GÉNÉRATION PROPRE) une vrille ne part que sur du CALME (voir calmeI) : sinon on attend le prochain calme — à l'endroit si on y est ; couchée, on revient quand même au bout de 3 s */
+      const w9=Math.atan2(Math.sin(rho),Math.cos(rho)),retour=Math.abs(w9)>.3,need=veut+vC;let s9=calmeDe(s-vC,s+veut)?s:prochainCalme(s,need,retour?Math.min(lim,s+3*vC+need):lim);
+      if(s9>s)s9+=vC;
+      if(s9<0&&!retour){len=Math.min(lim-s,vC*(3+rg()*3));if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;}
+      if(s9>s+1){seg.push({s0:s,s1:s9,r0:rho,r1:rho,calme:retour?0:1});if(retour)horsL+=s9-s;s=s9;len=Math.min(veut,lim-s);if(len<60)break;
+        if(len<veut*.7&&!retour){seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;}}}
+    seg.push({s0:s,s1:s+len,r0:rho,r1:rho+amt});s+=len;rho+=amt;
+    if(GEN_V2){const w0=Math.abs(Math.atan2(Math.sin(rho),Math.cos(rho)));if(amt||w0>.3)horsL+=len;}}
   const rhoAt=function(x){for(const g of seg)if(x<=g.s1){if(x<=g.s0)return g.r0;const u=(x-g.s0)/(g.s1-g.s0);return g.r0+(g.r1-g.r0)*u*u*(3-2*u);}return rho;};
   const droit=new Uint8Array(n1+1);
   if(!sansVrille){const mk=function(x0,x1){for(let i=Math.max(0,Math.floor(x0/h));i<=Math.min(n1,Math.ceil(x1/h));i++)droit[i]=1;};mk(fin,Lc+h);if(O.f0!=null)mk(0,s0);} /* (SUR LES PAROIS) avant s0 (la mine) la route reste à plat : ni vrille ni dévers, rappelée vers le haut du monde */
@@ -15398,7 +15417,8 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
   {const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,ix=function(j){if(j>=nC)return out.length-1;const f=j/nC*dv,k=Math.min(dv-1,Math.floor(f));const sj=lg[k]+(lg[k+1]-lg[k])*(f-k);return Math.max(0,Math.min(out.length-1,Math.round(sj/h/pas)));};
    for(const m of MODMARK){m.i0=ix(m.i0);m.i1=ix(m.i1);}}
   FILETMARK.length=0;
-  TORD.info={L:Math.round(Lc),vrilles:seg.filter(function(g){return g.r1!==g.r0;}).length,portailNy:+NN[n1-1].y.toFixed(2),tours:+(seg.reduce(function(a,g){return a+Math.abs(g.r1-g.r0);},0)/(Math.PI*2)).toFixed(2),rMaxDegM:+(rMax*57.3).toFixed(2),
+  let hors9=0;{const figZ=new Uint8Array(n1+1);for(const z of FZ)for(let i=Math.max(0,Math.floor(z.a/h));i<=Math.min(n1,Math.ceil(z.b/h));i++)figZ[i]=1;let c9=0;for(let i=0;i<n1;i++)if(!figZ[i]){c9++;if(NN[i].y<.5)hors9++;}hors9=c9?hors9/c9:0;} /* (LA RÈGLE v2) la part hors de l'endroit, figures exclues */
+  TORD.info={L:Math.round(Lc),hors:+hors9.toFixed(2),vrilles:seg.filter(function(g){return g.r1!==g.r0;}).length,portailNy:+NN[n1-1].y.toFixed(2),tours:+(seg.reduce(function(a,g){return a+Math.abs(g.r1-g.r0);},0)/(Math.PI*2)).toFixed(2),rMaxDegM:+(rMax*57.3).toFixed(2),
     ecartFin:Math.round(Q[n1-1].distanceTo(P[n1-1])),deversMaxDeg:Math.round(devMax*57.3),figures:FZ.length,zones:ZDBG,figuresMarquees:MODMARK.filter(function(m){return m.fig;}).length};
   return {ctrl:out,N:outN};
 }
@@ -15427,6 +15447,10 @@ function pisteTordPropre(ctrl,seed,opts){
     const r=pisteTord(ctrl,seed,false,e,opts),c=tordContacts(r.ctrl,r.N);
     if(c<bC){best=r;bC=c;bI=Object.assign({},TORD.info,{essai:e,contacts:c});bM=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};});}
     if(!c)break;}
+  if(bC>0&&GEN_V2&&!(opts&&opts.zone)){ /* (LA GÉNÉRATION PROPRE) la route se touche encore après 6 tirages de vrilles : la version sans vrille (dévers seul), si elle est plus propre */
+    MODMARK.forEach(function(m,k){m.i0=m0[k].i0;m.i1=m0[k].i1;});FILETMARK.length=0;for(const f of f0)FILETMARK.push(f);
+    const r=pisteTord(ctrl,seed,false,0,Object.assign({},opts||{},{zero:1})),c=tordContacts(r.ctrl,r.N);
+    if(c<bC){best=r;bC=c;bI=Object.assign({},TORD.info,{essai:'zero',contacts:c});bM=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};});}}
   MODMARK.forEach(function(m,k){m.i0=bM[k].i0;m.i1=bM[k].i1;});TORD.info=bI;pisteTord._c1=null;
   return best;}
 window.dbgHaut=function(k){ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : son relevé · dbgHaut('controle') = la piste refaite SANS vrille doit retomber sur l'originale
@@ -15527,12 +15551,12 @@ const RYTHME_CIBLES={ // par map : virages/km [mini, maxi], serrés/km mini, dro
    les droites. Désormais :
      · un VIRAGE commence à `virMin` (26°, contre 20) ; sous 26° à moins de 5 rP c'est une DOUILLE (interdite : 0,8 chacune, cible ≤ 0,4/km) ; trois douilles alternées
        d'affilée = un ZIGZAG (2 chacun) ; une courbe de moins de 26° à 5 rP ou plus est un BALAYAGE (la courbe au pouce : bienvenue) ;
-     · une DROITE FRANCHE = ≤ 8° de cap sur ≥ 1,8 s de croisière, à plus de 6 rP : VOULUE, 2 à 4,5 par minute (la ligne nitro) ; une « droite » entre deux temps forts
+     · une DROITE FRANCHE = ≤ 8° de cap sur ≥ 1,8 s de croisière, à plus de 6 rP : VOULUE, 5 à 22 % de la route (la ligne nitro) ; une « droite » entre deux temps forts
        ne coûte qu'au-delà de 6,5 s (5 avant) — ce n'est plus la peine de la remplir de courbes molles ;
      · sur une route roulée (nuages, espace, grotte) la part hors de l'endroit (`horsEndroit`, normale y < 0,5) ne dépasse pas 25 %.
    `?gen=ancien` = la règle et la génération du 05/11. */
 const GEN_V2=typeof location==='undefined'||!/[?&]gen=ancien\b/.test(location.search);
-const RYTHME_V2={virMin:26,douilleMin:4,douilleKm:.4,droiteFMin:[2,4.5],droiteFs:1.8,droiteFdeg:8,horsEndroit:.25,droitePlus:1.5};
+const RYTHME_V2={virMin:26,douilleMin:4,douilleKm:.4,droiteFMin:[.05,.22],droiteFs:1.8,droiteFdeg:8,horsEndroit:.25,droitePlus:1.5}; /* droiteFMin : la part de la route en droites franches [mini, maxi] */
 function rythmeCible(carte){const c=Object.assign({},RYTHME_CIBLES.base,RYTHME_CIBLES[carte]||{});
   if(GEN_V2){c.droiteS+=RYTHME_V2.droitePlus;c.douilleKm=RYTHME_V2.douilleKm;c.droiteF=RYTHME_V2.droiteFMin;c.horsEndroit=RYTHME_V2.horsEndroit;}return c;}
 /* la fiche d'une route — ctrl : les points de contrôle À PLAT (x, z : le plan ; y : l'altitude) · o : {vP (m/s), rP (m), marks (MODMARK : les figures protégées), pas (m)} */
@@ -15572,7 +15596,7 @@ function rythmeMesure(ctrl,o){
   if(cur&&cur.ang>=vMin)V.push(cur);if(fz)FZ.push(fz);
   /* 4 bis) (LA RÈGLE v2) LES DOUILLES : les lobes d'un même côté à moins de 5 rP dont l'angle fait entre 4° et `virMin` — le petit coup de volant que personne n'a dessiné ;
      un ZIGZAG = trois douilles alternées d'affilée (moins de 1 s entre deux) · LES DROITES FRANCHES : ≤ 8° de cap sur ≥ 1,8 s de croisière, jamais plus serré que 6 rP */
-  let douilles=0,zigzags=0,droitesF=0;const DZ=[];
+  let douilles=0,zigzags=0,droitesF=0,droitesFL=0;const DZ=[];
   {const kD=1/(5*rP),dMin=RYTHME_V2.douilleMin*Math.PI/180;let c2=null;const lob=[];
     for(let i=0;i<=N;i++){const k=prot[i]?0:kap[i],sg=Math.abs(k)>=kD?(k>0?1:-1):0;
       if(sg&&c2&&c2.sg===sg){c2.i1=i;c2.ang+=Math.abs(k)*ds;}else{if(c2)lob.push(c2);c2=sg?{sg:sg,i0:i,i1:i,ang:Math.abs(k)*ds}:null;}}
@@ -15582,8 +15606,8 @@ function rythmeMesure(ctrl,o){
     const kF=1/(6*rP),lF=RYTHME_V2.droiteFs*vP,aF=RYTHME_V2.droiteFdeg*Math.PI/180;let r0=-1,aa=0;
     for(let i=0;i<=N+1;i++){const ok=i<=N&&!prot[i]&&Math.abs(kap[i])<kF;
       if(ok){if(r0<0){r0=i;aa=0;}aa+=Math.abs(kap[i])*ds;}
-      else if(r0>=0){if((i-r0)*ds>=lF&&aa<=aF)droitesF++;r0=-1;}}}
-  let horsEndroit=0;if(o.N&&o.N.length){let h9=0;for(const v of o.N)if(v.y<.5)h9++;horsEndroit=h9/o.N.length;} /* la part de la route roulée sur la tranche ou à l'envers */
+      else if(r0>=0){if((i-r0)*ds>=lF&&aa<=aF){droitesF++;droitesFL+=(i-r0)*ds;}r0=-1;}}}
+  let horsEndroit=0;if(o.hors!=null)horsEndroit=o.hors;else if(o.N&&o.N.length){let h9=0;for(const v of o.N)if(v.y<.5)h9++;horsEndroit=h9/o.N.length;} /* la part de la route roulée sur la tranche ou à l'envers */
   let droiteMax=0,droites5=0,ench=0,spirMax=0,spirales=0;const dS=5*vP; /* 5 s de croisière */
   const TF=V.concat(FZ).sort(function(a,b){return a.i0-b.i0;}),gaps=[];let last=0; /* les temps forts : virages ET figures ; une droite = ce qu'il y a entre deux */
   for(const v of TF){const g=(v.i0-last)*ds;gaps.push(g);last=Math.max(last,v.i1);}gaps.push((N-last)*ds);
@@ -15597,16 +15621,17 @@ function rythmeMesure(ctrl,o){
   let cretes=0;for(let i=1;i<n0-1;i++){const a=ctrl[i-1],b=ctrl[i],c=ctrl[i+1],h1=Math.hypot(b.x-a.x,b.z-a.z),h2=Math.hypot(c.x-b.x,c.z-b.z);if(h1<4||h2<4)continue;
     const g1=(b.y-a.y)/h1,g2=(c.y-b.y)/h2;if(g1-g2>.30)cretes++;}
   const km=L/1000;
-  return {L:Math.round(L),s:+(L/vP).toFixed(1),vir:V.length,virKm:+(V.length/km).toFixed(2),serreKm:+((serreL/90)/km).toFixed(2),infr:+(infrL).toFixed(0),infrS:sInfr,
+  return {L:Math.round(L),s:+(L/vP).toFixed(1),vir:V.length,virKm:+(V.length/km).toFixed(2),virFKm:+((V.length+2*FZ.length)/km).toFixed(2),serreKm:+((serreL/90)/km).toFixed(2),infr:+(infrL).toFixed(0),infrS:sInfr,
     droiteMax:Math.round(droiteMax),droiteS:+(droiteMax/vP).toFixed(1),droites5:droites5,ench:ench,enchKm:+(ench/km).toFixed(2),spirMax:Math.round(spirMax),spirales:spirales,
     figures:FZ.length,coudes:coudes,cretes:cretes,pente:+(g.length?g[g.length>>1]:0).toFixed(3),penteP95:+(g.length?g[Math.floor(g.length*.95)]:0).toFixed(3),penteMax:+(g.length?g[g.length-1]:0).toFixed(3),
     montee:+(g.length?up/g.length:0).toFixed(2),descente:+((-dyT)/L).toFixed(3),rMin:Math.round(rMin===1e9?0:rMin),rMinRP:+((rMin===1e9?0:rMin)/rP).toFixed(2),rMed:Math.round(rMed),pts:n0,
-    douilles:douilles,douillesKm:+(douilles/km).toFixed(2),zigzags:zigzags,droitesF:droitesF,droitesFMin:+(droitesF/(L/vP/60)).toFixed(2),horsEndroit:+horsEndroit.toFixed(2),douillesS:DZ,
+    douilles:douilles,douillesKm:+(douilles/km).toFixed(2),zigzags:zigzags,droitesF:droitesF,droitesFMin:+(droitesF/(L/vP/60)).toFixed(2),droitesFPart:+(droitesFL/L).toFixed(3),horsEndroit:+horsEndroit.toFixed(2),douillesS:DZ,
     virages:V.map(function(v){return [Math.round(v.i0*ds),Math.round(v.i1*ds),Math.round(v.ang*180/Math.PI)*v.sg];})};}
 /* la NOTE : 0 = la route tient toutes les cibles ; chaque manquement coûte proportionnellement (les coudes et l'infranchissable coûtent cher) */
 function rythmeNote(f,c){
   if(!f||!f.L)return 1e9;let n=0;
-  if(f.virKm<c.vir[0])n+=(c.vir[0]-f.virKm)*2;if(f.virKm>c.vir[1])n+=(f.virKm-c.vir[1])*1.2;
+  const vk=GEN_V2&&f.virFKm!=null?f.virFKm:f.virKm; /* (LA RÈGLE v2) une figure déclarée vaut deux virages : une map courte faite d'un looping et d'un surf n'est pas « sans virage » */
+  if(vk<c.vir[0])n+=(c.vir[0]-vk)*2;if(vk>c.vir[1])n+=(vk-c.vir[1])*1.2;
   if(f.serreKm<c.serre)n+=(c.serre-f.serreKm)*1.5;
   n+=f.infr*.2; /* 0,2 par mètre infranchissable */
   if(f.droiteS>c.droiteS)n+=(f.droiteS-c.droiteS)*1.5;n+=f.droites5*.8;
@@ -15617,7 +15642,7 @@ function rythmeNote(f,c){
   if(f.montee>c.monteeMax)n+=(f.montee-c.monteeMax)*4;
   if(GEN_V2&&c.douilleKm!=null){ /* (LA RÈGLE v2) les douilles coûtent plus qu'un coude ; les droites franches manquantes coûtent ; la route couchée trop longtemps coûte */
     n+=Math.max(0,f.douilles-c.douilleKm*f.L/1000)*.8;n+=(f.zigzags||0)*2;
-    if(f.droitesFMin<c.droiteF[0])n+=(c.droiteF[0]-f.droitesFMin)*1.2;if(f.droitesFMin>c.droiteF[1])n+=(f.droitesFMin-c.droiteF[1])*.6;
+    if(f.droitesFPart<c.droiteF[0])n+=(c.droiteF[0]-f.droitesFPart)*30;if(f.droitesFPart>c.droiteF[1])n+=(f.droitesFPart-c.droiteF[1])*15; /* la PART de la route en droites franches : 5 à 22 % */
     if(f.horsEndroit>c.horsEndroit)n+=(f.horsEndroit-c.horsEndroit)*8;}
   return +n.toFixed(2);}
 /* LE MEILLEUR-DE-N : `gen(rnd9)` dessine une route avec le flux qu'on lui donne ; on en tire `n` sur des flux dérivés d'UN seul tirage de `rnd`, on garde la mieux notée.
@@ -15634,6 +15659,48 @@ function rythmeMeilleur(rnd,n,carte,gen,o){
   best.n=notes.length;best.notes=notes;RYTHME.der={carte:carte,note:best.note,essai:best.essai,n:notes.length,notes:notes,fiche:best.fiche};return best;}
 const RYTHME={der:null,N:typeof location!=='undefined'&&/[?&]rythme=0\b/.test(location.search)?1:6}; /* `?rythme=0` : un seul essai (la route d'avant, au tirage près) */
 window.dbgRythme=function(){return RYTHME.der;}; /* le dernier choix du directeur de rythme : la note de chaque essai, la fiche de la route gardée */
+/* ===== LES BRIQUES PROPRES (2026-11-07, LA GÉNÉRATION DES ROUTES, PROPRE — Sacha : « plein de petits virages et de petites douilles ; rends ça super propre,
+   super clean, un joli modèle ; réfléchis à des genres de maps ») =====
+   Les gestes communs à tous les générateurs, pour que PERSONNE ne dessine un petit virage (passation/GENERATION-ROUTES.md) :
+   · briqueRecadre(dDeg, dette) — le recadrage du cap NE DESSINE RIEN sous 8° (le cap n'a pas à être tenu au degré), garde une DETTE de 8 à 26° reportée sur le
+     prochain vrai virage (briqueDette : il tourne un peu plus ou un peu moins), et au-delà rend un vrai virage à dessiner. Remplace les petits arcs de recentre,
+     jCap, gAxe, cap, recadre… (trois cordes de quelques mètres : LA douille) ;
+   · briqueSouffle(rnd, vP, genre) — le souffle entre deux temps forts : une DROITE FRANCHE de 1,8 à 4 s de croisière (sept fois sur dix) ou un BALAYAGE de 30-60°
+     à 5 rP ou plus (la courbe au pouce). Plus jamais des S de 8-20° ;
+   · phraser(rnd, L, vP, genre) — LA PHRASE DE RYTHME : la map est planifiée en SECONDES avant d'être dessinée — OUVERTURE, puis des cycles MONTÉE (2-3 virages
+     lisibles) → TEMPS FORT (un module) → SOUFFLE, un CLIMAX (le module unique de la map, après un souffle plus long) entre 50 et 75 % de la route, la FIN. À haut
+     palier les cycles gardent leurs secondes (moins de temps forts par km, chacun plus long) ;
+   · phraseGenre(rnd) — les trois GENRES tirés à chaque map (« les genres de maps ») : VITESSE (deux grands virages par montée, souffles longs, balayages),
+     TECHNIQUE (trois virages serrés enchaînés, souffles courts), SPECTACLE (le climax plus tôt, les souffles avant chaque figure).
+   Tout est en mètres de dessin : le générateur passe SON vP (m/s, à son échelle) et SON rP. `?gen=ancien` : rien de tout ça. */
+const BRIQUE={angMin:26,recadreMin:8,balayageRP:6.5,souffle:[1.8,4],balayage:[30,60]}; /* balayageRP 6,5 : nettement au-dessus des 5 rP où la fiche cesse de voir une douille */
+const PHRASE_GENRES={ /* montee : [nb mini, nb maxi] de virages par montée · a : [°, °] · Rk : rayons (× rP) · ench : part des montées enchaînées (pas de droite entre deux virages) · souffle : [s, s] · bal : part des souffles en balayage · climax : [part, part] de la route */
+  VITESSE:  {montee:[2,2],a:[45,105],Rk:[2.4,3.4],ench:.3,souffle:[2.2,3.4],bal:.5,climax:[.6,.75]},
+  TECHNIQUE:{montee:[3,3],a:[50,120],Rk:[1.7,2.7],ench:.7,souffle:[1.6,2.4],bal:.15,climax:[.55,.7]},
+  SPECTACLE:{montee:[2,3],a:[45,110],Rk:[2,3],  ench:.5,souffle:[1.8,3],bal:.3,climax:[.5,.62]}};
+function briqueRecadre(dDeg,dette){const d=dDeg+(dette||0),a=Math.abs(d);if(a<BRIQUE.recadreMin)return {dessine:0,dette:0};if(a<BRIQUE.angMin)return {dessine:0,dette:d};return {dessine:d,dette:0};}
+function briqueDette(aDeg,dette){if(!dette)return aDeg;const s=aDeg<0?-1:1;let a=Math.abs(aDeg)+dette*s;if(a<BRIQUE.angMin)a=BRIQUE.angMin;return a*s;}
+function briqueSouffle(rnd,vP,g){const G=g||PHRASE_GENRES.SPECTACLE,s=G.souffle[0]+rnd()*(G.souffle[1]-G.souffle[0]);
+  if(rnd()<G.bal)return {bal:1,a:BRIQUE.balayage[0]+rnd()*(BRIQUE.balayage[1]-BRIQUE.balayage[0]),s:s,L:s*vP};return {bal:0,s:s,L:s*vP};}
+function phraseGenre(rnd){const u=rnd();return u<.34?'VITESSE':u<.67?'TECHNIQUE':'SPECTACLE';}
+/* la phrase : un PHRASEUR qui décide du prochain temps d'après la position RÉELLE du dessin (les modules font rarement les 5 s prévues) — `suivant(pos)` rend
+   {t:'ouverture'|'montee'|'fort'|'souffle'|'climax'|'fin', L (m), n (virages), ench, bal, a, s} ou null quand la route est pleine · o : {ouverture:[s,s], fortS (s par module), fin (m), climax:false} */
+function phraser(rnd,L,vP,genre,o){o=o||{};const G=PHRASE_GENRES[genre]||PHRASE_GENRES.SPECTACLE,fortS=o.fortS||5,finL=o.fin!=null?o.fin:2.2*vP;
+  const cx=o.climax===false?-1:(G.climax[0]+rnd()*(G.climax[1]-G.climax[0]))*L,ouv=o.ouverture||[2,3];
+  const PH={genre:genre,G:G,L:L,cx:cx,slots:[],etat:'ouverture',climaxFait:false,n:0};
+  PH.suivant=function(pos){let sl=null;const place=L-finL-pos;
+    if(PH.etat==='fini')return null;
+    if(PH.etat==='ouverture'){const l=(ouv[0]+rnd()*(ouv[1]-ouv[0]))*vP;sl={t:'ouverture',L:l,s:l/vP};PH.etat='montee';}
+    else if(PH.etat==='fin'){sl={t:'fin',L:finL};PH.etat='fini';}
+    else if(!PH.climaxFait&&cx>=0&&PH.etat==='fort'&&(pos>=cx||place<fortS*2.6*vP)){const s9=briqueSouffle(rnd,vP,G);if(place>fortS*4*vP){s9.L*=1.3;s9.s*=1.3;}s9.t='souffle';s9.avantClimax=1;sl=s9;PH.etat='climax';} /* après une montée : le souffle (long) qui annonce le climax */
+    else if(PH.etat==='climax'){sl={t:'climax',L:fortS*1.4*vP};PH.climaxFait=true;PH.etat='souffle';}
+    else if(place<fortS*vP*.8){PH.etat='fin';return PH.suivant(pos);}
+    else if(PH.etat==='montee'){const nv=G.montee[0]+Math.floor(rnd()*(G.montee[1]-G.montee[0]+1));sl={t:'montee',n:nv,ench:rnd()<G.ench,L:nv*2.6*vP};PH.etat='fort';}
+    else if(PH.etat==='fort'){if(place<fortS*vP*1.6){PH.etat='fin';return PH.suivant(pos);}sl={t:'fort',L:fortS*vP};PH.etat='souffle';}
+    else if(PH.etat==='souffle'){sl=briqueSouffle(rnd,vP,G);sl.t='souffle';PH.etat='montee';}
+    if(++PH.n>80){PH.etat='fini';}
+    if(sl){sl.pos=Math.round(pos);PH.slots.push(sl);}return sl;};
+  return PH;}
 /* L'ENTRÉE DANS LA VILLE (2026-09-29, Sacha : « quand on arrive dans la ville, la route doit commencer par être droite et surélevée le
    temps que le joueur s'adapte, puis la route descend dans la ville »). AVANT : le départ commun à tous les niveaux — 110 m qui plongent
    de 70 (adoucis à ~23°) — jetait la caisse dans le canyon dès la sortie du portail, murs au-dessus de la route, nitro déjà sur les
@@ -15693,7 +15760,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     for(let k=0;k<n;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/n;phi+=st/2;push();}
     approx+=Math.abs(a)*R;};
   // (route v3c) une « droite » qui n'en est pas une : un arc léger de a° sur l mètres — la piste ne va plus jamais tout droit
-  const courbe=(l,dy,aDeg,n)=>{let a=Math.max(4,Math.abs(aDeg));const s9=aDeg<0?-1:1;if(a>=8&&rPlafond&&l/(a*Math.PI/180)>rPlafond)a=l/rPlafond*57.2958;arc(s9*a,l/(a*Math.PI/180),n||2,dy);}; /* (2026-11-05, LE DIRECTEUR DE RYTHME) rPlafond : une « courbe » d'au moins 8° ne dépasse jamais 3,3 × le rayon tenable — à haut palier ses mètres (× LV) grandissaient plus vite que le rayon tenable, la courbe devenait une droite ; sous 8° (le tablier du pont), c'est une droite voulue */
+  const courbe=(l,dy,aDeg,n)=>{let a=Math.max(4,Math.abs(aDeg));const s9=aDeg<0?-1:1;if(a>=(GEN_V2?BRIQUE.angMin:8)&&rPlafond&&l/(a*Math.PI/180)>rPlafond)a=l/rPlafond*57.2958;arc(s9*a,l/(a*Math.PI/180),n||2,dy);}; /* (2026-11-05, LE DIRECTEUR DE RYTHME) rPlafond : une « courbe » d'au moins 8° ne dépasse jamais 3,3 × le rayon tenable — à haut palier ses mètres (× LV) grandissaient plus vite que le rayon tenable, la courbe devenait une droite ; sous 8° (le tablier du pont), c'est une droite voulue */
   // (2026-09-26, user : « enlève les loopings » dans la VILLE) : le niveau ville n'en a plus aucun (motif ET signature de fin)
   const sansLoop=typeof LVL!=='undefined'&&LVL.cur&&LVL.cur.id==='ville';
   // ---- ADN DE PISTE : chaque zone tire une PERSONNALITÉ — fini le shuffle statistiquement identique ----
@@ -15822,7 +15889,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     for(let k=0;k<n;k++){const a=80+rf()*15;arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.05);sg=-sg;if(k<n-1)straight((70+rf()*60)*LV,-(4+rf()*4)*LV,1);}straight(80*LV,-4*LV,1);};
   const mBretelle=()=>{const sg=rf()<thrH(.5+hand*.22,225)?1:-1,R=(2+rf()*.4)*rP,a=200+rf()*50;straight(110*LV,-5*LV,2);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.07);straight(110*LV,-5*LV,2);};
   const mBougie=()=>{const sg=rf()<thrH(.5)?1:-1,L1=(90+rf()*30)*LV,L2=(140+rf()*40)*LV;straight(40*LV,-2*LV,1); // (2e tour) plus courte : 0,3-0,4 km au lieu de 0,6-0,8
-    courbe(L1,L1*(.17+rf()*.05),sg*(40+rf()*12),4);courbe(40*LV,1.5*LV,sg*6,2);courbe(L2,-L2*(.26+rf()*.04),-sg*(16+rf()*8),4); /* le pump TOURNE (35-47°), le dump reste presque droit : c'est là qu'on se pose */straight(90*LV,-5*LV,2);};
+    courbe(L1,L1*(.17+rf()*.05),sg*(40+rf()*12),4);courbe(40*LV,1.5*LV,sg*6,2);courbe(L2,-L2*(.26+rf()*.04),-sg*(GEN_V2?28+rf()*10:16+rf()*8),4); /* le pump TOURNE (35-47°), le dump reste presque droit : c'est là qu'on se pose */straight(90*LV,-5*LV,2);};
   const mDents=()=>{const n=4+(rf()<.5?1:0),R=(2+rf()*.5)*rP;let sg=rf()<thrH(.5)?1:-1;straight(70*LV,-3*LV,1);
     for(let k=0;k<n;k++){const a=40+rf()*20,l=a/57.3*R;arc(sg*a,R,Math.ceil(a/10),k%2?-l*(.2+rf()*.06):l*(.12+rf()*.06));sg=-sg;}straight(80*LV,-4*LV,1);};
   const mTour=()=>{const sg=rf()<thrH(.5+hand*.22,320)?1:-1,R=(2+rf()*.4)*rP,a=300+rf()*40;straight(120*LV,0,2);arc(sg*a,R,Math.ceil(a/10),0);straight(160*LV,0,2);};
@@ -15876,6 +15943,21 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     fA(sg*40,Rh*1.7,0,-D*40/360);fA(sg*(th-80),Rh,0,-D*(th-80)/360);fA(sg*40,Rh*1.7,0,-D*40/360); // entrée et sortie en douceur : le rayon se resserre vers le puits
     fS(130*LVf,-4*LVf,1);
     return {g:1,fig:'puits'};};
+  /* ===== LE MODULE UNIQUE DE CHAQUE MAP (2026-11-07, Sacha : « pour chaque map tu peux rajouter un module, unique à chaque map ») — le CLIMAX de la phrase, une fois par route =====
+       fSurf      · NUAGES — LE SURF : trois virages alternés de 70-85° à 2,2 rP ; à chacun la dalle se couche à 75° vers l'intérieur (roulis scripté gauche/droite/gauche), à l'endroit entre deux : on surfe la vague
+       fCouloir   · ESPACE — LE COULOIR DE LANCEMENT : 4 s de ligne droite parfaitement plate et à l'endroit (la nitro), puis un balayage de 120-140° à 2,6 rP pris sur la tranche (roulis scripté 80°) : la fronde de sortie
+       mRondPoint · VILLE — LE ROND-POINT : 270° à 1,9 rP, plat, entrée et sortie en droite franche de 1,5 s : on lit le rond-point, on le coupe
+       mMoon      · CRYPTO — TO THE MOON : 3 s de rampe droite montante à 18 % qui finit sur une crête (un big air), 2 s de plat, puis 90° à 2 rP
+       mMiroir    · VITRÉE — LE MIROIR : deux angles droits opposés à 1,9 rP de part et d'autre d'une droite franche de 2 s */
+  const fSurf=function(){let sg=rf()<.5?1:-1;const R=2.2*rP,ev=[];fS(90*LVf,-3*LVf,1);
+    for(let k=0;k<3;k++){const a=70+rf()*15,ia=ctrl.length-1;fS(.7*vD*kT,-1,1);const ib=ctrl.length-1;fA(sg*a,R,0,-2);const ic=ctrl.length-1;fS(.7*vD*kT,-1,1);const id=ctrl.length-1;ev.push([ia,ib,-sg*1.31],[ic,id,sg*1.31]);sg=-sg;}
+    fS(90*LVf,-3*LVf,1);return {g:1,fig:'surf',f:ev};};
+  const fCouloir=function(){const sg=rf()<.5?1:-1,R=2.6*rP,a=120+rf()*20;fS(60*LVf,-2*LVf,1);fS(4*vD*kT,0,4);const ia=ctrl.length-1;fS(.8*vD*kT,0,1);const ib=ctrl.length-1;fA(sg*a,R,0,-6);const ic=ctrl.length-1;fS(.8*vD*kT,-2,1);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
+    return {g:1,fig:'couloir',f:[[ia,ib,-sg*1.4],[ic,id,sg*1.4]]};};
+  const mRondPoint=function(){const sg=rf()<thrH(.5+hand*.22,270)?1:-1,R=1.9*rP;straight(1.5*vD,-3*LV,2);arc(sg*270,R,27,0);straight(1.5*vD,-3*LV,2);return {fig:'rondpoint'};};
+  const mMoon=function(){const sg=rf()<thrH(.5)?1:-1,L1=3*vD,L2=2*vD;straight(50*LV,-2*LV,1);straight(L1,L1*.18,3);straight(L2,-L2*.04,2);arc(sg*90,2*rP,9,-30*LV);straight(60*LV,-3*LV,1);return {g:1,fig:'moon'};};
+  const mMiroir=function(){const sg=rf()<thrH(.5+hand*.22)?1:-1,R=1.9*rP;straight(60*LV,-2*LV,1);arc(sg*90,R,9,-6*LV);straight(2*vD,-4*LV,2);arc(-sg*90,R,9,-6*LV);straight(60*LV,-2*LV,1);return {fig:'miroir'};};
+  const CLIMAX=!GEN_V2?null:MC==='crypto'?mMoon:MC==='vitree'?mMiroir:MC==='espace'?fCouloir:MC==='ville'?mRondPoint:MODT?fSurf:null;
   const FIGF=FIGON?[fBoucle,fTonneau,fEnvers,fMur,fPuits]:[];
   const MODTJ=[tSlalom,tEpingle,tCorde,tEsses,tRusses].concat(FIGF);
   /* LES MODULES DE PLUS (2026-10-20, LES VILLES AU HASARD — voir VILLE_MODULES) : deux ou trois par map, mêmes règles (rayons VRAIS ≥ 1,75 rP, longueurs × LV, `rf`) :
@@ -15893,13 +15975,13 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     courbe(L1,L1*.09,sg*(14+rf()*10),3);courbe(Lp,0,-sg*4,3);courbe(L2,-L2*.13,sg*(16+rf()*12),3);straight(70*LV,-3*LV,1);};
   const mParking=()=>{const sg=rf()<thrH(.5+hand*.22,360)?1:-1,R=(2.4+rf()*.4)*rP,a=330+rf()*60; /* (2026-11-05, « spirales trop serrées ») 1,8-2,1 rP × 400-460° → 2,4-2,8 rP × 330-390° */straight(70*LV,-3*LV,1);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.09);straight(110*LV,-4*LV,2);return {fig:'parking'};}; /* fig : une spirale DÉCLARÉE (la note ne la compte pas comme une spirale subie) */
   const mEscalier=()=>{const n=3+(rf()<.5?1:0);let sg=rf()<thrH(.5)?1:-1;straight(50*LV,-2*LV,1);
-    for(let k=0;k<n;k++){const l=(60+rf()*25)*LV;courbe(l,l*(.12+rf()*.03),sg*(22+rf()*12),2);courbe((55+rf()*30)*LV,-1*LV,-sg*(14+rf()*8),2);sg=-sg;}
+    for(let k=0;k<n;k++){const l=(60+rf()*25)*LV;if(GEN_V2){courbe(l,l*(.12+rf()*.03),sg*(28+rf()*12),2);straight((55+rf()*30)*LV,-1*LV,1);} /* (LA GÉNÉRATION PROPRE) des marches qui tournent du MÊME côté (28-40°), un palier droit entre deux : plus de zigzag de petits lobes */else{courbe(l,l*(.12+rf()*.03),sg*(22+rf()*12),2);courbe((55+rf()*30)*LV,-1*LV,-sg*(14+rf()*8),2);sg=-sg;}}
     {const l=(170+rf()*50)*LV;courbe(l,-l*(.24+rf()*.04),sg*(45+rf()*25),4);}straight(70*LV,-3*LV,1);}; /* (2026-11-05) des marches qui tournent (22-34°), une chute qui tourne (45-70°) */
   const mKrach=()=>{const sg=rf()<thrH(.5)?1:-1,L1=(130+rf()*40)*LV,L2=(120+rf()*30)*LV;straight(50*LV,-2*LV,1);
     courbe(L1,-L1*(.19+rf()*.03),sg*(45+rf()*20),4);courbe(40*LV,-1*LV,sg*6,2);courbe(L2,L2*(.14+rf()*.03),-sg*(45+rf()*20),4);straight(70*LV,-3*LV,1);}; /* (2026-11-05) le V du krach TOURNE : 45-65° de chaque côté (20-30° sur 130-170 m, c'était une droite qui penche) */
   const mTrombone=()=>{const sg=rf()<thrH(.5+hand*.22)?1:-1,R=(1.8+rf()*.3)*rP;straight(80*LV,0,1);arc(sg*(170+rf()*15),R,18,0);straight((100+rf()*60)*LV,0,2);arc(-sg*(170+rf()*15),R,18,0);straight(100*LV,0,2);};
-  const mDebris=()=>{const n=6+((rf()*3)|0),R=(1.8+rf()*.4)*rP;let sg=rf()<thrH(.5)?1:-1;straight(60*LV,-3*LV,1);
-    for(let k=0;k<n;k++){const a=22+rf()*12;arc(sg*a,R,Math.ceil(a/10),(k%2?-7:7)*LV);sg=-sg;}straight(80*LV,-4*LV,1);};
+  const mDebris=()=>{const n=GEN_V2?4+((rf()*2)|0):6+((rf()*3)|0),R=(1.8+rf()*.4)*rP;let sg=rf()<thrH(.5)?1:-1;straight(60*LV,-3*LV,1); /* (2026-11-07, LA GÉNÉRATION PROPRE) 4-5 coups de volant de 42-56° : des virages qu'on lit, plus huit petites douilles */
+    for(let k=0;k<n;k++){const a=GEN_V2?42+rf()*14:22+rf()*12;arc(sg*a,R,Math.ceil(a/10),(k%2?-7:7)*LV);sg=-sg;} /* (2026-11-07, LA GÉNÉRATION PROPRE) 30-42° : des coups de volant, plus des douilles */straight(80*LV,-4*LV,1);};
   const mTransfert=()=>{const sg=rf()<thrH(.5+hand*.22,250)?1:-1,R=(2+rf()*.5)*rP,h=(18+rf()*8)*LV;straight(70*LV,-3*LV,1);
     {const a=110+rf()*30;arc(sg*a,R,Math.ceil(a/10),h);}straight((60+rf()*40)*LV,-h*.4,1);{const a=110+rf()*30;arc(sg*a,R,Math.ceil(a/10),-h*.9);}straight(90*LV,-4*LV,1);};
   const VMOD=VILLE_MODULES; // (`?sans=villemodules` : les paquets d'avant)
@@ -15955,6 +16037,24 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   }else straight(110*LV,-70*LV,2); // DÉPART : ligne droite, rallongée avec la vitesse (était 170 m + la caisse)
   if(MODT)modNext=Math.max(Math.min((FIGON?300:900)*LV*Z,LEN*(FIGON?.08:.18)),FIGON?(Math.max(450,1.8*vD)+90)/AMP:0); // (ROUTE LIBRE) pas avant la fin du départ tenu de pisteTord : une figure y serait perdue // (LA DURÉE DES MAPS) une map courte garde au moins un module // (2026-10-18) le 1er module de course ~900 m après le départ (VRAIS mètres : la zone est tirée au 1/AMP)
   const respire=(l,dy)=>{let sg9=sgn(),fait9=0;while(fait9<l-40){const a9=20+rnd()*12,R9=(2.6+rnd()*.8)*rP*Z,l9=Math.min(a9/57.3*R9,l-fait9);arc(sg9*a9*(l9/(a9/57.3*R9)),R9,3,dy*l9/l);fait9+=l9;sg9=-sg9;}}; /* (2026-11-05, LE DIRECTEUR DE RYTHME) le départ jusqu'au 1er module : des esses DOUCES (20-32° à 2,6-3,4 rP) — on lit la map, mais on tourne déjà (un S de 8° sur 600 m était une droite de 8 s) */
+  const V2=GEN_V2&&!!(MC||MODT); /* (2026-11-07, LA GÉNÉRATION PROPRE — voir route-briques.js) LA PHRASE DE RYTHME remplace les 13 motifs tirés au hasard et les respirations de 8-20° ;
+     le ciel du menu, le parc et les pistes sans modules gardent l'ancienne recette. `window.__phrase` : la phrase de la dernière zone (banc). */
+  if(V2){
+    const G9=phraseGenre(rnd),vS=vD*Z,PH=phraser(rnd,LEN-approx,vS,G9,{ouverture:[1.5,2.6],fortS:5,fin:(TW||ESPT?Math.max(700*LV*Z,6*vS):0)+1.4*vS}) /* la fin : sur la route roulée, pisteTord tient les 6 dernières secondes à l'endroit — le climax doit finir avant */,G=PH.G,dyk=MC==='ville'||MC==='crypto'||MC==='vitree'?.12:.03;
+    let dette=0;if(typeof window!=='undefined')window.__phrase=PH;
+    const virageL=function(aDeg,Rk,pk){const a=briqueDette(aDeg,dette);dette=0;const R=Math.max(rPlancher,Rk*rP*Z),n=Math.ceil(Math.abs(a)/10);arc(a,R,n,-(Math.abs(a)/57.3*R)*pk);}; /* un virage LISIBLE : 45-120° à 1,7-3,4 rP */
+    const souffle=function(sl){const pk=MC==='espace'?.02:dyk*.4;if(sl.bal){const sg=sgn(),R=Math.max(BRIQUE.balayageRP*rP*Z,sl.L/(sl.a/57.3));arc(sg*sl.a,R,Math.ceil(sl.a/6),-sl.L*pk);}else straight(sl.L,-sl.L*pk,Math.max(1,Math.round(sl.s)));}; /* une droite franche, ou un balayage au pouce */
+    const fort=function(){if(MC){const m=mcTire(),iM9=ctrl.length-1;mcLast=m;const fm9=MCJ[m]();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));}
+      else{const m=modTire(),iM9=ctrl.length-1;modLast=m;const fm9=MODTJ[m]();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1},fm9||{}));}};
+    for(let sl=PH.suivant(approx);sl;sl=PH.suivant(approx)){
+      if(sl.t==='ouverture'){if(sl.L>40)straight(sl.L,-sl.L*.02,Math.max(1,Math.round(sl.s)));}
+      else if(sl.t==='montee'){let sg=sgn(),cum=0;for(let k=0;k<sl.n;k++){let a=G.a[0]+rnd()*(G.a[1]-G.a[0]);if(cum&&a>150-cum)a=Math.max(BRIQUE.angMin,150-cum);virageL(sg*a,G.Rk[0]+rnd()*(G.Rk[1]-G.Rk[0]),dyk*(.6+rnd()*.8)); /* deux virages du même côté ne font jamais plus de 150° à eux deux : une montée ne s'enroule pas sur elle-même */
+        if(k<sl.n-1){if(!sl.ench)straight((.5+rnd()*.7)*vS,-1*LV,1);if(rnd()<.78){sg=-sg;cum=0;}else cum+=a;}}}
+      else if(sl.t==='fort')fort();
+      else if(sl.t==='souffle')souffle(sl);
+      else if(sl.t==='climax'){if(CLIMAX){const iM9=ctrl.length-1,fm9=CLIMAX();MODMARK.push(Object.assign({i0:iM9,i1:ctrl.length-1,climax:1},fm9||{}));}}
+      else if(sl.t==='fin'){const sg=sgn(),a=60+rnd()*40;virageL(sg*a,2.4+rnd()*.6,dyk*.5);let n9=0;while(approx<LEN-30&&n9++<10){if(n9%2===0&&LEN-approx>3*vS){const sg9=sgn();virageL(sg9*(45+rnd()*45),2.4+rnd()*.8,dyk*.4);continue;}const s9=briqueSouffle(rnd,vS,G);if(approx+s9.L>LEN){s9.L=Math.max(40,LEN-approx);s9.s=s9.L/vS;}souffle(s9);}}} /* la signature de fin : un dernier grand virage, puis la route jusqu'à la longueur visée (sur la route roulée, à l'endroit : droites et balayages) et la droite d'arrivée */
+  }else{
   if(FIGON&&MODT&&approx<modNext)respire(modNext-approx,-2*LV); // (ROUTE LIBRE) le départ tenu rejoint le 1er module : pas un motif de plus, qui à haut palier prend 1 à 3 km
   if(FIGON&&MC&&approx<mcNext)respire(mcNext-approx,-2*LV);
   while(approx<LEN){
@@ -16021,6 +16121,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   else if(AR.nm==='FLOW'){arc(sgn()*110,220*Math.min(2,LV),6,-160);}
   else if(AR.nm==='TECH'){let sgF=sgn();for(let q=0;q<3;q++){arc(sgF*24,90*RS,2,-26);sgF=-sgF;}}
   else{const sg=sgn();arc(sg*100,170*RS,5,-(100*Math.PI/180*170*RS*.3));} // (route v3) un grand virage de fin, plus la spirale de 420°
+  } /* (fin de l'ancienne recette) */
   straight(110*LV,-66*LV,2); // ARRIVÉE : ligne droite claire vers le portail
    // (vague 3) en VILLE l'altitude ne vient plus des motifs : un PROGRAMME 40 % descente · 30 % montée · 30 % plat (NUAGES et ORBITE : la pente d'avant, voir `wv`)
   const prot=FIGON?new Uint8Array(ctrl.length):null;if(prot)for(const m of MODMARK)if(m.g)for(let i=m.i0+1;i<=m.i1&&i<ctrl.length;i++)prot[i]=1; // (LA ROUTE LIBRE) la forme des figures n'est pas lissée
@@ -16727,7 +16828,7 @@ window.dbgGenRoute=function(carte,graine,palier,o){o=o||{};const TAB={nuages:()=
     let N=null,info=null,roule=false;const GRT9=grtTordOn();
     if(hautOn()||espTordOn()||GRT9){const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined);ctrl=h9.ctrl;N=h9.N;info=TORD.info;roule=true;}
     else if(pi==='dunes'&&DN.bankN)N=DN.bankN;else if(pi==='canyon'&&CY.murN&&CY_MUR.on)N=CY.murN;else if(pi==='foret'&&FORET.bankN)N=FORET.bankN;else if(pi==='jade'&&JADE.bankN)N=JADE.bankN;
-    const vP=vPalier(),rP=rayonPalier(),cible=rythmeCible(carte),fiche=rythmeMesure(ctrl.length===ctrl0.length?ctrl:ctrl0.map(function(a){return new THREE.Vector3(a[0],a[1],a[2]);}),{vP:vP,rP:rP,marks:marks0,spirMax:cible.spirMax,N:N}); /* (LA RÈGLE v2) N : les normales de la route roulée → la part hors de l'endroit */
+    const vP=vPalier(),rP=rayonPalier(),cible=rythmeCible(carte),fiche=rythmeMesure(ctrl.length===ctrl0.length?ctrl:ctrl0.map(function(a){return new THREE.Vector3(a[0],a[1],a[2]);}),{vP:vP,rP:rP,marks:marks0,spirMax:cible.spirMax,N:N,hors:info&&info.hors!=null?info.hors:undefined}); /* (LA RÈGLE v2) N : les normales de la route roulée → la part hors de l'endroit */
     out={carte:carte,piste:pi||'ctrl',graine:seed,palier:palier|0,vP:+vP.toFixed(1),rP:+rP.toFixed(1),lv:+lvPiste().toFixed(2),half:ROAD_HALF,ms:+tGen.toFixed(1),roule:roule,info:info,
       ctrl0:ctrl0,ctrl:ctrl.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),+p.z.toFixed(2)];}),N:N?N.map(function(v){return [+v.x.toFixed(3),+v.y.toFixed(3),+v.z.toFixed(3)];}):null,
       marks:marks0,marks1:MODMARK.map(function(m){return {i0:m.i0,i1:m.i1,fig:m.fig||null};}),fiche:fiche,note:rythmeNote(fiche,cible),cible:cible,rythme:RYTHME.der};
@@ -17145,7 +17246,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   }
   ROULIS.brut=ROULIS.lisse=null;
   if(ROUTE_LISSE&&gen9){ /* LA DALLE LISSE : voir ROUTE_LISSE */
-    const ds9=L/(NP-1),sg9=THREE.MathUtils.clamp(.12*vC9,12,30)/ds9,R9=Math.ceil(sg9*3),nr9=new Float64Array(3*NP),psi9=new Float64Array(NP),lis9=new Float64Array(NP),gw9=new Float64Array(R9+1);
+    const ds9=L/(NP-1),sg9=(GEN_V2?THREE.MathUtils.clamp(.3*vC9,20,80):THREE.MathUtils.clamp(.12*vC9,12,30))/ds9 /* (2026-11-07, LA GÉNÉRATION PROPRE) le roulis lissé sur 0,3 s de croisière (12-30 m avant) : plus de cassure de roulis d'un point de contrôle à l'autre */,R9=Math.ceil(sg9*3),nr9=new Float64Array(3*NP),psi9=new Float64Array(NP),lis9=new Float64Array(NP),gw9=new Float64Array(R9+1);
     const m9=new THREE.Vector3(),c9=new THREE.Vector3(),TWO9=2*Math.PI;let sw9=0;
     m9.copy(Nn[0]); /* repère transporté sans torsion (RMF) : n9[i], et le roulis psi9[i] = l'angle qui l'amène à la dalle Nn[i] */
     for(let i=0;i<NP;i++){if((i&1023)===1023)yield;

@@ -162,7 +162,7 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   }
   ROULIS.brut=ROULIS.lisse=null;
   if(ROUTE_LISSE&&gen9){ /* LA DALLE LISSE : voir ROUTE_LISSE */
-    const ds9=L/(NP-1),sg9=THREE.MathUtils.clamp(.12*vC9,12,30)/ds9,R9=Math.ceil(sg9*3),nr9=new Float64Array(3*NP),psi9=new Float64Array(NP),lis9=new Float64Array(NP),gw9=new Float64Array(R9+1);
+    const ds9=L/(NP-1),sg9=(GEN_V2?THREE.MathUtils.clamp(.3*vC9,20,80):THREE.MathUtils.clamp(.12*vC9,12,30))/ds9 /* (2026-11-07, LA GÉNÉRATION PROPRE) le roulis lissé sur 0,3 s de croisière (12-30 m avant) : plus de cassure de roulis d'un point de contrôle à l'autre */,R9=Math.ceil(sg9*3),nr9=new Float64Array(3*NP),psi9=new Float64Array(NP),lis9=new Float64Array(NP),gw9=new Float64Array(R9+1);
     const m9=new THREE.Vector3(),c9=new THREE.Vector3(),TWO9=2*Math.PI;let sw9=0;
     m9.copy(Nn[0]); /* repère transporté sans torsion (RMF) : n9[i], et le roulis psi9[i] = l'angle qui l'amène à la dalle Nn[i] */
     for(let i=0;i<NP;i++){if((i&1023)===1023)yield;

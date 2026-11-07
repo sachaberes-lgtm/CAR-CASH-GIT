@@ -103,7 +103,9 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
     if(ty<.7&&n.y>0){up.set(-t9.x*t9.y,1-t9.y*t9.y,-t9.z*t9.y);if(up.lengthSq()>1e-8){up.normalize();
       const th=Math.atan2(c9.crossVectors(n,up).dot(t9),n.dot(up)),mx=.05*P[i+1].distanceTo(P[i])*(1-ty/.7),a=THREE.MathUtils.clamp(th,-mx,mx);
       om[i]=a;n.applyAxisAngle(t9,a);n.addScaledVector(t9,-n.dot(t9)).normalize();}}}
-  c1={ctrl:ctrl,cv:cv,Lc:Lc,K:K,P:P,n1:n1,h:h,Tv:Tv,Nv:Nv,om:om};pisteTord._c1=c1;}
+  const kp=new Float32Array(n1);{const a9=new THREE.Vector3();for(let i=0;i<K;i++){a9.crossVectors(Tv[i],Tv[i+1]);kp[i]=Math.atan2(a9.length(),Tv[i].dot(Tv[i+1]))/h;}kp[K]=kp[K-1];} /* (2026-11-07, LA GÉNÉRATION PROPRE) la courbure de la route d'origine, par pas */
+  const kp2=new Float32Array(n1);{const r9=Math.max(1,Math.round(15/h));let s9=0,c9n=0;for(let i=-r9;i<n1+r9;i++){const ia=i+r9,io=i-r9-1;if(ia<n1){s9+=kp[ia];c9n++;}if(io>=0){s9-=kp[io];c9n--;}if(i>=0&&i<n1)kp2[i]=s9/Math.max(1,c9n);}} /* lissée sur ~30 m */
+  c1={ctrl:ctrl,cv:cv,Lc:Lc,K:K,P:P,n1:n1,h:h,Tv:Tv,Nv:Nv,om:om,kp:kp2};pisteTord._c1=c1;}
   const cv=c1.cv,Lc=c1.Lc,K=c1.K,P=c1.P,n1=c1.n1,h=c1.h,Tv=c1.Tv,Nv=c1.Nv,om=c1.om;
   // 2) LES VRILLES : le roulis voulu `rho(s)`, par segments lissés (smoothstep) — tenue, quart de tour, demi-tour, tour complet
   /* LES TRONÇONS DROITS — l'arrivée au portail — ne suivent pas le plan : la dalle s'y redresse vers le
@@ -111,16 +113,26 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
      des virages pris sur la tranche, tout le repère a tourné — seul un rappel vers la verticale remet la route à l'endroit. Le DÉPART,
      lui, n'a rien à corriger : la route d'origine y est déjà droite, on la reprend telle quelle. */
   const rg=mulberry32((seed^0x70D5E11A^(essai?Math.imul(essai,0x9E3779B1):0))>>>0),vC=Math.max(70,70+(lvPiste()-1)*100),seg=[],TOUR=Math.PI*2;
-  const s0=O.f0!=null?Math.max(450,O.f0*Lc):ROUTE_LIBRE?Math.max(450,1.8*vC):Math.max(500,3*vC),fin=Lc-Math.max((ROUTE_LIBRE?700:1200)*lvPiste(),6*vC); // (EN GRAND) plus de vrille dans le geste de fin AGRANDI (un virage de fin fait ~1,1 km) : on se redresse AVANT lui, sinon il part à la verticale et le rappel n'y peut rien (mesuré : portail à 45-50°)
+  const s0=O.f0!=null?Math.max(450,O.f0*Lc):ROUTE_LIBRE?Math.max(450,1.8*vC):Math.max(500,3*vC),fin=Lc-(GEN_V2?Math.max(450*lvPiste(),4*vC):Math.max((ROUTE_LIBRE?700:1200)*lvPiste(),6*vC)); /* (LA GÉNÉRATION PROPRE) le geste de fin n'est plus agrandi : 4 s tenues à l'endroit suffisent */ // (EN GRAND) plus de vrille dans le geste de fin AGRANDI (un virage de fin fait ~1,1 km) : on se redresse AVANT lui, sinon il part à la verticale et le rappel n'y peut rien (mesuré : portail à 45-50°)
   let s=s0,rho=0;seg.push({s0:0,s1:s0,r0:0,r1:0});
   /* LES FIGURES DESSINÉES (ROUTE LIBRE) : les zones {a,b} (abscisses en m) des modules marqués `g` ou `f` par genCtrl, avec leurs roulis scriptés {a,b,amt}. La route y est tenue
      (aucune vrille au hasard) ; `lead` m avant la zone, la dalle est ramenée À L'ENDROIT — on entre dans un looping debout. Une zone trop près du départ ou du portail est laissée à
      la route ordinaire (la figure plate reste une courbe). */
+  /* (2026-11-07, LA GÉNÉRATION PROPRE — Sacha : « dans l'espace la route s'emmêle bizarrement, trop de tournicotis ») LE CALME : un pas est calme quand la route d'origine y tourne à plus de
+     5 rP (pas de virage) et qu'aucun module ne s'y trouve (ni 1 s avant). Une vrille ne part et ne se joue que sur du calme : la dalle ne roule plus pendant une épingle ou un slalom —
+     c'était ça, le tire-bouchon. Le tour complet n'existe plus hors des figures (le tonneau). Et jamais plus de ~22 % de la route hors de l'endroit (horsL). */
+  const calmeI=new Uint8Array(n1+1);let horsL=0;
+  if(GEN_V2&&!sansVrille&&!O.zone){const kL=1/(3.5*(40+.3*vC)); /* calme = plus large que 3,5 rP (une courbe au pouce, que le dévers couche à peine) */for(let i=0;i<=n1;i++)calmeI[i]=c1.kp[Math.min(i,n1-1)]<kL?1:0;
+    const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,sOf=function(j){const f=Math.max(0,Math.min(nC,j))/nC*dv,k=Math.min(dv-1,Math.floor(f));return lg[k]+(lg[k+1]-lg[k])*(f-k);};
+    for(const m of MODMARK){const a=sOf(m.i0)-vC,b=sOf(m.i1);for(let i=Math.max(0,Math.floor(a/h));i<=Math.min(n1,Math.ceil(b/h));i++)calmeI[i]=0;}}
+  const calmeDe=function(a,b){for(let i=Math.max(0,Math.floor(a/h));i<=Math.min(n1,Math.ceil(b/h));i++)if(!calmeI[i])return false;return true;};
+  const prochainCalme=function(a,need,lim){const nI=Math.max(1,Math.ceil(need/h)),iL=Math.min(n1,Math.floor(lim/h));let run=0;for(let i=Math.max(0,Math.floor(a/h));i<=iL;i++){run=calmeI[i]?run+1:0;if(run>=nI)return (i-nI+1)*h;}return -1;};
   const FZ=[],ZDBG=[],lead=Math.max(520,5*vC);let fi=0;
   if(!sansVrille&&ROUTE_LIBRE){const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,sOf=function(j){const f=Math.max(0,Math.min(nC,j))/nC*dv,k=Math.min(dv-1,Math.floor(f));return lg[k]+(lg[k+1]-lg[k])*(f-k);};
     for(const m of MODMARK)if(m.g||m.f){const a=sOf(m.i0),b=sOf(m.i1);ZDBG.push([m.fig||'?',Math.round(a),Math.round(b),Math.round(s0),Math.round(fin),b>fin-40||a<s0+60?0:1]);if(b>fin-40||a<s0+60)continue;
       FZ.push({a:a,b:b,calme:m.calme?1:0,ev:(m.f||[]).map(function(e){return {a:sOf(e[0]),b:sOf(e[1]),amt:e[2]};})});}
     FZ.sort(function(x,y){return x.a-y.a;});}
+  if(O.zero&&!sansVrille){seg.push({s0:s0,s1:Lc,r0:0,r1:0,calme:1});s=Lc;} /* (LA GÉNÉRATION PROPRE) zéro vrille : le dévers seul, la dalle rappelée vers le ciel — quand la route s'est touchée à tous les essais */
   while(!sansVrille&&s<fin-120){
     if(fi<FZ.length&&FZ[fi].a-lead-s<60){const z=FZ[fi++];
       if(z.a>s+1){const w=Math.atan2(Math.sin(rho),Math.cos(rho));seg.push({s0:s,s1:z.a,r0:rho,r1:rho-w});rho-=w;} // à l'endroit avant la figure (le plus court)
@@ -132,13 +144,20 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
     if(NV_CALME){const w=Math.atan2(Math.sin(rho),Math.cos(rho)); // (MOINS TORDUE, voir NV_CALME) w : le roulis ramené entre −π et π (0 = à l'endroit)
       if(Math.abs(w)>.3){if(r<(Z.tenueHaut!=null?Z.tenueHaut:.35))len=Math.max(250,vC*((Z.lenHaut?Z.lenHaut[0]:2)+rg()*(Z.lenHaut?Z.lenHaut[1]:2))); // là-haut (couchée, retournée) : 2-4 s de tenue, une fois sur trois…
         else{amt=-w;len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}} // …puis on revient à l'endroit, par le plus court
-      else if(r<(Z.tenueBas!=null?Z.tenueBas:.6)){len=Math.max(Z.lenBas?250:450,vC*((Z.lenBas?Z.lenBas[0]:6)+rg()*(Z.lenBas?Z.lenBas[1]:6)));const v9=len;len=Math.min(len,lim-s);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
-      else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<(Z.quart!=null?Z.quart:.6)?Math.PI/2:k<(Z.demi!=null?Z.demi:.95)?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}}
+      else if(r<(Z.tenueBas!=null?Z.tenueBas:.6)||(GEN_V2&&!O.zone&&horsL>.22*Math.max(1,s))){len=Math.max(Z.lenBas?250:450,vC*((Z.lenBas?Z.lenBas[0]:6)+rg()*(Z.lenBas?Z.lenBas[1]:6)));const v9=len;len=Math.min(len,lim-s);if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;} // à l'endroit : une longue tenue, 6-12 s — CALME : la dalle y est rappelée vers le ciel (voir plus bas)
+      else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<(Z.quart!=null?Z.quart:.6)?Math.PI/2:k<(Z.demi!=null?Z.demi:.95)?Math.PI:(GEN_V2&&!O.zone?Math.PI:TOUR));len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));}}
     else if(r<.4)len=Math.max(400,vC*(4+rg()*5)); // une tenue : la dalle reste où elle est (couchée, retournée…) 4-9 s — de quoi respirer entre deux vrilles
     else{const k=rg(),sg=rg()<.5?-1:1;amt=sg*(k<.45?Math.PI/2:k<.9?Math.PI:TOUR);len=Math.max(450,vC*(6+rg()*3)*Math.sqrt(Math.abs(amt)/Math.PI));} // (EN GRAND) ~3× plus lentes qu'au premier jet, le tour complet rare
     const veut=len;len=Math.min(len,lim-s);if(len<60)break;
     if(amt&&len<veut*.7)amt=0; // pas la place de la vrille entière avant le portail : on tient, on ne la serre pas
-    seg.push({s0:s,s1:s+len,r0:rho,r1:rho+amt});s+=len;rho+=amt;}
+    if(GEN_V2&&!O.zone&&amt){ /* (LA GÉNÉRATION PROPRE) une vrille ne part que sur du CALME (voir calmeI) : sinon on attend le prochain calme — à l'endroit si on y est ; couchée, on revient quand même au bout de 3 s */
+      const w9=Math.atan2(Math.sin(rho),Math.cos(rho)),retour=Math.abs(w9)>.3,need=veut+vC;let s9=calmeDe(s-vC,s+veut)?s:prochainCalme(s,need,retour?Math.min(lim,s+3*vC+need):lim);
+      if(s9>s)s9+=vC;
+      if(s9<0&&!retour){len=Math.min(lim-s,vC*(3+rg()*3));if(len<60)break;seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;}
+      if(s9>s+1){seg.push({s0:s,s1:s9,r0:rho,r1:rho,calme:retour?0:1});if(retour)horsL+=s9-s;s=s9;len=Math.min(veut,lim-s);if(len<60)break;
+        if(len<veut*.7&&!retour){seg.push({s0:s,s1:s+len,r0:rho,r1:rho,calme:1});s+=len;continue;}}}
+    seg.push({s0:s,s1:s+len,r0:rho,r1:rho+amt});s+=len;rho+=amt;
+    if(GEN_V2){const w0=Math.abs(Math.atan2(Math.sin(rho),Math.cos(rho)));if(amt||w0>.3)horsL+=len;}}
   const rhoAt=function(x){for(const g of seg)if(x<=g.s1){if(x<=g.s0)return g.r0;const u=(x-g.s0)/(g.s1-g.s0);return g.r0+(g.r1-g.r0)*u*u*(3-2*u);}return rho;};
   const droit=new Uint8Array(n1+1);
   if(!sansVrille){const mk=function(x0,x1){for(let i=Math.max(0,Math.floor(x0/h));i<=Math.min(n1,Math.ceil(x1/h));i++)droit[i]=1;};mk(fin,Lc+h);if(O.f0!=null)mk(0,s0);} /* (SUR LES PAROIS) avant s0 (la mine) la route reste à plat : ni vrille ni dévers, rappelée vers le haut du monde */
@@ -187,7 +206,8 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
   {const lg=cv.getLengths(),nC=Math.max(1,ctrl.length-1),dv=lg.length-1,ix=function(j){if(j>=nC)return out.length-1;const f=j/nC*dv,k=Math.min(dv-1,Math.floor(f));const sj=lg[k]+(lg[k+1]-lg[k])*(f-k);return Math.max(0,Math.min(out.length-1,Math.round(sj/h/pas)));};
    for(const m of MODMARK){m.i0=ix(m.i0);m.i1=ix(m.i1);}}
   FILETMARK.length=0;
-  TORD.info={L:Math.round(Lc),vrilles:seg.filter(function(g){return g.r1!==g.r0;}).length,portailNy:+NN[n1-1].y.toFixed(2),tours:+(seg.reduce(function(a,g){return a+Math.abs(g.r1-g.r0);},0)/(Math.PI*2)).toFixed(2),rMaxDegM:+(rMax*57.3).toFixed(2),
+  let hors9=0;{const figZ=new Uint8Array(n1+1);for(const z of FZ)for(let i=Math.max(0,Math.floor(z.a/h));i<=Math.min(n1,Math.ceil(z.b/h));i++)figZ[i]=1;let c9=0;for(let i=0;i<n1;i++)if(!figZ[i]){c9++;if(NN[i].y<.5)hors9++;}hors9=c9?hors9/c9:0;} /* (LA RÈGLE v2) la part hors de l'endroit, figures exclues */
+  TORD.info={L:Math.round(Lc),hors:+hors9.toFixed(2),vrilles:seg.filter(function(g){return g.r1!==g.r0;}).length,portailNy:+NN[n1-1].y.toFixed(2),tours:+(seg.reduce(function(a,g){return a+Math.abs(g.r1-g.r0);},0)/(Math.PI*2)).toFixed(2),rMaxDegM:+(rMax*57.3).toFixed(2),
     ecartFin:Math.round(Q[n1-1].distanceTo(P[n1-1])),deversMaxDeg:Math.round(devMax*57.3),figures:FZ.length,zones:ZDBG,figuresMarquees:MODMARK.filter(function(m){return m.fig;}).length};
   return {ctrl:out,N:outN};
 }
@@ -216,6 +236,10 @@ function pisteTordPropre(ctrl,seed,opts){
     const r=pisteTord(ctrl,seed,false,e,opts),c=tordContacts(r.ctrl,r.N);
     if(c<bC){best=r;bC=c;bI=Object.assign({},TORD.info,{essai:e,contacts:c});bM=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};});}
     if(!c)break;}
+  if(bC>0&&GEN_V2&&!(opts&&opts.zone)){ /* (LA GÉNÉRATION PROPRE) la route se touche encore après 6 tirages de vrilles : la version sans vrille (dévers seul), si elle est plus propre */
+    MODMARK.forEach(function(m,k){m.i0=m0[k].i0;m.i1=m0[k].i1;});FILETMARK.length=0;for(const f of f0)FILETMARK.push(f);
+    const r=pisteTord(ctrl,seed,false,0,Object.assign({},opts||{},{zero:1})),c=tordContacts(r.ctrl,r.N);
+    if(c<bC){best=r;bC=c;bI=Object.assign({},TORD.info,{essai:'zero',contacts:c});bM=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};});}}
   MODMARK.forEach(function(m,k){m.i0=bM[k].i0;m.i1=bM[k].i1;});TORD.info=bI;pisteTord._c1=null;
   return best;}
 window.dbgHaut=function(k){ // (2026-10-15) LA ROUTE SANS HAUT NI BAS : son relevé · dbgHaut('controle') = la piste refaite SANS vrille doit retomber sur l'originale
