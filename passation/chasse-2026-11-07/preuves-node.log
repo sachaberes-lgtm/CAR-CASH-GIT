@@ -1,0 +1,200 @@
+=== passation/preuves/preuve-accrocs.cjs
+PREUVE OK — portail+mort, centimes et tirage annoncé sont propres
+=== passation/preuves/preuve-annonce-pause.cjs
+pause mise 0,1 s après : carte(s) affichée(s) PENDANT la pause : aucune
+reprise à 6,1 s : défi 2 affiché à 6.2 s
+sans pause : défi 2 à 1.92 s
+PREUVE OK
+=== passation/preuves/preuve-appel-compte.cjs
+  ok  1c …et la feuille de pause est remontée (REPRENDRE sous le pouce) — classes=open
+  ok  2  témoin : sans appel, le 3-2-1 va au bout et la partie reprend — paused=false
+  ok  3  appel en pleine course : la pause s'ouvre — paused=true
+PREUVE OK
+=== passation/preuves/preuve-badge-record.cjs
+  Safari sans color-mix (iOS 15 à 16.1) : texte #ff7ad5 / fond #0c0919
+  Safari récent (iOS 16.2 et +) : texte #ff7ad5 / fond color-mix(in srgb,#ff7ad5 14%,#0c0919)
+PREUVE OK — le badge RECORD ! reste lisible (texte ≠ fond) avec et sans color-mix()
+=== passation/preuves/preuve-balayage.cjs
+PREUVE SANS OBJET — ni traficTick (trafic de VILLE 9) ni satHard (pluie de satellites) dans VERSION PRINCIPALE/index.html : la carrière a été retirée (48eaef5d, 18/10)
+=== passation/preuves/preuve-boucle-tardive.cjs
+    at Module._compile (node:internal/modules/cjs/loader:1929:14)
+    at Object..js (node:internal/modules/cjs/loader:2060:10)
+    at Module.load (node:internal/modules/cjs/loader:1651:32)
+    at Module._load (node:internal/modules/cjs/loader:1443:12)
+=== passation/preuves/preuve-boucle.cjs
+instructions de remise à zéro lues dans resetGame: nitroOn=false; nitroBlue=false; nitroHeldT=0; loop._nOn=false; loop._nBl=false; SENS_NI.on=false;
+PREUVE OK — la nitro d'une partie ne déborde pas sur la suivante
+=== passation/preuves/preuve-bouclier-choc.cjs
+OK   pendant le bouclier, un choc ne touche ni au demi-tour, ni au SLIDE, ni à la glisse (bouclier)
+OK   hors bouclier, la vraie mort remet toujours tout à zéro avant la suite (bouclier → dmt → slide → skate → suite)
+PREUVE OK — le bouclier passe avant les remises à zéro
+=== passation/preuves/preuve-carnets-pop.cjs
+    at Object.<anonymous> (C:\Users\sacha\AppData\Local\Temp\claude\a407cda109164277\843aff39-040c-4833-a128-88ac04bd8416\scratchpad\wt-chasse\passation\preuves\preuve-carnets-pop.cjs:77:9)
+    at Module._compile (node:internal/modules/cjs/loader:1929:14)
+
+Node.js v24.22.1
+=== passation/preuves/preuve-chance-cachee.cjs
+OK   retour après 20 s : l'offre est toujours là
+OK   il reste les 4 s d'avant (reste 4000 ms)
+OK   un seul minuteur, réarmé sur le reste
+OK   sans offre : la fin n'est pas touchée
+=== passation/preuves/preuve-chance-musique.cjs
+    at Module._compile (node:internal/modules/cjs/loader:1929:14)
+    at Object..js (node:internal/modules/cjs/loader:2060:10)
+    at Module.load (node:internal/modules/cjs/loader:1651:32)
+    at Module._load (node:internal/modules/cjs/loader:1443:12)
+=== passation/preuves/preuve-chute-pause.cjs
+OK   au retour de pause, la montagne n'a pas plongé dans la mer d'un coup (écume : non)
+OK   au retour de pause, la montagne est toujours là, en pleine chute (partie sous la mer : non)
+OK   la chute finit normalement en temps de jeu : écume une fois, puis la montagne sombre
+PREUVE OK — l'effondrement de Jade s'arrête avec la pause et reprend où il en était
+=== passation/preuves/preuve-ciel-webgl1.cjs
+VERSION PRINCIPALE/index.html
+  programmes du ciel : plein · basN · netN · basV · netV · cy · jd
+  WebGL1 : aucun appel ES 3.00, dérivées demandées
+PREUVE OK
+=== passation/preuves/preuve-clavier-profil.cjs
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47
+
+Node.js v24.22.1
+=== passation/preuves/preuve-ctx-boucle.cjs
+OK   3e perte : encore un rechargement
+OK   4e perte : écran RELANCER (« contexte 3D perdu ×4 »), pas de rechargement
+OK   perdu en arrière-plan : le filet ne fait rien (le retour s'en charge)
+PREUVE OK
+=== passation/preuves/preuve-derivees-cartes.cjs
+VERSION PRINCIPALE/index.html
+  matières qui lisent une dérivée : forêt.arb ✓ · glacier.pic ✓ · glacier.loin ✓
+  dunes : WebGL 2 seulement (DUNES_OK = isWebGL2) : sans objet
+PREUVE OK
+=== passation/preuves/preuve-ecole-pause.cjs
+OK   pause : le PERMIS n'est pas donné sous l'écran de pause (tutoFin 0)
+OK   reprise, roues sur la route : le permis tombe (une fois)
+OK   recommencée pendant la pause : pas de PERMIS sur la nouvelle leçon (tutoFin 0)
+OK
+=== passation/preuves/preuve-flashs.cjs
+VERSION PRINCIPALE/index.html
+  orage (vie d'un éclair, 0,34 s) : 1 montée(s) · éclair : 2 montée(s) · voile de beat, morceau dense : 3 montée(s) dans la pire seconde · coups espacés d'au moins 3.4 s
+PREUVE OK
+=== passation/preuves/preuve-flou-fond-safari.cjs
+PREUVE OK — les 13 règles à backdrop-filter ont leur forme -webkit- (Safari 15 → 17)
+=== passation/preuves/preuve-flou-webkit.cjs
+RAYONS du soleil (blur 5) · WebKit vs Chrome : écart alpha moyen 0.29/255, max 2.7/255 → pareil · Chrome : repli inerte
+FAISCEAUX des phares (blur 7) · WebKit vs Chrome : écart alpha moyen 0.22/255, max 3.1/255 → pareil · Chrome : repli inerte
+(signalé, hors périmètre : le mur flou du « 1.61 » de la boutique 3D, interface/boutique-scene-1.js, garde le même défaut sous Safari)
+PREUVE OK — sans ctx.filter (Safari), les rayons et les faisceaux sortent floutés comme dans Chrome
+=== passation/preuves/preuve-import-onglet.cjs
+  path: 'C:\\Users\\sacha\\AppData\\Local\\Temp\\claude\\a407cda109164277\\843aff39-040c-4833-a128-88ac04bd8416\\scratchpad\\wt-chasse\\VERSION PRINCIPALE\\index.html\\sauvegarde.js'
+}
+
+Node.js v24.22.1
+=== passation/preuves/preuve-import-pause.cjs
+  ok  1b page cachée : AUCUN instantané écrit dans la sauvegarde restaurée
+  ok  1c au lancement suivant, la sauvegarde est EXACTEMENT le code restauré — banque=7 aura=3 parties=1
+  ok  2  témoin : sans restauration, l'instantané de la partie en pause est bien écrit — enCours.v=49998.39
+PREUVE OK
+=== passation/preuves/preuve-intro-son.cjs
+    at Module._load (node:internal/modules/cjs/loader:1443:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+PREUVE KO
+=== passation/preuves/preuve-jus-toile-nulle.cjs
+rafale croquée pendant une transition (toile 0 × 844), puis 20 s d'images : 0 image(s) qui lèvent avant le rendu, la dernière à 0.0 s (chaque goutte vide bloque les suivantes de la file)
+jeu normal (toile 390 × 844) : 60 dessin(s) de gouttes, 0 exception(s)
+PREUVE OK
+=== passation/preuves/preuve-lisse60.cjs
+lignes lues : VEQ.pose+=(a-VEQ.pose)*lisse60(10,dt); | VEQ.qb.slerp(qTmp,lisse60(12+10*a,dt)); | VEQ.ext+=(K.ext-VEQ.ext)*lisse60(9,dt); | p.mesh.position.lerp(carGroup.position,lisse60(6 | const f9=lisse60(RAM_K+RAM_A*p.hk,dt),P9=p.mesh.
+AVANT (Math.min(1,dt*k)) : écart max au chemin de 60 i/s — à 30 i/s 99.8 % · à 120 Hz 371.8 %
+APRÈS (lisse60)          : écart max au chemin de 60 i/s — à 30 i/s 1.3e-15 · à 120 Hz 2.2e-15
+OK : même lissage à 30, 60 et 120 i/s
+=== passation/preuves/preuve-media-niveau3.cjs
+PREUVE OK — les 282 requêtes @media sont du niveau 3 (lisibles par Safari 15)
+=== passation/preuves/preuve-miroir-illisible.cjs
+  ok  3  sauvegarde locale lisible : le miroir n'est pas consulté — gets=0
+  ok  4  web sans Capacitor + JSON tronqué : aucune exception
+  ok  5  JSON tronqué + miroir tronqué : pas de rechargement en boucle, le jeu démarre (sauvegarde neuve) — rechargements 0 puis 0
+PREUVE OK
+=== passation/preuves/preuve-nitro-menus.cjs
+PREUVE OK — pas de PSSHT de relâche pendant l'explosion ; relâche normale (sol, vol) inchangée
+=== passation/preuves/preuve-photos-memoire.cjs
+10 caisses équipées, rayons parcourus : 361 photos prises · 206 libérées · gardées 27.6 Mo (pic 31.4 Mo, plafond 32 Mo ; sans borne : 62.5 Mo)
+photos affichées libérées : 0 · adresses libérées restées dans PHOTO.cache : 0 · photos en cache vivantes : 155
+session ordinaire (une caisse, tous les rayons) : 12.8 Mo, 0 libérée
+PREUVE OK
+=== passation/preuves/preuve-plaque-entree.cjs
+  Enter sur ok : ENREGISTRE
+  Enter sur fond : ENREGISTRE
+  Escape sur ret : ANNULE
+PREUVE OK
+=== passation/preuves/preuve-police-double.cjs
+couperet : const low=racers[racers.length-1]; if(low&&low.alive&&low.totD<pTot){botBoom(low);}
+le dernier du classement figé vient de sauter à cette image : 0 policier mort refait sauter
+cas normal : 1 saut, le dernier vivant derrière toi saute
+PREUVE OK
+=== passation/preuves/preuve-pubs-langue.cjs
+OK   la même texture est gardée (la matière des panneaux ne bouge pas)
+OK   après le passage en anglais, les réclames sont repeintes en anglais (écrit : CASH CAR | THE CAR PAYS | 1.61 | GAME STUDIO)
+OK   même langue et même teinte : l'atlas n'est pas repeint (rien écrit : 0 textes)
+PREUVE OK — les réclames de la ville suivent la langue du joueur
+=== passation/preuves/preuve-ramasse.cjs
+
+(e) pièce à 12 m de la ligne (hors de l'attraction d'origine, 9 + 2 m avec l'aimant moteur) : prises par le neuf = 0
+
+PREUVE OK — référence ancienne déjà corrigée · neuf OK à 20/30/60/120 i/s au sol jusqu'au plafond théorique 8010 km/h, en vol jusqu'à 2 000 km/h (au-delà de ~5 000 km/h par image de 70 m le pré-filtre de vol coupe : inatteignable) · 60/120 i/s identiques jusqu'à 1 543 / 3 085 km/h · sauts muets
+=== passation/preuves/preuve-recommencer-cache.cjs
+OK   …elle part en PAUSE, REPRENDRE sous le pouce (comme tout retour d'arrière-plan)
+OK   témoin sans arrière-plan : la partie neuve roule, feuille fermée (inchangé)
+OK   retour avant la fin du volet : la partie neuve attend en PAUSE sous la feuille rouverte
+OK
+=== passation/preuves/preuve-remises.cjs
+    at Object.<anonymous> (C:\Users\sacha\AppData\Local\Temp\claude\a407cda109164277\843aff39-040c-4833-a128-88ac04bd8416\scratchpad\wt-chasse\passation\preuves\preuve-remises.cjs:65:9)
+    at Module._compile (node:internal/modules/cjs/loader:1929:14)
+
+Node.js v24.22.1
+=== passation/preuves/preuve-restaurer-pc.cjs
+OK   le code est écrit dans la sauvegarde (compte 777000)
+OK   la partie en cours n'est PAS versée dans la sauvegarde restaurée (enCours : aucun)
+OK   le rechargement est bien programmé
+PREUVE OK — RESTAURER UN CODE (menu ordinateur) refuse sur le site et n'écrit plus rien après la restauration
+=== passation/preuves/preuve-reste-figure.cjs
+OK   respawn range la figure sur la route (FR.on : false)
+OK   la partie neuve ne paie pas la figure de l'ancienne (payées : aucune)
+OK   ni encaissement ni bond hérités au départ (encaissements 0, bond 0)
+PREUVE OK — ni figure sur la route ni contact de pose hérités par la partie suivante
+=== passation/preuves/preuve-restes.cjs
+A splash : #fxCv 844x390 → 390x844 (suit la rotation)
+B accueil : debout nx 0.00 ny 0.00 fr 0.62 → couché nx -0.41 ny 0.06 fr 0.46 (recadré tout de suite)
+OK : le splash et le cadrage de l'accueil suivent la rotation
+=== passation/preuves/preuve-revelation-chance.cjs
+OK   sans offre : la révélation part à 1,4 s, inchangée
+OK   machine ouverte : la révélation attend sa fermeture
+OK   le guetteur du FINAL SPIN attend la fin d'une révélation
+PREUVE OK
+=== passation/preuves/preuve-sauvegarde.cjs
+  ok  H2 web ?demo=1 : rien n'est écrit (la clé présente n'est ni lue ni écrasée)
+  ok  H3 app native (Capacitor + Preferences) : la sauvegarde est lue, même avec ?demo=1 — 250000
+
+PREUVE OK
+=== passation/preuves/preuve-son-nonfini.cjs
+corrigé : {"lance":0,"normal":true,"pannes":4,"boucleTry":true,"duckRepare":true}
+PREUVE OK
+=== passation/preuves/preuve-spin-fortune.cjs
+OK   GROS SAC : la banque passe à 60 000
+OK   le record de fortune suit : 60 000
+PREUVE OK
+=== passation/preuves/preuve-survivant-minute.cjs
+VERSION PRINCIPALE/index.html
+  cadran : 0:59 → 0:00, jamais 0:60
+  alerte : jamais 00:60
+PREUVE OK
+=== passation/preuves/preuve-veq.cjs
+instructions VEQ lues dans resetGame: VEQ.dReq=false; VEQ.dDn=0; VEQ.sautAtt=0; flightId=0; VEQ.sp=0; VEQ.spV=0; VEQ.camT=-1; VEQ.sautF=-1; VEQ.dReq=false; VEQ.sautAtt=0;
+PREUVE OK — état du saut remis à zéro
+=== passation/preuves/preuve-vitrine-prix.cjs
+    at Object..js (node:internal/modules/cjs/loader:2060:10)
+    at Module.load (node:internal/modules/cjs/loader:1651:32)
+
+Node.js v24.22.1
+=== passation/preuves/syntaxe.cjs
+scripts inline: 22 — erreurs de syntaxe: 0

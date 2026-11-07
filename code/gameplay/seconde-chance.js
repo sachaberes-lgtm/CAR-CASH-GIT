@@ -352,6 +352,8 @@ function finSonsCoupe(){
 function resetGame(){
   try{clearTimeout(M2REV.t);if(M2REV.on){M2REV.on=false;M2REV.id=null;const e9=document.getElementById('m2Rev');if(e9){e9.className='';e9.innerHTML='';}}}catch(e){} // (audit p7) REJOUER tapé tôt : `rejoueAttend` garde `started&&gameOver` jusqu'à 12 s, le délai de 1,4 s ouvrait la révélation d'une secrète (z-index 95) PAR-DESSUS la course qui part dessous — elle se ferme (ou ne s'ouvre pas) ici ; la secrète reste dans la file (m2RevFile) pour la prochaine mort
   dmtCoupe(); // (LE DEMI-TOUR) une nouvelle partie repart droite
+  try{PREB.echecs=0;}catch(e){}
+  sonsChauffe(SONS_COURSE); /* (2026-11-07, chasse SONDE-N01) les sons de la course, décodés avant qu'on en ait besoin */ /* (2026-11-07, chasse MAP-N03) le pré-bâti retrouve sa chance à chaque partie (3 échecs l'éteignaient pour la session) */
   railsPose(); /* (2026-11-05, Opus : D7) les rails du départ (figures-route.js) */
   SPIN.pose=0; // (2026-10-14) LE FINAL SPIN : le plafond de jetons posés est par partie (ceux qu'on a ramassés restent dans la sauvegarde)
   secReset(); // (2026-10-14) LES DÉFIS SECRETS : chaque partie repart de zéro
@@ -481,6 +483,7 @@ function enCoursPose(){
 }
 function enCoursRetire(){try{if(SAVE.d&&SAVE.d.enCours){delete SAVE.d.enCours;SAVE.flush();}}catch(e){}} // l'appli est revenue : la partie continue, c'est elle qui versera
 function endGame(){
+  try{dmtCoupe();}catch(e){} /* (2026-11-07, chasse GP-N01) QUITTER pendant un demi-tour : le panneau MAUVAIS SENS restait sur l'écran de fin */
   nitroOn=false;nitroBlue=false; // (2026-10-14, revue des idées de Léo) mort nitro tenue : nitroOn restait vrai au garage et au ciel — le DOGE gardait sa gueule de nitro, grande ouverte, jusqu'à la partie suivante
   try{busPlein();}catch(e){} // (2026-09-28) même filet : QUITTER depuis la pause (sortie en fondu) ne doit pas rendre le menu muet
   if(SANDBOX&&started&&!gameOver){ sandRevive(); return; } // ENTRAÎNEMENT : la mort n'est qu'un replacement — aucun score n'est enregistré
