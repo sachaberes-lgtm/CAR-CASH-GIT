@@ -20728,6 +20728,15 @@ window.dbgCanyonEmpreinte=function(rebatir){
   const a=emp();if(!rebatir)return Promise.resolve(a);
   buildCanyon(CY.seed);
   return new Promise(function(ok){let n=0;const t=setInterval(function(){if((!CY.attente&&CY.on)||++n>200){clearInterval(t);const b=emp(),dif=[];for(const k in Object.assign({},a,b))if(JSON.stringify(a&&a[k])!==JSON.stringify(b&&b[k]))dif.push(k);ok({egal:!dif.length,dif:dif,job:CY.job,a:a,b:b});}},100);});};
+/* `dbgCanyonSonde(s, lat)` — ce qui fait le relief au bord de la route (abscisse s, écart lat) : la route, la hauteur, le plateau, le fond, la taille fine (creusée c,
+   levée g), la Mitaine la plus proche, la butte la plus proche, l'échantillon et son profil (lecture seule) */
+window.dbgCanyonSonde=function(s9,lt){if(!CY.on)return 'pas de canyon';const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};frameAt(s9,F9);
+  const x=F9.p.x+F9.b.x*lt,z=F9.p.z+F9.b.z*lt,o={},h=cyHauteur(x,z,o),F=CY.F,px=(x-(F.x0-F.ts*.5))/F.ts,pz=(z-(F.z0-F.ts*.5))/F.ts,S=CY.S,i=Math.min(S.n-1,Math.round(s9/S.ds));
+  const c=cyBil(F.c,F.nx,F.nz,2,0,px,pz),g=cyBil(F.c,F.nx,F.nz,2,1,px,pz);let mi=null;for(const m of CY.mit||[]){const d=Math.hypot(m.x-x,m.z-z);if(!mi||d<mi.d)mi={d:Math.round(d),r:Math.round(m.r),y1:Math.round(m.y1)};}
+  let bu=null;for(const b of CY.buttes||[]){const d=Math.hypot(b.x-x,b.z-z);if(!bu||d<bu.d)bu={d:Math.round(d),rad:Math.round(b.rad),ht:Math.round(b.ht),z0:Math.round(b.z0)};}
+  const prof={};cyProfil(S,S.RE,i,x,z,prof);
+  return {route:+F9.p.y.toFixed(1),h:+h.toFixed(1),plat:+o.plat.toFixed(1),fond:+o.fond.toFixed(1),rk:+o.rk.toFixed(2),c:Math.round(c),g:Math.round(g),mitaine:mi,butte:bu,
+    ech:{i:i,wF:Math.round(S.wF[i]),wR:Math.round(S.wR[i]),H:Math.round(S.H[i]),F:Math.round(S.F[i]),mu:S.mu?+S.mu[i].toFixed(2):0,zS:+S.zS[i].toFixed(2),GD:null},profC:prof.C!=null?Math.round(prof.C):null,sQ:CY.sQ};};
 /* ===== LA POUSSIÈRE DU CANYON (2026-10-21, Sacha : « apporter des améliorations visuelles à chaque map ») =====
    Le détail vivant du canyon : des grains de poussière dorée en suspension dans une boîte de 130 m qui suit la caméra (devant elle : dans la gorge, les parois cachent le reste), poussés par un vent
    lent. TOUT le mouvement est dans le sommet (`uTime`) : une seule instance (UN appel de dessin), aucun tirage du jeu (le générateur est local, une graine
