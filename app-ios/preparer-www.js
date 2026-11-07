@@ -196,6 +196,15 @@ relit('après les coupes');
   let n=0,o=0;const pese=d=>{for(const x of fs.readdirSync(d)){const p=path.join(d,x),s=fs.statSync(p);if(s.isDirectory())pese(p);else{n++;o+=s.size;}}};pese(WWW);nFic=n;nOct=o;
   console.log('  copie allégée : '+(av/1048576).toFixed(1)+' → '+(o/1048576).toFixed(1)+' Mo');}
 relit('après l\'allègement');
+/* (2026-11-07, Perf 3 / P4) --jeu-fichier : LE SCRIPT DU JEU EN FICHIER (jeu.<empreinte>.js) au lieu d'un <script> en ligne de ~5 Mo ré-analysé à CHAQUE
+   lancement. Le même outil que le site (outils/publie-script-externe.cjs, vercel-build.sh) : ordre de chargement inchangé, __CC_BUILD__ déjà gravé plus haut,
+   numéros de ligne recalés par son en-tête. Option d'ESSAI : à garder dans l'app seulement si la mesure (natif.js « [natif] CHARGEMENT ») le justifie. */
+if(process.argv.includes('--jeu-fichier')){
+  let r;try{r=execFileSync(process.execPath,[path.join(ICI,'..','outils','publie-script-externe.cjs'),WWW],{stdio:['ignore','pipe','pipe']}).toString().trim();}
+  catch(e){meurt('publie-script-externe a échoué : '+String((e.stderr||e.stdout||e.message)).trim().slice(0,600));}
+  if(!/ jeu\.[0-9a-f]{10}\.js /.test(r))meurt('--jeu-fichier demandé mais le script est resté en ligne : '+r);
+  console.log('  '+r);
+  relit('après la sortie du script en fichier');}
 /* PAS DE « PUB » NI DE « AD » DANS UN TEXTE DE L'APP (2026-11-05, Opus : jury IOS-04) : aucune chaîne entre guillemets ne contient le MOT PUB ou AD
    (les noms de variables comme `PUB`, le tableau des enseignes des villes, ne s'affichent pas). Les fichiers de sons (base64) ne sont pas lus. */
 {const re=/(['"`])(?:(?!\1)[^\n\\]|\\.){0,200}?\b(PUB|AD)\b(?:(?!\1)[^\n\\]|\\.){0,200}?\1/g,vus=[];
