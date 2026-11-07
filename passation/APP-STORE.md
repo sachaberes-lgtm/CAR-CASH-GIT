@@ -6,7 +6,7 @@
   (corrigé par le jury du 5/11, mais sans la partie 8). Fusionnés ici, **sans conflit git et sans rien perdre** :
   `60ad22e7` (fusion de `main` 35fbfb4a, v1258 ; son message explique le diff de `natif.js` entre les deux branches LIGNE À LIGNE),
   `629d1b6d` (`www/` resynchronisé), `72e14201` (fusion de `main` a2bf2afa, v1263 : **`chasse-bugs-2026-11-07` y est** — SON-N01, le son
-  en pause et au départ, LÉONIE, les missions nouvelle forme), `www/` resynchronisé, puis la fusion de `main` 04d2ab0b (v1265) et `www/` resynchronisé une dernière fois.
+  en pause et au départ, LÉONIE, les missions nouvelle forme), `www/` resynchronisé, puis la fusion de `main` 04d2ab0b (v1265) et `www/` resynchronisé ; le 7/11 à 17 h 55, sur le « tout » de Sacha relayé par la session de la chasse, fusion de `main` 9a5bb409 (v1271) et PUSH de la branche sur `origin/ios-capacitor` (sans force).
   `main` avance sans cesse (d'autres sessions poussent) ; `app-ios/` n'y change pas : une fusion de plus = `git merge origin/main` sans conflit,
   puis `npm run sync`.
   La branche est **locale** : `git log ios-capacitor` la montre depuis n'importe quel dossier du dépôt ; son dossier de travail est
@@ -29,15 +29,14 @@
   moitiés), `publie-audio`, `publie-allege`, relecture par `garde-demarrage` avant et après, contrôles « PUB/AD » et marques, retrait des
   balises og:image / twitter:image. **`node app-ios/preparer-www.js --essai "VERSION PRINCIPALE"` : réussi** (528 fichiers, 47,1 Mo,
   0 adresse réseau hors latest.json). **`npm run sync` : réussi** sur Windows (preparer-www puis `npx cap sync ios`, 5 modules Capacitor) ;
-  `www/maj.json` = **jeu `04d2ab0b`** (v1265), `CC_BUILD='04d2ab0b'`, `www/natif.js` en tête de page avec les parties 5 et 8
+  `www/maj.json` = **jeu `9a5bb409`** (v1271), `CC_BUILD='9a5bb409'`, `www/natif.js` en tête de page avec les parties 5 et 8
   (sans ses commentaires : `publie-allege`), 0 trace `I18N_ZH` / `zh` / `poki`.
 - ⚠ `npx cap sync` **réécrit `CapApp-SPM/Package.swift` en `.iOS(.v16)`** à chaque passage ; je l'ai remis à `.iOS("16.4")` comme main.
   Sans gravité dans un sens comme dans l'autre : c'est `IPHONEOS_DEPLOYMENT_TARGET = 16.4` du projet qui fait foi.
 - Pas fait : aucune construction Xcode (pas de Mac ici), aucune archive, rien poussé, rien envoyé à Apple.
 
 ## RESTE À FAIRE SUR LE MAC (dans l'ordre)
-1. Récupérer la branche : elle est locale au PC → `git push origin ios-capacitor` **sur le OUI de Sacha** (ou copier le dépôt), puis sur le
-   Mac `git fetch && git checkout ios-capacitor`.
+1. La branche est sur `origin/ios-capacitor` (poussée le 7/11, 17 h 55) : sur le Mac `git fetch && git checkout ios-capacitor`.
 2. `cd app-ios && npm ci && npm run sync` (refait `www/` à l'identique et `Package.swift` repasse en `.v16` : ignorer), `npm run ouvrir`.
 3. Xcode : construction SIMULATEUR puis un **iPhone réel** (iOS 16.4 ou plus). Le parcours, dans l'ordre : écran de lancement noir jusqu'au
    premier écran du jeu (jamais plus de 30 s, pas de fond violet nu) ; **interrupteur silencieux → le son joue** ; Spotify lancé avant →
