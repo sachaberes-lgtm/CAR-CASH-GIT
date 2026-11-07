@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1202'; /* v1198 la sonde fluide note la dose du gouverneur et ne note pas le 30 tenu */ // ancien : /* v1197 fusion de serpent-fluide (sonde « fluide » + serpent Core Animation, ses v1193-1194) avec le gouverneur thermique (v1194-1196) */ // ancien : /* v1196 le régime chaud (?mobh_chaud=1, inactif par défaut) · v1195 (2026-11-06, fluidité à grande vitesse) le gouverneur thermique (report de mobile-perf : dose de chaleur sans capteur, cc:thermique, ?mob_gouv=0 = avant, ?mob_g30=1 = 30 calé dès le départ) · v1194 la période d'écran de la cadence en médiane de 90 images (report de mobile-perf 567724e9), ?mob_ecran=0 = avant */ // ancien : /* v1193 (2026-11-06, Sacha : « en version mobile la fenêtre de tuto empêche de conduire ») la carte de l'auto-école laisse passer les doigts (seul PASSER reste cliquable) et, couchée, se range en bandeau au-dessus de l'horizon */
+const CACHE = 'cashcar-v1203'; /* v1203 (2026-11-07, Sacha : « serpent noir sur fond blanc au lieu de blanc sur noir ») l'Ouroboros du chargement en négatif */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
