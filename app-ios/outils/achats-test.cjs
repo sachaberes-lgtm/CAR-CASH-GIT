@@ -112,5 +112,34 @@ process.on('exit',c=>{if(!fini&&c===0){console.error('✗ achats-test : le test 
       if(!fs.existsSync(path.join(dos,'achats.js')))rate('(k) achats.js absent du dossier fabriqué');
     }finally{try{fs.rmSync(dos,{recursive:true,force:true});}catch(e){}}}
 
+  /* (l) LE PLUGIN NATIF (tâche 5) : Achats.swift existe, porte le contrat, est enregistré, est compilé par la cible App ;
+     Produits.storekit (configuration de TEST) n'est dans AUCUNE phase de build : il ne part pas dans l'archive. Lecture seule. */
+  {const IOS=path.join(__dirname,'..','ios','App');
+    const SW=path.join(IOS,'App','Achats.swift');
+    if(!fs.existsSync(SW))rate('(l) ios/App/App/Achats.swift est absent');
+    const s=fs.readFileSync(SW,'utf8');
+    if(!/let\s+jsName\s*=\s*"Achats"/.test(s))rate('(l) Achats.swift doit déclarer jsName = "Achats"');
+    if(!/@objc\(Achats\)/.test(s)||!/class\s+Achats\s*:\s*CAPPlugin\s*,\s*CAPBridgedPlugin/.test(s))rate('(l) la classe Achats: CAPPlugin, CAPBridgedPlugin manque');
+    for(const m of ['produits','acheter','possedes','restaurer']){
+      if(!new RegExp('CAPPluginMethod\\(name:\\s*"'+m+'"').test(s))rate('(l) méthode « '+m+' » absente de pluginMethods');
+      if(!new RegExp('@objc\\s+func\\s+'+m+'\\(_\\s+call:\\s*CAPPluginCall\\)').test(s))rate('(l) @objc func '+m+'(_ call:) absente');}
+    if(!/notifyListeners\("achatRecu"/.test(s))rate('(l) l\'événement achatRecu n\'est pas émis');
+    if(!/Transaction\.updates/.test(s)||!/Transaction\.currentEntitlements/.test(s)||!/AppStore\.sync\(\)/.test(s))rate('(l) updates / currentEntitlements / AppStore.sync manquent');
+    const jv=fs.readFileSync(path.join(IOS,'App','JeuViewController.swift'),'utf8');
+    if(!/bridge\?\.registerPluginInstance\(Achats\(\)\)/.test(jv))rate('(l) JeuViewController n\'enregistre pas Achats()');
+    const px=fs.readFileSync(path.join(IOS,'App.xcodeproj','project.pbxproj'),'utf8');
+    const fr=(px.match(/(\w{24}) \/\* Achats\.swift \*\/ = \{isa = PBXFileReference;[^}]*path = Achats\.swift;/)||[])[1];
+    if(!fr)rate('(l) project.pbxproj : PBXFileReference d\'Achats.swift absente');
+    const bf=(px.match(new RegExp('(\\w{24}) \\/\\* Achats\\.swift in Sources \\*\\/ = \\{isa = PBXBuildFile; fileRef = '+fr))||[])[1];
+    if(!bf)rate('(l) project.pbxproj : PBXBuildFile d\'Achats.swift absente');
+    const groupe=(px.match(/\/\* App \*\/ = \{\s*isa = PBXGroup;[\s\S]*?\};/)||[''])[0];
+    if(groupe.indexOf(fr+' /* Achats.swift */')<0)rate('(l) project.pbxproj : Achats.swift n\'est pas dans le groupe App');
+    const sources=(px.match(/\/\* Sources \*\/ = \{\s*isa = PBXSourcesBuildPhase;[\s\S]*?\};/)||[''])[0];
+    if(sources.indexOf(bf+' /* Achats.swift in Sources */')<0)rate('(l) project.pbxproj : Achats.swift n\'est pas dans la phase Sources');
+    if(/Produits\.storekit[^\n]*isa = PBXBuildFile|Produits\.storekit in /.test(px))rate('(l) project.pbxproj : Produits.storekit est dans une phase de build (il partirait dans l\'archive)');
+    if(!fs.existsSync(path.join(IOS,'Produits.storekit')))rate('(l) ios/App/Produits.storekit est absent (node app-ios/outils/produits-store.mjs)');
+    const sch=path.join(IOS,'App.xcodeproj','xcshareddata','xcschemes','App.xcscheme');
+    if(!fs.existsSync(sch)||!/<StoreKitConfigurationFileReference\s+identifier\s*=\s*"\.\.\/Produits\.storekit">/.test(fs.readFileSync(sch,'utf8')))rate('(l) le scheme partagé App ne pointe pas vers ../Produits.storekit');}
+
   fini=true;console.log('OK achats');
 })().catch(e=>rate('exception inattendue : '+(e&&e.stack||e)));

@@ -13,6 +13,9 @@ class JeuViewController: CAPBridgeViewController {
         // Aucun lien ne sort de l'app (le jeu n'en a pas : c'est la garantie).
         bridge?.registerPluginInstance(GardeNavigation())
 
+        // Les achats intégrés (StoreKit 2) : le plugin « Achats » que natif/achats.js appelle (voir Achats.swift).
+        bridge?.registerPluginInstance(Achats())
+
         // Le son sort par les haut-parleurs, jamais par l'écouteur du haut (voir GardeHautParleur).
         GardeHautParleur.partage.demarre()
 

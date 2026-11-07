@@ -11,6 +11,7 @@ qui affiche le jeu dans une vue web, sans navigateur autour). Le jeu n'est **pas
 | La colle native (chargée en premier, inerte hors de l'app) | `natif/natif.js` |
 | Le projet Xcode | `ios/App/App.xcodeproj` (Swift Package Manager, pas de CocoaPods) |
 | Le contrôleur plein écran + la garde des liens | `ios/App/App/JeuViewController.swift` |
+| Les achats intégrés (StoreKit 2, plugin « Achats ») | `ios/App/App/Achats.swift` · pont JS `natif/achats.js` · test `ios/App/Produits.storekit` |
 | Le manifeste de confidentialité exigé par Apple | `ios/App/App/PrivacyInfo.xcprivacy` |
 | Les images sources de l'icône et de l'écran de lancement | `ressources/` (→ `assets/` → `Assets.xcassets`) |
 | **iOS minimum** | **16.4** (depuis le 2026-11-05, jury IOS-10) |
@@ -142,3 +143,27 @@ mot-symbole pixel CASH CAR (`ressources/icon.svg`, `ressources/icone-1024.png`).
 En version Debug, `natif.js` écrit dans la console de Xcode : `[natif] BILAN RÉSEAU` (doit dire « 0 adresse hors de
 l'app »), `[natif] POULS` (images/s, état du son, état du jeu) et toute erreur JS. La version App Store (Release)
 n'écrit rien.
+
+## Tester les achats intégrés (StoreKit 2, 2026-11-07)
+
+Le plugin natif `ios/App/App/Achats.swift` (jsName `Achats`, enregistré dans `JeuViewController.capacitorDidLoad()`) fait les
+achats ; `natif/achats.js` l'expose au jeu (`window.ccAchat`). Tout est **non consommable** (caisses en €, peintures à prix).
+**Rien n'est donné sans une transaction vérifiée** par StoreKit.
+
+- **La liste des produits** vient du jeu : `node app-ios/outils/produits-store.mjs` (le jeu servi d'abord :
+  `cd "VERSION PRINCIPALE" && python3 -m http.server 8931 --bind 127.0.0.1`) écrit `ios/App/Produits.storekit` et
+  `outils/produits.csv` (`id,nom,type,prix_eur` : la liste à créer dans App Store Connect › Achats intégrés, type
+  **Non consommable**). Après un changement de prix ou une caisse/peinture en plus : relancer, puis `--verifier`
+  (exit 1 si un fichier ne suit plus le jeu).
+- **Le test dans le simulateur** : ouvrir `ios/App/App.xcodeproj` et lancer avec **▶ dans Xcode**, scheme **App** (le scheme
+  partagé `xcshareddata/xcschemes/App.xcscheme` pointe déjà vers `../Produits.storekit`). Les achats sont alors simulés par
+  Xcode (aucun argent, menu Debug › StoreKit › Manage Transactions pour rembourser, approuver une demande d'achat, effacer).
+  Si Xcode n'affiche pas les produits : **Product › Scheme › Edit Scheme… › Run › Options › StoreKit Configuration** →
+  choisir `Produits.storekit` (le chemin du scheme n'a pas pu être vérifié hors de Xcode).
+- ⚠ **Seul Xcode ▶ applique le `.storekit`.** Une app lancée par `xcrun simctl launch` (ou depuis l'écran d'accueil du
+  simulateur) parle au vrai App Store de bac à sable : sans produits créés dans App Store Connect, la liste est vide.
+- ⚠ `Produits.storekit` n'est dans **aucune cible** (ni Sources, ni Resources) : il ne part jamais dans l'archive. Ne pas
+  cocher « Target Membership » si Xcode le propose.
+- **Sur un vrai iPhone** : TestFlight (bac à sable d'Apple, comptes testeurs), une fois les produits créés et « Prêts à
+  soumettre » dans App Store Connect. Les premiers achats intégrés doivent partir **avec** une version de l'app soumise à
+  la revue.
