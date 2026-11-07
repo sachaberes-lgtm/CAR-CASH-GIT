@@ -21,9 +21,15 @@ h1{font-size:14px;letter-spacing:2px;color:#ffe9a8;margin:0 0 18px;text-align:ce
   background:linear-gradient(180deg,var(--mL) 0 22%,var(--mM) 22% 58%,var(--mS) 58% 100%);-webkit-background-clip:text;background-clip:text;padding:2px 0 6px;
   filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--ink)) drop-shadow(-2px 0 0 var(--ink)) drop-shadow(0 2px 0 var(--ink)) drop-shadow(0 -2px 0 var(--ink)) drop-shadow(0 0 10px var(--mH))}
 .t-legendaire .chiffres{background:linear-gradient(100deg,#ffffff 0%,#ffd6f6 14%,#d6c4ff 28%,#b4f2ff 42%,#c8ffe0 56%,#fff7c2 70%,#ffd6f6 85%,#ffffff 100%) 0 0/200% 100%;-webkit-background-clip:text;background-clip:text;animation:glisse 3s linear infinite}
-.t-legendaire .piece{animation:saute 2.2s cubic-bezier(.2,1.6,.4,1) infinite,rgb 2.4s linear infinite}
+.t-emeraude .piece,.t-rubis .piece{animation:saute 2.2s cubic-bezier(.2,1.6,.4,1) infinite,aura 2.2s ease-in-out infinite}
+.t-legendaire .piece{position:relative;background:none;animation:saute 2.2s cubic-bezier(.2,1.6,.4,1) infinite,aura 2.2s ease-in-out infinite}
+.t-legendaire .piece::before,.t-legendaire .piece::after{content:'';position:absolute;inset:0;background:center/contain no-repeat}
+.t-legendaire .piece::before{background-image:url('assets/monnaie/sym-legendaire-verre.png');animation:rgb 2.4s linear infinite}
+.t-legendaire .piece::after{background-image:url('assets/monnaie/sym-legendaire-coeur.png')}
+@keyframes aura{0%,100%{filter:drop-shadow(0 0 8px var(--mH)) drop-shadow(0 0 18px var(--mH))}50%{filter:drop-shadow(0 0 14px var(--mH)) drop-shadow(0 0 34px var(--mH)) brightness(1.12)}}
+.t-emeraude .chiffres,.t-rubis .chiffres,.t-legendaire .chiffres{filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--ink)) drop-shadow(-2px 0 0 var(--ink)) drop-shadow(0 2px 0 var(--ink)) drop-shadow(0 -2px 0 var(--ink)) drop-shadow(0 0 12px var(--mH)) drop-shadow(0 0 26px var(--mH))}
 @keyframes glisse{to{background-position:-200% 0}}
-@keyframes rgb{from{filter:drop-shadow(0 0 12px var(--mH)) hue-rotate(0)}to{filter:drop-shadow(0 0 12px var(--mH)) hue-rotate(360deg)}}
+@keyframes rgb{from{filter:hue-rotate(0)}to{filter:hue-rotate(360deg)}}
 .defile{display:flex;flex-direction:column;align-items:center;gap:14px}
 .defile .piece{width:150px;height:130px}
 .defile .chiffres{font-size:30px}
