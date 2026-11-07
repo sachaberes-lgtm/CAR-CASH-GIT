@@ -544,13 +544,13 @@ function photoChoix(stricte){let lib=-1;
   for(let j=0;j<PHQ.q.length;j++){const it=PHQ.q[j],el=it[3];
     if(!el){if(lib<0&&!stricte)lib=j;continue;}
     if(!el.isConnected){PHQ.q.splice(j--,1);continue;}
-    if(stricte&&it[2])continue;
+    if(stricte&&it[2]&&!it[2].vt)continue; /* (2026-11-07) la rafale prend aussi les VITRINES de la boutique */
     const b=el.getBoundingClientRect();if(!b.width)continue;const sc=el.closest('.bqRail');let y0=0,y1=VP.h,x0=0,x1=VP.w;
     if(sc){const r=sc.getBoundingClientRect();y0=Math.max(y0,r.top);y1=Math.min(y1,r.bottom);x0=Math.max(x0,r.left);x1=Math.min(x1,r.right);}
     if(b.bottom>y0-8&&b.top<y1+8&&b.right>x0&&b.left<x1)return j;}
   return lib;}
 function photoPrends(it){const u=PHOTO.cache[it[0]];
-  if(u)it[1](u);else try{const a9=it[2];if(a9&&a9.fig)figFilm(a9,function(u9){if(u9)it[1](u9);});else carPhoto(a9?equippedCar():it[0],function(u9){if(u9)it[1](u9);},a9);}catch(e){} /* (2026-10-15 soir) a9.fig : la photo d'une FIGURE (figFile) — (2026-10-18) son FILM (figFilm) */ // (2026-10-15) it[2] : la photo d'une AILE (aileFile) // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
+  if(u)it[1](u);else try{const a9=it[2];if(a9&&a9.vt)vitrinePhoto(a9,function(u9){if(u9)it[1](u9);});else if(a9&&a9.fig)figFilm(a9,function(u9){if(u9)it[1](u9);});else carPhoto(a9?equippedCar():it[0],function(u9){if(u9)it[1](u9);},a9);}catch(e){} /* (2026-10-15 soir) a9.fig : la photo d'une FIGURE (figFile) — (2026-10-18) son FILM (figFilm) */ // (2026-10-15) it[2] : la photo d'une AILE (aileFile) // (OPTIMISATION) encodée hors du fil (toBlob), posée à son arrivée
 }
 function photoTour(){
   if(!PHQ.q.length||!garageOn||gEl.classList.contains('quiet')){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance) — (2026-09-28, chasse aux gels) et le garage du JOUER (`quiet`) n'affiche aucune vignette : MESURÉ, il y prenait 2 à 3 photos pendant le fondu (chacune reconstruit deux caisses, ~200 ms et 4 programmes) pour une bande que personne ne voit
@@ -566,7 +566,7 @@ function photoRafale(ms){if(!PHQ.q.length||(started&&!gameOver)||phdbAttend())re
   const t0=performance.now(),av=carGroup.userData.lvl;let n=0;PHOTO.chaine=true;PHOTO.avant=av;
   try{while(performance.now()-t0<ms){const j=photoChoix(true);if(j<0)break;const it=PHQ.q.splice(j,1)[0];
       if(PHOTO.cache[it[0]]){it[1](PHOTO.cache[it[0]]);continue;}
-      carPhoto(it[0],function(u9){if(u9)it[1](u9);});n++;}}
+      if(it[2]&&it[2].vt)vitrinePhoto(it[2],function(u9){if(u9)it[1](u9);});else carPhoto(it[0],function(u9){if(u9)it[1](u9);});n++;}}
   catch(e){console.warn('photoRafale',e);}
   finally{PHOTO.chaine=false;if(n)try{buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);}catch(e){console.warn('photoRafale',e);}}
   PHQ.pret=performance.now()+120;PHQ.rafale={n:n,ms:Math.round(performance.now()-t0)};return n;}
