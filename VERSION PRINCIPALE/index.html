@@ -64894,6 +64894,15 @@ const CAM_HEROS={on:true,ref:86,dMin:.88,dMax:1,kick:16,accK:200,tau:.6,acc:0,v0
   leveApplique:function(dt,cible){this.lk+=((this.on?cible:0)-this.lk)*Math.min(1,dt*3);const d=this.leve*POR*this.lk;if(Math.abs(d)<1e-4)return;
     camera.projectionMatrix.elements[9]-=d;camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();},
   dolly:function(f){if(!(f>0))return 1;const r=Math.tan(fovPor(this.ref)*Math.PI/360)/Math.tan(Math.min(170,f)*Math.PI/360);return THREE.MathUtils.clamp(r,this.dMin,this.dMax);}};
+/* ===== LA CAMÉRA DE PRÈS EN PORTRAIT (2026-11-07, Sacha : « en mode vertical mobile rapproche la caméra de la voiture, pareil quand elle vole ») =====
+   Debout, le champ est élargi (fovPor) pour que la route tienne en largeur : la caisse y est plus petite qu'en paysage. On rapproche donc la
+   caméra, au SOL (`sol`) et EN VOL (`vol`), du même facteur sur le recul ET la hauteur — l'angle de vue ne change pas, seule la distance. Le facteur
+   est 1 − POR·(1 − x) : il suit POR, donc la rotation portrait ↔ paysage GLISSE (voir porGlisse) et le paysage / l'ordi en cadre large ne bougent pas
+   d'un bit. En vol il s'applique à la poursuite ET au BRAS (la distance max qui garde la caisse à sa taille du décollage, qui elle repart de la taille
+   du sol : sol plus près → vol plus près). `?sans=proche` = avant · `dbgCamProche({sol,vol,on})` règle en direct. */
+const CAM_PROCHE={on:!/[?&]sans=([^&]*,)?proche(,|&|$)/.test(location.search),sol:.84,vol:.70,brasVol:.80};
+function camProche(k){return CAM_PROCHE.on?1-POR*(1-CAM_PROCHE[k]):1;} // k : 'sol' | 'vol' | 'brasVol' — 1 en paysage, x en portrait plein
+window.dbgCamProche=function(o){if(o)Object.assign(CAM_PROCHE,o);return Object.assign({},CAM_PROCHE,{POR:POR});};
 function camTailleOn(){return CAM_TAILLE.on&&POR>.5;}
 function camTailleFov(f){const T=CAM_TAILLE,K=T.fovMax-T.genou;return f<=K?f:K+T.genou*(1-Math.exp(-(f-K)/T.genou));} // le genou : pente 1 à K, tend vers fovMax
 const ASSIST_VIRAGE=0; // (conduite v6) ZÉRO : la caisse ne suit plus la route toute seule — c'était l'« aimant » (elle prenait 78 % de chaque virage, 99,5 % avec le cap visé)
@@ -82801,8 +82810,8 @@ function loop(now){
         const hC9=Math.max(0,(CARS[level].h||1.3)-1.5), // (2026-09-26) les HAUTES (monster truck, glacier, combi) : on recule et on monte d'autant — elles bouchaient la route
         ct9=camTailleOn(),H9=CAM_HEROS.on,vCam9=(ct9||H9)?Math.min(speedKmh,CAM_TAILLE.recMax/.0018):speedKmh,bCam9=H9?camBoost*CAM_HEROS.boost:ct9?camBoost*CAM_TAILLE.boost:camBoost, /* (CAM_HEROS) la nitro ne recule plus la caméra ; couché aussi, la vitesse n'éloigne plus au-delà de recMax */
         dz9=H9?CAM_HEROS.dolly(loop._fovB):1,hz9=H9?1-CAM_HEROS.bas*THREE.MathUtils.clamp(speedKmh/Math.max(1,vCroisiere())-.6,0,1):1, /* (CAM_HEROS) le VERTIGO : la caméra avance quand le champ s'ouvre · elle descend à haute vitesse */ // (2026-09-30) CAM_TAILLE : en portrait la vitesse n'éloigne plus la caméra au-delà de recMax (NITROOO ×2,6 l'envoyait à 9 m de haut)
-        camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28)*dz9*(H9?1+(CAM_HEROS.recP-1)*POR:1)*camGlacierM(0), /* (CAM_HEROS) debout, un pas en arrière : le champ resserré suffit à grossir la caisse */ // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
-       camH=(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9*camGlacierM(1); // (2026-10-19) ×camGlacierM : la vue qui plonge du glacier
+        camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28)*dz9*(H9?1+(CAM_HEROS.recP-1)*POR:1)*camGlacierM(0)*camProche('sol'), /* (CAM_HEROS) debout, un pas en arrière : le champ resserré suffit à grossir la caisse */ // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
+       camH=(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9*camGlacierM(1)*camProche('sol'); // (2026-11-07, LA CAMÉRA DE PRÈS EN PORTRAIT) ×camProche : même facteur que le recul · (2026-10-19) ×camGlacierM : la vue qui plonge du glacier
         const lean9=steer*(TCTL.incl?.2:.065); /* (2026-10-27, Léo) INCLINAISON : la caméra penche plus franchement avec le téléphone (≈11° au plein braquage, .065 = 3,7° sinon) : le monde suit la main, on sent le volant */ camLean=(loop._viseR==null||loop._viseR>=1)?lean9:camLean+(lean9-camLean)*(1-Math.exp(-dt*10));camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035) — (2026-10-17) à la POSE la penche (éteinte en vol) revient en ~0,1 s au lieu d'une image (jusqu'à 3,7°, volant tenu) ; ensuite elle colle au volant comme avant
         // (conduite v6) la caméra se place derrière un axe MI-ROUTE MI-CAISSE : avant, elle suivait le cap de la caisse et la clouait au
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
@@ -83100,7 +83109,7 @@ function loop(now){
          depuis une bosse. La visée de conduite emporte son pivot, puis fond vers la caisse comme avant. */
       if(!(loop._camAirT>0)&&loop._vise)loop._vise.applyQuaternion(CAM_ROUTE.q);
       {const n9=performance.now();if(n9-(CAMV.t||0)>400){CAMV.zoom=0;CAMV.vtg=0;CAMV.p0ok=false;CAMV.s0=THREE.MathUtils.clamp(volTaille(camera.position.distanceTo(fallPos),camera.fov),.1,.4);}CAMV.t=n9;} // 1re image du vol : un coup de zoom PARFAIT en cours ne survit pas au décollage · la TAILLE de la caisse au sol, mesurée à l'instant du décollage
-      tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16)).addScaledVector(FLY_U,(3.5+bigAir*2.4)*(1+POR*.12)); // derrière la trajectoire, au-dessus de la caisse — « au-dessus » = vers le HAUT DE LA CAISSE (vol libre), pas vers le ciel
+      {const pr9=camProche('vol');tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16)*pr9).addScaledVector(FLY_U,(3.5+bigAir*2.4)*(1+POR*.12)*pr9);} /* (LA CAMÉRA DE PRÈS EN PORTRAIT) recul ET hauteur ×camProche('vol') : même angle, plus près */ // derrière la trajectoire, au-dessus de la caisse — « au-dessus » = vers le HAUT DE LA CAISSE (vol libre), pas vers le ciel
       /* (bord v2) LE SUIVI SANS À-COUP : l'ancien `camera.position.lerp(cible)` suivait une cible qui file — à la 1re image de vol la caméra
          passait d'un coup de « roule AVEC la caisse » (conduite : écart lissé) à « reste presque sur place » : la caisse s'échappait. On
          lisse l'ÉCART caisse→caméra, et la TRAÎNE que produisait l'ancien lerp (l'avance de la caisse, `fallVel·SPD·dtF`) s'installe en
@@ -83116,7 +83125,7 @@ function loop(now){
          caméra reste où la poursuite la met (même direction : derrière la trajectoire), mais jamais plus loin que la distance qui garde la
          caisse à sa taille du DÉCOLLAGE (`CAMV.s0`, mesurée à la 1re image du vol) — au champ du moment. Aucun angle ne change.
          Mesuré : 0,17-0,19 tout le vol (75-85 % du sol) au lieu de 0,12 ; la course et l'atterrissage n'ont pas bougé. */
-      {const dMx=volR()/(CAMV.s0*Math.tan(camera.fov*Math.PI/360));CAMV.off.subVectors(camera.position,fallPos);const d9=CAMV.off.length();if(d9>dMx)camera.position.copy(fallPos).addScaledVector(CAMV.off,dMx/d9);}
+      {const dMx=volR()/(CAMV.s0*Math.tan(camera.fov*Math.PI/360))*camProche('brasVol');CAMV.off.subVectors(camera.position,fallPos);const d9=CAMV.off.length();if(d9>dMx)camera.position.copy(fallPos).addScaledVector(CAMV.off,dMx/d9);}
       (CAMV.p0||(CAMV.p0=new THREE.Vector3())).copy(camera.position);CAMV.p0ok=true; // (2026-10-17) la place du suivi, AVANT secousses et vent (lue à l'image suivante)
       {const tg9=CAM_VIE.on?camVieVise(CAM_VIE.tg||(CAM_VIE.tg=new THREE.Vector3()),CAM_VIE.d.subVectors(fallPos,camera.position).normalize()):FLY_U; /* (CAMÉRA VIVANTE) le haut visé glisse vers la face de la pose annoncée */
        if(CAM_VIE.on)camRoulis(tg9,CAM_VIE.d.subVectors(fallPos,camera.position).normalize(),dt); // le roulis du vol est le même ressort que celui du sol
