@@ -86806,12 +86806,14 @@ window.dbgPerfRec=function(a){
   var V=function(){return typeof CC_VER==='string'?CC_VER:'?';};
   /* ---- le registre : cashcarBanc (détail) + cashcarBancEtat (où l'on en est) ---- */
   try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(e){L=[];}
-  var ecritTimer=0;
-  var ecrit=function(){ecritTimer=0;try{if(L.length>400)L.splice(0,L.length-400);localStorage.setItem(CLE,JSON.stringify(L));}catch(e){}};
+  var ecritTimer=0,ecritLent=false; /* (2026-11-07, OPTI ULTIME : ne pas fausser la mesure) le journal ne s'écrit que sur une transition d'étape (0,4 s) ou toutes les 20 s au plus pour les lignes « vivant »/« attend », et au départ en arrière-plan */
+  var lentes=function(m){return /^banc: (vivant|attend)/.test(m);};
+  var ecrit=function(){clearTimeout(ecritTimer);ecritTimer=0;try{var i,k;while(L.length>150){i=-1;for(k=0;k<L.length;k++)if(lentes(L[k].m)){i=k;break;}L.splice(i<0?0:i,1);}localStorage.setItem(CLE,JSON.stringify(L));}catch(e){}};
+  addEventListener('pagehide',function(){if(ecritTimer)ecrit();});document.addEventListener('visibilitychange',function(){if(document.hidden&&ecritTimer)ecrit();});
   var etatSauve=function(extra){try{localStorage.setItem(CLE_ETAT,JSON.stringify({run:RUN,etape:etape,t:sec(),ts:Date.now(),fini:fini?1:0,v:V(),x:extra||''}));}catch(e){}};
   var note=function(msg,cle){
     msg='banc: '+msg;
-    try{L.push({k:'banc|'+L.length,g:'banc',m:msg.slice(0,400),o:'',n:1,t0:Date.now(),t:Date.now(),v:V(),d:1});if(!ecritTimer)ecritTimer=setTimeout(ecrit,300);}catch(e){}
+    try{L.push({k:'banc|'+L.length,g:'banc',m:msg.slice(0,400),o:'',n:1,t0:Date.now(),t:Date.now(),v:V(),d:1});var lente=lentes(msg);if(!ecritTimer||(ecritLent&&!lente)){clearTimeout(ecritTimer);ecritLent=lente;ecritTimer=setTimeout(ecrit,lente?20000:400);}}catch(e){}
     if(cle)try{window.__ccNote('banc',msg);}catch(e){}
     try{console.log('['+'banc]',msg);}catch(e){}
   };
