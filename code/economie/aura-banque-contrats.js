@@ -55,7 +55,7 @@ const RARETES=[
   {id:'exotique',  n:'EXOTIQUES',  n1:'EXOTIQUE',  c:'#3ee8a8'},
   {id:'epique',    n:'ÉPIQUES',    n1:'ÉPIQUE',    c:'#c77dff'},
   {id:'legendaire',n:'LÉGENDAIRES',n1:'LÉGENDAIRE',c:'#ffd75e'},
-  {id:'mythique',  n:'MYTHIQUES',  n1:'MYTHIQUE',  c:'#ff4d6d'},
+  {id:'mythique',  n:'MYTHIQUES',  n1:'MYTHIQUE',  c:'#ff4a64'},
   {id:'infini',    n:'INFINIS',    n1:'INFINI',    c:'#ff8af0'}];
 const RAR_FAM=RARETES.filter(function(x){return x.id!=='exotique';}); /* (2026-10-18, Sacha) les familles du garage : EXOTIQUE n'a plus d'objet (tout est passé RARE) — elle reste dans RARETES pour le BUMP x3 de la course */
 /* la rareté d'une caisse qui se GAGNE = la difficulté de son défi (2026-10-10, posée par Claude, à revoir par Léo dans la salle blanche) :

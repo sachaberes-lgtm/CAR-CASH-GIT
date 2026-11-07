@@ -1,0 +1,75 @@
+<style id="bq-ensemble">
+/* ===== LA BOUTIQUE, FINITION GÉNÉRALE (2026-11-07, Sacha : « plein de petits problèmes d alignement, de détails qui font pas pro : travaille la boutique à fond en mode game designer senior ») =====
+   L'ossature commune (en-tête, colonne des rayons, panneau, bouton d'action, RETOUR) et les cartes des VOITURES, mesurées au banc
+   (390 × 844, 844 × 390, 375 × 667). Une seule gouttière : 16 px du bord pour BOUTIQUE, la colonne des rayons et les cartes (la colonne
+   était à 12 px debout et à 36 px couché : voir garBqPanneau). Les rayons PEINTURES, AILES, TRAÎNÉES et FIGURES ont leurs fichiers. */
+
+/* 1. la colonne des rayons : garBqPanneau la pose à calc(--sL + 16 px) — l'ancien rattrapage de l'encoche (marge de --sL − 26 px) ferait double compte */
+#gBq.pan #gBqCats#gBqCats{margin-left:0}
+
+/* 2. LA BARRE DU BAS NE COLLE PLUS AU BORD : elle descendait de 20 px (Léo : « le bouton BACK plus bas ») et RETOUR | JOUER finissaient à
+   2 px du bas de l'écran, JOUER rogné (MESURÉ debout, couché et petit écran). Elle descend encore, mais garde 12 px de marge ; sur un
+   iPhone à barre d'accueil (--sB), elle ne descend plus du tout dans la zone du geste. */
+html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct{translate:0 max(0px,calc(10px - var(--sB,0px)))}
+
+/* 3. ACHETER / ÉQUIPER et la rangée RETOUR | JOUER : 8 px d'écart, dont 4 mangés par la tranche d'ACHETER (ombre de 4 px) — les deux
+   lingots jaunes se touchaient presque. 12 px : la même respiration qu'entre les cartes. */
+html.bqIndus:not(.sansGarJouer) body #garage#garage.shopRet:not(.menu):not(.vitrine) #gAct#gAct{row-gap:12px}
+
+/* 4. LA GRILLE S'OUVRE D'ÉQUERRE : au repos l'aimant posait le 1er intertitre à 4 px sous le haut de la liste (scrollTop 4 MESURÉ dans
+   les trois formats) — le haut de la bande COMMUNES et l'anneau de la carte choisie étaient rognés. La marge d'aimant rend ces 4 px. */
+#gBqPan.grille .bqRail{scroll-padding-top:4px}
+
+/* 5. LES CARTES DES VOITURES : le nom (padding 4 px) et le prix (padding 6 px) ne partaient pas du même bord — 2 px d'écart sur chaque
+   carte des iPhone étroits ; un nom sur deux lignes (LA DOLCE VITA, LE BLINDE NOIR) avait ses lignes collées (8 px sur 10). Même bord
+   de 4 px pour les deux, interligne de 11 px. Seulement les cartes des caisses (.bqK sans .hab) : les rayons d'habillage ont leur dessin. */
+@media (max-width:400px),(orientation:landscape) and (max-height:400px){
+  html:not(.c6):not(.ux8g) #gBqPan .bqK:not(.hab) .bqKn{line-height:11px;padding:6px 4px 0}
+  html:not(.c6):not(.ux8g) #gBqPan .bqK:not(.hab) .bqKp{padding:4px 4px 8px}
+}
+
+/* 6. UNE SEULE LARGEUR, DU HAUT DES CARTES AU BAS DE L'ÉCRAN : la barre du bas (ACHETER, RETOUR | JOUER) était rentrée de 22 px quand
+   BOUTIQUE et les cartes partent à 16 px — trois bords différents l'un sous l'autre. En boutique elle s'élargit de 6 px de chaque côté ;
+   garBqPanneau cale la grille sur elle (debout comme couché : --bqD, le bord droit couché, qui gardait 12 px fixes). */
+html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct{margin-left:-6px;margin-right:-6px}
+#gBq #gBqPan#gBqPan.cote{right:var(--bqD,calc(var(--sR,0px) + 12px))!important}
+
+/* 7. L'ÉTAT D'UNE CAISSE SE LIT D'UN COUP D'ŒIL : « À TOI » et « MISSION » avaient le MÊME gris (var(--bqGris)), à la place du prix — une caisse
+   gagnée ressemblait à une caisse verrouillée (VU après un achat : LA CABOSSEE « A TOI » grise à côté du SCARABÉE « MISSION » gris).
+   À TOI : le bleu de la boutique et une coche ; MISSION : le gris et un cadenas. Les secrètes gardent leur rose (missions.css). */
+#gBqPan .bqK:not(.hab) .bqKp:is(.acq,.defi:not(.sec))::before{content:'';flex:none;width:8px;height:8px;background:currentColor;
+  -webkit-mask:var(--pxi-verrou) center/contain no-repeat;mask:var(--pxi-verrou) center/contain no-repeat}
+#gBqPan .bqK:not(.hab) .bqKp.acq{color:var(--bqAcc)}
+#gBqPan .bqK:not(.hab) .bqKp.acq.acq::before{-webkit-mask-image:var(--pxi-coche);mask-image:var(--pxi-coche)}
+
+/* 8. « SE DÉBLOQUE » AU-DESSUS DE LA CAISSE : en 10 px, la condition d'une caisse à mission tenait sur TROIS lignes dans la place entre la
+   colonne des rayons et le bord (FAIS 5 FIGURES DANS UN SEUL SAUT, debout) et descendait sur le toit de la caisse. 9 px, interligne
+   de 14 : deux lignes, la jauge juste dessous. */
+#gBq #gBqNom .m2DebT{font-size:9px;line-height:14px;letter-spacing:0}
+
+/* ===== LA PASSE FINALE DE COHÉRENCE (2026-11-07, Sacha : « une boutique pro, game designer senior, chaque type d'item a son propre système ») ===== */
+/* 9. L'ACHAT SE VOIT (voir bqAchatVu, boutique-scene-1.js) : le tampon d'or « À TOI ! » de la fiche du garage (k4Tampon, la même frappe) s'abat
+   sur l'objet acheté, l'objet saute, l'argent rougit et dit ce qui est parti. Posés dans <body> : aucun rail (masque, défilement) ne les rogne. */
+.bqTampon{position:fixed;z-index:9001;translate:-50% -50%;padding:8px 12px 7px;font-family:var(--pix);font-style:normal;font-size:12px;letter-spacing:2px;white-space:nowrap;color:var(--au1,#ffe27a);
+  background:rgba(7,5,15,.84);box-shadow:inset 0 0 0 3px var(--au2,#e0a526),0 0 0 1px var(--anneau,#fff),0 0 24px var(--auG,rgba(255,200,60,.6));text-shadow:0 2px 0 var(--auO,#7a3d00),0 0 12px var(--auG,rgba(255,200,60,.6));
+  pointer-events:none;opacity:0;transform:rotate(-9deg) scale(.4);animation:k4Tampon 1.6s var(--ease) forwards}
+#gBqPan .bqAchete{animation:bqAchete .5s var(--ease)}
+@keyframes bqAchete{0%{scale:1}30%{scale:.9}65%{scale:1.06}100%{scale:1}}
+.bqDebit{position:fixed;z-index:9001;translate:-50% 0;font-family:var(--pix);font-style:normal;font-size:10px;letter-spacing:1px;white-space:nowrap;color:#e0283c;pointer-events:none;
+  text-shadow:0 1px 0 #fff,0 0 6px #fff;animation:bqDebit 1.5s var(--ease) forwards}
+@keyframes bqDebit{0%{opacity:0;transform:translateY(-6px)}15%{opacity:1;transform:none}70%{opacity:1}100%{opacity:0;transform:translateY(14px)}}
+#gBqArg.bqPaye{animation:bqPaye 1.1s var(--ease)}
+@keyframes bqPaye{0%,60%{color:#e0283c}100%{color:inherit}}
+@media (prefers-reduced-motion:reduce){.bqTampon{animation:none;opacity:1;transform:rotate(-9deg);transition:opacity .3s}#gBqPan .bqAchete,.bqDebit{animation:none}}
+
+/* 10. ACHETER ET JOUER, DEUX LINGOTS D'OR L'UN SUR L'AUTRE : en boutique, l'or désignait deux gestes contraires (dépenser, partir). DÉCISION
+   (passe finale) : dans la boutique SEULEMENT, l'or est à l'ACHAT — JOUER passe en plaque d'ENCRE, ses lettres d'or gardées (le mot reste
+   le même lingot frappé, il ne crie plus). Partout ailleurs (garage, accueil) JOUER garde sa plaque d'or. */
+html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer{background:linear-gradient(180deg,#2a2f38,var(--bqInk) 60%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 0 0 1px #000,0 6px 0 #000,0 14px 24px -10px rgba(20,23,28,.55)!important}
+html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer .mChev{filter:none!important}
+/* DÉSÉQUIPER retrouve la plaque blanche cerclée d'encre (garage-hub-rayons.css) que la couche ux8 noircissait : un retrait n'est pas l'action
+   principale, et deux plaques noires se seraient empilées au-dessus de JOUER */
+html:not(.c6):not(.ux8g).bqIndus body #garage#garage #gAct#gAct>#gBqBtn[data-e="desequip"]{background:#fff;color:var(--bqInk);box-shadow:inset 0 0 0 2px var(--bqInk)}
+html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer .mChev .pxi{color:#ffd23a!important;background-color:#ffd23a!important;opacity:.8}
+</style>
