@@ -15521,11 +15521,25 @@ const RYTHME_CIBLES={ // par map : virages/km [mini, maxi], serrés/km mini, dro
   dunes:   {vir:[2,6],  serre:.3,droiteS:5,spirMax:270,ench:.8,penteMax:.6,monteeMax:.4},   /* les vagues montent exprès : c'est le tremplin */
   grotte:  {vir:[2.5,7],serre:.5,droiteS:5,spirMax:300,ench:1,penteMax:.4,monteeMax:.2},
   banquise:{vir:[2,6],  serre:.3,droiteS:5,spirMax:300,ench:.8,penteMax:1.3,monteeMax:.1}}; /* la glace : un toboggan à 45° */
-function rythmeCible(carte){return Object.assign({},RYTHME_CIBLES.base,RYTHME_CIBLES[carte]||{});}
+/* ===== LA RÈGLE v2 (2026-11-07, Sacha : « rends ça super propre, super clean : des virages, des tout droits, mais pas trop de trucs bizarres — plein de petits virages,
+   des petites douilles ») ===== « UNE COURBE OU UNE DROITE, JAMAIS ENTRE LES DEUX. » Mesuré le 07/11 (passation/GENERATION-ROUTES.md) : la règle du 05/11 tenait ses cibles
+   avec des PETITS virages — les recadrages de 2 à 5° (recentre, jCap, gAxe, cap, recadre : trois cordes de quelques mètres), les respirations de 8-20° qui avaient remplacé
+   les droites. Désormais :
+     · un VIRAGE commence à `virMin` (26°, contre 20) ; sous 26° à moins de 5 rP c'est une DOUILLE (interdite : 0,8 chacune, cible ≤ 0,4/km) ; trois douilles alternées
+       d'affilée = un ZIGZAG (2 chacun) ; une courbe de moins de 26° à 5 rP ou plus est un BALAYAGE (la courbe au pouce : bienvenue) ;
+     · une DROITE FRANCHE = ≤ 8° de cap sur ≥ 1,8 s de croisière, à plus de 6 rP : VOULUE, 2 à 4,5 par minute (la ligne nitro) ; une « droite » entre deux temps forts
+       ne coûte qu'au-delà de 6,5 s (5 avant) — ce n'est plus la peine de la remplir de courbes molles ;
+     · sur une route roulée (nuages, espace, grotte) la part hors de l'endroit (`horsEndroit`, normale y < 0,5) ne dépasse pas 25 %.
+   `?gen=ancien` = la règle et la génération du 05/11. */
+const GEN_V2=typeof location==='undefined'||!/[?&]gen=ancien\b/.test(location.search);
+const RYTHME_V2={virMin:26,douilleMin:4,douilleKm:.4,droiteFMin:[2,4.5],droiteFs:1.8,droiteFdeg:8,horsEndroit:.25,droitePlus:1.5};
+function rythmeCible(carte){const c=Object.assign({},RYTHME_CIBLES.base,RYTHME_CIBLES[carte]||{});
+  if(GEN_V2){c.droiteS+=RYTHME_V2.droitePlus;c.douilleKm=RYTHME_V2.douilleKm;c.droiteF=RYTHME_V2.droiteFMin;c.horsEndroit=RYTHME_V2.horsEndroit;}return c;}
 /* la fiche d'une route — ctrl : les points de contrôle À PLAT (x, z : le plan ; y : l'altitude) · o : {vP (m/s), rP (m), marks (MODMARK : les figures protégées), pas (m)} */
 function rythmeMesure(ctrl,o){
   o=o||{};const vP=o.vP||78,rP=o.rP||(40+.3*vP),pas=o.pas||5,n0=ctrl.length;
-  if(n0<4)return {L:0,s:0,vir:0,virKm:0,serreKm:0,infr:0,droiteMax:0,droiteS:0,droites5:0,ench:0,enchKm:0,spirMax:0,spirales:0,coudes:0,cretes:0,pente:0,penteP95:0,penteMax:0,montee:0,rMin:0,rMed:0,pts:n0};
+  if(n0<4)return {L:0,s:0,vir:0,virKm:0,serreKm:0,infr:0,droiteMax:0,droiteS:0,droites5:0,ench:0,enchKm:0,spirMax:0,spirales:0,coudes:0,cretes:0,pente:0,penteP95:0,penteMax:0,montee:0,rMin:0,rMed:0,pts:n0,douilles:0,douillesKm:0,zigzags:0,droitesF:0,droitesFMin:0,horsEndroit:0};
+  const vMin=(GEN_V2?RYTHME_V2.virMin:20)*Math.PI/180; /* (LA RÈGLE v2) un virage commence à 26° */
   /* 1) LES COUDES, sur le dessin brut : l'angle entre deux segments consécutifs (en plan) et les segments minuscules coincés entre deux longs */
   let coudes=0;const cdeg=o.coudeDeg||14,cL=[];
   for(let i=1;i<n0;i++)cL.push(Math.hypot(ctrl[i].x-ctrl[i-1].x,ctrl[i].z-ctrl[i-1].z));
@@ -15554,8 +15568,22 @@ function rythmeMesure(ctrl,o){
     if(prot[i]){if(fz)fz.i1=i;else fz={i0:i,i1:i};}else if(fz){FZ.push(fz);fz=null;}
     if(sg){if(Math.abs(k)>=kS)serreL+=ds;if(Math.abs(k)>=kI){infrL+=ds;if(!sInfr.length||i*ds-sInfr[sInfr.length-1]>60)sInfr.push(Math.round(i*ds));}}
     if(sg&&cur&&cur.sg===sg){cur.i1=i;cur.ang+=Math.abs(k)*ds;}
-    else{if(cur&&cur.ang>=20*Math.PI/180)V.push(cur);cur=sg?{sg:sg,i0:i,i1:i,ang:Math.abs(k)*ds}:null;}}
-  if(cur&&cur.ang>=20*Math.PI/180)V.push(cur);if(fz)FZ.push(fz);
+    else{if(cur&&cur.ang>=vMin)V.push(cur);cur=sg?{sg:sg,i0:i,i1:i,ang:Math.abs(k)*ds}:null;}}
+  if(cur&&cur.ang>=vMin)V.push(cur);if(fz)FZ.push(fz);
+  /* 4 bis) (LA RÈGLE v2) LES DOUILLES : les lobes d'un même côté à moins de 5 rP dont l'angle fait entre 4° et `virMin` — le petit coup de volant que personne n'a dessiné ;
+     un ZIGZAG = trois douilles alternées d'affilée (moins de 1 s entre deux) · LES DROITES FRANCHES : ≤ 8° de cap sur ≥ 1,8 s de croisière, jamais plus serré que 6 rP */
+  let douilles=0,zigzags=0,droitesF=0;const DZ=[];
+  {const kD=1/(5*rP),dMin=RYTHME_V2.douilleMin*Math.PI/180;let c2=null;const lob=[];
+    for(let i=0;i<=N;i++){const k=prot[i]?0:kap[i],sg=Math.abs(k)>=kD?(k>0?1:-1):0;
+      if(sg&&c2&&c2.sg===sg){c2.i1=i;c2.ang+=Math.abs(k)*ds;}else{if(c2)lob.push(c2);c2=sg?{sg:sg,i0:i,i1:i,ang:Math.abs(k)*ds}:null;}}
+    if(c2)lob.push(c2);
+    const D=lob.filter(function(l){return l.ang>=dMin&&l.ang<vMin;});douilles=D.length;for(const d of D)DZ.push([Math.round(d.i0*ds),Math.round(d.i1*ds),Math.round(d.ang*180/Math.PI)*d.sg]);
+    let run=1;for(let j=1;j<D.length;j++){if(D[j].sg!==D[j-1].sg&&(D[j].i0-D[j-1].i1)*ds<vP){run++;if(run===3)zigzags++;}else run=1;}
+    const kF=1/(6*rP),lF=RYTHME_V2.droiteFs*vP,aF=RYTHME_V2.droiteFdeg*Math.PI/180;let r0=-1,aa=0;
+    for(let i=0;i<=N+1;i++){const ok=i<=N&&!prot[i]&&Math.abs(kap[i])<kF;
+      if(ok){if(r0<0){r0=i;aa=0;}aa+=Math.abs(kap[i])*ds;}
+      else if(r0>=0){if((i-r0)*ds>=lF&&aa<=aF)droitesF++;r0=-1;}}}
+  let horsEndroit=0;if(o.N&&o.N.length){let h9=0;for(const v of o.N)if(v.y<.5)h9++;horsEndroit=h9/o.N.length;} /* la part de la route roulée sur la tranche ou à l'envers */
   let droiteMax=0,droites5=0,ench=0,spirMax=0,spirales=0;const dS=5*vP; /* 5 s de croisière */
   const TF=V.concat(FZ).sort(function(a,b){return a.i0-b.i0;}),gaps=[];let last=0; /* les temps forts : virages ET figures ; une droite = ce qu'il y a entre deux */
   for(const v of TF){const g=(v.i0-last)*ds;gaps.push(g);last=Math.max(last,v.i1);}gaps.push((N-last)*ds);
@@ -15573,6 +15601,7 @@ function rythmeMesure(ctrl,o){
     droiteMax:Math.round(droiteMax),droiteS:+(droiteMax/vP).toFixed(1),droites5:droites5,ench:ench,enchKm:+(ench/km).toFixed(2),spirMax:Math.round(spirMax),spirales:spirales,
     figures:FZ.length,coudes:coudes,cretes:cretes,pente:+(g.length?g[g.length>>1]:0).toFixed(3),penteP95:+(g.length?g[Math.floor(g.length*.95)]:0).toFixed(3),penteMax:+(g.length?g[g.length-1]:0).toFixed(3),
     montee:+(g.length?up/g.length:0).toFixed(2),descente:+((-dyT)/L).toFixed(3),rMin:Math.round(rMin===1e9?0:rMin),rMinRP:+((rMin===1e9?0:rMin)/rP).toFixed(2),rMed:Math.round(rMed),pts:n0,
+    douilles:douilles,douillesKm:+(douilles/km).toFixed(2),zigzags:zigzags,droitesF:droitesF,droitesFMin:+(droitesF/(L/vP/60)).toFixed(2),horsEndroit:+horsEndroit.toFixed(2),douillesS:DZ,
     virages:V.map(function(v){return [Math.round(v.i0*ds),Math.round(v.i1*ds),Math.round(v.ang*180/Math.PI)*v.sg];})};}
 /* la NOTE : 0 = la route tient toutes les cibles ; chaque manquement coûte proportionnellement (les coudes et l'infranchissable coûtent cher) */
 function rythmeNote(f,c){
@@ -15586,6 +15615,10 @@ function rythmeNote(f,c){
   n+=f.coudes*1.2;n+=f.cretes*.6;
   if(f.penteP95>c.penteMax)n+=(f.penteP95-c.penteMax)*6;
   if(f.montee>c.monteeMax)n+=(f.montee-c.monteeMax)*4;
+  if(GEN_V2&&c.douilleKm!=null){ /* (LA RÈGLE v2) les douilles coûtent plus qu'un coude ; les droites franches manquantes coûtent ; la route couchée trop longtemps coûte */
+    n+=Math.max(0,f.douilles-c.douilleKm*f.L/1000)*.8;n+=(f.zigzags||0)*2;
+    if(f.droitesFMin<c.droiteF[0])n+=(c.droiteF[0]-f.droitesFMin)*1.2;if(f.droitesFMin>c.droiteF[1])n+=(f.droitesFMin-c.droiteF[1])*.6;
+    if(f.horsEndroit>c.horsEndroit)n+=(f.horsEndroit-c.horsEndroit)*8;}
   return +n.toFixed(2);}
 /* LE MEILLEUR-DE-N : `gen(rnd9)` dessine une route avec le flux qu'on lui donne ; on en tire `n` sur des flux dérivés d'UN seul tirage de `rnd`, on garde la mieux notée.
    `apres(ctrl)` (facultatif) rend la fiche à noter (par défaut rythmeMesure sur ctrl) ; `garde()` / `restaure(etat)` (facultatif) sauvent et remettent les effets de bord
@@ -16694,7 +16727,7 @@ window.dbgGenRoute=function(carte,graine,palier,o){o=o||{};const TAB={nuages:()=
     let N=null,info=null,roule=false;const GRT9=grtTordOn();
     if(hautOn()||espTordOn()||GRT9){const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined);ctrl=h9.ctrl;N=h9.N;info=TORD.info;roule=true;}
     else if(pi==='dunes'&&DN.bankN)N=DN.bankN;else if(pi==='canyon'&&CY.murN&&CY_MUR.on)N=CY.murN;else if(pi==='foret'&&FORET.bankN)N=FORET.bankN;else if(pi==='jade'&&JADE.bankN)N=JADE.bankN;
-    const vP=vPalier(),rP=rayonPalier(),cible=rythmeCible(carte),fiche=rythmeMesure(ctrl.length===ctrl0.length?ctrl:ctrl0.map(function(a){return new THREE.Vector3(a[0],a[1],a[2]);}),{vP:vP,rP:rP,marks:marks0,spirMax:cible.spirMax});
+    const vP=vPalier(),rP=rayonPalier(),cible=rythmeCible(carte),fiche=rythmeMesure(ctrl.length===ctrl0.length?ctrl:ctrl0.map(function(a){return new THREE.Vector3(a[0],a[1],a[2]);}),{vP:vP,rP:rP,marks:marks0,spirMax:cible.spirMax,N:N}); /* (LA RÈGLE v2) N : les normales de la route roulée → la part hors de l'endroit */
     out={carte:carte,piste:pi||'ctrl',graine:seed,palier:palier|0,vP:+vP.toFixed(1),rP:+rP.toFixed(1),lv:+lvPiste().toFixed(2),half:ROAD_HALF,ms:+tGen.toFixed(1),roule:roule,info:info,
       ctrl0:ctrl0,ctrl:ctrl.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),+p.z.toFixed(2)];}),N:N?N.map(function(v){return [+v.x.toFixed(3),+v.y.toFixed(3),+v.z.toFixed(3)];}):null,
       marks:marks0,marks1:MODMARK.map(function(m){return {i0:m.i0,i1:m.i1,fig:m.fig||null};}),fiche:fiche,note:rythmeNote(fiche,cible),cible:cible,rythme:RYTHME.der};

@@ -7,12 +7,12 @@ const dir=process.argv[2]||process.env.OUT,PNG=process.argv.includes('--png'),on
 const files=fs.readdirSync(dir).filter(f=>f.endsWith('.json')&&(!only||f.startsWith(only+'-')));
 const agg={};const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0,max=a=>a.length?Math.max.apply(null,a):0;
 for(const f of files){const o=JSON.parse(fs.readFileSync(path.join(dir,f),'utf8'));if(o.erreur){console.log(f,'ERREUR',o.erreur.split('\n')[0]);continue;}
-  const k=o.carte+' p'+o.palier;let A=agg[k];if(!A)A=agg[k]={carte:o.carte,pal:o.palier,n:0,note:[],L:[],s:[],virKm:[],serreKm:[],infr:[],droiteS:[],droites5:[],enchKm:[],spirMax:[],spirales:[],coudes:[],cretes:[],penteP95:[],montee:[],descente:[],rMinRP:[],ms:[]};
+  const k=o.carte+' p'+o.palier;let A=agg[k];if(!A)A=agg[k]={carte:o.carte,pal:o.palier,n:0,note:[],L:[],s:[],virKm:[],serreKm:[],infr:[],droiteS:[],droites5:[],enchKm:[],spirMax:[],spirales:[],coudes:[],cretes:[],penteP95:[],montee:[],descente:[],rMinRP:[],ms:[],douilles:[],zigzags:[],droitesFMin:[],horsEndroit:[]};
   A.n++;A.note.push(o.note);for(const key of Object.keys(A))if(Array.isArray(A[key])&&key!=='note'&&key!=='ms')A[key].push(o.fiche[key]);A.ms.push(o.ms);
   if(PNG)dessine(o,path.join(dir,f.replace(/\.json$/,'.png')));}
-console.log('map      pal  n  note   L     s   vir/km serré infr droite(s) >5s ench/km spir°/max spir coudes crêtes p95   montée desc  rMin/rP  ms');
+console.log('map      pal  n  note   L     s   vir/km serré infr droite(s) >5s ench/km spir°/max spir coudes crêtes p95   montée desc  rMin/rP  ms   douilles zigz dF/min hors');
 for(const k of Object.keys(agg).sort()){const A=agg[k];
-  console.log(`${A.carte.padEnd(8)} ${String(A.pal).padStart(2)} ${String(A.n).padStart(2)}  ${mean(A.note).toFixed(1).padStart(5)} ${mean(A.L).toFixed(0).padStart(5)} ${mean(A.s).toFixed(0).padStart(4)}  ${mean(A.virKm).toFixed(1).padStart(5)} ${mean(A.serreKm).toFixed(2).padStart(5)} ${mean(A.infr).toFixed(0).padStart(4)} ${mean(A.droiteS).toFixed(1).padStart(5)}/${max(A.droiteS).toFixed(0).padStart(3)} ${mean(A.droites5).toFixed(1).padStart(3)} ${mean(A.enchKm).toFixed(2).padStart(6)} ${mean(A.spirMax).toFixed(0).padStart(4)}/${max(A.spirMax).toFixed(0).padStart(3)} ${mean(A.spirales).toFixed(1).padStart(4)} ${mean(A.coudes).toFixed(1).padStart(5)}  ${mean(A.cretes).toFixed(1).padStart(5)} ${mean(A.penteP95).toFixed(2).padStart(5)} ${mean(A.montee).toFixed(2).padStart(5)} ${mean(A.descente).toFixed(3).padStart(5)} ${mean(A.rMinRP).toFixed(2).padStart(5)}  ${mean(A.ms).toFixed(0).padStart(4)}`);}
+  console.log(`${A.carte.padEnd(8)} ${String(A.pal).padStart(2)} ${String(A.n).padStart(2)}  ${mean(A.note).toFixed(1).padStart(5)} ${mean(A.L).toFixed(0).padStart(5)} ${mean(A.s).toFixed(0).padStart(4)}  ${mean(A.virKm).toFixed(1).padStart(5)} ${mean(A.serreKm).toFixed(2).padStart(5)} ${mean(A.infr).toFixed(0).padStart(4)} ${mean(A.droiteS).toFixed(1).padStart(5)}/${max(A.droiteS).toFixed(0).padStart(3)} ${mean(A.droites5).toFixed(1).padStart(3)} ${mean(A.enchKm).toFixed(2).padStart(6)} ${mean(A.spirMax).toFixed(0).padStart(4)}/${max(A.spirMax).toFixed(0).padStart(3)} ${mean(A.spirales).toFixed(1).padStart(4)} ${mean(A.coudes).toFixed(1).padStart(5)}  ${mean(A.cretes).toFixed(1).padStart(5)} ${mean(A.penteP95).toFixed(2).padStart(5)} ${mean(A.montee).toFixed(2).padStart(5)} ${mean(A.descente).toFixed(3).padStart(5)} ${mean(A.rMinRP).toFixed(2).padStart(5)}  ${mean(A.ms).toFixed(0).padStart(4)} ${mean(A.douilles).toFixed(1).padStart(5)} ${mean(A.zigzags).toFixed(1).padStart(4)} ${mean(A.droitesFMin).toFixed(1).padStart(5)} ${mean(A.horsEndroit).toFixed(2).padStart(5)}`);}
 function dessine(o,sortie){
   const Q=o.ctrl0,n=Q.length,F=o.fiche;if(n<3)return;
   const T=new (require('./charge.cjs').ctx.THREE.CatmullRomCurve3)(Q.map(a=>new (require('./charge.cjs').ctx.THREE.Vector3)(a[0],a[1],a[2])),false,'centripetal');T.arcLengthDivisions=Math.max(200,n*16);
@@ -29,6 +29,8 @@ function dessine(o,sortie){
   for(const [a,b] of bleu)for(let i=Math.round(a/ds);i<=Math.min(N,Math.round(b/ds));i++)col[i]=[80,140,255];
   /* les figures (marks g/fig) en violet */
   if(o.marks)for(const m of o.marks)if(m.g||m.fig){const a=Math.round(m.i0/(n-1)*N),b=Math.round(m.i1/(n-1)*N);for(let i=a;i<=b&&i<=N;i++)col[i]=[220,120,255];}
+  /* (LA RÈGLE v2) les douilles en jaune */
+  if(F.douillesS)for(const d of F.douillesS)for(let i=Math.round(d[0]/ds);i<=Math.min(N,Math.round(d[1]/ds));i++)col[i]=[255,230,60];
   for(let i=1;i<=N;i++)P.line(im,X(S[i-1]),Y(S[i-1]),X(S[i]),Y(S[i]),col[i]||[150,150,160],col[i]?2:1);
   /* les coudes : croix blanches */
   for(let i=1;i<n-1;i++){const a=Math.atan2(Q[i][0]-Q[i-1][0],Q[i][2]-Q[i-1][2]),b=Math.atan2(Q[i+1][0]-Q[i][0],Q[i+1][2]-Q[i][2]);let d=Math.abs(b-a);if(d>Math.PI)d=2*Math.PI-d;
