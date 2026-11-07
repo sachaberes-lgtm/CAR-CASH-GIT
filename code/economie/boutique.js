@@ -35,7 +35,7 @@ function shopPopEl(){
       shopDonne(i);el.classList.remove('attend');try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(_){}hap([12,40,12,40,30]);/* (2026-10-14, session SON) 'ok' n'est pas un rôle d'uiClic (il retombait sur ui.tap, un 2e appui) : une caisse ACHETÉE sonne le tiroir-caisse, comme tout achat du garage — et le toast d'après se tait */try{pixBurst(b,18);}catch(_){}
       try{shopRender();}catch(_){}shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'),true);
     },function(e){ // annulé / en attente : rien n'est donné, le bouton reste utilisable ; sinon (web, pas branché, échec) on le DIT, dans la fenêtre, et rien n'est donné
-      const m=achatsMotif(e);if(m==='occupe')return; /* un autre achat est en vol : celui-là finira seul */
+      const m=achatsMotif(e);if(m==='occupe'){el.classList.remove('attend');b.classList.remove('off');return;} /* un autre achat est en vol : celui-là finira seul ; le bouton redevient utilisable (ni « attend » ni « off » ne restent posés) */
       el.classList.remove('attend');
       if(m==='annule'||m==='attente'){b.classList.remove('off');if(m==='attente'){uiClic('refus');hap([10,40,10]);toast(pxi('panier')+' '+TR("EN ATTENTE D'ACCORD"));}return;}
       if(window.ccAchat)b.classList.remove('off'); /* dans l'app un échec se retente */

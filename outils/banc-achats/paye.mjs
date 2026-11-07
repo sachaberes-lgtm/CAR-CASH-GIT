@@ -104,6 +104,14 @@ try {
   verifie(dbl.n1 === 1 && dbl.r1 === 'tenue' && dbl.r2 !== 'tenue', `(7) double paye : un seul appel et le 2e refusé : ${JSON.stringify(dbl)}`);
   verifie(dbl.n === 2, `(7) après la 1re, un nouveau paye est possible : ${JSON.stringify(dbl)}`);
 
+  /* (M4) un achat déjà en vol : le 2e ACHETER (autre caisse) est refusé « occupe » ; la fenêtre ne garde ni « attend » ni « off » */
+  await ev(`window.__fa.rep='pend';window.__fa.vol=window.dbgAchats.paye(54).then(function(){},function(){});
+    var s=document.createElement('div');s.setAttribute('data-car','${autre2.cle}');document.body.appendChild(s);window.dbgAchats.pop(s);
+    document.querySelector('#shPop [data-sp="oui"]').click();`); await sleep(500);
+  const m4 = await ev(`var e=document.getElementById('shPop'),b=e.querySelector('[data-sp="oui"]');return {off:b.classList.contains('off'),attend:e.classList.contains('attend'),refus:e.classList.contains('refus')};`);
+  verifie(!m4.off && !m4.attend && !m4.refus, `(M4) occupe : le bouton devrait être rendu sans message : ${JSON.stringify(m4)}`);
+  await ev(`window.__fa.libere();await window.__fa.vol;window.__fa.rep='ok';document.querySelector('#shPop [data-sp="non"]').click();`); await sleep(900);
+
   /* (3) achatsSync deux fois avec les mêmes achats : 1er = 2 (une caisse déjà à toi ne compte pas), 2e = 0, rien n'est équipé, pas de fête */
   await ev(`document.getElementById('feteCaisse')&&document.getElementById('feteCaisse').remove();window.__fa.poss=['${autre.id}','${autre2.id}','${p0.id}'];`);
   const eqAvant = (await etat()).eq.peinture;
@@ -124,9 +132,9 @@ try {
     try{out.r=await window.dbgAchats.restaure();}catch(e){out.excR=e&&e.message;}
     window.__fa.possRejette=false;window.__fa.restRejette=false;return out;`);
   verifie(r4.s === 0 && !r4.exc, `(4) possedes qui rejette : 0 sans exception : ${JSON.stringify(r4)}`);
-  verifie(r4.r === 0 && !r4.excR, `(4) restaurer qui rejette : 0 sans exception : ${JSON.stringify(r4)}`);
+  verifie(r4.r === -1 && !r4.excR, `(4) restaurer qui rejette : -1 (échec distinct de « rien ») sans exception : ${JSON.stringify(r4)}`);
   const toast4 = await ev(`return document.getElementById('toast').textContent;`);
-  verifie(!/ERREUR|ECHEC|ÉCHEC|INDISPONIBLE/i.test(toast4) || /AUCUN/i.test(toast4), `(4) pas de toast d'erreur après un échec de restaurer : ${toast4}`);
+  verifie(/IMPOSSIBLE/i.test(toast4) && !/AUCUN/i.test(toast4), `(4) I1 : RESTAURER en échec doit dire RESTAURATION IMPOSSIBLE, pas « aucun achat » : ${toast4}`);
 
   /* (5) objet déjà à toi : habPaye rend false et payer n'est pas appelé */
   const r5 = await ev(`window.__fa.appels=[];var a=window.dbgAchats.habPaye('${p0.id.split('.').pop()}');return {a:a,n:window.__fa.appels.length};`);

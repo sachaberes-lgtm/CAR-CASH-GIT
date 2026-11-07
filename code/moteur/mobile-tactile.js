@@ -817,6 +817,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       {const o9=$t('mObj');if(o9)objRenderV2(o9);} // (l'ancien objRender gardait l'absence d'élément)
     }else if(mCur==='shop'){
       if(!SAVE.d.shopVu){SAVE.d.shopVu=1;SAVE.flush();}
+      try{achatsPrixSiVide();}catch(e){} /* (achats App Store) les prix d'Apple pas encore venus : on les redemande */
       shopRender();
     }else if(mCur==='home'){
       try{m2Portes();}catch(e){} // la porte MISSIONS : une case allumée par mission prête
