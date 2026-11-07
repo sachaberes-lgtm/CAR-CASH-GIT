@@ -337,6 +337,31 @@ const PREB_AVANCE=20; // (s) la map d'en face commence quand le portail est à m
    sa préparation d'avance dure ~16-22 s de route en tranches fines (la plus lourde de toutes) ; partie à 20 s du portail, elle n'était pas finie au passage
    et le reste se bâtissait D'UN BLOC dans l'image du portail (3,4-3,8 s figées, au banc ; 1,5 s encore en partant à 45 s). Elle part à 75 s : en pratique dès le début de la map d'avant. */
 const PREB_AVANCE_LOURD={grotte:75};
+/* ===== LE PRÉ-BÂTI LISSÉ (2026-11-07, vitesse-fluide : « bof et saccadé à partir du palier 10 » — Sacha, 13 Pro) =====
+   MESURÉ (Mac, charge 3, iPhone émulé ×4, 30 calé, 10 s par palier moteur 4 / 10 / 16) : le seul coût JS par image qui grandit avec la vitesse est ce pré-bâti — canyon : la boucle passe de 8,9 à 18,0 puis 19,8 ms
+   dont `prebTick` 0 → 8,8 → 9,4 (la grotte d'après) ; nuages : 11,8 → 11,8 → 16,3 dont 2,6. Cause : à grande vitesse une zone dure moins de secondes, le même travail doit tenir dans moins d'images, et la règle
+   d'URGENCE (9 ms à moins de 10 s du portail, 14 ms à moins de 5 s, jusqu'à 16 « pour finir ») le fait payer en tranches de la moitié d'une image de 33 ms. Sur TÉLÉPHONE (TEL_NATIF), `?prebfin=0` = avant :
+   · la TRANCHE est plafonnée à `PREBF.tr` (4 ms ; 2,5 mini) tant que le travail tient dans les images qui restent (reste estimé ÷ images d'ici le portail) ; elle ne monte (jusqu'à `PREBF.max`, 16 ms comme avant) que s'il est VRAIMENT
+     en retard — plus d'urgence AUTOMATIQUE à l'approche du portail : la tranche suit ce qu'il reste à faire (reste estimé ÷ images avant le portail) ;
+   · le travail PART PLUS TÔT à grande vitesse : l'avance (20 s, la grotte 75 s) est multipliée par v / 90 m/s, entre 1 et 3 ;
+   · AU PASSAGE, le reste ne se fait JAMAIS d'un bloc : le voile est posé et la caisse tenue au bord de la piste (PORTV.att) — le travail se poursuit par tranches de `PREBF.voile` ms (26 : le rendu est coupé sous le voile), une par image, jusqu'au bout
+     (au pire `PREBF.voileMax` s, puis d'un trait comme avant), puis le passage se fait ; voir prebRetient (appelé par portail-passage.js) ;
+   · les INSTANTS MORTS (pause) : le travail y va à pleine tranche (`PREBF.mort`), le fil n'est pas disputé. */
+const PREBFIN=TEL_NATIF&&!/[?&]prebfin=0\b/.test(location.search),PREBF={tr:4,mini:2.5,max:16,voile:26,voileMax:25,mort:12,vref:90,kmax:3};
+function prebAvanceK(){return PREBFIN?Math.max(1,Math.min(PREBF.kmax,(PREB.v||60)/PREBF.vref)):1;}
+function prebTranche(tr,r9){ /* la tranche de CETTE image (ms) : plafonnée, sauf retard */
+  const ref=PREB_CPU[PREB.t.carte]||PREB_CPU_DEF[PREB.t.carte]||1500,re=Math.max(0,ref*1.15-PREB.cpu),im=Math.max(8,Math.min(60,PREB.ips||25)),need=re/Math.max(1,(r9-1.5)*im);
+  const base=Math.max(PREBF.mini,Math.min(PREBF.tr,14-tr));
+  return need>PREBF.tr?Math.max(base,Math.min(PREBF.max,need*1.15)):base;}
+function prebRetient(tok,suite){ /* le passage du portail : le travail d'avance n'est pas fini → il se poursuit par tranches DERRIÈRE LE VOILE (la caisse est tenue, PORTV.att), puis `suite` fait le passage */
+  if(!PREBFIN||!PREB.W||PREB.fait||PREB.dep||PREB.echecs>=3)return false;
+  const t0=performance.now();PREB.tenu=(PREB.tenu|0)+1;
+  const pas=function(){ if(PORTV.att!==tok)return; /* un passage abandonné (mort, seconde chance…) */
+    if(!PREB.W){suite();return;}
+    prebTravaille(performance.now()+PREBF.voile);
+    if(!PREB.W||PREB.fait||performance.now()-t0>PREBF.voileMax*1000){PREB.tenuMs=Math.round(performance.now()-t0);suite();return;}
+    requestAnimationFrame(pas);};
+  requestAnimationFrame(pas);return true;}
 function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier, travailler
   PREB.cam=false; // (voir sous9 : resetGame l'a lu dans cette image, ou rien ne l'a lu)
   if(!started||gameOver){prebDepTick(now);return;}
@@ -346,11 +371,12 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   if(mode==='drive'&&PREB.sT){const d9=(now-PREB.sT)/1000,v9=(s-PREB.sP)/Math.max(1e-3,d9);if(d9>0&&d9<.5&&v9>0)PREB.v=PREB.v?PREB.v+(v9-PREB.v)*Math.min(1,d9*2):v9;} // la vitesse le long de la piste (m/s), lissée
   if(PREB.sT){const d9=now-PREB.sT;if(d9>0&&d9<250)PREB.ips=PREB.ips?PREB.ips+(1000/d9-PREB.ips)*.05:1000/d9;} /* (2026-11-01) les images par seconde, lissées (le rythme du pré-bâti) */
   PREB.sT=now;PREB.sP=s;
+  if(PREBFIN&&paused&&running&&!garageOn&&!PCV.fen&&!PORTV.att&&!CHAUFFE_R.t&&PREB.W&&!PREB.fait&&!PREB.dep){prebTravaille(performance.now()+PREBF.mort);return;} /* (2026-11-07) la PAUSE est un instant mort : le fil n'est pas disputé, le travail y va à pleine tranche */
   if(paused||!running||garageOn||PCV.fen||PORTV.att||CHAUFFE_R.t)return;
   if(mode!=='drive'&&mode!=='fall')return;
   if(now-PREB.tNeuf<700)return; // le monde neuf vient d'entrer : il s'installe d'abord
   const c=prebCible();
-  if(!PREB.W){if(c&&c.t!==PREB.non&&PREB.echecs<3&&(L-s)/Math.max(20,PREB.v||60)<(PREB_AVANCE_LOURD[c.t.carte]||PREB_AVANCE))prebPart(c);return;} // (l'image suivante travaille)
+  if(!PREB.W){if(c&&c.t!==PREB.non&&PREB.echecs<3&&(L-s)/Math.max(20,PREB.v||60)<(PREB_AVANCE_LOURD[c.t.carte]||PREB_AVANCE)*prebAvanceK())prebPart(c);return;} // (l'image suivante travaille) · (2026-11-07) prebAvanceK : plus tôt à grande vitesse
   if(!c||c.t!==PREB.t||c.z!==PREB.z){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'zone');return;} // (un palier gagné en route ne change rien : la piste garde celui du départ)
   if(PREB.fait)return;
   const tr=typeof QLR!=='undefined'&&QLR.t0?performance.now()-QLR.t0:8;
@@ -362,6 +388,7 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
      d'images avant le portail pour finir — le reste estimé d'après la dernière préparation de cette map (PREB_CPU, sinon une estimation large). MESURÉ
      (×4, portail approché vite) : la grotte n'était pas finie, ses 450 ms d'un bloc tombaient dans l'image du portail. */
   {const ref=PREB_CPU[PREB.t.carte]||PREB_CPU_DEF[PREB.t.carte]||1500,re=ref*1.15-PREB.cpu;if(re>0)u9=Math.max(u9,Math.min(16,re/Math.max(1,(r9-1.5)*Math.max(8,Math.min(60,PREB.ips||25)))));}
+  if(PREBFIN){prebTravaille(performance.now()+prebTranche(tr,r9));if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;return;} /* (2026-11-07) LA TRANCHE PLAFONNÉE — voir LE PRÉ-BÂTI LISSÉ */
   prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));
   if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;}
 const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500,foret:1500}; /* (ms de calcul) la dernière préparation d'avance de chaque map, en tranches — et une estimation large avant la 1re */
