@@ -12053,7 +12053,8 @@ const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOI
 const TOILE1=!/[?&]toile1=0\b/.test(location.search); /* (2026-11-05, passe perf mobile 2, A2.c) UNE seule allocation de la toile : sa taille se pose plus bas, une fois DPR_CAP connu (`?toile1=0` = l'ancien ordre : taille puis rapport de pixels) */
 if(!TOILE1)renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
-try{window.__ccSondeCrea&&window.__ccSondeCrea('renderer',t9rend,performance.now()-t9rend);}catch(e){}try{const t9p=performance.now();palPuce(renderer.getContext());window.__ccSondeCrea&&window.__ccSondeCrea('palPuce',t9p,performance.now()-t9p);}catch(e){} // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
+try{window.__ccSondeCrea&&window.__ccSondeCrea('renderer',t9rend,performance.now()-t9rend);}catch(e){}try{const t9p=performance.now();palPuce(renderer.getContext());window.__ccSondeCrea&&window.__ccSondeCrea('palPuce',t9p,performance.now()-t9p);}catch(e){}
+if(!/[?&]clear0=0\b/.test(location.search))try{const t9c=performance.now();renderer.clear();window.__ccSondeCrea&&window.__ccSondeCrea('clear-1er',t9c,performance.now()-t9c);}catch(e){} /* (2026-11-07, OPTI ULTIME : « 571-924 ms avec ~130 ms de JS : attente de la puce ») UNE image vide à la création du renderer, avant tout dessin : la 1re présentation du canevas se paie ici, sous le film, et non avec la 1re vraie image. Non démontré : `?clear0=0` = avant. */ // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
 /* ⚠ LE CONTEXTE 3D PERDU (2026-09-25, audit App Store) : iOS reprend la carte graphique d'une app en arrière-plan
    (appel, appareil photo, jeu lourd). Sans ces deux écouteurs, le jeu revenait sur un ÉCRAN NOIR définitif — le
    refus classique pour « l'app ne répond plus ». On empêche l'abandon (`preventDefault` = « je veux le récupérer »),
@@ -71355,6 +71356,7 @@ try{Object.keys({'RIEN ICI':1,'TOUT EST A TOI':1}).forEach(function(k){if(!I18N[
 const PHQ={q:[],on:false,pret:0,defile:0};
 function photoFile(i,cb,el){if(PHOTO.cache[i]){cb(PHOTO.cache[i]);return;}PHQ.q.push([i,cb,undefined,el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 function photoCalme(){const t=performance.now();
+  if(PHOTO_APRES&&!CHAUFFE_R.tMenu&&t<30000&&document.getElementById('splash'))return false; /* (2026-11-07, OPTI ULTIME : photoTour 123-146 ms à 2,2 s, sous l'intro) les photos des caisses attendent que l'intro s'efface (cc:revele pose CHAUFFE_R.tMenu) ; filet : 30 s ; `?photoapres=0` = comme avant */
   if(document.hidden||ecranWipe._on||garageDrag||t-PHQ.defile<260)return false;
   if(PHOTO_APRES&&CHAUFFE_R.tMenu&&!CHAUFFE_R.fait&&t-CHAUFFE_R.tMenu<12000&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!photoInvVu())return false; /* (2026-11-05, passe perf mobile 2, A2.d) les photos des caisses passent APRÈS la chauffe du menu (≤ 12 s) — sauf si le joueur a ouvert la boutique ou l'inventaire : ses vignettes passent devant ; `?photoapres=0` = comme avant */
   if(typeof GBQ!=='undefined'&&(GBQ.drag||GBQ.veut!==GBQ.on||!GBQ.bascule||t<(bqVoile._fin||0)))return false;
@@ -80395,9 +80397,12 @@ function goImmersive(){
     if(PCI_N.pas>1&&now-pciDer<1.5*PCI_N.ecranMs){PCI_N.sautees++;return true;}
     pciDer=now;PCI_N.rendus++;return false;
   }
+  /* (2026-11-07, OPTI ULTIME : « étape rendu 326 ms = le 1er dessin du canevas 2D plein écran ») sur TÉLÉPHONE (TEL_NATIF), le film se dessine à 1,5 pixel de canevas par point d'écran au lieu de 2 : 44 % de pixels en moins
+     sur le canevas plein écran (iPhone 13 Pro : 585 × 1 266 au lieu de 780 × 1 688). Plafond FIXE (pas « bas puis haut » : changer de taille referait `prepare` — logo, fracture — au milieu du film). `?intros=2` = comme avant, `?intros=N` règle le plafond (banc). */
+  const INTRO_S_MAX=(function(){const m=/[?&]intros=([\d.]+)/.exec(location.search);return m?Math.max(.6,+m[1]):(typeof TEL_NATIF!=='undefined'&&TEL_NATIF?1.5:2);})();
   function mesure(){
     const t=tailleEcran();W=t[0];H=t[1]; /* ce qui se VOIT (la fenêtre du cadre), jamais plus : un voile plus large que la fenêtre décalait tout le dessin (vu le 23/10 : logo énorme, coupé à droite) */
-    S=Math.max(.6,Math.min(devicePixelRatio||1,2,Math.sqrt(2.2e6/(W*H)))); /* net sur un téléphone, borné en pixels : un grand écran ne coûte pas plus */
+    S=Math.max(.6,Math.min(devicePixelRatio||1,INTRO_S_MAX,Math.sqrt(2.2e6/(W*H)))); /* net sur un téléphone, borné en pixels : un grand écran ne coûte pas plus */
     cv.width=Math.round(W*S);cv.height=Math.round(H*S);cv.style.width=W+'px';cv.style.height=H+'px';cv.style.left='0';cv.style.top='0'; /* le dessin et l'écran font EXACTEMENT la même taille */
     ku=Math.max(.75,Math.min(W,H)/390);
   }

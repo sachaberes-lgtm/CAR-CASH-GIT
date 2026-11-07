@@ -93,9 +93,12 @@
     if(PCI_N.pas>1&&now-pciDer<1.5*PCI_N.ecranMs){PCI_N.sautees++;return true;}
     pciDer=now;PCI_N.rendus++;return false;
   }
+  /* (2026-11-07, OPTI ULTIME : « étape rendu 326 ms = le 1er dessin du canevas 2D plein écran ») sur TÉLÉPHONE (TEL_NATIF), le film se dessine à 1,5 pixel de canevas par point d'écran au lieu de 2 : 44 % de pixels en moins
+     sur le canevas plein écran (iPhone 13 Pro : 585 × 1 266 au lieu de 780 × 1 688). Plafond FIXE (pas « bas puis haut » : changer de taille referait `prepare` — logo, fracture — au milieu du film). `?intros=2` = comme avant, `?intros=N` règle le plafond (banc). */
+  const INTRO_S_MAX=(function(){const m=/[?&]intros=([\d.]+)/.exec(location.search);return m?Math.max(.6,+m[1]):(typeof TEL_NATIF!=='undefined'&&TEL_NATIF?1.5:2);})();
   function mesure(){
     const t=tailleEcran();W=t[0];H=t[1]; /* ce qui se VOIT (la fenêtre du cadre), jamais plus : un voile plus large que la fenêtre décalait tout le dessin (vu le 23/10 : logo énorme, coupé à droite) */
-    S=Math.max(.6,Math.min(devicePixelRatio||1,2,Math.sqrt(2.2e6/(W*H)))); /* net sur un téléphone, borné en pixels : un grand écran ne coûte pas plus */
+    S=Math.max(.6,Math.min(devicePixelRatio||1,INTRO_S_MAX,Math.sqrt(2.2e6/(W*H)))); /* net sur un téléphone, borné en pixels : un grand écran ne coûte pas plus */
     cv.width=Math.round(W*S);cv.height=Math.round(H*S);cv.style.width=W+'px';cv.style.height=H+'px';cv.style.left='0';cv.style.top='0'; /* le dessin et l'écran font EXACTEMENT la même taille */
     ku=Math.max(.75,Math.min(W,H)/390);
   }
