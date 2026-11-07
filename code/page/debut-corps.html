@@ -165,7 +165,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
     var tache=function(nom,t,d){if(!fini)garde(TAC,{n:nom,t:t,d:d});};
     window.__ccSondeTache=function(nom,t,d){if(d>=40)tache('étape '+nom,t,d);};
     /* (2026-11-07, OPTI ULTIME : « le trou initial de ~1 s, fil libre : le contexte WebGL ? l'AudioContext ? ») les CRÉATIONS chronométrées de l'intérieur (renderer, palPuce, AudioContext, boule, prepare, son…) : toute durée ≥ 5 ms, au dos de la ligne « fin du guet » */
-    var CREA=[];window.__ccSondeCrea=function(nom,t,d){if(!fini&&d>=5&&CREA.length<30)CREA.push(nom+' '+Math.round(d)+' ms à '+(Math.round(t/100)/10)+' s');};
+    var CREA=[];window.__ccSondeCrea=function(nom,t,d){if(!fini&&(d>=5||nom.charAt(0)==='#')&&CREA.length<30)CREA.push(nom+' '+Math.round(d)+' ms à '+(Math.round(t/100)/10)+' s');};
     /* les appels WebGL qui attendent le GPU (≥ 8 ms) */
     ['getProgramParameter','getShaderParameter','getProgramInfoLog','getShaderInfoLog','linkProgram','compileShader','texImage2D','texSubImage2D','texImage3D','texSubImage3D',
      'texStorage2D','bufferData','bufferSubData','readPixels','getError','getActiveUniform','getActiveAttrib','getUniformLocation','generateMipmap','compressedTexImage2D',
