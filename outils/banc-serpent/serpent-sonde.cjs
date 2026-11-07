@@ -18,7 +18,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const send=(method,params={})=>new Promise(r=>{const i=++id;pend[i]=r;ws.send(JSON.stringify({id:i,method,params}));});
   await send('Page.enable');await send('Runtime.enable');await send('Log.enable');await send('Network.enable');
   await send('Network.setCacheDisabled',{cacheDisabled:true});await send('Network.setBypassServiceWorker',{bypass:true});
-  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:3,mobile:true});
+  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:+(process.env.DSF||3),mobile:true});
   await send('Emulation.setCPUThrottlingRate',{rate:CPU});
   await send('Page.navigate',{url:URL_});
   if(process.env.BLOQUE){await sleep(3000);for(let k=0;k<2;k++){await send('Runtime.evaluate',{expression:'(function(){var t=performance.now();while(performance.now()-t<500);})()'});await sleep(1500);}} /* témoin : deux blocages de 500 ms du fil, la sonde doit les voir */
