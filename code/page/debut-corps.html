@@ -204,6 +204,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
       PIEGES.forEach(function(p){try{p[0][p[1]]=p[2];}catch(_){}});
       window.setTimeout=oST;window.requestAnimationFrame=oRAF;try{delete window.__ccSondeTache;}catch(_){window.__ccSondeTache=null;}
       TAC=[];GLS=[];TIM=[];
+      try{var pe9=window.performance&&performance.getEntriesByType?performance.getEntriesByType('paint'):[];if(pe9&&pe9.length)pe9.forEach(function(e){CREA.push('#paint '+e.name+' à '+(Math.round(e.startTime/10)/100)+' s');});else CREA.push('#paint : absent');}catch(_){CREA.push('#paint : absent');} /* (2026-11-07, OPTI ULTIME : « loop + piste, 80 % natif : la 1re peinture de la page ? ») les instants first-paint / first-contentful-paint, ou « absent » si WKWebView ne les donne pas */
       window.__ccNote('serpent','fin du guet à '+(Math.round(now()/100)/10)+' s : '+trous+' trou(s) > '+SEUIL+' ms, le pire '+pire+' ms'+(CREA.length?' · créations : '+CREA.join(' · '):''));
     };
     var tick=function(t){
