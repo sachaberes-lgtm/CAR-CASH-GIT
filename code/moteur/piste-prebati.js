@@ -226,6 +226,10 @@ function prebEchange(W,entrees){ // l'état de la piste vivante ⇄ celui du tra
 }
 function prebObj(O,S){const ks=new Set(Object.keys(O).concat(Object.keys(S)));for(const k of ks){const a=k in O,b=k in S,x=O[k];if(b)O[k]=S[k];else delete O[k];if(a)S[k]=x;else delete S[k];}} // deux états d'un module ⇄ (toutes ses clés)
 function prebAvec(W,fn){prebEchange(W,true);try{return fn();}finally{prebEchange(W,true);}} // une tranche : le travail sur l'état de W, puis la piste vivante revient
+let PISTE_TRANCHE=Infinity; // (2026-11-07) ms par tranche quand le chargement bâtit la 1re piste sous le serpent (chargeTranches) ; Infinity : la route d'un trait, partout ailleurs
+function* pisteDirecteG(seed){const W=pisteTravail(null),g=pisteRoute(seed,W);let fini=false; // la même route que pisteDirecte, rendue en tranches de PISTE_TRANCHE ms : la piste vivante revient entre deux tranches (prebAvec)
+  while(!fini){prebAvec(W,function(){const t9=performance.now();do{fini=g.next().done;}while(!fini&&performance.now()-t9<PISTE_TRANCHE);});if(!fini)yield;}
+  return W;}
 function pisteDirecte(seed){const W=pisteTravail(null),g=pisteRoute(seed,W);prebAvec(W,function(){while(!g.next().done);});return W;} // la route d'un trait (tout newTrack qui n'a rien de bâti d'avance)
 function pisteInstalle(W){ // la route bâtie (d'un trait ou d'avance) devient LA route : l'ancienne sort de la scène, la neuve y entre dans l'ordre où elle a été bâtie
   sceneRetire(trackMeshes); // (chasse aux gels) d'un seul passage (voir sceneRetire)
