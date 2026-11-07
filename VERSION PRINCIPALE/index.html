@@ -11380,7 +11380,7 @@ html.bqIndus body #garage #gBqTete .bqArg{box-shadow:0 0 0 1px var(--bqFil),0 8p
    réduit : ni flottement, ni rayons qui tournent, ni entrée en cascade. */
 
 /* LA GRILLE : trois boîtes par rangée */
-html #mShop .shGrille{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 12px}
+html #mShop .shGrille{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 14px}
 
 /* LA BOÎTE : la carte d'avant (cadre biseauté, fond laqué, filet rose) s'efface, la niche et la plaque prennent sa place */
 html #mShop .shGrille .shCase.shBoite{display:flex;flex-direction:column;gap:0;padding:0;overflow:visible;clip-path:none;background:none;box-shadow:none;
@@ -11388,14 +11388,15 @@ html #mShop .shGrille .shCase.shBoite{display:flex;flex-direction:column;gap:0;p
 @keyframes shBxIn{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
 
 /* LA NICHE : un renfoncement sombre, éclairé d'en haut par un cône à la couleur de la rareté ; le sol en reçoit la lueur */
-#mShop .shBx{position:relative;display:block;aspect-ratio:1/.8;overflow:hidden;isolation:isolate;border-radius:3px 3px 0 0;
+#mShop .shBx{position:relative;display:block;aspect-ratio:720/440;overflow:visible;isolation:isolate;border-radius:0;background:none;box-shadow:none;}
+#mShop .shBx.ancienneNiche{
   background:radial-gradient(70% 30% at 50% 90%,color-mix(in srgb,var(--rc) 46%,transparent),transparent 72%),
     linear-gradient(180deg,color-mix(in srgb,var(--rc) 16%,#1a1236) 0,#110b24 68%,#0b0718 100%);
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc) 32%,rgba(200,184,255,.12)),inset 0 2px 0 color-mix(in srgb,var(--rc) 75%,transparent),inset 0 -14px 18px -10px rgba(0,0,0,.6)}
-#mShop .shBx::before{content:"";position:absolute;z-index:-1;left:10%;right:10%;top:0;height:94%;pointer-events:none;
+#mShop .shBx.big::before{content:"";position:absolute;z-index:-1;left:10%;right:10%;top:0;height:94%;pointer-events:none;
   background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 40%,transparent),transparent 88%);clip-path:polygon(36% 0,64% 0,100% 100%,0 100%);opacity:.6}
 /* la boîte de verre : au fond de la niche, son socle entier (à 108 %, comme dans la boutique, la niche rognait les deux coins du socle) ; elle entre en fondu */
-#mShop .shBx .shBxI{position:absolute;left:1%;bottom:5%;width:98%;height:auto;aspect-ratio:720/440;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;
+#mShop .shBx .shBxI{position:absolute;left:0;bottom:0;width:100%;height:auto;aspect-ratio:720/440;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;
   opacity:0;transform-origin:50% 88%;transition:opacity .22s ease-out,transform .16s cubic-bezier(.3,1.6,.5,1);filter:drop-shadow(0 4px 4px rgba(0,0,0,.5))}
 #mShop .shBx.vt .shBxI{opacity:1}
 /* `?vitrine=0` : la photo de catalogue d'avant, dans la même niche */
@@ -11406,10 +11407,9 @@ html #mShop .shGrille .shCase.shBoite{display:flex;flex-direction:column;gap:0;p
 #mShop .shBx.vt::after{opacity:0;animation:none}
 
 /* LA PLAQUE : le nom (deux lignes au plus), puis le prix, posé en bas ; le filet du dessous à la couleur de la rareté */
-#mShop .shBxPl{position:relative;flex:1;display:flex;flex-direction:column;gap:6px;padding:7px 6px 8px;border-radius:0 0 3px 3px;
-  background:linear-gradient(180deg,#1d1538,#0d0820);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 3px 0 var(--rc)}
+#mShop .shBxPl{position:relative;flex:1;display:flex;flex-direction:column;gap:6px;padding:8px 2px 0;background:none;box-shadow:none}
 #mShop .shBxN{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;
-  font-family:var(--pix);font-weight:400;font-size:8px;line-height:11px;letter-spacing:.3px;color:#fff;text-shadow:0 1px 0 #000}
+  font-family:var(--pix);font-weight:400;font-size:9px;line-height:12px;letter-spacing:.3px;color:#fff;text-shadow:0 1px 0 #000}
 /* un mot long (`.lg`, voir shopRender) dans une boîte étroite (couché sur iPhone 8 : 96 px) : 7 px, sans approche — L'ÉTERNELLE tient sur une ligne au lieu de « L'ETERNELL / E » */
 #mShop .shGrille .shBoite{container-type:inline-size}
 @container (max-width:104px){#mShop .shBxN.lg{font-size:7px;letter-spacing:0}}
@@ -11418,7 +11418,6 @@ html #mShop .shGrille .shCase.shBoite{display:flex;flex-direction:column;gap:0;p
 #mShop .shBxP .pxi{--pxs:1;color:currentColor}
 #mShop .shBoite.aToi .shBxP{color:var(--neoV);text-shadow:none}
 /* la dorée (légendaire) : la plaque brun et or de la boutique */
-#mShop .b-legendaire .shBxPl{background:linear-gradient(180deg,#5a3a00,#24160a)}
 #mShop .b-legendaire .shBxN{color:#ffe9a8}
 /* le chat : la traînée arc-en-ciel incluse, une bande aux couleurs de la traînée (comme sa carte dans la boutique) */
 #mShop .shBxArc{align-self:flex-start;max-width:100%;box-sizing:border-box;padding:3px 4px 2px;font-family:var(--pix);font-style:normal;font-size:7px;line-height:1.35;color:#14171c;
@@ -11437,7 +11436,7 @@ html #mShop .shGrille .shCase.shBoite{display:flex;flex-direction:column;gap:0;p
 
 /* COUCHÉ : l'offre à gauche, les boîtes à droite, trois par rangée (la colonne en tenait deux grandes) */
 @media (orientation:landscape) and (max-height:540px){
-  html #mShop>.shGrille{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 10px}
+  html #mShop>.shGrille{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px}
   html #mShop .shUneBoite .shBx.big{align-self:center}
   /* la grande boîte prend plus de place (1,25 contre 1 : +20 % de large) ; le nom passe à 13 px pour que POP-TART tienne dans sa colonne,
      et la bande arc-en-ciel perd son approche : deux lignes au lieu de trois, ARC-EN-CIEL jamais coupé */
