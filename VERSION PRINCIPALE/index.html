@@ -8493,20 +8493,20 @@ html.misV2 #gmHead em{order:3}
 #gMis.pv #gmHead small:empty{display:none}
 #pvEcran{position:absolute;inset:0;pointer-events:none}
 /* la carte : verre arrondi + liseré dégradé (le trait est un masque : le centre reste du verre) */
-.pvC{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:5px;width:116px;padding:11px 8px 10px;border-radius:22px;pointer-events:auto;cursor:pointer;color:#fff;text-align:center;font-family:var(--pix);isolation:isolate;
-  background:linear-gradient(165deg,rgba(255,255,255,.17) 0,rgba(255,255,255,.05) 38%,rgba(20,29,58,.58) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 22px rgba(7,5,15,.45);animation:pvEntre .5s var(--ease) backwards;transition:left .35s var(--ease),top .35s var(--ease)}
+.pvC{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:5px;width:104px;padding:10px 7px 9px;border-radius:20px;pointer-events:auto;cursor:pointer;color:#fff;text-align:center;font-family:var(--pix);isolation:isolate;
+  background:linear-gradient(165deg,rgba(255,255,255,.17) 0,rgba(255,255,255,.05) 38%,rgba(20,29,58,.58) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 22px rgba(7,5,15,.45);animation:pvEntre .5s var(--ease) backwards;transition:left .35s var(--ease),top .35s var(--ease),scale .38s var(--ease),opacity .3s,filter .3s,box-shadow .3s;scale:.9;opacity:.8;filter:brightness(.82) saturate(.9);z-index:1}
 .pvC::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;background:linear-gradient(135deg,#5ff0ff,#f24aa0 55%,#ffd75e);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
 #pvEcran.pose .pvC{transition:none}
 /* la grille holographique, la même que sur la caisse : pas de 8 px (3 pas = 24 px sur le voile), teinte = la récompense (--gc : vert argent, or voiture, rose habillage) */
 .pvC::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:.16;background:repeating-linear-gradient(0deg,var(--gc,#5ff0ff) 0 1px,transparent 1px 8px),repeating-linear-gradient(90deg,var(--gc,#5ff0ff) 0 1px,transparent 1px 8px)}
 .pvC.pvG::after{opacity:.22}
-.pvC.pvG.nog{width:116px;padding:11px 8px 10px;border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 22px rgba(7,5,15,.45)}
+.pvC.pvG.nog{width:104px;padding:10px 7px 9px;border-radius:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 22px rgba(7,5,15,.45)}
 .pvC.pvG.nog::before{padding:1.5px;background:linear-gradient(135deg,#5ff0ff,#f24aa0 55%,#ffd75e)}
 .pvC.pvG.nog .pvAn{width:60px;height:60px}.pvC.pvG.nog .pvAn.jg{width:30px}
 .pvC.pvGa{animation-delay:.12s}.pvC.pvDr{animation-delay:.24s}
 @keyframes pvEntre{0%{opacity:0;transform:translateY(10px) scale(.94)}100%{opacity:1;transform:none}}
-.pvC.pvG{width:150px;padding:13px 10px 12px;border-radius:26px}
+.pvC.pvG{width:136px;padding:12px 9px 11px;border-radius:24px}
 .pvC.pvG::before{padding:2px;background:linear-gradient(135deg,#fff3b0,#ffd75e 40%,#b8790a 70%,#ffd75e)}
 .pvC.pvG{box-shadow:inset 0 1px 0 rgba(255,243,176,.4),0 0 22px rgba(255,215,94,.16),0 8px 22px rgba(7,5,15,.45)}
 .pvC.pvG.pulse{animation:pvEntre .5s var(--ease) backwards,pvPouls 1.8s ease-in-out .6s infinite}  /* la seule animation permanente : le dernier tiers du cadeau */
@@ -8595,6 +8595,12 @@ html[data-reduced-motion="1"] .pvOnde{display:none}
 @media (prefers-reduced-motion:reduce){.pvC,.pvC.pvG.pulse{animation:none!important}.pvScan{display:none}.pvJauge{transition:none}}
 html[data-reduced-motion="1"] .pvC,html[data-reduced-motion="1"] .pvC.pvG.pulse{animation:none!important}
 html[data-reduced-motion="1"] .pvScan{display:none}
+/* (2026-11-07, Léo : « un peu plus petites mais cliquables, un aspect flottant plus reculé ; on clique, elle s'avance et fait reculer celle mise en avant ; on reclique, ça la sélectionne ») la PROFONDEUR : toutes flottent en retrait, une seule est en avant, une seule est choisie */
+#pvEcran.pose .pvC{scale:.9}
+.pvC.av{scale:1.08;opacity:1;filter:none;z-index:3;box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 0 22px color-mix(in srgb,var(--gc,#5ff0ff) 45%,transparent),0 14px 30px rgba(7,5,15,.6)}
+.pvC.sel::before{padding:3px;background:linear-gradient(135deg,#fff,var(--gc,#5ff0ff) 50%,#fff)}
+.pvC.sel{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 30px color-mix(in srgb,var(--gc,#5ff0ff) 70%,transparent),0 14px 30px rgba(7,5,15,.6)}
+@media (prefers-reduced-motion:reduce){.pvC{transition:none}}
 </style>
 <style>
 /* ===== LA PAUSE, MESURÉE (2026-10-24, Sacha : « cet écran est horrible, mets-toi sérieusement dessus, prends des mesures et corrige ça ») =====
@@ -22731,7 +22737,7 @@ function dnPlanScenes(S,K,RH,D){
       else if(q.sp==='vlei')faire('village',q);}
     if(!vlei){const ry=seg.filter(function(q){return q.sp==='rythme'||q.sp==='chapelet';});for(const q of ry)if(faire('monolithes',q))break;}
     /* (2026-11-05, LES MODULES DU DÉSERT) la CUVETTE de sable reçoit toujours son ver ; les creux sans lieu en ont un une fois sur deux (deux au plus) ; le SLALOM, ses rochers dressés en portes (une fois sur deux) */
-    {let nv=0;for(const q of seg)if(q.sp==='cuvette'&&nv<2&&faire('ver',q))nv++;
+    {let nv=2;/* (2026-11-07, Sacha : « enlève le ver des sables ») plus de ver : le compte est plein d'avance */for(const q of seg)if(q.sp==='cuvette'&&nv<2&&faire('ver',q))nv++;
      for(const q of seg)if(q.k==='creux'&&!q.sp&&nv<2&&R()<.5&&faire('ver',q))nv++;
      for(const q of seg)if(q.sp==='slalom'&&R()<.5)faire('monolithes',q);}/* pas de vallée d'argile : les rochers prennent un creux de bosses (jamais l'oasis) */
     return;}
@@ -79111,13 +79117,14 @@ function pvCarte(x,cls){
   const m=x.m,s=m2Etat(),ok=s.ok.indexOf(m.id)>=0;let v=0;try{v=m2Val(m);}catch(e){}const t=m2Seuil(m),p=ok?1:m2Frac(m,v,t);
   const r=m.r||{},gc=r.cash?'vert':r.car?'or':r.cat?'rose':'cyan',gift=cls==='pvG'&&x.cadeau!==false;
   const pret=ok&&m2Pret(m.id),ic=(M2_FAM[m.f]||M2_FAM.exploit).ic,F=pvForme(m,v,t,ok,pret,p);
-  return '<div class="pvC '+cls+(cls==='pvG'&&!gift?' nog':'')+(pret?' pret':'')+(gift&&p>=.667&&!ok&&p<1?' pulse':'')+'" role="button" tabindex="0" data-m2="'+m.id+'" data-gc="'+gc+'" style="--gc:'+PV_TEINTE[gc].css+'" aria-label="'+sansAcc(m2Txt(m))+'">'
+  return '<div class="pvC '+cls+(cls==='pvG'&&!gift?' nog':'')+(pret?' pret':'')+(GMIS.pvAv===m.id?' av':'')+(GMIS.pvSel===m.id?' sel av':'')+(gift&&p>=.667&&!ok&&p<1?' pulse':'')+'" role="button" tabindex="0" data-m2="'+m.id+'" data-gc="'+gc+'" style="--gc:'+PV_TEINTE[gc].css+'" aria-label="'+sansAcc(m2Txt(m))+'">'
     +(gift?pvVedette(m,true):'')+'<span class="pvAn '+F.c+'">'+F.h+'</span>'
     +'<span class="pvT">'+pxi(ic)+'<span>'+m2TxtH(m)+'</span></span>'+(gift?'':pvVedette(m,false))+'</div>';
 }
 function pvRender(vu){ /* vu : l'écran est déjà là (une carte vient d'être prise) — les fils ne se retracent pas */
   const el=$('gmNoeuds'),gm=$('gMis');if(!el||!gm)return;
   const c=pvChoix(),s=m2Etat();
+  if(!vu){GMIS.pvAv=c.don?c.don.m.id:'';GMIS.pvSel='';} /* à l'ouverture : le cadeau est en avant, rien n'est choisi */
   if(!vu||GMIS.pvTpl==null){let k;do{k=Math.floor(Math.random()*PV_GAB.length);}while(k===GMIS.pvTpl);GMIS.pvTpl=k;GMIS.pvMir=!GMIS.pvMir;} /* un gabarit au hasard, jamais deux fois le même d'affilée */
   gm.classList.add('pv');gm.classList.toggle('m2land',VP.w>VP.h*1.25);GMIS.pvAnime=!vu;GMIS.pvCle='';
   el.innerHTML='<div id="pvEcran" class="pose">'+pvCarte(c.g,'pvS pvGa')+pvCarte(c.don,'pvG')+pvCarte(c.d,'pvS pvDr')+(vu||REDUCED_MOTION?'':'<i class="pvScan"></i>')+'</div>';
@@ -79206,8 +79213,14 @@ function pvClic(e){
   const t=e.target,card=t&&t.closest&&t.closest('.pvC');if(!card||!garageOn||GAR.go)return;
   e.stopPropagation();uiPop(card);
   const id=card.getAttribute('data-m2');
+  const E=$('pvEcran');
+  if(!card.classList.contains('av')){ /* 1er toucher : elle s'avance, celle qui était en avant recule */
+    E.querySelectorAll('.pvC.av').forEach(function(q){q.classList.remove('av');});card.classList.add('av');GMIS.pvAv=id;
+    uiClic('nav');hap(8);pvTeinte(card.getAttribute('data-gc'),true);return;}
+  /* 2e toucher sur celle qui est en avant : elle est CHOISIE (et récupérée si elle est prête) */
+  E.querySelectorAll('.pvC.sel').forEach(function(q){q.classList.remove('sel');});card.classList.add('sel');GMIS.pvSel=id;
   if(card.classList.contains('pret')){pvRecupere(id,card);return;}
-  uiClic('nav');hap(8);pvTeinte(card.getAttribute('data-gc'),true); /* une mission en cours : rien à prendre, mais la grille de la caisse prend la couleur de sa récompense */
+  uiClic('ok');hap([8,30,14]);pvTeinte(card.getAttribute('data-gc'),true);
 }
 if(PASS_ON){const nd=$('gmNoeuds');if(nd){nd.addEventListener('click',pvClic);
   nd.addEventListener('keydown',function(e){if((e.code==='Enter'||e.code==='Space')&&e.target.closest&&e.target.closest('.pvC')){e.preventDefault();e.stopPropagation();e.target.click();}});}}

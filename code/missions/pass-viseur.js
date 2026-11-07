@@ -66,13 +66,14 @@ function pvCarte(x,cls){
   const m=x.m,s=m2Etat(),ok=s.ok.indexOf(m.id)>=0;let v=0;try{v=m2Val(m);}catch(e){}const t=m2Seuil(m),p=ok?1:m2Frac(m,v,t);
   const r=m.r||{},gc=r.cash?'vert':r.car?'or':r.cat?'rose':'cyan',gift=cls==='pvG'&&x.cadeau!==false;
   const pret=ok&&m2Pret(m.id),ic=(M2_FAM[m.f]||M2_FAM.exploit).ic,F=pvForme(m,v,t,ok,pret,p);
-  return '<div class="pvC '+cls+(cls==='pvG'&&!gift?' nog':'')+(pret?' pret':'')+(gift&&p>=.667&&!ok&&p<1?' pulse':'')+'" role="button" tabindex="0" data-m2="'+m.id+'" data-gc="'+gc+'" style="--gc:'+PV_TEINTE[gc].css+'" aria-label="'+sansAcc(m2Txt(m))+'">'
+  return '<div class="pvC '+cls+(cls==='pvG'&&!gift?' nog':'')+(pret?' pret':'')+(GMIS.pvAv===m.id?' av':'')+(GMIS.pvSel===m.id?' sel av':'')+(gift&&p>=.667&&!ok&&p<1?' pulse':'')+'" role="button" tabindex="0" data-m2="'+m.id+'" data-gc="'+gc+'" style="--gc:'+PV_TEINTE[gc].css+'" aria-label="'+sansAcc(m2Txt(m))+'">'
     +(gift?pvVedette(m,true):'')+'<span class="pvAn '+F.c+'">'+F.h+'</span>'
     +'<span class="pvT">'+pxi(ic)+'<span>'+m2TxtH(m)+'</span></span>'+(gift?'':pvVedette(m,false))+'</div>';
 }
 function pvRender(vu){ /* vu : l'écran est déjà là (une carte vient d'être prise) — les fils ne se retracent pas */
   const el=$('gmNoeuds'),gm=$('gMis');if(!el||!gm)return;
   const c=pvChoix(),s=m2Etat();
+  if(!vu){GMIS.pvAv=c.don?c.don.m.id:'';GMIS.pvSel='';} /* à l'ouverture : le cadeau est en avant, rien n'est choisi */
   if(!vu||GMIS.pvTpl==null){let k;do{k=Math.floor(Math.random()*PV_GAB.length);}while(k===GMIS.pvTpl);GMIS.pvTpl=k;GMIS.pvMir=!GMIS.pvMir;} /* un gabarit au hasard, jamais deux fois le même d'affilée */
   gm.classList.add('pv');gm.classList.toggle('m2land',VP.w>VP.h*1.25);GMIS.pvAnime=!vu;GMIS.pvCle='';
   el.innerHTML='<div id="pvEcran" class="pose">'+pvCarte(c.g,'pvS pvGa')+pvCarte(c.don,'pvG')+pvCarte(c.d,'pvS pvDr')+(vu||REDUCED_MOTION?'':'<i class="pvScan"></i>')+'</div>';
@@ -161,8 +162,14 @@ function pvClic(e){
   const t=e.target,card=t&&t.closest&&t.closest('.pvC');if(!card||!garageOn||GAR.go)return;
   e.stopPropagation();uiPop(card);
   const id=card.getAttribute('data-m2');
+  const E=$('pvEcran');
+  if(!card.classList.contains('av')){ /* 1er toucher : elle s'avance, celle qui était en avant recule */
+    E.querySelectorAll('.pvC.av').forEach(function(q){q.classList.remove('av');});card.classList.add('av');GMIS.pvAv=id;
+    uiClic('nav');hap(8);pvTeinte(card.getAttribute('data-gc'),true);return;}
+  /* 2e toucher sur celle qui est en avant : elle est CHOISIE (et récupérée si elle est prête) */
+  E.querySelectorAll('.pvC.sel').forEach(function(q){q.classList.remove('sel');});card.classList.add('sel');GMIS.pvSel=id;
   if(card.classList.contains('pret')){pvRecupere(id,card);return;}
-  uiClic('nav');hap(8);pvTeinte(card.getAttribute('data-gc'),true); /* une mission en cours : rien à prendre, mais la grille de la caisse prend la couleur de sa récompense */
+  uiClic('ok');hap([8,30,14]);pvTeinte(card.getAttribute('data-gc'),true);
 }
 if(PASS_ON){const nd=$('gmNoeuds');if(nd){nd.addEventListener('click',pvClic);
   nd.addEventListener('keydown',function(e){if((e.code==='Enter'||e.code==='Space')&&e.target.closest&&e.target.closest('.pvC')){e.preventDefault();e.stopPropagation();e.target.click();}});}}
