@@ -303,17 +303,6 @@ Object.assign(I18N,{'QUITTE LE GARAGE':'LEAVES THE GARAGE','QUITTENT LE GARAGE':
 if(SAVE.remb)document.addEventListener('cc:revele',function(){const r=SAVE.remb;if(!r)return;
   try{toast(pxi('coche')+' '+r.n.map(function(x){return TR(x);}).join(' · ')+' '+TR(r.n.length>1?'QUITTENT LE GARAGE':'QUITTE LE GARAGE')+' : '+fmtC(r.v)+' '+TR('REMBOURSÉS'));}catch(e){}},{once:true});
 setInterval(()=>{if(SAVE.dirty)SAVE.flush();},30000); // le filet : rien ne se perd plus de 30 s
-/* (2026-10-26, debug marathon, moteur) DEUX ONGLETS OUVERTS SUR LE JEU : chacun garde SAVE.d en mémoire, et le filet de 30 s (juste au-dessus)
-   flush() cette mémoire sans jamais consulter l'autre onglet — l'onglet laissé en arrière-plan réécrit tôt ou tard sa version PÉRIMÉE
-   par-dessus celle, plus récente, que l'onglet actif vient d'écrire : perte de progression côté joueur. On ne peut rien pour deux onglets
-   JOUÉS en même temps (deux parties à la fois, aucune des deux ne sait pour l'autre — c'est structurel, pas un bug à corriger ici), mais un
-   onglet CACHÉ (`document.hidden`, donc pas en train d'écrire lui-même) peut se mettre à jour dès qu'un autre onglet écrit : à son prochain
-   flush (visibilitychange, le filet, un dbg), il part de la sauvegarde la plus FRAÎCHE au lieu d'écraser avec la sienne. `storage` ne se
-   déclenche que dans LES AUTRES onglets (jamais celui qui a écrit) : rien à exclure ici. */
-window.addEventListener('storage',function(e){
-  if(e.key!==SAVE.K||!e.newValue||SAVE.neuf||!document.hidden)return;
-  try{const d=JSON.parse(e.newValue);if(d&&typeof d==='object'){SAVE.d=SAVE.san(d);SAVE.dirty=false;}}catch(e2){}
-});
 SND.sfx=SAVE.d.sfx;SND.music=SAVE.d.mus;SND.vib=SAVE.d.vib!==false;
 VOL.mus=SAVE.d.vol.mus;VOL.sfx=SAVE.d.vol.sfx;
 /* (2026-10-14, Sacha : « la musique est très importante dans le jeu ; quand un joueur se déconnecte longtemps et qu'il revient, la musique
