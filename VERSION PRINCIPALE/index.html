@@ -8596,6 +8596,17 @@ html[data-reduced-motion="1"] .pvScan{display:none}
 .pvC.sel::before{padding:3px;background:linear-gradient(135deg,#fff,var(--gc,var(--dol)) 50%,#fff)}
 .pvC.sel{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 30px color-mix(in srgb,var(--gc,var(--dol)) 70%,transparent),0 14px 30px rgba(7,5,15,.6)}
 @media (prefers-reduced-motion:reduce){.pvC{transition:none}}
+/* (2026-11-07, Léo : « sélectionner, focus ou renouveler ») les deux actions sous la carte choisie ; la mission suivie porte un petit viseur */
+.pvAct{position:absolute;left:50%;top:100%;translate:-50% 8px;display:none;gap:8px;z-index:4}
+.pvC.sel .pvAct{display:flex}
+.pvC.sel.haut .pvAct{top:auto;bottom:100%;translate:-50% -8px}
+.pvB{all:unset;box-sizing:border-box;min-width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#fff;font-family:var(--pix);font-size:11px;
+  background:linear-gradient(165deg,rgba(255,255,255,.22),rgba(20,29,58,.72));box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 16px rgba(7,5,15,.55);border:1.5px solid color-mix(in srgb,var(--gc,var(--dol)) 70%,#fff)}
+.pvB .pxi{width:20px;height:20px}
+.pvB.on{background:linear-gradient(165deg,color-mix(in srgb,var(--gc,var(--dol)) 55%,#fff),rgba(20,29,58,.8));box-shadow:0 0 16px color-mix(in srgb,var(--gc,var(--dol)) 70%,transparent),inset 0 1px 0 rgba(255,255,255,.5)}
+.pvB.off{opacity:.45}
+.pvC.foc::after{opacity:.34}
+.pvC.foc .pvT::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--gc,var(--dol));box-shadow:0 0 8px var(--gc,var(--dol)),0 0 0 3px rgba(255,255,255,.25);flex:none;margin-right:4px}
 </style>
 <style>
 /* ===== LA PAUSE, MESURÉE (2026-10-24, Sacha : « cet écran est horrible, mets-toi sérieusement dessus, prends des mesures et corrige ça ») =====
@@ -63314,7 +63325,7 @@ const SAVE={
       if(cc.sc&&typeof cc.sc==='object')for(const k of Object.keys(cc.sc).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.sc||(o9.c.sc={}))[k]=N9(cc.sc[k],1e9);}
     /* (2026-11-07) LE PASS : ids a-z0-9, compteurs entiers bornés ; un code importé ne tire rien qu'il ne saurait dire */
     c.pass=null;if(d.pass&&typeof d.pass=='object'&&d.pass.v===1){const p9=d.pass,I9=/^[a-z0-9]{2,12}$/,n9=function(x,hi){x=Math.round(+x);return isFinite(x)?Math.max(0,Math.min(hi,x)):0;},A9=function(a,i){return Array.isArray(a)?a[i]:undefined;};
-      c.pass={v:1,sl:[0,1,2].map(function(i){const x=A9(p9.sl,i);return typeof x==='string'&&I9.test(x)?x:'';}),cp:[0,1,2].map(function(i){return n9(A9(p9.cp,i),1e7);}),tir:n9(p9.tir,1e6),np:n9(p9.np,1e7),hab:n9(p9.hab,1e4),car:n9(p9.car,1e4),nh:n9(p9.nh,200)||12,nc:n9(p9.nc,200)||25,dep:n9(p9.dep,1e4),dc:n9(p9.dc,1e4),nbH:n9(p9.nbH,1e3),nbC:n9(p9.nbC,1e3),lh:typeof p9.lh==='string'&&/^[a-z_]{0,10}$/.test(p9.lh)?p9.lh:'',ech:Array.isArray(p9.ech)?p9.ech.filter(function(x){return typeof x==='string'&&I9.test(x);}).slice(0,6):[]};}
+      c.pass={v:1,sl:[0,1,2].map(function(i){const x=A9(p9.sl,i);return typeof x==='string'&&I9.test(x)?x:'';}),cp:[0,1,2].map(function(i){return n9(A9(p9.cp,i),1e7);}),tir:n9(p9.tir,1e6),np:n9(p9.np,1e7),hab:n9(p9.hab,1e4),car:n9(p9.car,1e4),nh:n9(p9.nh,200)||12,nc:n9(p9.nc,200)||25,dep:n9(p9.dep,1e4),dc:n9(p9.dc,1e4),nbH:n9(p9.nbH,1e3),nbC:n9(p9.nbC,1e3),rj:n9(p9.rj,1e6),rn:n9(p9.rn,99),fo:typeof p9.fo==='string'&&I9.test(p9.fo)?p9.fo:'',lh:typeof p9.lh==='string'&&/^[a-z_]{0,10}$/.test(p9.lh)?p9.lh:'',ech:Array.isArray(p9.ech)?p9.ech.filter(function(x){return typeof x==='string'&&I9.test(x);}).slice(0,6):[]};}
     c.cad={t:0};if(d.cad&&typeof d.cad==='object'){const tc=+d.cad.t;if(isFinite(tc)&&tc>0)c.cad.t=Math.min(Math.round(tc),Date.now());}
     /* (2026-10-17) LA PLAQUE et LE PROFIL (voir PLQ) — bornés : un code importé ne peint rien d'autre qu'une plaque de 9 signes ; une sauvegarde
        d'avant le profil part du temps de course qu'elle a déjà (ex.temps), née aujourd'hui. Le typeof : les preuves de sauvegarde n'exécutent que cette zone. */
@@ -65750,7 +65761,7 @@ function m2AnnonceMort(m){return M2MORT_TOUT||!!(m&&m.r&&m.r.car);}
 function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search); /* l'écran de mort v6 (MORT_FLOT vit dans la coque, hors de portée ici) */
   const s=m2Etat(),L=[];
   for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&m2AnnonceMort(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
-  if(!flot9)for(const id of (PASS_ON?passEnsure():s.su)){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
+  if(!flot9)for(const id of (PASS_ON?passOrdre():s.su)){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
   /* (2026-11-03, Sacha : « améliorer encore un peu », puis « mission il prend trop de place ») le panneau ne reste plus à moitié vide :
      il se complète avec les missions les plus proches du but (avec leur barre), jusqu'à 2 (couché, le ×2 prend sa place sous le panneau) */
   if(!flot9){const cible=2,C=[];
@@ -80030,6 +80041,16 @@ function passApresPrise(id){ /* une récompense vient d'être prise : la jauge c
   if(d&&d.cadeau==='voiture'){E.car=0;E.dc=0;E.dep=0;E.lh='_v';E.nc=Math.min(P.plafondCroit.voiture+P.voiture.max,passAl(P.voiture.min,P.voiture.max)+Math.floor(P.croit.voiture*E.nbC));E.nbC++;}
   else if(d&&d.cadeau==='hab'){E.hab=0;E.dep=0;const r=(m2Def(id)||{}).r||{};E.lh=r.cat||'';E.nh=Math.min(P.plafondCroit.hab+P.hab.max,passAl(P.hab.min,P.hab.max)+Math.floor(P.croit.hab*E.nbH));E.nbH++;}
   SAVE.mark();return passEnsure();}
+/* (2026-11-07, Léo : « sélectionner, focus ou renouveler si on a du mal avec une : 3 fois par jour ») FOCUS = la mission suivie (marquée, en avant à l'ouverture, en tête de la liste de fin de partie) ·
+   RENOUVELER = elle est remplacée par une autre (jamais un cadeau, jamais une mission déjà prête), 3 fois par jour (le compteur repart à zéro à minuit UTC) ; la mission rendue ne revient pas tout de suite (ech). */
+const PASS_RENOUV_JOUR=3;
+function passJour(){return Math.floor(Date.now()/864e5);}
+function passReste(){const E=passEtat();if(E.rj!==passJour()){E.rj=passJour();E.rn=0;SAVE.mark();}return Math.max(0,PASS_RENOUV_JOUR-E.rn);}
+function passFocus(id){const E=passEtat();E.fo=(E.fo===id)?'':id;SAVE.mark();return E.fo===id;}
+function passRenouvelle(id){const E=passEtat(),k=E.sl.indexOf(id);
+  if(k<0||passEstCadeau(id)||m2Etat().ok.indexOf(id)>=0||passReste()<=0)return false;
+  E.rn++;E.ech.push(id);if(E.ech.length>6)E.ech.shift();E.sl[k]='';if(E.fo===id)E.fo='';SAVE.mark();passEnsure();return true;}
+function passOrdre(){const E=passEtat(),L=passEnsure();return E.fo&&L.indexOf(E.fo)>0?[E.fo].concat(L.filter(function(x){return x!==E.fo;})):L;} /* la mission suivie d'abord */
 function passPartie(){const E=passEtat();E.np++;SAVE.mark();passEnsure();} /* une partie jouée (m2Fin) */
 function passPresque(){const E=passEtat(),P=PASS_CADEAU;return Math.max(E.car/Math.max(1,P.voiture.max),E.hab/Math.max(1,P.hab.max))>=P.presque;} /* « un cadeau est proche » (écran de fin), sans chiffre */
 /* ---- LE CROCHET : dbgPass() · ('raz') · ('gagne',id) · ('sim',n) · ('voitures') ---- */
@@ -80062,7 +80083,8 @@ window.dbgPass=function(a,b){
    ⚠ LE MOTEUR DU TIRAGE (case 3) N'EXISTE PAS ENCORE : les trois cartes lisent les premières missions du réservoir (PASS_POOL) pas encore récupérées (pvChoix) ; la carte du milieu est la
    première mission « cadeau voiture » dont la caisse n'est pas à toi (sinon un habillage, sinon la première). Le jour où le moteur existe, seul pvChoix() change. */
 const PV_TITRE='LE DÉBUT DE LA FIN';
-Object.assign(I18N,{'LE DÉBUT DE LA FIN':'THE BEGINNING OF THE END'});
+Object.assign(I18N,{'LE DÉBUT DE LA FIN':'THE BEGINNING OF THE END','FOCUS':'FOCUS','RENOUVELER':'REPLACE','MISSION SUIVIE':'MISSION FOLLOWED','SUIVI RETIRÉ':'FOCUS REMOVED','NOUVELLE MISSION':'NEW MISSION','RESTANT AUJOURD\'HUI':'LEFT TODAY','PLUS DE RENOUVELLEMENT AUJOURD\'HUI':'NO MORE REPLACES TODAY','IMPOSSIBLE POUR CETTE MISSION':'NOT FOR THIS MISSION'});
+function pvHaut(){const E=$('pvEcran'),c=E&&E.querySelector('.pvC.sel');if(!c)return;c.classList.toggle('haut',c.offsetTop+c.offsetHeight>E.clientHeight-150);} /* près du bas : les boutons passent au-dessus de la carte */
 /* UNE SEULE MATIÈRE « HOLOGRAMME » : la grille fine. Sa couleur et son pas disent la récompense (or = voiture, rose = habillage, vert = argent, cyan = rien) ; le pas (px) est le même sur les cartes (CSS) et sur la caisse (mètres x PV_PAS) */
 const PV_TEINTE={cyan:{css:'#5ff0ff',hex:0x5ff0ff,pas:.5},vert:{css:'#7DFF9B',hex:0x7dff9b,pas:.55},rose:{css:'#f24aa0',hex:0xf24aa0,pas:.4},or:{css:'#ffd75e',hex:0xffd75e,pas:.3}};
 const PV_PAS=.5; /* le pas de la cage de la caisse (m) : fixe, la teinte de la récompense ne la resserre jamais */
@@ -80115,19 +80137,23 @@ function pvForme(m,v,t,ok,pret,p){ /* le dessin de l'avancement, dans .pvAn */
   return {c:cad?'cad':'',h:'<svg viewBox="0 0 64 64" aria-hidden="true"><circle class="pvPiste" cx="32" cy="32" r="28"/><circle class="pvJauge" cx="32" cy="32" r="28" pathLength="'+PV_CERCLE+'" data-off="'+off+'" style="stroke-dashoffset:'+PV_CERCLE+'"/></svg>'
     +'<b class="pvN">'+(pret?pxi('coche'):f==='cible'?pxi('cible'):pc+'<small>%</small>')+'</b>'};
 }
+function pvActions(m,gift,ok){ /* sous la carte choisie : FOCUS (la suivre) et RENOUVELER (×3 par jour, pas pour un cadeau ni une mission prête) */
+  const E=passEtat(),n=passReste(),peut=!gift&&!ok&&n>0;
+  return '<span class="pvAct"><button type="button" class="pvB pvBf'+(E.fo===m.id?' on':'')+'" data-a="foc" aria-label="'+sansAcc(TR('FOCUS'))+'">'+pxi('cible')+'</button>'
+    +(gift?'':'<button type="button" class="pvB pvBr'+(peut?'':' off')+'" data-a="ren" aria-label="'+sansAcc(TR('RENOUVELER'))+'">'+pxi('rotation')+'<b>'+n+'</b></button>')+'</span>';}
 function pvCarte(x,cls){
   if(!x)return '';
   const m=x.m,s=m2Etat(),ok=s.ok.indexOf(m.id)>=0;let v=0;try{v=m2Val(m);}catch(e){}const t=m2Seuil(m),p=ok?1:m2Frac(m,v,t);
   const r=m.r||{},gc=r.cash?'vert':r.car?'or':r.cat?'rose':'cyan',gift=cls==='pvG'&&x.cadeau!==false;
   const pret=ok&&m2Pret(m.id),ic=(M2_FAM[m.f]||M2_FAM.exploit).ic,F=pvForme(m,v,t,ok,pret,p);
-  return '<div class="pvC '+cls+(cls==='pvG'&&!gift?' nog':'')+(pret?' pret':'')+(GMIS.pvAv===m.id?' av':'')+(GMIS.pvSel===m.id?' sel av':'')+(gift&&p>=.667&&!ok&&p<1?' pulse':'')+'" role="button" tabindex="0" data-m2="'+m.id+'" data-gc="'+gc+'" style="--gc:'+PV_TEINTE[gc].css+'" aria-label="'+sansAcc(m2Txt(m))+'">'
+  return '<div class="pvC '+cls+(cls==='pvG'&&!gift?' nog':'')+(pret?' pret':'')+(GMIS.pvAv===m.id?' av':'')+(PASS_ON&&passEtat().fo===m.id?' foc':'')+(GMIS.pvSel===m.id?' sel av':'')+(gift&&p>=.667&&!ok&&p<1?' pulse':'')+'" role="button" tabindex="0" data-m2="'+m.id+'" data-gc="'+gc+'" style="--gc:'+PV_TEINTE[gc].css+'" aria-label="'+sansAcc(m2Txt(m))+'">'
     +(gift?pvVedette(m,true):'')+'<span class="pvAn '+F.c+'">'+F.h+'</span>'
-    +'<span class="pvT">'+pxi(ic)+'<span>'+m2TxtH(m)+'</span></span>'+(gift?'':pvVedette(m,false))+'</div>';
+    +'<span class="pvT">'+pxi(ic)+'<span>'+m2TxtH(m)+'</span></span>'+(gift?'':pvVedette(m,false))+pvActions(m,gift,ok)+'</div>';
 }
 function pvRender(vu){ /* vu : l'écran est déjà là (une carte vient d'être prise) — les fils ne se retracent pas */
   const el=$('gmNoeuds'),gm=$('gMis');if(!el||!gm)return;
   const c=pvChoix(),s=m2Etat();
-  if(!vu){GMIS.pvAv=c.don?c.don.m.id:'';GMIS.pvSel='';} /* à l'ouverture : le cadeau est en avant, rien n'est choisi */
+  if(!vu){GMIS.pvAv=(passEtat().fo&&passEtat().sl.indexOf(passEtat().fo)>=0)?passEtat().fo:(c.don?c.don.m.id:'');GMIS.pvSel='';} /* à l'ouverture : le cadeau est en avant, rien n'est choisi */
   if(!vu||GMIS.pvTpl==null){let k;do{k=Math.floor(Math.random()*PV_GAB.length);}while(k===GMIS.pvTpl);GMIS.pvTpl=k;GMIS.pvMir=!GMIS.pvMir;} /* un gabarit au hasard, jamais deux fois le même d'affilée */
   gm.classList.add('pv');gm.classList.toggle('m2land',VP.w>VP.h*1.25);GMIS.pvAnime=!vu;GMIS.pvCle='';
   el.innerHTML='<div id="pvEcran" class="pose">'+pvCarte(c.g,'pvS pvGa')+pvCarte(c.don,'pvG')+pvCarte(c.d,'pvS pvDr')+(vu||REDUCED_MOTION?'':'<i class="pvScan"></i>')+'</div>';
@@ -80136,7 +80162,7 @@ function pvRender(vu){ /* vu : l'écran est déjà là (une carte vient d'être 
   if(b)b.textContent=sansAcc(TR(PV_TITRE));if(sous)sous.textContent=fait+' / '+PASS_N;if(hd)hd.style.setProperty('--m2P',Math.round(100*fait/Math.max(1,PASS_N))+'%');if(aide)aide.textContent='';
   /* la caisse à gagner sur le plateau (celle du cadeau voiture) ; sinon la tienne */
   try{const cib=c.don&&c.don.car!=null?c.don.car:equippedCar();if(cib!==garageI&&!GAR.go)garageSaute(cib);}catch(e){console.warn('pass viseur',e);}
-  pvPlace(VP.w,VP.h,true);pvTeinte('cyan');
+  pvPlace(VP.w,VP.h,true);pvTeinte('cyan');pvHaut();
   if(!vu&&!REDUCED_MOTION)try{if(SONV2)sfx('ui.on',{vol:-12});}catch(e){} /* un souffle discret à l'ouverture */
   requestAnimationFrame(function(){requestAnimationFrame(function(){const e=$('pvEcran');if(e)e.classList.remove('pose');});}); /* les cartes se posent sans glisser depuis le coin ; ensuite elles suivent la caméra */
   /* les anneaux se remplissent (une fois) */
@@ -80216,12 +80242,17 @@ function pvClic(e){
   const t=e.target,card=t&&t.closest&&t.closest('.pvC');if(!card||!garageOn||GAR.go)return;
   e.stopPropagation();uiPop(card);
   const id=card.getAttribute('data-m2');
-  const E=$('pvEcran');
+  const E=$('pvEcran'),bt=t.closest('.pvB');
+  if(bt){ /* un bouton de la carte choisie */
+    if(!card.classList.contains('sel'))return;
+    if(bt.getAttribute('data-a')==='foc'){const on=passFocus(id);E.querySelectorAll('.pvC').forEach(function(q){q.classList.toggle('foc',on&&q===card);});bt.classList.toggle('on',on);uiClic(on?'ok':'nav');hap(10);toast(pxi('cible')+' '+TR(on?'MISSION SUIVIE':'SUIVI RETIRÉ'));return;}
+    if(bt.classList.contains('off')||!passRenouvelle(id)){uiClic('refus');try{gSecoue(card);}catch(e){}toast(pxi('horloge')+' '+TR(passReste()<=0?'PLUS DE RENOUVELLEMENT AUJOURD\'HUI':'IMPOSSIBLE POUR CETTE MISSION'));return;}
+    uiClic('ok');hap([10,30,14]);GMIS.pvSel='';GMIS.pvAv='';toast(pxi('rotation')+' '+TR('NOUVELLE MISSION')+' — '+passReste()+' '+TR('RESTANT AUJOURD\'HUI'));pvRender(true);return;}
   if(!card.classList.contains('av')){ /* 1er toucher : elle s'avance, celle qui était en avant recule */
     E.querySelectorAll('.pvC.av').forEach(function(q){q.classList.remove('av');});card.classList.add('av');GMIS.pvAv=id;
     uiClic('nav');hap(8);pvTeinte(card.getAttribute('data-gc'),true);return;}
   /* 2e toucher sur celle qui est en avant : elle est CHOISIE (et récupérée si elle est prête) */
-  E.querySelectorAll('.pvC.sel').forEach(function(q){q.classList.remove('sel');});card.classList.add('sel');GMIS.pvSel=id;
+  E.querySelectorAll('.pvC.sel').forEach(function(q){q.classList.remove('sel');});card.classList.add('sel');GMIS.pvSel=id;pvHaut();
   if(card.classList.contains('pret')){pvRecupere(id,card);return;}
   uiClic('ok');hap([8,30,14]);pvTeinte(card.getAttribute('data-gc'),true);
 }
