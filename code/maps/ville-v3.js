@@ -458,4 +458,4 @@ window.dbgVilleAudit=function(){
   if(CRYPTO.sites){const S=CRYPTO.sites,cl={};const mesure=function(nom,x,y,z,r){let m=1e9,sm=0;for(let i=0;i<NP;i+=2){const p=pts[i],d=Math.hypot(p.x-x,p.y-y,p.z-z)-r;if(d<m){m=d;sm=i;}}
       if(!cl[nom]||m<cl[nom].min)cl[nom]={min:Math.round(m),s:Math.round(sm*dsA)};};
     for(const p of S.pieces)mesure('pièces',p.x,p.y,p.z,p.r);for(const d of S.diam)mesure('diamants',d.x,d.y,d.z,d.r*1.45);for(const d of S.dirig)mesure('dirigeables',d.x,d.y,d.z,60);out.ciel=cl;}
-  out.ms=Math.round(performance.now()-t0);return out;};
+  out.ms=Math.round(performance.now()-t0);out.n=CITY.n;return out;}; /* n : le relevé de buildVoxCity (tours, volumes, temps de construction en ms) */
