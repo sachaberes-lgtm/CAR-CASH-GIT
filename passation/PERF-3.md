@@ -6,10 +6,18 @@ Règle : sur vrai téléphone (TEL_NATIF) le palier 2 peut perdre de l'image ; l
 2. `perf3/P5` 11abb669 — menus froids : photos jamais pendant un défilement, vitrine plafonnée, 30 i/s au repos, banc `menus.py` (mesures non prouvées : la garde iPhone jugera).
 3. `perf3/P4` e6933993 — outillage : `preparer-www.js --jeu-fichier` (script du jeu en fichier) + relevé `[natif] CHARGEMENT` ; sans effet tant que l'option n'est pas passée.
 `sw.js` v1237 (commit à part). Incident : l'`index.html` de la fusion de P5 a été commité avec des marqueurs de conflit puis régénéré depuis les morceaux (`c18d0a2f`) — vérifier qu'aucun marqueur ne reste (`grep -c '^<<<<<<<' "VERSION PRINCIPALE/index.html"` = 0, fait).
-Pas encore fusionnés : P1 (mémoire), P3 (appels/programmes), P6 (gels en course), serpent-fluide (6595747c).
+4. `serpent-fluide` 6595747c (JS seul : piste en tranches de 8 ms sous le serpent, étape piste coupée en trois, textures une à une ; `?tranches=0`, `?textures=0`, `?chargement=0`) — fusion `7b30bf08`.
+Pas encore fusionnés : P1 (mémoire : 1 commit banc `memoire.py` + traceur GPU/CPU), P3 (appels/programmes : aucun commit), P6 (gels en course : aucun commit), banc-iphone (c9652219).
 
 ## Compteurs (banc à instant fixe, machine CHARGÉE 40-190 : compteurs seulement, positions bruitées)
 Palier 2 (avant c9d9895d → après) : nuages 140 → 121 appels, 558 k → 422 k triangles (−24 %) ; ville 52 → 47, 144 k → 116 k (−19 %) ; jade 78 → 77, 315 k → 314 k (≈ 0). Programmes 210 = 210. Le palier 2 BOUGE sur nuages/ville : attendu (image adaptée sur TEL_NATIF, règle de la passe 3) ; `?tel=0`/ordinateur NON vérifié identique au pixel. Palier 0 : voir `~/cash-car/perf3/mesures/` (avant-p0 / main-p0).
 
 ## À faire avant main
 Garde iPhone (`outils/banc-perf/garde-iphone.cjs` sur la boîte noire du 13 Pro), capture A/B `?tel=0` identique, fumée couché/debout, fusion de P1/P3/P6 et serpent-fluide.
+
+## Mesures réelles 13 Pro (app, 7/11, boîte noire, avant le débranchement ; relevé par OPTI ULTIME, 3 lancements à froid chacun)
+| Build | Serpent (durée) | Trous > 120 ms | Pire | Gels |
+|---|---|---|---|---|
+| 9 (vitesse-fluide 93352b5) | 6 s | 4 | 2 315 ms (`photoTour` 2 291 ms sous le serpent) ; 1 228 ms (loop 677 + piste 666) ; 780 ; 715 (9 × `texImage2D`) | 1,2 s et 2,3 s au garage |
+| 10 (serpent-fluide 6595747, lancements du 7/11 13:38:27, 13:39:17 + un 3e) | 3,7 s | 3-4 | 999 ms (image boucle 442) ; 1 055/990 ms au tout début (fil libre, contexte) ; 650 (piste 86 + loop 95) ; 255 (`photoTour` 237) | non relevés |
+Lecture : le build 10 divise la durée du serpent par 1,6 et le pire trou par 2,3 ; reste le trou initial (~1 s, fil libre) et `photoTour` (photos du garage sous le serpent). Seuils de la garde iPhone non encore tenus (serpent : 0 trou > 120 ms hors initial).
