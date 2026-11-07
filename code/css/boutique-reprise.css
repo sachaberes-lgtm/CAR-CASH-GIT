@@ -8,9 +8,17 @@
    · FIGURES — plus de boîtes : le film de la figure sur une carte claire, son geste écrit dessus ; en haut, le geste ÉCRIT au-dessus de chaque
      case du dock (fini la pastille carrée posée sur l'hexagone) ; plus de pastilles TOUT · À MOI · À ACHETER · TRI. */
 
+/* ---------- LE NOM AU-DESSUS DE LA CAISSE : jamais plus large que sa place (la jauge de SE DÉBLOQUE avait 180 px au moins) ---------- */
+html body #gBq #gBqNom{box-sizing:border-box}
+html body #gBq #gBqNom .bqM2{max-width:100%}
+html body #gBq #gBqNom .m2DebT{overflow-wrap:break-word}
+html body #gBq #gBqNom .m2DebB{min-width:0;max-width:100%;flex-wrap:wrap;row-gap:4px}
+html body #gBq #gBqNom .m2DebB u{flex:1 1 70px;min-width:0}
+html body #gBq #gBqNom .m2DebB b{flex:none;margin-left:auto}
+
 /* ---------- PEINTURES : la caisse peinte ---------- */
 html body #gBqPan .pNg{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 8px;padding:8px 2px 6px;justify-items:stretch;align-items:stretch}
-html body #gBqPan.cote .pNg{grid-template-columns:repeat(4,minmax(0,1fr))}
+html body #gBqPan.cote .pNg{grid-template-columns:repeat(3,minmax(0,1fr))} /* couché aussi : quatre cartes de 72 px rognaient DÉFI */
 html body #gBqPan .pN.pC{position:relative;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;width:auto;max-width:none;aspect-ratio:auto;min-width:0;min-height:0;height:auto;
   padding:0;margin:0;border:0;border-radius:12px;background:#fff;cursor:pointer;text-align:left;font-family:var(--pix);color:var(--bqInk,#17132b);scale:none;
   box-shadow:0 0 0 1px var(--bqFil,#dfdbe9),0 6px 14px -10px rgba(23,19,43,.45);transition:box-shadow .16s ease,scale .12s ease;-webkit-tap-highlight-color:transparent}
@@ -118,4 +126,52 @@ html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKd
 /* une figure à deux sens : l'autre geste, une pastille ronde à droite (la toucher l'équipe dans ce sens) */
 html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKd2{position:absolute;right:10px;left:auto;top:10px;bottom:auto;z-index:3;transform:none}
 @media (prefers-reduced-motion:reduce){html body #gBqPan .pN.pC,html body #gBqPan .pN.pC .pCim,html body #gBqPan .pN.pC .pCatt{transition:none;animation:none}}
+/* ---------- LA PAGE ACHAT DE L'ACCUEIL (#mShop) : la boîte fait la carte, là aussi (2026-11-07, Sacha : « pas de boîte dans des boîtes ») ----------
+   Avant : chaque boîte posée dans une niche sombre à cône de lumière, une plaque brune dessous ; l'offre à la une dans un cadre biseauté
+   qui scintille. Maintenant : la boîte seule sur la nuit violette, une lueur de sa rareté sous le socle, le nom en blanc et le prix dessous ;
+   deux par rangée debout (trois couché) ; l'offre à la une sans cadre, la grande boîte au-dessus de son nom, de son prix et d'ACHETER. */
+html #mShop .shGrille{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 16px}
+html #mShop .shGrille .shCase.shBoite{background:none;box-shadow:none;clip-path:none;padding:0;border:0}
+html #mShop .shGrille .shBx{aspect-ratio:720/440;overflow:visible;border-radius:0;background:none;box-shadow:none}
+html #mShop .shGrille .shBx::before{z-index:-1;left:4%;right:2%;top:auto;bottom:-7%;height:22%;clip-path:none;opacity:1;border-radius:50%;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--rc) 55%,transparent),color-mix(in srgb,var(--rc) 14%,transparent) 60%,transparent)}
+html #mShop .shGrille .shBx .shBxI{left:0;bottom:0;width:100%;filter:none}
+html #mShop .shGrille .shBxPl{gap:6px;padding:12px 2px 0;border-radius:0;background:none;box-shadow:none}
+html #mShop .shGrille .b-legendaire .shBxPl{background:none}
+html #mShop .shGrille .shBxN{font-size:9px;line-height:12px;color:#fff;-webkit-line-clamp:2;min-height:24px;overflow-wrap:normal;word-break:normal;hyphens:none} /* jamais un mot coupé en deux (L'ETERNEL / LE) ; deux lignes réservées : les prix d'une rangée s'alignent */
+@container (max-width:150px){html #mShop .shGrille .shBxN.lg{font-size:7px;letter-spacing:0}}
+html #mShop .shGrille .b-legendaire .shBxN{color:#fff}
+html #mShop .shGrille .shBxP{align-self:flex-start;margin-top:2px;padding:5px 8px 4px;border-radius:6px;font-size:9px;
+  background:rgba(255,215,94,.12);box-shadow:inset 0 0 0 1px rgba(255,215,94,.45)}
+html #mShop .shGrille .shBoite.aToi .shBxP{background:none;box-shadow:none;padding-left:0}
+/* l'offre à la une : sans cadre */
+html #mShop #shUne{background:none;clip-path:none;padding:0;box-shadow:none}
+html #mShop #shUne .shUneCadre{background:none;clip-path:none;box-shadow:none;padding:4px 0 0}
+html #mShop .shUneBoite .shBx.big{background:none}
+html #mShop .shUneBoite .shBx.big::before{opacity:.55}
+@media (orientation:landscape) and (max-height:540px){html #mShop>.shGrille{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* ---------- CHAQUE ONGLET (2026-11-07, Sacha : « globalement c'est pas mal, mais retravaille le design et l'ergonomie de chaque onglet ») ----------
+   · UN SEUL INTERTITRE DE FAMILLE (COMMUNES, RARES…) dans tous les onglets : le bandeau des voitures (pastille, nom, filet, « à toi / total »),
+     COLLÉ en haut de la liste quand on la fait défiler — la fenêtre de la liste est petite sur un téléphone : on sait toujours où on est ;
+   · MISSION et DÉFI au trait (violet du bouton MISSIONS, fond à peine teinté) : une rangée de pastilles violettes pleines criait plus fort que
+     les objets ; le plein reste à ÉQUIPÉE (encre) ;
+   · peintures : le nom en 8 px ; figures : le film un peu plus grand dans sa carte. */
+html body #gBqPan .bqRail .bqSec.bqRarS{position:sticky;top:-16px; /* la liste a 16 px de marge en haut : collé à son bord, rien ne passe au-dessus */z-index:4;box-shadow:0 6px 10px -8px rgba(23,19,43,.35),inset 0 0 0 1px rgba(23,19,43,.05)}
+#gBqPan.bcOn .bcG>.bcH{position:sticky;top:-2px;z-index:4;min-height:0;margin:10px 0 2px;padding:6px 9px 6px 6px;border-radius:8px;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 16%,#f6f7fa),#f6f7fa 60%);box-shadow:0 6px 10px -8px rgba(23,19,43,.35),inset 0 0 0 1px rgba(23,19,43,.05)}
+#gBqPan.bcOn .bcG>.bcH:first-child{margin-top:2px}
+html body #gBqPan .pNs>.pNh{position:sticky;top:-16px;z-index:4;margin:0 0 4px;padding:6px 9px 6px 6px;border-radius:8px;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 16%,#f6f7fa),#f6f7fa 60%);box-shadow:0 6px 10px -8px rgba(23,19,43,.35),inset 0 0 0 1px rgba(23,19,43,.05)}
+/* MISSION / DÉFI au trait */
+html body #gBqPan .pN.pC .pCe:is(.e-mis,.e-defi),html body #gBqPan.bcOn .bcK .bcP.mis,
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKp.defi{
+  color:#6b3fd0;background:rgba(176,123,255,.10);box-shadow:inset 0 0 0 1.5px rgba(176,123,255,.8);text-shadow:none}
+html body #gBqPan .pN.pC .pCe:is(.e-mis,.e-defi) .pxi,html body #gBqPan.bcOn .bcK .bcP.mis .pxi,
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKp.defi .pxi{color:#6b3fd0}
+html body #gBqPan .pN.pC .pCe u,html body #gBqPan.bcOn .bcK .bcP.mis u{background:rgba(176,123,255,.25)}
+html body #gBqPan .pN.pC .pCe u em,html body #gBqPan.bcOn .bcK .bcP.mis u em{background:var(--bqMis,#b07bff)}
+/* peintures : le nom lisible */
+html body #gBqPan .pN.pC .pCn{font-size:8px;line-height:10px;letter-spacing:.2px;min-height:20px}
+/* figures : le film plus grand (la caisse y était petite), calé sur le bas où elle retombe */
+html body #garage #gBq #gBqPan.bqFigOn:not(.bqFigPel) .bqRail>.bqK.hab.hab .bqKph .fgFilm{transform:scale(1.22);transform-origin:50% 78%}
 </style>
