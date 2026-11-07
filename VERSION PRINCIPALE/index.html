@@ -55877,8 +55877,8 @@ FRUIT_PAL.go1={g:'f',c:0xc89012};FRUIT_PAL.go2={g:'f',c:0xf0bc30};FRUIT_PAL.go3=
    · LES ROULEAUX : l'élan (un cran en arrière), la course (19 symboles/s, filé : les symboles s'étirent), la pose un par un avec du poids
      (easeOutBack raccordée à la vitesse), le 3e qui fait durer le suspense quand les deux premiers sont pareils (ampoules en folie).
    · LES LOTS SONT LES SYMBOLES (`SPIN.lots`, une ligne par lot, réglée par GENERAL) : trois PETITS SACS, trois SACS, trois GROS SACS (de
-     l'argent du jeu), trois CŒURS = une SECONDE CHANCE GRATUITE (un bon `SAVE.d.chanceG`, servi par l'offre de GENERAL à la prochaine
-     explosion), trois ÉCLAIRS = un DÉPART BOOSTÉ (`SAVE.d.spinBoost` : la partie suivante part nitro pleine, moteur au palier 1), trois
+     l'argent du jeu), trois CŒURS = une SECONDE CHANCE GRATUITE (un bon `SAVE.d.chanceG`, servi TOUT SEUL à la prochaine explosion :
+     réanimation automatique, voir seconde-chance.js), trois ÉCLAIRS = un DÉPART BOOSTÉ (`SAVE.d.spinBoost` : la partie suivante part nitro pleine, moteur au palier 1, les cinq pouvoirs), trois
      JETONS = un tirage de plus, trois 7 = le JACKPOT (flash à 3 éclats par seconde au plus, pluie de billets, pièces, vibration). Sans
      brelan : un lot de consolation. Symboles en pixel art de couleur (`SPIN_SPR`, peints une fois dans des canvas).
    · Sons de la session SON : spin.levier, spin.cran, spin.arret (une note par rouleau), spin.piece, spin.gain, spin.jackpot.
