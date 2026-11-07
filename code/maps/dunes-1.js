@@ -563,7 +563,7 @@ function dnPlancher(x,z,r){let lo=1e9;for(const f of [0,.5,1])for(let a=0;a<(f?1
    le sable VOISIN (une dune ou un creux qui n'a rien à faire sous le monument) — l'ancrage se décalait au hasard du tirage (flotte ici, s'enfonce là).
    On lit une grille 5×5 dans le repère TOURNÉ de la pyramide (son angle `a`) : uniquement sous sa base réelle. */
 function dnPlancherPyr(P){const ca=Math.cos(P.a),sa=Math.sin(P.a),hw=P.hw;let lo=1e9;
-  for(let a9=-4;a9<=4;a9++)for(let b9=-4;b9<=4;b9++){const u=a9/4*1.15,w=b9/4*1.15,g=dnHauteur(P.x+u*hw*ca+w*hw*sa,P.z-u*hw*sa+w*hw*ca);if(g<lo)lo=g;} /* (2026-11-07) 9 × 9 points jusqu'au bord de la dalle du rocher (1,15 demi-base) : 5 × 5 sur ±1 manquait les creux entre deux points et le bord */
+  for(let a9=-8;a9<=8;a9++)for(let b9=-8;b9<=8;b9++){const u=a9/8*1.15,w=b9/8*1.15,g=dnHauteur(P.x+u*hw*ca+w*hw*sa,P.z-u*hw*sa+w*hw*ca);if(g<lo)lo=g;} /* (2026-11-07) 17 × 17 points jusqu'au bord de la dalle du rocher (1,15 demi-base) : 5 × 5 sur ±1 manquait les creux entre deux points et le bord */
   return lo;}
 /* ===== LES MONUMENTS DES DUNES D'AVANCE (2026-11-01, Léo : « règle ce qui reste ») =====
    MESURÉ (banc iPhone ×4) : au portail des dunes, dnMondePose posait tous les monuments d'un bloc (dnMonuments : les modèles, les scènes, les ruines

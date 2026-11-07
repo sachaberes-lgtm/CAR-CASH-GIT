@@ -21363,7 +21363,7 @@ function dnPlancher(x,z,r){let lo=1e9;for(const f of [0,.5,1])for(let a=0;a<(f?1
    le sable VOISIN (une dune ou un creux qui n'a rien à faire sous le monument) — l'ancrage se décalait au hasard du tirage (flotte ici, s'enfonce là).
    On lit une grille 5×5 dans le repère TOURNÉ de la pyramide (son angle `a`) : uniquement sous sa base réelle. */
 function dnPlancherPyr(P){const ca=Math.cos(P.a),sa=Math.sin(P.a),hw=P.hw;let lo=1e9;
-  for(let a9=-4;a9<=4;a9++)for(let b9=-4;b9<=4;b9++){const u=a9/4*1.15,w=b9/4*1.15,g=dnHauteur(P.x+u*hw*ca+w*hw*sa,P.z-u*hw*sa+w*hw*ca);if(g<lo)lo=g;} /* (2026-11-07) 9 × 9 points jusqu'au bord de la dalle du rocher (1,15 demi-base) : 5 × 5 sur ±1 manquait les creux entre deux points et le bord */
+  for(let a9=-8;a9<=8;a9++)for(let b9=-8;b9<=8;b9++){const u=a9/8*1.15,w=b9/8*1.15,g=dnHauteur(P.x+u*hw*ca+w*hw*sa,P.z-u*hw*sa+w*hw*ca);if(g<lo)lo=g;} /* (2026-11-07) 17 × 17 points jusqu'au bord de la dalle du rocher (1,15 demi-base) : 5 × 5 sur ±1 manquait les creux entre deux points et le bord */
   return lo;}
 /* ===== LES MONUMENTS DES DUNES D'AVANCE (2026-11-01, Léo : « règle ce qui reste ») =====
    MESURÉ (banc iPhone ×4) : au portail des dunes, dnMondePose posait tous les monuments d'un bloc (dnMonuments : les modèles, les scènes, les ruines
@@ -22265,19 +22265,21 @@ function* dnScenesG(X){ /* (2026-11-01) en pas : voir dnMonumentsTiresG */
   // LES ROCHERS D'ARRAKIS (2026-11-05 — remplacent le grand sphinx et sa pyramide) : un groupe de rochers dressés, de tailles différentes, jamais symétrique — un passage spectaculaire et contemplatif
   const monolithes=(a,b,H)=>{const lat=RH+H*.55+12,mid=(a+b)/2,offs=[-.42,-.08,.30];let n=0;
     for(let k=0;k<offs.length;k++)for(const sg of [-1,1]){if(k===1&&sg>0)continue; // (un rocher de moins d'un côté : jamais une paire bien rangée)
-      const s=mid+offs[k]*(b-a)*.5,q=dnPos(S,s,sg*(lat+k*H*.18));if(S.gd[q.i]>.01)continue;const h9=H*(.7+.5*((k*2+(sg<0?0:1))%3)/2),yb=dnAssise(cuis,q.x,q.z,q.yr,h9*.62,q.t);if(yb==null)continue;
+      const s=mid+offs[k]*(b-a)*.5,q=dnPos(S,s,sg*(lat+k*H*.18));if(S.gd[q.i]>.01)continue;const h9=H*(.7+.5*((k*2+(sg<0?0:1))%3)/2),yb=dnAssise(cuis,q.x,q.z,q.yr,h9*.78,q.t); /* (2026-11-07) le rocher est tourné au hasard : le podium couvre la diagonale de sa dalle */if(yb==null)continue;
       const ar=rg()*6.28;cuis(M(dnRocherNom(k+(sg<0?0:1))),q.x,yb,q.z,h9*.3,h9,h9*.3,ar);kill('rocher',q.x,yb,q.z,h9*.32,h9*1.05);n++;}
     N.rochers=n;N.sc.push(['monolithes',Math.round(a),Math.round(b)]);};
   // LE VER DES SABLES (dunes-ver.js) : l'arche enjambe la route, au milieu de la scène ; son axe (x local) est en travers de la route
   /* (2026-11-07) MESURÉ (graine 4) : dnAssise posait, SOUS la route, le podium de pierre de 30 m de large qui rattrape le sable (la dalle est à 10 m au-dessus) : dans un virage couché, sa corniche
      perçait le bitume du côté bas. Le ver n'a pas de podium : sa base est la dalle ; puis on l'enfonce jusqu'à ce que sa QUEUE (x = −0,88 s, 0,36 s sous la base) et sa TÊTE entrent dans le sable — au plus 0,3 s (le ventre reste à plus de 30 m au-dessus de la route) */
   const ver=(c)=>{const q=dnPos(S,(c.a+c.b)/2,0),h0=dnHauteur(q.x,q.z,o9s);if(o9s.eau)return;let yb=Math.max(h0-.3,q.yr-1.2);
-    const lx=S.tz[q.i],lz=-S.tx[q.i];let enf=0; /* l'axe x local du ver, tourné de q.t : (tz, −tx) ; le corps relu en 12 points de chaque bout (le même arc que DN_MOD.ver : x = −cos θ, y = 0,74 sin θ, rayon 0,095-0,17) : son ventre doit entrer de 2 m dans le sable */
-    for(let k=0;k<=24;k++){const t9=k<=12?k/12*.32:1-(k-13)/11*.12,th=-.16*Math.PI+1.06*Math.PI*t9,x9=-Math.cos(th)*c.s,y9=.74*Math.sin(th)*c.s-(.095+.075*t9)*1.1*c.s,g9=dnHauteur(q.x+lx*x9,q.z+lz*x9,o9s);if(y9<.05*c.s)enf=Math.max(enf,yb-1+y9-(g9-2));}
-    /* … sans jamais rapprocher le ventre de la dalle (penchée jusqu'à 40° : son bord haut monte de 23 m) à moins de 9 m — MESURÉ (graine 4) : enfoncé de 0,3 s, le ventre frôlait le bord haut d'un virage couché */
-    let mx=.3*c.s;const tb=Math.tan(S.bk?S.bk[q.i]:0);for(let k=0;k<=40;k++){const th=-.16*Math.PI+1.06*Math.PI*k/40,x9=-Math.cos(th)*c.s;if(Math.abs(x9)>ROAD_HALF+3)continue;const y9=.74*Math.sin(th)*c.s-(.095+.075*k/40)*1.1*c.s;mx=Math.min(mx,(yb-1+y9)-(S.y[q.i]+x9*tb)-9);}
+    /* (2026-11-07) LE VER SUIT LA DALLE : dans un virage couché (jusqu'à 40°), la berme et le sable du plateau sont penchés comme la dalle (dnProfil) ; un ver DROIT y pendait d'un côté (queue 6-14 m au-dessus du sable)
+       et frôlait le bord haut de l'autre. Il est désormais incliné de l'angle de la dalle (autour de l'axe de la route) : son arche garde la même hauteur au-dessus du bitume partout, ses deux bouts la même distance au sable. */
+    const bk=S.bk?S.bk[q.i]:0,cb=Math.cos(bk),sb=Math.sin(bk),tb=Math.tan(bk),lx=S.tz[q.i],lz=-S.tx[q.i];let enf=0,mx=.3*c.s; /* l'axe x local du ver, tourné de q.t : (tz, −tx) ; le côté +x local est le côté haut de la dalle (tan bk) */
+    for(let k=0;k<=48;k++){const t9=k/48,th=-.16*Math.PI+1.06*Math.PI*t9,x0=-Math.cos(th)*c.s,y0=.74*Math.sin(th)*c.s-(.095+.075*t9)*1.1*c.s,X=x0*cb-y0*sb,Y=x0*sb+y0*cb; /* le dessous du corps, penché */
+      if(Math.abs(X)<=ROAD_HALF+3)mx=Math.min(mx,(yb-1+Y)-(S.y[q.i]+X*tb)-9); /* le ventre : à 9 m au moins de la dalle */
+      else if(y0<.05*c.s){const g9=dnHauteur(q.x+lx*X,q.z+lz*X,o9s);enf=Math.max(enf,yb-1+Y-(g9-2));}} /* la queue et la tête : 2 m dans le sable */
     yb-=Math.max(0,Math.min(mx,enf));
-    cuis(M('ver'),q.x,yb-1,q.z,c.s,c.s,c.s,q.t);N.ver=(N.ver|0)+1;N.sc.push(['ver',c.a,c.b]);};
+    cuis(M('ver'),q.x,yb-1,q.z,c.s,c.s,c.s,q.t,0,bk);N.ver=(N.ver|0)+1;N.sc.push(['ver',c.a,c.b]);};
   // LES BRASEROS (2026-10-22) : des paires de vasques sur la berme, de part et d'autre de la route — la nuit, ce sont elles qui éclairent la procession
   const braise=(s,lat0,h)=>{for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat0);if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,h*.62,q.t);if(yb==null)continue;cuis(M('brasero'),q.x,yb,q.z,h,h,h,q.t);N.braseros=(N.braseros|0)+1;}};
   // LES BALISES DES CRÊTES (2026-10-22, Léo : « le joueur peut piquer en bas ou décoller ») : à chaque crête, deux monolithes de part et d'autre de la route, juste avant l'apex — le tremplin se lit de loin (la porte du ciel)
