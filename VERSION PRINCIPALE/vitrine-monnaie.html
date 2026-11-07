@@ -22,10 +22,6 @@ h1{font-size:14px;letter-spacing:2px;color:#ffe9a8;margin:0 0 18px;text-align:ce
   filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--ink)) drop-shadow(-2px 0 0 var(--ink)) drop-shadow(0 2px 0 var(--ink)) drop-shadow(0 -2px 0 var(--ink)) drop-shadow(0 0 10px var(--mH))}
 .t-legendaire .chiffres{background:linear-gradient(100deg,#ffffff 0%,#ffd6f6 14%,#d6c4ff 28%,#b4f2ff 42%,#c8ffe0 56%,#fff7c2 70%,#ffd6f6 85%,#ffffff 100%) 0 0/200% 100%;-webkit-background-clip:text;background-clip:text;animation:glisse 3s linear infinite}
 .t-emeraude .piece,.t-rubis .piece{animation:saute 2.2s cubic-bezier(.2,1.6,.4,1) infinite,aura 2.2s ease-in-out infinite}
-.t-legendaire .piece{position:relative;background:none;animation:saute 2.2s cubic-bezier(.2,1.6,.4,1) infinite,aura 2.2s ease-in-out infinite}
-.t-legendaire .piece::before,.t-legendaire .piece::after{content:'';position:absolute;inset:0;background:center/contain no-repeat}
-.t-legendaire .piece::before{background-image:url('assets/monnaie/sym-legendaire-verre.png');animation:rgb 2.4s linear infinite}
-.t-legendaire .piece::after{background-image:url('assets/monnaie/sym-legendaire-coeur.png')}
 @keyframes aura{0%,100%{filter:drop-shadow(0 0 8px var(--mH)) drop-shadow(0 0 18px var(--mH))}50%{filter:drop-shadow(0 0 14px var(--mH)) drop-shadow(0 0 34px var(--mH)) brightness(1.12)}}
 .t-emeraude .chiffres,.t-rubis .chiffres,.t-legendaire .chiffres{filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--ink)) drop-shadow(-2px 0 0 var(--ink)) drop-shadow(0 2px 0 var(--ink)) drop-shadow(0 -2px 0 var(--ink)) drop-shadow(0 0 12px var(--mH)) drop-shadow(0 0 26px var(--mH))}
 @keyframes glisse{to{background-position:-200% 0}}
@@ -46,6 +42,24 @@ h1{font-size:14px;letter-spacing:2px;color:#ffe9a8;margin:0 0 18px;text-align:ce
 .t-legendaire .chiffres{animation:rgbTxt 2.4s linear infinite!important}
 @keyframes rgbTxt{0%,100%{color:#ff5adf;-webkit-text-fill-color:#ff5adf}17%{color:#ff4d4d;-webkit-text-fill-color:#ff4d4d}33%{color:#ffc02e;-webkit-text-fill-color:#ffc02e}50%{color:#3dff8a;-webkit-text-fill-color:#3dff8a}67%{color:#33d6ff;-webkit-text-fill-color:#33d6ff}83%{color:#8f6bff;-webkit-text-fill-color:#8f6bff}}
 .carte small{color:var(--mC)}
+.t-euro{--mX:#3c4356;--mH:rgba(220,230,255,.45)}
+.t-euro .chiffres{background:linear-gradient(180deg,#ffffff 0 30%,#dfe4ec 30% 52%,#8e97aa 52% 70%,#f2f5fa 70% 84%,#c3cad8 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
+.t-centime{--mX:#4a2208;--mH:rgba(240,150,70,.5)}
+.t-centime .chiffres{background:linear-gradient(180deg,#fff2dc 0 30%,#f4a654 30% 52%,#8a4612 52% 70%,#ffcf94 70% 84%,#c8702a 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
+.t-or{--mX:#6a3a00;--mH:rgba(255,205,60,.6)}
+.t-or .chiffres{background:linear-gradient(180deg,#fffce6 0 30%,#ffd51f 30% 52%,#b06a00 52% 70%,#ffeb8a 70% 84%,#e59c00 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
+.t-legendaire .piece{position:relative;background:none!important;animation:saute 2.2s cubic-bezier(.2,1.6,.4,1) infinite,rgb 2.4s linear infinite}
+.t-legendaire .piece::after{content:'';position:absolute;inset:0;background:url('assets/monnaie/sym-legendaire.png') center/contain no-repeat}
+@keyframes flamme{from{transform:scale(1,1) skewX(-3deg)}to{transform:scale(1.06,1.14) skewX(3deg)}}
+.carte{position:relative;isolation:isolate}
+.t-emeraude{--mX:#053a1c}
+.t-emeraude .chiffres{background:linear-gradient(180deg,#eafff2 0 30%,#2bf08a 30% 52%,#0a7a40 52% 70%,#9affc8 70% 84%,#18b85e 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
+.t-rubis{--mX:#40000c}
+.t-rubis .chiffres{background:linear-gradient(180deg,#ffe8ec 0 30%,#ff3355 30% 52%,#8a0018 52% 70%,#ff9aaa 70% 84%,#d0102e 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
+.t-legendaire{--mX:#3a0828}
+.t-legendaire .chiffres{background:linear-gradient(180deg,#fff0f4 0 30%,#ff3b8a 30% 52%,#7a1050 52% 70%,#ffa0cc 70% 84%,#e0206e 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
+.t-legendaire .chiffres{animation:rgbCh 2.4s linear infinite!important}
+@keyframes rgbCh{from{filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--ink)) drop-shadow(-2px 0 0 var(--ink)) drop-shadow(0 2px 0 var(--ink)) drop-shadow(0 -2px 0 var(--ink)) drop-shadow(0 0 12px var(--mH)) drop-shadow(0 0 26px var(--mH)) hue-rotate(0deg)}to{filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--ink)) drop-shadow(-2px 0 0 var(--ink)) drop-shadow(0 2px 0 var(--ink)) drop-shadow(0 -2px 0 var(--ink)) drop-shadow(0 0 12px var(--mH)) drop-shadow(0 0 26px var(--mH)) hue-rotate(360deg)}}
 </style>
 <h1>L'ARGENT · LES SIX PALIERS</h1>
 <div class="grille">

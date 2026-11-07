@@ -69,11 +69,6 @@ html:is([data-metal="emeraude"],[data-metal="rubis"],[data-metal="legendaire"]) 
 @keyframes mAura{0%,100%{filter:drop-shadow(0 0 6px var(--mH)) drop-shadow(0 0 14px var(--mH))}50%{filter:drop-shadow(0 0 10px var(--mH)) drop-shadow(0 0 26px var(--mH)) brightness(1.12)}}
 html:is([data-metal="emeraude"],[data-metal="rubis"],[data-metal="legendaire"]) :is(#cashHud .chV span,#gCompteur b,#mBankV,#moneyTxt){
   filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 0 12px var(--mH)) drop-shadow(0 0 26px var(--mH))!important}
-/* LÉGENDAIRE (Léo : « le légendaire a de l'or doré fixe ») : seul le VERRE tourne dans toutes les teintes (RGB), le cœur ARGENTÉ reste fixe (Léo : « au lieu du doré, argenté »). */
-html[data-metal="legendaire"] #cashHud .chV i.mOr{position:relative;background:none!important}
-html[data-metal="legendaire"] #cashHud .chV i.mOr::before,html[data-metal="legendaire"] #cashHud .chV i.mOr::after{content:'';position:absolute;inset:0;background:center/contain no-repeat}
-html[data-metal="legendaire"] #cashHud .chV i.mOr::before{background-image:url('./assets/monnaie/sym-legendaire-verre.png');animation:mRgb 2.4s linear infinite}
-html[data-metal="legendaire"] #cashHud .chV i.mOr::after{background-image:url('./assets/monnaie/sym-legendaire-coeur.png')}
 @keyframes mRgb{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){html #cashHud .chV i.mOr,html #cashHud .chV i.mOr::before{animation:none!important}}
 /* LA VRAIE PIÈCE 3D AUX GRANDES PLACES (2026-11-07, Léo : « en jeu, c'est pas les mêmes pièces ») : au compte du garage et sur l'écran de
@@ -101,4 +96,35 @@ html[data-metal] #gCompteur b{animation:mFlotte 3.6s ease-in-out infinite}
 @keyframes mRgbTxt{0%,100%{color:#ff5adf;-webkit-text-fill-color:#ff5adf}17%{color:#ff4d4d;-webkit-text-fill-color:#ff4d4d}33%{color:#ffc02e;-webkit-text-fill-color:#ffc02e}50%{color:#3dff8a;-webkit-text-fill-color:#3dff8a}67%{color:#33d6ff;-webkit-text-fill-color:#33d6ff}83%{color:#8f6bff;-webkit-text-fill-color:#8f6bff}}
 html #moneyTxt .cts{-webkit-text-fill-color:var(--mC);color:var(--mC)}
 @media (prefers-reduced-motion:reduce){html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){animation:none!important}}
+/* L'EURO EN VRAI ARGENT (2026-11-07, Léo : « l'euro est ignoble, vraies lettres argentées brillantes, nettes ») : du chrome à bandes
+   franches (blanc, gris clair, la ligne d'horizon sombre, le reflet du bas), corps extrudé gris acier — plus le blanc plat ni l'or. */
+html[data-metal="euro"]{--mX:#3c4356;--mH:rgba(220,230,255,.45)}
+html[data-metal="euro"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="euro"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="euro"] body #mob #mDead.m5 .mCashL>b#mCash::before{
+  background:linear-gradient(180deg,#ffffff 0 30%,#dfe4ec 30% 52%,#8e97aa 52% 70%,#f2f5fa 70% 84%,#c3cad8 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
+/* LE BRONZE ET L'OR BRILLANTS (2026-11-07, Léo : « le bronze / l'or pas assez brillants ») : même métal net que l'euro, à bandes franches. */
+html[data-metal="centime"]{--mX:#4a2208;--mH:rgba(240,150,70,.5)}
+html[data-metal="centime"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="centime"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="centime"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(180deg,#fff2dc 0 30%,#f4a654 30% 52%,#8a4612 52% 70%,#ffcf94 70% 84%,#c8702a 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
+html[data-metal="or"]{--mX:#6a3a00;--mH:rgba(255,205,60,.6)}
+html[data-metal="or"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="or"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="or"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(180deg,#fffce6 0 30%,#ffd51f 30% 52%,#b06a00 52% 70%,#ffeb8a 70% 84%,#e59c00 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
+html:not([data-metal]) :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){background:linear-gradient(180deg,#fff2dc 0 30%,#f4a654 30% 52%,#8a4612 52% 70%,#ffcf94 70% 84%,#c8702a 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
+/* LE LÉGENDAIRE = UNE PIÈCE RGB DANS UNE FLAMME RGB (2026-11-07, Léo : « le dernier, juste une pièce RGB avec une flamme RGB ») :
+   la pièce arc-en-ciel pleine, une flamme qui danse derrière, et le tout passe par toutes les teintes. */
+html[data-metal="legendaire"] #cashHud .chV i.mOr{position:relative;background:none!important;animation:mAura 2.2s ease-in-out infinite,mRgb 2.4s linear infinite}
+html[data-metal="legendaire"] #cashHud .chV i.mOr::after{content:'';position:absolute;inset:0;background:url('./assets/monnaie/sym-legendaire.png') center/contain no-repeat}
+html[data-metal="legendaire"] #cashHud .chV i.mOr.pop{animation:mOrPop .32s cubic-bezier(.2,1.6,.4,1),mRgb 2.4s linear infinite}
+/* (2026-11-07, Léo : « enlève la flamme RGB pour l'instant ») la flamme (assets/monnaie/flamme-rgb.png) est retirée de l'écran */
+@keyframes mRgb{from{filter:drop-shadow(0 0 8px var(--mH)) hue-rotate(0deg)}to{filter:drop-shadow(0 0 8px var(--mH)) hue-rotate(360deg)}}
+html[data-metal="legendaire"] #gCompteur b::before{animation:mRgbSeul 2.4s linear infinite}
+@keyframes mRgbSeul{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
+/* LES CHIFFRES DES PIERRES ET DU LÉGENDAIRE (2026-11-07, Léo : « les numéros pareil ») : le même métal net à bandes franches que l'euro,
+   le bronze et l'or ; le légendaire tourne dans toutes les teintes. */
+html[data-metal="emeraude"]{--mX:#053a1c}
+html[data-metal="emeraude"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="emeraude"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="emeraude"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(180deg,#eafff2 0 30%,#2bf08a 30% 52%,#0a7a40 52% 70%,#9affc8 70% 84%,#18b85e 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
+html[data-metal="rubis"]{--mX:#40000c}
+html[data-metal="rubis"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="rubis"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="rubis"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(180deg,#ffe8ec 0 30%,#ff3355 30% 52%,#8a0018 52% 70%,#ff9aaa 70% 84%,#d0102e 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
+html[data-metal="legendaire"]{--mX:#3a0828}
+html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(180deg,#fff0f4 0 30%,#ff3b8a 30% 52%,#7a1050 52% 70%,#ffa0cc 70% 84%,#e0206e 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
+html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){animation:mRgbChiffres 2.4s linear infinite!important}
+html[data-metal="legendaire"] #gCompteur b{animation:mRgbChiffres 2.4s linear infinite,mFlotte 3.6s ease-in-out infinite!important}
+@keyframes mRgbChiffres{from{filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 0 12px var(--mH)) drop-shadow(0 0 26px var(--mH)) hue-rotate(0deg)}to{filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 0 12px var(--mH)) drop-shadow(0 0 26px var(--mH)) hue-rotate(360deg)}}
 </style>
