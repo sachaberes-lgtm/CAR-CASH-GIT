@@ -295,5 +295,6 @@ window.dbgJouer=function(){const et={pendingScore:pendingScore,started:started,g
 window.__gameReady=true; // la boucle part : le chien de garde du mouchard se tait
 try{plqDemarre();}catch(e){console.warn('plaque',e);} // (2026-10-17) LA PLAQUE : ses écrans, l'horloge du compte, et l'atelier au premier accueil (voir PLQ)
 try{bienvGuette();}catch(e){} // (2026-10-16) LA QUESTION DE BIENVENUE guette l'accueil (voir bienvMontre)
+try{achatsDemarre();}catch(e){} // (2026-11-07, achats App Store) dans l'app : les achats reçus, les prix d'Apple, la synchro des achats déjà faits (voir achatsDemarre) ; sur le web : rien
 requestAnimationFrame(loop);
 })();

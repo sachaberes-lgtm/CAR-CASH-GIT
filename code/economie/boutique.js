@@ -9,10 +9,10 @@
 Object.assign(I18N,{"ÉQUIPER":"EQUIP","Achat unique, via ton compte App Store. À toi pour toujours.":"One-time purchase through your App Store account. Yours forever.",
   "Elle t'attend à l'atelier.":"It's waiting for you in the garage.","Les achats ouvriront à la sortie sur l'App Store.":"Purchases open when the game launches on the App Store.","INDISPONIBLE":"UNAVAILABLE","L'achat est indisponible pour le moment.":"Buying is unavailable right now."});
 const SPOP={el:null,src:null,i:-1,t:0};
-function shopPaye(i){return Promise.reject(new Error('storekit'));} // `i` = l'index d'une caisse OU 'palette' (PALETTE_PACK.produit) — (2026-10-14, palette) puis palDonne() ; ⚠ LA porte de StoreKit : tenir la promesse QUAND Apple a encaissé — jamais avant
-function shopDonne(i){ // la caisse payée en vrai argent : posée dans `owned`, sans toucher à la banque du jeu
+function shopPaye(cle){return achatsPaye(cle);} /* (2026-11-07, achats App Store) `cle` = l'index d'une caisse OU 'peinture:<id>' ; LA porte de StoreKit, branchée dans achats-store.js sur window.ccAchat : la promesse n'est tenue QUE quand Apple a encaissé (sans l'app : rejet 'storekit') — jamais avant */
+function shopDonne(i,calme){ // la caisse payée en vrai argent : posée dans `owned`, sans toucher à la banque du jeu ; `calme` (synchro, RESTAURER) : sans la fête
   if(!Array.isArray(SAVE.d.owned))SAVE.d.owned=[];
-  if(SAVE.d.owned.indexOf(i)<0){SAVE.d.owned.push(i);carWas[i]=true;try{feteCaisse(i);}catch(e){}} /* (2026-10-23) la fête de sa rareté */
+  if(SAVE.d.owned.indexOf(i)<0){SAVE.d.owned.push(i);carWas[i]=true;if(!calme)try{feteCaisse(i);}catch(e){}} /* (2026-10-23) la fête de sa rareté */
   SAVE.flush();
 }
 function spDuree(){const v=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--t-slow'));return document.documentElement.getAttribute('data-reduced-motion')==='1'?0:(v>0?v:420);}
@@ -34,8 +34,12 @@ function shopPopEl(){
     shopPaye(i).then(function(){
       shopDonne(i);el.classList.remove('attend');try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(_){}hap([12,40,12,40,30]);/* (2026-10-14, session SON) 'ok' n'est pas un rôle d'uiClic (il retombait sur ui.tap, un 2e appui) : une caisse ACHETÉE sonne le tiroir-caisse, comme tout achat du garage — et le toast d'après se tait */try{pixBurst(b,18);}catch(_){}
       try{shopRender();}catch(_){}shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'),true);
-    },function(){ // pas encore branché : on le DIT, dans la fenêtre, et rien n'est donné
-      el.classList.remove('attend');el.classList.add('refus');uiClic('refus');hap([10,40,10]);
+    },function(e){ // annulé / en attente : rien n'est donné, le bouton reste utilisable ; sinon (web, pas branché, échec) on le DIT, dans la fenêtre, et rien n'est donné
+      const m=achatsMotif(e);if(m==='occupe')return; /* un autre achat est en vol : celui-là finira seul */
+      el.classList.remove('attend');
+      if(m==='annule'||m==='attente'){b.classList.remove('off');if(m==='attente'){uiClic('refus');hap([10,40,10]);toast(pxi('panier')+' '+TR("EN ATTENTE D'ACCORD"));}return;}
+      if(window.ccAchat)b.classList.remove('off'); /* dans l'app un échec se retente */
+      el.classList.add('refus');uiClic('refus');hap([10,40,10]);
       const s=b.querySelector('span');if(s)s.textContent=sansAcc(TR('INDISPONIBLE'));
       const n=el.querySelector('.spNote');if(n)n.textContent=TR("L'achat est indisponible pour le moment.");
     });
@@ -58,7 +62,7 @@ function shopPop(src){
     +'<b class="spNom" id="spNom">'+insec(TR(CARS[i].name))+'</b>'+arc
     +'<span class="spDesc">'+(LANG==='fr'?CARS[i].desc:TR(CARS[i].desc))+'</span>'
     +(a?'<div class="spPrix aToi">'+pxi('coche')+'<b>'+sansAcc(TR('À TOI'))+'</b></div>'
-       :'<div class="spPrix">'+'<em>'+eurTxt(u.eur)+'</em></div>')
+       :'<div class="spPrix">'+'<em>'+prixTxt(i,u.eur)+'</em></div>')
     +'<div class="spBtns"><div class="pbtn pb-gold spOui" role="button" data-sp="oui">'+pxi(a?'coche':'panier')+'<span>'+sansAcc(TR(a?'ÉQUIPER':'ACHETER'))+'</span></div>'
     +'<div class="pbtn pb-cyan spNon" role="button" data-sp="non">'+pxi('gauche')+'<span>'+TR('ANNULER')+'</span></div></div>'
     +'<small class="spNote">'+TR(a?"Elle t'attend à l'atelier.":"Achat unique, via ton compte App Store. À toi pour toujours.")+'</small></div>';
@@ -639,11 +643,12 @@ function peintCachee(d){return false;}
 function peintOrdre(){return COSM.peinture.map(function(d,j){return j;}).sort(function(a,b){return peintClef(a)-peintClef(b);});}
 function peintVoisine(i,pas){const O=peintOrdre(),k=O.indexOf(i);return O[((k<0?0:k)+pas+O.length)%O.length];} /* ◀ ▶ en boutique : la voisine DANS L'ORDRE DE LA VITRINE */
 /* acheter un habillage EN EUROS (une peinture) : la porte de StoreKit, comme une caisse — rien n'est donné tant qu'Apple n'a pas encaissé */
-function habDonne(cat,id){const o=SAVE.d.shop.own,k=cat+':'+id;if(o.indexOf(k)<0)o.push(k);SAVE.d.shop.eq[cat]=id;SAVE.flush();}
+function habDonne(cat,id,calme){const o=SAVE.d.shop.own,k=cat+':'+id;if(o.indexOf(k)<0)o.push(k);if(!calme)SAVE.d.shop.eq[cat]=id;SAVE.flush();} /* `calme` (synchro, RESTAURER) : posée sans devenir l'habillage équipé */
 function habPaye(cat,i,bt){const d=COSM[cat]&&COSM[cat][i];if(!d||!d.eur||shopOwned(cat,d.id)||habPaye.on)return false;habPaye.on=1;uiClic('');hap(12);
   shopPaye(cat+':'+d.id).then(function(){habPaye.on=0;habDonne(cat,d.id);garEquipeHabit(cat,i);shopShow(cat,i);hap([10,30,20,30,40]);try{pixBurst($('gCard'),26);gTampon(TR('À TOI !'));}catch(e){}
     try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}}catch(e){}try{GBQ.rk='';gShopJour();}catch(e){}},
-    function(){habPaye.on=0;if(bt)try{gSecoue(bt);}catch(e){}uiClic('refus');hap([10,40,10]);toast(pxi('panier')+' '+TR("L'achat est indisponible pour le moment."));});return true;}
+    function(e){habPaye.on=0;const m=achatsMotif(e);if(m==='annule'||m==='occupe')return; /* annulé : on ne dit rien */
+      if(bt)try{gSecoue(bt);}catch(e2){}uiClic('refus');hap([10,40,10]);toast(pxi('panier')+' '+TR(m==='attente'?"EN ATTENTE D'ACCORD":"L'achat est indisponible pour le moment."));});return true;}
 /* (2026-11-05, jury HYG-12) palDonne : fonction jamais appelée, retirée */
 /* ===== « OU GAGNE-LA » — LES DÉFIS DES PEINTURES (2026-11-05, le nuancier v3) =====
    Une peinture à `def` s'achète, ou se gagne : sa valeur se lit à tout moment (peintDefVal, les records de la partie en cours compris) ; elle tombe

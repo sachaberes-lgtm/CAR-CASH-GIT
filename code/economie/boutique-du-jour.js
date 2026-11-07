@@ -39,7 +39,7 @@ function bqFig(cat,d){const hx=function(c){return '#'+(c>>>0).toString(16).padSt
   if(cat==='trainee')return '<i class="fnRub" style="background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
   return '<i class="pxi pxi-aile fnAile"></i>';}
 function bqCarte(k,une,sansRuban){const ri=rarInfo(bqRar(k)),c=ri.c,a=bqA(k);let nom='',ty='',px='',eur=false,fig='';
-  if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{};nom=TR(CARS[i].name);ty='CAISSE';if(u.k==='premium'){px=eurTxt(u.eur);eur=true;}else px=fmtC(u.p||0);fig='<i class="fnPh"></i>';}
+  if(k[0]==='v'){const i=+k.slice(2),u=CAR_UNLOCK[i]||{};nom=TR(CARS[i].name);ty='CAISSE';if(u.k==='premium'){px=prixTxt(i,u.eur);eur=true;}else px=fmtC(u.p||0);fig='<i class="fnPh"></i>';}
   else{const o=bqCos(k);nom=TR(o.d.n);ty=SHOP_LBL[o.cat];px=fmtC(o.d.p);fig=bqFig(o.cat,o.d);}
   return '<div class="fnC'+(une?' une':'')+(a?' acquis':'')+'" data-fn="'+k+'" role="button" aria-label="'+String(nom).replace(/"/g,'')+'" style="--rc:'+c+';--rcL:'+invRgba(c,.98)+';--rcD:'+invRgba(c,.22)+'">'
     +'<i class="fnFond"></i>'+fig+(k[0]==='v'?rarLogo(+k.slice(2)):'')+(une&&!sansRuban?'<s class="fnBan">'+sansAcc(TR('À LA UNE'))+'</s>':'')
@@ -66,7 +66,7 @@ function bqPorte(L){const V=L.filter(function(i){return !carOwned(i);}).concat(L
   return '<div class="fnPorte fnCarr" role="button" tabindex="0" aria-label="'+sansAcc(TR('OFFRES ÉPHÉMÈRES'))+'"><i class="fnFond"></i>'
     +'<b class="fpHd">'+pxi('cadeau')+'<span>'+sansAcc(TR('OFFRES ÉPHÉMÈRES'))+'</span><s class="fpTim">'+pxi('horloge')+'<i>'+bqReste()+'</i></s></b>'
     +'<span class="fpSl">'+V.map(function(i,n){const u=CAR_UNLOCK[i]||{},a=carOwned(i);return '<span class="fpS1'+(n?'':' on')+'"><i class="fpSlPh" data-ph="'+i+'"></i>'
-      +'<b class="fpNom">'+sansAcc(TR(CARS[i].name))+'</b><em class="fpPx">'+(a?pxi('coche')+' '+sansAcc(TR('À TOI')):eurTxt(u.eur))+'</em></span>';}).join('')+'</span>'
+      +'<b class="fpNom">'+sansAcc(TR(CARS[i].name))+'</b><em class="fpPx">'+(a?pxi('coche')+' '+sansAcc(TR('À TOI')):prixTxt(i,u.eur))+'</em></span>';}).join('')+'</span>'
     +'<span class="fpDots">'+V.map(function(i,n){return '<u'+(n?'':' class="on"')+'></u>';}).join('')+'</span></div>';}
 setInterval(function(){try{if(!garageOn)return;const c=document.querySelector('#gStrip .fnCarr');if(!c||!c.offsetParent)return;const S=c.querySelectorAll('.fpS1'),P=c.querySelectorAll('.fpDots u');if(S.length<2)return;
   let i=-1;S.forEach(function(e,j){if(e.classList.contains('on'))i=j;});const n=(i+1)%S.length;if(i>=0){S[i].classList.remove('on');S[i].classList.add('sort');setTimeout(function(){S[i].classList.remove('sort');},500);if(P[i])P[i].classList.remove('on');}
