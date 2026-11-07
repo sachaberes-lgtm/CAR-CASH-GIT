@@ -154,3 +154,19 @@ Avant (même fiche v2 sur l'ancienne génération, banc Node) : nuages p0 **4,1 
 - **Les routes sont à la longueur visée** (ville p0 : 77 s de croisière au lieu de 94, p20 : 28 s au lieu de 38) : l'ancienne recette collait un dernier module APRÈS la longueur visée et la dépassait de 15-20 %. Ce n'est pas une régression, c'est la durée voulue (45 s → 20 s, `DUREE`).
 - **La note monte au palier 20** (ville 6,9, crypto 7,4) : la cible `vir` est par km et une route de 28 s à 340 m/s n'a plus que 4-5 virages (chacun long). C'est la cible qui est mal posée à haut palier, pas la route (dessins propres dans `apres-0711/*-p20-*.png`). À reprendre si on retouche le directeur : viser des virages par MINUTE.
 - **Le climax** (SURF, COULOIR, ROND-POINT, TO THE MOON) : d'abord absent de 5 routes roulées sur 36 (la phrase ne le déclenchait qu'à l'état « fort » et un module plus long que ses 5 s la faisait basculer en fin) ; corrigé (déclenchement à tout état, après un souffle tout de suite) : **96 routes sur 96** au banc Node l'ont. Photos dans le jeu : `sorties/photos-0711/`.
+
+### Les neuf maps (banc réel, 162 routes en 104 s : `sorties/apres-tout-0711/`, FICHE.txt + PNG)
+| map | p0 : vir/km · douilles/route · dF% · hors · note | p10 | p20 | module unique |
+|---|---|---|---|---|
+| nuages | 2,1 · 0,2 · 17 % · 11 % · 1,6 | 1,1 · 0 · 20 % · 11 % · 3,3 | 0,3 · 0 · 30 % · 15 % · 7,4 | SURF |
+| espace | 1,9 · 0,2 · 16 % · 7 % · 0,8 | 1,1 · 0 · 16 % · 16 % · 2,3 | 0,4 · 0 · 21 % · 16 % · 4,6 | COULOIR DE LANCEMENT |
+| ville | 2,7 · 0,2 · 19 % · 0 · 1,3 | 1,6 · 0 · 21 % · 0 · 4,2 | 0,4 · 0 · 27 % · 0 · 8,1 | ROND-POINT |
+| crypto | 3,0 · 0,7 · 17 % · 0 · 1,2 | 1,8 · 0,8 · 20 % · 0 · 3,4 | 0,5 · 0 · 18 % · 0 · 7,7 | TO THE MOON |
+| jade | 2,6 · 0 · 20 % · 0 · 1,4 | 1,9 · 0 · 22 % · 0 · 0,7 | 1,3 · 0 · 18 % · 0 · 2,0 | TROIS PICS |
+| forêt | 2,2 · 0,5 · 15 % · 0 · 1,0 | 1,5 · 0,2 · 9 % · 0 · 1,4 | 0,7 · 0,3 · 12 % · 0 · 3,9 | CLAIRIÈRE |
+| canyon | 2,6 · 0,2 · 10 % · 3 % · 1,2 | 1,7 · 0,5 · 9 % · 5 % · 0,7 | 1,1 · 0,2 · 9 % · 3 % · 4,2 | RAPIDE |
+| dunes | 3,3 · 0,3 · 10 % · 0 · 0,4 | 2,4 · 0 · 7 % · 0 · 0,4 | 1,7 · 0 · 8 % · 0 · 0,4 | GRAND ERG |
+| grotte | 3,1 · 0,5 · 24 % · 13 % · 0,5 | 2,0 · 0,2 · 22 % · 10 % · 0,5 | 1,3 · 0 · 20 % · 12 % · 2,5 | GOUFFRE |
+Avant (même fiche) : douilles par route 1,8 (canyon) à 17,8/km (dunes), grotte 55 % hors de l'endroit, nuages 4,1 douilles. Zigzags : 0 partout. Le module unique est dans `marks1` de 162 routes sur 162.
+- **Piège de mesure** (trouvé par trois agents sur cinq) : un arc DESSINÉ à 26-28° ne MESURE que 21-25° (le lissage mange l'entrée et la sortie) et la fiche le compte en douille. Les générateurs dessinent donc à 29-36° minimum (`F_MINA` forêt 32, `MINA` grotte 30, `VMIN2` dunes 29, jade 36, canyon 29).
+- **Reste** : canyon p20 : 8 m infranchissables par route en moyenne (25 m sur la graine 5) dans les virages ordinaires, pas dans le rapide (c'était 4 m avant) ; forêt p0 : une droite de 7-8 s sur deux graines (arche collée à la fin de la boucle) ; dF% à 27-30 % au palier 20 (nuages, ville) : une droite de 4 s pèse lourd sur 28 s de route ; le grand erg tombe à 29-45 % de la route aux paliers 10-20 (la route n'a que 3-4 vagues).
