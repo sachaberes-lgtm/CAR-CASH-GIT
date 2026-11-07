@@ -25,7 +25,7 @@ function m2ValCourse(m){try{switch(m.k){case 'aura':return Math.round(auraRun)||
 function m2Frac(m,v,t){return t>0?Math.max(0,Math.min(1,v/t)):0;}
 function m2Prog(m,v,t){v=Math.min(v,t); // « 3 / 5 », « 42 000 / 100 000 $ », « 4,2 / 5 S », « 1:12 / 5:00 »
   switch(m.u){case 's':return decFr(Math.floor(v*10)/10,1)+' / '+t+' S';case 'kmh':return m2Nb(v)+' / '+m2Nb(t)+' KM/H';case 'km':return m2Nb(Math.floor(v))+' / '+m2Nb(t)+' KM';
-    case '$':return m2Nb(v)+' / '+m2Nb(t)+' '+CUR();case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
+    case '$':return m2Nb(v)+' / '+m2Nb(t)+' €';case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
     case 'b':return v>=t?TR('FAIT'):TR('PAS ENCORE');}
   return m2Nb(v)+' / '+m2Nb(t);}
 function m2RecNom(m){const r=m.r||{};if(r.cash)return '+'+fmtC(r.cash);if(r.car)return TR(r.car);
@@ -107,7 +107,7 @@ function mcCanon(){ // le dessin du canon (graduations, rayures) : calculé une 
 function mcVedette(x,s,arme){const m=x.m,pret=x.rg===0,R=mcRec(m),w=mcVu(x,s),C=2*Math.PI*88,pg=R.k==='hab'?R.c:'';if(arme)w[0]=0; /* arme : on arrive sur la page, l'anneau se charge depuis zéro */
   let fond;
   if(R.k==='car')fond=mcSil(R.i,false,pret&&m2Pret(m.id));
-  else if(R.k==='cash')fond='<b class="mcSom"><small>'+CUR()+'</small>'+m2Nb(R.v)+'</b>';
+  else if(R.k==='cash')fond='<b class="mcSom"><small>€</small>'+m2Nb(R.v)+'</b>';
   else if(R.k==='hab')fond='<b class="mcRar">'+sansAcc(TR(R.rar))+'</b>';
   else fond='<b class="mcSom">?</b>';
   const lab=R.k==='car'?TR('VOITURE')+' · '+TR(R.rar):R.k==='hab'?TR(R.cat)+' · '+TR(R.rar):''; /* l'argent se lit tout seul au fond du portail */
