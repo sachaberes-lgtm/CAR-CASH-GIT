@@ -1,36 +1,36 @@
-/* LA RECETTE VITRAIL — sorti d'index.html le 2026-10-15 (Léo : « enlève les dauphins et les singes ; avec les figures ça n'a plus sa place, ça prend trop de place
-   dans le jeu ») : la technique, pour n'importe quelle forme. Le JEU ne charge PAS ce fichier ; il vit pour la boîte et pour ce qui reviendra par map (les singes du SOLEIL DE JADE,
-   les dauphins plus tard). Il a besoin de THREE (vendor/three.min.js). */
-/* <<<VITRAIL>>> LA TECHNIQUE VITRAIL, POUR N'IMPORTE QUELLE FORME (2026-10-10, nommée par Léo sur le dauphin ; mise en recette pour le SINGE)
-   Une forme se décrit par F = {
-     sdf(x,y,z)        la distance signée (< 0 dedans) — des volumes simples soudés en douceur ;
-     col(x,y,z,o)      sa couleur à cet endroit (o = [r,g,b]) ;
-     os(x,y,z,o)       facultatif : le poids de trois OS (o = [os 0, os 1, os 2]) — un sommet tourne avec l'os autour de son pivot ;
-     s(x,y,z)          la coordonnée de l'ONDE (0 → 1 : d'où elle part, où elle finit) ;
-     min, max          la boîte qui la contient ; hs le pas de la forme lisse ; h la taille des ÉCAILLES (cubes) }.
-   vitrailObjet(F,U) en tire les quatre couches de la recette (voir la mémoire « vitrail ») :
-     · LE CŒUR : la forme lisse rentrée de `uCoeurIn`, lumière pure (`uGlowA` → `uGlowB` le long de l'onde ; rouge sang en dark triad) ;
-     · LES ÉCAILLES : chaque case de `h` dont le centre est dedans et qui touche le dehors ; seules ses faces vers le dehors ; un cube a UNE
-       couleur, un poids d'os, une normale (le gradient) ; réduit à `uEcart` autour de son centre (la lumière du cœur passe dans les joints) ;
-     · LA PEAU DE VERRE : la forme lisse gonflée de `uCoqG`, transparente de face (`uCoqA0`), opaque sur la silhouette (`uCoqA1`), le reflet
-       d'un ciel, un éclat, un film irisé ;
-     · L'ONDE (`uScan`, vitesse `uScanV`) : une bande de lumière qui parcourt la forme, soulève les écailles (`uVague`) et allume le tout.
-     · (2026-10-11) `uSat` · `uClair` : la saturation et la clarté de la MATIÈRE (1 = telle quelle) — en course l'étalonnage du jeu (saturation ×1,4,
-       lumière chaude) faisait d'un singe brun une flamme orange : les singes de la course les baissent.
-   La forme lisse : « surface nets » sur la grille de `hs`, sommets au barycentre des passages, normales = le gradient du champ.
-   Valeurs par défaut = le JUSTE MILIEU de Léo sur le dauphin (10/10) : de face .43 · bords .95 · gonflée 1,3 cube · écailles .89 · vague .45 cube. */
-function vitrailU(F,o){ // les réglages d'un objet en vitrail (un jeu d'uniforms partagé par ses trois matières)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function vitrailU(F,o){
   const h=F.h,M=()=>({value:new THREE.Matrix3()}),V=()=>({value:new THREE.Vector3()});
   return Object.assign({uCoqA0:{value:.43},uCoqA1:{value:.95},uCoqP:{value:1.4},uCoqG:{value:h*1.3},uEcart:{value:.89},uVague:{value:h*.45},
     uLueur:{value:1.4},uScan:{value:1},uScanV:{value:.5},uCoeurIn:{value:h*1.6},uNoir:{value:0},uT:{value:0},uScene:{value:.5},
     uLum:{value:new THREE.Vector3(.3,1,.25).normalize()},uGlowA:{value:new THREE.Color(1,.85,.3)},uGlowB:{value:new THREE.Color(1,.5,.2)},
     uRimA:{value:new THREE.Color(1,.08,.14)},uSat:{value:1},uClair:{value:1},uM0:M(),uM1:M(),uM2:M(),uP0:V(),uP1:V(),uP2:V()},o||{});
 }
-function vitrailFini(g){let r;do{r=g.next();}while(!r.done);return r.value;} // un générateur mené d'un trait (la boîte) — le jeu, lui, le découpe en tranches (vitrailPrepare)
+function vitrailFini(g){let r;do{r=g.next();}while(!r.done);return r.value;}
 function vitrailLisse(F){return vitrailFini(vitrailLisseG(F));}
 function vitrailEcailles(F){return vitrailFini(vitrailEcaillesG(F));}
-function* vitrailPrepare(F){if(F._geo)return;const lisse=yield* vitrailLisseG(F),ecailles=yield* vitrailEcaillesG(F);F._geo={lisse,ecailles};} // les deux géométries, tranche par tranche
-function* vitrailLisseG(F){ // la forme lisse (surface nets) : position, normal (gradient), aCol, aLp (= position), aBw, aN, aS — un `yield` par tranche
+function* vitrailPrepare(F){if(F._geo)return;const lisse=yield* vitrailLisseG(F),ecailles=yield* vitrailEcaillesG(F);F._geo={lisse,ecailles};}
+function* vitrailLisseG(F){
   const h=F.hs,X0=F.min[0],Y0=F.min[1],Z0=F.min[2],nx=Math.ceil((F.max[0]-X0)/h),ny=Math.ceil((F.max[1]-Y0)/h),nz=Math.ceil((F.max[2]-Z0)/h);
   const NX=nx+1,NY=ny+1,v=new Float32Array(NX*NY*(nz+1)),gi=(i,j,k)=>i+NX*(j+NY*k);
   for(let k=0;k<=nz;k++){for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++)v[gi(i,j,k)]=F.sdf(X0+i*h,Y0+j*h,Z0+k*h);yield;}
@@ -51,14 +51,14 @@ function* vitrailLisseG(F){ // la forme lisse (surface nets) : position, normal 
   for(let p=0;p<nV;p++){if(p%400===399)yield;const x=P[p*3],y=P[p*3+1],z=P[p*3+2];
     let gx=F.sdf(x+e,y,z)-F.sdf(x-e,y,z),gy=F.sdf(x,y+e,z)-F.sdf(x,y-e,z),gz=F.sdf(x,y,z+e)-F.sdf(x,y,z-e);const l=Math.hypot(gx,gy,gz)||1;
     N[p*3]=gx/l;N[p*3+1]=gy/l;N[p*3+2]=gz/l;F.col(x,y,z,o);C.set(o,p*3);o[0]=o[1]=o[2]=0;if(F.os)F.os(x,y,z,o);W.set(o,p*3);S[p]=F.s(x,y,z);}
-  for(let t=0;t<I.length;t+=3){const a=I[t]*3,b=I[t+1]*3,c=I[t+2]*3; // chaque triangle tourné vers le DEHORS (le gradient le dit)
+  for(let t=0;t<I.length;t+=3){const a=I[t]*3,b=I[t+1]*3,c=I[t+2]*3;
     const ux=P[b]-P[a],uy=P[b+1]-P[a+1],uz=P[b+2]-P[a+2],vx=P[c]-P[a],vy=P[c+1]-P[a+1],vz=P[c+2]-P[a+2];
     if((uy*vz-uz*vy)*(N[a]+N[b]+N[c])+(uz*vx-ux*vz)*(N[a+1]+N[b+1]+N[c+1])+(ux*vy-uy*vx)*(N[a+2]+N[b+2]+N[c+2])<0){const s=I[t+1];I[t+1]=I[t+2];I[t+2]=s;}}
   const g=new THREE.BufferGeometry(),A=(k,a,n)=>g.setAttribute(k,new THREE.BufferAttribute(a,n));
   A('position',new Float32Array(P),3);A('normal',N,3);A('aCol',C,3);A('aLp',new Float32Array(P),3);A('aBw',W,3);A('aN',N,3);A('aS',S,1);
   g.setIndex(I);g.computeBoundingSphere();g.boundingSphere.radius+=.3;return g;
 }
-function* vitrailEcaillesG(F){ // les écailles : les cases de F.h dont le centre est dedans et qui touchent le dehors — leurs faces vers le dehors
+function* vitrailEcaillesG(F){
   const h=F.h,X0=F.min[0],Y0=F.min[1],Z0=F.min[2],nx=Math.ceil((F.max[0]-X0)/h),ny=Math.ceil((F.max[1]-Y0)/h),nz=Math.ceil((F.max[2]-Z0)/h);
   const de=new Uint8Array(nx*ny*nz),id=(i,j,k)=>i+nx*(j+ny*k),cx=i=>X0+(i+.5)*h,cy=j=>Y0+(j+.5)*h,cz=k=>Z0+(k+.5)*h;
   for(let k=0;k<nz;k++){for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)de[id(i,j,k)]=F.sdf(cx(i),cy(j),cz(k))<0?1:0;yield;}
@@ -78,7 +78,7 @@ function* vitrailEcaillesG(F){ // les écailles : les cases de F.h dont le centr
   A('position',pos,3);A('normal',nor,3);A('aLp',lp,3);A('aCol',col,3);A('aBw',bw,3);A('aN',an,3);A('aS',as,1);
   g.setIndex(ix);g.computeBoundingSphere();g.boundingSphere.radius+=.3;return g;
 }
-function vitrailShader(sh){ // `this` = la matière ; this.userData : U (les réglages) et ro (0 écailles · 1 peau · 2 cœur)
+function vitrailShader(sh){
   const U=this.userData.U,ro=this.userData.ro;for(const k in U)sh.uniforms[k]=U[k];
   sh.vertexShader='attribute vec3 aCol;attribute vec3 aLp;attribute vec3 aBw;attribute vec3 aN;attribute float aS;\n'+
     'uniform mat3 uM0;uniform mat3 uM1;uniform mat3 uM2;uniform vec3 uP0;uniform vec3 uP1;uniform vec3 uP2;\n'+
@@ -98,7 +98,7 @@ function vitrailShader(sh){ // `this` = la matière ; this.userData : U (les ré
     .replace('#include <color_fragment>','#include <color_fragment>\n{vec3 c9=mix(vCol9,vec3(.055,.05,.07),uNoir);diffuseColor.rgb*=mix(vec3(dot(c9,vec3(.299,.587,.114))),c9,uSat)*uClair;}\n'+
       (ro===0?'{vec3 qb=abs(vLoc9);qb/=max(max(qb.x,max(qb.y,qb.z)),1e-5);vitE9=smoothstep(.6,1.,qb.x+qb.y+qb.z-1.-min(qb.x,min(qb.y,qb.z)));\n'+
         'diffuseColor.rgb*=(1.-.2*vitE9)*(.95+.1*vitH(vLp9*61.7));}\n':''))
-    .replace('#include <lights_fragment_end>','#include <lights_fragment_end>\n'+ // SA lumière (comme le dauphin) : le niveau ne garde que uScene de la sienne
+    .replace('#include <lights_fragment_end>','#include <lights_fragment_end>\n'+
       'vec3 lv9=normalize((viewMatrix*vec4(uLum,0.)).xyz);float dl9=dot(normal,lv9),wr9=max(0.,(dl9+.2)/1.2);\n'+
       'float sp9=pow(max(dot(normal,normalize(lv9+normalize(vViewPosition))),0.),70.);\n'+
       'reflectedLight.directDiffuse=reflectedLight.directDiffuse*uScene+diffuseColor.rgb*wr9*.95;\n'+
@@ -121,9 +121,9 @@ function vitrailMat(U,ro,cle){
   const m=new THREE.MeshPhongMaterial({color:0xffffff,shininess:85,specular:0x7c8590,emissive:0x262626,transparent:ro===1,depthWrite:ro!==1});
   m.userData.U=U;m.userData.ro=ro;m.onBeforeCompile=vitrailShader;m.customProgramCacheKey=()=>(cle||'vitrail')+ro;return m;
 }
-function vitrailObjet(F,U,cle){ // un objet en VITRAIL : un groupe de trois maillages (écailles, cœur, peau) — géométries bâties une fois par forme
+function vitrailObjet(F,U,cle){
   if(!F._geo)F._geo={lisse:vitrailLisse(F),ecailles:vitrailEcailles(F)};
   const g=new THREE.Group(),e=new THREE.Mesh(F._geo.ecailles,vitrailMat(U,0,cle)),c=new THREE.Mesh(F._geo.lisse,vitrailMat(U,2,cle)),p=new THREE.Mesh(F._geo.lisse,vitrailMat(U,1,cle));
   p.renderOrder=1;for(const m of [e,c,p])m.frustumCulled=false;g.add(e,c,p);g.userData={ecailles:e,coeur:c,peau:p};return g;
 }
-/* <<<FIN VITRAIL>>> */
+ 

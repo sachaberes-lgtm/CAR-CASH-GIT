@@ -1,3 +1,58 @@
+# MISE À JOUR — 07/11, 17 h (fusion `ios-capacitor` ← `main`, sur le PC, branche LOCALE, rien de poussé, rien d'envoyé)
+## FAIT
+- **Une seule branche `ios-capacitor` qui fabrique une app complète.** Les deux `app-ios/` avaient divergé depuis `817f34a7` (3/11) :
+  `origin/ios-capacitor` (`94b80ece`, 3 commits de Sacha du 6/11 : la partie 8 de `natif.js`, `www/` du 3/11, cible iOS 15.0, pas de
+  session audio native, coupe stricte de `preparer-www.js` qui s'arrêtait sur le jeu actuel — « LE CHARGEUR » 14 fois pour 13) et `main`
+  (corrigé par le jury du 5/11, mais sans la partie 8). Fusionnés ici, **sans conflit git et sans rien perdre** :
+  `60ad22e7` (fusion de `main` 35fbfb4a, v1258 ; son message explique le diff de `natif.js` entre les deux branches LIGNE À LIGNE),
+  `629d1b6d` (`www/` resynchronisé), `72e14201` (fusion de `main` a2bf2afa, v1263 : **`chasse-bugs-2026-11-07` y est** — SON-N01, le son
+  en pause et au départ, LÉONIE, les missions nouvelle forme), `www/` resynchronisé, puis la fusion de `main` 04d2ab0b (v1265) et `www/` resynchronisé ; le 7/11 à 17 h 55, sur le « tout » de Sacha relayé par la session de la chasse, fusion de `main` 9a5bb409 (v1271) et PUSH de la branche sur `origin/ios-capacitor` (sans force).
+  `main` avance sans cesse (d'autres sessions poussent) ; `app-ios/` n'y change pas : une fusion de plus = `git merge origin/main` sans conflit,
+  puis `npm run sync`.
+  La branche est **locale** : `git log ios-capacitor` la montre depuis n'importe quel dossier du dépôt ; son dossier de travail est
+  `.claude/worktrees/bold-bardeen-1e4a65`. `origin/ios-capacitor` n'a pas bougé (pousser = `git push origin ios-capacitor`, jamais `--force`,
+  sur le OUI de Sacha).
+- **`app-ios/natif/natif.js` = main + la partie 8** : fond `#000` (main, un seul noir avec `capacitor.config.json` et le storyboard) ;
+  partie 5 de main (`launchAutoHide:false` : l'écran de lancement attend `DOMContentLoaded`, c'est-à-dire la fin du grand script, avec le
+  **filet `setTimeout(cache,30000)`**) ; partie 8 d'ios-capacitor gardée mot pour mot (`musSauve`, `ctxDort`, `ctxReveil`, `musVide`,
+  `musRend`, écouteurs `visibilitychange` en capture + `pagehide` : plus de fiche « lecture en cours » sur l'écran verrouillé une fois
+  l'app quittée, tout le son se coupe, et revient au retour). Les parties 1-4, 7 et 6 étaient identiques des deux côtés.
+- **Le natif iOS = main** : cible **iOS 16.4** (`project.pbxproj`, 4 lignes, et `CapApp-SPM/Package.swift`) ; `AppDelegate.swift` pose
+  `AVAudioSession` en **`.playback`** (SON-04, le son malgré l'interrupteur silencieux) **avec `.mixWithOthers` en plus** (demande du 7/11 :
+  le jeu ne coupe pas la musique que le joueur écoute déjà, et iOS ne lui fait pas de fiche « lecture en cours », ce qui va dans le sens de
+  la partie 8 ; l'interrupteur silencieux reste ignoré, c'est la catégorie qui le décide). Nuance honnête : sur iOS 17+ le jeu règle lui-même
+  `navigator.audioSession.type` (`musicSession`, `code/son/musique.js`) et WebKit peut alors reposer la catégorie sans l'option ; l'option
+  vaut à coup sûr sur iOS 16 et tant que la page n'a pas pris la main. `JeuViewController.swift` : `GardeHautParleur` (Léo, le son par
+  les deux haut-parleurs) et l'indicateur d'accueil effacé. Écran de lancement : fond noir, 6 PNG 8×8 noirs, 30 s de plafond.
+- **`preparer-www.js` = main** : coupe tolérante (`toutes(…,souple)` : LE CHARGEUR ≥ 13), chargements par programme (Worker
+  `creatures/atelier.js`, `musique-moteur.json`, `musique-paliers.js`), `retraits-publies`, `scinde-banque` (la banque de sons en deux
+  moitiés), `publie-audio`, `publie-allege`, relecture par `garde-demarrage` avant et après, contrôles « PUB/AD » et marques, retrait des
+  balises og:image / twitter:image. **`node app-ios/preparer-www.js --essai "VERSION PRINCIPALE"` : réussi** (528 fichiers, 47,1 Mo,
+  0 adresse réseau hors latest.json). **`npm run sync` : réussi** sur Windows (preparer-www puis `npx cap sync ios`, 5 modules Capacitor) ;
+  `www/maj.json` = **jeu `9a5bb409`** (v1271), `CC_BUILD='9a5bb409'`, `www/natif.js` en tête de page avec les parties 5 et 8
+  (sans ses commentaires : `publie-allege`), 0 trace `I18N_ZH` / `zh` / `poki`.
+- ⚠ `npx cap sync` **réécrit `CapApp-SPM/Package.swift` en `.iOS(.v16)`** à chaque passage ; je l'ai remis à `.iOS("16.4")` comme main.
+  Sans gravité dans un sens comme dans l'autre : c'est `IPHONEOS_DEPLOYMENT_TARGET = 16.4` du projet qui fait foi.
+- Pas fait : aucune construction Xcode (pas de Mac ici), aucune archive, rien poussé, rien envoyé à Apple.
+
+## RESTE À FAIRE SUR LE MAC (dans l'ordre)
+1. La branche est sur `origin/ios-capacitor` (poussée le 7/11, 17 h 55) : sur le Mac `git fetch && git checkout ios-capacitor`.
+2. `cd app-ios && npm ci && npm run sync` (refait `www/` à l'identique et `Package.swift` repasse en `.v16` : ignorer), `npm run ouvrir`.
+3. Xcode : construction SIMULATEUR puis un **iPhone réel** (iOS 16.4 ou plus). Le parcours, dans l'ordre : écran de lancement noir jusqu'au
+   premier écran du jeu (jamais plus de 30 s, pas de fond violet nu) ; **interrupteur silencieux → le son joue** ; Spotify lancé avant →
+   **continue** pendant le jeu (`.mixWithOthers`) ; **quitter l'app → pas de fiche « lecture en cours »** sur l'écran verrouillé ni au
+   centre de contrôle, tout le son coupé ; **revenir → la musique reprend** à sa position ; le son sort des **deux haut-parleurs** (pas de
+   l'écouteur du haut, Léo) ; FR puis EN ; course, mort, garage, boutique (tout en argent du jeu, aucun €), réglages sans ENTRER UN CODE.
+4. `MARKETING_VERSION` reste 1.0.0 / build 2 : rien n'a encore été envoyé à Apple, donc rien à monter. Si un build avait été envoyé entre
+   temps : monter `MARKETING_VERSION` (le natif a changé : 16.4, session audio, `JeuViewController`), règle IOS-19 du LISEZ-MOI.
+5. Captures 6,9" (1320×2868) et 6,3" (1206×2622) FR + EN sur CE `www/`.
+6. `sh app-ios/archiver.sh` (archive + export local, RIEN d'envoyé). TestFlight / envoi (`--envoyer`) : **seulement sur le OUI écrit de
+   Sacha dans la session, juste avant** (« on sort plus tard »).
+
+## À CONFIRMER PAR SACHA
+- `.mixWithOthers` (ajouté le 7/11 sans décision écrite de lui, sur la consigne « de préférence ») : garder, ou revenir à `options: []`
+  (une ligne dans `AppDelegate.swift`) si le choix est que le jeu coupe la musique du joueur comme un vrai lecteur.
+
 # MISE À JOUR — 24/10 (session APP STORE de la grande chasse aux bugs, branche `sortie-ios/appstore`, rien de poussé, rien d'envoyé)
 ## FAIT
 - `origin/main` (41a404b6, cache v855, 1 921 commits) fusionné dans la branche (1 conflit : CLAUDE.md racine, les deux gardés). Le jeu
