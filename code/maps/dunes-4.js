@@ -6,7 +6,16 @@
    (S.pw : sa demi-largeur depuis l'axe, qui monte et s'élargit en douceur sur 120 m avant la scène, dnProfil le lit) — le sable s'y tient à hauteur de la dalle. Les colonnes, colosses,
    sphinx et pylônes TUENT en vol (ils entrent dans DN.mo). `?sans=dunesscenes` = sans elles. */
 const DN_SCN={on:!/[?&]sans=([^&]*,)?dunesscenes(,|&|$)/.test(location.search)};
-function dnPos(S,s,lat){const i=Math.max(0,Math.min(S.n-1,Math.round(s/S.ds)));return {x:S.x[i]-S.tz[i]*lat,z:S.z[i]+S.tx[i]*lat,yr:S.y[i],t:Math.atan2(S.tx[i],S.tz[i]),i:i};}
+/* ===== LA DALLE PENCHÉE ET LE SOL SOUS L'EMPRISE (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+   MESURÉ (dbgDunes('decor'), 10 graines) : (1) `yr` était la hauteur de l'AXE de la route ; dans un virage la dalle se couche jusqu'à 40° et la berme la suit (dnProfil) : un décor du côté bas
+   montait sur un podium jusqu'à la hauteur de l'axe, 10 à 20 m au-dessus du bord de la route, et celui du côté haut s'enfonçait sous la berme. `yr` est désormais la hauteur de la dalle PROLONGÉE au
+   décalage `lat` (comme la berme : bornée au plateau de la scène). (2) Le sol n'était lu qu'au CENTRE du décor : sur une pente, le podium, la maison, le bloc tombé « pendaient » du côté
+   aval (jusqu'à 45 m de vide sous un coin). `dnSolBas` lit le sable le plus bas sous l'emprise tournée (5 × 5 points) : le podium et les blocs partent de là. */
+function dnPos(S,s,lat){const i=Math.max(0,Math.min(S.n-1,Math.round(s/S.ds))),lm=Math.max(ROAD_HALF+10,S.pw[i]||0),l9=Math.max(-lm,Math.min(lm,lat));
+  return {x:S.x[i]-S.tz[i]*lat,z:S.z[i]+S.tx[i]*lat,yr:S.y[i]-l9*Math.tan(S.bk?S.bk[i]:0),t:Math.atan2(S.tx[i],S.tz[i]),i:i};}
+const o9b={};
+function dnSolBas(x,z,hx,hz,rot){const ca=Math.cos(rot||0),sa=Math.sin(rot||0);let lo=1e9;
+  for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++){const lx=a/2*hx,lz=b/2*hz,g=dnHauteur(x+lx*ca+lz*sa,z-lx*sa+lz*ca,o9b);if(g<lo)lo=g;}return lo;}
 // les tronçons CALMES de la route (2026-10-22, LA ROUTE CONTINUE : plus de sauts à contourner) — là où une scène peut se poser : le DÉPART (le belvédère, le 1er creux), chaque CREUX entre deux vagues,
 // la DERNIÈRE droite : [{a, b, courbe, k}] — `courbe` = le cap total tourné (rad) : une longue droite = une scène de monuments
 function dnTroncons(){const S=DN.S,out=[];if(!S)return out;const Q=DN.sQ||{};
@@ -51,42 +60,54 @@ function dnPlanScenes(S,K,RH,D){
 }
 // un décor posé à (x, z) : le plateau le tient à la hauteur de la dalle ; sinon un PODIUM de pierre rattrape le sable (jamais plus de 26 m) — rend la hauteur de la base
 const o9s={};
-function dnAssise(cuis,x,z,yr,larg,rot){const h=dnHauteur(x,z,o9s);if(o9s.eau)return null;const yb=Math.max(h-.3,yr-1.2);if(yb-h>26)return null;
-  if(yb-h>1.2){const w9=larg*1.15+(yb-h)*.12;cuis(dnMod('bloc'),x,h-2,z,w9,yb-h+2,w9,rot,0,0,[.90,.80,.62]);cuis(dnMod('bloc'),x,yb-.5,z,w9*1.08,.9,w9*1.08,rot,0,0,[.96,.86,.68]);}return yb;}
+function dnAssise(cuis,x,z,yr,larg,rot){const h=dnHauteur(x,z,o9s);if(o9s.eau)return null;let yb=Math.max(h-.3,yr-1.2);if(yb-h>26)return null;
+  const w9=larg*1.15+(yb-h)*.12,lo=Math.min(h,dnSolBas(x,z,w9*.56,w9*.56,rot)); /* (2026-11-07) le sable le plus bas sous le podium (et sa corniche), pas celui du centre */
+  if(yb-lo>1.2){cuis(dnMod('bloc'),x,lo-2,z,w9,yb-lo+2,w9,rot,0,0,[.90,.80,.62]);cuis(dnMod('bloc'),x,yb-.5,z,w9*1.08,.9,w9*1.08,rot,0,0,[.96,.86,.68]);}
+  else yb=Math.min(yb,lo+.3); /* (pas de podium : le pied descend au sable le plus bas, rien ne pend) */
+  return yb;}
 function dnScenes(X){return jadeFini(dnScenesG(X));}
 function* dnScenesG(X){ /* (2026-11-01) en pas : voir dnMonumentsTiresG */
   if(!DN_SCN.on||!DN.S||!DN.scn||!DN.scn.length)return;const S=DN.S,rg=X.rg,cuis=X.cuis,K=X.K,RH=X.RH,N=X.N,mo=DN.mo,M=n=>dnMod(n);N.sc=[];
   const kill=(k,x,y,z,r,h)=>{mo.push({k:k,x:x,y:y,z:z,r:r,h:h,a:0,t:0});};
   // L'ALLÉE DES MONOLITHES (2026-11-05, ARRAKIS) : des paires de rochers dressés tous les ~2,2 longueurs, un monolithe plus haut entre deux paires
   const allee=(a,b,len)=>{const lat=RH+len*.5+8,pas=len*2.2;let n=0,pi=0;
-    for(let s=a+len;s<=b-len;s+=pas,pi++){for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat);if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,len*.55,q.t);if(yb==null)continue;
+    for(let s=a+len;s<=b-len;s+=pas,pi++){for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat);if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,Math.max(len*.55,.3*len*(1.05+.22*((pi+(sg<0?0:1))%3))),q.t); /* (2026-11-07) le podium au moins aussi large que le socle du monolithe (0,31 de sa hauteur) */if(yb==null)continue;
         const ar=Math.atan2(S.x[q.i]-q.x,S.z[q.i]-q.z),hs=len*(1.05+.22*((pi+(sg<0?0:1))%3)),sc=hs/64;cuis(M('monolithe'),q.x,yb,q.z,sc*1.15,sc,sc*1.15,ar+(sg<0?.22:-.22));kill('monolithe',q.x,yb,q.z,4.4*sc,hs);n++;}
-      const m=dnPos(S,s+pas/2,(rg()<.5?-1:1)*(RH+len*.55+10));if(S.gd[m.i]<=.01){const yb=dnAssise(cuis,m.x,m.z,m.yr,8,m.t);if(yb!=null){const hs=22+rg()*10,sc=hs/64;cuis(M('monolithe'),m.x,yb,m.z,sc*1.1,sc,sc*1.1,m.t);kill('monolithe',m.x,yb,m.z,4*sc,hs);}}}
+      const m=dnPos(S,s+pas/2,(rg()<.5?-1:1)*(RH+len*.55+10));if(S.gd[m.i]<=.01){const yb=dnAssise(cuis,m.x,m.z,m.yr,9.5,m.t);if(yb!=null){const hs=22+rg()*10,sc=hs/64;cuis(M('monolithe'),m.x,yb,m.z,sc*1.1,sc,sc*1.1,m.t);kill('monolithe',m.x,yb,m.z,4*sc,hs);}}}
     for(let s=a+30;s<=b-20;s+=48)braise(s,RH+5,3.6);
     N.allee=n;N.sc.push(['allee',Math.round(a),Math.round(b)]);};
   // LE VILLAGE DU DÉSERT (2026-11-05, ARRAKIS, Sacha : « un petit village à l'arrache, pas comme Minecraft ») : un hameau de pisé clairsemé des deux côtés de la route — tailles, orientations et parcelles jamais pareilles
   const village=(a,b,H)=>{const lat=RH+H*.45+10,n9=Math.max(3,Math.round((b-a)/(H*.55)));let n=0;
     for(let k=0;k<n9;k++)for(const sg of [-1,1]){if(rg()<.18)continue; // (un hameau clairsemé, pas une rangée : des parcelles sautées)
-      const jig=(rg()-.5)*H*.5,q=dnPos(S,a+(k+.5)*(b-a)/n9+jig,sg*(lat+(rg()-.5)*H*.35));if(S.gd[q.i]>.01)continue;const sc=.85+rg()*.5,yb=dnAssise(cuis,q.x,q.z,q.yr,3.2*sc,q.t);if(yb==null)continue;
+      const jig=(rg()-.5)*H*.5,q=dnPos(S,a+(k+.5)*(b-a)/n9+jig,sg*(lat+(rg()-.5)*H*.35));if(S.gd[q.i]>.01)continue;const sc=.85+rg()*.5,yb=dnAssise(cuis,q.x,q.z,q.yr,6.4*sc,q.t);if(yb==null)continue;
       const ar=Math.atan2(S.x[q.i]-q.x,S.z[q.i]-q.z)+(rg()-.5)*1.7; // (jamais face à la route : les maisons se tournent n'importe comment)
       cuis(M(dnMaisonNom(k+(sg<0?0:1))),q.x,yb,q.z,sc,sc,sc,ar);kill('maison',q.x,yb,q.z,3.6*sc,2.8*sc);n++;}
     N.village=n;N.sc.push(['village',Math.round(a),Math.round(b)]);};
   // LES ROCHERS D'ARRAKIS (2026-11-05 — remplacent le grand sphinx et sa pyramide) : un groupe de rochers dressés, de tailles différentes, jamais symétrique — un passage spectaculaire et contemplatif
   const monolithes=(a,b,H)=>{const lat=RH+H*.55+12,mid=(a+b)/2,offs=[-.42,-.08,.30];let n=0;
     for(let k=0;k<offs.length;k++)for(const sg of [-1,1]){if(k===1&&sg>0)continue; // (un rocher de moins d'un côté : jamais une paire bien rangée)
-      const s=mid+offs[k]*(b-a)*.5,q=dnPos(S,s,sg*(lat+k*H*.18));if(S.gd[q.i]>.01)continue;const h9=H*(.7+.5*((k*2+(sg<0?0:1))%3)/2),yb=dnAssise(cuis,q.x,q.z,q.yr,h9*.34,q.t);if(yb==null)continue;
+      const s=mid+offs[k]*(b-a)*.5,q=dnPos(S,s,sg*(lat+k*H*.18));if(S.gd[q.i]>.01)continue;const h9=H*(.7+.5*((k*2+(sg<0?0:1))%3)/2),yb=dnAssise(cuis,q.x,q.z,q.yr,h9*.62,q.t);if(yb==null)continue;
       const ar=rg()*6.28;cuis(M(dnRocherNom(k+(sg<0?0:1))),q.x,yb,q.z,h9*.3,h9,h9*.3,ar);kill('rocher',q.x,yb,q.z,h9*.32,h9*1.05);n++;}
     N.rochers=n;N.sc.push(['monolithes',Math.round(a),Math.round(b)]);};
   // LE VER DES SABLES (dunes-ver.js) : l'arche enjambe la route, au milieu de la scène ; son axe (x local) est en travers de la route
-  const ver=(c)=>{const q=dnPos(S,(c.a+c.b)/2,0),yb=dnAssise(cuis,q.x,q.z,q.yr,c.s*.3,q.t);if(yb==null)return;cuis(M('ver'),q.x,yb-1,q.z,c.s,c.s,c.s,q.t);N.ver=(N.ver|0)+1;N.sc.push(['ver',c.a,c.b]);};
+  /* (2026-11-07) MESURÉ (graine 4) : dnAssise posait, SOUS la route, le podium de pierre de 30 m de large qui rattrape le sable (la dalle est à 10 m au-dessus) : dans un virage couché, sa corniche
+     perçait le bitume du côté bas. Le ver n'a pas de podium : sa base est la dalle ; puis on l'enfonce jusqu'à ce que sa QUEUE (x = −0,88 s, 0,36 s sous la base) et sa TÊTE entrent dans le sable — au plus 0,3 s (le ventre reste à plus de 30 m au-dessus de la route) */
+  const ver=(c)=>{const q=dnPos(S,(c.a+c.b)/2,0),h0=dnHauteur(q.x,q.z,o9s);if(o9s.eau)return;let yb=Math.max(h0-.3,q.yr-1.2);
+    const lx=S.tz[q.i],lz=-S.tx[q.i];let enf=0; /* l'axe x local du ver, tourné de q.t : (tz, −tx) ; le corps relu en 12 points de chaque bout (le même arc que DN_MOD.ver : x = −cos θ, y = 0,74 sin θ, rayon 0,095-0,17) : son ventre doit entrer de 2 m dans le sable */
+    for(let k=0;k<=24;k++){const t9=k<=12?k/12*.32:1-(k-13)/11*.12,th=-.16*Math.PI+1.06*Math.PI*t9,x9=-Math.cos(th)*c.s,y9=.74*Math.sin(th)*c.s-(.095+.075*t9)*1.1*c.s,g9=dnHauteur(q.x+lx*x9,q.z+lz*x9,o9s);if(y9<.05*c.s)enf=Math.max(enf,yb-1+y9-(g9-2));}
+    /* … sans jamais rapprocher le ventre de la dalle (penchée jusqu'à 40° : son bord haut monte de 23 m) à moins de 9 m — MESURÉ (graine 4) : enfoncé de 0,3 s, le ventre frôlait le bord haut d'un virage couché */
+    let mx=.3*c.s;const tb=Math.tan(S.bk?S.bk[q.i]:0);for(let k=0;k<=40;k++){const th=-.16*Math.PI+1.06*Math.PI*k/40,x9=-Math.cos(th)*c.s;if(Math.abs(x9)>ROAD_HALF+3)continue;const y9=.74*Math.sin(th)*c.s-(.095+.075*k/40)*1.1*c.s;mx=Math.min(mx,(yb-1+y9)-(S.y[q.i]+x9*tb)-9);}
+    yb-=Math.max(0,Math.min(mx,enf));
+    cuis(M('ver'),q.x,yb-1,q.z,c.s,c.s,c.s,q.t);N.ver=(N.ver|0)+1;N.sc.push(['ver',c.a,c.b]);};
   // LES BRASEROS (2026-10-22) : des paires de vasques sur la berme, de part et d'autre de la route — la nuit, ce sont elles qui éclairent la procession
-  const braise=(s,lat0,h)=>{for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat0);if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,h*.5,q.t);if(yb==null)continue;cuis(M('brasero'),q.x,yb,q.z,h,h,h,q.t);N.braseros=(N.braseros|0)+1;}};
+  const braise=(s,lat0,h)=>{for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat0);if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,h*.62,q.t);if(yb==null)continue;cuis(M('brasero'),q.x,yb,q.z,h,h,h,q.t);N.braseros=(N.braseros|0)+1;}};
   // LES BALISES DES CRÊTES (2026-10-22, Léo : « le joueur peut piquer en bas ou décoller ») : à chaque crête, deux monolithes de part et d'autre de la route, juste avant l'apex — le tremplin se lit de loin (la porte du ciel)
-  {let n=0;for(const v of DN.lev||[]){if(performance.now()>JF.lim)yield;if(v.tag==='bosse')continue;if(DN_ACTES.on&&v.tag!=='grande'){braise(v.s-40,RH+5,3.4);continue;}for(const sg of [-1,1]){const q=dnPos(S,v.s-12,sg*(RH+8));if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,9,q.t);if(yb==null)continue;
+  {let n=0;for(const v of DN.lev||[]){if(performance.now()>JF.lim)yield;if(v.tag==='bosse')continue;if(DN_ACTES.on&&v.tag!=='grande'){braise(v.s-40,RH+5,3.4);continue;}for(const sg of [-1,1]){const q=dnPos(S,v.s-12,sg*(RH+9.5)); /* (2026-11-07) 1,5 m plus loin : la corniche de son podium (aussi large que le socle) restait au bord du couloir (graine 9) */if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,11,q.t);if(yb==null)continue;
       const hs=(26+rg()*8)*Math.min(1.2,K);cuis(M('monolithe'),q.x,yb,q.z,hs/64*1.1,hs/64,hs/64*1.1,q.t);kill('monolithe',q.x,yb,q.z,4.6,hs);n++;}braise(v.s-40,RH+5,3.4);braise(v.s+30,RH+5,3.4);}N.portiques=n;}
   for(const c of DN.scn){if(performance.now()>JF.lim)yield;if(c.k==='allee')allee(c.a,c.b,c.len);else if(c.k==='village')village(c.a,c.b,c.H);else if(c.k==='monolithes')monolithes(c.a,c.b,c.H);else if(c.k==='ver')ver(c);}
   // LES ÉBOULIS : des blocs et des éclats de roche, de part et d'autre, à 10-70 m du bord, sur chaque tronçon calme
   const seg=dnTroncons();let nr=0;for(const q of seg){if(performance.now()>JF.lim)yield;const n9=Math.round((q.b-q.a)/38*PAL.b('dnRuines',1)*(DN_ACTES.on?((q.sp==='vlei'||q.sp==='avenue')?.6:0):1));for(let k=0;k<n9;k++){if((k&7)===7&&performance.now()>JF.lim)yield;const s=q.a+rg()*(q.b-q.a),sg=rg()<.5?-1:1,lat=RH+10+rg()*rg()*60,p=dnPos(S,s,sg*lat);if(S.gd[p.i]>.01)continue;const g=dnHauteur(p.x,p.z,o9s);if(o9s.eau)continue;
-      const r=rg();if(r<.45){const sc=(3+rg()*4)*K*.8;cuis(M(dnTeteNom(p)),p.x,g-sc*.42,p.z,sc,sc,sc,rg()*6.28,(rg()-.5)*.5,(rg()-.4)*.4);}
-      else{const sc=(2+rg()*4)*K*.8;cuis(M('bloc'),p.x,g-.4,p.z,sc*(1+rg()),sc*(.6+rg()*.6),sc*(1+rg()),rg()*6.28,(rg()-.5)*.4,(rg()-.5)*.4,[.88,.76,.58]);}nr++;}}N.ruines=nr;}
+      const r=rg();if(r<.45){const sc=(3+rg()*4)*K*.8,lo=dnSolBas(p.x,p.z,sc*1.25,sc*1.25,0);cuis(M(dnTeteNom(p)),p.x,Math.min(g-sc*.42,lo-sc*.32),p.z,sc,sc,sc,rg()*6.28,(rg()-.5)*.5,(rg()-.4)*.4);}
+      else{const sc=(2+rg()*4)*K*.8,bx=sc*(1+rg()),by=sc*(.6+rg()*.6),bz=sc*(1+rg()),ry=rg()*6.28,tx=(rg()-.5)*.4,tz=(rg()-.5)*.4,lo=dnSolBas(p.x,p.z,bx*.5,bz*.5,ry); /* (2026-11-07) le même tirage, dans le même ordre ; le bloc s'enfonce sous le sable le plus bas de son emprise (et de quoi cacher son inclinaison) */
+        cuis(M('bloc'),p.x,Math.min(g,lo)-.4-.1*Math.max(bx,bz),p.z,bx,by,bz,ry,tx,tz,[.88,.76,.58]);}nr++;}}N.ruines=nr;}
 /* <<<FIN DUNES>>> */

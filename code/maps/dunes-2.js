@@ -368,7 +368,7 @@ function dnMonumentsTires(seed){return jadeFini(dnMonumentsTiresG(seed));}
 /* (2026-11-01, Léo : « règle ce qui reste ») LES MONUMENTS EN PAS : des rendez-vous JF.lim entre les familles et dans les longues boucles, AVANT tout tirage
    (le hasard rg tombe dans le même ordre : le même décor) — d'un trait au passage (JF.lim infini), en pas au pré-bâti (dnMonuAvanceG, dunes-1.js). */
 function* dnMonumentsTiresG(seed){
-  const D=DN.deco,M9=dnMats(),G2=dnGeos2(),S=DN.S,K=Math.sqrt(lvPiste()),RH=ROAD_HALF,t0=performance.now(),rg=mulberry32((D.sd^0x7A55D)>>>0),o9={},N={};
+  DN.cuisJ=[];const D=DN.deco,M9=dnMats(),G2=dnGeos2(),S=DN.S,K=Math.sqrt(lvPiste()),RH=ROAD_HALF,t0=performance.now(),rg=mulberry32((D.sd^0x7A55D)>>>0),o9={},N={};
   const mt=new THREE.Matrix4(),q9=new THREE.Quaternion(),e9=new THREE.Euler(0,0,0,'YXZ'),v9=new THREE.Vector3(),s9=new THREE.Vector3(),ax=new THREE.Vector3(0,1,0),CU=dnCuiseur();DN.grp.visible=true;
   const cuis=(geo,x,y,z,sx,sy,sz,ry,tx,tz,te)=>{e9.set(tx||0,ry||0,tz||0);q9.setFromEuler(e9);mt.compose(v9.set(x,y,z),q9,s9.set(sx,sy,sz));CU.ajoute(geo,mt,te);};
   /* (2026-10-27, chasse aux gels) pas de géométrie, pas d'instance : depuis le 24/10, le dnGeos2 de dunes-embellie.js remplace celui d'ici (buttes et touffes
@@ -395,12 +395,15 @@ function* dnMonumentsTiresG(seed){
   if(performance.now()>JF.lim)yield;
   // LES ROCHERS JUMEAUX (2026-10-23, Léo : « des séries de pyramides, comme la photo » — désormais des rochers plus petits au pied des deux premiers grands)
   if(DN_ACTES.on)for(let k=0;k<Math.min(2,DN.pyrs.length);k++){const P=DN.pyrs[k],ca=Math.cos(P.a),sa=Math.sin(P.a);for(let j=0;j<3;j++){const hq=P.hw*(.15-.025*j),lx=P.hw*(1.32+.12*j),lz=(j-1)*P.hw*.62,x=P.x+ca*lx+sa*lz,z=P.z-sa*lx+ca*lz,h0=dnHauteur(x,z,o9);
-    if(o9.eau||dnPresRoute(x,z,RH+hq*1.4+10,h0+hq*1.2))continue;cuis(dnMod(dnRocherNom(j)),x,h0-2,z,hq,hq*1.15,hq,P.a+(j-1)*.05);N.reines=(N.reines|0)+1;}}
+    if(o9.eau||dnPresRoute(x,z,RH+hq*1.4+10,h0+hq*1.2))continue;
+    /* (2026-11-07) MESURÉ : posé au sable du CENTRE, un rocher de 120 m de base pendait jusqu'à 119 m au-dessus d'une dune qui tombe (graine 2) : le pied part du sable le plus bas de son emprise (5 × 5) ; si le sable y varie de plus de 60 % de sa hauteur, il ne tient pas (pas posé) */
+    const ry9=P.a+(j-1)*.05,lo9=dnSolBas(x,z,hq*1.15,hq*1.15,ry9);if(h0-lo9>hq*1.15*.6)continue;cuis(dnMod(dnRocherNom(j)),x,Math.min(h0,lo9)-2,z,hq,hq*1.15,hq,ry9);N.reines=(N.reines|0)+1;}}
   if(performance.now()>JF.lim)yield;
   // LE VILLAGE DE TERRE en ruine : des maisons cubes, des murs bas
   if(D.village){const c=site(70,210,50,10,60,.08,.9);if(c){const n=8+((rg()*8)|0);N.maisons=0;
     for(let k=0;k<n+4;k++){const an=rg()*6.28,d=rg()*48*K,x=c.x+Math.sin(an)*d,z=c.z+Math.cos(an)*d,h0=dnHauteur(x,z,o9),mur=k>=n,w=mur?(12+rg()*18):(5+rg()*5),dp=mur?.9:(5+rg()*5),hh=mur?(1.4+rg()*1.6):(rg()<.35?1.2+rg()*1.5:3+rg()*3);
-      if(o9.eau||dnPresRoute(x,z,RH+10,h0+hh+2))continue;cuis(dnMod('bloc'),x,h0-.8,z,w,hh+.8,dp,c.t+(rg()<.6?0:Math.PI/2)+(rg()-.5)*.2,0,0,tch([.82,.60,.42],.08));N.maisons++;}}}
+      if(o9.eau||dnPresRoute(x,z,RH+10,h0+hh+2))continue;const ry9=c.t+(rg()<.6?0:Math.PI/2)+(rg()-.5)*.2,lo9=Math.min(h0,dnSolBas(x,z,w*.5,dp*.5,ry9)); /* (2026-11-07) du sable le plus bas de l'emprise (rien ne pend) */
+      cuis(dnMod('bloc'),x,lo9-.8,z,w,hh+.8+(h0-lo9),dp,ry9,0,0,tch([.82,.60,.42],.08));N.maisons++;}}}
   DN.car=[];DN.carIm=null; /* (plus de campements ni de caravanes : Arrakis ne connaît pas le chameau) */
   DN.nArb=0;DN.nPal=0; /* (plus d'acacias ni de palmiers, plus d'oasis vivante : le désert est nu) */
   if(performance.now()>JF.lim)yield;
@@ -452,6 +455,7 @@ function dunesChauffe(){ // au menu (chauffeDivers) : le sable et les décors co
   g9.traverse(function(o){o.frustumCulled=false;});scene.add(g9);const P9=dnPart(),pv=P9.visible;P9.visible=true;
   try{chauffeRendu([m,g9,P9]);}finally{m.visible=v;DN.geo.instanceCount=n;scene.remove(g9);bx9.dispose();P9.visible=pv;}}
 window.dbgDunes=function(k,a,b,c,d){
+  if(k==='decor')return dnAuditDecor(a); /* (2026-11-07) le décor cuit contre la route et contre le sable : voir dnAuditDecor (dunes-3.js) */
   if(k==='ecart'){if(!DN.on)return 'pas de dunes';const cs=(+a||DN.S0*Math.pow(2,DN.lmin|0)/DN.G),F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()},T9={},H=(i,j)=>dnHauteur(i*cs,j*cs,T9);
     /* (facettes, banc) l'ÉCART entre le sable RENDU (interpolation linéaire sur la grille de `cs` m, les deux triangles de chaque case) et la vraie fonction dnHauteur, le long de la route jusqu'à ±90 m, et la marge route − sable RENDU (≥ 1 m) */
     const lin=(x,z)=>{const i=Math.floor(x/cs),j=Math.floor(z/cs),u=x/cs-i,v=z/cs-j,ha=H(i,j),hb=H(i+1,j),hc=H(i,j+1),hd=H(i+1,j+1);return u+v<=1?ha+(hb-ha)*u+(hc-ha)*v:hd+(hc-hd)*(1-u)+(hb-hd)*(1-v);};

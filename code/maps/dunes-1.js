@@ -563,7 +563,7 @@ function dnPlancher(x,z,r){let lo=1e9;for(const f of [0,.5,1])for(let a=0;a<(f?1
    le sable VOISIN (une dune ou un creux qui n'a rien à faire sous le monument) — l'ancrage se décalait au hasard du tirage (flotte ici, s'enfonce là).
    On lit une grille 5×5 dans le repère TOURNÉ de la pyramide (son angle `a`) : uniquement sous sa base réelle. */
 function dnPlancherPyr(P){const ca=Math.cos(P.a),sa=Math.sin(P.a),hw=P.hw;let lo=1e9;
-  for(const u of [-1,-.5,0,.5,1])for(const w of [-1,-.5,0,.5,1]){const g=dnHauteur(P.x+u*hw*ca+w*hw*sa,P.z-u*hw*sa+w*hw*ca);if(g<lo)lo=g;}
+  for(let a9=-4;a9<=4;a9++)for(let b9=-4;b9<=4;b9++){const u=a9/4*1.15,w=b9/4*1.15,g=dnHauteur(P.x+u*hw*ca+w*hw*sa,P.z-u*hw*sa+w*hw*ca);if(g<lo)lo=g;} /* (2026-11-07) 9 × 9 points jusqu'au bord de la dalle du rocher (1,15 demi-base) : 5 × 5 sur ±1 manquait les creux entre deux points et le bord */
   return lo;}
 /* ===== LES MONUMENTS DES DUNES D'AVANCE (2026-11-01, Léo : « règle ce qui reste ») =====
    MESURÉ (banc iPhone ×4) : au portail des dunes, dnMondePose posait tous les monuments d'un bloc (dnMonuments : les modèles, les scènes, les ruines
@@ -595,8 +595,8 @@ function dnMonuPose(A){ /* (dnMondePose, au passage) les monuments bâtis d'avan
   Object.assign(DN,A.chg);DN.grp.visible=true;DN.grp.updateMatrixWorld(true);}
 function dnMonuJette(a){if(!a||!a.mon)return;for(const o of a.mon.grp.children)if(o.userData.jeter&&o.geometry)o.geometry.dispose();a.mon=null;} /* (un pré-bâti annulé) */
 function dnAncreDecors(){if(!DN_ANCRE||!DN.Z||!DN.F)return;
-  for(const b of DN.ob||[]){const lo=dnPlancher(b.x,b.z,b.r*1.42);if(b.y>lo-.6)b.y=Math.max(lo-.6,b.y-Math.max(6,b.h*.4));}
-  for(const P of DN.pyrs||[]){const lo=dnPlancherPyr(P);if(P.y>lo-3)P.y=Math.max(lo-3,P.y-P.h*.25);}
+  for(const b of DN.ob||[]){const lo=dnPlancher(b.x,b.z,b.r*2.9); /* (2026-11-07) le socle du monolithe fait 4,3 × 3,8 r : sa demi-diagonale est 2,9 r (1,42 r lisait le sable sous le fût seulement) ; on l'enfonce jusqu'à la moitié de sa hauteur s'il le faut */if(b.y>lo-1.5)b.y=Math.max(lo-1.5,b.y-Math.max(6,b.h*.5));}
+  for(const P of DN.pyrs||[]){const lo=dnPlancherPyr(P);if(P.y>lo-3)P.y=Math.max(lo-3,P.y-P.h*.35);}
   for(const m of DN.mo||[]){const lo=dnPlancher(m.x,m.z,m.r);if(m.y>lo-1)m.y=Math.max(lo-1,m.y-Math.max(6,m.h*.3));}}
 function dnMondePose(R,mon){
   if(!DN.mat||!(LVL.cur&&LVL.cur.piste==='dunes'))return;const t4=performance.now();
