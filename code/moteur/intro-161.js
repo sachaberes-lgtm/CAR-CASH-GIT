@@ -95,6 +95,10 @@
   }
   /* (2026-11-07, OPTI ULTIME : « étape rendu 326 ms = le 1er dessin du canevas 2D plein écran ») sur TÉLÉPHONE (TEL_NATIF), le film se dessine à 1,5 pixel de canevas par point d'écran au lieu de 2 : 44 % de pixels en moins
      sur le canevas plein écran (iPhone 13 Pro : 585 × 1 266 au lieu de 780 × 1 688). Plafond FIXE (pas « bas puis haut » : changer de taille referait `prepare` — logo, fracture — au milieu du film). `?intros=2` = comme avant, `?intros=N` règle le plafond (banc). */
+  /* (2026-11-07, OPTI ULTIME : « étape rendu » 350-400 ms = la 1re image du film) LES VIGNETTES EN IMAGEBITMAP, ÉTALÉES : la 1re image lançait 660 `createImageBitmap` (6 zones × 11 signes × NLUM 10) d'un bloc ; désormais 24 par image du film (28 images),
+     mêmes pixels à l'arrivée. `?bitmaps=1` = l'ancien (660 d'un bloc, chronométré `#bitmaps` dans la sonde), `?bitmaps=0` = aucune conversion (les canevas sont dessinés tels quels). */
+  const BM_MODE=(function(){const m=/[?&]bitmaps=([01])\b/.exec(location.search);return m?+m[1]:2;})();
+  function bitmapsLance(e,a,b){for(let k=a;k<b;k++){const ci=e.pciBm[k][0],st=e.pciBm[k][1],cc=e.sprH[ci][st];try{createImageBitmap(cc).then(function(bm){if(e.sprH[ci][st]===cc)e.sprH[ci][st]=bm;},function(){});}catch(x){}}}
   const INTRO_S_MAX=(function(){const m=/[?&]intros=([\d.]+)/.exec(location.search);return m?Math.max(.6,+m[1]):(typeof TEL_NATIF!=='undefined'&&TEL_NATIF?1.5:2);})();
   function mesure(){
     const t=tailleEcran();W=t[0];H=t[1]; /* ce qui se VOIT (la fenêtre du cadre), jamais plus : un voile plus large que la fenêtre décalait tout le dessin (vu le 23/10 : logo énorme, coupé à droite) */
@@ -283,7 +287,10 @@
     if(pasSon!==Math.floor(t*2.2)){pasSon=Math.floor(t*2.2);if(t>3&&tp===null&&pasSon%2===0){try{if(SON&&!filmMuet&&iAC&&SON.dr)SON.note(iAC.currentTime+.02,pasSon>>1);}catch(x){}}} /* une cloche tous les deux pas (le tempo de l'ancienne onde de couleurs) */
     if(PCI_ON){if(ea>0){ /* (passe perf PC, voir LE FILM SANS TRAVAIL REFAIT) le même dessin au bit près : mêmes expressions, même ordre (les points de derrière, puis ceux de devant, par i croissant) */
       if(!e.pciT0){const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=.8+Math.pow(Math.abs(e.py[i]),.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);e.pciL=new Uint8Array(e.n);
-        if(typeof createImageBitmap==='function')e.sprH.forEach(function(L,ci){L.forEach(function(cc,st){try{createImageBitmap(cc).then(function(b){if(e.sprH[ci][st]===cc)e.sprH[ci][st]=b;},function(){});}catch(x){}});});} /* les vignettes en ImageBitmap (mêmes pixels) dès qu'elles sont prêtes */
+        if(typeof createImageBitmap==='function'&&BM_MODE){e.pciBm=[];e.sprH.forEach(function(L,ci){L.forEach(function(cc,st){e.pciBm.push([ci,st]);});});e.pciBmI=0;e.pciBmMs=0;e.pciBmN=0;e.pciBmMx=0;
+          if(BM_MODE===1){const a9=performance.now();bitmapsLance(e,0,e.pciBm.length);e.pciBmI=e.pciBm.length;try{if(window.__ccSondeCrea)window.__ccSondeCrea('#bitmaps d\'un bloc : '+e.pciBm.length+' vignettes en '+Math.round(performance.now()-a9)+' ms',a9,0);}catch(x){}}}} /* les vignettes en ImageBitmap (mêmes pixels) dès qu'elles sont prêtes — (2026-11-07) 24 par image du film au lieu de 660 d'un bloc (voir BM_MODE) */
+      if(e.pciBm&&e.pciBmI<e.pciBm.length){const a9=performance.now(),b9=Math.min(e.pciBm.length,e.pciBmI+24);bitmapsLance(e,e.pciBmI,b9);e.pciBmI=b9;const d9=performance.now()-a9;e.pciBmMs+=d9;e.pciBmN++;if(d9>e.pciBmMx)e.pciBmMx=d9;
+        if(b9===e.pciBm.length){try{if(window.__ccSondeCrea)window.__ccSondeCrea('#bitmaps étalé : '+e.pciBm.length+' vignettes en '+e.pciBmN+' images, '+Math.round(e.pciBmMs)+' ms au total, pire image '+Math.round(e.pciBmMx)+' ms',a9,0);}catch(x){}}}
       const T0=e.pciT0,Q=e.pciQ,Z=e.pciZ,LV=e.pciL,gr=1+.6*borne(s/.7,0,1);
       for(let i=0;i<e.n;i++){
         const k=borne((t-T0[i])/.55,0,1);if(k<=0){Z[i]=-1;continue;}
