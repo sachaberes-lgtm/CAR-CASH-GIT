@@ -1,0 +1,48 @@
+<style id="inventaireGrand">
+/* ===== L'INVENTAIRE EN GRAND (2026-11-07, Sacha : « l'inventaire est un peu petit, il pourrait être plus haut, l'espace du haut de l'iPhone n'est pas occupé » · « les voitures sont mal présentées, ça donne pas envie : 2 par 2 au lieu de 3 par 3 » · « refais les ailes, là on voit pas les voitures ») — voir interface/inventaire-grand.js =====
+   1. DEBOUT, LE PANNEAU MONTE JUSQUE SOUS LE NOM. La grille était plafonnée à trois petites rangées (256 px) pour laisser la caisse en
+      vue : MESURÉ en 390 × 844, le panneau commençait à 355 px du haut, le nom finissait à 161. #garage est une colonne (le haut, la
+      jauge qui tourne la caisse, le panneau) : le panneau grandit désormais avec ce qu'il range, jusqu'à TOUTE la place qui reste sous
+      le nom (quelles que soient l'encoche et la taille de l'iPhone) ; au-delà, la grille défile. Un onglet presque vide (une seule
+      peinture) garde un petit panneau : la caisse qu'on peint reste en vue. Plein, la caisse est derrière le panneau : sa jauge
+      s'efface (les cases montrent les caisses). Couché, rien ne change. */
+@media (orientation:portrait){
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{flex:0 1 auto!important;min-height:0!important;height:auto!important;max-height:none!important;margin-top:8px!important}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gTourne{display:none!important}
+  /* le verre du panneau (22 à 34 % en haut) laissait voir la caisse floue derrière les onglets : il s'épaissit */
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gBottom{background:linear-gradient(180deg,rgba(24,18,48,.9) 0%,rgba(16,12,34,.94) 40%,rgba(11,8,24,.97) 100%)}
+  html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{flex:0 1 auto!important;height:auto!important;min-height:110px;max-height:none!important;align-content:start}}
+/* 2. VOITURES ET AILES, DEUX PAR RANGÉE. Une case = un petit studio : la lumière de la rareté (--rr) qui tombe d'en haut, un sol éclairé
+      sous la caisse, la grande photo (pour une aile : ta caisse qui la porte), une plaque d'encre avec le nom, cousue d'un filet de la
+      rareté. La pente de l'atelier (--sk) reste : la photo et les mots sont redressés (un pixel penché bave). Tout est à toi ici : plus
+      de coche à chaque case ; l'équipée dit ÉQUIPÉE en cyan (à la place du petit losange d'or). */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:max-content;align-content:start;gap:12px 12px;padding:10px 20px 16px}
+/* (MESURÉ) une case étirée dans sa rangée ignorait son rapport : les rangées tombaient à 8 px et les cases se chevauchaient — align-self:start */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT{height:auto!important;aspect-ratio:1.18;align-self:start;
+  background:radial-gradient(75% 62% at 50% -10%,color-mix(in srgb,var(--rr,#5ee6ff) 58%,transparent) 0%,color-mix(in srgb,var(--rr,#5ee6ff) 16%,transparent) 55%,transparent 82%),
+    radial-gradient(48% 13% at 50% 63%,color-mix(in srgb,var(--rr,#5ee6ff) 38%,rgba(255,255,255,.1)) 0%,transparent 100%),
+    linear-gradient(180deg,#241d48 0%,#16112e 58%,#0c0919 100%)}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT>.gTl,
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT>.gTv,
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT>em,
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT.eq::after{display:none}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT>img{left:4%!important;top:3px!important;width:92%!important;height:calc(100% - 36px)!important;object-fit:contain;
+  filter:drop-shadow(0 6px 5px rgba(3,1,9,.6))}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT.ill .gIc{top:calc((100% - 30px) / 2 - 18px)}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT>.rarLogo{top:7px;right:10px}
+/* la plaque */
+#garage.atelierInv #gStrip.ivDeux .ivPl{position:absolute;left:0;right:0;bottom:0;height:30px;display:flex;align-items:center;justify-content:center;padding:0 12px;box-sizing:border-box;
+  background:linear-gradient(180deg,rgba(9,7,20,.86),rgba(7,5,15,.97));box-shadow:inset 0 1px 0 color-mix(in srgb,var(--rr,#5ee6ff) 70%,transparent),inset 0 2px 0 rgba(255,255,255,.04)}
+#garage.atelierInv #gStrip.ivDeux .ivNom{display:block;width:100%;overflow:hidden;white-space:nowrap;text-align:center;font-weight:400;font-size:var(--f1);line-height:1.25;letter-spacing:.04em;color:#fff;
+  text-shadow:0 1px 0 rgba(3,1,9,.9);transform:skewX(var(--skI))}
+#garage.atelierInv #gStrip.ivDeux .ivNom.n7{font-size:var(--f0)}
+#garage.atelierInv #gStrip.ivDeux .ivNom.deux{white-space:normal;line-height:1.3;text-wrap:balance}
+#garage.atelierInv #gStrip.ivDeux .gT.on .ivNom{color:var(--neoC,#5ee6ff)}
+/* ÉQUIPÉE */
+#garage.atelierInv #gStrip.ivDeux .ivEq{position:absolute;left:12px;top:7px;z-index:2;display:flex;align-items:center;gap:4px;padding:3px 6px 2px;background:var(--neoC,#5ee6ff);color:#07050f;font-style:normal;
+  transform:skewX(var(--skI));box-shadow:0 0 10px rgba(94,230,255,.55)}
+#garage.atelierInv #gStrip.ivDeux .ivEq .pxi{--pxs:1;margin:0}
+#garage.atelierInv #gStrip.ivDeux .ivEq>span{font-weight:400;font-size:var(--f0);line-height:1;white-space:nowrap}
+/* hors de cette grille, la plaque n'existe pas (la bande du garage, la boutique du jour) */
+#gStrip:not(.ivDeux) .ivPl,#gStrip:not(.ivDeux) .ivEq,#garage:not(.atelierInv) #gStrip .ivPl,#garage:not(.atelierInv) #gStrip .ivEq{display:none}
+</style>
