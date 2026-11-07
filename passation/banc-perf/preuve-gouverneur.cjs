@@ -15,7 +15,7 @@
 const fs = require('fs'), vm = require('vm'), path = require('path');
 const DEPOT = path.resolve(__dirname, '../..');
 const lis = f => fs.readFileSync(path.join(DEPOT, 'code', f), 'utf8');
-const CAD = lis('moteur/cadence.js'), GOUV = lis('moteur/gouverneur-thermique.js'), MOBH = lis('moteur/mobh-regime-chaud.js');
+const CAD = lis('moteur/cadence.js'), GOUV = lis('moteur/gouverneur-thermique.js'), PALS = lis('moteur/gouverneur-paliers.js'), MOBH = lis('moteur/mobh-regime-chaud.js');
 
 function monde(opts) {
   opts = opts || {};
@@ -31,17 +31,22 @@ function monde(opts) {
   });
   const code = `(function(){
     const TEL_NATIF=__opts.tel!==false, PFR_ON=false;
-    const PAL={n:2,B:{},b(k,d){const a=PAL.B[k];return a?a[PAL.n]:d;}};
+    const PAL={n:2,B:{qlMin:[4,0,0],cielImg:[2,1,1],ventK:[.5,.7,1],emiK:[.6,.8,1]},b(k,d){const a=PAL.B[k];return a?a[PAL.n]:d;}};
     let started=true,running=true,gameOver=false,garageOn=false,paused=false;
-    const QL={k:0,essai:null},QLR={i:0,n:0,p75:__opts.p75==null?10:__opts.p75,vraiT:0,vrai:0,t0:0,qlN:0};
-    const qlPose=function(k){QL.k=k;QL.pose=(QL.pose||0)+1;};
+    const QL={k:0,essai:null,N_EFF:5},QLR={i:0,n:0,p75:__opts.p75==null?10:__opts.p75,vraiT:0,vrai:0,t0:0,qlN:0};
+    let DPR_CAP=1.5;const DPR_MIN=.5,SAVE={d:{q:'net'}};
+    function dprPlafond(f){return f?1:1.5;}
+    function qlBornes(){const cap=DPR_CAP,pl=Math.min(cap,1.25),bas=Math.min(pl,Math.max(DPR_MIN,1)),nA=Math.max(0,Math.ceil((cap-pl)/.08-1e-6)),nB=Math.max(0,Math.ceil((pl-bas)/.08-1e-6)),kNet=QL.N_EFF+nA,kBas=kNet+nB;return {cap,kMax:kBas+1};}
+    const qlPose=function(k){const dem=k;const b=qlBornes();k=Math.max(PAL.b('qlMin',0),Math.min(b.kMax,k|0));if(dem===QL.k+1)QL.plus=(QL.plus||0)+1;QL.k=k;QL.pose=(QL.pose||0)+1;};
+    const qlReprise=function(){QL.reprise=(QL.reprise||0)+1;QL.k=Math.min(QL.k,QL.N_EFF);qlPose(QL.k);};
     function loop(){} loop._ms=16;loop._r30=false;
     ${CAD}
     ${GOUV}
+    ${PALS}
     ${MOBH}
     return {CAD,MOB_S,MOB_G,QL,cadSaute,cadFin,mobChaud,mobhChaud,dbgGouv:window.dbgGouv,
       set:function(o){if('started' in o)started=o.started;if('gameOver' in o)gameOver=o.gameOver;if('p75' in o)QLR.p75=o.p75;},
-      travail:function(now,w){QLR.t0=now-w;}, CAD30_REC, MOB_GOUV};
+      travail:function(now,w){QLR.t0=now-w;}, CAD30_REC, MOB_GOUV, MOB_P, dprCap:function(){return DPR_CAP;}, setDprCap:function(v){DPR_CAP=v;}, pal:PAL, MOB_PALS};
   })()`;
   const M = vm.runInContext(code, ctx);
   M.t = t; M.ev = ev; M.ctx = ctx;
@@ -105,11 +110,11 @@ console.log('5. état thermique d\'iOS (cc:thermique)');
   ok('froid (?mob_g30=0) : pas calé', M.CAD.on === false);
   M.ev['cc:thermique'][0]({ detail: { etat: 2 } }); course(M, 1, 16.7, 12);
   ok('état 2 : calage immédiat', M.CAD.on === true && M.mobChaud(), JSON.stringify(M.dbgGouv()));
-  ok('état 2 : aucun cran de qualité retiré', !M.QL.pose);
+  ok('état 2 : aucun cran de qualité retiré', !M.QL.plus);
   M.ev['cc:thermique'][0]({ detail: { etat: 3 } }); M.ev['cc:thermique'][0]({ detail: { etat: 3 } });
-  ok('état 3 : un cran de qualité, une seule fois', M.QL.pose === 1, 'qlPose appelé ' + M.QL.pose + ' fois');
+  ok('état 3 : un cran de qualité, une seule fois', M.QL.plus === 1, 'cran +1 demandé ' + M.QL.plus + ' fois');
   M.ev['cc:thermique'][0]({ detail: { etat: 0 } }); M.ev['cc:thermique'][0]({ detail: { etat: 3 } });
-  ok('état 3 après retour à 0 : un nouvel épisode', M.QL.pose === 2);
+  ok('état 3 après retour à 0 : un nouvel épisode', M.QL.plus === 2);
 }
 console.log('6. la cadence réactive cale (p75 24 ms) après plus d\'une minute de course : le gouverneur retient le 30');
 {
@@ -125,13 +130,50 @@ console.log('6. la cadence réactive cale (p75 24 ms) après plus d\'une minute 
   S.set({ p75: 5 }); course(S, 30, 33.3, 6);
   ok('contrôle ?mob_gouv=0 : la sortie réactive ramène bien à 60', S.CAD.on === false);
 }
-console.log('7. régime chaud mobh (inactif par défaut)');
+console.log('7. régime chaud mobh : actif par défaut à dose >= 100');
 {
-  const M = monde({ search: '?mob_g30=0', p75: 10 }); course(M, 200, 16.7, 12);
-  ok('chaud (dose ≥ 160) mais ?mobh_chaud absent : mobhChaud() faux', M.mobChaud() && !M.mobhChaud());
-  const N = monde({ search: '?mobh_chaud=1&mob_g30=0', p75: 10 });
-  ok('?mobh_chaud=1, froid : faux', !N.mobhChaud()); course(N, 200, 16.7, 12);
-  ok('?mobh_chaud=1, chaud : vrai', N.mobhChaud());
+  const M = monde({ p75: 10 }); course(M, 30, 16.7, 12);
+  ok('défaut, 30 s de course (dose ~15, 30 calé) : régime chaud éteint', M.mobChaud() && !M.mobhChaud(), 'dose ' + M.dbgGouv().D);
+  course(M, 200, 16.7, 12);
+  ok('défaut, dose >= 100 : régime chaud allumé', M.dbgGouv().D >= 100 && M.mobhChaud(), 'dose ' + M.dbgGouv().D);
+  const Z = monde({ search: '?mobh_chaud=0', p75: 10 }); course(Z, 300, 16.7, 12);
+  ok('?mobh_chaud=0 : jamais', !Z.mobhChaud());
+  const G = monde({ search: '?gouv=max', p75: 10 }); course(G, 300, 16.7, 12);
+  ok('?gouv=max : jamais (dose haute, régime chaud éteint)', G.dbgGouv().D >= 100 && !G.mobhChaud());
+  const N = monde({ search: '?mobh_chaud=1', p75: 10 }); course(N, 2, 16.7, 12);
+  ok('?mobh_chaud=1 : chaud dès que le gouverneur dit chaud (30 calé)', N.mobhChaud());
+}
+console.log('8. paliers de coût GPU de la dose (gouverneur-paliers.js)');
+{
+  const M = monde({ p75: 10 }), t = {}; const g0 = () => M.dbgGouv().gpu;
+  ok('avant tout : palier 0, plafond 1,5, rien d\'écrit', g0().palier === 0 && M.dprCap() === 1.5 && M.pal.b('cielImg', 1) === 1 && M.pal.b('ventK', 1) === 1 && M.pal.b('emiK', 1) === 1);
+  const t0 = M.t.now;
+  while (M.t.now - t0 < 330000) { image(M, 16.7, 12); const p = g0().palier; if (!(p in t)) t[p] = (M.t.now - t0) / 1000; }
+  ok('palier 1 vers 2 min (dose 60 à 0,5/s)', t[1] > 110 && t[1] < 135, t[1] && t[1].toFixed(0) + ' s');
+  ok('palier 2 vers 3 min 20 (dose 100)', t[2] > 190 && t[2] < 215, t[2] && t[2].toFixed(0) + ' s');
+  ok('palier 3 vers 4 min 40 (dose 140)', t[3] > 270 && t[3] < 295, t[3] && t[3].toFixed(0) + ' s');
+  const g = g0();
+  ok('palier 3 : plafond 0,8, plancher d\'échelle = cran maximal (6), ciel 1 sur 8, vent ×½, émission ×½', g.palier === 3 && g.dprCap === .8 && g.qlMin === 6 && g.cielImg === 8 && g.ventK === .5 && g.emiK === .5, JSON.stringify({ p: g.palier, cap: g.dprCap, ql: g.qlMin, ciel: g.cielImg, vent: g.ventK, emi: g.emiK }));
+  ok('le cran est tenu d\'un coup (QL au maximum)', M.QL.k === 6, 'cran ' + M.QL.k);
+  M.setDprCap(1.5); course(M, 2, 16.7, 12);
+  ok('un changement de réglage qui rend 1,5 : le plafond est repris', M.dprCap() === .8);
+  // le repos : remontée lente, un palier à la fois, une minute au moins entre deux
+  M.set({ gameOver: true }); const r0 = M.t.now; const pr = [];
+  while (M.t.now - r0 < 600000) { image(M, 100, 12); const p = g0().palier; if (!pr.length || pr[pr.length - 1][1] !== p) pr.push([(M.t.now - r0) / 1000, p]); }
+  console.log('     repos : ' + pr.map(x => Math.round(x[0]) + ' s → palier ' + x[1]).join(' · '));
+  ok('au repos : le palier 3 tient 60 s même si la dose repasse sous 140', pr[1] && pr[1][1] === 2 && pr[1][0] >= 59, pr[1] && pr[1][0].toFixed(0) + ' s');
+  ok('au repos : un palier à la fois (3 → 2 → 1 → 0), jamais de saut', pr.map(x => x[1]).join('') === '3210', pr.map(x => x[1]).join(' '));
+  ok('palier 0 retrouvé : tout est rendu (plafond, plancher, ciel, vent, émission), l\'échelle est reprise',
+     g0().palier === 0 && M.dprCap() === 1.5 && M.pal.b('qlMin', 0) === 0 && M.pal.b('cielImg', 1) === 1 && M.pal.b('ventK', 1) === 1 && M.pal.b('emiK', 1) === 1 && M.QL.reprise >= 1);
+  const X = monde({ search: '?gouv=max', p75: 10 }); X.dbgGouv(200); course(X, 5, 16.7, 12);
+  ok('?gouv=max : dose 200, aucun palier, rien d\'écrit', X.dbgGouv().gpu.palier === 0 && X.dprCap() === 1.5 && X.pal.b('cielImg', 1) === 1);
+  const O = monde({ search: '?mob_gouv=0', p75: 10 }); course(O, 5, 16.7, 12);
+  ok('?mob_gouv=0 : pas de gouverneur, pas de palier', O.dbgGouv().gpu === null && O.dprCap() === 1.5);
+  const E = monde({ tel: false, p75: 10 }); course(E, 400, 16.7, 12);
+  ok('ordinateur : jamais de palier ni de plafond bougé', E.dprCap() === 1.5 && E.dbgGouv().gpu === null);
+  const T = monde({ search: '?mob_g30=0', p75: 10 }); course(T, 2, 16.7, 12);
+  T.ev['cc:thermique'][0]({ detail: { etat: 2 } }); course(T, 3, 16.7, 12);
+  ok('état iOS 2 : la dose passe à 160 (gouverneur-thermique) donc palier 3 tout de suite', T.dbgGouv().D >= 160 && T.dbgGouv().gpu.palier === 3 && T.dprCap() === .8);
 }
 console.log(ko ? '\nPREUVE KO (' + ko + ')' : '\nPREUVE OK');
 process.exit(ko ? 1 : 0);

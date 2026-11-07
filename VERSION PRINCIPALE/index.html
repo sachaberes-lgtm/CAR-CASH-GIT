@@ -77981,7 +77981,8 @@ function mobGouvTick(now){ /* en tête de cadSaute (donc à CHAQUE image d'écra
   else if(paused||gameOver)v=-MOB_G.repos;
   else v=MOB_G.menu;
   MOB_S.D=Math.max(0,Math.min(MOB_G.max,MOB_S.D+v*d));mobGouvEval();
-  if(now-MOB_S.sauveT>5000){MOB_S.sauveT=now;mobGouvSauve();}}
+  if(now-MOB_S.sauveT>5000){MOB_S.sauveT=now;mobGouvSauve();}
+  mobPalTick(now);} /* (2026-11-07) la dose pose les paliers de coût GPU — voir moteur/gouverneur-paliers.js */
 function mobThermo(n){ /* l'état thermique d'iOS (0 nominal · 1 fair · 2 serious · 3 critical) */
   n=Math.max(0,Math.min(3,n|0));MOB_S.thermo=n;
   if(n>=2){MOB_S.D=Math.max(MOB_S.D,n===3?MOB_G.haut+30:MOB_G.haut);MOB_S.actif=true;mobGouvSauve();}
@@ -77991,27 +77992,68 @@ if(MOB_GOUV){mobGouvCharge();
   window.addEventListener('cc:thermique',function(e){mobThermo(+(e&&e.detail&&e.detail.etat));});
   window.addEventListener('pagehide',mobGouvSauve);
   document.addEventListener('visibilitychange',function(){if(document.hidden)mobGouvSauve();});}
-window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB_G.max,+n||0));mobGouvEval();mobGouvSauve();} /* (banc) pose la dose */
+window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB_G.max,+n||0));mobGouvEval();mobGouvSauve();MOB_P.chg=-1e9;MOB_P.tk=0;} /* (banc) pose la dose */
   const pq=!MOB_GOUV?(CAD30_REC?'coupé (?mob_gouv=0)':'hors téléphone récent'):MOB_S.thermo>=2?'état thermique iOS '+MOB_S.thermo:MOB_S.actif?'dose au-dessus du seuil bas':'froid';
-  return {D:+MOB_S.D.toFixed(1),seuilHaut:MOB_G.haut,seuilBas:MOB_G.bas,actif:mobChaud(),thermo:MOB_S.thermo,pourquoi:pq};};
+  return {D:+MOB_S.D.toFixed(1),seuilHaut:MOB_G.haut,seuilBas:MOB_G.bas,actif:mobChaud(),thermo:MOB_S.thermo,pourquoi:pq,g30:MOB_G.g30,gpu:MOB_GOUV?window.dbgGouvPaliers():null};};
 window.dbgThermique=function(n){if(MOB_GOUV)mobThermo(+n);return MOB_S.thermo;}; /* (banc) simule l'événement 'cc:thermique' */
+
+/* ===== LE GOUVERNEUR PILOTE LE COÛT GPU PAR PALIERS DE DOSE (2026-11-07, vitesse-fluide : « à chaud la puce est bridée ~3×, il faut couper ~3× de travail ») =====
+   MESURÉ (13 Pro, app, build 6) : calé sur 30 et l'échelle QL au plancher (crans 9-11), la course tombe quand même à 83 ms (12 i/s) vers 8 min de jeu. Couper le travail d'UNE image est donc
+   la seule réponse : la dose de chaleur (gouverneur-thermique.js) pose, PAR PALIERS, des leviers qui existent déjà — aucun fichier du rendu n'est touché, ce morceau n'écrit que :
+     · `DPR_CAP` (puis `qlPose`) : le plafond de résolution — l'échelle QL se recalcule dessus (plafond ≤ 1 : ses crans se serrent, `kMax` = halo coupé + ombre 512 + flou radial coupé) ;
+     · le plancher de l'échelle `PAL.B.qlMin` (elle ne remonte pas au-dessus, et le cran est tenu d'un coup) ;
+     · `PAL.B.cielImg` (la passe lisse du ciel dessinée une image sur N), `PAL.B.ventK` (traits de vent) et `PAL.B.emiK` (émission de fumée, flammes, traits d'air additifs).
+   PALIERS (dose en secondes équivalentes de 60 i/s — voir gouverneur-thermique.js ; le 30 calé monte de 0,5 par seconde : 60 ≈ 2 min, 100 ≈ 3 min 20, 140 ≈ 4 min 40 de course) :
+     0 · < 60   : rien (le jeu tel quel).
+     1 · ≥ 60   : plafond de résolution 1,25 ; halo à ¾ (cran 3).
+     2 · ≥ 100  : plafond 1,0 ; cran maximal de l'échelle (halo coupé, ombre 512, flou radial coupé) ; ciel lisse une image sur 4 ; vent ×½ ; émission ×½ ; + le RÉGIME CHAUD (mobh-regime-chaud.js).
+     3 · ≥ 140  : plafond 0,8 ; ciel lisse une image sur 8.
+   L'ÉTAT THERMIQUE D'iOS (`cc:thermique`) : ≥ 2 pose la dose à 160 (gouverneur-thermique.js) = palier 3 tout de suite ; la règle `mobPalCible` garantit au moins 2 / 3 même si la dose baissait.
+   ⚠ MONTÉE immédiate, REMONTÉE lente : un palier ne se lève qu'une minute après le dernier changement, un palier à la fois (la dose ne redescend que de 0,25 par seconde de repos).
+   Seulement sur téléphone récent (TEL_NATIF, palier 2 : c'est MOB_GOUV). `?gouv=max` = rien de tout cela (et pas de régime chaud par défaut) ; `?mob_gouv=0` = plus de gouverneur du tout.
+   Banc : `dbgGouv()` donne `gpu` (palier, ce qui est coupé) ; `dbgGouv(dose)` pose la dose et lève la garde d'une minute. */
+const MOB_PALS=MOB_GOUV&&!/[?&]gouv=max\b/.test(location.search);
+const MOB_PP=[{d:0},{d:60,dpr:1.25,ql:3,ciel:1,k:1},{d:100,dpr:1,ql:99,ciel:4,k:.5},{d:140,dpr:.8,ql:99,ciel:8,k:.5}]; /* tout se règle ici ; ql 99 = le cran maximal de l'échelle */
+const MOB_PQ=['qlMin','cielImg','ventK','emiK'],MOB_P={t:0,chg:-1e9,tk:0,b:null,n:0};
+function mobPalBase(){ /* les valeurs d'origine du palier, lues une fois, avant la 1re écriture */
+  if(MOB_P.b)return MOB_P.b;const b={};for(const k of MOB_PQ)b[k]=PAL.b(k,k==='qlMin'?0:1);return(MOB_P.b=b);}
+function mobPalEcrit(k,v){const A=PAL.B[k]||(PAL.B[k]=[mobPalBase()[k],mobPalBase()[k],mobPalBase()[k]]);A[PAL.n]=v;}
+function mobPalCible(){let t=0;for(let i=1;i<MOB_PP.length;i++)if(MOB_S.D>=MOB_PP[i].d)t=i;
+  if(MOB_S.thermo>=3)t=3;else if(MOB_S.thermo>=2)t=Math.max(t,2);return t;}
+function mobPalCap(t){let c0=DPR_CAP;try{c0=dprPlafond(SAVE.d.q==='fast');}catch(e){}return Math.min(c0,MOB_PP[t].dpr||c0);} /* le plafond du réglage du joueur, sous celui du palier */
+function mobPalApplique(t){
+  const B=mobPalBase(),P=MOB_PP[t],baisse=t<MOB_P.t;
+  mobPalEcrit('cielImg',Math.max(B.cielImg,P.ciel||B.cielImg));mobPalEcrit('ventK',B.ventK*(P.k||1));mobPalEcrit('emiK',B.emiK*(P.k||1));
+  DPR_CAP=mobPalCap(t);
+  const kMax=qlBornes().kMax;mobPalEcrit('qlMin',t?Math.min(kMax,Math.max(B.qlMin,P.ql)):B.qlMin);
+  MOB_P.t=t;MOB_P.chg=performance.now();MOB_P.n++;
+  if(baisse)qlReprise();else qlPose(QL.k);} /* remontée : l'échelle rend la pleine résolution du réglage ; descente : le plancher et le plafond se posent tout de suite */
+function mobPalTick(now){ /* à chaque image d'écran (appelé par mobGouvTick) ; ne travaille qu'une fois par seconde */
+  if(!MOB_PALS||now-MOB_P.tk<1000)return;MOB_P.tk=now;
+  const c=mobPalCible();
+  if(c>MOB_P.t){mobPalApplique(c);return;}
+  if(c<MOB_P.t){if(now-MOB_P.chg>=60000)mobPalApplique(MOB_P.t-1);return;}
+  if(MOB_P.t&&DPR_CAP>mobPalCap(MOB_P.t)+.001){DPR_CAP=mobPalCap(MOB_P.t);qlPose(QL.k);}} /* un changement de réglage (RAPIDE/NETTE) a rendu le plafond : on le reprend */
+window.dbgGouvPaliers=function(){const B=MOB_P.b;return {actif:MOB_PALS,palier:MOB_P.t,bascules:MOB_P.n,dprCap:+DPR_CAP.toFixed(2),cran:QL.k,qlMin:PAL.b('qlMin',0),cielImg:PAL.b('cielImg',1),ventK:PAL.b('ventK',1),emiK:PAL.b('emiK',1),base:B,seuils:MOB_PP.map(function(p){return p.d;})};};
 /* ===== LE RÉGIME CHAUD — MOBH_ (2026-10-25, passe perf mobile A6 : « alléger les effets décoratifs quand le téléphone est chaud ») =====
    MESURÉ (iPhone 13 Pro, dans l'app, niveau 9) : après 3 à 5 minutes de jeu le téléphone s'effondre de 55 à 8-13 i/s, calage sur 30 compris. Le gouverneur (mobChaud) sait QUAND
    le téléphone est chaud ; ce morceau lui donne de quoi ALLÉGER le travail par image. Seuls des effets d'AFFICHAGE changent (traits de vent, feu de pixels de la nitro, redessin de
    l'éclair du bouton NITRO, cadence de la carte du moteur) : ni physique, ni collision, ni vitesse, ni gain d'argent, ni aura, ni chaîne, ni compteur.
-   L'INTERRUPTEUR : `?mobh_chaud=1` l'active, `?mobh_chaud=0` le coupe (INACTIF PAR DÉFAUT : il change l'image, Sacha tranche après essai). Inactif ou téléphone froid :
+   L'INTERRUPTEUR : `?mobh_chaud=1` l'active, `?mobh_chaud=0` le coupe (ACTIF PAR DÉFAUT depuis le 07/11 à dose >= 100, voir plus bas ; il change l'image). Inactif ou téléphone froid :
    mobhChaud() est faux et chaque site retombe sur l'ancien chemin, ligne pour ligne. Seulement sur un vrai téléphone (TEL_NATIF, jamais le drapeau d'interface).
    Les réglages sont tous ici : vent (nombre de traits ×, une image dessinée sur N), feu nitro (×), éclair NITRO (ms mini entre deux redessins), carte moteur (ms mini). */
-const MOBH_ACTIF=(function(){const m=location.search.match(/[?&]mobh_chaud=([01])\b/);return m?m[1]==='1':false;})();
-const MOBH_R={vent:.7,ventPas:2,ventCap:.14,feu:.6,nx3Ms:66,engMs:100};
-function mobhChaud(){return TEL_NATIF&&MOBH_ACTIF&&mobChaud();} /* vrai : le téléphone est chaud ET l'essai est demandé */
+/* (2026-11-07, vitesse-fluide : « active par défaut le régime chaud à dose > 100 ») ACTIF PAR DÉFAUT à partir du palier 2 du gouverneur (dose >= MOBH_R.dose, ou état iOS >= 2) ; `?mobh_chaud=1` = chaud dès que le gouverneur dit chaud
+   (donc dès le départ, le 30 étant calé d'office), `?mobh_chaud=0` = jamais, `?gouv=max` = jamais (comme avant). */
+const MOBH_M=location.search.match(/[?&]mobh_chaud=([01])\b/),MOBH_ACTIF=MOBH_M?MOBH_M[1]==='1':true,MOBH_FORCE=!!MOBH_M&&MOBH_M[1]==='1';
+const MOBH_R={dose:100,vent:.7,ventPas:2,ventCap:.14,feu:.6,nx3Ms:66,engMs:100};
+function mobhChaud(){if(!TEL_NATIF||!MOBH_ACTIF)return false;if(MOBH_FORCE)return mobChaud();return MOB_PALS&&(MOB_S.thermo>=2||MOB_S.D>=MOBH_R.dose);} /* vrai : le téléphone est chaud ET l'essai est demandé */
 let MOBH_ventN=0,MOBH_ventDt=0,MOBH_nx3T=0,MOBH_nx3D=-9;
 function mobhVentSaute(dt){ /* vrai : cette image-ci, le vent ne se redessine pas (le calque garde l'image d'avant, aucun effacement) ; dt s'accumule pour la suivante */
   if(!mobhChaud()){MOBH_ventN=0;MOBH_ventDt=0;return false;}
   MOBH_ventDt+=dt;if((++MOBH_ventN)%MOBH_R.ventPas!==0)return true;
   return false;}
 function mobhVentDt(){const d=MOBH_ventDt;MOBH_ventDt=0;return d;} /* le temps écoulé depuis le dernier dessin (le vent lisse la vitesse de la caméra avec lui) */
-window.dbgMobh=function(){return {actif:MOBH_ACTIF,tel:!!TEL_NATIF,chaud:mobChaud(),regime:mobhChaud(),reglages:MOBH_R};};
+window.dbgMobh=function(){return {actif:MOBH_ACTIF,force:MOBH_FORCE,tel:!!TEL_NATIF,chaud:mobChaud(),regime:mobhChaud(),reglages:MOBH_R};};
 function loop(now){
   requestAnimationFrame(loop);
   if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
