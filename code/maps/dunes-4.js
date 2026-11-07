@@ -14,8 +14,8 @@ const DN_SCN={on:!/[?&]sans=([^&]*,)?dunesscenes(,|&|$)/.test(location.search)};
 function dnPos(S,s,lat){const i=Math.max(0,Math.min(S.n-1,Math.round(s/S.ds))),lm=Math.max(ROAD_HALF+10,S.pw[i]||0),l9=Math.max(-lm,Math.min(lm,lat));
   return {x:S.x[i]-S.tz[i]*lat,z:S.z[i]+S.tx[i]*lat,yr:S.y[i]-l9*Math.tan(S.bk?S.bk[i]:0),t:Math.atan2(S.tx[i],S.tz[i]),i:i};}
 const o9b={};
-function dnSolBas(x,z,hx,hz,rot){const ca=Math.cos(rot||0),sa=Math.sin(rot||0);let lo=1e9;
-  for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++){const lx=a/2*hx,lz=b/2*hz,g=dnHauteur(x+lx*ca+lz*sa,z-lx*sa+lz*ca,o9b);if(g<lo)lo=g;}return lo;}
+function dnSolBas(x,z,hx,hz,rot,n){const ca=Math.cos(rot||0),sa=Math.sin(rot||0),m=n||2;let lo=1e9; /* n : la grille (2 → 5 × 5, 4 → 9 × 9 pour les grandes emprises) */
+  for(let a=-m;a<=m;a++)for(let b=-m;b<=m;b++){const lx=a/m*hx,lz=b/m*hz,g=dnHauteur(x+lx*ca+lz*sa,z-lx*sa+lz*ca,o9b);if(g<lo)lo=g;}return lo;}
 // les tronçons CALMES de la route (2026-10-22, LA ROUTE CONTINUE : plus de sauts à contourner) — là où une scène peut se poser : le DÉPART (le belvédère, le 1er creux), chaque CREUX entre deux vagues,
 // la DERNIÈRE droite : [{a, b, courbe, k}] — `courbe` = le cap total tourné (rad) : une longue droite = une scène de monuments
 function dnTroncons(){const S=DN.S,out=[];if(!S)return out;const Q=DN.sQ||{};

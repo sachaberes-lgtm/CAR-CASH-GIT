@@ -397,7 +397,7 @@ function* dnMonumentsTiresG(seed){
   if(DN_ACTES.on)for(let k=0;k<Math.min(2,DN.pyrs.length);k++){const P=DN.pyrs[k],ca=Math.cos(P.a),sa=Math.sin(P.a);for(let j=0;j<3;j++){const hq=P.hw*(.15-.025*j),lx=P.hw*(1.32+.12*j),lz=(j-1)*P.hw*.62,x=P.x+ca*lx+sa*lz,z=P.z-sa*lx+ca*lz,h0=dnHauteur(x,z,o9);
     if(o9.eau||dnPresRoute(x,z,RH+hq*1.4+10,h0+hq*1.2))continue;
     /* (2026-11-07) MESURÉ : posé au sable du CENTRE, un rocher de 120 m de base pendait jusqu'à 119 m au-dessus d'une dune qui tombe (graine 2) : le pied part du sable le plus bas de son emprise (5 × 5) ; si le sable y varie de plus de 60 % de sa hauteur, il ne tient pas (pas posé) */
-    const ry9=P.a+(j-1)*.05,lo9=dnSolBas(x,z,hq*1.15,hq*1.15,ry9);if(h0-lo9>hq*1.15*.6)continue;cuis(dnMod(dnRocherNom(j)),x,Math.min(h0,lo9)-2,z,hq,hq*1.15,hq,ry9);N.reines=(N.reines|0)+1;}}
+    const ry9=P.a+(j-1)*.05,lo9=dnSolBas(x,z,hq*1.15,hq*1.15,ry9,4); /* (9 × 9 : une emprise de 120 m) */if(h0-lo9>hq*1.15*.6)continue;cuis(dnMod(dnRocherNom(j)),x,Math.min(h0,lo9)-2-.03*hq,z,hq,hq*1.15,hq,ry9);N.reines=(N.reines|0)+1;}}
   if(performance.now()>JF.lim)yield;
   // LE VILLAGE DE TERRE en ruine : des maisons cubes, des murs bas
   if(D.village){const c=site(70,210,50,10,60,.08,.9);if(c){const n=8+((rg()*8)|0);N.maisons=0;

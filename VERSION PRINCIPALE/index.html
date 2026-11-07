@@ -21815,7 +21815,7 @@ function* dnMonumentsTiresG(seed){
   if(DN_ACTES.on)for(let k=0;k<Math.min(2,DN.pyrs.length);k++){const P=DN.pyrs[k],ca=Math.cos(P.a),sa=Math.sin(P.a);for(let j=0;j<3;j++){const hq=P.hw*(.15-.025*j),lx=P.hw*(1.32+.12*j),lz=(j-1)*P.hw*.62,x=P.x+ca*lx+sa*lz,z=P.z-sa*lx+ca*lz,h0=dnHauteur(x,z,o9);
     if(o9.eau||dnPresRoute(x,z,RH+hq*1.4+10,h0+hq*1.2))continue;
     /* (2026-11-07) MESURÉ : posé au sable du CENTRE, un rocher de 120 m de base pendait jusqu'à 119 m au-dessus d'une dune qui tombe (graine 2) : le pied part du sable le plus bas de son emprise (5 × 5) ; si le sable y varie de plus de 60 % de sa hauteur, il ne tient pas (pas posé) */
-    const ry9=P.a+(j-1)*.05,lo9=dnSolBas(x,z,hq*1.15,hq*1.15,ry9);if(h0-lo9>hq*1.15*.6)continue;cuis(dnMod(dnRocherNom(j)),x,Math.min(h0,lo9)-2,z,hq,hq*1.15,hq,ry9);N.reines=(N.reines|0)+1;}}
+    const ry9=P.a+(j-1)*.05,lo9=dnSolBas(x,z,hq*1.15,hq*1.15,ry9,4); /* (9 × 9 : une emprise de 120 m) */if(h0-lo9>hq*1.15*.6)continue;cuis(dnMod(dnRocherNom(j)),x,Math.min(h0,lo9)-2-.03*hq,z,hq,hq*1.15,hq,ry9);N.reines=(N.reines|0)+1;}}
   if(performance.now()>JF.lim)yield;
   // LE VILLAGE DE TERRE en ruine : des maisons cubes, des murs bas
   if(D.village){const c=site(70,210,50,10,60,.08,.9);if(c){const n=8+((rg()*8)|0);N.maisons=0;
@@ -22081,10 +22081,11 @@ function dnAuditDecor(tout){
       if(Math.abs(al)<2&&Math.abs(lt)<RH9+1&&up>.3&&up<7&&(!hit||up<hit.up))hit={s:Math.round(i*dsR),lat:+lt.toFixed(1),up:+up.toFixed(1)};};
     for(let j=0;j<nv;j++)teste(W[j*3],W[j*3+1],W[j*3+2]);
     for(let j=0;j+2<nv;j+=3)teste((W[j*3]+W[j*3+3]+W[j*3+6])/3,(W[j*3+1]+W[j*3+4]+W[j*3+7])/3,(W[j*3+2]+W[j*3+5]+W[j*3+8])/3);
-    const pied=y0+Math.max(.3,(y1-y0)*.12);let fl=-1e9,fx=0,fz=0;for(let j=0;j<nv;j++){if(W[j*3+1]>pied)continue;if(moi!=null&&porte(W[j*3],W[j*3+1],W[j*3+2],moi,y0))continue;const g=dnHauteur(W[j*3],W[j*3+2],o9),f=W[j*3+1]-g;if(f>fl){fl=f;fx=W[j*3];fz=W[j*3+2];}}
+    const pied=y0+Math.max(.3,(y1-y0)*.12);let fl=-1e9,fx=0,fz=0,fy=0;const PJ=[];for(let j=0;j<nv;j++)if(W[j*3+1]<=pied)PJ.push(j); /* un sommet du pied ne « flotte » que s'il est le BAS de sa colonne : le haut d'un socle dont la face descend dans le sable n'est pas un vide */
+    for(const j of PJ){let dessous=false;for(const k of PJ){if(W[k*3+1]<W[j*3+1]-.3&&Math.abs(W[k*3]-W[j*3])<1.5&&Math.abs(W[k*3+2]-W[j*3+2])<1.5){dessous=true;break;}}if(dessous)continue;if(moi!=null&&porte(W[j*3],W[j*3+1],W[j*3+2],moi,y0))continue;const g=dnHauteur(W[j*3],W[j*3+2],o9),f=W[j*3+1]-g;if(f>fl){fl=f;fx=W[j*3];fz=W[j*3+2];fy=W[j*3+1];}}
     const ou={nom:nom,x:Math.round(cx),z:Math.round(cz),h:Math.round(y1-y0),y0:+y0.toFixed(1),gC:+dnHauteur(cx,cz,o9).toFixed(1)};
     if(hit){T9.route++;R.route.push(Object.assign(ou,hit));}
-    if(fl>.5){T9.flotte++;let bi=0,bd=1e18;for(let k=0;k<NP;k+=2){const dx=pts[k].x-fx,dz=pts[k].z-fz,d=dx*dx+dz*dz;if(d<bd){bd=d;bi=k;}}R.flotte.push(Object.assign({},ou,{fl:+fl.toFixed(1),s:Math.round(bi*dsR),d:Math.round(Math.sqrt(bd)),pied:[Math.round(fx),Math.round(y0),Math.round(fz)]}));}if(fl>T9.flotteMax)T9.flotteMax=+fl.toFixed(1);};
+    if(fl>.5){T9.flotte++;let bi=0,bd=1e18;for(let k=0;k<NP;k+=2){const dx=pts[k].x-fx,dz=pts[k].z-fz,d=dx*dx+dz*dz;if(d<bd){bd=d;bi=k;}}R.flotte.push(Object.assign({},ou,{fl:+fl.toFixed(1),s:Math.round(bi*dsR),d:Math.round(Math.sqrt(bd)),pied:[Math.round(fx),+fy.toFixed(1),Math.round(fz)]}));}if(fl>T9.flotteMax)T9.flotteMax=+fl.toFixed(1);};
   const BX=[];for(const q of J){const pa=q.p,e=q.e;let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9,c0=1e9,c1=-1e9;for(let j=0;j<pa.length;j+=3){const x=pa[j],y=pa[j+1],z=pa[j+2],X=e[0]*x+e[4]*y+e[8]*z+e[12],Y=e[1]*x+e[5]*y+e[9]*z+e[13],Z=e[2]*x+e[6]*y+e[10]*z+e[14];if(X<a0)a0=X;if(X>a1)a1=X;if(Y<b0)b0=Y;if(Y>b1)b1=Y;if(Z<c0)c0=Z;if(Z>c1)c1=Z;}BX.push([a0,a1,b0,b1,c0,c1]);}
   const porte=(X,Y,Z,moi,y0)=>{for(let k=0;k<BX.length;k++){if(k===moi)continue;const b=BX[k];const tx=.2+.06*(b[1]-b[0]),tz=.2+.06*(b[5]-b[4]);if(X>=b[0]-tx&&X<=b[1]+tx&&Z>=b[4]-tz&&Z<=b[5]+tz&&Y>=b[2]&&b[3]+.6>=y0)return true;}return false;}; /* (un pied posé sur une autre pose : le podium sous un monolithe, la dalle sous une maison) */
   if(tout&&tout.pres){const P=tout.pres,o=[];BX.forEach(function(b,k){const cx=(b[0]+b[1])/2,cz=(b[4]+b[5])/2;if(Math.hypot(cx-P[0],cz-P[1])<(P[2]||30))o.push({k:k,nom:noms.get(J[k].p)||'?',x:[+b[0].toFixed(1),+b[1].toFixed(1)],y:[+b[2].toFixed(1),+b[3].toFixed(1)],z:[+b[4].toFixed(1),+b[5].toFixed(1)],gC:+dnHauteur(cx,cz,o9).toFixed(1)});});return o;} /* (banc) les poses autour de [x, z, rayon] : leurs boîtes */
@@ -22193,8 +22194,8 @@ const DN_SCN={on:!/[?&]sans=([^&]*,)?dunesscenes(,|&|$)/.test(location.search)};
 function dnPos(S,s,lat){const i=Math.max(0,Math.min(S.n-1,Math.round(s/S.ds))),lm=Math.max(ROAD_HALF+10,S.pw[i]||0),l9=Math.max(-lm,Math.min(lm,lat));
   return {x:S.x[i]-S.tz[i]*lat,z:S.z[i]+S.tx[i]*lat,yr:S.y[i]-l9*Math.tan(S.bk?S.bk[i]:0),t:Math.atan2(S.tx[i],S.tz[i]),i:i};}
 const o9b={};
-function dnSolBas(x,z,hx,hz,rot){const ca=Math.cos(rot||0),sa=Math.sin(rot||0);let lo=1e9;
-  for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++){const lx=a/2*hx,lz=b/2*hz,g=dnHauteur(x+lx*ca+lz*sa,z-lx*sa+lz*ca,o9b);if(g<lo)lo=g;}return lo;}
+function dnSolBas(x,z,hx,hz,rot,n){const ca=Math.cos(rot||0),sa=Math.sin(rot||0),m=n||2;let lo=1e9; /* n : la grille (2 → 5 × 5, 4 → 9 × 9 pour les grandes emprises) */
+  for(let a=-m;a<=m;a++)for(let b=-m;b<=m;b++){const lx=a/m*hx,lz=b/m*hz,g=dnHauteur(x+lx*ca+lz*sa,z-lx*sa+lz*ca,o9b);if(g<lo)lo=g;}return lo;}
 // les tronçons CALMES de la route (2026-10-22, LA ROUTE CONTINUE : plus de sauts à contourner) — là où une scène peut se poser : le DÉPART (le belvédère, le 1er creux), chaque CREUX entre deux vagues,
 // la DERNIÈRE droite : [{a, b, courbe, k}] — `courbe` = le cap total tourné (rad) : une longue droite = une scène de monuments
 function dnTroncons(){const S=DN.S,out=[];if(!S)return out;const Q=DN.sQ||{};
