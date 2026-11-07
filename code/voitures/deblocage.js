@@ -136,7 +136,7 @@ const CAR_UNLOCK=[
   /* · */
   /* · */
   /* · */
-  {p:60000}, // 83 — COMMUNE : Mazda MX-5 NA (1989), phares escamotables
+  {k:'premium',eur:'1,61 €',rar:'leg'}, /* (2026-11-07, Léo : « la Cerise en voiture payante, 1,61 €, on l'appelle Kelly ») */ // 83 — KELLY (ex-LA CERISE, était COMMUNE à 60 000) : Mazda MX-5 NA (1989), phares escamotables
   /* · */
   /* · */
   /* · */
