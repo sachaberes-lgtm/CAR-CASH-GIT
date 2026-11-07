@@ -203,11 +203,12 @@ def main():
         elif a=='--seul':o['seul']=av[i+1].split(',');i+=2
         elif a=='--sans-tel':o['tel']=False;i+=1
         elif a=='--sans-portails':o['portails']=False;i+=1
+        elif a=='--portails-seuls':o['seul']=['__aucune__'];o['portails']=True;i+=1
         else:i+=1
     c,fin=demarre(o['tel'],o['palier'],cpu=o['cpu'])
     try:
         res=run(c,scenario(),o['seul'])
-        if o['portails'] and not o['seul']:
+        if o['portails'] and (not o['seul'] or o['seul']==['__aucune__']):
             for m in ('ville:pluie','jade:midi','grotte:matin','dunes:midi','canyon:midi','nuages:orage'):
                 a=m.split(':');z0=c.ev("dbgEco().zones")
                 c.ev(SOL);c.ev("dbgClassique(%s,%s);1"%(json.dumps(a[0]),json.dumps(a[1])));c.ev("dbgPortail(2600);1")
