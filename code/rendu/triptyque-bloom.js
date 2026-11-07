@@ -7,9 +7,10 @@ renderer.shadowMap.enabled=true;
    Le type entre dans le #define des matières : il se choisit ICI, avant toute compilation, et plus personne ne le change ensuite.
    RÉCENT : ombre douce, comme avant. (`?palier=2` pour comparer.) */
 PAL.B.postOmbreDouce=[0,0,1];
-renderer.shadowMap.type=PAL.b('postOmbreDouce',1)?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
+PAL.B.imgOmbreDouce=[0,0,0];PAL.B.imgOmbre=[1024,1024,768]; /* (2026-11-07, passe perf 3, P2 · levier b) téléphone récent : ombre PCF simple (17 lectures au lieu de 36 par pixel éclairé) et carte de 768 au lieu de 1024 ; `?img=max` / `?imgsans=b` = comme avant */
+renderer.shadowMap.type=PAL.bT('imgOmbreDouce',PAL.b('postOmbreDouce',1),'b')?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 sun.castShadow=true;
-sun.shadow.mapSize.set(ALLEGE||IS_LOW_END?1024:1280,ALLEGE||IS_LOW_END?1024:1280); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
+const OMBRE_N=ALLEGE||IS_LOW_END?PAL.bT('imgOmbre',1024,'b'):1280;sun.shadow.mapSize.set(OMBRE_N,OMBRE_N); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
 const SUNC=sun.shadow.camera;
 SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=340;SUNC.updateProjectionMatrix(); // fond profond : l'ombre atteint la dalle même très haut au-dessus de la route
 sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2 texels) : assez pour tuer l'acné, pas de quoi décoller l'ombre
