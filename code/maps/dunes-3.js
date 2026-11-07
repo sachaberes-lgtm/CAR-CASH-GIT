@@ -83,7 +83,7 @@ function dnKit(sd0){
 /* LE CUISEUR DES DÉCORS (celui du canyon, avec les normales et la matière) : des géométries posées par une matrice, fondues en UNE (un seul appel de dessin) — te : teinte facultative [r, g, b] */
 function dnCuiseur(){let cap=1<<15,n=0,P=new Float32Array(cap*3),Nm=new Float32Array(cap*3),C=new Float32Array(cap*3),K=new Float32Array(cap);const m3=new THREE.Matrix3(); // (des tableaux typés qui grandissent par doublement : 50 000 sommets en ~3 ms, sans un seul objet alloué par sommet)
   const grow=need=>{if(n+need<=cap)return;while(n+need>cap)cap*=2;const g=(a,m)=>{const b=new Float32Array(cap*m);b.set(a.subarray(0,n*m));return b;};P=g(P,3);Nm=g(Nm,3);C=g(C,3);K=g(K,1);};
-  return {ajoute:function(g,mt,te){const cnt=g.attributes.position.count,p=g.attributes.position.array,c=g.attributes.color.array,nn=g.attributes.normal.array,k=g.attributes.aK?g.attributes.aK.array:null,r=te?te[0]:1,gg=te?te[1]:1,b=te?te[2]:1,e=mt.elements;m3.getNormalMatrix(mt);const f=m3.elements;grow(cnt);
+  return {ajoute:function(g,mt,te){if(DN.cuisJ)DN.cuisJ.push({p:g.attributes.position.array,e:Float32Array.from(mt.elements)}); /* (2026-11-07) le journal des poses : dnAuditDecor */const cnt=g.attributes.position.count,p=g.attributes.position.array,c=g.attributes.color.array,nn=g.attributes.normal.array,k=g.attributes.aK?g.attributes.aK.array:null,r=te?te[0]:1,gg=te?te[1]:1,b=te?te[2]:1,e=mt.elements;m3.getNormalMatrix(mt);const f=m3.elements;grow(cnt);
       for(let j=0;j<cnt;j++){const o=(n+j)*3,j3=j*3,x=p[j3],y=p[j3+1],z=p[j3+2],nx=nn[j3],ny=nn[j3+1],nz=nn[j3+2];
         P[o]=e[0]*x+e[4]*y+e[8]*z+e[12];P[o+1]=e[1]*x+e[5]*y+e[9]*z+e[13];P[o+2]=e[2]*x+e[6]*y+e[10]*z+e[14];
         const X=f[0]*nx+f[3]*ny+f[6]*nz,Y=f[1]*nx+f[4]*ny+f[7]*nz,Z=f[2]*nx+f[5]*ny+f[8]*nz,l=1/(Math.sqrt(X*X+Y*Y+Z*Z)||1);Nm[o]=X*l;Nm[o+1]=Y*l;Nm[o+2]=Z*l;
@@ -106,6 +106,37 @@ const DN_MOD={
   bloc:function(){const g=dnKit(5);g.box(0,0,0,1,1,1,[1,1,1],1,1);return g.fin();},
   blocPlein:function(){const g=dnKit(6);g.box(0,0,0,1,1,1,[1,1,1],0,1);return g.fin();}
 };
+/* ===== L'AUDIT DU DÉCOR CUIT (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+   Tout le décor des dunes est CUIT dans une géométrie (dnCuiseur) : le banc n'en voit qu'une boîte immense. Le cuiseur tient donc un JOURNAL (DN.cuisJ, rempli par dnMonumentsTiresG :
+   chaque pose = le tampon de positions du modèle + sa matrice) et `dbgDunes('decor')` relit chaque pose, sommet par sommet (et le centre de chaque triangle) :
+   · `route` : un point du décor dans le COULOIR de conduite (à moins d'une demi-largeur + 1 m de l'axe, de 0,3 à 7 m au-dessus de la dalle) — un décor planté dans la route ;
+   · `flotte` : le PIED (les sommets du bas : 12 % de la hauteur) au-dessus du sable de plus de 0,5 m — un décor qui flotte ;
+   les instances du groupe des dunes (buttes, diables) passent au même crible. Lecture seule : rien ne bouge. `dbgDunes('decor', 1)` = toutes les poses fautives (sinon les 12 pires de chaque sorte). */
+function dnAuditDecor(tout){
+  if(!DN.on||!DN.S)return 'pas de dunes';const J=DN.cuisJ||[],noms=new Map(),o9={},RH9=ROAD_HALF,cell=20,grille=new Map(),kc=(x,z)=>Math.floor(x/cell)*100003+Math.floor(z/cell);
+  for(const n in (DN.kit||{}))noms.set(DN.kit[n].attributes.position.array,n);
+  for(let i=0;i<NP;i++){if(TROU&&TROU[i])continue;const k=kc(pts[i].x,pts[i].z);let c=grille.get(k);if(!c)grille.set(k,c=[]);c.push(i);}
+  const dsR=L/Math.max(1,NP-1),R={poses:J.length,route:[],flotte:[],parType:{}};
+  const proche=(x,y,z)=>{let bi=-1,bd=1e18;const cx=Math.floor(x/cell),cz=Math.floor(z/cell);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++){const c=grille.get((cx+a)*100003+cz+b);if(!c)continue;for(const i of c){const dx=pts[i].x-x,dz=pts[i].z-z,d=dx*dx+dz*dz;if(d<bd){bd=d;bi=i;}}}return bi;};
+  const crible=(nom,pa,e,moi)=>{const T9=R.parType[nom]||(R.parType[nom]={n:0,route:0,flotte:0,flotteMax:0});T9.n++;const nv=pa.length/3,W=new Float32Array(pa.length);let y0=1e9,y1=-1e9,cx=0,cz=0;
+    for(let j=0;j<nv;j++){const x=pa[j*3],y=pa[j*3+1],z=pa[j*3+2],X=e[0]*x+e[4]*y+e[8]*z+e[12],Y=e[1]*x+e[5]*y+e[9]*z+e[13],Z=e[2]*x+e[6]*y+e[10]*z+e[14];W[j*3]=X;W[j*3+1]=Y;W[j*3+2]=Z;if(Y<y0)y0=Y;if(Y>y1)y1=Y;cx+=X;cz+=Z;}
+    cx/=nv;cz/=nv;let hit=null;const teste=(X,Y,Z)=>{const i=proche(X,Y,Z);if(i<0)return;const p=pts[i],dx=X-p.x,dy=Y-p.y,dz=Z-p.z,lt=dx*B[i].x+dy*B[i].y+dz*B[i].z,al=dx*T[i].x+dy*T[i].y+dz*T[i].z,up=dx*Nn[i].x+dy*Nn[i].y+dz*Nn[i].z;
+      if(Math.abs(al)<2&&Math.abs(lt)<RH9+1&&up>.3&&up<7&&(!hit||up<hit.up))hit={s:Math.round(i*dsR),lat:+lt.toFixed(1),up:+up.toFixed(1)};};
+    for(let j=0;j<nv;j++)teste(W[j*3],W[j*3+1],W[j*3+2]);
+    for(let j=0;j+2<nv;j+=3)teste((W[j*3]+W[j*3+3]+W[j*3+6])/3,(W[j*3+1]+W[j*3+4]+W[j*3+7])/3,(W[j*3+2]+W[j*3+5]+W[j*3+8])/3);
+    const pied=y0+Math.max(.3,(y1-y0)*.12);let fl=-1e9,fx=0,fz=0,fy=0;const PJ=[];for(let j=0;j<nv;j++)if(W[j*3+1]<=pied)PJ.push(j); /* un sommet du pied ne « flotte » que s'il est le BAS de sa colonne : le haut d'un socle dont la face descend dans le sable n'est pas un vide */
+    for(const j of PJ){let dessous=false;for(const k of PJ){if(W[k*3+1]<W[j*3+1]-.3&&Math.abs(W[k*3]-W[j*3])<1.5&&Math.abs(W[k*3+2]-W[j*3+2])<1.5){dessous=true;break;}}if(dessous)continue;if(moi!=null&&porte(W[j*3],W[j*3+1],W[j*3+2],moi,y0))continue;const g=dnHauteur(W[j*3],W[j*3+2],o9),f=W[j*3+1]-g;if(f>fl){fl=f;fx=W[j*3];fz=W[j*3+2];fy=W[j*3+1];}}
+    const ou={nom:nom,x:Math.round(cx),z:Math.round(cz),h:Math.round(y1-y0),y0:+y0.toFixed(1),gC:+dnHauteur(cx,cz,o9).toFixed(1)};
+    if(hit){T9.route++;R.route.push(Object.assign(ou,hit));}
+    if(fl>.5){T9.flotte++;let bi=0,bd=1e18;for(let k=0;k<NP;k+=2){const dx=pts[k].x-fx,dz=pts[k].z-fz,d=dx*dx+dz*dz;if(d<bd){bd=d;bi=k;}}R.flotte.push(Object.assign({},ou,{fl:+fl.toFixed(1),s:Math.round(bi*dsR),d:Math.round(Math.sqrt(bd)),pied:[Math.round(fx),+fy.toFixed(1),Math.round(fz)]}));}if(fl>T9.flotteMax)T9.flotteMax=+fl.toFixed(1);};
+  const BX=[];for(const q of J){const pa=q.p,e=q.e;let a0=1e9,a1=-1e9,b0=1e9,b1=-1e9,c0=1e9,c1=-1e9;for(let j=0;j<pa.length;j+=3){const x=pa[j],y=pa[j+1],z=pa[j+2],X=e[0]*x+e[4]*y+e[8]*z+e[12],Y=e[1]*x+e[5]*y+e[9]*z+e[13],Z=e[2]*x+e[6]*y+e[10]*z+e[14];if(X<a0)a0=X;if(X>a1)a1=X;if(Y<b0)b0=Y;if(Y>b1)b1=Y;if(Z<c0)c0=Z;if(Z>c1)c1=Z;}BX.push([a0,a1,b0,b1,c0,c1]);}
+  const porte=(X,Y,Z,moi,y0)=>{for(let k=0;k<BX.length;k++){if(k===moi)continue;const b=BX[k];const tx=.2+.06*(b[1]-b[0]),tz=.2+.06*(b[5]-b[4]);if(X>=b[0]-tx&&X<=b[1]+tx&&Z>=b[4]-tz&&Z<=b[5]+tz&&Y>=b[2]&&b[3]+.6>=y0)return true;}return false;}; /* (un pied posé sur une autre pose : le podium sous un monolithe, la dalle sous une maison) */
+  if(tout&&tout.pres){const P=tout.pres,o=[];BX.forEach(function(b,k){const cx=(b[0]+b[1])/2,cz=(b[4]+b[5])/2;if(Math.hypot(cx-P[0],cz-P[1])<(P[2]||30))o.push({k:k,nom:noms.get(J[k].p)||'?',x:[+b[0].toFixed(1),+b[1].toFixed(1)],y:[+b[2].toFixed(1),+b[3].toFixed(1)],z:[+b[4].toFixed(1),+b[5].toFixed(1)],gC:+dnHauteur(cx,cz,o9).toFixed(1)});});return o;} /* (banc) les poses autour de [x, z, rayon] : leurs boîtes */
+  let jq=0;for(const q of J)crible(noms.get(q.p)||(q.p.length<2000?'talus/autre':'autre'),q.p,q.e,jq++);
+  if(DN.grp)for(const im of DN.grp.children){if(!im.isInstancedMesh||im.name==='dunes décor tiré'||im.name==='dunes ruines ensablées')continue;const pa=im.geometry.attributes.position.array,mt=new THREE.Matrix4();
+    for(let i=0;i<im.count;i++){im.getMatrixAt(i,mt);mt.premultiply(im.matrixWorld);crible(im.name,pa,mt.elements);}}
+  R.nRoute=R.route.length;R.nFlotte=R.flotte.length;R.flotte.sort((a,b)=>b.fl-a.fl);
+  if(!tout){R.route=R.route.slice(0,12);R.flotte=R.flotte.slice(0,12);}return R;}
 function dnMod(nom){if(!DN.kit)DN.kit={};if(!DN.kit[nom])DN.kit[nom]=DN_MOD[nom]();return DN.kit[nom];}
 /* LA GALERIE (banc) : tous les modèles (ou la liste `noms`) posés en rang sur le sable, à 150 m de la route à l'abscisse `s`, et la caméra devant eux — pour juger la forme et la matière */
 const DN_ECH={brasero:3,bloc:6,blocPlein:6}; // la taille d'affichage des modèles unitaires (m) — la galerie seulement
