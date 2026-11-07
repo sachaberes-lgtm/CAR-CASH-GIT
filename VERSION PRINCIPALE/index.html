@@ -33385,7 +33385,7 @@ function trxCoeur(type,k,dt){const T=TRX,C=T.C,t0=performance.now();T.t+=dt;
   const on=k>.05,debut=on&&T.kp<=.05;if(debut){T.wl0.copy(C.WL);T.wr0.copy(C.WR);T.dist=0;}T.kp=k;
   if(!C.pv&&TRX_HIST[type])trxHist(on?k:0);
   T.L[0].n=T.L[1].n=0;tcRaz();
-  const E=TRX_EMET[type];if(E&&dt>0)E(T,C,k,dt,on,debut);
+  const E=TRX_EMET[type];if(E&&dt>0)E(T,C,k,(C.pv||type==='glouton')?dt:dt*densVit(vKmh()),on,debut); /* (2026-11-07, P2 · levier e) l'émission à demi-densité au-delà de 200 km/h (téléphone récent ; voir densVit) — pas à l'aperçu du garage, ni pour GLOUTON dont dt règle des minuteries */
   const np=trxParts(dt);let nb=0;for(const b of T.bolts)if(b.on)nb++;
   { /* (2026-10-16, TRAÎNÉES) LA SALLE BLANCHE : la lumière additive s'y effaçait (matrice, filés, foudre, néon) — le maillage qui brille
        passe en ENCRE (mélange 0, 1 − src ; couleur = la teinte pure × l'intensité) : sur le blanc on lit la couleur de la traînée */
@@ -64604,6 +64604,12 @@ const EMI={};
 PAL.B.emiK=[.6,.8,1];
 function emiN(k,dt){const K=PAL.b('emiK',1);if(K>=1){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;}
   const a=(EMI[k]||0)+Math.min(dt,.067)*60*K,n=Math.max(0,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;} // le reste reporté (−0,5 au plus) : 60 par seconde pile à 30, 40 ou 50 i/s ; au-dessus de 60, une émission par image comme avant
+/* (2026-11-07, passe perf 3, P2 · levier e) DEMI-DENSITÉ À GRANDE VITESSE sur téléphone récent : au-delà de 200 km/h les traits d'air (`emiVit`) et l'émission des traînées (`densVit`)
+   naissent deux fois moins (report fractionnaire : la moyenne tient) — à cette vitesse tout file, l'œil ne compte plus les traits et le remplissage additif est ce que la puce paie le plus cher ;
+   `PAL.B.imgDensVit=[1,1,.5]` (colonnes ancien/moyen non lues) ; `?img=max` / `?imgsans=e` = comme avant ; l'ordinateur ne change pas. */
+PAL.B.imgDensVit=[1,1,.5];
+function densVit(kmh){return kmh>200?PAL.bT('imgDensVit',1,'e'):1;}
+function emiVit(k,n,kmh){const f=densVit(kmh);if(f>=1)return n;const a=(EMI[k+'v']||0)+n*f,m=Math.round(a);EMI[k+'v']=a-m;return m;}
 /* (2026-10-28, Léo : « il y a toujours quelques traits moins droits et exacts que ceux autour, trouve-les ») LES ANCIENS TRAITS D'AIR s'effacent : ces points posés dans le monde
    filent en perspective vers un point de fuite un peu différent de celui des filets de l'écran (shader final) — d'où les quelques traits de travers parmi les droits. Les filets les remplacent ; `?traits=0` rend les deux. */
 const TRAITS_NEUFS=!/[?&]traits=0\b/.test(location.search);
@@ -78673,7 +78679,7 @@ function loop(now){
         // traits d'AIR : discrets, de plus en plus nombreux à mesure que ça accélère
         if(speedKmh>140){ // seuils ×2 (SPD .25→.5 : km/h doublés) — mêmes traits d'air au même état-caisse
           const nS9=speedKmh>640?4:speedKmh>460?3:speedKmh>280?2:1;
-          for(let k9=0,n9=nS9*emiN('trS',dt);k9<n9;k9++)if(Math.random()<.85){ // (2026-10-09) à la seconde : voir emiN
+          for(let k9=0,n9=emiVit('trS',nS9*emiN('trS',dt),speedKmh);k9<n9;k9++)if(Math.random()<.85){ // (2026-10-09) à la seconde : voir emiN
             tmp2.copy(carGroup.position).addScaledVector(fwdW,10+Math.random()*40);
             tmp2.addScaledVector(tmp,(Math.random()-.5)*30);
             tmp2.addScaledVector(F.n,1+Math.random()*10);
@@ -78997,7 +79003,7 @@ function loop(now){
       if(speedKmh>120){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
         tmp.copy(fallVel).normalize();
         const nS9=speedKmh>480?3:speedKmh>260?2:1;
-        for(let k9=0,n9=nS9*emiN('trV',dt);k9<n9;k9++){ // (2026-10-09) à la seconde : voir emiN
+        for(let k9=0,n9=emiVit('trV',nS9*emiN('trV',dt),speedKmh);k9<n9;k9++){ // (2026-10-09) à la seconde : voir emiN
           tmp2.copy(fallPos).addScaledVector(tmp,10+Math.random()*30);
           tmp2.x+=(Math.random()-.5)*22;tmp2.y+=(Math.random()-.5)*16;tmp2.z+=(Math.random()-.5)*22;
           const ln9=4+speedKmh*.035;
