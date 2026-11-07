@@ -17,6 +17,7 @@ css/charte-6-signatures.css          # charte 4 : signatures v5, HUD v5, objecti
 css/charte-7-details.css             # charte 4 : le mouvement (21), les détails (22), écran de mort resserré, la sortie, critiques
 css/hud-maitrise.css                 # <style id="hudMaitrise">
 css/hud-da.css                       # achatPop, pouvoirsV2, hudDA, tailles du HUD et des figures, frénésie ×3, hudOrdre
+css/monnaie.css                      # le symbole de la monnaie du jeu (masque, d'après le sketch de Léo)
 css/garage-accueil.css               # garageV6, lueurs, accueilCiel, garageV7, garageVitrine
 css/garage-hub-barre.css             # hubGarage : la barre, les jauges, le HOME, la console à trois modes
 css/garage-hub-boutique.css          # hubGarage : boutique du jour, offres, grille, DA du menu ciel, inventaire en pictogrammes
