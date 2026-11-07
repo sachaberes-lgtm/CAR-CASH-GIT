@@ -33,6 +33,15 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     await sleep(+process.env.JOUER*1000);
     console.log('FLUIDE',await ev(`(function(){var W=[window].concat(Array.prototype.slice.call(window.frames));for(var i=0;i<W.length;i++){try{if(W[i].dbgFluide)return JSON.stringify({f:W[i].dbgFluide(),err:W[i].dbgErreurs().filter(function(e){return e.g==='erreur'||e.g==='boucle'||e.g==='panne'}).map(function(e){return e.m}).slice(0,5)},null,1);}catch(e){}}return 'pas de dbgFluide';})()`));
   }
+  if(process.env.CHARGE){ /* CHARGE=1 : la durée de chaque étape du chargement (dbgChargement().ms), dans l'ordre */
+    console.log('ETAPES',await ev(`(function(){var W=[window].concat(Array.prototype.slice.call(window.frames));for(var i=0;i<W.length;i++){try{if(W[i].dbgChargement)return JSON.stringify(W[i].dbgChargement().ms);}catch(e){}}return 'rien';})()`));
+  }
+  if(process.env.AUDIO){ /* AUDIO=1 : le coût de `new AudioContext()` seul, dans la page chargée (le 867 ms initial du build 6 : fil libre, cause inconnue) */
+    console.log('AUDIOCTX',await ev(`(function(){var t=performance.now(),A=new (window.AudioContext||window.webkitAudioContext)(),d=performance.now()-t;var t2=performance.now();try{A.resume();}catch(e){}return JSON.stringify({construit_ms:Math.round(d),resume_ms:Math.round(performance.now()-t2),etat:A.state})})()`));
+  }
+  if(process.env.EMPREINTE){ /* EMPREINTE=1 : de quoi comparer deux pistes bâties (même ?pistegraine) : dbgPas() + dbgPiste() + les étapes */
+    console.log('EMPREINTE',await ev(`(function(){var W=[window].concat(Array.prototype.slice.call(window.frames));for(var i=0;i<W.length;i++){try{if(W[i].dbgPas)return JSON.stringify({pas:W[i].dbgPas(),piste:W[i].dbgPiste?W[i].dbgPiste():null,etapes:W[i].dbgChargement?W[i].dbgChargement().ms.map(function(e){return e[0]}):null});}catch(e){return 'ERR '+e.message}}return 'rien';})()`));
+  }
   const r=JSON.parse(String(await ev(expr)||'{}'));
   console.log('SONDE',JSON.stringify({t:r.t,gameReady:r.ready,serpentEncorLa:r.serpent,trous:(r.sonde||[]).length}));
   (r.sonde||[]).forEach(x=>console.log('  ',(x.t/1000).toFixed(1)+' s','trou',x.d,'ms · JS',x.js,'· GL',x.gl,x.pile?'('+x.pile+')':'','· fil',x.fil));
