@@ -54,6 +54,7 @@ css/boutique-trainee.css                  # <style id="bq-trainee"> : rayon trai
 css/boutique-figure.css                  # <style id="bq-figure"> : rayon figure de la boutique, ergonomie mobile
 css/revue-interfaces.css             # <style id="revueInterfaces"> : la revue des interfaces (2026-11-07) — 33 écrans photographiés ; les plaques de nom de la boutique qui débordent (anglais)
 css/boutique-ensemble.css                 # <style id="bq-ensemble"> : la finition générale de la boutique (ossature, alignements), posée après les rayons
+css/boutique-voitures.css                 # <style id="bq-voitures"> : les boîtes des VOITURES (2026-11-07) — deux par rangée, une niche éclairée à la couleur de la rareté, la boîte de verre dedans, une plaque nom + prix dessous
 css/hud-fini.css                     # <style id="hudFini"> : la finition du HUD de course (2026-11-07) — colonne de droite d'une seule largeur, barre de la chaîne au bout du flow, centimes en petit, entrée de l'argent et de la flamme NITRO, éclat des gains ; posé après tout le HUD
 css/etalonnage.css                    # <style id="etalonnage"> : L'ÉTALONNAGE (2026-11-07) — LE nuancier (une encre, un or, les néons, la salle blanche), posé en dernier : il gagne sur tous les :root d'avant
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
