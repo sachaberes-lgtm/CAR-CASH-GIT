@@ -196,7 +196,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   const FM_NOM=['slalom','corde','racines','toboggan','chicane','balcon'];
   const fmTire=()=>{for(let e=0;e<6;e++){if(!fmPaq.length){const t=fmJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rf9()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)fmPaq.push(x9);}
     const m=fmPaq.shift();if(m===fmLast)continue;return m;}return 0;};
-  const fMod=()=>{const m=fmTire(),i0=C.length-1;fmLast=m;fmJ[m]();MM.push({i0:i0,i1:C.length-1});MK.push(FM_NOM[m]);fmNext=s+(700+rf9()*400)*kV;};
+  const fMod=()=>{let m=fmTire();if(GEN_V2&&FM_NOM[m]==='toboggan'&&DROIT[der]){fmPaq.unshift(m);m=fmTire();if(FM_NOM[m]==='toboggan')return;} /* (2026-11-07 soir) pas de toboggan (droit) juste après une pièce droite */const i0=C.length-1;fmLast=m;fmJ[m]();if(GEN_V2&&FM_NOM[m]==='toboggan')der='toboggan';MM.push({i0:i0,i1:C.length-1});MK.push(FM_NOM[m]);fmNext=s+(700+rf9()*400)*kV;};
   // LES VIRAGES : 38-80° (un sur trois SERRÉ), vers la cible quand elle n'est pas devant, sinon en slalom ; une respiration de 40-110 m une fois sur trois
   const virages=n=>{for(let k=0;k<n;k++){const r9=rel(),fort=Math.abs(r9)>.5;
     sgV=fort?(r9>0?1:-1):-sgV;let a=38+rnd()*42,R=rM*(1.3+rnd()*1.3);
@@ -286,7 +286,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   let nP9=0;if(nPel===0)paq.push('spirale'); /* sans pelote, une spirale tout de suite : le premier croisement */
   for(let e=0;e<40;e++){
     if(nP9<nPel&&s>=SP[nP9]){pelote(nP9++);recadre();continue;}
-    {const a=AR.find(q=>!q[2]&&s>=q[1]);if(a){a[2]=1;arche(a[0]);if(GEN_V2)der='allee';}} /* une arche à la fois : la seconde attend la pièce suivante */
+    {const a=AR.find(q=>!q[2]&&s>=q[1]);if(a&&!(GEN_V2&&DROIT[der])){a[2]=1;arche(a[0]);if(GEN_V2)der='allee';}} /* (2026-11-07 soir) l'arche (290 m de droite) attend qu'une pièce qui tourne soit passée quand la dernière était droite : allée + arche faisaient 7 s de droite */ /* une arche à la fois : la seconde attend la pièce suivante */
     if(s>LVISE-500*kR0&&nP9>=nPel)break;
     if(GEN_V2&&!clair&&s>=.6*LVISE)clairiere();
     ca=Math.max(-1.2,Math.min(1.2,ca+(rnd()-.5)*1.1));

@@ -15632,7 +15632,7 @@ function rythmeNote(f,c){
   if(!f||!f.L)return 1e9;let n=0;
   if(GEN_V2&&f.virFMin!=null){ /* (LA RÈGLE v2, 2026-11-07 soir) la cible de virages se lit par MINUTE, pas par km : à 340 m/s une route de 28 s n'a plus que 4-5 virages par km et la note montait à 7-8 sans que la route soit en cause.
        La cible par km (réglée au palier 0, 78 m/s) devient une cible par minute (× 4,68) ; le plancher s'adoucit avec la vitesse (× √(78/vP)) : à haut palier les modules et la fin prennent une plus grande part d'une route courte. Une figure déclarée vaut deux virages. */
-    const vP9=f.L/Math.max(1,f.s),k9=Math.sqrt(Math.min(1,78/Math.max(78,vP9))),m0=c.vir[0]*4.68*k9,m1=c.vir[1]*4.68;
+    const vP9=f.L/Math.max(1,f.s),k9=Math.sqrt(Math.min(1,78/Math.max(78,vP9))),m0=c.vir[0]*4.68*k9,m1=c.vir[1]*vP9*.06; /* le plafond reste celui par km, lu à la vitesse réelle : les dunes au palier 20 font 33 virages courts par minute, c'est leur nature */
     if(f.virFMin<m0)n+=(m0-f.virFMin)*2/4.68;if(f.virFMin>m1)n+=(f.virFMin-m1)*1.2/4.68;}
   else{const vk=f.virKm;if(vk<c.vir[0])n+=(c.vir[0]-vk)*2;if(vk>c.vir[1])n+=(vk-c.vir[1])*1.2;}
   if(f.serreKm<c.serre)n+=(c.serre-f.serreKm)*1.5;
@@ -17755,7 +17755,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   const FM_NOM=['slalom','corde','racines','toboggan','chicane','balcon'];
   const fmTire=()=>{for(let e=0;e<6;e++){if(!fmPaq.length){const t=fmJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rf9()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)fmPaq.push(x9);}
     const m=fmPaq.shift();if(m===fmLast)continue;return m;}return 0;};
-  const fMod=()=>{const m=fmTire(),i0=C.length-1;fmLast=m;fmJ[m]();MM.push({i0:i0,i1:C.length-1});MK.push(FM_NOM[m]);fmNext=s+(700+rf9()*400)*kV;};
+  const fMod=()=>{let m=fmTire();if(GEN_V2&&FM_NOM[m]==='toboggan'&&DROIT[der]){fmPaq.unshift(m);m=fmTire();if(FM_NOM[m]==='toboggan')return;} /* (2026-11-07 soir) pas de toboggan (droit) juste après une pièce droite */const i0=C.length-1;fmLast=m;fmJ[m]();if(GEN_V2&&FM_NOM[m]==='toboggan')der='toboggan';MM.push({i0:i0,i1:C.length-1});MK.push(FM_NOM[m]);fmNext=s+(700+rf9()*400)*kV;};
   // LES VIRAGES : 38-80° (un sur trois SERRÉ), vers la cible quand elle n'est pas devant, sinon en slalom ; une respiration de 40-110 m une fois sur trois
   const virages=n=>{for(let k=0;k<n;k++){const r9=rel(),fort=Math.abs(r9)>.5;
     sgV=fort?(r9>0?1:-1):-sgV;let a=38+rnd()*42,R=rM*(1.3+rnd()*1.3);
@@ -17845,7 +17845,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   let nP9=0;if(nPel===0)paq.push('spirale'); /* sans pelote, une spirale tout de suite : le premier croisement */
   for(let e=0;e<40;e++){
     if(nP9<nPel&&s>=SP[nP9]){pelote(nP9++);recadre();continue;}
-    {const a=AR.find(q=>!q[2]&&s>=q[1]);if(a){a[2]=1;arche(a[0]);if(GEN_V2)der='allee';}} /* une arche à la fois : la seconde attend la pièce suivante */
+    {const a=AR.find(q=>!q[2]&&s>=q[1]);if(a&&!(GEN_V2&&DROIT[der])){a[2]=1;arche(a[0]);if(GEN_V2)der='allee';}} /* (2026-11-07 soir) l'arche (290 m de droite) attend qu'une pièce qui tourne soit passée quand la dernière était droite : allée + arche faisaient 7 s de droite */ /* une arche à la fois : la seconde attend la pièce suivante */
     if(s>LVISE-500*kR0&&nP9>=nPel)break;
     if(GEN_V2&&!clair&&s>=.6*LVISE)clairiere();
     ca=Math.max(-1.2,Math.min(1.2,ca+(rnd()-.5)*1.1));
@@ -19599,7 +19599,7 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
     const rm=MODC_ON?mulberry32(((g0^0x6D0D5EED)+Math.imul(essai+1,0x85EBCA6B))>>>0):null,MM=[],cmPaq=[],cmCase=new Set();let cmK=0,cmLast=-1;
     if(rm){const t=[0,1,2,3,4,5];for(let i=5;i>0;i--){const j=(rm()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}const nb=5+(rm()<.5?1:0);for(let i=0;i<nb;i++)cmCase.add(t[i]);}
     const cmPe=(p0,p1)=>-(p0+rm()*(p1-p0)),cmRe=(lim,pe)=>{if(V2){if(Math.abs(phi)>lim){const t=recad(-(phi-Math.sign(phi)*lim*.3)*57.2958,0);cDette=t.dette;if(t.dessine)arc(t.dessine,RMIN*(2.4+rm()*1.0),pe);}return;}if(Math.abs(phi)>lim)arc(-(phi-Math.sign(phi)*lim*.3)*57.2958,RMIN*(2.4+rm()*1.0),pe);};
-    const cSlalom=(p0,p1)=>{const n=4+(rm()<.5?1:0),a=35+rm()*20,R=RMIN*(1.25+rm()*.35);cmRe(LIM-a/57.3*.6,cmPe(p0,p1));let sg=phi>0?-1:1;if(V2){const m=n+(n&1);for(let k=0;k<m;k++){arc(sg*a,R,cmPe(p0,p1));sg=-sg;}return;} /* v2 : plus de demi-lobes de 17-27° (douilles) : des lobes pleins, en nombre pair (le cap revient) */arc(sg*a*.5,R,cmPe(p0,p1));
+    const cSlalom=(p0,p1)=>{const n=4+(rm()<.5?1:0),a=35+rm()*20,R=RMIN*(1.25+rm()*.35);cmRe(LIM-a/57.3*.6,cmPe(p0,p1));let sg=phi>0?-1:1;if(V2){const m=n+(n&1);for(let k=0;k<m;k++){if(k)droite(Math.max(30*LL,.25*VW),cmPe(p0,p1)*.5,1);arc(sg*a,R,cmPe(p0,p1));sg=-sg;}return;} /* (2026-11-07 soir) 0,25 s de droite entre deux lobes opposés : collés, la courbe lissée faisait une pointe sous rP à l'inflexion (5-25 m au palier 20) */ /* v2 : plus de demi-lobes de 17-27° (douilles) : des lobes pleins, en nombre pair (le cap revient) */arc(sg*a*.5,R,cmPe(p0,p1));
       for(let k=0;k<n;k++){sg=-sg;arc(sg*a,R,cmPe(p0,p1));}arc(-sg*a*.5,R,cmPe(p0,p1));};
     const cCorde=(p0,p1)=>{const T=95+rm()*15,sg=phi>0?-1:1,a1=T*(.5+rm()*.1),R=RMIN*(1.5+rm()*.4);{const d=(-sg*T/2/57.2958-phi)*57.2958;if(V2){const t=recad(d,0);cDette=t.dette;if(t.dessine)arc(t.dessine,RMIN*(2.4+rm()*.8),cmPe(p0,p1));}else if(Math.abs(d)>3)arc(d,RMIN*(2.4+rm()*.8),cmPe(p0,p1));}
       if(V2&&cDette){const aD=Math.abs(briqueDette(sg*a1,sg*cDette>0?cDette:0));cDette=0;arc(sg*aD,R,cmPe(p0,p1));}else arc(sg*a1,R,cmPe(p0,p1));droite((40+rm()*40)*LL,cmPe(p0,p1)*.8);arc(sg*(T-a1),Math.max(RMIN*1.15,R*.8),cmPe(p0,p1));};
