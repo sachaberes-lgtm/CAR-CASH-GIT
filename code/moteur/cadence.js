@@ -96,7 +96,7 @@ function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran
 /* HC GESTE (2026-11-07, Perf 3 — P5, Sacha : « les menus fluides et froids ») le repos se dessine à 30 i/s (le téléphone au frais, PFR_ON) mais un doigt posé, un défilement, un
    changement d'écran ou de caisse rendent les 60 i/s — 0,35 s après le dernier signe — puis le repos reprend. `?menu=max` = comme avant (30 i/s en continu). */
 HC.gT=0;
-(function(){const m=function(){HC.gT=performance.now();};['touchstart','touchmove','pointerdown','wheel','scroll'].forEach(function(e){document.addEventListener(e,m,{capture:true,passive:true});});
+(function(){const m=function(){HC.gT=performance.now();};['touchstart','touchmove','pointerdown','wheel'].forEach(function(e){document.addEventListener(e,m,{capture:true,passive:true});});
   document.addEventListener('pointermove',function(e){if(e.buttons)HC.gT=performance.now();},{capture:true,passive:true});})();
 function hcGeste(now){return now-HC.gT<350||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag;}
 window.dbgHC=function(){return {on:HC.on,off:HC.off,pfr:PFR_ON,hors30:PAL.b('hors30',0),cadOk:CAD.ok,cadOn:CAD.on,started:started,gameOver:gameOver,garageOn:garageOn,quiet:!!(gEl&&gEl.classList.contains('quiet')),garGo:!!GAR.go,stall:(typeof stallOn!=='undefined')?stallOn:null,vhd:VHD.on,hidden:document.hidden};}; /* (2026-11-07, Perf 3 P5) (banc) l'état des menus */
