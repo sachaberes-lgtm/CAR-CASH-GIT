@@ -69,7 +69,7 @@ if(MOB_GOUV){mobGouvCharge();
   window.addEventListener('cc:thermique',function(e){mobThermo(+(e&&e.detail&&e.detail.etat));});
   window.addEventListener('pagehide',mobGouvSauve);
   document.addEventListener('visibilitychange',function(){if(document.hidden)mobGouvSauve();});}
-window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB_G.max,+n||0));mobGouvEval();mobGouvSauve();MOB_P.chg=-1e9;MOB_P.tk=0;} /* (banc) pose la dose */
+window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB_G.max,+n||0));mobGouvEval();mobGouvSauve();MOB_P.chg=-1e9;} /* (banc) pose la dose */
   const pq=!MOB_GOUV?(CAD30_REC?'coupé (?mob_gouv=0)':'hors téléphone récent'):MOB_S.thermo>=2?'état thermique iOS '+MOB_S.thermo:MOB_S.actif?'dose au-dessus du seuil bas':'froid';
   return {D:+MOB_S.D.toFixed(1),seuilHaut:MOB_G.haut,seuilBas:MOB_G.bas,actif:mobChaud(),thermo:MOB_S.thermo,pourquoi:pq,g30:MOB_G.g30,gpu:MOB_GOUV?window.dbgGouvPaliers():null};};
 window.dbgThermique=function(n){if(MOB_GOUV)mobThermo(+n);return MOB_S.thermo;}; /* (banc) simule l'événement 'cc:thermique' */
