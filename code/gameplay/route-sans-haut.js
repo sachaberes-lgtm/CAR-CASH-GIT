@@ -200,18 +200,21 @@ function pisteTord(ctrl,seed,sansVrille,essai,opts){ /* (2026-10-25, LA GROTTE S
 function tordContacts(Q,NQ){
   const n=Q.length,C=70,g=new Map(),key=function(x,y,z){return ((x&2047)*2048+(y&2047))*2048+(z&2047);};let s=0;const sA=new Float32Array(n); // (clé NUMÉRIQUE : une clé texte coûtait 10 ms par essai)
   for(let i=0;i<n;i++){if(i)s+=Q[i].distanceTo(Q[i-1]);sA[i]=s;const k=key(Math.floor(Q[i].x/C),Math.floor(Q[i].y/C),Math.floor(Q[i].z/C));let l=g.get(k);if(!l){l=[];g.set(k,l);}l.push(i);}
-  const T9=new THREE.Vector3(),B9=new THREE.Vector3(),d9=new THREE.Vector3();let nC=0,vu=-1e9;
+  const T9=new THREE.Vector3(),B9=new THREE.Vector3(),d9=new THREE.Vector3(),Tj=new THREE.Vector3(),Bj=new THREE.Vector3();let nC=0,vu=-1e9;
   for(let i=1;i<n-1;i++){const p=Q[i],cx=Math.floor(p.x/C),cy=Math.floor(p.y/C),cz=Math.floor(p.z/C);let tc=false;
     T9.subVectors(Q[i+1],Q[i-1]).normalize();B9.crossVectors(T9,NQ[i]);
     for(let a=-1;a<=1&&!tc;a++)for(let b=-1;b<=1&&!tc;b++)for(let c=-1;c<=1&&!tc;c++){const l=g.get(key(cx+a,cy+b,cz+c));if(!l)continue;
       for(const j of l){if(sA[j]-sA[i]<250)continue;d9.subVectors(Q[j],p);if(d9.lengthSq()>75*75)continue;
-        if(Math.abs(d9.dot(NQ[i]))<16&&Math.abs(d9.dot(B9))<62){tc=true;break;}}}
+        if(Math.abs(d9.dot(NQ[i]))<16&&Math.abs(d9.dot(B9))<62){tc=true;break;}
+        /* (2026-11-07, banc des maps · grotte, graine 12) le contact se mesure AUSSI dans le repère du point le plus TARD (j) : une dalle à plat qui passe 11 m sous une dalle enroulée n'était vue d'aucun des deux côtés */
+        Tj.subVectors(Q[Math.min(n-1,j+1)],Q[Math.max(0,j-1)]).normalize();Bj.crossVectors(Tj,NQ[j]);
+        if(Math.abs(d9.dot(NQ[j]))<16&&Math.abs(d9.dot(Bj))<62){tc=true;break;}}}
     if(tc&&sA[i]-vu>300){nC++;vu=sA[i];}}
   return nC;}
 function pisteTordPropre(ctrl,seed,opts){
   const m0=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};}),f0=FILETMARK.slice();
   let best=null,bC=1e9,bI=null,bM=null;
-  for(let e=0;e<6;e++){
+  for(let e=0,nE=opts?16:6;e<nE;e++){ /* (2026-11-07, banc des maps · grotte, graine 1) la grotte (opts : la route sur les parois) a droit à 16 essais : ses 6 s'épuisaient et la route gardait un contact (15-26 ms l'essai) */
     if(e){MODMARK.forEach(function(m,k){m.i0=m0[k].i0;m.i1=m0[k].i1;});FILETMARK.length=0;for(const f of f0)FILETMARK.push(f);}
     const r=pisteTord(ctrl,seed,false,e,opts),c=tordContacts(r.ctrl,r.N);
     if(c<bC){best=r;bC=c;bI=Object.assign({},TORD.info,{essai:e,contacts:c});bM=MODMARK.map(function(m){return {i0:m.i0,i1:m.i1};});}
