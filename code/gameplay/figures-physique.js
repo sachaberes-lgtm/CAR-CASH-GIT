@@ -275,6 +275,8 @@ window.dbgFigDir=function(x,y){FDIR.force=[+x||0,+y||0];try{const s=figDirSlot()
 function figImpulsion(){const f=window.FIG&&FIG.par.tonneau;if(!f)return null;return figLance(-1,{f:f,double:true,empile:true});}
 window.dbgSautFig=function(x,y){if(x==='cause')return {cause:mortCause,mode:mode,go:gameOver};FDIR.force=[+x||0,+y||0];let r;try{r=veqDouble();}finally{setTimeout(function(){FDIR.force=null;},250);} /* (banc, 2026-10-15 soir) un double-tap NITRO, le joystick en (x : le côté, y : l'avant) — au sol : le SAUT NITRO et la figure de cette direction */
   return {ok:!!r,mode:mode,hopY:+hopY.toFixed(2),hopV:+hopV.toFixed(2),pose:!!POSE_F,cd:Math.round(performance.now()-VEQ.sautT),nit:+(nitroR+nitroX).toFixed(2),slot:figDirSlot(),allonge:VEQ.allonge|0,dv:VEQ.dvDer||0,tPred:VEQ.tPred||0};};
+/* (2026-11-07, passe perf 3, P6 : les gels en course à la première fois) banc : `dbgFigure()` liste les figures · `dbgFigure('salto')` lance cette figure TOUT DE SUITE (en l'air seulement, hors emplacements) · `dbgFigure(id,sens)` la version orientée */
+window.dbgFigure=function(id,sens){const F=window.FIG&&FIG.par;if(!F)return 'pas de FIG';if(!id)return Object.keys(F);let f=F[id];if(!f)return 'inconnue';if(sens&&FIG.oriente)f=FIG.oriente(f,sens);const r=figLance(-1,{f:f,double:true,empile:true});return r?'ok '+f.id:'refus (mode '+mode+')';};
 /* ===== LA FIGURE AU GLISSÉ (2026-10-15, Léo : « une nouvelle manière de faire les tricks, changeable dans les réglages, là où ça devrait
    être : la figure se fait par une GLISSE vers un sens puis LÂCHÉE, depuis le bouton NITRO — la nitro toujours présente »). Le réglage :
    RÉGLAGES › JEU › FIGURES (et la PAUSE) — 2 TAPS (le double-tap, d'origine) · GLISSER (`SAVE.d.figG`, écrit par `figGBascule` seul).
