@@ -17,20 +17,20 @@
 #gMis.pv #gmHead small:empty{display:none}
 #pvEcran{position:absolute;inset:0;pointer-events:none}
 /* la carte : verre arrondi + liseré dégradé (le trait est un masque : le centre reste du verre) */
-.pvC{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:5px;width:116px;padding:11px 8px 10px;border-radius:22px;pointer-events:auto;cursor:pointer;color:#fff;text-align:center;font-family:var(--pix);isolation:isolate;
-  background:linear-gradient(165deg,rgba(255,255,255,.17) 0,rgba(255,255,255,.05) 38%,rgba(20,29,58,.58) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 22px rgba(7,5,15,.45);animation:pvEntre .5s var(--ease) backwards;transition:left .35s var(--ease),top .35s var(--ease)}
+.pvC{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:5px;width:104px;padding:10px 7px 9px;border-radius:20px;pointer-events:auto;cursor:pointer;color:#fff;text-align:center;font-family:var(--pix);isolation:isolate;
+  background:linear-gradient(165deg,rgba(255,255,255,.17) 0,rgba(255,255,255,.05) 38%,rgba(20,29,58,.58) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 22px rgba(7,5,15,.45);animation:pvEntre .5s var(--ease) backwards;transition:left .35s var(--ease),top .35s var(--ease),scale .38s var(--ease),opacity .3s,filter .3s,box-shadow .3s;scale:.9;opacity:.8;filter:brightness(.82) saturate(.9);z-index:1}
 .pvC::before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;background:linear-gradient(135deg,#5ff0ff,#f24aa0 55%,#ffd75e);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
 #pvEcran.pose .pvC{transition:none}
 /* la grille holographique, la même que sur la caisse : pas de 8 px (3 pas = 24 px sur le voile), teinte = la récompense (--gc : vert argent, or voiture, rose habillage) */
 .pvC::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:.16;background:repeating-linear-gradient(0deg,var(--gc,#5ff0ff) 0 1px,transparent 1px 8px),repeating-linear-gradient(90deg,var(--gc,#5ff0ff) 0 1px,transparent 1px 8px)}
 .pvC.pvG::after{opacity:.22}
-.pvC.pvG.nog{width:116px;padding:11px 8px 10px;border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 22px rgba(7,5,15,.45)}
+.pvC.pvG.nog{width:104px;padding:10px 7px 9px;border-radius:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 22px rgba(7,5,15,.45)}
 .pvC.pvG.nog::before{padding:1.5px;background:linear-gradient(135deg,#5ff0ff,#f24aa0 55%,#ffd75e)}
 .pvC.pvG.nog .pvAn{width:60px;height:60px}.pvC.pvG.nog .pvAn.jg{width:30px}
 .pvC.pvGa{animation-delay:.12s}.pvC.pvDr{animation-delay:.24s}
 @keyframes pvEntre{0%{opacity:0;transform:translateY(10px) scale(.94)}100%{opacity:1;transform:none}}
-.pvC.pvG{width:150px;padding:13px 10px 12px;border-radius:26px}
+.pvC.pvG{width:136px;padding:12px 9px 11px;border-radius:24px}
 .pvC.pvG::before{padding:2px;background:linear-gradient(135deg,#fff3b0,#ffd75e 40%,#b8790a 70%,#ffd75e)}
 .pvC.pvG{box-shadow:inset 0 1px 0 rgba(255,243,176,.4),0 0 22px rgba(255,215,94,.16),0 8px 22px rgba(7,5,15,.45)}
 .pvC.pvG.pulse{animation:pvEntre .5s var(--ease) backwards,pvPouls 1.8s ease-in-out .6s infinite}  /* la seule animation permanente : le dernier tiers du cadeau */
@@ -119,4 +119,10 @@ html[data-reduced-motion="1"] .pvOnde{display:none}
 @media (prefers-reduced-motion:reduce){.pvC,.pvC.pvG.pulse{animation:none!important}.pvScan{display:none}.pvJauge{transition:none}}
 html[data-reduced-motion="1"] .pvC,html[data-reduced-motion="1"] .pvC.pvG.pulse{animation:none!important}
 html[data-reduced-motion="1"] .pvScan{display:none}
+/* (2026-11-07, Léo : « un peu plus petites mais cliquables, un aspect flottant plus reculé ; on clique, elle s'avance et fait reculer celle mise en avant ; on reclique, ça la sélectionne ») la PROFONDEUR : toutes flottent en retrait, une seule est en avant, une seule est choisie */
+#pvEcran.pose .pvC{scale:.9}
+.pvC.av{scale:1.08;opacity:1;filter:none;z-index:3;box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 0 22px color-mix(in srgb,var(--gc,#5ff0ff) 45%,transparent),0 14px 30px rgba(7,5,15,.6)}
+.pvC.sel::before{padding:3px;background:linear-gradient(135deg,#fff,var(--gc,#5ff0ff) 50%,#fff)}
+.pvC.sel{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 30px color-mix(in srgb,var(--gc,#5ff0ff) 70%,transparent),0 14px 30px rgba(7,5,15,.6)}
+@media (prefers-reduced-motion:reduce){.pvC{transition:none}}
 </style>
