@@ -31,6 +31,16 @@
     }
     hook(T.BufferGeometry.prototype, 'dispose', GEO, 'geo');
     hook(T.Texture.prototype, 'dispose', TEX, 'tex');
+    /* LES TABLEAUX VIVANTS PAR CRÉATEUR : chaque BufferAttribute de plus de 100 Ko est noté (référence faible + 4 images de pile) ; .vivants() regroupe ceux
+       dont le tableau est encore là (pas jeté par nuLibre / memLibere) par fonction créatrice. */
+    var OB = T.BufferAttribute, REGA = [];
+    T.BufferAttribute = function (a, n, nm) { var o = new OB(a, n, nm);
+      if (a && a.byteLength > 100000) { var st = (new Error()).stack.split('\n').slice(2, 7).map(function (l) { var m = /at (?:new )?([^ (]+)/.exec(l); var q = /:(\d+):\d+\)?$/.exec(l); return (m ? m[1] : '?') + (q ? ':' + q[1] : ''); }).join(' < ');
+        REGA.push([new WeakRef(o), st, a.byteLength]); }
+      return o; };
+    T.BufferAttribute.prototype = OB.prototype;
+    window.__MEMTR_A = function (n) { var G = {}, tot = 0; for (var i = 0; i < REGA.length; i++) { var o = REGA[i][0].deref(); if (!o || !o.array) continue; var k = REGA[i][1]; var e = G[k] || (G[k] = {k: k, n: 0, b: 0}); e.n++; e.b += o.array.byteLength; tot += o.array.byteLength; }
+      return {totMo: +(tot / 1048576).toFixed(1), top: Object.keys(G).map(function (k) { return G[k]; }).sort(function (a, b) { return b.b - a.b; }).slice(0, n || 15).map(function (e) { return {mo: +(e.b / 1048576).toFixed(2), n: e.n, pile: e.k}; })}; };
     var O = T.WebGLRenderer; /* r128 : `render` est posée sur l'INSTANCE, pas sur le prototype → on enveloppe le constructeur */
     T.WebGLRenderer = function (a) { var r = new O(a), or = r.render; r.render = function (sc) { if (sc && sc.isScene) SCENES.add(sc); return or.apply(this, arguments); }; return r; };
     T.WebGLRenderer.prototype = O.prototype;
