@@ -30144,7 +30144,7 @@ const CARS=[
  {name:'LE CAÏD',         shape:'caid',    color:0xbec2c8,accent:0x16171b,maxKmh:275,accel:31,turn:2.7, h:2.01,w:2.20,l:5.51,spoiler:0, /* (2026-10-19, Léo : « sans le toit, comme sur la photo exactement ») le pick-up blanc nacré de sa photo (avant : 0x7cb83f, le SUV 1,98 × 5,00) */
   desc:'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.'},
  {retire:1,name:'SA MAJESTÉ'},
- {name:'ROSSO 40',        shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,rar:'epique', /* (2026-10-22, Sacha : « tableau des voitures » ROSSO 40 épique à 400 000 $ : sans cette ligne le prix la ferait RARE) */
+ {name:'LÉONIE',         shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,rar:'epique', /* (2026-10-22, Sacha : « tableau des voitures » ROSSO 40 épique à 400 000 $ : sans cette ligne le prix la ferait RARE) */
   desc:'Rouge course, aileron plateau. La caisse de rêve, et chaque euro se voit.'},
  {name:'POSTER 84',       shape:'poster',  color:0xffc414,accent:0x131417,maxKmh:480,accel:55,turn:3.15,h:1.07,w:2.00,l:4.14,spoiler:0,rar:'legendaire', /* (2026-11-05, jury ECO-11 : TABLEAU-VOITURES.md la veut LÉGENDAIRE ; sans `rar`, carRar la déduisait du prix (3,2 M) = ÉPIQUE) */
   desc:'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.'},
@@ -30635,7 +30635,7 @@ const I18N={
  'Tu ne brûles plus le carburant. Tu brûles le ciel.':'You don\'t burn fuel any more. You burn the sky.',
  'Plus rien ne s\'échappe. Même pas toi.':'Nothing escapes any more. Not even you.',
  // ---- voitures ----
- 'ELDORADO':'ELDORADO','LE CAÏD':'THE BOSS','SA MAJESTÉ':'HER MAJESTY','ROSSO 40':'ROSSO 40','POSTER 84':'POSTER 84',
+ 'ELDORADO':'ELDORADO','LE CAÏD':'THE BOSS','SA MAJESTÉ':'HER MAJESTY','LÉONIE':'LÉONIE','POSTER 84':'POSTER 84',
  'Rose bonbon, ailerons de requin et une banquette pour trois avocats.':'Candy pink, shark fins, and a bench seat for three lawyers.',
  'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.':'Three tons of cube. Nobody has ever asked you to move over.',
  'Rouge course, aileron plateau. La caisse de rêve, et chaque euro se voit.':'Racing red, a wing like a tray. The dream car, and every euro shows.',
@@ -47613,7 +47613,7 @@ SHAPES.a_taxi=function(K){
 function carFicheOk(s){return !!s&&s.w>0&&s.h>0&&s.l>0;}
 /* LES 29 RÉFÉRENCES DE LÉO (25/10 : « à ne pas toucher », le langage visuel du jeu) : la traduction ci-dessous ne les regroupe jamais. Noms sans accent ni ponctuation.
    (26/10) + LE COMBI : sa forme « auto-04 » validée par Léo est FIGÉE (voir combi.js) — ~20 600 triangles dont ~8 700 de décor reposé ; la passe ÷2 l'abîmerait. */
-const LANGAGE_REF=new Set(['LE COMBI','LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','KELLY CHERRY','LE SAMOURAI','L ORIGAMI','ROSSO 40','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
+const LANGAGE_REF=new Set(['LE COMBI','LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','KELLY CHERRY','LE SAMOURAI','L ORIGAMI','LEONIE','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
 /* LA TRADUCTION AU LANGAGE DU JEU (25/10, Léo : « quand les voitures ont trop de facettes, tu divises par deux le nombre de facettes » ; avant : « les traduire pour que ce soit comme les autres, mais que leur modèle soit toujours ressenti, juste ajusté ») —
    PAR DÉFAUT depuis la v912 ; `?langage=0` la coupe. Une caisse qui dépasse 12 000 triangles (tes références en font ~5 000) voit sa PEINTURE regroupée en grandes facettes planes : tous les sommets d'une même case de grille n'en font plus qu'un, au centre de leur
    groupe, les triangles qui s'effondrent disparaissent. La taille de la case est CHERCHÉE (recherche par dichotomie, mémorisée par voiture) pour que la caisse entière tombe à la MOITIÉ de ses triangles, sans dépasser 45 cm. La silhouette reste celle de la
