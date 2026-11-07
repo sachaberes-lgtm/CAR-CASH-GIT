@@ -89,7 +89,7 @@ document.documentElement.classList.add('misV2');
 
 
 
-const CC_BUILD='a2bf2afa';
+const CC_BUILD='04d2ab0b';
 
 
 const CC_PHOTOS='__CC_PHOTOS__';
@@ -32138,7 +32138,7 @@ const SF_CARTES={
     soir:{bio:'grt-soir-mine',mt:'MAGMA',pr:'LA LAVE MONTE'},nuit:{bio:'grt-nuit-mine',mt:'NOIR COMPLET',nuit:1,p:.8,pr:'TES PHARES, TA SEULE LUMIERE'},
     glace:{bio:'grt-glace-mine',mt:'GLACE',pr:'LA GROTTE A GELE'}}}, 
   ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1},
-    pluie:{bio:'canyonPluie',pluie:.6,sheen:.18},orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2}}}}:{}),
+    pluie:{bio:'canyonPluie',pluie:.6,sheen:.18,p:0},  orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2,p:0}}}}:{}), 
 
 
   ...(DUNES_OK?{dunes:{nm:"LES DUNES D'OR",base:'dunes',m:{matin:{bio:'dunesMatin'},soir:{bio:'dunesSoir',p:1.3},nuit:{bio:'dunesNuit',nuit:1,pr:'LA LUNE ARGENTE LE SABLE'},
@@ -64632,7 +64632,7 @@ function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++)
 
 
  
-function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const g of m2Cartes()){const P=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k]||sfMapDe(k)!==g)continue;for(const x of Object.keys((SF_CARTES[k].m)||{}))P.push([k,x]);}if(P.length<M2_METEO_MIN)continue;let j=0;for(const q of P)if((H[q[0]]||[]).indexOf(q[1])>=0)j++;if(j/P.length>f||(j/P.length===f&&P.length>tot)){f=j/P.length;n=j;tot=P.length;}}return {n:n,tot:tot};}
+function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const g of m2Cartes()){const P=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k]||sfMapDe(k)!==g)continue;for(const x of Object.keys((SF_CARTES[k].m)||{}))if(SF_CARTES[k].m[x].p!==0)P.push([k,x]);} if(P.length<M2_METEO_MIN)continue;let j=0;for(const q of P)if((H[q[0]]||[]).indexOf(q[1])>=0)j++;if(j/P.length>f||(j/P.length===f&&P.length>tot)){f=j/P.length;n=j;tot=P.length;}}return {n:n,tot:tot};}
 
 
 
@@ -76509,7 +76509,8 @@ function bqVitreBrise(){
 
 
 
-const VITM={on:!/[?&]vitrine=0\b/.test(location.search),ver:3,
+ 
+const VITM={on:/[?&]vitrine=1\b/.test(location.search),ver:3,
   az:.52,el:.36,fov:17, 
   L:5.3,P:2.6,Hc:1.95, 
   ph:.42,po:.30, 

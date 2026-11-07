@@ -6,7 +6,9 @@
   (corrigé par le jury du 5/11, mais sans la partie 8). Fusionnés ici, **sans conflit git et sans rien perdre** :
   `60ad22e7` (fusion de `main` 35fbfb4a, v1258 ; son message explique le diff de `natif.js` entre les deux branches LIGNE À LIGNE),
   `629d1b6d` (`www/` resynchronisé), `72e14201` (fusion de `main` a2bf2afa, v1263 : **`chasse-bugs-2026-11-07` y est** — SON-N01, le son
-  en pause et au départ, LÉONIE, les missions nouvelle forme), puis `www/` resynchronisé une seconde fois.
+  en pause et au départ, LÉONIE, les missions nouvelle forme), `www/` resynchronisé, puis la fusion de `main` 04d2ab0b (v1265) et `www/` resynchronisé une dernière fois.
+  `main` avance sans cesse (d'autres sessions poussent) ; `app-ios/` n'y change pas : une fusion de plus = `git merge origin/main` sans conflit,
+  puis `npm run sync`.
   La branche est **locale** : `git log ios-capacitor` la montre depuis n'importe quel dossier du dépôt ; son dossier de travail est
   `.claude/worktrees/bold-bardeen-1e4a65`. `origin/ios-capacitor` n'a pas bougé (pousser = `git push origin ios-capacitor`, jamais `--force`,
   sur le OUI de Sacha).
@@ -27,7 +29,7 @@
   moitiés), `publie-audio`, `publie-allege`, relecture par `garde-demarrage` avant et après, contrôles « PUB/AD » et marques, retrait des
   balises og:image / twitter:image. **`node app-ios/preparer-www.js --essai "VERSION PRINCIPALE"` : réussi** (528 fichiers, 47,1 Mo,
   0 adresse réseau hors latest.json). **`npm run sync` : réussi** sur Windows (preparer-www puis `npx cap sync ios`, 5 modules Capacitor) ;
-  `www/maj.json` = **jeu `a2bf2afa`** (`a2bf2afa-cfeec33ea1`), `CC_BUILD='a2bf2afa'`, `www/natif.js` en tête de page avec les parties 5 et 8
+  `www/maj.json` = **jeu `04d2ab0b`** (v1265), `CC_BUILD='04d2ab0b'`, `www/natif.js` en tête de page avec les parties 5 et 8
   (sans ses commentaires : `publie-allege`), 0 trace `I18N_ZH` / `zh` / `poki`.
 - ⚠ `npx cap sync` **réécrit `CapApp-SPM/Package.swift` en `.iOS(.v16)`** à chaque passage ; je l'ai remis à `.iOS("16.4")` comme main.
   Sans gravité dans un sens comme dans l'autre : c'est `IPHONEOS_DEPLOYMENT_TARGET = 16.4` du projet qui fait foi.
