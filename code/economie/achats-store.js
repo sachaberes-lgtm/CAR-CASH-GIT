@@ -89,6 +89,10 @@ function prixTxt(cle,eurRepli){ /* Apple impose d'afficher le prix qu'il facture
   const id=produitDe(cle),p=id&&ACH_PRIX[id];
   return p?p:eurTxt(eurRepli);
 }
+function prixGroupe(cles,eurRepli){ /* le prix écrit UNE fois pour un groupe (l'intertitre d'une rareté de peintures) : celui d'Apple pour la première peinture à vendre du groupe, sinon l'euro du jeu. ⚠ Toutes les peintures d'une rareté sont supposées dans le MÊME palier de prix Apple (PEINT_EUR) */
+  for(let i=0;i<cles.length;i++)if(produitDe(cles[i]))return prixTxt(cles[i],eurRepli);
+  return eurTxt(eurRepli);
+}
 function achatsDemarre(){ /* fin d'init : écoute des achats reçus, prix, synchro — rien du tout hors de l'app */
   const A=window.ccAchat;
   if(!A)return;
@@ -102,5 +106,7 @@ function achatsDemarre(){ /* fin d'init : écoute des achats reçus, prix, synch
 window.dbgAchats=window.dbgAchats||{};
 Object.assign(window.dbgAchats,{produitDe:produitDe,paye:shopPaye,sync:achatsSync,recoit:achatsRecoit,restaure:achatsRestaure,prix:achatsPrix,prixTxt:prixTxt,demarre:achatsDemarre,pop:shopPop,
   habPaye:function(id){return habPaye('peinture',COSM.peinture.findIndex(function(d){return d.id===id;}),null);},
+  nuance:function(id){const d=COSM.peinture.find(function(x){return x.id===id;});return d?bqNuanceEtat(d):null;}, /* l'état d'une pastille du nuancier (loupe, étiquette lue) */
+  nuancier:function(){return bqNuancierHtml(peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;}));}, /* le rayon entier en HTML (intertitres de rareté compris) */
   etat:function(){let save=null;try{save=JSON.parse(localStorage.cashcarSave);}catch(e){}
     return {owned:(SAVE.d.owned||[]).slice(),own:SAVE.d.shop.own.slice(),eq:Object.assign({},SAVE.d.shop.eq),save:save};}});

@@ -54055,6 +54055,10 @@ function prixTxt(cle,eurRepli){ /* Apple impose d'afficher le prix qu'il facture
   const id=produitDe(cle),p=id&&ACH_PRIX[id];
   return p?p:eurTxt(eurRepli);
 }
+function prixGroupe(cles,eurRepli){ /* le prix écrit UNE fois pour un groupe (l'intertitre d'une rareté de peintures) : celui d'Apple pour la première peinture à vendre du groupe, sinon l'euro du jeu. ⚠ Toutes les peintures d'une rareté sont supposées dans le MÊME palier de prix Apple (PEINT_EUR) */
+  for(let i=0;i<cles.length;i++)if(produitDe(cles[i]))return prixTxt(cles[i],eurRepli);
+  return eurTxt(eurRepli);
+}
 function achatsDemarre(){ /* fin d'init : écoute des achats reçus, prix, synchro — rien du tout hors de l'app */
   const A=window.ccAchat;
   if(!A)return;
@@ -54068,6 +54072,8 @@ function achatsDemarre(){ /* fin d'init : écoute des achats reçus, prix, synch
 window.dbgAchats=window.dbgAchats||{};
 Object.assign(window.dbgAchats,{produitDe:produitDe,paye:shopPaye,sync:achatsSync,recoit:achatsRecoit,restaure:achatsRestaure,prix:achatsPrix,prixTxt:prixTxt,demarre:achatsDemarre,pop:shopPop,
   habPaye:function(id){return habPaye('peinture',COSM.peinture.findIndex(function(d){return d.id===id;}),null);},
+  nuance:function(id){const d=COSM.peinture.find(function(x){return x.id===id;});return d?bqNuanceEtat(d):null;}, /* l'état d'une pastille du nuancier (loupe, étiquette lue) */
+  nuancier:function(){return bqNuancierHtml(peintOrdre().map(function(j){return 'peinture:'+COSM.peinture[j].id;}));}, /* le rayon entier en HTML (intertitres de rareté compris) */
   etat:function(){let save=null;try{save=JSON.parse(localStorage.cashcarSave);}catch(e){}
     return {owned:(SAVE.d.owned||[]).slice(),own:SAVE.d.shop.own.slice(),eq:Object.assign({},SAVE.d.shop.eq),save:save};}});
 /* ============================================================================
@@ -76822,7 +76828,7 @@ function bqHabRail(L,cat,SOUS){const fam=function(k){return cosmRar(cat,bqCos(k)
 function bqTraineeRail(L){if(typeof trPisteHtml==='function'&&/[?&]piste=1\b/.test(location.search))return trPisteHtml(L);try{if(typeof bqRayonRegarde==='function')bqRayonRegarde('trainee');}catch(e){} /* (2026-11-07, Sacha : « chaque type d'item doit avoir un système propre ») en entrant, les cartes en cube regardent aussi la traînée PORTÉE (bqRayonRegarde, comme les autres rayons) */ /* (2026-11-07, Léo : « les trails, mets tous les nouveaux, mais remets les effets d'avant, avec le cube : pour les trails c'était mieux ; fais seulement ça ») la PISTE de Sacha est éteinte pour les traînées : retour aux cartes en cube (la traînée animée sur sa route de nuit, traineeCarte), avec TOUTES les traînées de la liste ; `?piste=1` = la piste. Les autres rayons gardent leur système. */ /* (2026-11-07) LA PISTE : le rayon des traînées a son propre système (interface/boutique-trainee.js) */const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,BQ_TRAINEE_SOUS[f]?sansAcc(TR(BQ_TRAINEE_SOUS[f])):''))+bqCarteHtml(k,n,false);});}
 function bqPeintRail(L){if(typeof bqNuancierHtml==='function')return bqNuancierHtml(L); /* (2026-11-07) LE NUANCIER : le rayon des peintures a son propre système (interface/boutique-peinture.js) */try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */const fam=function(k){return cosmRar('peinture',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
-  return L.map(function(k,n){const f=fam(k),sous=BQ_PEINT_SOUS[f]?sansAcc(TR(BQ_PEINT_SOUS[f]))+' · '+eurTxt(PEINT_EUR[f]):'';return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,sous))+bqCarteHtml(k,n,false);});}
+  return L.map(function(k,n){const f=fam(k),sous=BQ_PEINT_SOUS[f]?sansAcc(TR(BQ_PEINT_SOUS[f]))+' · '+prixGroupe(L.filter(function(k2){return fam(k2)===f;}),PEINT_EUR[f]):'';return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,sous))+bqCarteHtml(k,n,false);});}
 /* LES REFLETS DANS LA SALLE BLANCHE (2026-11-05, Sacha : « les voitures buggent visuellement ») : les « reflets qui éclatent » de la finition studio (fstuHdr :
    le presque-blanc du cube de reflets ×4,5) font de belles bandes dans le garage sombre ; sur les petites facettes des caisses, dans la boutique blanche,
    ils tombaient en taches blanches au hasard — on aurait dit une texture cassée (photos des cartes comprises : elles se prennent boutique ouverte).
@@ -79040,9 +79046,9 @@ const BQN_FAM=['commun','rare','epique','legendaire'];
 /* l'état d'une peinture, en un mot (la loupe, l'étiquette lue) et une classe (le signe de la pastille) */
 function bqNuanceEtat(d){const a=shopOwned('peinture',d.id);let eq=false;try{eq=shopEqD('peinture').id===d.id;}catch(e){}
   if(eq)return {c:'eq',t:sansAcc(TR('ÉQUIPÉE'))};if(a)return {c:'a',t:sansAcc(TR('À TOI'))};
-  if(d.def){const p=peintDefFrac(d);return {c:'defi',t:sansAcc(TR('OU GAGNE-LA')),p:p,eur:d.eur?eurTxt(d.eur):''};}
+  if(d.def){const p=peintDefFrac(d);return {c:'defi',t:sansAcc(TR('OU GAGNE-LA')),p:p,eur:d.eur?prixTxt('peinture:'+d.id,d.eur):''};}
   if(d.mis2)return {c:'mis',t:sansAcc(TR('MISSION'))};if(d.pack==='chat')return {c:'mis',t:sansAcc(TR('PACK CHAT'))};
-  if(d.eur)return {c:'eur',t:eurTxt(d.eur)};if(d.p)return {c:'pc',t:bqPxT(d.p)};return {c:'mis',t:sansAcc(TR('MISSION'))};}
+  if(d.eur)return {c:'eur',t:prixTxt('peinture:'+d.id,d.eur)};if(d.p)return {c:'pc',t:bqPxT(d.p)};return {c:'mis',t:sansAcc(TR('MISSION'))};}
 function bqNuanceHtml(k,n,cur){const d=bqCos(k).d;if(!d)return '';let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;}catch(e){}
   const r=cosmRar('peinture',d),ri=rarInfo(r),E=bqNuanceEtat(d),nom=sansAcc(TR(d.n));
   const sg=E.c==='eq'||E.c==='a'?pxi('coche'):E.c==='pc'?pxi('piece'):E.c==='mis'?pxi('verrou'):''; /* (2026-11-07, passe finale) MISSION : le cadenas, comme les cartes des voitures */
@@ -79054,7 +79060,7 @@ function bqNuancierHtml(L){try{peintDefisVerifie(false);}catch(e){} /* un défi 
   bqRayonRegarde('peinture'); /* (2026-11-07, passe finale) en entrant, on regarde la peinture PORTÉE : le nom et le bouton ne parlent plus de la caisse */
   const fam=function(k){return cosmRar('peinture',bqCos(k).d);},G={},cur=bqCourant();L.forEach(function(k){const f=fam(k);(G[f]||(G[f]=[])).push(k);});
   const F=BQN_FAM.filter(function(f){return G[f];}).concat(Object.keys(G).filter(function(f){return BQN_FAM.indexOf(f)<0;}));
-  const nom=function(f){return sansAcc(TR(BQ_PEINT_SOUS[f]||rarInfo(f).n));},px=function(f){return PEINT_EUR[f]?eurTxt(PEINT_EUR[f]):'';},nA=function(f){return G[f].filter(bqA).length;};
+  const nom=function(f){return sansAcc(TR(BQ_PEINT_SOUS[f]||rarInfo(f).n));},px=function(f){return PEINT_EUR[f]?prixGroupe(G[f],PEINT_EUR[f]):'';},nA=function(f){return G[f].filter(bqA).length;};
   /* (2026-11-07, passe finale) le prix et « à toi / total » ne se disent qu'UNE fois, dans la barre des familles (ils l'étaient aussi dans
      l'intertitre) ; l'intertitre garde la rareté et la famille, et explique l'anneau cyan là où il y en a : « ◯ À GAGNER EN JEU » */
   const defi=function(f){return G[f].some(function(k){const d=bqCos(k).d;return d&&bqNuanceEtat(d).c==='defi';});};

@@ -17,9 +17,9 @@ const BQN_FAM=['commun','rare','epique','legendaire'];
 /* l'état d'une peinture, en un mot (la loupe, l'étiquette lue) et une classe (le signe de la pastille) */
 function bqNuanceEtat(d){const a=shopOwned('peinture',d.id);let eq=false;try{eq=shopEqD('peinture').id===d.id;}catch(e){}
   if(eq)return {c:'eq',t:sansAcc(TR('ÉQUIPÉE'))};if(a)return {c:'a',t:sansAcc(TR('À TOI'))};
-  if(d.def){const p=peintDefFrac(d);return {c:'defi',t:sansAcc(TR('OU GAGNE-LA')),p:p,eur:d.eur?eurTxt(d.eur):''};}
+  if(d.def){const p=peintDefFrac(d);return {c:'defi',t:sansAcc(TR('OU GAGNE-LA')),p:p,eur:d.eur?prixTxt('peinture:'+d.id,d.eur):''};}
   if(d.mis2)return {c:'mis',t:sansAcc(TR('MISSION'))};if(d.pack==='chat')return {c:'mis',t:sansAcc(TR('PACK CHAT'))};
-  if(d.eur)return {c:'eur',t:eurTxt(d.eur)};if(d.p)return {c:'pc',t:bqPxT(d.p)};return {c:'mis',t:sansAcc(TR('MISSION'))};}
+  if(d.eur)return {c:'eur',t:prixTxt('peinture:'+d.id,d.eur)};if(d.p)return {c:'pc',t:bqPxT(d.p)};return {c:'mis',t:sansAcc(TR('MISSION'))};}
 function bqNuanceHtml(k,n,cur){const d=bqCos(k).d;if(!d)return '';let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;}catch(e){}
   const r=cosmRar('peinture',d),ri=rarInfo(r),E=bqNuanceEtat(d),nom=sansAcc(TR(d.n));
   const sg=E.c==='eq'||E.c==='a'?pxi('coche'):E.c==='pc'?pxi('piece'):E.c==='mis'?pxi('verrou'):''; /* (2026-11-07, passe finale) MISSION : le cadenas, comme les cartes des voitures */
@@ -31,7 +31,7 @@ function bqNuancierHtml(L){try{peintDefisVerifie(false);}catch(e){} /* un défi 
   bqRayonRegarde('peinture'); /* (2026-11-07, passe finale) en entrant, on regarde la peinture PORTÉE : le nom et le bouton ne parlent plus de la caisse */
   const fam=function(k){return cosmRar('peinture',bqCos(k).d);},G={},cur=bqCourant();L.forEach(function(k){const f=fam(k);(G[f]||(G[f]=[])).push(k);});
   const F=BQN_FAM.filter(function(f){return G[f];}).concat(Object.keys(G).filter(function(f){return BQN_FAM.indexOf(f)<0;}));
-  const nom=function(f){return sansAcc(TR(BQ_PEINT_SOUS[f]||rarInfo(f).n));},px=function(f){return PEINT_EUR[f]?eurTxt(PEINT_EUR[f]):'';},nA=function(f){return G[f].filter(bqA).length;};
+  const nom=function(f){return sansAcc(TR(BQ_PEINT_SOUS[f]||rarInfo(f).n));},px=function(f){return PEINT_EUR[f]?prixGroupe(G[f],PEINT_EUR[f]):'';},nA=function(f){return G[f].filter(bqA).length;};
   /* (2026-11-07, passe finale) le prix et « à toi / total » ne se disent qu'UNE fois, dans la barre des familles (ils l'étaient aussi dans
      l'intertitre) ; l'intertitre garde la rareté et la famille, et explique l'anneau cyan là où il y en a : « ◯ À GAGNER EN JEU » */
   const defi=function(f){return G[f].some(function(k){const d=bqCos(k).d;return d&&bqNuanceEtat(d).c==='defi';});};
