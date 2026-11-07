@@ -58,14 +58,25 @@
   var memoire=function(){var o=[];try{var i=renderer.info;o.push('tex '+i.memory.textures,'géo '+i.memory.geometries,'prog '+(i.programs?i.programs.length:'?'));}catch(e){}
     try{if(performance.memory)o.push('tas '+Math.round(performance.memory.usedJSHeapSize/1048576)+' Mo');}catch(e){}return o.join(' · ');};
   var ligne=function(nom,extra,cle){
-    etape=nom;var f=ferme();
+    etape=nom;ligneT=performance.now();var f=ferme();
     note(nom+' · t '+sec()+' s · '+f.txt+(extra?' · '+extra:''),cle);etatSauve();return f;};
   /* ---- les gestes ---- */
   var visible=function(e){if(!e||!e.isConnected)return false;var r=e.getBoundingClientRect();if(r.width<4||r.height<4)return false;
     var cs=getComputedStyle(e);return cs.display!=='none'&&cs.visibility!=='hidden'&&+cs.opacity>.05;};
   var clic=function(sel){var Ls=document.querySelectorAll(sel);for(var i=0;i<Ls.length;i++)if(visible(Ls[i])){try{Ls[i].click();}catch(e){return null;}return Ls[i];}return null;};
-  var jusque=function(cond,max,pas){return new Promise(function(res){var t0=performance.now();(function p(){var ok=false;try{ok=!!cond();}catch(e){}
-    if(ok)return res(true);if(performance.now()-t0>max*1000)return res(false);setTimeout(p,pas||250);})();});};
+  var SKIP=false,ligneT=performance.now();
+  var etatBrut=function(){var o=[];try{var I=window.__ccIntroAuto,h=document.getElementById('mHome'),sp=document.getElementById('splash');
+    o.push('vis '+document.visibilityState,'doc '+document.readyState,'intro '+window.__intro,'prêt '+!!window.__gameReady);
+    if(I)o.push('lance '+I.lance(),'boule '+I.pret(),'fini '+I.fini());else o.push('pas de __ccIntroAuto');
+    o.push('mHome '+(h?(h.classList.contains('on')?'on':'off'):'absent'),'splash '+(sp?getComputedStyle(sp).display:'-'));
+    var s=etatJeu();o.push('started '+s.started,'running '+s.running,'over '+s.gameOver,'mode '+s.mode);
+    if(typeof garageOn!=='undefined')o.push('garage '+garageOn);}catch(e){o.push('état illisible '+(e&&e.message));}return o.join(' · ');};
+  var jusque=function(cond,max,pas,nom){return new Promise(function(res){var t0=performance.now(),dp=t0;(function p(){var ok=false;try{ok=!!cond();}catch(e){}
+    if(ok)return res(true);
+    if(SKIP){SKIP=false;note('étape sautée par le chien de garde'+(nom?' (« '+nom+' »)':''));return res(false);}
+    var n=performance.now();if(n-t0>max*1000)return res(false);
+    if(n-dp>15000){dp=n;note('attend'+(nom?' « '+nom+' »':'')+' depuis '+Math.round((n-t0)/1000)+' s (max '+max+' s) · '+etatBrut());}
+    setTimeout(p,pas||250);})();});};
   var modale=function(){try{var m=document.getElementById('modale');if(m&&m.classList.contains('on')){var b=m.querySelectorAll('.modB .pbtn');if(b.length){b[b.length-1].click();return true;}}}catch(e){}return false;};
   var enCourse=function(){var s=etatJeu();return !!(s.started&&s.running&&!s.gameOver);};
   var mort=function(){var s=etatJeu();return !!(s.started&&s.gameOver);};
@@ -161,15 +172,16 @@
     return true;};
   /* ---- le titre : l'intro, la boule ---- */
   var titre=async function(){
-    var ok=await jusque(function(){return window.__ccIntroAuto||(window.__gameReady&&!window.__intro);},60);
+    note('titre : '+etatBrut());
+    var ok=await jusque(function(){return window.__ccIntroAuto||(window.__gameReady&&!window.__intro);},60,250,'intro exposée');
     var I=window.__ccIntroAuto;
     if(I){
       /* le film part tout seul ; s'il n'est pas lancé après 8 s, on le lance */
-      await jusque(function(){return I.lance();},8);if(!I.lance())try{I.lancer(true);}catch(e){}
-      ok=await jusque(function(){return I.pret()||I.fini();},90,200);
+      await jusque(function(){return I.lance();},8,250,'film lancé');if(!I.lance()){note('film pas lancé : lancer(true) · '+etatBrut());try{I.lancer(true);}catch(e){note('lancer en erreur : '+(e&&e.message));}}
+      ok=await jusque(function(){return I.pret()||I.fini();},90,200,'boule prête');
       if(!ok)echec('la boule n\'est jamais prête');
-      else{note('boule prête à t '+sec()+' s');try{I.tapBoule();}catch(e){echec('tapBoule : '+(e&&e.message));}}}
-    ok=await jusque(function(){return window.__gameReady&&!window.__intro&&document.getElementById('mHome')&&document.getElementById('mHome').classList.contains('on')&&visible(document.querySelector('[data-m="play"]'));},120,300);
+      else{note('boule prête à t '+sec()+' s · '+etatBrut());try{I.tapBoule();}catch(e){echec('tapBoule : '+(e&&e.message));}note('tapBoule appelé · '+etatBrut());}}
+    ok=await jusque(function(){return window.__gameReady&&!window.__intro&&document.getElementById('mHome')&&document.getElementById('mHome').classList.contains('on')&&visible(document.querySelector('[data-m="play"]'));},120,300,'menu affiché');
     return ok;};
   var tout=async function(){
     var rep=null;try{rep=JSON.parse(localStorage.getItem(CLE_ETAT)||'null');}catch(e){}
@@ -181,8 +193,8 @@
     try{if(navigator.wakeLock)navigator.wakeLock.request('screen').then(function(w){note('wakeLock obtenu');},function(e){note('wakeLock refusé : '+(e&&e.message));});}catch(e){}
     seau=nouveauSeau();requestAnimationFrame(rafs);
     etatSauve();
-    if(!await titre()){echec('le menu n\'apparaît pas');ligne('titre');return;}
-    ligne('titre → menu','',false);note('menu à '+sec()+' s',true);
+    if(!await titre()){echec('le menu n\'apparaît pas · '+etatBrut());ligne('titre (menu absent)');}
+    else{ligne('titre → menu','',false);note('menu à '+sec()+' s',true);}
     await att(CFG.menu*1000);ligne('menu '+CFG.menu+' s');
     await ecrans();
     if(!await demarre(true)){echec('JOUER ne lance pas la course');return;}
@@ -196,9 +208,14 @@
     await att(2000);
     ligne('retour accueil final');
   };
+  /* LE CHIEN DE GARDE : une étape qui n'a pas écrit de ligne en 90 s est notée « bloqué » avec l'état vu, puis sautée (l'attente en cours rend la main). LE BATTEMENT : une ligne toutes les 30 s
+     (si elles s'arrêtent, c'est la page qui est suspendue, pas le banc qui est bloqué) ; la visibilité de la page est notée à chaque changement. */
+  var iv1=setInterval(function(){if(fini)return;if(performance.now()-ligneT>90000){note('bloqué à « '+etape+' » depuis '+Math.round((performance.now()-ligneT)/1000)+' s · '+etatBrut(),true);ligneT=performance.now();SKIP=true;}},5000);
+  var iv2=setInterval(function(){if(fini)return;note('vivant · t '+sec()+' s · étape « '+etape+' » · vis '+document.visibilityState);},30000);
+  document.addEventListener('visibilitychange',function(){note('visibilité '+document.visibilityState+' à t '+sec()+' s · étape « '+etape+' »',true);});
   var lance=function(){
-    tout().then(function(){fini=true;note('fini '+sec()+' s',true);vivant=false;etatSauve();ecrit();},
-      function(e){fini=true;note('ÉCHEC du banc : '+(e&&e.stack||e),true);vivant=false;etatSauve();ecrit();});};
+    tout().then(function(){fini=true;clearInterval(iv1);clearInterval(iv2);note('fini '+sec()+' s',true);vivant=false;etatSauve();ecrit();},
+      function(e){fini=true;clearInterval(iv1);clearInterval(iv2);note('ÉCHEC du banc : '+(e&&e.stack||e),true);vivant=false;etatSauve();ecrit();});};
   /* départ : dès que le jeu a posé window.__gameReady (ou son chien de garde), mais sans attendre l'intro : titre() s'en charge */
   window.__ccBanc={cfg:CFG,note:note,etat:function(){return{run:RUN,etape:etape,fini:fini,t:sec()};},lignes:function(){return L.slice();}};
   setTimeout(lance,300);
