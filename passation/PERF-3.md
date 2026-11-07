@@ -39,3 +39,8 @@ Lecture : le build 10 divise la durée du serpent par 1,6 et le pire trou par 2,
 
 ## Interrupteurs pour tout remettre comme avant
 `?gouv=max` (gouverneur à paliers + régime chaud) · `?mob_raise=0` (pas de remontée) · `?mob_g30=0` (pas de 30 calé dès le départ) · `?img=max` (image de P2) · `?menu=max` (menus de P5) · `?tranches=0` / `?textures=0` / `?chargement=0` (serpent) · `?mob_gouv=0` (gouverneur éteint) · `?lierintro`/`?prebati=0` (A1/B1 de la vague 1, dans main). `--jeu-fichier` : option de build seulement.
+
+## Mesures réelles 13 Pro — build 17 et téléphone bridé (7/11, relevé OPTI ULTIME)
+- Build 17 = serpent-fluide 8e8c415a + P4 (`--jeu-fichier`) : origine → prêt 801/651/594 ms ; serpent : pire trou 842/777/1 094 ms, trou initial 688/607/547 ms, 4/4/3 trous > 120 ms. Le script en fichier ne change pas le serpent (témoin build 15 : pire 924/695/754). Brut : `~/cash-car/perf3/batterie/2026-11-07-iphone13pro-build17-brut.txt`.
+- ⚠ **Le téléphone peut être BRIDÉ** : le build 17, parfait à 18:46 (DCL 0,7-0,9 s, pire trou ≤ 1,1 s), est devenu 5-10× plus lent à 18:53 et 19:01 (DCL 4,3-4,5 s, étape rendu 4,9 s, gels 8-9 s) SANS changer de build (chaleur après ~1 h en charge, ou économie d'énergie). Une partie de la « régression du build 13 » (16:32-16:56) est donc peut-être le TÉLÉPHONE chaud, pas le code. **Règle : avant toute mesure, lancer l'app et lire la ligne « chargement » (ou le 1er trou du serpent) ; refuser de mesurer si origine → DCL > 1,5 s ; noter la valeur en tête du rapport.**
+- Outil : `preparer-www.js --qs "&gouv=max&img=max"` (3a41cf74) cuit des interrupteurs d'URL dans l'app de dev.
