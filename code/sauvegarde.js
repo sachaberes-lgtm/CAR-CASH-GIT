@@ -183,6 +183,7 @@ const SAVE={
       /* (2026-10-22, Sacha : « tableau des voitures / des peintures ») les compteurs à vie des missions de caisse et des peintures secrètes — SANS cette liste ils sautaient au rechargement */
       for(const k of ['pu','figs'])o9.c[k]=Math.round(N9(cc[k],1e7));for(const k of ['nitS','nmaxS','airS','kmTot','verglasKm'])o9.c[k]=N9(cc[k],1e9);
       /* (2026-10-25, Sacha : « palier 10 de chaque musique ») les morceaux de Pouce bleu joués jusqu'au palier 10 : leurs ids ont un tiret (bleu-12, pal-asphalte), L9 les jetterait */
+      if(Array.isArray(cc.pg))o9.c.pg=[...new Set(cc.pg.filter(function(x){return typeof x==='string'&&/^[a-zA-Z0-9]{2,16}$/.test(x);}))].slice(0,160);if(cc.pgv===1)o9.c.pgv=1; /* (2026-11-07, chasse ECO-N03) les peintures gagnées par leur défi (boutique.js) et le témoin de reprise */
       if(Array.isArray(cc.musP10))o9.c.musP10=[...new Set(cc.musP10.filter(function(x){return typeof x==='string'&&/^[a-z0-9-]{2,40}$/.test(x);}))].slice(0,80);
       if(cc.met&&typeof cc.met==='object')for(const k of Object.keys(cc.met).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.met||(o9.c.met={}))[k]=L9(cc.met[k],12);
       if(cc.sc&&typeof cc.sc==='object')for(const k of Object.keys(cc.sc).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.sc||(o9.c.sc={}))[k]=N9(cc.sc[k],1e9);}

@@ -155,6 +155,7 @@ function acVeut(A){ /* ce contexte doit-il tourner maintenant ? (le jeu peut l'a
   return true;}
 function acReveil(A){
   A=A||AC;if(!A||A.state==='running'||A.state==='closed')return Promise.resolve(!!A&&A.state==='running');
+  if(A===AC&&!SND.sfx&&!SND.music&&!(typeof MUSAP!=='undefined'&&MUSAP.t>performance.now()))return Promise.resolve(false); /* (2026-11-07, chasse SON-N04) tout coupé : rien à réveiller (sauf l'extrait du curseur MUSIQUE) */
   let p=null;try{p=A.resume();}catch(e){p=Promise.reject(e);}
   if(!p||!p.then)return Promise.resolve(A.state==='running');
   return p.then(function(){return A.state==='running';},function(e){AC_REV.rates++;AC_REV.dern=String(e&&e.message||e).slice(0,80);acReessaie(A);return false;});}
@@ -165,7 +166,7 @@ function acReessaie(A){ /* au prochain toucher (touchend : le geste qu'iOS accep
   addEventListener('touchend',f,true);addEventListener('pointerup',f,true);}
 function initAudio(){
   AC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000,latencyHint:'interactive'});}catch(e){return new C();}})(); /* (2026-10-25, Sacha/Léo : « sons très aigus chez lui, grésillements chez moi, même lien ») 48 kHz IMPOSÉS : le contexte prenait la cadence de la carte son de chaque ordinateur (44,1 · 48 · 96 kHz, Bluetooth 16-24 kHz) et tout le DSP tournait à une cadence différente d'une machine à l'autre ; le navigateur rééchantillonne vers la sortie. */
-  if(!SND.sfx&&!(MUS_WA&&MUS_WA.on)&&!musGraphe())try{AC.suspend();}catch(e){} // le mute SON survit au redémarrage — (2026-10-14, session SON) sauf si la musique passe par WebAudio (MUS_WA) : suspendu, le contexte la rendait MUETTE au lancement (SON coupé, MUSIQUE allumée) ; musWaSon coupe alors les effets par l'entrée du limiteur
+  if((!SND.sfx&&!SND.music)||(!SND.sfx&&!(MUS_WA&&MUS_WA.on)&&!musGraphe()))try{AC.suspend();}catch(e){} /* (2026-11-07, chasse SON-N04) SON et MUSIQUE coupés : il dort dès sa naissance, même avec Pouce bleu (musGraphe) */ // le mute SON survit au redémarrage — (2026-10-14, session SON) sauf si la musique passe par WebAudio (MUS_WA) : suspendu, le contexte la rendait MUETTE au lancement (SON coupé, MUSIQUE allumée) ; musWaSon coupe alors les effets par l'entrée du limiteur
   // BUS MASTER : tout le WebAudio passe par compresseur + limiteur doux tanh — niveau perçu
   // stable, jamais de clip numérique, pas de fatigue d'oreille sur une longue session
   /* ⚠ DEUX NŒUDS LÀ OÙ IL N'Y EN AVAIT QU'UN, ET C'EST CE QUI REND LE CURSEUR « EFFETS » POSSIBLE.
@@ -377,6 +378,7 @@ function initAudio(){
   for(const q of [filt.frequency,engNzF.frequency,ovrF.frequency,engEq.gain,windF.frequency,whF.frequency,jrF.frequency,jetF.frequency,
     engSub.frequency,engLfo.frequency,transO.frequency,diffO.frequency,engTickO.frequency,engWhine.frequency,jetOsc.frequency,skLfo.frequency])
     try{if(q&&'automationRate' in q)q.automationRate='k-rate';}catch(e){}
+  try{if(!SND.sfx&&!SND.music)AC.suspend();}catch(e){} /* (2026-11-07, chasse SON-N04) tout coupé dès la sauvegarde : le graphe dort tout de suite (sndRefresh ne tourne pas au premier geste) */
 }
 function noiseBurst(dur,vol,freq){
   if(!sfxOk())return;

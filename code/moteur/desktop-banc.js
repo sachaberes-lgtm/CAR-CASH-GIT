@@ -40,7 +40,7 @@ if(!(IS_MOBILE||/[?&]touch=1/.test(location.search))){
     else if(a==='q'){ SAVE.d.q=qSuivant(SAVE.d.q); SAVE.d.qChoisi=1; SAVE.flush(); applyQ9(SAVE.d.q==='fast'); dPanSync(); }
     else if(a==='surv'){ dClic(survBtnEl); dPanSync(); }
     else if(a==='resp'){ dPanOpen(false); if(started&&!gameOver&&mode==='drive')respawn(); }
-    else if(a==='reset'){ dPanOpen(false); if(started){ if(!gameOver&&mode==='boom')endGame(); else resetGame(); } } /* (2026-10-24) comme le mobile (12/10) : la caisse EXPLOSE déjà, la partie est finie — RECOMMENCER la solde (virement, aura, record, écran de fin) au lieu de la jeter */
+    else if(a==='reset'){ dPanOpen(false); if(started){ if(!gameOver&&mode==='boom')endGame(); else { try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} resetGame(); } } } /* (2026-11-07, chasse SON2-N03) comme le mobile : le morceau abandonné s'éteint avant la partie neuve */ /* (2026-10-24) comme le mobile (12/10) : la caisse EXPLOSE déjà, la partie est finie — RECOMMENCER la solde (virement, aura, record, écran de fin) au lieu de la jeter */
     else if(a==='quit'){ dPanOpen(false); if(started&&!gameOver){ if(TUTO.on)tutoQuitte(); /* (2026-09-28) pas tutoFin(true) : QUITTER n'est pas PASSER */ const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb; } } // QUITTER pendant l'auto-école : on sort vraiment (sinon « RATÉ ! » et la caisse replacée)
   });
   // ⚠ NOM DÉDIÉ (`applyQ9`, pas `applyQ`) : `applyQ` est déclarée `const` À L'INTÉRIEUR du bloc

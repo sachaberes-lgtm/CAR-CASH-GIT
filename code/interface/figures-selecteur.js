@@ -14,7 +14,7 @@
    Banc : `dbgFsel()` rend l'état, `dbgFsel('dir',k)` / `('tri')` / `('part','moi')` les posent. */
 var FSEL={dir:-1,part:'tout',tri:'cat',pick:{},undo:null,tm:0}; /* dir : l'emplacement visé (−1 = tous) · part : tout | moi | acheter · tri : cat | rar | prix · pick : id → le sens choisi d'une figure à deux sens */
 const FS_TRI=['cat','rar','prix'],FS_TRI_N={cat:'ORDRE',rar:'RARETÉ',prix:'PRIX'},FS_COURT=['AVANT','ARRIÈRE','CÔTÉS'];
-try{Object.assign(I18N,{'TOUT':'ALL','À MOI':'MINE','À ACHETER':'TO BUY','TRI':'SORT','ORDRE':'ORDER','RARETÉ':'RARITY','PRIX':'PRICE','ANNULER':'UNDO','AVANT':'FRONT','ARRIÈRE':'BACK','CÔTÉS':'SIDES',
+try{Object.assign(I18N,{'TOUT':'ALL','À MOI':'MINE','À ACHETER':'TO BUY','TRI':'SORT','ORDRE':'ORDER','RARETÉ':'RARITY','PRIX':'PRICE','AVANT':'FRONT','ARRIÈRE':'BACK','CÔTÉS':'SIDES',
   "TOUCHE UNE FIGURE POUR L'ÉQUIPER ICI":'TAP A TRICK TO EQUIP IT HERE','ELLE SE RANGE TOUTE SEULE · OU TOUCHE UN EMPLACEMENT':'IT SLOTS IN BY ITSELF · OR TAP A SLOT','REMPLACE':'REPLACES','AUCUNE FIGURE POUR CE GESTE':'NO TRICK FOR THIS MOVE','RIEN À AFFICHER':'NOTHING TO SHOW','REMIS COMME AVANT':'BACK AS BEFORE'});}catch(e){}
 function fsRang(id){const f=window.FIG&&id&&FIG.par[id];return f?(INV_RANG[cosmRar('figure',f)]||0):-1;} // le rang de rareté d'une figure (−1 : aucune)
 function fsPrix(id){const f=window.FIG&&id&&FIG.par[id];return f?(f.p||0):0;}
