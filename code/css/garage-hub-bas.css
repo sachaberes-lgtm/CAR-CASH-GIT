@@ -117,9 +117,9 @@ html.hubOn.gtConsole body #garage:not(.menu)>#gTourne.on{background:none!importa
    une bande ambrée sombre à l'horizon de la lettre, puis l'or qui remonte) ; CAR : un coucher de soleil (crème, or, orange, corail, rose,
    violet au pied) ; le TITRE porte un double halo (or serré, rose large). Le reflet qui passe (lgShine) devient plus lent et plus franc. Le logo grandit (debout
    jusqu'au bord de la colonne ; couché 64 px) et, couché, descend au quart de l'écran. Rien d'autre ne bouge. */
-html.hub body #mHome.acc2 .mTitle .lg.gold{background:linear-gradient(180deg,#fffef6 0%,#fff2bd 16%,#ffd84f 34%,var(--neoA) 48%,#8f4c00 60%,#c57800 70%,#ffcf48 84%,#fff1ba 100%);
+html.hub body #mHome.acc2 .mTitle .lg.gold{background:linear-gradient(180deg,#fffef6 0%,#fff2bd 16%,#ffd84f 34%,#ffb000 48%,#8f4c00 60%,#c57800 70%,#ffcf48 84%,#fff1ba 100%);
   -webkit-background-clip:text;background-clip:text}
-html.hub body #mHome.acc2 .mTitle .lg.grad{background:linear-gradient(180deg,#fff5c8 0%,var(--or) 20%,#ff9d3a 40%,#ff5d5a 58%,#ff2f8e 76%,#b13cff 100%);
+html.hub body #mHome.acc2 .mTitle .lg.grad{background:linear-gradient(180deg,#fff5c8 0%,#ffd75e 20%,#ff9d3a 40%,#ff5d5a 58%,#ff2f8e 76%,#b13cff 100%);
   -webkit-background-clip:text;background-clip:text} /* ⚠ PAS de filter sur un .lg : il ferait passer l'extrusion brune (::before) devant la face d'or — la lueur est portée par le TITRE */
 html.hub body #mHome.acc2 .mTitle .lg::after{background:linear-gradient(105deg,transparent 36%,rgba(255,255,255,.95) 50%,transparent 64%) 180% 0/240% 100% no-repeat;
   -webkit-background-clip:text;background-clip:text;animation:lgShine 5.2s ease-in-out infinite}

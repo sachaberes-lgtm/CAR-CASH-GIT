@@ -47,8 +47,8 @@ html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay .lg{font-size:44px!important}
 html.hub:not(.poki) body #mHome.acc2 .mAccP>.mPlay:is(:active,.appui){transform:translateY(3px) scale(.97)!important}
 /* LE LOGO D'AVANT (Sacha : « le logo CASH CAR est trop rose, remets l'ancien ») : « la brillance du logo » (Léo, 10/10, 98b905c — CAR
    en coucher de soleil, du corail au violet) est neutralisée ici : les dégradés et le reflet d'origine (.lg.gold / .lg.grad / lgShine) */
-html.hub:not(.poki) body #mHome.acc2 .mTitle .lg.gold{background:linear-gradient(180deg,var(--au0) 0%,var(--orB) 28%,var(--au2) 52%,var(--orS) 74%,var(--orB) 96%);-webkit-background-clip:text;background-clip:text}
-html.hub:not(.poki) body #mHome.acc2 .mTitle .lg.grad{background:linear-gradient(180deg,#fff3c0,var(--or) 40%,#ff8a3d 72%,var(--neoM));-webkit-background-clip:text;background-clip:text}
+html.hub:not(.poki) body #mHome.acc2 .mTitle .lg.gold{background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%);-webkit-background-clip:text;background-clip:text}
+html.hub:not(.poki) body #mHome.acc2 .mTitle .lg.grad{background:linear-gradient(180deg,#fff3c0,#ffd75e 40%,#ff8a3d 72%,#ff3ec8);-webkit-background-clip:text;background-clip:text}
 html.hub:not(.poki) body #mHome.acc2 .mTitle .lg::after{background:linear-gradient(105deg,transparent 32%,rgba(255,255,255,.95) 50%,transparent 68%) 180% 0/240% 100% no-repeat;
   -webkit-background-clip:text;background-clip:text;animation:lgShine 3.4s ease-in-out infinite}
 html.hub:not(.poki) body #mHome.acc2 .mTitle .lg.grad::after{animation-delay:0s}
