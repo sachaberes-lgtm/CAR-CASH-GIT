@@ -76,7 +76,7 @@ function charge(){
          GARDÉ (pas `B.d[cle]=null`) pour pouvoir le refaire ;
        · un son décodé qui n'a pas joué depuis VIE ms, sans voix vivante, est ÉVINCÉ (le tampon rendu, le base64 reste ; `S.evinces`).
      `?sons=tout` = tout décoder au chargement et jeter le base64, comme avant. Les fiches `pre:1` et `ui.*` ne sont jamais évincées. */
-  const DEMANDE=!/[?&]sons=tout\b/.test(location.search),TARD=120,VIE=60000;
+  const DEMANDE=!/[?&](sons|audio)=tout\b/.test(location.search)&&!/[?&]memoire=ancien\b/.test(location.search),TARD=120,VIE=60000; /* (2026-11-07, Perf 3 P1) `?audio=tout` (ou `?memoire=ancien`) = la banque entière décodée, comme avant */
   const garde=function(k){const f=B.m[k.split('#')[0]]||{};return !!f.pre||/^ui\./.test(k);}; // toujours décodé, jamais évincé
   const fond=DEMANDE?cles.filter(garde):cles,file=[]; // fond : la file de fond ; file : les sons DEMANDÉS (servis d'abord)
   S.nTot=cles.length;let i=0,enCours=0,etalon=B.d.__etalon?0:2; // 0 à faire · 1 en cours · 2 fait
@@ -108,11 +108,22 @@ function charge(){
     }
   };
   S.demande=function(cle){if(!DEMANDE||S.buf[cle]||S.enFile[cle]||!B.d[cle])return false;S.enFile[cle]=1;file.push(cle);suivant();return true;};
-  if(DEMANDE)setInterval(function(){ // L'ÉVICTION : un son muet depuis VIE ms, sans voix vivante, rend son tampon (son base64 est gardé : il se refera)
+  const evince=function(vie,seul){ // un son muet depuis `vie` ms, sans voix vivante, rend son tampon (son base64 est gardé : il se refera)
     const now=performance.now(),n=S.ac?S.ac.currentTime:0;
-    for(const cle in S.buf){if(!B.d[cle]||now-(S.use[cle]||0)<VIE)continue;
+    for(const cle in S.buf){if(!B.d[cle]||now-(S.use[cle]||0)<vie||(seul&&!seul[cle]))continue;
       const L=S.voix[cle.split('#')[0]];let vive=false;if(L)for(const x of L)if(x.fin>n){vive=true;break;}if(vive)continue;
-      delete S.buf[cle];delete S.off[cle];S.nDec--;S.evinces++;}},10000);
+      delete S.buf[cle];delete S.off[cle];S.nDec--;S.evinces++;}};
+  if(DEMANDE)setInterval(function(){evince(VIE);},10000); // L'ÉVICTION
+  /* ===== LA COURSE EST UN PAQUET (2026-11-07, Perf 3 P1, DIR-02/SON-02 : « libérer entre deux courses ce qui n'est pas en jeu ») =====
+     MESURÉ (banc, iPhone émulé) : 15,5 Mo de PCM au menu (fiches `pre:1` + `ui.*`), 21-26 Mo en course ; l'éviction à 60 s ne rendait rien pendant l'écran de fin
+     — alors que c'est LÀ que le pré-bâti de la piste suivante pèse le plus. Désormais : `finCourse()` (la mort) note les sons joués depuis `debutCourse()`, puis, 4 s
+     après (la queue de l'explosion), rend tous les tampons qui ne sont pas `pre`/`ui.` ; `debutCourse()` (REJOUER / JOUER, sous le volet) les redemande d'avance :
+     ils sont décodés avant le premier tour de roue. `?audio=tout` / `?memoire=ancien` : rien de tout cela. */
+  S.paquet={};S.t0Course=0;
+  S.finCourse=function(){if(!DEMANDE)return;const lu={};for(const cle in S.use)if(S.use[cle]>=S.t0Course&&!garde(cle)&&S.buf[cle])lu[cle]=1;
+    for(const cle in lu)S.paquet[cle]=1;
+    clearTimeout(S.tLib);S.tLib=setTimeout(function(){evince(4000,lu);},4000); /* seulement les sons de la COURSE (ceux de l'écran de fin, joués ensuite, restent) */};
+  S.debutCourse=function(){S.t0Course=performance.now();if(!DEMANDE)return;clearTimeout(S.tLib);for(const cle in S.paquet)if(!S.buf[cle]&&B.d[cle])S.demande(cle);};
   S.relance=suivant;suivant();
   /* (2026-10-24, passe perf — « le 1er lancement ») LA 2e MOITIÉ DE LA BANQUE : la copie PUBLIÉE ne porte d'abord que les fiches `pre:1` (outils/scinde-banque.cjs) ; le reste
      (sons-banque-2.js, ~4,3 Mo transférés) arrive après l'événement load, et ses sons entrent dans la même file de décodage. Un son pas encore là : play() se tait. */
@@ -221,6 +232,7 @@ function liste(){const o={},M=S.m||(G.CCSON_BANQUE&&G.CCSON_BANQUE.m)||{};for(co
 G.CCSON={charge:charge,init:init,play:play,ton:ton,stop:stop,liste:liste,annuleFutur:annuleFutur,stopJeu:stopJeu,
   bus:function(k){return S.bus[k]||null;},
   existe:function(id){return !!(S.m&&S.m[id]);},
+  finCourse:function(){if(S.finCourse)S.finCourse();},debutCourse:function(){if(S.debutCourse)S.debutCourse();},
   etat:function(){let oct=0,n=0;for(const k in S.buf){const b=S.buf[k];if(b){n++;oct+=b.length*b.numberOfChannels*4;}}
     return{ok:S.ok,ton:S.ton,decodes:S.nDec,total:S.nTot,salle:!!S.salOn,residents:n,mo:Math.round(oct/104857.6)/10,tardifs:S.tard,perdus:S.perdus,evinces:S.evinces,enAttente:Object.keys(S.att).length};}, // (2026-11-05) residents/mo : le PCM en mémoire ; tardifs/perdus/evinces : LES SONS À LA DEMANDE
   // le banc : où commence chaque son (ms) — tous doivent tomber près des 30 ms de tête (± le retard de l'encodeur)
