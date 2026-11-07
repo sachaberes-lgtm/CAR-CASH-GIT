@@ -188,6 +188,8 @@ gameplay/frenesie.js                 # la zone rouge, l'emblème dark triad
 gameplay/frole-contrats.js           # le frôlé, la bannière de contrat
 interface/photos-films.js            # photos des ailes, films des figures, atelier des caisses (dev)
 economie/boutique.js                 # LA BOUTIQUE : fenêtre d'achat, SHOP, shopBuy, peintures, habillages
+economie/livrees.js                  # LES LIVRÉES : le moteur des épiques placées sur la caisse (rallye, F1, pop) et leurs dessins
+economie/boutique-vitrine.js         # la suite de la boutique : la vitrine des peintures, le rangement, les défis, les habillages
 interface/auto-ecole.js              # l'auto-école, la main fantôme
 economie/achat-carte-moteur.js       # carBuy (l'achat), carte moteur, monnaie du moteur
 voitures/matieres-forme.js           # l'atelier de matières, outils de forme, squelette
