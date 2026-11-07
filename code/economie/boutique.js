@@ -197,7 +197,7 @@ function chatPackI(){for(let i=0;i<CARS.length;i++)if(CARS[i]&&CARS[i].shape==='
    · ÉPIQUE     = un MOTIF, une toile peinte (MOTIFS) ..... 2 € — les livrées « stickers » d'abord (sticker bomb, flammes, carbone, graffiti,
                   pop art, vague, dollars), puis les pelages ;
    · LÉGENDAIRE = un motif ANIMÉ, calculé par la carte graphique à chaque image (MOT_ANIM) ..... 3 €.
-   « OU GAGNE-LA » : plus d'une peinture sur deux (36 sur 64) a aussi un DÉFI (`def`) : elle s'achète tout de suite, OU se gagne en jouant (peintDefisVerifie, secDonne).
+   « OU GAGNE-LA » : plus d'une peinture sur deux (36 sur 64) a aussi un DÉFI (`def`) : elle se GAGNE en jouant (peintDefisVerifie, secDonne) et ne s'achète PLUS (2026-11-07, Sacha : une peinture de mission n'a pas de prix).
    Plus de secrètes masquées « ? ? ? » : on voit ce qu'on veut et comment l'avoir — la jauge du défi est sur la carte et sous le nom.
    `def.k` = ce qu'on mesure : 'sc:<compteur>' (les compteurs à vie de missions/defis-moteur.js : m2Cpt) · gagne · jours · kmh · frenT · tours · fig ·
    parf · eng · aura · prof · 'b' un exploit d'un coup, sans jauge (donné par secGagne) · 'serie' le 7e jour de la série (missions/aujourdhui.js) ;
