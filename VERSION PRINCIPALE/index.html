@@ -22737,7 +22737,7 @@ function dnPlanScenes(S,K,RH,D){
       else if(q.sp==='vlei')faire('village',q);}
     if(!vlei){const ry=seg.filter(function(q){return q.sp==='rythme'||q.sp==='chapelet';});for(const q of ry)if(faire('monolithes',q))break;}
     /* (2026-11-05, LES MODULES DU DÉSERT) la CUVETTE de sable reçoit toujours son ver ; les creux sans lieu en ont un une fois sur deux (deux au plus) ; le SLALOM, ses rochers dressés en portes (une fois sur deux) */
-    {let nv=0;for(const q of seg)if(q.sp==='cuvette'&&nv<2&&faire('ver',q))nv++;
+    {let nv=2;/* (2026-11-07, Sacha : « enlève le ver des sables ») plus de ver : le compte est plein d'avance */for(const q of seg)if(q.sp==='cuvette'&&nv<2&&faire('ver',q))nv++;
      for(const q of seg)if(q.k==='creux'&&!q.sp&&nv<2&&R()<.5&&faire('ver',q))nv++;
      for(const q of seg)if(q.sp==='slalom'&&R()<.5)faire('monolithes',q);}/* pas de vallée d'argile : les rochers prennent un creux de bosses (jamais l'oasis) */
     return;}
