@@ -4,3 +4,5 @@ les erreurs de page et les images trop longues. Sortie 0 = OK, 1 = seuil franchi
 profils) : « LA PASSE PERF DU 24/10 » du JOURNAL. ⚠ mesurer quand la machine est calme (charge < 8) ; un banc à la fois.
 
 APP iOS DE DEV (2026-11-07) : `node app-ios/preparer-www.js --maj http://127.0.0.1:1/ [--banc p7] [--jeu-fichier] [--qs "&gouv=max&img=max"]` — --qs cuit des interrupteurs d URL (natif.js pose location.search avant le jeu ; www/qs.json en garde la trace) ; --banc joue le scenario tout seul ; app de DEV seulement.
+
+INTERRUPTEURS (train 2) : ?segments=0 = canyon (et tout instSegmente de P3) dessiné en UNE InstancedMesh comme avant ; ?tranches=0 = les tranches de la piste du serpent (serpent-fluide). Ne pas les confondre.

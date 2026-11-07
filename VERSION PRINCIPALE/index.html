@@ -20082,10 +20082,10 @@ function cyOmbre(elDeg,azDeg){const F=CY.F,TS=PAL.b('cyOmbre',27),nx=Math.ceil(F
    matière (même programme), mêmes instances (copie exacte des matrices et des couleurs), géométrie PROXY qui partage les tampons de la base mais porte
    SA sphère englobante (centres des instances + rayon de la géométrie × échelle + marge) : le tri par le champ de vision de three joue. Aucun pixel ne change :
    une cellule n'est jetée que si sa sphère (conservatrice) est entièrement hors du tronc de vue.
-   `o` : {cell:400, marge:20}. Rend la liste des maillages à ajouter À LA PLACE de `im` (ou [im] tel quel : `?tranches=0`, une seule instance, ou instances animées).
+   `o` : {cell:400, marge:20}. Rend la liste des maillages à ajouter À LA PLACE de `im` (ou [im] tel quel : `?segments=0`, une seule instance, ou instances animées).
    ⚠ À n'employer que sur des instances qui NE BOUGENT PAS (pas de `count` piloté, pas de matrices réécrites par image) et opaques (le tri des transparents
    se fait par objet). `dbgSegments(false)` = la sphère coupée (tout dessiné comme avant) pour comparer l'image dans la même tâche ; `dbgSegments()` = l'état. */
-const SEG_ON=!/[?&]tranches=0\b/.test(location.search),SEG_L=[],SEG_CELL=+((/[?&]segcell=(\d+)/.exec(location.search)||[])[1])||0; /* `?segcell=800` : la taille des cellules (banc) */
+const SEG_ON=!/[?&]segments=0\b/.test(location.search),SEG_L=[],SEG_CELL=+((/[?&]segcell=(\d+)/.exec(location.search)||[])[1])||0; /* `?segcell=800` : la taille des cellules (banc) */
 function instSegmente(im,o){
   o=o||{};const cell=SEG_CELL||o.cell||400,marge=o.marge==null?20:o.marge,n=im.count,geo=im.geometry,A=im.instanceMatrix.array;
   if(!SEG_ON||n<2||!geo||!geo.attributes.position||im.isSkinnedMesh)return [im];
