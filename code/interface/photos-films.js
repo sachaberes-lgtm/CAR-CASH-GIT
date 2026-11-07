@@ -398,24 +398,26 @@ function shArcHtml(i,a){return (i===chatPackI()&&!a)?'<i class="shArc">'+insec(s
    rangée debout, dans l'ordre du rayon ACHAT (bqAchat : l'offre de lancement, puis de la moins chère à la plus chère). Toucher une boîte ouvre
    la fenêtre d'achat (shopPop), inchangée. Les images arrivent une par une (shopPhotoTour). Le style : achat-boites.css.
    `?vitrine=0` : la photo de catalogue d'avant, dans la même niche. */
+const SHB_GRAND=720; /* la grande boîte de l'offre (314 px de large debout) : rendue en 720, comme l'ancienne photo de l'offre — à 480 (vitLarg d'un téléphone) elle était floue sur un écran ×3 */
 function shBoiteVt(){return typeof VITM!=='undefined'&&VITM.on;}
-function shBoiteCle(i){return shBoiteVt()?vitrineCle(i,false,carOwned(i)):i;} /* la clé de l'image de la boîte dans PHOTO.cache (une caisse À TOI : sa vitrine « sortie de sa boîte ») */
-function shBoiteImg(i){const u=PHOTO.cache[shBoiteCle(i)];return u?'<img class="shBxI" src="'+u+'" alt="" draggable="false">':'';}
+function shBoiteCle(i,big){return shBoiteVt()?vitrineCle(i,false,carOwned(i),big?SHB_GRAND:0):i;} /* la clé de l'image de la boîte dans PHOTO.cache (une caisse À TOI : sa vitrine « sortie de sa boîte ») */
+function shBoiteImg(i,big){const u=PHOTO.cache[shBoiteCle(i,big)];return u?'<img class="shBxI" src="'+u+'" alt="" draggable="false">':'';}
 function shopRender(){
   const une=document.getElementById('shUne'),gr=document.getElementById('shGrille');if(!une||!gr)return;
   let hU='',hG='',n=0;
-  bqAchat().forEach(function(i){if(!CARS[i])return;const u=CAR_UNLOCK[i],a=carOwned(i),ri=rarInfo(carRar(i)),im=shBoiteImg(i),nom=insec(sansAcc(TR(CARS[i].name))),
-      bx='<span class="shBx'+(im?' vt':'')+(shBoiteVt()?'':' photo')+'">'+im+'</span>';
-    if(!im)shopPhotoVeut(i); /* (revue GAMEPLAY) jamais d'image EN SYNCHRONE : la file les prend une par une */
-    if(u.une&&!hU&&!a){ /* L'OFFRE À LA UNE : la grande boîte, dans le cadre qui scintille (`.shUne`) */
-      hU='<div class="shUneCadre shUneBoite b-'+ri.id+'" style="--rc:'+ri.c+'">'+bx.replace('class="shBx','class="shBx big')
+  bqAchat().forEach(function(i){if(!CARS[i])return;const u=CAR_UNLOCK[i],a=carOwned(i),big=!!u.une&&!hU&&!a,ri=rarInfo(carRar(i)),im=shBoiteImg(i,big),nom=insec(sansAcc(TR(CARS[i].name))),
+      bx='<span class="shBx'+(big?' big':'')+(im?' vt':'')+(shBoiteVt()?'':' photo')+'">'+im+'</span>';
+    if(!im)shopPhotoVeut(big?'u'+i:i); /* (revue GAMEPLAY) jamais d'image EN SYNCHRONE : la file les prend une par une ('u' : la grande boîte) */
+    if(big){ /* L'OFFRE À LA UNE : la grande boîte, dans le cadre qui scintille (`.shUne`) */
+      hU='<div class="shUneCadre shUneBoite b-'+ri.id+'" style="--rc:'+ri.c+'">'+bx
         +'<div class="shUneTx"><b>'+nom+'</b>'+shArcHtml(i,a)+'</div>' /* (2026-10-15 soir, Sacha : « enlève le texte super long au-dessous de CHAT POP-TART, ça sert à rien ») plus de phrase sous le nom : la fenêtre d'achat la garde */
         +'<div class="shUneBas"><em>'+eurTxt(u.eur)+'</em><span class="shBtn">'+pxi('panier')+TR('ACHETER')+'</span></div></div>';
       une.setAttribute('data-car',i);return;}
-    const px=a?pxi('coche')+sansAcc(TR('À TOI')):eurTxt(u.eur);
+    const px=a?pxi('coche')+sansAcc(TR('À TOI')):eurTxt(u.eur),
+      lg=Math.max.apply(null,sansAcc(TR(CARS[i].name)).split(/\s+/).map(function(w){return w.length;}))>=10; /* un mot de 10 lettres et plus (L'ÉTERNELLE) : la plaque l'écrit plus petit quand la boîte est étroite, au lieu de le couper en deux (achat-boites.css) */
     hG+='<div class="shCase shBoite b-'+ri.id+(a?' aToi':'')+'" data-m="shopSoon" data-car="'+i+'" role="button" style="--rc:'+ri.c+';--i:'+Math.min(n++,8)+'"'
       +' aria-label="'+(nom+' · '+(a?sansAcc(TR('À TOI')):eurTxt(u.eur))).replace(/"/g,'')+'">'+bx
-      +'<span class="shBxPl"><b class="shBxN">'+nom+'</b>'+(i===chatPackI()&&!a?'<i class="shBxArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</i>':'')
+      +'<span class="shBxPl"><b class="shBxN'+(lg?' lg':'')+'">'+nom+'</b>'+(i===chatPackI()&&!a?'<i class="shBxArc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</i>':'')
       +'<span class="shBxP">'+px+'</span></span></div>';});
   une.innerHTML=hU;gr.innerHTML=hG;if(!hU)une.removeAttribute('data-car');
 }
