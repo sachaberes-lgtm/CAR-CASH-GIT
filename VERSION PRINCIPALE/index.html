@@ -14131,7 +14131,7 @@ const COTON_OUV={w:null,ko:false,id:0,att:new Map(),file:[],t:0};
 function cotonOuvrier(){
   if(COTON_OUV.w||COTON_OUV.ko)return COTON_OUV.w;
   try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';const nufDemi='+nufDemi.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);if(q.hf&&r.fant){r.fant.D=nufDemi(r.fant,q.dy||0,q.hf);r.fant.Dy=q.dy||0;}self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer].concat(r.skin?[r.skin.pos.buffer,r.skin.nor.buffer,r.skin.idx.buffer]:[]).concat(r.fant&&r.fant.D?[r.fant.D.buffer]:[]));};';
-    const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
+    const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'})),w=new Worker(url);w._url=url; /* (2026-11-07) l'adresse Blob, révoquée au repos (sinon chaque réveil en laissait une) */
     w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);cotonOuvrierRepos(w);};
     w.onerror=function(ev){try{ev.preventDefault();}catch(e9){}cotonOuvrierKo();};COTON_OUV.w=w;
   }catch(e){COTON_OUV.ko=true;}
@@ -14143,7 +14143,7 @@ function cotonOuvrier(){
 const COTON_OUV_GARDE=/[?&]ouvrier=garde\b/.test(location.search);
 function cotonOuvrierRepos(w){if(COTON_OUV_GARDE||COTON_OUV.w!==w||COTON_OUV.att.size)return;
   if(COTON_OUV.repos)clearTimeout(COTON_OUV.repos);
-  COTON_OUV.repos=setTimeout(function(){COTON_OUV.repos=0;if(COTON_OUV.w!==w||COTON_OUV.att.size)return;try{w.terminate();}catch(e){}COTON_OUV.w=null;COTON_OUV.reposes=(COTON_OUV.reposes|0)+1;},1500);}
+  COTON_OUV.repos=setTimeout(function(){COTON_OUV.repos=0;if(COTON_OUV.w!==w||COTON_OUV.att.size)return;try{w.terminate();}catch(e){}try{URL.revokeObjectURL(w._url);}catch(e){}COTON_OUV.w=null;COTON_OUV.reposes=(COTON_OUV.reposes|0)+1;},1500);}
 function cotonOuvrierKo(){COTON_OUV.ko=true;if(COTON_OUV.w){try{COTON_OUV.w.terminate();}catch(e){}COTON_OUV.w=null;} // refusé : sa file repart sur le fil principal
   for(const a of COTON_OUV.att.values())cotonTranche(a.job,a.cb);COTON_OUV.att.clear();}
 function cotonTranche(job,cb){COTON_OUV.file.push({job:job,cb:cb});if(!COTON_OUV.t)COTON_OUV.t=setTimeout(cotonTrancheSuite,0);}
@@ -17067,7 +17067,7 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   {const ref=PREB_CPU[PREB.t.carte]||PREB_CPU_DEF[PREB.t.carte]||1500,re=ref*1.15-PREB.cpu;if(re>0)u9=Math.max(u9,Math.min(16,re/Math.max(1,(r9-1.5)*Math.max(8,Math.min(60,PREB.ips||25)))));}
   prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));
   if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;}
-const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500,foret:1500}; /* (ms de calcul) la dernière préparation d'avance de chaque map, en tranches — et une estimation large avant la 1re */
+const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500,foret:1500,dunes:1500}; /* (ms de calcul) la dernière préparation d'avance de chaque map, en tranches — et une estimation large avant la 1re — (2026-11-07, chasse MAP-N01) dunes : MESURÉ 510-530 ms sur l'ordi (Ryzen 5 3600, canyon → dunes, la route puis la préparation du monde ; le calcul lui-même est chez le travailleur), ×3 pour un téléphone */
 /* LE DÉPART D'AVANCE (2026-10-19, session PERF — chantier du pré-bâti de Léo ; la passe perf du 18/10 : « JOUER : ~1,1 s d'image figée sous le
    nuage blanc · REJOUER : ~1 s de construction sous le volet · depuis l'accueil, la piste bâtie deux fois »). La 1re piste d'une partie se bâtit
    comme la map d'en face : AU MENU et À L'ÉCRAN DE FIN, quelques ms par image, par la même machine (pisteRoute, prebJade, prebDecorG), puis le
@@ -19881,13 +19881,22 @@ function cyTravailleur(){if(CY.w!==undefined)return CY.w;
     const code="'use strict';var CY={},CY_O9={},L=0,ROAD_HALF=28,PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
       "\nonmessage=function(e){var m=e.data;CY={nz:m.nz,rnd:m.rnd};PAL.B=m.opt.pal;L=m.opt.L;ROAD_HALF=m.opt.RH;var R=cyMondeCalc(m.S,m.opt);R.job=m.job;"+
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.F.m.buffer,R.O.h.buffer,R.qw.d.buffer,R.bg.i.buffer]);};";
-    const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
+    const url=URL.createObjectURL(new Blob([code],{type:'text/javascript'})),W=new Worker(url);W._url=url; /* (2026-11-07) l'adresse Blob, révoquée au repos */
     W.onmessage=function(e){const R=e.data;
-      if(CY.av&&R.job===CY.av.job){CY.av.R=R;CY.av.ms=Math.round(performance.now()-CY.av.t0);return;} // (LE CANYON D'AVANCE) le monde d'en face attend le passage
-      const A=CY.attente;if(!A||R.job!==A.job||A.pour!==CY.job)return;CY.attente=null;try{cyMondePose(R);}catch(er){console.warn('canyon : pose',er);}};
+      if(CY.av&&R.job===CY.av.job){CY.av.R=R;CY.av.ms=Math.round(performance.now()-CY.av.t0);} // (LE CANYON D'AVANCE) le monde d'en face attend le passage
+      else{const A=CY.attente;if(A&&R.job===A.job&&A.pour===CY.job){CY.attente=null;try{cyMondePose(R);}catch(er){console.warn('canyon : pose',er);}}}
+      cyOuvrierRepos(W);};
     W.onerror=function(e){console.warn('canyon : travailleur en erreur',e.message);CY.w=null;CY.av=null;const a=CY.attente;CY.attente=null;if(a&&a.pour===CY.job)try{cyMondePose(cyMondeCalc(a.S,a.opt));}catch(er){console.warn('canyon',er);}};
     CY.w=W;}catch(e){CY.w=null;}
   return CY.w;}
+/* ===== LE TRAVAILLEUR DU CANYON SE REPOSE (2026-11-07, chasse MAP-N02 : « les Workers dunes et canyon ne sont jamais arrêtés ni leur URL Blob révoquée ») =====
+   Comme celui des dunes (dnOuvrierRepos) et l'ouvrier des nuages : sa réponse rendue et plus rien en vol (ni construction qui attend, ni monde d'avance sans
+   réponse), arrêté 1,5 s plus tard, adresse Blob révoquée, CY.w « à créer » : cyTravailleur() le refait au prochain monde. `?ouvrier=garde` = avant.
+   dbgCanyon().ouvrier = {vivant, reposes}. */
+function cyOuvrierRepos(W){if(COTON_OUV_GARDE||CY.w!==W)return;
+  if(CY.wRepos)clearTimeout(CY.wRepos);
+  CY.wRepos=setTimeout(function(){CY.wRepos=0;if(CY.w!==W||CY.attente||(CY.av&&!CY.av.R))return;
+    try{W.terminate();}catch(e){}try{URL.revokeObjectURL(W._url);}catch(e){}CY.w=undefined;CY.wReposes=(CY.wReposes|0)+1;},1500);}
 /* LE MONDE (ici ou dans le travailleur) : n'utilise que CY.nz, CY.rnd, ses arguments et les fonctions recopiées — rend tout ce que la pose
    et la collision lisent */
 function cyMondeCalc(S,opt){
@@ -20798,7 +20807,7 @@ window.dbgCanyon=function(k,a,b,c){
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(a!=null&&arguments[4]!=null?arguments[4]:.12),F9.p.z+dz*200);camera.updateMatrixWorld();
     skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round),noeuds:CY.n};}
   return {on:CY.on,r66:CY.r66|0,ms:CY.ms,noeuds:CY.n,sep:CY.sep,hz:CY.hz||null,deco:CY.deco?Object.assign({},CY.deco,{pose:CY.decoN,mine:Object.assign({},CY.deco.mine,{posee:!!CY.mineT}),mitaines:(CY.mit||[]).length,cheminees:(CY.chem||[]).length,nArbres:CY.nArb|0}):null,F:CY.F?[CY.F.nx,CY.F.nz,CY.F.ts]:null,Z:CY.Z?[CY.Z.nx,CY.Z.nz,CY.Z.ts]:null,O:CY.O?[CY.O.nx,CY.O.nz,CY.O.ts]:null,
-    ciel:CIEL2.mode,attente:!!CY.attente,sQ:CY.sQ,L:Math.round(L),buttes:CY.buttes?CY.buttes.length:0,soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+CY.ombre.toFixed(2),prof:+CY.prof.toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
+    ciel:CIEL2.mode,attente:!!CY.attente,ouvrier:{vivant:!!CY.w,reposes:CY.wReposes|0},sQ:CY.sQ,L:Math.round(L),buttes:CY.buttes?CY.buttes.length:0,soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+CY.ombre.toFixed(2),prof:+CY.prof.toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     carHaut:CY.on?+(carGroup.position.y-cyHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
 /* ===== LA POUSSIÈRE DU CANYON (2026-10-21, Sacha : « apporter des améliorations visuelles à chaque map ») =====
    Le détail vivant du canyon : des grains de poussière dorée en suspension dans une boîte de 130 m qui suit la caméra (devant elle : dans la gorge, les parois cachent le reste), poussés par un vent
@@ -21378,13 +21387,16 @@ function prebDunes(sd,W){ // (le pré-bâti, DANS une tranche : la route fantôm
   DN.pre=a;return a;}
 function buildDunes(seed,pre){
   const av=pre===true; // true : le pré-bâti prépare (rien n'est écrit dans DN, rien ne part) ; un objet : ce qu'il a préparé (W.dunes)
-  if(!av){dnEteindre();DN.job=(DN.job||0)+1;}
+  if(!av){dnEteindre();DN.job=(DN.job||0)+1;DN.attente=null;} /* (2026-11-07) une attente de la construction d'avant ne vaut plus rien */
   if(PARK.on||!LVL.cur||LVL.cur.piste!=='dunes'||!(NP>1)||!DUNES_OK)return;
   if(pre&&!av){const a=pre;
     if(a.cle===[seed,L,NP,lvPiste(),ROAD_HALF].join('|')){Object.assign(DN,a.chg);DN.t0=performance.now();cyBruits();dnTerrain();
       if(a.R){DN.ms.avance='pret';if(a.it)while(!dnMonuPas(a));dnMondePose(a.R,a.mon);return;} /* (2026-11-01) les monuments bâtis d'avance (dnMonuPas : d'un trait si le pré-bâti ne les a pas finis) */
-      const W9=started&&!/[?&]dnw=0\b/.test(location.search)?dnTravailleur():null; // pas revenu : on le lui redemande, comme avant
-      if(W9){const job=DN.job;DN.attente={job:job,S:a.S,opt:a.opt};try{W9.postMessage({job:job,S:a.S,opt:a.opt,nz:CY.nz});return;}catch(e){DN.attente=null;}}
+      /* ===== LE PORTAIL ATTEND SON MONDE (2026-11-07, chasse MAP-N01 : « si le portail des dunes arrive avant la réponse du travailleur, buildDunes reposte un job identique au lieu d'attendre ») =====
+         Le calcul d'avance est encore chez le travailleur (DN.pre===a, sans réponse) : on l'ATTEND — DN.attente le désigne (`pour` : cette construction-ci), comme le canyon
+         (cyAvPrend). Avant, un second calcul identique partait, la première réponse était jetée, et le sable (la collision avec) arrivait deux fois plus tard. Travailleur perdu,
+         ou hors course (sous le voile du JOUER) : le calcul se fait ici, tout de suite, comme avant. */
+      if(started&&DN.w&&DN.pre===a&&!/[?&]dnw=0\b/.test(location.search)){DN.ms.avance='en vol';DN.attente={job:a.job,pour:DN.job,S:a.S,opt:a.opt};return;}
       dnMondePose(dnMondeCalc(a.S,a.opt));return;}}
   const t0=performance.now(),LV=lvPiste(),K=Math.sqrt(LV),r=mulberry32((seed^0xD0E5A7)>>>0);
   cyBruits();dnTerrain();
@@ -21472,11 +21484,23 @@ function dnTravailleur(){if(DN.w!==undefined)return DN.w;
     const code="'use strict';var CY={},DN={},DN_O9={},DN_STAR="+DN_STAR+",DN_PTE="+DN_PTE+",DN_PK="+DN_PK+",DN_FORME="+JSON.stringify(DN_FORME)+",DN_IMM="+JSON.stringify(DN_IMM)+",PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
       "\nonmessage=function(e){var m=e.data;CY={nz:m.nz};DN={};PAL.B=m.opt.pal;var R=dnMondeCalc(m.S,m.opt);R.job=m.job;"+
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.O.h.buffer]);};";
-    const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
-    W.onmessage=function(e){const R=e.data;if(R.job<0){if(DN.pre&&DN.pre.job===R.job)DN.pre.R=R;return;} /* (LES DUNES D'AVANCE) le monde du pré-bâti */if(!DN.attente||R.job!==DN.job)return;DN.attente=null;try{dnMondePose(R);}catch(er){console.warn('dunes : pose',er);}};
-    W.onerror=function(e){console.warn('dunes : travailleur en erreur',e.message);DN.w=null;const a=DN.attente;DN.attente=null;if(a&&a.job===DN.job)try{dnMondePose(dnMondeCalc(a.S,a.opt));}catch(er){console.warn('dunes',er);}};
+    const url=URL.createObjectURL(new Blob([code],{type:'text/javascript'})),W=new Worker(url);W._url=url; /* (2026-11-07) l'adresse Blob, révoquée au repos */
+    W.onmessage=function(e){const R=e.data,A=DN.attente;
+      if(R.job<0&&DN.pre&&DN.pre.job===R.job)DN.pre.R=R; /* (LES DUNES D'AVANCE) le monde du pré-bâti */
+      if(A&&R.job===A.job&&(A.pour!=null?A.pour:A.job)===DN.job){DN.attente=null;try{dnMondePose(R);}catch(er){console.warn('dunes : pose',er);}} /* la construction en cours — ou le pré-bâti qu'elle attendait au portail (MAP-N01) */
+      dnOuvrierRepos(W);};
+    W.onerror=function(e){console.warn('dunes : travailleur en erreur',e.message);DN.w=null;const a=DN.attente;DN.attente=null;if(a&&(a.pour!=null?a.pour:a.job)===DN.job)try{dnMondePose(dnMondeCalc(a.S,a.opt));}catch(er){console.warn('dunes',er);}};
     DN.w=W;}catch(e){DN.w=null;}
   return DN.w;}
+/* ===== LE TRAVAILLEUR DES DUNES SE REPOSE (2026-11-07, chasse MAP-N02 : « les Workers dunes et canyon ne sont jamais arrêtés ni leur URL Blob révoquée ») =====
+   Comme l'ouvrier des nuages (cotonOuvrierRepos) : sa réponse rendue et plus rien en vol (ni construction qui attend, ni pré-bâti sans réponse), il est arrêté 1,5 s
+   plus tard (terminate rend d'un coup son tas et ses tableaux — il gardait toute la partie les copies du dernier monde), son adresse Blob révoquée, et DN.w redevient
+   « à créer » : dnTravailleur() le refait au prochain monde (un Blob, quelques ms, sous le pré-bâti). `?ouvrier=garde` = avant (les trois ouvriers restent vivants).
+   dbgDunes().ouvrier = {vivant, reposes}. */
+function dnOuvrierRepos(W){if(COTON_OUV_GARDE||DN.w!==W)return;
+  if(DN.wRepos)clearTimeout(DN.wRepos);
+  DN.wRepos=setTimeout(function(){DN.wRepos=0;if(DN.w!==W||DN.attente||(DN.pre&&!DN.pre.R))return;
+    try{W.terminate();}catch(e){}try{URL.revokeObjectURL(W._url);}catch(e){}DN.w=undefined;DN.wReposes=(DN.wReposes|0)+1;},1500);}
 /* LA POSE : les données du monde dans DN (la collision), à la puce (trois textures), les décors — et le sable s'allume */
 const DN_SOL=!/[?&]sans=([^&]*,)?dunessoleil(,|&|$)/.test(location.search);
 /* (2026-10-24, Sacha : « pareil dans les dunes » — les décors mal imbriqués dans le sol) L'ANCRAGE DES MONUMENTS : ils étaient posés à la hauteur du sable de LEUR CENTRE ; sur une
@@ -22073,7 +22097,7 @@ window.dbgDunes=function(k,a,b,c,d){
     camera.position.set(F9.p.x,F9.p.y+(b||12),F9.p.z);camera.up.set(0,1,0);camera.lookAt(F9.p.x+dx*200,F9.p.y+(b||12)-200*(d!=null?d:.12),F9.p.z+dz*200);camera.updateMatrixWorld();
     skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);if(acesPass)acesPass.uniforms.uSpeed.value=0;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return {cam:camera.position.toArray().map(Math.round),noeuds:DN.n};}
   return {on:DN.on,ms:DN.ms,noeuds:DN.n,sep:DN.sep,rmin:DN.rmin,F:DN.F?[DN.F.nx,DN.F.nz,DN.F.ts]:null,Z:DN.Z?[DN.Z.nx,DN.Z.nz,DN.Z.ts]:null,O:DN.O?[DN.O.nx,DN.O.nz,DN.O.ts]:null,
-    ciel:CIEL2.mode,attente:!!DN.attente,sQ:DN.sQ,L:Math.round(L),obelisques:DN.ob.length,pyramide:!!DN.pyr,acacias:DN.nArb|0,palmiers:DN.nPal|0,emb:DN.emb||null,caravanes:DN.car.length,oasis:DN.oa?{r:Math.round(DN.oa.r),y:Math.round(DN.oa.y)}:null,
+    ciel:CIEL2.mode,attente:!!DN.attente,ouvrier:{vivant:!!DN.w,reposes:DN.wReposes|0},sQ:DN.sQ,L:Math.round(L),obelisques:DN.ob.length,pyramide:!!DN.pyr,acacias:DN.nArb|0,palmiers:DN.nPal|0,emb:DN.emb||null,caravanes:DN.car.length,oasis:DN.oa?{r:Math.round(DN.oa.r),y:Math.round(DN.oa.y)}:null,
     sol:[DN.sunAz,DN.sunEl,DN.fin&&DN.fin.x,DN.fin&&DN.fin.z,DN.pyrs&&DN.pyrs[2]&&[DN.pyrs[2].x,DN.pyrs[2].y,DN.pyrs[2].z,DN.pyrs[2].hw,DN.pyrs[2].h]],hz:DN.hz||null,deco:DN.deco?Object.assign({},DN.deco,{pose:DN.decoN,pyramides:DN.pyrs.map(function(p){return p.st+':'+Math.round(p.hw*2)+'m';}),monuments:DN.mo.map(function(m){return m.k;})}):null,levres:(DN.lev||[]).length,scenes:DN.scn||null,heurt:DN.heurt||'',sauts:DN.sauts|0,levre:DN.dbgLev||null,vent:DN.vent.map(v=>+v.toFixed(2)),lam:Math.round(DN.lam),soleil:SUN_DIR.toArray().map(v=>+v.toFixed(3)),ombre:+DN.ombre.toFixed(2),dunes:+(LVL.dunes||0).toFixed(2),canyon:+(LVL.canyon||0).toFixed(2),
     tri:DN.tri|0,lmin:DN.lmin|0,carHaut:DN.on?+(carGroup.position.y-dnHauteur(carGroup.position.x,carGroup.position.z)).toFixed(1):null};};
 /* ===== LES DÉCORS DES DUNES, REFAITS (2026-10-22, Léo : « le niveau dune n'est pas au niveau — observe jade, la grotte et la forêt pour voir le niveau que j'attends ») =====
@@ -48473,6 +48497,30 @@ window.dbgEquipe=function(i){if(started&&!gameOver)return 'en course';i=Math.max
 window.dbgSpec=function(i){const c=CARS[i|0];return c?{name:c.name,w:c.w,l:c.l,h:c.h,shape:c.shape}:null;};window.dbgNbCaisses=function(){return CARS.length;}; // (dev) les fiches, pour les bancs d'essai
  // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow,cam:camera,rdr:renderer};}; // dissection console (visuel pur) — (2026-09-26) + caméra et renderer : le banc des laques mesure la caisse au pixel
+/* ===== LA VIE DES GÉOMÉTRIES (2026-11-07, chasse PC-N03 / TEL-N02 : « les géométries montent de ~150 par course, le tas de 197 à 590 Mo en 3 courses ») =====
+   renderer.info.memory.geometries compte les géométries montées à la puce et jamais rendues (dispose) — mais pas LESQUELLES. dbgGeoVie(1) note, au premier
+   dessin de chaque géométrie, le nom de son objet (référence FAIBLE : rien n'est retenu) ; dbgGeoVie('course 2') étiquette l'époque ; dbgGeoVie() dresse le bilan :
+   « scène » (encore dans la scène), « hors scène » (détachée mais jamais rendue : la fuite), « ramassée » (le JS l'a oubliée SANS dispose : ses tampons restent
+   dans la puce, orphelins — un écouteur de dispose raye la géométrie dès qu'elle est rendue). Les objets sans nom se reconnaissent à leur nombre de sommets et à
+   la couleur de leur matière. Banc seulement (publie-allege retire les crochets). dbgGeoVie(0) = on arrête d'écouter. */
+const GEOVIE={on:false,m:new Map(),orig:null,t:'début'};
+window.dbgGeoVie=function(on,n){
+  if(on===1){if(!GEOVIE.on){GEOVIE.on=true;const f=GEOVIE.orig=renderer.renderBufferDirect;
+      renderer.renderBufferDirect=function(cam,sc,geo,mat,obj){if(geo&&!GEOVIE.m.has(geo.uuid)){let p=obj,P=[],d=0;while(p&&d<4){if(p.name)P.push(p.name);p=p.parent;d++;}
+          const pa=geo.attributes.position,sg=(P.length?'':' pos:'+(pa?pa.count:0)+(mat&&mat.color?' #'+mat.color.getHexString():'')),u=geo.uuid;
+          GEOVIE.m.set(u,{nom:(P.join('<')||'(sans nom)')+' ['+obj.type+' '+(geo.name||geo.type)+' '+((mat&&mat.type)||'')+(mat&&mat.name?' '+mat.name:'')+sg+']',ref:new WeakRef(geo),t:GEOVIE.t});
+          geo.addEventListener('dispose',function(){GEOVIE.m.delete(u);});}
+        return f.apply(this,arguments);};}
+    return 'enregistre';}
+  if(on===0){if(GEOVIE.on){renderer.renderBufferDirect=GEOVIE.orig;GEOVIE.on=false;}return 'arrêté';}
+  if(typeof on==='string'){GEOVIE.t=on;return on;}
+  const S9=new Set();scene.traverse(function(o){if(o.geometry)S9.add(o.geometry.uuid);});
+  const F={};let nS=0,nH=0,nR=0;
+  for(const [u,e] of GEOVIE.m){const g=e.ref.deref();let k;
+    if(!g){k='ramassée';nR++;}
+    else if(S9.has(u)){k='scène';nS++;}else{k='hors scène';nH++;}
+    const key=k+' · '+e.t+' · '+e.nom;F[key]=(F[key]||0)+1;}
+  return {total:renderer.info.memory.geometries,notees:GEOVIE.m.size,scene:nS,horsScene:nH,ramassees:nR,familles:Object.entries(F).sort(function(a,b){return b[1]-a[1];}).slice(0,n||40)};};
 window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,psi:+psi.toFixed(4),yawR:+yawR.toFixed(4),slipB:+slipB.toFixed(4),glisse:+glisse9.toFixed(3),drift:driftEnCours,roulisDeg:+(carRoll9*57.3).toFixed(1),glisseDeg:+(driftYaw*57.3).toFixed(1),vH:+(mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA)).toFixed(1),driftLv:driftLv,graceT:+graceT.toFixed(2),
   /* flux des PIÈCES : sans ces trois-là, régler leur arrivée se fait à l'aveugle */
   engTier:engTier,coinsGot:coinsGot,prochainPalier:(ENGINE_TIERS[engTier+1]||{}).coins||null,
