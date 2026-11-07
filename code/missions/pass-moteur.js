@@ -60,6 +60,16 @@ function passApresPrise(id){ /* une récompense vient d'être prise : la jauge c
   if(d&&d.cadeau==='voiture'){E.car=0;E.dc=0;E.dep=0;E.lh='_v';E.nc=Math.min(P.plafondCroit.voiture+P.voiture.max,passAl(P.voiture.min,P.voiture.max)+Math.floor(P.croit.voiture*E.nbC));E.nbC++;}
   else if(d&&d.cadeau==='hab'){E.hab=0;E.dep=0;const r=(m2Def(id)||{}).r||{};E.lh=r.cat||'';E.nh=Math.min(P.plafondCroit.hab+P.hab.max,passAl(P.hab.min,P.hab.max)+Math.floor(P.croit.hab*E.nbH));E.nbH++;}
   SAVE.mark();return passEnsure();}
+/* (2026-11-07, Léo : « sélectionner, focus ou renouveler si on a du mal avec une : 3 fois par jour ») FOCUS = la mission suivie (marquée, en avant à l'ouverture, en tête de la liste de fin de partie) ·
+   RENOUVELER = elle est remplacée par une autre (jamais un cadeau, jamais une mission déjà prête), 3 fois par jour (le compteur repart à zéro à minuit UTC) ; la mission rendue ne revient pas tout de suite (ech). */
+const PASS_RENOUV_JOUR=3;
+function passJour(){return Math.floor(Date.now()/864e5);}
+function passReste(){const E=passEtat();if(E.rj!==passJour()){E.rj=passJour();E.rn=0;SAVE.mark();}return Math.max(0,PASS_RENOUV_JOUR-E.rn);}
+function passFocus(id){const E=passEtat();E.fo=(E.fo===id)?'':id;SAVE.mark();return E.fo===id;}
+function passRenouvelle(id){const E=passEtat(),k=E.sl.indexOf(id);
+  if(k<0||passEstCadeau(id)||m2Etat().ok.indexOf(id)>=0||passReste()<=0)return false;
+  E.rn++;E.ech.push(id);if(E.ech.length>6)E.ech.shift();E.sl[k]='';if(E.fo===id)E.fo='';SAVE.mark();passEnsure();return true;}
+function passOrdre(){const E=passEtat(),L=passEnsure();return E.fo&&L.indexOf(E.fo)>0?[E.fo].concat(L.filter(function(x){return x!==E.fo;})):L;} /* la mission suivie d'abord */
 function passPartie(){const E=passEtat();E.np++;SAVE.mark();passEnsure();} /* une partie jouée (m2Fin) */
 function passPresque(){const E=passEtat(),P=PASS_CADEAU;return Math.max(E.car/Math.max(1,P.voiture.max),E.hab/Math.max(1,P.hab.max))>=P.presque;} /* « un cadeau est proche » (écran de fin), sans chiffre */
 /* ---- LE CROCHET : dbgPass() · ('raz') · ('gagne',id) · ('sim',n) · ('voitures') ---- */

@@ -125,4 +125,15 @@ html[data-reduced-motion="1"] .pvScan{display:none}
 .pvC.sel::before{padding:3px;background:linear-gradient(135deg,#fff,var(--gc,var(--dol)) 50%,#fff)}
 .pvC.sel{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 30px color-mix(in srgb,var(--gc,var(--dol)) 70%,transparent),0 14px 30px rgba(7,5,15,.6)}
 @media (prefers-reduced-motion:reduce){.pvC{transition:none}}
+/* (2026-11-07, Léo : « sélectionner, focus ou renouveler ») les deux actions sous la carte choisie ; la mission suivie porte un petit viseur */
+.pvAct{position:absolute;left:50%;top:100%;translate:-50% 8px;display:none;gap:8px;z-index:4}
+.pvC.sel .pvAct{display:flex}
+.pvC.sel.haut .pvAct{top:auto;bottom:100%;translate:-50% -8px}
+.pvB{all:unset;box-sizing:border-box;min-width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:#fff;font-family:var(--pix);font-size:11px;
+  background:linear-gradient(165deg,rgba(255,255,255,.22),rgba(20,29,58,.72));box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 16px rgba(7,5,15,.55);border:1.5px solid color-mix(in srgb,var(--gc,var(--dol)) 70%,#fff)}
+.pvB .pxi{width:20px;height:20px}
+.pvB.on{background:linear-gradient(165deg,color-mix(in srgb,var(--gc,var(--dol)) 55%,#fff),rgba(20,29,58,.8));box-shadow:0 0 16px color-mix(in srgb,var(--gc,var(--dol)) 70%,transparent),inset 0 1px 0 rgba(255,255,255,.5)}
+.pvB.off{opacity:.45}
+.pvC.foc::after{opacity:.34}
+.pvC.foc .pvT::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--gc,var(--dol));box-shadow:0 0 8px var(--gc,var(--dol)),0 0 0 3px rgba(255,255,255,.25);flex:none;margin-right:4px}
 </style>

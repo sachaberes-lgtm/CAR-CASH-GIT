@@ -50,6 +50,10 @@ html body #cashHud.b1 .chV{animation-name:hfCashA}html body #cashHud.b2 .chV{ani
 @media (orientation:landscape) and (max-height:540px){
   html body.touch #avCh .avBar{width:calc((34px + (min(50vw,440px) - 34px) * var(--ajK,.8)) / var(--hudK))}
 }
+/* ---- 7. (2026-11-07, Sacha : « la barre X2 est trop grosse, l'argent est trop proche du pause ») le × de la chaîne en 21 px (il en faisait 30, le double de ses points), sa barre à 5 px ; l'argent démarre 22 px sous le ⏸ (hudColMesure) — ce top ne sert que le temps de la 1re mesure ---- */
+html body.touch #avX{font-size:21px}
+html body.touch #avCh .avBar{height:5px}
+html body.touch.play #cashHud{top:calc(var(--hudH) + 84px)}
 /* ---- « Réduire les animations » ---- */
 @media (prefers-reduced-motion:reduce){
   html body.touch.play #cashHud,html body.touch.play #tNitro .nx3,html body.touch.play.bv #tNitro .bvIco,html body #cashHud.b1 .chV,html body #cashHud.b2 .chV,#nxVit.on b,#nxVit.bleu b,#nxVit.inf b{animation:none!important}
