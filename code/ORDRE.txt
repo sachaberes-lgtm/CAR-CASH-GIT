@@ -17,6 +17,7 @@ css/charte-6-signatures.css          # charte 4 : signatures v5, HUD v5, objecti
 css/charte-7-details.css             # charte 4 : le mouvement (21), les détails (22), écran de mort resserré, la sortie, critiques
 css/hud-maitrise.css                 # <style id="hudMaitrise">
 css/hud-da.css                       # achatPop, pouvoirsV2, hudDA, tailles du HUD et des figures, frénésie ×3, hudOrdre
+css/monnaie.css                      # le symbole de la monnaie du jeu (masque, d'après le sketch de Léo)
 css/garage-accueil.css               # garageV6, lueurs, accueilCiel, garageV7, garageVitrine
 css/garage-hub-barre.css             # hubGarage : la barre, les jauges, le HOME, la console à trois modes
 css/garage-hub-boutique.css          # hubGarage : boutique du jour, offres, grille, DA du menu ciel, inventaire en pictogrammes
@@ -30,6 +31,8 @@ css/final-spin.css                   # finalSpin (la machine à sous de fin)
 css/ux8.css                          # ux8 (menus, partie, mouvement), clarté de la boutique, pub récompense, cadeau, HUD allégé
 css/accueil-boutique.css             # accueilDoigt, bqFigHex, policeUnique
 css/missions.css                     # missionsV2 (l'écran des missions)
+css/pass-viseur.css                  # le pass de missions : l'écran « LE VISEUR » (verre, anneaux, fils), scopé à #gMis.pv
+
 css/pause-v2.css                      # pauseV2 (l'écran de pause refait : tuiles, partie en carte)
 css/garage-jouer.css                 # uiRevue, jouerGarage, garShop
 page/ecrans-garage.html              # HTML : accueil, garage, atelier, inventaire, voile du départ, compteur, dark triad, niveaux
@@ -39,9 +42,13 @@ css/palier-leger.css                 # <style id="palierLeger"> : le CSS par pal
 css/ecrans-iphone.css                # <style id="ecransIphone"> : les écrans sur tous les iPhone (pause couchée, fin du SE, HOME, noms des caisses)
 css/mort-flottante.css               # <style id="mortFlottante"> : l'écran de mort flottant (argent et moteur sans cadre, graphe d'aura en bougies, GARAGE · RÉGLAGES)
 css/finition-ecrans.css              # <style id="finitionEcrans"> : la finition des écrans (2026-11-04) — détails mesurés au banc des écrans, posés après tout le reste
+css/politesses.css                   # <style id="politesses"> : les petites politesses (2026-11-07) — toast qui coupe les mots longs, focus clavier partout, NON sans secousse en mouvement réduit, enfoncement du ⏸
 css/peintures.css                    # <style id="peintures"> : le nuancier v3 (2026-11-05) — les pastilles vernies, le défi, les légendaires qui vivent ; les cartes des traînées en mouvement ; le showroom des voitures et des ailes
 css/figures-selecteur.css            # <style id="figuresSelecteur"> : le sélecteur de figures (2026-11-05) — le dock, les pastilles, la puce ANNULER, les gestes en pastilles
+css/paufinage-boutons.css           # <style id="paufinageBoutons"> : le paufinage des boutons (2026-11-07) — mesuré au banc des écrans debout ET couché : inventaire des figures couché, pastilles du sélecteur (44 px), missions couchées
 css/boites-blister.css             # <style id="boitesBlister"> : les cartes de la boutique en BOÎTES blister penchées en 3D, une couleur par rareté, la dorée
+css/ergonomie-mobile.css            # <style id="ergonomieMobile"> : l'ergonomie mobile (2026-11-07) — zones de touche de 44 px (pastilles du sélecteur), pictogrammes éteints plus lisibles, lignes de mission couchées
+css/vitrine-miniature.css          # <style id="vitrineMiniature"> : la carte d'une voiture = UNE image de vitrine (socle, caisse, verre) au lieu du cube CSS ; finitions de la boutique (2026-11-07)
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
@@ -154,6 +161,7 @@ voitures/zagato.js                   # la Zagaie : la 5-95 de Zagato (gueule cre
 voitures/countach.js                 # le Loup : la Countach blanche du film (coin à arêtes vives, aileron, portes à ciseaux, l'épave)
 voitures/stratos-meteo.js            # LA STRATOS, station météo : anémomètre, manche à air, radars Doppler, gyroscope, barre de prévision (?stratos=ancien)
 voitures/corbillard-mort.js          # LE CORBILLARD de la mort : cercueil, crâne, squelette (?corbillard=ancien)
+voitures/retour-deuche-taxi.js         # la Deuche et le Taxi jaune reviennent (dessins d'avant le 07/10)
 voitures/buildcar.js                 # buildCar : construire une voiture
 voitures/plaque.js                   # la plaque d'immatriculation, le profil
 interface/vignette-moteur.js         # vignette moteur, étapes de chauffe
@@ -162,6 +170,8 @@ gameplay/pickups-fruits.js           # pièces pixel, l'étal de fruits
 gameplay/fruits-nouveaux.js           # les nouveaux fruits : 9 normaux + formes des 5 fruits-pouvoirs, les 13 anciens rangés dans FRUIT_EXO
 voitures/deblocage.js                # moteurs, déblocage, conditions des 50
 missions/table.js                    # missions v2 : la table
+missions/pass-table.js               # le pass de missions : le réservoir du chapitre 1 (tranches, parties, mesures de la partie)
+
 economie/aura-banque-contrats.js     # l'aura et la banque, économie v3 : contrats, objectif
 gameplay/sensations-flow.js          # la passe sensations, le flow
 gameplay/frenesie.js                 # la zone rouge, l'emblème dark triad
@@ -236,6 +246,7 @@ interface/chute-libre.js             # chute libre douce et réaliste
 interface/boutique-scene-1.js        # boutique 3D : blanc laqué, son, aimant
 interface/boutique-scene-2.js        # boutique 3D : lancer dosé, bras, gestes
 interface/vitre-brisee.js            # LA VITRE QUI SE BRISE : l'animation d'achat de la boutique (éclats de verre, éclair, DÉBLOQUÉ)
+interface/vitrine-miniature.js       # LA VITRINE MINIATURE (2026-11-07) : chaque voiture de la boutique photographiée sous l'angle de sa boîte, sur un socle noir verni, sous un capot de verre
 interface/garage-ombre.js            # l'ombre de la caisse qui saute : empreinte sur le plateau, hauteur, emprise (garage et boutique)
 interface/garage-saut.js             # la figure au garage et en boutique : un vrai saut (parabole, rotation gouvernée, ressort, poussière)
 interface/garage-rendu.js            # le doigt sur la scène, garageRender
@@ -246,6 +257,9 @@ interface/burn-out-1.js              # le premier burn-out
 interface/burn-out-2.js              # burn-out : la caisse dans la fumée, la balade
 interface/bouton-rouge.js            # le bouton rouge et ses outils
 missions/atelier.js                  # les missions dans l'atelier, équiper au toucher, la fiche
+missions/pass-moteur.js              # le pass de missions : le moteur des 3 emplacements (tirage borné par la difficulté, jauge de pitié, garde-fou), dbgPass
+missions/pass-viseur.js              # le pass de missions : l'écran « LE VISEUR » (3 cartes autour de la caisse, fils de visée)
+
 gameplay/ramassage.js                # le ramassage (pickupsTick)
 interface/bouton-nitro-gains.js      # bouton nitro v3, gains qui flottent, remplissage
 interface/boost-icones.js             # ?boost= : icônes en verre du bouton boost (bouteille, chevrons, flamme, anneau)

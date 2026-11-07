@@ -119,7 +119,7 @@ function bqSon(dt,on,force){ // force : la leçon (musique.js, leconAmbiance) jo
       a.connect(gv);b.connect(gv);a.start();b.start();V.push({a:a,b:b,g:gv});}
     const air=AC.createBufferSource();air.buffer=noiseBuf(2.7);air.loop=true;
     const ah=AC.createBiquadFilter();ah.type='highpass';ah.frequency.value=4200;const al=AC.createBiquadFilter();al.type='lowpass';al.frequency.value=9000;
-    const ag=AC.createGain();ag.gain.value=.0028;air.connect(ah); // l'air de la salle — (2026-10-14, Léo : « alléger un tout petit peu le bruit constant ») .004 → .0028 (−3 dB)ah.connect(al);al.connect(ag);ag.connect(g);air.start();
+    const ag=AC.createGain();ag.gain.value=.0028;air.connect(ah);ah.connect(al);al.connect(ag);ag.connect(g);air.start(); /* l'air de la salle — (2026-10-14, Léo : « alléger un tout petit peu le bruit constant ») .004 → .0028 (−3 dB) ; (2026-11-07, chasse SON2-N05) le branchement était tombé dans le commentaire : l'air ne jouait pas, et air.stop() jetait à la sortie en laissant l'écho branché sur MASTER à chaque visite */
     const ec=AC.createDelay(1);ec.delayTime.value=.38;const eg=AC.createGain();eg.gain.value=.35;const pg=AC.createGain();pg.gain.value=1;
     pg.connect(g);pg.connect(ec);ec.connect(eg);eg.connect(ec);eg.connect(g);
     n=BQSON.n={g:g,lp:lp,V:V,air:air,pg:pg,ec:ec,eg:eg,t:0,tA:0};BQSON.tP=1.5;
@@ -138,7 +138,7 @@ function bqSon(dt,on,force){ // force : la leçon (musique.js, leconAmbiance) jo
 }
 function bqSonCoupe(d){const n=BQSON.n;if(!n||!AC)return;
   try{n.g.gain.cancelScheduledValues(AC.currentTime);n.g.gain.setTargetAtTime(0,AC.currentTime,d/3);n.g.gain._s9=0;}catch(e){}
-  clearTimeout(BQSON.off);BQSON.off=setTimeout(function(){if(BQSON.n!==n)return;try{for(const v of n.V){v.a.stop();v.b.stop();}n.air.stop();n.g.disconnect();n.eg.disconnect();}catch(e){}BQSON.n=null;BQSON.off=0;},d*1000+500);}
+  clearTimeout(BQSON.off);BQSON.off=setTimeout(function(){if(BQSON.n!==n)return;for(const v of n.V){try{v.a.stop();v.b.stop();}catch(e){}}try{n.air.stop();}catch(e){}try{n.g.disconnect();}catch(e){}try{n.eg.disconnect();}catch(e){} /* (2026-11-07, chasse SON2-N05) chaque arrêt dans son propre filet : un stop qui jette ne saute plus les débranchements */BQSON.n=null;BQSON.off=0;},d*1000+500);}
 window.dbgBqSon=function(){return {on:!!BQSON.n,gain:BQSON.n?+BQSON.n.g.gain.value.toFixed(4):0,acc:BQSON.acc,veut:!!(typeof GBQ!=='undefined'&&GBQ.veut)};}; // (dev)
 function garBqAmbiance(on){garLibre._r=null; // (v3) au BASCULEMENT (pic de la lueur) : la lumière, et les voiles d'encre du garage retirés (#garage.bqBlanc)
   if(gEl)gEl.classList.toggle('bqBlanc',on);try{bioApply(on?bqBio():BIOMES.atelier);}catch(e){}}
@@ -224,7 +224,7 @@ function bqPeintRail(L){try{peintDefisVerifie(false);}catch(e){} /* un défi rem
 const BQ_HDR=+((/[?&]bqhdr=([\d.]+)/.exec(location.search)||[0,.15])[1]);
 function bqPxT(v){return fmtSolde(v);} /* (clarté 15/10) les prix de la boutique de Léo au format GTA de GAMEPLAY (chiffres pleins, un seul « $ ») */
 function bqPxLg(t){return String(t).replace(/<[^>]*>/g,'').length>9;} /* un prix long (≥ 1 000 000) passe un corps en dessous : il tient dans sa carte */
-function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sansAcc(TR('À TOI')),c:'acq'};if(m2Secrete(i))return {t:sansAcc(TR('MISSION SECRÈTE')),c:'defi sec'};if(u.k==='premium')return {t:eurTxt(u.eur),c:'eur'};
+function bqPrixCaisse(i){const u=CAR_UNLOCK[i]||{};if(bqA('v:'+i))return {t:sansAcc(TR('À TOI')),c:'acq'};if(m2Secrete(i))return {t:sansAcc(TR('SECRÈTE')),c:'defi sec'}; /* (2026-11-07, finition) « MISSION SECRÈTE » débordait de la carte (114 px dans 101) ; la section le dit déjà */if(u.k==='premium')return {t:eurTxt(u.eur),c:'eur'};
   if(u.p)return {t:bqPxT(u.p),c:'pc'};return {t:sansAcc(TR('MISSION')),c:'defi'};}
 /* L'INTERFACE v4 (2026-10-12, Léo : « l'argent à côté de BOUTIQUE, et la boutique peut encore prendre tout cet espace ; le bouton VOITURES
    laisse choisir entre les traînées… ; sur le côté gauche qui défile, ce sont les objets hebdomadaires ») :
@@ -290,10 +290,27 @@ function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?n
    plus »). `bqPhotos` était déclarée DEUX fois : celle des cartes du bandeau de l'atelier (`.fnC` + `.fnPh`, OFFRES ÉPHÉMÈRES / DU JOUR) et
    celle de la boutique de Léo (`[data-ph]`) ; la seconde, hissée, écrasait la première — les cartes du bandeau restaient sans photo. Une
    seule fonction fait les deux (le `[data-ph]` couvre aussi `.fpPh i` et `.fpSlPh` de l'ancienne). */
+/* ===== LA VOITURE POSÉE SUR LE SOL DU CUBE, À LA ROUE PRÈS (2026-11-07, Léo : « les roues sont coupées, pour certaines une seule, l'ombre est mal mise, un trait ») =====
+   La photo est redressée de 15° (skewY) : un bout de la voiture descendait sous le plancher du cube, que le plancher coupait (roue, ombre, trait). On mesure donc, UNE fois par voiture, la ligne la plus basse de la photo (image réduite à 240 × 147, alpha > 12, ombre comprise) : `--bas` = sa hauteur en fraction de la photo ; le CSS pose alors cette ligne pile sur le sol. Photo illisible : 0,84 (l'ancien repère). Tant que `--bas` manque, la photo reste cachée (pas de saut). */
+const BQ_BAS={};
+/* (2026-11-07, Léo : « arrière de la voiture face à la gauche du cube, avant face au côté droit, complètement alignée au bas, sur TOUTES les voitures ») Chaque photo est mesurée UNE fois (réduite à 240 × 147). La photo contient un reflet de sol sous la voiture (alpha faible) : on s'appuie sur la CARROSSERIE seule (alpha > 230). L'échelle `--ech` est COMMUNE à toutes les voitures (1,2, réduite seulement si la caisse dépasserait 78 % de la hauteur du cube) : les longues restent longues, les petites petites (2026-11-07, Léo : « les tailles plus cohérentes entre elles »), son centre `--dx`, la pente de sa ligne de roues (droite des moindres carrés sur le bas des colonnes, bornée à 16°), posée sur le point le plus bas de la carrosserie (la roue la plus basse) : rien n'est coupé le redressement `--pen` (ligne des roues À PLAT, parallèle à l'arête du bas), cette droite coupe la photo (`--cl` à gauche, `--cr` à droite, entre `--gl` et `--gr` : le reflet et l'ombre cuite sous et autour des roues disparaissent), et sa hauteur redressée `--bas` est posée sur le sol. `--bas` est écrit EN DERNIER : tant qu'il manque, la photo est cachée (voir boites-blister.css). */
+function bqBas(x,url){const r0=BQ_BAS[url];if(r0){for(const k in r0)x.style.setProperty(k,r0[k]);return;}
+  const p=new Image();p.onload=function(){let r={'--ech':.86,'--dx':0,'--pen':'0deg','--cl':.84,'--cr':.84,'--bas':.84};try{const W=240,H=147,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.drawImage(p,0,0,W,H);const d=g.getImageData(0,0,W,H).data;
+    let l=1e9,rr=-1,t=1e9,bt=-1;const bas=new Array(W).fill(-1);
+    for(let i=0;i<W;i++)for(let j=H-1;j>=0;j--){if(d[(j*W+i)*4+3]>230){bas[i]=j;if(i<l)l=i;if(i>rr)rr=i;if(j>bt)bt=j;break;}}
+    for(let i=l;i<=rr;i++)for(let j=0;j<H;j++){if(d[(j*W+i)*4+3]>230){if(j<t)t=j;break;}}
+    if(rr-l>20){const fw=(rr-l+1)/W,fh=(bt-t+1)/H;let ech=Math.min(1.2,.78*46/(36.7*fh));ech=Math.max(.5,ech);
+      const i0=l+Math.round((rr-l)*.12),i1=rr-Math.round((rr-l)*.12);let n=0,sx=0,sy=0,sxx=0,sxy=0;for(let i=i0;i<=i1;i++){if(bas[i]<0)continue;n++;sx+=i;sy+=bas[i];sxx+=i*i;sxy+=i*bas[i];}
+      let m=n>3?(n*sxy-sx*sy)/(n*sxx-sx*sx):0;if(!isFinite(m))m=0;m=Math.max(-.29,Math.min(0,m));let q=-1e9;for(let i=l;i<=rr;i++){if(bas[i]>=0&&bas[i]-m*i>q)q=bas[i]-m*i;}const th=Math.max(0,Math.min(.29,-m));
+      const xl=Math.max(0,l-3),xr=Math.min(W-1,rr+3),yl=Math.max(.3,Math.min(1,(q+m*xl+.5)/H+.012)),yr=Math.max(.3,Math.min(1,(q+m*xr+.5)/H+.012));
+      const nv=(q+m*((l+rr)/2)+.5)/H+(((l+rr)/2)/W-.5)*1.6376*th;
+      r={'--ech':ech,'--dx':((l+rr+1)/2/W-.5),'--pen':(Math.atan(th)*180/Math.PI).toFixed(2)+'deg','--cl':yl,'--cr':yr,'--gl':xl/W,'--gr':(xr+1)/W,'--bas':Math.min(1,nv>0?nv:.84)};}
+  }catch(e){}BQ_BAS[url]=r;for(const k in r)x.style.setProperty(k,r[k]);};
+  p.onerror=function(){x.style.setProperty('--bas',.84);};p.src=url;}
 function bqPhotos(el){
   el.querySelectorAll('.fnC[data-fn^="v:"],.fnC[data-fn^="o:"]').forEach(function(c){const i=+c.getAttribute('data-fn').slice(2);
     photoFile(i,function(url){const ph=c.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}},c);});
-  el.querySelectorAll('[data-ph]').forEach(function(x){photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const im=document.createElement('img');im.alt='';im.src=url;x.appendChild(im);}},x);}); /* (2026-10-16) l'élément : la photo attend que la carte soit EN VUE (voir LE STUDIO SANS À-COUPS) */
+  el.querySelectorAll('[data-ph]').forEach(function(x){if(VITM.on&&x.closest('.bqK.vo .bqKv')){vitrinePose(x,+x.getAttribute('data-ph'));return;} /* (2026-11-07) une VOITURE de la boutique : sa photo de VITRINE (vitrine-miniature.js) */ photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const cube=!!x.closest('.bqKv');for(let k=0;k<(cube?5:1);k++){const im=document.createElement('img');im.alt='';im.src=url;if(cube){im.className='cL';im.style.setProperty('--k',k);}x.appendChild(im);}if(cube)bqBas(x,url);}},x);}); /* (2026-11-06, Léo : « une voiture pas plate dans le cube ») dans un cube, la photo est empilée en 5 tranches (k = 0 devant … 4 au fond) : l'épaisseur de la caisse, qui se lit au moindre mouvement (voir boites-blister.css `.cL`) */ /* (2026-10-16) l'élément : la photo attend que la carte soit EN VUE (voir LE STUDIO SANS À-COUPS) */
   el.querySelectorAll('[data-pha]:not(.ok)').forEach(function(x){aileFile(x.getAttribute('data-pha'),function(url){if(x.classList.contains('ok')||!url)return;const im=document.createElement('img');im.alt='';im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok'); /* (2026-11-06, Léo : « les ailes fixes, qui ne bougent pas ») une seule photo, immobile */},x);}); /* (2026-10-15) les AILES ont leur photo (aileFile) — (2026-11-05) les ailes battantes en deux moitiés sont retirées : les ailes gardent leur carte d'avant */
   el.querySelectorAll('[data-phf]:not(.ok)').forEach(function(x){const p=x.getAttribute('data-phf').split('|');figFile(p[0],p[1],function(url){if(x.classList.contains('ok')||!url)return;x.classList.add('ok');filmPose(x,url,p[0]);},x);});} /* (2026-10-15 soir) et les FIGURES leur photo-séquence (figFile), dans le sens de leur carte — (2026-10-18) leur FILM au ralenti (filmPose) */
 function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
@@ -310,7 +327,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
     bt.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(bt);bqAction();});}}
   const pan=ui.querySelector('#gBqPan'),ok=function(){return garageOn&&!GAR.go&&!ecranWipe._on&&GBQ.on;};
   ui.querySelector('#gBqCats').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();if(!ok())return;
-    uiPop(b);uiClic('onglet');hap(6);const c=b.getAttribute('data-c');if(c!==GBQ.cat||GBQ.ong!=='cat'){if(c==='figure'&&GBQ.cat!=='figure')fsRaz();GBQ.cat=c;GBQ.ong='cat';GBQ.rk='';bqTourne(c);}});
+    uiPop(b);uiClic('onglet');hap(6);const c=b.getAttribute('data-c');if(c!==GBQ.cat||GBQ.ong!=='cat'){if(c==='figure'&&GBQ.cat!=='figure')fsRaz();GBQ.cat=c;GBQ.ong='cat';GBQ.rk='';{const t9=c==='achat'?'voiture':c;if(SHOP_CATS.indexOf(t9)>=0&&SHOP.tab!==t9)shopTab(t9);} /* (2026-11-07, chasse TEL-N01) la vedette suit le rayon, comme quand on touche une vitrine (bqEssaie) */bqTourne(c);}});
   const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);GSON9=false;pan.classList.remove('menu');
     {const pk=e.target.closest&&e.target.closest('[data-pick]');if(pk&&String(t.getAttribute('data-k')).indexOf('figure:')===0){const dp=pk.getAttribute('data-pick');FSEL.pick[t.getAttribute('data-k').slice(7)]=+dp;t.setAttribute('data-dir',dp);GBQ.rk='';}} /* (2026-11-05) la pastille d'un AUTRE geste (figure à deux sens) : la carte passe dans ce sens */{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}bqEssaie(t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');/* (2026-10-14, session SON) essayer un objet = la bascule / le geste de l'atelier / la figure : le tick nav ne s'y ajoute plus */};};
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));
@@ -325,7 +342,7 @@ function bqAimant(rail){clearTimeout(GBQ.aimT);const K=rail.querySelectorAll('.b
   const d=K.length?(parseFloat(K[j].style.getPropertyValue('--i'))||j):0; /* bqK : délai .25 s + --i × 45 ms, puis .38 s de glissé */
   GBQ.aimT=setTimeout(function(){rail.classList.remove('entre');},250+d*45+380+80);}
 function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carGroup.userData.shape])FSTU.uHdr.value=GBQ.on?BQ_HDR:1;}catch(e){} /* (2026-11-05) les reflets qui éclatent, adoucis dans la salle blanche (voir BQ_HDR) */const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
-  if(voulu!==GBQ.panOn){GBQ.panOn=voulu;ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
+  if(voulu!==GBQ.panOn){GBQ.panOn=voulu;if(voulu){const t9=SHOP.tab;if(GBQ.cat!==t9&&BQ_CATS.some(function(c){return c[0]===t9;})){GBQ.cat=t9;GBQ.ong='cat';}} /* (2026-11-07, chasse TEL-N01) FIGURES au garage puis BOUTIQUE : le rayon VOITURES s'allumait avec une figure en vedette et « ÉQUIPER — REMPLACE TONNEAU » */ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
   soldeEcrit(document.getElementById('gBqArg'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
   if((!voulu||SHOP.tab!=='voiture')&&GBQ.sec!=null)GBQ.sec=null; // (missions v2) hors du rayon des caisses, plus de secrète regardée
   if(!voulu)return;
@@ -345,6 +362,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
   if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}
   else if(!PHQ.q.length&&rail.querySelector('[data-ph]:empty,[data-pha]:not(.ok),[data-phf]:not(.ok)'))bqPhotos(rail);
   bqBoutonMaj();
+  if(VITM.on)try{vitrineEq(rail);}catch(e){} /* (2026-11-07) la caisse portée dit « ÉQUIPÉE » dans la grille (vitrine-miniature.js) */
   /* CE QU'ON REGARDE (2026-10-12, Léo : « le nom de la voiture et la rareté au-dessus de la voiture ; en dessous, les différents skins —
      coloris — de la voiture, pareil pour les ailes et les traînées ; pour l'instant ORIGINAL partout ») : #gBqNom suit la caisse (projeté au-
      dessus d'elle chaque image) ; #gBqSkins, sous elle, liste les COLORIS de l'objet (bqSkins) — une peinture n'en a pas : c'est un coloris. */

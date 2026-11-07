@@ -90,7 +90,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   //      IMMÉDIATEMENT) et se recentre au lâcher. Axe X = braquage · axe Y = assiette en vol.
   // (2026-09-28, user : « augmente la sensibilité de l'axe haut bas du joystick ») : assiette pleine à 44 px au lieu de 66 (×1,5), zone morte
   // 14 % → 10 %, courbe 1,25 → 1,15. Le geste du DRIFT (pouce tiré vers le bas au sol) garde SA distance : il lit les pixels (`TCTL.dy`).
-  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=SENSG?VOLANT_PX:54,LOCKV=44,LOCKU=SENSG?38:44,PIQ_K=SENSG?1.12:1,ARC_B=.45,ARC_P=1.5,ARC_M=6,ARC_MAX=42.5,ARC_R0=38*Math.pow(LOCK/54,1.2); // 46 px = braquage plein (54 avant le 14/10) · 44 px = la course du BAS (le drift s'y mesure) · 38 px = assiette pleine vers le HAUT · ARC_* : l'arc du pouce (voir stMove)
+  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=SENSG?VOLANT_PX:54,LOCKV=44,LOCKU=SENSG?30:44,PIT_DK=SENSG?.82:1,PIQ_K=SENSG?1.12:1,ARC_B=.45,ARC_P=1.5,ARC_M=6,ARC_MAX=42.5,ARC_R0=38*Math.pow(LOCK/54,1.2); // 46 px = braquage plein (54 avant le 14/10) · 44 px = la course du BAS (le drift s'y mesure) · 38 px = assiette pleine vers le HAUT · ARC_* : l'arc du pouce (voir stMove)
   /* (2026-10-14, passe SENSATIONS — Sacha : « sur mobile le joystick n'est pas assez sensible, améliore un petit peu la sensibilité »)
      UN PETIT PEU, sur toute la chaîne du pouce, sans toucher à ce que la caisse SAIT faire (plafonds de lacet et de tangage, VOL_TAU : inchangés) :
      · braquage plein à 46 px au lieu de 54 (−15 % de course : le même geste braque ~18 % de plus) ; la zone morte reste 6 % (2,8 px au lieu de 3,2) ;
@@ -106,6 +106,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   /* (2026-10-28, Léo : « le slide joystick doit visuellement montrer ce que ça fait d'aller en haut et en bas ») DEUX REPÈRES sur la glissière : un chevron
      AU-DESSUS, un EN DESSOUS, qui s'allument à mesure que le pouce monte ou descend (--su / --sd). En VOL ils disent ce que fait le geste (MONTE / PLONGE,
      selon les réglages POUCE HAUT et VOL INVERSÉ) ; AU SOL le bas dit DRIFT et le haut s'éteint. */
+  /* ===== L'ASSIETTE EN VOL, PLUS VIVE (2026-11-07, Sacha : « la sensibilité haut bas est un peu light ») =====
+     Le pouce vers le HAUT atteint l'assiette pleine à 30 px au lieu de 38 (+27 %), vers le BAS à 82 % de sa course (36 px sur 44 : +22 % en plus des 12 % de
+     PIQ_K), et la zone morte verticale de base passe de 10 à 8 %. Ce que lit le DRIFT n'a pas bougé : `TCTL.dy` reste en pixels sur la course de 44 px (seuil
+     34,9), seule la lecture de l'assiette (`ny`) est plus courte vers le bas. Plafonds de tangage et lissage de la caisse inchangés. `?sens=0` rend tout comme avant. */
   let skU=null,skD=null,skK='';
   if(stk){skU=document.createElement('div');skU.className='skU';skD=document.createElement('div');skD.className='skD';stk.appendChild(skU);stk.appendChild(skD);}
   function skMaj(){ if(!skU)return; const vol=(mode==='fall'),sg=volSens()*volInv(),k=(vol?1:0)+'|'+sg; if(k===skK)return; skK=k;
@@ -185,14 +189,14 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(rawY<-LOCKU){TCTL.oy=y-cr+LOCKU;gy=Math.max(gy,Math.min(LOCKV,sB-TCTL.oy-6));} // (2026-10-14) vers le HAUT le socle flotte dès 38 px (LOCKU)
       if(TCTL.ox!==ox0||TCTL.oy!==oy0){stk.style.left=dispL(TCTL.ox);stk.style.top=(TCTL.oy-sT)+'px';} // (2026-09-30) l'ANNEAU suit la base flottante (il restait planté où le pouce s'était posé) — écrit seulement quand la base bouge
       const px=Math.max(-gx,Math.min(LOCK,pxr)),py=Math.max(-LOCKU,Math.min(gy,y-TCTL.oy-cr)),
-            nx=px<0?px/gx:px/LOCK,ny=py<0?py/LOCKU:py/gy,
+            nx=px<0?px/gx:px/LOCK,ny=py<0?py/LOCKU:Math.min(1,py/(gy*PIT_DK)),
             ax=Math.abs(nx)<.06?0:nx, // zone morte : le pouce tremble, pas la caisse
             /* (2026-09-30) ZONE MORTE CROISÉE : le pouce pivote à sa base, un glissé « de côté » décrit un ARC — 54 px de braquage portent
                15 à 30 px de vertical, soit 35 à 70 % d'assiette avec l'ancienne zone morte fixe de 10 % (tourner en vol faisait piquer ou
                cabrer). La zone morte verticale s'ÉLARGIT avec le braquage (10 % au neutre → 55 % = 24 px au plein braquage) et la sortie est
                re-étalée sur ce qui reste : une poussée franche (44 px) donne toujours l'assiette pleine. Au neutre la courbe linéaire
                re-étalée colle à l'ancienne (ny^1,15) à 0,015 près au-delà de 40 % de course — la sensibilité réglée le 28/09 est gardée. */
-            dz=.10+.45*Math.abs(nx),ay=Math.abs(ny)<=dz?0:(ny<0?-1:1)*Math.min(1,(Math.abs(ny)-dz)/(1-dz)*(ny>0?PIQ_K:1)); // (2026-10-14) vers le BAS l'assiette monte 12 % plus vite (PIQ_K) : la course, elle, reste celle du drift
+            dz=(SENSG?.08:.10)+.45*Math.abs(nx),ay=Math.abs(ny)<=dz?0:(ny<0?-1:1)*Math.min(1,(Math.abs(ny)-dz)/(1-dz)*(ny>0?PIQ_K:1)); // (2026-10-14) vers le BAS l'assiette monte 12 % plus vite (PIQ_K) : la course, elle, reste celle du drift
       TCTL.dy=py>0?py*LOCKV/gy:py; // le pouce en PIXELS vers le bas (le drift s'y mesure, indépendant de la sensibilité) — rapporté aux 44 px d'une course pleine quand le bas de l'écran la raccourcit
       /* (2026-09-30) L'ENTRÉE EN DRIFT CONNAÎT L'ARC DU JOUEUR. Dans la course, l'arc d'un pouce tendu descend déjà de 37,6 px à la butée
          droite (> 34,9 : drift sans rien tirer), celui d'une prise basse de 21,7. `ar` = la descente de CET arc à la butée, relevée pendant
@@ -359,7 +363,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(!started||gameOver||!paused||(pan.classList.contains('open')&&!pan.classList.contains('sortant'))){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');return;} // la feuille qui DESCEND encore n'annule rien
       if(n===0){repriseCompte.t=0;if(s9)s9.classList.remove('compte','on');try{sfx('ui.go');}catch(e){}togglePause();return;} // retirer `on` AUSSI : sinon l'animation normale repart et le « 1 » revient en grand
       slam(String(n),'','#ffd75e','#ff7ad5',64,9);{const s8=avE('slam9');if(s8)s8.classList.add('compte');} // un chiffre = 0,3 s : l'entrée doit être lisible tout de suite
-      try{if(SONV2){if(AC&&AC.state!=='running'&&SND.sfx)acReveil(AC).then(function(){sfx('ui.bip');});else sfx('ui.bip');}else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6); // (2026-09-27) ces bips et la vibration étaient avalés par le commentaire ci-dessus
+      try{if(SONV2){if(AC&&AC.state!=='running'&&SND.sfx){const k9=(pas.k=(pas.k|0)+1);acReveil(AC).then(function(){if(k9===pas.k&&repriseCompte.t)sfx('ui.bip');});}else sfx('ui.bip'); /* (2026-11-07, chasse SONDE-N02) un réveil qui arrive après le chiffre suivant ne rejoue pas son bip (ils partaient en paquet, jusqu'à 7 s après le compte) */}else chimeNote(noteP(n===1?4:2,1),0,.08,.1);}catch(e){}hap(6); // (2026-09-27) ces bips et la vibration étaient avalés par le commentaire ci-dessus
       n--;repriseCompte.t=setTimeout(pas,300);};
     /* (2026-09-28) LE « 3 » ATTEND QUE LE SON SOIT RÉVEILLÉ. `AC.resume()` est asynchrone : lancé juste avant le compte, le premier
        bip tombait sur un contexte encore suspendu (`sfxOk` le refuse) — on n'entendait que « 2 » et « 1 ». On part à la promesse
@@ -398,6 +402,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
           if(q9){if(rc9){paused=false;try{if(AC&&SND.sfx&&AC.state!=='running')acReveil(AC);}catch(e){}} /* (2026-10-14, chasse aux bugs) QUITTER aussi ferme la feuille SANS togglePause : la musique de la partie abandonnée repartait 0,66 s (play à la seconde où on l'avait laissée) juste pour être étranglée par le tape-stop d'endGame — on sort de la pause à la main, le son se réveille pour l'écran de fin, la musique reste arrêtée (musicStop la range proprement) */ if(TUTO.on)tutoQuitte();const sb=SANDBOX;SANDBOX=false;endGame();SANDBOX=sb;}
           else if(mode==='boom')endGame(); // (2026-10-12, passe qualité) la caisse EXPLOSE déjà : la partie est finie — RECOMMENCER sautait endGame (ni virement, ni aura, ni record, ni écran de fin). On la solde, l'écran de fin et son REJOUER suivent.
           else { /* (2026-10-14, chasse aux bugs) …et passe par le VOLET comme REJOUER : la piste neuve se construisait à l'écran, sous la feuille qui descendait. Le jeu reste gelé sous le voile ; le son (endormi par la pause) se réveille pour le volet — la musique abandonnée, elle, reste en pause : resetGame lance la neuve en fondu */
+try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (2026-11-07, chasse SON2-N03) le morceau de la partie abandonnée s'éteint : il repartait sous le volet et continuait dans la partie neuve, sans tirage ni fondu */
             let r9=null;try{busPlein();if(AC&&SND.sfx&&AC.state!=='running')r9=acReveil(AC);}catch(e){}
             if(ecranWipe._on){resetGame();} // un fondu déjà en cours ignorerait le nôtre : jamais une partie gelée sans feuille
             else{ecranWipe(function(){if(started&&!gameOver){resetGame(); /* ===== RECOMMENCER PUIS ARRIÈRE-PLAN (24/10, relecture : « la course roule sous la PAUSE ») ===== l'appli passée derrière pendant le volet a ROUVERT la feuille (paused encore vrai) ; resetGame remet paused=false : la partie neuve roulait sous la pause ouverte, REPRENDRE ne la gelait plus. La feuille ouverte = la partie neuve part en PAUSE, REPRENDRE sous le pouce (comme un retour d'arrière-plan) */
@@ -532,7 +537,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     // roule sans pause ni panneau — on la met en pause, REPRENDRE sous le pouce
     if(started&&!gameOver&&mode==='boom')boomSkip(); // (2026-10-14, chasse aux bugs) retour pendant l'explosion : comme le ⏸ (gearOpenHandler) — vers l'écran de fin, jamais une PAUSE sur la caisse qui brûle
     else if(started&&!gameOver&&!paused&&pan&&!pan.classList.contains('open'))panOpen(true);
-    wakeAsk(); audioKick(); });
+    if(started&&!gameOver)wakeAsk(); audioKick(); }); /* (2026-11-07) le verrou de l'écran ne revient qu'en course (voir wakeLache) */
   /* ===== L'APPEL ENTRANT MET LA COURSE EN PAUSE (24/10, débogage sortie iOS : « appel entrant / Siri / centre de contrôle ») =====
      Sur iPhone, un appel (la bannière), Siri ou une alarme passent PAR-DESSUS le jeu sans le cacher : pas de visibilitychange, la course
      continuait muette pendant que le pouce allait décrocher — la caisse tombait, la partie était perdue. Le seul signe fiable : le
@@ -706,11 +711,11 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(cpt){for(let j=0;j<N9;j++)s9(d9+Math.round(D9*(1-Math.sqrt(1-j/N9))),'ui.compte',{st:sonPd(j)});s9(d9+D9,'mort.compteFin');}
       if(rec)s9(MORT_FLOT?d9+M6_CPT-300:d9+450,'ui.record'); /* son TAAA (0,3 s) tombe pile sur la pose */
       if(commitExploits._neuves&&!document.body.classList.contains('touch'))s9(1750,'caisse.debloquee'); /* sur téléphone la caisse gagnée n'est pas affichée (#mNew masqué) : pas de son sans image */
-      if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900);
+      if(rec)setTimeout(function(){if(ici()){pixBurst($t('mOverT'),34);hap([18,50,30]);}},900);
       return;}
     for(let i=0;i<8;i++)setTimeout(function(){if(ici())try{chimeNote(noteP(i,1),0,.035,.06);}catch(e){}},320+i*85);
     setTimeout(function(){if(!ici())return;try{if(rec)rewardSfx('m3',3);else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(7,1),.06,.07,.36);}}catch(e){}},1040);
-    if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
+    if(rec)setTimeout(function(){if(ici()){pixBurst($t('mOverT'),34);hap([18,50,30]);}},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
   }
   const MORT_FLOT=!/[?&]mort=ancien\b/.test(location.search); /* (2026-10-25) L'ÉCRAN DE MORT FLOTTANT (voir mFill) — `?mort=ancien` = les cartes d'avant */
   Object.assign(I18N,{'PARTIE':'THIS RUN','MOYENNE':'AVERAGE','VS MOY':'VS AVG','MOY.':'AVG','MOTEUR':'ENGINE'});

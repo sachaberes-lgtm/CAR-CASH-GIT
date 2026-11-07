@@ -1,0 +1,56 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Banc des pièces 1 € / 2 €</title>
+<style>
+  body{margin:0;background:#1b2a3a;color:#ddd;font:12px monospace}
+  #bar{padding:6px 10px;background:#0006}
+  .row{display:flex;flex-wrap:wrap;gap:8px;padding:8px}
+  canvas{image-rendering:pixelated;background:#456}
+  b{color:#ffd75e}
+</style>
+<div id="bar">Banc des pièces — lit le VRAI code de <b>code/gameplay/pickups-fruits.js</b> (jusqu'à « L'ÉTAL »). ?ciel=clair|nuit</div>
+<div class="row" id="toiles"></div>
+<div class="row" id="vues"></div>
+<script src="../../VERSION%20PRINCIPALE/vendor/three.min.js"></script>
+<script>
+(async function(){
+  const src=await (await fetch('../../code/gameplay/pickups-fruits.js?'+Date.now())).text();
+  const fin=src.indexOf("// ---------- L'ÉTAL");
+  const bloc=src.slice(0,fin);
+  const K=new Function('THREE',bloc+';return {COIN_CV,COIN_CV2,coinTex,coinTex2,pickGeo,pickGeo2,pickMat,pickMat2,coinSymbole,pickGeoY};')(THREE);
+  window.K=K;
+  const q=new URLSearchParams(location.search);
+  // 1) les toiles à plat, très agrandies
+  const T=document.getElementById('toiles');
+  for(const [n,cv] of [['1 € (COIN_CV)',K.COIN_CV],['2 € (COIN_CV2)',K.COIN_CV2]]){
+    const c=document.createElement('canvas');const S=Math.min(512,cv.width*8);c.width=c.height=S;c.style.width=S+'px';
+    const x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(cv,0,0,S,S);
+    const d=document.createElement('div');d.textContent=n+' '+cv.width+'×'+cv.height;d.appendChild(document.createElement('br'));d.appendChild(c);T.appendChild(d);
+  }
+  // 2) la pièce en 3D : plusieurs tailles/angles
+  const clair=(q.get('ciel')||'clair')==='clair';
+  const r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+  const sc=new THREE.Scene();
+  sc.add(new THREE.AmbientLight(0xffffff,.45));const dl=new THREE.DirectionalLight(0xffffff,.55);dl.position.set(-3,5,4);sc.add(dl);
+  const cam=new THREE.PerspectiveCamera(45,1,.1,500);
+  const V=document.getElementById('vues');
+  function vue(lbl,mat,geo,dist,rotY,rotX,px){
+    const m=new THREE.Mesh(geo,mat);m.rotation.y=rotY;m.rotation.x=rotX||0;
+    const sc2=new THREE.Scene();sc2.background=new THREE.Color(clair?0x6fb4ff:0x0a1030);sc2.add(m);
+    sc2.add(new THREE.AmbientLight(0xffffff,.45));const L=new THREE.DirectionalLight(0xffffff,.55);L.position.set(-3,5,4);sc2.add(L);
+    r.setSize(px,px,false);cam.position.set(0,.3,dist);cam.lookAt(0,0,0);r.render(sc2,cam);
+    const c=document.createElement('canvas');c.width=c.height=px;c.getContext('2d').drawImage(r.domElement,0,0);
+    const d=document.createElement('div');d.textContent=lbl;d.appendChild(document.createElement('br'));d.appendChild(c);V.appendChild(d);
+  }
+  const pxs=[256,128,64,32];
+  for(const [lbl,mat,geo] of [['1 €',K.pickMat,K.pickGeo],['2 €',K.pickMat2,K.pickGeo2]]){
+    vue(lbl+' face',mat,geo,5.2,0,0,256);
+    vue(lbl+' 3/4',mat,geo,5.2,.7,.15,256);
+    vue(lbl+' profil',mat,geo,5.2,1.3,0,256);
+    vue(lbl+' loin 96px',mat,geo,12,0,0,96);
+    vue(lbl+' loin 48px',mat,geo,24,0,0,48);
+    vue(lbl+' loin 24px',mat,geo,48,0,0,24);
+  }
+  document.title='banc prêt';
+})();
+</script>

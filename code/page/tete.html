@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" translate="no">
 <head>
 <meta charset="UTF-8">
 <title>CASH CAR</title>
@@ -7,7 +7,22 @@
 <!-- ICÔNES (2026-09-24) : le 💰 était l'EMOJI D'APPLE (image protégée — risque de rejet App Store, et hors DA) ;
      remplacé par le mot-symbole pixel CASH CAR. apple-touch-icon en PNG : iOS n'accepte pas le SVG. -->
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/icon-32.png">
+<!-- L'APERCU DU LIEN (2026-11-07) : un lien CASH CAR collé dans un message montre le titre, la phrase et l'icône au lieu d'une adresse nue. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CASH CAR">
+<meta property="og:title" content="CASH CAR">
+<meta property="og:description" content="Runner arcade 3D : fonce, saute, vrille, surfe les nuages et amasse une fortune. Une seule vie.">
+<meta property="og:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CASH CAR">
+<meta name="twitter:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<!-- LES PETITES POLITESSES (2026-11-07, Sacha : « plein de mini détails qui rendent le jeu plus pro ») : le jeu est sombre (les contrôles natifs — curseurs, champ du code de sauvegarde — le savent) ; Chrome ne propose plus de TRADUIRE une page dont les textes pixel sont déjà dans les deux langues ; Safari ne transforme plus un nombre en lien téléphone. -->
+<meta name="color-scheme" content="dark">
+<meta name="google" content="notranslate">
+<meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#12081f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,6 +30,7 @@
 <meta name="apple-mobile-web-app-title" content="CASH CAR">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" href="assets/fonts/pressstart2p.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/monnaie.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
 <!-- ================= L'ÉDITION, ET LA COLONNE DE L'ORDI (2026-09-28) =================
      Sacha : « quand on ouvre cette version, la disposition des affichages de la version PC et de la version mobile verticale doit

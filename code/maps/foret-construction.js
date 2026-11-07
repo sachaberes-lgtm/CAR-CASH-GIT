@@ -12,7 +12,7 @@ function forFamille(root,geo,mat,lot,b0,b1,attr,ordre){if(!lot||!lot.n)return nu
   if(ordre)F.im.renderOrder=ordre;root.add(F.im);FORET.fam.push(F);return F;}
 function foretVide(){
   for(const F of FORET.fam){const g=F.im.geometry;for(const k in g.attributes)if(k!==F.attr)g.deleteAttribute(k);g.setIndex(null);g.dispose();F.im.dispose();}
-  FORET.fam=[];FORET.quart=null;FORET.sig=0;FORET.geants=[];FORET.dz=null;FORET.deco=null;FORET.clr=[];FORET.lant=null;FORET.gcol=null;FORET.arche=[];FORET.chaum=[];FORET.rocs=[];FORET.sol=null;FORET.solM=null;
+  FORET.fam=[];FORET.quart=null;FORET.sig=0;FORET.geants=[];FORET.dz=null;FORET.deco=null;FORET.clr=[];FORET.lant=null;FORET.gcol=null;FORET.arche=[];FORET.chaum=[];FORET.rocs=[];FORET.archeRefus=null;FORET.archeDessin=null;FORET.sol=null;FORET.solM=null;
   if(FORET.root){FORET.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});FORET.root=null;}
   if(FORET.loup){FORET.loup.t=0;FORET.loup.on=false;FORET.loup.roc=null;} // (2026-10-14, chasse aux bugs) un portail pendant un hurlement laissait `on` et le rocher de l'ANCIENNE piste : à la forêt suivante le loup-garou y réapparaissait jusqu'à 7,4 s
 }
@@ -43,6 +43,7 @@ window.dbgPleureurs=function(k){PLEUR.on=k==null?true:!!k;if(FORET.seed==null)re
    · LES RAYONS ET LES YEUX (`ray`, `yeux`) : la densité des rayons de soleil, le nombre d'yeux la nuit.
    Rien ne touche la route : les menhirs gardent ROAD_HALF + 25 m et leurs gélules entrent dans les collisions ; les clairières ne font que retirer
    des arbres. `?sans=foretdecor` = le décor d'avant, au tirage près (aucun tirage de plus dans `fr` ni `fw`). */
+const FOR_PIED={hetre:.62,chene:1,bouleau:.32,epicea:.52,sapin:.55,pin:.48,saule:1.05,pleureur:1.75}; /* (2026-11-07) le rayon du pied de chaque essence ordinaire, en unités du prototype (voir FOR_ESP : le premier anneau du fût) */
 const FOR_ESS={ // [près (< 175 m), milieu (< 620 m), loin] : des seuils cumulés sur r
   'résineux':[[[.35,'epicea'],[.62,'sapin'],[.8,'pin'],[.9,'bouleau'],[1,'hetre']],[[.5,'epicea'],[.8,'sapin'],[.95,'pin'],[1,'hetre']],[[.5,'epicea'],[.85,'sapin'],[1,'pin']]],
   'hêtraie':[[[.4,'hetre'],[.62,'chene'],[.8,'bouleau'],[.9,'pin'],[1,'epicea']],[[.5,'hetre'],[.75,'chene'],[.85,'bouleau'],[1,'epicea']],[[.6,'hetre'],[.8,'chene'],[1,'epicea']]],
@@ -105,10 +106,17 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
      (24-60 m au-dessus ; 45-195 m pour un séquoia) : sous une pelote à trois étages, un chêne monte à 400-500 m, un séquoia à 700. Son tronc
      (`FOR_GEANT_RB` : le rayon du fût sous la couronne, prudent) reste à 5 m au moins du bord de TOUTES les routes, à toutes les hauteurs. */
   const GE=[],ge=DZ&&DZ.gea.vieux?['ancien','ancien','ancien','chene','hetre']:FOR_GEANTS_N.filter(function(k){return k!=='sequoia';}); /* (LE DÉCOR AU HASARD) les VIEUX CHÊNES : l'ancien ne devient jamais pleureur */ // (les séquoias ont leurs passes à eux)
-  const geantXZ=(x,z,sp)=>{if(CLR.length)for(const c of CLR)if(Math.hypot(c[0]-x,c[1]-z)<c[2]+12)return false;const meta=PT.geant[sp][0].m,base=solH(x,z)-3,cb=sp==='sequoia'?(meta.cb||178):(meta.cb||95),R9=meta.cr*2.2+ROAD_HALF+14;
-    let yH=-1e9,dM=1e9,iM=-1;proches(x,z,R9,function(j){const q=pts[j],dh=Math.hypot(q.x-x,q.z-z);if(dh<R9&&q.y>yH)yH=q.y;if(dh<dM){dM=dh;iM=j;}});
+  const geantXZ=(x,z,sp)=>{if(CLR.length)for(const c of CLR)if(Math.hypot(c[0]-x,c[1]-z)<c[2]+12)return false;const meta=PT.geant[sp][0].m,cb=sp==='sequoia'?(meta.cb||178):(meta.cb||95),R9=meta.cr*2.2+ROAD_HALF+14;
+    let base=solH(x,z)-3,yH=-1e9,dM=1e9,iM=-1;proches(x,z,R9,function(j){const q=pts[j],dh=Math.hypot(q.x-x,q.z-z);if(dh<R9&&q.y>yH)yH=q.y;if(dh<dM){dM=dh;iM=j;}});
     if(iM<0){const yb9=solBil(S.yb,x,z);yH=yb9<1e4?yb9:base+120;} // (aucune route à portée de couronne : la plus basse des environs sert de repère)
-    const sy=THREE.MathUtils.clamp((yH-base+(sp==='sequoia'?45+fr()*150:24+fr()*36)*(FORET_VASTE?FOR_VASTE.geant:1))/cb,sp==='sequoia'?.9:.7,FORET_VASTE?6:4.4),sxz=Math.sqrt(sy)*(.84+fr()*.2),rT=FOR_GEANT_RB[sp]*sxz,cr=meta.cr*sxz;
+    const kH=(sp==='sequoia'?45+fr()*150:24+fr()*36)*(FORET_VASTE?FOR_VASTE.geant:1),kS=.84+fr()*.2,ech=b9=>{const s9=THREE.MathUtils.clamp((yH-b9+kH)/cb,sp==='sequoia'?.9:.7,FORET_VASTE?6:4.4);return [s9,Math.sqrt(s9)*kS];};
+    let E9=ech(base);
+    /* (2026-11-07, Sacha : « génération aléatoire parfaite ») LE PIED SUR LE VERSANT : le géant se posait sur le sol de SON CENTRE (−3 m) ; son fût fait 25-40 m
+       de large et le versant de la vallée pente à ~24 % — MESURÉ (dbgForetAudit, graines 1-3) : 6 géants sur 10 avaient un bord du pied EN L'AIR, jusqu'à 9 m
+       au-dessus du sol en contrebas. Il descend au point le plus bas du pourtour de son pied (le fût du pleureur qu'il deviendra : 15,5 unités, 17 au séquoia),
+       et son échelle se recalcule (la couronne garde sa marge au-dessus des routes). Mêmes tirages, dans le même ordre. */
+    {const rP=(sp==='sequoia'?17:15.5)*E9[1];let gm=1e9;for(let a=0;a<8;a++){const g9=solH(x+Math.cos(a*.7854)*rP,z+Math.sin(a*.7854)*rP);if(g9<gm)gm=g9;}if(gm-1.5<base){base=gm-1.5;E9=ech(base);}}
+    const sy=E9[0],sxz=E9[1],rT=FOR_GEANT_RB[sp]*sxz,cr=meta.cr*sxz;
     if(base+cb*sy-16<yH)return false;for(const c of FORET.sentZ||[])if(Math.hypot(c[0]-x,c[1]-z)<c[2]+rT)return false; /* (LES SENTIERS DE LUCIOLES) jamais un tronc dans le couloir d'un fil */ // (la couronne plafonnée passerait dans une route)
     for(const g of GE){const d=Math.hypot(g.x-x,g.z-z);if(d<Math.max((g.rT+rT)*2.4+25,(g.cr+cr)*.5))return false;}
     let ok=true;proches(x,z,rT+ROAD_HALF+6,function(j){if(!ok)return;const q=pts[j];if(Math.hypot(q.x-x,q.z-z)<rT+ROAD_HALF+5)ok=false;});
@@ -178,7 +186,7 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
     const sp=choix(d,fr()),me=metaE[sp];let s=(.78+fr()*.5)*(d>1150?1.22:1)*FE,sxz=s*(.85+fr()*.3);
     if(d<ROAD_HALF+20)continue;
     if(nu(x,z,me.cr*sxz*.5))continue;
-    const y=solH(x,z)-.4;
+    let y=solH(x,z)-.4;
     {const yb9=solBil(S.yb,x,z);if(yb9<1e4){const lim=yb9-30;if(y+me.h*s>lim){s=(lim-y)/me.h;if(s<.6)continue;sxz=Math.min(sxz,s*1.15);}}} // (LA PELOTE) jamais dans l'air libre des étages : 30 m sous la route la plus BASSE à moins de 280 m
     const ry=fr()*6.2832,q=qDe(x,z);let tint=sp==='hetre'&&fr()<.04?2:(fr()*2-1)*.6;
     if(DZ){if(tint<1.5)tint=Math.max(-1,Math.min(1,tint+DZ.sais.dt));if(DZ.sais.or&&(sp==='hetre'||sp==='chene'||sp==='bouleau')&&dz2()<DZ.sais.or)tint=2;} /* (LE DÉCOR AU HASARD) LA SAISON */
@@ -186,6 +194,10 @@ function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'a
     if(PLEUR.on&&(sp==='hetre'||sp==='bouleau'||sp==='chene')&&fw()<(DZ?DZ.pleur[d<175?0:d<620?1:2]:d<175?.9:d<620?.75:.45)){const e9=fw()<.55?'saule':'pleureur',hF=metaE[e9].h;let k9=s*(e9==='saule'?1.3:1.25);
       const yb9=solBil(S.yb,x,z);if(yb9<1e4)k9=Math.min(k9,(yb9-30-y)/hF);if(k9>=.6){spF=e9;sF=k9;sxzF=k9*(sxz/s)*(e9==='pleureur'?1.08:1);}}
     const meF=metaE[spF];
+    /* (2026-11-07, Sacha : « génération aléatoire parfaite ») LE PIED SUR LE VERSANT : l'arbre se posait sur le sol de son centre ; MESURÉ (dbgForetAudit, graines 1-3) :
+       1 arbre sur 8 avait un bord du fût en l'air (jusqu'à 3,4 m pour un hêtre pleureur sur la pente de la vallée). Il descend au plus bas du pourtour de son fût
+       (×1,2) : le haut ne fait que baisser, le plafond des étages tient. Aucun tirage. */
+    {const rP=(FOR_PIED[spF]||1)*1.2*sxzF;let gm=y+.4;for(let a=0;a<8;a++){const g9=solH(x+Math.cos(a*.7854)*rP,z+Math.sin(a*.7854)*rP);if(g9<gm)gm=g9;}if(gm-.4<y)y=gm-.4;}
     ESP[spF].push({q:q,m:mat(x,y,z,ry,sxzF,sF,sxzF),j:[fr(),tint,0,0]});
     {const fc=FC[spF],k9=tint>1.5?[1.35,1.12,.7]:[1+tint*.16,1+tint*.06,1-tint*.18],al=[fc[0]*k9[0]*.78,fc[1]*k9[1]*.78,fc[2]*k9[2]*.78],lo=FOR_LOIN[spF];
      if(fr()<.62){const g9=1.12; // au loin, 62 % des arbres, un peu plus gros : la même masse de forêt pour 40 % de triangles en moins
@@ -540,6 +552,56 @@ window.dbgForet=function(k,o){
   return {on:!!FORET.root,deco:FORET.deco||null,mods:FORET.pel&&FORET.pel.mk||null,met:FORET.met,ms:FORET.ms,msSol:FORET.msSol,protos:FORET.protos&&FORET.protos.ms,n:FORET.n,pel:FORET.pel,axe:FORET.axe!=null?Math.round(FORET.axe*57.3):null,plan:FORET.plan||null,noeuds:(FORET.noeuds||[]).map(function(o){return [Math.round(o.c[0]),Math.round(o.c[1]),o.t];}),tri:Math.round(tri),fam:FORET.fam.filter(function(F){return F.im.visible;}).length,
     tri9:{ms:FT.n?+(FT.ms/FT.n).toFixed(3):0,maj:FT.up},cur:FORET.cur&&{hante:+FORET.cur.hante.toFixed(2),pap:+FORET.cur.pap.toFixed(2),ray:+FORET.cur.ray.toFixed(2)},
     loup:FORET.loup&&{t:+FORET.loup.t.toFixed(1),on:FORET.loup.on},geants:FORET.geants.length,col:FORET.gcol&&FORET.gcol.n,parFam:parFam};};
+/* ===== L'AUDIT DE LA FORÊT (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+   `dbgForetAudit()` : LECTURE SEULE, toute la forêt (pas seulement les exemplaires que le tri des quartiers dessine) — le banc des maps le passe en
+   `--audit`. Il rend :
+   · couloir : la caisse posée tous les 3 m, à 7 places de la largeur (± demi-largeur + 1 m), à 0,5 / 1,5 / 4 / 6,5 m de la dalle : ce qui TUE en vol
+     (foretHeurt : gélules, sphères des couronnes, canopée, sous-bois) ;
+   · sommets : chaque exemplaire de chaque famille (arbres, géants, rochers, menhirs, amanites), les arches et les chaumières — leur boîte, puis leurs
+     sommets, contre le même couloir (de 0,3 à 7 m) : ce qu'on VOIT dans la route ;
+   · pieds : le pied des arbres, des géants, des rochers contre le relief (le plus haut écart sol → pied sur le pourtour du fût : un pied qui flotte) ;
+   · sol : la marge la plus mince entre la route et le relief ;
+   · sig : une signature des exemplaires (le déterminisme : la même graine, la même signature). */
+window.dbgForetAudit=function(o){o=o||{};if(!FORET.root||!FORET.sol)return null;
+  const ds=L/(NP-1),HW=ROAD_HALF+1,R={L:Math.round(L),NP:NP};
+  /* la route en grille fine (8 m) */
+  const GC=8,G=new Map(),kg=(x,z)=>Math.floor(x/GC)*100003+Math.floor(z/GC);
+  for(let i=0;i<NP;i++){const p=pts[i],k=kg(p.x,p.z);let a=G.get(k);if(!a)G.set(k,a=[]);a.push(i);}
+  const dansRoute=(x,y,z)=>{const cx=Math.floor(x/GC),cz=Math.floor(z/GC),r=Math.ceil(HW/GC);
+    for(let a=-r;a<=r;a++)for(let b=-r;b<=r;b++){const l=G.get((cx+a)*100003+cz+b);if(!l)continue;
+      for(const i of l){const p=pts[i],t=T[i],n=Nn[i],bb=B[i],dx=x-p.x,dy=y-p.y,dz=z-p.z;if(Math.abs(dx*t.x+dy*t.y+dz*t.z)>ds*.6)continue;
+        const h=dx*n.x+dy*n.y+dz*n.z;if(h<.3||h>7)continue;if(Math.abs(dx*bb.x+dy*bb.y+dz*bb.z)<HW)return i;}}return -1;};
+  const quiTue=p=>{const Gc=FORET.gcol,a9=Gc&&Gc.G.get(Math.floor(p.x/Gc.CG)+','+Math.floor(p.z/Gc.CG));if(a9)for(const c of a9){let q=c.a;if(c.g){const bx=c.b[0]-c.a[0],by=c.b[1]-c.a[1],bz=c.b[2]-c.a[2],l2=bx*bx+by*by+bz*bz;let u=l2>0?((p.x-c.a[0])*bx+(p.y-c.a[1])*by+(p.z-c.a[2])*bz)/l2:0;u=Math.max(0,Math.min(1,u));q=[c.a[0]+bx*u,c.a[1]+by*u,c.a[2]+bz*u];}
+    const d=Math.hypot(p.x-q[0],p.y-q[1],p.z-q[2]);if(d<c.r+(c.g?1.2:0)){let g9=null,dg=1e9;for(const g of FORET.geants){const e=Math.hypot(g.x-q[0],g.z-q[2]);if(e<dg){dg=e;g9=g;}}return (c.g?'gélule':'sphère')+' r'+c.r.toFixed(1)+' à '+d.toFixed(1)+' m, y '+Math.round(q[1])+FORET.arche.map(A=>' · arche à '+Math.round(Math.hypot(A.c.x-q[0],A.c.z-q[2]))+' m').join('')+(g9?' · géant '+g9.spV+' à '+Math.round(dg)+' m (sy '+g9.sy.toFixed(2)+')':'');}}return 'gélule ?';};
+  /* 1. le couloir (ce qui tue) */
+  {const st=Math.max(1,Math.round(3/ds)),V9=new THREE.Vector3();let n=0,t=0;const ex=[],par={};
+   for(let i=Math.round(40/ds);i<NP-Math.round(30/ds);i+=st)for(const f of [-1,-.66,-.33,0,.33,.66,1])for(const h of [.5,1.5,4,6.5]){
+     V9.copy(pts[i]).addScaledVector(B[i],f*HW).addScaledVector(Nn[i],h);t++;const r=foretHeurt(V9);if(r){n++;par[r]=(par[r]||0)+1;if(ex.length<8)ex.push([Math.round(i*ds),+(f*HW).toFixed(1),h,r,V9.y<canH(V9.x,V9.z)?'canopée':V9.y<solH(V9.x,V9.z)+1.2?'sol':quiTue(V9)]);}}
+   R.couloir={essais:t,heurts:n,par:par,ex:ex};}
+  /* 2. les sommets (ce qu'on voit) */
+  {const out=[],vu=new Set(),bx=new THREE.Box3(),M=new THREE.Matrix4(),v=new THREE.Vector3(),parNom={};let nI=0;
+   const boiteTouche=b=>{const cx0=Math.floor((b.min.x-HW)/GC),cx1=Math.floor((b.max.x+HW)/GC),cz0=Math.floor((b.min.z-HW)/GC),cz1=Math.floor((b.max.z+HW)/GC);
+     if((cx1-cx0+1)*(cz1-cz0+1)>40000)return true;
+     for(let a=cx0;a<=cx1;a++)for(let c=cz0;c<=cz1;c++){const l=G.get(a*100003+c);if(!l)continue;for(const i of l){const p=pts[i];if(b.max.y>=p.y+.3-ROAD_HALF*.3&&b.min.y<=p.y+7+ROAD_HALF*.3)return true;}}return false;};
+   const teste=(geo,Mw,nom,k)=>{if(!geo.boundingBox)geo.computeBoundingBox();bx.copy(geo.boundingBox).applyMatrix4(Mw);nI++;if(!boiteTouche(bx))return;
+     const P=geo.attributes.position;let hit=-1,hv=null;for(let j=0;j<P.count;j++){v.fromBufferAttribute(P,j).applyMatrix4(Mw);const i=dansRoute(v.x,v.y,v.z);if(i>=0){hit=i;hv=v.clone();break;}}
+     if(hit<0)return;parNom[nom]=(parNom[nom]||0)+1;if(out.length<30){const p=pts[hit],d=hv.clone().sub(p);out.push({nom:nom,k:k,s:Math.round(hit*ds),lat:+d.dot(B[hit]).toFixed(1),h:+d.dot(Nn[hit]).toFixed(1),x:Math.round(Mw.elements[12]),z:Math.round(Mw.elements[14])});}};
+   for(const F of FORET.fam){if(/fleurs|lierre/.test(F.nom||''))continue;const cle=F.lot;if(vu.has(cle))continue;vu.add(cle); /* une famille par lot : le détail le plus fin */
+     const geo=F.im.geometry;for(let k=0;k<F.lot.n;k++){M.fromArray(F.lot.M,k*16);teste(geo,M,F.nom,k);}}
+   FORET.root.traverse(m=>{if(!m.isMesh||m.isInstancedMesh||!m.geometry||!m.geometry.attributes.position||/sol/.test(m.name||''))return;if(m.geometry.isInstancedBufferGeometry)return;m.updateMatrixWorld();teste(m.geometry,m.matrixWorld,m.name||(m.material===FORET.mats.arb?'arche/chaumière':'?'),-1);});
+   R.sommets={exemplaires:nI,touchent:out.length,parNom:parNom,ex:out.slice(0,12)};}
+  /* 3. les pieds (ce qui flotte) : le sol sur le pourtour du fût, à 8 directions */
+  {const P={arbres:[0,0,0],geants:[0,0,0],rochers:[0,0,0]},pire=[],RF={hetre:.62,chene:1,bouleau:.32,epicea:.52,sapin:.55,pin:.48,saule:1.05,pleureur:1.75},RG={chene:12.5,hetre:9.5,epicea:7.5,ancien:15,sequoia:17,gsaule:13,gpleureur:15.5}; /* le rayon du pied, en unités du prototype (géants : leur premier anneau) */
+   const pied=(cat,x,y,z,r)=>{let m=-1e9;for(let a=0;a<8;a++){const an=a*.7854,g=solH(x+Math.cos(an)*r,z+Math.sin(an)*r);if(y-g>m)m=y-g;}P[cat][0]++;if(m>.5)P[cat][1]++;if(m>P[cat][2])P[cat][2]=+m.toFixed(1);if(m>1.5&&pire.length<10)pire.push([cat,Math.round(x),Math.round(z),+m.toFixed(1)]);};
+   for(const F of FORET.fam){const nm=F.nom||'';if(!/^(hetre|chene|bouleau|epicea|sapin|pin|saule|pleureur)0$|^G.*0$|^rochers$/.test(nm))continue;const lot=F.lot;
+     for(let k=0;k<lot.n;k++){const e=lot.M.subarray(k*16,k*16+16),sxz=Math.hypot(e[0],e[2]),cat=nm[0]==='G'?'geants':nm==='rochers'?'rochers':'arbres';
+       const e9=nm.replace(/^G|0$/g,''),r=(cat==='rochers'?15:cat==='geants'?RG[e9]||12:RF[e9]||1)*sxz;pied(cat,e[12],e[13]-(cat==='rochers'?8*e[5]:0),e[14],r);}}
+   R.pieds=P;R.piedsPire=pire;}
+  /* 4. le sol sous la route, 5. la signature */
+  {let m=1e9,ou=0;for(let i=0;i<NP;i+=4){const p=pts[i],d=p.y-solH(p.x,p.z);if(d<m){m=d;ou=i;}}R.sol={marge:Math.round(m),s:Math.round(ou*ds)};}
+  {let h=2166136261>>>0;const mix=x=>{h=Math.imul(h^(Math.round(x*10)|0),16777619)>>>0;};mix(L);for(const F of FORET.fam){mix(F.lot.n);for(let k=0;k<F.lot.n;k+=7){mix(F.lot.M[k*16+12]);mix(F.lot.M[k*16+13]);mix(F.lot.M[k*16+14]);}}
+   for(let i=0;i<NP;i+=97){mix(pts[i].x);mix(pts[i].y);mix(pts[i].z);}R.sig=h.toString(16);R.archeRefus=FORET.archeRefus;R.archeS=['arche','archeB'].filter(k=>FORET.Q&&FORET.Q[k]).map(k=>Math.round(FORET.Q[k].s));R.pel=FORET.pel&&{note:FORET.pel.note,essais:FORET.pel.essais,croise:FORET.pel.croise};{let pm=0,ps=0;for(let i=4;i<NP;i+=2){const g9=Math.abs(pts[i].y-pts[i-4].y)/Math.max(.1,pts[i].distanceTo(pts[i-4]));if(g9>pm){pm=g9;ps=i*L/(NP-1);}}R.penteMax4={p:+pm.toFixed(3),s:Math.round(ps)};}R.archeDessin=FORET.archeDessin;R.n=Object.assign({arches:FORET.arche.length+'/'+['arche','archeB'].filter(k=>FORET.Q&&FORET.Q[k]).length},FORET.n);R.deco=FORET.deco;}
+  return R;};
 function PAL_B9(k,d){try{return (typeof PAL!=='undefined'&&PAL&&typeof PAL.b==='function')?PAL.b(k,d):d;}catch(e){return d;}} // les paliers d'optimisation (PAL), s'ils existent
 
 /* <<<FIN FORET>>> */
