@@ -13278,8 +13278,10 @@ PAL.B.imgQlP75=[24,24,19]; /* (2026-11-07, P2 · levier f) le seuil p75 (ms) au-
      stries : la densité (0 à 1) des traits d'air et de l'émission des traînées, à toute vitesse (`null` = le régime des budgets)
    Rend l'état courant : {halo,mips,ombre,dpr,ciel,stries}. Ne fait rien de plus que poser ces valeurs : la décision (quand, de combien) reste à l'appelant. */
 const IMG_REGLE0={};
+/* (2026-11-07, P2, bascules gratuites) `reset` ne repose plus l'échelle tout de suite : il la remet à la microtâche, et un `imgRegle({...})` qui le suit dans la même tâche la pose UNE fois (avant : reset puis réglage = deux réallocations de la toile et des cibles à chaque bascule du gouverneur). qlPose ne force plus la toile : elle ne se redimensionne que si la résolution calculée change. */
+let IMG_PEND=false;function imgDiffere(){if(IMG_PEND)return;IMG_PEND=true;Promise.resolve().then(function(){IMG_PEND=false;try{qlPose(QL.k);}catch(e){}});}
 function imgRegle(o){
-  if(o==='reset'){if(IMG_REGLE0.ok){BLOOM_BASE=IMG_REGLE0.bb;if(bloomPass)bloomPass._nM=IMG_REGLE0.nM;QL.ombre0=IMG_REGLE0.om;DPR_CAP=IMG_REGLE0.cap;IMG_DYN.ciel=0;PAL.B.bloomOff[PAL.n]=IMG_REGLE0.boff;IMG_DYN.dens=null;IMG_REGLE0.ok=false;curDPR=-1;qlPose(QL.k);}return imgRegle();}
+  if(o==='reset'){if(IMG_REGLE0.ok){BLOOM_BASE=IMG_REGLE0.bb;if(bloomPass)bloomPass._nM=IMG_REGLE0.nM;QL.ombre0=IMG_REGLE0.om;DPR_CAP=IMG_REGLE0.cap;IMG_DYN.ciel=0;PAL.B.bloomOff[PAL.n]=IMG_REGLE0.boff;IMG_DYN.dens=null;IMG_REGLE0.ok=false;imgDiffere();}return imgRegle();}
   if(o&&typeof o==='object'){
     if(!IMG_REGLE0.ok){IMG_REGLE0.ok=true;IMG_REGLE0.bb=BLOOM_BASE;IMG_REGLE0.nM=bloomPass?bloomPass._nM:5;IMG_REGLE0.om=QL.ombre0;IMG_REGLE0.cap=DPR_CAP;IMG_REGLE0.boff=PAL.B.bloomOff[PAL.n];}
     if('halo' in o){const h=o.halo;if(h==='off')PAL.B.bloomOff[PAL.n]=1;else{PAL.B.bloomOff[PAL.n]=IMG_REGLE0.boff;BLOOM_BASE=h==='demi'?.5:h==='tout'?1:Math.max(.2,Math.min(1,+h||1));}}
@@ -13288,7 +13290,7 @@ function imgRegle(o){
     if('dpr' in o)DPR_CAP=Math.max(DPR_MIN,Math.min(+o.dpr||1,devicePixelRatio));
     if('ciel' in o)IMG_DYN.ciel=Math.max(0,o.ciel|0);
     if('stries' in o)IMG_DYN.dens=o.stries==null?null:Math.max(0,Math.min(1,+o.stries)),IMG_DYN.vmin=0;
-    curDPR=-1;qlPose(QL.k);}
+    qlPose(QL.k);}
   return {halo:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,mips:bloomPass?bloomPass._nM:null,ombre:sun.shadow.mapSize.x,dpr:+curDPR.toFixed(2),cap:+DPR_CAP.toFixed(2),ciel:IMG_DYN.ciel,stries:IMG_DYN.dens,ql:QL.k};}
 window.imgRegle=imgRegle;
 function qlAuto(){return TEL_NATIF&&!qHaute()&&started&&!gameOver;}
@@ -13304,7 +13306,7 @@ function qlDpr(k,b){ // la résolution que vaut le cran k
   return Math.max(b.bas,b.pl-(b.pl-b.bas)*(k-b.kNet)/Math.max(1,b.nB));}
 function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));if(qHaute())k=0;QL.k=k; /* (OPTIMISATION) HAUTE : jamais baissé */ // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
   const om=VHD.on?VHD.ombre:k>=4?512:k>=2?768:QL.ombre0; // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
-  if(sun.shadow.mapSize.x!==om){if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}sun.shadow.mapSize.set(om,om);} // recrée la carte, zéro recompilation
+  if(sun.shadow.mapSize.x!==om){const a9=sun.shadow.mapSize.x,C9=QL.ombres||(QL.ombres={});if(sun.shadow.map){if(a9<=1280)C9[a9]=sun.shadow.map;else sun.shadow.map.dispose();} /* (P2, bascules gratuites) les cartes ≤ 1280 se GARDENT par taille : revenir à 768/512/1024 ne réalloue plus rien (les grandes de la vitrine, elles, sont libérées) */sun.shadow.map=C9[om]||null;sun.shadow.mapSize.set(om,om);renderer.shadowMap.needsUpdate=true;} // zéro recompilation
   const br=(k>=3?.75:1)*BLOOM_BASE;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
   FLOU_OK=k<5;
   if(bloomPass)bloomPass.enabled=!REDUCED_MOTION&&k<b.kMax&&!PAL.b('bloomOff',0); /* (2026-10-24, allègement mobile) palier 0 : plus de bloom du tout (une passe plein écran de moins) — `?bloom=1` le rend */

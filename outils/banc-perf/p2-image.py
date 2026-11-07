@@ -56,6 +56,22 @@ def run(http,port,carte,qs,ordi,cpu,dossier,tag,regle=None):
     pos=c.ev("dbgPortail(1800)");s0=pos.get('s',0) if isinstance(pos,dict) else 0
     t=time.time()
     while time.time()-t<60 and (c.ev("dbgEco().s") or 0)<s0+80:c.pump(.05)
+    if '--gouv' in sys.argv: # le gouverneur de paliers piloté par dbgGouv(dose) : 0 → 70 → 110 → 150 → 70 ; par étape : images > 100 ms, pire image, allocations GL (textures, renderbuffers, pixels, toile redimensionnée), programmes compilés
+        c.ev("""(function(){var G=window.__G={tex:0,texPx:0,rb:0,rbPx:0,cw:0};var P=WebGL2RenderingContext.prototype;
+          ['texStorage2D'].forEach(function(n){var o=P[n];P[n]=function(t,l,f,w,h){G.tex++;G.texPx+=w*h;return o.apply(this,arguments)}});
+          var t2=P.texImage2D;P.texImage2D=function(){if(arguments.length>=9&&arguments[8]!==undefined&&arguments[8]===null||arguments.length===9&&arguments[8]===null){G.tex++;G.texPx+=arguments[3]*arguments[4]}return t2.apply(this,arguments)};
+          var r1=P.renderbufferStorage;P.renderbufferStorage=function(t,f,w,h){G.rb++;G.rbPx+=w*h;return r1.apply(this,arguments)};
+          var r2=P.renderbufferStorageMultisample;P.renderbufferStorageMultisample=function(t,s,f,w,h){G.rb++;G.rbPx+=w*h*s;return r2.apply(this,arguments)};
+          var d=Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype,'width');Object.defineProperty(HTMLCanvasElement.prototype,'width',{get:d.get,set:function(v){G.cw++;return d.set.call(this,v)},configurable:true});return 1})()""")
+        res=[];dose0=[0,70,110,150,70]
+        for dose in dose0:
+            c.ev("window.__F.length=0;window.__Fon=true;1");g0=json.loads(c.ev("JSON.stringify(window.__G)"));lk=c.ev('window.__LK')
+            t0=time.time();c.ev('dbgGouv(%d)'%dose);c.pump(float(arg('--tenue','12')))
+            F=json.loads(c.ev("JSON.stringify(window.__F)"));c.ev("window.__Fon=false;1");g1=json.loads(c.ev("JSON.stringify(window.__G)"))
+            st=c.ev("JSON.stringify({p:typeof dbgGouvPaliers==='function'?dbgGouvPaliers():null,img:imgRegle()})")
+            F=F[1:] or [0]
+            res.append({'dose':dose,'images>100ms':sum(1 for x in F if x>100),'pire_ms':round(max(F)),'allocs_tex':g1['tex']-g0['tex'],'px_tex':g1['texPx']-g0['texPx'],'allocs_rb':g1['rb']-g0['rb'],'px_rb':g1['rbPx']-g0['rbPx'],'toile_redim':g1['cw']-g0['cw'],'compilations':c.ev('window.__LK')-lk,'etat':json.loads(st)})
+        return {'gouv':res,'cout':{'gpu':None}}
     if '--bascule' in sys.argv: # le coût de CHAQUE réglage à chaud, dans les deux sens : durée de l'appel + pire image dans la seconde qui suit + programmes compilés
         B=[('halo demi',{'halo':'demi'},{'halo':'tout'}),('mips 3',{'mips':3},{'mips':4}),('ombre 768',{'ombre':768},{'ombre':1024}),('ombre 512',{'ombre':512},{'ombre':1024}),('dpr 1,25',{'dpr':1.25},{'dpr':1.5}),('dpr 1',{'dpr':1},{'dpr':1.25}),('ciel 1/2',{'ciel':2},{'ciel':0}),('stries .5',{'stries':.5},{'stries':None})]
         res=[]
@@ -88,7 +104,7 @@ def main():
             prof=tempfile.mkdtemp(prefix='p2-');pt=gp.libre()
             ch=subprocess.Popen([gp.chrome(),'--headless=new','--remote-debugging-port=%d'%pt,'--user-data-dir='+prof,'--mute-audio','--autoplay-policy=no-user-gesture-required','about:blank'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
             try:
-                for i in range(60):
+                for i in range(400):
                     time.sleep(.5)
                     try:urllib.request.urlopen('http://127.0.0.1:%d/json/version'%pt,timeout=2).read();break
                     except Exception:pass
@@ -98,6 +114,8 @@ def main():
                 try:ch.wait(5)
                 except Exception:ch.kill()
                 shutil.rmtree(prof,ignore_errors=True)
+            if 'gouv' in R:
+                for x in R['gouv']:print({k:v for k,v in x.items() if k!='etat'},'palier',((x['etat'].get('p') or {}).get('palier')),'etat',x['etat'].get('img'),flush=True)
             if 'bascule' in R:
                 for x in R['bascule']:print(x)
             R['map']=':'.join(m);R['tag']=tag;R['qs']=qs;R['charge']=round(os.getloadavg()[0],1)
