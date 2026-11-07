@@ -8,6 +8,7 @@ au menu puis en course au pilote auto, puis à l'écran de mort. Il relève à c
   · les tâches longues (PerformanceObserver longtask) ;
   · --infra=1  : la ventilation memory-infra de Chrome par processus et par allocateur (partition_alloc, cc = tuiles du compositeur, v8, webgl, canvas…) ;
   · --geo=1    : les copies JavaScript des géométries de la scène, une par une (dbgScene) ;
+  · --vie=1    : (2026-11-07) les géométries montées à la puce et jamais rendues, par nom d'objet et par course (dbgGeoVie) : la fuite d'une course à l'autre ;
   · --couches=1: les couches composées (LayerTree) et POURQUOI elles le sont ;
   · --workers=1: le tas de chaque Web Worker ;
   · --cpu=1    : profil CPU du chargement ; --cpu=2 : accueil → garage et garage → course ;

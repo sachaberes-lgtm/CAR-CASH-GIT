@@ -280,6 +280,30 @@ window.dbgEquipe=function(i){if(started&&!gameOver)return 'en course';i=Math.max
 window.dbgSpec=function(i){const c=CARS[i|0];return c?{name:c.name,w:c.w,l:c.l,h:c.h,shape:c.shape}:null;};window.dbgNbCaisses=function(){return CARS.length;}; // (dev) les fiches, pour les bancs d'essai
  // console : dbgCar(16) → prévisualiser un gabarit sans farmer les milliards (visuel pur, ne touche pas au niveau)
 window.dbgScene=function(){return {car:carGroup,scene:scene,contact:contactShadow,shadow:shadow,cam:camera,rdr:renderer};}; // dissection console (visuel pur) — (2026-09-26) + caméra et renderer : le banc des laques mesure la caisse au pixel
+/* ===== LA VIE DES GÉOMÉTRIES (2026-11-07, chasse PC-N03 / TEL-N02 : « les géométries montent de ~150 par course, le tas de 197 à 590 Mo en 3 courses ») =====
+   renderer.info.memory.geometries compte les géométries montées à la puce et jamais rendues (dispose) — mais pas LESQUELLES. dbgGeoVie(1) note, au premier
+   dessin de chaque géométrie, le nom de son objet (référence FAIBLE : rien n'est retenu) ; dbgGeoVie('course 2') étiquette l'époque ; dbgGeoVie() dresse le bilan :
+   « scène » (encore dans la scène), « hors scène » (détachée mais jamais rendue : la fuite), « ramassée » (le JS l'a oubliée SANS dispose : ses tampons restent
+   dans la puce, orphelins — un écouteur de dispose raye la géométrie dès qu'elle est rendue). Les objets sans nom se reconnaissent à leur nombre de sommets et à
+   la couleur de leur matière. Banc seulement (publie-allege retire les crochets). dbgGeoVie(0) = on arrête d'écouter. */
+const GEOVIE={on:false,m:new Map(),orig:null,t:'début'};
+window.dbgGeoVie=function(on,n){
+  if(on===1){if(!GEOVIE.on){GEOVIE.on=true;const f=GEOVIE.orig=renderer.renderBufferDirect;
+      renderer.renderBufferDirect=function(cam,sc,geo,mat,obj){if(geo&&!GEOVIE.m.has(geo.uuid)){let p=obj,P=[],d=0;while(p&&d<4){if(p.name)P.push(p.name);p=p.parent;d++;}
+          const pa=geo.attributes.position,sg=(P.length?'':' pos:'+(pa?pa.count:0)+(mat&&mat.color?' #'+mat.color.getHexString():'')),u=geo.uuid;
+          GEOVIE.m.set(u,{nom:(P.join('<')||'(sans nom)')+' ['+obj.type+' '+(geo.name||geo.type)+' '+((mat&&mat.type)||'')+(mat&&mat.name?' '+mat.name:'')+sg+']',ref:new WeakRef(geo),t:GEOVIE.t});
+          geo.addEventListener('dispose',function(){GEOVIE.m.delete(u);});}
+        return f.apply(this,arguments);};}
+    return 'enregistre';}
+  if(on===0){if(GEOVIE.on){renderer.renderBufferDirect=GEOVIE.orig;GEOVIE.on=false;}return 'arrêté';}
+  if(typeof on==='string'){GEOVIE.t=on;return on;}
+  const S9=new Set();scene.traverse(function(o){if(o.geometry)S9.add(o.geometry.uuid);});
+  const F={};let nS=0,nH=0,nR=0;
+  for(const [u,e] of GEOVIE.m){const g=e.ref.deref();let k;
+    if(!g){k='ramassée';nR++;}
+    else if(S9.has(u)){k='scène';nS++;}else{k='hors scène';nH++;}
+    const key=k+' · '+e.t+' · '+e.nom;F[key]=(F[key]||0)+1;}
+  return {total:renderer.info.memory.geometries,notees:GEOVIE.m.size,scene:nS,horsScene:nH,ramassees:nR,familles:Object.entries(F).sort(function(a,b){return b[1]-a[1];}).slice(0,n||40)};};
 window.dbgState=function(){return {started:started,running:running,paused:paused,gameOver:gameOver,mode:mode,psi:+psi.toFixed(4),yawR:+yawR.toFixed(4),slipB:+slipB.toFixed(4),glisse:+glisse9.toFixed(3),drift:driftEnCours,roulisDeg:+(carRoll9*57.3).toFixed(1),glisseDeg:+(driftYaw*57.3).toFixed(1),vH:+(mode==='fall'?Math.hypot(fallVel.x,fallVel.z):Math.abs(vA)).toFixed(1),driftLv:driftLv,graceT:+graceT.toFixed(2),
   /* flux des PIÈCES : sans ces trois-là, régler leur arrivée se fait à l'aveugle */
   engTier:engTier,coinsGot:coinsGot,prochainPalier:(ENGINE_TIERS[engTier+1]||{}).coins||null,
