@@ -398,6 +398,22 @@ window.dbgAppels=function(n){ // (2026-10-14, banc) QUI fait les appels de dessi
   try{renderer.render(scene,camera);}finally{renderer.renderBufferDirect=o;}
   const L=Object.keys(C).map(function(k){return [C[k].n,Math.round(C[k].tri/1000)+'k',k];}).sort(function(a,b){return b[0]-a[0];});
   return {appels:tot,triangles:Math.round(tri/1000)+'k',liste:L.slice(0,n||40)};};
+window.dbgAppelsBrut=function(){ /* (2026-11-07, passe perf 3, P3, banc) CHAQUE appel de dessin d'une image SANS regroupement : objet, ancêtres, géométrie, matière, drapeaux, position — qui se cache derrière les familles sans nom */
+  const o=renderer.renderBufferDirect,R=[];
+  renderer.renderBufferDirect=function(cam,sc,geo,mat,obj,grp){const ch=[];let p=obj;for(let k=0;k<6&&p;k++){ch.push((p.name||p.type||'?')+(p===scene?'#scène':''));p=p.parent;}
+    const t=(geo.index?geo.index.count:(geo.attributes.position?geo.attributes.position.count:0))/3*(obj.isInstancedMesh?obj.count:1),w=obj.getWorldPosition(new THREE.Vector3());
+    R.push({o:obj.type+(obj.name?'<'+obj.name+'>':''),ch:ch.join('<'),g:geo.type,m:(mat.type||'?')+(mat.name?':'+mat.name:''),tri:Math.round(t),ro:obj.renderOrder,T:!!mat.transparent,add:mat.blending===THREE.AdditiveBlending,ud:Object.keys(obj.userData||{}).join(','),cs:!!obj.castShadow,rs:!!obj.receiveShadow,vc:!!mat.vertexColors,map:!!mat.map,fog:mat.fog,pos:[w.x|0,w.y|0,w.z|0],id:obj.id,col:mat.color?mat.color.getHexString():null,dep:!!mat.isMeshDepthMaterial,inst:!!obj.isInstancedMesh});
+    return o.apply(this,arguments);};
+  try{renderer.render(scene,camera);}finally{renderer.renderBufferDirect=o;}
+  return R;};
+window.dbgImgEmpreinte=function(){ /* (2026-11-07, passe perf 3, P3, banc) L'IMAGE FINALE telle que la boucle la dessine (composer ou scène), relue pixel par pixel dans la MÊME tâche : empreinte FNV-1a de tous les octets + celle de la passe d'ombre seule. Deux appels de suite dans le même état doivent rendre la même chose (témoin de déterminisme). */
+  const gl=renderer.getContext(),W=gl.drawingBufferWidth,H=gl.drawingBufferHeight;if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);
+  const px=new Uint8Array(W*H*4);gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,px);let h=0x811c9dc5;for(let i=0;i<px.length;i++){h^=px[i];h=Math.imul(h,16777619);}
+  const sm=sun&&sun.shadow&&sun.shadow.map&&sun.shadow.map.texture?sun.shadow.map:null;let hs=null;if(sm){const w=sm.width,hh=sm.height,sp=new Uint8Array(w*hh*4);try{const f=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,f);const tx=renderer.properties.get(sm.texture).__webglTexture;gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tx,0);gl.readPixels(0,0,w,hh,gl.RGBA,gl.UNSIGNED_BYTE,sp);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.deleteFramebuffer(f);let g=0x811c9dc5;for(let i=0;i<sp.length;i++){g^=sp[i];g=Math.imul(g,16777619);}hs=(g>>>0).toString(16);}catch(e){hs='err '+e.message;}}
+  (dbgImgEmpreinte.px=dbgImgEmpreinte.px||[]).push(px);if(dbgImgEmpreinte.px.length>4)dbgImgEmpreinte.px.shift();
+  return {w:W,h:H,img:(h>>>0).toString(16),ombre:hs};};
+window.dbgImgDiff=function(i,j){ /* (banc P3) les deux dernières lectures i et j (0 = la plus ancienne gardée) : nombre de pixels qui diffèrent, plus grand écart d'un canal, premier pixel différent */
+  const P=dbgImgEmpreinte.px,a=P[i],b=P[j];let n=0,mx=0,f=-1;for(let k=0;k<a.length;k+=4){const d=Math.max(Math.abs(a[k]-b[k]),Math.abs(a[k+1]-b[k+1]),Math.abs(a[k+2]-b[k+2]));if(d){n++;if(d>mx)mx=d;if(f<0)f=k/4;}}return {n:n,max:mx,premier:f};};
 window.dbgJadeRegle=function(){if(!JADE.root)return null;const ds=L/(NP-1),st=Math.max(1,Math.round(5/ds)),V9=new THREE.Vector3();let n=0,t=0;const ex=[]; /* (2026-10-20, banc) LA RÈGLE D'OR : aucun pilier ni rocher sur la route — la caisse tous les 5 m, à 3 places de la largeur, à 0,5 et 3 m */
   for(let i=0;i<NP;i+=st)for(const f of [-.9,0,.9])for(const h of [.5,3]){V9.copy(pts[i]).addScaledVector(B[i],f*ROAD_HALF).addScaledVector(Nn[i],h);t++;if(jadeHeurt(V9)){n++;if(ex.length<6)ex.push([Math.round(i*ds),f,h]);}}
   return {essais:t,heurts:n,ex:ex};};
