@@ -2,7 +2,7 @@
 /* ===== LA MONNAIE DU JEU ET L'ARGENT QUI ÉVOLUE (2026-11-07, Léo : « le sketch en monnaie, dorée en 3D » ; « l'argent, plus tu en as, plus ça évolue ») =====
    · la monnaie est UNE PIÈCE 3D (2026-11-07, Léo : « fais juste une pièce 3D, qui changera de matière par palier ») : UN GLYPHE (U+E000, assets/fonts/monnaie.woff2) ajouté aux cinq polices par unicode-range : CUR() l'écrit partout ;
    · au compteur de course c'est l'IMAGE de la pièce 3D (tranche cannelée, rebord, bossage), dans le métal du moment (assets/monnaie/sym-*.png), qui saute à chaque gain ;
-   · <html data-metal> (metalMaj, passe-textes.js) : CUIVRE → ARGENT → OR → ÉMERAUDE → DIAMANT. Les compteurs prennent le métal en relief
+   · <html data-metal> (metalMaj, passe-textes.js) : CENTIME → EURO → OR → ÉMERAUDE → RUBIS → LÉGENDAIRE. Les compteurs prennent le métal en relief
      (bandes dures façon pixel, corps extrudé, contour d'encre), les prix en argent du jeu (--cash) sa couleur ;
    · le VRAI argent (offres en €) passe en ROSE NÉON pour ne plus se confondre. */
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
@@ -10,19 +10,20 @@
 @font-face{font-family:'CC Jersey';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
 @font-face{font-family:'CC Sixtyfour';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
 @font-face{font-family:'CC Jacquard';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
-html{--mL:#ffd2a8;--mM:#e08a4c;--mS:#9a4a1e;--mX:#4a1c08;--mH:rgba(230,130,60,.35);--mImg:url('./assets/monnaie/sym-cuivre.png');--vraiEur:#ff5fd2}
-html[data-metal="argent"]{--mL:#ffffff;--mM:#cfd6e4;--mS:#8a94aa;--mX:#3a3f55;--mH:rgba(220,230,255,.4);--mImg:url('./assets/monnaie/sym-argent.png')}
+html{--mL:#ffd6b0;--mM:#e0874a;--mS:#a14a1c;--mX:#4a1c08;--mH:rgba(230,130,60,.4);--mImg:url('./assets/monnaie/sym-centime.png');--vraiEur:#ff5fd2}
+html[data-metal="euro"]{--mL:#ffffff;--mM:#d6dce8;--mS:#c9962a;--mX:#5a4010;--mH:rgba(235,225,190,.45);--mImg:url('./assets/monnaie/sym-euro.png')}
 html[data-metal="or"]{--mL:#fff4b0;--mM:#ffc928;--mS:#e08a00;--mX:#7a4200;--mH:rgba(255,200,60,.55);--mImg:url('./assets/monnaie/sym-or.png')}
 html[data-metal="emeraude"]{--mL:#d8ffe2;--mM:#3ee08a;--mS:#12955a;--mX:#06401f;--mH:rgba(60,230,140,.5);--mImg:url('./assets/monnaie/sym-emeraude.png')}
-html[data-metal="diamant"]{--mL:#ffffff;--mM:#8fe3ff;--mS:#7a7cff;--mX:#2a1f7a;--mH:rgba(140,220,255,.7);--mImg:url('./assets/monnaie/sym-diamant.png')}
+html[data-metal="rubis"]{--mL:#ffd0d6;--mM:#ff3b4e;--mS:#b0102a;--mX:#4a0010;--mH:rgba(255,60,80,.5);--mImg:url('./assets/monnaie/sym-rubis.png')}
+html[data-metal="legendaire"]{--mL:#ffffff;--mM:#ff7ad5;--mS:#7a7cff;--mX:#2a1050;--mH:rgba(255,140,230,.6);--mImg:url('./assets/monnaie/sym-legendaire.png')}
 html[data-metal]{--cash:var(--mM)}
 /* les compteurs d'argent : le métal en relief */
 html #cashHud .chV span,html #moneyTxt,html #gCompteur b,html #gBqArg,html #mBankV,html #mCash{
   background:linear-gradient(180deg,var(--mL) 0 22%,var(--mM) 22% 58%,var(--mS) 58% 100%)!important;
   -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;
   filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 0 8px var(--mH))!important}
-html[data-metal="diamant"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){
-  background:linear-gradient(100deg,#fff 0 10%,#9ff0ff 10% 30%,#ffd1ff 30% 45%,#fff 45% 52%,#a6b8ff 52% 72%,#9ff0ff 72% 90%,#fff 90%) 0 0/200% 100%!important;
+html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){
+  background:linear-gradient(100deg,#ff5a5a 0 14%,#ffb03a 14% 28%,#fff35a 28% 42%,#5aff8a 42% 56%,#5ad8ff 56% 70%,#8a6bff 70% 84%,#ff6be0 84%) 0 0/200% 100%!important;
   -webkit-background-clip:text!important;background-clip:text!important;animation:mDiam 2.4s linear infinite}
 @keyframes mDiam{to{background-position:-200% 0}}
 html #moneyTxt .cts{-webkit-text-fill-color:var(--mL);color:var(--mL)}
@@ -36,13 +37,13 @@ html #moneyTxt .cts{-webkit-text-fill-color:var(--mL);color:var(--mL)}
 html .gT em.eur,html #gBqPan .bqK .bqKp.eur,html #bqAile .baP.eur,html #gStrip.fnBande .fnP.eur,
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP.eur{color:var(--vraiEur)!important;text-shadow:0 1px 0 rgba(7,5,15,.95),0 0 8px rgba(255,95,210,.45)}
 html #gBqPan .trK .trTx .bqKp.eur{background:var(--vraiEur)!important;color:#fff!important}
-@media (prefers-reduced-motion:reduce){html[data-metal="diamant"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){animation:none}}
+@media (prefers-reduced-motion:reduce){html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){animation:none}}
 /* LE COMPTE DU GARAGE (2026-11-07, Léo : « enlève le rectangle derrière, de bons gros chiffres 3D posés dans l'air qui évoluent avec la
    richesse, un peu plus grand, pas trop ») : plus de plaque, les chiffres flottent ; corps extrudé plus profond, ombre portée au loin. */
 html #gCompteur{background:none!important;box-shadow:none!important;clip-path:none!important;height:auto!important;padding:0 6px!important;overflow:visible!important}
 html #gCompteur b{font-size:calc(var(--f4) * 1.7);letter-spacing:2px;transform:none!important;padding:2px 0 8px;animation:mFlotte 3.6s ease-in-out infinite;
   filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 0 10px var(--mH)) drop-shadow(0 12px 8px rgba(0,0,0,.35))!important}
-html[data-metal="diamant"] #gCompteur b{animation:mDiam 2.4s linear infinite,mFlotte 3.6s ease-in-out infinite}
+html[data-metal="legendaire"] #gCompteur b{animation:mDiam 2.4s linear infinite,mFlotte 3.6s ease-in-out infinite}
 @keyframes mFlotte{50%{translate:0 -3px}}
 @media (prefers-reduced-motion:reduce){html #gCompteur b{animation:none}}
 /* L'ÉCRAN DE MORT ET LE COMPTEUR DE COURSE : le même relief, plus profond — l'argent est le héros de ces deux écrans */
@@ -55,8 +56,8 @@ html body.touch.play #cashHud .chV span{filter:drop-shadow(0 2px 0 var(--mX)) dr
 html body #mob #mDead.m5 .mCashL>b#mCash{text-shadow:none!important;color:transparent!important;background:none!important}
 html body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html body #mob #mDead.m5 .mCashL>b#mCash>.m6X,html body #mob #mDead.m5 .mCashL>b#mCash::before{
   background:linear-gradient(180deg,var(--mL) 0 22%,var(--mM) 22% 58%,var(--mS) 58% 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
-html[data-metal="diamant"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="diamant"] body #mob #mDead.m5 .mCashL>b#mCash>.m6X,html[data-metal="diamant"] body #mob #mDead.m5 .mCashL>b#mCash::before{
-  background:linear-gradient(100deg,#fff 0 10%,#9ff0ff 10% 30%,#ffd1ff 30% 45%,#fff 45% 52%,#a6b8ff 52% 72%,#9ff0ff 72% 90%,#fff 90%) 0 0/200% 100%;-webkit-background-clip:text;background-clip:text;animation:mDiam 2.4s linear infinite}
+html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6X,html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash::before{
+  background:linear-gradient(100deg,#ff5a5a 0 14%,#ffb03a 14% 28%,#fff35a 28% 42%,#5aff8a 42% 56%,#5ad8ff 56% 70%,#8a6bff 70% 84%,#ff6be0 84%) 0 0/200% 100%;-webkit-background-clip:text;background-clip:text;animation:mDiam 2.4s linear infinite}
 /* la BOUTIQUE est claire et son compte est petit (11 px) : l'encre et le relief le noircissaient (Léo : « bizarrement entouré de noir »).
    Ici : le métal seul, un filet d'ombre de sa couleur et une lueur douce. */
 html #gBqArg{filter:drop-shadow(0 1px 0 var(--mX)) drop-shadow(0 0 3px var(--mH))!important}
