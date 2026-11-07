@@ -373,6 +373,30 @@ function chargeEtape(nom,fn){ if(CHARGEMENT.fini){fn();return;} CHARGEMENT.E.pus
 function chargementPas(){ const e=CHARGEMENT.E.shift();if(!e){CHARGEMENT.fini=true;return;}
   const t9=performance.now();try{e[1]();}catch(x){console.warn('chargement · '+e[0],x);try{window.__ccNote('panne','chargement '+e[0]+' · '+(x&&x.message||x),x&&x.stack&&String(x.stack).split('\n')[1]);}catch(_){}}
   CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);try{if(window.__ccSondeTache)window.__ccSondeTache(e[0],t9,performance.now()-t9);}catch(_){} /* (2026-11-06) la SONDE du serpent (debut-corps.html) apprend quelle étape recouvre un trou */if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
+/* (2026-11-07, OPTI ULTIME) UNE ÉTAPE EN TRANCHES : `mk` rend un générateur (newTrackG) ; sur téléphone, chaque image du chargement en mène `ms` millisecondes (PISTE_TRANCHE : la route rend la main entre deux tranches)
+   puis rend l'image — la boule du film d'intro, la seule chose qui bouge sous le serpent, ne voit plus un bloc de 650 ms. Même code, mêmes tirages, même ordre qu'un trait. Ordinateur, `?chargement=0`, `?tranches=0` : d'un trait. */
+function chargeTranches(nom,mk,ms){
+  chargeEtape(nom,function(){
+    const g=mk();
+    if(CHARGEMENT.fini||!CHARGEMENT.on||!(ALLEGE||TEL_NATIF)||/[?&]tranches=0\b/.test(location.search)){while(!g.next().done);return;}
+    const suite=function(){let r;PISTE_TRANCHE=ms;try{const t0=performance.now();do{r=g.next();}while(!r.done&&performance.now()-t0<ms);}finally{PISTE_TRANCHE=Infinity;}
+      if(!r.done)CHARGEMENT.E.unshift([nom,suite]);};
+    suite();
+  });
+}
+/* (2026-11-07, OPTI ULTIME : « 10 envois de textures (texImage2D) dans une même image ») LES TEXTURES DU MENU MONTENT UNE À UNE : sous le serpent, une par pas de tranche (chargeTranches), au lieu de toutes d'un coup
+   au 1er dessin (la chauffe, la 1re image). Seulement celles des objets VISIBLES de la scène (la chauffe, elle, montrera aussi le caché : rien de plus au GPU que ce qu'elle monterait) ; une texture dont l'image
+   n'est pas prête (ni image chargée, ni canevas, ni octets) est laissée au 1er dessin. `?textures=0` = avant. */
+function* chargeTexturesG(){
+  if(/[?&]textures=0\b/.test(location.search))return;
+  const vus=new Set(),L=[];
+  const prete=function(t){const im=t&&t.image;return !!im&&!t.isCubeTexture&&!t.isDepthTexture&&!t.isVideoTexture&&!t.isCompressedTexture&&im.complete!==false&&!!(im.data||im.nodeName||(typeof ImageBitmap!=='undefined'&&im instanceof ImageBitmap)||(typeof OffscreenCanvas!=='undefined'&&im instanceof OffscreenCanvas));};
+  const ajoute=function(t){if(t&&t.isTexture&&!vus.has(t)){vus.add(t);if(prete(t))L.push(t);}};
+  scene.traverseVisible(function(o){const m9=o.material;if(!m9)return;for(const m of (Array.isArray(m9)?m9:[m9])){for(const k in m){const v=m[k];if(v&&v.isTexture)ajoute(v);}
+    if(m.uniforms)for(const k in m.uniforms){const u=m.uniforms[k];if(u&&u.value&&u.value.isTexture)ajoute(u.value);}}});
+  yield;
+  for(const t of L){try{renderer.initTexture(t);}catch(e){}yield;}
+}
 function chargementTout(){ while(!CHARGEMENT.fini)chargementPas(); }
 function chargementTick(now){ if(CHARGEMENT.fini)return false;
   if(!CHARGEMENT.t0)CHARGEMENT.t0=now;if(now-CHARGEMENT.t0>15000){chargementTout();return false;}
