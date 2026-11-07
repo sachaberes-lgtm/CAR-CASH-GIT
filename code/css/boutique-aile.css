@@ -104,4 +104,22 @@ html[data-reduced-motion] :is(#bqAile .baK,#bqAile .baRg i){transition:none}
 #bqAile .baK .bqBrisSur{position:absolute;z-index:5;pointer-events:none;border-radius:inherit}
 @media (prefers-reduced-motion:reduce){#bqAile .baK.mil:not(.a)::after{animation:none}}
 html[data-reduced-motion] #bqAile .baK.mil:not(.a)::after{animation:none}
+/* ===== LA BOÎTE QUI DÉFILE (2026-11-07, Léo : « un effet de cube rectangle qui défile ; à cause du plat, des ailes ne se voient pas bien, comme les blanches ») =====
+   · L'INTÉRIEUR de la boîte (.baPh) : le fond n'est plus blanc — une paroi du fond teintée de la rareté, sombre, éclairée au centre, un plancher
+     et deux parois en tranche : une aile blanche, argent ou pâle s'y détache.
+   · LA BOÎTE 3D : chaque carte tourne en perspective selon sa distance au milieu de la molette (--o, de -1 à 1, posé à chaque image par
+     aileVitrineMaj) et montre sa TRANCHE du côté où elle tourne (une ombre pleine décalée, de la couleur de la rareté assombrie) : une boîte
+     rectangulaire qu'on fait défiler ; celle du milieu est de face. Couché, la molette défile de haut en bas : la boîte bascule en hauteur. */
+#gBq #bqAile .baPh{position:relative;background:radial-gradient(ellipse 62% 70% at 50% 46%,color-mix(in srgb,var(--rc) 30%,#5d6884) 0,rgba(0,0,0,0) 70%),
+    linear-gradient(180deg,color-mix(in srgb,var(--rc) 26%,#3a4358) 0,color-mix(in srgb,var(--rc) 18%,#222837) 100%);
+  box-shadow:inset 0 -9px 0 -1px color-mix(in srgb,var(--rc) 22%,#1a1f2a),inset 9px 0 0 -2px rgba(255,255,255,.07),inset -9px 0 0 -2px rgba(0,0,0,.22),inset 0 9px 0 -2px rgba(0,0,0,.18)}
+#gBq #bqAile .baPh img{filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))}
+#gBq #bqAile .baPh:empty::before{background:rgba(255,255,255,.35)}
+#gBq #bqAile .baK{transform:perspective(560px) rotateY(calc(var(--o,0) * -30deg)) scale(calc(1 - var(--oa,0) * .08));
+  box-shadow:calc(var(--o,0) * -7px) 3px 0 0 color-mix(in srgb,var(--rc) 45%,#262c38),0 8px 16px rgba(20,28,40,.16);will-change:transform}
+#gBq #bqAile .baK.sel{box-shadow:0 0 0 2px var(--bqInk),calc(var(--o,0) * -7px) 3px 0 0 color-mix(in srgb,var(--rc) 45%,#262c38),0 10px 22px rgba(20,28,40,.2)}
+#gBq #gBqPan.cote #bqAile .baK{transform:perspective(560px) rotateX(calc(var(--o,0) * 30deg)) scale(calc(1 - var(--oa,0) * .08));
+  box-shadow:3px calc(var(--o,0) * -7px) 0 0 color-mix(in srgb,var(--rc) 45%,#262c38),0 8px 16px rgba(20,28,40,.16)}
+#gBq #gBqPan.cote #bqAile .baK.sel{box-shadow:0 0 0 2px var(--bqInk),3px calc(var(--o,0) * -7px) 0 0 color-mix(in srgb,var(--rc) 45%,#262c38),0 10px 22px rgba(20,28,40,.2)}
+#gBq #bqAile .baK:active{scale:.95}
 </style>
