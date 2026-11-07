@@ -17832,7 +17832,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   if(LVISE){const r9=L/LVISE;if(r9>1.3)note+=(r9-1.3)*12;else if(r9<.75)note+=(.75-r9)*12;}
   let fr9=null;if(typeof rythmeMesure==='function'){const c9=C.map(function(c,k){return new THREE.Vector3(c[0],yS9(SC[k]),c[1]);});fr9=rythmeMesure(c9,{vP:v9,rP:63*kR0,marks:MM});note+=rythmeNote(fr9,rythmeCible('foret'))*.4;} /* (2026-11-05, LE DIRECTEUR DE RYTHME) la note de rythme (route-rythme.js) pèse dans le choix de l'essai : virages/km, droites, spirales hors pelote */ // (2026-10-19, LA FORÊT AU HASARD) près de la longueur visée
   if(LVISE)for(const k of ['arche','archeB']){const q=Q[k];if(!q)continue; // (2026-10-19) LA PLACE DE L'ARCHE : aucune autre route à moins de 200 m (foretArche renonce à une arche dont le tronc croise un autre étage — au hasard, ça arrivait une fois sur deux)
-    for(let i=0;i<nD;i+=2){if(Math.abs(D[3*i+2]-q.s)<330)continue;if(Math.hypot(D[3*i]-q.x,D[3*i+1]-q.z)<200){note+=3;break;}}}
+    for(let i=0;i<nD;i+=2){if(Math.abs(D[3*i+2]-q.s)<290)continue;if(Math.hypot(D[3*i]-q.x,D[3*i+1]-q.z)<260){note+=10;break;}}} /* (2026-11-07, Sacha : « génération aléatoire parfaite ») 200 → 260 m, +3 → +10, la route de l'arche exemptée à ± 290 m (et non 330) : MESURÉ (banc des maps, dbgForetAudit, 10 graines), l'arche manquait 2 fois sur 10 — une route passait dans son tronc (il porte à ~170 m de part et d'autre, ses pieds plus loin), parfois le virage d'approche de SA route entre 300 et 330 m, que foretArche (qui n'exempte que ± 300 m) refuse ; +3 ne pesait pas assez pour écarter l'essai */
   // ---- LES POINTS DE CONTRÔLE ----
   const yS=yS9;
   if(AXE){const c9=Math.cos(AXE),s9=Math.sin(AXE),ro=p=>{const x9=p[0]*c9+p[1]*s9;p[1]=p[1]*c9-p[0]*s9;p[0]=x9;}; // (2026-10-19, LA FORÊT AU HASARD) le plan dessiné face à +z TOURNE EN BLOC autour du départ
@@ -19253,7 +19253,7 @@ window.dbgForetAudit=function(o){o=o||{};if(!FORET.root||!FORET.sol)return null;
   /* 4. le sol sous la route, 5. la signature */
   {let m=1e9,ou=0;for(let i=0;i<NP;i+=4){const p=pts[i],d=p.y-solH(p.x,p.z);if(d<m){m=d;ou=i;}}R.sol={marge:Math.round(m),s:Math.round(ou*ds)};}
   {let h=2166136261>>>0;const mix=x=>{h=Math.imul(h^(Math.round(x*10)|0),16777619)>>>0;};mix(L);for(const F of FORET.fam){mix(F.lot.n);for(let k=0;k<F.lot.n;k+=7){mix(F.lot.M[k*16+12]);mix(F.lot.M[k*16+13]);mix(F.lot.M[k*16+14]);}}
-   for(let i=0;i<NP;i+=97){mix(pts[i].x);mix(pts[i].y);mix(pts[i].z);}R.sig=h.toString(16);R.archeRefus=FORET.archeRefus;R.archeDessin=FORET.archeDessin;R.n=Object.assign({arches:FORET.arche.length+'/'+['arche','archeB'].filter(k=>FORET.Q&&FORET.Q[k]).length},FORET.n);R.deco=FORET.deco;}
+   for(let i=0;i<NP;i+=97){mix(pts[i].x);mix(pts[i].y);mix(pts[i].z);}R.sig=h.toString(16);R.archeRefus=FORET.archeRefus;R.archeS=['arche','archeB'].filter(k=>FORET.Q&&FORET.Q[k]).map(k=>Math.round(FORET.Q[k].s));R.pel=FORET.pel&&{note:FORET.pel.note,essais:FORET.pel.essais,croise:FORET.pel.croise};{let pm=0,ps=0;for(let i=4;i<NP;i+=2){const g9=Math.abs(pts[i].y-pts[i-4].y)/Math.max(.1,pts[i].distanceTo(pts[i-4]));if(g9>pm){pm=g9;ps=i*L/(NP-1);}}R.penteMax4={p:+pm.toFixed(3),s:Math.round(ps)};}R.archeDessin=FORET.archeDessin;R.n=Object.assign({arches:FORET.arche.length+'/'+['arche','archeB'].filter(k=>FORET.Q&&FORET.Q[k]).length},FORET.n);R.deco=FORET.deco;}
   return R;};
 function PAL_B9(k,d){try{return (typeof PAL!=='undefined'&&PAL&&typeof PAL.b==='function')?PAL.b(k,d):d;}catch(e){return d;}} // les paliers d'optimisation (PAL), s'ils existent
 
