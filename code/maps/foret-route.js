@@ -156,9 +156,10 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   let x=0,z=0,phi=0,s=0,cib=null;const C=[[0,0]],SC=[0],D=[0,0,0],ZO=[],Q={},BO=[],NO=[];
   const pas=(nx,nz)=>{const dh=Math.hypot(nx-x,nz-z),n=Math.max(1,Math.ceil(dh/10));for(let j=1;j<=n;j++)D.push(x+(nx-x)*j/n,z+(nz-z)*j/n,s+dh*j/n);s+=dh;x=nx;z=nz;C.push([x,z]);SC.push(s);};
   const droite=l=>{const n=GEN_V2?Math.max(1,Math.min(Math.round(l/30),Math.floor(l/25))):Math.max(1,Math.round(l/30));cC=0;for(let k=0;k<n;k++)pas(x+Math.sin(phi)*l/n,z+Math.cos(phi)*l/n);};
+  const F_MINA=32; /* (2026-11-07) le lobe MESURÉ d'un arc de 28° ne fait que 21-25° (le lissage mange l'entrée et la sortie) et la fiche le comptait en douille : on dessine à 32° au moins */
   let cC=0;/* (LA RÈGLE v2) cC : signe du dernier arc tant qu'aucune droite ne l'a coupé (un petit arc collé à un grand arc du même côté n'est pas une douille) */
   const arc=(aDeg,R,R2,ond)=>{if(R2==null)R2=R;
-    if(GEN_V2){if(Math.abs(aDeg)<BRIQUE.angMin&&Math.max(R,R2)<BRIQUE.balayageRP*rM&&!(cC&&cC===Math.sign(aDeg)))aDeg=Math.sign(aDeg||1)*(BRIQUE.angMin+2);cC=Math.sign(aDeg);} /* jamais d'arc sous 26° à moins de 6,5 rM : ni douille ni entre-deux */
+    if(GEN_V2){if(Math.abs(aDeg)<F_MINA&&Math.max(R,R2)<BRIQUE.balayageRP*rM&&!(cC&&cC===Math.sign(aDeg)))aDeg=Math.sign(aDeg||1)*F_MINA;cC=Math.sign(aDeg);} /* jamais d'arc sous 26° à moins de 6,5 rM : ni douille ni entre-deux */
     const n=Math.max(3,Math.ceil(Math.abs(aDeg)/7)),st=aDeg*Math.PI/180/n,o9=rnd()*6.283;
     for(let k=0;k<n;k++){let r=R+(R2-R)*(k+.5)/n;if(ond)r=Math.max(rM*(FORET_LARGE?1.4:1.18),r*(1+ond*Math.sin((k+.5)/n*9.4+o9)));const ch=2*r*Math.sin(Math.abs(st)/2);phi+=st/2;const nx=x+Math.sin(phi)*ch,nz=z+Math.cos(phi)*ch;phi+=st/2;pas(nx,nz);}};
   const wrap=a=>{while(a>Math.PI)a-=6.2832;while(a<-Math.PI)a+=6.2832;return a;};
@@ -208,7 +209,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   const vers=(c,ra)=>{cib=c;for(let k=0;k<12&&dist()>ra;k++){const r9=rel(),d=dist();
     if(Math.abs(r9)>(GEN_V2?.46:.35)){const R=FORET_LARGE?Math.max(rM*1.5,Math.min(rM*2.7,d*.29)):Math.max(rM*1.25,Math.min(rM*2.3,d*.26));arc((r9>0?1:-1)*Math.abs(r9)*57.3*(.85+rnd()*.2),R,R*(.85+rnd()*.3),.1);}
     else if(rf9&&s>fmNext&&(zg<-.02&&d>620*kR||MM.length<mNeed&&s>LMOD&&d>300*kR))fMod(); // (2026-10-18) LES MODULES DE LA FORÊT NOIRE (voir fSlalom) — dans une zone qui descend : la forêt garde sa pente
-    else{const a=GEN_V2?30+rnd()*26:FORET_LARGE?20+rnd()*26:22+rnd()*26,R=rM*(FORET_LARGE?1.55+rnd()*1.3:1.25+rnd()*1.2),sg=rnd()<.5?-1:1;arc(sg*a,R,null,.1);arc(-sg*(GEN_V2?Math.max(BRIQUE.angMin+2,a*(.8+rnd()*.5)):a*(.8+rnd()*.5)),R*(.9+rnd()*.3),null,.1);if(rnd()<.3)droite((40+rnd()*60)*kV);}}};
+    else{const a=GEN_V2?F_MINA+rnd()*24:FORET_LARGE?20+rnd()*26:22+rnd()*26,R=rM*(FORET_LARGE?1.55+rnd()*1.3:1.25+rnd()*1.2),sg=rnd()<.5?-1:1;arc(sg*a,R,null,.1);arc(-sg*(GEN_V2?Math.max(F_MINA,a*(.8+rnd()*.5)):a*(.8+rnd()*.5)),R*(.9+rnd()*.3),null,.1);if(rnd()<.3)droite((40+rnd()*60)*kV);}}};
   // LA BOUCLE : un tour complet (la sortie au-dessus ou en dessous de l'entrée) — le FILET (360°, le rayon qui s'ouvre : la sortie court
   // à côté de l'entrée, ~70 m à l'extérieur) ou le NOEUD (300-330° ou 390-430° : la sortie recoupe l'entrée en biais)
   const boucle=()=>{const r9=rel(),sg=Math.abs(r9)>.3?(r9>0?1:-1):(rnd()<.5?-1:1),R=rM*((FORET_LARGE?1.6:1.45)+rnd()*.5);
@@ -245,7 +246,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   let fDette=0;const sgD=sg=>GEN_V2&&fDette?(fDette<0?-1:1):sg,aD=a=>{if(!GEN_V2||!fDette)return a;const r=briqueDette(a,fDette);fDette=0;return r;}; /* (LA RÈGLE v2) la DETTE de cap : sous 26° on ne dessine pas de recadrage, la prochaine pièce tourne un peu plus de ce côté */
   const recadre=()=>{cap();
     if(GEN_V2){for(let k=0;k<3;k++){const r9=briqueRecadre(rel()*57.3,0);fDette=r9.dette;if(!r9.dessine)break;fDette=0;
-      arc(Math.sign(r9.dessine)*Math.min(110,Math.max(BRIQUE.angMin+2,Math.abs(r9.dessine)*(.75+rnd()*.25))),rM*(1.9+rnd()*1.3),null,.06);}return;}
+      arc(Math.sign(r9.dessine)*Math.min(110,Math.max(F_MINA,Math.abs(r9.dessine)*(.75+rnd()*.25))),rM*(1.9+rnd()*1.3),null,.06);}return;}
     for(let k=0;k<3&&Math.abs(rel())>.5;k++){const r9=rel();arc((r9>0?1:-1)*Math.min(110,Math.abs(r9)*57.3*(.75+rnd()*.25)),rM*(1.9+rnd()*1.3),null,.06);}};
   const sf=.5+.5*forVasteT(kR0); /* (le palier) les tout-droits des pièces : la moitié au palier 0, entiers aux hauts paliers */
   const PV={
