@@ -196,7 +196,7 @@ function hudColMesure(){ // la mesure d'avant, à l'identique
   if(!(TCTL.on&&running&&!paused&&!gameOver))return; // (le rappel tombe en fin d'image : la partie a pu s'arrêter entre-temps)
   if(!HUDCOL.els)HUDCOL.els=['cashHud','triade','airHud','pwrChip','campChip'].map(function(i){return document.getElementById(i);});
   const pay=VP.w>VP.h,g=document.getElementById('tGear'),P=HUDCOL.p; // VP et non innerWidth : lire innerWidth force une mise en page (voir VP)
-  let y=g?zRect(g).bottom+10:66;P.length=0;
+  let y=g?zRect(g).bottom+22:78;P.length=0;
   if(document.body.classList.contains('coOn')){const co=document.getElementById('coach');if(co){const rc=co.getBoundingClientRect();if(rc.height>0)y=Math.max(y,rc.bottom+8);}} // (2026-10-14, vérif P1, mesuré au banc) pendant l'AUTO-ÉCOLE la colonne commence SOUS la carte du coach : la plaque de pouvoir se posait dessous (y 113 pour une carte 109-202 debout, 66 pour 62-108 couché)
   for(const e of HUDCOL.els){if(!e||(pay&&e.id==='triade'))continue;
     const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden')continue;
