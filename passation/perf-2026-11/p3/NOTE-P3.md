@@ -26,3 +26,9 @@ Pas fait / à voir :
 - ⚠ Au banc, `canyon décor` (164 k triangles) est encore DESSINÉ DANS LA GROTTE (carte enchaînée canyon → forêt → grotte par portails dbgClassique) : fuite de décor d'une map à la suivante ? à vérifier dans le jeu (cyLiberer / cyEteindre n'est appelé que par cyBatitG).
 - Pièces 1 €/2 € : InstancedMesh dont 25-75 % des instances sont hors champ (12-36 k triangles dessinés) ; plaques turbo (8 plans) et fruits de la file : meshes individuels ajoutés au vol (ligne-parfaite.js:173, deux faces chacun) = ~8-14 appels : instanciation dynamique possible, non faite.
 - Les 8 « plans gris » = les plaques turbo (PlaneGeometry 8×13, texture 128×256, `padGeo`/`PAD_MAT`, 2 faces par plaque), dans le champ : pas gratuits.
+
+## 3e tâche : LE NIVEAU DERRIÈRE LE JOUEUR — mesure (7/11, `vitesse-avant.json`, `vitesse-distance.json`, `p3-vitesse.py`)
+?tel=1 p2, voiture lancée (nitro) aux paliers moteur 4/10/13/16. Triangles de la scène : DERRIÈRE la caméra 4-12 %, au-delà du brouillard réel (nuages 5 600 m, canyon 6 500, forêt 2 700) ≈ 0,8 k. Répartition DANS le champ par distance (0-500 · 500-1 000 · 1-2 k · 2-3,5 k · 3,5 k+) :
+canyon p10 211k·33k·4k·0·0 · forêt p10 455k·51k·33k·5k·0 · nuages p10 230k·139k·102k·0·0.
+→ plus de 80 % des triangles sont à moins de 500 m de la caméra ; plus vite = MOINS de triangles par image (canyon 632k p4 → 408k p10), pas plus. Ni supprimer l'arrière (≤ 12 %) ni plafonner la distance (rien au-delà de 2 km) n'expliquent « saccadé à partir du palier 10 » : le coût à grande vitesse est du CPU (fenêtres d'instances, envois de tampons, pré-bâti, ramasse-miettes), pas du volume de dessin. Leviers (a)/(b) NON codés (gain ≤ 10 %).
+⚠ Nuages p16 : la caisse dépasse le contenu (vH 700-930) — lecture non représentative.
