@@ -137,7 +137,7 @@ html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKp{background:#ff3ec8;co
    poussé devant la plaque du nom, qu'il mord. Un espaceur (::before) donne sa hauteur à la carte. Les PEINTURES n'ont pas de cube (.pnt) : une sphère vernie. Préfixe à deux #id. */
 html #gBq #gBqPan .bqK:not(.pnt){isolation:auto;transform-style:preserve-3d;perspective:760px;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;margin:0;
   --W:64cqw;--H:46cqw;--D:34cqw;--ry:-26deg;--rx:-14deg;--rim:color-mix(in srgb,var(--rc) 62%,#fff)}
-html #gBq #gBqPan .bqK:not(.pnt)::before{display:block;content:"";position:static;transform:none;width:auto;height:auto;aspect-ratio:720/440;margin:0 0 -12px;background:none;box-shadow:none;border:0}
+html #gBq #gBqPan .bqK:not(.pnt)::before{display:block;content:"";position:static;transform:none;width:auto;height:auto;aspect-ratio:720/440;margin:0 0 2px;background:none;box-shadow:none;border:0}
 html #gBq #gBqPan .bqK:not(.pnt)::after{display:none}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv{display:block;position:absolute;left:50%;top:calc(var(--H)/2 + 7cqw);width:0;height:0;transform-style:preserve-3d;pointer-events:none;
   transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform .3s} /* (pas de translateZ sur le cube : le navigateur le fait disparaître ; c'est la plaque qui recule) */
@@ -159,9 +159,10 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph::before,html #gBq #gBqPan .bqK:not
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph img{position:static;width:100%;height:100%;max-width:100%;object-fit:contain;object-position:50% 100%;transform:none;filter:none}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph.c-aile img{transform:none}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph:is(.c-trainee,.c-figure){align-items:stretch}
-/* la plaque du nom, au fond ; le prix devant (2026-11-06, Léo : « les noms sont très gros et dépassent le cube » : 50 → 34 px de haut, plus d'agrandissement à 107 %) */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKn{position:relative;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:34px;margin:0 6px 7px;padding:12px 6px 0;
-  text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:12px;transform:translateZ(-50px);
+/* (2026-11-07, Léo : « le nom doit se trouver EN DESSOUS du cube 3D et ne pas cacher la voiture ») la plaque est maintenant SOUS le cube : l'espace du cube ne mord plus de 12 px dessus (+2 px d'air), plus de recul en 3D qui la faisait remonter, 28 px de haut (la marge basse est une bordure transparente, qui ne laisse pas voir un bout de 3e ligne). */
+/* la plaque du nom, sous le cube ; le prix devant (2026-11-06, Léo : « les noms sont très gros et dépassent le cube » : 50 → 34 px de haut, plus d'agrandissement à 107 %) */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKn{position:relative;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:28px;margin:0 6px 7px;padding:3px 6px 0;border-bottom:3px solid transparent;
+  text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:0;transform:none;
   background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 40%,#2b3246),color-mix(in srgb,var(--rc) 14%,#0f121b));box-shadow:inset 0 1px 0 rgba(255,255,255,.3);text-shadow:0 0 6px var(--rc),0 1px 0 rgba(0,0,0,.55)}
 html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKn{background:linear-gradient(#5a3a00,#24160a);color:#ffe9a8;text-shadow:0 1px 0 #000}
 html #gBq #gBqPan .bqK.b-secrete:not(.pnt) .bqKn{background:linear-gradient(#3a3a48,#16161d);color:var(--rc)}
