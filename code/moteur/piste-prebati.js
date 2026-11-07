@@ -19,7 +19,12 @@
    lueur additive, ligne) : 9 à 15 tranches visibles = 45 à 75 appels pour la seule route, sur 160-220. MESURÉ (banc processeur ×4, mêmes pistes
    `pistegraine=777`, 4 relevés par map) : rendu de la scène crypto 14,5 → 10,4 ms, forêt 20,2 → 9,8, nuages 16,3 → 10,8, jade 12,8 → 9,9, ville 8,3 → 7,7 ;
    la boucle forêt 66 → 39 ms, nuages 71 → 49. L'image ne change pas (le découpage ne sert qu'au tri par le champ de vision). `?tranche=600` = avant. */
-const PISTE_CH=Math.max(100,+((/[?&]tranche=(\d+)/.exec(location.search)||[])[1])||1200),PISTE_PAS=1,PISTE_LOD=[]; // `?tranche=n` : la taille des tranches (banc)
+/* (2026-11-05, passe perf mobile 2, C3 : budgets de rendu par palier) `?c3=0` = tout comme avant. Trois leviers, tous INVISIBLES à l'image ou presque, jamais au palier 2 :
+   (1) `pisteCh` : des tranches plus COURTES au téléphone ancien/moyen (le tri proche/moyen/loin se fait par tranche : une tranche de 1 200 points entière dès que son bout le plus
+   proche est à moins de 400 m traînait des centaines de mètres de bitume en pleine finesse) ; (2) `railMoy` : les rails et nappes néon prennent aussi la tranche moyenne
+   (une rangée sur 4 au-delà de 400 m) ; (3) `pieceArr` (boucle-4) : les pièces derrière la caisse. */
+const C3_ON=!/[?&]c3=0\b/.test(location.search);try{Object.assign(PAL.B,{pisteCh:[720,900,1200],railMoy:[1,1,0],pieceArr:[150,240,1e9]});}catch(e){}
+const PISTE_CH=Math.max(100,+((/[?&]tranche=(\d+)/.exec(location.search)||[])[1])||(C3_ON?PAL.b('pisteCh',1200):1200)),PISTE_PAS=1,PISTE_LOD=[]; // `?tranche=n` : la taille des tranches (banc)
 const TEINTE9={c:null,n:0}; // (chasse aux gels) la teinte du bitume par (point, colonne) — ne dépend pas de la piste : voir buildTrack
 function sphere9(g){ // (2026-09-28, chasse aux gels) computeBoundingSphere de three r128 recopié sur le tableau brut (même boîte, même centre
   // (min+max)×0,5, même plus grand carré de distance par Math.max, même racine) : mêmes flottants, sans Vector3 ni getX par sommet
@@ -54,7 +59,7 @@ function pisteMaigre(att,c,lz,pas9){ // la tranche lointaine : mêmes attributs,
    en MOYENNE : les mêmes 11 colonnes, une rangée sur PISTE_MOY (4 m), les bords de trou gardés — 4 fois moins de triangles de bitume. À 400 m un pas de
    4 m fait moins d'un vingtième de pixel en profondeur, la flèche d'un virage serré (R 110 m) 2 cm : l'image ne bouge pas. Sur l'ordinateur : rien ne
    change (règle d'or). `?pistemoy=0` = avant ; `dbgPiste()` compte les tranches moyennes. */
-const PISTE_MOY=(TEL_NATIF&&!/[?&]pistemoy=0\b/.test(location.search))?4:0,PISTE_MOY_D=400;
+const PISTE_MOY=(ALLEGE&&!/[?&]pistemoy=0\b/.test(location.search))?4:0, /* (2026-11-05, jury RND-28 : ALLEGE et non TEL_NATIF — le téléphone en navigateur aussi) */ PISTE_MOY_D=400;
 function pisteLoin(cam){ // chaque tranche : entière de près, moyenne au-delà de PISTE_MOY_D (téléphone), maigre (ou absente) quand elle est TOUTE au-delà du brouillard
   if(!PISTE_LOD.length)return;
   if(PISTE_TEMOIN||PISTE_SANSLOIN){for(const E of PISTE_LOD){E.loin=false;E.et=0;E.hi.visible=true;if(E.lo)E.lo.visible=false;if(E.mo)E.mo.visible=false;}return;}
@@ -93,6 +98,26 @@ function dbgGenBilan1(n,graine0,detail){ /* la génération SEULE (sans décor n
     const P=[];for(let d=0;d<=N;d++)P.push(cv.getPointAt(d/N));{const b9=pisteBilan1(P,Lm);if(detail){b9.graine=seed;b9.plan=(pi==='banquise'&&BANQ.plan)?BANQ.plan.join(','):'';b9.marks=MODMARK.map(m=>(m.fig||'m')+'@'+Math.round(m.i0/Math.max(1,ctrl.length)*Lm/10)*10).join(',');}rs.push(b9);}}
   if(detail)return rs;
   const m={};for(const key of Object.keys(rs[0])){if(key==='runs'||key==='plan'||key==='graine')continue;m[key]=+(rs.reduce((a,x)=>a+x[key],0)/rs.length).toFixed(1);}m.n=rs.length;m.pire=Math.max.apply(null,rs.map(x=>x.plusLongueDroite));return m;};
+/* (2026-11-05, LE DIRECTEUR DE RYTHME) dbgGenRoute(carte, graine, palier) : la génération SEULE d'une map, au palier voulu, comme pisteRoute la ferait — rend le dessin À PLAT
+   (ctrl0), la route finale (ctrl, roulée par pisteTord quand la map se roule) et ses normales, les marques des modules, la fiche de rythme (rythmeMesure) et sa note.
+   ⚠ BANC SEULEMENT : les générateurs écrivent leurs repères (FORET.Q, CY.Q, DN.Q…) — ne pas s'en servir pendant une course ni avec une piste bâtie d'avance à garder. */
+window.dbgGenRoute=function(carte,graine,palier,o){o=o||{};const TAB={nuages:()=>NIVEAUX[0],orage:()=>NIVEAUX[3],ville:()=>NIVEAUX[1],minuit:()=>NIVEAUX[4],espace:()=>NIVEAUX[2],jade:()=>NIV_JADE,foret:()=>NIV_FORET,banquise:()=>NIV_BANQ,canyon:()=>NIV_CANYON,dunes:()=>NIV_DUNES,grotte:()=>NIV_GROTTE,crypto:()=>NIV_CRYPTO,vitree:()=>NIV_VITRE};
+  const cur0=LVL.cur,eT0=engTier,pret0=SF.pret,rh0=ROAD_HALF,mm0=MODMARK.slice(),fm0=FILETMARK.slice(),tm0=TROUMARK.slice();let out=null;
+  try{if(TAB[carte])LVL.cur=Object.assign({},TAB[carte](),{carte:carte,sansFin:1});engTier=palier|0;SF.pret=true;
+    const seed=(graine|0)||12345,rnd=mulberry32(seed),c=LVL.cur,pi=c&&c.piste,run=it=>{let r=it.next();while(!r.done)r=it.next();return r.value;},t0=performance.now();
+    MODMARK.length=0;FILETMARK.length=0;TROUMARK.length=0;
+    let ctrl=pi==='jade'?genJade(rnd):pi==='foret'?run(genForet(rnd)):pi==='canyon'?run(genCanyon(rnd)):pi==='dunes'?run(genDunes(rnd)):pi==='banquise'?genBanq(rnd):pi==='grotte'?run(genGrotte(rnd)):genCtrl(rnd,new THREE.Vector3(0,0,0),0);
+    const tGen=performance.now()-t0,ctrl0=ctrl.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),+p.z.toFixed(2)];}),marks0=MODMARK.map(function(m){return Object.assign({},m,{f:undefined});});
+    let N=null,info=null,roule=false;const GRT9=grtTordOn();
+    if(hautOn()||espTordOn()||GRT9){const h9=pisteTordPropre(ctrl,seed|0,GRT9?grtTordOpts():undefined);ctrl=h9.ctrl;N=h9.N;info=TORD.info;roule=true;}
+    else if(pi==='dunes'&&DN.bankN)N=DN.bankN;else if(pi==='canyon'&&CY.murN&&CY_MUR.on)N=CY.murN;else if(pi==='foret'&&FORET.bankN)N=FORET.bankN;else if(pi==='jade'&&JADE.bankN)N=JADE.bankN;
+    const vP=vPalier(),rP=rayonPalier(),cible=rythmeCible(carte),fiche=rythmeMesure(ctrl.length===ctrl0.length?ctrl:ctrl0.map(function(a){return new THREE.Vector3(a[0],a[1],a[2]);}),{vP:vP,rP:rP,marks:marks0,spirMax:cible.spirMax});
+    out={carte:carte,piste:pi||'ctrl',graine:seed,palier:palier|0,vP:+vP.toFixed(1),rP:+rP.toFixed(1),lv:+lvPiste().toFixed(2),half:ROAD_HALF,ms:+tGen.toFixed(1),roule:roule,info:info,
+      ctrl0:ctrl0,ctrl:ctrl.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),+p.z.toFixed(2)];}),N:N?N.map(function(v){return [+v.x.toFixed(3),+v.y.toFixed(3),+v.z.toFixed(3)];}):null,
+      marks:marks0,marks1:MODMARK.map(function(m){return {i0:m.i0,i1:m.i1,fig:m.fig||null};}),fiche:fiche,note:rythmeNote(fiche,cible),cible:cible,rythme:RYTHME.der};
+  }catch(e){out={erreur:String(e&&e.stack||e)};}
+  finally{LVL.cur=cur0;engTier=eT0;SF.pret=pret0;ROAD_HALF=rh0;MODMARK.length=0;for(const m of mm0)MODMARK.push(m);FILETMARK.length=0;for(const m of fm0)FILETMARK.push(m);TROUMARK.length=0;for(const m of tm0)TROUMARK.push(m);}
+  return out;};
 window.dbgPisteBilan=function(n){if(!n)return pisteBilan1();const r=[];for(let k=0;k<n;k++){newTrack();r.push(pisteBilan1());}
   const m={};for(const key of Object.keys(r[0])){m[key]=+(r.reduce((a,x)=>a+x[key],0)/r.length).toFixed(1);}m.n=n;m.pire=Math.max.apply(null,r.map(x=>x.plusLongueDroite));return m;};
 function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée), np (rangées par bloc), pas (points de piste par rangée)}
@@ -116,18 +141,18 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
       g.setAttribute(nm,new THREE.BufferAttribute(B9,sz));}
     g.setIndex(new THREE.BufferAttribute(w<li.length?li.subarray(0,w):li,1));
     sphere9(g);if(o.marge)g.boundingSphere.radius+=o.marge; // (chasse aux gels) sphere9 = computeBoundingSphere, au flottant près
-    const m=new THREE.Mesh(g,mat);if(o.ombre)m.receiveShadow=true;if(o.ordre)m.renderOrder=o.ordre;
+    const m=new THREE.Mesh(g,mat);if(o.nom)m.name=o.nom;if(o.ombre)m.receiveShadow=true;if(o.ordre)m.renderOrder=o.ordre;
     m.updateMatrix();m.matrixAutoUpdate=false; // sommets en coordonnées MONDE : la tranche ne bouge jamais
     trackMeshes.push(m); /* (LE PRÉ-BÂTI) elle entre dans la scène à l'installation (pisteInstalle) */
     if(o.loin===undefined)continue;
     yield;
-    let lo=null;const g2=o.loin?pisteMaigre(att,c,o.loin):null;
-    if(g2){lo=new THREE.Mesh(g2,mat);lo.receiveShadow=m.receiveShadow;lo.renderOrder=m.renderOrder;lo.visible=false;lo.userData.maigre=true;
+    let lo=null;const g2=o.loin?pisteMaigre(att,c,o.loin,o.loin.pas):null;
+    if(g2){lo=new THREE.Mesh(g2,mat);if(o.nom)lo.name=o.nom+' maigre';lo.receiveShadow=m.receiveShadow;lo.renderOrder=m.renderOrder;lo.visible=false;lo.userData.maigre=true;
       lo.updateMatrix();lo.matrixAutoUpdate=false;trackMeshes.push(lo);}
     let mo=null; // (LA TRANCHE MOYENNE, téléphone) toutes les colonnes, une rangée sur PISTE_MOY
     if(PISTE_MOY>1&&o.loin&&lay.pas===1){yield;const cols9=[];for(let j=0;j<lay.pr;j++)cols9.push(j);
       const g3=pisteMaigre(att,c,{blocs:lay.blocs,pr:lay.pr,cols:cols9,inv:lay.inv},PISTE_MOY);
-      if(g3){mo=new THREE.Mesh(g3,mat);mo.receiveShadow=m.receiveShadow;mo.renderOrder=m.renderOrder;mo.visible=false;mo.userData.moyenne=true;
+      if(g3){mo=new THREE.Mesh(g3,mat);if(o.nom)mo.name=o.nom+' moyen';mo.receiveShadow=m.receiveShadow;mo.renderOrder=m.renderOrder;mo.visible=false;mo.userData.moyenne=true;
         mo.updateMatrix();mo.matrixAutoUpdate=false;trackMeshes.push(mo);}}
     PISTE_LOD.push({hi:m,lo,mo,s:g.boundingSphere,loin:false,et:0});
   }
@@ -164,10 +189,10 @@ const PREB_V=new THREE.Vector3();
 const PREB_TAB=['trackMeshes','PISTE_LOD','NEON_RAILS','NEON_GLOW','PAD_MATS','MODMARK','FILETMARK','CAMPM','TROUMARK'];
 function prebTabDe(k){return k==='trackMeshes'?trackMeshes:k==='PISTE_LOD'?PISTE_LOD:k==='NEON_RAILS'?NEON_RAILS:k==='NEON_GLOW'?NEON_GLOW:k==='PAD_MATS'?PAD_MATS:k==='MODMARK'?MODMARK:k==='FILETMARK'?FILETMARK:k==='TROUMARK'?TROUMARK:CAMPM;}
 function prebChampsDe(piste){ // les champs de module qu'écrit la construction de la route : toutes les maps, plus ceux de la génération de CETTE map
-  const L9=[[TORD,['on','N','ctrl0','seed','info']],[JADE,['flank','ligne']],[LIGNE_PER,['v']]];
+  const L9=[[TORD,['on','N','ctrl0','seed','info','pente','murs']],[JADE,['flank','ligne']],[LIGNE_PER,['v']]];
   if(piste==='jade')L9.push([JADE,['Q','mk']]); /* (2026-10-20) mk : les modules de la vallée */
   else if(piste==='foret')L9.push([FORET,['Q','plg','boucles','noeuds','pel','plan','axe']]); // (2026-10-19) plan, axe : LA FORÊT AU HASARD
-  else if(piste==='canyon')L9.push([CY,['Q','rmin','sep','hz']]); // (+ hz : LE CANYON AU HASARD)
+  else if(piste==='canyon')L9.push([CY,['Q','rmin','sep','hz','murN','murI']]); // (+ hz : LE CANYON AU HASARD)
   else if(piste==='dunes')L9.push([DN,['Q','rmin','sep','hz','gp','fe']]); // (2026-10-18) LES DUNES D'OR (+ hz : LES DUNES AU HASARD · + fe : les vagues de LA ROUTE CONTINUE)
   else if(piste==='banquise')L9.push([BANQ,['Q','cas','spi','axe','plan','pres','essais']]); // (2026-10-19) axe, plan, pres, essais : LE GLACIER AU HASARD (l'axe tourne les aurores)
   else if(piste==='grotte')L9.push([GROTTE,['Q','salles','sTot','conflits','croise']]); // (2026-10-18) LES PROFONDEURS
@@ -270,7 +295,7 @@ function prebPart(c){ // on commence la piste d'en face
   if(PREB_PISTES.indexOf(W.piste)<0){PREB.non=c.t;return;}
   PREB.W=W;PREB.sd=(Math.random()*1e9)|0;PREB.t=c.t;PREB.z=c.z;PREB.eng=c.dep?c.eng:engTier;PREB.rh=W.ROAD_HALF;PREB.carte=c.t.carte+'-'+c.t.meteo;
   PREB.dep=!!c.dep;PREB.ctx=c.dep?c.st:null;
-  if(c.dep){const g9=+((/[?&]pistegraine=(\d+)/.exec(location.search)||[])[1])||0;if(g9)PREB.sd=g9;} // (banc) ?pistegraine=n : la 1re piste aussi (comme newTrack0)
+  {const g9=+((/[?&]pistegraine=(\d+)/.exec(location.search)||[])[1])||0;if(g9)PREB.sd=g9;} /* (banc) ?pistegraine=n : la 1re piste aussi (comme newTrack0) — (2026-11-05, passe perf mobile 2, T0) ET toutes les pistes d'avance des portails (avant : seule la 1re ; les suivantes tiraient un hasard, donc des compteurs non reproductibles). Sans le paramètre : inchangé. */
   PREB.fait=false;PREB.prend=false;PREB.t0=performance.now();PREB.tFin=0;PREB.cpu=0;PREB.img=0;PREB.jadeM=null;
   PREB.g=prebJob(PREB.sd,W);}
 function prebTravaille(lim){ // une tranche de travail, jusqu'à l'échéance lim (Infinity : jusqu'au bout)

@@ -89,6 +89,7 @@ function ccConstr(etape,ms){try{document.dispatchEvent(new CustomEvent('cc:const
 function newTrack(){
   const t0NT=performance.now();ccConstr('debut');try{newTrack0();}finally{ccConstr('fin',Math.round(performance.now()-t0NT));}}
 function newTrack0(){
+  PORTV.paye=0; // (audit p8) une piste neuve est bâtie : son portail paiera de nouveau
   const leger9=PREB.ntLeger;PREB.ntLeger=false; // (LE DÉPART D'AVANCE) la piste que resetGame rebâtit dans la même image : jamais dessinée, seul son ciel compte (voir sous9)
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) portail / nouvelle piste : la tension du vol repart de zéro
   PADCH.sL=0; /* (LE TRAIN DE BOOSTS) il traverse le portail — mais les pads de la nouvelle piste comptent dès son début */
@@ -120,7 +121,7 @@ function newTrack0(){
   else if(nightFalls)showMsg('LA NUIT TOMBE…','#9ac8ff'); // le déblocage s'annonce
   if(!leger9)computeMinimap();
   try{musicSuitLieu();}catch(e){} // LA MUSIQUE PAR MONDE : change si le lieu en réclame une autre
-  if(!leger9)spawnPickups(mulberry32(sd^0x9e3779b9));
+  if(!leger9){spawnPickups(mulberry32(sd^0x9e3779b9));try{foretSentiersPose();}catch(e){window.__forSentErr=e;}} /* (2026-11-05, LES SENTIERS DE LUCIOLES) les fils de la forêt : après les pièces */
   dmtCoupe();s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;loop._camDriveT=0; // (2026-09-28) la caméra repart de sa place sur la NOUVELLE piste (la coupe se cache sous le flash du portail)
   if(vA<20)vA=20;
   mode='drive';

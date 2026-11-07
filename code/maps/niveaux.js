@@ -72,13 +72,13 @@ for(const [f9,ks9] of [['banquise',['banqMatin','banqMidi','banqSoir','banqNuit'
 const SF_CARTES={
   nuages:{nm:'MER DE NUAGES',base:'nuages',m:{matin:{bio:'matin'},midi:{bio:'midi'},soir:{bio:'nuagesSoir'},nuit:{bio:'nuagesNuit',nuit:1},
     pluie:{bio:'nuagesPluie',pluie:.75,route:.18,sheen:.16},orage:{niv:'orage',orage:1}}},
-  ville:{nm:'CRYPTOVILLE',base:'ville',teintes:['violet','vert','jaune'],m:{orage:{bio:'villeOrage',pluie:1,orage:1,route:.5,sheen:.2,p:3.5}}}, // (2026-10-25, Léo, revue des maps : « vire la nuit simple, la pluie, le brouillard et la couleur bleue ») LA VILLE de CRYPTOVILLE = la NUIT d'ORAGE (violet, vert ou jaune) ; p 3,5 = le poids des trois temps de Crypto City : la journée et la nuit de la map à égalité sur PC
+  ville:{nm:'CRYPTO CITY',base:'ville',teintes:['violet','vert','jaune'],m:{orage:{bio:'villeOrage',pluie:1,orage:1,route:.5,sheen:.2,p:3.5}}}, // (2026-10-25, Léo, revue des maps : « vire la nuit simple, la pluie, le brouillard et la couleur bleue ») LA VILLE de CRYPTOVILLE = la NUIT d'ORAGE (violet, vert ou jaune) ; p 3,5 = le poids des trois temps de Crypto City : la journée et la nuit de la map à égalité sur PC
   jade:{nm:'PICS DE JADE',base:'jade',m:{matin:{bio:'jadeMatin'},midi:{bio:'jadeMidi'},soir:{bio:'jade'},nuit:{bio:'jadeNuit',nuit:1},
     pluie:{bio:'jadePluie',pluie:.75,sheen:.2},orage:{bio:'jadeOrage',pluie:1,orage:1,sheen:.2}}},
   /* (2026-10-14, Sacha) LA FORÊT NOIRE : ses six temps — le matin doré, le midi vert, le soir d'or, la NUIT HANTÉE (les phares, le loup-garou),
      la pluie, l'orage (les éclairs blanchissent la forêt). Voir « LA FORÊT NOIRE — LA MAP DES CONTES » (genForet, buildForet, FOR_MET). */
   foret:{nm:'LA FORÊT NOIRE',base:'foret',m:{matin:{bio:'foretMatin'},midi:{bio:'foretMidi'},soir:{bio:'foretSoir'},
-    pluie:{bio:'foretPluie',pluie:.8,sheen:.18},orage:{bio:'foretOrage',pluie:1,orage:1,sheen:.2,pr:'LES LOUPS HURLENT'}}},
+    pluie:{bio:'foretPluie',pluie:.8,sheen:.18,p:0}, /* (2026-11-03, Sacha : « supprime la map pluie ») hors du tirage ; `?carte=foret&meteo=pluie` la joue encore */ orage:{bio:'foretOrage',pluie:1,orage:1,sheen:.2,pr:'LES LOUPS HURLENT'}}},
   /* (2026-10-14, Sacha) LE GLACIER (ex-LA BANQUISE, renommé à 20 h 40 : « ça devrait plutôt s'appeler GLACIER et être une MONTAGNE, comme dans STEEP ») :
      le matin rose, le midi bleu profond, le soir où les pics s'embrasent, la NUIT des aurores boréales, la NEIGE, le BLIZZARD (plus rare). Ni pluie ni
      éclairs. La promesse est la même à toute heure : le RACCOURCI (genBanq : les lacets superposés). Voir « LE GLACIER » au JOURNAL. L'id reste 'banquise'. */
@@ -89,11 +89,10 @@ const SF_CARTES={
      pendant la montée fulgurante du Bitcoin ; pleine de références à la token culture, à l'argent et à la tech »). La CRYPTOCITY de Léo (13/10,
      retirée le 14/10 faute d'être dans le tirage) revient comme MAP : ses taureaux, ses bougies, ses pièces ₿ géantes, ses fusées, ses feux,
      le NOUVEL ATH, la pluie d'argent — et des façades en cinq matières. Quatre temps, jamais de pluie ni d'orage (c'est l'apogée). */
-  crypto:{nm:'CRYPTOVILLE',base:'crypto',m:{matin:{bio:'cryptoMatin'},midi:{bio:'bullrun',p:1.3},soir:{bio:'cryptoSoir',p:1.2}}},
-  /* (2026-10-17, Léo) LA VILLE VITRÉE : quatre heures — le MATIN aux reflets dorés, le MIDI bleu (les nuages dans les vitres), le COUCHER où les tours
-     s'embrasent, la NUIT des bureaux allumés derrière le verre. Jamais de pluie ni d'orage. Voir « LA VILLE VITRÉE ». */
-  ...({vitree:{nm:'VILLE VITRÉE',base:'vitree',m:{matin:{bio:'vitreMatin',pr:'REFLETS DORES'},midi:{bio:'vitreMidi',p:1.2},soir:{bio:'vitreSoir',p:1.2,pr:'LES TOURS S EMBRASENT'},nuit:{bio:'vitreNuit',nuit:1,pr:'LES BUREAUX BRILLENT'},
-    pluie:{bio:'vitrePluie',pluie:.8,sheen:.2,pr:'IL PLEUT ENTRE LES VILLES'}}}}), // (v2) la PLUIE : elle tombe de la ville d'en haut
+  crypto:{nm:'CRYPTO CITY',base:'crypto',m:{matin:{bio:'cryptoMatin'},midi:{bio:'bullrun',p:1.3},soir:{bio:'cryptoSoir',p:1.2}}}, /* (2026-11-03, Léo : « Crypto City, ça s'appelle jamais Cryptoville ou autre chose ») le nom affiché est CRYPTO CITY, jour et nuit, sans traduction ; 'cryptoville' ne reste que l'identifiant interne de SF_FUSION */
+  /* (2026-11-05, Sacha : « fusionne les trois maps de ville, Crypto City, Crypto Ville et la Ville Vitrée : toutes les villes deviennent CRYPTO CITY ») LA VILLE
+     VITRÉE n'est plus une map : ses GÉANTES DE VERRE vivent dans CRYPTO CITY, le jour (`crypto`) comme la nuit (`ville`) — voir « CRYPTO CITY, UNE SEULE VILLE »
+     (ville-verre.js). Avant : vitree:{nm:'VILLE VITRÉE',base:'vitree',m:{matin,midi,soir,nuit,pluie}} (biomes vitreMatin… gardés). */
   espace:{nm:'EN ORBITE',base:'espace',m:{matin:{bio:'espaceMatin'}}}, // ni nuages, ni pluie, ni orage (Sacha) — (2026-10-14, Sacha : « plus de PLUIE DE SATELLITES, elle doit être enlevée ») plus de météo SATELLITES
   /* (2026-10-18, Sacha) LES PROFONDEURS : sous la terre, pas de ciel — ses quatre « temps » sont des lumières : TORCHES (la grotte explorée), CRISTAUX
      (minerais et améthyste à pleine lumière), MAGMA (la lave déborde), NOIR COMPLET (tes phares). La salle du moment choisit l'ambiance (grtBiomes). */

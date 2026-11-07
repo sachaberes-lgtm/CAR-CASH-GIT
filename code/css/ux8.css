@@ -16,7 +16,7 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{flex-direction:r
 html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .pxi{--pxs:3}
 html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre .mMisPips{top:calc(50% - 3px)!important;right:18px!important}
 html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear){flex-direction:column!important;gap:6px!important;padding:4px 2px!important;font-size:10px!important;letter-spacing:1px;color:var(--tx,#dfeeff)}
-html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres)>span,html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear>span{display:block!important;font-family:var(--pix);font-size:10px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:clip;max-width:100%}
+html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres)>span,html:not(.c6).hub:not(.poki) body #mHome.acc2 .mGear>span{display:block!important;font-family:var(--pix);font-size:10px;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .pxi{--pxs:3}
 @media (orientation:portrait) and (max-width:400px){
   html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:8px}
@@ -32,7 +32,10 @@ html:not(.c6).hub:not(.poki) body #mHome.acc2 :is(.mHubPorte,.mOffres,.mGear) .p
 /* (14/10 ~21 h, Sacha : « enlève cadeau, touche et mission » de l'ACCUEIL — les missions restent au garage, le cadeau dans MISSIONS) */
 html:not(.c6).hub:not(.poki) body #mHome.acc2 .mAccP>.mMisBarre{display:none!important}
 html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:0 auto minmax(16px,1fr) 0 0 68px 12px 74px 0}
-@media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:minmax(0,1fr) auto 34px 0 0 56px 8px 58px minmax(0,1fr)}} /* (2026-10-15) 34 px : les tuiles ne mordent plus le trait néon du logo */
+@media (orientation:landscape) and (max-height:540px){html:not(.c6).hub:not(.poki) body #mHome.acc2{grid-template-rows:minmax(0,1fr) auto 44px 0 0 56px 8px 58px minmax(0,1fr)}} /* (2026-10-15) 34 px : les tuiles ne mordent plus le trait néon du logo ; (2026-11-05) 44 px : la pastille NOUVEAU (dépasse de 9 px) ne le touche plus non plus */
+/* (2026-11-05, Sacha : « la disposition des boutons : NOUVEAU est trop proche de la barre de flow ») le trait néon descend à 20 px sous le logo ; la pastille,
+   large de ~77 px sur une tuile de 100, débordait de 9 px à droite (à 1 px de RÉGLAGES) et montait à 4 px du trait. Elle se CENTRE sur sa tuile, à cheval sur le bord haut. */
+html:not(.c6).hub:not(.poki) body #mHome.acc2 .mOffres.mAccB .mBadge{top:-9px!important;left:0!important;right:0!important;width:max-content;margin:0 auto!important} /* centrée sans transform : `.mOffres *{transform:none!important}` (boutons-flottants.css) l'annule */
 /* (2026-10-16, Sacha : « dans l'écran d'accueil GARAGE, OFFRE et RÉGLAGES doivent être de couleur rose, bleu et jaune — comme les bandes sous le logo CAR CASH »)
    LES TROIS TUILES AUX COULEURS DE LA LIVRÉE : dans l'ordre des trois bandes du trait néon sous le logo (rose · cyan · or, `--livree`), de gauche à droite.
    Tout passe par `--nc` (liseré, lueur intérieure, pictogramme) : le dessin des plaques ne bouge pas, le libellé reste blanc. */
@@ -53,6 +56,8 @@ html:not(.c6):not(.ux8g) :is(#gBqPan .bqK,#gBqUne .bqU){padding-bottom:0}
 html:not(.c6):not(.ux8g) :is(.bqKr,.bqUrr){position:absolute;top:6px;right:6px;z-index:1;margin:0;padding:3px 5px 2px;max-width:calc(100% - 12px);box-sizing:border-box;overflow:hidden;white-space:nowrap;background:#14171c;color:var(--rc);font-size:10px;line-height:1.1;letter-spacing:0}
 html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKn,#gBqUne .bqUn){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;white-space:normal;overflow:hidden;overflow-wrap:anywhere;text-overflow:clip;font-size:9px;line-height:11px;letter-spacing:0;padding:5px 6px 0}
 html:not(.c6):not(.ux8g) :is(#gBqPan .bqK .bqKp,#gBqUne .bqUp){font-size:10px;letter-spacing:0;padding:4px 6px 8px;white-space:nowrap}
+/* (2026-11-03) un nom sur deux lignes (LA DOLCE VITA) poussait son prix plus bas que ceux des voisines : le prix colle au bas de la carte, tous alignés sur la rangée */
+html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKp{margin-top:auto}
 html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKn{-webkit-line-clamp:3;font-size:9px;padding:5px 5px 0}
 html:not(.c6):not(.ux8g) #gBqPan .bqRail.habs .bqK .bqKr{font-size:8px;top:4px;right:4px}
 html:not(.c6):not(.ux8g) #gBqPan .bqK .bqKr.lg{font-size:8px;padding:3px 4px 2px} /* (2026-10-15) LÉGENDAIRE (10 lettres) débordait de sa carte et se coupait */
@@ -67,7 +72,7 @@ html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn{font-size:11px;lette
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn b{font-size:12px;letter-spacing:0}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="achat"]{background:var(--or);color:#14171c;box-shadow:0 4px 0 var(--orF),0 10px 24px rgba(20,23,28,.22)}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="equip"],html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="figeq"]{background:#3d4bff;color:#fff}
-html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:none;color:#5b6572;box-shadow:none;font-size:11px;cursor:default}
+html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{background:#fff;color:#14171c;box-shadow:0 0 0 1px #dde1e6,inset 3px 0 0 #3d4bff;font-size:11px;cursor:default} /* (2026-11-03, Sacha : « cet écran, il est horrible ») ÉQUIPÉE ✓ n'est plus un texte gris fantôme sur le fond : une plaque blanche, encre pleine, le liseré bleu du rayon ouvert */
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="eq"]{height:44px}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"]{background:#e3e6ea;color:#5b6572;box-shadow:inset 0 0 0 1px #c7ccd3;cursor:default;translate:none}
 html:not(.c6):not(.ux8g).bqIndus body #garage #gAct>#gBqBtn[data-e="manque"] b{color:#14171c;font-size:9px}
@@ -372,4 +377,6 @@ html body.touch #auraV2{top:calc(var(--hudH) + 84px)!important}
    (2e ligne de la grille, 10 px) : l'AURA, calée avant lui à +76 / +72, se retrouvait dessous — elle passe sous l'étiquette. */
 html body #avList{display:none!important}
 html body #flowHud[data-lv="0"] .fM{visibility:hidden!important}
+/* (2026-11-05, Sacha : « enlève les carrés de couleur cadeau et boutique ») plus de pastille sur les tuiles de l'accueil : ni le panier cyan du GARAGE (#bdGar), ni le NOUVEAU rose d'ACHAT (#bdShop) */
+html body #bdGar,html body #bdShop{display:none!important}
 </style>

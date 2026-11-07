@@ -177,7 +177,7 @@ $('stBoost').addEventListener('change',saveFruits);
 $('stFreq').addEventListener('change',saveFruits);
 addEventListener('keydown',e=>{if(!stallOn)return;
   if(e.code==='Escape')closeStall();else if(e.code==='ArrowLeft')stallShow(stallI-1);else if(e.code==='ArrowRight')stallShow(stallI+1);});
-$('garageBtn').addEventListener('click',e=>{e.stopPropagation();vroomGarage();openGarage();});
+$('garageBtn').addEventListener('click',e=>{e.stopPropagation();uiClic('nav');vroomGarage();openGarage();}); /* (2026-11-05, finition) l'ancien bouton GARAGE du PC n'avait pas son son de navigation, comme celui du téléphone */
 /* (2026-09-29, Léo) la MAISON de l'atelier = le MENU de l'écran de mort : on rentre à l'ACCUEIL (venu de la mort, la course est rangée
    comme par son MENU — accueilRetour) ; venu des MISSIONS (VOIR), on y retourne comme avant (`__mRetour`, lu à la fermeture). */
 $('gClose').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);uiClic('retour');
@@ -217,11 +217,11 @@ for(const b9 of document.querySelectorAll('#gOutils [data-go],#gShopBas'))b9.add
   const vers=b9.getAttribute('data-go');window.__setGar=vers==='set'; /* (2026-10-19, Sacha) le ⚙ du garage (voir <style id="garageHaut">) : le ◀ des RÉGLAGES rouvre le garage (le routeur de la coque) */
   ecranWipe(function(){window.__mRetour=vers;closeGarage();});});
 /* LE ⚙ ET L'ŒIL À CÔTÉ DU TROPHÉE (2026-10-19, voir <style id="garageHaut">) : plqGarage recale le trophée en miroir du compte ; on lit sa place
-   (4 Hz, garage ouvert) et on la donne au CSS — --ghTx : du bord droit de l'écran au bord droit du ⚙ (8 px avant le trophée), --ghTy : son
+   (4 Hz, garage ouvert) et on la donne au CSS — --ghTx : du bord droit de l'écran au bord GAUCHE du trophée (le ⚙ ajoute lui-même ses 8 px : (2026-11-05, finition) il y avait un « +8 » de trop ici — 16 px entre le trophée et le ⚙, 8 entre le ⚙ et l'œil), --ghTy : son
    milieu. Jamais vu : les valeurs par défaut de la feuille. Écrit seulement si ça change. */
 function ghPlace(){if(!garageOn||!gEl||document.documentElement.classList.contains('garLeo'))return;const p=document.getElementById('gProf');
   if(!p||!p.classList.contains('on'))return; /* trophée caché (l'œil allumé…) : on garde sa dernière place, l'œil ne saute pas */
-  const b=p.getBoundingClientRect();if(b.width<=8||b.bottom<=0)return;const x=Math.round(innerWidth-b.left+8)+'px',y=Math.round(b.top+b.height/2)+'px';
+  const b=p.getBoundingClientRect();if(b.width<=8||b.bottom<=0)return;const x=Math.round(innerWidth-b.left)+'px',y=Math.round(b.top+b.height/2)+'px';
   if(gEl._ghX!==x){gEl._ghX=x;gEl.style.setProperty('--ghTx',x);}if(gEl._ghY!==y){gEl._ghY=y;gEl.style.setProperty('--ghTy',y);}}
 setInterval(ghPlace,250);
 function gActSync(){const a=$('gAct');if(!a)return;const bt=$('gEquip'),row=$('gBuyRow'),vu=function(x){return !!x&&x.style.display!=='none';};

@@ -27,7 +27,7 @@ function flowAdd(q,fam,trait){
   if(FLOW.v>=100&&!FREN.arme)frenArme();
   if(lv>FLOW.lv){FLOW.lv=lv;const rv9=lv>=3&&!FLOW.revele; /* (console de son) la TRIADE qui s'ouvre a SON son : pas « FLOW III » par-dessus */
     if(lv>=3&&!FLOW.revele)flowRevele(); // la rose est pleine : la TRIADE s'ouvre (et c'est elle qu'on annonce, pas « FLOW III »)
-    else popTexte(FLOW_NOM[lv]+' · $×'+fmtMul(flowMult()),FLOW_COL[lv],1);
+    else popTexte(FLOW_NOM[lv]+' · €×'+fmtMul(flowMult()),FLOW_COL[lv],1);
     flowPunch();
     hap([12,30,16]);try{if(!(SONV2&&rv9))flowSnd(lv);}catch(e){}
     fovPunch=Math.max(fovPunch,4+lv*2);}
@@ -144,7 +144,7 @@ function frenCash(g,pos){
   const m=FX3.m||(FX3.m=FLOW.el?FLOW.el.querySelector('.fM'):null);
   if(m){const k=FX3.k=!FX3.k;m.classList.remove(k?'cj1':'cj2');m.classList.add(k?'cj2':'cj1'); // deux animations jumelles : relance sans remise en page
     if(n-FX3.bT>400){FX3.bT=n;try{pixBurst(m,4);}catch(e){}}}
-  if(pos)try{fx3Tag(pos);}catch(e){}
+  /* (2026-11-05, Sacha : « enlève les petits ×2 ») le « ×N » qui jaillissait de la pièce (fx3Tag) ne s'écrit plus */
   if(SONV2)sfx('frenesie.cash',{vol:4}); /* (2026-10-14, session SON) +4 comme la pièce : conçu 3 dB SOUS elle, il était passé 7 dB sous (−37 contre −30) — le ×3 ne s'entendait plus */ // (console de son) l'argent qui tombe EN FRÉNÉSIE, par-dessus le son de la pièce : trois micro-pièces qui montent (le ×3) — recette dans atelier-son/recettes.js (bloc FRENCASH) ; au plus toutes les 90 ms
 }
 function fx3Tag(pos){ // le « ×3 » qui jaillit de la pièce : l'étiquette la plus ancienne du bassin est recyclée, projetée là où l'argent est né

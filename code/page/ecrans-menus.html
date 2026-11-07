@@ -6,7 +6,7 @@
 </nav>
 <div id="gHomeMini" role="button" tabindex="0" aria-label="Accueil"><b class="hmFond" aria-hidden="true"></b><i class="pxi pxi-maison" aria-hidden="true"></i></div>
 <div id="gTourne" role="slider" tabindex="0" aria-label="Tourner le garage" aria-valuemin="-180" aria-valuemax="180" aria-valuenow="0"><i class="gtZone"></i><i class="gtRail"></i><i class="gtFill"></i><i class="gtPouce"></i></div>
-<div id="modale" role="dialog" aria-modal="true"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off"></textarea><div class="modB"></div></div></div>
+<div id="modale" role="dialog" aria-modal="true" aria-labelledby="modT"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off"></textarea><div class="modB"></div></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <!-- (2026-10-17, Sacha) LA PLAQUE D'IMMATRICULATION : l'atelier de la plaque (#plq, au premier accueil puis depuis le profil) et le PROFIL du
      joueur (#prof, le petit trophée du garage, #gProf) — voir PLQ dans le script -->
@@ -23,7 +23,7 @@
   <div class="plMods" id="plqMods" role="radiogroup" aria-label="Modeles"></div>
   <div class="plBas"><div class="pbtn plRet" data-p="ret" role="button" tabindex="0" aria-label="Retour"><i class="pxi pxi-gauche" aria-hidden="true"></i><span data-fr="RETOUR">RETOUR</span></div><div class="pbtn pb-gold big plOk" data-p="ok" role="button" tabindex="0"><i class="pxi pxi-coche" aria-hidden="true"></i><span data-fr="VALIDER">VALIDER</span></div></div>
 </div></div>
-<div id="overlay" role="button" tabindex="0" aria-label="Menu principal CASH CAR">
+<div id="overlay" role="region" aria-label="Menu principal CASH CAR"><!-- (2026-11-05, Opus : jury INT-02) plus role="button" : VoiceOver ne voyait qu'UN bouton à la place de tout le menu (aucun clic n'y lance rien : le logo est un jouet, voir menu-logo.js) -->
   <div id="mEmbers" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   <h1><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></h1>
   <div id="tagline">cours après le cash · ne tombe jamais</div>
@@ -33,8 +33,8 @@
   <div id="runStats"></div>
   <!-- LE MOTEUR ATTEINT : on montre la pièce qu'on a réussi à monter, pas seulement son nom.
        Le rendu 3D vient du MÊME moteur que la vignette de course (voir engVigRender). -->
-  <div id="endEng"><canvas id="endEngCv" width="480" height="321"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div><!-- 480×321 : repli sans JS — affiné à la résolution du palier dès le chargement (voir ENG_RES_W) -->
-  <div id="nameEntry"><span><i class="pxi pxi-etoile" aria-hidden="true"></i> NOUVEAU RECORD — TON NOM</span><input id="nameInput" maxlength="8" autocomplete="off" spellcheck="false" placeholder="________"><button id="nameSave">VALIDER</button></div>
+  <div id="endEng"><canvas id="endEngCv" width="480" height="321" aria-hidden="true"></canvas><div id="endEngCap">MOTEUR ROUILLÉ<span id="endEngTier">PALIER 1 / 30</span></div></div><!-- 480×321 : repli sans JS — affiné à la résolution du palier dès le chargement (voir ENG_RES_W) -->
+  <div id="nameEntry"><span><i class="pxi pxi-etoile" aria-hidden="true"></i> NOUVEAU RECORD — TON NOM</span><input id="nameInput" type="text" aria-label="Ton nom pour le record" maxlength="8" autocomplete="off" spellcheck="false" placeholder="________"><button id="nameSave">VALIDER</button></div>
   <div id="lbBox"></div>
   <button id="playBtn" aria-label="Jouer">Jouer</button>
   <!-- LE GARAGE : deuxième destination du jeu, donc deuxième niveau de hiérarchie — ni l'action
@@ -78,13 +78,13 @@
       <!-- L'ÉCRAN DE FIN v3 (2026-09-25, user : « l'argent n'est pas important quand tu es mort — c'est tes points d'AURA
            et le MOTEUR que tu as débloqué ») : deux grandes cartes, l'argent passe en petite ligne. -->
       <div class="mHero" id="mHero"></div>
-      <div class="mCashL"><span data-fr="VERSÉS AU COMPTE">VERSÉS AU COMPTE</span><b id="mCash">$0</b><small id="mCashTot"></small></div><!-- (2026-09-29, Sacha : « l'argent doit être mis plus en avant ») le HÉROS de l'écran -->
+      <div class="mCashL"><span data-fr="VERSÉS AU COMPTE">VERSÉS AU COMPTE</span><b id="mCash">€0</b><small id="mCashTot"></small></div><!-- (2026-09-29, Sacha : « l'argent doit être mis plus en avant ») le HÉROS de l'écran -->
       <div class="mNew" id="mNew" style="display:none"></div>
       <b id="mBest2" hidden></b>
       <div class="mStats" id="mStatsBox"></div>
       <!-- (2026-10-25, Sacha : « enlève les stats, à la place un bouton garage et un bouton réglage ») deux touches de verre, à la place
            des quatre chiffres. Le GARAGE ouvre l'atelier (GAR.aGar), RÉGLAGES la page des réglages. -->
-      <div class="mDuo" id="mDuo"><div class="pbtn mVerre mvGar" data-m="garage" role="button" tabindex="0"><i class="mGlow" aria-hidden="true"></i><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="GARAGE">GARAGE</span><em class="mBadge" id="bdGar2"></em></div><div class="pbtn mVerre mvSet" data-m="set" role="button" tabindex="0"><i class="mGlow" aria-hidden="true"></i><i class="pxi pxi-reglages" aria-hidden="true"></i><span data-fr="REGLAGES">REGLAGES</span></div></div>
+      <div class="mDuo" id="mDuo"><div class="pbtn mVerre mvGar" data-m="garage" role="button" tabindex="0"><i class="pxi pxi-voiture" aria-hidden="true"></i><span data-fr="GARAGE">GARAGE</span><em class="mBadge" id="bdGar2"></em></div><div class="pbtn mVerre mvSet" data-m="set" role="button" tabindex="0"><i class="pxi pxi-reglages" aria-hidden="true"></i><span data-fr="REGLAGES">REGLAGES</span></div></div>
       <div class="mObj" id="mObj"></div>
       <div class="mEsp" aria-hidden="true"></div>
       <!-- (2026-09-28, Sacha : « il manque un bouton pour revenir au menu ») la paire des jeux mobiles : MAISON | REJOUER. Le lingot
@@ -182,13 +182,13 @@
     <div id="setHead"><span>Réglages</span><button id="setClose" class="pbtn pb-cyan pbCarre" aria-label="Fermer"><i class="pxi pxi-croix" aria-hidden="true"></i></button></div>
     <div class="setSec">Langue</div>
     <div class="setRow" id="langRow"><span>Langue · Language</span><b id="tgLang">FR</b></div>
-    <div class="setRow" id="curRow"><span>Devise</span><b id="tgCur">$</b></div>
+    <div class="setRow" id="curRow"><span>Devise</span><b id="tgCur">&#xE000;</b></div>
     <div class="setSec">Audio</div>
     <div class="setRow" data-tg="sndBtn"><span>Effets sonores</span><b id="tgSnd">ON</b></div>
     <div class="setRow" data-tg="musBtn"><span>Musique</span><b id="tgMus">ON</b></div>
     <div class="setSec">Volumes</div>
-    <div class="setRow volRow" id="volRowMus"><div class="volHd"><span data-fr="Musique">Musique</span><b id="volMusV">70%</b></div><input type="range" class="volS" id="volMus" min="0" max="100" step="5" value="70"></div>
-    <div class="setRow volRow" id="volRowSfx"><div class="volHd"><span data-fr="Effets et moteur">Effets et moteur</span><b id="volSfxV">100%</b></div><input type="range" class="volS" id="volSfx" min="0" max="100" step="5" value="100"></div>
+    <div class="setRow volRow" id="volRowMus"><div class="volHd"><span data-fr="Musique">Musique</span><b id="volMusV">70%</b></div><input type="range" class="volS" id="volMus" aria-label="Volume de la musique" min="0" max="100" step="5" value="70"></div>
+    <div class="setRow volRow" id="volRowSfx"><div class="volHd"><span data-fr="Effets et moteur">Effets et moteur</span><b id="volSfxV">100%</b></div><input type="range" class="volS" id="volSfx" aria-label="Volume des effets et du moteur" min="0" max="100" step="5" value="100"></div>
     <div class="setSec">Commandes</div>
     <div class="setKeys" id="setKb">
       <span><i data-fr="Z Q S D">Z Q S D</i> / <i><i class="pxi pxi-gauche" aria-hidden="true"></i><i class="pxi pxi-haut" aria-hidden="true"></i><i class="pxi pxi-bas" aria-hidden="true"></i><i class="pxi pxi-droite" aria-hidden="true"></i></i></span><span>conduire · piloter en vol</span>
@@ -212,7 +212,9 @@
   </div>
 </div>
 <div id="touchCtl">
-  <div id="tSteer" role="button" tabindex="0" aria-label="Volant — glisse pour tourner"><div id="tStick"><div id="tKnob"></div></div><div id="tSteerHint" data-fr="GLISSE POUR TOURNER">GLISSE POUR TOURNER</div></div>
+  <!-- (2026-11-03, Sacha : « enlève le HUD "glisse pour tourner", ça sert à rien, c'est tout le temps là » — le texte #tSteerHint est retiré ;
+       le volant garde son invite visuelle (l'anneau qui pulse, #tSteer:not(.used)::after) qui s'efface seule au premier braquage. -->
+  <div id="tSteer" role="button" tabindex="0" aria-label="Volant — glisse pour tourner"><div id="tStick"><div id="tKnob"></div></div></div>
   <div id="tLeft" class="tbtn" role="button" tabindex="0" aria-label="Gauche"><i class="pxi pxi-gauche" aria-hidden="true"></i></div>
   <div id="tRight" class="tbtn" role="button" tabindex="0" aria-label="Droite"><i class="pxi pxi-droite" aria-hidden="true"></i></div>
   <div id="tUp" class="tbtn" role="button" tabindex="0" aria-label="Haut"><i class="pxi pxi-haut" aria-hidden="true"></i></div><!-- (2026-10-27, Léo) FLÈCHES : haut / bas = l'assiette en vol -->

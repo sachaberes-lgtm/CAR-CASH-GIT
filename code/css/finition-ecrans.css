@@ -1,0 +1,83 @@
+<style id="finitionEcrans">
+/* ===== LA FINITION DES ÉCRANS (2026-11-04, Sacha : « chaque écran, chaque interface doit être parfaite […] qualité professionnelle ») =====
+   Une couche posée APRÈS toutes les autres : des détails MESURÉS au banc des écrans (outils/banc-ecrans/photos.cjs — chaque écran, debout
+   et couché, photographié et audité : cibles, chevauchements, textes coupés, polices, corps). Rien de nouveau dans la mise en scène :
+   la même touche, la même marge, le même toucher — seulement ce qui n'était pas d'équerre. */
+/* 1. AUCUNE BARRE DE DÉFILEMENT dans l'interface (Android, et l'ordi en cadre téléphone, en dessinaient une sur les réglages, l'achat, la plaque) */
+#overlay,#plq,#prof,#plq .plMods,#prof .pfStats,#tPanel,#modale{scrollbar-width:none;-ms-overflow-style:none}
+#overlay::-webkit-scrollbar,#plq::-webkit-scrollbar,#prof::-webkit-scrollbar,#plq .plMods::-webkit-scrollbar,#prof .pfStats::-webkit-scrollbar,#tPanel::-webkit-scrollbar,#modale::-webkit-scrollbar{display:none;width:0;height:0}
+/* 2. LA PLAQUE depuis le profil : à côté de RETOUR, VALIDER (24 px, huit lettres et la coche) débordait de son lingot debout (MESURÉ : 272 px de
+   contenu dans 192) — au corps des titres, la coche à sa taille ; couché, le lingot est large, il remonte d'un cran */
+#plq:not(.premier) .plOk{font-size:var(--f5);letter-spacing:2px;gap:10px;padding:0 14px}
+#plq:not(.premier) .plOk .pxi{--pxs:2}
+@media (orientation:landscape) and (max-height:540px){#plq:not(.premier) .plOk{font-size:var(--f6);letter-spacing:3px}}
+/* 3. LA LIGNE DES MISSIONS en course, couché : « JOUE UNE MAP SOUS TOUTES SES ME… » — le texte passe sur deux lignes au lieu d'être coupé au
+   milieu d'un mot (debout il l'était déjà) */
+@media (orientation:landscape){#m2Ligne{max-width:min(72vw,560px)}#m2Ligne span{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}}
+/* 4. L'ÉCRAN MISSIONS debout : RETOUR était une touche carrée de 76 px (l'icône au-dessus du mot, 10 px), seule de son espèce — elle prend la
+   forme du RETOUR de l'inventaire et de la boutique (l'icône à gauche du mot, 112 px), JOUER garde le reste (MESURÉ 390 : 354 − 12 − 112 = 230 px) */
+@media (orientation:portrait){
+  #gmBas .gmHome{flex-direction:row;width:auto;min-width:112px;gap:10px;padding:0 12px;font-size:var(--f1)}
+  #gmBas .gmHome .pxi{--pxs:2}
+  #gmBas .gmJouer{font-size:var(--f6);letter-spacing:3px}} /* JOUER + ses trois chevrons : 24 px débordait de 2 px la case de 224 ; 20 px, comme couché */
+/* 5. L'OFFRE À LA UNE (ACHAT) : « ACHETER » était une mention grise de 8 px au bout de la ligne du prix — c'est LA décision de la carte, elle
+   devient un petit lingot (la matière de JOUER / ACHETER partout ailleurs) ; « À TOI » (déjà achetée) reste un mot vert */
+.shUne .shBtn:not(.aToi){min-height:32px;padding:0 12px;gap:6px;color:var(--auT);background:linear-gradient(180deg,var(--au1),var(--au2) 55%,var(--au3));
+  box-shadow:0 3px 0 var(--auE),inset 0 1px 0 rgba(255,255,255,.55);transform:skewX(var(--sk));text-shadow:none;font-size:var(--f0);letter-spacing:1px}
+.shUne .shBtn:not(.aToi) .pxi{color:var(--auT);filter:none}
+.shUne:is(:active,.appui) .shBtn:not(.aToi){transform:skewX(var(--sk)) translateY(2px);box-shadow:0 1px 0 var(--auE),inset 0 1px 0 rgba(255,255,255,.55)}
+/* 6. LA BOUTIQUE 3D : une case dont la photo n'est pas encore prise était un rectangle blanc vide (les photos se prennent à la volée, les
+   cases visibles d'abord) — le pictogramme de son rayon, en filigrane, le temps qu'elle arrive ; il s'efface dès que la photo est posée */
+#gBqPan .bqK .bqKph:empty::before{content:'';display:block;width:26px;height:26px;background:rgba(20,23,28,.14);
+  -webkit-mask:var(--pxi-voiture) center/100% 100% no-repeat;mask:var(--pxi-voiture) center/100% 100% no-repeat}
+#gBqPan .bqK .bqKph.c-aile:empty::before{-webkit-mask-image:var(--pxi-aile);mask-image:var(--pxi-aile)}
+#gBqPan .bqK .bqKph.c-figure:empty::before{-webkit-mask-image:var(--pxi-rotation);mask-image:var(--pxi-rotation)}
+/* 7. LES FIGURES ÉQUIPÉES, couché (2026-11-05, finition — MESURÉ 667×375 : « SALTO AVANT » (88 px) et « SALTO ARRIERE » (104 px) dans 69 px de case) : en une
+   ligne avec « … », les deux salto se lisaient « SALTO A… » — le même mot pour deux figures. Le nom passe sur DEUX lignes (« SALTO / ARRIERE »),
+   la case ne grandit que de 10 px quand un nom est long */
+@media (orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px){
+  #gFigSel .fsNom{white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;line-height:10px;min-height:0;max-height:20px;overflow-wrap:anywhere}}
+/* 8. L'ENFONCEMENT SE JOUE (2026-11-05, finition — audit des animations : `translate` n'était dans aucune liste de `transition`) : les tuiles d'accueil,
+   INVENTAIRE · MISSIONS · BOUTIQUE du garage, les vignettes de la bande et ⏏ s'enfoncent avec la propriété `translate` ; sans elle dans la transition,
+   la face sautait d'un coup (la tranche, elle, glissait). Même durée et même courbe que `transform` (140 ms au relâcher, 70 ms au doigt via `.appui`) */
+.pbtn,.gT{transition:transform var(--t-fast) var(--ease),translate var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),filter var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
+/* 9. « RÉDUIRE LES ANIMATIONS » va jusqu'au bout (2026-11-05, finition) : l'écran de mort (cartes, touches), l'ouverture de la boutique et le garage
+   glissaient encore de 20 px ; le rideau était une COUPE noire (#wipe n'avait pas d'opacité de départ : sa transition ne jouait jamais) — un fondu de 100 ms */
+@media (prefers-reduced-motion:reduce){
+  #wipe{opacity:0}
+  #wipe.in{opacity:1;background:#07050f;transition:opacity 100ms linear}
+  #wipe.out{opacity:0;background:#07050f;transition:opacity 100ms linear}
+  html body #mob #mDead.m5.on :is(.m6Mot,.m6Aura,.mDuo>.pbtn){animation:none}
+  #gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMis,#gvMis::before,#gvMis::after,#gvMis .gvFx,#gName.entre{animation:none}}
+html[data-reduced-motion="1"] body #mob #mDead.m5.on :is(.m6Mot,.m6Aura,.mDuo>.pbtn){animation:none}
+html[data-reduced-motion="1"] :is(#gBq.pan #gBqCats,#gBqPan .bqRail .bqSec,#gvMis,#gvMis::before,#gvMis::after,#gvMis .gvFx,#gName.entre){animation:none}
+/* 10. LA CARTE MISSIONS DE L'ÉCRAN DE MORT, couché étroit (2026-11-05, finition — MESURÉ 667×375, en anglais) : « MISSIONS » (115 px) mordait de 13 px
+   le compteur « 5 / 53 » — on lisait « / 53 » ; et « SECRET MISSION FOUND » (170 px dans 158) finissait en « FO… ». Le titre passe à 8 px (il tient, 5 px
+   de jour), la mission secrète a le droit à deux lignes */
+@media (orientation:landscape) and (max-width:700px){#mObj .obHd>span{font-size:8px;gap:4px}}
+#mObj .obM.sec>span{white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;line-height:11px}
+/* 11. LA PLAQUE, tuiles des pays (2026-11-05, finition — MESURÉ 667×375, en anglais) : « NETHERLANDS » (88 px) tombait dans 80 px de tuile et se coupait en « NETHERLAN / DS »,
+   « SWITZERLAND » pareil. 2 px de marge de chaque côté au lieu de 6 : les mots d'une seule pièce tiennent sur une ligne, les noms à espace (SOUTH AFRICA) passent à la ligne */
+#plq .plMod{padding-left:2px;padding-right:2px}
+/* 12. FINAL SPIN, couché étroit (2026-11-05, finition — MESURÉ 667×375) : l'enseigne « FINAL SPIN » (264 px) dépassait sa colonne (250, celle de TIRER) de 14 px et finissait à 7 px du bord
+   de l'écran, quand la machine garde 19 px de marge. Ses marges internes (.34 spH) passent à .2 spH : elle tient dans la colonne, centrée sur TIRER */
+@media (orientation:landscape){#spinM .spEnseigne{padding-left:calc(var(--spH)*.2);padding-right:calc(var(--spH)*.2);max-width:100%;box-sizing:border-box}}
+/* 13. LES TUILES DU MENU CIEL, EN BONBON CLAIR (2026-11-07, Sacha : « sur l'écran d'accueil, dans le ciel, les boutons sont trop foncés — retravaille ça comme un pro »)
+   Le 05/11 les tuiles étaient passées en verre anthracite (64-72 %) pour tenir tête aux ciels dorés ou roses : elles tenaient, mais en grosses pastilles
+   noires sur un ciel lumineux. Même fonction, autre matière : le CORPS prend la couleur de la tuile (cyan GARAGE · magenta ACHAT · or REGLAGES, la bande du logo),
+   plus clair en haut, plus profond en bas, avec un reflet de moitié et un biseau ; la lisibilité ne vient plus d'un fond noir mais d'un CONTOUR D'ENCRE net
+   (2,5 px) + d'une épaisseur dessous — la même langue que JOUER, le bouton violet du garage et les touches de la charte. Icône et mot en encre (contraste
+   mesuré > 7:1 sur les trois couleurs), plus de lueur néon : sur un ciel clair elle se noie. Aucune ombre portée large, aucun flou : rien à relire de la 3D. */
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte){
+  --ink:#1c1238;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.3) 0,rgba(255,255,255,.2) 40%,rgba(255,255,255,0) 58%),
+    linear-gradient(180deg,color-mix(in srgb,var(--nc) 58%,#fff) 0%,var(--nc) 52%,color-mix(in srgb,var(--nc) 80%,#34104f) 100%)!important;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.75),inset 0 -5px 0 color-mix(in srgb,var(--nc) 62%,#34104f),inset 0 0 0 1px rgba(255,255,255,.28),
+    0 0 0 2.5px var(--ink),0 6px 0 2.5px var(--ink),0 11px 12px -3px rgba(20,10,60,.38)!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::before{border-color:transparent!important;box-shadow:none!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)::after{opacity:.55!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)>.pxi{color:var(--ink)!important;filter:drop-shadow(0 1.5px 0 rgba(255,255,255,.6))!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte)>span{color:var(--ink)!important;text-shadow:0 1px 0 rgba(255,255,255,.55)!important}
+html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 :is(.mAccB,.mOffres,.mGear,.mHubPorte):is(:active,.appui){translate:0 3px}
+</style>

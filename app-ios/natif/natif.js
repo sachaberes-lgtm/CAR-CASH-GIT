@@ -23,7 +23,7 @@
 
   /* ---- 1. LE RENDU NATIF ---- (la page du jeu est déjà en position fixe : on ne fait que fermer les fuites) */
   try{var st=document.createElement('style');st.id='natifCss';
-    st.textContent='html,body{background:#12081f;overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%;'+
+    st.textContent='html,body{background:#000;overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%;'+
       '-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}'+
       'input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}';
     (document.head||document.documentElement).appendChild(st);}catch(e){}
@@ -72,9 +72,12 @@
   ['touchend','pointerup','click','keydown'].forEach(function(t){addEventListener(t,reveil,{capture:true,passive:true});});
   document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(reveil,120);});
 
-  /* ---- 5. L'ÉCRAN DE LANCEMENT ---- (retiré seul au bout de 4 s au plus : capacitor.config.json, launchShowDuration) */
+  /* ---- 5. L'ÉCRAN DE LANCEMENT ---- (2026-11-05, Opus : jury IOS-20) launchAutoHide:false dans capacitor.config.json : l'écran natif
+     ne s'efface plus seul au bout de 4 s (sur un iPhone lent, le grand script n'avait pas fini : un fond violet nu pendant des secondes).
+     Le vrai signal, c'est ici : DOMContentLoaded arrive APRÈS l'exécution du grand script de la page. Filet : 30 s quoi qu'il arrive. */
   var cache=function(){try{if(P.SplashScreen)P.SplashScreen.hide({fadeOutDuration:250});}catch(e){}};
   if(document.readyState!=='loading')setTimeout(cache,60);else document.addEventListener('DOMContentLoaded',function(){setTimeout(cache,60);});
+  setTimeout(cache,30000);
 
   /* ---- 8. PAS DE LECTEUR MULTIMÉDIA SUR L'ÉCRAN D'ACCUEIL (2026-11-06, Sacha : « ça lance une fenêtre de musique ou vidéo
      qu'on voit même sur l'écran d'accueil ») ----

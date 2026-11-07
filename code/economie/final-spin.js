@@ -10,8 +10,8 @@
    · LES ROULEAUX : l'élan (un cran en arrière), la course (19 symboles/s, filé : les symboles s'étirent), la pose un par un avec du poids
      (easeOutBack raccordée à la vitesse), le 3e qui fait durer le suspense quand les deux premiers sont pareils (ampoules en folie).
    · LES LOTS SONT LES SYMBOLES (`SPIN.lots`, une ligne par lot, réglée par GENERAL) : trois PETITS SACS, trois SACS, trois GROS SACS (de
-     l'argent du jeu), trois CŒURS = une SECONDE CHANCE GRATUITE (un bon `SAVE.d.chanceG`, servi par l'offre de GENERAL à la prochaine
-     explosion), trois ÉCLAIRS = un DÉPART BOOSTÉ (`SAVE.d.spinBoost` : la partie suivante part nitro pleine, moteur au palier 1), trois
+     l'argent du jeu), trois CŒURS = une SECONDE CHANCE GRATUITE (un bon `SAVE.d.chanceG`, servi TOUT SEUL à la prochaine explosion :
+     réanimation automatique, voir seconde-chance.js), trois ÉCLAIRS = un DÉPART BOOSTÉ (`SAVE.d.spinBoost` : la partie suivante part nitro pleine, moteur au palier 1, les cinq pouvoirs), trois
      JETONS = un tirage de plus, trois 7 = le JACKPOT (flash à 3 éclats par seconde au plus, pluie de billets, pièces, vibration). Sans
      brelan : un lot de consolation. Symboles en pixel art de couleur (`SPIN_SPR`, peints une fois dans des canvas).
    · Sons de la session SON : spin.levier, spin.cran, spin.arret (une note par rouleau), spin.piece, spin.gain, spin.jackpot.
@@ -21,37 +21,162 @@
 Object.assign(I18N,{'FINAL SPIN':'FINAL SPIN','JETON SPIN':'SPIN TOKEN','TIRER':'PULL','CONTINUER':'CONTINUE','JACKPOT !':'JACKPOT!',
   'PETIT SAC':'SMALL BAG',"SAC D'ARGENT":'MONEY BAG','GROS SAC':'BIG BAG','SECONDE CHANCE GRATUITE':'FREE SECOND CHANCE','DÉPART BOOSTÉ':'BOOSTED START',
   '+1 JETON':'+1 TOKEN','LOT DE CONSOLATION':'CONSOLATION PRIZE','TIRE LE LEVIER':'PULL THE LEVER','À TA PROCHAINE CHUTE':'ON YOUR NEXT CRASH',
-  'NITRO PLEINE · MOTEUR +1':'FULL NITRO · ENGINE +1','UN TIRAGE DE PLUS':'ONE MORE PULL','GRATUIT':'FREE','À LA PROCHAINE PARTIE':'ON YOUR NEXT RUN',
+  'TOUS LES POUVOIRS · MOTEUR +1':'ALL POWER-UPS · ENGINE +1','UN TIRAGE DE PLUS':'ONE MORE PULL','GRATUIT':'FREE','À LA PROCHAINE PARTIE':'ON YOUR NEXT RUN',
   'VOITURE ÉPIQUE':'EPIC CAR'}); // (2026-10-19) le jackpot donne une caisse
-const SPIN={on:!/[?&]spin=0\b/.test(location.search),pZone:.28,max:3,pose:0,ouvert:false,vu0:0,roule:false,force:null,total:0,el:null,N:20,
+const SPIN={on:!qDev(/[?&]spin=0\b/), /* (2026-11-05, Opus : HYG-10) ?spin=0 en DEV seulement */pZone:.28,max:3,pose:0,ouvert:false,vu0:0,roule:false,force:null,total:0,el:null,N:20,
   /* LES LOTS — une ligne par lot, l'index = le symbole des rouleaux. p = probabilité par tirage (le reste : la consolation).
      (2026-10-19, Sacha : « seconde chance doit être plus probable ; les sacs d'argent doivent être plus rares mais ils rapportent 50× plus
      d'argent ; le jackpot doit faire gagner une voiture épique ») — les sacs ×50 (120 → 6 000, 300 → 15 000, 1 000 → 50 000) et 2,5 à
      3,3 fois plus rares (,20 → ,08 · ,12 → ,04 · ,04 → ,012) ; le CŒUR ,05 → ,15 ; le 7 donne une ÉPIQUE pas encore à toi (spinEpique),
      `cash` = ce qu'il verse quand elles le sont toutes. Argent ≈ 1 700 $ d'espérance par tirage (avant : ≈ 178 $, plafond de GENERAL
-     « ≤ 10 % du gain d'une partie » levé par Sacha). */
-  lots:[{id:'petit',nm:'PETIT SAC',p:.08,cash:6000},
-        {id:'sac',nm:"SAC D'ARGENT",p:.04,cash:15000},
-        {id:'gros',nm:'GROS SAC',p:.012,cash:50000},
+     « ≤ 10 % du gain d'une partie » levé par Sacha). (2026-11-05, jury ECO-31) le ×10 des prix du 25/10 n'avait pas touché les sacs : 6 000 / 15 000 / 50 000 → 60 000 / 150 000 / 500 000 (espérance ≈ 16 800 $ par tirage). */
+  lots:[{id:'petit',nm:'PETIT SAC',p:.08,cash:60000},
+        {id:'sac',nm:"SAC D'ARGENT",p:.04,cash:150000},
+        {id:'gros',nm:'GROS SAC',p:.012,cash:500000},
         {id:'coeur',nm:'SECONDE CHANCE GRATUITE',p:.19,bon:'chanceG',sous:'À TA PROCHAINE CHUTE'}, // (2026-10-31, Sacha : « augmente un peu la probabilité d'avoir une seconde chance ») ,15 → ,19
-        {id:'boost',nm:'DÉPART BOOSTÉ',p:.07,bon:'spinBoost',sous:'NITRO PLEINE · MOTEUR +1'},
+        {id:'boost',nm:'DÉPART BOOSTÉ',p:.07,bon:'spinBoost',sous:'TOUS LES POUVOIRS · MOTEUR +1'},
         {id:'jeton',nm:'+1 JETON',p:.05,jeton:1,sous:'UN TIRAGE DE PLUS'},
         {id:'sept',nm:'JACKPOT !',p:.012,voiture:'epique',cash:500000}],
   conso:{nm:'LOT DE CONSOLATION',cash:40},
   bandeN:[4,4,2,2,3,3,2]};                                          // combien de fois chaque symbole sur un rouleau de 20
-// LES SYMBOLES — pixel art 12 × 12, une palette par symbole (k = l'encre), `z` = la taille dans la fenêtre (les sacs grossissent avec le lot)
-const SPIN_SPR=[
-  {z:.72,pal:{k:'#1c0430',b:'#b8743a',B:'#e8a860',d:'#6b3a14',v:'#3fd06a',V:'#c9ffd8'},r:['....kkkk....','....kBBk....','.....kk.....','...kkkkkk...','..kbBBBBbk..','.kbBBvvBBbk.','.kbBvVVvBbk.','.kbBBvvBBbk.','.kbbBBBBbbk.','.kdbbbbbbdk.','..kddddddk..','...kkkkkk...']},
-  {z:.9,pal:{k:'#1c0430',b:'#a8622a',B:'#e09a50',d:'#5a2e0c',v:'#ffc72a',V:'#fff3c0'},r:['....kkkk....','....kBBk....','.....kk.....','...kkkkkk...','..kbBBBBbk..','.kbBBvvBBbk.','.kbBvVVvBbk.','.kbBBvvBBbk.','.kbbBBBBbbk.','.kdbbbbbbdk.','..kddddddk..','...kkkkkk...']},
-  {z:1.06,pal:{k:'#2a1200',b:'#ffc72a',B:'#fff3c0',d:'#9c5200',v:'#ffffff',V:'#5ee6ff'},r:['....kkkk....','....kBBk....','.....kk.....','...kkkkkk...','..kbBBBBbk..','.kbBBvvBBbk.','.kbBvVVvBbk.','.kbBBvvBBbk.','.kbbBBBBbbk.','.kdbbbbbbdk.','..kddddddk..','...kkkkkk...']},
-  {z:.92,pal:{k:'#1c0430',r:'#ff3b5c',R:'#ffb3c0',m:'#a3122f',w:'#ffffff'},r:['............','..kkk..kkk..','.kRRrkkrrrk.','kRwRrrrrrrrk','kRRrrrrrrrrk','krrrrrrrrrmk','.krrrrrrrmk.','..krrrrrmk..','...krrrmk...','....krmk....','.....kk.....','............']},
-  {z:.95,pal:{k:'#1c0430',Y:'#fff6b0',y:'#ffd23a',o:'#e07800'},r:['......kkkk..','.....kYyk...','....kYyk....','...kYyok....','..kYyyykkk..','.kYyyyyyyk..','.kkkkYyyk...','....kYyk....','...kYyok....','..kYyok.....','..kyok......','..kkk.......']},
-  {z:.88,pal:{k:'#2a1200',g:'#ffc72a',G:'#fff3c0',o:'#9c5200'},r:['...kkkkkk...','.kkggggggkk.','.kgGGGGGGgk.','kgGGGGGGGGgk','kgGoGooGoGgk','kgGooooooGgk','kgGooooooGgk','kgGGGGGGGGgk','.kgGGGGGGgk.','.kkooooookk.','...kkkkkk...','............']},
-  {z:1,pal:{k:'#2a1200',R:'#ffd0d8',r:'#ff2a4a',m:'#8a0f24'},r:['............','.kkkkkkkkkk.','.kRRRRRRRrk.','.krrrrrrrrk.','.kkkkkkkrmk.','......krmk..','.....krmk...','....krrmk...','....krmk....','...krrmk....','...krmk.....','...kkkk.....']}];
-function spinSprites(){ // les sept symboles peints UNE fois (canvas → data URL) ; la feuille <style id="spinSpr"> les pose sur .spS0 … .spS6
+// LES SYMBOLES — pixel art 16 × 16, une palette par symbole (k = l'encre), `z` = la taille dans la fenêtre (les sacs grossissent avec le lot)
+const SPIN_SPR=[ /* (2026-11-05, Sacha : « retravaille le design des items à gagner ») refaits en 16 × 16 : un ÉCLAIRAGE (lumière en haut à gauche, ombre en bas à droite), un trait d'encre, un reflet. Les trois sacs ne se ressemblent plus : toile brune, toile verte, velours violet qui déborde d'or. Le n° 7 n'est pas un symbole : c'est la boule du levier (12 × 12) */
+  /* PETIT SAC : toile brune, pièce de cuivre */{z:0.8,pal:{k:'#2a1200',B:'#f0c488',b:'#c2803c',d:'#7a4218',R:'#ff6a5a',r:'#b3281e',Y:'#fff3c0',y:'#ffc72a',o:'#c27a00'},r:[
+    '................',
+    '................',
+    '....kkkkkkkk....',
+    '......kRbk......',
+    '......kRrk......',
+    '....kkbbbbkk....',
+    '...kBbbbbbbdk...',
+    '..kBBbkkkkbddk..',
+    '..kBBkYyyykdbk..',
+    '..kBdkyYoykddk..',
+    '..kBdkyooykddk..',
+    '..kBBbkkkkbddk..',
+    '...kbbbbddddk...',
+    '....kkbbddkk....',
+    '......kkkk......',
+    '................']},
+  /* SAC D'ARGENT : toile verte, un $ */{z:0.95,pal:{k:'#0a2a12',B:'#7aeb92',b:'#2fa653',d:'#17622f',R:'#ffd23a',r:'#c27a00',Y:'#fff3c0',y:'#ffc72a'},r:[
+    '................',
+    '.....kkkkkk.....',
+    '.....kbbbbk.....',
+    '......kbbk......',
+    '......kbbk......',
+    '....kkRRrrkk....',
+    '...kbbbbbbbbk...',
+    '..kBbbbYYbbbdk..',
+    '.kBBbbYyYYbbddk.',
+    '.kBBbYYbYbbbddk.',
+    '.kBBbbYYYbbbddk.',
+    '.kBBbbYbYYbbddk.',
+    '.kBBbYYYYbbbddk.',
+    '..kbbbbYyddddk..',
+    '...kkbbbdddkk...',
+    '.....kkkkkk.....']},
+  /* GROS SAC : velours violet, tas d'or, gemme */{z:1.05,pal:{k:'#1a0630',P:'#d8a0ff',p:'#8f45e0',d:'#4a1a8a',G:'#fff3c0',g:'#ffc72a',o:'#d98a00',O:'#9c5200',V:'#c9fbff',v:'#27c4e8',w:'#ffffff',W:'#fff3c0'},r:[
+    '.............W..',
+    '......kkkk..W.W.',
+    '....kOGGGoOk.W..',
+    '..WkoooGOOOOk...',
+    '.W.WgGggoOook...',
+    '..Wkkkkkkkkkk...',
+    '...kggggooook...',
+    '..kPppppppppdk..',
+    '.kPPppppppppddk.',
+    'kPPPppkkkkppdddk',
+    'kPPPpkVwvvkpdddk',
+    'kPPPppkVvkppdddk',
+    'kPPPpppkkpppdddk',
+    '.kPPppppppppddk.',
+    '..kkppppddddkk..',
+    '....kkkkkkkk....']},
+  /* CŒUR */{z:0.95,pal:{k:'#2a0418',R:'#ff4d6d',r:'#d4143f',m:'#8a0a2c',L:'#ffc2cf',w:'#ffffff'},r:[
+    '................',
+    '..kkkk....kkkk..',
+    '.kRRRRk..krrrmk.',
+    'kRRLLRRkkrrrrmmk',
+    'kRLwRRRRrrrrrmmk',
+    'kRLRRRRRrrrrrmmk',
+    'kRLRRRRRrrrrrmmk',
+    '.kRRRRRRrrrrrmk.',
+    '..kRRRRRrrrrrk..',
+    '...kRRRRrrrrk...',
+    '....kRRRmmmk....',
+    '.....krrmmk.....',
+    '......krmk......',
+    '.......kk.......',
+    '................',
+    '................']},
+  /* ÉCLAIR */{z:1,pal:{k:'#2a1200',Y:'#fffbd0',y:'#ffd23a',o:'#e07800',W:'#5ee6ff'},r:[
+    '...........WW...',
+    '........kkkkkk..',
+    '.......kYYYok...',
+    '......kYyyok....',
+    '.....kYyyok...W.',
+    '.W..kYyyok......',
+    '...kkkkyyykkkk..',
+    '.......kYyyykk..',
+    '......kYyyok....',
+    '......kYyok.....',
+    '..W..kYyok......',
+    '.W...kYok.......',
+    '....kYok........',
+    '...kYkk......W..',
+    '...kk.......W.W.',
+    '.............W..']},
+  /* JETON : pièce à couronne */{z:0.92,pal:{k:'#2a1200',G:'#fff3c0',g:'#ffc72a',o:'#d98a00',O:'#9c5200',w:'#ffffff',Y:'#fff3c0'},r:[
+    '................',
+    '.....kkkkkk.....',
+    '...kkGOOOOGkk...',
+    '..kGOOggggOOok..',
+    '..kOGGgwgggOOk..',
+    '.kGGYggYOggYOok.',
+    '.kOgOOgOOgOOgOk.',
+    '.kOgOOOOOOOOgOk.',
+    '.kOgOOOOOOOOgOk.',
+    '.kOggOOOOOOggOk.',
+    '.kGOggggggggOok.',
+    '..kOOggggggOOk..',
+    '..koOOggggOOok..',
+    '...kkoOOOOokk...',
+    '.....kkkkkk.....',
+    '................']},
+  /* LE 7 : rouge, filet d'or */{z:1,pal:{k:'#2a0418',g:'#ffc72a',L:'#ff8aa0',R:'#ff3b5c',r:'#e01a40',m:'#8a0a2c'},r:[
+    '................',
+    '.kkkkkkkkkkkkkk.',
+    '.kggggggggggggk.',
+    '.kgLLLLLLLLLLgk.',
+    '.kggLLLLLrrrmgk.',
+    '.kkkkkkkgrrrmgk.',
+    '........kgRrmgk.',
+    '........kgRrmgk.',
+    '.......kgRrmgk..',
+    '.......kgRrmgk..',
+    '......kgRrmgk...',
+    '......kgRrmgk...',
+    '.....kgRrmgk....',
+    '.....kgggggk....',
+    '.....kkkkkk.....',
+    '................']},
+  /* BOULE DU LEVIER (12x12) */{z:1,pal:{k:'#2a0418',R:'#ff5a72',r:'#e01a40',m:'#8a0a2c',w:'#ffffff',L:'#ffc2cf'},r:[
+    '....kkkk....',
+    '..kkRRRRkk..',
+    '.kRRRRRLRRk.',
+    '.kRwwRRRRrk.',
+    'kRRwRRRRrrrk',
+    'kRRRRRRrrrmk',
+    'kRLRRRrrrmmk',
+    'kRRRRrrrmmmk',
+    '.kRRrrrmmmk.',
+    '.kRrrrmmmmk.',
+    '..kkrmmmkk..',
+    '....kkkk....']}];
+function spinSprites(){ // les sept symboles + la boule du levier peints UNE fois (canvas → data URL) ; la feuille <style id="spinSpr"> les pose sur .spS0 … .spS7
   if(spinSprites.ok)return;spinSprites.ok=true;let css='';
-  SPIN_SPR.forEach(function(S,i){const Z=8,cv=document.createElement('canvas');cv.width=cv.height=12*Z;const c=cv.getContext('2d');
-    for(let y=0;y<12;y++)for(let x=0;x<12;x++){const ch=S.r[y][x];if(ch==='.')continue;c.fillStyle=S.pal[ch]||'#ff00ff';c.fillRect(x*Z,y*Z,Z,Z);}
+  SPIN_SPR.forEach(function(S,i){const Z=8,cv=document.createElement('canvas'),n=S.r.length;cv.width=cv.height=n*Z;const c=cv.getContext('2d');
+    for(let y=0;y<n;y++)for(let x=0;x<n;x++){const ch=S.r[y][x];if(ch==='.')continue;c.fillStyle=S.pal[ch]||'#ff00ff';c.fillRect(x*Z,y*Z,Z,Z);}
     let u='';try{u=cv.toDataURL('image/png');}catch(e){}
     css+='#spinM .spS'+i+',.spIco.spS'+i+'{background-image:url('+u+');--z:'+S.z+'}';});
   const st=document.createElement('style');st.id='spinSpr';st.textContent=css;document.head.appendChild(st);}
@@ -121,7 +246,7 @@ function spinDom(){ // LA MACHINE, fabriquée une fois (au premier tirage de la 
     +'<div class="spCorps"><div class="spCab">'+bulbes(30,'spB2')
       +'<div class="spVitre"><div class="spFens">'+rou+'</div><div class="spLigne"><i></i><i></i></div><div class="spReflet"></div></div>'
       +'<div class="spEcran"><div class="spGain" aria-live="polite"></div></div><i class="spFente"></i></div>'
-      +'<div class="spLevier" role="button" tabindex="0" aria-label="Levier"><i class="spSocle"></i><div class="spBras"><i class="spTige"></i><i class="spBoule"></i></div></div></div>'
+      +'<div class="spLevier" role="button" tabindex="0" aria-label="Levier"><i class="spSocle"></i><div class="spBras"><i class="spTige"></i><i class="spBoule spS7"></i></div></div></div>'
     +'<div class="spPlateau" aria-hidden="true"></div>'
     +'<div class="pbtn pb-gold big wide spTire" role="button" tabindex="0"></div></div>';
   document.body.appendChild(el);
@@ -280,19 +405,24 @@ function spinExplose(n){ // les pièces qui jaillissent de la machine
     try{d.animate([{transform:'translate(-50%,-50%) scale(.4) rotate(0deg)',opacity:1},{transform:'translate(calc(-50% + '+(dx*.7).toFixed(0)+'px),calc(-50% + '+(dy*.7).toFixed(0)+'px)) scale(1.1) rotate('+(rot*.6).toFixed(0)+'deg)',opacity:1,offset:.55},
       {transform:'translate(calc(-50% + '+dx.toFixed(0)+'px),calc(-50% + '+(dy+160).toFixed(0)+'px)) scale(.85) rotate('+rot.toFixed(0)+'deg)',opacity:0}],{duration:1100+Math.random()*700,easing:'cubic-bezier(.32,.72,0,1)',delay:Math.random()*120}).onfinish=function(){d.remove();};}catch(e){d.remove();}}}
 /* LE DÉPART BOOSTÉ : appliqué quand une partie DÉMARRE (le guetteur voit passer « fin ou menu » → « en course », hors reprise de seconde chance),
-   après les remises à zéro de resetGame — la nitro pleine du palier, le moteur au palier 1 (ses pièces comptées). */
+   après les remises à zéro de resetGame — la nitro pleine du palier, le moteur au palier 1 (ses pièces comptées)
+   ET (2026-11-06, Sacha : « départ boosté donne aussi tous les power-up au début ») LES CINQ POUVOIRS d'un coup (PWR_ORDRE : nitro infinie,
+   air, vitesse ×2, aimant, aura ×2), chacun pour sa durée pleine (`PWR_DEFS[k].t`) — pas de « DOUBLE/TRIPLE POUVOIR » en prime : l'aura
+   ne se gagne pas sans rien faire ; ce que pwrPrend écrit à chaque ramassage (message, aura, mission) est laissé de côté. */
 function spinDepart(){
   if(!((SAVE.d.spinBoost|0)>0)||SANDBOX||TUTO.on||PARK.on||BALADE)return;
   SAVE.d.spinBoost=(SAVE.d.spinBoost|0)-1;SAVE.mark();
   const T=ENGINE_TIERS[1];if(T){coinsGot=Math.max(coinsGot,T.coins|0);engTier=Math.max(engTier,1);}
   nitroR=Math.max(nitroR,(ENGINE_TIERS[engTier]||ENGINE_TIERS[0]).res||2);
+  try{for(const k9 of PWR_ORDRE){const d9=PWR_DEFS[k9];if(d9)pwrSet(k9,Math.max(pwrT(k9),d9.t));}}catch(e){console.warn('depart boosté',e);} // les cinq pouvoirs, durée pleine
+  try{shake=Math.max(shake,.35);flashEcran('rgba(255,215,94,.45)');}catch(e){}try{if(SONV2)sfx('pwr.triple');}catch(e){}
   try{spinSprites();toast(spinIco(4,'mini')+' '+sansAcc(TR('DÉPART BOOSTÉ')),true);}catch(e){}try{if(SONV2)sfx('nitro.pleine');}catch(e){}hap([10,30,20]);}
 setInterval(function(){try{ // le guetteur : la machine après l'écran de fin (et l'offre de seconde chance) ; le départ boosté au début d'une partie
   if(!SPIN.on)return;
   const enCourse=started&&!gameOver;
   if(enCourse&&!SPIN.enCourse&&!(typeof CHANCE!=='undefined'&&CHANCE.used))spinDepart();SPIN.enCourse=enCourse;
   if(SPIN.ouvert){if(!(started&&gameOver)||garageOn)spinFerme();return;}
-  const ok=(SAVE.d.spinJ|0)>0&&started&&gameOver&&!SANDBOX&&!garageOn&&!ecranWipe._on&&!chanceAttend()&&!M2REV.on&&!!document.querySelector('#mDead.on'); /* (24/10, relecture) …ni pendant la révélation d'une secrète (#m2Rev) : la machine (z-index 250) la couvrait, sa scène se jouait derrière */
+  const ok=(SAVE.d.spinJ|0)>0&&started&&gameOver&&!SANDBOX&&!garageOn&&!ecranWipe._on&&!chanceAttend()&&!M2REV.on&&!serieWAttend()&&!!document.querySelector('#mDead.on'); /* (24/10, relecture) …ni pendant la révélation d'une secrète (#m2Rev) : la machine (z-index 250) la couvrait, sa scène se jouait derrière */
   if(!ok){SPIN.vu0=0;return;}
   if(!SPIN.vu0)SPIN.vu0=performance.now();else if(performance.now()-SPIN.vu0>1100)spinOuvre();
 }catch(e){}},200);

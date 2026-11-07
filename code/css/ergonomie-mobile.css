@@ -1,0 +1,14 @@
+<style id="ergonomieMobile">
+/* ===== L'ERGONOMIE MOBILE, LES DÉTAILS (2026-11-07, Sacha : « retravaille la version mobile et l'ergonomie dans le détail : certains éléments paraissent un peu
+   ternes, certains boutons sont un peu petits ») Relevé au banc des écrans (outils/banc-ecrans/photos.cjs, 390 × 844 et 844 × 390, cibles < 44 px) ; une couche posée
+   APRÈS la finition, qui ne redessine rien : elle donne aux petites touches leur zone de 44 px et rend leur couleur aux éléments éteints. =====
+   1. LES PASTILLES DU SÉLECTEUR (TOUT · TRI ORDRE…) : 32 px de haut debout, 28 couchées — le dessin ne bouge pas (la barre n'a pas la place), la ZONE DE TOUCHE prend ses
+      44 px autour, comme les onglets (::before). Au repos elles étaient presque noires sur noir (texte --tx2 sur un fond à 16 %) : le texte s'éclaircit, le fond monte à 26 %. */
+.fsPas::before{content:'';position:absolute;left:0;right:0;top:50%;height:44px;margin-top:-22px}
+#ivDock .fsPas:not(.on),#gFigBar .fsPas:not(.on){color:#e2ddff;background:rgba(154,144,200,.26)}
+/* 2. LES ONGLETS DE L'INVENTAIRE : les pictogrammes éteints (voitures, peintures, ailes, spoilers) étaient d'un lavande à 85 % sur le verre sombre — on les voit à peine à côté
+      de l'onglet allumé. Lavande clair, plein ; l'onglet actif garde son blanc et sa lueur rose. */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gTabs>.gTab:not(.on) .pxi{color:#cfc8ff}
+/* 3. LES LIGNES DE MISSION, COUCHÉ : 42 px de haut (395 × 42) — 44 minimum, la ligne se touche au pouce. */
+@media (orientation:landscape) and (max-height:540px){html #gmListe.mcE .mcL{min-height:44px}}
+</style>

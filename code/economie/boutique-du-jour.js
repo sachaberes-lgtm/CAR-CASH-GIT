@@ -8,14 +8,15 @@
    Dans la console (BOUTIQUE) : les onglets se taisent, la barre dit « BOUTIQUE DU JOUR » + l'horloge, la bande devient des CARTES à la
    couleur de leur rareté. Toucher une carte montre l'objet sur le plateau (rien ne change avant), et ÉQUIPER devient ACHETER + le prix.
    Triche possible en avançant l'horloge du téléphone : jeu hors ligne, on l'accepte. `dbgBoutiqueJour(j)` : la vitrine d'un autre jour. */
-function bqJour(){return Math.floor(Date.now()/864e5)+(BQ_DECALE|0);}
+function bqDecLoc(){return new Date().getTimezoneOffset()*6e4;} /* (2026-11-07) UTC − heure locale, en ms : la vitrine change à MINUIT CHEZ LE JOUEUR (en France elle tombait à 1 h ou 2 h du matin, l'heure UTC) */
+function bqJour(){return Math.floor((Date.now()-bqDecLoc())/864e5)+(BQ_DECALE|0);}
 var BQ_DECALE=0;
 function bqCles(){const V=[],C=[];
   for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const u=CAR_UNLOCK[i];if(u&&u.p>0)V.push('v:'+i);} // (2026-10-10) les caisses en € passent dans les OFFRES (bqOffres)
   for(const cat of ['peinture','aile','trainee'])for(const d of COSM[cat])if(d.p>0)C.push(cat+':'+d.id);
   return {V:V,C:C};}
 function bqCos(k){const p=k.indexOf(':'),cat=k.slice(0,p);if(cat==='figure')return {cat:cat,d:window.FIG?FIG.par[k.slice(p+1)]:null};return {cat:cat,d:COSM[cat]&&COSM[cat].find(function(x){return x.id===k.slice(p+1);})};}
-function bqA(k){if(k[0]==='v'){const i=+k.slice(2);return carUnlockedVrai(i)||i===(SAVE.d.equipped|0);}const o=bqCos(k);return !!o.d&&shopOwned(o.cat,o.d.id);}
+function bqA(k){if(k[0]==='v'){const i=+k.slice(2);return carUnlockedVrai(i)||i===equippedCar();} /* (2026-11-05, Opus : ECO-15) la caisse équipée VÉRIFIÉE */const o=bqCos(k);return !!o.d&&shopOwned(o.cat,o.d.id);}
 function bqValide(k){if(typeof k!=='string')return false;if(k[0]==='v'){const i=+k.slice(2);return !!CARS[i]&&!carRetiree(i)&&!!CAR_UNLOCK[i]&&CAR_UNLOCK[i].p>0;}const o=bqCos(k);return !!o.d&&o.d.p>0;} /* (24/10, relecture) …et toujours EN VENTE (un prix en dollars, comme au tirage, bqCles) : une vitrine tirée avant une mise à jour qui a retiré le prix d'un objet (passé en euros, devenu récompense de mission) était gardée jusqu'à minuit UTC, sa carte disait « $ NaN » ou « $ 0 » — elle est retirée */
 function bqRar(k){if(k[0]==='v')return carRar(+k.slice(2));const o=bqCos(k);return cosmRar(o.cat,o.d);}
 function bqTire(j){const r=mulberry32(Math.imul(j,2654435761)^0x5B0071C),{V,C}=bqCles(),rg={commun:0,rare:1,exotique:1,defi:1,epique:2,legendaire:3,mythique:3,infini:3};
@@ -31,7 +32,7 @@ var BQ_N={une:2,jour:6,hab:3};
 function bqVitrine(){const j=bqJour();let b=SAVE.d.bq;
   if(!b||b.j!==j||!Array.isArray(b.l)||b.l.length!==BQ_N.une+BQ_N.jour||!b.l.every(bqValide)||b.l.some(function(k){return k[0]==='v'&&CAR_UNLOCK[+k.slice(2)]&&CAR_UNLOCK[+k.slice(2)].k==='premium';})){b={j:j,l:bqTire(j)};SAVE.d.bq=b;try{SAVE.mark();}catch(e){}}
   return b;}
-function bqReste(){const ms=Math.max(0,(bqJour()+1-(BQ_DECALE|0))*864e5-Date.now()),t=Math.floor(ms/1000),d2=function(n){return (n<10?'0':'')+n;};
+function bqReste(){const ms=Math.max(0,(bqJour()+1-(BQ_DECALE|0))*864e5+bqDecLoc()-Date.now()),t=Math.floor(ms/1000),d2=function(n){return (n<10?'0':'')+n;};
   return d2(Math.floor(t/3600))+':'+d2(Math.floor(t/60)%60)+':'+d2(t%60);}
 function bqFig(cat,d){const hx=function(c){return '#'+(c>>>0).toString(16).padStart(6,'0');},rg=function(v){return 'rgb('+v.map(function(x){return Math.round(Math.min(1,x/1.45)*255);}).join(',')+')';};
   if(cat==='peinture')return '<i class="fnSw'+cosmSwCl(d)+'" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(d.c||0xff7a3a))+'"></i>';
@@ -70,7 +71,7 @@ function bqPorte(L){const V=L.filter(function(i){return !carOwned(i);}).concat(L
 setInterval(function(){try{if(!garageOn)return;const c=document.querySelector('#gStrip .fnCarr');if(!c||!c.offsetParent)return;const S=c.querySelectorAll('.fpS1'),P=c.querySelectorAll('.fpDots u');if(S.length<2)return;
   let i=-1;S.forEach(function(e,j){if(e.classList.contains('on'))i=j;});const n=(i+1)%S.length;if(i>=0){S[i].classList.remove('on');S[i].classList.add('sort');setTimeout(function(){S[i].classList.remove('sort');},500);if(P[i])P[i].classList.remove('on');}
   S[n].classList.add('on');if(P[n])P[n].classList.add('on');}catch(e){}},2600); // (2026-10-12) le défilé des offres
-function gOffresPage(){window.__offGar=true;ecranWipe(function(){window.__mRetour='shop';closeGarage();});} // la page OFFRES (rose) ; son RETOUR rouvre la boutique du garage
+function gOffresPage(){if(!ACHAT_EUR)return; /* (2026-11-05, Opus : D3) plus de page ACHAT en € */window.__offGar=true;ecranWipe(function(){window.__mRetour='shop';closeGarage();});} // la page OFFRES (rose) ; son RETOUR rouvre la boutique du garage
 function bqCourant(){if(GBQ.figK&&GBQ.panOn&&(GBQ.cat==='figure'))return GBQ.figK;if(GBQ.sec!=null&&GBQ.panOn&&SHOP.tab==='voiture')return 'v:'+GBQ.sec; /* (missions v2) la secrète regardée */if(SHOP.tab==='voiture')return 'v:'+garageI;const L=COSM[SHOP.tab],d=L&&L[SHOP.i[SHOP.tab]];return d?SHOP.tab+':'+d.id:'';}
 function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{gModeBoutons();}catch(e){}
   if(gEl)gEl.classList.toggle('shopJour',!GMODE.paye);
@@ -84,7 +85,7 @@ function gShopJour(){const bar=$('gRar'),st=$('gStrip');if(!bar||!st)return;try{
   if(st._r!==k){st._r=k;st._n=-1;st.scrollLeft=0;st.scrollTop=0;st.classList.remove('finBas');
     st.innerHTML=(O.length?bqPorte(O)+'<div class="fnSec"><span>'+sansAcc(TR('À LA UNE'))+'</span><s></s></div>':'')
       +B.l.map(function(x,n){return (n===BQ_N.une?'<div class="fnSec"><span>'+sansAcc(TR('DU JOUR'))+'</span><s></s></div>':'')+bqCarte(x,n<BQ_N.une);}).join('')
-      +'<div class="fnTout" role="button" tabindex="0">SEE ALL ITEMS '+pxi('droite')+'</div>'; // (2026-10-10, Léo : « tout en bas de la boutique, pour voir toutes les voitures — écrit en transparent, pas un bouton », puis « en anglais, SEE ALL ITEMS ») → le mode `tous` : la page de l'inventaire, avec tout ce qui s'achète
+      +'<div class="fnTout" role="button" tabindex="0">'+sansAcc(TR('TOUT VOIR'))+' '+pxi('droite')+'</div>'; // (2026-10-10, Léo : « tout en bas de la boutique, pour voir toutes les voitures — écrit en transparent, pas un bouton », puis « en anglais, SEE ALL ITEMS ») → le mode `tous` : la page de l'inventaire, avec tout ce qui s'achète
     bqPhotos(st);}
   const cur=bqCourant();st.querySelectorAll('.fnC').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-fn')===cur);});}
 /* LES OFFRES PAYANTES (2026-10-11, Léo : « quand on rappuie sur BOUTIQUE, ça met les offres payantes, mises en page comme la page des

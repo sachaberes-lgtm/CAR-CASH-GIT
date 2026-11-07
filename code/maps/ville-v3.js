@@ -328,10 +328,10 @@ function villePubAtlas(){
   const T9=vtCur(),te9=(T9?LVL.cur.teinte:'')+'|'+(typeof LANG==='undefined'?'fr':LANG); // (2026-10-16) LES TEINTES DE LA VILLE : l'atlas est repeint (une fois, à la construction de la ville) quand la teinte change
   if(CITY.pub&&CITY.pubT===te9)return CITY.pub;
   const N=512,C=128,cv=document.createElement('canvas');cv.width=cv.height=N;const x=cv.getContext('2d');
-  const PUB=[['CASH CAR','#ffd75e','#ff2e8e','LA CAISSE QUI PAIE'],['1.61','#fff3be','#b86bff','GAME STUDIO'],['NITRO','#ff8d2e','#ff2e2e','PLEIN GAZ'],['$$$','#ffd75e','#7a1fb0','BANQUE OUVERTE'],
+  const PUB=[['CASH CAR','#ffd75e','#ff2e8e','LA CAISSE QUI PAIE'],['1.61','#fff3be','#b86bff','GAME STUDIO'],['NITRO','#ff8d2e','#ff2e2e','PLEIN GAZ'],['€€€','#ffd75e','#7a1fb0','BANQUE OUVERTE'],
     ['AURA','#ff9ee6','#7a2fd0','BRILLE FORT'],['FLOW','#5ee6ff','#1d63c8','NE LACHE RIEN'],['GO !','#ffffff','#ff5e7a','VITE VITE'],['24/7','#ffe23e','#ff7a14','NUIT BLANCHE'],
-    ['RAMEN','#ffb85a','#d8261e','CHAUD'],['NEON','#2ee6ff','#ff3ea5','PLUIE ET LUMIERE'],['TURBO','#ffffff','#ff2e8e','PLUS VITE'],['CASINO','#ffd75e','#b0106a','TOUT OU RIEN'],
-    ['DRIVE','#9fe8ff','#3a2fd0','OU CREVE'],['LUCKY','#7dffec','#ff3ea5','7 7 7'],['SUSHI','#ffffff','#ff5e7a','24 H'],['\u20bf','#fff0b0','#c08a14','CASH CAR']]; /* (2026-10-20, VILLE EMBELLIE) L'OR : la 16e réclame (VITESSE ILLÉGALE) devient la pièce ₿, dorée — 1 panneau sur 16 */
+    ['HODL','#7df9ff','#7a2fd0','DIAMOND HANDS'],['NEON','#2ee6ff','#ff3ea5','PLUIE ET LUMIERE'],['TURBO','#ffffff','#ff2e8e','PLUS VITE'],['CASINO','#ffd75e','#b0106a','TOUT OU RIEN'],
+    ['MOON','#ffffff','#3a2fd0','NEXT STOP'],['WAGMI','#ff9ee6','#b0106a','WE ALL MAKE IT'],['ATH','#ffd75e','#ff2e8e','ALL TIME HIGH'],['\u20bf','#fff0b0','#c08a14','CASH CAR']]; /* (2026-10-20, VILLE EMBELLIE) L'OR : la 16e réclame (VITESSE ILLÉGALE) devient la pièce ₿, dorée — 1 panneau sur 16 */ /* (2026-11-03, passe maps cohérentes) CRYPTO CITY LA NUIT PARLE COMME LE JOUR : la ville au néon est la nuit de Crypto City (Léo, 25/10 et 03/11) — RAMEN, SUSHI, DRIVE et LUCKY (le cyberpunk générique) cèdent leur place à quatre réclames du bull run que le joueur a lues le jour (HODL, MOON, WAGMI, ATH), aux couleurs de la ville (jamais de vert : la teinte les remappe comme les autres) */
   pubLangue(PUB); // (2026-10-14, textes) les réclames parlent la langue du joueur
   if(T9)for(const p of PUB){p[1]=vtHex(p[1],T9);p[2]=vtHex(p[2],T9);} // (teintes) le magenta et le violet des réclames → la couleur de la ville
   x.imageSmoothingEnabled=false; // (2026-09-26, vague 2) plus de VERT dans la ville (il n'est nulle part dans la bible) : « $$$ » et « CASINO » passent à l'or sur violet et sur magenta
@@ -374,8 +374,8 @@ function villeMatPub(){
    · LA VILLE (et MINUIT) : les ENSEIGNES verticales (rares · normales · partout), les RÉCLAMES (×0,4 · ×1 · ×1,9), la PALETTE des néons (magenta et cyan ·
      tout magenta · cyan froid · rouge et or — que la teinte de la ville remappe ensuite), le BÉTON (gris-bleu · acier · brique sombre · bleu nuit),
      la part de GÉANTES DE VERRE (peu · normale · beaucoup) et lesquelles ;
-   · CRYPTO CITY : 1 à 3 TAUREAUX (à des abscisses tirées), 2 à 5 rangées de BOUGIES (longueur, abscisses, et le marché : bull pur · normal · volatil),
-     les PIÈCES ₿ géantes (6 · 12 · 20), les DIAMANTS (3 · 8 · 14), les DIRIGEABLES (1 · 3 · 5), les bougies du lointain, la PLUIE D'ARGENT (fine · normale ·
+   · CRYPTO CITY : (2026-11-05 : plus de taureaux ni de bougies) la part de GÉANTES DE VERRE (comme la ville),
+     les PIÈCES ₿ géantes (6 · 12 · 20), les DIAMANTS (3 · 8 · 14), les DIRIGEABLES (1 · 3 · 5), la PLUIE D'ARGENT (fine · normale ·
      averse), la cadence des FUSÉES et des FEUX, la palette des néons (comme avant · tout or · vert profit · orange bitcoin) ;
    · LA VILLE VITRÉE : les FORMES des géantes (mixte · vrillées · lames · sobres · rondes — et lesquelles : la graine de position décalée), les MONTANTS
      (alu · champagne · graphite), le DIRIGEABLE (aucun · comme avant · haut · rasant), les NUAGES (dégagé · comme avant · couvert).
@@ -406,11 +406,9 @@ function villeDecoTire(seed,genre){ // genre : 'ville' (et minuit) · 'crypto' �
     {const b=ch([['gris-bleu',null],['acier',[.19,.21,.23]],['brique sombre',[.25,.20,.19]],['bleu nuit',[.15,.18,.28]]]);D.bet=b[1];li.push('béton '+b[0]);}
     {const v=ch([[.5,'peu'],[1,'normal'],[1.7,'beaucoup']]);D.verre={k:v[0],ox:dr()*97,oz:dr()*89};li.push('géantes de verre : '+v[1]);}}
   else if(genre==='crypto'){D.ens=1;D.pub=ch([.5,1,1.6]);li.push('réclames ×'+D.pub);
-    {const n=dr()<.25?1:dr()<.7?2:3,T9=[];for(let k=0;k<n;k++)T9.push(n===1?.3+dr()*.4:(k+.2+dr()*.6)/n);D.tau=T9;li.push(n+' taureau'+(n>1?'x':'')+' : '+T9.map(pc).join(', '));}
-    {const n=2+((dr()*4)|0),B9=[];for(let k=0;k<n;k++)B9.push({f:(k+.1+dr()*.8)/n,n:7+((dr()*10)|0)});D.boug=B9;
-     const m=ch([[0,'bull pur'],[1,'normal'],[2,'volatil']]);D.rouge=m[0];li.push(n+' rangées de bougies ('+B9.map(function(b){return b.n;}).join('/')+'), marché '+m[1]);}
+    /* (2026-11-05) plus de taureaux ni de bougies : CRYPTO CITY tire à la place sa part de GÉANTES DE VERRE, comme sa nuit */
+    {const v=ch([[.5,'peu'],[1,'normal'],[1.7,'beaucoup']]);D.verre={k:v[0],ox:dr()*97,oz:dr()*89};li.push('géantes de verre : '+v[1]);}
     D.pie=ch([6,12,20]);D.diam=ch([3,8,14]);D.dir=ch([1,3,5]);li.push(D.pie+' pièces ₿, '+D.diam+' diamants, '+D.dir+' dirigeable'+(D.dir>1?'s':''));
-    D.bfo=ch([.05,.13,.26]);li.push('bougies au loin ×'+(D.bfo/.13).toFixed(1));
     {const p=ch([[.25,'fine'],[.5,'normale'],[.85,'averse']]);D.pluie=p[0];li.push('pluie d’argent '+p[1]);}
     D.fus=ch([.6,1,1.7]);D.feu=ch([.6,1,1.7]);li.push('fusées ×'+D.fus+', feux ×'+D.feu);
     {const n=ch([['comme avant',null],['tout or',[0xffd23e,0xffc63a,0xfff2c8,0xf7931a,0xffd23e]],['vert profit',[0x2bff88,0x6dffc8,0x3dff9a,0xffd23e,0x2bff88]],['orange bitcoin',[0xf7931a,0xffb04a,0xffd23e,0xf7931a,0xfff2c8]]]);D.neon=n[1];li.push('néons '+n[0]);}}

@@ -7,12 +7,12 @@
     // (`lastNearS`) — sinon le couloir resterait figé au point de décollage et la zone d'arrivée
     // se retrouverait vide pendant tout le saut.
     {
-      const cS=(mode==='fall'?lastNearS:s),lodR=620+Math.abs(vA)*1.1;
+      const cS=(mode==='fall'?lastNearS:s),lodR=620+Math.abs(vA)*1.1,pieceArr=C3_ON?PAL.b('pieceArr',1e9):1e9; /* (2026-11-05, perf mobile 2, C3) les pièces À PLUS DE 150 m DERRIÈRE la caisse (ancien) ne sont dans aucune vue : on ne les range plus (`?c3=0` = avant) */
       for(const pk of pickups){
         if(pk.taken)continue;
         // ⚠ LA FACE D'EN DESSOUS NE SE DESSINE PAS AU SOL (2026-09-25) : chaque pickup existe en miroir sous la
         // route, invisible derrière la dalle mais DESSINÉ quand même — la moitié des appels de dessin pour rien.
-        const vis=Math.abs(pk.s-cS)<lodR&&(mode==='fall'||pk.face===side);
+        const vis=(Math.abs(pk.s-cS)<lodR||(pk.air&&pk.mesh.position.distanceToSquared(carGroup.position)<640000))&&(mode==='fall'||pk.face===side)&&(!pk.ci||pk.s>=cS-pieceArr); /* (LES SENTIERS DE LUCIOLES) le fil se voit de 800 m, quelle que soit la dalle la plus proche */
         if(pk.mesh.visible!==vis)pk.mesh.visible=vis;
         if(!vis)continue; // hors couloir : on ne l'anime même pas (une pièce instanciée n'est tout simplement pas rangée)
         pk.mesh.rotateOnWorldAxis(pk.ax,dt*(pk.pow?1.4:2.5));

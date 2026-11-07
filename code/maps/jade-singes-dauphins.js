@@ -233,6 +233,7 @@ const JDM={pret:false,chaud:false,node:new THREE.Group(),D:[],mode:null,part:0,t
   cv:new THREE.Vector3(),c0:new THREE.Vector3(),H:new THREE.Vector3(0,0,1),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),Xr:new THREE.Vector3(),
   X:new THREE.Vector3(),Y:new THREE.Vector3(),Z:new THREE.Vector3(),UP:new THREE.Vector3(0,1,0),AX:new THREE.Vector3(1,0,0),m:new THREE.Matrix4(),q:new THREE.Quaternion()};
 JDM.node.visible=false;scene.add(JDM.node);
+if(typeof SANS_DAUPHIN!=='undefined'&&!!SANS_DAUPHIN!==JADE_SOBRE)console.warn('SANS_DAUPHIN (la page) ≠ JADE_SOBRE (le jeu) : le test de page/bibliotheques.html a dérivé de ALLEGE'); // (2026-11-03) les deux tests doivent dire pareil
 function jdmActif(){return !JADE_SOBRE&&!!(started&&!gameOver&&jadeEauOk()&&!TUTO.on);}
 function jdmFabrique(){ // les trois dauphins (le modèle est bâti au chargement de creatures/dauphin.js) — une fois
   if(typeof mkDauphin!=='function'||typeof DOL_GEO==='undefined'||!DOL_GEO)return false;
@@ -258,6 +259,7 @@ function jdmJailli(vx,vy,vz){ // appelée par jadeEauVol au JAILLISSEMENT : la v
   if(JDM.mode!=='mer'||JDM.part||!(JDM.force||Math.random()<JDM_SAUT))return;JDM.force=false;
   JDM.D.forEach(function(E,i){E.sautT=.05+i*.13+Math.random()*.06;E.sV=[vx,vy,vz];});}
 function jdmTick(dt){
+  if(JADE_SOBRE)return; /* (2026-11-03) le téléphone ne les montre jamais (jdmActif) : ni fabrique, ni programmes compilés au menu — et la page ne taille plus leurs maillages (SANS_DAUPHIN, page/bibliotheques.html) */
   if(!JDM.pret){if(!jdmFabrique())return;JDM.pret=true;return;}
   if(!JDM.chaud){if(started&&!gameOver&&jadeEauOk())return; // (au menu : les trois programmes se compilent hors écran, une fois)
     JDM.chaud=true;JDM.node.visible=true;for(const E of JDM.D)E.d.visible=true;try{chauffeRendu([JDM.node]);}catch(e){}for(const E of JDM.D)E.d.visible=false;JDM.node.visible=false;return;}

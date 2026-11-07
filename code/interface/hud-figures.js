@@ -64,7 +64,7 @@ function fhNom(t,c,g,dir,rp){const e=fhEl();t=fhNet(t);const b=FH.b;
   if(rp!==undefined){FH.rp=rp||'';if(rp)FH.nom.setAttribute('data-rp',rp);else FH.nom.removeAttribute('data-rp');} // (v5) la RARETÉ du nom : sa couleur et sa police ('' = Press Start 2P, la couleur c)
   t=fhTitre(t,FH.rp);
   if(b.textContent!==t||FH.rpT!==FH.rp){const K=FIG_RP[FH.rp]||FIG_RP.commun;FH.rpT=FH.rp;b.textContent=t;b.setAttribute('data-t',t); /* (v5) même hauteur de capitale que Press Start 2P (k), la largeur selon la chasse de SA police (w) */
-    b.style.fontSize=Math.round(K.k*Math.max(12,Math.min(FH_N[VP.w>VP.h?0:1],Math.floor(VP.w*.8/Math.max(1,(t.length+1.5)*K.w))-2)))+'px';}
+    b.style.fontSize=Math.round(K.k*Math.max(12,Math.min(FH_N[(COUCHE_ANCIEN?VP.w>VP.h:estCouche())?0:1],Math.floor(VP.w*.8/Math.max(1,(t.length+1.5)*K.w))-2)))+'px';}
   if(c)FH.nom.style.setProperty('--fc',c);else FH.nom.style.removeProperty('--fc');FH.nom.className='fhNom on'+(g==='ko'?' ko':'');e.classList.add('on');if(!FH.vu)document.body.classList.add('fhOn');FH.vu=true;
   if(g==='in')fhAnime(FH.nom,[{transform:'scale(2.3) rotate(-7deg)',opacity:0,filter:'brightness(3)'},{transform:'scale(.92) rotate(2deg)',opacity:1,filter:'brightness(1.6)',offset:.45},
     {transform:'scale(1.05) rotate(0deg)',offset:.72},{transform:'none',opacity:1,filter:'none'}],460);
@@ -82,7 +82,8 @@ function fhCsCale(){const L=FH.cs.children,ch=VP.w>VP.h?10:8,lim=Math.min(VP.w*.
 function figRec(){return +(SAVE.d&&SAVE.d.figRec)||0;} // le meilleur combo jamais POSÉ (le × du vol)
 function fhXMaj(){const c=FX2.cv,x=c.n>=2?figCvX():0;fhEl();FH.el.classList.toggle('combo',c.n>=2);if(x===FH.xv)return;const monte=x>FH.xv;FH.xv=x; /* (v5) la ligne des noms n'existe qu'à partir de DEUX figures : une figure seule s'écrit une fois, en grand */
   FH.x.innerHTML=x?'<small>'+fhNet(TR('COMBO'))+'</small> '+figCvTxtX(x):'';FH.x.style.setProperty('--xc',x>=3?'var(--fhO)':x>=2?'var(--fh0)':'var(--fhVert)');FH.x.classList.toggle('max',x>=IMPU.xMax); // vert → or → orange → l'arc-en-ciel du plafond
-  {const bat=x>0&&x>figRec()+1e-6;if(bat!==FH.recBat){FH.recBat=bat;FH.rec.textContent=bat?fhNet(TR('RECORD')):'';FH.rec.classList.toggle('on',bat);if(bat){fhAnime(FH.rec,[{transform:'scale(2.2)',opacity:0},{transform:'scale(.9)',opacity:1,offset:.6},{transform:'none'}],380);try{hap([6,20,6]);}catch(e){}}}} // (v4) le RECORD bat à côté du × : on le voit tomber en plein vol
+  // (2026-11-03, Sacha : « le badge RECORD en jaune en plein vol, ça sert à rien, enlève-le ») plus de badge « RECORD » à côté du × en vol ;
+  // SAVE.d.figRec (le meilleur combo jamais posé) continue d'être tenu à jour (ligne 114) — il reste lu par la plaque (MEILLEUR COMBO).
   if(x&&monte)fhAnime(FH.x,[{transform:'scale(2.1)',filter:'brightness(2.6)'},{transform:'scale(.9)',offset:.5},{transform:'none',filter:'none'}],380);}
 function fhLance(s,r,o){if(!r||!r.f||!window.FIG)return;if(LEFIL.on)filFig(figNom(r.f,figRepsEnCours(r)),figRarH(r.f),1); /* (LE FIL) le nom part dans la pastille ; #fh reste caché */
   const c=o&&o.douce?3:s>=0?Math.min(2,s):3;r.fhc=c; // (figLance) la figure part : son nom, en grand, dans la couleur de son emplacement

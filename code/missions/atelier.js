@@ -34,9 +34,10 @@ function gmSuit(){return gmSuitS();} // chaque image : le panneau MISSIONS se re
 function gmHoloPlace(land){ // (2026-09-30) les hologrammes suivent l'ancre de l'orientation (voir `pp`)
   for(const h of GMIS.holo){const q=(!land&&h.a.pp)||h.a.p;h.beam.scale.set(.5,q[1]+.5,1);h.beam.position.set(q[0],(q[1]+.5)/2,q[2]);if(h.ring)h.ring.position.set(q[0],.05,q[2]);}}
 function gmPlaceL(W,H){ // couché : DEUX colonnes — la carte de la série à gauche sous le titre, la liste à droite au-dessus de JOUER (le CSS les pose : voir « L'ÉCRAN MISSIONS ÉPURÉ ») ; debout : UN panneau entre le titre et la barre du bas
-  const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),gm=$('gMis'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=W>H*1.25;
+  const L=$('gmListe');if(!L)return;const hd=$('gmHead'),bs=$('gmBas'),gm=$('gMis'),rh=hd&&hd.getBoundingClientRect(),rb=bs&&bs.getBoundingClientRect(),land=COUCHE_ANCIEN?W>H*1.25:estCouche(); /* (2026-11-05, Opus : INT-26) */
   const bt=rb&&rb.height?rb.top:H-90,g0=rh&&rh.width?rh.left:16,A=L.querySelector('.glA'),Bk=L.querySelector('.glB'),px=function(v){return Math.round(v)+'px';};
   L.classList.toggle('land',land);if(gm)gm.classList.toggle('m2land',land);
+  if(L.classList.contains('mcE')){L.style.left=L.style.top=L.style.right=L.style.maxHeight='';L.style.setProperty('--mcBas',px(rb&&rb.height?H-rb.top+10:96));L.style.setProperty('--mcJh',px(rb&&rb.height?H-rb.top:70));return;} /* (2026-11-03, refonte) la page MISSIONS se pose seule : seulement le bas (JOUER) à éviter */
   if(hd)hd.style.maxWidth=''; // (2026-10-22) la largeur de l'en-tête vient du CSS (la colonne de gauche couché)
   if(land){
     L.style.left=L.style.top='0px';L.style.right='0px';L.style.maxHeight='none';
@@ -63,6 +64,7 @@ function garMissionsOuvre(){ // la porte des MISSIONS, d'où qu'on vienne : l'é
   ecranWipe(function(){if(garageOn){garMode('missions');GAR.aMis=false;return;}GAR.aMenu=true;openGarage();});
 }
 function garAccueil(){ // appelé par le routeur à chaque arrivée sur 'home'
+  if(!garAccueil._vu&&!garAccueil._diff&&!CHARGEMENT.fini){garAccueil._diff=1;chargeEtape('garage',garAccueil);return;} /* (2026-11-05, passe perf mobile 2, A2.a) le tout 1er atelier d'accueil (~0,6 s) se bâtit sous la boule, après la piste ; `?chargement=0` = tout de suite */
   if((started&&!gameOver)||pendingScore!=null)return;               // une course tourne, ou un nom se saisit
   if(garageOn){if(!GAR.go)garMode('menu');return;}
   if(!garAccueil._vu||ecranWipe._on){garAccueil._vu=true;GAR.aMenu=true;openGarage();return;} // le 1er (sous l'écran de démarrage), ou déjà sous un voile
@@ -93,6 +95,7 @@ $('gEquip').addEventListener('click',e=>{e.stopPropagation();
   SAVE.d.equipped=garageI;SAVE.flush();
   level=garageI;levelCash=0;                                // la caisse choisie devient la caisse de départ — ⚠ plus de levelCash pré-rempli : il offrait un magot de départ égal au seuil de la caisse (la tirelire à 320 000 d'anciennes sessions venait de là)
   garageShow(garageI);                                      // rafraîchit l'étiquette du bouton
+  hap(8); /* (2026-11-07) équiper une caisse se sent, comme équiper un habillage (ci-dessus) */
   try{if(SONV2)sfx('ui.equipe');else fanfare();}catch(err){} /* (console de son) équiper = le loquet + la quinte, pas la fanfare d'une victoire */
 });
 /* L'ACHAT. ⚠ on n'ÉQUIPE pas dans la foulée : acheter et choisir sont deux gestes, et les enchaîner
@@ -105,7 +108,7 @@ $('gRar').addEventListener('click',e=>{const b=e.target.closest('.gR');if(!b)ret
   garageSaute(L0.indexOf(eq)>=0?eq:L0[0]);});
 $('gStrip').addEventListener('click',e=>{const t=e.target.closest('.gT');if(!t)return;e.stopPropagation();uiPop(t);
   GSON9=false; /* (2026-10-14, session SON) le tick « nav » ne part qu'à la FIN du geste, et seulement si rien n'a sonné (équiper, bascule, carte) */
-  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('nav');return;}if(SHOP.tab==='figure'&&gFigTouche(j)){hap(8);return;} /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */if(garDesequipePeinture(j)){hap(8);return;} /* (2026-10-26) une peinture déjà équipée, retouchée : elle se retire */const eq9=garEquipeHabit(SHOP.tab,j);
+  if(t.hasAttribute('data-cos')){const j=+t.getAttribute('data-cos');if(SHOP.tab==='voiture'){uiClic('nav');return;}if(SHOP.tab==='figure'){const gd=e.target.closest('.fgDir i[data-d]');if(gFigTouche(j,gd?+gd.getAttribute('data-d'):null)){hap(8);return;}} /* (2026-11-05) la pastille d'un geste, sur la vignette : équipe DANS ce sens */ /* (2026-10-15) une figure à toi prend sa case (le sélecteur des trois figures) */if(garDesequipePeinture(j)){hap(8);return;} /* (2026-10-26) une peinture déjà équipée, retouchée : elle se retire */const eq9=garEquipeHabit(SHOP.tab,j);
     if(eq9||j!==SHOP.i[SHOP.tab]){shopShow(SHOP.tab,j);if(!eq9)try{if(SONV2){sfx('ui.carte',{vol:-3});GSON9=true;}else chimeNote(880,0,.16,.14);}catch(er){}}if(eq9)gInvSuite(SHOP.tab);if(GSON9)hap(8);else uiClic('nav');return;} // un habillage : à toi, il s'ÉQUIPE ; sinon on l'ESSAIE sur la caisse
   const i9=+t.getAttribute('data-car'),eq9=garEquipeCaisse(i9);if(i9!==garageI)garageSaute(i9);else if(eq9)garageShow(i9);if(eq9)gInvSuite('voiture');if(GSON9)hap(8);else uiClic('nav');}); // (2026-10-11) une caisse à toi s'ÉQUIPE au toucher
 /* L'INVENTAIRE QUI ENCHAÎNE (2026-10-16, Sacha : « dans l'inventaire, une fois que tu as sélectionné une voiture, ça doit automatiquement
@@ -124,7 +127,7 @@ function gInvSuite(cat){clearTimeout(gInvSuite.t);gInvSuite.t=0;if(!INV_ENCHAINE
 /* ÉQUIPER AU TOUCHER (2026-10-11, Léo : « quand on clique sur une voiture, ça l'équipe ; donc enlève le bouton ÉQUIPER ») : toucher une caisse
    ou un habillage À TOI (vraiment : pas seulement ouvert pour le TEST) l'équipe tout de suite ; le bouton ÉQUIPER ne se montre plus que pour
    ACHETER (voir « LE COIN DU GARAGE » : #gEquip:not(.achat) masqué) ; un achat équipe aussi. */
-function garEquipeCaisse(i){const eq=SAVE.d.equipped|0;if(!(i>=0)||!CARS[i]||!(carUnlockedVrai(i)||i===eq))return false;
+function garEquipeCaisse(i){const eq=equippedCar(); /* (2026-11-05, Opus : ECO-15) */if(!(i>=0)||!CARS[i]||!(carUnlockedVrai(i)||i===eq))return false;
   if(i!==eq){SAVE.d.equipped=i;SAVE.flush();level=i;levelCash=0;try{if(SONV2){sfx('ui.equipe');GSON9=true;}}catch(e){}}return true;}
 /* DÉSÉLECTIONNER UNE PEINTURE (2026-10-26, Léo : « quand on appuie sur une peinture sélectionnée, ça la désélectionne et laisse la couleur originale de l'ouverture ») :
    retoucher la peinture ÉQUIPÉE la retire — la caisse reprend sa teinte d'usine (la fiche D'ORIGINE, qui devient l'équipée). */
@@ -148,7 +151,7 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
     ecranWipe(function(){closeGarage();},function(){if(!garageOn&&window.__mGo)window.__mGo('shop');});return;}
   if(SHOP.tab!=='voiture'){const c9=SHOP.tab,i9=SHOP.i[c9];{const d9=COSM[c9]&&COSM[c9][i9];if(d9&&d9.eur&&!shopOwned(c9,d9.id)){habPaye(c9,i9,e.currentTarget);return;}} /* (2026-10-16) une peinture en EUROS (voir habPaye) */ const r9=shopBuy(c9,i9);
     if(!r9.ok){if(r9.raison==='fonds-insuffisants'){gSecoue(e.currentTarget);uiClic('refus');toast(pxi('croix')+' '+TR('IL TE MANQUE')+' '+fmtC(r9.manque),true);}return;} /* (2026-10-14, session SON) toast muet : le refus a déjà dit « non » (avant : refus + erreur, deux non-non identiques) */
-    garEquipeHabit(c9,i9);shopShow(c9,i9);hap([10,30,20,30,40]);pixBurst($('gCard'),26);gTampon(TR('À TOI !')); /* (2026-10-11) acheté = équipé */
+    try{bqVitreBrise();}catch(err){}garEquipeHabit(c9,i9);shopShow(c9,i9);hap([10,30,20,30,40]);pixBurst($('gCard'),26);gTampon(TR('À TOI !')); /* (2026-10-11) acheté = équipé */
     try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}else fanfare();}catch(err){}return;} /* (console de son) le tiroir-caisse, puis le TAMPON quand il s'abat (14 % de 1,9 s) — en mouvement réduit c'est un toast (ui.ok) */
   const r=carBuy(garageI);
   if(!r.ok){
@@ -157,6 +160,7 @@ $('gBuy').addEventListener('click',e=>{e.stopPropagation();
   }
   garEquipeCaisse(garageI); /* (2026-10-11) achetée = équipée : plus de bouton ÉQUIPER */
   garageShow(garageI);{const be=$('gEquip');if(be){be.classList.add('arme');clearTimeout(be._armT);be._armT=setTimeout(function(){be.classList.remove('arme');},420);}} // ÉQUIPER apparaît à la place d'ACHETER : il s'arme d'abord
+  try{bqVitreBrise();}catch(err){}
   try{feteCaisse(garageI);}catch(err){} /* (2026-10-23) la fête, à la mesure de la rareté */
   pixBurst($('gCard'),26);hap([10,30,20,30,40]);gTampon(TR('À TOI !')); // le bouton disparaît, le compte se met à jour — et ça se FÊTE (tampon + « −$ » du compteur : plus de toast qui le redit)
   try{if(SONV2){sfx('ui.achat');if(!REDUCED_MOTION)sfx('ui.tampon',{t:.266});}else fanfare();}catch(err){} /* (console de son) ACHAT : tiroir-caisse + tampon « À TOI ! » */
@@ -217,6 +221,7 @@ $('gPlayMain').addEventListener('click',function(e){
   setTimeout(garJouer,260); // (2026-09-30) le même départ que le JOUER du bas : 1er JOUER → le mode, caisse à l'essai → la tienne, auto-école
 });
 $('gPlayMain').addEventListener('keydown',function(e){
+  if(window.__introCouvre||document.getElementById('splash'))return; /* (audit p11) idem : rien sous le film d'intro */
   if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();playWordWave();setTimeout(garJouer,260);}
 });
 $('gPrev').addEventListener('click',e=>{e.stopPropagation();uiPop(e.currentTarget);garageGo(-1);});
@@ -290,7 +295,7 @@ addEventListener('pointermove',e=>{
 // ⚠ ORBITE BORNÉE À 7,8 m : au-delà on sortait par les murs et on traversait la servante et les
 // piles de pneus. Le décor est rangé POUR ce rayon (rien de posé à moins de 8,3 m du centre).
 addEventListener('wheel',e=>{if(!garageOn||PLQ.on||PLQ.prof)return;garageDist=THREE.MathUtils.clamp(garageDist+e.deltaY*.008,4.6,8.6);},{passive:true}); // plafond 7,8→8,6 (2026-09-05) : le zoom arrière par défaut est monté, la molette doit pouvoir suivre
-addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on||PLQ.on||PLQ.prof)return; /* (24/10, relecture : « Espace / I / P agissent-ils sur le garage derrière la plaque ? ») le profil ou l'atelier de la plaque ouverts par-dessus : le clavier ne touche plus le garage dessous (I ouvrait l'inventaire, les flèches changeaient la caisse, Entrée lançait la course) — comme la molette (preuve-clavier-profil) */if(GATL.on&&e.code==='Escape'){e.preventDefault();gAtelier(false);return;}if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&garAtelierLibre()){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){if(!GAR.go&&gEl.classList.contains('missions'))garMisRetour();else if(!GAR.go&&!gEl.classList.contains('menu')&&(gModeM()==='shop'||gModeM()==='tous')){uiClic('retour');gModeVa('shop');} /* (2026-10-12, passe qualité) en BOUTIQUE, Échap = ◀ RETOUR (le même chemin que la touche), pas la sortie du garage */ else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on')&&!gEl.classList.contains('shopRet')){e.preventDefault();garJouer();}}); // (passe qualité) pas de JOUER au clavier en BOUTIQUE : la touche JOUER y est masquée · même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
+addEventListener('keydown',e=>{if(!garageOn||ecranWipe._on||PLQ.on||PLQ.prof||window.__introCouvre||document.getElementById('splash'))return; /* (audit p11) l'INTRO DU STUDIO couvre le garage ciel ouvert : Entrée lançait garJouer (caisse lâchée, musique de course) puis start() refusait tant que #splash existe — planté au menu. Même garde que start() */ /* (24/10, relecture : « Espace / I / P agissent-ils sur le garage derrière la plaque ? ») le profil ou l'atelier de la plaque ouverts par-dessus : le clavier ne touche plus le garage dessous (I ouvrait l'inventaire, les flèches changeaient la caisse, Entrée lançait la course) — comme la molette (preuve-clavier-profil) */if(GATL.on&&e.code==='Escape'){e.preventDefault();gAtelier(false);return;}if(INV.on){if(e.code==='Escape'||e.code==='KeyI'){e.preventDefault();invFerme();}return;}if(e.code==='KeyI'&&!e.repeat&&garAtelierLibre()){invOuvre();return;} /* (2026-10-04) L'INVENTAIRE au clavier : I l'ouvre, I ou Échap le referme */ if(e.code==='Escape'){if(!GAR.go&&gEl.classList.contains('missions'))garMisRetour();else if(!GAR.go&&!gEl.classList.contains('menu')&&(gModeM()==='shop'||gModeM()==='tous')){uiClic('retour');gModeVa('shop');} /* (2026-10-12, passe qualité) en BOUTIQUE, Échap = ◀ RETOUR (le même chemin que la touche), pas la sortie du garage */ else if(!GAR.go&&!gEl.classList.contains('menu')){if(window.__mRetour)ecranWipe(closeGarage);else ecranWipe(function(){if(started&&gameOver)accueilRetour();garMode('menu');});}}else if(e.code==='ArrowLeft')garageGo(-1);else if(e.code==='ArrowRight')garageGo(1);else if(e.code==='Enter'&&!e.repeat&&!document.querySelector('#modale.on')&&!gEl.classList.contains('shopRet')){e.preventDefault();garJouer();}}); // (passe qualité) pas de JOUER au clavier en BOUTIQUE : la touche JOUER y est masquée · même chemin que les flèches à l'écran (boutique comprise, premium exclues) · (2026-09-29) Entrée = JOUER, comme à l'accueil
 
 // ---------- BOUCLE ----------
 const fwdW=new THREE.Vector3(),tmp=new THREE.Vector3(),tmp2=new THREE.Vector3(),tmp3=new THREE.Vector3(),mat4=new THREE.Matrix4();

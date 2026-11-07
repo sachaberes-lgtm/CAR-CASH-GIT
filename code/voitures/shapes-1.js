@@ -44,6 +44,15 @@ const SHAPES={
       U(.08,H*.25,L*.62,aV,sd*(W/2+.02),y0+H*.12,0,{seed:5+sd,rouille:.22,c:.012});
     }
     B(W*.55,H*.2,.07,K.dark,0,y0+H*.42,L/2+.10);
+    /* (2026-11-06, Léo : « LA HONTE, vue de face elle est fade : tous les autres angles sont plus jolis ») LA FACE AVANT : une vraie calandre (cadre chromé, cinq lames), des optiques cerclées de chrome, un pare-chocs chromé cabossé, une plaque — tout reste en tôle d'épave (le chrome est celui de la caisse : terni) */
+    {const zf=L/2+.15,yc=y0+H*.42;
+     for(const dy of [-.5,.5])B(W*.60,.03,.045,K.chrome,0,yc+dy*H*.2,zf);
+     for(const sd of [-1,1])B(.03,H*.2,.045,K.chrome,sd*W*.30,yc,zf);
+     for(let i=0;i<5;i++)B(W*.54,.016,.03,K.chrome,0,yc+(i-2)*H*.035,zf+.004);
+     for(const sd of [-1,1]){const hx=sd*W*.385,hy=y0+H*.46;
+       B(.27,.03,.05,K.chrome,hx,hy+.115,L/2+.10);B(.27,.03,.05,K.chrome,hx,hy-.115,L/2+.10);B(.03,.23,.05,K.chrome,hx-.12,hy,L/2+.10);B(.03,.23,.05,K.chrome,hx+.12,hy,L/2+.10);}
+     const pc=B(W*.98,H*.06,.07,K.chrome,0,y0+H*.205,L/2+.2);pc.rotation.z=-.02;
+     B(.34,.12,.02,K.acc,0,y0+H*.105,L/2+.25);} // la plaque
     for(const fz of [1,-1]){const bp=B(W*1.02,H*.24,.18,K.dark,0,y0+H*.15,fz*(L/2+.06));
       if(fz<0){bp.rotation.z=.14;bp.position.y-=.08;}}
     for(const sp of [[.30,.50,.35,.50,.30],[-.42,.45,-.10,.40,.50],[.10,.68,-.42,.60,.25],[-.25,.30,.42,.35,.40]])

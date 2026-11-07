@@ -223,7 +223,7 @@ function cotonInit(){ if(COTON.root)return; // une fois par session : 24 gabarit
   COTON.t0=performance.now();COTON.pret=new Uint8Array(COTON_KINDS*4);
   const rg=mulberry32(0xC07070),SPH=COTON.SEG.map(function(s){return new THREE.SphereGeometry(1,s[0],s[1]);}),m=nuage8Mat();
   COTON.root=new THREE.Group();COTON.root.name='coton';COTON.root.visible=false;scene.add(COTON.root);COTON.L=[];
-  COTON.vit=[];const MV=nuVitMats(false); // (2026-10-18) LE VITRAIL : trois maillages de plus par lot fin (finesses 2 et 3), mêmes instances
+  COTON.vit=[];const MV=NUVIT.vox?null:nuVitMats(false); /* (2026-11-03, maps cohérentes) en CUBES (le réglage de Léo, par défaut) le vitrail et les fantômes ne servent jamais : plus leurs 250 maillages cachés ni leurs 1,8 Mo de matrices (50 jeux × 36 ko) ; `?nuvit=fantome|verre|…` les rend */ // (2026-10-18) LE VITRAIL : trois maillages de plus par lot fin (finesses 2 et 3), mêmes instances
   COTON.W=new Float32Array(COTON.cap);COTON.WC=new Float32Array(COTON.cap);COTON.LV=MV?Array.from({length:COTON_KINDS*2},function(){return {i:new Int32Array(COTON.cap),d:new Float32Array(COTON.cap),n:0};}):null; // (2026-10-18, LE FONDU) les parts (corps, cubes) de chaque nuage, et, par jeu de cubes (gabarit × lot 2|3), ceux qui en ont une
   const rgC=mulberry32(0xC0F1E5); // (v7) le hasard du chou-fleur, à part
   for(let k=0;k<COTON_KINDS;k++){let S;{S=cumulus8(k===24?'cumulonimbus':k<6?N8_GENRE6[k]:(N8_GENRE_V[COTON_GENRES[k-6]]||COTON_GENRES[k-6]),rg);S.fin=1;}COTON.S.push(S);
@@ -235,7 +235,7 @@ function cotonInit(){ if(COTON.root)return; // une fois par session : 24 gabarit
       if(MV&&f9>=2){const V={g0:g0,ok:false,tri:0,A:new THREE.InstancedBufferAttribute(new Float32Array(COTON.cap*16),16),C:new THREE.InstancedBufferAttribute(new Float32Array(COTON.cap*3).fill(1),3)};V.A.setUsage(THREE.DynamicDrawUsage);V.C.setUsage(THREE.DynamicDrawUsage);
         for(const q9 of [['c',MV.cub],['o',MV.coe],['p',MV.pea],['b',MV.corps],['g',MV.fan]]){const x=new THREE.InstancedMesh(g0,q9[1],COTON.cap);x.instanceMatrix=V.A;x.instanceColor=V.C; // les trois maillages partagent LEURS instances (les nuages trop proches restent dans le lot v8)
         x.frustumCulled=false;x.count=0;x.visible=false;x.castShadow=x.receiveShadow=false;x.matrixAutoUpdate=false;COTON.root.add(x);V[q9[0]]=x;}COTON.vit[k*4+f9]=V;}}}
-  {for(let k=0;k<COTON_KINDS;k++)COTON.S[k].seed=k*7+1;COTON.pret.fill(0); // (v8) les QUATRE finesses de la surface arrivent de l'ouvrier ; l'ébauche en sphères tient la place
+  {COTON.sym=nuSymVoulu();/* (2026-11-05, sans dessus dessous) le nuage naît symétrique ou non selon la map du moment */for(let k=0;k<COTON_KINDS;k++)COTON.S[k].seed=k*7+1;COTON.pret.fill(0); // (v8) les QUATRE finesses de la surface arrivent de l'ouvrier ; l'ébauche en sphères tient la place
     for(let f=0;f<4;f++)for(let k=0;k<COTON_KINDS;k++)nuage8Async(COTON.S[k],N8_FIN[f],function(r){const g9=cotonBuf(r);cotonFinesse(k,f,g9);if(r.skin)nuSkinPose(k,f,r.skin);if(r.vit){nuVitPose(k,2,r);nuVitPose(k,3,r);}if(r.fant){nuFantPose(k,2,r,g9);nuFantPose(k,3,r,g9);}},f===2?NUVIT.nc:0);} // (vitrail) calculé UNE fois par gabarit (avec la finesse 2 : le cœur n'est vu que dans les joints), les deux lots fins le partagent // les plus légères d'abord : le ciel s'affine en quelques instants, sans jamais geler
   for(const s of SPH)s.dispose();COTON.I=new Float32Array(COTON.cap*COTON_ST);COTON.msInit=performance.now()-COTON.t0;
 }
@@ -303,7 +303,7 @@ function cotonOrdonne(cr,perp){
       r=t.r[0]+(t.r[1]-t.r[0])*cr(),kk=cotonKind(cr,t.w);let d=t.d[0]+(t.d[1]-t.d[0])*cr();
       for(let e=0;e<3;e++,d*=1.25){const x=p.x+q[0]*sg*d,y=p.y+t.y+(cr()-.5)*40,z=p.z+q[1]*sg*d;if(libre(x,y+r*.35,z,r)&&cotonPose(x,y,z,r,kk,cr))break;}}});}
 function buildCoton(cr){
-  cotonInit();cotonVide();COTON.jd=null;COTON.corrH=0;COTON.corrV=0;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
+  cotonInit();nuSymMaj();cotonVide();COTON.jd=null;COTON.corrH=0;COTON.corrV=0;if(!(NP>1)||!pts.length)return;COTON.grid=cotonGrille();
   if(LVL.cur&&LVL.cur.piste==='jade'&&!PARK.on&&!LVL.cur.sansNuages){cotonJade(cr);return;} // (2026-10-14, passe graphismes) LES PICS DE JADE : le ciel de coton, à leur mesure
   const okD=lvlNuageOk({deco:true}),okG=lvlNuageOk({giant:true});if(!okD&&!okG)return;
   const ORD=!!(ARC_ON&&LVL.cur&&(LVL.cur.id==='nuages'||LVL.cur.id==='orage')&&!/[?&]ordre=0\b/.test(location.search));if(ORD){COTON.corrH=NU_ORD.corrH;COTON.corrV=NU_ORD.corrV;} // (2026-10-21) LE PLAN D'AVION : voir cotonOrdonne
@@ -377,7 +377,7 @@ function cotonInst(o,A,C,b,tt){const I=COTON.I,r=I[o+3];C[b*3]=I[o+10];C[b*3+1]=
   COTON.M.compose(COTON.P,COTON.Q,COTON.Sc);COTON.M.toArray(A,b*16);}
 function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le champ, en quelle finesse, du plus loin au plus près
   if(!COTON.root||!COTON.root.visible)return;
-  const t00=performance.now(),I=COTON.I,Ls=COTON.L,J=COTON.jd,pj=J?cotonPalier():2,fm=J?J.f[pj]:3,n=J?Math.min(COTON.n,J.lim[pj]):COTON.n,tt=(t00-COTON_T0)*.001; /* (2026-10-14, passe graphismes) J : les Pics de Jade — les `lim[palier]` premiers nuages, jusqu'à la finesse `fm` */N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
+  const t00=performance.now(),I=COTON.I,Ls=COTON.L,J=COTON.jd,pj=J?cotonPalier():2,fm=J?J.f[pj]:(C3_ON?PAL.b('nuFin',3):3),n=J?Math.min(COTON.n,J.lim[pj]):COTON.n,tt=(t00-COTON_T0)*.001; /* (2026-10-14, passe graphismes) J : les Pics de Jade — les `lim[palier]` premiers nuages, jusqu'à la finesse `fm` */N8_U.uTps.value=tt;for(let j=0;j<Ls.length;j++)Ls[j].n=0;
   COTON.pv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);COTON.fr.setFromProjectionMatrix(COTON.pv);
   const pl=COTON.fr.planes,cx=cam.position.x,cy=cam.position.y,cz=cam.position.z;
   const LV=(NUVIT.on&&!J&&COTON.LV)?COTON.LV:null,W9=COTON.W,WC9=COTON.WC;if(LV)for(const Lv of LV)Lv.n=0; // (2026-10-18, LE FONDU) pas aux Pics de Jade
@@ -386,7 +386,7 @@ function cotonTick(cam){ // à chaque rendu de la scène : ce qui est dans le ch
     const x=I[o]+Math.sin(tt*.05+ph)*6,z=I[o+2]+Math.cos(tt*.04+ph)*6,yc=I[o+1]+S.base*r*I[o+9]+h*.5,R=Math.max(r*1.08*I[o+8],h*.56); // la ouate DÉRIVE au vent
     let vis=true;for(let q=0;q<6;q++){const P9=pl[q];if(P9.normal.x*x+P9.normal.y*yc+P9.normal.z*z+P9.constant<-R){vis=false;break;}}
     if(!vis)continue;
-    const dx=x-cx,dy=yc-cy,dz=z-cz,d=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d-R>fF)continue;const sg=COTON.FAC*R*(S.fin||1)/Math.max(1,d-R*.5); // les segments qu'il faut pour que la facette ne se voie pas — (v4) à la taille de SES bourgeons
+    const dx=x-cx,dy=yc-cy,dz=z-cz,d=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d-R>fF)continue;const sg=(C3_ON?PAL.b('nuFac',COTON.FAC):COTON.FAC)*R*(S.fin||1)/Math.max(1,d-R*.5); // les segments qu'il faut pour que la facette ne se voie pas — (v4) à la taille de SES bourgeons
     const fq=Math.min(fm,(sg<=10?0:sg<=16?1:sg<=32?2:3)),Lq=Ls[k*4+fq]; /* (v8) la surface : ~10 px par cellule à l'écran */
     let w=0,wc=0,vq=3;if(LV){const V9=COTON.vit[k*4+3];if(V9&&V9.ok){const x=Math.max(1,d-R)/R,c=2/((NUVIT.fant?NUVIT.fsz:NUVIT.nc)*x); /* (2026-10-18, Sacha) LE FONDU : les parts du corps (w) et des cubes (wc) ; avant, des bascules (lot 2 : 40 % des fantômes, lot 3 : tous, tout près : la v8) */
       if(NUVIT.fondu){const P9=nuvPoids(x,c);w=P9[0];wc=P9[1];vq=(NUVIT.fant&&wc*1.06<=NUVIT.loin)?2:3;}else if(fq>=2&&c<=NUVIT.ang){w=wc=1;vq=fq;}}} // le lot lointain (40 % des fantômes) suffit tant que les cubes n'en demandent pas plus
@@ -503,7 +503,7 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
     fin9={S:S,r:r,dy:-(S.base+S.top)*.5*r};geo9=cotonGeo(S,CLOUD_SPH_LO);geo9.scale(r,r,r);geo9.translate(0,fin9.dy,0);geo9.computeBoundingSphere(); // (2026-09-30) une ÉBAUCHE légère tout de suite, la forme fine arrive de l'ouvrier (≈10 ms par nuage : 0,2 s de gel à chaque portail)
     ry=h*.5;} // l'ellipsoïde « dedans » (white-out, airtime) suit la vraie hauteur du nuage
   else geo9=mergeSpheres(mkBlobs(o,rr),r,ry,r); // les 5-10 boules de CE nuage (RNG isolé : ne rebrasse pas la génération)
-  const mesh=new THREE.Mesh(geo9,v8?nuage8Solo():CLOUD_MAT);if(v8){mesh.scale.set(r,r,r);mesh.updateMatrix();mesh.userData.m8=nuage8Solo();}
+  const mesh=new THREE.Mesh(geo9,v8?nuage8Solo():CLOUD_MAT);mesh.name=v8?'nuages v8':'nuages boules';if(v8){mesh.scale.set(r,r,r);mesh.updateMatrix();mesh.userData.m8=nuage8Solo();}
   // Opaque : il s'occlut par le z-buffer comme n'importe quel décor. Aucun tri, aucun mélange,
   // donc AUCUN ordre de dessin ne peut le faire clignoter. Le frustum culling de three.js
   // redevient sûr (la géométrie est réelle et sa sphère englobante est exacte).
@@ -520,7 +520,7 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
         f9.onBeforeRender=function(r9,s9,c9b,g9,m9){m9.uniforms.uNvW.value=1;m9.uniformsNeedUpdate=true;};if(!NUVIT.on)f9.visible=false;}}
     else if(q.fant){const G=nuFantGeo(q,fin9.dyU,g2),MS=nuVitMats(true),f9=new THREE.Mesh(G.fan,nufMat(MS.fan,G)); /* (fantôme) les bancs, coussins et tours : le maillage devient le CORPS rentré, les cubes fantômes sont son enfant */
       f9.castShadow=f9.receiveShadow=false;f9.updateMatrix();f9.matrixAutoUpdate=false;mesh.add(f9);
-      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.fan=true;u9.nvw=1;f9.onBeforeRender=function(r9,s9,c9,g9,m9){m9.uniforms.uNvW.value=u9.nvw;m9.uniformsNeedUpdate=true;}; /* (2026-10-18, LE FONDU) la part de cubes de CE nuage */u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},Math.max(NUVIT.nc,Math.min(40,Math.round(r/8))),fin9.dyU);
+      const u9=mesh.userData;u9.vit=[f9];u9.g8=g2;u9.hcw=r/NUVIT.fsz;u9.fan=true;u9.nvw=1;f9.onBeforeRender=function(r9,s9,c9,g9,m9){m9.uniforms.uNvW.value=u9.nvw;m9.uniformsNeedUpdate=true;}; /* (2026-10-18, LE FONDU) la part de cubes de CE nuage */u9.gVit=G.corps;u9.mVit=nuage8Solo();if(NUVIT.on)mesh.geometry=G.corps;else f9.visible=false;}},Math.max(NUVIT.nc,Math.min(C3_ON?PAL.b('nuCub',40):40,Math.round(r/8))),fin9.dyU);
   else if(fin9)cotonCalcAsync(fin9.S,CLOUD_SPH,function(q){if(!g.parent)return; /* jeté entre-temps (portail) */ const g2=cotonBuf(q);g2.scale(fin9.r,fin9.r,fin9.r);g2.translate(0,fin9.dy,0);g2.computeBoundingSphere();const o9=mesh.geometry;mesh.geometry=g2;o9.dispose();mesh.userData.fin=true;});
   CLOUDS.push({g:g,c:center.clone(),r:r,ry:ry,onRoad:!!o.onRoad,puffs:[],mesh:mesh,ph:rr()*6.28,refT:0,fid:-1,wasIn:false});
 }

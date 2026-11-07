@@ -105,7 +105,7 @@ function flowHudMaj(rest){
   h.classList.toggle('gele',FLOW.nit&&FLOW.v>0&&FLOW.lv<4); // (v3) le nitro TIENT la jauge de la montée : rien ne fuit tant qu'il brûle
   const tr=frenEl();if(tr){tr.classList.toggle('tremble',FLOW.lv===4&&lache);tr.classList.toggle('froid',FLOW.lv===4&&fuit&&!lache);}
   if(FLOW.lvAff!==FLOW.lv){const av=FLOW.lvAff;FLOW.lvAff=FLOW.lv;h.style.setProperty('--fc',FLOW_COL[FLOW.lv]);h.dataset.lv=FLOW.lv;
-    h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='$×'+fmtMul(flowMult());
+    h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='\uE000×'+fmtMul(flowMult());
     const g=FLOW.glow;g.style.setProperty('--fc',FLOW_COL[FLOW.lv]);g.dataset.lv=FLOW.lv;g.style.opacity=FLOW.lv?(.25+FLOW.lv*.15).toFixed(2):'0';
     if(FLOW.lv===4)frenEntre();else{h.classList.remove('embrase','sc1','sc2');if(av===4)frenSort();}} // (sans ça, un retour d'écran — display rendu — rejouerait l'embrasement)
 }
@@ -291,6 +291,7 @@ function misBanniere(titre,texte,prime,ico){if(titre==='ASTUCE')return; /* (2026
   hautPasse(function(){misBanMontre(titre,texte,prime,ico);},1800,'mis',2);} // un défi payé vaut un moteur
 function misBanMontre(titre,texte,prime,ico){
   if(titre==='ASTUCE')return;
+  try{if(titre==='MISSION RÉUSSIE')hap([14,40,22]);}catch(e){} /* (2026-11-07) la bannière se sent, comme elle s'entend */
   try{if(SONV2&&titre==='MISSION RÉUSSIE')sfx('ui.mission');}catch(e){} /* (débogage son 2026-09-29) pendant l'auto-école la bannière attend la fin : le son l'attend aussi */
   let b=document.getElementById('misBan');
   if(!b){b=document.createElement('div');b.id='misBan';b.setAttribute('role','status');document.body.appendChild(b);hasMaj();} // hasMaj : la bannière née, son état se suit (voir HAS_D)
@@ -352,4 +353,4 @@ function photoPropre(){if(carWingL){carWingL.visible=false;carWingR.visible=fals
    (rose, cyan) qui la DÉTOURENT, peu d'ambiance (du modelé) ; une relève douce avec une ÉPAULE (les couleurs vives gardent leur dégradé) ;
    une ombre de contact et le reflet d'un sol verni sous les roues. Mêmes appels, même cache : garage, missions et boutique en profitent. */
 const PHOTO_W=720,PHOTO_H=440,PHOTO_SS=2,PHOTO_ROT=-.12,PHOTO_AZ=.70,PHOTO_EL=.27;
-const PHOTO_AILE={el:1,az:.15}; // (2026-10-15) une aile se photographie DE FACE et d'en haut (57°) : les deux ailes s'ouvrent à gauche et à droite, comme un avion qui arrive (dbgAile pour régler ; essayé de trois quarts : la caisse mangeait la photo)
+const PHOTO_AILE={el:.75,az:0}; /* (2026-11-06, Léo : « les ailes face aux joueurs, vues de haut, pour qu'on voie ce que c'est ») les deux ailes de face, symétriques, vues d'en haut (43°) — */ /* (2026-11-06, Léo : « enlever la voiture de l'affichage des ailes, les montrer symétriques face à nous ») les ailes SEULES, de face à hauteur d'œil (la caisse est cachée : photoSeulesAiles) */ // // (2026-10-15) une aile se photographie DE FACE et d'en haut (57°) : les deux ailes s'ouvrent à gauche et à droite, comme un avion qui arrive (dbgAile pour régler ; essayé de trois quarts : la caisse mangeait la photo)

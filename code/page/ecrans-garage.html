@@ -98,26 +98,11 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvCof,html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gvMis,html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCachee.sansVdep:not(.menu):not(.vitrine):not(.quiet):not(.launching):not(.modeShop):not(.atelierInv):not(.shopRet) #gBottom #gAct>#gShopBas{top:calc(var(--sT) + 174px)!important}
 }
 </style>
-<div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
-  <!-- LE CHARGEMENT CLASSIQUE (2026-11-02, Léo : « le chargement doré est nul et n'apparaît pas direct : un truc classique, au milieu ») : un anneau qui tourne, en CSS pur, donc visible dès la première image, avant tout le JS ; intro-161.js l'éteint quand la boule se dessine. -->
-  <style>#spCharge{position:absolute;left:50%;top:46%;width:34px;height:34px;margin:-17px 0 0 -17px;border:3px solid rgba(255,255,255,.18);border-top-color:#fff;border-radius:50%;animation:spChargeTourne .9s linear infinite;z-index:5;pointer-events:none}@keyframes spChargeTourne{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){#spCharge{animation-duration:2.4s}}</style>
-  <div id="spCharge"></div>
-  <canvas id="fxCv"></canvas>
-  <div id="spStage">
-    <div id="spTitle" class="tease"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
-    <div id="spNum">1.61<b id="spGam">GAMES</b></div><!-- (2026-09-25, user : « marque juste 1.61 GAMES et enlève le phi ») -->
-    <!-- ⚠ PLUS DE BOUTON (2026-09-05, demande du user : « on clique juste sur CASH CAR »). Le geste
-         reste le même — `sp9` écoute déjà le clic sur TOUT l'écran, pas sur un élément précis — mais
-         il n'y a plus de plaque séparée à viser : le titre EST le bouton. (2026-10-01, Sacha : « ça, enlève » — la plaque
-         « TOUCHE CASH CAR — LE SON S'ALLUME AVEC TOI » est retirée ; le code qui la cherchait vérifie déjà qu'elle existe.) -->
-  </div>
-  <div id="spFlash"></div>
-</div>
 <div id="hud">
 <div id="launchGlow" aria-hidden="true"></div>
 <div id="launchLogo" aria-hidden="true"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
-  <canvas id="slCv"></canvas>
-  <canvas id="juiceCv"></canvas>
+  <canvas id="slCv" aria-hidden="true"></canvas>
+  <canvas id="juiceCv" aria-hidden="true"></canvas>
   <div id="cloudFx"></div>
   <div id="vig"></div>
   <div id="beatFx"></div>
@@ -143,7 +128,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
          barre d'action : la SORTIE sous le pouce gauche, LA décision — un seul lingot — sous le pouce droit). La caisse,
          au milieu, reste nue. Les ids n'ont pas bougé : tout le câblage JS les retrouve. -->
     <div id="gTop">
-      <div id="gTopRow"><span id="gTitle" hidden>GARAGE</span><div id="gCompteur" aria-label="Compte"><b>$0</b></div><!-- (2026-09-29, Léo : « reprends les boutons du menu d'après le crash et mets-les dans le garage ») BOUTIQUE · RÉGLAGES, en haut à droite (le coin vide) ; GARAGE n'est pas repris : on y est --><div id="gOutils"><div class="pbtn pbCarre pb-mag" data-go="shop" role="button" tabindex="0" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i></div><div class="pbtn pbCarre" data-go="set" role="button" tabindex="0" aria-label="Réglages"><svg class="boulon" viewBox="3 8 42 40" aria-hidden="true"></svg></div></div></div>
+      <div id="gTopRow"><span id="gTitle" hidden>GARAGE</span><div id="gCompteur" aria-label="Compte"><b>€0</b></div><!-- (2026-09-29, Léo : « reprends les boutons du menu d'après le crash et mets-les dans le garage ») BOUTIQUE · RÉGLAGES, en haut à droite (le coin vide) ; GARAGE n'est pas repris : on y est --><div id="gOutils"><div class="pbtn pbCarre pb-mag" data-go="shop" role="button" tabindex="0" aria-label="Boutique"><i class="pxi pxi-panier" aria-hidden="true"></i></div><div class="pbtn pbCarre" data-go="set" role="button" tabindex="0" aria-label="Réglages"><svg class="boulon" viewBox="3 8 42 40" aria-hidden="true"></svg></div></div></div>
       <div id="gAuraC" aria-label="Aura"><i class="pxi pxi-etoile" aria-hidden="true"></i><b>0</b><small></small><u><em></em></u></div>
       <div id="gPlayMain" role="button" tabindex="0" aria-label="Jouer"></div><!-- (le JOUER en lettres de l'ancien garage : masqué, gardé pour le câblage) -->
       <div id="gCard">
@@ -198,7 +183,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
          jamais fait ; l'anneau se remplit sous le doigt pendant qu'on tient. -->
     <div id="gInvAide" aria-hidden="true"><i class="ivDoigt"></i><span data-fr="MAINTIENS TA CAISSE">MAINTIENS TA CAISSE</span><b data-fr="BURN-OUT">BURN-OUT</b></div>
     <div id="gInvAnneau" aria-hidden="true"></div>
-    <div id="gInv" role="dialog" aria-label="Inventaire">
+    <div id="gInv" role="dialog" aria-modal="true" aria-label="Inventaire">
       <div class="ivTete"><b data-fr="INVENTAIRE">INVENTAIRE</b><small id="ivCompte"></small><button id="ivFerme" class="pbtn pbCarre" aria-label="Fermer"><i class="pxi pxi-croix" aria-hidden="true"></i></button></div>
       <div class="ivTabs" role="tablist">
         <button class="ivTab on" data-c="figure" role="tab"><i class="pxi pxi-rotation" aria-hidden="true"></i><span data-fr="FIGURES">FIGURES</span><em></em></button><!-- (2026-10-14) les FIGURES qu'on a (double-tap nitro) ; (2026-10-25, Sacha) en premier -->
@@ -221,20 +206,20 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
       <div id="gCard">
         <div id="stName">POMME</div>
         <div class="stRow"><span>Boost rendu</span><b id="stBoostV">0.50</b></div>
-        <input id="stBoost" class="stSlider" type="range" min="0" max="2" step="0.05">
+        <input id="stBoost" class="stSlider" type="range" aria-label="Boost rendu" min="0" max="2" step="0.05">
         <div class="stRow"><span>Fréquence d'apparition</span><b id="stFreqV">10</b></div>
-        <input id="stFreq" class="stSlider" type="range" min="0" max="30" step="1">
+        <input id="stFreq" class="stSlider" type="range" aria-label="Fréquence d'apparition" min="0" max="30" step="1">
         <div id="stRare">soit 12 % des fruits de la piste</div>
       </div>
       <button id="stNext" class="gNav pbtn pb-cyan pbCarre" aria-label="Fruit suivant"><i class="pxi pxi-droite" aria-hidden="true"></i></button>
     </div>
   </div>
   <div id="carInfo" class="panel"><div id="carName">LA HONTE</div><div id="carLevel">MOTEUR ROUILLÉ</div></div>
-  <div id="money"><span id="moneyTxt">$00000000</span></div>
+  <div id="money"><span id="moneyTxt">€00000000</span></div>
   <!-- (2026-09-29, Sacha : « rajoute un compteur d'argent stylé, inspiré de loin de GTA, mais avec notre DA ») LE COMPTEUR D'ARGENT DU
        TÉLÉPHONE : en haut à droite sous le ⏸ (la place de l'argent dans GTA), le total de la partie qui DÉFILE vers sa valeur, et sous lui le
        « +$ » qui s'additionne tant que ça tombe (1,8 s) — en or pendant la frénésie (×3). Typo ombrée VERTE (l'argent du jeu est vert). -->
-  <div id="cashHud" aria-hidden="true"><b class="chV"><i>$</i><span>0</span></b><em class="chD"></em></div>
+  <div id="cashHud" aria-hidden="true"><b class="chV"><i>&#xE000;</i><span>0</span></b><em class="chD"></em></div>
   <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em><i id="avPlus"></i></div><div id="avRec" class="vide"><span id="avRecT"></span><i><s id="avRecF"></s></i></div>
     <div id="avCh"><div class="avChTop"><b id="avPts">0</b><span id="avX">×1</span></div><div class="avBar"><i id="avBarF"></i></div><ul id="avList"></ul></div></div>
   <!-- (2026-09-28, Sacha) L'EMBLÈME DE LA FRÉNÉSIE « THE DARK TRIAD » — v3 EN PIXEL (même soir : « toute l'interface est faite en pixel,
@@ -283,13 +268,13 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   <div id="chainHud"></div>
   <div id="caseHud"></div>
   <div id="turnHint"></div>
-  <canvas id="airPie" width="156" height="156"></canvas>
+  <canvas id="airPie" width="156" height="156" aria-hidden="true"></canvas>
   <!-- (2026-09-28, Sacha : « le camembert air time ne ressemble pas à la barre de nitro ni au compteur ») LE CHRONO DE VOL, FRÈRE DE LA JAUGE
        NITRO : l'aile pixel, les secondes dans la typo ombrée du compteur d'aura, et une barre de la même recette que la nitro (cadre
        d'encre, remplissage en quatre bandes, curseur blanc) qui se vide. Il se montre et se cache AVEC #airPie (sélecteur frère) : le
        canvas garde son rôle d'état (display, .danger) — plus rien n'y est dessiné. -->
   <div id="airHud" aria-hidden="true"><div class="ahTop"><i class="pxi pxi-aile"></i><b class="ahS">6.0</b><em>AIR</em></div><div class="ahBar"><i class="hanAhM"></i><i class="ahF"><i class="hanAhR"></i></i></div></div>
-  <canvas id="minimap" width="176" height="176"></canvas>
+  <canvas id="minimap" width="176" height="176" aria-hidden="true"></canvas>
   <div id="survHud"></div>
   <div id="lastAlert"></div>
   <!-- LES NIVEAUX (2026-09-24) : « NIVEAU n — LIEU » au départ et à chaque portail (voir lvlAnnonce) -->

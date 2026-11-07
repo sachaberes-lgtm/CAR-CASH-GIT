@@ -1,5 +1,5 @@
 // ---------- VOITURES & ÉCONOMIE ----------
-// 15 caisses, UNE SILHOUETTE CHACUNE (2026-08-05) — l'ancien roster de 24 faisait sortir 10 caisses
+// (2026-11-05, jury ECO-28 : 91 lignes dont 50 caisses actives et 41 retirées — l'index d'une ligne ne bouge JAMAIS) 15 caisses à l'origine, UNE SILHOUETTE CHACUNE (2026-08-05) — l'ancien roster de 24 faisait sortir 10 caisses
 // du même moule `rocket` : 20 paires au-dessus de 90 % de recouvrement. Mieux vaut 15 formes qu'on
 // reconnaît que 24 variantes d'une seule. ⚠ toutes au-dessus de l'ex-reine
 // (657 km/h) et de plus en plus extrêmes. Le skin = le palier visuel ; `desc` = la carte de déblocage.
@@ -25,8 +25,8 @@ const CARS=[
   desc:'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.'},
  {retire:1,name:'SA MAJESTÉ'},
  {name:'ROSSO 40',        shape:'rosso',   color:0xe8121c,accent:0x131417,maxKmh:420,accel:48,turn:3.05,h:1.12,w:1.98,l:4.36,spoiler:0,rar:'epique', /* (2026-10-22, Sacha : « tableau des voitures » ROSSO 40 épique à 400 000 $ : sans cette ligne le prix la ferait RARE) */
-  desc:'Rouge course, aileron plateau. La caisse de rêve : 1,5 million, et chaque dollar se voit.'},
- {name:'POSTER 84',       shape:'poster',  color:0xffc414,accent:0x131417,maxKmh:480,accel:55,turn:3.15,h:1.07,w:2.00,l:4.14,spoiler:0,
+  desc:'Rouge course, aileron plateau. La caisse de rêve : 1,5 million, et chaque euro se voit.'},
+ {name:'POSTER 84',       shape:'poster',  color:0xffc414,accent:0x131417,maxKmh:480,accel:55,turn:3.15,h:1.07,w:2.00,l:4.14,spoiler:0,rar:'legendaire', /* (2026-11-05, jury ECO-11 : TABLEAU-VOITURES.md la veut LÉGENDAIRE ; sans `rar`, carRar la déduisait du prix (3,2 M) = ÉPIQUE) */
   desc:'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.'},
  // ---- LES CAISSES DE CONTRAT (2026-09-25) : elles ne s'achètent PAS — chacune est la récompense d'un
  // carnet de trois missions (voir `CARNETS`). Des silhouettes que tout le monde reconnaît de loin, sans
@@ -45,7 +45,9 @@ const CARS=[
   // (2026-10-06) en voxels : 1,7 × 3 m, oreilles à 1,5 m — plus de bandes néon (`glow`) : elles barraient les murs noirs
   fx:{jet:0xff64d2,core:0xffd8f2,trail:[1.5,.35,1.1],light:0xff5ec8}, // (2026-10-07) son arc-en-ciel EN FEU DE PIXELS (voir ARC_*) + ses pixels qui scintillent (NY_PIX), à la nitro et en vol — branché par NYAN.on
   desc:'Une pâtisserie industrielle avec une tête de chat et quatre roulettes. Personne n\'a demandé pourquoi. Tout le monde a demandé comment.'},
- {retire:1,name:'REQUIN'}, /* (2026-10-21, Sacha : « suprime la voiture shark dans la boutique ») RETIRÉ : remplacé en boutique par LE SQUALE (le requin de Léo) ; sa ligne reste (index de sauvegarde) */
+ {name:'REQUIN',          shape:'requin',  color:0x3a6ea8,accent:0xdfe9f2,maxKmh:600,accel:68,turn:3.22,h:.95,w:1.98,l:3.3,spoiler:0,glow:0x9adfff,rar:'legendaire',
+  fx:{jet:0x86f2ff,core:0xffffff,trail:[.42,1.30,1.45],light:0x62d8ff,spray:1},
+  desc:'Bulle de verre, museau de grand blanc, quatre bras d\'hélices repliés dans les flancs. Au sol il roule. En l\'air, il chasse.'}, /* (2026-10-21, Sacha : « suprime la voiture shark dans la boutique ») RETIRÉ : remplacé en boutique par LE SQUALE (le requin de Léo) ; sa ligne reste (index de sauvegarde) */
  {retire:1,name:'COMÈTE',          shape:'proto',   color:0x3c16ae,accent:0xffd75e,maxKmh:657,accel:75,turn:3.25,h:1.2,w:2.08,l:5.05,spoiler:1, /* (2026-10-27, au kit) h = sa vraie hauteur de toit ; ni `glow` (deux traits blancs sur la tôle) ni `rocket` (deux tubes gris génériques) : ses propulseurs sont dans son gabarit */
   desc:'Coin furtif, bulle de verre, dérive dorsale. La reine du ciel, et elle le sait. Personne ne l\'a jamais vue de face.'},
  {retire:1,name:'FORMULE OR'},
@@ -63,8 +65,10 @@ const CARS=[
     (2026-10-18) Toutes les caisses retirées sont RÉDUITES à `{retire:1,name:'…'}` : plus de cotes, de couleurs ni de punchline — aucune boucle
     ne lit la fiche d'une retirée (carRetiree d'abord). Le NOM reste : la mission qui la donne et le message de remboursement l'écrivent. */
  {retire:1,name:'LA POSTIÈRE'},
- {retire:1,name:'LA DEUCHE'},
- {retire:1,name:'LE TAXI JAUNE'},
+ {name:'LA DEUCHE',color:0x7a1426,accent:0x121212,maxKmh:185,accel:20,turn:2.6,h:1.6,w:1.48,l:3.83,spoiler:0,shape:'a_deuche',rar:'commun',
+  desc:'Deux chevaux sous le capot, un moteur de jet dans le coffre. Le toit s\'ouvre, les rivaux se referment.'},
+ {name:'LE TAXI JAUNE',color:0xffc61a,accent:0x141414,maxKmh:215,accel:24,turn:2.45,h:1.5,w:2,l:5.4,spoiler:0,shape:'a_taxi',rar:'commun',
+  desc:'Le compteur tourne en millions. Tu montes, tu t\'accroches, tu ne négocies pas le prix.'},
  {name:'LA PIZZA EXPRESS',color:0xf4f1ea,accent:0xd8261e,maxKmh:190,accel:21,turn:2.9,h:1.45,w:1.5,l:3.4,spoiler:0,shape:'b_pizza',rar:'legendaire',
   desc:'30 minutes chrono ou la pizza est offerte. Spoiler : elle n\'a jamais été offerte.'},
  {retire:1,name:'LE MONOSPACE'},
@@ -179,9 +183,11 @@ const CARS=[
  // (2026-10-14, Léo : « fais une voiture tête de doge » · « dans le même esprit que la nyan cat ») LE DOGE (voir SHAPES.doge) : le mème du
  // shiba en voxels, regard en coin, queue en tire-bouchon, et les phrases du mème qui surgissent autour de lui. Ajoutée EN DERNIER.
  // (2026-10-26) REDESSINÉ EN POLY (SHAPES.doge v3) : la grosse tête taillée en pans plans, ~2 800 triangles au lieu de 46 000 ; `?doge=ancien` rend la v2.
- {name:'LE DOGE',shape:'doge',color:0xd99545,accent:0xf6e6c6,maxKmh:440,accel:53,turn:3.1,h:2.0,w:2.0,l:2.3,spoiler:0,rar:'epique',
+ /* (2026-11-05, Opus : jury IOS-05 / IOS-18, décision D4 — recommandation du jury, Sacha n'a pas tranché) « Doge » est une marque déposée et le nom
+    d'une cryptomonnaie : LE DOGE devient LE SHIBA (la race du chien). Même index, même forme (shape 'doge'), même fiche : seuls le nom et la phrase changent. */
+ {name:'LE SHIBA',shape:'doge',color:0xd99545,accent:0xf6e6c6,maxKmh:440,accel:53,turn:3.1,h:2.0,w:2.0,l:2.3,spoiler:0,rar:'epique',
   fx:{jet:0xffc83a,core:0xfff2c0,trail:[1.5,1.1,.3],light:0xffb43a,wow:1}, // sa traînée : les phrases du mème (voir LA TRAÎNÉE WOW)
-  desc:'Wow. Très tête. Beaucoup roues. Il te regarde de côté, et il a raison.'},
+  desc:'Une grosse tête de chien sur quatre roues. Il te regarde de côté, et il a raison.'},
  // (2026-10-16, Léo : « fais une belle Porsche Cayenne rose Barbie », puis « un rose plus pâle, vraiment Cayenne ») LA POUPÉE (voir SHAPES.poupee) :
  // le grand SUV de luxe allemand, en rose poupée pâle. Pas de marque (ni le nom, ni le blason) : un petit cœur à la place. Ajoutée EN DERNIER.
  // (2026-10-17, Léo : « enlève la barbie » → « du jeu ») elle avait été RETIRÉE, et remboursée (4,2 M$) à qui l'avait achetée ; (2026-10-18, Sacha) la
@@ -224,7 +230,7 @@ const CARS=[
  /* · */
  /* · */
  /* · */
- {name:'LA CERISE',shape:'mx5na',color:0x8c0a14,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'commun', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
+ {name:'KELLY CHERRY',shape:'mx5na',color:0x8c0a14,accent:0x141416,maxKmh:225,accel:26,turn:3,h:1.23,w:1.68,l:3.97,spoiler:0,rar:'legendaire', // 83 — discussion JAPONAISES : le roadster d'Hiroshima de 1989 (la ligne de la Mazda MX-5 NA), rouge classique, capote repliée, PHARES ESCAMOTABLES qui se lèvent (SHAPES.mx5na, `MX5PH`)
   desc:'Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.'},
  /* · */
  /* · */
@@ -276,6 +282,14 @@ const CARS=[
    119 figures) versait 401 MILLIARDS — la pièce valait ×1,585 par palier (6,2 M au palier 30) alors que la caisse la plus chère
    coûte 2,5 M. Désormais la pièce monte DOUCEMENT (×1,06 par palier : 3 → 16 $). Une partie de débutant rapporte ~1-2 k (une
    COMMUNE en une à trois parties), une très grande partie ~1 M (une ÉPIQUE en deux ou trois) — les 16 k des rares se méritent. */
+/* ⚠ ÉCONOMIE v5 — LA ROSSO 40 APRÈS 100 PARTIES AU PALIER 20 (2026-11-01, Sacha : « redessine les pièces en 1 € et 2 €, et fais que
+   la ROSSO 40 s'achète après 100 parties au palier 20 »). MESURÉ (banc Node, outils/sim-palier20 : la VRAIE suite de paliers moteur,
+   le combo ×2,5 et le flow moyen d'un bon pilote rejoués jusqu'aux 844 pièces du palier 20) : la rampe du dessus ne payait que
+   ~10 000 $ une fois le palier 20 atteint, soit ~1 M$ sur 100 parties — il manquait ×4 pour les 4 M$ de la ROSSO 40. ⚠ Resserrer les
+   pièces sur la route n'y change RIEN : atteindre un palier, c'est ramasser un NOMBRE de pièces fixe (844), seule leur VALEUR compte.
+   Désormais la pente s'accélère à partir du palier 10 (les 10 premiers paliers, calés sur les premières caisses, ne bougent pas) pour
+   valoir 63 $ au palier 20 (×39 000 $ sur 100 parties mesurées) au lieu de 9 $, puis continue plus doucement (+~10 %/palier) jusqu'au
+   palier 30 : ~427 k$ la très grande partie (56 k$ avant) — une ÉPIQUE à 3 M se mérite encore en plusieurs. */
 const DENOMS=[3,3,3,4,4,4,4,5,5,5,
-              5,6,6,6,7,7,8,8,9,9,
-              10,11,11,12,12,13,14,15,16,16]; // 30 paliers moteur
+              5,10,14,18,26,30,40,45,57,63,
+              69,76,84,92,101,112,123,135,149,164]; // 30 paliers moteur — 0-9 inchangés, 10-29 recalés (voir ÉCONOMIE v5)

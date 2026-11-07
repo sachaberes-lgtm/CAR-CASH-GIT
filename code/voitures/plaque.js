@@ -70,7 +70,7 @@ function plqModOk(m){for(const o of PLQ_MOD)if(o.id===m)return m;return 'fr';}
 function plqNet(s){ // le texte tel qu'il peut se peindre : capitales, sans accent, 9 signes, rien que la police sache dessiner
   s=String(s==null?'':s).toUpperCase();
   try{s=s.normalize('NFD').replace(/[̀-ͯ]/g,'');}catch(e){}
-  return s.replace(/[^A-Z0-9 \-.!?$]/g,'').replace(/\s+/g,' ').replace(/^ /,'').slice(0,PLQ_MAX);}
+  return s.replace(/\$/g,'€').replace(/[^A-Z0-9 \-.!?€]/g,'').replace(/\s+/g,' ').replace(/^ /,'').slice(0,PLQ_MAX);}
 function plqHasard(){const L='ABCDEFGHJKLMNPQRSTVWXYZ',c=function(){return L[Math.random()*L.length|0];},n=function(){return String(Math.random()*10|0);};
   return c()+c()+'-'+n()+n()+n()+'-'+c()+c();} // le format d'une vraie plaque française (sans I, O ni U, comme la vraie)
 function plqEtat(){try{const p=SAVE.d&&SAVE.d.plq;if(p&&typeof p==='object')return p;}catch(e){} // (1er buildCar : SAVE n'existe pas encore)
@@ -127,7 +127,7 @@ function plqPeint(x,W,H,m,t,fond){
       x.save();oct(4);x.clip();x.strokeStyle='rgba(13,77,42,.16)';x.lineWidth=2;
       for(let j=0;j<7;j++){x.beginPath();for(let i=0;i<=64;i++){const px=i*8,py=14+j*17+Math.sin(i*.45+j)*6;if(i)x.lineTo(px,py);else x.moveTo(px,py);}x.stroke();}
       x.restore();x.strokeStyle='#2f7d4c';x.lineWidth=2;x.strokeRect(13,13,486,102);
-      for(const p of [[30,32],[482,32],[30,98],[482,98]])mot('$',16,p[0],p[1],'#0d4d2a');
+      for(const p of [[30,32],[482,32],[30,98],[482,98]])mot('€',16,p[0],p[1],'#0d4d2a');
       col='#0b3a20';zx=52;zw=408;break;
     case 'lingot':
       oct(0,'#5a3000');oct(3,deg(3,125,'#fff2b8','#e89a12'));oct(8,deg(8,120,'#22180a','#0d0904'));
@@ -150,7 +150,7 @@ function plqPeint(x,W,H,m,t,fond){
       x.save();oct(4);x.clip();x.fillStyle='#1d3fae';x.fillRect(0,0,62,128);x.fillRect(450,0,62,128);x.restore();
       x.fillStyle='#ffd400';for(let i=0;i<12;i++){const a=i/12*Math.PI*2;x.fillRect(Math.round(33+Math.cos(a)*17)-2,Math.round(42+Math.sin(a)*17)-2,4,4);}
       mot('F',24,33,94,'#fff');
-      x.fillStyle='#ffd400';x.beginPath();x.arc(481,44,15,0,7);x.fill();mot('$',16,481,45,'#1d3fae');mot('CC',16,481,94,'#fff');
+      x.fillStyle='#ffd400';x.beginPath();x.arc(481,44,15,0,7);x.fill();mot('€',16,481,45,'#1d3fae');mot('CC',16,481,94,'#fff');
       col='#121418';zx=66;zw=380;
   }
   x.restore();
@@ -168,8 +168,8 @@ function plqTex(){if(PLQ.tex)return PLQ.tex;
   plqRepeint();try{apresPolice(plqRepeint);}catch(e){}return t;}
 function plqRepeint(){if(!PLQ.ctx)return;const e=plqEtat();plqPeint(PLQ.ctx,512,128,plqModOk(e.m),String(e.x||'').trim(),'#101014');if(PLQ.tex)PLQ.tex.needsUpdate=true;}
 function plqMats(){if(PLQ.matF)return;plqTex();
-  PLQ.matF=new THREE.MeshBasicMaterial({map:PLQ.tex,color:0xd9d9d9});PLQ.matF.userData.plq=1; // la face : elle ne prend pas la lumière, comme une plaque éclairée par sa lampe (lisible de nuit)
-  PLQ.matC=new THREE.MeshPhongMaterial({color:0x101014,shininess:70,specular:0x4a4a4a});PLQ.matC.userData.plq=1;} // le cadre (le programme des plastiques noirs : rien de neuf à compiler)
+  PLQ.matF=new THREE.MeshBasicMaterial({map:PLQ.tex,color:0xd9d9d9,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4});PLQ.matF.userData.plq=1; /* (2026-11-03, Sacha : « la plaque est buggée ») de dos, la face (à +24 mm) et le cadre noir (front à +21 mm) se disputaient les mêmes pixels (z-fighting) : une plaque sombre et striée, illisible. La face passe devant (polygonOffset) et le cadre recule. */ // la face : elle ne prend pas la lumière, comme une plaque éclairée par sa lampe (lisible de nuit)
+  PLQ.matC=new THREE.MeshPhongMaterial({color:0x101014,shininess:70,specular:0x4a4a4a,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});PLQ.matC.userData.plq=1;} // le cadre (le programme des plastiques noirs : rien de neuf à compiler)
 /* ---- OÙ POSER LA PLAQUE : des rayons tirés vers la caisse, dans son repère (sd −1 = l'arrière, +1 = l'avant) ---- */
 function plqCherche(sd,W9,H9,L9,y0,pw,exclus,verre){
   const R=PLQ.ray||(PLQ.ray=new THREE.Raycaster()),o=new THREE.Vector3(),d=new THREE.Vector3(),n=new THREE.Vector3(),
@@ -217,17 +217,17 @@ function plqPose(lvl,A,W9,H9,L9,y0,exclus,verre,prims){ // appelée par buildCar
     const a=Math.max(-.3,Math.min(.7,Math.atan2(q.ny,Math.abs(q.nz)||1e-3))); // la pente de la tôle (vers le haut = la plaque regarde un peu le ciel)
     const nx9=0,ny9=Math.sin(a),nz9=sd*Math.cos(a);
     for(const k of [0,1]){const m=new THREE.Mesh(k?new THREE.PlaneGeometry(pw,ph):new THREE.BoxGeometry(pw+.035,ph+.035,.02),k?PLQ.matF:PLQ.matC);
-      const e=k?.024:.011;m.position.set(nx9*e,q.y+ny9*e,q.z+nz9*e);
+      const e=k?.034:.011;m.position.set(nx9*e,q.y+ny9*e,q.z+nz9*e);
       m.rotation.order='YXZ';m.rotation.y=sd<0?Math.PI:0;m.rotation.x=-a;
       m.userData.noShadow=true;m.userData.plaque=sd<0?'ar':'av';carGroup.add(m);}
   }
 }
 /* ---- LES ÉCRANS : l'atelier de la plaque (#plq) et le profil (#prof) ---- */
 Object.assign(I18N,{'TA PLAQUE':'YOUR PLATE','Elle roule sur toutes tes caisses':'It rides on all your cars','VALIDER':'CONFIRM','RETOUR':'BACK',
-  'MON PROFIL':'MY PROFILE','CHANGER MA PLAQUE':'CHANGE MY PLATE','TEMPS DE JEU':'PLAY TIME','JOUEUR DEPUIS':'PLAYER SINCE','PARTIES':'RUNS',
+  'MON PROFIL':'MY PROFILE','CHANGER MA PLAQUE':'CHANGE MY PLATE','TEMPS DANS L\'APP':'TIME IN APP','JOUEUR DEPUIS':'PLAYER SINCE','PARTIES':'RUNS',
   'FIGURES':'TRICKS','MEILLEUR TEMPS':'BEST TIME','RECORD':'BEST SCORE','FORTUNE MAX':'TOP FORTUNE','VITESSE MAX':'TOP SPEED',
   'AURA':'AURA','MEILLEURE AURA':'BEST AURA','RANG':'RANK','CAISSES':'CARS','MISSIONS':'MISSIONS','MEILLEUR COMBO':'BEST COMBO','SERIE':'STREAK',
-  'TEMPS EN COURSE':'RACE TIME','Au hasard':'Random','Le texte de ta plaque':'Your plate text','Modeles':'Styles','Profil':'Profile',
+  'EN COURSE':'IN RACES','Au hasard':'Random','Le texte de ta plaque':'Your plate text','Modeles':'Styles','Profil':'Profile',
   'JOURS':'DAYS','JOUR':'DAY','AUJOURD\'HUI':'TODAY','RETRO':'RETRO','COURSE':'RACING','BILLET':'BANKNOTE','LINGOT':'GOLD BAR','FRANCE':'FRANCE',
   'PLAQUE ENREGISTREE':'PLATE SAVED'});
 function $p(id){return document.getElementById(id);}
@@ -315,6 +315,7 @@ function plqVeut(){try{if(/[?&]plaque=1\b/.test(location.search))return !PLQ.fai
   return !PLQ.fait&&!(SAVE.d.plq&&SAVE.d.plq.ok)&&!BALADE&&!SIMU_JEU&&!SANDBOX&&!(PARK&&PARK.on);}catch(e){return false;}}
 function plqGuette(){if(PLQ.iv)return;PLQ.iv=setInterval(function(){try{
   if(!plqVeut()){clearInterval(PLQ.iv);return;}
+  if(!/[?&]plaque=ancien\b/.test(location.search)&&!((SAVE.d.ex&&SAVE.d.ex.runs)>0)){PLQ.t0=0;return;} /* (2026-11-05, Opus : jury DIR-46, décision D8 — recommandation) la plaque se choisit APRÈS la 1re course, plus avant d'avoir vu le jeu : la guette PATIENTE (elle ne s'arrête plus) jusqu'au retour à l'accueil après la 1re partie ; `?plaque=ancien` = au 1er accueil */
   const sp=document.getElementById('splash'),md=document.getElementById('modale');
   const pret=!sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play')&&!BIENV.on;
   if(!pret){PLQ.t0=0;return;}if(!PLQ.t0){PLQ.t0=performance.now();return;}
@@ -325,17 +326,17 @@ function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for
   let mis=0,misT=0;try{const s=m2Etat();mis=(s.ok||[]).length;misT=M2.length;}catch(e){}
   let rang='';try{rang=auraRankName();}catch(e){}
   return [
-    ['horloge','TEMPS DE JEU',plqDuree(Math.max(p.tA||0,tc)),'gros'],
+    ['horloge','TEMPS DANS L\'APP',plqDuree(Math.max(p.tA||0,tc)),'gros'],
     ['etoile','JOUEUR DEPUIS',plqDate(p.ne),''],
     ['drapeau','PARTIES',String(ex.runs|0),''],
     ['rotation','FIGURES',String(ex.tricks|0),''],
     ['horloge','MEILLEUR TEMPS',p.dMax?plqDuree(p.dMax):'—',''],
-    ['volant','TEMPS EN COURSE',plqDuree(tc),''],
+    ['volant','EN COURSE',plqDuree(tc),''],
     ['piece','RECORD',fmtC(d.best||0),'cash'],
     ['piece','FORTUNE MAX',fmtC(Math.max(d.bankMax||0,d.bank||0)),'cash'],
     ['eclair','VITESSE MAX',(ex.kmh|0)+' KM/H',''],
     ['etoile','AURA',String(Math.round(d.aura||0)),'aura'],
-    ['trophee','RANG',rang?sansAcc(rang):'—','aura'],
+    ...(auraSansNom()?[]:[['trophee','RANG',rang?sansAcc(rang):'—','aura']]), /* (2026-11-05, finition : « plus de surnom de rang, juste le chiffre » — la carte RANG écrivait encore ANONYME ; sans elle, 15 cartes = 5 rangées de 3 pleines, SERIE ne traîne plus seule dessous) */
     ['etoile','MEILLEURE AURA',String(Math.round(d.auraMax||0)),'aura'],
     ['rotation','MEILLEUR COMBO',d.figRec?'×'+(+d.figRec).toFixed(d.figRec%1?1:0):'—',''],
     ['voiture','CAISSES',own+' / '+tot,''],

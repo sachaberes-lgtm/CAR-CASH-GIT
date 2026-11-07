@@ -1,6 +1,32 @@
 (function(){
 'use strict';
 if(window.CC_COLONNE)return; // (2026-09-28) sur l'ordi cette page n'est que le CADRE : le jeu tourne dans la colonne (voir <head>)
+/* ===== L'APP ET LE MODE DÉVELOPPEUR (2026-11-05, Opus : « dans l'app, plus aucun mot PUB » · HYG-10 « un seul drapeau DEV ») =====
+   EN_APP : le jeu tourne dans l'app iPhone (la coquille Capacitor pose window.Capacitor AVANT le jeu). ⚠ Pas TEL_NATIF : lui est vrai aussi
+   dans Safari sur iPhone (le site). `?app=1` simule l'app au navigateur, pour les bancs. La classe `ccApp` sur <html> sert au CSS.
+   DEV : les paramètres d'adresse qui donnent un avantage ou faussent la partie (?pub=0 ?chance=0 ?spin=0 ?cadeau=1 ?lecon=non ?eco=ancien,
+   et ceux des autres zones : ?carte= ?niveau= ?simu=1) ne comptent que sur une copie LOCALE (localhost, 127.0.0.1, réseau privé, fichier)
+   ou avec `?dev=…` dans l'adresse. Sur le site public et dans l'app, ils sont ignorés. `qDev(/re/)` = « ce paramètre ET le mode DEV ». */
+const EN_APP=!!window.Capacitor||/[?&]app=1\b/.test(location.search);
+const DEV=location.protocol==='file:'||/[?&]dev=/.test(location.search)||
+  /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)$|\.(local|localhost|test)$/.test(location.hostname);
+function qDev(re){return DEV&&re.test(location.search);}
+if(EN_APP)try{document.documentElement.classList.add('ccApp');}catch(e){}
+window.CC_DEV=DEV;window.CC_EN_APP=EN_APP;
+/* COUCHÉ, UNE SEULE DÉFINITION (2026-11-05, Opus : jury INT-26) : le CSS dit « couché » quand l'écran est en paysage ET bas (≤ 540 px), ou en
+   paysage large (≥ 3/2) jusqu'à 820 px de haut ; le JS avait deux autres règles (ratio > 1,25 aux missions, > 1 au HUD des figures). estCouche()
+   lit la MÊME requête que le CSS (et que GT_COUCHE du garage). `?couche=ancien` : les anciennes règles. */
+const COUCHE_MQ=(function(){try{return matchMedia('(orientation:landscape) and (max-height:540px),(orientation:landscape) and (min-aspect-ratio:3/2) and (max-height:820px)');}catch(e){return null;}})();
+const COUCHE_ANCIEN=/[?&]couche=ancien\b/.test(location.search);
+function estCouche(){return COUCHE_MQ?COUCHE_MQ.matches:innerWidth>innerHeight;}
+/* ACHAT_EUR (2026-11-05, Opus : jury INT-01 / INT-20, décision D3 « masquer partout tant que StoreKit n'existe pas ») : faux = ni l'écran ACHAT
+   (#mShop), ni ses portes (la tuile de l'accueil, la BOUTIQUE du bas du garage, la porte des offres éphémères), ni le rayon ACHAT de la boutique.
+   shopPaye reste, inerte. Les caisses en € ne comptent plus nulle part (caisse équipée, étage, missions « toutes »). `?achat=ancien` : l'ancien. */
+/* (2026-11-05, Sacha : « remet le, c'est tout, je m'en fous du jury ») ACHAT REVIENT SUR LE SITE : seule l'app iPhone (EN_APP) le garde coupé (preparer-www l'y cache aussi) ; `?achat=non` : la coupe du jury. */
+const ACHAT_EUR=(!EN_APP&&!/[?&]achat=non\b/.test(location.search))||/[?&]achat=ancien\b/.test(location.search);
+if(!ACHAT_EUR)try{const s9=document.createElement('style');s9.id='sansAchat';
+  s9.textContent='html:not(#ccA):not(#ccB) :is([data-m="shop"],[data-go="shop"],#mShop,#bdShop,.fnPorte){display:none!important}';
+  document.head.appendChild(s9);}catch(e){}
 /* ================= LES ICÔNES PIXEL (2026-09-24) =================
    ⚠ POURQUOI : la police pixel du jeu n'a AUCUN des symboles d'interface (✕ ◀ ▶ ⚙ ⏸ ↻ ★ ✓ — mesuré) ; ils
    tombaient dans la police du système ou en EMOJI, chacun avec sa facture, ses couleurs, son épaisseur —
@@ -119,7 +145,7 @@ function modale(o){return new Promise(function(res){
    `?bienvenue=0` la tait (bancs), `?bienvenue=1` la pose à chaque ouverture (essai), `dbgBienvenue()` la montre. Le doigt TAPE TA CAISSE attend qu'elle soit refermée (BIENV.on). */
 var BIENV={on:false,fait:false,t0:0,iv:0};
 function bienvI18n(){Object.assign(I18N,{'PREMIERE FOIS ICI ?':'FIRST TIME HERE?','OUI, GUIDE-MOI':'YES, GUIDE ME',"J'AI DEJA JOUE":"I'VE PLAYED BEFORE",'Une course guidée':'A guided run','Direct en course':'Straight to the race','NE PLUS ME DEMANDER':"DON'T ASK AGAIN",
-  'Une minute en roulant pour apprendre, et ton PERMIS rapporte $ 500.':'One minute on the road to learn, and your LICENSE pays $500.'});} // (I18N naît plus bas dans le script : les mots sont posés au démarrage du guet)
+  'Une minute en roulant pour apprendre, et ton PERMIS rapporte € 500.':'One minute on the road to learn, and your LICENSE pays €500.'});} // (I18N naît plus bas dans le script : les mots sont posés au démarrage du guet)
 function bienvVeut(){/* (2026-10-22, Sacha : « enlève ça du jeu ») la question de bienvenue n'est plus posée */ return false;const d=SAVE.d;if(/[?&]bienvenue=1\b/.test(location.search))return !BALADE; /* (essai) `?bienvenue=1` la pose quelle que soit la sauvegarde */ return !BALADE&&!SIMU_JEU&&!SANDBOX&&!PARK.on&&!d.tuto&&!d.permis&&!d.bienv&&!/[?&]bienvenue=0\b/.test(location.search);}
 function bienvPret(){const sp=document.getElementById('splash'),md=document.getElementById('modale');
   return !sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play')&&!(PLQ&&PLQ.on);} /* (2026-10-17) LA PLAQUE se choisit d'abord (voir plqGuette) */
@@ -130,7 +156,7 @@ function bienvGuette(){if(BIENV.iv)return;try{bienvI18n();}catch(e){}BIENV.iv=se
   if(performance.now()-BIENV.t0>700){clearInterval(BIENV.iv);bienvMontre();}}catch(e){}},250);} // l'accueil a fini d'entrer (700 ms) : la question se pose
 function bienvMontre(force){if(BIENV.on||(!force&&(BIENV.fait||!bienvVeut())))return;BIENV.fait=true;BIENV.on=true;
   try{chuteDoigtMontre(false);}catch(e){}
-  modale({titre:'PREMIERE FOIS ICI ?',texte:'Une minute en roulant pour apprendre, et ton PERMIS rapporte $ 500.',cartes:true,cls:'bienv',coche:'NE PLUS ME DEMANDER',
+  modale({titre:'PREMIERE FOIS ICI ?',texte:'Une minute en roulant pour apprendre, et ton PERMIS rapporte € 500.',cartes:true,cls:'bienv',coche:'NE PLUS ME DEMANDER',
     boutons:[{l:'OUI, GUIDE-MOI',ic:'volant',cls:'pb-gold',sous:'Une course guidée',v:1},{l:"J'AI DEJA JOUE",ic:'eclair',cls:'c6Neutre',sous:'Direct en course',v:0}]}).then(function(r){
     BIENV.on=false;
     if(r.coche)SAVE.d.bienv=1;
@@ -140,7 +166,8 @@ function bienvJoue(){ // la leçon part par le JOUER de l'accueil : le même che
   setTimeout(function(){const b=document.querySelector('#mHome [data-m="play"]');if(b)b.click();else try{playViaGarage(true);}catch(e){}},180);}
 window.dbgBienvenue=function(k){if(k==='raz'){SAVE.d.tuto=0;SAVE.d.permis=0;SAVE.d.bienv=0;SAVE.d.tutoProv=0;SAVE.flush();BIENV.fait=false;return 'remis à neuf';}bienvMontre(true);return {on:BIENV.on,tuto:SAVE.d.tuto,bienv:SAVE.d.bienv,prov:SAVE.d.tutoProv};};
 let toastT=0;
-function toast(h,muet){const t=document.getElementById('toast');if(!t)return;t.innerHTML=h;t.classList.add('on');
+function toast(h,muet){const t=document.getElementById('toast');if(!t)return;const deja=t.classList.contains('on');t.innerHTML=h;t.classList.add('on');
+  if(deja&&!REDUCED_MOTION&&t.animate)try{t.animate([{translate:'0 -7px'},{translate:'0 0'}],{duration:180,easing:'ease-out'});}catch(e){} /* (2026-11-07) un 2e toast pendant que le 1er est visible : il re-claque au lieu de changer de texte sans bouger */
   try{if(SONV2&&!muet){if(/pxi-coche/.test(h))sfx('ui.ok');else if(/pxi-croix/.test(h))sfx('ui.erreur');}}catch(e){} /* (2026-09-28) session SON */ /* (2026-10-14, session SON) `muet` : l'appelant a DÉJÀ sonné ce que le toast dit (refus, déblocage, achat) — pas de 2e « non-non » ni de ui.ok sous une récompense */ clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on');},1900);}
 // une ligne de panneau : icône · libellé · pastille d'état (l'ÉTAT se lit dans la pastille, la plaque ne se grise plus)
 function tpLbl(ic,txt,etat,on){const tg=(etat==='ON'||etat==='OFF'); // ON/OFF → un INTERRUPTEUR pixel ; une valeur → une étiquette or à chevron

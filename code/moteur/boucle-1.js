@@ -1,5 +1,6 @@
 function loop(now){
   requestAnimationFrame(loop);
+  if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
   if(window.__introCouvre){loop._pn=now;last=now;return;} // (2026-10-22, Léo : « ça bug ») l'INTRO DU STUDIO couvre tout l'écran : dessous, le jeu ne calcule ni ne dessine rien (il faisait saccader le film, surtout sur un Mac chargé) — voir moteur/intro-161.js
   if(lierDemarrage(now)){loop._pn=now;last=now;return;} /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : les programmes de la 1re image se lient à côté, le jeu ne dessine pas encore — voir interface/vignette-moteur.js */
   if(CAD.ok&&cadSaute(now))return; // (2026-10-14, passe perf mobile) LA CADENCE STABLE : cette image d'écran se saute, sans RIEN toucher — voir CAD
@@ -122,13 +123,13 @@ function loop(now){
     else QL.up=0;
   }
   if(PERF_MON)perfMonTick(now,rawMs);
-  lvlStep(dt);routeTick(); // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
-  ailvTick(dt); // (2026-10-16) LES AILES VIVANTES : le boost, le virage, la montée, la vitrine du garage — avant blingTick, qui les anime
-  blingTick(dt); // (2026-10-10) L'ICEBERG : les éclats de givre scintillent (menu, garage, course)
-  bioStep(dt); // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
+  try{lvlStep(dt);}catch(e){loopWarnN('niveaux',e);}try{routeTick();}catch(e){loopWarnN('route',e);} // NIVEAUX : le noir de l'orbite, la planète et la pluie suivent le même fondu — AVANT bioStep, qui lit LVL.espace
+  try{ailvTick(dt);}catch(e){loopWarnN('ailes vivantes',e);} // (2026-10-16) LES AILES VIVANTES : le boost, le virage, la montée, la vitrine du garage — avant blingTick, qui les anime
+  try{blingTick(dt);}catch(e){loopWarnN('éclats',e);} // (2026-10-10) L'ICEBERG : les éclats de givre scintillent (menu, garage, course)
+  try{bioStep(dt);}catch(e){loopWarnN('biomes',e);} // BIOMES : le voyage d'ambiance avance même au menu/en pause de jeu (c'est le ciel qui vit, pas la sim)
   try{nuFondTick(dt);}catch(e){} // (2026-10-18) le fond peint de la mer de nuages
   if(mode!=='drive'||!running||gameOver)LIGNE_U.uFile.value*=Math.max(0,1-dt*6); /* (LES TIRETS FILENT) hors de la route, le filé retombe : pas de tirets flous au menu */
-  cityTick(dt,camera.position.y); // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
+  try{cityTick(dt,camera.position.y);}catch(e){loopWarnN('ville',e);} // LA VILLE : son altitude court après la caméra (hors gate de sim — le décor vit au menu, comme le ciel)
   try{portesTick();}catch(e){} // (optimisation) les chaînes muettes se débranchent, les chaînes appelées se rebranchent
   if(SONV2){ // (console de son) LE VIDE : en orbite, un bourdon qui respire remplace le vent (windG/whG se taisent, voir la boucle audio)
     const v9=LVL.espace>.5&&started&&running&&!paused&&!gameOver&&!garageOn&&mode!=='boom';
@@ -208,7 +209,7 @@ function loop(now){
     if(SENS)try{sensPassages(dt);}catch(e){} // (2026-10-14, sensations · passages) l'arrivée d'un portail, le replacement : la caisse se pose sur ses ressorts
     if(!nitroOn)nitroHeldT=0;
     loop._nOn=nitroOn;
-    if(keys.KeyR&&mode==='drive'){respawn();keys.KeyR=false;if(SONV2)sfx('respawn');}
+    if(keys.KeyR&&mode==='drive'){keys.KeyR=false;if(/[?&]dev(=|&|$)/.test(location.search)){respawn();if(SONV2)sfx('respawn');}} /* (2026-11-05, jury GP-13) R = respawn gratuit : seulement sous ?dev (c'était une résurrection offerte sur ordi) */
     // PILOTE AUTO DE MESURE (`dbgAuto`) : le volant du bot de poursuite (mêmes équations) posé sur TA caisse —
     // sert à mesurer l'économie sur des dizaines de parties sans jouer à la main. Jamais armé en jeu.
     const mA9=DBG_AUTO.on&&mode==='drive'?vitMult():1; // (HAUTE VITESSE, 2026-09-30) le pilote de mesure connaît sa caisse : au sol, le lacet est ×spdMult, et l'écart latéral s'y referme en autant de SECONDES qu'à ×1

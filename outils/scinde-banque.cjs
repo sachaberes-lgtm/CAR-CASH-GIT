@@ -21,7 +21,7 @@ if(B.partiel){console.log('déjà scindée');process.exit(0);}
 const d1={},d2={};let n1=0,n2=0,o1=0,o2=0;
 for(const k of Object.keys(B.d)){
   const id=k.split('#')[0],m=B.m[id]||{},v=B.d[k];
-  if(k==='__etalon'||m.pre){d1[k]=v;n1++;o1+=(v||'').length;}else{d2[k]=v;n2++;o2+=(v||'').length;}}
+  if(k==='__etalon'||m.pre||/^ui\./.test(id)){d1[k]=v;n1++;o1+=(v||'').length;}else{d2[k]=v;n2++;o2+=(v||'').length;}}
 const ent={};for(const k of Object.keys(B))if(k!=='d'&&k!=='m')ent[k]=B[k];
 const tete='/* CASH CAR — LA BANQUE DE SONS, 1re moitié (la copie PUBLIÉE : outils/scinde-banque.cjs). Le reste : sons-banque-2.js, chargé après load. */\n';
 const js1=tete+'window.CCSON_BANQUE={'+Object.keys(ent).map(k=>JSON.stringify(k)+':'+JSON.stringify(ent[k])).join(',')+',"partiel":1,"m":'+JSON.stringify(B.m)+',\n"d":{\n'+

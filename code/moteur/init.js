@@ -1,4 +1,5 @@
 // ---------- INIT ----------
+chargeEtape('piste',function(){ /* (2026-11-05, passe perf mobile 2, A2.a) la 1re piste et la caisse du menu se bâtissent sous la boule (une étape par image, voir CHARGEMENT) ; `?chargement=0` = ici, d'un trait */
 newTrack();
 respawn();
 setupIntroPig();
@@ -9,6 +10,7 @@ carSnapshot();   // photo des caisses DÉJÀ acquises : sans elle, le 1er scan l
 level=equippedCar();buildCar(CARS[level]); // on se présente au menu dans la caisse choisie au garage
 paintMoney(); // LE MENU AFFICHE LA MISE : $1.61 visible AVANT de lancer (le HTML disait « $00000000 »)
 paintCarHud(); // et la fiche de caisse porte le bon nom/palier dès l'écran d'accueil
+}); // fin de l'étape 'piste'
 applyLangDOM(); // la langue sauvegardée s'applique AU CHARGEMENT (elle ne prenait qu'en cliquant le sélecteur)
 setBestChip();
 renderLeaders(-1);
@@ -34,7 +36,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
       dx:(Math.random()-.5)*14,dy:(Math.random()-.5)*14});
   }
   // ⚠ \uFE0E : même raison que pour les jetons — sans lui macOS remplace ♥ ♣ ☠ ♦ par ses emoji couleur.
-  const SYMS=[['$','#ffd75e'],['♥\uFE0E','#ff5e8a'],['♣\uFE0E','#54e07a'],['☠\uFE0E','#e8e8f0'],['€','#9ad8ff'],['¥','#ffc46b'],['1.61','#fff2be'],['♦\uFE0E','#ff9d2e']];
+  const SYMS=[['\uE000','#ffd75e'],['♥\uFE0E','#ff5e8a'],['♣\uFE0E','#54e07a'],['☠\uFE0E','#e8e8f0'],['£','#9ad8ff'],['¥','#ffc46b'],['1.61','#fff2be'],['♦\uFE0E','#ff9d2e']];
   function beat(k){ // battement de cœur du logo : pulsation + micro-flash + onde
     if(done)return;
     /* (2026-10-15) le battement faisait pulser « 1.61 »… encore INVISIBLE à ce moment-là (il ne se lève qu'après la fission, depuis l'ordre
@@ -121,7 +123,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
   const INTRO_SON=/[?&]intro=muet\b/.test(location.search)?0:/[?&]intro=musique\b/.test(location.search)?2:1, INTRO_NOTES=INTRO_SON===2;
   function introSound(){
     if(!SND.sfx||!(VOL.sfx>0))return; // mute SON : l'intro reste muette aussi — (2026-09-28) et le curseur EFFETS à zéro aussi
-    try{iAC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000});}catch(e){return new C();}})();}catch(e){return;}
+    try{iAC=(function(){const C=window.AudioContext||window.webkitAudioContext;try{return new C({sampleRate:48000,latencyHint:'interactive'});}catch(e){return new C();}})();}catch(e){return;}
     const A=iAC;acReveil(A); /* (2026-10-28) acReveil : un refus d'iOS se réessaie au toucher, sans promesse rejetée */
     const t0=A.currentTime+.05,PHI=1.6180339;
     const phi=k=>110*Math.pow(PHI,k); // l'échelle d'or : 110·φ^k
@@ -351,6 +353,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
 // PAUSE commune : clavier P, bouton tactile ⏸ et pause auto passent tous par ici (gère aussi le son)
 function busPlein(){busPlein.n=(busPlein.n|0)+1;clearTimeout(togglePause._t); /* (2026-10-16) compté : LE CLIC DANS LA PAUSE (pauseSon) sait que la partie a repris la sortie */if(AC&&BUSOUT){const t9=AC.currentTime;BUSOUT.gain.cancelScheduledValues(t9);BUSOUT.gain.setValueAtTime(1,t9);}} // (2026-09-28) la sortie commune à plein (voir le fondu de la pause)
 function togglePause(){ if(!started||gameOver)return;
+  if(mode==='boom'&&!paused)return; // (audit p12) PAS de pause pendant l'EXPLOSION (touche P au clavier) : elle figeait la boule de feu, coupait le son de mort et faisait refuser boomSkip — comme tous les chemins tactiles (visibilitychange, ⏸, P via __panBascule) ; la REPRISE (paused vrai) reste toujours possible
   paused=!paused; showMsg(paused?'PAUSE':'GO !');
   if(!paused)slowT=Math.max(slowT,.8); // (2026-09-25) reprise au RALENTI : le temps de reposer les pouces
   /* (2026-09-28) LES BOUCLES SE TAISENT AVEC LA PAUSE. Suspendre le contexte FIGE les sons continus à leur gain du moment : dès que
@@ -371,7 +374,7 @@ function togglePause(){ if(!started||gameOver)return;
       let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){}try{instruCoupe(0);}catch(e){} /* (2026-10-07) la phrase du nitro se tait TOUT DE SUITE (le clic ⏸ et la feuille, eux, sonnent jusqu'au bout) */ /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
       if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
     else{busPlein();if(SND.sfx||musGraphe())acReveil(AC);} } }catch(e){} // (2026-10-14, session SON) musique branchée : SON coupé, le contexte doit quand même se réveiller (les effets restent fermés par musWaSon)
-  if(paused){fxStop();deathStop();} // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
+  if(paused){fxStop();deathStop();try{sonSlideStop(.02);}catch(e){}try{MV.mute(false);}catch(e){}} /* (2026-11-05, DEBUG-TOTAL) la voix du SLIDE (sldSynth, hors banque : stopJeu ne la voit pas) et le MOTEUR VIVANT (?moteurvivant=1) n'étaient pas dans la liste ci-dessus : ils chantaient pendant la feuille de pause et repartaient une fraction de seconde au REPRENDRE, sur l'image gelée */ // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
 // applique la résolution adaptative (reconfigure le renderer et le canvas des speed-lines)
@@ -407,6 +410,8 @@ addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!ga
 let wakeLock=null;
 function wakeAsk(){ try{ if(navigator.wakeLock&&!wakeLock)navigator.wakeLock.request('screen').then(function(w){
   wakeLock=w;w.addEventListener('release',function(){wakeLock=null;}); },function(){}); }catch(e){} }
+/* (2026-11-07) L'ÉCRAN NE RESTE ALLUMÉ QUE PENDANT LA COURSE : le verrou, pris au JOUER, n'était jamais rendu — l'écran restait allumé au garage, à la boutique, au menu, des heures. endGame le rend ; start() le reprend. */
+function wakeLache(){ try{ if(wakeLock){const w=wakeLock;wakeLock=null;w.release().catch(function(){});} }catch(e){} }
 function goImmersive(){
   if(!IS_MOBILE)return;
   // Sous Capacitor (app native) : la WebView est déjà plein écran et requestFullscreen n'est pas

@@ -5,7 +5,7 @@
 function carFicheOk(s){return !!s&&s.w>0&&s.h>0&&s.l>0;}
 /* LES 29 RÉFÉRENCES DE LÉO (25/10 : « à ne pas toucher », le langage visuel du jeu) : la traduction ci-dessous ne les regroupe jamais. Noms sans accent ni ponctuation.
    (26/10) + LE COMBI : sa forme « auto-04 » validée par Léo est FIGÉE (voir combi.js) — ~20 600 triangles dont ~8 700 de décor reposé ; la passe ÷2 l'abîmerait. */
-const LANGAGE_REF=new Set(['LE COMBI','LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','LA CERISE','LE SAMOURAI','L ORIGAMI','ROSSO 40','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
+const LANGAGE_REF=new Set(['LE COMBI','LA HONTE','LA FIDELE','ELDORADO','LE CHARGEUR 69','LA VETTE','LA BAVAROISE','LA DOLORES','LE CORBILLARD','LE CHARGEUR','LE DEFIEUR','LE TRONE CENTRAL','KELLY CHERRY','LE SAMOURAI','L ORIGAMI','ROSSO 40','LE MASTODONTE','LA STRATOS','ATCHOUM','LA TAURINE','LE SPECTRE','L ETERNELLE','POSTER 84','LE BLINDE NOIR','SQUALE','CHAT POP TART','LA PIZZA EXPRESS','LE LOUP','LE MUR DU SON','LE DRAGON D OR']);
 /* LA TRADUCTION AU LANGAGE DU JEU (25/10, Léo : « quand les voitures ont trop de facettes, tu divises par deux le nombre de facettes » ; avant : « les traduire pour que ce soit comme les autres, mais que leur modèle soit toujours ressenti, juste ajusté ») —
    PAR DÉFAUT depuis la v912 ; `?langage=0` la coupe. Une caisse qui dépasse 12 000 triangles (tes références en font ~5 000) voit sa PEINTURE regroupée en grandes facettes planes : tous les sommets d'une même case de grille n'en font plus qu'un, au centre de leur
    groupe, les triangles qui s'effondrent disparaissent. La taille de la case est CHERCHÉE (recherche par dichotomie, mémorisée par voiture) pour que la caisse entière tombe à la MOITIÉ de ses triangles, sans dépasser 45 cm. La silhouette reste celle de la
@@ -408,6 +408,7 @@ function buildCar(spec){
   carGroup.add(carBody);carBody.rotation.set(0,0,0);carBody.position.set(0,0,0);carBody.userData.pivY=wheels.length?wheels[wheels.length-1].position.y:.45; // pivot = hauteur des moyeux (⚠ pas de carRoll9=0 ici : buildCar tourne AVANT leur déclaration — zone morte)
   carGroup.traverse(o9=>{if(o9.isMesh&&!o9.userData.noShadow)o9.castShadow=true;}); // toute la caisse porte son ombre LONGUE — sauf la nappe néon (un carré d'ombre, non merci)
   if(bodyM.userData.mot)carGroup.traverse(function(o9){const m9=o9.material;if(o9.isMesh&&m9&&!Array.isArray(m9)&&m9.userData&&m9.userData.mot&&!MOT_FAIT.has(m9))try{motGreffe(m9,m9.userData.mot);}catch(e){}}); // (2026-10-16) un gabarit qui CLONE la tôle (l'épave : K.body.clone()) : le clone garde la couleur blanche, il reprend le motif
+  finMarbre(spec); // (2026-11-05) la marbrure propre de la tôle, comme LA HONTE (voir finition.js)
   if(finAreteOk())finCaisse(); // (2026-10-20, FINITION STUDIO) les drapeaux d'arête de la tôle, AVANT la soudure (voir finition.js)
   if(FSTU.on)finLaque(FSTU.garage); // le vernis profond si on est au garage
   try{traduisLangage(spec);}catch(e){console.warn('langage',e);} // (25/10) ESSAI `?langage=1` : les caisses « hors langage » regroupées en grandes facettes (éteint par défaut)

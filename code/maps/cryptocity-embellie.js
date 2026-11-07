@@ -10,12 +10,12 @@
    · LES PROJECTEURS (pilier 2 : la lumière-vedette de la NUIT) — neuf rais étroits, rose / cyan / or, qui montent de la ville vers le ciel et
      tournent très lentement autour de la caméra (un seul changement de rotation par image). Ce sont trois rubans croisés (6 triangles), fondus
      sur leur largeur et sur leur longueur dans le shader, additifs, derrière tout le reste ; visibles la nuit seulement (`uNuit`).
+   ⚠ (2026-11-05, Sacha : « on enlève les bougies ») LES TROIS GRAPHIQUES EN BOUGIES SONT RETIRÉS : l'horizon garde sa couronne de tours lointaines.
    Tout se tire dans un générateur LOCAL (`mulberry32(seed ^ …)`, la graine de la piste est `CRYPTO.sd`) : la piste ne bouge pas d'un bit.
    Paliers (`PAL.B`) : tours [36, 72, 110] · bougies par graphique [10, 16, 24] · projecteurs [0, 5, 9] (aucun au palier ancien).
    Crochets : `dbgCrypto('horizon')` (état), `dbgCrypto('masque','horizon'|'faisceaux')`, `dbgCrypto('route',{f,h,av,fov,cap,pitch,sec})` (la caméra posée sur la route :
    `f` la part de la piste, `h` la hauteur, `av` m en arrière, `cap` rad de rotation vers la droite, `sec` : rend les coordonnées sans dessiner) et `dbgCrypto('cout')` (appels/triangles d'UNE image). */
 PAL.B.cryptoHor=[36,72,110];
-PAL.B.cryptoBoug=[10,16,24];
 PAL.B.cryptoFais=[0,5,9];
 const CRH={mat:null,matF:null,tours:null,fais:null,D:2400,n:0};
 function crhMat(add){ /* un shader, deux mélanges : l'opaque (couronne) et l'additif (projecteurs) partagent le même programme */
@@ -30,9 +30,7 @@ function crhMat(add){ /* un shader, deux mélanges : l'opaque (couronne) et l'ad
       '  vec3 hue=r<.34?vec3(1.,.30,.68):r<.67?vec3(.28,.88,1.):vec3(1.,.78,.32);float e=1.-abs(ac);e*=e*e;\n'+
       '  c=hue*e*(1.-h)*(1.-.4*h)*1.1*uNuit*(.8+.2*sin(uT*1.9+r*40.))*(1.-ff*.75);gl_FragColor=vec4(c,1.);return;}\n'+
       ' float roof=step(5.,ac);vec2 nn=roof>.5?vec2(0.,1.):vec2(cos(ac),sin(ac));float fc=roof>.5?.62:.5+.5*dot(nn,normalize(uSun.xz+vec2(1e-4))); /* la FACE : ac = son azimut (9 = le toit), fc = sa part de soleil */\n'+
-      ' if(kd>.5){ /* une BOUGIE : verte (la hausse) ou rouge, plus claire vers le haut, un flanc plus clair que l\'autre ; un peu plus vive la nuit */\n'+
-      '  c=(kd<1.5?vec3(.10,.80,.36):vec3(.95,.15,.22))*(.74+.3*h)*(.84+.3*fc)*(1.+.25*uNuit);}\n'+
-      ' else { /* une TOUR : le pied fond dans la brume ; le jour une silhouette bleu froid, un flanc chaud (le soleil) et un flanc froid, la tête éclairée ; la nuit une masse sombre aux bureaux allumés */\n'+
+      ' { /* une TOUR : le pied fond dans la brume ; le jour une silhouette bleu froid, un flanc chaud (le soleil) et un flanc froid, la tête éclairée ; la nuit une masse sombre aux bureaux allumés */\n'+
       '  vec3 day=mix(fogColor,uMid*vec3(.50,.55,.70),smoothstep(0.,.5,h))+uHor*.55*smoothstep(.78,1.,h);\n'+
       '  day*=roof>.5?vec3(1.1,1.06,1.):mix(vec3(.70,.80,1.),vec3(1.22,1.1,.88),fc);\n'+
       '  vec2 tg=vec2(-nn.y,nn.x),cl=vec2(dot(vP.xz,tg)/24.,vP.y/34.),id=floor(cl),f9=fract(cl);float hs=fract(sin(dot(id+r*37.,vec2(12.9898,78.233)))*43758.5453);\n'+
@@ -59,21 +57,14 @@ function crhVide(){
 }
 function crhBatit(){
   crhVide();
-  const sd=(CRYPTO.sd||0)^0x4B0C0DE5,rr=mulberry32(sd),NT=PAL.b('cryptoHor',110),NB=PAL.b('cryptoBoug',24),NF=PAL.b('cryptoFais',9),D=CRH.D,PI2=6.2832;
+  const sd=(CRYPTO.sd||0)^0x4B0C0DE5,rr=mulberry32(sd),NT=PAL.b('cryptoHor',110),NF=PAL.b('cryptoFais',9),D=CRH.D,PI2=6.2832;
   {const P=[],K=[];
     /* la couronne de tours : des azimuts tirés par tranches (aucun trou), une distance de 100 à 500 m de plus que D, des hauteurs en carré (beaucoup de basses, quelques géantes) */
     for(let i=0;i<NT;i++){const a=(i+rr())/NT*PI2,d=D+(rr()-.35)*520,w=60+rr()*110,hgt=90+Math.pow(rr(),2.2)*420,y0=-260,rot=a+(rr()-.5)*.8,r=rr();
       crhBoite(P,K,Math.sin(a)*d,Math.cos(a)*d,y0,y0+hgt+120,w,w*(.7+rr()*.5),rot,0,r);
       if(rr()<.28){const w2=w*.55,h2=hgt*(.4+rr()*.4);crhBoite(P,K,Math.sin(a+.012)*d,Math.cos(a+.012)*d,y0+hgt+60,y0+hgt+120+h2*.35,w2,w2,rot,0,r);} /* un étage en retrait sur quelques-unes */
     }
-    /* LES TROIS GRAPHIQUES : des bougies japonaises, un cours qui monte en dents de scie (un quart de rouges) — plus près que les tours, donc plus nettes dans la brume */
-    for(let g=0;g<3;g++){const a0=(g+rr()*.6)/3*PI2,dA=.027,dg=D*.8+rr()*120,pente=8+rr()*5;let p9=-110+rr()*40;
-      for(let i=0;i<NB;i++){const a=a0+i*dA,o=p9;let c=o+pente+(rr()-.5)*2*46;if(Math.abs(c-o)<14)c=o+(c<o?-14:14);
-        const lo=Math.min(o,c),hi=Math.max(o,c),sorte=c<o?2:1,mf=10+rr()*38,mb=8+rr()*30,x=Math.sin(a)*dg,z=Math.cos(a)*dg,w=D*dA*.62;
-        crhBoite(P,K,x,z,lo,hi,w,w*.8,a,sorte,rr());
-        crhBoite(P,K,x,z,lo-mb,hi+mf,w*.12,w*.12,a,sorte,rr()); /* la mèche */
-        p9=c;}}
-    const m=new THREE.Mesh(crhGeo(P,K),crhMat(false));m.frustumCulled=false;m.renderOrder=-2;m.matrixAutoUpdate=true;m.visible=false;scene.add(m);CRH.tours=m;CRH.n=P.length/9;}
+    const m=new THREE.Mesh(crhGeo(P,K),crhMat(false));m.frustumCulled=false;m.name='crypto tours lointaines';m.renderOrder=-2;m.matrixAutoUpdate=true;m.visible=false;scene.add(m);CRH.tours=m;CRH.n=P.length/9;}
   if(NF>0){const P=[],K=[];
     /* les projecteurs : une base sur l'horizon, une direction qui penche vers l'extérieur ; trois rubans croisés à 60° (fondus sur leur largeur) */
     for(let i=0;i<NF;i++){const a=(i+.2+rr()*.6)/NF*PI2,d=1800+rr()*600,bx=Math.sin(a)*d,bz=Math.cos(a)*d,by=-140+rr()*60,lean=.18+rr()*.3,ph=rr()*PI2,
@@ -83,7 +74,7 @@ function crhBatit(){
           tx=bx+dir[0]*len,ty=by+dir[1]*len,tz=bz+dir[2]*len,A=[bx-sx*wB,by-sy*wB,bz-sz*wB],B=[bx+sx*wB,by+sy*wB,bz+sz*wB],C=[tx+sx*wT,ty+sy*wT,tz+sz*wT],E=[tx-sx*wT,ty-sy*wT,tz-sz*wT];
         P.push(A[0],A[1],A[2],B[0],B[1],B[2],C[0],C[1],C[2],A[0],A[1],A[2],C[0],C[1],C[2],E[0],E[1],E[2]);
         K.push(0,3,hue,-1, 0,3,hue,1, 1,3,hue,1, 0,3,hue,-1, 1,3,hue,1, 1,3,hue,-1);}}
-    const m=new THREE.Mesh(crhGeo(P,K),crhMat(true));m.frustumCulled=false;m.renderOrder=-1;m.visible=false;scene.add(m);CRH.fais=m;}
+    const m=new THREE.Mesh(crhGeo(P,K),crhMat(true));m.frustumCulled=false;m.name='crypto faisceaux';m.renderOrder=-1;m.visible=false;scene.add(m);CRH.fais=m;}
 }
 function crhTick(t,on){
   const T9=CRH.tours,F9=CRH.fais;if(!T9&&!F9)return;

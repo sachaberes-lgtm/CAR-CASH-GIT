@@ -17,14 +17,14 @@ function gAtelier(on){on=!!on;if(!gEl||GATL.on===on)return;
   gModeBoutons();}
 function garAtelierBatir(){
   const g=new THREE.Group();g.visible=false;GAR.root.add(g);GATL.g=g;
-  const L=(c,e)=>new THREE.MeshLambertMaterial({color:c,emissive:e||0,flatShading:true,fog:false}); // le programme des Lambert de l'atelier : rien à compiler
+  const L=(c,e)=>new THREE.MeshLambertMaterial({color:c,emissive:e||0,fog:false}); // le programme des Lambert de l'atelier : rien à compiler
   const M=GATL.M={fer:L(0x232a38,0x070910),jaune:L(0xefb52a,0x2e2005),chrome:L(0xc2cbd8,0x171b21),noir:L(0x15181f,0x040609),led:L(0x5ff0ff,0x2fb8d0)};
   GATL.BX=new THREE.BoxGeometry(1,1,1);GATL.CY=new THREE.CylinderGeometry(.5,.5,1,8);
   const pg=new THREE.Group();g.add(pg);GATL.pg=pg;
   const lp=new THREE.Group();g.add(lp);GATL.lp=lp;
   const mk=(geo,mat,sx,sy,sz)=>{const m=new THREE.Mesh(geo,mat);m.scale.set(sx,sy,sz);lp.add(m);return m;};
   GATL.cord=mk(GATL.CY,M.noir,.035,1,.035);
-  GATL.abat=mk(new THREE.ConeGeometry(.5,1,10,1,true),new THREE.MeshLambertMaterial({color:0x2a3242,emissive:0x070910,flatShading:true,fog:false,side:THREE.DoubleSide}),.78,.4,.78);
+  GATL.abat=mk(new THREE.ConeGeometry(.5,1,10,1,true),new THREE.MeshLambertMaterial({color:0x2a3242,emissive:0x070910,fog:false,side:THREE.DoubleSide}),.78,.4,.78);
   GATL.cul=mk(GATL.CY,M.fer,.22,.12,.22);
   GATL.ampM=new THREE.MeshBasicMaterial({color:0x2a2620,fog:false});GATL.amp=mk(GATL.CY,GATL.ampM,.2,.14,.2);
   GATL.rayM=new THREE.MeshBasicMaterial({color:0xfff0d0,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,side:THREE.FrontSide});
@@ -365,7 +365,7 @@ function brasHabille(l){if(BRB.habit===l||!BRB.g)return;if(l==='boutique'&&!GBQ.
 /* LE MODÈLE (bâti au 1er besoin, matières de l'atelier) */
 function brasBatir(){if(BRB.g)return BRB.g;if(!GATL.g)garAtelierBatir();
   const G=new THREE.Group();G.visible=false;scene.add(G);BRB.g=G;const M=GATL.M,BX=GATL.BX,CY=GATL.CY,m=BRB.m; // dans la SCÈNE : en boutique GAR.root est éteint
-  BRB.M={led:new THREE.MeshLambertMaterial({color:0x5ff0ff,emissive:0x2fb8d0,flatShading:true,fog:false})}; // sa diode à lui (celle des pinces est partagée)
+  BRB.M={led:new THREE.MeshLambertMaterial({color:0x5ff0ff,emissive:0x2fb8d0,fog:false})}; // sa diode à lui (celle des pinces est partagée)
   const mk=(geo,mat)=>{const o=new THREE.Mesh(geo,mat);G.add(o);return o;};
   m.gorge=mk(new THREE.RingGeometry(BRB.Rr-.24,BRB.Rr+.24,72,1),M.noir);m.gorge.rotation.x=-Math.PI/2;m.gorge.position.y=.004; // la GORGE du rail, dans le plateau
   m.rails=[];for(const dr of [-.16,.16]){const t=mk(new THREE.TorusGeometry(BRB.Rr+dr,.028,4,96),M.chrome);t.rotation.x=-Math.PI/2;t.position.y=.012;m.rails.push(t);}
@@ -534,6 +534,7 @@ const PHQ={q:[],on:false,pret:0,defile:0};
 function photoFile(i,cb,el){if(PHOTO.cache[i]){cb(PHOTO.cache[i]);return;}PHQ.q.push([i,cb,undefined,el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 function photoCalme(){const t=performance.now();
   if(document.hidden||ecranWipe._on||garageDrag||t-PHQ.defile<260)return false;
+  if(PHOTO_APRES&&CHAUFFE_R.tMenu&&!CHAUFFE_R.fait&&t-CHAUFFE_R.tMenu<12000&&!(typeof GBQ!=='undefined'&&GBQ.on)&&!photoInvVu())return false; /* (2026-11-05, passe perf mobile 2, A2.d) les photos des caisses passent APRÈS la chauffe du menu (≤ 12 s) — sauf si le joueur a ouvert la boutique ou l'inventaire : ses vignettes passent devant ; `?photoapres=0` = comme avant */
   if(typeof GBQ!=='undefined'&&(GBQ.drag||GBQ.veut!==GBQ.on||!GBQ.bascule||t<(bqVoile._fin||0)))return false;
   if(GFIG.D>0&&t-GFIG.vu<700){PHQ.pret=Math.max(PHQ.pret||0,t+450);return false;} /* (2026-10-30, Léo : « les tricks lagg dans la boutique et le garage ») une figure joue : ni photo ni film (chacun rebâtit la caisse deux fois, 40 à 140 ms, et la sort de la scène) — ils attendent 0,45 s après la pose */
   return true;}
@@ -554,7 +555,7 @@ function photoPrends(it){const u=PHOTO.cache[it[0]];
 function photoTour(){
   if(!PHQ.q.length||!garageOn||gEl.classList.contains('quiet')){PHQ.on=false;return;} // (2026-09-26) garage fermé : la file attend le prochain passage (openGarage la relance) — (2026-09-28, chasse aux gels) et le garage du JOUER (`quiet`) n'affiche aucune vignette : MESURÉ, il y prenait 2 à 3 photos pendant le fondu (chacune reconstruit deux caisses, ~200 ms et 4 programmes) pour une bande que personne ne voit
   requestAnimationFrame(photoTour);
-  if(GAR.sw||GAR.go||phdbAttend())return;
+  if(GAR.sw||GAR.go||phdbAttend()||document.getElementById('spCharge'))return; /* (2026-11-05, Sacha : « le serpent ne doit plus jamais bugger ») pas de photo tant que le SERPENT DE CHARGEMENT tourne : une photo lie ses programmes pour de bon (photoLie, voir photos-films.js) — MESURÉ CPU ×4, cache de shaders froid : 1,4 s de GetProgramiv d'un bloc, puis 8 × 100-140 ms, sous le serpent, à 10-12 s. Il s'éteint avec l'intro (chCl) ou avec le voile ; les photos reprennent derrière, la vitrine n'est pas ouverte sous l'intro */
   const t=performance.now();if(t<PHQ.pret||!photoCalme())return;
   const j=photoChoix(false);if(j<0){PHQ.pret=t+200;return;} // que des vignettes hors de vue : on regarde de nouveau dans 200 ms (pas de mesure de la page à chaque image)
   const it=PHQ.q.splice(j,1)[0];photoPrends(it);const d=performance.now()-t;PHQ.pret=performance.now()+Math.min(400,Math.max(150,d*2));
@@ -633,14 +634,14 @@ function homeCielPrise(now){
    la voiture se tourne pour montrer les différentes features — TRAÎNÉES : la vue de l'arrière ») : l'onglet ne POSE plus l'angle d'un coup
    (garageAng=3.5), il le fait TOURNER en ~0,9 s par le plus court chemin (garTourneVers, joué dans garageRender, prioritaire sur la rotation
    lente ; le doigt l'interrompt). TRAÎNÉES 3,5 (trois-quarts arrière) · PEINTURE ,42 (trois-quarts avant) · AILES 1,2 (de profil). */
-const GAR_TAB_ANG={trainee:3.5,peinture:.42,aile:1.2,figure:1.25}; // (FIGURES : de profil, on voit les saltos)
+const GAR_TAB_ANG={trainee:3.5,peinture:.42,aile:1.2,figure:1.25,voiture:+((/[?&]bqang=([-\d.]+)/.exec(location.search)||[0,0])[1]),achat:+((/[?&]bqang=([-\d.]+)/.exec(location.search)||[0,0])[1])}; // (FIGURES : de profil, on voit les saltos) — (2026-11-05, Sacha : « les voitures sont mal mises en avant ») VOITURES / ACHAT : de trois quarts AVANT, les phares vers toi (avant : l'angle d'avant, souvent de dos) ; `?bqang=` pour essayer
 function garTourneVers(a,D){if(!garageOn||GAR.go)return;a-=GAR.vA||0; /* (2026-10-24) l'angle se compte depuis la VUE : le regard tourné (jauge, doigt) n'envoie plus la caisse du mauvais côté */const a0=garageAng,T=2*Math.PI,d=((a-a0)%T+T*1.5)%T-T/2;if(Math.abs(d)<.02)return;GAR.angTw={a0:a0,d:d,t:0,D:D||.9};}
 function shopTab(tab){
   if(SHOP_CATS.indexOf(tab)<0)tab='voiture';
   SHOP.tab=tab;
   document.querySelectorAll('#gTabs .gTab').forEach(function(b){const on=b.getAttribute('data-tab')===tab;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
   const gt=$('gTitle');if(gt)gt.textContent=TR('GARAGE'); // la personnalisation fait partie du GARAGE (la BOUTIQUE, c'est le vrai argent)
-  if(gEl){gEl.classList.toggle('shopMode',tab!=='voiture');gEl.classList.toggle('figTab',tab==='figure');}if(tab!=='figure'&&GFS)GFS.arme=-1; /* (24/10) GFS est un var du script, pas de window : `window.GFS` valait toujours undefined */ // (2026-10-15) figTab : le sélecteur des trois figures (#gFigSel) au-dessus de la grille
+  if(gEl){gEl.classList.toggle('shopMode',tab!=='voiture');gEl.classList.toggle('figTab',tab==='figure');}if(tab!=='figure'&&GFS)GFS.arme=-1;if(tab!=='figure')FSEL.dir=-1; /* (24/10) GFS est un var du script, pas de window : `window.GFS` valait toujours undefined */ // (2026-10-15) figTab : le sélecteur des trois figures (#gFigSel) au-dessus de la grille
   if(GAR_TAB_ANG[tab]!=null)garTourneVers(GAR_TAB_ANG[tab]); // TRAÎNÉES : la caméra passe derrière la caisse (trois-quarts arrière) — on regarde ce qui SORT des tuyères ; (2026-10-11) en TOURNANT, et chaque onglet a son angle
   if(tab==='voiture'){SHOP.prev=null;{const bar=$('gRar');if(bar)bar._k=null;}garageShow(garageI);try{gModeCale();}catch(e){}return;}
   SHOP.filtre='tout'; // chaque catégorie s'ouvre sur TOUT
@@ -744,25 +745,23 @@ function gFigNitroSvg(){if(gFigNitroSvg._s)return gFigNitroSvg._s;
     else if(ep(x,y))E+=cs(x,y);                                          // l'ÉPAISSEUR : deux cases sous l'éclair, comme le vrai bouton
     else{let v=false;for(let j=-1;j<=1&&!v;j++)for(let i=-1;i<=1;i++)if(plein(x+i,y+j)){v=true;break;}if(v)O+=cs(x,y);}} // le contour d'encre
   return gFigNitroSvg._s='<svg class="fsBolt" viewBox="0 0 '+(w+2)+' '+(h+4)+'" shape-rendering="crispEdges" aria-hidden="true"><path fill="'+P[7]+'" d="'+O+'"/><path fill="'+P[4]+'" d="'+E+'"/><path fill="'+P[1]+'" d="'+F+'"/><path fill="'+P[0]+'" d="'+B+'"/></svg>';}
+/* (2026-11-05, le sélecteur de figures : figures-selecteur.js) les trois cases sont aussi le FILTRE de geste (plus de case « armée » cachée) : le mode s'écrit sous
+   elles (#gFigBar : la ligne qui le dit, les pastilles TOUT · TRI), la bande ne montre que les figures de ce geste, un toucher équipe dans le bon emplacement */
 function gFigSelEl(){let el=document.getElementById('gFigSel');if(el)return el;const st=document.getElementById('gStrip');if(!st||!st.parentNode)return null;
   el=document.createElement('div');el.id='gFigSel';el.setAttribute('role','group');
-  el.innerHTML='<div class="fsNitro" aria-hidden="true">'+gFigNitroSvg()+'<b>×2</b></div>'
-    +FIG_FAM.map(function(F,k){return '<button type="button" class="fsHex" data-k="'+k+'"><span class="fsCase"><span class="fsIn"></span></span><i class="fsJoy">'+pxi(F[2])+'</i><b class="fsNom"></b></button>';}).join('');
+  el.innerHTML='<div class="fsNitro" aria-hidden="true">'+gFigNitroSvg()+'<b>×2</b></div>'+[0,1,2].map(fsHexHtml).join('');
   st.parentNode.insertBefore(el,st);
-  el.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('.fsHex');if(!b)return;e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;
-    const k=+b.getAttribute('data-k');uiPop(b);uiClic('onglet');hap(6);GFS.arme=GFS.arme===k?-1:k;GFS.k='';gFigSelMaj();gFigGrilleArme();});
+  const bar=document.createElement('div');bar.id='gFigBar';bar.innerHTML='<div class="fsAide"></div><div class="fsBar"></div>';st.parentNode.insertBefore(bar,st);
+  el.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('.fsHex');if(!b)return;e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;fsCase(+b.getAttribute('data-k'),b);});
+  bar.addEventListener('click',function(e){const c=e.target.closest&&e.target.closest('[data-fs]');if(!c)return;e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on)return;uiPop(c);uiClic('onglet');hap(6);fsBarreClic(c.getAttribute('data-fs'));});
   return el;}
-function gFigSelMaj(){const el=gFigSelEl();if(!el||!window.FIG)return;const S=figSlots(),k=S.join(',')+':'+GFS.arme+':'+GFS.flash+':'+LANG;if(GFS.k===k)return;GFS.k=k;
-  el.setAttribute('aria-label',sansAcc(TR('FIGURES ÉQUIPÉES')));el.classList.toggle('arme',GFS.arme>=0);
-  el.querySelectorAll('.fsHex').forEach(function(b){const s=+b.getAttribute('data-k'),id=S[s],f=id&&FIG.par[id],c=f?rarInfo(cosmRar('figure',f)).c:'#6c6390',nm=f?sansAcc(TR(f.n)):sansAcc(TR('VIDE'));
-    b.style.setProperty('--fc',c);b.classList.toggle('vide',!f);b.classList.toggle('on',GFS.arme===s);b.setAttribute('aria-pressed',GFS.arme===s);
-    b.querySelector('.fsIn').innerHTML=f?illuFig(id,c,s===0):'<b class="fsQ">?</b>';
-    b.querySelector('.fsNom').textContent=nm;b.setAttribute('aria-label',sansAcc(TR(FIG_FAM[s][0]))+' : '+nm);
-    if(GFS.flash===s){b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');}});
+function gFigSelMaj(){const el=gFigSelEl();if(!el||!window.FIG)return;const S=figSlots(),k=fsCle()+':'+GFS.flash+':'+LANG;if(GFS.k===k)return;GFS.k=k;
+  el.setAttribute('aria-label',sansAcc(TR('FIGURES ÉQUIPÉES')));el.classList.toggle('arme',FSEL.dir>=0);
+  el.querySelectorAll('.fsHex').forEach(function(b){const s=+b.getAttribute('data-k');fsHexMaj(b,S,'#6c6390',false,GFS.flash===s);});
+  {const ai=document.querySelector('#gFigBar .fsAide'),h=fsAideHtml();if(ai&&ai._h!==h){ai._h=h;ai.innerHTML=h;}
+   const ba=document.querySelector('#gFigBar .fsBar'),bh=fsBarreHtml('inv');if(ba&&ba._h!==bh){ba._h=bh;ba.innerHTML=bh;}}
   GFS.flash=-1;}
-function gFigGrilleArme(){const st=document.getElementById('gStrip'),a=GFS.arme;if(!st)return;
-  st.querySelectorAll('.gT.c-figure[data-cos]').forEach(function(el){const d=COSM.figure[+el.getAttribute('data-cos')];el.classList.toggle('horsDir',a>=0&&!!d&&figPeut(d.id).indexOf(a)<0);});}
-function gFigTouche(j){const d=COSM.figure&&COSM.figure[j];if(!FIGV2.on||!d||!figPossede(d.id))return false; // pas à toi : la console l'ESSAIE (comme avant)
-  const P=figPeut(d.id),k=GFS.arme>=0&&P.indexOf(GFS.arme)>=0?GFS.arme:null;
-  figEqToast(d.id,k);const s=k!=null?k:figSlots().indexOf(d.id);
-  GFS.arme=-1;GFS.flash=s;GFS.k='';GSON9=true;shopShow('figure',j);try{garFigEssai(d.id,s);}catch(e){}return true;}
+function gFigGrilleArme(){} /* (2026-11-05) le geste visé FILTRE la bande (gStripHabits) : plus de vignettes grisées */
+function gFigTouche(j,kf){const d=COSM.figure&&COSM.figure[j];if(!FIGV2.on||!d||!figPossede(d.id))return false; // pas à toi : la console l'ESSAIE (comme avant)
+  const k=kf!=null&&figPeut(d.id).indexOf(kf)>=0?kf:fsAuto(d.id); /* kf : la pastille de geste de la vignette touchée */
+  figEqToast(d.id,k);delete FSEL.pick[d.id];GFS.flash=k;GFS.k='';GSON9=true;shopShow('figure',j);try{garFigEssai(d.id,k);}catch(e){}return true;}

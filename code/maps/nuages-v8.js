@@ -25,17 +25,24 @@ function nuage8Calc(B, base, top, N, opt) {
     const a = hs(i, j, k), b = hs(i + 1, j, k), c = hs(i, j + 1, k), d = hs(i + 1, j + 1, k), e = hs(i, j, k + 1), f = hs(i + 1, j, k + 1), g = hs(i, j + 1, k + 1), m = hs(i + 1, j + 1, k + 1);
     const l1 = a + (b - a) * fx, l2 = c + (d - c) * fx, l3 = e + (f - e) * fx, l4 = g + (m - g) * fx, q1 = l1 + (l2 - l1) * fy, q2 = l3 + (l4 - l3) * fy; return q1 + (q2 - q1) * fz; };
   const sd = (opt.seed || 0) * 17.13, VOXF = !!opt.vox, FAR = DET * .5 + .02;
+  /* (2026-11-05, Sacha : « il faut que la map soit sans dessus dessous : qu'on ne se rende plus compte quand les nuages sont à l'envers ») LE NUAGE SANS DESSUS DESSOUS (opt.sym, cubes seulement) : le champ est REPLIÉ sur le plan
+     du milieu (`ymid`) — le haut du cumulus (ses bourgeons, tirés du plan `ys`, là où ses lobes sont les plus larges) est recopié en bas : plus de base plate, plus de plat-dessous/chou-fleur-dessus, la même boîte [base, sommet].
+     Les cubes sont gros au ventre et petits aux DEUX bouts, l'ombre des bourgeons vient du bout le plus proche, le cuit « hauteur » est la distance au milieu : à l'endroit ou à l'envers, c'est le même nuage. */
+  const SYM = !!opt.sym && !!opt.vox; let ymid = 0, ys = 0, ksy = 1;
+  if (SYM) { let ytp = -1e9; const YSF = opt.ysf == null ? .52 : opt.ysf; for (const b of B) ytp = Math.max(ytp, b[1] + b[3] * b[4]);
+    ymid = (base + ytp) * .5; ys = base + (ytp - base) * YSF; /* le plan source, un peu au-dessus du milieu : les lobes aplatis de l'ancienne base (des ailes minces à l'équateur) n'y sont plus */ ksy = (ytp - ys) / Math.max(.05, (ytp - base) * .5); }
+  const yRepli = function (y) { return SYM ? ys + Math.abs(y - ymid) * ksy : y; }; // (sym) l'altitude, repliée sur le plan du milieu
   // le champ : > 0 dedans
   const champ = function (x, y, z, LB) { // LB (cubes) : la liste des lobes qui comptent dans la région interrogée
-    let f = 0;
-    for (let ii = 0, nb = LB ? LB.length : B.length; ii < nb; ii++) { const i = LB ? LB[ii] : ii, b = B[i], r = b[3], ry = b[3] * b[4], dx = (x - b[0]) / r, dy = (y - b[1]) / ry, dz = (z - b[2]) / r, q = dx * dx + dy * dy + dz * dz; if (q < 9) f += Math.exp(-K * q); }
+    let f = 0; const yr = yRepli(y);
+    for (let ii = 0, nb = LB ? LB.length : B.length; ii < nb; ii++) { const i = LB ? LB[ii] : ii, b = B[i], r = b[3], ry = b[3] * b[4], dx = (x - b[0]) / r, dy = (yr - b[1]) / ry, dz = (z - b[2]) / r, q = dx * dx + dy * dy + dz * dz; if (q < 9) f += Math.exp(-K * q); }
     let g = Math.log(Math.max(f, 1e-9) / T); // 0 à la surface, en « unités de rayon » (le log rend le champ presque linéaire près de la surface)
-    if (VOXF && (g > FAR || g < -FAR)) return g - Math.max(0, (base + .015 - y)) * 40; // (cubes) le bruit ne vaut que ±DET/2 : loin de la surface il ne change aucun signe, on ne le calcule pas
+    if (VOXF && (g > FAR || g < -FAR)) return SYM ? g : g - Math.max(0, (base + .015 - y)) * 40; // (cubes) le bruit ne vaut que ±DET/2 : loin de la surface il ne change aucun signe, on ne le calcule pas
     // le chou-fleur : deux octaves de bosses, plus fortes vers le haut (la base reste lisse)
-    const hy = Math.max(0, Math.min(1, (y - base) / Math.max(.1, top - base)));
+    const hy = Math.max(0, Math.min(1, (yr - base) / Math.max(.1, top - base)));
     g += DET * (0.55 * (vn(x * 4.1 * FQ + sd, y * 4.1 * FQ, z * 4.1 * FQ) - .5) + 0.3 * (vn(x * 9.3 * FQ, y * 9.3 * FQ + sd, z * 9.3 * FQ) - .5) + 0.15 * (vn(x * 19.7 * FQ, y * 19.7 * FQ, z * 19.7 * FQ + sd) - .5)) * (.3 + .7 * hy);
     // la BASE PLATE : le niveau de condensation
-    g -= Math.max(0, (base + .015 - y)) * 40;
+    if (!SYM) g -= Math.max(0, (base + .015 - y)) * 40;
     return g;
   };
   /* (2026-10-20, Léo : « le niveau nuage a l'air déchiqueté — une refonte, avec toutes les techniques, entre réalisme et cubes pixel de tailles
@@ -53,10 +60,10 @@ function nuage8Calc(B, base, top, N, opt) {
     const RL = new Int8Array(NRX * NRY * NRZ), RS = new Int8Array(NRX * NRY * NRZ), memo = new Map();
     const t0v = VX.t0 == null ? .36 : VX.t0, t1v = VX.t1 == null ? .7 : VX.t1, hbv = VX.hb == null ? .35 : VX.hb, hh0 = Math.max(.1, top - base);
     for (let k = 0; k < NRZ; k++) for (let j = 0; j < NRY; j++) for (let i = 0; i < NRX; i++) { // la taille des cubes de chaque région : un bruit LISSE (des plaques), plus petite vers le haut
-      const rv = vn(i * .83 + sd + 3.1, j * .83 + 1.7, k * .83 - 2.3) * .65 + hs(i * 7 + 1, j * 13 + 5, k * 11 + 3) * .35, yy = Math.min(1, Math.max(0, (gy0 + (j + .5) * RG - base) / hh0)), t = rv + (.5 - yy) * hbv;
+      const rv = vn(i * .83 + sd + 3.1, j * .83 + 1.7, k * .83 - 2.3) * .65 + hs(i * 7 + 1, j * 13 + 5, k * 11 + 3) * .35, yy = Math.min(1, Math.max(0, SYM ? Math.abs(gy0 + (j + .5) * RG - ymid) / (hh0 * .5) : (gy0 + (j + .5) * RG - base) / hh0)), t = rv + (.5 - yy) * hbv; /* (sym) gros au ventre, petits aux deux bouts */
       RL[i + NRX * (j + NRY * k)] = t < t0v ? 0 : t < t1v ? 1 : 2; }
     const RBL = new Array(NRX * NRY * NRZ), bl = function (i, j, k) { const q = i + NRX * (j + NRY * k); let L9 = RBL[q]; if (L9) return L9; // les lobes dont la portée (3 rayons : q < 9) touche cette région
-      const ccx = gx0 + (i + .5) * RG, ccy = gy0 + (j + .5) * RG, ccz = gz0 + (k + .5) * RG, rr = RG * .87; L9 = [];
+      const ccx = gx0 + (i + .5) * RG, ccy = yRepli(gy0 + (j + .5) * RG), ccz = gz0 + (k + .5) * RG, rr = RG * .87 * (SYM ? Math.max(1, ksy) : 1); L9 = []; /* (sym) la région se lit dans le champ replié : son centre replié, sa portée élargie de la pente */
       for (let b9 = 0; b9 < B.length; b9++) { const b = B[b9], R9 = 3 * Math.max(b[3], b[3] * b[4]) + rr; if (Math.abs(ccx - b[0]) < R9 && Math.abs(ccy - b[1]) < R9 && Math.abs(ccz - b[2]) < R9) L9.push(b9); }
       RBL[q] = L9; return L9; };
     const rstate = function (i, j, k) { const q = i + NRX * (j + NRY * k); let s = RS[q]; if (s) return s;
@@ -87,9 +94,9 @@ function nuage8Calc(B, base, top, N, opt) {
           if (!dat) { let gx = champ(cx + e1, cy, cz) - champ(cx - e1, cy, cz), gy = champ(cx, cy + e1, cz) - champ(cx, cy - e1, cz), gz = champ(cx, cy, cz + e1) - champ(cx, cy, cz - e1);
             const gl = Math.hypot(gx, gy, gz) || 1; gx = -gx / gl; gy = -gy / gl; gz = -gz / gl;
             let o9 = 0; for (const s9 of [.04, .09, .17, .3]) { const w9 = champ(cx + gx * s9, cy + gy * s9, cz + gz * s9); if (w9 > -1.4) o9 += (w9 + 1.4) / 1.4 * (s9 === .04 ? .35 : s9 === .09 ? .3 : s9 === .17 ? .22 : .13); }
-            let u9 = 0; for (const s9 of [.1, .22, .38, .6]) { const w9 = champ(cx + gx * .03, cy + s9, cz + gz * .03); if (w9 > 0) u9 += Math.min(1, w9) * .5; }
+            let u9 = 0; const sgS = SYM && cy < ymid ? -1 : 1; for (const s9 of [.1, .22, .38, .6]) { const w9 = champ(cx + gx * .03, cy + s9 * sgS, cz + gz * .03); if (w9 > 0) u9 += Math.min(1, w9) * .5; }
             const hz = hs(ci * 7 + 3, cj * 13 + 5, ck * 11 + 1 + l * 31) - .5;
-            dat = { g: [gx, gy, gz], md: [Math.max(0, Math.min(1, (.25 + .75 * Math.max(0, Math.min(1, 1 - o9 * 1.15))) * (1 + hz * jit))), Math.min(1, Math.exp(-u9 * 1.6) * (1 + hz * jit * .5)), Math.max(0, Math.min(1, (cy - base) / hh0))] }; }
+            dat = { g: [gx, gy, gz], md: [Math.max(0, Math.min(1, (.25 + .75 * Math.max(0, Math.min(1, 1 - o9 * 1.15))) * (1 + hz * jit))), Math.min(1, Math.exp(-u9 * 1.6) * (1 + hz * jit * .5)), Math.max(0, Math.min(1, SYM ? Math.abs(cy - ymid) / (hh0 * .5) : (cy - base) / hh0))] }; }
           const nn = [d[0] * (1 - kn) + dat.g[0] * kn, d[1] * (1 - kn) + dat.g[1] * kn, d[2] * (1 - kn) + dat.g[2] * kn], nl = Math.hypot(nn[0], nn[1], nn[2]) || 1; nn[0] /= nl; nn[1] /= nl; nn[2] /= nl;
           if (nex === m * m) quad(cx, cy, cz, ax, sg, s * .5, 0, 0, s * .5, s * .5, nn, dat.md);
           else { const hp = s / m * .5; let ii = 0; for (let q = 0; q < m; q++) for (let p = 0; p < m; p++, ii++) if (ex[ii]) quad(cx, cy, cz, ax, sg, s * .5, ((p + .5) / m - .5) * s, ((q + .5) / m - .5) * s, hp, hp, nn, dat.md); } } } }
@@ -365,10 +372,18 @@ function cotonOuvrier(){
   if(COTON_OUV.w||COTON_OUV.ko)return COTON_OUV.w;
   try{const src='const cotonCalc='+cotonCalc.toString()+';const nuage8Calc='+nuage8Calc.toString()+';const nufDemi='+nufDemi.toString()+';self.onmessage=function(e){const q=e.data,r=q.n8?nuage8Calc(q.B,q.base,q.top,q.n8,q.o8):cotonCalc(q.B,q.base,q.top,q.sp,q.sn,q.si,q.CH);if(q.hf&&r.fant){r.fant.D=nufDemi(r.fant,q.dy||0,q.hf);r.fant.Dy=q.dy||0;}self.postMessage({id:q.id,r:r},[r.pos.buffer,r.nor.buffer,r.col.buffer,r.idx.buffer].concat(r.skin?[r.skin.pos.buffer,r.skin.nor.buffer,r.skin.idx.buffer]:[]).concat(r.fant&&r.fant.D?[r.fant.D.buffer]:[]));};';
     const w=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));
-    w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);};
+    w.onmessage=function(e){const a=COTON_OUV.att.get(e.data.id);if(!a)return;COTON_OUV.att.delete(e.data.id);a.cb(e.data.r);cotonOuvrierRepos(w);};
     w.onerror=function(ev){try{ev.preventDefault();}catch(e9){}cotonOuvrierKo();};COTON_OUV.w=w;
   }catch(e){COTON_OUV.ko=true;}
   return COTON_OUV.w;}
+/* ===== L'OUVRIER SE REPOSE (2026-11-05, Sacha : « le lien Vercel a des latences et prend beaucoup de mémoire sur mon ordi, règle ça de manière durable ») =====
+   MESURÉ (memory-infra de Chrome, ordi, au menu puis en course) : cet ouvrier, créé pour les 4 × COTON_KINDS formes de la vitrine, restait VIVANT toute la
+   partie avec 64 Mo de pépinière V8 et 18 à 51 Mo de grands objets (ses tableaux, jamais ramassés : rien ne le réveille) — ~80 à 115 Mo de mémoire pour rien.
+   Sa file vidée depuis 1,5 s, il est arrêté (terminate rend tout d'un coup) ; `cotonOuvrier()` le refait au prochain nuage (un Blob, quelques ms). `?ouvrier=garde` = avant. */
+const COTON_OUV_GARDE=/[?&]ouvrier=garde\b/.test(location.search);
+function cotonOuvrierRepos(w){if(COTON_OUV_GARDE||COTON_OUV.w!==w||COTON_OUV.att.size)return;
+  if(COTON_OUV.repos)clearTimeout(COTON_OUV.repos);
+  COTON_OUV.repos=setTimeout(function(){COTON_OUV.repos=0;if(COTON_OUV.w!==w||COTON_OUV.att.size)return;try{w.terminate();}catch(e){}COTON_OUV.w=null;COTON_OUV.reposes=(COTON_OUV.reposes|0)+1;},1500);}
 function cotonOuvrierKo(){COTON_OUV.ko=true;if(COTON_OUV.w){try{COTON_OUV.w.terminate();}catch(e){}COTON_OUV.w=null;} // refusé : sa file repart sur le fil principal
   for(const a of COTON_OUV.att.values())cotonTranche(a.job,a.cb);COTON_OUV.att.clear();}
 function cotonTranche(job,cb){COTON_OUV.file.push({job:job,cb:cb});if(!COTON_OUV.t)COTON_OUV.t=setTimeout(cotonTrancheSuite,0);}
@@ -380,7 +395,7 @@ function cotonCalcAsync(S,sph,cb){ // cb(le calcul), PLUS TARD : dans l'ouvrier 
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});try{w.postMessage({id:id,B:job.B,base:job.base,top:job.top,sp:job.sp,sn:job.sn,si:job.si,CH:job.CH});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function nuage8Async(S,N,cb,vit,dyF){ // dyF : le décalage vertical de ses cubes fantômes (nuFantGeo), pour que l'ouvrier les convertisse // (v8) une finesse de la NOUVELLE surface : dans l'ouvrier si possible, sinon par tranches — vit : la taille des écailles du VITRAIL (nombre de cubes sur la plus grande dimension), 0 = sans
-  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,NUVIT.vox?{vox:NUVIT.vox,det:NUVIT.vox.det==null?N8_OPT.det:NUVIT.vox.det}:vit?(NUVIT.fant?{fant:NUVIT.fant,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:Object.assign({vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0},NUVIT.mix?{fant:NUVIT.mix,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:{})):{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
+  const job={n8:N,o8:Object.assign({seed:S.seed||0},N8_OPT,NUVIT.vox?{vox:NUVIT.vox,det:NUVIT.vox.det==null?N8_OPT.det:NUVIT.vox.det,sym:COTON.sym?1:0}:vit?(NUVIT.fant?{fant:NUVIT.fant,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:Object.assign({vit:vit,iso:NUVIT.iso,nsk:NUVIT.nsk,ecart:NUVIT.ecart,jit:NUVIT.jit||0},NUVIT.mix?{fant:NUVIT.mix,fsz:NUVIT.fsz,fdeh:NUVIT.fdeh}:{})):{}),B:S.B,base:S.base,top:S.top},w=cotonOuvrier();
   if(w){const id=++COTON_OUV.id;COTON_OUV.att.set(id,{job:job,cb:cb});let hf=0;try{hf=NUF_TEX&&job.o8.fant?NUF_W:0;}catch(e){} /* (NUF_TEX est déclarée plus bas : jamais lue en zone morte) */try{w.postMessage({id:id,n8:N,o8:job.o8,B:job.B,base:job.base,top:job.top,hf:hf,dy:dyF||0});}catch(e){COTON_OUV.att.delete(id);cotonTranche(job,cb);}}
   else cotonTranche(job,cb);}
 function cotonFinesse(k,f,g){ // une finesse est arrivée : elle remplace l'ébauche dans SON lot et dans les lots plus fins encore en attente
@@ -407,6 +422,7 @@ function n8Vap(){ const N=256,A=new Uint8Array(N*N),D=new Uint8Array(N*N*2),rg=m
 const N8_U={uFondu:{value:1},uTps:{value:0},uSunW:{value:SUN_DIR},uNearF:GFX_U.uNearF,uAlb:{value:CLOUD_MAT.color},uSunC:{value:null},uSky:{value:null},uGnd:{value:null},uK:{value:new THREE.Vector4(1,1,1,1)},uR:{value:new THREE.Vector4(-.25,.5,.64,1)}}; // uR : la frontière d'ombre (début, fin en N·L), la clarté du côté ombre, (libre)
 if(N8_VAP){N8_U.uVap={value:null};N8_U.uVapK={value:new THREE.Vector4(1,1,1,1)};} // (coton-blanc) la toile de vapeur et ses doses : x érosion du bord, y grain du cœur, z or du contre-jour, w tout (palier 2)
 N8_U.uHole=NHOLE.uHole;N8_U.uHoleC=NHOLE.uHoleC;N8_U.uMood={value:new THREE.Vector4(1,0,0,0)};N8_U.uBolt=NBOLT.uBolt;N8_U.uBoltR=NBOLT.uBoltR;N8_U.uInC={value:new THREE.Vector3(.6,.7,1)};
+N8_U.uSym=skyU.uSym; /* (2026-11-05, Sacha : « sans dessus dessous ») le MÊME fondu 0 → 1 que le ciel replié (map NUAGES en course) : l'ombre bleue du ventre et le rebond d'en dessous deviennent symétriques */
 N8_U.uLav={value:new THREE.Vector3(.72,.78,.97)}; // (2026-10-14, passe graphismes · nuages-jour) la teinte de l'ombre des cumulus (était la constante vec3(.72,.78,.97) du GLSL, un bleu-lavande franc) : un uniforme, posé par ambiance (champ `nuLav`), même valeur par défaut
 /* LES NUAGES SANS COUTURES BLEUES (2026-10-15 soir, Sacha : « les nuages sont encore buggés ») — VU au banc (mer de nuages, rafales de photos) : des
    LISERÉS BLEUS et des trous dans la ouate là où deux cumulus se chevauchent. La cause : le bord d'un nuage est à demi transparent (la silhouette
@@ -444,7 +460,7 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
       ...(N8_VAP?['  float sc9=length(modelMatrix[0].xyz);','#ifdef USE_INSTANCING','  sc9*=length(c0);','#endif','  vQ=sc9*.077/max(length(cameraPosition-wp.xyz),1.);']:[]), /* (coton-blanc) la taille d une cellule de vapeur à l écran (rad) : sous ~3 px elle s éteint */
       '#include <fog_vertex>',
       '}'].join('\n'),
-    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC;uniform vec4 uMood;uniform vec3 uInC;uniform float uTps;uniform vec4 uBolt[12];uniform float uBoltR;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
+    fragmentShader:['#include <common>','#include <fog_pars_fragment>','uniform vec3 uSunW,uAlb,uSunC,uSky,uGnd;uniform vec2 uNearF;uniform float uSym;uniform vec4 uK,uR;uniform float uFondu;uniform vec4 uHole[8];uniform float uHoleC;uniform vec4 uMood;uniform vec3 uInC;uniform float uTps;uniform vec4 uBolt[12];uniform float uBoltR;varying vec3 vN,vW,vA,vT;varying float vNvF;',...(N8_VAP?['uniform sampler2D uVap;uniform vec4 uVapK;varying vec3 vP;varying float vQ;','float n8vap(vec3 x){vec3 p=floor(x),f=fract(x);f=f*f*(3.-2.*f);vec2 uv=mod(p.xy+vec2(37.,17.)*p.z,256.)+f.xy;vec2 rg=texture2D(uVap,(uv+.5)/256.).ra;return mix(rg.x,rg.y,f.z);}']:[]),
       'void main(){vec3 N=normalize(vN),N0=N,V=normalize(cameraPosition-vW);',
       '  for(int i9=0;i9<8;i9++){vec4 h9=uHole[i9];if(h9.w>.01&&distance((floor(vW/uHoleC)+.5)*uHoleC,h9.xyz)<h9.w)discard;}',
       /* LE RELIEF DE PRÈS (SON et DEBUGGING, mesuré : en vol, un grand nuage tout proche était un MUR lisse « en plastique ») : sous ~300 m, la
@@ -458,8 +474,8 @@ function nuage8Mat(){ if(COTON.mat8)return COTON.mat8;
          aplats de peintre aux bords brisés, le contour sombre — est RETIRÉE : les nuages gardent leur modelé doux. */
       '  vec3 alb=uAlb*mix(vec3(1.),vT,.3)*uK.x;',                                                /* la teinte propre du nuage, en sourdine (à plein, les « chauds » sortaient ORANGE) */
       '  vec3 sk=mix(vec3(dot(uSky,vec3(.3,.59,.11))),uSky,.6)*vec3(.9,.95,1.05);',
-      '  vec3 ciel=mix(vec3(.72,.78,.97)*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,N.y));',   /* (SON, mesuré) l ombre tirait au BRUN (le sol de l hémisphère) : un bleu-LAVANDE franc sous le ventre et sur les flancs */                   /* le côté ombre pris par le CIEL : bleu-lavande (et le rebond de la mer sous le ventre) */
-      '  vec3 Fd=normalize(vec3(-uSunW.x,.55,-uSunW.z));float fl=.72+.38*max(dot(N,Fd),0.)+.12*max(-N.y,0.);',     /* le côté OMBRE a son modelé : le ciel à l opposé du soleil l éclaire, la mer de nuages renvoie par en dessous */
+      '  vec3 ciel=mix(vec3(.72,.78,.97)*(.6+.5*dot(uGnd,vec3(.3,.59,.11))),sk,smoothstep(-.35,.8,mix(N.y,abs(N.y),uSym)));',   /* (SON, mesuré) l ombre tirait au BRUN (le sol de l hémisphère) : un bleu-LAVANDE franc sous le ventre et sur les flancs */                   /* le côté ombre pris par le CIEL : bleu-lavande (et le rebond de la mer sous le ventre) */
+      '  vec3 Fd=normalize(vec3(-uSunW.x,.55*mix(1.,N.y<0.?-1.:1.,uSym),-uSunW.z));float fl=.72+.38*max(dot(N,Fd),0.)+.12*max(-N.y,0.)*(1.-uSym);',     /* le côté OMBRE a son modelé : le ciel à l opposé du soleil l éclaire, la mer de nuages renvoie par en dessous */
       '  vec3 ombre=ciel*uR.z*fl*mix(.55,1.,ao)*mix(.84,1.,hh);',
       '  float ch=clamp((uSunC.r-uSunC.b-.18)*3.5,0.,.45);',                                        /* la CHALEUR du soleil : nulle au matin et à midi, l or n arrive qu en fin d après-midi */
       '  vec3 soleil=mix(vec3(1.,.99,.975),uSunC/max(uSunC.r,.01),ch)*dot(uSunC,vec3(.3,.59,.11))*uK.y;',   /* (SON, mesuré) au matin les nuages sortaient BEIGE-SABLE : un blanc franc côté soleil */

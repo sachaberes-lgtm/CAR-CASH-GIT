@@ -48,6 +48,7 @@ function tutoCarte(){
     c.innerHTML='<div class="ecScene"></div><div class="ecH"><span class="ecPips"></span><span class="coN"></span></div>'
       +'<b class="ecT"></b><span class="ecD"></span><button class="coSkip" type="button"></button>';
     document.body.appendChild(c);
+    c.querySelector('.coSkip').addEventListener('pointerdown',function(e){e.stopPropagation();});
     c.querySelector('.coSkip').addEventListener('click',function(e){e.stopPropagation();tutoPasse(this);});}
   if(!document.getElementById('ecMain')){const m=document.createElement('div');m.id='ecMain';m.setAttribute('aria-hidden','true');
     m.innerHTML='<div class="p"><i class="o"></i><i class="m"></i></div><i class="r"></i><i class="fg"></i><i class="fd"></i><b class="x2">×2</b>';document.body.appendChild(m);}
@@ -80,16 +81,12 @@ function tutoMain(){
    Permis déjà payé (REVOIR L'AUTO-ÉCOLE) : rien à perdre, un seul appui comme avant. */
 function tutoPasse(b){
   const c=document.getElementById('coach');if(!c||!TUTO.on)return;
-  if(SAVE.d.permis||b.classList.contains('sur')){clearTimeout(tutoPasse._t);uiClic('retour');tutoFin(true);return;}
-  uiClic('danger');hap(8);
-  b.classList.add('sur');b.textContent=TR('VRAIMENT ?').replace(' ',' ');
-  clearTimeout(tutoAffiche._t);c.classList.remove('rate');c.classList.add('passe');
-  c.querySelector('.coN').textContent=TR('PERMIS')+' +'+fmtC(500);
-  clearTimeout(tutoPasse._t);tutoPasse._t=setTimeout(function(){tutoPasseRange(c);},3000);
+  /* (2026-11-03, demande de Sacha) PASSER = UN SEUL CLIC : plus de « VRAIMENT ? ». On sort de la leçon et on repart tout de suite sur une vraie partie. */
+  clearTimeout(tutoPasse._t);uiClic('retour');tutoFin(true);resetGame();
 }
 function tutoPasseRange(c){ // la question retombe : PASSER revient, l'en-tête se vide
   clearTimeout(tutoPasse._t);if(!c)return;const b=c.querySelector('.coSkip');
-  if(b){b.classList.remove('sur');b.textContent=TR('PASSER');}
+  if(b){b.classList.remove('sur');b.textContent=TR('PASSER LE TUTO')+' ›';}
   if(c.classList.contains('passe')){c.classList.remove('passe');c.querySelector('.coN').textContent='';}
 }
 function tutoPips(c,vient){ // les six pastilles : faites (vert), celle en cours (or qui bat), à venir ; `vient` = celle qui vient de se remplir
@@ -104,7 +101,7 @@ function tutoAffiche(msg){ // msg (facultatif) : le raté s'écrit dans l'en-tê
   const montre=function(){
     c.classList.remove('bravo','sort','rate','intro');if(intro)c.classList.add('intro');
     c.querySelector('.coN').textContent=msg?TR(msg):'';
-    c.querySelector('.coSkip').textContent=TR('PASSER');
+    c.querySelector('.coSkip').textContent=TR('PASSER LE TUTO')+' ›';
     tutoMot(c.querySelector('.ecT'),TR(E.t));
     const dd=c.querySelector('.ecD');dd.innerHTML=tutoMarque(TR(tutoTouche()||!E.dk?E.d:E.dk));dd.style.animation='none';void dd.offsetWidth;dd.style.animation='';
     c.querySelector('.ecScene').className='ecScene f-'+E.film;c.querySelector('.ecScene').innerHTML=TUTO_FILMS[E.film]+'<i class="ok"></i>';
@@ -183,6 +180,7 @@ function tutoTick(dt){
   if(!TUTO.on||!started||gameOver||paused)return;
   const c=document.getElementById('coach');if(!c||!c.classList.contains('on')||c.classList.contains('bravo'))return;
   TUTO.t+=dt;
+  {const j=!!((typeof TCTL!=='undefined'&&TCTL.act)||nitroOn||Math.abs(steer)>.05);if(j!==TUTO.joue){TUTO.joue=j;c.classList.toggle('joue',j);}} /* (2026-11-07) le pouce est sur le volant ou NITRO : la carte s'estompe (voir LA CARTE COMPACTE) */
   TUTO.mT=(TUTO.mT||0)+dt;if(TUTO.mT>.25){TUTO.mT=0;tutoMain();} // la main suit sa commande (rotation, clavier qui sort, réglage COMMANDES)
   /* (2026-09-26, audit UX : 3 essais sur 3, la caisse sortait de la route juste après TOURNE, et l'étape NITRO ne se validait
      pas en l'air → 6 s de vol, explosion, « RATÉ »). Aux deux premières étapes, une sortie de route (plus d'une demi-seconde

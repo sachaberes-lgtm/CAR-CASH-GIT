@@ -203,26 +203,6 @@ const FRN_RAISIN=function(K){const H=frH(K),T=H.T;
   baie(0,.18,0,.22);
   K.put('rgT',new T.CylinderGeometry(.035,.05,.34,5),.02,.62,0,0,0,.15);
   H.LF('rgL','rgl',.5,.18,.2,.1,.05,.62,0,.5,.6,.3,5);
-  // les ailes d'ange : de vraies PLUMES (lame à bout arrondi, nervure centrale), trois rangs superposés — petites couvertures, secondaires, grandes primaires —
-  // éventail vers le haut et l'extérieur, les plus longues au milieu de l'éventail ; une pointe d'or aux primaires
-  const plume=(k1,k2,kT,sg,bx,by,bz,ang,L,W,cur)=>{
-    const dx=sg*Math.cos(ang),dy=Math.sin(ang),px=-dy,py=dx*sg*sg;           // direction dans le plan de l'aile, et sa perpendiculaire
-    const NS=7,pts=[],CUP=.42,FOLD=.5;
-    for(let i=0;i<=NS;i++){const u=i/NS,l=L*u,cx=bx+dx*l+px*cur*l*u,cy=by+dy*l+py*cur*l*u,cz=bz+CUP*l*l*.5,
-        hw=W*Math.pow(Math.sin(Math.PI*Math.pow(u,.72)),.62)+.004;
-      pts.push({m:[cx,cy,cz+FOLD*hw*.6],l:[cx-px*hw,cy-py*hw,cz-FOLD*hw*.4],r:[cx+px*hw,cy+py*hw,cz-FOLD*hw*.4]});}   // nervure en relief, deux demi-lames qui retombent
-    for(let i=0;i<NS;i++){const A=pts[i],B=pts[i+1],kk=(i>=NS-2&&kT)?kT:null;
-      K.tri(kk||k1,A.m,A.l,B.l);K.tri(kk||k1,A.m,B.l,B.m);K.tri(kk||k2,A.m,B.m,B.r);K.tri(kk||k2,A.m,B.r,A.r);}};
-  const aile=(sg)=>{
-    const bx=sg*.30,by=.36;
-    // couvertures (courtes, rondes) devant
-    for(let i=0;i<6;i++){const a=.45+i*.2;plume('wgW','wgw',null,sg,bx,by,.02,a,.26+.03*Math.sin(i*1.3),.10,.10);}
-    // secondaires
-    for(let i=0;i<6;i++){const a=.35+i*.21;plume('wgW','wgw',null,sg,bx,by+.02,-.02,a,.42+.07*Math.sin(i*.9+.4),.11,.14);}
-    // grandes primaires derrière, bout doré
-    for(let i=0;i<6;i++){const a=.25+i*.22;plume('wgW','wgw','wgG',sg,bx,by+.04,-.06,a,.62+.12*Math.sin(i*.8+.3),.12,.16);}
-  };
-  aile(1);aile(-1);
 };
 const FRN_POMMEDOREE=function(K){frPomme(K,['go1','go2','go3','goH','goT','goL','gol',44,28]);};
 
@@ -230,16 +210,25 @@ for(const k in FRUIT_PAL_N)FRUIT_PAL[k]={g:'f',c:FRUIT_PAL_N[k]};
 const FRUIT_EXO=FRUIT_DEFS.splice(0,FRUIT_DEFS.length); // les 13 d'avant : hors du jeu, au cahier des charges
 const FRN_ANC=n=>FRUIT_EXO.find(f=>f.n===n);
 /* (2026-10-21, Sacha : « des fruits plus rares qui rapportent plus ») les NOUVEAUX dessins, les ANCIENS réglages : communs et petits (myrtille, orange…) jusqu'au rare qui claque (mangue, melon) */
+/* ===== LA HIÉRARCHIE DES FRUITS (2026-11-05, Sacha : « les plus petits fruits donnent moins de nitro, les plus gros plus de nitro ; une vraie hiérarchie en fonction des pouvoirs, des tailles, du nitro apporté ») =====
+   UN ORDRE, TROIS RÉGLAGES QUI LE SUIVENT : plus le fruit est gros (FRUIT_ECH, voir mkFruit), plus il rend de nitro (`boost`, lu par ramassage via fruitK) et plus il est RARE (`freq`, lu par
+   fruitPick). Avant : tous les fruits rendaient 20 % de la jauge quel que soit leur `boost` (qui ne pilotait que le jus), et tous sortaient à égalité.
+   L'ORDRE est celui de la vraie taille d'un fruit (myrtille 1,5 cm … melon 15 cm) : on lit la valeur d'un fruit à son volume. TROIS PALIERS, ×2,4 de la myrtille au melon :
+     PETITS (commun)   MYRTILLE · CERISE · LITCHI   — 0,3 à 0,5  · 51 % des fruits  · 0,4 à 0,7 × le fruit moyen
+     MOYENS            KIWI · PÊCHE · POMME         — 0,65 à 1   · 33 %            · 0,9 à 1,4 ×
+     GROS (rare)       ORANGE · MANGUE · MELON      — 1,2 à 2    · 16 %            · 1,7 à 2,9 ×
+   La moyenne pondérée des `boost` vaut 0,70 : le fruit MOYEN rend toujours ses 20 % d'avant, l'économie de la nitro ne bouge pas — elle se répartit autrement
+   (une myrtille rend 0,4 × un fruit moyen, un melon 2,9 ×). Les fruits-pouvoirs, eux, sont au-dessus de tout (voir PWR_ECH, pouvoirs-orbes). Banc : dbgFruits(). */
 FRUIT_DEFS.push(
-  Object.assign({},FRN_ANC('MYRTILLE'),{boost:.35,freq:26}),
-  {n:'CERISE',boost:.5,freq:14,jus:0xd01030,lp:FRN_CERISE},
-  {n:'KIWI',boost:.6,freq:11,jus:0x7cc020,lp:FRN_KIWI},
-  Object.assign({},FRN_ANC('PÊCHE PLATE'),{n:'PÊCHE',boost:.6,freq:10}),
-  Object.assign({},FRN_ANC('ORANGE'),{boost:.5,freq:11}),
-  {n:'POMME',boost:.7,freq:8,jus:0xe02a2a,lp:FRN_POMME},
-  {n:'LITCHI',boost:1,freq:4,jus:0xf6e6ee,lp:FRN_LITCHI},
-  {n:'MANGUE',boost:1.2,freq:3,jus:0xf4b030,lp:FRN_MANGUE},
-  {n:'MELON',boost:2,freq:1,jus:0xf0a050,lp:FRN_MELON}
+  Object.assign({},FRN_ANC('MYRTILLE'),{boost:.3,freq:20}),
+  {n:'CERISE',boost:.4,freq:17,jus:0xd01030,lp:FRN_CERISE},
+  {n:'LITCHI',boost:.5,freq:14,jus:0xf6e6ee,lp:FRN_LITCHI},
+  {n:'KIWI',boost:.65,freq:13,jus:0x7cc020,lp:FRN_KIWI},
+  Object.assign({},FRN_ANC('PÊCHE PLATE'),{n:'PÊCHE',boost:.8,freq:11}),
+  {n:'POMME',boost:1,freq:9,jus:0xe02a2a,lp:FRN_POMME},
+  Object.assign({},FRN_ANC('ORANGE'),{boost:1.2,freq:7}),
+  {n:'MANGUE',boost:1.5,freq:5,jus:0xf4b030,lp:FRN_MANGUE},
+  {n:'MELON',boost:2,freq:4,jus:0xf0a050,lp:FRN_MELON}
 );
 /* LES FORMES DES FRUITS-POUVOIRS : une géométrie par pouvoir, coulée à la 1re demande (comme fruitGeo) et partagée */
 const FRUIT_POW={n:{n:'PIMENT',lp:FRN_PIMENT,jus:0xff3a10},v:{n:'CITRON',lp:FRN_CITRON,jus:0xfff060},x:{n:'FRUIT DU DRAGON',lp:FRN_DRAGON,jus:0xe0157a},

@@ -34,7 +34,7 @@ FEUX_DOSES[3]=Object.assign({},FEUX_DOSES[2],{kH:0,carte:[.75,.8],ambre:null}); 
    gardent LEUR couleur — au balayage de la gamme, la veilleuse éteignait les étoiles d'or du DRAGON D'OR et les phares de rallye de LA STRATOS */
 /* LES CAISSES-PERSONNAGES gardent leurs pièces lumineuses telles quelles (ce sont des YEUX, un pelage, de la lave, de la glace — pas des phares) :
    relevé au balayage de la gamme (le CHAT : les yeux bleuissaient ; LE DOGE : les sourcils). Les halos et le faisceau suivent la lecture. */
-const FEUX_SAUF=['CHAT POP-TART','LE DOGE','LA FOURNAISE',"L'ICEBERG"];
+const FEUX_SAUF=['CHAT POP-TART','LE SHIBA','LA FOURNAISE',"L'ICEBERG"];
 /* ⚠ LA 3 EST LE JEU (oui de Léo, 20/10) : `?feux=0` rend les feux d'avant l'étude (halos crème), `?feux=1`/`?feux=2` les deux autres lectures. */
 var FEUXL=(function(){let n=3;try{const q=new URLSearchParams(location.search).get('feux');if(q==='0'||q==='1'||q==='2')n=+q;}catch(e){}
   return {n:n,d:FEUX_DOSES[n]||null,fais:[],cartes:[],cM:null,stats:null,hlM:null,tlM:null,spec:null};})();

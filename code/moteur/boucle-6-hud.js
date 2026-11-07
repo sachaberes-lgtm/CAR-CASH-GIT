@@ -57,7 +57,7 @@
         break;}
     }
     if(!gameOver&&money>=nextRainAt){nextRainAt*=2.6;startMoneyRain();showMsg(pickL(RAIN_LINES),'#7dff9a');}
-    if(money>best){if(SONV2&&started&&!gameOver&&!SANDBOX&&!TUTO.on&&best>START_CASH+.5&&!runStats.recSon){runStats.recSon=1;sfx('aura.record',{vol:-6});}best=money;SAVE.d.best=best;SAVE.mark();} // mark : le filet des 30 s (ou la fin de run) écrira
+    if(money>best){if(SONV2&&started&&!gameOver&&!SANDBOX&&!TUTO.on&&best>START_CASH+.5&&!runStats.recSon){runStats.recSon=1;sfx('aura.record',{vol:-6});}if(!SANDBOX&&!TUTO.on){best=money;SAVE.d.best=best;SAVE.mark();}} /* (audit p10) ni l'auto-école ni le bac à sable ne posent un record : premiereFois() restait faux dès la 1re image */ // mark : le filet des 30 s (ou la fin de run) écrira
     if(loop._bestHud!==best){loop._bestHud=best;elRecord.textContent=TR('record : ')+fmt(best);}
     // ⚠ on n'écrit la jauge QUE si elle a bougé d'un demi-pour-cent : un style par image, c'est un recalcul de style par image
     // (2026-09-28, HUD v5) la rampe dit la MÊME chose que le disque NITRO : la part du RÉSERVOIR du moteur (orange), puis la réserve bleue
@@ -90,7 +90,7 @@
       pwrChip.innerHTML=pwL.map(function(x){return '<div class="pw" data-k="'+x[0]+'" style="--pc:'+PWR_DEFS[x[0]].tint+'">'+pxi(x[2])+'<span><small>'+sansAcc(TR(x[3]))+'</small><b>0.0</b></span><u></u></div>';}).join('');
       pwrChip.style.display=pch?'block':'none';pwrChip.classList.toggle('pw3',pwL.length>=3);loop._pwEl=Array.prototype.slice.call(pwrChip.querySelectorAll('.pw'));hudReveil('pwrChip');} /* un pouvoir de plus : le HUD discret le rallume */
     if(loop._pwEl)for(let j=0;j<pwL.length&&j<loop._pwEl.length;j++){const el=loop._pwEl[j],t9=pwL[j][1],tx=t9.toFixed(1);
-      if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=tx+'s';}
+      if(el._t!==tx){el._t=tx;el.querySelector('b').textContent=(LANG==='fr'?tx.replace('.',','):tx)+'s';}
       el.style.setProperty('--p',Math.min(1,t9/PWR_DEFS[pwL[j][0]].t).toFixed(3));const f9=t9<1.5*(pwL[j][0]==='a'?pwrAirK():1); /* (2026-09-30) AIR MAX au sol s'use au quart : il clignote dans sa DERNIÈRE seconde et demie réelle */if(el._f!==f9){el._f=f9;el.classList.toggle('fin',f9);}
       const x9=t9>PWR_DEFS[pwL[j][0]].t+.05;if(el._x!==x9){el._x=x9;el.classList.toggle('cumul',x9);}} // (pouvoirs v2) cumulé au-delà d'une durée : la jauge déborde (pleine) et la plaque le montre
     {const sp9=airPie.style.display==='block';if(sp9!==loop._psp){loop._psp=sp9;pwrChip.classList.toggle('sousPie',sp9);}}
@@ -122,14 +122,15 @@
       if(feverGlow.className!==(feverArmed?'armed':''))feverGlow.className=feverArmed?'armed':'';}
     if(comboT>0){comboT-=dt;if(comboT<=0)combo=0;}
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
-  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;}}
+  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;} /* (2026-11-03, audit p4) UN ÉTAT NON FINI NE DOIT PAS BLOQUER LA PARTIE : un NaN dans s/vA fait jeter frameAt (pts[NaN]) AVANT le test de bord, la caméra, le HUD et endGame — chaque image rejoue la même exception (muette après la 1re), la physique d'avant le point d'erreur continue et aucune mort ne vient. Vitesse, côté, cap non finis → remis à 0 ; position le long du ruban non finie (irrécupérable) → fin de partie normale (endGame, gardée par !gameOver donc jamais deux fois). Sans exception, rien de tout ça ne tourne. */try{if(started&&running&&!gameOver){if(!Number.isFinite(vA))vA=0;if(!Number.isFinite(vL))vL=0;if(!Number.isFinite(lat))lat=0;if(!Number.isFinite(psi))psi=0;if(!Number.isFinite(s)){try{window.__ccNote('boucle','état non fini (s) : fin de partie');}catch(_){}endGame();}}}catch(e2){console.error('loop secours',e2);}}
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
-  vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||(gameOver&&!!PAL.b('vhdMort',1)&&!PCM_ON)||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn)); // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
-  if(garageOn)garageRender(dt);
-  else if(!started||MENUV.retour)menuVitrine(dt); else if(MENUV.bio)menuVitrineFin(); // L'ACCUEIL (au couchant — rendu au niveau dès qu'on le quitte) : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
-  else if(stallOn)stallRender(dt); // ÉTAL : même showroom, mais c'est un fruit qui tourne
+  try{vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||(gameOver&&!!PAL.b('vhdMort',1)&&!PCM_ON)||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn));}catch(e){loopWarnN('vitrine HD',e);} // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
+  if(garageOn)try{garageRender(dt);}catch(e){loopWarnN('garage',e);}
+  else if(!started||MENUV.retour)try{menuVitrine(dt);}catch(e){loopWarnN('vitrine du menu',e);} else if(MENUV.bio)try{menuVitrineFin();}catch(e){loopWarnN('fin de vitrine',e);} // L'ACCUEIL (au couchant — rendu au niveau dès qu'on le quitte) : la caisse en vitrine sur la route de la ville // GARAGE : place la caisse + oriente la caméra AVANT que le ciel suive
+  else if(stallOn)try{stallRender(dt);}catch(e){loopWarnN('étal',e);} // ÉTAL : même showroom, mais c'est un fruit qui tourne
   try{nyanTick(dt);}catch(e){loopWarn(32,'chat pop-tart',e);}
   try{atchTick(dt);}catch(e){loopWarn(4096,'atchoum',e);} // (2026-10-06) ATCHOUM crache et éternue (voir atchTick) // (2026-10-06) le pas du GIF et l'arc-en-ciel du chat (voir nyanTick)
+  try{ // (audit p5) le ciel, le soleil, les planètes : un plantage de décor ne doit jamais empêcher le rendu
   skyDome.position.copy(camera.position);
   skyU.uTime.value=t;
   skyU.uVille.value=LVL.ville;skyU.uPluie.value=Math.max(LVL.pluie,LVL.brume);skyU.uFogCol.value.copy(scene.fog.color);skyU.uCam.value.copy(camera.position); // LE CIEL DE LA VILLE
@@ -159,6 +160,8 @@
     RAYS[r9].position.y+=RAY_LIFT;
   }
   if(!sunSprite.parent){scene.add(sunSprite);scene.add(horizonGlow);for(const r9 of RAYS)scene.add(r9);}
+  }catch(e){loopWarnN('ciel',e);}
+  try{ // (audit p5) fenêtre d'ombre + liseré
   // fenêtre d'ombre : le soleil suit la caisse, snappé au texel dans le plan lumière (zéro scintillement en roulant)
   const ts9=68/sun.shadow.mapSize.x;
   L_PERP.crossVectors(L_DIR,ORB.haut).normalize();L_UP.crossVectors(L_PERP,L_DIR).normalize(); // (2026-09-27) la fenêtre d'ombre suit LA lumière du niveau : le couchant (L_DIR = SUN_DIR, au bit près) ou le soleil de l'ORBITE (posé par orbiteLumiere)
@@ -178,11 +181,13 @@
   if(fever>0)RIM_U.uRimC.value.setHex(0xffc55e);
   else if(nitroOn)RIM_U.uRimC.value.setHex(nitroBlue?(0xb9c5dc):0xffb886); // (vague 3) la caisse prend le liseré de SA flamme (il était cyan : un néon, pas la nitro de la bible)
   else{RIM_U.uRimC.value.copy(RIM_C0);if(LVL.espace>.001)RIM_U.uRimC.value.lerp(ESP_RIM,LVL.espace);}
-  updateContactShadow();
-  carVit(dt); // (2026-09-26) roues, flou de jante, halos des phares et des feux (frein)
+  }catch(e){loopWarnN('ombre et liseré',e);}
+  try{updateContactShadow();}catch(e){loopWarnN('ombre de contact',e);}
+  try{carVit(dt);}catch(e){loopWarnN('roues et feux',e);} // (2026-09-26) roues, flou de jante, halos des phares et des feux (frein)
   // MUSIQUE + CRÉATURES : hors du try/catch gameplay → protégés à part pour ne jamais casser le rendu
   // mouvement 0..1 : le filtre suit la VITESSE en parallèle — on ralentit, le son se referme progressivement (plein vers ~65 % vmax)
   const musMvt=(running&&!gameOver)?Math.max(0,Math.min(1,(speedKmh/Math.max(1,vmaxShow()))/0.65)):0;
+  try{ // (audit p5) ailes, comète, montage du moteur : décor de la caisse
   // MINI-AILES : déployées en vol, repliées au sol (lissé)
   if(carWingL){const tgt=((mode==='fall'&&!garageOn)||(garageOn&&(SHOP.tab==='aile'||(INV&&INV.on&&INV.cat==='aile')))||!!(AILV.force&&AILV.force.ouvre))?1:0; /* (banc) dbgAilesForce({ouvre:1}) : dépliées en roulant */ // boutique, onglet AILES : on les montre ouvertes
     wingT+=(tgt-wingT)*Math.min(1,dt*6);
@@ -257,8 +262,9 @@
       }
     }
   }else if(swapRing.visible){swapRing.visible=false;swapLight.intensity=0;}
-  juiceScreenTick(dt); // les taches de jus s'effacent, meme en pause
-  fxTick(dt); // ⚠ hors du gate de sim : un refractaire fige en pause rejoue le son au retour
+  }catch(e){loopWarnN('caisse (ailes, comète, montage)',e);}
+  try{juiceScreenTick(dt);}catch(e){loopWarnN('jus',e);} // les taches de jus s'effacent, meme en pause
+  try{fxTick(dt);}catch(e){loopWarnN('fx',e);} // ⚠ hors du gate de sim : un refractaire fige en pause rejoue le son au retour
   /* (2026-09-30) UN try PAR APPEL : dans un seul bloc, une exception de musicTick ou de villeApres sautait les suivants — le banc de
      dauphins, le serpent et la BOULE DE FEU restaient figés en l'air. Chacun son filet, chacun son avertissement (une fois : loopWarn) */
   try{musicTick(dt,musMvt);}catch(e){loopWarn(1,'musique',e);}
@@ -272,7 +278,7 @@
      mortS9 toujours faux, dtA9 = dt — rien ne change. */
   let dtA9=dt;if(mortS9)MORT_IMG.dt=Math.min(.1,MORT_IMG.dt+dt);else if(MORT_IMG.dt>0){dtA9=Math.min(.1,MORT_IMG.dt+dt);MORT_IMG.dt=0;}
   try{updateBoomArt(dt);}catch(e){loopWarn(16,'boule de feu',e);}
-  if(JADE.root&&!mortS9){jadeTick(dtA9);try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}} // (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
+  if(JADE.root&&!mortS9){try{jadeTick(dtA9);}catch(e){loopWarnN('jade',e);}try{jadeSousTick(dtA9);}catch(e){loopWarn(16384,'sous la mer',e);}} // (2026-10-09) LES PICS DE JADE : lumières de la matière, vent des pins, brume
   try{jsgTick(dt);}catch(e){loopWarn(64,'singes de jade',e);}
   try{jdmTick(dt);}catch(e){loopWarn(1<<22,'dauphins de la mer',e);} // (2026-10-15, Léo) LES DAUPHINS DE LA MER DE JADE (au bout de 5 s dans l'eau ; sautent avec la caisse une fois sur deux) // (2026-10-15, Léo) LES SINGES DU SOLEIL DE JADE (décor : coucou, mangue, course, au bord)
   if(!mortS9)try{foretTick(dtA9);}catch(e){window.__foretErr=e;loopWarn(131072,'forêt',e);} // (2026-10-14) LA FORÊT NOIRE : lumière, météo, papillons, feux follets, le loup-garou, les voix du bois
@@ -283,13 +289,14 @@
   try{vitreTick(dt,running&&!paused&&!gameOver&&!BANC_FIGE);}catch(e){loopWarn(8388608,'vitre',e);} // (2026-10-17) LA VILLE VITRÉE : les nuages et leur reflet, l'éclat du soleil, les bureaux la nuit // (2026-10-13) CRYPTO CITY : la lune ₿, les pièces, les fusées, les feux, l'ATH
   try{plaTick(dt,running&&!paused&&!BANC_FIGE);}catch(e){loopWarn(65536,'pluie d argent',e);} // (2026-10-13) LA PLUIE D'ARGENT v2
   try{canyonTick(dt);cyVautours(dt);}catch(e){loopWarn(262144,'canyon',e);}try{dunesTick(dt);}catch(e){loopWarn(33554432,'dunes',e);} /* (2026-10-18) LES DUNES D'OR : après canyonTick (l'ombre des crêtes sur la caisse) */ // (2026-10-14) LE CANYON DES GÉANTS : les lumières du relief, l'ombre des parois sur la caisse
-  if((GRUE.L.length||JADE.root)&&!mortS9)grueTick(dtA9); // …et les vols de grues // (Paris) le scintillement et le phare
+  if((GRUE.L.length||JADE.root)&&!mortS9)try{grueTick(dtA9);}catch(e){loopWarnN('grues',e);} // …et les vols de grues // (Paris) le scintillement et le phare
   try{lumTick(dt,speedKmh);}catch(e){loopWarn(1<<23,'lumières',e);} // (2026-10-17) LES LUMIÈRES DE LA CAISSE v2 : phares, feux, nitro, traînées (voir LUM_GLSL)
   if(mortS9){}else
   if(PCV.fen&&PORTV.att&&!PCV.copie){}else // (2026-10-17, 3e tour) l'image d'attente du passage : l'écran est COUVERT par la fenêtre recopiée — on ne dessine pas l'ancien monde pour rien
   if((started&&!gameOver)||lierPassesPretes()){ /* (2026-10-27) LA LIAISON EN ARRIÈRE-PLAN : hors course, tant qu'une passe de l'image se lie, l'image d'avant reste (voir interface/vignette-moteur.js) */
-  if(POST_ON&&composer)composer.render(); // ACES + bloom
-  else renderer.render(scene,camera);}     // repli si le post n'a pas pu se charger
+  if(POST_ON&&composer)try{composer.render();}catch(e){loopWarnN('rendu',e);} // ACES + bloom
+  else try{renderer.render(scene,camera);}catch(e){loopWarnN('rendu (repli)',e);}
+  window.__imagesJeu=(window.__imagesJeu|0)+1;} /* (2026-11-05, Sacha : « des fois ce bug visuel sur Vercel » : le menu sur un écran NOIR) les images 3D vraiment dessinées : le voile de l'intro attend qu'il y en ait (voir `ouvreQuandPret`, moteur/intro-161.js) */     // repli si le post n'a pas pu se charger
   if(window.__introPrise){const f9=window.__introPrise;window.__introPrise=null;try{f9(renderer.domElement);}catch(e){}} // (2026-10-22) l'intro du studio demande une photo de la scène 3D, prise ici, juste après son rendu (le tampon est encore plein) : les éclats de l'écran en font des loupes — voir moteur/intro-161.js
   if(PCV.copie&&!mortS9)pcCopie(); // (2026-10-17) LE PASSAGE PAR LA FENÊTRE : l'image qu'on traverse, recopiée APRÈS ce rendu (pas de rendu en plus)
   try{if(!mortS9)homeCielPrise(now);}catch(e){} // (2026-10-11) le CIEL DU MENU, recopié en vignette pour le HOME du garage (voir homeCielPrise)

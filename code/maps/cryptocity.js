@@ -23,10 +23,15 @@
      lune, des FEUX D'ARTIFICE verts et or ; les pièces de la route frappées du ₿ (coinPeint 'B').
    · LE NOUVEL ATH : toutes les ~35 s, « NOUVEL ATH ! », le cours du bitcoin qui grimpe, une salve de feux d'artifice, et la pluie qui redouble.
    · LA PLUIE D'ARGENT v2 (`PLA`) : voir son bloc juste après.
+   ⚠ (2026-11-05, Sacha : « Crypto City, la journée avec le taureau et les bougies dans le ciel : on enlève les bougies, on enlève le taureau, mais tu gardes,
+     c'est la version journée ») PLUS DE TAUREAU NI DE BOUGIES — les taureaux, les rangées de bougies le long de la route, les bougies de la forêt et les
+     graphiques de l'horizon sont RETIRÉS, leur code aussi. Restent les pièces ₿ (le JACKPOT), les diamants, les dirigeables, les fusées, les feux, le NOUVEL
+     ATH, la lune ₿ et la pluie d'argent. CRYPTO CITY est UNE ville : ce jour-ci, et la nuit sous la pluie (la carte `ville`) ; les GÉANTES DE VERRE de
+     l'ancienne ville vitrée se dressent dans les deux — voir « CRYPTO CITY, UNE SEULE VILLE » (ville-verre.js).
    Lancement : une map du MODE CLASSIQUE AU HASARD (SF_CARTES.crypto, 2026-10-15) ; `?carte=crypto` / `?niveau=crypto`, `dbgNiveauCrypto(meteo)`. Console : `dbgCrypto()`. */
 const MOON_DIR=new THREE.Vector3(-.52,.40,-.72).normalize(); // la lune du dôme (cielLune) — CRYPTOCITY y pose sa pièce, les fusées y vont
-const CRYPTO={root:null,res:[],toits:[],taureaux:[],bougies:null,pieces:null,pInfo:[],diam:null,dInfo:[],dirig:[],fus:[],feux:null,lune:null,
-  sites:null,colExtra:[],jeter:[],ath:{t:20,n:0,prix:104000},fusT:4,feuT:2.5,rf:null,tick:null,mat:{},
+const CRYPTO={root:null,res:[],toits:[],pieces:null,pInfo:[],diam:null,dInfo:[],dirig:[],fus:[],feux:null,lune:null,
+  sites:null,colExtra:[],jeter:[],ath:{t:20,n:0,prix:104000},fusT:4,feuT:2.5,tick:null,mat:{},
   uT:{value:0},uSun:{value:new THREE.Vector3().copy(SUN_DIR)},uNuit:{value:0},
   v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),m4:new THREE.Matrix4(),q:new THREE.Quaternion(),s:new THREE.Vector3(),
   ax:new THREE.Vector3(0,1,0),c:new THREE.Color()};
@@ -34,46 +39,23 @@ function cryptoOn(){return !!(LVL.cur&&LVL.cur.crypto&&!PARK.on);}
 function cryptoReserve(x,z,r){const R=CRYPTO.res;for(let i=0;i<R.length;i+=3){const dx=x-R[i],dz=z-R[i+1],q=R[i+2]+r;if(dx*dx+dz*dz<q*q)return true;}return false;}
 function cryptoVide(){ // (buildVoxCity, à chaque piste) ce que la ville d'avant avait de crypto s'en va avec elle
   for(const o of CRYPTO.jeter){try{if(o.isInstancedMesh)o.dispose();else if(o.geometry)o.geometry.dispose();}catch(e){}}
-  CRYPTO.jeter.length=0;CRYPTO.res.length=0;CRYPTO.toits.length=0;CRYPTO.taureaux.length=0;CRYPTO.colExtra.length=0;
-  CRYPTO.bougies=CRYPTO.pieces=CRYPTO.diam=null;CRYPTO.pInfo.length=0;CRYPTO.dInfo.length=0;CRYPTO.dirig.length=0;CRYPTO.sites=null;CRYPTO.root=null;
+  CRYPTO.jeter.length=0;CRYPTO.res.length=0;CRYPTO.toits.length=0;CRYPTO.colExtra.length=0;
+  CRYPTO.pieces=CRYPTO.diam=null;CRYPTO.pInfo.length=0;CRYPTO.dInfo.length=0;CRYPTO.dirig.length=0;CRYPTO.sites=null;CRYPTO.root=null;
   for(const f of CRYPTO.fus){f.on=false;f.g.visible=false;f.tr.visible=false;}
   if(CRYPTO.feux){CRYPTO.feux.visible=false;for(let k=0;k<CRYPTO.feux.userData.K;k++)CRYPTO.feux.material.uniforms.uO.value[k].w=-99;}
   if(CRYPTO.lune)CRYPTO.lune.visible=false;
   crhVide(); // (2026-10-21) l'horizon et les projecteurs de la ville d'avant s'en vont aussi
 }
-/* LE PLAN — appelé par buildVoxCity AVANT les tours (`proches` = sa grille de la piste) : où vont les taureaux, les bougies, les pièces,
-   les diamants et les dirigeables. Chaque site vérifie qu'aucun étage de la route ne le traverse (`libre`) et se RÉSERVE : les tours qui
+/* LE PLAN — appelé par buildVoxCity AVANT les tours (`proches` = sa grille de la piste) : où vont les pièces, les diamants et les
+   dirigeables (2026-11-05 : plus de taureaux ni de bougies). Chaque site vérifie qu'aucun étage de la route ne le traverse (`libre`) et se RÉSERVE : les tours qui
    tomberaient dessus sont bâties puis retirées (leurs tirages ont eu lieu : la ville d'à côté ne bouge pas). */
 function cryptoPlace(seed,proches){
-  const cr=mulberry32(seed^0xB0117A11),S={taureaux:[],bougies:[],pieces:[],diam:[],dirig:[]},dS=L/(NP-1),iE=CITY.entree?CITY.entree[1]:0;
-  CRYPTO.res.length=0;CRYPTO.rf=mulberry32(seed^0xF0E57B0);CRYPTO.sd=seed;
+  const cr=mulberry32(seed^0xB0117A11),S={pieces:[],diam:[],dirig:[]},dS=L/(NP-1),iE=CITY.entree?CITY.entree[1]:0;
+  CRYPTO.res.length=0;CRYPTO.sd=seed;
   const DZ=CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz:null; // (2026-10-20, LE DÉCOR AU HASARD) le tirage du décor (villeDecoTire) : combien, où — nul : le plan d'avant, au tirage `cr` près
   const libre=function(x,z,R,y0,y1){let ok=true;proches(x,z,R,function(i){if(!ok)return;const p=pts[i],dx=p.x-x,dz=p.z-z;if(dx*dx+dz*dz<R*R&&p.y>y0-45&&p.y<y1+45)ok=false;});return ok;};
-  const dessous=function(x,z,R,y){let h=-1e9;proches(x,z,R,function(i){const p=pts[i],dx=p.x-x,dz=p.z-z;if(dx*dx+dz*dz<R*R&&p.y<y&&p.y>h)h=p.y;});return h;};
   const cadre=function(i){const T9=T[i],hl=Math.hypot(T9.x,T9.z)||1;return {px:-T9.z/hl,pz:T9.x/hl,tx:T9.x/hl,tz:T9.z/hl};};
   const ix=function(f){return Math.min(NP-2,Math.max(iE+6,Math.floor(f*NP)));};
-  // LES TAUREAUX : à 30 % et à 70 % de la piste, à ~230 m de l'axe, le ventre 70 m sous la route (le dos 120 m au-dessus, les cornes 230)
-  const poseT=function(t){t.ph=cr()*6.28;S.taureaux.push(t);CRYPTO.res.push(t.x,t.z,330);const p=pts[t.i];
-    for(const f of [.3,.52,.74])CRYPTO.res.push(t.x+(p.x-t.x)*f,t.z+(p.z-t.z)*f,95);}; // L'ESPLANADE : pas une tour entre le taureau et la route qu'il regarde
-  for(const F0 of (DZ?DZ.tau:[.3,.7])){let rep=null,ok=false;
-    for(let k=0;k<14;k++){const i=ix(F0+(cr()-.5)*.2),c=cadre(i),sg=cr()<.5?-1:1,lat=ROAD_HALF+300+cr()*80;
-      const x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat,yb=pts[i].y-70;
-      if(cryptoReserve(x,z,330)||!libre(x,z,280,yb-20,yb+440))continue;
-      const pied=Math.max(yb-820,dessous(x,z,280,yb)+70),a=.45; // la tête : vers la caisse qui arrive (−T), tournée vers la route (−sg·B)
-      const hx=-c.tx*Math.cos(a)-sg*c.px*Math.sin(a),hz=-c.tz*Math.cos(a)-sg*c.pz*Math.sin(a),cap=Math.atan2(hx,hz),F9=taureauForme((pied-yb)/TAUREAU_K);
-      if(!taureauLibre(F9,x,yb,z,cap,proches))continue; // (2026-10-18) la ROUTE ne passe à moins de 30 m d'AUCUNE partie du taureau — mesuré : le cercle de 280 m laissait la route à 4 m de sa tête
-      const t={x:x,z:z,y:yb,pied:pied,cap:cap,F:F9,s:i*dS,i:i};
-      if(pied>yb-250){if(!rep)rep=t;continue;} // (2026-10-18) une route passe juste dessous : ses pattes s'arrêteraient en moignons — on cherche une place où elles plongent, celle-ci en dernier recours
-      poseT(t);ok=true;break;}
-    if(!ok&&rep)poseT(rep);}
-  // LE GRAPHIQUE : trois rangées de bougies qui MONTENT le long de la route (une bougie tous les ~42 m), deux petites rouges dans chaque
-  for(const R0 of (DZ?DZ.boug:[{f:.13},{f:.5},{f:.88}])){const F0=R0.f,i0=ix(F0+(cr()-.5)*.05),sg=cr()<.5?-1:1,lat0=ROAD_HALF+115+cr()*90,pas=Math.max(1,Math.round(42/dS)),n0=10+((cr()*4)|0),r1=2+((cr()*4)|0),n=DZ?R0.n:n0;
-    let niv=pts[i0].y-150;
-    for(let k=0;k<n;k++){const i=Math.min(NP-1,i0+k*pas),c=cadre(i),lat=lat0+(cr()-.5)*14,x=pts[i].x+c.px*sg*lat,z=pts[i].z+c.pz*sg*lat;
-      const rouge=(DZ&&DZ.rouge!==1?DZ.rouge===2&&k%3===r1%3&&k>0:(k===r1||k===r1+4))&&k<n-2,h=rouge?14+cr()*16:28+cr()*52,y0=rouge?niv-h:niv,y1=y0+h,mh=12+cr()*28,mb=8+cr()*22,w=16+cr()*6;
-      if(cryptoReserve(x,z,w*.75)||!libre(x,z,w*.75+4,y0-mb,y1+mh)){niv+=rouge?-h*.5:h*.7;continue;}
-      S.bougies.push({x:x,z:z,y0:y0,y1:y1,mh:mh,mb:mb,w:w,rouge:rouge});CRYPTO.res.push(x,z,w*.75+3);
-      niv=rouge?y0+h*.3:y1-h*.22+cr()*8;}}
   // LES PIÈCES ₿ GÉANTES : douze, de 13 à 25 m de rayon, à 40-150 m du bord, 45-155 m au-dessus de la route
   const nPi=DZ?DZ.pie:12,nDi=DZ?DZ.diam:8;
   for(let k=0;k<nPi;k++){for(let e=0;e<4;e++){const i=ix(.07+.86*(k+cr()*.7)/nPi),c=cadre(i),sg=cr()<.5?-1:1,r=13+cr()*12;
@@ -92,19 +74,12 @@ function cryptoPlace(seed,proches){
       S.dirig.push({x:x,y:y,z:z,cap:Math.atan2(c.tx,c.tz),ph:cr()*6.28});CRYPTO.res.push(x,z,48);break;}}
   CRYPTO.sites=S;return S;
 }
-// la tour (cx,cz) qu'on vient de bâtir : retirée si elle tombe sur un site ; dans la forêt, une sur huit devient une BOUGIE (rend vrai = retirée)
+// la tour (cx,cz) qu'on vient de bâtir : retirée si elle tombe sur un site (rend vrai = retirée) — (2026-11-05) plus de bougie dans la forêt
 function cryptoTour(cx,cz,hd,b,t,canyon){
   if(cryptoReserve(cx,cz,hd))return true;
   const H=t-b;
-  if(!canyon&&CRYPTO.rf()<(CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz.bfo:.13)&&H>160){const w=Math.max(14,Math.min(30,hd*.75)),rouge=CRYPTO.rf()<.16,y1=t-20-CRYPTO.rf()*40,y0=Math.max(b+40,y1-(rouge?50:90+CRYPTO.rf()*160));
-    CRYPTO.sites.bougies.push({x:cx,z:cz,y0:y0,y1:y1,mh:14+CRYPTO.rf()*30,mb:Math.min(y0-b,30+CRYPTO.rf()*90),w:w,rouge:rouge});return true;}
   if(H>200&&CRYPTO.toits.length<1800)CRYPTO.toits.push(cx,t,cz);
   return false;
-}
-function cryptoColBougies(){ // les bougies sont DURES, comme les tours (villeHeurt les lit dans CITY.col)
-  const X=CRYPTO.colExtra;X.length=0;if(!CRYPTO.sites)return X;
-  for(const b of CRYPTO.sites.bougies){const yb=b.y0-b.mb,yt=b.y1+b.mh;X.push(b.x,(b.y0+b.y1)/2,b.z,b.w,b.y1-b.y0,b.w);X.push(b.x,(yb+yt)/2,b.z,3,yt-yb,3);}
-  return X;
 }
 /* ---- LES MATIÈRES (partagées, jamais disposées ; compilées au menu par cryptoChauffe) ---- */
 /* ===== LES FAÇADES DU BULL RUN VIVENT (2026-10-21, Sacha : « amélioration visuelle des maps », passe CRYPTO CITY) =====
@@ -211,7 +186,7 @@ function cryptoPubAtlas(){
   const C=256,cv=document.createElement('canvas');cv.width=2048;cv.height=1024;const x=cv.getContext('2d'); // (2026-10-15) 8 × 4 écrans
   const PUB=[['BTC','#3dff9a','#03170c','+420 %','up'],['TO THE MOON','#ffd75e','#140c3a','NEXT STOP','fusee'],['HODL','#7df9ff','#2a0c4a','DIAMOND HANDS','diam'],['ATH','#3dff9a','#062014','ALL TIME HIGH','up'],
     ['BULL RUN','#ffd75e','#0b3a1c','GREEN ONLY','taureau'],['WAGMI','#ffffff','#0f7a3a','WE ALL MAKE IT','up'],['100X','#ffd75e','#3a1206','LEVIER MAX','up'],['ETH','#d8e2ff','#2b1d6e','+69 %','eth'],
-    ['LAMBO','#ffe23e','#0a0a0a','WEN ? NOW.','up'],['PUMP','#3dff9a','#0c0c18','IT. ALWAYS.','bougies'],['GM','#ff9a2e','#1a0f04','GOOD MORNING','btc'],['$1 000 000','#ffd75e','#08130c','1 BTC','btc'],
+    ['LAMBO','#ffe23e','#0a0a0a','WEN ? NOW.','up'],['PUMP','#3dff9a','#0c0c18','IT. ALWAYS.','bougies'],['GM','#ff9a2e','#1a0f04','GOOD MORNING','btc'],['€1 000 000','#ffd75e','#08130c','1 BTC','btc'],
     ['NUMBER','#3dff9a','#03170c','GO UP','bougies'],['CASH CAR','#ffd75e','#b0106a','LA CAISSE QUI PAIE','btc'],['BUY','#3dff9a','#062014','QUEL DIP ?','up'],['MOON','#ffffff','#0d1640','MISSION','lune'],
     /* (2026-10-15, Sacha : « pleine de références à la token culture, à l'argent et à la tech ») seize de plus */
     ['NFT','#ff6ad5','#1a0630','JPEG MILLIONAIRE','diam'],['SATOSHI','#ffb347','#1a0f04','NAKAMOTO','btc'],['WEB3','#7df9ff','#04162a','THE FUTURE','up'],['DEFI','#3dff9a','#062014','APY 1000 %','bougies'],
@@ -243,20 +218,4 @@ function cryptoMatPub(){
       .replace('#include <fog_fragment>','gl_FragColor.rgb*=(.86+.14*step(.5,fract(gl_FragCoord.y*.25-uT9*6.)))*(1.25+.15*sin(uT9*(3.+vS9*4.)));\n#include <fog_fragment>');};
   m.customProgramCacheKey=function(){return 'pubsCrypto2';};m.dispose=function(){};
   CRYPTO.mat.pub=m;return m;
-}
-// LES BOUGIES : un prisme de verre qui s'allume du bas vers le haut, ses arêtes plus claires, des données qui montent dedans
-function cryptoMatBougie(){
-  if(CRYPTO.mat.bougie)return CRYPTO.mat.bougie;
-  const m=new THREE.MeshBasicMaterial({color:0xffffff});
-  m.extensions={derivatives:true};
-  m.onBeforeCompile=function(sh){sh.uniforms.uT9=CRYPTO.uT;
-    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vL9,vN9,vC9;')
-      .replace('#include <begin_vertex>','#include <begin_vertex>\n#ifdef USE_INSTANCING\nvC9=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));\n#else\nvC9=vec3(1.);\n#endif\nvL9=position*vC9;vN9=normal;');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9;varying vec3 vL9,vN9,vC9;')
-      .replace('#include <fog_fragment>','{vec3 an=abs(vN9);vec2 p=an.y>.5?vL9.xz:(an.x>an.z?vL9.zy:vL9.xy),hs=an.y>.5?vC9.xz*.5:(an.x>an.z?vC9.zy:vC9.xy)*.5;'+
-        'vec2 e=hs-abs(p),fe=max(fwidth(p),vec2(1e-3));float ar=1.-smoothstep(0.,max(fe.x,fe.y)*2.5+.6,min(e.x,e.y));'+
-        'float h=clamp(vL9.y/vC9.y+.5,0.,1.),sc=smoothstep(.9,1.,fract(vL9.y*.03-uT9*.3))*step(9.,vC9.x),me=step(vC9.x,5.);'+ // me : la MÈCHE (pleine lumière)
-        'float k9=mix((.16+.30*h+.22*sc)+1.25*ar+.7*step(.5,an.y),1.,me);gl_FragColor.rgb*=k9;}\n#include <fog_fragment>');};
-  m.customProgramCacheKey=function(){return 'bougiesCrypto1';};m.dispose=function(){};
-  CRYPTO.mat.bougie=m;return m;
 }

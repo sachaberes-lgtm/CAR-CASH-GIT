@@ -70,6 +70,10 @@ function musicPickNext(excludeIdx){
    monte et la musique recule vers son niveau de ciel (MUS_CIEL), en `d` secondes, une même courbe pour les deux (`ventIntro`, 0 → 1). Hors de l'intro, `ventIntro` vaut 1 : rien ne change. */
 const INTROSON={on:false,t0:0,d:8,m0:.3}; /* m0 : le niveau de départ de la musique (30 % de celui du garage, −10 dB) ; au ciel elle finit à MUS_CIEL (15 %) */
 function ventIntro(){if(!INTROSON.on)return 1;if(!INTROSON.t0)return 0;const k=(performance.now()-INTROSON.t0)/(INTROSON.d*1000);return k>=1?1:k*k*(3-2*k);}
+/* (2026-11-05, Sacha : « remets le léger bruit de vent dans l'écran d'accueil » — au lancement) LE VENT DU CIEL AU LANCEMENT : `chuteDoux` ne suivait que ventIntro (0 pendant « 1.61 PRESENTS », puis 8 s de montée) : on
+   n'entendait le vent qu'après l'accueil. Il a maintenant son propre fondu : un léger souffle (35 %) dès que le ciel se construit sous le film, qui rejoint son niveau en 3 s quand l'accueil apparaît.
+   La musique, elle, garde ventIntro (inchangé). */
+function ventCiel(){if(!INTROSON.on)return 1;if(!INTROSON.t0)return .35;const k=(performance.now()-INTROSON.t0)/3000;return k>=1?1:.35+.65*k*k*(3-2*k);}
 /* LE LOBBY JOUE LE PALIER 1 (2026-11-02, Léo : « enlever les musiques de lobby, libérer un maximum d'espace, et mettre à la place le palier numéro 1 : quelque chose qui fasse partie de la musique de la course ») : au lieu des trois
    morceaux de 3 à 4 Mo (nuages, altitude, apesanteur), le ciel et le garage jouent le PALIER 1 de CIEL · 30 (0,35 Mo, 22 s, en boucle) : le début, calme, du morceau qui monte avec le moteur en course. Un seul morceau :
    `MENU_MUS.ciel.length` vaut 1, donc il boucle (voir playMusic) et `musicMenuSuivant` n'a plus rien à tirer. Les trois anciens fichiers restent sur le disque tant que le palier 1 n'est pas validé à l'oreille.
@@ -278,8 +282,8 @@ window.dbgMusWa=function(k){ // console : l'état · dbgMusWa('raz') efface la c
    la boutique) — la musique s'efface en fondu puis se met en PAUSE (elle garde sa place), et RIEN ne la relance tant qu'il vaut vrai
    (ni le toucher, ni le retour d'arrière-plan : musicJoue l'ignore en mode menu). Le garage la rallume : elle repart de zéro en fondu. */
 /* (2/11 soir) MUS_CIEL_LOBBY : le niveau du lobby lié au ciel, 30 % de celui du garage (−10,5 dB ; avant : MUS_CIEL .15, −16 dB). MESURÉ au jeu : au ciel les morceaux clairsemés sortaient 9 dB SOUS le vent (inaudibles), les pleins 9 dB au-dessus ; le nivellement (pbjPlancher, jusqu'à 24 dB pour le lobby) les amène tous au même niveau final, ~4 dB au-dessus du vent. */
-const MUS_CIEL_LOBBY=.27;
-let MUS_TAIT=false;const MUS_CIEL=.15; // au ciel, la musique à 15 % de celle du garage (−16 dB), derrière le vent — (même soir, Léo : « vraiment très légère, comme si on l'entendait en tombant ») : .4 → .15, et elle RESPIRE avec le vent (voir musicTick)
+const MUS_CIEL_LOBBY=.36; /* (2026-11-06, Léo : « augmente un peu le son de la musique, sans dépasser le garage ») .27 → .36 (+2,5 dB) ; le garage reste à 1 */
+let MUS_TAIT=false;const MUS_CIEL=.2; /* (2026-11-06) .15 → .2, idem */ // au ciel, la musique à 15 % de celle du garage (−16 dB), derrière le vent — (même soir, Léo : « vraiment très légère, comme si on l'entendait en tombant ») : .4 → .15, et elle RESPIRE avec le vent (voir musicTick)
 const MUSIC_PASSIF={passive:true,capture:true};
 function musicElGet(){
   if(!musicEl){
@@ -503,13 +507,13 @@ let LOBBY_KO=0;
    en UN cran (1→2, ou 2→3 selon le morceau) ; démarré ou monté jusque-là, il « explose ». Le lobby joue donc le DERNIER PALIER ENCORE CLAIRSEMÉ de chaque morceau (celui dont le niveau brut reste ≤ −20 dB, le plus fort des paliers 1 à 3) : ambiance calme, jamais tout l'orchestre ; il y ENTRE par un fondu de 4 s depuis le palier 1 (PB.lobby) ;
    et c'est le JOUER qui fait arriver tout le monde : le palier monte au 6 (le départ de la course, PBJ_MIN) en même temps que le filtre s'ouvre et que le coup tombe, puis le moteur du jeu mène la montée jusqu'au 30. Les fichiers à paliers et les pages en direct (déjà pleins au palier 1) restent au palier 1.
    Un morceau absent de la table (un nouveau dans Pouce bleu) joue le palier 1. `?lobbytier=N` (1 à 6) impose le même palier à tous, pour comparer. */
-const LOBBY_PALIERS={'bleu-6562':2,'bleu-1540':1,'bleu-7299':2,'bleu-2221':1,'bleu-4830':2,'bleu-9551':1,'bleu-9664':1,'bleu-8154':1,'bleu-6167':1,'bleu-8338':2,'bleu-1275':1,'bleu-8042':1,'bleu-3379':3,'bleu-6104':1,
+const LOBBY_PALIERS={'bleu-6562':1,'bleu-1540':1,'bleu-7299':1,'bleu-2221':1,'bleu-4830':1,'bleu-9551':1,'bleu-9664':1,'bleu-8154':1,'bleu-6167':2,'bleu-8338':1,'bleu-1275':1,'bleu-8042':1,'bleu-3379':1,'bleu-6104':1,
   'pal-neon-noir':1,'pal-nuit-de-velours':1,'pal-aura-30':1,'pal-rubis-neon':1,'pal-asphalte':1};
 /* LE DÉPART DES SEULS MORCEAUX CHARGÉS (2026-11-02 soir, Léo : « certains niveaux commencent vraiment complexes, alors qu'au début ça devrait être plutôt calme ; d'autres sont parfaitement adaptés au palier 1 ; j'ai peur que ceux qui étaient bien, tu les changes ») C'est le « morceau fautif traité SEUL » que le commentaire de PBJ_MIN
    (25/10) promettait. Chaque morceau du générateur est bâti PAR COUCHES (inst.elements : un de plus à chaque palier). MESURÉ sur les 14 : six commencent par un élément déjà chargé (une basse qui roule, un arpège, des accords hachés, un clavinet) et reçoivent leur rythme (grosse caisse, caisse claire) dès le palier 2 ou 3 ; démarrés au palier 6 (PBJ_MIN) ils jouaient
    cinq ou six couches dès le premier mètre. Ces six-là, ET ELLES SEULES, démarrent désormais plus bas ; tout autre morceau (les huit au départ doux, les cinq fichiers ou pages en direct, tout nouveau morceau) est ABSOLUMENT inchangé : PBJ_MIN, comme avant. Le moteur 1 du jeu joue ce palier ; le 30 reste le 30 ; entre les deux en ligne droite (pbjTier).
    `?pbjmin=N` impose N à TOUS (`?pbjmin=6` = le départ d'avant pour les six aussi). */
-const PBJ_DEPART_PAR_MORCEAU={'bleu-9551':1,'bleu-6167':2,'bleu-2221':2,'bleu-6562':2,'bleu-7299':2,'bleu-4830':2};
+const PBJ_DEPART_PAR_MORCEAU={'bleu-1275':1,'bleu-3379':1,'bleu-8154':1,'bleu-6104':1,'bleu-9551':1,'bleu-6167':2,'bleu-2221':1,'bleu-6562':1,'bleu-7299':1,'bleu-4830':1,'bleu-1540':1,'bleu-9664':1,'bleu-8338':1};
 /* LES DÉPARTS ADOUCIS : pour ces six aussi, l'entrée en course est lissée : le filtre s'ouvre en 6 s au lieu de 2-4 (départ direct) et en 3,2 s au lieu de 0,5 s (depuis le lobby). */
 const PBJ_DOUX={'bleu-9551':1,'bleu-6167':1,'bleu-2221':1,'bleu-6562':1,'bleu-7299':1,'bleu-4830':1};
 const LOBBY_TIER=(function(){const m=/[?&]lobbytier=(\d+)/.exec(location.search);return m?Math.max(1,Math.min(6,+m[1])):0;})(); // 0 = le palier de chaque morceau (LOBBY_PALIERS)

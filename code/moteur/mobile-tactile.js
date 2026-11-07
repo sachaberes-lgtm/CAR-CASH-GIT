@@ -8,7 +8,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   TCTL.on=true;
   AUTO_GAS=true; // GAZ AUTOMATIQUE : deux pouces, pas trois — ça pousse tout seul, on gère la trajectoire
   TCTL.pad=false;SAVE.d.tctl='stick'; // ⚠ (2026-09-25) le réglage COMMANDES est retiré : tout le monde au VOLANT (un joueur resté sur « flèches » ne pourrait plus en sortir)
-  setTimeout(function(){applyQ(SAVE.d.q==='fast');},0); // qualité d'image retenue (applyQ est défini plus bas dans ce bloc)
+  setTimeout(function(){if(TOILE1_Q&&dprPlafond(SAVE.d.q==='fast')===DPR_CAP)return;applyQ(SAVE.d.q==='fast');},0); /* (2026-11-05, passe perf mobile 2, A2.c) le plafond est déjà bon (calculé avant le 1er setSize, palier-appareil.js) : rien à réallouer ; `?toile1=0` = comme avant */ // qualité d'image retenue (applyQ est défini plus bas dans ce bloc)
   document.body.classList.toggle('tpad',TCTL.pad);
   SANDBOX=BALADE;SAVE.d.sand=false; // ⚠ UN SEUL MODE (2026-09-25, user) : le bac à sable, le parc et le Survivant sont retirés de l'interface — une ancienne sauvegarde ne doit pas en rallumer un en douce
   const $t=function(i){return document.getElementById(i);};
@@ -49,7 +49,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     const padFin=function(e){ for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===padId){padId=null;padSet(0,0,0,0);} };
     pad.addEventListener('touchend',padFin,{passive:true}); pad.addEventListener('touchcancel',padFin,{passive:true});
     let msP=false; pad.addEventListener('mousedown',function(e){msP=true;padLit(e.clientX,e.clientY);start();}); addEventListener('mousemove',function(e){if(msP)padLit(e.clientX,e.clientY);}); addEventListener('mouseup',function(){if(msP){msP=false;padSet(0,0,0,0);}});
-    addEventListener('blur',function(){padId=null;msP=false;padSet(0,0,0,0);}); } // (2026-10-27) FLÈCHES : l'assiette en vol, et le drift (bas) comme au clavier
+    addEventListener('blur',function(){padId=null;msP=false;padSet(0,0,0,0);});
+    document.addEventListener('visibilitychange',function(){ if(document.hidden){padId=null;msP=false;padSet(0,0,0,0);} }); } /* (2026-11-03, audit) comme le volant (stDoigts, plus bas) : l'appli part derrière en plein appui, iOS n'envoie pas toujours touchcancel ni blur — `padId` gardait un identifiant mort et chaque touchstart suivant sortait sur `padId!==null` : plus moyen de tourner */ // (2026-10-27) FLÈCHES : l'assiette en vol, et le drift (bas) comme au clavier
   const nitroDown=function(){ if(!figGlisseOn())veqDoigt(true); if(boomSkip())return; start(); // (2026-10-15) en FIGURES › GLISSER, taper NITRO = booster, rien d'autre // (2026-10-14) l'appui compte pour le TONNEAU (double-tap) // NITRO + double-tap = BRAQUAGE (même règle que la barre ESPACE)
     if(started&&!gameOver){ const n9=performance.now();
       lastSpaceT=n9; } }; // (double-tap « DÉCOLLAGE » retiré)
@@ -89,7 +90,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   //      IMMÉDIATEMENT) et se recentre au lâcher. Axe X = braquage · axe Y = assiette en vol.
   // (2026-09-28, user : « augmente la sensibilité de l'axe haut bas du joystick ») : assiette pleine à 44 px au lieu de 66 (×1,5), zone morte
   // 14 % → 10 %, courbe 1,25 → 1,15. Le geste du DRIFT (pouce tiré vers le bas au sol) garde SA distance : il lit les pixels (`TCTL.dy`).
-  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=SENSG?VOLANT_PX:54,LOCKV=44,LOCKU=SENSG?38:44,PIQ_K=SENSG?1.12:1,ARC_B=.45,ARC_P=1.5,ARC_M=6,ARC_MAX=42.5,ARC_R0=38*Math.pow(LOCK/54,1.2); // 46 px = braquage plein (54 avant le 14/10) · 44 px = la course du BAS (le drift s'y mesure) · 38 px = assiette pleine vers le HAUT · ARC_* : l'arc du pouce (voir stMove)
+  const sz=$t('tSteer'),stk=$t('tStick'),knb=$t('tKnob'),LOCK=SENSG?VOLANT_PX:54,LOCKV=44,LOCKU=SENSG?30:44,PIT_DK=SENSG?.82:1,PIQ_K=SENSG?1.12:1,ARC_B=.45,ARC_P=1.5,ARC_M=6,ARC_MAX=42.5,ARC_R0=38*Math.pow(LOCK/54,1.2); // 46 px = braquage plein (54 avant le 14/10) · 44 px = la course du BAS (le drift s'y mesure) · 38 px = assiette pleine vers le HAUT · ARC_* : l'arc du pouce (voir stMove)
   /* (2026-10-14, passe SENSATIONS — Sacha : « sur mobile le joystick n'est pas assez sensible, améliore un petit peu la sensibilité »)
      UN PETIT PEU, sur toute la chaîne du pouce, sans toucher à ce que la caisse SAIT faire (plafonds de lacet et de tangage, VOL_TAU : inchangés) :
      · braquage plein à 46 px au lieu de 54 (−15 % de course : le même geste braque ~18 % de plus) ; la zone morte reste 6 % (2,8 px au lieu de 3,2) ;
@@ -105,6 +106,10 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   /* (2026-10-28, Léo : « le slide joystick doit visuellement montrer ce que ça fait d'aller en haut et en bas ») DEUX REPÈRES sur la glissière : un chevron
      AU-DESSUS, un EN DESSOUS, qui s'allument à mesure que le pouce monte ou descend (--su / --sd). En VOL ils disent ce que fait le geste (MONTE / PLONGE,
      selon les réglages POUCE HAUT et VOL INVERSÉ) ; AU SOL le bas dit DRIFT et le haut s'éteint. */
+  /* ===== L'ASSIETTE EN VOL, PLUS VIVE (2026-11-07, Sacha : « la sensibilité haut bas est un peu light ») =====
+     Le pouce vers le HAUT atteint l'assiette pleine à 30 px au lieu de 38 (+27 %), vers le BAS à 82 % de sa course (36 px sur 44 : +22 % en plus des 12 % de
+     PIQ_K), et la zone morte verticale de base passe de 10 à 8 %. Ce que lit le DRIFT n'a pas bougé : `TCTL.dy` reste en pixels sur la course de 44 px (seuil
+     34,9), seule la lecture de l'assiette (`ny`) est plus courte vers le bas. Plafonds de tangage et lissage de la caisse inchangés. `?sens=0` rend tout comme avant. */
   let skU=null,skD=null,skK='';
   if(stk){skU=document.createElement('div');skU.className='skU';skD=document.createElement('div');skD.className='skD';stk.appendChild(skU);stk.appendChild(skD);}
   function skMaj(){ if(!skU)return; const vol=(mode==='fall'),sg=volSens()*volInv(),k=(vol?1:0)+'|'+sg; if(k===skK)return; skK=k;
@@ -150,7 +155,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       gx=Math.max(24,Math.min(LOCK,x-sL-6)); gy=Math.max(20,Math.min(LOCKV,sB-y-6));
       TCTL.id=id; TCTL.ox=x; TCTL.oy=y; TCTL.x0=TCTL.lx=x; TCTL.ly=y; TCTL.ab=TCTL.tr=0; TCTL.ar=-1; TCTL.act=true; TCTL.doigt=true; TCTL.dy=0; TCTL.dyS=0; // (le pouce en pixels repart de zéro : un appui immobile ne rejoue pas le dernier glissé)
       stk.style.left=dispL(x); stk.style.top=(y-sT)+'px';
-      stSet(0,0); sz.classList.add('act'); sz.classList.add('used'); // la consigne « GLISSE POUR TOURNER » a fait son travail
+      stSet(0,0); sz.classList.add('act'); sz.classList.add('used'); // premier braquage : le volant a trouvé sa place
       start();
     };
     const stMove=function(x,y){
@@ -184,14 +189,14 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(rawY<-LOCKU){TCTL.oy=y-cr+LOCKU;gy=Math.max(gy,Math.min(LOCKV,sB-TCTL.oy-6));} // (2026-10-14) vers le HAUT le socle flotte dès 38 px (LOCKU)
       if(TCTL.ox!==ox0||TCTL.oy!==oy0){stk.style.left=dispL(TCTL.ox);stk.style.top=(TCTL.oy-sT)+'px';} // (2026-09-30) l'ANNEAU suit la base flottante (il restait planté où le pouce s'était posé) — écrit seulement quand la base bouge
       const px=Math.max(-gx,Math.min(LOCK,pxr)),py=Math.max(-LOCKU,Math.min(gy,y-TCTL.oy-cr)),
-            nx=px<0?px/gx:px/LOCK,ny=py<0?py/LOCKU:py/gy,
+            nx=px<0?px/gx:px/LOCK,ny=py<0?py/LOCKU:Math.min(1,py/(gy*PIT_DK)),
             ax=Math.abs(nx)<.06?0:nx, // zone morte : le pouce tremble, pas la caisse
             /* (2026-09-30) ZONE MORTE CROISÉE : le pouce pivote à sa base, un glissé « de côté » décrit un ARC — 54 px de braquage portent
                15 à 30 px de vertical, soit 35 à 70 % d'assiette avec l'ancienne zone morte fixe de 10 % (tourner en vol faisait piquer ou
                cabrer). La zone morte verticale s'ÉLARGIT avec le braquage (10 % au neutre → 55 % = 24 px au plein braquage) et la sortie est
                re-étalée sur ce qui reste : une poussée franche (44 px) donne toujours l'assiette pleine. Au neutre la courbe linéaire
                re-étalée colle à l'ancienne (ny^1,15) à 0,015 près au-delà de 40 % de course — la sensibilité réglée le 28/09 est gardée. */
-            dz=.10+.45*Math.abs(nx),ay=Math.abs(ny)<=dz?0:(ny<0?-1:1)*Math.min(1,(Math.abs(ny)-dz)/(1-dz)*(ny>0?PIQ_K:1)); // (2026-10-14) vers le BAS l'assiette monte 12 % plus vite (PIQ_K) : la course, elle, reste celle du drift
+            dz=(SENSG?.08:.10)+.45*Math.abs(nx),ay=Math.abs(ny)<=dz?0:(ny<0?-1:1)*Math.min(1,(Math.abs(ny)-dz)/(1-dz)*(ny>0?PIQ_K:1)); // (2026-10-14) vers le BAS l'assiette monte 12 % plus vite (PIQ_K) : la course, elle, reste celle du drift
       TCTL.dy=py>0?py*LOCKV/gy:py; // le pouce en PIXELS vers le bas (le drift s'y mesure, indépendant de la sensibilité) — rapporté aux 44 px d'une course pleine quand le bas de l'écran la raccourcit
       /* (2026-09-30) L'ENTRÉE EN DRIFT CONNAÎT L'ARC DU JOUEUR. Dans la course, l'arc d'un pouce tendu descend déjà de 37,6 px à la butée
          droite (> 34,9 : drift sans rien tirer), celui d'une prise basse de 21,7. `ar` = la descente de CET arc à la butée, relevée pendant
@@ -412,7 +417,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   let gearId=null,gearTt=0;
   if(gear){
     gear.addEventListener('touchstart',function(e){ if(gearId===null&&e.changedTouches.length)gearId=e.changedTouches[0].identifier; },{passive:true});
-    gear.addEventListener('touchcancel',function(){ gearId=null; },{passive:true});
+    gear.addEventListener('touchcancel',function(){ gearId=null; },{passive:true}); document.addEventListener('visibilitychange',function(){ if(document.hidden)gearId=null; }); // (2026-11-03, audit) même règle que le pavé : un doigt perdu en arrière-plan ne bloque pas le ⏸
     gear.addEventListener('touchend',function(e){
       let t=null; for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier===gearId)t=e.changedTouches[i];
       if(!t)return; gearId=null;
@@ -531,7 +536,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     // roule sans pause ni panneau — on la met en pause, REPRENDRE sous le pouce
     if(started&&!gameOver&&mode==='boom')boomSkip(); // (2026-10-14, chasse aux bugs) retour pendant l'explosion : comme le ⏸ (gearOpenHandler) — vers l'écran de fin, jamais une PAUSE sur la caisse qui brûle
     else if(started&&!gameOver&&!paused&&pan&&!pan.classList.contains('open'))panOpen(true);
-    wakeAsk(); audioKick(); });
+    if(started&&!gameOver)wakeAsk(); audioKick(); }); /* (2026-11-07) le verrou de l'écran ne revient qu'en course (voir wakeLache) */
   /* ===== L'APPEL ENTRANT MET LA COURSE EN PAUSE (24/10, débogage sortie iOS : « appel entrant / Siri / centre de contrôle ») =====
      Sur iPhone, un appel (la bannière), Siri ou une alarme passent PAR-DESSUS le jeu sans le cacher : pas de visibilitychange, la course
      continuait muette pendant que le pouce allait décrocher — la caisse tombait, la partie était perdue. Le seul signe fiable : le
@@ -556,7 +561,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   try{ const mc9=$t('modC'); if(mc9)mc9.addEventListener('blur',function(){setTimeout(function(){try{if(scrollX||scrollY)scrollTo(0,0);}catch(e){}},60);}); }catch(e){}
   // ---- BASCULE D'ORIENTATION : iOS annonce des dimensions PÉRIMÉES — on recadre après le pivot ----
   const reflow=function(){ clearTimeout(reflow._t); reflow._t=setTimeout(function(){ // (2026-09-29) une seule fois par rafale (clavier, barre d'adresse) : applyDPR réalloue toutes les cibles de rendu
-    camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); fovFit(); applyDPR(); },280); };
+    if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) même garde que le resize : une taille nulle ne recadre rien */ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); fovFit(); applyDPR(); },280); };
   addEventListener('orientationchange',reflow);
   if(window.visualViewport)visualViewport.addEventListener('resize',reflow);
   // ---- saisie du nom : clavier adapté, pas de correction automatique sur un pseudo de 8 lettres ----
@@ -619,17 +624,69 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   window.__mHomeSur=function(){if(mCur!=='home')mGo('home','racine',true);else{try{mFill();}catch(e){}}}; // (passe qualité) déjà sur l'accueil (retour du garage) : on remplit quand même — la pastille GARAGE gardait le compte d'avant un achat // (2026-09-30) le garage-menu montre l'ACCUEIL, d'où que vienne le routeur (mGo('home') rappelle garAccueil → garMode('menu') : ici, mCur vaut déjà 'home')
   function mStatBox(v,l){return '<div class="mStat"><b>'+v+'</b><span>'+l+'</span></div>';}
   let mCntT=0;
-  function mCount(el,to,direct){ // égrène le montant : départ franc, arrivée en douceur (ease-out cubique)
+  /* ===== L'ÉCRAN DE MORT v6 S'ANIME (2026-11-04, Sacha : « rajoute des animations pour les graphiques, le moteur, les missions et le compteur
+     d'argent qu'on doit voir monter en s'accumulant ») =====
+     Tout partait dans la même seconde (l'argent en 0,75 s) : rien ne se voyait. Un fil, dans l'ordre de lecture —
+     · 0,36 → 2,16 s  l'ARGENT s'accumule (M6_CPT) : le chiffre grossit et s'allume en montant, des pièces viennent s'y fondre, le COMPTE monte
+                      avec lui ; à l'arrivée il CLAQUE et éclate. Le ×2 attend la fin du compte (il double le montant final) ;
+     · 0,45 s         le MOTEUR surgit, son halo flambe, puis son PALIER grimpe cran par cran depuis 1 (m6Anime) ;
+     · 0,75 → 1,9 s   l'AURA : le grand chiffre monte avec la bougie de la PARTIE, puis la MOYENNE et le RECORD poussent, la ligne du record
+                      se trace, un record fait flamber la bougie ;
+     · 1,0 s →        les MISSIONS entrent une à une, leurs barres et leurs comptes montent ensemble (objRenderV2), les coches claquent.
+     Une seule fois par mort ; REDUCED_MOTION : tout est posé d'un coup. Les mouvements sont dans css/mort-flottante.css (« LE FIL »). */
+  const M6_CPT=2000;
+  function m6Fil(el,D,f,fin){const t0=performance.now();(function p(){if(!el.isConnected)return;const k=Math.min(1,(performance.now()-t0)/D);f(k);if(k<1)requestAnimationFrame(p);else if(fin)fin();})();} /* D ms, k de 0 à 1 à chaque image */
+  /* LE COMPTEUR À ROULEAUX (2026-11-05, Sacha : « on voit tous les chiffres s'ajouter les uns les autres, avec un compteur ») : le montant s'écrit
+     en TOUS ses chiffres (« $ 7 210 », plus « 7,2 k »), une case par signe, réservée dès le départ à la largeur finale — les zéros d'avant le
+     premier chiffre sont là, éteints, et s'allument quand le nombre les atteint ; chaque chiffre qui change ROULE (il monte d'un cran). */
+  function m6Monte(el,F){el.textContent='';const S=[];
+    for(const c of Array.from(F)){const x=document.createElement('span');if(/\d/.test(c)){x.className='m6D';const a=x.appendChild(document.createElement('i')),b=x.appendChild(document.createElement('u'));a.textContent='0';b.textContent='1';x.A=a;x.B=b;S.push(x);}else if(/\s/.test(c))x.className='m6S';else{x.className='m6X';x.textContent=c;}el.appendChild(x);}
+    el._m={S:S,cur:null,f:[]};el.setAttribute('aria-label',F);}
+  /* (2026-11-05, Sacha : « le compteur de cash doit être mieux animé, avec le dernier chiffre qui augmente d'abord et qui fait augmenter les autres ») UN VRAI
+     COMPTEUR KILOMÉTRIQUE : v est un nombre à virgule. Le chiffre des unités glisse en continu (le courant monte, le suivant arrive dessous) ; quand il
+     passe par 9 il POUSSE celui des dizaines (f = sa fraction de glissade, de 0 à 1 pendant que le chiffre d'en dessous va de 9 à 10), qui pousse les
+     centaines, etc. Chaque case a deux glyphes : <i> le chiffre courant, <u> le suivant ; la variable --f (0→1) les fait glisser et se fondre (css). */
+  function m6Pose(el,v,roule){const M=el._m;if(!M)return;const n=M.S.length,V=Math.max(0,roule?v:Math.round(v)),I=Math.floor(V),len=String(I).length;
+    for(let j=0;j<n;j++){const x=M.S[j],i=n-1-j,pw=Math.pow(10,i),d=Math.floor(I/pw)%10;
+      let f=0;if(roule&&!REDUCED_MOTION)f=i===0?V-I:Math.min(1,Math.max(0,(V%pw)/(pw/10)-9));
+      if(!M.cur||M.cur[j]!==d){M.cur=M.cur||[];M.cur[j]=d;x.A.textContent=d;x.B.textContent=(d+1)%10;}
+      const fq=Math.round(f*40)/40; /* 40 crans de glissade : assez doux, et on ne réécrit le style que s'il bouge */
+      if(M.f[j]!==fq){M.f[j]=fq;x.style.setProperty('--f',fq);}
+      const z=i>=len;x.classList.toggle('z',z);
+      x.style.opacity=(z&&i===len&&fq>0)?(.2+.8*fq).toFixed(2):''; /* le premier zéro éteint qui devient un 1 s'allume pendant la poussée */}}
+  function m6Ici(){return mCur==='dead'&&started&&gameOver&&overlay.style.display!=='none';} /* l'écran de mort est là (REJOUER tapé pendant le compte : plus rien ne vole sur la course) */
+  /* (2026-11-05, Sacha : « enlève le petit carré doré qui monte l'argent ») les petits carrés dorés qui venaient se fondre dans le chiffre pendant le compte (m6Pieces) sont retirés */
+  function mCount(el,to,direct){ // égrène le montant : départ franc, arrivée en douceur
     if(!el)return;
     if(mCntT)clearInterval(mCntT);
-    if(to<=0||direct){el.textContent=fmtC(Math.max(0,to));return;} // direct : on REVIENT sur l'écran (réglages, garage) — le compte ne se rejoue pas
-    el.textContent=fmtC(0);let t0=0;const D=750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
-    mCntT=setInterval(function(){ if(performance.now()<T0)return; if(!t0)t0=performance.now();
-      const k=Math.min(1,(performance.now()-t0)/D),e=1-Math.pow(1-k,3);
-      el.textContent=fmtC(Math.round(to*e));
-      if(k>=1){clearInterval(mCntT);mCntT=0;if(!REDUCED_MOTION){el.classList.remove('clac');void el.offsetWidth;el.classList.add('clac');}} // (charte v4) l'arrivée CLAQUE
-    },28);
+    const v6=!!(el.closest&&el.closest('#mDead.m5')),tot=v6?$t('mCashTot'):null,sol=bank(),
+      cpt=function(x){if(tot&&tot.firstChild&&tot.firstChild.nodeType===3)tot.firstChild.nodeValue=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(Math.round(x));};
+    if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');m6Monte(el,fmtSolde(Math.max(0,to)));}
+    if(to<=0||direct){if(v6)m6Pose(el,Math.max(0,to),false);else el.textContent=fmtC(Math.max(0,to));return;} // direct : on REVIENT sur l'écran (réglages, garage) — le compte ne se rejoue pas
+    if(v6)m6Pose(el,0,false);else el.textContent=fmtC(0);let t0=0;const D=v6?M6_CPT:750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
+    if(v6&&!REDUCED_MOTION){cpt(sol-to);el.classList.add('m6Cpt');el.style.setProperty('--k','0');}
+    mCntT=setInterval(function(){ if(performance.now()<T0)return;
+      if(!t0)t0=performance.now(); /* (v6) la place du montant FINAL est prise d'avance (m6Monte) : le badge et le compte, à sa droite, ne bougent pas */
+      const k=Math.min(1,(performance.now()-t0)/D),e=v6?1-Math.pow(1-k,2):1-Math.pow(1-k,3); /* v6 : ease-out quadratique, les crans du son (mCompteSon) tombent sur 1 - √(1 - j/N) */
+      if(v6)m6Pose(el,to*e,true);else el.textContent=fmtC(Math.round(to*e));
+      if(v6&&!REDUCED_MOTION){el.style.setProperty('--k',e.toFixed(3));cpt(sol-to+to*e);}
+      if(k>=1){clearInterval(mCntT);mCntT=0;
+        if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');cpt(sol);if(!REDUCED_MOTION&&m6Ici())try{pixBurst(el,12);}catch(x){}}
+        if(!REDUCED_MOTION){el.classList.remove('clac');void el.offsetWidth;el.classList.add('clac');}} // (charte v4) l'arrivée CLAQUE
+    },v6?16:28);
   }
+  /* le MOTEUR et l'AURA de l'écran v6 (voir plus haut) — p1 = le palier atteint (affiché à partir de 1) */
+  function m6Anime(h,au,p1,fA){
+    const av=$t('mAuraV'),bm=h.querySelector('.m6Mot .m6Big>b'),mo=h.querySelector('.m6Mot');
+    if(REDUCED_MOTION){if(av)av.textContent=fA(au);return;}
+    /* le palier grimpe : un cran toutes les 130 ms au plus (le tout en 1,1 s au plus), chaque cran TAPE ; le badge RECORD tombe après le dernier */
+    const n=Math.max(0,p1-1),pas=n?Math.min(130,Math.round(1100/n)):0,T=700;
+    if(mo)mo.style.setProperty('--m6Bd',(T+n*pas+120)+'ms');
+    if(bm&&n){bm.textContent='1';
+      for(let i=1;i<=n;i++)setTimeout(function(){if(!bm.isConnected)return;bm.textContent=String(1+i);bm.classList.remove('m6Tape');void bm.offsetWidth;bm.classList.add('m6Tape');},T+i*pas);}
+    /* l'aura monte AVEC la bougie de la PARTIE (même départ, même durée : css .m6P .m6Barre) */
+    if(av){av.textContent=fA(0);if(au>0)setTimeout(function(){m6Fil(av,1100,function(k){av.textContent=fA(au*(1-Math.pow(1-k,3)));});},950);}}
+  window.dbgM6Fil={cpt:M6_CPT}; /* (banc) la durée du compte, pour filmer l'écran */
   /* L'ÉCRAN DE MORT A UNE VOIX (2026-09-26, audit son) : l'écran le plus vu était muet. 300 ms après son apparition (la traîne du son
      de mort passe d'abord), huit notes de la gamme des pièces montent avec les compteurs, puis l'arrivée sonne — en fanfare si record.
      Une seule fois par mort (clé = l'instant de la mort) : mFill est rappelé à chaque retour sur l'écran. */
@@ -649,17 +706,18 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       const d9=REDUCED_MOTION?0:360,cpt=!!mCntT;
       s9(80,'mort.enseigne');
       if(commitExploits._rangMonte)s9(250,'ui.debloque');
-      if(cpt){for(let j=0;j<9;j++)s9(d9+Math.round(750*(1-Math.sqrt(1-j/9))),'ui.compte',{st:sonPd(j)});s9(d9+750,'mort.compteFin');}
-      if(rec)s9(d9+450,'ui.record');
+      const D9=MORT_FLOT?M6_CPT:750,N9=MORT_FLOT?12:9; /* (2026-11-04) v6 : le compte dure 1,8 s, douze crans */
+      if(cpt){for(let j=0;j<N9;j++)s9(d9+Math.round(D9*(1-Math.sqrt(1-j/N9))),'ui.compte',{st:sonPd(j)});s9(d9+D9,'mort.compteFin');}
+      if(rec)s9(MORT_FLOT?d9+M6_CPT-300:d9+450,'ui.record'); /* son TAAA (0,3 s) tombe pile sur la pose */
       if(commitExploits._neuves&&!document.body.classList.contains('touch'))s9(1750,'caisse.debloquee'); /* sur téléphone la caisse gagnée n'est pas affichée (#mNew masqué) : pas de son sans image */
-      if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900);
+      if(rec)setTimeout(function(){if(ici()){pixBurst($t('mOverT'),34);hap([18,50,30]);}},900);
       return;}
     for(let i=0;i<8;i++)setTimeout(function(){if(ici())try{chimeNote(noteP(i,1),0,.035,.06);}catch(e){}},320+i*85);
     setTimeout(function(){if(!ici())return;try{if(rec)rewardSfx('m3',3);else{chimeNote(noteP(4,1),0,.08,.3);chimeNote(noteP(7,1),.06,.07,.36);}}catch(e){}},1040);
-    if(rec)setTimeout(function(){if(ici())pixBurst($t('mOverT'),34);},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
+    if(rec)setTimeout(function(){if(ici()){pixBurst($t('mOverT'),34);hap([18,50,30]);}},900); // (charte v4) un record, ça se voit aussi : l'enseigne crache ses confettis
   }
   const MORT_FLOT=!/[?&]mort=ancien\b/.test(location.search); /* (2026-10-25) L'ÉCRAN DE MORT FLOTTANT (voir mFill) — `?mort=ancien` = les cartes d'avant */
-  Object.assign(I18N,{'PARTIE':'THIS RUN','MOYENNE':'AVERAGE','VS MOY':'VS AVG'});
+  Object.assign(I18N,{'PARTIE':'THIS RUN','MOYENNE':'AVERAGE','VS MOY':'VS AVG','MOY.':'AVG','MOTEUR':'ENGINE'});
   window.dbgMortAura=function(a,moy,n,rec){if(a!=null&&started&&!gameOver)auraRun=Math.max(0,+a||0);if(moy!=null){SAVE.d.auraH={s:Math.round(moy*(n||10)),n:n||10};}if(rec!=null)SAVE.d.auraMax=Math.round(rec);return {partie:Math.round(auraRun),moyenne:SAVE.d.auraH,record:SAVE.d.auraMax};}; /* (banc) l'aura de la partie en cours (et la moyenne, le record) pour voir le graphe de l'écran de mort */
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');
@@ -673,7 +731,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       {const d9=$t('mDead');if(d9)d9.classList.toggle('m5',MORT_FLOT);} /* (2026-10-25) l'écran flottant : son style (css/mort-flottante.css) ne vise que #mDead.m5 */
       const prem9=mFill._mort!==TCTL.mortT;mFill._mort=TCTL.mortT; // (2026-09-29) le compte (montant, aura) ne se joue qu'à la PREMIÈRE apparition de l'écran de cette mort
       {const v9=RUNX.verse!=null?RUNX.verse:Math.max(0,Math.floor(bank())-Math.floor(RUNX.bank0||0)),c9=$t('mCash'),t9=$t('mCashTot');
-       if(c9)c9.style.setProperty('--n',fmtC(v9).length); // le corps du montant se règle sur sa longueur finale (« $ 128,4 k » tient debout)
+       if(c9)c9.style.setProperty('--n',(MORT_FLOT?fmtSolde(v9):fmtC(v9)).length); // le corps du montant se règle sur sa longueur finale (v6 : tous les chiffres, « $ 1 284 000 » tient debout)
        if(t9){const j9=jourFinTexte();t9.textContent=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank()); /* (2026-10-14, GAMEPLAY) le ×2 du jour et la prime de série se disent dans la ligne qui existe déjà */
         if(j9){const i9=t9.appendChild(document.createElement('i'));i9.className='mJour';i9.appendChild(document.createElement('u')).textContent=' · ';i9.append(j9.replace(/^ · /,''));}} /* (2026-10-15) …mais sur SA ligne (.mJour) : le texte reste « COMPTE : $ N · ×2 DU JOUR », le « · » est seulement masqué */
        mCount(c9,v9,!prem9);}
@@ -713,19 +771,29 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
            plus gros, avec son seul palier ; l'AURA devient un graphe en bougies, lisible d'un coup d'œil — la PARTIE (violet), ta MOYENNE et
            ton RECORD. La moyenne et le record sont ceux d'AVANT la partie (commitExploits) : le graphe dit si tu as fait mieux que d'habitude.
            `?mort=ancien` = les deux cartes d'avant. */
+        /* ===== L'ÉCRAN DE MORT v6 (2026-11-03, Sacha : « c'est calamiteux, recommence […] reprends chaque élément ») — voir css/mort-flottante.css.
+           MOTEUR et AURA sont deux PANNEAUX jumeaux (la même anatomie que la carte MISSIONS) : en-tête (icône + nom à la couleur de la bande,
+           pastille à droite), la grande valeur (le PALIER / l'aura de la partie), le visuel (la pièce 3D / les trois bougies), le pied
+           (le nom du moteur et la jauge des pièces vers le palier suivant / les libellés des bougies). */
         if(h&&MORT_FLOT){
           const n9=(SAVE.d.auraH&&SAVE.d.auraH.n)|0,moy0=commitExploits._moy||0,moyV=Math.round(moy0>0?moy0:(n9<=1?au:0)),
                 recV=Math.max(commitExploits._recAvant||0,SAVE.d.auraMax||0,au),M9=Math.max(1,au,moyV,recV),
-                hP=function(v){return Math.max(4,Math.round(v/M9*78));},
-                bg9=function(k,v,lb){return '<div class="m5Col m5'+k+'" style="--h:'+hP(v)+'%"><div class="m5Pied"><span class="m5Val">'+fA(v)+'</span><i class="m5Meche"></i><i class="m5Corps"></i></div><small>'+TR(lb)+'</small></div>';};
+                hP=function(v){return Math.max(3,Math.round(v/M9*100));},
+                lb9=LANG==='en'?['RUN','AVG','BEST']:['PARTIE','MOY.','RECORD'],
+                bg9=function(k,v,l){return '<div class="m6Col m6'+k+(k==='P'&&au>0&&au>=recV&&!tq9?' rec':'')+'" style="--h:'+hP(v)+'"><span class="m6Val">'+fA(v)+'</span><i class="m6Barre"></i><small>'+l+'</small></div>';},
+                pas9=function(c,t){return '<em class="m6Badge '+c+'">'+t+'</em>';};
           let vd9='';
-          if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9='<em class="m5Vd rec">'+pxi('etoile')+' '+TR('RECORD !')+'</em>';
-          else if(!tq9&&moy0>0&&au>0){const p9=Math.round((au-moy0)/moy0*100);vd9=p9>=1?'<em class="m5Vd up">▲ +'+p9+' % '+TR('VS MOY')+'</em>':p9<=-1?'<em class="m5Vd down">▼ '+p9+' % '+TR('VS MOY')+'</em>':'<em class="m5Vd">= '+TR('MOYENNE')+'</em>';}
+          if(!tq9&&au>0&&(commitExploits._recAvant||0)>0&&(recA||au>commitExploits._recAvant))vd9=pas9('rec',pxi('etoile')+'<span>'+TR('RECORD')+'</span>');
+          else if(!tq9&&moy0>0&&au>0){const p9=Math.round((au-moy0)/moy0*100);vd9=p9>=1?pas9('up','▲ +'+p9+'%'):p9<=-1?pas9('down','▼ '+p9+'%'):pas9('eq','= '+TR('MOY.'));}
           h.className='mHero m5Hero';
-          h.innerHTML='<div class="m5Mot" style="--ec:'+hx+'"><div class="m5Scene"><i class="m5Halo"></i><canvas class="hMotCv" width="'+ENG_RES_W+'" height="'+ENG_RES_H+'"></canvas><i class="m5Ombre"></i></div>'
-            +'<div class="m5Pal'+(eN&&!tq9?' rec':'')+'"><span>'+TR('PALIER')+'</span><b>'+(engTier+1)+'</b></div></div>'
-            +'<div class="m5Aura"><div class="m5Tete"><small>'+TR('AURA')+'</small><b id="mAuraV">0</b>'+vd9+'</div>'
-            +'<div class="m5Graphe"><i class="m5Ligne" style="--h:'+hP(recV)+'%"></i>'+bg9('P',au,'PARTIE')+bg9('M',moyV,'MOYENNE')+bg9('R',recV,'RECORD')+'</div></div>';
+          h.innerHTML='<div class="m6Carte m6Mot" style="--ec:'+hx+'">'
+            +'<div class="m6Tete"><span class="m6Lb">'+pxi('flamme')+'<span>'+TR('MOTEUR')+'</span></span>'+(eN&&!tq9?pas9('rec',pxi('etoile')+'<span>'+TR('RECORD')+'</span>'):'')+'</div>'
+            +'<div class="m6Big"><small>'+TR('PALIER')+'</small><b>'+(engTier+1)+'</b><small class="m6Sur">/'+ENGINE_TIERS.length+'</small></div>'
+            +'<div class="m6Scene"><i class="m6Halo"></i><canvas class="hMotCv" width="'+ENG_RES_W+'" height="'+ENG_RES_H+'"></canvas><i class="m6Ombre"></i></div></div>' /* (2026-11-04, Sacha : « enlève ce texte, il sert à rien ») plus de nom du moteur, de pièces ni de jauge sous la pièce */
+            +'<div class="m6Carte m6Aura">'
+            +'<div class="m6Tete"><span class="m6Lb">'+pxi('aile')+'<span>'+TR('AURA')+'</span></span>'+vd9+'</div>'
+            +'<div class="m6Big"><b id="mAuraV" style="--n:'+fA(au).length+'">0</b></div>'
+            +'<div class="m6Graphe"><i class="m6Ligne" style="--h:'+hP(recV)+'"></i>'+bg9('P',au,lb9[0])+bg9('M',moyV,lb9[1])+bg9('R',recV,lb9[2])+'</div></div>';
         }
         else if(h){h.className='mHero';h.innerHTML='<div class="hCard hAura"><small>'+TR('AURA')+'</small><b id="mAuraV" style="--n:'+fA(au).length+'">0</b>'
             +(recA&&!tq9&&au>0?'<em>'+TR('RECORD !')+'</em><div class="hNx hNxC6">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>':'<div class="hNx">'+TR('MEILLEUR')+' <span>'+fA(Math.max(SAVE.d.auraMax||0,au))+'</span></div>')+'</div>' /* (2026-10-14, charte 6) cartes JUMELLES : la sous-ligne MEILLEUR est toujours là (.hNxC6 = celle que seule la charte 6 montre, quand le badge RECORD ! se tait) */
@@ -735,7 +803,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
         }
         if(h){ /* (2026-10-25) les deux dessins (flottant ou cartes) partagent le moteur 3D et le compte de l'aura */
           {const cv9=h.querySelector('.hMotCv');ENG_MORT.cv=cv9;ENG_MORT.ctx=cv9?cv9.getContext('2d'):null;} // le moteur 3D y tourne (engVigRender)
-          {const av9=$t('mAuraV');if(av9){av9.textContent=fA(prem9?0:au);av9.classList.toggle('zero',au<=0);}if(prem9&&av9)setTimeout(function(){countUp(av9,au,function(v){return fA(v);});},REDUCED_MOTION?0:260);} // la carte AURA est distribuée à 250 ms : le chiffre monte quand on la voit
+          {const av9=$t('mAuraV');if(av9){av9.textContent=fA(prem9?0:au);av9.classList.toggle('zero',au<=0);}
+           if(MORT_FLOT){h.classList.toggle('m6Joue',prem9&&!REDUCED_MOTION);{const cl9=document.querySelector('#mDead .mCashL');if(cl9)cl9.classList.toggle('m6Joue',prem9&&!REDUCED_MOTION);} /* le badge RECORD ! de l'argent tombe à la fin du compte */if(prem9)m6Anime(h,au,engTier+1,fA);} /* (2026-11-04) le fil de l'écran v6 — rejoué une seule fois par mort (.m6Joue porte les mouvements CSS) */
+           else if(prem9&&av9)setTimeout(function(){countUp(av9,au,function(v){return fA(v);});},REDUCED_MOTION?0:260);} // la carte AURA est distribuée à 250 ms : le chiffre monte quand on la voit
           if(an){const u=$t('mAuraB'),D=Math.max(1,an.seuil-bas),w1=Math.min(100,(a1-bas)/D*100),w0=rg?0:Math.max(0,(a1-au-bas)/D*100);
             if(u){u.style.width=w0.toFixed(1)+'%';requestAnimationFrame(function(){requestAnimationFrame(function(){u.style.width=w1.toFixed(1)+'%';});});}}}
       }
@@ -752,8 +822,8 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       soldeEcrit($t('mBankV'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
       let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;}
       const bg=$t('bdGar'),bs=$t('bdShop');
-      if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);} // tout ce qui s'achète en argent du jeu est au GARAGE
-      if(bs){bs.textContent='NEW';bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
+      if(bg){if(/[?&]pastille=ancien\b/.test(location.search))bg.textContent=nG||'';else{const h9=nG>0?pxi('panier'):'';if(bg._h9!==h9){bg._h9=h9;bg.innerHTML=h9;}bg.setAttribute('aria-label',nG>0?(LANG==='en'?nG+' to buy':nG+' à ta portée'):'');}bg.classList.toggle('on',nG>0);} /* (2026-11-05, Opus : jury DIR-26) un « 19 » nu ne disait rien : un panier (il y a de quoi acheter), le nombre pour VoiceOver ; `?pastille=ancien` = le nombre */ // tout ce qui s'achète en argent du jeu est au GARAGE
+      if(bs){bs.textContent=sansAcc(TR('NOUVEAU'));bs.classList.toggle('on',!SAVE.d.shopVu);} // allumée en permanence, elle apprenait à l'œil à ignorer les pastilles
     }else if(mCur==='modes'){
       const set9=function(id,sid,on){const c=$t(id),s=$t(sid);
         if(c){c.classList.toggle('on',on);c.classList.toggle('off',!on);} if(s)s.textContent=on?'ON':'OFF';};
@@ -789,7 +859,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     if(a==='surv')return SURV.armed?'off':'on';
     if(a==='park')return PARK.on?'off':'on';
     if(a==='sand')return SANDBOX?'off':'on';
-    if(a==='q'||a==='lang'||a==='ctl')return 'onglet';
+    if(a==='q'||a==='lang'||a==='ctl'||a==='gau'||a==='volinv'||a==='incl')return 'onglet'; /* (2026-11-05, finition) MAIN, VOL INVERSÉ, INCLINAISON : des lignes à valeur comme IMAGE ou LANGUE, même son */
     if(a==='wipe')return 'danger';
     return 'nav';
   }
@@ -806,7 +876,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function surAccueilCiel(){return MENU_PASSE&&garageOn&&!GAR.go&&!ecranWipe._on&&document.body.classList.contains('garMenuH');}
   function mTap(a,el){
     if(a!=='snd'){ if(a==='tuto'||a==='shopRestore')hap(8); /* (2026-10-14, session SON) ces deux-là répondent par un toast coche (ui.ok) : le résultat passe devant le clic (avant : nav + ok, deux sons) */ else uiClic(a==='shopSoon'&&!(el&&el.hasAttribute('data-car'))?'refus':mRole9(a)); /* « BIENTÔT DISPONIBLE » = refus, comme le même mot sur la plaque verrouillée du garage */ }uiPop(el);if(a==='play'||a==='replay')pixBurst(el,16); // chaque bouton REBONDIT ; JOUER lâche une gerbe — (2026-09-28) SON : le clic part APRÈS la bascule (plus bas)
-    if(a==='replay'&&started&&gameOver){ m2Rejoue(); /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); return rejoueAttend().then(function(){ if(started&&gameOver)resetGame(); }); } }); }; r9(); } /* (2026-10-31) rejoueAttend : le départ d'avance pas fini se finit SOUS le volet, en tranches */ // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
+    if(a==='replay'&&started&&gameOver){ m2Rejoue(); try{clearTimeout(M2REV.t);}catch(e){} /* (2026-11-03, audit) la RÉVÉLATION d'une secrète (m2RevAuto, 1,4 s après la mort) n'a plus à s'ouvrir : REJOUER est parti, elle se montrera à la prochaine fin de partie (m2RevFile la garde) */ /* (2026-10-16) LES MISSIONS v2 : les parties enchaînées */ const r9=function(){ DEPMUS.sort=performance.now(); goImmersive(); ecranWipe(function(){ if(started&&gameOver){ tutoArme(); return rejoueAttend().then(function(){ if(started&&gameOver)resetGame(); }); } }); }; r9(); } /* (2026-10-31) rejoueAttend : le départ d'avance pas fini se finit SOUS le volet, en tranches */ // REJOUER : tout de suite, sans repasser par l'atelier — mais par un fondu (la piste neuve se construit DESSOUS) · (2026-09-28) tutoArme : « REVOIR L'AUTO-ÉCOLE » promet le PROCHAIN départ, REJOUER compris (sans effet si elle est déjà faite)
     else if(a==='play'&&jadePlayOk()){ const go9=function(){goImmersive();jadeJouer();}; // (2026-10-12, Léo) le JOUER lance le SOLEIL DE JADE, avec sa musique
       if(SAVE.d.facile==null&&!SAVE.d.tuto)Promise.resolve().then(go9);else go9(); }
     else if(a==='play'&&sfPlayOk()){ const go9=function(){goImmersive();classiqueJouer();}; // (2026-10-13, Sacha) le JOUER lance le MODE CLASSIQUE AU HASARD
@@ -911,8 +981,9 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     let vu0=0,mort=-1,prep=false,deja=false;
     const maj=function(){let e=null;try{e=dblEtat();}catch(_){e=null;}const ok=!!(e&&e.ok);
       if(mort!==TCTL.mortT){mort=TCTL.mortT;prep=false;deja=false;}
+      {const d9=$t('mDead');if(d9)d9.classList.toggle('m6Dbl',ok);} /* écran de mort v6 : la case du ×2 est RÉSERVÉE dès qu'il est dû — il entre 1,1 s plus tard sans rien pousser */
       if(!ok)vu0=0;else if(!vu0)vu0=performance.now();
-      const voir=ok&&(deja||performance.now()-vu0>=1100); // (une pub fermée trop tôt : la plaque revient tout de suite, sans rejouer son entrée)
+      const voir=ok&&(deja||(performance.now()-vu0>=1100&&!mCntT)); // (une pub fermée trop tôt : la plaque revient tout de suite, sans rejouer son entrée) · (2026-11-04) et pas avant la fin du compte de l'argent : il en double le montant FINAL
       if(voir)deja=true;
       if(voir){const s9='+'+fmtC(e.v);if(el._s9!==s9){el._s9=s9;el.querySelector('.dbS').textContent=s9;}
         if(!prep){prep=true;pubPrepare('double-gain');} // la régie va chercher sa pub pendant que la plaque monte
@@ -924,15 +995,17 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(t9&&t9.firstChild&&t9.firstChild.nodeType===3)t9.firstChild.nodeValue=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank());
       try{if(SONV2)sfx('piece.serie');else rewardSfx('m3',2);}catch(_){}hap([10,30,10,30,24]);
       if(!c9)return;if(mCntT){clearInterval(mCntT);mCntT=0;}
-      c9.style.setProperty('--n',fmtC(2*v).length);
-      if(REDUCED_MOTION){c9.textContent=fmtC(2*v);return;}
-      const t0=performance.now(),D=600;
-      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);c9.textContent=fmtC(Math.round(v*(1+q)));
-        if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');}},28);};
+      const v6=!!(c9.closest&&c9.closest('#mDead.m5'));
+      c9.style.setProperty('--n',(v6?fmtSolde(2*v):fmtC(2*v)).length);
+      if(v6)m6Monte(c9,fmtSolde(2*v));
+      if(REDUCED_MOTION){if(v6)m6Pose(c9,2*v,false);else c9.textContent=fmtC(2*v);return;}
+      const t0=performance.now(),D=v6?900:600;
+      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,v*(1+q),true);else c9.textContent=fmtC(Math.round(v*(1+q)));
+        if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');if(v6&&m6Ici())try{pixBurst(c9,12);}catch(x){}}},v6?16:28);};
     const apres=function(vue,v){if(vue)monte(v);maj();};window.__dblApres=apres;
     const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};
-    const go=function(ev){ev.preventDefault();ev.stopPropagation();if(sourd()||el.hidden)return;uiPop(el);uiClic('');hap(8);let r=false;
-      try{r=dblJoue(apres);}catch(_){r=false;}if(!r)uiClic('refus');maj();};
+    const go=function(ev){ev.preventDefault();ev.stopPropagation();if(sourd()||el.hidden)return;uiPop(el);hap(8);let r=false;
+      try{r=dblJoue(apres);}catch(_){r=false;}uiClic(r?'':'refus'); /* (2026-11-05, finition) UN son par tap : le tap OU le refus, plus les deux dans la même image */ maj();};
     el.addEventListener('click',go);el.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' ')go(ev);});
     setInterval(maj,250);maj();})();}catch(e){console.warn('double',e);}
   if(mob){

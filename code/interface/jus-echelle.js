@@ -266,7 +266,7 @@ function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteu
   const x0=(flyV.x*.5+.5)*innerWidth,y0=(-flyV.y*.5+.5)*innerHeight;
   const r=elMoney.getBoundingClientRect(),x1=r.left+r.width/2,y1=r.top+r.height/2;
   for(let i=0;i<n;i++){
-    const b=document.createElement('div');b.className='bill';b.textContent='$';
+    const b=document.createElement('div');b.className='bill';b.textContent='\uE000';
     b.style.left=(x0+(Math.random()-.5)*70)+'px';b.style.top=(y0+(Math.random()-.5)*46)+'px';
     document.body.appendChild(b);
     setTimeout(()=>{b.style.left=x1+'px';b.style.top=y1+'px';b.style.opacity=0;b.style.fontSize='8px';},30+i*45);

@@ -54,7 +54,7 @@ const ORB={actif:false,lune:false,peinte:false,sol:new THREE.Vector3(0,1,0),haut
   cle:new THREE.Vector3(-.55,.7,.4).normalize(),cleC:new THREE.Vector3(),cleOk:false,terre:new THREE.Vector3(0,-1,0),lumOn:false,
   oeil:new THREE.Vector2(-.5,-.8),oeilC:new THREE.Vector2(-.5,-.8),sac:new THREE.Vector2(),sacT:0,choc:.55,cligT:-9,cligProchain:4,
   pc:new THREE.Vector3(),pm:new THREE.Vector3(),rs:0x5EED1};
-function orbAlea(){ORB.rs=ORB.rs*16807%2147483647;return ORB.rs/2147483647;} // le hasard du REGARD (saccades, clignements) : un flux à lui — Math.random nourrit d'autres tirages du jeu
+/* (2026-11-05, jury HYG-12) orbAlea : fonction jamais appelée, retirée */ // le hasard du REGARD (saccades, clignements) : un flux à lui — Math.random nourrit d'autres tirages du jeu
 /* LA LUNE EST SUPPRIMÉE DU CODE (2026-10-24, Sacha : « retire lune ») : plus de toile, de shader, de visage ni de pinceau (≈ 170 lignes ; l'historique git les garde). Sa DIRECTION (`ORB.dm`) continue de piloter la clé froide : voir orbiteTick. */
 /* ---- LES MAILLAGES : des pièces (boîtes, cylindres, prismes) fusionnées en UN tampon, chaque sommet porte sa PIÈCE et sa VARIANTE ----
    Les normales ne sont PAS stockées : le shader les tire des dérivées (des facettes franches, comme les rochers d'avant). */
@@ -206,7 +206,7 @@ const SATS=[geoStarlink(),geoDebris(),geoEclat()].map(function(g,k){
   g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(N*4),4));
   g.setAttribute('aMov',new THREE.InstancedBufferAttribute(new Float32Array(N*4),4));   // ⚠ PRÉSENT PARTOUT (à zéro hors des trains) : un attribut absent vaut (0,0,0,1) — une vitesse de 1
   g.setAttribute('aTr',new THREE.InstancedBufferAttribute(new Float32Array(N*2).fill(1),2));
-  const im=new THREE.InstancedMesh(g,k===1?SAT_MAT_E:SAT_MAT,N);im.count=0;im.visible=false;im.frustumCulled=false; // un champ de plusieurs km : le culling par objet n'a pas de sens
+  const im=new THREE.InstancedMesh(g,k===1?SAT_MAT_E:SAT_MAT,N);im.count=0;im.visible=false;im.frustumCulled=false;im.name='orbite satellites'; // un champ de plusieurs km : le culling par objet n'a pas de sens
   scene.add(im);return im;});
 /* L'ÉCLAT DU SOLEIL SUR LES PANNEAUX — une étoile par Starlink, qui ne vit QUE pendant le reflet (sinon le sommet est jeté hors champ :
    zéro pixel). Le quad partage les tampons d'instances du maillage [0] (matrices, rotation propre, trains) : il suit son satellite. */

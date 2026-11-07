@@ -14,17 +14,37 @@ function photoGarde(ck,u,oct){const k=String(ck),M=PHOTO_MEM;if(!u||String(u).in
   for(const [k9,e] of M.L){if(M.oct<=M.max*.85)break;if(k9===k||vues.has(e.u))continue;
     M.L.delete(k9);M.oct-=e.o;M.lib++;if(PHOTO.cache[k9]===e.u)delete PHOTO.cache[k9];try{URL.revokeObjectURL(e.u);}catch(x){}}}
 window.dbgPhotoMem=function(mo){if(mo!=null)PHOTO_MEM.max=mo*1048576;return {photos:PHOTO_MEM.L.size,mo:+(PHOTO_MEM.oct/1048576).toFixed(2),maxMo:PHOTO_MEM.max/1048576,liberees:PHOTO_MEM.lib,cache:Object.keys(PHOTO.cache).length};};
+/* ===== UNE PHOTO NE SE PREND PAS SUR UN SHADER EN COURS DE LIAISON (2026-11-03, passe « photos, inventaire, boutique ») =====
+   MESURÉ au banc : la 1re photo du CHAT POP-TART de la session (celle de la vitrine) sortait sans carrosserie — 8 appels de dessin au lieu de 21 —
+   et la toute 1re photo de la session (LA HONTE) parfois VIDE, ombre seule. Cause : depuis la liaison en arrière-plan (voir LIER, vignette-moteur.js),
+   hors course, `renderer.render` d'une scène CACHE ce dont le programme n'est pas encore lié (`lierScene` : « il apparaît une ou deux images plus tard »)
+   — bien pour le menu vivant, faux pour une photo qu'on prend UNE fois et qu'on garde : la caisse (ou le programme de la pellicule) neuve était
+   photographiée cachée. La photo lie donc ses programmes pour de bon (`compile` d'avant la liaison douce) juste avant de se rendre ; déjà liés, ça ne
+   coûte presque rien. Sur l'iPhone, un programme neuf met ~110 ms à se lier : ces 110 ms-là sont dans la photo, plus dans une image du menu. */
+function photoLie(sc,cam){try{
+  (LIER.compile0||renderer.compile).call(renderer,sc,cam); // les programmes neufs de la scène : liés pour de bon
+  if(LIER.att&&LIER.att.length){const g=renderer.getContext(),P=new Set(LIER.att); // ceux d'une liaison douce encore en cours (lancée par le menu) et qui servent ICI : on les attend
+    sc.traverseVisible(function(o){const L=o.material?(Array.isArray(o.material)?o.material:[o.material]):null;if(!L)return;
+      for(const m of L){const p=m&&renderer.properties.get(m).currentProgram;if(p&&P.has(p)&&p.program)g.getProgramParameter(p.program,g.LINK_STATUS);}});
+    lierPret();} // lus liés : la liste des attendus se vide, `lierScene` ne cachera rien
+}catch(e){}}
 // le studio (pellicule, scène, objectif, lumières), monté à la première photo — caisse, aile ou figure (2026-10-15 soir : sorti de carPhoto pour figPhoto)
 function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.rt=new THREE.WebGLRenderTarget(W*PHOTO_SS,H*PHOTO_SS);PHOTO.scene=new THREE.Scene();PHOTO.cam=new THREE.PerspectiveCamera(24,W/H,.1,400);
   /* (2026-10-25, Sacha : « les photos sont bof, la lumière… elles ne donnent pas envie d'acheter ») : un vrai studio de vente — grande lampe douce de face, remplissage clair côté ombre (le dessous ne bouchait plus en violet), contre-jours plus fins et moins fluo */
-  const hemi=new THREE.HemisphereLight(0xf2f5ff,0x5a5066,1.0),key=new THREE.DirectionalLight(0xfff6ea,2.1),fill=new THREE.DirectionalLight(0xe9f0ff,1.0),
-        rim=new THREE.DirectionalLight(0xffa8dc,.95),rim2=new THREE.DirectionalLight(0x9fe4ff,.8),bas=new THREE.PointLight(0xb9a0ff,.55,16);fill.position.set(6,3,9);
+  /* (2026-11-05, Sacha : « les voitures buggent visuellement ») LE STUDIO SURÉCLAIRÉ : lampe de face 2,1 + ciel 1,0, puis la pellicule qui relève encore
+     (photoDev) — chaque facette tournée vers le haut sortait BLANC PUR, en blocs (LA FIDÈLE, argent dans sa fiche, sortait blanc-lilas ; le contre-jour
+     rose teintait tout). L'éclairage est ramené à ce que la pellicule supporte : la couleur de la fiche se lit, les reflets restent. `?photolum=ancien` = avant. */
+  const PL9=/[?&]photolum=ancien\b/.test(location.search)?[1.0,2.1,1.0,.95,.8,.55]:[.78,1.45,.8,.55,.6,.4];
+  const hemi=new THREE.HemisphereLight(0xf2f5ff,0x5a5066,PL9[0]),key=new THREE.DirectionalLight(0xfff6ea,PL9[1]),fill=new THREE.DirectionalLight(0xe9f0ff,PL9[2]),
+        rim=new THREE.DirectionalLight(0xffa8dc,PL9[3]),rim2=new THREE.DirectionalLight(0x9fe4ff,PL9[4]),bas=new THREE.PointLight(0xb9a0ff,PL9[5],16);fill.position.set(6,3,9);
   key.position.set(-3,8,7);rim.position.set(7,3.5,-6);rim2.position.set(-7,2.5,-5);bas.position.set(0,-.4,3);
   PHOTO.scene.add(hemi,key,fill,rim,rim2,bas);PHOTO.key=key;}
 function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=w.userData.k||1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}
   try{ailvPose();}catch(e){}} // (2026-10-16, LES AILES VIVANTES) l'aile au plus beau de son geste : boost tenu (les ailes en X ouvertes, la lave qui flambe…)
-function aileFile(id,cb,el){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a:'+id+':'+c;
+/* (2026-11-06, Léo : « enlever la voiture de l'affichage des ailes ») la photo d'une aile ne montre QUE les deux ailes : tout maillage hors des ailes est caché (le cadre se calcule sur ce qui reste) */
+function photoSeulesAiles(){const L=[carWingL,carWingR];carGroup.traverse(function(o){if(!o.isMesh&&!o.isSprite&&!o.isLine&&!o.isPoints)return;for(let a=o;a;a=a.parent){if(L.indexOf(a)>=0)return;if(a===carGroup)break;}o.visible=false;});}
+function aileFile(id,cb,el){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a3:'+id+':'+c;
   if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,j:j},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* (2026-10-14, OPTIMISATION — passation perf : « BOUTIQUE ~400 ms à l'ouverture = shopPhotoTour : 8 toDataURL 164 ms + 8 readPixels 66 ms ») —
    `carPhoto(i, cb)` : avec un rappel, la photo finit en `toBlob` (l'encodage PNG part hors du fil, le rappel reçoit une adresse `blob:` d'une
@@ -57,6 +77,7 @@ function photoDev(W,H){
   const D=photoDevPrep();
   if(!D.rt||D.rt.width!==W||D.rt.height!==H){if(D.rt)D.rt.dispose();D.rt=new THREE.WebGLRenderTarget(W,H,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,depthBuffer:false,stencilBuffer:false,format:THREE.RGBAFormat,type:THREE.UnsignedByteType});D.buf=new Uint8ClampedArray(W*H*4);}
   D.m.uniforms.t.value=PHOTO.rt.texture;D.m.uniforms.px.value.set(1/PHOTO.rt.width,1/PHOTO.rt.height);
+  if(!D.lie){photoLie(D.sc,D.cam);D.lie=true;} // le programme de la pellicule : lié une fois pour toutes (voir photoLie)
   renderer.setRenderTarget(D.rt);renderer.render(D.sc,D.cam);renderer.readRenderTargetPixels(D.rt,0,0,W,H,D.buf);
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.putImageData(new ImageData(D.buf,W,H),0,0);return cv;}
 function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAGE de la fenêtre d'achat (shopTourne) — la caisse vue sous cet azimut, cadrée pour TOUS les azimuts (le cadre ne respire pas), rangée sous sa clé */
@@ -74,7 +95,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   try{
     if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
     else buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
-    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile)photoAiles();
+    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile){photoAiles();photoSeulesAiles();}
     carGroup.updateMatrixWorld(true);
     // LA BOÎTE de ce qu'on voit (maillages visibles seulement : les halos cachés gonfleraient le cadre)
     const bx=new THREE.Box3(),b9=new THREE.Box3();
@@ -96,7 +117,8 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     cam.position.copy(tg).addScaledVector(dir,D);cam.lookAt(tg);cam.updateMatrixWorld();
     {v9.set(ctr.x,bx.min.y,ctr.z).project(cam);ymin=v9.y;} // le sol SOUS le centre de la caisse, à l'écran (le coin avant de la boîte tombait plus bas : l'ombre se décollait)
     const cc=new THREE.Color();renderer.getClearColor(cc);const ca=renderer.getClearAlpha(),prt=renderer.getRenderTarget();
-    renderer.setRenderTarget(PHOTO.rt);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(PHOTO.scene,cam);
+    renderer.setRenderTarget(PHOTO.rt);renderer.setClearColor(0x000000,0);renderer.clear();
+    photoLie(PHOTO.scene,cam);{const h9=FSTU.uHdr.value;FSTU.uHdr.value=Math.min(h9,BQ_HDR);try{renderer.render(PHOTO.scene,cam);}finally{FSTU.uHdr.value=h9;}} // (voir photoLie : les shaders de cette caisse sont liés AVANT la prise) — (2026-11-05, Sacha : « les voitures buggent visuellement ») la photo de vente se prend avec les reflets ADOUCIS (BQ_HDR), d'où qu'on la prenne : au garage, ils semaient des taches blanches sur les petites facettes des toits et des capots
     let gros=null;if(!PHOTO_DEV_JS)try{gros=photoDev(W,H);}catch(e){console.warn('photoDev',e);gros=null;PHOTO_DEV_JS=true;} // (2026-10-16) LA PELLICULE SUR LA PUCE (photoDev) : la toile sort déjà développée, retournée et réduite
     let buf=null;if(!gros){buf=new Uint8Array(RW*RH*4);renderer.readRenderTargetPixels(PHOTO.rt,0,0,RW,RH,buf);}
     renderer.setRenderTarget(prt);renderer.setClearColor(cc,ca);T9.rendu=performance.now()-T9.t0;
@@ -112,7 +134,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
     const yb=Math.round((1-(ymin*.5+.5))*H); // la ligne du sol, en pixels de la photo
     // L'OMBRE DE CONTACT, douce, sous la caisse
-    {x.save();x.translate(W/2,yb);x.scale(1,.13);const g9=x.createRadialGradient(0,0,0,0,0,W*.44);g9.addColorStop(0,'rgba(0,0,0,.62)');g9.addColorStop(.55,'rgba(0,0,0,.30)');g9.addColorStop(1,'rgba(0,0,0,0)');
+    if(!aile){x.save();x.translate(W/2,yb);x.scale(1,.13);const g9=x.createRadialGradient(0,0,0,0,0,W*.44);g9.addColorStop(0,'rgba(0,0,0,.62)');g9.addColorStop(.55,'rgba(0,0,0,.30)');g9.addColorStop(1,'rgba(0,0,0,0)');
      x.fillStyle=g9;x.fillRect(-W*.5,-W*.5,W,W);x.restore();}
     // LE REFLET d'un sol verni : la photo retournée sous la ligne du sol, qui s'éteint en 20 % de la hauteur
     /* (2026-10-15) pas de reflet sous une AILE : en plongée, le sol verni dessinait un fantôme d'aile */
@@ -216,7 +238,7 @@ function figFilm(o,cb){const ck=o.k;
       tg.addScaledVector(rt9,(x0+x1)/2*tH*D).addScaledVector(up9,(y0-P.bas)*tV*D);}
     cam.position.copy(tg).addScaledVector(dc,D);cam.lookAt(tg);cam.updateMatrixWorld();
     // LES PRISES : une image rendue au double, développée et réduite par la pellicule dans SA case de la planche ; une seule lecture à la fin
-    const DV=photoDevPrep(),rtP=PHOTO.rtP,buf=new Uint8ClampedArray(PW*PH*4);
+    const DV=photoDevPrep(),rtP=PHOTO.rtP,buf=new Uint8ClampedArray(PW*PH*4);photoLie(PHOTO.scene,cam);if(!DV.lie){photoLie(DV.sc,DV.cam);DV.lie=true;} // (voir photoLie)
     DV.m.uniforms.t.value=PHOTO.rtF.texture;DV.m.uniforms.px.value.set(1/RW,1/RH);
     try{renderer.setClearColor(0x000000,0);rtP.scissorTest=false;rtP.viewport.set(0,0,PW,PH);renderer.setRenderTarget(rtP);renderer.clear();renderer.autoClear=false;
       for(let k=0;k<N;k++){carGroup.position.copy(Q[k][0]);carGroup.quaternion.copy(Q[k][1]);carGroup.updateMatrixWorld(true);
@@ -279,7 +301,7 @@ window.dbgFigFilm=function(id,dir,o){if(o)Object.assign(FILM_FIG,o);if(!id){for(
   const k='fa:'+id+':'+(dir||'cote')+':'+equippedCar();delete PHOTO.cache[k];
   const u=figFilm({k:k,fig:id,dir:dir||'cote'},null);const T=PHOTO.msF||{},r=function(v){return v==null?null:Math.round(v);};
   return {url:u,images:T.images,msCaisse:r(T.caisse),msRendu:r(T.rendu),msMontage:r(T.montage),msTotal:r(T.total),cartes:FILM.l.length,reglage:Object.assign({},FILM_FIG)};};
-window.dbgAile=function(id,o){if(o)Object.assign(PHOTO_AILE,o);const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return 'aile inconnue';const c=equippedCar(),k='a:'+id+':'+c;delete PHOTO.cache[k]; // (banc) la photo d'une aile, refaite (o : {el, az} du studio)
+window.dbgAile=function(id,o){if(o)Object.assign(PHOTO_AILE,o);const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return 'aile inconnue';const c=equippedCar(),k='a3:'+id+':'+c;delete PHOTO.cache[k]; // (banc) la photo d'une aile, refaite (o : {el, az} du studio)
   const u=carPhoto(c,null,{k:k,j:j});return {url:u,box:PHOTO.ms&&PHOTO.ms.box,ailes:PHOTO.ms&&PHOTO.ms.ailes,caisse:CARS[c].name,reglage:Object.assign({},PHOTO_AILE)};};
 window.dbgPhoto=function(){const T=PHOTO.ms;if(!T)return 'aucune photo';const r=v=>v==null?null:Math.round(v);return {caisse:CARS[T.i]&&CARS[T.i].name,msCaisse:r(T.caisse),msRendu:r(T.rendu),msPellicule:r(T.pellicule),msMontage:r(T.montage),msTotal:r(T.total),enAttente:PHOTO.att?Object.keys(PHOTO.att).length:0,enCache:Object.keys(PHOTO.cache).length};}; // (banc) le détail de la dernière photo
 /* L'ATELIER DES CAISSES (dev, 2026-09-26) — `dbgEssaiCaisse(src, fiche, vues)` : essaie un gabarit ÉCRIT EN TEXTE (une expression
