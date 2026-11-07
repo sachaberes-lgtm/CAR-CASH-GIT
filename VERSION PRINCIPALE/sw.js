@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1312'; /* v1312 (2026-11-07, Sacha : « augmente l'épaisseur de la route dans la map dune… imbriquée dans les dunes ») DUNES : la dalle fait DN_SUR+10 = 20 m (5,2 avant), le dessous est enfoui dans le sable partout — on ne passe plus dessous (?epais=N). */
+const CACHE = 'cashcar-v1313'; /* v1313 (2026-11-07, Sacha : « travaille sur la jouabilité mobile, des petits ajustements qui rendraient le jeu plus fun et maniable ») LE DOUBLE-TAP PLUS TOLÉRANT : 1er appui < 300 ms (240), 2e appui < 420 ms après le début du 1er (320), redressement à un appui à 430 ms, la demande gardée 250 ms par la boucle (150) — mesuré au banc tactile : à 384 ms d'écart la figure ne partait plus ; `?doubletap=ancien` = avant. */ /* v1312 (2026-11-07, Sacha : « augmente l'épaisseur de la route dans la map dune… imbriquée dans les dunes ») DUNES : la dalle fait DN_SUR+10 = 20 m (5,2 avant), le dessous est enfoui dans le sable partout — on ne passe plus dessous (?epais=N). */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
