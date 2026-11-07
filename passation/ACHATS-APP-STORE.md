@@ -4,10 +4,10 @@ Branche `boutique-affichage` (locale : rien n'est poussé, rien n'est envoyé à
 `docs/superpowers/specs/2026-11-06-achats-app-store-design.md` (la section 11 dit ce qui est vérifié et ce qui ne l'est pas).
 
 ## a. Ce qui est fait (en 8 lignes)
-1. Le jeu connaît ses **74 produits** : 10 caisses premium (dont LE REQUIN, revenu en boutique) + 64 peintures. Pas de palette. Tous « non consommables » (à toi pour toujours).
+1. Le jeu connaît ses **74 produits** : 10 caisses premium (dont REQUIN, revenu en boutique) + 64 peintures. Pas de palette. Tous « non consommables » (à toi pour toujours).
 2. ACHETER dans l'app passe par Apple (StoreKit 2) : l'objet n'est donné que si Apple a encaissé ; annulé ou « en attente » ne donnent rien.
 3. Le bouton **RESTAURER MES ACHATS** de la page ACHAT rend les achats après une réinstallation ; au démarrage, l'app relit aussi ses achats sans fête.
-4. Le prix affiché dans l'app est celui d'Apple (dans la monnaie du joueur) ; en secours, celui du jeu.
+4. Partout où un prix en euros s'affiche (cartes et boîtes, page ACHAT, fenêtre d'achat, garage, rayon PEINTURES de la boutique 3D : loupe, étiquette lue et prix de chaque rareté), c'est le prix d'Apple dans la monnaie du joueur **dès que la réponse d'Apple est arrivée** ; avant (ou si elle échoue, ou hors de l'app), le jeu montre son propre prix en €, par secours. Les prix sont redemandés à l'ouverture de la page ACHAT tant qu'Apple n'a rien répondu.
 5. La page ACHAT, cachée jusqu'ici dans l'app, revient (uniquement quand le plugin d'achat est là) ; le site web ne change pas.
 6. Le plugin Swift `Achats.swift`, le fichier de test `Produits.storekit`, le scheme Xcode `App` et la liste `app-ios/outils/produits.csv` sont prêts.
 7. Les tests automatiques passent (voir le rapport `.superpowers/sdd/2026-11-06-achats-app-store/task-6-report.md`), mais **aucun vrai achat n'a été fait**.
@@ -16,19 +16,21 @@ Branche `boutique-affichage` (locale : rien n'est poussé, rien n'est envoyé à
 ## b. CE QUE SACHA DOIT FAIRE (App Store Connect, compte développeur)
 1. **Signer le contrat « Apps payantes »** (Accords, fiscalité et banque) et remplir les coordonnées bancaires et fiscales. Sans lui, Apple refuse de vendre.
 2. **Créer les 74 produits** : App Store Connect › ton app CASH CAR › Monétisation › Achats intégrés › « + », type **Non consommable**. Le fichier `app-ios/outils/produits.csv` donne, une ligne par produit : `id,nom,type,prix_eur`. Recopie **l'identifiant exact** (ex. `cashcar.car.requin`, `cashcar.peinture.bolide`) comme « ID de produit » : une faute et l'app ne trouve pas le produit. Le nom du CSV sert de nom de référence et de nom affiché (ajoute une courte description FR et EN). Laisse « Partage familial » désactivé. Le nombre de peintures grandit quand le jeu en ajoute (74 produits au 07/11, v1302) : `produits.csv` fait foi ; si le jeu change, `node app-ios/outils/produits-store.mjs --verifier` dit s'il faut le refaire (sans `--verifier` il le réécrit).
-3. **Vérifier les prix.** Apple impose ses paliers ; les prix du jeu n'en sont peut-être pas. Prends le palier le plus proche (le jeu affichera de toute façon le prix d'Apple) :
+3. **Vérifier les prix.** Apple impose ses paliers ; les prix du jeu n'en sont peut-être pas. Prends le palier le plus proche (une fois la réponse d'Apple arrivée, le jeu affiche le prix d'Apple, pas celui du tableau) :
    - **LA PIZZA EXPRESS, 161,00 €** (`cashcar.car.b_pizza`) : très probablement hors palier ;
    - **CHAT POP-TART, 4,20 €** (`cashcar.car.poptart`) ;
    - les **7 caisses à 1,61 €** : LA FÉLINE, L'ÉTERNELLE, LE BLINDÉ NOIR, LE MUR DU SON, LE DRAGON D'OR, SQUALE, KELLY CHERRY ;
    - les peintures à **1 €** (43), **2 €** (15) et **3 €** (6) : à confirmer (les paliers d'Apple tournent souvent autour de 0,99 / 1,99 / 2,99) ;
-   - LE REQUIN, 9,99 € : en général un palier valable.
+   - REQUIN, 9,99 € : en général un palier valable.
 4. **Mettre la fiche à jour** (les textes sont prêts dans `app-ios/fiche/FICHE-APP-STORE.md`) :
    - **Achats intégrés = Oui** dans la classification d'âge ; « caisses » = achat direct d'une voiture connue, **jamais de tirage aléatoire** : à répondre « Non » aux boîtes à butin ;
    - **Confidentialité de l'app** : toujours « Non, nous ne collectons pas de données » (les paiements passent entièrement par Apple, le jeu ne reçoit ni nom ni moyen de paiement) ;
    - **Notes du testeur** : le texte prêt (section 6 de la fiche) explique les achats et où trouver RESTAURER ;
    - la page de confidentialité du site (`pages-app/confidentialite.html` sur `main`) doit recevoir le même paragraphe « Achats intégrés » que `app-ios/fiche/confidentialite.html` : à recopier sur ton OUI, puis pousser `main`.
-5. **Joindre les produits à la version soumise** (build 2 ou suivant : les achats exigent un nouveau binaire, les mises à jour en direct ne suffisent pas) et fournir **une capture d'écran par type d'achat** (une pour une caisse, une pour une peinture), demandée avec chaque produit.
-6. Le **bloquant du point e** ci-dessous doit être tranché avant toute archive.
+5. **Ne jamais renommer un produit vendu.** Le `shape` d'une caisse et l'`id` d'une peinture SONT l'identifiant chez Apple (`cashcar.car.<shape>`, `cashcar.peinture.<id>`) : un acheteur qui réinstalle retrouve ses achats par ces noms. La restauration cherche dans les tables du jeu (même si la caisse a quitté la boutique, n'est plus « premium », ou si la peinture est devenue une récompense de mission et a perdu son prix), mais un nom changé ou supprimé = un achat perdu. Une caisse à retirer : `{retire:1,…}` en gardant son `shape` dans la fiche ; ne pas supprimer de ligne.
+6. **Joindre les produits à la version soumise** (build 2 ou suivant : les achats exigent un nouveau binaire, les mises à jour en direct ne suffisent pas) et fournir **une capture d'écran par type d'achat** (une pour une caisse, une pour une peinture), demandée avec chaque produit.
+7. **Mises à jour en direct (`publier-maj.js`) : toujours `--natif-min <x.y.z>`**, la version du **premier binaire App Store qui contient le plugin Achats** (par exemple `--natif-min 1.1.0` si le build des achats part en 1.1.0). Sans lui, le script **refuse** de publier une édition qui contient `achats.js` (par défaut il viserait `MARKETING_VERSION` = 1.0.0, le build 1 sans plugin : ces iPhone recevraient une boutique en € qui ne peut rien vendre, puisque l'édition n'y convertit plus les euros en argent du jeu). La version du projet Xcode n'a pas été montée ici : c'est à toi de choisir le numéro du binaire avec les achats, puis de le passer à `--natif-min`.
+8. Le **bloquant du point e** ci-dessous doit être tranché avant toute archive.
 
 ## c. COMMENT TESTER (au simulateur, sans argent)
 1. Sur le Mac : `git checkout boutique-affichage`, puis `cd app-ios && npm run sync` (fabrique `www/` avec le pont d'achats).
@@ -48,7 +50,7 @@ Branche `boutique-affichage` (locale : rien n'est poussé, rien n'est envoyé à
 
 ## d. CE QUI N'EST PAS VÉRIFIÉ ICI
 - **Aucun achat n'a été exécuté**, ni au simulateur ni sur un téléphone. L'encaissement réel, la validation par Apple, Ask to Buy, le remboursement, la restauration après réinstallation sont raisonnés dans le code et testés seulement avec de FAUX ponts et un faux plugin.
-- Que Xcode retrouve `Produits.storekit` grâce au scheme (le chemin relatif `../Produits.storekit` n'est pas testable en ligne de commande) ; le repli à la main est au point c.3.
+- Que Xcode retrouve `Produits.storekit` grâce au scheme (le chemin relatif `../Produits.storekit` n'est pas testable en ligne de commande) ; le repli à la main est au point c.3. Si Xcode réécrit lui-même le chemin relatif du scheme vers le fichier StoreKit (en l'ouvrant ou en proposant la mise à niveau), **accepte le chemin qu'il écrit** : c'est le bon, ne le remets pas à la main dans le fichier.
 - Le comportement réel de `Transaction.updates` (achat validé hors de l'app, Ask to Buy, remboursement).
 - Les paliers de prix d'Apple (point b.3).
 - Le dossier `app-ios/www/` de cette branche vient de `ios-capacitor` : il ne contient pas encore le pont d'achats. Il est refait par `npm run sync` (point c.1) ; on ne l'a pas lancé ici.
@@ -58,12 +60,14 @@ Branche `boutique-affichage` (locale : rien n'est poussé, rien n'est envoyé à
 - supprimer la ligne et laisser le module SystemBars de Capacitor 8 gérer la barre (selon sa configuration) ;
 - ou appeler `setNeedsUpdateOfHomeIndicatorAutoHidden` avec la configuration voulue.
 
-Preuve : avec cette seule ligne mise en commentaire pendant l'essai, la cible compile (simulateur, 0 erreur et 0 avertissement dans `Achats.swift`). La ligne n'a pas été touchée dans les commits.
+Note du relecteur final : `app-ios/capacitor.config.json` contient déjà `SystemBars.hidden:true`, et le commentaire de `JeuViewController.swift` lignes 34-36 (« SystemBars… aucun module installé (inerte) ») est **faux sous Capacitor 8** : SystemBars y est intégré, c'est justement pour cela que la surcharge de `prefersHomeIndicatorAutoHidden` est refusée. Supprimer cette ligne garde donc probablement l'indicateur d'accueil caché (à vérifier sur un iPhone) — décision à toi / au propriétaire de l'app ; le Swift n'a pas été modifié ici.
+
+Preuve : avec cette seule ligne mise en commentaire pendant l'essai, la cible compile (simulateur, 0 erreur et 0 avertissement dans `Achats.swift`). La ligne n'a pas été touchée dans les commits. Rappel pour la suite : quand le binaire avec les achats part en production, noter son numéro de version et le passer à `publier-maj.js --natif-min` pour toute mise à jour en direct (point b.7).
 
 ## f. POINTS À SAVOIR (choix faits ou défauts connus, rien de grave pour v1.0)
-- **RESTAURER** dit « AUCUN ACHAT À RESTAURER » même si la restauration a **échoué** (réseau, Apple indisponible) : le message est trompeur dans ce cas. À corriger avant le gros public (Apple teste RESTAURER).
+- **RESTAURER** distingue maintenant l'échec (« RESTAURATION IMPOSSIBLE, RÉESSAIE ») de « AUCUN ACHAT À RESTAURER » ; le démarrage, lui, reste silencieux en cas d'échec.
 - Si un achat est validé **en pleine course** (accord des parents arrivé tard, achat fait sur un autre appareil), la fête plein écran s'affiche par-dessus la course.
-- **Prix d'Apple pas partout** (relevé dans le code, pas vérifié à l'écran) : les cartes des rayons de la boutique 3D (`boutique-peinture.js`, et `boutique-aile.js`, `boutique-trainee.js`, `boutique-classique.js` pour les objets qui auraient un prix) lisent encore le prix du jeu en euros ; la fenêtre d'achat, la page ACHAT et le garage affichent, eux, le prix d'Apple. Apple veut que le prix montré soit le prix débité : à brancher sur `prixTxt` avant l'envoi si ces rayons vendent des peintures en € dans l'app.
+- **Prix : ce qui reste en secours.** Le prix d'Apple est utilisé dès que sa réponse est arrivée ; le prix du jeu en € reste affiché seulement (1) avant la réponse d'Apple (démarrage, réseau coupé, produit pas encore créé dans App Store Connect), (2) pour un produit qu'Apple ne renvoie pas, (3) sur le web (pas de plugin). Deux cas particuliers : le **prix d'une rareté de peintures** (intertitre du nuancier) prend le prix d'Apple de la première peinture à vendre de cette rareté — hypothèse : toutes les peintures d'une même rareté sont dans le **même palier de prix** chez Apple (1 € / 1 € / 2 € / 3 € dans le jeu) ; si tu les mets dans des paliers différents, l'intertitre dira le prix de la première seulement, mais chaque loupe, étiquette lue, fenêtre d'achat et bouton dit son propre prix. Les écrans déjà dessinés sont redessinés quand les prix arrivent seulement pour la page ACHAT ouverte ; les autres reprennent les prix à leur prochain rendu. Les rayons AILES, TRAÎNÉES et la boutique classique ne vendent **rien en euros** (leurs prix sont en argent du jeu) : aucun prix d'Apple à y brancher.
 - Un **remboursement** Apple ne retire pas l'objet (choix de la v1.0).
 - Le **code de sauvegarde** collé dans ENTRER UN CODE est accepté tel quel en v1.0 (décision R3) : un code fabriqué à la main pourrait donner un objet payant sans l'acheter. À durcir plus tard (ignorer les objets en € à l'import).
 - Le plugin ne marque une transaction « terminée » qu'après l'avoir remise au jeu ; une transaction mal vérifiée est rejouée au lancement suivant (voulu).

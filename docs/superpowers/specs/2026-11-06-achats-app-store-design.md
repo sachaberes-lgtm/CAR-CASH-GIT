@@ -33,7 +33,7 @@ Tous **non consommables** (« à toi pour toujours », comme le dit déjà le je
 
 | Famille | Produits | Prix prévus dans le jeu | Identifiant |
 |---|---|---|---|
-| Caisses premium | **10 en vente** (règle : `k:'premium'` et non retirée ; LE REQUIN est revenu en boutique sur main le 07/11, décision R7) : CHAT POP-TART 4,20 € · REQUIN 9,99 € · LA PIZZA EXPRESS 161,00 € · LA FÉLINE · L'ÉTERNELLE · LE BLINDÉ NOIR · LE MUR DU SON · LE DRAGON D'OR · SQUALE · KELLY CHERRY (les sept derniers à 1,61 €) | voir à gauche | `cashcar.car.<forme>` (la `shape` de la fiche, stable ; jamais l'index) |
+| Caisses premium | **10 en vente** (règle : `k:'premium'` et non retirée ; REQUIN est revenu en boutique sur main le 07/11, décision R7) : CHAT POP-TART 4,20 € · REQUIN 9,99 € · LA PIZZA EXPRESS 161,00 € · LA FÉLINE · L'ÉTERNELLE · LE BLINDÉ NOIR · LE MUR DU SON · LE DRAGON D'OR · SQUALE · KELLY CHERRY (les sept derniers à 1,61 €) | voir à gauche | `cashcar.car.<forme>` (la `shape` de la fiche, stable ; jamais l'index) |
 | Caisses « retirées » | celles que `carRetiree(i)` donne vrai (FORMULE OR, LE MANS 24, EL PATRON…) : **pas en vente** | — | aucun produit |
 | Peintures | toutes celles dont `COSM.peinture[i].eur` existe, **défi ou non** (`habPaye` n'exige que `d.eur` ; les peintures gagnées par mission perdent leur `eur`, `boutique.js:633-639`) ; 64 au total au 07/11 (43 à 1 €, 15 à 2 €, 6 à 3 €) ; la peinture « usine » est exclue | 1 € commune/rare · 2 € épique · 3 € légendaire | `cashcar.peinture.<id>` (déjà prévu par le code) |
 
