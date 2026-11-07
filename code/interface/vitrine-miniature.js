@@ -11,9 +11,10 @@
    Tout est calculé avec la MÊME caméra : les coins du socle et du verre sont projetés par l'objectif qui photographie la caisse, donc la
    voiture est DANS la boîte au pixel près. La carte n'a plus qu'UNE image (au lieu de six faces 3D et cinq tranches par carte : moins de
    calques à composer sur téléphone). Les ailes, traînées, figures et peintures gardent le cube CSS de Léo.
-   Photo rangée sous `vt<ver>_<largeur>_<caisse>[s]` (PHOTO.cache + PHDB, comme les autres). `?vitrine=0` = le cube d'avant.
+   Photo rangée sous `vt<ver>_<largeur>_<caisse>[s]` (PHOTO.cache + PHDB, comme les autres). `?vitrine=1` = la vitrine (éteinte par défaut depuis le 07/11, voir VITM).
    Banc : dbgVitrine(i) (photo refaite, en data:), dbgVitrine({az, el, …}) (réglages), dbgVitrine('cartes') (les cartes de la grille). */
-const VITM={on:!/[?&]vitrine=0\b/.test(location.search),ver:3,
+/* (2026-11-07, Léo : « il y a un push qui a annulé le travail de la voiture dans le cube, il y a une plaque noire ; reviens sur le travail final sur les boîtes transparentes avec le sol quadrillé et les voitures ») LA VITRINE EST ÉTEINTE PAR DÉFAUT : la boutique garde le cube de verre à sol quadrillé et les voitures posées dedans (boites-blister.css, bqBas). Elle reste intacte et s'allume avec `?vitrine=1`. */
+const VITM={on:/[?&]vitrine=1\b/.test(location.search),ver:3,
   az:.52,el:.36,fov:17,       /* l'objectif : 30° d'azimut (on voit l'avant et le côté droit), 21° de plongée (le dessus du socle et le toit), objectif long */
   L:5.3,P:2.6,Hc:1.95,         /* le capot de verre : longueur (axe de la caisse), profondeur, hauteur — en mètres du jeu */
   ph:.42,po:.30,              /* le socle : hauteur, débord autour du verre */

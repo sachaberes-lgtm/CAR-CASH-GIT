@@ -32131,7 +32131,7 @@ const SF_CARTES={
     soir:{bio:'grt-soir-mine',mt:'MAGMA',pr:'LA LAVE MONTE'},nuit:{bio:'grt-nuit-mine',mt:'NOIR COMPLET',nuit:1,p:.8,pr:'TES PHARES, TA SEULE LUMIERE'},
     glace:{bio:'grt-glace-mine',mt:'GLACE',pr:'LA GROTTE A GELE'}}}, /* (2026-10-26, Sacha : « une nouvelle météo pour la grotte : la grotte glacée, inspirée de la grotte intérieure de Fight Club ») */
   ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
-    pluie:{bio:'canyonPluie',pluie:.6,sheen:.18},orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2}}}}:{}),
+    pluie:{bio:'canyonPluie',pluie:.6,sheen:.18,p:0}, /* (2026-11-05, Sacha : « enlève la pluie dans le biome canyon des géants ») hors du tirage (l'orage aussi, plus bas) ; `?carte=canyon&meteo=pluie` la joue encore */ orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2,p:0}}}}:{}), /* (2026-11-05, Sacha : « l'orage aussi ») hors du tirage ; `?carte=canyon&meteo=orage` le joue encore */
   /* (2026-10-18, Sacha : « fais les dunes d'or de manière parfaite ») LES DUNES D'OR : le matin rose, le midi turquoise et or (les mirages), le SOIR (la carte postale :
      un peu plus souvent), la nuit d'argent, le VENT DE SABLE (pas une goutte : `pluie` reste 0), la TEMPÊTE DE SABLE (un orage sec). Voir genDunes, buildDunes. */
   ...(DUNES_OK?{dunes:{nm:"LES DUNES D'OR",base:'dunes',m:{matin:{bio:'dunesMatin'},soir:{bio:'dunesSoir',p:1.3},nuit:{bio:'dunesNuit',nuit:1,pr:'LA LUNE ARGENTE LE SABLE'},
@@ -64624,7 +64624,7 @@ function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++)
    seule partie en orbite faisait 1/1 = mission réussie (vu par le jury après 4 parties). Seules comptent maintenant les maps qui ont au
    moins M2_METEO_MIN temps (matin, midi, soir, nuit, pluie, orage…). `?meteo=ancien` : l'ancien calcul. */
 /* (M2_METEO_MIN est déclarée dans missions/table.js, à côté de M2K : voir là) */
-function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const g of m2Cartes()){const P=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k]||sfMapDe(k)!==g)continue;for(const x of Object.keys((SF_CARTES[k].m)||{}))P.push([k,x]);}if(P.length<M2_METEO_MIN)continue;let j=0;for(const q of P)if((H[q[0]]||[]).indexOf(q[1])>=0)j++;if(j/P.length>f||(j/P.length===f&&P.length>tot)){f=j/P.length;n=j;tot=P.length;}}return {n:n,tot:tot};}
+function m2Meteo(){const c=m2Etat().c,H=c.met||{};let n=0,tot=0,f=-1;for(const g of m2Cartes()){const P=[];for(const k of Object.keys(SF_CARTES)){if(SF_HORS[k]||sfMapDe(k)!==g)continue;for(const x of Object.keys((SF_CARTES[k].m)||{}))if(SF_CARTES[k].m[x].p!==0)P.push([k,x]);} /* (2026-11-05) une météo hors du tirage (p:0 : la pluie du canyon, de la forêt) ne compte plus : elle ne sort jamais */if(P.length<M2_METEO_MIN)continue;let j=0;for(const q of P)if((H[q[0]]||[]).indexOf(q[1])>=0)j++;if(j/P.length>f||(j/P.length===f&&P.length>tot)){f=j/P.length;n=j;tot=P.length;}}return {n:n,tot:tot};}
 /* ===== LE JOURNAL DE LA BANQUE (2026-11-05, Opus : jury DIR-08 « +180 000 $ pendant la navigation des menus ») =====
    `?journal=banque` (en DEV seulement) : chaque écriture de SAVE.d.bank est notée (avant, après, l'écart, l'écran, la pile d'appels courte),
    et chaque temps de map gagné pour la mission des météos. `dbgBanque()` rend les 60 dernières lignes. Sans le paramètre : rien n'est posé. */
@@ -76499,9 +76499,10 @@ function bqVitreBrise(){
    Tout est calculé avec la MÊME caméra : les coins du socle et du verre sont projetés par l'objectif qui photographie la caisse, donc la
    voiture est DANS la boîte au pixel près. La carte n'a plus qu'UNE image (au lieu de six faces 3D et cinq tranches par carte : moins de
    calques à composer sur téléphone). Les ailes, traînées, figures et peintures gardent le cube CSS de Léo.
-   Photo rangée sous `vt<ver>_<largeur>_<caisse>[s]` (PHOTO.cache + PHDB, comme les autres). `?vitrine=0` = le cube d'avant.
+   Photo rangée sous `vt<ver>_<largeur>_<caisse>[s]` (PHOTO.cache + PHDB, comme les autres). `?vitrine=1` = la vitrine (éteinte par défaut depuis le 07/11, voir VITM).
    Banc : dbgVitrine(i) (photo refaite, en data:), dbgVitrine({az, el, …}) (réglages), dbgVitrine('cartes') (les cartes de la grille). */
-const VITM={on:!/[?&]vitrine=0\b/.test(location.search),ver:3,
+/* (2026-11-07, Léo : « il y a un push qui a annulé le travail de la voiture dans le cube, il y a une plaque noire ; reviens sur le travail final sur les boîtes transparentes avec le sol quadrillé et les voitures ») LA VITRINE EST ÉTEINTE PAR DÉFAUT : la boutique garde le cube de verre à sol quadrillé et les voitures posées dedans (boites-blister.css, bqBas). Elle reste intacte et s'allume avec `?vitrine=1`. */
+const VITM={on:/[?&]vitrine=1\b/.test(location.search),ver:3,
   az:.52,el:.36,fov:17,       /* l'objectif : 30° d'azimut (on voit l'avant et le côté droit), 21° de plongée (le dessus du socle et le toit), objectif long */
   L:5.3,P:2.6,Hc:1.95,         /* le capot de verre : longueur (axe de la caisse), profondeur, hauteur — en mètres du jeu */
   ph:.42,po:.30,              /* le socle : hauteur, débord autour du verre */
