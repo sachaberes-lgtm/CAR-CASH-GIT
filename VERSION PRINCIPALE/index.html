@@ -42,6 +42,15 @@
    `node synchro-versions.js` (racine du dépôt) la régénère depuis la principale. Forçages ponctuels : `?tel=1` / `?pc=1`.
    (Déclarée au niveau global — un `const` de script classique est visible du grand script, qui la lit.) */
 const EDITION='mobile';
+/* ===== LA NETTETÉ DANS LE CADRE SUR SAFARI / WEBKIT (2026-11-06, Léo : « sur mon ordi le jeu n'est pas à fond, ça ne vaut pas l'iPhone ») =====
+   Dans la page-cadre le jeu vit dans une iframe ZOOMÉE (844 × 390 agrandi à la fenêtre). Chrome donne au jeu la densité de l'écran × ce zoom (3,16 sur un Retina) : la 3D est dessinée aux pixels réels.
+   Safari / WebKit (et l'application CASH CAR) garde la densité de l'écran SANS le zoom (1 sur un iMac 1440p) : la 3D est dessinée en 844 × 390 puis étirée ×1,5 — le flou. Ici, dans le cadre, si la densité vue
+   ne contient pas déjà le zoom, `devicePixelRatio` rend densité de la page-cadre × zoom, en direct. Chrome (déjà bon) n'est pas touché. `?dprcadre=0` = avant. */
+(function(){try{if(!/[?&]colonne=1\b/.test(location.search)||/[?&]dprcadre=0\b/.test(location.search)||window.parent===window||!window.frameElement)return;
+  var base=window.devicePixelRatio||1,fe=window.frameElement,pd=window.parent.devicePixelRatio||1;
+  if(base>pd*1.05)return; /* Chrome : la densité du jeu contient déjà le zoom du cadre */
+  window.CC_DPR_CADRE=true; /* (2026-11-06) drapeau : `?vhd15=0` retire le ×1,5 de la vitrine du garage dans le cadre (voir vhdDpr). (2026-11-06, Léo, après comparaison A/B/C : « le rendu B est largement mieux, pour tout le monde ») la vitrine garde son ×1,5 : 1,4 × 1,5 = 2,1 */
+  Object.defineProperty(window,'devicePixelRatio',{configurable:true,get:function(){try{return pd*Math.max(1,fe.getBoundingClientRect().width/Math.max(1,window.innerWidth));}catch(e){return base;}}});}catch(e){}})();
 if(/[?&]portes=haut\b/.test(location.search))document.documentElement.classList.add('portesHaut'); /* (2026-10-20, Léo : « le mission, le shop, tu remets ça en dessous ») les portes du garage sous le nom (Sacha, 19/10) : seulement avec ?portes=haut */
 if(/[?&]garage=(leo|avant)\b/.test(location.search))document.documentElement.classList.add('garLeo'); /* (2026-10-19, Sacha) LE GARAGE QUI PREND TOUT L'ÉCRAN (la feuille garageHaut) est le défaut ; ?garage=leo (ou =avant) rend le garage d'avant */
 if(/[?&]garjouer=0\b/.test(location.search))document.documentElement.classList.add('sansGarJouer'); /* (2026-10-18) le JOUER de l'inventaire et de la boutique, coupé : voir <style id="jouerGarage"> */
@@ -132,7 +141,7 @@ const CC_VER=(/^__/.test(CC_BUILD)?'LOCALE':CC_BUILD.slice(0,7))+(/[?&]chute=0\b
       s.setProperty('--or',(6*z)+'px');
       if(debout){s.width=lo+'px';s.height=ep+'px';s.left=(b+(L*z-lo)/2)+'px';s.top=b+'px';s.borderRadius='0 0 '+ro+' '+ro;}
       else{s.width=ep+'px';s.height=lo+'px';s.left=b+'px';s.top=(b+(H*z-lo)/2)+'px';s.borderRadius='0 '+ro+' '+ro+' 0';}};
-    cadre();addEventListener('resize',cadre);
+    cadre();addEventListener('resize',function(){cadre();try{f.contentWindow.dispatchEvent(new Event('resize'));}catch(_){}}); /* (2026-11-06) le jeu relit sa densité quand le zoom du cadre change */
     /* (2026-10-03, Léo : « pourquoi le menu du début est mal placé », sur ses deux liens) LE ZOOM NE PASSE PAS PARTOUT : Chrome applique le
        `zoom` de l'iframe à son contenu (le jeu s'y croit dans un écran de 844 × 390, en haute définition) ; un navigateur qui ne le fait
        pas (Safari ? Firefox ? — pas de banc pour eux ici) donne au jeu un écran de 1 400 px de large : le menu passe en disposition
@@ -8467,6 +8476,32 @@ html.misV2 #gmHead em{order:3}
 .m2A .m2L:not(.pret):not(.ok) .glTx>u{margin:5px 0 0}.m2A .m2L:not(.pret):not(.ok) .glTx>small{margin-top:5px;white-space:nowrap}
 .m2A .m2L{min-height:56px;margin-bottom:6px}
 @media (orientation:landscape) and (max-height:540px){.m2A .m2L{min-height:54px;padding:6px 9px 6px 8px;margin-bottom:6px}.m2A .m2R{width:74px;height:40px}.m2Serie{padding:9px 8px 10px}.srC{height:52px}.m2Pr{min-height:26px;margin-top:5px}}
+/* ===== RÉCUPÉRER EN SPAMMANT (2026-11-06, Sacha : « une animation cool et se remplacer vite, on peut récupérer toutes les récompenses en spammant ») =====
+   La ligne verte touchée (.vite) : flash, reflet qui balaie, elle s'envole à droite et son hauteur se replie (--h posée par le script) — la suivante monte sous le doigt.
+   Le gain s'élève (.m2Gain), la série ×N s'affiche en haut (#m2Combo). Tout en transform/opacity sauf le repli de hauteur (350 ms, une ligne à la fois). */
+#gmListe.mcE .mcL.vite,#gmListe.mcE.vu .mcL.vite{position:relative;overflow:hidden;pointer-events:auto;animation:m2ViteOut .36s cubic-bezier(.3,.1,.3,1) forwards!important}
+#gmListe .mcL.vite::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 28%,rgba(255,255,255,.9) 50%,transparent 72%);transform:translateX(-130%);animation:m2ViteShine .24s ease-out forwards}
+#gmListe .mcL.vite .mcSil.duo img.n{transition-duration:.2s}
+#gmListe .mcL.vite .mcBal{animation-duration:.22s}
+@keyframes m2ViteOut{
+  0%{transform:scale(1);filter:brightness(1);opacity:1;height:var(--h)}
+  22%{transform:scale(1.05);filter:brightness(2.4) saturate(1.4);opacity:1;height:var(--h)}
+  50%{transform:translateX(14%) scale(.97);filter:brightness(1.5);opacity:.9;height:var(--h);margin-bottom:6px}
+  100%{transform:translateX(70%) scale(.82);filter:brightness(1);opacity:0;height:0;margin-bottom:0;padding-top:0;padding-bottom:0;gap:0}}
+@keyframes m2ViteShine{to{transform:translateX(130%)}}
+.mcRec9{transition:opacity .25s,max-height .3s;max-height:40px;overflow:hidden}.mcRec9.vide{opacity:0;max-height:0;margin:0}
+.m2Gain{position:fixed;z-index:125;pointer-events:none;white-space:nowrap;font-family:var(--pix,inherit);font-size:var(--f4,14px);letter-spacing:.5px;color:var(--cash,#7dff9b);
+  text-shadow:0 2px 0 #04120a,0 0 14px rgba(125,255,155,.85);display:flex;align-items:center;gap:6px;animation:m2GainUp .9s cubic-bezier(.2,.8,.3,1) forwards}
+.m2Gain.car{color:#ffe27a;text-shadow:0 2px 0 #241600,0 0 16px rgba(255,200,60,.9)}.m2Gain.hab{color:#c9a8ff;text-shadow:0 2px 0 #12082a,0 0 14px rgba(176,125,255,.9)}
+@keyframes m2GainUp{0%{transform:translate(-50%,-20%) scale(.4);opacity:0}16%{transform:translate(-50%,-60%) scale(1.3);opacity:1}30%{transform:translate(-50%,-70%) scale(1)}100%{transform:translate(-50%,-220%) scale(1);opacity:0}}
+#m2Combo{position:fixed;z-index:125;left:50%;top:calc(env(safe-area-inset-top,0px) + 13%);transform:translateX(-50%) scale(.6);opacity:0;pointer-events:none;display:flex;align-items:baseline;gap:10px;
+  padding:6px 14px;background:rgba(10,8,22,.82);box-shadow:inset 0 0 0 2px #ffe27a,0 0 22px rgba(255,200,60,.5);font-family:var(--pix,inherit);color:#fff7ee;transition:opacity .25s,transform .25s}
+#m2Combo.on{opacity:1;transform:translateX(-50%) scale(1)}
+#m2Combo small{font-size:var(--f0,8px);letter-spacing:1px;color:#ffe27a}#m2Combo b{font-weight:400;font-size:var(--f6,24px);color:#ffe27a;text-shadow:0 2px 0 #241600,0 0 12px rgba(255,200,60,.8)}
+#m2Combo em{font-style:normal;font-size:var(--f1,10px);color:var(--cash,#7dff9b)}
+#m2Combo.pop b{animation:m2ComboPop .22s cubic-bezier(.3,1.6,.5,1)}
+@keyframes m2ComboPop{0%{transform:scale(1.7) rotate(-6deg)}100%{transform:scale(1) rotate(0)}}
+@media (prefers-reduced-motion:reduce){#gmListe .mcL.vite::after,.m2Gain,#m2Combo.pop b{animation:none}#gmListe.mcE .mcL.vite{animation:none!important}}
 </style>
 <style>
 /* ===== LA PAUSE, MESURÉE (2026-10-24, Sacha : « cet écran est horrible, mets-toi sérieusement dessus, prends des mesures et corrige ça ») =====
@@ -9284,6 +9319,10 @@ html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:1
 @media (orientation:landscape) and (max-height:540px){
   html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2>.mTitle{translate:-30px 0}
   html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2 .mAccP>.mPlay{translate:30px 0}}
+/* (2026-11-06, Sacha : « sur la version mobile verticale le titre CASH CAR n'est pas centré ») en portrait le logo ne recule plus de 12 px :
+   il est pile au milieu de l'écran (le −12 ne vaut que pour l'escalier couché) ; JOUER garde son +12. */
+@media (orientation:portrait){
+  html.hub:not(.poki):not(.zz):not(.zy) body #mHome.acc2>.mTitle{translate:0 0}}
 </style>
 <style id="palierLeger">
 /* ===== LE CSS PAR PALIER (2026-10-23, audit mobile, Sacha : « une version mobile fluide sans que ça baisse trop en qualité ») =====
@@ -9980,37 +10019,37 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{display:fl
 </style>
 <style id="boitesBlister">
 /* ===== LES VITRINES (2026-11-05, Léo : « on ne voit pas assez les voitures, pas d'effet de boîte… un truc un peu carré et transparent, comme une vitrine en verre sur un socle noir ; un angle où l'on voit bien la voiture, en 3D, sans que ça pèse sur téléphone ») =====
-   Une couche posée APRÈS toutes les autres : elle ne fait que REPEINDRE les cartes `.bqK:not(.hab)` de la boutique (`#gBqPan`) — structure, tailles de grille et photos ne
+   Une couche posée APRÈS toutes les autres : elle ne fait que REPEINDRE les cartes `.bqK` de la boutique (`#gBqPan`) — structure, tailles de grille et photos ne
    bougent pas (bqCarteHtml ajoute seulement la classe `b-<rareté>`). Tout dérive de `--rc` (la couleur de rareté déjà posée) : aucune couleur de palette nouvelle (Sacha y travaille).
    LE PRINCIPE (zéro 3D réelle, donc rien de lourd) : une projection OBLIQUE dessinée en CSS — la face avant est la carte, un dessus et un côté droit en verre
    (`::before` et `::after` de la carte, deux parallélogrammes `skew`) donnent le volume du cube ; la voiture (photo transparente, déjà de trois quarts) se pose dans le verre
    sur une ombre de sol ; le nom et le prix reposent sur un SOCLE NOIR (comme la vitrine acrylique de la référence). La rareté = le liseré lumineux du verre et le filet du socle.
    Léo (25/10) a retiré le gros texte de rareté : il reste caché. La carte choisie se soulève. Allégé (palier 0 et 1) : mêmes aplats, plus de reflet qui balaie. */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab){
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK{
   --rcd:color-mix(in srgb,var(--rc) 60%,#506070);
   margin:0;border-radius:3px;overflow:visible;isolation:isolate;
   background:linear-gradient(155deg,rgba(255,255,255,.75),rgba(150,185,225,.34) 45%,rgba(255,255,255,.5));
   box-shadow:0 0 0 2px rgba(70,92,120,.75),inset 0 0 0 2px rgba(255,255,255,.85),0 12px 18px -6px rgba(30,40,55,.32);
   border-top:3px solid var(--rc);transform:none;transition:translate .15s,box-shadow .15s}
 /* la place : le rail laisse sa marge au dessus et au côté de verre (sinon le défilement les coupe) ; les trois colonnes se recalculent ; la photo suit le CADRE de la photo (720 x 440), plus une hauteur fixe de 46 à 66 px */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqRail:has(.bqK:not(.hab):not(.hab)){gap:16px 14px;padding:16px 14px 12px 2px}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK:not(.hab),html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK:not(.hab),html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK:not(.hab).off,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK:not(.hab).off{width:calc((100% - 44px) / 3)}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK:not(.hab) .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK:not(.hab) .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille.cote .bqK:not(.hab) .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab).off .bqKph{height:auto;aspect-ratio:720/440}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqRail{gap:16px 14px;padding:16px 14px 12px 2px}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK.off,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK.off{width:calc((100% - 44px) / 3)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille.cote .bqK .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.off .bqKph{height:auto;aspect-ratio:720/440}
 /* les deux faces de verre : le dessus et le côté droit (projection oblique) */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab)::before{content:"";position:absolute;left:0;right:0;top:-12px;height:9px;transform-origin:bottom left;transform:skewX(-45deg);
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK::before{content:"";position:absolute;left:0;right:0;top:-12px;height:9px;transform-origin:bottom left;transform:skewX(-45deg);
   background:linear-gradient(90deg,rgba(255,255,255,.85),color-mix(in srgb,var(--rc) 30%,rgba(235,242,250,.75)));box-shadow:inset 0 0 0 1px rgba(110,130,150,.5);pointer-events:none;z-index:2}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab)::after{content:"";position:absolute;top:-3px;bottom:0;right:-9px;width:9px;transform-origin:top left;transform:skewY(-45deg);
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK::after{content:"";position:absolute;top:-3px;bottom:0;right:-9px;width:9px;transform-origin:top left;transform:skewY(-45deg);
   background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 22%,rgba(225,234,244,.8)),rgba(180,196,214,.55));box-shadow:inset 0 0 0 1px rgba(110,130,150,.5);pointer-events:none;z-index:2}
 /* la voiture : la plus grande place, sur son ombre de sol, derrière un reflet de verre */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph{position:relative;margin:2px 2px 0;border:0;border-radius:0;box-shadow:none}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph:not(.scene)::before{content:"";position:absolute;left:12%;right:12%;bottom:3%;height:12%;border-radius:50%;background:radial-gradient(closest-side,rgba(30,40,55,.38),transparent);pointer-events:none}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph:not(.scene)::after{content:"";position:absolute;left:10%;top:0;width:22%;height:100%;background:linear-gradient(100deg,rgba(255,255,255,.5),rgba(255,255,255,0));transform:skewX(-14deg);pointer-events:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph{position:relative;margin:2px 2px 0;border:0;border-radius:0;background:none;box-shadow:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph::before{content:"";position:absolute;left:12%;right:12%;bottom:3%;height:12%;border-radius:50%;background:radial-gradient(closest-side,rgba(30,40,55,.38),transparent);pointer-events:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph::after{content:"";position:absolute;left:10%;top:0;width:22%;height:100%;background:linear-gradient(100deg,rgba(255,255,255,.5),rgba(255,255,255,0));transform:skewX(-14deg);pointer-events:none}
 /* le SOCLE NOIR : le nom et le prix, bord à bord */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKn{margin:0;padding:4px 5px 1px;background:#0e0f12;color:#fff;border-radius:0}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKp{margin:0;background:#0e0f12;border-radius:0;transform:none;box-shadow:0 3px 0 var(--rc)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKn{margin:0;padding:4px 5px 1px;background:#0e0f12;color:#fff;border-radius:0}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp{margin:0;background:#0e0f12;border-radius:0;transform:none;box-shadow:0 3px 0 var(--rc)}
 /* la rareté : le liseré du verre et le filet du socle (déjà --rc) ; les plus hautes brillent un peu plus */
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-rare,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-epique{box-shadow:0 0 0 1px var(--rcd),inset 0 0 0 2px rgba(255,255,255,.75),0 0 10px -2px var(--rc),0 12px 18px -6px rgba(30,40,55,.28)}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-exotique .bqKph:not(.scene)::before{background:radial-gradient(closest-side,color-mix(in srgb,var(--rc) 55%,#222),transparent)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-exotique .bqKph::before{background:radial-gradient(closest-side,color-mix(in srgb,var(--rc) 55%,#222),transparent)}
 /* LA DORÉE (légendaire) : verre doré, socle or, reflet qui balaie la vitrine */
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire{background:linear-gradient(155deg,rgba(255,244,200,.85),rgba(255,215,94,.28) 45%,rgba(255,244,200,.55));border-top-color:#ffd75e;
   box-shadow:0 0 0 1px #a67200,inset 0 0 0 2px #ffe58a,0 0 14px -2px rgba(255,200,60,.8),0 12px 18px -6px rgba(120,80,0,.4)}
@@ -10018,120 +10057,88 @@ html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire::before{background:linea
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire::after{background:linear-gradient(180deg,#ffd75e,#b8860b);box-shadow:inset 0 0 0 1px #a67200}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKn{background:linear-gradient(#3a2400,#24160a);color:#ffe9a8}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKp{background:linear-gradient(#24160a,#3a2400);box-shadow:0 3px 0 #ffd75e}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph:not(.scene)::after{left:-40%;width:34%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent);animation:bqBal 3.4s ease-in-out infinite}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph::after{left:-40%;width:34%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent);animation:bqBal 3.4s ease-in-out infinite}
 @keyframes bqBal{0%{left:-40%}55%,100%{left:130%}}
 /* MYTHIQUE (braise) et INFINI (arc-en-ciel) : seul le liseré change */
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-mythique{background:linear-gradient(155deg,rgba(255,200,205,.6),rgba(255,77,109,.2) 50%,rgba(255,200,205,.4))}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-infini{border-top-color:#8a7cff;background:linear-gradient(155deg,rgba(255,200,250,.55),rgba(138,124,255,.2) 40%,rgba(62,232,168,.25))}
 /* LA SECRÈTE : verre fumé, socle noir, ruban « scellé » en travers de la vitrine */
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete{background:linear-gradient(155deg,rgba(60,60,72,.82),rgba(25,25,32,.9));box-shadow:0 0 0 1px #000,inset 0 0 0 2px rgba(255,255,255,.18),0 12px 18px -6px rgba(0,0,0,.4)}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKph:not(.scene)::before{left:-6%;right:-6%;bottom:auto;top:44%;height:12px;border-radius:0;background:repeating-linear-gradient(45deg,#ffd400 0 8px,#111 8px 16px);transform:rotate(-12deg);opacity:.9;z-index:2}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKph::before{left:-6%;right:-6%;bottom:auto;top:44%;height:12px;border-radius:0;background:repeating-linear-gradient(45deg,#ffd400 0 8px,#111 8px 16px);transform:rotate(-12deg);opacity:.9;z-index:2}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKn{color:var(--rc)}
 /* la carte choisie se soulève */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab).sel{translate:0 -4px;box-shadow:0 0 0 2px #14171c,0 0 0 4px var(--rc),0 16px 22px -6px rgba(30,40,55,.35)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel{translate:0 -4px;box-shadow:0 0 0 2px #14171c,0 0 0 4px var(--rc),0 16px 22px -6px rgba(30,40,55,.35)}
 /* allégé (ANCIEN 0 et MOYEN 1) : plus de reflet qui balaie */
-html[data-palier="0"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph:not(.scene)::after,html[data-palier="1"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph:not(.scene)::after{animation:none;left:10%;width:22%;background:linear-gradient(100deg,rgba(255,255,255,.5),rgba(255,255,255,0))}
+html[data-palier="0"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph::after,html[data-palier="1"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph::after{animation:none;left:10%;width:22%;background:linear-gradient(100deg,rgba(255,255,255,.5),rgba(255,255,255,0))}
 @media (prefers-reduced-motion:reduce){#gBqPan .b-legendaire .bqKph::after{animation:none}}
 /* ===== LA VITRINE EN VRAI 3D (palier 2 : ordinateur et téléphones récents) =====
    Un cube de verre (six faces CSS, `preserve-3d`) penché derrière la photo ; la voiture, une photo transparente de trois quarts, se tient devant ses faces arrière ;
    le reflet de la face avant passe par-dessus. Tailles en `cqw` (la carte est un conteneur) : le cube suit la largeur de la carte, trois colonnes ou une rangée.
    Ailleurs (palier 0 et 1) les faces `.bqKv` restent cachées et la projection oblique plate ci-dessus s'applique. */
 .bqKv{display:none}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab){container-type:inline-size;perspective:900px;background:none;box-shadow:none;border-top:0}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab)::before,html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab)::after{display:none}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv{--W:84cqw;--H:55cqw;--D:30cqw;--ry:-18deg;--rx:-12deg;display:block;position:absolute;left:50%;top:calc(2px + 30cqw);width:0;height:0;transform-style:preserve-3d;transform:rotateX(var(--rx)) rotateY(var(--ry));pointer-events:none;transition:transform .3s}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .f{position:absolute;display:block;background:linear-gradient(150deg,rgba(255,255,255,.55),rgba(160,195,235,.2) 55%,rgba(255,255,255,.3));border:2px solid color-mix(in srgb,var(--rc) 60%,rgba(255,255,255,.95))}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .fr{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:translateZ(calc(var(--D)/2))}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .bk{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:rotateY(180deg) translateZ(calc(var(--D)/2))}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .rt{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(90deg) translateZ(calc(var(--W)/2))}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .lf{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(-90deg) translateZ(calc(var(--W)/2))}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .tp{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/2));background:linear-gradient(135deg,rgba(255,255,255,.8),color-mix(in srgb,var(--rc) 28%,rgba(220,235,250,.55)))}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .fl{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/-2));background:radial-gradient(closest-side,rgba(20,30,45,.35),rgba(20,30,45,0) 70%);border:0}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph{z-index:1}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph::before{display:none}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab).sel{box-shadow:none;translate:0 -4px}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab).sel .bqKv{--ry:-14deg;--rx:-10deg}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab).sel .bqKv .f{border-color:var(--rc);border-width:3px}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .f{background:linear-gradient(150deg,rgba(255,244,200,.7),rgba(255,215,94,.24) 55%,rgba(255,244,200,.45));border-color:#d9a21b}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .tp{background:linear-gradient(135deg,rgba(255,250,225,.9),rgba(255,215,94,.5))}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKv .f{background:linear-gradient(150deg,rgba(70,70,84,.82),rgba(25,25,32,.9));border-color:#ff3ec8}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-mythique .bqKv .f{background:linear-gradient(150deg,rgba(255,200,205,.6),rgba(255,77,109,.2) 55%,rgba(255,200,205,.4))}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-infini .bqKv .f{background:linear-gradient(150deg,rgba(255,200,250,.55),rgba(138,124,255,.2) 45%,rgba(62,232,168,.25))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK{container-type:inline-size;perspective:900px;background:none;box-shadow:none;border-top:0}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK::before,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK::after{display:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv{--W:84cqw;--H:55cqw;--D:30cqw;--ry:-18deg;--rx:-12deg;display:block;position:absolute;left:50%;top:calc(2px + 30cqw);width:0;height:0;transform-style:preserve-3d;transform:rotateX(var(--rx)) rotateY(var(--ry));pointer-events:none;transition:transform .3s}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .f{position:absolute;display:block;background:linear-gradient(150deg,rgba(255,255,255,.55),rgba(160,195,235,.2) 55%,rgba(255,255,255,.3));border:2px solid color-mix(in srgb,var(--rc) 60%,rgba(255,255,255,.95))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .fr{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:translateZ(calc(var(--D)/2))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .bk{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:rotateY(180deg) translateZ(calc(var(--D)/2))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .rt{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(90deg) translateZ(calc(var(--W)/2))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .lf{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(-90deg) translateZ(calc(var(--W)/2))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .tp{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/2));background:linear-gradient(135deg,rgba(255,255,255,.8),color-mix(in srgb,var(--rc) 28%,rgba(220,235,250,.55)))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .fl{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/-2));background:radial-gradient(closest-side,rgba(20,30,45,.35),rgba(20,30,45,0) 70%);border:0}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph{z-index:1}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph::before{display:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel{box-shadow:none;translate:0 -4px}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel .bqKv{--ry:-14deg;--rx:-10deg}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel .bqKv .f{border-color:var(--rc);border-width:3px}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .f{background:linear-gradient(150deg,rgba(255,244,200,.7),rgba(255,215,94,.24) 55%,rgba(255,244,200,.45));border-color:#d9a21b}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .tp{background:linear-gradient(135deg,rgba(255,250,225,.9),rgba(255,215,94,.5))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKv .f{background:linear-gradient(150deg,rgba(70,70,84,.82),rgba(25,25,32,.9));border-color:#ff3ec8}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-mythique .bqKv .f{background:linear-gradient(150deg,rgba(255,200,205,.6),rgba(255,77,109,.2) 55%,rgba(255,200,205,.4))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-infini .bqKv .f{background:linear-gradient(150deg,rgba(255,200,250,.55),rgba(138,124,255,.2) 45%,rgba(62,232,168,.25))}
 /* la BANDEROLE de rareté : une petite étiquette de couleur sur le coin du verre, seulement pour les plus hautes (le gros texte reste banni, 25/10) */
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKr,html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-mythique .bqKr,html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-infini .bqKr{display:block;position:absolute;top:calc(100cqw * .47);bottom:auto;left:-4px;z-index:4;padding:2px 6px 1px;font:800 7px/1 var(--pix,system-ui);letter-spacing:.06em;background:var(--rc);color:#1a1200;box-shadow:0 1px 0 rgba(0,0,0,.35);transform:rotate(-4deg);pointer-events:none}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKr{background:linear-gradient(#fff2b0,#ffd75e)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKr,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-mythique .bqKr,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-infini .bqKr{display:block;position:absolute;top:calc(100cqw * .47);bottom:auto;left:-4px;z-index:4;padding:2px 6px 1px;font:800 7px/1 var(--pix,system-ui);letter-spacing:.06em;background:var(--rc);color:#1a1200;box-shadow:0 1px 0 rgba(0,0,0,.35);transform:rotate(-4deg);pointer-events:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKr{background:linear-gradient(#fff2b0,#ffd75e)}
 
 /* le prix se lit sur le socle noir (avant : texte sombre sur noir) */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKp{color:#ffe08a}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKp.eur{color:#fff}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKp.acq{color:#7ff0aa}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKp.defi,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKp.sec{color:#00b8d4}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp{color:#ffe08a}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.eur{color:#fff}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.acq{color:#7ff0aa}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.defi,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.sec{color:#ff9ad9}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKp{color:#fff2b0}
 /* palier 2 : la voiture plus grande dans le verre ; la carte choisie garde son cube penché, en lueur douce */
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph img{transform:scale(1.14);transform-origin:50% 72%}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab).sel .bqKv{--ry:-14deg;--rx:-10deg;filter:drop-shadow(0 0 7px var(--rc))}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab).sel .bqKv .f{border-width:2px}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab).sel{scale:1.04}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph img{transform:scale(1.14);transform-origin:50% 72%}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel .bqKv{--ry:-14deg;--rx:-10deg} /* (2026-11-06) plus de filter:drop-shadow ici : un filtre APLATIT le 3D (preserve-3d) — la carte choisie perdait son cube */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel .bqKv .f{border-width:2px}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel{scale:1.04}
 
 /* ===== LA VITRINE, PLUS CRÉATIVE (palier 2) =====
    Un DIORAMA : le fond du cube est un décor teinté de la rareté, avec un projecteur qui éclaire la voiture (elle ressort, le cube se lit) ; le socle se réduit à une ligne
    (le nom) et le prix devient une ÉTIQUETTE qui déborde sur le verre ; chaque famille a son détail : brillance pour l'épique et la légendaire (étoiles fixes qui scintillent),
    un grand « ? » derrière la silhouette secrète. Tout en aplats et dégradés : aucun filtre, aucune ombre floue. */
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .bk{background:radial-gradient(ellipse 60% 70% at 50% 62%,rgba(255,255,255,.95),rgba(255,255,255,0) 70%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 38%,#fff),color-mix(in srgb,var(--rc) 62%,#6a7686))}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .lf{background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 50%,rgba(150,170,195,.55)),rgba(255,255,255,.18))}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .rt{background:linear-gradient(90deg,rgba(255,255,255,.2),color-mix(in srgb,var(--rc) 45%,rgba(120,140,165,.6)))}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .fl{background:radial-gradient(closest-side,rgba(20,30,45,.55),rgba(20,30,45,0) 72%)}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph{filter:none}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph:not(:empty)::before{display:block;content:"";position:absolute;inset:0;pointer-events:none;background:none}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-epique .bqKph:not(:empty)::before,html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph:not(:empty)::before{background:
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .bk{background:radial-gradient(ellipse 60% 70% at 50% 62%,rgba(255,255,255,.95),rgba(255,255,255,0) 70%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 38%,#fff),color-mix(in srgb,var(--rc) 62%,#6a7686))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .lf{background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 50%,rgba(150,170,195,.55)),rgba(255,255,255,.18))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .rt{background:linear-gradient(90deg,rgba(255,255,255,.2),color-mix(in srgb,var(--rc) 45%,rgba(120,140,165,.6)))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .fl{background:radial-gradient(closest-side,rgba(20,30,45,.55),rgba(20,30,45,0) 72%)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph{filter:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph::before{display:block;content:"";position:absolute;inset:0;pointer-events:none;background:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-epique .bqKph::before,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph::before{background:
   radial-gradient(circle,#fff 0 1.4px,transparent 2.2px) 14% 22%/1px 1px no-repeat,radial-gradient(circle,#fff 0 1.8px,transparent 2.8px) 86% 30%/1px 1px no-repeat,
   radial-gradient(circle,#fff 0 1.2px,transparent 2px) 74% 12%/1px 1px no-repeat,radial-gradient(circle,#fff 0 1.5px,transparent 2.4px) 26% 70%/1px 1px no-repeat;animation:bqScint 2.2s ease-in-out infinite;z-index:3}
 @keyframes bqScint{0%,100%{opacity:.35}50%{opacity:1}}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKph:not(:empty)::before{content:"?";display:flex;align-items:center;justify-content:center;font:900 34cqw/1 system-ui;color:rgba(255,62,200,.32);top:-4%;bottom:auto;height:100%;transform:none;left:0;right:0;border-radius:0}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .bk{background:radial-gradient(ellipse 60% 70% at 50% 62%,#fffbe8,rgba(255,251,232,0) 70%),linear-gradient(180deg,#ffe9a0,#d9a21b)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKph::before{content:"?";display:flex;align-items:center;justify-content:center;font:900 34cqw/1 system-ui;color:rgba(255,62,200,.32);top:-4%;bottom:auto;height:100%;transform:none;left:0;right:0;border-radius:0}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .bk{background:radial-gradient(ellipse 60% 70% at 50% 62%,#fffbe8,rgba(255,251,232,0) 70%),linear-gradient(180deg,#ffe9a0,#d9a21b)}
 /* le socle en une ligne, le prix en étiquette */
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKn{padding:3px 5px 2px 6px;box-sizing:border-box}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKp{position:absolute;right:-5px;top:-7px;bottom:auto;margin:0;padding:3px 7px 3px 8px;background:var(--rc);color:#10131a;border-radius:3px 0 0 3px;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.4);transform:skewX(-10deg);z-index:5}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKp.acq{background:#7ff0aa;color:#06331b}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKp.defi,html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKp.sec{background:#00b8d4;color:#fff}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKp{background:linear-gradient(#fff6c8,#ffd75e);color:#3a2400}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKp{background:#ff3ec8;color:#fff}
-/* une MISSION est bleue, jamais rose (Sacha : « mission ne peut pas être bleu et rose à la fois ») : même sur une secrète */
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKp.defi,html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKp.sec{background:#00b8d4;color:#fff}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKn{padding:3px 5px 2px 6px;box-sizing:border-box}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp{position:absolute;right:-5px;top:-7px;bottom:auto;margin:0;padding:3px 7px 3px 8px;background:var(--rc);color:#10131a;border-radius:3px 0 0 3px;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.4);transform:skewX(-10deg);z-index:5}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.acq{background:#7ff0aa;color:#06331b}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.defi,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.sec{background:#ff9ad9;color:#3a0a2c}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKp{background:linear-gradient(#fff6c8,#ffd75e);color:#3a2400}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKp{background:#ff3ec8;color:#fff}
 @media (prefers-reduced-motion:reduce){#gBqPan .b-epique .bqKph::before,#gBqPan .b-legendaire .bqKph::before{animation:none}}
 
-
-/* ===== FUSION AVEC LE SHOWROOM DE SACHA (2026-11-05) =====
-   Sacha pose chaque photo sur un PLATEAU DE NUIT teinté par la rareté (`.bqKph.scene` : flaque de lumière au sol, projecteur, rayons qui tournent pour les hautes raretés, aura de
-   l'épique — voir peintures.css). Ici, ce plateau devient l'INTÉRIEUR de la vitrine : il garde son fond et ses effets (je ne repeins plus la case ni ses `::after`), et la vitrine l'entoure :
-   le verre (dessus, côtés, arêtes teintées), le reflet de la face avant, le socle noir, l'étiquette de prix et la banderole. Une case jamais plus petite que celle de Sacha (82 px, 64 px de côté). */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph:not(.scene){background:none}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph{min-height:82px}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK:not(.hab) .bqKph{min-height:64px}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv{--ph:max(61cqw,82px);--H:calc(var(--ph) * .92);top:calc(2px + var(--ph) / 2)}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK:not(.hab) .bqKv{--ph:max(61cqw,64px)}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph img{transform:none}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph.scene img{transform:scale(1.22) translateY(5%)}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .fr::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.5) 0 14%,rgba(255,255,255,0) 14% 100%);pointer-events:none}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .fr::after{background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.85) 50%,transparent 70%) -140% 0/60% 100% no-repeat;animation:bqBalV 3.4s ease-in-out infinite}
-@keyframes bqBalV{0%{background-position:-140% 0}55%,100%{background-position:240% 0}}
-@media (prefers-reduced-motion:reduce){#gBqPan .b-legendaire .bqKv .fr::after{animation:none}}
-
-/* le VERRE passe PAR-DESSUS le plateau (sinon le plateau opaque cache le cube) : arêtes teintées, reflet et côtés se lisent sur la nuit ; le fond du cube devient transparent (la scène de Sacha fait le décor) */
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv{--ry:-11deg;--rx:-8deg;z-index:3}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .bk,html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .bk{background:none;border-color:transparent}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKv .fr{background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(255,255,255,0) 45%,rgba(255,255,255,.08))}
-html[data-palier="2"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab).sel .bqKv{--ry:-9deg;--rx:-7deg}
-
-/* ===== VERSION DE LÉO + SACHA (2026-11-05, Léo : « on garde les vitres ; pour les voitures et les traînées, plus de fond noir : ça se marie mal ») =====
-   Les cases des voitures et des ailes (`.scene`) et la plaque des traînées (`.tSw`) perdent leur nuit : l'intérieur de la vitrine est le DÉCOR CLAIR teinté de la rareté (un projecteur blanc sur la voiture, comme
-   avant la fusion). Les effets de Sacha restent (rayons tournants des hautes raretés, aura de l'épique, ruban et tuyère des traînées) ; seule la plaque noire change. Le socle noir du bas, lui, reste. */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph.scene{background:radial-gradient(ellipse 60% 70% at 50% 62%,rgba(255,255,255,.95),rgba(255,255,255,0) 70%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 38%,#fff),color-mix(in srgb,var(--rc) 62%,#6a7686))}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph.scene{background:radial-gradient(ellipse 60% 70% at 50% 62%,#fffbe8,rgba(255,251,232,0) 70%),linear-gradient(180deg,#ffe9a0,#d9a21b)}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKph.scene,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab).m2sec .bqKph.scene{background:radial-gradient(46% 17% at 50% 82%,rgba(255,62,200,.35) 0,transparent 72%),radial-gradient(75% 70% at 50% 38%,#fff2fb 0,#f8dcef 70%,#efc9e4 100%)}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph.scene img{filter:drop-shadow(0 5px 4px rgba(20,30,45,.35)) drop-shadow(0 0 8px color-mix(in srgb,var(--rc) 40%,transparent))}
-/* la plaque des traînées : un fond clair teinté par la couleur de la traînée (--tc), l'éclat, la tuyère et les pictogrammes restent ; rien ne déborde de la case */
-/* la banderole de rareté : seulement la LÉGENDAIRE sur une peinture (Léo : « trop bizarre » ailleurs) ; sur les voitures elle garde les trois hautes raretés */
+/* LES AILES QUI BATTENT : la photo ne montre plus que les deux ailes, de face ; deux moitiés de la même image battent en alternance (comme des ailes vues de face qui se replient et s'ouvrent) */
+@media (prefers-reduced-motion:reduce){#gBqPan .bqKph.c-aile img{animation:none!important}}
 
 /* LA VITRE QUI SE BRISE (voir interface/vitre-brisee.js) : éclats, éclair de la rareté, mot DÉBLOQUÉ */
 #gBqPan .bqBris{position:absolute;pointer-events:none;z-index:30}
@@ -10142,6 +10149,118 @@ html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:not(.hab) .bqKph.scene img{filter
 #gBqPan .bqBris b{position:absolute;left:50%;top:40%;white-space:nowrap;padding:4px 7px;background:#0e0f12;color:#fff;font:800 9px/1 var(--pix,system-ui);letter-spacing:.06em;box-shadow:0 0 0 2px var(--rc);animation:bqLab 1s ease-out forwards}
 @keyframes bqLab{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}80%{opacity:1;transform:translate(-50%,-60%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%) scale(1)}}
 #gBqPan .bqK:not(.hab).brise .bqKv{opacity:0}
+
+/* ===== LE CUBE v2 (2026-11-06, Léo : « la boîte 3D est devenue pas cohérente, une ombre bizarre : refais des cubes carrés, plus propres, avec la voiture posée dedans en 3D ») =====
+   Un VRAI cube (six faces, coins à peine adoucis) posé de trois quarts ; la photo (voiture, aile, traînée, figure) est DANS le cube, plan debout au milieu des faces, tournée comme lui :
+   le verre de devant passe devant, le fond derrière, la voiture au sol. La carte (.bqK) est le contexte 3D (preserve-3d, sans isolation ni filtre : sinon le navigateur aplatit) ; le cube est
+   poussé devant la plaque du nom, qu'il mord. Un espaceur (::before) donne sa hauteur à la carte. Les PEINTURES n'ont pas de cube (.pnt) : une sphère vernie. Préfixe à deux #id. */
+html #gBq #gBqPan .bqK:not(.pnt){isolation:auto;transform-style:preserve-3d;perspective:760px;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;margin:0;
+  --W:64cqw;--H:46cqw;--D:34cqw;--ry:-26deg;--rx:-14deg;--rim:color-mix(in srgb,var(--rc) 62%,#fff)}
+html #gBq #gBqPan .bqK:not(.pnt)::before{display:block;content:"";position:static;transform:none;width:auto;height:auto;aspect-ratio:720/440;margin:0 0 2px;background:none;box-shadow:none;border:0}
+html #gBq #gBqPan .bqK:not(.pnt)::after{display:none}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv{display:block;position:absolute;left:50%;top:calc(var(--H)/2 + 7cqw);width:0;height:0;transform-style:preserve-3d;pointer-events:none;
+  transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform .3s} /* (pas de translateZ sur le cube : le navigateur le fait disparaître ; c'est la plaque qui recule) */
+html #gBq #gBqPan .bqK:not(.pnt).sel{--ry:-18deg;--rx:-10deg;translate:0 -3px;scale:1.03;box-shadow:none}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .f{position:absolute;display:block;box-sizing:border-box;border:2px solid var(--rim);border-radius:2.2cqw;background:none}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:translateZ(calc(var(--D)/2));
+  background:linear-gradient(118deg,rgba(255,255,255,.42) 0,rgba(255,255,255,.08) 24%,rgba(255,255,255,.02) 56%,rgba(255,255,255,.18) 100%)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bk{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:rotateY(180deg) translateZ(calc(var(--D)/2));
+  background:radial-gradient(ellipse 62% 70% at 50% 64%,rgba(255,255,255,.95),rgba(255,255,255,0) 72%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 30%,#fff),color-mix(in srgb,var(--rc) 55%,#8a97aa))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .lf{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(-90deg) translateZ(calc(var(--W)/2));background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 40%,#cfd8e4),rgba(255,255,255,.3))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .rt{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(90deg) translateZ(calc(var(--W)/2));background:linear-gradient(90deg,rgba(255,255,255,.3),color-mix(in srgb,var(--rc) 40%,#b9c4d3))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .tp{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/2));background:linear-gradient(180deg,rgba(255,255,255,.9),color-mix(in srgb,var(--rc) 22%,#fff))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fl{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/-2));
+  background:radial-gradient(ellipse 50% 42% at 50% 50%,rgba(20,30,45,.22),rgba(20,30,45,0) 100%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 24%,#e9eef5),color-mix(in srgb,var(--rc) 40%,#c6d0de))}
+/* la photo : un plan debout au milieu du cube, posée sur le sol */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph{position:absolute;display:flex;align-items:flex-end;justify-content:center;margin:0;padding:0;overflow:visible;background:none;border:0;box-shadow:none;aspect-ratio:auto;
+  width:calc(var(--W)*.94);height:calc(var(--W)*.574);left:calc(var(--W)*-.47);top:calc(var(--H)/2 - var(--W)*.574 - 1cqw);transform:none;z-index:auto}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph::before,html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph::after{display:none}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph img{position:static;width:100%;height:100%;max-width:100%;object-fit:contain;object-position:50% 100%;transform:none;filter:none}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph.c-aile img{transform:none}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph:is(.c-trainee,.c-figure){align-items:stretch}
+/* (2026-11-07, Léo : « le nom doit se trouver EN DESSOUS du cube 3D et ne pas cacher la voiture ») la plaque est maintenant SOUS le cube : l'espace du cube ne mord plus de 12 px dessus (+2 px d'air), plus de recul en 3D qui la faisait remonter, 28 px de haut (la marge basse est une bordure transparente, qui ne laisse pas voir un bout de 3e ligne). */
+/* la plaque du nom, sous le cube ; le prix devant (2026-11-06, Léo : « les noms sont très gros et dépassent le cube » : 50 → 34 px de haut, plus d'agrandissement à 107 %) */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKn{position:relative;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:28px;margin:0 6px 7px;padding:3px 6px 0;border-bottom:3px solid transparent;
+  text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:0;transform:none;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 40%,#2b3246),color-mix(in srgb,var(--rc) 14%,#0f121b));box-shadow:inset 0 1px 0 rgba(255,255,255,.3);text-shadow:0 0 6px var(--rc),0 1px 0 rgba(0,0,0,.55)}
+html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKn{background:linear-gradient(#5a3a00,#24160a);color:#ffe9a8;text-shadow:0 1px 0 #000}
+html #gBq #gBqPan .bqK.b-secrete:not(.pnt) .bqKn{background:linear-gradient(#3a3a48,#16161d);color:var(--rc)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp{position:absolute;right:-5px;top:-7px;bottom:auto;margin:0;min-height:0;padding:3px 7px 3px 8px;border-radius:10px 4px 4px 10px;background:var(--rc);color:#10131a;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.35);transform:skewX(-10deg) translateZ(40px)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp.acq{background:#7ff0aa;color:#06331b}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp:is(.defi,.sec){background:#ff9ad9;color:#3a0a2c}
+html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKp{background:linear-gradient(#fff6c8,#ffd75e);color:#3a2400}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKl,html #gBq #gBqPan .bqK:not(.pnt) .bqKd2{transform:translateZ(40px)}
+/* la légendaire : cube doré */
+html #gBq #gBqPan .bqK.b-legendaire:not(.pnt){--rim:#d9a21b}
+html #gBq #gBqPan .bqK.b-secrete:not(.pnt){--rim:#ff3ec8}
+html #gBq #gBqPan .bqK.brise:not(.pnt) .bqKv{opacity:0}
+/* les traînées : le pictogramme au fond du cube */
+html #gBq #gBqPan .bqK.hab .bqKph .tSw{background:none;box-shadow:none;overflow:visible}
+html #gBq #gBqPan .bqK.hab .bqKph .tSw::before,html #gBq #gBqPan .bqK.hab .bqKph .tSw::after,html #gBq #gBqPan .bqK.hab .bqKph .tSw .tBuse{display:none}
+html #gBq #gBqPan .bqK.hab .bqKph .tSw .tRu{left:12%;right:12%;opacity:.55;height:34%}
+html #gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi{left:50%;right:auto;top:48%;--pxs:4;translate:-50% -50%;opacity:1;animation:tFlotte 1.8s ease-in-out infinite alternate}
+html #gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(n+2){display:none}
+@keyframes tFlotte{from{transform:translateY(-2px)}to{transform:translateY(3px)}}
+/* LES PEINTURES : une SPHÈRE vernie de la couleur vendue (la carte reste celle d'avant) */
+html #gBq #gBqPan .bqK.hab .bqKph.c-peinture{padding:0;align-items:center;justify-content:center;filter:drop-shadow(.4cqw .5cqw 0 rgba(0,0,0,.34)) drop-shadow(.8cqw 1cqw 0 rgba(0,0,0,.30)) drop-shadow(1.2cqw 1.5cqw 0 rgba(0,0,0,.26)) drop-shadow(1.6cqw 2cqw 0 rgba(0,0,0,.22)) drop-shadow(0 3cqw 1.8cqw rgba(20,28,45,.34))} /* (v1221 : l'ÉPAISSEUR du splash — trois ombres dures décalées = la tranche d'une flaque en relief) le SPLASH au milieu du cube (2026-11-06, Léo : « au lieu d'un rond un peu plat, un splash simplifié, arrondi, comme Splatoon, dans la vitre ») */
+html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw{flex:none;position:relative;width:auto;height:90%;aspect-ratio:1;border-radius:0;overflow:visible;box-shadow:none;-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M83.4%2050.0%20L82.6%2052.3%20L81.6%2054.4%20L80.5%2056.5%20L79.3%2058.4%20L78.0%2060.2%20L76.7%2061.9%20L75.4%2063.5%20L74.1%2065.1%20L72.8%2066.6%20L71.5%2068.0%20L70.1%2069.4%20L68.8%2070.8%20L67.4%2072.2%20L65.9%2073.5%20L64.3%2074.8%20L62.7%2076.0%20L61.0%2077.2%20L59.2%2078.2%20L57.2%2079.1%20L55.2%2079.8%20L53.2%2080.3%20L51.1%2080.6%20L48.9%2080.8%20L46.8%2080.7%20L44.6%2080.5%20L42.5%2080.0%20L40.5%2079.3%20L38.5%2078.5%20L36.5%2077.6%20L34.7%2076.5%20L32.9%2075.3%20L31.2%2074.0%20L29.6%2072.7%20L28.0%2071.2%20L26.5%2069.7%20L25.1%2068.1%20L23.7%2066.5%20L22.3%2064.7%20L21.1%2062.9%20L19.9%2061.0%20L18.8%2059.0%20L17.8%2056.8%20L17.0%2054.6%20L16.4%2052.4%20L16.0%2050.0%20L15.8%2047.6%20L15.8%2045.2%20L16.2%2042.8%20L16.8%2040.5%20L17.7%2038.2%20L18.8%2036.1%20L20.2%2034.1%20L21.8%2032.4%20L23.6%2030.8%20L25.5%2029.4%20L27.5%2028.3%20L29.6%2027.4%20L31.8%2026.7%20L33.9%2026.1%20L36.0%2025.7%20L38.0%2025.4%20L40.0%2025.2%20L41.9%2025.1%20L43.7%2024.9%20L45.5%2024.7%20L47.3%2024.5%20L49.1%2024.3%20L50.9%2024.0%20L52.8%2023.7%20L54.7%2023.4%20L56.7%2023.1%20L58.8%2022.9%20L61.0%2022.8%20L63.3%2022.8%20L65.6%2022.9%20L68.0%2023.3%20L70.4%2023.9%20L72.7%2024.8%20L74.9%2025.9%20L77.0%2027.4%20L78.9%2029.0%20L80.5%2030.9%20L81.9%2033.0%20L83.0%2035.3%20L83.8%2037.7%20L84.3%2040.2%20L84.5%2042.7%20L84.4%2045.2%20L84.0%2047.6Z'/%3E%3Ccircle%20cx='86.0'%20cy='20.0'%20r='5.0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M83.4%2050.0%20L82.6%2052.3%20L81.6%2054.4%20L80.5%2056.5%20L79.3%2058.4%20L78.0%2060.2%20L76.7%2061.9%20L75.4%2063.5%20L74.1%2065.1%20L72.8%2066.6%20L71.5%2068.0%20L70.1%2069.4%20L68.8%2070.8%20L67.4%2072.2%20L65.9%2073.5%20L64.3%2074.8%20L62.7%2076.0%20L61.0%2077.2%20L59.2%2078.2%20L57.2%2079.1%20L55.2%2079.8%20L53.2%2080.3%20L51.1%2080.6%20L48.9%2080.8%20L46.8%2080.7%20L44.6%2080.5%20L42.5%2080.0%20L40.5%2079.3%20L38.5%2078.5%20L36.5%2077.6%20L34.7%2076.5%20L32.9%2075.3%20L31.2%2074.0%20L29.6%2072.7%20L28.0%2071.2%20L26.5%2069.7%20L25.1%2068.1%20L23.7%2066.5%20L22.3%2064.7%20L21.1%2062.9%20L19.9%2061.0%20L18.8%2059.0%20L17.8%2056.8%20L17.0%2054.6%20L16.4%2052.4%20L16.0%2050.0%20L15.8%2047.6%20L15.8%2045.2%20L16.2%2042.8%20L16.8%2040.5%20L17.7%2038.2%20L18.8%2036.1%20L20.2%2034.1%20L21.8%2032.4%20L23.6%2030.8%20L25.5%2029.4%20L27.5%2028.3%20L29.6%2027.4%20L31.8%2026.7%20L33.9%2026.1%20L36.0%2025.7%20L38.0%2025.4%20L40.0%2025.2%20L41.9%2025.1%20L43.7%2024.9%20L45.5%2024.7%20L47.3%2024.5%20L49.1%2024.3%20L50.9%2024.0%20L52.8%2023.7%20L54.7%2023.4%20L56.7%2023.1%20L58.8%2022.9%20L61.0%2022.8%20L63.3%2022.8%20L65.6%2022.9%20L68.0%2023.3%20L70.4%2023.9%20L72.7%2024.8%20L74.9%2025.9%20L77.0%2027.4%20L78.9%2029.0%20L80.5%2030.9%20L81.9%2033.0%20L83.0%2035.3%20L83.8%2037.7%20L84.3%2040.2%20L84.5%2042.7%20L84.4%2045.2%20L84.0%2047.6Z'/%3E%3Ccircle%20cx='86.0'%20cy='20.0'%20r='5.0'/%3E%3C/svg%3E") center/contain no-repeat}
+/* un splash DIFFÉRENT par couleur (sp0…sp7, classe posée par peintCarte selon la place de la peinture) : forme, taille, inclinaison */
+html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp0{height:90%;transform:rotate(-8deg) scale(1.4) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M83.4%2050.0%20L82.6%2052.3%20L81.6%2054.4%20L80.5%2056.5%20L79.3%2058.4%20L78.0%2060.2%20L76.7%2061.9%20L75.4%2063.5%20L74.1%2065.1%20L72.8%2066.6%20L71.5%2068.0%20L70.1%2069.4%20L68.8%2070.8%20L67.4%2072.2%20L65.9%2073.5%20L64.3%2074.8%20L62.7%2076.0%20L61.0%2077.2%20L59.2%2078.2%20L57.2%2079.1%20L55.2%2079.8%20L53.2%2080.3%20L51.1%2080.6%20L48.9%2080.8%20L46.8%2080.7%20L44.6%2080.5%20L42.5%2080.0%20L40.5%2079.3%20L38.5%2078.5%20L36.5%2077.6%20L34.7%2076.5%20L32.9%2075.3%20L31.2%2074.0%20L29.6%2072.7%20L28.0%2071.2%20L26.5%2069.7%20L25.1%2068.1%20L23.7%2066.5%20L22.3%2064.7%20L21.1%2062.9%20L19.9%2061.0%20L18.8%2059.0%20L17.8%2056.8%20L17.0%2054.6%20L16.4%2052.4%20L16.0%2050.0%20L15.8%2047.6%20L15.8%2045.2%20L16.2%2042.8%20L16.8%2040.5%20L17.7%2038.2%20L18.8%2036.1%20L20.2%2034.1%20L21.8%2032.4%20L23.6%2030.8%20L25.5%2029.4%20L27.5%2028.3%20L29.6%2027.4%20L31.8%2026.7%20L33.9%2026.1%20L36.0%2025.7%20L38.0%2025.4%20L40.0%2025.2%20L41.9%2025.1%20L43.7%2024.9%20L45.5%2024.7%20L47.3%2024.5%20L49.1%2024.3%20L50.9%2024.0%20L52.8%2023.7%20L54.7%2023.4%20L56.7%2023.1%20L58.8%2022.9%20L61.0%2022.8%20L63.3%2022.8%20L65.6%2022.9%20L68.0%2023.3%20L70.4%2023.9%20L72.7%2024.8%20L74.9%2025.9%20L77.0%2027.4%20L78.9%2029.0%20L80.5%2030.9%20L81.9%2033.0%20L83.0%2035.3%20L83.8%2037.7%20L84.3%2040.2%20L84.5%2042.7%20L84.4%2045.2%20L84.0%2047.6Z'/%3E%3Ccircle%20cx='86.0'%20cy='20.0'%20r='5.0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M83.4%2050.0%20L82.6%2052.3%20L81.6%2054.4%20L80.5%2056.5%20L79.3%2058.4%20L78.0%2060.2%20L76.7%2061.9%20L75.4%2063.5%20L74.1%2065.1%20L72.8%2066.6%20L71.5%2068.0%20L70.1%2069.4%20L68.8%2070.8%20L67.4%2072.2%20L65.9%2073.5%20L64.3%2074.8%20L62.7%2076.0%20L61.0%2077.2%20L59.2%2078.2%20L57.2%2079.1%20L55.2%2079.8%20L53.2%2080.3%20L51.1%2080.6%20L48.9%2080.8%20L46.8%2080.7%20L44.6%2080.5%20L42.5%2080.0%20L40.5%2079.3%20L38.5%2078.5%20L36.5%2077.6%20L34.7%2076.5%20L32.9%2075.3%20L31.2%2074.0%20L29.6%2072.7%20L28.0%2071.2%20L26.5%2069.7%20L25.1%2068.1%20L23.7%2066.5%20L22.3%2064.7%20L21.1%2062.9%20L19.9%2061.0%20L18.8%2059.0%20L17.8%2056.8%20L17.0%2054.6%20L16.4%2052.4%20L16.0%2050.0%20L15.8%2047.6%20L15.8%2045.2%20L16.2%2042.8%20L16.8%2040.5%20L17.7%2038.2%20L18.8%2036.1%20L20.2%2034.1%20L21.8%2032.4%20L23.6%2030.8%20L25.5%2029.4%20L27.5%2028.3%20L29.6%2027.4%20L31.8%2026.7%20L33.9%2026.1%20L36.0%2025.7%20L38.0%2025.4%20L40.0%2025.2%20L41.9%2025.1%20L43.7%2024.9%20L45.5%2024.7%20L47.3%2024.5%20L49.1%2024.3%20L50.9%2024.0%20L52.8%2023.7%20L54.7%2023.4%20L56.7%2023.1%20L58.8%2022.9%20L61.0%2022.8%20L63.3%2022.8%20L65.6%2022.9%20L68.0%2023.3%20L70.4%2023.9%20L72.7%2024.8%20L74.9%2025.9%20L77.0%2027.4%20L78.9%2029.0%20L80.5%2030.9%20L81.9%2033.0%20L83.0%2035.3%20L83.8%2037.7%20L84.3%2040.2%20L84.5%2042.7%20L84.4%2045.2%20L84.0%2047.6Z'/%3E%3Ccircle%20cx='86.0'%20cy='20.0'%20r='5.0'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp1{height:88%;transform:rotate(12deg) scale(1.3) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M50%206%20C58%2024%2080%2038%2080%2060%20C80%2078%2066%2092%2050%2092%20C34%2092%2020%2078%2020%2060%20C20%2038%2042%2024%2050%206Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M50%206%20C58%2024%2080%2038%2080%2060%20C80%2078%2066%2092%2050%2092%20C34%2092%2020%2078%2020%2060%20C20%2038%2042%2024%2050%206Z'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp2{height:94%;transform:rotate(0deg) scale(1.38) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M85.5%2050.0%20L84.5%2052.4%20L83.0%2054.6%20L81.0%2056.6%20L78.8%2058.2%20L76.4%2059.6%20L74.0%2060.7%20L71.8%2061.6%20L69.8%2062.4%20L68.1%2063.2%20L66.8%2064.1%20L65.8%2065.2%20L65.0%2066.6%20L64.3%2068.3%20L63.7%2070.3%20L63.0%2072.5%20L62.1%2074.8%20L60.9%2077.1%20L59.5%2079.2%20L57.7%2081.1%20L55.7%2082.5%20L53.5%2083.4%20L51.2%2083.7%20L48.8%2083.4%20L46.6%2082.6%20L44.5%2081.3%20L42.6%2079.6%20L41.0%2077.8%20L39.6%2075.8%20L38.4%2073.9%20L37.2%2072.1%20L36.1%2070.6%20L34.9%2069.3%20L33.6%2068.3%20L32.0%2067.4%20L30.1%2066.7%20L28.0%2066.0%20L25.7%2065.2%20L23.3%2064.2%20L20.9%2063.0%20L18.7%2061.4%20L16.8%2059.5%20L15.3%2057.4%20L14.4%2055.0%20L14.2%2052.5%20L14.5%2050.0%20L15.5%2047.6%20L17.0%2045.4%20L19.0%2043.4%20L21.2%2041.8%20L23.6%2040.4%20L26.0%2039.3%20L28.2%2038.4%20L30.2%2037.6%20L31.9%2036.8%20L33.2%2035.9%20L34.2%2034.8%20L35.0%2033.4%20L35.7%2031.7%20L36.3%2029.7%20L37.0%2027.5%20L37.9%2025.2%20L39.1%2022.9%20L40.5%2020.8%20L42.3%2018.9%20L44.3%2017.5%20L46.5%2016.6%20L48.8%2016.3%20L51.2%2016.6%20L53.4%2017.4%20L55.5%2018.7%20L57.4%2020.4%20L59.0%2022.2%20L60.4%2024.2%20L61.6%2026.1%20L62.8%2027.9%20L63.9%2029.4%20L65.1%2030.7%20L66.4%2031.7%20L68.0%2032.6%20L69.9%2033.3%20L72.0%2034.0%20L74.3%2034.8%20L76.7%2035.8%20L79.1%2037.0%20L81.3%2038.6%20L83.2%2040.5%20L84.7%2042.6%20L85.6%2045.0%20L85.8%2047.5Z'/%3E%3Ccircle%20cx='88.0'%20cy='86.0'%20r='4.0'/%3E%3Ccircle%20cx='12.0'%20cy='14.0'%20r='3.0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M85.5%2050.0%20L84.5%2052.4%20L83.0%2054.6%20L81.0%2056.6%20L78.8%2058.2%20L76.4%2059.6%20L74.0%2060.7%20L71.8%2061.6%20L69.8%2062.4%20L68.1%2063.2%20L66.8%2064.1%20L65.8%2065.2%20L65.0%2066.6%20L64.3%2068.3%20L63.7%2070.3%20L63.0%2072.5%20L62.1%2074.8%20L60.9%2077.1%20L59.5%2079.2%20L57.7%2081.1%20L55.7%2082.5%20L53.5%2083.4%20L51.2%2083.7%20L48.8%2083.4%20L46.6%2082.6%20L44.5%2081.3%20L42.6%2079.6%20L41.0%2077.8%20L39.6%2075.8%20L38.4%2073.9%20L37.2%2072.1%20L36.1%2070.6%20L34.9%2069.3%20L33.6%2068.3%20L32.0%2067.4%20L30.1%2066.7%20L28.0%2066.0%20L25.7%2065.2%20L23.3%2064.2%20L20.9%2063.0%20L18.7%2061.4%20L16.8%2059.5%20L15.3%2057.4%20L14.4%2055.0%20L14.2%2052.5%20L14.5%2050.0%20L15.5%2047.6%20L17.0%2045.4%20L19.0%2043.4%20L21.2%2041.8%20L23.6%2040.4%20L26.0%2039.3%20L28.2%2038.4%20L30.2%2037.6%20L31.9%2036.8%20L33.2%2035.9%20L34.2%2034.8%20L35.0%2033.4%20L35.7%2031.7%20L36.3%2029.7%20L37.0%2027.5%20L37.9%2025.2%20L39.1%2022.9%20L40.5%2020.8%20L42.3%2018.9%20L44.3%2017.5%20L46.5%2016.6%20L48.8%2016.3%20L51.2%2016.6%20L53.4%2017.4%20L55.5%2018.7%20L57.4%2020.4%20L59.0%2022.2%20L60.4%2024.2%20L61.6%2026.1%20L62.8%2027.9%20L63.9%2029.4%20L65.1%2030.7%20L66.4%2031.7%20L68.0%2032.6%20L69.9%2033.3%20L72.0%2034.0%20L74.3%2034.8%20L76.7%2035.8%20L79.1%2037.0%20L81.3%2038.6%20L83.2%2040.5%20L84.7%2042.6%20L85.6%2045.0%20L85.8%2047.5Z'/%3E%3Ccircle%20cx='88.0'%20cy='86.0'%20r='4.0'/%3E%3Ccircle%20cx='12.0'%20cy='14.0'%20r='3.0'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp3{height:72%;transform:rotate(-14deg) scale(1.15) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M88.8%2050.0%20L87.9%2051.4%20L86.8%2052.7%20L85.6%2053.9%20L84.2%2055.1%20L82.7%2056.2%20L81.2%2057.2%20L79.6%2058.2%20L78.0%2059.1%20L76.5%2060.0%20L75.0%2060.9%20L73.5%2061.8%20L72.0%2062.7%20L70.5%2063.6%20L68.9%2064.6%20L67.3%2065.6%20L65.6%2066.6%20L63.7%2067.6%20L61.6%2068.6%20L59.4%2069.6%20L56.9%2070.5%20L54.3%2071.3%20L51.5%2072.0%20L48.5%2072.5%20L45.4%2072.9%20L42.2%2073.1%20L38.9%2073.0%20L35.8%2072.8%20L32.6%2072.3%20L29.7%2071.7%20L26.9%2070.8%20L24.4%2069.7%20L22.2%2068.5%20L20.3%2067.2%20L18.7%2065.7%20L17.4%2064.2%20L16.4%2062.7%20L15.7%2061.1%20L15.3%2059.6%20L15.1%2058.1%20L15.1%2056.6%20L15.2%2055.2%20L15.4%2053.8%20L15.7%2052.5%20L16.0%2051.2%20L16.3%2050.0%20L16.6%2048.8%20L16.9%2047.6%20L17.2%2046.4%20L17.5%2045.2%20L17.9%2043.9%20L18.4%2042.7%20L19.0%2041.4%20L19.7%2040.2%20L20.6%2038.9%20L21.7%2037.6%20L23.0%2036.4%20L24.4%2035.2%20L26.2%2034.1%20L28.1%2033.1%20L30.2%2032.2%20L32.5%2031.3%20L34.9%2030.6%20L37.5%2030.0%20L40.2%2029.5%20L42.9%2029.2%20L45.7%2029.0%20L48.6%2028.9%20L51.4%2028.9%20L54.3%2029.0%20L57.1%2029.2%20L59.9%2029.4%20L62.6%2029.8%20L65.3%2030.3%20L68.0%2030.8%20L70.6%2031.5%20L73.1%2032.2%20L75.5%2033.0%20L77.9%2033.9%20L80.1%2034.9%20L82.1%2036.0%20L84.0%2037.2%20L85.6%2038.4%20L87.0%2039.8%20L88.1%2041.2%20L89.0%2042.6%20L89.5%2044.1%20L89.8%2045.6%20L89.7%2047.1%20L89.4%2048.6Z'/%3E%3Ccircle%20cx='92.0'%20cy='30.0'%20r='4.2'/%3E%3Ccircle%20cx='8.0'%20cy='72.0'%20r='3.2'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M88.8%2050.0%20L87.9%2051.4%20L86.8%2052.7%20L85.6%2053.9%20L84.2%2055.1%20L82.7%2056.2%20L81.2%2057.2%20L79.6%2058.2%20L78.0%2059.1%20L76.5%2060.0%20L75.0%2060.9%20L73.5%2061.8%20L72.0%2062.7%20L70.5%2063.6%20L68.9%2064.6%20L67.3%2065.6%20L65.6%2066.6%20L63.7%2067.6%20L61.6%2068.6%20L59.4%2069.6%20L56.9%2070.5%20L54.3%2071.3%20L51.5%2072.0%20L48.5%2072.5%20L45.4%2072.9%20L42.2%2073.1%20L38.9%2073.0%20L35.8%2072.8%20L32.6%2072.3%20L29.7%2071.7%20L26.9%2070.8%20L24.4%2069.7%20L22.2%2068.5%20L20.3%2067.2%20L18.7%2065.7%20L17.4%2064.2%20L16.4%2062.7%20L15.7%2061.1%20L15.3%2059.6%20L15.1%2058.1%20L15.1%2056.6%20L15.2%2055.2%20L15.4%2053.8%20L15.7%2052.5%20L16.0%2051.2%20L16.3%2050.0%20L16.6%2048.8%20L16.9%2047.6%20L17.2%2046.4%20L17.5%2045.2%20L17.9%2043.9%20L18.4%2042.7%20L19.0%2041.4%20L19.7%2040.2%20L20.6%2038.9%20L21.7%2037.6%20L23.0%2036.4%20L24.4%2035.2%20L26.2%2034.1%20L28.1%2033.1%20L30.2%2032.2%20L32.5%2031.3%20L34.9%2030.6%20L37.5%2030.0%20L40.2%2029.5%20L42.9%2029.2%20L45.7%2029.0%20L48.6%2028.9%20L51.4%2028.9%20L54.3%2029.0%20L57.1%2029.2%20L59.9%2029.4%20L62.6%2029.8%20L65.3%2030.3%20L68.0%2030.8%20L70.6%2031.5%20L73.1%2032.2%20L75.5%2033.0%20L77.9%2033.9%20L80.1%2034.9%20L82.1%2036.0%20L84.0%2037.2%20L85.6%2038.4%20L87.0%2039.8%20L88.1%2041.2%20L89.0%2042.6%20L89.5%2044.1%20L89.8%2045.6%20L89.7%2047.1%20L89.4%2048.6Z'/%3E%3Ccircle%20cx='92.0'%20cy='30.0'%20r='4.2'/%3E%3Ccircle%20cx='8.0'%20cy='72.0'%20r='3.2'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp4{height:92%;transform:rotate(0deg) scale(1.4) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M88.6%2050.0%20L87.5%2052.6%20L85.9%2055.0%20L84.0%2057.2%20L81.8%2059.1%20L79.5%2060.7%20L77.2%2062.1%20L75.1%2063.3%20L73.0%2064.4%20L71.1%2065.3%20L69.3%2066.2%20L67.6%2067.0%20L65.9%2067.7%20L64.3%2068.3%20L62.8%2069.0%20L61.4%2069.7%20L60.0%2070.4%20L58.6%2071.4%20L57.3%2072.6%20L56.0%2074.1%20L54.6%2075.8%20L52.9%2077.8%20L51.0%2079.9%20L48.9%2082.0%20L46.4%2083.9%20L43.8%2085.4%20L40.9%2086.3%20L38.1%2086.6%20L35.4%2086.2%20L32.9%2085.1%20L30.7%2083.4%20L29.0%2081.2%20L27.7%2078.6%20L26.8%2075.8%20L26.2%2073.0%20L26.0%2070.2%20L25.9%2067.5%20L25.9%2065.0%20L26.0%2062.7%20L26.2%2060.6%20L26.3%2058.6%20L26.5%2056.7%20L26.7%2054.9%20L26.9%2053.2%20L27.2%2051.6%20L27.3%2050.0%20L27.3%2048.4%20L27.1%2046.8%20L26.8%2045.1%20L26.1%2043.2%20L25.4%2041.0%20L24.5%2038.6%20L23.6%2036.0%20L22.9%2033.0%20L22.5%2030.0%20L22.5%2026.9%20L23.1%2024.0%20L24.2%2021.4%20L25.9%2019.2%20L28.1%2017.6%20L30.7%2016.6%20L33.5%2016.2%20L36.4%2016.4%20L39.3%2017.0%20L42.0%2017.9%20L44.6%2019.1%20L46.9%2020.4%20L49.0%2021.6%20L50.9%2022.9%20L52.7%2024.1%20L54.4%2025.2%20L55.9%2026.3%20L57.4%2027.4%20L58.7%2028.4%20L60.0%2029.4%20L61.4%2030.3%20L62.7%2031.1%20L64.2%2031.8%20L65.9%2032.3%20L67.8%2032.8%20L70.1%2033.1%20L72.6%2033.6%20L75.4%2034.1%20L78.3%2035.0%20L81.1%2036.1%20L83.7%2037.7%20L86.0%2039.7%20L87.7%2042.0%20L88.7%2044.6%20L89.0%2047.3Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M88.6%2050.0%20L87.5%2052.6%20L85.9%2055.0%20L84.0%2057.2%20L81.8%2059.1%20L79.5%2060.7%20L77.2%2062.1%20L75.1%2063.3%20L73.0%2064.4%20L71.1%2065.3%20L69.3%2066.2%20L67.6%2067.0%20L65.9%2067.7%20L64.3%2068.3%20L62.8%2069.0%20L61.4%2069.7%20L60.0%2070.4%20L58.6%2071.4%20L57.3%2072.6%20L56.0%2074.1%20L54.6%2075.8%20L52.9%2077.8%20L51.0%2079.9%20L48.9%2082.0%20L46.4%2083.9%20L43.8%2085.4%20L40.9%2086.3%20L38.1%2086.6%20L35.4%2086.2%20L32.9%2085.1%20L30.7%2083.4%20L29.0%2081.2%20L27.7%2078.6%20L26.8%2075.8%20L26.2%2073.0%20L26.0%2070.2%20L25.9%2067.5%20L25.9%2065.0%20L26.0%2062.7%20L26.2%2060.6%20L26.3%2058.6%20L26.5%2056.7%20L26.7%2054.9%20L26.9%2053.2%20L27.2%2051.6%20L27.3%2050.0%20L27.3%2048.4%20L27.1%2046.8%20L26.8%2045.1%20L26.1%2043.2%20L25.4%2041.0%20L24.5%2038.6%20L23.6%2036.0%20L22.9%2033.0%20L22.5%2030.0%20L22.5%2026.9%20L23.1%2024.0%20L24.2%2021.4%20L25.9%2019.2%20L28.1%2017.6%20L30.7%2016.6%20L33.5%2016.2%20L36.4%2016.4%20L39.3%2017.0%20L42.0%2017.9%20L44.6%2019.1%20L46.9%2020.4%20L49.0%2021.6%20L50.9%2022.9%20L52.7%2024.1%20L54.4%2025.2%20L55.9%2026.3%20L57.4%2027.4%20L58.7%2028.4%20L60.0%2029.4%20L61.4%2030.3%20L62.7%2031.1%20L64.2%2031.8%20L65.9%2032.3%20L67.8%2032.8%20L70.1%2033.1%20L72.6%2033.6%20L75.4%2034.1%20L78.3%2035.0%20L81.1%2036.1%20L83.7%2037.7%20L86.0%2039.7%20L87.7%2042.0%20L88.7%2044.6%20L89.0%2047.3Z'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp5{height:96%;transform:rotate(6deg) scale(1.3) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M81.3%2050.0%20L79.1%2052.0%20L76.7%2053.7%20L74.3%2055.2%20L72.2%2056.4%20L70.5%2057.5%20L69.4%2058.7%20L68.9%2060.1%20L69.0%2061.8%20L69.3%2064.0%20L69.7%2066.6%20L70.0%2069.4%20L70.0%2072.2%20L69.5%2075.0%20L68.4%2077.3%20L66.8%2079.1%20L64.7%2080.2%20L62.3%2080.5%20L59.8%2080.2%20L57.3%2079.3%20L54.9%2078.0%20L52.8%2076.6%20L50.9%2075.4%20L49.1%2074.6%20L47.4%2074.3%20L45.7%2074.5%20L43.7%2075.2%20L41.5%2076.3%20L38.9%2077.5%20L36.1%2078.5%20L33.2%2079.2%20L30.3%2079.3%20L27.6%2078.6%20L25.4%2077.3%20L23.8%2075.3%20L23.0%2072.7%20L22.8%2069.8%20L23.2%2066.7%20L24.1%2063.8%20L25.2%2061.0%20L26.2%2058.6%20L27.0%2056.6%20L27.3%2054.8%20L27.1%2053.2%20L26.3%2051.7%20L25.0%2050.0%20L23.4%2048.1%20L21.9%2046.0%20L20.5%2043.7%20L19.7%2041.3%20L19.4%2038.9%20L20.0%2036.6%20L21.3%2034.7%20L23.2%2033.3%20L25.6%2032.3%20L28.3%2031.8%20L31.0%2031.7%20L33.5%2031.7%20L35.7%2031.8%20L37.6%2031.6%20L39.0%2030.9%20L40.1%2029.8%20L41.1%2028.0%20L42.1%2025.8%20L43.3%2023.2%20L44.8%2020.6%20L46.6%2018.1%20L48.8%2016.0%20L51.2%2014.7%20L53.8%2014.2%20L56.2%2014.6%20L58.5%2015.8%20L60.5%2017.8%20L62.0%2020.2%20L63.3%2022.8%20L64.2%2025.4%20L65.0%2027.8%20L65.8%2029.8%20L66.8%2031.3%20L68.2%2032.4%20L70.0%2033.3%20L72.1%2033.9%20L74.6%2034.6%20L77.2%2035.5%20L79.7%2036.8%20L81.8%2038.4%20L83.3%2040.5%20L84.0%2042.8%20L83.9%2045.2%20L83.0%2047.7Z'/%3E%3Ccircle%20cx='90.0'%20cy='82.0'%20r='3.8'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M81.3%2050.0%20L79.1%2052.0%20L76.7%2053.7%20L74.3%2055.2%20L72.2%2056.4%20L70.5%2057.5%20L69.4%2058.7%20L68.9%2060.1%20L69.0%2061.8%20L69.3%2064.0%20L69.7%2066.6%20L70.0%2069.4%20L70.0%2072.2%20L69.5%2075.0%20L68.4%2077.3%20L66.8%2079.1%20L64.7%2080.2%20L62.3%2080.5%20L59.8%2080.2%20L57.3%2079.3%20L54.9%2078.0%20L52.8%2076.6%20L50.9%2075.4%20L49.1%2074.6%20L47.4%2074.3%20L45.7%2074.5%20L43.7%2075.2%20L41.5%2076.3%20L38.9%2077.5%20L36.1%2078.5%20L33.2%2079.2%20L30.3%2079.3%20L27.6%2078.6%20L25.4%2077.3%20L23.8%2075.3%20L23.0%2072.7%20L22.8%2069.8%20L23.2%2066.7%20L24.1%2063.8%20L25.2%2061.0%20L26.2%2058.6%20L27.0%2056.6%20L27.3%2054.8%20L27.1%2053.2%20L26.3%2051.7%20L25.0%2050.0%20L23.4%2048.1%20L21.9%2046.0%20L20.5%2043.7%20L19.7%2041.3%20L19.4%2038.9%20L20.0%2036.6%20L21.3%2034.7%20L23.2%2033.3%20L25.6%2032.3%20L28.3%2031.8%20L31.0%2031.7%20L33.5%2031.7%20L35.7%2031.8%20L37.6%2031.6%20L39.0%2030.9%20L40.1%2029.8%20L41.1%2028.0%20L42.1%2025.8%20L43.3%2023.2%20L44.8%2020.6%20L46.6%2018.1%20L48.8%2016.0%20L51.2%2014.7%20L53.8%2014.2%20L56.2%2014.6%20L58.5%2015.8%20L60.5%2017.8%20L62.0%2020.2%20L63.3%2022.8%20L64.2%2025.4%20L65.0%2027.8%20L65.8%2029.8%20L66.8%2031.3%20L68.2%2032.4%20L70.0%2033.3%20L72.1%2033.9%20L74.6%2034.6%20L77.2%2035.5%20L79.7%2036.8%20L81.8%2038.4%20L83.3%2040.5%20L84.0%2042.8%20L83.9%2045.2%20L83.0%2047.7Z'/%3E%3Ccircle%20cx='90.0'%20cy='82.0'%20r='3.8'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp6{height:80%;transform:rotate(-6deg) scale(1.2) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M87.4%2050.0%20L86.5%2051.8%20L85.4%2053.6%20L84.3%2055.2%20L83.1%2056.8%20L81.8%2058.3%20L80.5%2059.8%20L79.3%2061.2%20L78.0%2062.6%20L76.7%2064.0%20L75.4%2065.3%20L74.0%2066.7%20L72.6%2068.1%20L71.1%2069.5%20L69.5%2070.9%20L67.8%2072.2%20L66.0%2073.6%20L63.9%2074.8%20L61.7%2076.0%20L59.4%2077.0%20L56.8%2077.9%20L54.2%2078.6%20L51.4%2079.1%20L48.6%2079.3%20L45.7%2079.3%20L42.9%2079.0%20L40.1%2078.5%20L37.5%2077.7%20L35.0%2076.7%20L32.8%2075.4%20L30.8%2074.0%20L29.0%2072.4%20L27.5%2070.7%20L26.3%2068.9%20L25.4%2067.1%20L24.8%2065.2%20L24.4%2063.4%20L24.2%2061.6%20L24.1%2059.9%20L24.2%2058.3%20L24.4%2056.7%20L24.6%2055.2%20L24.9%2053.8%20L25.2%2052.5%20L25.4%2051.2%20L25.7%2050.0%20L25.9%2048.8%20L26.1%2047.6%20L26.2%2046.4%20L26.4%2045.1%20L26.6%2043.9%20L26.8%2042.6%20L27.1%2041.2%20L27.4%2039.8%20L27.9%2038.5%20L28.5%2037.0%20L29.3%2035.6%20L30.2%2034.2%20L31.3%2032.8%20L32.6%2031.4%20L34.0%2030.1%20L35.7%2028.8%20L37.4%2027.6%20L39.4%2026.5%20L41.5%2025.5%20L43.8%2024.6%20L46.2%2023.8%20L48.7%2023.2%20L51.3%2022.6%20L54.0%2022.3%20L56.8%2022.1%20L59.7%2022.0%20L62.6%2022.2%20L65.4%2022.5%20L68.3%2023.0%20L71.1%2023.7%20L73.8%2024.6%20L76.4%2025.7%20L78.8%2027.0%20L81.0%2028.4%20L83.0%2030.1%20L84.8%2031.8%20L86.2%2033.7%20L87.4%2035.7%20L88.2%2037.7%20L88.8%2039.8%20L89.0%2041.9%20L89.0%2044.0%20L88.7%2046.1%20L88.2%2048.1Z'/%3E%3Ccircle%20cx='88.0'%20cy='18.0'%20r='4.4'/%3E%3Ccircle%20cx='14.0'%20cy='84.0'%20r='3.0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M87.4%2050.0%20L86.5%2051.8%20L85.4%2053.6%20L84.3%2055.2%20L83.1%2056.8%20L81.8%2058.3%20L80.5%2059.8%20L79.3%2061.2%20L78.0%2062.6%20L76.7%2064.0%20L75.4%2065.3%20L74.0%2066.7%20L72.6%2068.1%20L71.1%2069.5%20L69.5%2070.9%20L67.8%2072.2%20L66.0%2073.6%20L63.9%2074.8%20L61.7%2076.0%20L59.4%2077.0%20L56.8%2077.9%20L54.2%2078.6%20L51.4%2079.1%20L48.6%2079.3%20L45.7%2079.3%20L42.9%2079.0%20L40.1%2078.5%20L37.5%2077.7%20L35.0%2076.7%20L32.8%2075.4%20L30.8%2074.0%20L29.0%2072.4%20L27.5%2070.7%20L26.3%2068.9%20L25.4%2067.1%20L24.8%2065.2%20L24.4%2063.4%20L24.2%2061.6%20L24.1%2059.9%20L24.2%2058.3%20L24.4%2056.7%20L24.6%2055.2%20L24.9%2053.8%20L25.2%2052.5%20L25.4%2051.2%20L25.7%2050.0%20L25.9%2048.8%20L26.1%2047.6%20L26.2%2046.4%20L26.4%2045.1%20L26.6%2043.9%20L26.8%2042.6%20L27.1%2041.2%20L27.4%2039.8%20L27.9%2038.5%20L28.5%2037.0%20L29.3%2035.6%20L30.2%2034.2%20L31.3%2032.8%20L32.6%2031.4%20L34.0%2030.1%20L35.7%2028.8%20L37.4%2027.6%20L39.4%2026.5%20L41.5%2025.5%20L43.8%2024.6%20L46.2%2023.8%20L48.7%2023.2%20L51.3%2022.6%20L54.0%2022.3%20L56.8%2022.1%20L59.7%2022.0%20L62.6%2022.2%20L65.4%2022.5%20L68.3%2023.0%20L71.1%2023.7%20L73.8%2024.6%20L76.4%2025.7%20L78.8%2027.0%20L81.0%2028.4%20L83.0%2030.1%20L84.8%2031.8%20L86.2%2033.7%20L87.4%2035.7%20L88.2%2037.7%20L88.8%2039.8%20L89.0%2041.9%20L89.0%2044.0%20L88.7%2046.1%20L88.2%2048.1Z'/%3E%3Ccircle%20cx='88.0'%20cy='18.0'%20r='4.4'/%3E%3Ccircle%20cx='14.0'%20cy='84.0'%20r='3.0'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp7{height:78%;transform:rotate(0deg) scale(1.32) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M85.3%2050.0%20L84.0%2052.4%20L82.1%2054.5%20L79.9%2056.4%20L77.6%2057.9%20L75.6%2059.3%20L74.0%2060.7%20L72.9%2062.2%20L72.3%2063.9%20L72.0%2066.0%20L71.8%2068.3%20L71.4%2070.7%20L70.8%2073.1%20L69.6%2075.1%20L68.0%2076.7%20L66.0%2077.7%20L63.7%2078.0%20L61.2%2077.8%20L58.8%2077.2%20L56.6%2076.5%20L54.6%2076.0%20L52.7%2075.9%20L50.9%2076.3%20L49.1%2077.2%20L47.0%2078.5%20L44.7%2080.0%20L42.2%2081.4%20L39.5%2082.4%20L36.8%2082.8%20L34.2%2082.3%20L32.0%2081.2%20L30.2%2079.3%20L28.9%2077.0%20L28.0%2074.4%20L27.3%2071.9%20L26.7%2069.6%20L25.8%2067.5%20L24.7%2065.8%20L23.2%2064.3%20L21.3%2062.8%20L19.3%2061.2%20L17.3%2059.4%20L15.6%2057.3%20L14.5%2055.0%20L14.2%2052.5%20L14.7%2050.0%20L16.0%2047.6%20L17.9%2045.5%20L20.1%2043.6%20L22.4%2042.1%20L24.4%2040.7%20L26.0%2039.3%20L27.1%2037.8%20L27.7%2036.1%20L28.0%2034.0%20L28.2%2031.7%20L28.6%2029.3%20L29.2%2026.9%20L30.4%2024.9%20L32.0%2023.3%20L34.0%2022.3%20L36.3%2022.0%20L38.8%2022.2%20L41.2%2022.8%20L43.4%2023.5%20L45.4%2024.0%20L47.3%2024.1%20L49.1%2023.7%20L50.9%2022.8%20L53.0%2021.5%20L55.3%2020.0%20L57.8%2018.6%20L60.5%2017.6%20L63.2%2017.2%20L65.8%2017.7%20L68.0%2018.8%20L69.8%2020.7%20L71.1%2023.0%20L72.0%2025.6%20L72.7%2028.1%20L73.3%2030.4%20L74.2%2032.5%20L75.3%2034.2%20L76.8%2035.7%20L78.7%2037.2%20L80.7%2038.8%20L82.7%2040.6%20L84.4%2042.7%20L85.5%2045.0%20L85.8%2047.5Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M85.3%2050.0%20L84.0%2052.4%20L82.1%2054.5%20L79.9%2056.4%20L77.6%2057.9%20L75.6%2059.3%20L74.0%2060.7%20L72.9%2062.2%20L72.3%2063.9%20L72.0%2066.0%20L71.8%2068.3%20L71.4%2070.7%20L70.8%2073.1%20L69.6%2075.1%20L68.0%2076.7%20L66.0%2077.7%20L63.7%2078.0%20L61.2%2077.8%20L58.8%2077.2%20L56.6%2076.5%20L54.6%2076.0%20L52.7%2075.9%20L50.9%2076.3%20L49.1%2077.2%20L47.0%2078.5%20L44.7%2080.0%20L42.2%2081.4%20L39.5%2082.4%20L36.8%2082.8%20L34.2%2082.3%20L32.0%2081.2%20L30.2%2079.3%20L28.9%2077.0%20L28.0%2074.4%20L27.3%2071.9%20L26.7%2069.6%20L25.8%2067.5%20L24.7%2065.8%20L23.2%2064.3%20L21.3%2062.8%20L19.3%2061.2%20L17.3%2059.4%20L15.6%2057.3%20L14.5%2055.0%20L14.2%2052.5%20L14.7%2050.0%20L16.0%2047.6%20L17.9%2045.5%20L20.1%2043.6%20L22.4%2042.1%20L24.4%2040.7%20L26.0%2039.3%20L27.1%2037.8%20L27.7%2036.1%20L28.0%2034.0%20L28.2%2031.7%20L28.6%2029.3%20L29.2%2026.9%20L30.4%2024.9%20L32.0%2023.3%20L34.0%2022.3%20L36.3%2022.0%20L38.8%2022.2%20L41.2%2022.8%20L43.4%2023.5%20L45.4%2024.0%20L47.3%2024.1%20L49.1%2023.7%20L50.9%2022.8%20L53.0%2021.5%20L55.3%2020.0%20L57.8%2018.6%20L60.5%2017.6%20L63.2%2017.2%20L65.8%2017.7%20L68.0%2018.8%20L69.8%2020.7%20L71.1%2023.0%20L72.0%2025.6%20L72.7%2028.1%20L73.3%2030.4%20L74.2%2032.5%20L75.3%2034.2%20L76.8%2035.7%20L78.7%2037.2%20L80.7%2038.8%20L82.7%2040.6%20L84.4%2042.7%20L85.5%2045.0%20L85.8%2047.5Z'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw::before{content:"";position:absolute;inset:0;border-radius:0;pointer-events:none;
+  background:radial-gradient(ellipse 24% 16% at 33% 25%,rgba(255,255,255,.95),rgba(255,255,255,0) 100%),radial-gradient(circle at 34% 30%,rgba(255,255,255,.42),rgba(255,255,255,0) 46%),linear-gradient(135deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 45%,rgba(0,0,0,.40) 100%),radial-gradient(circle at 72% 78%,rgba(255,255,255,0) 40%,rgba(0,0,0,.30) 100%)} /* (v1222 : du VOLUME — clair en haut à gauche, sombre en bas à droite, comme une goutte épaisse) */
+html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw:is(.mat)::before{background:radial-gradient(circle at 36% 32%,rgba(255,255,255,.2),rgba(255,255,255,0) 42%),radial-gradient(circle at 70% 76%,rgba(255,255,255,0) 50%,rgba(0,0,0,.3) 100%)}
+
+/* ===== L'ÉTIQUETTE DE PRIX v3 (2026-11-06, Léo : « capture A, comme le local ; les missions montrent leur progression ») =====
+   (v1225 : RETIRÉE à la demande de Léo — « les prix en diagonale chelou, je ne l'avais pas demandé » : la pastille revient à la petite étiquette d'avant.) Les MISSION ont une jauge (.jg, remplie à l'avancement réel) sous le mot. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp.defi{flex-direction:column;gap:3px;padding:4px 8px 5px;font-size:8.5px;min-width:64%}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp .jg{display:none /* (v1225 : la jauge des missions est masquée, les prix « comme juste avant ») */;width:100%;height:4px;margin:0;background:rgba(58,10,44,.28);border-radius:2px;overflow:hidden}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp .jg u{display:block;height:100%;background:#3a0a2c;border-radius:2px;text-decoration:none}
+/* ===== LA VOITURE DANS LE CUBE (2026-11-06, Léo : « les voitures à l'intérieur du cube, comme les traînées ; le cube un peu plus épais ; le nez à droite, l'arrière à gauche, un peu penchée comme le cube ; petites idées en plus ») =====
+   Le cube garde sa place et sa largeur mais passe à 46 cqw d'épaisseur (34 avant) : la voiture, plan debout tourné comme lui, flotte au milieu avec de l'air devant et derrière.
+   Le nez à DROITE : la photo des caisses est prise le nez à gauche, on la retourne (scaleX(-1)). Idées légères (aucune animation, aucun filtre) : un sol quadrillé, un fond à étincelles pour les épiques et plus,
+   un liseré lumineux sur le verre de devant. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img{transform:scaleX(-1)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fl{background:radial-gradient(ellipse 46% 40% at 50% 52%,rgba(20,30,45,.26),rgba(20,30,45,0) 100%),repeating-linear-gradient(0deg,rgba(255,255,255,.35) 0 1px,transparent 1px 6cqw),repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 1px,transparent 1px 6cqw),linear-gradient(180deg,color-mix(in srgb,var(--rc) 24%,#e9eef5),color-mix(in srgb,var(--rc) 40%,#c6d0de))}
+html #gBq #gBqPan .bqK:is(.b-epique,.b-legendaire,.b-mythique,.b-infini):not(.pnt) .bqKv .bk{background:radial-gradient(circle,#fff 0 .5cqw,transparent .9cqw) 16% 24%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .7cqw,transparent 1.1cqw) 84% 30%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .45cqw,transparent .8cqw) 72% 14%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .6cqw,transparent 1cqw) 28% 74%/1px 1px no-repeat,radial-gradient(ellipse 62% 70% at 50% 64%,rgba(255,255,255,.95),rgba(255,255,255,0) 72%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 30%,#fff),color-mix(in srgb,var(--rc) 55%,#8a97aa))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{box-shadow:inset 0 0 1.6cqw color-mix(in srgb,var(--rim) 70%,transparent)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv{--D:42cqw} /* (le .bqKv porte ses propres --W --H --D : c'est ICI qu'on règle l'épaisseur, 30 → 42 cqw) */
+/* ===== LA VOITURE EN TRANCHES (2026-11-06, Léo : « une voiture pas plate dans le cube, essaie avec une petite et une grande ») =====
+   La photo de la caisse est empilée en 5 plans (.cL, --k = 0 devant … 4 au fond), espacés de 1,3 cqw dans la profondeur du cube, de plus en plus sombres vers le fond : une caisse qui a de l'ÉPAISSEUR ; avec l'inclinaison du cube, les
+   plans se décalent un peu (parallaxe) et la voiture se lit en volume, au milieu du verre. Seules les photos de voitures (data-ph) ; ailes, traînées, figures, peintures restent à un plan. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]{transform-style:preserve-3d}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%;
+  transform:translateZ(calc((2 - var(--k)) * 1.3cqw)) scaleX(-1);filter:brightness(calc(1 - var(--k) * .09))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL:first-child{filter:none}
+/* (v1226) LE DÉFI D'UNE PEINTURE (cible + jauge, `.pDef`) : une petite barre au pied du cube, sous le splash (avant, elle le coupait) */
+html #gBq #gBqPan .bqK .bqKph.c-peinture .pDef{left:14%;right:14%;bottom:1.6cqw;height:4.4cqw;padding:0 1.6cqw 0 1.2cqw;gap:1.2cqw;border-radius:2.2cqw}
+html #gBq #gBqPan .bqK .bqKph.c-peinture .pDef .pxi{width:2.6cqw;height:2.6cqw}
+html #gBq #gBqPan .bqK .bqKph.c-peinture .pDef u{height:1.1cqw}
+/* ===== LE PRIX EN DIAGONALE, PETIT (2026-11-06, Léo : « c'était mieux les prix en diagonale, mais petits, sans bug ») =====
+   La pastille de travers (rotateZ -5°, skew) de la v1205, mais à 70 % de sa taille : texte de 7 px, liseré fin, ombre courte ; elle reste DANS la largeur de sa carte (max-width) et ne passe plus sur la carte voisine ni
+   sur le bandeau de rareté. Les prix très longs (.lg) descendent à 6 px. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp{top:-6px;right:-2px;left:auto;bottom:auto;display:flex;align-items:center;justify-content:center;gap:2px;min-height:0;box-sizing:border-box;max-width:92%;padding:3px 6px 3px 7px;
+  font:800 7px/1 var(--pix,system-ui);letter-spacing:0;white-space:nowrap;z-index:9;border-radius:2px 5px 5px 2px;border:1px solid rgba(255,255,255,.75);
+  box-shadow:0 2px 0 rgba(0,0,0,.4),0 4px 6px rgba(0,0,0,.22);transform:perspective(220px) rotateY(-16deg) rotateZ(-5deg) skewX(-8deg) translateZ(40px)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp.lg{font-size:6px}
+html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKp{border-color:#fff}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKp.defi{padding:3px 6px;font-size:6.5px}
+/* ===== LA VOITURE POSÉE SUR LE SOL DU CUBE (2026-11-06, Léo : « les voitures dans les cubes, c'est-à-dire POSÉES dans le cube ») =====
+   La photo d'une caisse garde sous elle ~16 % de vide (le reflet du sol verni, éteint) : la voiture flottait au-dessus du sol quadrillé. Chaque tranche est rognée de 16 % en bas (clip-path sur l'image, pas sur le plan :
+   un clip sur le plan aplatirait les tranches) et le plan descend d'autant : les roues touchent le sol du cube. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{clip-path:inset(0 0 16% 0)}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]{top:calc(var(--H)/2 - var(--W)*.574*.84 - 1.2cqw)}
+/* ===== LA VOITURE À L'INTÉRIEUR, PAS AU FOND (2026-11-06, Léo : « elle est encore derrière : garde le fond gris bleuté des vitres, garde seulement la voiture et son ombre, place-la un poil en avant ») =====
+   Le plan de la voiture avance de 9 cqw vers la vitre de devant (il était au milieu du cube) : elle est DANS la boîte, près du verre, et non plus reculée contre le fond ; la vitre de devant s'éclaircit pour ne plus la voiler ;
+   les tranches du fond s'assombrissent moins (plus de halo). Le gris bleuté des faces ne change pas. */
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{transform:translateZ(calc(9cqw + (2 - var(--k)) * 1.1cqw)) scaleX(-1);filter:brightness(calc(1 - var(--k) * .055))}
+html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{background:linear-gradient(118deg,rgba(255,255,255,.20) 0,rgba(255,255,255,.03) 30%,rgba(255,255,255,.015) 62%,rgba(255,255,255,.12) 100%)}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -12007,6 +12126,21 @@ const PAL=(function(){
      Chaque zone du jeu AJOUTE ses lignes ici (une seule table à régler), et lit `PAL.b('cle')`. */
   P.B={};
   P.b=function(k,d){const v=P.B[k];return v?v[P.n]:d;};
+  /* ===== L'IMAGE ADAPTÉE SUR TÉLÉPHONE RÉCENT (2026-11-07, passe perf 3, P2 — Sacha : « pousse l'opti au max ») =====
+     Jusqu'ici le palier 2 gardait l'image de l'ordi au pixel. Désormais, sur un VRAI téléphone (TEL_NATIF) au palier 2, six leviers (a à f) peuvent
+     retirer un peu d'image quand le GPU est le goulot ; Sacha tranche levier par levier sur captures AVANT/APRÈS (passation/perf-2026-11/captures/p2-tel/).
+       a · halo (bloom) : moins d'étages, entrée en demi-résolution     b · ombre de course plus petite, filtre simple
+       c · résolution de course plafonnée plus bas, départ au cran 1    d · passe lisse du ciel une image sur deux
+       e · stries de vent et traînées en demi-densité à grande vitesse  f · l'échelle de qualité réagit plus tôt
+     `PAL.imgOn(l)` dit si le levier l est actif ; `PAL.bT(clé, avant, l)` rend la 3e colonne de `PAL.B.clé` (= le budget « récent téléphone »)
+     si le levier est actif, sinon `avant` (la valeur exacte d'avant). L'ORDINATEUR (TEL_NATIF faux, même avec ?tel=1) : toujours `avant`.
+     Les colonnes ancien/moyen des clés `img*` ne sont pas lues : les paliers 0 et 1 gardent leur régime existant. Interrupteurs d'URL :
+     `?img=max` = tout à l'ancien · `?img=a,c` = SEULEMENT ces leviers · `?imgsans=b` = tous sauf ceux-là. `dbgImg()` décrit. */
+  P.imgMax=/[?&]img=max\b/.test(location.search);
+  const iSeul=/[?&]img=([a-f](?:,[a-f])*)(?:&|$)/.exec(location.search),iSans=/[?&]imgsans=([a-f](?:,[a-f])*)(?:&|$)/.exec(location.search);
+  P.imgOn=function(l){return !!TEL_NATIF&&P.n>=2&&!P.imgMax&&(!iSeul||iSeul[1].split(',').indexOf(l)>=0)&&!(iSans&&iSans[1].split(',').indexOf(l)>=0);};
+  P.bT=function(k,avant,l){const v=P.B[k];return v&&P.imgOn(l)?v[2]:avant;};
+  window.dbgImg=function(){const o={};'abcdef'.split('').forEach(function(l){o[l]=P.imgOn(l);});return {telNatif:!!TEL_NATIF,palier:P.n,max:P.imgMax,leviers:o};}; // (banc)
   return P;})();
 /* LES TOILES 2D RENDUES APRÈS L'ENVOI À LA PUCE (2026-10-14, passe perf mobile). MESURÉ (iPhone 7 émulé) : 184 toiles 2D vivantes = 52 Mo
    avant le premier écran — et iOS plafonne la mémoire de toiles d'une page (au-delà : toiles blanches, puis la page est tuée). Une toile
@@ -12085,12 +12219,21 @@ let DPR_CAP=Math.min(devicePixelRatio,ALLEGE?1:1.5),curDPR=Math.min(DPR_CAP,devi
    passent à 2,0 Mpx en course (toile ~2080×961 : 1,7 pixel d'écran par pixel 3D, le FXAA et le zoom bilinéaire lissent) et 2,6 Mpx à la vitrine.
    Un écran 1080p ou 1440p ne change pas d'un pixel : il est sous les budgets, il dessine à ses pixels réels (1440p à 100 % : 2,9 Mpx).
    `?4k=0` = les budgets d'avant (A/B) ; `?pcpx=` et `?vhdpc=` priment toujours (le `?vhdpc=` ne marchait pas : `[d.]` au lieu de `[\d.]`, corrigé). */
-const PC_4K=!/[?&]4k=0\b/.test(location.search)&&innerWidth*innerHeight*devicePixelRatio*devicePixelRatio>=4.5e6;
+/* (2026-11-06, Léo : « le jeu est de mauvaise qualité sur iMac Safari ») UN ÉCRAN RETINA N'EST PAS UN 4K À 100 % : un iMac (densité 2) dans une fenêtre de taille normale (≤ 2,6 Mpx de points CSS, soit 1920 × 1350) a plus de 4,5 Mpx
+   de pixels physiques, donc la règle « classe 4K » (budget 2,0 Mpx, vitrine 2,6) le prenait pour un téléviseur 4K : la 3D était dessinée à ~1,4 pixel par point, agrandie ×1,4 (floue) pendant que l'interface restait nette.
+   Elle retrouve les budgets des écrans normaux (3,2 Mpx en course, 4,2 à la vitrine) et un plancher de 1,5 ; la résolution adaptative (QL) sait toujours baisser. `?retina=0` = avant. */
+const RETINA_OK=!/[?&]retina=0\b/.test(location.search)&&devicePixelRatio>=2&&innerWidth*innerHeight<=2.6e6;
+const PC_4K=!/[?&]4k=0\b/.test(location.search)&&!RETINA_OK&&innerWidth*innerHeight*devicePixelRatio*devicePixelRatio>=4.5e6;
 const PC_PX=(function(){const m=/[?&]pcpx=([\d.]+)/.exec(location.search);return m?+m[1]*1e6:PC_4K?2.0e6:3.2e6;})(); /* (2026-10-25, Sacha : « Chrome prend 1 700 Mo de GPU ») budget 4,5 M → 3,2 M : toujours les pixels réels d'un écran 1080p, mais plus la 4K/2 ; `?pcpx=4.5` = avant */
 const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([\d.]+)/.exec(location.search);return m?+m[1]*1e6:PC_4K?2.6e6:4.2e6;})(); /* budget de pixels de la vitrine du menu sur ordinateur (8,3 M avant) ; `?vhdpc=8.3` = avant */
+/* (2026-11-06, Léo : « le jeu est de mauvaise qualité sur iMac Safari ») LE PLANCHER D'UN ÉCRAN RETINA : sur un iMac (densité 2), le budget de pixels (PC_PX) tombe sous 1,25 dès que la fenêtre dépasse ~1,3 Mpx de points CSS,
+   et le plancher le retenait à 1,25 : la 3D était dessinée à 62 % des pixels de l'écran, puis agrandie ×1,6 (floue) pendant que l'interface DOM restait nette. Sur un écran de densité ≥ 2, le plancher monte à 1,5 (le plafond « NETTE »
+   des téléphones) ; la résolution adaptative (QL) sait toujours baisser si la machine tire. `?pcmin=1.25` = avant. */
+const PC_MIN=(function(){const m=/[?&]pcmin=([\d.]+)/.exec(location.search);return m?+m[1]:(RETINA_OK?1.5:1.25);})();
+PAL.B.imgDprCap=[1.25,1.35,1.25];PAL.B.imgQlDepart=[5,2,1];/* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : plafond NETTE 1,25 au lieu de 1,5 (−31 % de pixels : 513 000 au lieu de 740 000 sur un 390×844) et la course part au cran 1 de l'échelle QL ; `?img=max` / `?imgsans=c` = comme avant */
 function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
-  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));
-  return Math.min(devicePixelRatio,Math.max(1.25,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
+  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
+  return Math.min(devicePixelRatio,Math.max(PC_MIN,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
 /* ===== UNE SEULE ALLOCATION DE LA TOILE (2026-11-05, passe perf mobile 2, A2.c) =====
    MESURÉ (Chrome iPhone émulé ×4, palier 0) : `renderer.setSize` 2 fois avant le menu — la 1re à 1 pixel/point avec DPR_CAP provisoire, la 2e (`applyQ` → `qlReprise` → `applyDPR`, ~1,1 s) une fois le choix RAPIDE/NETTE connu :
    toile et cibles du compositeur réallouées. Ici le plafond est calculé tout de suite depuis la sauvegarde brute (même règle que `sauvegarde.js` : `q`, `qChoisi`, défaut du palier), AVANT le 1er `setSize` ;
@@ -12132,7 +12275,10 @@ function fovPor(d){return FOV_TK===1?d:Math.min(150,Math.atan(Math.tan(Math.min(
 fovFit(true); // RÉSOLUTION ADAPTATIVE — cap desktop 1.5 : sur Retina, 1.75→1.5 = −26 % de pixels, invisible sous bloom+grain (écran 1× : min() ne change rien)
 renderer.setPixelRatio(curDPR);
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
-let BLOOM_RES=1; // (2026-09-27, passe perf iPhone) part de la résolution du bloom — un cran de l'échelle de qualité (QL) la baisse à ¾
+PAL.B.imgBloomRes=[1,1,.5];/* (2026-11-07, passe perf 3, P2 · levier a) le halo entre en DEMI-résolution sur un téléphone récent (colonnes ancien/moyen non lues) ; `?img=max` / `?imgsans=a` = comme avant */
+let BLOOM_BASE=PAL.bT('imgBloomRes',1,'a');
+const IMG_DYN={dens:null,vmin:200,ciel:0}; /* (2026-11-07, P2) l'état de la couche dynamique `imgRegle` (voir nettete-qualite.js) : densité imposée des traits d'air et traînées, au-delà de `vmin` km/h */
+let BLOOM_RES=BLOOM_BASE; // (2026-09-27, passe perf iPhone) part de la résolution du bloom — un cran de l'échelle de qualité (QL) la baisse à ¾
 /* (perf, lot 4) LA TAILLE DE L'ÉCRAN, LUE UNE FOIS PAR REDIMENSIONNEMENT. MESURÉ (profil, téléphone émulé) : sur Chrome mobile, lire
    `innerWidth`/`innerHeight` FORCE une mise en page complète (la page à « viewport » se remet en page pour répondre) — et comme le HUD
    venait d'écrire ses styles, chaque image en payait une : 7,7 % du processeur pendant la carte MOTEUR. Ce qui suit la caisse à l'écran
@@ -12155,9 +12301,10 @@ renderer.shadowMap.enabled=true;
    Le type entre dans le #define des matières : il se choisit ICI, avant toute compilation, et plus personne ne le change ensuite.
    RÉCENT : ombre douce, comme avant. (`?palier=2` pour comparer.) */
 PAL.B.postOmbreDouce=[0,0,1];
-renderer.shadowMap.type=PAL.b('postOmbreDouce',1)?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
+PAL.B.imgOmbreDouce=[0,0,0];PAL.B.imgOmbre=[1024,1024,768]; /* (2026-11-07, passe perf 3, P2 · levier b) téléphone récent : ombre PCF simple (17 lectures au lieu de 36 par pixel éclairé) et carte de 768 au lieu de 1024 ; `?img=max` / `?imgsans=b` = comme avant */
+renderer.shadowMap.type=PAL.bT('imgOmbreDouce',PAL.b('postOmbreDouce',1),'b')?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 sun.castShadow=true;
-sun.shadow.mapSize.set(ALLEGE||IS_LOW_END?1024:1280,ALLEGE||IS_LOW_END?1024:1280); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
+const OMBRE_N=ALLEGE||IS_LOW_END?PAL.bT('imgOmbre',1024,'b'):1280;sun.shadow.mapSize.set(OMBRE_N,OMBRE_N); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
 const SUNC=sun.shadow.camera;
 SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=340;SUNC.updateProjectionMatrix(); // fond profond : l'ombre atteint la dalle même très haut au-dessus de la route
 sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2 texels) : assez pour tuer l'acné, pas de quoi décoller l'ombre
@@ -12425,7 +12572,7 @@ if(CAN_POST){ try{
      tuiles. ANCIEN : 3 étages (7 passes), MOYEN : 4 (9 passes), RÉCENT : 5 (11 passes, comme avant). Le poids des étages retirés se
      reporte sur le dernier calculé (même énergie, même alpha, même écrêtage) : le halo garde sa force, il s'étale juste un peu moins loin.
      Console : `bloomPass._nM=5` rend les 5 étages. Ne vaut que pour le chemin fusionné (`?bloom=ancien` garde tout). */
-  PAL.B.postBloomMips=[3,4,5];bloomPass._nM=ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?Math.min(4,PAL.b('postBloomMips',5)):PAL.b('postBloomMips',5); /* (2026-11-05, Opus : jury RND-06) un téléphone RÉCENT (palier 2) avait les 5 étages de halo de l'ordi : 4 sous ALLEGE (2 passes plein écran de moins, le halo le plus large qui reste invisible sur 6 pouces) ; l'ordi garde 5 ; `?post=ancien` = avant */
+  PAL.B.postBloomMips=[3,4,5];PAL.B.imgBloomMips=[3,4,3];bloomPass._nM=PAL.bT('imgBloomMips',ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?Math.min(4,PAL.b('postBloomMips',5)):PAL.b('postBloomMips',5),'a'); /* (2026-11-07, passe perf 3, P2 · levier a) téléphone récent : 3 étages de flou au lieu de 4 (et le halo entre en demi-résolution, `imgBloomRes`) ; `?img=max` = 4 */ /* (2026-11-05, Opus : jury RND-06) un téléphone RÉCENT (palier 2) avait les 5 étages de halo de l'ordi : 4 sous ALLEGE (2 passes plein écran de moins, le halo le plus large qui reste invisible sur 6 pouces) ; l'ordi garde 5 ; `?post=ancien` = avant */
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
@@ -12708,7 +12855,7 @@ function carVit(dt){
    LA NUIT (`LUM.nuit`) se lit à la lumière du lieu (le ciel et le soleil posés par bioApply : ~0,55 de jour, 0,34 au soir et sous la pluie, 0,10-0,16
    la nuit, mesuré sur les 32 couples map × météo) et au drapeau `nuit` du niveau : phares et feux ne MORDENT qu'à la nuit tombante ; le feu du nitro
    éclaire toujours un peu (c'est du feu). Réglages vivants : `LUMK` (dbgLum). */
-const LUMK={air:[.12,.9],hl:180000,hlC:[1,.88,.7],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8};
+const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8};
 const LUM={on:false,nuit:0,hl:0,n:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
   k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
 function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet
@@ -13196,6 +13343,30 @@ function qlNet(){try{return !!(SAVE.d&&(SAVE.d.q==='net'||SAVE.d.q==='haute'));}
    (ni menus, ni atelier, ni photos), et pas en HAUTE. IMAGE : RAPIDE → NETTE → HAUTE (RAPIDE et NETTE restent automatiques ; HAUTE = la
    résolution NETTE, tout au plus haut, jamais baissé). */
 function qHaute(){try{return !!(SAVE.d&&SAVE.d.q==='haute');}catch(e){return false;}}
+PAL.B.imgQlP75=[24,24,19]; /* (2026-11-07, P2 · levier f) le seuil p75 (ms) au-delà duquel l'échelle QL baisse d'un cran sur téléphone récent ; colonnes ancien/moyen non lues (24 comme avant) */
+/* (2026-11-07, passe perf 3, P2) LA COUCHE DYNAMIQUE DE L'IMAGE : `imgRegle({halo,mips,ombre,dpr,ciel,stries})` pose à CHAUD, sans recompiler un seul programme, les mêmes leviers que les budgets statiques a-e — pour le gouverneur thermique
+   (session vitesse-fluide : la puce du 13 Pro est bridée ~3× après quelques minutes de course). Toutes les clés sont facultatives ; `imgRegle()` lit l'état ; `imgRegle('reset')` rend les valeurs du départ.
+     halo   : 'demi' (entrée du halo en ½ résolution) · 'tout' (pleine, comme l'ordi) · un nombre (part de résolution) · 'off' (halo coupé : le cran kMax de l'échelle QL le fait aussi)
+     mips   : 3 à 5, les étages de flou du halo
+     ombre  : 512 · 768 · 1024 (une carte d'ombre refaite : un à-coup, zéro programme) — le filtre PCF ne change pas (il est dans les programmes)
+     dpr    : le plafond de résolution de course (1,25 · 1 · 0,8 …) — `qlPose` recalcule les crans dessus
+     ciel   : la passe lisse du ciel une image sur N (plancher ; le budget `cielImg` du gouverneur reste plus fort s'il est plus haut)
+     stries : la densité (0 à 1) des traits d'air et de l'émission des traînées, à toute vitesse (`null` = le régime des budgets)
+   Rend l'état courant : {halo,mips,ombre,dpr,ciel,stries}. Ne fait rien de plus que poser ces valeurs : la décision (quand, de combien) reste à l'appelant. */
+const IMG_REGLE0={};
+function imgRegle(o){
+  if(o==='reset'){if(IMG_REGLE0.ok){BLOOM_BASE=IMG_REGLE0.bb;if(bloomPass)bloomPass._nM=IMG_REGLE0.nM;QL.ombre0=IMG_REGLE0.om;DPR_CAP=IMG_REGLE0.cap;IMG_DYN.ciel=0;PAL.B.bloomOff[PAL.n]=IMG_REGLE0.boff;IMG_DYN.dens=null;IMG_REGLE0.ok=false;curDPR=-1;qlPose(QL.k);}return imgRegle();}
+  if(o&&typeof o==='object'){
+    if(!IMG_REGLE0.ok){IMG_REGLE0.ok=true;IMG_REGLE0.bb=BLOOM_BASE;IMG_REGLE0.nM=bloomPass?bloomPass._nM:5;IMG_REGLE0.om=QL.ombre0;IMG_REGLE0.cap=DPR_CAP;IMG_REGLE0.boff=PAL.B.bloomOff[PAL.n];}
+    if('halo' in o){const h=o.halo;if(h==='off')PAL.B.bloomOff[PAL.n]=1;else{PAL.B.bloomOff[PAL.n]=IMG_REGLE0.boff;BLOOM_BASE=h==='demi'?.5:h==='tout'?1:Math.max(.2,Math.min(1,+h||1));}}
+    if('mips' in o&&bloomPass)bloomPass._nM=Math.max(1,Math.min(5,o.mips|0));
+    if('ombre' in o)QL.ombre0=Math.max(256,Math.min(2048,o.ombre|0));
+    if('dpr' in o)DPR_CAP=Math.max(DPR_MIN,Math.min(+o.dpr||1,devicePixelRatio));
+    if('ciel' in o)IMG_DYN.ciel=Math.max(0,o.ciel|0);
+    if('stries' in o)IMG_DYN.dens=o.stries==null?null:Math.max(0,Math.min(1,+o.stries)),IMG_DYN.vmin=0;
+    curDPR=-1;qlPose(QL.k);}
+  return {halo:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,mips:bloomPass?bloomPass._nM:null,ombre:sun.shadow.mapSize.x,dpr:+curDPR.toFixed(2),cap:+DPR_CAP.toFixed(2),ciel:IMG_DYN.ciel,stries:IMG_DYN.dens,ql:QL.k};}
+window.imgRegle=imgRegle;
 function qlAuto(){return TEL_NATIF&&!qHaute()&&started&&!gameOver;}
 function qSuivant(q){return q==='fast'?'net':q==='net'?'haute':'fast';}
 function qLbl(){const q=SAVE.d.q;return q==='haute'?'HAUTE':q==='net'?'NETTE':'RAPIDE';}
@@ -13210,7 +13381,7 @@ function qlDpr(k,b){ // la résolution que vaut le cran k
 function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));if(qHaute())k=0;QL.k=k; /* (OPTIMISATION) HAUTE : jamais baissé */ // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
   const om=VHD.on?VHD.ombre:k>=4?512:k>=2?768:QL.ombre0; // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
   if(sun.shadow.mapSize.x!==om){if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}sun.shadow.mapSize.set(om,om);} // recrée la carte, zéro recompilation
-  const br=k>=3?.75:1;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
+  const br=(k>=3?.75:1)*BLOOM_BASE;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
   FLOU_OK=k<5;
   if(bloomPass)bloomPass.enabled=!REDUCED_MOTION&&k<b.kMax&&!PAL.b('bloomOff',0); /* (2026-10-24, allègement mobile) palier 0 : plus de bloom du tout (une passe plein écran de moins) — `?bloom=1` le rend */
   if(k<1&&renderer.shadowMap.autoUpdate===false)renderer.shadowMap.autoUpdate=true;
@@ -13270,7 +13441,7 @@ window.dbgVhdEcran=function(){ const px=Math.max(1,innerWidth*innerHeight),bud=T
 const PFR_ON=TEL_NATIF&&!/[?&]frais=0\b/.test(location.search);
 const PCM_ON=(!TEL_NATIF||PFR_ON)&&!/[?&]pcmort=0\b/.test(location.search); /* (2026-10-24) le téléphone aussi, par le mode frais */
 function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):VHD_PX_PC; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
-  return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
+  return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE||(window.CC_DPR_CADRE&&/[?&]vhd15=0\b/.test(location.search))?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(ALLEGE?4:8,m);
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
 function vhdBascule(on){ if(VHD.off||on===VHD.on)return;
@@ -13299,7 +13470,7 @@ addEventListener('resize',function(){if(VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.mur
        de la course (plus de réallocation des cibles et de la carte d'ombre à chaque mort ET à chaque REJOUER).
    `dbgQual(k)` (banc) passe outre qlMin. `?palier=2` rend exactement le comportement d'avant. */
 PAL.B.bloomOff=[/[?&]bloom=1/.test(location.search)?0:1,0,0];PAL.B.qlDepart=[5,2,0];PAL.B.qlMin=[4,0,0];PAL.B.vhdPx=[.45e6,1.4e6,1.4e6]; /* (2026-10-20, Léo) MOYEN et RÉCENT plafonnés à 1,4 M (densité ~2 sur iPhone 15) : à 3,2 M (densité 3) le garage et la boutique tombaient à 41-58 i/s avec des accrocs de 200-700 ms, mesuré sur l'iPhone 15 de Léo le 16/10 ; c'est le réglage de son appli */PAL.B.vhdOmbre=[1024,2048,2048];PAL.B.vhdMort=[0,0,1];
-if(PAL.b('qlDepart',0)>0){try{qlPose(PAL.b('qlDepart',0));}catch(e){}}
+{const qd9=PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c');if(qd9>0){try{qlPose(qd9);}catch(e){}}} /* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : départ au cran 1 (voir `imgQlDepart`), avant 0 */
 window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),max:+VHD.max.toFixed(2),baisses:VHD.bas,remontees:VHD.haut,bride:VHD.bride?Math.round((performance.now()-VHD.bride)/1000)+' s':null,mur:(VHD.murT&&performance.now()-VHD.murT<45000)?+VHD.mur.toFixed(2):null,vrai:QLR.vraiT?+QLR.vrai.toFixed(1):null,journal:VHD.log,dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
   px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
@@ -16128,7 +16299,7 @@ const LM_N=6; /* deux feux, deux traits de nitro (ou la flamme du moteur), une t
 const LUM_U={uLmA:{value:[]},uLmB:{value:[]},uLmC:{value:[]},uLmN:{value:0},uLmS:{value:new THREE.Vector4(0,0,0,0)},uLmK:{value:new THREE.Vector3(0,0,1)},
   uLmW:{value:new THREE.Vector4(260,.1,.6,1.4)}, /* le reflet : x = finesse du lobe en travers (en long : ×0,05, la traînée) · y = béton sec · z = pellicule d'eau · w = flaques */
   uHlP:{value:[new THREE.Vector4(),new THREE.Vector4()]},uHlF:{value:new THREE.Vector3(0,0,-1)},uHlR:{value:new THREE.Vector3(1,0,0)},uHlU:{value:new THREE.Vector3(0,1,0)},
-  uHlN:{value:1},uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(-.012,.6,4,3)}}; /* les phares : x = la coupure (tangente) · y = la demi-ouverture de l'éventail (tangente) · z = le point chaud · w = l'adoucissement de près (m²) */
+  uHlN:{value:1},uHlC:{value:new THREE.Color(0,0,0)},uHlK:{value:new THREE.Vector4(-.012,.62,2.5,3)}}; /* les phares : x = la coupure (tangente) · y = la demi-ouverture de l'éventail (tangente) · z = le point chaud · w = l'adoucissement de près (m²) */
 for(let i=0;i<LM_N;i++){LUM_U.uLmA.value.push(new THREE.Vector4());LUM_U.uLmB.value.push(new THREE.Vector4());LUM_U.uLmC.value.push(new THREE.Vector4());}
 const LUM_GLSL=['#define LM_N '+LM_N,
   'uniform vec4 uLmA[LM_N],uLmB[LM_N],uLmC[LM_N],uLmS,uLmW,uHlP[2],uHlK;uniform vec3 uLmK,uHlF,uHlR,uHlU,uHlC;uniform float uLmN,uHlN;',
@@ -16154,6 +16325,20 @@ const LUM_GLSL=['#define LM_N '+LM_N,
   '        vec3 e=Ls*inversesqrt(s2)-R;float et=dot(e,T),eb=dot(e,B);',                               // l écart angulaire, en travers et en long
   '        lmSp9+=c.rgb*(c.w*lob*step(0.,dot(R,Ls))*exp(-et*et*uLmW.x-eb*eb*uLmW.x*.05)/(1.+.08*s2+r2));}}}', // un lobe ÉTIRÉ : fin en travers, long vers l œil — la TRAÎNÉE d une lumière sur l eau (un lobe rond faisait des taches)
   '  return E;}',''].join('\n');
+/* ===== LE FAISCEAU DE CROISEMENT SUR LE SABLE ET LA ROCHE (2026-11-06, Léo : « la lumière des phares est très, très gamine : blanche, ronde, sans sens ») =====
+   L'ancien phare des dunes et du canyon était un ROND : un cône de 18° autour de l'axe, plat, blanc. Maintenant, comme sur le bitume : DEUX lampes (à ±62 cm), chacune un éventail large et doux
+   en travers, une COUPURE nette à l'horizon de la lampe (rien au-dessus : le décor lointain n'est pas éclairé), une bande chaude juste dessous qui porte loin, puis la chute (l'inverse du carré
+   de la distance, adoucie) ; la teinte glisse du blanc-jaune au cœur au chaud ambré sur les bords (une ampoule, pas un projecteur), et la lumière rase épouse le relief (cosinus de la surface :
+   une crête s'allume, un creux reste noir). Quelques lignes par pixel, seulement la nuit (C = 0 le jour : le test sort au premier `if`). Partagé : dunes (DN_FS) et canyon (CY_FS). */
+const PH_GLSL=['vec3 phBeam(vec3 col,vec3 N,vec3 W,vec3 P,vec3 D,vec3 C){',
+  '  vec3 Rg=normalize(cross(vec3(0.,1.,0.),D)+vec3(1e-4,0.,0.)),Ug=cross(D,Rg),E=vec3(0.);float lm=dot(C,vec3(.3,.55,.15));',
+  '  for(int j=0;j<2;j++){float sd=j==0?-1.:1.;vec3 v=W-(P+Rg*(.62*sd)-Ug*.42);float fw=dot(v,D);',
+  '    if(fw>1.5){float iw=1./fw,hx=dot(v,Rg)*iw-.05*sd,vy=dot(v,Ug)*iw;',
+  '      float hz=exp(-hx*hx*5.)*(1.-smoothstep(.34,.62,abs(hx))),cut=1.-smoothstep(-.02,.03,vy),hot=exp(-pow((vy+.085)/.075,2.)),d2=dot(v,v);',
+  '      float I=hz*cut*(.30+.95*hot)*smoothstep(1.5,8.,fw)*exp(-fw*.010)/(1.+d2/3500.);',
+  '      vec3 tn=mix(vec3(1.,.80,.52),vec3(1.,.94,.82),clamp(hot*hz*1.4,0.,1.));',
+  '      E+=tn*(I*max(dot(N,-v*inversesqrt(d2)),0.));}}',
+  '  return col*E*lm*1.5;}',''].join('\n');
 const LUM_APPEL='\n{vec3 lmE9=lmRoute(geometry.position,geometry.normal,geometry.viewDir);reflectedLight.directDiffuse+=lmE9*diffuseColor.rgb;}\n';
 const LFB_ROUTE_LUM=LFB_ROUTE.replace(/#if \( NUM_SPOT_LIGHTS > 0 \) && defined\( RE_Direct \)[\s\S]*?#pragma unroll_loop_end\s*#endif/,''); // les phares du bitume sont les nôtres : le projecteur three n'y entre plus
 function roadMat(){
@@ -19921,7 +20106,7 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   'varying vec3 vW,vN;varying vec4 vA,vB;','#include <fog_pars_fragment>',
   'float gCs;', /* (2026-10-25, Sacha : « retravaille les textures, inspire-toi de la forêt : des gros pixels, mais lisses ») LES GROS PIXELS DE LA ROCHE : gCs = la case sous ce pixel (~10 px d'écran, par paliers doublés fondus l'un dans l'autre) */
   'vec4 tl(sampler2D t,vec2 uv,float sh){return texture2DLodEXT(t,uv,max(log2(gCs*256.*sh),0.));}', /* une lecture au niveau de mip de la case : elle montre la MOYENNE de ce qu'elle couvre (pas de trait aux arêtes, pas de grésillement) */
-  'float dhc(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}',
+  PH_GLSL,'float dhc(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}',
   'vec4 twp(sampler2D t,vec3 w,float k,float sh,float sv){return mix(tl(t,vec2(w.x*sh,w.y*sv),sh),tl(t,vec2(w.z*sh,w.y*sv),sh),k);}', /* une paroi lue par ses deux plans fixes (x·y et z·y), mélangés selon la normale */
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   '  float wat=vA.x,dep=vA.y,rk=clamp(vA.z,0.,1.),lit=clamp(vA.w,0.,1.),veg=vB.x,fo=vB.y,dk=clamp(vB.z,0.,1.),fl=vB.w,stp=clamp(1.-N.y,0.,1.);',
@@ -19961,7 +20146,7 @@ const CY_FS=['uniform sampler2D uNZ,uSTR;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd
   '    float fs=smoothstep(.30,.80,texture2D(uNZ,vec2(dd*.09+hf,vW.y/38.+uTime*1.25)).g);c=mix(c,vec3(.80,.84,.88)*(mix(uGnd,uSky,.6)*1.2+uSunC*.4),cf*(.45+.55*fs));',
   '    c*=1.-.25*uWet*smoothstep(.55,.8,nv.g)*stp*rk;}', // et les coulées sombres de l'averse sur la pierre
       '  c+=uFlash*col*vec3(.70,.76,1.)*(.35+.65*max(N.y,0.));',
-      '  if(uPhC.r+uPhC.g>.001){vec3 lv=vW-uPhP;float dl=length(lv);vec3 ld=lv/max(dl,.01);c+=col*uPhC*smoothstep(.80,.95,dot(ld,uPhD))*max(dot(N,-ld),0.)/(1.+dl*dl/9000.);}', // les PHARES sur la roche
+      '  if(uPhC.r+uPhC.g>.001)c+=phBeam(col,N,vW,uPhP,uPhD,uPhC);', // les PHARES sur la roche
   '  c*=1.-.24*smoothstep(.45,.85,uSunD.y)*smoothstep(.55,1.3,max(c.r,max(c.g,c.b)));', /* le plein midi : les hautes lumières crème des parois sont rabattues vers l'ocre (le soleil bas, lui, n'est pas touché) */
   ...(CYD>=2?['  {float lo=smoothstep(700.,5200.,dist);c=mix(c,c*vec3(.80,.86,1.10)+uSkH*.07,lo*.38);}']:[]), /* trois plans : le proche chaud et contrasté, le lointain plus clair et plus froid, fondu dans la brume pêche */
   '  c=mix(c,uMist,uQ.x*(1.-smoothstep(fl+4.,fl+uQ.y,vW.y))*(.35+.65*smoothstep(0.,450.,dist)));',
@@ -21431,9 +21616,9 @@ const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 u
   '  float lit=1.;vec2 sp=(x-uSD.xy)*uSD.zw;if(sp.x>0.&&sp.y>0.&&sp.x<1.&&sp.y<1.){float hs=tB(uTS,sp*uSN,uSN).r;lit=smoothstep(hs-5.,hs+9.,A.x);}',
   '  vA=vec4(A.y,A.z,pu,lit);vB=vec4(pa,pm,pr,vg);vGp=gp;vF=vec4(aN.xy/aN.z,aN.w,uG);', /* (facettes) gp : la case de la grille (entiers aux sommets) · vF : l'indice de la tuile, son niveau, G */
   '  vec4 mvPosition=viewMatrix*vec4(vW,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uSaA,uSaB,uSaL,uShd,uClay,uVeg,uHaze,uSkH,uSkZ,uWS,uWD,uPhP,uPhD,uPhC;uniform vec4 uQ,uK,uW,uMo,uPl,uLm,uEx,uSp;uniform float uTime,uFlash,uPoly,uLum;',
+const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uSaA,uSaB,uSaL,uShd,uClay,uVeg,uHaze,uSkH,uSkZ,uWS,uWD,uPhP,uPhD,uPhC;uniform vec4 uQ,uK,uW,uMo,uPl,uLm,uEx,uSp;uniform vec2 uDk;uniform float uTime,uFlash,uPoly,uLum;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying vec2 vGp;varying vec4 vF;','#include <fog_pars_fragment>',
-  'float dh2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
+  PH_GLSL,'float dh2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   /* LES FACETTES (poly) : Nf = la normale PLATE du triangle (dérivées de la position), ftn = sa teinte, hs9 = son tirage, jn = le joint (la distance, EN PIXELS, aux trois arêtes du triangle : vGp = la case, entiers aux sommets,
      l'interpolation en reste exacte même quand le sommet glisse vers le niveau grossier) — le joint ne se voit que sur des cases larges (> ~7 px) et là où la facette s'écarte de la normale lisse */
@@ -21509,6 +21694,26 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '    c+=col*uSunC*vec3(.46,.28,.15)*tm*lit*uLm.z;',
   '    c+=col*uSunC*vec3(.95,.58,.32)*(1.-lit)*(.5+.5*NL.y)*.12*uLm.w;',
   '    c+=uSunC*vec3(1.,.80,.52)*pow(vs,6.)*(1.-exp(-dist/2600.))*uLm.y*.5;}',
+  /* ===== LE SABLE v3 (2026-11-06, Léo : « le shading du sable beaucoup plus gourmand, type shader Minecraft ultra réaliste ») — quatre gestes, tous sous `uLum` (qualité haute ; le téléphone allégé les saute) :
+     (1) LA LUMIÈRE RASANTE SCULPTE LES RIDES : plus le soleil est bas sur la face (ndl petit), plus l'arête d'une ride est claire et son creux sombre (contraste ×~1,6, éteint au loin et à l'ombre : jamais de moiré) ;
+     (2) L'OMBRE PROPRE DES CRÊTES : le haut d'une dune prend un liseré clair, juste derrière lui la face sous le vent plonge (une arête nette, pas un dégradé mou) ;
+     (3) LE SUBSURFACE DOUX : la lumière qui traverse le grain ressort ROUGE-ORANGÉ dans une large bande au terminateur et jusque dans la pénombre (le sable fin est translucide sur quelques mm) ;
+     (4) LE GRAIN QUI SCINTILLE : de petits cristaux plus clairs que la teinte, nombreux de près, serrés en lumière rasante. */
+  '  if(uLum>.5&&wat<.5&&uMo.z>.001){float gz=1.-smoothstep(.04,.60,ndl),near=1.-smoothstep(50.,420.,dist),cs=smoothstep(.84,.97,du)*(1.-smoothstep(.985,1.,du));',
+  '    c*=1.+rpl*gz*.60*near*(.35+.65*lit)*(1.-pan);',
+  '    c*=1.-lee*smoothstep(.55,.90,du)*.20*lit*(1.-pan);c+=uSunC*vec3(1.,.78,.52)*cs*lit*max(ndl,0.)*.10*(1.-pan)*(1.-veg);',
+  '    float sb=smoothstep(-.40,.08,ndl)*(1.-smoothstep(.08,.55,ndl));c+=col*uSunC*vec3(1.,.46,.22)*sb*(.45+.55*lit)*.26*(1.-.65*uDk.x)*(1.-pan)*(1.-veg);',
+  '    float gs=dh2(floor(pp*38.)),gs2=dh2(floor(pp*38.)+9.1);c+=col*uSunC*step(.93+.06*max(uDk.x,uDk.y),gs)*(.25+.75*step(.5,gs2))*lit*(.4+.9*gz)*(1.-smoothstep(8.,70.,dist))*.30*(1.-pan)*(1.-veg);}',
+  /* ===== LE SABLE AU CRÉPUSCULE ET LA NUIT (2026-11-06, Léo : « le jour me plaît ; le soir et la nuit, pas trop ») — `uDk` : x = le soir, y = la nuit (0 le jour : RIEN ne change au jour).
+     CRÉPUSCULE : deux températures franches — les faces au soleil virent à l'or (la lumière rasante, longue), l'autre côté du terminateur plonge dans un bleu-violet frais (au lieu de l'orange boueux),
+     les rides se creusent davantage (ombres longues), la crête prend un liseré d'or net. NUIT : le sable devient du sable de LUNE — un liseré argenté sur les crêtes, les rides lisibles, un satin froid
+     qui accroche aux silhouettes (au lieu d'un bleu plat). */
+  '  if(uLum>.5&&wat<.5&&uDk.x+uDk.y>.001){float dk=uDk.x,nk=uDk.y,gz2=1.-smoothstep(.04,.60,ndl),nr2=1.-smoothstep(50.,420.,dist),cs2=smoothstep(.84,.97,du)*(1.-smoothstep(.985,1.,du)),sd2=(1.-pan)*(1.-veg);',
+  '    c=mix(c,c*vec3(.66,.72,1.04),dk*(1.-smoothstep(-.06,.34,ndl))*.55*sd2);',
+  '    c+=col*uSunC*vec3(1.,.72,.40)*smoothstep(.06,.55,ndl)*lit*.24*dk*sd2;',
+  '    c+=uSunC*vec3(1.,.80,.50)*cs2*lit*.40*dk*sd2;',
+  '    c*=1.+rpl*gz2*nr2*(.38*dk+.55*nk)*(.35+.65*lit);',
+  '    float sa2=pow(1.-max(dot(NL,V),0.),3.);c+=vec3(.10,.17,.34)*sa2*nk*sd2*(1.-smoothstep(300.,2500.,dist));c+=vec3(.50,.62,1.)*cs2*.14*nk*sd2;}',
   /* LES ÉTINCELLES D'OR (l'éclat cash) : de rares grains qui s'allument un instant, or ou rose, jusqu'à 2 km — la cellule grandit avec la distance (≈ 3 px à l'écran) */
   '  if(uSp.w>.001&&wat<.5){float cs=exp2(floor(log2(max(dist,4.)*.0042)*2.)*.5),hq=dh2(floor(vW.xz/cs)+cs),tw=pow(.5+.5*sin(uTime*(2.4+3.*fract(hq*91.))+hq*600.),10.);',
   '    c+=mix(uSp.rgb,vec3(1.,.92,.74),step(.72,fract(hq*37.)))*step(.986,hq)*tw*lit*(1.-.9*pan)*(1.-smoothstep(500.,2400.,dist))*2.4*uSp.w;}',
@@ -21519,7 +21724,7 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '    vec3 Nw=normalize(vec3(0.,6.,0.)+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.));',
   '    float f9=.02+.98*pow(1.-max(dot(V,Nw),0.),5.);vec3 R=reflect(-V,Nw),sk=mix(uSkH,uSkZ,smoothstep(0.,.5,R.y));',
   '    vec3 cw=wc*(uSunC*(.3+.7*max(dot(Nw,uSunD),0.))*lit+mix(uGnd,uSky,.7))*.9+sk*f9+uSunC*pow(max(dot(R,uSunD),0.),160.)*1.2*lit;c=mix(c,cw,wat);}',
-  '  if(uPhC.r+uPhC.g>.001){vec3 lv=vW-uPhP;float dl=length(lv);vec3 ld=lv/max(dl,.01);c+=col*uPhC*smoothstep(.80,.95,dot(ld,uPhD))*max(dot(NL,-ld),0.)/(1.+dl*dl/9000.);}', // les PHARES sur le sable
+  '  if(uPhC.r+uPhC.g>.001)c+=phBeam(col,NL,vW,uPhP,uPhD,uPhC);', // les PHARES sur le sable
   /* LE MIRAGE : au loin, le sable presque à plat, vu en rasant, renvoie le ciel — et tremble */
   '  if(uQ.y>.001){float mi=uQ.y*smoothstep(800.,3200.,dist)*(1.-smoothstep('+(DN_IMM.on?'.012,.05':'.02,.10')+',abs(V.y)))*(1.-smoothstep(.06,.25,stp))'+(DN_IMM.on?'*smoothstep(-.015,.012,V.y)':'')+';',
   '   float sh=texture2D(uNZ,vec2(vW.x/260.+uTime*.04,vW.z/260.-uTime*.03)).r;c=mix(c,mix(mix(uSkH,uSkZ,.25),uWS*1.3+.06,.42*uEx.z)*(.92+.16*sh),mi*(.55+.45*sh));}',
@@ -21551,7 +21756,7 @@ function dnTerrain(){ if(DN.mesh)return;
     uOA:{value:new THREE.Vector4(0,0,0,0)},uW:{value:new THREE.Vector4(1,0,1,0)},uLam:{value:560},uDs:{value:new THREE.Vector2(0,.12)},uEx:{value:new THREE.Vector4(1,1,.8,1)},uSp:{value:new THREE.Vector4(1,.8,.45,1)},
     uCam:{value:new THREE.Vector3()},uG:{value:G},uR0:{value:DN.R0},uTime:{value:0},uFlash:{value:0},uSunD:{value:SUN_DIR},
     uSunC:C3(),uSky:C3(),uGnd:C3(),uFillC:C3(),uFillD:{value:new THREE.Vector3(0,-1,0)},uSaA:C3(),uSaB:C3(),uSaL:C3(),uShd:C3(),uClay:C3(),uVeg:C3(),uHaze:C3(),uSkH:C3(),uSkZ:C3(),uWS:C3(),uWD:C3(),
-    uQ:{value:new THREE.Vector4()},uPoly:{value:DN_POLY?1:0},uLum:{value:DN_POLY&&DN_LUM?1:0},uPl:{value:new THREE.Vector4(.03,0,0,0)},uLm:{value:new THREE.Vector4(.34,.25,.12,.04)},uFin:{value:new THREE.Vector4(0,0,0,0)},uK:{value:new THREE.Vector4(.5,1,.25,1)},uMo:{value:new THREE.Vector4(.8,.010,1,0)},uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
+    uDk:{value:new THREE.Vector2()},uQ:{value:new THREE.Vector4()},uPoly:{value:DN_POLY?1:0},uLum:{value:DN_POLY&&DN_LUM?1:0},uPl:{value:new THREE.Vector4(.03,0,0,0)},uLm:{value:new THREE.Vector4(.34,.25,.12,.04)},uFin:{value:new THREE.Vector4(0,0,0,0)},uK:{value:new THREE.Vector4(.5,1,.25,1)},uMo:{value:new THREE.Vector4(.8,.010,1,0)},uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
   DN.mat=new THREE.ShaderMaterial({uniforms:U,vertexShader:DN_VS,fragmentShader:DN_MOB?dnLite(DN_FS):DN_FS,fog:true});DN.mat.dispose=function(){};
   const m=new THREE.Mesh(g,DN.mat);m.frustumCulled=false;m.matrixAutoUpdate=false;m.visible=false;m.name='dunes';m.renderOrder=-1;scene.add(m);DN.mesh=m;
   const gr=new THREE.Group();gr.name='dunes décor';gr.matrixAutoUpdate=false;gr.visible=false;scene.add(gr);DN.grp=gr;
@@ -21594,7 +21799,7 @@ function dunesTick(dt){dnAmb();envPeintTick();dnNuages();
   if(!DN.mat)return;const U=DN.mat.uniforms,c=BIO.cur,k=LVL.dunes||0;
   if(DN.on&&!paused)U.uTime.value=(U.uTime.value+dt)%4096;
   if(DN.gx>1&&(mode!=='fall'||!DN.on))DN.gx=1; // le vol fini (ou la map quittée) : la pesanteur redevient la sienne
-  U.uPoly.value=DN_POLY?1:0;U.uLum.value=DN_POLY&&DN_LUM&&!QUAL_LOW?1:0; /* (facettes) qualité basse : les facettes restent (moins de triangles), sans les effets de lumière */
+  {const bn9=BIO.name||'';U.uDk.value.set(bn9==='dunesSoir'?1:0,bn9==='dunesNuit'?1:0);} /* (2026-11-06) le crépuscule et la nuit reçoivent leur propre sculpture du sable ; le JOUR (0, 0) reste celui validé */U.uPoly.value=DN_POLY?1:0;U.uLum.value=DN_POLY&&DN_LUM&&!QUAL_LOW?1:0; /* (facettes) qualité basse : les facettes restent (moins de triangles), sans les effets de lumière */
   if(DN.on){U.uSunC.value.copy(sun.color).multiplyScalar(sun.intensity);U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);
     U.uFillC.value.copy(fill.color).multiplyScalar(fill.intensity);U.uFillD.value.copy(fill.position).normalize();
     const f=(u,k9)=>{const a=c[k9];if(a)u.value.fromArray(a);};
@@ -23801,7 +24006,7 @@ if(GRT_VASTE)Object.assign(GRT_FORME,{
    · `grtEchantillons` relit le vrai virage dans la route finale (cap au début et à la fin → rayon, centre) : R.geants ; et ouvre la salle autour (RH, UP) pour que le géant tienne dans l'air.
    · `grtDecorsG` plante le géant sur le sol (plancher), le plafonne sous la voûte, et l'inscrit aux collisions (cône à la mesure de la facette).
    `?sans=geants` = la salle d'avant. Console : `dbgGrotte('geants')`. Les réglages sont ici, à un seul endroit. */
-const GRT_GEANT={on:!/[?&]sans=([^&]*,)?geants(,|&|$)/.test(location.search),
+const GRT_GEANT={on:/[?&]avec=geants(&|$)/.test(location.search), /* (2026-11-06, Léo : « un gros bloc de neige sur la route, c'est pas jouable ») COUPÉS par défaut : la salle d'avant ; `?avec=geants` les rend (banc) */
   rayon:[48,72],  /* le rayon du pied (m) : 0,3 × le rayon du virage, borné ici */
   jour:70,        /* l'air minimum entre le flanc du géant et le bord de la route (m) */
   haut:[150,210], /* la pointe au-dessus de la ROUTE (m) — le fond peut être 200 m plus bas, dans un gouffre ; plus bas si la voûte est basse */
@@ -28217,13 +28422,13 @@ function* jadeAJG(g,jx){if(g.attributes.aJ&&g.attributes.aJ.array[0]===jx)return
   for(let k=0;k<n;k++){aJ[k*4]=jx;aJ[k*4+1]=1;if((k&16383)===16383&&performance.now()>JF.lim)yield;}
   g.setAttribute('aJ',new THREE.BufferAttribute(aJ,4));}
 function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur : ses cubes (voxMeshG, colMeshG) rendent la main à l'échéance JF.lim
-  const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),D=170;
-  let wG=560,wD=560;
+  const p=pts[i0],t=new THREE.Vector3(T[i0].x,0,T[i0].z).normalize(),b=new THREE.Vector3(-t.z,0,t.x),D=110; /* (2026-11-06, Léo : « la montagne de Jade fait bugger, pas une énorme forêt : une colline beaucoup plus petite avec des arbustes, comme en Thaïlande (Koh Phi Phi, Koh Lanta) ») la porte devient un îlot KARSTIQUE : 230 m de chaque côté (avant 560), 110 m d'épaisseur (170), 270 m de haut (520), arche de 124 m × 150 m (176 × 215) — environ le tiers des cubes */
+  let wG=230,wD=230;
   for(let i=0;i<NP;i+=4){if(Math.abs(i-i0)<Math.round(420/(L/(NP-1))))continue;const q=pts[i],dx=q.x-p.x,dz=q.z-p.z,u=dx*t.x+dz*t.z,v=dx*b.x+dz*b.z;
     if(Math.abs(u)>D/2+ROAD_HALF+40)continue;if(v>0)wD=Math.min(wD,v-ROAD_HALF-50);else wG=Math.min(wG,-v-ROAD_HALF-50);}
-  if(wG<180||wD<180)return;
+  if(wG<130||wD<130)return;
   wG=Math.floor(wG/VXG)*VXG;wD=Math.floor(wD/VXG)*VXG;
-  const y0=p.y,hb=-55,ht=215,hw=88,top=520,W=wG+wD,ab=ht-hw*.9;
+  const y0=p.y,hb=-55,ht=150,hw=62,top=270,W=wG+wD,ab=ht-hw*.9;
   const ph=[jr()*6.28,jr()*6.28,jr()*6.28],crete=f=>{const cr=Math.sin(Math.max(0,Math.min(1,f))*Math.PI);return top*(.62+.38*Math.sqrt(cr))-(1-cr)*90+
       70*Math.pow(Math.abs(Math.sin(f*5.1+ph[0])),2.5)+35*Math.sin(f*13.7+ph[1])+18*Math.sin(f*31.+ph[2]);};
   const vn=rocNoise2(jr()*100),vb=rocNoise2(jr()*100);
@@ -28239,7 +28444,7 @@ function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur
     C.reprises++;C.ms=Math.round(performance.now()-tG0);}
   else{const nJ0=nJ;
   const oy=Math.floor((y0-440)/VXG)*VXG,nx=Math.round(W/VXG),nz=Math.round(D/VXG),ny=Math.ceil((y0+top+130-oy)/VXG);G=voxG(nx,ny,nz);
-  const cretes=new Float32Array(nx);for(let x=0;x<nx;x++)cretes[x]=crete((x+.5)/nx)+(jr()-.5)*10;
+  const cretes=new Float32Array(nx);for(let x=0;x<nx;x++)cretes[x]=crete((x+.5)/nx)+(jr()-.5)*10+(vn(x*VXG/5*.9,7.7)>.52?6+9*vn(x*VXG/5*.4,2.2):0); /* (2026-11-06) les ARBUSTES : des boules de verdure sur la crête (la tête de la colline, comme les îlots de Thaïlande) */
   const basT=new Float32Array(nx*nz);for(let x=0;x<nx;x++){const v=-wG+(x+.5)*VXG,xn=(v-(wD-wG)/2)/(W/2);for(let z=0;z<nz;z++)basT[x*nz+z]=-300+180*xn*xn+90*(vb(x*VXG/5*.09,z*VXG/5*.12)-.5);} // le DESSOUS, en pointes : le massif flotte
   for(let x=0;x<nx;x++){if(performance.now()>JF.lim)yield;const v=-wG+(x+.5)*VXG;
     for(let y=0;y<ny;y++){const yr=oy+(y+.5)*VXG-y0;if(yr>cretes[x])break;
@@ -28248,7 +28453,7 @@ function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur
       for(let z=z0;z<z1;z++)if(yr>=basT[x*nz+z])G.d[x+nx*(z+nz*y)]=JM.roche;}}
   for(let x=0;x<nx;x++){if(performance.now()>JF.lim)yield;const ru=vn(x*VXG/5*.3,3.3)>.83;
     for(let y=0;y<ny;y++)for(let z=0;z<nz;z++){const k0=x+nx*(z+nz*y);if(G.d[k0]!==JM.roche)continue;const yr=oy+(y+.5)*VXG-y0;
-      if(!voxAt(G,x,y+1,z)&&yr>-60){G.d[k0]=JM.herbe;continue;}
+      if(!voxAt(G,x,y+1,z)&&yr>-60){G.d[k0]=vn(x*VXG/5*.9,7.7)>.52?JM.feuille:JM.herbe;continue;}
       if(ru&&(!voxAt(G,x,y,z-1)||!voxAt(G,x,y,z+1))&&jr()<.9)G.d[k0]=JM.rouille;}}
   o=p.clone().addScaledVector(b,-wG).addScaledVector(t,D/2);o.y=oy;
   JADE.porte={c:new THREE.Vector3(p.x,y0,p.z),t:t,b:b,D:D,hw:hw,hb:y0+hb,ht:y0+ht,G:G,o:o,i:i0,tri:0};
@@ -28272,7 +28477,7 @@ function* jadePorte(root,i0,jr,M9,pose,cle9){ // (LE PRÉ-BÂTI) un générateur
       if(z1>z0){LO[u+NU*v]=z0;HI[u+NU*v]=z1;}}}
     TT.cols=Math.round(performance.now()-T0);const cache=new Map(),nb=(u,v)=>{const cx=Math.floor((xa*K+u)/K),cy=Math.floor((ya*K+v)/K);if(cx<0||cy<0||cx>=nx||cy>=ny)return null;const kk=cx*4096+cy;
       if(!cache.has(kk)){let z0=-1,z1=-1;for(let z=0;z<nz;z++)if(G.d[cx+nx*(z+nz*cy)]){if(z0<0)z0=z;z1=z;}cache.set(kk,z0<0?null:[z0*K,(z1+1)*K]);}return cache.get(kk);};
-    const mat=(kind,u,v,sg)=>{if(kind==='w')return vn((xa*K+u)/K*VXG/5*.3,3.3)>.83?JM.rouille:1;if(kind==='v'&&sg>0)return oy+(ya*K+v+1)/K*VXG-y0>-60?JM.herbe:1;return 1;};
+    const mat=(kind,u,v,sg)=>{if(kind==='w')return vn((xa*K+u)/K*VXG/5*.3,3.3)>.83?JM.rouille:1;if(kind==='v'&&sg>0)return oy+(ya*K+v+1)/K*VXG-y0>-60?(vn((xa*K+u)/K*VXG/5*.9,7.7)>.52?JM.feuille:JM.herbe):1;return 1;};
     const gF=yield* colMeshG(NU,NV,LO,HI,[0,1,2],mat,nb,12);TT.F=Math.round(performance.now()-T0);const oF=o.clone().addScaledVector(b,xa*VXG);oF.y+=ya*VXG;
     yield* jadeAJG(gA,.37);if(performance.now()>JF.lim)yield;jadeMonument(root,gA,jadeRepere(o,b,t),.37,M9);yield* jadeAJG(gB,.37);if(performance.now()>JF.lim)yield;JADE.porte.mL=jadeMonument(root,gB,jadeRepere(oB,b,t),.37,M9);yield* jadeAJG(gF,.37);if(performance.now()>JF.lim)yield;JADE.porte.mF=jadeMonument(root,gF,jadeRepere(oF,b,t,VXG/K),.37,M9);
     for(const m of JADE.porte.mF)m.visible=false;JADE.porte.pres=false;JADE.porte.tri=gA.index.count/3+gB.index.count/3;JADE.porte.triF=gF.index.count/3;fin9=true;PG9={gA:gA,gB:gB,gF:gF,oB:oB,oF:oF,K:K};}catch(e){console.warn('porte fine',e);}}
@@ -32272,8 +32477,8 @@ const PHARE_FX=(function(){
   const cv=document.createElement('canvas');cv.width=4;cv.height=64;const c=cv.getContext('2d'),g=c.createLinearGradient(0,0,0,64);
   {g.addColorStop(0,'rgba(255,255,255,.12)');g.addColorStop(.06,'rgba(255,255,255,.5)');g.addColorStop(.22,'rgba(255,255,255,.42)');g.addColorStop(.6,'rgba(255,255,255,.12)');g.addColorStop(1,'rgba(255,255,255,0)');} /* (2026-10-17, les lumières de la caisse v2) le faisceau NAÎT au phare au lieu d'y flamber : vu de la poursuite, le pied du cône faisait un éventail blanc posé sur le capot */
   c.fillStyle=g;c.fillRect(0,0,4,64);const tx=new THREE.CanvasTexture(cv);
-  const geo=new THREE.ConeGeometry(6,70,18,1,true);geo.translate(0,-35,0);geo.rotateX(-Math.PI/2);geo.rotateX(.045); // la pointe au phare, l'ouverture 70 m devant, un rien vers le bitume
-  const m=new THREE.MeshBasicMaterial({map:tx,color:0xdfe9ff,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.FrontSide});
+  const geo=new THREE.ConeGeometry(3.6,70,18,1,true);geo.translate(0,-35,0);geo.rotateX(-Math.PI/2);geo.rotateX(.045); // la pointe au phare, l'ouverture 70 m devant, un rien vers le bitume
+  const m=new THREE.MeshBasicMaterial({map:tx,color:0xffe6c4,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.FrontSide});
   const L=[new THREE.Mesh(geo,m),new THREE.Mesh(geo,m)];for(const o of L){o.visible=false;o.frustumCulled=false;o.renderOrder=7;scene.add(o);} // 7 : au-dessus du museau du dragon de NITROOO (renderOrder 6) — les phares restent nets
   return {L:L,m:m,d:new THREE.Vector3(),u:new THREE.Vector3(),r:new THREE.Vector3()};})();
 // REFLET NITRO/BOOST : la flamme éclaire VRAIMENT le bitume — pool de lumière derrière la caisse,
@@ -33303,7 +33508,7 @@ function trxCoeur(type,k,dt){const T=TRX,C=T.C,t0=performance.now();T.t+=dt;
   const on=k>.05,debut=on&&T.kp<=.05;if(debut){T.wl0.copy(C.WL);T.wr0.copy(C.WR);T.dist=0;}T.kp=k;
   if(!C.pv&&TRX_HIST[type])trxHist(on?k:0);
   T.L[0].n=T.L[1].n=0;tcRaz();
-  const E=TRX_EMET[type];if(E&&dt>0)E(T,C,k,dt,on,debut);
+  const E=TRX_EMET[type];if(E&&dt>0)E(T,C,k,(C.pv||type==='glouton')?dt:dt*densVit(vKmh()),on,debut); /* (2026-11-07, P2 · levier e) l'émission à demi-densité au-delà de 200 km/h (téléphone récent ; voir densVit) — pas à l'aperçu du garage, ni pour GLOUTON dont dt règle des minuteries */
   const np=trxParts(dt);let nb=0;for(const b of T.bolts)if(b.on)nb++;
   { /* (2026-10-16, TRAÎNÉES) LA SALLE BLANCHE : la lumière additive s'y effaçait (matrice, filés, foudre, néon) — le maillage qui brille
        passe en ENCRE (mélange 0, 1 − src ; couleur = la teinte pure × l'intensité) : sur le blanc on lit la couleur de la traînée */
@@ -33726,7 +33931,22 @@ const lampTex=(function(){
    sprite, jamais libérée) : la boucle (`carVit`) les fait répondre à l'ANGLE — un phare n'éblouit que celui qui le regarde en
    face, vu de profil il n'est plus qu'un point — et au FREIN : pouce tiré vers le bas (drift) ou ↓, les feux s'embrasent.
    `userData.k` = la taille d'origine du sprite, que la boucle module sans jamais la perdre. */
-const HALO={hM:new THREE.SpriteMaterial({map:lampTex,color:0xffe2a8,transparent:true,opacity:.95,depthWrite:false}),
+/* (2026-11-06, Léo : « la lumière des phares est très, très gamine : blanche, ronde, sans sens ») LE HALO DU PHARE, REFAIT : plus un disque blanc. Un cœur minuscule blanc-jaune (l'optique),
+   un éclat CHAUD AMBRÉ ovale (plus large que haut : un phare est une lentille allongée), un voile très doux, et un trait horizontal fin (l'étoile de l'objectif, comme sur une photo de nuit) ;
+   la couleur est DANS la texture (le matériau reste blanc), l'intensité est la moitié de l'ancien disque. */
+const phareTex=(function(){
+  const s=128,cv=document.createElement('canvas');cv.width=cv.height=s;const c=cv.getContext('2d');
+  c.translate(s/2,s/2);c.scale(1,.62);
+  const g=c.createRadialGradient(0,0,0,0,0,s/2);
+  g.addColorStop(0,'rgba(255,250,236,1)');g.addColorStop(.07,'rgba(255,246,222,.95)');g.addColorStop(.16,'rgba(255,226,170,.55)');
+  g.addColorStop(.34,'rgba(255,190,110,.20)');g.addColorStop(.62,'rgba(255,160,80,.05)');g.addColorStop(1,'rgba(255,150,70,0)');
+  c.fillStyle=g;c.fillRect(-s/2,-s/2,s,s);
+  c.setTransform(1,0,0,1,0,0);
+  const h=c.createLinearGradient(0,0,s,0);h.addColorStop(0,'rgba(255,200,130,0)');h.addColorStop(.5,'rgba(255,236,200,.55)');h.addColorStop(1,'rgba(255,200,130,0)');
+  c.fillStyle=h;c.fillRect(2,s/2-1,s-4,2);
+  const t=new THREE.CanvasTexture(cv);t.minFilter=THREE.LinearFilter;return t;
+})();
+const HALO={hM:new THREE.SpriteMaterial({map:phareTex,color:0xffffff,transparent:true,opacity:.8,depthWrite:false}),
             tM:new THREE.SpriteMaterial({map:lampTex,color:0xff2818,transparent:true,opacity:.85,depthWrite:false}),h:[],t:[]};
 /* LES PHARES ESCAMOTABLES ALLUMÉS SEULEMENT LEVÉS (2026-10-18, LA VETTE) : `CAR_PHK` = combien les phares de la caisse sont levés, de 0 (rangés)
    à 1 ; null = une caisse aux phares fixes (toutes les autres). La caisse qui a des escamotables le pose chaque image (son `BLING.anim`) ; il
@@ -35520,6 +35740,15 @@ const SHAPES={
       U(.08,H*.25,L*.62,aV,sd*(W/2+.02),y0+H*.12,0,{seed:5+sd,rouille:.22,c:.012});
     }
     B(W*.55,H*.2,.07,K.dark,0,y0+H*.42,L/2+.10);
+    /* (2026-11-06, Léo : « LA HONTE, vue de face elle est fade : tous les autres angles sont plus jolis ») LA FACE AVANT : une vraie calandre (cadre chromé, cinq lames), des optiques cerclées de chrome, un pare-chocs chromé cabossé, une plaque — tout reste en tôle d'épave (le chrome est celui de la caisse : terni) */
+    {const zf=L/2+.15,yc=y0+H*.42;
+     for(const dy of [-.5,.5])B(W*.60,.03,.045,K.chrome,0,yc+dy*H*.2,zf);
+     for(const sd of [-1,1])B(.03,H*.2,.045,K.chrome,sd*W*.30,yc,zf);
+     for(let i=0;i<5;i++)B(W*.54,.016,.03,K.chrome,0,yc+(i-2)*H*.035,zf+.004);
+     for(const sd of [-1,1]){const hx=sd*W*.385,hy=y0+H*.46;
+       B(.27,.03,.05,K.chrome,hx,hy+.115,L/2+.10);B(.27,.03,.05,K.chrome,hx,hy-.115,L/2+.10);B(.03,.23,.05,K.chrome,hx-.12,hy,L/2+.10);B(.03,.23,.05,K.chrome,hx+.12,hy,L/2+.10);}
+     const pc=B(W*.98,H*.06,.07,K.chrome,0,y0+H*.205,L/2+.2);pc.rotation.z=-.02;
+     B(.34,.12,.02,K.acc,0,y0+H*.105,L/2+.25);} // la plaque
     for(const fz of [1,-1]){const bp=B(W*1.02,H*.24,.18,K.dark,0,y0+H*.15,fz*(L/2+.06));
       if(fz<0){bp.rotation.z=.14;bp.position.y-=.08;}}
     for(const sp of [[.30,.50,.35,.50,.30],[-.42,.45,-.10,.40,.50],[.10,.68,-.42,.60,.25],[-.25,.30,.42,.35,.40]])
@@ -47853,6 +48082,7 @@ function chauffeApres(k){
    joue hors de la ville (accueil), à l'atelier, à l'étal, dôme caché, et avec `?ciel=plein` (pour comparer sur le téléphone).
    Zéro compilation en course : les cinq programmes sont compilés ET dessinés une fois au chargement (`cielChauffe`, cibles 8×8 au
    format des vraies — la puce d'Apple fabrique son état de pipeline au premier dessin). Bancs : `dbgCiel2()`. */
+PAL.B.imgCielImg=[2,1,2]; /* (2026-11-07, passe perf 3, P2 · levier d) téléphone récent : la passe lisse du ciel une image sur DEUX (comme le palier 0 depuis C4) ; `?img=max` / `?imgsans=d` = chaque image */
 PAL.B.cielImg=[2,1,1]; /* (2026-11-05, C4) voir cielDeuxTemps : la passe lisse une image sur N (ancien 2, moyen 1, récent 1) */
 const CIEL2={on:!/[?&]ciel=plein/.test(location.search),rt:null,sc:new THREE.Scene(),me:null,v:new THREE.Vector2(),mode:'',n:0};
 CIEL2.sc.autoUpdate=false; // la matrice du maillage est recopiée de celle du dôme (déjà à jour) : rien à recalculer
@@ -47881,7 +48111,7 @@ function cielDeuxTemps(r9,cam){
   if(cible)U.uBasInv.value.set(1/cible.width,1/cible.height);else U.uBasInv.value.set(1/CIEL2.v.x,1/CIEL2.v.y); // le pixel de l'écran → la cible lisse
   CIEL2.me.material=md==='N'?C.basN:C.basV;CIEL2.me.matrixWorld.copy(skyDome.matrixWorld);
   /* (2026-11-05, passe perf mobile 2, C4) LA PASSE LISSE UNE IMAGE SUR N AU PALIER 0. Mesuré (banc-perf/passes.py, p0, nuages/ville/forêt) : 4 framebuffers par image dessinée (scène, ombre, CETTE passe, écran) ; la puce à tuiles de l'iPhone 7 paie chaque changement de cible. La base lisse est un fond à basses fréquences lu à la position de l'écran : la recopier une image sur deux (ancien) ne se voit pas, le détail (netN/netV) est redessiné à chaque image. Redessinée tout de suite si le mode, la taille ou la cible changent. PAL.B.cielImg=[2,1,1] (ancien, moyen, récent) ; `?cielimg=0` = avant. */
-  const nI=/[?&]cielimg=0/.test(location.search)?1:(PAL.b('cielImg',1)|0),K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
+  const nI=/[?&]cielimg=0/.test(location.search)?1:(Math.max(PAL.b('cielImg',1),PAL.bT('imgCielImg',1,'d'),IMG_DYN.ciel)|0) /* (P2) plancher du levier d ; le gouverneur thermique (cielImg plus haut) garde la main */,K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
   if(nI>1&&K.m===md&&K.w===w&&K.h===h&&(K.i=(K.i+1)%nI)!==0){CIEL2.sautes=(CIEL2.sautes|0)+1;}
   else{K.m=md;K.w=w;K.h=h;K.i=0;r9.setRenderTarget(CIEL2.rt);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);}
   skyDome.material=md==='N'?C.netN:C.netV;CIEL2.n++;
@@ -48186,8 +48416,8 @@ shadow.visible=false;
    (tranche + deux faces) : trois appels de dessin par pièce, ×2 faces de route, sur des centaines de pièces — et une
    facture « clip-art » au milieu d'un jeu en pixels et en facettes. Désormais : un OCTOGONE épais (la coupe low-poly
    des caisses), frappé d'un « $ » en VRAIS pixels (texture 16×16, filtrage au plus proche), UNE matière, UN appel. */
-const COIN_CV=document.createElement('canvas');COIN_CV.width=COIN_CV.height=16;
-const COIN_CV2=document.createElement('canvas');COIN_CV2.width=COIN_CV2.height=16; /* (2026-11-05, Sacha : « à la place des pièces sur la route, met des pièces de 1 et 2 euros ») la 2 €, peinte avec la 1 € : anneau d'ARGENT, cœur d'OR (l'inverse) */
+const COIN_CV=document.createElement('canvas');COIN_CV.width=COIN_CV.height=32;
+const COIN_CV2=document.createElement('canvas');COIN_CV2.width=COIN_CV2.height=32; /* (2026-11-05, Sacha : « à la place des pièces sur la route, met des pièces de 1 et 2 euros ») la 2 €, peinte avec la 1 € : anneau d'ARGENT, cœur d'OR (l'inverse) */
 /* (2026-10-14, passe graphismes) LA SAPÈQUE DES PICS DE JADE — Sacha : « dans la map montagne chinoise, change les pièces qui sont pour
    l'instant vertes en pièces chinoises avec un carré, un trou carré à l'intérieur ». Le vert venait de la palette 'Y' de coinPeint (champ
    de jade #6ff0ae). Sur la piste jade (mode classique ET Soleil de Jade : la clé 'Y' de coinSymbole, l'appel de buildJade ne bouge pas) la
@@ -48209,23 +48439,63 @@ function sapequePeint(c){
     else k='g';                                       // le champ
     c.fillStyle=SAPEQUE[k];c.fillRect(x,y,1,1);}
 }
-function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, « ¥ » au niveau SOLEIL DE JADE (voir coinSymbole)
-  const N=16,cv=COIN_CV;const c=cv.getContext('2d');
-  if(sym==='Y'){sapequePeint(c);return;} // (2026-10-14, passe graphismes) sur la piste jade : la SAPÈQUE de laiton (même toile 16 × 16, repeinte)
-  if(sym!=='B'){ // (2026-11-01, Sacha : « redessine les pièces en 1 et 2 € ») LA PIÈCE BIMÉTAL : un anneau et un cœur dans deux
-    // métaux — le seul trait qui dit « pièce d'euro » à 16 px, plus net qu'un symbole frappé.
-    // (2026-11-05, Sacha : « sur la route, met des pièces de 1 et 2 euros ») DEUX toiles, DEUX InstancedMesh (coinIM = 1 €, coinIM2 = 2 €) :
-    // la 1 € a l'anneau d'or et le cœur d'argent, la 2 € l'inverse. Un tirage par pièce (pk.deux, voir coinPose).
-    const OR={h:'#fff6c8',g:'#ffd75e',d:'#8a5a00'},AG={h:'#f6f9fb',g:'#d8dee4',d:'#8a97a2'}; // l'OR (laiton) · l'ARGENT (cupronickel)
-    for(const [cv9,ANN,COE] of [[cv,OR,AG],[COIN_CV2,AG,OR]]){const c9=cv9.getContext('2d');
-      for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-        const dx=x-7.5,dy=y-7.5,r=Math.hypot(dx,dy);
-        if(r>6.9||(r>3&&r<=3.35)){c9.fillStyle='#201400';c9.fillRect(x,y,1,1);continue;} // le liseré sombre, et le SILLON entre les deux métaux
-        const COL=r>3.35?ANN:COE,k=r>5.7?((dx+dy<-1)?'h':(dx+dy>2?'d':'g')):((dx+dy<(r>3.35?-6:-2))?'h':'g');
-        c9.fillStyle=COL[k];c9.fillRect(x,y,1,1);
-      }}
-    return;
+/* ===== LES PIÈCES 1 € ET 2 € REFAITES (2026-11-06, Sacha : « retravaille les pièces d'euro, il faut qu'elles soient belles, travaille des pièces de 2 et de 1 ») =====
+   Avant : une toile de 16 × 16 (deux aplats d'or et d'argent) sur un disque lisse. Maintenant, la VRAIE pièce bimétal sur une toile de 32 × 32 :
+   · UN ANNEAU en relief (1 € : or · 2 € : argent) biseauté — lumière en haut à gauche, ombre en bas à droite — avec ses DOUZE ÉTOILES frappées ;
+   · UN SILLON d'encre entre les deux métaux, puis le CŒUR (1 € : argent · 2 € : or), son biseau inversé et un reflet en biais ;
+   · le CHIFFRE « 1 » / « 2 » en gros, en relief (face claire + ombre portée) : c'est lui qui dit la valeur de loin ;
+   · un éclat en croix, en haut à gauche. Les quatre coins de la toile, hors du disque, sont les deux pixels de la TRANCHE (voir pickGeo : clair, sombre,
+     en alternance = la tranche cannelée).
+   Palette PEINTE, comme avant : la pièce émet sa texture et l'étalonnage pousse le jaune vers l'orange (voir coinPeint). */
+/* ===== (2026-11-06, Sacha : « améliore les pièces dans un délire plus réaliste et qu'elles arrêtent de briller autant ») =====
+   Avant : des métaux de dessin animé (blancs purs, jaune citron) que la pièce ÉMETTAIT à 105 % — le cœur d'argent de la 1 € virait au blanc et le chiffre
+   disparaissait. Maintenant : des métaux de PIÈCE DE POCHE — laiton nordique et cupronickel TERNIS, la lumière n'est plus qu'un ton plus clair (jamais
+   du blanc) —, un GRAIN de frappe, de la PATINE (le bord et le sillon noircis par les doigts), quelques RAYURES, et le chiffre barré de trois fines
+   RAINURES, comme la face commune des vraies pièces (la carte de l'Europe qui le traverse). Le grain est pseudo-aléatoire À GRAINE : la même pièce à chaque lancement. */
+const PIECE_PAL={or:{l:'#d9c07a',h:'#c9a85a',g:'#b08f3e',m:'#8c6e2c',d:'#62481a',s:'#3a2a0c'},ag:{l:'#cfd3d6',h:'#b9bfc4',g:'#9aa1a8',m:'#7b838b',d:'#575f68',s:'#383e46'}};
+const PIECE_CHIFFRE={ /* 10 × 12 pixels */
+  '1':['....###...','...####...','..#####...','....###...','....###...','....###...','....###...','....###...','....###...','....###...','.########.','.########.'],
+  '2':['..######..','.########.','###....###','###....###','.......###','......###.','.....###..','....###...','...###....','..###.....','##########','##########']};
+function pieceTeinte(hex,k){const n=parseInt(hex.slice(1),16);const f=v=>Math.max(0,Math.min(255,Math.round(v*k)));
+  return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')';}
+function pieceEuroPeint(cv,ann,coe,chiffre){
+  const c=cv.getContext('2d'),N=32,px=(x,y,col)=>{c.fillStyle=col;c.fillRect(x,y,1,1);};
+  let sd=chiffre==='1'?20261106:20261107;const rn=()=>{sd=(Math.imul(sd,1664525)+1013904223)>>>0;return sd/4294967296;}; // la graine : la même pièce à chaque lancement
+  c.setTransform(1,0,0,1,0,0);c.fillStyle='#1a1208';c.fillRect(0,0,N,N); // tout en encre : le liseré, le sillon et les coins
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const dx=x-15.5,dy=y-15.5,r=Math.hypot(dx,dy),L=-(dx+dy)/((r*1.4142)||1); // L : +1 vers le haut à gauche (la lumière), −1 vers le bas à droite
+    let col=null,ton=1;
+    if(r>14.6)continue; // le liseré d'encre
+    if(r>10.9){ // L'ANNEAU
+      if(r>13.8){col=L>.15?ann.l:(L<-.15?ann.d:ann.h);ton=.88;}   // son biseau extérieur : la frappe l'a usé, il est plus sombre que le corps
+      else if(r>11.8)col=L>.5?ann.h:(L<-.5?ann.m:ann.g); // le corps
+      else col=L<-.15?ann.h:(L>.15?ann.s:ann.m);         // son biseau intérieur, inversé (il regarde le cœur)
+    }else if(r>10.1){px(x,y,'#241a0c');continue;} // le SILLON entre les deux métaux : noirci par la crasse, plus un trou d'encre
+    else{ // LE CŒUR
+      if(r>9.2)col=L>.2?coe.s:(L<-.2?coe.h:coe.m);       // le biseau du cœur : en creux (ombre en haut à gauche)
+      else col=L>.55?coe.h:(L<-.55?coe.m:coe.g);
+      if(r<8.6&&Math.abs((dx+dy)+7.6)<.8)col=coe.h;     // le reflet en biais : un ton plus clair, plus un éclat
+    }
+    ton*=1+(rn()-.5)*.13;                                // le GRAIN de frappe
+    if(r>12.6&&rn()<.28)ton*=.80;                        // la PATINE du bord : des pixels noircis
+    px(x,y,pieceTeinte(col,ton));
   }
+  for(let k=0;k<12;k++){const a=(k+.5)*Math.PI/6,sx=Math.floor(16+12.8*Math.cos(a)),sy=Math.floor(16+12.8*Math.sin(a)); // les DOUZE ÉTOILES
+    px(sx+1,sy+1,ann.s);px(sx,sy,ann.h);}
+  const G=PIECE_CHIFFRE[chiffre];
+  for(let pass=0;pass<2;pass++)for(let gy=0;gy<G.length;gy++)for(let gx=0;gx<G[gy].length;gx++)if(G[gy][gx]==='#') // le CHIFFRE : l'ombre portée d'abord, la face par-dessus
+    pass?px(11+gx,10+gy,(gy===3||gy===6||gy===9)?coe.h:coe.l):px(12+gx,11+gy,coe.s); // les trois RAINURES qui le barrent (la carte de l'Europe)
+  for(let k=0;k<7;k++){ // quelques RAYURES : une ligne fine, plus claire (elle accroche) ou plus sombre (elle est sale)
+    const x0=4+rn()*24,y0=4+rn()*24,a=rn()*Math.PI,l=2+rn()*4,clair=rn()<.5;
+    c.globalAlpha=.20;c.fillStyle=clair?'#ffffff':'#000000';
+    for(let t=0;t<l;t++){const X=Math.floor(x0+t*Math.cos(a)),Y=Math.floor(y0+t*Math.sin(a));if(Math.hypot(X-15.5,Y-15.5)<13.8)c.fillRect(X,Y,1,1);}
+    c.globalAlpha=1;}
+  c.fillStyle=ann.h;c.fillRect(0,0,4,4);c.fillStyle=ann.d;c.fillRect(28,0,4,4); // les deux pixels de la TRANCHE : clair (haut gauche) · sombre (haut droite)
+}
+function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, « ¥ » au niveau SOLEIL DE JADE (voir coinSymbole)
+  const N=16,cv=COIN_CV;const c=cv.getContext('2d');c.setTransform(2,0,0,2,0,0); /* (2026-11-06) toiles de 32 × 32 : la sapèque et le ₿ restent peints sur leur grille de 16 (un pixel = un carré de 2) */
+  if(sym==='Y'){sapequePeint(c);c.setTransform(1,0,0,1,0,0);return;} // (2026-10-14, passe graphismes) sur la piste jade : la SAPÈQUE de laiton (même toile, repeinte)
+  if(sym!=='B'){c.setTransform(1,0,0,1,0,0);pieceEuroPeint(COIN_CV,PIECE_PAL.or,PIECE_PAL.ag,'1');pieceEuroPeint(COIN_CV2,PIECE_PAL.ag,PIECE_PAL.or,'2');return;} /* (2026-11-06) l'euro : voir pieceEuroPeint */
   /* (2026-10-13) CRYPTOCITY : la pièce BITCOIN — champ orange, ₿ blanc, inchangée */
   const COL={k:'#5a2600',d:'#d8780c',g:'#ffab2e',l:'#fff1d0',h:'#ffd38a',s:'#fffaf0'};
   const DOL=['.#.#.','####.','#...#','#...#','####.','#...#','#...#','####.','.#.#.'];
@@ -48237,6 +48507,7 @@ function coinPeint(sym){ // (2026-10-12) le symbole frappé : « $ » partout, �
     c.fillStyle=COL[k];c.fillRect(x,y,1,1);
   }
   for(let y=0;y<9;y++)for(let x=0;x<5;x++)if(DOL[y][x]==='#'){c.fillStyle=COL.s;c.fillRect(6+x,3+y,1,1);}
+  c.setTransform(1,0,0,1,0,0);c.fillStyle='#ffd38a';c.fillRect(0,0,4,4);c.fillStyle='#d8780c';c.fillRect(28,0,4,4); // la tranche du ₿ : clair · sombre (les coins de la toile, voir pickGeo)
 }
 const coinTex=(function(){coinPeint('E');const cv=COIN_CV;
   /* (2026-09-26, vague 2) LES PIÈCES NE SCINTILLENT PLUS AU LOIN. Filtrée au plus proche EN RÉDUCTION et sans mipmaps, la pièce de
@@ -48260,11 +48531,32 @@ function geoFusion(gs){ // fusionne des géométries (position/normale/uv) en un
   const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(P,3));o.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));
   o.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));return o;
 }
+/* (2026-11-06, Sacha : « retravaille les pièces d'euro ») LA FORME DE LA PIÈCE : un vrai profil de pièce, tourné en 16 pans — le CŒUR légèrement en
+   creux, une MARCHE de 0,09 m jusqu'à l'ANNEAU en relief (le sillon de la toile tombe pile dessus : la lumière sépare les deux métaux), puis le
+   chanfrein du bord et la TRANCHE, cannelée (un pan clair, un pan sombre : les deux pixels des coins de la toile). Les deux faces lisent la toile
+   À PLAT (1 px = R/16 m) ; le chiffre se lit à l'endroit des deux côtés. 256 triangles (avant : 336 avec le jonc en tore), mêmes attributs que
+   l'ancienne, donc la même instance, la même matière, le même programme. */
 const pickGeo=(function(){
-  const g=new THREE.CylinderGeometry(1.18,1.18,.30,12);g.rotateX(Math.PI/2);
-  const uv=g.attributes.uv;for(let i=0;i<26;i++)uv.setXY(i,.47,.16); // la TRANCHE : tout le pourtour lit un pixel « ombre d'or »
-  const t=new THREE.TorusGeometry(1.18,.13,6,24);const tu=t.attributes.uv;for(let i=0;i<tu.count;i++)tu.setXY(i,.47,.91); // le JONC : le pixel clair
-  return geoFusion([g,t]);
+  const P=[],Nn=[],U=[],R=1.31,N=16,ZB=.15;
+  const PROFIL=[[0,.12],[.86,.12],[.92,.21],[1.24,.21],[R,ZB]]; // (rayon, z) du centre vers le bord, face avant
+  const tri=(a,b,c,hx,hy,hz)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+    let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;const l=Math.hypot(nx,ny,nz)||1;nx/=l;ny/=l;nz/=l;
+    if(nx*hx+ny*hy+nz*hz<0){const t=b;b=c;c=t;nx=-nx;ny=-ny;nz=-nz;}
+    for(const p of [a,b,c]){P.push(p[0],p[1],p[2]);Nn.push(nx,ny,nz);U.push(p[3],p[4]);}};
+  const quad=(a,b,c,d,hx,hy,hz)=>{tri(a,b,c,hx,hy,hz);tri(a,c,d,hx,hy,hz);};
+  const th=i=>i*2*Math.PI/N+Math.PI/N;
+  const vt=(r,i,z,sz)=>{const x=r*Math.cos(th(i)),y=r*Math.sin(th(i));return [x,y,sz*z,.5-sz*x/(2*R),.5+y/(2*R)];}; // sz=+1 : la face avant (z>0) · −1 : l'arrière, en miroir
+  const ET=[[.0625,.9375],[.9375,.9375]]; // les deux pixels de tranche : coin haut gauche (clair) · coin haut droit (sombre)
+  for(const sz of [1,-1]){
+    const cen=[0,0,sz*PROFIL[0][1],.5,.5];
+    for(let i=0;i<N;i++)tri(cen,vt(PROFIL[1][0],i,PROFIL[1][1],sz),vt(PROFIL[1][0],i+1,PROFIL[1][1],sz),0,0,sz);
+    for(let j=1;j<PROFIL.length-1;j++){const [r1,z1]=PROFIL[j],[r2,z2]=PROFIL[j+1],nr=-(z2-z1),nz=r2-r1;
+      for(let i=0;i<N;i++){const am=th(i+.5);quad(vt(r1,i,z1,sz),vt(r1,i+1,z1,sz),vt(r2,i+1,z2,sz),vt(r2,i,z2,sz),nr*Math.cos(am),nr*Math.sin(am),nz*sz);}}}
+  for(let i=0;i<N;i++){const am=th(i+.5),e=ET[i&1],a=vt(R,i,ZB,1),b=vt(R,i+1,ZB,1),c=vt(R,i+1,ZB,-1),d=vt(R,i,ZB,-1);
+    for(const q of [a,b,c,d]){q[3]=e[0];q[4]=e[1];}
+    quad(a,b,c,d,Math.cos(am),Math.sin(am),0);}
+  const o=new THREE.BufferGeometry();o.setAttribute('position',new THREE.Float32BufferAttribute(P,3));o.setAttribute('normal',new THREE.Float32BufferAttribute(Nn,3));
+  o.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));return o;
 })();
 /* (2026-10-14, passe graphismes, Sacha : « le vrai trou percé ») LA FORME DE LA SAPÈQUE : un disque à 16 pans PERCÉ d'un trou carré — de vraies
    parois, on voit la montagne au travers, sans alphaTest ni transparence. En relief : le listel du bord (chanfrein d'encre, plat, pente) et
@@ -48302,10 +48594,13 @@ const pickGeoY=(function(){
 /* (2026-09-26, vague 2) LA LUMIÈRE, C'EST L'ARGENT : la pièce ÉMET son or (émissif blanc × sa propre texture ×1,05) et ne prend plus que la
    moitié de la lumière de la scène (diffus ×.5) — elle garde son relief (facettes, jonc, reflet spéculaire) sans virer à l'orange au
    couchant ni au bronze la nuit. ⚠ Émissif BLANC et pas « teinté or » : l'or multiplié par une texture d'or, c'est de l'orange. */
-const pickMat=new THREE.MeshPhongMaterial({map:coinTex,color:0x808080,emissive:0xffffff,emissiveMap:coinTex,emissiveIntensity:1.05,
-  shininess:90,specular:0xfff0b0,flatShading:true});
-const pickMat2=new THREE.MeshPhongMaterial({map:coinTex2,color:0x808080,emissive:0xffffff,emissiveMap:coinTex2,emissiveIntensity:1.05,
-  shininess:90,specular:0xfff0b0,flatShading:true}); // la 2 € : la même matière, sa propre toile
+/* (2026-11-06, « qu'elles arrêtent de briller autant ») MATE : l'émission tombe de 1,05 à ,68 (la pièce n'est plus sa propre lampe — le halo de l'étalonnage ne la
+   fait plus fondre en blanc), le diffus remonte de ,5 à ,6 (elle reprend du relief à la lumière du jour) et le spéculaire passe d'un jaune clair dur
+   (brillance 90) à un reflet sourd de métal usé (brillance 22, gris-brun). */
+const pickMat=new THREE.MeshPhongMaterial({map:coinTex,color:0x999999,emissive:0xffffff,emissiveMap:coinTex,emissiveIntensity:.68,
+  shininess:22,specular:0x4a4434,flatShading:true});
+const pickMat2=new THREE.MeshPhongMaterial({map:coinTex2,color:0x999999,emissive:0xffffff,emissiveMap:coinTex2,emissiveIntensity:.68,
+  shininess:22,specular:0x4a4434,flatShading:true}); // la 2 € : la même matière, sa propre toile
 const pickGeo2=pickGeo.clone();pickGeo2.scale(1.107,1.107,1.107); // 25,75 mm contre 23,25 mm : la 2 € est un peu plus grande
 // ---------- L'ÉTAL : les orbes bleues de boost deviennent des FRUITS ET LÉGUMES ----------
 // Lisses, laqués, appétissants : shininess haut + spéculaire blanc + reflet du ciel (envMap).
@@ -50536,7 +50831,7 @@ function photoPropre(){if(carWingL){carWingL.visible=false;carWingR.visible=fals
    (rose, cyan) qui la DÉTOURENT, peu d'ambiance (du modelé) ; une relève douce avec une ÉPAULE (les couleurs vives gardent leur dégradé) ;
    une ombre de contact et le reflet d'un sol verni sous les roues. Mêmes appels, même cache : garage, missions et boutique en profitent. */
 const PHOTO_W=720,PHOTO_H=440,PHOTO_SS=2,PHOTO_ROT=-.12,PHOTO_AZ=.70,PHOTO_EL=.27;
-const PHOTO_AILE={el:1,az:.15}; // (2026-10-15) une aile se photographie DE FACE et d'en haut (57°) : les deux ailes s'ouvrent à gauche et à droite, comme un avion qui arrive (dbgAile pour régler ; essayé de trois quarts : la caisse mangeait la photo)
+const PHOTO_AILE={el:.75,az:0}; /* (2026-11-06, Léo : « les ailes face aux joueurs, vues de haut, pour qu'on voie ce que c'est ») les deux ailes de face, symétriques, vues d'en haut (43°) — */ /* (2026-11-06, Léo : « enlever la voiture de l'affichage des ailes, les montrer symétriques face à nous ») les ailes SEULES, de face à hauteur d'œil (la caisse est cachée : photoSeulesAiles) */ // // (2026-10-15) une aile se photographie DE FACE et d'en haut (57°) : les deux ailes s'ouvrent à gauche et à droite, comme un avion qui arrive (dbgAile pour régler ; essayé de trois quarts : la caisse mangeait la photo)
 /* LA PHOTO D'UNE AILE (2026-10-15, Sacha : « pour les ailes il n'y a pas de photo, c'est pas bien ») : la caisse équipée, l'aile essayée,
    DÉPLOYÉE comme en vol (pleine envergure, léger dièdre), vue de trois quarts en plongée — même studio, même pellicule que les caisses */
 /* ===== LA MÉMOIRE DES PHOTOS (24/10, relecture : « les adresses blob: de PHOTO.cache ne sont jamais libérées ») =====
@@ -50581,7 +50876,9 @@ function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.scene.add(hemi,key,fill,rim,rim2,bas);PHOTO.key=key;}
 function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=w.userData.k||1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}
   try{ailvPose();}catch(e){}} // (2026-10-16, LES AILES VIVANTES) l'aile au plus beau de son geste : boost tenu (les ailes en X ouvertes, la lave qui flambe…)
-function aileFile(id,cb,el){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a:'+id+':'+c;
+/* (2026-11-06, Léo : « enlever la voiture de l'affichage des ailes ») la photo d'une aile ne montre QUE les deux ailes : tout maillage hors des ailes est caché (le cadre se calcule sur ce qui reste) */
+function photoSeulesAiles(){const L=[carWingL,carWingR];carGroup.traverse(function(o){if(!o.isMesh&&!o.isSprite&&!o.isLine&&!o.isPoints)return;for(let a=o;a;a=a.parent){if(L.indexOf(a)>=0)return;if(a===carGroup)break;}o.visible=false;});}
+function aileFile(id,cb,el){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a3:'+id+':'+c;
   if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,j:j},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* (2026-10-14, OPTIMISATION — passation perf : « BOUTIQUE ~400 ms à l'ouverture = shopPhotoTour : 8 toDataURL 164 ms + 8 readPixels 66 ms ») —
    `carPhoto(i, cb)` : avec un rappel, la photo finit en `toBlob` (l'encodage PNG part hors du fil, le rappel reçoit une adresse `blob:` d'une
@@ -50632,7 +50929,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   try{
     if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
     else buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
-    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile)photoAiles();
+    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile){photoAiles();photoSeulesAiles();}
     carGroup.updateMatrixWorld(true);
     // LA BOÎTE de ce qu'on voit (maillages visibles seulement : les halos cachés gonfleraient le cadre)
     const bx=new THREE.Box3(),b9=new THREE.Box3();
@@ -50671,7 +50968,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
     const yb=Math.round((1-(ymin*.5+.5))*H); // la ligne du sol, en pixels de la photo
     // L'OMBRE DE CONTACT, douce, sous la caisse
-    {x.save();x.translate(W/2,yb);x.scale(1,.13);const g9=x.createRadialGradient(0,0,0,0,0,W*.44);g9.addColorStop(0,'rgba(0,0,0,.62)');g9.addColorStop(.55,'rgba(0,0,0,.30)');g9.addColorStop(1,'rgba(0,0,0,0)');
+    if(!aile){x.save();x.translate(W/2,yb);x.scale(1,.13);const g9=x.createRadialGradient(0,0,0,0,0,W*.44);g9.addColorStop(0,'rgba(0,0,0,.62)');g9.addColorStop(.55,'rgba(0,0,0,.30)');g9.addColorStop(1,'rgba(0,0,0,0)');
      x.fillStyle=g9;x.fillRect(-W*.5,-W*.5,W,W);x.restore();}
     // LE REFLET d'un sol verni : la photo retournée sous la ligne du sol, qui s'éteint en 20 % de la hauteur
     /* (2026-10-15) pas de reflet sous une AILE : en plongée, le sol verni dessinait un fantôme d'aile */
@@ -50838,7 +51135,7 @@ window.dbgFigFilm=function(id,dir,o){if(o)Object.assign(FILM_FIG,o);if(!id){for(
   const k='fa:'+id+':'+(dir||'cote')+':'+equippedCar();delete PHOTO.cache[k];
   const u=figFilm({k:k,fig:id,dir:dir||'cote'},null);const T=PHOTO.msF||{},r=function(v){return v==null?null:Math.round(v);};
   return {url:u,images:T.images,msCaisse:r(T.caisse),msRendu:r(T.rendu),msMontage:r(T.montage),msTotal:r(T.total),cartes:FILM.l.length,reglage:Object.assign({},FILM_FIG)};};
-window.dbgAile=function(id,o){if(o)Object.assign(PHOTO_AILE,o);const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return 'aile inconnue';const c=equippedCar(),k='a:'+id+':'+c;delete PHOTO.cache[k]; // (banc) la photo d'une aile, refaite (o : {el, az} du studio)
+window.dbgAile=function(id,o){if(o)Object.assign(PHOTO_AILE,o);const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return 'aile inconnue';const c=equippedCar(),k='a3:'+id+':'+c;delete PHOTO.cache[k]; // (banc) la photo d'une aile, refaite (o : {el, az} du studio)
   const u=carPhoto(c,null,{k:k,j:j});return {url:u,box:PHOTO.ms&&PHOTO.ms.box,ailes:PHOTO.ms&&PHOTO.ms.ailes,caisse:CARS[c].name,reglage:Object.assign({},PHOTO_AILE)};};
 window.dbgPhoto=function(){const T=PHOTO.ms;if(!T)return 'aucune photo';const r=v=>v==null?null:Math.round(v);return {caisse:CARS[T.i]&&CARS[T.i].name,msCaisse:r(T.caisse),msRendu:r(T.rendu),msPellicule:r(T.pellicule),msMontage:r(T.montage),msTotal:r(T.total),enAttente:PHOTO.att?Object.keys(PHOTO.att).length:0,enCache:Object.keys(PHOTO.cache).length};}; // (banc) le détail de la dernière photo
 /* L'ATELIER DES CAISSES (dev, 2026-09-26) — `dbgEssaiCaisse(src, fiche, vues)` : essaie un gabarit ÉCRIT EN TEXTE (une expression
@@ -51621,7 +51918,7 @@ function peintDefisVerifie(enC){if(enC&&!m2Ok())return 0;let s;try{s=m2Etat();}c
 function peintFond(d,c0){const hx=function(c9){return '#'+((c9>>>0)&0xffffff).toString(16).padStart(6,'0');};return d.mot?motFond(d).replace('center/200% auto','center/100% auto'):d.grad?'linear-gradient(150deg,'+d.grad.map(hx).join(',')+')':hx(d.c!=null?d.c:(c0!=null?c0:0xff7a3a));}
 function peintPastille(d,cl,c0){return '<i class="'+cl+cosmSwCl(d)+'" style="background:'+peintFond(d,c0)+'"></i>';}
 /* la grande pastille d'une carte de la boutique : la tôle vernie, et pour une peinture à défi pas encore à toi, la cible et sa jauge */
-function peintCarte(d){let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;}catch(e){}let h=peintPastille(d,'bqSw pSw',c0);
+function peintCarte(d){let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;}catch(e){}let h=peintPastille(d,'bqSw pSw sp5',c0); /* (2026-11-06, Léo : « pour chacune des couleurs la forme et la taille sont différentes ») (v1228, Léo : « une seule forme aléatoire, la même pour toutes les couleurs ») le MÊME splash (sp5) pour toutes : voir css/boites-blister.css */
   if(d.def&&!shopOwned('peinture',d.id)){const p=peintDefFrac(d);h+='<span class="pDef" title="'+sansAcc(TR(d.def.t)).replace(/"/g,'')+'">'+pxi('cible')+(p>=0?'<u><em style="width:'+Math.round(p*100)+'%"></em></u>':'')+'</span>';}
   return h;}
 /* « OU GAGNE-LA » sous le nom de la peinture regardée (#gBqNom) : la phrase du défi, sa jauge (un exploit d'un coup n'en a pas) */
@@ -58463,8 +58760,8 @@ window.dbgMusWa=function(k){ // console : l'état · dbgMusWa('raz') efface la c
    la boutique) — la musique s'efface en fondu puis se met en PAUSE (elle garde sa place), et RIEN ne la relance tant qu'il vaut vrai
    (ni le toucher, ni le retour d'arrière-plan : musicJoue l'ignore en mode menu). Le garage la rallume : elle repart de zéro en fondu. */
 /* (2/11 soir) MUS_CIEL_LOBBY : le niveau du lobby lié au ciel, 30 % de celui du garage (−10,5 dB ; avant : MUS_CIEL .15, −16 dB). MESURÉ au jeu : au ciel les morceaux clairsemés sortaient 9 dB SOUS le vent (inaudibles), les pleins 9 dB au-dessus ; le nivellement (pbjPlancher, jusqu'à 24 dB pour le lobby) les amène tous au même niveau final, ~4 dB au-dessus du vent. */
-const MUS_CIEL_LOBBY=.27;
-let MUS_TAIT=false;const MUS_CIEL=.15; // au ciel, la musique à 15 % de celle du garage (−16 dB), derrière le vent — (même soir, Léo : « vraiment très légère, comme si on l'entendait en tombant ») : .4 → .15, et elle RESPIRE avec le vent (voir musicTick)
+const MUS_CIEL_LOBBY=.36; /* (2026-11-06, Léo : « augmente un peu le son de la musique, sans dépasser le garage ») .27 → .36 (+2,5 dB) ; le garage reste à 1 */
+let MUS_TAIT=false;const MUS_CIEL=.2; /* (2026-11-06) .15 → .2, idem */ // au ciel, la musique à 15 % de celle du garage (−16 dB), derrière le vent — (même soir, Léo : « vraiment très légère, comme si on l'entendait en tombant ») : .4 → .15, et elle RESPIRE avec le vent (voir musicTick)
 const MUSIC_PASSIF={passive:true,capture:true};
 function musicElGet(){
   if(!musicEl){
@@ -63414,7 +63711,7 @@ function m2Verifie(enC){const s=m2Etat();let n=0;try{peintDefisVerifie(enC);}cat
 function m2Annonce(m,enC){const r=m.r||{};
   if(m.f==='secret'){if(enC)m2LigneDit('sec','? ? ?','');return;}
   const p=r.cash?'+'+fmtC(r.cash):r.car?TR(r.car):r.cat?TR(((COSM[r.cat]||[]).find(function(x){return x.id===r.id;})||{n:''}).n):'';
-  if(enC&&m2LigneDit('ok',sansAcc(m2Txt(m)),p))return;try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
+  if(enC&&m2LigneDit('ok',sansAcc(m2Txt(m)),p))return;if(M2R.fin&&!m2AnnonceMort(m))return; /* (2026-11-06) à la mort, seule une mission qui donne une voiture s'annonce */try{toast(pxi('coche')+' '+TR('MISSION RÉUSSIE')+' · '+sansAcc(m2Txt(m)),true);}catch(e){}}
 /* LA LIGNE DES MISSIONS (2026-10-17, Sacha : « il y a trop de pop-up mission pendant la partie, écris-le en ligne, un peu plus discrète,
    en bas de l'écran ») : en course, une mission réussie ne pose plus la bannière du haut (#misBan, qui reste aux astuces et aux combos) mais
    UNE ligne de texte en bas (#m2Ligne), juste au-dessus des missions suivies (#m2Focus) — couché au centre, debout à gauche (la colonne de
@@ -63521,7 +63818,7 @@ function m2Mort(cause){if(!m2Ok())return;const s=m2Etat();s.c.morts=(s.c.morts|0
 function m2Fin(){ // endGame (une mort, ou QUITTER) : la partie entière se juge ici
   try{if(BALADE||SANDBOX||(PARK&&PARK.on)||TUTO.on||TUTO.quitte)return;}catch(e){return;}
   if(mortCause&&M2R.ctl>=M2K.partie){if(!(RUNX.nitro>0))m2Flag('sansnit');if(!(RUNX.coins>0))m2Flag('sanspiece');if(!M2R.sonne)m2Flag('silence');}
-  m2Verifie(false);{const s9=m2Etat();s9.su=s9.su.filter(function(id){return s9.ok.indexOf(id)<0;});} /* une suivie réussie se récupère : elle quitte le suivi */SAVE.flush();}
+  M2R.fin=1;try{m2Verifie(false);}finally{M2R.fin=0;}{const s9=m2Etat();s9.su=s9.su.filter(function(id){return s9.ok.indexOf(id)<0;});} /* une suivie réussie se récupère : elle quitte le suivi */SAVE.flush();}
 function m2Rejoue(){const s=m2Etat();s.c.rejoue=(s.c.rejoue|0)+1;if(s.c.rejoue>(s.r.rejoue|0))s.r.rejoue=s.c.rejoue;SAVE.mark();}
 function m2Menu(){const s=m2Etat();if(s.c.rejoue){s.c.rejoue=0;SAVE.mark();}}
 /* CONSOLE : dbgMissions() = chaque mission (visibles ET secrètes) : sa valeur, son seuil, réussie, prise · dbgMissions('gagne',id) = la
@@ -63676,7 +63973,7 @@ function mcLigne(x,k,s){const m=x.m,pret=x.rg===0,ok=x.ok&&!pret,R=mcRec(m),w=mc
   return '<div class="mcL'+(pret?' pret':'')+(ok?' ok':'')+(hab?' hab':'')+'" data-m2="'+m.id+'" role="button" tabindex="0" style="--i:'+Math.min(k,12)+(hab?';--rc:'+R.c:'')+'">'
     +'<div class="mcLt"><b>'+(m.f==='secret'?sansAcc(TR('SECRÈTE'))+' · ':'')+sansAcc(m2Txt(m))+'</b><span class="mbR'+(m2CarVoir(m)&&!pret?' voir':'')+'">'+rec+'</span></div>'+bas+'</div>';}
 function mcLignePal(d){return '<div class="mcL ok" data-pal="'+d.id+'"><div class="mcLt"><b>'+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><span class="mbR voir">'+objFig({cat:'peinture',i:COSM.peinture.indexOf(d)})+'</span></div><small class="mcFait">'+sansAcc(TR('SECRÈTE'))+' · '+sansAcc(TR('RÉUSSIE'))+'</small></div>';}
-function mcEntete(ic,nom,cpt){return '<div class="gModeT mcSec">'+pxi(ic)+'<span>'+sansAcc(TR(nom))+'</span><s></s><b>'+cpt+'</b></div>';}
+function mcEntete(ic,nom,cpt,cl){return '<div class="gModeT mcSec'+(cl?' '+cl:'')+'">'+pxi(ic)+'<span>'+sansAcc(TR(nom))+'</span><s></s><b>'+cpt+'</b></div>';}
 function m2Vue(L,s,vu){ // → {ved : la vedette (l'écran de mort seulement, depuis le 2026-11-05) · listeTab : TOUTES les missions de l'onglet MISSIONS, en sections · n : missions à l'écran}
   const prets=L.filter(function(x){return x.rg===0;}),reste=L.filter(function(x){return x.rg===1||x.rg===2;});
   const fo=function(x){const o=M2_ORDRE[x.m.f];return o==null?9:o;};
@@ -63686,7 +63983,7 @@ function m2Vue(L,s,vu){ // → {ved : la vedette (l'écran de mort seulement, de
   if(!ved){let b=-1;for(const x of reste)if(x.m.r&&x.m.r.car&&x.p>b){b=x.p;ved=x;}}
   if(!ved)for(const x of reste)if(!ved||x.p>ved.p)ved=x;
   let listeTab='',k=0;
-  if(prets.length){listeTab+=mcEntete('cadeau','À RÉCUPÉRER',prets.length);for(const x of prets)listeTab+=mcLigne(x,k++,s);}
+  if(prets.length){listeTab+=mcEntete('cadeau','À RÉCUPÉRER',prets.length,'mcRec9');for(const x of prets)listeTab+=mcLigne(x,k++,s);}
   let fam='';
   for(const x of reste){const f=x.m.f;
     if(f!==fam){fam=f;let tot=0,ok=0;for(const m of M2){if(m.f!==f||!m2Dispo(m))continue;tot++;if(s.ok.indexOf(m.id)>=0)ok++;}
@@ -63732,15 +64029,72 @@ function m2Recupere(id,row){
   else toast(pxi('piece')+' +'+fmtC(o.cash)+' '+TR('VERSÉS AU COMPTE'),true);
   try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}
   setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions'))m2Render(true);else m2Portes();},REDUCED_MOTION?0:560);}
+/* ===== RÉCUPÉRER EN SPAMMANT (2026-11-06, Sacha : « quand on réussit une mission elle doit avoir une animation cool et se remplacer vite, genre on peut
+   récupérer toutes les récompenses en spammant ») =====
+   Avant : un toucher sur une ligne verte = le geste complet (pop, toast, 560 ms, PUIS toute la liste reconstruite) ; la ligne restait là et un 2e toucher
+   donnait le son du refus ; la caisse en silhouette attendait même 1,4 s. Maintenant, dans l'écran MISSIONS (lignes .mcL) :
+   · la récompense est versée AU TOUCHER (m2Prend), sans attente ;
+   · la ligne FLASHE, un reflet la balaie, elle s'envole à droite et son hauteur se replie en ~0,35 s (.vite) — la suivante MONTE sous le doigt ;
+   · le gain (« +1 500 € », le nom de la caisse) s'élève depuis la ligne ; l'éclat de pixels part de la ligne ; le compteur d'argent défile ;
+   · une SÉRIE : chaque toucher en moins d'1,5 s allonge « ×N » (et son cumul d'euros) et monte la note d'un cran (gamme pentatonique) ;
+   · un toucher sur une ligne qui s'envole encore prend la PROCHAINE ligne verte (aucun toucher n'est perdu) ;
+   · la liste n'est reconstruite qu'une fois, 0,9 s après le dernier toucher (les réussies passent au pli « MISSIONS RÉUSSIES »).
+   Une SECRÈTE à caisse garde sa révélation (le moment fort, jamais sautée par la série). `?recup=ancien` = l'ancien geste. */
+const M2VITE=!/[?&]recup=ancien\b/.test(location.search);
+const M2V={n:0,t:0,cash:0,rend:0,cb:0,g:[0,2,4,7,9,12,14,16,19,21,24]};
+Object.assign(I18N,{'SÉRIE':'COMBO'});
+function m2VitePret(row){ /* la ligne verte qui suit (sinon la première) : jamais une secrète à révélation, qui se touche exprès */
+  const sec=m2RevFile(),L=[].slice.call(document.querySelectorAll('#gmListe .mcL.pret:not(.vite)')).filter(function(e){return sec.indexOf(e.getAttribute('data-m2'))<0;});
+  if(!L.length)return null;
+  const p=row&&L.find(function(e){return !!(row.compareDocumentPosition(e)&4);});
+  return p||L[0];}
+function m2ViteEnTete(){ /* l'en-tête « À RÉCUPÉRER n » : le compte baisse, il s'efface à zéro */
+  const h=document.querySelector('#gmListe .mcRec9');if(!h)return;
+  const n=document.querySelectorAll('#gmListe .mcL.pret:not(.vite)').length,b=h.querySelector('b');
+  if(b)b.textContent=n;if(!n)h.classList.add('vide');}
+function m2ViteGain(row,o){ /* le gain qui s'élève depuis la ligne */
+  const r=row.getBoundingClientRect();let h,c='';
+  if(o.car!=null)h=pxi('voiture')+' '+sansAcc(TR(CARS[o.car].name));
+  else if(o.cat){const d=(COSM[o.cat]||[]).find(function(x){return x.id===o.hab;});h=pxi('coche')+' '+sansAcc(TR(d?d.n:'')) ;c=' hab';}
+  else h='+'+fmtC(o.cash);
+  const g=document.createElement('div');g.className='m2Gain'+(o.car!=null?' car':c);g.innerHTML=h;
+  g.style.left=Math.round(r.left+r.width*.5)+'px';g.style.top=Math.round(r.top+r.height*.5)+'px';
+  document.body.appendChild(g);setTimeout(function(){g.remove();},900);}
+function m2ViteSerie(o){ /* la pastille ×N de la série */
+  if(M2V.n<2)return;let e=document.getElementById('m2Combo');
+  if(!e){e=document.createElement('div');e.id='m2Combo';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}
+  e.innerHTML='<small>'+sansAcc(TR('SÉRIE'))+'</small><b>×'+M2V.n+'</b>'+(M2V.cash?'<em>+'+fmtC(M2V.cash)+'</em>':'');
+  e.classList.remove('pop');void e.offsetWidth;e.classList.add('on','pop');
+  clearTimeout(M2V.cb);M2V.cb=setTimeout(function(){e.classList.remove('on');},1500);}
+function m2RecupVite(id,row){
+  if(!m2Pret(id)){m2Recupere(id,row);return;} /* « bientôt au garage » : le geste d'avant (secousse, toast) */
+  const o=m2Prend(id);if(!o){uiClic('refus');return;}
+  const now=performance.now();M2V.n=now-M2V.t<1500?M2V.n+1:1;M2V.t=now;M2V.cash=(M2V.n===1?0:M2V.cash)+(o.cash||0);
+  const st=M2V.g[Math.min(M2V.n-1,M2V.g.length-1)];
+  try{if(SONV2){sfx(o.cash?'ui.achat':'ui.debloque',{st:st});if(M2V.n===1&&!REDUCED_MOTION)sfx('ui.tampon',{t:.2,vol:-4});if(M2V.n%5===0)sfx('ui.mission');}else uiClic('ok');}catch(e){}
+  hap(M2V.n>2?[10]:[12,30,18]);
+  if(o.car!=null)try{carSnapshot();}catch(e){}
+  try{gBankPaint();}catch(e){}try{m2Portes();}catch(e){}
+  row.classList.add('vite');if(row.querySelector('.mcSil.duo'))row.classList.add('revele'); /* la caisse sort du noir pendant que la ligne part */
+  if(REDUCED_MOTION){row.remove();m2ViteEnTete();}
+  else{row.style.setProperty('--h',row.offsetHeight+'px');
+    try{pixBurst(row.querySelector('.m2Pr')||row,12);pixBurst(row.querySelector('.mbR')||row,10);}catch(e){}
+    m2ViteGain(row,o);m2ViteSerie(o);
+    setTimeout(function(){row.remove();m2ViteEnTete();},360);
+    m2ViteEnTete();}
+  clearTimeout(M2V.rend);M2V.rend=setTimeout(function(){if(garageOn&&gEl&&gEl.classList.contains('missions')&&!document.querySelector('#gmListe .mcL.vite'))m2Render(true);else m2Portes();},900);}
 function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
   if(t.closest('.mcBack')){uiClic('retour');garMisRetour();return;} /* (2026-11-03, refonte) le ◀ de la page */
   const fin=t.closest('.m2Fin');if(fin){M2E.fin=!M2E.fin;uiClic(M2E.fin?'on':'off');hap(8);m2Render(true);
     if(M2E.fin){const f2=document.querySelector('#gmListe .m2Fin');if(f2&&f2.scrollIntoView)try{f2.scrollIntoView({block:'start',behavior:REDUCED_MOTION?'auto':'smooth'});}catch(x){}}return;}
   const pal=t.closest('[data-pal]');if(pal){const j=COSM.peinture.findIndex(function(d){return d.id===pal.getAttribute('data-pal');});if(j<0)return;uiClic('nav');
     ecranWipe(function(){garMode('boutique');shopTab('peinture');shopShow('peinture',j);});return;}
-  const row=t.closest('.m2L,.mcL,.mcV');if(!row)return;const id=row.getAttribute('data-m2'),m=m2Def(id);if(!m)return;const s=m2Etat();
+  let row=t.closest('.m2L,.mcL,.mcV');if(!row)return;
+  if(row.classList.contains('vite')){row=m2VitePret(row);if(!row)return;} /* (2026-11-06) un toucher sur la ligne qui s'envole prend la suivante : aucun toucher perdu */
+  const id=row.getAttribute('data-m2'),m=m2Def(id);if(!m)return;const s=m2Etat();
   if(row.classList.contains('pret')){if(m.f==='secret'&&m2Revele(id))return;
     if(row.classList.contains('revele'))return; /* (2026-11-03) la révélation est en cours */
+    if(M2VITE&&row.classList.contains('mcL')){m2RecupVite(id,row);return;} /* (2026-11-06) la récupération en série, voir plus haut */
     if(row.querySelector('.mcSil.duo')&&m2Pret(id)){row.classList.add('revele');try{if(SONV2)sfx('ui.debloque');}catch(x){}hap([20,60,20,60,60]); /* la caisse sort du noir, PUIS elle est à toi */
       setTimeout(function(){if(row.isConnected)m2Recupere(id,row);},REDUCED_MOTION?0:1400);return;}
     m2Recupere(id,row);return;} // une SECRÈTE qui brille : sa révélation · (2026-10-31) AVANT la photo : sur une ligne prête, la photo récupère aussi (voir m2PrendIci)
@@ -63784,9 +64138,14 @@ Object.assign(I18N,{'AUCUNE MISSION AVANCÉE':'NO MISSION PROGRESS'});
 /* d'où part la mission au début de cette partie : les missions « d'une partie » (aura, figures, vitesse…) partent de 0, le moteur de 1, les autres
    du cliché pris au départ (M2R.v0, defis-moteur.js) ; null = on ne sait pas (partie trop courte, cliché pas encore pris) */
 function m2Avant(m){const k=m.k;if(k==='eng')return 1;if(/^(aura|parf|fig|vie|frenT|kmh|tours|airP)$/.test(k))return 0;const V=M2R.v0;return V&&(m.id in V)?V[m.id]:null;}
+/* (2026-11-06, Sacha : « enlève les écrans à la mort qui annoncent qu'on a réussi une mission qui rapporte de l'argent, fait que pour les voitures ») à la mort,
+   seule une mission qui donne une VOITURE s'annonce réussie (carte de mort, toast) ; celles qui rapportent de l'argent ou un habillage se récupèrent
+   dans l'écran MISSIONS, sans rien dire. ?sans=annoncemort = l'ancien comportement. */
+const M2MORT_TOUT=/[?&]sans=([^&]*,)?annoncemort(,|&|$)/.test(location.search);
+function m2AnnonceMort(m){return M2MORT_TOUT||!!(m&&m.r&&m.r.car);}
 function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search); /* l'écran de mort v6 (MORT_FLOT vit dans la coque, hors de portée ici) */
   const s=m2Etat(),L=[];
-  for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
+  for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&m2AnnonceMort(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
   if(!flot9)for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
   /* (2026-11-03, Sacha : « améliorer encore un peu », puis « mission il prend trop de place ») le panneau ne reste plus à moitié vide :
      il se complète avec les missions les plus proches du but (avec leur barre), jusqu'à 2 (couché, le ×2 prend sa place sous le panneau) */
@@ -64368,6 +64727,12 @@ const EMI={};
 PAL.B.emiK=[.6,.8,1];
 function emiN(k,dt){const K=PAL.b('emiK',1);if(K>=1){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;}
   const a=(EMI[k]||0)+Math.min(dt,.067)*60*K,n=Math.max(0,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;} // le reste reporté (−0,5 au plus) : 60 par seconde pile à 30, 40 ou 50 i/s ; au-dessus de 60, une émission par image comme avant
+/* (2026-11-07, passe perf 3, P2 · levier e) DEMI-DENSITÉ À GRANDE VITESSE sur téléphone récent : au-delà de 200 km/h les traits d'air (`emiVit`) et l'émission des traînées (`densVit`)
+   naissent deux fois moins (report fractionnaire : la moyenne tient) — à cette vitesse tout file, l'œil ne compte plus les traits et le remplissage additif est ce que la puce paie le plus cher ;
+   `PAL.B.imgDensVit=[1,1,.5]` (colonnes ancien/moyen non lues) ; `?img=max` / `?imgsans=e` = comme avant ; l'ordinateur ne change pas. */
+PAL.B.imgDensVit=[1,1,.5];
+function densVit(kmh){if(IMG_DYN.dens!=null)return kmh>IMG_DYN.vmin?IMG_DYN.dens:1; /* `imgRegle({stries:f})` : imposé à chaud */return kmh>200?PAL.bT('imgDensVit',1,'e'):1;}
+function emiVit(k,n,kmh){const f=densVit(kmh);if(f>=1)return n;const a=(EMI[k+'v']||0)+n*f,m=Math.round(a);EMI[k+'v']=a-m;return m;}
 /* (2026-10-28, Léo : « il y a toujours quelques traits moins droits et exacts que ceux autour, trouve-les ») LES ANCIENS TRAITS D'AIR s'effacent : ces points posés dans le monde
    filent en perspective vers un point de fuite un peu différent de celui des filets de l'écran (shader final) — d'où les quelques traits de travers parmi les droits. Les filets les remplacent ; `?traits=0` rend les deux. */
 const TRAITS_NEUFS=!/[?&]traits=0\b/.test(location.search);
@@ -66566,8 +66931,11 @@ function dmtRattrape(net){const D=DMT,mx=D.mx,q=net?THREE.MathUtils.clamp(1-(D.t
      « beaucoup plus explosif » — « ×3 » — « tu arrives à contresens, la voiture fait le demi-tour, pendant que tu tournes ça prépare un boost, et
      dès que tu es en face de la route, ça décolle ») LE RATTRAPAGE EST LE DÉCOLLAGE : la charge a monté pendant tout le demi-tour (dmtCharge,
      appelée par dmtGlace) ; ici, la caisse est en face de la route : `dmtDecolle` la lâche — le boost additif ×3, le nitro, le wheelie. */
+  /* (2026-11-06, Sacha : « après un mauvais virage le texte reste affiché ») LE PANNEAU S'EFFACE DANS LES DEUX CAS : « DÉCOLLAGE ! » (le seul
+     qui rangeait « MAUVAIS SENS » dans le cas `net`) a été retiré le 03/11 ; depuis, un rattrapage propre laissait le panneau visible jusqu'à
+     la chute ou la mort suivante (dmtCoupe). */
+  dmtSigne(false);
   if(net){D.chargeQ=q;dmtDecolle();}
-  else dmtSigne(false);
 }
 /* ===== LE DÉCOLLAGE (2026-11-03, Sacha : « pas du tout assez puissant, il faut vraiment décollage, augmente le boost de 300 % — tu
    arrives à contresens, la voiture fait "chiii", zoom caméra qui se serre, les flammes se concentrent à l'intérieur du moteur, elles se
@@ -74376,13 +74744,15 @@ function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?n
   let px,c='';if(vo){const p9=bqPrixCaisse(i);px=(p9.c==='pc'?pxi('piece'):'')+String(p9.t).replace(/</g,'');c=p9.c;}
   else if(a){px=sansAcc(TR('À TOI'));c='acq';}else if(d.pack==='chat'){px=sansAcc(TR('PACK CHAT'));c='eur';}else if(d.eur){px=eurTxt(d.eur);c='eur';}else if(d.p){px=pxi('piece')+bqPxT(d.p);c='pc';}else{px=sansAcc(TR('MISSION'));c='defi';} /* (2026-10-18 soir) l'ARC-EN-CIEL : PACK CHAT (voir chatPackI) */
   if(bqPxLg(px))c+=' lg';
+  /* (2026-11-06, Léo : « la mission doit montrer sa progression ») une caisse à MISSION (pas la secrète) : une jauge sous le mot, remplie à l'avancement réel */
+  if(vo&&c.indexOf('defi')>=0&&c.indexOf('sec')<0&&!a){try{const m9=m2DeCaisse(i);if(m9){const t9=m2Seuil(m9),f9=m2Frac(m9,m2Val(m9),t9),pc9=Math.round(100*f9);px+='<b class="jg" title="'+m2Prog(m9,m2Val(m9),t9).replace(/"/g,'')+'"><u style="width:'+pc9+'%"></u></b>';}}catch(e){}}
   /* (2026-10-31, clarté boutique) une figure à DEUX SENS a une carte dans chacune de ses sections : un petit badge dit qu'elle joue AUSSI
      dans l'autre emplacement (sinon ça ressemble à un doublon) — sa couleur reprend celle de CET autre emplacement (voir FIG_DC) */
   const autres=(!vo&&o.cat==='figure')?bqFigAutres(d.id,dir!=null?dir:figPeut(d.id)[0]):[];
   const badgeAutre=autres.map(function(x){return '<span class="bqKd2'+(FSEL.dir<0?' pick':'')+'"'+(FSEL.dir<0?' data-pick="'+x+'"':'')+' style="--dc:'+FIG_DC[x]+'" title="'+sansAcc(TR('AUSSI'))+' : '+sansAcc(TR(FIG_FAM[x][0]))+'">'+pxi(FIG_FAM[x][2])+'</span>';}).join('');
-  return '<div class="bqK'+(vo?' b-'+(sec9?'secrete':ri.id||'commun'):'')+(sec9?' m2sec':'')+(lim?' off':'')+(vo?' vo r-'+(sec9?'secret':carRar(i)):' hab r-'+cosmRar(o.cat,d))+'" data-k="'+k+'"'+(dir!=null?' data-dir="'+dir+'"':'')+' role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+(autres.length?' · '+sansAcc(TR('AUSSI'))+' '+autres.map(function(x){return sansAcc(TR(FIG_FAM[x][0]));}).join(', '):'')+'">'
-    +(vo?'<i class="bqKv" aria-hidden="true"><i class="f bk"></i><i class="f lf"></i><i class="f fl"></i><i class="f rt"></i><i class="f tp"></i><i class="f fr"></i></i>':'') /* (2026-11-05, la VITRINE : les six faces du verre, dessinées par le CSS du palier 2 ; ailleurs elles restent cachées — (2026-11-05, Léo/Sacha) seulement sur les VOITURES : peintures, ailes, traînées et figures gardent leur carte d'avant) */
-    +(vo?'<span class="bqKph scene" data-ph="'+i+'"></span>':o.cat==='aile'?'<span class="bqKph c-aile scene" data-pha="'+d.id+'"></span>':o.cat==='figure'?'<span class="bqKph c-figure" data-phf="'+d.id+'|'+FIG_DIR[dir!=null?dir:figPeut(d.id)[0]]+'">'+bqFigHab(k)+'</span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')+(vo&&!a&&i===chatPackI()?'<span class="bqKl arc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</span>':'')+badgeAutre
+  return '<div class="bqK'+' b-'+(sec9?'secrete':ri.id||'commun')+(sec9?' m2sec':'')+(lim?' off':'')+(vo?' vo r-'+(sec9?'secret':carRar(i)):' hab r-'+cosmRar(o.cat,d))+'" data-k="'+k+'"'+(dir!=null?' data-dir="'+dir+'"':'')+' role="button" style="--rc:'+ri.c+';--i:'+Math.min(n,8)+'" aria-label="'+String(nom).replace(/"/g,'')+(autres.length?' · '+sansAcc(TR('AUSSI'))+' '+autres.map(function(x){return sansAcc(TR(FIG_FAM[x][0]));}).join(', '):'')+'">'
+    +('<i class="bqKv" aria-hidden="true"><i class="f bk"></i><i class="f lf"></i><i class="f fl"></i><i class="f rt"></i><i class="f tp"></i><i class="f fr"></i>') /* (2026-11-06, Léo : « les boules de peinture dans les mêmes cubes de verre ») toutes les cartes, peintures comprises, ont leur cube ; (2026-11-06 : la photo est maintenant DANS le cube, au milieu des six faces) (2026-11-05, la VITRINE : les six faces du verre, dessinées par le CSS du palier 2 ; ailleurs elles restent cachées — (2026-11-05, Léo/Sacha) (2026-11-06, Léo : « les peintures, les ailes, les traînées aussi dans des vitres ») sur TOUTES les cartes, arrondies */
+    +(vo?'<span class="bqKph scene" data-ph="'+i+'"></span>':o.cat==='aile'?'<span class="bqKph c-aile scene" data-pha="'+d.id+'"></span>':o.cat==='figure'?'<span class="bqKph c-figure" data-phf="'+d.id+'|'+FIG_DIR[dir!=null?dir:figPeut(d.id)[0]]+'">'+bqFigHab(k)+'</span>':'<span class="bqKph c-'+o.cat+'">'+bqFigHab(k)+'</span>')+'</i>'+(lim&&!(vo&&CAR_UNLOCK[i]&&CAR_UNLOCK[i].une)?'<span class="bqKl">'+sansAcc(TR('LIMITÉE'))+'</span>':'')+(vo&&!a&&i===chatPackI()?'<span class="bqKl arc">'+insec(sansAcc(TR('+ TRAÎNÉE ARC-EN-CIEL')))+'</span>':'')+badgeAutre
     +'<span class="bqKr'+(sansAcc(TR(ri.n1)).length>8?' lg':'')+'">'+sansAcc(TR(ri.n1))+'</span><span class="bqKn">'+sansAcc(String(nom))+'</span><span class="bqKp '+c+'">'+px+'</span></div>';} /* (clarté 14/10) la RARETÉ s'écrit sur la carte */
 /* LES PHOTOS DES DEUX BOUTIQUES (2026-10-14, session OPTIMISATION — PILOTAGE : « les photos des cartes de la boutique du jour ne s'affichent
    plus »). `bqPhotos` était déclarée DEUX fois : celle des cartes du bandeau de l'atelier (`.fnC` + `.fnPh`, OFFRES ÉPHÉMÈRES / DU JOUR) et
@@ -74391,8 +74761,8 @@ function bqCarteHtml(k,n,lim,dir){const vo=k[0]==='v',i=vo?+k.slice(2):-1,o=vo?n
 function bqPhotos(el){
   el.querySelectorAll('.fnC[data-fn^="v:"],.fnC[data-fn^="o:"]').forEach(function(c){const i=+c.getAttribute('data-fn').slice(2);
     photoFile(i,function(url){const ph=c.querySelector('.fnPh');if(ph&&!ph.firstChild){const im=document.createElement('img');im.alt='';im.src=url;ph.appendChild(im);}},c);});
-  el.querySelectorAll('[data-ph]').forEach(function(x){photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const im=document.createElement('img');im.alt='';im.src=url;x.appendChild(im);}},x);}); /* (2026-10-16) l'élément : la photo attend que la carte soit EN VUE (voir LE STUDIO SANS À-COUPS) */
-  el.querySelectorAll('[data-pha]:not(.ok)').forEach(function(x){aileFile(x.getAttribute('data-pha'),function(url){if(x.classList.contains('ok')||!url)return;const im=document.createElement('img');im.alt='';im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');},x);}); /* (2026-10-15) les AILES ont leur photo (aileFile) — (2026-11-05) les ailes battantes en deux moitiés sont retirées : les ailes gardent leur carte d'avant */
+  el.querySelectorAll('[data-ph]').forEach(function(x){photoFile(+x.getAttribute('data-ph'),function(url){if(!x.firstChild){const cube=!!x.closest('.bqKv');for(let k=0;k<(cube?5:1);k++){const im=document.createElement('img');im.alt='';im.src=url;if(cube){im.className='cL';im.style.setProperty('--k',k);}x.appendChild(im);}}},x);}); /* (2026-11-06, Léo : « une voiture pas plate dans le cube ») dans un cube, la photo est empilée en 5 tranches (k = 0 devant … 4 au fond) : l'épaisseur de la caisse, qui se lit au moindre mouvement (voir boites-blister.css `.cL`) */ /* (2026-10-16) l'élément : la photo attend que la carte soit EN VUE (voir LE STUDIO SANS À-COUPS) */
+  el.querySelectorAll('[data-pha]:not(.ok)').forEach(function(x){aileFile(x.getAttribute('data-pha'),function(url){if(x.classList.contains('ok')||!url)return;const im=document.createElement('img');im.alt='';im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok'); /* (2026-11-06, Léo : « les ailes fixes, qui ne bougent pas ») une seule photo, immobile */},x);}); /* (2026-10-15) les AILES ont leur photo (aileFile) — (2026-11-05) les ailes battantes en deux moitiés sont retirées : les ailes gardent leur carte d'avant */
   el.querySelectorAll('[data-phf]:not(.ok)').forEach(function(x){const p=x.getAttribute('data-phf').split('|');figFile(p[0],p[1],function(url){if(x.classList.contains('ok')||!url)return;x.classList.add('ok');filmPose(x,url,p[0]);},x);});} /* (2026-10-15 soir) et les FIGURES leur photo-séquence (figFile), dans le sens de leur carte — (2026-10-18) leur FILM au ralenti (filmPose) */
 function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
   ui=document.createElement('div');ui.id='gBq';
@@ -78150,7 +78520,7 @@ function loop(now){
          combien coûte VRAIMENT une image ; si, agrandie au cran du dessus (coût ∝ pixels), elle tient encore sous 14 ms, on remonte */
       else if(sonde9){VHD.sT=0;VHD.t=-10;if(vhdMonte(now,QLR.vrai))VHD.t=0;} // pas de marge : la sonde se tait ~12 s
       else if(!VHD.sT||now-VHD.sT>3000){VHD.sT=now;qlSondeArme();}}}
-  else if(!RESPIN&&dprT<=0&&now>4000&&qlAuto()){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>24||QLR.p50>18.5; /* (OPTIMISATION) voir L'IMAGE EN AUTOMATIQUE */
+  else if(!RESPIN&&dprT<=0&&now>4000&&qlAuto()){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>PAL.bT('imgQlP75',24,'f')||QLR.p50>18.5; /* (2026-11-07, passe perf 3, P2 · levier f) téléphone récent : l'échelle QL réagit dès p75 > 19 ms (au lieu de 24 : « plus d'un quart des images ratées d'un tiers de période ») ; `?img=max` / `?imgsans=f` = 24 */ /* (OPTIMISATION) voir L'IMAGE EN AUTOMATIQUE */
     /* LA NETTETÉ NE SE SACRIFIE QUE SI ÇA PAIE (tour 2) : un cran de RÉSOLUTION posé, on regarde 3 s plus tard si la médiane a
        baissé. Si non (le téléphone bute ailleurs : processeur, affichage), la résolution revient et ce cran devient un MUR — on ne
        floute pas l'image pour rien. */
@@ -78577,7 +78947,7 @@ function loop(now){
         // traits d'AIR : discrets, de plus en plus nombreux à mesure que ça accélère
         if(speedKmh>140){ // seuils ×2 (SPD .25→.5 : km/h doublés) — mêmes traits d'air au même état-caisse
           const nS9=speedKmh>640?4:speedKmh>460?3:speedKmh>280?2:1;
-          for(let k9=0,n9=nS9*emiN('trS',dt);k9<n9;k9++)if(Math.random()<.85){ // (2026-10-09) à la seconde : voir emiN
+          for(let k9=0,n9=emiVit('trS',nS9*emiN('trS',dt),speedKmh);k9<n9;k9++)if(Math.random()<.85){ // (2026-10-09) à la seconde : voir emiN
             tmp2.copy(carGroup.position).addScaledVector(fwdW,10+Math.random()*40);
             tmp2.addScaledVector(tmp,(Math.random()-.5)*30);
             tmp2.addScaledVector(F.n,1+Math.random()*10);
@@ -78901,7 +79271,7 @@ function loop(now){
       if(speedKmh>120){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
         tmp.copy(fallVel).normalize();
         const nS9=speedKmh>480?3:speedKmh>260?2:1;
-        for(let k9=0,n9=nS9*emiN('trV',dt);k9<n9;k9++){ // (2026-10-09) à la seconde : voir emiN
+        for(let k9=0,n9=emiVit('trV',nS9*emiN('trV',dt),speedKmh);k9<n9;k9++){ // (2026-10-09) à la seconde : voir emiN
           tmp2.copy(fallPos).addScaledVector(tmp,10+Math.random()*30);
           tmp2.x+=(Math.random()-.5)*22;tmp2.y+=(Math.random()-.5)*16;tmp2.z+=(Math.random()-.5)*22;
           const ln9=4+speedKmh*.035;

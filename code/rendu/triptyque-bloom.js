@@ -7,9 +7,10 @@ renderer.shadowMap.enabled=true;
    Le type entre dans le #define des matières : il se choisit ICI, avant toute compilation, et plus personne ne le change ensuite.
    RÉCENT : ombre douce, comme avant. (`?palier=2` pour comparer.) */
 PAL.B.postOmbreDouce=[0,0,1];
-renderer.shadowMap.type=PAL.b('postOmbreDouce',1)?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
+PAL.B.imgOmbreDouce=[0,0,0];PAL.B.imgOmbre=[1024,1024,768]; /* (2026-11-07, passe perf 3, P2 · levier b) téléphone récent : ombre PCF simple (17 lectures au lieu de 36 par pixel éclairé) et carte de 768 au lieu de 1024 ; `?img=max` / `?imgsans=b` = comme avant */
+renderer.shadowMap.type=PAL.bT('imgOmbreDouce',PAL.b('postOmbreDouce',1),'b')?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 sun.castShadow=true;
-sun.shadow.mapSize.set(ALLEGE||IS_LOW_END?1024:1280,ALLEGE||IS_LOW_END?1024:1280); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
+const OMBRE_N=ALLEGE||IS_LOW_END?PAL.bT('imgOmbre',1024,'b'):1280;sun.shadow.mapSize.set(OMBRE_N,OMBRE_N); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
 const SUNC=sun.shadow.camera;
 SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=340;SUNC.updateProjectionMatrix(); // fond profond : l'ombre atteint la dalle même très haut au-dessus de la route
 sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2 texels) : assez pour tuer l'acné, pas de quoi décoller l'ombre
@@ -277,7 +278,7 @@ if(CAN_POST){ try{
      tuiles. ANCIEN : 3 étages (7 passes), MOYEN : 4 (9 passes), RÉCENT : 5 (11 passes, comme avant). Le poids des étages retirés se
      reporte sur le dernier calculé (même énergie, même alpha, même écrêtage) : le halo garde sa force, il s'étale juste un peu moins loin.
      Console : `bloomPass._nM=5` rend les 5 étages. Ne vaut que pour le chemin fusionné (`?bloom=ancien` garde tout). */
-  PAL.B.postBloomMips=[3,4,5];bloomPass._nM=ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?Math.min(4,PAL.b('postBloomMips',5)):PAL.b('postBloomMips',5); /* (2026-11-05, Opus : jury RND-06) un téléphone RÉCENT (palier 2) avait les 5 étages de halo de l'ordi : 4 sous ALLEGE (2 passes plein écran de moins, le halo le plus large qui reste invisible sur 6 pouces) ; l'ordi garde 5 ; `?post=ancien` = avant */
+  PAL.B.postBloomMips=[3,4,5];PAL.B.imgBloomMips=[3,4,3];bloomPass._nM=PAL.bT('imgBloomMips',ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?Math.min(4,PAL.b('postBloomMips',5)):PAL.b('postBloomMips',5),'a'); /* (2026-11-07, passe perf 3, P2 · levier a) téléphone récent : 3 étages de flou au lieu de 4 (et le halo entre en demi-résolution, `imgBloomRes`) ; `?img=max` = 4 */ /* (2026-11-05, Opus : jury RND-06) un téléphone RÉCENT (palier 2) avait les 5 étages de halo de l'ordi : 4 sous ALLEGE (2 passes plein écran de moins, le halo le plus large qui reste invisible sur 6 pouces) ; l'ordi garde 5 ; `?post=ancien` = avant */
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
@@ -560,7 +561,7 @@ function carVit(dt){
    LA NUIT (`LUM.nuit`) se lit à la lumière du lieu (le ciel et le soleil posés par bioApply : ~0,55 de jour, 0,34 au soir et sous la pluie, 0,10-0,16
    la nuit, mesuré sur les 32 couples map × météo) et au drapeau `nuit` du niveau : phares et feux ne MORDENT qu'à la nuit tombante ; le feu du nitro
    éclaire toujours un peu (c'est du feu). Réglages vivants : `LUMK` (dbgLum). */
-const LUMK={air:[.12,.9],hl:180000,hlC:[1,.88,.7],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8};
+const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8};
 const LUM={on:false,nuit:0,hl:0,n:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
   k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
 function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet

@@ -75,6 +75,21 @@ const PAL=(function(){
      Chaque zone du jeu AJOUTE ses lignes ici (une seule table à régler), et lit `PAL.b('cle')`. */
   P.B={};
   P.b=function(k,d){const v=P.B[k];return v?v[P.n]:d;};
+  /* ===== L'IMAGE ADAPTÉE SUR TÉLÉPHONE RÉCENT (2026-11-07, passe perf 3, P2 — Sacha : « pousse l'opti au max ») =====
+     Jusqu'ici le palier 2 gardait l'image de l'ordi au pixel. Désormais, sur un VRAI téléphone (TEL_NATIF) au palier 2, six leviers (a à f) peuvent
+     retirer un peu d'image quand le GPU est le goulot ; Sacha tranche levier par levier sur captures AVANT/APRÈS (passation/perf-2026-11/captures/p2-tel/).
+       a · halo (bloom) : moins d'étages, entrée en demi-résolution     b · ombre de course plus petite, filtre simple
+       c · résolution de course plafonnée plus bas, départ au cran 1    d · passe lisse du ciel une image sur deux
+       e · stries de vent et traînées en demi-densité à grande vitesse  f · l'échelle de qualité réagit plus tôt
+     `PAL.imgOn(l)` dit si le levier l est actif ; `PAL.bT(clé, avant, l)` rend la 3e colonne de `PAL.B.clé` (= le budget « récent téléphone »)
+     si le levier est actif, sinon `avant` (la valeur exacte d'avant). L'ORDINATEUR (TEL_NATIF faux, même avec ?tel=1) : toujours `avant`.
+     Les colonnes ancien/moyen des clés `img*` ne sont pas lues : les paliers 0 et 1 gardent leur régime existant. Interrupteurs d'URL :
+     `?img=max` = tout à l'ancien · `?img=a,c` = SEULEMENT ces leviers · `?imgsans=b` = tous sauf ceux-là. `dbgImg()` décrit. */
+  P.imgMax=/[?&]img=max\b/.test(location.search);
+  const iSeul=/[?&]img=([a-f](?:,[a-f])*)(?:&|$)/.exec(location.search),iSans=/[?&]imgsans=([a-f](?:,[a-f])*)(?:&|$)/.exec(location.search);
+  P.imgOn=function(l){return !!TEL_NATIF&&P.n>=2&&!P.imgMax&&(!iSeul||iSeul[1].split(',').indexOf(l)>=0)&&!(iSans&&iSans[1].split(',').indexOf(l)>=0);};
+  P.bT=function(k,avant,l){const v=P.B[k];return v&&P.imgOn(l)?v[2]:avant;};
+  window.dbgImg=function(){const o={};'abcdef'.split('').forEach(function(l){o[l]=P.imgOn(l);});return {telNatif:!!TEL_NATIF,palier:P.n,max:P.imgMax,leviers:o};}; // (banc)
   return P;})();
 /* LES TOILES 2D RENDUES APRÈS L'ENVOI À LA PUCE (2026-10-14, passe perf mobile). MESURÉ (iPhone 7 émulé) : 184 toiles 2D vivantes = 52 Mo
    avant le premier écran — et iOS plafonne la mémoire de toiles d'une page (au-delà : toiles blanches, puis la page est tuée). Une toile
@@ -153,12 +168,21 @@ let DPR_CAP=Math.min(devicePixelRatio,ALLEGE?1:1.5),curDPR=Math.min(DPR_CAP,devi
    passent à 2,0 Mpx en course (toile ~2080×961 : 1,7 pixel d'écran par pixel 3D, le FXAA et le zoom bilinéaire lissent) et 2,6 Mpx à la vitrine.
    Un écran 1080p ou 1440p ne change pas d'un pixel : il est sous les budgets, il dessine à ses pixels réels (1440p à 100 % : 2,9 Mpx).
    `?4k=0` = les budgets d'avant (A/B) ; `?pcpx=` et `?vhdpc=` priment toujours (le `?vhdpc=` ne marchait pas : `[d.]` au lieu de `[\d.]`, corrigé). */
-const PC_4K=!/[?&]4k=0\b/.test(location.search)&&innerWidth*innerHeight*devicePixelRatio*devicePixelRatio>=4.5e6;
+/* (2026-11-06, Léo : « le jeu est de mauvaise qualité sur iMac Safari ») UN ÉCRAN RETINA N'EST PAS UN 4K À 100 % : un iMac (densité 2) dans une fenêtre de taille normale (≤ 2,6 Mpx de points CSS, soit 1920 × 1350) a plus de 4,5 Mpx
+   de pixels physiques, donc la règle « classe 4K » (budget 2,0 Mpx, vitrine 2,6) le prenait pour un téléviseur 4K : la 3D était dessinée à ~1,4 pixel par point, agrandie ×1,4 (floue) pendant que l'interface restait nette.
+   Elle retrouve les budgets des écrans normaux (3,2 Mpx en course, 4,2 à la vitrine) et un plancher de 1,5 ; la résolution adaptative (QL) sait toujours baisser. `?retina=0` = avant. */
+const RETINA_OK=!/[?&]retina=0\b/.test(location.search)&&devicePixelRatio>=2&&innerWidth*innerHeight<=2.6e6;
+const PC_4K=!/[?&]4k=0\b/.test(location.search)&&!RETINA_OK&&innerWidth*innerHeight*devicePixelRatio*devicePixelRatio>=4.5e6;
 const PC_PX=(function(){const m=/[?&]pcpx=([\d.]+)/.exec(location.search);return m?+m[1]*1e6:PC_4K?2.0e6:3.2e6;})(); /* (2026-10-25, Sacha : « Chrome prend 1 700 Mo de GPU ») budget 4,5 M → 3,2 M : toujours les pixels réels d'un écran 1080p, mais plus la 4K/2 ; `?pcpx=4.5` = avant */
 const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([\d.]+)/.exec(location.search);return m?+m[1]*1e6:PC_4K?2.6e6:4.2e6;})(); /* budget de pixels de la vitrine du menu sur ordinateur (8,3 M avant) ; `?vhdpc=8.3` = avant */
+/* (2026-11-06, Léo : « le jeu est de mauvaise qualité sur iMac Safari ») LE PLANCHER D'UN ÉCRAN RETINA : sur un iMac (densité 2), le budget de pixels (PC_PX) tombe sous 1,25 dès que la fenêtre dépasse ~1,3 Mpx de points CSS,
+   et le plancher le retenait à 1,25 : la 3D était dessinée à 62 % des pixels de l'écran, puis agrandie ×1,6 (floue) pendant que l'interface DOM restait nette. Sur un écran de densité ≥ 2, le plancher monte à 1,5 (le plafond « NETTE »
+   des téléphones) ; la résolution adaptative (QL) sait toujours baisser si la machine tire. `?pcmin=1.25` = avant. */
+const PC_MIN=(function(){const m=/[?&]pcmin=([\d.]+)/.exec(location.search);return m?+m[1]:(RETINA_OK?1.5:1.25);})();
+PAL.B.imgDprCap=[1.25,1.35,1.25];PAL.B.imgQlDepart=[5,2,1];/* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : plafond NETTE 1,25 au lieu de 1,5 (−31 % de pixels : 513 000 au lieu de 740 000 sur un 390×844) et la course part au cran 1 de l'échelle QL ; `?img=max` / `?imgsans=c` = comme avant */
 function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
-  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));
-  return Math.min(devicePixelRatio,Math.max(1.25,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
+  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
+  return Math.min(devicePixelRatio,Math.max(PC_MIN,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
 /* ===== UNE SEULE ALLOCATION DE LA TOILE (2026-11-05, passe perf mobile 2, A2.c) =====
    MESURÉ (Chrome iPhone émulé ×4, palier 0) : `renderer.setSize` 2 fois avant le menu — la 1re à 1 pixel/point avec DPR_CAP provisoire, la 2e (`applyQ` → `qlReprise` → `applyDPR`, ~1,1 s) une fois le choix RAPIDE/NETTE connu :
    toile et cibles du compositeur réallouées. Ici le plafond est calculé tout de suite depuis la sauvegarde brute (même règle que `sauvegarde.js` : `q`, `qChoisi`, défaut du palier), AVANT le 1er `setSize` ;
@@ -200,7 +224,10 @@ function fovPor(d){return FOV_TK===1?d:Math.min(150,Math.atan(Math.tan(Math.min(
 fovFit(true); // RÉSOLUTION ADAPTATIVE — cap desktop 1.5 : sur Retina, 1.75→1.5 = −26 % de pixels, invisible sous bloom+grain (écran 1× : min() ne change rien)
 renderer.setPixelRatio(curDPR);
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
-let BLOOM_RES=1; // (2026-09-27, passe perf iPhone) part de la résolution du bloom — un cran de l'échelle de qualité (QL) la baisse à ¾
+PAL.B.imgBloomRes=[1,1,.5];/* (2026-11-07, passe perf 3, P2 · levier a) le halo entre en DEMI-résolution sur un téléphone récent (colonnes ancien/moyen non lues) ; `?img=max` / `?imgsans=a` = comme avant */
+let BLOOM_BASE=PAL.bT('imgBloomRes',1,'a');
+const IMG_DYN={dens:null,vmin:200,ciel:0}; /* (2026-11-07, P2) l'état de la couche dynamique `imgRegle` (voir nettete-qualite.js) : densité imposée des traits d'air et traînées, au-delà de `vmin` km/h */
+let BLOOM_RES=BLOOM_BASE; // (2026-09-27, passe perf iPhone) part de la résolution du bloom — un cran de l'échelle de qualité (QL) la baisse à ¾
 /* (perf, lot 4) LA TAILLE DE L'ÉCRAN, LUE UNE FOIS PAR REDIMENSIONNEMENT. MESURÉ (profil, téléphone émulé) : sur Chrome mobile, lire
    `innerWidth`/`innerHeight` FORCE une mise en page complète (la page à « viewport » se remet en page pour répondre) — et comme le HUD
    venait d'écrire ses styles, chaque image en payait une : 7,7 % du processeur pendant la carte MOTEUR. Ce qui suit la caisse à l'écran

@@ -56,9 +56,9 @@ const DN_VS=['attribute vec4 aN;uniform sampler2D uTC,uTZ,uTS,uNZ;uniform vec4 u
   '  float lit=1.;vec2 sp=(x-uSD.xy)*uSD.zw;if(sp.x>0.&&sp.y>0.&&sp.x<1.&&sp.y<1.){float hs=tB(uTS,sp*uSN,uSN).r;lit=smoothstep(hs-5.,hs+9.,A.x);}',
   '  vA=vec4(A.y,A.z,pu,lit);vB=vec4(pa,pm,pr,vg);vGp=gp;vF=vec4(aN.xy/aN.z,aN.w,uG);', /* (facettes) gp : la case de la grille (entiers aux sommets) · vF : l'indice de la tuile, son niveau, G */
   '  vec4 mvPosition=viewMatrix*vec4(vW,1.);gl_Position=projectionMatrix*mvPosition;','#include <fog_vertex>','}'].join('\n');
-const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uSaA,uSaB,uSaL,uShd,uClay,uVeg,uHaze,uSkH,uSkZ,uWS,uWD,uPhP,uPhD,uPhC;uniform vec4 uQ,uK,uW,uMo,uPl,uLm,uEx,uSp;uniform float uTime,uFlash,uPoly,uLum;',
+const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFillC,uFillD,uSaA,uSaB,uSaL,uShd,uClay,uVeg,uHaze,uSkH,uSkZ,uWS,uWD,uPhP,uPhD,uPhC;uniform vec4 uQ,uK,uW,uMo,uPl,uLm,uEx,uSp;uniform vec2 uDk;uniform float uTime,uFlash,uPoly,uLum;',
   'varying vec3 vW,vN;varying vec4 vA,vB;varying vec2 vGp;varying vec4 vF;','#include <fog_pars_fragment>',
-  'float dh2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
+  PH_GLSL,'float dh2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}',
   'void main(){vec3 N=normalize(vN),Vv=uCam-vW;float dist=length(Vv);vec3 V=Vv/max(dist,.001);',
   /* LES FACETTES (poly) : Nf = la normale PLATE du triangle (dérivées de la position), ftn = sa teinte, hs9 = son tirage, jn = le joint (la distance, EN PIXELS, aux trois arêtes du triangle : vGp = la case, entiers aux sommets,
      l'interpolation en reste exacte même quand le sommet glisse vers le niveau grossier) — le joint ne se voit que sur des cases larges (> ~7 px) et là où la facette s'écarte de la normale lisse */
@@ -134,6 +134,26 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '    c+=col*uSunC*vec3(.46,.28,.15)*tm*lit*uLm.z;',
   '    c+=col*uSunC*vec3(.95,.58,.32)*(1.-lit)*(.5+.5*NL.y)*.12*uLm.w;',
   '    c+=uSunC*vec3(1.,.80,.52)*pow(vs,6.)*(1.-exp(-dist/2600.))*uLm.y*.5;}',
+  /* ===== LE SABLE v3 (2026-11-06, Léo : « le shading du sable beaucoup plus gourmand, type shader Minecraft ultra réaliste ») — quatre gestes, tous sous `uLum` (qualité haute ; le téléphone allégé les saute) :
+     (1) LA LUMIÈRE RASANTE SCULPTE LES RIDES : plus le soleil est bas sur la face (ndl petit), plus l'arête d'une ride est claire et son creux sombre (contraste ×~1,6, éteint au loin et à l'ombre : jamais de moiré) ;
+     (2) L'OMBRE PROPRE DES CRÊTES : le haut d'une dune prend un liseré clair, juste derrière lui la face sous le vent plonge (une arête nette, pas un dégradé mou) ;
+     (3) LE SUBSURFACE DOUX : la lumière qui traverse le grain ressort ROUGE-ORANGÉ dans une large bande au terminateur et jusque dans la pénombre (le sable fin est translucide sur quelques mm) ;
+     (4) LE GRAIN QUI SCINTILLE : de petits cristaux plus clairs que la teinte, nombreux de près, serrés en lumière rasante. */
+  '  if(uLum>.5&&wat<.5&&uMo.z>.001){float gz=1.-smoothstep(.04,.60,ndl),near=1.-smoothstep(50.,420.,dist),cs=smoothstep(.84,.97,du)*(1.-smoothstep(.985,1.,du));',
+  '    c*=1.+rpl*gz*.60*near*(.35+.65*lit)*(1.-pan);',
+  '    c*=1.-lee*smoothstep(.55,.90,du)*.20*lit*(1.-pan);c+=uSunC*vec3(1.,.78,.52)*cs*lit*max(ndl,0.)*.10*(1.-pan)*(1.-veg);',
+  '    float sb=smoothstep(-.40,.08,ndl)*(1.-smoothstep(.08,.55,ndl));c+=col*uSunC*vec3(1.,.46,.22)*sb*(.45+.55*lit)*.26*(1.-.65*uDk.x)*(1.-pan)*(1.-veg);',
+  '    float gs=dh2(floor(pp*38.)),gs2=dh2(floor(pp*38.)+9.1);c+=col*uSunC*step(.93+.06*max(uDk.x,uDk.y),gs)*(.25+.75*step(.5,gs2))*lit*(.4+.9*gz)*(1.-smoothstep(8.,70.,dist))*.30*(1.-pan)*(1.-veg);}',
+  /* ===== LE SABLE AU CRÉPUSCULE ET LA NUIT (2026-11-06, Léo : « le jour me plaît ; le soir et la nuit, pas trop ») — `uDk` : x = le soir, y = la nuit (0 le jour : RIEN ne change au jour).
+     CRÉPUSCULE : deux températures franches — les faces au soleil virent à l'or (la lumière rasante, longue), l'autre côté du terminateur plonge dans un bleu-violet frais (au lieu de l'orange boueux),
+     les rides se creusent davantage (ombres longues), la crête prend un liseré d'or net. NUIT : le sable devient du sable de LUNE — un liseré argenté sur les crêtes, les rides lisibles, un satin froid
+     qui accroche aux silhouettes (au lieu d'un bleu plat). */
+  '  if(uLum>.5&&wat<.5&&uDk.x+uDk.y>.001){float dk=uDk.x,nk=uDk.y,gz2=1.-smoothstep(.04,.60,ndl),nr2=1.-smoothstep(50.,420.,dist),cs2=smoothstep(.84,.97,du)*(1.-smoothstep(.985,1.,du)),sd2=(1.-pan)*(1.-veg);',
+  '    c=mix(c,c*vec3(.66,.72,1.04),dk*(1.-smoothstep(-.06,.34,ndl))*.55*sd2);',
+  '    c+=col*uSunC*vec3(1.,.72,.40)*smoothstep(.06,.55,ndl)*lit*.24*dk*sd2;',
+  '    c+=uSunC*vec3(1.,.80,.50)*cs2*lit*.40*dk*sd2;',
+  '    c*=1.+rpl*gz2*nr2*(.38*dk+.55*nk)*(.35+.65*lit);',
+  '    float sa2=pow(1.-max(dot(NL,V),0.),3.);c+=vec3(.10,.17,.34)*sa2*nk*sd2*(1.-smoothstep(300.,2500.,dist));c+=vec3(.50,.62,1.)*cs2*.14*nk*sd2;}',
   /* LES ÉTINCELLES D'OR (l'éclat cash) : de rares grains qui s'allument un instant, or ou rose, jusqu'à 2 km — la cellule grandit avec la distance (≈ 3 px à l'écran) */
   '  if(uSp.w>.001&&wat<.5){float cs=exp2(floor(log2(max(dist,4.)*.0042)*2.)*.5),hq=dh2(floor(vW.xz/cs)+cs),tw=pow(.5+.5*sin(uTime*(2.4+3.*fract(hq*91.))+hq*600.),10.);',
   '    c+=mix(uSp.rgb,vec3(1.,.92,.74),step(.72,fract(hq*37.)))*step(.986,hq)*tw*lit*(1.-.9*pan)*(1.-smoothstep(500.,2400.,dist))*2.4*uSp.w;}',
@@ -144,7 +164,7 @@ const DN_FS=['uniform sampler2D uNZ;uniform vec3 uCam,uSunD,uSunC,uSky,uGnd,uFil
   '    vec3 Nw=normalize(vec3(0.,6.,0.)+vec3(nw.r+nw2.g-1.,0.,nw.g+nw2.r-1.));vec3 wc=mix(uWS,uWD,1.-exp(-dep/4.));',
   '    float f9=.02+.98*pow(1.-max(dot(V,Nw),0.),5.);vec3 R=reflect(-V,Nw),sk=mix(uSkH,uSkZ,smoothstep(0.,.5,R.y));',
   '    vec3 cw=wc*(uSunC*(.3+.7*max(dot(Nw,uSunD),0.))*lit+mix(uGnd,uSky,.7))*.9+sk*f9+uSunC*pow(max(dot(R,uSunD),0.),160.)*1.2*lit;c=mix(c,cw,wat);}',
-  '  if(uPhC.r+uPhC.g>.001){vec3 lv=vW-uPhP;float dl=length(lv);vec3 ld=lv/max(dl,.01);c+=col*uPhC*smoothstep(.80,.95,dot(ld,uPhD))*max(dot(NL,-ld),0.)/(1.+dl*dl/9000.);}', // les PHARES sur le sable
+  '  if(uPhC.r+uPhC.g>.001)c+=phBeam(col,NL,vW,uPhP,uPhD,uPhC);', // les PHARES sur le sable
   /* LE MIRAGE : au loin, le sable presque à plat, vu en rasant, renvoie le ciel — et tremble */
   '  if(uQ.y>.001){float mi=uQ.y*smoothstep(800.,3200.,dist)*(1.-smoothstep('+(DN_IMM.on?'.012,.05':'.02,.10')+',abs(V.y)))*(1.-smoothstep(.06,.25,stp))'+(DN_IMM.on?'*smoothstep(-.015,.012,V.y)':'')+';',
   '   float sh=texture2D(uNZ,vec2(vW.x/260.+uTime*.04,vW.z/260.-uTime*.03)).r;c=mix(c,mix(mix(uSkH,uSkZ,.25),uWS*1.3+.06,.42*uEx.z)*(.92+.16*sh),mi*(.55+.45*sh));}',
@@ -176,7 +196,7 @@ function dnTerrain(){ if(DN.mesh)return;
     uOA:{value:new THREE.Vector4(0,0,0,0)},uW:{value:new THREE.Vector4(1,0,1,0)},uLam:{value:560},uDs:{value:new THREE.Vector2(0,.12)},uEx:{value:new THREE.Vector4(1,1,.8,1)},uSp:{value:new THREE.Vector4(1,.8,.45,1)},
     uCam:{value:new THREE.Vector3()},uG:{value:G},uR0:{value:DN.R0},uTime:{value:0},uFlash:{value:0},uSunD:{value:SUN_DIR},
     uSunC:C3(),uSky:C3(),uGnd:C3(),uFillC:C3(),uFillD:{value:new THREE.Vector3(0,-1,0)},uSaA:C3(),uSaB:C3(),uSaL:C3(),uShd:C3(),uClay:C3(),uVeg:C3(),uHaze:C3(),uSkH:C3(),uSkZ:C3(),uWS:C3(),uWD:C3(),
-    uQ:{value:new THREE.Vector4()},uPoly:{value:DN_POLY?1:0},uLum:{value:DN_POLY&&DN_LUM?1:0},uPl:{value:new THREE.Vector4(.03,0,0,0)},uLm:{value:new THREE.Vector4(.34,.25,.12,.04)},uFin:{value:new THREE.Vector4(0,0,0,0)},uK:{value:new THREE.Vector4(.5,1,.25,1)},uMo:{value:new THREE.Vector4(.8,.010,1,0)},uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
+    uDk:{value:new THREE.Vector2()},uQ:{value:new THREE.Vector4()},uPoly:{value:DN_POLY?1:0},uLum:{value:DN_POLY&&DN_LUM?1:0},uPl:{value:new THREE.Vector4(.03,0,0,0)},uLm:{value:new THREE.Vector4(.34,.25,.12,.04)},uFin:{value:new THREE.Vector4(0,0,0,0)},uK:{value:new THREE.Vector4(.5,1,.25,1)},uMo:{value:new THREE.Vector4(.8,.010,1,0)},uPhP:{value:new THREE.Vector3()},uPhD:{value:new THREE.Vector3(0,0,1)},uPhC:{value:new THREE.Color(0,0,0)}});
   DN.mat=new THREE.ShaderMaterial({uniforms:U,vertexShader:DN_VS,fragmentShader:DN_MOB?dnLite(DN_FS):DN_FS,fog:true});DN.mat.dispose=function(){};
   const m=new THREE.Mesh(g,DN.mat);m.frustumCulled=false;m.matrixAutoUpdate=false;m.visible=false;m.name='dunes';m.renderOrder=-1;scene.add(m);DN.mesh=m;
   const gr=new THREE.Group();gr.name='dunes décor';gr.matrixAutoUpdate=false;gr.visible=false;scene.add(gr);DN.grp=gr;
@@ -219,7 +239,7 @@ function dunesTick(dt){dnAmb();envPeintTick();dnNuages();
   if(!DN.mat)return;const U=DN.mat.uniforms,c=BIO.cur,k=LVL.dunes||0;
   if(DN.on&&!paused)U.uTime.value=(U.uTime.value+dt)%4096;
   if(DN.gx>1&&(mode!=='fall'||!DN.on))DN.gx=1; // le vol fini (ou la map quittée) : la pesanteur redevient la sienne
-  U.uPoly.value=DN_POLY?1:0;U.uLum.value=DN_POLY&&DN_LUM&&!QUAL_LOW?1:0; /* (facettes) qualité basse : les facettes restent (moins de triangles), sans les effets de lumière */
+  {const bn9=BIO.name||'';U.uDk.value.set(bn9==='dunesSoir'?1:0,bn9==='dunesNuit'?1:0);} /* (2026-11-06) le crépuscule et la nuit reçoivent leur propre sculpture du sable ; le JOUR (0, 0) reste celui validé */U.uPoly.value=DN_POLY?1:0;U.uLum.value=DN_POLY&&DN_LUM&&!QUAL_LOW?1:0; /* (facettes) qualité basse : les facettes restent (moins de triangles), sans les effets de lumière */
   if(DN.on){U.uSunC.value.copy(sun.color).multiplyScalar(sun.intensity);U.uSky.value.copy(hemi.color).multiplyScalar(hemi.intensity);U.uGnd.value.copy(hemi.groundColor).multiplyScalar(hemi.intensity);
     U.uFillC.value.copy(fill.color).multiplyScalar(fill.intensity);U.uFillD.value.copy(fill.position).normalize();
     const f=(u,k9)=>{const a=c[k9];if(a)u.value.fromArray(a);};

@@ -42,7 +42,9 @@ function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.scene.add(hemi,key,fill,rim,rim2,bas);PHOTO.key=key;}
 function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=w.userData.k||1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}
   try{ailvPose();}catch(e){}} // (2026-10-16, LES AILES VIVANTES) l'aile au plus beau de son geste : boost tenu (les ailes en X ouvertes, la lave qui flambe…)
-function aileFile(id,cb,el){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a:'+id+':'+c;
+/* (2026-11-06, Léo : « enlever la voiture de l'affichage des ailes ») la photo d'une aile ne montre QUE les deux ailes : tout maillage hors des ailes est caché (le cadre se calcule sur ce qui reste) */
+function photoSeulesAiles(){const L=[carWingL,carWingR];carGroup.traverse(function(o){if(!o.isMesh&&!o.isSprite&&!o.isLine&&!o.isPoints)return;for(let a=o;a;a=a.parent){if(L.indexOf(a)>=0)return;if(a===carGroup)break;}o.visible=false;});}
+function aileFile(id,cb,el){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a3:'+id+':'+c;
   if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,j:j},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* (2026-10-14, OPTIMISATION — passation perf : « BOUTIQUE ~400 ms à l'ouverture = shopPhotoTour : 8 toDataURL 164 ms + 8 readPixels 66 ms ») —
    `carPhoto(i, cb)` : avec un rappel, la photo finit en `toBlob` (l'encodage PNG part hors du fil, le rappel reçoit une adresse `blob:` d'une
@@ -93,7 +95,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   try{
     if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
     else buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
-    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile)photoAiles();
+    PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile){photoAiles();photoSeulesAiles();}
     carGroup.updateMatrixWorld(true);
     // LA BOÎTE de ce qu'on voit (maillages visibles seulement : les halos cachés gonfleraient le cadre)
     const bx=new THREE.Box3(),b9=new THREE.Box3();
@@ -132,7 +134,7 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
     const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';
     const yb=Math.round((1-(ymin*.5+.5))*H); // la ligne du sol, en pixels de la photo
     // L'OMBRE DE CONTACT, douce, sous la caisse
-    {x.save();x.translate(W/2,yb);x.scale(1,.13);const g9=x.createRadialGradient(0,0,0,0,0,W*.44);g9.addColorStop(0,'rgba(0,0,0,.62)');g9.addColorStop(.55,'rgba(0,0,0,.30)');g9.addColorStop(1,'rgba(0,0,0,0)');
+    if(!aile){x.save();x.translate(W/2,yb);x.scale(1,.13);const g9=x.createRadialGradient(0,0,0,0,0,W*.44);g9.addColorStop(0,'rgba(0,0,0,.62)');g9.addColorStop(.55,'rgba(0,0,0,.30)');g9.addColorStop(1,'rgba(0,0,0,0)');
      x.fillStyle=g9;x.fillRect(-W*.5,-W*.5,W,W);x.restore();}
     // LE REFLET d'un sol verni : la photo retournée sous la ligne du sol, qui s'éteint en 20 % de la hauteur
     /* (2026-10-15) pas de reflet sous une AILE : en plongée, le sol verni dessinait un fantôme d'aile */
@@ -299,7 +301,7 @@ window.dbgFigFilm=function(id,dir,o){if(o)Object.assign(FILM_FIG,o);if(!id){for(
   const k='fa:'+id+':'+(dir||'cote')+':'+equippedCar();delete PHOTO.cache[k];
   const u=figFilm({k:k,fig:id,dir:dir||'cote'},null);const T=PHOTO.msF||{},r=function(v){return v==null?null:Math.round(v);};
   return {url:u,images:T.images,msCaisse:r(T.caisse),msRendu:r(T.rendu),msMontage:r(T.montage),msTotal:r(T.total),cartes:FILM.l.length,reglage:Object.assign({},FILM_FIG)};};
-window.dbgAile=function(id,o){if(o)Object.assign(PHOTO_AILE,o);const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return 'aile inconnue';const c=equippedCar(),k='a:'+id+':'+c;delete PHOTO.cache[k]; // (banc) la photo d'une aile, refaite (o : {el, az} du studio)
+window.dbgAile=function(id,o){if(o)Object.assign(PHOTO_AILE,o);const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return 'aile inconnue';const c=equippedCar(),k='a3:'+id+':'+c;delete PHOTO.cache[k]; // (banc) la photo d'une aile, refaite (o : {el, az} du studio)
   const u=carPhoto(c,null,{k:k,j:j});return {url:u,box:PHOTO.ms&&PHOTO.ms.box,ailes:PHOTO.ms&&PHOTO.ms.ailes,caisse:CARS[c].name,reglage:Object.assign({},PHOTO_AILE)};};
 window.dbgPhoto=function(){const T=PHOTO.ms;if(!T)return 'aucune photo';const r=v=>v==null?null:Math.round(v);return {caisse:CARS[T.i]&&CARS[T.i].name,msCaisse:r(T.caisse),msRendu:r(T.rendu),msPellicule:r(T.pellicule),msMontage:r(T.montage),msTotal:r(T.total),enAttente:PHOTO.att?Object.keys(PHOTO.att).length:0,enCache:Object.keys(PHOTO.cache).length};}; // (banc) le détail de la dernière photo
 /* L'ATELIER DES CAISSES (dev, 2026-09-26) — `dbgEssaiCaisse(src, fiche, vues)` : essaie un gabarit ÉCRIT EN TEXTE (une expression
