@@ -57,4 +57,7 @@ html body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html body #mob #mDead.m5 
   background:linear-gradient(180deg,var(--mL) 0 22%,var(--mM) 22% 58%,var(--mS) 58% 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
 html[data-metal="diamant"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="diamant"] body #mob #mDead.m5 .mCashL>b#mCash>.m6X,html[data-metal="diamant"] body #mob #mDead.m5 .mCashL>b#mCash::before{
   background:linear-gradient(100deg,#fff 0 10%,#9ff0ff 10% 30%,#ffd1ff 30% 45%,#fff 45% 52%,#a6b8ff 52% 72%,#9ff0ff 72% 90%,#fff 90%) 0 0/200% 100%;-webkit-background-clip:text;background-clip:text;animation:mDiam 2.4s linear infinite}
+/* la BOUTIQUE est claire et son compte est petit (11 px) : l'encre et le relief le noircissaient (Léo : « bizarrement entouré de noir »).
+   Ici : le métal seul, un filet d'ombre de sa couleur et une lueur douce. */
+html #gBqArg{filter:drop-shadow(0 1px 0 var(--mX)) drop-shadow(0 0 3px var(--mH))!important}
 </style>

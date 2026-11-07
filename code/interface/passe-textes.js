@@ -167,7 +167,16 @@ function monnaiePop(){const i=CASH.el&&CASH.el.querySelector('.mOr');if(!i||i.cl
    la couleur (monnaie.css). Monter d'un cran se fête une fois. `?metal=or` force un métal (bancs). */
 const METAUX=[[1e4,'cuivre','CUIVRE'],[5e5,'argent','ARGENT'],[1e7,'or','OR'],[1e8,'emeraude','ÉMERAUDE'],[Infinity,'diamant','DIAMANT']];
 const METAL_FORCE=(function(){try{return new URLSearchParams(location.search).get('metal');}catch(e){return null;}})();
+/* `?metal=demo` : les cinq paliers défilent tout seuls (2,5 s chacun), le compte du garage montre une somme de chaque palier — pour VOIR l'argent évoluer */
+let METAL_DEMO=null;
+function metalDemo(){if(METAL_DEMO)return;let k=-1;const S=[8500,250000,4200000,48000000,320000000];
+  const pas=function(){k=(k+1)%METAUX.length;const h=document.documentElement,av=h.dataset.metal;h.dataset.metal=METAUX[k][1];
+    try{const b=document.querySelector('#gCompteur b');if(b)b.textContent=fmtSolde(S[k]);}catch(e){}
+    try{const v=document.querySelector('#cashHud .chV span');if(v)v.textContent=cashTxt(S[k]);}catch(e){}
+    try{monnaiePop();if(av)trickMsg(TR('TON ARGENT PASSE EN ')+TR(METAUX[k][2])+' !',1);}catch(e){}};
+  pas();METAL_DEMO=setInterval(pas,2500);}
 function metalMaj(){
+  if(METAL_FORCE==='demo'){metalDemo();return;}
   let v=0;try{v=bank()+(document.body.classList.contains('play')?Math.max(0,money||0):0);}catch(e){}
   let k=0;while(v>=METAUX[k][0])k++;
   if(METAL_FORCE){const f=METAUX.findIndex(function(m){return m[1]===METAL_FORCE;});if(f>=0)k=f;}
