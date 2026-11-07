@@ -14591,7 +14591,7 @@ window.dbgNuagesAudit=function(o){o=o||{};const out={L:Math.round(L),NP:NP,coton
     if(best<0||bd>(demi+haut+12)*(demi+haut+12))return;const p=pts[best],dx=x-p.x,dy=y-p.y,dz=z-p.z,lat=dx*B[best].x+dy*B[best].y+dz*B[best].z,up=dx*Nn[best].x+dy*Nn[best].y+dz*Nn[best].z;
     if(Math.abs(lat)<demi&&up>bas&&up<haut){acc.n++;if(!acc.pire||Math.abs(lat)<Math.abs(acc.pire.lat))acc.pire={s:Math.round(best/(NP-1)*L),lat:+lat.toFixed(1),up:+up.toFixed(1)};}};
   const sondeLobes=function(S,mat,sym,nom,extra){const acc={n:0,pire:null},m=mat.elements;
-    const lob=function(x,y,z,r,fy){for(const d of DIR){const lx=x+d[0]*r,ly=y+d[1]*r*fy,lz=z+d[2]*r;v.set(lx,ly,lz).applyMatrix4(mat);teste(v.x,v.y,v.z,acc);}};
+    const lob=function(x,y,z,r,fy){for(const d of DIR){const lx=x+d[0]*r,ly=Math.min(S.top,Math.max(S.base,y+d[1]*r*fy)),lz=z+d[2]*r; /* le champ est coupé à la boîte [base, sommet] (nuage8Calc : le dessous plat) */v.set(lx,ly,lz).applyMatrix4(mat);teste(v.x,v.y,v.z,acc);}};
     for(const b9 of S.B){lob(b9[0],b9[1],b9[2],b9[3],b9[4]||1);if(sym)lob(b9[0],S.base+S.top-b9[1],b9[2],b9[3],b9[4]||1);}
     return acc.n?Object.assign({nom:nom,points:acc.n},acc.pire,extra||{}):null;};
   const I=COTON.I;
@@ -14679,6 +14679,13 @@ function nuageTouche(c,r,ry){
   for(let i=0;i<NP;i+=st){const p=pts[i],dx=p.x-c.x,dz=p.z-c.z,dy=p.y-c.y;if((dx*dx+dz*dz)*ih+dy*dy*iv<1)return true;}
   return false;
 }
+function nuageToucheProfil(S,c,r,dyU,sy){ /* (2026-11-07) la garde d'un nuage à part (coussin, tour) au PROFIL de son gabarit (voir cotonToucheProfil) : origine c + r·dyU en hauteur, échelle r — les deux profils (à plat et sans dessus dessous : sa surface arrive de l'ouvrier dans l'état de COTON.sym du moment) */
+  if(!(NP>1)||!pts.length)return false;if(sy===undefined)return nuageToucheProfil(S,c,r,dyU,false)||nuageToucheProfil(S,c,r,dyU,true);const P=cotonProfil(S,sy),n=COTON_PROF_N,w=P.w;let wm=0;for(let q=0;q<n;q++)if(w[q]>wm)wm=w[q];
+  const mh=ROAD_HALF+18,mv=22,R=wm*r+mh,y0=c.y+dyU*r,yb=y0+P.b0*r,yt=y0+(P.b0+P.hs)*r,st=Math.max(1,Math.round(18/Math.max(.5,L/(NP-1))));
+  for(let i=0;i<NP;i+=st){const p=pts[i];if(p.y<yb-mv||p.y>yt+mv)continue;const dx=p.x-c.x,dz=p.z-c.z,d2=dx*dx+dz*dz;if(d2>R*R)continue;
+    const qa=Math.max(0,Math.floor((p.y-mv-yb)/(yt-yb)*n)),qz=Math.min(n-1,Math.floor((p.y+mv-yb)/(yt-yb)*n));let e=0;for(let q=qa;q<=qz;q++)if(w[q]>e)e=w[q];
+    const lim=e*r+mh;if(e>0&&d2<lim*lim)return true;}
+  return false;}
 function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh opaque, point.
   if(!lvlNuageOk(o))return; // LES NIVEAUX : chaque monde garde ses familles de nuages (voir NIVEAUX)
   let ry=r*(o.giant?.55+rr()*.18:o.veil?.16:o.sea?.15:.36+rr()*.16);
@@ -14690,7 +14697,8 @@ function mkCloud(center,r,o,rr){ // un nuage = ses boules fusionnées en UN mesh
             l'ouvrier ; l'ÉBAUCHE en boules tient la place en attendant. Le maillage est à l'échelle du nuage (mesh.scale = r) : la ouate bouillonne. */
     cotonInit();const gn=o.onRoad?(r>34?'mediocris':'humilis'):o.giant?'congestus':['mediocris','humilis','mediocris','humilis','congestus'][Math.floor(rr()*5)];
     const S=cumulus8(gn,rr);S.seed=Math.floor(rr()*997);const dyU=-(S.base+S.top)*.5;
-    if(!o.onRoad&&nuageTouche(center,r,(S.top-S.base)*r*.5)){rr();return;} /* (2026-10-18, DEBUGGING : la garde du ruban ci-dessus mesurait l'ellipsoïde PROVISOIRE — une tour v8 est ~2 fois plus haute (ry ≈ r au lieu de 0,55-0,73 r) : MESURÉ, 1 nuage de décor sur ~450 laissait passer la route DANS lui, que la caisse « défonçait » (la tour de 370 m réduite à rien puis reformée). On reteste avec sa VRAIE hauteur ; le rr() rend le tirage `ph` qu'il aurait pris : les nuages suivants ne bougent pas) */
+    if(!o.onRoad&&o.pousse)for(let e9=0;e9<5&&nuageToucheProfil(S,center,r,dyU);e9++){center.addScaledVector(o.pousse,12+r*.12);g.position.copy(center);} /* (2026-11-07, Sacha : « génération aléatoire parfaite ») un COUSSIN de vol qui mord sur le ruban s'en ÉLOIGNE (o.pousse : à l'opposé de la dalle) au lieu de disparaître — aucun tirage de plus */
+    if(!o.onRoad&&(nuageTouche(center,r,(S.top-S.base)*r*.5)||nuageToucheProfil(S,center,r,dyU))){rr();return;} /* (2026-11-07, Sacha : « génération aléatoire parfaite ») et au PROFIL de ses lobes (~1,4 r en plan, large à la base) : MESURÉ, graines 4 et 9, un coussin de vol de r 55-61 dont les lobes descendaient à 6-7 m au-dessus de la dalle (le coussin d'abord poussé, voir o.pousse ; refusé s'il mord encore) */ /* (2026-10-18, DEBUGGING : la garde du ruban ci-dessus mesurait l'ellipsoïde PROVISOIRE — une tour v8 est ~2 fois plus haute (ry ≈ r au lieu de 0,55-0,73 r) : MESURÉ, 1 nuage de décor sur ~450 laissait passer la route DANS lui, que la caisse « défonçait » (la tour de 370 m réduite à rien puis reformée). On reteste avec sa VRAIE hauteur ; le rr() rend le tirage `ph` qu'il aurait pris : les nuages suivants ne bougent pas) */
     geo9=NUVIT.vox?nuVide():cotonGeo({B:S.B.slice(0,12),base:S.base,top:S.top},CLOUD_SPH_LO);geo9.translate(0,dyU,0);geo9.computeBoundingSphere();fin9={S:S,dyU:dyU,v8:1};
     ry=(S.top-S.base)*r*.5;}
   else if(!o.onRoad&&!o.sea&&!o.veil&&!o.deco){ // (ciel de coton) les COUSSINS de vol et les TOURS qu'on traverse : la forme classique,
@@ -14772,7 +14780,7 @@ function buildClouds(rr){
       // Un coussin d'airtime doit se lire de loin pour qu'on aille le chercher.
       const r9=34+cr()*28; // (2026-09-26) décollé de la dalle d'au moins 30 m au-dessus de son ventre (il ne touche plus la route)
       mkCloud(cldV1.copy(pts[i]).addScaledVector(B[i],(cr()*2-1)*70)
-        .addScaledVector(Nn[i],above?r9*.55+30+cr()*44:-(r9*.55+THICK+32+cr()*60)),r9,{},cr);
+        .addScaledVector(Nn[i],above?r9*.55+30+cr()*44:-(r9*.55+THICK+32+cr()*60)),r9,{pousse:Nn[i].clone().multiplyScalar(above?1:-1)},cr);
     }
   }
   // TOURS GÉANTES façon simulateur de vol : des montagnes de ouate — une sur quatre est
