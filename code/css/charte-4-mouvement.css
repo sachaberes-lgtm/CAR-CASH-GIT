@@ -12,7 +12,7 @@
 #wipe>*{display:none!important}
 #wipe::before{content:'';position:absolute;top:-10%;bottom:-10%;left:-30%;width:160%;transform:translateX(105%) skewX(var(--sk));
   background:linear-gradient(90deg,var(--au2) 0 8px,transparent 8px 12px,var(--neoC) 12px 18px,transparent 18px 22px,var(--neoM) 22px 30px,transparent 30px 34px,rgba(7,5,15,1) 34px),
-    var(--matrice),#07050f}
+    var(--matrice),var(--k0)}
 #wipe::after{content:'CASH CAR';position:absolute;inset:0;display:grid;place-items:center;font-family:var(--pix);font-size:var(--f7);letter-spacing:4px;
   color:var(--au1);text-shadow:0 4px 0 var(--auE),0 0 24px var(--auG);transform:skewX(var(--sk));opacity:0;pointer-events:none}
 #wipe.in::after{animation:k4Marque 200ms var(--ease) 90ms forwards}
@@ -79,7 +79,7 @@ body.voletSort .mscr.on,body.voletSort .mscr.on>*,body.voletSort #mDead.on>.mOve
   .mscr.on,.mscr.on.avant,.mscr.on.retour{animation:k4Voile var(--t-fast) linear both!important}
   .mscr.on>*,#mDead.on>.mOver{animation:none!important}
   #wipe::before{display:none}
-  #wipe.in{background:#07050f;transition:opacity 120ms linear}
+  #wipe.in{background:var(--k0);transition:opacity 120ms linear}
 }
 html[data-reduced-motion="1"] .mscr.on>*,html[data-reduced-motion="1"] #mDead.on>.mOver,html[data-reduced-motion="1"] .pb-gold{animation:none!important}
 html[data-reduced-motion="1"] .mscr.on,html[data-reduced-motion="1"] #tPanel.open #tpIn,html[data-reduced-motion="1"] #modale.on .modIn{animation:k4Voile var(--t-fast) linear both!important}
@@ -105,7 +105,7 @@ html[data-reduced-motion="1"] .mscr.on,html[data-reduced-motion="1"] #tPanel.ope
      · VERT BILLET --cash = l'argent du jeu ($) · ROSE --aura = l'aura, ses rangs, ses records · CYAN = aller voir,
        l'information · MAGENTA = la boutique et le halo des titres · VERT NÉON = allumé, gagné · ROUGE = danger, fin ;
      · une JAUGE prend la couleur de ce qu'elle mesure (palier du FLOW, palier du moteur, pouvoir). */
-:root{--encre:#1c0430;
+:root{--encre:var(--encre);
   --coupeH:10px;                                                          /* les coins coupés des plaques du HUD */
   --coupeHP:polygon(var(--coupeH) 0,100% 0,100% calc(100% - var(--coupeH)),calc(100% - var(--coupeH)) 100%,0 100%,0 var(--coupeH))}
 
@@ -165,7 +165,7 @@ html .hCard em{background:var(--hc);box-shadow:0 0 0 2px var(--k0),0 0 14px colo
 /* ---- 4. MODES : le même INTERRUPTEUR que les réglages et la pause (glissière penchée, patin qui glisse) — il y en avait deux */
 html .mMode .mmS{position:relative;justify-content:flex-start;width:76px;min-width:76px;height:30px;padding:0 10px;font-size:var(--f0);
   color:var(--neoV);background:#062414;box-shadow:inset 0 2px 0 rgba(0,0,0,.6),0 0 0 2px #1d7a44,0 0 14px rgba(94,227,122,.30)}
-html .mMode .mmS::before{content:'';position:absolute;top:3px;right:3px;width:26px;height:24px;background:linear-gradient(180deg,#d6ffe0,#44d873);
+html .mMode .mmS::before{content:'';position:absolute;top:3px;right:3px;width:26px;height:24px;background:linear-gradient(180deg,var(--cashL),#44d873);
   box-shadow:inset 0 2px 0 rgba(255,255,255,.5),0 2px 0 rgba(0,0,0,.4);transition:transform var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
 html .mMode.off .mmS{justify-content:flex-end;color:var(--tx3);background:var(--k0);box-shadow:inset 0 2px 0 rgba(0,0,0,.6),0 0 0 2px #2c2450}
 html .mMode.off .mmS::before{transform:translateX(-44px);background:linear-gradient(180deg,#9a92bc,#5b5380)}

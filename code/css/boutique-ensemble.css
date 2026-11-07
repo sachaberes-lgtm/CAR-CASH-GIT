@@ -34,12 +34,12 @@ html.bqIndus:not(.sansGarJouer) body #garage#garage.shopRet:not(.menu):not(.vitr
 html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct{margin-left:-6px;margin-right:-6px}
 #gBq #gBqPan#gBqPan.cote{right:var(--bqD,calc(var(--sR,0px) + 12px))!important}
 
-/* 7. L'ÉTAT D'UNE CAISSE SE LIT D'UN COUP D'ŒIL : « À TOI » et « MISSION » avaient le MÊME gris (#5b6572), à la place du prix — une caisse
+/* 7. L'ÉTAT D'UNE CAISSE SE LIT D'UN COUP D'ŒIL : « À TOI » et « MISSION » avaient le MÊME gris (var(--bqGris)), à la place du prix — une caisse
    gagnée ressemblait à une caisse verrouillée (VU après un achat : LA CABOSSEE « A TOI » grise à côté du SCARABÉE « MISSION » gris).
    À TOI : le bleu de la boutique et une coche ; MISSION : le gris et un cadenas. Les secrètes gardent leur rose (missions.css). */
 #gBqPan .bqK:not(.hab) .bqKp:is(.acq,.defi:not(.sec))::before{content:'';flex:none;width:8px;height:8px;background:currentColor;
   -webkit-mask:var(--pxi-verrou) center/contain no-repeat;mask:var(--pxi-verrou) center/contain no-repeat}
-#gBqPan .bqK:not(.hab) .bqKp.acq{color:#3d4bff}
+#gBqPan .bqK:not(.hab) .bqKp.acq{color:var(--bqAcc)}
 #gBqPan .bqK:not(.hab) .bqKp.acq.acq::before{-webkit-mask-image:var(--pxi-coche);mask-image:var(--pxi-coche)}
 
 /* 8. « SE DÉBLOQUE » AU-DESSUS DE LA CAISSE : en 10 px, la condition d'une caisse à mission tenait sur TROIS lignes dans la place entre la
@@ -65,11 +65,11 @@ html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct{margin-
 /* 10. ACHETER ET JOUER, DEUX LINGOTS D'OR L'UN SUR L'AUTRE : en boutique, l'or désignait deux gestes contraires (dépenser, partir). DÉCISION
    (passe finale) : dans la boutique SEULEMENT, l'or est à l'ACHAT — JOUER passe en plaque d'ENCRE, ses lettres d'or gardées (le mot reste
    le même lingot frappé, il ne crie plus). Partout ailleurs (garage, accueil) JOUER garde sa plaque d'or. */
-html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer{background:linear-gradient(180deg,#2a2f38,#14171c 60%)!important;
+html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer{background:linear-gradient(180deg,#2a2f38,var(--bqInk) 60%)!important;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 0 0 1px #000,0 6px 0 #000,0 14px 24px -10px rgba(20,23,28,.55)!important}
 html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer .mChev{filter:none!important}
 /* DÉSÉQUIPER retrouve la plaque blanche cerclée d'encre (garage-hub-rayons.css) que la couche ux8 noircissait : un retrait n'est pas l'action
    principale, et deux plaques noires se seraient empilées au-dessus de JOUER */
-html:not(.c6):not(.ux8g).bqIndus body #garage#garage #gAct#gAct>#gBqBtn[data-e="desequip"]{background:#fff;color:#14171c;box-shadow:inset 0 0 0 2px #14171c}
+html:not(.c6):not(.ux8g).bqIndus body #garage#garage #gAct#gAct>#gBqBtn[data-e="desequip"]{background:#fff;color:var(--bqInk);box-shadow:inset 0 0 0 2px var(--bqInk)}
 html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer .mChev .pxi{color:#ffd23a!important;background-color:#ffd23a!important;opacity:.8}
 </style>

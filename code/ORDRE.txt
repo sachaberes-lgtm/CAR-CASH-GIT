@@ -30,6 +30,8 @@ css/final-spin.css                   # finalSpin (la machine à sous de fin)
 css/ux8.css                          # ux8 (menus, partie, mouvement), clarté de la boutique, pub récompense, cadeau, HUD allégé
 css/accueil-boutique.css             # accueilDoigt, bqFigHex, policeUnique
 css/missions.css                     # missionsV2 (l'écran des missions)
+css/pass-viseur.css                  # le pass de missions : l'écran « LE VISEUR » (verre, anneaux, fils), scopé à #gMis.pv
+
 css/pause-v2.css                      # pauseV2 (l'écran de pause refait : tuiles, partie en carte)
 css/garage-jouer.css                 # uiRevue, jouerGarage, garShop
 page/ecrans-garage.html              # HTML : accueil, garage, atelier, inventaire, voile du départ, compteur, dark triad, niveaux
@@ -51,6 +53,8 @@ css/boutique-aile.css                  # <style id="bq-aile"> : rayon aile de la
 css/boutique-trainee.css                  # <style id="bq-trainee"> : rayon trainee de la boutique, ergonomie mobile
 css/boutique-figure.css                  # <style id="bq-figure"> : rayon figure de la boutique, ergonomie mobile
 css/boutique-ensemble.css                 # <style id="bq-ensemble"> : la finition générale de la boutique (ossature, alignements), posée après les rayons
+css/hud-fini.css                     # <style id="hudFini"> : la finition du HUD de course (2026-11-07) — colonne de droite d'une seule largeur, barre de la chaîne au bout du flow, centimes en petit, entrée de l'argent et de la flamme NITRO, éclat des gains ; posé après tout le HUD
+css/etalonnage.css                    # <style id="etalonnage"> : L'ÉTALONNAGE (2026-11-07) — LE nuancier (une encre, un or, les néons, la salle blanche), posé en dernier : il gagne sur tous les :root d'avant
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
@@ -172,6 +176,8 @@ gameplay/pickups-fruits.js           # pièces pixel, l'étal de fruits
 gameplay/fruits-nouveaux.js           # les nouveaux fruits : 9 normaux + formes des 5 fruits-pouvoirs, les 13 anciens rangés dans FRUIT_EXO
 voitures/deblocage.js                # moteurs, déblocage, conditions des 50
 missions/table.js                    # missions v2 : la table
+missions/pass-table.js               # le pass de missions : le réservoir du chapitre 1 (tranches, parties, mesures de la partie)
+
 economie/aura-banque-contrats.js     # l'aura et la banque, économie v3 : contrats, objectif
 gameplay/sensations-flow.js          # la passe sensations, le flow
 gameplay/frenesie.js                 # la zone rouge, l'emblème dark triad
@@ -262,6 +268,9 @@ interface/burn-out-1.js              # le premier burn-out
 interface/burn-out-2.js              # burn-out : la caisse dans la fumée, la balade
 interface/bouton-rouge.js            # le bouton rouge et ses outils
 missions/atelier.js                  # les missions dans l'atelier, équiper au toucher, la fiche
+missions/pass-moteur.js              # le pass de missions : le moteur des 3 emplacements (tirage borné par la difficulté, jauge de pitié, garde-fou), dbgPass
+missions/pass-viseur.js              # le pass de missions : l'écran « LE VISEUR » (3 cartes autour de la caisse, fils de visée)
+
 gameplay/ramassage.js                # le ramassage (pickupsTick)
 interface/bouton-nitro-gains.js      # bouton nitro v3, gains qui flottent, remplissage
 interface/boost-icones.js             # ?boost= : icônes en verre du bouton boost (bouteille, chevrons, flamme, anneau)

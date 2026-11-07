@@ -14,21 +14,21 @@
      battement deux fois. Purement décoratif, CSS seul (0 coût JS/frame) — n'existe QUE derrière le
      texte, jamais dessus (premier enfant de `#overlay`, DOM = ordre de peinture). */
   /* L'OR EXTRUDÉ, en une classe : la matière du logo, disponible pour n'importe quelle ligne. */
-  .or3{background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 26%,#ffc400 52%,#c07a06 76%,#ffe9a0 97%);
+  .or3{background:linear-gradient(180deg,var(--au0) 0%,var(--orB) 26%,var(--au2) 52%,#c07a06 76%,var(--orB) 97%);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 .055em 0 #7a4600) drop-shadow(0 .10em 0 #4a2a00)
            drop-shadow(0 .15em .16em rgba(0,0,0,.62))}
   /* ---- JOUER : la plaque d'or, la plus grosse chose cliquable de l'écran ---- */
   #playBtn{position:relative;margin:16px 0 8px;padding:20px 62px;border:0;border-radius:0;cursor:pointer;
     font-family:var(--pix);font-size:19px;letter-spacing:6px;color:#2a1500;
-    background:linear-gradient(180deg,#ffeeb0,#ffc400 52%,#eb9c00);
+    background:linear-gradient(180deg,#ffeeb0,var(--au2) 52%,#eb9c00);
     text-shadow:0 1px 0 rgba(255,255,255,.45);
     clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);
-    filter:drop-shadow(0 8px 0 #7a4400);transition:transform .05s,filter .05s}
+    filter:drop-shadow(0 8px 0 var(--orF));transition:transform .05s,filter .05s}
   #playBtn::after{content:'';position:absolute;inset:0;pointer-events:none;
     box-shadow:inset 4px 4px 0 rgba(255,255,255,.35),inset -4px -4px 0 rgba(0,0,0,.28)}
-  #playBtn:hover{filter:drop-shadow(0 8px 0 #7a4400) brightness(1.06)}
-  #playBtn:active{transform:translateY(7px);filter:drop-shadow(0 1px 0 #7a4400) brightness(1.1)}
+  #playBtn:hover{filter:drop-shadow(0 8px 0 var(--orF)) brightness(1.06)}
+  #playBtn:active{transform:translateY(7px);filter:drop-shadow(0 1px 0 var(--orF)) brightness(1.1)}
   #playBtn:focus-visible{outline:2px solid #fff;outline-offset:4px}
   #overlay h1{font-family:var(--pix);text-align:center}
   /* ------- LOGO 3D OR (partagé accueil + intro) ------- */
@@ -36,10 +36,10 @@
   .lg::before{content:attr(data-t);position:absolute;left:0;top:0;width:100%;z-index:-1;color:#4a2a00;
     transform:translateY(.09em);
     text-shadow:0 .015em 0 #6e3f00,0 .03em 0 #5c3300,0 .05em 0 #472700,0 .07em 0 #331c00,0 .16em .3em rgba(0,0,0,.7)}
-  .lg.gold{background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 28%,#ffc400 52%,#b06c05 74%,#ffe9a0 96%);
+  .lg.gold{background:linear-gradient(180deg,var(--au0) 0%,var(--orB) 28%,var(--au2) 52%,var(--orS) 74%,var(--orB) 96%);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 0 .35em rgba(255,200,80,.5))}
-  .lg.grad{background:linear-gradient(180deg,#fff3c0,#ffd75e 40%,#ff8a3d 72%,#ff3ec8);
+  .lg.grad{background:linear-gradient(180deg,#fff3c0,var(--or) 40%,#ff8a3d 72%,var(--neoM));
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 0 .35em rgba(255,110,190,.45))}
   .lg::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;
@@ -66,12 +66,12 @@
     background:radial-gradient(circle,rgba(255,222,140,.85) 0%,rgba(255,180,60,.4) 32%,transparent 68%);
     opacity:0;transition:opacity .5s ease-out,transform .8s cubic-bezier(.22,1.61,.36,1)}
   #launchGlow.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
-  #overlay h2{font-family:var(--pix);font-size:11px;margin:14px 0 0;color:#00eaff;text-shadow:0 0 12px rgba(0,234,255,.7)}
+  #overlay h2{font-family:var(--pix);font-size:11px;margin:14px 0 0;color:var(--neoC);text-shadow:0 0 12px rgba(0,234,255,.7)}
   #overlay p{max-width:640px;text-align:center;line-height:1.9;opacity:.92;font-size:10px;font-family:var(--pix)}
   #overlay .go{font-family:var(--pix)}
   #finalScore{display:none;
     -webkit-background-clip:text}
-  kbd{background:#1a1433;border:1px solid #00eaff;border-radius:3px;padding:2px 8px;font-size:8px;font-family:var(--pix)}
+  kbd{background:#1a1433;border:1px solid var(--neoC);border-radius:3px;padding:2px 8px;font-size:8px;font-family:var(--pix)}
   @keyframes pulse{50%{opacity:.4}}
   /* --- classement top 10 --- */
   /* le classement passe en second plan : on ouvre le jeu pour JOUER, pas pour lire un tableau */
@@ -80,11 +80,11 @@
   .lbTitle{font-family:var(--pix);text-align:center}
   .lbRow{display:flex;align-items:center;font-family:var(--pix);line-height:2;padding:3px 10px;transition:background .15s}
   .lbRow:hover{background:rgba(0,234,255,.08)}
-  .lbRow.hl{color:#ffb000;text-shadow:0 0 8px rgba(255,176,0,.6)}
+  .lbRow.hl{color:var(--neoA);text-shadow:0 0 8px rgba(255,176,0,.6)}
   .lbRank{width:30px;color:#8f84c8;text-align:right;padding-right:12px}
   .lbName{flex:1;text-align:left;letter-spacing:2px}
-  .lbScore{color:#62e062}
-  .lbRow.hl .lbScore{color:#ffd75e}
+  .lbScore{color:var(--neoV)}
+  .lbRow.hl .lbScore{color:var(--or)}
   .lbEmpty{text-align:center;padding:6px}
 
   /* ------- ÉCRANS MODERNES (accueil / game over) ------- */
@@ -136,16 +136,16 @@
     background:linear-gradient(180deg,#ffe9c0,#e0a24a 70%,#8a5510);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 1px 0 #43260a) drop-shadow(0 2px 3px rgba(0,0,0,.7))}
-  #ovSub{font-size:13px;color:#ff5e7a;text-shadow:0 0 16px rgba(255,60,90,.6);margin:6px 0 0;letter-spacing:6px}
+  #ovSub{font-size:13px;color:var(--neoR);text-shadow:0 0 16px rgba(255,60,90,.6);margin:6px 0 0;letter-spacing:6px}
   /* LE MAGOT DE FIN DE PARTIE : lui aussi extrudé — c'est le chiffre qu'on vient chercher */
   #finalScore{font-family:var(--pix);font-size:34px;margin:14px 0 6px;letter-spacing:2px;
-    background:linear-gradient(180deg,#fffdf2 0%,#ffe9a0 26%,#ffc400 52%,#c07a06 76%,#ffe9a0 97%);
+    background:linear-gradient(180deg,var(--au0) 0%,var(--orB) 26%,var(--au2) 52%,#c07a06 76%,var(--orB) 97%);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 .055em 0 #7a4600) drop-shadow(0 .10em 0 #4a2a00) drop-shadow(0 .15em .16em rgba(0,0,0,.62))}
-  #bestChip{font-family:var(--pix);font-size:9px;letter-spacing:2.2px;color:#ffd75e;border-radius:0;
+  #bestChip{font-family:var(--pix);font-size:9px;letter-spacing:2.2px;color:var(--or);border-radius:0;
     padding:8px 15px;margin:6px 0 6px}
   #lbBox{width:400px;padding:12px 14px}
-  .lbTitle{font-size:11px;letter-spacing:3px;color:#ffd75e;text-shadow:none;margin-bottom:8px}
+  .lbTitle{font-size:11px;letter-spacing:3px;color:var(--or);text-shadow:none;margin-bottom:8px}
   .lbRow{border-bottom:1px solid rgba(255,255,255,.06);color:#c8dcf2;font-size:9px}
   .lbRow.hl{background:rgba(255,176,0,.12);box-shadow:none}
   /* le gros bouton doré devient une simple INVITE sous le logo : c'est le titre qu'on clique */
@@ -185,7 +185,7 @@
     font-family:var(--pix);font-size:clamp(52px,11.4vw,104px);letter-spacing:8px;
     opacity:0;transform:translate(-50%,-50%) scale(.72);
     transition:opacity .7s ease,transform .8s cubic-bezier(.18,.9,.28,1.35),filter .7s ease;
-    background:linear-gradient(180deg,#fffdf0,#ffe9a0 32%,#ffb000 58%,#7c4a00 80%,#ffe9a0);
+    background:linear-gradient(180deg,#fffdf0,var(--orB) 32%,var(--neoA) 58%,#7c4a00 80%,var(--orB));
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 0 34px rgba(255,190,60,.8)) drop-shadow(0 5px 0 #4a2a00)}
   #spNum.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
@@ -226,7 +226,7 @@
      lisible pendant qu'elle explose, le coût de calcul baisse d'autant. `will-change` prévient le
      navigateur qu'un calque dédié vaut le coup ICI, pas partout (un `will-change` posé en permanence
      gaspille de la mémoire GPU pour rien). */
-  #spTitle.boom{opacity:0;transform:scale(3.6);filter:blur(6px) drop-shadow(0 0 42px #ffd75e);
+  #spTitle.boom{opacity:0;transform:scale(3.6);filter:blur(6px) drop-shadow(0 0 42px var(--or));
     will-change:transform,filter,opacity;
     transition:opacity .45s ease-in,transform .45s ease-in,filter .45s ease-in}
   /* ⚠ RADIALE, PAS UN APLAT (2026-09-05) : un `background:#fff` plein écran qui saute à `opacity:1`
@@ -286,12 +286,12 @@
   /* le ⏸ / ⚙ : même plaque, en petit */
   #tGear{position:fixed;z-index:8;top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 10px);right:calc(var(--ccR,env(safe-area-inset-right,0px)) + 10px);
     width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;
-    border:0;border-radius:0;color:#9fe8ff;background:linear-gradient(180deg,#22305c,#141d3a);opacity:.94;
+    border:0;border-radius:0;color:var(--cyan);background:linear-gradient(180deg,#22305c,#141d3a);opacity:.94;
     clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);
-    filter:drop-shadow(0 5px 0 #06122e);
+    filter:drop-shadow(0 5px 0 var(--cyanF));
     box-shadow:inset 3px 3px 0 rgba(255,255,255,.16),inset -3px -3px 0 rgba(0,0,0,.40),inset 0 0 0 2px rgba(0,234,255,.42);
     -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;touch-action:none}
-  #tGear:active{transform:translateY(4px);filter:drop-shadow(0 1px 0 #06122e)}
+  #tGear:active{transform:translateY(4px);filter:drop-shadow(0 1px 0 var(--cyanF))}
   /* la jauge de nitro : segments francs, cadre net — plus de coins arrondis */
   body.touch #nitroBar{border:0;box-shadow:inset 0 0 0 2px rgba(0,234,255,.55),0 3px 0 rgba(4,10,26,.9)}
   /* ================= ÉCRAN NU (mobile) : LA ROUTE, LA CAISSE, LA NITRO =================
@@ -343,9 +343,9 @@
     display:flex;flex-direction:column;align-items:center;gap:9px;width:max-content;max-width:88vw;
     font-family:var(--pix);text-align:center;opacity:0;transition:opacity .45s}
   #lvlBan.on{opacity:1}
-  #lvlBan b{font-size:clamp(20px,6.4vw,36px);letter-spacing:.16em;color:#ffd75e;
-    text-shadow:0 3px 0 #7a4400,0 0 24px rgba(255,200,90,.45)}
-  #lvlBan span{font-size:clamp(9px,2.7vw,14px);letter-spacing:.2em;line-height:1.7;color:#9fe8ff;white-space:normal;
+  #lvlBan b{font-size:clamp(20px,6.4vw,36px);letter-spacing:.16em;color:var(--or);
+    text-shadow:0 3px 0 var(--orF),0 0 24px rgba(255,200,90,.45)}
+  #lvlBan span{font-size:clamp(9px,2.7vw,14px);letter-spacing:.2em;line-height:1.7;color:var(--cyan);white-space:normal;
     text-shadow:0 2px 0 rgba(0,0,0,.6),0 0 14px rgba(120,220,255,.45)}
   /* ------- PORTRAIT : L'ORIENTATION NORMALE DU JEU (le paysage n'est plus qu'un repli) ------- */
   @media (orientation:portrait){
