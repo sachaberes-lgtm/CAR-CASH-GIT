@@ -302,6 +302,11 @@ const ONGLET={id:'',passif:false};
 try{if(TEL_NATIF&&!/[?&]volinv=ancien\b/.test(location.search)){
   if(SAVE.d&&SAVE.d.volInv){SAVE.d.volInv=0;SAVE.d.volH=SAVE.d.volH==='plonge'?'monte':'plonge';SAVE.flush();}
   document.querySelectorAll('.mLigne[data-m="volinv"]').forEach(function(e9){e9.style.display='none';});}}catch(e){}
+/* (2026-11-07, Sacha : « inverser et pouce haut c'est la même chose ») le cadre téléphone sur ORDI (IS_MOBILE sans TEL_NATIF) montrait encore les deux lignes.
+   Là c'est POUCE HAUT qui disparaît et VOL INVERSÉ reste (il règle aussi le clavier) : son état absorbe celui de POUCE HAUT, le sens au doigt ne change pas. */
+try{if(IS_MOBILE&&!TEL_NATIF&&!/[?&]volinv=ancien\b/.test(location.search)){
+  if(SAVE.d&&SAVE.d.volH==='plonge'){SAVE.d.volH='monte';SAVE.d.volInv=SAVE.d.volInv?0:1;SAVE.flush();}
+  document.querySelectorAll('.mLigne[data-m="volh"]').forEach(function(e9){e9.style.display='none';});}}catch(e){}
 /* ===== LA FENÊTRE À CHAMP AU-DESSUS DU CLAVIER (2026-11-05, Opus : jury INT-08) =====
    #modale (ENTRER UN CODE, MA SAUVEGARDE) est une feuille collée en bas : sur iPhone le clavier la recouvrait, VALIDER et ANNULER passaient sous
    les touches. Même recette que la plaque (plqClavier) : tant que son champ a le focus et que la partie visible a perdu plus de 90 px, la

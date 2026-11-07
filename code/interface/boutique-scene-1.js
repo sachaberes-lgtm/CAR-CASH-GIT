@@ -213,9 +213,9 @@ function bqAilesOrdre(){const rg=function(d){return Math.max(0,RARETES.findIndex
   return COSM.aile.map(function(d,j){return j;}).sort(function(a,b){const A=COSM.aile[a],B=COSM.aile[b];return (rg(A)-rg(B))||(px(A)-px(B))||(a-b);});}
 function bqHabRail(L,cat,SOUS){const fam=function(k){return cosmRar(cat,bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,SOUS&&SOUS[f]?sansAcc(TR(SOUS[f])):''))+bqCarteHtml(k,n,false);});}
-function bqTraineeRail(L){const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+function bqTraineeRail(L){if(typeof trPisteHtml==='function')return trPisteHtml(L); /* (2026-11-07) LA PISTE : le rayon des traînées a son propre système (interface/boutique-trainee.js) */const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,BQ_TRAINEE_SOUS[f]?sansAcc(TR(BQ_TRAINEE_SOUS[f])):''))+bqCarteHtml(k,n,false);});}
-function bqPeintRail(L){try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */const fam=function(k){return cosmRar('peinture',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+function bqPeintRail(L){if(typeof bqNuancierHtml==='function')return bqNuancierHtml(L); /* (2026-11-07) LE NUANCIER : le rayon des peintures a son propre système (interface/boutique-peinture.js) */try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */const fam=function(k){return cosmRar('peinture',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k),sous=BQ_PEINT_SOUS[f]?sansAcc(TR(BQ_PEINT_SOUS[f]))+' · '+eurTxt(PEINT_EUR[f]):'';return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,sous))+bqCarteHtml(k,n,false);});}
 /* LES REFLETS DANS LA SALLE BLANCHE (2026-11-05, Sacha : « les voitures buggent visuellement ») : les « reflets qui éclatent » de la finition studio (fstuHdr :
    le presque-blanc du cube de reflets ×4,5) font de belles bandes dans le garage sombre ; sur les petites facettes des caisses, dans la boutique blanche,
@@ -345,6 +345,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
   if(voulu!==GBQ.panOn){GBQ.panOn=voulu;if(voulu){const t9=SHOP.tab;if(GBQ.cat!==t9&&BQ_CATS.some(function(c){return c[0]===t9;})){GBQ.cat=t9;GBQ.ong='cat';}} /* (2026-11-07, chasse TEL-N01) FIGURES au garage puis BOUTIQUE : le rayon VOITURES s'allumait avec une figure en vedette et « ÉQUIPER — REMPLACE TONNEAU » */ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
   soldeEcrit(document.getElementById('gBqArg'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
   if((!voulu||SHOP.tab!=='voiture')&&GBQ.sec!=null)GBQ.sec=null; // (missions v2) hors du rayon des caisses, plus de secrète regardée
+  try{bqAileMaj(pan,voulu);}catch(e){console.warn('bqAile',e);} /* (2026-11-07) le rayon AILES a sa molette (interface/boutique-aile.js) */
   if(!voulu)return;
   // LA BOUTIQUE : le rayon choisi dans la colonne de gauche (2026-10-15 : plus d'onglet OFFRES)
   const ong='cat',cat=BQ_CATS.some(function(c){return c[0]===GBQ.cat;})?GBQ.cat:'voiture',L=bqListe(cat),rail=pan.querySelector('.bqRail'),une=document.getElementById('gBqCats');
@@ -354,9 +355,9 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
       if(C9&&s){const t=sansAcc(TR(C9[1]));if(s.textContent!==t){s.textContent=t;b.setAttribute('aria-label',t);b.title=t;}if(on)une.setAttribute('data-cur',t);}}); /* (2026-11-03, Sacha : « cet écran, il est horrible ») `data-cur` : le NOM du rayon ouvert, écrit sous les carrés quand les libellés n'ont plus la place (.duo) */
     rail.classList.remove('off','habs');rail.classList.add('entre');rail.scrollTop=0;rail.scrollLeft=0; /* (2026-10-15, Sacha : « un menu plus grand pour les figures, les ailes, les peintures ») tous les rayons en GRANDES cartes, trois par rangée comme les voitures — à quatre, « D'ORIGINE » se coupait en « D'ORIGIN / E » */
-    rail.innerHTML=(cat==='figure'?(function(R){return R.length?R.map(function(e,n){return (n===0&&FSEL.dir>=0?bqFigSec(FSEL.dir):'')+bqCarteHtml(e.k,n,false,e.c);}):['<div class="bqVide">'+sansAcc(TR(FSEL.dir>=0?'AUCUNE FIGURE POUR CE GESTE':'RIEN À AFFICHER'))+'</div>'];})(bqFigRail()):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):cat==='trainee'?bqTraineeRail(L):cat==='aile'?bqHabRail(L,'aile'):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-11-05) les figures : une carte par figure (un seul intertitre quand on vise un geste) */bqPhotos(rail);bqAimant(rail);if(sc9)rail.scrollTop=sc9;
+    rail.innerHTML=(cat==='figure'?bqFigRailHtml():cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):cat==='trainee'?bqTraineeRail(L):cat==='aile'?bqHabRail(L,'aile'):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-11-05) les figures : une carte par figure (un seul intertitre quand on vise un geste) */bqPhotos(rail);bqAimant(rail);if(sc9)rail.scrollTop=sc9;
     pan.classList.toggle('bqFigOn',cat==='figure');BQFS.k='';} /* (2026-10-16, Sacha) les trois figures équipées en haut du rayon FIGURES (voir bqFigSelMaj) */
-  if(cat==='figure')try{bqFigSelMaj(pan,true);}catch(e){console.warn('bqFigSel',e);}
+  if(cat==='figure')try{bqFigSelMaj(pan,true);bqFigApres(pan,rail);}catch(e){console.warn('bqFigSel',e);} /* (2026-11-07) le rayon FIGURES a sa pellicule (boutique-figure.js : bqFigRailHtml, bqFigApres) */
   if(cat==='figure')try{filmJoue();}catch(e){} /* (2026-10-18) les films des cartes (voir LE FILM D'UNE FIGURE) */
   /* (clarté 14/10) des cartes restaient blanches : la file du studio photo s'arrête hors garage / sous `quiet` et ne repart qu'à la photo suivante — on la relance, et on re-demande ce qui manque */
   if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}
@@ -379,6 +380,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
       mt.innerHTML=h9;mt.hidden=!h9;}
     {const L9=bqSkins(cur);sk.classList.toggle('vide',!L9.length);sk.querySelector('.bqSk').innerHTML=L9.map(function(x,n){return '<button class="bqS'+(n===0?' on':'')+'" data-s="'+x.id+'" style="--sc:'+x.c+'"><i></i><span>'+sansAcc(TR(x.n))+'</span></button>';}).join('');}
     rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur&&(!el.hasAttribute('data-dir')||GBQ.figDir==null||+el.getAttribute('data-dir')===GBQ.figDir));});
+    if(cat==='peinture'&&typeof bqNuancierSel==='function')bqNuancierSel(rail,cur); /* (2026-11-07) les pastilles du nuancier (boutique-peinture.js) */
 }
   {const t=nm.querySelector('.bqLim em'),r=bqHebdoReste();if(t&&lim&&t.textContent!==r)t.textContent=r;}
   // LA PLACE : la colonne des rayons à gauche ; la boutique en bas (debout) ou à droite jusqu'en haut (couché)

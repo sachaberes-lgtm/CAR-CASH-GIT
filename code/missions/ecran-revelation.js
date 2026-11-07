@@ -149,7 +149,7 @@ function m2Vue(L,s,vu){ // → {ved : la vedette (l'écran de mort seulement, de
     if(f!==fam){fam=f;let tot=0,ok=0;for(const m of M2){if(m.f!==f||!m2Dispo(m))continue;tot++;if(s.ok.indexOf(m.id)>=0)ok++;}
       listeTab+=mcEntete((M2_FAM[f]||M2_FAM.exploit).ic,M2_FAM_NOM[f]||'MISSIONS',ok+' / '+tot);}
     listeTab+=mcLigne(x,k++,s);}
-  return {ved:ved?mcVedette(ved,s,!vu):'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>',listeTab:listeTab,n:prets.length+reste.length};}
+  return {ved:ved?mcVedette(ved,s,!vu):'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>',listeTab:listeTab,n:prets.length+reste.length,vedM:ved?ved.m:null};}
 function m2Render(vu){ /* (2026-11-03, refonte · 2026-11-05, plus de vedette : voir « L'ÉCRAN DES MISSIONS À LA MORT », aujourdhui.js) la page MISSIONS entière */
   if(PASS_ON&&typeof gEl!=='undefined'&&gEl&&gEl.classList.contains('missions'))return pvRender(vu); /* (2026-11-07) le pass : toute remise à jour de l'écran MISSIONS passe par LE VISEUR */
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';

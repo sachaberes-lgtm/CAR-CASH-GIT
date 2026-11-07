@@ -7316,17 +7316,20 @@ html.hub.hub:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
 #spinM .spReflet{position:absolute;inset:0;z-index:4;pointer-events:none;
   background:linear-gradient(118deg,transparent 0 18%,rgba(255,255,255,.16) 18% 24%,transparent 24% 30%,rgba(255,255,255,.08) 30% 32%,transparent 32%)}
 /* L'ÉCRAN DES LOTS : le petit écran sous la vitre */
-#spinM .spEcran{width:100%;min-height:calc(var(--spH)*.9);display:flex;align-items:center;justify-content:center;padding:6px 10px;box-sizing:border-box;
+/* (2026-11-07, Sacha : « cet écran est bugger en mobile, retravaille-le ») l'écran des lots ne dicte plus la largeur de la caisse (width:0 + min-width:100%) :
+   un long texte (UN TIRAGE DE PLUS) la dilatait et le levier partait loin de la vitre ; il retourne à la ligne dans la vitre */
+#spinM .spEcran{width:0;min-width:100%;min-height:calc(var(--spH)*.9);display:flex;align-items:center;justify-content:center;padding:6px 10px;box-sizing:border-box;
   background:linear-gradient(180deg,#05030c,#120b26);box-shadow:inset 0 0 0 2px var(--k0),inset 0 0 0 3px var(--kl),inset 0 6px 12px rgba(0,0,0,.6)}
-#spinM .spGain{display:flex;align-items:center;justify-content:center;gap:10px;text-align:center}
+#spinM .spGain{display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;max-width:100%;min-width:0;line-height:1.3}
 #spinM .spGain.attente span{font-size:var(--f1);color:var(--tx2);letter-spacing:1px;animation:spRespire 1.6s var(--ease) infinite}
 @keyframes spRespire{50%{opacity:.45}}
-#spinM .spGTx{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+#spinM .spGTx{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;text-align:left;overflow-wrap:anywhere}
 #spinM .spGain small{font-size:var(--f1);color:var(--tx2);letter-spacing:1px}
 #spinM .spGain b{font-weight:400;font-size:var(--f6);color:var(--cash);text-shadow:0 2px 0 var(--cashO)}
 #spinM .spGain b.bon{font-size:var(--f1);color:var(--neoC);text-shadow:none}
 #spinM .spGain.gros small,#spinM .spGain.lot small{color:var(--au1)}
 #spinM .spGain.gros b{font-size:var(--f9)}
+#spinM .spGain.gros b.bon,#spinM .spGain.lot b.bon,#spinM .spGain.jackpot b.bon{font-size:var(--f1);color:var(--neoC);text-shadow:none} /* un lot « bon » (UN TIRAGE DE PLUS…) gardait la taille d'un gros gain (24 px) : la règle .gros b passait devant */
 #spinM .spGain.jackpot small{color:var(--au1);font-size:var(--f3)}
 #spinM .spGain.jackpot b{font-size:var(--f7);color:var(--au1);text-shadow:0 3px 0 var(--auE),0 0 18px var(--auG);animation:spJack .5s var(--ease) 3}
 @keyframes spJack{40%{transform:scale(1.14)}}
@@ -7381,7 +7384,8 @@ html.hub.hub:not(.c6) body #mHome.acc2 .mAccP>.mMisBarre{grid-column:1/3}
   #spinM .spBox{display:grid;grid-template-columns:auto minmax(0,240px);grid-template-rows:1fr auto auto 1fr;column-gap:calc(var(--spH)*.95); /* (banc) la boule du levier mordait sur l'enseigne */row-gap:12px;align-items:center;justify-items:center}
   #spinM .spCorps{grid-column:1;grid-row:1/5}
   #spinM .spEnseigne{grid-column:2;grid-row:1;align-self:end}
-  #spinM .spNeon{font-size:var(--f6)}
+  #spinM .spEnseigne{max-width:100%;box-sizing:border-box}
+  #spinM .spNeon{font-size:min(var(--f6),calc(var(--spH)*.36));letter-spacing:1px} /* (2026-11-07) FINAL SPIN débordait de la colonne de droite */
   #spinM .spPlateau{grid-column:2;grid-row:2}
   #spinM .spTire{grid-column:2;grid-row:3;width:100%;min-height:52px}}
 @media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:3s}#spinM.gagne .spNeon{animation:none}}
@@ -10465,6 +10469,365 @@ html #gBq #gBqPan .bqK.vo.trop .bqKp.pc{background:#d9dee6;color:#b23a2e}
 html #gBq #gBqPan .bqK.vo.trop .bqKp.pc .pxi{opacity:.55}
 /* la caisse ÉQUIPÉE : la même pastille verte, d'un vert plus franc, liseré clair (« À TOI » reste plus doux) */
 html #gBq #gBqPan .bqK.vo .bqKp.acq.eqp{background:#3ddc84;color:#04220f}
+</style>
+<style id="bq-peinture">
+/* ===== BOUTIQUE : LE NUANCIER DES PEINTURES (2026-11-07, Sacha : « les boîtes de Léo sont bien pour les voitures mais pas adaptées aux peintures, traînées, figures… » · « chaque type d'item doit avoir un système propre ») =====
+   Le dessin du rayon PEINTURES (interface/boutique-peinture.js) : la barre des familles collée en haut, un intertitre d'une ligne par famille, des
+   pastilles carrées de tôle vernie en grille serrée (six par rangée sur un téléphone debout, ≥ 48 px), leur état en un seul signe, la loupe. */
+#gBqPan .bqRail .pNu{flex:0 0 100%;min-width:0;font-family:var(--pix);color:#14171c}
+/* 1. LA BARRE DES FAMILLES : collée en haut du rail, quatre touches de 44 px */
+#gBqPan .pNav{position:sticky;top:-3px;z-index:3;margin-top:-3px;padding-top:3px!important;display:grid;grid-template-columns:repeat(var(--nf,4),minmax(0,1fr));gap:4px;padding:0 0 6px;
+  background:linear-gradient(180deg,rgba(241,243,246,.97) 82%,rgba(241,243,246,0));-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#gBqPan .pNav button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;height:44px;padding:0 3px;border:0;border-radius:9px;
+  background:#fff;color:#14171c;font-family:var(--pix);box-shadow:0 0 0 1px #dde1e6,0 3px 8px rgba(30,40,55,.06);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#gBqPan .pNav button::before{content:'';position:absolute;left:8px;right:8px;bottom:4px;height:2px;border-radius:2px;background:var(--rc);opacity:.75}
+#gBqPan .pNav button b{font-weight:400;font-size:8px;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:clip;max-width:100%}
+#gBqPan .pNav button em{font-style:normal;font-size:6px;letter-spacing:0;color:#5b6470;white-space:nowrap}
+#gBqPan .pNav button.on{background:#14171c;color:#fff;box-shadow:0 0 0 1px #14171c,0 0 0 3px rgba(255,255,255,.9),0 4px 12px rgba(20,23,28,.22)}
+#gBqPan .pNav button.on em{color:#c3cad4}
+#gBqPan .pNav button.on::before{opacity:1;left:6px;right:6px}
+#gBqPan .pNav button:active{translate:0 1px}
+/* 2. LES FAMILLES : un intertitre d'une ligne (logo de la rareté, son nom, ce qu'elle est et son prix, « à toi / total ») */
+#gBqPan .pNs{margin-top:8px;scroll-margin-top:52px}
+#gBqPan .pNs:first-of-type{margin-top:2px}
+#gBqPan .pNh{display:flex;align-items:center;gap:7px;margin:0 0 8px;padding:0 1px;font-weight:400;min-width:0}
+#gBqPan .pNh .bqRl{flex:none;display:grid;place-items:center;width:18px;height:18px;border-radius:5px;background:#14171c;box-shadow:0 0 0 1px var(--rc),0 0 8px -2px var(--rc)}
+#gBqPan .pNh .bqRl .pxi{--pxs:1;width:10px;height:10px;margin:0;color:var(--rc)}
+#gBqPan .pNh b{flex:none;font-weight:400;font-size:9px;letter-spacing:1.5px}
+#gBqPan .pNh i{flex:none;font-style:normal;font-size:7px;letter-spacing:.5px;color:#5b6470;white-space:nowrap}
+#gBqPan .pNh s{flex:1;min-width:6px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--rc),transparent);text-decoration:none}
+#gBqPan .pNh em{flex:none;font-style:normal;font-size:7px;color:#5b6470}
+#gBqPan .pNh em u{text-decoration:none;color:#14171c}
+#gBqPan .pNs[data-pf="legendaire"] .pNh .bqRl{animation:pLueur 2.4s ease-in-out infinite alternate}
+/* 3. LA GRILLE : des pastilles carrées, autant que la largeur en tient à ≥ 48 px */
+#gBqPan .pNg{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px;padding:3px}
+#gBqPan.cote .pNg{grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:7px}
+/* 4. LA PASTILLE : la tôle vernie (sa finition, son animation), un liseré à la couleur de sa rareté */
+#gBqPan .pN{position:relative;display:block;aspect-ratio:1;min-width:0;min-height:44px;padding:0;border:0;border-radius:12px;background:#fff;cursor:pointer;
+  box-shadow:0 0 0 1px #dde1e6,0 4px 10px rgba(30,40,55,.08);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:pan-y;
+  transition:transform .16s var(--ease,ease-out),box-shadow .16s;animation:pNEntre .34s var(--ease,ease-out) both;animation-delay:calc(var(--i,0) * 16ms)}
+@keyframes pNEntre{from{opacity:0;transform:scale(.82)}}
+#gBqPan .pN .pNsw{position:absolute;inset:4px;display:block;border-radius:9px;overflow:hidden;
+  box-shadow:inset 0 0 0 1px rgba(20,23,28,.14),inset 0 -5px 8px -5px rgba(0,0,0,.3)}
+#gBqPan .pN .pNsw::before{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(160deg,rgba(255,255,255,.62) 0%,rgba(255,255,255,.16) 26%,rgba(255,255,255,0) 44%,rgba(255,255,255,0) 70%,rgba(0,0,0,.12) 100%)}
+#gBqPan .pN .pNsw.mat::before{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(0,0,0,.14))}
+#gBqPan .pN .pNsw:is(.chrome,.or,.metal,.nacre)::before{background:linear-gradient(160deg,rgba(255,255,255,.75) 0%,rgba(255,255,255,.2) 22%,rgba(255,255,255,0) 34%,rgba(255,255,255,.45) 52%,rgba(255,255,255,0) 64%,rgba(0,0,0,.14) 100%)}
+#gBqPan .pN .pNsw.pL{background-size:64px 64px!important}
+#gBqPan .pN.r-rare{box-shadow:0 0 0 1px #a9d8fb,0 4px 10px rgba(30,40,55,.08)}
+#gBqPan .pN.r-epique{box-shadow:0 0 0 1.5px #d2b0f2,0 4px 10px rgba(30,40,55,.08)}
+#gBqPan .pN.r-legendaire{box-shadow:0 0 0 1.5px #f2c23a,0 0 12px -3px rgba(255,200,60,.7),0 4px 12px rgba(255,180,40,.16)}
+#gBqPan .pN.r-legendaire::after{content:'';position:absolute;inset:4px;border-radius:9px;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(115deg,rgba(255,255,255,0) 38%,rgba(255,255,255,.6) 50%,rgba(255,255,255,0) 62%) no-repeat;background-size:300% 100%;animation:pBrille 3.6s ease-in-out infinite}
+/* celle qu'on regarde : l'anneau d'encre, elle se soulève */
+#gBqPan .pN.sel{z-index:1;transform:scale(1.07);box-shadow:0 0 0 2.5px #14171c,0 0 0 5px rgba(255,255,255,.95),0 8px 16px rgba(20,23,28,.22)}
+#gBqPan .pN:active{transform:scale(.94)}
+#gBqPan .pN.sel:active{transform:scale(1.02)}
+/* 5. L'ÉTAT EN UN SIGNE : une pastille ronde dans le coin (coche, coche bleue, pièce, drapeau) ; le défi, lui, est un anneau */
+#gBqPan .pN .pNb{position:absolute;top:-4px;right:-4px;z-index:2;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#14171c;box-shadow:0 0 0 2px #fff;font-weight:400}
+#gBqPan .pN .pNb .pxi{--pxs:1;width:9px;height:9px;margin:0;color:#fff}
+#gBqPan .pN.e-eq .pNb{background:#3d4bff;width:20px;height:20px}
+#gBqPan .pN.e-pc .pNb{background:#ffd34a}
+#gBqPan .pN.e-pc .pNb .pxi{color:#14171c}
+#gBqPan .pN.e-mis .pNb{background:#ff3ec8}
+/* le défi : un anneau cyan autour de la pastille, rempli à sa jauge (un exploit d'un coup : en pointillé) */
+#gBqPan .pN .pNj{position:absolute;inset:-3px;border-radius:14px;padding:2px;pointer-events:none;text-decoration:none;
+  background:conic-gradient(from 0deg,#14b5cc calc(var(--pj,0) * 1%),rgba(20,181,204,.28) 0);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+#gBqPan .pN .pNj.coup{background:repeating-conic-gradient(#14b5cc 0 8deg,rgba(20,181,204,.15) 8deg 20deg)}
+#gBqPan .pN.sel .pNj{inset:-6px;border-radius:17px}
+/* 6. LA LOUPE (garder le doigt) : au-dessus du doigt, la pastille en grand, la rareté, le nom, l'état ou le défi et sa jauge */
+#pNLoupe{position:fixed;z-index:9000;display:flex;align-items:center;gap:10px;max-width:min(300px,calc(100vw - 16px));padding:8px 12px 8px 8px;border-radius:12px;box-sizing:border-box;
+  background:#14171c;color:#fff;font-family:var(--pix);box-shadow:0 0 0 1px var(--rc),0 12px 28px rgba(0,0,0,.35);pointer-events:none;opacity:0;transform:translateY(6px) scale(.96);transition:opacity .14s,transform .18s var(--ease,ease-out);visibility:hidden}
+#pNLoupe.on{opacity:1;transform:none;visibility:visible}
+#pNLoupe .pLsw{flex:none;position:relative;display:block;width:46px;height:46px;border-radius:9px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+#pNLoupe .pLsw.pL{background-size:64px 64px!important}
+#pNLoupe .pLt{display:flex;flex-direction:column;gap:5px;min-width:0}
+#pNLoupe .pLt i{font-style:normal;font-size:7px;letter-spacing:1px;color:var(--rc)}
+#pNLoupe .pLt b{font-weight:400;font-size:10px;line-height:13px;letter-spacing:.5px}
+#pNLoupe .pLe{font-size:7px;color:#c3cad4;display:flex;align-items:center;gap:4px}
+#pNLoupe .pLe .pxi{--pxs:1;width:8px;height:8px;margin:0;color:currentColor}
+#pNLoupe .pLe.e-eq{color:#8f99ff}
+#pNLoupe .pLe.e-eur{color:#fff}
+#pNLoupe .pLd{font-size:7px;line-height:10px;color:#5ff0ff}
+#pNLoupe .pLd .pxi{--pxs:1;width:8px;height:8px;margin:0;color:#5ff0ff;vertical-align:-1px}
+#pNLoupe .pLj{display:flex;align-items:center;gap:6px}
+#pNLoupe .pLj u{display:block;flex:1;min-width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.18);overflow:hidden}
+#pNLoupe .pLj u em{display:block;height:100%;background:#5ff0ff;box-shadow:0 0 4px #5ff0ff}
+#pNLoupe .pLj b{font-size:7px;color:#fff;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){#gBqPan .pN,#gBqPan .pN.r-legendaire::after,#gBqPan .pNs[data-pf="legendaire"] .pNh .bqRl{animation:none}#gBqPan .pN,#pNLoupe{transition:none}}
+</style>
+<style id="bq-aile">
+/* ===== BOUTIQUE : LE RAYON AILES, LA MOLETTE (2026-11-07, Sacha : « les boîtes de Léo sont bien pour les voitures mais pas adaptées aux peintures, traînées, figures… » · « chaque type d'item doit avoir un système propre ») ===== */
+/* Le dessin de la molette (interface/boutique-aile.js) : la grille de cartes s'efface, le panneau ne prend que la hauteur de la molette
+   (debout : posé au-dessus des boutons, la caisse récupère la place) ; couché, une colonne étroite à droite qui défile de haut en bas.
+   Les cibles du doigt font 44 px et plus (◀ ▶, vignettes, réglette). Les autres rayons ne changent pas : tout est sous .bqAileOn. */
+#gBq #gBqPan.bqAileOn{top:auto!important;gap:0}
+#gBq #gBqPan.bqAileOn>.bqRail{display:none}
+#gBq #gBqPan:not(.bqAileOn) #bqAile{display:none}
+#bqAile{--baW:124px;--baPh:70px;position:relative;display:flex;flex-direction:column;gap:6px;padding:8px 0 6px;background:#fff;box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.08);
+  font-family:var(--pix);color:#14171c;pointer-events:auto;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+/* l'en-tête : la famille de l'aile du milieu à gauche, sa place à droite */
+#bqAile .baTete{display:flex;align-items:center;gap:8px;min-height:22px;padding:0 10px}
+#bqAile .baFam{display:flex;align-items:center;gap:7px;min-width:0;flex:1}
+#bqAile .baFam .bqRl,#bqAile .baTr .bqRl{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:6px;background:#14171c;box-shadow:0 0 0 1px var(--rc),0 0 8px -2px var(--rc)}
+#bqAile .baFam .bqRl .pxi,#bqAile .baTr .bqRl .pxi{--pxs:2;color:var(--rc)}
+#bqAile .baFam b{font-weight:400;font-size:9px;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bqAile .baFam em{font-style:normal;font-size:8px;letter-spacing:1px;color:#5b6470;white-space:nowrap}
+#bqAile .baFam em i{font-style:normal;color:#14171c}
+#bqAile .baPos{flex:none;font-size:8px;letter-spacing:1px;color:#5b6470;white-space:nowrap}
+#bqAile .baPos b{font-weight:400;font-size:10px;color:#14171c}
+/* la réglette : un trait par aile, couleur de sa rareté — plein : à toi ; le trait de l'aile du milieu monte, noir. La bande entière se
+   balaie du doigt (44 px de haut pour le doigt, 6 px dessinés). */
+#bqAile .baRg{position:relative;display:flex;align-items:center;gap:3px;height:44px;margin:-14px 10px -12px;cursor:pointer;touch-action:none}
+#bqAile .baRg i{flex:1;height:6px;border-radius:2px;background:color-mix(in srgb,var(--rc) 28%,#eef1f5);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--rc) 70%,#14171c 10%);transition:height .18s,background .18s}
+#bqAile .baRg i.a{background:var(--rc)}
+#bqAile .baRg i.on{height:14px;background:#14171c;box-shadow:0 -3px 0 -1px var(--rc),0 3px 0 -1px var(--rc)}
+#bqAile .baRg.tient i{height:10px}
+#bqAile .baRg.tient i.on{height:18px}
+/* la piste : la molette et ses deux flèches posées dessus */
+#bqAile .baPiste{position:relative;min-height:0}
+#bqAile .baRail{display:flex;align-items:center;gap:8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior:contain;touch-action:pan-x;scrollbar-width:none;
+  padding:6px calc(50% - var(--baW) / 2) 6px;scroll-padding-inline:0}
+#bqAile .baRail::-webkit-scrollbar{display:none}
+#bqAile .baK{position:relative;flex:none;display:flex;flex-direction:column;width:var(--baW);padding:0;margin:0;border:0;border-radius:10px;overflow:hidden;background:#fff;color:inherit;font:inherit;text-align:left;cursor:pointer;
+  scroll-snap-align:center;box-shadow:0 0 0 1px #dde1e6,0 6px 14px rgba(30,40,55,.07);transform:scale(.9);opacity:.82;transition:transform .22s var(--ease,ease),opacity .22s,box-shadow .22s}
+#bqAile .baK::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--rc);z-index:1}
+#bqAile .baK.mil{transform:none;opacity:1;box-shadow:0 0 0 1px #c9ced6,0 10px 22px rgba(30,40,55,.14)}
+#bqAile .baK.sel{box-shadow:0 0 0 2px #14171c,0 10px 24px rgba(30,40,55,.18)}
+#bqAile .baK:active{transform:scale(.86)}
+#bqAile .baK.mil:active{transform:scale(.96)}
+#bqAile .baPh{display:flex;align-items:center;justify-content:center;height:var(--baPh);overflow:hidden;background:radial-gradient(ellipse 70% 80% at 50% 60%,color-mix(in srgb,var(--rc) 22%,#fff),#eef1f5 75%)}
+#bqAile .baPh img{display:block;width:118%;height:118%;max-width:none;object-fit:contain;pointer-events:none} /* la photo (aileFile) : la caisse vue de dessus, l'aile déployée — un peu plus grande que la case, ses bords vides sortent */
+#bqAile .baPh:empty::before{content:'';display:block;width:28px;height:28px;background:rgba(20,23,28,.16);-webkit-mask:var(--pxi-aile) center/contain no-repeat;mask:var(--pxi-aile) center/contain no-repeat}
+#bqAile .baTx{display:flex;flex-direction:column;gap:4px;padding:6px 7px 7px}
+#bqAile .baN{height:20px;font-size:8px;line-height:10px;letter-spacing:0;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere}
+#bqAile .baP{display:flex;align-items:center;gap:4px;min-width:0;font-size:9px;line-height:11px;white-space:nowrap}
+#bqAile .baP span{overflow:hidden;text-overflow:ellipsis}
+#bqAile .baP .pxi{--pxs:1;flex:none;color:currentColor}
+#bqAile .baP.cher{color:#8a929c}
+#bqAile .baP.acq{color:#5b6572}
+#bqAile .baP.eq{align-self:flex-start;padding:2px 5px 1px 3px;border-radius:4px;background:#3d4bff;color:#fff}
+#bqAile .baP.eur{color:#3d4bff}
+#bqAile .baP.defi{color:#5b6572}
+/* la tranche d'une famille : noire, le logo à la couleur de la rareté, son nom couché, « à toi / total » */
+#bqAile .baTr{flex:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:6px;width:28px;padding:6px 0;border-radius:8px;background:#14171c;color:#fff;margin:6px 0;box-sizing:border-box}
+#bqAile .baTr b{display:none;font-weight:400;font-size:8px;letter-spacing:2px;white-space:nowrap;overflow:hidden;color:var(--rc)}
+#bqAile .baTr em{font-style:normal;font-size:7px;color:#aab2bd;white-space:nowrap}
+#bqAile .baTr em i{font-style:normal;color:#fff}
+/* ◀ ▶ : 48 px, sur les bords de la piste, en fondu blanc (la vignette d'à côté se devine dessous) */
+#bqAile .baFl{position:absolute;top:0;bottom:0;z-index:2;display:grid;place-items:center;width:48px;padding:0;margin:0;border:0;background:none;color:#14171c;cursor:pointer}
+#bqAile .baFl.g{left:0;background:linear-gradient(90deg,#fff 30%,rgba(255,255,255,0))}
+#bqAile .baFl.d{right:0;background:linear-gradient(270deg,#fff 30%,rgba(255,255,255,0))}
+#bqAile .baFl .pxi{--pxs:3;color:#14171c;transition:transform .15s}
+#bqAile .baFl .pxi-haut,#bqAile .baFl .pxi-bas{display:none}
+#bqAile .baFl:active .pxi{transform:scale(.8)}
+#bqAile .baFl.off{opacity:.25}
+/* COUCHÉ : une colonne étroite à droite (la caisse a toute la gauche), la molette défile de haut en bas, les vignettes en ligne
+   (la photo à gauche, le nom et le prix à droite) */
+#gBq #gBqPan.cote.bqAileOn{left:auto!important;width:min(296px,36vw);top:12px!important}
+#gBqPan.cote #bqAile{--baW:100%;--baH:64px;flex:1;min-height:0}
+#gBqPan.cote #bqAile .baPiste{flex:1}
+#gBqPan.cote #bqAile .baRail{position:absolute;inset:0;flex-direction:column;align-items:stretch;overflow-x:hidden;overflow-y:auto;scroll-snap-type:y mandatory;touch-action:pan-y;padding:0 10px} /* le pourcentage d'un rembourrage se compte sur la LARGEUR : deux cales (::before/::after) centrent les bouts */
+#gBqPan.cote #bqAile .baRail::before,#gBqPan.cote #bqAile .baRail::after{content:'';flex:none;height:calc(50% - var(--baH) / 2 - 8px)}
+#gBqPan.cote #bqAile .baK{flex-direction:row;align-items:stretch;width:auto;height:var(--baH);transform:scale(.94)}
+#gBqPan.cote #bqAile .baK.mil{transform:none}
+#gBqPan.cote #bqAile .baK::before{left:0;top:0;bottom:0;right:auto;width:3px;height:auto}
+#gBqPan.cote #bqAile .baPh{flex:none;width:104px;height:auto}
+#gBqPan.cote #bqAile .baTx{flex:1;min-width:0;justify-content:center;padding:6px 8px}
+#gBqPan.cote #bqAile .baN{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+#gBqPan.cote #bqAile .baTr{flex-direction:row;width:auto;height:28px;margin:0;padding:0 8px 0 4px;align-self:stretch}
+#gBqPan.cote #bqAile .baTr b{display:block;flex:1}
+#gBqPan.cote #bqAile .baTr .bqRl{width:20px;height:20px}
+#gBqPan.cote #bqAile .baFl{left:0;right:0;width:auto;height:44px;top:auto;bottom:auto}
+#gBqPan.cote #bqAile .baFl.g{top:0;background:linear-gradient(180deg,#fff 55%,rgba(255,255,255,0))}
+#gBqPan.cote #bqAile .baFl.d{bottom:0;background:linear-gradient(0deg,#fff 55%,rgba(255,255,255,0))}
+#gBqPan.cote #bqAile .baFl .pxi-gauche,#gBqPan.cote #bqAile .baFl .pxi-droite{display:none}
+#gBqPan.cote #bqAile .baFl .pxi-haut,#gBqPan.cote #bqAile .baFl .pxi-bas{display:block}
+/* sa phrase, sous la molette : trois lignes au plus, la place réservée (rien ne saute quand on tourne) */
+#bqAile .baDesc{min-height:33px;max-height:33px;padding:0 12px;font-size:7px;line-height:11px;letter-spacing:0;color:#5b6470;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;text-transform:none}
+#gBqPan.cote #bqAile .baDesc{flex:none}
+@media (prefers-reduced-motion:reduce){#bqAile .baK,#bqAile .baRg i{transition:none}}
+html[data-reduced-motion] :is(#bqAile .baK,#bqAile .baRg i){transition:none}
+</style>
+<style id="bq-trainee">
+/* ===== BOUTIQUE : LE RAYON DES TRAÎNÉES, LA PISTE (2026-11-07, Sacha : « les boîtes de Léo sont bien pour les voitures mais pas adaptées aux peintures, traînées, figures… chaque type d'item doit avoir un système propre ») =====
+   Voir interface/boutique-trainee.js. Une VOIE par traînée sur toute la largeur (deux côte à côte au-delà de 520 px) : la traînée qui coule derrière
+   une caisse à gauche, le nom et la pastille de prix à droite ; la réglette des familles collée en haut de la liste. Les voies hors de vue sont
+   FIGÉES (.vit posé par l'IntersectionObserver). Tout est porté par .trK / .trFil / .trSec : les cartes des autres rayons ne changent pas. */
+#gBqPan .bqRail:has(>.trK){gap:6px;container-type:inline-size;padding-top:0}
+/* -- la réglette des familles : collée en haut de la liste, cibles de 44 px, elle défile de côté si elle déborde -- */
+#gBqPan .bqRail>.trFil{position:sticky;top:0;z-index:3;flex:0 0 100%;display:flex;gap:6px;margin:0 0 2px;padding:0 0 4px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain;
+  background:linear-gradient(#fff 82%,rgba(255,255,255,0));scroll-snap-align:start}
+#gBqPan .bqRail>.trFil::-webkit-scrollbar{display:none}
+#gBqPan .trFil .trCh{--rc:#14171c;flex:1 1 auto;display:flex;align-items:stretch;min-width:44px;height:44px;margin:0;padding:2px 0;border:0;background:none;cursor:pointer;font-family:var(--pix);-webkit-tap-highlight-color:transparent}
+#gBqPan .trFil .trCh>span{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;box-sizing:border-box;padding:0 4px 2px;border-radius:9px;background:#f1f3f6;overflow:hidden;
+  box-shadow:inset 0 0 0 1px #dde1e6;color:#14171c;transition:background .15s,box-shadow .15s,translate .12s}
+#gBqPan .trFil .trCh>span::after{content:'';position:absolute;left:8px;right:8px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--rc)}
+#gBqPan .trFil .trCh b{font-weight:400;font-size:8px;line-height:1;letter-spacing:0;white-space:nowrap}
+#gBqPan .trFil .trCh em{font-style:normal;font-size:7px;line-height:1;color:#6b7480;white-space:nowrap}
+#gBqPan .trFil .trCh:active>span{translate:0 1px}
+#gBqPan .trFil .trCh.on>span{background:#14171c;box-shadow:0 4px 10px -4px color-mix(in srgb,var(--rc) 70%,#14171c);color:#fff}
+#gBqPan .trFil .trCh.on em{color:#c3c9d2}
+/* -- l'intertitre d'une famille (en TOUT seulement) : une ligne, la rareté à sa couleur -- */
+#gBqPan .bqRail>.trSec{flex:0 0 100%;display:flex;align-items:center;gap:6px;min-width:0;margin:6px 0 0;padding:0 2px;height:18px;font-family:var(--pix);color:#14171c;pointer-events:none;scroll-snap-align:start;animation:bqSec .38s var(--ease) both}
+#gBqPan .bqRail>.trFil+.trSec{margin-top:0}
+#gBqPan .trSec>i{display:grid;place-items:center;flex:none;width:16px;height:16px;border-radius:5px;background:#14171c;box-shadow:0 0 0 1px var(--rc)}
+#gBqPan .trSec>i .pxi{--pxs:1;margin:0;color:var(--rc)}
+#gBqPan .trSec b{font-weight:400;font-size:9px;letter-spacing:2px;white-space:nowrap}
+#gBqPan .trSec span{font-size:7px;letter-spacing:1px;color:var(--rc);filter:brightness(.75) saturate(1.3);white-space:nowrap}
+#gBqPan .trSec s{flex:1;height:2px;min-width:8px;border-radius:2px;background:linear-gradient(90deg,var(--rc),transparent)}
+#gBqPan .trSec em{font-style:normal;font-size:7px;color:#5b6470;white-space:nowrap}
+/* le filtre : une famille choisie ne garde que ses voies (la réglette dit déjà laquelle : plus d'intertitre) */
+#gBqPan .bqRail[data-trf]:not([data-trf=""])>.trSec{display:none}
+#gBqPan .bqRail[data-trf="commun"]>.trK:not([data-fam="commun"]),#gBqPan .bqRail[data-trf="rare"]>.trK:not([data-fam="rare"]),
+#gBqPan .bqRail[data-trf="epique"]>.trK:not([data-fam="epique"]),#gBqPan .bqRail[data-trf="legendaire"]>.trK:not([data-fam="legendaire"]){display:none}
+/* -- LA VOIE -- */
+#gBqPan .bqRail>.bqK.trK{width:100%;height:58px;flex-direction:row;align-items:stretch;border-radius:11px;overflow:hidden;scroll-snap-align:start;box-shadow:0 0 0 1px #dde1e6,0 6px 16px rgba(30,40,55,.06)}
+@container (min-width:520px){#gBqPan .bqRail>.bqK.trK{width:calc(50% - 3px)}}
+/* COUCHÉ (.cote) : le panneau est large mais bas (~260 px) — une voie par rangée n'en montrait que DEUX et demie. Deux TUILES de piste par
+   rangée (trois au-delà de 600 px, l'ordinateur) : la piste en haut, le nom et la pastille dessous ; les intertitres s'effacent (la réglette dit
+   déjà la famille, à sa couleur) — cinq traînées en vue au lieu de deux. */
+#gBqPan.cote .bqRail>.trSec{display:none}
+/* petit écran debout (≤ 700 px de haut : le panneau n’a que ~270 px) : pas d’intertitre non plus, des voies de 52 px — trois voies en vue au lieu de deux et demie */
+@media (orientation:portrait) and (max-height:700px){#gBqPan:not(.cote) .bqRail>.trSec{display:none}#gBqPan:not(.cote) .bqRail>.bqK.trK{height:52px}}
+#gBqPan.cote .bqRail>.bqK.trK{width:calc(50% - 3px);height:auto;flex-direction:column}
+@container (min-width:600px){#gBqPan.cote .bqRail>.bqK.trK{width:calc((100% - 12px) / 3)}}
+#gBqPan.cote .trK .trVue{flex:none;height:36px;margin:5px 5px 0 9px}
+#gBqPan.cote .trK .trTx{flex:none;gap:5px;padding:6px 8px 7px 11px}
+#gBqPan.cote .trK .trTx .bqKn{-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis;display:block}
+/* la rareté : un liseré à gauche (le fondu du bas des cartes de voitures n'a pas de sens sur une voie) */
+#gBqPan .bqRail>.bqK.trK::after{left:0;right:auto;top:0;bottom:0;width:4px;height:auto;max-height:none;opacity:1;-webkit-mask-image:none;mask-image:none;background:var(--rc)}
+#gBqPan .bqRail>.bqK.trK.sel{box-shadow:0 0 0 2px #14171c,0 8px 20px rgba(30,40,55,.16);translate:0 -1px}
+/* la vue : la nuit, la traînée qui coule hors de la caisse (à droite), ses particules qui partent vers la gauche */
+#gBqPan .trK .trVue{position:relative;flex:1 1 auto;min-width:0;margin:5px 0 5px 9px;border-radius:7px;overflow:hidden;contain:layout paint;
+  background:radial-gradient(70% 140% at 86% 50%,color-mix(in srgb,var(--tc) 32%,#151829) 0,#0e1020 55%,#08090f 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+#gBqPan .trK .trVue .tSw{position:absolute;inset:0;display:block}
+#gBqPan .trK .trVue .tSw::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent) 0 22%/38% 1px repeat-x,linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent) 30% 80%/52% 1px repeat-x;animation:tVit 1.1s linear infinite}
+#gBqPan .trK .trVue .tRu{left:-4%;right:19%;height:58%}
+#gBqPan .trK .trVue .tBuse{right:19%}
+#gBqPan .trK .trVue .tPa .pxi{position:absolute;right:20%;top:50%;--pxs:2;margin:0;opacity:0;filter:drop-shadow(1px 1px 0 rgba(0,0,0,.85));animation:trPart 2.4s linear infinite}
+#gBqPan .trK .trVue .tPa .pxi:nth-child(2){top:26%;animation-delay:-.8s}
+#gBqPan .trK .trVue .tPa .pxi:nth-child(3){top:74%;animation-delay:-1.6s}
+#gBqPan .trK .trVue .tSw.sansRuban .tPa .pxi{animation-duration:1.8s}
+@keyframes trPart{0%{transform:translate(0,-50%) scale(1.1);opacity:0}10%{opacity:1}80%{opacity:.9}100%{transform:translate(-150px,-50%) scale(.5);opacity:0}}
+/* la caisse, de dos, au bout de la piste : la traînée sort de SA tuyère */
+#gBqPan .trK .trCaisse{position:absolute;right:4px;top:50%;translate:0 -50%;display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+#gBqPan .trK .trCaisse .pxi{--pxs:2;margin:0;color:#fff;filter:drop-shadow(0 0 4px var(--tc))}
+#gBqPan .bqRail>.bqK.trK.r-legendaire .trVue::after{content:'';position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(115deg,rgba(255,255,255,0) 38%,rgba(255,255,255,.4) 50%,rgba(255,255,255,0) 62%) no-repeat;background-size:300% 100%;animation:pBrille 3.6s ease-in-out infinite}
+/* ÉCONOME : une voie hors de vue est figée (ses animations en pause) */
+#gBqPan .trK:not(.vit) .trVue,#gBqPan .trK:not(.vit) .trVue *,#gBqPan .trK:not(.vit) .trVue *::before,#gBqPan .trK:not(.vit) .trVue::after,#gBqPan .trK:not(.vit) .tSw::before{animation-play-state:paused!important}
+/* le texte : le nom, la pastille d'état (le prix · À TOI · ÉQUIPÉE · MISSION) */
+#gBqPan .trK .trTx{flex:0 0 clamp(112px,38%,150px);display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:6px;min-width:0;padding:0 10px}
+#gBqPan .trK .trTx .bqKn{max-width:100%;padding:0;font-size:8px;line-height:1.35;letter-spacing:.5px;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-overflow:clip}
+#gBqPan .trK .trTx .bqKp{display:inline-flex;align-items:center;gap:4px;max-width:100%;padding:4px 7px 3px;border-radius:6px;font-size:8px;line-height:1;white-space:nowrap;box-sizing:border-box;background:#f1f3f6;color:#14171c}
+#gBqPan .trK .trTx .bqKp .pxi{--pxs:1;margin:0;color:inherit}
+#gBqPan .trK .trTx .bqKp.pc{background:#14171c;color:#fff}
+#gBqPan .trK .trTx .bqKp.pc .pxi{color:#ffd23a}
+#gBqPan .trK .trTx .bqKp.eur{background:#3d4bff;color:#fff}
+#gBqPan .trK .trTx .bqKp.defi{background:#f1f3f6;color:#5b6572;box-shadow:inset 0 0 0 1px #dde1e6}
+#gBqPan .trK .trTx .bqKp.acq{background:none;color:#5b6572;box-shadow:inset 0 0 0 1px #c9ced6}
+#gBqPan .trK .trTx .bqKp i{font-style:normal}
+#gBqPan .trK .trTx .bqKp .trEqT{display:none}
+#gBqPan .trK.eq .trTx .bqKp.acq{background:#14171c;color:#fff;box-shadow:inset 0 -2px 0 var(--tc)}
+#gBqPan .trK.eq .trTx .bqKp .trAt{display:none}
+#gBqPan .trK.eq .trTx .bqKp .trEqT{display:inline}
+@media (prefers-reduced-motion:reduce){#gBqPan .trK .trVue *,#gBqPan .trK .trVue *::before,#gBqPan .trK .trVue::after{animation:none!important}
+  #gBqPan .trK .trVue .tPa .pxi{opacity:1}#gBqPan .trK .trVue .tPa .pxi:nth-child(2){right:46%}#gBqPan .trK .trVue .tPa .pxi:nth-child(3){right:70%}}
+</style>
+<style id="bq-figure">
+/* ===== BOUTIQUE : LE RAYON figure sur mobile (2026-11-07, Sacha : « les boîtes de Léo sont bien pour les voitures mais pas adaptées aux peintures, traînées, figures… » · « chaque type d'item doit avoir un système propre ») =====
+   Le script : interface/boutique-figure.js (bqFigCarte, bqFigRailHtml, bqFigApres). Ce que ce fichier pose, rayon FIGURES seulement (#gBqPan.bqFigOn) :
+   · LE DOCK (#bqFigSel) tassé : trois touches pleine largeur — la case de la figure, le geste écrit (« ↑ AVANT ») dans la couleur de son
+     emplacement, le nom ; plus d'éclair ×2 (il redisait le double-tap) — 48 px de haut au lieu de 68, la scène garde sa place ;
+   · LES PASTILLES sur une ligne (TOUT · À MOI · À ACHETER · TRI), 34 px + leur zone de 44 ;
+   · LA PELLICULE : une rangée d'AFFICHES qui défile de côté, aimantée ; le film prend toute la hauteur libre ; gestes en pastilles par-dessus,
+     REJOUER sur l'affiche regardée, le pied ÉQUIPER / ÉQUIPÉE / prix ;
+   · COUCHÉ : le dock devient une colonne à gauche du panneau (trois touches empilées), pastilles et pellicule à sa droite — la pellicule a
+     toute la hauteur du panneau. */
+
+/* ---- le dock, debout ---- */
+html body #gBqPan.bqFigOn #bqFigSel{gap:6px;padding:6px}
+#gBqPan.bqFigOn #bqFigSel .fsNitro{display:none}
+#gBqPan.bqFigOn #bqFigSel .fsRow{gap:5px;align-items:stretch}
+html body #gBqPan.bqFigOn #bqFigSel .fsHex{display:grid;grid-template-columns:auto auto minmax(0,1fr);grid-template-rows:auto auto;align-content:center;align-items:center;justify-items:start;column-gap:0;row-gap:3px;
+  min-height:48px;padding:5px 5px 5px 4px;text-align:left;background:#f4f6f8;box-shadow:inset 0 0 0 1px #e1e5ea;touch-action:manipulation}
+#gBqPan.bqFigOn #bqFigSel .fsCase{grid-column:1;grid-row:1/3;width:34px;height:30px;margin-right:6px}
+#gBqPan.bqFigOn #bqFigSel .fsIn{inset:2px 3px}
+#gBqPan.bqFigOn #bqFigSel .fsIn .fgIl{transform:scale(.72)}
+#gBqPan.bqFigOn #bqFigSel .fsQ{font-size:10px}
+html body #gBqPan.bqFigOn #bqFigSel .fsJoy{grid-column:2;grid-row:1;position:static;width:14px;height:14px;clip-path:none;box-shadow:none;background:var(--dc);color:#14171c}
+#gBqPan.bqFigOn #bqFigSel .fsJoy .pxi{width:10px;height:10px}
+#gBqPan.bqFigOn #bqFigSel .fgSlotG{grid-column:3;grid-row:1;display:flex;align-items:center;height:14px;padding:0 4px 0 1px;font-style:normal;font-size:7px;letter-spacing:.5px;color:#14171c;background:var(--dc);white-space:nowrap}
+html body #gBqPan.bqFigOn #bqFigSel .fsNom{grid-column:2/4;grid-row:2;justify-self:stretch;text-align:left;font-size:7px;line-height:9px;overflow-wrap:anywhere}
+#gBqPan.bqFigOn #bqFigSel .fsHex.cible{background:color-mix(in srgb,var(--dc) 22%,#fff);box-shadow:inset 0 0 0 2px var(--dc)}
+#gBqPan.bqFigOn #bqFigSel .fsHex.on{translate:none;box-shadow:inset 0 0 0 2px #14171c}
+#gBqPan.bqFigOn #bqFigSel .fsHex.on .fsCase{background:#14171c}
+
+/* ---- les pastilles : une ligne ---- */
+#gBqPan.bqFigOn #bqFigSel .fsBar{flex-wrap:nowrap;gap:4px}
+html body #gBqPan.bqFigOn #bqFigSel .fsPas{min-height:34px;padding:0 8px;flex:0 1 auto;min-width:0}
+
+/* ---- la pellicule ---- */
+html body #gBqPan.bqFigOn .bqRail{display:flex;flex-wrap:nowrap;flex:1 1 auto;min-height:0;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;
+  align-items:stretch;align-content:stretch;gap:8px;padding:2px 2px 4px;scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 24px),rgba(0,0,0,.25));mask-image:linear-gradient(90deg,#000 calc(100% - 24px),rgba(0,0,0,.25))}
+html body #gBqPan.bqFigOn .bqRail .bqK.fgK{--fgW:calc((100% - 16px) / 2.25);flex:0 0 auto;width:var(--fgW);min-width:112px;height:auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;scroll-snap-align:start;background:#fff}
+html body #gBqPan.bqFigOn .bqRail .bqK.fgK::after{display:none}
+#gBqPan.bqFigOn .fgK::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--rc);z-index:3}
+html body #gBqPan.bqFigOn .bqRail .bqK.fgK .bqKph{position:relative;flex:1 1 auto;height:auto;min-height:44px;background:radial-gradient(ellipse 80% 55% at 50% 88%,#e2e6eb,#f7f8fa 70%)}
+#gBqPan.bqFigOn .fgK .bqKph>.bqFig .pxi{--pxs:3;color:#c4cad2}
+/* les gestes sur le film */
+#gBqPan.bqFigOn .fgK .fgGs{position:absolute;left:5px;right:5px;top:8px;display:flex;flex-wrap:wrap;gap:3px;z-index:2;pointer-events:none}
+#gBqPan.bqFigOn .fgK .fgG{position:relative;display:inline-flex;align-items:center;gap:2px;height:18px;padding:0 5px 0 2px;font-size:7px;letter-spacing:.3px;color:#14171c;background:rgba(255,255,255,.92);box-shadow:inset 0 0 0 1.5px var(--dc)}
+#gBqPan.bqFigOn .fgK .fgG b{font-weight:400;white-space:nowrap}
+#gBqPan.bqFigOn .fgK .fgG .pxi{--pxs:1;width:12px;height:12px;margin:0;color:#14171c}
+#gBqPan.bqFigOn .fgK .fgG.cur{background:var(--dc);box-shadow:none}
+#gBqPan.bqFigOn .fgK .fgG.eq::after{content:'';width:5px;height:5px;margin-left:2px;border-radius:50%;background:#14171c}
+#gBqPan.bqFigOn .fgK .fgG[data-pick]{pointer-events:auto;cursor:pointer}
+#gBqPan.bqFigOn .fgK .fgG[data-pick]::before{content:'';position:absolute;inset:-13px -3px}
+/* REJOUER : sur l'affiche regardée, en bas du film (toucher l'affiche la rejoue) */
+#gBqPan.bqFigOn .fgK .fgRe{position:relative;z-index:2;align-self:flex-start;display:flex;align-items:center;gap:3px;height:18px;margin:-22px 0 4px 5px;padding:0 6px 0 3px;font-size:7px;letter-spacing:.3px;color:#fff;background:#14171c;visibility:hidden;opacity:0;transition:opacity var(--t-fast) var(--ease)}
+#gBqPan.bqFigOn .fgK .fgRe b{font-weight:400}
+#gBqPan.bqFigOn .fgK .fgRe .pxi{--pxs:1;width:11px;height:11px;margin:0;color:#fff}
+#gBqPan.bqFigOn .fgK.sel .fgRe{visibility:visible;opacity:1}
+/* la rareté, le nom */
+#gBqPan.bqFigOn .fgK .fgRar{display:flex;align-items:center;gap:4px;padding:5px 6px 0;font-size:7px;letter-spacing:.5px;color:#5b6470;white-space:nowrap;overflow:hidden}
+#gBqPan.bqFigOn .fgK .fgRar::before{content:'';flex:none;width:6px;height:6px;background:var(--rc);box-shadow:0 0 0 1px rgba(20,23,28,.25)}
+html body #gBqPan.bqFigOn .bqRail .fgK .bqKn{flex:none;padding:4px 6px 0;font-size:8px;line-height:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* le pied : ÉQUIPER (une touche), ÉQUIPÉE, le prix */
+#gBqPan.bqFigOn .fgK .fgPied{position:relative;flex:none;display:flex;align-items:center;justify-content:center;gap:5px;min-height:32px;margin:6px 5px 5px;padding:0 6px;font-size:8px;letter-spacing:.5px;color:#14171c;white-space:nowrap}
+#gBqPan.bqFigOn .fgK .fgPied b{font-weight:400;overflow:hidden;text-overflow:ellipsis}
+#gBqPan.bqFigOn .fgK .fgPied .pxi{--pxs:1;flex:none;width:12px;height:12px;margin:0;color:currentColor}
+#gBqPan.bqFigOn .fgK .fgEq1{cursor:pointer;color:#fff;background:#14171c;box-shadow:0 3px 0 #3d4bff;touch-action:manipulation;transition:translate var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+#gBqPan.bqFigOn .fgK .fgEq1::before{content:'';position:absolute;inset:-7px -5px -5px}
+#gBqPan.bqFigOn .fgK .fgEq1:active{translate:0 2px;box-shadow:0 1px 0 #3d4bff}
+#gBqPan.bqFigOn .fgK .fgEqDir{flex:none;display:grid;place-items:center;width:16px;height:16px;background:var(--dc);font-style:normal}
+#gBqPan.bqFigOn .fgK .fgEqDir .pxi{color:#14171c}
+#gBqPan.bqFigOn .fgK .fgOk{background:color-mix(in srgb,var(--dc) 24%,#fff);box-shadow:inset 0 0 0 1.5px var(--dc)}
+#gBqPan.bqFigOn .fgK .fgPx{background:#f1f3f6}
+#gBqPan.bqFigOn .fgK .fgPx.cher{color:#6a727c}
+#gBqPan.bqFigOn .fgK.ici{box-shadow:0 0 0 1px #dde1e6,inset 0 -3px 0 var(--dc),0 8px 20px rgba(30,40,55,.07)}
+#gBqPan.bqFigOn .fgK.ici.sel{box-shadow:0 0 0 2px #14171c,0 10px 24px rgba(30,40,55,.16)}
+/* l'éclosion de ce qu'on vient d'équiper */
+#gBqPan.bqFigOn .fgK.fgVient .fgPied{animation:fgVient .55s var(--ease)}
+#gBqPan.bqFigOn .fgK.fgVient .bqKph{animation:fgVientF .7s var(--ease)}
+@keyframes fgVient{0%{scale:.82;filter:brightness(1.6)}55%{scale:1.06}100%{scale:1;filter:none}}
+@keyframes fgVientF{0%{box-shadow:inset 0 0 0 3px var(--dc)}100%{box-shadow:inset 0 0 0 0 var(--dc)}}
+@media (prefers-reduced-motion:reduce){#gBqPan.bqFigOn .fgK.fgVient :is(.fgPied,.bqKph){animation:none}#gBqPan.bqFigOn .fgK .fgRe{transition:none}}
+html[data-reduced-motion] #gBqPan.bqFigOn .fgK.fgVient :is(.fgPied,.bqKph){animation:none}
+
+/* ---- couché : le dock en colonne à gauche, la pellicule a toute la hauteur ---- */
+html body #gBq.pan #gBqPan.cote.bqFigOn{display:grid;grid-template-columns:minmax(100px,29%) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:6px 8px}
+html body #gBqPan.cote.bqFigOn #bqFigSel{display:contents}
+#gBqPan.cote.bqFigOn #bqFigSel .fsRow{grid-column:1;grid-row:1/3;flex-direction:column;gap:5px;padding:5px;background:#fff;box-shadow:0 0 0 1px #dde1e6,0 8px 20px rgba(30,40,55,.07);pointer-events:auto;animation:bqSec .38s var(--ease) both}
+html body #gBqPan.cote.bqFigOn #bqFigSel .fsHex{flex:1 1 0;min-height:44px}
+#gBqPan.cote.bqFigOn #bqFigSel .fsBar{grid-column:2;grid-row:1;pointer-events:auto}
+html body #gBqPan.cote.bqFigOn #bqFigSel .fsPas{min-height:32px;padding:0 6px;letter-spacing:.2px}
+#gBqPan.cote.bqFigOn .bqRail{grid-column:2;grid-row:2}
+html body #gBqPan.cote.bqFigOn .bqRail .bqK.fgK{--fgW:calc((100% - 8px) / 2.2)}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -62024,8 +62387,8 @@ function blip(){
   if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1),st9=k9<SON_PG.length?SON_PG[k9]:SON_PG_AR[(k9-SON_PG.length)%SON_PG_AR.length];
     // (2026-10-14, session SON) toutes les 10 pièces d'affilée, le PALIER : la quinte de la note (st−5, une octave sous st+7 : reste sous la base haute), −7 dB, 30 ms après.
     // Jouée AVANT la pièce et seulement si la pièce passera son délai minimal (cd .018, chronométré ici) : on ne double jamais une pièce avalée
-    try{if(combo>0&&combo%10===0&&AC.currentTime-(blip._t||-1)>=.018)sfx('piece',{st:st9-5,vol:-7,t:.03});}catch(e){} /* (2026-10-15) −7 : toujours 7 dB sous la pièce */
-    if(sfx('piece',{st:st9,vol:0}))try{blip._t=AC.currentTime;}catch(e){} /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient — (2026-10-15, Sacha : « les pièces, un peu moins fort ») vol 0 : −35 en sortie (−30 avant), sous les figures (−32 à −25) */if(combo>0&&combo%5===0)sfx('piece.recolte',{vol:0});return;} // (console de son) // (2026-10-14, session SON) RÉCOLTE +4 comme la pièce : à −35 elle passait 5 dB SOUS la pièce (−30) qu'elle couronne (mesures.txt)
+    try{if(combo>0&&combo%10===0&&AC.currentTime-(blip._t||-1)>=.018)sfx('piece',{st:st9-5,vol:-16,t:.03});}catch(e){} /* (2026-10-15) −7 : toujours 7 dB sous la pièce */
+    if(sfx('piece',{st:st9,vol:-9}))try{blip._t=AC.currentTime;}catch(e){} /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient — (2026-10-15, Sacha : « les pièces, un peu moins fort ») vol 0 : −35 en sortie (−30 avant), sous les figures (−32 à −25) */if(combo>0&&combo%5===0)sfx('piece.recolte',{vol:-9});return;} /* (2026-11-05, Sacha : « les pièces doivent faire moins de bruit, un petit tintement léger ») pièce et récolte −9 dB, palier −16 */ // (console de son) // (2026-10-14, session SON) RÉCOLTE +4 comme la pièce : à −35 elle passait 5 dB SOUS la pièce (−30) qu'elle couronne (mesures.txt)
   if(!sfxOk())return;
   try{
     const k=Math.max(0,combo-1),st=GAMME_P[Math.min(k,GAMME_P.length-1)],f=660*Math.pow(2,st/12);
@@ -65010,7 +65373,7 @@ function m2Vue(L,s,vu){ // → {ved : la vedette (l'écran de mort seulement, de
     if(f!==fam){fam=f;let tot=0,ok=0;for(const m of M2){if(m.f!==f||!m2Dispo(m))continue;tot++;if(s.ok.indexOf(m.id)>=0)ok++;}
       listeTab+=mcEntete((M2_FAM[f]||M2_FAM.exploit).ic,M2_FAM_NOM[f]||'MISSIONS',ok+' / '+tot);}
     listeTab+=mcLigne(x,k++,s);}
-  return {ved:ved?mcVedette(ved,s,!vu):'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>',listeTab:listeTab,n:prets.length+reste.length};}
+  return {ved:ved?mcVedette(ved,s,!vu):'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>',listeTab:listeTab,n:prets.length+reste.length,vedM:ved?ved.m:null};}
 function m2Render(vu){ /* (2026-11-03, refonte · 2026-11-05, plus de vedette : voir « L'ÉCRAN DES MISSIONS À LA MORT », aujourdhui.js) la page MISSIONS entière */
   if(PASS_ON&&typeof gEl!=='undefined'&&gEl&&gEl.classList.contains('missions'))return pvRender(vu); /* (2026-11-07) le pass : toute remise à jour de l'écran MISSIONS passe par LE VISEUR */
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';
@@ -65627,10 +65990,11 @@ const MVW={on:false,vu:null,t0:0,id:0};
 Object.assign(I18N,{'TA PROCHAINE RÉCOMPENSE':'YOUR NEXT REWARD'});
 function mvwOuvre(fin){ // fin = ce que jourCommit a versé (J.fin) ; sans paramètre : la dernière fin de partie
   const f=fin||JOUR.fin;if(!f||!f.s||MVW.on)return false;
+  const s=m2Etat(),L=m2Lignes(),V=m2Vue(L,s,false); // vu=false : l'anneau s'arme, comme à l'arrivée sur l'onglet MISSIONS
+  if(!(V.vedM&&V.vedM.r&&V.vedM.r.car)){MVW.vu=f;return serieWOuvre(f);} /* (2026-11-07, Sacha : « une mission qui rapporte juste de l'argent, pas d'écran comme ça, c'est juste pour les voitures ») la prochaine récompense n'est pas une caisse : on saute ce portail, direct l'écran de série */
   MVW.on=true;MVW.vu=f;const id=++MVW.id;
   let el=document.getElementById('mvW');if(!el){el=document.createElement('div');el.id='mvW';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);}
   el.setAttribute('aria-label',sansAcc(TR('MISSIONS')));
-  const s=m2Etat(),L=m2Lignes(),V=m2Vue(L,s,false); // vu=false : l'anneau s'arme, comme à l'arrivée sur l'onglet MISSIONS
   el.innerHTML='<div class="swScene"></div><i class="swAnneau"></i>'
     +'<div class="mvBloc"><small class="mvKick">'+sansAcc(TR('TA PROCHAINE RÉCOMPENSE'))+'</small>'
     +'<div class="mcHero">'+V.ved+'</div>'
@@ -75742,9 +76106,9 @@ function bqAilesOrdre(){const rg=function(d){return Math.max(0,RARETES.findIndex
   return COSM.aile.map(function(d,j){return j;}).sort(function(a,b){const A=COSM.aile[a],B=COSM.aile[b];return (rg(A)-rg(B))||(px(A)-px(B))||(a-b);});}
 function bqHabRail(L,cat,SOUS){const fam=function(k){return cosmRar(cat,bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,SOUS&&SOUS[f]?sansAcc(TR(SOUS[f])):''))+bqCarteHtml(k,n,false);});}
-function bqTraineeRail(L){const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+function bqTraineeRail(L){if(typeof trPisteHtml==='function')return trPisteHtml(L); /* (2026-11-07) LA PISTE : le rayon des traînées a son propre système (interface/boutique-trainee.js) */const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,BQ_TRAINEE_SOUS[f]?sansAcc(TR(BQ_TRAINEE_SOUS[f])):''))+bqCarteHtml(k,n,false);});}
-function bqPeintRail(L){try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */const fam=function(k){return cosmRar('peinture',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+function bqPeintRail(L){if(typeof bqNuancierHtml==='function')return bqNuancierHtml(L); /* (2026-11-07) LE NUANCIER : le rayon des peintures a son propre système (interface/boutique-peinture.js) */try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */const fam=function(k){return cosmRar('peinture',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k),sous=BQ_PEINT_SOUS[f]?sansAcc(TR(BQ_PEINT_SOUS[f]))+' · '+eurTxt(PEINT_EUR[f]):'';return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,sous))+bqCarteHtml(k,n,false);});}
 /* LES REFLETS DANS LA SALLE BLANCHE (2026-11-05, Sacha : « les voitures buggent visuellement ») : les « reflets qui éclatent » de la finition studio (fstuHdr :
    le presque-blanc du cube de reflets ×4,5) font de belles bandes dans le garage sombre ; sur les petites facettes des caisses, dans la boutique blanche,
@@ -75874,6 +76238,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
   if(voulu!==GBQ.panOn){GBQ.panOn=voulu;if(voulu){const t9=SHOP.tab;if(GBQ.cat!==t9&&BQ_CATS.some(function(c){return c[0]===t9;})){GBQ.cat=t9;GBQ.ong='cat';}} /* (2026-11-07, chasse TEL-N01) FIGURES au garage puis BOUTIQUE : le rayon VOITURES s'allumait avec une figure en vedette et « ÉQUIPER — REMPLACE TONNEAU » */ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
   soldeEcrit(document.getElementById('gBqArg'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
   if((!voulu||SHOP.tab!=='voiture')&&GBQ.sec!=null)GBQ.sec=null; // (missions v2) hors du rayon des caisses, plus de secrète regardée
+  try{bqAileMaj(pan,voulu);}catch(e){console.warn('bqAile',e);} /* (2026-11-07) le rayon AILES a sa molette (interface/boutique-aile.js) */
   if(!voulu)return;
   // LA BOUTIQUE : le rayon choisi dans la colonne de gauche (2026-10-15 : plus d'onglet OFFRES)
   const ong='cat',cat=BQ_CATS.some(function(c){return c[0]===GBQ.cat;})?GBQ.cat:'voiture',L=bqListe(cat),rail=pan.querySelector('.bqRail'),une=document.getElementById('gBqCats');
@@ -75883,9 +76248,9 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
     une.querySelectorAll('button').forEach(function(b){const c=b.getAttribute('data-c'),on=c===cat,C9=BQ_CATS.find(function(x){return x[0]===c;}),s=b.querySelector('span');b.classList.toggle('on',on);b.setAttribute('aria-selected',on);
       if(C9&&s){const t=sansAcc(TR(C9[1]));if(s.textContent!==t){s.textContent=t;b.setAttribute('aria-label',t);b.title=t;}if(on)une.setAttribute('data-cur',t);}}); /* (2026-11-03, Sacha : « cet écran, il est horrible ») `data-cur` : le NOM du rayon ouvert, écrit sous les carrés quand les libellés n'ont plus la place (.duo) */
     rail.classList.remove('off','habs');rail.classList.add('entre');rail.scrollTop=0;rail.scrollLeft=0; /* (2026-10-15, Sacha : « un menu plus grand pour les figures, les ailes, les peintures ») tous les rayons en GRANDES cartes, trois par rangée comme les voitures — à quatre, « D'ORIGINE » se coupait en « D'ORIGIN / E » */
-    rail.innerHTML=(cat==='figure'?(function(R){return R.length?R.map(function(e,n){return (n===0&&FSEL.dir>=0?bqFigSec(FSEL.dir):'')+bqCarteHtml(e.k,n,false,e.c);}):['<div class="bqVide">'+sansAcc(TR(FSEL.dir>=0?'AUCUNE FIGURE POUR CE GESTE':'RIEN À AFFICHER'))+'</div>'];})(bqFigRail()):cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):cat==='trainee'?bqTraineeRail(L):cat==='aile'?bqHabRail(L,'aile'):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-11-05) les figures : une carte par figure (un seul intertitre quand on vise un geste) */bqPhotos(rail);bqAimant(rail);if(sc9)rail.scrollTop=sc9;
+    rail.innerHTML=(cat==='figure'?bqFigRailHtml():cat==='voiture'?bqVoitRail(L):cat==='peinture'?bqPeintRail(L):cat==='trainee'?bqTraineeRail(L):cat==='aile'?bqHabRail(L,'aile'):L.map(function(k,n){return bqCarteHtml(k,n,false);})).join(''); /* (2026-10-18) les voitures : un intertitre par RARETÉ (bqVoitRail) */ /* (2026-11-05) les figures : une carte par figure (un seul intertitre quand on vise un geste) */bqPhotos(rail);bqAimant(rail);if(sc9)rail.scrollTop=sc9;
     pan.classList.toggle('bqFigOn',cat==='figure');BQFS.k='';} /* (2026-10-16, Sacha) les trois figures équipées en haut du rayon FIGURES (voir bqFigSelMaj) */
-  if(cat==='figure')try{bqFigSelMaj(pan,true);}catch(e){console.warn('bqFigSel',e);}
+  if(cat==='figure')try{bqFigSelMaj(pan,true);bqFigApres(pan,rail);}catch(e){console.warn('bqFigSel',e);} /* (2026-11-07) le rayon FIGURES a sa pellicule (boutique-figure.js : bqFigRailHtml, bqFigApres) */
   if(cat==='figure')try{filmJoue();}catch(e){} /* (2026-10-18) les films des cartes (voir LE FILM D'UNE FIGURE) */
   /* (clarté 14/10) des cartes restaient blanches : la file du studio photo s'arrête hors garage / sous `quiet` et ne repart qu'à la photo suivante — on la relance, et on re-demande ce qui manque */
   if(PHQ.q.length&&!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}
@@ -75908,6 +76273,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
       mt.innerHTML=h9;mt.hidden=!h9;}
     {const L9=bqSkins(cur);sk.classList.toggle('vide',!L9.length);sk.querySelector('.bqSk').innerHTML=L9.map(function(x,n){return '<button class="bqS'+(n===0?' on':'')+'" data-s="'+x.id+'" style="--sc:'+x.c+'"><i></i><span>'+sansAcc(TR(x.n))+'</span></button>';}).join('');}
     rail.querySelectorAll('.bqK').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur&&(!el.hasAttribute('data-dir')||GBQ.figDir==null||+el.getAttribute('data-dir')===GBQ.figDir));});
+    if(cat==='peinture'&&typeof bqNuancierSel==='function')bqNuancierSel(rail,cur); /* (2026-11-07) les pastilles du nuancier (boutique-peinture.js) */
 }
   {const t=nm.querySelector('.bqLim em'),r=bqHebdoReste();if(t&&lim&&t.textContent!==r)t.textContent=r;}
   // LA PLACE : la colonne des rayons à gauche ; la boutique en bas (debout) ou à droite jusqu'en haut (couché)
@@ -77707,6 +78073,11 @@ const ONGLET={id:'',passif:false};
 try{if(TEL_NATIF&&!/[?&]volinv=ancien\b/.test(location.search)){
   if(SAVE.d&&SAVE.d.volInv){SAVE.d.volInv=0;SAVE.d.volH=SAVE.d.volH==='plonge'?'monte':'plonge';SAVE.flush();}
   document.querySelectorAll('.mLigne[data-m="volinv"]').forEach(function(e9){e9.style.display='none';});}}catch(e){}
+/* (2026-11-07, Sacha : « inverser et pouce haut c'est la même chose ») le cadre téléphone sur ORDI (IS_MOBILE sans TEL_NATIF) montrait encore les deux lignes.
+   Là c'est POUCE HAUT qui disparaît et VOL INVERSÉ reste (il règle aussi le clavier) : son état absorbe celui de POUCE HAUT, le sens au doigt ne change pas. */
+try{if(IS_MOBILE&&!TEL_NATIF&&!/[?&]volinv=ancien\b/.test(location.search)){
+  if(SAVE.d&&SAVE.d.volH==='plonge'){SAVE.d.volH='monte';SAVE.d.volInv=SAVE.d.volInv?0:1;SAVE.flush();}
+  document.querySelectorAll('.mLigne[data-m="volh"]').forEach(function(e9){e9.style.display='none';});}}catch(e){}
 /* ===== LA FENÊTRE À CHAMP AU-DESSUS DU CLAVIER (2026-11-05, Opus : jury INT-08) =====
    #modale (ENTRER UN CODE, MA SAUVEGARDE) est une feuille collée en bas : sur iPhone le clavier la recouvrait, VALIDER et ANNULER passaient sous
    les touches. Même recette que la plaque (plqClavier) : tant que son champ a le focus et que la partie visible a perdu plus de 90 px, la
@@ -77830,6 +78201,326 @@ try{const g9=document.getElementById('ivGrille');if(g9)g9.addEventListener('clic
   e.stopPropagation();ivFigGeste(+t.getAttribute('data-i'),+d.getAttribute('data-d'),d);},true);}catch(e){} // (capture : avant le toucher de la tuile, qui équiperait dans l'emplacement automatique)
 window.dbgFsel=function(a,b){if(a==='dir'){FSEL.dir=+b;fsRafraichis(false);}else if(a==='part'){FSEL.part=b;fsRafraichis(false);}else if(a==='tri'){FSEL.tri=b||'cat';fsRafraichis(false);}else if(a==='raz'){fsRaz();fsRafraichis(false);}
   return {dir:FSEL.dir,part:FSEL.part,tri:FSEL.tri,pick:FSEL.pick,slots:figSlots(),undo:!!FSEL.undo,auto:window.FIG?FIG.liste.map(function(f){return f.id+':'+fsAuto(f.id);}):[]};};
+/* ===== BOUTIQUE : LE NUANCIER — LE RAYON PEINTURES A SON PROPRE SYSTÈME (2026-11-07, Sacha : « dans la boutique les boîtes de Léo sont bien pour les voitures et achats, mais pas adaptées pour les peintures, traînées, figures… retravaille au max l'ergonomie, adaptée au mobile et à chaque catégorie d'item » · « chaque type d'item doit avoir un système propre ») =====
+   Une peinture n'est pas une caisse qu'on photographie : c'est une COULEUR, une MATIÈRE, qu'on veut voir sur la caisse. Le rayon devient un
+   NUANCIER de peintre :
+   · des PASTILLES de tôle vernie (la peinture elle-même, sa finition, son animation pour une légendaire), serrées en grille — six par rangée
+     debout comme couché, chacune ≥ 48 px sous le pouce — au lieu de trois grosses boîtes : on voit d'un coup d'œil beaucoup plus de couleurs ;
+   · pas de texte sur la pastille : son ÉTAT en un signe — une coche (à toi), la coche bleue (équipée), l'anneau cyan qui se remplit (le défi
+     « ou gagne-la » : sa jauge ; à zéro, un anneau pâle), une pièce (en $), un drapeau (une mission) ; le PRIX est celui de la famille, écrit une fois en tête ;
+   · en haut, collée, la BARRE DES FAMILLES (UNIES · DÉGRADÉS · MOTIFS · ANIMÉES, leur prix, « à toi / total ») : un toucher saute à la
+     famille, la famille qu'on regarde s'allume pendant qu'on fait défiler ;
+   · TOUCHER une pastille = la caisse la porte tout de suite (bqEssaie, inchangé : le nom, la rareté, le défi au-dessus de la caisse ; le
+     grand bouton du bas achète / équipe, inchangé) ; GARDER LE DOIGT = la LOUPE : le nom, la rareté, l'état ou le défi et sa jauge, au-dessus
+     du doigt, sans rien essayer tant qu'on ne lâche pas ; glisser fait défiler et ferme la loupe.
+   Branché par deux crochets dans boutique-scene-1.js (bqPeintRail → bqNuancierHtml ; le cadre de ce qu'on regarde → bqNuancierSel). Les
+   cartes .bqK des autres rayons, l'inventaire, la boutique du jour (peintCarte) et la sauvegarde ne changent pas. */
+const BQN={rail:null,pan:null,loupe:null,t:0,x:0,y:0,el:null,vue:0,fam:''};
+const BQN_FAM=['commun','rare','epique','legendaire'];
+/* l'état d'une peinture, en un mot (la loupe, l'étiquette lue) et une classe (le signe de la pastille) */
+function bqNuanceEtat(d){const a=shopOwned('peinture',d.id);let eq=false;try{eq=shopEqD('peinture').id===d.id;}catch(e){}
+  if(eq)return {c:'eq',t:sansAcc(TR('ÉQUIPÉE'))};if(a)return {c:'a',t:sansAcc(TR('À TOI'))};
+  if(d.def){const p=peintDefFrac(d);return {c:'defi',t:sansAcc(TR('OU GAGNE-LA')),p:p,eur:d.eur?eurTxt(d.eur):''};}
+  if(d.mis2)return {c:'mis',t:sansAcc(TR('MISSION'))};if(d.pack==='chat')return {c:'mis',t:sansAcc(TR('PACK CHAT'))};
+  if(d.eur)return {c:'eur',t:eurTxt(d.eur)};if(d.p)return {c:'pc',t:bqPxT(d.p)};return {c:'mis',t:sansAcc(TR('MISSION'))};}
+function bqNuanceHtml(k,n,cur){const d=bqCos(k).d;if(!d)return '';let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;}catch(e){}
+  const r=cosmRar('peinture',d),ri=rarInfo(r),E=bqNuanceEtat(d),nom=sansAcc(TR(d.n));
+  const sg=E.c==='eq'||E.c==='a'?pxi('coche'):E.c==='pc'?pxi('piece'):E.c==='mis'?pxi('drapeau'):'';
+  return '<button type="button" class="pN r-'+r+' e-'+E.c+(k===cur?' sel':'')+'" data-k="'+k+'" style="--rc:'+ri.c+';--i:'+Math.min(n,18)+(E.c==='defi'&&E.p>=0?';--pj:'+Math.round(E.p*100):'')+'"'
+    +' title="'+nom.replace(/"/g,'')+'" aria-label="'+(nom+' · '+sansAcc(TR(ri.n1))+' · '+E.t).replace(/"/g,'')+'">'
+    +peintPastille(d,'pNsw',c0)+(E.c==='defi'?'<s class="pNj'+(E.p<0?' coup':'')+'"></s>':'')+(sg?'<b class="pNb">'+sg+'</b>':'')+'</button>';}
+/* LE RAYON : la barre des familles, puis une section par famille (son intertitre d'une ligne, sa grille de pastilles) */
+function bqNuancierHtml(L){try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */
+  const fam=function(k){return cosmRar('peinture',bqCos(k).d);},G={},cur=bqCourant();L.forEach(function(k){const f=fam(k);(G[f]||(G[f]=[])).push(k);});
+  const F=BQN_FAM.filter(function(f){return G[f];}).concat(Object.keys(G).filter(function(f){return BQN_FAM.indexOf(f)<0;}));
+  const nom=function(f){return sansAcc(TR(BQ_PEINT_SOUS[f]||rarInfo(f).n));},px=function(f){return PEINT_EUR[f]?eurTxt(PEINT_EUR[f]):'';},nA=function(f){return G[f].filter(bqA).length;};
+  let n=0;const S=F.map(function(f){const ri=rarInfo(f);
+    return '<section class="pNs" data-pf="'+f+'" style="--rc:'+ri.c+'"><h4 class="pNh"><span class="bqRl">'+pxi(RAR_LOGO[f]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b><i>'+nom(f)+(px(f)?' · '+px(f):'')+'</i><s></s><em><u>'+nA(f)+'</u>/'+G[f].length+'</em></h4>'
+      +'<div class="pNg">'+G[f].map(function(k){return bqNuanceHtml(k,n++,cur);}).join('')+'</div></section>';});
+  const nav='<nav class="pNav" style="--nf:'+F.length+'">'+F.map(function(f){return '<button type="button" data-pf="'+f+'" style="--rc:'+rarInfo(f).c+'"'+(f===F[0]?' class="on"':'')+'><b>'+nom(f)+'</b><em>'+(px(f)?px(f)+' · ':'')+nA(f)+'/'+G[f].length+'</em></button>';}).join('')+'</nav>';
+  setTimeout(bqNuancierBranche,0);
+  return ['<div class="pNu">'+nav+S.join('')+'</div>'];}
+/* le cadre de la pastille qu'on regarde (appelé par garBqPanneau quand ce qu'on regarde change) */
+function bqNuancierSel(rail,cur){rail.querySelectorAll('.pN').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur);});bqNuancierEq(rail);}
+/* l'équipée suit le grand bouton (ÉQUIPER / DÉSÉQUIPER ne changent pas la liste : le rail n'est pas refait) — sa coche bleue passe d'une pastille à l'autre */
+function bqNuancierEq(rail){if(!rail)return;let id='';try{id=shopEqD('peinture').id;}catch(e){return;}const k='peinture:'+id,A=sansAcc(TR('À TOI')),Q=sansAcc(TR('ÉQUIPÉE'));
+  rail.querySelectorAll('.pN.e-eq,.pN.e-a').forEach(function(el){const eq=el.getAttribute('data-k')===k;if(el.classList.contains('e-eq')===eq)return;
+    el.classList.toggle('e-eq',eq);el.classList.toggle('e-a',!eq);const l=el.getAttribute('aria-label')||'';el.setAttribute('aria-label',eq?l.replace(A,Q):l.replace(Q,A));});}
+/* LES GESTES : branchés une fois sur le rail (il survit aux rayons) ; chaque geste vérifie qu'on est bien dans le nuancier */
+function bqNuancierBranche(){const rail=document.querySelector('#gBqPan .bqRail');if(!rail||rail._pN)return;rail._pN=1;BQN.rail=rail;BQN.pan=document.getElementById('gBqPan');
+  const ok=function(){return garageOn&&!GAR.go&&!ecranWipe._on&&GBQ.on;};
+  rail.addEventListener('click',function(e){const t=e.target.closest&&e.target.closest('.pN, .pNav button');if(!t||!rail.contains(t))return;e.stopPropagation();if(!ok())return;
+    if(t.classList.contains('pN')){bqNuancierLoupe(null);uiPop(t);GSON9=false;if(BQN.pan)BQN.pan.classList.remove('menu');GBQ.figDir=null;bqEssaie(t.getAttribute('data-k'));bqNuancierSel(rail,t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');return;}
+    uiClic('onglet');hap(6);bqNuancierVa(t.getAttribute('data-pf'));});
+  rail.addEventListener('scroll',function(){bqNuancierLoupe(null);if(!BQN.vue){BQN.vue=1;requestAnimationFrame(function(){BQN.vue=0;bqNuancierFamVue();});}},{passive:true});
+  /* la loupe : garder le doigt 0,38 s sur une pastille ; bouger de plus de 10 px (on fait défiler) l'annule */
+  rail.addEventListener('pointerdown',function(e){const t=e.target.closest&&e.target.closest('.pN');clearTimeout(BQN.t);if(!t)return;BQN.x=e.clientX;BQN.y=e.clientY;BQN.el=t;
+    BQN.t=setTimeout(function(){if(BQN.el===t&&ok()){bqNuancierLoupe(t);hap(5);}},380);},{passive:true});
+  rail.addEventListener('pointermove',function(e){if(BQN.el&&Math.hypot(e.clientX-BQN.x,e.clientY-BQN.y)>10){clearTimeout(BQN.t);BQN.el=null;bqNuancierLoupe(null);}},{passive:true});
+  const fin=function(){clearTimeout(BQN.t);BQN.el=null;if(BQN.loupe&&BQN.loupe.classList.contains('on')){clearTimeout(BQN.lt);BQN.lt=setTimeout(function(){bqNuancierLoupe(null);},1400);}};
+  rail.addEventListener('pointerup',fin,{passive:true});rail.addEventListener('pointercancel',fin,{passive:true});
+  {const bt=document.getElementById('gBqBtn');if(bt)bt.addEventListener('click',function(){if(!rail.querySelector('.pNu'))return;setTimeout(function(){bqNuancierEq(rail);},80);setTimeout(function(){bqNuancierEq(rail);},900);});} /* ÉQUIPER : la coche bleue change de pastille */
+  rail.addEventListener('contextmenu',function(e){if(e.target.closest&&e.target.closest('.pN'))e.preventDefault();});}
+/* sauter à une famille : son intertitre vient se poser sous la barre */
+function bqNuancierVa(f){const rail=BQN.rail,s=rail&&rail.querySelector('.pNs[data-pf="'+f+'"]'),nv=rail&&rail.querySelector('.pNav');if(!s)return;
+  const y=s.offsetTop-(nv?nv.offsetHeight:0)-2;BQN.fam=f;bqNuancierFamMarque(f);
+  try{rail.scrollTo({top:Math.max(0,y),behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){rail.scrollTop=Math.max(0,y);}}
+function bqNuancierFamMarque(f){const nv=BQN.rail&&BQN.rail.querySelector('.pNav');if(!nv)return;nv.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-pf')===f);});}
+/* la famille qu'on regarde : la dernière dont l'intertitre est passé sous la barre (en bas de la liste : la dernière) */
+function bqNuancierFamVue(){const rail=BQN.rail;if(!rail||!rail.querySelector('.pNu'))return;const nv=rail.querySelector('.pNav'),y=rail.scrollTop+(nv?nv.offsetHeight:0)+24,S=rail.querySelectorAll('.pNs');
+  let f=S.length?S[0].getAttribute('data-pf'):'';S.forEach(function(s){if(s.offsetTop<=y)f=s.getAttribute('data-pf');});
+  if(rail.scrollTop+rail.clientHeight>=rail.scrollHeight-4&&S.length)f=S[S.length-1].getAttribute('data-pf');
+  if(f!==BQN.fam){BQN.fam=f;bqNuancierFamMarque(f);}}
+/* LA LOUPE : au-dessus du doigt (en dessous s'il n'y a pas la place), dans l'écran ; null la ferme */
+function bqNuancierLoupe(t){let L=BQN.loupe;if(!t){if(L)L.classList.remove('on');return;}
+  if(!L){L=BQN.loupe=document.createElement('div');L.id='pNLoupe';L.setAttribute('aria-hidden','true');document.body.appendChild(L);}
+  const d=bqCos(t.getAttribute('data-k')).d;if(!d)return;const r=cosmRar('peinture',d),ri=rarInfo(r),E=bqNuanceEtat(d);let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;}catch(e){}
+  let bas='<span class="pLe e-'+E.c+'">'+(E.c==='eq'||E.c==='a'?pxi('coche'):'')+E.t+'</span>';
+  if(E.c==='defi'){const f=d.def,v=peintDefVal(f);bas='<span class="pLd">'+pxi('cible')+' '+sansAcc(TR(f.t)).toUpperCase()+'</span>'+(v<0?'':'<span class="pLj"><u><em style="width:'+Math.round(Math.max(0,E.p)*100)+'%"></em></u><b>'+peintDefNb(f,v)+'</b></span>')+(E.eur?'<span class="pLe e-eur">'+sansAcc(TR('OU'))+' '+E.eur+'</span>':'');}
+  L.style.setProperty('--rc',ri.c);L.innerHTML=peintPastille(d,'pLsw',c0)+'<span class="pLt"><i>'+sansAcc(TR(ri.n1))+'</i><b>'+sansAcc(TR(d.n))+'</b>'+bas+'</span>';
+  L.classList.add('on');const b=t.getBoundingClientRect(),w=L.offsetWidth,h=L.offsetHeight,W=VP.w||innerWidth;
+  const x=Math.max(8,Math.min(W-8-w,b.left+b.width/2-w/2));let y=b.top-h-10;if(y<8)y=b.bottom+10;L.style.left=Math.round(x)+'px';L.style.top=Math.round(y)+'px';}
+try{if(!I18N['OU'])I18N['OU']='OR';}catch(e){}
+/* ===== BOUTIQUE : LE RAYON AILES, LA MOLETTE (2026-11-07, Sacha : « dans la boutique les boîtes de Léo sont bien pour les voitures et achats, mais pas adaptées pour les peintures, traînées, figures… retravaille au max l'ergonomie, adaptée au mobile et à chaque catégorie d'item » · « chaque type d'item doit avoir un système propre ») ===== */
+/* Une aile ne se juge pas dans une boîte : elle se juge SUR la caisse. Le rayon AILES quitte la grille de cartes (trois par rangée, 330 px de
+   haut debout : la caisse, coincée dessus, se voyait de profil, l'aile de chant) pour UNE MOLETTE :
+   · une seule rangée de vignettes (la photo de l'aile vue de dessus, son nom, son prix ou son état) qui défile au doigt et s'AIMANTE au
+     milieu ; celle du milieu est ESSAYÉE sur la caisse dès que la molette se pose — on compare d'un geste, sans viser ;
+   · ◀ ▶ aux deux bouts (le pouce, 44 px et plus) : l'aile d'à côté ; les flèches du clavier aussi (ordinateur) ; la molette de la souris ;
+   · au-dessus, la RÉGLETTE : un trait par aile, à la couleur de sa rareté (plein = à toi), qu'on balaie du doigt pour filer d'un bout à
+     l'autre ; à gauche la famille de l'aile du milieu (son logo, son nom, « à toi / total »), à droite sa place (05 / 16) ;
+   · dans la molette, une TRANCHE noire ouvre chaque famille (COMMUNES, RARES…) : les raretés restent rangées, sans intertitre pleine largeur ;
+   · debout, le rayon tient en ~150 px (contre 330) : la place rendue va à la caisse (GBQ.zone suit le panneau) ; couché, une colonne
+     étroite à droite qui défile de haut en bas, la caisse a toute la gauche ;
+   · la caméra : trois-quarts ARRIÈRE et un peu plus haut (BQA_POV, BQA_ANG), là où une aile se lit — fondu en une demi-seconde, rendu en
+     quittant le rayon.
+   Le reste ne change pas : toucher = bqEssaie (le bras pose la pièce), le bouton #gBqBtn achète / équipe (bqAction), les photos viennent
+   d'aileFile (bqPhotos). La grille partagée (.bqRail) est vidée tant que le rayon AILES est ouvert : ses cartes cachées ne tiennent pas la
+   file du studio photo. Crochet : garBqPanneau appelle bqAileMaj(pan, voulu) à chaque image. Banc : window.dbgBqAile(). */
+const BQA={el:null,k:'',essK:'',on:false,pose:0,doigt:0,scT:0,e:0,povS:null,angS:null,vu:'',lay:''};
+const BQA_ANG=2.45; /* le cap de la caisse dans le rayon AILES (GAR_TAB_ANG : 1.2 de profil, 3.5 trois-quarts arrière des traînées) */
+const BQA_POV={debout:{h:1.1,d:.97,ty:.05},couche:{h:.85,d:.98,ty:.05}}; /* la caméra monte (m) : on voit l'aile par-dessus, déployée */
+Object.assign(I18N,{"AILE PRÉCÉDENTE":"PREVIOUS WING","AILE SUIVANTE":"NEXT WING","CHOISIR UNE AILE":"PICK A WING"});
+function bqAileListe(){const L=COSM.aile.slice(),ri=function(d){return Math.max(0,RARETES.findIndex(function(x){return x.id===cosmRar('aile',d);}));},px=function(d){return d.p||d.pk||0;};
+  return L.map(function(d,n){return [d,n];}).sort(function(a,b){return (a[0].p===0?-1:0)-(b[0].p===0?-1:0)||ri(a[0])-ri(b[0])||px(a[0])-px(b[0])||a[1]-b[1];}).map(function(e){return e[0];});}
+/* l'état d'une aile, en un mot : ÉQUIPÉE · À TOI · le prix (trop cher : grisé) · MISSION */
+function bqAileEtat(d){const a=shopOwned('aile',d.id);if(a&&shopEqD('aile')===d)return {t:sansAcc(TR('ÉQUIPÉE')),c:'eq'};if(a)return {t:sansAcc(TR('À TOI')),c:'acq'};
+  if(d.eur)return {t:eurTxt(d.eur),c:'eur'};if(d.p)return {t:bqPxT(d.p),c:bank()<d.p?'pc cher':'pc'};return {t:sansAcc(TR('MISSION')),c:'defi'};}
+function bqAileHtml(L){const fam=function(d){return cosmRar('aile',d);},nb={},ok={};L.forEach(function(d){const f=fam(d);nb[f]=(nb[f]|0)+1;if(shopOwned('aile',d.id))ok[f]=(ok[f]|0)+1;});
+  let h='';L.forEach(function(d,n){const f=fam(d),ri=rarInfo(f),s=bqAileEtat(d);
+    if(!n||fam(L[n-1])!==f)h+='<div class="baTr" style="--rc:'+ri.c+'" aria-hidden="true"><span class="bqRl">'+pxi(RAR_LOGO[f]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b><em><i>'+(ok[f]|0)+'</i>/'+nb[f]+'</em></div>';
+    h+='<button type="button" class="baK'+(shopOwned('aile',d.id)?' a':'')+(s.c==='eq'?' eq':'')+'" data-k="aile:'+d.id+'" data-n="'+n+'" data-rar="'+f+'" style="--rc:'+ri.c+'" aria-label="'+sansAcc(TR(d.n)).replace(/"/g,'')+' · '+String(s.t).replace(/<[^>]*>/g,'').replace(/"/g,'')+'">'
+      +'<span class="baPh" data-pha="'+d.id+'"></span>'
+      +'<span class="baTx"><span class="baN">'+sansAcc(TR(d.n))+'</span><span class="baP '+s.c+'">'+(s.c==='eq'||s.c==='acq'?pxi('coche'):s.c.indexOf('pc')===0?pxi('piece'):'')+'<span>'+String(s.t).replace(/</g,'')+'</span></span></span></button>';});
+  return h;}
+function bqAileReglette(L){return L.map(function(d,n){const f=cosmRar('aile',d);return '<i data-n="'+n+'" class="'+(shopOwned('aile',d.id)?'a':'')+'" style="--rc:'+rarInfo(f).c+'"></i>';}).join('');}
+function bqAileOk(){return garageOn&&!GAR.go&&!ecranWipe._on&&GBQ.on&&GBQ.panOn;}
+function bqAileCouche(){return !!BQA.el&&BQA.el.parentNode&&BQA.el.parentNode.classList.contains('cote');}
+/* la vignette au MILIEU de la molette (le repère : le milieu de la piste, en x debout, en y couché) */
+function bqAileMilieu(){const r=BQA.el&&BQA.el.querySelector('.baRail');if(!r)return null;const K=r.querySelectorAll('.baK');if(!K.length)return null;
+  const R=r.getBoundingClientRect(),v=bqAileCouche(),m=v?R.top+R.height/2:R.left+R.width/2;let best=null,bd=1e9;
+  K.forEach(function(k){const b=k.getBoundingClientRect(),c=v?b.top+b.height/2:b.left+b.width/2,d=Math.abs(c-m);if(d<bd){bd=d;best=k;}});return best;}
+/* amener une vignette au milieu (doux : en glissant) ; essai : la poser sur la caisse tout de suite */
+function bqAileVa(k,essai,doux){if(!k)return;const r=k.parentNode,v=bqAileCouche();
+  const t=v?k.offsetTop+k.offsetHeight/2-r.clientHeight/2:k.offsetLeft+k.offsetWidth/2-r.clientWidth/2;
+  if(essai)bqAileEssaie(k);
+  try{r.scrollTo(v?{top:t,behavior:doux?'smooth':'auto'}:{left:t,behavior:doux?'smooth':'auto'});}catch(e){if(v)r.scrollTop=t;else r.scrollLeft=t;}}
+function bqAileEssaie(k){const key=k.getAttribute('data-k');if(!key||!bqAileOk())return;BQA.essK=key;
+  uiPop(k);GSON9=false;const pan=document.getElementById('gBqPan');if(pan)pan.classList.remove('menu');GBQ.figDir=null;
+  bqEssaie(key);if(GSON9)hap(8);else{uiClic('nav');hap(5);}}
+/* ◀ ▶ (et le clavier) : l'aile d'à côté */
+function bqAilePas(s){if(!bqAileOk()||!BQA.el)return;const K=[].slice.call(BQA.el.querySelectorAll('.baK'));if(!K.length)return;
+  const c=BQA.el.querySelector('.baK.sel')||bqAileMilieu(),i=Math.max(0,K.indexOf(c)),j=Math.max(0,Math.min(K.length-1,i+s));
+  if(j===i){const b=BQA.el.querySelector(s<0?'.baFl.g':'.baFl.d');if(b)gSecoue(b);return;}bqAileVa(K[j],true,true);}
+/* la réglette : le doigt qui la balaie amène l'aile sous lui (la molette se pose, l'essai part au repos) */
+function bqAileRegletteDoigt(e){const g=BQA.el.querySelector('.baRg'),R=g.getBoundingClientRect(),K=BQA.el.querySelectorAll('.baK');if(!K.length)return;
+  const n=Math.max(0,Math.min(K.length-1,Math.floor((e.clientX-R.left)/Math.max(1,R.width)*K.length)));if(BQA.rgN===n)return;BQA.rgN=n;BQA.doigt=performance.now();bqAileVa(K[n],false,false);hap(3);}
+function bqAileEl(pan){if(BQA.el&&BQA.el.isConnected)return BQA.el;
+  const el=document.createElement('div');el.id='bqAile';el.setAttribute('role','group');
+  el.innerHTML='<div class="baTete"><span class="baFam"></span><span class="baPos"></span></div><div class="baRg" role="slider" tabindex="-1"></div>'
+    +'<div class="baPiste"><button type="button" class="baFl g">'+pxi('gauche')+pxi('haut')+'</button><div class="baRail"></div><button type="button" class="baFl d">'+pxi('droite')+pxi('bas')+'</button></div><div class="baDesc" aria-live="polite"></div>';
+  pan.appendChild(el);BQA.el=el;const rail=el.querySelector('.baRail');
+  el.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('.baFl,.baK');if(!b)return;e.stopPropagation();if(!bqAileOk())return;
+    if(b.classList.contains('baFl')){uiPop(b);bqAilePas(b.classList.contains('g')?-1:1);return;}
+    if(b.classList.contains('sel')&&BQA.essK===b.getAttribute('data-k')){uiPop(b);bqAileVa(b,false,true);return;} /* déjà sur la caisse : on la recentre, sans rejouer le bras */
+    bqAileVa(b,true,true);});
+  ['pointerdown','touchstart'].forEach(function(t){rail.addEventListener(t,function(){BQA.doigt=performance.now();},{passive:true});});
+  rail.addEventListener('scroll',function(){PHQ.defile=performance.now();BQA.scT=performance.now();clearTimeout(BQA.pose);BQA.pose=setTimeout(bqAilePose,170);},{passive:true});
+  rail.addEventListener('wheel',function(e){if(bqAileCouche()||Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;e.preventDefault();BQA.doigt=performance.now();rail.scrollBy({left:e.deltaY});},{passive:false}); /* la molette de la souris fait défiler debout aussi */
+  const rg=el.querySelector('.baRg');
+  rg.addEventListener('pointerdown',function(e){e.stopPropagation();if(!bqAileOk())return;BQA.rgId=e.pointerId;BQA.rgN=-1;try{rg.setPointerCapture(e.pointerId);}catch(_){}rg.classList.add('tient');bqAileRegletteDoigt(e);});
+  rg.addEventListener('pointermove',function(e){if(e.pointerId!==BQA.rgId)return;e.stopPropagation();bqAileRegletteDoigt(e);});
+  const fin=function(e){if(e.pointerId!==BQA.rgId)return;BQA.rgId=null;rg.classList.remove('tient');clearTimeout(BQA.pose);BQA.pose=setTimeout(bqAilePose,120);};
+  rg.addEventListener('pointerup',fin);rg.addEventListener('pointercancel',fin);rg.addEventListener('lostpointercapture',fin);
+  rg.addEventListener('click',function(e){e.stopPropagation();});
+  return el;}
+/* la molette s'est posée : si c'est le doigt qui l'a fait tourner, l'aile du milieu part sur la caisse */
+function bqAilePose(){if(!BQA.el||!bqAileOk()||BQA.rgId!=null)return;const k=bqAileMilieu();if(!k)return;bqAileMarque(k);
+  if(performance.now()-BQA.doigt<4000&&k.getAttribute('data-k')!==BQA.essK)bqAileEssaie(k);}
+/* l'en-tête suit l'aile du milieu (pendant le défilement aussi) : sa famille, sa place ; le trait de la réglette */
+function bqAileMarque(k){if(!k||!BQA.el)return;const n=+k.getAttribute('data-n'),f=k.getAttribute('data-rar'),N=BQA.el.querySelectorAll('.baK').length,ri=rarInfo(f),key=n+'|'+f+'|'+N+'|'+LANG;
+  if(BQA.vu===key)return;BQA.vu=key;{const d9=(BQA.L||[])[n],de=BQA.el.querySelector('.baDesc');if(de)de.textContent=d9&&d9.d?TR(d9.d):'';} /* sa phrase : c'est elle qui vend l'aile */BQA.el.querySelector('.baFl.g').classList.toggle('off',n===0);BQA.el.querySelector('.baFl.d').classList.toggle('off',n===N-1);
+  const fa=BQA.el.querySelector('.baFam'),L=BQA.L||[],tot=L.filter(function(d){return cosmRar('aile',d)===f;}),a=tot.filter(function(d){return shopOwned('aile',d.id);}).length;
+  fa.style.setProperty('--rc',ri.c);fa.innerHTML='<span class="bqRl">'+pxi(RAR_LOGO[f]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b><em><i>'+a+'</i>/'+tot.length+'</em>';
+  const d2=function(x){return (x<10?'0':'')+x;};BQA.el.querySelector('.baPos').innerHTML='<b>'+d2(n+1)+'</b> / '+d2(N);
+  BQA.el.querySelectorAll('.baRg i').forEach(function(t,j){t.classList.toggle('on',j===n);});
+  BQA.el.querySelectorAll('.baK').forEach(function(x){x.classList.toggle('mil',x===k);});
+  const rg=BQA.el.querySelector('.baRg');rg.setAttribute('aria-valuenow',n+1);rg.setAttribute('aria-valuemax',N);rg.setAttribute('aria-valuemin',1);}
+/* LA CAMÉRA DU RAYON : BQ_POV (le cadrage de la boutique) reçoit, en fondu, celui des ailes ; rendu tel qu'il était en sortant */
+function bqAilePov(on,dt){const e0=BQA.e;BQA.e=Math.max(0,Math.min(1,BQA.e+(on?1:-1)*dt/.5));if(e0===BQA.e&&!on&&BQA.e===0)return;
+  if(BQ_CADRAGE)return; /* ?cadrage=1 : le panneau de Léo garde la main */
+  const e=BQA.e*BQA.e*(3-2*BQA.e);
+  ['debout','couche'].forEach(function(s){const P=BQA_POV[s],o=BQ_POV[s];
+    if(!o||!o.bqA){BQA.povS=BQA.povS||{};BQA.povS[s]=o;}
+    const b=BQA.povS&&BQA.povS[s]||BQ_POV_DEF;
+    if(BQA.e===0){BQ_POV[s]=BQA.povS?BQA.povS[s]:null;return;}
+    BQ_POV[s]={bqA:1,a:b.a||0,h:(b.h||0)+(P.h||0)*e,d:(b.d==null?1:b.d)*(1+((P.d==null?1:P.d)-1)*e),ty:(b.ty||0)+(P.ty||0)*e,f:b.f||0,sx:b.sx||0,sy:b.sy||0};});
+  if(BQA.e===0)BQA.povS=null;}
+/* le cap : tant que le rayon AILES est ouvert, la caisse se tourne trois-quarts arrière (shopShow et bqTourne lisent GAR_TAB_ANG) */
+function bqAileCap(on){if(on){if(BQA.angS==null){BQA.angS=GAR_TAB_ANG.aile;GAR_TAB_ANG.aile=BQA_ANG;try{bqTourne('aile');}catch(e){}}}
+  else if(BQA.angS!=null){GAR_TAB_ANG.aile=BQA.angS;BQA.angS=null;}}
+/* LE CROCHET, à chaque image de la boutique (voulu : le panneau est ouvert) */
+function bqAileMaj(pan,voulu){const cat=BQ_CATS.some(function(c){return c[0]===GBQ.cat;})?GBQ.cat:'voiture',on=!!voulu&&cat==='aile';
+  const dt=Math.min(.1,Math.max(0,(performance.now()-(BQA.t||0))/1000));BQA.t=performance.now();
+  bqAilePov(on,dt);bqAileCap(on);
+  if(pan.getAttribute('data-cat')!==cat)pan.setAttribute('data-cat',cat);
+  pan.classList.toggle('bqAileOn',on);
+  if(!on){if(BQA.on){BQA.on=false;BQA.k='';BQA.essK='';BQA.vu='';}return;}
+  const rail=pan.querySelector('.bqRail');if(rail&&rail.firstChild)rail.textContent=''; /* la grille partagée se tait : la molette la remplace */
+  const el=bqAileEl(pan),L=bqAileListe(),eqd=shopEqD('aile'),k=L.map(function(d){return d.id+(shopOwned('aile',d.id)?1:0)+(eqd===d?'e':'')+(d.p&&bank()<d.p?'c':'');}).join(',')+':'+LANG;
+  const neuf=!BQA.on;BQA.on=true;
+  if(BQA.k!==k){const r=el.querySelector('.baRail'),sc=neuf?null:(bqAileCouche()?r.scrollTop:r.scrollLeft);BQA.k=k;BQA.L=L;BQA.vu='';
+    r.innerHTML=bqAileHtml(L);el.querySelector('.baRg').innerHTML=bqAileReglette(L);
+    el.querySelector('.baFl.g').setAttribute('aria-label',sansAcc(TR('AILE PRÉCÉDENTE')));el.querySelector('.baFl.d').setAttribute('aria-label',sansAcc(TR('AILE SUIVANTE')));
+    el.setAttribute('aria-label',sansAcc(TR('CHOISIR UNE AILE')));el.querySelector('.baRg').setAttribute('aria-label',sansAcc(TR('AILES')));
+    bqPhotos(el);
+    if(sc!=null){if(bqAileCouche())r.scrollTop=sc;else r.scrollLeft=sc;}}
+  /* à l'ouverture : la molette se pose sur l'aile qu'on regarde (celle de l'essai, sinon celle qu'on porte), essayée pour que le bouton parle d'elle */
+  const cur=bqCourant(),lay=VP.w+'x'+VP.h+':'+(pan.classList.contains('cote')?1:0);
+  if(neuf||BQA.lay!==lay){BQA.lay=lay;const vis=String(cur).indexOf('aile:')===0?cur:'aile:'+eqd.id,kk=el.querySelector('.baK[data-k="'+vis+'"]');
+    if(kk){if(vis!==cur){BQA.essK=vis;try{bqAileEssaie(kk);}catch(e){}}else BQA.essK=vis;requestAnimationFrame(function(){bqAileVa(kk,false,false);bqAileMarque(kk);});}}
+  if(BQA.cur!==cur){BQA.cur=cur;el.querySelectorAll('.baK').forEach(function(x){x.classList.toggle('sel',x.getAttribute('data-k')===cur);});}
+  if(performance.now()-BQA.scT<400){const m=bqAileMilieu();if(m)bqAileMarque(m);}
+  else if(!BQA.vu){const m=bqAileMilieu();if(m)bqAileMarque(m);}
+  if(!PHQ.q.length&&el.querySelector('[data-pha]:not(.ok)'))bqPhotos(el);}
+addEventListener('keydown',function(e){if(!BQA.on||!bqAileOk()||e.altKey||e.ctrlKey||e.metaKey)return;const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))return;
+  const v=bqAileCouche(),s=e.code==='ArrowLeft'||(v&&e.code==='ArrowUp')?-1:e.code==='ArrowRight'||(v&&e.code==='ArrowDown')?1:0;if(!s)return;e.preventDefault();bqAilePas(s);});
+window.dbgBqAile=function(o){if(o&&o.pov)Object.assign(BQA_POV,o.pov);const el=BQA.el,r=function(x){if(!x)return null;const b=x.getBoundingClientRect();return [Math.round(b.left),Math.round(b.top),Math.round(b.width),Math.round(b.height)];};
+  return {on:BQA.on,e:+BQA.e.toFixed(2),ess:BQA.essK,cur:bqCourant(),mil:(bqAileMilieu()||{getAttribute:function(){return null;}}).getAttribute('data-k'),pan:r(document.getElementById('gBqPan')),el:r(el),
+    rail:r(el&&el.querySelector('.baRail')),k:el?[].slice.call(el.querySelectorAll('.baK')).slice(0,3).map(r):null,fl:el?[].slice.call(el.querySelectorAll('.baFl')).map(r):null,rg:r(el&&el.querySelector('.baRg')),
+    photos:el?el.querySelectorAll('.baPh.ok').length:0,zone:GBQ.zone,pov:BQ_POV,ang:GAR_TAB_ANG.aile};};
+/* ===== BOUTIQUE : LE RAYON DES TRAÎNÉES, LA PISTE (2026-11-07, Sacha : « dans la boutique les boîtes de Léo sont bien pour les voitures et achats, mais pas adaptées pour les peintures, traînées, figures… chaque type d'item doit avoir un système propre ») =====
+   Une traînée est un EFFET EN MOUVEMENT, long et horizontal : la case carrée d'une voiture photographiée la tassait dans 100 px. Le rayon
+   devient une PISTE : une voie par traînée, sur toute la largeur du panneau (deux voies côte à côte quand le panneau dépasse 520 px, sur
+   l'ordinateur), avec à gauche la traînée qui coule DERRIÈRE une caisse (la plaque de nuit de traineeCarte, la caisse en pictogramme au bout)
+   et à droite son nom et sa pastille de prix / À TOI / ÉQUIPÉE.
+   · En haut, collée au haut de la liste, la RÉGLETTE DES FAMILLES (TOUT · RUBANS · PARTICULES · EFFETS · SPECTACLE, chacune à la couleur de sa
+     rareté avec « à toi / total ») : toucher une famille ne garde qu'elle, la retoucher (ou TOUT) rend toute la piste. En TOUT, un intertitre
+     d'une ligne ouvre chaque famille.
+   · Toucher une voie = l'ESSAYER (le comportement de toujours : bqEssaie via le `.bqK` et son data-k) : la caisse la porte sur le plateau,
+     son coup d'allumage rejoué toutes les 4,3 s (garageRender), sa phrase sous le nom (#gBqNom .tDesc), le bouton d'achat dit quoi faire.
+   · ÉCONOME : seules les voies EN VUE s'animent (un IntersectionObserver pose .vit) ; les autres sont figées.
+   Rien n'est réécrit dans le code partagé : bqTraineeRail (boutique-scene-1.js) n'appelle plus que trPisteHtml.
+   `dbgTrPiste()` : l'état de la piste (banc). */
+const TRV={fam:'',io:null,eqT:0,eqId:null};
+const TRV_SOUS={commun:'RUBANS',rare:'PARTICULES',epique:'EFFETS',legendaire:'SPECTACLE'};
+function trPrix(k,d){if(bqA(k))return {t:'<i class="trAt">'+sansAcc(TR('À TOI'))+'</i><i class="trEqT">'+sansAcc(TR('ÉQUIPÉE'))+'</i>',c:'acq'};
+  if(d.pack==='chat')return {t:sansAcc(TR('PACK CHAT')),c:'eur'};if(d.eur)return {t:eurTxt(d.eur),c:'eur'};
+  if(d.p)return {t:pxi('piece')+bqPxT(d.p),c:'pc'};return {t:pxi('cible')+sansAcc(TR('MISSION')),c:'defi'};}
+function trVoie(k,n,f){const d=bqCos(k).d,ri=rarInfo(f),nom=sansAcc(TR(d.n)),px=trPrix(k,d);
+  return '<div class="bqK trK hab r-'+f+'" data-k="'+k+'" data-fam="'+f+'" role="button" style="--rc:'+ri.c+';--tc:'+traineeCoul(d)+';--i:'+Math.min(n,8)+'" aria-label="'+nom.replace(/"/g,'')+'">'
+    +'<span class="trVue">'+traineeCarte(d)+'<i class="trCaisse">'+pxi('voiture')+'</i></span>'
+    +'<span class="trTx"><span class="bqKn">'+nom+'</span><span class="bqKp '+px.c+'">'+px.t+'</span></span></div>';}
+function trPisteHtml(L){const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={},F=[];
+  L.forEach(function(k){const f=fam(k);if(!nb[f]){nb[f]=0;F.push(f);}nb[f]++;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+  if(TRV.fam&&!nb[TRV.fam])TRV.fam='';
+  const lib=function(f){return sansAcc(TR(TRV_SOUS[f]||rarInfo(f).n));};
+  const fil='<div class="trFil" role="tablist" aria-label="'+sansAcc(TR('TRAÎNÉES'))+'">'
+    +['' ].concat(F).map(function(f){const tot=f?nb[f]:L.length,a=f?(ok[f]|0):L.filter(bqA).length;
+      return '<button type="button" role="tab" class="trCh'+(TRV.fam===f?' on':'')+'" data-trf="'+f+'" aria-selected="'+(TRV.fam===f)+'"'+(f?' style="--rc:'+rarInfo(f).c+'"':'')+'>'
+        +'<span><b>'+(f?lib(f):sansAcc(TR('TOUT')))+'</b><em>'+a+'/'+tot+'</em></span></button>';}).join('')+'</div>';
+  const R=[fil];L.forEach(function(k,n){const f=fam(k);
+    if(!n||fam(L[n-1])!==f)R.push('<div class="trSec" data-fam="'+f+'" style="--rc:'+rarInfo(f).c+'"><i>'+pxi(RAR_LOGO[f]||'etoile')+'</i><b>'+lib(f)+'</b><span>'+sansAcc(TR(rarInfo(f).n))+'</span><s></s><em>'+(ok[f]|0)+'/'+nb[f]+'</em></div>');
+    R.push(trVoie(k,n,f));});
+  queueMicrotask(trApres); /* la piste est posée dans le rail juste après (garBqPanneau) : on la branche ensuite */
+  return R;}
+function trRail(){return document.querySelector('#gBqPan .bqRail');}
+/* après chaque pose : le filtre, l'œil qui n'anime que les voies en vue, la pastille ÉQUIPÉE, le toucher de la réglette (une seule fois) */
+function trApres(){const rail=trRail();if(!rail||!rail.querySelector('.trK'))return;
+  rail.setAttribute('data-trf',TRV.fam);
+  if(!rail._trF){rail._trF=1;rail.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('.trCh');if(!b)return;e.stopPropagation();
+    if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;const f=b.getAttribute('data-trf');TRV.fam=(TRV.fam===f?'':f);trFiltre(rail);
+    try{uiPop(b);uiClic('onglet');hap(6);}catch(e9){}});}
+  if('IntersectionObserver' in window){if(TRV.io)TRV.io.disconnect();
+    TRV.io=new IntersectionObserver(function(E){E.forEach(function(x){x.target.classList.toggle('vit',x.isIntersecting);});},{root:rail,rootMargin:'24px 0px'});
+    rail.querySelectorAll('.trK').forEach(function(el){TRV.io.observe(el);});}
+  else rail.querySelectorAll('.trK').forEach(function(el){el.classList.add('vit');});
+  TRV.eqId=null;trEqMaj();clearInterval(TRV.eqT);TRV.eqT=setInterval(trEqMaj,250);}
+function trFiltre(rail){rail.setAttribute('data-trf',TRV.fam);rail.querySelectorAll('.trCh').forEach(function(b){const on=b.getAttribute('data-trf')===TRV.fam;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});
+  rail.scrollTop=0;rail.querySelectorAll('.trK').forEach(function(el,n){el.style.setProperty('--i',Math.min(n,8));});}
+/* ÉQUIPÉE : l'équipement change par le bouton (bqAction), le geste du bras le retire plus tard — la pastille suit l'état, pas le toucher */
+function trEqMaj(){const rail=trRail();if(!rail||!rail.querySelector('.trK')||!GBQ.on){clearInterval(TRV.eqT);TRV.eqId=null;if(TRV.io){TRV.io.disconnect();TRV.io=null;}return;} /* sorti du rayon : plus de minuterie ni d'œil */
+  let id='';try{const d=shopEqD('trainee');id=d&&shopOwned('trainee',d.id)?d.id:'';}catch(e){}if(id===TRV.eqId)return;TRV.eqId=id;
+  rail.querySelectorAll('.trK').forEach(function(el){el.classList.toggle('eq',el.getAttribute('data-k')==='trainee:'+id);});}
+window.dbgTrPiste=function(f){const rail=trRail();if(f!=null&&rail){TRV.fam=f;trFiltre(rail);}if(!rail)return null;
+  return {fam:TRV.fam,voies:[...rail.querySelectorAll('.trK')].map(function(el){const r=el.getBoundingClientRect();return [el.getAttribute('data-k').slice(8),Math.round(r.x),Math.round(r.y),Math.round(r.width),Math.round(r.height),el.classList.contains('vit')?'vit':'',el.classList.contains('eq')?'eq':'',el.classList.contains('sel')?'sel':''];}),
+    puces:[...rail.querySelectorAll('.trCh')].map(function(b){const r=b.getBoundingClientRect();return [b.getAttribute('data-trf')||'tout',Math.round(r.width),Math.round(r.height)];}),scroll:[rail.scrollTop,rail.scrollHeight,rail.clientHeight,rail.clientWidth]};};
+/* ===== BOUTIQUE : LE RAYON FIGURES A SON PROPRE SYSTÈME (2026-11-07, Sacha : « dans la boutique les boîtes de Léo sont bien pour les voitures et achats, mais pas adaptées pour les peintures, traînées, figures… retravaille au max l'ergonomie, adaptée au mobile et à chaque catégorie d'item » · « chaque type d'item doit avoir un système propre ») =====
+   Une figure n'est pas une caisse qu'on photographie : c'est un MOUVEMENT, joué par un GESTE (↑ avant, ↓ arrière, ◄► côtés), qu'on veut voir sur
+   la caisse puis ranger dans un des trois emplacements. Le rayon devient une PELLICULE :
+   · en haut, le dock des trois emplacements (#bqFigSel, figures-selecteur.js) tassé en une rangée de trois touches pleine largeur : la case de la
+     figure, le geste écrit (« ↑ AVANT »), son nom — le toucher filtre ce geste et rejoue sa figure (fsCase, inchangé) ; dessous les pastilles
+     TOUT · À MOI · À ACHETER · TRI sur une ligne qui défile ;
+   · dessous, les figures en AFFICHES sur une seule rangée qui défile au pouce (de côté, aimantée) : le FILM de la figure prend toute la hauteur
+     libre, ses gestes écrits en pastilles de la couleur de leur emplacement par-dessus (une figure à deux sens : toucher l'autre geste la
+     passe dans ce sens, comme avant), le nom, puis le pied : ÉQUIPER (un toucher : la figure se range dans CET emplacement et se joue), ÉQUIPÉE,
+     ou le prix (l'achat reste au grand bouton du bas, comme partout) ;
+   · toucher l'affiche essaie la figure (bqEssaie, inchangé) ; la carte regardée dit REJOUER ; ÉQUIPER fait éclore son pied (fgVient), la case du
+     dock flashe (fsHexMaj) et la puce ANNULER vit 5 s (fsMontre) ;
+   · la pellicule garde sa place quand on équipe ou change de sens ; une case du dock amène sa figure en vue ; la molette (ordinateur) la fait
+     défiler de côté.
+   Rien d'autre ne change : les cartes .bqK des autres rayons, l'inventaire et le coffre (le même sélecteur), la sauvegarde. */
+try{Object.assign(I18N,{'REJOUER':'REPLAY','ÉQUIPER':'EQUIP','ÉQUIPÉE':'EQUIPPED','À TOI':'YOURS'});}catch(e){}
+const BQFG={sl:0,fk:'',rest:null,vu:'',vient:''};
+/* les gestes d'une figure, en pastilles : celui de CETTE affiche cerclé, ceux où elle est équipée pleins ; à deux sens, l'autre est tapable */
+function bqFigGestes(id,dir){const P=figPeut(id),S=figSlots(),pk=P.length>1&&FSEL.dir<0;
+  return '<span class="fgGs">'+P.map(function(x){return '<span class="fgG'+(x===dir?' cur':'')+(S[x]===id?' eq':'')+'"'+(pk&&x!==dir?' data-pick="'+x+'"':'')+' style="--dc:'+FIG_DC[x]+'">'+pxi(FIG_FAM[x][2])+'<b>'+sansAcc(TR(FS_COURT[x]))+'</b></span>';}).join('')+'</span>';}
+/* une AFFICHE : le film, les gestes, le nom, le pied (ÉQUIPER · ÉQUIPÉE · le prix) */
+function bqFigCarte(k,n,dir){const o=bqCos(k),d=o.d,id=d.id,own=figPossede(id),S=figSlots(),ici=S[dir]===id,r=cosmRar('figure',d),ri=rarInfo(r),nom=sansAcc(TR(d.n)),g=sansAcc(TR(FS_COURT[dir]));
+  let pied,etat;
+  if(own&&ici){pied='<span class="fgPied fgOk">'+pxi('coche')+'<b>'+sansAcc(TR('ÉQUIPÉE'))+'</b></span>';etat=sansAcc(TR('ÉQUIPÉE'));}
+  else if(own){pied='<span class="fgPied fgEq1" role="button" data-fgeq="1" aria-label="'+sansAcc(TR('ÉQUIPER'))+' : '+g+'"><i class="fgEqDir">'+pxi(FIG_FAM[dir][2])+'</i><b>'+sansAcc(TR('ÉQUIPER'))+'</b></span>';etat=sansAcc(TR('À TOI'));}
+  else if(d.p){const cher=bank()<d.p;pied='<span class="fgPied fgPx'+(cher?' cher':'')+'">'+pxi('piece')+'<b>'+bqPxT(d.p)+'</b></span>';etat=bqPxT(d.p);}
+  else{pied='<span class="fgPied fgPx">'+sansAcc(TR('MISSION'))+'</span>';etat=sansAcc(TR('MISSION'));}
+  return '<div class="bqK hab fgK r-'+r+(own?' own':'')+(ici?' ici':'')+'" data-k="'+k+'" data-dir="'+dir+'" role="button" style="--rc:'+ri.c+';--dc:'+FIG_DC[dir]+';--i:'+Math.min(n,8)+'" aria-label="'+nom.replace(/"/g,'')+' · '+g+' · '+etat+'">'
+    +'<span class="bqKph c-figure" data-phf="'+id+'|'+FIG_DIR[dir]+'">'+bqFigHab(k)+'</span>'
+    +bqFigGestes(id,dir)+'<span class="fgRe" aria-hidden="true">'+pxi('rotation')+'<b>'+sansAcc(TR('REJOUER'))+'</b></span>'
+    +'<span class="fgRar">'+sansAcc(TR(ri.n1))+'</span><span class="bqKn">'+nom+'</span>'+pied+'</div>';}
+/* la pellicule entière (appelée par garBqPanneau à la place des cartes communes) ; elle note où on en était, pour y revenir après un équipement */
+function bqFigRailHtml(){const R=bqFigRail(),pan=document.getElementById('gBqPan'),fk=FSEL.dir+'|'+FSEL.part+'|'+FSEL.tri,deja=!!pan&&pan.classList.contains('bqFigOn');
+  BQFG.rest=deja&&BQFG.fk===fk?BQFG.sl:0;BQFG.fk=fk;if(!deja)BQFG.vu='';
+  if(!R.length)return ['<div class="bqVide">'+sansAcc(TR(FSEL.dir>=0?'AUCUNE FIGURE POUR CE GESTE':'RIEN À AFFICHER'))+'</div>'];
+  return R.map(function(e,n){return bqFigCarte(e.k,n,e.c);});}
+/* après chaque passage du panneau (rayon FIGURES) : la place retrouvée, le geste écrit sur les cases du dock, la figure regardée amenée en vue,
+   l'éclosion du pied qu'on vient d'équiper */
+function bqFigApres(pan,rail){
+  if(BQFG.rest!=null){const r=BQFG.rest;BQFG.rest=null;if(r)rail.scrollLeft=r;}
+  if(!rail._fg){rail._fg=1;
+    rail.addEventListener('scroll',function(){if(pan.classList.contains('bqFigOn'))BQFG.sl=rail.scrollLeft;},{passive:true});
+    rail.addEventListener('wheel',function(e){if(!pan.classList.contains('bqFigOn')||Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;rail.scrollLeft+=e.deltaY;e.preventDefault();},{passive:false});} /* la molette d'une souris fait défiler la pellicule de côté */
+  const sel=document.getElementById('bqFigSel');
+  if(sel&&sel._fgL!==LANG){sel._fgL=LANG;sel.querySelectorAll('.fsHex').forEach(function(b){let g=b.querySelector('.fgSlotG');if(!g){g=document.createElement('em');g.className='fgSlotG';b.insertBefore(g,b.querySelector('.fsNom'));}g.textContent=sansAcc(TR(FS_COURT[+b.getAttribute('data-k')]));});}
+  const vu=(GBQ.figK||'')+'@'+GBQ.figDir+'|'+BQFG.fk;
+  if(BQFG.vu!==vu){const s=rail.querySelector('.fgK.sel');
+    if(!GBQ.figK)BQFG.vu=vu;
+    else if(s&&s.getAttribute('data-k')===GBQ.figK){BQFG.vu=vu;const rr=rail.getBoundingClientRect(),b=s.getBoundingClientRect();
+      if(b.left<rr.left+2||b.right>rr.right-2)rail.scrollTo({left:Math.max(0,rail.scrollLeft+(b.left-rr.left)-(rr.width-b.width)/2),behavior:REDUCED_MOTION?'auto':'smooth'});}}
+  if(BQFG.vient){const c=rail.querySelector('.fgK[data-k="'+BQFG.vient+'"]');BQFG.vient='';if(c){c.classList.remove('fgVient');void c.offsetWidth;c.classList.add('fgVient');}}}
+/* ÉQUIPER sur l'affiche : un toucher, dans l'emplacement de CETTE affiche — la figure se joue (bqEssaie) et se range (figEqToast : le son, la puce
+   ANNULER) ; capturé avant le toucher de la carte (qui ne ferait que l'essayer) */
+document.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('#gBqPan.bqFigOn .fgK [data-fgeq]');if(!b)return;e.stopPropagation();
+  if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;const t=b.closest('.fgK'),k=t.getAttribute('data-k'),dir=+t.getAttribute('data-dir'),id=k.slice(7);
+  if(!figPossede(id))return;uiPop(b);GSON9=false;GBQ.figDir=dir;bqEssaie(k);figEqToast(id,dir);GBQ.rk='';BQFG.vient=k;try{gShopJour();}catch(e9){}hap(8);},true);
 /* ===== LE PREMIER BURN-OUT, REVENU (2026-10-08, Léo : « reviens sur le premier burn-out, celui où on ne pouvait pas faire de donuts ;
    reviens sur celui-là et laisse-moi juste faire des donuts avec lui aussi ; reviens sur les premiers petits carrés transparents ; si tu y
    arrives, intègre quelques cubes blancs comme tu as fait là ; remets-le sur le main — la fumée ET le mouvement, les deux »). Ce bloc est

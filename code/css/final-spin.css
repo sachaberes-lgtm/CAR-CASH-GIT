@@ -60,17 +60,20 @@
 #spinM .spReflet{position:absolute;inset:0;z-index:4;pointer-events:none;
   background:linear-gradient(118deg,transparent 0 18%,rgba(255,255,255,.16) 18% 24%,transparent 24% 30%,rgba(255,255,255,.08) 30% 32%,transparent 32%)}
 /* L'ÉCRAN DES LOTS : le petit écran sous la vitre */
-#spinM .spEcran{width:100%;min-height:calc(var(--spH)*.9);display:flex;align-items:center;justify-content:center;padding:6px 10px;box-sizing:border-box;
+/* (2026-11-07, Sacha : « cet écran est bugger en mobile, retravaille-le ») l'écran des lots ne dicte plus la largeur de la caisse (width:0 + min-width:100%) :
+   un long texte (UN TIRAGE DE PLUS) la dilatait et le levier partait loin de la vitre ; il retourne à la ligne dans la vitre */
+#spinM .spEcran{width:0;min-width:100%;min-height:calc(var(--spH)*.9);display:flex;align-items:center;justify-content:center;padding:6px 10px;box-sizing:border-box;
   background:linear-gradient(180deg,#05030c,#120b26);box-shadow:inset 0 0 0 2px var(--k0),inset 0 0 0 3px var(--kl),inset 0 6px 12px rgba(0,0,0,.6)}
-#spinM .spGain{display:flex;align-items:center;justify-content:center;gap:10px;text-align:center}
+#spinM .spGain{display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;max-width:100%;min-width:0;line-height:1.3}
 #spinM .spGain.attente span{font-size:var(--f1);color:var(--tx2);letter-spacing:1px;animation:spRespire 1.6s var(--ease) infinite}
 @keyframes spRespire{50%{opacity:.45}}
-#spinM .spGTx{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+#spinM .spGTx{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;text-align:left;overflow-wrap:anywhere}
 #spinM .spGain small{font-size:var(--f1);color:var(--tx2);letter-spacing:1px}
 #spinM .spGain b{font-weight:400;font-size:var(--f6);color:var(--cash);text-shadow:0 2px 0 var(--cashO)}
 #spinM .spGain b.bon{font-size:var(--f1);color:var(--neoC);text-shadow:none}
 #spinM .spGain.gros small,#spinM .spGain.lot small{color:var(--au1)}
 #spinM .spGain.gros b{font-size:var(--f9)}
+#spinM .spGain.gros b.bon,#spinM .spGain.lot b.bon,#spinM .spGain.jackpot b.bon{font-size:var(--f1);color:var(--neoC);text-shadow:none} /* un lot « bon » (UN TIRAGE DE PLUS…) gardait la taille d'un gros gain (24 px) : la règle .gros b passait devant */
 #spinM .spGain.jackpot small{color:var(--au1);font-size:var(--f3)}
 #spinM .spGain.jackpot b{font-size:var(--f7);color:var(--au1);text-shadow:0 3px 0 var(--auE),0 0 18px var(--auG);animation:spJack .5s var(--ease) 3}
 @keyframes spJack{40%{transform:scale(1.14)}}
@@ -125,7 +128,8 @@
   #spinM .spBox{display:grid;grid-template-columns:auto minmax(0,240px);grid-template-rows:1fr auto auto 1fr;column-gap:calc(var(--spH)*.95); /* (banc) la boule du levier mordait sur l'enseigne */row-gap:12px;align-items:center;justify-items:center}
   #spinM .spCorps{grid-column:1;grid-row:1/5}
   #spinM .spEnseigne{grid-column:2;grid-row:1;align-self:end}
-  #spinM .spNeon{font-size:var(--f6)}
+  #spinM .spEnseigne{max-width:100%;box-sizing:border-box}
+  #spinM .spNeon{font-size:min(var(--f6),calc(var(--spH)*.36));letter-spacing:1px} /* (2026-11-07) FINAL SPIN débordait de la colonne de droite */
   #spinM .spPlateau{grid-column:2;grid-row:2}
   #spinM .spTire{grid-column:2;grid-row:3;width:100%;min-height:52px}}
 @media (prefers-reduced-motion:reduce){#spinM .spBulbs i{animation-duration:3s}#spinM.gagne .spNeon{animation:none}}
