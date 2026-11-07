@@ -128,6 +128,14 @@ function foretProtos(){if(FORET.protos)return FORET.protos;while(foretProtosPas(
   // chaque arbre voyage dans son exemplaire (aI.yzw, voir FOR_ARB_VS) : 2 appels de dessin au lieu de 6
   {let K=fbNew();const rg=mulberry32(0x10A1);fbTouffe(K,[0,0,0],1,0,{rg:rg,cc:[0,0,0],cr:1,col:[1,1,1],ytop:1,bos:.12,sq:1});P.boule={g:fbGeo(K),tri:K.I.length/3};}
   {let K=fbNew();const rg=mulberry32(0x10A2);fbTube(K,[[0,0,0],[0,1,0]],[1,.02],6,{col:[1,1,1],ec:0,ytop:1,rg:rg,part:2,fixe:1});P.cone={g:fbGeo(K),tri:K.I.length/3};}
+  /* ===== LE BAS DES RIDEAUX, MESURÉ (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+     MESURÉ (banc des maps, dbgForetAudit, graines 1-3 à midi) : des mèches de SAULES GÉANTS pendaient dans le couloir de la route (1,5 à 5,5 m au-dessus
+     de la dalle, jusqu'au milieu de la chaussée). FOR_PLEUR_VOL.bas (94) est le bas NOMINAL du rideau (146 − 52) ; or fbRideau tire chaque mèche à 0,7-1,15 ×
+     sa longueur : les plus longues tombent à ~86 — 8 unités × l'échelle du géant (×2) = les 16 m de marge de buildForet, mangés. Le bas (et le rayon) se
+     lisent donc sur les prototypes eux-mêmes (les feuilles, partie 1, au-dessus du fût), aux deux détails : le saule REHAUSSÉ par buildForet l'est assez. */
+  for(const k of FOR_GEANTS_PL){const V=FOR_PLEUR_VOL[k];let m=V.bas,r=V.r;
+    for(const o of P.geant[k]){const Y=o.g.attributes.position,A=o.g.attributes.aA;for(let j=0;j<Y.count;j++){if(A.getX(j)!==1||Y.getY(j)<40)continue;if(Y.getY(j)<m)m=Y.getY(j);const h=Math.hypot(Y.getX(j),Y.getZ(j));if(h>r)r=h;}}
+    V.bas=Math.floor(m);V.r=Math.ceil(r);}
   P.ms=Math.round(performance.now()-t0);return FORET.protos=P;}
 /* ---------------- LES PEINTURES : fleurs, papillons, lune, loup-garou, brume (des canvas, cuits une fois) ---------------- */
 function forTex(cv,mip){const t=new THREE.CanvasTexture(cv);t.generateMipmaps=mip!==false;t.minFilter=mip===false?THREE.LinearFilter:THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;
