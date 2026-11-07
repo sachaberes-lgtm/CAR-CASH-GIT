@@ -21,3 +21,21 @@ Garde iPhone (`outils/banc-perf/garde-iphone.cjs` sur la boîte noire du 13 Pro)
 | 9 (vitesse-fluide 93352b5) | 6 s | 4 | 2 315 ms (`photoTour` 2 291 ms sous le serpent) ; 1 228 ms (loop 677 + piste 666) ; 780 ; 715 (9 × `texImage2D`) | 1,2 s et 2,3 s au garage |
 | 10 (serpent-fluide 6595747, lancements du 7/11 13:38:27, 13:39:17 + un 3e) | 3,7 s | 3-4 | 999 ms (image boucle 442) ; 1 055/990 ms au tout début (fil libre, contexte) ; 650 (piste 86 + loop 95) ; 255 (`photoTour` 237) | non relevés |
 Lecture : le build 10 divise la durée du serpent par 1,6 et le pire trou par 2,3 ; reste le trou initial (~1 s, fil libre) et `photoTour` (photos du garage sous le serpent). Seuils de la garde iPhone non encore tenus (serpent : 0 trou > 120 ms hors initial).
+
+## Batterie Mac AVANT (origin/main c9d9895d) / APRÈS (perf3-main 43269c45), 7/11 16:17-17:11 — machine CHARGÉE (40-200) : chiffres de temps et compteurs bruités
+| Banc | Avant | Après | Gain / lecture |
+|---|---|---|---|
+| Démarrage à froid p0 ×4, médiane de 3 | menu 21,2 s · film lancé 10,5 s · script 15,3 s · tâches > 50 ms 15,0 s · tas 67 Mo · gel PRESENTS 149 ms | menu 18,1 s · film 6,3 s · script 12,9 s · tâches > 50 ms 11,3 s · tas 50 Mo · gel PRESENTS 400 ms | menu −15 %, film −40 %, script −16 %, tas −25 % ; le gel sous PRESENTS ×2,7 (à surveiller) |
+| Menus (P2/P5, accueil p2 tel) | toile 585×1266, DPR 1,5, ombre 1024, 740 k px | toile 487×1055, DPR 1,25, ombre 768, 514 k px | −31 % de pixels, pire image 17 → 33 ms (bruit) ; gpu non chronométré |
+| Mémoire, 5 parties enchaînées | tex 107 → 138, géo 546/906/597/473/410, progs 210 → 212, tas 269-345 Mo | tex 133 → 138, géo 544/404/601/598/460, progs 209 → 211, tas 255-322 Mo | équivalent ; les géométries varient de ±50 % d'une partie à l'autre dans les DEUX arbres (critère ±5 % non tenu ni avant ni après) |
+| garde-perf p2 (2 passes moyennées, 11 maps) | — | — | NON CONCLUANT : triangles +16 %, appels +18 % en moyenne, mais bruit ±30 % (position de lecture sous charge) ; la passe calme du matin (3 maps) donnait nuages −24 %, ville −19 %, jade ≈ 0 |
+| garde-perf p0 | — | — | incomplet (la 1re passe « avant » n'a pas écrit son JSON) |
+| jouer.py (JOUER/REJOUER), p2tel/p2ordi (captures), serpent-film avant | — | — | PLANTÉS (JSONDecodeError / connexion refusée / erreur d'outil) : non faits ; `?tel=0` identique au pixel : NON vérifié |
+| serpent-film après (Mac ×4) | — | passe 1 : 6 trous > 120 ms (pire 444) ; passe 2 : 3 trous dont 6 069 ms | charge machine : non interprétable |
+
+## Mesures réelles 13 Pro, suite (7/11)
+- Build 13 (perf3-main complet + banc) : un 1er cycle a subi l'ÉCRAN ÉTEINT à 2 min 13 (gels de 14 et 16,5 s = suspension) : **à refaire** ; p50 à 8 min = 54-83 ms ; géométries 1034 → 655 → 857 → 895.
+- Cycle PROPRE du build 13 (écran allumé, 16:32-16:49, palier 16 atteint) : serpent 3 572 / 3 006 / 833 / 9 058 ms ; 15 gels > 1 s EN COURSE (2,1 · 3 · 9,1 · 8,8 · 3,8 · 2 · 2,4 · 1,7 · 1,4 · 1,3 · 2,2 · 4,1 · 2,9 · 2,5 · 1,2 s) ; p50 à 8 min 45-83 ms ; géométries 687 → 633 → 835 ; 1 plantage/rechargement. NETTEMENT PIRE que le build 6 (main seul : 0 gel > 1 s en course, serpent ≤ 1,3 s) et que le build 12 (serpent-fluide seule : ≤ 1 340 ms). Hypothèses : n°1 bascules d'imgRegle du gouverneur (réallocation setSize à chaud) ; n°2 P5 (HC 30 i/s, photos) ; n°3 écritures localStorage de 30 Ko. Bissection Mac et `bascules.py` en cours. **Aucune fusion dans main tant que ce n'est pas réglé.**
+
+## Interrupteurs pour tout remettre comme avant
+`?gouv=max` (gouverneur à paliers + régime chaud) · `?mob_raise=0` (pas de remontée) · `?mob_g30=0` (pas de 30 calé dès le départ) · `?img=max` (image de P2) · `?menu=max` (menus de P5) · `?tranches=0` / `?textures=0` / `?chargement=0` (serpent) · `?mob_gouv=0` (gouverneur éteint) · `?lierintro`/`?prebati=0` (A1/B1 de la vague 1, dans main). `--jeu-fichier` : option de build seulement.
