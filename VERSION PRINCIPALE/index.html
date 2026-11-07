@@ -50716,7 +50716,7 @@ const M2R={lv:'',sonne:false,ctl:0,vie:0,parf:0,lac:0,tourV:[],run:[],t:0,deb:fa
    Le tableau lisible (et le calcul des parties) : `node outils/pass-table-md.cjs` -> passation/PASS-MISSIONS-TABLE.md. Console (case 3) : dbgPass().
    RÈGLES DE LA TABLE (Léo, points 6 à 9) : chaque mission demande une VRAIE action (aucune ne se remplit toute seule : « RÉUSSIS 10 MISSIONS » et le doublon `maps2` sont SORTIS,
    voir PASS_SORTIES) ; les collections comptent hors cadeaux (variante `T` de la mesure) ; jamais deux caisses proches ; une petite peinture de base tôt. */
-const PASS_ON=!/[?&]pass=0\b/.test(location.search);
+const PASS_ON=/[?&]pass=1\b/.test(location.search); /* (2026-11-07, Sacha : « retour à une liste plus classique ») la liste d'avant par défaut ; LE VISEUR de Léo reste derrière ?pass=1 */
 /* ---- LES MESURES DE LA PARTIE : LE SEUL ENDROIT À CORRIGER (Léo ne connaît pas la durée d'une partie ; ces chiffres sont DÉDUITS du dépôt) ----
    Sources : passation/ECONOMIE.md §1-2 (mesure au banc : 15-75 s tenues, 267 -> 2 456 $ la partie, « un humain moyen ~500-1 000 $ par partie au début »), outils/eco-debut-modele.cjs
    (profils de GAMEPLAY : moyen 45-90 s, la moitié des pièces ; fort 120-240 s, 75 % des pièces, frénésie), journal « LES MISSIONS v2 » (1 000 km/h en ~50 s, 55 d'aura/s au pilote auto).
