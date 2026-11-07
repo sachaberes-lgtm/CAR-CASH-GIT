@@ -96,7 +96,7 @@ function fmtGta(v){
    un seul rAF pour toutes les plaques, aucun objet alloué par image). Les grands montants tiennent : quand le NOMBRE de signes change, la police
    descend par crans jusqu'à ce que la plaque tienne dans son cadre et dans l'écran (soldeFit, une mesure par changement de longueur, pas par image).
    Les messages d'événement gardent leurs unités compactes (fmtC) : seul le SOLDE est précis. */
-function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');} /* (2026-10-18, débogage) TRONQUÉ comme soldeEcrit : 6,6 $ s'écrivait « $ 7 » sur l'écran de fin et « $ 6 » au garage */
+function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0,]/g,' ');} /* (2026-11-07, Léo) l'argent s'écrit « 650 000 » dans toutes les langues */ /* (2026-10-18, débogage) TRONQUÉ comme soldeEcrit : 6,6 $ s'écrivait « $ 7 » sur l'écran de fin et « $ 6 » au garage */
 const SOLDE={l:[],on:false,D:700};
 /* (2026-10-31, Léo : « le jeu lag encore un peu sur mobile ») LE BON CRAN DU PREMIER COUP. La police descendait d'un cran (1,5 px) par mesure, jusqu'à
    dix mesures d'affilée, et chaque mesure après une écriture force la mise en page de TOUTE la page : MESURÉ au portail (banc iPhone ×4), 35 à 43 ms
@@ -159,7 +159,7 @@ const CASH={el:null,v:null,d:null,disp:0,last:0,delta:0,dT:0,tv:'',td:'',k:false
 function cashTxt(v){v=Math.max(0,v);
   const e=Math.floor(v+1e-6);
   if(v<10&&v-e>.004){const t=v.toFixed(2);return LANG==='fr'?t.replace('.',','):t;} // la mise de départ (1,61) garde ses centimes
-  return e.toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
+  return e.toLocaleString(LOC()).replace(/[\u202f\u00a0,]/g,' ');}
 function monnaiePop(){const i=CASH.el&&CASH.el.querySelector('.mOr');if(!i||i.classList.contains('pop'))return;i.classList.add('pop');setTimeout(function(){i.classList.remove('pop');},330);} /* (2026-11-07, Léo : « rends-le encore plus juicy ») le symbole saute et brille à chaque gain */
 /* ===== L'ARGENT QUI ÉVOLUE (2026-11-07, Léo : « plus tu en as, plus ça peut évoluer ») =====
    Le métal de l'argent suit la fortune (le compte, plus la partie en cours) : CENTIME → EURO → OR → ÉMERAUDE → RUBIS → LÉGENDAIRE, aux crans

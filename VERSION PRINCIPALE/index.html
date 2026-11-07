@@ -10779,6 +10779,23 @@ html #gCompteur b::before{content:'';display:inline-block;vertical-align:-.28em;
   background:var(--mImg) center/contain no-repeat;-webkit-background-clip:border-box;background-clip:border-box}
 html body #mob #mDead.m5 .mCashL>b#mCash>.m6X{font-family:'CC Vide','Press Start 2P',monospace!important;display:inline-block;vertical-align:-.12em;width:1.25em;height:1.1em;margin:0 .08em;
   background:var(--mImg) center/contain no-repeat!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;animation:none!important}
+/* DES CHIFFRES D'UNE SEULE COULEUR (2026-11-07, Léo : « les numéros doivent être unicolores, adaptés à leur métal ou pierre précieuse,
+   flashy mais solides : euro argent, centime bronze… ») : plus de dégradé en bandes, la couleur PLEINE du palier ; le relief (corps
+   extrudé, contour d'encre) et l'aura restent. Le légendaire passe d'une couleur pleine à l'autre (RGB). Cette règle vient en dernier et gagne. */
+html{--mC:#ec9440}
+html[data-metal="euro"]{--mC:#eef2fa}
+html[data-metal="or"]{--mC:#ffcf1f}
+html[data-metal="emeraude"]{--mC:#22f07f}
+html[data-metal="rubis"]{--mC:#ff2a4d}
+html[data-metal="legendaire"]{--mC:#ff5adf}
+html[data-metal] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal] body #mob #mDead.m5 .mCashL>b#mCash::before{
+  background:none!important;color:var(--mC)!important;-webkit-text-fill-color:var(--mC)!important;animation:none}
+html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash::before{animation:mRgbTxt 2.4s linear infinite!important}
+html[data-metal="legendaire"] #gCompteur b{animation:mRgbTxt 2.4s linear infinite,mFlotte 3.6s ease-in-out infinite!important}
+html[data-metal] #gCompteur b{animation:mFlotte 3.6s ease-in-out infinite}
+@keyframes mRgbTxt{0%,100%{color:#ff5adf;-webkit-text-fill-color:#ff5adf}17%{color:#ff4d4d;-webkit-text-fill-color:#ff4d4d}33%{color:#ffc02e;-webkit-text-fill-color:#ffc02e}50%{color:#3dff8a;-webkit-text-fill-color:#3dff8a}67%{color:#33d6ff;-webkit-text-fill-color:#33d6ff}83%{color:#8f6bff;-webkit-text-fill-color:#8f6bff}}
+html #moneyTxt .cts{-webkit-text-fill-color:var(--mC);color:var(--mC)}
+@media (prefers-reduced-motion:reduce){html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){animation:none!important}}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
@@ -31350,7 +31367,7 @@ function fmtGta(v){
    un seul rAF pour toutes les plaques, aucun objet alloué par image). Les grands montants tiennent : quand le NOMBRE de signes change, la police
    descend par crans jusqu'à ce que la plaque tienne dans son cadre et dans l'écran (soldeFit, une mesure par changement de longueur, pas par image).
    Les messages d'événement gardent leurs unités compactes (fmtC) : seul le SOLDE est précis. */
-function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');} /* (2026-10-18, débogage) TRONQUÉ comme soldeEcrit : 6,6 $ s'écrivait « $ 7 » sur l'écran de fin et « $ 6 » au garage */
+function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0,]/g,' ');} /* (2026-11-07, Léo) l'argent s'écrit « 650 000 » dans toutes les langues */ /* (2026-10-18, débogage) TRONQUÉ comme soldeEcrit : 6,6 $ s'écrivait « $ 7 » sur l'écran de fin et « $ 6 » au garage */
 const SOLDE={l:[],on:false,D:700};
 /* (2026-10-31, Léo : « le jeu lag encore un peu sur mobile ») LE BON CRAN DU PREMIER COUP. La police descendait d'un cran (1,5 px) par mesure, jusqu'à
    dix mesures d'affilée, et chaque mesure après une écriture force la mise en page de TOUTE la page : MESURÉ au portail (banc iPhone ×4), 35 à 43 ms
@@ -31413,7 +31430,7 @@ const CASH={el:null,v:null,d:null,disp:0,last:0,delta:0,dT:0,tv:'',td:'',k:false
 function cashTxt(v){v=Math.max(0,v);
   const e=Math.floor(v+1e-6);
   if(v<10&&v-e>.004){const t=v.toFixed(2);return LANG==='fr'?t.replace('.',','):t;} // la mise de départ (1,61) garde ses centimes
-  return e.toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
+  return e.toLocaleString(LOC()).replace(/[\u202f\u00a0,]/g,' ');}
 function monnaiePop(){const i=CASH.el&&CASH.el.querySelector('.mOr');if(!i||i.classList.contains('pop'))return;i.classList.add('pop');setTimeout(function(){i.classList.remove('pop');},330);} /* (2026-11-07, Léo : « rends-le encore plus juicy ») le symbole saute et brille à chaque gain */
 /* ===== L'ARGENT QUI ÉVOLUE (2026-11-07, Léo : « plus tu en as, plus ça peut évoluer ») =====
    Le métal de l'argent suit la fortune (le compte, plus la partie en cours) : CENTIME → EURO → OR → ÉMERAUDE → RUBIS → LÉGENDAIRE, aux crans
