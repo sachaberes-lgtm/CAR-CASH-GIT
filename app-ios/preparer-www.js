@@ -61,7 +61,7 @@ for(const n of GARDE){const a=path.join(SRC,n);if(!fs.existsSync(a))meurt('manqu
 // (2026-10-14) LES SCRIPTS QUE LA PAGE CHARGE ELLE-MÊME suivent tout seuls : un nouveau fichier du jeu (figures.js, Léo, cette nuit) manquait
 // à l'app sans bruit (404, les FIGURES absentes). Tout <script src="…"> local de index.html est copié ; s'il n'existe pas, la fabrication s'arrête.
 for(const m of fs.readFileSync(path.join(SRC,'index.html'),'utf8').matchAll(/<script[^>]*\ssrc=["']([^"'?#]+)/g)){const n=m[1];
-  if(/^[a-z]+:|^\/\//i.test(n)||n==='natif.js')continue;const a=path.join(SRC,n);if(!fs.existsSync(a))meurt('la page charge '+n+', absent de VERSION PRINCIPALE');
+  if(/^[a-z]+:|^\/\//i.test(n)||n==='natif.js'||n==='achats.js')continue;const a=path.join(SRC,n);if(!fs.existsSync(a))meurt('la page charge '+n+', absent de VERSION PRINCIPALE');
   if(!fs.existsSync(path.join(WWW,n))){fs.mkdirSync(path.dirname(path.join(WWW,n)),{recursive:true});copie(a,path.join(WWW,n));console.log('  + '+n+' (chargé par la page)');}}
 /* LES CHARGEMENTS DYNAMIQUES (2026-11-05, Opus : jury IOS-07) : un Worker (new Worker('…')), un fetch('…') ou un script('…') à chemin local, dans la page
    ou dans un .js de assets/ (les adresses relatives se lisent depuis la page) — vu le 5/11 : musique-moteur.json et musique-paliers.js (la musique de
@@ -76,6 +76,10 @@ fs.copyFileSync(path.join(ICI,'ressources','icon.svg'),path.join(WWW,'icon.svg')
 {let n=fs.readFileSync(path.join(ICI,'natif','natif.js'),'utf8');const k=n.split("'"+MAJ_PROD+"'").length-1;
   if(k!==1){console.error('✗ preparer-www : natif.js doit citer l\'adresse des mises à jour une fois exactement ('+k+')');process.exit(1);}
   fs.writeFileSync(path.join(WWW,'natif.js'),n.split("'"+MAJ_PROD+"'").join("'"+MAJ+"'"));nFic++;}
+/* (2026-11-06) LE PONT DES ACHATS : achats.js (window.ccAchat, inerte hors de l'app et sans le plugin natif Achats) est copié tel quel et chargé
+   juste après natif.js. Il n'est pas dans VERSION PRINCIPALE : c'est le fabricant qui le pose, comme natif.js. */
+if(!fs.existsSync(path.join(ICI,'natif','achats.js')))meurt('manque natif/achats.js');
+fs.copyFileSync(path.join(ICI,'natif','achats.js'),path.join(WWW,'achats.js'));nFic++;
 
 // ---- les retouches de la page ----
 let h=fs.readFileSync(path.join(WWW,'index.html'),'utf8');
@@ -83,7 +87,7 @@ const une=(de,vers,quoi)=>{const n=h.split(de).length-1;if(n!==1)meurt(quoi+' : 
 // la même, pour un texte qui doit changer à n endroits À LA FOIS (un texte de caisse = sa phrase dans CARS + sa clé dans la table de traduction)
 /* (2026-11-05, Sonnet : jour 0 du jury, ECO-01) `souple` : le compte est un MINIMUM — un commentaire qui cite le nom (garage-menu-inventaire.js l.195) ajoute une occurrence sans casser la coupe ; moins que le minimum = le nom a bougé, on s'arrête. */
 const toutes=(de,vers,n,quoi,souple)=>{const k=h.split(de).length-1;if(souple?k<n:k!==n)meurt(quoi+' : « '+de+' » trouvé '+k+' fois ('+n+(souple?' au moins':'')+' attendu)');h=h.split(de).join(vers);};
-une('<meta charset="UTF-8">','<meta charset="UTF-8">\n<script src="natif.js"></script>','natif.js');
+une('<meta charset="UTF-8">','<meta charset="UTF-8">\n<script src="natif.js"></script>\n<script src="achats.js"></script>','natif.js');
 let ver='ios';try{ver=execSync('git log -1 --format=%h -- "VERSION PRINCIPALE"',{cwd:path.join(SRC,'..'),stdio:['ignore','pipe','ignore']}).toString().trim()||ver;}catch(e){}
 une("const CC_BUILD='__CC_BUILD__';","const CC_BUILD='"+ver+"';",'version');
 for(const u of['https://game-cdn.poki.com/scripts/v2/poki-sdk.js','https://sdk.crazygames.com/crazygames-sdk-v3.js','https://bridge.playgama.com/v2/stable/playgama-bridge.js'])
@@ -237,4 +241,4 @@ const emp=crypto.createHash('sha256');for(const p of liste){emp.update(path.rela
 const version=ver+'-'+emp.digest('hex').slice(0,10);
 fs.writeFileSync(path.join(WWW,'maj.json'),JSON.stringify({version,jeu:ver,date:new Date().toISOString()})+'\n');nFic++;
 console.log((ESSAI?'✓ ESSAI réussi (www/ non touché) : ':'✓ www/ prêt : ')+nFic+' fichiers, '+(nOct/1048576).toFixed(1)+' Mo · jeu '+ver+' · version '+version+
-  ' · natif.js en tête · 0 adresse réseau hors la lecture des mises à jour ('+MAJ+')');
+  ' · natif.js en tête, achats.js juste après · 0 adresse réseau hors la lecture des mises à jour ('+MAJ+')');
