@@ -125,7 +125,7 @@ const I18N={
  'ELDORADO':'ELDORADO','LE CAÏD':'THE BOSS','SA MAJESTÉ':'HER MAJESTY','LÉONIE':'LÉONIE','POSTER 84':'POSTER 84',
  'Rose bonbon, ailerons de requin et une banquette pour trois avocats.':'Candy pink, shark fins, and a bench seat for three lawyers.',
  'Trois tonnes de cube. Personne ne t\'a jamais demandé de te pousser.':'Three tons of cube. Nobody has ever asked you to move over.',
- 'Rouge course, aileron plateau. La caisse de rêve : 1,5 million, et chaque euro se voit.':'Racing red, a wing like a tray. The dream car: 1.5 million, and every euro shows.',
+ 'Rouge course, aileron plateau. La caisse de rêve, et chaque euro se voit.':'Racing red, a wing like a tray. The dream car, and every euro shows.',
  'Elle était punaisée au mur de ta chambre. Maintenant, c\'est toi qui la conduis.':'She was pinned to your bedroom wall. Now you\'re the one driving her.',
  'KELLY CHERRY':'KELLY CHERRY','Elle ouvre les yeux à chaque coup de nitro. Une tonne, cent quinze chevaux, et le plus grand sourire du parking.':'It opens its eyes at every nitro hit. One ton, 115 horsepower, and the biggest smile in the parking lot.', // (JAPONAISES) 83 — la MX-5 NA
  'LA HONTE':'THE DISGRACE',
@@ -408,3 +408,4 @@ Object.assign(I18N,{"LES PIECES VIENNENT A TOI":"COINS COME TO YOU","AURA ×2, �
   "NOUVEAU":"NEW"}); /* (la pastille NEW de la boutique, le bandeau « chaîne perdue » de la mort précoce) */
 Object.assign(I18N,{"Final spin":"Final spin","Levier":"Lever","Achat":"Buy","Aura":"Aura","Vitesse de départ":"Starting speed","Plaque":"License plate","Cadeau":"Gift",
   "Volume du son":"Sound volume","Volume de la musique":"Music volume","Haut":"Up","Bas":"Down","Figures":"Tricks"}); /* les étiquettes VoiceOver (applyLangDOM les passe par I18N) */
+Object.assign(I18N,{"LA CAISSE-NUAGE":"THE CLOUD CAR","LE LINGOT":"THE GOLD BAR"}); /* (2026-11-07, chasse CAR-N03) deux caisses retirées : leur nom dans le toast de remboursement */

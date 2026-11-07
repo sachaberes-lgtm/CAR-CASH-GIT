@@ -119,7 +119,7 @@ function bqSon(dt,on,force){ // force : la leçon (musique.js, leconAmbiance) jo
       a.connect(gv);b.connect(gv);a.start();b.start();V.push({a:a,b:b,g:gv});}
     const air=AC.createBufferSource();air.buffer=noiseBuf(2.7);air.loop=true;
     const ah=AC.createBiquadFilter();ah.type='highpass';ah.frequency.value=4200;const al=AC.createBiquadFilter();al.type='lowpass';al.frequency.value=9000;
-    const ag=AC.createGain();ag.gain.value=.0028;air.connect(ah); // l'air de la salle — (2026-10-14, Léo : « alléger un tout petit peu le bruit constant ») .004 → .0028 (−3 dB)ah.connect(al);al.connect(ag);ag.connect(g);air.start();
+    const ag=AC.createGain();ag.gain.value=.0028;air.connect(ah);ah.connect(al);al.connect(ag);ag.connect(g);air.start(); /* l'air de la salle — (2026-10-14, Léo : « alléger un tout petit peu le bruit constant ») .004 → .0028 (−3 dB) ; (2026-11-07, chasse SON2-N05) le branchement était tombé dans le commentaire : l'air ne jouait pas, et air.stop() jetait à la sortie en laissant l'écho branché sur MASTER à chaque visite */
     const ec=AC.createDelay(1);ec.delayTime.value=.38;const eg=AC.createGain();eg.gain.value=.35;const pg=AC.createGain();pg.gain.value=1;
     pg.connect(g);pg.connect(ec);ec.connect(eg);eg.connect(ec);eg.connect(g);
     n=BQSON.n={g:g,lp:lp,V:V,air:air,pg:pg,ec:ec,eg:eg,t:0,tA:0};BQSON.tP=1.5;
@@ -138,7 +138,7 @@ function bqSon(dt,on,force){ // force : la leçon (musique.js, leconAmbiance) jo
 }
 function bqSonCoupe(d){const n=BQSON.n;if(!n||!AC)return;
   try{n.g.gain.cancelScheduledValues(AC.currentTime);n.g.gain.setTargetAtTime(0,AC.currentTime,d/3);n.g.gain._s9=0;}catch(e){}
-  clearTimeout(BQSON.off);BQSON.off=setTimeout(function(){if(BQSON.n!==n)return;try{for(const v of n.V){v.a.stop();v.b.stop();}n.air.stop();n.g.disconnect();n.eg.disconnect();}catch(e){}BQSON.n=null;BQSON.off=0;},d*1000+500);}
+  clearTimeout(BQSON.off);BQSON.off=setTimeout(function(){if(BQSON.n!==n)return;for(const v of n.V){try{v.a.stop();v.b.stop();}catch(e){}}try{n.air.stop();}catch(e){}try{n.g.disconnect();}catch(e){}try{n.eg.disconnect();}catch(e){} /* (2026-11-07, chasse SON2-N05) chaque arrêt dans son propre filet : un stop qui jette ne saute plus les débranchements */BQSON.n=null;BQSON.off=0;},d*1000+500);}
 window.dbgBqSon=function(){return {on:!!BQSON.n,gain:BQSON.n?+BQSON.n.g.gain.value.toFixed(4):0,acc:BQSON.acc,veut:!!(typeof GBQ!=='undefined'&&GBQ.veut)};}; // (dev)
 function garBqAmbiance(on){garLibre._r=null; // (v3) au BASCULEMENT (pic de la lueur) : la lumière, et les voiles d'encre du garage retirés (#garage.bqBlanc)
   if(gEl)gEl.classList.toggle('bqBlanc',on);try{bioApply(on?bqBio():BIOMES.atelier);}catch(e){}}
@@ -327,7 +327,7 @@ function garBqUI(){let ui=document.getElementById('gBq');if(ui)return ui;
     bt.addEventListener('click',function(e){e.stopPropagation();if(!garageOn||GAR.go||ecranWipe._on||!GBQ.on)return;uiPop(bt);bqAction();});}}
   const pan=ui.querySelector('#gBqPan'),ok=function(){return garageOn&&!GAR.go&&!ecranWipe._on&&GBQ.on;};
   ui.querySelector('#gBqCats').addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('button');if(!b)return;e.stopPropagation();if(!ok())return;
-    uiPop(b);uiClic('onglet');hap(6);const c=b.getAttribute('data-c');if(c!==GBQ.cat||GBQ.ong!=='cat'){if(c==='figure'&&GBQ.cat!=='figure')fsRaz();GBQ.cat=c;GBQ.ong='cat';GBQ.rk='';bqTourne(c);}});
+    uiPop(b);uiClic('onglet');hap(6);const c=b.getAttribute('data-c');if(c!==GBQ.cat||GBQ.ong!=='cat'){if(c==='figure'&&GBQ.cat!=='figure')fsRaz();GBQ.cat=c;GBQ.ong='cat';GBQ.rk='';{const t9=c==='achat'?'voiture':c;if(SHOP_CATS.indexOf(t9)>=0&&SHOP.tab!==t9)shopTab(t9);} /* (2026-11-07, chasse TEL-N01) la vedette suit le rayon, comme quand on touche une vitrine (bqEssaie) */bqTourne(c);}});
   const essaie=function(sel){return function(e){const t=e.target.closest&&e.target.closest(sel);if(!t)return;e.stopPropagation();if(!ok())return;uiPop(t);GSON9=false;pan.classList.remove('menu');
     {const pk=e.target.closest&&e.target.closest('[data-pick]');if(pk&&String(t.getAttribute('data-k')).indexOf('figure:')===0){const dp=pk.getAttribute('data-pick');FSEL.pick[t.getAttribute('data-k').slice(7)]=+dp;t.setAttribute('data-dir',dp);GBQ.rk='';}} /* (2026-11-05) la pastille d'un AUTRE geste (figure à deux sens) : la carte passe dans ce sens */{const dd=t.getAttribute('data-dir');GBQ.figDir=dd!=null?+dd:null;}bqEssaie(t.getAttribute('data-k'));if(GSON9)hap(8);else uiClic('nav');/* (2026-10-14, session SON) essayer un objet = la bascule / le geste de l'atelier / la figure : le tick nav ne s'y ajoute plus */};};
   ui.querySelector('.bqRail').addEventListener('click',essaie('.bqK'));
@@ -342,7 +342,7 @@ function bqAimant(rail){clearTimeout(GBQ.aimT);const K=rail.querySelectorAll('.b
   const d=K.length?(parseFloat(K[j].style.getPropertyValue('--i'))||j):0; /* bqK : délai .25 s + --i × 45 ms, puis .38 s de glissé */
   GBQ.aimT=setTimeout(function(){rail.classList.remove('entre');},250+d*45+380+80);}
 function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carGroup.userData.shape])FSTU.uHdr.value=GBQ.on?BQ_HDR:1;}catch(e){} /* (2026-11-05) les reflets qui éclatent, adoucis dans la salle blanche (voir BQ_HDR) */const ui=garBqUI(),pan=document.getElementById('gBqPan'),voulu=GBQ.on&&gModeM()==='shop'&&!GMODE.paye;
-  if(voulu!==GBQ.panOn){GBQ.panOn=voulu;ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
+  if(voulu!==GBQ.panOn){GBQ.panOn=voulu;if(voulu){const t9=SHOP.tab;if(GBQ.cat!==t9&&BQ_CATS.some(function(c){return c[0]===t9;})){GBQ.cat=t9;GBQ.ong='cat';}} /* (2026-11-07, chasse TEL-N01) FIGURES au garage puis BOUTIQUE : le rayon VOITURES s'allumait avec une figure en vedette et « ÉQUIPER — REMPLACE TONNEAU » */ui.classList.toggle('pan',voulu);pan.classList.remove('menu');garLibre._r=null;GBQ.lay='';GBQ.rk='';GBQ.uk='';GBQ.vu=-1;if(!voulu)GBQ.zone=null;}
   soldeEcrit(document.getElementById('gBqArg'),bank()); /* (2026-10-14) le SOLDE PRÉCIS */
   if((!voulu||SHOP.tab!=='voiture')&&GBQ.sec!=null)GBQ.sec=null; // (missions v2) hors du rayon des caisses, plus de secrète regardée
   if(!voulu)return;

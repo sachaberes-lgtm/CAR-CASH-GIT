@@ -203,7 +203,7 @@ function m2Recupere(id,row){
    Une SECRÈTE à caisse garde sa révélation (le moment fort, jamais sautée par la série). `?recup=ancien` = l'ancien geste. */
 const M2VITE=!/[?&]recup=ancien\b/.test(location.search);
 const M2V={n:0,t:0,cash:0,rend:0,cb:0,g:[0,2,4,7,9,12,14,16,19,21,24]};
-Object.assign(I18N,{'SÉRIE':'COMBO'});
+/* (2026-11-07, chasse) la clé SÉRIE garde STREAK (mute-cadeau.js) : COMBO écrasait la série de jours de l'écran de fin */
 function m2VitePret(row){ /* la ligne verte qui suit (sinon la première) : jamais une secrète à révélation, qui se touche exprès */
   const sec=m2RevFile(),L=[].slice.call(document.querySelectorAll('#gmListe .mcL.pret:not(.vite)')).filter(function(e){return sec.indexOf(e.getAttribute('data-m2'))<0;});
   if(!L.length)return null;

@@ -215,6 +215,12 @@ let BLOOM_RES=1; // (2026-09-27, passe perf iPhone) part de la résolution du bl
    lit désormais `VP`, tenu à jour ici (écouteur posé AVANT tous les autres : ils le trouvent déjà à jour). */
 const VP={w:innerWidth,h:innerHeight};
 addEventListener('resize',()=>{VP.w=innerWidth;VP.h=innerHeight;});
+/* (2026-11-07, chasse PC-N02) LA DENSITÉ QUI CHANGE APRÈS LE CHARGEMENT (ordi) : la page-cadre dispatche un resize dans l'iframe quand son zoom change
+   (tete.html, 2026-11-06), mais DPR_CAP n'était lu qu'une fois : fenêtre agrandie, F11 ou autre écran = 3D étirée et floue jusqu'au rechargement. Le téléphone
+   garde son plafond (ALLEGE / TEL_NATIF). Anti-rebond de 150 ms : qlReprise réalloue la toile et les cibles. */
+let DPR_VU=devicePixelRatio,DPR_VU_T=0;
+addEventListener('resize',function(){if(ALLEGE||TEL_NATIF||Math.abs(devicePixelRatio-DPR_VU)<.01)return;clearTimeout(DPR_VU_T);
+  DPR_VU_T=setTimeout(function(){DPR_VU=devicePixelRatio;try{DPR_CAP=dprPlafond(!!(typeof SAVE!=='undefined'&&SAVE.d&&SAVE.d.q==='fast'));if(typeof VHD!=='undefined'&&VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.murT=0;}qlReprise();}catch(e){}},150);});
 addEventListener('resize',()=>{if(innerWidth<1||innerHeight<1)return; /* (2026-11-05, DEBUG-TOTAL) une fenêtre à 0 px (iframe du cadre cachée, rotation de WebView) : aspect infini, matrice NaN et toiles à 0 jusqu'au resize suivant — on attend une vraie taille */camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();fovFit();renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth,innerHeight);slCv.width=innerWidth;slCv.height=innerHeight;if(juiceCv){juiceCv.width=innerWidth;juiceCv.height=innerHeight;}});
 const hemi=new THREE.HemisphereLight(0xba86b6,0x18162e,0.40);scene.add(hemi); // ambiance VICE CITY NUIT (assombrie) : ciel rose-mauve baissé, sol indigo — la pénombre gagne, les lumières de la caisse vivent (nommée : les BIOMES la pilotent)
 const sun=new THREE.DirectionalLight(0xff6a3c,1.45);sun.position.copy(SUN_DIR).multiplyScalar(3800);scene.add(sun); // BRAISE ROUGE-CORAIL : la lumière rasante peint le bitume en rouge sombre — golden hour devenue red hour
