@@ -18,17 +18,21 @@
 /* 2. LES FAMILLES : un intertitre d'une ligne (logo de la rareté, son nom, ce qu'elle est et son prix, « à toi / total ») */
 #gBqPan .pNs{margin-top:8px;scroll-margin-top:52px}
 #gBqPan .pNs:first-of-type{margin-top:2px}
-#gBqPan .pNh{display:flex;align-items:center;gap:7px;margin:0 0 8px;padding:0 1px;font-weight:400;min-width:0}
-#gBqPan .pNh .bqRl{flex:none;display:grid;place-items:center;width:18px;height:18px;border-radius:5px;background:var(--bqInk);box-shadow:0 0 0 1px var(--rc),0 0 8px -2px var(--rc)}
+/* (2026-11-07, passe finale) l'intertitre prend le BANDEAU des intertitres de rareté des voitures (bqRarS : sa teinte, le liseré, le logo
+   dans sa pastille) — un seul dessin d'intertitre dans toute la boutique ; le prix et le compte sont dans la barre, la légende de l'anneau ici */
+#gBqPan .pNh{display:flex;align-items:center;gap:8px;margin:0 0 6px;padding:5px 9px 5px 5px;border-radius:8px;font-weight:400;min-width:0;box-sizing:border-box;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 22%,#fff),color-mix(in srgb,var(--rc) 4%,#fff) 78%);box-shadow:inset 3px 0 0 var(--rc),0 1px 0 rgba(20,23,28,.06)}
+#gBqPan .pNh .bqRl{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:6px;background:var(--bqInk);box-shadow:0 0 0 1px var(--rc),0 0 8px -2px var(--rc)}
 #gBqPan .pNh .bqRl .pxi{--pxs:1;width:10px;height:10px;margin:0;color:var(--rc)}
-#gBqPan .pNh b{flex:none;font-weight:400;font-size:9px;letter-spacing:1.5px}
-#gBqPan .pNh i{flex:none;font-style:normal;font-size:7px;letter-spacing:.5px;color:var(--bqGris);white-space:nowrap}
+#gBqPan .pNh b{flex:none;font-weight:400;font-size:9px;letter-spacing:2px}
+#gBqPan .pNh i{flex:none;font-style:normal;font-size:7px;letter-spacing:1px;color:var(--bqGris);white-space:nowrap}
 #gBqPan .pNh s{flex:1;min-width:6px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--rc),transparent);text-decoration:none}
-#gBqPan .pNh em{flex:none;font-style:normal;font-size:7px;color:var(--bqGris)}
-#gBqPan .pNh em u{text-decoration:none;color:var(--bqInk)}
+#gBqPan .pNh .pNlg{flex:none;display:flex;align-items:center;gap:5px;font-style:normal;font-size:7px;letter-spacing:.5px;color:#0b7183;white-space:nowrap}
+#gBqPan .pNh .pNlg q{flex:none;width:9px;height:9px;border-radius:3px;box-sizing:border-box;border:2px solid #14b5cc;quotes:none}
+#gBqPan .pNh .pNlg q::before,#gBqPan .pNh .pNlg q::after{content:none}
 #gBqPan .pNs[data-pf="legendaire"] .pNh .bqRl{animation:pLueur 2.4s ease-in-out infinite alternate}
 /* 3. LA GRILLE : des pastilles carrées, autant que la largeur en tient à ≥ 48 px */
-#gBqPan .pNg{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px;padding:3px}
+#gBqPan .pNg{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px;padding:4px 5px}
 #gBqPan.cote .pNg{grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:7px}
 /* 4. LA PASTILLE : la tôle vernie (sa finition, son animation), un liseré à la couleur de sa rareté */
 #gBqPan .pN{position:relative;display:block;aspect-ratio:1;min-width:0;min-height:44px;padding:0;border:0;border-radius:12px;background:#fff;cursor:pointer;
@@ -55,9 +59,12 @@
 #gBqPan .pN .pNb{position:absolute;top:-4px;right:-4px;z-index:2;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--bqInk);box-shadow:0 0 0 2px #fff;font-weight:400}
 #gBqPan .pN .pNb .pxi{--pxs:1;width:9px;height:9px;margin:0;color:#fff}
 #gBqPan .pN.e-eq .pNb{background:var(--bqAcc);width:20px;height:20px}
-#gBqPan .pN.e-pc .pNb{background:#ffd34a}
-#gBqPan .pN.e-pc .pNb .pxi{color:var(--bqInk)}
-#gBqPan .pN.e-mis .pNb{background:var(--neoM)}
+/* (2026-11-07, passe finale) les signes parlent la langue des autres rayons (boutique-ensemble.css 7) : À TOI = la coche BLEUE, ÉQUIPÉE = la
+   pastille bleue pleine, le prix en $ = l'encre et sa pièce d'or, MISSION = le gris et le cadenas (avant : coche noire, pièce jaune, drapeau rose) */
+#gBqPan .pN.e-a .pNb{background:#fff;box-shadow:0 0 0 2px #fff,inset 0 0 0 1.5px var(--bqAcc)}
+#gBqPan .pN.e-a .pNb .pxi{color:var(--bqAcc)}
+#gBqPan .pN.e-pc .pNb .pxi{color:#ffd23a}
+#gBqPan .pN.e-mis .pNb{background:var(--bqGris)}
 /* le défi : un anneau cyan autour de la pastille, rempli à sa jauge (un exploit d'un coup : en pointillé) */
 #gBqPan .pN .pNj{position:absolute;inset:-3px;border-radius:14px;padding:2px;pointer-events:none;text-decoration:none;
   background:conic-gradient(from 0deg,var(--cyanM) calc(var(--pj,0) * 1%),rgba(20,181,204,.28) 0);

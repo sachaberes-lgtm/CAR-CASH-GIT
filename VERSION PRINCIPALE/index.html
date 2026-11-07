@@ -10170,14 +10170,15 @@ html #gMis.mbOn.m2land #gmBas .gmHome .pxi{--pxs:2}
 .m2Fin.mcFin{min-height:44px}
 </style>
 <style id="boitesBlister">
+/* (2026-11-07, Sacha : « chaque type d'item doit avoir un système propre ») les BOÎTES ne s'appliquent pas aux affiches de la pellicule des FIGURES (.fgK, interface/boutique-figure.js) : :where() garde la spécificité d'avant */
 /* ===== LES VITRINES (2026-11-05, Léo : « on ne voit pas assez les voitures, pas d'effet de boîte… un truc un peu carré et transparent, comme une vitrine en verre sur un socle noir ; un angle où l'on voit bien la voiture, en 3D, sans que ça pèse sur téléphone ») =====
-   Une couche posée APRÈS toutes les autres : elle ne fait que REPEINDRE les cartes `.bqK` de la boutique (`#gBqPan`) — structure, tailles de grille et photos ne
+   Une couche posée APRÈS toutes les autres : elle ne fait que REPEINDRE les cartes `.bqK:where(:not(.fgK))` de la boutique (`#gBqPan`) — structure, tailles de grille et photos ne
    bougent pas (bqCarteHtml ajoute seulement la classe `b-<rareté>`). Tout dérive de `--rc` (la couleur de rareté déjà posée) : aucune couleur de palette nouvelle (Sacha y travaille).
    LE PRINCIPE (zéro 3D réelle, donc rien de lourd) : une projection OBLIQUE dessinée en CSS — la face avant est la carte, un dessus et un côté droit en verre
    (`::before` et `::after` de la carte, deux parallélogrammes `skew`) donnent le volume du cube ; la voiture (photo transparente, déjà de trois quarts) se pose dans le verre
    sur une ombre de sol ; le nom et le prix reposent sur un SOCLE NOIR (comme la vitrine acrylique de la référence). La rareté = le liseré lumineux du verre et le filet du socle.
    Léo (25/10) a retiré le gros texte de rareté : il reste caché. La carte choisie se soulève. Allégé (palier 0 et 1) : mêmes aplats, plus de reflet qui balaie. */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK{
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)){
   --rcd:color-mix(in srgb,var(--rc) 60%,#506070);
   margin:0;border-radius:3px;overflow:visible;isolation:isolate;
   background:linear-gradient(155deg,rgba(255,255,255,.75),rgba(150,185,225,.34) 45%,rgba(255,255,255,.5));
@@ -10185,20 +10186,20 @@ html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK{
   border-top:3px solid var(--rc);transform:none;transition:translate .15s,box-shadow .15s}
 /* la place : le rail laisse sa marge au dessus et au côté de verre (sinon le défilement les coupe) ; les trois colonnes se recalculent ; la photo suit le CADRE de la photo (720 x 440), plus une hauteur fixe de 46 à 66 px */
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqRail{gap:16px 14px;padding:16px 14px 12px 2px}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK.off,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK.off{width:calc((100% - 44px) / 3)}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille.cote .bqK .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.off .bqKph{height:auto;aspect-ratio:720/440}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK:where(:not(.fgK)),html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK:where(:not(.fgK)),html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK:where(:not(.fgK)).off,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK:where(:not(.fgK)).off{width:calc((100% - 44px) / 3)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille .bqK:where(:not(.fgK)) .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.cote .bqK:where(:not(.fgK)) .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan.grille.cote .bqK:where(:not(.fgK)) .bqKph,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)).off .bqKph{height:auto;aspect-ratio:720/440}
 /* les deux faces de verre : le dessus et le côté droit (projection oblique) */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK::before{content:"";position:absolute;left:0;right:0;top:-12px;height:9px;transform-origin:bottom left;transform:skewX(-45deg);
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK))::before{content:"";position:absolute;left:0;right:0;top:-12px;height:9px;transform-origin:bottom left;transform:skewX(-45deg);
   background:linear-gradient(90deg,rgba(255,255,255,.85),color-mix(in srgb,var(--rc) 30%,rgba(235,242,250,.75)));box-shadow:inset 0 0 0 1px rgba(110,130,150,.5);pointer-events:none;z-index:2}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK::after{content:"";position:absolute;top:-3px;bottom:0;right:-9px;width:9px;transform-origin:top left;transform:skewY(-45deg);
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK))::after{content:"";position:absolute;top:-3px;bottom:0;right:-9px;width:9px;transform-origin:top left;transform:skewY(-45deg);
   background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 22%,rgba(225,234,244,.8)),rgba(180,196,214,.55));box-shadow:inset 0 0 0 1px rgba(110,130,150,.5);pointer-events:none;z-index:2}
 /* la voiture : la plus grande place, sur son ombre de sol, derrière un reflet de verre */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph{position:relative;margin:2px 2px 0;border:0;border-radius:0;background:none;box-shadow:none}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph::before{content:"";position:absolute;left:12%;right:12%;bottom:3%;height:12%;border-radius:50%;background:radial-gradient(closest-side,rgba(30,40,55,.38),transparent);pointer-events:none}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph::after{content:"";position:absolute;left:10%;top:0;width:22%;height:100%;background:linear-gradient(100deg,rgba(255,255,255,.5),rgba(255,255,255,0));transform:skewX(-14deg);pointer-events:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKph{position:relative;margin:2px 2px 0;border:0;border-radius:0;background:none;box-shadow:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKph::before{content:"";position:absolute;left:12%;right:12%;bottom:3%;height:12%;border-radius:50%;background:radial-gradient(closest-side,rgba(30,40,55,.38),transparent);pointer-events:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKph::after{content:"";position:absolute;left:10%;top:0;width:22%;height:100%;background:linear-gradient(100deg,rgba(255,255,255,.5),rgba(255,255,255,0));transform:skewX(-14deg);pointer-events:none}
 /* le SOCLE NOIR : le nom et le prix, bord à bord */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKn{margin:0;padding:4px 5px 1px;background:#0e0f12;color:#fff;border-radius:0}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp{margin:0;background:#0e0f12;border-radius:0;transform:none;box-shadow:0 3px 0 var(--rc)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKn{margin:0;padding:4px 5px 1px;background:#0e0f12;color:#fff;border-radius:0}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKp{margin:0;background:#0e0f12;border-radius:0;transform:none;box-shadow:0 3px 0 var(--rc)}
 /* la rareté : le liseré du verre et le filet du socle (déjà --rc) ; les plus hautes brillent un peu plus */
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-rare,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-epique{box-shadow:0 0 0 1px var(--rcd),inset 0 0 0 2px rgba(255,255,255,.75),0 0 10px -2px var(--rc),0 12px 18px -6px rgba(30,40,55,.28)}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-exotique .bqKph::before{background:radial-gradient(closest-side,color-mix(in srgb,var(--rc) 55%,#222),transparent)}
@@ -10219,7 +10220,7 @@ html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete{background:linear-gradient(
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKph::before{left:-6%;right:-6%;bottom:auto;top:44%;height:12px;border-radius:0;background:repeating-linear-gradient(45deg,#ffd400 0 8px,#111 8px 16px);transform:rotate(-12deg);opacity:.9;z-index:2}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKn{color:var(--rc)}
 /* la carte choisie se soulève */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel{translate:0 -4px;box-shadow:0 0 0 2px var(--bqInk),0 0 0 4px var(--rc),0 16px 22px -6px rgba(30,40,55,.35)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)).sel{translate:0 -4px;box-shadow:0 0 0 2px var(--bqInk),0 0 0 4px var(--rc),0 16px 22px -6px rgba(30,40,55,.35)}
 /* allégé (ANCIEN 0 et MOYEN 1) : plus de reflet qui balaie */
 html[data-palier="0"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph::after,html[data-palier="1"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph::after{animation:none;left:10%;width:22%;background:linear-gradient(100deg,rgba(255,255,255,.5),rgba(255,255,255,0))}
 @media (prefers-reduced-motion:reduce){#gBqPan .b-legendaire .bqKph::after{animation:none}}
@@ -10228,21 +10229,21 @@ html[data-palier="0"]:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph:
    le reflet de la face avant passe par-dessus. Tailles en `cqw` (la carte est un conteneur) : le cube suit la largeur de la carte, trois colonnes ou une rangée.
    Ailleurs (palier 0 et 1) les faces `.bqKv` restent cachées et la projection oblique plate ci-dessus s'applique. */
 .bqKv{display:none}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK{container-type:inline-size;perspective:900px;background:none;box-shadow:none;border-top:0}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK::before,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK::after{display:none}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv{--W:84cqw;--H:55cqw;--D:30cqw;--ry:-18deg;--rx:-12deg;display:block;position:absolute;left:50%;top:calc(2px + 30cqw);width:0;height:0;transform-style:preserve-3d;transform:rotateX(var(--rx)) rotateY(var(--ry));pointer-events:none;transition:transform .3s}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .f{position:absolute;display:block;background:linear-gradient(150deg,rgba(255,255,255,.55),rgba(160,195,235,.2) 55%,rgba(255,255,255,.3));border:2px solid color-mix(in srgb,var(--rc) 60%,rgba(255,255,255,.95))}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .fr{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:translateZ(calc(var(--D)/2))}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .bk{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:rotateY(180deg) translateZ(calc(var(--D)/2))}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .rt{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(90deg) translateZ(calc(var(--W)/2))}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .lf{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(-90deg) translateZ(calc(var(--W)/2))}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .tp{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/2));background:linear-gradient(135deg,rgba(255,255,255,.8),color-mix(in srgb,var(--rc) 28%,rgba(220,235,250,.55)))}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .fl{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/-2));background:radial-gradient(closest-side,rgba(20,30,45,.35),rgba(20,30,45,0) 70%);border:0}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph{z-index:1}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph::before{display:none}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel{box-shadow:none;translate:0 -4px}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel .bqKv{--ry:-14deg;--rx:-10deg}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel .bqKv .f{border-color:var(--rc);border-width:3px}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)){container-type:inline-size;perspective:900px;background:none;box-shadow:none;border-top:0}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK))::before,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK))::after{display:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKv{--W:84cqw;--H:55cqw;--D:30cqw;--ry:-18deg;--rx:-12deg;display:block;position:absolute;left:50%;top:calc(2px + 30cqw);width:0;height:0;transform-style:preserve-3d;transform:rotateX(var(--rx)) rotateY(var(--ry));pointer-events:none;transition:transform .3s}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKv .f{position:absolute;display:block;background:linear-gradient(150deg,rgba(255,255,255,.55),rgba(160,195,235,.2) 55%,rgba(255,255,255,.3));border:2px solid color-mix(in srgb,var(--rc) 60%,rgba(255,255,255,.95))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKv .fr{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:translateZ(calc(var(--D)/2))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKv .bk{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:rotateY(180deg) translateZ(calc(var(--D)/2))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKv .rt{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(90deg) translateZ(calc(var(--W)/2))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKv .lf{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(-90deg) translateZ(calc(var(--W)/2))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKv .tp{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/2));background:linear-gradient(135deg,rgba(255,255,255,.8),color-mix(in srgb,var(--rc) 28%,rgba(220,235,250,.55)))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKv .fl{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/-2));background:radial-gradient(closest-side,rgba(20,30,45,.35),rgba(20,30,45,0) 70%);border:0}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKph{z-index:1}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKph::before{display:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)).sel{box-shadow:none;translate:0 -4px}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)).sel .bqKv{--ry:-14deg;--rx:-10deg}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)).sel .bqKv .f{border-color:var(--rc);border-width:3px}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .f{background:linear-gradient(150deg,rgba(255,244,200,.7),rgba(255,215,94,.24) 55%,rgba(255,244,200,.45));border-color:#d9a21b}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .tp{background:linear-gradient(135deg,rgba(255,250,225,.9),rgba(255,215,94,.5))}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKv .f{background:linear-gradient(150deg,rgba(70,70,84,.82),rgba(25,25,32,.9));border-color:var(--neoM)}
@@ -10253,27 +10254,27 @@ html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKr,html:not(.c6):not(
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKr{background:linear-gradient(#fff2b0,var(--or))}
 
 /* le prix se lit sur le socle noir (avant : texte sombre sur noir) */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp{color:#ffe08a}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.eur{color:#fff}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.acq{color:var(--cash)}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.defi,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.sec{color:var(--aura)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKp{color:#ffe08a}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKp.eur{color:#fff}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKp.acq{color:var(--cash)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKp.defi,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKp.sec{color:var(--aura)}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKp{color:#fff2b0}
 /* palier 2 : la voiture plus grande dans le verre ; la carte choisie garde son cube penché, en lueur douce */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph img{transform:scale(1.14);transform-origin:50% 72%}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel .bqKv{--ry:-14deg;--rx:-10deg} /* (2026-11-06) plus de filter:drop-shadow ici : un filtre APLATIT le 3D (preserve-3d) — la carte choisie perdait son cube */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel .bqKv .f{border-width:2px}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK.sel{scale:1.04}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKph img{transform:scale(1.14);transform-origin:50% 72%}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)).sel .bqKv{--ry:-14deg;--rx:-10deg} /* (2026-11-06) plus de filter:drop-shadow ici : un filtre APLATIT le 3D (preserve-3d) — la carte choisie perdait son cube */
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)).sel .bqKv .f{border-width:2px}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)).sel{scale:1.04}
 
 /* ===== LA VITRINE, PLUS CRÉATIVE (palier 2) =====
    Un DIORAMA : le fond du cube est un décor teinté de la rareté, avec un projecteur qui éclaire la voiture (elle ressort, le cube se lit) ; le socle se réduit à une ligne
    (le nom) et le prix devient une ÉTIQUETTE qui déborde sur le verre ; chaque famille a son détail : brillance pour l'épique et la légendaire (étoiles fixes qui scintillent),
    un grand « ? » derrière la silhouette secrète. Tout en aplats et dégradés : aucun filtre, aucune ombre floue. */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .bk{background:radial-gradient(ellipse 60% 70% at 50% 62%,rgba(255,255,255,.95),rgba(255,255,255,0) 70%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 38%,#fff),color-mix(in srgb,var(--rc) 62%,#6a7686))}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .lf{background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 50%,rgba(150,170,195,.55)),rgba(255,255,255,.18))}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .rt{background:linear-gradient(90deg,rgba(255,255,255,.2),color-mix(in srgb,var(--rc) 45%,rgba(120,140,165,.6)))}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKv .fl{background:radial-gradient(closest-side,rgba(20,30,45,.55),rgba(20,30,45,0) 72%)}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph{filter:none}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKph::before{display:block;content:"";position:absolute;inset:0;pointer-events:none;background:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKv .bk{background:radial-gradient(ellipse 60% 70% at 50% 62%,rgba(255,255,255,.95),rgba(255,255,255,0) 70%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 38%,#fff),color-mix(in srgb,var(--rc) 62%,#6a7686))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKv .lf{background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 50%,rgba(150,170,195,.55)),rgba(255,255,255,.18))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKv .rt{background:linear-gradient(90deg,rgba(255,255,255,.2),color-mix(in srgb,var(--rc) 45%,rgba(120,140,165,.6)))}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKv .fl{background:radial-gradient(closest-side,rgba(20,30,45,.55),rgba(20,30,45,0) 72%)}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKph{filter:none}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKph::before{display:block;content:"";position:absolute;inset:0;pointer-events:none;background:none}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-epique .bqKph::before,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKph::before{background:
   radial-gradient(circle,#fff 0 1.4px,transparent 2.2px) 14% 22%/1px 1px no-repeat,radial-gradient(circle,#fff 0 1.8px,transparent 2.8px) 86% 30%/1px 1px no-repeat,
   radial-gradient(circle,#fff 0 1.2px,transparent 2px) 74% 12%/1px 1px no-repeat,radial-gradient(circle,#fff 0 1.5px,transparent 2.4px) 26% 70%/1px 1px no-repeat;animation:bqScint 2.2s ease-in-out infinite;z-index:3}
@@ -10281,10 +10282,10 @@ html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-epique .bqKph::before,html:not(.c6)
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKph::before{content:"?";display:flex;align-items:center;justify-content:center;font:900 34cqw/1 system-ui;color:rgba(255,62,200,.32);top:-4%;bottom:auto;height:100%;transform:none;left:0;right:0;border-radius:0}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKv .bk{background:radial-gradient(ellipse 60% 70% at 50% 62%,var(--au0),rgba(255,251,232,0) 70%),linear-gradient(180deg,var(--orB),#d9a21b)}
 /* le socle en une ligne, le prix en étiquette */
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKn{padding:3px 5px 2px 6px;box-sizing:border-box}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp{position:absolute;right:-5px;top:-7px;bottom:auto;margin:0;padding:3px 7px 3px 8px;background:var(--rc);color:#10131a;border-radius:3px 0 0 3px;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.4);transform:skewX(-10deg);z-index:5}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.acq{background:var(--cash);color:#06331b}
-html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.defi,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK .bqKp.sec{background:var(--aura);color:#3a0a2c}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKn{padding:3px 5px 2px 6px;box-sizing:border-box}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKp{position:absolute;right:-5px;top:-7px;bottom:auto;margin:0;padding:3px 7px 3px 8px;background:var(--rc);color:#10131a;border-radius:3px 0 0 3px;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.4);transform:skewX(-10deg);z-index:5}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKp.acq{background:var(--cash);color:#06331b}
+html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKp.defi,html:not(.c6):not(.ux8g):not(.zz) #gBqPan .bqK:where(:not(.fgK)) .bqKp.sec{background:var(--aura);color:#3a0a2c}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-legendaire .bqKp{background:linear-gradient(#fff6c8,var(--or));color:#3a2400}
 html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKp{background:var(--neoM);color:#fff}
 @media (prefers-reduced-motion:reduce){#gBqPan .b-epique .bqKph::before,#gBqPan .b-legendaire .bqKph::before{animation:none}}
@@ -10300,36 +10301,36 @@ html:not(.c6):not(.ux8g):not(.zz) #gBqPan .b-secrete .bqKp{background:var(--neoM
 @keyframes bqFlash{0%{opacity:0;transform:scale(.4)}30%{opacity:1}100%{opacity:0;transform:scale(1.4)}}
 #gBqPan .bqBris b{position:absolute;left:50%;top:40%;white-space:nowrap;padding:4px 7px;background:#0e0f12;color:#fff;font:800 9px/1 var(--pix,system-ui);letter-spacing:.06em;box-shadow:0 0 0 2px var(--rc);animation:bqLab 1s ease-out forwards}
 @keyframes bqLab{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}80%{opacity:1;transform:translate(-50%,-60%) scale(1)}100%{opacity:0;transform:translate(-50%,-90%) scale(1)}}
-#gBqPan .bqK:not(.hab).brise .bqKv{opacity:0}
+#gBqPan .bqK:where(:not(.fgK)):not(.hab).brise .bqKv{opacity:0}
 
 /* ===== LE CUBE v2 (2026-11-06, Léo : « la boîte 3D est devenue pas cohérente, une ombre bizarre : refais des cubes carrés, plus propres, avec la voiture posée dedans en 3D ») =====
    Un VRAI cube (six faces, coins à peine adoucis) posé de trois quarts ; la photo (voiture, aile, traînée, figure) est DANS le cube, plan debout au milieu des faces, tournée comme lui :
-   le verre de devant passe devant, le fond derrière, la voiture au sol. La carte (.bqK) est le contexte 3D (preserve-3d, sans isolation ni filtre : sinon le navigateur aplatit) ; le cube est
+   le verre de devant passe devant, le fond derrière, la voiture au sol. La carte (.bqK:where(:not(.fgK))) est le contexte 3D (preserve-3d, sans isolation ni filtre : sinon le navigateur aplatit) ; le cube est
    poussé devant la plaque du nom, qu'il mord. Un espaceur (::before) donne sa hauteur à la carte. Les PEINTURES n'ont pas de cube (.pnt) : une sphère vernie. Préfixe à deux #id. */
-html #gBq #gBqPan .bqK:not(.pnt){isolation:auto;transform-style:preserve-3d;perspective:760px;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;margin:0;
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt){isolation:auto;transform-style:preserve-3d;perspective:760px;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;margin:0;
   --W:64cqw;--H:46cqw;--D:34cqw;--ry:-26deg;--rx:-14deg;--rim:color-mix(in srgb,var(--rc) 62%,#fff)}
-html #gBq #gBqPan .bqK:not(.pnt)::before{display:block;content:"";position:static;transform:none;width:auto;height:auto;aspect-ratio:720/440;margin:0 0 6px;background:none;box-shadow:none;border:0}
-html #gBq #gBqPan .bqK:not(.pnt)::after{display:none}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv{display:block;position:absolute;z-index:2;left:50%;top:calc(var(--H)/2 + 7cqw);width:0;height:0;transform-style:preserve-3d;pointer-events:none;
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt)::before{display:block;content:"";position:static;transform:none;width:auto;height:auto;aspect-ratio:720/440;margin:0 0 6px;background:none;box-shadow:none;border:0}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt)::after{display:none}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv{display:block;position:absolute;z-index:2;left:50%;top:calc(var(--H)/2 + 7cqw);width:0;height:0;transform-style:preserve-3d;pointer-events:none;
   transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform .3s} /* (pas de translateZ sur le cube : le navigateur le fait disparaître ; c'est la plaque qui recule) */
-html #gBq #gBqPan .bqK:not(.pnt).sel{--ry:-18deg;--rx:-10deg;translate:0 -3px;scale:1.03;box-shadow:none}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .f{position:absolute;display:block;box-sizing:border-box;border:2px solid var(--rim);border-radius:2.2cqw;background:none}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:translateZ(calc(var(--D)/2));
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt).sel{--ry:-18deg;--rx:-10deg;translate:0 -3px;scale:1.03;box-shadow:none}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .f{position:absolute;display:block;box-sizing:border-box;border:2px solid var(--rim);border-radius:2.2cqw;background:none}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .fr{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:translateZ(calc(var(--D)/2));
   background:linear-gradient(118deg,rgba(255,255,255,.42) 0,rgba(255,255,255,.08) 24%,rgba(255,255,255,.02) 56%,rgba(255,255,255,.18) 100%)}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bk{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:rotateY(180deg) translateZ(calc(var(--D)/2));
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bk{width:var(--W);height:var(--H);left:calc(var(--W)/-2);top:calc(var(--H)/-2);transform:rotateY(180deg) translateZ(calc(var(--D)/2));
   background:radial-gradient(ellipse 62% 70% at 50% 64%,rgba(255,255,255,.95),rgba(255,255,255,0) 72%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 30%,#fff),color-mix(in srgb,var(--rc) 55%,#8a97aa))}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .lf{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(-90deg) translateZ(calc(var(--W)/2));background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 40%,#cfd8e4),rgba(255,255,255,.3))}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .rt{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(90deg) translateZ(calc(var(--W)/2));background:linear-gradient(90deg,rgba(255,255,255,.3),color-mix(in srgb,var(--rc) 40%,#b9c4d3))}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .tp{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/2));background:linear-gradient(180deg,rgba(255,255,255,.9),color-mix(in srgb,var(--rc) 22%,#fff))}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fl{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/-2));
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .lf{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(-90deg) translateZ(calc(var(--W)/2));background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 40%,#cfd8e4),rgba(255,255,255,.3))}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .rt{width:var(--D);height:var(--H);left:calc(var(--D)/-2);top:calc(var(--H)/-2);transform:rotateY(90deg) translateZ(calc(var(--W)/2));background:linear-gradient(90deg,rgba(255,255,255,.3),color-mix(in srgb,var(--rc) 40%,#b9c4d3))}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .tp{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/2));background:linear-gradient(180deg,rgba(255,255,255,.9),color-mix(in srgb,var(--rc) 22%,#fff))}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .fl{width:var(--W);height:var(--D);left:calc(var(--W)/-2);top:calc(var(--D)/-2);transform:rotateX(90deg) translateZ(calc(var(--H)/-2));
   background:radial-gradient(ellipse 44% 17% at 50% 80%,rgba(20,30,45,.15),rgba(20,30,45,0) 100%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 24%,var(--bqFond2)),color-mix(in srgb,var(--rc) 40%,#c6d0de))}
 /* la photo : un plan debout au milieu du cube, posée sur le sol */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph{position:absolute;display:flex;align-items:flex-end;justify-content:center;margin:0;padding:0;overflow:visible;background:none;border:0;box-shadow:none;aspect-ratio:auto;
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph{position:absolute;display:flex;align-items:flex-end;justify-content:center;margin:0;padding:0;overflow:visible;background:none;border:0;box-shadow:none;aspect-ratio:auto;
   width:calc(var(--W)*.94);height:calc(var(--W)*.574);left:calc(var(--W)*-.47);top:calc(var(--H)/2 - var(--W)*.574 - 1cqw);transform:none;z-index:auto}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph::before,html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph::after{display:none}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph img{position:static;width:100%;height:100%;max-width:100%;object-fit:contain;object-position:50% 100%;transform:none;filter:none}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph.c-aile img{transform:none}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph:is(.c-trainee,.c-figure){align-items:stretch}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph::before,html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph::after{display:none}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph img{position:static;width:100%;height:100%;max-width:100%;object-fit:contain;object-position:50% 100%;transform:none;filter:none}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph.c-aile img{transform:none}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph:is(.c-trainee,.c-figure){align-items:stretch}
 /* (2026-11-07, Léo : « le nom doit se trouver EN DESSOUS du cube 3D et ne pas cacher la voiture ») la plaque est maintenant SOUS le cube : l'espace du cube ne mord plus de 12 px dessus (+2 px d'air), plus de recul en 3D qui la faisait remonter, 28 px de haut (la marge basse est une bordure transparente, qui ne laisse pas voir un bout de 3e ligne). */
 /* (2026-11-07, Léo : « le cube passe légèrement au-dessus du nom en gris ») rechevauchement LÉGER : le cube mord 8 px sur le haut de la plaque (au lieu de 12), la plaque reste derrière lui (recul 3D) et carrée ; la voiture, dans le cube, n'est jamais cachée. */
 /* (2026-11-07, Léo, capture « THE ENGLISH… » : « les voitures dépassent toujours le cube ») la voiture est ancrée par le BAS, rétrécie à 90 % et remontée de ~3 cqw : ses roues ne touchent plus la plaque, elle reste franchement dans le verre (même les longues : ELDORADO, CHARGER, ROSSO n'avaient que 2 px de marge à droite). */
@@ -10345,88 +10346,88 @@ html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph:is(.c-trainee,.c-figure){align-ite
 /* ===== LA VOITURE ALIGNÉE SUR LE BAS DU CUBE, DE LA GAUCHE À LA DROITE (2026-11-07, Léo : « l'arrière de la voiture face à la partie gauche du cube sur la largeur, l'avant face au côté droit ; complètement alignée au bas, cohérent ; sur toutes les voitures ») =====
    Le plan de la voiture est PARALLÈLE à la vitre de devant (aucune contre-rotation), collé juste derrière elle (13 cqw, la vitre est à 17). Chaque voiture est réglée par SA photo (bqBas, boutique-scene-1.js) : `--ech` (la caisse prend 90 % de la largeur du cube), `--dx` (centrée), `--pen` (la ligne de ses roues, qui penche de ~12° dans la photo, est remise À PLAT = parallèle à l'arête du bas du cube), `--bas` (sa ligne la plus basse, ombre comprise, est posée sur le sol : rien ne passe dessous). Arrière près du coin bas-gauche, avant près du coin bas-droit. */
 /* la plaque du nom, juste sous le cube, derrière lui ; le prix devant (2026-11-06, Léo : « les noms sont très gros et dépassent le cube » : 50 → 34 px de haut, plus d'agrandissement à 107 %) */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKn{position:relative;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:28px;margin:0 6px 7px;padding:3px 6px 0;border-bottom:3px solid transparent;
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKn{position:relative;box-sizing:border-box;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-pack:center;-webkit-line-clamp:2;height:28px;margin:0 6px 7px;padding:3px 6px 0;border-bottom:3px solid transparent;
   text-align:center;color:#fff;font-size:8px;line-height:11px;letter-spacing:.3px;overflow:hidden;white-space:normal;overflow-wrap:anywhere;border-radius:0;transform:none;z-index:1;
   background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 40%,#2b3246),color-mix(in srgb,var(--rc) 14%,#0f121b));box-shadow:inset 0 1px 0 rgba(255,255,255,.3);text-shadow:0 0 6px var(--rc),0 1px 0 rgba(0,0,0,.55)}
-html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKn{background:linear-gradient(#5a3a00,#24160a);color:#ffe9a8;text-shadow:0 1px 0 #000}
-html #gBq #gBqPan .bqK.b-secrete:not(.pnt) .bqKn{background:linear-gradient(#3a3a48,#16161d);color:var(--rc)}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKp{position:absolute;right:-5px;top:-7px;bottom:auto;margin:0;min-height:0;padding:3px 7px 3px 8px;border-radius:10px 4px 4px 10px;background:var(--rc);color:#10131a;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.35);transform:skewX(-10deg) translateZ(40px)}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKp.acq{background:var(--cash);color:#06331b}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKp:is(.defi,.sec){background:var(--aura);color:#3a0a2c}
-html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKp{background:linear-gradient(#fff6c8,var(--or));color:#3a2400}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKl,html #gBq #gBqPan .bqK:not(.pnt) .bqKd2{transform:translateZ(40px)}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).b-legendaire:not(.pnt) .bqKn{background:linear-gradient(#5a3a00,#24160a);color:#ffe9a8;text-shadow:0 1px 0 #000}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).b-secrete:not(.pnt) .bqKn{background:linear-gradient(#3a3a48,#16161d);color:var(--rc)}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKp{position:absolute;right:-5px;top:-7px;bottom:auto;margin:0;min-height:0;padding:3px 7px 3px 8px;border-radius:10px 4px 4px 10px;background:var(--rc);color:#10131a;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.35);transform:skewX(-10deg) translateZ(40px)}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKp.acq{background:var(--cash);color:#06331b}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKp:is(.defi,.sec){background:var(--aura);color:#3a0a2c}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).b-legendaire:not(.pnt) .bqKp{background:linear-gradient(#fff6c8,var(--or));color:#3a2400}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKl,html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKd2{transform:translateZ(40px)}
 /* la légendaire : cube doré */
-html #gBq #gBqPan .bqK.b-legendaire:not(.pnt){--rim:#d9a21b}
-html #gBq #gBqPan .bqK.b-secrete:not(.pnt){--rim:var(--neoM)}
-html #gBq #gBqPan .bqK.brise:not(.pnt) .bqKv{opacity:0}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).b-legendaire:not(.pnt){--rim:#d9a21b}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).b-secrete:not(.pnt){--rim:var(--neoM)}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).brise:not(.pnt) .bqKv{opacity:0}
 /* les traînées : le pictogramme au fond du cube */
-html #gBq #gBqPan .bqK.hab .bqKph .tSw{background:none;box-shadow:none;overflow:visible}
-html #gBq #gBqPan .bqK.hab .bqKph .tSw::before,html #gBq #gBqPan .bqK.hab .bqKph .tSw::after,html #gBq #gBqPan .bqK.hab .bqKph .tSw .tBuse{display:none}
-html #gBq #gBqPan .bqK.hab .bqKph .tSw .tRu{left:12%;right:12%;opacity:.55;height:34%}
-html #gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi{left:50%;right:auto;top:48%;--pxs:4;translate:-50% -50%;opacity:1;animation:tFlotte 1.8s ease-in-out infinite alternate}
-html #gBq #gBqPan .bqK.hab .bqKph .tSw .tPa .pxi:nth-child(n+2){display:none}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph .tSw{background:none;box-shadow:none;overflow:visible}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph .tSw::before,html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph .tSw::after,html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph .tSw .tBuse{display:none}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph .tSw .tRu{left:12%;right:12%;opacity:.55;height:34%}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph .tSw .tPa .pxi{left:50%;right:auto;top:48%;--pxs:4;translate:-50% -50%;opacity:1;animation:tFlotte 1.8s ease-in-out infinite alternate}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph .tSw .tPa .pxi:nth-child(n+2){display:none}
 @keyframes tFlotte{from{transform:translateY(-2px)}to{transform:translateY(3px)}}
 /* LES PEINTURES : une SPHÈRE vernie de la couleur vendue (la carte reste celle d'avant) */
-html #gBq #gBqPan .bqK.hab .bqKph.c-peinture{padding:0;align-items:center;justify-content:center;filter:drop-shadow(.4cqw .5cqw 0 rgba(0,0,0,.34)) drop-shadow(.8cqw 1cqw 0 rgba(0,0,0,.30)) drop-shadow(1.2cqw 1.5cqw 0 rgba(0,0,0,.26)) drop-shadow(1.6cqw 2cqw 0 rgba(0,0,0,.22)) drop-shadow(0 3cqw 1.8cqw rgba(20,28,45,.34))} /* (v1221 : l'ÉPAISSEUR du splash — trois ombres dures décalées = la tranche d'une flaque en relief) le SPLASH au milieu du cube (2026-11-06, Léo : « au lieu d'un rond un peu plat, un splash simplifié, arrondi, comme Splatoon, dans la vitre ») */
-html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw{flex:none;position:relative;width:auto;height:90%;aspect-ratio:1;border-radius:0;overflow:visible;box-shadow:none;-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M83.4%2050.0%20L82.6%2052.3%20L81.6%2054.4%20L80.5%2056.5%20L79.3%2058.4%20L78.0%2060.2%20L76.7%2061.9%20L75.4%2063.5%20L74.1%2065.1%20L72.8%2066.6%20L71.5%2068.0%20L70.1%2069.4%20L68.8%2070.8%20L67.4%2072.2%20L65.9%2073.5%20L64.3%2074.8%20L62.7%2076.0%20L61.0%2077.2%20L59.2%2078.2%20L57.2%2079.1%20L55.2%2079.8%20L53.2%2080.3%20L51.1%2080.6%20L48.9%2080.8%20L46.8%2080.7%20L44.6%2080.5%20L42.5%2080.0%20L40.5%2079.3%20L38.5%2078.5%20L36.5%2077.6%20L34.7%2076.5%20L32.9%2075.3%20L31.2%2074.0%20L29.6%2072.7%20L28.0%2071.2%20L26.5%2069.7%20L25.1%2068.1%20L23.7%2066.5%20L22.3%2064.7%20L21.1%2062.9%20L19.9%2061.0%20L18.8%2059.0%20L17.8%2056.8%20L17.0%2054.6%20L16.4%2052.4%20L16.0%2050.0%20L15.8%2047.6%20L15.8%2045.2%20L16.2%2042.8%20L16.8%2040.5%20L17.7%2038.2%20L18.8%2036.1%20L20.2%2034.1%20L21.8%2032.4%20L23.6%2030.8%20L25.5%2029.4%20L27.5%2028.3%20L29.6%2027.4%20L31.8%2026.7%20L33.9%2026.1%20L36.0%2025.7%20L38.0%2025.4%20L40.0%2025.2%20L41.9%2025.1%20L43.7%2024.9%20L45.5%2024.7%20L47.3%2024.5%20L49.1%2024.3%20L50.9%2024.0%20L52.8%2023.7%20L54.7%2023.4%20L56.7%2023.1%20L58.8%2022.9%20L61.0%2022.8%20L63.3%2022.8%20L65.6%2022.9%20L68.0%2023.3%20L70.4%2023.9%20L72.7%2024.8%20L74.9%2025.9%20L77.0%2027.4%20L78.9%2029.0%20L80.5%2030.9%20L81.9%2033.0%20L83.0%2035.3%20L83.8%2037.7%20L84.3%2040.2%20L84.5%2042.7%20L84.4%2045.2%20L84.0%2047.6Z'/%3E%3Ccircle%20cx='86.0'%20cy='20.0'%20r='5.0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M83.4%2050.0%20L82.6%2052.3%20L81.6%2054.4%20L80.5%2056.5%20L79.3%2058.4%20L78.0%2060.2%20L76.7%2061.9%20L75.4%2063.5%20L74.1%2065.1%20L72.8%2066.6%20L71.5%2068.0%20L70.1%2069.4%20L68.8%2070.8%20L67.4%2072.2%20L65.9%2073.5%20L64.3%2074.8%20L62.7%2076.0%20L61.0%2077.2%20L59.2%2078.2%20L57.2%2079.1%20L55.2%2079.8%20L53.2%2080.3%20L51.1%2080.6%20L48.9%2080.8%20L46.8%2080.7%20L44.6%2080.5%20L42.5%2080.0%20L40.5%2079.3%20L38.5%2078.5%20L36.5%2077.6%20L34.7%2076.5%20L32.9%2075.3%20L31.2%2074.0%20L29.6%2072.7%20L28.0%2071.2%20L26.5%2069.7%20L25.1%2068.1%20L23.7%2066.5%20L22.3%2064.7%20L21.1%2062.9%20L19.9%2061.0%20L18.8%2059.0%20L17.8%2056.8%20L17.0%2054.6%20L16.4%2052.4%20L16.0%2050.0%20L15.8%2047.6%20L15.8%2045.2%20L16.2%2042.8%20L16.8%2040.5%20L17.7%2038.2%20L18.8%2036.1%20L20.2%2034.1%20L21.8%2032.4%20L23.6%2030.8%20L25.5%2029.4%20L27.5%2028.3%20L29.6%2027.4%20L31.8%2026.7%20L33.9%2026.1%20L36.0%2025.7%20L38.0%2025.4%20L40.0%2025.2%20L41.9%2025.1%20L43.7%2024.9%20L45.5%2024.7%20L47.3%2024.5%20L49.1%2024.3%20L50.9%2024.0%20L52.8%2023.7%20L54.7%2023.4%20L56.7%2023.1%20L58.8%2022.9%20L61.0%2022.8%20L63.3%2022.8%20L65.6%2022.9%20L68.0%2023.3%20L70.4%2023.9%20L72.7%2024.8%20L74.9%2025.9%20L77.0%2027.4%20L78.9%2029.0%20L80.5%2030.9%20L81.9%2033.0%20L83.0%2035.3%20L83.8%2037.7%20L84.3%2040.2%20L84.5%2042.7%20L84.4%2045.2%20L84.0%2047.6Z'/%3E%3Ccircle%20cx='86.0'%20cy='20.0'%20r='5.0'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph.c-peinture{padding:0;align-items:center;justify-content:center;filter:drop-shadow(.4cqw .5cqw 0 rgba(0,0,0,.34)) drop-shadow(.8cqw 1cqw 0 rgba(0,0,0,.30)) drop-shadow(1.2cqw 1.5cqw 0 rgba(0,0,0,.26)) drop-shadow(1.6cqw 2cqw 0 rgba(0,0,0,.22)) drop-shadow(0 3cqw 1.8cqw rgba(20,28,45,.34))} /* (v1221 : l'ÉPAISSEUR du splash — trois ombres dures décalées = la tranche d'une flaque en relief) le SPLASH au milieu du cube (2026-11-06, Léo : « au lieu d'un rond un peu plat, un splash simplifié, arrondi, comme Splatoon, dans la vitre ») */
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph.c-peinture .bqSw.pSw{flex:none;position:relative;width:auto;height:90%;aspect-ratio:1;border-radius:0;overflow:visible;box-shadow:none;-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M83.4%2050.0%20L82.6%2052.3%20L81.6%2054.4%20L80.5%2056.5%20L79.3%2058.4%20L78.0%2060.2%20L76.7%2061.9%20L75.4%2063.5%20L74.1%2065.1%20L72.8%2066.6%20L71.5%2068.0%20L70.1%2069.4%20L68.8%2070.8%20L67.4%2072.2%20L65.9%2073.5%20L64.3%2074.8%20L62.7%2076.0%20L61.0%2077.2%20L59.2%2078.2%20L57.2%2079.1%20L55.2%2079.8%20L53.2%2080.3%20L51.1%2080.6%20L48.9%2080.8%20L46.8%2080.7%20L44.6%2080.5%20L42.5%2080.0%20L40.5%2079.3%20L38.5%2078.5%20L36.5%2077.6%20L34.7%2076.5%20L32.9%2075.3%20L31.2%2074.0%20L29.6%2072.7%20L28.0%2071.2%20L26.5%2069.7%20L25.1%2068.1%20L23.7%2066.5%20L22.3%2064.7%20L21.1%2062.9%20L19.9%2061.0%20L18.8%2059.0%20L17.8%2056.8%20L17.0%2054.6%20L16.4%2052.4%20L16.0%2050.0%20L15.8%2047.6%20L15.8%2045.2%20L16.2%2042.8%20L16.8%2040.5%20L17.7%2038.2%20L18.8%2036.1%20L20.2%2034.1%20L21.8%2032.4%20L23.6%2030.8%20L25.5%2029.4%20L27.5%2028.3%20L29.6%2027.4%20L31.8%2026.7%20L33.9%2026.1%20L36.0%2025.7%20L38.0%2025.4%20L40.0%2025.2%20L41.9%2025.1%20L43.7%2024.9%20L45.5%2024.7%20L47.3%2024.5%20L49.1%2024.3%20L50.9%2024.0%20L52.8%2023.7%20L54.7%2023.4%20L56.7%2023.1%20L58.8%2022.9%20L61.0%2022.8%20L63.3%2022.8%20L65.6%2022.9%20L68.0%2023.3%20L70.4%2023.9%20L72.7%2024.8%20L74.9%2025.9%20L77.0%2027.4%20L78.9%2029.0%20L80.5%2030.9%20L81.9%2033.0%20L83.0%2035.3%20L83.8%2037.7%20L84.3%2040.2%20L84.5%2042.7%20L84.4%2045.2%20L84.0%2047.6Z'/%3E%3Ccircle%20cx='86.0'%20cy='20.0'%20r='5.0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M83.4%2050.0%20L82.6%2052.3%20L81.6%2054.4%20L80.5%2056.5%20L79.3%2058.4%20L78.0%2060.2%20L76.7%2061.9%20L75.4%2063.5%20L74.1%2065.1%20L72.8%2066.6%20L71.5%2068.0%20L70.1%2069.4%20L68.8%2070.8%20L67.4%2072.2%20L65.9%2073.5%20L64.3%2074.8%20L62.7%2076.0%20L61.0%2077.2%20L59.2%2078.2%20L57.2%2079.1%20L55.2%2079.8%20L53.2%2080.3%20L51.1%2080.6%20L48.9%2080.8%20L46.8%2080.7%20L44.6%2080.5%20L42.5%2080.0%20L40.5%2079.3%20L38.5%2078.5%20L36.5%2077.6%20L34.7%2076.5%20L32.9%2075.3%20L31.2%2074.0%20L29.6%2072.7%20L28.0%2071.2%20L26.5%2069.7%20L25.1%2068.1%20L23.7%2066.5%20L22.3%2064.7%20L21.1%2062.9%20L19.9%2061.0%20L18.8%2059.0%20L17.8%2056.8%20L17.0%2054.6%20L16.4%2052.4%20L16.0%2050.0%20L15.8%2047.6%20L15.8%2045.2%20L16.2%2042.8%20L16.8%2040.5%20L17.7%2038.2%20L18.8%2036.1%20L20.2%2034.1%20L21.8%2032.4%20L23.6%2030.8%20L25.5%2029.4%20L27.5%2028.3%20L29.6%2027.4%20L31.8%2026.7%20L33.9%2026.1%20L36.0%2025.7%20L38.0%2025.4%20L40.0%2025.2%20L41.9%2025.1%20L43.7%2024.9%20L45.5%2024.7%20L47.3%2024.5%20L49.1%2024.3%20L50.9%2024.0%20L52.8%2023.7%20L54.7%2023.4%20L56.7%2023.1%20L58.8%2022.9%20L61.0%2022.8%20L63.3%2022.8%20L65.6%2022.9%20L68.0%2023.3%20L70.4%2023.9%20L72.7%2024.8%20L74.9%2025.9%20L77.0%2027.4%20L78.9%2029.0%20L80.5%2030.9%20L81.9%2033.0%20L83.0%2035.3%20L83.8%2037.7%20L84.3%2040.2%20L84.5%2042.7%20L84.4%2045.2%20L84.0%2047.6Z'/%3E%3Ccircle%20cx='86.0'%20cy='20.0'%20r='5.0'/%3E%3C/svg%3E") center/contain no-repeat}
 /* un splash DIFFÉRENT par couleur (sp0…sp7, classe posée par peintCarte selon la place de la peinture) : forme, taille, inclinaison */
-html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp0{height:90%;transform:rotate(-8deg) scale(1.4) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M83.4%2050.0%20L82.6%2052.3%20L81.6%2054.4%20L80.5%2056.5%20L79.3%2058.4%20L78.0%2060.2%20L76.7%2061.9%20L75.4%2063.5%20L74.1%2065.1%20L72.8%2066.6%20L71.5%2068.0%20L70.1%2069.4%20L68.8%2070.8%20L67.4%2072.2%20L65.9%2073.5%20L64.3%2074.8%20L62.7%2076.0%20L61.0%2077.2%20L59.2%2078.2%20L57.2%2079.1%20L55.2%2079.8%20L53.2%2080.3%20L51.1%2080.6%20L48.9%2080.8%20L46.8%2080.7%20L44.6%2080.5%20L42.5%2080.0%20L40.5%2079.3%20L38.5%2078.5%20L36.5%2077.6%20L34.7%2076.5%20L32.9%2075.3%20L31.2%2074.0%20L29.6%2072.7%20L28.0%2071.2%20L26.5%2069.7%20L25.1%2068.1%20L23.7%2066.5%20L22.3%2064.7%20L21.1%2062.9%20L19.9%2061.0%20L18.8%2059.0%20L17.8%2056.8%20L17.0%2054.6%20L16.4%2052.4%20L16.0%2050.0%20L15.8%2047.6%20L15.8%2045.2%20L16.2%2042.8%20L16.8%2040.5%20L17.7%2038.2%20L18.8%2036.1%20L20.2%2034.1%20L21.8%2032.4%20L23.6%2030.8%20L25.5%2029.4%20L27.5%2028.3%20L29.6%2027.4%20L31.8%2026.7%20L33.9%2026.1%20L36.0%2025.7%20L38.0%2025.4%20L40.0%2025.2%20L41.9%2025.1%20L43.7%2024.9%20L45.5%2024.7%20L47.3%2024.5%20L49.1%2024.3%20L50.9%2024.0%20L52.8%2023.7%20L54.7%2023.4%20L56.7%2023.1%20L58.8%2022.9%20L61.0%2022.8%20L63.3%2022.8%20L65.6%2022.9%20L68.0%2023.3%20L70.4%2023.9%20L72.7%2024.8%20L74.9%2025.9%20L77.0%2027.4%20L78.9%2029.0%20L80.5%2030.9%20L81.9%2033.0%20L83.0%2035.3%20L83.8%2037.7%20L84.3%2040.2%20L84.5%2042.7%20L84.4%2045.2%20L84.0%2047.6Z'/%3E%3Ccircle%20cx='86.0'%20cy='20.0'%20r='5.0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M83.4%2050.0%20L82.6%2052.3%20L81.6%2054.4%20L80.5%2056.5%20L79.3%2058.4%20L78.0%2060.2%20L76.7%2061.9%20L75.4%2063.5%20L74.1%2065.1%20L72.8%2066.6%20L71.5%2068.0%20L70.1%2069.4%20L68.8%2070.8%20L67.4%2072.2%20L65.9%2073.5%20L64.3%2074.8%20L62.7%2076.0%20L61.0%2077.2%20L59.2%2078.2%20L57.2%2079.1%20L55.2%2079.8%20L53.2%2080.3%20L51.1%2080.6%20L48.9%2080.8%20L46.8%2080.7%20L44.6%2080.5%20L42.5%2080.0%20L40.5%2079.3%20L38.5%2078.5%20L36.5%2077.6%20L34.7%2076.5%20L32.9%2075.3%20L31.2%2074.0%20L29.6%2072.7%20L28.0%2071.2%20L26.5%2069.7%20L25.1%2068.1%20L23.7%2066.5%20L22.3%2064.7%20L21.1%2062.9%20L19.9%2061.0%20L18.8%2059.0%20L17.8%2056.8%20L17.0%2054.6%20L16.4%2052.4%20L16.0%2050.0%20L15.8%2047.6%20L15.8%2045.2%20L16.2%2042.8%20L16.8%2040.5%20L17.7%2038.2%20L18.8%2036.1%20L20.2%2034.1%20L21.8%2032.4%20L23.6%2030.8%20L25.5%2029.4%20L27.5%2028.3%20L29.6%2027.4%20L31.8%2026.7%20L33.9%2026.1%20L36.0%2025.7%20L38.0%2025.4%20L40.0%2025.2%20L41.9%2025.1%20L43.7%2024.9%20L45.5%2024.7%20L47.3%2024.5%20L49.1%2024.3%20L50.9%2024.0%20L52.8%2023.7%20L54.7%2023.4%20L56.7%2023.1%20L58.8%2022.9%20L61.0%2022.8%20L63.3%2022.8%20L65.6%2022.9%20L68.0%2023.3%20L70.4%2023.9%20L72.7%2024.8%20L74.9%2025.9%20L77.0%2027.4%20L78.9%2029.0%20L80.5%2030.9%20L81.9%2033.0%20L83.0%2035.3%20L83.8%2037.7%20L84.3%2040.2%20L84.5%2042.7%20L84.4%2045.2%20L84.0%2047.6Z'/%3E%3Ccircle%20cx='86.0'%20cy='20.0'%20r='5.0'/%3E%3C/svg%3E") center/contain no-repeat}
-html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp1{height:88%;transform:rotate(12deg) scale(1.3) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M50%206%20C58%2024%2080%2038%2080%2060%20C80%2078%2066%2092%2050%2092%20C34%2092%2020%2078%2020%2060%20C20%2038%2042%2024%2050%206Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M50%206%20C58%2024%2080%2038%2080%2060%20C80%2078%2066%2092%2050%2092%20C34%2092%2020%2078%2020%2060%20C20%2038%2042%2024%2050%206Z'/%3E%3C/svg%3E") center/contain no-repeat}
-html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp2{height:94%;transform:rotate(0deg) scale(1.38) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M85.5%2050.0%20L84.5%2052.4%20L83.0%2054.6%20L81.0%2056.6%20L78.8%2058.2%20L76.4%2059.6%20L74.0%2060.7%20L71.8%2061.6%20L69.8%2062.4%20L68.1%2063.2%20L66.8%2064.1%20L65.8%2065.2%20L65.0%2066.6%20L64.3%2068.3%20L63.7%2070.3%20L63.0%2072.5%20L62.1%2074.8%20L60.9%2077.1%20L59.5%2079.2%20L57.7%2081.1%20L55.7%2082.5%20L53.5%2083.4%20L51.2%2083.7%20L48.8%2083.4%20L46.6%2082.6%20L44.5%2081.3%20L42.6%2079.6%20L41.0%2077.8%20L39.6%2075.8%20L38.4%2073.9%20L37.2%2072.1%20L36.1%2070.6%20L34.9%2069.3%20L33.6%2068.3%20L32.0%2067.4%20L30.1%2066.7%20L28.0%2066.0%20L25.7%2065.2%20L23.3%2064.2%20L20.9%2063.0%20L18.7%2061.4%20L16.8%2059.5%20L15.3%2057.4%20L14.4%2055.0%20L14.2%2052.5%20L14.5%2050.0%20L15.5%2047.6%20L17.0%2045.4%20L19.0%2043.4%20L21.2%2041.8%20L23.6%2040.4%20L26.0%2039.3%20L28.2%2038.4%20L30.2%2037.6%20L31.9%2036.8%20L33.2%2035.9%20L34.2%2034.8%20L35.0%2033.4%20L35.7%2031.7%20L36.3%2029.7%20L37.0%2027.5%20L37.9%2025.2%20L39.1%2022.9%20L40.5%2020.8%20L42.3%2018.9%20L44.3%2017.5%20L46.5%2016.6%20L48.8%2016.3%20L51.2%2016.6%20L53.4%2017.4%20L55.5%2018.7%20L57.4%2020.4%20L59.0%2022.2%20L60.4%2024.2%20L61.6%2026.1%20L62.8%2027.9%20L63.9%2029.4%20L65.1%2030.7%20L66.4%2031.7%20L68.0%2032.6%20L69.9%2033.3%20L72.0%2034.0%20L74.3%2034.8%20L76.7%2035.8%20L79.1%2037.0%20L81.3%2038.6%20L83.2%2040.5%20L84.7%2042.6%20L85.6%2045.0%20L85.8%2047.5Z'/%3E%3Ccircle%20cx='88.0'%20cy='86.0'%20r='4.0'/%3E%3Ccircle%20cx='12.0'%20cy='14.0'%20r='3.0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M85.5%2050.0%20L84.5%2052.4%20L83.0%2054.6%20L81.0%2056.6%20L78.8%2058.2%20L76.4%2059.6%20L74.0%2060.7%20L71.8%2061.6%20L69.8%2062.4%20L68.1%2063.2%20L66.8%2064.1%20L65.8%2065.2%20L65.0%2066.6%20L64.3%2068.3%20L63.7%2070.3%20L63.0%2072.5%20L62.1%2074.8%20L60.9%2077.1%20L59.5%2079.2%20L57.7%2081.1%20L55.7%2082.5%20L53.5%2083.4%20L51.2%2083.7%20L48.8%2083.4%20L46.6%2082.6%20L44.5%2081.3%20L42.6%2079.6%20L41.0%2077.8%20L39.6%2075.8%20L38.4%2073.9%20L37.2%2072.1%20L36.1%2070.6%20L34.9%2069.3%20L33.6%2068.3%20L32.0%2067.4%20L30.1%2066.7%20L28.0%2066.0%20L25.7%2065.2%20L23.3%2064.2%20L20.9%2063.0%20L18.7%2061.4%20L16.8%2059.5%20L15.3%2057.4%20L14.4%2055.0%20L14.2%2052.5%20L14.5%2050.0%20L15.5%2047.6%20L17.0%2045.4%20L19.0%2043.4%20L21.2%2041.8%20L23.6%2040.4%20L26.0%2039.3%20L28.2%2038.4%20L30.2%2037.6%20L31.9%2036.8%20L33.2%2035.9%20L34.2%2034.8%20L35.0%2033.4%20L35.7%2031.7%20L36.3%2029.7%20L37.0%2027.5%20L37.9%2025.2%20L39.1%2022.9%20L40.5%2020.8%20L42.3%2018.9%20L44.3%2017.5%20L46.5%2016.6%20L48.8%2016.3%20L51.2%2016.6%20L53.4%2017.4%20L55.5%2018.7%20L57.4%2020.4%20L59.0%2022.2%20L60.4%2024.2%20L61.6%2026.1%20L62.8%2027.9%20L63.9%2029.4%20L65.1%2030.7%20L66.4%2031.7%20L68.0%2032.6%20L69.9%2033.3%20L72.0%2034.0%20L74.3%2034.8%20L76.7%2035.8%20L79.1%2037.0%20L81.3%2038.6%20L83.2%2040.5%20L84.7%2042.6%20L85.6%2045.0%20L85.8%2047.5Z'/%3E%3Ccircle%20cx='88.0'%20cy='86.0'%20r='4.0'/%3E%3Ccircle%20cx='12.0'%20cy='14.0'%20r='3.0'/%3E%3C/svg%3E") center/contain no-repeat}
-html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp3{height:72%;transform:rotate(-14deg) scale(1.15) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M88.8%2050.0%20L87.9%2051.4%20L86.8%2052.7%20L85.6%2053.9%20L84.2%2055.1%20L82.7%2056.2%20L81.2%2057.2%20L79.6%2058.2%20L78.0%2059.1%20L76.5%2060.0%20L75.0%2060.9%20L73.5%2061.8%20L72.0%2062.7%20L70.5%2063.6%20L68.9%2064.6%20L67.3%2065.6%20L65.6%2066.6%20L63.7%2067.6%20L61.6%2068.6%20L59.4%2069.6%20L56.9%2070.5%20L54.3%2071.3%20L51.5%2072.0%20L48.5%2072.5%20L45.4%2072.9%20L42.2%2073.1%20L38.9%2073.0%20L35.8%2072.8%20L32.6%2072.3%20L29.7%2071.7%20L26.9%2070.8%20L24.4%2069.7%20L22.2%2068.5%20L20.3%2067.2%20L18.7%2065.7%20L17.4%2064.2%20L16.4%2062.7%20L15.7%2061.1%20L15.3%2059.6%20L15.1%2058.1%20L15.1%2056.6%20L15.2%2055.2%20L15.4%2053.8%20L15.7%2052.5%20L16.0%2051.2%20L16.3%2050.0%20L16.6%2048.8%20L16.9%2047.6%20L17.2%2046.4%20L17.5%2045.2%20L17.9%2043.9%20L18.4%2042.7%20L19.0%2041.4%20L19.7%2040.2%20L20.6%2038.9%20L21.7%2037.6%20L23.0%2036.4%20L24.4%2035.2%20L26.2%2034.1%20L28.1%2033.1%20L30.2%2032.2%20L32.5%2031.3%20L34.9%2030.6%20L37.5%2030.0%20L40.2%2029.5%20L42.9%2029.2%20L45.7%2029.0%20L48.6%2028.9%20L51.4%2028.9%20L54.3%2029.0%20L57.1%2029.2%20L59.9%2029.4%20L62.6%2029.8%20L65.3%2030.3%20L68.0%2030.8%20L70.6%2031.5%20L73.1%2032.2%20L75.5%2033.0%20L77.9%2033.9%20L80.1%2034.9%20L82.1%2036.0%20L84.0%2037.2%20L85.6%2038.4%20L87.0%2039.8%20L88.1%2041.2%20L89.0%2042.6%20L89.5%2044.1%20L89.8%2045.6%20L89.7%2047.1%20L89.4%2048.6Z'/%3E%3Ccircle%20cx='92.0'%20cy='30.0'%20r='4.2'/%3E%3Ccircle%20cx='8.0'%20cy='72.0'%20r='3.2'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M88.8%2050.0%20L87.9%2051.4%20L86.8%2052.7%20L85.6%2053.9%20L84.2%2055.1%20L82.7%2056.2%20L81.2%2057.2%20L79.6%2058.2%20L78.0%2059.1%20L76.5%2060.0%20L75.0%2060.9%20L73.5%2061.8%20L72.0%2062.7%20L70.5%2063.6%20L68.9%2064.6%20L67.3%2065.6%20L65.6%2066.6%20L63.7%2067.6%20L61.6%2068.6%20L59.4%2069.6%20L56.9%2070.5%20L54.3%2071.3%20L51.5%2072.0%20L48.5%2072.5%20L45.4%2072.9%20L42.2%2073.1%20L38.9%2073.0%20L35.8%2072.8%20L32.6%2072.3%20L29.7%2071.7%20L26.9%2070.8%20L24.4%2069.7%20L22.2%2068.5%20L20.3%2067.2%20L18.7%2065.7%20L17.4%2064.2%20L16.4%2062.7%20L15.7%2061.1%20L15.3%2059.6%20L15.1%2058.1%20L15.1%2056.6%20L15.2%2055.2%20L15.4%2053.8%20L15.7%2052.5%20L16.0%2051.2%20L16.3%2050.0%20L16.6%2048.8%20L16.9%2047.6%20L17.2%2046.4%20L17.5%2045.2%20L17.9%2043.9%20L18.4%2042.7%20L19.0%2041.4%20L19.7%2040.2%20L20.6%2038.9%20L21.7%2037.6%20L23.0%2036.4%20L24.4%2035.2%20L26.2%2034.1%20L28.1%2033.1%20L30.2%2032.2%20L32.5%2031.3%20L34.9%2030.6%20L37.5%2030.0%20L40.2%2029.5%20L42.9%2029.2%20L45.7%2029.0%20L48.6%2028.9%20L51.4%2028.9%20L54.3%2029.0%20L57.1%2029.2%20L59.9%2029.4%20L62.6%2029.8%20L65.3%2030.3%20L68.0%2030.8%20L70.6%2031.5%20L73.1%2032.2%20L75.5%2033.0%20L77.9%2033.9%20L80.1%2034.9%20L82.1%2036.0%20L84.0%2037.2%20L85.6%2038.4%20L87.0%2039.8%20L88.1%2041.2%20L89.0%2042.6%20L89.5%2044.1%20L89.8%2045.6%20L89.7%2047.1%20L89.4%2048.6Z'/%3E%3Ccircle%20cx='92.0'%20cy='30.0'%20r='4.2'/%3E%3Ccircle%20cx='8.0'%20cy='72.0'%20r='3.2'/%3E%3C/svg%3E") center/contain no-repeat}
-html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp4{height:92%;transform:rotate(0deg) scale(1.4) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M88.6%2050.0%20L87.5%2052.6%20L85.9%2055.0%20L84.0%2057.2%20L81.8%2059.1%20L79.5%2060.7%20L77.2%2062.1%20L75.1%2063.3%20L73.0%2064.4%20L71.1%2065.3%20L69.3%2066.2%20L67.6%2067.0%20L65.9%2067.7%20L64.3%2068.3%20L62.8%2069.0%20L61.4%2069.7%20L60.0%2070.4%20L58.6%2071.4%20L57.3%2072.6%20L56.0%2074.1%20L54.6%2075.8%20L52.9%2077.8%20L51.0%2079.9%20L48.9%2082.0%20L46.4%2083.9%20L43.8%2085.4%20L40.9%2086.3%20L38.1%2086.6%20L35.4%2086.2%20L32.9%2085.1%20L30.7%2083.4%20L29.0%2081.2%20L27.7%2078.6%20L26.8%2075.8%20L26.2%2073.0%20L26.0%2070.2%20L25.9%2067.5%20L25.9%2065.0%20L26.0%2062.7%20L26.2%2060.6%20L26.3%2058.6%20L26.5%2056.7%20L26.7%2054.9%20L26.9%2053.2%20L27.2%2051.6%20L27.3%2050.0%20L27.3%2048.4%20L27.1%2046.8%20L26.8%2045.1%20L26.1%2043.2%20L25.4%2041.0%20L24.5%2038.6%20L23.6%2036.0%20L22.9%2033.0%20L22.5%2030.0%20L22.5%2026.9%20L23.1%2024.0%20L24.2%2021.4%20L25.9%2019.2%20L28.1%2017.6%20L30.7%2016.6%20L33.5%2016.2%20L36.4%2016.4%20L39.3%2017.0%20L42.0%2017.9%20L44.6%2019.1%20L46.9%2020.4%20L49.0%2021.6%20L50.9%2022.9%20L52.7%2024.1%20L54.4%2025.2%20L55.9%2026.3%20L57.4%2027.4%20L58.7%2028.4%20L60.0%2029.4%20L61.4%2030.3%20L62.7%2031.1%20L64.2%2031.8%20L65.9%2032.3%20L67.8%2032.8%20L70.1%2033.1%20L72.6%2033.6%20L75.4%2034.1%20L78.3%2035.0%20L81.1%2036.1%20L83.7%2037.7%20L86.0%2039.7%20L87.7%2042.0%20L88.7%2044.6%20L89.0%2047.3Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M88.6%2050.0%20L87.5%2052.6%20L85.9%2055.0%20L84.0%2057.2%20L81.8%2059.1%20L79.5%2060.7%20L77.2%2062.1%20L75.1%2063.3%20L73.0%2064.4%20L71.1%2065.3%20L69.3%2066.2%20L67.6%2067.0%20L65.9%2067.7%20L64.3%2068.3%20L62.8%2069.0%20L61.4%2069.7%20L60.0%2070.4%20L58.6%2071.4%20L57.3%2072.6%20L56.0%2074.1%20L54.6%2075.8%20L52.9%2077.8%20L51.0%2079.9%20L48.9%2082.0%20L46.4%2083.9%20L43.8%2085.4%20L40.9%2086.3%20L38.1%2086.6%20L35.4%2086.2%20L32.9%2085.1%20L30.7%2083.4%20L29.0%2081.2%20L27.7%2078.6%20L26.8%2075.8%20L26.2%2073.0%20L26.0%2070.2%20L25.9%2067.5%20L25.9%2065.0%20L26.0%2062.7%20L26.2%2060.6%20L26.3%2058.6%20L26.5%2056.7%20L26.7%2054.9%20L26.9%2053.2%20L27.2%2051.6%20L27.3%2050.0%20L27.3%2048.4%20L27.1%2046.8%20L26.8%2045.1%20L26.1%2043.2%20L25.4%2041.0%20L24.5%2038.6%20L23.6%2036.0%20L22.9%2033.0%20L22.5%2030.0%20L22.5%2026.9%20L23.1%2024.0%20L24.2%2021.4%20L25.9%2019.2%20L28.1%2017.6%20L30.7%2016.6%20L33.5%2016.2%20L36.4%2016.4%20L39.3%2017.0%20L42.0%2017.9%20L44.6%2019.1%20L46.9%2020.4%20L49.0%2021.6%20L50.9%2022.9%20L52.7%2024.1%20L54.4%2025.2%20L55.9%2026.3%20L57.4%2027.4%20L58.7%2028.4%20L60.0%2029.4%20L61.4%2030.3%20L62.7%2031.1%20L64.2%2031.8%20L65.9%2032.3%20L67.8%2032.8%20L70.1%2033.1%20L72.6%2033.6%20L75.4%2034.1%20L78.3%2035.0%20L81.1%2036.1%20L83.7%2037.7%20L86.0%2039.7%20L87.7%2042.0%20L88.7%2044.6%20L89.0%2047.3Z'/%3E%3C/svg%3E") center/contain no-repeat}
-html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp5{height:96%;transform:rotate(6deg) scale(1.3) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M81.3%2050.0%20L79.1%2052.0%20L76.7%2053.7%20L74.3%2055.2%20L72.2%2056.4%20L70.5%2057.5%20L69.4%2058.7%20L68.9%2060.1%20L69.0%2061.8%20L69.3%2064.0%20L69.7%2066.6%20L70.0%2069.4%20L70.0%2072.2%20L69.5%2075.0%20L68.4%2077.3%20L66.8%2079.1%20L64.7%2080.2%20L62.3%2080.5%20L59.8%2080.2%20L57.3%2079.3%20L54.9%2078.0%20L52.8%2076.6%20L50.9%2075.4%20L49.1%2074.6%20L47.4%2074.3%20L45.7%2074.5%20L43.7%2075.2%20L41.5%2076.3%20L38.9%2077.5%20L36.1%2078.5%20L33.2%2079.2%20L30.3%2079.3%20L27.6%2078.6%20L25.4%2077.3%20L23.8%2075.3%20L23.0%2072.7%20L22.8%2069.8%20L23.2%2066.7%20L24.1%2063.8%20L25.2%2061.0%20L26.2%2058.6%20L27.0%2056.6%20L27.3%2054.8%20L27.1%2053.2%20L26.3%2051.7%20L25.0%2050.0%20L23.4%2048.1%20L21.9%2046.0%20L20.5%2043.7%20L19.7%2041.3%20L19.4%2038.9%20L20.0%2036.6%20L21.3%2034.7%20L23.2%2033.3%20L25.6%2032.3%20L28.3%2031.8%20L31.0%2031.7%20L33.5%2031.7%20L35.7%2031.8%20L37.6%2031.6%20L39.0%2030.9%20L40.1%2029.8%20L41.1%2028.0%20L42.1%2025.8%20L43.3%2023.2%20L44.8%2020.6%20L46.6%2018.1%20L48.8%2016.0%20L51.2%2014.7%20L53.8%2014.2%20L56.2%2014.6%20L58.5%2015.8%20L60.5%2017.8%20L62.0%2020.2%20L63.3%2022.8%20L64.2%2025.4%20L65.0%2027.8%20L65.8%2029.8%20L66.8%2031.3%20L68.2%2032.4%20L70.0%2033.3%20L72.1%2033.9%20L74.6%2034.6%20L77.2%2035.5%20L79.7%2036.8%20L81.8%2038.4%20L83.3%2040.5%20L84.0%2042.8%20L83.9%2045.2%20L83.0%2047.7Z'/%3E%3Ccircle%20cx='90.0'%20cy='82.0'%20r='3.8'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M81.3%2050.0%20L79.1%2052.0%20L76.7%2053.7%20L74.3%2055.2%20L72.2%2056.4%20L70.5%2057.5%20L69.4%2058.7%20L68.9%2060.1%20L69.0%2061.8%20L69.3%2064.0%20L69.7%2066.6%20L70.0%2069.4%20L70.0%2072.2%20L69.5%2075.0%20L68.4%2077.3%20L66.8%2079.1%20L64.7%2080.2%20L62.3%2080.5%20L59.8%2080.2%20L57.3%2079.3%20L54.9%2078.0%20L52.8%2076.6%20L50.9%2075.4%20L49.1%2074.6%20L47.4%2074.3%20L45.7%2074.5%20L43.7%2075.2%20L41.5%2076.3%20L38.9%2077.5%20L36.1%2078.5%20L33.2%2079.2%20L30.3%2079.3%20L27.6%2078.6%20L25.4%2077.3%20L23.8%2075.3%20L23.0%2072.7%20L22.8%2069.8%20L23.2%2066.7%20L24.1%2063.8%20L25.2%2061.0%20L26.2%2058.6%20L27.0%2056.6%20L27.3%2054.8%20L27.1%2053.2%20L26.3%2051.7%20L25.0%2050.0%20L23.4%2048.1%20L21.9%2046.0%20L20.5%2043.7%20L19.7%2041.3%20L19.4%2038.9%20L20.0%2036.6%20L21.3%2034.7%20L23.2%2033.3%20L25.6%2032.3%20L28.3%2031.8%20L31.0%2031.7%20L33.5%2031.7%20L35.7%2031.8%20L37.6%2031.6%20L39.0%2030.9%20L40.1%2029.8%20L41.1%2028.0%20L42.1%2025.8%20L43.3%2023.2%20L44.8%2020.6%20L46.6%2018.1%20L48.8%2016.0%20L51.2%2014.7%20L53.8%2014.2%20L56.2%2014.6%20L58.5%2015.8%20L60.5%2017.8%20L62.0%2020.2%20L63.3%2022.8%20L64.2%2025.4%20L65.0%2027.8%20L65.8%2029.8%20L66.8%2031.3%20L68.2%2032.4%20L70.0%2033.3%20L72.1%2033.9%20L74.6%2034.6%20L77.2%2035.5%20L79.7%2036.8%20L81.8%2038.4%20L83.3%2040.5%20L84.0%2042.8%20L83.9%2045.2%20L83.0%2047.7Z'/%3E%3Ccircle%20cx='90.0'%20cy='82.0'%20r='3.8'/%3E%3C/svg%3E") center/contain no-repeat}
-html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp6{height:80%;transform:rotate(-6deg) scale(1.2) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M87.4%2050.0%20L86.5%2051.8%20L85.4%2053.6%20L84.3%2055.2%20L83.1%2056.8%20L81.8%2058.3%20L80.5%2059.8%20L79.3%2061.2%20L78.0%2062.6%20L76.7%2064.0%20L75.4%2065.3%20L74.0%2066.7%20L72.6%2068.1%20L71.1%2069.5%20L69.5%2070.9%20L67.8%2072.2%20L66.0%2073.6%20L63.9%2074.8%20L61.7%2076.0%20L59.4%2077.0%20L56.8%2077.9%20L54.2%2078.6%20L51.4%2079.1%20L48.6%2079.3%20L45.7%2079.3%20L42.9%2079.0%20L40.1%2078.5%20L37.5%2077.7%20L35.0%2076.7%20L32.8%2075.4%20L30.8%2074.0%20L29.0%2072.4%20L27.5%2070.7%20L26.3%2068.9%20L25.4%2067.1%20L24.8%2065.2%20L24.4%2063.4%20L24.2%2061.6%20L24.1%2059.9%20L24.2%2058.3%20L24.4%2056.7%20L24.6%2055.2%20L24.9%2053.8%20L25.2%2052.5%20L25.4%2051.2%20L25.7%2050.0%20L25.9%2048.8%20L26.1%2047.6%20L26.2%2046.4%20L26.4%2045.1%20L26.6%2043.9%20L26.8%2042.6%20L27.1%2041.2%20L27.4%2039.8%20L27.9%2038.5%20L28.5%2037.0%20L29.3%2035.6%20L30.2%2034.2%20L31.3%2032.8%20L32.6%2031.4%20L34.0%2030.1%20L35.7%2028.8%20L37.4%2027.6%20L39.4%2026.5%20L41.5%2025.5%20L43.8%2024.6%20L46.2%2023.8%20L48.7%2023.2%20L51.3%2022.6%20L54.0%2022.3%20L56.8%2022.1%20L59.7%2022.0%20L62.6%2022.2%20L65.4%2022.5%20L68.3%2023.0%20L71.1%2023.7%20L73.8%2024.6%20L76.4%2025.7%20L78.8%2027.0%20L81.0%2028.4%20L83.0%2030.1%20L84.8%2031.8%20L86.2%2033.7%20L87.4%2035.7%20L88.2%2037.7%20L88.8%2039.8%20L89.0%2041.9%20L89.0%2044.0%20L88.7%2046.1%20L88.2%2048.1Z'/%3E%3Ccircle%20cx='88.0'%20cy='18.0'%20r='4.4'/%3E%3Ccircle%20cx='14.0'%20cy='84.0'%20r='3.0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M87.4%2050.0%20L86.5%2051.8%20L85.4%2053.6%20L84.3%2055.2%20L83.1%2056.8%20L81.8%2058.3%20L80.5%2059.8%20L79.3%2061.2%20L78.0%2062.6%20L76.7%2064.0%20L75.4%2065.3%20L74.0%2066.7%20L72.6%2068.1%20L71.1%2069.5%20L69.5%2070.9%20L67.8%2072.2%20L66.0%2073.6%20L63.9%2074.8%20L61.7%2076.0%20L59.4%2077.0%20L56.8%2077.9%20L54.2%2078.6%20L51.4%2079.1%20L48.6%2079.3%20L45.7%2079.3%20L42.9%2079.0%20L40.1%2078.5%20L37.5%2077.7%20L35.0%2076.7%20L32.8%2075.4%20L30.8%2074.0%20L29.0%2072.4%20L27.5%2070.7%20L26.3%2068.9%20L25.4%2067.1%20L24.8%2065.2%20L24.4%2063.4%20L24.2%2061.6%20L24.1%2059.9%20L24.2%2058.3%20L24.4%2056.7%20L24.6%2055.2%20L24.9%2053.8%20L25.2%2052.5%20L25.4%2051.2%20L25.7%2050.0%20L25.9%2048.8%20L26.1%2047.6%20L26.2%2046.4%20L26.4%2045.1%20L26.6%2043.9%20L26.8%2042.6%20L27.1%2041.2%20L27.4%2039.8%20L27.9%2038.5%20L28.5%2037.0%20L29.3%2035.6%20L30.2%2034.2%20L31.3%2032.8%20L32.6%2031.4%20L34.0%2030.1%20L35.7%2028.8%20L37.4%2027.6%20L39.4%2026.5%20L41.5%2025.5%20L43.8%2024.6%20L46.2%2023.8%20L48.7%2023.2%20L51.3%2022.6%20L54.0%2022.3%20L56.8%2022.1%20L59.7%2022.0%20L62.6%2022.2%20L65.4%2022.5%20L68.3%2023.0%20L71.1%2023.7%20L73.8%2024.6%20L76.4%2025.7%20L78.8%2027.0%20L81.0%2028.4%20L83.0%2030.1%20L84.8%2031.8%20L86.2%2033.7%20L87.4%2035.7%20L88.2%2037.7%20L88.8%2039.8%20L89.0%2041.9%20L89.0%2044.0%20L88.7%2046.1%20L88.2%2048.1Z'/%3E%3Ccircle%20cx='88.0'%20cy='18.0'%20r='4.4'/%3E%3Ccircle%20cx='14.0'%20cy='84.0'%20r='3.0'/%3E%3C/svg%3E") center/contain no-repeat}
-html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw.sp7{height:78%;transform:rotate(0deg) scale(1.32) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M85.3%2050.0%20L84.0%2052.4%20L82.1%2054.5%20L79.9%2056.4%20L77.6%2057.9%20L75.6%2059.3%20L74.0%2060.7%20L72.9%2062.2%20L72.3%2063.9%20L72.0%2066.0%20L71.8%2068.3%20L71.4%2070.7%20L70.8%2073.1%20L69.6%2075.1%20L68.0%2076.7%20L66.0%2077.7%20L63.7%2078.0%20L61.2%2077.8%20L58.8%2077.2%20L56.6%2076.5%20L54.6%2076.0%20L52.7%2075.9%20L50.9%2076.3%20L49.1%2077.2%20L47.0%2078.5%20L44.7%2080.0%20L42.2%2081.4%20L39.5%2082.4%20L36.8%2082.8%20L34.2%2082.3%20L32.0%2081.2%20L30.2%2079.3%20L28.9%2077.0%20L28.0%2074.4%20L27.3%2071.9%20L26.7%2069.6%20L25.8%2067.5%20L24.7%2065.8%20L23.2%2064.3%20L21.3%2062.8%20L19.3%2061.2%20L17.3%2059.4%20L15.6%2057.3%20L14.5%2055.0%20L14.2%2052.5%20L14.7%2050.0%20L16.0%2047.6%20L17.9%2045.5%20L20.1%2043.6%20L22.4%2042.1%20L24.4%2040.7%20L26.0%2039.3%20L27.1%2037.8%20L27.7%2036.1%20L28.0%2034.0%20L28.2%2031.7%20L28.6%2029.3%20L29.2%2026.9%20L30.4%2024.9%20L32.0%2023.3%20L34.0%2022.3%20L36.3%2022.0%20L38.8%2022.2%20L41.2%2022.8%20L43.4%2023.5%20L45.4%2024.0%20L47.3%2024.1%20L49.1%2023.7%20L50.9%2022.8%20L53.0%2021.5%20L55.3%2020.0%20L57.8%2018.6%20L60.5%2017.6%20L63.2%2017.2%20L65.8%2017.7%20L68.0%2018.8%20L69.8%2020.7%20L71.1%2023.0%20L72.0%2025.6%20L72.7%2028.1%20L73.3%2030.4%20L74.2%2032.5%20L75.3%2034.2%20L76.8%2035.7%20L78.7%2037.2%20L80.7%2038.8%20L82.7%2040.6%20L84.4%2042.7%20L85.5%2045.0%20L85.8%2047.5Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M85.3%2050.0%20L84.0%2052.4%20L82.1%2054.5%20L79.9%2056.4%20L77.6%2057.9%20L75.6%2059.3%20L74.0%2060.7%20L72.9%2062.2%20L72.3%2063.9%20L72.0%2066.0%20L71.8%2068.3%20L71.4%2070.7%20L70.8%2073.1%20L69.6%2075.1%20L68.0%2076.7%20L66.0%2077.7%20L63.7%2078.0%20L61.2%2077.8%20L58.8%2077.2%20L56.6%2076.5%20L54.6%2076.0%20L52.7%2075.9%20L50.9%2076.3%20L49.1%2077.2%20L47.0%2078.5%20L44.7%2080.0%20L42.2%2081.4%20L39.5%2082.4%20L36.8%2082.8%20L34.2%2082.3%20L32.0%2081.2%20L30.2%2079.3%20L28.9%2077.0%20L28.0%2074.4%20L27.3%2071.9%20L26.7%2069.6%20L25.8%2067.5%20L24.7%2065.8%20L23.2%2064.3%20L21.3%2062.8%20L19.3%2061.2%20L17.3%2059.4%20L15.6%2057.3%20L14.5%2055.0%20L14.2%2052.5%20L14.7%2050.0%20L16.0%2047.6%20L17.9%2045.5%20L20.1%2043.6%20L22.4%2042.1%20L24.4%2040.7%20L26.0%2039.3%20L27.1%2037.8%20L27.7%2036.1%20L28.0%2034.0%20L28.2%2031.7%20L28.6%2029.3%20L29.2%2026.9%20L30.4%2024.9%20L32.0%2023.3%20L34.0%2022.3%20L36.3%2022.0%20L38.8%2022.2%20L41.2%2022.8%20L43.4%2023.5%20L45.4%2024.0%20L47.3%2024.1%20L49.1%2023.7%20L50.9%2022.8%20L53.0%2021.5%20L55.3%2020.0%20L57.8%2018.6%20L60.5%2017.6%20L63.2%2017.2%20L65.8%2017.7%20L68.0%2018.8%20L69.8%2020.7%20L71.1%2023.0%20L72.0%2025.6%20L72.7%2028.1%20L73.3%2030.4%20L74.2%2032.5%20L75.3%2034.2%20L76.8%2035.7%20L78.7%2037.2%20L80.7%2038.8%20L82.7%2040.6%20L84.4%2042.7%20L85.5%2045.0%20L85.8%2047.5Z'/%3E%3C/svg%3E") center/contain no-repeat}
-html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw::before{content:"";position:absolute;inset:0;border-radius:0;pointer-events:none;
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph.c-peinture .bqSw.pSw.sp0{height:90%;transform:rotate(-8deg) scale(1.4) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M83.4%2050.0%20L82.6%2052.3%20L81.6%2054.4%20L80.5%2056.5%20L79.3%2058.4%20L78.0%2060.2%20L76.7%2061.9%20L75.4%2063.5%20L74.1%2065.1%20L72.8%2066.6%20L71.5%2068.0%20L70.1%2069.4%20L68.8%2070.8%20L67.4%2072.2%20L65.9%2073.5%20L64.3%2074.8%20L62.7%2076.0%20L61.0%2077.2%20L59.2%2078.2%20L57.2%2079.1%20L55.2%2079.8%20L53.2%2080.3%20L51.1%2080.6%20L48.9%2080.8%20L46.8%2080.7%20L44.6%2080.5%20L42.5%2080.0%20L40.5%2079.3%20L38.5%2078.5%20L36.5%2077.6%20L34.7%2076.5%20L32.9%2075.3%20L31.2%2074.0%20L29.6%2072.7%20L28.0%2071.2%20L26.5%2069.7%20L25.1%2068.1%20L23.7%2066.5%20L22.3%2064.7%20L21.1%2062.9%20L19.9%2061.0%20L18.8%2059.0%20L17.8%2056.8%20L17.0%2054.6%20L16.4%2052.4%20L16.0%2050.0%20L15.8%2047.6%20L15.8%2045.2%20L16.2%2042.8%20L16.8%2040.5%20L17.7%2038.2%20L18.8%2036.1%20L20.2%2034.1%20L21.8%2032.4%20L23.6%2030.8%20L25.5%2029.4%20L27.5%2028.3%20L29.6%2027.4%20L31.8%2026.7%20L33.9%2026.1%20L36.0%2025.7%20L38.0%2025.4%20L40.0%2025.2%20L41.9%2025.1%20L43.7%2024.9%20L45.5%2024.7%20L47.3%2024.5%20L49.1%2024.3%20L50.9%2024.0%20L52.8%2023.7%20L54.7%2023.4%20L56.7%2023.1%20L58.8%2022.9%20L61.0%2022.8%20L63.3%2022.8%20L65.6%2022.9%20L68.0%2023.3%20L70.4%2023.9%20L72.7%2024.8%20L74.9%2025.9%20L77.0%2027.4%20L78.9%2029.0%20L80.5%2030.9%20L81.9%2033.0%20L83.0%2035.3%20L83.8%2037.7%20L84.3%2040.2%20L84.5%2042.7%20L84.4%2045.2%20L84.0%2047.6Z'/%3E%3Ccircle%20cx='86.0'%20cy='20.0'%20r='5.0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M83.4%2050.0%20L82.6%2052.3%20L81.6%2054.4%20L80.5%2056.5%20L79.3%2058.4%20L78.0%2060.2%20L76.7%2061.9%20L75.4%2063.5%20L74.1%2065.1%20L72.8%2066.6%20L71.5%2068.0%20L70.1%2069.4%20L68.8%2070.8%20L67.4%2072.2%20L65.9%2073.5%20L64.3%2074.8%20L62.7%2076.0%20L61.0%2077.2%20L59.2%2078.2%20L57.2%2079.1%20L55.2%2079.8%20L53.2%2080.3%20L51.1%2080.6%20L48.9%2080.8%20L46.8%2080.7%20L44.6%2080.5%20L42.5%2080.0%20L40.5%2079.3%20L38.5%2078.5%20L36.5%2077.6%20L34.7%2076.5%20L32.9%2075.3%20L31.2%2074.0%20L29.6%2072.7%20L28.0%2071.2%20L26.5%2069.7%20L25.1%2068.1%20L23.7%2066.5%20L22.3%2064.7%20L21.1%2062.9%20L19.9%2061.0%20L18.8%2059.0%20L17.8%2056.8%20L17.0%2054.6%20L16.4%2052.4%20L16.0%2050.0%20L15.8%2047.6%20L15.8%2045.2%20L16.2%2042.8%20L16.8%2040.5%20L17.7%2038.2%20L18.8%2036.1%20L20.2%2034.1%20L21.8%2032.4%20L23.6%2030.8%20L25.5%2029.4%20L27.5%2028.3%20L29.6%2027.4%20L31.8%2026.7%20L33.9%2026.1%20L36.0%2025.7%20L38.0%2025.4%20L40.0%2025.2%20L41.9%2025.1%20L43.7%2024.9%20L45.5%2024.7%20L47.3%2024.5%20L49.1%2024.3%20L50.9%2024.0%20L52.8%2023.7%20L54.7%2023.4%20L56.7%2023.1%20L58.8%2022.9%20L61.0%2022.8%20L63.3%2022.8%20L65.6%2022.9%20L68.0%2023.3%20L70.4%2023.9%20L72.7%2024.8%20L74.9%2025.9%20L77.0%2027.4%20L78.9%2029.0%20L80.5%2030.9%20L81.9%2033.0%20L83.0%2035.3%20L83.8%2037.7%20L84.3%2040.2%20L84.5%2042.7%20L84.4%2045.2%20L84.0%2047.6Z'/%3E%3Ccircle%20cx='86.0'%20cy='20.0'%20r='5.0'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph.c-peinture .bqSw.pSw.sp1{height:88%;transform:rotate(12deg) scale(1.3) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M50%206%20C58%2024%2080%2038%2080%2060%20C80%2078%2066%2092%2050%2092%20C34%2092%2020%2078%2020%2060%20C20%2038%2042%2024%2050%206Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M50%206%20C58%2024%2080%2038%2080%2060%20C80%2078%2066%2092%2050%2092%20C34%2092%2020%2078%2020%2060%20C20%2038%2042%2024%2050%206Z'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph.c-peinture .bqSw.pSw.sp2{height:94%;transform:rotate(0deg) scale(1.38) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M85.5%2050.0%20L84.5%2052.4%20L83.0%2054.6%20L81.0%2056.6%20L78.8%2058.2%20L76.4%2059.6%20L74.0%2060.7%20L71.8%2061.6%20L69.8%2062.4%20L68.1%2063.2%20L66.8%2064.1%20L65.8%2065.2%20L65.0%2066.6%20L64.3%2068.3%20L63.7%2070.3%20L63.0%2072.5%20L62.1%2074.8%20L60.9%2077.1%20L59.5%2079.2%20L57.7%2081.1%20L55.7%2082.5%20L53.5%2083.4%20L51.2%2083.7%20L48.8%2083.4%20L46.6%2082.6%20L44.5%2081.3%20L42.6%2079.6%20L41.0%2077.8%20L39.6%2075.8%20L38.4%2073.9%20L37.2%2072.1%20L36.1%2070.6%20L34.9%2069.3%20L33.6%2068.3%20L32.0%2067.4%20L30.1%2066.7%20L28.0%2066.0%20L25.7%2065.2%20L23.3%2064.2%20L20.9%2063.0%20L18.7%2061.4%20L16.8%2059.5%20L15.3%2057.4%20L14.4%2055.0%20L14.2%2052.5%20L14.5%2050.0%20L15.5%2047.6%20L17.0%2045.4%20L19.0%2043.4%20L21.2%2041.8%20L23.6%2040.4%20L26.0%2039.3%20L28.2%2038.4%20L30.2%2037.6%20L31.9%2036.8%20L33.2%2035.9%20L34.2%2034.8%20L35.0%2033.4%20L35.7%2031.7%20L36.3%2029.7%20L37.0%2027.5%20L37.9%2025.2%20L39.1%2022.9%20L40.5%2020.8%20L42.3%2018.9%20L44.3%2017.5%20L46.5%2016.6%20L48.8%2016.3%20L51.2%2016.6%20L53.4%2017.4%20L55.5%2018.7%20L57.4%2020.4%20L59.0%2022.2%20L60.4%2024.2%20L61.6%2026.1%20L62.8%2027.9%20L63.9%2029.4%20L65.1%2030.7%20L66.4%2031.7%20L68.0%2032.6%20L69.9%2033.3%20L72.0%2034.0%20L74.3%2034.8%20L76.7%2035.8%20L79.1%2037.0%20L81.3%2038.6%20L83.2%2040.5%20L84.7%2042.6%20L85.6%2045.0%20L85.8%2047.5Z'/%3E%3Ccircle%20cx='88.0'%20cy='86.0'%20r='4.0'/%3E%3Ccircle%20cx='12.0'%20cy='14.0'%20r='3.0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M85.5%2050.0%20L84.5%2052.4%20L83.0%2054.6%20L81.0%2056.6%20L78.8%2058.2%20L76.4%2059.6%20L74.0%2060.7%20L71.8%2061.6%20L69.8%2062.4%20L68.1%2063.2%20L66.8%2064.1%20L65.8%2065.2%20L65.0%2066.6%20L64.3%2068.3%20L63.7%2070.3%20L63.0%2072.5%20L62.1%2074.8%20L60.9%2077.1%20L59.5%2079.2%20L57.7%2081.1%20L55.7%2082.5%20L53.5%2083.4%20L51.2%2083.7%20L48.8%2083.4%20L46.6%2082.6%20L44.5%2081.3%20L42.6%2079.6%20L41.0%2077.8%20L39.6%2075.8%20L38.4%2073.9%20L37.2%2072.1%20L36.1%2070.6%20L34.9%2069.3%20L33.6%2068.3%20L32.0%2067.4%20L30.1%2066.7%20L28.0%2066.0%20L25.7%2065.2%20L23.3%2064.2%20L20.9%2063.0%20L18.7%2061.4%20L16.8%2059.5%20L15.3%2057.4%20L14.4%2055.0%20L14.2%2052.5%20L14.5%2050.0%20L15.5%2047.6%20L17.0%2045.4%20L19.0%2043.4%20L21.2%2041.8%20L23.6%2040.4%20L26.0%2039.3%20L28.2%2038.4%20L30.2%2037.6%20L31.9%2036.8%20L33.2%2035.9%20L34.2%2034.8%20L35.0%2033.4%20L35.7%2031.7%20L36.3%2029.7%20L37.0%2027.5%20L37.9%2025.2%20L39.1%2022.9%20L40.5%2020.8%20L42.3%2018.9%20L44.3%2017.5%20L46.5%2016.6%20L48.8%2016.3%20L51.2%2016.6%20L53.4%2017.4%20L55.5%2018.7%20L57.4%2020.4%20L59.0%2022.2%20L60.4%2024.2%20L61.6%2026.1%20L62.8%2027.9%20L63.9%2029.4%20L65.1%2030.7%20L66.4%2031.7%20L68.0%2032.6%20L69.9%2033.3%20L72.0%2034.0%20L74.3%2034.8%20L76.7%2035.8%20L79.1%2037.0%20L81.3%2038.6%20L83.2%2040.5%20L84.7%2042.6%20L85.6%2045.0%20L85.8%2047.5Z'/%3E%3Ccircle%20cx='88.0'%20cy='86.0'%20r='4.0'/%3E%3Ccircle%20cx='12.0'%20cy='14.0'%20r='3.0'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph.c-peinture .bqSw.pSw.sp3{height:72%;transform:rotate(-14deg) scale(1.15) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M88.8%2050.0%20L87.9%2051.4%20L86.8%2052.7%20L85.6%2053.9%20L84.2%2055.1%20L82.7%2056.2%20L81.2%2057.2%20L79.6%2058.2%20L78.0%2059.1%20L76.5%2060.0%20L75.0%2060.9%20L73.5%2061.8%20L72.0%2062.7%20L70.5%2063.6%20L68.9%2064.6%20L67.3%2065.6%20L65.6%2066.6%20L63.7%2067.6%20L61.6%2068.6%20L59.4%2069.6%20L56.9%2070.5%20L54.3%2071.3%20L51.5%2072.0%20L48.5%2072.5%20L45.4%2072.9%20L42.2%2073.1%20L38.9%2073.0%20L35.8%2072.8%20L32.6%2072.3%20L29.7%2071.7%20L26.9%2070.8%20L24.4%2069.7%20L22.2%2068.5%20L20.3%2067.2%20L18.7%2065.7%20L17.4%2064.2%20L16.4%2062.7%20L15.7%2061.1%20L15.3%2059.6%20L15.1%2058.1%20L15.1%2056.6%20L15.2%2055.2%20L15.4%2053.8%20L15.7%2052.5%20L16.0%2051.2%20L16.3%2050.0%20L16.6%2048.8%20L16.9%2047.6%20L17.2%2046.4%20L17.5%2045.2%20L17.9%2043.9%20L18.4%2042.7%20L19.0%2041.4%20L19.7%2040.2%20L20.6%2038.9%20L21.7%2037.6%20L23.0%2036.4%20L24.4%2035.2%20L26.2%2034.1%20L28.1%2033.1%20L30.2%2032.2%20L32.5%2031.3%20L34.9%2030.6%20L37.5%2030.0%20L40.2%2029.5%20L42.9%2029.2%20L45.7%2029.0%20L48.6%2028.9%20L51.4%2028.9%20L54.3%2029.0%20L57.1%2029.2%20L59.9%2029.4%20L62.6%2029.8%20L65.3%2030.3%20L68.0%2030.8%20L70.6%2031.5%20L73.1%2032.2%20L75.5%2033.0%20L77.9%2033.9%20L80.1%2034.9%20L82.1%2036.0%20L84.0%2037.2%20L85.6%2038.4%20L87.0%2039.8%20L88.1%2041.2%20L89.0%2042.6%20L89.5%2044.1%20L89.8%2045.6%20L89.7%2047.1%20L89.4%2048.6Z'/%3E%3Ccircle%20cx='92.0'%20cy='30.0'%20r='4.2'/%3E%3Ccircle%20cx='8.0'%20cy='72.0'%20r='3.2'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M88.8%2050.0%20L87.9%2051.4%20L86.8%2052.7%20L85.6%2053.9%20L84.2%2055.1%20L82.7%2056.2%20L81.2%2057.2%20L79.6%2058.2%20L78.0%2059.1%20L76.5%2060.0%20L75.0%2060.9%20L73.5%2061.8%20L72.0%2062.7%20L70.5%2063.6%20L68.9%2064.6%20L67.3%2065.6%20L65.6%2066.6%20L63.7%2067.6%20L61.6%2068.6%20L59.4%2069.6%20L56.9%2070.5%20L54.3%2071.3%20L51.5%2072.0%20L48.5%2072.5%20L45.4%2072.9%20L42.2%2073.1%20L38.9%2073.0%20L35.8%2072.8%20L32.6%2072.3%20L29.7%2071.7%20L26.9%2070.8%20L24.4%2069.7%20L22.2%2068.5%20L20.3%2067.2%20L18.7%2065.7%20L17.4%2064.2%20L16.4%2062.7%20L15.7%2061.1%20L15.3%2059.6%20L15.1%2058.1%20L15.1%2056.6%20L15.2%2055.2%20L15.4%2053.8%20L15.7%2052.5%20L16.0%2051.2%20L16.3%2050.0%20L16.6%2048.8%20L16.9%2047.6%20L17.2%2046.4%20L17.5%2045.2%20L17.9%2043.9%20L18.4%2042.7%20L19.0%2041.4%20L19.7%2040.2%20L20.6%2038.9%20L21.7%2037.6%20L23.0%2036.4%20L24.4%2035.2%20L26.2%2034.1%20L28.1%2033.1%20L30.2%2032.2%20L32.5%2031.3%20L34.9%2030.6%20L37.5%2030.0%20L40.2%2029.5%20L42.9%2029.2%20L45.7%2029.0%20L48.6%2028.9%20L51.4%2028.9%20L54.3%2029.0%20L57.1%2029.2%20L59.9%2029.4%20L62.6%2029.8%20L65.3%2030.3%20L68.0%2030.8%20L70.6%2031.5%20L73.1%2032.2%20L75.5%2033.0%20L77.9%2033.9%20L80.1%2034.9%20L82.1%2036.0%20L84.0%2037.2%20L85.6%2038.4%20L87.0%2039.8%20L88.1%2041.2%20L89.0%2042.6%20L89.5%2044.1%20L89.8%2045.6%20L89.7%2047.1%20L89.4%2048.6Z'/%3E%3Ccircle%20cx='92.0'%20cy='30.0'%20r='4.2'/%3E%3Ccircle%20cx='8.0'%20cy='72.0'%20r='3.2'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph.c-peinture .bqSw.pSw.sp4{height:92%;transform:rotate(0deg) scale(1.4) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M88.6%2050.0%20L87.5%2052.6%20L85.9%2055.0%20L84.0%2057.2%20L81.8%2059.1%20L79.5%2060.7%20L77.2%2062.1%20L75.1%2063.3%20L73.0%2064.4%20L71.1%2065.3%20L69.3%2066.2%20L67.6%2067.0%20L65.9%2067.7%20L64.3%2068.3%20L62.8%2069.0%20L61.4%2069.7%20L60.0%2070.4%20L58.6%2071.4%20L57.3%2072.6%20L56.0%2074.1%20L54.6%2075.8%20L52.9%2077.8%20L51.0%2079.9%20L48.9%2082.0%20L46.4%2083.9%20L43.8%2085.4%20L40.9%2086.3%20L38.1%2086.6%20L35.4%2086.2%20L32.9%2085.1%20L30.7%2083.4%20L29.0%2081.2%20L27.7%2078.6%20L26.8%2075.8%20L26.2%2073.0%20L26.0%2070.2%20L25.9%2067.5%20L25.9%2065.0%20L26.0%2062.7%20L26.2%2060.6%20L26.3%2058.6%20L26.5%2056.7%20L26.7%2054.9%20L26.9%2053.2%20L27.2%2051.6%20L27.3%2050.0%20L27.3%2048.4%20L27.1%2046.8%20L26.8%2045.1%20L26.1%2043.2%20L25.4%2041.0%20L24.5%2038.6%20L23.6%2036.0%20L22.9%2033.0%20L22.5%2030.0%20L22.5%2026.9%20L23.1%2024.0%20L24.2%2021.4%20L25.9%2019.2%20L28.1%2017.6%20L30.7%2016.6%20L33.5%2016.2%20L36.4%2016.4%20L39.3%2017.0%20L42.0%2017.9%20L44.6%2019.1%20L46.9%2020.4%20L49.0%2021.6%20L50.9%2022.9%20L52.7%2024.1%20L54.4%2025.2%20L55.9%2026.3%20L57.4%2027.4%20L58.7%2028.4%20L60.0%2029.4%20L61.4%2030.3%20L62.7%2031.1%20L64.2%2031.8%20L65.9%2032.3%20L67.8%2032.8%20L70.1%2033.1%20L72.6%2033.6%20L75.4%2034.1%20L78.3%2035.0%20L81.1%2036.1%20L83.7%2037.7%20L86.0%2039.7%20L87.7%2042.0%20L88.7%2044.6%20L89.0%2047.3Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M88.6%2050.0%20L87.5%2052.6%20L85.9%2055.0%20L84.0%2057.2%20L81.8%2059.1%20L79.5%2060.7%20L77.2%2062.1%20L75.1%2063.3%20L73.0%2064.4%20L71.1%2065.3%20L69.3%2066.2%20L67.6%2067.0%20L65.9%2067.7%20L64.3%2068.3%20L62.8%2069.0%20L61.4%2069.7%20L60.0%2070.4%20L58.6%2071.4%20L57.3%2072.6%20L56.0%2074.1%20L54.6%2075.8%20L52.9%2077.8%20L51.0%2079.9%20L48.9%2082.0%20L46.4%2083.9%20L43.8%2085.4%20L40.9%2086.3%20L38.1%2086.6%20L35.4%2086.2%20L32.9%2085.1%20L30.7%2083.4%20L29.0%2081.2%20L27.7%2078.6%20L26.8%2075.8%20L26.2%2073.0%20L26.0%2070.2%20L25.9%2067.5%20L25.9%2065.0%20L26.0%2062.7%20L26.2%2060.6%20L26.3%2058.6%20L26.5%2056.7%20L26.7%2054.9%20L26.9%2053.2%20L27.2%2051.6%20L27.3%2050.0%20L27.3%2048.4%20L27.1%2046.8%20L26.8%2045.1%20L26.1%2043.2%20L25.4%2041.0%20L24.5%2038.6%20L23.6%2036.0%20L22.9%2033.0%20L22.5%2030.0%20L22.5%2026.9%20L23.1%2024.0%20L24.2%2021.4%20L25.9%2019.2%20L28.1%2017.6%20L30.7%2016.6%20L33.5%2016.2%20L36.4%2016.4%20L39.3%2017.0%20L42.0%2017.9%20L44.6%2019.1%20L46.9%2020.4%20L49.0%2021.6%20L50.9%2022.9%20L52.7%2024.1%20L54.4%2025.2%20L55.9%2026.3%20L57.4%2027.4%20L58.7%2028.4%20L60.0%2029.4%20L61.4%2030.3%20L62.7%2031.1%20L64.2%2031.8%20L65.9%2032.3%20L67.8%2032.8%20L70.1%2033.1%20L72.6%2033.6%20L75.4%2034.1%20L78.3%2035.0%20L81.1%2036.1%20L83.7%2037.7%20L86.0%2039.7%20L87.7%2042.0%20L88.7%2044.6%20L89.0%2047.3Z'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph.c-peinture .bqSw.pSw.sp5{height:96%;transform:rotate(6deg) scale(1.3) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M81.3%2050.0%20L79.1%2052.0%20L76.7%2053.7%20L74.3%2055.2%20L72.2%2056.4%20L70.5%2057.5%20L69.4%2058.7%20L68.9%2060.1%20L69.0%2061.8%20L69.3%2064.0%20L69.7%2066.6%20L70.0%2069.4%20L70.0%2072.2%20L69.5%2075.0%20L68.4%2077.3%20L66.8%2079.1%20L64.7%2080.2%20L62.3%2080.5%20L59.8%2080.2%20L57.3%2079.3%20L54.9%2078.0%20L52.8%2076.6%20L50.9%2075.4%20L49.1%2074.6%20L47.4%2074.3%20L45.7%2074.5%20L43.7%2075.2%20L41.5%2076.3%20L38.9%2077.5%20L36.1%2078.5%20L33.2%2079.2%20L30.3%2079.3%20L27.6%2078.6%20L25.4%2077.3%20L23.8%2075.3%20L23.0%2072.7%20L22.8%2069.8%20L23.2%2066.7%20L24.1%2063.8%20L25.2%2061.0%20L26.2%2058.6%20L27.0%2056.6%20L27.3%2054.8%20L27.1%2053.2%20L26.3%2051.7%20L25.0%2050.0%20L23.4%2048.1%20L21.9%2046.0%20L20.5%2043.7%20L19.7%2041.3%20L19.4%2038.9%20L20.0%2036.6%20L21.3%2034.7%20L23.2%2033.3%20L25.6%2032.3%20L28.3%2031.8%20L31.0%2031.7%20L33.5%2031.7%20L35.7%2031.8%20L37.6%2031.6%20L39.0%2030.9%20L40.1%2029.8%20L41.1%2028.0%20L42.1%2025.8%20L43.3%2023.2%20L44.8%2020.6%20L46.6%2018.1%20L48.8%2016.0%20L51.2%2014.7%20L53.8%2014.2%20L56.2%2014.6%20L58.5%2015.8%20L60.5%2017.8%20L62.0%2020.2%20L63.3%2022.8%20L64.2%2025.4%20L65.0%2027.8%20L65.8%2029.8%20L66.8%2031.3%20L68.2%2032.4%20L70.0%2033.3%20L72.1%2033.9%20L74.6%2034.6%20L77.2%2035.5%20L79.7%2036.8%20L81.8%2038.4%20L83.3%2040.5%20L84.0%2042.8%20L83.9%2045.2%20L83.0%2047.7Z'/%3E%3Ccircle%20cx='90.0'%20cy='82.0'%20r='3.8'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M81.3%2050.0%20L79.1%2052.0%20L76.7%2053.7%20L74.3%2055.2%20L72.2%2056.4%20L70.5%2057.5%20L69.4%2058.7%20L68.9%2060.1%20L69.0%2061.8%20L69.3%2064.0%20L69.7%2066.6%20L70.0%2069.4%20L70.0%2072.2%20L69.5%2075.0%20L68.4%2077.3%20L66.8%2079.1%20L64.7%2080.2%20L62.3%2080.5%20L59.8%2080.2%20L57.3%2079.3%20L54.9%2078.0%20L52.8%2076.6%20L50.9%2075.4%20L49.1%2074.6%20L47.4%2074.3%20L45.7%2074.5%20L43.7%2075.2%20L41.5%2076.3%20L38.9%2077.5%20L36.1%2078.5%20L33.2%2079.2%20L30.3%2079.3%20L27.6%2078.6%20L25.4%2077.3%20L23.8%2075.3%20L23.0%2072.7%20L22.8%2069.8%20L23.2%2066.7%20L24.1%2063.8%20L25.2%2061.0%20L26.2%2058.6%20L27.0%2056.6%20L27.3%2054.8%20L27.1%2053.2%20L26.3%2051.7%20L25.0%2050.0%20L23.4%2048.1%20L21.9%2046.0%20L20.5%2043.7%20L19.7%2041.3%20L19.4%2038.9%20L20.0%2036.6%20L21.3%2034.7%20L23.2%2033.3%20L25.6%2032.3%20L28.3%2031.8%20L31.0%2031.7%20L33.5%2031.7%20L35.7%2031.8%20L37.6%2031.6%20L39.0%2030.9%20L40.1%2029.8%20L41.1%2028.0%20L42.1%2025.8%20L43.3%2023.2%20L44.8%2020.6%20L46.6%2018.1%20L48.8%2016.0%20L51.2%2014.7%20L53.8%2014.2%20L56.2%2014.6%20L58.5%2015.8%20L60.5%2017.8%20L62.0%2020.2%20L63.3%2022.8%20L64.2%2025.4%20L65.0%2027.8%20L65.8%2029.8%20L66.8%2031.3%20L68.2%2032.4%20L70.0%2033.3%20L72.1%2033.9%20L74.6%2034.6%20L77.2%2035.5%20L79.7%2036.8%20L81.8%2038.4%20L83.3%2040.5%20L84.0%2042.8%20L83.9%2045.2%20L83.0%2047.7Z'/%3E%3Ccircle%20cx='90.0'%20cy='82.0'%20r='3.8'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph.c-peinture .bqSw.pSw.sp6{height:80%;transform:rotate(-6deg) scale(1.2) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M87.4%2050.0%20L86.5%2051.8%20L85.4%2053.6%20L84.3%2055.2%20L83.1%2056.8%20L81.8%2058.3%20L80.5%2059.8%20L79.3%2061.2%20L78.0%2062.6%20L76.7%2064.0%20L75.4%2065.3%20L74.0%2066.7%20L72.6%2068.1%20L71.1%2069.5%20L69.5%2070.9%20L67.8%2072.2%20L66.0%2073.6%20L63.9%2074.8%20L61.7%2076.0%20L59.4%2077.0%20L56.8%2077.9%20L54.2%2078.6%20L51.4%2079.1%20L48.6%2079.3%20L45.7%2079.3%20L42.9%2079.0%20L40.1%2078.5%20L37.5%2077.7%20L35.0%2076.7%20L32.8%2075.4%20L30.8%2074.0%20L29.0%2072.4%20L27.5%2070.7%20L26.3%2068.9%20L25.4%2067.1%20L24.8%2065.2%20L24.4%2063.4%20L24.2%2061.6%20L24.1%2059.9%20L24.2%2058.3%20L24.4%2056.7%20L24.6%2055.2%20L24.9%2053.8%20L25.2%2052.5%20L25.4%2051.2%20L25.7%2050.0%20L25.9%2048.8%20L26.1%2047.6%20L26.2%2046.4%20L26.4%2045.1%20L26.6%2043.9%20L26.8%2042.6%20L27.1%2041.2%20L27.4%2039.8%20L27.9%2038.5%20L28.5%2037.0%20L29.3%2035.6%20L30.2%2034.2%20L31.3%2032.8%20L32.6%2031.4%20L34.0%2030.1%20L35.7%2028.8%20L37.4%2027.6%20L39.4%2026.5%20L41.5%2025.5%20L43.8%2024.6%20L46.2%2023.8%20L48.7%2023.2%20L51.3%2022.6%20L54.0%2022.3%20L56.8%2022.1%20L59.7%2022.0%20L62.6%2022.2%20L65.4%2022.5%20L68.3%2023.0%20L71.1%2023.7%20L73.8%2024.6%20L76.4%2025.7%20L78.8%2027.0%20L81.0%2028.4%20L83.0%2030.1%20L84.8%2031.8%20L86.2%2033.7%20L87.4%2035.7%20L88.2%2037.7%20L88.8%2039.8%20L89.0%2041.9%20L89.0%2044.0%20L88.7%2046.1%20L88.2%2048.1Z'/%3E%3Ccircle%20cx='88.0'%20cy='18.0'%20r='4.4'/%3E%3Ccircle%20cx='14.0'%20cy='84.0'%20r='3.0'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M87.4%2050.0%20L86.5%2051.8%20L85.4%2053.6%20L84.3%2055.2%20L83.1%2056.8%20L81.8%2058.3%20L80.5%2059.8%20L79.3%2061.2%20L78.0%2062.6%20L76.7%2064.0%20L75.4%2065.3%20L74.0%2066.7%20L72.6%2068.1%20L71.1%2069.5%20L69.5%2070.9%20L67.8%2072.2%20L66.0%2073.6%20L63.9%2074.8%20L61.7%2076.0%20L59.4%2077.0%20L56.8%2077.9%20L54.2%2078.6%20L51.4%2079.1%20L48.6%2079.3%20L45.7%2079.3%20L42.9%2079.0%20L40.1%2078.5%20L37.5%2077.7%20L35.0%2076.7%20L32.8%2075.4%20L30.8%2074.0%20L29.0%2072.4%20L27.5%2070.7%20L26.3%2068.9%20L25.4%2067.1%20L24.8%2065.2%20L24.4%2063.4%20L24.2%2061.6%20L24.1%2059.9%20L24.2%2058.3%20L24.4%2056.7%20L24.6%2055.2%20L24.9%2053.8%20L25.2%2052.5%20L25.4%2051.2%20L25.7%2050.0%20L25.9%2048.8%20L26.1%2047.6%20L26.2%2046.4%20L26.4%2045.1%20L26.6%2043.9%20L26.8%2042.6%20L27.1%2041.2%20L27.4%2039.8%20L27.9%2038.5%20L28.5%2037.0%20L29.3%2035.6%20L30.2%2034.2%20L31.3%2032.8%20L32.6%2031.4%20L34.0%2030.1%20L35.7%2028.8%20L37.4%2027.6%20L39.4%2026.5%20L41.5%2025.5%20L43.8%2024.6%20L46.2%2023.8%20L48.7%2023.2%20L51.3%2022.6%20L54.0%2022.3%20L56.8%2022.1%20L59.7%2022.0%20L62.6%2022.2%20L65.4%2022.5%20L68.3%2023.0%20L71.1%2023.7%20L73.8%2024.6%20L76.4%2025.7%20L78.8%2027.0%20L81.0%2028.4%20L83.0%2030.1%20L84.8%2031.8%20L86.2%2033.7%20L87.4%2035.7%20L88.2%2037.7%20L88.8%2039.8%20L89.0%2041.9%20L89.0%2044.0%20L88.7%2046.1%20L88.2%2048.1Z'/%3E%3Ccircle%20cx='88.0'%20cy='18.0'%20r='4.4'/%3E%3Ccircle%20cx='14.0'%20cy='84.0'%20r='3.0'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph.c-peinture .bqSw.pSw.sp7{height:78%;transform:rotate(0deg) scale(1.32) translateY(-12%);-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M85.3%2050.0%20L84.0%2052.4%20L82.1%2054.5%20L79.9%2056.4%20L77.6%2057.9%20L75.6%2059.3%20L74.0%2060.7%20L72.9%2062.2%20L72.3%2063.9%20L72.0%2066.0%20L71.8%2068.3%20L71.4%2070.7%20L70.8%2073.1%20L69.6%2075.1%20L68.0%2076.7%20L66.0%2077.7%20L63.7%2078.0%20L61.2%2077.8%20L58.8%2077.2%20L56.6%2076.5%20L54.6%2076.0%20L52.7%2075.9%20L50.9%2076.3%20L49.1%2077.2%20L47.0%2078.5%20L44.7%2080.0%20L42.2%2081.4%20L39.5%2082.4%20L36.8%2082.8%20L34.2%2082.3%20L32.0%2081.2%20L30.2%2079.3%20L28.9%2077.0%20L28.0%2074.4%20L27.3%2071.9%20L26.7%2069.6%20L25.8%2067.5%20L24.7%2065.8%20L23.2%2064.3%20L21.3%2062.8%20L19.3%2061.2%20L17.3%2059.4%20L15.6%2057.3%20L14.5%2055.0%20L14.2%2052.5%20L14.7%2050.0%20L16.0%2047.6%20L17.9%2045.5%20L20.1%2043.6%20L22.4%2042.1%20L24.4%2040.7%20L26.0%2039.3%20L27.1%2037.8%20L27.7%2036.1%20L28.0%2034.0%20L28.2%2031.7%20L28.6%2029.3%20L29.2%2026.9%20L30.4%2024.9%20L32.0%2023.3%20L34.0%2022.3%20L36.3%2022.0%20L38.8%2022.2%20L41.2%2022.8%20L43.4%2023.5%20L45.4%2024.0%20L47.3%2024.1%20L49.1%2023.7%20L50.9%2022.8%20L53.0%2021.5%20L55.3%2020.0%20L57.8%2018.6%20L60.5%2017.6%20L63.2%2017.2%20L65.8%2017.7%20L68.0%2018.8%20L69.8%2020.7%20L71.1%2023.0%20L72.0%2025.6%20L72.7%2028.1%20L73.3%2030.4%20L74.2%2032.5%20L75.3%2034.2%20L76.8%2035.7%20L78.7%2037.2%20L80.7%2038.8%20L82.7%2040.6%20L84.4%2042.7%20L85.5%2045.0%20L85.8%2047.5Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='-4%20-4%20108%20108'%3E%3Cpath%20d='M85.3%2050.0%20L84.0%2052.4%20L82.1%2054.5%20L79.9%2056.4%20L77.6%2057.9%20L75.6%2059.3%20L74.0%2060.7%20L72.9%2062.2%20L72.3%2063.9%20L72.0%2066.0%20L71.8%2068.3%20L71.4%2070.7%20L70.8%2073.1%20L69.6%2075.1%20L68.0%2076.7%20L66.0%2077.7%20L63.7%2078.0%20L61.2%2077.8%20L58.8%2077.2%20L56.6%2076.5%20L54.6%2076.0%20L52.7%2075.9%20L50.9%2076.3%20L49.1%2077.2%20L47.0%2078.5%20L44.7%2080.0%20L42.2%2081.4%20L39.5%2082.4%20L36.8%2082.8%20L34.2%2082.3%20L32.0%2081.2%20L30.2%2079.3%20L28.9%2077.0%20L28.0%2074.4%20L27.3%2071.9%20L26.7%2069.6%20L25.8%2067.5%20L24.7%2065.8%20L23.2%2064.3%20L21.3%2062.8%20L19.3%2061.2%20L17.3%2059.4%20L15.6%2057.3%20L14.5%2055.0%20L14.2%2052.5%20L14.7%2050.0%20L16.0%2047.6%20L17.9%2045.5%20L20.1%2043.6%20L22.4%2042.1%20L24.4%2040.7%20L26.0%2039.3%20L27.1%2037.8%20L27.7%2036.1%20L28.0%2034.0%20L28.2%2031.7%20L28.6%2029.3%20L29.2%2026.9%20L30.4%2024.9%20L32.0%2023.3%20L34.0%2022.3%20L36.3%2022.0%20L38.8%2022.2%20L41.2%2022.8%20L43.4%2023.5%20L45.4%2024.0%20L47.3%2024.1%20L49.1%2023.7%20L50.9%2022.8%20L53.0%2021.5%20L55.3%2020.0%20L57.8%2018.6%20L60.5%2017.6%20L63.2%2017.2%20L65.8%2017.7%20L68.0%2018.8%20L69.8%2020.7%20L71.1%2023.0%20L72.0%2025.6%20L72.7%2028.1%20L73.3%2030.4%20L74.2%2032.5%20L75.3%2034.2%20L76.8%2035.7%20L78.7%2037.2%20L80.7%2038.8%20L82.7%2040.6%20L84.4%2042.7%20L85.5%2045.0%20L85.8%2047.5Z'/%3E%3C/svg%3E") center/contain no-repeat}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph.c-peinture .bqSw.pSw::before{content:"";position:absolute;inset:0;border-radius:0;pointer-events:none;
   background:radial-gradient(ellipse 24% 16% at 33% 25%,rgba(255,255,255,.95),rgba(255,255,255,0) 100%),radial-gradient(circle at 34% 30%,rgba(255,255,255,.42),rgba(255,255,255,0) 46%),linear-gradient(135deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 45%,rgba(0,0,0,.40) 100%),radial-gradient(circle at 72% 78%,rgba(255,255,255,0) 40%,rgba(0,0,0,.30) 100%)} /* (v1222 : du VOLUME — clair en haut à gauche, sombre en bas à droite, comme une goutte épaisse) */
-html #gBq #gBqPan .bqK.hab .bqKph.c-peinture .bqSw.pSw:is(.mat)::before{background:radial-gradient(circle at 36% 32%,rgba(255,255,255,.2),rgba(255,255,255,0) 42%),radial-gradient(circle at 70% 76%,rgba(255,255,255,0) 50%,rgba(0,0,0,.3) 100%)}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).hab .bqKph.c-peinture .bqSw.pSw:is(.mat)::before{background:radial-gradient(circle at 36% 32%,rgba(255,255,255,.2),rgba(255,255,255,0) 42%),radial-gradient(circle at 70% 76%,rgba(255,255,255,0) 50%,rgba(0,0,0,.3) 100%)}
 
 /* ===== L'ÉTIQUETTE DE PRIX v3 (2026-11-06, Léo : « capture A, comme le local ; les missions montrent leur progression ») =====
    (v1225 : RETIRÉE à la demande de Léo — « les prix en diagonale chelou, je ne l'avais pas demandé » : la pastille revient à la petite étiquette d'avant.) Les MISSION ont une jauge (.jg, remplie à l'avancement réel) sous le mot. */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKp.defi{flex-direction:column;gap:3px;padding:4px 8px 5px;font-size:8.5px;min-width:64%}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKp .jg{display:none /* (v1225 : la jauge des missions est masquée, les prix « comme juste avant ») */;width:100%;height:4px;margin:0;background:rgba(58,10,44,.28);border-radius:2px;overflow:hidden}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKp .jg u{display:block;height:100%;background:#3a0a2c;border-radius:2px;text-decoration:none}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKp.defi{flex-direction:column;gap:3px;padding:4px 8px 5px;font-size:8.5px;min-width:64%}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKp .jg{display:none /* (v1225 : la jauge des missions est masquée, les prix « comme juste avant ») */;width:100%;height:4px;margin:0;background:rgba(58,10,44,.28);border-radius:2px;overflow:hidden}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKp .jg u{display:block;height:100%;background:#3a0a2c;border-radius:2px;text-decoration:none}
 /* ===== LA VOITURE DANS LE CUBE (2026-11-06, Léo : « les voitures à l'intérieur du cube, comme les traînées ; le cube un peu plus épais ; le nez à droite, l'arrière à gauche, un peu penchée comme le cube ; petites idées en plus ») =====
    Le cube garde sa place et sa largeur mais passe à 46 cqw d'épaisseur (34 avant) : la voiture, plan debout tourné comme lui, flotte au milieu avec de l'air devant et derrière.
    Le nez à DROITE : la photo des caisses est prise le nez à gauche, on la retourne (scaleX(-1)). Idées légères (aucune animation, aucun filtre) : un sol quadrillé, un fond à étincelles pour les épiques et plus,
    un liseré lumineux sur le verre de devant. */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img{transform:scaleX(-1)}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fl{background:radial-gradient(ellipse 46% 40% at 50% 52%,rgba(20,30,45,.26),rgba(20,30,45,0) 100%),repeating-linear-gradient(0deg,rgba(255,255,255,.35) 0 1px,transparent 1px 6cqw),repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 1px,transparent 1px 6cqw),linear-gradient(180deg,color-mix(in srgb,var(--rc) 24%,var(--bqFond2)),color-mix(in srgb,var(--rc) 40%,#c6d0de))}
-html #gBq #gBqPan .bqK:is(.b-epique,.b-legendaire,.b-mythique,.b-infini):not(.pnt) .bqKv .bk{background:radial-gradient(circle,#fff 0 .5cqw,transparent .9cqw) 16% 24%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .7cqw,transparent 1.1cqw) 84% 30%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .45cqw,transparent .8cqw) 72% 14%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .6cqw,transparent 1cqw) 28% 74%/1px 1px no-repeat,radial-gradient(ellipse 62% 70% at 50% 64%,rgba(255,255,255,.95),rgba(255,255,255,0) 72%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 30%,#fff),color-mix(in srgb,var(--rc) 55%,#8a97aa))}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{box-shadow:inset 0 0 1.6cqw color-mix(in srgb,var(--rim) 70%,transparent)}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv{--D:42cqw} /* (le .bqKv porte ses propres --W --H --D : c'est ICI qu'on règle l'épaisseur, 30 → 42 cqw) */
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph[data-ph] img{transform:scaleX(-1)}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .fl{background:radial-gradient(ellipse 46% 40% at 50% 52%,rgba(20,30,45,.26),rgba(20,30,45,0) 100%),repeating-linear-gradient(0deg,rgba(255,255,255,.35) 0 1px,transparent 1px 6cqw),repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 1px,transparent 1px 6cqw),linear-gradient(180deg,color-mix(in srgb,var(--rc) 24%,var(--bqFond2)),color-mix(in srgb,var(--rc) 40%,#c6d0de))}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):is(.b-epique,.b-legendaire,.b-mythique,.b-infini):not(.pnt) .bqKv .bk{background:radial-gradient(circle,#fff 0 .5cqw,transparent .9cqw) 16% 24%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .7cqw,transparent 1.1cqw) 84% 30%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .45cqw,transparent .8cqw) 72% 14%/1px 1px no-repeat,radial-gradient(circle,#fff 0 .6cqw,transparent 1cqw) 28% 74%/1px 1px no-repeat,radial-gradient(ellipse 62% 70% at 50% 64%,rgba(255,255,255,.95),rgba(255,255,255,0) 72%),linear-gradient(180deg,color-mix(in srgb,var(--rc) 30%,#fff),color-mix(in srgb,var(--rc) 55%,#8a97aa))}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .fr{box-shadow:inset 0 0 1.6cqw color-mix(in srgb,var(--rim) 70%,transparent)}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv{--D:42cqw} /* (le .bqKv porte ses propres --W --H --D : c'est ICI qu'on règle l'épaisseur, 30 → 42 cqw) */
 /* ===== LA VOITURE EN TRANCHES (2026-11-06, Léo : « une voiture pas plate dans le cube, essaie avec une petite et une grande ») =====
    La photo de la caisse est empilée en 5 plans (.cL, --k = 0 devant … 4 au fond), espacés de 1,3 cqw dans la profondeur du cube, de plus en plus sombres vers le fond : une caisse qui a de l'ÉPAISSEUR ; avec l'inclinaison du cube, les
    plans se décalent un peu (parallaxe) et la voiture se lit en volume, au milieu du verre. Seules les photos de voitures (data-ph) ; ailes, traînées, figures, peintures restent à un plan. */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]{transform-style:preserve-3d}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%;
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph[data-ph]{transform-style:preserve-3d}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph[data-ph] img.cL{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%;
   transform:translateZ(calc((2 - var(--k)) * 1.3cqw)) scaleX(-1);filter:brightness(calc(1 - var(--k) * .09))}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL:first-child{filter:none}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph[data-ph] img.cL:first-child{filter:none}
 /* (v1226) LE DÉFI D'UNE PEINTURE (cible + jauge, `.pDef`) : une petite barre au pied du cube, sous le splash (avant, elle le coupait) */
-html #gBq #gBqPan .bqK .bqKph.c-peinture .pDef{left:14%;right:14%;bottom:1.6cqw;height:4.4cqw;padding:0 1.6cqw 0 1.2cqw;gap:1.2cqw;border-radius:2.2cqw}
-html #gBq #gBqPan .bqK .bqKph.c-peinture .pDef .pxi{width:2.6cqw;height:2.6cqw}
-html #gBq #gBqPan .bqK .bqKph.c-peinture .pDef u{height:1.1cqw}
+html #gBq #gBqPan .bqK:where(:not(.fgK)) .bqKph.c-peinture .pDef{left:14%;right:14%;bottom:1.6cqw;height:4.4cqw;padding:0 1.6cqw 0 1.2cqw;gap:1.2cqw;border-radius:2.2cqw}
+html #gBq #gBqPan .bqK:where(:not(.fgK)) .bqKph.c-peinture .pDef .pxi{width:2.6cqw;height:2.6cqw}
+html #gBq #gBqPan .bqK:where(:not(.fgK)) .bqKph.c-peinture .pDef u{height:1.1cqw}
 /* ===== LE PRIX EN DIAGONALE, PETIT (2026-11-06, Léo : « c'était mieux les prix en diagonale, mais petits, sans bug ») =====
    La pastille de travers (rotateZ -5°, skew) de la v1205, mais à 70 % de sa taille : texte de 7 px, liseré fin, ombre courte ; elle reste DANS la largeur de sa carte (max-width) et ne passe plus sur la carte voisine ni
    sur le bandeau de rareté. Les prix très longs (.lg) descendent à 6 px. */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKp{top:-6px;right:-2px;left:auto;bottom:auto;display:flex;align-items:center;justify-content:center;gap:2px;min-height:0;box-sizing:border-box;max-width:92%;padding:3px 6px 3px 7px;
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKp{top:-6px;right:-2px;left:auto;bottom:auto;display:flex;align-items:center;justify-content:center;gap:2px;min-height:0;box-sizing:border-box;max-width:92%;padding:3px 6px 3px 7px;
   font:800 7px/1 var(--pix,system-ui);letter-spacing:0;white-space:nowrap;z-index:9;border-radius:2px 5px 5px 2px;border:1px solid rgba(255,255,255,.75);
   box-shadow:0 2px 0 rgba(0,0,0,.4),0 4px 6px rgba(0,0,0,.22);transform:perspective(220px) rotateY(-16deg) rotateZ(-5deg) skewX(-8deg) translateZ(40px)}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKp.lg{font-size:6px}
-html #gBq #gBqPan .bqK.b-legendaire:not(.pnt) .bqKp{border-color:#fff}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKp.defi{padding:3px 6px;font-size:6.5px}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKp.lg{font-size:6px}
+html #gBq #gBqPan .bqK:where(:not(.fgK)).b-legendaire:not(.pnt) .bqKp{border-color:#fff}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKp.defi{padding:3px 6px;font-size:6.5px}
 /* ===== LA VOITURE POSÉE SUR LE SOL DU CUBE (2026-11-06, Léo : « les voitures dans les cubes, c'est-à-dire POSÉES dans le cube ») =====
    La photo d'une caisse garde sous elle ~16 % de vide (le reflet du sol verni, éteint) : la voiture flottait au-dessus du sol quadrillé. Chaque tranche est rognée de 16 % en bas (clip-path sur l'image, pas sur le plan :
    un clip sur le plan aplatirait les tranches) et le plan descend d'autant : les roues touchent le sol du cube. */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{clip-path:polygon(calc(var(--gl,0) * 100%) 0,calc(var(--gr,1) * 100%) 0,calc(var(--gr,1) * 100%) calc(var(--cr,.84) * 100%),calc(var(--gl,0) * 100%) calc(var(--cl,.84) * 100%))}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]{top:calc(var(--H)/2 - var(--W)*.574*(1 - var(--ech,.86)*(1 - var(--bas,.84))) - .3cqw);transform-origin:50% 100%;transform:translateZ(13cqw)}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph]:not([style*="--bas"]) img.cL{visibility:hidden}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph[data-ph] img.cL{clip-path:polygon(calc(var(--gl,0) * 100%) 0,calc(var(--gr,1) * 100%) 0,calc(var(--gr,1) * 100%) calc(var(--cr,.84) * 100%),calc(var(--gl,0) * 100%) calc(var(--cl,.84) * 100%))}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph[data-ph]{top:calc(var(--H)/2 - var(--W)*.574*(1 - var(--ech,.86)*(1 - var(--bas,.84))) - .3cqw);transform-origin:50% 100%;transform:translateZ(13cqw)}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph[data-ph]:not([style*="--bas"]) img.cL{visibility:hidden}
 /* ===== LA VOITURE À L'INTÉRIEUR, PAS AU FOND (2026-11-06, Léo : « elle est encore derrière : garde le fond gris bleuté des vitres, garde seulement la voiture et son ombre, place-la un poil en avant ») =====
    Le plan de la voiture avance de 9 cqw vers la vitre de devant (il était au milieu du cube) : elle est DANS la boîte, près du verre, et non plus reculée contre le fond ; la vitre de devant s'éclaircit pour ne plus la voiler ;
    les tranches du fond s'assombrissent moins (plus de halo). Le gris bleuté des faces ne change pas. */
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .bqKph[data-ph] img.cL{transform:translateZ(calc((2 - var(--k)) * .7cqw)) translateX(calc(var(--W) * .94 * var(--dx,0) * var(--ech,.86))) scale(calc(var(--ech,.86) * -1),var(--ech,.86)) skewY(var(--pen,0deg));transform-origin:50% 100%;filter:brightness(calc(1 - var(--k) * .03))}
-html #gBq #gBqPan .bqK:not(.pnt) .bqKv .fr{background:linear-gradient(118deg,rgba(255,255,255,.20) 0,rgba(255,255,255,.03) 30%,rgba(255,255,255,.015) 62%,rgba(255,255,255,.12) 100%)}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .bqKph[data-ph] img.cL{transform:translateZ(calc((2 - var(--k)) * .7cqw)) translateX(calc(var(--W) * .94 * var(--dx,0) * var(--ech,.86))) scale(calc(var(--ech,.86) * -1),var(--ech,.86)) skewY(var(--pen,0deg));transform-origin:50% 100%;filter:brightness(calc(1 - var(--k) * .03))}
+html #gBq #gBqPan .bqK:where(:not(.fgK)):not(.pnt) .bqKv .fr{background:linear-gradient(118deg,rgba(255,255,255,.20) 0,rgba(255,255,255,.03) 30%,rgba(255,255,255,.015) 62%,rgba(255,255,255,.12) 100%)}
 </style>
 <style id="ergonomieMobile">
 /* ===== L'ERGONOMIE MOBILE, LES DÉTAILS (2026-11-07, Sacha : « retravaille la version mobile et l'ergonomie dans le détail : certains éléments paraissent un peu
@@ -10492,17 +10493,21 @@ html #gBq #gBqPan .bqK.vo .bqKp.acq.eqp{background:#3ddc84;color:#04220f}
 /* 2. LES FAMILLES : un intertitre d'une ligne (logo de la rareté, son nom, ce qu'elle est et son prix, « à toi / total ») */
 #gBqPan .pNs{margin-top:8px;scroll-margin-top:52px}
 #gBqPan .pNs:first-of-type{margin-top:2px}
-#gBqPan .pNh{display:flex;align-items:center;gap:7px;margin:0 0 8px;padding:0 1px;font-weight:400;min-width:0}
-#gBqPan .pNh .bqRl{flex:none;display:grid;place-items:center;width:18px;height:18px;border-radius:5px;background:var(--bqInk);box-shadow:0 0 0 1px var(--rc),0 0 8px -2px var(--rc)}
+/* (2026-11-07, passe finale) l'intertitre prend le BANDEAU des intertitres de rareté des voitures (bqRarS : sa teinte, le liseré, le logo
+   dans sa pastille) — un seul dessin d'intertitre dans toute la boutique ; le prix et le compte sont dans la barre, la légende de l'anneau ici */
+#gBqPan .pNh{display:flex;align-items:center;gap:8px;margin:0 0 6px;padding:5px 9px 5px 5px;border-radius:8px;font-weight:400;min-width:0;box-sizing:border-box;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 22%,#fff),color-mix(in srgb,var(--rc) 4%,#fff) 78%);box-shadow:inset 3px 0 0 var(--rc),0 1px 0 rgba(20,23,28,.06)}
+#gBqPan .pNh .bqRl{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:6px;background:var(--bqInk);box-shadow:0 0 0 1px var(--rc),0 0 8px -2px var(--rc)}
 #gBqPan .pNh .bqRl .pxi{--pxs:1;width:10px;height:10px;margin:0;color:var(--rc)}
-#gBqPan .pNh b{flex:none;font-weight:400;font-size:9px;letter-spacing:1.5px}
-#gBqPan .pNh i{flex:none;font-style:normal;font-size:7px;letter-spacing:.5px;color:var(--bqGris);white-space:nowrap}
+#gBqPan .pNh b{flex:none;font-weight:400;font-size:9px;letter-spacing:2px}
+#gBqPan .pNh i{flex:none;font-style:normal;font-size:7px;letter-spacing:1px;color:var(--bqGris);white-space:nowrap}
 #gBqPan .pNh s{flex:1;min-width:6px;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--rc),transparent);text-decoration:none}
-#gBqPan .pNh em{flex:none;font-style:normal;font-size:7px;color:var(--bqGris)}
-#gBqPan .pNh em u{text-decoration:none;color:var(--bqInk)}
+#gBqPan .pNh .pNlg{flex:none;display:flex;align-items:center;gap:5px;font-style:normal;font-size:7px;letter-spacing:.5px;color:#0b7183;white-space:nowrap}
+#gBqPan .pNh .pNlg q{flex:none;width:9px;height:9px;border-radius:3px;box-sizing:border-box;border:2px solid #14b5cc;quotes:none}
+#gBqPan .pNh .pNlg q::before,#gBqPan .pNh .pNlg q::after{content:none}
 #gBqPan .pNs[data-pf="legendaire"] .pNh .bqRl{animation:pLueur 2.4s ease-in-out infinite alternate}
 /* 3. LA GRILLE : des pastilles carrées, autant que la largeur en tient à ≥ 48 px */
-#gBqPan .pNg{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px;padding:3px}
+#gBqPan .pNg{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:8px;padding:4px 5px}
 #gBqPan.cote .pNg{grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:7px}
 /* 4. LA PASTILLE : la tôle vernie (sa finition, son animation), un liseré à la couleur de sa rareté */
 #gBqPan .pN{position:relative;display:block;aspect-ratio:1;min-width:0;min-height:44px;padding:0;border:0;border-radius:12px;background:#fff;cursor:pointer;
@@ -10529,9 +10534,12 @@ html #gBq #gBqPan .bqK.vo .bqKp.acq.eqp{background:#3ddc84;color:#04220f}
 #gBqPan .pN .pNb{position:absolute;top:-4px;right:-4px;z-index:2;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--bqInk);box-shadow:0 0 0 2px #fff;font-weight:400}
 #gBqPan .pN .pNb .pxi{--pxs:1;width:9px;height:9px;margin:0;color:#fff}
 #gBqPan .pN.e-eq .pNb{background:var(--bqAcc);width:20px;height:20px}
-#gBqPan .pN.e-pc .pNb{background:#ffd34a}
-#gBqPan .pN.e-pc .pNb .pxi{color:var(--bqInk)}
-#gBqPan .pN.e-mis .pNb{background:var(--neoM)}
+/* (2026-11-07, passe finale) les signes parlent la langue des autres rayons (boutique-ensemble.css 7) : À TOI = la coche BLEUE, ÉQUIPÉE = la
+   pastille bleue pleine, le prix en $ = l'encre et sa pièce d'or, MISSION = le gris et le cadenas (avant : coche noire, pièce jaune, drapeau rose) */
+#gBqPan .pN.e-a .pNb{background:#fff;box-shadow:0 0 0 2px #fff,inset 0 0 0 1.5px var(--bqAcc)}
+#gBqPan .pN.e-a .pNb .pxi{color:var(--bqAcc)}
+#gBqPan .pN.e-pc .pNb .pxi{color:#ffd23a}
+#gBqPan .pN.e-mis .pNb{background:var(--bqGris)}
 /* le défi : un anneau cyan autour de la pastille, rempli à sa jauge (un exploit d'un coup : en pointillé) */
 #gBqPan .pN .pNj{position:absolute;inset:-3px;border-radius:14px;padding:2px;pointer-events:none;text-decoration:none;
   background:conic-gradient(from 0deg,var(--cyanM) calc(var(--pj,0) * 1%),rgba(20,181,204,.28) 0);
@@ -10608,11 +10616,11 @@ html #gBq #gBqPan .bqK.vo .bqKp.acq.eqp{background:#3ddc84;color:#04220f}
 #bqAile .baP span{overflow:hidden;text-overflow:ellipsis}
 #bqAile .baP .pxi{--pxs:1;flex:none;color:currentColor}
 #bqAile .baP.cher{color:var(--bqGris2)}
-#bqAile .baP.acq{color:var(--bqGris)}
+#bqAile .baP.acq{color:var(--bqAcc)} /* (2026-11-07, passe finale) À TOI : le bleu et la coche, comme partout dans la boutique (il était gris, comme MISSION) */
 #bqAile .baP.eq{align-self:flex-start;padding:2px 5px 1px 3px;border-radius:4px;background:var(--bqAcc);color:#fff}
 #bqAile .baP.eur{color:var(--bqAcc)}
 #bqAile .baP.defi{color:var(--bqGris)}
-/* la tranche d'une famille : noire, le logo à la couleur de la rareté, son nom couché, « à toi / total » */
+/* la tranche d'une famille : noire, le logo à la couleur de la rareté et « à toi / total » (son nom est dans l'en-tête ; couché, la tranche est une ligne et l'écrit) */
 #bqAile .baTr{flex:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:6px;width:28px;padding:6px 0;border-radius:8px;background:var(--bqInk);color:#fff;margin:6px 0;box-sizing:border-box}
 #bqAile .baTr b{display:none;font-weight:400;font-size:8px;letter-spacing:2px;white-space:nowrap;overflow:hidden;color:var(--rc)}
 #bqAile .baTr em{font-style:normal;font-size:7px;color:var(--bqGris2);white-space:nowrap}
@@ -10624,31 +10632,43 @@ html #gBq #gBqPan .bqK.vo .bqKp.acq.eqp{background:#3ddc84;color:#04220f}
 #bqAile .baFl .pxi{--pxs:3;color:var(--bqInk);transition:transform .15s}
 #bqAile .baFl .pxi-haut,#bqAile .baFl .pxi-bas{display:none}
 #bqAile .baFl:active .pxi{transform:scale(.8)}
-#bqAile .baFl.off{opacity:.25}
+/* (2026-11-07, passe finale) au bout de la molette, la flèche s'EFFACE (elle restait là, grisée à 25 % : un bouton « cassé ») ; le fondu
+   au bout, la molette n'a plus rien à cacher : son fondu blanc part avec elle (couché, il laissait un halo sur la tranche noire) ; la touche ne
+   prend plus le doigt */
+#bqAile .baFl{transition:opacity .2s var(--ease,ease)}
+#bqAile .baFl .pxi{transition:transform .15s,scale .2s var(--ease,ease)}
+#bqAile .baFl.off{opacity:0;pointer-events:none}
+#bqAile .baFl.off .pxi{scale:.6}
 /* COUCHÉ : une colonne étroite à droite (la caisse a toute la gauche), la molette défile de haut en bas, les vignettes en ligne
    (la photo à gauche, le nom et le prix à droite) */
-#gBq #gBqPan.cote.bqAileOn{left:auto!important;width:min(296px,36vw);top:12px!important}
-#gBqPan.cote #bqAile{--baW:100%;--baH:64px;flex:1;min-height:0}
+#gBq #gBqPan.cote.bqAileOn{left:auto!important;width:max(min(296px,36vw),min(380px,26vw));top:16px!important} /* l'ordinateur (1 400 px) : 364 px */
+/* (2026-11-07, passe finale) la molette d'aplomb sur la barre du bas : le panneau déborde de 2 px de chaque côté (garBqPanneau : la marge
+   intérieure des cartes de la grille) — la boîte blanche de la molette, elle, n'a pas de marge intérieure : elle finissait 2 px à droite de
+   JOUER (couché) et de part et d'autre (debout). Couché, elle part aussi du haut de BOUTIQUE (16 px, comme les autres rayons). */
+#gBq #gBqPan.bqAileOn #bqAile{margin:0 2px}
+#gBqPan.cote #bqAile{--baW:100%;--baH:56px;flex:1;min-height:0;gap:4px}
 #gBqPan.cote #bqAile .baPiste{flex:1}
 #gBqPan.cote #bqAile .baRail{position:absolute;inset:0;flex-direction:column;align-items:stretch;overflow-x:hidden;overflow-y:auto;scroll-snap-type:y mandatory;touch-action:pan-y;padding:0 10px} /* le pourcentage d'un rembourrage se compte sur la LARGEUR : deux cales (::before/::after) centrent les bouts */
 #gBqPan.cote #bqAile .baRail::before,#gBqPan.cote #bqAile .baRail::after{content:'';flex:none;height:calc(50% - var(--baH) / 2 - 8px)}
 #gBqPan.cote #bqAile .baK{flex-direction:row;align-items:stretch;width:auto;height:var(--baH);transform:scale(.94)}
 #gBqPan.cote #bqAile .baK.mil{transform:none}
 #gBqPan.cote #bqAile .baK::before{left:0;top:0;bottom:0;right:auto;width:3px;height:auto}
-#gBqPan.cote #bqAile .baPh{flex:none;width:104px;height:auto}
+#gBqPan.cote #bqAile .baPh{flex:none;width:92px;height:auto}
 #gBqPan.cote #bqAile .baTx{flex:1;min-width:0;justify-content:center;padding:6px 8px}
 #gBqPan.cote #bqAile .baN{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
 #gBqPan.cote #bqAile .baTr{flex-direction:row;width:auto;height:28px;margin:0;padding:0 8px 0 4px;align-self:stretch}
 #gBqPan.cote #bqAile .baTr b{display:block;flex:1}
 #gBqPan.cote #bqAile .baTr .bqRl{width:20px;height:20px}
-#gBqPan.cote #bqAile .baFl{left:0;right:0;width:auto;height:44px;top:auto;bottom:auto}
-#gBqPan.cote #bqAile .baFl.g{top:0;background:linear-gradient(180deg,#fff 55%,rgba(255,255,255,0))}
-#gBqPan.cote #bqAile .baFl.d{bottom:0;background:linear-gradient(0deg,#fff 55%,rgba(255,255,255,0))}
+#gBqPan.cote #bqAile .baFl{left:auto;right:0;width:64px;height:44px;top:auto;bottom:auto} /* couché, la flèche à droite, sous le pouce : la photo d'à côté reste visible */
+#gBqPan.cote #bqAile .baFl.g{top:0;background:radial-gradient(closest-side,#fff 55%,rgba(255,255,255,0))}
+#gBqPan.cote #bqAile .baFl.d{bottom:0;background:radial-gradient(closest-side,#fff 55%,rgba(255,255,255,0))}
 #gBqPan.cote #bqAile .baFl .pxi-gauche,#gBqPan.cote #bqAile .baFl .pxi-droite{display:none}
 #gBqPan.cote #bqAile .baFl .pxi-haut,#gBqPan.cote #bqAile .baFl .pxi-bas{display:block}
 /* sa phrase, sous la molette : trois lignes au plus, la place réservée (rien ne saute quand on tourne) */
 #bqAile .baDesc{min-height:33px;max-height:33px;padding:0 12px;font-size:7px;line-height:11px;letter-spacing:0;color:var(--bqGris);overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;text-transform:none}
-#gBqPan.cote #bqAile .baDesc{flex:none}
+#gBqPan.cote #bqAile .baDesc{flex:none;min-height:22px;max-height:22px;-webkit-line-clamp:2} /* couché, la place va à la molette : deux lignes */
+/* GRAND ÉCRAN (l'ordinateur, une tablette couchée) : la colonne est haute, les vignettes grandissent */
+@media (min-width:1000px) and (min-height:600px){#gBqPan.cote #bqAile{--baH:76px}#gBqPan.cote #bqAile .baPh{width:128px}#gBqPan.cote #bqAile .baN{font-size:9px;line-height:11px;height:22px}#gBqPan.cote #bqAile .baP{font-size:10px;line-height:12px}#gBqPan.cote #bqAile .baDesc{font-size:8px;line-height:12px;min-height:36px;max-height:36px;-webkit-line-clamp:3}}
 @media (prefers-reduced-motion:reduce){#bqAile .baK,#bqAile .baRg i{transition:none}}
 html[data-reduced-motion] :is(#bqAile .baK,#bqAile .baRg i){transition:none}
 /* ===== LA VITRE DES AILES (2026-11-07, Léo : « une vitre devant les wings, qu'on peut casser ; autour du choix entre les deux flèches, un mini-effet 3D sur le rectangle arrondi, en bonne résolution ») — voir interface/aile-vitrine.js =====
@@ -10701,15 +10721,24 @@ html[data-reduced-motion] #bqAile .baK.mil:not(.a)::after{animation:none}
 #gBqPan .trFil .trCh b{font-weight:400;font-size:8px;line-height:1;letter-spacing:0;white-space:nowrap}
 #gBqPan .trFil .trCh em{font-style:normal;font-size:7px;line-height:1;color:#6b7480;white-space:nowrap}
 #gBqPan .trFil .trCh:active>span{translate:0 1px}
+/* (2026-11-07, passe finale) EN ANGLAIS À 375 PX, la réglette débordait (RIBBONS · PARTICLES · EFFECTS · SHOWSTOPPERS : les mots rognés par
+   leur touche) : sur un panneau étroit les noms passent à 7 px et la touche serre son rembourrage ; un nom de plus de dix lettres (b.lg) à 6 px */
+@container (max-width:400px){
+  #gBqPan .trFil .trCh>span{padding:0 2px 2px}
+  #gBqPan .trFil .trCh b{font-size:7px}
+  #gBqPan .trFil .trCh b.lg{font-size:6px}
+}
 #gBqPan .trFil .trCh.on>span{background:var(--bqInk);box-shadow:0 4px 10px -4px color-mix(in srgb,var(--rc) 70%,var(--bqInk));color:#fff}
 #gBqPan .trFil .trCh.on em{color:#c3c9d2}
 /* -- l'intertitre d'une famille (en TOUT seulement) : une ligne, la rareté à sa couleur -- */
-#gBqPan .bqRail>.trSec{flex:0 0 100%;display:flex;align-items:center;gap:6px;min-width:0;margin:6px 0 0;padding:0 2px;height:18px;font-family:var(--pix);color:var(--bqInk);pointer-events:none;scroll-snap-align:start;animation:bqSec .38s var(--ease) both}
+/* (2026-11-07, passe finale) le BANDEAU des intertitres de rareté (celui des voitures et du nuancier) : sa teinte, le liseré, le logo dans sa pastille */
+#gBqPan .bqRail>.trSec{flex:0 0 100%;display:flex;align-items:center;gap:8px;min-width:0;box-sizing:border-box;margin:6px 0 0;padding:5px 9px 5px 5px;border-radius:8px;font-family:var(--pix);color:var(--bqInk);pointer-events:none;scroll-snap-align:start;animation:bqSec .38s var(--ease) both;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 22%,#fff),color-mix(in srgb,var(--rc) 4%,#fff) 78%);box-shadow:inset 3px 0 0 var(--rc),0 1px 0 rgba(20,23,28,.06)}
 #gBqPan .bqRail>.trFil+.trSec{margin-top:0}
-#gBqPan .trSec>i{display:grid;place-items:center;flex:none;width:16px;height:16px;border-radius:5px;background:var(--bqInk);box-shadow:0 0 0 1px var(--rc)}
+#gBqPan .trSec>i{display:grid;place-items:center;flex:none;width:20px;height:20px;border-radius:6px;background:var(--bqInk);box-shadow:0 0 0 1px var(--rc),0 0 8px -2px var(--rc)}
 #gBqPan .trSec>i .pxi{--pxs:1;margin:0;color:var(--rc)}
 #gBqPan .trSec b{font-weight:400;font-size:9px;letter-spacing:2px;white-space:nowrap}
-#gBqPan .trSec span{font-size:7px;letter-spacing:1px;color:var(--rc);filter:brightness(.75) saturate(1.3);white-space:nowrap}
+#gBqPan .trSec span{font-size:7px;letter-spacing:1px;color:var(--bqGris);white-space:nowrap}
 #gBqPan .trSec s{flex:1;height:2px;min-width:8px;border-radius:2px;background:linear-gradient(90deg,var(--rc),transparent)}
 #gBqPan .trSec em{font-style:normal;font-size:7px;color:var(--bqGris);white-space:nowrap}
 /* le filtre : une famille choisie ne garde que ses voies (la réglette dit déjà laquelle : plus d'intertitre) */
@@ -10717,7 +10746,7 @@ html[data-reduced-motion] #bqAile .baK.mil:not(.a)::after{animation:none}
 #gBqPan .bqRail[data-trf="commun"]>.trK:not([data-fam="commun"]),#gBqPan .bqRail[data-trf="rare"]>.trK:not([data-fam="rare"]),
 #gBqPan .bqRail[data-trf="epique"]>.trK:not([data-fam="epique"]),#gBqPan .bqRail[data-trf="legendaire"]>.trK:not([data-fam="legendaire"]){display:none}
 /* -- LA VOIE -- */
-#gBqPan .bqRail>.bqK.trK{width:100%;height:58px;flex-direction:row;align-items:stretch;border-radius:11px;overflow:hidden;scroll-snap-align:start;box-shadow:0 0 0 1px var(--bqFil),0 6px 16px rgba(30,40,55,.06)}
+#gBqPan .bqRail>.bqK.trK{width:100%;height:58px;flex-direction:row;align-items:stretch;border-radius:10px;overflow:hidden;scroll-snap-align:start;box-shadow:0 0 0 1px var(--bqFil),0 6px 16px rgba(30,40,55,.06)}
 @container (min-width:520px){#gBqPan .bqRail>.bqK.trK{width:calc(50% - 3px)}}
 /* COUCHÉ (.cote) : le panneau est large mais bas (~260 px) — une voie par rangée n'en montrait que DEUX et demie. Deux TUILES de piste par
    rangée (trois au-delà de 600 px, l'ordinateur) : la piste en haut, le nom et la pastille dessous ; les intertitres s'effacent (la réglette dit
@@ -10758,14 +10787,17 @@ html[data-reduced-motion] #bqAile .baK.mil:not(.a)::after{animation:none}
 #gBqPan .trK .trTx .bqKn{max-width:100%;padding:0;font-size:8px;line-height:1.35;letter-spacing:.5px;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-overflow:clip}
 #gBqPan .trK .trTx .bqKp{display:inline-flex;align-items:center;gap:4px;max-width:100%;padding:4px 7px 3px;border-radius:6px;font-size:8px;line-height:1;white-space:nowrap;box-sizing:border-box;background:var(--bqFond2);color:var(--bqInk)}
 #gBqPan .trK .trTx .bqKp .pxi{--pxs:1;margin:0;color:inherit}
-#gBqPan .trK .trTx .bqKp.pc{background:var(--bqInk);color:#fff}
-#gBqPan .trK .trTx .bqKp.pc .pxi{color:var(--au2)}
+/* (2026-11-07, passe finale) les pastilles d'état parlent la langue des autres rayons (boutique-ensemble.css 7) : le prix à l'encre sur le
+   gris clair (comme le pied des affiches de FIGURES), À TOI en bleu et sa coche, ÉQUIPÉE la pastille bleue pleine (celle des AILES),
+   MISSION le gris et le cadenas — avant, le prix était une plaque noire et ÉQUIPÉE aussi : on les confondait */
+#gBqPan .trK .trTx .bqKp.pc{background:var(--bqFond2);color:var(--bqInk);box-shadow:inset 0 0 0 1px var(--bqFil)}
+#gBqPan .trK .trTx .bqKp.pc .pxi{color:var(--bqInk)}
 #gBqPan .trK .trTx .bqKp.eur{background:var(--bqAcc);color:#fff}
 #gBqPan .trK .trTx .bqKp.defi{background:var(--bqFond2);color:var(--bqGris);box-shadow:inset 0 0 0 1px var(--bqFil)}
-#gBqPan .trK .trTx .bqKp.acq{background:none;color:var(--bqGris);box-shadow:inset 0 0 0 1px var(--bqFil)}
+#gBqPan .trK .trTx .bqKp.acq{background:none;color:var(--bqAcc);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bqAcc) 45%,#fff)}
 #gBqPan .trK .trTx .bqKp i{font-style:normal}
 #gBqPan .trK .trTx .bqKp .trEqT{display:none}
-#gBqPan .trK.eq .trTx .bqKp.acq{background:var(--bqInk);color:#fff;box-shadow:inset 0 -2px 0 var(--tc)}
+#gBqPan .trK.eq .trTx .bqKp.acq{background:var(--bqAcc);color:#fff;box-shadow:none}
 #gBqPan .trK.eq .trTx .bqKp .trAt{display:none}
 #gBqPan .trK.eq .trTx .bqKp .trEqT{display:inline}
 @media (prefers-reduced-motion:reduce){#gBqPan .trK .trVue *,#gBqPan .trK .trVue *::before,#gBqPan .trK .trVue::after{animation:none!important}
@@ -10802,17 +10834,28 @@ html body #gBqPan.bqFigOn #bqFigSel .fsNom{grid-column:2/4;grid-row:2;justify-se
 
 /* ---- les pastilles : une ligne ---- */
 #gBqPan.bqFigOn #bqFigSel .fsBar{flex-wrap:nowrap;gap:4px}
-html body #gBqPan.bqFigOn #bqFigSel .fsPas{min-height:34px;padding:0 8px;flex:0 1 auto;min-width:0}
+html body #gBqPan.bqFigOn #bqFigSel .fsPas{min-height:34px;padding:0 8px;flex:0 1 auto;min-width:44px}
 
 /* ---- la pellicule ---- */
 html body #gBqPan.bqFigOn .bqRail{display:flex;flex-wrap:nowrap;flex:1 1 auto;min-height:0;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;
   align-items:stretch;align-content:stretch;gap:8px;padding:2px 2px 4px;scrollbar-width:none;
-  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 24px),rgba(0,0,0,.25));mask-image:linear-gradient(90deg,#000 calc(100% - 24px),rgba(0,0,0,.25))}
+  --fgG:0px;--fgD:44px;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 var(--fgG),#000 calc(100% - var(--fgD)),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 var(--fgG),#000 calc(100% - var(--fgD)),transparent)}
+/* (2026-11-07, passe finale) LE FONDU DES BORDS, comme la molette des AILES (48 px de blanc) : la 3e affiche s'éteint sur 44 px au lieu d'être
+   coupée net (le masque ne descendait qu'à 25 %) — on voit qu'elle défile. Arrivé au bout, plus de fondu à droite ; parti du début, un fondu à
+   gauche (bqFigApres pose .fgDeb / .fgFin au défilement). */
+html body #gBqPan.bqFigOn .bqRail.fgFin{--fgD:0px}
+html body #gBqPan.bqFigOn .bqRail.fgDeb{--fgG:28px}
 html body #gBqPan.bqFigOn .bqRail .bqK.fgK{--fgW:calc((100% - 16px) / 2.25);flex:0 0 auto;width:var(--fgW);min-width:112px;height:auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;scroll-snap-align:start;background:#fff}
 html body #gBqPan.bqFigOn .bqRail .bqK.fgK::after{display:none}
 #gBqPan.bqFigOn .fgK::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--rc);z-index:3}
 html body #gBqPan.bqFigOn .bqRail .bqK.fgK .bqKph{position:relative;flex:1 1 auto;height:auto;min-height:44px;background:radial-gradient(ellipse 80% 55% at 50% 88%,#e2e6eb,#f7f8fa 70%)}
-#gBqPan.bqFigOn .fgK .bqKph>.bqFig .pxi{--pxs:3;color:#c4cad2}
+#gBqPan.bqFigOn .fgK .bqKph>.bqFig{display:none} /* le pictogramme d'attente : le fond clair et le geste en grand suffisent le temps que le film arrive */
+/* le geste en grand (« POUCE EN AVANT »), pâle, au-dessus du film — seulement quand l'affiche est assez haute (sinon il mangerait la caisse) */
+html body #gBqPan.bqFigOn .bqRail .bqK.fgK{container-type:size;container-name:fgK}
+#gBqPan.bqFigOn .fgK .fgFond{position:absolute;left:6px;right:6px;top:34px;z-index:1;display:none;flex-direction:column;align-items:center;gap:5px;pointer-events:none;text-align:center;opacity:.55}
+#gBqPan.bqFigOn .fgK .fgFond .pxi{--pxs:3;margin:0;color:color-mix(in srgb,var(--dc) 75%,var(--bqInk))}
+#gBqPan.bqFigOn .fgK .fgFond b{font-weight:400;font-size:7px;line-height:9px;letter-spacing:.3px;color:var(--bqGris)}
+@container fgK (min-height:200px){#gBqPan.bqFigOn .fgK .fgFond{display:flex}}
 /* les gestes sur le film */
 #gBqPan.bqFigOn .fgK .fgGs{position:absolute;left:5px;right:5px;top:8px;display:flex;flex-wrap:wrap;gap:3px;z-index:2;pointer-events:none}
 #gBqPan.bqFigOn .fgK .fgG{position:relative;display:inline-flex;align-items:center;gap:2px;height:18px;padding:0 5px 0 2px;font-size:7px;letter-spacing:.3px;color:var(--bqInk);background:rgba(255,255,255,.92);box-shadow:inset 0 0 0 1.5px var(--dc)}
@@ -10840,9 +10883,16 @@ html body #gBqPan.bqFigOn .bqRail .fgK .bqKn{flex:none;padding:4px 6px 0;font-si
 #gBqPan.bqFigOn .fgK .fgEq1:active{translate:0 2px;box-shadow:0 1px 0 var(--bqAcc)}
 #gBqPan.bqFigOn .fgK .fgEqDir{flex:none;display:grid;place-items:center;width:16px;height:16px;background:var(--dc);font-style:normal}
 #gBqPan.bqFigOn .fgK .fgEqDir .pxi{color:var(--bqInk)}
-#gBqPan.bqFigOn .fgK .fgOk{background:color-mix(in srgb,var(--dc) 24%,#fff);box-shadow:inset 0 0 0 1.5px var(--dc)}
-#gBqPan.bqFigOn .fgK .fgPx{background:var(--bqFond2)}
-#gBqPan.bqFigOn .fgK .fgPx.cher{color:var(--bqGris)}
+/* (2026-11-07, passe finale) ÉQUIPÉE : la pastille bleue pleine de toute la boutique (AILES, TRAÎNÉES, le nuancier) ; l'emplacement garde sa
+   couleur en liseré dessous. Le prix : l'encre sur le gris clair (comme les TRAÎNÉES) ; MISSION : le gris et le cadenas */
+#gBqPan.bqFigOn .fgK .fgOk{background:var(--bqAcc);color:#fff;box-shadow:inset 0 -3px 0 var(--dc)}
+#gBqPan.bqFigOn .fgK .fgPx{background:var(--bqFond2);box-shadow:inset 0 0 0 1px var(--bqFil)}
+#gBqPan.bqFigOn .fgK .fgMis{color:var(--bqGris)}
+/* (2026-11-07, passe finale) les mêmes angles que les objets des autres rayons : 10 px pour l'affiche (la vignette d'aile, la voie de traînée),
+   6 px pour la pastille du pied (celles des traînées) */
+html body #gBqPan.bqFigOn .bqRail .bqK.fgK{border-radius:10px}
+#gBqPan.bqFigOn .fgK .fgPied{border-radius:6px}
+#gBqPan.bqFigOn .fgK .fgPx.cher{color:var(--bqGris2)}
 #gBqPan.bqFigOn .fgK.ici{box-shadow:0 0 0 1px var(--bqFil),inset 0 -3px 0 var(--dc),0 8px 20px rgba(30,40,55,.07)}
 #gBqPan.bqFigOn .fgK.ici.sel{box-shadow:0 0 0 2px var(--bqInk),0 10px 24px rgba(30,40,55,.16)}
 /* l'éclosion de ce qu'on vient d'équiper */
@@ -10857,11 +10907,27 @@ html[data-reduced-motion] #gBqPan.bqFigOn .fgK.fgVient :is(.fgPied,.bqKph){anima
 html body #gBq.pan #gBqPan.cote.bqFigOn{display:grid;grid-template-columns:minmax(100px,29%) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:6px 8px}
 html body #gBqPan.cote.bqFigOn #bqFigSel{display:contents}
 #gBqPan.cote.bqFigOn #bqFigSel .fsRow{grid-column:1;grid-row:1/3;flex-direction:column;gap:5px;padding:5px;background:#fff;box-shadow:0 0 0 1px var(--bqFil),0 8px 20px rgba(30,40,55,.07);pointer-events:auto;animation:bqSec .38s var(--ease) both}
-html body #gBqPan.cote.bqFigOn #bqFigSel .fsHex{flex:1 1 0;min-height:44px}
-#gBqPan.cote.bqFigOn #bqFigSel .fsBar{grid-column:2;grid-row:1;pointer-events:auto}
-html body #gBqPan.cote.bqFigOn #bqFigSel .fsPas{min-height:32px;padding:0 6px;letter-spacing:.2px}
+html body #gBqPan.cote.bqFigOn #bqFigSel .fsHex{flex:1 1 0;min-height:44px;grid-template-columns:auto auto;grid-template-rows:auto auto auto;justify-content:center;justify-items:center;row-gap:4px;padding:5px 4px}
+/* couché, la colonne est étroite : chaque case s'empile — le geste écrit, la figure, son nom (deux lignes) */
+#gBqPan.cote.bqFigOn #bqFigSel .fsJoy{grid-column:1;grid-row:1}
+#gBqPan.cote.bqFigOn #bqFigSel .fgSlotG{grid-column:2;grid-row:1}
+#gBqPan.cote.bqFigOn #bqFigSel .fsCase{grid-column:1/3;grid-row:2;margin:0}
+html body #gBqPan.cote.bqFigOn #bqFigSel .fsNom{grid-column:1/3;grid-row:3;text-align:center}
+#gBqPan.cote.bqFigOn #bqFigSel .fsBar{grid-column:2;grid-row:1;flex-wrap:wrap;pointer-events:auto} /* un petit téléphone couché : TRI passe à la ligne plutôt que de mordre sur À ACHETER */
+html body #gBqPan.cote.bqFigOn #bqFigSel .fsPas{min-height:32px;padding:0 5px;letter-spacing:.2px;font-size:7px}
+#gBqPan.cote.bqFigOn #bqFigSel .fsPas em{display:none} /* couché, la colonne est étroite : les comptes (6 · 7) cèdent la place, la ligne tient sans passer à la ligne */
+html body #gBqPan.cote.bqFigOn #bqFigSel .fsPas.fsCib{font-size:0;gap:3px} /* le geste visé : sa flèche et la croix seulement (le dock l'écrit déjà en grand ; le nom reste dans aria-label) */
 #gBqPan.cote.bqFigOn .bqRail{grid-column:2;grid-row:2}
-html body #gBqPan.cote.bqFigOn .bqRail .bqK.fgK{--fgW:calc((100% - 8px) / 2.2)}
+html body #gBqPan.cote.bqFigOn .bqRail .bqK.fgK{--fgW:calc((100% - 8px) / 1.8)}
+/* la puce ANNULER (figures-selecteur.js), couché dans ce rayon : elle tombait au milieu en haut, SUR le dock ; elle se pose en bas de la scène,
+   entre la colonne des rayons et le panneau (là où rien ne se touche) */
+@media (orientation:landscape){
+  html:has(#gBq.pan #gBqPan.cote.bqFigOn) #fsUndo{left:calc(var(--sL,0px) + 172px);top:auto;bottom:calc(var(--sB,0px) + 12px);max-width:calc(50vw - 186px);translate:0 10px}
+  html:has(#gBq.pan #gBqPan.cote.bqFigOn) #fsUndo.on{translate:0 0}
+  html:has(#gBq.pan #gBqPan.cote.bqFigOn) #fsUndo{flex-wrap:wrap;gap:6px}
+  html:has(#gBq.pan #gBqPan.cote.bqFigOn) #fsUndo .fuTx{flex:1 1 140px;font-size:8px}
+  html:has(#gBq.pan #gBqPan.cote.bqFigOn) #fsUndo .fuBt{margin-left:auto}
+}
 </style>
 <style id="revueInterfaces">
 /* ===== LA REVUE DES INTERFACES (2026-11-07, Sacha : « revois les interfaces, fais un screen de chaque écran et paufine tout parfaitement. pas de bouton
@@ -10876,6 +10942,81 @@ html body #gBqPan.cote.bqFigOn .bqRail .bqK.fgK{--fgW:calc((100% - 8px) / 2.2)}
       aucune plaque ne déborde, rien ne change. Si une plaque déborde ENCORE à 7 px (une 2e mesure, même passage), .lg2 : 6 px, le dernier cran lisible. */
 html #gBq #gBqPan .bqK:not(.pnt) .bqKn.lg{font-size:7px;letter-spacing:0;line-height:11px;padding-left:3px;padding-right:3px}
 html #gBq #gBqPan .bqK:not(.pnt) .bqKn.lg2{font-size:6px;line-height:10px;padding-left:2px;padding-right:2px}
+</style>
+<style id="bq-ensemble">
+/* ===== LA BOUTIQUE, FINITION GÉNÉRALE (2026-11-07, Sacha : « plein de petits problèmes d alignement, de détails qui font pas pro : travaille la boutique à fond en mode game designer senior ») =====
+   L'ossature commune (en-tête, colonne des rayons, panneau, bouton d'action, RETOUR) et les cartes des VOITURES, mesurées au banc
+   (390 × 844, 844 × 390, 375 × 667). Une seule gouttière : 16 px du bord pour BOUTIQUE, la colonne des rayons et les cartes (la colonne
+   était à 12 px debout et à 36 px couché : voir garBqPanneau). Les rayons PEINTURES, AILES, TRAÎNÉES et FIGURES ont leurs fichiers. */
+
+/* 1. la colonne des rayons : garBqPanneau la pose à calc(--sL + 16 px) — l'ancien rattrapage de l'encoche (marge de --sL − 26 px) ferait double compte */
+#gBq.pan #gBqCats#gBqCats{margin-left:0}
+
+/* 2. LA BARRE DU BAS NE COLLE PLUS AU BORD : elle descendait de 20 px (Léo : « le bouton BACK plus bas ») et RETOUR | JOUER finissaient à
+   2 px du bas de l'écran, JOUER rogné (MESURÉ debout, couché et petit écran). Elle descend encore, mais garde 12 px de marge ; sur un
+   iPhone à barre d'accueil (--sB), elle ne descend plus du tout dans la zone du geste. */
+html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct{translate:0 max(0px,calc(10px - var(--sB,0px)))}
+
+/* 3. ACHETER / ÉQUIPER et la rangée RETOUR | JOUER : 8 px d'écart, dont 4 mangés par la tranche d'ACHETER (ombre de 4 px) — les deux
+   lingots jaunes se touchaient presque. 12 px : la même respiration qu'entre les cartes. */
+html.bqIndus:not(.sansGarJouer) body #garage#garage.shopRet:not(.menu):not(.vitrine) #gAct#gAct{row-gap:12px}
+
+/* 4. LA GRILLE S'OUVRE D'ÉQUERRE : au repos l'aimant posait le 1er intertitre à 4 px sous le haut de la liste (scrollTop 4 MESURÉ dans
+   les trois formats) — le haut de la bande COMMUNES et l'anneau de la carte choisie étaient rognés. La marge d'aimant rend ces 4 px. */
+#gBqPan.grille .bqRail{scroll-padding-top:4px}
+
+/* 5. LES CARTES DES VOITURES : le nom (padding 4 px) et le prix (padding 6 px) ne partaient pas du même bord — 2 px d'écart sur chaque
+   carte des iPhone étroits ; un nom sur deux lignes (LA DOLCE VITA, LE BLINDE NOIR) avait ses lignes collées (8 px sur 10). Même bord
+   de 4 px pour les deux, interligne de 11 px. Seulement les cartes des caisses (.bqK sans .hab) : les rayons d'habillage ont leur dessin. */
+@media (max-width:400px),(orientation:landscape) and (max-height:400px){
+  html:not(.c6):not(.ux8g) #gBqPan .bqK:not(.hab) .bqKn{line-height:11px;padding:6px 4px 0}
+  html:not(.c6):not(.ux8g) #gBqPan .bqK:not(.hab) .bqKp{padding:4px 4px 8px}
+}
+
+/* 6. UNE SEULE LARGEUR, DU HAUT DES CARTES AU BAS DE L'ÉCRAN : la barre du bas (ACHETER, RETOUR | JOUER) était rentrée de 22 px quand
+   BOUTIQUE et les cartes partent à 16 px — trois bords différents l'un sous l'autre. En boutique elle s'élargit de 6 px de chaque côté ;
+   garBqPanneau cale la grille sur elle (debout comme couché : --bqD, le bord droit couché, qui gardait 12 px fixes). */
+html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct{margin-left:-6px;margin-right:-6px}
+#gBq #gBqPan#gBqPan.cote{right:var(--bqD,calc(var(--sR,0px) + 12px))!important}
+
+/* 7. L'ÉTAT D'UNE CAISSE SE LIT D'UN COUP D'ŒIL : « À TOI » et « MISSION » avaient le MÊME gris (var(--bqGris)), à la place du prix — une caisse
+   gagnée ressemblait à une caisse verrouillée (VU après un achat : LA CABOSSEE « A TOI » grise à côté du SCARABÉE « MISSION » gris).
+   À TOI : le bleu de la boutique et une coche ; MISSION : le gris et un cadenas. Les secrètes gardent leur rose (missions.css). */
+#gBqPan .bqK:not(.hab) .bqKp:is(.acq,.defi:not(.sec))::before{content:'';flex:none;width:8px;height:8px;background:currentColor;
+  -webkit-mask:var(--pxi-verrou) center/contain no-repeat;mask:var(--pxi-verrou) center/contain no-repeat}
+#gBqPan .bqK:not(.hab) .bqKp.acq{color:var(--bqAcc)}
+#gBqPan .bqK:not(.hab) .bqKp.acq.acq::before{-webkit-mask-image:var(--pxi-coche);mask-image:var(--pxi-coche)}
+
+/* 8. « SE DÉBLOQUE » AU-DESSUS DE LA CAISSE : en 10 px, la condition d'une caisse à mission tenait sur TROIS lignes dans la place entre la
+   colonne des rayons et le bord (FAIS 5 FIGURES DANS UN SEUL SAUT, debout) et descendait sur le toit de la caisse. 9 px, interligne
+   de 14 : deux lignes, la jauge juste dessous. */
+#gBq #gBqNom .m2DebT{font-size:9px;line-height:14px;letter-spacing:0}
+
+/* ===== LA PASSE FINALE DE COHÉRENCE (2026-11-07, Sacha : « une boutique pro, game designer senior, chaque type d'item a son propre système ») ===== */
+/* 9. L'ACHAT SE VOIT (voir bqAchatVu, boutique-scene-1.js) : le tampon d'or « À TOI ! » de la fiche du garage (k4Tampon, la même frappe) s'abat
+   sur l'objet acheté, l'objet saute, l'argent rougit et dit ce qui est parti. Posés dans <body> : aucun rail (masque, défilement) ne les rogne. */
+.bqTampon{position:fixed;z-index:9001;translate:-50% -50%;padding:8px 12px 7px;font-family:var(--pix);font-style:normal;font-size:12px;letter-spacing:2px;white-space:nowrap;color:var(--au1,#ffe27a);
+  background:rgba(7,5,15,.84);box-shadow:inset 0 0 0 3px var(--au2,#e0a526),0 0 0 1px var(--anneau,#fff),0 0 24px var(--auG,rgba(255,200,60,.6));text-shadow:0 2px 0 var(--auO,#7a3d00),0 0 12px var(--auG,rgba(255,200,60,.6));
+  pointer-events:none;opacity:0;transform:rotate(-9deg) scale(.4);animation:k4Tampon 1.6s var(--ease) forwards}
+#gBqPan .bqAchete{animation:bqAchete .5s var(--ease)}
+@keyframes bqAchete{0%{scale:1}30%{scale:.9}65%{scale:1.06}100%{scale:1}}
+.bqDebit{position:fixed;z-index:9001;translate:-50% 0;font-family:var(--pix);font-style:normal;font-size:10px;letter-spacing:1px;white-space:nowrap;color:#e0283c;pointer-events:none;
+  text-shadow:0 1px 0 #fff,0 0 6px #fff;animation:bqDebit 1.5s var(--ease) forwards}
+@keyframes bqDebit{0%{opacity:0;transform:translateY(-6px)}15%{opacity:1;transform:none}70%{opacity:1}100%{opacity:0;transform:translateY(14px)}}
+#gBqArg.bqPaye{animation:bqPaye 1.1s var(--ease)}
+@keyframes bqPaye{0%,60%{color:#e0283c}100%{color:inherit}}
+@media (prefers-reduced-motion:reduce){.bqTampon{animation:none;opacity:1;transform:rotate(-9deg);transition:opacity .3s}#gBqPan .bqAchete,.bqDebit{animation:none}}
+
+/* 10. ACHETER ET JOUER, DEUX LINGOTS D'OR L'UN SUR L'AUTRE : en boutique, l'or désignait deux gestes contraires (dépenser, partir). DÉCISION
+   (passe finale) : dans la boutique SEULEMENT, l'or est à l'ACHAT — JOUER passe en plaque d'ENCRE, ses lettres d'or gardées (le mot reste
+   le même lingot frappé, il ne crie plus). Partout ailleurs (garage, accueil) JOUER garde sa plaque d'or. */
+html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer{background:linear-gradient(180deg,#2a2f38,var(--bqInk) 60%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 0 0 1px #000,0 6px 0 #000,0 14px 24px -10px rgba(20,23,28,.55)!important}
+html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer .mChev{filter:none!important}
+/* DÉSÉQUIPER retrouve la plaque blanche cerclée d'encre (garage-hub-rayons.css) que la couche ux8 noircissait : un retrait n'est pas l'action
+   principale, et deux plaques noires se seraient empilées au-dessus de JOUER */
+html:not(.c6):not(.ux8g).bqIndus body #garage#garage #gAct#gAct>#gBqBtn[data-e="desequip"]{background:#fff;color:var(--bqInk);box-shadow:inset 0 0 0 2px var(--bqInk)}
+html.bqIndus body #garage#garage.modeShop:not(.menu):not(.vitrine) #gAct#gAct>#gJouer#gJouer .mChev .pxi{color:#ffd23a!important;background-color:#ffd23a!important;opacity:.8}
 </style>
 <style id="hudFini">
 /* =====================================================================================================================================
@@ -76195,7 +76336,7 @@ function bqAilesOrdre(){const rg=function(d){return Math.max(0,RARETES.findIndex
   return COSM.aile.map(function(d,j){return j;}).sort(function(a,b){const A=COSM.aile[a],B=COSM.aile[b];return (rg(A)-rg(B))||(px(A)-px(B))||(a-b);});}
 function bqHabRail(L,cat,SOUS){const fam=function(k){return cosmRar(cat,bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,SOUS&&SOUS[f]?sansAcc(TR(SOUS[f])):''))+bqCarteHtml(k,n,false);});}
-function bqTraineeRail(L){if(typeof trPisteHtml==='function'&&/[?&]piste=1\b/.test(location.search))return trPisteHtml(L); /* (2026-11-07, Léo : « les trails, mets tous les nouveaux, mais remets les effets d'avant, avec le cube : pour les trails c'était mieux ; fais seulement ça ») la PISTE de Sacha est éteinte pour les traînées : retour aux cartes en cube (la traînée animée sur sa route de nuit, traineeCarte), avec TOUTES les traînées de la liste ; `?piste=1` = la piste. Les autres rayons gardent leur système. */ /* (2026-11-07) LA PISTE : le rayon des traînées a son propre système (interface/boutique-trainee.js) */const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
+function bqTraineeRail(L){if(typeof trPisteHtml==='function'&&/[?&]piste=1\b/.test(location.search))return trPisteHtml(L);try{if(typeof bqRayonRegarde==='function')bqRayonRegarde('trainee');}catch(e){} /* (2026-11-07, Sacha : « chaque type d'item doit avoir un système propre ») en entrant, les cartes en cube regardent aussi la traînée PORTÉE (bqRayonRegarde, comme les autres rayons) */ /* (2026-11-07, Léo : « les trails, mets tous les nouveaux, mais remets les effets d'avant, avec le cube : pour les trails c'était mieux ; fais seulement ça ») la PISTE de Sacha est éteinte pour les traînées : retour aux cartes en cube (la traînée animée sur sa route de nuit, traineeCarte), avec TOUTES les traînées de la liste ; `?piste=1` = la piste. Les autres rayons gardent leur système. */ /* (2026-11-07) LA PISTE : le rayon des traînées a son propre système (interface/boutique-trainee.js) */const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k);return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,BQ_TRAINEE_SOUS[f]?sansAcc(TR(BQ_TRAINEE_SOUS[f])):''))+bqCarteHtml(k,n,false);});}
 function bqPeintRail(L){if(typeof bqNuancierHtml==='function')return bqNuancierHtml(L); /* (2026-11-07) LE NUANCIER : le rayon des peintures a son propre système (interface/boutique-peinture.js) */try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */const fam=function(k){return cosmRar('peinture',bqCos(k).d);},nb={},ok={};L.forEach(function(k){const f=fam(k);nb[f]=(nb[f]|0)+1;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   return L.map(function(k,n){const f=fam(k),sous=BQ_PEINT_SOUS[f]?sansAcc(TR(BQ_PEINT_SOUS[f]))+' · '+eurTxt(PEINT_EUR[f]):'';return (n&&fam(L[n-1])===f?'':bqRarSec(f,nb[f],ok[f]|0,sous))+bqCarteHtml(k,n,false);});}
@@ -76369,9 +76510,10 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
   const W=VP.w,H=VP.h,ac=document.getElementById('gAct'),tr=te.getBoundingClientRect(),arc=ac&&ac.getBoundingClientRect(),cou=W>H*1.2;
   const bas=arc&&arc.height?arc.top:H-80,lay=W+'x'+H+':'+Math.round(bas)+':'+(arc?Math.round(arc.left):0)+':'+ong+':'+Math.round(tr.bottom);
   if(GBQ.lay!==lay){GBQ.lay=lay;
-    const UW=Math.round(Math.min(124,W*.31)),top=tr.bottom+(cou?6:14);une.style.left=(cou?36:12)+'px';une.style.width=UW+'px';une.style.top=top+'px';let fond;
-    if(!cou){const ph=Math.round(Math.min(330,H*.4));pan.style.left='14px';pan.style.right='14px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');fond=bas-10-ph-10;}
-    else{const x0=Math.max(W*.5,(arc&&arc.width?arc.left:W*.55)-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');fond=H-12-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sB'))||0);} /* (2026-10-17, session UI-REVUE) couché, la colonne des rayons s'arrête au-dessus de la barre d'accueil (FIGURES y entrait de 6 px) */
+    const UW=Math.round(Math.min(124,W*.31)),top=tr.bottom+(cou?12:14);une.style.left=cou?'calc(var(--sL,0px) + 16px)':'16px'; /* (2026-11-07, finition) la colonne des rayons sur la ligne de BOUTIQUE (16 px du bord, l'encoche comprise) : elle était à 12 px debout, 36 px couché */une.style.width=UW+'px';une.style.top=top+'px';let fond;
+    const aG=arc&&arc.width?Math.round(arc.left)-2:14,aD=arc&&arc.width?Math.round(W-arc.right)-2:14; /* (2026-11-07, finition) les cartes (2 px de marge dans la liste) tombent d'aplomb sur le bouton d'action et RETOUR | JOUER : la grille débordait de 6 px de chaque côté (debout) et de 4 et 12 px (couché) */
+    if(!cou){const ph=Math.round(Math.min(330,H*.4));pan.style.left=aG+'px';pan.style.right=aD+'px';pan.style.top=(bas-10-ph)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.remove('cote');pan.classList.add('grille');fond=bas-10-ph-10;}
+    else{const x0=Math.max(W*.5,arc&&arc.width?aG:W*.55-6);pan.style.left=x0+'px';pan.style.right='12px';pan.style.setProperty('--bqD',aD+'px');pan.style.top=Math.round(tr.top)+'px';pan.style.bottom=(H-bas+10)+'px';pan.classList.add('cote','grille');fond=H-12-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sB'))||0);} /* (2026-10-17, session UI-REVUE) couché, la colonne des rayons s'arrête au-dessus de la barre d'accueil (FIGURES y entrait de 6 px) */
     bqRayons(une,fond-top);garLibre._r=null;}
   {const pr=pan.getBoundingClientRect(),ru=une.getBoundingClientRect(),SH=0,sb=cou?H-14:pr.top-10;
    sk.style.left=(ru.right+6)+'px';sk.style.right=(W-(cou?pr.left-8:W-12))+'px';sk.style.top=(sb-40)+'px';
@@ -76419,7 +76561,7 @@ function bqEtat(){const k=bqCourant();if(!k)return null;
   const o=bqCos(k),d=o.d;if(!d)return null;
   if(o.cat==='figure'){if(!figPossede(d.id))return {e:'achat',t:'ACHETER',p:bqPxT(d.p)}; // (2026-10-14) une figure : on l'a, ou on l'achète
     if(!FIGV2.on)return {e:'eq',t:'ACQUISE'};
-    const dir9=bqFigDir(d.id); // (2026-10-31, clarté boutique) le bouton montre l'icône de CET emplacement : sur une figure à deux sens, on sait où elle va se ranger avant de toucher
+    const dir9=bqFigDir(d.id);if(GBQ.panOn&&GBQ.cat==='figure'&&typeof bqFigCarte==='function'&&figSlots()[dir9]!==d.id)return {e:'eq',t:'À TOI'}; /* (2026-11-07, passe finale) la pellicule : ÉQUIPER vit sur l'AFFICHE (un toucher, dans son emplacement) ; le grand bouton reste l'achat */ // (2026-10-31, clarté boutique) le bouton montre l'icône de CET emplacement : sur une figure à deux sens, on sait où elle va se ranger avant de toucher
     return figSlots()[dir9]===d.id?{e:'eq',t:'ÉQUIPÉE',dir:dir9}:{e:'figeq',t:'ÉQUIPER',dir:dir9,rem:fsRem(d.id,dir9)};} // (2026-11-05) le bouton dit AVANT le toucher ce que l'équipement remplace (rem) // (2026-10-15, les directions) dans la direction de SA carte : on en change en ÉQUIPANT une autre de cette direction, on ne la retire plus
   const a=shopOwned(o.cat,d.id),eq=shopEqD(o.cat)===d,j=COSM[o.cat].indexOf(d);
   if(a&&eq)return j>0?{e:'desequip',t:'DÉSÉQUIPER'}:{e:'eq',t:'ÉQUIPÉE'};if(a)return {e:'equip',t:'ÉQUIPER'};
@@ -76488,6 +76630,25 @@ function garFigPas(dt){
 window.dbgFigEssai=function(id,c){garFigEssai(id,c==null?-1:c);return {D:+GFIG.D.toFixed(3),plat:!!GFIG.plat,plan:window.dbgFigPlan?window.dbgFigPlan():null};};
 window.dbgFigEtat=function(){const o=GBQ.omb;return {t:+GFIG.t.toFixed(3),D:+GFIG.D.toFixed(3),plat:!!GFIG.plat,gel:GFIG.gel==null?null:GFIG.gel,omb:o?{vis:!!(o.visible&&GBQ.grp&&GBQ.grp.visible),y:+o.position.y.toFixed(3),x:+o.position.x.toFixed(3),z:+o.position.z.toFixed(3),s:[+o.scale.x.toFixed(2),+o.scale.y.toFixed(2)],o:+o.material.opacity.toFixed(2)}:null};};
 window.dbgFigGel=function(t){GFIG.gel=t==null?null:+t;return GFIG.gel;};
+/* ===== L'ACHAT SE VOIT DANS LA BOUTIQUE (2026-11-07, Sacha : « une boutique pro, game designer senior » — passe finale) =====
+   Un achat en pièces débitait sans rien montrer : le tampon « À TOI ! » et l'éclat partent sur la fiche du garage (#gCard), CACHÉE en
+   boutique ; seul le bouton passait à ÉQUIPÉE. Les sons (ui.achat, ui.tampon) partaient déjà : on n'en ajoute aucun. Ici, le même retour
+   dans TOUS les rayons : le tampon d'or « À TOI ! » s'abat sur l'objet acheté (carte, pastille, voie, vignette, affiche) avec son éclat
+   de pixels, et l'argent (#gBqArg) dit ce qui est parti (« − $ 40 000 ») pendant qu'il descend. Écouté avant le bouton (capture) : on note
+   l'objet et la banque, puis on regarde ce qui a changé ; un achat en euros (StoreKit) se guette quelques secondes. */
+document.addEventListener('click',function(e){if(!e.target.closest||!e.target.closest('#gBqBtn')||!GBQ.on)return;const k=bqCourant(),s=bqEtat();if(!k||!s||s.e!=='achat')return;if(k[0]==='v'||k.indexOf('aile:')===0)return; /* une caisse et une aile ont déjà LEUR achat : la vitre qui éclate (vitre-brisee.js) */
+  const b0=bank(),t0=performance.now(),vu=function(){const a=k[0]==='v'?carUnlockedVrai(+k.slice(2)):k.indexOf('figure:')===0?figPossede(k.slice(7)):bqA(k);
+    if(a){bqAchatVu(k,b0-bank());return;}if(performance.now()-t0<8000)setTimeout(vu,250);};setTimeout(vu,30);},true);
+function bqAchatVu(k,paye){const pan=document.getElementById('gBqPan');if(!pan)return;
+  const L=[].slice.call(pan.querySelectorAll('[data-k="'+k+'"]')).filter(function(x){const r=x.getBoundingClientRect();return r.width>0&&r.height>0;});
+  const el=L.filter(function(x){return x.classList.contains('sel');})[0]||L[0];
+  if(el){const r=el.getBoundingClientRect(),t=document.createElement('i');t.className='bqTampon';t.textContent=sansAcc(TR('À TOI !'));
+    t.style.left=Math.round(r.left+r.width/2)+'px';t.style.top=Math.round(r.top+Math.min(r.height,140)/2)+'px';document.body.appendChild(t);setTimeout(function(){t.remove();},1700);
+    el.classList.remove('bqAchete');void el.offsetWidth;el.classList.add('bqAchete');setTimeout(function(){el.classList.remove('bqAchete');},900);try{pixBurst(el,12);}catch(e){}}
+  const ar=document.getElementById('gBqArg');if(ar&&paye>0){const r=ar.getBoundingClientRect(),d=document.createElement('i');d.className='bqDebit';d.textContent='− '+bqPxT(paye);
+    d.style.left=Math.round(r.left+r.width/2)+'px';d.style.top=Math.round(r.bottom+4)+'px';document.body.appendChild(d);setTimeout(function(){d.remove();},1600);
+    ar.classList.remove('bqPaye');void ar.offsetWidth;ar.classList.add('bqPaye');setTimeout(function(){ar.classList.remove('bqPaye');},1100);}}
+window.dbgBqAchatVu=function(k,p){bqAchatVu(k||bqCourant(),p==null?40000:p);return k||bqCourant();}; /* (banc) le retour d'achat, sans rien acheter */
 function bqBoutonMaj(){const bt=document.getElementById('gBqBtn');if(!bt)return;const s=bqEtat(),cle=s?s.e+'|'+s.t+'|'+(s.p||'')+'|'+(s.j!=null?Math.round(s.j*100):'')+'|'+(s.dir!=null?s.dir:'')+'|'+(s.rem||'')+'|'+LANG:'';if(bt._k===cle)return;bt._k=cle;
   bt.style.display=s?'':'none'; /* (2026-11-05) rien à proposer : le bouton disparaît (la grille reprend sa place) */
   bt.dataset.e=s?s.e:'';bt.classList.toggle('rem',!!(s&&s.rem));bt.innerHTML=s?((s.dir!=null?'<i class="bqBtnDir" style="--dc:'+FIG_DC[s.dir]+'">'+pxi(FIG_FAM[s.dir][2])+'</i>':'')+(s.rem?'<span class="bqBtnT"><span>'+sansAcc(TR(s.t))+'</span><small>'+sansAcc(TR('REMPLACE'))+' '+sansAcc(TR(FIG.par[s.rem]?FIG.par[s.rem].n:s.rem))+'</small></span>':'<span>'+sansAcc(TR(s.t))+'</span>')+(s.p?'<b'+(bqPxLg(s.p)?' class="lg"':'')+'>'+String(s.p).replace(/</g,'')+'</b>':'')+(s.e==='eq'?pxi('coche'):(s.e==='mis'||s.e==='chat')?pxi('droite'):s.e==='sec'?pxi('oeil'):'')+(s.e==='manque'?'<i class="bqJ" style="--v:'+s.j.toFixed(2)+'"></i>':'')):'';}
@@ -78380,7 +78541,7 @@ window.dbgFsel=function(a,b){if(a==='dir'){FSEL.dir=+b;fsRafraichis(false);}else
    · des PASTILLES de tôle vernie (la peinture elle-même, sa finition, son animation pour une légendaire), serrées en grille — six par rangée
      debout comme couché, chacune ≥ 48 px sous le pouce — au lieu de trois grosses boîtes : on voit d'un coup d'œil beaucoup plus de couleurs ;
    · pas de texte sur la pastille : son ÉTAT en un signe — une coche (à toi), la coche bleue (équipée), l'anneau cyan qui se remplit (le défi
-     « ou gagne-la » : sa jauge ; à zéro, un anneau pâle), une pièce (en $), un drapeau (une mission) ; le PRIX est celui de la famille, écrit une fois en tête ;
+     « ou gagne-la » : sa jauge ; à zéro, un anneau pâle), une pièce (en $), un cadenas (une mission) ; le PRIX est celui de la famille, écrit une fois en tête ;
    · en haut, collée, la BARRE DES FAMILLES (UNIES · DÉGRADÉS · MOTIFS · ANIMÉES, leur prix, « à toi / total ») : un toucher saute à la
      famille, la famille qu'on regarde s'allume pendant qu'on fait défiler ;
    · TOUCHER une pastille = la caisse la porte tout de suite (bqEssaie, inchangé : le nom, la rareté, le défi au-dessus de la caisse ; le
@@ -78398,17 +78559,21 @@ function bqNuanceEtat(d){const a=shopOwned('peinture',d.id);let eq=false;try{eq=
   if(d.eur)return {c:'eur',t:eurTxt(d.eur)};if(d.p)return {c:'pc',t:bqPxT(d.p)};return {c:'mis',t:sansAcc(TR('MISSION'))};}
 function bqNuanceHtml(k,n,cur){const d=bqCos(k).d;if(!d)return '';let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;}catch(e){}
   const r=cosmRar('peinture',d),ri=rarInfo(r),E=bqNuanceEtat(d),nom=sansAcc(TR(d.n));
-  const sg=E.c==='eq'||E.c==='a'?pxi('coche'):E.c==='pc'?pxi('piece'):E.c==='mis'?pxi('drapeau'):'';
+  const sg=E.c==='eq'||E.c==='a'?pxi('coche'):E.c==='pc'?pxi('piece'):E.c==='mis'?pxi('verrou'):''; /* (2026-11-07, passe finale) MISSION : le cadenas, comme les cartes des voitures */
   return '<button type="button" class="pN r-'+r+' e-'+E.c+(k===cur?' sel':'')+'" data-k="'+k+'" style="--rc:'+ri.c+';--i:'+Math.min(n,18)+(E.c==='defi'&&E.p>=0?';--pj:'+Math.round(E.p*100):'')+'"'
     +' title="'+nom.replace(/"/g,'')+'" aria-label="'+(nom+' · '+sansAcc(TR(ri.n1))+' · '+E.t).replace(/"/g,'')+'">'
     +peintPastille(d,'pNsw',c0)+(E.c==='defi'?'<s class="pNj'+(E.p<0?' coup':'')+'"></s>':'')+(sg?'<b class="pNb">'+sg+'</b>':'')+'</button>';}
 /* LE RAYON : la barre des familles, puis une section par famille (son intertitre d'une ligne, sa grille de pastilles) */
 function bqNuancierHtml(L){try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */
+  bqRayonRegarde('peinture'); /* (2026-11-07, passe finale) en entrant, on regarde la peinture PORTÉE : le nom et le bouton ne parlent plus de la caisse */
   const fam=function(k){return cosmRar('peinture',bqCos(k).d);},G={},cur=bqCourant();L.forEach(function(k){const f=fam(k);(G[f]||(G[f]=[])).push(k);});
   const F=BQN_FAM.filter(function(f){return G[f];}).concat(Object.keys(G).filter(function(f){return BQN_FAM.indexOf(f)<0;}));
   const nom=function(f){return sansAcc(TR(BQ_PEINT_SOUS[f]||rarInfo(f).n));},px=function(f){return PEINT_EUR[f]?eurTxt(PEINT_EUR[f]):'';},nA=function(f){return G[f].filter(bqA).length;};
+  /* (2026-11-07, passe finale) le prix et « à toi / total » ne se disent qu'UNE fois, dans la barre des familles (ils l'étaient aussi dans
+     l'intertitre) ; l'intertitre garde la rareté et la famille, et explique l'anneau cyan là où il y en a : « ◯ À GAGNER EN JEU » */
+  const defi=function(f){return G[f].some(function(k){const d=bqCos(k).d;return d&&bqNuanceEtat(d).c==='defi';});};
   let n=0;const S=F.map(function(f){const ri=rarInfo(f);
-    return '<section class="pNs" data-pf="'+f+'" style="--rc:'+ri.c+'"><h4 class="pNh"><span class="bqRl">'+pxi(RAR_LOGO[f]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b><i>'+nom(f)+(px(f)?' · '+px(f):'')+'</i><s></s><em><u>'+nA(f)+'</u>/'+G[f].length+'</em></h4>'
+    return '<section class="pNs" data-pf="'+f+'" style="--rc:'+ri.c+'"><h4 class="pNh"><span class="bqRl">'+pxi(RAR_LOGO[f]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b><i>'+nom(f)+'</i><s></s>'+(defi(f)?'<em class="pNlg"><q aria-hidden="true"></q>'+sansAcc(TR('À GAGNER EN JEU'))+'</em>':'')+'</h4>'
       +'<div class="pNg">'+G[f].map(function(k){return bqNuanceHtml(k,n++,cur);}).join('')+'</div></section>';});
   const nav='<nav class="pNav" style="--nf:'+F.length+'">'+F.map(function(f){return '<button type="button" data-pf="'+f+'" style="--rc:'+rarInfo(f).c+'"'+(f===F[0]?' class="on"':'')+'><b>'+nom(f)+'</b><em>'+(px(f)?px(f)+' · ':'')+nA(f)+'/'+G[f].length+'</em></button>';}).join('')+'</nav>';
   setTimeout(bqNuancierBranche,0);
@@ -78436,11 +78601,11 @@ function bqNuancierBranche(){const rail=document.querySelector('#gBqPan .bqRail'
   rail.addEventListener('contextmenu',function(e){if(e.target.closest&&e.target.closest('.pN'))e.preventDefault();});}
 /* sauter à une famille : son intertitre vient se poser sous la barre */
 function bqNuancierVa(f){const rail=BQN.rail,s=rail&&rail.querySelector('.pNs[data-pf="'+f+'"]'),nv=rail&&rail.querySelector('.pNav');if(!s)return;
-  const y=s.offsetTop-(nv?nv.offsetHeight:0)-2;BQN.fam=f;bqNuancierFamMarque(f);
+  const y=s.offsetTop-(nv?nv.offsetHeight:0)-2;BQN.fam=f;BQN.fige=performance.now()+900;bqNuancierFamMarque(f); /* le temps du glissé, la touche touchée reste allumée (sinon, en bas de liste, la dernière famille la volait) */
   try{rail.scrollTo({top:Math.max(0,y),behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){rail.scrollTop=Math.max(0,y);}}
 function bqNuancierFamMarque(f){const nv=BQN.rail&&BQN.rail.querySelector('.pNav');if(!nv)return;nv.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-pf')===f);});}
 /* la famille qu'on regarde : la dernière dont l'intertitre est passé sous la barre (en bas de la liste : la dernière) */
-function bqNuancierFamVue(){const rail=BQN.rail;if(!rail||!rail.querySelector('.pNu'))return;const nv=rail.querySelector('.pNav'),y=rail.scrollTop+(nv?nv.offsetHeight:0)+24,S=rail.querySelectorAll('.pNs');
+function bqNuancierFamVue(){const rail=BQN.rail;if(!rail||!rail.querySelector('.pNu')||performance.now()<(BQN.fige||0))return;const nv=rail.querySelector('.pNav'),y=rail.scrollTop+(nv?nv.offsetHeight:0)+24,S=rail.querySelectorAll('.pNs');
   let f=S.length?S[0].getAttribute('data-pf'):'';S.forEach(function(s){if(s.offsetTop<=y)f=s.getAttribute('data-pf');});
   if(rail.scrollTop+rail.clientHeight>=rail.scrollHeight-4&&S.length)f=S[S.length-1].getAttribute('data-pf');
   if(f!==BQN.fam){BQN.fam=f;bqNuancierFamMarque(f);}}
@@ -78454,6 +78619,7 @@ function bqNuancierLoupe(t){let L=BQN.loupe;if(!t){if(L)L.classList.remove('on')
   L.classList.add('on');const b=t.getBoundingClientRect(),w=L.offsetWidth,h=L.offsetHeight,W=VP.w||innerWidth;
   const x=Math.max(8,Math.min(W-8-w,b.left+b.width/2-w/2));let y=b.top-h-10;if(y<8)y=b.bottom+10;L.style.left=Math.round(x)+'px';L.style.top=Math.round(y)+'px';}
 try{if(!I18N['OU'])I18N['OU']='OR';}catch(e){}
+try{Object.assign(I18N,{'À GAGNER EN JEU':'WIN IT IN-GAME'});}catch(e){} /* (2026-11-07, passe finale) la légende de l'anneau cyan des défis */
 /* ===== BOUTIQUE : LE RAYON AILES, LA MOLETTE (2026-11-07, Sacha : « dans la boutique les boîtes de Léo sont bien pour les voitures et achats, mais pas adaptées pour les peintures, traînées, figures… retravaille au max l'ergonomie, adaptée au mobile et à chaque catégorie d'item » · « chaque type d'item doit avoir un système propre ») ===== */
 /* Une aile ne se juge pas dans une boîte : elle se juge SUR la caisse. Le rayon AILES quitte la grille de cartes (trois par rangée, 330 px de
    haut debout : la caisse, coincée dessus, se voyait de profil, l'aile de chant) pour UNE MOLETTE :
@@ -78474,6 +78640,12 @@ const BQA={el:null,k:'',essK:'',on:false,pose:0,doigt:0,scT:0,e:0,povS:null,angS
 const BQA_ANG=2.45; /* le cap de la caisse dans le rayon AILES (GAR_TAB_ANG : 1.2 de profil, 3.5 trois-quarts arrière des traînées) */
 const BQA_POV={debout:{h:1.1,d:.97,ty:.05},couche:{h:.85,d:.98,ty:.05}}; /* la caméra monte (m) : on voit l'aile par-dessus, déployée */
 Object.assign(I18N,{"AILE PRÉCÉDENTE":"PREVIOUS WING","AILE SUIVANTE":"NEXT WING","CHOISIR UNE AILE":"PICK A WING"});
+/* ===== LE MÊME PRINCIPE D'ENTRÉE DANS CHAQUE RAYON (2026-11-07, Sacha : « une boutique pro, game designer senior, chaque type d'item a son propre système ») =====
+   En ouvrant PEINTURES, AILES ou TRAÎNÉES, on REGARDE déjà un objet du rayon : celui qu'on porte (AILES : celui où la molette s'était
+   arrêtée). Avant, tant qu'on n'avait rien touché, le nom flottant et le bouton parlaient encore de la CAISSE (« LA HONTE · ÉQUIPÉE »).
+   Silencieux : shopTab / shopShow posent l'objet sur la caisse sans bras d'atelier, sans son, sans toucher à l'argent. */
+function bqRayonRegarde(cat,k){if(GBQ.cat!==cat||!garageOn||GAR.go)return;
+  try{if(SHOP.tab!==cat)shopTab(cat);if(k){const j=COSM[cat].findIndex(function(d){return cat+':'+d.id===k;});if(j>=0&&SHOP.i[cat]!==j)shopShow(cat,j);}GBQ.ck='';}catch(e){}}
 function bqAileListe(){const L=COSM.aile.slice(),ri=function(d){return Math.max(0,RARETES.findIndex(function(x){return x.id===cosmRar('aile',d);}));},px=function(d){return d.p||d.pk||0;};
   return L.map(function(d,n){return [d,n];}).sort(function(a,b){return (a[0].p===0?-1:0)-(b[0].p===0?-1:0)||ri(a[0])-ri(b[0])||px(a[0])-px(b[0])||a[1]-b[1];}).map(function(e){return e[0];});}
 /* l'état d'une aile, en un mot : ÉQUIPÉE · À TOI · le prix (trop cher : grisé) · MISSION */
@@ -78484,7 +78656,7 @@ function bqAileHtml(L){const fam=function(d){return cosmRar('aile',d);},nb={},ok
     if(!n||fam(L[n-1])!==f)h+='<div class="baTr" style="--rc:'+ri.c+'" aria-hidden="true"><span class="bqRl">'+pxi(RAR_LOGO[f]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b><em><i>'+(ok[f]|0)+'</i>/'+nb[f]+'</em></div>';
     h+='<button type="button" class="baK'+(shopOwned('aile',d.id)?' a':'')+(s.c==='eq'?' eq':'')+'" data-k="aile:'+d.id+'" data-n="'+n+'" data-rar="'+f+'" style="--rc:'+ri.c+'" aria-label="'+sansAcc(TR(d.n)).replace(/"/g,'')+' · '+String(s.t).replace(/<[^>]*>/g,'').replace(/"/g,'')+'">'
       +'<span class="baPh" data-pha="'+d.id+'"></span>'
-      +'<span class="baTx"><span class="baN">'+sansAcc(TR(d.n))+'</span><span class="baP '+s.c+'">'+(s.c==='eq'||s.c==='acq'?pxi('coche'):s.c.indexOf('pc')===0?pxi('piece'):'')+'<span>'+String(s.t).replace(/</g,'')+'</span></span></span></button>';});
+      +'<span class="baTx"><span class="baN">'+sansAcc(TR(d.n))+'</span><span class="baP '+s.c+'">'+(s.c==='eq'||s.c==='acq'?pxi('coche'):s.c==='defi'?pxi('verrou'):'')+'<span>'+String(s.t).replace(/</g,'')+'</span></span></span></button>';});
   return h;}
 function bqAileReglette(L){return L.map(function(d,n){const f=cosmRar('aile',d);return '<i data-n="'+n+'" class="'+(shopOwned('aile',d.id)?'a':'')+'" style="--rc:'+rarInfo(f).c+'"></i>';}).join('');}
 function bqAileOk(){return garageOn&&!GAR.go&&!ecranWipe._on&&GBQ.on&&GBQ.panOn;}
@@ -78531,7 +78703,7 @@ function bqAileEl(pan){if(BQA.el&&BQA.el.isConnected)return BQA.el;
 function bqAilePose(){if(!BQA.el||!bqAileOk()||BQA.rgId!=null)return;const k=bqAileMilieu();if(!k)return;bqAileMarque(k);
   if(performance.now()-BQA.doigt<4000&&k.getAttribute('data-k')!==BQA.essK)bqAileEssaie(k);}
 /* l'en-tête suit l'aile du milieu (pendant le défilement aussi) : sa famille, sa place ; le trait de la réglette */
-function bqAileMarque(k){if(!k||!BQA.el)return;const n=+k.getAttribute('data-n'),f=k.getAttribute('data-rar'),N=BQA.el.querySelectorAll('.baK').length,ri=rarInfo(f),key=n+'|'+f+'|'+N+'|'+LANG;
+function bqAileMarque(k){if(!k||!BQA.el)return;BQA.dernier=k.getAttribute('data-k');const n=+k.getAttribute('data-n'),f=k.getAttribute('data-rar'),N=BQA.el.querySelectorAll('.baK').length,ri=rarInfo(f),key=n+'|'+f+'|'+N+'|'+LANG;
   if(BQA.vu===key)return;BQA.vu=key;{const d9=(BQA.L||[])[n],de=BQA.el.querySelector('.baDesc');if(de)de.textContent=d9&&d9.d?TR(d9.d):'';} /* sa phrase : c'est elle qui vend l'aile */BQA.el.querySelector('.baFl.g').classList.toggle('off',n===0);BQA.el.querySelector('.baFl.d').classList.toggle('off',n===N-1);
   const fa=BQA.el.querySelector('.baFam'),L=BQA.L||[],tot=L.filter(function(d){return cosmRar('aile',d)===f;}),a=tot.filter(function(d){return shopOwned('aile',d.id);}).length;
   fa.style.setProperty('--rc',ri.c);fa.innerHTML='<span class="bqRl">'+pxi(RAR_LOGO[f]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b><em><i>'+a+'</i>/'+tot.length+'</em>';
@@ -78571,8 +78743,10 @@ function bqAileMaj(pan,voulu){const cat=BQ_CATS.some(function(c){return c[0]===G
     if(sc!=null){if(bqAileCouche())r.scrollTop=sc;else r.scrollLeft=sc;}}
   /* à l'ouverture : la molette se pose sur l'aile qu'on regarde (celle de l'essai, sinon celle qu'on porte), essayée pour que le bouton parle d'elle */
   const cur=bqCourant(),lay=VP.w+'x'+VP.h+':'+(pan.classList.contains('cote')?1:0);
-  if(neuf||BQA.lay!==lay){BQA.lay=lay;const vis=String(cur).indexOf('aile:')===0?cur:'aile:'+eqd.id,kk=el.querySelector('.baK[data-k="'+vis+'"]');
-    if(kk){if(vis!==cur){BQA.essK=vis;try{bqAileEssaie(kk);}catch(e){}}else BQA.essK=vis;requestAnimationFrame(function(){bqAileVa(kk,false,false);bqAileMarque(kk);});}}
+  if(neuf||BQA.lay!==lay){BQA.lay=lay;const vis=String(cur).indexOf('aile:')===0?cur:(BQA.dernier&&el.querySelector('.baK[data-k="'+BQA.dernier+'"]')?BQA.dernier:'aile:'+eqd.id),kk=el.querySelector('.baK[data-k="'+vis+'"]');
+    /* (2026-11-07, passe finale) en revenant dans le rayon, la molette reprend où on l'avait laissée (BQA.dernier) ; l'aile s'y pose EN SILENCE
+       (bqRayonRegarde : ni bras ni son — avant, chaque entrée rejouait le bras d'atelier et le clic) */
+    if(kk){if(vis!==cur)bqRayonRegarde('aile',vis);BQA.essK=vis;requestAnimationFrame(function(){bqAileVa(kk,false,false);bqAileMarque(kk);});}}
   if(BQA.cur!==cur){BQA.cur=cur;el.querySelectorAll('.baK').forEach(function(x){x.classList.toggle('sel',x.getAttribute('data-k')===cur);});}
   if(performance.now()-BQA.scT<400){const m=bqAileMilieu();if(m)bqAileMarque(m);}
   else if(!BQA.vu){const m=bqAileMilieu();if(m)bqAileMarque(m);}
@@ -78618,23 +78792,23 @@ function aileVitrineMaj(on){if(on)try{aileBoiteDefile();}catch(e){}
    `dbgTrPiste()` : l'état de la piste (banc). */
 const TRV={fam:'',io:null,eqT:0,eqId:null};
 const TRV_SOUS={commun:'RUBANS',rare:'PARTICULES',epique:'EFFETS',legendaire:'SPECTACLE'};
-function trPrix(k,d){if(bqA(k))return {t:'<i class="trAt">'+sansAcc(TR('À TOI'))+'</i><i class="trEqT">'+sansAcc(TR('ÉQUIPÉE'))+'</i>',c:'acq'};
+function trPrix(k,d){if(bqA(k))return {t:pxi('coche')+'<i class="trAt">'+sansAcc(TR('À TOI'))+'</i><i class="trEqT">'+sansAcc(TR('ÉQUIPÉE'))+'</i>',c:'acq'};
   if(d.pack==='chat')return {t:sansAcc(TR('PACK CHAT')),c:'eur'};if(d.eur)return {t:eurTxt(d.eur),c:'eur'};
-  if(d.p)return {t:pxi('piece')+bqPxT(d.p),c:'pc'};return {t:pxi('cible')+sansAcc(TR('MISSION')),c:'defi'};}
+  if(d.p)return {t:pxi('piece')+bqPxT(d.p),c:'pc'};return {t:pxi('verrou')+sansAcc(TR('MISSION')),c:'defi'};} /* (2026-11-07, passe finale) À TOI : la coche ; MISSION : le cadenas — comme les cartes des voitures */
 function trVoie(k,n,f){const d=bqCos(k).d,ri=rarInfo(f),nom=sansAcc(TR(d.n)),px=trPrix(k,d);
   return '<div class="bqK trK hab r-'+f+'" data-k="'+k+'" data-fam="'+f+'" role="button" style="--rc:'+ri.c+';--tc:'+traineeCoul(d)+';--i:'+Math.min(n,8)+'" aria-label="'+nom.replace(/"/g,'')+'">'
     +'<span class="trVue">'+traineeCarte(d)+'<i class="trCaisse">'+pxi('voiture')+'</i></span>'
     +'<span class="trTx"><span class="bqKn">'+nom+'</span><span class="bqKp '+px.c+'">'+px.t+'</span></span></div>';}
-function trPisteHtml(L){const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={},F=[];
+function trPisteHtml(L){bqRayonRegarde('trainee'); /* (2026-11-07, passe finale) en entrant, on regarde la traînée PORTÉE (voir bqRayonRegarde) */const fam=function(k){return cosmRar('trainee',bqCos(k).d);},nb={},ok={},F=[];
   L.forEach(function(k){const f=fam(k);if(!nb[f]){nb[f]=0;F.push(f);}nb[f]++;if(bqA(k))ok[f]=(ok[f]|0)+1;});
   if(TRV.fam&&!nb[TRV.fam])TRV.fam='';
   const lib=function(f){return sansAcc(TR(TRV_SOUS[f]||rarInfo(f).n));};
   const fil='<div class="trFil" role="tablist" aria-label="'+sansAcc(TR('TRAÎNÉES'))+'">'
     +['' ].concat(F).map(function(f){const tot=f?nb[f]:L.length,a=f?(ok[f]|0):L.filter(bqA).length;
       return '<button type="button" role="tab" class="trCh'+(TRV.fam===f?' on':'')+'" data-trf="'+f+'" aria-selected="'+(TRV.fam===f)+'"'+(f?' style="--rc:'+rarInfo(f).c+'"':'')+'>'
-        +'<span><b>'+(f?lib(f):sansAcc(TR('TOUT')))+'</b><em>'+a+'/'+tot+'</em></span></button>';}).join('')+'</div>';
+        +'<span><b'+((f?lib(f):'').length>10?' class="lg"':'')+'>'+(f?lib(f):sansAcc(TR('TOUT')))+'</b><em>' /* (2026-11-07, passe finale) un nom long (SHOWSTOPPERS) passe un corps en dessous : la réglette tient à 375 px */+a+'/'+tot+'</em></span></button>';}).join('')+'</div>';
   const R=[fil];L.forEach(function(k,n){const f=fam(k);
-    if(!n||fam(L[n-1])!==f)R.push('<div class="trSec" data-fam="'+f+'" style="--rc:'+rarInfo(f).c+'"><i>'+pxi(RAR_LOGO[f]||'etoile')+'</i><b>'+lib(f)+'</b><span>'+sansAcc(TR(rarInfo(f).n))+'</span><s></s><em>'+(ok[f]|0)+'/'+nb[f]+'</em></div>');
+    if(!n||fam(L[n-1])!==f)R.push('<div class="trSec" data-fam="'+f+'" style="--rc:'+rarInfo(f).c+'"><i>'+pxi(RAR_LOGO[f]||'etoile')+'</i><b>'+lib(f)+'</b><span>'+sansAcc(TR(rarInfo(f).n))+'</span><s></s></div>'); /* (2026-11-07, passe finale) « à toi / total » n'est dit qu'une fois : sur la réglette (comme le nuancier) */
     R.push(trVoie(k,n,f));});
   queueMicrotask(trApres); /* la piste est posée dans le rail juste après (garBqPanneau) : on la branche ensuite */
   return R;}
@@ -78685,9 +78859,10 @@ function bqFigCarte(k,n,dir){const o=bqCos(k),d=o.d,id=d.id,own=figPossede(id),S
   if(own&&ici){pied='<span class="fgPied fgOk">'+pxi('coche')+'<b>'+sansAcc(TR('ÉQUIPÉE'))+'</b></span>';etat=sansAcc(TR('ÉQUIPÉE'));}
   else if(own){pied='<span class="fgPied fgEq1" role="button" data-fgeq="1" aria-label="'+sansAcc(TR('ÉQUIPER'))+' : '+g+'"><i class="fgEqDir">'+pxi(FIG_FAM[dir][2])+'</i><b>'+sansAcc(TR('ÉQUIPER'))+'</b></span>';etat=sansAcc(TR('À TOI'));}
   else if(d.p){const cher=bank()<d.p;pied='<span class="fgPied fgPx'+(cher?' cher':'')+'">'+pxi('piece')+'<b>'+bqPxT(d.p)+'</b></span>';etat=bqPxT(d.p);}
-  else{pied='<span class="fgPied fgPx">'+sansAcc(TR('MISSION'))+'</span>';etat=sansAcc(TR('MISSION'));}
+  else{pied='<span class="fgPied fgPx fgMis">'+pxi('verrou')+'<b>'+sansAcc(TR('MISSION'))+'</b></span>'; /* (2026-11-07, passe finale) le cadenas, comme partout */etat=sansAcc(TR('MISSION'));}
   return '<div class="bqK hab fgK r-'+r+(own?' own':'')+(ici?' ici':'')+'" data-k="'+k+'" data-dir="'+dir+'" role="button" style="--rc:'+ri.c+';--dc:'+FIG_DC[dir]+';--i:'+Math.min(n,8)+'" aria-label="'+nom.replace(/"/g,'')+' · '+g+' · '+etat+'">'
     +'<span class="bqKph c-figure" data-phf="'+id+'|'+FIG_DIR[dir]+'">'+bqFigHab(k)+'</span>'
+    +'<span class="fgFond" aria-hidden="true">'+pxi(FIG_FAM[dir][2])+'<b>'+sansAcc(TR(FIG_FAM[dir][1]))+'</b></span>' /* le geste en grand, au-dessus du film (là où la caisse saute) : quand l'affiche a la hauteur */
     +bqFigGestes(id,dir)+'<span class="fgRe" aria-hidden="true">'+pxi('rotation')+'<b>'+sansAcc(TR('REJOUER'))+'</b></span>'
     +'<span class="fgRar">'+sansAcc(TR(ri.n1))+'</span><span class="bqKn">'+nom+'</span>'+pied+'</div>';}
 /* la pellicule entière (appelée par garBqPanneau à la place des cartes communes) ; elle note où on en était, pour y revenir après un équipement */
@@ -78699,8 +78874,9 @@ function bqFigRailHtml(){const R=bqFigRail(),pan=document.getElementById('gBqPan
    l'éclosion du pied qu'on vient d'équiper */
 function bqFigApres(pan,rail){
   if(BQFG.rest!=null){const r=BQFG.rest;BQFG.rest=null;if(r)rail.scrollLeft=r;}
+  bqFigBords(rail);
   if(!rail._fg){rail._fg=1;
-    rail.addEventListener('scroll',function(){if(pan.classList.contains('bqFigOn'))BQFG.sl=rail.scrollLeft;},{passive:true});
+    rail.addEventListener('scroll',function(){if(pan.classList.contains('bqFigOn')){BQFG.sl=rail.scrollLeft;bqFigBords(rail);}},{passive:true});
     rail.addEventListener('wheel',function(e){if(!pan.classList.contains('bqFigOn')||Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;rail.scrollLeft+=e.deltaY;e.preventDefault();},{passive:false});} /* la molette d'une souris fait défiler la pellicule de côté */
   const sel=document.getElementById('bqFigSel');
   if(sel&&sel._fgL!==LANG){sel._fgL=LANG;sel.querySelectorAll('.fsHex').forEach(function(b){let g=b.querySelector('.fgSlotG');if(!g){g=document.createElement('em');g.className='fgSlotG';b.insertBefore(g,b.querySelector('.fsNom'));}g.textContent=sansAcc(TR(FS_COURT[+b.getAttribute('data-k')]));});}
@@ -78710,6 +78886,9 @@ function bqFigApres(pan,rail){
     else if(s&&s.getAttribute('data-k')===GBQ.figK){BQFG.vu=vu;const rr=rail.getBoundingClientRect(),b=s.getBoundingClientRect();
       if(b.left<rr.left+2||b.right>rr.right-2)rail.scrollTo({left:Math.max(0,rail.scrollLeft+(b.left-rr.left)-(rr.width-b.width)/2),behavior:REDUCED_MOTION?'auto':'smooth'});}}
   if(BQFG.vient){const c=rail.querySelector('.fgK[data-k="'+BQFG.vient+'"]');BQFG.vient='';if(c){c.classList.remove('fgVient');void c.offsetWidth;c.classList.add('fgVient');}}}
+/* (2026-11-07, passe finale) les fondus des bords de la pellicule : à gauche dès qu'on a quitté le début, à droite tant qu'il reste à voir */
+function bqFigBords(rail){const sl=rail.scrollLeft,fin=sl+rail.clientWidth>=rail.scrollWidth-4;
+  if(rail.classList.contains('fgDeb')!==sl>4)rail.classList.toggle('fgDeb',sl>4);if(rail.classList.contains('fgFin')!==fin)rail.classList.toggle('fgFin',fin);}
 /* ÉQUIPER sur l'affiche : un toucher, dans l'emplacement de CETTE affiche — la figure se joue (bqEssaie) et se range (figEqToast : le son, la puce
    ANNULER) ; capturé avant le toucher de la carte (qui ne ferait que l'essayer) */
 document.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('#gBqPan.bqFigOn .fgK [data-fgeq]');if(!b)return;e.stopPropagation();
