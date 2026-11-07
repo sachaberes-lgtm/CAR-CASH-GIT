@@ -1,0 +1,243 @@
+# 242 entrées (cashcarErr + cashcarBanc, la plus ancienne en premier)
+07/11 14:08:08 x1 banc | banc: début · run 1 · scénario p7 · partie 300 s · v d57b7fc · app native · 390×844 @3 · wakeLock oui |  | v d57b7fc
+07/11 14:08:08 x1 banc | banc: wakeLock refusé : Permission was denied |  | v d57b7fc
+07/11 15:57:38 x1 banc | banc: visibilité hidden à t 0 s · étape « ? » |  | v e2b46be
+07/11 15:57:39 x1 banc | banc: début · run 2 · scénario p7 · partie 300 s · v e2b46be · app native · 390×844 @3 · wakeLock oui |  | v e2b46be
+07/11 15:57:39 x1 banc | banc: titre : vis hidden · doc complete · intro attente · prêt true · lance false · boule false · fini false · mHome on · splash flex · started false · running false · over false · mode drive · garage true |  | v e2b46be
+07/11 15:57:39 x1 banc | banc: wakeLock refusé : Document is hidden |  | v e2b46be
+07/11 16:20:38 x1 banc | banc: ⚠ PLANTAGE OU RECHARGEMENT : la session d'avant (run 2, v e2b46be) s'est arrêtée à « ? » à t 0.7 s (1379 s avant ce lancement) |  | v e2b46be
+07/11 16:20:38 x1 banc | banc: début · run 3 · scénario p7 · partie 300 s · v e2b46be · app native · 390×844 @3 · wakeLock oui |  | v e2b46be
+07/11 16:20:38 x1 banc | banc: titre : vis visible · doc complete · intro joue · prêt true · lance true · boule false · fini false · mHome on · splash flex · started false · running false · over false · mode drive · garage true |  | v e2b46be
+07/11 16:20:39 x1 banc | banc: wakeLock refusé : Permission was denied |  | v e2b46be
+07/11 16:20:43 x1 banc | banc: boule prête à t 5.5 s · vis visible · doc complete · intro joue · prêt true · lance true · boule true · fini false · mHome on · splash flex · started false · running false · over false · mode drive · garage true |  | v e2b46be
+07/11 16:20:43 x1 banc | banc: tapBoule appelé · vis visible · doc complete · intro joue · prêt true · lance true · boule true · fini false · mHome on · splash flex · started false · running false · over false · mode drive · garage true |  | v e2b46be
+07/11 16:20:51 x1 banc | banc: titre → menu · t 13.7 s · pire 3599 ms (à 10.4 s) · p50 17 · p90 26 ms · 388 images · >50 ms: 20 · >100 ms: 9 |  | v e2b46be
+07/11 16:20:51 x1 banc | banc: menu à 13.7 s |  | v e2b46be
+07/11 16:20:56 x1 banc | banc: menu 5 s · t 18.7 s · pire 352 ms (à 16 s) · p50 17 · p90 22 ms · 221 images · >50 ms: 7 · >100 ms: 4 |  | v e2b46be
+07/11 16:20:58 x1 banc | banc: garage ouvert · t 20.2 s · pire 485 ms (à 19.4 s) · p50 18 · p90 26 ms · 54 images · >50 ms: 2 · >100 ms: 1 · tex 124 · géo 602 · prog 207 |  | v e2b46be
+07/11 16:21:00 x1 banc | banc: garage 2,5 s · t 22.7 s · pire 118 ms (à 22.5 s) · p50 17 · p90 30 ms · 133 images · >50 ms: 2 · >100 ms: 1 |  | v e2b46be
+07/11 16:21:01 x1 banc | banc: inventaire ouvert · t 23.6 s · pire 66 ms (à 22.8 s) · p50 25 · p90 40 ms · 31 images · >50 ms: 2 · >100 ms: 0 |  | v e2b46be
+07/11 16:21:01 x1 banc | banc: inventaire : rien à défiler (grille 140/129) |  | v e2b46be
+07/11 16:21:01 x1 banc | banc: inventaire défilé · t 23.6 s · 0 image |  | v e2b46be
+07/11 16:21:02 x1 banc | banc: boutique ouverte en 12 ms |  | v e2b46be
+07/11 16:21:04 x1 banc | banc: boutique ouverte 2,5 s · t 27 s · pire 595 ms (à 26 s) · p50 17 · p90 35 ms · 94 images · >50 ms: 4 · >100 ms: 4 |  | v e2b46be
+07/11 16:21:07 x1 banc | banc: vivant · t 30 s · étape « boutique ouverte 2,5 s » · vis visible |  | v e2b46be
+07/11 16:21:11 x1 banc | banc: retour accueil · t 33.6 s · pire 113 ms (à 32.2 s) · p50 17 · p90 17 ms · 385 images · >50 ms: 1 · >100 ms: 1 |  | v e2b46be
+07/11 16:21:13 x1 banc | banc: partie 1 : départ à t 35.4 s · tex 139 · géo 583 · prog 216 · palier 0 |  | v e2b46be
+07/11 16:21:33 x1 banc | banc: partie 1 · 20 s · t 55.6 s · pire 106 ms (à 35.5 s) · p50 17 · p90 20 ms · 1179 images · >50 ms: 3 · >100 ms: 1 · palier 0 · 173 km/h · mode drive · pouvoir a |  | v e2b46be
+07/11 16:21:37 x1 banc | banc: vivant · t 60 s · étape « partie 1 · 20 s » · vis visible |  | v e2b46be
+07/11 16:21:53 x1 banc | banc: partie 1 · 40 s · t 75.7 s · pire 151 ms (à 70.4 s) · p50 17 · p90 20 ms · 1200 images · >50 ms: 1 · >100 ms: 1 · palier 1 · 210 km/h · mode drive · pouvoir v |  | v e2b46be
+07/11 16:22:07 x1 banc | banc: vivant · t 90 s · étape « partie 1 · 40 s » · vis visible |  | v e2b46be
+07/11 16:22:13 x1 banc | banc: partie 1 · 61 s · t 95.9 s · pire 39 ms (à 76.4 s) · p50 17 · p90 20 ms · 1201 images · >50 ms: 0 · >100 ms: 0 · palier 1 · 221 km/h · mode drive · pouvoir m |  | v e2b46be
+07/11 16:22:34 x1 banc | banc: partie 1 · 81 s · t 116.2 s · pire 123 ms (à 113.6 s) · p50 19 · p90 41 ms · 860 images · >50 ms: 64 · >100 ms: 3 · palier 2 · 189 km/h · mode drive · pouvoir x |  | v e2b46be
+07/11 16:22:37 x1 banc | banc: vivant · t 120 s · étape « partie 1 · 81 s » · vis visible |  | v e2b46be
+07/11 16:22:51 x1 banc | banc: visibilité hidden à t 133.6 s · étape « partie 1 · 81 s » |  | v e2b46be
+07/11 16:23:07 x1 banc | banc: vivant · t 150 s · étape « partie 1 · 81 s » · vis hidden |  | v e2b46be
+07/11 16:23:35 x1 banc | banc: visibilité visible à t 177.9 s · étape « partie 1 · 81 s » |  | v e2b46be
+07/11 16:23:36 x1 banc | banc: partie 1 · 143 s · t 178.4 s · pire 1128 ms (à 130.6 s) · p50 18 · p90 31 ms · 631 images · >50 ms: 22 · >100 ms: 11 · en fond: 1 · palier 2 · 214 km/h · mode drive · pouvoir n |  | v e2b46be
+07/11 16:23:37 x1 banc | banc: vivant · t 180 s · étape « partie 1 · 143 s » · vis visible |  | v e2b46be
+07/11 16:23:56 x1 banc | banc: partie 1 · 163 s · t 198.5 s · pire 1392 ms (à 187.9 s) · p50 18 · p90 59 ms · 611 images · >50 ms: 76 · >100 ms: 12 · palier 2 · 203 km/h · mode drive · pouvoir a |  | v e2b46be
+07/11 16:24:07 x1 banc | banc: vivant · t 210 s · étape « partie 1 · 163 s » · vis visible |  | v e2b46be
+07/11 16:24:11 x1 banc | banc: partie 1 · mort anticipée n°1 à 179 s · t 214 s · pire 198 ms (à 212 s) · p50 39 · p90 60 ms · 345 images · >50 ms: 72 · >100 ms: 9 · palier 2 · v max 401 km/h |  | v e2b46be
+07/11 16:24:37 x1 banc | banc: vivant · t 240 s · étape « partie 1 · mort anticipée n°1 à 179 s » · vis visible |  | v e2b46be
+07/11 16:24:47 x1 banc | banc: partie 1 · 215 s · t 250.1 s · pire 1313 ms (à 229.8 s) · p50 34 · p90 54 ms · 901 images · >50 ms: 110 · >100 ms: 16 · palier 0 · 151 km/h · mode drive · pouvoir v |  | v e2b46be
+07/11 16:25:07 x1 banc | banc: vivant · t 270 s · étape « partie 1 · 215 s » · vis visible |  | v e2b46be
+07/11 16:25:08 x1 banc | banc: partie 1 · 235 s · t 270.6 s · pire 177 ms (à 262.6 s) · p50 43 · p90 60 ms · 446 images · >50 ms: 116 · >100 ms: 5 · palier 0 · 155 km/h · mode drive · pouvoir m |  | v e2b46be
+07/11 16:25:19 x1 banc | banc: visibilité hidden à t 281.3 s · étape « partie 1 · 235 s » |  | v e2b46be
+07/11 16:25:29 x1 banc | banc: partie 1 · 257 s · t 292 s · pire 1303 ms (à 276.6 s) · p50 57 · p90 161 ms · 72 images · >50 ms: 45 · >100 ms: 14 · palier 0 · 177 km/h · mode drive · pouvoir x |  | v e2b46be
+07/11 16:25:30 x1 banc | banc: visibilité visible à t 292.7 s · étape « partie 1 · 257 s » |  | v e2b46be
+07/11 16:25:37 x1 banc | banc: vivant · t 300.1 s · étape « partie 1 · 257 s » · vis visible |  | v e2b46be
+07/11 16:25:50 x1 banc | banc: partie 1 · 277 s · t 312.3 s · pire 14011 ms (à 292.1 s) · p50 92 · p90 175 ms · 177 images · >50 ms: 151 · >100 ms: 64 · palier 0 · 167 km/h · mode drive · pouvoir n |  | v e2b46be
+07/11 16:26:07 x1 banc | banc: vivant · t 330.1 s · étape « partie 1 · 277 s » · vis visible |  | v e2b46be
+07/11 16:26:10 x1 banc | banc: partie 1 · 297 s · t 332.5 s · pire 503 ms (à 312.8 s) · p50 124 · p90 245 ms · 139 images · >50 ms: 139 · >100 ms: 102 · palier 1 · 217 km/h · mode drive · pouvoir a |  | v e2b46be
+07/11 16:26:13 x1 banc | banc: partie 1 · fin de course · t 335.5 s · pire 385 ms (à 332.7 s) · p50 105 · p90 198 ms · 26 images · >50 ms: 26 · >100 ms: 15 · palier max 2 (cible —) · v max 401 km/h · 1 mort(s) anticipée(s) · tex 154 · géo 638 · prog 216 |  | v e2b46be
+07/11 16:26:23 x1 banc | banc: partie 1 · mort · t 345.6 s · pire 770 ms (à 342 s) · p50 97 · p90 230 ms · 74 images · >50 ms: 74 · >100 ms: 30 · écran de mort en 10119 ms · tex 154 · géo 655 · prog 216 |  | v e2b46be
+07/11 16:26:25 x1 banc | banc: partie 2 : départ à t 348.1 s · tex 154 · géo 561 · prog 216 · palier 0 |  | v e2b46be
+07/11 16:26:37 x1 banc | banc: vivant · t 360.1 s · étape « partie 1 · mort » · vis visible |  | v e2b46be
+07/11 16:26:46 x1 banc | banc: partie 2 · 20 s · t 368.4 s · pire 1501 ms (à 348.8 s) · p50 82 · p90 136 ms · 212 images · >50 ms: 212 · >100 ms: 50 · palier 2 · 175 km/h · mode drive · pouvoir v |  | v e2b46be
+07/11 16:27:06 x1 banc | banc: partie 2 · 41 s · t 388.8 s · pire 358 ms (à 370.8 s) · p50 109 · p90 189 ms · 164 images · >50 ms: 164 · >100 ms: 107 · palier 4 · 228 km/h · mode drive · pouvoir m |  | v e2b46be
+07/11 16:27:07 x1 banc | banc: vivant · t 390.1 s · étape « partie 2 · 41 s » · vis visible |  | v e2b46be
+07/11 16:27:26 x1 banc | banc: partie 2 · 61 s · t 408.9 s · pire 707 ms (à 400.8 s) · p50 104 · p90 178 ms · 163 images · >50 ms: 163 · >100 ms: 91 · palier 5 · 215 km/h · mode drive · pouvoir x |  | v e2b46be
+07/11 16:27:37 x1 banc | banc: vivant · t 420.1 s · étape « partie 2 · 61 s » · vis visible |  | v e2b46be
+07/11 16:27:47 x1 banc | banc: partie 2 · 81 s · t 429.1 s · pire 473 ms (à 428.8 s) · p50 112 · p90 192 ms · 157 images · >50 ms: 157 · >100 ms: 110 · palier 7 · 274 km/h · mode drive · pouvoir n |  | v e2b46be
+07/11 16:28:07 x1 banc | banc: partie 2 · 101 s · t 449.4 s · pire 610 ms (à 441.2 s) · p50 158 · p90 300 ms · 105 images · >50 ms: 105 · >100 ms: 102 · palier 8 · 288 km/h · mode drive · pouvoir a |  | v e2b46be
+07/11 16:28:07 x1 banc | banc: vivant · t 450.1 s · étape « partie 2 · 101 s » · vis visible |  | v e2b46be
+07/11 16:28:27 x1 banc | banc: partie 2 · 122 s · t 469.6 s · pire 521 ms (à 452.6 s) · p50 71 · p90 166 ms · 210 images · >50 ms: 203 · >100 ms: 51 · palier 10 · 318 km/h · mode drive · pouvoir v |  | v e2b46be
+07/11 16:28:38 x1 banc | banc: vivant · t 480.3 s · étape « partie 2 · 122 s » · vis visible |  | v e2b46be
+07/11 16:28:47 x1 banc | banc: partie 2 · 142 s · t 490.1 s · pire 4205 ms (à 480.7 s) · p50 103 · p90 259 ms · 119 images · >50 ms: 119 · >100 ms: 63 · palier 11 · 378 km/h · mode drive · pouvoir m |  | v e2b46be
+07/11 16:29:04 x1 banc | banc: partie 2 · mort anticipée n°1 à 158 s · t 506.2 s · pire 461 ms (à 499.3 s) · p50 124 · p90 290 ms · 103 images · >50 ms: 103 · >100 ms: 67 · palier 12 · v max 783 km/h |  | v e2b46be
+07/11 16:29:08 x1 banc | banc: vivant · t 510.3 s · étape « partie 2 · mort anticipée n°1 à 158 s » · vis visible |  | v e2b46be
+07/11 16:29:38 x1 banc | banc: vivant · t 540.3 s · étape « partie 2 · mort anticipée n°1 à 158 s » · vis visible |  | v e2b46be
+07/11 16:29:42 x1 banc | banc: partie 2 · 196 s · t 544.6 s · pire 1253 ms (à 525.9 s) · p50 84 · p90 150 ms · 360 images · >50 ms: 360 · >100 ms: 108 · palier 4 · 229 km/h · mode drive · pouvoir x |  | v e2b46be
+07/11 16:30:02 x1 banc | banc: partie 2 · 217 s · t 564.8 s · pire 291 ms (à 544.9 s) · p50 96 · p90 126 ms · 201 images · >50 ms: 201 · >100 ms: 70 · palier 7 · 235 km/h · mode drive · pouvoir n |  | v e2b46be
+07/11 16:30:08 x1 banc | banc: vivant · t 570.3 s · étape « partie 2 · 217 s » · vis visible |  | v e2b46be
+07/11 16:30:22 x1 banc | banc: partie 2 · 237 s · t 585 s · pire 371 ms (à 569.5 s) · p50 99 · p90 134 ms · 187 images · >50 ms: 187 · >100 ms: 86 · palier 10 · 314 km/h · mode drive · pouvoir a |  | v e2b46be
+07/11 16:30:38 x1 banc | banc: vivant · t 600.3 s · étape « partie 2 · 237 s » · vis visible |  | v e2b46be
+07/11 16:30:43 x1 banc | banc: partie 2 · 257 s · t 605.1 s · pire 219 ms (à 595.7 s) · p50 87 · p90 121 ms · 217 images · >50 ms: 216 · >100 ms: 68 · palier 14 · 434 km/h · mode drive · pouvoir v |  | v e2b46be
+07/11 16:30:53 x1 banc | banc: partie 2 · mort anticipée n°2 à 268 s · t 615.6 s · pire 372 ms (à 612.1 s) · p50 105 · p90 214 ms · 85 images · >50 ms: 77 · >100 ms: 47 · palier 15 · v max 884 km/h |  | v e2b46be
+07/11 16:31:08 x1 banc | banc: vivant · t 630.4 s · étape « partie 2 · mort anticipée n°2 à 268 s » · vis visible |  | v e2b46be
+07/11 16:31:37 x1 banc | banc: partie 2 · fin de course · t 659.5 s · pire 16496 ms (à 659.2 s) · p50 93 · p90 150 ms · 236 images · >50 ms: 236 · >100 ms: 97 · palier max 15 (cible 16) · v max 884 km/h · 2 mort(s) anticipée(s) · tex 148 · géo 869 · prog 216 |  | v e2b46be
+07/11 16:31:38 x1 banc | banc: vivant · t 660.4 s · étape « partie 2 · fin de course » · vis visible |  | v e2b46be
+07/11 16:31:42 x1 banc | banc: partie 2 · mort · t 664.8 s · pire 1131 ms (à 660.2 s) · p50 66 · p90 539 ms · 40 images · >50 ms: 31 · >100 ms: 10 · écran de mort en 5295 ms · tex 149 · géo 910 · prog 216 |  | v e2b46be
+07/11 16:31:42 x1 banc | banc: ⚠ palier 16 non atteint (max 15) |  | v e2b46be
+07/11 16:31:49 x1 banc | banc: retour accueil final · t 671.6 s · pire 3604 ms (à 669.2 s) · p50 111 · p90 3604 ms · 3 images · >50 ms: 3 · >100 ms: 2 |  | v e2b46be
+07/11 16:31:49 x1 banc | banc: fini 671.6 s |  | v e2b46be
+07/11 16:32:28 x1 banc | banc: début · run 4 · scénario p7 · partie 300 s · v e2b46be · app native · 390×844 @3 · wakeLock oui |  | v e2b46be
+07/11 16:32:28 x1 banc | banc: titre : vis visible · doc complete · intro attente · prêt true · lance false · boule false · fini false · mHome on · splash flex · started false · running false · over false · mode drive · garage true |  | v e2b46be
+07/11 16:32:50 x1 banc | banc: wakeLock refusé : Permission was denied |  | v e2b46be
+07/11 16:32:50 x1 banc | banc: attend « boule prête » depuis 16 s (max 90 s) · vis visible · doc complete · intro joue · prêt true · lance true · boule false · fini false · mHome on · splash flex · started false · running false · over false · mode drive · garage true |  | v e2b46be
+07/11 16:32:50 x1 banc | banc: boule prête à t 26 s · vis visible · doc complete · intro joue · prêt true · lance true · boule true · fini false · mHome on · splash flex · started false · running false · over false · mode drive · garage true |  | v e2b46be
+07/11 16:32:52 x1 banc | banc: tapBoule appelé · vis visible · doc complete · intro joue · prêt true · lance true · boule true · fini false · mHome on · splash flex · started false · running false · over false · mode drive · garage true |  | v e2b46be
+07/11 16:32:54 x1 banc | banc: vivant · t 30 s · étape « ? » · vis visible |  | v e2b46be
+07/11 16:33:07 x1 banc | banc: attend « menu affiché » depuis 15 s (max 120 s) · vis visible · doc complete · intro joue · prêt true · lance true · boule true · fini false · mHome on · splash flex · started false · running false · over false · mode drive · garage true |  | v e2b46be
+07/11 16:33:19 x1 banc | banc: titre → menu · t 54.6 s · pire 9058 ms (à 21.3 s) · p50 89 · p90 238 ms · 225 images · >50 ms: 149 · >100 ms: 86 |  | v e2b46be
+07/11 16:33:19 x1 banc | banc: menu à 54.6 s |  | v e2b46be
+07/11 16:33:24 x1 banc | banc: menu 5 s · t 59.7 s · pire 324 ms (à 57 s) · p50 94 · p90 197 ms · 42 images · >50 ms: 42 · >100 ms: 18 |  | v e2b46be
+07/11 16:33:25 x1 banc | banc: vivant · t 60.5 s · étape « menu 5 s » · vis visible |  | v e2b46be
+07/11 16:33:26 x1 banc | banc: garage ouvert · t 61.2 s · pire 789 ms (à 60.9 s) · p50 213 · p90 789 ms · 3 images · >50 ms: 3 · >100 ms: 3 · tex 129 · géo 574 · prog 267 |  | v e2b46be
+07/11 16:33:28 x1 banc | banc: garage 2,5 s · t 63.7 s · pire 512 ms (à 61.4 s) · p50 104 · p90 126 ms · 23 images · >50 ms: 23 · >100 ms: 14 |  | v e2b46be
+07/11 16:33:29 x1 banc | banc: inventaire ouvert · t 64.6 s · pire 478 ms (à 64.4 s) · p50 478 · p90 478 ms · 2 images · >50 ms: 2 · >100 ms: 2 |  | v e2b46be
+07/11 16:33:29 x1 banc | banc: inventaire : rien à défiler (grille 140/129) |  | v e2b46be
+07/11 16:33:29 x1 banc | banc: inventaire défilé · t 64.6 s · 0 image |  | v e2b46be
+07/11 16:33:30 x1 banc | banc: boutique ouverte en 67 ms |  | v e2b46be
+07/11 16:33:33 x1 banc | banc: boutique ouverte 2,5 s · t 68.1 s · pire 385 ms (à 65.1 s) · p50 104 · p90 323 ms · 12 images · >50 ms: 12 · >100 ms: 7 |  | v e2b46be
+07/11 16:33:39 x1 banc | banc: retour accueil · t 74.8 s · pire 2372 ms (à 68.9 s) · p50 159 · p90 633 ms · 24 images · >50 ms: 24 · >100 ms: 24 |  | v e2b46be
+07/11 16:33:55 x1 banc | banc: partie 1 : départ à t 90.4 s · tex 129 · géo 564 · prog 273 · palier 0 |  | v e2b46be
+07/11 16:33:55 x1 banc | banc: vivant · t 90.5 s · étape « retour accueil » · vis visible |  | v e2b46be
+07/11 16:34:15 x1 banc | banc: partie 1 · 20 s · t 110.6 s · pire 2311 ms (à 91.1 s) · p50 70 · p90 91 ms · 250 images · >50 ms: 246 · >100 ms: 17 · palier 0 · 150 km/h · mode drive · pouvoir a |  | v e2b46be
+07/11 16:34:25 x1 banc | banc: vivant · t 120.5 s · étape « partie 1 · 20 s » · vis visible |  | v e2b46be
+07/11 16:34:36 x1 banc | banc: partie 1 · 41 s · t 131.1 s · pire 240 ms (à 117.4 s) · p50 82 · p90 117 ms · 234 images · >50 ms: 234 · >100 ms: 45 · palier 0 · 200 km/h · mode drive · pouvoir v |  | v e2b46be
+07/11 16:34:55 x1 banc | banc: vivant · t 150.5 s · étape « partie 1 · 41 s » · vis visible |  | v e2b46be
+07/11 16:34:56 x1 banc | banc: partie 1 · 61 s · t 151.3 s · pire 386 ms (à 142.5 s) · p50 95 · p90 154 ms · 188 images · >50 ms: 188 · >100 ms: 81 · palier 0 · 221 km/h · mode drive · pouvoir m |  | v e2b46be
+07/11 16:35:16 x1 banc | banc: partie 1 · 81 s · t 171.7 s · pire 377 ms (à 159.9 s) · p50 85 · p90 119 ms · 218 images · >50 ms: 218 · >100 ms: 57 · palier 1 · 162 km/h · mode drive · pouvoir x |  | v e2b46be
+07/11 16:35:25 x1 banc | banc: vivant · t 180.5 s · étape « partie 1 · 81 s » · vis visible |  | v e2b46be
+07/11 16:35:37 x1 banc | banc: partie 1 · 102 s · t 192.1 s · pire 293 ms (à 172 s) · p50 90 · p90 123 ms · 208 images · >50 ms: 208 · >100 ms: 52 · palier 1 · 169 km/h · mode drive · pouvoir n |  | v e2b46be
+07/11 16:35:55 x1 banc | banc: vivant · t 210.6 s · étape « partie 1 · 102 s » · vis visible |  | v e2b46be
+07/11 16:35:57 x1 banc | banc: partie 1 · 122 s · t 212.2 s · pire 367 ms (à 205.4 s) · p50 84 · p90 137 ms · 210 images · >50 ms: 206 · >100 ms: 63 · palier 1 · 221 km/h · mode drive · pouvoir a |  | v e2b46be
+07/11 16:36:17 x1 banc | banc: partie 1 · 142 s · t 232.5 s · pire 282 ms (à 229.1 s) · p50 95 · p90 140 ms · 201 images · >50 ms: 199 · >100 ms: 74 · palier 1 · 168 km/h · mode drive · pouvoir v |  | v e2b46be
+07/11 16:36:25 x1 banc | banc: vivant · t 240.7 s · étape « partie 1 · 142 s » · vis visible |  | v e2b46be
+07/11 16:36:37 x1 banc | banc: partie 1 · 162 s · t 252.7 s · pire 847 ms (à 240.6 s) · p50 83 · p90 141 ms · 199 images · >50 ms: 199 · >100 ms: 51 · palier 2 · 277 km/h · mode fall · figure 0 refusée |  | v e2b46be
+07/11 16:36:55 x1 banc | banc: vivant · t 270.7 s · étape « partie 1 · 162 s » · vis visible |  | v e2b46be
+07/11 16:36:58 x1 banc | banc: partie 1 · 183 s · t 273.3 s · pire 325 ms (à 253 s) · p50 81 · p90 123 ms · 233 images · >50 ms: 229 · >100 ms: 38 · palier 2 · 213 km/h · mode drive · pouvoir x |  | v e2b46be
+07/11 16:37:18 x1 banc | banc: partie 1 · 203 s · t 293.4 s · pire 273 ms (à 293.1 s) · p50 86 · p90 135 ms · 203 images · >50 ms: 203 · >100 ms: 57 · palier 2 · 212 km/h · mode drive · pouvoir n |  | v e2b46be
+07/11 16:37:25 x1 banc | banc: vivant · t 300.7 s · étape « partie 1 · 203 s » · vis visible |  | v e2b46be
+07/11 16:37:38 x1 banc | banc: partie 1 · 223 s · t 313.3 s · pire 389 ms (à 293.8 s) · p50 91 · p90 179 ms · 183 images · >50 ms: 180 · >100 ms: 72 · palier 2 · 208 km/h · mode fall · pouvoir a |  | v e2b46be
+07/11 16:37:55 x1 banc | banc: vivant · t 330.8 s · étape « partie 1 · 223 s » · vis visible |  | v e2b46be
+07/11 16:37:58 x1 banc | banc: partie 1 · 243 s · t 333.8 s · pire 292 ms (à 320.4 s) · p50 83 · p90 138 ms · 218 images · >50 ms: 217 · >100 ms: 46 · palier 3 · 252 km/h · mode drive · pouvoir v |  | v e2b46be
+07/11 16:38:18 x1 banc | banc: partie 1 · 263 s · t 353.7 s · pire 360 ms (à 335.4 s) · p50 103 · p90 199 ms · 163 images · >50 ms: 163 · >100 ms: 88 · palier 4 · 175 km/h · mode drive · pouvoir m |  | v e2b46be
+07/11 16:38:25 x1 banc | banc: vivant · t 360.8 s · étape « partie 1 · 263 s » · vis visible |  | v e2b46be
+07/11 16:38:34 x1 banc | banc: visibilité hidden à t 369.5 s · étape « partie 1 · 263 s » |  | v e2b46be
+07/11 16:39:20 x1 banc | banc: partie 1 · fin de course · t 415.8 s · pire 240 ms (à 356.2 s) · p50 80 · p90 162 ms · 98 images · >50 ms: 98 · >100 ms: 21 · palier max 4 (cible —) · v max 384 km/h · 0 mort(s) anticipée(s) · tex 147 · géo 668 · prog 273 |  | v e2b46be
+07/11 16:39:21 x1 banc | banc: vivant · t 416.4 s · étape « partie 1 · fin de course » · vis visible |  | v e2b46be
+07/11 16:39:21 x1 banc | banc: visibilité visible à t 416.4 s · étape « partie 1 · fin de course » |  | v e2b46be
+07/11 16:39:40 x1 banc | banc: partie 1 · mort · t 436 s · pire 2974 ms (à 421.6 s) · p50 80 · p90 315 ms · 105 images · >50 ms: 94 · >100 ms: 42 · en fond: 1 · écran de mort en 20047 ms · tex 149 · géo 687 · prog 274 |  | v e2b46be
+07/11 16:39:44 x1 banc | banc: partie 2 : départ à t 439.1 s · tex 146 · géo 572 · prog 274 · palier 0 |  | v e2b46be
+07/11 16:39:51 x1 banc | banc: vivant · t 446.4 s · étape « partie 1 · mort » · vis visible |  | v e2b46be
+07/11 16:40:04 x1 banc | banc: partie 2 · 20 s · t 459.3 s · pire 1659 ms (à 440 s) · p50 73 · p90 156 ms · 198 images · >50 ms: 198 · >100 ms: 39 · palier 2 · 254 km/h · mode drive · pouvoir x |  | v e2b46be
+07/11 16:40:21 x1 banc | banc: vivant · t 476.5 s · étape « partie 2 · 20 s » · vis visible |  | v e2b46be
+07/11 16:40:24 x1 banc | banc: partie 2 · 40 s · t 479.4 s · pire 735 ms (à 470.5 s) · p50 99 · p90 209 ms · 165 images · >50 ms: 165 · >100 ms: 76 · palier 4 · 196 km/h · mode drive · pouvoir n |  | v e2b46be
+07/11 16:40:44 x1 banc | banc: partie 2 · 60 s · t 499.3 s · pire 288 ms (à 480.7 s) · p50 85 · p90 126 ms · 212 images · >50 ms: 212 · >100 ms: 51 · palier 5 · 250 km/h · mode drive · pouvoir a |  | v e2b46be
+07/11 16:40:51 x1 banc | banc: vivant · t 506.5 s · étape « partie 2 · 60 s » · vis visible |  | v e2b46be
+07/11 16:41:04 x1 banc | banc: partie 2 · 81 s · t 519.8 s · pire 264 ms (à 505.4 s) · p50 84 · p90 134 ms · 218 images · >50 ms: 213 · >100 ms: 55 · palier 7 · 302 km/h · mode drive · pouvoir v |  | v e2b46be
+07/11 16:41:21 x1 banc | banc: vivant · t 536.5 s · étape « partie 2 · 81 s » · vis visible |  | v e2b46be
+07/11 16:41:25 x1 banc | banc: partie 2 · 101 s · t 540.3 s · pire 782 ms (à 523.9 s) · p50 101 · p90 215 ms · 159 images · >50 ms: 159 · >100 ms: 80 · palier 8 · 308 km/h · mode drive · pouvoir m |  | v e2b46be
+07/11 16:41:45 x1 banc | banc: partie 2 · 122 s · t 560.7 s · pire 1390 ms (à 541.8 s) · p50 84 · p90 176 ms · 184 images · >50 ms: 183 · >100 ms: 51 · palier 10 · 290 km/h · mode drive · pouvoir x |  | v e2b46be
+07/11 16:41:51 x1 banc | banc: vivant · t 566.6 s · étape « partie 2 · 122 s » · vis visible |  | v e2b46be
+07/11 16:42:05 x1 banc | banc: partie 2 · 142 s · t 580.9 s · pire 314 ms (à 572.8 s) · p50 79 · p90 142 ms · 220 images · >50 ms: 216 · >100 ms: 48 · palier 11 · 429 km/h · mode drive · pouvoir n |  | v e2b46be
+07/11 16:42:21 x1 banc | banc: vivant · t 596.6 s · étape « partie 2 · 142 s » · vis visible |  | v e2b46be
+07/11 16:42:26 x1 banc | banc: partie 2 · 162 s · t 601.3 s · pire 505 ms (à 581.4 s) · p50 80 · p90 150 ms · 199 images · >50 ms: 189 · >100 ms: 66 · palier 13 · 456 km/h · mode drive · pouvoir a |  | v e2b46be
+07/11 16:42:46 x1 banc | banc: partie 2 · 183 s · t 621.6 s · pire 220 ms (à 610.1 s) · p50 71 · p90 118 ms · 258 images · >50 ms: 239 · >100 ms: 35 · palier 14 · 429 km/h · mode drive · pouvoir v |  | v e2b46be
+07/11 16:42:51 x1 banc | banc: vivant · t 626.6 s · étape « partie 2 · 183 s » · vis visible |  | v e2b46be
+07/11 16:43:07 x1 banc | banc: partie 2 · 203 s · t 642.1 s · pire 448 ms (à 624 s) · p50 101 · p90 176 ms · 170 images · >50 ms: 170 · >100 ms: 85 · palier 16 · 703 km/h · mode fall · pouvoir m |  | v e2b46be
+07/11 16:43:19 x1 banc | banc: partie 2 · mort anticipée n°1 à 216 s · t 654.7 s · pire 625 ms (à 650.6 s) · p50 98 · p90 160 ms · 110 images · >50 ms: 110 · >100 ms: 51 · palier 16 · v max 827 km/h |  | v e2b46be
+07/11 16:43:21 x1 banc | banc: vivant · t 656.8 s · étape « partie 2 · mort anticipée n°1 à 216 s » · vis visible |  | v e2b46be
+07/11 16:43:51 x1 banc | banc: vivant · t 686.8 s · étape « partie 2 · mort anticipée n°1 à 216 s » · vis visible |  | v e2b46be
+07/11 16:44:02 x1 banc | banc: partie 2 · 259 s · t 697.9 s · pire 1325 ms (à 678.9 s) · p50 100 · p90 249 ms · 304 images · >50 ms: 304 · >100 ms: 150 · palier 7 · 240 km/h · mode drive · pouvoir x |  | v e2b46be
+07/11 16:44:19 x1 fluide | 718.8 s · foret · palier moteur 13 · 633 km/h · p50 74.3 p90 83.3 pire 83 · cadence 30 · cran QL 6 · tas - · dose 230 chaud |  | v e2b46be
+07/11 16:44:21 x1 banc | banc: vivant · t 716.8 s · étape « partie 2 · 259 s » · vis visible |  | v e2b46be
+07/11 16:44:23 x1 banc | banc: partie 2 · 279 s · t 718.2 s · pire 429 ms (à 710.7 s) · p50 96 · p90 200 ms · 174 images · >50 ms: 174 · >100 ms: 71 · palier 14 · 401 km/h · mode drive · pouvoir n |  | v e2b46be
+07/11 16:44:24 x1 fluide | 723.2 s · foret · palier moteur 14 · 698 km/h · p50 83.3 p90 83.3 pire 83 · cadence 30 · cran QL 6 · tas - · dose 230 chaud |  | v e2b46be
+07/11 16:44:28 x1 fluide | 727.3 s · foret · palier moteur 15 · 810 km/h · p50 83.3 p90 83.3 pire 83 · cadence 30 · cran QL 6 · tas - · dose 230 chaud |  | v e2b46be
+07/11 16:44:32 x1 fluide | 731.6 s · foret · palier moteur 16 · 877 km/h · p50 83.3 p90 83.3 pire 83 · cadence 30 · cran QL 6 · tas - · dose 230 chaud |  | v e2b46be
+07/11 16:44:36 x1 fluide | 735.7 s · foret · palier moteur 16 · 856 km/h · p50 83.3 p90 83.3 pire 83 · cadence 30 · cran QL 6 · tas - · dose 230 chaud |  | v e2b46be
+07/11 16:44:40 x1 fluide | 739.7 s · foret · palier moteur 16 · 936 km/h · p50 83.3 p90 83.3 pire 83 · cadence 30 · cran QL 6 · tas - · dose 230 chaud |  | v e2b46be
+07/11 16:44:43 x1 banc | banc: partie 2 · 299 s · t 738.5 s · pire 440 ms (à 718.7 s) · p50 106 · p90 272 ms · 144 images · >50 ms: 144 · >100 ms: 90 · palier 16 · 549 km/h · mode fall · figure 1 ok |  | v e2b46be
+07/11 16:44:44 x1 banc | banc: partie 2 · fin de course · t 739.2 s · pire 226 ms (à 738.8 s) · p50 124 · p90 226 ms · 4 images · >50 ms: 4 · >100 ms: 3 · palier max 16 (cible 16) · v max 827 km/h · 1 mort(s) anticipée(s) · tex 147 · géo 818 · prog 274 |  | v e2b46be
+07/11 16:44:44 x1 banc | banc: partie 2 · fin de course · t 739.2 s · pire 226 ms (à 738.8 s) · p50 124 · p90 226 ms · 4 images · >50 ms: 4 · >100 ms: 3 · palier max 16 (cible 16) · v max 827 km/h · 1 mort(s) anticipée(s) · tex 147 · géo 818 · prog 274 |  | v e2b46be
+07/11 16:44:44 x1 fluide | 743.9 s · foret · palier moteur 16 · 892 km/h · p50 83.3 p90 83.3 pire 83 · cadence 30 · cran QL 6 · tas - · dose 230 chaud |  | v e2b46be
+07/11 16:44:47 x1 memoire | fin 746.3 s · post figDir bvF touch hPwr play · tas - · textures 147 géométries 835 programmes 274 · partie n°3 |  | v e2b46be
+07/11 16:44:50 x2 gel | 2.2 s | post figDir bvF touch inGarage garMenuH | v 43269c4
+07/11 16:44:51 x1 banc | banc: vivant · t 746.9 s · étape « partie 2 · fin de course » · vis visible |  | v e2b46be
+07/11 16:44:52 x1 banc | banc: partie 2 · mort · t 747.7 s · pire 2181 ms (à 745.8 s) · p50 74 · p90 175 ms · 64 images · >50 ms: 61 · >100 ms: 23 · écran de mort en 8535 ms · tex 147 · géo 835 · prog 274 |  | v e2b46be
+07/11 16:44:52 x1 banc | banc: partie 2 · mort · t 747.7 s · pire 2181 ms (à 745.8 s) · p50 74 · p90 175 ms · 64 images · >50 ms: 61 · >100 ms: 23 · écran de mort en 8535 ms · tex 147 · géo 835 · prog 274 |  | v e2b46be
+07/11 16:44:57 x1 banc | banc: retour accueil final · t 752.9 s · pire 2972 ms (à 751.5 s) · p50 2972 · p90 2972 ms · 2 images · >50 ms: 2 · >100 ms: 2 |  | v e2b46be
+07/11 16:44:57 x1 banc | banc: fini 752.9 s |  | v e2b46be
+07/11 16:44:57 x1 banc | banc: fini 752.9 s |  | v e2b46be
+07/11 16:44:59 x1 gel | 4.1 s | post figDir bvF touch hPwr dead inGarage garMenuH titreCiel | v e2b46be
+07/11 16:45:02 x4 gel | 2.9 s | post figDir bvF touch inGarage garMenuH | v 040a780
+07/11 16:45:05 x1 gel | 2.5 s | post figDir bvF touch hPwr dead inGarage garMenuH titreCiel | v e2b46be
+07/11 16:45:28 x2 gel | 1.2 s | post figDir bvF touch inGarage garMenuH | v 040a780
+07/11 16:53:46 x1 chargement | jeu en ligne · origine→DCL 535 ms · origine→prêt 529 ms · DCL→prêt -6 ms |  | v 43269c4
+07/11 16:54:49 x3 gel | 3.3 s | post figDir bvF touch | v 8e8c415
+07/11 16:54:52 x2 gel | 2.7 s | post figDir bvF touch inGarage garMenuH | v 8e8c415
+07/11 16:54:52 x1 chargement | jeu en ligne · origine→DCL 4207 ms · origine→prêt 3638 ms · DCL→prêt -569 ms |  | v 43269c4
+07/11 16:54:57 x1 gel | 4.9 s | post figDir bvF touch inGarage garMenuH | v 43269c4
+07/11 16:56:04 x1 chargement | jeu en ligne · origine→DCL 4238 ms · origine→prêt 3636 ms · DCL→prêt -602 ms |  | v 43269c4
+07/11 16:56:13 x1 gel | 8.8 s | post figDir bvF touch inGarage garMenuH | v 43269c4
+07/11 16:56:18 x2 gel | 2.4 s | post figDir bvF touch inGarage garMenuH | v 040a780
+07/11 18:46:11 x1 chargement | jeu fichier · origine→DCL 935 ms · origine→prêt 801 ms · DCL→prêt -134 ms · jeu.js : aucune entrée resource |  | v 8e8c415
+07/11 18:47:02 x1 chargement | jeu fichier · origine→DCL 660 ms · origine→prêt 651 ms · DCL→prêt -9 ms · jeu.js : aucune entrée resource |  | v 8e8c415
+07/11 18:47:58 x2 gel | 1.1 s | post figDir bvF touch inGarage garMenuH titreCiel | v 8e8c415
+07/11 18:47:58 x1 chargement | jeu fichier · origine→DCL 694 ms · origine→prêt 594 ms · DCL→prêt -100 ms · jeu.js : aucune entrée resource |  | v 8e8c415
+07/11 18:51:18 x2 gel | 1.9 s | post figDir bvF touch inGarage garMenuH | v 040a780
+07/11 18:51:23 x2 gel | 1.7 s | post figDir bvF touch inGarage garMenuH | v 040a780
+07/11 18:53:35 x2 gel | 3.4 s | post figDir bvF touch | v 040a780
+07/11 18:53:38 x4 gel | 3 s | post figDir bvF touch inGarage garMenuH | v 040a780
+07/11 18:53:38 x1 chargement | jeu fichier · origine→DCL 4555 ms · origine→prêt 3847 ms · DCL→prêt -708 ms · jeu.js : aucune entrée resource |  | v 8e8c415
+07/11 18:53:48 x1 gel | 9.3 s | post figDir bvF touch inGarage garMenuH | v 8e8c415
+07/11 18:53:52 x2 gel | 2.3 s | post figDir bvF touch inGarage garMenuH | v 8e8c415
+07/11 19:01:26 x1 chargement | jeu fichier · origine→DCL 4268 ms · origine→prêt 3646 ms · DCL→prêt -622 ms · jeu.js : aucune entrée resource |  | v 8e8c415
+07/11 19:01:36 x1 gel | 9.2 s | post figDir bvF touch inGarage garMenuH | v 8e8c415
+07/11 19:01:52 x1 gel | 1.4 s | post figDir bvF touch inGarage garMenuH | v 8e8c415
+07/11 19:02:09 x1 gel | 8.1 s | post figDir bvF touch inGarage garMenuH titreCiel | v 8e8c415
+07/11 19:02:41 x2 gel | 1.5 s | post figDir bvF touch inGarage garMenuH | v 040a780
+07/11 20:05:38 x1 chargement | jeu fichier · origine→DCL 912 ms · origine→prêt 664 ms · DCL→prêt -248 ms · jeu.js : aucune entrée resource |  | v 8e8c415
+07/11 20:05:46 x1 serpent | 0.6 s : trou 471 ms · JS image loop 57 + étape piste 51 · GL - · fil bloqué |  | v 8e8c415
+07/11 20:05:47 x1 chargement | jeu fichier · origine→DCL 564 ms · origine→prêt 556 ms · DCL→prêt -8 ms · jeu.js : aucune entrée resource |  | v 8e8c415
+07/11 20:05:47 x1 serpent | 1.1 s : trou 131 ms · JS - · GL - · fil bloqué |  | v 8e8c415
+07/11 20:05:47 x1 serpent | 1.2 s : trou 718 ms · JS étape rendu 301 + image boucle 301 · GL - · fil bloqué |  | v 8e8c415
+07/11 20:05:48 x1 serpent | fin du guet à 2.9 s : 4 trou(s) > 120 ms, le pire 718 ms · créations : renderer 5 ms à 0.2 s · prepare 33 ms à 1.1 s · son 58 ms à 1.1 s |  | v 8e8c415
+07/11 20:10:29 x1 serpent | 0.1 s : trou 509 ms · JS - · GL - · fil libre |  | v 040a780
+07/11 20:10:30 x1 serpent | 0.6 s : trou 615 ms · JS image loop 68 + étape piste 60 · GL - · fil bloqué |  | v 040a780
+07/11 20:10:30 x1 chargement | jeu fichier · origine→DCL 548 ms · origine→prêt 539 ms · DCL→prêt -9 ms · jeu.js : aucune entrée resource |  | v 040a780
+07/11 20:10:30 x1 serpent | 1.2 s : trou 227 ms · JS - · GL - · fil bloqué |  | v 040a780
+07/11 20:10:31 x1 serpent | 1.4 s : trou 1151 ms · JS image boucle 408 + étape rendu 407 · GL - · fil bloqué |  | v 040a780
+07/11 20:10:32 x1 serpent | 3.1 s : trou 141 ms · JS étape piste 83 + image loop 83 · GL - · fil libre |  | v 040a780
+07/11 20:10:32 x1 serpent | fin du guet à 3.2 s : 5 trou(s) > 120 ms, le pire 1151 ms · créations : prepare 45 ms à 1.2 s · son 92 ms à 1.3 s |  | v 040a780
+07/11 20:12:50 x1 gel | 3.7 s | post figDir bvF touch | v 040a780
+07/11 20:12:50 x1 serpent | 0.5 s : trou 3724 ms · JS - · GL texImage2D 14 · fil libre | texImage2D@three.min.js:6:303533 < Z@three.min.js:6:313204 < V@three.min.js:6:307980 < @three.min.js:6:357601 | v 040a780
+07/11 20:12:53 x1 gel | 3.2 s | post figDir bvF touch inGarage garMenuH | v 040a780
+07/11 20:12:53 x1 serpent | 4.2 s : trou 3231 ms · JS image loop 367 + étape piste 325 · GL - · fil bloqué |  | v 040a780
+07/11 20:12:53 x1 chargement | jeu fichier · origine→DCL 4655 ms · origine→prêt 4063 ms · DCL→prêt -592 ms · jeu.js : aucune entrée resource |  | v 040a780
+07/11 20:12:54 x1 serpent | 7.4 s : trou 1272 ms · JS minuteur function(){essaiAuto(n+1);} 176 + minuteur irPret 91 · GL - · fil bloqué |  | v 040a780
+07/11 20:13:03 x1 gel | 8.9 s | post figDir bvF touch inGarage garMenuH | v 040a780
+07/11 20:13:03 x1 serpent | 8.7 s : trou 8899 ms · JS image boucle 3581 + étape rendu 3574 · GL - · fil bloqué |  | v 040a780
+07/11 20:13:03 x1 serpent | fin du guet à 17.6 s : 4 trou(s) > 120 ms, le pire 8899 ms · créations : renderer 33 ms à 1.7 s · prepare 216 ms à 7.8 s · son 329 ms à 8 s |  | v 040a780
+07/11 20:13:55 x1 gel | 3.5 s | post figDir bvF touch | v 040a780
+07/11 20:13:55 x1 serpent | 0.4 s : trou 3505 ms · JS - · GL texImage2D 11 · fil libre | texImage2D@three.min.js:6:303533 < Z@three.min.js:6:313204 < V@three.min.js:6:307980 < @three.min.js:6:357601 | v 040a780
+07/11 20:13:58 x1 serpent | 3.9 s : trou 2879 ms · JS image loop 380 + étape piste 337 · GL - · fil bloqué |  | v 040a780
+07/11 20:13:58 x1 chargement | jeu fichier · origine→DCL 4376 ms · origine→prêt 3792 ms · DCL→prêt -584 ms · jeu.js : aucune entrée resource |  | v 040a780
+07/11 20:13:59 x1 serpent | 6.8 s : trou 896 ms · JS minuteur function(){essaiAuto(n+1);} 121 + minuteur irPret 89 · GL - · fil bloqué |  | v 040a780
+07/11 20:14:09 x1 gel | 9.8 s | post figDir bvF touch inGarage garMenuH | v 040a780
+07/11 20:14:09 x1 serpent | 7.7 s : trou 9840 ms · JS image boucle 5302 + étape rendu 5301 · GL - · fil bloqué |  | v 040a780
+07/11 20:14:09 x1 serpent | fin du guet à 17.5 s : 4 trou(s) > 120 ms, le pire 9840 ms · créations : renderer 29 ms à 1.6 s · prepare 204 ms à 7.2 s · son 279 ms à 7.4 s |  | v 040a780
+07/11 20:14:11 x1 gel | 1.6 s | post figDir bvF touch inGarage garMenuH | v 040a780
+07/11 20:15:14 x1 serpent | 0.4 s : trou 3446 ms · JS - · GL texImage2D 21 · fil libre | texImage2D@three.min.js:6:303533 < Z@three.min.js:6:313204 < V@three.min.js:6:307980 < @three.min.js:6:357601 | v 040a780
+07/11 20:15:18 x1 gel | 3.1 s | post figDir bvF touch inGarage garMenuH | v 040a780
+07/11 20:15:18 x1 serpent | 3.9 s : trou 3125 ms · JS image loop 384 + étape piste 342 · GL - · fil bloqué |  | v 040a780
+07/11 20:15:18 x1 chargement | jeu fichier · origine→DCL 4339 ms · origine→prêt 3743 ms · DCL→prêt -596 ms · jeu.js : aucune entrée resource |  | v 040a780
+07/11 20:15:19 x1 serpent | 7 s : trou 1459 ms · JS minuteur function(){essaiAuto(n+1);} 115 + minuteur irPret 91 · GL - · fil bloqué |  | v 040a780
+07/11 20:15:29 x1 gel | 9.6 s | post figDir bvF touch inGarage garMenuH | v 040a780
+07/11 20:15:29 x1 serpent | 8.5 s : trou 9593 ms · JS image boucle 4601 + étape rendu 4596 · GL - · fil bloqué |  | v 040a780
+07/11 20:15:29 x1 serpent | fin du guet à 18.1 s : 4 trou(s) > 120 ms, le pire 9593 ms · créations : renderer 31 ms à 1.6 s · prepare 212 ms à 7.3 s · son 395 ms à 7.5 s |  | v 040a780
+07/11 20:15:33 x1 gel | 2.6 s | post figDir bvF touch inGarage garMenuH | v 040a780

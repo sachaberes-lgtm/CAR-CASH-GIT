@@ -1,0 +1,430 @@
+2026-11-07 20:12:37.182530 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 630 mW on physical device 63.
+2026-11-07 20:12:38.197166 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 615 mW on physical device 63.
+2026-11-07 20:12:39.191610 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 600 mW on physical device 63.
+2026-11-07 20:12:41.202721 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 569 mW on physical device 63.
+2026-11-07 20:12:41.728439 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:12:41.738340 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:12:41.738896 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:12:41.739595 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:12:42.222903 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 555 mW on physical device 63.
+2026-11-07 20:12:43.376355 audiomxd{VirtualAudio}[110] <NOTICE>: ControlEffortValueManager.cpp:103   ControlEffortValueManager - Got an updated thermal budget of 0.683000 watts
+2026-11-07 20:12:44.369268 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 540 mW on physical device 63.
+2026-11-07 20:12:45.301630 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 510 mW on physical device 63.
+2026-11-07 20:12:46.113881 audiomxd{VirtualAudio}[110] <NOTICE>: ControlEffortValueManager.cpp:103   ControlEffortValueManager - Got an updated thermal budget of 0.639000 watts
+2026-11-07 20:12:46.224541 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 495 mW on physical device 63.
+2026-11-07 20:12:46.734404 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:12:46.734501 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:12:46.734546 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:12:46.734592 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:12:46.983493 audiomxd{VirtualAudio}[110] <NOTICE>: ControlEffortValueManager.cpp:103   ControlEffortValueManager - Got an updated thermal budget of 0.626000 watts
+2026-11-07 20:12:47.236018 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 482 mW on physical device 63.
+2026-11-07 20:12:48.110386 audiomxd{VirtualAudio}[110] <NOTICE>: ControlEffortValueManager.cpp:103   ControlEffortValueManager - Got an updated thermal budget of 0.612000 watts
+2026-11-07 20:12:48.333378 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 467 mW on physical device 63.
+2026-11-07 20:12:48.983686 audiomxd{VirtualAudio}[110] <NOTICE>: ControlEffortValueManager.cpp:103   ControlEffortValueManager - Got an updated thermal budget of 0.598000 watts
+2026-11-07 20:12:49.247331 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 452 mW on physical device 63.
+2026-11-07 20:12:49.986514 audiomxd{VirtualAudio}[110] <NOTICE>: ControlEffortValueManager.cpp:103   ControlEffortValueManager - Got an updated thermal budget of 0.585000 watts
+2026-11-07 20:12:50.255275 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 438 mW on physical device 63.
+2026-11-07 20:12:51.001004 audiomxd{VirtualAudio}[110] <NOTICE>: ControlEffortValueManager.cpp:103   ControlEffortValueManager - Got an updated thermal budget of 0.570000 watts
+2026-11-07 20:12:51.256084 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 423 mW on physical device 63.
+2026-11-07 20:12:51.760650 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:12:51.761640 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:12:51.761776 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:12:51.761915 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:12:51.761963 thermalmonitord{PowerLog}[66] <DEBUG>: permissionForClientID: 18 withKey:TGraph withType:Post returnValue=0
+2026-11-07 20:12:51.762075 thermalmonitord{PowerLog}[66] <DEBUG>: permissionForClientID: returnValue=0
+2026-11-07 20:12:51.762113 thermalmonitord{PowerLog}[66] <DEBUG>: PLShouldLogRegisteredEvent: 0, ClientID: 18
+2026-11-07 20:12:51.978394 audiomxd{VirtualAudio}[110] <NOTICE>: ControlEffortValueManager.cpp:103   ControlEffortValueManager - Got an updated thermal budget of 0.558000 watts
+2026-11-07 20:12:52.269151 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 412 mW on physical device 63.
+2026-11-07 20:12:52.981522 audiomxd{VirtualAudio}[110] <NOTICE>: ControlEffortValueManager.cpp:103   ControlEffortValueManager - Got an updated thermal budget of 0.546000 watts
+2026-11-07 20:12:53.283130 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 405 mW on physical device 63.
+2026-11-07 20:12:55.848297 audiomxd{VirtualAudio}[110] <NOTICE>:      Device_HAL_Common.mm:481   Synchronously setting thermal budget to 389 mW on physical device 63.
+2026-11-07 20:12:56.730531 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:12:56.732355 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:12:56.733124 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:12:56.733184 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:13:01.729158 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:13:01.730930 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:13:01.731623 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:13:01.731708 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:13:05.981439 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 0 -> 6
+2026-11-07 20:13:05.981568 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:05.981641 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:05.981685 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:06.729288 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:13:06.732768 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:13:06.733011 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:13:06.733265 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:13:06.981964 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 6 -> 10
+2026-11-07 20:13:06.981997 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:06.982051 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:06.982091 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:08.026910 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 10 -> 17
+2026-11-07 20:13:08.026953 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:08.027006 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:08.027045 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:08.983829 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 17 -> 21
+2026-11-07 20:13:08.983885 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:08.983958 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:08.984002 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:10.010482 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 21 -> 28
+2026-11-07 20:13:10.010586 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:10.010688 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:10.010733 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:10.987519 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 28 -> 31
+2026-11-07 20:13:10.987625 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:10.987733 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:10.987781 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:11.729903 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:13:11.730243 thermalmonitord{thermalmonitord}[66] <NOTICE>: <Notice> mTLL = 10
+2026-11-07 20:13:11.736509 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:13:11.736557 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:13:11.736593 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:13:11.736636 thermalmonitord{PowerLog}[66] <DEBUG>: permissionForClientID: 18 withKey:TGraph withType:Post returnValue=0
+2026-11-07 20:13:11.736681 thermalmonitord{PowerLog}[66] <DEBUG>: permissionForClientID: returnValue=0
+2026-11-07 20:13:11.736715 thermalmonitord{PowerLog}[66] <DEBUG>: PLShouldLogRegisteredEvent: 0, ClientID: 18
+2026-11-07 20:13:12.035119 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 31 -> 36
+2026-11-07 20:13:12.035162 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:12.035427 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:12.035475 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:13.001059 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 36 -> 42
+2026-11-07 20:13:13.001801 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:13.001975 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:13.002079 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:13.991534 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 42 -> 45
+2026-11-07 20:13:13.991669 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:13.991960 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:13.992046 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:15.003585 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 45 -> 49
+2026-11-07 20:13:15.004747 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:15.004879 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:15.004990 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:15.987075 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 49 -> 55
+2026-11-07 20:13:15.989574 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:15.989684 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:15.990065 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:16.818791 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:13:16.819109 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:13:16.819211 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:13:16.819248 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:13:17.063180 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 55 -> 61
+2026-11-07 20:13:17.063228 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:17.063285 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:17.063326 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:17.985341 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 61 -> 62
+2026-11-07 20:13:17.985544 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:17.985743 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:17.985839 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:18.984503 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 62 -> 66
+2026-11-07 20:13:18.984540 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:18.984596 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:18.984693 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:19.989460 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 66 -> 69
+2026-11-07 20:13:19.989588 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:19.989752 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:19.989806 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:20.984025 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 69 -> 73
+2026-11-07 20:13:20.984197 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:20.984258 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:20.984300 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:21.725010 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:13:21.727636 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:13:21.728280 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:13:21.728443 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:13:21.987352 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 73 -> 76
+2026-11-07 20:13:21.992099 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:21.992273 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:21.992348 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:22.983462 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 76 -> 79
+2026-11-07 20:13:22.983498 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:22.983549 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:22.983591 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:23.990165 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 79 -> 82
+2026-11-07 20:13:23.991132 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:23.993877 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:23.994337 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:24.994789 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 82 -> 86
+2026-11-07 20:13:24.994832 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:24.997470 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:24.997623 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:25.986301 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 86 -> 88
+2026-11-07 20:13:25.986336 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:25.986369 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:25.986402 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:27.279756 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:13:27.280040 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:13:27.280082 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:13:27.280128 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:13:27.324558 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 88 -> 90
+2026-11-07 20:13:27.324607 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:27.324654 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:27.324687 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:38.015264 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:13:38.015313 thermalmonitord{thermalmonitord}[66] <NOTICE>: <Notice> mTLL = 9
+2026-11-07 20:13:38.015838 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:13:38.015872 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:13:38.015904 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:13:42.339837 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 128 -> 130
+2026-11-07 20:13:42.339873 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:42.339908 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:42.339961 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:42.769769 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 133 -> 134
+2026-11-07 20:13:42.769838 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:42.769871 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:42.769902 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:43.939893 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 134 -> 137
+2026-11-07 20:13:43.939928 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:43.940147 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:43.940192 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:46.977937 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 137 -> 144
+2026-11-07 20:13:46.977972 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:46.978006 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:46.978039 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:50.305787 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 153 -> 156
+2026-11-07 20:13:50.305819 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:50.305866 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:50.305908 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:13:56.962326 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 164 -> 166
+2026-11-07 20:13:56.962366 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:13:56.962414 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:13:56.962454 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:14:04.130835 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 191 -> 194
+2026-11-07 20:14:04.130870 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:14:04.130903 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:14:04.130936 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:14:15.148719 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 212 -> 215
+2026-11-07 20:14:15.148826 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:14:15.148882 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:14:15.148923 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:14:17.399654 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 216 -> 217
+2026-11-07 20:14:17.399751 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:14:17.399842 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:14:17.399883 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:14:23.915664 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 230 -> 231
+2026-11-07 20:14:23.915712 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:14:23.915834 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:14:23.915874 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:14:29.327616 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 236 -> 238
+2026-11-07 20:14:29.327663 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:14:29.328697 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:14:29.328829 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:14:31.034960 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:14:31.035297 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:14:31.035348 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:14:31.035382 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:14:31.051274 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 243 -> 245
+2026-11-07 20:14:31.051339 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:14:31.051406 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:14:31.051450 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:14:35.087879 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 244 -> 247
+2026-11-07 20:14:35.087962 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:14:35.089065 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:14:35.089141 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:14:42.783254 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 253 -> 255
+2026-11-07 20:14:42.783289 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:14:42.783336 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:14:42.783507 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:14:47.795358 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 260 -> 262
+2026-11-07 20:14:47.795427 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:14:47.795474 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:14:47.795514 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:14:51.169656 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 262 -> 265
+2026-11-07 20:14:51.169769 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:14:51.169892 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:14:51.169991 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:14:54.280638 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 267 -> 266
+2026-11-07 20:14:54.280673 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:14:54.280733 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:14:54.280776 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:00.650742 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 267 -> 266
+2026-11-07 20:15:00.651115 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:00.651190 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:00.651233 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:04.626677 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 265 -> 264
+2026-11-07 20:15:04.626711 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:04.626807 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:04.626885 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:06.377634 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 264 -> 261
+2026-11-07 20:15:06.377706 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:06.377749 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:06.377783 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:17.273595 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:15:17.273954 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:15:17.273987 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:15:17.274019 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:15:17.274055 thermalmonitord{PowerLog}[66] <DEBUG>: permissionForClientID: 18 withKey:TGraph withType:Post returnValue=0
+2026-11-07 20:15:17.274088 thermalmonitord{PowerLog}[66] <DEBUG>: permissionForClientID: returnValue=0
+2026-11-07 20:15:17.274122 thermalmonitord{PowerLog}[66] <DEBUG>: PLShouldLogRegisteredEvent: 0, ClientID: 18
+2026-11-07 20:15:25.199562 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:15:25.199618 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:15:25.199653 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:15:25.199687 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:15:25.834018 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 284 -> 285
+2026-11-07 20:15:25.834054 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:25.834111 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:25.834456 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:28.384732 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 293 -> 294
+2026-11-07 20:15:28.384765 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:28.384810 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:28.384920 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:28.582847 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 295 -> 297
+2026-11-07 20:15:28.583052 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:28.583086 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:28.583150 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:28.982196 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 297 -> 299
+2026-11-07 20:15:28.982234 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:28.982291 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:28.982332 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:30.987851 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 299 -> 300
+2026-11-07 20:15:30.987884 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:30.987940 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:30.987980 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:31.758063 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:15:31.761209 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:15:31.761319 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:15:31.761614 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:15:31.762879 thermalmonitord{PowerLog}[66] <DEBUG>: permissionForClientID: 18 withKey:TGraph withType:Post returnValue=0
+2026-11-07 20:15:31.763269 thermalmonitord{PowerLog}[66] <DEBUG>: permissionForClientID: returnValue=0
+2026-11-07 20:15:31.763615 thermalmonitord{PowerLog}[66] <DEBUG>: PLShouldLogRegisteredEvent: 0, ClientID: 18
+2026-11-07 20:15:32.040903 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 300 -> 302
+2026-11-07 20:15:32.040952 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:32.041005 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:32.041262 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:32.982431 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 302 -> 303
+2026-11-07 20:15:32.982482 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:32.982557 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:32.982599 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:34.097473 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 303 -> 304
+2026-11-07 20:15:34.098059 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:34.098677 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:34.098721 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:34.987253 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 304 -> 305
+2026-11-07 20:15:34.987288 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:34.987321 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:34.987354 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:36.066293 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 305 -> 306
+2026-11-07 20:15:36.066328 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:36.066385 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:36.067420 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:36.731987 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:15:36.734082 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:15:36.735464 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:15:36.735584 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:15:36.984332 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 306 -> 305
+2026-11-07 20:15:36.984379 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:36.984439 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:36.984479 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:37.987382 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 305 -> 307
+2026-11-07 20:15:37.987416 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:37.987476 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:37.987516 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:39.990567 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 307 -> 306
+2026-11-07 20:15:39.990603 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:39.990659 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:39.990701 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:40.985342 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 306 -> 307
+2026-11-07 20:15:40.985379 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:40.985439 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:40.985480 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:42.182123 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:15:42.182257 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:15:42.182300 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:15:42.182331 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:15:45.486060 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 307 -> 309
+2026-11-07 20:15:45.486094 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:45.486141 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:45.486182 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:47.947629 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 311 -> 314
+2026-11-07 20:15:47.949281 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:47.949337 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:47.949462 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:49.554586 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 313 -> 314
+2026-11-07 20:15:49.554635 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:49.554687 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:49.554731 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:52.095483 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 314 -> 315
+2026-11-07 20:15:52.095550 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:52.095610 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:52.095644 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:52.359884 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 315 -> 316
+2026-11-07 20:15:52.359919 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:52.359972 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:52.360077 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:52.394909 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:15:52.394952 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:15:52.394984 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:15:52.395016 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:15:52.395052 thermalmonitord{PowerLog}[66] <DEBUG>: permissionForClientID: 18 withKey:TGraph withType:Post returnValue=0
+2026-11-07 20:15:52.395084 thermalmonitord{PowerLog}[66] <DEBUG>: permissionForClientID: returnValue=0
+2026-11-07 20:15:52.395116 thermalmonitord{PowerLog}[66] <DEBUG>: PLShouldLogRegisteredEvent: 0, ClientID: 18
+2026-11-07 20:15:56.362446 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 313 -> 311
+2026-11-07 20:15:56.362481 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:15:56.362526 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:15:56.362568 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:15:58.431333 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:15:58.431524 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:15:58.431608 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:15:58.431647 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:16:02.363785 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 306 -> 304
+2026-11-07 20:16:02.366017 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:16:02.366352 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:16:02.366443 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:16:02.637949 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:16:02.638013 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:16:02.638046 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:16:02.638077 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:16:02.667077 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 303 -> 301
+2026-11-07 20:16:02.667143 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:16:02.667176 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:16:02.667209 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:16:02.990048 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 301 -> 299
+2026-11-07 20:16:02.990088 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:16:02.990146 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:16:02.990187 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:16:03.986352 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 299 -> 298
+2026-11-07 20:16:03.986409 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:16:03.986484 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:16:03.986574 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:16:04.987428 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 298 -> 297
+2026-11-07 20:16:04.988960 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:16:04.989096 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:16:04.989142 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:16:07.643617 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 297 -> 293
+2026-11-07 20:16:07.643652 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:16:07.643700 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:16:07.643748 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:16:08.198011 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:16:08.198369 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:16:08.198407 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:16:08.198500 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:16:09.209705 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 291 -> 290
+2026-11-07 20:16:09.209936 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:16:09.210011 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:16:09.210062 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:16:20.877801 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 1 channels with 1 iterations
+2026-11-07 20:16:20.877833 thermalmonitord{libIOReport.dylib}[66] <DEBUG>: iterated 14 channels with 14 iterations
+2026-11-07 20:16:20.877863 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> could not find `cpu-avg-limiter-input-w2r property
+2026-11-07 20:16:20.878051 thermalmonitord{thermalmonitord}[66] <ERROR>: <Error> Failed to read `cpu-avg-limiter-input-w2r
+2026-11-07 20:16:25.665691 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 264 -> 262
+2026-11-07 20:16:25.665760 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:16:25.665796 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:16:25.665830 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:16:27.559309 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 252 -> 249
+2026-11-07 20:16:27.559377 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:16:27.559428 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:16:27.559470 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:16:28.213401 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 249 -> 247
+2026-11-07 20:16:28.213454 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:16:28.213499 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:16:28.213537 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:16:29.415386 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 247 -> 245
+2026-11-07 20:16:29.415522 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:16:29.415571 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:16:29.415624 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:16:32.813082 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 245 -> 243
+2026-11-07 20:16:32.813175 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:16:32.813217 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:16:32.813400 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
+2026-11-07 20:16:36.612646 nfcd{nfcd}[62] <NOTICE>: -[NFSystemPowerConsumptionMonitor processNewThermalBudget:]:483 New thermal budget: 242 -> 240
+2026-11-07 20:16:36.612680 nfcd{nfcd}[62] <NOTICE>: -[NFThermalMonitor thermalStateChanged:]:202 New state : 2
+2026-11-07 20:16:36.612738 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:441 New state : 2
+2026-11-07 20:16:36.612781 nfcd{nfcd}[62] <NOTICE>: -[NFReaderRestrictor thermalStateChanged:]:466 Thermal pressure is now moderate, re-scheduling the timer.
