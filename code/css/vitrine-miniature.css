@@ -9,7 +9,7 @@ html.vtOn #gBq #gBqPan .bqK.vo>.vtI{position:absolute;left:-4%;top:calc(6px - 4.
   object-fit:contain;pointer-events:none;-webkit-user-drag:none;user-select:none;opacity:0;transform-origin:50% 88%;transition:opacity .22s ease-out,transform .16s cubic-bezier(.3,1.6,.5,1)}
 html.vtOn #gBq #gBqPan .bqK.vo.vt>.vtI{opacity:1}
 /* le socle vide qui attend sa photo (même place, mêmes proportions que celui de la photo) */
-html.vtOn #gBq #gBqPan .bqK.vo::after{display:block;content:"";position:absolute;z-index:0;left:9%;right:6%;top:calc(100cqw*440/720*.62);height:calc(100cqw*440/720*.24);
+html.vtOn #gBq #gBqPan .bqK.vo::after{display:block;content:"";position:absolute;z-index:0;left:9%;right:auto;width:85%;min-width:0;max-width:none;top:calc(100cqw*440/720*.62);height:calc(100cqw*440/720*.24);
   background:linear-gradient(180deg,#2a2e38 0,#14161c 55%,#0b0c10 100%);border-radius:2px;opacity:.16;transform:skewX(-14deg);pointer-events:none;mask-image:none;-webkit-mask-image:none;max-height:none;bottom:auto;transition:opacity .2s}
 html.vtOn #gBq #gBqPan .bqK.vo.vt::after{opacity:0}
 /* la carte qu'on touche : la boîte s'enfonce un peu sous le doigt, comme une boîte qu'on prend en main */
@@ -17,4 +17,14 @@ html.vtOn #gBq #gBqPan .bqK.vo:active>.vtI{transform:scale(.965)}
 /* la carte choisie : la boîte se soulève (la carte entière, comme avant) et le socle prend une ombre portée plus longue */
 html.vtOn #gBq #gBqPan .bqK.vo.sel>.vtI{filter:drop-shadow(0 6px 5px rgba(20,24,34,.28))}
 @media (prefers-reduced-motion:reduce){html.vtOn #gBq #gBqPan .bqK.vo>.vtI{transition:none}}
+/* ===== FINITIONS DE LA BOUTIQUE (2026-11-07, Sacha : « paufinage max de chaque élément, en pensant mobile ») =====
+   · LA CARTE CHOISIE se voyait à peine (soulevée de 3 px, 3 % plus grande) : sa plaque prend le liseré bleu des rayons (#3d4bff, celui du
+     rayon ouvert) — sur un téléphone, on sait au premier regard ce que montre le plateau et ce que vise le bouton ACHETER ;
+   · UN PRIX TROP CHER pour la banque se lit AVANT le toucher (le bouton dit déjà « IL TE MANQUE » une fois la carte touchée) : l'étiquette
+     pâlit et son prix passe au rouge brique — l'œil trie d'un coup ce qui s'achète tout de suite et ce qui fait rêver. */
+html #gBq #gBqPan .bqK.sel .bqKn{box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 0 0 2px #3d4bff,0 6px 14px rgba(61,75,255,.3)}
+html #gBq #gBqPan .bqK.vo.trop .bqKp.pc{background:#d9dee6;color:#b23a2e}
+html #gBq #gBqPan .bqK.vo.trop .bqKp.pc .pxi{opacity:.55}
+/* la caisse ÉQUIPÉE : la même pastille verte, d'un vert plus franc, liseré clair (« À TOI » reste plus doux) */
+html #gBq #gBqPan .bqK.vo .bqKp.acq.eqp{background:#3ddc84;color:#04220f}
 </style>

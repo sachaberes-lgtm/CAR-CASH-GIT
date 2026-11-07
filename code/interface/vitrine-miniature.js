@@ -13,16 +13,16 @@
    calques à composer sur téléphone). Les ailes, traînées, figures et peintures gardent le cube CSS de Léo.
    Photo rangée sous `vt<ver>_<largeur>_<caisse>[s]` (PHOTO.cache + PHDB, comme les autres). `?vitrine=0` = le cube d'avant.
    Banc : dbgVitrine(i) (photo refaite, en data:), dbgVitrine({az, el, …}) (réglages), dbgVitrine('cartes') (les cartes de la grille). */
-const VITM={on:!/[?&]vitrine=0\b/.test(location.search),ver:2,
+const VITM={on:!/[?&]vitrine=0\b/.test(location.search),ver:3,
   az:.52,el:.36,fov:17,       /* l'objectif : 30° d'azimut (on voit l'avant et le côté droit), 21° de plongée (le dessus du socle et le toit), objectif long */
   L:5.3,P:2.6,Hc:1.95,         /* le capot de verre : longueur (axe de la caisse), profondeur, hauteur — en mètres du jeu */
   ph:.42,po:.30,              /* le socle : hauteur, débord autour du verre */
   remp:.9,                    /* la caisse prend au plus 90 % de la longueur du verre (et 84 % de sa hauteur, 90 % de sa profondeur) */
   cam:null,rt:null,fit:null};
 function vitLarg(){return (typeof ALLEGE!=='undefined'&&ALLEGE)?480:640;}
-function vitrineCle(i,sec){return 'vt'+VITM.ver+'_'+vitLarg()+'_'+i+(sec?'s':'');}
-function vitrineFile(i,sec,cb,el){const k=vitrineCle(i,sec);if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
-  PHQ.q.push([k,cb,{vt:1,i:i,sec:!!sec,k:k},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
+function vitrineCle(i,sec,own){return 'vt'+VITM.ver+'_'+vitLarg()+'_'+i+(sec?'s':own?'o':'');} /* s : la silhouette d'une SECRÈTE · o : une caisse À TOI, sortie de sa boîte */
+function vitrineFile(i,sec,own,cb,el){const k=vitrineCle(i,sec,own);if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
+  PHQ.q.push([k,cb,{vt:1,i:i,sec:!!sec,own:!!own,k:k},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* les huit coins d'une boîte [x0,x1]×[y0,y1]×[z0,z1] */
 function vitCoins(x0,x1,y0,y1,z0,z1){const C=[];for(let k=0;k<8;k++)C.push(new THREE.Vector3(k&1?x1:x0,k&2?y1:y0,k&4?z1:z0));return C;}
 /* l'objectif de la vitrine : son angle, puis son cadrage CALCULÉ une fois sur le socle et le verre (les mêmes pour toutes les caisses : les cartes s'alignent) */
@@ -46,7 +46,7 @@ function vitRend(sc,cam,W,H){ /* une prise dans la pellicule de la vitrine, dév
   const r0=PHOTO.rt;PHOTO.rt=VITM.rt;let cv=null;try{cv=photoDev(W,H);}finally{PHOTO.rt=r0;renderer.setRenderTarget(prt);}return cv;}
 function vitHex(c,a){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6;return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';}
 function vitMix(c,k){const m=/^#?([0-9a-f]{6})$/i.exec(String(c||''));const n=m?parseInt(m[1],16):0xb9c4d6,f=function(v){return Math.round(v+(255-v)*k);};return 'rgb('+f(n>>16&255)+','+f(n>>8&255)+','+f(n&255)+')';}
-function vitrinePhoto(i,sec,cb){const ck=vitrineCle(i,sec);
+function vitrinePhoto(o,cb){const i=o.i|0,sec=!!o.sec,own=!sec&&!!o.own,ck=vitrineCle(i,sec,own);
   if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
   if(started&&!gameOver){if(cb)cb(null);return null;}
   if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
@@ -87,11 +87,11 @@ function vitrinePhoto(i,sec,cb){const ck=vitrineCle(i,sec);
     const c=function(X,Y,Z){return P(X,Y,Z);},
       Q={bk:[c(-a,0,-b),c(a,0,-b),c(a,h,-b),c(-a,h,-b)],lf:[c(-a,0,b),c(-a,0,-b),c(-a,h,-b),c(-a,h,b)],
          fr:[c(-a,0,b),c(a,0,b),c(a,h,b),c(-a,h,b)],rt:[c(a,0,b),c(a,0,-b),c(a,h,-b),c(a,h,b)],tp:[c(-a,h,-b),c(a,h,-b),c(a,h,b),c(-a,h,b)]};
-    {let g=x.createLinearGradient(0,Q.bk[2][1],0,Q.bk[0][1]);g.addColorStop(0,vitHex(rc,.22));g.addColorStop(1,vitHex(rc,.08));x.fillStyle=g;poly(Q.bk);x.fill();
+    if(!own){let g=x.createLinearGradient(0,Q.bk[2][1],0,Q.bk[0][1]);g.addColorStop(0,vitHex(rc,.22));g.addColorStop(1,vitHex(rc,.08));x.fillStyle=g;poly(Q.bk);x.fill();
      g=x.createLinearGradient(Q.lf[1][0],0,Q.lf[0][0],0);g.addColorStop(0,vitHex(rc,.20));g.addColorStop(1,vitHex(rc,.06));x.fillStyle=g;poly(Q.lf);x.fill();}
     x.lineJoin='round';x.lineCap='round';
     const arete=function(p,q,w,col){x.strokeStyle=col;x.lineWidth=w;x.beginPath();x.moveTo(p[0],p[1]);x.lineTo(q[0],q[1]);x.stroke();};
-    {const col=vitHex(rc,.45);arete(c(-a,0,-b),c(a,0,-b),1.2*u,col);arete(c(-a,0,-b),c(-a,0,b),1.2*u,col);arete(c(-a,0,-b),c(-a,h,-b),1.2*u,col);}
+    if(!own){const col=vitHex(rc,.45);arete(c(-a,0,-b),c(a,0,-b),1.2*u,col);arete(c(-a,0,-b),c(-a,0,b),1.2*u,col);arete(c(-a,0,-b),c(-a,h,-b),1.2*u,col);}
     /* le REFLET dans le dessus verni : la prise en miroir, à 30 %, qui s'éteint en s'éloignant des roues */
     const yb=P(0,0,0)[1];
     if(cvR){const t=document.createElement('canvas');t.width=W;t.height=H;const tx=t.getContext('2d');tx.drawImage(cvR,0,0);
@@ -105,14 +105,15 @@ function vitrinePhoto(i,sec,cb){const ck=vitrineCle(i,sec);
       x.save();x.shadowColor='rgba(255,62,200,.95)';x.shadowBlur=2.2*u;x.drawImage(t,0,0);x.restore();toileRend(t);}
     else x.drawImage(cvC,0,0);
     toileRend(cvC);
-    /* le verre de devant : côté droit, dessus, vitre de devant — un voile blanc à peine, deux reflets en biais sur la vitre de devant */
-    {let g=x.createLinearGradient(Q.rt[0][0],0,Q.rt[1][0],0);g.addColorStop(0,'rgba(255,255,255,.16)');g.addColorStop(1,'rgba(255,255,255,.05)');x.fillStyle=g;poly(Q.rt);x.fill();
+    /* le verre de devant : côté droit, dessus, vitre de devant — un voile blanc à peine, deux reflets en biais sur la vitre de devant.
+       Une caisse À TOI n'a plus de verre : la vitre s'est brisée à l'achat (vitre-brisee.js), elle trône à l'air libre sur son socle. */
+    if(!own){let g=x.createLinearGradient(Q.rt[0][0],0,Q.rt[1][0],0);g.addColorStop(0,'rgba(255,255,255,.16)');g.addColorStop(1,'rgba(255,255,255,.05)');x.fillStyle=g;poly(Q.rt);x.fill();
      g=x.createLinearGradient(0,Q.tp[0][1],0,Q.tp[2][1]);g.addColorStop(0,'rgba(255,255,255,.12)');g.addColorStop(1,'rgba(255,255,255,.30)');x.fillStyle=g;poly(Q.tp);x.fill();
      const f0=Q.fr[3],f1=Q.fr[1];g=x.createLinearGradient(f0[0],f0[1],f1[0],f1[1]);
      g.addColorStop(0,'rgba(255,255,255,.10)');g.addColorStop(.14,'rgba(255,255,255,.34)');g.addColorStop(.21,'rgba(255,255,255,.05)');g.addColorStop(.27,'rgba(255,255,255,.16)');g.addColorStop(.31,'rgba(255,255,255,0)');
      g.addColorStop(.70,'rgba(255,255,255,0)');g.addColorStop(.86,'rgba(255,255,255,.10)');g.addColorStop(1,'rgba(255,255,255,.02)');x.fillStyle=g;poly(Q.fr);x.fill();}
     /* les arêtes de devant : la couleur de la rareté, un cœur blanc (la tranche du verre qui prend la lumière) */
-    {const E=[[c(-a,0,b),c(a,0,b)],[c(a,0,b),c(a,0,-b)],[c(-a,0,b),c(-a,h,b)],[c(a,0,b),c(a,h,b)],[c(a,0,-b),c(a,h,-b)],
+    if(!own){const E=[[c(-a,0,b),c(a,0,b)],[c(a,0,b),c(a,0,-b)],[c(-a,0,b),c(-a,h,b)],[c(a,0,b),c(a,h,b)],[c(a,0,-b),c(a,h,-b)],
               [c(-a,h,b),c(a,h,b)],[c(a,h,b),c(a,h,-b)],[c(-a,h,-b),c(a,h,-b)],[c(-a,h,-b),c(-a,h,b)]],col=vitMix(rc,.25);
      for(const e of E)arete(e[0],e[1],2.4*u,col);for(const e of E)arete(e[0],e[1],.9*u,'rgba(255,255,255,.9)');
      /* l'éclat du coin le plus proche */
@@ -132,13 +133,22 @@ function vitrinePhoto(i,sec,cb){const ck=vitrineCle(i,sec);
   if(cb&&!asy)cb(url);
   return url;}
 /* la carte reçoit sa vitrine : UNE image posée sur la place du cube (le cube CSS de la carte est caché par `.vt`, voir vitrine-miniature.css) */
-function vitrinePose(x,i){const k=x.closest('.bqK');if(!k)return;const sec=k.classList.contains('m2sec');
-  vitrineFile(i,sec,function(url){if(!url||!k.isConnected)return;let im=k.querySelector(':scope>.vtI');
+function vitrinePose(x,i){const k=x.closest('.bqK');if(!k)return;const sec=k.classList.contains('m2sec'),own=!sec&&bqA('v:'+i);
+  if(!x.firstChild)x.appendChild(document.createElement('i')); /* le cube caché n'est plus « vide » : garBqPanneau re-demande les photos des cases [data-ph]:empty À CHAQUE IMAGE tant qu'il en reste une */
+  /* (finition) un prix en pièces que la banque ne couvre pas encore : l'étiquette le dit avant le toucher (.trop, voir vitrine-miniature.css) */
+  {const u=CAR_UNLOCK[i]||{};k.classList.toggle('trop',!own&&!sec&&u.k!=='premium'&&!!u.p&&bank()<u.p);}
+  vitrineFile(i,sec,own,function(url){if(!url||!k.isConnected)return;let im=k.querySelector(':scope>.vtI');
     if(!im){im=document.createElement('img');im.className='vtI';im.alt='';im.decoding='async';im.draggable=false;k.insertBefore(im,k.firstChild);}
     if(im.getAttribute('src')!==url){im.onload=function(){k.classList.add('vt');};im.src=url;if(im.complete&&im.naturalWidth)k.classList.add('vt');}else k.classList.add('vt');},k);} /* la file regarde si la CARTE est en vue (le cube, caché, n'a pas de taille) */ /* la carte ne montre la vitrine qu'une fois l'image décodée (pas de case vide entre deux) */
 if(VITM.on)document.documentElement.classList.add('vtOn');
+/* LA CAISSE ÉQUIPÉE SE LIT DANS LA GRILLE (2026-11-07, finition) : toutes les caisses à toi disaient « À TOI » ; celle que tu portes dit « ÉQUIPÉE ».
+   Mise à jour SUR PLACE (garBqPanneau l'appelle à chaque image, elle ne travaille que si la grille ou la caisse portée a changé) : équiper ne
+   reconstruit pas la grille, donc pas de vitrines qui clignotent. */
+function vitrineEq(rail){const eq=SAVE.d.equipped|0,cle=GBQ.rk+'|'+eq+'|'+LANG;if(VITM.eqk===cle)return;VITM.eqk=cle;
+  rail.querySelectorAll('.bqK.vo .bqKp.acq').forEach(function(p){const c=p.closest('.bqK'),i=+String(c.getAttribute('data-k')).slice(2),e=i===eq,t=sansAcc(TR(e?'ÉQUIPÉE':'À TOI'));
+    if(p.textContent!==t)p.textContent=t;p.classList.toggle('eqp',e);});}
 window.dbgVitrine=function(o){
   if(o&&typeof o==='object'){Object.assign(VITM,o);VITM.fit=null;for(const k in PHOTO.cache)if(/^vt/.test(k))delete PHOTO.cache[k];return {az:VITM.az,el:VITM.el,fov:VITM.fov,L:VITM.L,P:VITM.P,Hc:VITM.Hc,ph:VITM.ph,po:VITM.po,remp:VITM.remp};}
   if(o==='cartes'){const L=[];document.querySelectorAll('#gBqPan .bqK.vo').forEach(function(k){L.push({k:k.getAttribute('data-k'),vt:k.classList.contains('vt')});});return L;}
   if(o==='mesure')return VITM.ms||null;
-  const i=o|0,sec=false;delete PHOTO.cache[vitrineCle(i,sec)];const u=vitrinePhoto(i,sec);return {url:u,ms:VITM.ms};};
+  const i=o|0,own=arguments[1]==='o';delete PHOTO.cache[vitrineCle(i,false,own)];const u=vitrinePhoto({i:i,own:own});return {url:u,ms:VITM.ms};}; /* dbgVitrine(i, 'o') : la même, sortie de sa boîte */
