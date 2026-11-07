@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1261'; /* v1261 (2026-11-07, Léo : « je veux que ça remplace le système de missions tout listé direct ») LES MISSIONS NOUVELLE FORME : 3 missions tirées au hasard autour de la caisse (LE VISEUR), cadeaux garantis, reprise de la progression ; ?pass=0 pour l'ancien. */ /* v1260 (2026-11-07, Sacha : « horrible, retourne en arrière ») menu ciel : retour aux tuiles GARAGE / ACHAT / REGLAGES d'avant (verre anthracite) ; les tuiles en bonbon clair de v1256 sont retirées. */
+const CACHE = 'cashcar-v1262'; /* v1261 (2026-11-07, Léo : « je veux que ça remplace le système de missions tout listé direct ») LES MISSIONS NOUVELLE FORME : 3 missions tirées au hasard autour de la caisse (LE VISEUR), cadeaux garantis, reprise de la progression ; ?pass=0 pour l'ancien. */ /* v1260 (2026-11-07, Sacha : « horrible, retourne en arrière ») menu ciel : retour aux tuiles GARAGE / ACHAT / REGLAGES d'avant (verre anthracite) ; les tuiles en bonbon clair de v1256 sont retirées. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
