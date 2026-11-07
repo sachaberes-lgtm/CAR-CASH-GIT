@@ -10756,6 +10756,12 @@ html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),
 /* la BOUTIQUE est claire et son compte est petit (11 px) : l'encre et le relief le noircissaient (Léo : « bizarrement entouré de noir »).
    Ici : le métal seul, un filet d'ombre de sa couleur et une lueur douce. */
 html #gBqArg{filter:drop-shadow(0 1px 0 var(--mX)) drop-shadow(0 0 3px var(--mH))!important}
+/* LÉGENDAIRE en RGB (2026-11-07, Léo : « le légendaire multicolore, en RGB ») : la pièce tourne dans toutes les teintes, comme un clavier RGB,
+   et les chiffres gardent leur arc-en-ciel qui défile. */
+html[data-metal="legendaire"] #cashHud .chV i.mOr{animation:mRgb 2.4s linear infinite}
+html[data-metal="legendaire"] #cashHud .chV i.mOr.pop{animation:mOrPop .32s cubic-bezier(.2,1.6,.4,1),mRgb 2.4s linear infinite}
+@keyframes mRgb{from{filter:drop-shadow(0 0 6px var(--mH)) hue-rotate(0deg)}to{filter:drop-shadow(0 0 6px var(--mH)) hue-rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){html[data-metal="legendaire"] #cashHud .chV i.mOr{animation:none}}
 </style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
