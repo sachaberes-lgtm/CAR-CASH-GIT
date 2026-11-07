@@ -4,7 +4,7 @@ Branche `boutique-affichage` (locale : rien n'est poussé, rien n'est envoyé à
 `docs/superpowers/specs/2026-11-06-achats-app-store-design.md` (la section 11 dit ce qui est vérifié et ce qui ne l'est pas).
 
 ## a. Ce qui est fait (en 8 lignes)
-1. Le jeu connaît ses **71 produits** : 10 caisses premium (dont LE REQUIN, revenu en boutique) + 61 peintures. Pas de palette. Tous « non consommables » (à toi pour toujours).
+1. Le jeu connaît ses **74 produits** : 10 caisses premium (dont LE REQUIN, revenu en boutique) + 64 peintures. Pas de palette. Tous « non consommables » (à toi pour toujours).
 2. ACHETER dans l'app passe par Apple (StoreKit 2) : l'objet n'est donné que si Apple a encaissé ; annulé ou « en attente » ne donnent rien.
 3. Le bouton **RESTAURER MES ACHATS** de la page ACHAT rend les achats après une réinstallation ; au démarrage, l'app relit aussi ses achats sans fête.
 4. Le prix affiché dans l'app est celui d'Apple (dans la monnaie du joueur) ; en secours, celui du jeu.
@@ -15,12 +15,12 @@ Branche `boutique-affichage` (locale : rien n'est poussé, rien n'est envoyé à
 
 ## b. CE QUE SACHA DOIT FAIRE (App Store Connect, compte développeur)
 1. **Signer le contrat « Apps payantes »** (Accords, fiscalité et banque) et remplir les coordonnées bancaires et fiscales. Sans lui, Apple refuse de vendre.
-2. **Créer les 71 produits** : App Store Connect › ton app CASH CAR › Monétisation › Achats intégrés › « + », type **Non consommable**. Le fichier `app-ios/outils/produits.csv` donne, une ligne par produit : `id,nom,type,prix_eur`. Recopie **l'identifiant exact** (ex. `cashcar.car.requin`, `cashcar.peinture.bolide`) comme « ID de produit » : une faute et l'app ne trouve pas le produit. Le nom du CSV sert de nom de référence et de nom affiché (ajoute une courte description FR et EN). Laisse « Partage familial » désactivé.
+2. **Créer les 74 produits** : App Store Connect › ton app CASH CAR › Monétisation › Achats intégrés › « + », type **Non consommable**. Le fichier `app-ios/outils/produits.csv` donne, une ligne par produit : `id,nom,type,prix_eur`. Recopie **l'identifiant exact** (ex. `cashcar.car.requin`, `cashcar.peinture.bolide`) comme « ID de produit » : une faute et l'app ne trouve pas le produit. Le nom du CSV sert de nom de référence et de nom affiché (ajoute une courte description FR et EN). Laisse « Partage familial » désactivé. Le nombre de peintures grandit quand le jeu en ajoute (74 produits au 07/11, v1302) : `produits.csv` fait foi ; si le jeu change, `node app-ios/outils/produits-store.mjs --verifier` dit s'il faut le refaire (sans `--verifier` il le réécrit).
 3. **Vérifier les prix.** Apple impose ses paliers ; les prix du jeu n'en sont peut-être pas. Prends le palier le plus proche (le jeu affichera de toute façon le prix d'Apple) :
    - **LA PIZZA EXPRESS, 161,00 €** (`cashcar.car.b_pizza`) : très probablement hors palier ;
    - **CHAT POP-TART, 4,20 €** (`cashcar.car.poptart`) ;
    - les **7 caisses à 1,61 €** : LA FÉLINE, L'ÉTERNELLE, LE BLINDÉ NOIR, LE MUR DU SON, LE DRAGON D'OR, SQUALE, KELLY CHERRY ;
-   - les peintures à **1 €** (40), **2 €** (15) et **3 €** (6) : à confirmer (les paliers d'Apple tournent souvent autour de 0,99 / 1,99 / 2,99) ;
+   - les peintures à **1 €** (43), **2 €** (15) et **3 €** (6) : à confirmer (les paliers d'Apple tournent souvent autour de 0,99 / 1,99 / 2,99) ;
    - LE REQUIN, 9,99 € : en général un palier valable.
 4. **Mettre la fiche à jour** (les textes sont prêts dans `app-ios/fiche/FICHE-APP-STORE.md`) :
    - **Achats intégrés = Oui** dans la classification d'âge ; « caisses » = achat direct d'une voiture connue, **jamais de tirage aléatoire** : à répondre « Non » aux boîtes à butin ;
@@ -63,6 +63,7 @@ Preuve : avec cette seule ligne mise en commentaire pendant l'essai, la cible co
 ## f. POINTS À SAVOIR (choix faits ou défauts connus, rien de grave pour v1.0)
 - **RESTAURER** dit « AUCUN ACHAT À RESTAURER » même si la restauration a **échoué** (réseau, Apple indisponible) : le message est trompeur dans ce cas. À corriger avant le gros public (Apple teste RESTAURER).
 - Si un achat est validé **en pleine course** (accord des parents arrivé tard, achat fait sur un autre appareil), la fête plein écran s'affiche par-dessus la course.
+- **Prix d'Apple pas partout** (relevé dans le code, pas vérifié à l'écran) : les cartes des rayons de la boutique 3D (`boutique-peinture.js`, et `boutique-aile.js`, `boutique-trainee.js`, `boutique-classique.js` pour les objets qui auraient un prix) lisent encore le prix du jeu en euros ; la fenêtre d'achat, la page ACHAT et le garage affichent, eux, le prix d'Apple. Apple veut que le prix montré soit le prix débité : à brancher sur `prixTxt` avant l'envoi si ces rayons vendent des peintures en € dans l'app.
 - Un **remboursement** Apple ne retire pas l'objet (choix de la v1.0).
 - Le **code de sauvegarde** collé dans ENTRER UN CODE est accepté tel quel en v1.0 (décision R3) : un code fabriqué à la main pourrait donner un objet payant sans l'acheter. À durcir plus tard (ignorer les objets en € à l'import).
 - Le plugin ne marque une transaction « terminée » qu'après l'avoir remise au jeu ; une transaction mal vérifiée est rejouée au lancement suivant (voulu).

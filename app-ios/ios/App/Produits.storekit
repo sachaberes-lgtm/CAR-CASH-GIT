@@ -215,6 +215,21 @@
     {
       "displayPrice": "1.00",
       "familyShareable": false,
+      "internalID": "6562960070",
+      "localizations": [
+        {
+          "description": "La peinture LAGON, à toi pour toujours dans CASH CAR.",
+          "displayName": "LAGON",
+          "locale": "fr_FR"
+        }
+      ],
+      "productID": "cashcar.peinture.lagon",
+      "referenceName": "Peinture LAGON",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "1.00",
+      "familyShareable": false,
       "internalID": "6254108666",
       "localizations": [
         {
@@ -425,6 +440,21 @@
     {
       "displayPrice": "1.00",
       "familyShareable": false,
+      "internalID": "6937059799",
+      "localizations": [
+        {
+          "description": "La peinture COUCHER DE SOLEIL, à toi pour toujours dans CASH CAR.",
+          "displayName": "COUCHER DE SOLEIL",
+          "locale": "fr_FR"
+        }
+      ],
+      "productID": "cashcar.peinture.couchant",
+      "referenceName": "Peinture COUCHER DE SOLEIL",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "1.00",
+      "familyShareable": false,
       "internalID": "6117965945",
       "localizations": [
         {
@@ -495,6 +525,21 @@
       ],
       "productID": "cashcar.peinture.jadeimperial",
       "referenceName": "Peinture JADE IMPÉRIAL",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "1.00",
+      "familyShareable": false,
+      "internalID": "6878750576",
+      "localizations": [
+        {
+          "description": "La peinture VAPORWAVE, à toi pour toujours dans CASH CAR.",
+          "displayName": "VAPORWAVE",
+          "locale": "fr_FR"
+        }
+      ],
+      "productID": "cashcar.peinture.vaporwave",
+      "referenceName": "Peinture VAPORWAVE",
       "type": "NonConsumable"
     },
     {

@@ -13,6 +13,7 @@ cashcar.peinture.bolide,ROUGE BOLIDE,peinture,1.00
 cashcar.peinture.emeute,ORANGE ÉMEUTE,peinture,1.00
 cashcar.peinture.taxi,JAUNE TAXI,peinture,1.00
 cashcar.peinture.billet,VERT BILLET,peinture,1.00
+cashcar.peinture.lagon,LAGON,peinture,1.00
 cashcar.peinture.azur,AZUR,peinture,1.00
 cashcar.peinture.minuit,BLEU MINUIT,peinture,1.00
 cashcar.peinture.royal,VIOLET ROYAL,peinture,1.00
@@ -27,11 +28,13 @@ cashcar.peinture.piscine,BLEU PISCINE,peinture,1.00
 cashcar.peinture.pistache,PISTACHE,peinture,1.00
 cashcar.peinture.lave,LAVE,peinture,1.00
 cashcar.peinture.srBraise,BRAISE FIDÈLE,peinture,1.00
+cashcar.peinture.couchant,COUCHER DE SOLEIL,peinture,1.00
 cashcar.peinture.envers,MONDE À L'ENVERS,peinture,1.00
 cashcar.peinture.srLagon,LAGON INTERDIT,peinture,1.00
 cashcar.peinture.eclair,ÉCLAIR,peinture,1.00
 cashcar.peinture.srAurore,AURORE BORÉALE,peinture,1.00
 cashcar.peinture.jadeimperial,JADE IMPÉRIAL,peinture,1.00
+cashcar.peinture.vaporwave,VAPORWAVE,peinture,1.00
 cashcar.peinture.srEtoile,NUIT ÉTOILÉE,peinture,1.00
 cashcar.peinture.prisme,PRISME,peinture,1.00
 cashcar.peinture.cameleon,CAMÉLÉON,peinture,1.00

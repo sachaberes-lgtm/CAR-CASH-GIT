@@ -168,14 +168,14 @@ d'abonnement payant à Suno au moment de la génération (Apple peut la demander
 | Violence réaliste, contenu sexuel, nudité, grossièretés, alcool/tabac/drogues, horreur, contenu médical | Aucun |
 | Jeux d'argent simulés, concours, paris | Aucun (l'argent du jeu se ramasse en course, il n'y a ni mise ni tirage payant) |
 | Navigation web libre, contenu généré par les utilisateurs, messagerie, pubs | Non |
-| Achats intégrés | **Oui** — 71 produits non consommables (10 voitures + 61 peintures), achetés une fois ; « caisse » = achat direct d'une voiture connue, jamais de tirage aléatoire (boîtes à butin : Non) |
+| Achats intégrés | **Oui** — 74 produits non consommables (10 voitures + 64 peintures), achetés une fois ; « caisse » = achat direct d'une voiture connue, jamais de tirage aléatoire (boîtes à butin : Non) |
 
 ## 6. Notes pour le testeur d'Apple (App Review Information)
 
 Coordonnées : ⚠ ton prénom, ton nom, ton téléphone, ton e-mail. Connexion requise : **Non** (pas de compte).
 
 <!-- notes-revue -->
-CASH CAR is a single-player arcade racing game, fully playable offline. No account, no login, no ads. It offers optional one-time in-app purchases (10 cars and 61 paint jobs, non-consumable, handled entirely by Apple's StoreKit) and a RESTORE PURCHASES button on the purchase page (the shop tile on the home screen). Its only network access is an optional check for new versions of the game content (public files, no personal data or identifier sent).
+CASH CAR is a single-player arcade racing game, fully playable offline. No account, no login, no ads. It offers optional one-time in-app purchases (10 cars and 64 paint jobs, non-consumable, handled entirely by Apple's StoreKit) and a RESTORE PURCHASES button on the purchase page (the shop tile on the home screen). Its only network access is an optional check for new versions of the game content (public files, no personal data or identifier sent).
 
 How to reach the gameplay:
 1. Launch the app and tap the CASH CAR logo.
