@@ -350,7 +350,7 @@ const PREB_AVANCE_LOURD={grotte:75};
 const PREBFIN=TEL_NATIF&&!/[?&]prebfin=0\b/.test(location.search),PREBF={tr:4,mini:2.5,max:16,voile:26,voileMax:25,mort:12,vref:90,kmax:3};
 function prebAvanceK(){return PREBFIN?Math.max(1,Math.min(PREBF.kmax,(PREB.v||60)/PREBF.vref)):1;}
 function prebTranche(tr,r9){ /* la tranche de CETTE image (ms) : plafonnée, sauf retard */
-  const ref=PREB_CPU[PREB.t.carte]||(PREB.t.carte==='grotte'&&GRW.on?2500:PREB_CPU_DEF[PREB.t.carte])||1500,re=Math.max(0,ref*1.15-PREB.cpu),im=Math.max(8,Math.min(60,PREB.ips||25)),need=re/Math.max(1,(r9-1.5)*im);
+  const ref=PREB_CPU[PREB.t.carte]||(PREB.t.carte==='grotte'&&GRW.on?4500:PREB_CPU_DEF[PREB.t.carte])||1500,re=Math.max(0,ref*1.15-PREB.cpu),im=Math.max(8,Math.min(60,PREB.ips||25)),need=re/Math.max(1,(r9-1.5)*im);
   const base=Math.max(PREBF.mini,Math.min(PREBF.tr,14-tr));
   return need>PREBF.tr?Math.max(base,Math.min(PREBF.max,need*1.15)):base;}
 function prebRetient(tok,suite){ /* le passage du portail : le travail d'avance n'est pas fini → il se poursuit par tranches DERRIÈRE LE VOILE (la caisse est tenue, PORTV.att), puis `suite` fait le passage */

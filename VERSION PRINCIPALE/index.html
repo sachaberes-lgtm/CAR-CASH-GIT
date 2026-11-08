@@ -17072,7 +17072,7 @@ const PREB_AVANCE_LOURD={grotte:75};
 const PREBFIN=TEL_NATIF&&!/[?&]prebfin=0\b/.test(location.search),PREBF={tr:4,mini:2.5,max:16,voile:26,voileMax:25,mort:12,vref:90,kmax:3};
 function prebAvanceK(){return PREBFIN?Math.max(1,Math.min(PREBF.kmax,(PREB.v||60)/PREBF.vref)):1;}
 function prebTranche(tr,r9){ /* la tranche de CETTE image (ms) : plafonnée, sauf retard */
-  const ref=PREB_CPU[PREB.t.carte]||(PREB.t.carte==='grotte'&&GRW.on?2500:PREB_CPU_DEF[PREB.t.carte])||1500,re=Math.max(0,ref*1.15-PREB.cpu),im=Math.max(8,Math.min(60,PREB.ips||25)),need=re/Math.max(1,(r9-1.5)*im);
+  const ref=PREB_CPU[PREB.t.carte]||(PREB.t.carte==='grotte'&&GRW.on?4500:PREB_CPU_DEF[PREB.t.carte])||1500,re=Math.max(0,ref*1.15-PREB.cpu),im=Math.max(8,Math.min(60,PREB.ips||25)),need=re/Math.max(1,(r9-1.5)*im);
   const base=Math.max(PREBF.mini,Math.min(PREBF.tr,14-tr));
   return need>PREBF.tr?Math.max(base,Math.min(PREBF.max,need*1.15)):base;}
 function prebRetient(tok,suite){ /* le passage du portail : le travail d'avance n'est pas fini → il se poursuit par tranches DERRIÈRE LE VOILE (la caisse est tenue, PORTV.att), puis `suite` fait le passage */
@@ -17186,7 +17186,7 @@ function prebDepPrend(fn){PREB.depPorte=true;try{fn();}finally{PREB.depPorte=fal
 window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule('dbg');}
   return {on:PREB.on,etat:PREB.W?(PREB.fait?'pret':'en cours'):'',carte:PREB.carte,graine:PREB.sd,palier:PREB.eng,palierCourse:engTier,reste:+((L-s)/Math.max(20,PREB.v||60)).toFixed(1),v:Math.round(PREB.v||0),ms:PREB.W||PREB.tFin?Math.round((PREB.tFin||performance.now())-PREB.t0):0,
     dep:PREB.W&&PREB.dep?{pourStarted:PREB.ctx,prochain:SF.prochain?SF.prochain.carte+'-'+SF.prochain.meteo:null}:null,prisAuDepart:PREB.depPris,legers:PREB.legers, // (LE DÉPART D'AVANCE)
-    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,lisse:PREBFIN,tenusSousVoile:PREB.tenu|0,msSousVoile:PREB.tenuMs|0,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
+    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,lisse:PREBFIN,cpuMaps:Object.assign({},PREB_CPU),tenusSousVoile:PREB.tenu|0,msSousVoile:PREB.tenuMs|0,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
     err:window.__prebErr?String(window.__prebErr.stack||window.__prebErr).slice(0,400):null};};
 /* ===== LA DALLE LISSE (2026-10-25, Sacha : « la route est un peu brinquebalante, elle oscille quand elle fait des spirales ») =====
    MESURÉ (banc nuages/espace, 3 graines) : le roulis de la dalle avait des à-coups jusqu'à 25-35 × l'à-coup moyen — des CASSURES. Deux causes :

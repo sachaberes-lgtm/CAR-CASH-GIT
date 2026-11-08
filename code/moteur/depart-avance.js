@@ -70,7 +70,7 @@ function prebDepPrend(fn){PREB.depPorte=true;try{fn();}finally{PREB.depPorte=fal
 window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule('dbg');}
   return {on:PREB.on,etat:PREB.W?(PREB.fait?'pret':'en cours'):'',carte:PREB.carte,graine:PREB.sd,palier:PREB.eng,palierCourse:engTier,reste:+((L-s)/Math.max(20,PREB.v||60)).toFixed(1),v:Math.round(PREB.v||0),ms:PREB.W||PREB.tFin?Math.round((PREB.tFin||performance.now())-PREB.t0):0,
     dep:PREB.W&&PREB.dep?{pourStarted:PREB.ctx,prochain:SF.prochain?SF.prochain.carte+'-'+SF.prochain.meteo:null}:null,prisAuDepart:PREB.depPris,legers:PREB.legers, // (LE DÉPART D'AVANCE)
-    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,lisse:PREBFIN,tenusSousVoile:PREB.tenu|0,msSousVoile:PREB.tenuMs|0,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
+    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,lisse:PREBFIN,cpuMaps:Object.assign({},PREB_CPU),tenusSousVoile:PREB.tenu|0,msSousVoile:PREB.tenuMs|0,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
     err:window.__prebErr?String(window.__prebErr.stack||window.__prebErr).slice(0,400):null};};
 /* ===== LA DALLE LISSE (2026-10-25, Sacha : « la route est un peu brinquebalante, elle oscille quand elle fait des spirales ») =====
    MESURÉ (banc nuages/espace, 3 graines) : le roulis de la dalle avait des à-coups jusqu'à 25-35 × l'à-coup moyen — des CASSURES. Deux causes :
