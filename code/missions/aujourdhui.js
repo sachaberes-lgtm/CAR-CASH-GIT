@@ -130,8 +130,8 @@ function serieWOuvre(fin){ // fin = ce que jourCommit a versé ({n, casse, s:{c,
   for(let k=1;k<=7;k++){const Lk=serieLot(k),v=k===c?'auj':k<c?'fait':'futur';
     const txt=Lk.cash?String(Lk.cash):Lk.jeton?'×'+Lk.jeton:'';
     cs+='<i class="swC '+v+(Lk.voiture?' voit':'')+'" style="--i:'+k+';--h:'+(Lk.voiture?100:H[k-1])+'"><u class="swBar">'
-      +(Lk.voiture?'<span class="swPortail"><s>?</s></span>':'<b>'+txt+'</b>')+'</u>'+(k<c?'<s class="swOk">'+pxi('coche')+'</s>':'')+'<em>'+(LANG==='en'?'D':'J')+k+'</em></i>';}
-  const ni=serieLot(serieCase(c+1)),pied=sansAcc(TR('REVIENS DEMAIN'))+' : <b>'+sansAcc(serieLotTxt(ni))+'</b>'+(f.casse?'<i>'+sansAcc(TR('SÉRIE PERDUE · ON REPART AU 1ER JOUR'))+'</i>':'');
+      +(Lk.voiture?'<span class="swPortail"><s>?</s></span>':'<b>'+(txt||(Lk.exclu?pxi('pinceau'):''))+'</b>')+'</u>'+(k<c?'<s class="swOk">'+pxi('coche')+'</s>':'')+'<em>'+(LANG==='en'?'D':'J')+k+'</em></i>';}
+  const ni=serieLot(serieCase(c+1)),pied=sansAcc(TR('REVIENS DEMAIN'))+(LANG==='fr'?' : ':': ')+'<b>'+sansAcc(serieLotTxt(ni))+'</b>'+(f.casse?'<i>'+sansAcc(TR('SÉRIE PERDUE · ON REPART AU 1ER JOUR'))+'</i>':'');
   el.innerHTML='<div class="swScene"></div><i class="swAnneau"></i>'
     +'<div class="swBloc"><div class="swG"><div class="swHd"><small>'+sansAcc(TR('SÉRIE DE CONNEXION'))+'</small><b>'+sansAcc(TR('JOUR'))+' '+c+'<i>/ 7</i></b>'+(f.n>7?'<em>'+sansAcc(TR('SÉRIE')+' '+f.n+' '+TR('JOURS'))+'</em>':'')+'</div>'
     +'<div class="swPiste">'+cs+'</div></div><div class="swD">'
