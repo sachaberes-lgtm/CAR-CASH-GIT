@@ -193,7 +193,7 @@ function jadeArbresTex(){const W=256,cv=document.createElement('canvas');cv.widt
         const hi=(cy-ty)/82;touche(tx,ty,3+rg()*4.5,vert(hi>.35?4:hi>0?3:hi>-.4?2:1,.75+rg()*.4));}}
     if(n===5||n===7){c.clearRect(0,0,W,W);jadeCristalPeint(c,W,n===7?1:0);} // (2026-10-21, embellie) les cases 5 et 7 (la 2e touffe, la 2e liane : mêmes dessins que 4 et 6, le sommet les y renvoie) portent les CRISTAUX DE JADE — le pinceau d'avant a tiré ses nombres comme avant : les autres cases n'ont pas bougé
     c.restore();}
-  const t=new THREE.CanvasTexture(cv);t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());t.minFilter=THREE.LinearMipmapLinearFilter;return texLibere(t);} // (2026-10-14, passe perf mobile) la planche 1024 × 512, peinte une fois : 2 Mo rendus après l'envoi (paliers 0-1)
+  const t=new THREE.CanvasTexture(cv);t.anisotropy=Math.min(PAL.imgOn('i')?4:8,renderer.capabilities.getMaxAnisotropy());t.minFilter=THREE.LinearMipmapLinearFilter;return texLibere(t);} // (2026-10-14, passe perf mobile) la planche 1024 × 512, peinte une fois : 2 Mo rendus après l'envoi (paliers 0-1)
 const JADE_ARB_VS=['attribute vec4 aJ;uniform float uTime;varying vec2 vUv,vL;varying vec3 vW;varying float vCr;','#include <fog_pars_vertex>',
   'void main(){vec3 c=(modelMatrix*instanceMatrix*vec4(0.,0.,0.,1.)).xyz;',
   '  vec3 R=normalize(vec3(viewMatrix[0][0],0.,viewMatrix[2][0])+vec3(1e-4,0.,0.)),U=normalize(vec3(0.,1.,0.)+vec3(viewMatrix[0][1],viewMatrix[1][1],viewMatrix[2][1])*.35);', // face à la caméra (un peu penché vers elle d en haut)
