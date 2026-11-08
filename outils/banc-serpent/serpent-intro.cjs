@@ -24,7 +24,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   await send('Page.navigate',{url:URL_});
   /* dans la fenêtre qui porte dbgIntro (le jeu est dans un cadre en ?tel=1) */
   const dans=js=>`(function(){var W=[window].concat(Array.prototype.slice.call(window.frames));for(var i=0;i<W.length;i++){try{if(W[i].dbgIntro){return (function(w){${js}})(W[i]);}}catch(e){}}return null;})()`;
-  const notes=()=>ev(dans("var L=w.dbgErreurs?w.dbgErreurs():[];return JSON.stringify(L.filter(function(e){return e.g==='chargement'||e.g==='intro'}).map(function(e){return e.g+' | '+e.m;}))"));
+  const notes=()=>ev(dans("var L=w.dbgErreurs?w.dbgErreurs():[];return JSON.stringify(L.filter(function(e){return e.g==='chargement'||e.g==='intro'||e.g==='serpent'}).map(function(e){return e.g+' | '+e.m;}))"));
   const etat=()=>ev(dans("var s=w.dbgIntro.etat();return JSON.stringify({lance:s.lance,fini:s.fini,casse:s.casse,doux:s.doux,t:s.t});"));
   let tPret=0,tLance=0,tClic=0,tFini=0,dernier={};
   while(Date.now()-t0<MAX){

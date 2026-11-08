@@ -215,7 +215,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
       dern=t;
       if(document.getElementById('spCharge'))vu=true;
       else if(vu){fin();return;}
-      if(window.__gameReady){if(!tPret)tPret=t;else if(t-tPret>10000){fin();return;}}
+      if(window.__gameReady&&!window.__guetTient){if(!tPret)tPret=t;else if(t-tPret>10000){fin();return;}} /* (2026-11-08) INTRO_APRES : le chargement dure plus de 10 s, le guet tient jusqu'à la disparition du serpent (le départ du film) */
       if(t>60000){fin();return;}
       RAF.call(window,tick);
     };
