@@ -175,27 +175,7 @@
       const wow9=!!(FXT&&FXT.wow);
       if(wow9||WOWT.n){const wk=(!wow9||mode==='boom'||(trSig9&&(nitroBlue||pwrNitroT>0)))?0:(loop._arcK||0);potMonde(CAR_POT_C,tmp2).addScaledVector(hsU,.25);wowStep(tmp2.x,tmp2.y,tmp2.z,wk,dt,1);}
     }
-    // LA GERBE D'EAU : la caisse qui déclare `fx.spray` ne crache pas du feu mais de l'EAU. On sème
-    // à la tuyère, en cône, avec une composante latérale franche — une gerbe s'ÉVASE, un jet de
-    // réacteur non. Comme le reste des signatures : uniquement sous poussée, jamais en réserve bleue.
-    if(FXT&&FXT.spray&&trailK>.05&&mode!=='boom'&&!nitroBlue){
-      const nj=(1+(Math.random()*3|0));
-      for(let q9=0;q9<nj;q9++){
-        potAuHasard(tmp2); // (2026-09-26) l'eau jaillit des pots
-        const bx=tmp2.x,by=tmp2.y,bz=tmp2.z;
-        const pw=10+Math.random()*16,ev=(Math.random()-.5)*7; // ev = l'évasement, la signature de la gerbe
-        spawnP(spray,bx,by,bz,
-          -hsF.x*pw+hsR.x*ev+(Math.random()-.5)*2,
-          -hsF.y*pw+hsU.y*(1.5+Math.random()*3),
-          -hsF.z*pw+hsR.z*ev+(Math.random()-.5)*2,
-          .22+Math.random()*.26);
-      }
-      if(Math.random()<.5)spawnP(foam,
-        carGroup.position.x-hsF.x*3.2,carGroup.position.y-hsF.y*3.2+.2,carGroup.position.z-hsF.z*3.2,
-        -hsF.x*4+(Math.random()-.5)*3,-hsF.y*4+1.2,-hsF.z*4+(Math.random()-.5)*3,
-        .45+Math.random()*.5);
-    }
-    // LES HÉLICES DU REQUIN : elles brassent doucement au sol et s'emballent en vol (`wingT` est
+    // LES HÉLICES (l'aile HÉLICES de la boutique) : elles brassent doucement au sol et s'emballent en vol (`wingT` est
     // déjà le taux de déploiement des bras — une seule variable pilote la sortie ET le régime).
     if(carProps.length){
       propSpin+=dt*(3.5+wingT*36+AILV.n*40); /* (2026-10-16) et s'emballent au boost (AILV.n) */

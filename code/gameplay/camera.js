@@ -181,6 +181,15 @@ const CAM_HEROS={on:true,ref:86,dMin:.88,dMax:1,kick:16,accK:200,tau:.6,acc:0,v0
   leveApplique:function(dt,cible){this.lk+=((this.on?cible:0)-this.lk)*Math.min(1,dt*3);const d=this.leve*POR*this.lk;if(Math.abs(d)<1e-4)return;
     camera.projectionMatrix.elements[9]-=d;camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();},
   dolly:function(f){if(!(f>0))return 1;const r=Math.tan(fovPor(this.ref)*Math.PI/360)/Math.tan(Math.min(170,f)*Math.PI/360);return THREE.MathUtils.clamp(r,this.dMin,this.dMax);}};
+/* ===== LA CAMÉRA DE PRÈS EN PORTRAIT (2026-11-07, Sacha : « en mode vertical mobile rapproche la caméra de la voiture, pareil quand elle vole ») =====
+   Debout, le champ est élargi (fovPor) pour que la route tienne en largeur : la caisse y est plus petite qu'en paysage. On rapproche donc la
+   caméra, au SOL (`sol`) et EN VOL (`vol`), du même facteur sur le recul ET la hauteur — l'angle de vue ne change pas, seule la distance. Le facteur
+   est 1 − POR·(1 − x) : il suit POR, donc la rotation portrait ↔ paysage GLISSE (voir porGlisse) et le paysage / l'ordi en cadre large ne bougent pas
+   d'un bit. En vol il s'applique à la poursuite ET au BRAS (la distance max qui garde la caisse à sa taille du décollage, qui elle repart de la taille
+   du sol : sol plus près → vol plus près). `?sans=proche` = avant · `dbgCamProche({sol,vol,on})` règle en direct. */
+const CAM_PROCHE={on:!/[?&]sans=([^&]*,)?proche(,|&|$)/.test(location.search),sol:.84,vol:.70,brasVol:.80};
+function camProche(k){return CAM_PROCHE.on?1-POR*(1-CAM_PROCHE[k]):1;} // k : 'sol' | 'vol' | 'brasVol' — 1 en paysage, x en portrait plein
+window.dbgCamProche=function(o){if(o)Object.assign(CAM_PROCHE,o);return Object.assign({},CAM_PROCHE,{POR:POR});};
 function camTailleOn(){return CAM_TAILLE.on&&POR>.5;}
 function camTailleFov(f){const T=CAM_TAILLE,K=T.fovMax-T.genou;return f<=K?f:K+T.genou*(1-Math.exp(-(f-K)/T.genou));} // le genou : pente 1 à K, tend vers fovMax
 const ASSIST_VIRAGE=0; // (conduite v6) ZÉRO : la caisse ne suit plus la route toute seule — c'était l'« aimant » (elle prenait 78 % de chaque virage, 99,5 % avec le cap visé)

@@ -80,8 +80,9 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
   for(let essai=0;essai<14;essai++){if(essai)yield;
     const r=mulberry32((g0+essai*0x9E3779B1)>>>0),C=[],Q={},P=new THREE.Vector3(0,0,0),BO=[];let phi=0,AX9=0,cDette=0;const LIM=58*Math.PI/180,V2=GEN_V2,A26=BRIQUE.angMin,A28=A26+3,recad=(d,t)=>{const q=briqueRecadre(d,t||0);if(q.dessine&&Math.abs(q.dessine)<A28)return {dessine:0,dette:q.dessine};return q;}; /* A28 : le banc mesure un arc de 26° à 25° (spline) — on dessine 29° au moins */ /* AX9 : (AU HASARD) le COUDE de l'axe — 0 dans la recette d'avant */
     const push=()=>C.push(P.clone()),ici=k=>{Q[k]={p:P.clone(),phi:phi+AX9};};
-    const droite=(l,pe,n)=>{n=V2?Math.max(1,Math.min(n||Math.round(l/90),Math.floor(l/40))):(n||Math.max(2,Math.round(l/90))); /* (2026-11-07, GÉNÉRATION PROPRE) v2 : un point tous les 40 m au moins */for(let k=0;k<n;k++){P.x+=Math.sin(phi+AX9)*l/n;P.z+=Math.cos(phi+AX9)*l/n;P.y+=pe*l/n;push();}};
-    const arc=(aDeg,R,pe)=>{R=Math.max(R,RMIN);const n=Math.max(3,Math.ceil(Math.abs(aDeg)/8)),st=aDeg*Math.PI/180/n,ch=2*R*Math.sin(Math.abs(st)/2);
+    let aSg=0,aR=0; /* (2026-11-07 soir) le côté et le rayon du dernier arc, tant qu'aucune droite ne l'a suivi : à l'INFLEXION de deux arcs opposés serrés (sous 2 rP), la courbe lissée fait une pointe sous rP (5-25 m au palier 20) */
+    const droite=(l,pe,n)=>{aSg=0;n=V2?Math.max(1,Math.min(n||Math.round(l/90),Math.floor(l/40))):(n||Math.max(2,Math.round(l/90))); /* (2026-11-07, GÉNÉRATION PROPRE) v2 : un point tous les 40 m au moins */for(let k=0;k<n;k++){P.x+=Math.sin(phi+AX9)*l/n;P.z+=Math.cos(phi+AX9)*l/n;P.y+=pe*l/n;push();}};
+    const arc=(aDeg,R,pe)=>{R=Math.max(R,RMIN);if(V2&&aSg&&Math.sign(aDeg)!==aSg&&(R<2*RMIN||aR<2*RMIN))droite(Math.max(30*LL,.25*VW),(pe||0)*.5,1);aSg=Math.sign(aDeg);aR=R;const n=Math.max(3,Math.ceil(Math.abs(aDeg)/8)),st=aDeg*Math.PI/180/n,ch=2*R*Math.sin(Math.abs(st)/2);
       for(let k=0;k<n;k++){phi+=st/2;P.x+=Math.sin(phi+AX9)*ch;P.z+=Math.cos(phi+AX9)*ch;P.y+=pe*ch;phi+=st/2;push();}};
     const recentre=pe=>{if(V2){const t=recad(-phi*57.2958,0);cDette=t.dette;if(t.dessine)arc(t.dessine,RMIN*(2.2+r()*1.0),pe);return;} /* v2 : sous 8° rien, 8-26° une dette reportée sur le prochain vrai virage, au-delà un vrai virage */if(Math.abs(phi)>.06)arc(-phi*57.2958,RMIN*(2.2+r()*1.0),pe);}; /* (2026-11-05, LE DIRECTEUR DE RYTHME) les rayons de liaison en RAYONS TENABLES (RMIN) : à (230-350)×RS, au palier 0 c'était 4 rP et plus — une droite qui penche (banc : 1,5 virage/km, des droites de 24 s) */ // (2026-10-15) R 300-450 : à 520-720 le retour au cap faisait 900 m qu on prenait pour une droite
     // LES VIRAGES DE COURSE (règle RACCOURCIS de GAMEPLAY : ≥ 2,5 virages/km de rayon < 250 m, enchaînés) : gauche-droite, presque plus de droites
@@ -91,12 +92,14 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
       if((LIM-sg*phi)*57.2958<a*.6)sg=-sg;const lib=Math.max(4,(LIM-sg*phi)*57.2958);
       if(V2){const a9=Math.min(a,lib);if(a9<A28&&R<6*RMIN){droite(len,pe);return;}arc(sg*a9,R,pe);if(a>a9+.5){const rm9=a-a9;if(rm9>=A28)arc(-sg*Math.min(rm9,(LIM+sg*phi)*57.2958),R,pe);else droite(rm9/57.2958*R,pe);}return;} /* v2 : jamais un arc sous 26° à moins de 6 RMIN ; le reste devient une droite, pas un S minuscule */
       if(a<=lib){arc(sg*a,R,pe);return;}arc(sg*lib,R,pe);arc(-sg*Math.min(a-lib,(LIM+sg*phi)*57.2958),R,pe);}; // trop long d'un côté : il repart en S
-    const virages=(len,p0,p1)=>{let fait=0,sg=r()<.5?-1:1;
+    const virages=(len,p0,p1)=>{let fait=0,sg=r()<.5?-1:1,sgP=0,RP=0; /* sgP, RP (2026-11-07 soir) : le côté et le rayon de l'arc précédent, pour l'inflexion */
       while(fait<len){if(r()<.8)sg=-sg;if(V2&&cDette)sg=cDette<0?-1:1;const lg=r()<.4;let a=lg?40+r()*35:30+r()*45;const a0=a,R=RMIN*(lg?2.4+r()*1.2:1.5+r()*1.0); // 4 sur 10 sont des GRANDS virages (2,4-3,6 rP) : on tient l'appui longtemps
         const lib=(LIM-sg*phi)*57.2958;if(lib<(V2?A28+2:18)){sg=-sg;a=Math.min(a,(LIM-sg*phi)*57.2958);}else a=Math.min(a,lib);
         if(V2){if(a<A28){sg=-sg;a=Math.max(A28,Math.min(a0,(LIM-sg*phi)*57.2958));}if(cDette){if(sg*cDette>0)a=Math.min(Math.abs(briqueDette(sg*a,cDette)),(LIM-sg*phi)*57.2958);cDette=0;}}
-        const pe=-(p0+r()*(p1-p0));arc(sg*a,R,pe);fait+=R*a/57.2958;
-        if(r()<.12){const l=(50+r()*70)*LL,p2=-(p0+r()*(p1-p0))*.8;droite(l,p2);fait+=l;}}};
+        const pe=-(p0+r()*(p1-p0));
+        if(V2&&sgP&&sg!==sgP&&(R<2*RMIN||RP<2*RMIN)){const l=Math.max(40*LL,.3*VW);droite(l,pe*.6);fait+=l;} /* (2026-11-07 soir) deux arcs OPPOSÉS serrés collés faisaient une pointe à l'inflexion (5-25 m sous rP au palier 20) : 0,3 s de droite entre les deux */
+        arc(sg*a,R,pe);fait+=R*a/57.2958;sgP=sg;RP=R;
+        if(r()<.12){const l=(50+r()*70)*LL,p2=-(p0+r()*(p1-p0))*.8;droite(l,p2);fait+=l;sgP=0;}}};
     const bosses=n=>{for(let k=0;k<n;k++){const l1=(70+r()*25)*LL,l2=(105+r()*30)*LL,h=(14+r()*8)*SQ,h2=(26+r()*14)*SQ;droite(l1,h/l1,2);droite(l2,-(h+h2)/l2,3);}};
     /* LES MODULES DU CANYON (2026-10-18, LES MODULES DE CHAQUE MAP — voir MODC_ON). 5 ou 6 des 6 « virages » de liaison (tirés au sort) deviennent
        un module — jamais les boucles à raccourci, la route 67, les étroits, l'arche, l'amphithéâtre, la mine ni la finale. Paquet mélangé, jamais
@@ -109,7 +112,7 @@ function* genCanyon(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main e
     const rm=MODC_ON?mulberry32(((g0^0x6D0D5EED)+Math.imul(essai+1,0x85EBCA6B))>>>0):null,MM=[],cmPaq=[],cmCase=new Set();let cmK=0,cmLast=-1;
     if(rm){const t=[0,1,2,3,4,5];for(let i=5;i>0;i--){const j=(rm()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}const nb=5+(rm()<.5?1:0);for(let i=0;i<nb;i++)cmCase.add(t[i]);}
     const cmPe=(p0,p1)=>-(p0+rm()*(p1-p0)),cmRe=(lim,pe)=>{if(V2){if(Math.abs(phi)>lim){const t=recad(-(phi-Math.sign(phi)*lim*.3)*57.2958,0);cDette=t.dette;if(t.dessine)arc(t.dessine,RMIN*(2.4+rm()*1.0),pe);}return;}if(Math.abs(phi)>lim)arc(-(phi-Math.sign(phi)*lim*.3)*57.2958,RMIN*(2.4+rm()*1.0),pe);};
-    const cSlalom=(p0,p1)=>{const n=4+(rm()<.5?1:0),a=35+rm()*20,R=RMIN*(1.25+rm()*.35);cmRe(LIM-a/57.3*.6,cmPe(p0,p1));let sg=phi>0?-1:1;if(V2){const m=n+(n&1);for(let k=0;k<m;k++){arc(sg*a,R,cmPe(p0,p1));sg=-sg;}return;} /* v2 : plus de demi-lobes de 17-27° (douilles) : des lobes pleins, en nombre pair (le cap revient) */arc(sg*a*.5,R,cmPe(p0,p1));
+    const cSlalom=(p0,p1)=>{const n=4+(rm()<.5?1:0),a=35+rm()*20,R=RMIN*(1.25+rm()*.35);cmRe(LIM-a/57.3*.6,cmPe(p0,p1));let sg=phi>0?-1:1;if(V2){const m=n+(n&1);for(let k=0;k<m;k++){if(k)droite(Math.max(30*LL,.25*VW),cmPe(p0,p1)*.5,1);arc(sg*a,R,cmPe(p0,p1));sg=-sg;}return;} /* (2026-11-07 soir) 0,25 s de droite entre deux lobes opposés : collés, la courbe lissée faisait une pointe sous rP à l'inflexion (5-25 m au palier 20) */ /* v2 : plus de demi-lobes de 17-27° (douilles) : des lobes pleins, en nombre pair (le cap revient) */arc(sg*a*.5,R,cmPe(p0,p1));
       for(let k=0;k<n;k++){sg=-sg;arc(sg*a,R,cmPe(p0,p1));}arc(-sg*a*.5,R,cmPe(p0,p1));};
     const cCorde=(p0,p1)=>{const T=95+rm()*15,sg=phi>0?-1:1,a1=T*(.5+rm()*.1),R=RMIN*(1.5+rm()*.4);{const d=(-sg*T/2/57.2958-phi)*57.2958;if(V2){const t=recad(d,0);cDette=t.dette;if(t.dessine)arc(t.dessine,RMIN*(2.4+rm()*.8),cmPe(p0,p1));}else if(Math.abs(d)>3)arc(d,RMIN*(2.4+rm()*.8),cmPe(p0,p1));}
       if(V2&&cDette){const aD=Math.abs(briqueDette(sg*a1,sg*cDette>0?cDette:0));cDette=0;arc(sg*aD,R,cmPe(p0,p1));}else arc(sg*a1,R,cmPe(p0,p1));droite((40+rm()*40)*LL,cmPe(p0,p1)*.8);arc(sg*(T-a1),Math.max(RMIN*1.15,R*.8),cmPe(p0,p1));};

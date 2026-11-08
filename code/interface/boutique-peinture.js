@@ -17,15 +17,28 @@ const BQN_FAM=['commun','rare','epique','legendaire'];
 /* l'état d'une peinture, en un mot (la loupe, l'étiquette lue) et une classe (le signe de la pastille) */
 function bqNuanceEtat(d){const a=shopOwned('peinture',d.id);let eq=false;try{eq=shopEqD('peinture').id===d.id;}catch(e){}
   if(eq)return {c:'eq',t:sansAcc(TR('ÉQUIPÉE'))};if(a)return {c:'a',t:sansAcc(TR('À TOI'))};
-  if(d.def){const p=peintDefFrac(d);return {c:'defi',t:sansAcc(TR('OU GAGNE-LA')),p:p,eur:d.eur?prixTxt('peinture:'+d.id,d.eur):''};}
+  if(d.def){const p=peintDefFrac(d);return {c:'defi',t:sansAcc(TR('À GAGNER')),p:p,eur:d.eur?prixTxt('peinture:'+d.id,d.eur):''};}
   if(d.mis2)return {c:'mis',t:sansAcc(TR('MISSION'))};if(d.pack==='chat')return {c:'mis',t:sansAcc(TR('PACK CHAT'))};
   if(d.eur)return {c:'eur',t:prixTxt('peinture:'+d.id,d.eur)};if(d.p)return {c:'pc',t:bqPxT(d.p)};return {c:'mis',t:sansAcc(TR('MISSION'))};}
-function bqNuanceHtml(k,n,cur){const d=bqCos(k).d;if(!d)return '';let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;}catch(e){}
-  const r=cosmRar('peinture',d),ri=rarInfo(r),E=bqNuanceEtat(d),nom=sansAcc(TR(d.n));
-  const sg=E.c==='eq'||E.c==='a'?pxi('coche'):E.c==='pc'?pxi('piece'):E.c==='mis'?pxi('verrou'):''; /* (2026-11-07, passe finale) MISSION : le cadenas, comme les cartes des voitures */
-  return '<button type="button" class="pN r-'+r+' e-'+E.c+(k===cur?' sel':'')+'" data-k="'+k+'" style="--rc:'+ri.c+';--i:'+Math.min(n,18)+(E.c==='defi'&&E.p>=0?';--pj:'+Math.round(E.p*100):'')+'"'
+/* (2026-11-07, Sacha : « j'aime pas comment t'as mis les peintures en boule, c'est nul, trouve autre chose ») LA CARTE D'UNE PEINTURE : TA caisse
+   (celle que tu conduis, avec son aile) photographiée DANS cette peinture, comme au catalogue — trois par rangée ; dessous, le nom et la pastille d'état
+   (la même que les ailes et les traînées). Toucher = l'essayer sur le plateau ; garder le doigt = la loupe (inchangé). */
+function bqNuanceEtiq(E){if(E.c==='eq')return pxi('coche')+'<b>'+sansAcc(TR('ÉQUIPÉE'))+'</b>';if(E.c==='a')return pxi('coche')+'<b>'+sansAcc(TR('À TOI'))+'</b>';
+  if(E.c==='defi')return pxi('cible')+'<b>'+sansAcc(TR('DÉFI'))+'</b>'+ /* (2026-11-07) « DÉFI » et sa jauge (le prix en € de la famille est écrit une fois, dans l'intertitre) */(E.p>=0?'<u><em style="width:'+Math.round(E.p*100)+'%"></em></u>':'');
+  if(E.c==='mis')return pxi('verrou')+'<b>'+E.t+'</b>';return '<b>'+E.t+'</b>';}
+function bqNuanceHtml(k,n,cur){const d=bqCos(k).d;if(!d)return '';
+  const r=cosmRar('peinture',d),ri=rarInfo(r),E=bqNuanceEtat(d),nom=sansAcc(TR(d.n)),cher=E.c==='pc'&&d.p&&bank()<d.p;
+  return '<button type="button" class="pN pC r-'+r+' e-'+E.c+(k===cur?' sel':'')+'" data-k="'+k+'" style="--rc:'+ri.c+';--i:'+Math.min(n,18)+'"'
     +' title="'+nom.replace(/"/g,'')+'" aria-label="'+(nom+' · '+sansAcc(TR(ri.n1))+' · '+E.t).replace(/"/g,'')+'">'
-    +peintPastille(d,'pNsw',c0)+(E.c==='defi'?'<s class="pNj'+(E.p<0?' coup':'')+'"></s>':'')+(sg?'<b class="pNb">'+sg+'</b>':'')+'</button>';}
+    +'<span class="pCsc" aria-hidden="true"><span class="pCph" data-bcp="'+d.id+'"><i class="pCatt">'+pxi('voiture')+'</i></span></span>'
+    +'<span class="pCn">'+nom+'</span><span class="pCe e-'+E.c+(cher?' cher':'')+'">'+bqNuanceEtiq(E)+'</span></button>';}
+/* LA PHOTO : la caisse du joueur dans la peinture j (carPhoto, aile.peint), rangée sous sa clé (caisse, aile portée, peinture) */
+function bqPeintFile(id,cb,el){const j=COSM.peinture.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar();let a='';try{a=shopEqD('aile').id;}catch(e){}
+  const k='p1:'+id+':'+c+':'+a;if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}
+  PHQ.q.push([k,cb,{k:k,j:j,peint:1,avec:1},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
+function bqPeintPhotos(rail){rail=rail||document.querySelector('#gBqPan .bqRail');if(!rail)return;
+  rail.querySelectorAll('[data-bcp]:not(.ok):not(.dem)').forEach(function(x){x.classList.add('dem');bqPeintFile(x.getAttribute('data-bcp'),function(url){if(!url||x.classList.contains('ok'))return;
+    const im=document.createElement('img');im.alt='';im.className='pCim';im.decoding='async';im.draggable=false;im.src=url;x.textContent='';x.appendChild(im);x.classList.add('ok');},x);});}
 /* LE RAYON : la barre des familles, puis une section par famille (son intertitre d'une ligne, sa grille de pastilles) */
 function bqNuancierHtml(L){try{peintDefisVerifie(false);}catch(e){} /* un défi rempli depuis la dernière visite : la peinture tombe en ouvrant le rayon (PEINTURE GAGNÉE) */
   bqRayonRegarde('peinture'); /* (2026-11-07, passe finale) en entrant, on regarde la peinture PORTÉE : le nom et le bouton ne parlent plus de la caisse */
@@ -42,14 +55,14 @@ function bqNuancierHtml(L){try{peintDefisVerifie(false);}catch(e){} /* un défi 
       +(defi(f)?'<p class="pNlg"><q aria-hidden="true"></q>'+sansAcc(TR('À GAGNER EN JEU'))+'</p>':'')
       +'<div class="pNg">'+G[f].map(function(k){return bqNuanceHtml(k,n++,cur);}).join('')+'</div></section>';});
   const nav='<nav class="pNav" style="--nf:'+F.length+'">'+F.map(function(f){return '<button type="button" data-pf="'+f+'" style="--rc:'+rarInfo(f).c+'"'+(f===F[0]?' class="on"':'')+'><b>'+nom(f)+'</b><em>'+(px(f)?px(f)+' · ':'')+nA(f)+'/'+G[f].length+'</em></button>';}).join('')+'</nav>';
-  setTimeout(bqNuancierBranche,0);
+  setTimeout(function(){bqNuancierBranche();bqPeintPhotos();},0);
   return ['<div class="pNu">'+(barre?nav:'')+S.join('')+'</div>'];}
 /* le cadre de la pastille qu'on regarde (appelé par garBqPanneau quand ce qu'on regarde change) */
 function bqNuancierSel(rail,cur){rail.querySelectorAll('.pN').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur);});bqNuancierEq(rail);}
 /* l'équipée suit le grand bouton (ÉQUIPER / DÉSÉQUIPER ne changent pas la liste : le rail n'est pas refait) — sa coche bleue passe d'une pastille à l'autre */
 function bqNuancierEq(rail){if(!rail)return;let id='';try{id=shopEqD('peinture').id;}catch(e){return;}const k='peinture:'+id,A=sansAcc(TR('À TOI')),Q=sansAcc(TR('ÉQUIPÉE'));
   rail.querySelectorAll('.pN.e-eq,.pN.e-a').forEach(function(el){const eq=el.getAttribute('data-k')===k;if(el.classList.contains('e-eq')===eq)return;
-    el.classList.toggle('e-eq',eq);el.classList.toggle('e-a',!eq);const l=el.getAttribute('aria-label')||'';el.setAttribute('aria-label',eq?l.replace(A,Q):l.replace(Q,A));});}
+    el.classList.toggle('e-eq',eq);el.classList.toggle('e-a',!eq);{const p=el.querySelector('.pCe');if(p){p.className='pCe e-'+(eq?'eq':'a');p.innerHTML=bqNuanceEtiq({c:eq?'eq':'a'});}}const l=el.getAttribute('aria-label')||'';el.setAttribute('aria-label',eq?l.replace(A,Q):l.replace(Q,A));});}
 /* LES GESTES : branchés une fois sur le rail (il survit aux rayons) ; chaque geste vérifie qu'on est bien dans le nuancier */
 function bqNuancierBranche(){const rail=document.querySelector('#gBqPan .bqRail');if(!rail||rail._pN)return;rail._pN=1;BQN.rail=rail;BQN.pan=document.getElementById('gBqPan');
   const ok=function(){return garageOn&&!GAR.go&&!ecranWipe._on&&GBQ.on;};
@@ -80,7 +93,7 @@ function bqNuancierLoupe(t){let L=BQN.loupe;if(!t){if(L)L.classList.remove('on')
   if(!L){L=BQN.loupe=document.createElement('div');L.id='pNLoupe';L.setAttribute('aria-hidden','true');document.body.appendChild(L);}
   const d=bqCos(t.getAttribute('data-k')).d;if(!d)return;const r=cosmRar('peinture',d),ri=rarInfo(r),E=bqNuanceEtat(d);let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;}catch(e){}
   let bas='<span class="pLe e-'+E.c+'">'+(E.c==='eq'||E.c==='a'?pxi('coche'):'')+E.t+'</span>';
-  if(E.c==='defi'){const f=d.def,v=peintDefVal(f);bas='<span class="pLd">'+pxi('cible')+' '+sansAcc(TR(f.t)).toUpperCase()+'</span>'+(v<0?'':'<span class="pLj"><u><em style="width:'+Math.round(Math.max(0,E.p)*100)+'%"></em></u><b>'+peintDefNb(f,v)+'</b></span>')+(E.eur?'<span class="pLe e-eur">'+sansAcc(TR('OU'))+' '+E.eur+'</span>':'');}
+  if(E.c==='defi'){const f=d.def,v=peintDefVal(f);bas='<span class="pLd">'+pxi('cible')+' '+(f.k==='gagne'?moDans(sansAcc(TR(f.t)).toUpperCase(),f.v):sansAcc(TR(f.t)).toUpperCase())+'</span>'+(v<0?'':'<span class="pLj"><u><em style="width:'+Math.round(Math.max(0,E.p)*100)+'%"></em></u><b>'+peintDefNb(f,v)+'</b></span>')+(E.eur?'<span class="pLe e-eur">'+sansAcc(TR('OU'))+' '+E.eur+'</span>':'');}
   L.style.setProperty('--rc',ri.c);L.innerHTML=peintPastille(d,'pLsw',c0)+'<span class="pLt"><i>'+sansAcc(TR(ri.n1))+'</i><b>'+sansAcc(TR(d.n))+'</b>'+bas+'</span>';
   L.classList.add('on');const b=t.getBoundingClientRect(),w=L.offsetWidth,h=L.offsetHeight,W=VP.w||innerWidth;
   const x=Math.max(8,Math.min(W-8-w,b.left+b.width/2-w/2));let y=b.top-h-10;if(y<8)y=b.bottom+10;L.style.left=Math.round(x)+'px';L.style.top=Math.round(y)+'px';}

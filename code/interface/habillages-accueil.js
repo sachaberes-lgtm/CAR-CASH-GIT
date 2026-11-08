@@ -25,10 +25,13 @@ function gStripHabits(cat,i){
       else{fig=illuPx(illuAile(d),'gIc',!a);ill=true;} // (2026-10-14) les ailes POP ont leur pictogramme — (L'INVENTAIRE ILLUSTRÉ) celles d'origine aussi
       const et=a?(eqd&&cat==='peinture'&&d.id!=='usine'?pxi('croix'):eqd||S9?'':pxi('coche')):(d.eur?prixTxt(cat+':'+d.id,d.eur):d.p?fmtC(d.p):d.pack==='chat'?sansAcc(TR('PACK CHAT')):d.pack?eurTxt(PALETTE_PACK.eur):sansAcc(TR('MISSION'))); /* (2026-10-18 soir) l'ARC-EN-CIEL n'est pas de la palette (voir chatPackI) */ // (2026-10-14, palette) un article du PACK dit son prix en euros // (à gagner : le cadenas est déjà au coin)
       if(!garde(d))return '';
-      const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff"':md==='tous'?' style="--rc:#ff3ec8"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
-      return '<div class="gT cos c-'+cat+(d.ico&&cat==='trainee'?' pop':'')+(ill?' ill':'')+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'"'+(cat==='aile'?' data-aile="'+d.id+'"':'')+' role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(cat==='aile'||cat==='figure'||ill?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');
-    if(cat==='aile'&&typeof aileFile==='function')st.querySelectorAll('.gT[data-aile]').forEach(function(el){try{aileFile(el.getAttribute('data-aile'),function(url){ // (L'INVENTAIRE ILLUSTRÉ) l'aile en PHOTO dès que la boutique sait la faire
-      if(!url||!el.isConnected||el.classList.contains('photo'))return;const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);el.classList.add('photo');});}catch(e){console.warn('aileFile',e);}});}
+      const ivA=md==='inv'&&cat==='aile'; /* (L'INVENTAIRE EN GRAND, 2026-11-07, Sacha : « refais les ailes, là on voit pas les voitures ») une aile = TA caisse qui la porte, deux par rangée, sa plaque */
+      const rc9=md==='shop'?' style="--rc:'+rarInfo(cosmRar(cat,d)).c+'"':md==='inv'?' style="--rc:#5ee6ff'+(ivA?';--rr:'+rarInfo(cosmRar(cat,d)).c:'')+'"':md==='tous'?' style="--rc:#ff3ec8"':''; // (2026-10-09) BOUTIQUE : la couleur de la rareté ; INVENTAIRE : le cyan de l'inventaire (« enlève la rareté de l'inventaire »)
+      return '<div class="gT cos c-'+cat+(d.ico&&cat==='trainee'?' pop':'')+(ill?' ill':'')+(a?'':' lock')+(eqd?' eq':'')+'" data-cos="'+j+'"'+(cat==='aile'?' data-aile="'+d.id+'"':'')+' role="button" aria-label="'+String(TR(d.n)).replace(/"/g,'')+'"'+rc9+'>'+fig+(ivA?ivPlaque(sansAcc(TR(d.n)),eqd):cat==='aile'||cat==='figure'||ill?'<b>'+sansAcc(TR(d.n))+'</b>':'')+'<em>'+et+'</em></div>';}).join('');
+    ivDeux(st,md==='inv'&&cat==='aile');
+    const fo9=md==='inv'&&typeof bcAileFile==='function'?bcAileFile:typeof aileFile==='function'?aileFile:null; /* l'inventaire : la caisse du joueur (sa peinture) qui porte l'aile, la photo du rayon AILES de la boutique ; ailleurs, l'aile seule */
+    if(cat==='aile'&&fo9)st.querySelectorAll('.gT[data-aile]').forEach(function(el){try{fo9(el.getAttribute('data-aile'),function(url){ // (L'INVENTAIRE ILLUSTRÉ) l'aile en PHOTO dès que la boutique sait la faire
+      if(!url||!el.isConnected||el.classList.contains('photo'))return;const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);el.classList.add('photo');},el);}catch(e){console.warn('aileFile',e);}});}
   if(cat==='figure')try{gFigSelMaj();gFigGrilleArme();}catch(e){console.warn('figSel',e);} // (LES TROIS FIGURES ÉQUIPÉES) le sélecteur au-dessus de la grille // (le nom se lit en grand sur la fiche : la vignette montre la MATIÈRE — sauf l'aile, que seul son nom distingue)
   st.querySelectorAll('.gT').forEach(function(el){el.classList.toggle('on',+el.getAttribute('data-cos')===i);});
   const on=st.querySelector('.gT.on');if(on){const x=on.offsetLeft-(st.clientWidth-on.offsetWidth)/2;try{st.scrollTo({left:x,behavior:REDUCED_MOTION?'auto':'smooth'});}catch(e){st.scrollLeft=x;}}
@@ -102,7 +105,8 @@ function closeGarage(resetSuit){
   if(pigGroup)pigGroup.visible=true;
   if(!resetSuit)buildCar(CARS[level||0]);   // remet la caisse du menu (resetSuit : resetGame la rebâtit dans la même image)
   camera.up.set(0,1,0);
-  frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);camera.lookAt(F.p);
+  /* (2026-11-08, Sacha : « quand je clique sur réglages ça m'envoie ici ») le ⚙ du garage ouvre RÉGLAGES par closeGarage : sans piste bâtie (le menu en chute n'en a pas), frameAt lisait pts[0] et PLANTAIT ici, avant la dernière ligne — l'overlay ne s'affichait jamais, on restait sur le monde nu. Sans piste, la caméra reste où elle est. */
+  if(NP>1&&L>0){frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);camera.lookAt(F.p);}
   document.body.classList.remove('garMenuH');overlay.style.display='flex';
 }
 /* L'APERÇU DE TRAÎNÉE AU GARAGE (2026-09-25, user : « on ne voit pas la traînée de nitro derrière la voiture dans le

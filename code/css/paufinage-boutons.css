@@ -33,4 +33,11 @@ html #gMis.mbOn.m2land #gmBas .gmHome{flex-direction:row;width:auto;min-width:11
 html #gMis.mbOn.m2land #gmBas .gmHome .pxi{--pxs:2}
 /* la ligne MISSIONS RÉUSSIES : 41 px (le .mcFin à 40 l'emportait sur les 44 du .m2Fin) */
 .m2Fin.mcFin{min-height:44px}
+/* (2026-11-08, Sacha : « en bas les boutons sont penchés, remets les carrés droits ») les touches du bas du garage (INVENTAIRE · MISSIONS · BOUTIQUE · JOUER · ACCUEIL) ne penchent plus : plus de skewX, l'appui descend tout droit */
+html body #garage#garage #gAct#gAct>.pbtn{transform:none!important}
+html body #garage#garage #gAct#gAct>.pbtn:is(:active,.appui){transform:translateY(5px)!important}
+html body #garage#garage #gAct#gAct>.pb-gold:is(:active,.appui){transform:translateY(6px)!important}
+/* (2026-11-08, Sacha : « le bouton accueil est penché ») ACCUEIL et l'ŒIL ne sont pas des enfants de #gAct mais de #gRang1 : la règle ci-dessus les manquait, ils gardaient leur skewX — droits aussi, l'appui reste de 2 px */
+html body #garage#garage #gRang1#gRang1>:is(#gHomeBas,#gOeil){transform:none!important}
+html body #garage#garage #gRang1#gRang1>:is(#gHomeBas,#gOeil):is(:active,.appui){transform:translateY(2px)!important}
 </style>

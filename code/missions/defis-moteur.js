@@ -67,7 +67,7 @@ function m2Vues(L){const K=m2Cartes(),S=[];for(const k of L){const g=sfMapDe(k);
 function m2CarAMoi(i){if(carRetiree(i))return false;if(carOwned(i))return true;if(i<=((SAVE.d.ex&&SAVE.d.ex.floor)|0)&&!carEuros(i))return true;
   const u=CAR_UNLOCK[i];if(!u)return true;if(u.k==='mis'||u.p||u.k==='premium'||u.eur)return false;return carStat(u.k)>=u.v;}
 function m2HabAMoi(cat,d){if(cat==='figure')return d.id==='tailwhip'||(Array.isArray(SAVE.d.figs)&&SAVE.d.figs.indexOf(d.id)>=0);
-  if(d.pack==='chat'&&m2Chat())return true;if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+d.id)>=0;}
+  if(d.pack==='chat'&&m2Chat())return true;if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.def&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+d.id)>=0;}
 function m2Chat(){for(let i=0;i<CARS.length;i++)if(CARS[i]&&CARS[i].shape==='poptart')return m2CarAMoi(i)||(function(){try{return carUnlockedVrai(i);}catch(e){return false;}})();return false;}
 /* les objets que donnent les missions : hors des « toutes » (« les objets gagnés par mission ne comptent PAS dans toutes ») — les
    couleurs SECRÈTES de la palette aussi (elles se gagnent par leur mission secrète) */
@@ -139,7 +139,7 @@ function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.k==='musP10'){const L=m
   if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='raresT')return m2Rares().tot;if(m.k==='meteoMap')return m2Meteo().tot;if(m.k==='toutT')return m2Tout().tot;
   return m2Col(M2_COLK[m.k.slice(0,-1)]).tot;}
 function m2Txt(m){const s=String(LANG==='fr'?m.t:m.en),v=m2Seuil(m);
-  return s.replace('{v}',m.u==='$'?fmtSolde(v):m.u==='s'?String(v):Math.round(v).toLocaleString(typeof LOC==='function'?LOC():'fr').replace(/[  ]/g,' '));} // « 1 000 KM/H », « 10 000 D'AURA »
+  return s.replace('{v}',m.u==='$'?cashTxt(v) /* (2026-11-08, Léo) plus de symbole : le nombre seul, coloré dans m2TxtH */:m.u==='s'?String(v):Math.round(v).toLocaleString(typeof LOC==='function'?LOC():'fr').replace(/[  ]/g,' '));} // « 1 000 KM/H », « 10 000 D'AURA »
 function m2Flag(id){const s=m2Etat();if(s.fl.indexOf(id)<0){s.fl.push(id);SAVE.mark();}}
 function gagneAjoute(x){try{const s=SAVE.d&&SAVE.d.m2;x=+x;if(s&&s.c&&isFinite(x)&&x>0)s.c.gagne=Math.min(1e30,(s.c.gagne||0)+x);}catch(e){}}
 /* ---- LA MIGRATION, EN DEUX TEMPS : ce que l'ancienne sauvegarde savait déjà ----

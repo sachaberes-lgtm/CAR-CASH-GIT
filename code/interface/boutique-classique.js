@@ -19,7 +19,7 @@ function bcEtat(cat,d,k){const a=bqA(k);let eq=false;try{eq=a&&shopEqD(cat).id==
   if(eq)return {c:'eq',h:pxi('coche')+'<b>'+bcT('ÉQUIPÉE')+'</b>',t:bcT('ÉQUIPÉE')};
   if(a)return {c:'a',h:pxi('coche')+'<b>'+bcT('À TOI')+'</b>',t:bcT('À TOI')};
   if(d.pack==='chat')return {c:'eur',h:'<b>'+bcT('PACK CHAT')+'</b>',t:bcT('PACK CHAT')};
-  if(d.eur)return {c:'eur',h:'<b>'+eurTxt(d.eur)+'</b>',t:eurTxt(d.eur)};
+  if(d.eur){const px9=prixTxt(cat+':'+d.id,d.eur);return {c:'eur',h:'<b>'+px9+'</b>',t:px9};}
   if(d.p)return {c:'pc'+(bank()<d.p?' cher':''),h:'<b>'+bqPxT(d.p)+'</b>' /* le prix porte déjà son « € » (fmtSolde) : pas de pièce en plus */,t:bqPxT(d.p)};
   let j='';try{const m=m2DeHab(cat,d);if(m){const t=m2Seuil(m);j='<u><em style="width:'+Math.round(100*m2Frac(m,m2Val(m),t))+'%"></em></u>';}}catch(e){}
   return {c:'mis',h:pxi('verrou')+'<b>'+bcT('MISSION')+'</b>'+j,t:bcT('MISSION')};}
@@ -31,10 +31,15 @@ function bcAileCarte(k,n){const d=bqCos(k).d;if(!d)return '';const f=cosmRar('ai
   return '<div class="bcK bcA r-'+f+' e-'+E.c.split(' ')[0]+'" data-k="'+k+'" role="button" tabindex="0" style="--rc:'+ri.c+';--i:'+Math.min(n,10)+'" aria-label="'+(nom+' · '+bcT(ri.n1)+' · '+E.t).replace(/"/g,'')+'">'
     +'<span class="bcSc"><i class="bcRay" aria-hidden="true"></i><i class="bcSol" aria-hidden="true"></i><span class="bcPh" data-bca="'+d.id+'"><i class="bcAtt">'+pxi('aile')+'</i></span><i class="bcEcl" aria-hidden="true"></i></span>'
     +'<span class="bcTx"><b class="bcN">'+nom+'</b><span class="bcP '+E.c+'">'+E.h+'</span></span></div>';}
-/* une LIGNE de traînée : la route de nuit et la traînée qui coule (traineeCarte), la caisse au bout ; le nom, l'état */
+/* une LIGNE de traînée : la route de nuit et la traînée qui coule (traineeCarte), la caisse au bout ; le nom, l'état
+   (2026-11-07, Sacha : « on reconnaît pas assez les traînées : tu as fait un pictogramme simplifié, il faudrait un aperçu réel de ce à quoi elles
+   ressemblent ») LA VRAIE TRAÎNÉE : une photo prise dans la salle 3D de la boutique (la caisse de départ de profil sur son plateau, la traînée qui
+   file derrière elle, telle que le jeu la dessine), rangée dans assets/boutique/trainees/<id>.jpg (refaire : outils/banc-boutique/trainees.cjs).
+   Une traînée sans photo garde la plaque dessinée. */
+const BQ_TR_PHOTO={nitro:1,rose:1,sakura:1,matrice:1,or:1,anneaux:1,wow:1,glouton:1,hyper:1,grille:1,billets:1,foudre:1,arcenciel:1};
 function bcTraineeLigne(k,n){const d=bqCos(k).d;if(!d)return '';const f=cosmRar('trainee',d),ri=rarInfo(f),E=bcEtat('trainee',d,k),nom=bcT(d.n);
   return '<div class="bcK bcT r-'+f+' e-'+E.c.split(' ')[0]+'" data-k="'+k+'" role="button" tabindex="0" style="--rc:'+ri.c+';--tc:'+traineeCoul(d)+';--i:'+Math.min(n,10)+'" aria-label="'+(nom+' · '+bcT(ri.n1)+' · '+E.t).replace(/"/g,'')+'">'
-    +'<span class="bcTv" aria-hidden="true">'+traineeCarte(d)+'<i class="bcTc">'+pxi('voiture')+'</i></span>'
+    +'<span class="bcTv'+(BQ_TR_PHOTO[d.id]?' ph':'')+'" aria-hidden="true">'+(BQ_TR_PHOTO[d.id]?'<img class="bcTp" src="assets/boutique/trainees/'+d.id+'.jpg" alt="" decoding="async" draggable="false">':traineeCarte(d)+'<i class="bcTc">'+pxi('voiture')+'</i>')+'</span>'
     +'<span class="bcTx"><b class="bcN">'+nom+'</b><span class="bcP '+E.c+'">'+E.h+'</span></span></div>';}
 /* LE RAYON (appelé par garBqPanneau à la place des anciennes cartes) : les intertitres et les cartes, dans une seule grille */
 function bcRail(cat,L){try{bqRayonRegarde(cat);}catch(e){} /* en entrant, on regarde déjà ce qu'on porte : le nom et le bouton parlent de l'aile / de la traînée */

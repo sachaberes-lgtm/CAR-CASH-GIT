@@ -338,11 +338,15 @@ function buildGarageRoom(){
     cl('N',.045,.16,10,x+.46,y+.54,z);lt('R',[[.07,.62],[.07,.66],[.03,.69],[0,.69]],10,x+.46,y,z);   // l'allumeur
     cl('O',.055,.14,12,x+.12,y-.24,z+.32,Math.PI/2);cl('A',.07,.24,10,x+.3,y-.24,z-.33,0,0,Math.PI/2);}; // filtre à huile, démarreur
 
-  /* ===== MUR DU FOND : le GRAND CACHE-CAR en or massif (2026-10-26, Sacha : « enlève le bureau et tout son bazar, mets un énorme
-     cache-car en or, brillant, 3D, qui prenne toute la longueur du mur, en face du portail en flamme ») — plus d'établi, plus
-     d'outils, plus d'affiche ni d'horloge : à leur place, « CASH CAR » en pixels dorés massifs, en relief sur une plaque de fer
-     en retrait (comme le panneau de la porte, mais trois fois plus grand) — la SURPRISE quand on retourne la caméra. ===== */
-  {const POLICE3D={C:['.###.','#....','#....','#....','#....','#....','.###.'],A:['.###.','#...#','#...#','#####','#...#','#...#','#...#'],
+  /* ===== MUR DU FOND : l'ENSEIGNE CASH CAR, or laqué (2026-11-08, Léo : « redesign du logo derrière la voiture, plus propre, pas de petit cube,
+     immense, qui rentre pile sur l'arrière, presque compressé, cassé métallique, un élément fort du garage, effet de surprise : lumineux,
+     shader cohérent avec le garage, doré laqué, optimisé ») — remplace les lettres en petits cubes. SEPT dessins en tout : une plaque de
+     laque sombre qui porte le halo doré, quatre tranches de métal derrière les lettres (l'épaisseur), et la face — lettres ANGULAIRES serrées
+     (coins coupés, comme une tôle pliée), dégradé d'or à ligne d'horizon, biseau éclairé en haut à gauche, éclats de facettes, vernis brillant.
+     Un seul petit shader : un éclat de lumière chaude qui traverse la face toutes les 5,5 s (uT9, mis à jour dans garage-rendu). Trois toiles,
+     aucune géométrie à part des 7 plans : rien à compiler de plus, rien de lourd. ⚠ `?enseigne=ancien` : les petits cubes d'avant. ===== */
+  if(/[?&]enseigne=ancien\b/.test(location.search)){
+   const POLICE3D={C:['.###.','#....','#....','#....','#....','#....','.###.'],A:['.###.','#...#','#...#','#####','#...#','#...#','#...#'],
      S:['.####','#....','.###.','....#','....#','....#','####.'],H:['#...#','#...#','#...#','#####','#...#','#...#','#...#'],
      R:['####.','#...#','#...#','####.','#.#..','#..#.','#...#']};
    /* (2026-11-01, Sacha : « les lettres beaucoup plus gold et beaucoup plus massives, comme le bouton JOUER ») PX reste fixé par
@@ -359,7 +363,45 @@ function buildGarageRoom(){
          for(let pcol=0;pcol<5;pcol++)if(ligne[pcol]==='#')
            cb(k,PX*.97,PY*.97,EPAIS,xDebut+(col+pcol)*PX+PX/2,yMilieu+hauteur/2-row*PY-PY/2,zFace+EPAIS/2);}
        col+=5;if(c<mot.length-1)col+=1;}
-     if(mi<MOTS.length-1)col+=3;});}
+     if(mi<MOTS.length-1)col+=3;});
+  }else{
+   /* (2026-11-08, Léo : « plus carré, rectangulaire, ou alors même police que CASH CAR ; revois tout ») v4 : LA POLICE DU LOGO — les
+      glyphes de Press Start 2P (--pix, celle du titre du menu), relevés pixel par pixel, en GRAS (« plus épais ») : chaque trait grossit d'un demi-pixel, relief de près d'un mètre. Chaque lettre est UN SEUL bloc (le contour de
+      ses pixels réunis, trous compris : pas de petits cubes), taillé au kit de la caisse (`MK`, l'or du garage, zéro matière de plus) :
+      un mur droit, une arête vive, un pan biseauté, le plat du dessus. Penché comme le titre (skewX(--sk) = -11°). Toute la longueur du mur (21,3 m), du sol à 4,3 m. */
+   const GL={C:['..####.','.##..##','##.....','##.....','##.....','.##..##','..####.'],A:['..###..','.##.##.','##...##','##...##','#######','##...##','##...##'],
+     S:['.#####.','##...##','##.....','.#####.','.....##','##...##','.#####.'],H:['##...##','##...##','##...##','#######','##...##','##...##','##...##'],
+     R:['######.','##...##','##...##','##..###','#####..','##.###.','##..###']};
+   const LARG=20.5,HAUT=4.3,PENCHE=Math.tan(11*Math.PI/180),YB=.02,ZA=-hd+.03,NIV=[[0,0],[.52,0],[.62,.07],[.98,.14]];        // [hauteur en m, retrait en m] : le mur, l'arête, le pan, le plat
+   const plein=new Set();let cx=0;
+   for(const ch of 'CASH CAR'){if(ch===' '){cx+=2;continue;}GL[ch].forEach(function(l,r){for(let k=0;k<7;k++)if(l[k]==='#')for(let i=0;i<3;i++)for(let j=0;j<3;j++)plein.add((2*(cx+k)+i)+','+(2*(6-r)+j));});cx+=8;}  // LE GRAS : chaque pixel déborde d'un demi-pixel à droite et en bas
+   const NC=2*(cx-1)+1,PW=LARG/NC,PH=HAUT/15,est=function(c,r){return plein.has(c+','+r);};
+   /* les arêtes du contour, le plein toujours à GAUCHE (sens direct autour des lettres, sens inverse autour des trous) */
+   const ar=new Map(),pose=function(x0,y0,x1,y1){const k=x0+','+y0;if(!ar.has(k))ar.set(k,[]);ar.get(k).push([x0,y0,x1,y1,0]);};
+   plein.forEach(function(s){const p=s.split(','),c=+p[0],r=+p[1];
+     if(!est(c,r-1))pose(c,r,c+1,r);if(!est(c+1,r))pose(c+1,r,c+1,r+1);if(!est(c,r+1))pose(c+1,r+1,c,r+1);if(!est(c-1,r))pose(c,r+1,c,r);});
+   const boucles=[];
+   ar.forEach(function(L){L.forEach(function(e0){if(e0[4])return;const B=[];let e=e0;
+     while(e&&!e[4]){e[4]=1;B.push([e[0],e[1]]);const dx=e[2]-e[0],dy=e[3]-e[1],suiv=(ar.get(e[2]+','+e[3])||[]).filter(function(f){return !f[4];});
+       let mieux=null,sc=-9;suiv.forEach(function(f){const fx=f[2]-f[0],fy=f[3]-f[1],t=dx*fy-dy*fx,s2=t>0?2:t===0?1:0;if(s2>sc){sc=s2;mieux=f;}});e=mieux;}  // à un coin partagé : tourner à gauche d'abord
+     const P=B.filter(function(p,i){const a=B[(i+B.length-1)%B.length],b=B[(i+1)%B.length];return (p[0]-a[0])*(b[1]-p[1])-(p[1]-a[1])*(b[0]-p[0])!==0;})  // sans les points alignés
+       .map(function(p){return [(p[0]-NC/2)*PW+(p[1]-7.5)*PH*PENCHE,YB+p[1]*PH];});                       // penché à -11°, comme le titre (--sk)
+     let s=0;for(let i=0;i<P.length;i++){const u=P[i],v=P[(i+1)%P.length];s+=u[0]*v[1]-v[0]*u[1];}boucles.push({P:P,aire:s,trous:[]});});});
+   const dedans=function(q,P){let o=false;for(let i=0,j=P.length-1;i<P.length;j=i++)if((P[i][1]>q[1])!==(P[j][1]>q[1])&&q[0]<(P[j][0]-P[i][0])*(q[1]-P[i][1])/(P[j][1]-P[i][1])+P[i][0])o=!o;return o;};
+   const lettres=boucles.filter(function(b){return b.aire>0;});
+   boucles.forEach(function(b){if(b.aire<0){const q=[b.P[0][0]+1e-4,b.P[0][1]+1e-4];const m=lettres.find(function(l){return dedans(q,l.P);});if(m)m.trous.push(b);}});
+   const retrait=function(P,d,z){const n=P.length,N=[];for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n],l=Math.hypot(b[0]-a[0],b[1]-a[1]);N.push([-(b[1]-a[1])/l,(b[0]-a[0])/l]);}
+     return P.map(function(p,i){const n1=N[(i+n-1)%n],n2=N[i],k=d/(1+n1[0]*n2[0]+n1[1]*n2[1]);return [p[0]+(n1[0]+n2[0])*k,p[1]+(n1[1]+n2[1])*k,z];});};
+   const Lum=new THREE.Vector3(-.46,.67,.58).normalize(),nv=new THREE.Vector3(),va=new THREE.Vector3(),vb=new THREE.Vector3();
+   const facette=function(A,B2,C){va.set(B2[0]-A[0],B2[1]-A[1],B2[2]-A[2]);vb.set(C[0]-A[0],C[1]-A[1],C[2]-A[2]);nv.crossVectors(va,vb);if(nv.lengthSq()<1e-12)return;nv.normalize();
+     const d=nv.dot(Lum);MK.tri(d>.5?'AuH':d>.12?'Au':'AuD',A,B2,C);};                                       // l'or crème / plein / sombre selon la facette
+   lettres.forEach(function(L){const tout=[L].concat(L.trous),haut=[];
+     tout.forEach(function(b,bi){const lv=NIV.map(function(nz){return retrait(b.P,nz[1],ZA+nz[0]);});
+       for(let m=0;m<lv.length-1;m++){const P=lv[m],Q=lv[m+1],n=P.length;for(let i=0;i<n;i++){const i2=(i+1)%n;facette(P[i],P[i2],Q[i2]);facette(P[i],Q[i2],Q[i]);}}
+       haut.push(lv[lv.length-1].map(function(p){const v=new THREE.Vector2(p[0],p[1]);v.p=p;return v;}));});
+     const tr=THREE.ShapeUtils.triangulateShape(haut[0],haut.slice(1)),tous=[].concat.apply([],haut);
+     tr.forEach(function(t){let A=tous[t[0]].p,B2=tous[t[1]].p,C=tous[t[2]].p;if((B2[0]-A[0])*(C[1]-A[1])-(B2[1]-A[1])*(C[0]-A[0])<0){const x=B2;B2=C;C=x;}facette(A,B2,C);});});
+  }
 
   // ===== MUR GAUCHE : pneus, servante, compresseur, cric, et tout ce qui roule =====
   for(const st of [[-9.6,-7.2,5],[-9.6,-5.1,4],[-9.4,7.4,6]]){                        // les piles de pneus, une jante sur chacune

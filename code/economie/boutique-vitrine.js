@@ -2,7 +2,7 @@
    fond `c`), l'animation (`anim`), le défi (`def`, et `ind` : sa phrase, que l'écran des missions affiche pour une peinture gagnée) */
 for(const e of PEINT_CAT){const o=Object.assign({id:e[0],n:e[1],r:e[2],d:e[4]},e[3]);
   if(o.mot){o.c=MOTIFS[o.mot].c;if(MOTIFS[o.mot].anim)o.anim=1;}
-  o.eur=PEINT_EUR[o.r];if(e[5]){o.def=e[5];o.ind=e[5].t;}COSM.peinture.push(o);}
+  o.eur=PEINT_EUR[o.r];if(e[5]){o.def=e[5];o.ind=e[5].t;delete o.eur;}COSM.peinture.push(o);} /* (2026-11-07, Sacha : « les couleurs qu'on gagne avec des missions ne peuvent pas s'acheter ») une peinture à défi n'a plus de prix : elle se gagne ; shopOwned la tient pour non possédée tant que le défi n'est pas rempli */
 Object.assign(I18N,{"SANS AILES":"NO WINGS","Les ailes, c'est pour les pigeons. Dix buses à air comprimé planquées dans la carrosserie : elle crache des bouffées blanches, pivote sur elle-même et s'envole. Bon. Ça a marché.":"Wings are for pigeons. Ten compressed-air nozzles hidden in the bodywork: it spits white puffs, spins on the spot and takes off. Well. It worked."}); /* (l'aile SANS AILES : sa traduction vivait ici, avec les motifs) */
 /* LES MISSIONS v2 — LES HABILLAGES QUI SE GAGNENT (2026-10-16, Sacha : « un objet donné par une mission ne s'achète plus : la boutique
    affiche à la place la mission qui le débloque ») : `mis2` = l'id de la mission ; plus de prix (ni dollars ni euros), plus de carnet.
@@ -63,7 +63,7 @@ function peintCarte(d){let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;
   return h;}
 /* « OU GAGNE-LA » sous le nom de la peinture regardée (#gBqNom) : la phrase du défi, sa jauge (un exploit d'un coup n'en a pas) */
 function peintDefHtml(d){const f=d&&d.def;if(!f||shopOwned('peinture',d.id))return '';const v=peintDefVal(f),p=v<0?0:Math.min(1,v/peintDefSeuil(f));
-  return '<span class="m2Deb pDeb"><span class="m2DebT">'+pxi('cible')+' '+sansAcc(TR('OU GAGNE-LA'))+' : '+sansAcc(TR(f.t)).toUpperCase()+'</span>'
+  return '<span class="m2Deb pDeb"><span class="m2DebT">'+pxi('cible')+' '+sansAcc(TR('À GAGNER'))+' : '+(f.k==='gagne'?moDans(sansAcc(TR(f.t)).toUpperCase(),f.v):sansAcc(TR(f.t)).toUpperCase())+'</span>'
     +(v<0?'':'<span class="m2DebB"><u><em style="width:'+Math.round(p*100)+'%"></em></u><b>'+peintDefNb(f,v)+'</b></span>')+'</span>';}
 window.dbgDefisPeint=function(){return COSM.peinture.filter(function(d){return d.def;}).map(function(d){const v=peintDefVal(d.def);return {id:d.id,r:d.r,defi:d.def.t,val:v,seuil:d.def.k==='b'||d.def.k==='serie'?null:peintDefSeuil(d.def),a:shopOwned('peinture',d.id)};});};
 /* ===== LES TRAÎNÉES EN VITRINE (2026-11-05, Sacha : « retravaille la présentation des traînées dans le même esprit » que le nuancier v3) =====
@@ -99,12 +99,12 @@ function figDesc(f,lg){const en=lg==='en'||lg==='zh'; // (2026-10-14, textes) BI
   const av=D.indexOf('avant')>=0,ar=D.indexOf('arriere')>=0;
   return f.m.map(tx).join(' + ')+(en?'. Thumb '+(av&&ar?'FORWARD or BACK':av?'FORWARD':'BACK')+' + double-tap NITRO'+(av&&ar?': the flip goes that way.':'.')
                                     :'. Pouce '+(av&&ar?'en AVANT ou en ARRIÈRE':av?'en AVANT':'en ARRIÈRE')+' + double-tape NITRO'+(av&&ar?' : le salto part dans ce sens.':'.'));}
-COSM.figure=(window.FIG?FIG.liste:[]).map(function(f){return {id:f.id,n:f.n,p:f.p,d:figDesc(f,'fr'),fig:1};});
+COSM.figure=(window.FIG?FIG.liste:[]).map(function(f){return {id:f.id,n:f.n,p:f.p,r:f.r,d:figDesc(f,'fr'),fig:1};}); /* (2026-11-08, Sacha : « ça doit être gris pas bleu ») `r` suivi : le SALTO AVANT est COMMUN (figures.js) ; sans lui cosmRar le recalculait d'après le prix (60 k → rare → bleu) */
 const SHOP_CATS=['voiture','peinture','aile','trainee','figure'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
-function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin()){const c9=COSM[cat].find(x=>x.id===id);if(c9&&((!c9.eur&&(!c9.pack||c9.sec))||cousinTout()))return true;} /* (2026-10-14) LE CODE COUSIN : tous les habillages — (2026-10-24) SAUF ce qui se paie en EUROS (peintures en €, packs PALETTE et CHAT), la règle de Sacha du 14/10 (carEuros) ; les secrètes, gagnables par leur défi, restent offertes ; le reste suit la possession réelle */
+function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin()){const c9=COSM[cat].find(x=>x.id===id);if(c9&&((!c9.eur&&!c9.def&&(!c9.pack||c9.sec))||cousinTout()))return true;} /* (2026-10-14) LE CODE COUSIN : tous les habillages — (2026-10-24) SAUF ce qui se paie en EUROS (peintures en €, packs PALETTE et CHAT), la règle de Sacha du 14/10 (carEuros) ; les secrètes, gagnables par leur défi, restent offertes ; le reste suit la possession réelle */
 const d=COSM[cat].find(x=>x.id===id);if(!d)return false;
-  if(d.pack==='chat'&&m2Chat())return true; /* (2026-10-16, missions v2) l'ARC-EN-CIEL vient avec le chat */if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
+  if(d.pack==='chat'&&m2Chat())return true; /* (2026-10-16, missions v2) l'ARC-EN-CIEL vient avec le chat */if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.def&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+id)>=0;} // (2026-10-14, palette) pack et secrètes : possédées seulement une fois données
 function shopEqD(cat){const id=SAVE.d.shop.eq[cat],d=COSM[cat].find(x=>x.id===id);return (d&&shopOwned(cat,d.id))?d:COSM[cat][0];}
 /* ===== LES PHOTOS DES CAISSES EN TEINTE D'ORIGINE (2026-11-02, Léo : « quand on va dans les paint des boutiques, ça met toutes les voitures dans ta peinture et on ne peut à peine les distinguer. Enlève-moi ce truc ») =====
    Pendant que le studio photographie une caisse (carPhoto : vignettes de la boutique, de l'inventaire, vue de la fenêtre d'achat), PHOTO_USINE
