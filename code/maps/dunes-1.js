@@ -21,7 +21,7 @@ PAL.B.dnFin=[16,14,12];PAL.B.dnPlat=[96,80,64];PAL.B.dnOmbre=[60,52,44];PAL.B.dn
    · les décors reprennent le budget du palier MOYEN (acacias, palmiers, touffes, arbres morts, tornades, sable qui vole) — au plan moyen, de dos, ils ne se comptent pas ;
    · les ÉCLATS de 9 cm (dnMo .75) s'éteignent : à ~5 px sur un écran de 390 pt ils ne faisaient que scintiller.
    Rien d'autre ne change (la route, les tremplins, le sable à rides, les nuages en bandes, les monuments). */
-const DN_MOB=(ALLEGE||/[?&]dunessobre=1\b/.test(location.search))&&!/[?&]dunesplein=1\b/.test(location.search); // ⚠ TEL_NATIF, PAS l'ancien drapeau mobile : l'ordi qui joue l'édition « mobile » (FORCE_TEL) garde les dunes pleines (Sacha, 25/10 : « sur PC la qualité a chuté »)
+const DN_MOB=(mapsSobres()||/[?&]dunessobre=1\b/.test(location.search)) /* (2026-11-08) mapsSobres, plus ALLEGE : voir LES MAPS PLEINES */&&!/[?&]dunesplein=1\b/.test(location.search); // ⚠ TEL_NATIF, PAS l'ancien drapeau mobile : l'ordi qui joue l'édition « mobile » (FORCE_TEL) garde les dunes pleines (Sacha, 25/10 : « sur PC la qualité a chuté »)
 if(DN_MOB){PAL.B.dnGrille[2]=24;PAL.B.dnArbres[2]=PAL.B.dnArbres[1];PAL.B.dnPalmes[2]=PAL.B.dnPalmes[1];PAL.B.dnPart[2]=PAL.B.dnPart[1];PAL.B.dnMo[2]=PAL.B.dnMo[1];PAL.B.dnRuines[2]=PAL.B.dnRuines[1];PAL.B.dnTors[2]=PAL.B.dnTors[1];PAL.B.dnTouffes[2]=PAL.B.dnTouffes[1];PAL.B.dnMorts[2]=PAL.B.dnMorts[1];}
 /* LA ROUTE SURÉLEVÉE (2026-10-25, Sacha : « surélève un petit peu la route, comme posée sur un truc surélevé, pour qu'on ne meure pas directement sur le sable et qu'on ait une petite chance de se redresser ») — la berme, les éperons, les collines et le lac de l'oasis descendent de DN_SUR m sous la dalle (la route, elle, ne bouge pas) ; `?sur=N` change la valeur, `?sur=0` = avant */
 const DN_SUR=(function(){const m=/[?&]sur=(\d+(?:\.\d+)?)/.exec(location.search);return m?Math.min(40,+m[1]):10;})();
@@ -48,7 +48,7 @@ const DN={Q:null,on:false,ms:{},yMin:-1e4,yMax:1e4,mesh:null,mat:null,geo:null,a
    matière des décors : aucun programme neuf). Et les MODULES : trois de plus (dCreteS, dToboggan, dGue) — 7 sortes dans le paquet.
    `?sans=dunesdecor` = le décor d'avant ; `?sans=dunesmodules` = le paquet d'avant (4 sortes) ; `dbgDunes().deco` = le tirage. */
 const DN_DECO={on:!/[?&]sans=([^&]*,)?dunesdecor(,|&|$)/.test(location.search),mods:!/[?&]sans=([^&]*,)?dunesmodules(,|&|$)/.test(location.search)};
-const DN_MOSA=!/[?&]mosaique=0\b/.test(location.search),DN_BUTTES=!/[?&]buttes=0\b/.test(location.search); // (2026-10-22) `?mosaique=0` : le sable et la pierre sans mosaïque · `?buttes=0` : sans les buttes de grès (banc : ce que coûte chaque matière)
+const DN_MOSA=!/[?&]mosaique=0\b/.test(location.search),DN_BUTTES=/[?&]buttes=1\b/.test(location.search); /* (2026-11-08) plus de buttes de grès : des plateaux à falaises, pas du sable (`?buttes=1` les remet) */ // (2026-10-22) `?mosaique=0` : le sable et la pierre sans mosaïque · `?buttes=0` : sans les buttes de grès (banc : ce que coûte chaque matière)
 /* ===== LA ROUTE TORSADÉE (2026-11-05, Sacha : « beaucoup plus torsadée, que vraiment on ride les dunes, qu'elle se penche vraiment ») =====
    DN_TOR : les houles des droites sont plus amples et plus serrées (k), les « serpents » enchaînent 4 virages de 30-46° (au lieu de 3 de 24-38°) à un rayon plus court (r) ; le tirage des creux ne garde presque plus de droite.
    DN_BANK : la dalle se couche jusqu'à 40° (22° avant), dès les virages ordinaires (kref plus court) ; et chaque virage a son MUR DE SABLE au dehors (dnMurs, plus bas) : on monte sur la dune, on la ride. `?bank=N` (degrés, 0 = plate), `?sans=dunestors` = la route d'avant. */
@@ -184,6 +184,8 @@ function dnTrace(r){ /* UN erg : la route continue (vagues, tremplins de crête)
 /* LA DUNE — la même fonction que la puce (dnDune du GLSL), lue dans le même bruit (cyNz) : W = [vent x, vent z, houle x, houle z], lam = la longueur
    d'onde (m). Rend la hauteur relative (0 au creux, ~1 au sommet) ; o.du (facultatif) = le profil de la grande dune seule (1 sur la crête). */
 const DN_ACTES={on:!/[?&]sans=([^&]*,)?dunesactes(,|&|$)/.test(location.search)}; /* (2026-10-23, Léo : « brouillon… l'organisation et l'harmonie » → un VOYAGE EN ACTES) `?sans=dunesactes` = le tirage d'avant (un peu de tout partout) */
+/* LE DÉSERT SANS BÂTIMENTS (2026-11-08, Sacha : « retravaille la map dune, enlève les bâtiments ») — plus de village de pisé (les maisons), plus de ruines ensablées (murs, monolithe couché) : il ne reste que du sable, du rocher et le ver. `?bati=1` les remet. */
+const DN_BATI=/[?&]bati=1\b/.test(location.search);
 const DN_STAR=!/[?&]sans=([^&]*,)?dunesetoile(,|&|$)/.test(location.search); /* `?sans=dunesetoile` : le désert d'avant (crêtes parallèles partout) */
 /* ===== LES SOMMETS ARRONDIS (2026-10-27, Léo : « il n'y a aucune pointe aussi pointue ») =====
    MESURÉ (`dbgDunes('pointes')`, les maxima locaux du désert, pente moyenne à 36 m du sommet) : la MÉDIANE des sommets du désert tenait à ~24° et 1 sommet sur 3 dépassait 28° — des aiguilles. Deux causes dans dnDune : (1) l'ARÊTE de chaque crête est la rencontre
@@ -195,7 +197,7 @@ const DN_STAR=!/[?&]sans=([^&]*,)?dunesetoile(,|&|$)/.test(location.search); /* 
    de grands versants lisses, une face d'avalanche franche. DN_FORME : pk = l'arrondi de l'arête (0,22 : une lame, encore raccordée), fs = la part de la face au vent (0,78 : l'avalanche plus courte, plus raide), ps = la courbure
    de l'avalanche (1 : un pan droit), mb = le creux le plus profond d'un col le long d'une crête (0,58 : la crête court d'un bout à l'autre), ss = le seuil des dunes étoilées (0,30 : plus rares), sn = le serpentement des crêtes
    sur ~2 km (un bruit de plus), lk et ak = l'échelle (la longueur d'onde ×1,3, l'amplitude ×1,25 : plus VASTE). Le GLSL de la puce (dnDune de DN_VS) et le travailleur lisent les mêmes valeurs. `?sans=dunesforme` = la forme d'avant. */
-const DN_FORME=/[?&]sans=([^&]*,)?dunesforme(,|&|$)/.test(location.search)?{pk:.5,fs:.72,ps:1.15,mb:.30,ss:.20,sn:0,lk:1,ak:1,ms:.58,mw:.14,mh:[70,110],rb:0,rk:.5,fl:.6,fv:.6,cs:0,yj:0}:{pk:.22,fs:.78,ps:1,mb:.58,ss:.40,sn:.32,lk:1.3,ak:1.25,ms:.70,mw:.20,mh:[38,70],rb:.38,rk:.2,fl:.66,fv:.40,cs:.45,yj:1}; /* ms, mw : le seuil des BUTTES de grès (MESURÉ au relief vu de haut : leurs plateaux à falaises couvraient un tiers du désert et le découpaient en taches — rares maintenant, la mer de dunes reprend la place ; mw plus large : leurs flancs s'évasent au lieu de tomber en murs verticaux ; mh = leur hauteur, 38 à 108 m au lieu de 70 à 180 : des tables basses, plus des tours) */
+const DN_FORME=/[?&]sans=([^&]*,)?dunesforme(,|&|$)/.test(location.search)?{pk:.5,fs:.72,ps:1.15,mb:.30,ss:.20,sn:0,lk:1,ak:1,ms:.58,mw:.14,mh:[70,110],rb:0,rk:.5,fl:.6,fv:.6,cs:0,yj:0}:{pk:.42,fs:.78,ps:1,mb:.74,ss:.62,sn:.32,lk:1.3,ak:1.12,ms:.70,mw:.20,mh:[38,70],rb:.38,rk:.4,fl:.66,fv:.40,cs:.45,yj:1} /* (2026-11-08, Sacha : « certaines dunes ne ressemblent pas du tout à du sable ») pk .22→.42 : la crête s'arrondit (plus de lame ni de pointe de rocher) · mb .58→.74 : les cols le long d'une crête sont moins creusés (plus de dents) · ss .40→.62 : presque plus de dunes étoilées (leurs pyramides à trois arêtes) · ak 1,25→1,12 : un peu moins de relief (moins de falaises) · rk .2→.4 : les collines de la route aussi arrondies */; /* ms, mw : le seuil des BUTTES de grès (MESURÉ au relief vu de haut : leurs plateaux à falaises couvraient un tiers du désert et le découpaient en taches — rares maintenant, la mer de dunes reprend la place ; mw plus large : leurs flancs s'évasent au lieu de tomber en murs verticaux ; mh = leur hauteur, 38 à 108 m au lieu de 70 à 180 : des tables basses, plus des tours) */
 const DN_PTE=!/[?&]sans=([^&]*,)?dunespointes(,|&|$)/.test(location.search),DN_PK=DN_FORME.pk;
 function cyNzS(u,v,c){ /* cyNz à interpolation DOUCE (Hermite) : la pente du bruit s'annule à chaque texel — l'interpolation bilinéaire fait des TENTES (un angle à chaque nœud, tous les 35 m), et c'est elle qui plantait les pointes dans `m` (les pics et les cols le long des crêtes) */
   const N=256,x=u*N-.5,y=v*N-.5,i=Math.floor(x),j=Math.floor(y);let fx=x-i,fy=y-j;fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy);const d=CY.nz,i0=((i%N)+N)%N,j0=((j%N)+N)%N,i1=(i0+1)%N,j1=(j0+1)%N;
@@ -287,6 +289,7 @@ function dnProfil(S,RE,i0,x,z,o,RH,TH){
    côté du cap d'arrivée (le portail passe entre elles), la plus haute au fond, dans l'axe : du départ, le portail se lit devant la grande, entre les deux. `st` : le style tiré
    (le décor au hasard : à gradins, lisse, étagée) — celui de la 1re, 2e, 3e pyramide du tirage, sinon à gradins. */
 function dnPyr3(S,K,RH,r,sts){
+  if(!DN_BATI)return []; /* (2026-11-08) plus de pyramides d'arrivée : le désert reste du sable */
   const pyrs=[],iE=S.n-1,i1=Math.max(0,iE-18);let hx=S.x[iE]-S.x[i1],hz=S.z[iE]-S.z[i1];const hl=Math.hypot(hx,hz)||1;hx/=hl;hz/=hl;const Ex=S.x[iE],Ez=S.z[iE]; // le cap d'arrivée (les 150 derniers mètres)
   const def=[[(370+r()*60)*K,-1,1.25,150+r()*80],[(400+r()*60)*K,1,1.25,330+r()*120],[(560+r()*60)*K,0,0,S.solD||(1500+r()*300)]]; // [demi-base, côté, écart latéral en demi-bases, recul derrière le portail]
   def.forEach(function(d,k){const hw=d[0],lat=d[1]?d[1]*(hw*d[2]+RH+80+r()*40):(r()-.5)*70,x=Ex+hx*d[3]-hz*lat,z=Ez+hz*d[3]+hx*lat,a=Math.atan2(hx,hz)+(r()-.5)*.5,st=sts&&sts[k]?sts[k]:'';
@@ -305,6 +308,7 @@ function dnPrevoir(S,sQ,K,RH,r,D){
     const sg=r()<.5?-1:1,lat=RH+(70+r()*150)*K,x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat,rr=(3.6+r()*1.4)*K;
     if(pres(x,z,RH+rr+45))continue;ob.push({x:x,z:z,y:dnHauteur(x,z)-3,h:(40+r()*36)*K,r:rr,a:r()*6.28});}
   const pyrs=dnPyr3(S,K,RH,r,null);
+  if(!DN_BATI)ob.length=0;
   return {ob:ob,pyr:pyrs[0],pyrs:pyrs};}
 /* (2026-10-20, LE DÉSERT AU HASARD) les décors qui OMBRENT et qui TUENT, selon le tirage D (ici ou dans le travailleur) : l'allée (en paires, d'un côté,
    alternée, brisée), les épars, 0 à 3 pyramides, les grands monuments `mo` (sphinx, colosses, temple, portes : un cylindre pour la collision et l'ombre).
@@ -322,6 +326,7 @@ function dnPrevoirDeco(S,sQ,K,RH,D){
     ob.push({x:q.x,z:q.z,y:dnHauteur(q.x,q.z)-3,h:(40+rp()*36)*K*(br?.2+rp()*.35:1),r:rr,a:rp()*6.28,br:br?1:0});}
   {const P3=dnPyr3(S,K,RH,rp,D.pyr.map(function(p){return p.st;}));for(const P of P3)pyrs.push(P);}                  // LES TROIS PYRAMIDES (autour du portail)
   /* (ARRAKIS, 2026-11-05) plus de grands monuments : ni sphinx, ni colosses, ni temple, ni portes de pierre : la liste des monuments ne reçoit plus que les scènes (dunes-4.js) */
+  if(!DN_BATI)ob.length=0; /* (2026-11-08) plus d'obélisques ni de monolithes épars : que du sable */
   return {ob:ob,pyr:pyrs[0]||null,pyrs:pyrs,mo:mo};}
 /* L'OMBRE (grille de 44-60 m, le domaine fin + 1,4 km) : hS(p) = max(H, hS) relu 2 cases plus près du soleil − 2 cases × tan(hauteur), comme cyOmbre —
    les obélisques et la pyramide lèvent la hauteur (ils ombrent le sable) */
@@ -553,7 +558,7 @@ function buildDunes(seed,pre){
 /* le travailleur : les fonctions du MONDE recopiées par leur source (une seule écriture : elles servent aussi ici, à la collision) */
 function dnTravailleur(){if(DN.w!==undefined)return DN.w;
   try{const fns=[mulberry32,cyNz,cyNzS,cyBil,dnLis,dnDune,dnMesa,dnGeant,dnFar,dnHauteur,dnPf,dnProfil,dnPyr3,dnPrevoir,dnPrevoirDeco,dnOmbre,dnMondeCalc].map(function(f){return f.toString();}).join('\n');
-    const code="'use strict';var CY={},DN={},DN_O9={},DN_STAR="+DN_STAR+",DN_PTE="+DN_PTE+",DN_PK="+DN_PK+",DN_FORME="+JSON.stringify(DN_FORME)+",DN_IMM="+JSON.stringify(DN_IMM)+",PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
+    const code="'use strict';var CY={},DN={},DN_O9={},DN_BATI="+DN_BATI+",DN_STAR="+DN_STAR+",DN_PTE="+DN_PTE+",DN_PK="+DN_PK+",DN_FORME="+JSON.stringify(DN_FORME)+",DN_IMM="+JSON.stringify(DN_IMM)+",PAL={B:{},b:function(k,d){return PAL.B[k]!=null?PAL.B[k]:d;}};\n"+fns+
       "\nonmessage=function(e){var m=e.data;CY={nz:m.nz};DN={};PAL.B=m.opt.pal;var R=dnMondeCalc(m.S,m.opt);R.job=m.job;"+
       "postMessage(R,[R.Z.d.buffer,R.F.c.buffer,R.O.h.buffer]);};";
     const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));

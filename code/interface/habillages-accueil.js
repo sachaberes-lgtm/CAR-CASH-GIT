@@ -105,7 +105,8 @@ function closeGarage(resetSuit){
   if(pigGroup)pigGroup.visible=true;
   if(!resetSuit)buildCar(CARS[level||0]);   // remet la caisse du menu (resetSuit : resetGame la rebâtit dans la même image)
   camera.up.set(0,1,0);
-  frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);camera.lookAt(F.p);
+  /* (2026-11-08, Sacha : « quand je clique sur réglages ça m'envoie ici ») le ⚙ du garage ouvre RÉGLAGES par closeGarage : sans piste bâtie (le menu en chute n'en a pas), frameAt lisait pts[0] et PLANTAIT ici, avant la dernière ligne — l'overlay ne s'affichait jamais, on restait sur le monde nu. Sans piste, la caméra reste où elle est. */
+  if(NP>1&&L>0){frameAt(0,F);camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);camera.lookAt(F.p);}
   document.body.classList.remove('garMenuH');overlay.style.display='flex';
 }
 /* L'APERÇU DE TRAÎNÉE AU GARAGE (2026-09-25, user : « on ne voit pas la traînée de nitro derrière la voiture dans le

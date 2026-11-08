@@ -508,6 +508,11 @@ function enCoursPose(){
   }catch(e){return false;}
 }
 function enCoursRetire(){try{if(SAVE.d&&SAVE.d.enCours){delete SAVE.d.enCours;SAVE.flush();}}catch(e){}} // l'appli est revenue : la partie continue, c'est elle qui versera
+/* (2026-11-08, Sacha : « là il y a la musique alors que je suis mort ») L'ÉCRAN DE MORT EST MUET : la musique de la course s'éteint au crash (explode,
+   tape-stop) et plus rien ne repart dessous — avant, 1,4 s après la mort, le lobby du menu y jouait le morceau de la PROCHAINE course. La musique
+   revient avec REJOUER (sa course), CONTINUER (le même morceau) ou le retour au menu, au garage, aux missions (accueilRetour → musicMenu).
+   `?mortmusique=1` = avant. */
+const MORT_MUSIQUE=/[?&]mortmusique=1\b/.test(location.search);
 function endGame(){
   try{dmtCoupe();}catch(e){} /* (2026-11-07, chasse GP-N01) QUITTER pendant un demi-tour : le panneau MAUVAIS SENS restait sur l'écran de fin */
   nitroOn=false;nitroBlue=false; // (2026-10-14, revue des idées de Léo) mort nitro tenue : nitroOn restait vrai au garage et au ciel — le DOGE gardait sa gueule de nitro, grande ouverte, jusqu'à la partie suivante
@@ -522,7 +527,7 @@ function endGame(){
   try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
   try{wakeLache();}catch(e){} /* (2026-11-07) la course est finie : l'écran peut se rendormir */
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
-  musicStop(true);setTimeout(function menuApres(){if(!gameOver)return;if(PUBR.on||ecranWipe._on){setTimeout(menuApres,400);return;}musicMenu();},1400); /* (chasse aux bugs) CONTINUER touché avant 1,4 s : le lobby ne repart pas PAR-DESSUS la pub récompensée (pubSilence l'a fait taire) ni sous le volet d'une reprise — il attend qu'ils rendent la main */ // TAPE-STOP de fin, puis la musique du menu revient, étouffée
+  musicStop(true);if(!MORT_MUSIQUE)musicMode='none';else setTimeout(function menuApres(){if(!gameOver)return;if(PUBR.on||ecranWipe._on){setTimeout(menuApres,400);return;}musicMenu();},1400); /* (chasse aux bugs) CONTINUER touché avant 1,4 s : le lobby ne repart pas PAR-DESSUS la pub récompensée (pubSilence l'a fait taire) ni sous le volet d'une reprise — il attend qu'ils rendent la main */ // TAPE-STOP de fin, puis la musique du menu revient, étouffée
   lastAlertEl.style.display='none';vChip('');for(const l9 of gyroLights)l9.intensity=0; // la poursuite s'éteint avec la caisse — (2026-09-30) et la plaque du Survivant au téléphone
   botJetLight.intensity=0;for(const tr9 of botTrails){tr9.init=false;tr9.m.visible=false;}
   if(sirG)sirG.gain.setTargetAtTime(0,AC.currentTime,.3);

@@ -40,7 +40,7 @@
   #avX.feu{animation:avBat .42s ease-in-out infinite alternate,avArc 1.1s linear infinite} /* ×5 et plus : il passe à l'arc-en-ciel */
   #avX.feu.up{animation:avMonte .65s cubic-bezier(.2,1.8,.4,1),avBat .42s ease-in-out .65s infinite alternate,avArc 1.1s linear infinite}
   @keyframes avArc{to{filter:drop-shadow(0 3px 0 #2a0636) drop-shadow(0 0 16px var(--xc,var(--neoM))) hue-rotate(360deg)}}
-  #avCh .avBar{height:6px;width:150px;box-shadow:0 0 10px rgba(255,94,200,.6)}
+  #avCh .avBar{height:6px;width:96px;box-shadow:0 0 10px rgba(255,94,200,.6)}
   #avList{font-size:9px}
   #avGain{font-size:36px;background:linear-gradient(180deg,#fff,var(--aura) 55%,#b14bff);-webkit-background-clip:text;background-clip:text;
     color:transparent;text-shadow:none;filter:drop-shadow(0 4px 0 #2a0636) drop-shadow(0 0 18px rgba(255,90,220,.85))}
@@ -171,7 +171,9 @@
   @media (prefers-reduced-motion:reduce){html.han #avRec.presque i::after,html.han #avRec.battu s::before{animation:none!important}}
   /* R4 — LA CHAÎNE : elle s'ENVOLE dans le compteur quand elle s'encaisse, elle se BRISE quand on la perd */
   body #avCh{margin-top:14px}
-  body #avCh .avBar{width:160px}
+  body #avCh{width:fit-content;max-width:100%} /* (2026-11-08, Sacha : « cette barre est 4 fois trop longue ») la plaque se serre sur « 210 ×3 » */
+  body #avCh .avBar{width:0;min-width:100%;max-width:100%;overflow:hidden} /* la barre ne compte pas dans la largeur : elle fait EXACTEMENT celle du score, quelle que soit l'échelle (avant : 160 puis 96 px fixes) */
+  body #avCh #avList{width:0;min-width:100%;white-space:nowrap} /* la liste des gestes déborde au besoin : elle n'élargit pas la plaque */
   body #avCh .avBar.urg i{background:var(--danger);animation:avUrg .18s steps(2) infinite}
   @keyframes avUrg{50%{opacity:.35}}
   body #avList{font-size:10px;line-height:1.9}

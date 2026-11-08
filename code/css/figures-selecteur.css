@@ -57,13 +57,11 @@ html[data-reduced-motion] #fsUndo{transition:none}
 #ivDock .fsNom{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-width:100%;overflow:hidden;overflow-wrap:break-word;text-align:center;font-weight:400;font-size:9px;line-height:11px;color:var(--tx)}
 #ivDock .fsHex.vide .fsCase{background:rgba(154,144,200,.32)}
 #ivDock .fsHex.vide .fsNom{color:var(--kl2)}
-#ivDock .fsHex.cible .fsCase{background:#fff;animation:fsBat .8s var(--ease) infinite alternate}
+#ivDock .fsHex.cible .fsCase{background:#fff}
 #ivDock .fsHex.cible .fsNom{color:#fff}
 #ivDock .fdRow:has(.cible) .fsHex:not(.cible){opacity:.5}
 #ivDock .fsHex.flash .fsCase{animation:fsFlash .6s var(--ease)}
-#ivDock .fsHex .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
-#ivDock .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
-#ivDock .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
+#ivDock .fsHex .fgIl{transform:scale(.72)}
 @media (prefers-reduced-motion:reduce){#ivDock .fsHex.cible .fsCase,#ivDock .fsHex.flash .fsCase,#ivDock .fsHex .fgIl>.fgCv{animation:none!important}}
 html[data-reduced-motion] :is(#ivDock .fsHex.cible .fsCase,#ivDock .fsHex.flash .fsCase,#ivDock .fsHex .fgIl>.fgCv){animation:none!important}
 
@@ -86,7 +84,7 @@ html[data-reduced-motion] .ivT.eq .fgIl>.fgCv{animation:none!important}
 #bqFigSel .fsCase{width:54px;height:47px}
 #bqFigSel .fsJoy{left:calc(50% - 42px);top:-5px}
 #bqFigSel .fsNom{font-size:9px;line-height:11px;overflow-wrap:break-word}
-#bqFigSel .fsHex.cible .fsCase{background:var(--dc);animation:bqFsBat .8s var(--ease) infinite alternate}
+#bqFigSel .fsHex.cible .fsCase{background:var(--dc)}
 #bqFigSel .fsRow:has(.cible) .fsHex:not(.cible){opacity:.5}
 @keyframes bqFsBat{from{filter:none}to{filter:brightness(1.18) saturate(1.2)}}
 #bqFigSel .fsBar{padding-top:0}
@@ -111,7 +109,7 @@ html body #garage #gAct>#gBqBtn .bqBtnT small{max-width:100%;overflow:hidden;tex
 #gFigSel .fsJoy{left:calc(50% - 42px)}
 #gFigSel .fsNom{font-size:9px;line-height:11px;min-height:0;max-height:22px;white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:break-word}
 #gFigSel.arme .fsHex.cible{opacity:1}
-#gFigSel .fsHex.cible .fsCase{background:#fff;animation:fsBat .8s var(--ease) infinite alternate}
+#gFigSel .fsHex.cible .fsCase{background:#fff}
 #gFigSel .fsHex.cible .fsNom{color:#fff}
 @media (prefers-reduced-motion:reduce){#gFigSel .fsHex.cible .fsCase{animation:none}}
 html[data-reduced-motion] #gFigSel .fsHex.cible .fsCase{animation:none}
@@ -143,4 +141,6 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{display:fl
   #gFigSel .fsHex{min-height:60px}
   #gFigSel .fsCase{width:46px;height:40px}
 }
+#gFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08) anneau rentré comme la boutique : plus de liseré mordu, plus d animation */
 </style>
+#bqFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08) la grande case (56 × 48) : anneau rentré, plus de liseré mordu */

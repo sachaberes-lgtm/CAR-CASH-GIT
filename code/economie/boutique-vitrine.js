@@ -62,7 +62,7 @@ function peintCarte(d){let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;
   return h;}
 /* « OU GAGNE-LA » sous le nom de la peinture regardée (#gBqNom) : la phrase du défi, sa jauge (un exploit d'un coup n'en a pas) */
 function peintDefHtml(d){const f=d&&d.def;if(!f||shopOwned('peinture',d.id))return '';const v=peintDefVal(f),p=v<0?0:Math.min(1,v/peintDefSeuil(f));
-  return '<span class="m2Deb pDeb"><span class="m2DebT">'+pxi('cible')+' '+sansAcc(TR('À GAGNER'))+' : '+(f.k==='gagne'?moDans(sansAcc(TR(f.t)).toUpperCase(),f.v):sansAcc(TR(f.t)).toUpperCase())+'</span>'
+  return '<span class="m2Deb pDeb"><span class="m2DebT">'+pxi('cible')+' '+sansAcc(TR('À GAGNER'))+' : '+sansAcc(TR(f.t)).toUpperCase()+'</span>'
     +(v<0?'':'<span class="m2DebB"><u><em style="width:'+Math.round(p*100)+'%"></em></u><b>'+peintDefNb(f,v)+'</b></span>')+'</span>';}
 window.dbgDefisPeint=function(){return COSM.peinture.filter(function(d){return d.def;}).map(function(d){const v=peintDefVal(d.def);return {id:d.id,r:d.r,defi:d.def.t,val:v,seuil:d.def.k==='b'||d.def.k==='serie'?null:peintDefSeuil(d.def),a:shopOwned('peinture',d.id)};});};
 /* ===== LES TRAÎNÉES EN VITRINE (2026-11-05, Sacha : « retravaille la présentation des traînées dans le même esprit » que le nuancier v3) =====
@@ -98,7 +98,7 @@ function figDesc(f,lg){const en=lg==='en'||lg==='zh'; // (2026-10-14, textes) BI
   const av=D.indexOf('avant')>=0,ar=D.indexOf('arriere')>=0;
   return f.m.map(tx).join(' + ')+(en?'. Thumb '+(av&&ar?'FORWARD or BACK':av?'FORWARD':'BACK')+' + double-tap NITRO'+(av&&ar?': the flip goes that way.':'.')
                                     :'. Pouce '+(av&&ar?'en AVANT ou en ARRIÈRE':av?'en AVANT':'en ARRIÈRE')+' + double-tape NITRO'+(av&&ar?' : le salto part dans ce sens.':'.'));}
-COSM.figure=(window.FIG?FIG.liste:[]).map(function(f){return {id:f.id,n:f.n,p:f.p,d:figDesc(f,'fr'),fig:1};});
+COSM.figure=(window.FIG?FIG.liste:[]).map(function(f){return {id:f.id,n:f.n,p:f.p,r:f.r,d:figDesc(f,'fr'),fig:1};}); /* (2026-11-08, Sacha : « ça doit être gris pas bleu ») `r` suivi : le SALTO AVANT est COMMUN (figures.js) ; sans lui cosmRar le recalculait d'après le prix (60 k → rare → bleu) */
 const SHOP_CATS=['voiture','peinture','aile','trainee','figure'];
 const SHOP={tab:'voiture',i:{peinture:0,aile:0,trainee:0},prev:null}; // prev : l'article ESSAYÉ (pas forcément à toi)
 function shopOwned(cat,id){if(cat==='figure')return figPossede(id);if(cousin()){const c9=COSM[cat].find(x=>x.id===id);if(c9&&((!c9.eur&&!c9.def&&(!c9.pack||c9.sec))||cousinTout()))return true;} /* (2026-10-14) LE CODE COUSIN : tous les habillages — (2026-10-24) SAUF ce qui se paie en EUROS (peintures en €, packs PALETTE et CHAT), la règle de Sacha du 14/10 (carEuros) ; les secrètes, gagnables par leur défi, restent offertes ; le reste suit la possession réelle */

@@ -30,6 +30,7 @@ const ETAPES = [
   { n: 'inventaire', tap: '#gvCof', att: 2500 },
   { n: 'inventaire-voitures', tap: '.gTab[data-tab="voiture"]', att: 1500 },
   { n: 'inventaire-peinture', tap: '.gTab[data-tab="peinture"]', att: 1500 },
+  { n: 'inventaire-ailes', tap: '.gTab[data-tab="aile"]', att: 1800 }, /* (2026-11-08) l'onglet AILES : mêmes cases que les voitures */
   { n: 'garage-retour', tap: '#gvCof', att: 1500, sans: 1 },
   { n: 'boutique', tap: '#gShopBas', fx: .82, fy: .84, att: 4500 },
   { n: 'boutique-ailes', tap: '#gBqCats [data-c="aile"]', att: 1500 },
