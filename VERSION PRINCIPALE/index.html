@@ -5958,9 +5958,7 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.p
 .fgIl>.fgAn.mir{transform:scaleX(-1)}
 .fgIl>.fgCv{left:9px;top:9px;--pxs:2;color:#eef3ff;transform-origin:var(--fgO,50% 60%);filter:drop-shadow(0 1px 0 rgba(7,5,15,.7))}
 /* la figure JOUE (la vignette choisie, les cases du sélecteur) : un geste, puis une pause — 3,2 s la boucle, la courbe unique de la charte */
-:is(#gStrip .gT.on,#gFigSel .fsHex) .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
-#gFigSel .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
-#gFigSel .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
+#gStrip .gT.on .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
 @keyframes fgSalto{0%,18%{transform:rotate(0)}62%,100%{transform:rotate(calc(var(--sg,1) * 360deg))}}
 @keyframes fgSalto2{0%,12%{transform:rotate(0) rotateX(0)}72%,100%{transform:rotate(calc(var(--sg,1) * 720deg)) rotateX(360deg)}}
 @keyframes fgRoll{0%,18%{transform:rotate(0)}62%,100%{transform:rotate(calc(var(--sg,1) * 360deg))}}
@@ -7844,10 +7842,8 @@ html[data-reduced-motion] #chDoigt.on .cdMain{transform:translate(3px,10px) rota
 #bqFigSel .fsHex:active{translate:0 2px}
 #bqFigSel .fsCase{position:relative;display:block;width:56px;height:48px;background:color-mix(in srgb,var(--fc) 82%,var(--bqInk));clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);transition:background var(--t-fast) var(--ease)}
 #bqFigSel .fsIn{position:absolute;inset:3px 4px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#fbfcfd,#e9edf1);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
-#bqFigSel .fgIl>.fgCv{color:var(--bqInk);filter:none;animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
+#bqFigSel .fgIl>.fgCv{color:var(--bqInk);filter:none}
 #bqFigSel .fgIl>.fgAn{color:color-mix(in srgb,var(--fc) 62%,var(--bqInk))} /* l'anneau du sens : foncé d'un cran, sinon l'or et le gris des communes se perdent dans le clair */
-#bqFigSel .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
-#bqFigSel .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
 #bqFigSel .fsQ{font-weight:400;font-size:14px;color:var(--bqGris2)}
 #bqFigSel .fsJoy{position:absolute;left:calc(50% - 39px);top:-7px;display:flex;align-items:center;justify-content:center;width:22px;height:22px;background:#fff;color:var(--dc,var(--bqAcc));
   box-shadow:inset 0 0 0 2px var(--bqInk);clip-path:polygon(6px 0,16px 0,22px 6px,22px 16px,16px 22px,6px 22px,0 16px,0 6px);font-style:normal} /* (2026-10-31) la couleur de l'EMPLACEMENT (--dc), la même que sur l'intertitre de sa section plus bas : l'œil relie les deux sans réfléchir */
@@ -10061,13 +10057,11 @@ html[data-reduced-motion] #fsUndo{transition:none}
 #ivDock .fsNom{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-width:100%;overflow:hidden;overflow-wrap:break-word;text-align:center;font-weight:400;font-size:9px;line-height:11px;color:var(--tx)}
 #ivDock .fsHex.vide .fsCase{background:rgba(154,144,200,.32)}
 #ivDock .fsHex.vide .fsNom{color:var(--kl2)}
-#ivDock .fsHex.cible .fsCase{background:#fff;animation:fsBat .8s var(--ease) infinite alternate}
+#ivDock .fsHex.cible .fsCase{background:#fff}
 #ivDock .fsHex.cible .fsNom{color:#fff}
 #ivDock .fdRow:has(.cible) .fsHex:not(.cible){opacity:.5}
 #ivDock .fsHex.flash .fsCase{animation:fsFlash .6s var(--ease)}
-#ivDock .fsHex .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
-#ivDock .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
-#ivDock .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
+#ivDock .fsHex .fgIl{transform:scale(.72)}
 @media (prefers-reduced-motion:reduce){#ivDock .fsHex.cible .fsCase,#ivDock .fsHex.flash .fsCase,#ivDock .fsHex .fgIl>.fgCv{animation:none!important}}
 html[data-reduced-motion] :is(#ivDock .fsHex.cible .fsCase,#ivDock .fsHex.flash .fsCase,#ivDock .fsHex .fgIl>.fgCv){animation:none!important}
 
@@ -10090,7 +10084,7 @@ html[data-reduced-motion] .ivT.eq .fgIl>.fgCv{animation:none!important}
 #bqFigSel .fsCase{width:54px;height:47px}
 #bqFigSel .fsJoy{left:calc(50% - 42px);top:-5px}
 #bqFigSel .fsNom{font-size:9px;line-height:11px;overflow-wrap:break-word}
-#bqFigSel .fsHex.cible .fsCase{background:var(--dc);animation:bqFsBat .8s var(--ease) infinite alternate}
+#bqFigSel .fsHex.cible .fsCase{background:var(--dc)}
 #bqFigSel .fsRow:has(.cible) .fsHex:not(.cible){opacity:.5}
 @keyframes bqFsBat{from{filter:none}to{filter:brightness(1.18) saturate(1.2)}}
 #bqFigSel .fsBar{padding-top:0}
@@ -10115,7 +10109,7 @@ html body #garage #gAct>#gBqBtn .bqBtnT small{max-width:100%;overflow:hidden;tex
 #gFigSel .fsJoy{left:calc(50% - 42px)}
 #gFigSel .fsNom{font-size:9px;line-height:11px;min-height:0;max-height:22px;white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:break-word}
 #gFigSel.arme .fsHex.cible{opacity:1}
-#gFigSel .fsHex.cible .fsCase{background:#fff;animation:fsBat .8s var(--ease) infinite alternate}
+#gFigSel .fsHex.cible .fsCase{background:#fff}
 #gFigSel .fsHex.cible .fsNom{color:#fff}
 @media (prefers-reduced-motion:reduce){#gFigSel .fsHex.cible .fsCase{animation:none}}
 html[data-reduced-motion] #gFigSel .fsHex.cible .fsCase{animation:none}
@@ -10147,6 +10141,7 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{display:fl
   #gFigSel .fsHex{min-height:60px}
   #gFigSel .fsCase{width:46px;height:40px}
 }
+#gFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08) anneau rentré comme la boutique : plus de liseré mordu, plus d animation */
 </style>
 <style id="paufinageBoutons">
 /* ===== LE PAUFINAGE DES BOUTONS (2026-11-07, Sacha : « paufine la disposition des boutons de chaque écran, leurs optimisation, leurs
@@ -10183,6 +10178,10 @@ html #gMis.mbOn.m2land #gmBas .gmHome{flex-direction:row;width:auto;min-width:11
 html #gMis.mbOn.m2land #gmBas .gmHome .pxi{--pxs:2}
 /* la ligne MISSIONS RÉUSSIES : 41 px (le .mcFin à 40 l'emportait sur les 44 du .m2Fin) */
 .m2Fin.mcFin{min-height:44px}
+/* (2026-11-08, Sacha : « en bas les boutons sont penchés, remets les carrés droits ») les touches du bas du garage (INVENTAIRE · MISSIONS · BOUTIQUE · JOUER · ACCUEIL) ne penchent plus : plus de skewX, l'appui descend tout droit */
+html body #garage#garage #gAct#gAct>.pbtn{transform:none!important}
+html body #garage#garage #gAct#gAct>.pbtn:is(:active,.appui){transform:translateY(5px)!important}
+html body #garage#garage #gAct#gAct>.pb-gold:is(:active,.appui){transform:translateY(6px)!important}
 </style>
 <style id="boitesBlister">
 /* (2026-11-07, Sacha : « chaque type d'item doit avoir un système propre ») les BOÎTES ne s'appliquent pas aux affiches de la pellicule des FIGURES (.fgK, interface/boutique-figure.js) : :where() garde la spécificité d'avant */
@@ -11293,7 +11292,7 @@ html body.touch #pwrChip .pw{width:calc(var(--hudColW) / var(--hudK))!important;
 html body.touch #campChip{min-width:calc(var(--hudColW) / var(--hudK));box-sizing:border-box}
 html body.touch.play #cashHud{min-width:var(--hudColW)}
 /* ---- 2. LA CHAÎNE : sa barre finit au bout de la barre du FLOW (la longueur du flow = 34 px d'icône + --ajK de la barre de boost ; ÷ --hudK : l'aura est zoomée) ---- */
-html body.touch #avCh .avBar{width:calc((34px + (100vw - var(--ccL,env(safe-area-inset-left,0px)) - var(--ccR,env(safe-area-inset-right,0px)) - 214px) * var(--ajK,.8)) / var(--hudK))}
+/* (2026-11-08, Sacha : « cette barre est trop longue, je te l ai dit 3 fois ») la barre de la chaîne ne dépend plus de la barre du FLOW : plus de largeur en vw, elle fait la largeur de la plaque « 90 ×2 » (socle-4-aura.css : width:0;min-width:100%) */
 /* ---- 3. LES CENTIMES EN PETIT (cashEcrit : « 8 » puis <small>,21</small>) — le dégradé et le cerne d'encre du nombre les couvrent (ils sont dans le même span) ---- */
 #cashHud .chV span small{font-size:.6em;letter-spacing:-1px;margin-left:-.1em}
 /* ---- 4. L'ENTRÉE EN SCÈNE, complétée : l'argent de la droite (après le ⏸, avant l'aura), la flamme NITRO du bas ---- */
@@ -11312,7 +11311,6 @@ html body #cashHud.b1 .chV{animation-name:hfCashA}html body #cashHud.b2 .chV{ani
 #nxVit.on b,#nxVit.bleu b,#nxVit.inf b{animation:hfVit .28s var(--ease)}
 /* ---- 6. LE PAYSAGE : la barre de la chaîne au bout du flow couché ---- */
 @media (orientation:landscape) and (max-height:540px){
-  html body.touch #avCh .avBar{width:calc((34px + (min(50vw,440px) - 34px) * var(--ajK,.8)) / var(--hudK))}
 }
 /* ---- 7. (2026-11-07, Sacha : « la barre X2 est trop grosse, l'argent est trop proche du pause ») le × de la chaîne en 21 px (il en faisait 30, le double de ses points), sa barre à 5 px ; l'argent démarre 22 px sous le ⏸ (hudColMesure) — ce top ne sert que le temps de la 1re mesure ---- */
 html body.touch #avX{font-size:21px}
@@ -85404,11 +85402,10 @@ function goImmersive(){
     tapT=(performance.now()-tLance)/1000-latV;passee=true;
     try{if(iAC&&iAC.state!=='running')acReveil(iAC);}catch(e){}
     try{if(SON){SON.suite();SON.boum(iAC.currentTime+.02);SON.scintille(iAC.currentTime+.02);}}catch(e){}
-    try{ouvrir();}catch(e){}
     INTROSON.on=true;INTROSON.t0=0; /* le ciel, dessous, reste sans vent jusqu'à l'accueil */
     /* (2026-11-02 nuit, Léo : « la musique commence trop tôt et se coupe direct, puis une autre démarre au ciel » puis « elle ne se lance qu'en fondu à partir du moment où le menu ciel a chargé ») la musique ne part plus pendant « PRESENTS » :
        là, seuls les morceaux en fichiers pouvaient partir, les autres étaient mis en attente (pbjLobby, `fixes`) puis un autre partait à l'accueil. Elle part UNE fois, au ciel (`reveler`), avec le fondu du lobby (4 s) et la montée d'INTROSON. */
-    setTimeout(function(){window.__introCouvre=false;},150);
+    setTimeout(function(){try{ouvrir();}catch(e){}window.__introCouvre=false;},950); /* (2026-11-08, Sacha : « surtout l'explosion de la planète ») le jeu ne reprend la main (ni son réveil, ni le garage) qu'APRÈS l'explosion (0,7 s) : avant, il se remettait à dessiner à 150 ms, en plein dedans */
     ouvreQuandPret();
   }
   /* (2026-11-02, Léo : « ça saccade ») LE VOILE S'OUVRE QUAND LE JEU EST CALME. Mesuré sur son Mac (Safari, cadre 1226 × 566) : de l'appui à +10 s, le ciel se construit sous le voile par images de 0,2 à 1,3 s, puis ~20 i/s ;
@@ -85568,11 +85565,11 @@ function goImmersive(){
      Désormais il attend, derrière le noir et l'anneau de chargement : la page chargée (`load`), la chauffe du son et de la boule faite, puis 40 images de suite sans accroc (< 26 ms chacune). Plafond 14 s (réseau lent : on part quand même). `?calme=0` = l'ancien départ. */
   const CALME_ON=!/[?&]calme=0/.test(location.search)&&!DEPART_LENT;
   let calmeBons=0,calmePrec=0,calmeT0=performance.now();
-  if(CALME_ON){if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher/.test(location.search))window.__introCouvre=true; /* le jeu ne dessine rien derrière le noir pendant l'attente (sinon ses images lourdes empêchent la page d'être calme) */const echant=function(now){if(lance||fini)return;if(calmePrec&&!document.hidden&&now-calmePrec<26)calmeBons++;else calmeBons=0;calmePrec=document.hidden?0:now;requestAnimationFrame(echant);};requestAnimationFrame(echant);}
+  if(CALME_ON){const echant=function(now){if(lance||fini)return;if(calmePrec&&!document.hidden&&now-calmePrec<40)calmeBons++;else calmeBons=0;calmePrec=document.hidden?0:now;requestAnimationFrame(echant);};requestAnimationFrame(echant);}
   function pageCalme(){
     if(!CALME_ON||performance.now()-calmeT0>14000)return true;
     if(document.readyState!=='complete'||!chauffeOk)return false;
-    return calmeBons>=40;
+    return (window.__imagesJeu|0)>=3&&calmeBons>=40; /* le jeu a lié ses programmes ET dessiné ses premières images (c'est ça, la chauffe qui gelait l'explosion) */
   }
   function essaiAuto(n){ /* attendre que le DOM soit prêt, la police du film chargée et la fenêtre visible */
     if(lance||fini)return;

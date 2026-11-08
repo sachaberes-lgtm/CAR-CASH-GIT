@@ -22,10 +22,13 @@ const SAVE = { v: 2, sfx: false, mus: false, vox: false, tuto: 1, permis: 1, ban
       try { const r = await c.ev(`(function(){const e=window.dbgIntro&&window.dbgIntro.etat();return e&&e.lance?Math.round(performance.now()-(e.t||0)*1000):null})()`, 4000); if (r !== null && r !== undefined) lance = r; } catch (e) {}
     }
     console.log("diag", await c.ev(`JSON.stringify({intro:window.__intro,dbg:typeof window.dbgIntro,err:window.__introErr,sp:!!document.getElementById("splash"),rs:document.readyState,href:location.href})`, 4000));
-    await dormir(4200);
+    await dormir(6500); /* la boule est prête (4,6 s) : l'appui, puis 3,5 s d'explosion et de PRESENTS */
+    const tap = await c.ev(`(function(){var sp=document.getElementById('splash');sp.dispatchEvent(new MouseEvent('click',{bubbles:true}));return Math.round(performance.now())})()`, 4000);
+    await dormir(3500);
     const cal = await c.ev(`JSON.stringify(window.dbgIntro&&window.dbgIntro.calme?window.dbgIntro.calme():null)`, 4000);
     const fr = JSON.parse(await c.ev(`JSON.stringify(window.__fr||[])`, 8000));
     const apres = fr.filter(x => x[0] >= lance && x[0] < lance + 4000), longues = apres.filter(x => x[1] > 33);
-    console.log(JSON.stringify({ q: A.q || '(défaut)', filmPartiA_ms: lance, images4s: apres.length, longues: longues.length, pire_ms: Math.max(0, ...apres.map(x => x[1])), detail: longues.slice(0, 8), calme: cal }));
+    const expl = fr.filter(x => x[0] >= tap && x[0] < tap + 3000), explLongues = expl.filter(x => x[1] > 40);
+    console.log(JSON.stringify({ q: A.q || '(défaut)', filmPartiA_ms: lance, images4s: apres.length, longues: longues.length, pire_ms: Math.max(0, ...apres.map(x => x[1])), detail: longues.slice(0, 8), calme: cal, appui: { images3s: expl.length, longues: explLongues.length, pire_ms: Math.max(0, ...expl.map(x => x[1])), detail: explLongues.slice(0, 8) } }));
   } finally { try { c.close(); } catch (e) {} tueChrome(ch); srv.close(); }
 })();
