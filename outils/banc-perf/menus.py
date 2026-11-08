@@ -14,10 +14,10 @@ def fen(c,sec):
     c.ev("window.__F.length=0;window.__Fon=true;1");c.pump(sec);F=c.ev("window.__Fon=false;window.__F.slice()") or []
     F=F[1:] or [0]
     return {'is':round(len(F)/(sum(F)/1000),1) if sum(F) else 0,'pire':round(max(F)),'longues':sum(1 for x in F if x>100),'n':len(F)}
-def lire(c,nom,sec=3):
+def lire(c,nom,sec=2):
     c.ev("dbgCout(1);1");c.pump(.5)
-    f=fen(c,sec)
-    try:d=json.loads(c.ev(LIT))
+    c.ev("dbgCout(1);1");f=fen(c,sec)
+    try:d=json.loads(c.ev(LIT));d['dessinsParS']=round(((d.get('cpu') or {}).get('n') or 0)/sec,1)
     except Exception as e:d={'erreur':str(e)}
     c.ev("dbgCout(0);1");d.update(f);d['ecran']=nom;
     d['pixels']=(d.get('toile') or [0,0])[0]*(d.get('toile') or [0,0])[1]
@@ -32,6 +32,7 @@ def main():
         elif a=='--json':OPT['json']=av[i+1];i+=2
         elif a=='--shots':OPT['shots']=av[i+1];i+=2
         elif a=='--js':OPT['js'].append(av[i+1]);i+=2
+        elif a=='--ab':OPT['ab']=1;i+=1
         elif a=='--cpu':OPT['cpu']=int(av[i+1]);i+=2
         else:i+=1
     http=G.libre();port=G.libre();RAC=os.path.dirname(os.path.dirname(ICI));VP=os.path.join(RAC,'VERSION PRINCIPALE')
@@ -58,13 +59,18 @@ def main():
         c.call('Page.navigate',url=base+'/index.html?garde=1&palier=2&tel=1&pistegraine=777'+OPT['qs'])
         if not G.attend(c,"!!window.__gameReady&&typeof dbgState==='function'",240):print('jeu ne demarre pas');return 2
         t=time.time()
-        while time.time()-t<60 and not c.ev("document.body.className.indexOf('inGarage')>=0||(function(){var e=[].slice.call(document.querySelectorAll('.mPlay')).filter(function(x){return x.getBoundingClientRect().width>0})[0];return !!e})()"):
-            G.tap(c,195,300);c.pump(1.2)
+        while time.time()-t<120 and not c.ev("!window.__introCouvre&&(window.__imagesJeu|0)>5"):
+            G.tap(c,195,300);c.pump(1.5)
         G.attend(c,"dbgPrebati().etat==='pret'",60);c.pump(8) # la chauffe du menu passe d'abord
         c.call('Emulation.setCPUThrottlingRate',rate=OPT['cpu'])
-        print(c.ev("JSON.stringify({vhdOn:dbgVHD().on,garage:garageOn,ecran:document.getElementById('overlay').dataset.ecran,body:document.body.className.slice(0,60)})"))
+        print(c.ev('JSON.stringify(dbgHC())'))
         for j in OPT['js']:print('JS>',j[:60],'=>',c.ev(j))
         if OPT['js']:return 0
+        if OPT.get('ab'):
+            c.ev("GAR&&0;1");c.pump(1)
+            for nom,v in (('A-cull',1),('B-nocull',0),('C-cull',1)):
+                c.ev("dbgMenuCull(%d);1"%v);c.pump(2);c.shot('/tmp/p5/ab-%s.png'%nom);print(nom,c.ev("JSON.stringify(dbgMenuCull())"))
+            return 0
         R.append(lire(c,'1-accueil'))
         # garage
         print(c.ev("(function(){try{if(!garageOn)openGarage();}catch(e){return String(e)}return 'ok'})()") ) if False else None
@@ -75,11 +81,14 @@ def main():
         c.ev("window.__F.length=0;window.__Fon=true;(function(){var g=document.getElementById('ivGrille'),n=0;window.__sc=setInterval(function(){g.scrollTop+=60;if(++n>40){clearInterval(window.__sc);}},60);})();1");c.pump(3.2)
         F=(c.ev("window.__Fon=false;window.__F.slice()") or [0])[1:]
         d={'ecran':'3b-defilement','pire':round(max(F or [0])),'longues':sum(1 for x in F if x>100),'n':len(F),'is':round(len(F)/(sum(F)/1000),1) if sum(F) else 0};print(json.dumps(d));R.append(d)
-        c.ev("invFerme&&invFerme();1") ;c.pump(1.5)
+        c.ev("dbgInv('ferme');1");c.pump(1.5)
         # boutique : ouverture
-        c.ev("window.__F.length=0;window.__Fon=true;(function(){try{if(garageOn){window.__mRetour='shop';ecranWipe(function(){closeGarage();},function(){window.__mGo('shop');});}else window.__mGo('shop');}catch(e){window.__eb=String(e)}})();1");c.pump(3.5)
+        c.ev("window.__F.length=0;window.__Fon=true;1")
+        pt=c.ev("(function(){var e=[].slice.call(document.querySelectorAll('[data-m=shop]')).filter(function(x){return x.getBoundingClientRect().width>0})[0];if(!e)return null;var b=e.getBoundingClientRect();return [b.left+b.width/2,b.top+b.height/2]})()")
+        if pt:G.tap(c,pt[0],pt[1],.12)
+        c.pump(4)
         F=(c.ev("window.__Fon=false;window.__F.slice()") or [0])[1:]
-        d={'ecran':'4a-boutique-ouverture','pire':round(max(F or [0])),'longues':sum(1 for x in F if x>100),'n':len(F),'is':round(len(F)/(sum(F)/1000),1) if sum(F) else 0,'ecranDom':c.ev("document.getElementById('overlay').dataset.ecran"),'err':c.ev("window.__eb||null")};print(json.dumps(d));R.append(d)
+        d={'ecran':'4a-boutique-ouverture','pire':round(max(F or [0])),'longues':sum(1 for x in F if x>100),'n':len(F),'bouton':pt,'ecranDom':c.ev("document.getElementById('overlay').dataset.ecran")};print(json.dumps(d));R.append(d)
         c.pump(6)
         R.append(lire(c,'4b-boutique'))
         if OPT['json']:json.dump(R,open(OPT['json'],'w'),indent=1)
