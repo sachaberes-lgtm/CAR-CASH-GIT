@@ -49,3 +49,15 @@ Branche locale `perf3/P3` (worktree `~/cash-car/perf3/wt/P3`, base origin/main c
 2. Nuages : A/B au pixel de moba avec `dbgImgDiff` (le témoin d'`dbgImgEmpreinte` varie à cause des nuages animés).
 3. Vérifier au jeu si `canyon décor` (164k triangles) reste dessiné dans la grotte après canyon → forêt → grotte (vu au banc avec `dbgClassique` enchaînés ; peut être un artefact du banc ; `cyLiberer`/`cyEteindre` ne sont appelés que par `cyBatitG`).
 4. Intégration : `sw.js` +1 par l'intégrateur ; les gardes burnout/charte/allège/démarrage + `--verifier` passent sur chaque commit.
+
+## 7. Addendum (8/11) — la fusion des maillages statiques : gisement MESURÉ < 30 appels, arrêt
+Appels de dessin d'une image par origine (sonde brute `dbgAppelsBrut`, p2 émulé, instant 1800 m ; `champ-p2.json`) :
+| map | total | ombre | caisse (déjà soudée : 1/matière) | piste (tranches) | instanciés | ShaderMaterial décor | plaques turbo + fruits (ajoutés au vol) | traînées animées | points/lignes/sprites | autres statiques |
+|---|---|---|---|---|---|---|---|---|---|---|
+| nuages | 88 | 4 | 20 | 10 | 18 | 11 | 6 | 6 | 6 | 7 |
+| dunes | 74 | 4 | 22 | 10 | 6 | 6 | 6 | 5 | 7 | 8 |
+| canyon | 80 | 4 | 23 | 10 | 11 | 6 | 6 | 5 | 7 | 8 |
+| forêt | 112 | 4 | 20 | 25 | 23 | 20 | 2 | 5 | 5 | 8 |
+| grotte | 82 | 4 | 21 | 17 | 9 | 5 | 6 | 5 | 6 | 9 |
+Les seuls appels « statiques posés par la carte, de même matière, fusionnables » sont les **tranches de piste** (10 à 25 : bitume / flancs / rails / nappe / ligne × 2-5 tranches visibles) — encore faudrait-il garder le tri par le champ de vision et le LOD plein/moyen/maigre de C3 : une seule géométrie par matière avec un `drawRange` sur la plage CONTIGUË des tranches visibles par classe de LOD (3 appels par matière au lieu de N) ; au mieux −6 à −15 appels (≈ 8-14 %), pour un chantier sur `pisteTranches`/`pisteLoin`/pré-bâti/libération. Les instanciés (6-23) sont déjà un appel par famille ; la caisse est soudée ; nuages v8/coton sont animés, transparents et triés ; les plaques/fruits sont des meshes au vol.
+→ **gisement < 30 appels (10-25) et gain réaliste 6-15 : pas de ÷2 possible par fusion statique.** Arrêt, comme demandé. Mesures de coût : 73-113 appels/image restent le plancher de ce moteur sans changer l'image.
