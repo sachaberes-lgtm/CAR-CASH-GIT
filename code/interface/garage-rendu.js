@@ -55,6 +55,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   if(GAR.flick){const b9=Math.sin(t9*13.7)*Math.sin(t9*4.3)+Math.sin(t9*31.1)*.4;
     const on9=b9>-.55||Math.random()<.02;
     GAR.flick.t.visible=on9;GAR.flick.h.visible=on9;}
+  if(GAR.enseigne){const E9=GAR.enseigne;E9.u.value=t9;const large=camera.aspect>1.15; /* l'image réelle (le cadre téléphone de l'ordi reste debout même dans une fenêtre large) */if(E9.ligne.visible!==large){E9.ligne.visible=large;E9.pile.visible=!large;}} // (2026-11-08) l'éclat qui traverse l'enseigne CASH CAR du mur du fond ; ligne pleine largeur en paysage, pile CASH/CAR en portrait
   for(let i=0;i<GAR.neons.length;i++) // le néon respire (le tube rose bat un peu plus fort que le $)
     GAR.neons[i].material.opacity=.8+.2*Math.sin(t9*(2.1+i*1.7)+i)+(Math.random()<.006?-.5:0);
   if(GAR.drop){GAR.drop.rotation.z=Math.sin(t9*.83)*.045;GAR.drop.rotation.x=Math.cos(t9*.61)*.035;} // la baladeuse balance
