@@ -55,14 +55,11 @@ Branche `boutique-affichage` (locale : rien n'est poussé, rien n'est envoyé à
 - Les paliers de prix d'Apple (point b.3).
 - Le dossier `app-ios/www/` de cette branche vient de `ios-capacitor` : il ne contient pas encore le pont d'achats. Il est refait par `npm run sync` (point c.1) ; on ne l'a pas lancé ici.
 
-## e. BLOQUANT CONNU, ANTÉRIEUR À CE TRAVAIL : l'app ne se construit pas
-`app-ios/ios/App/App/JeuViewController.swift`, ligne 36 : `override var prefersHomeIndicatorAutoHidden: Bool { true }` **ne compile pas** avec Capacitor 8.5.3 (la propriété y est déclarée `public`, pas `open`, donc interdite à surcharger depuis l'app). Elle vient du correctif IOS-21 du 05/11, « à vérifier le jour Mac ». Tant que ce n'est pas tranché, ni ▶ ni l'archive ne marchent. Deux issues, qui changent le comportement de la barre d'accueil de l'iPhone, donc **à toi de décider** :
-- supprimer la ligne et laisser le module SystemBars de Capacitor 8 gérer la barre (selon sa configuration) ;
-- ou appeler `setNeedsUpdateOfHomeIndicatorAutoHidden` avec la configuration voulue.
-
-Note du relecteur final : `app-ios/capacitor.config.json` contient déjà `SystemBars.hidden:true`, et le commentaire de `JeuViewController.swift` lignes 34-36 (« SystemBars… aucun module installé (inerte) ») est **faux sous Capacitor 8** : SystemBars y est intégré, c'est justement pour cela que la surcharge de `prefersHomeIndicatorAutoHidden` est refusée. Supprimer cette ligne garde donc probablement l'indicateur d'accueil caché (à vérifier sur un iPhone) — décision à toi / au propriétaire de l'app ; le Swift n'a pas été modifié ici.
-
-Preuve : avec cette seule ligne mise en commentaire pendant l'essai, la cible compile (simulateur, 0 erreur et 0 avertissement dans `Achats.swift`). La ligne n'a pas été touchée dans les commits. Rappel pour la suite : quand le binaire avec les achats part en production, noter son numéro de version et le passer à `publier-maj.js --natif-min` pour toute mise à jour en direct (point b.7).
+## e. ~~BLOQUANT~~ RÉSOLU LE 08/11 : l'app se construisait mal à cause d'une ligne (corrigé)
+`app-ios/ios/App/App/JeuViewController.swift`, ancienne ligne 36 : `override var prefersHomeIndicatorAutoHidden: Bool { true }` ne compilait pas avec Capacitor 8.5.3 (propriété `public`, pas `open`, donc non surchargeable depuis l'app ; elle venait du correctif IOS-21 du 05/11). **La ligne est supprimée** : sous Capacitor 8 le plugin SystemBars est intégré et lit `SystemBars.hidden:true` de `app-ios/capacitor.config.json`.
+Preuve : `xcodebuild -scheme App -sdk iphonesimulator -configuration Debug CODE_SIGNING_ALLOWED=NO build` → **BUILD SUCCEEDED**, 0 erreur et 0 avertissement dans `Achats.swift` et `JeuViewController.swift` (essai fait avec les fichiers générés `config.xml`, `capacitor.config.json`, `public/` et `node_modules` empruntés à `~/cash-car/ios-capacitor`, retirés après ; `npm run sync` n'a pas été lancé).
+**À vérifier sur l'appareil au premier lancement : l'indicateur d'accueil (la barre en bas) doit rester effacé.** S'il réapparaît : appeler `setNeedsUpdateOfHomeIndicatorAutoHidden` dans `capacitorDidLoad()` avec la configuration voulue, ou rétablir une surcharge compatible.
+Rappel pour la suite : quand le binaire avec les achats part en production, noter son numéro de version et le passer à `publier-maj.js --natif-min` pour toute mise à jour en direct (point b.7).
 
 ## f. POINTS À SAVOIR (choix faits ou défauts connus, rien de grave pour v1.0)
 - **RESTAURER** distingue maintenant l'échec (« RESTAURATION IMPOSSIBLE, RÉESSAIE ») de « AUCUN ACHAT À RESTAURER » ; le démarrage, lui, reste silencieux en cas d'échec.

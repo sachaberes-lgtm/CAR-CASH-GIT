@@ -2,7 +2,7 @@
 - **Ce qui change pour le build à venir** : la boutique en € **revient** dans l'app (92 produits non consommables : 10 caisses + 82 peintures,
   achat par Apple/StoreKit, bouton RESTAURER MES ACHATS). Les anciens passages de ce fichier qui disent « boutique en $ / tout en argent du jeu,
   aucun € », « Achats intégrés : aucun » ne sont **plus vrais pour ce build** (ils décrivent le build d'avant, laissés tels quels comme historique).
-- **Tout ce que Sacha doit faire, comment tester, ce qui n'est pas vérifié, et le bloquant de compilation `JeuViewController.swift`
+- **Tout ce que Sacha doit faire, comment tester, ce qui n'est pas vérifié, et le point de compilation `JeuViewController.swift` (résolu le 08/11)
   (`prefersHomeIndicatorAutoHidden`, Capacitor 8.5.3)** : voir `passation/ACHATS-APP-STORE.md`.
 - La fiche (`app-ios/fiche/`) et `passation/regard-apple.md` sont à jour : achats intégrés = Oui, confidentialité inchangée (« aucune donnée
   collectée », les paiements passent par Apple), pas de serveur.
