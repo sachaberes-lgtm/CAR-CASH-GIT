@@ -77734,6 +77734,7 @@ function chuteRender(dt){
       const wasStarted=started;GAR.go=null;CHUTE.go=null;carGroup.scale.set(1,1,1);
       closeGarage(wasStarted);
       if(wasStarted)resetGame();else{start();fireLaunchBoost();}
+      voileSerpent(false); /* (2026-11-09, sortie du jeu : joueur neuf, JOUER tapé pendant la chauffe) le voile blanc du serpent que departAttend allume après 250 ms ne s'éteignait JAMAIS sur ce chemin (le piqué du ciel) : la course se jouait sous un écran blanc. Comme garage-rendu.js, on le lève sur la piste. */
       /* le nuage se déchire SUR la piste — (2026-10-15) après la 1re image de la course RENDUE (deux rAF, au lieu d'un minuteur de 60 ms qui
          pouvait découvrir une image pas encore dessinée), en s'ouvrant vers nous */
       requestAnimationFrame(function(){requestAnimationFrame(function(){v.style.transition='opacity .6s var(--ease,cubic-bezier(.32,.72,0,1)),transform .6s var(--ease,cubic-bezier(.32,.72,0,1))';v.style.opacity='0';v.style.transform='scale(1.6)';});});

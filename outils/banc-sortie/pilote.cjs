@@ -1,0 +1,93 @@
+/* ===== LE PILOTE DE SORTIE (2026-11-08, Sacha : « règle tout ce qui manque pour le sortir ») =====
+   Un Chrome headless MUET piloté au toucher (téléphone émulé) ou à la souris (ordinateur), qui relève tout ce qui va mal :
+   exceptions JS, console.error / warn, requêtes en échec ou en 4xx/5xx, et prend des photos. Il part d'un joueur NEUF (pas de sauvegarde,
+   sinon seulement le son coupé) : le chemin que verra le premier joueur, intro comprise.
+   node outils/banc-sortie/pilote.cjs [--jeu "<dossier du jeu>"] [--w 390] [--h 844] [--q "lang=en"] [--langue fr|en] [--sortie <dossier photos>]
+        [--scenario premiere|ecrans] [--http 9811] [--cdp 9812]
+   ⚠ Ports libres exigés ; Chrome n'ouvre jamais le son (--mute-audio) ; il ne tue que SON Chrome. */
+const path = require('path');
+const fs = require('fs');
+const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir, tmp } = require('../banc-trainees/cdp.cjs');
+const A = {}; for (let i = 2; i < process.argv.length; i += 2) A[process.argv[i].replace(/^--/, '')] = process.argv[i + 1];
+const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRINCIPALE'));
+const W = +(A.w || 390), H = +(A.h || 844), P_HTTP = +(A.http || 9811), P_CDP = +(A.cdp || 9812);
+const SORTIE = path.resolve(A.sortie || path.join(require('os').tmpdir(), 'pilote-sortie')); fs.mkdirSync(SORTIE, { recursive: true });
+const TACTILE = W < 700;
+const SAVE0 = { v: 2, sfx: false, mus: false, vox: false };
+if (A.langue) SAVE0.lang = A.langue;
+
+/* un CDP qui garde aussi les évènements */
+class CDPE extends CDP {
+  constructor(url) { super(url); this.evts = []; const o = this.ws.onmessage; this.ws.onmessage = e => { o(e); try { const m = JSON.parse(e.data); if (m.method) this.evts.push(m); } catch (x) {} }; }
+}
+const rel = { exceptions: [], erreurs: [], avert: [], reseau: [], nReponses: 0 };
+function depouille(c, depuis) {
+  const urls = depouille.urls || (depouille.urls = new Map());
+  for (const m of c.evts.splice(0)) {
+    const p = m.params || {};
+    if (m.method === 'Runtime.exceptionThrown') { const d = p.exceptionDetails || {}; rel.exceptions.push(((d.exception && d.exception.description) || d.text || '?').split('\n')[0].slice(0, 300) + ' @' + String(d.url || '').split('/').pop() + ':' + d.lineNumber); }
+    else if (m.method === 'Runtime.consoleAPICalled' && (p.type === 'error' || p.type === 'warning')) {
+      const t = (p.args || []).map(a => a.value !== undefined ? String(a.value) : (a.description || '')).join(' ').slice(0, 300);
+      (p.type === 'error' ? rel.erreurs : rel.avert).push(t);
+    }
+    else if (m.method === 'Log.entryAdded' && (p.entry.level === 'error' || p.entry.level === 'warning')) { (p.entry.level === 'error' ? rel.erreurs : rel.avert).push('[log] ' + String(p.entry.text).slice(0, 200) + ' ' + String(p.entry.url || '').split('/').pop()); }
+    else if (m.method === 'Network.requestWillBeSent') urls.set(p.requestId, p.request.url);
+    else if (m.method === 'Network.responseReceived') { rel.nReponses++; if (p.response.status >= 400) rel.reseau.push(p.response.status + ' ' + p.response.url.replace(/^https?:\/\/[^/]+\//, '')); }
+    else if (m.method === 'Network.loadingFailed' && p.errorText !== 'net::ERR_ABORTED') rel.reseau.push('ECHEC ' + p.errorText + ' ' + String(urls.get(p.requestId) || '').replace(/^https?:\/\/[^/]+\//, ''));
+  }
+}
+
+(async () => {
+  for (const p of [P_HTTP, P_CDP]) if (!portLibre(p)) { console.error('port occupé :', p); process.exit(2); }
+  const srv = await serveur(JEU, P_HTTP), prof = tmp();
+  const { ch, pg } = await lanceChrome(P_CDP, prof, W, H);
+  const c = new CDPE(pg.webSocketDebuggerUrl); await c.ok;
+  const ev = (x, ms) => c.ev(x, ms || 8000).catch(e => 'ERR ' + e.message.slice(0, 120));
+  const photo = async nom => { const r = await c.send('Page.captureScreenshot', { format: 'jpeg', quality: 70 }); fs.writeFileSync(path.join(SORTIE, nom + '.jpg'), Buffer.from(r.data, 'base64')); };
+  const tap = async (x, y) => {
+    if (TACTILE) { await c.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] }); await dormir(60); await c.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
+    else { await c.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y }); await c.send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', clickCount: 1 }); await dormir(50); await c.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', clickCount: 1 }); }
+  };
+  /* ce que le joueur voit : les écrans ouverts, les boutons visibles et leur texte */
+  const vue = () => ev(`(function(){var o={st:null,ecrans:[],boutons:[]};try{o.st=window.dbgState?dbgState():null}catch(e){}
+    var cand=document.querySelectorAll('[id^=m],[id^=g],#splash,#plaque,#tuto,.ecran,.on');for(var i=0;i<cand.length&&o.ecrans.length<14;i++){var e=cand[i],r=e.getBoundingClientRect(),cs=getComputedStyle(e);
+      if(r.width>150&&r.height>150&&cs.display!=='none'&&cs.visibility!=='hidden'&&+cs.opacity>0.2&&(e.id||e.className))o.ecrans.push((e.id||'')+'.'+String(e.className).slice(0,30));}
+    var b=document.querySelectorAll('button,[role=button],[data-m]');for(var j=0;j<b.length&&o.boutons.length<16;j++){var q=b[j].getBoundingClientRect(),s=getComputedStyle(b[j]);
+      if(q.width>30&&q.height>20&&q.bottom>0&&q.top<innerHeight&&s.visibility!=='hidden'&&s.display!=='none'&&+s.opacity>0.3)o.boutons.push((b[j].innerText||b[j].getAttribute('aria-label')||b[j].id||'?').trim().replace(/\\s+/g,' ').slice(0,24)+'@'+Math.round(q.left+q.width/2)+','+Math.round(q.top+q.height/2));}
+    return JSON.stringify(o);})()`);
+  try {
+    await c.send('Page.enable'); await c.send('Runtime.enable'); await c.send('Network.enable'); await c.send('Log.enable');
+    if (TACTILE) { await c.send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 3, mobile: true }); await c.send('Emulation.setTouchEmulationEnabled', { enabled: true }); }
+    await c.send('Page.addScriptToEvaluateOnNewDocument', { source: `try{if(!localStorage.cashcarSave)localStorage.cashcarSave=${JSON.stringify(JSON.stringify(SAVE0))}}catch(e){}` });
+    const url = `http://localhost:${P_HTTP}/index.html?colonne=0${A.q ? '&' + A.q : ''}`;
+    console.log('→', url, `${W}x${H}`, TACTILE ? 'tactile' : 'souris');
+    const t0 = Date.now(); await c.send('Page.navigate', { url });
+    /* LES PAS (--pas "a:5;t:195,420;p:nom;v;b:JOUER;j:1+1;u:60") séparés par « ; » :
+       a:<s> attendre · t:x,y toucher · p:nom photo · v la vue (écrans ouverts, boutons) · b:<texte> toucher le bouton qui porte ce texte
+       j:<js> évaluer · u:<s> attendre que l'écran-titre (#splash) parte (au plus s secondes) · e:<s> attendre que dbgState().started soit vrai */
+    const pas = String(A.pas || 'a:2;p:intro;a:6;t:' + Math.round(W / 2) + ',' + Math.round(H / 2) + ';a:5;p:apres-toucher;v').split(';').filter(Boolean);
+    const compact = async () => { const o = JSON.parse(await vue()); const s = o.st || {}; const voile = await ev(`!!document.querySelector('#voileSerpent.on')`); return JSON.stringify({ started: s.started, gameOver: s.gameOver, s: s.s, VOILE_BLANC: voile, ecrans: o.ecrans, boutons: o.boutons }); };
+    for (const p of pas) {
+      const k = p[0], v = p.slice(2);
+      if (k === 'a') await dormir(+v * 1000);
+      else if (k === 't') { const [x, y] = v.split(',').map(Number); await tap(x, y); }
+      else if (k === 'p') { depouille(c); await photo(String(Date.now() - t0).padStart(6, '0') + '-' + v); }
+      else if (k === 'v') console.log('[' + Math.round((Date.now() - t0) / 1000) + ' s] vue', await compact());
+      else if (k === 'j') console.log('[js]', await ev(v));
+      else if (k === 'b') { const r = await ev(`(function(){var t=${JSON.stringify(v.toUpperCase())},b=document.querySelectorAll('button,[role=button],[data-m]');for(var i=0;i<b.length;i++){var q=b[i].getBoundingClientRect(),s=getComputedStyle(b[i]);var tx=(b[i].innerText||b[i].getAttribute('aria-label')||'').toUpperCase().replace(/\\s+/g,'');
+          if(tx.indexOf(t.replace(/\\s+/g,''))>=0&&q.width>20&&q.height>14&&q.bottom>0&&q.top<innerHeight&&s.visibility!=='hidden'&&s.display!=='none')return Math.round(q.left+q.width/2)+','+Math.round(q.top+q.height/2);}return '';})()`);
+        if (!r) console.log('[b] bouton introuvable :', v); else { const [x, y] = r.split(',').map(Number); console.log('[b]', v, '→', x, y); await tap(x, y); } }
+      else if (k === 'u') { const t1 = Date.now(); while (Date.now() - t1 < +v * 1000 && await ev(`!!document.getElementById('splash')&&getComputedStyle(document.getElementById('splash')).display!=='none'`)) await dormir(500); console.log('[u] écran-titre parti après', Math.round((Date.now() - t1) / 1000), 's'); }
+      else if (k === 'e') { const t1 = Date.now(); while (Date.now() - t1 < +v * 1000 && !(await ev(`!!(window.dbgState&&dbgState().started)`))) await dormir(500); console.log('[e] course partie :', await ev(`!!(window.dbgState&&dbgState().started)`), 'après', Math.round((Date.now() - t1) / 1000), 's'); }
+    }
+  } finally {
+    depouille(c);
+    console.log('\n=== RELEVÉ ===');
+    console.log('exceptions :', rel.exceptions.length); rel.exceptions.slice(0, 10).forEach(x => console.log('  !', x));
+    console.log('console.error :', rel.erreurs.length); [...new Set(rel.erreurs)].slice(0, 10).forEach(x => console.log('  e', x));
+    console.log('console.warn :', rel.avert.length); [...new Set(rel.avert)].slice(0, 10).forEach(x => console.log('  w', x));
+    console.log('réseau :', rel.nReponses, 'réponses ;', rel.reseau.length, 'en échec'); [...new Set(rel.reseau)].slice(0, 15).forEach(x => console.log('  r', x));
+    console.log('photos :', SORTIE);
+    try { c.close(); } catch (e) {} tueChrome(ch); srv.close();
+  }
+})().catch(e => { console.error('ÉCHEC', e); process.exit(1); });
