@@ -135,6 +135,7 @@ function rebuildMenuScene(){
 function accueilRetour(){try{m2Menu();}catch(e){} /* (2026-10-16) LES MISSIONS v2 : retour au menu, la série des REJOUER repart */
   if(!(started&&gameOver)||MENUV.retour)return;
   MENUV.retour=true;
+  try{if(!MORT_MUSIQUE&&musicMode==='none'&&SND.music)musicMenu();}catch(e){} /* (2026-11-08) l'écran de mort est muet (MORT_MUSIQUE) : la musique du menu revient ici */
   clearBoom();try{deathStop();}catch(e){}
   survMenage();SURV.on=false;survHudEl.style.display='none';lastAlertEl.style.display='none';
   runStats.zones=0; // JOUER, de l'accueil, lance la course libre
