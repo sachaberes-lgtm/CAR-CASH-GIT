@@ -13,11 +13,37 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // silencieux coupe — le jeu entier devenait muet. On pose « playback » pour toute l'app, avant que la page ne charge ;
         // sur iOS 17+ le jeu ajuste encore la catégorie lui-même (musicSession dans code/son/musique.js : playback, ou ambient sans musique).
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
         } catch {
             CAPLog.print("⚡️  [natif] session audio : \(error.localizedDescription)")
         }
         return true
+    }
+
+    // LA VIGNETTE « EN LECTURE » (2026-11-08, Perf 3 / P4) : la musique du jeu joue par un <audio> ; tant que la session audio reste active, iOS
+    // garde l'app comme lecteur média (vignette sur l'écran d'accueil, verrouillé, centre de contrôle). On garde « playback » (SON-04 : le jeu sonne
+    // malgré l'interrupteur silencieux) mais en « mixWithOthers » (l'app ne prend pas la place de lecteur), et en arrière-plan on désactive la session.
+    // La page pause son <audio> à ce moment-là (natif.js §9) ; si la vue web tient encore la session, on réessaie un peu plus tard.
+    private func relacheSessionAudio(_ essais: Int) {
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            if essais > 0 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in self?.relacheSessionAudio(essais - 1) }
+            } else {
+                CAPLog.print("⚡️  [natif] session audio non relâchée : \(error.localizedDescription)")
+            }
+        }
+    }
+
+    private func reprendSessionAudio() {
+        let s = AVAudioSession.sharedInstance()
+        do {
+            try s.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try s.setActive(true)
+        } catch {
+            CAPLog.print("⚡️  [natif] session audio : \(error.localizedDescription)")
+        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -28,10 +54,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidEnterBackground(_ application: UIApplication) {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+        relacheSessionAudio(4)
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
         // Called as part of the transition from the background to the active state; here you can undo many of the changes made on entering the background.
+        reprendSessionAudio()
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
