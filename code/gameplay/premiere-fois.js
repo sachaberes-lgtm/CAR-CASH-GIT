@@ -83,3 +83,10 @@ window.dbgPremiere=function(a){
     PREMM.fini=true;
   }
   return {on:PREM_ON,chauffe:{div:CHAUFFE_R.div,fait:!!CHAUFFE_R.fait,ap:CHAUFFE_R.ap},fait:Object.keys(PREM.fait).length,moteurs:{i:PREMM.i,n:PREMM.n,fini:PREMM.fini,programmes:PREMM.vus.size}};}; /* banc (premiere-fois.py) : où en est la chauffe des premières fois ; ('tout') la joue d'un coup */
+/* ===== LA CARTE MOTEUR DE L'ÉCRAN DE MORT, MOINS SOUVENT (2026-11-08, passe perf 3, P6 « dernière salve ») =====
+   MESURÉ (banc `outils/banc-perf/depart-mort.py`, nuages, Mac ×4, profil CDP) : sur l'écran de mort le moteur 3D de la carte MOTEUR est rendu dans son tampon
+   de 864 × 578, relu (`engLit` : `fenceSync` + `getBufferSubData`) et recopié (`engPose` : `putImageData`) 30 fois par seconde — `engVigRender` = 500 à 900 ms
+   par fenêtre de 3 s (17 à 30 % du fil), 8 s après la mort, alors que rien d'autre ne bouge. Sur un vrai téléphone (TEL_NATIF) la carte de MORT n'est plus
+   rendue que toutes les 66 ms (15 i/s : une rotation lente, voir `PAL.B.engVigMs` pour les paliers 0 et 1 qui font déjà 100 et 66) ; la carte de COURSE
+   (le palier du moteur recollé dans l'image) garde son rythme. `?mortcarte=max` : 33 ms comme avant. */
+const MORT_ENG_MS=(typeof TEL_NATIF!=='undefined'&&TEL_NATIF&&!/[?&]mortcarte=max\b/.test(location.search))?66:0;
