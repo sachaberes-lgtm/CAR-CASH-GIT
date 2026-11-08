@@ -15,7 +15,9 @@ def lecture(c):
     cout=json.loads(c.ev("JSON.stringify((function(){var k=dbgCout();return {appels:k.image&&k.image.calls,triangles:k.image&&k.image.tris}})())"))
     ch=json.loads(c.ev("JSON.stringify(dbgChamp())"))
     om=json.loads(c.ev("JSON.stringify(dbgOmbre())"))
-    rm=json.loads(c.ev("JSON.stringify(dbgRemplissage())"))
+    rr=c.ev("JSON.stringify(dbgRemplissage())")
+    try:rm=json.loads(rr)
+    except Exception:print('ÉCHEC dbgRemplissage :',str(rr)[:700]);raise
     st=json.loads(c.ev("JSON.stringify((function(){var s=dbgState();return {kmh:s.kmh||s.speedKmh,vH:s.vH}})())"))
     return {'image':cout,'champ':ch,'ombre':om,'remplissage':rm,'etat':st}
 def main(av):
@@ -45,7 +47,7 @@ def main(av):
                 p=L[-1]
                 print('%-14s palier %2d (atteint %d) %3.0f km/h | image %3d appels %7d tri | dessinés %7d champ %7d DERRIÈRE %7d AU-DELÀ du brouillard (%.0f m) %7d'%(':'.join(m),T,k,p['etat'].get('kmh') or 0,p['image']['appels'],p['image']['triangles'],p['champ']['dessines'],p['champ']['dansLeChamp'],p['champ']['derriere'],p['champ']['brouillard'],p['champ']['auDelaDuBrouillard']))
                 o=p['ombre'];print('      OMBRE : %d appels %d tri · par distance caisse (≤50 · 50-150 · 150-500 · 500+) %s · maillages %s'%(o['appels'],o['triangles'],o['parDistance'],o['maillagesParDistance']));[print('         ombre %-40s n=%3d tri %7d'%(f['k'][:40],f['n'],f['t'])) for f in o['fam'][:6]]
-                R=p['remplissage'];tot=sum(q['ecrans'] for q in R['passes'])+R['ombre']['ecrans'];print('      REMPLISSAGE écran %dx%d (%.2f Mpx) : ombre %d² = %.2f écran ; passes : %s ; TOTAL cibles ≈ %.2f écrans + transparents scène %.2f écrans'%(R['ecran'][0],R['ecran'][1],R['mpx'],R['ombre']['carte'],R['ombre']['ecrans'],' '.join('%dx%d(%.2f%s)'%(q['w'],q['h'],q['ecrans'],'*' if q['scene'] else '') for q in R['passes']),tot,sum(q['aireTransparents'] for q in R['passes'] if q['scene'])));[print('         transp %-52s n=%3d %.2f écran'%(f['k'][:52],f['n'],f['ecrans'])) for f in R['transp'][:7]]
+                R=p['remplissage'];tot=sum((q['ecrans'] or 0) for q in R['passes'])+R['ombre']['ecrans'];print('      REMPLISSAGE écran %dx%d (%.2f Mpx) : ombre %d² = %.2f écran ; passes : %s ; TOTAL cibles ≈ %.2f écrans + transparents scène %.2f écrans'%(R['ecran'][0],R['ecran'][1],R['mpx'],R['ombre']['carte'],R['ombre']['ecrans'],' '.join('%dx%d(%.2f%s)'%(q['w'],q['h'],q['ecrans'],'*' if q['scene'] else '') for q in R['passes']),tot,sum((q['aireTransparents'] or 0) for q in R['passes'] if q['scene'])));[print('         transp %-52s n=%3d %.2f écran'%(f['k'][:52],f['n'],f['ecrans'])) for f in R['transp'][:7]]
                 print('      par distance (0-500 · 500-1000 · 1-2k · 2-3,5k · 3,5k+) :',p['champ']['parDistance'])
                 for f in p['champ']['fam'][:5]:print('      %-46s n=%2d dessinés %7d champ %7d derrière %3d'%(f['k'][:46],f['n'],f['dr'],f['di'],f['derriere']))
     finally:

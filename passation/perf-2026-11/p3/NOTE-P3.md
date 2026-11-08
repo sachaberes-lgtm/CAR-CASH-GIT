@@ -45,3 +45,10 @@ Plafond de distance (b') : l'histogramme (> 80 % des triangles à < 500 m, ≈ 0
 → En PIXELS le halo ne vaut que ≈ 0,9 écran et ses mips < 0,04 : le surcoût du p2 (13 cibles contre 3) est le NOMBRE DE PASSES, pas les pixels (fin de passe de tuile à chaque changement de cible).
 - Transparents (estimation : aire des triangles projetés, plafonnée à un écran) au canyon p10 ≈ 11 écrans (rails néon + nappe + ligne centrale ≈ 2 chacun, traînées, streaks) ; au nuages p0 ≈ 9 écrans (nuages v8 ≈ 2,2). C'est le vrai remplissage. ⚠ nuages/forêt p2 : le crochet ne voit pas les appels de la passe scène du compositeur (0 appel) → pas d'estimation à ce palier.
 - Doublon : perf3/P2 contient déjà halo 3 étages + demi-résolution, ciel lisse 1/2, ombre 768, plafond NETTE, stries/traînées demi-densité, qlAuto, imgRegle. Rien recodé ici.
+
+## Transparents par famille (écrans/image, nuages/forêt/canyon p10, ?tel=1 p2 ; estimation par aire de triangles projetés, plafonnée à un écran par objet ; une lecture, bruit ±30 %)
+- forêt : `forêt brume[I]` ≈ 9,0 (1 appel, ~84 nappes face caméra) · traînées `Mesh | MeshBasic` 1,4 + `add` 1,2 · sprites additifs 0,5 · halo instancié additif 0,4 → total ≈ 12,7
+- nuages : `coton[I]` ≈ 3,0 (12 appels) · traînées 1,5 + 1,2 · nuages v8 1,45 · instancié additif 1,15 → total 4-7
+- canyon : ≈ 0,25 (tunnel/relief opaque ; les rubans de piste ≈ 0 en aire de triangles réelle — l'estimation par sphère de la 1re mesure, 11 écrans, surestimait des bandes minces)
+## Levier 1 — la brume de la forêt en polygone (commit « brume »)
+Le fragment ne peint que dans l'ellipse (.5 × .3125) du carré 1×1 : géométrie = polygone à 12 côtés circonscrit (0,51 du carré), mêmes uv. `?brumepoly=0` = avant, `dbgBrumePoly(false|true)` A/B. Mesuré forêt (A/B dans une tâche) : transparents 15,4→8,1 · 7,0→2,7 · 8,0→3,4 écrans (p2 téléphone), 17,1→9,6 · 6,6→4,6 (p2 ordinateur), 10,5→6,2 · 5,7→3,8 · 10,6→7,6 (p0) ; appels identiques, +5,6 k triangles ; image : 0 à 98 pixels différents sur 0,74 M, écart max 1/255 (seuil demandé : < 0,5 % de pixels > 8/255).
