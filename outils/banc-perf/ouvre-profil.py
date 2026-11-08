@@ -41,7 +41,12 @@ def main():
         G.attend(c,"dbgPrebati().etat==='pret'",60);c.pump(att)
         print('photos gardées :',c.ev('dbgPhotoFile().gardees'),'cache :',c.ev('dbgPhotoMem&&JSON.stringify(dbgPhotoMem()).slice(0,80)'))
         c.call('Emulation.setCPUThrottlingRate',rate=cpu)
-        if quoi=='inv':act="dbgInv('ouvre');1";pt=None
+        if quoi=='inv':
+            g=c.ev("(function(){var e=[].slice.call(document.querySelectorAll('[data-m=garage]')).filter(function(x){return x.getBoundingClientRect().width>0})[0];if(!e)return null;var b=e.getBoundingClientRect();return [b.left+b.width/2,b.top+b.height/2]})()")
+            if g:G.tap(c,g[0],g[1],.12)
+            c.pump(6)
+            act="(function(){var e=document.getElementById('gvCof');if(!e)return 'sans bouton';e.click();return INVOK()})()".replace('INVOK()',"document.getElementById('gInv')?'ok':'?'")
+            pt=None
         else:
             pt=c.ev("(function(){var e=[].slice.call(document.querySelectorAll('[data-m=shop]')).filter(function(x){return x.getBoundingClientRect().width>0})[0];if(!e)return null;var b=e.getBoundingClientRect();return [b.left+b.width/2,b.top+b.height/2]})()")
         c.call('Profiler.setSamplingInterval',interval=400)
@@ -51,6 +56,7 @@ def main():
         elif pt:G.tap(c,pt[0],pt[1],.12)
         c.pump(4)
         P=c.call('Profiler.stop')['profile'];T=c.ev("window.__Fon=false;JSON.stringify(window.__T)")
+        print('inventaire ouvert :',c.ev("document.getElementById('gInv').className+' | '+(document.body.className.slice(0,80))"))
         print('ecran DOM :',c.ev("document.getElementById('overlay').dataset.ecran"),'| bouton',pt)
         L=[x for x in json.loads(T) if x[1]>50];print('images > 50 ms (instant ms, durée ms) :',L[:20])
         N={n['id']:n for n in P['nodes']};self_=collections.Counter()
