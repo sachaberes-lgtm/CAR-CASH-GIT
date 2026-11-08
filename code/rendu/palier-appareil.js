@@ -76,6 +76,13 @@ const PAL=(function(){
   P.B={};
   P.b=function(k,d){const v=P.B[k];return v?v[P.n]:d;};
   return P;})();
+/* ===== LES MAPS PLEINES SUR UN TÉLÉPHONE RÉCENT (2026-11-08, Léo : « des maps ont perdu leur beauté et buguent encore — rétablis la beauté, et que ce soit fluide ») =====
+   Les allègements de CONTENU des maps (Jade sobre, dunes sobres, forêt ×0,8, grottes ×0,75, satellites ÷15 — 24/10 au 03/11) tenaient à ALLEGE : TOUT téléphone,
+   l'iPhone 15 de Léo (palier RÉCENT) compris. Photos du banc (téléphone 393×852 ×3) : les pics de Jade en silhouettes plates dans la brume, sans verdure ni cristaux.
+   Désormais ils ne jouent que sur les paliers ANCIEN et MOYEN (`mapsSobres()`) : un téléphone RÉCENT (iPhone 12 et après) retrouve les maps pleines. La résolution,
+   le halo, les ombres restent sur ALLEGE et sur l'échelle QL, qui baisse d'elle-même si la puce tire. Lue À LA CONSTRUCTION des maps (après palPuce, qui peut
+   rabattre le palier sur Android). `?sobre=1` = les maps allégées d'avant sur tout téléphone (comparer) ; `?sobre=0` = pleines même au palier ancien. */
+function mapsSobres(){ if(!ALLEGE||/[?&]sobre=0\b/.test(location.search))return false; return PAL.n<2||/[?&]sobre=1\b/.test(location.search); }
 /* LES TOILES 2D RENDUES APRÈS L'ENVOI À LA PUCE (2026-10-14, passe perf mobile). MESURÉ (iPhone 7 émulé) : 184 toiles 2D vivantes = 52 Mo
    avant le premier écran — et iOS plafonne la mémoire de toiles d'une page (au-delà : toiles blanches, puis la page est tuée). Une toile
    qui n'a servi qu'à peindre UNE fois une `CanvasTexture` ne sert plus à rien dès que three l'a envoyée (`texture.onUpdate` est appelé

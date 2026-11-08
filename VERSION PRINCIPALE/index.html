@@ -13690,6 +13690,13 @@ const PAL=(function(){
   P.B={};
   P.b=function(k,d){const v=P.B[k];return v?v[P.n]:d;};
   return P;})();
+/* ===== LES MAPS PLEINES SUR UN TÉLÉPHONE RÉCENT (2026-11-08, Léo : « des maps ont perdu leur beauté et buguent encore — rétablis la beauté, et que ce soit fluide ») =====
+   Les allègements de CONTENU des maps (Jade sobre, dunes sobres, forêt ×0,8, grottes ×0,75, satellites ÷15 — 24/10 au 03/11) tenaient à ALLEGE : TOUT téléphone,
+   l'iPhone 15 de Léo (palier RÉCENT) compris. Photos du banc (téléphone 393×852 ×3) : les pics de Jade en silhouettes plates dans la brume, sans verdure ni cristaux.
+   Désormais ils ne jouent que sur les paliers ANCIEN et MOYEN (`mapsSobres()`) : un téléphone RÉCENT (iPhone 12 et après) retrouve les maps pleines. La résolution,
+   le halo, les ombres restent sur ALLEGE et sur l'échelle QL, qui baisse d'elle-même si la puce tire. Lue À LA CONSTRUCTION des maps (après palPuce, qui peut
+   rabattre le palier sur Android). `?sobre=1` = les maps allégées d'avant sur tout téléphone (comparer) ; `?sobre=0` = pleines même au palier ancien. */
+function mapsSobres(){ if(!ALLEGE||/[?&]sobre=0\b/.test(location.search))return false; return PAL.n<2||/[?&]sobre=1\b/.test(location.search); }
 /* LES TOILES 2D RENDUES APRÈS L'ENVOI À LA PUCE (2026-10-14, passe perf mobile). MESURÉ (iPhone 7 émulé) : 184 toiles 2D vivantes = 52 Mo
    avant le premier écran — et iOS plafonne la mémoire de toiles d'une page (au-delà : toiles blanches, puis la page est tuée). Une toile
    qui n'a servi qu'à peindre UNE fois une `CanvasTexture` ne sert plus à rien dès que three l'a envoyée (`texture.onUpdate` est appelé
@@ -20616,7 +20623,7 @@ function buildForet(seed){jadeFini(buildForetG(seed));} // (2026-10-17, LE PRÉ-
 function* buildForetG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   foretVide();
   if(PARK.on||!LVL.cur||LVL.cur.id!=='foret'||!(NP>1))return;
-  const t0=performance.now(),M=foretMats(),PT=foretProtos(),fr=mulberry32((seed^0xF0E57)>>>0),fw=mulberry32((seed^0x5A01E)>>>0),MOB=PAL_B9('foretArbres',1)*(ALLEGE?.8:1),ds=L/(NP-1);FORET.b0=PAL_B9('foretB0',270);FORET.b1=ALLEGE?Math.min(480,PAL_B9('foretB1',760)):PAL_B9('foretB1',760); /* (2026-11-03, maps cohérentes) LE TÉLÉPHONE RÉCENT PASSE AU DÉTAIL LOINTAIN À 480 m (le palier MOYEN) au lieu de 540 : MESURÉ, les géants au détail fin (5-8 k triangles chacun) font 70 % des triangles de la forêt ; le palier MOYEN (iPhone XR/11) bascule déjà à 480 — sur un écran de téléphone, l'écart entre les deux détails d'un géant à 500 m est minime. L'ordi garde 540. */
+  const t0=performance.now(),M=foretMats(),PT=foretProtos(),fr=mulberry32((seed^0xF0E57)>>>0),fw=mulberry32((seed^0x5A01E)>>>0),MOB=PAL_B9('foretArbres',1)*(mapsSobres()?.8:1),ds=L/(NP-1);FORET.b0=PAL_B9('foretB0',270);FORET.b1=ALLEGE?Math.min(480,PAL_B9('foretB1',760)):PAL_B9('foretB1',760); /* (2026-11-03, maps cohérentes) LE TÉLÉPHONE RÉCENT PASSE AU DÉTAIL LOINTAIN À 480 m (le palier MOYEN) au lieu de 540 : MESURÉ, les géants au détail fin (5-8 k triangles chacun) font 70 % des triangles de la forêt ; le palier MOYEN (iPhone XR/11) bascule déjà à 480 — sur un écran de téléphone, l'écart entre les deux détails d'un géant à 500 m est minime. L'ordi garde 540. */
   FORET.graine=(seed>>>0)%100000;FORET.seed=seed;FORET.zonesNu=[];yield* foretSentiersCalc(); /* (2026-11-05, LES SENTIERS DE LUCIOLES) les raccourcis balisés et leur couloir, avant tout arbre */ FORET.met=LVL.cur.meteo||'midi';FORET.n={};
   const DZ=FOR_DECOR?forDecoTire(seed):null,dz2=mulberry32((seed^0xB015E)>>>0);FORET.dz=DZ;FORET.deco=DZ?DZ.li:null; /* (LE DÉCOR AU HASARD) le tirage, et le flux des placements neufs */
   const root=new THREE.Group();root.matrixAutoUpdate=false;scene.add(root);FORET.root=root;trackMeshes.push(root);
@@ -22879,7 +22886,7 @@ PAL.B.dnFin=[16,14,12];PAL.B.dnPlat=[96,80,64];PAL.B.dnOmbre=[60,52,44];PAL.B.dn
    · les décors reprennent le budget du palier MOYEN (acacias, palmiers, touffes, arbres morts, tornades, sable qui vole) — au plan moyen, de dos, ils ne se comptent pas ;
    · les ÉCLATS de 9 cm (dnMo .75) s'éteignent : à ~5 px sur un écran de 390 pt ils ne faisaient que scintiller.
    Rien d'autre ne change (la route, les tremplins, le sable à rides, les nuages en bandes, les monuments). */
-const DN_MOB=(ALLEGE||/[?&]dunessobre=1\b/.test(location.search))&&!/[?&]dunesplein=1\b/.test(location.search); // ⚠ TEL_NATIF, PAS l'ancien drapeau mobile : l'ordi qui joue l'édition « mobile » (FORCE_TEL) garde les dunes pleines (Sacha, 25/10 : « sur PC la qualité a chuté »)
+const DN_MOB=(mapsSobres()||/[?&]dunessobre=1\b/.test(location.search)) /* (2026-11-08) mapsSobres, plus ALLEGE : voir LES MAPS PLEINES */&&!/[?&]dunesplein=1\b/.test(location.search); // ⚠ TEL_NATIF, PAS l'ancien drapeau mobile : l'ordi qui joue l'édition « mobile » (FORCE_TEL) garde les dunes pleines (Sacha, 25/10 : « sur PC la qualité a chuté »)
 if(DN_MOB){PAL.B.dnGrille[2]=24;PAL.B.dnArbres[2]=PAL.B.dnArbres[1];PAL.B.dnPalmes[2]=PAL.B.dnPalmes[1];PAL.B.dnPart[2]=PAL.B.dnPart[1];PAL.B.dnMo[2]=PAL.B.dnMo[1];PAL.B.dnRuines[2]=PAL.B.dnRuines[1];PAL.B.dnTors[2]=PAL.B.dnTors[1];PAL.B.dnTouffes[2]=PAL.B.dnTouffes[1];PAL.B.dnMorts[2]=PAL.B.dnMorts[1];}
 /* LA ROUTE SURÉLEVÉE (2026-10-25, Sacha : « surélève un petit peu la route, comme posée sur un truc surélevé, pour qu'on ne meure pas directement sur le sable et qu'on ait une petite chance de se redresser ») — la berme, les éperons, les collines et le lac de l'oasis descendent de DN_SUR m sous la dalle (la route, elle, ne bouge pas) ; `?sur=N` change la valeur, `?sur=0` = avant */
 const DN_SUR=(function(){const m=/[?&]sur=(\d+(?:\.\d+)?)/.exec(location.search);return m?Math.min(40,+m[1]):10;})();
@@ -26734,7 +26741,7 @@ function grtMats(){if(GRT_MATS.roche)return GRT_MATS;
   m.dispose=function(){};GRT_MATS.roche=m; // jamais libérée : un seul jeu pour toutes les grottes
   const p=new THREE.ShaderMaterial({uniforms:Object.assign({uTime:GRT_U.uTime},GRT_PU),vertexShader:GRT_PART_VS,fragmentShader:GRT_PART_FS,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
   p.dispose=function(){};GRT_MATS.part=p;return GRT_MATS;}
-function grtPartObj(){if(GRT_FX.part)return GRT_FX.part;const M=grtMats(),n=Math.round(PAL_B9('grottePart',700)*(ALLEGE?.75:1)),R9=mulberry32(0x6A7C1E),a=new Float32Array(n*4);for(let i=0;i<n*4;i++)a[i]=R9();
+function grtPartObj(){if(GRT_FX.part)return GRT_FX.part;const M=grtMats(),n=Math.round(PAL_B9('grottePart',700)*(mapsSobres()?.75:1)),R9=mulberry32(0x6A7C1E),a=new Float32Array(n*4);for(let i=0;i<n*4;i++)a[i]=R9();
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(n*3),3));g.setAttribute('aR',new THREE.BufferAttribute(a,4));
   const p=new THREE.Points(g,M.part);p.name='grotte poussière';p.frustumCulled=false;p.visible=false;p.matrixAutoUpdate=false;p.renderOrder=8;scene.add(p);GRT_FX.part=p;GRT_FX.p=JSON.parse(JSON.stringify(GRT_PART[0]));return p;}
 /* ---------------- LA CONSTRUCTION ----------------
@@ -26762,7 +26769,7 @@ function buildGrotte(seed){jadeFini(buildGrotteG(seed));} // d'un trait au passa
 function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au pré-bâti
   grotteVide();
   if(PARK.on||!LVL.cur||LVL.cur.id!=='grotte'||!(NP>1)||!GROTTE.salles)return;
-  const t0=performance.now(),direct=JF.lim===Infinity,fr=mulberry32((seed^0x6A07E)>>>0),MOB=ALLEGE?.75:1; /* (2026-11-03) ALLEGE, plus TEL_NATIF : le même allègement (décors ×,75) sur le vrai téléphone ET sur ?tel=1 — le banc « téléphone » mesure enfin ce que le téléphone dessine ; ?allege=0 rend tout */
+  const t0=performance.now(),direct=JF.lim===Infinity,fr=mulberry32((seed^0x6A07E)>>>0),MOB=mapsSobres()?.75:1; /* (2026-11-08) le téléphone RÉCENT : décors pleins (voir LES MAPS PLEINES) */ /* (2026-11-03) ALLEGE, plus TEL_NATIF : le même allègement (décors ×,75) sur le vrai téléphone ET sur ?tel=1 — le banc « téléphone » mesure enfin ce que le téléphone dessine ; ?allege=0 rend tout */
   GROTTE.met=GRT_MET[LVL.cur.meteo]?LVL.cur.meteo:'matin';GROTTE.n={};
   const root=new THREE.Group();root.name='grotte décor';root.matrixAutoUpdate=false;scene.add(root);GROTTE.root=root;trackMeshes.push(root);
   const R=grtEchantillons();GROTTE.R=R;
@@ -27023,7 +27030,7 @@ const GRT_CRIS_L=[[1,.22,.5],[.55,.25,1],[.2,.55,1],[1,.7,.2]]; // la lumière c
 const GRT_CRIS_P=[[.55,0,0,.45],[.40,0,.20,.40],[.25,.55,.20,0],[.40,.30,.30,0],[.50,0,0,.50],[.40,.20,.40,0]]; // la part de chaque teinte par salle (entrée : rose et or ; la mine est écartée plus bas)
 const GRT_CRIS_D=[.6,1,1.8,1,.55,1]; // (SUR LES PAROIS) le boyau (la 3e salle) en porte beaucoup plus, violets surtout : l'améthyste reste, la boule non // la densité par salle (la lave a déjà assez de lumière)
 function* grtCristauxG(V,R,dec,seed){
-  const fe=mulberry32((seed^0x5C47A1)>>>0),D=dec.D,P9=dec.P,RHd=ROAD_HALF,VZ=GRT_VASTE,K9=PAL_B9('grotteCris',1)*(ALLEGE?.75:1),UP=[0,1,0],BAS=[0,-1,0];
+  const fe=mulberry32((seed^0x5C47A1)>>>0),D=dec.D,P9=dec.P,RHd=ROAD_HALF,VZ=GRT_VASTE,K9=PAL_B9('grotteCris',1)*(mapsSobres()?.75:1),UP=[0,1,0],BAS=[0,-1,0];
   let n=0,it=0,acc=0,suiv=30+fe()*40;
   const teinte=function(sal){const p=GRT_CRIS_P[sal];let u=fe(),k=0;for(;k<3&&u>p[k];k++)u-=p[k];return k;};
   const clair=function(x,y,z,L,k){const r=(24+L*.9)*(VZ?1.4:1),c=GRT_CRIS_L[k];P9.push({x:x,y:y,z:z,r:r,r2:r*r,c:c,I:1.7});}; /* (reprise : I .85 → 1,7 — la roche autour d'une grappe rosissait trop peu pour se lire à 150 m dans la brume) */
@@ -29104,7 +29111,7 @@ function jadeKit(){const P=[],C=[];
    5 → 2,5 m ; un 4e niveau de détail (1,75 · 3,5 · 7 · 14 m) garde le coût : les petits cubes ne se dessinent que de près. */
 const VX=TEL_NATIF?3.5:1.75,VXG=TEL_NATIF?5:2.5;
 /* (2026-10-24, Sacha : « réduire la map jade sur mobile : moins de montagnes, plus d'animaux ni de nuages, et le reste ») JADE_SOBRE : sur téléphone, la vallée est allégée — montagnes ÷2, ni singes, ni dauphins, ni grues, ni nuages, ni rayons, ni lucioles, moins de rochers flottants, de cascades et de brume. `?jadeplein=1` rend la vallée d'avant. L'ordi n'est pas touché. */
-const JADE_SOBRE=ALLEGE&&!/[?&]jadeplein=1\b/.test(location.search);
+const JADE_SOBRE=mapsSobres()&&!/[?&]jadeplein=1\b/.test(location.search); /* (2026-11-08) mapsSobres : le téléphone RÉCENT retrouve la vallée pleine (voir LES MAPS PLEINES) */
 const JADE_NUVOX=!/[?&]nuvox=0\b/.test(location.search); // (v13) les volutes en cubes — `?nuvox=0` : les panneaux en relief de la v9
  // (v10) les montagnes en VITRAIL (voir « LE VITRAIL ») — (v11, Léo : « laisse tomber, reviens sur les pixels, c'était plus joli ») : seulement avec `?vitrail=1`
 const JM={roche:1,rouille:2,herbe:3,feuille:4,bois:5,laque:6,tuile:7,or:8,pierre:9};
@@ -34243,7 +34250,7 @@ window.dbgEquilibre=function(n,r){if(n&&r){const b=BIOMES[n];if(!b)return null;e
 window.dbgAudit=function(k,o){
   o=o||{};
   if(k==='vue'){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.fov=o.fov||60;camera.updateProjectionMatrix();camera.updateMatrixWorld();
-    skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);try{if(typeof banqTick==='function'&&BANQ.root)banqTick(0);}catch(e){}if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'ok';}
+    if(acesPass)acesPass.uniforms.uSpeed.value=0; /* (2026-11-08, banc beauté) la photo sans le flou de vitesse resté de la course */skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);try{if(typeof banqTick==='function'&&BANQ.root)banqTick(0);}catch(e){}if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'ok';}
   if(k==='aller'){SF.force={carte:o.carte,meteo:o.meteo||null,teinte:o.teinte||null};return classiqueJouer();} /* le JOUER sur la map demandée (banc) */
   if(k==='fins'){ /* les maillages hauts et fins (colonnes, aiguilles) : nom, boîte, matière — pour traquer ce qui dépasse */
     const out=[],bx=new THREE.Box3(),sz=new THREE.Vector3(),ce=new THREE.Vector3();scene.updateMatrixWorld(true);
@@ -34421,8 +34428,8 @@ function geoEclat(){ // [2] L'ÉCLAT : un prisme irrégulier ; dessus −1, dess
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
   const A=new Float32Array(36);for(let i=0;i<36;i++)A[i]=i<6?-1:(i<12?-2:-3);
   g.setAttribute('aPart',new THREE.BufferAttribute(A,1));g.setAttribute('aVg',new THREE.BufferAttribute(new Float32Array(36).fill(-1),1));return g;}
-const SAT_MAX=ALLEGE?[23,19,130]:[340,300,2000]; // Starlink (passants + champ + trains) · gros débris · éclats (champ + anneaux) — (2026-09-30, Sacha : « plus de satellites dans l'espace ») 120/140 → 230/190 (téléphone), 204/220 → 340/300 ; le niveau HARDCORE y prend ses obstacles EN PREMIER
-const SAT_PASS=ALLEGE?3:44,SAT_TRAINS=ALLEGE?[1,2]:[5,26]; /* (2026-10-25) le vrai téléphone seulement : l'ordi en édition 'mobile' (l'ancien drapeau mobile sans TEL_NATIF) retrouve ses valeurs d'avant le 24/10 */ /* (2026-10-24, Sacha : « 90 % des satellites en moins », téléphone seulement : 230/190/1300, 30 passants, 3 trains de 20) */ // passants au bord de la route ; trains × satellites par train — (2026-09-30) 18/26 → 30/44 passants, 2/3 → 3/5 trains
+const SAT_MAX=!ALLEGE?[340,300,2000]:mapsSobres()?[23,19,130]:[230,190,1300]; /* (2026-11-08) le téléphone RÉCENT : les satellites du téléphone d'avant le 24/10 (voir LES MAPS PLEINES) */ // Starlink (passants + champ + trains) · gros débris · éclats (champ + anneaux) — (2026-09-30, Sacha : « plus de satellites dans l'espace ») 120/140 → 230/190 (téléphone), 204/220 → 340/300 ; le niveau HARDCORE y prend ses obstacles EN PREMIER
+const SAT_PASS=!ALLEGE?44:mapsSobres()?3:30,SAT_TRAINS=!ALLEGE?[5,26]:mapsSobres()?[1,2]:[3,20]; /* (2026-10-25) le vrai téléphone seulement : l'ordi en édition 'mobile' (l'ancien drapeau mobile sans TEL_NATIF) retrouve ses valeurs d'avant le 24/10 */ /* (2026-10-24, Sacha : « 90 % des satellites en moins », téléphone seulement : 230/190/1300, 30 passants, 3 trains de 20) */ // passants au bord de la route ; trains × satellites par train — (2026-09-30) 18/26 → 30/44 passants, 2/3 → 3/5 trains
 const SAT_U={uT:{value:0},uSol:{value:ORB.cle},uTerre:{value:new THREE.Vector3(0,-1,0)},uFog:{value:new THREE.Color(0,0,0)},uOp:{value:0},uForce:{value:0}}; // uForce : (dev) tous les éclats allumés
 const SAT_VS=['attribute vec4 aRot,aVar;uniform float uT;',
   'vec3 rotA(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}',
@@ -61123,8 +61130,9 @@ const JDM={pret:false,chaud:false,node:new THREE.Group(),D:[],mode:null,part:0,t
   cv:new THREE.Vector3(),c0:new THREE.Vector3(),H:new THREE.Vector3(0,0,1),v1:new THREE.Vector3(),v2:new THREE.Vector3(),v3:new THREE.Vector3(),Xr:new THREE.Vector3(),
   X:new THREE.Vector3(),Y:new THREE.Vector3(),Z:new THREE.Vector3(),UP:new THREE.Vector3(0,1,0),AX:new THREE.Vector3(1,0,0),m:new THREE.Matrix4(),q:new THREE.Quaternion()};
 JDM.node.visible=false;scene.add(JDM.node);
-if(typeof SANS_DAUPHIN!=='undefined'&&!!SANS_DAUPHIN!==JADE_SOBRE)console.warn('SANS_DAUPHIN (la page) ≠ JADE_SOBRE (le jeu) : le test de page/bibliotheques.html a dérivé de ALLEGE'); // (2026-11-03) les deux tests doivent dire pareil
-function jdmActif(){return !JADE_SOBRE&&!!(started&&!gameOver&&jadeEauOk()&&!TUTO.on);}
+const JADE_SANS_DAUPHIN=ALLEGE&&!/[?&]jadeplein=1\b/.test(location.search); /* (2026-11-08) les dauphins restent éteints sur TOUT téléphone (récent compris) : la page ne taille pas leurs maillages (SANS_DAUPHIN) — JADE_SOBRE, lui, suit mapsSobres() */
+if(typeof SANS_DAUPHIN!=='undefined'&&!!SANS_DAUPHIN!==JADE_SANS_DAUPHIN)console.warn('SANS_DAUPHIN (la page) ≠ JADE_SOBRE (le jeu) : le test de page/bibliotheques.html a dérivé de ALLEGE'); // (2026-11-03) les deux tests doivent dire pareil
+function jdmActif(){return !JADE_SANS_DAUPHIN&&!!(started&&!gameOver&&jadeEauOk()&&!TUTO.on);}
 function jdmFabrique(){ // les trois dauphins (le modèle est bâti au chargement de creatures/dauphin.js) — une fois
   if(typeof mkDauphin!=='function'||typeof DOL_GEO==='undefined'||!DOL_GEO)return false;
   for(let i=0;i<3;i++){const b=DOL_BANC[i]||DOL_BANC[0],d=mkDauphin();d.visible=false;d.frustumCulled=false;JDM.node.add(d);
@@ -61149,7 +61157,7 @@ function jdmJailli(vx,vy,vz){ // appelée par jadeEauVol au JAILLISSEMENT : la v
   if(JDM.mode!=='mer'||JDM.part||!(JDM.force||Math.random()<JDM_SAUT))return;JDM.force=false;
   JDM.D.forEach(function(E,i){E.sautT=.05+i*.13+Math.random()*.06;E.sV=[vx,vy,vz];});}
 function jdmTick(dt){
-  if(JADE_SOBRE)return; /* (2026-11-03) le téléphone ne les montre jamais (jdmActif) : ni fabrique, ni programmes compilés au menu — et la page ne taille plus leurs maillages (SANS_DAUPHIN, page/bibliotheques.html) */
+  if(JADE_SANS_DAUPHIN)return; /* (2026-11-03) le téléphone ne les montre jamais (jdmActif) : ni fabrique, ni programmes compilés au menu — et la page ne taille plus leurs maillages (SANS_DAUPHIN, page/bibliotheques.html) */
   if(!JDM.pret){if(!jdmFabrique())return;JDM.pret=true;return;}
   if(!JDM.chaud){if(started&&!gameOver&&jadeEauOk())return; // (au menu : les trois programmes se compilent hors écran, une fois)
     JDM.chaud=true;JDM.node.visible=true;for(const E of JDM.D)E.d.visible=true;try{chauffeRendu([JDM.node]);}catch(e){}for(const E of JDM.D)E.d.visible=false;JDM.node.visible=false;return;}
