@@ -30,7 +30,6 @@
 <meta name="apple-mobile-web-app-title" content="CASH CAR">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" href="assets/fonts/pressstart2p.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/monnaie.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
 <!-- ================= L'ÉDITION, ET LA COLONNE DE L'ORDI (2026-09-28) =================
      Sacha : « quand on ouvre cette version, la disposition des affichages de la version PC et de la version mobile verticale doit
@@ -9054,7 +9053,7 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   <!-- (2026-09-29, Sacha : « rajoute un compteur d'argent stylé, inspiré de loin de GTA, mais avec notre DA ») LE COMPTEUR D'ARGENT DU
        TÉLÉPHONE : en haut à droite sous le ⏸ (la place de l'argent dans GTA), le total de la partie qui DÉFILE vers sa valeur, et sous lui le
        « +$ » qui s'additionne tant que ça tombe (1,8 s) — en or pendant la frénésie (×3). Typo ombrée VERTE (l'argent du jeu est vert). -->
-  <div id="cashHud" aria-hidden="true"><b class="chV"><i class="mOr">&#xE000;</i><span>0</span></b><em class="chD"></em></div>
+  <div id="cashHud" aria-hidden="true"><b class="chV"><i>€</i><span>0</span></b><em class="chD"></em></div>
   <div id="auraV2" aria-hidden="true"><div class="avTot"><span id="avVal">0</span><em>AURA</em><i id="avPlus"></i></div><div id="avRec" class="vide"><span id="avRecT"></span><i><s id="avRecF"></s></i></div>
     <div id="avCh"><div class="avChTop"><b id="avPts">0</b><span id="avX">×1</span></div><div class="avBar"><i id="avBarF"></i></div><ul id="avList"></ul></div></div>
   <!-- (2026-09-28, Sacha) L'EMBLÈME DE LA FRÉNÉSIE « THE DARK TRIAD » — v3 EN PIXEL (même soir : « toute l'interface est faite en pixel,
@@ -11691,137 +11690,6 @@ html body #gBq #gBqCats.bandeau::after{display:none}
 html body #gBq #gBqArg{white-space:nowrap}
 @media (max-width:400px){html body #gBq #gBqArg{font-size:9px;letter-spacing:0}}
 </style>
-<style id="monnaie">
-/* ===== LA MONNAIE DU JEU ET L'ARGENT QUI ÉVOLUE (2026-11-07/08, Léo : « le sketch en monnaie » ; « l'argent, plus tu en as, plus ça évolue » ;
-   08/11 : « refonte pièce et couleurs et pierres précieuses, tout ne fait pas cohérent, inspire-toi de Minecraft et Clash Royale ») =====
-   · UNE FAMILLE EN PIXEL : un objet par palier (assets/monnaie/sym-*.png), même contour, même lumière en haut à gauche —
-     CENTIME, EURO, OR = la même pièce frappée de la spirale d'or φ (« le 6 couché comme la courbe ») ; SAPHIR, ÉMERAUDE, RUBIS = des
-     pierres taillées ; LÉGENDAIRE = le diamant irisé couronné d'or (dès 1 milliard). Le glyphe U+E000 (assets/fonts/monnaie.woff2,
-     ajouté aux cinq polices par unicode-range) reste pour l'argent écrit dans les textes (CUR()).
-   · SIX TONS PAR PALIER (--moO contour, --moD, --moS, --moM, --moL, --moH ; préfixe « mo » : les noms courts existent ailleurs), les MÊMES pour l'objet et pour les chiffres : c'est la cohérence.
-   · LES CHIFFRES MONTENT AVEC TOI (comme les raretés de Clash Royale) : 1 deux tons → 2 trois tons + relief → 3 quatre tons, reflet,
-     halo → 4-6 la taille en facettes + éclats → 6 la pierre bat → 7 cristal irisé, liseré d'or.
-   · OPTIMISÉ : en course, le reflet ne court pas (le compteur ne se repeint que quand le montant change) ; seul le légendaire irise.
-   · le VRAI argent (offres en €) est en ROSE NÉON pour ne pas se confondre. */
-@font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
-@font-face{font-family:'CC Silkscreen';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
-@font-face{font-family:'CC Jersey';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
-@font-face{font-family:'CC Sixtyfour';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
-@font-face{font-family:'CC Jacquard';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
-/* « CC Vide » : U+E000 sans trait ni largeur — là où l'IMAGE du palier remplace le glyphe plat (garage, écran de mort) */
-@font-face{font-family:'CC Vide';src:url('./assets/fonts/monnaie-vide.woff2') format('woff2');unicode-range:U+E000}
-
-/* --- les sept paliers : six tons + la lueur (--mog) + l'objet --- */
-html,html[data-metal="centime"]{--moO:#3a1606;--moD:#7a3410;--moS:#b05a24;--moM:#e0823c;--moL:#ffb070;--moH:#ffe0b8;--mog:rgba(224,130,60,0);--mImg:url('./assets/monnaie/sym-centime.png');--vraiEur:#ff5fd2}
-html[data-metal="euro"]{--moO:#161c30;--moD:#46506c;--moS:#7884a2;--moM:#aeb9d2;--moL:#dde4f2;--moH:#ffffff;--mog:rgba(220,230,255,0);--mImg:url('./assets/monnaie/sym-euro.png')}
-html[data-metal="or"]{--moO:#4a2200;--moD:#9a5200;--moS:#d88a00;--moM:#ffc21a;--moL:#ffe56a;--moH:#fffbd0;--mog:rgba(255,200,40,.55);--mImg:url('./assets/monnaie/sym-or.png')}
-html[data-metal="saphir"]{--moO:#040c36;--moD:#0a2a8a;--moS:#1446c8;--moM:#2a7bff;--moL:#7ab8ff;--moH:#e6f2ff;--mog:rgba(60,140,255,.55);--mImg:url('./assets/monnaie/sym-saphir.png')}
-html[data-metal="emeraude"]{--moO:#03240f;--moD:#08602e;--moS:#109446;--moM:#26cc66;--moL:#7dffaa;--moH:#e6fff0;--mog:rgba(40,230,120,.6);--mImg:url('./assets/monnaie/sym-emeraude.png')}
-html[data-metal="rubis"]{--moO:#2a000e;--moD:#78021f;--moS:#b80c32;--moM:#f0284e;--moL:#ff7a90;--moH:#ffe4ea;--mog:rgba(255,40,80,.7);--mImg:url('./assets/monnaie/sym-rubis.png')}
-html[data-metal="legendaire"]{--moO:#2a0a3a;--moD:#b8790a;--moS:#8fb0ff;--moM:#bfe6ff;--moL:#eaf8ff;--moH:#ffffff;--mog:rgba(255,220,255,.8);--mImg:url('./assets/monnaie/sym-legendaire.png')}
-html[data-metal]{--cash:var(--moM)}
-
-/* --- LA FACE DES CHIFFRES (--mofond) et LEUR RELIEF (--morelief), palier par palier --- */
-html{--moreflet:linear-gradient(105deg,transparent 0 44%,rgba(255,255,255,.75) 47% 53%,transparent 56%) 120% 0/300% 100%;
-  --mobandes4:linear-gradient(180deg,var(--moH) 0 14%,var(--moL) 14% 36%,var(--moM) 36% 64%,var(--moS) 64%) 0 0/100% 100%;
-  --mofacette:linear-gradient(135deg,var(--moL) 0 38%,transparent 38%) 0 0/100% 100%;
-  --moencre3:drop-shadow(3px 0 0 var(--moO)) drop-shadow(-3px 0 0 var(--moO)) drop-shadow(0 -3px 0 var(--moO)) drop-shadow(0 3px 0 var(--moO));
-  --mofond:linear-gradient(180deg,var(--moM) 0 55%,var(--moS) 55%);
-  --morelief:drop-shadow(2px 0 0 var(--moO)) drop-shadow(-2px 0 0 var(--moO)) drop-shadow(0 -2px 0 var(--moO)) drop-shadow(0 2px 0 var(--moO)) drop-shadow(0 2px 0 var(--moO))}
-html[data-metal="euro"]{--mofond:linear-gradient(180deg,var(--moL) 0 30%,var(--moM) 30% 62%,var(--moS) 62%);
-  --morelief:drop-shadow(0 2px 0 var(--moD)) drop-shadow(2px 0 0 var(--moO)) drop-shadow(-2px 0 0 var(--moO)) drop-shadow(0 -2px 0 var(--moO)) drop-shadow(0 2px 0 var(--moO)) drop-shadow(0 2px 0 var(--moO))}
-html[data-metal="or"]{--mofond:var(--moreflet),var(--mobandes4);
-  --morelief:drop-shadow(0 2px 0 var(--moD)) drop-shadow(0 2px 0 var(--moD)) var(--moencre3) drop-shadow(0 0 10px var(--mog))}
-html:is([data-metal="saphir"],[data-metal="emeraude"],[data-metal="rubis"]){--mofond:var(--moreflet),var(--mofacette),var(--mobandes4);
-  --morelief:drop-shadow(0 2px 0 var(--moD)) drop-shadow(0 2px 0 var(--moD)) var(--moencre3) drop-shadow(0 0 12px var(--mog))}
-html[data-metal="rubis"]{--morelief:drop-shadow(0 2px 0 var(--moD)) drop-shadow(0 2px 0 var(--moD)) drop-shadow(0 2px 0 var(--moD)) var(--moencre3) drop-shadow(0 0 16px var(--mog))}
-html[data-metal="legendaire"]{--mofond:linear-gradient(180deg,rgba(255,255,255,.85) 0 14%,rgba(255,255,255,.25) 14% 36%,transparent 36% 64%,rgba(60,20,120,.3) 64%) 0 0/100% 100%,linear-gradient(100deg,#ff7ac4,#ffb86b,#fff36b,#6bffb0,#5fd8ff,#9f86ff,#ff7ac4,#ffb86b,#fff36b) 0 0/300% 100%;
-  --morelief:drop-shadow(2px 0 0 #ffc21a) drop-shadow(-2px 0 0 #ffc21a) drop-shadow(0 -2px 0 #ffe56a) drop-shadow(0 2px 0 #d88a00) drop-shadow(0 2px 0 var(--moD)) drop-shadow(0 2px 0 var(--moD)) drop-shadow(2px 0 0 var(--moO)) drop-shadow(-2px 0 0 var(--moO)) drop-shadow(0 -2px 0 var(--moO)) drop-shadow(0 2px 0 var(--moO)) drop-shadow(0 0 18px var(--mog))}
-
-/* les compteurs : la face, puis le relief (sur le bloc), puis l'animation du palier */
-html body :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html body #mob #mDead.m5 .mCashL>b#mCash::before{
-  background:var(--mofond)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;animation:none;word-spacing:-.55em /* l'espace des milliers, fine (Press Start 2P : un espace = un chiffre) */}
-html body :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#mBankV),html body.touch.play #cashHud .chV span,html body #mob #mDead .mCashL>b#mCash{filter:var(--morelief)!important}
-html body #mob #mDead.m5 .mCashL>b#mCash{background:none!important}
-html #moneyTxt .cts{-webkit-text-fill-color:var(--moL);color:var(--moL)}
-/* le reflet qui passe (or et plus) — hors course seulement */
-html:is([data-metal="or"],[data-metal="saphir"],[data-metal="emeraude"],[data-metal="rubis"]) body :is(#moneyTxt,#gBqArg,#mBankV,#mCash),
-html:is([data-metal="or"],[data-metal="saphir"],[data-metal="emeraude"],[data-metal="rubis"]) body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),
-html:is([data-metal="or"],[data-metal="saphir"],[data-metal="emeraude"],[data-metal="rubis"]) body:not(.play) #cashHud .chV span{animation:mReflet 2.8s steps(14) infinite}
-@keyframes mReflet{0%,58%{background-position:120% 0}100%{background-position:-20% 0}}
-/* le légendaire irise (le seul qui bouge en course) */
-html[data-metal="legendaire"] body :is(#cashHud .chV span,#moneyTxt,#gBqArg,#mBankV,#mCash),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash::before{animation:mIris 3.5s linear infinite}
-@keyframes mIris{from{background-position:0 0,0 0}to{background-position:0 0,-300% 0}}
-
-/* --- L'OBJET du compteur de course : pixel net, saute à chaque gain --- */
-#cashHud .chV i.mOr{display:inline-block;position:relative;width:1.3em;height:1.3em;font-size:var(--f6);align-self:center;margin-right:.2em;color:transparent;
-  background:var(--mImg) center/contain no-repeat;-webkit-background-clip:border-box;background-clip:border-box;image-rendering:pixelated;
-  filter:drop-shadow(0 0 5px var(--mog));transform-origin:50% 60%}
-#cashHud .chV i.mOr.pop{animation:mOrPop .32s cubic-bezier(.2,1.6,.4,1)}
-@keyframes mOrPop{0%{transform:scale(1) rotate(0)}35%{transform:scale(1.4) rotate(-8deg)}100%{transform:scale(1) rotate(0)}}
-/* le rubis bat comme un cœur ; le légendaire flotte */
-html[data-metal="rubis"] #cashHud .chV i.mOr:not(.pop){animation:mBat 1.6s ease-in-out infinite}
-@keyframes mBat{0%,70%,100%{transform:scale(1)}80%{transform:scale(1.12)}90%{transform:scale(.97)}}
-html[data-metal="legendaire"] #cashHud .chV i.mOr:not(.pop){animation:mFlotteObj 2.4s ease-in-out infinite}
-@keyframes mFlotteObj{50%{transform:translateY(-2px) rotate(-4deg)}}
-/* les éclats en pixel (étoile à quatre branches) : 1 au saphir, 2 de l'émeraude au légendaire */
-#cashHud .chV i.mOr::before,#cashHud .chV i.mOr::after{content:none;position:absolute;width:2px;height:2px;background:#fff;opacity:0;
-  box-shadow:0 -2px #fff,0 2px #fff,-2px 0 #fff,2px 0 #fff,0 -4px var(--moL),0 4px var(--moL),-4px 0 var(--moL),4px 0 var(--moL);animation:mScint 1.8s steps(4) infinite}
-html:is([data-metal="saphir"],[data-metal="emeraude"],[data-metal="rubis"],[data-metal="legendaire"]) #cashHud .chV i.mOr::after{content:'';right:-3px;top:-3px}
-html:is([data-metal="emeraude"],[data-metal="rubis"],[data-metal="legendaire"]) #cashHud .chV i.mOr::before{content:'';left:-4px;bottom:0;animation-delay:.9s}
-@keyframes mScint{0%,100%{opacity:0;transform:scale(.4)}40%{opacity:1;transform:scale(1)}70%{opacity:0;transform:scale(.6)}}
-@media (prefers-reduced-motion:reduce){html body :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),#cashHud .chV i.mOr,#cashHud .chV i.mOr::before,#cashHud .chV i.mOr::after{animation:none!important}}
-
-/* --- LE COMPTE DU GARAGE (Léo : « plus de rectangle derrière, de bons gros chiffres 3D posés dans l'air ») : plus de plaque, ils flottent --- */
-html #gCompteur{background:none!important;box-shadow:none!important;clip-path:none!important;height:auto!important;padding:0 6px!important;overflow:visible!important}
-html body #gCompteur b{font-size:calc(var(--f4) * 1.7);letter-spacing:2px;transform:none!important;padding:2px 0 8px;font-family:'CC Vide','Press Start 2P',monospace!important;white-space:nowrap!important;animation:mFlotte 3.6s ease-in-out infinite}
-html:is([data-metal="or"],[data-metal="saphir"],[data-metal="emeraude"],[data-metal="rubis"]) body #gCompteur b{animation:mReflet 2.8s steps(14) infinite,mFlotte 3.6s ease-in-out infinite}
-html[data-metal="legendaire"] body #gCompteur b{animation:mIris 3.5s linear infinite,mFlotte 3.6s ease-in-out infinite}
-@keyframes mFlotte{50%{translate:0 -3px}}
-html #gCompteur b::before{content:'';display:inline-block;vertical-align:-.28em;width:1.3em;height:1.3em;margin-right:.25em;
-  background:var(--mImg) center/contain no-repeat;-webkit-background-clip:border-box;background-clip:border-box;image-rendering:pixelated}
-/* --- L'ÉCRAN DE MORT : le montant y est écrit chiffre par chiffre (.m6D > i/u), l'objet du palier à la place du glyphe --- */
-html #mDead .mCashL b#mCash{transform:none!important;padding:2px 4px 8px}
-html #mDead .mCashL b#mCash.clac{animation:mClac .5s cubic-bezier(.2,1.6,.4,1)}
-@keyframes mClac{0%{scale:1}30%{scale:1.22}100%{scale:1}}
-html body #mob #mDead.m5 .mCashL>b#mCash>.m6X{font-family:'CC Vide','Press Start 2P',monospace!important;display:inline-block;vertical-align:-.12em;width:1.15em;height:1.15em;margin:0 .12em;
-  background:var(--mImg) center/contain no-repeat!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;image-rendering:pixelated;animation:none!important}
-/* --- LA BOUTIQUE est claire et son compte petit : la face seule, un filet de contour, la lueur --- */
-html body #gBqArg{filter:drop-shadow(1px 0 0 var(--moO)) drop-shadow(-1px 0 0 var(--moO)) drop-shadow(0 1px 0 var(--moO)) drop-shadow(0 -1px 0 var(--moO)) drop-shadow(0 0 3px var(--mog))!important}
-
-/* --- L'ARGENT ÉCRIT DANS UN TEXTE (2026-11-08, Léo : « mission gagner 100 000, sans euro, de la couleur métal adaptée ») : plus de
-   symbole, le montant (moArg, passe-textes.js) prend la face et le contour du palier qu'il représente — pas celui du joueur. --- */
-.moArg{--aM:#e0823c;--aL:#ffb070;--aO:#3a1606;white-space:nowrap;color:var(--aM)!important;-webkit-text-fill-color:var(--aM)!important;
-  text-shadow:1px 0 0 var(--aO),-1px 0 0 var(--aO),0 1px 0 var(--aO),0 -1px 0 var(--aO),0 2px 0 var(--aO)!important}
-.moArg.mo-euro{--aM:#b9c3d8;--aO:#161c30}
-.moArg.mo-or{--aM:#ffc21a;--aO:#4a2200}
-.moArg.mo-saphir{--aM:#4f93ff;--aO:#040c36}
-.moArg.mo-emeraude{--aM:#33dd75;--aO:#03240f}
-.moArg.mo-rubis{--aM:#ff3a5e;--aO:#2a000e}
-.moArg.mo-legendaire{--aO:#2a0a3a;color:transparent!important;-webkit-text-fill-color:transparent!important;background:linear-gradient(100deg,#ff7ac4,#ffb86b,#fff36b,#6bffb0,#5fd8ff,#9f86ff,#ff7ac4) 0 0/300% 100%;-webkit-background-clip:text;background-clip:text;text-shadow:none!important;
-  filter:drop-shadow(1px 0 0 var(--aO)) drop-shadow(-1px 0 0 var(--aO)) drop-shadow(0 1px 0 var(--aO)) drop-shadow(0 -1px 0 var(--aO))}
-
-/* --- LA BOUTIQUE (2026-11-08, Léo : « dans le shop, un peu petit, pas très joli ») : les prix sans pastille, l'objet du palier du prix
-   puis le nombre à sa couleur, plus gros ; le solde du haut flotte comme au garage (plus de plaque), l'objet du palier du joueur devant. --- */
-.moIc{display:inline-block;width:1.35em;height:1.35em;vertical-align:-.3em;margin-right:.3em;background:url('./assets/monnaie/sym-centime.png') center/contain no-repeat;image-rendering:pixelated;flex:none}
-.moIc.mo-euro{background-image:url('./assets/monnaie/sym-euro.png')}.moIc.mo-or{background-image:url('./assets/monnaie/sym-or.png')}
-.moIc.mo-saphir{background-image:url('./assets/monnaie/sym-saphir.png')}.moIc.mo-emeraude{background-image:url('./assets/monnaie/sym-emeraude.png')}
-.moIc.mo-rubis{background-image:url('./assets/monnaie/sym-rubis.png')}.moIc.mo-legendaire{background-image:url('./assets/monnaie/sym-legendaire.png')}
-html body #gBq .bqKp.pc,html body #gBq .baP.pc,html body #gBq .fgPx,html body #gBq .pLe.e-pc,html body #gBq [class*="e-pc"] .bcP{background:none!important;box-shadow:none!important;border:0!important;font-size:11px!important;padding-left:0!important;letter-spacing:1px;color:inherit}
-html body #gBq .moArg{word-spacing:-.45em;text-shadow:1px 0 0 var(--aO),-1px 0 0 var(--aO),0 1px 0 var(--aO),0 -1px 0 var(--aO),1px 1px 0 var(--aO),-1px 1px 0 var(--aO),0 2px 0 var(--aO),1px 2px 0 var(--aO)!important}
-html body #gBq .trop .moArg,html body #gBq .cher .moArg{opacity:.75}
-html body #gBqTete .bqArg{background:none!important;box-shadow:none!important;padding:4px 0!important}
-html body #gBqTete .bqArg b#gBqArg{font-size:15px!important;letter-spacing:1px;font-family:'CC Vide','Press Start 2P',monospace!important;white-space:nowrap}
-html body #gBqTete .bqArg b#gBqArg::before{content:'';display:inline-block;width:1.4em;height:1.4em;vertical-align:-.32em;margin-right:.3em;background:var(--mImg) center/contain no-repeat;-webkit-background-clip:border-box;background-clip:border-box;image-rendering:pixelated}
-/* (2026-11-08, Léo : « le contour noir un peu gros sur l'argent et la pièce du shop en haut ; les prix : enlève la pièce, juste le prix ») */
-html body #gBqArg{filter:drop-shadow(1px 0 0 var(--moO)) drop-shadow(-1px 0 0 var(--moO)) drop-shadow(0 -1px 0 var(--moO)) drop-shadow(0 1px 0 var(--moO)) drop-shadow(0 1px 0 var(--moD)) drop-shadow(0 0 6px var(--mog))!important}
-html body #gBq .moIc{display:none}
-
-/* --- le vrai argent (€) en rose néon --- */
-html .gT em.eur,html #gBqPan .bqK .bqKp.eur,html #bqAile .baP.eur,html #gStrip.fnBande .fnP.eur,
-html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP.eur{color:var(--vraiEur)!important;text-shadow:0 1px 0 rgba(7,5,15,.95),0 0 8px rgba(255,95,210,.45)}
-html #gBqPan .trK .trTx .bqKp.eur{background:var(--vraiEur)!important;color:#fff!important}
-</style>
 <!-- LE HUB DU GARAGE (2026-10-06, Sacha : « enlève les boutons MISSION et CARRIÈRE de l'écran d'accueil et mets-les dans le garage, le garage
      doit servir de hub aux 3 ») : ATELIER · MISSIONS · CARRIÈRE, TOUJOURS à la même place sur les trois pages — voir HUB / hubSync -->
 <nav id="gHub" role="tablist" aria-label="Garage">
@@ -12006,7 +11874,7 @@ html #gBqPan .trK .trTx .bqKp.eur{background:var(--vraiEur)!important;color:#fff
     <div id="setHead"><span>Réglages</span><button id="setClose" class="pbtn pb-cyan pbCarre" aria-label="Fermer"><i class="pxi pxi-croix" aria-hidden="true"></i></button></div>
     <div class="setSec">Langue</div>
     <div class="setRow" id="langRow"><span>Langue · Language</span><b id="tgLang">FR</b></div>
-    <div class="setRow" id="curRow"><span>Devise</span><b id="tgCur">&#xE000;</b></div>
+    <div class="setRow" id="curRow"><span>Devise</span><b id="tgCur">€</b></div>
     <div class="setSec">Audio</div>
     <div class="setRow" data-tg="sndBtn"><span>Effets sonores</span><b id="tgSnd">ON</b></div>
     <div class="setRow" data-tg="musBtn"><span>Musique</span><b id="tgMus">ON</b></div>
@@ -12235,7 +12103,7 @@ function modale(o){return new Promise(function(res){
    `?bienvenue=0` la tait (bancs), `?bienvenue=1` la pose à chaque ouverture (essai), `dbgBienvenue()` la montre. Le doigt TAPE TA CAISSE attend qu'elle soit refermée (BIENV.on). */
 var BIENV={on:false,fait:false,t0:0,iv:0};
 function bienvI18n(){Object.assign(I18N,{'PREMIERE FOIS ICI ?':'FIRST TIME HERE?','OUI, GUIDE-MOI':'YES, GUIDE ME',"J'AI DEJA JOUE":"I'VE PLAYED BEFORE",'Une course guidée':'A guided run','Direct en course':'Straight to the race','NE PLUS ME DEMANDER':"DON'T ASK AGAIN",
-  'Une minute en roulant pour apprendre, et ton PERMIS rapporte 500.':'One minute on the road to learn, and your LICENSE pays 500.'});} // (I18N naît plus bas dans le script : les mots sont posés au démarrage du guet)
+  'Une minute en roulant pour apprendre, et ton PERMIS rapporte € 500.':'One minute on the road to learn, and your LICENSE pays €500.'});} // (I18N naît plus bas dans le script : les mots sont posés au démarrage du guet)
 function bienvVeut(){/* (2026-10-22, Sacha : « enlève ça du jeu ») la question de bienvenue n'est plus posée */ return false;const d=SAVE.d;if(/[?&]bienvenue=1\b/.test(location.search))return !BALADE; /* (essai) `?bienvenue=1` la pose quelle que soit la sauvegarde */ return !BALADE&&!SIMU_JEU&&!SANDBOX&&!PARK.on&&!d.tuto&&!d.permis&&!d.bienv&&!/[?&]bienvenue=0\b/.test(location.search);}
 function bienvPret(){const sp=document.getElementById('splash'),md=document.getElementById('modale');
   return !sp&&!!overlay&&overlay.getAttribute('data-ecran')==='home'&&!(started&&!gameOver)&&!(garageOn&&!document.body.classList.contains('titreCiel'))&&!(GAR&&GAR.go)&&!ecranWipe._on&&!(md&&md.classList.contains('on'))&&!document.body.classList.contains('play')&&!(PLQ&&PLQ.on);} /* (2026-10-17) LA PLAQUE se choisit d'abord (voir plqGuette) */
@@ -12246,7 +12114,7 @@ function bienvGuette(){if(BIENV.iv)return;try{bienvI18n();}catch(e){}BIENV.iv=se
   if(performance.now()-BIENV.t0>700){clearInterval(BIENV.iv);bienvMontre();}}catch(e){}},250);} // l'accueil a fini d'entrer (700 ms) : la question se pose
 function bienvMontre(force){if(BIENV.on||(!force&&(BIENV.fait||!bienvVeut())))return;BIENV.fait=true;BIENV.on=true;
   try{chuteDoigtMontre(false);}catch(e){}
-  modale({titre:'PREMIERE FOIS ICI ?',texte:'Une minute en roulant pour apprendre, et ton PERMIS rapporte 500.',cartes:true,cls:'bienv',coche:'NE PLUS ME DEMANDER',
+  modale({titre:'PREMIERE FOIS ICI ?',texte:'Une minute en roulant pour apprendre, et ton PERMIS rapporte € 500.',cartes:true,cls:'bienv',coche:'NE PLUS ME DEMANDER',
     boutons:[{l:'OUI, GUIDE-MOI',ic:'volant',cls:'pb-gold',sous:'Une course guidée',v:1},{l:"J'AI DEJA JOUE",ic:'eclair',cls:'c6Neutre',sous:'Direct en course',v:0}]}).then(function(r){
     BIENV.on=false;
     if(r.coche)SAVE.d.bienv=1;
@@ -32116,7 +31984,7 @@ function langNext(){
   try{localStorage.ccLang=LANG;}catch(err){}
   return LANG;
 }
-const CUR=()=>'\uE000'; /* (2026-11-05, Sacha : « remplace les dollars par des euros, aucun symbole dollar ne doit rechapper ») la devise du jeu est l'EURO */
+const CUR=()=>'€'; /* (2026-11-05, Sacha : « remplace les dollars par des euros, aucun symbole dollar ne doit rechapper ») la devise du jeu est l'EURO */
 const LOC=()=>LANG==='fr'?'fr-FR':'en-US';
 const fmt=v=>CUR()+(LANG==='fr'?' ':'')+Math.round(v).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' '); /* (2026-11-07) comme fmtSolde et fmtC : « €1,234 » en anglais (plus d'espace à la française), et l'espace fine U+202F de fr-FR remplacée par une vraie espace — la police pixel ne la dessine pas */
 /* ============================================================================
@@ -32629,31 +32497,27 @@ function fmtGta(v){
    un seul rAF pour toutes les plaques, aucun objet alloué par image). Les grands montants tiennent : quand le NOMBRE de signes change, la police
    descend par crans jusqu'à ce que la plaque tienne dans son cadre et dans l'écran (soldeFit, une mesure par changement de longueur, pas par image).
    Les messages d'événement gardent leurs unités compactes (fmtC) : seul le SOLDE est précis. */
-function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0,]/g,' ');} /* (2026-11-07, Léo) l'argent s'écrit « 650 000 » dans toutes les langues */ /* (2026-10-18, débogage) TRONQUÉ comme soldeEcrit : 6,6 $ s'écrivait « $ 7 » sur l'écran de fin et « $ 6 » au garage */
+function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');} /* (2026-10-18, débogage) TRONQUÉ comme soldeEcrit : 6,6 $ s'écrivait « $ 7 » sur l'écran de fin et « $ 6 » au garage */
 const SOLDE={l:[],on:false,D:700};
 /* (2026-10-31, Léo : « le jeu lag encore un peu sur mobile ») LE BON CRAN DU PREMIER COUP. La police descendait d'un cran (1,5 px) par mesure, jusqu'à
    dix mesures d'affilée, et chaque mesure après une écriture force la mise en page de TOUTE la page : MESURÉ au portail (banc iPhone ×4), 35 à 43 ms
    dans une image quand le solde gagne un chiffre. Désormais la 1re mesure dit de combien c'est trop large, on saute au cran estimé (un de moins, par
    prudence), puis on avance cran par cran dans le bon sens : 2 à 3 mesures. Même cran final qu'avant (le plus gros qui tient, dix crans au plus). */
-/* (2026-11-08, la monnaie) le compte du garage n'a plus de plaque : ses chiffres flottent et ne doivent pas passer sous l'ŒIL (#gOeil)
-   qui partage sa rangée — le bord droit à ne pas franchir est alors le bord gauche de l'œil (6 px d'air), sinon le bord de l'écran. */
-function soldeBord(p,r){let x=VP.w-4;if(p.id==='gCompteur'){const o=document.getElementById('gOeil');if(o){const q=o.getBoundingClientRect();if(q.width>0&&q.left>r.left&&q.top<r.bottom&&q.bottom>r.top)x=Math.min(x,q.left-6);}}return x;}
 function soldeFit(el,xMin){const p=el.parentElement;if(!p)return true;el.style.fontSize='';const x0=xMin||4; /* xMin : le bord gauche à ne pas franchir (en course, la colonne des barres) */
   const fs0=parseFloat(getComputedStyle(el).fontSize)||14,F=function(n){return Math.max(7,fs0-1.5*n);};
-  const nL=p.id==='gCompteur'?16:10; /* (2026-11-08) le compte du garage part 1,7 fois plus gros (la monnaie) : six crans de plus pour tenir avant l'œil */
-  let nMax=nL;for(let n=1;n<nL;n++)if(F(n)<=7){nMax=n;break;} /* le cran où l'on s'arrêtait sans remesurer (police à 7 px, ou le 10e) */
+  let nMax=10;for(let n=1;n<10;n++)if(F(n)<=7){nMax=n;break;} /* le cran où l'on s'arrêtait sans remesurer (police à 7 px, ou le 10e) */
   let r=null;const tient=function(){r=p.getBoundingClientRect();if(r.width<1)return null; /* caché : on réessaiera à la prochaine écriture */
-    return el.scrollWidth<=el.clientWidth+1&&p.scrollWidth<=p.clientWidth+1&&r.right<=soldeBord(p,r)&&r.left>=x0;}; /* le chiffre lui-même peut se rogner (overflow:hidden) : on le mesure aussi */
+    return el.scrollWidth<=el.clientWidth+1&&p.scrollWidth<=p.clientWidth+1&&r.right<=VP.w-4&&r.left>=x0;}; /* le chiffre lui-même peut se rogner (overflow:hidden) : on le mesure aussi */
   let t=tient();if(t===null)return false;if(t)return true;
   let k=1;if(el.scrollWidth>0)k=Math.min(k,el.clientWidth/el.scrollWidth);if(p.scrollWidth>0)k=Math.min(k,p.clientWidth/p.scrollWidth);
-  const xb=soldeBord(p,r);if(r.right>xb)k=Math.min(k,(xb-r.left)/r.width);if(r.left<x0)k=Math.min(k,(r.right-x0)/r.width);
+  if(r.right>VP.w-4)k=Math.min(k,(VP.w-4-r.left)/r.width);if(r.left<x0)k=Math.min(k,(r.right-x0)/r.width);
   let n=Math.max(1,Math.min(nMax,Math.ceil((fs0-fs0*Math.max(0,k))/1.5)-1));
   const pose=function(m){el.style.fontSize=F(m)+'px';};
   pose(n);if(n>=nMax)return true;t=tient();if(t===null)return false;
   if(t){while(n>1){pose(n-1);const t2=tient();if(t2===null)return false;if(!t2){pose(n);break;}n--;}return true;} /* il tient : un cran plus gros tient-il aussi ? */
   while(n<nMax){n++;pose(n);if(n>=nMax)return true;t=tient();if(t===null)return false;if(t)return true;}
   return true;}
-function soldeTxt(el,v){metalMaj();const t=fmtSolde(v);el._sl=LANG;if(el.textContent!==t){el.textContent=t;if(el._sn!==t.length){el._sn=t.length;if(!soldeFit(el))el._sn=-1;}}}
+function soldeTxt(el,v){const t=fmtSolde(v);el._sl=LANG;if(el.textContent!==t){el.textContent=t;if(el._sn!==t.length){el._sn=t.length;if(!soldeFit(el))el._sn=-1;}}}
 function soldeEcrit(el,v,net){if(!el)return;v=Math.max(0,Math.floor(v));
   if(el._sv==null||net||REDUCED_MOTION){el._sv=el._sc=v;soldeTxt(el,v);return;}
   if(el._sn===-1){const n9=performance.now();if(!(n9-(el._sr||0)<500)){el._sr=n9;if(soldeFit(el))el._sn=el.textContent.length;}} /* la plaque était cachée au dernier changement de longueur : on remesure, deux fois par seconde au plus */
@@ -32688,7 +32552,7 @@ function fmtC(v){
 // LE COMPTEUR AU MENU : la seule repeinte vivait DANS la boucle, sous le gate de simulation — au menu
 // elle ne tournait jamais et le HUD gardait le « $00000000 » écrit en dur dans le HTML. Tout passe
 // désormais par ici (init, départ, reset, changement de langue) : un seul écrivain, plus d'oubli.
-function paintMoney(){try{metalMaj();}catch(e){}try{elMoney.innerHTML=fmtGta(money);loop._money=money;}catch(e){}try{cashSnap();}catch(e){}}
+function paintMoney(){try{elMoney.innerHTML=fmtGta(money);loop._money=money;}catch(e){}try{cashSnap();}catch(e){}}
 /* LE COMPTEUR D'ARGENT DU TÉLÉPHONE (#cashHud, 2026-09-29) — le total de la partie DÉFILE vers `money` (on voit l'argent entrer, comme dans
    GTA), et chaque gain s'additionne dans un « +$ » sous lui tant que ça tombe (1,8 s après le dernier) ; en FRÉNÉSIE il passe à l'or et dit
    « ×3 ». On n'écrit le DOM que quand le texte change. `cashSnap` (via paintMoney : départ, reset, langue) recale sans défilement. */
@@ -32696,64 +32560,19 @@ const CASH={el:null,v:null,d:null,disp:0,last:0,delta:0,dT:0,tv:'',td:'',k:false
 function cashTxt(v){v=Math.max(0,v);
   const e=Math.floor(v+1e-6);
   if(v<10&&v-e>.004){const t=v.toFixed(2);return LANG==='fr'?t.replace('.',','):t;} // la mise de départ (1,61) garde ses centimes
-  return e.toLocaleString(LOC()).replace(/[\u202f\u00a0,]/g,' ');}
+  return e.toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
 /* (2026-11-07, finition du HUD) LES CENTIMES EN PETIT : « 8 » puis <small>,21</small> — t vient de toLocaleString / toFixed (chiffres, espaces, une virgule ou un point) : rien d'autre n'entre dans le HTML */
 function cashPose(el,t){const m=/^(\d[\d ]*)([.,]\d+)$/.exec(t);if(m)el.innerHTML=m[1]+'<small>'+m[2]+'</small>';else el.textContent=t;}
-function monnaiePop(){const i=CASH.el&&CASH.el.querySelector('.mOr');if(!i||i.classList.contains('pop'))return;i.classList.add('pop');setTimeout(function(){i.classList.remove('pop');},330);} /* (2026-11-07, Léo : « rends-le encore plus juicy ») le symbole saute et brille à chaque gain */
-/* ===== L'ARGENT QUI ÉVOLUE (2026-11-07, Léo : « plus tu en as, plus ça peut évoluer ») =====
-   Le métal de l'argent suit la fortune (le compte, plus la partie en cours) : CENTIME → EURO → OR → SAPHIR → ÉMERAUDE → RUBIS → LÉGENDAIRE
-   (5 k, 100 k, 1 M, 10 M, 100 M, 1 Md). Il se pose sur <html data-metal> : chiffres, symbole et prix en argent du jeu (--cash) en prennent
-   la couleur (monnaie.css). Monter d'un cran se fête une fois. `?metal=or` force un métal (bancs). */
-const METAUX=[[5e3,'centime','CENTIME'],[1e5,'euro','EURO'],[1e6,'or','OR'],[1e7,'saphir','SAPHIR'],[1e8,'emeraude','ÉMERAUDE'],[1e9,'rubis','RUBIS'],[Infinity,'legendaire','LÉGENDAIRE']]; /* (2026-11-08, Léo : « ajoute saphir avant émeraude, légendaire à un milliard ») */ /* (2026-11-07, Léo : « un centime brillant comme la Honte, puis un euro comme sur la route, puis or, émeraude, rouge, multicolore légendaire ») */
-const METAL_FORCE=(function(){try{return new URLSearchParams(location.search).get('metal');}catch(e){return null;}})();
-/* `?metal=demo` : les sept paliers défilent tout seuls (2,5 s chacun), le compte du garage montre une somme de chaque palier — pour VOIR l'argent évoluer */
-let METAL_DEMO=null;
-function metalDemo(){if(METAL_DEMO)return;let k=-1;const S=[1250,48000,650000,4200000,48000000,520000000,1250000000];
-  const pas=function(){k=(k+1)%METAUX.length;const h=document.documentElement,av=h.dataset.metal;h.dataset.metal=METAUX[k][1];
-    try{const b=document.querySelector('#gCompteur b');if(b){b.textContent=fmtSolde(S[k]);soldeFit(b);}}catch(e){}
-    try{const v=document.querySelector('#cashHud .chV span');if(v)v.textContent=cashTxt(S[k]);}catch(e){}
-    try{monnaiePop();if(av)trickMsg(TR('TON ARGENT PASSE EN ')+TR(METAUX[k][2])+' !',1);}catch(e){}};
-  pas();METAL_DEMO=setInterval(pas,2500);}
-/* (2026-11-08, Léo : « mission gagner 100 000, sans euro, de la couleur métal adaptée ») L'ARGENT ÉCRIT DANS UN TEXTE : plus de symbole,
-   le montant prend la couleur du palier qu'il représente (100 000 = l'or, 5 000 000 = le saphir…) — classes .moArg.mo-<palier> (monnaie.css). */
-function metalDe(v){let k=0;while(v>=METAUX[k][0])k++;return METAUX[k][1];}
-function moArg(v,t){return '<span class="moArg mo-'+metalDe(v)+'">'+(t==null?cashTxt(v):t)+'</span>';}
-function moDans(h,v){let f=0;return String(h).replace(/<[^>]*>|\d[\d ,.]*\d|\d/g,function(x){if(x[0]==='<'||f)return x;f=1;return moArg(v,x);});} /* les balises sont sautées (« m2Nw » a un 2) */ /* le 1er nombre du texte (HTML) prend la couleur du palier de v */
-/* (2026-11-08, Léo : « dans le shop, pas très bien retranscrit, un peu petit, pas très joli ») LES PRIX DE LA BOUTIQUE : une dizaine de
-   fabriques écrivent « ⓒ 30 000 » (le glyphe U+E000 de fmtSolde). Une seule passe, sur la boutique seulement (#gBq), remplace le glyphe et
-   son nombre par l'OBJET du palier de ce prix (.moIc) et le nombre à sa couleur (.moArg) — 30 000 en argent, 1 000 000 en saphir.
-   Le solde (#gBqArg) est laissé au CSS (il défile à chaque image : on ne le recoupe pas). Un MutationObserver, une passe par image au plus. */
-const MO_RE=/\s?(\d[\d   ,.]*\d|\d)|(\d[\d   ,.]*\d|\d)\s?/g;
-let MO_OBS=null;
-function moDeco(root){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){const e=n.parentElement;return n.nodeValue.indexOf('')>=0&&e&&!e.closest('#gBqArg,.moArg,[aria-hidden="true"] svg')?1:3;}});
-  const L=[];while(w.nextNode())L.push(w.currentNode);
-  L.forEach(function(n){const s=n.nodeValue,f=document.createDocumentFragment();let m,last=0,ok=false;MO_RE.lastIndex=0;
-    while((m=MO_RE.exec(s))){ok=true;f.appendChild(document.createTextNode(s.slice(last,m.index)));const num=m[1]||m[2],k=metalDe(+num.replace(/\D/g,'')||0);
-      const i=document.createElement('i');i.className='moIc mo-'+k;i.setAttribute('aria-hidden','true');const b=document.createElement('span');b.className='moArg mo-'+k;b.textContent=num;
-      f.appendChild(i);f.appendChild(b);last=MO_RE.lastIndex;}
-    if(ok){f.appendChild(document.createTextNode(s.slice(last)));n.parentNode.replaceChild(f,n);}});}
-function moObs(){if(MO_OBS)return;const r=document.getElementById('gBq');if(!r||typeof MutationObserver!=='function')return;let att=0;
-  MO_OBS=new MutationObserver(function(){if(att)return;att=1;requestAnimationFrame(function(){att=0;moDeco(r);});});
-  MO_OBS.observe(r,{childList:true,subtree:true,characterData:true});moDeco(r);}
-function metalMaj(){
-  if(!MO_OBS)moObs();
-  if(METAL_FORCE==='demo'){metalDemo();return;}
-  let v=0;try{v=bank()+(document.body.classList.contains('play')?Math.max(0,money||0):0);}catch(e){}
-  let k=0;while(v>=METAUX[k][0])k++;
-  if(METAL_FORCE){const f=METAUX.findIndex(function(m){return m[1]===METAL_FORCE;});if(f>=0)k=f;}
-  const h=document.documentElement,n=METAUX[k][1],av=h.dataset.metal;if(av===n)return;h.dataset.metal=n;
-  const ka=METAUX.findIndex(function(m){return m[1]===av;});
-  if(av&&k>ka){try{monnaiePop();trickMsg(TR('TON ARGENT PASSE EN ')+TR(METAUX[k][2])+' !',1);}catch(e){}}}
 function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
   const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
-  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){if(!force&&CASH.disp>(CASH.dPrec||0))monnaiePop();CASH.dPrec=CASH.disp;metalMaj();CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,VP.w*.58);}}}
+  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,VP.w*.58);}}}
   if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);
-    if(kd!==CASH.kd2){CASH.kd2=kd;const td='+'+CUR()+' '+cashTxt(CASH.delta)+(x3?' ×3':'');if(td!==CASH.td){CASH.td=td;CASH.d.textContent=td;}}
+    if(kd!==CASH.kd2){CASH.kd2=kd;const td='+€ '+cashTxt(CASH.delta)+(x3?' ×3':'');if(td!==CASH.td){CASH.td=td;CASH.d.textContent=td;}}
     if(x3!==CASH.d.classList.contains('x3'))CASH.d.classList.toggle('x3',x3);}
   if(vu!==CASH.d.classList.contains('vu'))CASH.d.classList.toggle('vu',vu);
 }
@@ -35394,7 +35213,7 @@ function trxPlanche(){
      rr(-W/2,-H/2,W,H,7);const g=x.createLinearGradient(0,-H/2,0,H/2);g.addColorStop(0,vs?'#52bd7c':'#5cc985');g.addColorStop(1,'#2b7f4d');x.fillStyle=g;x.fill();
      x.lineWidth=2;x.strokeStyle='#1d5c37';x.stroke();x.strokeStyle='rgba(220,255,228,.75)';x.lineWidth=1.6;x.strokeRect(-W/2+6,-H/2+6,W-12,H-12);
      x.textAlign='center';x.textBaseline='middle';x.fillStyle='#e8fdec';
-     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='24px "Press Start 2P",monospace';x.fillText('\uE000',0,2);
+     if(!vs){x.beginPath();x.ellipse(0,0,15,20,0,0,Math.PI*2);x.fill();x.fillStyle='#1f6b3f';x.font='24px "Press Start 2P",monospace';x.fillText('€',0,2);
        x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('100',-W/2+19,-H/2+15);x.fillText('100',W/2-19,H/2-14);}
      else{x.fillStyle='rgba(20,80,45,.9)';x.fillRect(-W/2+6,-8,W-12,16);x.fillStyle='#e8fdec';x.font='8px "Press Start 2P",monospace';x.fillText('CASH CAR',0,1);
        x.beginPath();x.arc(-W/2+18,-H/2+17,6,0,Math.PI*2);x.moveTo(W/2-12,H/2-17);x.arc(W/2-18,H/2-17,6,0,Math.PI*2);x.fill();}
@@ -53098,7 +52917,7 @@ function flowHudMaj(rest){
   h.classList.toggle('gele',FLOW.nit&&FLOW.v>0&&FLOW.lv<4); // (v3) le nitro TIENT la jauge de la montée : rien ne fuit tant qu'il brûle
   const tr=frenEl();if(tr){tr.classList.toggle('tremble',FLOW.lv===4&&lache);tr.classList.toggle('froid',FLOW.lv===4&&fuit&&!lache);}
   if(FLOW.lvAff!==FLOW.lv){const av=FLOW.lvAff;FLOW.lvAff=FLOW.lv;h.style.setProperty('--fc',FLOW_COL[FLOW.lv]);h.dataset.lv=FLOW.lv;
-    h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='\uE000×'+fmtMul(flowMult());
+    h.querySelector('.fL').textContent=sansAcc(TR(FLOW_NOM[FLOW.lv]));h.querySelector('.fM').textContent='€×'+fmtMul(flowMult());
     const g=FLOW.glow;g.style.setProperty('--fc',FLOW_COL[FLOW.lv]);g.dataset.lv=FLOW.lv;g.style.opacity=FLOW.lv?(.25+FLOW.lv*.15).toFixed(2):'0';
     if(FLOW.lv===4)frenEntre();else{h.classList.remove('embrase','sc1','sc2');if(av===4)frenSort();}} // (sans ça, un retour d'écran — display rendu — rejouerait l'embrasement)
 }
@@ -53987,7 +53806,7 @@ const PEINT_CAT=[ /* [id, nom, rareté, aspect, description, défi] */
   ['bolide','ROUGE BOLIDE','commun',{c:0xe3242b},"Le rouge des grandes marques. Sans le cheval, avec l'arrogance.",{k:'sc:cerise',v:50,t:'Croque 50 cerises.'}],
   ['emeute','ORANGE ÉMEUTE','commun',{c:0xff6b14},"Visible depuis l'espace. C'est le but.",{k:'sc:orange',v:50,t:'Croque 50 oranges.'}],
   ['taxi','JAUNE TAXI','commun',{c:0xffc61a},"Tout le monde te fait signe. Tu ne t'arrêtes pas.",{k:'sc:citron',v:50,t:'Ramasse 50 citrons.'}],
-  ['billet','VERT BILLET','commun',{c:0x1c9a4c},'La couleur préférée de ton banquier.',{k:'gagne',v:100000,t:'Gagne 100 000 au total.'}],
+  ['billet','VERT BILLET','commun',{c:0x1c9a4c},'La couleur préférée de ton banquier.',{k:'gagne',v:100000,t:'Gagne 100 000 € au total.'}],
   ['lagon','LAGON','commun',{c:0x109a94},"L'eau des îles où tu dépenses tes primes."],
   ['azur','AZUR','commun',{c:0x2b8cff},'Le ciel sans un nuage. Le tien.',{k:'sc:myrtille',v:50,t:'Croque 50 myrtilles.'}],
   ['minuit','BLEU MINUIT','commun',{c:0x2b43c4},'Le bleu des néons de la ville, à trois heures du matin.',{k:'sc:nuit',v:10,t:'Joue 10 niveaux de nuit.'}],
@@ -54040,7 +53859,7 @@ const PEINT_CAT=[ /* [id, nom, rareté, aspect, description, défi] */
   ['graffiti','GRAFFITI','epique',{mot:'graffiti'},'Le mur du parking, bombé sur ta carrosserie. Signé, daté, illégal.',{k:'tours',v:5,t:'Frôle 5 tours dans un seul saut.'}],
   ['popart','POP ART','epique',{mot:'popart'},"Trames, bulles et BOOM ! Ta caisse sort tout droit d'une BD."],
   ['vagues','GRANDE VAGUE','epique',{mot:'vagues'},'Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.',{k:'prof',v:'prof',t:'Descends au fond de la mer de Jade.'}],
-  ['cash','PLEIN AUX AS','epique',{mot:'cash'},"Des euros d'or sur fond vert billet. Discret ? Non.",{k:'gagne',v:1000000,t:'Gagne 1 000 000 au total.'}],
+  ['cash','PLEIN AUX AS','epique',{mot:'cash'},"Des euros d'or sur fond vert billet. Discret ? Non.",{k:'gagne',v:1000000,t:'Gagne 1 000 000 € au total.'}],
   /* … les pelages et la nature */
   ['tigre','TIGRE','epique',{mot:'tigre'},'Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.'],
   ['leopard','LÉOPARD','epique',{mot:'leopard'},'Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles.'],
@@ -54063,7 +53882,7 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOR","PEINTURE":"PAI
   "ROUGE BOLIDE":"RACING RED","Le rouge des grandes marques. Sans le cheval, avec l'arrogance.":"The red of the big brands. Without the horse, with the arrogance.","Croque 50 cerises.":"Eat 50 cherries.",
   "ORANGE ÉMEUTE":"RIOT ORANGE","Visible depuis l'espace. C'est le but.":"Visible from space. That's the point.","Croque 50 oranges.":"Eat 50 oranges.",
   "JAUNE TAXI":"TAXI YELLOW","Tout le monde te fait signe. Tu ne t'arrêtes pas.":"Everyone waves at you. You don't stop.","Ramasse 50 citrons.":"Pick up 50 lemons.",
-  "VERT BILLET":"CASH GREEN","La couleur préférée de ton banquier.":"Your banker's favorite color.","Gagne 100 000 au total.":"Earn 100,000 in total.",
+  "VERT BILLET":"CASH GREEN","La couleur préférée de ton banquier.":"Your banker's favorite color.","Gagne 100 000 € au total.":"Earn €100,000 in total.",
   "LAGON":"LAGOON","L'eau des îles où tu dépenses tes primes.":"The water of the islands where you spend your bonuses.",
   "AZUR":"AZURE","Le ciel sans un nuage. Le tien.":"A sky without a single cloud. Yours.","Croque 50 myrtilles.":"Eat 50 blueberries.",
   "BLEU MINUIT":"MIDNIGHT BLUE","Le bleu des néons de la ville, à trois heures du matin.":"The blue of city neons at three in the morning.","Joue 10 niveaux de nuit.":"Play 10 levels at night.",
@@ -54109,7 +53928,7 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOR","PEINTURE":"PAI
   "GRAFFITI":"GRAFFITI","Le mur du parking, bombé sur ta carrosserie. Signé, daté, illégal.":"The car-park wall, sprayed on your bodywork. Signed, dated, illegal.","Frôle 5 tours dans un seul saut.":"Skim 5 towers in a single jump.",
   "POP ART":"POP ART","Trames, bulles et BOOM ! Ta caisse sort tout droit d'une BD.":"Halftones, bubbles and BOOM! Your car jumped straight out of a comic.",
   "GRANDE VAGUE":"GREAT WAVE","Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.":"The waves of Japanese prints, in scales. The calm before your nitro.","Descends au fond de la mer de Jade.":"Dive to the bottom of the Jade Sea.",
-  "PLEIN AUX AS":"LOADED","Des euros d'or sur fond vert billet. Discret ? Non.":"Gold euros on cash green. Subtle? No.","Gagne 1 000 000 au total.":"Earn 1,000,000 in total.",
+  "PLEIN AUX AS":"LOADED","Des euros d'or sur fond vert billet. Discret ? Non.":"Gold euros on cash green. Subtle? No.","Gagne 1 000 000 € au total.":"Earn €1,000,000 in total.",
   "TIGRE":"TIGER","Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.":"Burnt orange, black stripes. The king of the jungle traded his claws for tires.",
   "LÉOPARD":"LEOPARD","Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles.":"Black rosettes on gold. You don't hunt: you overtake.",
   "ZÈBRE":"ZEBRA","Noir sur blanc ou blanc sur noir ? Personne ne sait. Toi, tu fonces.":"Black on white or white on black? Nobody knows. You just floor it.",
@@ -54200,9 +54019,9 @@ const MOTIFS={
       motTore(x,function(){x.fillStyle='rgba(255,255,255,.85)';x.fillRect(cx-r*1.4,cy-.8,r*2.8,1.6);x.fillRect(cx-.8,cy-r*1.4,1.6,r*2.8);});}}},
   cash:{s:.45,c:0x1d7f45,f:function(x,R){x.fillStyle='#1d7f45';x.fillRect(0,0,MOT_W,MOT_W);
     x.strokeStyle='rgba(255,255,255,.07)';x.lineWidth=10;for(let k=-5;k<5;k++){x.beginPath();x.moveTo(k*128,0);x.lineTo(k*128+MOT_W,MOT_W);x.stroke();} // le guillochage du billet
-    x.font='92px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
+    x.font='900 92px "Arial Black",Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
     for(let b=0;b<4;b++)for(let a=0;a<4;a++){const cx=(a+.5+(b&1)*.5)*128,cy=(b+.5)*128,ro=(R()-.5)*.5;
-      motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(ro);x.lineWidth=10;x.strokeStyle='#0c4425';x.strokeText('\uE000',0,4);x.fillStyle='#ffd23a';x.fillText('\uE000',0,4);x.restore();});}}}};
+      motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(ro);x.lineWidth=10;x.strokeStyle='#0c4425';x.strokeText('€',0,4);x.fillStyle='#ffd23a';x.fillText('€',0,4);x.restore();});}}}};
 /* ===== LES LIVRÉES « STICKERS » ET LES LÉGENDAIRES (2026-11-05, le nuancier v3) =====
    Six toiles épiques de plus (mêmes règles que les pelages : 512 px raccordées, un tirage fixe par id) et les six légendaires. Une légendaire a
    `anim` (la clé de son programme dans MOT_ANIM, posé par motGreffe) ; sa toile `f` ne sert qu'à la pastille des listes. */
@@ -54604,11 +54423,11 @@ livDeclare('tokyodrift',{c:0x3a1a7a,base:'#3a1a7a',bg:['#3a2a8a','#08051a'],
 PEINT_CAT.splice(PEINT_CAT.findIndex(function(e){return e[0]==='stickers';}),0,
   ['groupeb','GROUPE B','epique',{mot:'groupeb'},"Les années folles du rallye : 500 chevaux, zéro garde-fou, des spectateurs sur le talus. Un 1 sur la porte, de la boue sur le bas de caisse.",{k:'frenT',v:40,u:'s',t:'Tiens la frénésie 40 secondes.'}],
   ['montecarlo','MONTE-CARLO','epique',{mot:'montecarlo'},"Bleu nuit, neige sale, quatre phares sur le capot. Les épingles ne te font plus peur. La glace non plus.",{k:'sc:neige',v:20,t:'Joue 20 niveaux sous la neige.'}],
-  ['safari','SAFARI','epique',{mot:'safari'},"Rouge latérite, bande jaune, de la poussière jusqu'aux phares. Trois mille kilomètres de piste, et la girafe t'a laissé passer.",{k:'gagne',v:500000,t:'Gagne 500 000 au total.'}],
+  ['safari','SAFARI','epique',{mot:'safari'},"Rouge latérite, bande jaune, de la poussière jusqu'aux phares. Trois mille kilomètres de piste, et la girafe t'a laissé passer.",{k:'gagne',v:500000,t:'Gagne 500 000 € au total.'}],
   ['dakar','DAKAR','epique',{mot:'dakar'},"Du sable, un numéro à trois chiffres, un pare-buffle noir. Plus personne ne sait de quelle couleur elle était. On s'en fiche.",{k:'sc:midi',v:25,t:'Joue 25 niveaux en plein jour.'}],
   ['poudre','BLEU POUDRE','epique',{mot:'poudre'},"Le bleu pâle et l'orange des 24 Heures : la livrée que les collectionneurs paient plus cher que la voiture.",{k:'jours',v:14,t:'Joue 14 jours différents.'}],
   ['apero',"L'APÉRITIF",'epique',{mot:'apero'},"Trois rayures, un verre à la main, un virage à fond. La plus classique des livrées de course, servie bien frais."],
-  ['noiror','NOIR ET OR','epique',{mot:'noiror'},"Laque noire, filets d'or, un 7 sur la porte. Le genre de livrée qui arrive avant la voiture.",{k:'gagne',v:5000000,t:'Gagne 5 000 000 au total.'}],
+  ['noiror','NOIR ET OR','epique',{mot:'noiror'},"Laque noire, filets d'or, un 7 sur la porte. Le genre de livrée qui arrive avant la voiture.",{k:'gagne',v:5000000,t:'Gagne 5 000 000 € au total.'}],
   ['fleche',"FLÈCHE D'ARGENT",'epique',{mot:'fleche'},"On a gratté la peinture pour gagner un kilo : l'aluminium nu a gagné la course. C'est une histoire vraie.",{k:'kmh',v:2000,u:'kmh',t:'Dépasse 2 000 km/h.'}],
   ['pitstop','PIT STOP','epique',{mot:'pitstop'},"Jaune danger, chevrons noirs, triangle d'avertissement. Quatre pneus en deux secondes, un seul regard de la police.",{k:'parf',v:3,t:"Fais 3 poses parfaites d'affilée."}],
   ['arrivee',"LIGNE D'ARRIVÉE",'epique',{mot:'arrivee'},"Un drapeau à damier qui ondule sur toute la caisse. Tu l'as franchie en premier : c'est celui qu'on agite pour toi.",{k:'eng',v:12,t:'Atteins le palier 12 du moteur.'}],
@@ -54622,11 +54441,11 @@ PEINT_CAT.splice(PEINT_CAT.findIndex(function(e){return e[0]==='stickers';}),0,
   ['tokyodrift','TOKYO DRIFT','epique',{mot:'tokyodrift'},"Violet nacré, rubans vert acide, un DRIFT sur la porte. Le parking à étages, à deux heures du matin : c'est ton circuit.",{k:'sc:ville',v:25,t:'Joue 25 niveaux dans la ville.'}]);
 Object.assign(I18N,{"GROUPE B":"GROUP B","Les années folles du rallye : 500 chevaux, zéro garde-fou, des spectateurs sur le talus. Un 1 sur la porte, de la boue sur le bas de caisse.":"Rallying's wild years: 500 horsepower, zero guardrails, spectators on the bank. A 1 on the door, mud on the sill.","Tiens la frénésie 40 secondes.":"Hold the frenzy for 40 seconds.",
   "MONTE-CARLO":"MONTE CARLO","Bleu nuit, neige sale, quatre phares sur le capot. Les épingles ne te font plus peur. La glace non plus.":"Midnight blue, dirty snow, four lamps on the hood. Hairpins don't scare you any more. Neither does ice.","Joue 20 niveaux sous la neige.":"Play 20 levels in the snow.",
-  "SAFARI":"SAFARI","Rouge latérite, bande jaune, de la poussière jusqu'aux phares. Trois mille kilomètres de piste, et la girafe t'a laissé passer.":"Laterite red, a yellow stripe, dust up to the headlights. Three thousand kilometres of track, and the giraffe let you through.","Gagne 500 000 au total.":"Earn 500,000 in total.",
+  "SAFARI":"SAFARI","Rouge latérite, bande jaune, de la poussière jusqu'aux phares. Trois mille kilomètres de piste, et la girafe t'a laissé passer.":"Laterite red, a yellow stripe, dust up to the headlights. Three thousand kilometres of track, and the giraffe let you through.","Gagne 500 000 € au total.":"Earn €500,000 in total.",
   "DAKAR":"DAKAR","Du sable, un numéro à trois chiffres, un pare-buffle noir. Plus personne ne sait de quelle couleur elle était. On s'en fiche.":"Sand, a three-digit number, a black bull bar. Nobody remembers what colour it was. Nobody cares.","Joue 25 niveaux en plein jour.":"Play 25 levels in broad daylight.",
   "BLEU POUDRE":"POWDER BLUE","Le bleu pâle et l'orange des 24 Heures : la livrée que les collectionneurs paient plus cher que la voiture.":"The pale blue and orange of the 24 Hours: the livery collectors pay more for than the car.","Joue 14 jours différents.":"Play 14 different days.",
   "L'APÉRITIF":"THE APERITIF","Trois rayures, un verre à la main, un virage à fond. La plus classique des livrées de course, servie bien frais.":"Three stripes, a drink in hand, a corner flat out. The most classic racing livery, served chilled.",
-  "NOIR ET OR":"BLACK AND GOLD","Laque noire, filets d'or, un 7 sur la porte. Le genre de livrée qui arrive avant la voiture.":"Black lacquer, gold pinstripes, a 7 on the door. The kind of livery that arrives before the car.","Gagne 5 000 000 au total.":"Earn 5,000,000 in total.",
+  "NOIR ET OR":"BLACK AND GOLD","Laque noire, filets d'or, un 7 sur la porte. Le genre de livrée qui arrive avant la voiture.":"Black lacquer, gold pinstripes, a 7 on the door. The kind of livery that arrives before the car.","Gagne 5 000 000 € au total.":"Earn €5,000,000 in total.",
   "FLÈCHE D'ARGENT":"SILVER ARROW","On a gratté la peinture pour gagner un kilo : l'aluminium nu a gagné la course. C'est une histoire vraie.":"They scraped off the paint to save a kilo: bare aluminium won the race. It's a true story.","Dépasse 2 000 km/h.":"Go past 2,000 km/h.",
   "PIT STOP":"PIT STOP","Jaune danger, chevrons noirs, triangle d'avertissement. Quatre pneus en deux secondes, un seul regard de la police.":"Danger yellow, black chevrons, a warning triangle. Four tyres in two seconds, one look from the police.","Fais 3 poses parfaites d'affilée.":"Land 3 perfect poses in a row.",
   "LIGNE D'ARRIVÉE":"FINISH LINE","Un drapeau à damier qui ondule sur toute la caisse. Tu l'as franchie en premier : c'est celui qu'on agite pour toi.":"A chequered flag rippling across the whole car. You crossed first: that's the one they wave for you.","Atteins le palier 12 du moteur.":"Reach engine tier 12.",
@@ -54702,7 +54521,7 @@ function peintCarte(d){let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;
   return h;}
 /* « OU GAGNE-LA » sous le nom de la peinture regardée (#gBqNom) : la phrase du défi, sa jauge (un exploit d'un coup n'en a pas) */
 function peintDefHtml(d){const f=d&&d.def;if(!f||shopOwned('peinture',d.id))return '';const v=peintDefVal(f),p=v<0?0:Math.min(1,v/peintDefSeuil(f));
-  return '<span class="m2Deb pDeb"><span class="m2DebT">'+pxi('cible')+' '+sansAcc(TR('À GAGNER'))+' : '+(f.k==='gagne'?moDans(sansAcc(TR(f.t)).toUpperCase(),f.v):sansAcc(TR(f.t)).toUpperCase())+'</span>'
+  return '<span class="m2Deb pDeb"><span class="m2DebT">'+pxi('cible')+' '+sansAcc(TR('À GAGNER'))+' : '+sansAcc(TR(f.t)).toUpperCase()+'</span>'
     +(v<0?'':'<span class="m2DebB"><u><em style="width:'+Math.round(p*100)+'%"></em></u><b>'+peintDefNb(f,v)+'</b></span>')+'</span>';}
 window.dbgDefisPeint=function(){return COSM.peinture.filter(function(d){return d.def;}).map(function(d){const v=peintDefVal(d.def);return {id:d.id,r:d.r,defi:d.def.t,val:v,seuil:d.def.k==='b'||d.def.k==='serie'?null:peintDefSeuil(d.def),a:shopOwned('peinture',d.id)};});};
 /* ===== LES TRAÎNÉES EN VITRINE (2026-11-05, Sacha : « retravaille la présentation des traînées dans le même esprit » que le nuancier v3) =====
@@ -62463,7 +62282,7 @@ const billNoteTex=(function(){
   apresPolice(function(){c.fillStyle='#1c0430';c.fillRect(0,0,64,32);c.fillStyle='#2f9a52';c.fillRect(2,2,60,28);
   c.strokeStyle='#7fd89a';c.lineWidth=2;c.strokeRect(5,5,54,22);
   c.fillStyle='#ffd75e';c.font='8px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
-  c.fillText('\uE000',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
+  c.fillText('€',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
   return tx;
 })();
 const billGeo=new THREE.PlaneGeometry(.5,.25);
@@ -62578,7 +62397,7 @@ function updatePool(pool,dt,grav){
    fête — en 15 couleurs pastel. Désormais : UN atlas cuit une fois (15 glyphes en OR de l'argent — clair en haut, ombre en bas — cerclés
    d'un LISERÉ d'encre #1c0430, comme tout ce qui rapporte), 600 panneaux instanciés (`mkPanneaux`), tableaux fixes, zéro allocation.
    Le mouvement est celui d'avant (ça tournoie en tombant, fondu la dernière seconde). */
-const CURR=['\uE000','\uE000','¥','£','\uE000']; // (2026-10-15, UNE SEULE POLICE) les cinq que la police pixel DESSINE — ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ tombaient dans une police de secours (mesuré)
+const CURR=['€','€','¥','£','€']; // (2026-10-15, UNE SEULE POLICE) les cinq que la police pixel DESSINE — ₹ ₩ ₽ ฿ ₺ ₪ ₫ ₴ ₦ ₱ tombaient dans une police de secours (mesuré)
 const MONN_TEX=(function(){
   const S=64,cv=document.createElement('canvas');cv.width=cv.height=S*4;const c=cv.getContext('2d'),tx=new THREE.CanvasTexture(cv);
   apresPolice(function(){c.clearRect(0,0,S*4,S*4);
@@ -66489,7 +66308,7 @@ function m2Seuil(m){if(m.v==='prof')return M2K.prof;if(m.k==='musP10'){const L=m
   if(m.k==='cartes'||m.k==='cartesP')return m2Cartes().length;if(m.k==='raresT')return m2Rares().tot;if(m.k==='meteoMap')return m2Meteo().tot;if(m.k==='toutT')return m2Tout().tot;
   return m2Col(M2_COLK[m.k.slice(0,-1)]).tot;}
 function m2Txt(m){const s=String(LANG==='fr'?m.t:m.en),v=m2Seuil(m);
-  return s.replace('{v}',m.u==='$'?cashTxt(v) /* (2026-11-08, Léo) plus de symbole : le nombre seul, coloré dans m2TxtH */:m.u==='s'?String(v):Math.round(v).toLocaleString(typeof LOC==='function'?LOC():'fr').replace(/[  ]/g,' '));} // « 1 000 KM/H », « 10 000 D'AURA »
+  return s.replace('{v}',m.u==='$'?fmtSolde(v):m.u==='s'?String(v):Math.round(v).toLocaleString(typeof LOC==='function'?LOC():'fr').replace(/[  ]/g,' '));} // « 1 000 KM/H », « 10 000 D'AURA »
 function m2Flag(id){const s=m2Etat();if(s.fl.indexOf(id)<0){s.fl.push(id);SAVE.mark();}}
 function gagneAjoute(x){try{const s=SAVE.d&&SAVE.d.m2;x=+x;if(s&&s.c&&isFinite(x)&&x>0)s.c.gagne=Math.min(1e30,(s.c.gagne||0)+x);}catch(e){}}
 /* ---- LA MIGRATION, EN DEUX TEMPS : ce que l'ancienne sauvegarde savait déjà ----
@@ -66777,7 +66596,7 @@ function mcCanon(){ // le dessin du canon (graduations, rayures) : calculé une 
 function mcVedette(x,s,arme){const m=x.m,pret=x.rg===0,R=mcRec(m),w=mcVu(x,s),C=2*Math.PI*88,pg=R.k==='hab'?R.c:'';if(arme)w[0]=0; /* arme : on arrive sur la page, l'anneau se charge depuis zéro */
   let fond;
   if(R.k==='car')fond=mcSil(R.i,false,pret&&m2Pret(m.id));
-  else if(R.k==='cash')fond='<b class="mcSom"><small>'+CUR()+'</small>'+m2Nb(R.v)+'</b>';
+  else if(R.k==='cash')fond='<b class="mcSom"><small>€</small>'+m2Nb(R.v)+'</b>';
   else if(R.k==='hab')fond='<b class="mcRar">'+sansAcc(TR(R.rar))+'</b>';
   else fond='<b class="mcSom">?</b>';
   const lab=R.k==='car'?TR('VOITURE')+' · '+TR(R.rar):R.k==='hab'?TR(R.cat)+' · '+TR(R.rar):''; /* l'argent se lit tout seul au fond du portail */
@@ -66787,7 +66606,7 @@ function mcVedette(x,s,arme){const m=x.m,pret=x.rg===0,R=mcRec(m),w=mcVu(x,s),C=
     +(w[1]>0&&!pret?'<g class="hd" style="transform:rotate('+(360*w[0]).toFixed(1)+'deg)" data-r="'+(360*w[1]).toFixed(1)+'"><circle cx="100" cy="12" r="5"/></g>':'')+'</svg>'
     +'<div class="mcFond mbR'+(m2CarVoir(m)&&!pret?' voir':'')+'" aria-label="'+sansAcc(m2RecNom(m)).replace(/"/g,'')+'">'+fond+'</div></div>'
     +'<div class="mcVt">'+(lab?'<small class="mcLab"'+(R.c?' style="color:'+R.c+'"':'')+'>'+sansAcc(lab)+'</small>':'')
-    +'<b class="mcTit">'+(m.f==='secret'?sansAcc(TR('SECRÈTE'))+' · ':'')+m2TxtH(m)+'</b>'
+    +'<b class="mcTit">'+(m.f==='secret'?sansAcc(TR('SECRÈTE'))+' · ':'')+sansAcc(m2Txt(m))+'</b>'
     +(pret?(m2Pret(m.id)?'<span class="m2Pr" aria-hidden="true"><span>'+pxi('cadeau')+' '+TR('RÉCUPÈRE')+'</span></span>':'<small class="mcAtt">'+sansAcc(TR('BIENTÔT AU GARAGE'))+'</small>')
       :'<span class="mcAv">'+sansAcc(m2Prog(m,x.v,x.t))+'</span>')+'</div></div>';}
 function mcLigne(x,k,s){const m=x.m,pret=x.rg===0,ok=x.ok&&!pret,R=mcRec(m),w=mcVu(x,s),hab=R.k==='hab';
@@ -66801,7 +66620,7 @@ function mcLigne(x,k,s){const m=x.m,pret=x.rg===0,ok=x.ok&&!pret,R=mcRec(m),w=mc
   else if(ok)bas='<small class="mcFait">'+sansAcc(TR('RÉUSSIE'))+'</small>';
   else bas='<div class="mcJ"><u><i style="width:'+Math.round(100*w[0])+'%" data-w="'+Math.round(100*w[1])+'"></i></u><small>'+sansAcc(m2Prog(m,x.v,x.t))+'</small></div>';
   return '<div class="mcL'+(pret?' pret':'')+(ok?' ok':'')+(hab?' hab':'')+'" data-m2="'+m.id+'" role="button" tabindex="0" style="--i:'+Math.min(k,12)+(hab?';--rc:'+R.c:'')+'">'
-    +'<div class="mcLt"><b>'+(m.f==='secret'?sansAcc(TR('SECRÈTE'))+' · ':'')+m2TxtH(m)+'</b><span class="mbR'+(m2CarVoir(m)&&!pret?' voir':'')+'">'+rec+'</span></div>'+bas+'</div>';}
+    +'<div class="mcLt"><b>'+(m.f==='secret'?sansAcc(TR('SECRÈTE'))+' · ':'')+sansAcc(m2Txt(m))+'</b><span class="mbR'+(m2CarVoir(m)&&!pret?' voir':'')+'">'+rec+'</span></div>'+bas+'</div>';}
 function mcLignePal(d){return '<div class="mcL ok" data-pal="'+d.id+'"><div class="mcLt"><b>'+sansAcc(TR(d.ind||'')).toUpperCase()+'</b><span class="mbR voir">'+objFig({cat:'peinture',i:COSM.peinture.indexOf(d)})+'</span></div><small class="mcFait">'+sansAcc(TR('SECRÈTE'))+' · '+sansAcc(TR('RÉUSSIE'))+'</small></div>';}
 function mcEntete(ic,nom,cpt,cl){return '<div class="gModeT mcSec'+(cl?' '+cl:'')+'">'+pxi(ic)+'<span>'+sansAcc(TR(nom))+'</span><s></s><b>'+cpt+'</b></div>';}
 function m2Vue(L,s,vu){ // → {ved : la vedette (l'écran de mort seulement, depuis le 2026-11-05) · listeTab : TOUTES les missions de l'onglet MISSIONS, en sections · n : missions à l'écran}
@@ -66995,9 +66814,9 @@ function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search);
   const P9=[]; /* (v6) chaque mission en cours : de quoi faire monter son compte avec sa barre */
   for(const x of L){const m=x.m;
     if(m.f==='secret')h+='<div class="obM ok sec">'+pxi('oeil')+'<span>'+sansAcc(TR('MISSION SECRÈTE TROUVÉE'))+'</span></div>';
-    else if(x.ok)h+='<div class="obM ok">'+pxi('coche')+'<span>'+m2TxtH(m)+'</span><em>'+sansAcc(m2RecNom(m))+'</em></div>';
+    else if(x.ok)h+='<div class="obM ok">'+pxi('coche')+'<span>'+sansAcc(m2Txt(m))+'</span><em>'+sansAcc(m2RecNom(m))+'</em></div>';
     else{let v=x.v!=null?x.v:0;if(x.v==null)try{v=m2ValCourse(m);}catch(q){}const t=x.t!=null?x.t:m2Seuil(m);
-      const ic9=pxi((M2_FAM[m.f]||M2_FAM.exploit).ic),tx9='<span>'+m2TxtH(m)+'</span>',br9='<div class="obBar"><i style="width:'+(flot9&&x.a!=null?(100*m2Frac(m,x.a,t)).toFixed(1):0)+'%" data-w0="'+(flot9&&x.a!=null?(100*m2Frac(m,x.a,t)).toFixed(1):0)+'" data-w="'+(100*m2Frac(m,v,t)).toFixed(1)+'"></i></div>',pg9='<b>'+m2Prog(m,v,t)+'</b>';
+      const ic9=pxi((M2_FAM[m.f]||M2_FAM.exploit).ic),tx9='<span>'+sansAcc(m2Txt(m))+'</span>',br9='<div class="obBar"><i style="width:'+(flot9&&x.a!=null?(100*m2Frac(m,x.a,t)).toFixed(1):0)+'%" data-w0="'+(flot9&&x.a!=null?(100*m2Frac(m,x.a,t)).toFixed(1):0)+'" data-w="'+(100*m2Frac(m,v,t)).toFixed(1)+'"></i></div>',pg9='<b>'+m2Prog(m,v,t)+'</b>';
       /* écran de mort v6 : le texte sur toute la largeur (deux lignes au besoin), la barre dessous et le compte AU BOUT de sa barre */
       if(flot9)P9.push({m:m,a:x.a!=null?x.a:0,v:v,t:t});
       h+=flot9?'<div class="obM obM6">'+ic9+tx9+br9+pg9+'</div>':'<div class="obM">'+ic9+tx9+pg9+'</div>'+br9;}}
@@ -67042,7 +66861,7 @@ function m2DebloqueHtml(m,sansBouton){if(!m)return '';const s=m2Etat(),ok=s.ok.i
   return '<span class="m2Deb"><span class="m2DebT">'+pxi('cible')+' '+sansAcc(TR('SE DÉBLOQUE'))+' : '+m2TxtH(m)+'</span>'
     +'<span class="m2DebB"><u><em style="width:'+Math.round(p*100)+'%"></em></u><b>'+(ok?sansAcc(TR('MISSION RÉUSSIE')):m2Prog(m,v,t))+'</b></span>'
     +(sansBouton?'':'<span class="m2DebV" role="button" tabindex="0" data-m2voir="'+m.id+'">'+(m2Pret(m.id)?pxi('cadeau')+' '+sansAcc(TR('RÉCUPÈRE')):sansAcc(TR('VOIR LA MISSION'))+' '+pxi('droite'))+'</span>')+'</span>';}
-function m2TxtH(m){const h=sansAcc(m2Txt(m)).replace(/\d[\d ]*\d/g,function(x){return '<span class="m2Nw">'+x+'</span>';});return m.u==='$'?moDans(h,m2Seuil(m)):h;} /* (2026-11-08) l'argent d'une mission à la couleur de son palier */ // les nombres ne se coupent pas en fin de ligne (« 1 / 000 »)
+function m2TxtH(m){return sansAcc(m2Txt(m)).replace(/\d[\d ]*\d/g,function(x){return '<span class="m2Nw">'+x+'</span>';});} // les nombres ne se coupent pas en fin de ligne (« 1 / 000 »)
 function m2SecretHtml(){return '<span class="m2Deb sec"><span class="m2DebT">'+pxi('oeil')+' '+sansAcc(TR('MISSION SECRÈTE'))+'</span></span>';}
 /* VOIR LA MISSION : l'écran MISSIONS, la mission SUIVIE (trois le sont déjà : la plus ancienne laisse sa place), sa ligne amenée en vue */
 function m2VaMission(id){const m=m2Def(id);if(!m||m.f==='secret')return;
@@ -69212,7 +69031,7 @@ function flyCash(worldPos,n){ // les billets VOLENT de la caisse vers le compteu
   const x0=(flyV.x*.5+.5)*innerWidth,y0=(-flyV.y*.5+.5)*innerHeight;
   const r=elMoney.getBoundingClientRect(),x1=r.left+r.width/2,y1=r.top+r.height/2;
   for(let i=0;i<n;i++){
-    const b=document.createElement('div');b.className='bill';b.textContent='\uE000';
+    const b=document.createElement('div');b.className='bill';b.textContent='€';
     b.style.left=(x0+(Math.random()-.5)*70)+'px';b.style.top=(y0+(Math.random()-.5)*46)+'px';
     document.body.appendChild(b);
     setTimeout(()=>{b.style.left=x1+'px';b.style.top=y1+'px';b.style.opacity=0;b.style.fontSize='8px';},30+i*45);
@@ -71172,7 +70991,7 @@ function start(){
    qu'on voulait fuir. VS-15 force la présentation TEXTE, donc notre police et notre couleur. */
 const VS='\uFE0E';
 const JETONS=[
-  {g:'\uE000',    c:'#ffd75e',n:'EURO',         p:46},
+  {g:'€',        c:'#ffd75e',n:'EURO',         p:46},
   {g:'♦'+VS,     c:'#ff9d2e',n:'CARREAU',      p:15},
   {g:'♥'+VS,     c:'#ff5e8a',n:'CŒUR',         p:13},
   {g:'♣'+VS,     c:'#54e07a',n:'TRÈFLE',       p:11},
@@ -76410,7 +76229,7 @@ function richCarteGeo(){const g=new THREE.BoxGeometry(1,.63,.018),uv=g.attribute
   g.clearGroups();return g;}
 function richTexLiasse(){const b=RICH.texBillet.image;return richCv(512,512,function(x){ // la LIASSE : le billet du dessus et sa BANDE ; les feuilles empilées sur la tranche
   x.drawImage(b,0,0,512,236);x.fillStyle='#efe6cf';x.fillRect(228,0,56,236);x.fillStyle='rgba(150,110,40,.6)';x.fillRect(228,0,3,236);x.fillRect(281,0,3,236);
-  x.save();x.translate(256,118);x.rotate(-Math.PI/2);x.font='14px "Press Start 2P",monospace';x.fillStyle='#7a5a1a';x.textAlign='center';x.textBaseline='middle';x.fillText('\uE000 10 000',0,0);x.restore();
+  x.save();x.translate(256,118);x.rotate(-Math.PI/2);x.font='14px "Press Start 2P",monospace';x.fillStyle='#7a5a1a';x.textAlign='center';x.textBaseline='middle';x.fillText('€ 10 000',0,0);x.restore();
   for(let y=256;y<512;y+=4){x.fillStyle=(y/4)%2?'#cfe9e1':'#0c5a66';x.fillRect(0,y,512,4);}x.fillStyle='#efe6cf';x.fillRect(228,256,56,256);});}
 function richLiasseGeo(){const g=new THREE.BoxGeometry(1,.46,.12),uv=g.attributes.uv;
   for(const G9 of g.groups)for(let k=G9.start;k<G9.start+G9.count;k++){const i=g.index.getX(k),u=uv.getX(i),v=uv.getY(i);
@@ -80079,7 +79898,7 @@ function bqNuancierLoupe(t){let L=BQN.loupe;if(!t){if(L)L.classList.remove('on')
   if(!L){L=BQN.loupe=document.createElement('div');L.id='pNLoupe';L.setAttribute('aria-hidden','true');document.body.appendChild(L);}
   const d=bqCos(t.getAttribute('data-k')).d;if(!d)return;const r=cosmRar('peinture',d),ri=rarInfo(r),E=bqNuanceEtat(d);let c0=null;if(d.id==='usine')try{c0=CARS[garageI].color;}catch(e){}
   let bas='<span class="pLe e-'+E.c+'">'+(E.c==='eq'||E.c==='a'?pxi('coche'):'')+E.t+'</span>';
-  if(E.c==='defi'){const f=d.def,v=peintDefVal(f);bas='<span class="pLd">'+pxi('cible')+' '+(f.k==='gagne'?moDans(sansAcc(TR(f.t)).toUpperCase(),f.v):sansAcc(TR(f.t)).toUpperCase())+'</span>'+(v<0?'':'<span class="pLj"><u><em style="width:'+Math.round(Math.max(0,E.p)*100)+'%"></em></u><b>'+peintDefNb(f,v)+'</b></span>')+(E.eur?'<span class="pLe e-eur">'+sansAcc(TR('OU'))+' '+E.eur+'</span>':'');}
+  if(E.c==='defi'){const f=d.def,v=peintDefVal(f);bas='<span class="pLd">'+pxi('cible')+' '+sansAcc(TR(f.t)).toUpperCase()+'</span>'+(v<0?'':'<span class="pLj"><u><em style="width:'+Math.round(Math.max(0,E.p)*100)+'%"></em></u><b>'+peintDefNb(f,v)+'</b></span>')+(E.eur?'<span class="pLe e-eur">'+sansAcc(TR('OU'))+' '+E.eur+'</span>':'');}
   L.style.setProperty('--rc',ri.c);L.innerHTML=peintPastille(d,'pLsw',c0)+'<span class="pLt"><i>'+sansAcc(TR(ri.n1))+'</i><b>'+sansAcc(TR(d.n))+'</b>'+bas+'</span>';
   L.classList.add('on');const b=t.getBoundingClientRect(),w=L.offsetWidth,h=L.offsetHeight,W=VP.w||innerWidth;
   const x=Math.max(8,Math.min(W-8-w,b.left+b.width/2-w/2));let y=b.top-h-10;if(y<8)y=b.bottom+10;L.style.left=Math.round(x)+'px';L.style.top=Math.round(y)+'px';}
@@ -84350,7 +84169,7 @@ const INTRO_NEUVE=!/[?&]intro=ancien\b/.test(location.search);
       dx:(Math.random()-.5)*14,dy:(Math.random()-.5)*14});
   }
   // ⚠ \uFE0E : même raison que pour les jetons — sans lui macOS remplace ♥ ♣ ☠ ♦ par ses emoji couleur.
-  const SYMS=[['\uE000','#ffd75e'],['♥\uFE0E','#ff5e8a'],['♣\uFE0E','#54e07a'],['☠\uFE0E','#e8e8f0'],['£','#9ad8ff'],['¥','#ffc46b'],['1.61','#fff2be'],['♦\uFE0E','#ff9d2e']];
+  const SYMS=[['€','#ffd75e'],['♥\uFE0E','#ff5e8a'],['♣\uFE0E','#54e07a'],['☠\uFE0E','#e8e8f0'],['£','#9ad8ff'],['¥','#ffc46b'],['1.61','#fff2be'],['♦\uFE0E','#ff9d2e']];
   function beat(k){ // battement de cœur du logo : pulsation + micro-flash + onde
     if(done)return;
     /* (2026-10-15) le battement faisait pulser « 1.61 »… encore INVISIBLE à ce moment-là (il ne se lève qu'après la fission, depuis l'ordre

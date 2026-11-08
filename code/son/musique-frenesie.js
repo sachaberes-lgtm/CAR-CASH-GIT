@@ -546,7 +546,7 @@ const billNoteTex=(function(){
   apresPolice(function(){c.fillStyle='#1c0430';c.fillRect(0,0,64,32);c.fillStyle='#2f9a52';c.fillRect(2,2,60,28);
   c.strokeStyle='#7fd89a';c.lineWidth=2;c.strokeRect(5,5,54,22);
   c.fillStyle='#ffd75e';c.font='8px "Press Start 2P",monospace';c.textAlign='center';c.textBaseline='middle';
-  c.fillText('\uE000',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
+  c.fillText('€',13,17);c.fillText('100',39,17);tx.needsUpdate=true;});
   return tx;
 })();
 const billGeo=new THREE.PlaneGeometry(.5,.25);
