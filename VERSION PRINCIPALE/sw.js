@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1324'; /* v1323 (2026-11-08, Sacha : « en mode vertical mobile rapproche la caméra de la voiture, pareil quand elle vole ») LA CAMÉRA DE PRÈS EN PORTRAIT : recul et hauteur ×0,84 au sol et ×0,70 en vol, bras de vol ×0,80 (×POR : le paysage ne bouge pas) ; ?sans=proche = avant */ /* v1322 (2026-11-08, Léo) : boutique — contour fin sur le solde du haut, les prix sans la pièce (le nombre seul, à la couleur de son palier) */
+const CACHE = 'cashcar-v1325'; /* v1325 (2026-11-08, Léo : « le rouge-gorge n'a pas de bleu, c'est que du rouge, de manière permanente, et le fondu doit être propre ») LE ROUGE-GORGE TOUT ROUGE : caisse rouge que la peinture de la boutique ne recouvre plus, museau en fondu continu orange-rouge → rouge dans la même laque (plus de bandes à damier ni de bleu) */ /* v1323 (2026-11-08, Sacha : « en mode vertical mobile rapproche la caméra de la voiture, pareil quand elle vole ») LA CAMÉRA DE PRÈS EN PORTRAIT : recul et hauteur ×0,84 au sol et ×0,70 en vol, bras de vol ×0,80 (×POR : le paysage ne bouge pas) ; ?sans=proche = avant */ /* v1322 (2026-11-08, Léo) : boutique — contour fin sur le solde du haut, les prix sans la pièce (le nombre seul, à la couleur de son palier) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

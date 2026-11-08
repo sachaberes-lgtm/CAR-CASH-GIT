@@ -247,14 +247,19 @@ SHAPES.robin=function(K){
      jamais de pli en diagonale. Tout le reste est POSÉ : phares ronds, lames chromées, feux, poignées, rétros.
      Repère : x à gauche, y en haut, z vers l'avant. */
   const U=LPU,L=(t,z)=>U.lin(t,z);
-  const F_DEG=[0xec3410,0xee5214,0xbc4a52,0x7e5292,0x4a5eb4,0x1d74cc],   // orange-rouge, orange, terre cuite, mauve, ardoise… et le bleu de la caisse
+  /* ===== LE ROUGE-GORGE TOUT ROUGE (2026-11-08, Léo : « le rouge-gorge n'a pas de bleu, c'est que du rouge, de manière permanente, et le
+     fondu doit être propre ») — la caisse n'est plus bleue : elle est ROUGE, et la peinture de la boutique ne la recouvre plus (sa tôle n'est
+     plus sous la clé 'p' que `peintPal` repeint, mais sous 'R', même laque). Le museau en flamme ne passe plus par terre cuite, mauve,
+     ardoise et bleu en bandes à damier (métallisé à côté d'une laque : une couture à chaque bande) : c'est un FONDU continu, dans la MÊME
+     laque que la caisse, de l'orange-rouge vif du bout du nez au rouge de la caisse — une teinte par station (F_N pas, lissés en
+     `smoothstep`), le dernier pas EST le rouge de la caisse : aucune marche. Avant : rondes-2.js d'origin/main v1324. */
+  const F_NEZ=0xff4a14,F_ROUGE=0xc8141c,F_N=14,F_LONG=.90,   // le bout du nez (orange-rouge pétillant), le rouge de la caisse, le nombre de pas, la longueur du fondu (m)
         mixC=(a,b,t)=>{const c=(s)=>Math.round(((a>>s)&255)+(((b>>s)&255)-((a>>s)&255))*t);return (c(16)<<16)|(c(8)<<8)|c(0);};
   const R=.26,ZF=1.22,ZR=-.92,ZN=1.685,ZQ=-1.685;
-  const PAL={p:{g:'p',c:0x1d74cc},
-    // le museau en flamme : cinq bandes (a), et leurs rangées intermédiaires (b, à 40 % vers la bande suivante), en métallisé — voir F_DEG
+  const PAL={R:{g:'p',c:F_ROUGE},   // la tôle : rouge, hors de portée de la peinture (voir plus haut)
 k:{g:'m',c:0x141518},K:{g:'g',c:0x0b0c10},g:{g:'g',c:0x172231},
     c:{g:'c',c:0xe4e8ed},a:{g:'s',c:0xb4b9c1},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff1f2e},O:{g:'l',c:0xffa21a},w:{g:'l',c:0xd9dce0}};
-  for(let n=0;n<5;n++){PAL['F'+n+'a']={g:'k',c:F_DEG[n]};PAL['F'+n+'b']={g:'k',c:mixC(F_DEG[n],F_DEG[n+1],.4)};}
+  for(let n=0;n<=F_N;n++){const t=n/F_N;PAL['F'+n]={g:'p',c:mixC(F_NEZ,F_ROUGE,t*t*(3-2*t))};}   // le fondu : F0 = le nez … F14 = le rouge de la caisse
   // ---- LES LIGNES (mètres) : la ceinture (bas des vitres, épaule du capot), le dessus (axe), le plancher, la demi-largeur à la taille ----
   const yB=z=>L([[ZQ,.86],[-1.66,.905],[-1.62,.885],[-1.40,.875],[.70,.875],[.76,.846],[1.60,.70],[ZN,.64]],z),
         yT=z=>z>=.70?yB(z)+.012:L([[ZQ,.90],[-1.66,.94],[-1.62,.955],[-1.20,1.415],[-1.12,1.44],[.28,1.44],[.36,1.415],[.70,.887]],z),
@@ -279,19 +284,19 @@ k:{g:'m',c:0x141518},K:{g:'g',c:0x0b0c10},g:{g:'g',c:0x172231},
   for(const d of [-.40,-.34,-.20,.18,.28])zs.push(ZF+d);
   zs.sort((a,b)=>a-b);for(let i=zs.length-1;i>0;i--)if(zs[i]-zs[i-1]<.005)zs.splice(i,1);
   const pied=z=>z>-.30&&z<-.22,vitre=z=>z>-1.30&&z<.70&&!pied(z),pare=z=>z>.36&&z<.70,hayon=z=>z>-1.62&&z<-1.20;
-  // LA FLAMME : la « profondeur » d'une facette = sa distance au bout du nez + un décalage par bande (0 sur l'arête du capot, plus vers le bas
-  // du flanc) — le front de chaque couleur dessine un CHEVRON qui file sur l'arête ; a/b en damier (le scintillement)
-  const F_SEUIL=[.20,.40,.54,.66,.76],F_DEC=[0,0,0,.20,.19,.18,.16,.13,.11,.07,0],
-        flamme=(j,z)=>{const d=ZN-z+F_DEC[j];for(let n=0;n<5;n++)if(d<F_SEUIL[n]){let i=0;while(i<zs.length&&zs[i]<z)i++;return 'F'+n+(i&1?'a':'b');}return null;};
+  // LA FLAMME : la « profondeur » d'une facette = sa distance au bout du nez + un décalage par rangée (0 sur l'arête du capot, plus vers le bas
+  // du flanc) — le fondu dessine un CHEVRON qui file sur l'arête ; (2026-11-08) une teinte continue, plus de bandes ni de damier
+  const F_DEC=[0,0,0,.20,.19,.18,.16,.13,.11,.07,0],
+        flamme=(j,z)=>{const d=ZN-z+F_DEC[j];if(d>=F_LONG)return null;return 'F'+Math.min(F_N,Math.round(d/F_LONG*F_N));};
   const P=K.kit(PAL);P.ech=true;   // (`ech` : le relevé des pots ne touche à rien de la caisse — son pot est dessiné à part, voir ECH_POTS.robin)
   P.loft(zs,S,(j,z)=>{
-    if(j===-1)return 'F0a';                                   // LA GORGE : la face avant, orange-rouge vif
-    if(j<0)return 'p';
+    if(j===-1)return 'F0';                                    // LA GORGE : la face avant, orange-rouge vif
+    if(j<0)return 'R';
     if(j<=2)return 'k';                                       // tunnel, plancher
     if(j===7&&vitre(z))return 'g';                            // vitres latérales (le montant du milieu, la custode : de la tôle)
     if(j>=9&&(pare(z)||hayon(z)))return 'g';                  // pare-brise, lunette-hayon
     if(z>.70){const f=flamme(j,z);if(f)return f;}             // le museau en flamme
-    return 'p';});
+    return 'R';});
   K.commit(P);
   // ---- LES DÉTAILS POSÉS ----
   const D=K.kit(PAL);D.ech=true;
@@ -309,7 +314,7 @@ k:{g:'m',c:0x141518},K:{g:'g',c:0x0b0c10},g:{g:'g',c:0x172231},
     D.box('K',.13,.29,.02,x,.695,ZQ-.004);                                                                // la cuvette noire
     D.box('L',.12,.175,.012,x,.75,ZQ-.012);D.box('O',.12,.075,.012,x,.605,ZQ-.012);D.box('w',.12,.02,.012,x,.555,ZQ-.012);   // rouge, orange, recul
     D.box('k',.05,.07,.06,sd*.585,.43,ZQ-.005);});                                                      // les butoirs caoutchouc de la lame
-  D.box('p',.70,.20,.016,0,.655,ZQ-.005);D.box('c',.70,.014,.016,0,.762,ZQ-.008);D.box('k',.38,.13,.012,0,.645,ZQ-.012);D.box('w',.34,.10,.012,0,.645,ZQ-.018);   // le tableau de poupe en RELIEF (la tôle, un décroché), son jonc chromé, la plaqueD.box('c',.10,.03,.03,0,.905,-1.665);D.box('k',.34,.012,.02,.10,1.025,-1.562,-.83,0,0);D.box('k',.03,.03,.03,-.07,1.02,-1.57,-.83,0,0);
+  D.box('R',.70,.20,.016,0,.655,ZQ-.005);D.box('c',.70,.014,.016,0,.762,ZQ-.008);D.box('k',.38,.13,.012,0,.645,ZQ-.012);D.box('w',.34,.10,.012,0,.645,ZQ-.018);   // le tableau de poupe en RELIEF (la tôle, un décroché), son jonc chromé, la plaqueD.box('c',.10,.03,.03,0,.905,-1.665);D.box('k',.34,.012,.02,.10,1.025,-1.562,-.83,0,0);D.box('k',.03,.03,.03,-.07,1.02,-1.57,-.83,0,0);
   // les RÉTROS ronds chromés sur leur tige, la POIGNÉE de porte, les ESSUIE-GLACES
   D.sym(sd=>{D.box('k',.09,.016,.02,sd*.675,.895,.60,0,sd*.30,sd*.45);D.cyl('c',.046,.03,10,sd*.725,.925,.585,'z');D.cyl('g',.036,.012,10,sd*.725,.925,.569,'z');
     D.box('c',.014,.026,.13,sd*.708,.80,-.10,0,0,sd*.225);
