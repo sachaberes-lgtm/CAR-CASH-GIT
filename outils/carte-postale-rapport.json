@@ -1,0 +1,38 @@
+{
+ "grotte-matin": {
+  "ok": true,
+  "niveau": {
+   "carte": "grotte",
+   "meteo": "matin",
+   "teinte": null
+  },
+  "octets": 21996
+ },
+ "grotte-midi": {
+  "ok": true,
+  "niveau": {
+   "carte": "grotte",
+   "meteo": "midi",
+   "teinte": null
+  },
+  "octets": 25524
+ },
+ "grotte-nuit": {
+  "ok": true,
+  "niveau": {
+   "carte": "grotte",
+   "meteo": "nuit",
+   "teinte": null
+  },
+  "octets": 15800
+ },
+ "grotte-soir": {
+  "ok": true,
+  "niveau": {
+   "carte": "grotte",
+   "meteo": "soir",
+   "teinte": null
+  },
+  "octets": 26780
+ }
+}

@@ -53,7 +53,7 @@ function decompose(cle) {
         await dormir(600);
         const appel = await c.ev('JSON.stringify(dbgJouer())');
         let dmarre = false;
-        for (let i = 0; i < 20 && !dmarre; i++) { await dormir(300); try { dmarre = await c.ev('!!window.dbgState().started'); } catch (e) {} }
+        for (let i = 0; i < 100 && !dmarre; i++) { await dormir(300); try { dmarre = await c.ev('!!window.dbgState().started'); } catch (e) {} }
         if (!dmarre) throw new Error('started jamais vrai (splash ?) : ' + appel);
         await dormir(ATT);
         const r = await c.ev('JSON.stringify(dbgCartePostale())', 20000);
