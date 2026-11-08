@@ -142,7 +142,7 @@ function nuSkinMat(){
       '  gl_FragColor=vec4(col,clamp(a,0.,.85));','#include <fog_fragment>','}'].join('\n')});
   return NUSKIN.mat;}
 function nuSkinPose(k,f,sk){ // une finesse arrive : sa peau pour SON lot et les lots plus fins encore en attente
-  if(!NUSKIN.on||!COTON.root)return;const g=nuSkinGeo(sk,0),m9=nuSkinMat();COTON.skin=COTON.skin||[];
+  if(!NUSKIN.on||!COTON.root)return;const g=nuSkinGeo(sk,0),m9=nuSkinMat();if(!MEM_ANCIEN){for(const k9 in g.attributes)nuLibre(g.attributes[k9]);nuLibre(g.index);} /* (2026-11-07, Perf 3 P1) les 100 peaux gardaient leur copie JavaScript (~33 Mo MESURÉS, jamais jetée contrairement au corps du nuage) : jetée une fois au GPU, voir nuLibre · `?memoire=ancien` = gardée */COTON.skin=COTON.skin||[];
   for(let f2=f;f2<4;f2++){const j=k*4+f2;if(f2>f&&COTON.pret[j])break;const im=COTON.im[j];if(!im)continue;let S=COTON.skin[j];
     if(!S){const m=new THREE.InstancedMesh(g,m9,COTON.cap);m.instanceMatrix=im.instanceMatrix;m.instanceColor=im.instanceColor;m.frustumCulled=false;m.count=0;m.renderOrder=1;m.castShadow=m.receiveShadow=false;m.matrixAutoUpdate=false;COTON.root.add(m);COTON.skin[j]=S={m:m};}
     else S.m.geometry=g;}}

@@ -75,6 +75,21 @@ const PAL=(function(){
      Chaque zone du jeu AJOUTE ses lignes ici (une seule table à régler), et lit `PAL.b('cle')`. */
   P.B={};
   P.b=function(k,d){const v=P.B[k];return v?v[P.n]:d;};
+  /* ===== L'IMAGE ADAPTÉE SUR TÉLÉPHONE RÉCENT (2026-11-07, passe perf 3, P2 — Sacha : « pousse l'opti au max ») =====
+     Jusqu'ici le palier 2 gardait l'image de l'ordi au pixel. Désormais, sur un VRAI téléphone (TEL_NATIF) au palier 2, six leviers (a à f) peuvent
+     retirer un peu d'image quand le GPU est le goulot ; Sacha tranche levier par levier sur captures AVANT/APRÈS (passation/perf-2026-11/captures/p2-tel/).
+       a · halo (bloom) : moins d'étages, entrée en demi-résolution     b · ombre de course plus petite, filtre simple
+       c · résolution de course plafonnée plus bas, départ au cran 1    d · passe lisse du ciel une image sur deux
+       e · stries de vent et traînées en demi-densité à grande vitesse  f · l'échelle de qualité réagit plus tôt
+     `PAL.imgOn(l)` dit si le levier l est actif ; `PAL.bT(clé, avant, l)` rend la 3e colonne de `PAL.B.clé` (= le budget « récent téléphone »)
+     si le levier est actif, sinon `avant` (la valeur exacte d'avant). L'ORDINATEUR (TEL_NATIF faux, même avec ?tel=1) : toujours `avant`.
+     Les colonnes ancien/moyen des clés `img*` ne sont pas lues : les paliers 0 et 1 gardent leur régime existant. Interrupteurs d'URL :
+     `?img=max` = tout à l'ancien · `?img=a,c` = SEULEMENT ces leviers · `?imgsans=b` = tous sauf ceux-là. `dbgImg()` décrit. */
+  P.imgMax=/[?&]img=max\b/.test(location.search);
+  const iSeul=/[?&]img=([a-f](?:,[a-f])*)(?:&|$)/.exec(location.search),iSans=/[?&]imgsans=([a-f](?:,[a-f])*)(?:&|$)/.exec(location.search);
+  P.imgOn=function(l){return !!TEL_NATIF&&P.n>=2&&!P.imgMax&&(!iSeul||iSeul[1].split(',').indexOf(l)>=0)&&!(iSans&&iSans[1].split(',').indexOf(l)>=0);};
+  P.bT=function(k,avant,l){const v=P.B[k];return v&&P.imgOn(l)?v[2]:avant;};
+  window.dbgImg=function(){const o={};'abcdef'.split('').forEach(function(l){o[l]=P.imgOn(l);});return {telNatif:!!TEL_NATIF,palier:P.n,max:P.imgMax,leviers:o};}; // (banc)
   return P;})();
 /* LES TOILES 2D RENDUES APRÈS L'ENVOI À LA PUCE (2026-10-14, passe perf mobile). MESURÉ (iPhone 7 émulé) : 184 toiles 2D vivantes = 52 Mo
    avant le premier écran — et iOS plafonne la mémoire de toiles d'une page (au-delà : toiles blanches, puis la page est tuée). Une toile
@@ -86,6 +101,16 @@ const PAL=(function(){
    avant PAL dans le fichier). Palier 2 : inchangé (toiles gardées, outils `dbg*` qui les relisent intacts).
    `toileRend(cv)` : pour une toile de TRAVAIL (copiée dans une autre puis jetée) — invisible, vaut pour tous les paliers. */
 PAL.B.memToiles=[1,1,0]; // rendre les toiles des textures peintes une fois : ancien, moyen = oui · récent = comme avant
+const MEM_ANCIEN=/[?&]memoire=ancien\b/.test(location.search); /* (2026-11-07, Perf 3 P1) `?memoire=ancien` = tout ce que la passe « mémoire » change est débrayé (libérations au portail, copies CPU gardées, sons) */
+function memLibereCb(){this.array=null;}
+/* `memLibere(g)` (2026-11-07, Perf 3 P1) : la copie JavaScript des attributs d'une géométrie STATIQUE est jetée une fois envoyée au GPU (même mécanisme que nuLibre / grtLibere).
+   MESURÉ (instantané de tas, iPhone émulé) : les tampons typés des géométries font ~270 des ~350 Mo de `performance.memory`. ⚠ UNIQUEMENT pour une géométrie PROPRE à une piste
+   (jamais partagée d'une piste à l'autre, jamais réécrite ensuite) ; les attributs dynamiques et d'instances restent. `?memoire=ancien` = tout gardé. */
+function memLibere(g){if(MEM_ANCIEN||!g||!g.attributes)return g;
+  try{if(g.attributes.position){if(!g.boundingBox)g.computeBoundingBox();if(!g.boundingSphere)g.computeBoundingSphere();}}catch(e){} /* les boîtes se lisent encore après (fruitLeve…) : calculées AVANT de jeter le tableau */
+  for(const k in g.attributes){const a=g.attributes[k];if(a&&a.array&&!a.__bpe&&!a.isInstancedBufferAttribute&&a.usage===THREE.StaticDrawUsage){a.__bpe=a.array.BYTES_PER_ELEMENT;a.onUpload(memLibereCb);}}
+  const i=g.index;if(i&&i.array&&!i.__bpe&&i.usage===THREE.StaticDrawUsage){i.__bpe=i.array.BYTES_PER_ELEMENT;i.onUpload(memLibereCb);}
+  return g;}
 function toileRend(cv){try{if(cv&&cv.getContext)cv.width=cv.height=0;}catch(e){}}
 function texLibere(tex){if(!tex||tex._lib)return tex;tex._lib=1;const av=tex.onUpdate;
   tex.onUpdate=function(t){if(av)av(t);t.onUpdate=av||null;if(PAL.b('memToiles',0)||ALLEGE){toileRend(t.image);MEM_TOILES.n++;} /* (2026-11-05, jury RND-03) tout téléphone (ALLEGE), pas seulement les paliers ancien/moyen : un iPhone récent est au palier 0 */};return tex;}
@@ -112,17 +137,25 @@ try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',fun
    la toile ne reçoit plus que la passe finale du compositeur (un quad plein écran : rien à anticréneler) ; la scène se dessine dans la cible du compositeur,
    et l'anticrénelage est le FXAA de la passe finale. Même image au pixel près, ~100 Mo de moins. `?msaa=1` (l'ancien choix, voir FXAA_ON) garde le tampon. */
 const MSAA_TOILE=/[?&]msaa=1\b/.test(location.search);
+const t9rend=performance.now();
 const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance'});
 const TOILE1=!/[?&]toile1=0\b/.test(location.search); /* (2026-11-05, passe perf mobile 2, A2.c) UNE seule allocation de la toile : sa taille se pose plus bas, une fois DPR_CAP connu (`?toile1=0` = l'ancien ordre : taille puis rapport de pixels) */
 if(!TOILE1)renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
-try{palPuce(renderer.getContext());}catch(e){} // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
+try{window.__ccSondeCrea&&window.__ccSondeCrea('renderer',t9rend,performance.now()-t9rend);}catch(e){}try{const t9p=performance.now();palPuce(renderer.getContext());window.__ccSondeCrea&&window.__ccSondeCrea('palPuce',t9p,performance.now()-t9p);}catch(e){} // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
 /* ⚠ LE CONTEXTE 3D PERDU (2026-09-25, audit App Store) : iOS reprend la carte graphique d'une app en arrière-plan
    (appel, appareil photo, jeu lourd). Sans ces deux écouteurs, le jeu revenait sur un ÉCRAN NOIR définitif — le
    refus classique pour « l'app ne répond plus ». On empêche l'abandon (`preventDefault` = « je veux le récupérer »),
    et au retour du contexte on recharge proprement : la sauvegarde est sur le disque, rien n'est perdu. */
 // (2026-09-30) les trois chemins finissent par un RECHARGEMENT : la partie en cours est posée (enCoursPose) avant d'être perdue — SAVE.load la versera
-renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();try{sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){}try{enCoursPose();SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
+/* LA MÉMOIRE À LA LOUPE (2026-11-06, OPTI ULTIME : « à la fin d'une partie, parfois, retour à l'écran du début » = un rechargement ; la boîte noire doit dire si c'est le contexte 3D) :
+   une ligne de compteurs — temps de session, écran (classe du body), tas JS si le navigateur le dit, textures / géométries / programmes de three.js, parties finies de la session
+   (sessionStorage.ccParties, +1 à chaque endGame). Lue à la perte du contexte (genre « contexte ») et à la fin de chaque partie (genre « memoire ») : la pente d'une partie à l'autre
+   dit si la mémoire monte. Lecture seule, rien ne bouge ; `?sonde=0` coupe. */
+function ccMemLigne(){let r='';try{const m=renderer.info&&renderer.info.memory||{},pm=window.performance&&performance.memory,pr=renderer.info&&renderer.info.programs,k=+sessionStorage.ccParties||0;
+  r=(Math.round(performance.now()/100)/10)+' s · '+(document.body&&document.body.className||'').slice(0,60)+' · tas '+(pm&&pm.usedJSHeapSize?Math.round(pm.usedJSHeapSize/1048576)+' Mo':'-')+' · textures '+m.textures+' géométries '+m.geometries+' programmes '+(pr?pr.length:'-')+' · partie n°'+k;}catch(err){r='? '+(err&&err.message);}return r;}
+function ccMemNote(genre,pre){if(/[?&]sonde=0\b/.test(location.search))return;try{window.__ccNote(genre,(pre||'')+ccMemLigne());}catch(err){}}
+renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();ccMemNote('contexte','perdu ');try{sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){}try{enCoursPose();SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
 renderer.domElement.addEventListener('webglcontextrestored',function(){try{enCoursPose();SAVE.flush();}catch(e){}ctxRecharge();},false); /* (2026-11-05, DEBUG-TOTAL) par ctxRecharge : ce chemin rechargeait SANS lire le compteur — contexte perdu puis rendu à chaque relance (mémoire graphique saturée) = rechargement en boucle, le filet des 5 s n'y passant jamais */
 /* ===== LE CONTEXTE PERDU AU PREMIER PLAN (24/10, débogage sortie iOS : « zéro écran bloqué ») =====
    Les deux chemins du dessus attendent un événement : le contexte RENDU (webglcontextrestored) ou le RETOUR d'arrière-plan (visibilitychange).
@@ -175,8 +208,9 @@ const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([\d.]+)/.exec(location.search);r
    et le plancher le retenait à 1,25 : la 3D était dessinée à 62 % des pixels de l'écran, puis agrandie ×1,6 (floue) pendant que l'interface DOM restait nette. Sur un écran de densité ≥ 2, le plancher monte à 1,5 (le plafond « NETTE »
    des téléphones) ; la résolution adaptative (QL) sait toujours baisser si la machine tire. `?pcmin=1.25` = avant. */
 const PC_MIN=(function(){const m=/[?&]pcmin=([\d.]+)/.exec(location.search);return m?+m[1]:(RETINA_OK?1.5:1.25);})();
+PAL.B.imgDprCap=[1.25,1.35,1.25];PAL.B.imgQlDepart=[5,2,1];/* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : plafond NETTE 1,25 au lieu de 1,5 (−31 % de pixels : 513 000 au lieu de 740 000 sur un 390×844) et la course part au cran 1 de l'échelle QL ; `?img=max` / `?imgsans=c` = comme avant */
 function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
-  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));
+  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
   return Math.min(devicePixelRatio,Math.max(PC_MIN,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
 /* ===== UNE SEULE ALLOCATION DE LA TOILE (2026-11-05, passe perf mobile 2, A2.c) =====
    MESURÉ (Chrome iPhone émulé ×4, palier 0) : `renderer.setSize` 2 fois avant le menu — la 1re à 1 pixel/point avec DPR_CAP provisoire, la 2e (`applyQ` → `qlReprise` → `applyDPR`, ~1,1 s) une fois le choix RAPIDE/NETTE connu :
@@ -219,7 +253,10 @@ function fovPor(d){return FOV_TK===1?d:Math.min(150,Math.atan(Math.tan(Math.min(
 fovFit(true); // RÉSOLUTION ADAPTATIVE — cap desktop 1.5 : sur Retina, 1.75→1.5 = −26 % de pixels, invisible sous bloom+grain (écran 1× : min() ne change rien)
 renderer.setPixelRatio(curDPR);
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
-let BLOOM_RES=1; // (2026-09-27, passe perf iPhone) part de la résolution du bloom — un cran de l'échelle de qualité (QL) la baisse à ¾
+PAL.B.imgBloomRes=[1,1,.5];/* (2026-11-07, passe perf 3, P2 · levier a) le halo entre en DEMI-résolution sur un téléphone récent (colonnes ancien/moyen non lues) ; `?img=max` / `?imgsans=a` = comme avant */
+let BLOOM_BASE=PAL.bT('imgBloomRes',1,'a');
+const IMG_DYN={dens:null,vmin:200,ciel:0}; /* (2026-11-07, P2) l'état de la couche dynamique `imgRegle` (voir nettete-qualite.js) : densité imposée des traits d'air et traînées, au-delà de `vmin` km/h */
+let BLOOM_RES=BLOOM_BASE; // (2026-09-27, passe perf iPhone) part de la résolution du bloom — un cran de l'échelle de qualité (QL) la baisse à ¾
 /* (perf, lot 4) LA TAILLE DE L'ÉCRAN, LUE UNE FOIS PAR REDIMENSIONNEMENT. MESURÉ (profil, téléphone émulé) : sur Chrome mobile, lire
    `innerWidth`/`innerHeight` FORCE une mise en page complète (la page à « viewport » se remet en page pour répondre) — et comme le HUD
    venait d'écrire ses styles, chaque image en payait une : 7,7 % du processeur pendant la carte MOTEUR. Ce qui suit la caisse à l'écran

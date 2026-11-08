@@ -163,7 +163,7 @@ function trxCoeur(type,k,dt){const T=TRX,C=T.C,t0=performance.now();T.t+=dt;
   const on=k>.05,debut=on&&T.kp<=.05;if(debut){T.wl0.copy(C.WL);T.wr0.copy(C.WR);T.dist=0;}T.kp=k;
   if(!C.pv&&TRX_HIST[type])trxHist(on?k:0);
   T.L[0].n=T.L[1].n=0;tcRaz();
-  const E=TRX_EMET[type];if(E&&dt>0)E(T,C,k,dt,on,debut);
+  const E=TRX_EMET[type];if(E&&dt>0)E(T,C,k,(C.pv||type==='glouton')?dt:dt*densVit(vKmh()),on,debut); /* (2026-11-07, P2 · levier e) l'émission à demi-densité au-delà de 200 km/h (téléphone récent ; voir densVit) — pas à l'aperçu du garage, ni pour GLOUTON dont dt règle des minuteries */
   const np=trxParts(dt);let nb=0;for(const b of T.bolts)if(b.on)nb++;
   { /* (2026-10-16, TRAÎNÉES) LA SALLE BLANCHE : la lumière additive s'y effaçait (matrice, filés, foudre, néon) — le maillage qui brille
        passe en ENCRE (mélange 0, 1 − src ; couleur = la teinte pure × l'intensité) : sur le blanc on lit la couleur de la traînée */

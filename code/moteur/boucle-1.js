@@ -38,7 +38,7 @@ function loop(now){
   {const cad9=(loop._ms||16)>29.5&&(loop._ms||16)<37.5;if(cad9&&loop._jit<2)loop._r30T=now+2500; // tenu 2,5 s : une image sautée (66 ms) ne fait pas basculer
    loop._r30=cad9&&now<(loop._r30T||0);}
   loop._spk=(loop._spk||0)*.985+(ms9>(loop._r30?45:26)?1:0);
-  QLR.a[QLR.i]=ms9;QLR.i=(QLR.i+1)%QLR.a.length;if(QLR.n<QLR.a.length)QLR.n++; // (tour 2) l'anneau des 60 dernières images, lu par les centiles
+  QLR.a[QLR.i]=ms9;QLR.i=(QLR.i+1)%QLR.a.length;if(QLR.n<QLR.a.length)QLR.n++; sondeFluide(now,ms9); // (tour 2) l'anneau des 60 dernières images, lu par les centiles
   /* ⚠ LENTEUR SOUTENUE, JAMAIS UN PIC (2026-09-24) — toujours vrai : on ne dégrade que « calme » (ni reconstruction de zone, ni retour
      d'onglet, ni cadence 30 Hz imposée). Mais les paliers ne sont plus DÉFINITIFS et la résolution n'est plus la PREMIÈRE sacrifiée :
      (2026-09-27, passe perf iPhone) paliers MOYEN/BAS et résolution adaptative ne font plus qu'UNE échelle, `QL` — voir « LA NETTETÉ EN
@@ -94,7 +94,7 @@ function loop(now){
          combien coûte VRAIMENT une image ; si, agrandie au cran du dessus (coût ∝ pixels), elle tient encore sous 14 ms, on remonte */
       else if(sonde9){VHD.sT=0;VHD.t=-10;if(vhdMonte(now,QLR.vrai))VHD.t=0;} // pas de marge : la sonde se tait ~12 s
       else if(!VHD.sT||now-VHD.sT>3000){VHD.sT=now;qlSondeArme();}}}
-  else if(!RESPIN&&dprT<=0&&now>4000&&qlAuto()){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>24||QLR.p50>18.5; /* (OPTIMISATION) voir L'IMAGE EN AUTOMATIQUE */
+  else if(!RESPIN&&dprT<=0&&now>4000&&qlAuto()){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>PAL.bT('imgQlP75',24,'f')||QLR.p50>18.5; /* (2026-11-07, passe perf 3, P2 · levier f) téléphone récent : l'échelle QL réagit dès p75 > 19 ms (au lieu de 24 : « plus d'un quart des images ratées d'un tiers de période ») ; `?img=max` / `?imgsans=f` = 24 */ /* (OPTIMISATION) voir L'IMAGE EN AUTOMATIQUE */
     /* LA NETTETÉ NE SE SACRIFIE QUE SI ÇA PAIE (tour 2) : un cran de RÉSOLUTION posé, on regarde 3 s plus tard si la médiane a
        baissé. Si non (le téléphone bute ailleurs : processeur, affichage), la résolution revient et ce cran devient un MUR — on ne
        floute pas l'image pour rien. */

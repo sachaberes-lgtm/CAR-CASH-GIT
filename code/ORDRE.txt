@@ -244,6 +244,7 @@ gameplay/seconde-chance.js           # la pub qui ressuscite, la seconde chance,
 interface/menu-logo.js               # le menu : le logo qu'on casse
 rendu/kit-lumiere.js                 # le kit lumière des autres caisses
 gameplay/zones-caisses.js            # systèmes de zone, orage, caisse-nuage, aiguillage, lingot
+gameplay/premiere-fois.js            # les naissances de course dessinées une fois au menu (billets, panneaux du cratère, pigeon) — passe perf 3, P6
 gameplay/evenements-rares.js         # les événements rares, le guide du jeu
 economie/argent-atelier.js           # l'argent de l'atelier
 interface/garage-salle.js            # buildGarageRoom : la salle du garage
@@ -288,6 +289,9 @@ gameplay/ramassage.js                # le ramassage (pickupsTick)
 interface/bouton-nitro-gains.js      # bouton nitro v3, gains qui flottent, remplissage
 interface/boost-icones.js             # ?boost= : icônes en verre du bouton boost (bouteille, chevrons, flamme, anneau)
 moteur/cadence.js                    # la cadence stable (CAD)
+moteur/gouverneur-thermique.js        # le gouverneur thermique MOB_G : dose de chaleur sans capteur, état iOS (cc:thermique), calage sur 30
+moteur/gouverneur-paliers.js           # le gouverneur pilote le coût GPU par paliers de dose (résolution, halo, ombre, ciel lisse, vent, émission)
+moteur/mobh-regime-chaud.js            # MOBH_ : le régime chaud (?mobh_chaud=1), effets décoratifs allégés quand mobChaud()
 moteur/boucle-1.js                   # loop() : LA BOUCLE DE JEU — début, overdrive, pouvoirs, turbo, pilote auto
 moteur/boucle-2-conduite.js          # loop() — en course : anti-idle, momentum, drift, bord, portail, flaques
 moteur/boucle-3-physique.js          # loop() — en course : la conduite (physique au sol et en vol)
@@ -298,5 +302,6 @@ moteur/init.js                       # init, intro du studio 1.61
 moteur/intro-161.js                  # l'intro du studio 1.61, version console : blips, noir, gros logo qui casse l'écran
 moteur/mobile-tactile.js             # mobile, tactile, pause, PWA
 moteur/enregistreur-perf.js          # l'enregistreur de parties (?perfrec=1) : chaque image de course notée par phase (sol, vol, figure), relue par dbgPerfRec()
+moteur/banc-iphone.js              # 🤖 le banc iPhone automatique (inerte sans localStorage.ccBancAuto / ?banc=auto) : l'app se joue seule le protocole P7 et note tout dans la boîte noire
 moteur/desktop-banc.js               # ⚙ du desktop, le banc du téléphone, démarrage (requestAnimationFrame), fin du jeu
 page/fin.html                        # </script></body></html>

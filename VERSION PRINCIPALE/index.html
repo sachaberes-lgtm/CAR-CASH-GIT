@@ -1938,6 +1938,9 @@ if(window.CC_COLONNE&&!/[?&]cadre=ancien\b/.test(location.search))document.write
 <div id="splash" role="button" tabindex="0" aria-label="CASH CAR — toucher pour jouer">
   <!-- LE CHARGEMENT : l'Ouroboros pixel de Fable (serpent organique mignon) : le corps est fixe, c'est la TÊTE qui fait le tour du corps en le rongeant (gueule qui claque, dents), des boules de matière traversent le corps et sont avalées ; CSS pur (48 images, steps(48) sur un transform) ; intro-161.js (chCl) l'éteint. Le dessin se retouche dans outils/ouroboros/ouroboros.cjs. -->
   <div id="spCharge"></div>
+  <script>/* (2026-11-06, Sacha : « le serpent doit toujours être super fluide ») DANS L'APP iOS le serpent est dessiné par iOS (plugin SerpentNatif, JeuViewController.swift) : une animation Core Animation qui tourne hors du processus de la page, donc fluide même quand la page calcule ; le serpent web se tait (sinon : deux serpents). Sans le plugin (navigateur, app plus ancienne) rien ne change. */
+  try{var C9=window.Capacitor;if(C9&&C9.isPluginAvailable&&C9.isPluginAvailable('SerpentNatif')&&!/[?&]serpentweb=1\b/.test(location.search)){window.__serpentNatif=1;document.getElementById('spCharge').style.display='none';}}catch(_){}</script>
+
   <canvas id="fxCv" aria-hidden="true"></canvas>
   <div id="spStage">
     <div id="spTitle" class="tease"><span class="lg gold" data-t="CASH">CASH</span><span class="lg grad" data-t="CAR">CAR</span></div>
@@ -2013,14 +2016,19 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
   /* ===== LA BOÎTE NOIRE (2026-10-27, Léo : « utilise les techniques Cloudflare pour soigner notre jeu, et fais en sorte que mon jeu ne bugge
      plus du tout » — choisi : « leur méthode anti-bugs ») =====
      On ne corrige que ce qu'on voit. Une erreur en pleine partie ne laissait qu'une ligne dans une console que personne ne lit sur un
-     téléphone. Le jeu la NOTE désormais lui-même, sur l'appareil (localStorage `cashcarErr`, 30 lignes au plus, une même erreur = une
+     téléphone. Le jeu la NOTE désormais lui-même, sur l'appareil (localStorage `cashcarErr`, 80 lignes au plus (les sondes ont leur plafond), une même erreur = une
      ligne avec son compteur) : erreurs JS, promesses rejetées, panne d'un morceau de la boucle (loopWarn), et les GELS (une image de plus
      d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
      quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
   (function(){
-    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0;
+    var CLE='cashcarErr',L=null,attente=0,attT=0,dern='',dernT=0,MAXO=20000,CAPS={serpent:25,fluide:40,memoire:15,contexte:10};
     var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
-    var ecrit=function(){attente=0;try{localStorage.setItem(CLE,JSON.stringify(L));}catch(_){}};
+    var ecrit=function(){clearTimeout(attT);attente=0;attT=0;try{ /* (2026-11-07, OPTI ULTIME : « 30 Ko réécrits à chaque ligne = on fausse la mesure ») plafond de MAXO octets : les plus anciennes lignes `fluide`/`vivant` partent d'abord, puis les autres sondes ; jamais gel, contexte, memoire, banc */
+      var s9=JSON.stringify(L),i9,k9;
+      while(s9.length>MAXO&&L.length>1){i9=-1;for(k9=0;k9<L.length;k9++)if(L[k9].g==='fluide'||L[k9].g==='vivant'){i9=k9;break;}
+        if(i9<0)for(k9=0;k9<L.length;k9++)if(!/^(gel|contexte|memoire|banc)$/.test(L[k9].g)){i9=k9;break;}
+        if(i9<0)break;L.splice(i9,1);s9=JSON.stringify(L);}
+      localStorage.setItem(CLE,s9);}catch(_){}};
     window.__ccNote=function(genre,msg,ou){
       try{
         msg=String(msg==null?'?':(msg&&msg.message)||msg).slice(0,240);var cle=genre+'|'+msg,t=Date.now();
@@ -2028,8 +2036,10 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
         lit();var e=null;for(var i=0;i<L.length;i++)if(L[i].k===cle){e=L[i];break;}
         var v=(typeof CC_VER==='string'?CC_VER:'?');
         if(e){e.n++;e.t=t;e.v=v;if(ou)e.o=String(ou).slice(0,160);}
-        else{L.push({k:cle,g:genre,m:msg,o:ou?String(ou).slice(0,160):'',n:1,t0:t,t:t,v:v,d:window.__gameReady?1:0});if(L.length>30)L.splice(0,L.length-30);}
-        if(!attente){attente=1;setTimeout(ecrit,400);}
+        else{L.push({k:cle,g:genre,m:msg,o:ou?String(ou).slice(0,160):'',n:1,t0:t,t:t,v:v,d:window.__gameReady?1:0});if(L.length>80)L.splice(0,L.length-80);
+          var cp=CAPS[genre];if(cp){var k9=0,j9;for(j9=L.length-1;j9>=0;j9--)if(L[j9].g===genre&&++k9>cp)L.splice(j9,1);}} /* (2026-11-06) les sondes (« serpent », « fluide ») ne chassent pas les vraies erreurs : un plafond par genre */
+        var lent=genre==='fluide'||genre==='vivant'; /* les lignes qui reviennent toutes les 4 s s'écrivent au plus toutes les 20 s ; une autre ligne ramène l'écriture à 0,4 s */
+        if(!attente||(!lent&&attT&&attente===2)){clearTimeout(attT);attente=lent?2:1;attT=setTimeout(ecrit,lent?20000:400);}
         try{var vv=document.getElementById('mvVer');if(vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){}
       }catch(_){}
     };
@@ -2037,7 +2047,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
     /* LES GELS : une image de plus d'une seconde, onglet visible, hors retour d'arrière-plan (le rAF s'y arrête : ce n'est pas un gel) */
     var der=0,cache=0;document.addEventListener('visibilitychange',function(){cache=performance.now();});
     var rf=function(t){if(der&&document.visibilityState==='visible'&&t-der>1000&&t-der<20000&&t-cache>1500&&window.__gameReady) /* (2026-10-28) plus de 20 s = l'appli était endormie (écran verrouillé : WKWebView ne dit pas toujours « caché »), pas un gel — la boîte noire de Léo notait 123 à 830 s */
-      window.__ccNote('gel',(Math.round((t-der)/100)/10)+' s',document.body&&document.body.className.slice(0,80));der=t;requestAnimationFrame(rf);};
+      window.__ccNote('gel',(Math.round((t-der)/100)/10)+' s',(document.body&&document.body.className.slice(0,80))+(function(){try{var g=window.dbgGouvPaliers&&window.dbgGouvPaliers();return g?' pal='+g.palier+' basc='+g.bascules:'';}catch(_){return '';}})()); /* (2026-11-07) palier et bascules du gouverneur à l'instant du gel */der=t;requestAnimationFrame(rf);};
     requestAnimationFrame(rf);
     var montre=function(){
       lit();var en=ccEn(),o=document.getElementById('ccBoite');if(o)o.remove();
@@ -2057,9 +2067,87 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
       document.body.appendChild(o);
     };
     window.__ccBoite=montre;
+    addEventListener('pagehide',function(){if(attente)ecrit();});document.addEventListener('visibilitychange',function(){if(document.hidden&&attente)ecrit();}); /* rien ne se perd en partant en arrière-plan */
     document.addEventListener('click',function(ev){var t=ev.target;if(t&&t.id==='mvVer')montre();},true);
     if(/[?&]erreurs=1/.test(location.search))addEventListener('load',function(){setTimeout(montre,1500);});
     addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer');if(L.length&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+L.length;}catch(_){}},3000);});
+  })();
+  /* ===== LA SONDE DU SERPENT (2026-11-06, Sacha : « enlève la latence du temps de chargement, le serpent doit toujours être super fluide ») =====
+     Le banc Mac a épuisé ce qu'il sait voir (LISEZ-MOI de outils/banc-serpent) : le reste ne se verra que sur Metal. Ce petit guetteur tourne
+     du 1er script jusqu'à la disparition du serpent (`#spCharge` retiré par l'intro), 10 s après `__gameReady` ou 60 s au plus. Une boucle rAF
+     relève chaque TROU > 120 ms entre deux images et note dans la boîte noire (genre « serpent », 20 lignes au plus) : l'instant, la durée,
+     les travaux JS qui le recouvrent (tâches longues si le navigateur les donne ; sinon les rappels setTimeout/rAF de plus de 50 ms et les
+     ÉTAPES du chargement, `__ccSondeTache`), l'appel WebGL synchrone le plus long en vol (piégé sur le prototype : getProgramParameter,
+     texImage2D, bufferData… avec sa pile courte) et l'état du fil (« bloqué » = un minuteur de 30 ms a aussi pris du retard ; « libre » = c'est le
+     rendu / le GPU / le compositeur). Fin de guet : tous les pièges sont retirés, plus aucun coût. LIRE : `dbgSerpent()` ou la boîte noire (RÉGLAGES
+     › VERSION) ; par câble : localStorage `cashcarErr`. `?sonde=0` coupe tout. */
+  (function(){
+    if(/[?&]sonde=0\b/.test(location.search)||!window.requestAnimationFrame||!window.performance)return;
+    var SEUIL=120,MAXN=19,now=function(){return performance.now();},RAF=window.requestAnimationFrame,ST=window.setTimeout,
+        fini=false,vu=false,dern=0,vc=0,tPret=0,nN=0,HIST=[],GLS=[],TAC=[],TIM=[],hbT=now(),trous=0,pire=0,RES=[],PIEGES=[];
+    var pile=function(){try{var s=String(new Error().stack).split('\n'),o=[],i;if(/^Error/.test(s[0]))s.shift(); /* Chrome met « Error » en tête, Safari non */
+      s=s.slice(2); /* sans les deux étages de la sonde (pile, sondeGL) */
+      for(i=0;i<s.length&&o.length<4;i++)o.push(s[i].replace(/(https?|capacitor):\/\/[^\s)]*\//g,'').replace(/^\s*at /,'').replace(/^Object\./,'').trim().slice(0,48));
+      return o.join(' < ');}catch(_){return '';}};
+    var garde=function(L,x){L.push(x);if(L.length>90)L.splice(0,30);};
+    var tache=function(nom,t,d){if(!fini)garde(TAC,{n:nom,t:t,d:d});};
+    window.__ccSondeTache=function(nom,t,d){if(d>=40)tache('étape '+nom,t,d);};
+    /* (2026-11-07, OPTI ULTIME : « le trou initial de ~1 s, fil libre : le contexte WebGL ? l'AudioContext ? ») les CRÉATIONS chronométrées de l'intérieur (renderer, palPuce, AudioContext, boule, prepare, son…) : toute durée ≥ 5 ms, au dos de la ligne « fin du guet » */
+    var CREA=[];window.__ccSondeCrea=function(nom,t,d){if(!fini&&d>=5&&CREA.length<30)CREA.push(nom+' '+Math.round(d)+' ms à '+(Math.round(t/100)/10)+' s');};
+    /* les appels WebGL qui attendent le GPU (≥ 8 ms) */
+    ['getProgramParameter','getShaderParameter','getProgramInfoLog','getShaderInfoLog','linkProgram','compileShader','texImage2D','texSubImage2D','texImage3D','texSubImage3D',
+     'texStorage2D','bufferData','bufferSubData','readPixels','getError','getActiveUniform','getActiveAttrib','getUniformLocation','generateMipmap','compressedTexImage2D',
+     'finish','checkFramebufferStatus','blitFramebuffer','validateProgram',
+     /* (2026-11-07) élargi : les attentes synchrones de la puce que la liste d'avant ne voyait pas (650 ms avec 181 ms de JS au build 10) */
+     'getParameter','flush','bindFramebuffer','getExtension','getSupportedExtensions','drawElements','drawArrays','drawElementsInstanced','drawArraysInstanced','clear','copyTexImage2D','copyTexSubImage2D','createProgram','useProgram','attachShader','createShader','shaderSource','getContextAttributes','getShaderPrecisionFormat'].forEach(function(n){
+      [window.WebGL2RenderingContext,window.WebGLRenderingContext].forEach(function(C){
+        if(!C)return;var pr=C.prototype,f=Object.prototype.hasOwnProperty.call(pr,n)?pr[n]:null;if(typeof f!=='function')return;
+        PIEGES.push([pr,n,f]);
+        pr[n]=function sondeGL(){var t=now();try{return f.apply(this,arguments);}finally{var d=now()-t;if(d>=8&&!fini)garde(GLS,{n:n,t:t,d:d,p:pile()});}};});});
+    /* les rappels de minuteur et d'image qui durent (≥ 50 ms) : le nom de la fonction, ou le début de son texte */
+    var nomFn=function(f){try{return f.name||String(f).replace(/\s+/g,' ').slice(0,38);}catch(_){return '?';}};
+    var enrobe=function(F,nom){return function(cb){
+      if(fini||typeof cb!=='function')return F.apply(this,arguments);
+      var a=Array.prototype.slice.call(arguments);
+      a[0]=function(){var t=now();try{return cb.apply(this,arguments);}finally{var d=now()-t;if(d>=50&&!fini)tache(nom+' '+nomFn(cb),t,d);}};
+      return F.apply(this,a);};};
+    var oST=ST,oRAF=RAF;
+    window.setTimeout=enrobe(oST,'minuteur');window.requestAnimationFrame=enrobe(oRAF,'image');
+    try{new PerformanceObserver(function(l){l.getEntries().forEach(function(e){tache('tâche longue',e.startTime,e.duration);});}).observe({entryTypes:['longtask']});}catch(_){}
+    document.addEventListener('visibilitychange',function(){vc=now();});
+    /* le pouls du fil principal : un minuteur de 30 ms ; un retard > 100 ms = le fil était pris */
+    var pouls=function(){if(fini)return;var n=now();if(n-hbT>100)garde(TIM,{t0:hbT,t1:n});hbT=n;ST(pouls,30);};ST(pouls,30);
+    var chev=function(L,a,b){var o=[];for(var i=0;i<L.length;i++){var t0=L[i].t,t1=t0+L[i].d;if(t1>a&&t0<b)o.push(L[i]);}return o.sort(function(x,y){return y.d-x.d;});};
+    var rapport=function(a,b){
+      var d=Math.round(b-a),js=chev(TAC,a-30,b+30).slice(0,2),gl=chev(GLS,a-30,b+30)[0],bloq=false,i;
+      for(i=0;i<TIM.length;i++)if(TIM[i].t1>a&&TIM[i].t0<b){bloq=true;break;}
+      trous++;if(d>pire)pire=d;
+      var sJs=js.length?js.map(function(x){return x.n+' '+Math.round(x.d);}).join(' + '):'-',
+          sGl=gl?(gl.n+' '+Math.round(gl.d)):'-',
+          msg=(Math.round(a/100)/10)+' s : trou '+d+' ms · JS '+sJs+' · GL '+sGl+' · fil '+(bloq?'bloqué':'libre'),
+          r={t:Math.round(a),d:d,js:sJs,gl:sGl,pile:gl?gl.p:'',fil:bloq?'bloqué':'libre',v:(typeof CC_VER==='string'?CC_VER:'?')};
+      RES.push(r);if(RES.length>60)RES.shift();
+      if(nN<MAXN){nN++;window.__ccNote('serpent',msg,gl&&gl.p);}
+    };
+    var fin=function(){
+      if(fini)return;fini=true;
+      PIEGES.forEach(function(p){try{p[0][p[1]]=p[2];}catch(_){}});
+      window.setTimeout=oST;window.requestAnimationFrame=oRAF;try{delete window.__ccSondeTache;}catch(_){window.__ccSondeTache=null;}
+      TAC=[];GLS=[];TIM=[];
+      window.__ccNote('serpent','fin du guet à '+(Math.round(now()/100)/10)+' s : '+trous+' trou(s) > '+SEUIL+' ms, le pire '+pire+' ms'+(CREA.length?' · créations : '+CREA.join(' · '):''));
+    };
+    var tick=function(t){
+      if(fini)return;
+      if(dern&&t-dern>SEUIL&&document.visibilityState==='visible'&&vc<dern-50)rapport(dern,t);
+      dern=t;
+      if(document.getElementById('spCharge'))vu=true;
+      else if(vu){fin();return;}
+      if(window.__gameReady){if(!tPret)tPret=t;else if(t-tPret>10000){fin();return;}}
+      if(t>60000){fin();return;}
+      RAF.call(window,tick);
+    };
+    window.dbgSerpent=function(){return RES.slice();};
+    RAF.call(window,tick);
   })();
   addEventListener('error',function(e){
     if(!e.message)return;
@@ -13689,6 +13777,21 @@ const PAL=(function(){
      Chaque zone du jeu AJOUTE ses lignes ici (une seule table à régler), et lit `PAL.b('cle')`. */
   P.B={};
   P.b=function(k,d){const v=P.B[k];return v?v[P.n]:d;};
+  /* ===== L'IMAGE ADAPTÉE SUR TÉLÉPHONE RÉCENT (2026-11-07, passe perf 3, P2 — Sacha : « pousse l'opti au max ») =====
+     Jusqu'ici le palier 2 gardait l'image de l'ordi au pixel. Désormais, sur un VRAI téléphone (TEL_NATIF) au palier 2, six leviers (a à f) peuvent
+     retirer un peu d'image quand le GPU est le goulot ; Sacha tranche levier par levier sur captures AVANT/APRÈS (passation/perf-2026-11/captures/p2-tel/).
+       a · halo (bloom) : moins d'étages, entrée en demi-résolution     b · ombre de course plus petite, filtre simple
+       c · résolution de course plafonnée plus bas, départ au cran 1    d · passe lisse du ciel une image sur deux
+       e · stries de vent et traînées en demi-densité à grande vitesse  f · l'échelle de qualité réagit plus tôt
+     `PAL.imgOn(l)` dit si le levier l est actif ; `PAL.bT(clé, avant, l)` rend la 3e colonne de `PAL.B.clé` (= le budget « récent téléphone »)
+     si le levier est actif, sinon `avant` (la valeur exacte d'avant). L'ORDINATEUR (TEL_NATIF faux, même avec ?tel=1) : toujours `avant`.
+     Les colonnes ancien/moyen des clés `img*` ne sont pas lues : les paliers 0 et 1 gardent leur régime existant. Interrupteurs d'URL :
+     `?img=max` = tout à l'ancien · `?img=a,c` = SEULEMENT ces leviers · `?imgsans=b` = tous sauf ceux-là. `dbgImg()` décrit. */
+  P.imgMax=/[?&]img=max\b/.test(location.search);
+  const iSeul=/[?&]img=([a-f](?:,[a-f])*)(?:&|$)/.exec(location.search),iSans=/[?&]imgsans=([a-f](?:,[a-f])*)(?:&|$)/.exec(location.search);
+  P.imgOn=function(l){return !!TEL_NATIF&&P.n>=2&&!P.imgMax&&(!iSeul||iSeul[1].split(',').indexOf(l)>=0)&&!(iSans&&iSans[1].split(',').indexOf(l)>=0);};
+  P.bT=function(k,avant,l){const v=P.B[k];return v&&P.imgOn(l)?v[2]:avant;};
+  window.dbgImg=function(){const o={};'abcdef'.split('').forEach(function(l){o[l]=P.imgOn(l);});return {telNatif:!!TEL_NATIF,palier:P.n,max:P.imgMax,leviers:o};}; // (banc)
   return P;})();
 /* LES TOILES 2D RENDUES APRÈS L'ENVOI À LA PUCE (2026-10-14, passe perf mobile). MESURÉ (iPhone 7 émulé) : 184 toiles 2D vivantes = 52 Mo
    avant le premier écran — et iOS plafonne la mémoire de toiles d'une page (au-delà : toiles blanches, puis la page est tuée). Une toile
@@ -13700,6 +13803,16 @@ const PAL=(function(){
    avant PAL dans le fichier). Palier 2 : inchangé (toiles gardées, outils `dbg*` qui les relisent intacts).
    `toileRend(cv)` : pour une toile de TRAVAIL (copiée dans une autre puis jetée) — invisible, vaut pour tous les paliers. */
 PAL.B.memToiles=[1,1,0]; // rendre les toiles des textures peintes une fois : ancien, moyen = oui · récent = comme avant
+const MEM_ANCIEN=/[?&]memoire=ancien\b/.test(location.search); /* (2026-11-07, Perf 3 P1) `?memoire=ancien` = tout ce que la passe « mémoire » change est débrayé (libérations au portail, copies CPU gardées, sons) */
+function memLibereCb(){this.array=null;}
+/* `memLibere(g)` (2026-11-07, Perf 3 P1) : la copie JavaScript des attributs d'une géométrie STATIQUE est jetée une fois envoyée au GPU (même mécanisme que nuLibre / grtLibere).
+   MESURÉ (instantané de tas, iPhone émulé) : les tampons typés des géométries font ~270 des ~350 Mo de `performance.memory`. ⚠ UNIQUEMENT pour une géométrie PROPRE à une piste
+   (jamais partagée d'une piste à l'autre, jamais réécrite ensuite) ; les attributs dynamiques et d'instances restent. `?memoire=ancien` = tout gardé. */
+function memLibere(g){if(MEM_ANCIEN||!g||!g.attributes)return g;
+  try{if(g.attributes.position){if(!g.boundingBox)g.computeBoundingBox();if(!g.boundingSphere)g.computeBoundingSphere();}}catch(e){} /* les boîtes se lisent encore après (fruitLeve…) : calculées AVANT de jeter le tableau */
+  for(const k in g.attributes){const a=g.attributes[k];if(a&&a.array&&!a.__bpe&&!a.isInstancedBufferAttribute&&a.usage===THREE.StaticDrawUsage){a.__bpe=a.array.BYTES_PER_ELEMENT;a.onUpload(memLibereCb);}}
+  const i=g.index;if(i&&i.array&&!i.__bpe&&i.usage===THREE.StaticDrawUsage){i.__bpe=i.array.BYTES_PER_ELEMENT;i.onUpload(memLibereCb);}
+  return g;}
 function toileRend(cv){try{if(cv&&cv.getContext)cv.width=cv.height=0;}catch(e){}}
 function texLibere(tex){if(!tex||tex._lib)return tex;tex._lib=1;const av=tex.onUpdate;
   tex.onUpdate=function(t){if(av)av(t);t.onUpdate=av||null;if(PAL.b('memToiles',0)||ALLEGE){toileRend(t.image);MEM_TOILES.n++;} /* (2026-11-05, jury RND-03) tout téléphone (ALLEGE), pas seulement les paliers ancien/moyen : un iPhone récent est au palier 0 */};return tex;}
@@ -13726,17 +13839,25 @@ try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',fun
    la toile ne reçoit plus que la passe finale du compositeur (un quad plein écran : rien à anticréneler) ; la scène se dessine dans la cible du compositeur,
    et l'anticrénelage est le FXAA de la passe finale. Même image au pixel près, ~100 Mo de moins. `?msaa=1` (l'ancien choix, voir FXAA_ON) garde le tampon. */
 const MSAA_TOILE=/[?&]msaa=1\b/.test(location.search);
+const t9rend=performance.now();
 const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance'});
 const TOILE1=!/[?&]toile1=0\b/.test(location.search); /* (2026-11-05, passe perf mobile 2, A2.c) UNE seule allocation de la toile : sa taille se pose plus bas, une fois DPR_CAP connu (`?toile1=0` = l'ancien ordre : taille puis rapport de pixels) */
 if(!TOILE1)renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
-try{palPuce(renderer.getContext());}catch(e){} // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
+try{window.__ccSondeCrea&&window.__ccSondeCrea('renderer',t9rend,performance.now()-t9rend);}catch(e){}try{const t9p=performance.now();palPuce(renderer.getContext());window.__ccSondeCrea&&window.__ccSondeCrea('palPuce',t9p,performance.now()-t9p);}catch(e){} // (2026-10-14, passe perf mobile) le palier affiné par la puce graphique — voir PAL
 /* ⚠ LE CONTEXTE 3D PERDU (2026-09-25, audit App Store) : iOS reprend la carte graphique d'une app en arrière-plan
    (appel, appareil photo, jeu lourd). Sans ces deux écouteurs, le jeu revenait sur un ÉCRAN NOIR définitif — le
    refus classique pour « l'app ne répond plus ». On empêche l'abandon (`preventDefault` = « je veux le récupérer »),
    et au retour du contexte on recharge proprement : la sauvegarde est sur le disque, rien n'est perdu. */
 // (2026-09-30) les trois chemins finissent par un RECHARGEMENT : la partie en cours est posée (enCoursPose) avant d'être perdue — SAVE.load la versera
-renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();try{sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){}try{enCoursPose();SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
+/* LA MÉMOIRE À LA LOUPE (2026-11-06, OPTI ULTIME : « à la fin d'une partie, parfois, retour à l'écran du début » = un rechargement ; la boîte noire doit dire si c'est le contexte 3D) :
+   une ligne de compteurs — temps de session, écran (classe du body), tas JS si le navigateur le dit, textures / géométries / programmes de three.js, parties finies de la session
+   (sessionStorage.ccParties, +1 à chaque endGame). Lue à la perte du contexte (genre « contexte ») et à la fin de chaque partie (genre « memoire ») : la pente d'une partie à l'autre
+   dit si la mémoire monte. Lecture seule, rien ne bouge ; `?sonde=0` coupe. */
+function ccMemLigne(){let r='';try{const m=renderer.info&&renderer.info.memory||{},pm=window.performance&&performance.memory,pr=renderer.info&&renderer.info.programs,k=+sessionStorage.ccParties||0;
+  r=(Math.round(performance.now()/100)/10)+' s · '+(document.body&&document.body.className||'').slice(0,60)+' · tas '+(pm&&pm.usedJSHeapSize?Math.round(pm.usedJSHeapSize/1048576)+' Mo':'-')+' · textures '+m.textures+' géométries '+m.geometries+' programmes '+(pr?pr.length:'-')+' · partie n°'+k;}catch(err){r='? '+(err&&err.message);}return r;}
+function ccMemNote(genre,pre){if(/[?&]sonde=0\b/.test(location.search))return;try{window.__ccNote(genre,(pre||'')+ccMemLigne());}catch(err){}}
+renderer.domElement.addEventListener('webglcontextlost',function(e){e.preventDefault();ccMemNote('contexte','perdu ');try{sessionStorage.ccCtxPerdu=(+sessionStorage.ccCtxPerdu||0)+1;}catch(err){}try{enCoursPose();SAVE.flush();}catch(err){}},false); // (compteur de session : `sessionStorage.ccCtxPerdu` dit combien de fois c'est arrivé)
 renderer.domElement.addEventListener('webglcontextrestored',function(){try{enCoursPose();SAVE.flush();}catch(e){}ctxRecharge();},false); /* (2026-11-05, DEBUG-TOTAL) par ctxRecharge : ce chemin rechargeait SANS lire le compteur — contexte perdu puis rendu à chaque relance (mémoire graphique saturée) = rechargement en boucle, le filet des 5 s n'y passant jamais */
 /* ===== LE CONTEXTE PERDU AU PREMIER PLAN (24/10, débogage sortie iOS : « zéro écran bloqué ») =====
    Les deux chemins du dessus attendent un événement : le contexte RENDU (webglcontextrestored) ou le RETOUR d'arrière-plan (visibilitychange).
@@ -13789,8 +13910,9 @@ const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([\d.]+)/.exec(location.search);r
    et le plancher le retenait à 1,25 : la 3D était dessinée à 62 % des pixels de l'écran, puis agrandie ×1,6 (floue) pendant que l'interface DOM restait nette. Sur un écran de densité ≥ 2, le plancher monte à 1,5 (le plafond « NETTE »
    des téléphones) ; la résolution adaptative (QL) sait toujours baisser si la machine tire. `?pcmin=1.25` = avant. */
 const PC_MIN=(function(){const m=/[?&]pcmin=([\d.]+)/.exec(location.search);return m?+m[1]:(RETINA_OK?1.5:1.25);})();
+PAL.B.imgDprCap=[1.25,1.35,1.25];PAL.B.imgQlDepart=[5,2,1];/* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : plafond NETTE 1,25 au lieu de 1,5 (−31 % de pixels : 513 000 au lieu de 740 000 sur un 390×844) et la course part au cran 1 de l'échelle QL ; `?img=max` / `?imgsans=c` = comme avant */
 function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
-  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));
+  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
   return Math.min(devicePixelRatio,Math.max(PC_MIN,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
 /* ===== UNE SEULE ALLOCATION DE LA TOILE (2026-11-05, passe perf mobile 2, A2.c) =====
    MESURÉ (Chrome iPhone émulé ×4, palier 0) : `renderer.setSize` 2 fois avant le menu — la 1re à 1 pixel/point avec DPR_CAP provisoire, la 2e (`applyQ` → `qlReprise` → `applyDPR`, ~1,1 s) une fois le choix RAPIDE/NETTE connu :
@@ -13833,7 +13955,10 @@ function fovPor(d){return FOV_TK===1?d:Math.min(150,Math.atan(Math.tan(Math.min(
 fovFit(true); // RÉSOLUTION ADAPTATIVE — cap desktop 1.5 : sur Retina, 1.75→1.5 = −26 % de pixels, invisible sous bloom+grain (écran 1× : min() ne change rien)
 renderer.setPixelRatio(curDPR);
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
-let BLOOM_RES=1; // (2026-09-27, passe perf iPhone) part de la résolution du bloom — un cran de l'échelle de qualité (QL) la baisse à ¾
+PAL.B.imgBloomRes=[1,1,.5];/* (2026-11-07, passe perf 3, P2 · levier a) le halo entre en DEMI-résolution sur un téléphone récent (colonnes ancien/moyen non lues) ; `?img=max` / `?imgsans=a` = comme avant */
+let BLOOM_BASE=PAL.bT('imgBloomRes',1,'a');
+const IMG_DYN={dens:null,vmin:200,ciel:0}; /* (2026-11-07, P2) l'état de la couche dynamique `imgRegle` (voir nettete-qualite.js) : densité imposée des traits d'air et traînées, au-delà de `vmin` km/h */
+let BLOOM_RES=BLOOM_BASE; // (2026-09-27, passe perf iPhone) part de la résolution du bloom — un cran de l'échelle de qualité (QL) la baisse à ¾
 /* (perf, lot 4) LA TAILLE DE L'ÉCRAN, LUE UNE FOIS PAR REDIMENSIONNEMENT. MESURÉ (profil, téléphone émulé) : sur Chrome mobile, lire
    `innerWidth`/`innerHeight` FORCE une mise en page complète (la page à « viewport » se remet en page pour répondre) — et comme le HUD
    venait d'écrire ses styles, chaque image en payait une : 7,7 % du processeur pendant la carte MOTEUR. Ce qui suit la caisse à l'écran
@@ -13866,9 +13991,10 @@ renderer.shadowMap.enabled=true;
    Le type entre dans le #define des matières : il se choisit ICI, avant toute compilation, et plus personne ne le change ensuite.
    RÉCENT : ombre douce, comme avant. (`?palier=2` pour comparer.) */
 PAL.B.postOmbreDouce=[0,0,1];
-renderer.shadowMap.type=PAL.b('postOmbreDouce',1)?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
+PAL.B.imgOmbreDouce=[0,0,0];PAL.B.imgOmbre=[1024,1024,768]; /* (2026-11-07, passe perf 3, P2 · levier b) téléphone récent : ombre PCF simple (17 lectures au lieu de 36 par pixel éclairé) et carte de 768 au lieu de 1024 ; `?img=max` / `?imgsans=b` = comme avant */
+renderer.shadowMap.type=PAL.bT('imgOmbreDouce',PAL.b('postOmbreDouce',1),'b')?THREE.PCFSoftShadowMap:THREE.PCFShadowMap;
 sun.castShadow=true;
-sun.shadow.mapSize.set(ALLEGE||IS_LOW_END?1024:1280,ALLEGE||IS_LOW_END?1024:1280); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
+const OMBRE_N=ALLEGE||IS_LOW_END?PAL.bT('imgOmbre',1024,'b'):1280;sun.shadow.mapSize.set(OMBRE_N,OMBRE_N); // 1280 : l'ortho ±34 m est si serrée que 1536 était du luxe — passe d'ombre ~30 % moins chère
 const SUNC=sun.shadow.camera;
 SUNC.left=-34;SUNC.right=34;SUNC.top=30;SUNC.bottom=-64;SUNC.near=40;SUNC.far=340;SUNC.updateProjectionMatrix(); // fond profond : l'ombre atteint la dalle même très haut au-dessus de la route
 sun.shadow.bias=-0.0003;sun.shadow.normalBias=0.08; // normalBias en MÈTRES (~2 texels) : assez pour tuer l'acné, pas de quoi décoller l'ombre
@@ -14136,7 +14262,7 @@ if(CAN_POST){ try{
      tuiles. ANCIEN : 3 étages (7 passes), MOYEN : 4 (9 passes), RÉCENT : 5 (11 passes, comme avant). Le poids des étages retirés se
      reporte sur le dernier calculé (même énergie, même alpha, même écrêtage) : le halo garde sa force, il s'étale juste un peu moins loin.
      Console : `bloomPass._nM=5` rend les 5 étages. Ne vaut que pour le chemin fusionné (`?bloom=ancien` garde tout). */
-  PAL.B.postBloomMips=[3,4,5];bloomPass._nM=ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?Math.min(4,PAL.b('postBloomMips',5)):PAL.b('postBloomMips',5); /* (2026-11-05, Opus : jury RND-06) un téléphone RÉCENT (palier 2) avait les 5 étages de halo de l'ordi : 4 sous ALLEGE (2 passes plein écran de moins, le halo le plus large qui reste invisible sur 6 pouces) ; l'ordi garde 5 ; `?post=ancien` = avant */
+  PAL.B.postBloomMips=[3,4,5];PAL.B.imgBloomMips=[3,4,3];bloomPass._nM=PAL.bT('imgBloomMips',ALLEGE&&!/[?&]post=ancien\b/.test(location.search)?Math.min(4,PAL.b('postBloomMips',5)):PAL.b('postBloomMips',5),'a'); /* (2026-11-07, passe perf 3, P2 · levier a) téléphone récent : 3 étages de flou au lieu de 4 (et le halo entre en demi-résolution, `imgBloomRes`) ; `?img=max` = 4 */ /* (2026-11-05, Opus : jury RND-06) un téléphone RÉCENT (palier 2) avait les 5 étages de halo de l'ordi : 4 sous ALLEGE (2 passes plein écran de moins, le halo le plus large qui reste invisible sur 6 pouces) ; l'ordi garde 5 ; `?post=ancien` = avant */
   if(REDUCED_MOTION)bloomPass.enabled=false; // reduced-motion : bloom coupé
   composer.addPass(bloomPass);
   acesPass=new THREE.ShaderPass(ACESShader);acesPass.renderToScreen=true;composer.addPass(acesPass);
@@ -14913,6 +15039,32 @@ function qlNet(){try{return !!(SAVE.d&&(SAVE.d.q==='net'||SAVE.d.q==='haute'));}
    (ni menus, ni atelier, ni photos), et pas en HAUTE. IMAGE : RAPIDE → NETTE → HAUTE (RAPIDE et NETTE restent automatiques ; HAUTE = la
    résolution NETTE, tout au plus haut, jamais baissé). */
 function qHaute(){try{return !!(SAVE.d&&SAVE.d.q==='haute');}catch(e){return false;}}
+PAL.B.imgQlP75=[24,24,19]; /* (2026-11-07, P2 · levier f) le seuil p75 (ms) au-delà duquel l'échelle QL baisse d'un cran sur téléphone récent ; colonnes ancien/moyen non lues (24 comme avant) */
+/* (2026-11-07, passe perf 3, P2) LA COUCHE DYNAMIQUE DE L'IMAGE : `imgRegle({halo,mips,ombre,dpr,ciel,stries})` pose à CHAUD, sans recompiler un seul programme, les mêmes leviers que les budgets statiques a-e — pour le gouverneur thermique
+   (session vitesse-fluide : la puce du 13 Pro est bridée ~3× après quelques minutes de course). Toutes les clés sont facultatives ; `imgRegle()` lit l'état ; `imgRegle('reset')` rend les valeurs du départ.
+     halo   : 'demi' (entrée du halo en ½ résolution) · 'tout' (pleine, comme l'ordi) · un nombre (part de résolution) · 'off' (halo coupé : le cran kMax de l'échelle QL le fait aussi)
+     mips   : 3 à 5, les étages de flou du halo
+     ombre  : 512 · 768 · 1024 (une carte d'ombre refaite : un à-coup, zéro programme) — le filtre PCF ne change pas (il est dans les programmes)
+     dpr    : le plafond de résolution de course (1,25 · 1 · 0,8 …) — `qlPose` recalcule les crans dessus
+     ciel   : la passe lisse du ciel une image sur N (plancher ; le budget `cielImg` du gouverneur reste plus fort s'il est plus haut)
+     stries : la densité (0 à 1) des traits d'air et de l'émission des traînées, à toute vitesse (`null` = le régime des budgets)
+   Rend l'état courant : {halo,mips,ombre,dpr,ciel,stries}. Ne fait rien de plus que poser ces valeurs : la décision (quand, de combien) reste à l'appelant. */
+const IMG_REGLE0={};
+/* (2026-11-07, P2, bascules gratuites) `reset` ne repose plus l'échelle tout de suite : il la remet à la microtâche, et un `imgRegle({...})` qui le suit dans la même tâche la pose UNE fois (avant : reset puis réglage = deux réallocations de la toile et des cibles à chaque bascule du gouverneur). qlPose ne force plus la toile : elle ne se redimensionne que si la résolution calculée change. */
+let IMG_PEND=false;function imgDiffere(){if(IMG_PEND)return;IMG_PEND=true;Promise.resolve().then(function(){IMG_PEND=false;try{qlPose(QL.k);}catch(e){}});}
+function imgRegle(o){
+  if(o==='reset'){if(IMG_REGLE0.ok){BLOOM_BASE=IMG_REGLE0.bb;if(bloomPass)bloomPass._nM=IMG_REGLE0.nM;QL.ombre0=IMG_REGLE0.om;DPR_CAP=IMG_REGLE0.cap;IMG_DYN.ciel=0;PAL.B.bloomOff[PAL.n]=IMG_REGLE0.boff;IMG_DYN.dens=null;IMG_REGLE0.ok=false;imgDiffere();}return imgRegle();}
+  if(o&&typeof o==='object'){
+    if(!IMG_REGLE0.ok){IMG_REGLE0.ok=true;IMG_REGLE0.bb=BLOOM_BASE;IMG_REGLE0.nM=bloomPass?bloomPass._nM:5;IMG_REGLE0.om=QL.ombre0;IMG_REGLE0.cap=DPR_CAP;IMG_REGLE0.boff=PAL.B.bloomOff[PAL.n];}
+    if('halo' in o){const h=o.halo;if(h==='off')PAL.B.bloomOff[PAL.n]=1;else{PAL.B.bloomOff[PAL.n]=IMG_REGLE0.boff;BLOOM_BASE=h==='demi'?.5:h==='tout'?1:Math.max(.2,Math.min(1,+h||1));}}
+    if('mips' in o&&bloomPass)bloomPass._nM=Math.max(1,Math.min(5,o.mips|0));
+    if('ombre' in o)QL.ombre0=Math.max(256,Math.min(2048,o.ombre|0));
+    if('dpr' in o)DPR_CAP=Math.max(DPR_MIN,Math.min(+o.dpr||1,devicePixelRatio));
+    if('ciel' in o)IMG_DYN.ciel=Math.max(0,o.ciel|0);
+    if('stries' in o)IMG_DYN.dens=o.stries==null?null:Math.max(0,Math.min(1,+o.stries)),IMG_DYN.vmin=0;
+    qlPose(QL.k);}
+  return {halo:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,mips:bloomPass?bloomPass._nM:null,ombre:sun.shadow.mapSize.x,dpr:+curDPR.toFixed(2),cap:+DPR_CAP.toFixed(2),ciel:IMG_DYN.ciel,stries:IMG_DYN.dens,ql:QL.k};}
+window.imgRegle=imgRegle;
 function qlAuto(){return TEL_NATIF&&!qHaute()&&started&&!gameOver;}
 function qSuivant(q){return q==='fast'?'net':q==='net'?'haute':'fast';}
 function qLbl(){const q=SAVE.d.q;return q==='haute'?'HAUTE':q==='net'?'NETTE':'RAPIDE';}
@@ -14926,8 +15078,8 @@ function qlDpr(k,b){ // la résolution que vaut le cran k
   return Math.max(b.bas,b.pl-(b.pl-b.bas)*(k-b.kNet)/Math.max(1,b.nB));}
 function qlPose(k){ const b=qlBornes();k=Math.max((VHD.on||QL.force)?0:PAL.b('qlMin',0),Math.min(b.kMax,k|0));if(qHaute())k=0;QL.k=k; /* (OPTIMISATION) HAUTE : jamais baissé */ // (2026-10-14, passe perf mobile) le cran sous lequel ce palier ne remonte pas — voir LE DÉPART AU BON CRAN
   const om=VHD.on?VHD.ombre:k>=4?512:k>=2?768:QL.ombre0; // (2026-09-28) l'ACCUEIL en haute définition a sa carte d'ombre à lui (voir VHD)
-  if(sun.shadow.mapSize.x!==om){if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null;}sun.shadow.mapSize.set(om,om);} // recrée la carte, zéro recompilation
-  const br=k>=3?.75:1;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
+  if(sun.shadow.mapSize.x!==om){const a9=sun.shadow.mapSize.x,C9=QL.ombres||(QL.ombres={});if(sun.shadow.map){if(a9<=1280)C9[a9]=sun.shadow.map;else sun.shadow.map.dispose();} /* (P2, bascules gratuites) les cartes ≤ 1280 se GARDENT par taille : revenir à 768/512/1024 ne réalloue plus rien (les grandes de la vitrine, elles, sont libérées) */sun.shadow.map=C9[om]||null;sun.shadow.mapSize.set(om,om);renderer.shadowMap.needsUpdate=true;} // zéro recompilation
+  const br=(k>=3?.75:1)*BLOOM_BASE;if(br!==BLOOM_RES){BLOOM_RES=br;if(bloomPass&&bloomPass._W)bloomPass.setSize(bloomPass._W,bloomPass._H);}
   FLOU_OK=k<5;
   if(bloomPass)bloomPass.enabled=!REDUCED_MOTION&&k<b.kMax&&!PAL.b('bloomOff',0); /* (2026-10-24, allègement mobile) palier 0 : plus de bloom du tout (une passe plein écran de moins) — `?bloom=1` le rend */
   if(k<1&&renderer.shadowMap.autoUpdate===false)renderer.shadowMap.autoUpdate=true;
@@ -14986,12 +15138,15 @@ window.dbgVhdEcran=function(){ const px=Math.max(1,innerWidth*innerHeight),bud=T
    `?frais=0` = comme avant. */
 const PFR_ON=TEL_NATIF&&!/[?&]frais=0\b/.test(location.search);
 const PCM_ON=(!TEL_NATIF||PFR_ON)&&!/[?&]pcmort=0\b/.test(location.search); /* (2026-10-24) le téléphone aussi, par le mode frais */
+/* (2026-11-07, Perf 3 — P5, Sacha : « pousse l'opti au max ») LA VITRINE PLAFONNÉE SUR UN VRAI TÉLÉPHONE : accueil, garage, inventaire et boutique rendent la 3D en continu ; sur TEL_NATIF, tous paliers, la toile de la vitrine ne dépasse plus la densité 2 (`PAL.B.vhdDprTel`) et sa carte d'ombre 1024 (`PAL.B.vhdOmbreTel`) — le téléphone chauffait déjà au menu. L'ORDINATEUR ne change pas. `?menu=max` rend toute la passe menus d'avant (vitrine, 30 i/s en repos, photos). */
+const MENU_MAX=/[?&]menu=max\b/.test(location.search);
+PAL.B.vhdDprTel=[2,2,2];PAL.B.vhdOmbreTel=[1024,1024,1024];
 function vhdDpr(){ const px=Math.max(1,innerWidth*innerHeight),bud=TEL_NATIF?PAL.b('vhdPx',3.2e6):VHD_PX_PC; // (2026-10-14) le budget du téléphone se taille sur son palier (voir LE DÉPART AU BON CRAN)
-  return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE||(window.CC_DPR_CADRE&&/[?&]vhd15=0\b/.test(location.search))?1:1.5),Math.sqrt(bud/px),4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
+  return Math.max(DPR_CAP,Math.min(devicePixelRatio*(TEL_NATIF||VHE_MODE||(window.CC_DPR_CADRE&&/[?&]vhd15=0\b/.test(location.search))?1:1.5),Math.sqrt(bud/px),(TEL_NATIF&&!MENU_MAX)?PAL.b('vhdDprTel',2):4));} /* (2026-10-24, passe perf PC) `?vhdecran=1|2` : sans le ×1,5 sur l'ordi (voir LA VITRINE À LA MESURE DE L'ÉCRAN) */
 function vhdAniso(on){ const m=renderer.capabilities.getMaxAnisotropy(),n=on?m:Math.min(ALLEGE?4:8,m);
   for(const t of [ASPH_TEX,LIGNE_TEX])if(t&&t.anisotropy!==n){t.anisotropy=n;t.needsUpdate=true;}}
 function vhdBascule(on){ if(VHD.off||on===VHD.on)return;
-  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;VHD.ombre=Math.min(TEL_NATIF?PAL.b('vhdOmbre',2048):VHE_MODE===2?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
+  if(on){VHD.k0=QL.k;VHD.dpr=VHD.max=vhdDpr();VHD.lT=VHD.bT=VHD.sT=0;VHD.ombre=Math.min(TEL_NATIF?(MENU_MAX?PAL.b('vhdOmbre',2048):Math.min(PAL.b('vhdOmbre',2048),PAL.b('vhdOmbreTel',1024))):VHE_MODE===2?2048:4096,renderer.capabilities.maxTextureSize);VHD.t=0;VHD.on=true;curDPR=-1;qlPose(0);}
   else{VHD.on=false;curDPR=-1;qlPose(VHD.k0);}
   vhdAniso(on);}
 function vhdMonte(now,vrai){ // (2026-10-13, LE FILET v2) un cran de netteté qui revient (×1,25), jamais au-delà de l'écran ni vers le cran qui vient d'échouer ;
@@ -15016,7 +15171,7 @@ addEventListener('resize',function(){if(VHD.on){VHD.dpr=VHD.max=vhdDpr();VHD.mur
        de la course (plus de réallocation des cibles et de la carte d'ombre à chaque mort ET à chaque REJOUER).
    `dbgQual(k)` (banc) passe outre qlMin. `?palier=2` rend exactement le comportement d'avant. */
 PAL.B.bloomOff=[/[?&]bloom=1/.test(location.search)?0:1,0,0];PAL.B.qlDepart=[5,2,0];PAL.B.qlMin=[4,0,0];PAL.B.vhdPx=[.45e6,1.4e6,1.4e6]; /* (2026-10-20, Léo) MOYEN et RÉCENT plafonnés à 1,4 M (densité ~2 sur iPhone 15) : à 3,2 M (densité 3) le garage et la boutique tombaient à 41-58 i/s avec des accrocs de 200-700 ms, mesuré sur l'iPhone 15 de Léo le 16/10 ; c'est le réglage de son appli */PAL.B.vhdOmbre=[1024,2048,2048];PAL.B.vhdMort=[0,0,1];
-if(PAL.b('qlDepart',0)>0){try{qlPose(PAL.b('qlDepart',0));}catch(e){}}
+{const qd9=PAL.bT('imgQlDepart',PAL.b('qlDepart',0),'c');if(qd9>0){try{qlPose(qd9);}catch(e){}}} /* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : départ au cran 1 (voir `imgQlDepart`), avant 0 */
 window.dbgVHD=function(){return {on:VHD.on,dpr:+curDPR.toFixed(2),max:+VHD.max.toFixed(2),baisses:VHD.bas,remontees:VHD.haut,bride:VHD.bride?Math.round((performance.now()-VHD.bride)/1000)+' s':null,mur:(VHD.murT&&performance.now()-VHD.murT<45000)?+VHD.mur.toFixed(2):null,vrai:QLR.vraiT?+QLR.vrai.toFixed(1):null,journal:VHD.log,dprEcran:+devicePixelRatio.toFixed(2),plafondCourse:+DPR_CAP.toFixed(2),
   px:Math.round(innerWidth*innerHeight*curDPR*curDPR),ombre:sun.shadow.mapSize.x,aniso:ASPH_TEX?ASPH_TEX.anisotropy:null,bloom:bloomPass?(bloomPass.enabled?BLOOM_RES:0):null,crans:QL.k};};
 window.dbgDPR=function(d,sansPique){RESPIN=true;curDPR=+d;applyDPR();if(sansPique&&acesPass&&acesPass.uniforms.uSharp)acesPass.uniforms.uSharp.value=0;return {dpr:curDPR,pique:acesPass&&acesPass.uniforms.uSharp?+acesPass.uniforms.uSharp.value.toFixed(3):null};}; // (tour 2) banc : une résolution, sans rien d'autre (fige l'échelle)
@@ -15060,6 +15215,28 @@ function perfMonTick(now,rawMs){const M=PERF_MON;if(rawMs>M.pire)M.pire=rawMs;tr
     +'\nÀ-COUPS en '+Math.round((now-(M.t0||now))/1000)+' s : '+(M.n50|0)+' > 50 ms · '+(M.n100|0)+' > 100 · '+(M.n250|0)+' > 250 · pire '+Math.round(M.max|0)+' ms'+(M.L&&M.L.length?'\n'+M.L.join('\n'):'');
   if(now-(M.p0||0)>1000){M.p0=now;M.pire=0;}
   if(tx!==M.txt){M.txt=tx;M.el.textContent=tx;}}
+/* ===== LA SONDE « FLUIDE » (2026-11-06, Sacha sur son 13 Pro : « des soucis de fluidité à grande vitesse, à partir du palier 16 » ; OPTI ULTIME) =====
+   Thermique ou contenu ? EN COURSE, toutes les 4 s, si la médiane des images dépasse 22 ms ou si une image atteint 100 ms, la boîte noire note UNE ligne (genre « fluide », 40 au plus) :
+   l'instant de la session, la carte, le palier du moteur, les km/h, p50 / p90 / pire, la cadence, le cran de qualité QL, le tas JS (si le navigateur le dit). Lecture : si le p50 se dégrade avec
+   le TEMPS quel que soit le palier, c'est la chaleur (le gouverneur thermique de la branche mobile-perf du 26/10) ; s'il suit la VITESSE, c'est un coût de contenu (décor diffusé, traînées, pré-bâti).
+   `dbgFluide()` rend la liste. `?sonde=0` coupe (comme la sonde du serpent). Coût : un tableau de durées déjà connues, trié une fois toutes les 4 s. */
+const FLU={on:!/[?&]sonde=0\b/.test(location.search),a:new Float32Array(300),n:0,t0:0,R:[]};
+function sondeFluide(now,ms){
+  if(!FLU.on)return;
+  if(!started||!running||paused||gameOver||garageOn||document.hidden){FLU.n=0;FLU.t0=0;return;}
+  if(!FLU.t0)FLU.t0=now;
+  if(FLU.n<300)FLU.a[FLU.n++]=ms;
+  if(now-FLU.t0<4000)return;
+  const n=FLU.n,v=Array.prototype.slice.call(FLU.a,0,n).sort(function(x,y){return x-y;});
+  FLU.n=0;FLU.t0=now;if(n<20)return;
+  const p50=v[n>>1],p90=v[Math.min(n-1,(n*.9)|0)],mx=v[n-1];
+  if(!(p50>(CAD.on?38:22)||mx>=99))return; /* (2026-11-06, vitesse-fluide) calé sur 30, l'image dure ~33 ms : seuil à 38 pour ne noter que ce qui dépasse le 30 tenu */
+  const pm=window.performance&&performance.memory,mem=pm&&pm.usedJSHeapSize?Math.round(pm.usedJSHeapSize/1048576)+' Mo':'-';
+  const msg=(Math.round(now/100)/10)+' s · '+(LVL.cur&&LVL.cur.id||'?')+' · palier moteur '+engTier+' · '+Math.round(Math.abs(vA)*3.6*SPD)+' km/h · p50 '+p50.toFixed(1)+' p90 '+p90.toFixed(1)+' pire '+Math.round(mx)+' · cadence '+(CAD.on?30:60)+' · cran QL '+QL.k+' · tas '+mem+(function(){try{return ' · dose '+Math.round(MOB_S.D)+(mobChaud()?' chaud':' froid')+' pal='+MOB_P.t+' basc='+MOB_P.n;}catch(e9){return '';}})(); /* (2026-11-07) le palier du gouverneur et ses bascules cumulées : les gels > 1 s tombent-ils dessus ? */ /* (vitesse-fluide) la dose du gouverneur : le p50 suit-il la chaleur ? */
+  FLU.R.push(msg);if(FLU.R.length>40)FLU.R.shift();
+  try{window.__ccNote('fluide',msg);}catch(_){}
+}
+window.dbgFluide=function(){return FLU.R.slice();};
 // ============================================================================
 //  NUAGES — MESH SIMPLES (refonte 2026-07-20, décision de Sacha)
 //  Le raymarch volumétrique est SUPPRIMÉ. Pourquoi, précisément : après six rondes
@@ -16731,7 +16908,7 @@ function nuSkinMat(){
       '  gl_FragColor=vec4(col,clamp(a,0.,.85));','#include <fog_fragment>','}'].join('\n')});
   return NUSKIN.mat;}
 function nuSkinPose(k,f,sk){ // une finesse arrive : sa peau pour SON lot et les lots plus fins encore en attente
-  if(!NUSKIN.on||!COTON.root)return;const g=nuSkinGeo(sk,0),m9=nuSkinMat();COTON.skin=COTON.skin||[];
+  if(!NUSKIN.on||!COTON.root)return;const g=nuSkinGeo(sk,0),m9=nuSkinMat();if(!MEM_ANCIEN){for(const k9 in g.attributes)nuLibre(g.attributes[k9]);nuLibre(g.index);} /* (2026-11-07, Perf 3 P1) les 100 peaux gardaient leur copie JavaScript (~33 Mo MESURÉS, jamais jetée contrairement au corps du nuage) : jetée une fois au GPU, voir nuLibre · `?memoire=ancien` = gardée */COTON.skin=COTON.skin||[];
   for(let f2=f;f2<4;f2++){const j=k*4+f2;if(f2>f&&COTON.pret[j])break;const im=COTON.im[j];if(!im)continue;let S=COTON.skin[j];
     if(!S){const m=new THREE.InstancedMesh(g,m9,COTON.cap);m.instanceMatrix=im.instanceMatrix;m.instanceColor=im.instanceColor;m.frustumCulled=false;m.count=0;m.renderOrder=1;m.castShadow=m.receiveShadow=false;m.matrixAutoUpdate=false;COTON.root.add(m);COTON.skin[j]=S={m:m};}
     else S.m.geometry=g;}}
@@ -18592,6 +18769,7 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
       for(let b=0;b<lay.blocs;b++)B9.set(A.subarray((b*np+r0)*pr*sz,(b*np+r1+1)*pr*sz),b*nr*pr*sz);
       g.setAttribute(nm,new THREE.BufferAttribute(B9,sz));}
     g.setIndex(new THREE.BufferAttribute(w<li.length?li.subarray(0,w):li,1));
+    memLibere(g); /* (2026-11-07, Perf 3 P1) la tranche de route est à elle seule : sa copie JavaScript part au GPU */
     sphere9(g);if(o.marge)g.boundingSphere.radius+=o.marge; // (chasse aux gels) sphere9 = computeBoundingSphere, au flottant près
     const m=new THREE.Mesh(g,mat);if(o.nom)m.name=o.nom;if(o.ombre)m.receiveShadow=true;if(o.ordre)m.renderOrder=o.ordre;
     m.updateMatrix();m.matrixAutoUpdate=false; // sommets en coordonnées MONDE : la tranche ne bouge jamais
@@ -18599,12 +18777,12 @@ function* pisteTranches(att,lay,mat,o){ // lay : {blocs, pr (sommets par rangée
     if(o.loin===undefined)continue;
     yield;
     let lo=null;const g2=o.loin?pisteMaigre(att,c,o.loin,o.loin.pas):null;
-    if(g2){lo=new THREE.Mesh(g2,mat);if(o.nom)lo.name=o.nom+' maigre';lo.receiveShadow=m.receiveShadow;lo.renderOrder=m.renderOrder;lo.visible=false;lo.userData.maigre=true;
+    if(g2){memLibere(g2);lo=new THREE.Mesh(g2,mat);if(o.nom)lo.name=o.nom+' maigre';lo.receiveShadow=m.receiveShadow;lo.renderOrder=m.renderOrder;lo.visible=false;lo.userData.maigre=true;
       lo.updateMatrix();lo.matrixAutoUpdate=false;trackMeshes.push(lo);}
     let mo=null; // (LA TRANCHE MOYENNE, téléphone) toutes les colonnes, une rangée sur PISTE_MOY
     if(PISTE_MOY>1&&o.loin&&lay.pas===1){yield;const cols9=[];for(let j=0;j<lay.pr;j++)cols9.push(j);
       const g3=pisteMaigre(att,c,{blocs:lay.blocs,pr:lay.pr,cols:cols9,inv:lay.inv},PISTE_MOY);
-      if(g3){mo=new THREE.Mesh(g3,mat);if(o.nom)mo.name=o.nom+' moyen';mo.receiveShadow=m.receiveShadow;mo.renderOrder=m.renderOrder;mo.visible=false;mo.userData.moyenne=true;
+      if(g3){memLibere(g3);mo=new THREE.Mesh(g3,mat);if(o.nom)mo.name=o.nom+' moyen';mo.receiveShadow=m.receiveShadow;mo.renderOrder=m.renderOrder;mo.visible=false;mo.userData.moyenne=true;
         mo.updateMatrix();mo.matrixAutoUpdate=false;trackMeshes.push(mo);}}
     PISTE_LOD.push({hi:m,lo,mo,s:g.boundingSphere,loin:false,et:0});
   }
@@ -18678,6 +18856,10 @@ function prebEchange(W,entrees){ // l'état de la piste vivante ⇄ celui du tra
 }
 function prebObj(O,S){const ks=new Set(Object.keys(O).concat(Object.keys(S)));for(const k of ks){const a=k in O,b=k in S,x=O[k];if(b)O[k]=S[k];else delete O[k];if(a)S[k]=x;else delete S[k];}} // deux états d'un module ⇄ (toutes ses clés)
 function prebAvec(W,fn){prebEchange(W,true);try{return fn();}finally{prebEchange(W,true);}} // une tranche : le travail sur l'état de W, puis la piste vivante revient
+let PISTE_TRANCHE=Infinity; // (2026-11-07) ms par tranche quand le chargement bâtit la 1re piste sous le serpent (chargeTranches) ; Infinity : la route d'un trait, partout ailleurs
+function* pisteDirecteG(seed){const W=pisteTravail(null),g=pisteRoute(seed,W);let fini=false; // la même route que pisteDirecte, rendue en tranches de PISTE_TRANCHE ms : la piste vivante revient entre deux tranches (prebAvec)
+  while(!fini){prebAvec(W,function(){const t9=performance.now();do{fini=g.next().done;}while(!fini&&performance.now()-t9<PISTE_TRANCHE);});if(!fini)yield;}
+  return W;}
 function pisteDirecte(seed){const W=pisteTravail(null),g=pisteRoute(seed,W);prebAvec(W,function(){while(!g.next().done);});return W;} // la route d'un trait (tout newTrack qui n'a rien de bâti d'avance)
 function pisteInstalle(W){ // la route bâtie (d'un trait ou d'avance) devient LA route : l'ancienne sort de la scène, la neuve y entre dans l'ordre où elle a été bâtie
   sceneRetire(trackMeshes); // (chasse aux gels) d'un seul passage (voir sceneRetire)
@@ -19238,15 +19420,16 @@ function* pisteRoute(seed,W){ // (LE PRÉ-BÂTI) la route de buildTrack, en tran
   for(let sp=300+rnd()*220;sp<L-170;sp+=340+rnd()*520){rnd();rnd();} // les plots de chantier (voir plus haut) : leurs tirages restent consommés
   W.rnd=rnd;W.gen9=gen9;W.vC9=vC9;W.accC=accC;
 }
-function buildTrack(seed){
+function buildTrack(seed){const g=buildTrackG(seed);while(!g.next().done);} // (2026-11-07) d'un trait, comme avant : le même code que buildTrackG
+function* buildTrackG(seed){ // (2026-11-07, OPTI ULTIME) rend la main entre la route (par tranches : pisteDirecteG) et entre deux décors — seul le chargement sous le serpent s'en sert (PISTE_TRANCHE)
   /* (2026-10-17) LE PRÉ-BÂTI (voir PREB) : la route — génération, courbe, repères, bitume, flancs, rails, nappe, ligne, pads,
      flaques — sort du générateur `pisteRoute` : bâtie d'avance en roulant vers le portail, ou ici d'un trait (même code, mêmes tirages
      rnd, dans le même ordre). `pisteInstalle` l'échange avec l'ancienne ; le décor qui suit se bâtit ici sur la route installée. */
-  const W=prebPrend(seed)||pisteDirecte(seed);
+  const W=prebPrend(seed)||(yield* pisteDirecteG(seed));
   pisteInstalle(W);
   const rnd=W.rnd,gen9=W.gen9,vC9=W.vC9,accC=W.accC;
   // NUAGES : on roule DANS le ciel — grappes volumétriques traversables + couche lointaine diaphane
-  buildClouds(rnd);
+  buildClouds(rnd);yield;
   /* (2026-09-30, revue GAMEPLAY) les 14 NUAGES D'HORIZON (sprites roses, fog:false) sont RETIRÉS : ils restaient en VILLE (où aucun nuage
      n'a sa place), perçaient la brume de l'ORAGE (650-1850 m contre une brume à 70/660) et la moitié tombait sous l'horizon dans l'abîme
      des NUAGES. Aucun tirage `rnd` n'avait lieu après eux dans buildTrack : la piste ne bouge pas. Le ciel lointain, c'est COTON. */
@@ -19278,11 +19461,11 @@ function buildTrack(seed){
   scene.add(plight);trackMeshes.push(plight);PORTAL.lum=plight;
   if(PCUBE.on){pcubeDest();plight.intensity=1.1;} // les couleurs et la vue de la map d'en face (tirée d'avance) · une lumière un peu plus douce que l'ovule (de près, elle blanchissait le bitume)
   if(portalMesh)portailVisible(true); // le portail de la piste neuve se montre
-  buildVoxCity(seed,accC); // LA VILLE SOUS LES NUAGES : le fond de scène, en briques (no-op au parc)
-  try{buildJade(seed);}catch(e){window.__jadeErr=e;console.warn('Jade',e);} // (2026-10-09) LES PICS DE JADE : les piliers, les pins, la brume, la Porte et le Pont du ciel (no-op ailleurs) // (2026-09-28) PARIS LA NUIT : les toits et la Dame de fer (no-op hors Paris)
+  yield;buildVoxCity(seed,accC); // LA VILLE SOUS LES NUAGES : le fond de scène, en briques (no-op au parc)
+  yield;try{buildJade(seed);}catch(e){window.__jadeErr=e;console.warn('Jade',e);} // (2026-10-09) LES PICS DE JADE : les piliers, les pins, la brume, la Porte et le Pont du ciel (no-op ailleurs) // (2026-09-28) PARIS LA NUIT : les toits et la Dame de fer (no-op hors Paris)
   try{if(!prebDecor(W,'foret'))buildForet(seed);}catch(e){window.__foretErr=e;console.warn('Forêt',e);} // (2026-10-14) LA FORÊT NOIRE : la vallée, les arbres, les géants du slalom, l'arche, les rochers du loup (no-op ailleurs)
-  try{buildCanyon(seed);}catch(e){window.__cyErr=e;console.warn('Canyon',e);} // (2026-10-14) LE CANYON DES GÉANTS : le relief, la rivière, l'ombre de l'heure (no-op ailleurs)
-  try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);try{window.__ccNote('panne','dunes · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
+  yield;try{buildCanyon(seed);}catch(e){window.__cyErr=e;console.warn('Canyon',e);} // (2026-10-14) LE CANYON DES GÉANTS : le relief, la rivière, l'ombre de l'heure (no-op ailleurs)
+  yield;try{buildDunes(seed,W.dunes);}catch(e){window.__dnErr=e;console.warn('Dunes',e);try{window.__ccNote('panne','dunes · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES DUNES D'OR : le sable, l'oasis, l'ombre de l'heure, les décors (no-op ailleurs)
   try{if(!prebDecor(W,'grotte'))buildGrotte(seed);}catch(e){window.__grotteErr=e;console.warn('Grotte',e);try{window.__ccNote('panne','grotte · '+(e&&e.message||e));}catch(_){}} // (2026-10-18) LES PROFONDEURS : la grotte en blocs, ses décors, ses lumières (no-op ailleurs)
   try{if(!prebDecor(W,'banquise'))buildBanq(seed);}catch(e){window.__banqErr=e;console.warn('Banquise',e);} // (2026-10-14) LA BANQUISE : la neige sous la route, les lacs gelés, les pics de glace, les stalactites (no-op ailleurs)
   try{orbiteBuild(seed);}catch(e){window.__orbErr=e;} // (vague 3) L'ORBITE : les Starlink et les débris autour de la piste (no-op hors orbite)
@@ -35839,7 +36022,7 @@ function trxCoeur(type,k,dt){const T=TRX,C=T.C,t0=performance.now();T.t+=dt;
   const on=k>.05,debut=on&&T.kp<=.05;if(debut){T.wl0.copy(C.WL);T.wr0.copy(C.WR);T.dist=0;}T.kp=k;
   if(!C.pv&&TRX_HIST[type])trxHist(on?k:0);
   T.L[0].n=T.L[1].n=0;tcRaz();
-  const E=TRX_EMET[type];if(E&&dt>0)E(T,C,k,dt,on,debut);
+  const E=TRX_EMET[type];if(E&&dt>0)E(T,C,k,(C.pv||type==='glouton')?dt:dt*densVit(vKmh()),on,debut); /* (2026-11-07, P2 · levier e) l'émission à demi-densité au-delà de 200 km/h (téléphone récent ; voir densVit) — pas à l'aperçu du garage, ni pour GLOUTON dont dt règle des minuteries */
   const np=trxParts(dt);let nb=0;for(const b of T.bolts)if(b.on)nb++;
   { /* (2026-10-16, TRAÎNÉES) LA SALLE BLANCHE : la lumière additive s'y effaçait (matrice, filés, foudre, néon) — le maillage qui brille
        passe en ENCRE (mélange 0, 1 − src ; couleur = la teinte pure × l'intensité) : sur le blanc on lit la couleur de la traînée */
@@ -36716,7 +36899,7 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
   {let T9=null;try{T9=nfeuPalTrainee();}catch(e9){}N.pal=T9?(bleu?T9.b:inf?T9.v:T9.pal):bleu?NFEU_P10.b:inf?NFEU_P10.v:NFEU_P10.f;} /* (2026-10-15 soir) le feu à la couleur de la traînée achetée */
   N.dp=np?camera.position.distanceTo(N.pw[0]):4;N.kd=Math.pow(Math.min(3.2,Math.max(1,N.dp/3.8)),.75); // la caméra RECULE (en vol : ~21 m) : le feu grossit, sinon il n'est plus que trois points
   N.vs*=1+.45*(N.kd-1);
-  if(N.k>.02&&np){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1);
+  if(N.k>.02&&np){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1)*(mobhChaud()?MOBH_R.feu:1);
     for(let i=0;i<np;i++){
       N.ou[i]+=-N.ou[i]*dt/.25+.7*Math.sqrt(dt)*flmGauss(); // le souffle de ce pot : jamais périodique
       if(N.cp[i]>0)N.cp[i]-=dt;else if(Math.random()<dt*.9)N.cp[i]=.1+.12*Math.random(); // un COUP de feu, au hasard (~1 par seconde)
@@ -36728,7 +36911,7 @@ function nfeuPas(dt,on,bleu,inf,speedKmh,F,mot){ // F : le moteur simulé (FLM) 
   /* (2026-10-15, Léo : « fais vraiment juste comme le NITRO, mais vraiment en minuscule ») LA FLAMME DU MOTEUR : le même feu de pixels, en
      minuscule (NFEU_MINI) — son débit suit les BOUFFÉES du moteur simulé (FLM : la cadence, la charge, la houle, le rupteur en vol, le pied
      levé qui l'éteint), et chaque POP (passage de rapport, pied levé, pose) lâche une petite boule de feu. */
-  if(mot&&np&&F&&N.k<.5){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1),vol9=mode==='fall',crk9=(ENG_SND[Math.max(0,Math.min(ENG_SND.length-1,engTier|0))]||ENG_SND[0]).crk||0; // crk9 : le crépitement du moteur (la table du SON, lue seulement)
+  if(mot&&np&&F&&N.k<.5){const q=(QUAL_LOW?.6:1)*(REDUCED_MOTION?.5:1)*(mobhChaud()?MOBH_R.feu:1),vol9=mode==='fall',crk9=(ENG_SND[Math.max(0,Math.min(ENG_SND.length-1,engTier|0))]||ENG_SND[0]).crk||0; // crk9 : le crépitement du moteur (la table du SON, lue seulement)
     for(let i=0;i<np;i++){const p=F.P[i];
       N.ou[i]+=-N.ou[i]*dt/.25+.7*Math.sqrt(dt)*flmGauss();N.tg[i]+=dt*(2.2+2.5*N.ou[i]); // ses langues tournent comme celles du nitro
       if(p.pop>N.lp[i]+.25){const n9=Math.round((5+9*p.pop)*q);for(let k=0;k<n9;k++)nfeuNait(i,1.2,true,false,true);for(let k=0,ne=2+((Math.random()*4)|0);k<ne;k++)nfeuEtincelle(i,.42);} // un POP : une petite boule de feu, et ses étincelles qui CRÉPITENT
@@ -50300,7 +50483,31 @@ if(!CHARGEMENT.on)CHARGEMENT.fini=true;
 function chargeEtape(nom,fn){ if(CHARGEMENT.fini){fn();return;} CHARGEMENT.E.push([nom,fn]); }
 function chargementPas(){ const e=CHARGEMENT.E.shift();if(!e){CHARGEMENT.fini=true;return;}
   const t9=performance.now();try{e[1]();}catch(x){console.warn('chargement · '+e[0],x);try{window.__ccNote('panne','chargement '+e[0]+' · '+(x&&x.message||x),x&&x.stack&&String(x.stack).split('\n')[1]);}catch(_){}}
-  CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
+  CHARGEMENT.ms.push([e[0],Math.round(performance.now()-t9)]);try{if(window.__ccSondeTache)window.__ccSondeTache(e[0],t9,performance.now()-t9);}catch(_){} /* (2026-11-06) la SONDE du serpent (debut-corps.html) apprend quelle étape recouvre un trou */if(!CHARGEMENT.E.length)CHARGEMENT.fini=true; }
+/* (2026-11-07, OPTI ULTIME) UNE ÉTAPE EN TRANCHES : `mk` rend un générateur (newTrackG) ; sur téléphone, chaque image du chargement en mène `ms` millisecondes (PISTE_TRANCHE : la route rend la main entre deux tranches)
+   puis rend l'image — la boule du film d'intro, la seule chose qui bouge sous le serpent, ne voit plus un bloc de 650 ms. Même code, mêmes tirages, même ordre qu'un trait. Ordinateur, `?chargement=0`, `?tranches=0` : d'un trait. */
+function chargeTranches(nom,mk,ms){
+  chargeEtape(nom,function(){
+    const g=mk();
+    if(CHARGEMENT.fini||!CHARGEMENT.on||!(ALLEGE||TEL_NATIF)||/[?&]tranches=0\b/.test(location.search)){while(!g.next().done);return;}
+    const suite=function(){let r;PISTE_TRANCHE=ms;try{const t0=performance.now();do{r=g.next();}while(!r.done&&performance.now()-t0<ms);}finally{PISTE_TRANCHE=Infinity;}
+      if(!r.done)CHARGEMENT.E.unshift([nom,suite]);};
+    suite();
+  });
+}
+/* (2026-11-07, OPTI ULTIME : « 10 envois de textures (texImage2D) dans une même image ») LES TEXTURES DU MENU MONTENT UNE À UNE : sous le serpent, une par pas de tranche (chargeTranches), au lieu de toutes d'un coup
+   au 1er dessin (la chauffe, la 1re image). Seulement celles des objets VISIBLES de la scène (la chauffe, elle, montrera aussi le caché : rien de plus au GPU que ce qu'elle monterait) ; une texture dont l'image
+   n'est pas prête (ni image chargée, ni canevas, ni octets) est laissée au 1er dessin. `?textures=0` = avant. */
+function* chargeTexturesG(){
+  if(/[?&]textures=0\b/.test(location.search))return;
+  const vus=new Set(),L=[];
+  const prete=function(t){const im=t&&t.image;return !!im&&!t.isCubeTexture&&!t.isDepthTexture&&!t.isVideoTexture&&!t.isCompressedTexture&&im.complete!==false&&!!(im.data||im.nodeName||(typeof ImageBitmap!=='undefined'&&im instanceof ImageBitmap)||(typeof OffscreenCanvas!=='undefined'&&im instanceof OffscreenCanvas));};
+  const ajoute=function(t){if(t&&t.isTexture&&!vus.has(t)){vus.add(t);if(prete(t))L.push(t);}};
+  scene.traverseVisible(function(o){const m9=o.material;if(!m9)return;for(const m of (Array.isArray(m9)?m9:[m9])){for(const k in m){const v=m[k];if(v&&v.isTexture)ajoute(v);}
+    if(m.uniforms)for(const k in m.uniforms){const u=m.uniforms[k];if(u&&u.value&&u.value.isTexture)ajoute(u.value);}}});
+  yield;
+  for(const t of L){try{renderer.initTexture(t);}catch(e){}yield;}
+}
 function chargementTout(){ while(!CHARGEMENT.fini)chargementPas(); }
 function chargementTick(now){ if(CHARGEMENT.fini)return false;
   if(!CHARGEMENT.t0)CHARGEMENT.t0=now;if(now-CHARGEMENT.t0>15000){chargementTout();return false;}
@@ -50373,6 +50580,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
     chauffeRendu(L9);for(const m of L9)scene.remove(m);},
+  function(){premiereFois(0);},function(){premiereFois(1);},function(){premiereFois(2);},function(){premiereFois(3);},function(){premiereFois(4);},function(){premiereFois(5);},function(){premiereFois(6);}, /* (2026-11-07, passe perf 3, P6) LES NAISSANCES DE COURSE dessinées une fois : billets et panneaux du cratère (instanciés à ZÉRO instance, donc jamais dessinés avant la 1re mort), pigeon (compilé seulement) — voir gameplay/premiere-fois.js */
   function(){jadeChauffeProgs(0);},function(){jadeChauffeProgs(1);},function(){jadeChauffeProgs(2);},function(){jadeChauffeProgs(3);}, // (2026-10-14, passe perf mobile) LE SOLEIL DE JADE : ses 17 programmes compilés au menu, ~4 par étape (jadeChauffeProgs) — plus rien ne naît au portail vers le jade ni au REJOUER tiré sur lui
   function(){engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
     renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}]; // …et son halo et son tampon montent au GPU dès le menu
@@ -50419,6 +50627,7 @@ function chauffeApres(k){
    joue hors de la ville (accueil), à l'atelier, à l'étal, dôme caché, et avec `?ciel=plein` (pour comparer sur le téléphone).
    Zéro compilation en course : les cinq programmes sont compilés ET dessinés une fois au chargement (`cielChauffe`, cibles 8×8 au
    format des vraies — la puce d'Apple fabrique son état de pipeline au premier dessin). Bancs : `dbgCiel2()`. */
+PAL.B.imgCielImg=[2,1,2]; /* (2026-11-07, passe perf 3, P2 · levier d) téléphone récent : la passe lisse du ciel une image sur DEUX (comme le palier 0 depuis C4) ; `?img=max` / `?imgsans=d` = chaque image */
 PAL.B.cielImg=[2,1,1]; /* (2026-11-05, C4) voir cielDeuxTemps : la passe lisse une image sur N (ancien 2, moyen 1, récent 1) */
 const CIEL2={on:!/[?&]ciel=plein/.test(location.search),rt:null,sc:new THREE.Scene(),me:null,v:new THREE.Vector2(),mode:'',n:0};
 CIEL2.sc.autoUpdate=false; // la matrice du maillage est recopiée de celle du dôme (déjà à jour) : rien à recalculer
@@ -50447,7 +50656,7 @@ function cielDeuxTemps(r9,cam){
   if(cible)U.uBasInv.value.set(1/cible.width,1/cible.height);else U.uBasInv.value.set(1/CIEL2.v.x,1/CIEL2.v.y); // le pixel de l'écran → la cible lisse
   CIEL2.me.material=md==='N'?C.basN:C.basV;CIEL2.me.matrixWorld.copy(skyDome.matrixWorld);
   /* (2026-11-05, passe perf mobile 2, C4) LA PASSE LISSE UNE IMAGE SUR N AU PALIER 0. Mesuré (banc-perf/passes.py, p0, nuages/ville/forêt) : 4 framebuffers par image dessinée (scène, ombre, CETTE passe, écran) ; la puce à tuiles de l'iPhone 7 paie chaque changement de cible. La base lisse est un fond à basses fréquences lu à la position de l'écran : la recopier une image sur deux (ancien) ne se voit pas, le détail (netN/netV) est redessiné à chaque image. Redessinée tout de suite si le mode, la taille ou la cible changent. PAL.B.cielImg=[2,1,1] (ancien, moyen, récent) ; `?cielimg=0` = avant. */
-  const nI=/[?&]cielimg=0/.test(location.search)?1:(PAL.b('cielImg',1)|0),K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
+  const nI=/[?&]cielimg=0/.test(location.search)?1:(Math.max(PAL.b('cielImg',1),PAL.bT('imgCielImg',1,'d'),IMG_DYN.ciel)|0) /* (P2) plancher du levier d ; le gouverneur thermique (cielImg plus haut) garde la main */,K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
   if(nI>1&&K.m===md&&K.w===w&&K.h===h&&(K.i=(K.i+1)%nI)!==0){CIEL2.sautes=(CIEL2.sautes|0)+1;}
   else{K.m=md;K.w=w;K.h=h;K.i=0;r9.setRenderTarget(CIEL2.rt);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);}
   skyDome.material=md==='N'?C.netN:C.netV;CIEL2.n++;
@@ -50636,9 +50845,9 @@ function engVigRender(dt){
   }
   // (vague 2, H6) LA CARTE DE COURSE : le moteur est rendu à 30 i/s dans son petit tampon, et recollé À CHAQUE IMAGE (le framebuffer
   // principal est repeint à chaque image : un quad sauté = un moteur qui clignote)
-  if(carte9){if(performance.now()-engEndT>PAL.b('engVigMs',33)){engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;} // (2026-10-24, passe perf) la carte de COURSE aussi à la cadence du palier (engVigMs : 10 / 15 / 30 rendus par seconde) — le quad recolle l'image d'avant entre deux
+  if(carte9){if(performance.now()-engEndT>Math.max(PAL.b('engVigMs',33),mobhChaud()?MOBH_R.engMs:0)){engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;} // (2026-10-24, passe perf) la carte de COURSE aussi à la cadence du palier (engVigMs : 10 / 15 / 30 rendus par seconde) — le quad recolle l'image d'avant entre deux
   // (perf) téléphone et écran de fin : l'image n'est RECOPIÉE qu'à 30 (20) i/s — la rendre entre deux recopies ne servait à rien
-  if((fin||tel)&&performance.now()-engEndT<=(tel?PAL.b('engVigMs',33):50))return;
+  if((fin||tel)&&performance.now()-engEndT<=(tel?Math.max(PAL.b('engVigMs',33),mobhChaud()?MOBH_R.engMs:0):50))return;
   if(tel&&ENG_MORT.cv&&ENG_MORT.cv.offsetParent===null){engEndT=performance.now();return;} // (2026-10-14, passe perf mobile) carte cachée (accueil ou atelier ouverts par-dessus la mort) : ni rendu ni relecture — et la question n'est reposée qu'à la cadence de la recopie
   // (1) le moteur dans SON framebuffer — fond transparent pour que le cadre CSS reste visible dessous
   engVigRendRT(engRT);
@@ -50651,7 +50860,7 @@ function engVigRender(dt){
      arrivent de bas en haut, d'où le retournement. */
   if(fin||tel){ // (tel : la carte du téléphone, même recopie — 30 images/s, le temps de la carte seulement)
     const now9=performance.now(),ctx9=tel?ENG_MORT.ctx:engEndCtx; // (vague 2) la carte de course n'a plus de <canvas> : seul l'écran de mort relit
-    if(now9-engEndT>(tel?PAL.b('engVigMs',33):50)&&ctx9){
+    if(now9-engEndT>(tel?Math.max(PAL.b('engVigMs',33),mobhChaud()?MOBH_R.engMs:0):50)&&ctx9){
       engEndT=now9;
       const w=engRT.width,h=engRT.height;
       if(!engEndBuf){engEndBuf=new Uint8Array(w*h*4);engEndImg=ctx9.createImageData(w,h);}
@@ -51243,7 +51452,7 @@ const FRUIT_DEFS=[
 // UNE GÉOMÉTRIE PAR FRUIT, coulée à la première demande et partagée par tous ses exemplaires (jamais libérée)
 const FRUIT_GEO=[];let FRUIT_MAT=null;
 function fruitGeo(i){
-  if(!FRUIT_GEO[i]){const K=lpKit(FRUIT_PAL);FRUIT_DEFS[i].lp(K);FRUIT_GEO[i]=K.done().f;}
+  if(!FRUIT_GEO[i]){const K=lpKit(FRUIT_PAL);FRUIT_DEFS[i].lp(K);FRUIT_GEO[i]=memLibere(K.done().f);} /* (2026-11-07, Perf 3 P1) cache de session, jamais libéré ni recopié : la copie JavaScript part au GPU */
   if(!FRUIT_MAT){FRUIT_MAT=lpMat('f');FRUIT_MAT.userData.lp=0;} // ⚠ lp=0 : `buildCar` libère les matières marquées lp — pas celle-ci
   return FRUIT_GEO[i];
 }
@@ -53900,6 +54109,9 @@ function shopPhotoVeut(i){if(SHQ.q.indexOf(i)<0)SHQ.q.push(i);if(!SHQ.on){SHQ.on
 function shopPhotoTour(){
   const sc=document.getElementById('mShop');
   if(!SHQ.q.length||!sc||!sc.classList.contains('on')||(started&&!gameOver)){SHQ.on=false;return;} /* hors de la page (ou en course) : la file attend la prochaine ouverture */
+  if(!MENU_MAX){const t9=performance.now(); /* (2026-11-07, Perf 3 — P5) une photo par 150 ms au moins, une par image (rAF), jamais pendant un défilement, un geste ou le voile : la boutique ne gèle plus à l'ouverture */
+    if(document.hidden||t9-PHQ.defile<260||t9<(SHQ.pret||0)||ecranWipe._on||GFIG.D>0&&t9-GFIG.vu<700){setTimeout(shopPhotoTour,100);return;}
+    SHQ.pret=t9+150;}
   const e=SHQ.q.shift(),t=typeof e==='string'?e[0]:'',i=t?+e.slice(1):e;
   if(t==='p'){if(!PHOTO.cache[i])try{carPhoto(i,function(){});}catch(_){}setTimeout(shopPhotoTour,40);return;}
   const big=t==='u',vt=shBoiteVt(),k=shBoiteCle(i,big);
@@ -53909,7 +54121,7 @@ function shopPhotoTour(){
       im.onload=function(){b.classList.add('vt');};im.src=u;if(im.complete&&im.naturalWidth)b.classList.add('vt');}); /* la boîte n'apparaît qu'une fois l'image décodée (fondu, voir achat-boites.css) */
     if(vt&&!PHOTO.cache[i])shopPhotoVeut('p'+i);};
   if(PHOTO.cache[k])pose(PHOTO.cache[k]);else try{if(vt)vitrinePhoto({i:i,own:carOwned(i),w:big?SHB_GRAND:0},pose);else carPhoto(i,pose);}catch(_){} /* (OPTIMISATION) l'image s'encode hors du fil (toBlob) : elle se pose à son arrivée */
-  setTimeout(shopPhotoTour,40); /* une image, puis on rend la main : l'écran respire entre deux */
+  if(MENU_MAX)setTimeout(shopPhotoTour,40);else requestAnimationFrame(function(){setTimeout(shopPhotoTour,0);}); // une photo, puis on rend la main : l'écran respire entre deux — (2026-11-07, P5) l'espacement de 150 ms est tenu plus haut (SHQ.pret)
 }
 function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if(d.p&&!shopOwned(cat,d.id)&&d.p<=bank())n++;return n;}
 /* ---------------- LA BOUTIQUE ---------------- */
@@ -65862,6 +66074,8 @@ window.dbgFigDir=function(x,y){FDIR.force=[+x||0,+y||0];try{const s=figDirSlot()
 function figImpulsion(){const f=window.FIG&&FIG.par.tonneau;if(!f)return null;return figLance(-1,{f:f,double:true,empile:true});}
 window.dbgSautFig=function(x,y){if(x==='cause')return {cause:mortCause,mode:mode,go:gameOver};FDIR.force=[+x||0,+y||0];let r;try{r=veqDouble();}finally{setTimeout(function(){FDIR.force=null;},250);} /* (banc, 2026-10-15 soir) un double-tap NITRO, le joystick en (x : le côté, y : l'avant) — au sol : le SAUT NITRO et la figure de cette direction */
   return {ok:!!r,mode:mode,hopY:+hopY.toFixed(2),hopV:+hopV.toFixed(2),pose:!!POSE_F,cd:Math.round(performance.now()-VEQ.sautT),nit:+(nitroR+nitroX).toFixed(2),slot:figDirSlot(),allonge:VEQ.allonge|0,dv:VEQ.dvDer||0,tPred:VEQ.tPred||0};};
+/* (2026-11-07, passe perf 3, P6 : les gels en course à la première fois) banc : `dbgFigure()` liste les figures · `dbgFigure('salto')` lance cette figure TOUT DE SUITE (en l'air seulement, hors emplacements) · `dbgFigure(id,sens)` la version orientée */
+window.dbgFigure=function(id,sens){const F=window.FIG&&FIG.par;if(!F)return 'pas de FIG';if(!id)return Object.keys(F);let f=F[id];if(!f)return 'inconnue';if(sens&&FIG.oriente)f=FIG.oriente(f,sens);const r=figLance(-1,{f:f,double:true,empile:true});return r?'ok '+f.id:'refus (mode '+mode+')';};
 /* ===== LA FIGURE AU GLISSÉ (2026-10-15, Léo : « une nouvelle manière de faire les tricks, changeable dans les réglages, là où ça devrait
    être : la figure se fait par une GLISSE vers un sens puis LÂCHÉE, depuis le bouton NITRO — la nitro toujours présente »). Le réglage :
    RÉGLAGES › JEU › FIGURES (et la PAUSE) — 2 TAPS (le double-tap, d'origine) · GLISSER (`SAVE.d.figG`, écrit par `figGBascule` seul).
@@ -67559,6 +67773,12 @@ const EMI={};
 PAL.B.emiK=[.6,.8,1];
 function emiN(k,dt){const K=PAL.b('emiK',1);if(K>=1){const a=(EMI[k]||0)+Math.min(dt,.067)*60,n=Math.max(1,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;}
   const a=(EMI[k]||0)+Math.min(dt,.067)*60*K,n=Math.max(0,Math.round(a));EMI[k]=Math.max(-.5,a-n);return n;} // le reste reporté (−0,5 au plus) : 60 par seconde pile à 30, 40 ou 50 i/s ; au-dessus de 60, une émission par image comme avant
+/* (2026-11-07, passe perf 3, P2 · levier e) DEMI-DENSITÉ À GRANDE VITESSE sur téléphone récent : au-delà de 200 km/h les traits d'air (`emiVit`) et l'émission des traînées (`densVit`)
+   naissent deux fois moins (report fractionnaire : la moyenne tient) — à cette vitesse tout file, l'œil ne compte plus les traits et le remplissage additif est ce que la puce paie le plus cher ;
+   `PAL.B.imgDensVit=[1,1,.5]` (colonnes ancien/moyen non lues) ; `?img=max` / `?imgsans=e` = comme avant ; l'ordinateur ne change pas. */
+PAL.B.imgDensVit=[1,1,.5];
+function densVit(kmh){if(IMG_DYN.dens!=null)return kmh>IMG_DYN.vmin?IMG_DYN.dens:1; /* `imgRegle({stries:f})` : imposé à chaud */return kmh>200?PAL.bT('imgDensVit',1,'e'):1;}
+function emiVit(k,n,kmh){const f=densVit(kmh);if(f>=1)return n;const a=(EMI[k+'v']||0)+n*f,m=Math.round(a);EMI[k+'v']=a-m;return m;}
 /* (2026-10-28, Léo : « il y a toujours quelques traits moins droits et exacts que ceux autour, trouve-les ») LES ANCIENS TRAITS D'AIR s'effacent : ces points posés dans le monde
    filent en perspective vers un point de fuite un peu différent de celui des filets de l'écran (shader final) — d'où les quelques traits de travers parmi les droits. Les filets les remplacent ; `?traits=0` rend les deux. */
 const TRAITS_NEUFS=!/[?&]traits=0\b/.test(location.search);
@@ -68191,7 +68411,7 @@ function ventPose(i,loin){ // (re)nait un trait : un point de l'écran (loin du 
    effacée à chaque image (mesuré : 3,3 % du processeur de la boucle au banc ×4, à grande vitesse nitro tenue). [ANCIEN, MOYEN, RÉCENT] : la moitié, 70 %, tous. */
 PAL.B.ventK=[.5,.7,1];
 function ventDessine(kmh,nitro,dt){
-  const W=slCv.width,H=slCv.height;dt=Math.min(dt||.016,.05);
+  const W=slCv.width,H=slCv.height;dt=Math.min(dt||.016,mobhChaud()?MOBH_R.ventCap:.05); /* (2026-10-25, A6) régime chaud : le dt cumulé de deux images ne doit pas être rogné à 50 ms */
   const vcL=vCroisiere();
   let k=Math.max(0,(kmh-vcL*.6)/vcL)+(nitro?.6:0);if(mode==='boom'||gameOver)k=0;
   VENT.pic=Math.max(0,VENT.pic-dt*2.6);
@@ -68202,7 +68422,7 @@ function ventDessine(kmh,nitro,dt){
   if(!VENT.init||jump>160){VENT.init=true;for(let i=0;i<VENT_N;i++){ventPose(i,false);VENT.pal[i]=0;}VENT.vx=VENT.vy=VENT.vz=0;}
   else if(dt>0){const g=1-Math.exp(-dt*10);VENT.vx+=((P.x-VENT.pxP)/dt-VENT.vx)*g;VENT.vy+=((P.y-VENT.pyP)/dt-VENT.vy)*g;VENT.vz+=((P.z-VENT.pzP)/dt-VENT.vz)*g;}
   VENT.pxP=P.x;VENT.pyP=P.y;VENT.pzP=P.z;
-  k=Math.min(1.35,k);const cible=Math.min(VENT_N,(k*46+(VENT.pic>0?VENT.pic*18:0))*PAL.b('ventK',1)); // (2026-10-24, passe perf) ventK : moins de traits sur les vieux téléphones
+  k=Math.min(1.35,k);const cible=Math.min(VENT_N,(k*46+(VENT.pic>0?VENT.pic*18:0))*PAL.b('ventK',1)*(mobhChaud()?MOBH_R.vent:1)); // (2026-10-24, passe perf) ventK : moins de traits sur les vieux téléphones — (2026-10-25, A6) régime chaud : ×0,7 de plus
   if(cible<=.05&&!VENT.vivants){if(drawSpeedLines._had){slCtx.clearRect(0,0,W,H);drawSpeedLines._had=false;slCv.style.visibility='hidden';}return;}
   slCtx.clearRect(0,0,W,H);if(!drawSpeedLines._had){drawSpeedLines._had=true;slCv.style.visibility='visible';}
   const spr=VENT.sp||(VENT.sp=ventSprites());
@@ -68238,7 +68458,7 @@ function ventDessine(kmh,nitro,dt){
   VENT.vivants=viv;slCtx.setTransform(1,0,0,1,0,0);slCtx.globalAlpha=1;slCtx.globalCompositeOperation='source-over';
 }
 function drawSpeedLines(kmh,nitro,dt){ // speed lines façon anime : traits radiaux fuyant le centre — (2026-10-21) remplacées par LE VENT ci-dessus, sauf ?vent=ancien
-  if(!VENT.ancien){ventDessine(kmh,nitro,dt);return;}
+  if(!VENT.ancien){if(mobhVentSaute(dt))return;ventDessine(kmh,nitro,mobhChaud()?(mobhVentDt()||dt):dt);return;} /* (2026-10-25, A6) régime chaud : une image sur deux, le calque garde l'image d'avant (rien n'est effacé), le dt s'accumule */
   const W=slCv.width,H=slCv.height;dt=dt||.016;
   const vcL=vCroisiere();
   let k=Math.max(0,(kmh-vcL*.6)/vcL)+(nitro?.6:0); // (2026-09-25) « un peu » en croisière, beaucoup plus au momentum, au boost, en nitro
@@ -70350,9 +70570,13 @@ function traceTick(actif){
                          puis 'chauffe' (chauffeRendu de la piste neuve, ~120 ms après 'fin' : la dernière image lourde du changement de niveau).
    Un voile qui couvre de `cc:portail` (ou du geste JOUER) jusqu'à 'chauffe' cache TOUT le gel du changement de niveau, à tous les portails. */
 function ccConstr(etape,ms){try{document.dispatchEvent(new CustomEvent('cc:construction',{detail:{etape:etape,ms:ms||0}}));}catch(e){}}
-function newTrack(){
-  const t0NT=performance.now();ccConstr('debut');try{newTrack0();}finally{ccConstr('fin',Math.round(performance.now()-t0NT));}}
-function newTrack0(){
+/* (2026-11-07, OPTI ULTIME, build 6 sur iPhone 13 Pro : la piste du chargement = 650 ms d'un bloc) newTrack est un GÉNÉRATEUR (`newTrackG`) : le même code, qui peut rendre la main entre deux tranches
+   de la route et entre deux décors (voir `pisteDirecteG`, `buildTrackG`). Partout ailleurs `newTrack()` le mène d'un trait, comme avant ; seul le chargement sous le serpent le mène par tranches
+   de PISTE_TRANCHE ms (`chargeTranches`, vignette-moteur.js). */
+function* newTrackG(){
+  const t0NT=performance.now();ccConstr('debut');try{yield* newTrack0G();}finally{ccConstr('fin',Math.round(performance.now()-t0NT));}}
+function newTrack(){const g=newTrackG();while(!g.next().done);}
+function* newTrack0G(){
   PORTV.paye=0; // (audit p8) une piste neuve est bâtie : son portail paiera de nouveau
   const leger9=PREB.ntLeger;PREB.ntLeger=false; // (LE DÉPART D'AVANCE) la piste que resetGame rebâtit dans la même image : jamais dessinée, seul son ciel compte (voir sous9)
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) portail / nouvelle piste : la tension du vol repart de zéro
@@ -70368,7 +70592,7 @@ function newTrack0(){
    if(started&&!gameOver&&runStats.zones>0&&!PARK.on&&av9&&id9&&av9!==id9){if(id9==='espace')orbWarp();else if(av9==='espace')orbFeu();}}
   if(!leger9){const s9=prebGraine(niv);if(s9!=null)sd=s9;} // (2026-10-17) LE PRÉ-BÂTI : au passage du portail, la piste d'en face bâtie d'avance garde SA graine (voir PREB)
   if(niv&&niv.graine)sd=niv.graine; // (2026-09-27) CAMPAGNE : la même piste, les mêmes pièces, les mêmes nuages à chaque essai
-  if(!leger9){const e9=prebPalier();try{buildTrack(sd);}finally{if(e9!=null)engTier=e9;} // (LE PRÉ-BÂTI) le décor d'une piste bâtie d'avance se bâtit à son palier (prebPalier)
+  if(!leger9){const e9=prebPalier();try{yield* buildTrackG(sd);}finally{if(e9!=null)engTier=e9;} // (LE PRÉ-BÂTI) le décor d'une piste bâtie d'avance se bâtit à son palier (prebPalier)
   padsInstancier();} // (2026-09-27, passe perf iPhone) …et les plaques turbo : 82 appels de dessin → 1
   // LE CIEL : chaque NIVEAU tire le sien dans sa propre liste (voir NIVEAUX). Hors niveaux (parc
   // freestyle), l'ancien CYCLE DU CIEL : une heure du jour au hasard, jamais deux fois la même de
@@ -70903,6 +71127,7 @@ function finSonsCoupe(){
   try{window.CCSON.annuleFutur(0);for(let i9=0;i9<FIN_SONS.length;i9++)window.CCSON.stop(FIN_SONS[i9]);}catch(e){}
 }
 function resetGame(){
+  try{if(window.CCSON)window.CCSON.debutCourse();}catch(e){} /* (2026-11-07, Perf 3 P1) les sons de la course d'avant sont redemandés d'avance, sous le volet */
   try{clearTimeout(M2REV.t);if(M2REV.on){M2REV.on=false;M2REV.id=null;const e9=document.getElementById('m2Rev');if(e9){e9.className='';e9.innerHTML='';}}}catch(e){} // (audit p7) REJOUER tapé tôt : `rejoueAttend` garde `started&&gameOver` jusqu'à 12 s, le délai de 1,4 s ouvrait la révélation d'une secrète (z-index 95) PAR-DESSUS la course qui part dessous — elle se ferme (ou ne s'ouvre pas) ici ; la secrète reste dans la file (m2RevFile) pour la prochaine mort
   dmtCoupe(); // (LE DEMI-TOUR) une nouvelle partie repart droite
   try{PREB.echecs=0;}catch(e){}
@@ -71041,6 +71266,7 @@ function endGame(){
   try{busPlein();}catch(e){} // (2026-09-28) même filet : QUITTER depuis la pause (sortie en fondu) ne doit pas rendre le menu muet
   if(SANDBOX&&started&&!gameOver){ sandRevive(); return; } // ENTRAÎNEMENT : la mort n'est qu'un replacement — aucun score n'est enregistré
   if(TUTO.on&&started&&!gameOver){ sandRevive(); if(TUTO.i>=TUTO_ETAPES.length)return; if(TUTO.i>=3&&TUTO.i<5){TUTO.i=2;TUTO.air=0;} tutoAffiche('RATÉ ! ON RECOMMENCE'); return; } /* (2026-10-14) à l'étape FIGURE on reste à la FIGURE */ // AUTO-ÉCOLE : on ne meurt pas en apprenant
+  try{if(window.CCSON)window.CCSON.finCourse();}catch(e){} /* (2026-11-07, Perf 3 P1) la course est un paquet de sons : rendus 4 s après la mort (voir sfx.js, LA COURSE EST UN PAQUET) */
   try{mortsVerse();}catch(e){} // (2026-09-30) le temps du dernier niveau rejoint la sauvegarde (flush plus bas)
   if(FLOW.lv===4)frenFin(true); // (v3) une frénésie encore en cours (QUITTER, fin de campagne) compte pour l'écran de fin et le record
   if(mode!=='boom')mortCause=''; // (2026-09-26) QUITTER n'est pas une mort : pas la cause de la partie d'avant
@@ -71049,6 +71275,7 @@ function endGame(){
   try{if(CHA.n&&mode==='drive')chaineEncaisse();}catch(e){} // (2026-09-26) la chaîne d'aura ouverte est encaissée, pas oubliée
   try{wakeLache();}catch(e){} /* (2026-11-07) la course est finie : l'écran peut se rendormir */
   gameOver=true;airPie.style.display='none';chainHud.style.opacity=0;caseHud.style.opacity=0;
+  try{sessionStorage.ccParties=(+sessionStorage.ccParties||0)+1;}catch(e){}try{ccMemNote('memoire','fin ');}catch(e){} // (2026-11-06, OPTI ULTIME) la mémoire à chaque fin de partie : la pente d'une partie à l'autre (voir ccMemLigne)
   musicStop(true);setTimeout(function menuApres(){if(!gameOver)return;if(PUBR.on||ecranWipe._on){setTimeout(menuApres,400);return;}musicMenu();},1400); /* (chasse aux bugs) CONTINUER touché avant 1,4 s : le lobby ne repart pas PAR-DESSUS la pub récompensée (pubSilence l'a fait taire) ni sous le volet d'une reprise — il attend qu'ils rendent la main */ // TAPE-STOP de fin, puis la musique du menu revient, étouffée
   lastAlertEl.style.display='none';vChip('');for(const l9 of gyroLights)l9.intensity=0; // la poursuite s'éteint avec la caisse — (2026-09-30) et la plaque du Survivant au téléphone
   botJetLight.intensity=0;for(const tr9 of botTrails){tr9.init=false;tr9.m.visible=false;}
@@ -72284,6 +72511,91 @@ for(const [k,v] of Object.entries({'FAIS-TOI FLASHER':'GET FLASHED','LIS LES FLA
   
   'LE LINGOT':'THE GOLD BAR',
   'Il dormait au fond du coffre-fort. Tu viens de le sortir : 999,9 millièmes de pure arrogance.':'It slept at the back of the vault. You just took it out: 999.9 fine, and pure arrogance.'}))if(!(k in I18N))I18N[k]=v;
+
+/* ===== LES NAISSANCES DE COURSE, DESSINÉES UNE FOIS AU MENU (2026-11-07, passe perf 3, P6 : « les gels en course à la première fois ») =====
+   MESURÉ (banc `outils/banc-perf/premiere-fois.py`, `passation/perf-2026-11/PREMIERE-FOIS.md`) : une course scénarisée qui déclenche chaque figure,
+   chaque pouvoir, un orage, un événement rare, la frénésie, une seconde chance et un portail par map ne lie plus AUCUN programme en course (la chauffe
+   du menu les compile tous) ; en revanche cinq familles de dessins ne sont JAMAIS dessinées avant leur première fois — or sur iPhone (Metal)
+   le vrai programme de la puce naît au PREMIER DESSIN (10 à 50 ms par couple programme × mélange, voir « LA CHAUFFE DE LA PUCE » dans
+   vignette-moteur.js) :
+   · LES BILLETS (`BILL_IM`), LES PANNEAUX DU CRATÈRE (`PAN_VOL`, `PAN_DARD` : volutes et dards de la mort) et LA PLUIE DE MONNAIES (`MONN`) sont des maillages INSTANCIÉS gardés à
+     ZÉRO instance. Leur « chauffe » (`onAfterRender` → `chaud=true`) se déclenchait sur une image où three NE DESSINE RIEN (`renderInstances`
+     rend la main si le nombre d'instances est 0) : le programme était lié, jamais dessiné — le 1er dessin avait lieu à la 1re mort ;
+   · LE PIGEON : `chauffeDivers` ne faisait que `renderer.compile` d'un pigeon (liaison) ; la 1re volée (heure aléatoire, en pleine course) le dessinait pour la 1re fois.
+   · LA CARTE MOTEUR (trois quads) et LES MOTEURS GARDÉS de l'écran de mort : voir plus bas.
+   Ici : UNE instance de taille nulle (dessin réel, rien à l'écran) passée par `chauffeRendu`, puis tout est remis comme avant. Interrupteur : `?premfois=0`
+   (= l'ancien comportement : rien n'est dessiné d'avance). Appelé par `chauffeDivers` (une étape par image) ; chaque étape se joue UNE fois. */
+const PREM_ON=!/[?&]premfois=0\b/.test(location.search);
+const PREM={degen:new THREE.Matrix4().makeScale(0,0,0),fait:{}};
+function premInstance(im,n,vis){ /* un maillage instancié dessiné pour de bon avec UNE instance invisible, puis remis à son état */
+  const c0=im.count,v0=im.visible;
+  try{im.setMatrixAt(0,PREM.degen);im.instanceMatrix.needsUpdate=true;im.count=1;im.visible=true;chauffeRendu([im]);}
+  finally{im.count=c0;im.visible=v0;}
+}
+function premPanneau(o){ /* les panneaux (instances par attributs, `instanceCount`) : S = 0 pour tout le monde, une instance dessinée */
+  if(!o||!o.mesh)return;const n0=o.g.instanceCount,v0=o.mesh.visible;
+  try{o.g.instanceCount=1;for(let i=0;i<o.at.length;i++)o.at[i].needsUpdate=true;o.mesh.visible=true;chauffeRendu([o.mesh]);}
+  finally{o.g.instanceCount=n0;o.mesh.visible=v0;}
+}
+function premiereFois(k){ /* l'étape k de la liste (une par image) ; vrai s'il y en a encore */
+  const L=[
+    function(){if(typeof BILL_IM!=='undefined')premInstance(BILL_IM);},
+    function(){premPanneau(PAN_VOL);},
+    function(){premPanneau(PAN_DARD);},
+    function(){premPanneau(MONN);}, /* la pluie de monnaies (600 panneaux, billets-devises.js) : même cas */
+    function(){const p=mkPigeon();scene.add(p);try{chauffeRendu([p]);}finally{scene.remove(p);}},
+    function(){premCartes();},
+    function(){setTimeout(premMoteursTic,1500);}
+  ];
+  if(!PREM_ON||PREM.fait[k])return k+1<L.length;
+  PREM.fait[k]=1;try{L[k]();}catch(e){console.warn('premiereFois',k,e);}
+  return k+1<L.length;
+}
+/* (2026-11-07, P6) LA CARTE MOTEUR et LE MOTEUR DE L'ÉCRAN DE MORT. MESURÉ : au 1er palier de la course (la carte « NOUVEAU MOTEUR » recollée dans l'image) et à
+   la 1re mort (le moteur rendu dans son tampon de 864 × 578), sept couples programme × mélange naissent d'un coup (3 Phong, 3 Basic, le cône de la flamme) et
+   quatre textures (192-512 px) montent : la chauffe du menu ne faisait que `renderer.compile` de ces moteurs gardés (`ENG_PRET`) et des trois quads de la carte.
+   · `premCartes` : les trois quads dessinés pour de bon, à l'échelle zéro, sur la toile (la cible de la vraie carte) ;
+   · `premMoteursTic` : une chaîne de petites tranches (350 ms), lancée par le menu, qui attend la fin de la chauffe des moteurs (`CHAUFFE_R.fait`), jamais pendant
+     une course, un lâcher ou un piqué, et dessine UN moteur gardé par tranche dans `engRT` — sauf si ses programmes ont déjà été dessinés. */
+function premCartes(){
+  if(typeof engCarteQuad==='undefined'||!engVigQuadScene)return;
+  const q=[engCarteQuad,engHalo,engNoir],v=q.map(function(o){return o.visible;}),s=q.map(function(o){return o.scale.clone();}),vq=engVigQuad.visible,ac=renderer.autoClear,t0=renderer.getRenderTarget();
+  try{engVigQuad.visible=false;for(const o of q){o.visible=true;o.scale.set(0,0,1);}renderer.setRenderTarget(null);renderer.autoClear=false;renderer.render(engVigQuadScene,engVigQuadCam);}
+  finally{renderer.autoClear=ac;renderer.setRenderTarget(t0);engVigQuad.visible=vq;q.forEach(function(o,i){o.visible=v[i];o.scale.copy(s[i]);});}
+}
+const PREMM={i:0,n:0,vus:new Set(),feu:null,fini:false};
+function premMoteurUn(){ /* dessine UN moteur gardé dont les programmes n'ont pas encore été dessinés ; vrai quand il n'y en a plus */
+  while(PREMM.i<ENGINE_TIERS.length&&!ENG_PRET[PREMM.i])PREMM.i++;
+  if(PREMM.i>=ENGINE_TIERS.length)return true;
+  const g=ENG_PRET[PREMM.i++];
+  if(g&&!g.parent){
+    const cles=[];g.traverse(function(o){if(!o.isMesh||!o.material||Array.isArray(o.material))return;const p=renderer.properties.get(o.material).currentProgram;cles.push(p?p.cacheKey:'?'+o.material.id);});
+    if(cles.some(function(k){return !PREMM.vus.has(k);})){
+      for(const k of cles)PREMM.vus.add(k);
+      if(!PREMM.feu){PREMM.feu=new THREE.Mesh(engVigFeuGeo,engVigFeuMat);PREMM.feu.frustumCulled=false;}
+      engVigScene.add(g);engVigScene.add(PREMM.feu);
+      try{engVigRendRT(engRT);}finally{engVigScene.remove(g);engVigScene.remove(PREMM.feu);}
+    }
+  }
+  return false;
+}
+function premMoteursTic(){
+  if(!PREM_ON||PREMM.fini||++PREMM.n>700)return;
+  let libre=false;
+  try{
+    libre=!started&&!gameOver&&CHAUFFE_R.fait&&!ecranWipe._on&&!GAR.go&&!CHUTE.go&&!garageOn;
+    if(libre&&premMoteurUn()){PREMM.fini=true;return;}
+  }catch(e){console.warn('premMoteursTic',e);}
+  setTimeout(premMoteursTic,libre?250:900);
+}
+window.dbgPremiere=function(a){
+  if(a==='tout'){ /* banc : toute la chauffe d'un coup, sans attendre celle du menu (le Chrome sans fenêtre ne la finit pas) — moteurs de tous les paliers fabriqués puis dessinés */
+    for(let k=0;k<7;k++){PREM.fait[k]=0;premiereFois(k);}
+    for(let i=0;i<ENGINE_TIERS.length;i++)engPret(i);
+    let g9=0;while(!premMoteurUn()&&++g9<80){}
+    PREMM.fini=true;
+  }
+  return {on:PREM_ON,chauffe:{div:CHAUFFE_R.div,fait:!!CHAUFFE_R.fait,ap:CHAUFFE_R.ap},fait:Object.keys(PREM.fait).length,moteurs:{i:PREMM.i,n:PREMM.n,fini:PREMM.fini,programmes:PREMM.vus.size}};}; /* banc (premiere-fois.py) : où en est la chauffe des premières fois ; ('tout') la joue d'un coup */
 /* ============================================================================
    LES ÉVÉNEMENTS RARES (2026-10-14, GAMEPLAY — Sacha : « les morceaux de bravoure de l'ex-carrière […] surgissent de temps en temps, PAR
    SURPRISE, pendant une partie NORMALE. Rares (pas plus d'UN par partie), annoncés CLAIREMENT, jamais mortels de façon injuste, avec une
@@ -74705,6 +75017,8 @@ try{Object.keys({'RIEN ICI':1,'TOUT EST A TOI':1}).forEach(function(k){if(!I18N[
      qu'une fois, à la fin, et la grille se découvre déjà remplie ;
    · les photos sont GARDÉES d'une session à l'autre pour la version publiée (PHDB) : la 2e ouverture n'en prend plus aucune. */
 const PHQ={q:[],on:false,pret:0,defile:0};
+/* (2026-11-07, Perf 3 — P5) JAMAIS DE PHOTO PENDANT UN DÉFILEMENT : tout `scroll` de la page (inventaire, bandes, boutique) date PHQ.defile — avant, seule la bande de la boutique 3D le faisait ; `photoTour` (une photo par 150 ms au moins) et `shopPhotoTour` s'y plient. `?menu=max` = comme avant. */
+document.addEventListener('scroll',function(){if(!MENU_MAX)PHQ.defile=performance.now();},{capture:true,passive:true});
 function photoFile(i,cb,el){if(PHOTO.cache[i]){cb(PHOTO.cache[i]);return;}PHQ.q.push([i,cb,undefined,el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 function photoCalme(){const t=performance.now();
   if(document.hidden||ecranWipe._on||garageDrag||t-PHQ.defile<260)return false;
@@ -82141,7 +82455,10 @@ function nx3Tick(dt,kmh){
   let g=-1;if(NX3.gl>=0){NX3.gl+=dt/.5;if(NX3.gl>1){NX3.gl=-1;NX3.glT=plein?1.6:3.5;}else g=Math.floor(-2+NX3.gl*36);}
   if(NX3.flame){NX3.fh=Math.round(fh*20)/20;NX3.ft=rm?0:Math.floor(NX3.t*(7+9*fh));}
   const cle=d+'|'+pal+'|'+aQ+'|'+g+'|'+clig+(NX3.flame?'|'+NX3.fh+'|'+NX3.ft:'');
-  if(cle!==NX3.cle){NX3.cle=cle;nx3Dessine(d,pal,aQ,g,clig);}
+  if(cle!==NX3.cle){
+    if(mobhChaud()){const t9=performance.now();if(d===MOBH_nx3D&&t9-MOBH_nx3T<MOBH_R.nx3Ms)return; /* (2026-10-25, A6) régime chaud : l'appui (d) se redessine à l'instant, la lueur et le reflet au plus tous les 66 ms */
+      MOBH_nx3T=t9;}
+    MOBH_nx3D=d;NX3.cle=cle;nx3Dessine(d,pal,aQ,g,clig);}
 }
 window.dbgNitro3=function(a,b){
   if(a==='k'){NX3.kF=b==null?null:+b;return NX3.kF;}
@@ -82433,21 +82750,30 @@ function fpsSaute(now){ // en tête de loop : rend true si cette image d'écran 
   if(FPS.n<2)return false;
   if(now-FPS.der<FPS.per*(FPS.n-.5))return true;
   FPS.der=now;return false;}
+/* ===== LA PÉRIODE D'ÉCRAN EN MÉDIANE (2026-10-25, passe perf mobile, mesure de base : « la cadence 30 est hachée ») =====
+   MESURÉ dans l'app (liv4, 13 Pro à 37 °C) : `dbgCadence().ecran` = 6,94 (écran lu à 144 Hz) alors que les images arrivent toutes les ~17 ms. Cause : le PLUS PETIT
+   intervalle de 90 images (`eMin`) tombe sous 7,7 ms dès qu'une image en retard est suivie d'une image de rattrapage. `tol` (demi-période) devient 3,5 ms au lieu
+   de 8,3 : une image qui arrive à 26-30 ms est SAUTÉE alors que la cadence 30 la voulait, et la suivante part à ~56 ms. `fpsSaute` (plafond à 60) lit déjà la
+   MÉDIANE depuis le 20/10 pour la même raison. Même règle ici. `?mob_ecran=0` = l'ancien minimum (banc A/B). */
+const MOB_ECRAN=!/[?&]mob_ecran=0\b/.test(location.search);const MOB_EA=new Float32Array(90);let MOB_EN=0;
 function cadSaute(now){ // en tête de loop : rend true si cette image d'écran se saute
-  const d=now-CAD.rp;CAD.rp=now;if(d>3&&d<CAD.eMin)CAD.eMin=d;
-  if(++CAD.eN>=90){const m=CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=CAD.ecran*.5;} // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
+  if(MOB_GOUV)mobGouvTick(now); /* (2026-10-25) la dose de chaleur suit l'horloge — voir moteur/gouverneur-thermique.js */
+  const d=now-CAD.rp;CAD.rp=now;if(MOB_ECRAN){if(d>3&&d<100)MOB_EA[MOB_EN++]=d;}else if(d>3&&d<CAD.eMin)CAD.eMin=d;
+  if(MOB_ECRAN?MOB_EN>=90:++CAD.eN>=90){const m=MOB_ECRAN?(MOB_EA.sort(),MOB_EN=0,MOB_EA[45]):CAD.eMin;CAD.eN=0;CAD.eMin=99;CAD.ecran=m<7.7?1000/144:m<9.7?1000/120:m<12.6?1000/90:m<15?1000/75:1000/60;CAD.tol=CAD.ecran*.5;} // 30 Hz imposé (m ≈ 33) : on garde 60, rien ne se saute de toute façon
   if(CAD.on&&now-CAD.der<CAD.per-CAD.tol)return true;
   CAD.der=now;return false;}
-function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;CAD.gel=v&&!PAL.b('cadenceMonte',1);CAD.der=now;CAD.lT=0;CAD.calT=now;
+function cadPose(v,now){if(v===CAD.on)return;CAD.on=v;if(v&&MOB_GOUV)mobReactif();CAD.gel=v&&(!PAL.b('cadenceMonte',1)||(MOB_GOUV&&mobChaud()));CAD.der=now;CAD.lT=0;CAD.calT=now;
   QLR.i=0;QLR.n=0; // l'anneau repart : les centiles ne mélangent pas des durées vraies et des durées ramenées
   if(v){CAD.entrees++;loop._ms=Math.max(CAD.ecran,(loop._ms||16)-(CAD.per-CAD.ecran));}else CAD.sorties++;}
 function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : le travail de l'image, puis la décision
   const w=performance.now()-QLR.t0;CAD.w=CAD.w*.9+w*.1;CAD.wh=CAD.wh*.97+(w>CAD.wMax?1:0); // wh : compteur fuyant, ≥ 3 ≈ plus d'une image sur dix au-dessus de wMax
   const d=Math.min(100,now-CAD.vu);CAD.vu=now;
   if(CAD.force)return;
+  if(MOB_GOUV&&CAD.on&&mobChaud())CAD.gel=true; /* (2026-10-25) calé par chaleur : l'échelle QL ne remonte pas, même si l'entrée était réactive */
   if(!(started&&running&&!gameOver&&!garageOn)){CAD.crs=false;CAD.lT=0;if(CAD.on){cadPose(false,now);CAD.sorties--;}return;} // hors course : jamais calé (et ce n'est pas une « sortie »)
   if(paused)return; // en pause : l'état reste tel quel
-  if(!CAD.crs){CAD.crs=true;CAD.lT=0;CAD.essT=0;if(PAL.b('cadenceDepart',0)&&!loop._r30)cadPose(true,now);return;} // le départ de la course
+  if(!CAD.crs){CAD.crs=true;CAD.lT=0;CAD.essT=0;if((PAL.b('cadenceDepart',0)||(MOB_GOUV&&mobChaud()))&&!loop._r30)cadPose(true,now);return;} // le départ de la course (2026-10-25 : et d'une course qui démarre déjà chaude — gouverneur thermique)
+  if(MOB_GOUV&&!CAD.on&&!loop._r30&&mobChaud()){CAD.essT=0;cadPose(true,now);return;} /* (2026-10-25) la course devient chaude (dose ou état iOS) : calage immédiat, sans attendre les images ratées */
   if(!CAD.calme||QL.essai){CAD.lT=0;CAD.calT=now;return;}
   if(!CAD.on){const ess9=CAD.essT>0&&now-CAD.essT<10000;
     CAD.lT=QLR.p75>19?CAD.lT+d:0;
@@ -82455,7 +82781,7 @@ function cadFin(now){ // en fin de loop (avant la sonde, qui attend la puce) : l
       if(ess9){CAD.murT=now;CAD.murD=Math.min(480000,CAD.murD*2);} // l'essai de 60 a échoué : un MUR (60 s, puis 2, 4, 8 min)
       CAD.essT=0;cadPose(true,now);}
     else if(CAD.essT>0&&!ess9){CAD.essT=0;CAD.murD=30000;}} // l'essai a tenu 10 s : 60 est acquis, le mur repart de zéro
-  else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13))CAD.calT=now;
+  else if(CAD.wh>=3||(CAD.murT>0&&now-CAD.murT<CAD.murD)||(QLR.vraiT&&now-QLR.vraiT<20000&&QLR.vrai>13)||(MOB_GOUV&&mobChaud()))CAD.calT=now; /* (2026-10-25) chaud : la sortie réactive ne joue pas */
   else if(now-CAD.calT>5000){cadPose(false,now);CAD.essT=now;}}
 window.dbgCadence=function(f){if(f!=null){const n=performance.now();f=+f;CAD.force=(f===30||f===60)?f:0;CAD.ok=(CAD.force||PAL.b('cadence30',0)||CAD30_REC)?1:0;if(CAD.force)cadPose(f===30,n);else if(!CAD.ok)cadPose(false,n);} // (banc) 30 force, 60 coupe et fige, 0 rend la main
   const n=performance.now();return {on:CAD.on,per:+CAD.per.toFixed(1),ecran:+CAD.ecran.toFixed(2),w:+CAD.w.toFixed(1),mur:(CAD.murT>0&&n-CAD.murT<CAD.murD)?Math.round((CAD.murD-(n-CAD.murT))/1000):0,entrees:CAD.entrees,sorties:CAD.sorties,force:CAD.force,auto:CAD.ok===1&&!CAD.force,essai:CAD.essT>0&&n-CAD.essT<10000,gel:CAD.gel,haut:+CAD.wh.toFixed(1),plafond:{actif:FPS_CAP,n:FPS.n,ecran:+FPS.per.toFixed(2)}};}; // (2026-10-20) plafond : une image d'écran sur n (fpsSaute)
@@ -82470,8 +82796,172 @@ const HC={on:false,der:0,off:/[?&]hc=0/.test(location.search)};
 function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran à jour) : rend true si cette image d'écran se saute
   const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&!CAD.on&&(!started||garageOn)&&!document.hidden;
   if(!hc){HC.on=false;return false;}
+  if(!MENU_MAX&&hcGeste(now)){HC.on=false;return false;} /* (2026-11-07, Perf 3 — P5) un geste ou une transition : 60 i/s, voir HC GESTE */
   if(HC.on&&now-HC.der<CAD.per-CAD.tol)return true;
   HC.on=true;HC.der=now;return false;}
+/* HC GESTE (2026-11-07, Perf 3 — P5, Sacha : « les menus fluides et froids ») le repos se dessine à 30 i/s (le téléphone au frais, PFR_ON) mais un doigt posé, un défilement, un
+   changement d'écran ou de caisse rendent les 60 i/s — 0,35 s après le dernier signe — puis le repos reprend. `?menu=max` = comme avant (30 i/s en continu). */
+HC.gT=0;
+(function(){const m=function(){HC.gT=performance.now();};['touchstart','touchmove','pointerdown','wheel','scroll'].forEach(function(e){document.addEventListener(e,m,{capture:true,passive:true});});
+  document.addEventListener('pointermove',function(e){if(e.buttons)HC.gT=performance.now();},{capture:true,passive:true});})();
+function hcGeste(now){return now-HC.gT<350||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag;}
+window.dbgHC=function(){return {on:HC.on,off:HC.off,pfr:PFR_ON,hors30:PAL.b('hors30',0),cadOk:CAD.ok,cadOn:CAD.on,started:started,gameOver:gameOver,garageOn:garageOn,quiet:!!(gEl&&gEl.classList.contains('quiet')),garGo:!!GAR.go,stall:(typeof stallOn!=='undefined')?stallOn:null,vhd:VHD.on,hidden:document.hidden};}; /* (2026-11-07, Perf 3 P5) (banc) l'état des menus */
+/* ===== LE GOUVERNEUR THERMIQUE — MOB_G (2026-10-25, passe perf mobile : « 30 i/s stables si chaud » — Sacha ; mesure du 25/10 sur l'iPhone 13 Pro, dans l'app, jeu v897) =====
+   MESURÉ : cinq courses de 75 s de suite (nuages niv. 1, puis niv. 2 à 9 en 25 s, tenue en ville niv. 9, pilote automatique) : 56,8 / 57,7 / 51,2 / 49,4 / 37,9 i/s
+   (niveau 9 : 56,0 / 56,6 / 43,4 / 52,4 / 33,4), images > 25 ms : 52 / 38 / 262 / 109 / 425, sonde CPU 4 → 3, 4 → 3, 5 → 7, 4 → 5, 8 → 9. Le capteur de batterie ne gagne
+   que 4 °C (il retarde sur la puce) : iOS bride la puce à partir de la 3e course, soit après 150 à 200 s de course à 60 i/s cumulées, menus compris. La cadence réactive
+   (CAD30_REC, cadence.js) ne cale sur 30 qu'APRÈS avoir vu le quart des images rater la synchro : le joueur a déjà subi les secondes hachées. Ce morceau CALE AVANT :
+   une « dose » MOB_S.D, en secondes équivalentes de 60 i/s en course, estime la chaleur sans aucun capteur.
+   · Elle MONTE : +1 par seconde de course à 60 i/s, +0,5 de course déjà calée sur 30 (la puce y travaille moitié moins), +0,3 au menu / au garage (le plein rendu 3D du
+     menu chauffe aussi, mais moins qu'une course).
+   · Elle REDESCEND de 0,25 par seconde au repos : pause, écran de mort, application en arrière-plan, écran verrouillé, trou de plus d'une seconde entre deux images
+     (rien n'est rendu). 0,25 : un repos de 60 à 120 s n'efface que 15 à 30 s de dose, comme le téléphone des cinq courses (rien n'y refroidit entre deux courses).
+   · SEUIL HAUT 160 : entrée à 30 i/s. Sur la chronologie des cinq courses (22 s de menu, 75 s de course, 60 à 120 s de repos) le modèle bascule dans la 3e course,
+     20 à 50 s après son départ, jamais avant la 2e (preuve : .banc-perf/gouverneur.cjs). SEUIL BAS 40 : retour à 60 seulement quand le téléphone a VRAIMENT refroidi
+     (de 160 à 40 à 0,25/s : 8 min de repos complet ; plafond de la dose 230 : 13 min au pire). Entre les deux, on garde l'état (hystérésis).
+   · La dose survit entre les parties (mémoire du jeu) ET entre deux lancements (localStorage `cashcarMobGouv`, daté : plus de 10 min = 0, sinon refroidie du temps écoulé).
+   Branchement dans la cadence existante (cadence.js) : le départ d'une course déjà « chaude » est calé dès la 1re image ; une course qui devient chaude est calée à l'instant ;
+   `mobChaud()` retient la SORTIE réactive (le retour à 60 sur « travail < 10 ms » ne joue pas tant que le gouverneur dit chaud) et gèle la remontée de l'échelle QL
+   (`cadenceMonte`) : calé par chaleur, on ne remplit pas les 33 ms de qualité. Quand le gouverneur se tait, la règle réactive reprend la main telle quelle (essai de 60,
+   mur…). Rien de la simulation ne change : seule la CADENCE (30 calées au lieu de 17-45 hachées), jamais l'image.
+   Seulement sur un vrai téléphone (TEL_NATIF) au palier RÉCENT, comme CAD30_REC. `?mob_gouv=0` = avant (aucune ligne de ce morceau ne tourne, les tests des autres morceaux
+   sont court-circuités).
+   L'ÉTAT THERMIQUE D'iOS (prise pour un futur plugin Swift) : `window.dispatchEvent(new CustomEvent('cc:thermique',{detail:{etat:n}}))`, n = 0 nominal · 1 fair · 2 serious ·
+   3 critical. ≥ 2 : calage immédiat sur 30, quelle que soit la dose (qu'on remonte à 160 : iOS en sait plus que nous, le modèle ne relâchera qu'après un vrai repos) ;
+   3 : en plus UN cran de l'échelle QL de moins (une fois par épisode) ; 0 ou 1 : le modèle reprend la main.
+   Banc : `dbgGouv()` rend {D, seuilHaut, seuilBas, actif, thermo, pourquoi} ; `dbgGouv(n)` pose la dose ; `dbgThermique(n)` simule l'événement. */
+const MOB_GOUV=CAD30_REC&&!/[?&]mob_gouv=0\b/.test(location.search);
+const MOB_G={course60:1,course30:.5,menu:.3,repos:.25,haut:160,tiede:50,g30:!/[?&]mob_g30=0\b/.test(location.search),bas:40,max:230,trou:1,perime:600,cle:'cashcarMobGouv'}; /* tout se règle ici (secondes équivalentes, par seconde réelle) */
+const MOB_S={D:0,actif:false,thermo:0,t:0,sauveT:0,q3:false};
+function mobGouvEval(){ /* l'hystérésis : haut → entre, bas → sort, entre les deux on garde */
+  if(MOB_S.D>=MOB_G.haut)MOB_S.actif=true;else if(MOB_S.D<MOB_G.bas)MOB_S.actif=false;}
+/* ===== LE PREMIER SIGNE DE LENTEUR VAUT SEUIL (2026-10-25 soir, mesure du 13 Pro, séance continue de 7 min, v900) =====
+   MESURÉ : la dose n'atteignait 160 qu'à la 5e minute alors que le téléphone s'effondre dès la 2e (20 puis 8 i/s aux minutes 3 et 4, p99 de 300 à 420 ms) ; une fois calé de force
+   il tient 30 i/s réguliers (minutes 6 à 8 : p99 43 ms, 0 image > 50 ms). La cadence réactive (CAD30_REC) avait pourtant vu la lenteur dès la 1re minute (D=54, calée) puis
+   était repartie à 60. Désormais : si la cadence réactive cale alors que la dose a déjà passé `tiede` (50, soit une minute de course), le gouverneur s'enclenche et RETIENT
+   le 30 jusqu'au vrai repos (sous `bas`). Un téléphone qui ne rate jamais ses images n'est jamais touché avant 160. */
+function mobReactif(){if(MOB_GOUV&&!MOB_S.actif&&MOB_S.D>=MOB_G.tiede){MOB_S.actif=true;mobGouvSauve();}} /* appelé par cadPose quand la cadence cale */
+/* ===== LE 30 DÈS LE DÉPART (2026-10-26 nuit, mesure du 13 Pro : « 30 i/s stables si chaud » — Sacha) =====
+   MESURÉ : une séance de 7 min CALÉE SUR 30 DÈS LA 1re SECONDE (dose forcée) ne s'effondre pas : 31,5 · 26,5 · 25,4 · 29,6 · 30,4 · 30,3 · 30,3 · 31,1 i/s, 85-100 % des intervalles entre 28 et 39 ms,
+   p99 35-68 ms, alors que la batterie monte à 38 °C. Toutes les séances qui jouent les 60-100 premières secondes à 60 i/s s'effondrent à 5-13 i/s aux minutes 3-5 (la chaleur des premières minutes
+   à 60 déclenche la bride d'iOS), même quand le gouverneur cale ensuite sur 30. `?mob_g30=1` = le gouverneur est TOUJOURS actif en course : 30 calées dès le départ (INACTIF par défaut :
+   c'est un choix de fluidité, Sacha tranche). */
+/* ===== LE 30 DÈS LE DÉPART, PAR DÉFAUT (2026-11-07, vitesse-fluide : lecture du build 6 sur le 13 Pro, palier 2) =====
+   MESURÉ (boîte noire, lignes `fluide`) : le p50 suit le TEMPS, pas la vitesse — l'effondrement arrive au palier moteur 0-2 (pas 16) : jade 191 s p50 16 → 38 ms au calage (dose 47),
+   espace 504-520 s p50 53 → 83 ms (12 i/s) MALGRÉ le 30 calé et les crans de qualité 9-11. Même constat que la séance du 26/10 (branche mobile-perf) : jouer les premières minutes à 60 chauffe la
+   puce, iOS bride, et caler sur 30 ensuite est trop tard ; calé dès la 1re seconde, 7 min tiennent à 30 stables. Le palier 16 n'est que le moment où Sacha a ressenti la bride (plusieurs minutes de jeu).
+   Désormais le gouverneur est TOUJOURS actif en course sur téléphone récent (TEL_NATIF, palier 2) : 30 calées dès le départ. Règle du 7/11 : sur vrai téléphone le palier 2 peut perdre de l'image
+   (ici : de la cadence). `?mob_g30=0` = la dose de chaleur d'avant (calage à 160, ou 50 si la cadence réactive cale) ; `?mob_gouv=0` = plus de gouverneur du tout. L'ordinateur n'est pas touché. */
+function mobChaud(){return MOB_GOUV&&(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif);} /* vrai : le gouverneur veut le téléphone calé sur 30 */
+function mobGouvSauve(){try{localStorage.setItem(MOB_G.cle,JSON.stringify({D:+MOB_S.D.toFixed(1),a:MOB_S.actif?1:0,t:Date.now()}));}catch(e){}}
+function mobGouvCharge(){try{const o=JSON.parse(localStorage.getItem(MOB_G.cle)||'null');if(!o||!(o.D>0))return;
+  const age=(Date.now()-o.t)/1000;if(!(age>=0&&age<MOB_G.perime))return; /* plus de 10 min (ou horloge refaite) : froid */
+  MOB_S.D=Math.max(0,Math.min(MOB_G.max,o.D-age*MOB_G.repos));MOB_S.actif=!!o.a;mobGouvEval();}catch(e){}}
+function mobGouvTick(now){ /* en tête de cadSaute (donc à CHAQUE image d'écran, sautée ou non) : la dose suit l'horloge, pas les images calculées */
+  if(!MOB_S.t){MOB_S.t=now;return;}
+  const d=(now-MOB_S.t)/1000;MOB_S.t=now;if(!(d>0))return;
+  let v; /* vitesse de la dose, par seconde */
+  if(d>MOB_G.trou||document.hidden)v=-MOB_G.repos; /* un trou : arrière-plan, écran verrouillé, intro du studio — rien n'a été rendu */
+  else if(started&&running&&!gameOver&&!garageOn&&!paused)v=CAD.on?MOB_G.course30:MOB_G.course60;
+  else if(paused||gameOver)v=-MOB_G.repos;
+  else v=MOB_G.menu;
+  MOB_S.D=Math.max(0,Math.min(MOB_G.max,MOB_S.D+v*d));mobGouvEval();
+  if(now-MOB_S.sauveT>5000){MOB_S.sauveT=now;mobGouvSauve();}
+  mobPalTick(now);} /* (2026-11-07) la dose pose les paliers de coût GPU — voir moteur/gouverneur-paliers.js */
+function mobThermo(n){ /* l'état thermique d'iOS (0 nominal · 1 fair · 2 serious · 3 critical) */
+  n=Math.max(0,Math.min(3,n|0));MOB_S.thermo=n;
+  if(n>=2){MOB_S.D=Math.max(MOB_S.D,n===3?MOB_G.haut+30:MOB_G.haut);MOB_S.actif=true;mobGouvSauve();}
+  if(n===3&&!MOB_S.q3){MOB_S.q3=true;try{qlPose(QL.k+1);}catch(e){}} /* UN cran de qualité par épisode critique (qlPose borne au dernier cran) */
+  else if(n<3)MOB_S.q3=false;}
+if(MOB_GOUV){mobGouvCharge();
+  window.addEventListener('cc:thermique',function(e){mobThermo(+(e&&e.detail&&e.detail.etat));});
+  window.addEventListener('pagehide',mobGouvSauve);
+  document.addEventListener('visibilitychange',function(){if(document.hidden)mobGouvSauve();});}
+window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB_G.max,+n||0));mobGouvEval();mobGouvSauve();MOB_P.chg=-1e9;} /* (banc) pose la dose */
+  const pq=!MOB_GOUV?(CAD30_REC?'coupé (?mob_gouv=0)':'hors téléphone récent'):MOB_S.thermo>=2?'état thermique iOS '+MOB_S.thermo:MOB_S.actif?'dose au-dessus du seuil bas':'froid';
+  return {D:+MOB_S.D.toFixed(1),seuilHaut:MOB_G.haut,seuilBas:MOB_G.bas,actif:mobChaud(),thermo:MOB_S.thermo,pourquoi:pq,g30:MOB_G.g30,gpu:MOB_GOUV?window.dbgGouvPaliers():null};};
+window.dbgThermique=function(n){if(MOB_GOUV)mobThermo(+n);return MOB_S.thermo;}; /* (banc) simule l'événement 'cc:thermique' */
+
+/* ===== LE GOUVERNEUR PILOTE L'IMAGE PAR PALIERS : BAISSE À CHAUD, REMONTE À FRAIS (2026-11-07, vitesse-fluide) =====
+   BAISSE — MESURÉ (13 Pro, app, build 6) : calé sur 30 et l'échelle QL au plancher (crans 9-11), la course tombe quand même à 83 ms (12 i/s) vers 8 min de jeu : à chaud la puce est bridée ~3×, il faut couper ~3× de
+   travail. La dose de chaleur (gouverneur-thermique.js ; le 30 calé la monte de 0,5 par seconde : 60 ≈ 2 min, 100 ≈ 3 min 20, 140 ≈ 4 min 40 de course) pose, PAR PALIERS, la couche dynamique de la passe 3
+   (`imgRegle`, rendu/nettete-qualite.js : halo, mips, ombre, plafond de résolution, ciel lisse, densité des traits d'air et traînées) — le départ de course (P2 : halo ½, ombre 768, plafond 1,25, ciel ½…) est le palier 0.
+     0 · < 60   : le départ statique de P2, rien d'écrit.
+     1 · ≥ 60   : plafond 1,1 ; halo ½ à 2 mips.
+     2 · ≥ 100  : plafond 1,0 ; halo coupé ; ombre 512 ; ciel lisse 1 image sur 4 ; traits d'air et traînées ×½ ; échelle QL au cran maximal (flou radial coupé) ; vent et émission de la caisse ×½ ; + RÉGIME CHAUD (mobh-regime-chaud.js).
+     3 · ≥ 140  : plafond 0,8 ; ciel lisse 1 image sur 8.
+   L'ÉTAT THERMIQUE D'iOS (`cc:thermique`) : ≥ 2 pose la dose à 160 (gouverneur-thermique.js) = palier 3 tout de suite ; `mobPalCible` garantit au moins 2 / 3 même si la dose baissait.
+   ⚠ MONTÉE immédiate, DESCENTE lente : un palier ne se lève qu'une minute après le dernier changement, un palier à la fois (la dose ne redescend que de 0,25 par seconde de repos).
+   REMONTE (règle de Sacha : « fluidité d'abord ; une fois atteinte, remonter le rendu vers celui de l'ordinateur ») — paliers NÉGATIFS : le téléphone est FRAIS (dose < `MOB_R.frais`) et FLUIDE pendant 60 s
+   d'affilée (travail de l'image médian < 12 ms, jamais > 16 ms, images à l'heure : p75 de l'échelle QL ≤ 19 ms) → un cran de plus : −1 = plafond de résolution du réglage du joueur (1,5 en NETTE) ; −2 = + halo plein
+   (5 mips) et ombre 1024. Chaque cran demande SES 60 s. Un cran de remontée tombe d'un coup au palier 0 dès que la fluidité manque 5 s de suite, ou que la dose atteint le palier 1 ; il ne revient pas dans la même course.
+   Seulement sur téléphone récent (TEL_NATIF, palier 2 : c'est MOB_GOUV). `?gouv=max` = rien de tout cela (et pas de régime chaud par défaut) ; `?mob_raise=1` = la remontée (INACTIVE par défaut depuis le 07/11 soir : build 13, 15 gels > 1 s en course, hypothèse = les bascules réallouent les cibles) ; `?mob_gouv=0` = plus de gouverneur.
+   Banc : `dbgGouv()` donne `gpu` (palier, ce qui est posé) ; `dbgGouv(dose)` pose la dose et lève la garde d'une minute. */
+const MOB_PALS=MOB_GOUV&&!/[?&]gouv=max\b/.test(location.search);
+const MOB_PP=[{d:0},{d:60,dpr:1.1,halo:'demi',mips:2,ql:3},{d:100,dpr:1,halo:'off',ombre:512,ciel:4,stries:.5,k:.5,ql:99},{d:140,dpr:.8,halo:'off',ombre:512,ciel:8,stries:.5,k:.5,ql:99}]; /* tout se règle ici ; ql 99 = le cran maximal de l'échelle */
+/* LE DÉPART DE P2 (nettete-qualite.js `imgRegle`, palier-appareil.js `PAL.B.imgBloomRes`) : halo ½, 3 mips, ombre 768, ciel sans plancher, traits d'air aux budgets — à tenir d'accord avec P2 ; chaque palier est posé en UN SEUL appel qui redit ces clés (jamais reset puis pose : chaque appel d'imgRegle repasse par applyDPR) */
+const MOB_P0={halo:'demi',mips:3,ombre:768,ciel:0,stries:null};
+const MOB_RA=[null,{dpr:'cap'},{dpr:'cap',halo:'tout',mips:5,ombre:1024}]; /* la remontée, par cran (palier −1, −2) */
+const MOB_R={on:/[?&]mob_raise=1\b/.test(location.search),frais:40,fen:60,wMed:12,wMax:16,p75:19,mal:5};
+const MOB_PQ=['qlMin','ventK','emiK'],MOB_P={t:0,chg:-1e9,tk:0,b:null,n:0,s:[],mal:0,non:false};
+function mobPalBase(){ /* les valeurs d'origine du palier, lues une fois, avant la 1re écriture */
+  if(MOB_P.b)return MOB_P.b;const b={};for(const k of MOB_PQ)b[k]=PAL.b(k,k==='qlMin'?0:1);return(MOB_P.b=b);}
+function mobPalEcrit(k,v){const A=PAL.B[k]||(PAL.B[k]=[mobPalBase()[k],mobPalBase()[k],mobPalBase()[k]]);A[PAL.n]=v;}
+function mobPalCible(){let t=0;for(let i=1;i<MOB_PP.length;i++)if(MOB_S.D>=MOB_PP[i].d)t=i;
+  if(MOB_S.thermo>=3)t=3;else if(MOB_S.thermo>=2)t=Math.max(t,2);return t;}
+function mobPalCapJoueur(){let c=DPR_CAP;try{c=dprPlafond(SAVE.d.q==='fast');}catch(e){}return c;} /* le plafond du réglage du joueur (RAPIDE 1, NETTE ce que le départ de P2 en fait) */
+function mobPalCapPlein(){let c=1.5;try{c=SAVE.d.q==='fast'?1:Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));}catch(e){}return c;} /* « vers l'ordinateur » : le plafond de la NETTE d'avant la passe 3 */
+function mobPalVoulu(t){ /* ce qu'on pose à ce palier : TOUTES les clés (le départ de P2, puis les écarts du palier) pour un seul appel à imgRegle ; null au palier 0 (c'est `reset`) */
+  if(!t)return null;const P=t>0?MOB_PP[t]:MOB_RA[-t],o=Object.assign({dpr:mobPalCapJoueur()},MOB_P0);
+  for(const k of ['dpr','halo','mips','ombre','ciel','stries'])if(P[k]!=null)o[k]=P[k];
+  if(o.dpr==='cap')o.dpr=mobPalCapPlein();else o.dpr=Math.min(o.dpr,mobPalCapJoueur());
+  return o;}
+function mobPalApplique(t){ /* UN seul appel à imgRegle par bascule (chaque appel refait applyDPR : cibles du compositeur, halo, ombre) */
+  const B=mobPalBase(),P=t>0?MOB_PP[t]:null,baisse=t<MOB_P.t&&t>=0,o=mobPalVoulu(t);
+  mobPalEcrit('ventK',B.ventK*((P&&P.k)||1));mobPalEcrit('emiK',B.emiK*((P&&P.k)||1));
+  const kMax=qlBornes().kMax;mobPalEcrit('qlMin',P?Math.min(kMax,Math.max(B.qlMin,P.ql)):B.qlMin);
+  if(baisse)QL.k=Math.min(QL.k,t===0?1:t===1?3:kMax); /* descente : l'échelle se desserre d'un coup — posé AVANT imgRegle, dont le qlPose le prend */
+  MOB_P.t=t;MOB_P.chg=performance.now();MOB_P.n++;MOB_P.s.length=0;
+  if(o)window.imgRegle(o);else window.imgRegle('reset');} /* imgRegle rejoue qlPose(QL.k) : le plancher, le cran et le plafond se posent ensemble */
+function mobPalSain(){ /* l'image de cette seconde : le travail de l'image (CAD.w, lissé sur ~10 images) et la synchro (p75 de l'échelle QL, ramené à une image d'écran) */
+  return {w:CAD.w,ok:QLR.p75<=MOB_R.p75};}
+function mobPalMediane(a){const v=a.slice().sort(function(x,y){return x-y;});return v[v.length>>1];}
+function mobPalTick(now){ /* à chaque image d'écran (appelé par mobGouvTick) ; ne travaille qu'une fois par seconde */
+  if(!MOB_PALS||typeof window.imgRegle!=='function'||now-MOB_P.tk<1000)return;MOB_P.tk=now;
+  const enCourse=started&&running&&!gameOver&&!garageOn&&!paused;
+  if(!enCourse){MOB_P.s.length=0;MOB_P.mal=0;if(!started||gameOver||garageOn)MOB_P.non=false;}
+  const c=mobPalCible();
+  if(c>Math.max(MOB_P.t,0)){mobPalApplique(c);MOB_P.non=true;return;} /* la dose monte (ou un palier négatif doit tomber au 0 / 1) : tout de suite */
+  if(c<MOB_P.t&&MOB_P.t>0){if(now-MOB_P.chg>=60000)mobPalApplique(MOB_P.t-1);return;} /* descente lente, un palier à la fois */
+  if(MOB_P.t>0){if(DPR_CAP>mobPalVoulu(MOB_P.t).dpr+.001)window.imgRegle({dpr:mobPalVoulu(MOB_P.t).dpr});return;} /* un changement de réglage (RAPIDE/NETTE) a rendu le plafond : on le reprend */
+  if(!enCourse||!MOB_R.on)return;
+  const e=mobPalSain();MOB_P.s.push(e);if(MOB_P.s.length>MOB_R.fen)MOB_P.s.shift();
+  if(MOB_P.t<0){ /* remonté : la fluidité manque 5 s de suite → retour au départ, sans remonter dans cette course */
+    MOB_P.mal=(e.w>MOB_R.wMax||!e.ok)?MOB_P.mal+1:0;
+    if(MOB_P.mal>=MOB_R.mal){MOB_P.mal=0;mobPalApplique(0);MOB_P.non=true;return;}}
+  if(MOB_P.non||MOB_P.t<=-MOB_RA.length+1||MOB_S.D>=MOB_R.frais||MOB_S.thermo>=1||MOB_P.s.length<MOB_R.fen)return;
+  const W=MOB_P.s.map(function(x){return x.w;});
+  if(MOB_P.s.every(function(x){return x.ok;})&&mobPalMediane(W)<MOB_R.wMed&&Math.max.apply(null,W)<MOB_R.wMax)mobPalApplique(MOB_P.t-1);} /* chaque cran redemande ses 60 s (mobPalApplique vide la fenêtre) */
+window.dbgGouvPaliers=function(){const B=MOB_P.b;return {actif:MOB_PALS,palier:MOB_P.t,bascules:MOB_P.n,dprCap:+DPR_CAP.toFixed(2),cran:QL.k,qlMin:PAL.b('qlMin',0),ventK:PAL.b('ventK',1),emiK:PAL.b('emiK',1),base:B,seuils:MOB_PP.map(function(p){return p.d;}),remonte:MOB_R.on,fenetre:MOB_P.s.length,interdit:MOB_P.non,img:typeof window.imgRegle==='function'?window.imgRegle():null};};
+/* ===== LE RÉGIME CHAUD — MOBH_ (2026-10-25, passe perf mobile A6 : « alléger les effets décoratifs quand le téléphone est chaud ») =====
+   MESURÉ (iPhone 13 Pro, dans l'app, niveau 9) : après 3 à 5 minutes de jeu le téléphone s'effondre de 55 à 8-13 i/s, calage sur 30 compris. Le gouverneur (mobChaud) sait QUAND
+   le téléphone est chaud ; ce morceau lui donne de quoi ALLÉGER le travail par image. Seuls des effets d'AFFICHAGE changent (traits de vent, feu de pixels de la nitro, redessin de
+   l'éclair du bouton NITRO, cadence de la carte du moteur) : ni physique, ni collision, ni vitesse, ni gain d'argent, ni aura, ni chaîne, ni compteur.
+   L'INTERRUPTEUR : `?mobh_chaud=1` l'active, `?mobh_chaud=0` le coupe (ACTIF PAR DÉFAUT depuis le 07/11 à dose >= 100, voir plus bas ; il change l'image). Inactif ou téléphone froid :
+   mobhChaud() est faux et chaque site retombe sur l'ancien chemin, ligne pour ligne. Seulement sur un vrai téléphone (TEL_NATIF, jamais le drapeau d'interface).
+   Les réglages sont tous ici : vent (nombre de traits ×, une image dessinée sur N), feu nitro (×), éclair NITRO (ms mini entre deux redessins), carte moteur (ms mini). */
+/* (2026-11-07, vitesse-fluide : « active par défaut le régime chaud à dose > 100 ») ACTIF PAR DÉFAUT à partir du palier 2 du gouverneur (dose >= MOBH_R.dose, ou état iOS >= 2) ; `?mobh_chaud=1` = chaud dès que le gouverneur dit chaud
+   (donc dès le départ, le 30 étant calé d'office), `?mobh_chaud=0` = jamais, `?gouv=max` = jamais (comme avant). */
+const MOBH_M=location.search.match(/[?&]mobh_chaud=([01])\b/),MOBH_ACTIF=MOBH_M?MOBH_M[1]==='1':true,MOBH_FORCE=!!MOBH_M&&MOBH_M[1]==='1';
+const MOBH_R={dose:100,vent:.7,ventPas:2,ventCap:.14,feu:.6,nx3Ms:66,engMs:100};
+function mobhChaud(){if(!TEL_NATIF||!MOBH_ACTIF)return false;if(MOBH_FORCE)return mobChaud();return MOB_PALS&&(MOB_S.thermo>=2||MOB_S.D>=MOBH_R.dose);} /* vrai : le téléphone est chaud ET l'essai est demandé */
+let MOBH_ventN=0,MOBH_ventDt=0,MOBH_nx3T=0,MOBH_nx3D=-9;
+function mobhVentSaute(dt){ /* vrai : cette image-ci, le vent ne se redessine pas (le calque garde l'image d'avant, aucun effacement) ; dt s'accumule pour la suivante */
+  if(!mobhChaud()){MOBH_ventN=0;MOBH_ventDt=0;return false;}
+  MOBH_ventDt+=dt;if((++MOBH_ventN)%MOBH_R.ventPas!==0)return true;
+  return false;}
+function mobhVentDt(){const d=MOBH_ventDt;MOBH_ventDt=0;return d;} /* le temps écoulé depuis le dernier dessin (le vent lisse la vitesse de la caméra avec lui) */
+window.dbgMobh=function(){return {actif:MOBH_ACTIF,force:MOBH_FORCE,tel:!!TEL_NATIF,chaud:mobChaud(),regime:mobhChaud(),reglages:MOBH_R};};
 function loop(now){
   loop._raf=requestAnimationFrame(loop); /* (2026-11-07, finition) l'identifiant : dbgStep annule l'image qu'un appel manuel programme (il empilait n boucles) */
   if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
@@ -82512,7 +83002,7 @@ function loop(now){
   {const cad9=(loop._ms||16)>29.5&&(loop._ms||16)<37.5;if(cad9&&loop._jit<2)loop._r30T=now+2500; // tenu 2,5 s : une image sautée (66 ms) ne fait pas basculer
    loop._r30=cad9&&now<(loop._r30T||0);}
   loop._spk=(loop._spk||0)*.985+(ms9>(loop._r30?45:26)?1:0);
-  QLR.a[QLR.i]=ms9;QLR.i=(QLR.i+1)%QLR.a.length;if(QLR.n<QLR.a.length)QLR.n++; // (tour 2) l'anneau des 60 dernières images, lu par les centiles
+  QLR.a[QLR.i]=ms9;QLR.i=(QLR.i+1)%QLR.a.length;if(QLR.n<QLR.a.length)QLR.n++; sondeFluide(now,ms9); // (tour 2) l'anneau des 60 dernières images, lu par les centiles
   /* ⚠ LENTEUR SOUTENUE, JAMAIS UN PIC (2026-09-24) — toujours vrai : on ne dégrade que « calme » (ni reconstruction de zone, ni retour
      d'onglet, ni cadence 30 Hz imposée). Mais les paliers ne sont plus DÉFINITIFS et la résolution n'est plus la PREMIÈRE sacrifiée :
      (2026-09-27, passe perf iPhone) paliers MOYEN/BAS et résolution adaptative ne font plus qu'UNE échelle, `QL` — voir « LA NETTETÉ EN
@@ -82568,7 +83058,7 @@ function loop(now){
          combien coûte VRAIMENT une image ; si, agrandie au cran du dessus (coût ∝ pixels), elle tient encore sous 14 ms, on remonte */
       else if(sonde9){VHD.sT=0;VHD.t=-10;if(vhdMonte(now,QLR.vrai))VHD.t=0;} // pas de marge : la sonde se tait ~12 s
       else if(!VHD.sT||now-VHD.sT>3000){VHD.sT=now;qlSondeArme();}}}
-  else if(!RESPIN&&dprT<=0&&now>4000&&qlAuto()){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>24||QLR.p50>18.5; /* (OPTIMISATION) voir L'IMAGE EN AUTOMATIQUE */
+  else if(!RESPIN&&dprT<=0&&now>4000&&qlAuto()){dprT=1.1;const fort9=QLR.p50>24,tire9=QLR.p75>PAL.bT('imgQlP75',24,'f')||QLR.p50>18.5; /* (2026-11-07, passe perf 3, P2 · levier f) téléphone récent : l'échelle QL réagit dès p75 > 19 ms (au lieu de 24 : « plus d'un quart des images ratées d'un tiers de période ») ; `?img=max` / `?imgsans=f` = 24 */ /* (OPTIMISATION) voir L'IMAGE EN AUTOMATIQUE */
     /* LA NETTETÉ NE SE SACRIFIE QUE SI ÇA PAIE (tour 2) : un cran de RÉSOLUTION posé, on regarde 3 s plus tard si la médiane a
        baissé. Si non (le téléphone bute ailleurs : processeur, affichage), la résolution revient et ce cran devient un MUR — on ne
        floute pas l'image pour rien. */
@@ -82995,7 +83485,7 @@ function loop(now){
         // traits d'AIR : discrets, de plus en plus nombreux à mesure que ça accélère
         if(speedKmh>140){ // seuils ×2 (SPD .25→.5 : km/h doublés) — mêmes traits d'air au même état-caisse
           const nS9=speedKmh>640?4:speedKmh>460?3:speedKmh>280?2:1;
-          for(let k9=0,n9=nS9*emiN('trS',dt);k9<n9;k9++)if(Math.random()<.85){ // (2026-10-09) à la seconde : voir emiN
+          for(let k9=0,n9=emiVit('trS',nS9*emiN('trS',dt),speedKmh);k9<n9;k9++)if(Math.random()<.85){ // (2026-10-09) à la seconde : voir emiN
             tmp2.copy(carGroup.position).addScaledVector(fwdW,10+Math.random()*40);
             tmp2.addScaledVector(tmp,(Math.random()-.5)*30);
             tmp2.addScaledVector(F.n,1+Math.random()*10);
@@ -83319,7 +83809,7 @@ function loop(now){
       if(speedKmh>120){ // traits d'air aussi en vol (seuils ×2 : SPD .25→.5)
         tmp.copy(fallVel).normalize();
         const nS9=speedKmh>480?3:speedKmh>260?2:1;
-        for(let k9=0,n9=nS9*emiN('trV',dt);k9<n9;k9++){ // (2026-10-09) à la seconde : voir emiN
+        for(let k9=0,n9=emiVit('trV',nS9*emiN('trV',dt),speedKmh);k9<n9;k9++){ // (2026-10-09) à la seconde : voir emiN
           tmp2.copy(fallPos).addScaledVector(tmp,10+Math.random()*30);
           tmp2.x+=(Math.random()-.5)*22;tmp2.y+=(Math.random()-.5)*16;tmp2.z+=(Math.random()-.5)*22;
           const ln9=4+speedKmh*.035;
@@ -84271,18 +84761,22 @@ function loop(now){
   else if(QLR.sN>0)qlSonde(); // (tour 2) la règle de qualité veut le VRAI coût d'une image avant de baisser quoi que ce soit
 }
 // ---------- INIT ----------
-chargeEtape('piste',function(){ /* (2026-11-05, passe perf mobile 2, A2.a) la 1re piste et la caisse du menu se bâtissent sous la boule (une étape par image, voir CHARGEMENT) ; `?chargement=0` = ici, d'un trait */
-newTrack();
+/* (2026-11-07, OPTI ULTIME, build 6 sur iPhone 13 Pro : « étape piste » 650 ms d'un bloc = un trou de 1,26 s sous le serpent) l'étape se coupe en TROIS, une par image, dans le MÊME ordre : la piste, le départ (caisse posée, caméra), la caisse du menu et ses affichages. `?chargement=0` = tout d'un trait, comme avant. */
+chargeTranches('piste',newTrackG,8); /* (2026-11-05, passe perf mobile 2, A2.a) la 1re piste et la caisse du menu se bâtissent sous la boule (une étape par image, voir CHARGEMENT) ; `?chargement=0` = ici, d'un trait · (2026-11-07) la piste, en tranches de 8 ms sur téléphone (chargeTranches) */
+chargeEtape('depart',function(){
 respawn();
 setupIntroPig();
 frameAt(0,F);
 camera.position.copy(F.p).addScaledVector(F.t,-9).addScaledVector(F.n,4);
 elRecord.textContent=TR('record : ')+fmt(best);
+});
+chargeEtape('caisse',function(){
 carSnapshot();   // photo des caisses DÉJÀ acquises : sans elle, le 1er scan les annoncerait toutes d'un coup
 level=equippedCar();buildCar(CARS[level]); // on se présente au menu dans la caisse choisie au garage
 paintMoney(); // LE MENU AFFICHE LA MISE : $1.61 visible AVANT de lancer (le HTML disait « $00000000 »)
 paintCarHud(); // et la fiche de caisse porte le bon nom/palier dès l'écran d'accueil
-}); // fin de l'étape 'piste'
+}); // fin des étapes 'piste', 'depart' et 'caisse'
+chargeTranches('textures',chargeTexturesG,6); /* (2026-11-07) les textures des objets visibles montent une à une, sous le serpent, au lieu de toutes d'un coup au 1er dessin */
 applyLangDOM(); // la langue sauvegardée s'applique AU CHARGEMENT (elle ne prenait qu'en cliquant le sélecteur)
 setBestChip();
 renderLeaders(-1);
@@ -84949,8 +85443,10 @@ function goImmersive(){
      qui s'en écartent comme un sonar. C'est de LUI que la boule naît (elle se construit du milieu). Dessiné dès l'attente, avant que le film parte (`attente`), puis jusqu'à ce que les premiers points de la boule
      l'éteignent (`rendu`) : il ne dépend que de l'heure réelle, donc il continue sans à-coup à travers le départ du film. « Réduire les animations » : un point fixe, sans ondes. */
   /* (2026-11-05, jury HYG-12) dGraine : fonction jamais appelée, retirée */
+  function crea(nom,f){const a=performance.now();try{return f();}finally{try{if(window.__ccSondeCrea)window.__ccSondeCrea(nom,a,performance.now()-a);}catch(_){}}} /* (2026-11-07, OPTI ULTIME) chronomètre une création pour la sonde du serpent (debut-corps.html) : transparent */
   function chCl(a){ /* l'anneau de chargement du HTML (spCharge) : visible jusqu'à ce que les premiers points de la boule se dessinent, puis il fond et disparaît (Léo, 02/11) */
     const el=chCl.el===undefined?(chCl.el=document.getElementById('spCharge')):chCl.el;if(!el||chCl.fini)return;
+    if(window.__serpentNatif&&a<.999&&!chCl.nat){chCl.nat=1;try{window.Capacitor.Plugins.SerpentNatif.fondu({duree:.5});}catch(_){}} /* (2026-11-06) le serpent d'iOS fond à son tour (voir debut-corps.html) */
     if(a<=.004){chCl.fini=1;el.remove();return;}el.style.opacity=a;
   }
   function attente(){ /* avant le départ du film (page en chargement, police, fenêtre) : du noir, et la graine qui respire */
@@ -85530,7 +86026,7 @@ function goImmersive(){
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
     g.fillStyle='#000';g.fillRect(0,0,W,H);
-    if(BOULE){const e=ETS.boule||(ETS.boule=geoLabSphere());chCl(1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT===null&&pretT!==null&&TOUCHE_BOULE)dToucheBoule(g,t-pretT);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
+    if(BOULE){const e=ETS.boule||(ETS.boule=crea('boule-geo',geoLabSphere));chCl(1-lisse(.7,1.25,t));dBoule(g,t,e);if(tapT===null&&pretT!==null&&TOUCHE_BOULE)dToucheBoule(g,t-pretT);if(tapT!==null){g.globalCompositeOperation='source-over';g.globalAlpha=1;dPresente(g,Math.max(0,t-tapT),e);if(tenuJeu)dAttenteJeu(g,Math.max(0,t-tapT),e);}g.globalCompositeOperation='source-over';g.globalAlpha=1;return;}
     let tl=t,id=forceId||(LABELS[LAB_ID]?LAB_ID:'neon'),idx=0;
     if(DEMO){const T=PERIODE_DEMO(),n=ORDRE_LABELS.length;idx=Math.floor(Math.max(0,t)/T);tl=Math.max(0,t)-idx*T;id=forceId||ORDRE_LABELS[idx%n];} /* la démo : les labels s'enchaînent en boucle */
     if(tl<TL.noir){const e=ETS[id]||(ETS[id]=LABELS[id].geo());LABELS[id].dessin(g,tl,e);}else if(!DEMO&&t>=TL.slam)dActe3(g,t,0);;
@@ -85548,13 +86044,13 @@ function goImmersive(){
       const t=(now-tLance)/1000-latV;
       if(BOULE){if(pretT===null&&t>=4.6&&(t>=20||(document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')&&(!window.__ccCharge||window.__ccCharge())))){ /* (2026-11-07, chasse SON-N02) une ressource du load qui traîne (police, image, 3G) laissait la boule tourner sans fin, le toucher ignoré : à 20 s elle est prête quoi qu'il arrive */pretT=t;try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
       if(DEMO){const T=PERIODE_DEMO(),idx=Math.floor(Math.max(0,t)/T);if(idx>0)sonDemo(idx,t-idx*T);else sonDemo(0,t);rendu(t);return;}
-      if(!ouvert&&t>=TL.noir)ouvrir();
+      if(!ouvert&&t>=TL.noir)crea('ouvrir',ouvrir);
       if(!revele&&!doux&&!passee){ /* le jeu ne dessine rien derrière le film (voir `loop`), SAUF quelques images dans le NOIR COMPLET : ses accrocs du premier dessin (relecture du ciel, compilations) ne se voient pas là, et il reprend à chaud 0,5 s avant la casse */
         if(t>=TL.noir+.08&&t<TL.noir+.22){if(window.__introCouvre)window.__introCouvre=false;}
         else if(t>=TL.noir+.22){if(!window.__introCouvre)window.__introCouvre=true;} /* puis il se tait jusqu'au toucher */
       }
-      if(!SNAP&&t>=TL.noir+.30)prepSnap(); /* (le logo au repos, pour les tuiles) */
-      if(!priseFaite&&t>=TL.noir+.14)demanderPrise(); /* une photo du jeu, juste avant la casse : les tuiles en feront des loupes */ /* le jeu se remet à dessiner, juste avant que l'écran casse (il faut qu'il y ait une image dessous) */
+      if(!SNAP&&t>=TL.noir+.30)crea('prepSnap',prepSnap); /* (le logo au repos, pour les tuiles) */
+      if(!priseFaite&&t>=TL.noir+.14)crea('demanderPrise',demanderPrise); /* une photo du jeu, juste avant la casse : les tuiles en feront des loupes */ /* le jeu se remet à dessiner, juste avant que l'écran casse (il faut qu'il y ait une image dessous) */
       if(SON&&!filmMuet&&!SON.fait.acte3&&t>=TL.noir-.15)SON.acte3(); /* le claquement et la tension se fabriquent dans le noir complet */
       rendu(t);
     }catch(e){window.__introErr=String(e&&e.stack||e).slice(0,400);if(++erreurs>2)secours();} /* une image qui plante ne doit jamais laisser l'écran noir : on ouvre le jeu */
@@ -85568,8 +86064,8 @@ function goImmersive(){
     if(lance||fini)return;lance=true;RM=reduit();tLance=performance.now();window.__intro='joue'; /* l'intro passe : pas de rechargement */
     eteintTitre();
     window.__introCouvre=true; /* le film couvre l'écran : le jeu ne calcule ni ne dessine plus rien dessous, jusqu'à 0,5 s avant la casse (voir `boucle`) */
-    try{if(prepEn!==W+'x'+H+'x'+S)prepare();}catch(e){} /* (déjà prêt si on a attendu un peu sur l'écran titre) */
-    try{son(geste);}catch(e){} /* le son ne doit JAMAIS bloquer les visuels */
+    try{if(prepEn!==W+'x'+H+'x'+S)crea('prepare',prepare);}catch(e){} /* (déjà prêt si on a attendu un peu sur l'écran titre) */
+    try{crea('son',function(){son(geste);});}catch(e){} /* le son ne doit JAMAIS bloquer les visuels */
     if(!iAC)tLance=performance.now(); /* (sans son : le film part tout de suite) */
   }
   function chauffe(){ /* pendant l'attente du toucher, hors de vue : tout ce qui est lourd la première fois (le calcul du film, le code du son) se fait maintenant, pas au toucher */
@@ -85602,7 +86098,7 @@ function goImmersive(){
   });
   function autoLance(){ /* le film part TOUT SEUL : le navigateur dit si le son est permis sans toucher (sinon le film passe muet, la casse sonnera au toucher) */
     if(lance||fini)return;
-    let A=null;if(!SANS_SON&&SND.sfx&&VOL.sfx>0){try{A=new (window.AudioContext||window.webkitAudioContext)();}catch(e){A=null;}}
+    let A=null;if(!SANS_SON&&SND.sfx&&VOL.sfx>0){try{A=crea('AudioContext',function(){return new (window.AudioContext||window.webkitAudioContext)();});}catch(e){A=null;}}
     if(!A){lancer(false);return;}
     preAC=A;let fait=false;const go=function(){if(fait)return;fait=true;if(lance){if(A!==iAC)try{A.close();}catch(e){}return;}lancer(false);}; /* (24/10, relecture : « le son de l'intro coupé net ») un toucher pendant l'attente de A.resume() (≤ 0,3 s) lance le film SUR A (son() prend preAC) : A n'est fermé que s'il n'a pas servi — avant, le film tapé tôt passait muet */
     try{if(!DEPART_LENT&&(A.state==='running'||(navigator.userActivation&&!navigator.userActivation.hasBeenActive))){go();return;}A.resume().then(go,go);}catch(e){go();} /* (2026-11-05) le navigateur le laisse sonner d'emblée, ou personne n'a encore touché la page (resume() ne répondrait jamais) : on part tout de suite, muet dans ce second cas (son() le voit), le toucher libérera le son */
@@ -85624,6 +86120,7 @@ function goImmersive(){
   if(BALADE||SIMU_JEU)setTimeout(finRapide,80); /* (atelier des nuages, simulateur) droit au jeu, sans l'intro */
   raf=requestAnimationFrame(boucle);
   let vuRev=false;
+  window.__ccIntroAuto={lancer:lancer,tapBoule:tapBoule,lance:function(){return lance;},pret:function(){return pretT!==null;},fini:function(){return fini;}}; /* (2026-11-07, banc iPhone automatique : banc-iphone.js touche l'écran titre tout seul ; inerte sinon) */
   window.dbgIntro={TL:TL,construitSon:function(A,t0,d){const r=construitSon(A,t0,d);r.suite();r.acte3();return r;},
     voir:function(t,id){manuel=true;forceId=id||null;if(!lance){lance=true;RM=reduit();eteintTitre();}if(!LOGO||!Object.keys(ETS).length){mesure();prepare();}
       if(t<TL.casse){casse=false;ECL=null;if(vuRev){vuRev=false;sp.id='splash';sp.style.cssText='';}}else if(!casse)casser(TL.casse,true);
@@ -86772,6 +87269,213 @@ window.dbgPerfRec=function(a){
   if(a==='resume')return C.map(function(c){return c.debut.slice(11,19)+' '+c.carte.join('>')+' '+c.duree+'s palier '+c.palier+' | '+Object.keys(c.phases).map(function(k){const p=c.phases[k];
     return k+' '+p.n+' img '+p.ips+' i/s >25:'+(p.b[2]+p.b[3]+p.b[4]+p.b[5])+' >33:'+(p.b[3]+p.b[4]+p.b[5])+' >50:'+(p.b[4]+p.b[5])+' pire '+p.max;}).join(' · ');});
   return {on:PREC.on,enCours:PREC.cours?{n:PREC.cours.n,carte:PREC.cours.carte,phases:PREC.cours.phases}:null,courses:C};};
+/* ===== LE BANC iPHONE AUTOMATIQUE (2026-11-07, passe 3 « au max », P7 : « l'app se joue toute seule, Sacha ne touche pas l'écran ») =====
+   INERTE sans le drapeau : `localStorage.ccBancAuto` (posé par natif.js dans une app construite par `preparer-www.js --banc "<scénario>"`) ou `?banc=auto` sur le web.
+   Sans drapeau, ce morceau lit une clé du localStorage et sort : aucun minuteur, aucun rAF, aucun écouteur. Jamais dans un build normal (natif.js EFFACE le drapeau
+   quand l'app n'a pas été construite avec --banc : le localStorage survit aux mises à jour de l'app).
+   Le scénario (une seule fonction async, des attentes sur l'état du jeu) :
+     titre   : l'intro est lancée toute seule ; la boule est touchée dès qu'elle est prête (`window.__ccIntroAuto`, exposé par intro-161.js)
+     menu    : « menu à t s », 5 s d'attente ; GARAGE → INVENTAIRE (défilement animé 3 s par scrollTop) → BOUTIQUE → retour à l'accueil
+     partie 1: JOUER, le pilote auto de mesure (`dbgAuto`) conduit 5 min ; toutes les 20 s un pouvoir (`dbgPwr`) ou une figure (`dbgFig('lance')`, en l'air) ;
+               à 5 min `dbgBoom()` (la mort) ; REJOUER
+     partie 2: 5 min encore, le moteur monté jusqu'au palier 16 (`dbgMoteur()`, un palier à la fois) puis mort ; MAISON
+     fin     : « fini t s » ; l'app reste à l'accueil, plus rien ne tourne.
+   Tout s'écrit dans la boîte noire. ⚠ `cashcarErr` est plafonnée à 30 lignes (debut-corps.html) et les sondes `serpent`/`fluide`/`memoire` en ont besoin :
+   le détail (une ligne par étape et toutes les 20 s de course) va dans `cashcarBanc` (même format, sans plafond serré : 400), et seules les lignes clés
+   (début, menu, mort, fini, échecs) passent aussi par `__ccNote('banc',…)`. Chaque ligne donne la PIRE IMAGE depuis la ligne d'avant. `cashcarBancEtat` garde
+   l'étape en cours : un lancement qui trouve une partie interrompue le dit (« ⚠ la session d'avant s'est arrêtée à … » = plantage ou rechargement).
+   Lecture côté Mac : outils/banc-perf/iphone-auto.sh. Réglages : ccBancAuto = JSON {scenario,partie,menu,pouv,palier} ou « 1 » ; ?bancT=40 raccourcit les parties (essai web). */
+(function(){
+  var FL=null,WEB=false;
+  try{FL=localStorage.getItem('ccBancAuto');}catch(e){}
+  try{WEB=/[?&]banc=auto\b/.test(location.search);}catch(e){}
+  if(!FL&&!WEB)return; /* le chemin normal : tout s'arrête ici */
+  var CFG={scenario:'p7',partie:300,menu:5,defile:3,pouv:20,palier:16,max:1800,nit:0,saut:0}; /* (essai web : nit 1 + saut 9 = une mort toutes les 20-30 s, le moteur retombe au palier 0 ; sans les deux : 0 mort en 160 s, palier 16 atteint) */;
+  try{var j=JSON.parse(FL);if(j&&typeof j==='object'){for(var k in j)CFG[k]=j[k];}else if(typeof j==='string')CFG.scenario=j;}catch(e){if(FL&&FL!=='1')CFG.scenario=String(FL);}
+  try{var mT=/[?&]bancT=(\d+)/.exec(location.search);if(mT)CFG.partie=+mT[1];}catch(e){}
+  try{var mN=/[?&]bancNit=(\d)/.exec(location.search),mS=/[?&]bancSaut=(\d+)/.exec(location.search);if(mN)CFG.nit=+mN[1];if(mS)CFG.saut=+mS[1];}catch(e){}
+  if(CFG.scenario==='court'&&CFG.partie>60)CFG.partie=45;
+  var CLE='cashcarBanc',CLE_ETAT='cashcarBancEtat';
+  var T0=performance.now(),ST=null,L=[],RUN=1,etape='?',seau=null,fini=false;
+  var sec=function(){return Math.round((performance.now()-T0)/100)/10;};
+  var att=function(ms){return new Promise(function(r){setTimeout(r,ms);});};
+  var V=function(){return typeof CC_VER==='string'?CC_VER:'?';};
+  /* ---- le registre : cashcarBanc (détail) + cashcarBancEtat (où l'on en est) ---- */
+  try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(e){L=[];}
+  var ecritTimer=0,ecritLent=false; /* (2026-11-07, OPTI ULTIME : ne pas fausser la mesure) le journal ne s'écrit que sur une transition d'étape (0,4 s) ou toutes les 20 s au plus pour les lignes « vivant »/« attend », et au départ en arrière-plan */
+  var lentes=function(m){return /^banc: (vivant|attend)/.test(m);};
+  var ecrit=function(){clearTimeout(ecritTimer);ecritTimer=0;try{var i,k;while(L.length>150){i=-1;for(k=0;k<L.length;k++)if(lentes(L[k].m)){i=k;break;}L.splice(i<0?0:i,1);}localStorage.setItem(CLE,JSON.stringify(L));}catch(e){}};
+  addEventListener('pagehide',function(){if(ecritTimer)ecrit();});document.addEventListener('visibilitychange',function(){if(document.hidden&&ecritTimer)ecrit();});
+  var etatSauve=function(extra){try{localStorage.setItem(CLE_ETAT,JSON.stringify({run:RUN,etape:etape,t:sec(),ts:Date.now(),fini:fini?1:0,v:V(),x:extra||''}));}catch(e){}};
+  var note=function(msg,cle){
+    msg='banc: '+msg;
+    try{L.push({k:'banc|'+L.length,g:'banc',m:msg.slice(0,400),o:'',n:1,t0:Date.now(),t:Date.now(),v:V(),d:1});var lente=lentes(msg);if(!ecritTimer||(ecritLent&&!lente)){clearTimeout(ecritTimer);ecritLent=lente;ecritTimer=setTimeout(ecrit,lente?20000:400);}}catch(e){}
+    if(cle)try{window.__ccNote('banc',msg);}catch(e){}
+    try{console.log('['+'banc]',msg);}catch(e){}
+  };
+  /* ---- le chronomètre d'images : la pire image depuis la ligne d'avant ---- */
+  var nouveauSeau=function(){return{n:0,max:0,maxT:0,p100:0,p50c:0,h:[],fond:0};};
+  var dernier=0,vivant=true;
+  var rafs=function(t){
+    if(!vivant)return;
+    if(dernier&&seau){var d=t-dernier;
+      if(document.hidden||d>20000){seau.fond++;}
+      else{seau.n++;if(d>seau.max){seau.max=d;seau.maxT=sec();}if(d>100)seau.p100++;if(d>50)seau.p50c++;if(seau.h.length<40000)seau.h.push(d);}}
+    dernier=t;requestAnimationFrame(rafs);};
+  var ferme=function(){var s=seau;seau=nouveauSeau();if(!s||!s.n)return{txt:'0 image',max:0};
+    var h=s.h.slice().sort(function(a,b){return a-b;}),p50=h[(h.length*.5)|0]||0,p90=h[(h.length*.9)|0]||0;
+    return{max:s.max,txt:'pire '+Math.round(s.max)+' ms (à '+s.maxT+' s) · p50 '+(Math.round(p50*10)/10)+' · p90 '+(Math.round(p90*10)/10)+' ms · '+s.n+' images · >50 ms: '+s.p50c+' · >100 ms: '+s.p100+(s.fond?' · en fond: '+s.fond:'')};};
+  /* ---- l'état du jeu, lu sans rien casser ---- */
+  var etatJeu=function(){try{return window.dbgState()||{};}catch(e){return{};}};
+  var palierMot=function(){try{return typeof engTier==='number'?engTier:-1;}catch(e){return -1;}};
+  var memoire=function(){var o=[];try{var i=renderer.info;o.push('tex '+i.memory.textures,'géo '+i.memory.geometries,'prog '+(i.programs?i.programs.length:'?'));}catch(e){}
+    try{if(performance.memory)o.push('tas '+Math.round(performance.memory.usedJSHeapSize/1048576)+' Mo');}catch(e){}return o.join(' · ');};
+  var ligne=function(nom,extra,cle){
+    etape=nom;var f=ferme();
+    note(nom+' · t '+sec()+' s · '+f.txt+(extra?' · '+extra:''),cle);etatSauve();return f;};
+  /* ---- les gestes ---- */
+  var visible=function(e){if(!e||!e.isConnected)return false;var r=e.getBoundingClientRect();if(r.width<4||r.height<4)return false;
+    var cs=getComputedStyle(e);return cs.display!=='none'&&cs.visibility!=='hidden'&&+cs.opacity>.05;};
+  var clic=function(sel){var Ls=document.querySelectorAll(sel);for(var i=0;i<Ls.length;i++)if(visible(Ls[i])){try{Ls[i].click();}catch(e){return null;}return Ls[i];}return null;};
+  var jusque=function(cond,max,pas){return new Promise(function(res){var t0=performance.now();(function p(){var ok=false;try{ok=!!cond();}catch(e){}
+    if(ok)return res(true);if(performance.now()-t0>max*1000)return res(false);setTimeout(p,pas||250);})();});};
+  var modale=function(){try{var m=document.getElementById('modale');if(m&&m.classList.contains('on')){var b=m.querySelectorAll('.modB .pbtn');if(b.length){b[b.length-1].click();return true;}}}catch(e){}return false;};
+  var enCourse=function(){var s=etatJeu();return !!(s.started&&s.running&&!s.gameOver);};
+  var mort=function(){var s=etatJeu();return !!(s.started&&s.gameOver);};
+  var echec=function(msg){note('ÉCHEC · '+msg+' · t '+sec()+' s',true);};
+  var actions=0;
+  /* ---- les écrans du menu ---- */
+  var ecrans=async function(){
+    var ok;
+    clic('[data-m="garage"]');
+    ok=await jusque(function(){return typeof garageOn!=='undefined'&&garageOn;},15);
+    if(!ok){echec('le garage ne s\'ouvre pas');return;}
+    await att(1500);ligne('garage ouvert',memoire());
+    await att(2500);ligne('garage 2,5 s');
+    /* l'inventaire : ouverture, puis défilement de la grille par scrollTop sur CFG.defile s, aller puis retour */
+    try{window.dbgInv('ouvre');}catch(e){}
+    ok=await jusque(function(){return typeof INV!=='undefined'&&INV&&INV.on;},8);
+    if(!ok){echec('l\'inventaire ne s\'ouvre pas');}
+    else{await att(800);ligne('inventaire ouvert');
+      var g=document.getElementById('ivGrille'),m=g?g.scrollHeight-g.clientHeight:0;
+      if(!g||m<20)note('inventaire : rien à défiler (grille '+(g?g.scrollHeight+'/'+g.clientHeight:'absente')+')');
+      else{var D=CFG.defile*1000,a=performance.now();
+        await new Promise(function(res){(function p(){var k=Math.min(1,(performance.now()-a)/D),q=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;g.scrollTop=m*q;if(k<1)requestAnimationFrame(p);else res();})();});
+        await att(300);
+        a=performance.now();await new Promise(function(res){(function p(){var k=Math.min(1,(performance.now()-a)/(D/2)),q=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;g.scrollTop=m*(1-q);if(k<1)requestAnimationFrame(p);else res();})();});}
+      ligne('inventaire défilé',m>=20?'grille '+g.scrollHeight+' px':'');
+      try{invFerme();}catch(e){}await att(900);}
+    /* la boutique */
+    var ot=performance.now();clic('#gShopBas');
+    ok=await jusque(function(){var g=document.getElementById('garage');return g&&g.classList.contains('modeShop');},12);
+    if(!ok)echec('la boutique ne s\'ouvre pas');
+    else{note('boutique ouverte en '+Math.round(performance.now()-ot)+' ms');await att(2500);ligne('boutique ouverte 2,5 s');}
+    /* le retour : HOME (la rangée du bas) ferme la boutique ; l'ACCUEIL, ici, c'est l'atelier en mode « menu » (garageOn reste vrai) avec JOUER par-dessus */
+    var jouerVisible=function(){return visible(document.querySelector('#mHome [data-m="play"]'))||visible(document.querySelector('.mPlay'));};
+    for(var i=0;i<3&&!jouerVisible();i++){
+      modale();
+      if(i===0)clic('#gHomeBas')||clic('#gClose')||clic('#gHomeMini');
+      else if(i===1){try{if(typeof garageOn!=='undefined'&&garageOn&&!GAR.go)garMode('menu');}catch(e){}}
+      else {try{window.__mGo&&window.__mGo('home');}catch(e){}}
+      await jusque(jouerVisible,5);}
+    await att(1500);
+    ligne('retour accueil',jouerVisible()?'':'⚠ JOUER pas visible');
+  };
+  /* ---- une course : JOUER / REJOUER, le pilote, des actions toutes les CFG.pouv s, la mort forcée ---- */
+  var armePilote=function(){try{window.dbgAuto(true,0,{vol:true,nit:CFG.nit,saut:CFG.saut});}catch(e){echec('dbgAuto : '+(e&&e.message));}};
+  var demarre=async function(premier){
+    var ok=false;
+    for(var i=0;i<30&&!ok;i++){modale();
+      if(premier&&i%4===0){clic('[data-m="play"].mPlay')||clic('#mHome [data-m="play"]')||clic('[data-m="play"]');}
+      else if(!premier&&i%3===0){clic('[data-m="replay"]');}
+      if(i===9||i===20){try{note('dbgJouer → '+JSON.stringify(window.dbgJouer()));}catch(e){}}
+      ok=await jusque(enCourse,3.5);}
+    return ok;};
+  var cles=['n','a','v','m','x'],figI=0;
+  var actionCourse=function(){ /* UNE action : une figure si la caisse est en l'air, sinon le pouvoir suivant */
+    var s=etatJeu(),r='';actions++;
+    try{
+      if(s.mode==='fall'&&actions%2===0){var f=window.dbgFig('lance',figI++);r='figure '+(figI-1)+(f?' ok':' refusée');}
+      else{var k=cles[actions%cles.length];window.dbgPwr(k,1);r='pouvoir '+k;}
+    }catch(e){r='action en erreur '+(e&&e.message);}
+    return r;};
+  var course=async function(num,rampe){
+    var dur=CFG.partie,t0=performance.now(),runT=performance.now(),morts=0,derAct=0,pTarget=CFG.palier,maxPal=palierMot(),vmax=0;
+    var avant=ferme();
+    armePilote();
+    note('partie '+num+' : départ à t '+sec()+' s · '+memoire()+' · palier '+palierMot(),true);
+    var derLigne=performance.now();
+    while((performance.now()-t0)/1000<dur){
+      await att(500);
+      if(document.hidden){continue;}
+      var s=etatJeu(),dt=(performance.now()-t0)/1000;
+      if(s.gameOver&&s.started){ /* le pilote est mort avant l'heure : on le note, on rejoue, la partie continue jusqu'à sa durée */
+        morts++;ligne('partie '+num+' · mort anticipée n°'+morts+' à '+Math.round(dt)+' s','palier '+palierMot()+' · v max '+Math.round(vmax)+' km/h',true);
+        try{window.dbgAuto(false);}catch(e){}
+        await att(3000);
+        if(!await demarre(false)){echec('REJOUER après mort anticipée');return false;}
+        runT=performance.now();armePilote();derLigne=performance.now();continue;}
+      if(+s.vH>vmax)vmax=+s.vH;var pm=palierMot();if(pm>maxPal)maxPal=pm;
+      if(rampe){ /* partie 2 : monter le moteur d'un palier à la fois pour atteindre CFG.palier aux 70 % de la durée (le palier naturel est trop lent) */
+        var runDt=(runT-t0)/1000,den=Math.max(8,Math.min(dur*.7,(dur-runDt)*.8)),cible=Math.min(CFG.palier,Math.ceil(CFG.palier*((performance.now()-runT)/1000)/den)); /* après une mort anticipée la rampe se resserre : le palier cible reste atteignable avant la fin */
+        if(pm>=0&&pm<cible&&performance.now()-derAct>2500){derAct=performance.now();try{window.dbgMoteur();}catch(e){}}}
+      if((performance.now()-derLigne)/1000>=CFG.pouv){derLigne=performance.now();
+        var a=actionCourse();ligne('partie '+num+' · '+Math.round(dt)+' s','palier '+palierMot()+' · '+Math.round(+s.vH||0)+' km/h · mode '+s.mode+' · '+a);}}
+    /* l'heure : la mort forcée */
+    try{window.dbgAuto(false);}catch(e){}
+    ligne('partie '+num+' · fin de course','palier max '+maxPal+' (cible '+(rampe?CFG.palier:'—')+') · v max '+Math.round(vmax)+' km/h · '+morts+' mort(s) anticipée(s) · '+memoire(),true);
+    var bt=performance.now();
+    try{window.dbgBoom();}catch(e){echec('dbgBoom : '+(e&&e.message));}
+    var ok=await jusque(mort,15);
+    if(!ok)echec('la mort forcée n\'a pas eu lieu');
+    await jusque(function(){return visible(document.querySelector('#mDead [data-m="replay"]'))||visible(document.querySelector('[data-m="replay"]'));},25);
+    ligne('partie '+num+' · mort','écran de mort en '+Math.round(performance.now()-bt)+' ms · '+memoire(),true);
+    if(rampe&&maxPal<CFG.palier)note('⚠ palier '+CFG.palier+' non atteint (max '+maxPal+')',true);
+    return true;};
+  /* ---- le titre : l'intro, la boule ---- */
+  var titre=async function(){
+    var ok=await jusque(function(){return window.__ccIntroAuto||(window.__gameReady&&!window.__intro);},60);
+    var I=window.__ccIntroAuto;
+    if(I){
+      /* le film part tout seul ; s'il n'est pas lancé après 8 s, on le lance */
+      await jusque(function(){return I.lance();},8);if(!I.lance())try{I.lancer(true);}catch(e){}
+      ok=await jusque(function(){return I.pret()||I.fini();},90,200);
+      if(!ok)echec('la boule n\'est jamais prête');
+      else{note('boule prête à t '+sec()+' s');try{I.tapBoule();}catch(e){echec('tapBoule : '+(e&&e.message));}}}
+    ok=await jusque(function(){return window.__gameReady&&!window.__intro&&document.getElementById('mHome')&&document.getElementById('mHome').classList.contains('on')&&visible(document.querySelector('[data-m="play"]'));},120,300);
+    return ok;};
+  var tout=async function(){
+    var rep=null;try{rep=JSON.parse(localStorage.getItem(CLE_ETAT)||'null');}catch(e){}
+    if(rep&&!rep.fini&&Date.now()-rep.ts<45*60000){RUN=(rep.run|0)+1;
+      note('⚠ PLANTAGE OU RECHARGEMENT : la session d\'avant (run '+rep.run+', v '+rep.v+') s\'est arrêtée à « '+rep.etape+' » à t '+rep.t+' s ('+Math.round((Date.now()-rep.ts)/1000)+' s avant ce lancement)',true);
+      if(RUN>3){note('banc : 3 sessions interrompues, on arrête',true);fini=true;etatSauve('abandon');vivant=false;return;}}
+    else if(rep)RUN=(rep.run|0)+1;
+    note('début · run '+RUN+' · scénario '+CFG.scenario+' · partie '+CFG.partie+' s · v '+V()+' · '+(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform()?'app native':'web')+' · '+screen.width+'×'+screen.height+' @'+(window.devicePixelRatio||1)+' · wakeLock '+(navigator.wakeLock?'oui':'non'),true);
+    try{if(navigator.wakeLock)navigator.wakeLock.request('screen').then(function(w){note('wakeLock obtenu');},function(e){note('wakeLock refusé : '+(e&&e.message));});}catch(e){}
+    seau=nouveauSeau();requestAnimationFrame(rafs);
+    etatSauve();
+    if(!await titre()){echec('le menu n\'apparaît pas');ligne('titre');return;}
+    ligne('titre → menu','',false);note('menu à '+sec()+' s',true);
+    await att(CFG.menu*1000);ligne('menu '+CFG.menu+' s');
+    await ecrans();
+    if(!await demarre(true)){echec('JOUER ne lance pas la course');return;}
+    await course(1,false);
+    if(!await demarre(false)){echec('REJOUER ne lance pas la partie 2');return;}
+    await course(2,true);
+    /* retour à l'accueil (MAISON), puis plus rien */
+    for(var i=0;i<6;i++){modale();clic('#mDead [data-m="menu"]')||clic('[data-m="menu"]');
+      if(await jusque(function(){return !mort()||(document.getElementById('mHome')&&document.getElementById('mHome').classList.contains('on'));},4))break;}
+    try{window.__mGo&&window.__mGo('home');}catch(e){}
+    await att(2000);
+    ligne('retour accueil final');
+  };
+  var lance=function(){
+    tout().then(function(){fini=true;note('fini '+sec()+' s',true);vivant=false;etatSauve();ecrit();},
+      function(e){fini=true;note('ÉCHEC du banc : '+(e&&e.stack||e),true);vivant=false;etatSauve();ecrit();});};
+  /* départ : dès que le jeu a posé window.__gameReady (ou son chien de garde), mais sans attendre l'intro : titre() s'en charge */
+  window.__ccBanc={cfg:CFG,note:note,etat:function(){return{run:RUN,etape:etape,fini:fini,t:sec()};},lignes:function(){return L.slice();}};
+  setTimeout(lance,300);
+})();
 // ============================================================================
 // LE MÊME ⚙ POUR LE DESKTOP (2026-09-05) — « enlève la mini app, déplace tous les boutons du
 // gameplay, par un petit logo réglages qui inclue tous les boutons qu'on vient de supprimer ».

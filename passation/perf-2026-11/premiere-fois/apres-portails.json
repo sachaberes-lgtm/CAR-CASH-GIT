@@ -1,0 +1,4171 @@
+[
+ {
+  "etape": "portail → ville:pluie",
+  "famille": "portail",
+  "ret": [],
+  "ev": [
+   {
+    "t": 351878,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "640x640",
+    "st": "Object.texImage2D (three.min.js:6:303528) < Z (three.min.js:6:313194) < ps.V [as setTexture2D] (three.min.js:6:307979) < ws.initTexture (three.min.js:6:357589) < im.onload (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:13007:102)"
+   },
+   {
+    "t": 351912,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "106Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 351914,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "106Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 351915,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "106Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 351917,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "357Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 351919,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "357Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 351920,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "357Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 351949,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "122Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 351951,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "122Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 351952,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "122Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 351954,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "152Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 351956,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "152Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 351958,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "152Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 352048,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "170Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 352051,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "170Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 352052,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "170Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 352054,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 352055,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 352057,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 352059,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "106Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 352062,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "106Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 352063,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "106Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 352105,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "380Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 352107,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "380Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 352109,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "380Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 353857,
+    "lab": "portail → ville:pluie",
+    "k": "canvas",
+    "d": 0,
+    "x": "",
+    "st": "jusToile (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66028:21) < juiceScreen (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66056:13) < fruitCroque (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66123:3) < pickupsTick (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:77741:9) < loop (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:78665:7)"
+   },
+   {
+    "t": 353866,
+    "lab": "portail → ville:pluie",
+    "k": "canvas",
+    "d": 0,
+    "x": "",
+    "st": "jusToile (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66028:21) < juiceScreen (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66056:13) < fruitCroque (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66123:3) < pickupsTick (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:77741:9) < loop (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:78665:7)"
+   },
+   {
+    "t": 355723,
+    "lab": "portail → ville:pluie",
+    "k": "canvas",
+    "d": 0,
+    "x": "",
+    "st": "jusToile (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66028:21) < juiceScreen (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66056:13) < fruitCroque (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66123:3) < pickupsTick (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:77741:9) < loop (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:78665:7)"
+   },
+   {
+    "t": 358272,
+    "lab": "portail → ville:pluie",
+    "k": "canvas",
+    "d": 0,
+    "x": "",
+    "st": "jusToile (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66028:21) < juiceScreen (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66056:13) < fruitCroque (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66123:3) < pickupsTick (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:77741:9) < loop (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:78665:7)"
+   },
+   {
+    "t": 367981,
+    "lab": "portail → ville:pluie",
+    "k": "canvas",
+    "d": 0,
+    "x": "",
+    "st": "jusToile (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66028:21) < juiceScreen (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66056:13) < fruitCroque (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66123:3) < pickupsTick (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:77741:9) < loop (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:78665:7)"
+   },
+   {
+    "t": 383052,
+    "lab": "portail → ville:pluie",
+    "k": "canvas",
+    "d": 0,
+    "x": "",
+    "st": "pcVoile (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66462:110) < portPasseNiveau (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66512:10) < portailPasse (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66442:3) < loop (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:78597:14)"
+   },
+   {
+    "t": 383052,
+    "lab": "portail → ville:pluie",
+    "k": "canvas",
+    "d": 0,
+    "x": "",
+    "st": "pcVoile (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66463:67) < portPasseNiveau (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66512:10) < portailPasse (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:66442:3) < loop (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:78597:14)"
+   },
+   {
+    "t": 383153,
+    "lab": "portail → ville:pluie",
+    "k": "canvas",
+    "d": 0,
+    "x": "",
+    "st": "villePubAtlas (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:25170:33) < buildVoxCity (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29095:26) < buildTrack (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:17407:3) < newTrack0 (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:67400:41) < newTrack (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:67383:54) < prebPorte (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:16896:44)"
+   },
+   {
+    "t": 383204,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383207,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383209,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383211,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "206Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383214,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383216,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383217,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383219,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383220,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383222,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383224,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383225,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383227,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383230,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383231,
+    "lab": "portail → ville:pluie",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "111Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 383243,
+    "lab": "portail → ville:pluie",
+    "k": "prem-programme",
+    "d": 0,
+    "x": "MeshLambertMaterial [USE_INSTANCING USE_INSTANCING_COLOR USE_FOG USE_SHADOWMAP] état 0||1|1|1|1 ¶ objet /Mesh ‹ /Group ‹ /Scene | mat MeshLambertMaterial  #ffffff | géo BoxGeometry 24v 12t inst 561 | créé par fam (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29079) < buildVoxCity (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29091) < buildTrack (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:17407) < newTrack0 (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:67400)",
+    "st": "Q.<computed> [as drawElementsInstanced] (<anonymous>:18:160) < wi.renderInstances (three.min.js:6:253541) < ws.renderBufferDirect (three.min.js:6:343726) < R.renderBufferDirect (<anonymous>:1:668)"
+   },
+   {
+    "t": 383246,
+    "lab": "portail → ville:pluie",
+    "k": "prem-programme",
+    "d": 0,
+    "x": "MeshBasicMaterial [USE_INSTANCING USE_INSTANCING_COLOR USE_FOG USE_SHADOWMAP] état 0||1|1|1|1 ¶ objet /Mesh ‹ /Group ‹ /Scene | mat MeshBasicMaterial  #ffffff | géo BoxGeometry 24v 12t inst 228 | créé par fam (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29079) < buildVoxCity (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29094) < buildTrack (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:17407) < newTrack0 (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:67400)",
+    "st": "Q.<computed> [as drawElementsInstanced] (<anonymous>:18:160) < wi.renderInstances (three.min.js:6:253541) < ws.renderBufferDirect (three.min.js:6:343726) < R.renderBufferDirect (<anonymous>:1:668)"
+   },
+   {
+    "t": 383249,
+    "lab": "portail → ville:pluie",
+    "k": "prem-programme",
+    "d": 0,
+    "x": "MeshBasicMaterial [USE_INSTANCING USE_FOG USE_SHADOWMAP] état 0||1|1|1|1 ¶ objet /Mesh ‹ /Group ‹ /Scene | mat MeshBasicMaterial  #000000 | géo BoxGeometry 24v 12t inst 203 | créé par fam (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29079) < buildVoxCity (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29091) < buildTrack (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:17407) < newTrack0 (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:67400)",
+    "st": "Q.<computed> [as drawElementsInstanced] (<anonymous>:18:160) < wi.renderInstances (three.min.js:6:253541) < ws.renderBufferDirect (three.min.js:6:343726) < R.renderBufferDirect (<anonymous>:1:668)"
+   },
+   {
+    "t": 383251,
+    "lab": "portail → ville:pluie",
+    "k": "prem-programme",
+    "d": 0,
+    "x": "MeshBasicMaterial [USE_INSTANCING USE_FOG USE_SHADOWMAP] état 0||1|1|1|1 ¶ objet /Mesh ‹ /Group ‹ /Scene | mat MeshBasicMaterial  #ffffff | géo BoxGeometry 24v 12t inst 1 | créé par fam (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29079) < buildVoxCity (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29094) < buildTrack (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:17407) < newTrack0 (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:67400)",
+    "st": "Q.<computed> [as drawElementsInstanced] (<anonymous>:18:160) < wi.renderInstances (three.min.js:6:253541) < ws.renderBufferDirect (three.min.js:6:343726) < R.renderBufferDirect (<anonymous>:1:668)"
+   },
+   {
+    "t": 383255,
+    "lab": "portail → ville:pluie",
+    "k": "prem-programme",
+    "d": 0,
+    "x": "MeshLambertMaterial [USE_INSTANCING USE_INSTANCING_COLOR USE_FOG USE_SHADOWMAP] état 0||1|1|1|1 ¶ objet /Mesh ‹ /Group ‹ /Scene | mat MeshLambertMaterial  #ffffff | géo BufferGeometry 48v 28t inst 212 | créé par fam (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29079) < buildVoxCity (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29092) < buildTrack (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:17407) < newTrack0 (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:67400)",
+    "st": "Q.<computed> [as drawElementsInstanced] (<anonymous>:18:160) < wi.renderInstances (three.min.js:6:253541) < ws.renderBufferDirect (three.min.js:6:343726) < R.renderBufferDirect (<anonymous>:1:668)"
+   },
+   {
+    "t": 383257,
+    "lab": "portail → ville:pluie",
+    "k": "prem-programme",
+    "d": 0,
+    "x": "MeshBasicMaterial [USE_INSTANCING USE_INSTANCING_COLOR USE_FOG USE_SHADOWMAP] état 0||1|1|1|1 ¶ objet /Mesh ‹ /Group ‹ /Scene | mat MeshBasicMaterial  #000000 | géo BoxGeometry 24v 12t inst 1 | créé par fam (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29079) < buildVoxCity (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29092) < buildTrack (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:17407) < newTrack0 (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:67400)",
+    "st": "Q.<computed> [as drawElementsInstanced] (<anonymous>:18:160) < wi.renderInstances (three.min.js:6:253541) < ws.renderBufferDirect (three.min.js:6:343726) < R.renderBufferDirect (<anonymous>:1:668)"
+   },
+   {
+    "t": 383266,
+    "lab": "portail → ville:pluie",
+    "k": "prem-programme",
+    "d": 0,
+    "x": "ShaderMaterial [DOUBLE_SIDED USE_SHADOWMAP] état 1|770,1|0|1|0|1 ¶ objet ville rais/Mesh ‹ /Group ‹ /Scene | mat ShaderMaterial  transp ADD | géo BufferGeometry 96v 96t | créé par villeRais (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:26426) < buildVoxCity (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29100) < buildTrack (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:17407) < newTrack0 (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:67400)",
+    "st": "Q.<computed> [as drawElements] (<anonymous>:18:160) < wi.render (three.min.js:6:253155) < ws.renderBufferDirect (three.min.js:6:343878) < R.renderBufferDirect (<anonymous>:1:668)"
+   },
+   {
+    "t": 383268,
+    "lab": "portail → ville:pluie",
+    "k": "prem-programme",
+    "d": 0,
+    "x": "MeshBasicMaterial [USE_INSTANCING USE_FOG USE_MAP USE_UV DOUBLE_SIDED USE_SHADOWMAP] état 1|770,1|0|1|0|1 ¶ objet /Mesh ‹ /Group ‹ /Scene | mat MeshBasicMaterial  #ffffff map 0px transp ADD | géo PlaneGeometry 4v 2t inst 13 | créé par buildVoxCity (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:29096) < buildTrack (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:17407) < newTrack0 (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:67400) < newTrack (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:67383)",
+    "st": "Q.<computed> [as drawElementsInstanced] (<anonymous>:18:160) < wi.renderInstances (three.min.js:6:253541) < ws.renderBufferDirect (three.min.js:6:343726) < R.renderBufferDirect (<anonymous>:1:668)"
+   }
+  ],
+  "F": [
+   [
+    352012,
+    100,
+    "portail → ville:pluie"
+   ],
+   [
+    352078,
+    67,
+    "portail → ville:pluie"
+   ],
+   [
+    352212,
+    67,
+    "portail → ville:pluie"
+   ],
+   [
+    352545,
+    67,
+    "portail → ville:pluie"
+   ],
+   [
+    352845,
+    67,
+    "portail → ville:pluie"
+   ],
+   [
+    358211,
+    67,
+    "portail → ville:pluie"
+   ],
+   [
+    358345,
+    67,
+    "portail → ville:pluie"
+   ],
+   [
+    365478,
+    67,
+    "portail → ville:pluie"
+   ],
+   [
+    365761,
+    83,
+    "portail → ville:pluie"
+   ],
+   [
+    369478,
+    83,
+    "portail → ville:pluie"
+   ],
+   [
+    383160,
+    83,
+    "portail → ville:pluie"
+   ],
+   [
+    383261,
+    100,
+    "portail → ville:pluie"
+   ],
+   [
+    383344,
+    83,
+    "portail → ville:pluie"
+   ]
+  ],
+  "loaf": [
+   {
+    "t": 351939,
+    "d": 95,
+    "bl": 45,
+    "st": 4,
+    "lab": "portail → ville:pluie",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 92ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 383085,
+    "d": 94,
+    "bl": 43,
+    "st": 6,
+    "lab": "portail → ville:pluie",
+    "sc": [
+     "FrameRequestCallback  index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:6940405 83ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 383183,
+    "d": 92,
+    "bl": 41,
+    "st": 5,
+    "lab": "portail → ville:pluie",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 85ms (forcé 0)"
+    ]
+   }
+  ],
+  "cv": 8,
+  "ct": 0,
+  "up": {
+   "tex": 10,
+   "px": 1245184,
+   "buf": 84,
+   "bytes": 16759944,
+   "n": 40
+  },
+  "etat": {
+   "m": "drive"
+  },
+  "delta": {
+   "progs": 0,
+   "tex": 4,
+   "geo": -181
+  },
+  "ms": {
+   "ScriptDuration": 14091,
+   "LayoutDuration": 478,
+   "RecalcStyleDuration": 3826,
+   "TaskDuration": 22686
+  }
+ },
+ {
+  "etape": "portail → jade:midi",
+  "famille": "portail",
+  "ret": [],
+  "ev": [
+   {
+    "t": 386146,
+    "lab": "portail → jade:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "640x640",
+    "st": "Object.texImage2D (three.min.js:6:303528) < Z (three.min.js:6:313194) < ps.V [as setTexture2D] (three.min.js:6:307979) < ws.initTexture (three.min.js:6:357589) < im.onload (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:13007:102)"
+   },
+   {
+    "t": 414911,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414913,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414914,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414916,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "206Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414918,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414919,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414921,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414923,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414926,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414928,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414930,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "108Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414931,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "108Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414933,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414934,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414936,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414938,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414939,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414941,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414942,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414944,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414945,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414947,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "108Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414949,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "108Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414950,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "108Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414952,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "1026Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414954,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "1026Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414956,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "342Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414958,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "342Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414960,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "1368Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414963,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "287Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:255627) < At (three.min.js:6:345072) < At (three.min.js:6:345327) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 414970,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "513Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.setup (three.min.js:6:244476) < ws.renderBufferDirect (three.min.js:6:343143) < R.renderBufferDirect (<anonymous>:1:668) < Ct (three.min.js:6:346047)"
+   },
+   {
+    "t": 414973,
+    "lab": "portail → jade:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 414975,
+    "lab": "portail → jade:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 414976,
+    "lab": "portail → jade:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 414978,
+    "lab": "portail → jade:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 414979,
+    "lab": "portail → jade:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 414981,
+    "lab": "portail → jade:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 414984,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "281Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.setup (three.min.js:6:244476) < ws.renderBufferDirect (three.min.js:6:343143) < R.renderBufferDirect (<anonymous>:1:668) < Ct (three.min.js:6:346047)"
+   },
+   {
+    "t": 414999,
+    "lab": "portail → jade:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "116Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   }
+  ],
+  "F": [
+   [
+    386244,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    386310,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    386494,
+    83,
+    "portail → jade:midi"
+   ],
+   [
+    386727,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    386927,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    387060,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    387260,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    387494,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    387827,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    399826,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    411343,
+    83,
+    "portail → jade:midi"
+   ],
+   [
+    411843,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    412009,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    412476,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    412559,
+    83,
+    "portail → jade:midi"
+   ],
+   [
+    413343,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    413443,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    413576,
+    67,
+    "portail → jade:midi"
+   ],
+   [
+    415076,
+    200,
+    "portail → jade:midi"
+   ],
+   [
+    415159,
+    83,
+    "portail → jade:midi"
+   ],
+   [
+    416476,
+    83,
+    "portail → jade:midi"
+   ],
+   [
+    417476,
+    100,
+    "portail → jade:midi"
+   ],
+   [
+    417776,
+    67,
+    "portail → jade:midi"
+   ]
+  ],
+  "loaf": [
+   {
+    "t": 386186,
+    "d": 84,
+    "bl": 34,
+    "st": 4,
+    "lab": "portail → jade:midi",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 79ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 414883,
+    "d": 223,
+    "bl": 173,
+    "st": 5,
+    "lab": "portail → jade:midi",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 215ms (forcé 0)"
+    ]
+   }
+  ],
+  "cv": 0,
+  "ct": 0,
+  "up": {
+   "tex": 8,
+   "px": 917504,
+   "buf": 430,
+   "bytes": 114930152,
+   "n": 40
+  },
+  "etat": {
+   "m": "drive"
+  },
+  "delta": {
+   "progs": 0,
+   "tex": 0,
+   "geo": 184
+  },
+  "ms": {
+   "ScriptDuration": 13743,
+   "LayoutDuration": 541,
+   "RecalcStyleDuration": 3256,
+   "TaskDuration": 21869
+  }
+ },
+ {
+  "etape": "portail → grotte:matin",
+  "famille": "portail",
+  "ret": [],
+  "ev": [
+   {
+    "t": 418244,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "640x640",
+    "st": "Object.texImage2D (three.min.js:6:303528) < Z (three.min.js:6:313194) < ps.V [as setTexture2D] (three.min.js:6:307979) < ws.initTexture (three.min.js:6:357589) < im.onload (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:13007:102)"
+   },
+   {
+    "t": 446918,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446921,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446922,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446924,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "206Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446925,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446927,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446929,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446931,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "206Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446932,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446934,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446935,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446937,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446938,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446940,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446941,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446943,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446945,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446946,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 446955,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 446957,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 446959,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 446960,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 446962,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 446963,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 446968,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "281Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.setup (three.min.js:6:244476) < ws.renderBufferDirect (three.min.js:6:343143) < R.renderBufferDirect (<anonymous>:1:668) < Ct (three.min.js:6:346047)"
+   },
+   {
+    "t": 446970,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "281Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.setup (three.min.js:6:244476) < ws.renderBufferDirect (three.min.js:6:343143) < R.renderBufferDirect (<anonymous>:1:668) < Ct (three.min.js:6:346047)"
+   },
+   {
+    "t": 446981,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "640x640",
+    "st": "Object.texImage2D (three.min.js:6:303528) < Z (three.min.js:6:313194) < ps.V [as setTexture2D] (three.min.js:6:307979) < ws.initTexture (three.min.js:6:357589) < im.onload (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:13007:102)"
+   },
+   {
+    "t": 447022,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 447024,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 447026,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 447027,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "206Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 447029,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 447030,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 447032,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 447034,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "206Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 447035,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 447037,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 447040,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 447041,
+    "lab": "portail → grotte:matin",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "206Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   }
+  ],
+  "F": [
+   [
+    418309,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    418409,
+    100,
+    "portail → grotte:matin"
+   ],
+   [
+    418476,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    418542,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    418609,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    418776,
+    133,
+    "portail → grotte:matin"
+   ],
+   [
+    418842,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    418942,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    419042,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    419142,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    419242,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    419359,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    419426,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    419542,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    419659,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    419759,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    419842,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    419976,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    420076,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    420176,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    420276,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    420342,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    420409,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    420509,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    420609,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    420709,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    420842,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    421409,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    423109,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    423242,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    423376,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    423476,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    423609,
+    100,
+    "portail → grotte:matin"
+   ],
+   [
+    423709,
+    100,
+    "portail → grotte:matin"
+   ],
+   [
+    423809,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    424042,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    424309,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    424459,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    424759,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    424925,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    425392,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    426442,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    426509,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    426592,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    426909,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    427142,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    427242,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    427375,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    427475,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    427775,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    427909,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    428125,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    428259,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    428459,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    429592,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    429675,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    429842,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    430042,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    430209,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    430359,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    430459,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    430525,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    430592,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    430759,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    430959,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    431225,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    431492,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    431792,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    432125,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    432525,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    433058,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    433208,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    433342,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    433475,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    433608,
+    100,
+    "portail → grotte:matin"
+   ],
+   [
+    433675,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    433775,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    433875,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    434008,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    434175,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    434842,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    435842,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    436608,
+    100,
+    "portail → grotte:matin"
+   ],
+   [
+    436742,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    437258,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    437392,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    440975,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    441342,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    443558,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    443641,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    443775,
+    100,
+    "portail → grotte:matin"
+   ],
+   [
+    443891,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    444058,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    444208,
+    83,
+    "portail → grotte:matin"
+   ],
+   [
+    444475,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    444808,
+    67,
+    "portail → grotte:matin"
+   ],
+   [
+    446975,
+    100,
+    "portail → grotte:matin"
+   ],
+   [
+    447091,
+    117,
+    "portail → grotte:matin"
+   ]
+  ],
+  "loaf": [
+   {
+    "t": 418236,
+    "d": 87,
+    "bl": 27,
+    "st": 9,
+    "lab": "portail → grotte:matin",
+    "sc": [
+     "IMG[src=\"assets/portail/grotte-matin.webp\"].onload  index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:295866 28ms (forcé 0)",
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 39ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 418326,
+    "d": 103,
+    "bl": 51,
+    "st": 10,
+    "lab": "portail → grotte:matin",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 90ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 418669,
+    "d": 136,
+    "bl": 84,
+    "st": 5,
+    "lab": "portail → grotte:matin",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 128ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 423530,
+    "d": 88,
+    "bl": 38,
+    "st": 18,
+    "lab": "portail → grotte:matin",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 68ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 423630,
+    "d": 82,
+    "bl": 32,
+    "st": 15,
+    "lab": "portail → grotte:matin",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 62ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 436525,
+    "d": 82,
+    "bl": 32,
+    "st": 22,
+    "lab": "portail → grotte:matin",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 60ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 446891,
+    "d": 86,
+    "bl": 35,
+    "st": 4,
+    "lab": "portail → grotte:matin",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 79ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 446980,
+    "d": 117,
+    "bl": 66,
+    "st": 3,
+    "lab": "portail → grotte:matin",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 94ms (forcé 0)"
+    ]
+   }
+  ],
+  "cv": 0,
+  "ct": 0,
+  "up": {
+   "tex": 8,
+   "px": 917504,
+   "buf": 75,
+   "bytes": 14915104,
+   "n": 40
+  },
+  "etat": {
+   "m": "drive"
+  },
+  "delta": {
+   "progs": 0,
+   "tex": 0,
+   "geo": 476
+  },
+  "ms": {
+   "ScriptDuration": 21521,
+   "LayoutDuration": 574,
+   "RecalcStyleDuration": 3144,
+   "TaskDuration": 29376
+  }
+ },
+ {
+  "etape": "portail → dunes:midi",
+  "famille": "portail",
+  "ret": [],
+  "ev": [
+   {
+    "t": 449953,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "640x640",
+    "st": "Object.texImage2D (three.min.js:6:303528) < Z (three.min.js:6:313194) < ps.V [as setTexture2D] (three.min.js:6:307979) < ws.initTexture (three.min.js:6:357589) < im.onload (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:13007:102)"
+   },
+   {
+    "t": 449993,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 449994,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 449995,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 449998,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 449999,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 450000,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 451422,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "107Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 451424,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "107Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 463273,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 463275,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 463277,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 463278,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 463280,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 463281,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 468091,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "98Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 468092,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "98Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476333,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "336Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476337,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "336Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476339,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "336Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476340,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "112Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476342,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476343,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476345,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476347,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "206Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476349,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476351,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476352,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476354,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476356,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476358,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476361,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476363,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476365,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476366,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476368,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476370,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476371,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476372,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 476374,
+    "lab": "portail → dunes:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   }
+  ],
+  "F": [
+   [
+    450058,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    450158,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    450274,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    450441,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    450608,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    450758,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    450858,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    451024,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    451208,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    451308,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    451391,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    451491,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    451658,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    451991,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    454874,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    459891,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    460057,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    461291,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    461491,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    461641,
+    50,
+    "portail → dunes:midi"
+   ],
+   [
+    461824,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    461891,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    462224,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    462591,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    462691,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    463791,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    463874,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    464091,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    464391,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    464524,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    464641,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    464774,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    464874,
+    100,
+    "portail → dunes:midi"
+   ],
+   [
+    464941,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    465207,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    465274,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    465424,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    465574,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    465874,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    466024,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    466440,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    466724,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    466890,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    467024,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    467240,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    467357,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    467690,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    467757,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    467907,
+    100,
+    "portail → dunes:midi"
+   ],
+   [
+    468090,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    468157,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    468224,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    468307,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    468474,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    468624,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    468690,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    468857,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    470540,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    470840,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    471074,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    471357,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    471607,
+    83,
+    "portail → dunes:midi"
+   ],
+   [
+    473724,
+    50,
+    "portail → dunes:midi"
+   ],
+   [
+    474623,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    476390,
+    100,
+    "portail → dunes:midi"
+   ],
+   [
+    476457,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    477990,
+    67,
+    "portail → dunes:midi"
+   ],
+   [
+    478557,
+    67,
+    "portail → dunes:midi"
+   ]
+  ],
+  "loaf": [
+   {
+    "t": 464775,
+    "d": 115,
+    "bl": 61,
+    "st": 37,
+    "lab": "portail → dunes:midi",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 72ms (forcé 0)"
+    ]
+   }
+  ],
+  "cv": 0,
+  "ct": 0,
+  "up": {
+   "tex": 29,
+   "px": 1595383,
+   "buf": 83,
+   "bytes": 16479688,
+   "n": 40
+  },
+  "etat": {
+   "m": "drive"
+  },
+  "delta": {
+   "progs": 0,
+   "tex": 4,
+   "geo": -474
+  },
+  "ms": {
+   "ScriptDuration": 14516,
+   "LayoutDuration": 630,
+   "RecalcStyleDuration": 4958,
+   "TaskDuration": 24952
+  }
+ },
+ {
+  "etape": "portail → canyon:midi",
+  "famille": "portail",
+  "ret": [],
+  "ev": [
+   {
+    "t": 479320,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "640x640",
+    "st": "Object.texImage2D (three.min.js:6:303528) < Z (three.min.js:6:313194) < ps.V [as setTexture2D] (three.min.js:6:307979) < ws.initTexture (three.min.js:6:357589) < im.onload (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:13007:102)"
+   },
+   {
+    "t": 502531,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "106Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502532,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "106Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502534,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "106Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502536,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "129Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502538,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "129Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502540,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "129Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502542,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "183Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502543,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "183Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502546,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "183Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502547,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502549,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502551,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502554,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "206Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502557,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502559,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502562,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502564,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502566,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502567,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502569,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502570,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502572,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502574,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502576,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502577,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502579,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502580,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502582,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502583,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502584,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502587,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502588,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502590,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 502594,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "350x457",
+    "st": "Object.texImage2D (three.min.js:6:303528) < Z (three.min.js:6:312408) < V (three.min.js:6:307979) < ps.safeSetTexture2D (three.min.js:6:319292) < Sr.ir [as setValue] (three.min.js:6:259514) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 502596,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "350x457",
+    "st": "Object.texImage2D (three.min.js:6:303528) < Z (three.min.js:6:312408) < V (three.min.js:6:307979) < ps.safeSetTexture2D (three.min.js:6:319292) < Sr.ir [as setValue] (three.min.js:6:259514) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 502597,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "270x290",
+    "st": "Object.texImage2D (three.min.js:6:303528) < Z (three.min.js:6:312408) < V (three.min.js:6:307979) < ps.safeSetTexture2D (three.min.js:6:319292) < Sr.ir [as setValue] (three.min.js:6:259514) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 502600,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "157x205",
+    "st": "Object.texImage2D (three.min.js:6:303528) < Z (three.min.js:6:312408) < V (three.min.js:6:307979) < ps.safeSetTexture2D (three.min.js:6:319292) < Sr.ir [as setValue] (three.min.js:6:259514) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 502602,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 502603,
+    "lab": "portail → canyon:midi",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   }
+  ],
+  "F": [
+   [
+    479490,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    479657,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    479757,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    479957,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    480157,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    480357,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    480990,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    481073,
+    83,
+    "portail → canyon:midi"
+   ],
+   [
+    481407,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    481473,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    481573,
+    100,
+    "portail → canyon:midi"
+   ],
+   [
+    481640,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    482007,
+    100,
+    "portail → canyon:midi"
+   ],
+   [
+    482107,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    484923,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    485023,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    485556,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    487973,
+    150,
+    "portail → canyon:midi"
+   ],
+   [
+    488106,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    488323,
+    83,
+    "portail → canyon:midi"
+   ],
+   [
+    488440,
+    83,
+    "portail → canyon:midi"
+   ],
+   [
+    488740,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    488840,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    488906,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    489473,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    489923,
+    83,
+    "portail → canyon:midi"
+   ],
+   [
+    490856,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    490956,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    491756,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    492189,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    494623,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    498939,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    499306,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    499672,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    501106,
+    67,
+    "portail → canyon:midi"
+   ],
+   [
+    502489,
+    250,
+    "portail → canyon:midi"
+   ],
+   [
+    502589,
+    100,
+    "portail → canyon:midi"
+   ],
+   [
+    502689,
+    100,
+    "portail → canyon:midi"
+   ],
+   [
+    505356,
+    67,
+    "portail → canyon:midi"
+   ]
+  ],
+  "loaf": [
+   {
+    "t": 484893,
+    "d": 85,
+    "bl": 0,
+    "st": 19,
+    "lab": "portail → canyon:midi",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 30ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 487833,
+    "d": 131,
+    "bl": 80,
+    "st": 68,
+    "lab": "portail → canyon:midi",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 63ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 502255,
+    "d": 250,
+    "bl": 200,
+    "st": 8,
+    "lab": "portail → canyon:midi",
+    "sc": [
+     "FrameRequestCallback  index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:6940405 230ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 502508,
+    "d": 110,
+    "bl": 58,
+    "st": 6,
+    "lab": "portail → canyon:midi",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 99ms (forcé 0)"
+    ]
+   }
+  ],
+  "cv": 0,
+  "ct": 0,
+  "up": {
+   "tex": 12,
+   "px": 1347889,
+   "buf": 54,
+   "bytes": 10647200,
+   "n": 40
+  },
+  "etat": {
+   "m": "drive"
+  },
+  "delta": {
+   "progs": 0,
+   "tex": 2,
+   "geo": 11
+  },
+  "ms": {
+   "ScriptDuration": 12360,
+   "LayoutDuration": 637,
+   "RecalcStyleDuration": 4272,
+   "TaskDuration": 21768
+  }
+ },
+ {
+  "etape": "portail → nuages:orage",
+  "famille": "portail",
+  "ret": [],
+  "ev": [
+   {
+    "t": 505621,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "640x640",
+    "st": "Object.texImage2D (three.min.js:6:303528) < Z (three.min.js:6:313194) < ps.V [as setTexture2D] (three.min.js:6:307979) < ws.initTexture (three.min.js:6:357589) < im.onload (index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:13007:102)"
+   },
+   {
+    "t": 507116,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "165Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 507119,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "165Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 507120,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "110Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 519251,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "156Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 519256,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "156Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 519259,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "104Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 519262,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "170Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 519267,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "170Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 519269,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 519274,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "109Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 519277,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "109Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528985,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528986,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528986,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528987,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "206Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528988,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528988,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528989,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528989,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "206Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528990,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528991,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528991,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528992,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528992,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528993,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528994,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528994,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528995,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528995,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "113Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 528997,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 528997,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 528998,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 528998,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 528999,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 528999,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-texture",
+    "d": 0,
+    "x": "128x128",
+    "st": "Object.texImage2D (three.min.js:6:303528) < vendor/three.min.js:6:309363 < W (three.min.js:6:309590) < ps.safeSetTextureCube (three.min.js:6:319535) < Sr.sr [as setValue] (three.min.js:6:259782) < Cr.upload (three.min.js:6:263553) < It (three.min.js:6:351102)"
+   },
+   {
+    "t": 529006,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "281Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.setup (three.min.js:6:244476) < ws.renderBufferDirect (three.min.js:6:343143) < R.renderBufferDirect (<anonymous>:1:668) < Ct (three.min.js:6:346047)"
+   },
+   {
+    "t": 529009,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "281Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.setup (three.min.js:6:244476) < ws.renderBufferDirect (three.min.js:6:343143) < R.renderBufferDirect (<anonymous>:1:668) < Ct (three.min.js:6:346047)"
+   },
+   {
+    "t": 529041,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   },
+   {
+    "t": 529042,
+    "lab": "portail → nuages:orage",
+    "k": "envoi-tampon",
+    "d": 0,
+    "x": "310Ko",
+    "st": "Q.<computed> [as bufferData] (<anonymous>:24:33) < vendor/three.min.js:6:122330 < Object.update (three.min.js:6:122917) < Object.update (three.min.js:6:252724) < Object.update (three.min.js:6:255513) < At (three.min.js:6:345072) < At (three.min.js:6:345327)"
+   }
+  ],
+  "F": [
+   [
+    505756,
+    133,
+    "portail → nuages:orage"
+   ],
+   [
+    505956,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    506189,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    506422,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    508255,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    508705,
+    83,
+    "portail → nuages:orage"
+   ],
+   [
+    508889,
+    83,
+    "portail → nuages:orage"
+   ],
+   [
+    509039,
+    83,
+    "portail → nuages:orage"
+   ],
+   [
+    509139,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    509405,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    510072,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    512255,
+    83,
+    "portail → nuages:orage"
+   ],
+   [
+    515039,
+    50,
+    "portail → nuages:orage"
+   ],
+   [
+    515289,
+    50,
+    "portail → nuages:orage"
+   ],
+   [
+    515472,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    515605,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    515772,
+    100,
+    "portail → nuages:orage"
+   ],
+   [
+    515905,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    515972,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    516138,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    516238,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    516289,
+    50,
+    "portail → nuages:orage"
+   ],
+   [
+    516355,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    516472,
+    83,
+    "portail → nuages:orage"
+   ],
+   [
+    516572,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    516638,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    516755,
+    83,
+    "portail → nuages:orage"
+   ],
+   [
+    516855,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    517022,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    517122,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    517188,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    517272,
+    83,
+    "portail → nuages:orage"
+   ],
+   [
+    517372,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    517622,
+    117,
+    "portail → nuages:orage"
+   ],
+   [
+    518972,
+    83,
+    "portail → nuages:orage"
+   ],
+   [
+    519072,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    519172,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    519305,
+    133,
+    "portail → nuages:orage"
+   ],
+   [
+    519372,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    519438,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    519738,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    519838,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    519905,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    520038,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    520255,
+    50,
+    "portail → nuages:orage"
+   ],
+   [
+    520388,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    520538,
+    83,
+    "portail → nuages:orage"
+   ],
+   [
+    520655,
+    83,
+    "portail → nuages:orage"
+   ],
+   [
+    520805,
+    83,
+    "portail → nuages:orage"
+   ],
+   [
+    521488,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    521588,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    522005,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    522488,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    522938,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    523138,
+    50,
+    "portail → nuages:orage"
+   ],
+   [
+    523771,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    523822,
+    50,
+    "portail → nuages:orage"
+   ],
+   [
+    524221,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    524305,
+    50,
+    "portail → nuages:orage"
+   ],
+   [
+    524421,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    524588,
+    167,
+    "portail → nuages:orage"
+   ],
+   [
+    524855,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    524921,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    525055,
+    50,
+    "portail → nuages:orage"
+   ],
+   [
+    525255,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    525321,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    525455,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    525571,
+    117,
+    "portail → nuages:orage"
+   ],
+   [
+    525788,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    525888,
+    50,
+    "portail → nuages:orage"
+   ],
+   [
+    526155,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    526488,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    526871,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    527321,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    527921,
+    117,
+    "portail → nuages:orage"
+   ],
+   [
+    527988,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    528221,
+    117,
+    "portail → nuages:orage"
+   ],
+   [
+    528955,
+    733,
+    "portail → nuages:orage"
+   ],
+   [
+    529071,
+    83,
+    "portail → nuages:orage"
+   ],
+   [
+    529255,
+    117,
+    "portail → nuages:orage"
+   ],
+   [
+    529321,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    529655,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    530005,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    532171,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    532521,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    532588,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    533021,
+    67,
+    "portail → nuages:orage"
+   ],
+   [
+    533388,
+    67,
+    "portail → nuages:orage"
+   ]
+  ],
+  "loaf": [
+   {
+    "t": 505618,
+    "d": 138,
+    "bl": 85,
+    "st": 5,
+    "lab": "portail → nuages:orage",
+    "sc": [
+     "IMG[src=\"assets/portail/nuages-orage.webp\"].onload  index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:295866 24ms (forcé 0)",
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 105ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 517528,
+    "d": 82,
+    "bl": 32,
+    "st": 15,
+    "lab": "portail → nuages:orage",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 66ms (forcé 10)"
+    ]
+   },
+   {
+    "t": 519180,
+    "d": 127,
+    "bl": 77,
+    "st": 20,
+    "lab": "portail → nuages:orage",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 106ms (forcé 13)"
+    ]
+   },
+   {
+    "t": 524414,
+    "d": 142,
+    "bl": 72,
+    "st": 22,
+    "lab": "portail → nuages:orage",
+    "sc": [
+     "FrameRequestCallback loop index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:8366629 97ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 525487,
+    "d": 101,
+    "bl": 0,
+    "st": 3,
+    "lab": "portail → nuages:orage",
+    "sc": []
+   },
+   {
+    "t": 527789,
+    "d": 113,
+    "bl": 0,
+    "st": 5,
+    "lab": "portail → nuages:orage",
+    "sc": []
+   },
+   {
+    "t": 528097,
+    "d": 93,
+    "bl": 20,
+    "st": 1,
+    "lab": "portail → nuages:orage",
+    "sc": []
+   },
+   {
+    "t": 528193,
+    "d": 774,
+    "bl": 685,
+    "st": 4,
+    "lab": "portail → nuages:orage",
+    "sc": [
+     "FrameRequestCallback  index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi:6940405 728ms (forcé 0)"
+    ]
+   },
+   {
+    "t": 529135,
+    "d": 106,
+    "bl": 51,
+    "st": 7,
+    "lab": "portail → nuages:orage",
+    "sc": []
+   },
+   {
+    "t": 532490,
+    "d": 94,
+    "bl": 2,
+    "st": 4,
+    "lab": "portail → nuages:orage",
+    "sc": []
+   }
+  ],
+  "cv": 0,
+  "ct": 0,
+  "up": {
+   "tex": 8,
+   "px": 917504,
+   "buf": 102,
+   "bytes": 20378640,
+   "n": 40
+  },
+  "etat": {
+   "m": "drive"
+  },
+  "delta": {
+   "progs": 0,
+   "tex": -3,
+   "geo": 56
+  },
+  "ms": {
+   "ScriptDuration": 11521,
+   "LayoutDuration": 598,
+   "RecalcStyleDuration": 3730,
+   "TaskDuration": 20236
+  }
+ }
+]
