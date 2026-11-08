@@ -437,6 +437,24 @@ window.dbgOmbre=function(){ /* (2026-11-07, passe perf 3, P3, banc) LA PASSE D'O
   const sa=renderer.shadowMap.autoUpdate;renderer.shadowMap.needsUpdate=true;
   try{renderer.render(scene,camera);}finally{renderer.renderBufferDirect=o;renderer.shadowMap.autoUpdate=sa;}
   return {appels:ap,triangles:Math.round(tri),parDistance:B.map(Math.round),maillagesParDistance:BC,fam:Object.keys(F).map(function(k){return {k:k,n:F[k].n,t:Math.round(F[k].t)};}).sort(function(a,b){return b.t-a.t;}).slice(0,12)};};
+window.dbgRemplissage=function(){ /* (2026-11-07, passe perf 3, P3, banc) LE REMPLISSAGE D'UNE IMAGE : chaque passe (appel à renderer.render du compositeur : scène, ciel, halo à ses échelles, écran) avec la taille de sa cible, en multiples de l'écran ; la passe d'ombre (carte²) ; et pour la scène les objets TRANSPARENTS dessinés avec une estimation de leur surface à l'écran (disque de la sphère englobante projetée, plafonné à un écran, par instance pour les instanciés) : pixels écrits ≈ somme, recouvrement compris */
+  const rr=renderer.render,rb=renderer.renderBufferDirect,cv=renderer.domElement,W=cv.width,H=cv.height,SC=W*H,P=[],V=new THREE.Vector3(),sp=new THREE.Sphere(),e5=camera.projectionMatrix.elements[5],e0=camera.projectionMatrix.elements[0];let cur=null;
+  const aire=function(c,R){V.copy(c).applyMatrix4(camera.matrixWorldInverse);const d=-V.z;if(d<-R)return 0;const dd=Math.max(d,.5),rpx=R*e5/dd*(H/2),xn=V.x*e0/dd,yn=V.y*e5/dd,rn=R*e5/dd;if(Math.abs(yn)-rn>1||Math.abs(xn)-rn*(H/W)>1)return 0;return Math.min(Math.PI*rpx*rpx,SC);};
+  renderer.render=function(sc,cam){const t=renderer.getRenderTarget(),e={w:t?t.width:W,h:t?t.height:H,main:sc===scene,tri:0,calls:0,ombreTri:0,T:{},aireT:0,nT:0,cible:t?'rt':'ecran'};P.push(e);cur=e;try{return rr.apply(this,arguments);}finally{cur=null;}};
+  renderer.renderBufferDirect=function(cam,sc,geo,mat,obj,grp){if(cur){const tpi=(geo.index?geo.index.count:(geo.attributes.position?geo.attributes.position.count:0))/3,n=obj.isInstancedMesh?obj.count:1;
+    if(mat.isMeshDepthMaterial){cur.ombreTri+=tpi*n;}else{cur.calls++;cur.tri+=tpi*n;
+      if(cur.main&&mat.transparent){let a=0;if(obj.isInstancedMesh){if(!geo.boundingSphere)geo.computeBoundingSphere();const A=obj.instanceMatrix.array,M=new THREE.Matrix4();for(let i=0;i<n;i++){M.fromArray(A,i*16);M.premultiply(obj.matrixWorld);V.copy(geo.boundingSphere.center).applyMatrix4(M);a+=aire(V.clone(),geo.boundingSphere.radius*M.getMaxScaleOnAxis());}}
+        else if(obj.isSprite){obj.getWorldPosition(sp.center);a=aire(sp.center,Math.max(obj.scale.x,obj.scale.y)*.5);}
+        else if(obj.isPoints){a=0;}
+        else{if(!geo.boundingSphere)geo.computeBoundingSphere();sp.copy(geo.boundingSphere).applyMatrix4(obj.matrixWorld);a=aire(sp.center,sp.radius);}
+        const k=(obj.name||(obj.parent&&obj.parent.name)||obj.type)+(obj.isInstancedMesh?'[I]':'')+' | '+mat.type+(mat.blending===THREE.AdditiveBlending?' add':'');const q=cur.T[k]||(cur.T[k]={n:0,a:0});q.n++;q.a+=a/SC;cur.aireT+=a/SC;cur.nT++;}}}
+    return rb.apply(this,arguments);};
+  const sa=renderer.shadowMap.autoUpdate,sn=renderer.shadowMap.needsUpdate;renderer.shadowMap.needsUpdate=true;
+  try{if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);if(!P.some(function(e){return e.main&&e.calls>0;})){const e={w:W,h:H,main:true,tri:0,calls:0,ombreTri:0,T:{},aireT:0,nT:0,cible:'direct'};P.push(e);cur=e;try{rr.call(renderer,scene,camera);}finally{cur=null;}}}
+  finally{renderer.render=rr;renderer.renderBufferDirect=rb;renderer.shadowMap.autoUpdate=sa;}
+  const mp=renderer.shadowMap.enabled?sun.shadow.mapSize.x:0;
+  return {ecran:[W,H],mpx:+(SC/1e6).toFixed(2),ombre:{carte:mp,ecrans:+(mp*mp/SC).toFixed(2)},passes:P.map(function(e){return {w:e.w,h:e.h,ecrans:+(e.w*e.h/SC).toFixed(2),scene:e.main,cible:e.cible,appels:e.calls,tri:Math.round(e.tri),ombreTri:Math.round(e.ombreTri),transparents:e.nT,aireTransparents:+e.aireT.toFixed(2)};}),
+    transp:(function(){const m=P.filter(function(e){return e.main&&e.calls>0;})[0];if(!m)return [];return Object.keys(m.T).map(function(k){return {k:k,n:m.T[k].n,ecrans:+m.T[k].a.toFixed(2)};}).sort(function(a,b){return b.ecrans-a.ecrans;}).slice(0,12);})()};};
 window.dbgJadeRegle=function(){if(!JADE.root)return null;const ds=L/(NP-1),st=Math.max(1,Math.round(5/ds)),V9=new THREE.Vector3();let n=0,t=0;const ex=[]; /* (2026-10-20, banc) LA RÈGLE D'OR : aucun pilier ni rocher sur la route — la caisse tous les 5 m, à 3 places de la largeur, à 0,5 et 3 m */
   for(let i=0;i<NP;i+=st)for(const f of [-.9,0,.9])for(const h of [.5,3]){V9.copy(pts[i]).addScaledVector(B[i],f*ROAD_HALF).addScaledVector(Nn[i],h);t++;if(jadeHeurt(V9)){n++;if(ex.length<6)ex.push([Math.round(i*ds),f,h]);}}
   return {essais:t,heurts:n,ex:ex};};
