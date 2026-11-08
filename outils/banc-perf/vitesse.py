@@ -246,6 +246,96 @@ def graphe(dossier,idx_cran,plus,qs,carte):
         return json.loads(c.ev(GRAPHE2))
     finally:ferme(srv,ch,prof)
 
+HOOK_SON=r"""(function(){var C={},S={dem:0,fin:0,stop:0},A={},t0=performance.now(),AC=null;window.__SON={C:C,S:S,A:A,nodes:new Set(),ac:function(){var r=AC;if(window.__SON.acs)window.__SON.acs.forEach(function(a){if(a.state==='running')r=a;});return r;}};
+ var P=(window.BaseAudioContext||window.AudioContext).prototype;
+ Object.getOwnPropertyNames(P).forEach(function(n){if(n.indexOf('create')!==0||typeof P[n]!=='function')return;var f=P[n];P[n]=function(){var r=f.apply(this,arguments);if(this&&this.state!==undefined&&this.constructor&&(this.constructor.name==='AudioContext'||this.constructor.name==='webkitAudioContext')){if(!window.__SON.acs)window.__SON.acs=new Set();window.__SON.acs.add(this);if(this.state!=='closed')AC=this;}var off=this&&this.constructor&&/Offline/.test(this.constructor.name),nn=(off?'OFF ':'LIVE ')+n;C[nn]=(C[nn]||0)+1;if(n==='createOscillator'||n==='createBufferSource'||n==='createGain'||n==='createBiquadFilter'){try{var st=(new Error()).stack.split(String.fromCharCode(10)),ln=(st[3]||st[2]||'').split('/').pop().trim().slice(0,40);var K=window.__SON.OU||(window.__SON.OU={});K[(off?'OFF ':'LIVE ')+n+' '+ln]=(K[(off?'OFF ':'LIVE ')+n+' '+ln]||0)+1;if(r&&(n==='createOscillator'||n==='createBufferSource')){r.__ou=(off?'OFF ':'LIVE ')+n+' '+ln;}}catch(e){}}try{window.__SON.nodes.add(r);if(r&&r.addEventListener&&(n==='createBufferSource'||n==='createOscillator'||n==='createConstantSource'))r.addEventListener('ended',function(){S.fin++;window.__SON.nodes.delete(r);if(r.__ou){var F=window.__SON.FIN||(window.__SON.FIN={});F[r.__ou]=(F[r.__ou]||0)+1;}});}catch(e){}return r;};});
+ ['OscillatorNode','AudioBufferSourceNode','ConstantSourceNode'].forEach(function(k){var N=window[k];if(!N)return;var st=N.prototype.start,sp=N.prototype.stop;N.prototype.start=function(){S.dem++;return st.apply(this,arguments);};N.prototype.stop=function(){S.stop++;return sp.apply(this,arguments);};});
+ var an=window.AnalyserNode&&AnalyserNode.prototype;if(an)['getByteFrequencyData','getFloatFrequencyData','getByteTimeDomainData','getFloatTimeDomainData'].forEach(function(n){var f=an[n];an[n]=function(a){A[n]=(A[n]||0)+1;A[n+'_n']=(A[n+'_n']||0)+(a&&a.length||0);return f.apply(this,arguments);};});
+ var C2=window.AudioContext||window.webkitAudioContext;
+})()"""
+SON_MESURE=r"""(function(){try{var W=window.__SON;if(!W)return JSON.stringify({err:"pas de __SON"});var AC=W.ac();var acs=[];if(W.acs)W.acs.forEach(function(a){acs.push(a.state);});var c={ok:!!AC,contextes:acs,etat:AC&&AC.state,mv:(typeof dbgMV==='function')?(function(){try{return JSON.stringify(dbgMV()).slice(0,200);}catch(e){return 'err';}})():null,sr:AC&&AC.sampleRate,base:AC&&AC.baseLatency,sortie:AC&&AC.outputLatency};
+ c.creations=Object.assign({},W.C);c.sources={demarres:W.S.dem,finies:W.S.fin,stop:W.S.stop,vivantes_estim:W.S.dem-W.S.fin};c.analyseurs=Object.assign({},W.A);c.noeudsConnus=W.nodes.size;
+ var par={};W.nodes.forEach(function(n){var t=n.constructor.name;par[t]=(par[t]||0)+1;});c.noeudsParType=par;
+ var vi={};W.nodes.forEach(function(n){if(n.__ou)vi[n.__ou]=(vi[n.__ou]||0)+1;});c.vivantesParAppelant=vi;c.creesParAppelant=W.OU||{};c.rc=AC&&typeof AC.renderCapacity;c.worklet=!!(AC&&AC.audioWorklet);c.mv=(typeof dbgMV==='function')?'dbgMV':null;return JSON.stringify(c);}catch(e){return JSON.stringify({err:String(e&&e.stack||e)});}})()"""
+def son(dossier,cran,qs,carte,secondes):
+    http,port,srv,ch,prof=lance(dossier)
+    try:
+        c=CDP(port);c.keep={'Runtime.exceptionThrown'};m=carte.split(':')
+        sv=dict(gp.SAVE);sv['vdep']=cran;sv['ex']={'eng':29,'runs':9};sv['sfx']=True;sv['mus']=True;sv['vox']=True
+        base='http://127.0.0.1:%d'%http
+        for mm in ('Network.enable','Page.enable','Runtime.enable'):c.call(mm)
+        if not demarre(c,http,'?garde=1&palier=2&tel=1&pistegraine=777&carte=%s&meteo=%s'%(m[0],m[1])+qs,save=sv,hook=HOOK_SON):return None
+        c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{nit:1});1");c.pump(3)
+        out={'t0':json.loads(c.ev(SON_MESURE) or '{"err":"vide"}')}
+        c.ev("(function(){var AC=window.__SON.ac();if(AC&&AC.renderCapacity){window.__RC=[];AC.renderCapacity.addEventListener('update',function(e){window.__RC.push([e.averageLoad,e.peakLoad,e.underrunRatio]);});AC.renderCapacity.start({updateInterval:1});}return 1})()")
+        c.call('Emulation.setCPUThrottlingRate',rate=4);c.call('Profiler.enable');c.call('Profiler.start');c.ev(SAMPLEUR)
+        c.ev("window.__S.length=0;window.__Son=true;1")
+        c.pump(secondes)
+        out['profil']=profil(c.call('Profiler.stop')['profile'],secondes*1000);c.ev("window.__Son=false;1");out['frames']=json.loads(c.ev("JSON.stringify(window.__S)"));c.call('Emulation.setCPUThrottlingRate',rate=1)
+        out['t1']=json.loads(c.ev(SON_MESURE) or '{"err":"vide"}');out['rc']=json.loads(c.ev("JSON.stringify(window.__RC||null)"));out['secondes']=secondes
+        return out
+    finally:ferme(srv,ch,prof)
+
+OMBRE_JS=r"""(function(mode){var S=dbgScene(),R=S.rdr,gl=R.getContext(),ext=gl.getExtension('EXT_disjoint_timer_query_webgl2');if(!ext)return 'pas de chrono GPU';
+ var W=window.__OM={ms:[],ombreCalls:0,ombreTri:0,frames:0,dep:[],q:[],mode:mode,n:0};
+ var sm=R.shadowMap,o=sm.render.bind(sm),dc=0,tri=0,inS=false;
+ ['drawElements','drawArrays','drawElementsInstanced','drawArraysInstanced'].forEach(function(n){var f=gl[n];gl[n]=function(m,c){if(inS){W.ombreCalls++;if(m===gl.TRIANGLES)W.ombreTri+=(c/3)|0;}return f.apply(this,arguments);};});
+ W.srcalls=0;if(mode==='ombre'){sm.render=function(a,b){W.srcalls++;var Q=gl.createQuery();gl.beginQuery(ext.TIME_ELAPSED_EXT,Q);inS=true;o(a,b);inS=false;gl.endQuery(ext.TIME_ELAPSED_EXT);W.q.push(Q);};}
+ else{sm.render=function(a,b){W.srcalls++;inS=true;o(a,b);inS=false;};}
+ var last=null,car=S.car,p0=car.position.clone();
+ function fr(){W.frames++;
+  if(mode==='plein'){if(last)gl.endQuery(ext.TIME_ELAPSED_EXT);var Q=gl.createQuery();gl.beginQuery(ext.TIME_ELAPSED_EXT,Q);W.q.push(Q);last=Q;}
+  var d=car.position.distanceTo(p0);if(d<500)W.dep.push(d);p0.copy(car.position);
+  for(var i=W.q.length-1;i>=0;i--){var Q2=W.q[i];if(Q2===last)continue;if(gl.getQueryParameter(Q2,gl.QUERY_RESULT_AVAILABLE)){if(!gl.getParameter(ext.GPU_DISJOINT_EXT))W.ms.push(gl.getQueryParameter(Q2,gl.QUERY_RESULT)/1e6);gl.deleteQuery(Q2);W.q.splice(i,1);}}
+  if(W.frames<240)requestAnimationFrame(fr);else W.fini=true;}requestAnimationFrame(fr);return 'ok';})"""
+def ombre(dossier,cran,plus,mode,qs):
+    http,port,srv,ch,prof=lance(dossier)
+    try:
+        c=CDP(port);c.keep={'Runtime.exceptionThrown'}
+        sv=dict(gp.SAVE);sv['vdep']=cran;sv['ex']={'eng':29,'runs':9}
+        if not demarre(c,http,'?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi'+qs,save=sv):return None
+        c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{nit:1});1")
+        for i in range(plus):c.ev("dbgMoteur();1");c.pump(.5)
+        c.pump(6)
+        r=c.ev("("+OMBRE_JS+")(%s)"%json.dumps(mode))
+        for i in range(40):
+            if c.ev("!!window.__OM.fini"):break
+            c.pump(1)
+        c.pump(1)
+        return {'mode':mode,'retour':r,'om':json.loads(c.ev("JSON.stringify((function(){var W=window.__OM;return {ms:W.ms,frames:W.frames,ombreCalls:W.ombreCalls,ombreTri:W.ombreTri,dep:W.dep,sm:[dbgScene().rdr.shadowMap.enabled,dbgScene().rdr.shadowMap.autoUpdate,dbgScene().rdr.shadowMap.type,W.srcalls,W.ombreCalls]}})())")),'nette':c.ev("JSON.stringify(dbgNette())")}
+    finally:ferme(srv,ch,prof)
+
+def cpu_types(prof):
+    """secondes de processeur cumulées par type de processus Chrome de CE banc (renderer, gpu, utility, browser)"""
+    out=subprocess.run(['ps','-axo','pid=,cputime=,command='],capture_output=True,text=True).stdout.splitlines()
+    R={}
+    for l in out:
+        if prof not in l:continue
+        parts=l.strip().split(None,2)
+        if len(parts)<3:continue
+        t=parts[1];h=0
+        try:
+            segs=t.split(':');sec=float(segs[-1])+60*int(segs[-2])+(3600*int(segs[-3]) if len(segs)>2 else 0)
+        except Exception:continue
+        m=[x for x in parts[2].split() if x.startswith('--type=')]
+        k=m[0][7:] if m else 'browser'
+        if 'audio' in parts[2] and k=='utility':k='utility-audio'
+        R[k]=R.get(k,0)+sec
+    return R
+def energie(dossier,cran,qs,carte,secondes,sfx,mus,vox):
+    http,port,srv,ch,prof=lance(dossier)
+    try:
+        c=CDP(port);c.keep={'Runtime.exceptionThrown'};m=carte.split(':')
+        sv=dict(gp.SAVE);sv['vdep']=cran;sv['ex']={'eng':29,'runs':9};sv['sfx']=bool(sfx);sv['mus']=bool(mus);sv['vox']=bool(vox)
+        if not demarre(c,http,'?garde=1&palier=2&tel=1&pistegraine=777&carte=%s&meteo=%s'%(m[0],m[1])+qs,save=sv):return None
+        c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{nit:1});1");c.pump(8)
+        c.ev(SAMPLEUR);a=cpu_types(os.path.basename(prof));c.ev("window.__S.length=0;window.__Son=true;1");t0=time.time();c.pump(secondes)
+        b=cpu_types(os.path.basename(prof));dt=time.time()-t0;c.ev("window.__Son=false;1")
+        F=json.loads(c.ev("JSON.stringify(window.__S)"))
+        ac=c.ev("JSON.stringify((function(){var W=window.__SON;return W?[W.S.dem,W.S.fin]:null})())")
+        return {'sfx':sfx,'mus':mus,'vox':vox,'duree':round(dt,1),'cpu_s_par_s':{k:round((b.get(k,0)-a.get(k,0))/dt,3) for k in set(a)|set(b)},'images':len(F),'p50':sorted(f[0] for f in F)[len(F)//2] if F else None,'charge':os.getloadavg()[0]}
+    finally:ferme(srv,ch,prof)
+
 if __name__=='__main__':
     m=sys.argv[1]
     if m=='capture':
@@ -267,6 +357,15 @@ if __name__=='__main__':
     elif m=='graphe':
         r=graphe(sys.argv[2],int(sys.argv[3]),int(sys.argv[4]),sys.argv[5],sys.argv[6])
         json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-graphe.json'),'w'),indent=1);print('ok')
+    elif m=='son':
+        r=son(sys.argv[2],int(sys.argv[3]),sys.argv[4],sys.argv[5],float(sys.argv[6]))
+        json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-son.json'),'w'),indent=1);print('ok')
+    elif m=='ombre':
+        r=ombre(sys.argv[2],int(sys.argv[3]),int(sys.argv[4]),sys.argv[5],sys.argv[6] if len(sys.argv)>6 else '')
+        json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-ombre.json'),'w'));print('ok')
+    elif m=='energie':
+        r=energie(sys.argv[2],int(sys.argv[3]),sys.argv[4],sys.argv[5],float(sys.argv[6]),int(sys.argv[7]),int(sys.argv[8]),int(sys.argv[9]))
+        json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-energie.json'),'w'));print('ok',r)
     elif m=='course':
         r=course(sys.argv[2],float(sys.argv[3]) if len(sys.argv)>3 else 180,sys.argv[4] if len(sys.argv)>4 else '')
         json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-course.json'),'w'));print(len(r or []),'images')
