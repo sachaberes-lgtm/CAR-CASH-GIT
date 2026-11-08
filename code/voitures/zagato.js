@@ -53,8 +53,8 @@ SHAPES.zagato=function(K){
      8 cm dans la caisse ; derrière les portières elle se resserre (74 → 46 cm) pour mourir dans le capot moteur au lieu de déborder sur les hanches, et le TOIT en dalle de laque posé à plat sur la vitre (z .50 → −.70, 2 cm de débord). Du figé, on retire ce qui tombe dans
      le volume de la vitre (l'ancien verre, l'ancien toit et ses montants) ; les bouts de verre d'origine qui en dépassaient — les POINTES — prennent
      la tôle voisine. La nacelle de toit (noire, 'm') reste posée sur la lunette. (8/11 suite, Léo, capture du montant avant : « enlève cette pointe bizarre des deux côtés et harmonise la vitre ») : la vitre de côté ne s'effile plus en pointe le long de l'aile avant — elle commence d'un BORD DROIT à z .77 (devant, seul le pare-brise, étroit : stations .78/.77) ; l'aile ne la perce plus ; le pare-brise est d'une seule pente (plus de pli à mi-hauteur) ; l'ancien verre qui affleurait à moins de 9 cm de la vitre neuve est retiré au lieu de passer en tôle par-dessus. Avant : origin/main v1326. ===== */
-  const CAB=[[.92,.905,.70,.69,.91,.955],[.78,.90,.70,.662,.963,1.0],[.77,.74,.83,.66,.967,1.003],[.47,.76,.83,.60,1.08,1.10],[.20,.79,.835,.61,1.12,1.145],[-.15,.83,.842,.615,1.14,1.168],
-             [-.45,.865,.845,.61,1.12,1.15],[-.67,.88,.842,.58,1.06,1.11],[-.86,.89,.84,.56,1.06,1.07],[-1.06,.925,.74,.58,1.01,1.02],[-1.40,.955,.60,.46,.98,.97],[-1.52,.95,.46,.42,.94,.93]];
+  const CAB=[[.92,.905,.81,.7,.91,.955],[.47,.913,.83,.6,1.08,1.1],[.2,.918,.835,.61,1.12,1.145],[-.15,.925,.842,.615,1.14,1.168],
+             [-.45,.93,.845,.61,1.12,1.15],[-.67,.934,.842,.58,1.06,1.11],[-.86,.938,.84,.56,1.06,1.07],[-1.06,.942,.74,.58,1.01,1.02],[-1.4,.948,.6,.46,.98,.97],[-1.52,.95,.46,.42,.955,.945]];   /* (8/11, « bien aligné la base ») la ceinture yb est UNE DROITE presque horizontale, à la hauteur du pied du pare-brise : de y .905 (z .92) à .95 (z −1.52) */
   const cabA=z=>{for(let i=0;i<CAB.length-1;i++){const a=CAB[i],b=CAB[i+1];if(z<=a[0]&&z>=b[0]){const t=(a[0]-z)/(a[0]-b[0]);return a.map((x,k)=>x+(b[k]-x)*t);}}return null;};
   const cabDans=(x,y,z,mx)=>{const s=cabA(z);if(!s)return false;const yb=s[1],xb=s[2],xt=s[3],yt=Math.max(s[4],s[5]);if(y<yb+.012||y>yt+.07)return false;
     const f=Math.max(0,Math.min(1,(y-yb)/Math.max(.01,s[4]-yb)));return Math.abs(x)<=xb+(xt-xb)*f+(mx||.03);};
@@ -64,6 +64,8 @@ SHAPES.zagato=function(K){
       for(let u=0;u<3;u++){const i=(t*3+u)*3;v.push([P[i]/1000,P[i+1]/1000,P[i+2]/1000]);}
       {const cx=(v[0][0]+v[1][0]+v[2][0])/3,cy=(v[0][1]+v[1][1]+v[2][1])/3,cz=(v[0][2]+v[1][2]+v[2][2])/3,verre=m.g==='g'&&C[t]===8;
        if((verre||m.g==='p')&&cabDans(cx,cy,cz,verre?.09:.03))continue;                                                       /* dans la vitre neuve : retiré */
+       {const s9=cabA(cz);if(verre&&s9&&cy>s9[1]-.21&&Math.abs(cx)<=s9[2]+.03)continue;}   /* (8/11) l'ancien verre sous la ceinture : la BASE le couvre, retiré */
+       if(m.g!=='g'&&m.g!=='l'&&m.g!=='m'){for(const p of v){const s9=cabA(p[2]);if(s9&&Math.abs(p[0])>.45&&Math.abs(p[0])<=(p[2]>.3?Math.max(s9[2]+.01,.88):s9[2]+.01)&&p[1]>s9[1]-.006)p[1]=s9[1]-.006;}}   /* (8/11) la tôle qui pointait au-dessus de la ceinture, dans la vitre (l'aile au pied du pare-brise) : ÉCRASÉE sur la ceinture (devant, toute la crête de l'aile jusqu'à 88 cm de l'axe) — pas de trou, plus de pointe */
        if(verre&&cz>-1.6&&cz<.95&&cy>.70){mg='p';pal=PAL[7];a=A[GP]||(A[GP]={P:[],C:[],N:[]});}}                 /* une pointe de l'ancien verre : la tôle */
       let fn=null;if(!Q){const ux=v[1][0]-v[0][0],uy=v[1][1]-v[0][1],uz=v[1][2]-v[0][2],wx=v[2][0]-v[0][0],wy=v[2][1]-v[0][1],wz=v[2][2]-v[0][2];
         fn=[uy*wz-uz*wy,uz*wx-ux*wz,ux*wy-uy*wx];const l=Math.hypot(fn[0],fn[1],fn[2])||1;fn=fn.map(x=>x/l);}
@@ -99,6 +101,9 @@ SHAPES.zagato=function(K){
      const l=Math.hypot(x,y,z)||1;for(const i of L9)for(let k=0;k<9;k+=3){G9.N[i+k]=x/l;G9.N[i+k+1]=y/l;G9.N[i+k+2]=z/l;}}
    const GT=A[GP]||(A[GP]={P:[],C:[],N:[]}),pt=PAL[7],colT=p=>{const k=kpY(p[1]);return [0,1,2].map(c=>pt[c]*k[c]);};
    const TOIT=[.50,.47,.20,-.15,-.45,-.67,-.70].map(z=>{const s=cabA(Math.min(.47,Math.max(-.67,z)));s[0]=z;return s;});
+   /* (8/11 suite, Léo : « je ne veux pas du tout de pointe comme ça, bien aligné la base ») LA BASE, comme LA HONTE : une CEINTURE de laque sous la vitre, sur tout son tour — son dessus suit la ceinture droite (la vitre y est posée), ses flancs descendent de 24 cm dans la caisse (32 devant, en paroi droite à 81 cm de l'axe, et elle dépasse de 5 cm devant le pied du pare-brise pour couvrir le coin). Là où la caisse est plus basse que la ceinture (le pied du pare-brise sur l'aile avant, qui faisait un coin clair entre le pare-brise et la vitre de côté), c'est elle qu'on voit : un bord droit et net, plus de pointe. */
+   {const BB={};loft(GT,colT,[[.97].concat(CAB[0].slice(1))].concat(CAB),s=>{const yb=s[1],xb=s[2];const pr=s[0]>.3?.32:.24;return [[0,yb-pr],[xb+.004,yb-pr],[xb+.004,yb-.004],[xb-.07,yb-.004],[0,yb-.20]];},BB);   /* le dessus de la base : un rebord de 7 cm sous la vitre, puis il plonge vers l'axe (sinon il traversait le pied du pare-brise en lamelle) */
+    for(const jj of [[1],[6]]){const L9=[].concat(...jj.map(j=>BB[j]||[])).map(e=>e.t);let x=0,y=0,z=0;for(const i of L9){x+=GT.N[i];y+=GT.N[i+1];z+=GT.N[i+2];}const l=Math.hypot(x,y,z)||1;for(const i of L9)for(let k=0;k<9;k+=3){GT.N[i+k]=x/l;GT.N[i+k+1]=y/l;GT.N[i+k+2]=z/l;}}}
    loft(GT,colT,TOIT,s=>{const xt=s[3],ye=s[4],yc=s[5];return [[0,yc-.02],[xt+.02,ye-.02],[xt+.02,ye+.006],[xt-.03,ye+.04],[0,yc+.045]];});}
   const gs={};
   for(const g in A){const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(A[g].P,3));
