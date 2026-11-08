@@ -174,6 +174,41 @@
       var n=0,g=setInterval(function(){if(window.__gameReady)pret();if(t.pret!=null||++n>400)clearInterval(g);},50);}
   })();
 
+  /* ---- 9. LA VIGNETTE « EN LECTURE » ---- (2026-11-08, Perf 3 / P4) la musique du jeu joue par un <audio> (musique.js, #musique) : iOS enregistre alors l'app comme
+     lecteur média et laisse une vignette « En lecture » sur l'écran d'accueil après avoir quitté l'app. À l'arrière-plan on décharge donc l'<audio> (pause, source vidée,
+     mediaSession effacée) et au retour on remet la source et la position AVANT que le jeu ne relance sa musique (son propre écouteur visibilitychange, branché après
+     celui-ci : musicJoue ne refait pas la source). Côté natif, AppDelegate.swift relâche la session audio en arrière-plan. */
+  (function(){
+    var gardes=[]; // [{el, src, t, jouait}]
+    var efface=function(){try{var M=navigator.mediaSession;if(!M)return;M.metadata=null;M.playbackState='none';
+      ['play','pause','stop','seekbackward','seekforward','seekto','previoustrack','nexttrack'].forEach(function(a){try{M.setActionHandler(a,null);}catch(e){}});}catch(e){}};
+    var decharge=function(){
+      if(gardes.length)return; // déjà déchargé
+      try{var L=document.querySelectorAll('audio,video');
+        for(var i=0;i<L.length;i++){var el=L[i],src=el.getAttribute('src');
+          if(!src)continue; // sans source (ou source <source>) : rien à vider
+          gardes.push({el:el,src:src,t:el.currentTime||0,jouait:!el.paused});
+          try{el.pause();}catch(e){}
+          el.removeAttribute('src');try{el.load();}catch(e){}}}catch(e){}
+      efface();
+      if(gardes.length)dit('vignette lecture : '+gardes.length+' média(s) déchargé(s)');
+    };
+    var recharge=function(){
+      var G=gardes;gardes=[];
+      G.forEach(function(g){try{
+        if(g.el.getAttribute('src'))return; // le jeu a déjà remis une source : on n'y touche pas
+        g.el.setAttribute('src',g.src);g.el.load();
+        if(g.t>0)g.el.addEventListener('loadedmetadata',function f(){g.el.removeEventListener('loadedmetadata',f);try{g.el.currentTime=g.t;}catch(e){}});
+      }catch(e){}});
+      if(G.length)dit('vignette lecture : '+G.length+' média(s) rechargé(s)');
+    };
+    document.addEventListener('visibilitychange',function(){if(document.hidden)decharge();else recharge();});
+    addEventListener('pagehide',decharge);
+    addEventListener('pageshow',function(){if(!document.hidden)recharge();});
+    document.addEventListener('freeze',decharge);
+    window.__ccVignette={decharge:decharge,recharge:recharge}; // banc : window.__ccVignette.decharge()
+  })();
+
   /* ---- 6. LE BANC DU HORS-LIGNE (DEBUG seulement) ---- */
   if(!DEBUG)return;
   var dehors={},nDehors=0,nIci=0;

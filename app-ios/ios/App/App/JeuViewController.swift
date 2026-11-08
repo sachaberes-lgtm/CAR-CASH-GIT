@@ -26,6 +26,24 @@ class JeuViewController: CAPBridgeViewController {
             defile.maximumZoomScale = 1
             defile.pinchGestureRecognizer?.isEnabled = false
             defile.contentInsetAdjustmentBehavior = .never // les marges de l'encoche, c'est la page qui les lit (env(safe-area-inset-*))
+
+            defile.backgroundColor = .black
+            defile.showsVerticalScrollIndicator = false
+            defile.showsHorizontalScrollIndicator = false
+        }
+        // UNE VUE WEB OPAQUE (2026-11-08, Perf 3 / P4) : une WKWebView transparente oblige le compositeur à mélanger toute la page avec ce qu'il y a
+        // derrière à chaque image. Capacitor la rend transparente (isOpaque=false) pendant le premier chargement puis remet l'état d'avant (WebViewDelegationHandler) :
+        // on la pose opaque dès le départ, noire dessous (elle ne montre jamais autre chose que le jeu), et on le réaffirme une fois le jeu chargé.
+        if let vue = webView {
+            vue.isOpaque = true
+            vue.backgroundColor = .black
+            vue.underPageBackgroundColor = .black
+            view.backgroundColor = .black
+            DispatchQueue.main.asyncAfter(deadline: .now() + 6) { [weak vue] in
+                guard let vue = vue else { return }
+                if !vue.isOpaque { CAPLog.print("⚡️  [natif] vue web redevenue transparente, remise opaque") }
+                vue.isOpaque = true
+            }
         }
         #if DEBUG
         // (2026-11-07, passe 3) BUILDS DE DEV SEULEMENT : la page est inspectable (Safari › Développement, ou pymobiledevice3 webinspector) — jamais dans une édition Release/App Store.
@@ -87,7 +105,9 @@ final class GardeHautParleur {
         centre.addObserver(forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in self?.verifie() }
         verifie()
         // WebKit change la catégorie sans toujours changer de sortie : un coup d'œil de plus toutes les 2 s (lire la sortie ne coûte rien).
-        Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in self?.verifie() }
+        // (Perf 3 / P4) tolérance d'une seconde : iOS regroupe ce réveil avec d'autres au lieu de réveiller le processeur à heure fixe.
+        let t = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in self?.verifie() }
+        t.tolerance = 1
     }
 
     private func verifie() {
