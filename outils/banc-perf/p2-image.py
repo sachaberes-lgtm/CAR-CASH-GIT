@@ -83,14 +83,17 @@ def run(http,port,carte,qs,ordi,cpu,dossier,tag,regle=None):
                 res.append({'reglage':nom,'sens':sens,'appel_ms':round(ms,1),'pire_image_ms':round(max(F[1:] or [0])),'compilations':c.ev('window.__LK')-lk})
         return {'bascule':res,'cout':{'gpu':None}}
     lk0=c.ev('window.__LK');rg=None
-    if regle:rg=c.ev('JSON.stringify(imgRegle(%s))'%regle);c.pump(1.5)
-    c.ev("dbgCout(1);1");c.pump(7)
-    R=json.loads(c.ev("JSON.stringify({cout:dbgCout(),img:dbgImg(),pal:dbgPalier().n,nette:dbgNette(),perf:dbgPerf(),lk:window.__LK,rg:(typeof imgRegle==='function'?imgRegle():null)})"));R['lk0']=lk0;R['regle']=rg
-    if dossier:
+    def cliche():
+        if not dossier:return
         os.makedirs(dossier,exist_ok=True)
-        c.ev("dbgCout(0);1")
         d=c.call('Page.captureScreenshot',format='jpeg',quality=88)['data']
         open(os.path.join(dossier,'%s-%s-%s.jpg'%(tag,carte[0],carte[1] if len(carte)>1 else 'midi')),'wb').write(base64.b64decode(d))
+    if '--tot' in sys.argv:cliche() # --tot : la capture est prise À L'INSTANT (caisse à 80 m du portail posé), avant les 7 s de mesure : même position de route d'une variante à l'autre
+    if regle:rg=c.ev('JSON.stringify(imgRegle(%s))'%regle);c.pump(1.5)
+    c.ev("dbgCout(1);1");c.pump(7)
+    R=json.loads(c.ev("JSON.stringify({cout:dbgCout(),img:dbgImg(),pal:dbgPalier().n,nette:dbgNette(),perf:dbgPerf(),lk:window.__LK,rg:(typeof imgRegle==='function'?imgRegle():null)})"));R['lk0']=lk0;R['lib']=c.ev("(function(){var m=(document.body.innerText||'').match(/[A-ZÉ' ]+ — [A-ZÉ]+/);return m?m[0]:null})()");R['regle']=rg
+    if dossier and '--tot' not in sys.argv:
+        c.ev("dbgCout(0);1");cliche()
     for e in c.events:
         if e['method']=='Runtime.exceptionThrown':R.setdefault('exc',[]).append((e['params']['exceptionDetails'].get('exception',{}).get('description') or '')[:160])
     return R
