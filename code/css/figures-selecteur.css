@@ -70,9 +70,9 @@ html[data-reduced-motion] :is(#ivDock .fsHex.cible .fsCase,#ivDock .fsHex.flash 
 /* ---- les tuiles de l'inventaire : le dessin de la figure, ses gestes en pastilles ---- */
 .ivT .fgIl{flex:none;margin:2px 0 4px}
 .ivT.eq .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
-.ivD{position:absolute;left:5px;top:5px;display:flex;flex-direction:column;gap:3px;z-index:2}
+.ivD{position:absolute;left:5px;top:5px;display:flex;flex-direction:column;gap:8px;z-index:2}
 .ivD i{position:relative;display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-style:normal;color:var(--dc);background:rgba(7,5,15,.7);box-shadow:inset 0 0 0 1.5px var(--dc)}
-.ivD i::before{content:'';position:absolute;inset:-6px -6px -3px -6px} /* la zone de toucher dépasse la pastille (≈ 32 px) */
+.ivD i::before{content:'';position:absolute;inset:-8px -11px -6px -11px} /* (2026-11-07) ≈ 44 × 36 px au doigt (31 px avant : le pouce prenait le mauvais sens) */ /* la zone de toucher dépasse la pastille (≈ 32 px) */
 .ivD i.on{color:#14171c;background:var(--dc);box-shadow:none}
 .ivD .pxi{--pxs:1;width:12px;height:12px;margin:0;color:currentColor}
 @media (prefers-reduced-motion:reduce){.ivT.eq .fgIl>.fgCv{animation:none!important}}
@@ -85,6 +85,7 @@ html[data-reduced-motion] .ivT.eq .fgIl>.fgCv{animation:none!important}
 #bqFigSel .fsHex{min-height:68px}
 #bqFigSel .fsCase{width:54px;height:47px}
 #bqFigSel .fsJoy{left:calc(50% - 42px);top:-5px}
+#bqFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08, Sacha : « ici ça dépasse ») l'anneau de 36 px touchait le liseré de la case : on le rentre comme dans la disposition en rangée */
 #bqFigSel .fsNom{font-size:9px;line-height:11px;overflow-wrap:break-word}
 #bqFigSel .fsHex.cible .fsCase{background:var(--dc);animation:bqFsBat .8s var(--ease) infinite alternate}
 #bqFigSel .fsRow:has(.cible) .fsHex:not(.cible){opacity:.5}
@@ -98,7 +99,7 @@ html[data-reduced-motion] #bqFigSel .fsHex.cible .fsCase{animation:none}
 #gBqPan .bqVide{flex:0 0 100%;padding:24px 8px;text-align:center;font-family:var(--pix);font-size:9px;line-height:1.6;color:#8a929c}
 /* la pastille d'un AUTRE geste sur la carte (figure à deux sens) : plus grande, tapable, elle équipe dans CE sens */
 #gBqPan .bqK .bqKd2.pick{width:26px;height:26px;cursor:pointer;z-index:2}
-#gBqPan .bqK .bqKd2.pick::before{content:'';position:absolute;inset:-8px}
+#gBqPan .bqK .bqKd2.pick::before{content:'';position:absolute;inset:-9px}
 #gBqPan .bqK .bqKd2.pick .pxi{width:12px;height:12px}
 #gBqPan.cote .bqK .bqKd2.pick{width:22px;height:22px}
 /* le bouton ÉQUIPER annonce ce qu'il remplace (sur deux lignes, sans changer sa hauteur) */

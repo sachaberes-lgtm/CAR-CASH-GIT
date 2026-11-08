@@ -4,7 +4,7 @@
 //   node outils/banc-ecrans/photos.cjs --out /chemin [--formats debout,couche,i7couche] [--ecrans accueil,reglages,...] [--http 9741 --cdp 9742]
 //   [--save riche|neuf]  (riche : tout débloqué, argent ; neuf : premier lancement)
 const fs = require('fs'), path = require('path');
-const { serveur, portLibre, lanceChrome, CDP, dormir, tmp } = require('../banc-trainees/cdp.cjs');
+const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir, tmp } = require('../banc-trainees/cdp.cjs');
 
 const A = {}; for (let i = 2; i < process.argv.length; i += 2) A[process.argv[i].replace(/^--/, '')] = process.argv[i + 1];
 const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRINCIPALE'));
@@ -36,12 +36,14 @@ const ETAPES = [
   { n: 'plaque', tap: '#prof .pfChg', att: 1500 },
   { n: 'plaque-retour', tap: '#plq .plRet', att: 800, sans: 1 },
   { n: 'profil-retour', tap: '#prof .pfRet', att: 1200, sans: 1 },
-  { n: 'course', tap: '#gJouer', att: 7000 },
+  { n: 'course', tap: '#gJouer', js2: 'window.dbgJouer&&dbgJouer()', att: 16000 }, /* (2026-11-07) le toucher ne part pas en headless : dbgJouer() après lui */
   { n: 'pause', js: 'window.__panBascule()', att: 1500 },
   { n: 'pause-reglages', tap: '#tPanel [data-a="tous"]', att: 1500 },
   { n: 'pause-reglages-retour', tap: '#mSet .c6Ret,#mSet .mBack', att: 1200, sans: 1 },
   { n: 'pause-reprise', js: 'window.__panBascule()', att: 1200, sans: 1 },
   { n: 'mort', js: "dbgDauphin('boom')", att: 7000 },
+  { n: 'mort-recompense', tap: '#mvW .mvBt', att: 1800 }, /* (2026-11-07) la mort ouvre d'abord la prochaine récompense, puis la série de connexion : on les passe pour photographier l'écran de mort lui-même */
+  { n: 'mort-serie', tap: '#serieW .swBt', att: 2600 },
   { n: 'mort-garage', tap: '#mDead [data-m="garage"]', att: 3500 },
 ];
 
@@ -56,7 +58,7 @@ const ETAPES = [
     const c = new CDP(pg.webSocketDebuggerUrl); await c.ok;
     const erreurs = [];
     c.ws.addEventListener('message', e => { try { const m = JSON.parse(e.data); if (m.method === 'Runtime.exceptionThrown') erreurs.push((m.params.exceptionDetails.exception && m.params.exceptionDetails.exception.description || m.params.exceptionDetails.text || '').slice(0, 300)); if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') erreurs.push('console: ' + m.params.args.map(a => a.value || a.description || '').join(' ').slice(0, 300)); } catch (_) {} });
-    const fin = () => { try { c.close(); process.kill(-ch.pid); } catch (e) {} };
+    const fin = () => { try { c.close(); } catch (e) {} tueChrome(ch); };
     try {
       await c.send('Page.enable'); await c.send('Runtime.enable'); await c.send('Network.enable');
       await c.send('Network.setBypassServiceWorker', { bypass: true }); await c.send('Network.setCacheDisabled', { cacheDisabled: true });
@@ -80,6 +82,7 @@ const ETAPES = [
           await c.ev('window.__gaps=[];(function(){var l=performance.now(),t0=l;function f(t){var d=t-l;if(d>50)window.__gaps.push(Math.round(d));l=t;if(t-t0<' + (et.att + 400) + ')requestAnimationFrame(f);}requestAnimationFrame(f);})();1');
           if (et.js) { try { await c.ev(et.js + ';1'); } catch (e) { ok += ' js:' + e.message.slice(0, 80); } await dormir(300); }
           if (et.tap) ok += ' tap:' + await tap(et.tap, et.fx, et.fy);
+          if (et.js2) { await dormir(400); try { ok += ' js2:' + JSON.stringify(await c.ev(et.js2)).slice(0, 160); } catch (e) { ok += ' js2:' + e.message.slice(0, 80); } }
           await dormir(et.att);
           if (!voulu) continue;
           const n0 = erreurs.length;

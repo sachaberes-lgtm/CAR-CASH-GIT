@@ -287,6 +287,7 @@ function explode(cause){
   caseHud.style.opacity=0;caseHud.className='';caseHot=false;
   BOOM_CAM.m0=mode;BOOM_CAM.pret=false; // (vague 3) le PLAN DE LA MORT se pose au premier pas (voir boomCamTick)
   BOOM_SOL.ok=mode==='drive';if(BOOM_SOL.ok){frameAt(s,BOOM_SOL);BOOM_SOL.p.addScaledVector(BOOM_SOL.n,side<0?-THICK:0);BOOM_SOL.n.multiplyScalar(side);} // (2026-09-28) morte AU SOL : on garde le plan de la dalle
+  pwrNitroT=0;pwrAirT=0;pwrSpdT=0;pwrSpdK=0;pwrMagT=0;pwrAurT=0;try{pwrV2Raz();}catch(e){} /* (2026-11-07, chasse aux bugs) les pouvoirs meurent AVEC la caisse, pas 1,8 s plus tard dans endGame : leurs minuteurs sonnaient « bientôt fini » et « terminé » par-dessus l'explosion, leurs plaques décomptaient sur l'écran de mort */
   mode='boom';boomT=0;boomPos.copy(carGroup.position);bmCam.copy(camera.position); // (vague 2) le point d'où l'on regarde la mort
   if(impFrais()){impCoupPart();return;} // (2026-10-15) L'IMPACT : contre une paroi, la caisse s'ÉCRASE d'abord (0,11 s) — la détonation suit (boomDetone)
   boomDetone();
@@ -502,7 +503,7 @@ function landBoom(pos,tier){
   // (vague 2) le flash de la pose : un ÉCLAIR franc (60 ms, bords nets) et plus un voile beige — la transition CSS de 0,5 s le faisait
   // monter PUIS redescendre, ~0,6 s d'écran délavé à chaque grosse pose
   flashEl.style.transition='opacity .05s';flashEl.style.background='#fff0c8';flashEl.style.opacity=Math.min(.4,.14+tier*.09).toFixed(2);
-  setTimeout(function(){flashEl.style.opacity=0;},60);
+  setTimeout(function(){if(mode!=='boom')flashEl.style.opacity=0;},60); /* (2026-11-07) une explosion dans la foulée garde son éclair */
   setTimeout(function(){flashEl.style.transition='';if(mode!=='boom')flashEl.style.background='#ff2020';},180); // on rend le flash au rouge (mort) et sa transition à la feuille de style
   if(!SONV2){subBoom(.10+tier*.07);noiseBurst(.15,.08+tier*.035,300+tier*40);} /* (débogage son 2026-09-29) // (2026-09-26, audit son) plus de `thud(6+tier*4)` : calé sur le GAIN et non sur le */
   // grade, il rejouait un choc grave à chaque pose qui paye — la PARFAITE cognait plus fort que la LOURDE et le compresseur écrasait son « tchak »

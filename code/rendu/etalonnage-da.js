@@ -170,8 +170,8 @@ if(!VIT_PLAFOND){for(const k9 of ['vitreMatin','vitreMidi','vitreSoir','vitreNui
 const BIO={cur:JSON.parse(JSON.stringify(BIOMES.golden)),from:null,to:BIOMES.golden,k:1,dur:4,name:'golden'};
 function bioLerp(a,b,e,out){ // mixe deux biomes champ à champ (tableaux = composantes, nombres = scalaires)
   for(const key in b){ const bv=b[key];
-    if(typeof bv==='number')out[key]=a[key]+(bv-a[key])*e;
-    else if(Array.isArray(bv)&&typeof bv[0]==='number'){const ov=out[key];for(let i=0;i<bv.length;i++)ov[i]=a[key][i]+(bv[i]-a[key][i])*e;}
+    if(typeof bv==='number'){if(typeof a[key]!=='number'){out[key]=bv;continue;}out[key]=a[key]+(bv-a[key])*e;} /* (2026-11-07) une clé absente de l'ambiance de départ ne fait plus NaN (ciel noir) ni TypeError */
+    else if(Array.isArray(bv)&&typeof bv[0]==='number'){const ov=out[key],av=a[key];if(!Array.isArray(ov)||!Array.isArray(av)){out[key]=bv.slice();continue;}for(let i=0;i<bv.length;i++)ov[i]=av[i]+(bv[i]-av[i])*e;}
   }
 }
 /* LA COUCHE « DA » (2026-09-30, Sacha : « retravaille les graphismes, la DA et l'étalonnage du jeu » — session INTERFACE, avec l'accord

@@ -29,7 +29,7 @@ function traceInit(){
     polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}));
   m.frustumCulled=false;m.renderOrder=1;scene.add(m);TRACE.pos=pos;TRACE.uv=uv;TRACE.geo=g;TRACE.mesh=m;
 }
-function traceVide(){if(!TRACE.pos)return;TRACE.pos.fill(0);for(const n of ['position','uv']){const a=TRACE.geo.attributes[n];a.updateRange.offset=0;a.updateRange.count=-1;a.needsUpdate=true;}TRACE.r[0]=TRACE.r[1]=null;}
+function traceVide(){if(!TRACE.pos)return;TRACE.pos.fill(0);if(TRACE.mesh)TRACE.mesh.visible=false;/* (2026-11-07) vide = pas dessiné (900 quads dégénérés étaient envoyés à chaque image, sur toutes les maps) */for(const n of ['position','uv']){const a=TRACE.geo.attributes[n];a.updateRange.offset=0;a.updateRange.count=-1;a.needsUpdate=true;}TRACE.r[0]=TRACE.r[1]=null;}
 function traceQuad(q,A0,A1,B0,B1,v0,v1){ // écrit le quad q : (A0,A1) = bord arrière du morceau, (B0,B1) = bord avant, v = distance/motif
   const P=TRACE.pos,U=TRACE.uv,o=q*12,u=q*8;
   P[o]=A0.x;P[o+1]=A0.y;P[o+2]=A0.z;P[o+3]=A1.x;P[o+4]=A1.y;P[o+5]=A1.z;P[o+6]=B0.x;P[o+7]=B0.y;P[o+8]=B0.z;P[o+9]=B1.x;P[o+10]=B1.y;P[o+11]=B1.z;
@@ -73,7 +73,7 @@ function traceTick(actif){
     if(r&&r.a0.distanceToSquared(L9)>36)r=null;                                    // un saut (repli, portail) : on ne relie pas
     if(!r){r=TRACE.r[k]={a0:L9.clone(),a1:R9.clone(),d:0,q:TRACE.i};TRACE.i=(TRACE.i+1)%TRACE.N;}
     const dd=r.a0.distanceTo(L9),v0=r.d/.9,v1=(r.d+dd)/.9;
-    traceQuad(r.q,r.a0,r.a1,L9,R9,v0,v1);                                            // LE BOUT VIVANT : jusqu'au pneu, à chaque image
+    if(!TRACE.mesh.visible)TRACE.mesh.visible=true;traceQuad(r.q,r.a0,r.a1,L9,R9,v0,v1);                                            // LE BOUT VIVANT : jusqu'au pneu, à chaque image
     if(dd>=.5){r.a0.copy(L9);r.a1.copy(R9);r.d+=dd;r.q=TRACE.i;TRACE.i=(TRACE.i+1)%TRACE.N;} // on fige, et un nouveau bout part de là
   }
   if(TRACE.lo>=0)for(const n of TRACE_ATT){const a=TRACE.geo.attributes[n],st=n==='uv'?8:12;

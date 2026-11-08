@@ -100,6 +100,7 @@ const M2K={partie:60,frole:6,prof:EAU.fond,debut:3}; // prof : le fond de la mer
    l'erreur : la migration des missions v2 s'arrêtait net, sans bruit, depuis le 16/10. M2_COLK : la catégorie de collection de chaque `k` ; M2_RECO : le cache de m2Reco. */
 const M2_COLK={cars:'voiture',peint:'peinture',trainee:'trainee',aile:'aile',figure:'figure'};
 let M2_RECO=null;
+const M2_METEO_MIN=/[?&]meteo=ancien\b/.test(location.search)?1:3; /* (2026-11-07, chasse aux bugs — banc headless) déclarée ICI, avant sauvegarde.js : dans defis-moteur.js (morceau 209) elle était lue par m2Meteo pendant la migration lancée par sauvegarde.js (morceau 200) → « Cannot access 'M2_METEO_MIN' before initialization » à CHAQUE chargement, la migration des missions s'arrêtait à la 35e mission (même piège que M2_COLK / M2_RECO ci-dessus) */
 /* l'état de la partie en cours (jamais sauvegardé) : ctl = secondes de conduite (sans le largage), vie = depuis la dernière (re)naissance,
    parf = poses parfaites d'affilée, lac = glisse tenue sur un lac gelé, tourV = les tours frôlées pendant CE saut, run = missions
    réussies pendant cette partie (l'écran de mort), deb = la partie a été comptée (jour, heure). */

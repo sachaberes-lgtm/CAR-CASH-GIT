@@ -204,7 +204,7 @@ function prebAvec(W,fn){prebEchange(W,true);try{return fn();}finally{prebEchange
 function pisteDirecte(seed){const W=pisteTravail(null),g=pisteRoute(seed,W);prebAvec(W,function(){while(!g.next().done);});return W;} // la route d'un trait (tout newTrack qui n'a rien de bâti d'avance)
 function pisteInstalle(W){ // la route bâtie (d'un trait ou d'avance) devient LA route : l'ancienne sort de la scène, la neuve y entre dans l'ordre où elle a été bâtie
   sceneRetire(trackMeshes); // (chasse aux gels) d'un seul passage (voir sceneRetire)
-  for(const m of trackMeshes){if(m.geometry)m.geometry.dispose();if(m.material&&m.material.dispose)MAT_SURSIS.add(m.material);} // (perf) matières en sursis : voir MAT_SURSIS
+  for(const m of trackMeshes){if(m.geometry&&m.geometry!==padGeo&&m.geometry!==oilGeo)m.geometry.dispose();if(m.material&&m.material.dispose)MAT_SURSIS.add(m.material);} /* (2026-11-07) padGeo / oilGeo sont PARTAGÉES (PAD_IM vivant) : on ne les libère pas à chaque portail */ // (perf) matières en sursis : voir MAT_SURSIS
   matSursisN=3;trackMeshes.length=0;
   prebEchange(W,false);
   for(let i=0;i<trackMeshes.length;i++)scene.add(trackMeshes[i]);
@@ -284,7 +284,7 @@ function prebAnnule(r){ // le travail en cours est jeté (la map d'en face a cha
   if(!PREB.W)return;
   const W=PREB.W,g=PREB.g;PREB.W=null;PREB.g=null;PREB.fait=false;PREB.prend=false;PREB.dep=false;PREB.annules++;PREB.der=r||'';
   try{if(g)prebAvec(W,function(){g.return();});}catch(e){} // (les finally des générateurs : les tampons partagés des cubes de jade rendus)
-  for(const m of W.tab.trackMeshes||[])if(m.geometry)m.geometry.dispose(); // jamais dessinées ; leurs matières non plus (et certaines sont partagées : on n'y touche pas)
+  for(const m of W.tab.trackMeshes||[])if(m.geometry&&m.geometry!==padGeo&&m.geometry!==oilGeo)m.geometry.dispose(); // jamais dessinées ; leurs matières non plus (et certaines sont partagées : on n'y touche pas)
   if(W.jade&&W.jade.J)try{jadeJette(W.jade);}catch(e){}
   if(PREB.jadeM&&JADE_GARDE.m===PREB.jadeM){jadeJette(JADE_GARDE.m);JADE_GARDE.m=null;}
   if(W.dunes)try{dnMonuJette(W.dunes);}catch(e){}

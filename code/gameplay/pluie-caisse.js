@@ -6,7 +6,7 @@ const gouttes=makePool(260,.2,0xdff6ff,.85,true,{a:[0,.4,1,.6],etire:1,str:.03,v
 const PLC={box:null,uid:'',acc:0,lp:new THREE.Vector3(),has:false,v:new THREE.Vector3(),loc:new THREE.Vector3(),mi:new THREE.Matrix4(),b3:new THREE.Box3()};
 function pluieCaisseTick(dt){
   const cp=carGroup.position;
-  if(PLC.has&&dt>0){PLC.v.set((cp.x-PLC.lp.x)/dt,(cp.y-PLC.lp.y)/dt,(cp.z-PLC.lp.z)/dt);const l=PLC.v.length();if(l>140)PLC.v.multiplyScalar(140/l);}
+  if(PLC.has&&dt>0){PLC.v.set((cp.x-PLC.lp.x)/dt,(cp.y-PLC.lp.y)/dt,(cp.z-PLC.lp.z)/dt);const l=PLC.v.length();if(l>140)PLC.v.set(0,0,0);} /* (2026-11-07, chasse aux bugs) un saut de caisse (replacement, portail) n'est pas une vitesse : la rafale de gouttes à 140 m/s partait à chaque téléportation */
   PLC.lp.copy(cp);PLC.has=true;
   const pl=LVL&&LVL.pluie||0;
   if(!(pl>.15)||!started||gameOver||mode==='boom'||!carGroup.visible||garageOn||paused||dt<=0)return;

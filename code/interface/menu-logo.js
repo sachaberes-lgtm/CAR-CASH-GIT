@@ -142,7 +142,7 @@ $('playBtn').addEventListener('click',function(e){
 $('resetBtn').addEventListener('click',()=>{if(started){resetGame();}});
 // ---- sauvegarde : exporter / restaurer par code (le clic ne doit PAS relancer la partie) ----
 const expBtn=$('saveExp'),impBtn=$('saveImp');
-function btnFlash(b,txt){const o=b.innerHTML;b.innerHTML=txt;setTimeout(()=>{b.innerHTML=o;},1600);}
+function btnFlash(b,txt){if(b._o==null)b._o=b.innerHTML;b.innerHTML=txt;clearTimeout(b._t);b._t=setTimeout(()=>{b.innerHTML=b._o;},1600);} /* (2026-11-07, chasse aux bugs) deux clics en 1,6 s gardaient « COPIE ! » pour toujours */
 expBtn.addEventListener('click',e=>{e.stopPropagation();
   const code=SAVE.export();
   if(navigator.clipboard&&navigator.clipboard.writeText)

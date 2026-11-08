@@ -62,7 +62,14 @@ const SF_NIV={nuages:NIVEAUX.find(function(n){return n.id==='nuages';}),orage:NI
   ville:NIVEAUX.find(function(n){return n.id==='ville'&&!n.nuit;}),minuit:NIVEAUX.find(function(n){return n.id==='ville'&&n.nuit;}),
   espace:NIVEAUX.find(function(n){return n.id==='espace';}),jade:NIV_JADE,foret:NIV_FORET,canyon:NIV_CANYON,dunes:NIV_DUNES,grotte:NIV_GROTTE,banquise:NIV_BANQ,crypto:NIV_CRYPTO,vitree:NIV_VITRE};
 const SF_METEOS={matin:'MATIN',midi:'MIDI',soir:'SOIR',nuit:'NUIT',pluie:'PLUIE',orage:'ORAGE',neige:'NEIGE',blizzard:'BLIZZARD',brouillard:'BROUILLARD'}; // (2026-10-16) BROUILLARD : le temps de la ville // (2026-10-14) NEIGE et BLIZZARD : les temps de LA BANQUISE
-Object.assign(I18N,{'BROUILLARD':'FOG'}); // (2026-10-16) la météo de la ville, dite au portail
+Object.assign(I18N,{'BROUILLARD':'FOG',
+  /* (2026-11-07, chasse aux bugs) la bannière de niveau en anglais : LES PROFONDEURS, ses temps et les promesses de la grotte, du glacier et des dunes restaient en français */
+  'LES PROFONDEURS':'THE DEPTHS','TORCHES':'TORCHES','CRISTAUX':'CRYSTALS','NOIR COMPLET':'PITCH BLACK','GLACE':'ICE',
+  'SUIS LES TORCHES':'FOLLOW THE TORCHES','LES CRISTAUX T ECLAIRENT':'THE CRYSTALS LIGHT YOUR WAY','LA LAVE MONTE':'THE LAVA IS RISING',
+  'TES PHARES, TA SEULE LUMIERE':'YOUR HEADLIGHTS, YOUR ONLY LIGHT','LA GROTTE A GELE':'THE CAVE HAS FROZEN','LE SABLE AVALE LA VISIBILITE':'THE SAND EATS THE VIEW',
+  'TOUTE LA ROUTE EST VERGLACEE':'THE WHOLE ROAD IS ICED OVER','LA ROCHE NE PARDONNE PAS':'THE ROCK SHOWS NO MERCY',
+  'AU FOND DE L EAU':'AT THE BOTTOM OF THE WATER','AU FOND DE L\'OASIS':'AT THE BOTTOM OF THE OASIS','CONTRE L\'OBELISQUE':'INTO THE OBELISK','CONTRE LA PYRAMIDE':'INTO THE PYRAMID',
+  'AIMANT — 12 s : TOUT L\'OR VIENT À TOI !':'MAGNET — 12 s: ALL THE GOLD COMES TO YOU!','AURA ×2 — 12 s : TOUTE L\'AURA COMPTE DOUBLE !':'AURA ×2 — 12 s: ALL AURA COUNTS DOUBLE!','MELON':'MELON'}); // (2026-10-16) la météo de la ville, dite au portail
 // une MAP = son niveau de base + ses météos permises (`bio` : l'ambiance, `niv` : un niveau du jeu repris tel quel, `p` : le poids au tirage, 1 par défaut)
 /* (2026-10-14, LA BIBLE CAR CASH, passe graphismes · banquise2) LA BANQUISE avait déjà son ciel saturé à horizon chaud : il leur
    manquait les invariants communs — le contre-jour ROSE sur les caisses (ici) et la signature de route rose + or (routeSig). */
@@ -100,7 +107,7 @@ const SF_CARTES={
     soir:{bio:'grt-soir-mine',mt:'MAGMA',pr:'LA LAVE MONTE'},nuit:{bio:'grt-nuit-mine',mt:'NOIR COMPLET',nuit:1,p:.8,pr:'TES PHARES, TA SEULE LUMIERE'},
     glace:{bio:'grt-glace-mine',mt:'GLACE',pr:'LA GROTTE A GELE'}}}, /* (2026-10-26, Sacha : « une nouvelle météo pour la grotte : la grotte glacée, inspirée de la grotte intérieure de Fight Club ») */
   ...(CANYON_OK?{canyon:{nm:'CANYON DES GÉANTS',base:'canyon',m:{matin:{bio:'canyonMatin'},soir:{bio:'canyonSoir'},nuit:{bio:'canyonNuit',nuit:1}, // (2026-10-14, Sacha) LE CANYON DES GÉANTS : les six météos du désert
-    pluie:{bio:'canyonPluie',pluie:.6,sheen:.18},orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2}}}}:{}),
+    pluie:{bio:'canyonPluie',pluie:.6,sheen:.18,p:0}, /* (2026-11-05, Sacha : « enlève la pluie dans le biome canyon des géants ») hors du tirage (l'orage aussi, plus bas) ; `?carte=canyon&meteo=pluie` la joue encore */ orage:{bio:'canyonOrage',pluie:.9,orage:1,sheen:.2,p:0}}}}:{}), /* (2026-11-05, Sacha : « l'orage aussi ») hors du tirage ; `?carte=canyon&meteo=orage` le joue encore */
   /* (2026-10-18, Sacha : « fais les dunes d'or de manière parfaite ») LES DUNES D'OR : le matin rose, le midi turquoise et or (les mirages), le SOIR (la carte postale :
      un peu plus souvent), la nuit d'argent, le VENT DE SABLE (pas une goutte : `pluie` reste 0), la TEMPÊTE DE SABLE (un orage sec). Voir genDunes, buildDunes. */
   ...(DUNES_OK?{dunes:{nm:"LES DUNES D'OR",base:'dunes',m:{matin:{bio:'dunesMatin'},soir:{bio:'dunesSoir',p:1.3},nuit:{bio:'dunesNuit',nuit:1,pr:'LA LUNE ARGENTE LE SABLE'},

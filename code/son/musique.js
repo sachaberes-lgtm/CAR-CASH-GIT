@@ -70,6 +70,10 @@ function musicPickNext(excludeIdx){
    monte et la musique recule vers son niveau de ciel (MUS_CIEL), en `d` secondes, une même courbe pour les deux (`ventIntro`, 0 → 1). Hors de l'intro, `ventIntro` vaut 1 : rien ne change. */
 const INTROSON={on:false,t0:0,d:8,m0:.3}; /* m0 : le niveau de départ de la musique (30 % de celui du garage, −10 dB) ; au ciel elle finit à MUS_CIEL (15 %) */
 function ventIntro(){if(!INTROSON.on)return 1;if(!INTROSON.t0)return 0;const k=(performance.now()-INTROSON.t0)/(INTROSON.d*1000);return k>=1?1:k*k*(3-2*k);}
+/* (2026-11-05, Sacha : « remets le léger bruit de vent dans l'écran d'accueil » — au lancement) LE VENT DU CIEL AU LANCEMENT : `chuteDoux` ne suivait que ventIntro (0 pendant « 1.61 PRESENTS », puis 8 s de montée) : on
+   n'entendait le vent qu'après l'accueil. Il a maintenant son propre fondu : un léger souffle (35 %) dès que le ciel se construit sous le film, qui rejoint son niveau en 3 s quand l'accueil apparaît.
+   La musique, elle, garde ventIntro (inchangé). */
+function ventCiel(){if(!INTROSON.on)return 1;if(!INTROSON.t0)return .35;const k=(performance.now()-INTROSON.t0)/3000;return k>=1?1:.35+.65*k*k*(3-2*k);}
 /* LE LOBBY JOUE LE PALIER 1 (2026-11-02, Léo : « enlever les musiques de lobby, libérer un maximum d'espace, et mettre à la place le palier numéro 1 : quelque chose qui fasse partie de la musique de la course ») : au lieu des trois
    morceaux de 3 à 4 Mo (nuages, altitude, apesanteur), le ciel et le garage jouent le PALIER 1 de CIEL · 30 (0,35 Mo, 22 s, en boucle) : le début, calme, du morceau qui monte avec le moteur en course. Un seul morceau :
    `MENU_MUS.ciel.length` vaut 1, donc il boucle (voir playMusic) et `musicMenuSuivant` n'a plus rien à tirer. Les trois anciens fichiers restent sur le disque tant que le palier 1 n'est pas validé à l'oreille.
@@ -124,7 +128,7 @@ const SFX_SOUS_MUS=.58; // (2026-10-03, Léo : « les MONSTRE ne doivent pas cac
    poses, figures « qu'on n'entend pas »). Là où le volume est verrouillé, les effets gardent donc leur plein : le rapport musique / effets
    retrouve à peu près celui de l'ordi. Même sonde que `VOL_LOCKED` (déclarée plus bas, illisible ici avant sa ligne). */
 const SON_VOL_VERROU=(function(){try{const a=new Audio();a.volume=.42;return Math.abs(a.volume-.42)>.01;}catch(e){return false;}})();
-function sfxVol(){return VOL.sfx*((SON_VOL_VERROU&&!musWaTient())?1:SFX_SOUS_MUS);} // (2026-10-14, session SON) musique branchée en WebAudio (MUS_WA) : elle est mixée comme à l'ordi, les effets reprennent leur −3 dB
+function sfxVol(){const sous=SND.music&&VOL.mus>0&&!(SON_VOL_VERROU&&!musWaTient());return VOL.sfx*(sous?SFX_SOUS_MUS:1);} /* (2026-11-07, chasse aux bugs) « sous la musique » seulement s'il y a une musique : MUSIQUE coupée (ou à 0 %), les effets jouent plein */ // (2026-10-14, session SON) musique branchée en WebAudio (MUS_WA) : elle est mixée comme à l'ordi, les effets reprennent leur −3 dB
 function musVol(){return musicBaseVol*VOL.mus*musTrim();} // le niveau accordé × le curseur, en un seul endroit — (2026-10-14, session SON) × la sonie du morceau
 /* (2026-10-14, session SON) LES MORCEAUX À LA MÊME SONIE : une correction en dB (bornée à ±3), appliquée au volume de l'élément (ordi, Android ; sur
    iPhone le volume est verrouillé : rien ne change), pour que les morceaux sonnent aussi fort les uns que les autres. Un morceau absent de la table
@@ -354,6 +358,7 @@ document.addEventListener('visibilitychange',function(){try{
 function musicAnalyse(){
   try{
     if(!AC||!musicEl||typeof musicEl.captureStream!=='function')return;
+    if(musWaTient()&&MUS_WA.an&&musicAna===MUS_WA.an)return; /* (2026-11-07, chasse aux bugs) musique branchée : l'analyseur du graphe est déjà nourri par la source — on ne lui rebranchait pas un flux de capture à chaque "playing" (spectre doublé) */
     const st=musicEl.captureStream();if(!st||!st.getAudioTracks().length)return;
     if(musicAnaEl){try{musicAnaEl.disconnect();musicAnaEl.mediaStream.getTracks().forEach(function(k){k.stop();});}catch(e){}} // (2026-09-26) chaque `playing` recréait un flux : les anciens ne s'arrêtaient jamais
     musicAnaEl=AC.createMediaStreamSource(st);
@@ -410,7 +415,7 @@ function playMusic(url,opt){opt=opt||{};
   el.loop=opt.loop!==false&&!(MENU_MUS.ciel.length>1&&MENU_MUS.ciel.indexOf(url)>=0); /* (LE LOBBY ENCHAÎNE) un morceau du lobby ne boucle plus : un autre prend la suite */
   if(!meme)el.src=url;                                       // on CHANGE de source : jamais d'élément neuf (il serait verrouillé)
   if(musWaTient()&&MUS_WA.bus)MUS_WA.bus.piste(url); // (2026-10-15) les basses de CE morceau (musique-bus.js)
-  else if(!opt.garde){try{el.currentTime=0;}catch(e){}}      // même morceau : du début… sauf s'il faut le GARDER (menu → partie)
+  if(!opt.garde){try{el.currentTime=0;}catch(e){}} /* (2026-11-07) indépendant du bus : avec le graphe, le même morceau ne revenait plus au début */      // même morceau : du début… sauf s'il faut le GARDER (menu → partie)
   if(musicStop._iv){clearInterval(musicStop._iv);musicStop._iv=0;} // (2026-09-30) un tape-stop encore en cours ne rattrape plus le morceau qu'on relance (REJOUER rapide)
   musicBandeNette(el); // …et la bande repart à SA vitesse et SA hauteur (le tape-stop coupé en route la laissait sans `preservesPitch`)
   if(opt.volume!=null){musicVolCible=opt.volume;if(!meme||el.paused)musicVolCour=opt.volume;}

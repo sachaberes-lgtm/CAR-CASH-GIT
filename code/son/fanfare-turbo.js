@@ -88,8 +88,8 @@ function blip(){
   if(SONV2){if(!sfxOk())return;const k9=Math.max(0,combo-1),st9=k9<SON_PG.length?SON_PG[k9]:SON_PG_AR[(k9-SON_PG.length)%SON_PG_AR.length];
     // (2026-10-14, session SON) toutes les 10 pièces d'affilée, le PALIER : la quinte de la note (st−5, une octave sous st+7 : reste sous la base haute), −7 dB, 30 ms après.
     // Jouée AVANT la pièce et seulement si la pièce passera son délai minimal (cd .018, chronométré ici) : on ne double jamais une pièce avalée
-    try{if(combo>0&&combo%10===0&&AC.currentTime-(blip._t||-1)>=.018)sfx('piece',{st:st9-5,vol:-7,t:.03});}catch(e){} /* (2026-10-15) −7 : toujours 7 dB sous la pièce */
-    if(sfx('piece',{st:st9,vol:0}))try{blip._t=AC.currentTime;}catch(e){} /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient — (2026-10-15, Sacha : « les pièces, un peu moins fort ») vol 0 : −35 en sortie (−30 avant), sous les figures (−32 à −25) */if(combo>0&&combo%5===0)sfx('piece.recolte',{vol:0});return;} // (console de son) // (2026-10-14, session SON) RÉCOLTE +4 comme la pièce : à −35 elle passait 5 dB SOUS la pièce (−30) qu'elle couronne (mesures.txt)
+    try{if(combo>0&&combo%10===0&&AC.currentTime-(blip._t||-1)>=.018)sfx('piece',{st:st9-5,vol:-16,t:.03});}catch(e){} /* (2026-10-15) −7 : toujours 7 dB sous la pièce */
+    if(sfx('piece',{st:st9,vol:-9}))try{blip._t=AC.currentTime;}catch(e){} /* (2026-10-12, Léo : « quand je vais sur une pièce, je l'entends pas forcément ») +4 dB : sous GLISSE elles se perdaient — (2026-10-15, Sacha : « les pièces, un peu moins fort ») vol 0 : −35 en sortie (−30 avant), sous les figures (−32 à −25) */if(combo>0&&combo%5===0)sfx('piece.recolte',{vol:-9});return;} /* (2026-11-05, Sacha : « les pièces doivent faire moins de bruit, un petit tintement léger ») pièce et récolte −9 dB, palier −16 */ // (console de son) // (2026-10-14, session SON) RÉCOLTE +4 comme la pièce : à −35 elle passait 5 dB SOUS la pièce (−30) qu'elle couronne (mesures.txt)
   if(!sfxOk())return;
   try{
     const k=Math.max(0,combo-1),st=GAMME_P[Math.min(k,GAMME_P.length-1)],f=660*Math.pow(2,st/12);
@@ -404,6 +404,7 @@ const DEATH_LIB=[
 ];
 let deathLast=-1,deathEls=[];
 function deathPreload(){
+  try{if(typeof waPrecharge==='function'&&location.protocol!=='file:'){waPrecharge();return;}}catch(e){} /* (2026-11-07) les trois sons de mort sont déjà décodés par la console (waPrecharge) : plus de second téléchargement par <audio> */
   try{for(const d of DEATH_LIB){const a=new Audio(DEATH_DIR+d.f);a.preload='auto';a.load();}}catch(e){}
 }
 function deathStop(){ // coupe net (nouvelle partie, mute) : deux morts qui se chevauchent, c'est de la bouillie

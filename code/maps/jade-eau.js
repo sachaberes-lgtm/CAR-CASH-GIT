@@ -31,8 +31,8 @@ function sensMouille(dt){ // chaque image de CONDUITE, dans les 2,6 s qui suiven
    (blanc d'écume, aqua, turquoise clair, vert d'eau), qui héritent d'une part de la vitesse de la caisse ; la gerbe se lit comme une NAPPE. */
 const EAUP={L:[],im:null,max:1800,cols:[new THREE.Color(0xf4fbff),new THREE.Color(0xd2f4f6),new THREE.Color(0xa8e6ea),new THREE.Color(0x86d2cf)]};
 function eauPIm(){if(EAUP.im)return EAUP.im;const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x3a6670});m.dispose=function(){};
-  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,EAUP.max);im.count=0;im.frustumCulled=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  im.setColorAt(0,EAUP.cols[0]);im.instanceColor.setUsage(THREE.DynamicDrawUsage); // la teinte par goutte : posée dès la création (le programme se compile une fois, au menu)
+  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,EAUP.max);im.frustumCulled=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(EAUP.max*3),3);im.instanceColor.setUsage(THREE.DynamicDrawUsage);im.setColorAt(0,EAUP.cols[0]);im.count=0; /* (2026-11-07, chasse aux bugs — banc headless) three r128 : setColorAt alloue 3 × count, pas 3 × capacité ; avec count=0 posé AVANT, le tampon de teinte était VIDE : « INVALID_VALUE: bufferSubData » à chaque goutte sur Jade (×400), gouttes jamais teintées. Alloué à la capacité, explicitement */ // la teinte par goutte : posée dès la création (le programme se compile une fois, au menu)
   scene.add(im);EAUP.im=im;return im;}
 function eauP(x,y,z,vx,vy,vz,sz,l,y0,c){if(EAUP.L.length<EAUP.max)EAUP.L.push({x:x,y:y,z:z,vx:vx,vy:vy,vz:vz,sz:sz,t:0,l:l,y0:y0,c:c===undefined?(Math.random()*4)|0:c});}
 function jadeCouronne(x,y,z,k,vel){eauPIm();eauRide(x,y,z,k);eauRide(x,y,z,k*.6); // L'ENTRÉE : la COURONNE lisse, la nappe qui glisse vers les côtés, les gouttes fines

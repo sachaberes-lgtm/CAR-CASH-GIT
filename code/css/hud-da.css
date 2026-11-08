@@ -414,6 +414,9 @@ html body.touch :is(#auraV2,#triade,#airHud,#pwrChip,#campChip){zoom:var(--hudK)
    était illisible, et PASSER tombait à 35 px de haut). */
 html body.touch :is(#airHud em,#pwrChip .pw small,#campChip small){font-size:calc(8px / var(--hudK))!important}
 html body.touch :is(#auraV2 .avTot em,#avRecT,#avList li){font-size:calc(max(10px * var(--hudK),8px) / var(--hudK))!important}
+/* (2026-11-07, Sacha : « problème d'UHD, quand on fait des figures la barre multiplicateur ×2 est trop grande ») sur ORDINATEUR (grand écran, UHD) la chaîne
+   de figures (points, ×N, barre de temps, liste) n'était pas réduite comme sur téléphone : même échelle --hudK, ancrée en haut à gauche. */
+html body:not(.touch) #auraV2{zoom:var(--hudK)}
 /* le voile d'encre du haut suit le tableau de bord : pleine hauteur jusqu'aux barres, à l'échelle en dessous */
 body.touch.play #hud::before{height:calc(var(--ccT,env(safe-area-inset-top,0px)) + var(--hudY0) + (214px - var(--hudY0)) * var(--hudK))}
 /* l'AUTO-ÉCOLE, hors échelle, garde sa taille (172 px) : debout, les plaques de pouvoir passent SOUS sa carte (elles la chevauchaient de 26 px) */

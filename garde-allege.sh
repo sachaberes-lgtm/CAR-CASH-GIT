@@ -13,6 +13,7 @@ LIBRES="code/moteur/mobile-tactile.js code/moteur/desktop-banc.js code/moteur/in
 # fichiers de DÉFINITION / de palier : un nombre MAXIMUM d'occurrences (la définition, son explication, le palier de l'ordi)
 MAX_soleil_planete=5
 MAX_palier_appareil=4
+MAX_garage_menu=2 # (2026-11-07) deux lignes de RÉGLAGES (VOL INVERSÉ / POUCE HAUT) cachées selon le cadre : de l'interface, pas de l'image
 BAD=0
 for f in $(grep -rlE 'IS_MOBILE' code); do
   case " $LIBRES " in *" $f "*) continue;; esac
@@ -20,6 +21,7 @@ for f in $(grep -rlE 'IS_MOBILE' code); do
   case "$f" in
     code/rendu/soleil-planete.js) max=$MAX_soleil_planete;;
     code/rendu/palier-appareil.js) max=$MAX_palier_appareil;;
+    code/interface/garage-menu-inventaire.js) max=$MAX_garage_menu;;
     *) max=0;;
   esac
   if [ "$n" -gt "$max" ]; then

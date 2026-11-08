@@ -303,6 +303,7 @@ const lampTex=(function(){
    `userData.k` = la taille d'origine du sprite, que la boucle module sans jamais la perdre. */
 const HALO={hM:new THREE.SpriteMaterial({map:lampTex,color:0xffe2a8,transparent:true,opacity:.95,depthWrite:false}),
             tM:new THREE.SpriteMaterial({map:lampTex,color:0xff2818,transparent:true,opacity:.85,depthWrite:false}),h:[],t:[]};
+HALO.hM.userData.plq=1;HALO.tM.userData.plq=1; /* (2026-11-07, chasse aux bugs) partagées par toutes les caisses (et la meute) : jamais libérées — dès la 3e reconstruction, buildCar les disposait sous les sprites de la caisse neuve (même règle que les matières de LA PLAQUE) */
 /* LES PHARES ESCAMOTABLES ALLUMÉS SEULEMENT LEVÉS (2026-10-18, LA VETTE) : `CAR_PHK` = combien les phares de la caisse sont levés, de 0 (rangés)
    à 1 ; null = une caisse aux phares fixes (toutes les autres). La caisse qui a des escamotables le pose chaque image (son `BLING.anim`) ; il
    multiplie le halo des phares, leur nappe au sol (carVit) et leur lumière sur la route (lumTick). buildCar le remet à null. */

@@ -140,7 +140,7 @@ function trxPlanche(){
   return cv;
 }
 function trxBati(){if(TRX)return TRX;
-  const tx=new THREE.CanvasTexture(trxPlanche());tx.minFilter=THREE.LinearMipmapLinearFilter;tx.magFilter=THREE.LinearFilter;
+  const tx=texLibere(new THREE.CanvasTexture(trxPlanche()));/* (2026-11-07) la toile de 1 024² (4 Mo) est rendue après l'envoi sur téléphone, comme les autres planches */tx.minFilter=THREE.LinearMipmapLinearFilter;tx.magFilter=THREE.LinearFilter;
   const mk=function(add){const g=new THREE.InstancedBufferGeometry(),a={};
     g.setAttribute('position',new THREE.BufferAttribute(new Float32Array([-1,-1,0,1,-1,0,1,1,0,-1,1,0]),3));g.setIndex([0,1,2,0,2,3]);
     for(const k of ['iP','iA','iB','iC']){const at=new THREE.InstancedBufferAttribute(new Float32Array(TRX_N*4),4);at.setUsage(THREE.DynamicDrawUsage);g.setAttribute(k,at);a[k]=at.array;}

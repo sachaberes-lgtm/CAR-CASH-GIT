@@ -19,7 +19,7 @@
    débranché de MASTER tant que sa consigne est nulle (coût zéro hors pluie). `PLUIE_SON=false` = comme avant. PLUIE_NIV est le gain pour LVL.pluie = 1 : le bruit
    rose normalisé et filtré 1,4-7,5 kHz sort à −21 dB RMS avant gain (MESURÉ hors ligne, mêmes filtres) ; .055 → ≈ −46 dBFS RMS, à 17 dB sous le moteur seul (−29)
    et 10 sous le vent à 300 km/h (−56) : on l'entend quand rien ne couvre, jamais en premier. (Le .0075 de l'audit ne donnait que −64 dBFS : inaudible.) */
-const PLUIE_SON=true,PLUIE_NIV=.035; // (2026-10-14, session SON) .055 → .035 (−4 dB, ≈ −50 dBFS) : prudence — un souffle aigu de ce genre, au-dessus de la musique, a déjà été retiré par Léo (« LE SON PARASITE DU DÉPART DES NUAGES », 08/10) ; on l'entend sans qu'il passe devant
+const PLUIE_SON=false,PLUIE_NIV=.035; // (2026-10-14, session SON) .055 → .035 (−4 dB, ≈ −50 dBFS) : prudence — un souffle aigu de ce genre, au-dessus de la musique, a déjà été retiré par Léo (« LE SON PARASITE DU DÉPART DES NUAGES », 08/10) ; on l'entend sans qu'il passe devant
 let pluieG=null;
 /* ===== LA PLUIE v2 (2026-11-05, Sacha : « retravaille le bruit de la pluie, quelque chose de plus irrégulier et agréable à écouter ») =====
    L'ancienne boucle (3 s de bruit rose filtré) faisait un « tssss » plat, le même à chaque seconde. La pluie vraie n'est pas un bruit : c'est un lit doux

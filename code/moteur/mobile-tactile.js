@@ -501,7 +501,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     // `touch-action:none` sur le canvas et le HUD bloque déjà le scroll du navigateur.
     if(garageOn)return;
     const tg=e.target;
-    if(!(tg&&tg.closest&&tg.closest('#overlay,#gCard,#tPanel,#modale,#plq,#prof'))&&e.cancelable)e.preventDefault(); /* (2026-10-17) l'atelier de la plaque et le profil défilent au doigt (debout, sur un petit écran) */ // (2026-09-29) la FENÊTRE est hors de #overlay : son contenu ne défilait pas au doigt
+    if(!(tg&&tg.closest&&tg.closest('#overlay,#gCard,#tPanel,#modale,#plq,#prof,#shPop,#ccBoite,#ccCrash,#pubR'))&&e.cancelable)e.preventDefault(); /* (2026-11-07, chasse aux bugs) la fiche d'achat, la boîte noire et l'écran de crash défilent au doigt (ils ne pouvaient pas, hors garage) */ /* (2026-10-17) l'atelier de la plaque et le profil défilent au doigt (debout, sur un petit écran) */ // (2026-09-29) la FENÊTRE est hors de #overlay : son contenu ne défilait pas au doigt
   },{passive:false});
   // ---- GARAGE AU DOIGT : le PINCEMENT remplace la molette (il n'y a pas de molette sur un pouce) ----
   (function(){ let pd=0;
@@ -636,13 +636,20 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
      en TOUS ses chiffres (« $ 7 210 », plus « 7,2 k »), une case par signe, réservée dès le départ à la largeur finale — les zéros d'avant le
      premier chiffre sont là, éteints, et s'allument quand le nombre les atteint ; chaque chiffre qui change ROULE (il monte d'un cran). */
   function m6Monte(el,F){el.textContent='';const S=[];
-    for(const c of Array.from(F)){const x=document.createElement('span');if(/\d/.test(c)){x.className='m6D';x.textContent='0';S.push(x);}else if(/\s/.test(c))x.className='m6S';else{x.className='m6X';x.textContent=c;}el.appendChild(x);}
-    el._m={S:S,cur:null};el.setAttribute('aria-label',F);}
-  function m6Pose(el,v,roule){const M=el._m;if(!M)return;const n=M.S.length,t=String(Math.max(0,Math.round(v))),d=t.padStart(n,'0').slice(-n);
-    for(let i=0;i<n;i++){const x=M.S[i];
-      if(!M.cur||M.cur[i]!==d[i]){x.textContent=d[i];if(roule&&!REDUCED_MOTION&&x.animate)x.animate([{transform:'translateY(.55em)',opacity:0},{transform:'none',opacity:1}],{duration:170,easing:'cubic-bezier(.2,.8,.2,1)'});}
-      x.classList.toggle('z',i<n-t.length);}
-    M.cur=d;}
+    for(const c of Array.from(F)){const x=document.createElement('span');if(/\d/.test(c)){x.className='m6D';const a=x.appendChild(document.createElement('i')),b=x.appendChild(document.createElement('u'));a.textContent='0';b.textContent='1';x.A=a;x.B=b;S.push(x);}else if(/\s/.test(c))x.className='m6S';else{x.className='m6X';x.textContent=c;}el.appendChild(x);}
+    el._m={S:S,cur:null,f:[]};el.setAttribute('aria-label',F);}
+  /* (2026-11-05, Sacha : « le compteur de cash doit être mieux animé, avec le dernier chiffre qui augmente d'abord et qui fait augmenter les autres ») UN VRAI
+     COMPTEUR KILOMÉTRIQUE : v est un nombre à virgule. Le chiffre des unités glisse en continu (le courant monte, le suivant arrive dessous) ; quand il
+     passe par 9 il POUSSE celui des dizaines (f = sa fraction de glissade, de 0 à 1 pendant que le chiffre d'en dessous va de 9 à 10), qui pousse les
+     centaines, etc. Chaque case a deux glyphes : <i> le chiffre courant, <u> le suivant ; la variable --f (0→1) les fait glisser et se fondre (css). */
+  function m6Pose(el,v,roule){const M=el._m;if(!M)return;const n=M.S.length,V=Math.max(0,roule?v:Math.round(v)),I=Math.floor(V),len=String(I).length;
+    for(let j=0;j<n;j++){const x=M.S[j],i=n-1-j,pw=Math.pow(10,i),d=Math.floor(I/pw)%10;
+      let f=0;if(roule&&!REDUCED_MOTION)f=i===0?V-I:Math.min(1,Math.max(0,(V%pw)/(pw/10)-9));
+      if(!M.cur||M.cur[j]!==d){M.cur=M.cur||[];M.cur[j]=d;x.A.textContent=d;x.B.textContent=(d+1)%10;}
+      const fq=Math.round(f*40)/40; /* 40 crans de glissade : assez doux, et on ne réécrit le style que s'il bouge */
+      if(M.f[j]!==fq){M.f[j]=fq;x.style.setProperty('--f',fq);}
+      const z=i>=len;x.classList.toggle('z',z);
+      x.style.opacity=(z&&i===len&&fq>0)?(.2+.8*fq).toFixed(2):''; /* le premier zéro éteint qui devient un 1 s'allume pendant la poussée */}}
   function m6Ici(){return mCur==='dead'&&started&&gameOver&&overlay.style.display!=='none';} /* l'écran de mort est là (REJOUER tapé pendant le compte : plus rien ne vole sur la course) */
   /* (2026-11-05, Sacha : « enlève le petit carré doré qui monte l'argent ») les petits carrés dorés qui venaient se fondre dans le chiffre pendant le compte (m6Pieces) sont retirés */
   function mCount(el,to,direct){ // égrène le montant : départ franc, arrivée en douceur
@@ -657,7 +664,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
     mCntT=setInterval(function(){ if(performance.now()<T0)return;
       if(!t0)t0=performance.now(); /* (v6) la place du montant FINAL est prise d'avance (m6Monte) : le badge et le compte, à sa droite, ne bougent pas */
       const k=Math.min(1,(performance.now()-t0)/D),e=v6?1-Math.pow(1-k,2):1-Math.pow(1-k,3); /* v6 : ease-out quadratique, les crans du son (mCompteSon) tombent sur 1 - √(1 - j/N) */
-      if(v6)m6Pose(el,Math.round(to*e),true);else el.textContent=fmtC(Math.round(to*e));
+      if(v6)m6Pose(el,to*e,true);else el.textContent=fmtC(Math.round(to*e));
       if(v6&&!REDUCED_MOTION){el.style.setProperty('--k',e.toFixed(3));cpt(sol-to+to*e);}
       if(k>=1){clearInterval(mCntT);mCntT=0;
         if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');cpt(sol);if(!REDUCED_MOTION&&m6Ici())try{pixBurst(el,12);}catch(x){}}
@@ -711,7 +718,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
   function mFill(){ try{
     const b1=$t('mBest'),b2=$t('mBest2'),mc=$t('mCar');
     if(b1)b1.textContent=fmtC(best); if(b2)b2.textContent=fmtC(best);
-    if(mc)mc.textContent=TR('CAISSE')+' : '+TR(CARS[Math.min(CARS.length-1,Math.max(0,level|0))].name);
+    if(mc)mc.textContent=TR('CAISSE')+(LANG==='fr'?' : ':': ')+TR(CARS[Math.min(CARS.length-1,Math.max(0,level|0))].name);
     if(mCur==='dead'){
       const m9=Math.round(money),rec=!SANDBOX&&money>(RUNX.best0||0)&&money>START_CASH+.5&&(RUNX.best0||0)>0; // (2026-10-14, charte 6, Sacha : les badges restent) un record bat un record PRÉCÉDENT (> 0) : à la toute 1re partie, aucun // (2026-09-25) montants BRUTS : l'arrondi manquait un record sur deux, et 1,61 $ n'est pas un record
       /* VERSÉS AU COMPTE = ce que la banque a VRAIMENT gagné depuis le départ — le magot MONTE au lieu de s'afficher : 750 ms qui font le sel de
@@ -989,7 +996,7 @@ if(IS_MOBILE||/[?&]touch=1/.test(location.search)){
       if(v6)m6Monte(c9,fmtSolde(2*v));
       if(REDUCED_MOTION){if(v6)m6Pose(c9,2*v,false);else c9.textContent=fmtC(2*v);return;}
       const t0=performance.now(),D=v6?900:600;
-      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,Math.round(v*(1+q)),true);else c9.textContent=fmtC(Math.round(v*(1+q)));
+      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,v*(1+q),true);else c9.textContent=fmtC(Math.round(v*(1+q)));
         if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');if(v6&&m6Ici())try{pixBurst(c9,12);}catch(x){}}},v6?16:28);};
     const apres=function(vue,v){if(vue)monte(v);maj();};window.__dblApres=apres;
     const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};

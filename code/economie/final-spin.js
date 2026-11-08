@@ -207,7 +207,7 @@ function mkJeton(dir){const d=SPIN_D,g=new THREE.Group();
   const ha=new THREE.Sprite(d.haloM);ha.scale.set(7.5,7.5,1);ha.renderOrder=2;ha.updateMatrix();ha.matrixAutoUpdate=false;g.add(ha);
   return g;}
 function spinPose(){ // fin de spawnPickups : AU PLUS un jeton par zone, et seulement si le hasard le veut (souvent non)
-  if(!SPIN.on||BALADE||PARK.on||SANDBOX||TUTO.on||SURV.on||SPIN.pose>=SPIN.max||(LVL.cur&&LVL.cur.piste==='tuto'))return;
+  if(!SPIN.on||BALADE||PARK.on||SANDBOX||TUTO.on||SURV.on||SPIN.pose>=SPIN.max||(SAVE.d.spinJ|0)>=9||(LVL.cur&&LVL.cur.piste==='tuto'))return; /* (2026-11-07) plateau plein : plus de jeton sur la route (il était pris pour rien) */
   if(Math.random()>SPIN.pZone)return;
   let ss=-1;for(let k=0;k<8&&ss<0;k++){const c9=L*(.22+Math.random()*.6);let ok=true;
     for(const p of pickups)if(p.pow&&Math.abs(p.s-c9)<60){ok=false;break;}if(ok)ss=c9;}
@@ -228,7 +228,7 @@ function spinTire(){ // le résultat, AVANT que les rouleaux ne tournent : un lo
   const f=SPIN.force;SPIN.force=null;const R=function(n){return (Math.random()*n)|0;},Lo=SPIN.lots,N=Lo.length;
   let i=-1;
   if(f!=null){const al={jackpot:'sept',brelan:'gros',paire:null,rien:null}[f];const id=al!==undefined?al:f;i=id==null?-1:Lo.findIndex(function(l){return l.id===id;});}
-  else{let r=Math.random();for(let k=0;k<N;k++){if(r<Lo[k].p){i=k;break;}r-=Lo[k].p;}}
+  else{let r=Math.random();for(let k=0;k<N;k++){const Lk=Lo[k];if(Lk.bon&&(SAVE.d[Lk.bon]|0)>=3)continue;if(Lk.jeton&&(SAVE.d.spinJ|0)>=9)continue;if(r<Lk.p){i=k;break;}r-=Lk.p;}} /* (2026-11-07, chasse aux bugs) un tiroir PLEIN (3 bons, 9 jetons) ne se tire plus : la machine fêtait un lot qui ne donnait rien — sa part passe aux lots suivants */
   if(i>=0)return {i:i,lot:Lo[i],s:[i,i,i]};
   // la consolation : souvent un « presque » (deux gros symboles sur les deux premiers rouleaux, le 3e qui fait durer), sinon trois différents
   let s;if(f==='paire'||(f==null&&Math.random()<.38)){const a=2+R(N-2);let b=R(N);while(b===a)b=R(N);s=[a,a,b];}
@@ -370,7 +370,7 @@ function spinDonne(R){ // le lot, dans la sauvegarde — l'argent au compte, les
   if(L.jeton)SAVE.d.spinJ=Math.min(9,(SAVE.d.spinJ|0)+L.jeton);
   SAVE.flush();}
 function spinPaye(R){ // le gain : donné TOUT DE SUITE, puis l'écran de la machine le raconte
-  spinDonne(R);const L=R.lot,gros=R.i>=2,jack=L.id==='sept',C=R.cash|0,V=R.car>=0; /* (2026-10-19) C = l'argent VERSÉ (0 quand le 7 donne une caisse), V = une caisse gagnée */
+  spinDonne(R);const L=R.lot,gros=R.i===2,/* (2026-11-07) seul le GROS SAC est fêté en gros : les bons (cœur, éclair, jeton) ont leur petite fête */jack=L.id==='sept',C=R.cash|0,V=R.car>=0; /* (2026-10-19) C = l'argent VERSÉ (0 quand le 7 donne une caisse), V = une caisse gagnée */
   SPIN.gEl.className='spGain '+(jack?'jackpot':gros?'gros':R.i>=0?'lot':'conso')+(V?' voit':'');
   SPIN.gEl.innerHTML=(R.i>=0?spinIco(R.i,'spGIco'):'')+'<div class="spGTx"><small>'+sansAcc(TR(L.nm))+'</small>'
     +(V?'<b class="voit">'+sansAcc(TR(CARS[R.car].name))+'</b><small class="rar">'+sansAcc(TR('VOITURE ÉPIQUE'))+'</small>'

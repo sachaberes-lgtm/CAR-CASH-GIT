@@ -118,7 +118,7 @@ function plaTick(dt,sim){
   if(!PLA.mB){if(!(PLA.surge>0)&&!cryptoOn())return;plaInit();}
   const cr9=cryptoOn()&&started&&!gameOver,cible=PLA.surge>0?1:cr9?(CITY.dz&&CITY.dz.genre==='crypto'?CITY.dz.pluie:.5):0; /* (2026-10-20, LE DÉCOR AU HASARD) la pluie de fond tirée : fine, normale, averse */
   if(sim){PLA.surge=Math.max(0,PLA.surge-dt);PLA.dens+=(cible-PLA.dens)*Math.min(1,dt*(cible>PLA.dens?2.2:.9));PLA.u.uT9.value+=dt;}
-  if(!started||gameOver&&PLA.surge<=0)PLA.dens=Math.max(0,PLA.dens-dt*.8);
+  if(!started||gameOver)PLA.dens=/* (2026-11-07) l'averse ne continue pas sur l'écran de mort */Math.max(0,PLA.dens-dt*.8);
   const vis=PLA.dens>.004&&!PLA.off;PLA.mB.visible=PLA.mP.visible=vis;if(!vis)return; // PLA.off : le banc la coupe (dbgCrypto('sansPluie'))
   const U=PLA.u;U.uDens9.value=PLA.dens;
   camera.getWorldDirection(PLA.f);U.uC9.value.copy(camera.position).addScaledVector(PLA.f,PLA.B.z*.3);U.uC9.value.y+=PLA.B.y*.12;

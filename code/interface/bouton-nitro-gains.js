@@ -301,7 +301,8 @@ const MORT_IMG={t:0,i:0,w:0,h:0,n:0,on:false,dt:0}; // dt : le temps des images 
 function mortSaute(dt){
   const N=Math.max(PAL.b('mortImg',1)|0,PFR_ON?2:1); /* (2026-10-24) le téléphone au frais : une image sur deux au moins (voir PFR_ON) */
   if(N<=1)return false;
-  if(!(gameOver&&TCTL.on&&!garageOn&&!stallOn&&!MENUV.retour&&overlay.style.display!=='none'&&overlay.getAttribute('data-ecran')==='dead')){MORT_IMG.t=0;MORT_IMG.i=0;MORT_IMG.on=false;return false;}
+  const mort9=gameOver&&overlay.style.display!=='none'&&overlay.getAttribute('data-ecran')==='dead',pause9=paused&&started&&!gameOver&&!ecranWipe._on; /* (2026-11-07, chasse aux bugs) LA PAUSE AUSSI : derrière la feuille (et les RÉGLAGES, opaques) la scène complète était redessinée à pleine cadence, jeu figé — le téléphone chauffait comme en course */
+  if(!((mort9||pause9)&&TCTL.on&&!garageOn&&!stallOn&&!MENUV.retour)){MORT_IMG.t=0;MORT_IMG.i=0;MORT_IMG.on=false;return false;}
   MORT_IMG.t+=dt;
   if(MORT_IMG.t<1.5)return false;
   MORT_IMG.on=true;if(dprT<2.2)dprT=2.2;

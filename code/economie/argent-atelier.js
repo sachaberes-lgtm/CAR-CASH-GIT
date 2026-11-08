@@ -91,10 +91,13 @@ function garArgent(g){
   // LES MEUBLES : des piles bien rangées sur ce qui est plat (colonnes [dx, dz], couches)
   const pile=(x,y,z,ry,cols,couches)=>{const it=[];for(let l=0;l<couches;l++)for(const c9 of cols)
       it.push(()=>liasse(x+c9[0]+(rn()-.5)*.02,y+l*LT,z+c9[1]+(rn()-.5)*.02,ry+(rn()-.5)*.08,0,0));return {it:it,a:0};};
-  const M9=[pile(-6.6,1.0,10.42,.35,[[0,0]],3),                               // sur les fûts
+  /* (2026-11-07, Sacha : « dans le garage il y a des tas de billets qui flottent ») les deux piles « sur les fûts » (−6,6 et −4,6 ; 1 m)
+     sont ENLEVÉES : les fûts ont disparu de l'atelier (« l'atelier aéré », garage-salle.js), les liasses restaient à 1 m dans le vide.
+     Mesuré en page : un rayon vers le bas sous chaque liasse — seules ces deux piles ne touchaient rien. */
+  const M9=[
     pile(10.3,2.13,8.4,Math.PI/2,[[0,-.27],[0,.27]],4),                        // sur le distributeur
     pile(9.6,.57,2.93,0,[[0,0]],3),pile(9.6,1.72,3.8,0,[[0,0]],3),            // les étagères du rack (places libres entre bacs, cartons, jantes)
-    pile(-4.6,1.0,10.42,-.3,[[0,0]],3),pile(-9.4,1.26,-1.6,Math.PI/2,[[0,-.36],[0,.36]],4), // l'autre fût · la servante
+    pile(-9.4,1.26,-1.6,Math.PI/2,[[0,-.36],[0,.36]],4),                       // la servante
     pile(9.6,2.87,3.25,0,[[0,0]],3),pile(9.6,.57,5.2,0,[[0,0]],3),
     pile(-3.1,.98,-11.95,0,[[-.27,0],[.27,0]],5),pile(.95,.98,-11.95,0,[[-.27,0],[.27,0]],4),pile(-7.45,.98,-11.95,Math.PI/2,[[0,0]],4), // l'établi (derrière la caméra)
     pile(9.6,1.72,5.2,0,[[0,0]],3),pile(9.6,2.87,1.55,0,[[0,0]],3),pile(9.6,4.02,3.55,0,[[0,0]],2)];

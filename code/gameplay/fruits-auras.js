@@ -161,11 +161,12 @@ void main(){vec2 p=vUv;float r=length(p);if(r>1.)discard;float t=uT;float disc=s
   float pu=1.-smoothstep(.12,.14,r);col=mix(col,vec3(0.),pu);a=max(a,pu*.9);
   gl_FragColor=vec4(col,a*disc*uA);}`;
 /* fauraFruit(kind, geo) : le groupe d'aura d'un fruit-pouvoir (kind = 0 piment · 1 citron · 2 dragon · 4 pomme dorée ; 3 raisin = rien) — à ajouter COMME ENFANT du mesh du fruit */
+const FAURA_MC={}; /* (2026-11-07, chasse aux bugs) les matières des coques (une par genre × couche, uniformes constants) sont partagées : une POMME DORÉE posée en faisait 4 neuves, jamais libérées */
 function fauraFruit(kind,geo){
   const g=new THREE.Group();if(kind===3)return g;
   const nS=kind===0?3:2;
   for(let i=0;i<nS;i++){
-    const m=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uKind:{value:kind},uS:{value:i}},vertexShader:FSH2_VS,fragmentShader:FSH2_FS,transparent:true,depthWrite:false,side:THREE.DoubleSide});
+    const k9=kind+':'+i,m=FAURA_MC[k9]||(FAURA_MC[k9]=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uKind:{value:kind},uS:{value:i}},vertexShader:FSH2_VS,fragmentShader:FSH2_FS,transparent:true,depthWrite:false,side:THREE.DoubleSide}));
     const ms=new THREE.Mesh(geo,m);ms.renderOrder=20+i;g.add(ms);}
   if(kind===2){
     const dm=new THREE.ShaderMaterial({uniforms:{uT:FAURAU.uT,uSize:{value:7.5},uA:{value:1}},vertexShader:FDISC_VS,fragmentShader:FDISC_FS,transparent:true,depthWrite:false});
@@ -239,9 +240,15 @@ function ninfTick(dt){
 const MAGV=new THREE.Vector3(),MAGT=new THREE.Vector3();
 function magSpirale(p,d9,dt){
   const P=p.mesh.position;MAGV.copy(carGroup.position).sub(P);MAGT.crossVectors(MAGV,p.ax);const l=MAGT.length();if(l<1e-4)return;
-  MAGT.multiplyScalar(Math.min(d9,18)/l*dt*5.5);P.add(MAGT);
-  if(Math.random()<.04)sparkBurst(sparkGold,P,1,2);
+  /* (2026-11-07, Sacha : « rebosse l'animation quand tu récupères des pièces grâce à l'aimant ») la spirale se SERRE en approchant (plus vite près de la
+     caisse), et la pièce sème une TRAÎNÉE d'étincelles (budget : 5 par image au plus, pour ne pas noyer le GPU quand 100 pièces arrivent d'un coup) */
+  const k9=d9<14?1.35:1;MAGT.multiplyScalar(Math.min(d9,18)/l*dt*8*k9);P.add(MAGT);
+  const n9=performance.now();if(n9-MAGB.t>14){MAGB.t=n9;MAGB.n=0;}
+  if(MAGB.n<5&&Math.random()<.3){MAGB.n++;sparkBurst(sparkGold,P,1,d9<10?4:2.5);}
 }
+const MAGB={t:0,n:0,pop:0};
+/* LE « POP » D'ARRIVÉE : la pièce aspirée éclate en or SUR la caisse (au plus un pop toutes les 60 ms : on en prend parfois 30 d'un coup) */
+function magPop(){const n9=performance.now();if(n9-MAGB.pop<60)return;MAGB.pop=n9;try{sparkBurst(sparkGold,carGroup.position,5,10);}catch(e){}}
 Object.assign(PWR_DEFS.m,{col:0xffd24a,core:0xfff2c8,tint:'#ffd75e',c2:'#e0a010',fx:'rgba(255,210,74,.7)',fx2:'rgba(224,160,16,.25)',msg:'POMME DORÉE — LES PIÈCES VIENNENT À TOI !',sous:'LES PIECES VIENNENT A TOI'});
 {const f9=function(c){return c.replace(/,([.\d]+)\)$/,function(m,a){return ','+(+a*PWR_BORD_K).toFixed(3)+')';});};PWR_DEFS.m.bd=f9(PWR_DEFS.m.fx);PWR_DEFS.m.bd2=f9(PWR_DEFS.m.fx2);}
 

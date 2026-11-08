@@ -5,12 +5,12 @@
       if(!introD&&!PARK.on&&!BALADE&&graceT<=0&&idleKmh<22){
         idleT+=dt;
         if(idleT>1.6){
-          showMsg(TR('⚠ ROULE OU CRÈVE — ')+decFr(Math.max(0,6-idleT),1)+' s','#ff4d4d'); // compte à rebours vivant
+          {const d9=decFr(Math.max(0,6-idleT),1);if(loop._idleTxt!==d9){loop._idleTxt=d9;showMsg(TR('⚠ ROULE OU CRÈVE — ')+d9+' s','#ff4d4d');}} // compte à rebours vivant — (2026-11-07) le DOM n'est réécrit qu'au dixième, pas à chaque image
           loop._tickT=(loop._tickT||0)-dt; // TIC d'amorce qui S'ACCÉLÈRE vers le boom
           if(loop._tickT<=0){loop._tickT=Math.max(.10,(6-idleT)*.22);if(SONV2)sfx('arret.tic',{st:6-idleT<1?7:0,vol:6-idleT<1?2:0});else{chimeNote(660+ (6-idleT<1?900:0),0,.05,.22);subBoom(.05);}}
         }
         if(idleT>=6){idleT=0;explode('arret');}
-      }else{idleT=Math.max(0,idleT-dt*2.5);loop._tickT=0;}
+      }else{idleT=Math.max(0,idleT-dt*2.5);loop._tickT=0;loop._idleTxt=null;}
       frameAt(s,F);
       if(side<0){F.n.multiplyScalar(-1);F.b.multiplyScalar(-1);}
       // cap MONDE : la route tourne sous la voiture

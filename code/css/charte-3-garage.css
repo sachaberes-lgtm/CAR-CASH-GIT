@@ -267,10 +267,10 @@ html.misS #gmHead small{line-height:1.6}
 /* L'ÉTAL (outil de réglage des fruits) : il partage les ids de l'atelier — le strict nécessaire, scopé */
 #stall{position:fixed;inset:0;display:none;z-index:60;pointer-events:none;flex-direction:column;justify-content:space-between;font-family:var(--pix);color:var(--tx)}
 #stall.on{display:flex}
-#stall #gTop{flex-direction:row;justify-content:space-between;align-items:center;max-width:none;pointer-events:auto}
+#stall #stTop{flex-direction:row;justify-content:space-between;align-items:center;max-width:none;pointer-events:auto}
 #stall .gTitle{font-size:var(--f1);letter-spacing:1px;color:var(--au1)}
-#stall #gBottom{flex-direction:row;align-items:center;max-width:none}
-#stall #gCard{flex:1;display:block;margin:0;padding:14px;background:var(--k2);box-shadow:0 0 0 1px var(--kl)}
+#stall #stBottom{flex-direction:row;align-items:center;max-width:none}
+#stall #stCard{flex:1;display:block;margin:0;padding:14px;background:var(--k2);box-shadow:0 0 0 1px var(--kl)}
 #stall #stName{font-size:var(--f3);margin-bottom:10px}
 #stall .stRow{display:flex;justify-content:space-between;font-family:var(--pix);font-size:var(--f1);margin:8px 0 2px}
 #stall .stSlider{width:100%}

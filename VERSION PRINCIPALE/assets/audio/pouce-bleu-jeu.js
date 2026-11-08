@@ -184,7 +184,7 @@
     const jeton = ++PB.n; PB.phase = 'charge'; PB.err = null; PB.ac = ac; let ch = null;
     try {
       await PB.charge(); if (jeton !== PB.n) return null;
-      const E = (opt.meme && PB.dernier) || PB.tire(); if (!E) { PB.phase = 'vide'; return null; } PB.dernier = E;   // (la seconde chance : le MÊME morceau repart)
+      const E = (opt.meme && (PB.course9 || PB.dernier)) || PB.tire(); if (!E) { PB.phase = 'vide'; return null; } PB.dernier = E; PB.course9 = E;   // (la seconde chance : le MÊME morceau repart) — (2026-11-07, chasse aux bugs) celui de la COURSE (course9) : le lobby lancé 1,4 s après la mort écrasait PB.dernier, et « le même » était le morceau du menu
       ch = chaine(ac, sortie); if (ch.bus) { ch.bus.brut(!!opt.brut); ch.bus.piste('jeu:' + E.id); ch.bus.course(true); }
       const Ej = E.course ? Object.assign({}, E, { type: 'html', f: E.course }) : E;   /* (2026-11-02) un morceau refait : la page de course */
       const J = await (Ej.type === 'genv' ? joueurGen : Ej.type === 'paliers' ? joueurPaliers : joueurHtml)(ac, ch.entree, Ej);

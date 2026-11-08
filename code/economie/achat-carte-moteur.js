@@ -25,7 +25,8 @@ function carUnlockText(i){ // ce qu'il reste à faire, en une ligne — affiché
       ? ['\n(il te manque ','\n(short by '][L]+fmtC(manque)+')'
       : ['\nTU PEUX TE LA PAYER !','\nYOU CAN AFFORD IT!'][L]); // (2026-09-29) la 2e moitié sur SA ligne (#gDesc en pre-line) : « — tu peux » tombait seul en tête de ligne
   }
-  if(u.k==='mis'){const m9=m2Def(u.id);if(!m9)return '';return m9.f==='secret'&&!carUnlockedVrai(i)?TR('MISSION SECRÈTE'):sansAcc(TR('SE DÉBLOQUE'))+' : '+sansAcc(m2Txt(m9));} // (2026-10-16) LES MISSIONS v2
+  if(u.k==='premium')return ['EN BOUTIQUE — ','IN THE SHOP — '][L]+eurTxt(u.eur); /* (2026-11-07, chasse aux bugs) la fiche d'une caisse en euros n'affichait qu'un cadenas sans texte */
+  if(u.k==='mis'){const m9=m2Def(u.id);if(!m9)return '';return m9.f==='secret'&&!carUnlockedVrai(i)?TR('MISSION SECRÈTE'):sansAcc(TR('SE DÉBLOQUE'))+(LANG==='fr'?' : ':': ')+sansAcc(m2Txt(m9));} // (2026-10-16) LES MISSIONS v2
   const v=u.v,cur=carStat(u.k);
   if(u.k==='carnet')return ['SE GAGNE EN RELEVANT 3 MISSIONS', /* (2026-09-28) police pixel : pas de capitale accentuée (« DéFIS ») */'WON BY COMPLETING 3 MISSIONS'][L];
   switch(u.k){
