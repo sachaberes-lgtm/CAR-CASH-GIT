@@ -6,7 +6,7 @@
 
 
 ## L'ÉCRAN DE MORT EST MUET (2026-11-08 — Sacha : « il y a la musique alors que je suis mort »)
-- Cause : depuis le 19/10, `endGame` relançait la musique du menu 1,4 s après la mort (`musicMenu` → le lobby lié de Pouce bleu, le morceau de la
+- Cause : depuis fin septembre, `endGame` relançait la musique du menu 1,4 s après la mort (`musicMenu` → le lobby lié de Pouce bleu, le morceau de la
   PROCHAINE course, niveau 0,34 à 0,58 au banc). Ce n'était pas la musique de course qui continuait : elle s'éteint bien au crash (`explode`, tape-stop).
 - Maintenant : la musique s'éteint au crash et rien ne repart sur l'écran de mort. Elle revient avec REJOUER (sa course), CONTINUER et la réanimation
   automatique (le même morceau), MAISON, GARAGE et MISSIONS (`accueilRetour` → `musicMenu`). Le curseur MUSIQUE rallumé sur l'écran de mort ne relance rien.
