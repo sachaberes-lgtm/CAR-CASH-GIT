@@ -314,6 +314,11 @@ const JADE_PLAY=/[?&]play=jade\b/.test(location.search)&&!BALADE; // (2026-10-13
    `?simu=1` (posé par simulateur/course.html) : pas d'écran titre (le voile s'ouvre tout seul, comme la balade), pas de rechargement automatique
    quand une nouvelle version sort (le simulateur garde la main) ; le reste est le jeu tel quel. `dbgQuitte()` finit la course sans explosion. */
 const SIMU_JEU=/[?&]simu=1\b/.test(location.search);
+/* ===== L'INTRO NE COMMENCE QUE QUAND TOUT EST PRÊT (2026-11-08, Sacha, sur le 13 Pro : « l'animation du début a toujours des latences, c'est pas acceptable ; rallonge le temps de chargement s'il le faut ») =====
+   INTRO_APRES : 0 = l'ancien (le film part tout de suite, le chargement se fait SOUS la boule) ; 1 = TÉLÉPHONE (TEL_NATIF) : tout le travail se fait AVANT le film, sous le serpent (script, étapes, liaison des programmes, chauffe du menu,
+   textures, vignettes de la boule, photos, départ d'avance, son), le film part tout seul dès que tout est prêt, et RIEN ne travaille pendant qu'il joue (`window.__introPause` : la boucle du jeu, les photos, le pré-bâti se taisent ;
+   ils reprennent au menu) ; 2 = comme 1, mais le film attend un toucher (retenu s'il est venu avant). `?intro=sous` = l'ancien ; `?introapres=0|1|2` règle (banc : sur le Mac, ?tel=1 ne suffit pas, il faut ?introapres=1). Ordinateur : 0. */
+const INTRO_APRES=(function(){const m=/[?&]introapres=([012])\b/.exec(location.search);if(BALADE||SIMU_JEU||/[?&]depart=toucher\b/.test(location.search))return 0;if(m)return +m[1];if(/[?&]intro=sous\b/.test(location.search))return 0;return TEL_NATIF?1:0;})();
 /* (2026-10-12, le simulateur) la page des maps pose ce jeu en PETIT sur une image puis en PLEIN ÉCRAN : son cadre change de zoom, donc de
    devicePixelRatio — le plafond de résolution (DPR_CAP), pris une fois au démarrage, restait celui de la petite image (plein écran flou).
    En ?simu=1 seulement, il suit le zoom du cadre (même calcul qu'au démarrage). */
