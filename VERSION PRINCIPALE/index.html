@@ -10182,6 +10182,9 @@ html #gMis.mbOn.m2land #gmBas .gmHome .pxi{--pxs:2}
 html body #garage#garage #gAct#gAct>.pbtn{transform:none!important}
 html body #garage#garage #gAct#gAct>.pbtn:is(:active,.appui){transform:translateY(5px)!important}
 html body #garage#garage #gAct#gAct>.pb-gold:is(:active,.appui){transform:translateY(6px)!important}
+/* (2026-11-08, Sacha : « le bouton accueil est penché ») ACCUEIL et l'ŒIL ne sont pas des enfants de #gAct mais de #gRang1 : la règle ci-dessus les manquait, ils gardaient leur skewX — droits aussi, l'appui reste de 2 px */
+html body #garage#garage #gRang1#gRang1>:is(#gHomeBas,#gOeil){transform:none!important}
+html body #garage#garage #gRang1#gRang1>:is(#gHomeBas,#gOeil):is(:active,.appui){transform:translateY(2px)!important}
 </style>
 <style id="boitesBlister">
 /* (2026-11-07, Sacha : « chaque type d'item doit avoir un système propre ») les BOÎTES ne s'appliquent pas aux affiches de la pellicule des FIGURES (.fgK, interface/boutique-figure.js) : :where() garde la spécificité d'avant */
