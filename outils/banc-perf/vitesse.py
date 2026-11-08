@@ -180,13 +180,21 @@ def portail(dossier,cran,dist,suivante,qs):
         c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{});1");c.pump(3)
         c.ev(SAMPLEUR);z0=c.ev("dbgEco().zones")
         c.ev("dbgClassique(%s,%s);1"%(json.dumps(m[0]),json.dumps(m[1] if len(m)>1 else None)));c.ev("window.__S.length=0;window.__Son=true;dbgPortail(%d);1"%dist)
+        prof_on=os.environ.get('PROFIL')=='1'
+        if prof_on:c.call('Profiler.enable');c.call('Profiler.start')
         t=time.time();passe=False
         while time.time()-t<90:
             c.pump(1)
             if c.ev("dbgEco().zones")!=z0:passe=True;break
-        c.pump(4);c.ev("window.__Son=false;1")
+        PR=profil(c.call('Profiler.stop')['profile'],1000) if prof_on else None
+        c.pump(4)
+        for i in range(30):
+            g=c.ev("(function(){try{return !!dbgGrotteHash().pretMailles}catch(e){return true}})()")
+            if g:break
+            c.pump(2)
+        c.ev("window.__Son=false;1")
         S=json.loads(c.ev("JSON.stringify(window.__S)"))
-        return {'cran':cran,'dist':dist,'suivante':suivante,'passe':passe,'secondes':round(time.time()-t,1),'frames':S,'prebati':json.loads(c.ev("JSON.stringify(dbgPrebati())")),'grotte':json.loads(c.ev("JSON.stringify(typeof dbgGrotteHash==='function'?[dbgGrotteHash(),dbgGrotteTrav()]:null)")),'charge':os.getloadavg()[0]}
+        return {'profil':PR,'cran':cran,'dist':dist,'suivante':suivante,'passe':passe,'secondes':round(time.time()-t,1),'frames':S,'prebati':json.loads(c.ev("JSON.stringify(dbgPrebati())")),'grotte':json.loads(c.ev("JSON.stringify(typeof dbgGrotteHash==='function'?[dbgGrotteHash(),dbgGrotteTrav()]:null)")),'charge':os.getloadavg()[0]}
     finally:ferme(srv,ch,prof)
 
 if __name__=='__main__':

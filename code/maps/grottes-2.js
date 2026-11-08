@@ -252,7 +252,7 @@ function grtBouche(V){const n0=V.pool.length;let n=0;
 function grotteVide(){
   if(GROTTE.root){GROTTE.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});GROTTE.root=null;}
   GROTTE.V=null;GROTTE.R=null;GROTTE.grp=[];GROTTE.file=null;GROTTE.fi=0;GROTTE.msFile=0;GROTTE.pret=false;GROTTE.col=null;GROTTE.salle=-1;GROTTE.piliers=null;
-  GROTTE.puits=null;GROTTE.lac=null;GROTTE.lavLum=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';
+  GROTTE.puits=null;GROTTE.lac=null;GROTTE.lavLum=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';grwFin();
   GROTTE.envPret=null;} /* (2026-11-03, passe maps cohérentes) envPret (le témoin des ciels préparés, voir grotteTick) gardait la RACINE de la grotte quittée — tous ses tronçons et leurs mailles
    restaient dans le tas JavaScript jusqu'à la grotte suivante */
 function buildGrotte(seed){jadeFini(buildGrotteG(seed));} // d'un trait au passage ; en tranches d'avance (prebDecorG)
@@ -278,7 +278,7 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   GROTTE.dec=dec.D;GROTTE.LL=grtLumListes(V,dec.T,dec.P);Object.assign(GROTTE.n,dec.n);GROTTE.n.lumieres=dec.P.length;GROTTE.n.piliers=GROTTE.piliers.length;
   GROTTE.n.troncons=V.pool.length;GROTTE.n.air=V.nAir;GROTTE.n.col=GROTTE.col.n;GROTTE.msCreuse=tm.creuse+tm.puits;
   if(performance.now()>JF.lim)yield;t9=performance.now();
-  const ord=[];for(let c=0;c<V.pool.length;c++)ord.push(c);ord.sort(function(a,b){return V.chS[a]-V.chS[b];});GROTTE.file=ord;GROTTE.fi=0;
+  const ord=[];for(let c=0;c<V.pool.length;c++)ord.push(c);ord.sort(function(a,b){return V.chS[a]-V.chS[b];});GROTTE.file=ord;GROTTE.fi=0;grwMailleInit(V,R,ord);
   /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») « D'UN TRAIT » SE RELIT ICI, PAS SEULEMENT AU DÉBUT. Un pré-bâti
      pas fini quand vient le JOUER (ou le portail) est fini par prebTravaille(Infinity) : `direct`, lu au début du générateur, valait faux, et
      TOUTE la grotte restante se maillait dans la même image (MESURÉ en ligne, trace Chrome : 220 ms de grtTroncon/grtMailleNets au JOUER, sur
@@ -297,7 +297,7 @@ function* grtTronconG(c){const V=GROTTE.V,d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V
   const g=new THREE.Group();g.position.set(V.ox+ci*C,V.oy+cj*C,V.oz+ck*C);g.matrixAutoUpdate=false;g.updateMatrix();
   const mk=function(p){const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(p.P,3));ge.setAttribute('aF',new THREE.BufferAttribute(p.F,4));ge.setAttribute('aL',new THREE.BufferAttribute(p.L,4,true));
     if(p.I)ge.setIndex(new THREE.BufferAttribute(p.I,1));ge.computeBoundingSphere();for(const k9 in ge.attributes)ge.attributes[k9].onUpload(grtLibere);if(ge.index)ge.index.onUpload(grtLibere);const me=new THREE.Mesh(ge,M.roche);me.name='grotte roche';me.matrixAutoUpdate=false;me.updateMatrix();me.userData.jeter=1;g.add(me);};
-  const m=yield* grtMailleNetsG(V,c,LL);GROTTE.n.triangles=(GROTTE.n.triangles|0)+m.nt;
+  const m=yield* grwMailleDe(V,c,LL);GROTTE.n.triangles=(GROTTE.n.triangles|0)+m.nt;
   const L9=GROTTE.dec&&GROTTE.dec.get(d);let pd=null;
   if(L9&&L9.length){const qs=V.chS[c],sal=qs<1e9&&GROTTE.R?GROTTE.R.SAL[Math.min(GROTTE.R.n-1,qs)]:0,p=grtMailleDecor(V,c,L9,LL,sal);if(p.nv){pd=p;GROTTE.n.decors=(GROTTE.n.decors|0)+L9.length;GROTTE.n.triangles+=p.I.length/3;}}
   /* (2026-10-24, embellir) LA ROCHE ET LES DÉCORS D'UN TRONÇON EN UN SEUL MAILLAGE (un seul appel de dessin : avant, chaque tronçon à décors en payait deux — les cristaux à teintes en ajoutent partout) : les sommets du décor (indexé) sont dépliés à la suite de ceux de la roche (non indexée), même matière, mêmes attributs */
