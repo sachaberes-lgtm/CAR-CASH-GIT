@@ -1,0 +1,70 @@
+toucher(s) d'intro : 2 · chauffe du menu : {"atelier":true,"divers":38,"moteurs":31,"sur":31,"rendu":true,"apres":-1,"lier":0,"programmes":210,"appels":395,"ms":32.2}
+
+== JOUER (3 s) : pire image 67 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(63646, 67)]
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== MORT 1 (3 s) : pire image 250 ms · 2 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(76546, 67), (78512, 233), (78762, 250), (79112, 50)]
+   LoAF 78267 244 ms ['FrameRequestCallback loop 223ms (forcé 0)']
+   LoAF 78516 221 ms ['FrameRequestCallback loop 137ms (forcé 60)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== ÉCRAN DE MORT 1 (3 s, 8 s après) : pire image 50 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(85879, 50), (85946, 50)]
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== REJOUER 1 (3 s) : pire image 500 ms · 1 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(89712, 50), (90295, 500), (90362, 67)]
+   LoAF 89799 486 ms ['TimerHandler:setTimeout  355ms (forcé 0)', 'FrameRequestCallback loop 75ms (forcé 0)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== MORT 2 (3 s) : pire image 217 ms · 2 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(98945, 83), (99445, 67), (100428, 50), (100812, 150), (101062, 217)]
+   LoAF 100663 148 ms ['FrameRequestCallback loop 119ms (forcé 72)']
+   LoAF 100852 216 ms ['FrameRequestCallback loop 213ms (forcé 0)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== ÉCRAN DE MORT 2 (3 s, 8 s après) : pire image 0 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : []
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== REJOUER 2 (3 s) : pire image 250 ms · 2 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(113411, 250), (113611, 200), (113961, 50), (115494, 67)]
+   LoAF 113173 238 ms ['TimerHandler:setTimeout  92ms (forcé 0)', 'FrameRequestCallback loop 103ms (forcé 0)']
+   LoAF 113421 186 ms ['FrameRequestCallback loop 161ms (forcé 0)']
+   GL lent [113616, 22, 'texImage2D', 'REJOUER 2 (3 s)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== MORT 3 (3 s) : pire image 150 ms · 2 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : [(123261, 100), (123327, 67), (123494, 83), (125144, 150), (125961, 117), (126177, 50), (126344, 83)]
+   LoAF 123161 102 ms ['FrameRequestCallback loop 94ms (forcé 0)']
+   LoAF 123404 86 ms ['FrameRequestCallback loop 55ms (forcé 0)']
+   LoAF 124993 161 ms ['FrameRequestCallback loop 151ms (forcé 97)']
+   LoAF 125844 124 ms ['FrameRequestCallback loop 121ms (forcé 0)']
+   LoAF 126260 84 ms ['FrameRequestCallback loop 82ms (forcé 1)']
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+== ÉCRAN DE MORT 3 (3 s, 8 s après) : pire image 0 ms · 0 images > 100 ms · 0 programmes liés · occupé 0 ms / 0
+   images lentes (t ms depuis le début de page, durée) : []
+   postes (inclusif ms) : 
+   top inclusif : 
+   top propre   : (root) 0
+
+VERDICT : franchi : MORT 1 (3 s) (2 images, pire 250 ms), REJOUER 1 (3 s) (1 images, pire 500 ms), MORT 2 (3 s) (2 images, pire 217 ms), REJOUER 2 (3 s) (2 images, pire 250 ms), MORT 3 (3 s) (2 images, pire 150 ms) · erreurs : aucune · charge machine 121
