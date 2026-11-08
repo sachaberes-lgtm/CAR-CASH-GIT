@@ -256,7 +256,7 @@ HOOK_SON=r"""(function(){var C={},S={dem:0,fin:0,stop:0},A={},t0=performance.now
 SON_MESURE=r"""(function(){try{var W=window.__SON;if(!W)return JSON.stringify({err:"pas de __SON"});var AC=W.ac();var acs=[];if(W.acs)W.acs.forEach(function(a){acs.push(a.state);});var c={ok:!!AC,contextes:acs,etat:AC&&AC.state,mv:(typeof dbgMV==='function')?(function(){try{return JSON.stringify(dbgMV()).slice(0,200);}catch(e){return 'err';}})():null,sr:AC&&AC.sampleRate,base:AC&&AC.baseLatency,sortie:AC&&AC.outputLatency};
  c.creations=Object.assign({},W.C);c.sources={demarres:W.S.dem,finies:W.S.fin,stop:W.S.stop,vivantes_estim:W.S.dem-W.S.fin};c.analyseurs=Object.assign({},W.A);c.noeudsConnus=W.nodes.size;
  var par={};W.nodes.forEach(function(n){var t=n.constructor.name;par[t]=(par[t]||0)+1;});c.noeudsParType=par;
- var vi={};W.nodes.forEach(function(n){if(n.__ou)vi[n.__ou]=(vi[n.__ou]||0)+1;});c.vivantesParAppelant=vi;c.creesParAppelant=W.OU||{};c.rc=AC&&typeof AC.renderCapacity;c.worklet=!!(AC&&AC.audioWorklet);c.mv=(typeof dbgMV==='function')?'dbgMV':null;return JSON.stringify(c);}catch(e){return JSON.stringify({err:String(e&&e.stack||e)});}})()"""
+ var vi={};W.nodes.forEach(function(n){if(n.__ou)vi[n.__ou]=(vi[n.__ou]||0)+1;});c.vivantesParAppelant=vi;c.creesParAppelant=W.OU||{};c.rc=AC&&typeof AC.renderCapacity;c.poly=window.__ccPoly||null;c.worklet=!!(AC&&AC.audioWorklet);c.mv=(typeof dbgMV==='function')?'dbgMV':null;return JSON.stringify(c);}catch(e){return JSON.stringify({err:String(e&&e.stack||e)});}})()"""
 def son(dossier,cran,qs,carte,secondes):
     http,port,srv,ch,prof=lance(dossier)
     try:
@@ -265,7 +265,9 @@ def son(dossier,cran,qs,carte,secondes):
         base='http://127.0.0.1:%d'%http
         for mm in ('Network.enable','Page.enable','Runtime.enable'):c.call(mm)
         if not demarre(c,http,'?garde=1&palier=2&tel=1&pistegraine=777&carte=%s&meteo=%s'%(m[0],m[1])+qs,save=sv,hook=HOOK_SON):return None
-        c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{nit:1});1");c.pump(3)
+        c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{nit:1});1")
+        if os.environ.get('DOSE'):c.ev("dbgGouv(%s);1"%os.environ['DOSE'])
+        c.pump(4)
         out={'t0':json.loads(c.ev(SON_MESURE) or '{"err":"vide"}')}
         c.ev("(function(){var AC=window.__SON.ac();if(AC&&AC.renderCapacity){window.__RC=[];AC.renderCapacity.addEventListener('update',function(e){window.__RC.push([e.averageLoad,e.peakLoad,e.underrunRatio]);});AC.renderCapacity.start({updateInterval:1});}return 1})()")
         c.call('Emulation.setCPUThrottlingRate',rate=4);c.call('Profiler.enable');c.call('Profiler.start');c.ev(SAMPLEUR)
@@ -328,12 +330,34 @@ def energie(dossier,cran,qs,carte,secondes,sfx,mus,vox):
         c=CDP(port);c.keep={'Runtime.exceptionThrown'};m=carte.split(':')
         sv=dict(gp.SAVE);sv['vdep']=cran;sv['ex']={'eng':29,'runs':9};sv['sfx']=bool(sfx);sv['mus']=bool(mus);sv['vox']=bool(vox)
         if not demarre(c,http,'?garde=1&palier=2&tel=1&pistegraine=777&carte=%s&meteo=%s'%(m[0],m[1])+qs,save=sv):return None
-        c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{nit:1});1");c.pump(8)
+        c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{nit:1});1")
+        if os.environ.get('DOSE'):c.ev("dbgGouv(%s);1"%os.environ['DOSE'])
+        c.pump(8)
         c.ev(SAMPLEUR);a=cpu_types(os.path.basename(prof));c.ev("window.__S.length=0;window.__Son=true;1");t0=time.time();c.pump(secondes)
         b=cpu_types(os.path.basename(prof));dt=time.time()-t0;c.ev("window.__Son=false;1")
         F=json.loads(c.ev("JSON.stringify(window.__S)"))
         ac=c.ev("JSON.stringify((function(){var W=window.__SON;return W?[W.S.dem,W.S.fin]:null})())")
-        return {'sfx':sfx,'mus':mus,'vox':vox,'duree':round(dt,1),'cpu_s_par_s':{k:round((b.get(k,0)-a.get(k,0))/dt,3) for k in set(a)|set(b)},'images':len(F),'p50':sorted(f[0] for f in F)[len(F)//2] if F else None,'charge':os.getloadavg()[0]}
+        return {'sfx':sfx,'mus':mus,'vox':vox,'duree':round(dt,1),'cpu_s_par_s':{k:round((b.get(k,0)-a.get(k,0))/dt,3) for k in set(a)|set(b)},'images':len(F),'p50':sorted(f[0] for f in F)[len(F)//2] if F else None,'charge':os.getloadavg()[0],'poly':c.ev("JSON.stringify(window.__ccPoly||null)"),'palier':c.ev("JSON.stringify(typeof dbgGouv==='function'?dbgGouv().gpu.palier:null)")}
+    finally:ferme(srv,ch,prof)
+
+POLY_JS=r"""(function(){var C=window.CCSON,P=window.__ccPoly;if(!C||!P)return JSON.stringify({err:'pas de CCSON ou __ccPoly',C:!!C,P:!!P});
+ var liste=C.liste(),ids=[];Object.keys(liste).forEach(function(f){liste[f].forEach(function(x){ids.push(x.id);});});
+ var res={n:ids.length,decodes:C.etat().decodes};
+ P.on=false;var off={};ids.forEach(function(id,i){var h=null;try{h=C.play(id,{vol:-80,t:100+i*1.2});}catch(e){}off[id]=!!h;});
+ P.on=true;var on={};ids.forEach(function(id,i){var h=null;try{h=C.play(id,{vol:-80,t:400+i*1.2});}catch(e){}on[id]=!!h;});
+ res.jouables=ids.filter(function(id){return off[id];}).length;res.ignores=ids.filter(function(id){return off[id]&&!on[id];});res.compteurIgnores=P.ign;
+ // rafale : 12 « piece » espacées de 30 ms (au-delà du délai minimal), voix encore vivantes à la fin
+ function rafale(id,on9){P.on=on9;var H=[];for(var i=0;i<12;i++){var h=C.play(id,{vol:-80,t:900+(on9?100:0)+i*.03});if(h)H.push(h);}return H.filter(function(h){return h.fin>0;}).length;}
+ res.rafale={};['piece','combo.frappe','riche.piece','billet.vole','frole'].forEach(function(id){res.rafale[id]={sans:rafale(id,false),avec:rafale(id,true)};});
+ res.coupees=P.cou;P.on=false;return JSON.stringify(res);})()"""
+def polytest(dossier,cran,qs,carte):
+    http,port,srv,ch,prof=lance(dossier)
+    try:
+        c=CDP(port);c.keep={'Runtime.exceptionThrown'};m=carte.split(':')
+        sv=dict(gp.SAVE);sv['vdep']=cran;sv['ex']={'eng':29,'runs':9};sv['sfx']=True;sv['mus']=False;sv['vox']=True
+        if not demarre(c,http,'?garde=1&palier=2&tel=1&pistegraine=777&carte=%s&meteo=%s'%(m[0],m[1])+qs,save=sv):return None
+        c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{nit:1});dbgGouv(110);1");c.pump(30)
+        return json.loads(c.ev(POLY_JS))
     finally:ferme(srv,ch,prof)
 
 if __name__=='__main__':
@@ -366,6 +390,9 @@ if __name__=='__main__':
     elif m=='energie':
         r=energie(sys.argv[2],int(sys.argv[3]),sys.argv[4],sys.argv[5],float(sys.argv[6]),int(sys.argv[7]),int(sys.argv[8]),int(sys.argv[9]))
         json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-energie.json'),'w'));print('ok',r)
+    elif m=='poly':
+        r=polytest(sys.argv[2],int(sys.argv[3]),sys.argv[4],sys.argv[5])
+        json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-poly.json'),'w'),indent=1,ensure_ascii=False);print('ok')
     elif m=='course':
         r=course(sys.argv[2],float(sys.argv[3]) if len(sys.argv)>3 else 180,sys.argv[4] if len(sys.argv)>4 else '')
         json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-course.json'),'w'));print(len(r or []),'images')
