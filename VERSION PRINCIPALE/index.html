@@ -1577,7 +1577,9 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
   @media (prefers-reduced-motion:reduce){html.han #avRec.presque i::after,html.han #avRec.battu s::before{animation:none!important}}
   /* R4 — LA CHAÎNE : elle s'ENVOLE dans le compteur quand elle s'encaisse, elle se BRISE quand on la perd */
   body #avCh{margin-top:14px}
-  body #avCh .avBar{width:96px;max-width:100%;overflow:hidden} /* (2026-11-08, Sacha : « la barre sous le X2 est trop longue ») 160 → 96 px */
+  body #avCh{width:fit-content;max-width:100%} /* (2026-11-08, Sacha : « cette barre est 4 fois trop longue ») la plaque se serre sur « 210 ×3 » */
+  body #avCh .avBar{width:0;min-width:100%;max-width:100%;overflow:hidden} /* la barre ne compte pas dans la largeur : elle fait EXACTEMENT celle du score, quelle que soit l'échelle (avant : 160 puis 96 px fixes) */
+  body #avCh #avList{width:0;min-width:100%;white-space:nowrap} /* la liste des gestes déborde au besoin : elle n'élargit pas la plaque */
   body #avCh .avBar.urg i{background:var(--danger);animation:avUrg .18s steps(2) infinite}
   @keyframes avUrg{50%{opacity:.35}}
   body #avList{font-size:10px;line-height:1.9}
