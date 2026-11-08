@@ -365,66 +365,71 @@ function buildGarageRoom(){
        col+=5;if(c<mot.length-1)col+=1;}
      if(mi<MOTS.length-1)col+=3;});
   }else{
-   const a=13,b=65,T=13,B=97,Mi=55,c=10,TR=22,LW=78,GAP=8,GM=44;
+   /* (2026-11-08, Léo : « remets le mur bleu, jusqu'au sol, pas de fond, encore plus en 3D, un peu comme Illumination ») v2 : plus de plaque — le
+      bardage bleu du garage reste visible autour ; les lettres descendent jusqu'au SOL (5 m, sous les poutres) et sont de VRAIES lettres
+      extrudées (0,9 m de profondeur, un seul maillage, couleurs de sommets : le dessus clair, le dessous sombre, le fond qui s'assombrit) ;
+      la face garde son or laqué texturé et l'éclat qui passe ; une ombre portée floue sur le mur les décolle. Un seul agencement (CASH
+      au-dessus de CAR) pour le portrait comme pour le paysage : 3 objets, une toile, une géométrie. */
+   const a=13,b=65,T=13,B=97,Mi=55,c=10,TR=22,LW=78,GAP=8;
    const LET={C:[[[b,T],[a+c,T],[a,T+c],[a,B-c],[a+c,B],[b,B]]],
      A:[[[a,110],[a,T+c],[a+c,T],[b-c,T],[b,T+c],[b,110]],[[a,68],[b,68]]],
      S:[[[b,T+14],[b-c,T],[a+c,T],[a,T+c],[a,Mi-c],[a+c,Mi],[b-c,Mi],[b,Mi+c],[b,B-c],[b-c,B],[a+c,B],[a,B-14]]],
      H:[[[a,0],[a,110]],[[b,0],[b,110]],[[a,Mi],[b,Mi]]],
      R:[[[a,110],[a,T],[b-c,T],[b,T+c],[b,Mi-c],[b-c,Mi],[a,Mi]],[[36,Mi],[b,110]]]};
-   /* DEUX mises en page, une seule visible : la LIGNE (21 m, pleine largeur) pour un écran large, la PILE (CASH au-dessus de CAR, 7 m) pour le
-      téléphone debout — vu d'au fond de l'atelier, une ligne de 21 m sortait de l'image (« ASH CA » seulement). Une toile de chaque, 7 plans chacune. */
-   const MIS={ligne:{UW:640,UH:160,K:20.96/640,FW:2048,mots:[['CASH',5,25],['CAR',5+336+44,25]],cy:3.2,pw:21.7,ph:5.45},
-              pile:{UW:360,UH:270,K:4.2/240,FW:1024,sx:1.6,mots:[['CASH',12,15],['CAR',55,145]],cy:2.95,pw:10.5,ph:4.8}};
-   const tracer=function(x,s,ox,oy,mo){                                                   // le MASQUE des lettres (blanc plein) à l'échelle s
-     x.save();x.setTransform(s,0,0,s,ox,oy);x.lineJoin='miter';x.lineCap='butt';x.miterLimit=10;x.lineWidth=TR;x.strokeStyle='#fff';
-     mo.mots.forEach(function(w){let px=w[1];const m=w[0];for(let k=0;k<m.length;k++){x.save();x.translate(px,w[2]);x.beginPath();x.rect(-2,-2,LW+4,114);x.clip();
-       LET[m[k]].forEach(function(q){x.beginPath();x.moveTo(q[0][0],q[0][1]);for(let n=1;n<q.length;n++)x.lineTo(q[n][0],q[n][1]);x.stroke();});x.restore();px+=LW+GAP;}});x.restore();};
+   const UW=360,UH=240,K=5/240,SX=1.6,FW=1024,FH=Math.round(FW*UH/UW),EP=.9,CY=2.52;     // unités de dessin ; K : m par unité ; SX : étirement en largeur ; CY : centre (le bas des lettres à 2 cm du sol)
+   const MOTS=[['CASH',12,0],['CAR',55,130]];
+   const tracer=function(x,s,ox,oy){x.save();x.setTransform(s,0,0,s,ox,oy);x.lineJoin='miter';x.lineCap='butt';x.miterLimit=10;x.lineWidth=TR;x.strokeStyle='#fff';
+     MOTS.forEach(function(w){let px=w[1];for(let k=0;k<w[0].length;k++){x.save();x.translate(px,w[2]);x.beginPath();x.rect(-2,-2,LW+4,114);x.clip();
+       LET[w[0][k]].forEach(function(q){x.beginPath();x.moveTo(q[0][0],q[0][1]);for(let n=1;n<q.length;n++)x.lineTo(q[n][0],q[n][1]);x.stroke();});x.restore();px+=LW+GAP;}});x.restore();};
    const cv9=function(w,h){const q=document.createElement('canvas');q.width=w;q.height=h;return q;};
    const tx9=function(q){const t=new THREE.CanvasTexture(q);t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());return t;};
-   const uT9={value:0};
-   const eclat=function(sh){sh.uniforms.uT9=uT9;
+   const uT9={value:0},zF=-hd,ENS={u:uT9};GAR.enseigne=ENS;
+   const gp=new THREE.Group();g.add(gp);ENS.groupe=gp;
+   // --- LA FACE : or laqué (même peinture qu'avant : horizon par mot, facettes, vernis, biseau)
+   const fs=FW/UW,fc=cv9(FW,FH),fx9=fc.getContext('2d');
+   {const mk=cv9(FW,FH),mx=mk.getContext('2d');tracer(mx,fs,0,0);
+    const d1=cv9(FW,FH),dx1=d1.getContext('2d');dx1.drawImage(mk,0,0);dx1.globalCompositeOperation='source-atop';
+    MOTS.forEach(function(w){const ya=w[2]*fs,gr=dx1.createLinearGradient(0,ya,0,ya+110*fs);
+      gr.addColorStop(0,'#fff6bd');gr.addColorStop(.22,'#ffd445');gr.addColorStop(.46,'#e9a416');gr.addColorStop(.5,'#6b3d04');gr.addColorStop(.54,'#d58f12');gr.addColorStop(.78,'#ffcf4a');gr.addColorStop(1,'#fff0a0');
+      dx1.fillStyle=gr;dx1.fillRect(0,ya-2,FW,110*fs+4);});
+    for(let n=0;n<7;n++){const X=FW*(.04+n*.14),X2=X+FW*.12;dx1.fillStyle=n%2?'rgba(255,250,200,.2)':'rgba(70,30,0,.2)';       // les FACETTES cassées, en diagonale
+      dx1.beginPath();dx1.moveTo(X+FW*.04,0);dx1.lineTo(X+FW*.13,0);dx1.lineTo(X2-FW*.05,FH);dx1.lineTo(X-FW*.06,FH);dx1.closePath();dx1.fill();}
+    MOTS.forEach(function(w){const ya=w[2]*fs,vg=dx1.createLinearGradient(0,ya,0,ya+55*fs);vg.addColorStop(0,'rgba(255,255,255,.4)');vg.addColorStop(1,'rgba(255,255,255,0)');dx1.fillStyle=vg;dx1.fillRect(0,ya,FW,55*fs);}); // le VERNIS
+    fx9.drawImage(d1,0,0);
+    const bis=function(dx,dy,col,al){const t=cv9(FW,FH),tx=t.getContext('2d');tx.drawImage(mk,0,0);tx.globalCompositeOperation='destination-out';tx.drawImage(mk,dx,dy);
+      tx.globalCompositeOperation='source-in';tx.fillStyle=col;tx.globalAlpha=al;tx.fillRect(0,0,FW,FH);fx9.globalCompositeOperation='source-atop';fx9.drawImage(t,0,0);};
+    const e=fs/3.2;bis(1.6*e,1.6*e,'#ffffff',.95);bis(-1.6*e,-1.6*e,'#3a1c00',.9);bis(3.2*e,3.2*e,'#fff2a8',.5);bis(-3.2*e,-3.2*e,'#7a4306',.55);
+    fx9.globalCompositeOperation='source-over';}
+   const mF=new THREE.MeshBasicMaterial({map:tx9(fc),alphaTest:.5,fog:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}); // (le décalage garde la face devant le capot de l'extrusion : profondeur 16 bits)
+   mF.onBeforeCompile=function(sh){sh.uniforms.uT9=uT9;
      sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9;')
        .replace('#include <dithering_fragment>','#include <dithering_fragment>\n'+
          'float d9=vUv.x*3.2+vUv.y*1.1;float p9=mod(uT9*1.6,8.8)-.6;float e9=exp(-pow((d9-p9)*3.4,2.));'+                // l'éclat qui traverse (2,7 s de passage, 2,8 s de pause)
          'float r9=.5+.5*sin(uT9*1.7+vUv.x*5.);gl_FragColor.rgb=gl_FragColor.rgb*(.94+.06*r9)+vec3(1.,.82,.42)*e9*.8+vec3(1.,.55,.12)*e9*e9*.25;');};
-   const zF=-hd,ENS={u:uT9};GAR.enseigne=ENS;
-   Object.keys(MIS).forEach(function(nom){const mo=MIS[nom],UW=mo.UW,UH=mo.UH,K=mo.K,FW=mo.FW,FH=FW*UH/UW,fs=FW/UW,fy=(UH-110)/2*fs,gp=new THREE.Group();gp.visible=nom==='pile';g.add(gp);ENS[nom]=gp;
-    const oy9=0;                                                                           // (chaque mot porte déjà son décalage)
-    // --- LA FACE : or laqué
-    const fc=cv9(FW,FH),fx9=fc.getContext('2d');
-    {const mk=cv9(FW,FH),mx=mk.getContext('2d');tracer(mx,fs,0,oy9*fs,mo);
-     const d1=cv9(FW,FH),dx1=d1.getContext('2d');dx1.drawImage(mk,0,0);dx1.globalCompositeOperation='source-atop';   /* (source-atop : une seule passe par mot sans effacer l'autre) */
-     const y0=0,y1=FH;
-     mo.mots.forEach(function(w){const ya=(w[2]+(nom==='ligne'?oy9:0))*fs,gr=dx1.createLinearGradient(0,ya,0,ya+110*fs);   // l'or à LIGNE D'HORIZON, PAR MOT (ciel clair, ligne sombre, sol chaud)
-       gr.addColorStop(0,'#fff6bd');gr.addColorStop(.22,'#ffd445');gr.addColorStop(.46,'#e9a416');gr.addColorStop(.5,'#6b3d04');gr.addColorStop(.54,'#d58f12');gr.addColorStop(.78,'#ffcf4a');gr.addColorStop(1,'#fff0a0');
-       dx1.fillStyle=gr;dx1.fillRect(0,ya-2,FW,110*fs+4);});
-     dx1.globalCompositeOperation='source-atop';
-     const nE=7;for(let n=0;n<nE;n++){const X=FW*(.04+n*.14),X2=X+FW*.12;dx1.fillStyle=n%2?'rgba(255,250,200,.2)':'rgba(70,30,0,.2)';       // les FACETTES cassées, en diagonale
-       dx1.beginPath();dx1.moveTo(X+FW*.04,y0);dx1.lineTo(X+FW*.13,y0);dx1.lineTo(X2-FW*.05,y1);dx1.lineTo(X-FW*.06,y1);dx1.closePath();dx1.fill();}
-     const vg=dx1.createLinearGradient(0,y0,0,y1*.5);vg.addColorStop(0,'rgba(255,255,255,.34)');vg.addColorStop(1,'rgba(255,255,255,0)');dx1.fillStyle=vg;dx1.fillRect(0,y0,FW,y1*.5);   // le VERNIS
-     fx9.drawImage(d1,0,0);
-     const bis=function(dx,dy,col,al){const t=cv9(FW,FH),tx=t.getContext('2d');tx.drawImage(mk,0,0);tx.globalCompositeOperation='destination-out';tx.drawImage(mk,dx,dy);   // le BISEAU
-       tx.globalCompositeOperation='source-in';tx.fillStyle=col;tx.globalAlpha=al;tx.fillRect(0,0,FW,FH);fx9.globalCompositeOperation='source-atop';fx9.drawImage(t,0,0);};
-     const e=fs/3.2;bis(1.6*e,1.6*e,'#ffffff',.95);bis(-1.6*e,-1.6*e,'#3a1c00',.9);bis(3.2*e,3.2*e,'#fff2a8',.5);bis(-3.2*e,-3.2*e,'#7a4306',.55);
-     fx9.globalCompositeOperation='source-over';}
-    const mF=new THREE.MeshBasicMaterial({map:tx9(fc),alphaTest:.5,fog:false});mF.onBeforeCompile=eclat;
-    // --- L'ÉPAISSEUR : le même dessin, quatre fois, du bronze au brun sombre, de plus en plus au fond
-    const SW=FW/2,SH=FH/2,sc=cv9(SW,SH),sx9=sc.getContext('2d');tracer(sx9,SW/UW,0,oy9*SW/UW,mo);const tS=tx9(sc);
-    [[.12,0x2a1802],[.22,0x4a2a04],[.32,0x6e4208],[.42,0x93600c]].forEach(function(q){const m=new THREE.Mesh(PL,new THREE.MeshBasicMaterial({map:tS,color:q[1],alphaTest:.5,fog:false}));
-      m.scale.set(UW*K*(mo.sx||1),UH*K,1);m.position.set(0,mo.cy,zF+q[0]);gp.add(m);});
-    const fm=new THREE.Mesh(PL,mF);fm.scale.set(UW*K*(mo.sx||1),UH*K,1);fm.position.set(0,mo.cy,zF+.54);gp.add(fm);
-    // --- LA PLAQUE : laque nuit, filet d'or, et le halo des lettres qui déborde sur le mur
-    {const PW=nom==='ligne'?1024:512,PH=nom==='ligne'?256:Math.round(512*mo.ph/mo.pw),pc=cv9(PW,PH),px9=pc.getContext('2d');
-     const pg=px9.createLinearGradient(0,0,0,PH);pg.addColorStop(0,'#1a1430');pg.addColorStop(.5,'#0d0a1c');pg.addColorStop(1,'#07050f');px9.fillStyle=pg;px9.fillRect(0,0,PW,PH);
-     const msk=cv9(PW,PH),mk9=msk.getContext('2d'); // (le plan des lettres fait UW×K m ; la plaque mo.pw × mo.ph)
-     const sx=PW/mo.pw,sy=PH/mo.ph,ss=K*sx;                                              // pixels par unité de dessin
-     mk9.save();mk9.translate(PW/2,0);mk9.scale(mo.sx||1,1);mk9.translate(-PW/2,0);tracer(mk9,ss,PW/2-UW*ss/2*1,PH/2-UH*K*sy/2+oy9*ss,mo);mk9.restore();
-     px9.save();px9.shadowColor='rgba(255,170,30,.9)';px9.shadowBlur=PW/22;px9.globalAlpha=.55;px9.drawImage(msk,0,0);px9.restore();
-     px9.save();px9.shadowColor='rgba(255,120,20,.8)';px9.shadowBlur=PW/10;px9.globalAlpha=.35;px9.drawImage(msk,0,0);px9.restore();
-     const mg=PW/100;px9.strokeStyle='#e8a91c';px9.lineWidth=PW/200;px9.strokeRect(mg,mg,PW-2*mg,PH-2*mg);px9.strokeStyle='#fff0a0';px9.lineWidth=PW/700;px9.strokeRect(mg,mg,PW-2*mg,PH-2*mg);
-     px9.strokeStyle='rgba(232,169,28,.5)';px9.lineWidth=PW/500;px9.strokeRect(mg*2,mg*2,PW-4*mg,PH-4*mg);
-     const pm=new THREE.Mesh(PL,new THREE.MeshBasicMaterial({map:tx9(pc),fog:false}));pm.scale.set(mo.pw,mo.ph,1);pm.position.set(0,mo.cy,zF+.04);gp.add(pm);}
-   });
+   const zA=zF+.03,zFace=zA+EP+.02;
+   const fm=new THREE.Mesh(PL,mF);fm.scale.set(UW*K*SX,UH*K,1);fm.position.set(0,CY,zFace);gp.add(fm);
+   // --- L'ÉPAISSEUR : de vraies lettres extrudées, fusionnées en UN maillage
+   {const contour=function(pts){const h=TR/2,n=pts.length,N=[];                                                      // le trait à joints en onglet, en polygone
+      for(let i=0;i<n-1;i++){const dx=pts[i+1][0]-pts[i][0],dy=pts[i+1][1]-pts[i][1],l=Math.hypot(dx,dy);N.push([-dy/l,dx/l]);}
+      const Lf=[],Rg=[];for(let i=0;i<n;i++){const n1=N[Math.max(0,i-1)],n2=N[Math.min(n-2,i)],k=h/(1+n1[0]*n2[0]+n1[1]*n2[1]),ox=(n1[0]+n2[0])*k,oy=(n1[1]+n2[1])*k;
+        Lf.push([pts[i][0]+ox,Math.min(110,pts[i][1]+oy)]);Rg.push([pts[i][0]-ox,Math.min(110,pts[i][1]-oy)]);}
+      return Lf.concat(Rg.reverse());};
+    const P=[],Cc=[],V=new THREE.Vector3();
+    MOTS.forEach(function(w){let px=w[1];for(let k=0;k<w[0].length;k++){LET[w[0][k]].forEach(function(q){
+      const sh=new THREE.Shape(contour(q).map(function(p){return new THREE.Vector2((px+p[0]-UW/2)*K*SX,CY+(UH/2-(w[2]+p[1]))*K);}));
+      let ge=new THREE.ExtrudeGeometry(sh,{depth:EP,bevelEnabled:false,steps:1});if(ge.index)ge=ge.toNonIndexed();
+      const ps=ge.attributes.position.array,nm=ge.attributes.normal.array;
+      for(let v=0;v<ps.length;v+=3){const nx=nm[v],ny=nm[v+1],nz=nm[v+2],t=ps[v+2]/EP;                           // t : 0 au fond, 1 devant
+        const lum=Math.abs(nz)>.5?.78:Math.max(.28,Math.min(1.05,.62+.5*ny-.22*nx));                              // la lumière vient d'en haut à gauche
+        const f=lum*(.32+.68*t);P.push(ps[v],ps[v+1],ps[v+2]+zA);Cc.push(1*f,.74*f,.16*f);}
+      ge.dispose();});px+=LW+GAP;}});
+    const G=new THREE.BufferGeometry();G.setAttribute('position',new THREE.Float32BufferAttribute(P,3));G.setAttribute('color',new THREE.Float32BufferAttribute(Cc,3));
+    gp.add(new THREE.Mesh(G,new THREE.MeshBasicMaterial({vertexColors:true,fog:false})));}
+   // --- L'OMBRE PORTÉE sur le bardage bleu : floue, décalée vers le bas à droite, elle décolle les lettres du mur
+   {const M9=30,SW=512,SH=Math.round(SW*(UH+2*M9)/(UW+2*M9)),sc=cv9(SW,SH),sx=sc.getContext('2d'),ms=cv9(SW,SH),mx=ms.getContext('2d'),s9=SW/(UW+2*M9);
+    tracer(mx,s9,M9*s9,M9*s9);sx.shadowColor='rgba(0,0,10,.85)';sx.shadowBlur=SW/28;sx.shadowOffsetX=SW*.03+3000;sx.shadowOffsetY=SW*.02;sx.drawImage(ms,-3000,0);
+    const sm=new THREE.Mesh(PL,new THREE.MeshBasicMaterial({map:tx9(sc),transparent:true,depthWrite:false,fog:false}));
+    sm.scale.set((UW+2*M9)*K*SX,(UH+2*M9)*K,1);sm.position.set(.25,CY-.1,zF+.012);gp.add(sm);}
   }
 
   // ===== MUR GAUCHE : pneus, servante, compresseur, cric, et tout ce qui roule =====
