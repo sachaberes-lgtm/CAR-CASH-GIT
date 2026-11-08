@@ -416,5 +416,6 @@ function buildCar(spec){
   try{traduisLangage(spec);}catch(e){console.warn('langage',e);} // (25/10) ESSAI `?langage=1` : les caisses « hors langage » regroupées en grandes facettes (éteint par défaut)
   caisseSoude();{const pd9=cosmSur('peinture');if(pd9&&pd9.mot)try{motTouffes(carBody,pd9.mot);}catch(e){console.warn('touffes',e);}} /* (2026-11-01) les touffes de la MOUSSE : du relief sur la tôle, posé APRÈS la soudure (elle fond les pièces de la caisse) */ // (2026-09-27, passe perf iPhone) ce qui ne bouge jamais est soudé par matière — voir « LA CAISSE EN UN MINIMUM DE DESSINS »
   try{feuxLed(spec,hlM,tlM);}catch(e){console.warn('feux',e);} // (2026-10-20) l'étude des feux en LED, `?feux=1|2` (voir FEUXL) — sans paramètre, rien ne change
+  try{MOBA_ombreBatit();}catch(e){console.warn('moba ombre',e);} /* (2026-11-07, passe perf 3, P3) l'ombre de la caisse en un minimum de dessins (mandataires d'ombre, repris de la branche mobile-perf) : voir moba-ombre.js — `?moba_ombre=0` = avant */
 }
 /* <<<FIN VOITURES>>> */
