@@ -14692,7 +14692,13 @@ function pcubePose(F){ // le portail de la piste neuve : au bout de la route, ce
      POUR 28 m DE DEMI-ROUTE (Ri 44, Ro 54) : sur une route plus large (BANQUISE : jusqu'à 98 m de demi-route), l'anneau restait à sa
      taille d'origine — trop étroit pour couvrir les deux bords. On REDIMENSIONNE le repère du portail (jamais sa géométrie, réutilisée
      par tous les portails) : la même accumulation de cubes, agrandie par l'échelle `sc`. */
-  const sc=PCUBE.sc=Math.max(1,(typeof ROAD_HALF==='number'&&ROAD_HALF>0?ROAD_HALF:28)/28);
+  /* (2026-11-08, Sacha, encore : « les portails doivent être plus grands et centrés pour être pris des deux côtés ») LE GABARIT D'ORIGINE (fenêtre
+     de 44 m de rayon pour une demi-route de 28 m) ne laissait que 8 m de marge de chaque côté, et l'anneau, posé à 20 m du bitume, se lisait de loin
+     comme un petit dôme plus étroit que la route. PLANCHER × 1,5 (fenêtre de 66 m : on la prend de n'importe quel bord, en dérapant même), et au
+     moins 1,25 × la demi-route sur les routes larges (BANQUISE). Le CANYON garde × 1,3 : la salle de son tunnel (ellipse 78 × 82) est taillée autour. */
+  const rh9=(typeof ROAD_HALF==='number'&&ROAD_HALF>0?ROAD_HALF:28),cy9=LVL.cur&&LVL.cur.carte==='canyon';
+  const sc=PCUBE.sc=Math.max(cy9?1.3:1.5,rh9/28*1.25);
+  PCUBE.mU.uDv.value=34*sc; /* la fenêtre vue d'un œil rapproché : la distance de rapprochement suit l'échelle (sinon, agrandie, l'image n'emplit plus le disque : bandes de fond sur les côtés) */
   PCUBE.z.copy(F.t).negate();PCUBE.y.copy(F.n);PCUBE.x.crossVectors(PCUBE.y,PCUBE.z);
   if(sc!==1){PCUBE.x.multiplyScalar(sc);PCUBE.y.multiplyScalar(sc);PCUBE.z.multiplyScalar(sc);}
   const g=PCUBE.grp;g.matrix.makeBasis(PCUBE.x,PCUBE.y,PCUBE.z).setPosition(PORTAL.c);g.visible=true;g.updateMatrixWorld(true);
