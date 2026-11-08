@@ -54400,6 +54400,16 @@ function shopPhotoTour(){
   if(PHOTO.cache[k])pose(PHOTO.cache[k]);else try{if(vt)vitrinePhoto({i:i,own:carOwned(i),w:big?SHB_GRAND:0},pose);else carPhoto(i,pose);}catch(_){} /* (OPTIMISATION) l'image s'encode hors du fil (toBlob) : elle se pose à son arrivée */
   if(MENU_MAX)setTimeout(shopPhotoTour,40);else requestAnimationFrame(function(){setTimeout(shopPhotoTour,0);}); // une photo, puis on rend la main : l'écran respire entre deux — (2026-11-07, P5) l'espacement de 150 ms est tenu plus haut (SHQ.pret)
 }
+/* LES PHOTOS DE LA BOUTIQUE PRISES D'AVANCE, AU MENU AU REPOS (2026-11-08, Perf 3 — P5, OPTI ULTIME : « boutique pire image 1 728 ms à l'ouverture ») profil x4 de l'ouverture : 3,3 s sur 4 sont des photos de caisses (`shopPhotoTour` → `carPhoto` : buildCar, liaison des
+   programmes, toBlob, createObjectURL), la 1re image de la boutique dure 0,9 s. Sur un vrai téléphone, au menu (garage ouvert, pas de course), chauffe finie, rien d'autre en file, aucun geste depuis 4 s et pas de défilement : UNE photo de caisse à vendre toutes les 1,5 s
+   (celles qui n'ont pas encore la leur), pour que la boutique s'ouvre avec ses vignettes déjà là. Même image (la même carPhoto). `PAL.B.shopPre` (1 = actif), `?shoppre=0` ou `?menu=max` = comme avant. */
+PAL.B.shopPre=[1,1,1];
+const SHPRE_OFF=/[?&]shoppre=0\b/.test(location.search);
+setInterval(function(){
+  try{if(!TEL_NATIF||MENU_MAX||SHPRE_OFF||!PAL.b('shopPre',0)||document.hidden||(started&&!gameOver)||!garageOn||!CHAUFFE_R.fait||PHQ.q.length)return;
+    const t=performance.now();if(t-HC.gT<4000||!photoCalme()||(PHOTO.att&&Object.keys(PHOTO.att).length))return;
+    for(let i=0;i<CARS.length;i++){const u=CAR_UNLOCK[i];if(!u||u.k!=='premium'||carRetiree(i)||PHOTO.cache[i])continue;carPhoto(i,function(){});return;}
+  }catch(e){}},1500);
 function shopAPortee(){let n=0;for(const cat in COSM)for(const d of COSM[cat])if(d.p&&!shopOwned(cat,d.id)&&d.p<=bank())n++;return n;}
 /* ---------------- LA BOUTIQUE ---------------- */
 const COSM={
@@ -76141,8 +76151,13 @@ function garFeu(dt){ // il brûle au repos, il RUGIT pendant le lâcher (k : 0 �
   {const po=GAR.porte?Math.max(0,GAR.porte.e):1,db=8*F.k-9*(1-po);if(openGarage._feu&&!BQSON.atelier&&(G||GAR.porte&&Math.abs(db-(GAR.porte.db==null?99:GAR.porte.db))>.3)){if(GAR.porte)GAR.porte.db=db;try{openGarage._feu.gain(db,.05);}catch(e){}}} // le feu GRONDE quand la caisse entre dedans — (2026-09-30) ÉTOUFFÉ derrière la porte fermée
   if(GAR.feuLu)GAR.feuLu.material.opacity=Math.min(1,(.16+.03*Math.sin(F.t*9.1)+.02*Math.sin(F.t*23.7))*(1+F.k*2.4)*(.4+.6*(GAR.porte?Math.max(0,GAR.porte.e):1))); // (v3, Léo : « le sol ») .42 → .16 au repos, elle monte au lâcher ; (porte fermée : la lueur qui passe SOUS la porte)
   try{garFeuCubes(dt);}catch(e){}
-  const pas=REDUCED_MOTION?1/12:1/30;F.acc+=dt;if(F.acc<pas)return;F.acc=Math.min(F.acc-pas,pas);F.t+=pas;F.dt=pas;feuPixPas(F);
+  const pas=REDUCED_MOTION?1/12:1/30;F.acc+=dt;if(F.acc<pas)return;
+  if(TEL_NATIF&&!FEU_ANCIEN&&PAL.b('feuDt',0)){const p9=Math.min(F.acc,.1);F.acc=0;F.t+=p9;F.dt=p9;GAR.feuN=(GAR.feuN|0)+1;feuPixPas(F);return;} /* (2026-11-08, Perf 3 — P5) téléphone : UN pas par image rendue, d'une durée égale au temps écoulé (≤ 0,1 s) — au repos (15 i/s) la même vitesse de flamme que Léo avec la moitié des pas qu'à 30 i/s, et plus de ralenti visuel quand les images se raréfient */
+  F.acc=Math.min(F.acc-pas,pas);F.t+=pas;F.dt=pas;GAR.feuN=(GAR.feuN|0)+1;feuPixPas(F);
 }
+/* LES FLAMMES DU GARAGE AU PAS DU TEMPS ÉCOULÉ (2026-11-08, Perf 3 — P5, OPTI ULTIME : feuPixPas 0,28 s + garFeuCubes 0,15 s par 1,5 s au garage) `PAL.B.feuDt` (1 = actif), `?feu=ancien` = l'accumulateur à 30 pas/s d'avant. */
+PAL.B.feuDt=[1,1,1];
+const FEU_ANCIEN=/[?&]feu=ancien\b/.test(location.search);
 function garBeaute(dt,t9){ // (2026-09-30) L'ATELIER v2 : ce qui vit — le feu qui éclaire et se reflète, le néon, les gyrophares, l'anneau de LED, les braises
   const B=GAR.beau;if(!B)return;const k=GAR.feu?GAR.feu.k:0,po=GAR.porte?Math.max(0,GAR.porte.e):1; // po : l'ouverture de la porte (0 fermée → 1)
   const fl=(1+.07*Math.sin(t9*9.1)+.04*Math.sin(t9*23.7)+.02*Math.sin(t9*41.3))*(1+k*1.4); // le souffle des flammes (celui de la lueur du seuil), et le RUGISSEMENT du lâcher — (Léo : « les reflets des flammes un peu forts, ça ne va pas avec l'aspect premium ; surtout le sol, et le reflet en général ») un souffle calme au repos, tout monte au lâcher
@@ -83120,7 +83135,7 @@ window.dbgCullInfo=function(){ /* (2026-11-07, Perf 3 — P5) (banc) qui est dan
     const sp=g.boundingSphere.clone().applyMatrix4(o.matrixWorld),dans=fr.intersectsSphere(sp),k=dans?'dans':'hors';R[k].n++;R[k].t+=t;if(!o.frustumCulled){R.nocull.n++;R.nocull.t+=t;}
     if(t>20000)R.liste.push([o.name||o.type,Math.round(t/1000)+'k',dans?'dans':'HORS',o.frustumCulled?'':'NOCULL',Math.round(sp.radius),Math.round(sp.center.distanceTo(camera.position)),o.parent===scene?'scene':(o.parent&&o.parent.name)||'?']);});
   return R;};
-window.dbgHC=function(){return {mc:MC.n,mcTris:Math.round(MC.t),on:HC.on,per:HC.per,off:HC.off,pfr:PFR_ON,hors30:PAL.b('hors30',0),cadOk:CAD.ok,cadOn:CAD.on,started:started,gameOver:gameOver,garageOn:garageOn,quiet:!!(gEl&&gEl.classList.contains('quiet')),garGo:!!GAR.go,stall:(typeof stallOn!=='undefined')?stallOn:null,vhd:VHD.on,hidden:document.hidden};}; /* (2026-11-07, Perf 3 P5) (banc) l'état des menus */
+window.dbgHC=function(){return {feuN:GAR.feuN|0,mc:MC.n,mcTris:Math.round(MC.t),on:HC.on,per:HC.per,off:HC.off,pfr:PFR_ON,hors30:PAL.b('hors30',0),cadOk:CAD.ok,cadOn:CAD.on,started:started,gameOver:gameOver,garageOn:garageOn,quiet:!!(gEl&&gEl.classList.contains('quiet')),garGo:!!GAR.go,stall:(typeof stallOn!=='undefined')?stallOn:null,vhd:VHD.on,hidden:document.hidden};}; /* (2026-11-07, Perf 3 P5) (banc) l'état des menus */
 /* ===== LE GOUVERNEUR THERMIQUE — MOB_G (2026-10-25, passe perf mobile : « 30 i/s stables si chaud » — Sacha ; mesure du 25/10 sur l'iPhone 13 Pro, dans l'app, jeu v897) =====
    MESURÉ : cinq courses de 75 s de suite (nuages niv. 1, puis niv. 2 à 9 en 25 s, tenue en ville niv. 9, pilote automatique) : 56,8 / 57,7 / 51,2 / 49,4 / 37,9 i/s
    (niveau 9 : 56,0 / 56,6 / 43,4 / 52,4 / 33,4), images > 25 ms : 52 / 38 / 262 / 109 / 425, sonde CPU 4 → 3, 4 → 3, 5 → 7, 4 → 5, 8 → 9. Le capteur de batterie ne gagne
