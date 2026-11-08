@@ -60,6 +60,9 @@
 
   let W=0,H=0,S=1,ku=1; /* taille logique du voile, échelle du canvas (pixels de l'appareil), unité d'écran (390 px = 1) */
   let pretT=null,tapT=null; /* la boule : l'instant où c'est prêt (elle s'arrête), l'instant de l'appui (elle explose) */
+  const INTRO_AP=INTRO_APRES; /* (voir soleil-planete.js) le film ne part que quand tout est prêt ; 0 = comme avant */
+  if(INTRO_AP)window.__guetTient=true; /* la sonde du serpent ne s'arrête pas 10 s après le démarrage du jeu : le chargement qui précède le film est plus long (voir debut-corps.html) */
+  let pretIntro=false,touchRetenu=false,chauffeFaite=false,IK={n:0,mx:0,k:0,prev:0,l:[]}; /* tout est-il prêt ; un toucher venu avant (mode 2) ; la chauffe de l'intro est faite ; les images du film : nombre, pire intervalle, > 20 ms */
   let lance=false,fini=false,casse=false,doux=false,manuel=false,passee=false,ouvert=false,revele=false,RM=false;
   let TOUCH=null,preAC=null,filmMuet=false,tLance=0,latV=0,tCasse=0,raf=0,sonCasseFait=false,t0a=0,iAC=null,SON=null,SK0={x:0,y:0};
   let GAMECV=null,SNAPPIX=null,GLOSS=null,priseFaite=false; /* la photo du jeu et celle de la scène, en gros pixels ; le reflet des lentilles ; la photo est-elle demandée */
@@ -93,11 +96,23 @@
     if(PCI_N.pas>1&&now-pciDer<1.5*PCI_N.ecranMs){PCI_N.sautees++;return true;}
     pciDer=now;PCI_N.rendus++;return false;
   }
+  /* (2026-11-07, OPTI ULTIME : « étape rendu 326 ms = le 1er dessin du canevas 2D plein écran ») sur TÉLÉPHONE (TEL_NATIF), le film se dessine à 1,5 pixel de canevas par point d'écran au lieu de 2 : 44 % de pixels en moins
+     sur le canevas plein écran (iPhone 13 Pro : 585 × 1 266 au lieu de 780 × 1 688). Plafond FIXE (pas « bas puis haut » : changer de taille referait `prepare` — logo, fracture — au milieu du film). `?intros=2` = comme avant, `?intros=N` règle le plafond (banc). */
+  /* (2026-11-07, OPTI ULTIME : « étape rendu » 350-400 ms = la 1re image du film) LES VIGNETTES EN IMAGEBITMAP, ÉTALÉES : la 1re image lançait 660 `createImageBitmap` (6 zones × 11 signes × NLUM 10) d'un bloc ; désormais 24 par image du film (28 images),
+     mêmes pixels à l'arrivée. `?bitmaps=1` = l'ancien (660 d'un bloc, chronométré `#bitmaps` dans la sonde), `?bitmaps=0` = aucune conversion (les canevas sont dessinés tels quels). */
+  const BM_MODE=(function(){const m=/[?&]bitmaps=([01])\b/.exec(location.search);return m?+m[1]:2;})();
+  function bitmapsLance(e,a,b){for(let k=a;k<b;k++){const ci=e.pciBm[k][0],st=e.pciBm[k][1],cc=e.sprH[ci][st];try{createImageBitmap(cc).then(function(bm){e.pciBmOk=(e.pciBmOk|0)+1;if(e.sprH[ci][st]===cc)e.sprH[ci][st]=bm;},function(){e.pciBmOk=(e.pciBmOk|0)+1;});}catch(x){e.pciBmOk=(e.pciBmOk|0)+1;}}}
+  function pciInit(e,bloc){ /* (le film sans travail refait : voir dBoule) les tableaux de la boule, et les vignettes en ImageBitmap : `bloc` (le chargement qui précède l'intro, INTRO_AP) les convertit toutes d'un coup, avant le film ; sinon BM_MODE (24 par image) */
+    const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=.8+Math.pow(Math.abs(e.py[i]),.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);e.pciL=new Uint8Array(e.n);
+    if(typeof createImageBitmap==='function'&&BM_MODE!==0){e.pciBm=[];e.sprH.forEach(function(L,ci){L.forEach(function(cc,st){e.pciBm.push([ci,st]);});});e.pciBmI=0;e.pciBmMs=0;e.pciBmN=0;e.pciBmMx=0;e.pciBmOk=0;
+      if(BM_MODE===1||bloc){const a9=performance.now();bitmapsLance(e,0,e.pciBm.length);e.pciBmI=e.pciBm.length;try{if(window.__ccSondeCrea)window.__ccSondeCrea('#bitmaps d\'un bloc : '+e.pciBm.length+' vignettes en '+Math.round(performance.now()-a9)+' ms',a9,0);}catch(x){}}}} /* les vignettes en ImageBitmap (mêmes pixels) dès qu'elles sont prêtes — 24 par image du film au lieu de 660 d'un bloc (voir BM_MODE) */
+  const INTRO_S_MAX=(function(){const m=/[?&]intros=([\d.]+)/.exec(location.search);return m?Math.max(.6,+m[1]):(typeof TEL_NATIF!=='undefined'&&TEL_NATIF?1.5:2);})();
   function mesure(){
     const t=tailleEcran();W=t[0];H=t[1]; /* ce qui se VOIT (la fenêtre du cadre), jamais plus : un voile plus large que la fenêtre décalait tout le dessin (vu le 23/10 : logo énorme, coupé à droite) */
-    S=Math.max(.6,Math.min(devicePixelRatio||1,2,Math.sqrt(2.2e6/(W*H)))); /* net sur un téléphone, borné en pixels : un grand écran ne coûte pas plus */
+    S=Math.max(.6,Math.min(devicePixelRatio||1,INTRO_S_MAX,Math.sqrt(2.2e6/(W*H)))); /* net sur un téléphone, borné en pixels : un grand écran ne coûte pas plus */
     cv.width=Math.round(W*S);cv.height=Math.round(H*S);cv.style.width=W+'px';cv.style.height=H+'px';cv.style.left='0';cv.style.top='0'; /* le dessin et l'écran font EXACTEMENT la même taille */
     ku=Math.max(.75,Math.min(W,H)/390);
+    try{if(window.__ccSondeCrea)window.__ccSondeCrea('#toile S='+S.toFixed(2)+' '+cv.width+'x'+cv.height+' cap '+INTRO_S_MAX,performance.now(),0);}catch(e){} /* (2026-11-07) la sonde du serpent note la taille réelle de la toile du film (le plafond a-t-il agi ?) */
   }
 
   /* ---- LES PETITS OUTILS DE DESSIN ---- */
@@ -278,8 +293,9 @@
     c.globalCompositeOperation='source-over';
     if(pasSon!==Math.floor(t*2.2)){pasSon=Math.floor(t*2.2);if(t>3&&tp===null&&pasSon%2===0){try{if(SON&&!filmMuet&&iAC&&SON.dr)SON.note(iAC.currentTime+.02,pasSon>>1);}catch(x){}}} /* une cloche tous les deux pas (le tempo de l'ancienne onde de couleurs) */
     if(PCI_ON){if(ea>0){ /* (passe perf PC, voir LE FILM SANS TRAVAIL REFAIT) le même dessin au bit près : mêmes expressions, même ordre (les points de derrière, puis ceux de devant, par i croissant) */
-      if(!e.pciT0){const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=.8+Math.pow(Math.abs(e.py[i]),.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);e.pciL=new Uint8Array(e.n);
-        if(typeof createImageBitmap==='function')e.sprH.forEach(function(L,ci){L.forEach(function(cc,st){try{createImageBitmap(cc).then(function(b){if(e.sprH[ci][st]===cc)e.sprH[ci][st]=b;},function(){});}catch(x){}});});} /* les vignettes en ImageBitmap (mêmes pixels) dès qu'elles sont prêtes */
+      if(!e.pciT0)pciInit(e,false);
+      if(e.pciBm&&e.pciBmI<e.pciBm.length){const a9=performance.now(),b9=Math.min(e.pciBm.length,e.pciBmI+24);bitmapsLance(e,e.pciBmI,b9);e.pciBmI=b9;const d9=performance.now()-a9;e.pciBmMs+=d9;e.pciBmN++;if(d9>e.pciBmMx)e.pciBmMx=d9;
+        if(b9===e.pciBm.length){try{if(window.__ccSondeCrea)window.__ccSondeCrea('#bitmaps étalé : '+e.pciBm.length+' vignettes en '+e.pciBmN+' images, '+Math.round(e.pciBmMs)+' ms au total, pire image '+Math.round(e.pciBmMx)+' ms',a9,0);}catch(x){}}}
       const T0=e.pciT0,Q=e.pciQ,Z=e.pciZ,LV=e.pciL,gr=1+.6*borne(s/.7,0,1);
       for(let i=0;i<e.n;i++){
         const k=borne((t-T0[i])/.55,0,1);if(k<=0){Z[i]=-1;continue;}
@@ -660,8 +676,11 @@
       accord(q,.026,.35,1.8,.5);oscil(master,'sine',55*TR,36*TR,q,1,.16,.03,1,0,.3);oscil(master,'sine',2349.3*TR,2349.3*TR,q+.05,0,.026,.01,.6,0,.6);
       souffle(master,q,.6,'highpass',2000,9000,1,.05,.12,.6,0,.5);
     };
-    R.boum=function(q){ /* l'appui : la boule explose en CASH CAR : un coup de grave énorme, un métal qui sonne, un grand souffle, et l'accord de la marque en pleine puissance */
+    R.finChargement=function(q){ /* l'appui : le lit du chargement (le grave qui bat, le pad, le chœur) s'éteint — la moitié légère de `boum` (2026-11-08 : le reste peut être pré-rendu, voir BUM) */
       if(R.dr){clearInterval(R.dr.iv);clearInterval(R.dr.iv2);for(const g of R.dr.g){g.gain.cancelScheduledValues(q);g.gain.setTargetAtTime(0,q,.08);}R.dr.o.forEach(function(o){try{o.stop(q+.5);}catch(e){}});R.dr=null;}
+    };
+    R.boum=function(q){ /* l'appui : la boule explose en CASH CAR : un coup de grave énorme, un métal qui sonne, un grand souffle, et l'accord de la marque en pleine puissance */
+      R.finChargement(q);
       oscil(master,'sine',70,28,q,1.8,1.4,.003,1.8,0,.45);oscil(master,'sine',140,50,q,.4,.7,.003,.4,0,.2);
       souffle(master,q,.7,'lowpass',12000,300,.8,.6,.001,.7,0,.4);souffle(master,q,.02,'highpass',3000,0,1,.4,.001,.015,0,0);
       [1,2.76,5.4,8.93].forEach(function(r,i){oscil(master,'sine',190*r,190*r,q,0,.16/(i+1),.002,1.7-.3*i,i%2?.4:-.4,.5);});
@@ -688,6 +707,19 @@
       master.gain.setTargetAtTime(0,q+2.2,.3);
     };
     return R;
+  }
+  /* ===== LE COUP DE L'APPUI PRÉ-RENDU (2026-11-08, OPTI ULTIME : « le toucher à 167 ms : SON.suite/boum/scintille ») =====
+     `boum` + `scintille` fabriquent ~150 nœuds audio au moment de l'appui (167 ms sur le Mac ×4) : l'image du film saute. En INTRO_AP, ils sont RENDUS HORS LIGNE dans la phase chargement (OfflineAudioContext, la même construction, le même bus
+     compresseur → réglage), l'appui ne fait plus que couper le lit du chargement (`finChargement`) et lancer UN tampon. `BUM.buf` prêt ; BUM.err : repli sur l'ancien chemin (nœuds au toucher). */
+  const BUM={pr:false,buf:null,err:false};
+  function bumPrerend(){
+    if(BUM.pr||!INTRO_AP||SANS_SON||!SND.sfx||!(VOL.sfx>0)||typeof OfflineAudioContext==='undefined')return;
+    BUM.pr=true;const a9=performance.now();
+    const sr=(preAC&&preAC.sampleRate)||48000,O=new OfflineAudioContext(2,Math.ceil(sr*5.6),sr),r=construitSon(O,0,O.destination);
+    r.boum(.02);r.scintille(.02);
+    const fin=function(b){BUM.buf=b;try{if(window.__ccNote)window.__ccNote('chargement','coup de l\'appui pré-rendu en '+Math.round(performance.now()-a9)+' ms ('+b.duration.toFixed(1)+' s)');}catch(e){}};
+    const ko=function(){BUM.err=true;};
+    try{const pr=O.startRendering();if(pr&&pr.then)pr.then(fin,ko);else O.oncomplete=function(ev){fin(ev.renderedBuffer);};}catch(e){BUM.err=true;}
   }
   let dSon=.2; /* la marge (s) entre le toucher et le départ du son : de quoi construire le son sans que l'image ne saccade (réglée sur la durée mesurée) */
   function son(geste){
@@ -718,7 +750,8 @@
     try{if(typeof openGarage==='function'&&!IS_MOBILE)openGarage();}catch(e){}
   }
   function reveler(){ /* à l'instant où l'écran noir casse : le voile n'est plus l'écran titre, il ne prend plus les touchers */
-    window.__introCouvre=false;if(revele)return;revele=true;
+    window.__introCouvre=false;window.__introPause=false;window.__guetTient=false;if(revele)return;revele=true;
+    try{if(window.__ccNote&&IK.n)window.__ccNote('intro',IK.n+' images, pire '+Math.round(IK.mx)+' ms, images > 20 ms : '+IK.k+(IK.l.length?' ('+IK.l.join(' · ')+')':''));}catch(e){} /* (2026-11-08) le critère de Sacha : K = 0 */
     try{if(window.__ccChargeTout)window.__ccChargeTout();}catch(e){} /* (2026-11-05, passe perf mobile 2, A2.b) ce qui reste du chargement se fait d'un trait avant que le jeu paraisse */
     sp.id=''; /* ⚠ retire l'id AVANT tout : start() et les écrans d'accueil se gardent par `getElementById('splash')` ; et la règle CSS #splash part avec lui. z-index 1000 : les éclats volent PAR-DESSUS tout (la plaque du 1er accueil s'ouvre ~0,85 s après, à 200+) */
     sp.style.cssText='position:fixed;inset:0;z-index:1000;display:block;pointer-events:none;overflow:hidden;background:transparent';
@@ -730,7 +763,7 @@
   }
   function finir(){
     if(fini)return;fini=true;
-    window.__introCouvre=false;cancelAnimationFrame(raf);removeEventListener('keydown',kd);removeEventListener('resize',remesure);document.removeEventListener('visibilitychange',introVis);
+    window.__introCouvre=false;window.__introPause=false;cancelAnimationFrame(raf);removeEventListener('keydown',kd);removeEventListener('resize',remesure);document.removeEventListener('visibilitychange',introVis);
     try{sp.remove();}catch(e){}
     SNAP=null;SNAPPIX=null;GAMECV=null;ECL=null;ETC=null;PXC=null;LOGO=null;MESH=null;RAY=null;
   }
@@ -759,12 +792,14 @@
     if(!lance||fini||tapT!==null||pretT===null)return;
     tapT=(performance.now()-tLance)/1000-latV;passee=true;
     try{if(iAC&&iAC.state!=='running')acReveil(iAC);}catch(e){}
-    try{if(SON){SON.suite();SON.boum(iAC.currentTime+.02);SON.scintille(iAC.currentTime+.02);}}catch(e){}
+    try{if(SON){SON.suite();
+      if(INTRO_AP&&BUM.buf&&VOL9){SON.finChargement(iAC.currentTime+.02);const sb=iAC.createBufferSource();sb.buffer=BUM.buf;sb.connect(VOL9);sb.start(iAC.currentTime+.02);} /* (INTRO_AP) le coup pré-rendu : UN nœud */
+      else{SON.boum(iAC.currentTime+.02);SON.scintille(iAC.currentTime+.02);}}}catch(e){}
     try{ouvrir();}catch(e){}
     INTROSON.on=true;INTROSON.t0=0; /* le ciel, dessous, reste sans vent jusqu'à l'accueil */
     /* (2026-11-02 nuit, Léo : « la musique commence trop tôt et se coupe direct, puis une autre démarre au ciel » puis « elle ne se lance qu'en fondu à partir du moment où le menu ciel a chargé ») la musique ne part plus pendant « PRESENTS » :
        là, seuls les morceaux en fichiers pouvaient partir, les autres étaient mis en attente (pbjLobby, `fixes`) puis un autre partait à l'accueil. Elle part UNE fois, au ciel (`reveler`), avec le fondu du lobby (4 s) et la montée d'INTROSON. */
-    setTimeout(function(){window.__introCouvre=false;},150);
+    if(!INTRO_AP)setTimeout(function(){window.__introCouvre=false;},150); /* (INTRO_AP : le jeu reste couvert et muet jusqu'à `reveler`, tout est déjà chaud) */
     ouvreQuandPret();
   }
   /* (2026-11-02, Léo : « ça saccade ») LE VOILE S'OUVRE QUAND LE JEU EST CALME. Mesuré sur son Mac (Safari, cadre 1226 × 566) : de l'appui à +10 s, le ciel se construit sous le voile par images de 0,2 à 1,3 s, puis ~20 i/s ;
@@ -779,7 +814,7 @@
     let prev=performance.now(),calmes=0,tenu=false;imgBase=window.__imagesJeu|0;
     (function pas(now){
       if(fini||doux)return;
-      const d=now-prev;prev=now;calmes=(d<100&&(window.__imagesJeu|0)-imgBase>=3)?calmes+1:0;
+      const d=now-prev;prev=now;calmes=(d<100&&(INTRO_AP||(window.__imagesJeu|0)-imgBase>=3))?calmes+1:0;
       const s=(now-tLance)/1000-latV-tapT;
       if(!tenu&&s<PRES_FIN-.7){requestAnimationFrame(pas);return;} /* le texte ne commence à s'éteindre qu'à PRES_FIN − 0,7 : c'est là qu'on décide */
       if(!tenu){
@@ -829,7 +864,8 @@
     if(!iAC||!VOL9||SANS_SON)return;
     for(const k of [idx,idx+1]){if(SONS_DEMO[k]||(k>idx&&tl<1.4))continue;try{const r=construitSon(iAC,t0a+k*PERIODE_DEMO(),VOL9);r.suite();SONS_DEMO[k]=r;}catch(e){}}
   }
-  function rendu(t){
+  function rendu(t){const a9=performance.now();try{rendu0(t);}finally{const d9=performance.now()-a9;IK.rd=d9;if(d9>=40&&window.__ccSondeTache){try{window.__ccSondeTache('rendu',a9,d9);}catch(_){}}}} /* (2026-11-07, OPTI ULTIME : « image boucle 373 ms : quelle étape ? ») la sonde du serpent nomme l'image du film qui dépasse 40 ms */
+  function rendu0(t){
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
     g.fillStyle='#000';g.fillRect(0,0,W,H);
@@ -845,6 +881,7 @@
     if(fini)return;
     raf=requestAnimationFrame(boucle);
     if(manuel)return;
+    if(lance&&!revele&&!doux){const d9=now-IK.prev;if(IK.prev&&d9<2000){IK.n++;if(d9>IK.mx)IK.mx=d9;if(d9>20){IK.k++;if(IK.l.length<6)IK.l.push(((now-tLance)/1000).toFixed(1)+'s '+Math.round(d9)+' (rendu d\'avant '+Math.round(IK.rd||0)+')');}}IK.prev=now;} /* (2026-11-08) les images du film : le pire intervalle, combien dépassent 20 ms (écrit par `reveler`) */
     if(!casse){const t=PCI_ON?pciTaille(now):tailleEcran();if(t[0]!==W||t[1]!==H)remesure();} /* l'écran a changé de taille sans que `resize` nous le dise (cadre du volet, rotation) : tout se refait à la bonne taille (vu le 23/10 : logo énorme, coupé à droite) */
     if(!lance){try{attente();}catch(e){}return;}
     try{
@@ -870,7 +907,9 @@
   function lancer(geste){
     if(lance||fini)return;lance=true;RM=reduit();tLance=performance.now();window.__intro='joue'; /* l'intro passe : pas de rechargement */
     eteintTitre();
+    if(window.__ccSondeTache)try{const a9=performance.now();void document.body.offsetHeight;if(window.__ccSondeCrea)window.__ccSondeCrea('layout-lancer',a9,performance.now()-a9);}catch(e){} /* (2026-11-07, OPTI ULTIME) pendant le guet seulement : un layout forcé au départ du film, chronométré (le style + layout du DOM entier, natif, est-il le trou de 1,1 s ?) */
     window.__introCouvre=true; /* le film couvre l'écran : le jeu ne calcule ni ne dessine plus rien dessous, jusqu'à 0,5 s avant la casse (voir `boucle`) */
+    if(INTRO_AP)window.__introPause=true; /* (2026-11-08) et RIEN d'autre ne travaille : photos, pré-bâti… (jusqu'à `reveler`) */
     try{if(prepEn!==W+'x'+H+'x'+S)crea('prepare',prepare);}catch(e){} /* (déjà prêt si on a attendu un peu sur l'écran titre) */
     try{crea('son',function(){son(geste);});}catch(e){} /* le son ne doit JAMAIS bloquer les visuels */
     if(!iAC)tLance=performance.now(); /* (sans son : le film part tout de suite) */
@@ -879,8 +918,14 @@
     if(lance||fini)return;
     try{if(!SPR.bl||prepEn!==W+'x'+H+'x'+S)prepare();}catch(e){}
     try{irPret();const b0=performance.now(),A=new OfflineAudioContext(2,4800,48000),r=construitSon(A,0,A.destination);r.suite();r.acte3();dSon=Math.min(.6,Math.max(.12,(performance.now()-b0)/1000*.8));}catch(e){} /* (la 1re construction est la plus lente : la marge en tient compte) */
+    if(INTRO_AP){ /* (2026-11-08) tout ce que le film paierait à son départ se paie ICI, sous le serpent : la boule (géométrie + 660 vignettes en bitmap d'un bloc), le contexte audio */
+      try{const e9=ETS.boule||(ETS.boule=crea('boule-geo',geoLabSphere));if(!e9.pciT0)crea('boule-init',function(){pciInit(e9,true);});}catch(e){}
+      try{if(!preAC&&!SANS_SON&&SND.sfx&&VOL.sfx>0)preAC=crea('AudioContext',function(){return new (window.AudioContext||window.webkitAudioContext)();});}catch(e){preAC=null;}
+      try{bumPrerend();}catch(e){BUM.err=true;}
+    }
+    chauffeFaite=true;
   }
-  function kd(){if(!lance&&!fini)lancer(true);else if(lance&&performance.now()-tLance>600)passer();}
+  function kd(){if(!lance&&!fini){if(INTRO_AP&&!pretIntro){touchRetenu=true;return;}lancer(true);}else if(lance&&performance.now()-tLance>600)passer();}
   function pose(e){try{const r=cv.getBoundingClientRect();TOUCH={x:e.clientX-r.left,y:e.clientY-r.top};}catch(x){TOUCH=null;}}
   function remesure(){pciDer=-1e9;if(fini||casse)return;mesure();if(lance){if(PCI_ON&&prepEn===W+'x'+H+'x'+S){PCI_N.prepEvitees++;return;}try{prepare();}catch(e){}}} /* (passe perf PC) un `resize` qui ne change ni la taille ni l'échelle (le zoom du cadre bureau en envoie) ne refait plus tout le film : boule, logo, fracture étaient refaits À L'IDENTIQUE (même règle que `lancer` et `chauffe`) */
 
@@ -901,11 +946,11 @@
   sp.addEventListener('click',function(){
     if(BOULE&&bGlisse){bGlisse=false;return;} /* un glissement qui tourne la boule n'est pas un appui */
     try{musicDeverrouille();}catch(e){} /* ⚠ LE geste qui libère la musique pour toute la session (voir le lecteur unique) */
-    if(!lance)lancer(true);else if(performance.now()-tLance>600)passer(); /* le logo attend : le toucher CASSE l'écran (avant le logo : le film passe) */
+    if(!lance){if(INTRO_AP&&!pretIntro){touchRetenu=true;return;}lancer(true);}else if(performance.now()-tLance>600)passer(); /* le logo attend : le toucher CASSE l'écran (avant le logo : le film passe) */ /* (INTRO_AP) un toucher avant « tout prêt » est retenu : le film part dès que c'est prêt, avec le son */
   });
   function autoLance(){ /* le film part TOUT SEUL : le navigateur dit si le son est permis sans toucher (sinon le film passe muet, la casse sonnera au toucher) */
     if(lance||fini)return;
-    let A=null;if(!SANS_SON&&SND.sfx&&VOL.sfx>0){try{A=crea('AudioContext',function(){return new (window.AudioContext||window.webkitAudioContext)();});}catch(e){A=null;}}
+    let A=null;if(!SANS_SON&&SND.sfx&&VOL.sfx>0){try{A=(INTRO_AP&&preAC)||crea('AudioContext',function(){return new (window.AudioContext||window.webkitAudioContext)();});}catch(e){A=null;}}
     if(!A){lancer(false);return;}
     preAC=A;let fait=false;const go=function(){if(fait)return;fait=true;if(lance){if(A!==iAC)try{A.close();}catch(e){}return;}lancer(false);}; /* (24/10, relecture : « le son de l'intro coupé net ») un toucher pendant l'attente de A.resume() (≤ 0,3 s) lance le film SUR A (son() prend preAC) : A n'est fermé que s'il n'a pas servi — avant, le film tapé tôt passait muet */
     try{if(!DEPART_LENT&&(A.state==='running'||(navigator.userActivation&&!navigator.userActivation.hasBeenActive))){go();return;}A.resume().then(go,go);}catch(e){go();} /* (2026-11-05) le navigateur le laisse sonner d'emblée, ou personne n'a encore touché la page (resume() ne répondrait jamais) : on part tout de suite, muet dans ce second cas (son() le voit), le toucher libérera le son */
@@ -923,7 +968,51 @@
     if(document.hidden||!dom||(n<100&&!(DEPART_LENT?!(document.fonts&&document.fonts.status==='loading'):policeFilm()))||(n<58&&litEnCours&&!LIT)){setTimeout(function(){essaiAuto(n+1);},DEPART_LENT?250:60);return;}
     autoLance();
   }
-  if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher\b/.test(location.search))setTimeout(function(){essaiAuto(0);},BOULE?(DEPART_LENT?500:40):1700); /* (?depart=toucher : l'ancien départ au toucher) */
+  /* ===== LE FILM PART QUAND TOUT EST PRÊT (INTRO_AP, 2026-11-08) =====
+     `introPrete` rend le nom de ce qui manque (« » si tout est prêt) : la chauffe de l'intro, les étapes du chargement, la liaison des programmes, la chauffe du menu (moteurs, scène entière, tôles des voitures), le départ
+     d'avance, la file des photos, les vignettes de la boule. Plafond : 30 s (une chauffe qui ne finit jamais ne retient pas le joueur : la boîte noire dit ce qui manquait). Le résultat est écrit dans la boîte noire. */
+  const INTRO_PLAFOND=30000;
+  function introPrete(){
+    try{
+      if(!chauffeFaite)return 'chauffe-intro';
+      if(!CHARGEMENT.fini)return 'etapes';
+      if(LIER.dem!==2||(LIER.X&&!lierPret()))return 'lier';
+      if(!(engChaudI>ENGINE_TIERS.length&&CHAUFFE_R.fait))return 'chauffe';
+      if(CHAUFFE_R.ap>=0)return 'tôles';
+      if(PREB.on&&PREB.W&&PREB.dep&&!PREB.fait)return 'depart-avance';
+      if(typeof PHQ!=='undefined'&&PHQ.q.length&&garageOn&&!gEl.classList.contains('quiet'))return 'photos'; /* la file des photos ne se vide que garage ouvert (photoTour) : sinon elle attend le menu, pas le film */
+      if(litEnCours&&!LIT)return 'lit';
+      if(BUM.pr&&!BUM.buf&&!BUM.err)return 'coup-appui';
+      const e=ETS.boule;if(!e)return 'boule';
+      if(!e.pciT0){try{pciInit(e,true);}catch(x){}return 'boule';}
+      if(e.pciBm&&(e.pciBmOk|0)<e.pciBm.length)return 'bitmaps';
+      if(!e.pciWarm){e.pciWarm=1;const a9=performance.now();try{const cs=document.createElement('canvas');cs.width=cs.height=8;const x9=cs.getContext('2d');e.sprH.forEach(function(L){L.forEach(function(im){x9.drawImage(im,0,0,4,4);});});}catch(x){}e.pciWarmMs=Math.round(performance.now()-a9);return 'vignettes';} /* chaque vignette est dessinée UNE fois sur un petit canevas : le 1er dessin d'une image source (envoi au GPU) se paie ici, sous le serpent, pas dans la 1re image du film */
+      return '';
+    }catch(x){return '';}
+  }
+  function introNote(manque){
+    try{if(!window.__ccNote)return;const e=ETS.boule,t=performance.now();
+      window.__ccNote('chargement',(manque?'PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' » · ':'')+'prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, bitmaps '+(e&&e.pciBm?(e.pciBmOk|0)+'/'+e.pciBm.length:'-')+(e&&e.pciWarmMs!=null?' (vignettes dessinées en '+e.pciWarmMs+' ms)':'')+', photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length)+(touchRetenu?' · toucher retenu':''));}catch(x){}
+  }
+  function introPartir(manque){
+    if(lance||fini||pretIntro)return;pretIntro=true;introNote(manque);
+    try{ouvrir();}catch(e){} /* le son du jeu (initAudio) se prépare ICI, sous le serpent : plus au toucher */
+    /* (2026-11-08) LE JEU SE TAIT UN INSTANT AVANT LE FILM : la boucle du jeu (donc ses rendus 3D, mis en file au processeur graphique) s'arrête INTRO_DRAIN ms avant que le film ne dessine sa 1re image — mesuré sur le Mac ×4 :
+       400-500 ms d'intervalle entre la 1re et la 2e image du film (rendu d'avant : 3 ms ; sans le son : le même), le temps que la file graphique se vide. `?introdrain=0` = sans cet arrêt. */
+    const go=function(){if(INTRO_AP===2&&!touchRetenu)return; /* mode 2 : le film attend le toucher (le clic ou une touche appelle lancer) */
+      if(touchRetenu)lancer(true);else essaiAuto(0);};
+    if(INTRO_DRAIN>0){window.__introCouvre=true;setTimeout(go,INTRO_DRAIN);}else go();
+  }
+  const INTRO_DRAIN=(function(){const m=/[?&]introdrain=(\d+)/.exec(location.search);return m?+m[1]:400;})();
+  function introPoll(){
+    if(lance||fini||pretIntro)return;
+    const manque=introPrete();
+    if(!manque){introPartir('');return;}
+    if(performance.now()>INTRO_PLAFOND){introPartir(manque);return;}
+    setTimeout(introPoll,100);
+  }
+  if(INTRO_AP&&!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher\b/.test(location.search))setTimeout(introPoll,300);
+  else if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher\b/.test(location.search))setTimeout(function(){essaiAuto(0);},BOULE?(DEPART_LENT?500:40):1700); /* (?depart=toucher : l'ancien départ au toucher) */
   if(BALADE||SIMU_JEU)setTimeout(finRapide,80); /* (atelier des nuages, simulateur) droit au jeu, sans l'intro */
   raf=requestAnimationFrame(boucle);
   let vuRev=false;

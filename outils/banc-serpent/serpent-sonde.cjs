@@ -18,7 +18,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   const send=(method,params={})=>new Promise(r=>{const i=++id;pend[i]=r;ws.send(JSON.stringify({id:i,method,params}));});
   await send('Page.enable');await send('Runtime.enable');await send('Log.enable');await send('Network.enable');
   await send('Network.setCacheDisabled',{cacheDisabled:true});await send('Network.setBypassServiceWorker',{bypass:true});
-  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:3,mobile:true});
+  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:+(process.env.DSF||3),mobile:true});
   await send('Emulation.setCPUThrottlingRate',{rate:CPU});
   await send('Page.navigate',{url:URL_});
   if(process.env.BLOQUE){await sleep(3000);for(let k=0;k<2;k++){await send('Runtime.evaluate',{expression:'(function(){var t=performance.now();while(performance.now()-t<500);})()'});await sleep(1500);}} /* témoin : deux blocages de 500 ms du fil, la sonde doit les voir */
@@ -41,6 +41,15 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   }
   if(process.env.EMPREINTE){ /* EMPREINTE=1 : de quoi comparer deux pistes bâties (même ?pistegraine) : dbgPas() + dbgPiste() + les étapes */
     console.log('EMPREINTE',await ev(`(function(){var W=[window].concat(Array.prototype.slice.call(window.frames));for(var i=0;i<W.length;i++){try{if(W[i].dbgPas)return JSON.stringify({pas:W[i].dbgPas(),piste:W[i].dbgPiste?W[i].dbgPiste():null,etapes:W[i].dbgChargement?W[i].dbgChargement().ms.map(function(e){return e[0]}):null});}catch(e){return 'ERR '+e.message}}return 'rien';})()`));
+  }
+  if(process.env.DOM){ /* DOM=1 : les enfants directs du body, avec ce qui coûte un layout : affichés (display), cachés autrement (visibility/opacity/hors cadre), nombre de descendants */
+    console.log('DOM',await ev(`(function(){var W=[window].concat(Array.prototype.slice.call(window.frames));for(var i=0;i<W.length;i++){try{var w=W[i];if(!w.dbgChargement)continue;var o=[],tot=w.document.body.getElementsByTagName('*').length;Array.prototype.forEach.call(w.document.body.children,function(e){var c=w.getComputedStyle(e),r=e.getBoundingClientRect(),n=e.getElementsByTagName('*').length;if(n>=15||c.display!=='none'&&n>=5)o.push([e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+(e.className&&typeof e.className==='string'?'.'+e.className.split(' ')[0]:''),c.display,c.visibility,c.opacity,c.position,Math.round(r.left)+','+Math.round(r.top)+' '+Math.round(r.width)+'x'+Math.round(r.height),n].join('|'));});return JSON.stringify({total:tot,w:w.innerWidth,h:w.innerHeight,top:o});}catch(e){return 'ERR '+e.message}}return 'rien';})()`));
+  }
+  if(process.env.BOULE_PNG){ /* BOULE_PNG=<fichier> : fige le film de l'intro à l'instant T (défaut 3,2 s) par dbgIntro.voir et capture l'écran — pour comparer deux plafonds de canevas (?intros=2 / ?intros=1.5) */
+    console.log('DPR',await ev(`(function(){var W=[window].concat(Array.prototype.slice.call(window.frames));return JSON.stringify(W.map(function(w){try{return [w.innerWidth,w.innerHeight,w.devicePixelRatio,w.location.search]}catch(e){return 'x'}}));})()`));
+    console.log('VOIR',await ev(`(function(){var W=[window].concat(Array.prototype.slice.call(window.frames));for(var i=0;i<W.length;i++){try{if(W[i].dbgIntro){var r=W[i].dbgIntro.voir(${+process.env.T||3.2});return JSON.stringify(r);}}catch(e){return 'ERR '+e.message}}return 'rien';})()`));
+    await sleep(800);
+    const sh=await send('Page.captureScreenshot',{format:'png'});fs.writeFileSync(process.env.BOULE_PNG,Buffer.from(sh.result.data,'base64'));console.log('capture',process.env.BOULE_PNG);
   }
   const r=JSON.parse(String(await ev(expr)||'{}'));
   console.log('SONDE',JSON.stringify({t:r.t,gameReady:r.ready,serpentEncorLa:r.serpent,trous:(r.sonde||[]).length}));
