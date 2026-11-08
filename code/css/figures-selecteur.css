@@ -141,5 +141,5 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{display:fl
   #gFigSel .fsHex{min-height:60px}
   #gFigSel .fsCase{width:46px;height:40px}
 }
-</style>
 #gFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08) même anneau rentré que la boutique : plus de liseré mordu, plus d animation */
+</style>
