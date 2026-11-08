@@ -48364,18 +48364,18 @@ SHAPES.zagato=function(K){
      moteur ; ses stations relevées sur les sommets du vitrage d'origine, CAB : z, ceinture y/x, bord du toit x/y, milieu du toit y) enfoncée de
      8 cm dans la caisse ; derrière les portières elle se resserre (74 → 46 cm) pour mourir dans le capot moteur au lieu de déborder sur les hanches, et le TOIT en dalle de laque posé à plat sur la vitre (z .50 → −.70, 2 cm de débord). Du figé, on retire ce qui tombe dans
      le volume de la vitre (l'ancien verre, l'ancien toit et ses montants) ; les bouts de verre d'origine qui en dépassaient — les POINTES — prennent
-     la tôle voisine. La nacelle de toit (noire, 'm') reste posée sur la lunette. Avant : origin/main v1326. ===== */
-  const CAB=[[.92,.905,.70,.69,.91,.955],[.77,.74,.83,.68,.94,.985],[.47,.76,.83,.60,1.08,1.10],[.20,.79,.835,.61,1.12,1.145],[-.15,.83,.842,.615,1.14,1.168],
+     la tôle voisine. La nacelle de toit (noire, 'm') reste posée sur la lunette. (8/11 suite, Léo, capture du montant avant : « enlève cette pointe bizarre des deux côtés et harmonise la vitre ») : la vitre de côté ne s'effile plus en pointe le long de l'aile avant — elle commence d'un BORD DROIT à z .77 (devant, seul le pare-brise, étroit : stations .78/.77) ; l'aile ne la perce plus ; le pare-brise est d'une seule pente (plus de pli à mi-hauteur) ; l'ancien verre qui affleurait à moins de 9 cm de la vitre neuve est retiré au lieu de passer en tôle par-dessus. Avant : origin/main v1326. ===== */
+  const CAB=[[.92,.905,.70,.69,.91,.955],[.78,.90,.70,.662,.963,1.0],[.77,.74,.83,.66,.967,1.003],[.47,.76,.83,.60,1.08,1.10],[.20,.79,.835,.61,1.12,1.145],[-.15,.83,.842,.615,1.14,1.168],
              [-.45,.865,.845,.61,1.12,1.15],[-.67,.88,.842,.58,1.06,1.11],[-.86,.89,.84,.56,1.06,1.07],[-1.06,.925,.74,.58,1.01,1.02],[-1.40,.955,.60,.46,.98,.97],[-1.52,.95,.46,.42,.94,.93]];
   const cabA=z=>{for(let i=0;i<CAB.length-1;i++){const a=CAB[i],b=CAB[i+1];if(z<=a[0]&&z>=b[0]){const t=(a[0]-z)/(a[0]-b[0]);return a.map((x,k)=>x+(b[k]-x)*t);}}return null;};
-  const cabDans=(x,y,z)=>{const s=cabA(z);if(!s)return false;const yb=s[1],xb=s[2],xt=s[3],yt=Math.max(s[4],s[5]);if(y<yb+.012||y>yt+.07)return false;
-    const f=Math.max(0,Math.min(1,(y-yb)/Math.max(.01,s[4]-yb)));return Math.abs(x)<=xb+(xt-xb)*f+.03;};
+  const cabDans=(x,y,z,mx)=>{const s=cabA(z);if(!s)return false;const yb=s[1],xb=s[2],xt=s[3],yt=Math.max(s[4],s[5]);if(y<yb+.012||y>yt+.07)return false;
+    const f=Math.max(0,Math.min(1,(y-yb)/Math.max(.01,s[4]-yb)));return Math.abs(x)<=xb+(xt-xb)*f+(mx||.03);};
   for(const m of D.m){
     const P=new Int16Array(b64(m.p).buffer),Q=m.q?new Int8Array(b64(m.q).buffer):null,C=b64(m.c),g9=m.g==='p'?GP:m.g,a0=A[g9]||(A[g9]={P:[],C:[],N:[]});
     for(let t=0;t<m.n;t++){let pal=PAL[C[t]],a=a0,mg=m.g;const v=[];
       for(let u=0;u<3;u++){const i=(t*3+u)*3;v.push([P[i]/1000,P[i+1]/1000,P[i+2]/1000]);}
       {const cx=(v[0][0]+v[1][0]+v[2][0])/3,cy=(v[0][1]+v[1][1]+v[2][1])/3,cz=(v[0][2]+v[1][2]+v[2][2])/3,verre=m.g==='g'&&C[t]===8;
-       if((verre||m.g==='p')&&cabDans(cx,cy,cz))continue;                                                       /* dans la vitre neuve : retiré */
+       if((verre||m.g==='p')&&cabDans(cx,cy,cz,verre?.09:.03))continue;                                                       /* dans la vitre neuve : retiré */
        if(verre&&cz>-1.6&&cz<.95&&cy>.70){mg='p';pal=PAL[7];a=A[GP]||(A[GP]={P:[],C:[],N:[]});}}                 /* une pointe de l'ancien verre : la tôle */
       let fn=null;if(!Q){const ux=v[1][0]-v[0][0],uy=v[1][1]-v[0][1],uz=v[1][2]-v[0][2],wx=v[2][0]-v[0][0],wy=v[2][1]-v[0][1],wz=v[2][2]-v[0][2];
         fn=[uy*wz-uz*wy,uz*wx-ux*wz,ux*wy-uy*wx];const l=Math.hypot(fn[0],fn[1],fn[2])||1;fn=fn.map(x=>x/l);}
@@ -48393,23 +48393,22 @@ SHAPES.zagato=function(K){
    for(const sd of [-1,1]){piece(.11,.094,.063,sd*.972,.90,.5845,0);
      const xa=sd*.845,ya=.69,xb=sd*.95,yb=.87;piece(.025,Math.hypot(xb-xa,yb-ya),.025,(xa+xb)/2,(ya+yb)/2,.5845,-Math.atan2(xb-xa,yb-ya));}}
   {/* LA VITRE ET LE TOIT : deux lofts à facettes (un anneau de 8 points par station, la moitié gauche en miroir), fermés aux deux bouts */
-   const tri9=(G,col,a,b,c,ctr,nq)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],wx=c[0]-a[0],wy=c[1]-a[1],wz=c[2]-a[2];let n=nq||[uy*wz-uz*wy,uz*wx-ux*wz,ux*wy-uy*wx];const l=Math.hypot(n[0],n[1],n[2]);if(l<1e-9)return;
+   const tri9=(G,col,a,b,c,ctr,nq)=>{const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],wx=c[0]-a[0],wy=c[1]-a[1],wz=c[2]-a[2];let n=nq||[uy*wz-uz*wy,uz*wx-ux*wz,ux*wy-uy*wx];const l=Math.hypot(n[0],n[1],n[2]);if(l<1e-9)return -1;const i0=G.P.length;
      n=n.map(x=>x/l);const mx=(a[0]+b[0]+c[0])/3-ctr[0],my=(a[1]+b[1]+c[1])/3-ctr[1],mz=(a[2]+b[2]+c[2])/3-ctr[2];if(n[0]*mx+n[1]*my+n[2]*mz<0){const q=b;b=c;c=q;n=n.map(x=>-x);}
-     for(const p of [a,b,c]){G.P.push(p[0],p[1],p[2]);G.N.push(n[0],n[1],n[2]);const k=col(p);G.C.push(k[0],k[1],k[2]);}};
-   const loft=(G,col,sts,anneau)=>{const R=sts.map(s=>{const h=anneau(s);return h.map(p=>[p[0],p[1],s[0]]).concat(h.slice(1,-1).reverse().map(p=>[-p[0],p[1],s[0]]));});
+     for(const p of [a,b,c]){G.P.push(p[0],p[1],p[2]);G.N.push(n[0],n[1],n[2]);const k=col(p);G.C.push(k[0],k[1],k[2]);}return i0;};
+   const loft=(G,col,sts,anneau,BD)=>{const R=sts.map(s=>{const h=anneau(s);return h.map(p=>[p[0],p[1],s[0]]).concat(h.slice(1,-1).reverse().map(p=>[-p[0],p[1],s[0]]));});
      const ctr=s=>{const h=anneau(s);let y=0;for(const p of h)y+=p[1];return [0,y/h.length,s[0]];};
      for(let i=0;i<R.length-1;i++){const r0=R[i],r1=R[i+1],n=r0.length,c=ctr(sts[i]),c1=ctr(sts[i+1]),cc=[0,(c[1]+c1[1])/2,(c[2]+c1[2])/2];
        for(let j=0;j<n;j++){const k=(j+1)%n,A9=r0[j],B9=r0[k],C9=r1[k],D9=r1[j],p=[C9[0]-A9[0],C9[1]-A9[1],C9[2]-A9[2]],q=[D9[0]-B9[0],D9[1]-B9[1],D9[2]-B9[2]],nq=[p[1]*q[2]-p[2]*q[1],p[2]*q[0]-p[0]*q[2],p[0]*q[1]-p[1]*q[0]];   /* une normale par PAN (les deux triangles du quadrilatère) : la vitre s'allume par plaques, pas en zigzag */
-         tri9(G,col,A9,B9,C9,cc,nq.slice());tri9(G,col,A9,C9,D9,cc,nq.slice());}}
+         for(const t of [tri9(G,col,A9,B9,C9,cc,nq.slice()),tri9(G,col,A9,C9,D9,cc,nq.slice())])if(BD&&t>=0)(BD[j]=BD[j]||[]).push({t:t,i:i});}}
      for(const [i,dz] of [[0,1],[R.length-1,-1]]){const r=R[i],c=ctr(sts[i]),o=[c[0],c[1],c[2]-dz];for(let j=0;j<r.length;j++)tri9(G,col,c,r[j],r[(j+1)%r.length],o);}};
    const G9=A.g||(A.g={P:[],C:[],N:[]}),pv=PAL[8],colV=p=>[0,1,2].map(c=>pv[c]/omb(p[1],c));
-   /* le verre COURBE : chaque sommet prend la moyenne des pans qui l'entourent à moins de 32° du sien (les pans d'un même côté se fondent, l'arête côté / pare-brise reste vive) */
-   const lisse9=(G,i0,cm)=>{const P=G.P,N=G.N,key=i=>Math.round(P[i]*500)+'|'+Math.round(P[i+1]*500)+'|'+Math.round(P[i+2]*500),M=new Map();
-     for(let i=i0;i<P.length;i+=3){const k=key(i);if(!M.has(k))M.set(k,[]);M.get(k).push(i);}const N0=N.slice();
-     for(let i=i0;i<P.length;i+=3){let x=0,y=0,z=0;for(const j of M.get(key(i))){if(N0[i]*N0[j]+N0[i+1]*N0[j+1]+N0[i+2]*N0[j+2]<cm)continue;x+=N0[j];y+=N0[j+1];z+=N0[j+2];}const l=Math.hypot(x,y,z)||1;N[i]=x/l;N[i+1]=y/l;N[i+2]=z/l;}};
-   const i09=G9.P.length;
-   loft(G9,colV,CAB,s=>{const yb=s[1],xb=s[2],xt=s[3],ye=s[4],yc=s[5],y0=Math.min(yb,ye)-.08;return [[0,y0],[xb-.03,y0],[xb,yb],[xt,ye],[0,yc]];});
-   lisse9(G9,i09,Math.cos(32*Math.PI/180));
+   const BD9={};
+   loft(G9,colV,CAB,s=>{const yb=s[1],xb=s[2],xt=s[3],ye=s[4],yc=s[5],y0=Math.min(yb,ye)-.08;return [[0,y0],[xb-.03,y0],[xb,yb],[xt,ye],[0,yc]];},BD9);
+   /* (8/11 suite, « harmonise la vitre ») chaque FLANC de la vitre (bandes 1-2 et 5-6 de l'anneau : du pied enfoncé au bord du toit, le bord droit de devant compris) prend UNE seule normale, la moyenne de ses pans : une plaque de verre unie d'un bout à l'autre, sans bosses de reflet ni trait clair au coin arrière ; chaque moitié du PARE-BRISE aussi (une seule pente, un seul reflet) ; la lunette garde ses pans plats */
+   const NZ9=CAB.findIndex(s=>s[0]<=.47);   /* les stations du pare-brise : de .92 à .47 */
+   for(const jj of [[1,2],[5,6],[3],[4]]){const L9=[].concat(...jj.map(j=>BD9[j]||[])).filter(e=>jj[0]<3||jj[0]>4||e.i<NZ9).map(e=>e.t);let x=0,y=0,z=0;for(const i of L9){const P=G9.P,u=[P[i+3]-P[i],P[i+4]-P[i+1],P[i+5]-P[i+2]],w=[P[i+6]-P[i],P[i+7]-P[i+1],P[i+8]-P[i+2]],a=Math.hypot(u[1]*w[2]-u[2]*w[1],u[2]*w[0]-u[0]*w[2],u[0]*w[1]-u[1]*w[0]);x+=G9.N[i]*a;y+=G9.N[i+1]*a;z+=G9.N[i+2]*a;}
+     const l=Math.hypot(x,y,z)||1;for(const i of L9)for(let k=0;k<9;k+=3){G9.N[i+k]=x/l;G9.N[i+k+1]=y/l;G9.N[i+k+2]=z/l;}}
    const GT=A[GP]||(A[GP]={P:[],C:[],N:[]}),pt=PAL[7],colT=p=>{const k=kpY(p[1]);return [0,1,2].map(c=>pt[c]*k[c]);};
    const TOIT=[.50,.47,.20,-.15,-.45,-.67,-.70].map(z=>{const s=cabA(Math.min(.47,Math.max(-.67,z)));s[0]=z;return s;});
    loft(GT,colT,TOIT,s=>{const xt=s[3],ye=s[4],yc=s[5];return [[0,yc-.02],[xt+.02,ye-.02],[xt+.02,ye+.006],[xt-.03,ye+.04],[0,yc+.045]];});}
