@@ -181,6 +181,11 @@ function metalDemo(){if(METAL_DEMO)return;let k=-1;const S=[1250,48000,650000,42
     try{const v=document.querySelector('#cashHud .chV span');if(v)v.textContent=cashTxt(S[k]);}catch(e){}
     try{monnaiePop();if(av)trickMsg(TR('TON ARGENT PASSE EN ')+TR(METAUX[k][2])+' !',1);}catch(e){}};
   pas();METAL_DEMO=setInterval(pas,2500);}
+/* (2026-11-08, Léo : « mission gagner 100 000, sans euro, de la couleur métal adaptée ») L'ARGENT ÉCRIT DANS UN TEXTE : plus de symbole,
+   le montant prend la couleur du palier qu'il représente (100 000 = l'or, 5 000 000 = le saphir…) — classes .moArg.mo-<palier> (monnaie.css). */
+function metalDe(v){let k=0;while(v>=METAUX[k][0])k++;return METAUX[k][1];}
+function moArg(v,t){return '<span class="moArg mo-'+metalDe(v)+'">'+(t==null?cashTxt(v):t)+'</span>';}
+function moDans(h,v){let f=0;return String(h).replace(/<[^>]*>|\d[\d ,.]*\d|\d/g,function(x){if(x[0]==='<'||f)return x;f=1;return moArg(v,x);});} /* les balises sont sautées (« m2Nw » a un 2) */ /* le 1er nombre du texte (HTML) prend la couleur du palier de v */
 function metalMaj(){
   if(METAL_FORCE==='demo'){metalDemo();return;}
   let v=0;try{v=bank()+(document.body.classList.contains('play')?Math.max(0,money||0):0);}catch(e){}

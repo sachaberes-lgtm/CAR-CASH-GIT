@@ -96,6 +96,18 @@ html body #mob #mDead.m5 .mCashL>b#mCash>.m6X{font-family:'CC Vide','Press Start
 /* --- LA BOUTIQUE est claire et son compte petit : la face seule, un filet de contour, la lueur --- */
 html body #gBqArg{filter:drop-shadow(1px 0 0 var(--moO)) drop-shadow(-1px 0 0 var(--moO)) drop-shadow(0 1px 0 var(--moO)) drop-shadow(0 -1px 0 var(--moO)) drop-shadow(0 0 3px var(--mog))!important}
 
+/* --- L'ARGENT ÉCRIT DANS UN TEXTE (2026-11-08, Léo : « mission gagner 100 000, sans euro, de la couleur métal adaptée ») : plus de
+   symbole, le montant (moArg, passe-textes.js) prend la face et le contour du palier qu'il représente — pas celui du joueur. --- */
+.moArg{--aM:#e0823c;--aL:#ffb070;--aO:#3a1606;white-space:nowrap;color:var(--aM)!important;-webkit-text-fill-color:var(--aM)!important;
+  text-shadow:1px 0 0 var(--aO),-1px 0 0 var(--aO),0 1px 0 var(--aO),0 -1px 0 var(--aO),0 2px 0 var(--aO)!important}
+.moArg.mo-euro{--aM:#dde4f2;--aO:#161c30}
+.moArg.mo-or{--aM:#ffc21a;--aO:#4a2200}
+.moArg.mo-saphir{--aM:#4f93ff;--aO:#040c36}
+.moArg.mo-emeraude{--aM:#33dd75;--aO:#03240f}
+.moArg.mo-rubis{--aM:#ff3a5e;--aO:#2a000e}
+.moArg.mo-legendaire{--aO:#2a0a3a;color:transparent!important;-webkit-text-fill-color:transparent!important;background:linear-gradient(100deg,#ff7ac4,#ffb86b,#fff36b,#6bffb0,#5fd8ff,#9f86ff,#ff7ac4) 0 0/300% 100%;-webkit-background-clip:text;background-clip:text;text-shadow:none!important;
+  filter:drop-shadow(1px 0 0 var(--aO)) drop-shadow(-1px 0 0 var(--aO)) drop-shadow(0 1px 0 var(--aO)) drop-shadow(0 -1px 0 var(--aO))}
+
 /* --- le vrai argent (€) en rose néon --- */
 html .gT em.eur,html #gBqPan .bqK .bqKp.eur,html #bqAile .baP.eur,html #gStrip.fnBande .fnP.eur,
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP.eur{color:var(--vraiEur)!important;text-shadow:0 1px 0 rgba(7,5,15,.95),0 0 8px rgba(255,95,210,.45)}
