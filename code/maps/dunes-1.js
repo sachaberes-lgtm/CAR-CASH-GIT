@@ -170,6 +170,8 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
 /* LA DUNE — la même fonction que la puce (dnDune du GLSL), lue dans le même bruit (cyNz) : W = [vent x, vent z, houle x, houle z], lam = la longueur
    d'onde (m). Rend la hauteur relative (0 au creux, ~1 au sommet) ; o.du (facultatif) = le profil de la grande dune seule (1 sur la crête). */
 const DN_ACTES={on:!/[?&]sans=([^&]*,)?dunesactes(,|&|$)/.test(location.search)}; /* (2026-10-23, Léo : « brouillon… l'organisation et l'harmonie » → un VOYAGE EN ACTES) `?sans=dunesactes` = le tirage d'avant (un peu de tout partout) */
+/* LE DÉSERT SANS BÂTIMENTS (2026-11-08, Sacha : « retravaille la map dune, enlève les bâtiments ») — plus de village de pisé (les maisons), plus de ruines ensablées (murs, monolithe couché) : il ne reste que du sable, du rocher et le ver. `?bati=1` les remet. */
+const DN_BATI=/[?&]bati=1\b/.test(location.search);
 const DN_STAR=!/[?&]sans=([^&]*,)?dunesetoile(,|&|$)/.test(location.search); /* `?sans=dunesetoile` : le désert d'avant (crêtes parallèles partout) */
 /* ===== LES SOMMETS ARRONDIS (2026-10-27, Léo : « il n'y a aucune pointe aussi pointue ») =====
    MESURÉ (`dbgDunes('pointes')`, les maxima locaux du désert, pente moyenne à 36 m du sommet) : la MÉDIANE des sommets du désert tenait à ~24° et 1 sommet sur 3 dépassait 28° — des aiguilles. Deux causes dans dnDune : (1) l'ARÊTE de chaque crête est la rencontre

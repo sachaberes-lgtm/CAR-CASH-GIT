@@ -6,7 +6,7 @@
    les CREUX entre les dunes ; plus il est loin, plus il est grand (jusqu'à 5,6 ×, un mur de 60 m : l'immensité), plus il est seul. Même matière que tous les décors (assises, gravure : DN_AFS), tout CUIT dans la géométrie du décor tiré (dnCuiseur) : 0 appel de dessin de plus, 0 programme de plus,
    ≤ 8 000 triangles (`PAL.B.dnRuinesEns` = la part du budget par palier). Son hasard est LOCAL, né du tracé (comme dnEmbellir) : rien dans `rnd` ni dans le tirage du décor. `?sans=dunesruines` = sans elles. Console : `dbgRuines()` (la liste des sites), `dbgRuines('vue', n, recul, haut, cap)`,
    `dbgDunes('galerie', s, ['ruMur','ruArche'])` (les modèles). */
-const DN_RUE={on:!/[?&]sans=([^&]*,)?dunesruines(,|&|$)/.test(location.search)};
+const DN_RUE={on:DN_BATI&&!/[?&]sans=([^&]*,)?dunesruines(,|&|$)/.test(location.search)};
 PAL.B.dnRuinesEns=[.45,.75,1];if(DN_MOB)PAL.B.dnRuinesEns[2]=PAL.B.dnRuinesEns[1]; /* la part du budget (8 000 triangles) : [ancien, moyen, récent] — le téléphone reste au palier moyen */
 /* LA PIERRE : un grès patiné, ocre-gris, un peu plus sombre que le sable ; tout ce qui touche le sable en prend la couleur (matière 40 + u de DN_AFS : la pierre tire vers `mix(uSaA, uSaB)`, les mêmes uniformes que le terrain — elle suit donc chaque météo) ; plus d'accent, plus de capitel : des fûts, des pans, des arcs CASSÉS */
 function ruC(){return Object.assign({},DN_COL,{gres:[.84,.77,.66],gres2:[.76,.69,.59],cre:[.88,.82,.72],granit:[.76,.69,.60],noir:[.50,.44,.38],lapis:[.74,.68,.58],azur:[.76,.69,.59],or:[.80,.73,.62]});}

@@ -1550,7 +1550,9 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
   @media (prefers-reduced-motion:reduce){html.han #avRec.presque i::after,html.han #avRec.battu s::before{animation:none!important}}
   /* R4 — LA CHAÎNE : elle s'ENVOLE dans le compteur quand elle s'encaisse, elle se BRISE quand on la perd */
   body #avCh{margin-top:14px}
-  body #avCh .avBar{width:96px;max-width:100%;overflow:hidden} /* (2026-11-08, Sacha : « la barre sous le X2 est trop longue ») 160 → 96 px */
+  body #avCh{width:fit-content;max-width:100%} /* (2026-11-08, Sacha : « cette barre est 4 fois trop longue ») la plaque se serre sur « 210 ×3 » */
+  body #avCh .avBar{width:0;min-width:100%;max-width:100%;overflow:hidden} /* la barre ne compte pas dans la largeur : elle fait EXACTEMENT celle du score, quelle que soit l'échelle (avant : 160 puis 96 px fixes) */
+  body #avCh #avList{width:0;min-width:100%;white-space:nowrap} /* la liste des gestes déborde au besoin : elle n'élargit pas la plaque */
   body #avCh .avBar.urg i{background:var(--danger);animation:avUrg .18s steps(2) infinite}
   @keyframes avUrg{50%{opacity:.35}}
   body #avList{font-size:10px;line-height:1.9}
@@ -5906,9 +5908,7 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.p
 .fgIl>.fgAn.mir{transform:scaleX(-1)}
 .fgIl>.fgCv{left:9px;top:9px;--pxs:2;color:#eef3ff;transform-origin:var(--fgO,50% 60%);filter:drop-shadow(0 1px 0 rgba(7,5,15,.7))}
 /* la figure JOUE (la vignette choisie, les cases du sélecteur) : un geste, puis une pause — 3,2 s la boucle, la courbe unique de la charte */
-:is(#gStrip .gT.on,#gFigSel .fsHex) .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
-#gFigSel .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
-#gFigSel .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
+#gStrip .gT.on .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
 @keyframes fgSalto{0%,18%{transform:rotate(0)}62%,100%{transform:rotate(calc(var(--sg,1) * 360deg))}}
 @keyframes fgSalto2{0%,12%{transform:rotate(0) rotateX(0)}72%,100%{transform:rotate(calc(var(--sg,1) * 720deg)) rotateX(360deg)}}
 @keyframes fgRoll{0%,18%{transform:rotate(0)}62%,100%{transform:rotate(calc(var(--sg,1) * 360deg))}}
@@ -7759,10 +7759,8 @@ html[data-reduced-motion] #chDoigt.on .cdMain{transform:translate(3px,10px) rota
 #bqFigSel .fsHex:active{translate:0 2px}
 #bqFigSel .fsCase{position:relative;display:block;width:56px;height:48px;background:color-mix(in srgb,var(--fc) 82%,#14171c);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);transition:background var(--t-fast) var(--ease)}
 #bqFigSel .fsIn{position:absolute;inset:3px 4px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#fbfcfd,#e9edf1);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
-#bqFigSel .fgIl>.fgCv{color:#14171c;filter:none;animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
+#bqFigSel .fgIl>.fgCv{color:#14171c;filter:none}
 #bqFigSel .fgIl>.fgAn{color:color-mix(in srgb,var(--fc) 62%,#14171c)} /* l'anneau du sens : foncé d'un cran, sinon l'or et le gris des communes se perdent dans le clair */
-#bqFigSel .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
-#bqFigSel .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
 #bqFigSel .fsQ{font-weight:400;font-size:14px;color:#a3abb5}
 #bqFigSel .fsJoy{position:absolute;left:calc(50% - 39px);top:-7px;display:flex;align-items:center;justify-content:center;width:22px;height:22px;background:#fff;color:var(--dc,#3d4bff);
   box-shadow:inset 0 0 0 2px #14171c;clip-path:polygon(6px 0,16px 0,22px 6px,22px 16px,16px 22px,6px 22px,0 16px,0 6px);font-style:normal} /* (2026-10-31) la couleur de l'EMPLACEMENT (--dc), la même que sur l'intertitre de sa section plus bas : l'œil relie les deux sans réfléchir */
@@ -9701,13 +9699,10 @@ html[data-reduced-motion] #fsUndo{transition:none}
 #ivDock .fsNom{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-width:100%;overflow:hidden;overflow-wrap:break-word;text-align:center;font-weight:400;font-size:9px;line-height:11px;color:var(--tx)}
 #ivDock .fsHex.vide .fsCase{background:rgba(154,144,200,.32)}
 #ivDock .fsHex.vide .fsNom{color:#6c6390}
-#ivDock .fsHex.cible .fsCase{background:#fff;animation:fsBat .8s var(--ease) infinite alternate}
+#ivDock .fsHex.cible .fsCase{background:#fff}
 #ivDock .fsHex.cible .fsNom{color:#fff}
 #ivDock .fdRow:has(.cible) .fsHex:not(.cible){opacity:.5}
-#ivDock .fsHex.flash .fsCase{animation:fsFlash .6s var(--ease)}
-#ivDock .fsHex .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
-#ivDock .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
-#ivDock .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
+#ivDock .fsHex .fgIl{transform:scale(.72)} /* (2026-11-08, Sacha : l anneau mordait le liseré hexagonal) */
 @media (prefers-reduced-motion:reduce){#ivDock .fsHex.cible .fsCase,#ivDock .fsHex.flash .fsCase,#ivDock .fsHex .fgIl>.fgCv{animation:none!important}}
 html[data-reduced-motion] :is(#ivDock .fsHex.cible .fsCase,#ivDock .fsHex.flash .fsCase,#ivDock .fsHex .fgIl>.fgCv){animation:none!important}
 
@@ -9731,7 +9726,7 @@ html[data-reduced-motion] .ivT.eq .fgIl>.fgCv{animation:none!important}
 #bqFigSel .fsJoy{left:calc(50% - 42px);top:-5px}
 #bqFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08, Sacha : « ici ça dépasse ») l'anneau de 36 px touchait le liseré de la case : on le rentre comme dans la disposition en rangée */
 #bqFigSel .fsNom{font-size:9px;line-height:11px;overflow-wrap:break-word}
-#bqFigSel .fsHex.cible .fsCase{background:var(--dc);animation:bqFsBat .8s var(--ease) infinite alternate}
+#bqFigSel .fsHex.cible .fsCase{background:var(--dc)}
 #bqFigSel .fsRow:has(.cible) .fsHex:not(.cible){opacity:.5}
 @keyframes bqFsBat{from{filter:none}to{filter:brightness(1.18) saturate(1.2)}}
 #bqFigSel .fsBar{padding-top:0}
@@ -9756,7 +9751,7 @@ html body #garage #gAct>#gBqBtn .bqBtnT small{max-width:100%;overflow:hidden;tex
 #gFigSel .fsJoy{left:calc(50% - 42px)}
 #gFigSel .fsNom{font-size:9px;line-height:11px;min-height:0;max-height:22px;white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:break-word}
 #gFigSel.arme .fsHex.cible{opacity:1}
-#gFigSel .fsHex.cible .fsCase{background:#fff;animation:fsBat .8s var(--ease) infinite alternate}
+#gFigSel .fsHex.cible .fsCase{background:#fff}
 #gFigSel .fsHex.cible .fsNom{color:#fff}
 @media (prefers-reduced-motion:reduce){#gFigSel .fsHex.cible .fsCase{animation:none}}
 html[data-reduced-motion] #gFigSel .fsHex.cible .fsCase{animation:none}
@@ -9789,6 +9784,7 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{display:fl
   #gFigSel .fsCase{width:46px;height:40px}
 }
 </style>
+#gFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08) même anneau rentré que la boutique : plus de liseré mordu, plus d animation */
 <style id="paufinageBoutons">
 /* ===== LE PAUFINAGE DES BOUTONS (2026-11-07, Sacha : « paufine la disposition des boutons de chaque écran, leurs optimisation, leurs
    animations ; chaque écran doit être parfait — en vertical et horizontale ») =====
@@ -15635,10 +15631,11 @@ function genCtrl(rnd,startPos,startPhi){
   push();
   const straight=(l,dy=0,n=1)=>{for(let k=0;k<n;k++){P.addScaledVector(dir(),l/n);P.y+=dy/n;push();}approx+=Math.hypot(l,dy);};
   // (piste v6) ≤ 12° par point : le Catmull-Rom tient enfin le cercle déclaré (il l'aplatissait)
+  const HCAP=[]; /* (2026-11-08) l'historique (longueur, cap) pour le garde-fou d'ENROULEMENT (voir thrH) */
   let rPlancher=0; // (2026-10-18, 2e tour) le plancher des rayons quand la map a ses modules (voir MODC_ON) : on serre tout, jamais sous 1,35 × le rayon tenable
   const arc=(aDeg,R,n,dy=0)=>{R=Math.max(R,rPlancher);n=Math.max(n,Math.ceil(Math.abs(aDeg)/12));const a=aDeg*Math.PI/180,st=a/n,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<n;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/n;phi+=st/2;push();}
-    approx+=Math.abs(a)*R;};
+    approx+=Math.abs(a)*R;HCAP.push(approx,phi);};
   // (route v3c) une « droite » qui n'en est pas une : un arc léger de a° sur l mètres — la piste ne va plus jamais tout droit
   const courbe=(l,dy,aDeg,n)=>{const a=Math.max(4,Math.abs(aDeg)),s9=aDeg<0?-1:1;arc(s9*a,l/(a*Math.PI/180),n||2,dy);};
   // (2026-09-26, user : « enlève les loopings » dans la VILLE) : le niveau ville n'en a plus aucun (motif ET signature de fin)
@@ -15697,7 +15694,14 @@ function genCtrl(rnd,startPos,startPhi){
      côté qui la ramène) : une longue traversée ; 'libre' — comme avant ; 'boucle' — une latéralité franche : elle s'enroule (la spirale de la ville).
      Il ne fait que PENCHER le seuil des tirages de côté (sgn, et le côté des modules qui suivaient `hand`) : aucun tirage de plus. */
   const PLN=rh?(function(u){return u<.42?'axe':u<.7?'libre':'boucle';})(rh()):null,capB=rh?(40+rh()*60)*Math.PI/180:0,hB=rh&&rh()<.5?-1:1,phiAx=phi;
-  const thrH=(b,a9)=>{if(!PLN||PLN==='libre')return b;if(PLN==='boucle')return Math.min(.92,Math.max(.08,b+hB*.3));
+  /* ===== LA ROUTE NE S'ENROULE PLUS SUR ELLE-MÊME (2026-11-08, Sacha : « dans la ville la route fait parfois une boucle et se superpose de manière très serrée ») =====
+     MESURÉ (banc, 40 graines de ville) : 23 pistes sur 40 repassaient À MOINS DE 90 M DE LEUR PROPRE ROUTE, dans le même sens (jusqu'à 0 m : une hélice) ; toutes
+     avaient plus de ~370° de cap cumulé sur 1,5 km. Rien ne bornait ce cumul : virages, esses et modules tiraient leur côté sans regarder d'où l'on venait.
+     ENROULEMENT = le cap gagné sur les dernières 1500 m. Si un virage (a° : ceux des modules, 90° sinon) mènerait le cap cumulé au-delà de 170° d'un côté, le tirage prend l'autre côté
+     (97 %) : le seuil seul change, aucun tirage de plus. */
+  const enroul=()=>{const n=HCAP.length;if(n<2)return 0;let k=n-2;while(k>0&&HCAP[k]>approx-1500)k-=2;return phi-HCAP[k+1<n?k+1:n-1];};
+  const thrG=(b,a9)=>{if(!PLN)return -1;const w=enroul()*57.2958,a=a9||90,pP=Math.abs(w+a),pM=Math.abs(w-a);if(Math.max(pP,pM)<=170)return -1;return pP<pM?.97:.03;}; /* un virage de a° du côté + finirait à w+a°, du côté − à w−a° : si l'un des deux dépasse 170° de cap cumulé, on prend celui qui défait */
+  const thrH=(b,a9)=>{const g9=thrG(b,a9);if(g9>=0)return g9; /* le garde-fou d'enroulement l'emporte sur le plan */ if(!PLN||PLN==='libre')return b;if(PLN==='boucle')return Math.min(.92,Math.max(.08,b+hB*.3));
     if(a9){const ep=Math.abs(phi+a9/57.3-phiAx),em=Math.abs(phi-a9/57.3-phiAx);return ep<em?.88:.12;} // un GRAND virage (a9°) : le côté qui finit le plus près de l'axe
     const e=(phi-phiAx)/capB;return Math.min(.94,Math.max(.06,b-.45*Math.max(-1,Math.min(1,e))-(Math.abs(e)>1?.25*Math.sign(e):0)));};
   if(typeof window!=='undefined')window.__villePlan=PLN?{plan:PLN,cap:Math.round(capB*57.3),kMC:+kMC.toFixed(2)}:null; // (banc) le plan de la dernière piste générée
@@ -15838,7 +15842,7 @@ function genCtrl(rnd,startPos,startPhi){
     for(let k=0;k<n;k++){const a=82+rf()*12;arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.04);sg=-sg;if(k<n-1)straight((25+rf()*30)*LV,-2*LV,1);}straight(110*LV,-4*LV,2);};
   const mPont=()=>{const sg=rf()<thrH(.5)?1:-1,L1=(110+rf()*30)*LV,Lp=(160+rf()*80)*LV,L2=(120+rf()*30)*LV;straight(50*LV,-2*LV,1);
     courbe(L1,L1*.09,sg*(14+rf()*10),3);courbe(Lp,0,-sg*4,3);courbe(L2,-L2*.13,sg*(16+rf()*12),3);straight(70*LV,-3*LV,1);};
-  const mParking=()=>{const sg=rf()<thrH(.5+hand*.22,430)?1:-1,R=(1.8+rf()*.3)*rP,a=400+rf()*60;straight(70*LV,-3*LV,1);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.09);straight(110*LV,-4*LV,2);};
+  const mParking=()=>{const sg=rf()<thrH(.5+hand*.22,300)?1:-1,R=(1.8+rf()*.3)*rP,a=270+rf()*50;straight(70*LV,-3*LV,1);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.09);straight(110*LV,-4*LV,2);};
   const mEscalier=()=>{const n=3+(rf()<.5?1:0);let sg=rf()<thrH(.5)?1:-1;straight(50*LV,-2*LV,1);
     for(let k=0;k<n;k++){const l=(60+rf()*25)*LV;courbe(l,l*(.12+rf()*.03),sg*(10+rf()*8),2);courbe((55+rf()*30)*LV,-1*LV,-sg*(8+rf()*6),2);sg=-sg;}
     {const l=(170+rf()*50)*LV;courbe(l,-l*(.24+rf()*.04),sg*(18+rf()*10),4);}straight(70*LV,-3*LV,1);};
@@ -20904,6 +20908,8 @@ function* genDunes(rnd){ // (LE PRÉ-BÂTI) un générateur, comme genCanyon : i
 /* LA DUNE — la même fonction que la puce (dnDune du GLSL), lue dans le même bruit (cyNz) : W = [vent x, vent z, houle x, houle z], lam = la longueur
    d'onde (m). Rend la hauteur relative (0 au creux, ~1 au sommet) ; o.du (facultatif) = le profil de la grande dune seule (1 sur la crête). */
 const DN_ACTES={on:!/[?&]sans=([^&]*,)?dunesactes(,|&|$)/.test(location.search)}; /* (2026-10-23, Léo : « brouillon… l'organisation et l'harmonie » → un VOYAGE EN ACTES) `?sans=dunesactes` = le tirage d'avant (un peu de tout partout) */
+/* LE DÉSERT SANS BÂTIMENTS (2026-11-08, Sacha : « retravaille la map dune, enlève les bâtiments ») — plus de village de pisé (les maisons), plus de ruines ensablées (murs, monolithe couché) : il ne reste que du sable, du rocher et le ver. `?bati=1` les remet. */
+const DN_BATI=/[?&]bati=1\b/.test(location.search);
 const DN_STAR=!/[?&]sans=([^&]*,)?dunesetoile(,|&|$)/.test(location.search); /* `?sans=dunesetoile` : le désert d'avant (crêtes parallèles partout) */
 /* ===== LES SOMMETS ARRONDIS (2026-10-27, Léo : « il n'y a aucune pointe aussi pointue ») =====
    MESURÉ (`dbgDunes('pointes')`, les maxima locaux du désert, pente moyenne à 36 m du sommet) : la MÉDIANE des sommets du désert tenait à ~24° et 1 sommet sur 3 dépassait 28° — des aiguilles. Deux causes dans dnDune : (1) l'ARÊTE de chaque crête est la rencontre
@@ -22084,7 +22090,7 @@ function dnPlanScenes(S,K,RH,D){
   const faire=function(k,q){const L9=q.b-q.a;
     if(k==='allee'){const len=(34+R()*10)*Kd,a=q.a+50,b=Math.min(q.b-40,a+380+R()*160);if(b-a>len*3.4){ajoute('allee',a,b,RH+len*1.0+16,{len:len});return true;}return false;}
     // (2026-11-05, ARRAKIS) le village du désert (remplace les colosses) et les rochers dressés (remplacent le grand sphinx) : même gabarit que ce qu'ils remplacent
-    if(k==='village'){const H=(70+R()*24)*Kd,a=q.a+60+R()*Math.max(0,L9-H*2.6-120),b=a+H*1.7+40;if(b<q.b-30){ajoute('village',a,b,RH+H*.55+16,{H:H});return true;}return false;}
+    if(k==='village'){if(!DN_BATI)return false;const H=(70+R()*24)*Kd,a=q.a+60+R()*Math.max(0,L9-H*2.6-120),b=a+H*1.7+40;if(b<q.b-30){ajoute('village',a,b,RH+H*.55+16,{H:H});return true;}return false;}
     // (2026-11-05, LES MODULES DU DÉSERT) le VER DES SABLES : une arche de 60-100 m au-dessus de la route, dans un creux d'au moins 260 m (jamais plus d'une demi-largeur de plateau de 1,2 s + 24 m)
     if(k==='ver'){const s9=(60+R()*40)*Kd,mid=(q.a+q.b)/2+(R()-.5)*Math.max(0,L9-260)*.5;if(L9<260)return false;ajoute('ver',mid-20,mid+20,s9*1.2+24,{s:s9});return true;}
     if(k==='monolithes'){const H=(58+R()*18)*Kd,a=q.a+70+R()*Math.max(0,L9-H*3.2-130),b=a+H*1.9+40;if(b<q.b-30){ajoute('monolithes',a,b,RH+H*.9+18,{H:H});return true;}return false;}
@@ -22186,7 +22192,7 @@ function dnEmbellir(){
    les CREUX entre les dunes ; plus il est loin, plus il est grand (jusqu'à 5,6 ×, un mur de 60 m : l'immensité), plus il est seul. Même matière que tous les décors (assises, gravure : DN_AFS), tout CUIT dans la géométrie du décor tiré (dnCuiseur) : 0 appel de dessin de plus, 0 programme de plus,
    ≤ 8 000 triangles (`PAL.B.dnRuinesEns` = la part du budget par palier). Son hasard est LOCAL, né du tracé (comme dnEmbellir) : rien dans `rnd` ni dans le tirage du décor. `?sans=dunesruines` = sans elles. Console : `dbgRuines()` (la liste des sites), `dbgRuines('vue', n, recul, haut, cap)`,
    `dbgDunes('galerie', s, ['ruMur','ruArche'])` (les modèles). */
-const DN_RUE={on:!/[?&]sans=([^&]*,)?dunesruines(,|&|$)/.test(location.search)};
+const DN_RUE={on:DN_BATI&&!/[?&]sans=([^&]*,)?dunesruines(,|&|$)/.test(location.search)};
 PAL.B.dnRuinesEns=[.45,.75,1];if(DN_MOB)PAL.B.dnRuinesEns[2]=PAL.B.dnRuinesEns[1]; /* la part du budget (8 000 triangles) : [ancien, moyen, récent] — le téléphone reste au palier moyen */
 /* LA PIERRE : un grès patiné, ocre-gris, un peu plus sombre que le sable ; tout ce qui touche le sable en prend la couleur (matière 40 + u de DN_AFS : la pierre tire vers `mix(uSaA, uSaB)`, les mêmes uniformes que le terrain — elle suit donc chaque météo) ; plus d'accent, plus de capitel : des fûts, des pans, des arcs CASSÉS */
 function ruC(){return Object.assign({},DN_COL,{gres:[.84,.77,.66],gres2:[.76,.69,.59],cre:[.88,.82,.72],granit:[.76,.69,.60],noir:[.50,.44,.38],lapis:[.74,.68,.58],azur:[.76,.69,.59],or:[.80,.73,.62]});}
@@ -63228,7 +63234,7 @@ function m2Ligne(x,k,s){const m=x.m,F=M2_FAM[m.f]||M2_FAM.exploit,pret=x.rg===0,
   if(pret)bas=m2Pret(m.id)?'<span class="m2Pr" aria-hidden="true"><span>'+pxi('cadeau')+' '+TR('RÉCUPÈRE')+'</span></span>':'<small class="m2Bt">'+TR('BIENTÔT AU GARAGE')+'</small>';
   else bas='<small>'+(x.ok?TR('RÉUSSIE'):(suiv?TR('SUIVIE')+' · ':'')+m2Prog(m,x.v,x.t))+'</small>';
   return '<div class="m2L m2F-'+m.f+(suiv?' f':'')+(x.ok?' ok':'')+(pret?' pret':'')+'" data-m2="'+m.id+'" role="button" tabindex="0" aria-pressed="'+suiv+'" style="--i:'+Math.min(k,12)+'">'
-    +'<span class="m2Ic">'+pxi(x.ok&&!pret?'coche':F.ic)+(suiv?'<i class="m2Ck"></i>':'')+'</span>'
+    +(x.ok&&!pret?'<span class="m2Ic">'+pxi('coche')+'</span>':'') /* (2026-11-08, Sacha : « enlève le petit S à côté des missions ») plus d'icône de famille, seule la coche des missions réussies reste */
     +'<div class="glTx"><b>'+(m.f==='secret'?'<i class="m2Sec">'+TR('SECRÈTE')+'</i> ':'')+m2TxtH(m)+'</b>'
     +(x.ok?'':'<u><em style="width:'+w0+'%" data-w="'+w1+'"></em></u>')+bas+'</div>'
     +'<div class="m2R'+(voir?' voir':'')+'" aria-label="'+sansAcc(m2RecNom(m)).replace(/"/g,'')+'">'+m2Vign(m)+'</div></div>';}
@@ -69350,7 +69356,8 @@ function garArgent(g){
     pile(9.6,.57,2.93,0,[[0,0]],3),pile(9.6,1.72,3.8,0,[[0,0]],3),            // les étagères du rack (places libres entre bacs, cartons, jantes)
     pile(-9.4,1.26,-1.6,Math.PI/2,[[0,-.36],[0,.36]],4),                       // la servante
     pile(9.6,2.87,3.25,0,[[0,0]],3),pile(9.6,.57,5.2,0,[[0,0]],3),
-    pile(-3.1,.98,-11.95,0,[[-.27,0],[.27,0]],5),pile(.95,.98,-11.95,0,[[-.27,0],[.27,0]],4),pile(-7.45,.98,-11.95,Math.PI/2,[[0,0]],4), // l'établi (derrière la caméra)
+    /* (2026-11-08, Sacha : « il y a des billets flottants dans le garage ») les trois piles de l'ÉTABLI (y .98, mur du fond) sont ENLEVÉES :
+       l'établi a disparu avec le mur « CASH CAR » en or (garage-salle.js) ; vues en photo, elles flottaient à 1 m devant le mur. */
     pile(9.6,1.72,5.2,0,[[0,0]],3),pile(9.6,2.87,1.55,0,[[0,0]],3),pile(9.6,4.02,3.55,0,[[0,0]],2)];
   // LES PALETTES (riche) : contre les murs, au-delà de l'orbite — 1 palette + 10 couches de 8 liasses (1,23 m)
   const pal=(x,z,ry)=>{const it=[()=>palette(x,z,ry)],c=Math.cos(ry),s=Math.sin(ry);

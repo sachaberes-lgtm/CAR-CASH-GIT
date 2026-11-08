@@ -30,7 +30,7 @@ function dnPlanScenes(S,K,RH,D){
   const faire=function(k,q){const L9=q.b-q.a;
     if(k==='allee'){const len=(34+R()*10)*Kd,a=q.a+50,b=Math.min(q.b-40,a+380+R()*160);if(b-a>len*3.4){ajoute('allee',a,b,RH+len*1.0+16,{len:len});return true;}return false;}
     // (2026-11-05, ARRAKIS) le village du désert (remplace les colosses) et les rochers dressés (remplacent le grand sphinx) : même gabarit que ce qu'ils remplacent
-    if(k==='village'){const H=(70+R()*24)*Kd,a=q.a+60+R()*Math.max(0,L9-H*2.6-120),b=a+H*1.7+40;if(b<q.b-30){ajoute('village',a,b,RH+H*.55+16,{H:H});return true;}return false;}
+    if(k==='village'){if(!DN_BATI)return false;const H=(70+R()*24)*Kd,a=q.a+60+R()*Math.max(0,L9-H*2.6-120),b=a+H*1.7+40;if(b<q.b-30){ajoute('village',a,b,RH+H*.55+16,{H:H});return true;}return false;}
     // (2026-11-05, LES MODULES DU DÉSERT) le VER DES SABLES : une arche de 60-100 m au-dessus de la route, dans un creux d'au moins 260 m (jamais plus d'une demi-largeur de plateau de 1,2 s + 24 m)
     if(k==='ver'){const s9=(60+R()*40)*Kd,mid=(q.a+q.b)/2+(R()-.5)*Math.max(0,L9-260)*.5;if(L9<260)return false;ajoute('ver',mid-20,mid+20,s9*1.2+24,{s:s9});return true;}
     if(k==='monolithes'){const H=(58+R()*18)*Kd,a=q.a+70+R()*Math.max(0,L9-H*3.2-130),b=a+H*1.9+40;if(b<q.b-30){ajoute('monolithes',a,b,RH+H*.9+18,{H:H});return true;}return false;}

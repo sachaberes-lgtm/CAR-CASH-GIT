@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Propositions de son</title>
+<style>
+/* LA PAGE D'ÉCOUTE des propositions de son (écrite par propositions.cjs — ne pas éditer à la main) */
+:root{--bg:#0d0f14;--pan:#161a22;--ln:#262c38;--tx:#eef1f7;--mu:#97a2b6;--ac:#ffb02e}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:24px 16px 60px}
+h1{margin:0;font-size:26px;letter-spacing:.06em}.chapo{color:var(--mu);margin:6px 0 20px}
+.carte{background:var(--pan);border:1px solid var(--ln);border-radius:14px;padding:16px;margin-bottom:14px}
+.carte h2{margin:0;font-size:19px;letter-spacing:.06em;display:flex;align-items:center;gap:10px}
+.carte h2 span{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--ac);color:#1a1004;font-size:14px}
+.carte>p{color:var(--mu);margin:4px 0 10px}
+.ech{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--ln);flex-wrap:wrap}
+.ech b{display:block}.ech small{color:var(--mu)}.ech audio{height:36px;width:300px;max-width:100%}
+.suite{margin-top:8px;font:inherit;color:var(--tx);background:#222936;border:1px solid var(--ln);border-radius:9px;padding:8px 12px;cursor:pointer}
+.suite:hover{border-color:var(--ac)}
+#musique{position:sticky;top:0;z-index:5;background:rgba(13,15,20,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--ln);padding:10px 16px}
+#musique div{max-width:760px;margin:0 auto;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+#musique b{letter-spacing:.08em;font-size:13px}
+#musique select,#musique button{font:inherit;color:var(--tx);background:#222936;border:1px solid var(--ln);border-radius:9px;padding:7px 10px;cursor:pointer}
+#musique button.on{background:var(--ac);border-color:var(--ac);color:#1a1004;font-weight:700}
+#musique label{color:var(--mu);font-size:13px;display:flex;align-items:center;gap:6px}
+#musique input{width:120px;accent-color:var(--ac)}
+</style></head><body>
+<div id="musique"><div>
+  <b>♪ MUSIQUE DU JEU</b>
+  <select id="mSel"><option value="0">Garage lo-fi</option><option value="1">Nuit de velours</option><option value="2">Penthouse</option><option value="3">Néon noir</option><option value="4">Glisse fusion</option><option value="5">Ciel</option><option value="6">Siffleur</option><option value="7">Neon drive</option><option value="8">Apesanteur</option><option value="9">Hypervitesse</option><option value="10">Dark triad</option></select>
+  <button id="mJoue">▶ Lancer</button>
+  <label>volume <input type="range" id="mVol" min="0" max="1" step="0.05" value="0.75"></label>
+</div></div>
+<main>
+<h1>PROPOSITIONS DE SON</h1>
+<p class="chapo">Cinq directions, toutes douces. Pour chacune, les mêmes quatre moments. Chaque proposition est réglée au même volume : on compare les caractères, pas les volumes. Au casque, c'est mieux. La musique du jeu (en haut) continue pendant les échantillons : on entend le moteur comme en jeu.</p>
+<section class="carte"><h2><span>1</span>VELOURS</h2><p>V12 soyeux · il chante haut, sans brutalité, presque pas de pétarades</p><div class="ech"><div><b>Moteur seul</b><small>ralenti, coup de gaz, départ, lâcher</small></div><audio controls preload="none" src="velours-seul.wav"></audio></div><div class="ech"><div><b>Nitro</b><small>pleins gaz, 3 s de nitro, lâcher</small></div><audio controls preload="none" src="velours-nitro.wav"></audio></div><div class="ech"><div><b>Virage</b><small>virage serré, les pneus glissent</small></div><audio controls preload="none" src="velours-virage.wav"></audio></div><div class="ech"><div><b>Après atterrissage</b><small>en l’air pied au plancher, choc, il repart</small></div><audio controls preload="none" src="velours-atterrissage.wav"></audio></div><button class="suite">▶ Les quatre à la suite</button></section>
+<section class="carte"><h2><span>2</span>BRAISE</h2><p>V8 croisé · gros gargouillis, crépite beaucoup au lâcher et au nitro, comme un feu de cheminée</p><div class="ech"><div><b>Moteur seul</b><small>ralenti, coup de gaz, départ, lâcher</small></div><audio controls preload="none" src="braise-seul.wav"></audio></div><div class="ech"><div><b>Nitro</b><small>pleins gaz, 3 s de nitro, lâcher</small></div><audio controls preload="none" src="braise-nitro.wav"></audio></div><div class="ech"><div><b>Virage</b><small>virage serré, les pneus glissent</small></div><audio controls preload="none" src="braise-virage.wav"></audio></div><div class="ech"><div><b>Après atterrissage</b><small>en l’air pied au plancher, choc, il repart</small></div><audio controls preload="none" src="braise-atterrissage.wav"></audio></div><button class="suite">▶ Les quatre à la suite</button></section>
+<section class="carte"><h2><span>3</span>COTON TURBO</h2><p>Boxer 4 turbo · ronron inégal, le turbo siffle doucement, « pshh » quand on lâche</p><div class="ech"><div><b>Moteur seul</b><small>ralenti, coup de gaz, départ, lâcher</small></div><audio controls preload="none" src="coton-seul.wav"></audio></div><div class="ech"><div><b>Nitro</b><small>pleins gaz, 3 s de nitro, lâcher</small></div><audio controls preload="none" src="coton-nitro.wav"></audio></div><div class="ech"><div><b>Virage</b><small>virage serré, les pneus glissent</small></div><audio controls preload="none" src="coton-virage.wav"></audio></div><div class="ech"><div><b>Après atterrissage</b><small>en l’air pied au plancher, choc, il repart</small></div><audio controls preload="none" src="coton-atterrissage.wav"></audio></div><button class="suite">▶ Les quatre à la suite</button></section>
+<section class="carte"><h2><span>4</span>TONNERRE LOINTAIN</h2><p>Gros V8 très grave, entendu de l'habitacle · le plus feutré, le plus ASMR</p><div class="ech"><div><b>Moteur seul</b><small>ralenti, coup de gaz, départ, lâcher</small></div><audio controls preload="none" src="tonnerre-seul.wav"></audio></div><div class="ech"><div><b>Nitro</b><small>pleins gaz, 3 s de nitro, lâcher</small></div><audio controls preload="none" src="tonnerre-nitro.wav"></audio></div><div class="ech"><div><b>Virage</b><small>virage serré, les pneus glissent</small></div><audio controls preload="none" src="tonnerre-virage.wav"></audio></div><div class="ech"><div><b>Après atterrissage</b><small>en l’air pied au plancher, choc, il repart</small></div><audio controls preload="none" src="tonnerre-atterrissage.wav"></audio></div><button class="suite">▶ Les quatre à la suite</button></section>
+<section class="carte"><h2><span>5</span>RONRON MUSICAL</h2><p>Une voix chaude qui ronronne, plus « note » que mécanique · dans l'esprit du moteur par défaut du jeu</p><div class="ech"><div><b>Moteur seul</b><small>ralenti, coup de gaz, départ, lâcher</small></div><audio controls preload="none" src="ronron-seul.wav"></audio></div><div class="ech"><div><b>Nitro</b><small>pleins gaz, 3 s de nitro, lâcher</small></div><audio controls preload="none" src="ronron-nitro.wav"></audio></div><div class="ech"><div><b>Virage</b><small>virage serré, les pneus glissent</small></div><audio controls preload="none" src="ronron-virage.wav"></audio></div><div class="ech"><div><b>Après atterrissage</b><small>en l’air pied au plancher, choc, il repart</small></div><audio controls preload="none" src="ronron-atterrissage.wav"></audio></div><button class="suite">▶ Les quatre à la suite</button></section>
+</main>
+<script>
+/* LA MUSIQUE : elle tourne en boucle SOUS les échantillons (elle ne s'arrête pas quand un moteur joue) ; chaque morceau ramené au même niveau */
+const MUS=[["Garage lo-fi","boucles/garage-lofi",-15.2],["Nuit de velours","paliers/rendus/nuit-de-velours/p5",-12.4],["Penthouse","paliers/rendus/penthouse/p5",-11.4],["Néon noir","paliers/rendus/neon-noir/p5",-10.1],["Glisse fusion","paliers/rendus/glisse-fusion/p5",-7.6],["Ciel","paliers/rendus/ciel-30/p14",-11.4],["Siffleur","paliers/rendus/siffleur-30/p14",-14.3],["Neon drive","boucles/neon-drive",-15],["Apesanteur","boucles/apesanteur",-15],["Hypervitesse","boucles/hypervitesse",-15],["Dark triad","boucles/dark-triad",-14.9]], musBase='../../../assets/audio/music/';
+const mus=new Audio();mus.loop=true;
+const mSel=document.getElementById('mSel'),mJoue=document.getElementById('mJoue'),mVol=document.getElementById('mVol');
+const volume=()=>{const m=MUS[+mSel.value];mus.volume=Math.min(1,Math.pow(10,(-15.5-m[2])/20)*(+mVol.value));};
+const charge=()=>{mus.src=musBase+MUS[+mSel.value][1]+'.m4a';volume();};
+const etiquette=()=>{const on=!mus.paused;mJoue.textContent=on?'❚❚ Pause':'▶ Lancer';mJoue.classList.toggle('on',on);};
+mJoue.onclick=()=>{if(!mus.src)charge();if(mus.paused)mus.play().catch(()=>{});else mus.pause();};
+mSel.onchange=()=>{const on=!mus.paused;charge();if(on)mus.play().catch(()=>{});};
+mVol.oninput=volume;mus.onplay=etiquette;mus.onpause=etiquette;
+/* un seul échantillon à la fois ; « les quatre à la suite » enchaîne la carte */
+const tous=[...document.querySelectorAll('audio')];
+tous.forEach(a=>a.addEventListener('play',()=>tous.forEach(b=>{if(b!==a)b.pause();})));
+document.querySelectorAll('.suite').forEach(bt=>bt.onclick=()=>{
+  const l=[...bt.parentNode.querySelectorAll('audio')];let i=0;
+  const joue=()=>{if(i>=l.length)return;const a=l[i++];a.currentTime=0;a.onended=()=>{a.onended=null;setTimeout(joue,500);};a.play();};
+  joue();
+});
+</script></body></html>

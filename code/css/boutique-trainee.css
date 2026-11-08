@@ -1,0 +1,99 @@
+<style id="bq-trainee">
+/* ===== BOUTIQUE : LE RAYON DES TRAÎNÉES, LA PISTE (2026-11-07, Sacha : « les boîtes de Léo sont bien pour les voitures mais pas adaptées aux peintures, traînées, figures… chaque type d'item doit avoir un système propre ») =====
+   Voir interface/boutique-trainee.js. Une VOIE par traînée sur toute la largeur (deux côte à côte au-delà de 520 px) : la traînée qui coule derrière
+   une caisse à gauche, le nom et la pastille de prix à droite ; la réglette des familles collée en haut de la liste. Les voies hors de vue sont
+   FIGÉES (.vit posé par l'IntersectionObserver). Tout est porté par .trK / .trFil / .trSec : les cartes des autres rayons ne changent pas. */
+#gBqPan .bqRail:has(>.trK){gap:6px;container-type:inline-size;padding-top:0}
+/* -- la réglette des familles : collée en haut de la liste, cibles de 44 px, elle défile de côté si elle déborde -- */
+#gBqPan .bqRail>.trFil{position:sticky;top:0;z-index:3;flex:0 0 100%;display:flex;gap:6px;margin:0 0 2px;padding:0 0 4px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain;
+  background:linear-gradient(#fff 82%,rgba(255,255,255,0));scroll-snap-align:start}
+#gBqPan .bqRail>.trFil::-webkit-scrollbar{display:none}
+#gBqPan .trFil .trCh{--rc:#14171c;flex:1 1 auto;display:flex;align-items:stretch;min-width:44px;height:44px;margin:0;padding:2px 0;border:0;background:none;cursor:pointer;font-family:var(--pix);-webkit-tap-highlight-color:transparent}
+#gBqPan .trFil .trCh>span{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;box-sizing:border-box;padding:0 4px 2px;border-radius:9px;background:#f1f3f6;overflow:hidden;
+  box-shadow:inset 0 0 0 1px #dde1e6;color:#14171c;transition:background .15s,box-shadow .15s,translate .12s}
+#gBqPan .trFil .trCh>span::after{content:'';position:absolute;left:8px;right:8px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--rc)}
+#gBqPan .trFil .trCh b{font-weight:400;font-size:8px;line-height:1;letter-spacing:0;white-space:nowrap}
+#gBqPan .trFil .trCh em{font-style:normal;font-size:7px;line-height:1;color:#6b7480;white-space:nowrap}
+#gBqPan .trFil .trCh:active>span{translate:0 1px}
+/* (2026-11-07, passe finale) EN ANGLAIS À 375 PX, la réglette débordait (RIBBONS · PARTICLES · EFFECTS · SHOWSTOPPERS : les mots rognés par
+   leur touche) : sur un panneau étroit les noms passent à 7 px et la touche serre son rembourrage ; un nom de plus de dix lettres (b.lg) à 6 px */
+@container (max-width:400px){
+  #gBqPan .trFil .trCh>span{padding:0 2px 2px}
+  #gBqPan .trFil .trCh b{font-size:7px}
+  #gBqPan .trFil .trCh b.lg{font-size:6px}
+}
+#gBqPan .trFil .trCh.on>span{background:#14171c;box-shadow:0 4px 10px -4px color-mix(in srgb,var(--rc) 70%,#14171c);color:#fff}
+#gBqPan .trFil .trCh.on em{color:#c3c9d2}
+/* -- l'intertitre d'une famille (en TOUT seulement) : une ligne, la rareté à sa couleur -- */
+/* (2026-11-07, passe finale) le BANDEAU des intertitres de rareté (celui des voitures et du nuancier) : sa teinte, le liseré, le logo dans sa pastille */
+#gBqPan .bqRail>.trSec{flex:0 0 100%;display:flex;align-items:center;gap:8px;min-width:0;box-sizing:border-box;margin:6px 0 0;padding:5px 9px 5px 5px;border-radius:8px;font-family:var(--pix);color:#14171c;pointer-events:none;scroll-snap-align:start;animation:bqSec .38s var(--ease) both;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 22%,#fff),color-mix(in srgb,var(--rc) 4%,#fff) 78%);box-shadow:inset 3px 0 0 var(--rc),0 1px 0 rgba(20,23,28,.06)}
+#gBqPan .bqRail>.trFil+.trSec{margin-top:0}
+#gBqPan .trSec>i{display:grid;place-items:center;flex:none;width:20px;height:20px;border-radius:6px;background:#14171c;box-shadow:0 0 0 1px var(--rc),0 0 8px -2px var(--rc)}
+#gBqPan .trSec>i .pxi{--pxs:1;margin:0;color:var(--rc)}
+#gBqPan .trSec b{font-weight:400;font-size:9px;letter-spacing:2px;white-space:nowrap}
+#gBqPan .trSec span{font-size:7px;letter-spacing:1px;color:#5b6470;white-space:nowrap}
+#gBqPan .trSec s{flex:1;height:2px;min-width:8px;border-radius:2px;background:linear-gradient(90deg,var(--rc),transparent)}
+#gBqPan .trSec em{font-style:normal;font-size:7px;color:#5b6470;white-space:nowrap}
+/* le filtre : une famille choisie ne garde que ses voies (la réglette dit déjà laquelle : plus d'intertitre) */
+#gBqPan .bqRail[data-trf]:not([data-trf=""])>.trSec{display:none}
+#gBqPan .bqRail[data-trf="commun"]>.trK:not([data-fam="commun"]),#gBqPan .bqRail[data-trf="rare"]>.trK:not([data-fam="rare"]),
+#gBqPan .bqRail[data-trf="epique"]>.trK:not([data-fam="epique"]),#gBqPan .bqRail[data-trf="legendaire"]>.trK:not([data-fam="legendaire"]){display:none}
+/* -- LA VOIE -- */
+#gBqPan .bqRail>.bqK.trK{width:100%;height:58px;flex-direction:row;align-items:stretch;border-radius:10px;overflow:hidden;scroll-snap-align:start;box-shadow:0 0 0 1px #dde1e6,0 6px 16px rgba(30,40,55,.06)}
+@container (min-width:520px){#gBqPan .bqRail>.bqK.trK{width:calc(50% - 3px)}}
+/* COUCHÉ (.cote) : le panneau est large mais bas (~260 px) — une voie par rangée n'en montrait que DEUX et demie. Deux TUILES de piste par
+   rangée (trois au-delà de 600 px, l'ordinateur) : la piste en haut, le nom et la pastille dessous ; les intertitres s'effacent (la réglette dit
+   déjà la famille, à sa couleur) — cinq traînées en vue au lieu de deux. */
+#gBqPan.cote .bqRail>.trSec{display:none}
+/* petit écran debout (≤ 700 px de haut : le panneau n’a que ~270 px) : pas d’intertitre non plus, des voies de 52 px — trois voies en vue au lieu de deux et demie */
+@media (orientation:portrait) and (max-height:700px){#gBqPan:not(.cote) .bqRail>.trSec{display:none}#gBqPan:not(.cote) .bqRail>.bqK.trK{height:52px}}
+#gBqPan.cote .bqRail>.bqK.trK{width:calc(50% - 3px);height:auto;flex-direction:column}
+@container (min-width:600px){#gBqPan.cote .bqRail>.bqK.trK{width:calc((100% - 12px) / 3)}}
+#gBqPan.cote .trK .trVue{flex:none;height:36px;margin:5px 5px 0 9px}
+#gBqPan.cote .trK .trTx{flex:none;gap:5px;padding:6px 8px 7px 11px}
+#gBqPan.cote .trK .trTx .bqKn{-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis;display:block}
+/* la rareté : un liseré à gauche (le fondu du bas des cartes de voitures n'a pas de sens sur une voie) */
+#gBqPan .bqRail>.bqK.trK::after{left:0;right:auto;top:0;bottom:0;width:4px;height:auto;max-height:none;opacity:1;-webkit-mask-image:none;mask-image:none;background:var(--rc)}
+#gBqPan .bqRail>.bqK.trK.sel{box-shadow:0 0 0 2px #14171c,0 8px 20px rgba(30,40,55,.16);translate:0 -1px}
+/* la vue : la nuit, la traînée qui coule hors de la caisse (à droite), ses particules qui partent vers la gauche */
+#gBqPan .trK .trVue{position:relative;flex:1 1 auto;min-width:0;margin:5px 0 5px 9px;border-radius:7px;overflow:hidden;contain:layout paint;
+  background:radial-gradient(70% 140% at 86% 50%,color-mix(in srgb,var(--tc) 32%,#151829) 0,#0e1020 55%,#08090f 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+#gBqPan .trK .trVue .tSw{position:absolute;inset:0;display:block}
+#gBqPan .trK .trVue .tSw::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent) 0 22%/38% 1px repeat-x,linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent) 30% 80%/52% 1px repeat-x;animation:tVit 1.1s linear infinite}
+#gBqPan .trK .trVue .tRu{left:-4%;right:19%;height:58%}
+#gBqPan .trK .trVue .tBuse{right:19%}
+#gBqPan .trK .trVue .tPa .pxi{position:absolute;right:20%;top:50%;--pxs:2;margin:0;opacity:0;filter:drop-shadow(1px 1px 0 rgba(0,0,0,.85));animation:trPart 2.4s linear infinite}
+#gBqPan .trK .trVue .tPa .pxi:nth-child(2){top:26%;animation-delay:-.8s}
+#gBqPan .trK .trVue .tPa .pxi:nth-child(3){top:74%;animation-delay:-1.6s}
+#gBqPan .trK .trVue .tSw.sansRuban .tPa .pxi{animation-duration:1.8s}
+@keyframes trPart{0%{transform:translate(0,-50%) scale(1.1);opacity:0}10%{opacity:1}80%{opacity:.9}100%{transform:translate(-150px,-50%) scale(.5);opacity:0}}
+/* la caisse, de dos, au bout de la piste : la traînée sort de SA tuyère */
+#gBqPan .trK .trCaisse{position:absolute;right:4px;top:50%;translate:0 -50%;display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+#gBqPan .trK .trCaisse .pxi{--pxs:2;margin:0;color:#fff;filter:drop-shadow(0 0 4px var(--tc))}
+#gBqPan .bqRail>.bqK.trK.r-legendaire .trVue::after{content:'';position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(115deg,rgba(255,255,255,0) 38%,rgba(255,255,255,.4) 50%,rgba(255,255,255,0) 62%) no-repeat;background-size:300% 100%;animation:pBrille 3.6s ease-in-out infinite}
+/* ÉCONOME : une voie hors de vue est figée (ses animations en pause) */
+#gBqPan .trK:not(.vit) .trVue,#gBqPan .trK:not(.vit) .trVue *,#gBqPan .trK:not(.vit) .trVue *::before,#gBqPan .trK:not(.vit) .trVue::after,#gBqPan .trK:not(.vit) .tSw::before{animation-play-state:paused!important}
+/* le texte : le nom, la pastille d'état (le prix · À TOI · ÉQUIPÉE · MISSION) */
+#gBqPan .trK .trTx{flex:0 0 clamp(112px,38%,150px);display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:6px;min-width:0;padding:0 10px}
+#gBqPan .trK .trTx .bqKn{max-width:100%;padding:0;font-size:8px;line-height:1.35;letter-spacing:.5px;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-overflow:clip}
+#gBqPan .trK .trTx .bqKp{display:inline-flex;align-items:center;gap:4px;max-width:100%;padding:4px 7px 3px;border-radius:6px;font-size:8px;line-height:1;white-space:nowrap;box-sizing:border-box;background:#f1f3f6;color:#14171c}
+#gBqPan .trK .trTx .bqKp .pxi{--pxs:1;margin:0;color:inherit}
+/* (2026-11-07, passe finale) les pastilles d'état parlent la langue des autres rayons (boutique-ensemble.css 7) : le prix à l'encre sur le
+   gris clair (comme le pied des affiches de FIGURES), À TOI en bleu et sa coche, ÉQUIPÉE la pastille bleue pleine (celle des AILES),
+   MISSION le gris et le cadenas — avant, le prix était une plaque noire et ÉQUIPÉE aussi : on les confondait */
+#gBqPan .trK .trTx .bqKp.pc{background:#f1f3f6;color:#14171c;box-shadow:inset 0 0 0 1px #dde1e6}
+#gBqPan .trK .trTx .bqKp.pc .pxi{color:#14171c}
+#gBqPan .trK .trTx .bqKp.eur{background:#3d4bff;color:#fff}
+#gBqPan .trK .trTx .bqKp.defi{background:#f1f3f6;color:#5b6572;box-shadow:inset 0 0 0 1px #dde1e6}
+#gBqPan .trK .trTx .bqKp.acq{background:none;color:#3d4bff;box-shadow:inset 0 0 0 1px color-mix(in srgb,#3d4bff 45%,#fff)}
+#gBqPan .trK .trTx .bqKp i{font-style:normal}
+#gBqPan .trK .trTx .bqKp .trEqT{display:none}
+#gBqPan .trK.eq .trTx .bqKp.acq{background:#3d4bff;color:#fff;box-shadow:none}
+#gBqPan .trK.eq .trTx .bqKp .trAt{display:none}
+#gBqPan .trK.eq .trTx .bqKp .trEqT{display:inline}
+@media (prefers-reduced-motion:reduce){#gBqPan .trK .trVue *,#gBqPan .trK .trVue *::before,#gBqPan .trK .trVue::after{animation:none!important}
+  #gBqPan .trK .trVue .tPa .pxi{opacity:1}#gBqPan .trK .trVue .tPa .pxi:nth-child(2){right:46%}#gBqPan .trK .trVue .tPa .pxi:nth-child(3){right:70%}}
+</style>

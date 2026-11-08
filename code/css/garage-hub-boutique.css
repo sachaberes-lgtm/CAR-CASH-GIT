@@ -186,9 +186,7 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv>.gT.ill.p
 .fgIl>.fgAn.mir{transform:scaleX(-1)}
 .fgIl>.fgCv{left:9px;top:9px;--pxs:2;color:#eef3ff;transform-origin:var(--fgO,50% 60%);filter:drop-shadow(0 1px 0 rgba(7,5,15,.7))}
 /* la figure JOUE (la vignette choisie, les cases du sélecteur) : un geste, puis une pause — 3,2 s la boucle, la courbe unique de la charte */
-:is(#gStrip .gT.on,#gFigSel .fsHex) .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
-#gFigSel .fsHex:nth-of-type(2) .fgIl>.fgCv{animation-delay:-1.07s}
-#gFigSel .fsHex:nth-of-type(3) .fgIl>.fgCv{animation-delay:-2.13s}
+#gStrip .gT.on .fgIl>.fgCv{animation:var(--fgA,fgSalto) 3.2s var(--ease) infinite}
 @keyframes fgSalto{0%,18%{transform:rotate(0)}62%,100%{transform:rotate(calc(var(--sg,1) * 360deg))}}
 @keyframes fgSalto2{0%,12%{transform:rotate(0) rotateX(0)}72%,100%{transform:rotate(calc(var(--sg,1) * 720deg)) rotateX(360deg)}}
 @keyframes fgRoll{0%,18%{transform:rotate(0)}62%,100%{transform:rotate(calc(var(--sg,1) * 360deg))}}

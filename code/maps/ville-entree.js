@@ -52,10 +52,11 @@ function genCtrl(rnd,startPos,startPhi){
   push();
   const straight=(l,dy=0,n=1)=>{for(let k=0;k<n;k++){P.addScaledVector(dir(),l/n);P.y+=dy/n;push();}approx+=Math.hypot(l,dy);};
   // (piste v6) ≤ 12° par point : le Catmull-Rom tient enfin le cercle déclaré (il l'aplatissait)
+  const HCAP=[]; /* (2026-11-08) l'historique (longueur, cap) pour le garde-fou d'ENROULEMENT (voir thrH) */
   let rPlancher=0; // (2026-10-18, 2e tour) le plancher des rayons quand la map a ses modules (voir MODC_ON) : on serre tout, jamais sous 1,35 × le rayon tenable
   const arc=(aDeg,R,n,dy=0)=>{R=Math.max(R,rPlancher);n=Math.max(n,Math.ceil(Math.abs(aDeg)/12));const a=aDeg*Math.PI/180,st=a/n,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<n;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/n;phi+=st/2;push();}
-    approx+=Math.abs(a)*R;};
+    approx+=Math.abs(a)*R;HCAP.push(approx,phi);};
   // (route v3c) une « droite » qui n'en est pas une : un arc léger de a° sur l mètres — la piste ne va plus jamais tout droit
   const courbe=(l,dy,aDeg,n)=>{const a=Math.max(4,Math.abs(aDeg)),s9=aDeg<0?-1:1;arc(s9*a,l/(a*Math.PI/180),n||2,dy);};
   // (2026-09-26, user : « enlève les loopings » dans la VILLE) : le niveau ville n'en a plus aucun (motif ET signature de fin)
@@ -114,7 +115,14 @@ function genCtrl(rnd,startPos,startPhi){
      côté qui la ramène) : une longue traversée ; 'libre' — comme avant ; 'boucle' — une latéralité franche : elle s'enroule (la spirale de la ville).
      Il ne fait que PENCHER le seuil des tirages de côté (sgn, et le côté des modules qui suivaient `hand`) : aucun tirage de plus. */
   const PLN=rh?(function(u){return u<.42?'axe':u<.7?'libre':'boucle';})(rh()):null,capB=rh?(40+rh()*60)*Math.PI/180:0,hB=rh&&rh()<.5?-1:1,phiAx=phi;
-  const thrH=(b,a9)=>{if(!PLN||PLN==='libre')return b;if(PLN==='boucle')return Math.min(.92,Math.max(.08,b+hB*.3));
+  /* ===== LA ROUTE NE S'ENROULE PLUS SUR ELLE-MÊME (2026-11-08, Sacha : « dans la ville la route fait parfois une boucle et se superpose de manière très serrée ») =====
+     MESURÉ (banc, 40 graines de ville) : 23 pistes sur 40 repassaient À MOINS DE 90 M DE LEUR PROPRE ROUTE, dans le même sens (jusqu'à 0 m : une hélice) ; toutes
+     avaient plus de ~370° de cap cumulé sur 1,5 km. Rien ne bornait ce cumul : virages, esses et modules tiraient leur côté sans regarder d'où l'on venait.
+     ENROULEMENT = le cap gagné sur les dernières 1500 m. Si un virage (a° : ceux des modules, 90° sinon) mènerait le cap cumulé au-delà de 170° d'un côté, le tirage prend l'autre côté
+     (97 %) : le seuil seul change, aucun tirage de plus. */
+  const enroul=()=>{const n=HCAP.length;if(n<2)return 0;let k=n-2;while(k>0&&HCAP[k]>approx-1500)k-=2;return phi-HCAP[k+1<n?k+1:n-1];};
+  const thrG=(b,a9)=>{if(!PLN)return -1;const w=enroul()*57.2958,a=a9||90,pP=Math.abs(w+a),pM=Math.abs(w-a);if(Math.max(pP,pM)<=170)return -1;return pP<pM?.97:.03;}; /* un virage de a° du côté + finirait à w+a°, du côté − à w−a° : si l'un des deux dépasse 170° de cap cumulé, on prend celui qui défait */
+  const thrH=(b,a9)=>{const g9=thrG(b,a9);if(g9>=0)return g9; /* le garde-fou d'enroulement l'emporte sur le plan */ if(!PLN||PLN==='libre')return b;if(PLN==='boucle')return Math.min(.92,Math.max(.08,b+hB*.3));
     if(a9){const ep=Math.abs(phi+a9/57.3-phiAx),em=Math.abs(phi-a9/57.3-phiAx);return ep<em?.88:.12;} // un GRAND virage (a9°) : le côté qui finit le plus près de l'axe
     const e=(phi-phiAx)/capB;return Math.min(.94,Math.max(.06,b-.45*Math.max(-1,Math.min(1,e))-(Math.abs(e)>1?.25*Math.sign(e):0)));};
   if(typeof window!=='undefined')window.__villePlan=PLN?{plan:PLN,cap:Math.round(capB*57.3),kMC:+kMC.toFixed(2)}:null; // (banc) le plan de la dernière piste générée
@@ -255,7 +263,7 @@ function genCtrl(rnd,startPos,startPhi){
     for(let k=0;k<n;k++){const a=82+rf()*12;arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.04);sg=-sg;if(k<n-1)straight((25+rf()*30)*LV,-2*LV,1);}straight(110*LV,-4*LV,2);};
   const mPont=()=>{const sg=rf()<thrH(.5)?1:-1,L1=(110+rf()*30)*LV,Lp=(160+rf()*80)*LV,L2=(120+rf()*30)*LV;straight(50*LV,-2*LV,1);
     courbe(L1,L1*.09,sg*(14+rf()*10),3);courbe(Lp,0,-sg*4,3);courbe(L2,-L2*.13,sg*(16+rf()*12),3);straight(70*LV,-3*LV,1);};
-  const mParking=()=>{const sg=rf()<thrH(.5+hand*.22,430)?1:-1,R=(1.8+rf()*.3)*rP,a=400+rf()*60;straight(70*LV,-3*LV,1);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.09);straight(110*LV,-4*LV,2);};
+  const mParking=()=>{const sg=rf()<thrH(.5+hand*.22,300)?1:-1,R=(1.8+rf()*.3)*rP,a=270+rf()*50;straight(70*LV,-3*LV,1);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.09);straight(110*LV,-4*LV,2);};
   const mEscalier=()=>{const n=3+(rf()<.5?1:0);let sg=rf()<thrH(.5)?1:-1;straight(50*LV,-2*LV,1);
     for(let k=0;k<n;k++){const l=(60+rf()*25)*LV;courbe(l,l*(.12+rf()*.03),sg*(10+rf()*8),2);courbe((55+rf()*30)*LV,-1*LV,-sg*(8+rf()*6),2);sg=-sg;}
     {const l=(170+rf()*50)*LV;courbe(l,-l*(.24+rf()*.04),sg*(18+rf()*10),4);}straight(70*LV,-3*LV,1);};
