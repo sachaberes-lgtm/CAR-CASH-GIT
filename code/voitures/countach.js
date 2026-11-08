@@ -15,7 +15,7 @@ SHAPES.countach=function(K){
   const EPAVE_ON=!(/[?&]epave=0/.test(location.search)||window.dbgIntacte);   /* la caisse du film : l'épave (`?epave=0` : la Countach intacte) */
   const R=.29,ZF=1.255,ZR=-1.255,ZN=2.46,ZL=2.36,ZT=-2.0;   /* le rayon de la roue, les essieux, le nez (le pare-chocs), le nez de la coque, la poupe */
   const PAL={p:{g:'p',c:0xb4b9c2},k:{g:'m',c:0x141517},K:{g:'g',c:0x090a0c},g:{g:'g',c:0x26323f},c:{g:'c',c:0xe9ecf0},C:{g:'k',c:0x9aa0a8},
-    r:{g:'m',c:0x1c1d21},x:{g:'s',c:0xff00ff},b:{g:'m',c:0x24262b},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xb01c28},l:{g:'l',c:0x4a0c14},O:{g:'l',c:0xff9a1a},Q:{g:'l',c:0xf2f2f0},
+    r:{g:'m',c:0x1c1d21},x:{g:'s',c:0xff00ff},b:{g:'m',c:0x24262b},W:{g:'l',c:0xfff3d6},L:{g:'l',c:0xff2a2a},l:{g:'l',c:0xd8101e},/* (2026-11-08, Léo : les feux arrière dans la matière allumée de LA HONTE) étaient #b01c28 et #4a0c14 : un rouge terne et un bloc presque noir */O:{g:'l',c:0xff9a1a},Q:{g:'l',c:0xf2f2f0},
     s:{g:'s',c:0x8f949c},w:{g:'s',c:0x8d9199},y:{g:'m',c:0x4e2c24},e:{g:'m',c:0x2a2b30},i:{g:'s',c:0xc4cad3},q:{g:'c',c:0xdde6ee},n:{g:'g',c:0x4a5d70}};
   // ---- LES COURBES DU PROFIL (mètres ; z croissants, de la poupe au nez) : le dessus relevé au pixel sur le cliché de profil ----
   const yTop=z=>L([[ZT,.56],[-1.93,.765],[-1.86,.787],[-1.81,.807],[-1.76,.823],[-1.6,.875],[-1.51,.90],[-1.3,.945],[-1.163,.975],[-1.0,1.005],[-.9,1.017],[-.82,1.027],[-.72,1.037],[-.62,1.042],
