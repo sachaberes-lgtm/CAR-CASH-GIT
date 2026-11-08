@@ -197,6 +197,55 @@ def portail(dossier,cran,dist,suivante,qs):
         return {'profil':PR,'cran':cran,'dist':dist,'suivante':suivante,'passe':passe,'secondes':round(time.time()-t,1),'frames':S,'prebati':json.loads(c.ev("JSON.stringify(dbgPrebati())")),'grotte':json.loads(c.ev("JSON.stringify(typeof dbgGrotteHash==='function'?[dbgGrotteHash(),dbgGrotteTrav()]:null)")),'charge':os.getloadavg()[0]}
     finally:ferme(srv,ch,prof)
 
+GRAPHE=r"""(function(){var S=dbgScene(),sc=S.scene,cam=S.cam,R=S.rdr,gl=R.getContext(),T=THREE,res={};
+ function reach(f){var ch=sc.children;for(var i=0;i<ch.length;i++){var o=ch[i];if(o.visible===false)continue;(function w(x,prof){f(x,prof);for(var k=0;k<x.children.length;k++)w(x.children[k],prof+1);})(o,1);}}
+ var tot=0,auto=0,autoNoParent=0,meshes=0,visMesh=0,prof=0,lights=0,hidDeep=0,types={};
+ var autoList=[];
+ reach(function(o,p){tot++;if(p>prof)prof=p;if(o.visible===false)hidDeep++;if(o.matrixAutoUpdate){auto++;autoList.push(o);}if(o.isLight)lights++;var t=o.type;types[t]=(types[t]||0)+1;if(o.isMesh||o.isLine||o.isPoints){meshes++;if(o.visible)visMesh++;}});
+ var snap=autoList.map(function(o){return o.matrix.elements.slice();});
+ var tc=0;sc.children.forEach(function(){tc++;});
+ var hidTop=0;sc.children.forEach(function(o){if(o.visible===false)hidTop++;});
+ res.recens={objetsAtteints:tot,racine:tc,racineCachee:hidTop,profondeurMax:prof,matrixAutoUpdate:auto,meshs:meshes,meshsVisibles:visMesh,lumieres:lights,cachesProfonds:hidDeep,types:types};
+ // compteurs par image
+ var C={umw:0,um:0,uni:0,draw:0,prog:0,tex:0,buf:0,vao:0,state:0};
+ var P=T.Object3D.prototype,o1=P.updateMatrixWorld,o2=P.updateMatrix;P.updateMatrixWorld=function(f){C.umw++;return o1.call(this,f);};P.updateMatrix=function(){C.um++;return o2.call(this);};
+ var wr=[];function wrap(n,k){var f=gl[n];if(typeof f!=='function')return;gl[n]=function(){C[k]++;return f.apply(this,arguments);};wr.push([n,f]);}
+ ['uniform1f','uniform1i','uniform2f','uniform3f','uniform4f','uniform1fv','uniform2fv','uniform3fv','uniform4fv','uniformMatrix3fv','uniformMatrix4fv','uniform1iv'].forEach(function(n){wrap(n,'uni');});
+ ['drawElements','drawArrays','drawElementsInstanced','drawArraysInstanced'].forEach(function(n){wrap(n,'draw');});
+ wrap('useProgram','prog');wrap('bindTexture','tex');wrap('bindBuffer','buf');wrap('bindVertexArray','vao');wrap('bufferSubData','buf');wrap('enable','state');wrap('disable','state');wrap('blendFunc','state');wrap('depthMask','state');
+ window.__GR={C:C,res:res,wr:wr,P:P,o1:o1,o2:o2,snap:snap,autoList:autoList,n:0,t0:performance.now(),info:null};
+ function fr(){var G=window.__GR;G.n++;if(G.n===60){G.info={calls:R.info.render.calls,tri:R.info.render.triangles,prog:R.info.programs?R.info.programs.length:0,geo:R.info.memory.geometries,tex:R.info.memory.textures};}
+  if(G.n<150)requestAnimationFrame(fr);else G.fini=true;}requestAnimationFrame(fr);return 1;})()"""
+GRAPHE2=r"""(function(){var G=window.__GR,R=dbgScene().rdr,cam=dbgScene().cam,sc=dbgScene().scene,gl=R.getContext(),n=G.n,res=G.res;
+ G.wr.forEach(function(w){gl[w[0]]=w[1];});G.P.updateMatrixWorld=G.o1;G.P.updateMatrix=G.o2;
+ var bouge=0,immobile=0;G.autoList.forEach(function(o,i){var a=G.snap[i],b=o.matrix.elements,d=false;for(var k=0;k<16;k++)if(a[k]!==b[k]){d=true;break;}if(d)bouge++;else immobile++;});
+ var parType={},stat={};G.autoList.forEach(function(o,i){var a=G.snap[i],b=o.matrix.elements,d=false;for(var k=0;k<16;k++)if(a[k]!==b[k]){d=true;break;}if(!d){var t=o.type+(o.name?':'+o.name.slice(0,18):'');stat[t]=(stat[t]||0)+1;}});
+ var top=Object.keys(stat).map(function(k){return [k,stat[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,10);
+ // champ de vision et matériaux
+ var fr=new THREE.Frustum(),m4=new THREE.Matrix4();cam.updateMatrixWorld();m4.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);fr.setFromProjectionMatrix(m4);
+ var vis=0,hors=0,sansCull=0,mats=new Set(),sig=new Map(),instances=0;
+ sc.traverseVisible(function(o){if(!(o.isMesh||o.isLine||o.isPoints))return;vis++;if(o.isInstancedMesh)instances++;if(o.frustumCulled===false){sansCull++;}else{try{if(!fr.intersectsObject(o))hors++;}catch(e){}}
+   var ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(function(m){if(!m)return;mats.add(m);var k=[m.type,m.color&&m.color.getHex(),m.opacity,m.transparent,m.side,m.blending,m.depthWrite,m.depthTest,m.vertexColors,m.map&&m.map.uuid,m.emissive&&m.emissive.getHex(),m.wireframe,m.fog,m.flatShading].join('|');if(m.isShaderMaterial)k+='|S'+m.uuid;sig.set(k,(sig.get(k)||0)+1);});});
+ var dup=0;sig.forEach(function(v,k){if(v>1)dup+=v-1;});
+ var out={frames:n,parImage:{updateMatrixWorld:+(G.C.umw/n).toFixed(0),updateMatrix:+(G.C.um/n).toFixed(0),uniformes:+(G.C.uni/n).toFixed(0),draw:+(G.C.draw/n).toFixed(0),useProgram:+(G.C.prog/n).toFixed(0),bindTexture:+(G.C.tex/n).toFixed(0),bindBuffer_ou_Sub:+(G.C.buf/n).toFixed(0),bindVAO:+(G.C.vao/n).toFixed(0),etat:+(G.C.state/n).toFixed(0)},rendu:G.info,
+  recens:res.recens,autoImmobiles:immobile,autoQuiBougent:bouge,autoImmobilesTop:top,visibles:vis,horsChamp:hors,sansFrustumCulling:sansCull,instancedMesh:instances,materiauxDistincts:mats.size,signaturesDistinctes:sig.size,doublonsIdentiques:dup};
+ return JSON.stringify(out);})()"""
+def graphe(dossier,idx_cran,plus,qs,carte):
+    http,port,srv,ch,prof=lance(dossier)
+    try:
+        c=CDP(port);c.keep={'Runtime.exceptionThrown'};m=carte.split(':')
+        sv=dict(gp.SAVE);sv['vdep']=idx_cran;sv['ex']={'eng':29,'runs':9}
+        if not demarre(c,http,'?garde=1&palier=2&tel=1&pistegraine=777&carte=%s&meteo=%s'%(m[0],m[1])+qs,save=sv):return None
+        c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{});1")
+        for i in range(plus):c.ev("dbgMoteur();1");c.pump(.5)
+        c.call('Emulation.setCPUThrottlingRate',rate=4);c.pump(8)
+        c.ev(GRAPHE)
+        for i in range(60):
+            if c.ev("!!window.__GR.fini"):break
+            c.pump(1)
+        return json.loads(c.ev(GRAPHE2))
+    finally:ferme(srv,ch,prof)
+
 if __name__=='__main__':
     m=sys.argv[1]
     if m=='capture':
@@ -215,6 +264,9 @@ if __name__=='__main__':
     elif m=='portail':
         r=portail(sys.argv[2],int(sys.argv[3]),int(sys.argv[4]),sys.argv[5],sys.argv[6] if len(sys.argv)>6 else '')
         json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-portail.json'),'w'));print('ok',r and r['passe'])
+    elif m=='graphe':
+        r=graphe(sys.argv[2],int(sys.argv[3]),int(sys.argv[4]),sys.argv[5],sys.argv[6])
+        json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-graphe.json'),'w'),indent=1);print('ok')
     elif m=='course':
         r=course(sys.argv[2],float(sys.argv[3]) if len(sys.argv)>3 else 180,sys.argv[4] if len(sys.argv)>4 else '')
         json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-course.json'),'w'));print(len(r or []),'images')
