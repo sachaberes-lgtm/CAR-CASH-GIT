@@ -37,12 +37,12 @@ function dnPlanScenes(S,K,RH,D){
   const ajoute=(k,a,b,pw,ex)=>{DN.scn.push(Object.assign({k:k,a:Math.round(a),b:Math.round(b),pw:Math.round(pw)},ex||{}));vol(DN.scn[DN.scn.length-1]);
     for(let i=0;i<S.n;i++){const s9=i*S.ds,u=Math.max(0,Math.min(1,(s9-(a-120))/120))*Math.max(0,Math.min(1,((b+120)-s9)/120));if(u>0){const e=u*u*(3-2*u);if(S.pw[i]<pw*e)S.pw[i]=pw*e;}}};
   const faire=function(k,q){const L9=q.b-q.a;
-    if(k==='allee'){const len=(34+R()*10)*Kd,a=q.a+50,b=Math.min(q.b-40,a+380+R()*160);if(b-a>len*3.4){ajoute('allee',a,b,RH+len*1.0+16,{len:len});return true;}return false;}
+    if(k==='allee'){if(!DN_BATI)return false;const len=(34+R()*10)*Kd,a=q.a+50,b=Math.min(q.b-40,a+380+R()*160);if(b-a>len*3.4){ajoute('allee',a,b,RH+len*1.0+16,{len:len});return true;}return false;}
     // (2026-11-05, ARRAKIS) le village du désert (remplace les colosses) et les rochers dressés (remplacent le grand sphinx) : même gabarit que ce qu'ils remplacent
-    if(k==='village'){const H=(70+R()*24)*Kd,a=q.a+60+R()*Math.max(0,L9-H*2.6-120),b=a+H*1.7+40;if(b<q.b-30){ajoute('village',a,b,RH+H*.55+16,{H:H});return true;}return false;}
+    if(k==='village'){if(!DN_BATI)return false;const H=(70+R()*24)*Kd,a=q.a+60+R()*Math.max(0,L9-H*2.6-120),b=a+H*1.7+40;if(b<q.b-30){ajoute('village',a,b,RH+H*.55+16,{H:H});return true;}return false;}
     // (2026-11-05, LES MODULES DU DÉSERT) le VER DES SABLES : une arche de 60-100 m au-dessus de la route, dans un creux d'au moins 260 m (jamais plus d'une demi-largeur de plateau de 1,2 s + 24 m)
     if(k==='ver'){const s9=(60+R()*40)*Kd,mid=(q.a+q.b)/2+(R()-.5)*Math.max(0,L9-260)*.5;if(L9<260)return false;ajoute('ver',mid-20,mid+20,s9*1.2+24,{s:s9});return true;}
-    if(k==='monolithes'){const H=(58+R()*18)*Kd,a=q.a+70+R()*Math.max(0,L9-H*3.2-130),b=a+H*1.9+40;if(b<q.b-30){ajoute('monolithes',a,b,RH+H*.9+18,{H:H});return true;}return false;}
+    if(k==='monolithes'){if(!DN_BATI)return false;const H=(58+R()*18)*Kd,a=q.a+70+R()*Math.max(0,L9-H*3.2-130),b=a+H*1.9+40;if(b<q.b-30){ajoute('monolithes',a,b,RH+H*.9+18,{H:H});return true;}return false;}
     return false;};
   // LES ACTES (2026-10-23, Léo : « brouillon : l'organisation et l'harmonie ») : UN décor par lieu, du VIDE entre les actes. I le désert nu (le départ, la 1re vague : rien près de la route) · II LA PLACE : le village du désert ou les rochers ·
   // III L'ALLÉE : les monolithes · IV LA VALLÉE D'ARGILE : le village · V la fin : rien près de la route. (ARRAKIS, 2026-11-05 : plus aucune scène égyptienne)
@@ -102,9 +102,9 @@ function* dnScenesG(X){ /* (2026-11-01) en pas : voir dnMonumentsTiresG */
     yb-=Math.max(0,Math.min(mx,enf));
     cuis(M('ver'),q.x,yb-1,q.z,c.s,c.s,c.s,q.t,0,bk);N.ver=(N.ver|0)+1;N.sc.push(['ver',c.a,c.b]);};
   // LES BRASEROS (2026-10-22) : des paires de vasques sur la berme, de part et d'autre de la route — la nuit, ce sont elles qui éclairent la procession
-  const braise=(s,lat0,h)=>{for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat0);if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,h*.62,q.t);if(yb==null)continue;cuis(M('brasero'),q.x,yb,q.z,h,h,h,q.t);N.braseros=(N.braseros|0)+1;}};
+  const braise=(s,lat0,h)=>{if(!DN_BATI)return;for(const sg of [-1,1]){const q=dnPos(S,s,sg*lat0);if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,h*.62,q.t);if(yb==null)continue;cuis(M('brasero'),q.x,yb,q.z,h,h,h,q.t);N.braseros=(N.braseros|0)+1;}};
   // LES BALISES DES CRÊTES (2026-10-22, Léo : « le joueur peut piquer en bas ou décoller ») : à chaque crête, deux monolithes de part et d'autre de la route, juste avant l'apex — le tremplin se lit de loin (la porte du ciel)
-  {let n=0;for(const v of DN.lev||[]){if(performance.now()>JF.lim)yield;if(v.tag==='bosse')continue;if(DN_ACTES.on&&v.tag!=='grande'){braise(v.s-40,RH+5,3.4);continue;}for(const sg of [-1,1]){const q=dnPos(S,v.s-12,sg*(RH+9.5)); /* (2026-11-07) 1,5 m plus loin : la corniche de son podium (aussi large que le socle) restait au bord du couloir (graine 9) */if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,11,q.t);if(yb==null)continue;
+  {let n=0;for(const v of DN.lev||[]){if(performance.now()>JF.lim)yield;if(v.tag==='bosse'||!DN_BATI)continue;if(DN_ACTES.on&&v.tag!=='grande'){braise(v.s-40,RH+5,3.4);continue;}for(const sg of [-1,1]){const q=dnPos(S,v.s-12,sg*(RH+9.5)); /* (2026-11-07) 1,5 m plus loin : la corniche de son podium (aussi large que le socle) restait au bord du couloir (graine 9) */if(S.gd[q.i]>.01)continue;const yb=dnAssise(cuis,q.x,q.z,q.yr,11,q.t);if(yb==null)continue;
       const hs=(26+rg()*8)*Math.min(1.2,K);cuis(M('monolithe'),q.x,yb,q.z,hs/64*1.1,hs/64,hs/64*1.1,q.t);kill('monolithe',q.x,yb,q.z,4.6,hs);n++;}braise(v.s-40,RH+5,3.4);braise(v.s+30,RH+5,3.4);}N.portiques=n;}
   for(const c of DN.scn){if(performance.now()>JF.lim)yield;if(c.k==='allee')allee(c.a,c.b,c.len);else if(c.k==='village')village(c.a,c.b,c.H);else if(c.k==='monolithes')monolithes(c.a,c.b,c.H);else if(c.k==='ver')ver(c);}
   // LES ÉBOULIS : des blocs et des éclats de roche, de part et d'autre, à 10-70 m du bord, sur chaque tronçon calme

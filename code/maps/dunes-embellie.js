@@ -25,7 +25,7 @@ function dnEmbellir(){
   const pente=(x,z,h)=>Math.hypot(dnHauteur(x+3,z,o1)-h,dnHauteur(x,z+3,o2)-h)/3;
   const oa=DN.oa;
   /* les BUTTES : loin, grandes, sombres */
-  const Lb=[],Nb=PAL.b('dnTors',28);
+  const Lb=[],Nb=DN_BATI?PAL.b('dnTors',28):0; /* (2026-11-08) plus de buttes strates rose-brun au plan moyen : elles faisaient des pyramides */
   for(let k=0;k<Nb*14&&Lb.length<Nb;k++){const i=Math.min(S.n-1,Math.round(r()*L9/S.ds)),sg=r()<.5?-1:1,lat=RH+(250+r()*r()*1750)*K,tour=r()<.35,
       rr=(tour?9+r()*13:34+r()*86)*Math.sqrt(K),hh=tour?26+r()*44:14+r()*26,a=r()*6.28,x=S.x[i]-S.tz[i]*sg*lat,z=S.z[i]+S.tx[i]*sg*lat;
     if(dmin(x,z)<RH+rr+170)continue;if(oa&&Math.hypot(x-oa.x,z-oa.z)<oa.r*2.6+rr)continue;if(DN.pyr&&Math.hypot(x-DN.pyr.x,z-DN.pyr.z)<DN.pyr.hw*2.2+rr)continue;
