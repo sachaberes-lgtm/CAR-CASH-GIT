@@ -2021,7 +2021,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
      d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
      quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
   (function(){
-    var CLE='cashcarErr',L=null,attente=0,attT=0,dern='',dernT=0,MAXO=20000,CAPS={serpent:25,fluide:40,memoire:15,contexte:10};
+    var CLE='cashcarErr',L=null,attente=0,attT=0,dern='',dernT=0,MAXO=20000,CAPS={serpent:25,fluide:40,memoire:15,contexte:10,grotte:12}; /* (union) plafonds de banc-iphone-2 + la ligne « grotte » de vitesse-fluide */
     var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
     var ecrit=function(){clearTimeout(attT);attente=0;attT=0;try{ /* (2026-11-07, OPTI ULTIME : « 30 Ko réécrits à chaque ligne = on fausse la mesure ») plafond de MAXO octets : les plus anciennes lignes `fluide`/`vivant` partent d'abord, puis les autres sondes ; jamais gel, contexte, memoire, banc */
       var s9=JSON.stringify(L),i9,k9;
@@ -18934,7 +18934,7 @@ function prebPart(c){ // on commence la piste d'en face
   PREB.g=prebJob(PREB.sd,W);}
 function prebTravaille(lim){ // une tranche de travail, jusqu'à l'échéance lim (Infinity : jusqu'au bout)
   const W=PREB.W,g=PREB.g,t0=performance.now();let r=null;
-  try{prebAvec(W,function(){const l0=JF.lim;JF.lim=lim;try{do{const t9=performance.now();r=g.next();const d9=performance.now()-t9;if(d9>20&&lim!==Infinity){const P9=PREB.pas||(PREB.pas=[]);P9.push([Math.round(d9),PREB.carte,PREB.img]);if(P9.length>12)P9.shift();}}while(!r.done&&performance.now()<lim);}finally{JF.lim=l0;} /* PREB.pas (banc) : les pas de plus de 20 ms */});}
+  try{prebAvec(W,function(){const l0=JF.lim;JF.lim=lim;try{do{const t9=performance.now();r=g.next();const d9=performance.now()-t9;if(d9>20&&lim!==Infinity){const P9=PREB.pas||(PREB.pas=[]);P9.push([Math.round(d9),PREB.carte,PREB.img]);if(P9.length>12)P9.shift();}}while(!r.done&&r.value!=='attente'&&performance.now()<lim);}finally{JF.lim=l0;} /* PREB.pas (banc) : les pas de plus de 20 ms */});}
   catch(e){console.warn('pré-bâti',e);window.__prebErr=e;try{window.__ccNote('panne','pré-bâti · '+(e&&e.message||e));}catch(_){}PREB.echecs++;prebAnnule('erreur');return;}
   PREB.cpu+=performance.now()-t0;PREB.img++;
   if(r&&r.done){PREB.fait=true;PREB.tFin=performance.now();
@@ -18971,6 +18971,31 @@ const PREB_AVANCE=20; // (s) la map d'en face commence quand le portail est à m
    sa préparation d'avance dure ~16-22 s de route en tranches fines (la plus lourde de toutes) ; partie à 20 s du portail, elle n'était pas finie au passage
    et le reste se bâtissait D'UN BLOC dans l'image du portail (3,4-3,8 s figées, au banc ; 1,5 s encore en partant à 45 s). Elle part à 75 s : en pratique dès le début de la map d'avant. */
 const PREB_AVANCE_LOURD={grotte:75};
+/* ===== LE PRÉ-BÂTI LISSÉ (2026-11-07, vitesse-fluide : « bof et saccadé à partir du palier 10 » — Sacha, 13 Pro) =====
+   MESURÉ (Mac, charge 3, iPhone émulé ×4, 30 calé, 10 s par palier moteur 4 / 10 / 16) : le seul coût JS par image qui grandit avec la vitesse est ce pré-bâti — canyon : la boucle passe de 8,9 à 18,0 puis 19,8 ms
+   dont `prebTick` 0 → 8,8 → 9,4 (la grotte d'après) ; nuages : 11,8 → 11,8 → 16,3 dont 2,6. Cause : à grande vitesse une zone dure moins de secondes, le même travail doit tenir dans moins d'images, et la règle
+   d'URGENCE (9 ms à moins de 10 s du portail, 14 ms à moins de 5 s, jusqu'à 16 « pour finir ») le fait payer en tranches de la moitié d'une image de 33 ms. Sur TÉLÉPHONE (TEL_NATIF), `?prebfin=0` = avant :
+   · la TRANCHE est plafonnée à `PREBF.tr` (4 ms ; 2,5 mini) tant que le travail tient dans les images qui restent (reste estimé ÷ images d'ici le portail) ; elle ne monte (jusqu'à `PREBF.max`, 16 ms comme avant) que s'il est VRAIMENT
+     en retard — plus d'urgence AUTOMATIQUE à l'approche du portail : la tranche suit ce qu'il reste à faire (reste estimé ÷ images avant le portail) ;
+   · le travail PART PLUS TÔT à grande vitesse : l'avance (20 s, la grotte 75 s) est multipliée par v / 90 m/s, entre 1 et 3 ;
+   · AU PASSAGE, le reste ne se fait JAMAIS d'un bloc : le voile est posé et la caisse tenue au bord de la piste (PORTV.att) — le travail se poursuit par tranches de `PREBF.voile` ms (26 : le rendu est coupé sous le voile), une par image, jusqu'au bout
+     (au pire `PREBF.voileMax` s, puis d'un trait comme avant), puis le passage se fait ; voir prebRetient (appelé par portail-passage.js) ;
+   · les INSTANTS MORTS (pause) : le travail y va à pleine tranche (`PREBF.mort`), le fil n'est pas disputé. */
+const PREBFIN=TEL_NATIF&&!/[?&]prebfin=0\b/.test(location.search),PREBF={tr:4,mini:2.5,max:16,voile:26,voileMax:25,mort:12,vref:90,kmax:3};
+function prebAvanceK(){return PREBFIN?Math.max(1,Math.min(PREBF.kmax,(PREB.v||60)/PREBF.vref)):1;}
+function prebTranche(tr,r9){ /* la tranche de CETTE image (ms) : plafonnée, sauf retard */
+  const ref=PREB_CPU[PREB.t.carte]||(PREB.t.carte==='grotte'&&GRW.on?4500:PREB_CPU_DEF[PREB.t.carte])||1500,re=Math.max(0,ref*1.15-PREB.cpu),im=Math.max(8,Math.min(60,PREB.ips||25)),need=re/Math.max(1,(r9-1.5)*im);
+  const base=Math.max(PREBF.mini,Math.min(PREBF.tr,14-tr));
+  return need>PREBF.tr?Math.max(base,Math.min(PREBF.max,need*1.15)):base;}
+function prebRetient(tok,suite){ /* le passage du portail : le travail d'avance n'est pas fini → il se poursuit par tranches DERRIÈRE LE VOILE (la caisse est tenue, PORTV.att), puis `suite` fait le passage */
+  if(!PREBFIN||!PREB.W||PREB.fait||PREB.dep||PREB.echecs>=3)return false;
+  const t0=performance.now();PREB.tenu=(PREB.tenu|0)+1;
+  const pas=function(){ if(PORTV.att!==tok)return; /* un passage abandonné (mort, seconde chance…) */
+    if(!PREB.W){suite();return;}
+    prebTravaille(performance.now()+PREBF.voile);
+    if(!PREB.W||PREB.fait||performance.now()-t0>PREBF.voileMax*1000){PREB.tenuMs=Math.round(performance.now()-t0);suite();return;}
+    requestAnimationFrame(pas);};
+  requestAnimationFrame(pas);return true;}
 function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier, travailler
   PREB.cam=false; // (voir sous9 : resetGame l'a lu dans cette image, ou rien ne l'a lu)
   if(!started||gameOver){prebDepTick(now);return;}
@@ -18980,11 +19005,12 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   if(mode==='drive'&&PREB.sT){const d9=(now-PREB.sT)/1000,v9=(s-PREB.sP)/Math.max(1e-3,d9);if(d9>0&&d9<.5&&v9>0)PREB.v=PREB.v?PREB.v+(v9-PREB.v)*Math.min(1,d9*2):v9;} // la vitesse le long de la piste (m/s), lissée
   if(PREB.sT){const d9=now-PREB.sT;if(d9>0&&d9<250)PREB.ips=PREB.ips?PREB.ips+(1000/d9-PREB.ips)*.05:1000/d9;} /* (2026-11-01) les images par seconde, lissées (le rythme du pré-bâti) */
   PREB.sT=now;PREB.sP=s;
+  if(PREBFIN&&paused&&running&&!garageOn&&!PCV.fen&&!PORTV.att&&!CHAUFFE_R.t&&PREB.W&&!PREB.fait&&!PREB.dep){prebTravaille(performance.now()+PREBF.mort);return;} /* (2026-11-07) la PAUSE est un instant mort : le fil n'est pas disputé, le travail y va à pleine tranche */
   if(paused||!running||garageOn||PCV.fen||PORTV.att||CHAUFFE_R.t)return;
   if(mode!=='drive'&&mode!=='fall')return;
   if(now-PREB.tNeuf<700)return; // le monde neuf vient d'entrer : il s'installe d'abord
   const c=prebCible();
-  if(!PREB.W){if(c&&c.t!==PREB.non&&PREB.echecs<3&&(L-s)/Math.max(20,PREB.v||60)<(PREB_AVANCE_LOURD[c.t.carte]||PREB_AVANCE))prebPart(c);return;} // (l'image suivante travaille)
+  if(!PREB.W){if(c&&c.t!==PREB.non&&PREB.echecs<3&&(L-s)/Math.max(20,PREB.v||60)<(PREB_AVANCE_LOURD[c.t.carte]||PREB_AVANCE)*prebAvanceK())prebPart(c);return;} // (l'image suivante travaille) · (2026-11-07) prebAvanceK : plus tôt à grande vitesse
   if(!c||c.t!==PREB.t||c.z!==PREB.z){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'zone');return;} // (un palier gagné en route ne change rien : la piste garde celui du départ)
   if(PREB.fait)return;
   const tr=typeof QLR!=='undefined'&&QLR.t0?performance.now()-QLR.t0:8;
@@ -18996,6 +19022,7 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
      d'images avant le portail pour finir — le reste estimé d'après la dernière préparation de cette map (PREB_CPU, sinon une estimation large). MESURÉ
      (×4, portail approché vite) : la grotte n'était pas finie, ses 450 ms d'un bloc tombaient dans l'image du portail. */
   {const ref=PREB_CPU[PREB.t.carte]||PREB_CPU_DEF[PREB.t.carte]||1500,re=ref*1.15-PREB.cpu;if(re>0)u9=Math.max(u9,Math.min(16,re/Math.max(1,(r9-1.5)*Math.max(8,Math.min(60,PREB.ips||25)))));}
+  if(PREBFIN){prebTravaille(performance.now()+prebTranche(tr,r9));if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;return;} /* (2026-11-07) LA TRANCHE PLAFONNÉE — voir LE PRÉ-BÂTI LISSÉ */
   prebTravaille(performance.now()+Math.max(u9,3,Math.min(6,14-tr)));
   if(PREB.fait&&!PREB.dep)PREB_CPU[PREB.t.carte]=PREB.cpu;}
 const PREB_CPU={},PREB_CPU_DEF={grotte:8000,jade:2500,foret:1500}; /* (ms de calcul) la dernière préparation d'avance de chaque map, en tranches — et une estimation large avant la 1re */
@@ -19071,7 +19098,7 @@ function prebDepPrend(fn){PREB.depPorte=true;try{fn();}finally{PREB.depPorte=fal
 window.dbgPrebati=function(on){if(on!=null){PREB.on=!!on;if(!PREB.on)prebAnnule('dbg');}
   return {on:PREB.on,etat:PREB.W?(PREB.fait?'pret':'en cours'):'',carte:PREB.carte,graine:PREB.sd,palier:PREB.eng,palierCourse:engTier,reste:+((L-s)/Math.max(20,PREB.v||60)).toFixed(1),v:Math.round(PREB.v||0),ms:PREB.W||PREB.tFin?Math.round((PREB.tFin||performance.now())-PREB.t0):0,
     dep:PREB.W&&PREB.dep?{pourStarted:PREB.ctx,prochain:SF.prochain?SF.prochain.carte+'-'+SF.prochain.meteo:null}:null,prisAuDepart:PREB.depPris,legers:PREB.legers, // (LE DÉPART D'AVANCE)
-    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
+    cpu:+PREB.cpu.toFixed(1),images:PREB.img,pris:PREB.pris,finisAuPassage:PREB.finis,msFin:PREB.msFin,lisse:PREBFIN,cpuMaps:Object.assign({},PREB_CPU),tenusSousVoile:PREB.tenu|0,msSousVoile:PREB.tenuMs|0,annules:PREB.annules,der:PREB.der,echecs:PREB.echecs,jade:!!PREB.jadeM,pasLongs:PREB.pas||[],
     err:window.__prebErr?String(window.__prebErr.stack||window.__prebErr).slice(0,400):null};};
 /* ===== LA DALLE LISSE (2026-10-25, Sacha : « la route est un peu brinquebalante, elle oscille quand elle fait des spirales ») =====
    MESURÉ (banc nuages/espace, 3 graines) : le roulis de la dalle avait des à-coups jusqu'à 25-35 × l'à-coup moyen — des CASSURES. Deux causes :
@@ -26976,7 +27003,7 @@ function grtBouche(V){const n0=V.pool.length;let n=0;
 function grotteVide(){
   if(GROTTE.root){GROTTE.root.traverse(function(o){if(o.userData.jeter&&o.geometry)o.geometry.dispose();});GROTTE.root=null;}
   GROTTE.V=null;GROTTE.R=null;GROTTE.grp=[];GROTTE.file=null;GROTTE.fi=0;GROTTE.msFile=0;GROTTE.pret=false;GROTTE.col=null;GROTTE.salle=-1;GROTTE.piliers=null;
-  GROTTE.puits=null;GROTTE.lac=null;GROTTE.lavLum=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';
+  GROTTE.puits=null;GROTTE.lac=null;GROTTE.lavLum=null;GROTTE.eau=null;GROTTE.dec=null;GROTTE.LL=null;GROTTE.heurt='';grwFin();
   GROTTE.envPret=null;} /* (2026-11-03, passe maps cohérentes) envPret (le témoin des ciels préparés, voir grotteTick) gardait la RACINE de la grotte quittée — tous ses tronçons et leurs mailles
    restaient dans le tas JavaScript jusqu'à la grotte suivante */
 function buildGrotte(seed){jadeFini(buildGrotteG(seed));} // d'un trait au passage ; en tranches d'avance (prebDecorG)
@@ -26994,15 +27021,15 @@ function* buildGrotteG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'
   if(performance.now()>JF.lim)yield;
   const tm={ech:Math.round(performance.now()-t0)};let t9=performance.now();
   /* (le pas de creusement suit la largeur : un ellipsoïde tous les rh/3,2 m — entre deux, le creux des parois fait ~1,5 m, sous la facette et le bruit) */
-  for(let q=0,ac=1e9,nq=0;q<R.n;q++){grtNoyau(V,R,q);ac+=6;if(ac<Math.max(6,R.RH[q]/3.2)&&!R.EXT[q])continue;ac=0;yield* grtCreuse1(V,R,q);if(R.BAS[q]>0)yield* grtCreuse1(V,R,q,{ax:0,ay:1,az:0,rh:R.RH[q]*.85,up:14,dn:R.BAS[q]});nq++;if(performance.now()>JF.lim)yield;} /* (2026-10-24, passe perf) un rendez-vous par creusement (tous les 8 : des tranches de 40-60 ms ×4 au pré-bâti) */
-  tm.creuse=Math.round(performance.now()-t9);t9=performance.now();
+  const tw=yield* grwCreuse(V,R,{x0:x0,y0:y0,z0:z0,x1:x1,y1:y1,z1:z1});if(!tw)for(let q=0,ac=1e9,nq=0;q<R.n;q++){grtNoyau(V,R,q);ac+=6;if(ac<Math.max(6,R.RH[q]/3.2)&&!R.EXT[q])continue;ac=0;yield* grtCreuse1(V,R,q);if(R.BAS[q]>0)yield* grtCreuse1(V,R,q,{ax:0,ay:1,az:0,rh:R.RH[q]*.85,up:14,dn:R.BAS[q]});nq++;if(performance.now()>JF.lim)yield;} /* (2026-10-24, passe perf) un rendez-vous par creusement (tous les 8 : des tranches de 40-60 ms ×4 au pré-bâti) */ /* (2026-11-08) le travailleur a creusé (grotte-travailleur.js) : la boucle ci-contre ne tourne que sans lui */
+  tm.creuse=Math.round(performance.now()-t9);tm.travailleur=!!tw;t9=performance.now();
   tm.puits=0;
   t9=performance.now();grtLacs(V,R);GROTTE.piliers=grtPiliers(V,R,fr);GROTTE.n.bouche=grtBouche(V);V.nzc=null;tm.lacs=Math.round(performance.now()-t9);if(performance.now()>JF.lim)yield; // (le cache du bruit ne sert plus)
   t9=performance.now();const dec=yield* grtDecorsG(V,R,fr,MOB);yield* grtCristauxG(V,R,dec,seed);tm.decors=Math.round(performance.now()-t9);GROTTE.tm=tm; /* (2026-10-24, embellir) les cristaux à teintes : un flux de hasard à part, leurs lumières rejoignent dec.P */
   GROTTE.dec=dec.D;GROTTE.LL=grtLumListes(V,dec.T,dec.P);Object.assign(GROTTE.n,dec.n);GROTTE.n.lumieres=dec.P.length;GROTTE.n.piliers=GROTTE.piliers.length;
   GROTTE.n.troncons=V.pool.length;GROTTE.n.air=V.nAir;GROTTE.n.col=GROTTE.col.n;GROTTE.msCreuse=tm.creuse+tm.puits;
   if(performance.now()>JF.lim)yield;t9=performance.now();
-  const ord=[];for(let c=0;c<V.pool.length;c++)ord.push(c);ord.sort(function(a,b){return V.chS[a]-V.chS[b];});GROTTE.file=ord;GROTTE.fi=0;
+  const ord=[];for(let c=0;c<V.pool.length;c++)ord.push(c);ord.sort(function(a,b){return V.chS[a]-V.chS[b];});GROTTE.file=ord;GROTTE.fi=0;grwMailleInit(V,R,ord);
   /* (2026-10-20, Sacha : « beaucoup de freeze et de latence sur la version vercel ») « D'UN TRAIT » SE RELIT ICI, PAS SEULEMENT AU DÉBUT. Un pré-bâti
      pas fini quand vient le JOUER (ou le portail) est fini par prebTravaille(Infinity) : `direct`, lu au début du générateur, valait faux, et
      TOUTE la grotte restante se maillait dans la même image (MESURÉ en ligne, trace Chrome : 220 ms de grtTroncon/grtMailleNets au JOUER, sur
@@ -27021,7 +27048,7 @@ function* grtTronconG(c){const V=GROTTE.V,d=V.cle[c],ci=d%V.CX,cj=((d/V.CX)|0)%V
   const g=new THREE.Group();g.position.set(V.ox+ci*C,V.oy+cj*C,V.oz+ck*C);g.matrixAutoUpdate=false;g.updateMatrix();
   const mk=function(p){const ge=new THREE.BufferGeometry();ge.setAttribute('position',new THREE.BufferAttribute(p.P,3));ge.setAttribute('aF',new THREE.BufferAttribute(p.F,4));ge.setAttribute('aL',new THREE.BufferAttribute(p.L,4,true));
     if(p.I)ge.setIndex(new THREE.BufferAttribute(p.I,1));ge.computeBoundingSphere();for(const k9 in ge.attributes)ge.attributes[k9].onUpload(grtLibere);if(ge.index)ge.index.onUpload(grtLibere);const me=new THREE.Mesh(ge,M.roche);me.name='grotte roche';me.matrixAutoUpdate=false;me.updateMatrix();me.userData.jeter=1;g.add(me);};
-  const m=yield* grtMailleNetsG(V,c,LL);GROTTE.n.triangles=(GROTTE.n.triangles|0)+m.nt;
+  const m=yield* grwMailleDe(V,c,LL);GROTTE.n.triangles=(GROTTE.n.triangles|0)+m.nt;
   const L9=GROTTE.dec&&GROTTE.dec.get(d);let pd=null;
   if(L9&&L9.length){const qs=V.chS[c],sal=qs<1e9&&GROTTE.R?GROTTE.R.SAL[Math.min(GROTTE.R.n-1,qs)]:0,p=grtMailleDecor(V,c,L9,LL,sal);if(p.nv){pd=p;GROTTE.n.decors=(GROTTE.n.decors|0)+L9.length;GROTTE.n.triangles+=p.I.length/3;}}
   /* (2026-10-24, embellir) LA ROCHE ET LES DÉCORS D'UN TRONÇON EN UN SEUL MAILLAGE (un seul appel de dessin : avant, chaque tronçon à décors en payait deux — les cristaux à teintes en ajoutent partout) : les sommets du décor (indexé) sont dépliés à la suite de ceux de la roche (non indexée), même matière, mêmes attributs */
@@ -27226,6 +27253,86 @@ function grtTextes(){Object.assign(I18N,{'LES PROFONDEURS':'THE DEPTHS','LA ROCH
   'SUIS LES TORCHES':'FOLLOW THE TORCHES','LES CRISTAUX T ECLAIRENT':'THE CRYSTALS LIGHT YOUR WAY','LA LAVE MONTE':'THE LAVA IS RISING','TES PHARES, TA SEULE LUMIERE':'YOUR HEADLIGHTS, YOUR ONLY LIGHT',
   'AU FOND DE L EAU':'AT THE BOTTOM OF THE WATER','GLACE':'ICE','LA GROTTE A GELE':'THE CAVE FROZE'});} // (2026-10-18) LES PROFONDEURS — appelée avec grtBiomes (I18N naît plus bas que ce bloc)
 /* <<<FIN GROTTE>>> */
+
+/* ===== LE CREUSEMENT DE LA GROTTE DANS UN TRAVAILLEUR (2026-11-08, vitesse-fluide : « sortir le creusement du fil principal ») =====
+   MESURÉ (Mac ×4, 10 s par palier moteur) : la grotte d'après est le plus gros travail du pré-bâti (≈ 6,5-7,2 s de calcul) et `grtCreuse1` en est le cœur (5,7 ms par image à grande vitesse) — calcul pur sur des tableaux
+   typés : une grille de densité (cases de 12 m) creusée par un ellipsoïde autour de chaque échantillon de route, le bruit mis en cache Int8 par case. Ici le creusement entier (grtMonde, puis pour chaque échantillon grtNoyau
+   et grtCreuse1, EXACTEMENT la boucle de buildGrotteG) tourne dans un travailleur, avec les MÊMES fonctions (recopiées par leur source, comme le canyon : cyTravailleur) : même code, mêmes entrées (les tableaux de la route,
+   les bornes, ROAD_HALF et THICK du travail en cours) = la même grille au bit près (dbgGrotteHash compare les deux chemins). Le fil principal garde le reste (lacs, piliers, décors, mailles) et ne fait qu'ATTENDRE
+   (`yield 'attente'` : prebTravaille rend la main tout de suite, sans brûler la tranche).
+   Seulement sur TÉLÉPHONE (TEL_NATIF) et au PRÉ-BÂTI (tranches finies : un bâti « d'un trait » ne peut pas attendre un message) ; `?grotteworker=0` = avant. REPLI AUTOMATIQUE sur le fil principal : pas de Worker, création ou
+   message en erreur, ou la tranche devient infinie pendant l'attente (le passage du portail sans voile : le travailleur est alors abandonné et le creusement se refait ici, comme avant). Banc : dbgGrotteHash(), dbgGrotteTrav(). */
+const GRW={on:TEL_NATIF&&typeof Worker!=='undefined'&&!/[?&]grotteworker=0\b/.test(location.search),w:undefined,job:0,cur:null,faits:0,replis:0,ms:0,err:'',vu:false,maille:null,mfaits:0,minline:0,mms:0};
+GRW.raison=!TEL_NATIF?'':typeof Worker==='undefined'?'pas de Worker':/[?&]grotteworker=0\b/.test(location.search)?'coupé (?grotteworker=0)':'';
+function grwNote(msg,ou){if(!TEL_NATIF)return;try{window.__ccNote('grotte',msg,ou);}catch(e){}} /* (2026-11-08) la boîte noire : « grotte | travailleur » (ou « repli <raison> ») à chaque grotte creusée — n compte les grottes ; le temps en 3e champ */
+const GRW_R=['X','Y','Z','NNX','NNY','NNZ','BX','BY','BZ','LAT','BAS','RH','UP','DN','EX','NZ','EXT'];
+function grwTravailleur(){
+  if(GRW.w!==undefined)return GRW.w;
+  try{const fns=[grtH3,grtN3,grtRoche,grtMonde,grtCh,grtNoyau,grtCreuse1,grtD,grtLit,grtMatieres,grtLum,grtTampons,grtMailleNetsG].map(function(f){return f.toString();}).join('\n');
+    const code="'use strict';var GRT={B:12,K:1.6},GRV={nzK:2},GRT_VASTE=true,ROAD_HALF=28,THICK=5.2,JF={lim:Infinity},GRT_ARETES="+JSON.stringify(GRT_ARETES)+",GRT_TMP={lum:[0,0,0,0],loc:null,vid:null,P:null,F:null,Lt:null,I:null},GRT_AMB=[],GROTTE={},GT={},MV=null,MLL=null;\n"+fns+
+      "\nfunction grwInit(m){var n=m.n,V={B:m.Vb,ox:m.ox,oy:m.oy,oz:m.oz,CX:m.CX,CY:m.CY,CZ:m.CZ,NX:m.NX,NY:m.NY,NZ:m.NZ,dir:m.dir,pool:[],dn:[],si:[],cle:m.cle};for(var c=0;c<n;c++){V.pool.push(m.P.subarray(c*4096,(c+1)*4096));V.dn.push(m.D.subarray(c*4096,(c+1)*4096));V.si.push(m.SI.subarray(c*64,(c+1)*64));}"+
+      "GT=m.GT;GRT_AMB=m.AMB;GRV={amb:m.amb,tR2:m.tR2,tF:m.tF,lavL:m.lavL};GROTTE={R:{SAL:m.SAL},lac:m.lac,eau:m.eau,piliers:m.piliers,lavLum:m.lavLum};MLL=new Map(m.LL);MV=V;}"+
+      "\nfunction grwPull(m){if(!MV)return;for(var i=0;i<m.list.length;i++){var c=m.list[i],r=grtMailleNetsG(MV,c,MLL.get(MV.cle[c])||null),x;do{x=r.next();}while(!x.done);var q=x.value;postMessage({t:'maille',job:m.job,c:c,P:q.P,F:q.F,L:q.L,nv:q.nv,nt:q.nt},[q.P.buffer,q.F.buffer,q.L.buffer]);}}"+
+      "\nonmessage=function(e){var m=e.data;if(m.t==='init'){grwInit(m);return;}if(m.t==='pull'){grwPull(m);return;}if(m.t==='fin'){MV=null;MLL=null;GROTTE={};return;}var t0=performance.now();GRT={B:m.B,K:m.K};GRV={nzK:m.nzK};GRT_VASTE=m.vaste;ROAD_HALF=m.rh;THICK=m.th;var R=m.R,V=grtMonde(m.x0,m.y0,m.z0,m.x1,m.y1,m.z1);"+
+      "for(var q=0,ac=1e9;q<R.n;q++){grtNoyau(V,R,q);ac+=6;if(ac<Math.max(6,R.RH[q]/3.2)&&!R.EXT[q])continue;ac=0;for(var g1 of grtCreuse1(V,R,q));if(R.BAS[q]>0)for(var g2 of grtCreuse1(V,R,q,{ax:0,ay:1,az:0,rh:R.RH[q]*.85,up:14,dn:R.BAS[q]}));}"+
+      "var n=V.pool.length,P=new Uint8Array(n*4096),D=new Int8Array(n*4096),SI=new Int32Array(n*64),SD=new Float32Array(n*64);"+
+      "for(var c=0;c<n;c++){P.set(V.pool[c],c*4096);D.set(V.dn[c],c*4096);SI.set(V.si[c],c*64);SD.set(V.sd[c],c*64);}"+
+      "postMessage({job:m.job,n:n,P:P,D:D,SI:SI,SD:SD,dir:V.dir,chS:V.chS,cle:V.cle,nAir:V.nAir,ms:Math.round(performance.now()-t0)},[P.buffer,D.buffer,SI.buffer,SD.buffer,V.dir.buffer]);};";
+    const W=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
+    W.onmessage=function(e){const r=e.data;if(r.t==='maille'){const J=GRW.maille;if(J&&r.job===J.job&&!J.fait.has(r.c)){J.res.set(r.c,r);}return;}const c=GRW.cur;if(!c||r.job!==c.job||c.annule)return;c.r=r;c.fini=true;};
+    W.onerror=function(e){GRW.err=String(e&&e.message||e);GRW.on=false;GRW.w=null;if(GRW.maille)GRW.maille.annule=true;const c=GRW.cur;if(c)c.echec=true;try{W.terminate();}catch(e2){}};
+    GRW.w=W;}catch(e){GRW.err=String(e&&e.message||e);GRW.w=null;GRW.on=false;}
+  return GRW.w;}
+function grwAbandon(c){ /* le travail en cours est jeté : on arrête le travailleur (il finirait un creusement dont personne ne veut, et ferait attendre le suivant) */
+  if(c)c.annule=true;if(GRW.cur===c)GRW.cur=null;try{if(GRW.w)GRW.w.terminate();}catch(e){}GRW.w=undefined;}
+function* grwCreuse(V,R,b){ /* rend vrai si le travailleur a creusé (V est alors rempli) ; faux : le fil principal creuse comme avant */
+  if(!GRW.on){grwNote('repli '+(GRW.raison||GRW.err||'travailleur indisponible'));return false;}
+  if(JF.lim===Infinity){grwNote('repli bâti d\'un trait (sans tranches)');return false;}
+  const W=grwTravailleur();if(!W){grwNote('repli création : '+(GRW.err||'?'));return false;}
+  const c={job:++GRW.job,fini:false,echec:false,annule:false,r:null,t0:performance.now()};GRW.cur=c;
+  const Rm={n:R.n};for(const k of GRW_R)Rm[k]=R[k].slice();
+  try{W.postMessage({job:c.job,B:GRT.B,K:GRT.K,nzK:GRV.nzK,vaste:GRT_VASTE,rh:ROAD_HALF,th:THICK,x0:b.x0,y0:b.y0,z0:b.z0,x1:b.x1,y1:b.y1,z1:b.z1,R:Rm});}catch(e){GRW.err=String(e&&e.message||e);GRW.on=false;grwAbandon(c);grwNote('repli envoi : '+GRW.err);return false;}
+  try{while(!c.fini&&!c.echec){if(JF.lim===Infinity){GRW.replis++;grwAbandon(c);grwNote('repli passage sans voile (tranche infinie)');return false;}yield 'attente';}}
+  finally{if(!c.fini)grwAbandon(c);}
+  if(c.echec||!c.r){GRW.replis++;grwNote('repli erreur : '+GRW.err);return false;}
+  const r=c.r,n=r.n;V.dir=r.dir;V.pool=new Array(n);V.dn=new Array(n);V.si=new Array(n);V.sd=new Array(n);V.nzc=new Array(n).fill(null);
+  for(let k=0;k<n;k++){V.pool[k]=r.P.subarray(k*4096,(k+1)*4096);V.dn[k]=r.D.subarray(k*4096,(k+1)*4096);V.si[k]=r.SI.subarray(k*64,(k+1)*64);V.sd[k]=r.SD.subarray(k*64,(k+1)*64);}
+  V.chS=r.chS;V.cle=r.cle;V.nAir=r.nAir;GRW.faits++;GRW.ms=r.ms;GRW.cur=null;grwNote('travailleur',r.ms+' ms de creusement, attente '+Math.round(performance.now()-c.t0)+' ms · le travailleur garde ≈ '+(Math.round((r.P.byteLength+r.D.byteLength+r.SI.byteLength+r.dir.byteLength+r.cle.length*8)/104857.6)/10)+' Mo de grille + 1,8 Mo de tampons + ≤ '+GRW_AVANCE+' tronçons d\'avance'); /* (2026-11-08) la mémoire que le travailleur garde jusqu\'à grotteVide : à lire sur le 13 Pro */return true;}
+/* LES MAILLES (2026-11-08) : la surface à facettes de chaque tronçon (grtMailleNetsG : sommets, matières, lumière cuite, triangles) est AUSSI du calcul pur sur tableaux typés — 5,3 s des 8,1 s de pré-bâti restant sur le fil
+   (profil ×4 : grtMailleNetsG 3,3 s en propre + lecture de la grille 1,1 s). Une fois la grotte creusée, décorée et ses lumières posées (buildGrotteG, juste avant la boucle des tronçons), le fil envoie au travailleur UNE copie de la
+   grille et de ce que le maillage lit (salles, lac, eau, piliers, lumières par tronçon, matières) ; grtTronconG lui DEMANDE les tronçons dans l'ordre de la file (12 d'avance : le tas ne grossit pas) et ne fait plus que les BufferGeometry.
+   Mêmes fonctions, mêmes entrées : mêmes tableaux au bit près (preuve vm). Pas de résultat prêt : le tronçon se maille ici, comme avant (en course, jamais d'attente). `grwFin` (grotteVide) libère la copie. */
+const GRW_AVANCE=12;
+function grwMailleInit(V,R,ord){
+  if(!GRW.on||!TEL_NATIF||!GROTTE.LL)return;
+  try{const W=grwTravailleur();if(!W)return;
+    const n=V.pool.length,P=new Uint8Array(n*4096),D=new Int8Array(n*4096),SI=new Int32Array(n*64);
+    for(let c=0;c<n;c++){P.set(V.pool[c],c*4096);D.set(V.dn[c],c*4096);SI.set(V.si[c],c*64);}
+    const LL=[];for(const e of GROTTE.LL){const t=[],p=[];for(const o of e[1].t)t.push({x:o.x,y:o.y,z:o.z});for(const o of e[1].p)p.push({x:o.x,y:o.y,z:o.z,r2:o.r2,I:o.I,c:[o.c[0],o.c[1],o.c[2]]});LL.push([e[0],{t:t,p:p}]);}
+    const pil=GROTTE.piliers?GROTTE.piliers.map(function(c){return {x:c.x,z:c.z,r:c.r,yb:c.yb,yt:c.yt,k:c.k};}):null;
+    const J={job:++GRW.job,V:V,ord:ord,pos:new Map(),res:new Map(),dem:new Set(),fait:new Set(),annule:false,t0:performance.now()};for(let i=0;i<ord.length;i++)J.pos.set(ord[i],i);
+    W.postMessage({t:'init',n:n,Vb:V.B,ox:V.ox,oy:V.oy,oz:V.oz,CX:V.CX,CY:V.CY,CZ:V.CZ,NX:V.NX,NY:V.NY,NZ:V.NZ,dir:V.dir.slice(),cle:V.cle.slice(),P:P,D:D,SI:SI,GT:GT,AMB:GRT_AMB,amb:GRV.amb,tR2:GRV.tR2,tF:GRV.tF,lavL:GRV.lavL,
+      SAL:R.SAL.slice(),lac:GROTTE.lac?{y:GROTTE.lac.y}:null,eau:GROTTE.eau?{y:GROTTE.eau.y}:null,piliers:pil,lavLum:GROTTE.lavLum||null,LL:LL},[P.buffer,D.buffer,SI.buffer]);
+    GRW.maille=J;}catch(e){GRW.err=String(e&&e.message||e);GRW.maille=null;grwNote('repli mailles : '+GRW.err);}}
+function grwMailleTire(J,c){const i=J.pos.get(c);if(i==null)return;const l=[];for(let k=i;k<Math.min(J.ord.length,i+GRW_AVANCE);k++){const cc=J.ord[k];if(!J.dem.has(cc)&&!J.fait.has(cc)){J.dem.add(cc);l.push(cc);}}
+  if(l.length&&GRW.w)try{GRW.w.postMessage({t:'pull',job:J.job,list:l});}catch(e){J.annule=true;}}
+function* grwMailleDe(V,c,LL){ /* les tableaux de maille du tronçon c : ceux du travailleur s'ils sont prêts (ou si l'on peut attendre), sinon calculés ici */
+  const J=GRW.maille;
+  if(J&&J.V===V&&!J.annule&&GRW.w){
+    if(!J.dem.has(c))grwMailleTire(J,c);
+    const t0=performance.now();
+    for(;;){const r=J.res.get(c);
+      if(r){J.res.delete(c);J.fait.add(c);GRW.mfaits++;grwMailleTire(J,c);return {P:r.P,F:r.F,L:r.L,I:null,nv:r.nv,nt:r.nt};}
+      if(JF.lim===Infinity||J.annule||performance.now()-t0>8000)break;
+      yield 'attente';}
+    J.fait.add(c);} /* ce tronçon sera maillé ici : un résultat tardif du travailleur est ignoré */
+  GRW.minline++;
+  return yield* grtMailleNetsG(V,c,LL);}
+function grwFin(){try{const J=GRW.maille;GRW.maille=null;if(J){J.annule=true;J.res.clear();try{if(GRW.w)GRW.w.postMessage({t:'fin'});}catch(e){}}}catch(e){}} /* (try : grotteVide peut tourner avant que ce morceau soit lu) */
+window.dbgGrotteTrav=function(){return {mailles:{duTravailleur:GRW.mfaits,ici:GRW.minline,actif:!!GRW.maille},on:GRW.on,travailleur:GRW.w===undefined?'pas créé':GRW.w?'prêt':'indisponible',faits:GRW.faits,replis:GRW.replis,msCreusement:GRW.ms,err:GRW.err};};
+window.dbgGrotteHash=function(){const V=GROTTE.V;if(!V)return null;let h=2166136261>>>0;const mix=function(a){for(let i=0;i<a.length;i++){h^=a[i]&255;h=Math.imul(h,16777619)>>>0;}};
+  for(let c=0;c<V.pool.length;c++){mix(V.pool[c]);mix(new Uint8Array(V.dn[c].buffer,V.dn[c].byteOffset,V.dn[c].byteLength));mix(new Uint8Array(V.si[c].buffer,V.si[c].byteOffset,V.si[c].byteLength));}
+  return {hash:h.toString(16),troncons:V.pool.length,air:V.nAir,chS:V.chS.length,travailleur:GROTTE.tm&&GROTTE.tm.travailleur,tm:GROTTE.tm||null,pretMailles:!!GROTTE.pret,triangles:GROTTE.n&&GROTTE.n.triangles};};
 /* ===== LES GROTTES EMBELLIES : DES CRISTAUX À TEINTES DANS LES PAROIS (2026-10-24, reprise sur le code d'aujourd'hui de la passe du 20/10 ; Sacha : « amélioration visuelle des maps — ajouter des éléments, améliorer les textures,
    améliorer les lumières ; chaque map un peu plus belle, sans que ce soit trop gourmand pour le téléphone ») =====
    La LUMIÈRE-VEDETTE des Profondeurs : des grappes de cristaux ROSE (#F24AA0, la marque), VIOLET (l'améthyste de la map), AZUR (le froid) et OR MIEL (le cash) qui sortent
@@ -69866,10 +69973,14 @@ function portPasseNiveau(){
   const tok=PORTV.att=++PORTV.n;
   // (2026-10-17, 3e tour) avec la fenêtre, UNE image d'attente suffit : la copie et le voile sont posés à la fin de CETTE image (pcCopie), peints avant la suivante
   const r1=cub?function(f){f();}:requestAnimationFrame;
-  requestAnimationFrame(function(){r1(function(){
-    if(PORTV.att!==tok)return;PORTV.att=0;
+  const suite=function(){ /* (2026-11-07, vitesse-fluide) le passage lui-même : après l'image d'attente, ou après que le pré-bâti a fini DERRIÈRE le voile (prebRetient) */
+    PORTV.att=0;
     if(started&&!gameOver&&!PARK.on&&mode!=='boom')prebPorte(newTrack); // (LE PRÉ-BÂTI) prebPorte : c'est le portail qui construit · (2026-10-14, chasse aux bugs) mode!=='boom' : morte dans les 2 images d'attente, la caisse explose ENCORE (gameOver ne tombe qu'à endGame, 1,8 s plus tard) — newTrack lui remettait mode='drive' : plus d'endGame, elle roulait après sa mort
-    if(cub)pcVoileSort(220);else portVoileSort(280);});});
+    if(cub)pcVoileSort(220);else portVoileSort(280);};
+  requestAnimationFrame(function(){r1(function(){
+    if(PORTV.att!==tok)return;
+    if(started&&!gameOver&&!PARK.on&&mode!=='boom'&&prebRetient(tok,suite))return; /* (2026-11-07) jamais d'un bloc : le reste du pré-bâti se fait par tranches sous le voile */
+    suite();});});
 }
 /* L'ÉTAT DE CAMÉRA DU VOL (2026-09-28). La v2 de l'après-midi (écart tenu court, plan de trois-quarts) a été RETIRÉE le soir même :
    elle rendait la visée impossible — voir le bloc « CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE » dans la boucle. Restent : `t`

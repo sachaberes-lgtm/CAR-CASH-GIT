@@ -98,12 +98,22 @@ def monte(c,cible):
         except Exception:return -1
     return k
 def profil(prof,dur_ms):
-    nodes={n['id']:n for n in prof['nodes']};S={};tot=0
-    for sid,dt in zip(prof['samples'],prof['timeDeltas']):
-        n=nodes[sid];cf=n['callFrame'];nom=(cf['functionName'] or '(anon)')+':'+str(cf['lineNumber']+1)
-        S[nom]=S.get(nom,0)+dt;tot+=dt
-    top=sorted(S.items(),key=lambda x:-x[1])[:40]
-    return {'total_ms':round(tot/1000),'top':[[k,round(v/1000,1)] for k,v in top]}
+    nodes={n['id']:n for n in prof['nodes']};S={};tot=0;own={}
+    for sid,dt in zip(prof['samples'],prof['timeDeltas']):own[sid]=own.get(sid,0)+dt
+    par={}
+    for n in prof['nodes']:
+        for c in n.get('children',[]):par[c]=n['id']
+    I={};
+    def nom(n):cf=n['callFrame'];return (cf['functionName'] or '(anon)')+':'+str(cf['lineNumber']+1)
+    for sid,dt in own.items():
+        n=nodes[sid];k=nom(n);S[k]=S.get(k,0)+dt;tot+=dt
+        vu=set();x=sid
+        while x is not None:  # inclusif : une fois par fonction et par échantillon (pas de double compte en récursion)
+            kx=nom(nodes[x])
+            if kx not in vu:vu.add(kx);I[kx]=I.get(kx,0)+dt
+            x=par.get(x)
+    top=sorted(S.items(),key=lambda x:-x[1])[:90];inc=sorted(I.items(),key=lambda x:-x[1])[:90]
+    return {'total_ms':round(tot/1000),'top':[[k,round(v/1000,1)] for k,v in top],'incl':[[k,round(v/1000,1)] for k,v in inc]}
 def paliers(dossier,tiers,seconde,qs):
     http,port,srv,ch,prof=lance(dossier)
     try:
@@ -140,6 +150,102 @@ def depart(dossier,crans,seconde,qs,carte='nuages:midi'):
         return out
     finally:ferme(srv,ch,prof)
 
+def profil_paliers(dossier,cibles,seconde,qs,carte='nuages:midi'):
+    """cibles : [(index_palier_moteur, cran_de_depart, dbgMoteur_en_plus)] — une page neuve par cible, 6 s de mise en vitesse puis `seconde` s de profil CPU (iPhone émulé ×4)"""
+    http,port,srv,ch,prof=lance(dossier)
+    try:
+        c=CDP(port);c.keep={'Runtime.exceptionThrown'};out=[];m=carte.split(':')
+        for (idx,n,plus) in cibles:
+            sv=dict(gp.SAVE);sv['vdep']=n;sv['ex']={'eng':29,'runs':9}
+            if not demarre(c,http,'?garde=1&palier=2&tel=1&pistegraine=777&carte=%s&meteo=%s'%(m[0],m[1])+qs,save=sv):out.append(None);continue
+            c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{});1")
+            for i in range(plus):c.ev("dbgMoteur();1");c.pump(.5)
+            c.call('Emulation.setCPUThrottlingRate',rate=4);c.ev(SAMPLEUR);c.call('Profiler.enable');c.pump(6)
+            c.ev("window.__S.length=0;window.__Son=true;1");c.call('Profiler.start');c.pump(seconde)
+            p=c.call('Profiler.stop')['profile'];c.ev("window.__Son=false;1")
+            S=json.loads(c.ev("JSON.stringify(window.__S)"))
+            out.append({'idx':idx,'carte':carte,'frames':S,'profil':profil(p,seconde*1000),'charge':os.getloadavg()[0],'etat':c.ev("JSON.stringify(dbgState())")[:200],'tier':c.ev("(function(){try{return dbgEco().eng}catch(e){return null}})()")})
+            c.call('Emulation.setCPUThrottlingRate',rate=1)
+        return out
+    finally:ferme(srv,ch,prof)
+
+def portail(dossier,cran,dist,suivante,qs):
+    """portail approché vite : la course au palier de départ `cran`, la map d'en face = `suivante` (carte:météo), la caisse posée à `dist` m du portail ; durée d'image de l'approche et du passage, ce que le pré-bâti a fait (finisAuPassage, msFin, msSousVoile)"""
+    http,port,srv,ch,prof=lance(dossier)
+    try:
+        c=CDP(port);c.keep={'Runtime.exceptionThrown'};m=suivante.split(':')
+        sv=dict(gp.SAVE);sv['vdep']=cran;sv['ex']={'eng':29,'runs':9}
+        if not demarre(c,http,'?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi'+qs,save=sv):return None
+        c.call('Emulation.setCPUThrottlingRate',rate=4)
+        c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{});1");c.pump(3)
+        c.ev(SAMPLEUR);z0=c.ev("dbgEco().zones")
+        c.ev("dbgClassique(%s,%s);1"%(json.dumps(m[0]),json.dumps(m[1] if len(m)>1 else None)));c.ev("window.__S.length=0;window.__Son=true;dbgPortail(%d);1"%dist)
+        prof_on=os.environ.get('PROFIL')=='1'
+        if prof_on:c.call('Profiler.enable');c.call('Profiler.start')
+        t=time.time();passe=False
+        while time.time()-t<90:
+            c.pump(1)
+            if c.ev("dbgEco().zones")!=z0:passe=True;break
+        PR=profil(c.call('Profiler.stop')['profile'],1000) if prof_on else None
+        c.pump(4)
+        for i in range(30):
+            g=c.ev("(function(){try{return !!dbgGrotteHash().pretMailles}catch(e){return true}})()")
+            if g:break
+            c.pump(2)
+        c.ev("window.__Son=false;1")
+        S=json.loads(c.ev("JSON.stringify(window.__S)"))
+        return {'profil':PR,'cran':cran,'dist':dist,'suivante':suivante,'passe':passe,'secondes':round(time.time()-t,1),'frames':S,'prebati':json.loads(c.ev("JSON.stringify(dbgPrebati())")),'grotte':json.loads(c.ev("JSON.stringify(typeof dbgGrotteHash==='function'?[dbgGrotteHash(),dbgGrotteTrav()]:null)")),'charge':os.getloadavg()[0]}
+    finally:ferme(srv,ch,prof)
+
+GRAPHE=r"""(function(){var S=dbgScene(),sc=S.scene,cam=S.cam,R=S.rdr,gl=R.getContext(),T=THREE,res={};
+ function reach(f){var ch=sc.children;for(var i=0;i<ch.length;i++){var o=ch[i];if(o.visible===false)continue;(function w(x,prof){f(x,prof);for(var k=0;k<x.children.length;k++)w(x.children[k],prof+1);})(o,1);}}
+ var tot=0,auto=0,autoNoParent=0,meshes=0,visMesh=0,prof=0,lights=0,hidDeep=0,types={};
+ var autoList=[];
+ reach(function(o,p){tot++;if(p>prof)prof=p;if(o.visible===false)hidDeep++;if(o.matrixAutoUpdate){auto++;autoList.push(o);}if(o.isLight)lights++;var t=o.type;types[t]=(types[t]||0)+1;if(o.isMesh||o.isLine||o.isPoints){meshes++;if(o.visible)visMesh++;}});
+ var snap=autoList.map(function(o){return o.matrix.elements.slice();});
+ var tc=0;sc.children.forEach(function(){tc++;});
+ var hidTop=0;sc.children.forEach(function(o){if(o.visible===false)hidTop++;});
+ res.recens={objetsAtteints:tot,racine:tc,racineCachee:hidTop,profondeurMax:prof,matrixAutoUpdate:auto,meshs:meshes,meshsVisibles:visMesh,lumieres:lights,cachesProfonds:hidDeep,types:types};
+ // compteurs par image
+ var C={umw:0,um:0,uni:0,draw:0,prog:0,tex:0,buf:0,vao:0,state:0};
+ var P=T.Object3D.prototype,o1=P.updateMatrixWorld,o2=P.updateMatrix;P.updateMatrixWorld=function(f){C.umw++;return o1.call(this,f);};P.updateMatrix=function(){C.um++;return o2.call(this);};
+ var wr=[];function wrap(n,k){var f=gl[n];if(typeof f!=='function')return;gl[n]=function(){C[k]++;return f.apply(this,arguments);};wr.push([n,f]);}
+ ['uniform1f','uniform1i','uniform2f','uniform3f','uniform4f','uniform1fv','uniform2fv','uniform3fv','uniform4fv','uniformMatrix3fv','uniformMatrix4fv','uniform1iv'].forEach(function(n){wrap(n,'uni');});
+ ['drawElements','drawArrays','drawElementsInstanced','drawArraysInstanced'].forEach(function(n){wrap(n,'draw');});
+ wrap('useProgram','prog');wrap('bindTexture','tex');wrap('bindBuffer','buf');wrap('bindVertexArray','vao');wrap('bufferSubData','buf');wrap('enable','state');wrap('disable','state');wrap('blendFunc','state');wrap('depthMask','state');
+ window.__GR={C:C,res:res,wr:wr,P:P,o1:o1,o2:o2,snap:snap,autoList:autoList,n:0,t0:performance.now(),info:null};
+ function fr(){var G=window.__GR;G.n++;if(G.n===60){G.info={calls:R.info.render.calls,tri:R.info.render.triangles,prog:R.info.programs?R.info.programs.length:0,geo:R.info.memory.geometries,tex:R.info.memory.textures};}
+  if(G.n<150)requestAnimationFrame(fr);else G.fini=true;}requestAnimationFrame(fr);return 1;})()"""
+GRAPHE2=r"""(function(){var G=window.__GR,R=dbgScene().rdr,cam=dbgScene().cam,sc=dbgScene().scene,gl=R.getContext(),n=G.n,res=G.res;
+ G.wr.forEach(function(w){gl[w[0]]=w[1];});G.P.updateMatrixWorld=G.o1;G.P.updateMatrix=G.o2;
+ var bouge=0,immobile=0;G.autoList.forEach(function(o,i){var a=G.snap[i],b=o.matrix.elements,d=false;for(var k=0;k<16;k++)if(a[k]!==b[k]){d=true;break;}if(d)bouge++;else immobile++;});
+ var parType={},stat={};G.autoList.forEach(function(o,i){var a=G.snap[i],b=o.matrix.elements,d=false;for(var k=0;k<16;k++)if(a[k]!==b[k]){d=true;break;}if(!d){var t=o.type+(o.name?':'+o.name.slice(0,18):'');stat[t]=(stat[t]||0)+1;}});
+ var top=Object.keys(stat).map(function(k){return [k,stat[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,10);
+ // champ de vision et matériaux
+ var fr=new THREE.Frustum(),m4=new THREE.Matrix4();cam.updateMatrixWorld();m4.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);fr.setFromProjectionMatrix(m4);
+ var vis=0,hors=0,sansCull=0,mats=new Set(),sig=new Map(),instances=0;
+ sc.traverseVisible(function(o){if(!(o.isMesh||o.isLine||o.isPoints))return;vis++;if(o.isInstancedMesh)instances++;if(o.frustumCulled===false){sansCull++;}else{try{if(!fr.intersectsObject(o))hors++;}catch(e){}}
+   var ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(function(m){if(!m)return;mats.add(m);var k=[m.type,m.color&&m.color.getHex(),m.opacity,m.transparent,m.side,m.blending,m.depthWrite,m.depthTest,m.vertexColors,m.map&&m.map.uuid,m.emissive&&m.emissive.getHex(),m.wireframe,m.fog,m.flatShading].join('|');if(m.isShaderMaterial)k+='|S'+m.uuid;sig.set(k,(sig.get(k)||0)+1);});});
+ var dup=0;sig.forEach(function(v,k){if(v>1)dup+=v-1;});
+ var out={frames:n,parImage:{updateMatrixWorld:+(G.C.umw/n).toFixed(0),updateMatrix:+(G.C.um/n).toFixed(0),uniformes:+(G.C.uni/n).toFixed(0),draw:+(G.C.draw/n).toFixed(0),useProgram:+(G.C.prog/n).toFixed(0),bindTexture:+(G.C.tex/n).toFixed(0),bindBuffer_ou_Sub:+(G.C.buf/n).toFixed(0),bindVAO:+(G.C.vao/n).toFixed(0),etat:+(G.C.state/n).toFixed(0)},rendu:G.info,
+  recens:res.recens,autoImmobiles:immobile,autoQuiBougent:bouge,autoImmobilesTop:top,visibles:vis,horsChamp:hors,sansFrustumCulling:sansCull,instancedMesh:instances,materiauxDistincts:mats.size,signaturesDistinctes:sig.size,doublonsIdentiques:dup};
+ return JSON.stringify(out);})()"""
+def graphe(dossier,idx_cran,plus,qs,carte):
+    http,port,srv,ch,prof=lance(dossier)
+    try:
+        c=CDP(port);c.keep={'Runtime.exceptionThrown'};m=carte.split(':')
+        sv=dict(gp.SAVE);sv['vdep']=idx_cran;sv['ex']={'eng':29,'runs':9}
+        if not demarre(c,http,'?garde=1&palier=2&tel=1&pistegraine=777&carte=%s&meteo=%s'%(m[0],m[1])+qs,save=sv):return None
+        c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{});1")
+        for i in range(plus):c.ev("dbgMoteur();1");c.pump(.5)
+        c.call('Emulation.setCPUThrottlingRate',rate=4);c.pump(8)
+        c.ev(GRAPHE)
+        for i in range(60):
+            if c.ev("!!window.__GR.fini"):break
+            c.pump(1)
+        return json.loads(c.ev(GRAPHE2))
+    finally:ferme(srv,ch,prof)
+
 if __name__=='__main__':
     m=sys.argv[1]
     if m=='capture':
@@ -152,6 +258,15 @@ if __name__=='__main__':
     elif m=='depart':
         r=depart(sys.argv[2],[int(x) for x in sys.argv[3].split(',')],float(sys.argv[4]) if len(sys.argv)>4 else 25,sys.argv[5] if len(sys.argv)>5 else '',sys.argv[6] if len(sys.argv)>6 else 'nuages:midi')
         json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-depart.json'),'w'));print('ok',[(x or {}).get('cran') for x in r])
+    elif m=='profil':
+        r=profil_paliers(sys.argv[2],[(3,0,3),(9,1,4),(15,3,0)],float(sys.argv[3]) if len(sys.argv)>3 else 10,sys.argv[4] if len(sys.argv)>4 else '',sys.argv[5] if len(sys.argv)>5 else 'nuages:midi')
+        json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-profil.json'),'w'));print('ok',[(x or {}).get('idx') for x in r])
+    elif m=='portail':
+        r=portail(sys.argv[2],int(sys.argv[3]),int(sys.argv[4]),sys.argv[5],sys.argv[6] if len(sys.argv)>6 else '')
+        json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-portail.json'),'w'));print('ok',r and r['passe'])
+    elif m=='graphe':
+        r=graphe(sys.argv[2],int(sys.argv[3]),int(sys.argv[4]),sys.argv[5],sys.argv[6])
+        json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-graphe.json'),'w'),indent=1);print('ok')
     elif m=='course':
         r=course(sys.argv[2],float(sys.argv[3]) if len(sys.argv)>3 else 180,sys.argv[4] if len(sys.argv)>4 else '')
         json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-course.json'),'w'));print(len(r or []),'images')
