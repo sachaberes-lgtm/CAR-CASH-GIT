@@ -37,3 +37,14 @@ Serpent 15 : pire trou 924 / 695 / 754 ms, 4 / 1 / 4 trous. Serpent 17 : 4 / 4 /
 - Le build 14 (base `perf3-main` avec régression, trous de 2-9 s) n'est pas jugeable : origine→prêt 529 / 3638 / 3636 ms.
 - Simulateur : non mesuré (Mac saturé, charge 130-260, `simctl launch` bloqué).
 - Le critère « ≥ 20 % sur origine→prêt au 2e lancement » n'a pas pu être tranché proprement (pas de ligne `chargement` côté témoin) ; la décision de garder en option est celle d'OPTI ULTIME.
+
+## Vignette « En lecture » à l'accueil (2026-11-08, commit eea585c4)
+**Cause :** la musique joue par un `<audio>` (`#musique`, code/son/musique.js) ; tant qu'il a une source et que la session audio est active, iOS garde l'app comme lecteur média (vignette sur l'accueil / verrouillé / centre de contrôle). Le jeu mettait déjà l'`<audio>` en pause à `visibilitychange` hidden, mais ni la source ni la session audio n'étaient relâchées. Le jeu n'appelle aucun `mediaSession.setActionHandler`.
+
+**Ce qui est fait (app seulement, rien dans `code/`) :**
+- `natif.js` §9 : à `visibilitychange` hidden / `pagehide` / `freeze` : pause, `removeAttribute('src')` + `load()` de chaque `<audio>/<video>` qui a une source, `mediaSession.metadata=null`, `playbackState='none'`, handlers retirés. Au retour : source et position remises AVANT l'écouteur du jeu (natif.js est chargé en premier), qui relance alors sa musique comme avant (`musicJoue` ne refait pas la source ; la logique de reprise du jeu est intacte). Banc : `window.__ccVignette.decharge()/recharge()`.
+- `AppDelegate.swift` : à `applicationDidEnterBackground`, `setActive(false, .notifyOthersOnDeactivation)` (4 essais espacés de 0,6 s : la vue web peut encore tenir la session au premier) ; à `applicationWillEnterForeground`, catégorie `.playback` + `.mixWithOthers` et `setActive(true)`.
+
+**⚠ Écart avec la demande :** la catégorie reste `.playback` (avec `.mixWithOthers`), PAS `.ambient`. `.ambient` annulerait SON-04 (5/11, `AppDelegate`) : sur iOS 16 la page n'a pas `navigator.audioSession` et le bouton Silencieux couperait tout le jeu. `.mixWithOthers` suffit à ne pas prendre la place de « lecteur » et laisse la musique d'un autre lecteur (Spotify…) continuer pendant le jeu — changement de comportement à valider par Sacha. Si on veut vraiment `.ambient` : une ligne dans `AppDelegate`, au prix du retour de SON-04.
+
+**Limites :** WebKit peut re-poser sa propre catégorie quand l'`<audio>` joue (iOS 17+, `audioSession.type='playback'` posé par `musicSession()`), donc les options Swift ne sont pas garanties ; ce qui supprime la vignette de façon sûre est la source vidée + la session désactivée en arrière-plan. Pas de preuve sur téléphone (demandé : simulateur seulement).
