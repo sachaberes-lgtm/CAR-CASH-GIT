@@ -102,14 +102,18 @@ const SOLDE={l:[],on:false,D:700};
    dix mesures d'affilée, et chaque mesure après une écriture force la mise en page de TOUTE la page : MESURÉ au portail (banc iPhone ×4), 35 à 43 ms
    dans une image quand le solde gagne un chiffre. Désormais la 1re mesure dit de combien c'est trop large, on saute au cran estimé (un de moins, par
    prudence), puis on avance cran par cran dans le bon sens : 2 à 3 mesures. Même cran final qu'avant (le plus gros qui tient, dix crans au plus). */
+/* (2026-11-08, la monnaie) le compte du garage n'a plus de plaque : ses chiffres flottent et ne doivent pas passer sous l'ŒIL (#gOeil)
+   qui partage sa rangée — le bord droit à ne pas franchir est alors le bord gauche de l'œil (6 px d'air), sinon le bord de l'écran. */
+function soldeBord(p,r){let x=VP.w-4;if(p.id==='gCompteur'){const o=document.getElementById('gOeil');if(o){const q=o.getBoundingClientRect();if(q.width>0&&q.left>r.left&&q.top<r.bottom&&q.bottom>r.top)x=Math.min(x,q.left-6);}}return x;}
 function soldeFit(el,xMin){const p=el.parentElement;if(!p)return true;el.style.fontSize='';const x0=xMin||4; /* xMin : le bord gauche à ne pas franchir (en course, la colonne des barres) */
   const fs0=parseFloat(getComputedStyle(el).fontSize)||14,F=function(n){return Math.max(7,fs0-1.5*n);};
-  let nMax=10;for(let n=1;n<10;n++)if(F(n)<=7){nMax=n;break;} /* le cran où l'on s'arrêtait sans remesurer (police à 7 px, ou le 10e) */
+  const nL=p.id==='gCompteur'?16:10; /* (2026-11-08) le compte du garage part 1,7 fois plus gros (la monnaie) : six crans de plus pour tenir avant l'œil */
+  let nMax=nL;for(let n=1;n<nL;n++)if(F(n)<=7){nMax=n;break;} /* le cran où l'on s'arrêtait sans remesurer (police à 7 px, ou le 10e) */
   let r=null;const tient=function(){r=p.getBoundingClientRect();if(r.width<1)return null; /* caché : on réessaiera à la prochaine écriture */
-    return el.scrollWidth<=el.clientWidth+1&&p.scrollWidth<=p.clientWidth+1&&r.right<=VP.w-4&&r.left>=x0;}; /* le chiffre lui-même peut se rogner (overflow:hidden) : on le mesure aussi */
+    return el.scrollWidth<=el.clientWidth+1&&p.scrollWidth<=p.clientWidth+1&&r.right<=soldeBord(p,r)&&r.left>=x0;}; /* le chiffre lui-même peut se rogner (overflow:hidden) : on le mesure aussi */
   let t=tient();if(t===null)return false;if(t)return true;
   let k=1;if(el.scrollWidth>0)k=Math.min(k,el.clientWidth/el.scrollWidth);if(p.scrollWidth>0)k=Math.min(k,p.clientWidth/p.scrollWidth);
-  if(r.right>VP.w-4)k=Math.min(k,(VP.w-4-r.left)/r.width);if(r.left<x0)k=Math.min(k,(r.right-x0)/r.width);
+  const xb=soldeBord(p,r);if(r.right>xb)k=Math.min(k,(xb-r.left)/r.width);if(r.left<x0)k=Math.min(k,(r.right-x0)/r.width);
   let n=Math.max(1,Math.min(nMax,Math.ceil((fs0-fs0*Math.max(0,k))/1.5)-1));
   const pose=function(m){el.style.fontSize=F(m)+'px';};
   pose(n);if(n>=nMax)return true;t=tient();if(t===null)return false;
@@ -173,7 +177,7 @@ const METAL_FORCE=(function(){try{return new URLSearchParams(location.search).ge
 let METAL_DEMO=null;
 function metalDemo(){if(METAL_DEMO)return;let k=-1;const S=[1250,48000,650000,4200000,48000000,520000000,1250000000];
   const pas=function(){k=(k+1)%METAUX.length;const h=document.documentElement,av=h.dataset.metal;h.dataset.metal=METAUX[k][1];
-    try{const b=document.querySelector('#gCompteur b');if(b)b.textContent=fmtSolde(S[k]);}catch(e){}
+    try{const b=document.querySelector('#gCompteur b');if(b){b.textContent=fmtSolde(S[k]);soldeFit(b);}}catch(e){}
     try{const v=document.querySelector('#cashHud .chV span');if(v)v.textContent=cashTxt(S[k]);}catch(e){}
     try{monnaiePop();if(av)trickMsg(TR('TON ARGENT PASSE EN ')+TR(METAUX[k][2])+' !',1);}catch(e){}};
   pas();METAL_DEMO=setInterval(pas,2500);}
