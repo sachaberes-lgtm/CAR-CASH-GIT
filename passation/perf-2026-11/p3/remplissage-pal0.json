@@ -1,0 +1,1162 @@
+{
+ "date": "2026-11-08 15:58",
+ "charge": 4.1904296875,
+ "mesures": [
+  {
+   "map": "nuages:midi",
+   "palier": 10,
+   "atteint": 10,
+   "lectures": [
+    {
+     "image": {
+      "appels": 109,
+      "triangles": 276511
+     },
+     "champ": {
+      "appels": 109,
+      "dessines": 280054,
+      "dansLeChamp": 204576,
+      "derriere": 24796,
+      "auDelaDuBrouillard": 820,
+      "parDistance": [
+       169319,
+       9453,
+       24224,
+       1580,
+       0
+      ],
+      "brouillard": 5600,
+      "fam": [
+       {
+        "k": "nuages v8 | ShaderMaterial",
+        "n": 19,
+        "dr": 119460,
+        "di": 56496,
+        "gaspi": 62964,
+        "derriere": 3,
+        "fc": true
+       },
+       {
+        "k": " | ShaderMaterial[I]",
+        "n": 2,
+        "dr": 6300,
+        "di": 324,
+        "gaspi": 5976,
+        "derriere": 145,
+        "fc": false
+       },
+       {
+        "k": " | MeshBasicMaterial[I]",
+        "n": 2,
+        "dr": 4272,
+        "di": 432,
+        "gaspi": 3840,
+        "derriere": 230,
+        "fc": false
+       },
+       {
+        "k": " | MeshBasicMaterial",
+        "n": 12,
+        "dr": 8998,
+        "di": 6378,
+        "gaspi": 2620,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": " | ShaderMaterial",
+        "n": 7,
+        "dr": 3065,
+        "di": 2991,
+        "gaspi": 74,
+        "derriere": 1,
+        "fc": false
+       },
+       {
+        "k": "nuEmbLumiere | ShaderMaterial",
+        "n": 1,
+        "dr": 2,
+        "di": 0,
+        "gaspi": 2,
+        "derriere": 1,
+        "fc": false
+       },
+       {
+        "k": "nuEmbOiseaux | ShaderMaterial",
+        "n": 1,
+        "dr": 2,
+        "di": 0,
+        "gaspi": 2,
+        "derriere": 1,
+        "fc": false
+       },
+       {
+        "k": "moba ombre | MeshDepthMaterial",
+        "n": 4,
+        "dr": 6164,
+        "di": 6164,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "carrosserie | MeshBasicMaterial",
+        "n": 6,
+        "dr": 194,
+        "di": 194,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "carrosserie | MeshPhongMaterial",
+        "n": 11,
+        "dr": 2236,
+        "di": 2236,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "pièces 1 € | MeshPhongMaterial[I]",
+        "n": 1,
+        "dr": 5376,
+        "di": 5376,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "pièces 2 € | MeshPhongMaterial[I]",
+        "n": 1,
+        "dr": 2560,
+        "di": 2560,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": " | MeshPhongMaterial",
+        "n": 8,
+        "dr": 8012,
+        "di": 8012,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": " | MeshLambertMaterial[I]",
+        "n": 1,
+        "dr": 0,
+        "di": 0,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "piste bitume | MeshPhongMaterial",
+        "n": 3,
+        "dr": 34560,
+        "di": 34560,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "piste flancs | MeshLambertMaterial",
+        "n": 3,
+        "dr": 8640,
+        "di": 8640,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "piste rails néon | MeshBasicMaterial",
+        "n": 3,
+        "dr": 17280,
+        "di": 17280,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": " | PointsMaterial",
+        "n": 4,
+        "dr": 173,
+        "di": 173,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": " | LineBasicMaterial",
+        "n": 1,
+        "dr": 33,
+        "di": 33,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "coton | ShaderMaterial[I]",
+        "n": 8,
+        "dr": 30736,
+        "di": 30736,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "carrosserie | SpriteMaterial",
+        "n": 3,
+        "dr": 6,
+        "di": 6,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "piste nappe néon | MeshBasicMaterial",
+        "n": 3,
+        "dr": 17280,
+        "di": 17280,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "piste ligne centrale | MeshBasicMaterial",
+        "n": 3,
+        "dr": 4320,
+        "di": 4320,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "carrosserie | ShaderMaterial",
+        "n": 2,
+        "dr": 384,
+        "di": 384,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       }
+      ]
+     },
+     "ombre": {
+      "appels": 4,
+      "triangles": 6164,
+      "parDistance": [
+       6164,
+       0,
+       0,
+       0
+      ],
+      "maillagesParDistance": [
+       4,
+       0,
+       0,
+       0
+      ],
+      "fam": [
+       {
+        "k": "moba ombre fc=0",
+        "n": 4,
+        "t": 6164
+       }
+      ]
+     },
+     "remplissage": {
+      "ecran": [
+       487,
+       1055
+      ],
+      "mpx": 0.51,
+      "ombre": {
+       "carte": 1024,
+       "ecrans": 2.04
+      },
+      "passes": [
+       {
+        "w": 487.5,
+        "h": 1055,
+        "ecrans": 1,
+        "scene": true,
+        "cible": "rt",
+        "appels": 0,
+        "tri": 0,
+        "ombreTri": 0,
+        "transparents": 0,
+        "aireTransparents": 0
+       },
+       {
+        "w": 244,
+        "h": 528,
+        "ecrans": 0.25,
+        "scene": false,
+        "cible": "rt",
+        "appels": 1,
+        "tri": 2592,
+        "ombreTri": 0,
+        "transparents": 0,
+        "aireTransparents": 0
+       },
+       {
+        "w": 487,
+        "h": 1055,
+        "ecrans": 1,
+        "scene": false,
+        "cible": "ecran",
+        "appels": 1,
+        "tri": 1,
+        "ombreTri": 0,
+        "transparents": 0,
+        "aireTransparents": 0
+       },
+       {
+        "w": 487,
+        "h": 1055,
+        "ecrans": 1,
+        "scene": true,
+        "cible": "direct",
+        "appels": 105,
+        "tri": 274010,
+        "ombreTri": 6164,
+        "transparents": 64,
+        "aireTransparents": 13.53
+       }
+      ],
+      "transp": [
+       {
+        "k": "Mesh | MeshBasicMaterial",
+        "n": 4,
+        "ecrans": 3.39
+       },
+       {
+        "k": "coton[I] | ShaderMaterial",
+        "n": 8,
+        "ecrans": 2.17
+       },
+       {
+        "k": "Mesh | MeshBasicMaterial add",
+        "n": 4,
+        "ecrans": 2
+       },
+       {
+        "k": "piste nappe néon | MeshBasicMaterial add",
+        "n": 3,
+        "ecrans": 1.39
+       },
+       {
+        "k": "piste ligne centrale | MeshBasicMaterial",
+        "n": 3,
+        "ecrans": 1.37
+       },
+       {
+        "k": "LineSegments | LineBasicMaterial add",
+        "n": 1,
+        "ecrans": 1
+       },
+       {
+        "k": "nuages v8 | ShaderMaterial",
+        "n": 19,
+        "ecrans": 0.88
+       },
+       {
+        "k": "Mesh[I] | MeshBasicMaterial add",
+        "n": 1,
+        "ecrans": 0.55
+       },
+       {
+        "k": "carrosserie | ShaderMaterial add",
+        "n": 2,
+        "ecrans": 0.51
+       },
+       {
+        "k": "Mesh | ShaderMaterial add",
+        "n": 1,
+        "ecrans": 0.14
+       },
+       {
+        "k": "carrosserie | MeshBasicMaterial add",
+        "n": 2,
+        "ecrans": 0.06
+       },
+       {
+        "k": "carrosserie | MeshBasicMaterial",
+        "n": 1,
+        "ecrans": 0.04
+       }
+      ]
+     },
+     "etat": {
+      "vH": 490.8
+     }
+    },
+    {
+     "image": {
+      "appels": 108,
+      "triangles": 278405
+     },
+     "champ": {
+      "appels": 110,
+      "dessines": 287068,
+      "dansLeChamp": 203105,
+      "derriere": 38679,
+      "auDelaDuBrouillard": 820,
+      "parDistance": [
+       172093,
+       27176,
+       2256,
+       1580,
+       0
+      ],
+      "brouillard": 5600,
+      "fam": [
+       {
+        "k": "nuages v8 | ShaderMaterial",
+        "n": 19,
+        "dr": 119460,
+        "di": 56496,
+        "gaspi": 62964,
+        "derriere": 5,
+        "fc": true
+       },
+       {
+        "k": " | MeshBasicMaterial",
+        "n": 10,
+        "dr": 8994,
+        "di": 6,
+        "gaspi": 8988,
+        "derriere": 5,
+        "fc": true
+       },
+       {
+        "k": " | ShaderMaterial[I]",
+        "n": 2,
+        "dr": 6300,
+        "di": 360,
+        "gaspi": 5940,
+        "derriere": 110,
+        "fc": false
+       },
+       {
+        "k": " | MeshBasicMaterial[I]",
+        "n": 2,
+        "dr": 4224,
+        "di": 312,
+        "gaspi": 3912,
+        "derriere": 226,
+        "fc": false
+       },
+       {
+        "k": "pièces 1 € | MeshPhongMaterial[I]",
+        "n": 1,
+        "dr": 5888,
+        "di": 4096,
+        "gaspi": 1792,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "pièces 2 € | MeshPhongMaterial[I]",
+        "n": 1,
+        "dr": 1536,
+        "di": 1280,
+        "gaspi": 256,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": " | ShaderMaterial",
+        "n": 6,
+        "dr": 5531,
+        "di": 5457,
+        "gaspi": 74,
+        "derriere": 1,
+        "fc": false
+       },
+       {
+        "k": " | LineBasicMaterial",
+        "n": 1,
+        "dr": 33,
+        "di": 0,
+        "gaspi": 33,
+        "derriere": 1,
+        "fc": false
+       },
+       {
+        "k": "nuEmbLumiere | ShaderMaterial",
+        "n": 1,
+        "dr": 2,
+        "di": 0,
+        "gaspi": 2,
+        "derriere": 1,
+        "fc": false
+       },
+       {
+        "k": "nuEmbOiseaux | ShaderMaterial",
+        "n": 1,
+        "dr": 2,
+        "di": 0,
+        "gaspi": 2,
+        "derriere": 1,
+        "fc": false
+       },
+       {
+        "k": "moba ombre | MeshDepthMaterial",
+        "n": 4,
+        "dr": 6164,
+        "di": 6164,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "carrosserie | MeshBasicMaterial",
+        "n": 6,
+        "dr": 194,
+        "di": 194,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "carrosserie | MeshPhongMaterial",
+        "n": 11,
+        "dr": 2236,
+        "di": 2236,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": " | MeshPhongMaterial",
+        "n": 7,
+        "dr": 7714,
+        "di": 7714,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": " | MeshLambertMaterial[I]",
+        "n": 1,
+        "dr": 0,
+        "di": 0,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "piste bitume | MeshPhongMaterial",
+        "n": 3,
+        "dr": 34560,
+        "di": 34560,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "piste flancs | MeshLambertMaterial",
+        "n": 3,
+        "dr": 8640,
+        "di": 8640,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "piste rails néon | MeshBasicMaterial",
+        "n": 3,
+        "dr": 17280,
+        "di": 17280,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": " | SpriteMaterial",
+        "n": 1,
+        "dr": 2,
+        "di": 2,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": " | PointsMaterial",
+        "n": 5,
+        "dr": 220,
+        "di": 220,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "coton | ShaderMaterial[I]",
+        "n": 10,
+        "dr": 34908,
+        "di": 34908,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "nuages boules | MeshPhongMaterial",
+        "n": 1,
+        "dr": 1190,
+        "di": 1190,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "carrosserie | SpriteMaterial",
+        "n": 3,
+        "dr": 6,
+        "di": 6,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "piste nappe néon | MeshBasicMaterial",
+        "n": 3,
+        "dr": 17280,
+        "di": 17280,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "piste ligne centrale | MeshBasicMaterial",
+        "n": 3,
+        "dr": 4320,
+        "di": 4320,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       }
+      ]
+     },
+     "ombre": {
+      "appels": 4,
+      "triangles": 6164,
+      "parDistance": [
+       6164,
+       0,
+       0,
+       0
+      ],
+      "maillagesParDistance": [
+       4,
+       0,
+       0,
+       0
+      ],
+      "fam": [
+       {
+        "k": "moba ombre fc=0",
+        "n": 4,
+        "t": 6164
+       }
+      ]
+     },
+     "remplissage": {
+      "ecran": [
+       487,
+       1055
+      ],
+      "mpx": 0.51,
+      "ombre": {
+       "carte": 1024,
+       "ecrans": 2.04
+      },
+      "passes": [
+       {
+        "w": 487.5,
+        "h": 1055,
+        "ecrans": 1,
+        "scene": true,
+        "cible": "rt",
+        "appels": 105,
+        "tri": 278360,
+        "ombreTri": 6164,
+        "transparents": 67,
+        "aireTransparents": 7.23
+       },
+       {
+        "w": 487,
+        "h": 1055,
+        "ecrans": 1,
+        "scene": false,
+        "cible": "ecran",
+        "appels": 1,
+        "tri": 1,
+        "ombreTri": 0,
+        "transparents": 0,
+        "aireTransparents": 0
+       }
+      ],
+      "transp": [
+       {
+        "k": "coton[I] | ShaderMaterial",
+        "n": 10,
+        "ecrans": 2.1
+       },
+       {
+        "k": "piste nappe néon | MeshBasicMaterial add",
+        "n": 3,
+        "ecrans": 1.57
+       },
+       {
+        "k": "piste ligne centrale | MeshBasicMaterial",
+        "n": 3,
+        "ecrans": 1.54
+       },
+       {
+        "k": "nuages v8 | ShaderMaterial",
+        "n": 19,
+        "ecrans": 0.97
+       },
+       {
+        "k": "carrosserie | ShaderMaterial add",
+        "n": 2,
+        "ecrans": 0.34
+       },
+       {
+        "k": "Mesh | MeshBasicMaterial",
+        "n": 4,
+        "ecrans": 0.29
+       },
+       {
+        "k": "Mesh[I] | MeshBasicMaterial add",
+        "n": 1,
+        "ecrans": 0.21
+       },
+       {
+        "k": "Mesh | ShaderMaterial add",
+        "n": 1,
+        "ecrans": 0.12
+       },
+       {
+        "k": "carrosserie | MeshBasicMaterial add",
+        "n": 2,
+        "ecrans": 0.05
+       },
+       {
+        "k": "carrosserie | MeshBasicMaterial",
+        "n": 1,
+        "ecrans": 0.03
+       },
+       {
+        "k": "carrosserie | SpriteMaterial add",
+        "n": 1,
+        "ecrans": 0.01
+       },
+       {
+        "k": "Sprite | SpriteMaterial add",
+        "n": 1,
+        "ecrans": 0
+       }
+      ]
+     },
+     "etat": {
+      "vH": 504.1
+     }
+    },
+    {
+     "image": {
+      "appels": 101,
+      "triangles": 268041
+     },
+     "champ": {
+      "appels": 101,
+      "dessines": 271447,
+      "dansLeChamp": 189344,
+      "derriere": 39335,
+      "auDelaDuBrouillard": 820,
+      "parDistance": [
+       163540,
+       24224,
+       0,
+       1580,
+       0
+      ],
+      "brouillard": 5600,
+      "fam": [
+       {
+        "k": "nuages v8 | ShaderMaterial",
+        "n": 19,
+        "dr": 119460,
+        "di": 56496,
+        "gaspi": 62964,
+        "derriere": 5,
+        "fc": true
+       },
+       {
+        "k": " | MeshBasicMaterial",
+        "n": 10,
+        "dr": 8994,
+        "di": 6,
+        "gaspi": 8988,
+        "derriere": 5,
+        "fc": true
+       },
+       {
+        "k": " | ShaderMaterial[I]",
+        "n": 2,
+        "dr": 6300,
+        "di": 732,
+        "gaspi": 5568,
+        "derriere": 96,
+        "fc": false
+       },
+       {
+        "k": " | MeshBasicMaterial[I]",
+        "n": 2,
+        "dr": 4680,
+        "di": 720,
+        "gaspi": 3960,
+        "derriere": 252,
+        "fc": false
+       },
+       {
+        "k": "pièces 1 € | MeshPhongMaterial[I]",
+        "n": 1,
+        "dr": 5120,
+        "di": 4608,
+        "gaspi": 512,
+        "derriere": 2,
+        "fc": false
+       },
+       {
+        "k": " | ShaderMaterial",
+        "n": 4,
+        "dr": 2882,
+        "di": 2808,
+        "gaspi": 74,
+        "derriere": 1,
+        "fc": false
+       },
+       {
+        "k": " | LineBasicMaterial",
+        "n": 1,
+        "dr": 33,
+        "di": 0,
+        "gaspi": 33,
+        "derriere": 1,
+        "fc": false
+       },
+       {
+        "k": "nuEmbLumiere | ShaderMaterial",
+        "n": 1,
+        "dr": 2,
+        "di": 0,
+        "gaspi": 2,
+        "derriere": 1,
+        "fc": false
+       },
+       {
+        "k": "nuEmbOiseaux | ShaderMaterial",
+        "n": 1,
+        "dr": 2,
+        "di": 0,
+        "gaspi": 2,
+        "derriere": 1,
+        "fc": false
+       },
+       {
+        "k": "moba ombre | MeshDepthMaterial",
+        "n": 4,
+        "dr": 6164,
+        "di": 6164,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "carrosserie | MeshBasicMaterial",
+        "n": 6,
+        "dr": 194,
+        "di": 194,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "carrosserie | MeshPhongMaterial",
+        "n": 11,
+        "dr": 2236,
+        "di": 2236,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "pièces 2 € | MeshPhongMaterial[I]",
+        "n": 1,
+        "dr": 1280,
+        "di": 1280,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": " | MeshPhongMaterial",
+        "n": 6,
+        "dr": 5606,
+        "di": 5606,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": " | MeshLambertMaterial[I]",
+        "n": 1,
+        "dr": 0,
+        "di": 0,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "piste bitume | MeshPhongMaterial",
+        "n": 3,
+        "dr": 34560,
+        "di": 34560,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "piste flancs | MeshLambertMaterial",
+        "n": 3,
+        "dr": 8640,
+        "di": 8640,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "piste rails néon | MeshBasicMaterial",
+        "n": 3,
+        "dr": 17280,
+        "di": 17280,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": " | PointsMaterial",
+        "n": 5,
+        "dr": 220,
+        "di": 220,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "coton | ShaderMaterial[I]",
+        "n": 6,
+        "dr": 25804,
+        "di": 25804,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": false
+       },
+       {
+        "k": "carrosserie | SpriteMaterial",
+        "n": 3,
+        "dr": 6,
+        "di": 6,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "piste nappe néon | MeshBasicMaterial",
+        "n": 3,
+        "dr": 17280,
+        "di": 17280,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "piste ligne centrale | MeshBasicMaterial",
+        "n": 3,
+        "dr": 4320,
+        "di": 4320,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       },
+       {
+        "k": "carrosserie | ShaderMaterial",
+        "n": 2,
+        "dr": 384,
+        "di": 384,
+        "gaspi": 0,
+        "derriere": 0,
+        "fc": true
+       }
+      ]
+     },
+     "ombre": {
+      "appels": 4,
+      "triangles": 6164,
+      "parDistance": [
+       6164,
+       0,
+       0,
+       0
+      ],
+      "maillagesParDistance": [
+       4,
+       0,
+       0,
+       0
+      ],
+      "fam": [
+       {
+        "k": "moba ombre fc=0",
+        "n": 4,
+        "t": 6164
+       }
+      ]
+     },
+     "remplissage": {
+      "ecran": [
+       487,
+       1055
+      ],
+      "mpx": 0.51,
+      "ombre": {
+       "carte": 1024,
+       "ecrans": 2.04
+      },
+      "passes": [
+       {
+        "w": 487.5,
+        "h": 1055,
+        "ecrans": 1,
+        "scene": true,
+        "cible": "rt",
+        "appels": 0,
+        "tri": 0,
+        "ombreTri": 0,
+        "transparents": 0,
+        "aireTransparents": 0
+       },
+       {
+        "w": 244,
+        "h": 528,
+        "ecrans": 0.25,
+        "scene": false,
+        "cible": "rt",
+        "appels": 1,
+        "tri": 2592,
+        "ombreTri": 0,
+        "transparents": 0,
+        "aireTransparents": 0
+       },
+       {
+        "w": 487,
+        "h": 1055,
+        "ecrans": 1,
+        "scene": false,
+        "cible": "ecran",
+        "appels": 1,
+        "tri": 1,
+        "ombreTri": 0,
+        "transparents": 0,
+        "aireTransparents": 0
+       },
+       {
+        "w": 487,
+        "h": 1055,
+        "ecrans": 1,
+        "scene": true,
+        "cible": "direct",
+        "appels": 97,
+        "tri": 265099,
+        "ombreTri": 6164,
+        "transparents": 60,
+        "aireTransparents": 9.13
+       }
+      ],
+      "transp": [
+       {
+        "k": "piste nappe néon | MeshBasicMaterial add",
+        "n": 3,
+        "ecrans": 2.32
+       },
+       {
+        "k": "piste ligne centrale | MeshBasicMaterial",
+        "n": 3,
+        "ecrans": 2.26
+       },
+       {
+        "k": "nuages v8 | ShaderMaterial",
+        "n": 19,
+        "ecrans": 2.22
+       },
+       {
+        "k": "carrosserie | ShaderMaterial add",
+        "n": 2,
+        "ecrans": 0.83
+       },
+       {
+        "k": "Mesh[I] | MeshBasicMaterial add",
+        "n": 1,
+        "ecrans": 0.81
+       },
+       {
+        "k": "Mesh | MeshBasicMaterial",
+        "n": 4,
+        "ecrans": 0.38
+       },
+       {
+        "k": "Mesh | ShaderMaterial add",
+        "n": 1,
+        "ecrans": 0.14
+       },
+       {
+        "k": "carrosserie | MeshBasicMaterial add",
+        "n": 2,
+        "ecrans": 0.06
+       },
+       {
+        "k": "coton[I] | ShaderMaterial",
+        "n": 6,
+        "ecrans": 0.05
+       },
+       {
+        "k": "carrosserie | MeshBasicMaterial",
+        "n": 1,
+        "ecrans": 0.03
+       },
+       {
+        "k": "carrosserie | SpriteMaterial add",
+        "n": 1,
+        "ecrans": 0.02
+       },
+       {
+        "k": "Points | PointsMaterial",
+        "n": 1,
+        "ecrans": 0
+       }
+      ]
+     },
+     "etat": {
+      "vH": 488.9
+     }
+    }
+   ]
+  }
+ ]
+}

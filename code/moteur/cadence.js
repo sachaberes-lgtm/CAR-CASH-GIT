@@ -99,5 +99,41 @@ const HC={on:false,der:0,off:/[?&]hc=0/.test(location.search)};
 function hcSaute(now){ // en tête de loop (après cadSaute, qui tient CAD.ecran à jour) : rend true si cette image d'écran se saute
   const hc=!HC.off&&(PAL.b('hors30',0)||PFR_ON)&&!CAD.on&&(!started||garageOn)&&!document.hidden;
   if(!hc){HC.on=false;return false;}
-  if(HC.on&&now-HC.der<CAD.per-CAD.tol)return true;
+  if(!MENU_MAX&&hcGeste(now)){HC.on=false;return false;} /* (2026-11-07, Perf 3 — P5) un geste ou une transition : 60 i/s, voir HC GESTE */
+  HC.per=hcRepos(now)||CAD.per; /* (2026-11-07, Perf 3 — P5) au REPOS (aucun geste depuis 3 s) 15 i/s, depuis 8 s 10 i/s — voir HC REPOS */
+  if(HC.on&&now-HC.der<HC.per-CAD.tol)return true;
   HC.on=true;HC.der=now;return false;}
+/* HC GESTE (2026-11-07, Perf 3 — P5, Sacha : « les menus fluides et froids ») le repos se dessine à 30 i/s (le téléphone au frais, PFR_ON) mais un doigt posé, un défilement, un
+   changement d'écran ou de caisse rendent les 60 i/s — 0,35 s après le dernier signe — puis le repos reprend. `?menu=max` = comme avant (30 i/s en continu). */
+HC.gT=0;
+(function(){const m=function(){HC.gT=performance.now();};['touchstart','touchmove','pointerdown','wheel'].forEach(function(e){document.addEventListener(e,m,{capture:true,passive:true});});
+  document.addEventListener('pointermove',function(e){if(e.buttons)HC.gT=performance.now();},{capture:true,passive:true});})();
+/* HC REPOS (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le menu est le premier chauffe-téléphone de l'app » — mesuré au banc : l'accueil rendait 28 images/s de 146 appels et 800 k triangles, 23 M de triangles par seconde, sans que personne touche) : sur
+   un vrai téléphone, sans geste depuis 3 s l'accueil, le garage et la boutique se dessinent à 15 i/s, depuis 8 s à 10 i/s (la caisse tourne à 0,24 rad/s : 1 à 1,4° par image) ; un toucher rend les 60 aussitôt (HC GESTE).
+   `PAL.B.reposMs=[66,66,66]` (période à 3 s) et `PAL.B.reposLongMs=[66.7,66.7,66.7]` (à 8 s) ; 0 = coupé ; `?repos=0` ou `?menu=max` = 30 i/s en continu comme avant. */
+PAL.B.reposMs=[66.7,66.7,66.7];PAL.B.reposLongMs=[66.7,66.7,66.7];
+const HC_REPOS_OFF=/[?&]repos=0\b/.test(location.search);
+function hcRepos(now){if(MENU_MAX||HC_REPOS_OFF)return 0;const d=now-HC.gT;return d>8000?PAL.b('reposLongMs',0):d>3000?PAL.b('reposMs',0):0;}
+function hcGeste(now){return now-HC.gT<350||!!(typeof ecranWipe==='function'&&ecranWipe._on)||!!(typeof GAR!=='undefined'&&(GAR.go||GAR.sw))||garageDrag;}
+/* MENU CULL (2026-11-07, Perf 3 — P5, OPTI ULTIME : « le vrai gisement est le coût par image : 800 k triangles pour une caméra de menu immobile ») mesuré au banc (nuages, accueil) : 94 maillages en `frustumCulled=false` (704 k triangles) sont envoyés au GPU à chaque image alors que
+   presque tous sont HORS du champ de la caméra du menu (le niveau entier derrière le garage). Sur un vrai téléphone, au menu (pas de course), ceux dont la sphère englobante (×1,3) est hors du champ sont remis en `frustumCulled=true` le temps de l'image, et rendus à `false` dès qu'on quitte
+   le menu ou qu'ils reviennent dans le champ (la caméra du garage bouge). Jamais les instanciés (leur sphère est celle d'UNE instance). `PAL.B.menuCull` (1 = actif), `?menucull=0` ou `?menu=max` = comme avant. */
+PAL.B.menuCull=[1,1,1];
+const MC={set:[],fr:new THREE.Frustum(),m:new THREE.Matrix4(),sp:new THREE.Sphere(),off:/[?&]menucull=0\b/.test(location.search),n:0,t:0};
+function menuCull(on){
+  for(let i=0;i<MC.set.length;i++)MC.set[i].frustumCulled=false;MC.set.length=0;MC.n=0;MC.t=0;
+  if(!on||MC.off||MENU_MAX||!TEL_NATIF||!PAL.b('menuCull',0))return;
+  camera.updateMatrixWorld();MC.m.multiplyMatrices(camera.projectionMatrix,MC.m.copy(camera.matrixWorld).invert());MC.fr.setFromProjectionMatrix(MC.m);
+  scene.traverseVisible(function(o){if(o.frustumCulled||o.isInstancedMesh||o.isSkinnedMesh||!(o.isMesh||o.isPoints||o.isLine)||!o.geometry)return;
+    const g=o.geometry;if(!g.boundingSphere)g.computeBoundingSphere();const b=g.boundingSphere;if(!b||!(b.radius>=0)||b.radius>1e6)return;
+    MC.sp.copy(b).applyMatrix4(o.matrixWorld);MC.sp.radius*=1.3;
+    if(!MC.fr.intersectsSphere(MC.sp)){o.frustumCulled=true;MC.set.push(o);MC.n++;MC.t+=g.index?g.index.count/3:(g.attributes.position?g.attributes.position.count/3:0);}});}
+window.dbgMenuCull=function(v){if(v!=null){MC.off=!v;if(!v)menuCull(false);}return {actif:!MC.off,mc:MC.n,mcTris:Math.round(MC.t)};}; /* (banc) A/B du tri du menu dans la même session */
+window.dbgCullInfo=function(){ /* (2026-11-07, Perf 3 — P5) (banc) qui est dans le champ de la caméra actuelle : maillages visibles, triangles, frustumCulled=false, dans/hors champ */
+  camera.updateMatrixWorld();const fr=new THREE.Frustum(),m4=new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);fr.setFromProjectionMatrix(m4);
+  const R={dans:{n:0,t:0},hors:{n:0,t:0},nocull:{n:0,t:0},liste:[]};
+  scene.traverseVisible(function(o){if(!(o.isMesh||o.isPoints||o.isLine)||!o.geometry)return;const g=o.geometry,t=g.index?g.index.count/3:(g.attributes.position?g.attributes.position.count/3:0);if(!g.boundingSphere)g.computeBoundingSphere();
+    const sp=g.boundingSphere.clone().applyMatrix4(o.matrixWorld),dans=fr.intersectsSphere(sp),k=dans?'dans':'hors';R[k].n++;R[k].t+=t;if(!o.frustumCulled){R.nocull.n++;R.nocull.t+=t;}
+    if(t>20000)R.liste.push([o.name||o.type,Math.round(t/1000)+'k',dans?'dans':'HORS',o.frustumCulled?'':'NOCULL',Math.round(sp.radius),Math.round(sp.center.distanceTo(camera.position)),o.parent===scene?'scene':(o.parent&&o.parent.name)||'?']);});
+  return R;};
+window.dbgHC=function(){return {feuN:GAR.feuN|0,mc:MC.n,mcTris:Math.round(MC.t),on:HC.on,per:HC.per,off:HC.off,pfr:PFR_ON,hors30:PAL.b('hors30',0),cadOk:CAD.ok,cadOn:CAD.on,started:started,gameOver:gameOver,garageOn:garageOn,quiet:!!(gEl&&gEl.classList.contains('quiet')),garGo:!!GAR.go,stall:(typeof stallOn!=='undefined')?stallOn:null,vhd:VHD.on,hidden:document.hidden};}; /* (2026-11-07, Perf 3 P5) (banc) l'état des menus */

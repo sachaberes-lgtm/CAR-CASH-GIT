@@ -1,0 +1,3935 @@
+{
+ "date": "2026-11-07 11:36",
+ "palier": 2,
+ "tel": true,
+ "charge": 8.5,
+ "chargeFin": 19.7,
+ "tempsFiables": false,
+ "cpu": 4,
+ "mesures": [
+  {
+   "map": "nuages:midi",
+   "palier": 2,
+   "appels": 162,
+   "triangles": 597258,
+   "dbgAppels": 158,
+   "dbgTri": "607k",
+   "positions": [
+    {
+     "d": 1800,
+     "cout": {
+      "appels": 140,
+      "triangles": 485136,
+      "dpr": 1.5,
+      "px": 740610
+     },
+     "appels": 137,
+     "triangles": "562k",
+     "familles": [
+      [
+       19,
+       "163k",
+       "ShaderMaterial <nuages v8>"
+      ],
+      [
+       16,
+       "177k",
+       "ShaderMaterial[I] <coton>"
+      ],
+      [
+       13,
+       "2k",
+       "MeshDepthMaterial <carrosserie>"
+      ],
+      [
+       11,
+       "2k",
+       "MeshPhongMaterial <carrosserie>"
+      ],
+      [
+       8,
+       "13k",
+       "ShaderMaterial"
+      ],
+      [
+       7,
+       "11k",
+       "MeshPhongMaterial"
+      ],
+      [
+       6,
+       "0k",
+       "MeshBasicMaterial <carrosserie>"
+      ],
+      [
+       4,
+       "4k",
+       "MeshDepthMaterial"
+      ],
+      [
+       4,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+      ],
+      [
+       4,
+       "4k",
+       "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       3,
+       "11k",
+       "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+      ],
+      [
+       3,
+       "23k",
+       "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  c83d84}> (scène)"
+      ],
+      [
+       3,
+       "0k",
+       "SpriteMaterial <carrosserie>"
+      ],
+      [
+       3,
+       "23k",
+       "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  2c5bc6}> (scène)"
+      ],
+      [
+       3,
+       "6k",
+       "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+      ],
+      [
+       2,
+       "96k",
+       "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+      ],
+      [
+       2,
+       "3k",
+       "MeshBasicMaterial"
+      ],
+      [
+       2,
+       "0k",
+       "ShaderMaterial <carrosserie>"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "5k",
+       "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I] < {BoxGeometry ro0  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "4k",
+       "MeshPhongMaterial <piste bitume moyen {BufferGeometry ro0 moyenne a39c8e}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffb24a}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  5ee6ff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  f6e6ee}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial < {InstancedBufferGeometry ro2 T  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <nuEmbLumiere>"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <nuEmbOiseaux>"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I]"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+      ]
+     ]
+    },
+    {
+     "d": 900,
+     "cout": {
+      "appels": 115,
+      "triangles": 396620,
+      "dpr": 1.5,
+      "px": 740610
+     },
+     "appels": 109,
+     "triangles": "401k",
+     "familles": [
+      [
+       18,
+       "146k",
+       "ShaderMaterial <nuages v8>"
+      ],
+      [
+       13,
+       "2k",
+       "MeshDepthMaterial <carrosserie>"
+      ],
+      [
+       11,
+       "2k",
+       "MeshPhongMaterial <carrosserie>"
+      ],
+      [
+       6,
+       "0k",
+       "MeshBasicMaterial <carrosserie>"
+      ],
+      [
+       5,
+       "8k",
+       "ShaderMaterial"
+      ],
+      [
+       5,
+       "6k",
+       "MeshPhongMaterial"
+      ],
+      [
+       4,
+       "4k",
+       "MeshDepthMaterial"
+      ],
+      [
+       4,
+       "102k",
+       "ShaderMaterial[I] <coton>"
+      ],
+      [
+       4,
+       "4k",
+       "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       3,
+       "0k",
+       "SpriteMaterial <carrosserie>"
+      ],
+      [
+       2,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+      ],
+      [
+       2,
+       "66k",
+       "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+      ],
+      [
+       2,
+       "7k",
+       "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+      ],
+      [
+       2,
+       "13k",
+       "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  a9336f}> (scène)"
+      ],
+      [
+       2,
+       "3k",
+       "MeshBasicMaterial"
+      ],
+      [
+       2,
+       "13k",
+       "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  f24aa0}> (scène)"
+      ],
+      [
+       2,
+       "3k",
+       "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "6k",
+       "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I] < {BoxGeometry ro0  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffb24a}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial < {InstancedBufferGeometry ro2 T  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <nuEmbLumiere>"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <nuEmbOiseaux>"
+      ],
+      [
+       1,
+       "0k",
+       "SpriteMaterial < {BufferGeometry ro4 T add  ffe2a0}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I]"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+      ]
+     ]
+    },
+    {
+     "d": 2800,
+     "cout": {
+      "appels": 162,
+      "triangles": 597258,
+      "dpr": 1.5,
+      "px": 740610
+     },
+     "appels": 158,
+     "triangles": "607k",
+     "familles": [
+      [
+       22,
+       "190k",
+       "ShaderMaterial <nuages v8>"
+      ],
+      [
+       20,
+       "146k",
+       "ShaderMaterial[I] <coton>"
+      ],
+      [
+       13,
+       "2k",
+       "MeshDepthMaterial <carrosserie>"
+      ],
+      [
+       11,
+       "2k",
+       "MeshPhongMaterial <carrosserie>"
+      ],
+      [
+       9,
+       "13k",
+       "ShaderMaterial"
+      ],
+      [
+       8,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+      ],
+      [
+       8,
+       "13k",
+       "MeshPhongMaterial"
+      ],
+      [
+       6,
+       "0k",
+       "MeshBasicMaterial <carrosserie>"
+      ],
+      [
+       6,
+       "7k",
+       "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+      ],
+      [
+       4,
+       "4k",
+       "MeshDepthMaterial"
+      ],
+      [
+       4,
+       "16k",
+       "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+      ],
+      [
+       4,
+       "32k",
+       "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  a9336f}> (scène)"
+      ],
+      [
+       4,
+       "32k",
+       "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  f24aa0}> (scène)"
+      ],
+      [
+       4,
+       "8k",
+       "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+      ],
+      [
+       4,
+       "4k",
+       "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       3,
+       "0k",
+       "SpriteMaterial <carrosserie>"
+      ],
+      [
+       2,
+       "96k",
+       "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+      ],
+      [
+       2,
+       "16k",
+       "MeshPhongMaterial <piste bitume moyen {BufferGeometry ro0 moyenne a39c8e}> (scène)"
+      ],
+      [
+       2,
+       "3k",
+       "MeshBasicMaterial"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "5k",
+       "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I] < {BoxGeometry ro0  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffb24a}> (scène)"
+      ],
+      [
+       1,
+       "1k",
+       "MeshPhongMaterial <nuages boules>"
+      ],
+      [
+       1,
+       "2k",
+       "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial < {InstancedBufferGeometry ro2 T  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <nuEmbLumiere>"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <nuEmbOiseaux>"
+      ],
+      [
+       1,
+       "0k",
+       "SpriteMaterial < {BufferGeometry ro4 T add  ffe2a0}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I]"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+      ]
+     ]
+    }
+   ],
+   "familles": [
+    [
+     22,
+     "190k",
+     "ShaderMaterial <nuages v8>"
+    ],
+    [
+     20,
+     "146k",
+     "ShaderMaterial[I] <coton>"
+    ],
+    [
+     13,
+     "2k",
+     "MeshDepthMaterial <carrosserie>"
+    ],
+    [
+     11,
+     "2k",
+     "MeshPhongMaterial <carrosserie>"
+    ],
+    [
+     9,
+     "13k",
+     "ShaderMaterial"
+    ],
+    [
+     8,
+     "0k",
+     "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+    ],
+    [
+     8,
+     "13k",
+     "MeshPhongMaterial"
+    ],
+    [
+     6,
+     "0k",
+     "MeshBasicMaterial <carrosserie>"
+    ],
+    [
+     6,
+     "7k",
+     "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+    ],
+    [
+     4,
+     "4k",
+     "MeshDepthMaterial"
+    ],
+    [
+     4,
+     "16k",
+     "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+    ],
+    [
+     4,
+     "32k",
+     "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  a9336f}> (scène)"
+    ],
+    [
+     4,
+     "32k",
+     "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  f24aa0}> (scène)"
+    ],
+    [
+     4,
+     "8k",
+     "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+    ],
+    [
+     4,
+     "4k",
+     "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+    ],
+    [
+     3,
+     "0k",
+     "SpriteMaterial <carrosserie>"
+    ],
+    [
+     2,
+     "96k",
+     "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+    ],
+    [
+     2,
+     "16k",
+     "MeshPhongMaterial <piste bitume moyen {BufferGeometry ro0 moyenne a39c8e}> (scène)"
+    ],
+    [
+     2,
+     "3k",
+     "MeshBasicMaterial"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "5k",
+     "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+    ],
+    [
+     1,
+     "3k",
+     "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+    ],
+    [
+     1,
+     "3k",
+     "ShaderMaterial[I] < {BoxGeometry ro0  }> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "3k",
+     "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  ffb24a}> (scène)"
+    ],
+    [
+     1,
+     "1k",
+     "MeshPhongMaterial <nuages boules>"
+    ],
+    [
+     1,
+     "2k",
+     "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "ShaderMaterial < {InstancedBufferGeometry ro2 T  }> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "ShaderMaterial <nuEmbLumiere>"
+    ],
+    [
+     1,
+     "0k",
+     "ShaderMaterial <nuEmbOiseaux>"
+    ],
+    [
+     1,
+     "0k",
+     "SpriteMaterial < {BufferGeometry ro4 T add  ffe2a0}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+    ],
+    [
+     1,
+     "3k",
+     "ShaderMaterial[I]"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+    ]
+   ]
+  },
+  {
+   "map": "dunes:soir",
+   "palier": 2,
+   "appels": 149,
+   "triangles": 254686,
+   "dbgAppels": 143,
+   "dbgTri": "205k",
+   "positions": [
+    {
+     "d": 1800,
+     "cout": {
+      "appels": 95,
+      "triangles": 201644,
+      "dpr": 1.5,
+      "px": 740610
+     },
+     "appels": 89,
+     "triangles": "156k",
+     "familles": [
+      [
+       13,
+       "2k",
+       "MeshDepthMaterial <carrosserie>"
+      ],
+      [
+       11,
+       "2k",
+       "MeshPhongMaterial <carrosserie>"
+      ],
+      [
+       6,
+       "0k",
+       "MeshBasicMaterial <carrosserie>"
+      ],
+      [
+       6,
+       "7k",
+       "MeshPhongMaterial"
+      ],
+      [
+       4,
+       "4k",
+       "MeshDepthMaterial"
+      ],
+      [
+       4,
+       "4k",
+       "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       4,
+       "0k",
+       "ShaderMaterial"
+      ],
+      [
+       3,
+       "0k",
+       "SpriteMaterial <carrosserie>"
+      ],
+      [
+       2,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+      ],
+      [
+       2,
+       "1k",
+       "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+      ],
+      [
+       2,
+       "7k",
+       "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+      ],
+      [
+       2,
+       "14k",
+       "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  19b1d3}> (scène)"
+      ],
+      [
+       2,
+       "3k",
+       "MeshBasicMaterial"
+      ],
+      [
+       2,
+       "14k",
+       "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  27083c}> (scène)"
+      ],
+      [
+       2,
+       "4k",
+       "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+      ],
+      [
+       2,
+       "0k",
+       "ShaderMaterial <carrosserie>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial <dunes {InstancedBufferGeometry ro-1  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "13k",
+       "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "7k",
+       "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "7k",
+       "ShaderMaterial[I] <dunes décor tiré>"
+      ],
+      [
+       1,
+       "0k",
+       "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "48k",
+       "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+      ],
+      [
+       1,
+       "6k",
+       "MeshPhongMaterial <piste bitume moyen {BufferGeometry ro0 moyenne a39c8e}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  8ea4ff}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial < {InstancedBufferGeometry ro2 T  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "SpriteMaterial < {BufferGeometry ro4 T add  ffd0f4}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I]"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <dunes sable {BufferGeometry ro8 T  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+      ]
+     ]
+    },
+    {
+     "d": 900,
+     "cout": {
+      "appels": 94,
+      "triangles": 234592,
+      "dpr": 1.5,
+      "px": 740610
+     },
+     "appels": 88,
+     "triangles": "167k",
+     "familles": [
+      [
+       13,
+       "2k",
+       "MeshDepthMaterial <carrosserie>"
+      ],
+      [
+       11,
+       "2k",
+       "MeshPhongMaterial <carrosserie>"
+      ],
+      [
+       6,
+       "0k",
+       "MeshBasicMaterial <carrosserie>"
+      ],
+      [
+       5,
+       "6k",
+       "MeshPhongMaterial"
+      ],
+      [
+       4,
+       "4k",
+       "MeshDepthMaterial"
+      ],
+      [
+       4,
+       "4k",
+       "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       3,
+       "0k",
+       "SpriteMaterial <carrosserie>"
+      ],
+      [
+       3,
+       "0k",
+       "ShaderMaterial"
+      ],
+      [
+       2,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+      ],
+      [
+       2,
+       "2k",
+       "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+      ],
+      [
+       2,
+       "72k",
+       "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+      ],
+      [
+       2,
+       "7k",
+       "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+      ],
+      [
+       2,
+       "14k",
+       "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  19b1d3}> (scène)"
+      ],
+      [
+       2,
+       "3k",
+       "MeshBasicMaterial"
+      ],
+      [
+       2,
+       "14k",
+       "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  27083c}> (scène)"
+      ],
+      [
+       2,
+       "4k",
+       "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+      ],
+      [
+       2,
+       "0k",
+       "ShaderMaterial <carrosserie>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial <dunes {InstancedBufferGeometry ro-1  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "8k",
+       "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "4k",
+       "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "7k",
+       "ShaderMaterial[I] <dunes décor tiré>"
+      ],
+      [
+       1,
+       "0k",
+       "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  8ea4ff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffd75e}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial < {InstancedBufferGeometry ro2 T  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "SpriteMaterial < {BufferGeometry ro4 T add  ffd0f4}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I]"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <dunes sable {BufferGeometry ro8 T  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+      ]
+     ]
+    },
+    {
+     "d": 2800,
+     "cout": {
+      "appels": 149,
+      "triangles": 254686,
+      "dpr": 1.5,
+      "px": 740610
+     },
+     "appels": 143,
+     "triangles": "205k",
+     "familles": [
+      [
+       29,
+       "3k",
+       "MeshDepthMaterial <carrosserie>"
+      ],
+      [
+       17,
+       "2k",
+       "MeshPhongMaterial <carrosserie>"
+      ],
+      [
+       16,
+       "0k",
+       "MeshBasicMaterial <carrosserie>"
+      ],
+      [
+       8,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+      ],
+      [
+       8,
+       "6k",
+       "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+      ],
+      [
+       7,
+       "9k",
+       "MeshPhongMaterial"
+      ],
+      [
+       5,
+       "0k",
+       "ShaderMaterial"
+      ],
+      [
+       4,
+       "4k",
+       "MeshDepthMaterial"
+      ],
+      [
+       4,
+       "4k",
+       "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       3,
+       "12k",
+       "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+      ],
+      [
+       3,
+       "24k",
+       "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  19b1d3}> (scène)"
+      ],
+      [
+       3,
+       "0k",
+       "SpriteMaterial <carrosserie>"
+      ],
+      [
+       3,
+       "24k",
+       "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  27083c}> (scène)"
+      ],
+      [
+       3,
+       "6k",
+       "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+      ],
+      [
+       2,
+       "18k",
+       "MeshPhongMaterial <piste bitume moyen {BufferGeometry ro0 moyenne a39c8e}> (scène)"
+      ],
+      [
+       2,
+       "3k",
+       "MeshBasicMaterial"
+      ],
+      [
+       2,
+       "0k",
+       "ShaderMaterial <carrosserie>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial <dunes {InstancedBufferGeometry ro-1  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "15k",
+       "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "7k",
+       "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "7k",
+       "ShaderMaterial[I] <dunes décor tiré>"
+      ],
+      [
+       1,
+       "0k",
+       "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "48k",
+       "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  8ea4ff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ff8a20}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffd75e}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial < {InstancedBufferGeometry ro2 T  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "SpriteMaterial < {BufferGeometry ro4 T add  ffd0f4}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I]"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <dunes sable {BufferGeometry ro8 T  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+      ]
+     ]
+    }
+   ],
+   "familles": [
+    [
+     29,
+     "3k",
+     "MeshDepthMaterial <carrosserie>"
+    ],
+    [
+     17,
+     "2k",
+     "MeshPhongMaterial <carrosserie>"
+    ],
+    [
+     16,
+     "0k",
+     "MeshBasicMaterial <carrosserie>"
+    ],
+    [
+     8,
+     "0k",
+     "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+    ],
+    [
+     8,
+     "6k",
+     "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+    ],
+    [
+     7,
+     "9k",
+     "MeshPhongMaterial"
+    ],
+    [
+     5,
+     "0k",
+     "ShaderMaterial"
+    ],
+    [
+     4,
+     "4k",
+     "MeshDepthMaterial"
+    ],
+    [
+     4,
+     "4k",
+     "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+    ],
+    [
+     3,
+     "12k",
+     "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+    ],
+    [
+     3,
+     "24k",
+     "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  19b1d3}> (scène)"
+    ],
+    [
+     3,
+     "0k",
+     "SpriteMaterial <carrosserie>"
+    ],
+    [
+     3,
+     "24k",
+     "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  27083c}> (scène)"
+    ],
+    [
+     3,
+     "6k",
+     "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+    ],
+    [
+     2,
+     "18k",
+     "MeshPhongMaterial <piste bitume moyen {BufferGeometry ro0 moyenne a39c8e}> (scène)"
+    ],
+    [
+     2,
+     "3k",
+     "MeshBasicMaterial"
+    ],
+    [
+     2,
+     "0k",
+     "ShaderMaterial <carrosserie>"
+    ],
+    [
+     1,
+     "1k",
+     "ShaderMaterial <dunes {InstancedBufferGeometry ro-1  }> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "15k",
+     "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+    ],
+    [
+     1,
+     "7k",
+     "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+    ],
+    [
+     1,
+     "7k",
+     "ShaderMaterial[I] <dunes décor tiré>"
+    ],
+    [
+     1,
+     "0k",
+     "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "48k",
+     "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+    ],
+    [
+     1,
+     "3k",
+     "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  8ea4ff}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  ff8a20}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  ffd75e}> (scène)"
+    ],
+    [
+     1,
+     "2k",
+     "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "ShaderMaterial < {InstancedBufferGeometry ro2 T  }> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "SpriteMaterial < {BufferGeometry ro4 T add  ffd0f4}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+    ],
+    [
+     1,
+     "3k",
+     "ShaderMaterial[I]"
+    ],
+    [
+     1,
+     "0k",
+     "ShaderMaterial <dunes sable {BufferGeometry ro8 T  }> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+    ]
+   ]
+  },
+  {
+   "map": "canyon:matin",
+   "palier": 2,
+   "appels": 123,
+   "triangles": 591896,
+   "dbgAppels": 116,
+   "dbgTri": "427k",
+   "positions": [
+    {
+     "d": 1800,
+     "cout": {
+      "appels": 107,
+      "triangles": 553942,
+      "dpr": 1.5,
+      "px": 740610
+     },
+     "appels": 100,
+     "triangles": "415k",
+     "familles": [
+      [
+       13,
+       "2k",
+       "MeshDepthMaterial <carrosserie>"
+      ],
+      [
+       11,
+       "2k",
+       "MeshPhongMaterial <carrosserie>"
+      ],
+      [
+       6,
+       "0k",
+       "MeshBasicMaterial <carrosserie>"
+      ],
+      [
+       5,
+       "6k",
+       "MeshPhongMaterial"
+      ],
+      [
+       4,
+       "4k",
+       "MeshDepthMaterial"
+      ],
+      [
+       4,
+       "0k",
+       "SpriteMaterial <carrosserie>"
+      ],
+      [
+       4,
+       "4k",
+       "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       3,
+       "164k",
+       "ShaderMaterial[I] <canyon décor>"
+      ],
+      [
+       3,
+       "12k",
+       "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+      ],
+      [
+       3,
+       "24k",
+       "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  179c87}> (scène)"
+      ],
+      [
+       3,
+       "24k",
+       "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  22e0c2}> (scène)"
+      ],
+      [
+       3,
+       "6k",
+       "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+      ],
+      [
+       3,
+       "0k",
+       "ShaderMaterial"
+      ],
+      [
+       2,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+      ],
+      [
+       2,
+       "1k",
+       "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+      ],
+      [
+       2,
+       "96k",
+       "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+      ],
+      [
+       2,
+       "3k",
+       "MeshBasicMaterial"
+      ],
+      [
+       1,
+       "2k",
+       "ShaderMaterial <canyon {InstancedBufferGeometry ro-1  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "15k",
+       "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "7k",
+       "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "6k",
+       "ShaderMaterial[I] <canyon route 66>"
+      ],
+      [
+       1,
+       "5k",
+       "ShaderMaterial[I] <canyon éboulis>"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial[I] < {BufferGeometry ro0  }> (scène)"
+      ],
+      [
+       1,
+       "8k",
+       "ShaderMaterial <tunnelFacade>"
+      ],
+      [
+       1,
+       "9k",
+       "MeshBasicMaterial <tunnel>"
+      ],
+      [
+       1,
+       "0k",
+       "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "6k",
+       "MeshPhongMaterial <piste bitume moyen {BufferGeometry ro0 moyenne a39c8e}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  8ea4ff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffd75e}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "1k",
+       "MeshBasicMaterial <canyon décor>"
+      ],
+      [
+       1,
+       "0k",
+       "SpriteMaterial < {BufferGeometry ro4 T add  b8ffe0}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I]"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <canyon poussière {BufferGeometry ro8 T add  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+      ]
+     ]
+    },
+    {
+     "d": 900,
+     "cout": {
+      "appels": 104,
+      "triangles": 512380,
+      "dpr": 1.5,
+      "px": 740610
+     },
+     "appels": 97,
+     "triangles": "355k",
+     "familles": [
+      [
+       13,
+       "2k",
+       "MeshDepthMaterial <carrosserie>"
+      ],
+      [
+       11,
+       "2k",
+       "MeshPhongMaterial <carrosserie>"
+      ],
+      [
+       6,
+       "0k",
+       "MeshBasicMaterial <carrosserie>"
+      ],
+      [
+       4,
+       "4k",
+       "MeshDepthMaterial"
+      ],
+      [
+       4,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+      ],
+      [
+       4,
+       "4k",
+       "MeshPhongMaterial"
+      ],
+      [
+       4,
+       "0k",
+       "SpriteMaterial <carrosserie>"
+      ],
+      [
+       4,
+       "4k",
+       "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       3,
+       "164k",
+       "ShaderMaterial[I] <canyon décor>"
+      ],
+      [
+       2,
+       "2k",
+       "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+      ],
+      [
+       2,
+       "71k",
+       "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+      ],
+      [
+       2,
+       "7k",
+       "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+      ],
+      [
+       2,
+       "14k",
+       "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  1cb9a0}> (scène)"
+      ],
+      [
+       2,
+       "3k",
+       "MeshBasicMaterial"
+      ],
+      [
+       2,
+       "14k",
+       "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  2b15f0}> (scène)"
+      ],
+      [
+       2,
+       "4k",
+       "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+      ],
+      [
+       2,
+       "0k",
+       "ShaderMaterial"
+      ],
+      [
+       2,
+       "0k",
+       "ShaderMaterial <carrosserie>"
+      ],
+      [
+       1,
+       "2k",
+       "ShaderMaterial <canyon {InstancedBufferGeometry ro-1  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "13k",
+       "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "7k",
+       "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "6k",
+       "ShaderMaterial[I] <canyon route 66>"
+      ],
+      [
+       1,
+       "5k",
+       "ShaderMaterial[I] <canyon éboulis>"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial[I] < {BufferGeometry ro0  }> (scène)"
+      ],
+      [
+       1,
+       "8k",
+       "ShaderMaterial <tunnelFacade>"
+      ],
+      [
+       1,
+       "9k",
+       "MeshBasicMaterial <tunnel>"
+      ],
+      [
+       1,
+       "0k",
+       "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  8ea4ff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffd75e}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "1k",
+       "MeshBasicMaterial <canyon décor>"
+      ],
+      [
+       1,
+       "0k",
+       "SpriteMaterial < {BufferGeometry ro4 T add  b8ffe0}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I]"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <canyon poussière {BufferGeometry ro8 T add  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+      ]
+     ]
+    },
+    {
+     "d": 2800,
+     "cout": {
+      "appels": 123,
+      "triangles": 591896,
+      "dpr": 1.5,
+      "px": 740610
+     },
+     "appels": 116,
+     "triangles": "427k",
+     "familles": [
+      [
+       13,
+       "2k",
+       "MeshDepthMaterial <carrosserie>"
+      ],
+      [
+       11,
+       "2k",
+       "MeshPhongMaterial <carrosserie>"
+      ],
+      [
+       8,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+      ],
+      [
+       8,
+       "6k",
+       "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+      ],
+      [
+       6,
+       "0k",
+       "MeshBasicMaterial <carrosserie>"
+      ],
+      [
+       6,
+       "8k",
+       "MeshPhongMaterial"
+      ],
+      [
+       4,
+       "4k",
+       "MeshDepthMaterial"
+      ],
+      [
+       4,
+       "0k",
+       "SpriteMaterial <carrosserie>"
+      ],
+      [
+       4,
+       "4k",
+       "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       4,
+       "0k",
+       "ShaderMaterial"
+      ],
+      [
+       3,
+       "164k",
+       "ShaderMaterial[I] <canyon décor>"
+      ],
+      [
+       3,
+       "12k",
+       "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+      ],
+      [
+       3,
+       "24k",
+       "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  1cb9a0}> (scène)"
+      ],
+      [
+       3,
+       "24k",
+       "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  2b15f0}> (scène)"
+      ],
+      [
+       3,
+       "6k",
+       "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+      ],
+      [
+       2,
+       "96k",
+       "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+      ],
+      [
+       2,
+       "3k",
+       "MeshBasicMaterial"
+      ],
+      [
+       2,
+       "0k",
+       "ShaderMaterial <carrosserie>"
+      ],
+      [
+       1,
+       "2k",
+       "ShaderMaterial <canyon {InstancedBufferGeometry ro-1  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "18k",
+       "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "8k",
+       "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "6k",
+       "ShaderMaterial[I] <canyon route 66>"
+      ],
+      [
+       1,
+       "5k",
+       "ShaderMaterial[I] <canyon éboulis>"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial[I] < {BufferGeometry ro0  }> (scène)"
+      ],
+      [
+       1,
+       "8k",
+       "ShaderMaterial <tunnelFacade>"
+      ],
+      [
+       1,
+       "9k",
+       "MeshBasicMaterial <tunnel>"
+      ],
+      [
+       1,
+       "0k",
+       "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "6k",
+       "MeshPhongMaterial <piste bitume moyen {BufferGeometry ro0 moyenne a39c8e}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  8ea4ff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffd75e}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "1k",
+       "MeshBasicMaterial <canyon décor>"
+      ],
+      [
+       1,
+       "0k",
+       "SpriteMaterial < {BufferGeometry ro4 T add  b8ffe0}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I]"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <canyon poussière {BufferGeometry ro8 T add  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+      ]
+     ]
+    }
+   ],
+   "familles": [
+    [
+     13,
+     "2k",
+     "MeshDepthMaterial <carrosserie>"
+    ],
+    [
+     11,
+     "2k",
+     "MeshPhongMaterial <carrosserie>"
+    ],
+    [
+     8,
+     "0k",
+     "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+    ],
+    [
+     8,
+     "6k",
+     "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+    ],
+    [
+     6,
+     "0k",
+     "MeshBasicMaterial <carrosserie>"
+    ],
+    [
+     6,
+     "8k",
+     "MeshPhongMaterial"
+    ],
+    [
+     4,
+     "4k",
+     "MeshDepthMaterial"
+    ],
+    [
+     4,
+     "0k",
+     "SpriteMaterial <carrosserie>"
+    ],
+    [
+     4,
+     "4k",
+     "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+    ],
+    [
+     4,
+     "0k",
+     "ShaderMaterial"
+    ],
+    [
+     3,
+     "164k",
+     "ShaderMaterial[I] <canyon décor>"
+    ],
+    [
+     3,
+     "12k",
+     "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+    ],
+    [
+     3,
+     "24k",
+     "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  1cb9a0}> (scène)"
+    ],
+    [
+     3,
+     "24k",
+     "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  2b15f0}> (scène)"
+    ],
+    [
+     3,
+     "6k",
+     "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+    ],
+    [
+     2,
+     "96k",
+     "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+    ],
+    [
+     2,
+     "3k",
+     "MeshBasicMaterial"
+    ],
+    [
+     2,
+     "0k",
+     "ShaderMaterial <carrosserie>"
+    ],
+    [
+     1,
+     "2k",
+     "ShaderMaterial <canyon {InstancedBufferGeometry ro-1  }> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "18k",
+     "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+    ],
+    [
+     1,
+     "8k",
+     "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+    ],
+    [
+     1,
+     "6k",
+     "ShaderMaterial[I] <canyon route 66>"
+    ],
+    [
+     1,
+     "5k",
+     "ShaderMaterial[I] <canyon éboulis>"
+    ],
+    [
+     1,
+     "0k",
+     "ShaderMaterial[I] < {BufferGeometry ro0  }> (scène)"
+    ],
+    [
+     1,
+     "8k",
+     "ShaderMaterial <tunnelFacade>"
+    ],
+    [
+     1,
+     "9k",
+     "MeshBasicMaterial <tunnel>"
+    ],
+    [
+     1,
+     "0k",
+     "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "6k",
+     "MeshPhongMaterial <piste bitume moyen {BufferGeometry ro0 moyenne a39c8e}> (scène)"
+    ],
+    [
+     1,
+     "3k",
+     "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  8ea4ff}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  ffd75e}> (scène)"
+    ],
+    [
+     1,
+     "2k",
+     "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "1k",
+     "MeshBasicMaterial <canyon décor>"
+    ],
+    [
+     1,
+     "0k",
+     "SpriteMaterial < {BufferGeometry ro4 T add  b8ffe0}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+    ],
+    [
+     1,
+     "3k",
+     "ShaderMaterial[I]"
+    ],
+    [
+     1,
+     "0k",
+     "ShaderMaterial <canyon poussière {BufferGeometry ro8 T add  }> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+    ]
+   ]
+  },
+  {
+   "map": "foret:midi",
+   "palier": 2,
+   "appels": 149,
+   "triangles": 655266,
+   "dbgAppels": 165,
+   "dbgTri": "745k",
+   "positions": [
+    {
+     "d": 1800,
+     "cout": {
+      "appels": 131,
+      "triangles": 491666,
+      "dpr": 1.5,
+      "px": 740610
+     },
+     "appels": 126,
+     "triangles": "508k",
+     "familles": [
+      [
+       13,
+       "2k",
+       "MeshDepthMaterial <carrosserie>"
+      ],
+      [
+       9,
+       "2k",
+       "MeshPhongMaterial <carrosserie>"
+      ],
+      [
+       7,
+       "53k",
+       "ShaderMaterial <forêt sol>"
+      ],
+      [
+       6,
+       "0k",
+       "MeshBasicMaterial <carrosserie>"
+      ],
+      [
+       4,
+       "3k",
+       "ShaderMaterial"
+      ],
+      [
+       4,
+       "4k",
+       "MeshDepthMaterial"
+      ],
+      [
+       4,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+      ],
+      [
+       4,
+       "4k",
+       "MeshPhongMaterial"
+      ],
+      [
+       4,
+       "154k",
+       "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+      ],
+      [
+       4,
+       "15k",
+       "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+      ],
+      [
+       4,
+       "31k",
+       "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  8ca82a}> (scène)"
+      ],
+      [
+       4,
+       "31k",
+       "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  c8f03c}> (scène)"
+      ],
+      [
+       4,
+       "8k",
+       "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+      ],
+      [
+       4,
+       "4k",
+       "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       3,
+       "0k",
+       "ShaderMaterial <forêt abeilles>"
+      ],
+      [
+       3,
+       "0k",
+       "SpriteMaterial <carrosserie>"
+      ],
+      [
+       2,
+       "3k",
+       "MeshBasicMaterial"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "21k",
+       "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "12k",
+       "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "1k",
+       "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "ShaderMaterial[I] <forêt epicea0>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt epicea1>"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I] <forêt sapin0>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt sapin1>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt pin0>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt pin1>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt saule1>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt pleureur1>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt loin-feuillus>"
+      ],
+      [
+       1,
+       "4k",
+       "ShaderMaterial[I] <forêt loin-coniferes>"
+      ],
+      [
+       1,
+       "19k",
+       "ShaderMaterial[I] <forêt Gancien0>"
+      ],
+      [
+       1,
+       "5k",
+       "ShaderMaterial[I] <forêt Gancien1>"
+      ],
+      [
+       1,
+       "66k",
+       "ShaderMaterial[I] <forêt Ggsaule0>"
+      ],
+      [
+       1,
+       "6k",
+       "ShaderMaterial[I] <forêt Ggsaule1>"
+      ],
+      [
+       1,
+       "24k",
+       "ShaderMaterial[I] <forêt Ggpleureur0>"
+      ],
+      [
+       1,
+       "8k",
+       "ShaderMaterial[I] <forêt Ggpleureur1>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt rochers>"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I] <forêt fleurs>"
+      ],
+      [
+       1,
+       "4k",
+       "ShaderMaterial[I] <forêt lierre>"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <forêt papillons {InstancedBufferGeometry ro0  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  8ea4ff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffd75e}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt brume>"
+      ],
+      [
+       1,
+       "0k",
+       "SpriteMaterial < {BufferGeometry ro4 T add  d8d0ff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <forêt rayons>"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I]"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <forêt lucioles {BufferGeometry ro8 T add  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial < {RingGeometry ro22 T add  }> (scène)"
+      ]
+     ]
+    },
+    {
+     "d": 900,
+     "cout": {
+      "appels": 149,
+      "triangles": 655266,
+      "dpr": 1.5,
+      "px": 740610
+     },
+     "appels": 165,
+     "triangles": "745k",
+     "familles": [
+      [
+       13,
+       "7k",
+       "ShaderMaterial"
+      ],
+      [
+       13,
+       "2k",
+       "MeshDepthMaterial <carrosserie>"
+      ],
+      [
+       11,
+       "16k",
+       "MeshPhongMaterial"
+      ],
+      [
+       9,
+       "2k",
+       "MeshPhongMaterial <carrosserie>"
+      ],
+      [
+       8,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+      ],
+      [
+       8,
+       "5k",
+       "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+      ],
+      [
+       7,
+       "34k",
+       "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+      ],
+      [
+       7,
+       "67k",
+       "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  8ca82a}> (scène)"
+      ],
+      [
+       7,
+       "67k",
+       "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  c8f03c}> (scène)"
+      ],
+      [
+       7,
+       "17k",
+       "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+      ],
+      [
+       6,
+       "49k",
+       "ShaderMaterial <forêt sol>"
+      ],
+      [
+       5,
+       "0k",
+       "MeshBasicMaterial <carrosserie>"
+      ],
+      [
+       4,
+       "4k",
+       "MeshDepthMaterial"
+      ],
+      [
+       4,
+       "48k",
+       "MeshPhongMaterial <piste bitume moyen {BufferGeometry ro0 moyenne a39c8e}> (scène)"
+      ],
+      [
+       4,
+       "4k",
+       "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       3,
+       "0k",
+       "ShaderMaterial <forêt abeilles>"
+      ],
+      [
+       3,
+       "144k",
+       "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+      ],
+      [
+       2,
+       "0k",
+       "SpriteMaterial <carrosserie>"
+      ],
+      [
+       2,
+       "3k",
+       "MeshBasicMaterial"
+      ],
+      [
+       1,
+       "1k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "22k",
+       "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "11k",
+       "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I] <forêt epicea0>"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I] <forêt epicea1>"
+      ],
+      [
+       1,
+       "2k",
+       "ShaderMaterial[I] <forêt sapin0>"
+      ],
+      [
+       1,
+       "2k",
+       "ShaderMaterial[I] <forêt sapin1>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt pin0>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt pin1>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt saule0>"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial[I] <forêt saule1>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt pleureur1>"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I] <forêt loin-feuillus>"
+      ],
+      [
+       1,
+       "8k",
+       "ShaderMaterial[I] <forêt loin-coniferes>"
+      ],
+      [
+       1,
+       "23k",
+       "ShaderMaterial[I] <forêt Gancien0>"
+      ],
+      [
+       1,
+       "33k",
+       "ShaderMaterial[I] <forêt Gancien1>"
+      ],
+      [
+       1,
+       "60k",
+       "ShaderMaterial[I] <forêt Ggsaule0>"
+      ],
+      [
+       1,
+       "42k",
+       "ShaderMaterial[I] <forêt Ggsaule1>"
+      ],
+      [
+       1,
+       "16k",
+       "ShaderMaterial[I] <forêt Ggpleureur0>"
+      ],
+      [
+       1,
+       "25k",
+       "ShaderMaterial[I] <forêt Ggpleureur1>"
+      ],
+      [
+       1,
+       "2k",
+       "ShaderMaterial[I] <forêt rochers>"
+      ],
+      [
+       1,
+       "2k",
+       "ShaderMaterial[I] <forêt fleurs>"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I] <forêt lierre>"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <forêt papillons {InstancedBufferGeometry ro0  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  8ea4ff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffd75e}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+      ],
+      [
+       1,
+       "1k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt brume>"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <forêt rayons>"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I]"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <forêt lucioles {BufferGeometry ro8 T add  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial < {RingGeometry ro22 T add  }> (scène)"
+      ]
+     ]
+    },
+    {
+     "d": 2800,
+     "cout": {
+      "appels": 129,
+      "triangles": 395180,
+      "dpr": 1.5,
+      "px": 740610
+     },
+     "appels": 122,
+     "triangles": "396k",
+     "familles": [
+      [
+       13,
+       "2k",
+       "MeshDepthMaterial <carrosserie>"
+      ],
+      [
+       11,
+       "2k",
+       "MeshPhongMaterial <carrosserie>"
+      ],
+      [
+       7,
+       "51k",
+       "ShaderMaterial <forêt sol>"
+      ],
+      [
+       6,
+       "8k",
+       "ShaderMaterial"
+      ],
+      [
+       6,
+       "0k",
+       "MeshBasicMaterial <carrosserie>"
+      ],
+      [
+       5,
+       "6k",
+       "MeshPhongMaterial"
+      ],
+      [
+       4,
+       "4k",
+       "MeshDepthMaterial"
+      ],
+      [
+       4,
+       "0k",
+       "SpriteMaterial < {BufferGeometry ro-6 T add  ffffff}> (scène)"
+      ],
+      [
+       4,
+       "4k",
+       "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       3,
+       "0k",
+       "SpriteMaterial <carrosserie>"
+      ],
+      [
+       2,
+       "96k",
+       "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+      ],
+      [
+       2,
+       "10k",
+       "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+      ],
+      [
+       2,
+       "19k",
+       "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  8ca82a}> (scène)"
+      ],
+      [
+       2,
+       "3k",
+       "MeshBasicMaterial"
+      ],
+      [
+       2,
+       "19k",
+       "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  c8f03c}> (scène)"
+      ],
+      [
+       2,
+       "5k",
+       "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "17k",
+       "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "11k",
+       "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt epicea0>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt epicea1>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt sapin0>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt sapin1>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt pin0>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt pin1>"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I] <forêt saule0>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt saule1>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt pleureur0>"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial[I] <forêt pleureur1>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt loin-feuillus>"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I] <forêt loin-coniferes>"
+      ],
+      [
+       1,
+       "16k",
+       "ShaderMaterial[I] <forêt Gancien0>"
+      ],
+      [
+       1,
+       "4k",
+       "ShaderMaterial[I] <forêt Gancien1>"
+      ],
+      [
+       1,
+       "55k",
+       "ShaderMaterial[I] <forêt Ggsaule0>"
+      ],
+      [
+       1,
+       "4k",
+       "ShaderMaterial[I] <forêt Ggsaule1>"
+      ],
+      [
+       1,
+       "24k",
+       "ShaderMaterial[I] <forêt Ggpleureur0>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt Ggpleureur1>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt rochers>"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt amanites>"
+      ],
+      [
+       1,
+       "2k",
+       "ShaderMaterial[I] <forêt fleurs>"
+      ],
+      [
+       1,
+       "4k",
+       "ShaderMaterial[I] <forêt lierre>"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <forêt papillons {InstancedBufferGeometry ro0  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "SpriteMaterial < {BufferGeometry ro-8 T add base,chif ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "SpriteMaterial < {BufferGeometry ro-7 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "SpriteMaterial"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  8ea4ff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "PointsMaterial < {BufferGeometry ro0 T add  ffd75e}> (scène)"
+      ],
+      [
+       1,
+       "2k",
+       "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+      ],
+      [
+       1,
+       "1k",
+       "ShaderMaterial[I] <forêt brume>"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <forêt rayons>"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+      ],
+      [
+       1,
+       "3k",
+       "ShaderMaterial[I]"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial <forêt lucioles {BufferGeometry ro8 T add  }> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+      ],
+      [
+       1,
+       "0k",
+       "ShaderMaterial < {RingGeometry ro22 T add  }> (scène)"
+      ]
+     ]
+    }
+   ],
+   "familles": [
+    [
+     13,
+     "7k",
+     "ShaderMaterial"
+    ],
+    [
+     13,
+     "2k",
+     "MeshDepthMaterial <carrosserie>"
+    ],
+    [
+     11,
+     "16k",
+     "MeshPhongMaterial"
+    ],
+    [
+     9,
+     "2k",
+     "MeshPhongMaterial <carrosserie>"
+    ],
+    [
+     8,
+     "0k",
+     "MeshBasicMaterial < {PlaneGeometry ro0  707071}> (scène)"
+    ],
+    [
+     8,
+     "5k",
+     "MeshPhongMaterial < {BufferGeometry ro0 fruit ffffff}> (scène)"
+    ],
+    [
+     7,
+     "34k",
+     "MeshLambertMaterial <piste flancs {BufferGeometry ro0  3a3833}> (scène)"
+    ],
+    [
+     7,
+     "67k",
+     "MeshBasicMaterial <piste rails néon {BufferGeometry ro0  8ca82a}> (scène)"
+    ],
+    [
+     7,
+     "67k",
+     "MeshBasicMaterial <piste nappe néon {BufferGeometry ro1 T add  c8f03c}> (scène)"
+    ],
+    [
+     7,
+     "17k",
+     "MeshBasicMaterial <piste ligne centrale {BufferGeometry ro1 T  ffd75e}> (scène)"
+    ],
+    [
+     6,
+     "49k",
+     "ShaderMaterial <forêt sol>"
+    ],
+    [
+     5,
+     "0k",
+     "MeshBasicMaterial <carrosserie>"
+    ],
+    [
+     4,
+     "4k",
+     "MeshDepthMaterial"
+    ],
+    [
+     4,
+     "48k",
+     "MeshPhongMaterial <piste bitume moyen {BufferGeometry ro0 moyenne a39c8e}> (scène)"
+    ],
+    [
+     4,
+     "4k",
+     "MeshBasicMaterial < {BufferGeometry ro2 T add  ffffff}> (scène)"
+    ],
+    [
+     3,
+     "0k",
+     "ShaderMaterial <forêt abeilles>"
+    ],
+    [
+     3,
+     "144k",
+     "MeshPhongMaterial <piste bitume {BufferGeometry ro0  a39c8e}> (scène)"
+    ],
+    [
+     2,
+     "0k",
+     "SpriteMaterial <carrosserie>"
+    ],
+    [
+     2,
+     "3k",
+     "MeshBasicMaterial"
+    ],
+    [
+     1,
+     "1k",
+     "MeshBasicMaterial[I] < {BoxGeometry ro0  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "22k",
+     "MeshPhongMaterial[I] <pièces 1 € {BufferGeometry ro0  999999}> (scène)"
+    ],
+    [
+     1,
+     "11k",
+     "MeshPhongMaterial[I] <pièces 2 € {BufferGeometry ro0  999999}> (scène)"
+    ],
+    [
+     1,
+     "3k",
+     "ShaderMaterial[I] <forêt epicea0>"
+    ],
+    [
+     1,
+     "3k",
+     "ShaderMaterial[I] <forêt epicea1>"
+    ],
+    [
+     1,
+     "2k",
+     "ShaderMaterial[I] <forêt sapin0>"
+    ],
+    [
+     1,
+     "2k",
+     "ShaderMaterial[I] <forêt sapin1>"
+    ],
+    [
+     1,
+     "1k",
+     "ShaderMaterial[I] <forêt pin0>"
+    ],
+    [
+     1,
+     "1k",
+     "ShaderMaterial[I] <forêt pin1>"
+    ],
+    [
+     1,
+     "1k",
+     "ShaderMaterial[I] <forêt saule0>"
+    ],
+    [
+     1,
+     "0k",
+     "ShaderMaterial[I] <forêt saule1>"
+    ],
+    [
+     1,
+     "1k",
+     "ShaderMaterial[I] <forêt pleureur1>"
+    ],
+    [
+     1,
+     "3k",
+     "ShaderMaterial[I] <forêt loin-feuillus>"
+    ],
+    [
+     1,
+     "8k",
+     "ShaderMaterial[I] <forêt loin-coniferes>"
+    ],
+    [
+     1,
+     "23k",
+     "ShaderMaterial[I] <forêt Gancien0>"
+    ],
+    [
+     1,
+     "33k",
+     "ShaderMaterial[I] <forêt Gancien1>"
+    ],
+    [
+     1,
+     "60k",
+     "ShaderMaterial[I] <forêt Ggsaule0>"
+    ],
+    [
+     1,
+     "42k",
+     "ShaderMaterial[I] <forêt Ggsaule1>"
+    ],
+    [
+     1,
+     "16k",
+     "ShaderMaterial[I] <forêt Ggpleureur0>"
+    ],
+    [
+     1,
+     "25k",
+     "ShaderMaterial[I] <forêt Ggpleureur1>"
+    ],
+    [
+     1,
+     "2k",
+     "ShaderMaterial[I] <forêt rochers>"
+    ],
+    [
+     1,
+     "2k",
+     "ShaderMaterial[I] <forêt fleurs>"
+    ],
+    [
+     1,
+     "3k",
+     "ShaderMaterial[I] <forêt lierre>"
+    ],
+    [
+     1,
+     "0k",
+     "ShaderMaterial <forêt papillons {InstancedBufferGeometry ro0  }> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshLambertMaterial[I] < VIDE {BoxGeometry ro0  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "3k",
+     "ShaderMaterial < {SphereGeometry ro20 ciel }> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T  9d95b6}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "LineBasicMaterial < {BufferGeometry ro0 T add  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  ff9030}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  ffe2a8}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  8ea4ff}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "PointsMaterial < {BufferGeometry ro0 T add  ffd75e}> (scène)"
+    ],
+    [
+     1,
+     "2k",
+     "MeshBasicMaterial < {BufferGeometry ro1 T  2c2a33}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial < {PlaneGeometry ro1 T  e3fbcf}> (scène)"
+    ],
+    [
+     1,
+     "1k",
+     "MeshBasicMaterial[I] < {BoxGeometry ro2 T add  ffffff}> (scène)"
+    ],
+    [
+     1,
+     "1k",
+     "ShaderMaterial[I] <forêt brume>"
+    ],
+    [
+     1,
+     "0k",
+     "ShaderMaterial <forêt rayons>"
+    ],
+    [
+     1,
+     "3k",
+     "ShaderMaterial[I]"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < VIDE {BoxGeometry ro7 T  d6fbff}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "ShaderMaterial <forêt lucioles {BufferGeometry ro8 T add  }> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "MeshBasicMaterial[I] < VIDE {BoxGeometry ro8 T  eefcff}> (scène)"
+    ],
+    [
+     1,
+     "0k",
+     "ShaderMaterial < {RingGeometry ro22 T add  }> (scène)"
+    ]
+   ]
+  }
+ ]
+}

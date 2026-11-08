@@ -531,6 +531,8 @@ try{Object.keys({'RIEN ICI':1,'TOUT EST A TOI':1}).forEach(function(k){if(!I18N[
      qu'une fois, à la fin, et la grille se découvre déjà remplie ;
    · les photos sont GARDÉES d'une session à l'autre pour la version publiée (PHDB) : la 2e ouverture n'en prend plus aucune. */
 const PHQ={q:[],on:false,pret:0,defile:0};
+/* (2026-11-07, Perf 3 — P5) JAMAIS DE PHOTO PENDANT UN DÉFILEMENT : tout `scroll` de la page (inventaire, bandes, boutique) date PHQ.defile — avant, seule la bande de la boutique 3D le faisait ; `photoTour` (une photo par 150 ms au moins) et `shopPhotoTour` s'y plient. `?menu=max` = comme avant. */
+document.addEventListener('scroll',function(){if(!MENU_MAX)PHQ.defile=performance.now();},{capture:true,passive:true});
 function photoFile(i,cb,el){if(PHOTO.cache[i]){cb(PHOTO.cache[i]);return;}PHQ.q.push([i,cb,undefined,el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 function photoCalme(){const t=performance.now();
   if(window.__introPause)return false; /* (2026-11-08) le film de l'intro joue : RIEN ne travaille (voir INTRO_APRES) */
@@ -613,7 +615,11 @@ const SHOP_LBL={voiture:'CAISSE',peinture:'PEINTURE',aile:'AILES',trainee:'TRAÎ
    au centre : au-dessus de la caisse) dans une petite toile posée au fond de HOME. Au garage, HOME montre donc le ciel tel qu'on l'a
    quitté — jour, couchant ou nuit — et il vit d'un lent travelling (CSS). Avant la 1re prise, le ciel peint en CSS reste en secours.
    La copie se fait DANS la même image que le rendu (après, le tampon WebGL peut être vidé). */
+/* (2026-11-07, Perf 3 — P5, OPTI ULTIME / P6 : « getImageData 160×210 depuis la boucle, 27 fois sur une course de 5 min ») sur un VRAI téléphone la prise ne se fait JAMAIS en course (started && !gameOver && !MENUV.retour) : la vignette du HOME garde la dernière prise (et html.cielNuit/cielJour) jusqu'au retour au menu. `PAL.B.cielPrise` (1 = actif), `?cielprise=ancien` = comme avant. */
+PAL.B.cielPrise=[1,1,1];
+const CIELPRISE_ANCIEN=/[?&]cielprise=ancien\b/.test(location.search);
 function homeCielPrise(now){
+  if(TEL_NATIF&&!CIELPRISE_ANCIEN&&PAL.b('cielPrise',0)&&started&&!gameOver&&!MENUV.retour)return;
   const ciel=(garageOn&&!!gEl&&gEl.classList.contains('menu'))||(!garageOn&&((!started||gameOver)||MENUV.retour)); // l'ACCUEIL : le garage en mode « menu » (le ciel), ou l'ancien menu hors garage
   if(!ciel||(typeof stallOn!=='undefined'&&stallOn))return;
   if(now-(homeCielPrise._t||0)<(homeCielPrise._cv?20000:3000))return; // toutes les 3 s : le ciel change lentement, et relire l'image WebGL coûte un peu sur iPhone

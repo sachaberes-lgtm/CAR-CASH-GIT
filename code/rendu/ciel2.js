@@ -24,6 +24,7 @@
    joue hors de la ville (accueil), à l'atelier, à l'étal, dôme caché, et avec `?ciel=plein` (pour comparer sur le téléphone).
    Zéro compilation en course : les cinq programmes sont compilés ET dessinés une fois au chargement (`cielChauffe`, cibles 8×8 au
    format des vraies — la puce d'Apple fabrique son état de pipeline au premier dessin). Bancs : `dbgCiel2()`. */
+PAL.B.imgCielImg=[2,1,2]; /* (2026-11-07, passe perf 3, P2 · levier d) téléphone récent : la passe lisse du ciel une image sur DEUX (comme le palier 0 depuis C4) ; `?img=max` / `?imgsans=d` = chaque image */
 PAL.B.cielImg=[2,1,1]; /* (2026-11-05, C4) voir cielDeuxTemps : la passe lisse une image sur N (ancien 2, moyen 1, récent 1) */
 const CIEL2={on:!/[?&]ciel=plein/.test(location.search),rt:null,sc:new THREE.Scene(),me:null,v:new THREE.Vector2(),mode:'',n:0};
 CIEL2.sc.autoUpdate=false; // la matrice du maillage est recopiée de celle du dôme (déjà à jour) : rien à recalculer
@@ -52,7 +53,7 @@ function cielDeuxTemps(r9,cam){
   if(cible)U.uBasInv.value.set(1/cible.width,1/cible.height);else U.uBasInv.value.set(1/CIEL2.v.x,1/CIEL2.v.y); // le pixel de l'écran → la cible lisse
   CIEL2.me.material=md==='N'?C.basN:C.basV;CIEL2.me.matrixWorld.copy(skyDome.matrixWorld);
   /* (2026-11-05, passe perf mobile 2, C4) LA PASSE LISSE UNE IMAGE SUR N AU PALIER 0. Mesuré (banc-perf/passes.py, p0, nuages/ville/forêt) : 4 framebuffers par image dessinée (scène, ombre, CETTE passe, écran) ; la puce à tuiles de l'iPhone 7 paie chaque changement de cible. La base lisse est un fond à basses fréquences lu à la position de l'écran : la recopier une image sur deux (ancien) ne se voit pas, le détail (netN/netV) est redessiné à chaque image. Redessinée tout de suite si le mode, la taille ou la cible changent. PAL.B.cielImg=[2,1,1] (ancien, moyen, récent) ; `?cielimg=0` = avant. */
-  const nI=/[?&]cielimg=0/.test(location.search)?1:(PAL.b('cielImg',1)|0),K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
+  const nI=/[?&]cielimg=0/.test(location.search)?1:(Math.max(PAL.b('cielImg',1),PAL.bT('imgCielImg',1,'d'),IMG_DYN.ciel)|0) /* (P2) plancher du levier d ; le gouverneur thermique (cielImg plus haut) garde la main */,K=CIEL2.k||(CIEL2.k={m:'',w:0,h:0,i:0});
   if(nI>1&&K.m===md&&K.w===w&&K.h===h&&(K.i=(K.i+1)%nI)!==0){CIEL2.sautes=(CIEL2.sautes|0)+1;}
   else{K.m=md;K.w=w;K.h=h;K.i=0;r9.setRenderTarget(CIEL2.rt);r9.render(CIEL2.sc,cam);r9.setRenderTarget(cible);}
   skyDome.material=md==='N'?C.netN:C.netV;CIEL2.n++;
@@ -243,7 +244,7 @@ function engVigRender(dt){
   // principal est repeint à chaque image : un quad sauté = un moteur qui clignote)
   if(carte9){if(performance.now()-engEndT>Math.max(PAL.b('engVigMs',33),mobhChaud()?MOBH_R.engMs:0)){engEndT=performance.now();engVigRendRT(engRTc);}engQuadDraw();return;} // (2026-10-24, passe perf) la carte de COURSE aussi à la cadence du palier (engVigMs : 10 / 15 / 30 rendus par seconde) — le quad recolle l'image d'avant entre deux
   // (perf) téléphone et écran de fin : l'image n'est RECOPIÉE qu'à 30 (20) i/s — la rendre entre deux recopies ne servait à rien
-  if((fin||tel)&&performance.now()-engEndT<=(tel?Math.max(PAL.b('engVigMs',33),mobhChaud()?MOBH_R.engMs:0):50))return;
+  if((fin||tel)&&performance.now()-engEndT<=(tel?Math.max(PAL.b('engVigMs',33),MORT_ENG_MS,mobhChaud()?MOBH_R.engMs:0):50))return;
   if(tel&&ENG_MORT.cv&&ENG_MORT.cv.offsetParent===null){engEndT=performance.now();return;} // (2026-10-14, passe perf mobile) carte cachée (accueil ou atelier ouverts par-dessus la mort) : ni rendu ni relecture — et la question n'est reposée qu'à la cadence de la recopie
   // (1) le moteur dans SON framebuffer — fond transparent pour que le cadre CSS reste visible dessous
   engVigRendRT(engRT);
@@ -256,7 +257,7 @@ function engVigRender(dt){
      arrivent de bas en haut, d'où le retournement. */
   if(fin||tel){ // (tel : la carte du téléphone, même recopie — 30 images/s, le temps de la carte seulement)
     const now9=performance.now(),ctx9=tel?ENG_MORT.ctx:engEndCtx; // (vague 2) la carte de course n'a plus de <canvas> : seul l'écran de mort relit
-    if(now9-engEndT>(tel?Math.max(PAL.b('engVigMs',33),mobhChaud()?MOBH_R.engMs:0):50)&&ctx9){
+    if(now9-engEndT>(tel?Math.max(PAL.b('engVigMs',33),MORT_ENG_MS,mobhChaud()?MOBH_R.engMs:0):50)&&ctx9){
       engEndT=now9;
       const w=engRT.width,h=engRT.height;
       if(!engEndBuf){engEndBuf=new Uint8Array(w*h*4);engEndImg=ctx9.createImageData(w,h);}

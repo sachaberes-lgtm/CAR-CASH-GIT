@@ -75,6 +75,22 @@ const PAL=(function(){
      Chaque zone du jeu AJOUTE ses lignes ici (une seule table à régler), et lit `PAL.b('cle')`. */
   P.B={};
   P.b=function(k,d){const v=P.B[k];return v?v[P.n]:d;};
+  /* ===== L'IMAGE ADAPTÉE SUR TÉLÉPHONE RÉCENT (2026-11-07, passe perf 3, P2 — Sacha : « pousse l'opti au max ») =====
+     Jusqu'ici le palier 2 gardait l'image de l'ordi au pixel. Désormais, sur un VRAI téléphone (TEL_NATIF) au palier 2, six leviers (a à f) peuvent
+     retirer un peu d'image quand le GPU est le goulot ; Sacha tranche levier par levier sur captures AVANT/APRÈS (passation/perf-2026-11/captures/p2-tel/).
+       a · halo (bloom) : moins d'étages, entrée en demi-résolution     b · ombre de course plus petite, filtre simple
+       c · résolution de course plafonnée plus bas, départ au cran 1    d · passe lisse du ciel une image sur deux
+       e · stries de vent et traînées en demi-densité à grande vitesse  f · l'échelle de qualité réagit plus tôt
+     `PAL.imgOn(l)` dit si le levier l est actif ; `PAL.bT(clé, avant, l)` rend la 3e colonne de `PAL.B.clé` (= le budget « récent téléphone »)
+     si le levier est actif, sinon `avant` (la valeur exacte d'avant). L'ORDINATEUR (TEL_NATIF faux, même avec ?tel=1) : toujours `avant`.
+     Les colonnes ancien/moyen des clés `img*` ne sont pas lues : les paliers 0 et 1 gardent leur régime existant. Interrupteurs d'URL :
+     `?img=max` = tout à l'ancien · `?img=a,c` = SEULEMENT ces leviers · `?imgsans=b` = tous sauf ceux-là. `dbgImg()` décrit. */
+  P.imgMax=/[?&]img=max\b/.test(location.search);
+  const iSeul=/[?&]img=([a-j](?:,[a-j])*)(?:&|$)/.exec(location.search)||(/[?&]img=13(?:&|$)/.test(location.search)?[0,'a']:null), /* `?img=13` : le préréglage « doux » (OPTI ULTIME, 8/11) = SEUL le halo en demi-résolution ; plafond 1,5, ombre 1024, ciel et traits entiers = l'image d'avant moins le halo */ iSans=/[?&]imgsans=([a-j](?:,[a-j])*)(?:&|$)/.exec(location.search),iPlus=/[?&]imgplus=([a-j](?:,[a-j])*)(?:&|$)/.exec(location.search),iNeuf={g:0,i:1,j:0};
+  /* (2026-11-08, dernière salve, OPTI ULTIME) les leviers g (précision mediump) et j (halo à 2 étages) sont À DEMANDER : éteints par défaut ; i (textures ≤ 2048, aniso 4) est ALLUMÉ par défaut sur téléphone récent (décision OPTI ULTIME 8/11) — table `iNeuf`, 1 = allumé, `?imgplus=g,i,j` les allume, `?img=max` / `?imgsans=` les éteignent. h (anticrénelage) = rien à faire : déjà coupé sur téléphone. */
+  P.imgOn=function(l){return !!TEL_NATIF&&P.n>=2&&!P.imgMax&&(!iSeul||iSeul[1].split(',').indexOf(l)>=0)&&!(iSans&&iSans[1].split(',').indexOf(l)>=0)&&(!(l in iNeuf)||!!iNeuf[l]||!!(iPlus&&iPlus[1].split(',').indexOf(l)>=0));};
+  P.bT=function(k,avant,l){const v=P.B[k];return v&&P.imgOn(l)?v[2]:avant;};
+  window.dbgImg=function(){const o={};'abcdefgij'.split('').forEach(function(l){o[l]=P.imgOn(l);});return {telNatif:!!TEL_NATIF,palier:P.n,max:P.imgMax,leviers:o};}; // (banc)
   return P;})();
 /* ===== LES MAPS PLEINES SUR UN TÉLÉPHONE RÉCENT (2026-11-08, Léo : « des maps ont perdu leur beauté et buguent encore — rétablis la beauté, et que ce soit fluide ») =====
    Les allègements de CONTENU des maps (Jade sobre, dunes sobres, forêt ×0,8, grottes ×0,75, satellites ÷15 — 24/10 au 03/11) tenaient à ALLEGE : TOUT téléphone,
@@ -93,6 +109,16 @@ function mapsSobres(){ if(!ALLEGE||/[?&]sobre=0\b/.test(location.search))return 
    avant PAL dans le fichier). Palier 2 : inchangé (toiles gardées, outils `dbg*` qui les relisent intacts).
    `toileRend(cv)` : pour une toile de TRAVAIL (copiée dans une autre puis jetée) — invisible, vaut pour tous les paliers. */
 PAL.B.memToiles=[1,1,0]; // rendre les toiles des textures peintes une fois : ancien, moyen = oui · récent = comme avant
+const MEM_ANCIEN=/[?&]memoire=ancien\b/.test(location.search); /* (2026-11-07, Perf 3 P1) `?memoire=ancien` = tout ce que la passe « mémoire » change est débrayé (libérations au portail, copies CPU gardées, sons) */
+function memLibereCb(){this.array=null;}
+/* `memLibere(g)` (2026-11-07, Perf 3 P1) : la copie JavaScript des attributs d'une géométrie STATIQUE est jetée une fois envoyée au GPU (même mécanisme que nuLibre / grtLibere).
+   MESURÉ (instantané de tas, iPhone émulé) : les tampons typés des géométries font ~270 des ~350 Mo de `performance.memory`. ⚠ UNIQUEMENT pour une géométrie PROPRE à une piste
+   (jamais partagée d'une piste à l'autre, jamais réécrite ensuite) ; les attributs dynamiques et d'instances restent. `?memoire=ancien` = tout gardé. */
+function memLibere(g){if(MEM_ANCIEN||!g||!g.attributes)return g;
+  try{if(g.attributes.position){if(!g.boundingBox)g.computeBoundingBox();if(!g.boundingSphere)g.computeBoundingSphere();}}catch(e){} /* les boîtes se lisent encore après (fruitLeve…) : calculées AVANT de jeter le tableau */
+  for(const k in g.attributes){const a=g.attributes[k];if(a&&a.array&&!a.__bpe&&!a.isInstancedBufferAttribute&&a.usage===THREE.StaticDrawUsage){a.__bpe=a.array.BYTES_PER_ELEMENT;a.onUpload(memLibereCb);}}
+  const i=g.index;if(i&&i.array&&!i.__bpe&&i.usage===THREE.StaticDrawUsage){i.__bpe=i.array.BYTES_PER_ELEMENT;i.onUpload(memLibereCb);}
+  return g;}
 function toileRend(cv){try{if(cv&&cv.getContext)cv.width=cv.height=0;}catch(e){}}
 function texLibere(tex){if(!tex||tex._lib)return tex;tex._lib=1;const av=tex.onUpdate;
   tex.onUpdate=function(t){if(av)av(t);t.onUpdate=av||null;if(PAL.b('memToiles',0)||ALLEGE){toileRend(t.image);MEM_TOILES.n++;} /* (2026-11-05, jury RND-03) tout téléphone (ALLEGE), pas seulement les paliers ancien/moyen : un iPhone récent est au palier 0 */};return tex;}
@@ -120,7 +146,8 @@ try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',fun
    et l'anticrénelage est le FXAA de la passe finale. Même image au pixel près, ~100 Mo de moins. `?msaa=1` (l'ancien choix, voir FXAA_ON) garde le tampon. */
 const MSAA_TOILE=/[?&]msaa=1\b/.test(location.search);
 const t9rend=performance.now();
-const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance'});
+PAL.B.imgPrec=['highp','highp','mediump']; /* (2026-11-08, levier g, À DEMANDER `?imgplus=g`) précision des shaders sur téléphone : mediump = 16 bits sur les GPU Apple (moitié de registres/ALU). ⚠ three r128 la pose sur le sommet ET le fragment : positions du monde en 16 bits si le GPU la respecte — à juger sur l'iPhone, jamais par défaut */
+const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance',precision:PAL.bT('imgPrec','highp','g')});
 const TOILE1=!/[?&]toile1=0\b/.test(location.search); /* (2026-11-05, passe perf mobile 2, A2.c) UNE seule allocation de la toile : sa taille se pose plus bas, une fois DPR_CAP connu (`?toile1=0` = l'ancien ordre : taille puis rapport de pixels) */
 if(!TOILE1)renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -191,8 +218,9 @@ const VHD_PX_PC=(function(){const m=/[?&]vhdpc=([\d.]+)/.exec(location.search);r
    et le plancher le retenait à 1,25 : la 3D était dessinée à 62 % des pixels de l'écran, puis agrandie ×1,6 (floue) pendant que l'interface DOM restait nette. Sur un écran de densité ≥ 2, le plancher monte à 1,5 (le plafond « NETTE »
    des téléphones) ; la résolution adaptative (QL) sait toujours baisser si la machine tire. `?pcmin=1.25` = avant. */
 const PC_MIN=(function(){const m=/[?&]pcmin=([\d.]+)/.exec(location.search);return m?+m[1]:(RETINA_OK?1.5:1.25);})();
+PAL.B.imgDprCap=[1.25,1.35,1.25];PAL.B.imgQlDepart=[5,2,1];/* (2026-11-07, passe perf 3, P2 · levier c) téléphone récent : plafond NETTE 1,25 au lieu de 1,5 (−31 % de pixels : 513 000 au lieu de 740 000 sur un 390×844) et la course part au cran 1 de l'échelle QL ; `?img=max` / `?imgsans=c` = comme avant */
 function dprPlafond(fast){ if(fast)return Math.min(devicePixelRatio,1);
-  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.b('dprNetCap',1.5));
+  if(ALLEGE||!PC_PX)return Math.min(devicePixelRatio,PAL.bT('imgDprCap',PAL.b('dprNetCap',1.5),'c'));
   return Math.min(devicePixelRatio,Math.max(PC_MIN,Math.sqrt(PC_PX/Math.max(1,innerWidth*innerHeight))),4);}
 /* ===== UNE SEULE ALLOCATION DE LA TOILE (2026-11-05, passe perf mobile 2, A2.c) =====
    MESURÉ (Chrome iPhone émulé ×4, palier 0) : `renderer.setSize` 2 fois avant le menu — la 1re à 1 pixel/point avec DPR_CAP provisoire, la 2e (`applyQ` → `qlReprise` → `applyDPR`, ~1,1 s) une fois le choix RAPIDE/NETTE connu :
@@ -235,7 +263,10 @@ function fovPor(d){return FOV_TK===1?d:Math.min(150,Math.atan(Math.tan(Math.min(
 fovFit(true); // RÉSOLUTION ADAPTATIVE — cap desktop 1.5 : sur Retina, 1.75→1.5 = −26 % de pixels, invisible sous bloom+grain (écran 1× : min() ne change rien)
 renderer.setPixelRatio(curDPR);
 let composer=null,bloomPass=null,acesPass=null,POST_ON=false,SHADOW_ON=true; // POST-PROCESSING (assigné juste après)
-let BLOOM_RES=1; // (2026-09-27, passe perf iPhone) part de la résolution du bloom — un cran de l'échelle de qualité (QL) la baisse à ¾
+PAL.B.imgBloomRes=[1,1,.5];/* (2026-11-07, passe perf 3, P2 · levier a) le halo entre en DEMI-résolution sur un téléphone récent (colonnes ancien/moyen non lues) ; `?img=max` / `?imgsans=a` = comme avant */
+let BLOOM_BASE=PAL.bT('imgBloomRes',1,'a');
+const IMG_DYN={dens:null,vmin:200,ciel:0}; /* (2026-11-07, P2) l'état de la couche dynamique `imgRegle` (voir nettete-qualite.js) : densité imposée des traits d'air et traînées, au-delà de `vmin` km/h */
+let BLOOM_RES=BLOOM_BASE; // (2026-09-27, passe perf iPhone) part de la résolution du bloom — un cran de l'échelle de qualité (QL) la baisse à ¾
 /* (perf, lot 4) LA TAILLE DE L'ÉCRAN, LUE UNE FOIS PAR REDIMENSIONNEMENT. MESURÉ (profil, téléphone émulé) : sur Chrome mobile, lire
    `innerWidth`/`innerHeight` FORCE une mise en page complète (la page à « viewport » se remet en page pour répondre) — et comme le HUD
    venait d'écrire ses styles, chaque image en payait une : 7,7 % du processeur pendant la carte MOTEUR. Ce qui suit la caisse à l'écran
