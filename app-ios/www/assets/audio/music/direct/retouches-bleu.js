@@ -1,15 +1,15 @@
-// retouches-bleu.js — LES RETOUCHES DE POUCE BLEU (2026-10-15, pôle SON ; Léo, dans les notes de la bibliothèque : « lis mes modifs, applique,
-// rends la nouvelle version », puis « juste respecte les consignes »). Une retouche = la MÊME musique 👍 (même version du générateur, même
-// numéro, mêmes goûts), retouchée juste après sa composition : `retouche(Mx, O)` change l'ordre des 30 moteurs, les timbres, la gamme, les
-// accords, le rythme… ; `voix[nom]` / `acc[nom]` remplacent un instrument (Web Audio pur, rendus hors ligne par le générateur comme les siens).
-// Le générateur reçoit tout par start(n, W, { retouche, voix, acc }).
-// ⚠ LES CONSIGNES DE LÉO : `direct: true` = la retouche se joue SUR la musique elle-même (sa ligne de Pouce bleu, son nom, sa note) — c'est le
-// cas par défaut ; une V2 À CÔTÉ (sa propre ligne, sous l'original) seulement quand sa note le demande (« faire une V2 à côté », « tenter une V2 »).
-// Les noms : RENOMS (les « renommer … » des notes), lus par la bibliothèque si Léo n'a pas renommé lui-même.
+
+
+
+
+
+
+
+
 
 export const RENOMS = { 'bleu-9664': 'MIRAGE', 'bleu-8154': 'FIRE PRIME', 'bleu-9551': 'NÉNUPHARS VELOURS', 'bleu-3379': 'SAUVER MAMAN' };
 
-// ---------------------------------------------------------------- petits outils (Web Audio pur : ils ne dépendent d'aucune version)
+
 const sortie = c => c.destination;
 function env(c, a, h, r, v, dest) { const g = c.createGain(); g.gain.setValueAtTime(.0001, 0); g.gain.linearRampToValueAtTime(v, a); g.gain.setValueAtTime(v, h); g.gain.linearRampToValueAtTime(.0001, h + r); g.connect(dest || sortie(c)); return g; }
 function decroit(c, a, d, v, dest) { const g = c.createGain(); g.gain.setValueAtTime(.0001, 0); g.gain.exponentialRampToValueAtTime(v, a); g.gain.exponentialRampToValueAtTime(.0001, a + d); g.connect(dest || sortie(c)); return g; }
@@ -21,37 +21,37 @@ function souffle(c, f, q, v, dur, dest) { const n = Math.ceil(c.sampleRate * (du
   const s = c.createBufferSource(), g = env(c, .05, dur * .6, dur * .4, v, dest); s.buffer = b; s.connect(filtre(c, 'bandpass', f, q, g)); s.start(0); }
 function douce(k) { const a = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; a[i] = Math.tanh(k * x) / Math.tanh(k); } return a; }
 
-// ---------------------------------------------------------------- les instruments des V2
-// L'ARPÈGE SCI-FI (CAVALE ULTRA) : une goutte de synthé qui « bippe » — la note part une octave au-dessus et tombe sur sa hauteur en 18 ms,
-// carré + scie dans un filtre résonant qui se referme, un anneau de modulation discret (le métal des films de SF), étalée gauche / droite.
-const ARP_SF = () => [.55, [60, 72, 84], (c, f) => {   // (coupe-bas à 380 Hz : il brille au-dessus de la boue, mesuré)
+
+
+
+const ARP_SF = () => [.55, [60, 72, 84], (c, f) => {
   const g = decroit(c, .004, .42, .5, filtre(c, 'highpass', 380, .7, sortie(c))), fl = filtre(c, 'lowpass', f * 9, 7, g); fl.frequency.setValueAtTime(f * 9, 0); fl.frequency.exponentialRampToValueAtTime(f * 1.6, .22);
   [['square', 1, -.45, -6], ['sawtooth', .7, .45, 6]].forEach(([ty, v, x, dt]) => { const o = osc(c, ty, f * 2, dt), m = c.createGain(); m.gain.value = v * .5;
     o.frequency.setValueAtTime(f * 2, 0); o.frequency.exponentialRampToValueAtTime(f, .018); o.connect(m); m.connect(pan(c, x, fl)); o.start(0); });
   const rm = osc(c, 'sine', f * 2.01), rg = c.createGain(), car = osc(c, 'sine', f * 3); rg.gain.value = 0; rm.connect(rg.gain); car.connect(rg);
   const rv = decroit(c, .003, .12, .12); rg.connect(rv); rm.start(0); car.start(0); }, 2];
 
-// LE TALKBOX VELOURS (COBRA ULTRA) : la même voix qui parle, sans le grain brut — deux scies à peine désaccordées dans trois formants
-// larges (« â » chaud), un coupe-haut à 3,2 kHz, l'attaque arrondie, un vibrato tardif, un peu de sinus dessous pour le corps.
+
+
 const TALKBOX_VELOURS = () => [1.9, [48, 60, 72], (c, f) => {
   const g = env(c, .045, 1.35, .45, .5), lp = filtre(c, 'lowpass', 3200, .5, g), som = c.createGain(), vb = vibrato(c, 5.2, 9, .3);
   [[700, 1, 3.5], [1150, .55, 4], [2600, .16, 4]].forEach(([fr, v, q]) => { const bp = c.createBiquadFilter(), m = c.createGain(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = q; m.gain.value = v; som.connect(bp); bp.connect(m); m.connect(lp); });
   [[-5, -.25], [5, .25]].forEach(([dt, x]) => { const o = osc(c, 'sawtooth', f, dt); vb.connect(o.detune); o.connect(pan(c, x, som)); o.start(0); });
   const s = osc(c, 'sine', f), sg = c.createGain(); sg.gain.value = .22; s.connect(sg); sg.connect(g); s.start(0); }, 2];
 
-// LE VERRE CHANTANT (FLAMME DE TONNERRE) : un aigu qui n'est ni cuivre ni scie — l'attaque d'une cloche FM (le « ting »), puis une voix
-// « i » qui tient (formants 300 / 2300 / 3100 Hz) sur un carré doux, un souffle d'air, un vibrato qui arrive tard, une octave fantôme.
+
+
 const VERRE_CHANTANT = () => [1.8, [60, 72, 84], (c, f) => {
   const g = env(c, .03, 1.3, .45, .45), lp = filtre(c, 'lowpass', 6500, .5, g), som = c.createGain(), vb = vibrato(c, 5.6, 14, .4);
   [[300, .8, 5], [2300, .55, 8], [3100, .35, 9]].forEach(([fr, v, q]) => { const bp = c.createBiquadFilter(), m = c.createGain(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = q; m.gain.value = v; som.connect(bp); bp.connect(m); m.connect(lp); });
   [['square', 1, -.3, -4], ['sawtooth', .5, .3, 4]].forEach(([ty, v, x, dt]) => { const o = osc(c, ty, f, dt), m = c.createGain(); m.gain.value = v; vb.connect(o.detune); o.connect(m); m.connect(pan(c, x, som)); o.start(0); });
-  const car = osc(c, 'sine', f), mod = osc(c, 'sine', f * 3.5), mg = c.createGain(), cg = decroit(c, .002, .5, .35, lp);   // le « ting » FM de l'attaque
+  const car = osc(c, 'sine', f), mod = osc(c, 'sine', f * 3.5), mg = c.createGain(), cg = decroit(c, .002, .5, .35, lp);
   mg.gain.setValueAtTime(f * 3, 0); mg.gain.exponentialRampToValueAtTime(f * .05, .4); mod.connect(mg); mg.connect(car.frequency); car.connect(cg); car.start(0); mod.start(0);
   const o8 = osc(c, 'sine', f * 2), g8 = env(c, .2, 1.2, .4, .07, g); vb.connect(o8.detune); o8.connect(g8); o8.start(0);
   souffle(c, f * 4, 1.2, .025, 1.6, g); }, 2];
 
-// LE KOTO NÉON (LUNE DE JADE) : la corde pincée qu'on appuie (la note part un demi-ton haut et redescend — le « oshi » du koto), une
-// scie et un triangle dans un passe-bande qui se referme, un grain saturé (sans grave : coupe-bas à 200 Hz) : l'Asie, mais dans une ville de néon.
+
+
 const KOTO_NEON = () => [1.3, [60, 72, 84], (c, f) => {
   const g = decroit(c, .003, 1.1, .55, filtre(c, 'highpass', 200, .7, sortie(c))), ws = c.createWaveShaper(); ws.curve = douce(1.8); ws.connect(g);
   const bp = filtre(c, 'bandpass', f * 3, 1.1, ws); bp.frequency.setValueAtTime(f * 5, 0); bp.frequency.exponentialRampToValueAtTime(f * 1.8, .5);
@@ -59,8 +59,8 @@ const KOTO_NEON = () => [1.3, [60, 72, 84], (c, f) => {
     o.frequency.setValueAtTime(f * Math.pow(2, 1 / 12), 0); o.frequency.exponentialRampToValueAtTime(f, .09); o.connect(m); m.connect(pan(c, x, bp)); o.start(0); });
   }, 2];
 
-// LA CLOCHE DE VERRE (SAUVER MAMAN) : la harpe de verre devient une vraie cloche — FM à rapport inharmonique (3,51), des partiels qui
-// s'éteignent chacun à leur vitesse, deux couches désaccordées gauche / droite qui battent doucement : elle sonne longtemps, elle brille.
+
+
 const CLOCHE_VERRE = () => [3.2, 44100, (c, f, dest) => {
   const out = dest || sortie(c);
   [[-4, -.5], [4, .5]].forEach(([dt, x]) => { const p = pan(c, x, out);
@@ -68,9 +68,9 @@ const CLOCHE_VERRE = () => [3.2, 44100, (c, f, dest) => {
     const car = osc(c, 'sine', f, dt), mod = osc(c, 'sine', f * 3.51), mg = c.createGain(), cg = decroit(c, .002, 1.4, .18, p);
     mg.gain.setValueAtTime(f * 2.2, 0); mg.gain.exponentialRampToValueAtTime(f * .1, 1.2); mod.connect(mg); mg.connect(car.frequency); car.connect(cg); car.start(0); mod.start(0); }); }];
 
-// LE CLAVINET AFFINÉ (COBRA ULTRA, « affiner instruments un peu brut ») : le MÊME clavinet (le carré et la scie de l'original, la note qui
-// claque puis s'éteint vite, le même équilibre : sa fondamentale reste en retrait comme dans le passe-bande d'origine) — mais au lieu du
-// passe-bande étroit qui nasillait, un coupe-bas raide (deux pôles doublés, × 2,4 la note, jamais sous 400 Hz) et un coupe-haut qui se referme : la morsure sans le grattement.
+
+
+
 const CLAV_FIN = () => [.7, 44100, (c, f, dest) => { [[-3, -.35], [3, .35]].forEach(([dt, x]) => {
   const g = c.createGain(), lp = c.createBiquadFilter(), bo = c.createBiquadFilter(), hp = filtre(c, 'highpass', Math.max(400, f * 2.4), .6, filtre(c, 'highpass', Math.max(400, f * 2.4), .6, lp));
   lp.type = 'lowpass'; lp.Q.value = .6; lp.frequency.setValueAtTime(Math.min(3800, f * 7), 0); lp.frequency.exponentialRampToValueAtTime(Math.min(2600, f * 5), .3);
@@ -79,10 +79,10 @@ const CLAV_FIN = () => [.7, 44100, (c, f, dest) => { [[-3, -.35], [3, .35]].forE
   lp.connect(bo); bo.connect(g); g.connect(pan(c, x, dest));
   [osc(c, 'square', f, dt), osc(c, 'sawtooth', f, dt + 3)].forEach(o => { o.connect(hp); o.start(0); }); }); }];
 
-// LES VOIX IMPROVISÉES (PISTON DE LUXE, « plus underground, avec des voix improvisées par toi, son recherché ») : des bouts de voix chantés
-// (« â », « o », « ou », « è », « é », « eu ») — chaque hauteur a SA syllabe, si bien que la phrase change de voyelle d'une note à l'autre comme
-// une voix qui improvise ; la note glisse d'un demi-ton et demi vers le haut en entrant, une sur trois retombe à la fin (le « ahh » qui se laisse
-// tomber), un « h » de souffle à l'attaque ; filtrées comme une cassette (coupe-bas 260 Hz, coupe-haut 3 kHz) et saturées doucement : l'underground.
+
+
+
+
 const VOYELLES = [[730, 1090, 2440], [570, 840, 2410], [300, 870, 2240], [530, 1840, 2480], [390, 2000, 2600], [500, 1400, 2400]];
 const VOIX_IMPRO = () => [.8, [50, 53, 56, 59, 62, 65, 68, 71, 74, 77], (c, f) => {
   const m = Math.round(12 * Math.log2(f / 440) + 69), V = VOYELLES[(m * 7) % VOYELLES.length], tombe = m % 3 === 0;
@@ -94,30 +94,30 @@ const VOIX_IMPRO = () => [.8, [50, 53, 56, 59, 62, 65, 68, 71, 74, 77], (c, f) =
     o.connect(pan(c, x, som)); o.start(0); });
   souffle(c, 2500, 1.5, .05, .12, g); }, 2];
 
-// ---------------------------------------------------------------- les aides de retouche
+
 const insere = (Mx, id, moteur, sans) => { const o = Mx.ordre.filter(x => x !== id); o.splice(Math.max(0, Math.min(o.length, moteur - 1)), 0, id);
   for (const x of sans || []) { if (o.length <= 30) break; const k = o.lastIndexOf(x); if (k >= 0 && x !== id) o.splice(k, 1); }
-  Mx.ordre = o.slice(0, 30); if (o.includes('final') && !Mx.ordre.includes('final')) Mx.ordre[29] = 'final'; };   // (le final reste le 30e, toujours)
+  Mx.ordre = o.slice(0, 30); if (o.includes('final') && !Mx.ordre.includes('final')) Mx.ordre[29] = 'final'; };
 const remplaceDans = (Mx, vieux, neuf) => { const k = Mx.ordre.indexOf(vieux); if (k >= 0 && !Mx.ordre.includes(neuf)) Mx.ordre[k] = neuf; };
 const toutesLesGrilles = Mx => [...(Mx.grilles || []).flat(), ...(Mx.grilleF || []), ...(Mx.accords || [])];
 const ordreNeuf = (Mx, tete) => { const vu = new Set(tete), o = tete.concat(Mx.ordre.filter(x => !vu.has(x) && x !== 'final')).slice(0, 29); o.push('final'); Mx.ordre = o; };
-// de nouveaux accords (v6) : les grilles refaites et MENÉES comme celles du générateur, la liste des accords à préparer refaite aussi
+
 const grillesNeuves = (Mx, O, specs) => { if (!O || !O.menes) return; Mx.grillesSpec = specs; Mx.grilles = specs.map(s9 => O.menes(s9.split(' '), Mx)); Mx.vamp = false;
   Mx.accords = []; const vu = new Set(); [...Mx.grilles, Mx.grilleF].forEach(g => (g || []).forEach(A => { if (!vu.has(A.cle)) { vu.add(A.cle); Mx.accords.push(A); } })); };
-const motif = (Mx, k, L) => { Mx.pat[k] = L; if (Mx.patL) Mx.patL[k] = L; };   // (le générateur retire parfois une variante : la retouche les fige)
+const motif = (Mx, k, L) => { Mx.pat[k] = L; if (Mx.patL) Mx.patL[k] = L; };
 const nomme = (O, cat, cle, nom) => { const T = O && O[cat]; if (T && !T[cle]) T[cle] = nom; };
 
 
-// LES TROIS LO-FI À RÉPARER (2026-10-25, Léo : « FIRE PRIME, AVERSE DE CHROME et TONNERRE DELUXE : les premiers bruits d'instruments sont mal gérés et ne donnent pas de
-// musique, et le niveau 30 n'est pas assez excitant » ; puis « il ne faut pas corriger juste le premier palier : sauve toute l'évolution jusqu'au palier le plus intense »).
-// MESURÉ (banc muet, 5 s par moteur) : AVERSE −38,8 dB aux moteurs 1 et 3 (le clavier tenait DEUX accords par mesure, puis le vinyle, puis le charley AVANT la grosse caisse
-// et la basse : du bruit, pas de la musique) ; TONNERRE retombait de −9,5 (moteur 22) à −11,2 (moteur 30) ; FIRE PRIME −14,5 au 22. La réparation touche TOUTE la montée :
-// (1) l'OUVERTURE est un petit morceau complet dès le moteur 5 (clavier qui joue, basse, grosse caisse, charley, caisse, mélodie, signature) — le vinyle n'est qu'une texture
-// qui arrive au 8e ; (2) le clavier JOUE au lieu de tenir (deux variantes de plus en plus actives : la dernière sert aux marches 'i_keys') et la basse marche ; (3) le haut
-// est chargé de vrais éléments de fin (sous-basse, ride, toms, roulements, accords hachés, cloche) au lieu des marches les plus discrètes ; (4) le tempo monte plus haut ;
-// (5) le dernier tiers n'est plus un palier de ralentissement : modulation, mélodie à l'octave, batterie qui double et final se suivent sans trou.
+
+
+
+
+
+
+
+
 const LOFI_ORDRE = ['keys', 'basse', 'kick', 'hat', 'snare', 'lead', 'sig', 'vinyl', 'i_filtre', 'pad', 'contre', 'sub', 'i_basse', 'clarte', 'i_keys', 'i_frappe', 'cordes', 'ride', 'double', 'i_dense',
-  'toms', 'octave', 'stab', 'i_basseOct', 'roll', 'i_tambours', 'cloche', 'modul', 'i_sommet', 'final'];   // les 30 moteurs, un élément chacun, du plus musical au plus excitant
+  'toms', 'octave', 'stab', 'i_basseOct', 'roll', 'i_tambours', 'cloche', 'modul', 'i_sommet', 'final'];
 const lofiReparer = (Mx, O, o) => {
   o = o || {};
   Mx.ordre = LOFI_ORDRE.slice();
@@ -126,13 +126,24 @@ const lofiReparer = (Mx, O, o) => {
   Mx.pat.keys = kA; Mx.patL.keys = [kA, kB]; Mx.pat.basse = bA; Mx.patL.basse = [bA, bB];
   Mx.bpm1 = Math.round(Mx.bpm1 * (o.tempo || 1.08)); };
 
-// ---------------------------------------------------------------- LES RETOUCHES (base = le numéro de la musique 👍 ; note = la consigne de Léo)
+
+const retouche6167 = (Mx, O) => {
+  const t = Mx.ton, hira = [0, 2, 3, 7, 8].map(x => (t + x) % 12);
+  toutesLesGrilles(Mx).forEach(A => { if (A && Array.isArray(A.gamme)) { const g = A.gamme.filter(p => hira.includes(p)); if (g.length >= 3) A.gamme = g; } });
+  nomme(O, 'NOM_LEAD', 'koto', 'koto néon'); Mx.tim.lead = 'koto'; };
+const retouche1540 = Mx => { insere(Mx, 'arp', 15, ['perc', 'vinyl', 'octave']); if (Mx.pat) Mx.pat.arp = 'updown16'; };
+
+export const AVANT = { 'bleu-1540': { voix: { pluck: ARP_SF }, retouche: retouche1540 }, 'bleu-9664': {}, 'bleu-8042': { depart: 5, retouche: lofiReparer }, 'bleu-6167': { voix: { lead: KOTO_NEON }, retouche: retouche6167 } };
+
 export const V2 = [
   { id: 'bleu-1540-retouche', base: 1540, direct: true, titre: 'CAVALE ULTRA',
     note: 'ajoute un arpège un peu sci-fi qui danse autour du lead quelque part, ça dort trop au niv 15',
     idee: 'un arpège sci-fi AJOUTÉ (une goutte de synthé qui bippe), il entre au 15e moteur, là où ça dormait',
     voix: { pluck: ARP_SF },
-    retouche(Mx) { insere(Mx, 'arp', 15, ['perc', 'vinyl', 'octave']); if (Mx.pat) Mx.pat.arp = 'updown16'; } },
+
+
+    retouche(Mx) { retouche1540(Mx); const kA = [[0, 6], [3, 2], [7, 3], [10, 5], [14, 2]], kB = [[0, 6], [7, 3], [10, 6]], kC = [[0, 4], [3, 2], [6, 3], [10, 4], [13, 3]];
+      if (Mx.pat) { Mx.pat.keys = kA; if (Mx.patL) Mx.patL.keys = [kA, kB, kC]; } } },
 
   { id: 'bleu-2221-retouche', base: 2221, direct: true, titre: 'COBRA ULTRA',
     note: 'affiner instruments un peu brut',
@@ -166,18 +177,20 @@ export const V2 = [
   { id: 'bleu-6167-retouche', base: 6167, direct: true, titre: 'LUNE DE JADE',
     note: 'plus asiatique dans la mélo, mais sinon ça va, mais asiatique cyberpunk',
     idee: 'asiatique cyberpunk : la mélodie dans la gamme japonaise (hirajoshi : 1, 2, ♭3, 5, ♭6), jouée au koto néon (la corde appuyée)',
-    voix: { lead: KOTO_NEON },
-    retouche(Mx, O) {
-      const t = Mx.ton, hira = [0, 2, 3, 7, 8].map(x => (t + x) % 12);
-      toutesLesGrilles(Mx).forEach(A => { if (A && Array.isArray(A.gamme)) { const g = A.gamme.filter(p => hira.includes(p)); if (g.length >= 3) A.gamme = g; } });
-      nomme(O, 'NOM_LEAD', 'koto', 'koto néon'); Mx.tim.lead = 'koto'; } },
+    voix: { lead: KOTO_NEON }, acc: { keys: CLAV_FIN },
+
+
+    retouche(Mx, O) { retouche6167(Mx, O);
+      try { const t = Mx.tim; t.padFc = Math.min(t.padFc, 1100); t.padAtt = Math.max(t.padAtt, .7); t.padLarge = Math.min(t.padLarge, 12); t.sfc = Math.min(t.sfc * .7, 1700);
+        insere(Mx, 'pad', 2, []); insere(Mx, 'sig', 12, []); insere(Mx, 'cloche', 8, ['i_pulse']); insere(Mx, 'i_large', 15, ['i_basseOct']);
+      } catch (e) { (globalThis.__retErr = globalThis.__retErr || []).push('6167 : ' + String(e && e.message || e)); } } },
 
   { id: 'bleu-8338-retouche', base: 8338, direct: true, titre: 'RUBIS ULTRA',
     note: 'plus d’assaisonnement et de vie, originalité à retravailler, sinon pas mal la continuité de la boucle',
     idee: 'plus d’assaisonnement et de vie, la boucle gardée : congas et bongos, la ride, la cloche, l’espace qui s’élargit (le steel drum gardé : le vibraphone bouchait le médium, mesuré)',
     retouche(Mx) {
-      insere(Mx, 'perc', 7, ['i_relance', 'i_pulse', 'i_basseOct']); insere(Mx, 'ride', 14, ['i_relance', 'i_pulse', 'i_basseOct']);   // (la ride, pas les échos de la mélodie : ils doublaient le médium, mesuré)
-      insere(Mx, 'cloche', 18, ['i_relance', 'i_pulse', 'i_basseOct']); insere(Mx, 'i_large', 20, ['i_relance', 'i_pulse', 'i_basseOct', 'i_tambours']);   // (l'espace, pas les tierces : elles bouchaient le médium, mesuré)
+      insere(Mx, 'perc', 7, ['i_relance', 'i_pulse', 'i_basseOct']); insere(Mx, 'ride', 14, ['i_relance', 'i_pulse', 'i_basseOct']);
+      insere(Mx, 'cloche', 18, ['i_relance', 'i_pulse', 'i_basseOct']); insere(Mx, 'i_large', 20, ['i_relance', 'i_pulse', 'i_basseOct', 'i_tambours']);
       if (Mx.kitV) { Mx.kitV.percH = ['conga', 'quinto']; Mx.kitV.percL = ['bongoB']; Mx.kitV.shaker = ['shaker1', 'shaker2']; }
       } },
 
@@ -185,9 +198,9 @@ export const V2 = [
     note: '« SAUVER MAMAN », retouche la cloche, elle est un peu fade',
     idee: 'la cloche retouchée (la harpe de verre des accords) : une vraie cloche de verre, des partiels qui sonnent longtemps, deux couches qui battent',
     acc: { keys: CLOCHE_VERRE },
-    retouche(Mx) { Mx.titre = 'SAUVER MAMAN'; Mx.tim.contre = 'violon'; } },   // (2026-10-25, Léo : « change juste la flûte de SAUVER MAMAN ») le contre-chant (moteur 12) : flûte synthétique → violon ; tout le reste est inchangé
+    retouche(Mx) { Mx.titre = 'SAUVER MAMAN'; Mx.tim.contre = 'violon'; } },
 
-  // (15/10, « juste respecte les consignes ») les trois musiques v6 rejouées enfin telles qu'aimées : leurs consignes appliquées
+
   { id: 'bleu-5095-retouche', base: 5095, direct: true, titre: 'CRISTAL D’ARGENT',
     note: 'mieux fait ta trap évolutive, dans la peau de prodmobeats',
     idee: 'une trap qui ÉVOLUE : l’intro mélodique seule (harpe, kalimba, nappe, gouttes, le son s’ouvre), puis le beat tombe — charleys, kick, 808, caisse —, les roulements et les triolets de charleys, le contre-chant, la cloche, le chœur, puis les relances jusqu’au final',
@@ -230,7 +243,8 @@ export const V2 = [
     note: 'à réparer : les premiers bruits d’instruments sont mal gérés et ne donnent pas de musique, et le niveau 30 n’est pas assez excitant (puis : sauver toute l’évolution jusqu’au palier le plus intense)',
     idee: 'la harpe joue ses accords (elle ne les tenait plus : −38 dB aux moteurs 1-3), basse 808 et grosse caisse avant le charley, l’ocarina dès le 6e moteur, puis la montée chargée jusqu’au 30',
     depart: 5,
-    retouche(Mx, O) { lofiReparer(Mx, O); } },
+ 
+    retouche(Mx, O) { lofiReparer(Mx, O); Mx.tim.keys = '@pianoQueue'; } },
 
   { id: 'bleu-6104-retouche', base: 6104, direct: true, titre: 'TONNERRE DELUXE',
     note: 'à réparer : les premiers bruits d’instruments sont mal gérés et ne donnent pas de musique, et le niveau 30 n’est pas assez excitant (puis : sauver toute l’évolution jusqu’au palier le plus intense)',

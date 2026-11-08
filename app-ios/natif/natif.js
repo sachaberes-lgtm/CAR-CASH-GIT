@@ -79,6 +79,44 @@
   if(document.readyState!=='loading')setTimeout(cache,60);else document.addEventListener('DOMContentLoaded',function(){setTimeout(cache,60);});
   setTimeout(cache,30000);
 
+  /* ---- 8. PAS DE LECTEUR MULTIMÉDIA SUR L'ÉCRAN D'ACCUEIL (2026-11-06, Sacha : « ça lance une fenêtre de musique ou vidéo
+     qu'on voit même sur l'écran d'accueil ») ----
+     La musique du jeu est un <audio> dans la WebView : iOS l'inscrit comme « lecture en cours » (centre de contrôle, écran
+     verrouillé) et, quand l'appli part en arrière-plan, le jeu ne fait que PAUSE — la fiche reste affichée après la sortie.
+     Une fiche n'existe que tant que l'élément a une source : au départ on le vide (source mémorisée + position), au retour on
+     le remplit AVANT que le jeu relance la musique (écouteur en capture, posé avant ceux du jeu : natif.js charge en premier). */
+  var musSauve=null;
+  var ctxDort=function(){ // tout le son se coupe : les contextes Web Audio (effets, voix) qui tournaient s'endorment aussi
+    if(!AC0||!su)return;
+    for(var i=0;i<CTX.length;i++){var c=CTX[i];
+      if(c&&c.state==='running'&&!c.__ccParti){try{c.__ccParti=true;var p9=su.call(c);if(p9&&p9.catch)p9.catch(function(){});}catch(e){}}}
+  };
+  var ctxReveil=function(){ // au retour : seuls ceux que NOUS avons endormis sont relancés (les autres restent au jeu)
+    if(!AC0||!re)return;
+    for(var i=0;i<CTX.length;i++){var c=CTX[i];
+      if(c&&c.__ccParti){c.__ccParti=false;if(c.state!=='closed'&&!c.__ccVeille){try{var p9=re.call(c);if(p9&&p9.catch)p9.catch(function(){});}catch(e){}}}}
+  };
+  var musVide=function(){try{
+    ctxDort();
+    var el=document.getElementById('musique');if(!el||musSauve)return;
+    var s=el.getAttribute('src');if(!s)return;
+    musSauve={s:s,t:el.currentTime||0};
+    el.pause();el.removeAttribute('src');el.load();
+    if(navigator.audioSession)navigator.audioSession.type='ambient'; // plus de session « lecture » tant qu'on est parti
+    if(navigator.mediaSession){navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none';}
+    dit('musique : source retirée (arrière-plan)');
+  }catch(e){}};
+  var musRend=function(){try{
+    ctxReveil();
+    var m=musSauve;musSauve=null;if(!m)return;
+    var el=document.getElementById('musique');if(!el||el.getAttribute('src'))return; // le jeu a déjà choisi autre chose : on n'y touche pas
+    el.src=m.s;
+    el.addEventListener('loadedmetadata',function r(){el.removeEventListener('loadedmetadata',r);try{if(m.t>0&&m.t<(el.duration||1e9))el.currentTime=m.t;}catch(e){}});
+    dit('musique : source rendue');
+  }catch(e){}};
+  document.addEventListener('visibilitychange',function(){if(document.hidden)musVide();else musRend();},true);
+  addEventListener('pagehide',musVide);
+
   /* ---- 7. LES MISES À JOUR EN DIRECT (2026-10-14, oui de Sacha) ----
      Le jeu (les fichiers de www/) se met à jour SANS passer par l'App Store : publier-maj.js fabrique l'édition App Store d'une
      nouvelle version (mêmes coupes que l'app, jamais le jeu web tel quel) et la pose sur la branche `app-maj` du dépôt public.

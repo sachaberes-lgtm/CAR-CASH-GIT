@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cavale Ultra — course, 30 paliers</title>
+<style>
+:root{--fond:#fff;--tx:#17141c;--tx2:#8a8494;--fil:#e4e1ea;--acc:#0e8a5f}
+@media (prefers-color-scheme:dark){:root{--fond:#0b090d;--tx:#f2f0f7;--tx2:#9a94a8;--fil:#2a2633;--acc:#21c48a}}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--fond);color:var(--tx);font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:grid;place-items:center;padding:16px}
+.boite{width:100%;max-width:560px;border:1px solid var(--fil);border-radius:20px;padding:24px;display:grid;gap:18px}
+h1{margin:0;font-size:22px}.sous{color:var(--tx2);font-size:13px;margin-top:4px}
+.rang{display:flex;gap:16px;align-items:center}
+#play{width:72px;height:72px;border-radius:50%;border:0;background:var(--tx);color:var(--fond);font-weight:700;cursor:pointer;flex:none}
+.pals{display:grid;gap:6px;flex:1}#speed{width:100%}#mot{font-weight:700;font-size:18px}
+#ce{color:var(--tx2);font-size:13px;min-height:36px}
+</style></head><body>
+<div class="boite">
+  <div><h1>CAVALE ULTRA · COURSE · 30 PALIERS</h1><div class="sous">écrit à la main, sans le générateur · 138 BPM · ré dorien · fuite en ville de nuit : la cithare compte, le violoncelle chante à l’archet, le violon plane au-dessus, la rythmique est une 2-step</div></div>
+  <div class="rang"><button id="play">PLAY</button><div class="pals"><div id="mot">Moteur 1 / 30</div><input type="range" id="speed" min="0" max="100" step="any" value="0" aria-label="Moteur"></div></div>
+  <div id="ce"></div>
+</div>
+
+
+<!-- ======================= LE MORCEAU (format CASH CAR « morceau à paliers ») =======================
+     (2026-11-02, pôle SON ; Léo : « refonte de la musique de course de CAVALE ULTRA : celle du lobby est bien ; la course, il faut changer, c'est un peu relou avec les basses ;
+     quelque chose de totalement nouveau, mais de bien ; commencer calme pour bien s'intensifier ; du haut de gamme »).
+     (2026-11-03, Léo : « à partir du palier 30 la musique bugge ; Cavale est encore trop proche de Mirage : les premières notes, les instruments, la rythmique ; élimine toute répétition de mélodie
+     ou d'instrument ; l'instrument du lead s'arrête trop net ») — REFONTE : une seule idée gardée (138 BPM, ré dorien, Dm9 · Bbmaj7 · Gm9 · A7b9, la basse courte).
+     LA FUITE EN VILLE, DE NUIT : au lieu des cordes pincées en saw et du violon, un MARIMBA (deux sinus, l'octave-et-demie qui claque) qui compte en 3-3-3-3-2-2 avec des silences, une nappe de
+     triangles, un THÉRÉMINE (sinus + vibrato lent, portamento, la note se REFERME en douceur : jamais de coupure), un harmonica de verre au-dessus (22), des chœurs de sinus qui scintillent (23),
+     un orgue (26) ; la rythmique est de la 2-step / du breakbeat : grosse caisse irrégulière qui change toutes les deux mesures, caisse claire syncopée, charleys swingués avec des triolets (puis des 32e),
+     des clics de glitch qui tombent n'importe où, jamais de darbouka. Le thème a QUATRE versions qui se relaient, l'ostinato a HUIT motifs choisis mesure par mesure : deux phrases ne reviennent jamais à l'identique.
+     COÛT (le bug du 30) : l'ancienne page jouait ~270 oscillateurs par mesure au moteur 30 (trois scies par pincée, trois par violon, des bruits filtrés à chaque doubles croches) et saturait le processeur ;
+     ici les frappes sont des tampons pré-calculés (aucun filtre en direct), le marimba n'a que deux sinus, la nappe change toutes les deux mesures : ~130 oscillateurs par mesure au plus.
+     (2026-11-03 soir, Léo : « la mélodie un peu basique, et surtout l'instrument peut avoir plus d'effet, sinon ça fait génératif ; poétique, moins électronique ») — LE THÈME ET LES VOIX :
+     la fuite en ville est maintenant jouée par des CORDES VIVANTES : un VIOLONCELLE à l'archet (onde à partiels naturels dans un filtre qui s'ouvre avec la pression, souffle d'archet, vibrato
+     qui ne s'installe qu'après l'attaque, portamento, une dérive de quelques cents, un corps de bois), un alto qui lui répond (contre-chant écrit), un VIOLON solo très haut (22), un chœur voyelle
+     (formants) et un accordéon à anches (26) ; l'ostinato n'est plus un marimba mais une CITHARE (cordes pincées à modèle physique, deux chœurs de cordes désaccordés, calculées à la demande, une
+     version douce et une dure selon la vélocité) — le son d'un film noir, la ville la nuit. LE THÈME est écrit : un motif (la quarte qui monte, la seconde, le soupir tenu), sa séquence sur chaque
+     accord, un SOMMET (la sixte majeure sur Bb, puis le b9 sur A7), une cadence ; QUATRE versions DIRIGÉES : A (la question, finit ouverte sur la sensible), B (la réponse, monte puis se résout sur
+     le ré), A' (la question ornée, plus haut) et C (le développement : les quatre premières mesures une octave plus bas, puis la grande montée vers le do aigu). Rien n'est tiré au hasard dans la mélodie.
+     LE JEU EST HUMAIN : décalages de ±5 à 10 ms sur l'ostinato (les temps forts restent serrés), vélocités qui respirent d'une phrase à l'autre, notes fantômes, rubato léger en fin de phrase (≤ 25 ms) ;
+     le tempo et la rythmique ne bougent pas.
+     Ce bloc ne touche JAMAIS à la page : pas de document, window, setInterval, Math.random, ni ctx.currentTime. -->
+<script id="morceau">
+const MORCEAU = (function () {
+  const BPM = 138, SD = 60 / BPM / 4, MES = 16 * SD;
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  const hh = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };   /* un tirage répétable (pas de Math.random) */
+
+  // LA GRILLE (ré dorien / mineur), une phrase de 8 mesures : Dm9 · Dm9 · Bbmaj7 · Bbmaj7 · Gm9 · Gm9 · A7(b9) · A7(b9)
+  const ROOTS = [38, 38, 46, 46, 43, 43, 45, 45];
+  const CHORDS = [[50, 53, 57, 60, 64], [50, 53, 57, 60, 64], [58, 62, 65, 69, 72], [58, 62, 65, 69, 72], [55, 58, 62, 65, 69], [55, 58, 62, 65, 69], [57, 61, 64, 67, 70], [57, 61, 64, 67, 70]];
+  const reg = m => m < 60 ? m + 12 : m;   /* la cithare joue entre 60 et 77 */
+  // L'OSTINATO DU MARIMBA : HUIT motifs de 16 pas (rang dans l'accord 0-4, « . » = silence), regroupés en 3-3-3-3-2-2 ; un motif est tiré mesure par mesure
+  const PATS = ['4..2..3..1..0.2.', '2.3..1.4..2.3.0.', '0..3.2..4.1..3..', '3.1.4..2.0..1.4.', '1..4..2.3..0..1.', '.2.4.1.3.2.0.4.1', '4.2..3.1.0..2.3.', '0.4..2..3.1..4.2'];
+  const ACC = [0, 3, 6, 9, 12, 14];
+  // LE THÈME (le violoncelle) : [pas sur 128, note, durée en doubles croches, intensité 0-1] — le motif : un soupir qui monte (la quarte, la seconde, la tenue), repris sur chaque accord
+  // A : la QUESTION. Dm9 : la quarte, E, le F tenu · Bbmaj7 : la même figure, plus haut, jusqu'au la aigu (le SOMMET, la sixte majeure) · Gm9 : le motif encore, puis la descente · A7b9 : la montée
+  //     chromatique jusqu'au si bémol (le b9) et elle se pose, ouverte, sur la sensible do dièse
+  const THEME_A = [[0, 69, 4, .7], [4, 74, 2, .8], [6, 76, 2, .75], [8, 77, 6, .9], [14, 76, 2, .6],
+    [16, 74, 5, .8], [21, 72, 2, .65], [23, 69, 1, .5], [24, 67, 6, .75], [30, 69, 2, .55],
+    [32, 70, 4, .75], [36, 74, 2, .8], [38, 76, 2, .75], [40, 81, 6, 1], [46, 79, 2, .7],
+    [48, 77, 5, .85], [53, 74, 2, .65], [55, 72, 1, .5], [56, 70, 6, .75], [62, 72, 2, .6],
+    [64, 67, 4, .75], [68, 74, 2, .8], [70, 76, 2, .75], [72, 79, 5, .95], [77, 77, 1, .6], [78, 76, 2, .65],
+    [80, 74, 4, .8], [84, 72, 4, .7], [88, 70, 4, .7], [92, 69, 3, .6], [95, 70, 1, .5],
+    [96, 69, 2, .7], [98, 73, 2, .75], [100, 76, 2, .8], [102, 79, 2, .85], [104, 82, 6, 1], [110, 81, 2, .75],
+    [112, 79, 3, .8], [115, 76, 3, .7], [118, 73, 8, .8]];
+  // B : la RÉPONSE. Le même début, mais le soupir monte au sol ; le sommet est le si bémol (la fondamentale de Bb, deux octaves) ; elle se RÉSOUT : le do dièse tombe sur le ré
+  const THEME_B = [[0, 69, 4, .7], [4, 74, 2, .8], [6, 76, 2, .75], [8, 77, 6, .9], [14, 79, 2, .7],
+    [16, 81, 5, .9], [21, 79, 2, .7], [23, 77, 1, .55], [24, 76, 6, .8], [30, 74, 2, .6],
+    [32, 70, 4, .75], [36, 74, 2, .8], [38, 77, 2, .8], [40, 79, 4, .9], [44, 81, 4, .95],
+    [48, 82, 6, 1], [54, 81, 2, .7], [56, 77, 6, .8], [62, 76, 2, .6],
+    [64, 79, 4, .85], [68, 77, 2, .75], [70, 76, 2, .75], [72, 74, 5, .9], [77, 72, 1, .6], [78, 70, 2, .6],
+    [80, 69, 4, .75], [84, 70, 4, .7], [88, 74, 4, .8], [92, 72, 4, .7],
+    [96, 73, 3, .8], [99, 76, 3, .8], [102, 79, 2, .8], [104, 81, 4, .9], [108, 79, 2, .7], [110, 77, 2, .65],
+    [112, 76, 3, .7], [115, 73, 3, .65], [118, 74, 8, .8]];
+  // A' : la question ORNÉE, une phrase de plus : des notes de passage, le sommet au do aigu, la montée finale jusqu'au do dièse aigu
+  const THEME_A2 = [[0, 69, 3, .7], [3, 72, 1, .5], [4, 74, 2, .8], [6, 76, 2, .75], [8, 77, 4, .9], [12, 79, 2, .8], [14, 77, 2, .65],
+    [16, 76, 3, .8], [19, 74, 3, .7], [22, 72, 2, .65], [24, 69, 4, .7], [28, 67, 2, .55], [30, 69, 2, .55],
+    [32, 70, 3, .75], [35, 72, 1, .5], [36, 74, 2, .8], [38, 77, 2, .8], [40, 84, 6, 1], [46, 81, 2, .75],
+    [48, 79, 4, .85], [52, 77, 2, .7], [54, 74, 2, .65], [56, 72, 3, .7], [59, 70, 3, .7], [62, 72, 2, .6],
+    [64, 67, 3, .75], [67, 70, 1, .5], [68, 74, 2, .8], [70, 76, 2, .8], [72, 79, 4, .95], [76, 81, 2, .8], [78, 79, 2, .7],
+    [80, 77, 3, .8], [83, 76, 1, .55], [84, 74, 4, .75], [88, 72, 3, .7], [91, 70, 3, .65], [94, 69, 2, .6],
+    [96, 69, 2, .7], [98, 73, 2, .75], [100, 76, 2, .8], [102, 79, 2, .85], [104, 82, 4, 1], [108, 85, 2, .9], [110, 82, 2, .75],
+    [112, 81, 3, .8], [115, 79, 2, .7], [117, 76, 3, .65], [120, 73, 6, .75], [126, 73, 2, .5]];
+  // C : le DÉVELOPPEMENT. Les quatre premières mesures sont la question une octave plus bas (le grave du violoncelle, sombre) ; puis le motif monte par marches jusqu'au do aigu (Gm9), redescend
+  //     et glisse par le fa, le mi, le do dièse jusqu'au la grave de la cadence
+  const THEME_C = [[0, 57, 4, .7], [4, 62, 2, .75], [6, 64, 2, .7], [8, 65, 6, .85], [14, 64, 2, .6],
+    [16, 62, 5, .75], [21, 60, 2, .6], [23, 57, 1, .5], [24, 55, 6, .7], [30, 57, 2, .5],
+    [32, 58, 4, .75], [36, 62, 2, .75], [38, 64, 2, .7], [40, 69, 6, .9], [46, 67, 2, .65],
+    [48, 65, 5, .8], [53, 62, 2, .6], [55, 60, 1, .5], [56, 58, 6, .7], [62, 60, 2, .55],
+    [64, 67, 3, .8], [67, 70, 1, .55], [68, 74, 3, .85], [71, 76, 1, .65], [72, 79, 4, .95], [76, 81, 2, .85], [78, 82, 2, .9],
+    [80, 84, 6, 1], [86, 82, 2, .8], [88, 81, 4, .85], [92, 79, 4, .8],
+    [96, 77, 3, .8], [99, 76, 3, .8], [102, 73, 2, .75], [104, 74, 6, .9], [110, 73, 2, .6],
+    [112, 69, 6, .7], [118, 70, 2, .55], [120, 73, 8, .8]];
+  const MELOS = [THEME_A, THEME_B, THEME_A2, THEME_C];
+  // LE CONTRE-CHANT (l'alto, dès 17) : de longues notes d'accord sous le thème, qui glissent d'un accord à l'autre ; deux versions (les phrases paires, impaires)
+  const CONTRE1 = [[0, 57, 12, .6], [12, 60, 4, .5], [16, 53, 16, .6], [32, 62, 12, .6], [44, 65, 4, .5], [48, 60, 16, .6], [64, 58, 12, .6], [76, 60, 4, .5], [80, 57, 16, .6],
+    [96, 61, 8, .6], [104, 64, 8, .6], [112, 67, 8, .6], [120, 70, 8, .65]];
+  const CONTRE2 = [[0, 65, 16, .55], [16, 64, 16, .55], [32, 69, 16, .6], [48, 67, 16, .6], [64, 65, 16, .6], [80, 64, 16, .6], [96, 67, 8, .6], [104, 70, 8, .65], [112, 73, 8, .65], [120, 74, 8, .7]];
+  // LE VIOLON SOLO (dès 22) : de très longues notes aiguës, qui chantent par-dessus ; deux lignes qui alternent
+  const VIO1 = [[0, 81, 12, .55], [12, 84, 4, .6], [16, 83, 10, .6], [26, 81, 6, .55], [32, 82, 14, .65], [46, 84, 2, .55], [48, 86, 10, .7], [58, 84, 6, .6],
+    [64, 86, 8, .65], [72, 89, 8, .8], [80, 88, 10, .8], [90, 86, 6, .6], [96, 85, 8, .75], [104, 91, 8, .85], [112, 88, 8, .7], [120, 85, 8, .6]];
+  const VIO2 = [[0, 76, 16, .5], [16, 77, 16, .55], [32, 79, 16, .6], [48, 81, 16, .65], [64, 82, 16, .65], [80, 81, 12, .6], [92, 79, 4, .5],
+    [96, 85, 12, .8], [108, 82, 4, .6], [112, 81, 8, .65], [120, 79, 8, .6]];
+  const voisin = n => [0, 2, 4, 5, 7, 9, 11].indexOf((n + 1) % 12) >= 0 ? n + 1 : n + 2;   /* le voisin d'en haut dans la gamme (ré dorien = les notes blanches) */
+
+  const QUAND = { mallet: 1, pad: 1, kick: 1, hats: 2, snare: 4, ticks: 5, sub: 6, pleine: 7, rolls: 8, lead: 9, ouverts: 10, ghost: 11, large: 12, contre: 13, toms: 14, drive: 15, riser: 16,
+    lead2: 17, acid: 18, stab: 19, crash: 20, air: 20, ride: 21, hats32: 22, verre1: 22, echos: 23, voix: 23, roule: 24, etoiles: 24, lead3b: 25, orgue: 26, climax: 27, final: 28, octave: 30,
+    harpe: 3, halo: 10, volee: 14, bois: 16, orn: 21, trem: 25, tutti: 29, lead3: 22,
+    sonar: 5, verre: 11, passage: 13, sirene: 17, begaie: 20 };
+  const ENTRE = { 1: 'La nuit avant la fuite : une cithare qui compte à voix basse, la nappe, le cœur de la grosse caisse. Une basse courte, jamais de grondement.', 2: '+ le charley, la grosse caisse se décale', 3: '+ la cithare en 3-3-3-3-2-2, la harpe grave',
+    4: '+ la caisse claire, une fois par mesure', 5: '+ les clics de glitch, qui tombent n’importe où', 6: '+ la sous-basse courte', 7: '+ la cithare pleine, tous les motifs', 8: '+ les charleys swingués',
+    9: 'LE VIOLONCELLE : le thème entre, à l’archet, et se referme doucement', 10: '+ le charley ouvert syncopé, la caisse claire se décale', 11: '+ les caisses claires fantômes', 12: 'La nappe s’élargit', 13: '+ le vibraphone, trois contre quatre', 14: '+ les toms en fin de phrase',
+    15: 'ÇA DÉCOLLE : le breakbeat, la grosse caisse casse son rythme', 16: '+ la montée de fin de phrase, les claquements de bois', 17: '+ l’alto, qui lui répond dessous', 18: '+ la basse acide, courte',
+    19: '+ les accords d’orgue frappés', 20: '+ la cymbale à chaque phrase, un souffle d’air qui monte', 21: '+ la cloche, les appoggiatures du violoncelle', 22: 'LE VIOLON chante par-dessus (notes très longues), + les charleys en 32e', 23: '+ les échos, le chœur de sinus',
+    24: '+ les roulements de caisse, des pixels dans la salle', 25: '+ le violon à deux voix', 26: '+ l’accordéon', 27: 'LE CLIMAX : tout frappé, la cymbale toutes les 4 mesures', 28: 'Le final : la grosse caisse s’emballe', 30: 'La mélodie double à l’octave : le violon sur le violoncelle.' };
+  [[3, 'la harpe grave (la profondeur sans grondement)'], [10, 'les harmoniques qui scintillent'], [14, 'la volée de la cithare qui monte aux fins de phrase'], [16, 'les claquements de bois'],
+    [25, 'le trémolo des pouls'], [29, 'le tutti : la cithare en octaves'],
+    [5, 'le sonar : un ping de verre qui revient en écho sur la ville'], [11, 'les cloches de verre qui redescendent en fin de phrase'], [13, 'la voiture qui double : un souffle qui traverse de gauche à droite'], [17, 'la sirène lointaine, noyée dans la salle'], [20, 'le bégaiement : le synthé répète une note de plus en plus serré']].forEach(([k, t]) => { ENTRE[k] = (ENTRE[k] ? ENTRE[k] + ', ' : '') + '+ ' + t; });
+  const PALIERS30 = Array.from({ length: 30 }, (_, k) => ENTRE[k + 1] || (k < 14 ? 'La cithare s’ouvre d’un cran.' : 'Tout pousse d’un cran : plus fort, plus serré.'));
+  const BASE = { mallet: .66, contre: .36, pad: .5, kick: .8, hats: .36, ticks: .3, snare: .6, sub: .3, acid: .26, lead: .5, lead2: .3, ouverts: .3, toms: .5, riser: .38, stab: .45, crash: .42, ride: .24, caisse: .4, orgue: .4,
+    lead3: .72, lead3b: .42, voix: .23, air: .42, etoiles: .3, harpe: .9, halo: .6, bois: .4, trem: .6, sonar: .6, verre: .6, passage: .6, sirene: .5, begaie: .6 };
+  const niv = (id, p) => { const e = id === 'caisse' ? QUAND.roule : id === 'lead2' ? QUAND.lead2 : id === 'ride' ? QUAND.ride : (QUAND[id] || 1); if (p < e) return 0; const r = Math.min(1, (p - e) / 6), g = .72 + .28 * (p - 1) / 29; return (BASE[id] || .3) * (.82 + .18 * r) * g; };
+  const FILTRE_PAD = p => Math.min(4200, 650 * Math.pow(1.08, p - 1));
+  const POMPE = p => p < QUAND.drive ? .8 : Math.max(.45, .74 - .02 * (p - QUAND.drive));
+  /* LA GROSSE CAISSE : irrégulière, elle change TOUTES LES DEUX MESURES (jamais les mêmes coups d'une phrase à l'autre) */
+  const KICKS = (m, p) => { const k = [0], d = m >> 1, r1 = hh(d, 1), r2 = hh(d, 2), r3 = hh(d, 3);
+    if (p >= 15) { k.push(10); if (r1 > .45) k.push(2); if (r2 > .5) k.push(r3 > .5 ? 9 : 7); if (p >= 19 && r3 > .3) k.push(r2 > .5 ? 14 : 13); if (m % 2 === 1 && r1 > .6) k.push(15); }
+    else { if (p >= 2) k.push([7, 9, 10, 11][Math.floor(r1 * 4)]); if (p >= 8 && r2 > .45) k.push([3, 13, 14][Math.floor(r3 * 3)]); }
+    return k; };
+
+  function preparer(ctx, sortie, alea) {
+    const G = v => { const g = ctx.createGain(); g.gain.value = v; return g; };
+    const F = (type, f, q) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q != null) b.Q.value = q; return b; };
+    const chaine = (...n) => { for (let i = 0; i < n.length - 1; i++) n[i].connect(n[i + 1]); return n[n.length - 1]; };
+    const courbe = k => { const c = new Float32Array(2048); for (let i = 0; i < 2048; i++) { const x = i / 1023.5 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); } return c; };
+    const impulsion = (len, dec, lp) => { const n = Math.floor(ctx.sampleRate * len), b = ctx.createBuffer(2, n, ctx.sampleRate);
+      for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let y = 0; const a = Math.exp(-2 * Math.PI * lp / ctx.sampleRate);
+        for (let i = 0; i < n; i++) { y = (1 - a) * (alea() * 2 - 1) + a * y; d[i] = y * Math.pow(1 - i / n, dec); } } return b; };
+    const master = G(.5), chaud = ctx.createWaveShaper(); chaud.curve = courbe(1.1); chaud.oversample = '2x';
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 2; comp.attack.value = .015; comp.release.value = .2;
+    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .1; lim.knee.value = 0;
+    // le grave est tenu : passe-haut à 36 Hz, et un petit creux dans la boue 220-330 Hz
+    const boue = F('peaking', 280, .9); boue.gain.value = -2.5;
+    chaine(master, F('highpass', 36, .7), boue, chaud, comp, lim, sortie);
+    const salle = ctx.createConvolver(); salle.buffer = impulsion(2.4, 2.4, 3000); const envoiSalle = G(1); chaine(envoiSalle, salle, F('highpass', 280, .7), G(.3), master);
+    const dG = ctx.createDelay(2), dD = ctx.createDelay(2); dG.delayTime.value = SD * 3; dD.delayTime.value = SD * 3;
+    const fb = G(.36), echoIn = G(1), echoSort = G(0), pG = ctx.createStereoPanner(), pD = ctx.createStereoPanner(); pG.pan.value = -.7; pD.pan.value = .7;
+    chaine(echoIn, F('lowpass', 4200, .7), F('highpass', 320, .7), dG); dG.connect(dD); dD.connect(fb); fb.connect(dG); dG.connect(pG); dD.connect(pD); pG.connect(echoSort); pD.connect(echoSort); echoSort.connect(master); echoSort.connect(envoiSalle);
+    const pompe = G(1); pompe.connect(master);
+    const ids = ['mallet', 'contre', 'pad', 'kick', 'hats', 'ticks', 'snare', 'sub', 'acid', 'lead', 'lead2', 'ouverts', 'toms', 'riser', 'stab', 'crash', 'ride', 'caisse', 'orgue', 'lead3', 'lead3b', 'voix', 'air', 'etoiles', 'harpe', 'halo', 'bois', 'trem', 'sonar', 'verre', 'passage', 'sirene', 'begaie'], bus = {};
+    ids.forEach(id => bus[id] = G(0));
+    ['pad', 'stab', 'harpe'].forEach(id => bus[id].connect(pompe));
+    const CORDES = ['lead', 'lead2', 'lead3', 'lead3b'];   /* les cordes frottées passent par le corps de bois ; le chœur par ses formants ; l'accordéon par son soufflet */
+    ids.filter(id => !['pad', 'stab', 'orgue', 'voix', 'harpe'].concat(CORDES).includes(id)).forEach(id => bus[id].connect(master));
+    const corps = G(1), boisFiltres = [[260, .9, 2.5], [520, 1.1, 2], [2400, .8, 3.5]].map(([f, q, g]) => { const x = F('peaking', f, q); x.gain.value = g; return x; });
+    chaine(corps, ...boisFiltres, master);   /* le corps de bois : trois résonances en série */
+    CORDES.forEach(id => bus[id].connect(corps));
+    const voyelle = G(1), voyelleSortie = G(1); [[800, 5, 1], [1150, 6, .8], [2900, 8, .35]].forEach(([f, q, g]) => { const x = F('bandpass', f, q), y = G(g * 3.2); voyelle.connect(x); x.connect(y); y.connect(voyelleSortie); });
+    { const sec = G(.28); voyelle.connect(sec); sec.connect(voyelleSortie); } voyelleSortie.connect(pompe); bus.voix.connect(voyelle);
+    const soufflet = F('lowpass', 3200, .7), anche = F('peaking', 1100, .9); anche.gain.value = 4; chaine(bus.orgue, soufflet, anche, pompe);
+    const envoi = (id, v) => { const g = G(v); bus[id].connect(g); g.connect(envoiSalle); };
+    envoi('pad', .4); envoi('mallet', .22); envoi('contre', .3); envoi('lead', .42); envoi('lead2', .42); envoi('snare', .45); envoi('caisse', .4); envoi('toms', .3); envoi('stab', .3); envoi('orgue', .3); envoi('lead3', .55); envoi('lead3b', .55); envoi('voix', .6); envoi('air', .3); envoi('etoiles', .8); envoi('harpe', .25); envoi('halo', .8); envoi('bois', .2); envoi('trem', .35); envoi('sonar', .5); envoi('verre', .55); envoi('passage', .35); envoi('sirene', 1); envoi('begaie', .3); envoi('ticks', .25);
+    { const dub = (id, v) => { const g = G(v); bus[id].connect(g); g.connect(echoIn); }; dub('mallet', .4); dub('lead', .5); dub('contre', .4); dub('lead3', .32); dub('sonar', .8); dub('verre', .3); dub('begaie', .4); dub('ticks', .3); }
+    const filtrePad = F('lowpass', 650, .7); filtrePad.connect(bus.pad);
+    const kickSat = ctx.createWaveShaper(); kickSat.curve = courbe(1.5); kickSat.connect(bus.kick);
+    // LES FRAPPES SONT DES TAMPONS pré-calculés une fois (aucun filtre à chaque coup : c'était la charge du moteur 30)
+    const SR = ctx.sampleRate, norm = d => { let mx = 0; for (let i = 0; i < d.length; i++) mx = Math.max(mx, Math.abs(d[i])); if (mx > 0) for (let i = 0; i < d.length; i++) d[i] /= mx; return d; };
+    const tampon = (len, fn) => { const n = Math.floor(SR * len), b = ctx.createBuffer(1, n, SR), d = b.getChannelData(0); fn(d, n); norm(d); const f = Math.min(n, Math.floor(SR * .004)); for (let i = 0; i < f; i++) d[n - 1 - i] *= i / f; return b; };
+    const diff = (d, k) => { for (let j = 0; j < k; j++) { let pr = 0; for (let i = 0; i < d.length; i++) { const x = d[i]; d[i] = x - pr; pr = x; } } };
+    const passeBande = (d, a1, a2) => { let y1 = 0, y2 = 0; for (let i = 0; i < d.length; i++) { y1 += a1 * (d[i] - y1); y2 += a2 * (d[i] - y2); d[i] = y1 - y2; } };
+    const B = {};
+    B.hat = tampon(.07, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.exp(-i / SR / .011); diff(d, 2); });
+    B.hatO = tampon(.34, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.exp(-i / SR / .08) * Math.min(1, i / SR / .003); diff(d, 2); });
+    B.snare = tampon(.3, (d, n) => { for (let i = 0; i < n; i++) { const t = i / SR; d[i] = (alea() * 2 - 1); } passeBande(d, .6, .09); for (let i = 0; i < n; i++) { const t = i / SR; d[i] = d[i] * 2.4 * Math.exp(-t / .075) + .8 * Math.sin(2 * Math.PI * (175 + 70 * Math.exp(-t / .02)) * t) * Math.exp(-t / .06); } });
+    B.clap = tampon(.32, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1); passeBande(d, .45, .06); for (let i = 0; i < n; i++) { const t = i / SR; const rafale = t < .033 ? (Math.floor(t / .011) % 2 === 0 ? 1 : .55) : 0; d[i] *= rafale * 1.2 + Math.exp(-t / .07) * .9; } });
+    B.crash = tampon(2.4, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.exp(-i / SR / .55) * Math.min(1, i / SR / .004); diff(d, 2); });
+    B.riser = tampon(1.4, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.pow(i / n, 2.2); diff(d, 1); });
+    B.ticks = [0, 1, 2, 3].map(j => tampon(.03, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.exp(-i / SR / (.003 + .002 * j)); passeBande(d, .75 - .12 * j, .1 + .1 * j); }))
+      .concat([2400, 3600].map(f0 => tampon(.03, (d, n) => { for (let i = 0; i < n; i++) d[i] = Math.sin(2 * Math.PI * f0 * Math.pow(.6, i / n) * i / SR) * Math.exp(-i / SR / .006); })));
+    B.rim = tampon(.06, (d, n) => { for (let i = 0; i < n; i++) { const t = i / SR; d[i] = Math.sin(2 * Math.PI * (1700 - 600 * Math.min(1, t / .04)) * t) * Math.exp(-t / .012) + .5 * (alea() * 2 - 1) * Math.exp(-t / .003); } });
+    // LES INSTRUMENTS À MODÈLE : le souffle de l'archet (un bruit passé en bande, calculé une fois), les ondes à partiels naturels, le vibrato partagé
+    B.archet = tampon(1.6, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1); passeBande(d, .35, .03); });
+    const onde = (fn, N) => { const re = new Float32Array(N + 1), im = new Float32Array(N + 1); for (let n = 1; n <= N; n++) im[n] = fn(n); return ctx.createPeriodicWave(re, im); };
+    const W = {   /* le violoncelle : chaud, le troisième partiel plein ; l'alto : entre les deux ; le violon : brillant ; le chœur : voyelle ouverte ; l'anche : l'accordéon, les pairs forts */
+      celo: onde(n => Math.pow(n, -1.2) * (1 + .7 * Math.exp(-Math.pow((n - 3.2) / 1.5, 2))) * (1 + .12 * Math.sin(n * 2.3)), 26),
+      alto: onde(n => Math.pow(n, -1.0) * (1 + .6 * Math.exp(-Math.pow((n - 5) / 1.8, 2))) * (1 + .1 * Math.sin(n * 1.7)), 28),
+      violon: onde(n => Math.pow(n, -.82) * (1 + .8 * Math.exp(-Math.pow((n - 8) / 2.6, 2))) * (1 + .08 * Math.sin(n * 1.3)), 32),
+      choeur: onde(n => Math.pow(n, -1.25), 16),
+      anche: onde(n => Math.pow(n, -.8) * (n % 2 ? 1 : 1.35), 14) };
+    const vib = [5.3, 5.85].map(f => { const o = ctx.createOscillator(); o.frequency.value = f; o.start(); return o; });
+    return { bus, pompe, filtrePad, kickSat, echoSort, B, master, W, vib, K: {}, norm };
+  }
+
+  function jouer(ctx, kit, p, t0, m0, n, alea) {
+    p = Math.max(1, Math.min(30, p | 0));
+    const b = kit.bus, B = kit.B, A = id => p >= QUAND[id], SR = ctx.sampleRate, norm = kit.norm;
+    for (const id in b) b[id].gain.setValueAtTime(niv(id, p), t0);
+    kit.master.gain.setTargetAtTime(.56 + .42 * Math.pow((p - 1) / 29, 1.2), t0, .5);
+    kit.filtrePad.frequency.setTargetAtTime(FILTRE_PAD(p), t0, .4); kit.echoSort.gain.setValueAtTime(A('echos') ? .5 : 0, t0);
+    const osc = (type, f, dt) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; if (dt) o.detune.value = dt; return o; };
+    const filt = (type, f, q) => { const x = ctx.createBiquadFilter(); x.type = type; x.frequency.value = f; x.Q.value = q; return x; };
+    const gain = v => { const g = ctx.createGain(); g.gain.value = v; return g; };
+    const env = (g, t, pic, a, dur) => { g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(.0002, pic), t + a); g.gain.exponentialRampToValueAtTime(.0001, t + dur); };
+    // un tampon joué : une source et un gain, rien d'autre
+    const frappe = (buf, t, dest, v, rate, pan) => { const s = ctx.createBufferSource(), g = gain(v); s.buffer = buf; if (rate) s.playbackRate.value = rate; s.connect(g);
+      if (pan) { const pn = ctx.createStereoPanner(); pn.pan.value = pan; g.connect(pn); pn.connect(dest); } else g.connect(dest); s.start(t); };
+
+    // ---- les instruments ----
+    // LA CITHARE (l'ostinato) : une corde pincée à modèle physique (Karplus-Strong) — deux chœurs de cordes à peine désaccordés, l'excitation prise près du chevalet, la perte qui augmente avec l'aigu ;
+    // la note est calculée À LA DEMANDE puis gardée (une version douce, une version dure : la vélocité change le TIMBRE, pas seulement le volume) ; un tampon joué, rien d'autre
+    const corde = (midi, dur) => { const cle = midi * 2 + (dur ? 1 : 0); let e = kit.K[cle]; if (e) return e;
+      const f = mtof(midi), long = midi < 72 ? 1.5 : midi < 84 ? 1.1 : .75, n = Math.floor(SR * long), out = new Float32Array(n), L0 = Math.round(SR / f + .5), fa = SR / (L0 - .5), T60 = Math.max(.45, Math.min(2.6, (dur ? 2 : 1.5) * Math.pow(220 / f, .45)));
+      [1, 1.0016].forEach(dt => { const L = Math.round(SR / (f * dt) + .5), ex = new Float32Array(L), buf = new Float32Array(L), per = (L - .5) / SR, g = Math.min(.9995, Math.pow(10, -3 * per / T60) / Math.cos(Math.PI / (L - .5)));
+        let y = 0; const c = dur ? .18 : .62; for (let i = 0; i < L; i++) { y = c * y + (1 - c) * (alea() * 2 - 1); ex[i] = y; }
+        const dec = Math.max(1, Math.floor(L * .14)); let mo = 0; for (let i = 0; i < L; i++) { buf[i] = ex[i] - ex[(i + dec) % L]; mo += buf[i]; } mo /= L; for (let i = 0; i < L; i++) buf[i] -= mo;
+        let idx = 0; for (let i = 0; i < n; i++) { const a1 = buf[idx], b1 = buf[(idx + 1) % L]; out[i] += a1; buf[idx] = g * .5 * (a1 + b1); idx = (idx + 1) % L; } });
+      const clic = Math.floor(SR * .004); for (let i = 0; i < clic; i++) out[i] += (alea() * 2 - 1) * (dur ? .5 : .18) * (1 - i / clic);   /* le contact du doigt ou du médiator */
+      norm(out); const fin = Math.floor(SR * .02); for (let i = 0; i < fin; i++) out[n - 1 - i] *= i / fin;
+      const bf = ctx.createBuffer(1, n, SR); bf.getChannelData(0).set(out); return kit.K[cle] = { b: bf, r: f / fa }; };
+    const cithare = (t, midi, v, dest) => { t = Math.max(t, .001); const e = corde(Math.max(55, Math.min(96, midi)), v > .62), s = ctx.createBufferSource(), g = gain(v * .95); s.buffer = e.b; s.playbackRate.value = e.r * Math.pow(2, (hh(midi, t * 91) - .5) * 5 / 1200);
+      s.connect(g); g.connect(dest); s.start(t); };
+    // le vibraphone (le contre-chant) : un sinus et son octave, une queue longue
+    const vibra = (t, midi, v, pan) => { const f = mtof(midi), g = gain(0), g2 = gain(.2), o = osc('sine', f), o2 = osc('sine', f * 2), pn = ctx.createStereoPanner(); pn.pan.value = pan; env(g, t, v, .003, .95);
+      o.connect(g); o2.connect(g2); g2.connect(g); g.connect(pn); pn.connect(b.contre); o.start(t); o2.start(t); o.stop(t + 1); o2.stop(t + 1); };
+    // la harpe grave : un triangle qui s'éteint tout seul
+    const harpe = (t, midi, v) => { const o = osc('triangle', mtof(midi)), g = gain(0); env(g, t, v, .004, .9); o.connect(g); g.connect(b.harpe); o.start(t); o.stop(t + .95); };
+    // la nappe : des triangles désaccordés (deux groupes, gauche et droite) + l'octave en sinus ; elle tient DEUX mesures
+    const nappe = (t, accord, dur) => { const g = gain(0), v = A('large') ? .075 : .06, pL = ctx.createStereoPanner(), pR = ctx.createStereoPanner(); pL.pan.value = -.55; pR.pan.value = .55; pL.connect(g); pR.connect(g);
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + .9); g.gain.setValueAtTime(v, t + dur - .2); g.gain.linearRampToValueAtTime(.0001, t + dur + .8);
+      (A('large') ? accord.concat(accord[0] + 12) : accord).forEach(m => [-6, 6].forEach((dt, j) => { const o = osc('triangle', mtof(m), dt); o.connect(j ? pR : pL); o.start(t); o.stop(t + dur + .9); }));
+      g.connect(kit.filtrePad); };
+    // L'ARCHET (le violoncelle, l'alto, le violon) : une onde à partiels naturels dans un filtre dont l'ouverture suit la pression de l'archet (sombre à l'attaque, brillant au milieu, qui se referme),
+    // un souffle d'archet à l'attaque, une attaque qui s'ouvre (plus vive si l'intensité monte), un portamento depuis la note d'avant, un vibrato qui n'arrive qu'après l'attaque (un LFO partagé, une
+    // profondeur par note), une dérive de quelques cents ; la fin de note est une DESCENTE DOUCE (jamais une coupure). dy = l'intensité écrite dans le thème (0-1), o = {att, vib, sw}
+    const archet = (t, midi, len, v, dest, prev, dy, o) => { o = o || {}; t = Math.max(t, .001); dy = dy == null ? .7 : dy; const dur = SD * len, f = mtof(midi), fin = t + Math.max(.16, dur - .03), tim = midi < 67 ? 'celo' : midi < 80 ? 'alto' : 'violon',
+        x = osc('sine', f), g = gain(0), lp = filt('lowpass', f * (2 + 3 * dy), .7), vg = gain(0), att = Math.min(dur * .5, o.att || (.13 - .07 * dy)), derive = (hh(midi * 7, t * 53) - .5) * 9;
+      x.setPeriodicWave(kit.W[tim]); x.detune.value = derive;
+      const fe = prev ? mtof(prev) : f * .988; x.frequency.setValueAtTime(fe, t); x.frequency.setTargetAtTime(f, t, prev ? .05 : .045);
+      lp.frequency.setValueAtTime(f * (1.6 + 2 * dy), t); lp.frequency.linearRampToValueAtTime(Math.min(9500, f * (3 + 6 * dy) * (o.sw || 1)), t + Math.min(.3, dur * .5)); lp.frequency.setTargetAtTime(f * 1.8, fin, .2);
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v * .82, t + att); g.gain.linearRampToValueAtTime(v, t + Math.max(att + .02, dur * .5)); g.gain.setValueAtTime(v, fin); g.gain.setTargetAtTime(.0001, fin, .17);
+      const dep = Math.min(.42, dur * .5); vg.gain.setValueAtTime(0, t); vg.gain.setValueAtTime(0, t + dep); vg.gain.linearRampToValueAtTime(o.vib || (tim === 'violon' ? 17 : 13), t + dep + .35); kit.vib[midi % 2].connect(vg); vg.connect(x.detune);
+      x.connect(lp); lp.connect(g); g.connect(dest); x.start(t); x.stop(fin + 1.2);
+      const sn = ctx.createBufferSource(), gn = gain(0); sn.buffer = B.archet;   /* le souffle de l'archet (un bruit déjà passé en bande, calculé une fois) : plus fort à l'attaque, discret ensuite */
+      gn.gain.setValueAtTime(.0001, t); gn.gain.linearRampToValueAtTime(v * (.55 + .5 * dy), t + .035); gn.gain.setTargetAtTime(v * .07, t + .04, .12); gn.gain.setTargetAtTime(.0001, fin, .06);
+      sn.connect(gn); gn.connect(dest); sn.start(t, hh(midi, t * 31) * .3); sn.stop(Math.min(t + 1.3, fin + .35)); };
+    // la voix de dessous du thérémine : la note de l'accord à 3, 4 ou 5 demi-tons plus bas
+    const dessous = (m, accord) => { const pcs = accord.map(x => x % 12); for (const d of [4, 3, 5, 7]) if (pcs.indexOf(((m - d) % 12 + 12) % 12) >= 0) return m - d; return m - 5; };
+    // le violon solo (dès 22) : l'archet très haut, attaque lente, vibrato large, une descente longue
+    const violon = (t, midi, len, v, dest, dy) => archet(t, midi, len, v, dest, null, dy, { att: .3, vib: 22, sw: 1.15 });
+    // le chœur voyelle : trois notes, chacune en onde de voix + son octave désaccordés, un gonflement lent ; les formants (la voyelle) sont sur le bus
+    const voix = (t, accord, dur) => { const g = gain(0), v = A('lead3b') ? .1 : .08;
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + 1.3); g.gain.setValueAtTime(v, t + dur - .3); g.gain.linearRampToValueAtTime(.0001, t + dur + .8);
+      accord.slice(1, A('lead3b') ? 5 : 4).forEach((m, k) => [[12, 1, -7], [24, .3, 7]].forEach(([oc, gv, dt]) => { const o = osc('sine', mtof(m + oc), dt), gg = gain(gv), pn = ctx.createStereoPanner(); o.setPeriodicWave(kit.W.choeur); pn.pan.value = (k % 3 - 1) * .8; o.connect(gg); gg.connect(pn); pn.connect(g); o.start(t); o.stop(t + dur + .9); }));
+      g.connect(b.voix); };
+    // l'accordéon à anches (le soufflet) : trois notes, deux anches désaccordées chacune (le musette), une attaque nette, une fin douce
+    const orgue = (t, accord, dur) => { const g = gain(0); g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.075, t + .05); g.gain.setValueAtTime(.075, t + Math.max(.08, dur - .06)); g.gain.setTargetAtTime(.0001, t + Math.max(.08, dur - .06), .08);
+      accord.slice(1, 4).forEach(m => { const o = osc('sine', mtof(m + 12), -6), o2 = osc('sine', mtof(m + 12), 6), g2 = gain(.8); o.setPeriodicWave(kit.W.anche); o2.setPeriodicWave(kit.W.anche); o.connect(g); o2.connect(g2); g2.connect(g); o.start(t); o2.start(t); o.stop(t + dur + .6); o2.stop(t + dur + .6); }); g.connect(b.orgue); };
+    // l'accord frappé : trois triangles dans un filtre qui claque
+    const stab = (t, accord) => { const g = gain(0), x = filt('lowpass', 2600, .8); x.frequency.setValueAtTime(3400, t); x.frequency.exponentialRampToValueAtTime(900, t + SD * 1.5); env(g, t, .12, .004, SD * 1.7);
+      accord.slice(1, 4).forEach(m => { const o = osc('triangle', mtof(m + 12)); o.connect(x); o.start(t); o.stop(t + SD * 1.8); }); x.connect(g); g.connect(b.stab); };
+    // la basse : COURTE. Un sous qui claque et retombe en 0,3 s ; la « acide » est un carré filtré, court aussi
+    const sub = (t, midi, v) => { const o = osc('sine', mtof(midi)), g = gain(0); env(g, t, v, .006, .3); o.connect(g); g.connect(b.sub); o.start(t); o.stop(t + .32); };
+    const acid = (t, midi, v) => { const o = osc('square', mtof(midi + 12)), x = filt('lowpass', 1200, 4), g = gain(0); x.frequency.setValueAtTime(1500, t); x.frequency.exponentialRampToValueAtTime(240, t + .12);
+      env(g, t, v, .003, .14); o.connect(x); x.connect(g); g.connect(b.acid); o.start(t); o.stop(t + .16); };
+    const kick = t => { const o = osc('sine', 150), g = gain(0); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(48, t + .065);
+      env(g, t, .95, .002, .26); o.connect(g); g.connect(kit.kickSat); o.start(t); o.stop(t + .28);
+      if (A('drive') || p >= 6) { kit.pompe.gain.setValueAtTime(POMPE(p), t); kit.pompe.gain.linearRampToValueAtTime(1, t + SD * 3.4); } };
+    const tom = (t, f0) => { const o = osc('sine', f0), g = gain(0); o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * .55, t + .2); env(g, t, .7, .003, .26); o.connect(g); g.connect(b.toms); o.start(t); o.stop(t + .28); };
+    // le pouls du trémolo de montée : un carré court dans un filtre
+    const trem = (t, midi, v) => { const o = osc('square', mtof(midi)), x = filt('lowpass', 2400, .9), g = gain(0); env(g, t, v, .004, SD * .85); o.connect(x); x.connect(g); g.connect(b.trem); o.start(t); o.stop(t + SD); };
+    const air = (t, dur) => { const s = ctx.createBufferSource(), x = filt('bandpass', 4500, .8), g = gain(0); s.buffer = B.riser; x.frequency.setValueAtTime(4500, t); x.frequency.exponentialRampToValueAtTime(11000, t + dur);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.4, t + dur * .9); g.gain.exponentialRampToValueAtTime(.0001, t + dur + .5); s.connect(x); x.connect(g); g.connect(b.air); s.start(t); s.stop(t + 1.39); };
+    // un pixel : un petit « bip » triangle très aigu
+    const pixel = (t, midi, v, pan) => { const o = osc('triangle', mtof(midi)), g = gain(0), pn = ctx.createStereoPanner(); pn.pan.value = pan; env(g, t, v, .002, .16); o.connect(g); g.connect(pn); pn.connect(b.etoiles); o.start(t); o.stop(t + .18); };
+    const halo = (t, midi, dur, pan) => { const g = gain(0), pn = ctx.createStereoPanner(); pn.pan.value = pan; g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(.06, t + dur * .45); g.gain.linearRampToValueAtTime(.0001, t + dur);
+      [[1, 1], [2, .25]].forEach(([k, gv]) => { const o = osc('sine', mtof(midi) * k), gg = gain(gv); o.connect(gg); gg.connect(g); o.start(t); o.stop(t + dur + .05); }); g.connect(pn); pn.connect(b.halo); };
+
+    // ---- la nuit urbaine ----
+    const sonar = (t, midi, v) => { const o = osc('sine', mtof(midi)), o2 = osc('sine', mtof(midi) * 2), g = gain(0), g2 = gain(.18); env(g, t, v, .004, 1.4); o.connect(g); o2.connect(g2); g2.connect(g); g.connect(b.sonar); o.start(t); o2.start(t); o.stop(t + 1.5); o2.stop(t + 1.5); };
+    const verre = (t, midi, v, pan) => { const f = mtof(midi), o = osc('sine', f), m = osc('sine', f * 3.5), mg = gain(0), g = gain(0), pn = ctx.createStereoPanner(); pn.pan.value = pan;
+      mg.gain.setValueAtTime(f * 1.6, t); mg.gain.exponentialRampToValueAtTime(f * .05, t + .5); env(g, t, v, .003, 1); m.connect(mg); mg.connect(o.frequency); o.connect(g); g.connect(pn); pn.connect(b.verre); o.start(t); m.start(t); o.stop(t + 1.05); m.stop(t + 1.05); };
+    const passage = (t, dur) => { const s = ctx.createBufferSource(), x = filt('bandpass', 300, 2.2), g = gain(0), pn = ctx.createStereoPanner(), o = osc('sawtooth', 150), ox = filt('lowpass', 700, .8), og = gain(.22);
+      s.buffer = B.riser; x.frequency.setValueAtTime(300, t); x.frequency.exponentialRampToValueAtTime(2400, t + dur * .5); x.frequency.exponentialRampToValueAtTime(260, t + dur);
+      o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(300, t + dur * .5); o.frequency.exponentialRampToValueAtTime(140, t + dur);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(1, t + dur * .5); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      pn.pan.setValueAtTime(-.95, t); pn.pan.linearRampToValueAtTime(.95, t + dur);
+      s.connect(x); x.connect(g); o.connect(ox); ox.connect(og); og.connect(g); g.connect(pn); pn.connect(b.passage); s.start(t); s.stop(t + 1.39); o.start(t); o.stop(t + dur + .02); };
+    const sirene = t => { const o = osc('triangle', mtof(74)), x = filt('bandpass', 1100, .9), g = gain(0), pn = ctx.createStereoPanner(); pn.pan.value = .6;
+      for (let k = 0; k < 4; k++) o.frequency.setValueAtTime(mtof(k % 2 ? 69 : 74), t + k * .48);
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(1, t + .5); g.gain.linearRampToValueAtTime(.0001, t + 1.92); o.connect(x); x.connect(g); g.connect(pn); pn.connect(b.sirene); o.start(t); o.stop(t + 1.95); };
+    const begaie = (t, midi, v, pan) => { const f = mtof(midi), x = filt('lowpass', 1800, 2), g = gain(0), pn = ctx.createStereoPanner(); pn.pan.value = pan; env(g, t, v, .002, SD * .6);
+      [-8, 8].forEach(dt => { const o = osc('sawtooth', f, dt); o.connect(x); o.start(t); o.stop(t + SD * .65); }); x.connect(g); g.connect(pn); pn.connect(b.begaie); };
+
+    // ---- les mesures ----
+    for (let m = m0; m < m0 + n; m++) {
+      const tm = t0 + (m - m0) * MES, bar = m % 8, cy = Math.floor(m / 8), accord = CHORDS[bar], root = ROOTS[bar], d2 = m >> 1;
+      const pat = m < 2 ? PATS[0] : PATS[Math.floor(hh(m, 7) * 8)], kicks = KICKS(m, p);
+      if (bar % 2 === 0) nappe(tm, accord, MES * 2);
+      if (A('crash') && bar === 0) frappe(B.crash, tm, b.crash, .8, 1, 0);
+      if (A('climax') && bar === 4) frappe(B.crash, tm, b.crash, .6, 1.12, 0);
+      if (A('riser') && bar === 7) frappe(B.riser, tm + MES - 1.39, b.riser, .6, 1, 0);
+      if (A('air') && (bar === 3 || bar === 7)) air(tm, MES);
+      if (A('voix') && bar % 2 === 0) voix(tm, accord, MES * 2);
+      if (A('harpe')) { harpe(tm, accord[0], .6); if (p >= 12) harpe(tm + MES * .5, accord[2] - (accord[2] > 62 ? 12 : 0), .45); }
+      if (A('halo') && bar % 2 === 0) { halo(tm, accord[2] + 24, MES * 1.8, -.55); halo(tm + MES * .25, accord[4] + 24, MES * 1.6, .55); }
+      // le violon solo (dès 22), et sa tierce en dessous (25) : de très longues notes qui chantent par-dessus
+      if (A('lead3')) { const L = cy % 2 ? VIO2 : VIO1;
+        L.forEach(([st, nt, ln, dy]) => { if (Math.floor(st / 16) !== bar) return; const t = tm + (st % 16) * SD + (hh(cy * 17 + st, 4) - .5) * .03; violon(t, nt, ln, .12, b.lead3, dy); if (A('lead3b')) violon(t, dessous(nt, accord), ln, .075, b.lead3b, dy * .9); }); }
+      // le violoncelle (dès 9) : le thème, écrit ; le portamento quand la note suit de près la précédente ; l'appoggiature (la note voisine, une phrase sur deux) ; l'alto (17) lui répond sous les notes ; le violon à l'octave (30)
+      if (A('lead')) { const melo = MELOS[cy % 4];
+        melo.forEach(([st, nt, ln, dy], k) => { if (Math.floor(st / 16) !== bar) return;
+          const t = tm + (st % 16) * SD + (hh(cy * 131 + st, 9) - .5) * .022 + (bar === 7 ? .0016 * (st % 16) : 0), pv = k > 0 && st - (melo[k - 1][0] + melo[k - 1][2]) <= 1 ? melo[k - 1][1] : null;
+          archet(t, nt, ln, .17 * (.78 + .22 * dy), b.lead, pv, dy);
+          if (A('orn') && ln >= 4 && hh(cy * 131 + st, 3) > .5) archet(t - SD * .45, voisin(nt), 1, .08, b.lead, null, .6);   /* l'appoggiature */
+          if (A('octave')) archet(t, nt + 12, ln, .05, b.lead2, pv ? pv + 12 : null, dy, { sw: 1.1 }); }); }
+      if (A('lead2')) { const L = cy % 2 ? CONTRE2 : CONTRE1;
+        L.forEach(([st, nt, ln, dy]) => { if (Math.floor(st / 16) !== bar) return; archet(tm + (st % 16) * SD + (hh(cy * 19 + st, 6) - .5) * .03, nt, ln, .1, b.lead2, null, dy, { att: .22, vib: 11 }); }); }
+      if (A('passage') && bar === 1 && cy % 2 === 0) passage(tm + MES * .1, MES * 1.5);
+      if (A('sirene') && bar === 5 && cy % 2 === 1) sirene(tm + MES * .1);
+      // les clics de glitch : trois positions tirées au hasard (qui changent chaque mesure)
+      if (A('ticks')) for (let k = 0; k < 3; k++) { if (hh(m, 90 + k) > (p < 11 ? .5 : .8)) continue; const i = Math.floor(hh(m, 80 + k) * 16); frappe(B.ticks[Math.floor(hh(m, 70 + k) * 6)], tm + i * SD + (i % 2 ? SD * .08 : 0), b.ticks, .5 + .5 * hh(m, 60 + k), .9 + .3 * hh(m, 50 + k), (hh(m, 40 + k) - .5) * 1.4); }
+      // les triolets (puis les 32e) du charley, à la fin de certaines mesures
+      const tri4 = A('rolls') && bar % 4 === 3 && p >= 10, tri2 = p >= 18 && bar % 2 === 1 && bar !== 7;
+      if (tri4) { const nb = A('hats32') ? 8 : 3, pas = A('hats32') ? SD * .5 : SD * 4 / 3; for (let k = 0; k < nb; k++) frappe(B.hat, tm + 12 * SD + k * pas, b.hats, .35 + .5 * k / nb, 1 + .02 * k, 0); }
+      if (tri2) for (let k = 0; k < 3; k++) frappe(B.hat, tm + 4 * SD + k * SD * 4 / 3, b.hats, .32 + .1 * k, 1.03, 0);
+      // la cithare : l'ostinato, et la volée qui monte l'accord aux fins de phrase
+      for (let i = 0; i < 16; i++) {
+        const t = tm + i * SD, tt = t + (i % 2 ? SD * .06 : 0), sw = t + (i % 2 ? SD * .2 : 0), c = pat[i];
+        const hum = (hh(m, i + 200) - .5) * (i % 4 === 0 ? .008 : .018), resp = (.86 + .28 * hh(m, i + 210)) * (.94 + .06 * Math.sin(m * .9 + 1));   /* le jeu humain : la main et le souffle (les temps forts restent serrés) */
+        if (A('mallet')) {
+          const joue = p === 1 ? (i === 0 || i === 7 || i === 12) : p === 2 ? ACC.indexOf(i) >= 0 : p < 7 ? ACC.indexOf(i) >= 0 : c !== '.';
+          if (joue) { const k = p < 7 || c === '.' ? Math.floor(hh(m, i + 20) * 5) : +c, haut = p >= 10 && k >= 3 && hh(m, i + 30) > .75 ? 12 : 0;
+            cithare(tt + hum, reg(accord[k]) + haut, (i % 4 === 0 ? 1 : ACC.indexOf(i) >= 0 ? .8 : .55) * (p < 3 ? .9 : 1) * resp, b.mallet);
+            if (A('tutti') && i % 2 === 0) cithare(tt + hum, reg(accord[k]) + 12 + haut, .3 * resp, b.mallet); }
+          else if (p >= 12 && i % 2 === 1 && hh(m, i + 40) > .62) cithare(tt + hum, reg(accord[(i + m) % 5]), .22 * resp, b.mallet);   /* les notes fantômes */
+        }
+        if (A('volee') && ((bar === 7 && i >= 10) || (bar === 3 && i >= 12 && p >= 17))) { const echelle = accord.concat(accord.map(x => x + 12)), st = bar === 7 ? 10 : 12; cithare(t + hum, reg(echelle[Math.min(echelle.length - 1, i - st)]) + 12, (.3 + .09 * (i - st)) * resp, b.mallet); }
+        if (A('bois') && ((cy % 2 === 0 ? [3, 6, 10, 13] : [2, 5, 8, 11, 14]).indexOf(i) >= 0) && hh(m, i + 15) > .3) frappe(B.rim, tt, b.bois, .6, i % 2 ? 1.25 : 1, 0);
+        if (A('trem') && ((bar === 3 || bar === 7) && i >= 8 || (A('climax') && bar === 5 && i >= 8))) trem(t, reg(accord[1 + (i % 3)]) + 12, .1 + .015 * (i - 8));
+        if (A('contre') && (m * 16 + i) % 3 === 0) { const r = ((m * 16 + i) / 3 | 0) % 3; vibra(t, reg(accord[[4, 2, 3][r]]) + 12, .26, ((m * 16 + i) / 3 | 0) % 2 ? .5 : -.5); }
+        // — la basse : courte, sur les coups de grosse caisse
+        if (kicks.indexOf(i) >= 0) {
+          kick(t);
+          if (A('sub') && (i === 0 || kicks.indexOf(i) === 1)) sub(t, root, i === 0 ? .55 : .4);
+          if (A('acid') && i !== 0) acid(t, root, .5);
+        }
+        if (A('acid') && i === 0) acid(t, root, .6);
+        if (p >= 23 && i === 14 && bar % 2 === 1 && kicks.indexOf(14) < 0) kick(t);
+        if (A('final') && bar === 7 && i >= 8 && i % 2 === 0 && i % 4 !== 0 && kicks.indexOf(i) < 0) kick(t);
+        // — la caisse claire, la 2-step : au 4 et au 12 (ou au 11 une mesure sur deux), un clap qui traîne derrière
+        if (A('snare')) {
+          const decale = bar % 2 === 1 && hh(d2, 5) > .5, deux = i === 4 && p >= 7, quatre = i === (decale && p >= 10 ? 11 : 12);
+          if (deux || quatre) { frappe(B.snare, t, b.snare, i === 12 || i === 11 ? 1 : .8, 1 + (hh(m, i) - .5) * .06, 0); if (A('drive') && quatre) frappe(B.clap, t + .006, b.snare, .45, 1, .2); }
+          if (A('ouverts') && i === 13 && bar % 2 === 0) frappe(B.clap, t + SD * .1, b.snare, .38, .92, -.3);
+          if (A('ghost') && (i === 7 || i === 9 || (A('drive') && (i === 10 || i === 15)))) { if (hh(m, i + 5) > .45) frappe(B.snare, tt, b.snare, .2 + .08 * hh(m, i), .94, (hh(m, i + 2) - .5) * .5); }
+        }
+        // — les charleys : swingués, les croches pleines, les doubles croches tirées au sort
+        if (A('hats') && !(tri4 && i >= 12) && !(tri2 && i >= 4 && i < 8)) {
+          const on = p < 8 ? i % 4 === 2 : (i % 2 === 0 || hh(m, i + 60) < (p < 15 ? .4 : .62));
+          if (on) frappe(B.hat, sw, b.hats, i % 4 === 2 ? .5 : i % 2 === 0 ? .24 : .17, 1 + (hh(m, i + 9) - .5) * .08, 0); }
+        if (A('ouverts') && i === (bar % 2 ? 14 : 6)) frappe(B.hatO, sw, b.ouverts, .5, 1, .25);
+        if (A('ride') && i % 4 === 0) frappe(B.hatO, t, b.ride, .35, 1.4, 0);
+        if (A('stab') && (hh(d2, 11) > .5 ? [3, 6, 11] : [2, 5, 10]).concat(A('climax') ? [14] : []).indexOf(i) >= 0) stab(tt, accord);
+        if (A('orgue') && (i === 0 || (A('climax') && i === 8))) orgue(t, accord, SD * (i === 0 ? 3 : 2));
+        if (A('toms') && (bar === 3 || bar === 7) && i >= 12) tom(t, [190, 155, 125, 100][i - 12]);
+        if (A('roule') && bar === 7 && i >= 8) { frappe(B.snare, t, b.caisse, .18 + .06 * (i - 8), 1.15, 0); if (p >= 28 && i >= 12) frappe(B.snare, t + SD * .5, b.caisse, .3 + .06 * (i - 12), 1.2, 0); }
+        if (A('sonar') && i === 3 && bar % 2 === 0) sonar(t, accord[3] + 24, 1);
+        if (A('verre') && (bar === 5 || (bar === 1 && cy % 2 === 1)) && i >= 8 && i % 2 === 0) verre(t, accord[4 - (i - 8) / 2] + 12, .8, ((i - 8) / 2 - 1.5) * .5);
+        if (A('begaie') && bar === 6 && i >= 8) { const v = .05 + .012 * (i - 8); begaie(tt, accord[2] + 12, v, (i % 2 ? .5 : -.5)); if (i >= 12) begaie(t + SD * .5, accord[2] + 12, v * .8, (i % 2 ? -.5 : .5)); }
+        if (A('etoiles') && (i === 2 || i === 6 || i === 11 || i === 14)) { const h = hh(m * 16 + i, 1); if (h < .42) pixel(t, accord[Math.floor(h * 100) % 5] + 36 + (h < .2 ? 12 : 0), .12, (h - .21) * 3.4); }
+      }
+    }
+  }
+
+  return {
+    titre: 'CAVALE ULTRA', bpm: BPM, mesures: 8, intro: 0, pas: 0.6, moteurs: Array(30).fill(1), ton: 'ré dorien', auteur: 'Claude Code (pôle SON), écrit à la main pour Léo',
+    style: 'thriller de fuite en ville de nuit : cithare, violoncelle à l’archet, 2-step', introTxt: '', paliers: PALIERS30, preparer, jouer };
+})();
+</script>
+
+
+<!-- ======================= L'ÉCOUTE (libre : ce que voit celui qui ouvre le fichier) ======================= -->
+<script>
+(function () {
+  let ctx = null, kit = null, p = 1, m = 0, tNext = 0, iv = 0;
+  let graine = 15400; const alea = () => { graine = (graine * 1664525 + 1013904223) >>> 0; return graine / 4294967296; };
+  const mes = 240 / MORCEAU.bpm;
+  const ce = document.getElementById('ce'), play = document.getElementById('play'), jg = document.getElementById('speed'), mot = document.getElementById('mot');
+  const maj = () => { mot.textContent = 'Moteur ' + p + ' / 30'; ce.textContent = 'Moteur ' + p + ' · ' + MORCEAU.paliers[p - 1]; };
+  jg.addEventListener('input', () => { p = Math.max(1, Math.min(30, 1 + Math.round(+jg.value / 100 * 29))); maj(); });
+  play.onclick = () => {
+    if (iv) { clearInterval(iv); iv = 0; ctx.close(); ctx = null; play.textContent = 'PLAY'; maj(); return; }
+    ctx = new (window.AudioContext || window.webkitAudioContext)(); kit = MORCEAU.preparer(ctx, ctx.destination, alea);
+    m = 0; tNext = ctx.currentTime + 0.1; play.textContent = 'STOP';
+    iv = setInterval(() => { while (tNext < ctx.currentTime + 0.4) { MORCEAU.jouer(ctx, kit, p, tNext, m++, 1, alea); tNext += mes; } maj(); }, 60);
+  };
+  maj();
+})();
+</script>
+</body></html>
