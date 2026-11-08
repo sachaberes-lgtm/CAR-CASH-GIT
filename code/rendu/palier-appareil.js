@@ -86,10 +86,11 @@ const PAL=(function(){
      Les colonnes ancien/moyen des clés `img*` ne sont pas lues : les paliers 0 et 1 gardent leur régime existant. Interrupteurs d'URL :
      `?img=max` = tout à l'ancien · `?img=a,c` = SEULEMENT ces leviers · `?imgsans=b` = tous sauf ceux-là. `dbgImg()` décrit. */
   P.imgMax=/[?&]img=max\b/.test(location.search);
-  const iSeul=/[?&]img=([a-f](?:,[a-f])*)(?:&|$)/.exec(location.search),iSans=/[?&]imgsans=([a-f](?:,[a-f])*)(?:&|$)/.exec(location.search);
-  P.imgOn=function(l){return !!TEL_NATIF&&P.n>=2&&!P.imgMax&&(!iSeul||iSeul[1].split(',').indexOf(l)>=0)&&!(iSans&&iSans[1].split(',').indexOf(l)>=0);};
+  const iSeul=/[?&]img=([a-j](?:,[a-j])*)(?:&|$)/.exec(location.search)||(/[?&]img=13(?:&|$)/.test(location.search)?[0,'a']:null), /* `?img=13` : le préréglage « doux » (OPTI ULTIME, 8/11) = SEUL le halo en demi-résolution ; plafond 1,5, ombre 1024, ciel et traits entiers = l'image d'avant moins le halo */ iSans=/[?&]imgsans=([a-j](?:,[a-j])*)(?:&|$)/.exec(location.search),iPlus=/[?&]imgplus=([a-j](?:,[a-j])*)(?:&|$)/.exec(location.search),iNeuf={g:0,i:1,j:0};
+  /* (2026-11-08, dernière salve, OPTI ULTIME) les leviers g (précision mediump) et j (halo à 2 étages) sont À DEMANDER : éteints par défaut ; i (textures ≤ 2048, aniso 4) est ALLUMÉ par défaut sur téléphone récent (décision OPTI ULTIME 8/11) — table `iNeuf`, 1 = allumé, `?imgplus=g,i,j` les allume, `?img=max` / `?imgsans=` les éteignent. h (anticrénelage) = rien à faire : déjà coupé sur téléphone. */
+  P.imgOn=function(l){return !!TEL_NATIF&&P.n>=2&&!P.imgMax&&(!iSeul||iSeul[1].split(',').indexOf(l)>=0)&&!(iSans&&iSans[1].split(',').indexOf(l)>=0)&&(!(l in iNeuf)||!!iNeuf[l]||!!(iPlus&&iPlus[1].split(',').indexOf(l)>=0));};
   P.bT=function(k,avant,l){const v=P.B[k];return v&&P.imgOn(l)?v[2]:avant;};
-  window.dbgImg=function(){const o={};'abcdef'.split('').forEach(function(l){o[l]=P.imgOn(l);});return {telNatif:!!TEL_NATIF,palier:P.n,max:P.imgMax,leviers:o};}; // (banc)
+  window.dbgImg=function(){const o={};'abcdefgij'.split('').forEach(function(l){o[l]=P.imgOn(l);});return {telNatif:!!TEL_NATIF,palier:P.n,max:P.imgMax,leviers:o};}; // (banc)
   return P;})();
 /* LES TOILES 2D RENDUES APRÈS L'ENVOI À LA PUCE (2026-10-14, passe perf mobile). MESURÉ (iPhone 7 émulé) : 184 toiles 2D vivantes = 52 Mo
    avant le premier écran — et iOS plafonne la mémoire de toiles d'une page (au-delà : toiles blanches, puis la page est tuée). Une toile
@@ -138,7 +139,8 @@ try{matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',fun
    et l'anticrénelage est le FXAA de la passe finale. Même image au pixel près, ~100 Mo de moins. `?msaa=1` (l'ancien choix, voir FXAA_ON) garde le tampon. */
 const MSAA_TOILE=/[?&]msaa=1\b/.test(location.search);
 const t9rend=performance.now();
-const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance'});
+PAL.B.imgPrec=['highp','highp','mediump']; /* (2026-11-08, levier g, À DEMANDER `?imgplus=g`) précision des shaders sur téléphone : mediump = 16 bits sur les GPU Apple (moitié de registres/ALU). ⚠ three r128 la pose sur le sommet ET le fragment : positions du monde en 16 bits si le GPU la respecte — à juger sur l'iPhone, jamais par défaut */
+const renderer=new THREE.WebGLRenderer({antialias:!ALLEGE&&!IS_LOW_END&&MSAA_TOILE,powerPreference:'high-performance',precision:PAL.bT('imgPrec','highp','g')});
 const TOILE1=!/[?&]toile1=0\b/.test(location.search); /* (2026-11-05, passe perf mobile 2, A2.c) UNE seule allocation de la toile : sa taille se pose plus bas, une fois DPR_CAP connu (`?toile1=0` = l'ancien ordre : taille puis rapport de pixels) */
 if(!TOILE1)renderer.setSize(innerWidth,innerHeight);
 document.body.appendChild(renderer.domElement);

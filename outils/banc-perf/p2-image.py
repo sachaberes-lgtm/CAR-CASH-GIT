@@ -32,8 +32,9 @@ def run(http,port,carte,qs,ordi,cpu,dossier,tag,regle=None):
     c.call('Page.navigate',url=base+'/icon.svg');time.sleep(1)
     c.ev("localStorage.clear();localStorage.setItem('cashcarSave',%s);1"%json.dumps(json.dumps(gp.SAVE)))
     c.call('Page.addScriptToEvaluateOnNewDocument',source=gp.HOOK)
+    if '--gltex' in sys.argv:c.call('Page.addScriptToEvaluateOnNewDocument',source="(function(){var L=window.__TX=[];var P=WebGL2RenderingContext.prototype;\nfunction note(k,w,h,f,lv){if(w>=512||h>=512){var st=(new Error().stack||'').split('\\n').slice(2,6).map(function(x){return x.replace(/^\\s*at /,'').replace(/https?:\\/\\/[^ )]*\\//,'').slice(0,70)}).join(' < ');L.push([k,w,h,f,lv|0,st]);}}\nvar o1=P.texStorage2D;P.texStorage2D=function(t,lv,f,w,h){note('storage',w,h,f,lv);return o1.apply(this,arguments)};\nvar o2=P.texImage2D;P.texImage2D=function(){var a=arguments;if(a.length>=9&&a[1]===0)note('image',a[3],a[4],a[2],0);else if(a.length===6&&a[1]===0&&a[5]&&a[5].width&&a[0]!==undefined)note('image6',a[5].width,a[5].height,a[2],0);return o2.apply(this,arguments)};\n})();")
     c.call('Page.navigate',url=base+'/index.html?garde=1&palier=2%s&pistegraine=777&carte=%s&meteo=%s%s'%('&tel=1' if ordi else '',carte[0],carte[1] if len(carte)>1 else 'midi',qs))
-    if not gp.attend(c,"!!window.__gameReady&&typeof dbgState==='function'",240):return {'err':'ne démarre pas'}
+    if not gp.attend(c,"!!window.__gameReady&&typeof dbgState==='function'",240):return {'err':'ne démarre pas','exc':[(e['params']['exceptionDetails'].get('exception',{}).get('description') or e['params']['exceptionDetails'].get('text') or '')[:300] for e in c.events if e['method']=='Runtime.exceptionThrown']}
     def clic(x,y,h=.12):
         if ordi:souris(c,x,y)
         else:gp.tap(c,x,y,h)
@@ -82,15 +83,20 @@ def run(http,port,carte,qs,ordi,cpu,dossier,tag,regle=None):
                 F=json.loads(c.ev("JSON.stringify(window.__F)"));c.ev("window.__Fon=false;1")
                 res.append({'reglage':nom,'sens':sens,'appel_ms':round(ms,1),'pire_image_ms':round(max(F[1:] or [0])),'compilations':c.ev('window.__LK')-lk})
         return {'bascule':res,'cout':{'gpu':None}}
+    if '--js' in sys.argv: # --js "<expression>" : évalue dans la page, en course, et rend le résultat (sonde)
+        return {'js':c.ev('JSON.stringify('+arg('--js')+')'),'cout':{'gpu':None}}
     lk0=c.ev('window.__LK');rg=None
-    if regle:rg=c.ev('JSON.stringify(imgRegle(%s))'%regle);c.pump(1.5)
-    c.ev("dbgCout(1);1");c.pump(7)
-    R=json.loads(c.ev("JSON.stringify({cout:dbgCout(),img:dbgImg(),pal:dbgPalier().n,nette:dbgNette(),perf:dbgPerf(),lk:window.__LK,rg:(typeof imgRegle==='function'?imgRegle():null)})"));R['lk0']=lk0;R['regle']=rg
-    if dossier:
+    def cliche():
+        if not dossier:return
         os.makedirs(dossier,exist_ok=True)
-        c.ev("dbgCout(0);1")
         d=c.call('Page.captureScreenshot',format='jpeg',quality=88)['data']
         open(os.path.join(dossier,'%s-%s-%s.jpg'%(tag,carte[0],carte[1] if len(carte)>1 else 'midi')),'wb').write(base64.b64decode(d))
+    if '--tot' in sys.argv:cliche() # --tot : la capture est prise À L'INSTANT (caisse à 80 m du portail posé), avant les 7 s de mesure : même position de route d'une variante à l'autre
+    if regle:rg=c.ev('JSON.stringify(imgRegle(%s))'%regle);c.pump(1.5)
+    c.ev("dbgCout(1);1");c.pump(7)
+    R=json.loads(c.ev("JSON.stringify({cout:dbgCout(),img:dbgImg(),pal:dbgPalier().n,nette:dbgNette(),perf:dbgPerf(),lk:window.__LK,txMo:(window.__TX?Math.round(window.__TX.reduce(function(a,x){return a+(x[0]==='image6'?x[1]*x[2]*4*1.33:0)},0)/1e5)/10:null),rg:(typeof imgRegle==='function'?imgRegle():null)})"));R['lk0']=lk0;R['lib']=c.ev("(function(){var m=(document.body.innerText||'').match(/[A-ZÉ' ]+ — [A-ZÉ]+/);return m?m[0]:null})()");R['regle']=rg
+    if dossier and '--tot' not in sys.argv:
+        c.ev("dbgCout(0);1");cliche()
     for e in c.events:
         if e['method']=='Runtime.exceptionThrown':R.setdefault('exc',[]).append((e['params']['exceptionDetails'].get('exception',{}).get('description') or '')[:160])
     return R
@@ -116,13 +122,14 @@ def main():
                 shutil.rmtree(prof,ignore_errors=True)
             if 'gouv' in R:
                 for x in R['gouv']:print({k:v for k,v in x.items() if k!='etat'},'palier',((x['etat'].get('p') or {}).get('palier')),'etat',x['etat'].get('img'),flush=True)
+            if 'js' in R:print(R['js'][:6000],flush=True)
             if 'bascule' in R:
                 for x in R['bascule']:print(x)
             R['map']=':'.join(m);R['tag']=tag;R['qs']=qs;R['charge']=round(os.getloadavg()[0],1)
             out.append(R)
             k=R.get('cout') or {}
             g=k.get('gpu') or {}
-            print('%-12s %-8s gpu p50 %s p90 %s | appels %s tri %s | passes %s px %s ombre %s bloom %s | tel %s'%(tag,':'.join(m),g.get('p50'),g.get('p90'),(k.get('image') or {}).get('calls'),(k.get('image') or {}).get('tris'),k.get('passes'),k.get('px'),k.get('ombre'),k.get('bloom'),(R.get('img') or {}).get('telNatif')),flush=True)
+            print('%-12s %-8s gpu p50 %s p90 %s | appels %s tri %s | passes %s px %s ombre %s bloom %s | tel %s | tex>=512 Mo %s'%(tag,':'.join(m),g.get('p50'),g.get('p90'),(k.get('image') or {}).get('calls'),(k.get('image') or {}).get('tris'),k.get('passes'),k.get('px'),k.get('ombre'),k.get('bloom'),(R.get('img') or {}).get('telNatif'),R.get('txMo')),flush=True)
         f=arg('--json')
         if f:json.dump(out,open(f,'w'),indent=1)
     finally:srv.terminate()
