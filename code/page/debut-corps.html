@@ -98,7 +98,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
      d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
      quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
   (function(){
-    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0,CAPS={serpent:25,fluide:40,memoire:15,contexte:10};
+    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0,CAPS={serpent:25,fluide:40,memoire:15,contexte:10,attente:8};
     var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
     var ecrit=function(){attente=0;try{localStorage.setItem(CLE,JSON.stringify(L));}catch(_){}};
     window.__ccNote=function(genre,msg,ou){
@@ -217,7 +217,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
       if(t>60000){fin();return;}
       RAF.call(window,tick);
     };
-    window.dbgSerpent=function(){return RES.slice();};
+    window.dbgSerpent=function(){return RES.slice();};window.__ccGuetFin=function(){fin();}; /* (2026-11-08) INTRO_APRES : le film part, la sonde se ferme et écrit sa ligne « fin du guet » (sinon elle attendait la disparition du serpent) */
     RAF.call(window,tick);
   })();
   addEventListener('error',function(e){

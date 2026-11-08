@@ -1990,7 +1990,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
      d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
      quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
   (function(){
-    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0,CAPS={serpent:25,fluide:40,memoire:15,contexte:10};
+    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0,CAPS={serpent:25,fluide:40,memoire:15,contexte:10,attente:8};
     var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
     var ecrit=function(){attente=0;try{localStorage.setItem(CLE,JSON.stringify(L));}catch(_){}};
     window.__ccNote=function(genre,msg,ou){
@@ -2109,7 +2109,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
       if(t>60000){fin();return;}
       RAF.call(window,tick);
     };
-    window.dbgSerpent=function(){return RES.slice();};
+    window.dbgSerpent=function(){return RES.slice();};window.__ccGuetFin=function(){fin();}; /* (2026-11-08) INTRO_APRES : le film part, la sonde se ferme et écrit sa ligne « fin du guet » (sinon elle attendait la disparition du serpent) */
     RAF.call(window,tick);
   })();
   addEventListener('error',function(e){
@@ -80372,8 +80372,9 @@ function goImmersive(){
   let W=0,H=0,S=1,ku=1; /* taille logique du voile, échelle du canvas (pixels de l'appareil), unité d'écran (390 px = 1) */
   let pretT=null,tapT=null; /* la boule : l'instant où c'est prêt (elle s'arrête), l'instant de l'appui (elle explose) */
   const INTRO_AP=INTRO_APRES; /* (voir soleil-planete.js) le film ne part que quand tout est prêt ; 0 = comme avant */
+  try{if(window.__ccNote)window.__ccNote('chargement','introapres '+INTRO_AP+' · TEL_NATIF '+(typeof TEL_NATIF!=='undefined'&&TEL_NATIF?1:0)+' · ALLEGE '+(typeof ALLEGE!=='undefined'&&ALLEGE?1:0)+' · Capacitor '+(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()?1:0));}catch(e){} /* (2026-11-08, OPTI ULTIME : « confirme que INTRO_APRES vaut 1 dans l'app ») le mode qui tourne, écrit dès le démarrage */
   if(INTRO_AP)window.__guetTient=true; /* la sonde du serpent ne s'arrête pas 10 s après le démarrage du jeu : le chargement qui précède le film est plus long (voir debut-corps.html) */
-  let pretIntro=false,touchRetenu=false,chauffeFaite=false,IK={n:0,mx:0,k:0,prev:0,l:[]}; /* tout est-il prêt ; un toucher venu avant (mode 2) ; la chauffe de l'intro est faite ; les images du film : nombre, pire intervalle, > 20 ms */
+  let pretIntro=false,touchRetenu=false,chauffeFaite=false,IK={n:0,mx:0,k:0,prev:0,l:[],pn:0}; /* tout est-il prêt ; un toucher venu avant (mode 2) ; la chauffe de l'intro est faite ; les images du film : nombre, pire intervalle, > 20 ms */
   let lance=false,fini=false,casse=false,doux=false,manuel=false,passee=false,ouvert=false,revele=false,RM=false;
   let TOUCH=null,preAC=null,filmMuet=false,tLance=0,latV=0,tCasse=0,raf=0,sonCasseFait=false,t0a=0,iAC=null,SON=null,SK0={x:0,y:0};
   let GAMECV=null,SNAPPIX=null,GLOSS=null,priseFaite=false; /* la photo du jeu et celle de la scène, en gros pixels ; le reflet des lentilles ; la photo est-elle demandée */
@@ -81062,7 +81063,7 @@ function goImmersive(){
   }
   function reveler(){ /* à l'instant où l'écran noir casse : le voile n'est plus l'écran titre, il ne prend plus les touchers */
     window.__introCouvre=false;window.__introPause=false;window.__guetTient=false;if(revele)return;revele=true;
-    try{if(window.__ccNote&&IK.n)window.__ccNote('intro',IK.n+' images, pire '+Math.round(IK.mx)+' ms, images > 20 ms : '+IK.k+(IK.l.length?' ('+IK.l.join(' · ')+')':''));}catch(e){} /* (2026-11-08) le critère de Sacha : K = 0 */
+    introLigne('à l\'ouverture du menu'); /* (2026-11-08) le critère de Sacha : K = 0 */
     try{if(window.__ccChargeTout)window.__ccChargeTout();}catch(e){} /* (2026-11-05, passe perf mobile 2, A2.b) ce qui reste du chargement se fait d'un trait avant que le jeu paraisse */
     sp.id=''; /* ⚠ retire l'id AVANT tout : start() et les écrans d'accueil se gardent par `getElementById('splash')` ; et la règle CSS #splash part avec lui. z-index 1000 : les éclats volent PAR-DESSUS tout (la plaque du 1er accueil s'ouvre ~0,85 s après, à 200+) */
     sp.style.cssText='position:fixed;inset:0;z-index:1000;display:block;pointer-events:none;overflow:hidden;background:transparent';
@@ -81197,7 +81198,7 @@ function goImmersive(){
     if(!lance){try{attente();}catch(e){}return;}
     try{
       const t=(now-tLance)/1000-latV;
-      if(BOULE){if(pretT===null&&t>=4.6&&document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')&&(!window.__ccCharge||window.__ccCharge())){pretT=t;try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
+      if(BOULE){if(pretT===null&&t>=4.6&&document.readyState==='complete'&&(!document.fonts||document.fonts.status!=='loading')&&(!window.__ccCharge||window.__ccCharge())){pretT=t;introLigne('à la boule prête');try{if(SON&&!filmMuet)SON.pret(iAC.currentTime+.02);}catch(e){}}if(PCI_60&&tapT===null&&pciSaute(now))return;rendu(t);return;} /* la boule : prête dès que la page est chargée (et après 2,6 s au moins) */
       if(DEMO){const T=PERIODE_DEMO(),idx=Math.floor(Math.max(0,t)/T);if(idx>0)sonDemo(idx,t-idx*T);else sonDemo(0,t);rendu(t);return;}
       if(!ouvert&&t>=TL.noir)crea('ouvrir',ouvrir);
       if(!revele&&!doux&&!passee){ /* le jeu ne dessine rien derrière le film (voir `loop`), SAUF quelques images dans le NOIR COMPLET : ses accrocs du premier dessin (relecture du ciel, compilations) ne se voient pas là, et il reprend à chaud 0,5 s avant la casse */
@@ -81220,7 +81221,7 @@ function goImmersive(){
     eteintTitre();
     if(window.__ccSondeTache)try{const a9=performance.now();void document.body.offsetHeight;if(window.__ccSondeCrea)window.__ccSondeCrea('layout-lancer',a9,performance.now()-a9);}catch(e){} /* (2026-11-07, OPTI ULTIME) pendant le guet seulement : un layout forcé au départ du film, chronométré (le style + layout du DOM entier, natif, est-il le trou de 1,1 s ?) */
     window.__introCouvre=true; /* le film couvre l'écran : le jeu ne calcule ni ne dessine plus rien dessous, jusqu'à 0,5 s avant la casse (voir `boucle`) */
-    if(INTRO_AP)window.__introPause=true; /* (2026-11-08) et RIEN d'autre ne travaille : photos, pré-bâti… (jusqu'à `reveler`) */
+    if(INTRO_AP){window.__introPause=true;setTimeout(function(){try{if(window.__ccGuetFin)window.__ccGuetFin();}catch(e){}},3000);} /* (2026-11-08) et RIEN d'autre ne travaille : photos, pré-bâti… (jusqu'à `reveler`) ; la sonde du serpent écrit sa ligne 3 s après le départ du film */
     try{if(prepEn!==W+'x'+H+'x'+S)crea('prepare',prepare);}catch(e){} /* (déjà prêt si on a attendu un peu sur l'écran titre) */
     try{crea('son',function(){son(geste);});}catch(e){} /* le son ne doit JAMAIS bloquer les visuels */
     if(!iAC)tLance=performance.now(); /* (sans son : le film part tout de suite) */
@@ -81283,6 +81284,9 @@ function goImmersive(){
      `introPrete` rend le nom de ce qui manque (« » si tout est prêt) : la chauffe de l'intro, les étapes du chargement, la liaison des programmes, la chauffe du menu (moteurs, scène entière, tôles des voitures), le départ
      d'avance, la file des photos, les vignettes de la boule. Plafond : 30 s (une chauffe qui ne finit jamais ne retient pas le joueur : la boîte noire dit ce qui manquait). Le résultat est écrit dans la boîte noire. */
   const INTRO_PLAFOND=30000;
+  function introLigne(quand){ /* la ligne « intro » de la boîte noire : les images du film jusqu'ici (à la boule prête, avant tout toucher ; puis à l'ouverture du menu) */
+    try{if(window.__ccNote&&IK.n)window.__ccNote('intro','mode '+INTRO_AP+' · '+quand+' : '+IK.n+' images, pire '+Math.round(IK.mx)+' ms, images > 20 ms : '+IK.k+(IK.l.length?' ('+IK.l.join(' · ')+')':''));}catch(e){}
+  }
   function introPrete(){
     try{
       if(!chauffeFaite)return 'chauffe-intro';
@@ -81303,7 +81307,7 @@ function goImmersive(){
   }
   function introNote(manque){
     try{if(!window.__ccNote)return;const e=ETS.boule,t=performance.now();
-      window.__ccNote('chargement',(manque?'PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' » · ':'')+'prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, bitmaps '+(e&&e.pciBm?(e.pciBmOk|0)+'/'+e.pciBm.length:'-')+(e&&e.pciWarmMs!=null?' (vignettes dessinées en '+e.pciWarmMs+' ms)':'')+', photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length)+(touchRetenu?' · toucher retenu':''));}catch(x){}
+      window.__ccNote('chargement','mode '+INTRO_AP+' · '+(manque?'PLAFOND '+Math.round(INTRO_PLAFOND/1000)+' s, manque « '+manque+' » · ':'')+'prêt en '+(Math.round(t/100)/10)+' s : lier '+(LIER.msDem|0)+' ms, chauffe '+(CHAUFFE_R.ms|0)+' ms, bitmaps '+(e&&e.pciBm?(e.pciBmOk|0)+'/'+e.pciBm.length:'-')+(e&&e.pciWarmMs!=null?' (vignettes dessinées en '+e.pciWarmMs+' ms)':'')+', photos '+((typeof PHQ!=='undefined'&&PHQ.q)?PHQ.q.length:'-')+' restantes, étapes '+(CHARGEMENT.ms.length)+(touchRetenu?' · toucher retenu':''));}catch(x){}
   }
   function introPartir(manque){
     if(lance||fini||pretIntro)return;pretIntro=true;introNote(manque);
@@ -81320,6 +81324,7 @@ function goImmersive(){
     const manque=introPrete();
     if(!manque){introPartir('');return;}
     if(performance.now()>INTRO_PLAFOND){introPartir(manque);return;}
+    const t9=performance.now();if(t9-IK.pn>5000){IK.pn=t9;try{if(window.__ccNote)window.__ccNote('attente','mode '+INTRO_AP+' · attend « '+manque+' » à '+(Math.round(t9/100)/10)+' s');}catch(e){}} /* (2026-11-08) où en est le chargement, toutes les 5 s : si l'app est tuée avant « prêt », la dernière ligne dit ce qui retenait le film */
     setTimeout(introPoll,100);
   }
   if(INTRO_AP&&!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher\b/.test(location.search))setTimeout(introPoll,300);
