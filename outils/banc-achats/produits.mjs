@@ -1,4 +1,4 @@
-/* LE BANC DU CATALOGUE DES ACHATS (2026-11-07, achats App Store) — les produits vendus en vrai argent : les caisses en € (CAR_UNLOCK k:'premium', hors lignes retirées : 10 depuis le retour du REQUIN)
+/* LE BANC DU CATALOGUE DES ACHATS (2026-11-07, achats App Store) — les produits vendus en vrai argent : les caisses en € (CAR_UNLOCK k:'premium', hors lignes retirées ; le nombre n'est PAS figé : main change la liste de vente souvent, le banc contrôle des invariants)
    + les peintures à prix en €. Sortie : « OK produits » (code 0) ou la liste des échecs (code 1).
    Servir le jeu : cd "VERSION PRINCIPALE" && python3 -m http.server 8931 --bind 127.0.0.1   puis   node outils/banc-achats/produits.mjs   env : PORT (défaut 8931) */
 import { lance, prepare, charge, passeSplash, sleep } from '../banc-caisses/cdp.mjs';
@@ -21,9 +21,9 @@ try {
   })()`);
   const P = r.P, caisses = P.filter(p => p.type === 'car'), peints = P.filter(p => p.type === 'peinture');
   const ids = P.map(p => p.id);
-  /* 9 caisses + LE REQUIN (index 10), remis en boutique par Léo le 07/11 (« le roquet a disparu », fiche et prix 9,99 €, 996e5534) : il n'est plus retiré */
-  verifie(caisses.length === 10, `10 caisses attendues, ${caisses.length} : ${caisses.map(p => p.id + '#' + p.cle).join(', ')}`);
-  verifie(caisses.some(p => p.id === 'cashcar.car.requin' && p.cle === 10), 'cashcar.car.requin (index 10, remis en boutique) absent');
+  /* (2026-11-09) le NOMBRE de caisses n'est plus figé (main l'a changé : le REQUIN repart, la MX-5 arrive) : au moins une caisse, chacune avec sa shape */
+  verifie(caisses.length > 0, `aucune caisse en vente : ${P.length} produits`);
+  for (const p of caisses) verifie(Number.isInteger(p.cle) && p.id === 'cashcar.car.' + p.id.slice('cashcar.car.'.length) && p.id.length > 'cashcar.car.'.length, `caisse mal formée : ${p.id}#${p.cle}`);
   verifie(caisses.some(p => p.id === 'cashcar.car.poptart'), 'cashcar.car.poptart absent');
   verifie(caisses.some(p => p.id === 'cashcar.car.b_pizza'), 'cashcar.car.b_pizza absent');
   for (const i of [12, 13, 14]) verifie(!caisses.some(p => p.cle === i), `l'index retiré ${i} est un produit`);
@@ -34,7 +34,7 @@ try {
   verifie(!ids.includes('cashcar.peinture.usine'), 'la peinture usine est un produit');
   for (const p of P) verifie(typeof p.eur === 'string' && p.eur.length > 0, `eur manquant : ${p.id}`);
   for (const k of ['pd12', 'pd13', 'pd14']) verifie(r[k] === null, `produitDe(${k.slice(2)}) devrait rendre null : ${r[k]}`);
-  verifie(r.pd10 === 'cashcar.car.requin', `produitDe(10) devrait rendre cashcar.car.requin : ${r.pd10}`);
+  verifie(caisses.some(p => p.cle === 10) ? r.pd10 === 'cashcar.car.requin' : r.pd10 === null, `produitDe(10) incohérent avec le catalogue : ${r.pd10}`);
   verifie(r.pdNon === null, 'produitDe(0) (une caisse du jeu, pas en vente) devrait rendre null');
   verifie(r.pdPop === P[0].id, 'produitDe(cle) ne rend pas l\'id du produit');
   console.log(`${caisses.length} caisses, ${peints.length} peintures`);

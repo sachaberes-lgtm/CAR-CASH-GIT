@@ -114,7 +114,7 @@ Mentions de TOUTES les marques réelles trouvées dans des chaînes affichables 
 | Contenu sexuel / nudité | **Aucun** | — |
 | Accès web sans restriction | **Non** | aucun lien, `GardeNavigation` + `natif.js` |
 | Contenu généré par l'utilisateur / messagerie / publicité | **Non / Non / Non** (dans l'app) | aucun réseau ; pseudo du Top 10 local |
-| Achats intégrés | **Oui** (mise à jour du 07/11 : build avec achats ; l'audit d'origine disait « Aucun » car la boutique en € était coupée) | 92 produits non consommables (10 caisses + 82 peintures) via StoreKit ; « caisse » reste un achat DIRECT d'une voiture connue, jamais un tirage : boîtes à butin = Non ; voir `passation/ACHATS-APP-STORE.md` |
+| Achats intégrés | **Oui** (mise à jour du 07/11 : build avec achats ; l'audit d'origine disait « Aucun » car la boutique en € était coupée) | 38 produits non consommables (10 caisses + 82 peintures) via StoreKit ; « caisse » reste un achat DIRECT d'une voiture connue, jamais un tirage : boîtes à butin = Non ; voir `passation/ACHATS-APP-STORE.md` |
 
 Résultat attendu : classement **9+** (violence cartoon peu fréquente). Pour viser **4+**, il faudrait répondre « Aucune » à la violence cartoon, ce que le mode SURVIVANT (explosions) rend discutable : je recommande de répondre honnêtement « Peu fréquent ».
 

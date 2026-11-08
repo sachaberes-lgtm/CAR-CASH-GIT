@@ -1,6 +1,5 @@
 id,nom,type,prix_eur
 cashcar.car.poptart,CHAT POP-TART,car,4.20
-cashcar.car.requin,REQUIN,car,9.99
 cashcar.car.b_pizza,LA PIZZA EXPRESS,car,161.00
 cashcar.car.e_feline,LA FÉLINE,car,1.61
 cashcar.car.a_eternelle,L'ÉTERNELLE,car,1.61
@@ -9,83 +8,30 @@ cashcar.car.e_murduson,LE MUR DU SON,car,1.61
 cashcar.car.e_dragon,LE DRAGON D'OR,car,1.61
 cashcar.car.squale,SQUALE,car,1.61
 cashcar.car.mx5na,KELLY CHERRY,car,1.61
-cashcar.peinture.bolide,ROUGE BOLIDE,peinture,1.00
-cashcar.peinture.emeute,ORANGE ÉMEUTE,peinture,1.00
-cashcar.peinture.taxi,JAUNE TAXI,peinture,1.00
-cashcar.peinture.billet,VERT BILLET,peinture,1.00
 cashcar.peinture.lagon,LAGON,peinture,1.00
-cashcar.peinture.azur,AZUR,peinture,1.00
-cashcar.peinture.minuit,BLEU MINUIT,peinture,1.00
-cashcar.peinture.royal,VIOLET ROYAL,peinture,1.00
-cashcar.peinture.fuchsia,FUCHSIA,peinture,1.00
 cashcar.peinture.poupee,ROSE POUPÉE,peinture,1.00
-cashcar.peinture.neige,BLANC NEIGE,peinture,1.00
 cashcar.peinture.nardo,GRIS NARDO,peinture,1.00
 cashcar.peinture.noir,NOIR MAT,peinture,1.00
-cashcar.peinture.dragee,ROSE DRAGÉE,peinture,1.00
 cashcar.peinture.lilas,LILAS,peinture,1.00
-cashcar.peinture.piscine,BLEU PISCINE,peinture,1.00
 cashcar.peinture.pistache,PISTACHE,peinture,1.00
 cashcar.peinture.lave,LAVE,peinture,1.00
-cashcar.peinture.srBraise,BRAISE FIDÈLE,peinture,1.00
 cashcar.peinture.couchant,COUCHER DE SOLEIL,peinture,1.00
-cashcar.peinture.envers,MONDE À L'ENVERS,peinture,1.00
-cashcar.peinture.srLagon,LAGON INTERDIT,peinture,1.00
-cashcar.peinture.eclair,ÉCLAIR,peinture,1.00
-cashcar.peinture.srAurore,AURORE BORÉALE,peinture,1.00
-cashcar.peinture.jadeimperial,JADE IMPÉRIAL,peinture,1.00
 cashcar.peinture.vaporwave,VAPORWAVE,peinture,1.00
-cashcar.peinture.srEtoile,NUIT ÉTOILÉE,peinture,1.00
-cashcar.peinture.prisme,PRISME,peinture,1.00
-cashcar.peinture.cameleon,CAMÉLÉON,peinture,1.00
-cashcar.peinture.chrome,CHROME MIROIR,peinture,1.00
-cashcar.peinture.orrose,OR ROSE,peinture,1.00
-cashcar.peinture.guerrier,SUPER GUERRIER,peinture,1.00
 cashcar.peinture.cuivre,CUIVRE,peinture,1.00
 cashcar.peinture.holo,HOLOGRAMME,peinture,1.00
-cashcar.peinture.nacre,NACRE,peinture,1.00
-cashcar.peinture.fantome,FANTÔME,peinture,1.00
-cashcar.peinture.gotham,NUIT DE GOTHAM,peinture,1.00
-cashcar.peinture.orage,CIEL D'ORAGE,peinture,1.00
-cashcar.peinture.lunaire,LUNAIRE,peinture,1.00
-cashcar.peinture.lampadaire,LAMPADAIRE,peinture,1.00
 cashcar.peinture.banana,BANANA,peinture,1.00
 cashcar.peinture.sorbet,SORBET,peinture,1.00
 cashcar.peinture.toxique,TOXIQUE,peinture,1.00
-cashcar.peinture.groupeb,GROUPE B,peinture,2.00
-cashcar.peinture.montecarlo,MONTE-CARLO,peinture,2.00
-cashcar.peinture.safari,SAFARI,peinture,2.00
-cashcar.peinture.dakar,DAKAR,peinture,2.00
-cashcar.peinture.poudre,BLEU POUDRE,peinture,2.00
 cashcar.peinture.apero,L'APÉRITIF,peinture,2.00
-cashcar.peinture.noiror,NOIR ET OR,peinture,2.00
-cashcar.peinture.fleche,FLÈCHE D'ARGENT,peinture,2.00
-cashcar.peinture.pitstop,PIT STOP,peinture,2.00
-cashcar.peinture.arrivee,LIGNE D'ARRIVÉE,peinture,2.00
-cashcar.peinture.panda,PANDA 86,peinture,2.00
-cashcar.peinture.capture,CAPTURE,peinture,2.00
-cashcar.peinture.bloc,BLOC D'HERBE,peinture,2.00
-cashcar.peinture.console,CONSOLE GRISE,peinture,2.00
-cashcar.peinture.flash,ÉCLAIR 95,peinture,2.00
-cashcar.peinture.ecto,ECTO,peinture,2.00
-cashcar.peinture.itasha,ITASHA,peinture,2.00
-cashcar.peinture.tokyodrift,TOKYO DRIFT,peinture,2.00
 cashcar.peinture.stickers,STICKER BOMB,peinture,2.00
-cashcar.peinture.flammes,FLAMMES,peinture,2.00
-cashcar.peinture.carbone,CARBONE,peinture,2.00
-cashcar.peinture.graffiti,GRAFFITI,peinture,2.00
 cashcar.peinture.popart,POP ART,peinture,2.00
-cashcar.peinture.vagues,GRANDE VAGUE,peinture,2.00
-cashcar.peinture.cash,PLEIN AUX AS,peinture,2.00
 cashcar.peinture.tigre,TIGRE,peinture,2.00
 cashcar.peinture.leopard,LÉOPARD,peinture,2.00
 cashcar.peinture.zebre,ZÈBRE,peinture,2.00
 cashcar.peinture.vache,VACHE,peinture,2.00
 cashcar.peinture.coccinelle,COCCINELLE,peinture,2.00
 cashcar.peinture.fleurs,FLOWER POWER,peinture,2.00
-cashcar.peinture.camo,CAMOUFLAGE,peinture,2.00
 cashcar.peinture.mousse,MOUSSE,peinture,2.00
-cashcar.peinture.galaxie,GALAXIE,peinture,3.00
 cashcar.peinture.neon,NÉON TOKYO,peinture,3.00
 cashcar.peinture.sakura,SAKURA.EXE,peinture,3.00
 cashcar.peinture.magma,MAGMA,peinture,3.00
