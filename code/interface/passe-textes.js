@@ -186,7 +186,24 @@ function metalDemo(){if(METAL_DEMO)return;let k=-1;const S=[1250,48000,650000,42
 function metalDe(v){let k=0;while(v>=METAUX[k][0])k++;return METAUX[k][1];}
 function moArg(v,t){return '<span class="moArg mo-'+metalDe(v)+'">'+(t==null?cashTxt(v):t)+'</span>';}
 function moDans(h,v){let f=0;return String(h).replace(/<[^>]*>|\d[\d ,.]*\d|\d/g,function(x){if(x[0]==='<'||f)return x;f=1;return moArg(v,x);});} /* les balises sont sautées (« m2Nw » a un 2) */ /* le 1er nombre du texte (HTML) prend la couleur du palier de v */
+/* (2026-11-08, Léo : « dans le shop, pas très bien retranscrit, un peu petit, pas très joli ») LES PRIX DE LA BOUTIQUE : une dizaine de
+   fabriques écrivent « ⓒ 30 000 » (le glyphe U+E000 de fmtSolde). Une seule passe, sur la boutique seulement (#gBq), remplace le glyphe et
+   son nombre par l'OBJET du palier de ce prix (.moIc) et le nombre à sa couleur (.moArg) — 30 000 en argent, 1 000 000 en saphir.
+   Le solde (#gBqArg) est laissé au CSS (il défile à chaque image : on ne le recoupe pas). Un MutationObserver, une passe par image au plus. */
+const MO_RE=/\s?(\d[\d   ,.]*\d|\d)|(\d[\d   ,.]*\d|\d)\s?/g;
+let MO_OBS=null;
+function moDeco(root){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){const e=n.parentElement;return n.nodeValue.indexOf('')>=0&&e&&!e.closest('#gBqArg,.moArg,[aria-hidden="true"] svg')?1:3;}});
+  const L=[];while(w.nextNode())L.push(w.currentNode);
+  L.forEach(function(n){const s=n.nodeValue,f=document.createDocumentFragment();let m,last=0,ok=false;MO_RE.lastIndex=0;
+    while((m=MO_RE.exec(s))){ok=true;f.appendChild(document.createTextNode(s.slice(last,m.index)));const num=m[1]||m[2],k=metalDe(+num.replace(/\D/g,'')||0);
+      const i=document.createElement('i');i.className='moIc mo-'+k;i.setAttribute('aria-hidden','true');const b=document.createElement('span');b.className='moArg mo-'+k;b.textContent=num;
+      f.appendChild(i);f.appendChild(b);last=MO_RE.lastIndex;}
+    if(ok){f.appendChild(document.createTextNode(s.slice(last)));n.parentNode.replaceChild(f,n);}});}
+function moObs(){if(MO_OBS)return;const r=document.getElementById('gBq');if(!r||typeof MutationObserver!=='function')return;let att=0;
+  MO_OBS=new MutationObserver(function(){if(att)return;att=1;requestAnimationFrame(function(){att=0;moDeco(r);});});
+  MO_OBS.observe(r,{childList:true,subtree:true,characterData:true});moDeco(r);}
 function metalMaj(){
+  if(!MO_OBS)moObs();
   if(METAL_FORCE==='demo'){metalDemo();return;}
   let v=0;try{v=bank()+(document.body.classList.contains('play')?Math.max(0,money||0):0);}catch(e){}
   let k=0;while(v>=METAUX[k][0])k++;

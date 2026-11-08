@@ -11793,13 +11793,27 @@ html body #gBqArg{filter:drop-shadow(1px 0 0 var(--moO)) drop-shadow(-1px 0 0 va
    symbole, le montant (moArg, passe-textes.js) prend la face et le contour du palier qu'il représente — pas celui du joueur. --- */
 .moArg{--aM:#e0823c;--aL:#ffb070;--aO:#3a1606;white-space:nowrap;color:var(--aM)!important;-webkit-text-fill-color:var(--aM)!important;
   text-shadow:1px 0 0 var(--aO),-1px 0 0 var(--aO),0 1px 0 var(--aO),0 -1px 0 var(--aO),0 2px 0 var(--aO)!important}
-.moArg.mo-euro{--aM:#dde4f2;--aO:#161c30}
+.moArg.mo-euro{--aM:#b9c3d8;--aO:#161c30}
 .moArg.mo-or{--aM:#ffc21a;--aO:#4a2200}
 .moArg.mo-saphir{--aM:#4f93ff;--aO:#040c36}
 .moArg.mo-emeraude{--aM:#33dd75;--aO:#03240f}
 .moArg.mo-rubis{--aM:#ff3a5e;--aO:#2a000e}
 .moArg.mo-legendaire{--aO:#2a0a3a;color:transparent!important;-webkit-text-fill-color:transparent!important;background:linear-gradient(100deg,#ff7ac4,#ffb86b,#fff36b,#6bffb0,#5fd8ff,#9f86ff,#ff7ac4) 0 0/300% 100%;-webkit-background-clip:text;background-clip:text;text-shadow:none!important;
   filter:drop-shadow(1px 0 0 var(--aO)) drop-shadow(-1px 0 0 var(--aO)) drop-shadow(0 1px 0 var(--aO)) drop-shadow(0 -1px 0 var(--aO))}
+
+/* --- LA BOUTIQUE (2026-11-08, Léo : « dans le shop, un peu petit, pas très joli ») : les prix sans pastille, l'objet du palier du prix
+   puis le nombre à sa couleur, plus gros ; le solde du haut flotte comme au garage (plus de plaque), l'objet du palier du joueur devant. --- */
+.moIc{display:inline-block;width:1.35em;height:1.35em;vertical-align:-.3em;margin-right:.3em;background:url('./assets/monnaie/sym-centime.png') center/contain no-repeat;image-rendering:pixelated;flex:none}
+.moIc.mo-euro{background-image:url('./assets/monnaie/sym-euro.png')}.moIc.mo-or{background-image:url('./assets/monnaie/sym-or.png')}
+.moIc.mo-saphir{background-image:url('./assets/monnaie/sym-saphir.png')}.moIc.mo-emeraude{background-image:url('./assets/monnaie/sym-emeraude.png')}
+.moIc.mo-rubis{background-image:url('./assets/monnaie/sym-rubis.png')}.moIc.mo-legendaire{background-image:url('./assets/monnaie/sym-legendaire.png')}
+html body #gBq .bqKp.pc,html body #gBq .baP.pc,html body #gBq .fgPx,html body #gBq .pLe.e-pc,html body #gBq [class*="e-pc"] .bcP{background:none!important;box-shadow:none!important;border:0!important;font-size:11px!important;padding-left:0!important;letter-spacing:1px;color:inherit}
+html body #gBq .moArg{word-spacing:-.45em;text-shadow:1px 0 0 var(--aO),-1px 0 0 var(--aO),0 1px 0 var(--aO),0 -1px 0 var(--aO),1px 1px 0 var(--aO),-1px 1px 0 var(--aO),0 2px 0 var(--aO),1px 2px 0 var(--aO)!important}
+html body #gBq .trop .moArg,html body #gBq .cher .moArg{opacity:.75}
+html body #gBqTete .bqArg{background:none!important;box-shadow:none!important;padding:4px 0!important}
+html body #gBqTete .bqArg b#gBqArg{font-size:15px!important;letter-spacing:1px;font-family:'CC Vide','Press Start 2P',monospace!important;white-space:nowrap}
+html body #gBqTete .bqArg b#gBqArg::before{content:'';display:inline-block;width:1.4em;height:1.4em;vertical-align:-.32em;margin-right:.3em;background:var(--mImg) center/contain no-repeat;-webkit-background-clip:border-box;background-clip:border-box;image-rendering:pixelated}
+html body #gBqArg{filter:var(--morelief)!important}
 
 /* --- le vrai argent (€) en rose néon --- */
 html .gT em.eur,html #gBqPan .bqK .bqKp.eur,html #bqAile .baP.eur,html #gStrip.fnBande .fnP.eur,
@@ -32703,7 +32717,24 @@ function metalDemo(){if(METAL_DEMO)return;let k=-1;const S=[1250,48000,650000,42
 function metalDe(v){let k=0;while(v>=METAUX[k][0])k++;return METAUX[k][1];}
 function moArg(v,t){return '<span class="moArg mo-'+metalDe(v)+'">'+(t==null?cashTxt(v):t)+'</span>';}
 function moDans(h,v){let f=0;return String(h).replace(/<[^>]*>|\d[\d ,.]*\d|\d/g,function(x){if(x[0]==='<'||f)return x;f=1;return moArg(v,x);});} /* les balises sont sautées (« m2Nw » a un 2) */ /* le 1er nombre du texte (HTML) prend la couleur du palier de v */
+/* (2026-11-08, Léo : « dans le shop, pas très bien retranscrit, un peu petit, pas très joli ») LES PRIX DE LA BOUTIQUE : une dizaine de
+   fabriques écrivent « ⓒ 30 000 » (le glyphe U+E000 de fmtSolde). Une seule passe, sur la boutique seulement (#gBq), remplace le glyphe et
+   son nombre par l'OBJET du palier de ce prix (.moIc) et le nombre à sa couleur (.moArg) — 30 000 en argent, 1 000 000 en saphir.
+   Le solde (#gBqArg) est laissé au CSS (il défile à chaque image : on ne le recoupe pas). Un MutationObserver, une passe par image au plus. */
+const MO_RE=/\s?(\d[\d   ,.]*\d|\d)|(\d[\d   ,.]*\d|\d)\s?/g;
+let MO_OBS=null;
+function moDeco(root){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){const e=n.parentElement;return n.nodeValue.indexOf('')>=0&&e&&!e.closest('#gBqArg,.moArg,[aria-hidden="true"] svg')?1:3;}});
+  const L=[];while(w.nextNode())L.push(w.currentNode);
+  L.forEach(function(n){const s=n.nodeValue,f=document.createDocumentFragment();let m,last=0,ok=false;MO_RE.lastIndex=0;
+    while((m=MO_RE.exec(s))){ok=true;f.appendChild(document.createTextNode(s.slice(last,m.index)));const num=m[1]||m[2],k=metalDe(+num.replace(/\D/g,'')||0);
+      const i=document.createElement('i');i.className='moIc mo-'+k;i.setAttribute('aria-hidden','true');const b=document.createElement('span');b.className='moArg mo-'+k;b.textContent=num;
+      f.appendChild(i);f.appendChild(b);last=MO_RE.lastIndex;}
+    if(ok){f.appendChild(document.createTextNode(s.slice(last)));n.parentNode.replaceChild(f,n);}});}
+function moObs(){if(MO_OBS)return;const r=document.getElementById('gBq');if(!r||typeof MutationObserver!=='function')return;let att=0;
+  MO_OBS=new MutationObserver(function(){if(att)return;att=1;requestAnimationFrame(function(){att=0;moDeco(r);});});
+  MO_OBS.observe(r,{childList:true,subtree:true,characterData:true});moDeco(r);}
 function metalMaj(){
+  if(!MO_OBS)moObs();
   if(METAL_FORCE==='demo'){metalDemo();return;}
   let v=0;try{v=bank()+(document.body.classList.contains('play')?Math.max(0,money||0):0);}catch(e){}
   let k=0;while(v>=METAUX[k][0])k++;
