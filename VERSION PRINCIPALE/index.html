@@ -10178,6 +10178,10 @@ html #gMis.mbOn.m2land #gmBas .gmHome{flex-direction:row;width:auto;min-width:11
 html #gMis.mbOn.m2land #gmBas .gmHome .pxi{--pxs:2}
 /* la ligne MISSIONS RÉUSSIES : 41 px (le .mcFin à 40 l'emportait sur les 44 du .m2Fin) */
 .m2Fin.mcFin{min-height:44px}
+/* (2026-11-08, Sacha : « en bas les boutons sont penchés, remets les carrés droits ») les touches du bas du garage (INVENTAIRE · MISSIONS · BOUTIQUE · JOUER · ACCUEIL) ne penchent plus : plus de skewX, l'appui descend tout droit */
+html body #garage#garage #gAct#gAct>.pbtn{transform:none!important}
+html body #garage#garage #gAct#gAct>.pbtn:is(:active,.appui){transform:translateY(5px)!important}
+html body #garage#garage #gAct#gAct>.pb-gold:is(:active,.appui){transform:translateY(6px)!important}
 </style>
 <style id="boitesBlister">
 /* (2026-11-07, Sacha : « chaque type d'item doit avoir un système propre ») les BOÎTES ne s'appliquent pas aux affiches de la pellicule des FIGURES (.fgK, interface/boutique-figure.js) : :where() garde la spécificité d'avant */
