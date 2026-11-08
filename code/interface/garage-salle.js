@@ -365,35 +365,42 @@ function buildGarageRoom(){
        col+=5;if(c<mot.length-1)col+=1;}
      if(mi<MOTS.length-1)col+=3;});
   }else{
-   /* (2026-11-08, Léo : « une complète refonte : la longueur du mur, pas une nouvelle matière, vraiment fabriqué avec les facettes comme une
-      voiture, brillant, doré ») v3 : plus de toile, plus de shader, plus de plaque. Les lettres sont TAILLÉES AU KIT DE LA CAISSE (`MK`,
-      la matière « or » `o` du garage : même laque vernie, mêmes programmes — zéro matière de plus) : chaque trait est un TOIT à facettes —
-      mur vertical, arête vive, grand pan incliné, plat central — comme les pans d'une carrosserie ; la facette prend l'or crème, l'or
-      plein ou l'or sombre selon qu'elle regarde la lumière d'en haut à gauche. Toute la longueur du mur (20,8 m), du sol à 5 m. */
-   const a=13,b=65,T=13,B=97,Mi=55,c=10,TR=22,LW=78,GAP=8;
-   const LET={C:[[[b,T],[a+c,T],[a,T+c],[a,B-c],[a+c,B],[b,B]]],
-     A:[[[a,110],[a,T+c],[a+c,T],[b-c,T],[b,T+c],[b,110]],[[a,68],[b,68]]],
-     S:[[[b,T+14],[b-c,T],[a+c,T],[a,T+c],[a,Mi-c],[a+c,Mi],[b-c,Mi],[b,Mi+c],[b,B-c],[b-c,B],[a+c,B],[a,B-14]]],
-     H:[[[a,0],[a,110]],[[b,0],[b,110]],[[a,Mi],[b,Mi]]],
-     R:[[[a,110],[a,T],[b-c,T],[b,T+c],[b,Mi-c],[b-c,Mi],[a,Mi]],[[36,Mi],[b,110]]]};
-   const MOTS=[['CASH',0],['CAR',380]],KX=20.8/630,KY=5/110,YB=.02,ZA=-hd+.03;                              // le mot, son départ (unités) ; mètres par unité ; le bas des lettres à 2 cm du sol
-   const NIV=[[0,1],[.30,1],[.38,.8],[.82,.4]];                                                              // [hauteur en m, largeur du trait en part de TR] : le mur, l'arête, le pan, le plat
+   /* (2026-11-08, Léo : « plus carré, rectangulaire, ou alors même police que CASH CAR ; revois tout ») v4 : LA POLICE DU LOGO — les
+      glyphes de Press Start 2P (--pix, celle du titre du menu), relevés pixel par pixel, en GRAS (« plus épais ») : chaque trait grossit d'un demi-pixel, relief de près d'un mètre. Chaque lettre est UN SEUL bloc (le contour de
+      ses pixels réunis, trous compris : pas de petits cubes), taillé au kit de la caisse (`MK`, l'or du garage, zéro matière de plus) :
+      un mur droit, une arête vive, un pan biseauté, le plat du dessus. Penché comme le titre (skewX(--sk) = -11°). Toute la longueur du mur (21,3 m), du sol à 4,3 m. */
+   const GL={C:['..####.','.##..##','##.....','##.....','##.....','.##..##','..####.'],A:['..###..','.##.##.','##...##','##...##','#######','##...##','##...##'],
+     S:['.#####.','##...##','##.....','.#####.','.....##','##...##','.#####.'],H:['##...##','##...##','##...##','#######','##...##','##...##','##...##'],
+     R:['######.','##...##','##...##','##..###','#####..','##.###.','##..###']};
+   const LARG=20.5,HAUT=4.3,PENCHE=Math.tan(11*Math.PI/180),YB=.02,ZA=-hd+.03,NIV=[[0,0],[.52,0],[.62,.07],[.98,.14]];        // [hauteur en m, retrait en m] : le mur, l'arête, le pan, le plat
+   const plein=new Set();let cx=0;
+   for(const ch of 'CASH CAR'){if(ch===' '){cx+=2;continue;}GL[ch].forEach(function(l,r){for(let k=0;k<7;k++)if(l[k]==='#')for(let i=0;i<3;i++)for(let j=0;j<3;j++)plein.add((2*(cx+k)+i)+','+(2*(6-r)+j));});cx+=8;}  // LE GRAS : chaque pixel déborde d'un demi-pixel à droite et en bas
+   const NC=2*(cx-1)+1,PW=LARG/NC,PH=HAUT/15,est=function(c,r){return plein.has(c+','+r);};
+   /* les arêtes du contour, le plein toujours à GAUCHE (sens direct autour des lettres, sens inverse autour des trous) */
+   const ar=new Map(),pose=function(x0,y0,x1,y1){const k=x0+','+y0;if(!ar.has(k))ar.set(k,[]);ar.get(k).push([x0,y0,x1,y1,0]);};
+   plein.forEach(function(s){const p=s.split(','),c=+p[0],r=+p[1];
+     if(!est(c,r-1))pose(c,r,c+1,r);if(!est(c+1,r))pose(c+1,r,c+1,r+1);if(!est(c,r+1))pose(c+1,r+1,c,r+1);if(!est(c-1,r))pose(c,r+1,c,r);});
+   const boucles=[];
+   ar.forEach(function(L){L.forEach(function(e0){if(e0[4])return;const B=[];let e=e0;
+     while(e&&!e[4]){e[4]=1;B.push([e[0],e[1]]);const dx=e[2]-e[0],dy=e[3]-e[1],suiv=(ar.get(e[2]+','+e[3])||[]).filter(function(f){return !f[4];});
+       let mieux=null,sc=-9;suiv.forEach(function(f){const fx=f[2]-f[0],fy=f[3]-f[1],t=dx*fy-dy*fx,s2=t>0?2:t===0?1:0;if(s2>sc){sc=s2;mieux=f;}});e=mieux;}  // à un coin partagé : tourner à gauche d'abord
+     const P=B.filter(function(p,i){const a=B[(i+B.length-1)%B.length],b=B[(i+1)%B.length];return (p[0]-a[0])*(b[1]-p[1])-(p[1]-a[1])*(b[0]-p[0])!==0;})  // sans les points alignés
+       .map(function(p){return [(p[0]-NC/2)*PW+(p[1]-7.5)*PH*PENCHE,YB+p[1]*PH];});                       // penché à -11°, comme le titre (--sk)
+     let s=0;for(let i=0;i<P.length;i++){const u=P[i],v=P[(i+1)%P.length];s+=u[0]*v[1]-v[0]*u[1];}boucles.push({P:P,aire:s,trous:[]});});});
+   const dedans=function(q,P){let o=false;for(let i=0,j=P.length-1;i<P.length;j=i++)if((P[i][1]>q[1])!==(P[j][1]>q[1])&&q[0]<(P[j][0]-P[i][0])*(q[1]-P[i][1])/(P[j][1]-P[i][1])+P[i][0])o=!o;return o;};
+   const lettres=boucles.filter(function(b){return b.aire>0;});
+   boucles.forEach(function(b){if(b.aire<0){const q=[b.P[0][0]+1e-4,b.P[0][1]+1e-4];const m=lettres.find(function(l){return dedans(q,l.P);});if(m)m.trous.push(b);}});
+   const retrait=function(P,d,z){const n=P.length,N=[];for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n],l=Math.hypot(b[0]-a[0],b[1]-a[1]);N.push([-(b[1]-a[1])/l,(b[0]-a[0])/l]);}
+     return P.map(function(p,i){const n1=N[(i+n-1)%n],n2=N[i],k=d/(1+n1[0]*n2[0]+n1[1]*n2[1]);return [p[0]+(n1[0]+n2[0])*k,p[1]+(n1[1]+n2[1])*k,z];});};
    const Lum=new THREE.Vector3(-.46,.67,.58).normalize(),nv=new THREE.Vector3(),va=new THREE.Vector3(),vb=new THREE.Vector3();
    const facette=function(A,B2,C){va.set(B2[0]-A[0],B2[1]-A[1],B2[2]-A[2]);vb.set(C[0]-A[0],C[1]-A[1],C[2]-A[2]);nv.crossVectors(va,vb);if(nv.lengthSq()<1e-12)return;nv.normalize();
      const d=nv.dot(Lum);MK.tri(d>.5?'AuH':d>.12?'Au':'AuD',A,B2,C);};                                       // l'or crème / plein / sombre selon la facette
-   const contour=function(pts,f){const h=TR*f/2,n=pts.length,N=[],Lf=[],Rg=[];
-     for(let i=0;i<n-1;i++){const dx=pts[i+1][0]-pts[i][0],dy=pts[i+1][1]-pts[i][1],l=Math.hypot(dx,dy);N.push([-dy/l,dx/l]);}
-     for(let i=0;i<n;i++){const n1=N[Math.max(0,i-1)],n2=N[Math.min(n-2,i)],k=h/(1+n1[0]*n2[0]+n1[1]*n2[1]),ox=(n1[0]+n2[0])*k,oy=(n1[1]+n2[1])*k;
-       Lf.push([pts[i][0]+ox,Math.max(0,Math.min(110,pts[i][1]+oy))]);Rg.push([pts[i][0]-ox,Math.max(0,Math.min(110,pts[i][1]-oy))]);}
-     return Lf.concat(Rg.reverse());};
-   MOTS.forEach(function(w){let px=w[1];for(let k=0;k<w[0].length;k++){LET[w[0][k]].forEach(function(q){
-     const lv=NIV.map(function(nz){return contour(q,nz[1]).map(function(p){return [(px+p[0]-315)*KX,YB+(110-p[1])*KY,ZA+nz[0]];});});
-     let ar=0;const P0=lv[0];for(let i=0;i<P0.length;i++){const u=P0[i],v=P0[(i+1)%P0.length];ar+=u[0]*v[1]-v[0]*u[1];}
-     if(ar<0)lv.forEach(function(P){P.reverse();});                                                           // contour toujours dans le sens direct : facettes tournées vers l'extérieur
-     for(let m=0;m<lv.length-1;m++){const P=lv[m],Q=lv[m+1],n=P.length;for(let i=0;i<n;i++){const i2=(i+1)%n;facette(P[i],P[i2],Q[i2]);facette(P[i],Q[i2],Q[i]);}}
-     const top=lv[lv.length-1],tr=THREE.ShapeUtils.triangulateShape(top.map(function(p){return new THREE.Vector2(p[0],p[1]);}),[]);
-     tr.forEach(function(t){let A=top[t[0]],B2=top[t[1]],C=top[t[2]];if((B2[0]-A[0])*(C[1]-A[1])-(B2[1]-A[1])*(C[0]-A[0])<0){const x=B2;B2=C;C=x;}facette(A,B2,C);});});
-     px+=LW+GAP;}});
+   lettres.forEach(function(L){const tout=[L].concat(L.trous),haut=[];
+     tout.forEach(function(b,bi){const lv=NIV.map(function(nz){return retrait(b.P,nz[1],ZA+nz[0]);});
+       for(let m=0;m<lv.length-1;m++){const P=lv[m],Q=lv[m+1],n=P.length;for(let i=0;i<n;i++){const i2=(i+1)%n;facette(P[i],P[i2],Q[i2]);facette(P[i],Q[i2],Q[i]);}}
+       haut.push(lv[lv.length-1].map(function(p){const v=new THREE.Vector2(p[0],p[1]);v.p=p;return v;}));});
+     const tr=THREE.ShapeUtils.triangulateShape(haut[0],haut.slice(1)),tous=[].concat.apply([],haut);
+     tr.forEach(function(t){let A=tous[t[0]].p,B2=tous[t[1]].p,C=tous[t[2]].p;if((B2[0]-A[0])*(C[1]-A[1])-(B2[1]-A[1])*(C[0]-A[0])<0){const x=B2;B2=C;C=x;}facette(A,B2,C);});});
   }
 
   // ===== MUR GAUCHE : pneus, servante, compresseur, cric, et tout ce qui roule =====
