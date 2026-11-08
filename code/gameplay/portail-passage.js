@@ -167,10 +167,14 @@ function portPasseNiveau(){
   const tok=PORTV.att=++PORTV.n;
   // (2026-10-17, 3e tour) avec la fenêtre, UNE image d'attente suffit : la copie et le voile sont posés à la fin de CETTE image (pcCopie), peints avant la suivante
   const r1=cub?function(f){f();}:requestAnimationFrame;
-  requestAnimationFrame(function(){r1(function(){
-    if(PORTV.att!==tok)return;PORTV.att=0;
+  const suite=function(){ /* (2026-11-07, vitesse-fluide) le passage lui-même : après l'image d'attente, ou après que le pré-bâti a fini DERRIÈRE le voile (prebRetient) */
+    PORTV.att=0;
     if(started&&!gameOver&&!PARK.on&&mode!=='boom')prebPorte(newTrack); // (LE PRÉ-BÂTI) prebPorte : c'est le portail qui construit · (2026-10-14, chasse aux bugs) mode!=='boom' : morte dans les 2 images d'attente, la caisse explose ENCORE (gameOver ne tombe qu'à endGame, 1,8 s plus tard) — newTrack lui remettait mode='drive' : plus d'endGame, elle roulait après sa mort
-    if(cub)pcVoileSort(220);else portVoileSort(280);});});
+    if(cub)pcVoileSort(220);else portVoileSort(280);};
+  requestAnimationFrame(function(){r1(function(){
+    if(PORTV.att!==tok)return;
+    if(started&&!gameOver&&!PARK.on&&mode!=='boom'&&prebRetient(tok,suite))return; /* (2026-11-07) jamais d'un bloc : le reste du pré-bâti se fait par tranches sous le voile */
+    suite();});});
 }
 /* L'ÉTAT DE CAMÉRA DU VOL (2026-09-28). La v2 de l'après-midi (écart tenu court, plan de trois-quarts) a été RETIRÉE le soir même :
    elle rendait la visée impossible — voir le bloc « CAMÉRA DE VOL — RETOUR À LA CAMÉRA DE POURSUITE » dans la boucle. Restent : `t`

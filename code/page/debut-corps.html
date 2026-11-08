@@ -98,7 +98,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
      d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
      quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
   (function(){
-    var CLE='cashcarErr',L=null,attente=0,attT=0,dern='',dernT=0,MAXO=20000,CAPS={serpent:25,fluide:40,memoire:15,contexte:10};
+    var CLE='cashcarErr',L=null,attente=0,attT=0,dern='',dernT=0,MAXO=20000,CAPS={serpent:25,fluide:40,memoire:15,contexte:10,grotte:12}; /* (union build 35) les plafonds de banc-iphone-2 (mémoire, contexte) + la ligne « grotte » de vitesse-fluide */
     var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
     var ecrit=function(){clearTimeout(attT);attente=0;attT=0;try{ /* (2026-11-07, OPTI ULTIME : « 30 Ko réécrits à chaque ligne = on fausse la mesure ») plafond de MAXO octets : les plus anciennes lignes `fluide`/`vivant` partent d'abord, puis les autres sondes ; jamais gel, contexte, memoire, banc */
       var s9=JSON.stringify(L),i9,k9;

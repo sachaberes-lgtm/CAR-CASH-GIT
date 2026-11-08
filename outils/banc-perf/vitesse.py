@@ -98,12 +98,22 @@ def monte(c,cible):
         except Exception:return -1
     return k
 def profil(prof,dur_ms):
-    nodes={n['id']:n for n in prof['nodes']};S={};tot=0
-    for sid,dt in zip(prof['samples'],prof['timeDeltas']):
-        n=nodes[sid];cf=n['callFrame'];nom=(cf['functionName'] or '(anon)')+':'+str(cf['lineNumber']+1)
-        S[nom]=S.get(nom,0)+dt;tot+=dt
-    top=sorted(S.items(),key=lambda x:-x[1])[:40]
-    return {'total_ms':round(tot/1000),'top':[[k,round(v/1000,1)] for k,v in top]}
+    nodes={n['id']:n for n in prof['nodes']};S={};tot=0;own={}
+    for sid,dt in zip(prof['samples'],prof['timeDeltas']):own[sid]=own.get(sid,0)+dt
+    par={}
+    for n in prof['nodes']:
+        for c in n.get('children',[]):par[c]=n['id']
+    I={};
+    def nom(n):cf=n['callFrame'];return (cf['functionName'] or '(anon)')+':'+str(cf['lineNumber']+1)
+    for sid,dt in own.items():
+        n=nodes[sid];k=nom(n);S[k]=S.get(k,0)+dt;tot+=dt
+        vu=set();x=sid
+        while x is not None:  # inclusif : une fois par fonction et par échantillon (pas de double compte en récursion)
+            kx=nom(nodes[x])
+            if kx not in vu:vu.add(kx);I[kx]=I.get(kx,0)+dt
+            x=par.get(x)
+    top=sorted(S.items(),key=lambda x:-x[1])[:90];inc=sorted(I.items(),key=lambda x:-x[1])[:90]
+    return {'total_ms':round(tot/1000),'top':[[k,round(v/1000,1)] for k,v in top],'incl':[[k,round(v/1000,1)] for k,v in inc]}
 def paliers(dossier,tiers,seconde,qs):
     http,port,srv,ch,prof=lance(dossier)
     try:
@@ -140,6 +150,53 @@ def depart(dossier,crans,seconde,qs,carte='nuages:midi'):
         return out
     finally:ferme(srv,ch,prof)
 
+def profil_paliers(dossier,cibles,seconde,qs,carte='nuages:midi'):
+    """cibles : [(index_palier_moteur, cran_de_depart, dbgMoteur_en_plus)] — une page neuve par cible, 6 s de mise en vitesse puis `seconde` s de profil CPU (iPhone émulé ×4)"""
+    http,port,srv,ch,prof=lance(dossier)
+    try:
+        c=CDP(port);c.keep={'Runtime.exceptionThrown'};out=[];m=carte.split(':')
+        for (idx,n,plus) in cibles:
+            sv=dict(gp.SAVE);sv['vdep']=n;sv['ex']={'eng':29,'runs':9}
+            if not demarre(c,http,'?garde=1&palier=2&tel=1&pistegraine=777&carte=%s&meteo=%s'%(m[0],m[1])+qs,save=sv):out.append(None);continue
+            c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{});1")
+            for i in range(plus):c.ev("dbgMoteur();1");c.pump(.5)
+            c.call('Emulation.setCPUThrottlingRate',rate=4);c.ev(SAMPLEUR);c.call('Profiler.enable');c.pump(6)
+            c.ev("window.__S.length=0;window.__Son=true;1");c.call('Profiler.start');c.pump(seconde)
+            p=c.call('Profiler.stop')['profile'];c.ev("window.__Son=false;1")
+            S=json.loads(c.ev("JSON.stringify(window.__S)"))
+            out.append({'idx':idx,'carte':carte,'frames':S,'profil':profil(p,seconde*1000),'charge':os.getloadavg()[0],'etat':c.ev("JSON.stringify(dbgState())")[:200],'tier':c.ev("(function(){try{return dbgEco().eng}catch(e){return null}})()")})
+            c.call('Emulation.setCPUThrottlingRate',rate=1)
+        return out
+    finally:ferme(srv,ch,prof)
+
+def portail(dossier,cran,dist,suivante,qs):
+    """portail approché vite : la course au palier de départ `cran`, la map d'en face = `suivante` (carte:météo), la caisse posée à `dist` m du portail ; durée d'image de l'approche et du passage, ce que le pré-bâti a fait (finisAuPassage, msFin, msSousVoile)"""
+    http,port,srv,ch,prof=lance(dossier)
+    try:
+        c=CDP(port);c.keep={'Runtime.exceptionThrown'};m=suivante.split(':')
+        sv=dict(gp.SAVE);sv['vdep']=cran;sv['ex']={'eng':29,'runs':9}
+        if not demarre(c,http,'?garde=1&palier=2&tel=1&pistegraine=777&carte=nuages&meteo=midi'+qs,save=sv):return None
+        c.call('Emulation.setCPUThrottlingRate',rate=4)
+        c.ev("dbgSable(1);dbgQual(0);dbgAuto(1,0,{});1");c.pump(3)
+        c.ev(SAMPLEUR);z0=c.ev("dbgEco().zones")
+        c.ev("dbgClassique(%s,%s);1"%(json.dumps(m[0]),json.dumps(m[1] if len(m)>1 else None)));c.ev("window.__S.length=0;window.__Son=true;dbgPortail(%d);1"%dist)
+        prof_on=os.environ.get('PROFIL')=='1'
+        if prof_on:c.call('Profiler.enable');c.call('Profiler.start')
+        t=time.time();passe=False
+        while time.time()-t<90:
+            c.pump(1)
+            if c.ev("dbgEco().zones")!=z0:passe=True;break
+        PR=profil(c.call('Profiler.stop')['profile'],1000) if prof_on else None
+        c.pump(4)
+        for i in range(30):
+            g=c.ev("(function(){try{return !!dbgGrotteHash().pretMailles}catch(e){return true}})()")
+            if g:break
+            c.pump(2)
+        c.ev("window.__Son=false;1")
+        S=json.loads(c.ev("JSON.stringify(window.__S)"))
+        return {'profil':PR,'cran':cran,'dist':dist,'suivante':suivante,'passe':passe,'secondes':round(time.time()-t,1),'frames':S,'prebati':json.loads(c.ev("JSON.stringify(dbgPrebati())")),'grotte':json.loads(c.ev("JSON.stringify(typeof dbgGrotteHash==='function'?[dbgGrotteHash(),dbgGrotteTrav()]:null)")),'charge':os.getloadavg()[0]}
+    finally:ferme(srv,ch,prof)
+
 if __name__=='__main__':
     m=sys.argv[1]
     if m=='capture':
@@ -152,6 +209,12 @@ if __name__=='__main__':
     elif m=='depart':
         r=depart(sys.argv[2],[int(x) for x in sys.argv[3].split(',')],float(sys.argv[4]) if len(sys.argv)>4 else 25,sys.argv[5] if len(sys.argv)>5 else '',sys.argv[6] if len(sys.argv)>6 else 'nuages:midi')
         json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-depart.json'),'w'));print('ok',[(x or {}).get('cran') for x in r])
+    elif m=='profil':
+        r=profil_paliers(sys.argv[2],[(3,0,3),(9,1,4),(15,3,0)],float(sys.argv[3]) if len(sys.argv)>3 else 10,sys.argv[4] if len(sys.argv)>4 else '',sys.argv[5] if len(sys.argv)>5 else 'nuages:midi')
+        json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-profil.json'),'w'));print('ok',[(x or {}).get('idx') for x in r])
+    elif m=='portail':
+        r=portail(sys.argv[2],int(sys.argv[3]),int(sys.argv[4]),sys.argv[5],sys.argv[6] if len(sys.argv)>6 else '')
+        json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-portail.json'),'w'));print('ok',r and r['passe'])
     elif m=='course':
         r=course(sys.argv[2],float(sys.argv[3]) if len(sys.argv)>3 else 180,sys.argv[4] if len(sys.argv)>4 else '')
         json.dump(r,open(os.environ.get('SORTIE','/tmp/vitesse-course.json'),'w'));print(len(r or []),'images')
