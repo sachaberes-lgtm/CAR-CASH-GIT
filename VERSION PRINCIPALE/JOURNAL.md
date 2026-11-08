@@ -4,6 +4,15 @@
 > une section plus récente l'emporte toujours sur une plus ancienne. (Jusqu'au 2026-10-14, ce journal s'appelait CLAUDE.md.)
 
 
+
+## L'ÉCRAN DE MORT EST MUET (2026-11-08 — Sacha : « il y a la musique alors que je suis mort »)
+- Cause : depuis le 19/10, `endGame` relançait la musique du menu 1,4 s après la mort (`musicMenu` → le lobby lié de Pouce bleu, le morceau de la
+  PROCHAINE course, niveau 0,34 à 0,58 au banc). Ce n'était pas la musique de course qui continuait : elle s'éteint bien au crash (`explode`, tape-stop).
+- Maintenant : la musique s'éteint au crash et rien ne repart sur l'écran de mort. Elle revient avec REJOUER (sa course), CONTINUER et la réanimation
+  automatique (le même morceau), MAISON, GARAGE et MISSIONS (`accueilRetour` → `musicMenu`). Le curseur MUSIQUE rallumé sur l'écran de mort ne relance rien.
+  `?mortmusique=1` = avant (`MORT_MUSIQUE`, seconde-chance.js).
+- Banc : `node outils/banc-son/fumee-son.mjs --frenesie --chance` et `--bon` (nouveau : un bon de la machine, la réanimation automatique, aucun lobby pendant
+  la mort, le même morceau à la reprise) ; le banc exige désormais un écran de mort sans musique et une musique au retour par MAISON. VERT couché et debout.
 ## LA MÉMOIRE DES MAPS (2026-11-07, v1256 — chasse aux bugs MAP-N01 / MAP-N02 / PC-N03 / TEL-N02 : « rendre la mémoire des maps stable d'une course à l'autre »)
 Trois chantiers, tous mesurés au banc de l'ordi (`outils/banc-pc`, Chrome headless 1280×720, 3 courses enchaînées au pilote auto, ramasse-miettes forcé avant chaque relevé).
 - **Les travailleurs des dunes et du canyon se reposent** (`dnOuvrierRepos`, `cyOuvrierRepos` : dunes-1.js, canyon-route.js), comme l'ouvrier des nuages depuis le 05-11 : leur réponse rendue et plus rien en vol (ni construction qui attend, ni monde d'avance sans réponse), ils sont arrêtés 1,5 s plus tard, leur adresse Blob révoquée (celle des nuages aussi : chaque réveil en laissait une), et `DN.w` / `CY.w` redeviennent « à créer » (refaits à la demande, sous le pré-bâti). Avant, chacun vivait toute la partie avec les copies du dernier monde (mesuré, 3 courses sur les dunes : le travailleur des dunes gardait 1-2 Mo de tas + 6 à 20 Mo de tampons d'un bout à l'autre ; après : plus aucun travailleur vivant entre deux mondes, `dbgDunes().ouvrier` / `dbgCanyon().ouvrier` = {vivant, reposes}). `?ouvrier=garde` = avant.

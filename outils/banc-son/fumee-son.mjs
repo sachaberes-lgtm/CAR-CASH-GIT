@@ -76,7 +76,7 @@ async function attends(c, test, ms) { const t0 = Date.now(); while (Date.now() -
 /* les musiques EN COURS : <audio> audibles + longues boucles WebAudio, regroupées par fichier */
 function musiques(e) {
   const L = [];
-  if (e.pouce && e.pouce.actif && !(e.pouce.niveau != null && e.pouce.niveau < .01 && /course|intro/.test(e.pouce.phase))) L.push({ par: 'pouce', f: 'pouce:' + (e.pouce.titre || '?'), phase: e.pouce.phase, niveau: e.pouce.niveau }); /* (Pouce bleu effacé à 0 pendant la triade de la frénésie : pas une 2e musique) */
+  if (e.pouce && e.pouce.actif && e.pouce.phase !== 'repos' && !(e.pouce.niveau != null && e.pouce.niveau < .01 && /course|intro/.test(e.pouce.phase))) L.push({ par: 'pouce', f: 'pouce:' + (e.pouce.titre || '?'), phase: e.pouce.phase, niveau: e.pouce.niveau }); /* (Pouce bleu effacé à 0 pendant la triade de la frénésie : pas une 2e musique) */
   for (const m of e.medias) if (!m.muet && m.vol > 0) L.push({ par: 'audio', f: m.src });
   for (const b of e.boucles) L.push({ par: 'webaudio', f: b.url, dur: b.dur });
   return L;
@@ -158,7 +158,7 @@ for (let tour = 1; tour <= FOIS; tour++) {
       const t0 = (await releve(c)).pouce; await c.ev(`(function(){try{dbgAuto(false);dbgChance('t',200);}catch(e){}try{return dbgDauphin('boom');}catch(e){return e.message}})()`);
       /* (la machine chargée : la fenêtre de 5,5 s se fermait entre deux allers-retours du banc) la PAGE elle-même touche CONTINUER dès que le lobby repart */
       await c.ev(`(function(){window.__chJ=null;window.__chR=null;var t0=performance.now(),iv=setInterval(function(){var L=window.__pbTrace||[],lob=L.some(function(x){return x.k==='lobby'});var e=null;try{e=dbgChance();}catch(x){}
-        if(e&&e.ok&&(lob||performance.now()-t0>9000)){clearInterval(iv);var tl=POUCE_JEU.etat();window.__chJ={joue:dbgChance('joue'),apresLobby:lob,ms:Math.round(performance.now()-t0),lobby:tl.titre};
+        if(e&&e.ok&&(lob||performance.now()-t0>2500)){clearInterval(iv);var tl=POUCE_JEU.etat();window.__chJ={joue:dbgChance('joue'),apresLobby:lob,ms:Math.round(performance.now()-t0),lobby:tl.titre};
           var t1=performance.now(),iv2=setInterval(function(){var s=dbgState();if(s.started&&!s.gameOver){clearInterval(iv2);try{dbgAuto(true,0);}catch(x){}setTimeout(function(){var p=POUCE_JEU.etat();window.__chR={titre:p.titre,phase:p.phase,repartieMs:Math.round(performance.now()-t1)};},4000);}else if(performance.now()-t1>40000){clearInterval(iv2);window.__chR={rate:true};}},50);}
         else if(performance.now()-t0>15000){clearInterval(iv);window.__chJ={joue:false,etat:e};window.__chR={rate:true};}},50);})()`);
       await attends(c, '!!window.__chR', 60000);
@@ -180,13 +180,13 @@ for (let tour = 1; tour <= FOIS; tour++) {
       const rev = await attends(c, '(function(){try{var s=dbgState();return s.started&&!s.gameOver&&s.mode!=="boom"}catch(e){return false}})()', 25000);
       await sleep(4500); await c.ev('clearInterval(window.__bonIv)');
       const J = await c.ev('window.__bonJ');
-      const lob = J.filter(x => x.ph === 'lobby' || x.ph === 'charge'), ouv = J.filter(x => x.go && x.ov === 'flex');
+      const lob = J.filter(x => x.go && (x.ph === 'lobby' || x.ph === 'charge' || x.ph === 'course' || x.ph === 'intro')), ouv = J.filter(x => x.go && x.ov === 'flex');
       log(`[${tour}] bon : journal ${J.length} relevés · mort→reprise ${rev ? 'OK' : 'RATÉE'} · lobby vu ${lob.length} fois${lob.length ? ' (' + lob[0].t + ' ms, ' + lob[0].ti + ')' : ''} · écran de mort ouvert ${ouv.length} relevés`);
       log(`[${tour}] bon : ` + J.filter((x, i) => i % 3 === 0).map(x => `${x.t}:${x.go ? 'MORT' : 'vif'}/${x.mode}/${x.auto ? 'auto' : '-'}/${x.ov}/${x.ph}${x.niv != null ? '@' + x.niv : ''}`).join(' '));
       if (!rev) pb.push('bon : la réanimation automatique ne vient pas (' + JSON.stringify(J.slice(-3)) + ')');
       if (lob.length) pb.push(`bon : le LOBBY (${lob[0].ti}) joue pendant la réanimation automatique (dès ${lob[0].t} ms, ${lob.length} relevés) — la musique alors qu'on est mort`);
       if (ouv.length) pb.push('bon : l\'écran de mort s\'est ouvert malgré le bon');
-      const R1 = await releve(c); juge('reprise automatique', R1, { musMax: 1 }, pb);
+      await c.ev('dbgAuto(true,0)'); const R1 = await releve(c); juge('reprise automatique', R1, { musMax: 1 }, pb);
       log(`[${tour}] bon : après la reprise · musiques ${JSON.stringify(musiques(R1))} · pouce ${JSON.stringify(R1.pouce)} · chance ${JSON.stringify(await c.ev('(function(){var e=dbgChance();return {used:e.used,auto:e.auto,bons:e.bons}})()'))}`);
       if (rev && R1.pouce && !(R1.pouce.actif && R1.pouce.phase === 'course')) pb.push(`bon : après la réanimation, Pouce bleu n'est pas en course (${R1.pouce.phase})`);
       if (rev && t0 && R1.pouce && R1.pouce.titre && t0.titre !== R1.pouce.titre) pb.push(`bon : le morceau CHANGE (${t0.titre} → ${R1.pouce.titre}) alors que la course continue`);
@@ -199,6 +199,7 @@ for (let tour = 1; tour <= FOIS; tour++) {
     R.mort1 = await releve(c); juge('écran de mort', R.mort1, { musMax: 1 }, pb);
     log(`[${tour}] mort : medias ${JSON.stringify(R.mort1.medias)} · pouce ${JSON.stringify(R.mort1.pouce)}`);
     if (R.mort1.pouce && R.mort1.pouce.actif && /course|intro|depart/.test(R.mort1.pouce.phase)) pb.push('écran de mort : Pouce bleu (musique de course) joue encore');
+    if (!/mortmusique=1/.test(PLUS) && musiques(R.mort1).length) pb.push(`écran de mort : une musique joue alors qu'on est mort (2026-11-08 : l'écran de mort est muet) ${JSON.stringify(musiques(R.mort1))}`);
     log(`[${tour}] mort : sources ${R.mort1.sources} · liens ${R.mort1.liens} · musiques ${JSON.stringify(musiques(R.mort1))}`);
     { let parti = false;
       for (let k = 0; k < 4 && !parti; k++) { /* l'écran de mort ignore les touchers de ses premiers instants : on réessaie, comme un doigt */
@@ -237,6 +238,7 @@ for (let tour = 1; tour <= FOIS; tour++) {
     R.accueil2 = await releve(c); R.accueil2Mus = await musique(c); juge('retour accueil', R.accueil2, { musMax: 1 }, pb);
     if (R.accueil2.pouce && R.accueil2.pouce.actif && /course|intro|depart/.test(R.accueil2.pouce.phase)) pb.push('retour accueil : Pouce bleu (musique de course) joue encore');
     log(`[${tour}] accueil 2 : sources ${R.accueil2.sources} · liens ${R.accueil2.liens} (${R.accueil2.noeudsLies} nœuds) · tas ${R.accueil2.tasMo} Mo · musiques ${JSON.stringify(musiques(R.accueil2))} · menu ${JSON.stringify(R.accueil2Mus && R.accueil2Mus.el)}`);
+    if (!musiques(R.accueil2).length) pb.push("accueil 2 (retour par MAISON après la mort) : AUCUNE musique");
     { const A = R.course1.parPile || {}, B = R.accueil2.parPile || {}, D = [];
       for (const k in B) { const d = B[k] - (A[k] || 0); if (d > 2) D.push([d, k]); }
       D.sort((x, y) => y[0] - x[0]); if (D.length) log(`[${tour}] nœuds branchés en plus (course 1 → accueil 2) :\n     ` + D.slice(0, 14).map(x => '+' + x[0] + '  ' + x[1]).join('\n     ')); }
