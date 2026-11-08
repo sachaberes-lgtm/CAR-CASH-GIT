@@ -47,6 +47,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   const level=0;
   const ctrl=[];
   let P=startPos.clone(),phi=startPhi,approx=0;
+  const HCAP=[]; /* (2026-11-08, chasse) historique du cap (longueur cumulée, cap) à chaque arc, lu par enroul() ; non déclaré, chaque tracé de piste levait ReferenceError */
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi));
   const push=()=>ctrl.push(P.clone());
   push();
