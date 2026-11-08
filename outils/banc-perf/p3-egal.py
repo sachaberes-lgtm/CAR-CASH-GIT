@@ -9,9 +9,9 @@ ICI=os.path.dirname(os.path.abspath(__file__))
 sp=importlib.util.spec_from_file_location('gp',os.path.join(ICI,'garde-perf.py'));gp=importlib.util.module_from_spec(sp);sp.loader.exec_module(gp)
 POS=[int(x) for x in os.environ.get('P3_POS','1800').split(',')]
 A=os.environ.get('P3_A','1');B=os.environ.get('P3_B','1')
-JS="""(function(){var r={};function ap(){return dbgAppels(0).appels;}function tr(){return dbgChamp().dessines;}
- (function(){%s})();r.appelsA=ap();r.triA=tr();r.a1=dbgImgEmpreinte();r.a2=dbgImgEmpreinte();
- (function(){%s})();r.appelsB=ap();r.triB=tr();r.b1=dbgImgEmpreinte();r.b2=dbgImgEmpreinte();
+JS="""(function(){var r={};function ap(){return dbgAppels(0).appels;}function tr(){return dbgChamp().dessines;}function fi(){var t=0;dbgRemplissage().transp.forEach(function(f){t+=f.ecrans||0;});return +t.toFixed(2);}
+ (function(){%s})();r.appelsA=ap();r.triA=tr();r.fillA=fi();r.a1=dbgImgEmpreinte();r.a2=dbgImgEmpreinte();
+ (function(){%s})();r.appelsB=ap();r.triB=tr();r.fillB=fi();r.b1=dbgImgEmpreinte();r.b2=dbgImgEmpreinte();
  (function(){%s})();r.dAA=dbgImgDiff(0,1);r.dBB=dbgImgDiff(2,3);r.dAB=dbgImgDiff(0,2);return JSON.stringify(r);})()"""%(A,B,A)
 def mesure(c,nom,F,V,passe=None,lk=None):
     R=[]
@@ -31,7 +31,7 @@ def mesure(c,nom,F,V,passe=None,lk=None):
         if o_s is not None:o['sonde']=o_s
         if 'erreur' in o:print(nom,d,o);continue
         ok=(o['a1']==o['a2'])and(o['b1']==o['b2'])
-        print('%-14s d=%4d appels %3d → %3d · tri %7d → %7d | témoin A %s B %s | image %s | ombre %s'%(nom,d,o['appelsA'],o['appelsB'],o['triA'],o['triB'],'ok' if o['a1']['img']==o['a2']['img'] else 'VARIE','ok' if o['b1']['img']==o['b2']['img'] else 'VARIE',
+        print('%-14s d=%4d appels %3d → %3d · tri %7d → %7d · transp %5.2f → %5.2f écrans | témoin A %s B %s | image %s | ombre %s'%(nom,d,o['appelsA'],o['appelsB'],o['triA'],o['triB'],o['fillA'],o['fillB'],'ok' if o['a1']['img']==o['a2']['img'] else 'VARIE','ok' if o['b1']['img']==o['b2']['img'] else 'VARIE',
           ('IDENTIQUE' if o['a1']['img']==o['b1']['img'] else 'DIFFÉRENTE')+' [px≠ bruit A %d B %d · A/B %d (max %d)]'%(o['dAA']['n'],o['dBB']['n'],o['dAB']['n'],o['dAB']['max']),'identique' if o['a1']['ombre']==o['b1']['ombre'] else 'différente'))
     return {'map':nom,'mesures':R}
 gp.mesure=mesure
