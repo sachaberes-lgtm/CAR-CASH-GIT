@@ -42,7 +42,7 @@ console.log('chemin fil principal : ' + H1 + ' (' + ms1 + ' ms, ' + V1.pool.leng
 function monde(opts) {
   const ctx = vm.createContext({ Math, performance, Float32Array, Int8Array, Uint8Array, Int32Array, Array, Object, Promise, setImmediate, console });
   const sandbox = ctx;
-  sandbox.TEL_NATIF = opts.tel !== false; sandbox.location = { search: opts.search || '' }; sandbox.window = {};
+  sandbox.TEL_NATIF = opts.tel !== false; sandbox.location = { search: opts.search || '' }; sandbox.notes = []; sandbox.window = { __ccNote: function (g, m, o) { sandbox.notes.push([g, m, o]); } };
   if (opts.worker !== false) {
     sandbox.Worker = function (url) {
       const self = this; const code = sandbox.__blobs[url]; const wctx = vm.createContext({ Math, performance, Float32Array, Int8Array, Uint8Array, Int32Array, Array, Object, console });
@@ -67,17 +67,19 @@ async function lance(ctx, lim, R, b, bascule) { // un « prebTravaille » : le g
   const H2 = hache(A.V); console.log('chemin travailleur   : ' + H2);
   ok('LA MÊME GRILLE AU BIT PRÈS (pool, dn, si, sd, chS, cle, nAir, dir)', H1 === H2, H1 + ' / ' + H2);
   ok('dbgGrotteTrav : un fait, aucun repli', vm.runInContext("window.dbgGrotteTrav()", c2).faits === 1 && vm.runInContext("window.dbgGrotteTrav()", c2).replis === 0);
+  ok('la boîte noire note « grotte | travailleur »', c2.notes.length === 1 && c2.notes[0][0] === 'grotte' && c2.notes[0][1] === 'travailleur' && /creusement/.test(c2.notes[0][2]), JSON.stringify(c2.notes[0]));
   const c3 = monde({}); const B = await lance(c3, 1e15, R, b, true);
   ok('la tranche devient INFINIE pendant l\'attente (passage sans voile) : repli (faux) et le travailleur est abandonné', B.fait === false && c3.__terminated === 1 && vm.runInContext("window.dbgGrotteTrav()", c3).replis === 1);
+  ok('… et « repli passage sans voile » quand la tranche devient infinie', c3.notes.length === 1 && /^repli passage sans voile/.test(c3.notes[0][1]), JSON.stringify(c3.notes[0]));
   const c3b = monde({}); const B2 = await lance(c3b, Infinity, R, b);
   ok('tranche INFINIE dès le début (bâti d\'un trait) : faux tout de suite, aucun travailleur créé', B2.fait === false && vm.runInContext('GRW.w', c3b) === undefined);
   const c4 = monde({ worker: false }); const C = await lance(c4, 1e15, R, b);
-  ok('pas de Worker : repli (faux), grotte creusée par le fil principal', C.fait === false);
+  ok('pas de Worker : repli (faux), noté « repli pas de Worker »', C.fait === false && c4.notes.length === 1 && c4.notes[0][1] === 'repli pas de Worker', JSON.stringify(c4.notes[0]));
   const c5 = monde({ erreur: true }); const E = await lance(c5, 1e15, R, b);
-  ok('travailleur en erreur : repli (faux) et plus jamais de travailleur', E.fait === false && vm.runInContext("GRW.on", c5) === false);
+  ok('travailleur en erreur : repli (faux), plus jamais de travailleur, noté « repli erreur »', E.fait === false && vm.runInContext("GRW.on", c5) === false && c5.notes.length === 1 && /^repli erreur/.test(c5.notes[0][1]), JSON.stringify(c5.notes[0]));
   const c6 = monde({ tel: false }); const F = await lance(c6, 1e15, R, b);
   ok('ordinateur (TEL_NATIF faux) : jamais de travailleur', F.fait === false && vm.runInContext("GRW.on", c6) === false);
   const c7 = monde({ search: '?grotteworker=0' }); const G = await lance(c7, 1e15, R, b);
-  ok('?grotteworker=0 : avant', G.fait === false);
+  ok('?grotteworker=0 : avant, noté « repli coupé »', G.fait === false && c7.notes.length === 1 && /coupé/.test(c7.notes[0][1]), JSON.stringify(c7.notes[0]));
   console.log(ko ? '\nPREUVE KO (' + ko + ')' : '\nPREUVE OK'); process.exit(ko ? 1 : 0);
 })();

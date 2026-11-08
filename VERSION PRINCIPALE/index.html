@@ -1999,7 +1999,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
      d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
      quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
   (function(){
-    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0,CAPS={serpent:25,fluide:40};
+    var CLE='cashcarErr',L=null,attente=0,dern='',dernT=0,CAPS={serpent:25,fluide:40,grotte:12};
     var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
     var ecrit=function(){attente=0;try{localStorage.setItem(CLE,JSON.stringify(L));}catch(_){}};
     window.__ccNote=function(genre,msg,ou){
@@ -24968,6 +24968,8 @@ function grtTextes(){Object.assign(I18N,{'LES PROFONDEURS':'THE DEPTHS','LA ROCH
    Seulement sur TÉLÉPHONE (TEL_NATIF) et au PRÉ-BÂTI (tranches finies : un bâti « d'un trait » ne peut pas attendre un message) ; `?grotteworker=0` = avant. REPLI AUTOMATIQUE sur le fil principal : pas de Worker, création ou
    message en erreur, ou la tranche devient infinie pendant l'attente (le passage du portail sans voile : le travailleur est alors abandonné et le creusement se refait ici, comme avant). Banc : dbgGrotteHash(), dbgGrotteTrav(). */
 const GRW={on:TEL_NATIF&&typeof Worker!=='undefined'&&!/[?&]grotteworker=0\b/.test(location.search),w:undefined,job:0,cur:null,faits:0,replis:0,ms:0,err:'',vu:false};
+GRW.raison=!TEL_NATIF?'':typeof Worker==='undefined'?'pas de Worker':/[?&]grotteworker=0\b/.test(location.search)?'coupé (?grotteworker=0)':'';
+function grwNote(msg,ou){if(!TEL_NATIF)return;try{window.__ccNote('grotte',msg,ou);}catch(e){}} /* (2026-11-08) la boîte noire : « grotte | travailleur » (ou « repli <raison> ») à chaque grotte creusée — n compte les grottes ; le temps en 3e champ */
 const GRW_R=['X','Y','Z','NNX','NNY','NNZ','BX','BY','BZ','LAT','BAS','RH','UP','DN','EX','NZ','EXT'];
 function grwTravailleur(){
   if(GRW.w!==undefined)return GRW.w;
@@ -24986,17 +24988,18 @@ function grwTravailleur(){
 function grwAbandon(c){ /* le travail en cours est jeté : on arrête le travailleur (il finirait un creusement dont personne ne veut, et ferait attendre le suivant) */
   if(c)c.annule=true;if(GRW.cur===c)GRW.cur=null;try{if(GRW.w)GRW.w.terminate();}catch(e){}GRW.w=undefined;}
 function* grwCreuse(V,R,b){ /* rend vrai si le travailleur a creusé (V est alors rempli) ; faux : le fil principal creuse comme avant */
-  if(!GRW.on||JF.lim===Infinity)return false;
-  const W=grwTravailleur();if(!W)return false;
+  if(!GRW.on){grwNote('repli '+(GRW.raison||GRW.err||'travailleur indisponible'));return false;}
+  if(JF.lim===Infinity){grwNote('repli bâti d\'un trait (sans tranches)');return false;}
+  const W=grwTravailleur();if(!W){grwNote('repli création : '+(GRW.err||'?'));return false;}
   const c={job:++GRW.job,fini:false,echec:false,annule:false,r:null,t0:performance.now()};GRW.cur=c;
   const Rm={n:R.n};for(const k of GRW_R)Rm[k]=R[k].slice();
-  try{W.postMessage({job:c.job,B:GRT.B,K:GRT.K,nzK:GRV.nzK,vaste:GRT_VASTE,rh:ROAD_HALF,th:THICK,x0:b.x0,y0:b.y0,z0:b.z0,x1:b.x1,y1:b.y1,z1:b.z1,R:Rm});}catch(e){GRW.err=String(e&&e.message||e);GRW.on=false;grwAbandon(c);return false;}
-  try{while(!c.fini&&!c.echec){if(JF.lim===Infinity){GRW.replis++;grwAbandon(c);return false;}yield 'attente';}}
+  try{W.postMessage({job:c.job,B:GRT.B,K:GRT.K,nzK:GRV.nzK,vaste:GRT_VASTE,rh:ROAD_HALF,th:THICK,x0:b.x0,y0:b.y0,z0:b.z0,x1:b.x1,y1:b.y1,z1:b.z1,R:Rm});}catch(e){GRW.err=String(e&&e.message||e);GRW.on=false;grwAbandon(c);grwNote('repli envoi : '+GRW.err);return false;}
+  try{while(!c.fini&&!c.echec){if(JF.lim===Infinity){GRW.replis++;grwAbandon(c);grwNote('repli passage sans voile (tranche infinie)');return false;}yield 'attente';}}
   finally{if(!c.fini)grwAbandon(c);}
-  if(c.echec||!c.r){GRW.replis++;return false;}
+  if(c.echec||!c.r){GRW.replis++;grwNote('repli erreur : '+GRW.err);return false;}
   const r=c.r,n=r.n;V.dir=r.dir;V.pool=new Array(n);V.dn=new Array(n);V.si=new Array(n);V.sd=new Array(n);V.nzc=new Array(n).fill(null);
   for(let k=0;k<n;k++){V.pool[k]=r.P.subarray(k*4096,(k+1)*4096);V.dn[k]=r.D.subarray(k*4096,(k+1)*4096);V.si[k]=r.SI.subarray(k*64,(k+1)*64);V.sd[k]=r.SD.subarray(k*64,(k+1)*64);}
-  V.chS=r.chS;V.cle=r.cle;V.nAir=r.nAir;GRW.faits++;GRW.ms=r.ms;GRW.cur=null;return true;}
+  V.chS=r.chS;V.cle=r.cle;V.nAir=r.nAir;GRW.faits++;GRW.ms=r.ms;GRW.cur=null;grwNote('travailleur',r.ms+' ms de creusement, attente '+Math.round(performance.now()-c.t0)+' ms');return true;}
 window.dbgGrotteTrav=function(){return {on:GRW.on,travailleur:GRW.w===undefined?'pas créé':GRW.w?'prêt':'indisponible',faits:GRW.faits,replis:GRW.replis,msCreusement:GRW.ms,err:GRW.err};};
 window.dbgGrotteHash=function(){const V=GROTTE.V;if(!V)return null;let h=2166136261>>>0;const mix=function(a){for(let i=0;i<a.length;i++){h^=a[i]&255;h=Math.imul(h,16777619)>>>0;}};
   for(let c=0;c<V.pool.length;c++){mix(V.pool[c]);mix(new Uint8Array(V.dn[c].buffer,V.dn[c].byteOffset,V.dn[c].byteLength));mix(new Uint8Array(V.si[c].buffer,V.si[c].byteOffset,V.si[c].byteLength));}
