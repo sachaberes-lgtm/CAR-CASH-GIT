@@ -59,3 +59,8 @@ Les trois leviers qui touchent l'image sont **À DEMANDER** (éteints par défau
 | j — halo à 2 étages | 889c73cf | 3 → 2 étages de flou : une passe de moins par étage retiré ; le halo s'étale moins loin (le poids des étages retirés va au dernier). GPU p50 : 3,32 → 2,68 ms (bruit). |
 Tous les leviers ensemble (g+i+j) : 2,90 ms. Mesures : nuages/jade/dunes, `?tel=1&palier=2` émulé, CPU ×4, un seul passage chacun, charge du Mac 75-100 → **temps indicatifs** ; les Mo sont exacts. Captures : `passation/perf-2026-11/captures/p2-salve/{def,g,i,j,gij}-{nuages,jade,dunes}-midi.jpg` (même position de route visée ; sous cette charge la position dérive d'une image à l'autre, la différence de pixels > 8/255 n'est donc pas interprétable — comparer à l'œil : planche `jade` : aucun banding visible avec g, ciel et halo semblables).
 Non prouvé : tout effet sur l'iPhone (énergie, GPU, banding de mediump), le coût réel du halo à 2 étages sur GPU à tuiles.
+
+## Décisions d'OPTI ULTIME (8/11, après la salve)
+- **i (textures 2048 + aniso 4) : PAR DÉFAUT sur `TEL_NATIF`** (`iNeuf.i=1`) : −50 Mo de textures GPU à netteté inchangée, donc mémoire et bande passante (chaleur) en moins. `?imgsans=i` / `?img=max` = les photos de ciel en pleine taille.
+- **g (mediump) : ÉTEINT par défaut.** À tester sur le 13 Pro seul, par un build `&imgplus=g` ; critère : pas de banding, pas de tremblement des positions lointaines, ms GPU dans la boîte noire.
+- **j (halo à 2 étages) : ÉTEINT** (direction artistique).
