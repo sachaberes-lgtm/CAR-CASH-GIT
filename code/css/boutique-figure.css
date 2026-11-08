@@ -17,7 +17,7 @@ html body #gBqPan.bqFigPel #bqFigSel .fsHex{display:grid;grid-template-columns:a
   min-height:48px;padding:5px 5px 5px 4px;text-align:left;background:#f4f6f8;box-shadow:inset 0 0 0 1px #e1e5ea;touch-action:manipulation}
 #gBqPan.bqFigPel #bqFigSel .fsCase{grid-column:1;grid-row:1/3;width:34px;height:30px;margin-right:6px}
 #gBqPan.bqFigPel #bqFigSel .fsIn{inset:2px 3px}
-#gBqPan.bqFigPel #bqFigSel .fsIn .fgIl{transform:scale(.72)}
+#gBqPan.bqFigPel #bqFigSel .fsIn .fgIl{transform:scale(.5)} /* (2026-11-08, Sacha : même liseré mordu) l intérieur ne fait que 28 × 26 px : l anneau de 36 px doit tenir en 18 px */
 #gBqPan.bqFigPel #bqFigSel .fsQ{font-size:10px}
 html body #gBqPan.bqFigPel #bqFigSel .fsJoy{grid-column:2;grid-row:1;position:static;width:14px;height:14px;clip-path:none;box-shadow:none;background:var(--dc);color:var(--bqInk)}
 #gBqPan.bqFigPel #bqFigSel .fsJoy .pxi{width:10px;height:10px}

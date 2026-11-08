@@ -143,3 +143,4 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{display:fl
 }
 #gFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08) anneau rentré comme la boutique : plus de liseré mordu, plus d animation */
 </style>
+#bqFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08) la grande case (56 × 48) : anneau rentré, plus de liseré mordu */
