@@ -32,6 +32,7 @@ def main():
         elif a=='--json':OPT['json']=av[i+1];i+=2
         elif a=='--shots':OPT['shots']=av[i+1];i+=2
         elif a=='--js':OPT['js'].append(av[i+1]);i+=2
+        elif a=='--gar':OPT['gar']=1;i+=1
         elif a=='--ab':OPT['ab']=1;i+=1
         elif a=='--cpu':OPT['cpu']=int(av[i+1]);i+=2
         else:i+=1
@@ -64,6 +65,10 @@ def main():
         G.attend(c,"dbgPrebati().etat==='pret'",60);c.pump(8) # la chauffe du menu passe d'abord
         c.call('Emulation.setCPUThrottlingRate',rate=OPT['cpu'])
         print(c.ev('JSON.stringify(dbgHC())'))
+        if OPT.get('gar'):
+            g=c.ev("(function(){var e=[].slice.call(document.querySelectorAll('[data-m=garage]')).filter(function(x){return x.getBoundingClientRect().width>0})[0];if(!e)return null;var b=e.getBoundingClientRect();return [b.left+b.width/2,b.top+b.height/2]})()")
+            if g:G.tap(c,g[0],g[1],.12)
+            c.pump(8)
         for j in OPT['js']:print('JS>',j[:60],'=>',c.ev(j))
         if OPT['js']:return 0
         if OPT.get('ab'):
