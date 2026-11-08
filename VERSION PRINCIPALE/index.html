@@ -9820,6 +9820,10 @@ html #gMis.mbOn.m2land #gmBas .gmHome{flex-direction:row;width:auto;min-width:11
 html #gMis.mbOn.m2land #gmBas .gmHome .pxi{--pxs:2}
 /* la ligne MISSIONS RÉUSSIES : 41 px (le .mcFin à 40 l'emportait sur les 44 du .m2Fin) */
 .m2Fin.mcFin{min-height:44px}
+/* (2026-11-08, Sacha : « en bas les boutons sont penchés, remets les carrés droits ») les touches du bas du garage (INVENTAIRE · MISSIONS · BOUTIQUE · JOUER · ACCUEIL) ne penchent plus : plus de skewX, l'appui descend tout droit */
+html body #garage#garage #gAct#gAct>.pbtn{transform:none!important}
+html body #garage#garage #gAct#gAct>.pbtn:is(:active,.appui){transform:translateY(5px)!important}
+html body #garage#garage #gAct#gAct>.pb-gold:is(:active,.appui){transform:translateY(6px)!important}
 </style>
 <style id="bq-peinture">
 /* ===== BOUTIQUE : LE NUANCIER DES PEINTURES (2026-11-07, Sacha : « les boîtes de Léo sont bien pour les voitures mais pas adaptées aux peintures, traînées, figures… » · « chaque type d'item doit avoir un système propre ») =====
@@ -50224,6 +50228,8 @@ function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.scene.add(hemi,key,fill,rim,rim2,bas);PHOTO.key=key;}
 function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=w.userData.k||1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}
   try{ailvPose();}catch(e){}} // (2026-10-16, LES AILES VIVANTES) l'aile au plus beau de son geste : boost tenu (les ailes en X ouvertes, la lave qui flambe…)
+function peintFile(id,cb,el){const j=COSM.peinture.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='p:'+id+':'+c;
+  if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,j:j,pe:1},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}} /* (2026-11-08) la photo d'une PEINTURE : la caisse équipée, peinte */
 function aileFile(id,cb,el){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a:'+id+':'+c;
   if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,j:j},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* (2026-10-14, OPTIMISATION — passation perf : « BOUTIQUE ~400 ms à l'ouverture = shopPhotoTour : 8 toDataURL 164 ms + 8 readPixels 66 ms ») —
@@ -50260,8 +50266,8 @@ function photoDev(W,H){
   if(!D.lie){photoLie(D.sc,D.cam);D.lie=true;} // le programme de la pellicule : lié une fois pour toutes (voir photoLie)
   renderer.setRenderTarget(D.rt);renderer.render(D.sc,D.cam);renderer.readRenderTargetPixels(D.rt,0,0,W,H,D.buf);
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.putImageData(new ImageData(D.buf,W,H),0,0);return cv;}
-function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAGE de la fenêtre d'achat (shopTourne) — la caisse vue sous cet azimut, cadrée pour TOUS les azimuts (le cadre ne respire pas), rangée sous sa clé */
-  const ck=aile?aile.k:(az9!=null?'r'+i+'_'+az9.toFixed(2):i); // (2026-10-15) LA PHOTO D'UNE AILE (aileFile) : la caisse i qui la porte, ailes déployées — rangée sous SA clé
+function carPhoto(i,cb,aile,az9){ const pe=aile&&aile.pe?aile:null;if(pe)aile=null; /* (2026-11-08, Sacha : « les peintures, présentées comme les autres : la caisse peinte ») pe = {k,j,pe:1} : la photo de la caisse équipée portant la peinture j (peintFile) */ /* (2026-10-25) az9 : une pose de la VUE GARAGE de la fenêtre d'achat (shopTourne) — la caisse vue sous cet azimut, cadrée pour TOUS les azimuts (le cadre ne respire pas), rangée sous sa clé */
+  const ck=pe?pe.k:aile?aile.k:(az9!=null?'r'+i+'_'+az9.toFixed(2):i); // (2026-10-15) LA PHOTO D'UNE AILE (aileFile) : la caisse i qui la porte, ailes déployées — rangée sous SA clé
   if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
   if(started&&!gameOver){if(cb)cb(null);return null;}
   if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
@@ -50270,10 +50276,11 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   photoStudio();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
   if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin) — (2026-10-16) en RAFALE, posée une fois par photoRafale
-  PHOTO_USINE=true; /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) */
+  PHOTO_USINE=!pe; /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) */
   const sig9=phdbSig();let url=null,asy=false;
   try{
     if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
+    else if(pe){const pv=SHOP.prev;SHOP.prev={cat:'peinture',i:pe.j};try{buildCar(CARS[i]);}finally{SHOP.prev=pv;}}
     else buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
     PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile)photoAiles();
     carGroup.updateMatrixWorld(true);
@@ -75644,7 +75651,7 @@ function invRender(){
     g.innerHTML=!L.length?'<p class="ivVide">'+TR(INV.cat==='figure'&&FSEL.dir>=0?'AUCUNE FIGURE POUR CE GESTE':'RIEN ICI POUR LE MOMENT')+'</p>':L.map(function(o,n){const ri=rarInfo(o.r),lu=INV_LUEUR[o.r]||.5;let fig='',nm='';
       if(o.cat==='voiture'){nm=TR(CARS[o.i].name);fig=PHOTO.cache[o.i]?'<img alt="" src="'+PHOTO.cache[o.i]+'">':'<i class="ivPh"></i>';}
       else{const d=o.d;nm=TR(d.n);
-        if(o.cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;fig='<i class="ivSw'+cosmSwCl(d)+'" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
+        if(o.cat==='peinture'){const c9=d.id==='usine'?CARS[equippedCar()].color:d.c;fig='<i data-pe="'+sansAcc(String(d.id)).replace(/"/g,'')+'" class="ivSw'+cosmSwCl(d)+'" style="background:'+(d.mot?motFond(d):d.grad?'linear-gradient(160deg,'+d.grad.map(hx).join(',')+')':hx(c9))+'"></i>';}
         else if(o.cat==='trainee')fig='<i class="ivRub" style="color:'+(d.rainbow?'#ff9b1a':d.rgb?rg(d.rgb):'#ff8a24')+';background:'+(d.rainbow?'linear-gradient(90deg,#ff3b3b,#ff9b1a,#ffe23a,#3bff6a,#3bb4ff,#9b5bff)':'linear-gradient(90deg,transparent,'+(d.rgb?rg(d.rgb):'#ff6a14')+' 35%,#fff 100%)')+'"></i>';
         else if(o.cat==='figure')fig=illuFig(d.id,ri.c,fsAuto(d.id)===0); /* (2026-11-05) chaque figure son DESSIN (anneau + caisse), plus le même pictogramme pour toutes */
         else fig='<i class="pxi pxi-aile ivAile" data-ai="'+sansAcc(String(d.id)).replace(/"/g,'')+'" style="color:#dff6ff"></i>';} // (31/10) une AILE passe en PHOTO dès qu'aileFile la rend (voir plus bas, comme les caisses) : l'icône n'est qu'une attente
@@ -75652,6 +75659,8 @@ function invRender(){
       return '<div class="ivT r-'+o.r+'" data-i="'+o.i+'" role="button" tabindex="0" aria-label="'+nmA+' · '+sansAcc(TR(ri.n1))+'" style="--rc:'+ri.c+';--rg:'+invRgba(ri.c,.26+.42*lu)+';--rf:'+invRgba(ri.c,.06+.18*lu)+';--rk:'+lu+';--n:'+n+'">'+fig+(o.cat==='figure'?ivDirs(o.d.id):'')+'<b>'+nmA+'</b><small>'+sansAcc(TR(ri.n1))+'</small><u'+(o.cat==='peinture'&&o.d.id!=='usine'?' class="x">'+pxi('croix'):'>'+(o.cat==='figure'&&FIGV2.on&&o.eq?figSlots().map(function(x,i9){return x===o.d.id?pxi(FIG_FAM[i9][2]):'';}).join(''):pxi('coche')))+'</u></div>';}).join(''); /* (LES FIGURES v2) une figure équipée porte le NUMÉRO de son emplacement (1 · 2 · 3 = les boutons de vol) */
     if(INV.cat==='voiture')setTimeout(function(){if(!INV.on)return;g.querySelectorAll('.ivT').forEach(function(el){if(!el.querySelector('.ivPh'))return;const i=+el.getAttribute('data-i');
       photoFile(i,function(url){const v=el.querySelector('.ivPh');if(!v||!el.isConnected)return;const im=document.createElement('img');im.alt='';im.src=url;v.replaceWith(im);});});},420); // les photos manquantes APRÈS l'entrée du tiroir (une photo = deux caisses rebâties : pas pendant qu'il glisse)
+    if(INV.cat==='peinture')setTimeout(function(){if(!INV.on)return;g.querySelectorAll('.ivT [data-pe]').forEach(function(v){const id=v.getAttribute('data-pe'),el=v.closest('.ivT');
+      peintFile(id,function(url){if(!url||!v.isConnected)return;const im=document.createElement('img');im.alt='';im.src=url;v.replaceWith(im);},el);});},420); // (2026-11-08) les PEINTURES en photo : la caisse équipée, peinte
     if(INV.cat==='aile')setTimeout(function(){if(!INV.on)return;g.querySelectorAll('.ivT [data-ai]').forEach(function(v){const id=v.getAttribute('data-ai'),el=v.closest('.ivT');
       aileFile(id,function(url){if(!url||!v.isConnected)return;const im=document.createElement('img');im.alt='';im.src=url;v.replaceWith(im);},el);});},420); // (31/10) les AILES, en photo elles aussi — même attente que les caisses
   }

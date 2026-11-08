@@ -38,6 +38,8 @@ function photoStudio(){if(PHOTO.rt)return;const W=PHOTO_W,H=PHOTO_H;
   PHOTO.scene.add(hemi,key,fill,rim,rim2,bas);PHOTO.key=key;}
 function photoAiles(){for(const w of [carWingL,carWingR]){if(!w)continue;w.visible=true;w.scale.x=w.userData.k||1;w.rotation.z=(w===carWingL?.16:-.16);w.traverse(function(o){o.visible=true;});}
   try{ailvPose();}catch(e){}} // (2026-10-16, LES AILES VIVANTES) l'aile au plus beau de son geste : boost tenu (les ailes en X ouvertes, la lave qui flambe…)
+function peintFile(id,cb,el){const j=COSM.peinture.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='p:'+id+':'+c;
+  if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,j:j,pe:1},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}} /* (2026-11-08) la photo d'une PEINTURE : la caisse équipée, peinte */
 function aileFile(id,cb,el){const j=COSM.aile.findIndex(function(d){return d.id===id;});if(j<0)return;const c=equippedCar(),k='a:'+id+':'+c;
   if(PHOTO.cache[k]){cb(PHOTO.cache[k]);return;}PHQ.q.push([k,cb,{k:k,j:j},el]);if(!PHQ.on){PHQ.on=true;requestAnimationFrame(photoTour);}}
 /* (2026-10-14, OPTIMISATION — passation perf : « BOUTIQUE ~400 ms à l'ouverture = shopPhotoTour : 8 toDataURL 164 ms + 8 readPixels 66 ms ») —
@@ -74,8 +76,8 @@ function photoDev(W,H){
   if(!D.lie){photoLie(D.sc,D.cam);D.lie=true;} // le programme de la pellicule : lié une fois pour toutes (voir photoLie)
   renderer.setRenderTarget(D.rt);renderer.render(D.sc,D.cam);renderer.readRenderTargetPixels(D.rt,0,0,W,H,D.buf);
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');x.putImageData(new ImageData(D.buf,W,H),0,0);return cv;}
-function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAGE de la fenêtre d'achat (shopTourne) — la caisse vue sous cet azimut, cadrée pour TOUS les azimuts (le cadre ne respire pas), rangée sous sa clé */
-  const ck=aile?aile.k:(az9!=null?'r'+i+'_'+az9.toFixed(2):i); // (2026-10-15) LA PHOTO D'UNE AILE (aileFile) : la caisse i qui la porte, ailes déployées — rangée sous SA clé
+function carPhoto(i,cb,aile,az9){ const pe=aile&&aile.pe?aile:null;if(pe)aile=null; /* (2026-11-08, Sacha : « les peintures, présentées comme les autres : la caisse peinte ») pe = {k,j,pe:1} : la photo de la caisse équipée portant la peinture j (peintFile) */ /* (2026-10-25) az9 : une pose de la VUE GARAGE de la fenêtre d'achat (shopTourne) — la caisse vue sous cet azimut, cadrée pour TOUS les azimuts (le cadre ne respire pas), rangée sous sa clé */
+  const ck=pe?pe.k:aile?aile.k:(az9!=null?'r'+i+'_'+az9.toFixed(2):i); // (2026-10-15) LA PHOTO D'UNE AILE (aileFile) : la caisse i qui la porte, ailes déployées — rangée sous SA clé
   if(PHOTO.cache[ck]){if(cb)cb(PHOTO.cache[ck]);return PHOTO.cache[ck];}
   if(started&&!gameOver){if(cb)cb(null);return null;}
   if(cb&&PHOTO.att&&PHOTO.att[ck]){PHOTO.att[ck].push(cb);return null;}
@@ -84,10 +86,11 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   photoStudio();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
   if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin) — (2026-10-16) en RAFALE, posée une fois par photoRafale
-  PHOTO_USINE=true; /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) */
+  PHOTO_USINE=!pe; /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) */
   const sig9=phdbSig();let url=null,asy=false;
   try{
     if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
+    else if(pe){const pv=SHOP.prev;SHOP.prev={cat:'peinture',i:pe.j};try{buildCar(CARS[i]);}finally{SHOP.prev=pv;}}
     else buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
     PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile)photoAiles();
     carGroup.updateMatrixWorld(true);
