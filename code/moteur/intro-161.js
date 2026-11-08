@@ -61,6 +61,7 @@
   let W=0,H=0,S=1,ku=1; /* taille logique du voile, échelle du canvas (pixels de l'appareil), unité d'écran (390 px = 1) */
   let pretT=null,tapT=null; /* la boule : l'instant où c'est prêt (elle s'arrête), l'instant de l'appui (elle explose) */
   const INTRO_AP=INTRO_APRES; /* (voir soleil-planete.js) le film ne part que quand tout est prêt ; 0 = comme avant */
+  if(INTRO_AP)window.__guetTient=true; /* la sonde du serpent ne s'arrête pas 10 s après le démarrage du jeu : le chargement qui précède le film est plus long (voir debut-corps.html) */
   let pretIntro=false,touchRetenu=false,chauffeFaite=false,IK={n:0,mx:0,k:0,prev:0,l:[]}; /* tout est-il prêt ; un toucher venu avant (mode 2) ; la chauffe de l'intro est faite ; les images du film : nombre, pire intervalle, > 20 ms */
   let lance=false,fini=false,casse=false,doux=false,manuel=false,passee=false,ouvert=false,revele=false,RM=false;
   let TOUCH=null,preAC=null,filmMuet=false,tLance=0,latV=0,tCasse=0,raf=0,sonCasseFait=false,t0a=0,iAC=null,SON=null,SK0={x:0,y:0};
@@ -675,8 +676,11 @@
       accord(q,.026,.35,1.8,.5);oscil(master,'sine',55*TR,36*TR,q,1,.16,.03,1,0,.3);oscil(master,'sine',2349.3*TR,2349.3*TR,q+.05,0,.026,.01,.6,0,.6);
       souffle(master,q,.6,'highpass',2000,9000,1,.05,.12,.6,0,.5);
     };
-    R.boum=function(q){ /* l'appui : la boule explose en CASH CAR : un coup de grave énorme, un métal qui sonne, un grand souffle, et l'accord de la marque en pleine puissance */
+    R.finChargement=function(q){ /* l'appui : le lit du chargement (le grave qui bat, le pad, le chœur) s'éteint — la moitié légère de `boum` (2026-11-08 : le reste peut être pré-rendu, voir BUM) */
       if(R.dr){clearInterval(R.dr.iv);clearInterval(R.dr.iv2);for(const g of R.dr.g){g.gain.cancelScheduledValues(q);g.gain.setTargetAtTime(0,q,.08);}R.dr.o.forEach(function(o){try{o.stop(q+.5);}catch(e){}});R.dr=null;}
+    };
+    R.boum=function(q){ /* l'appui : la boule explose en CASH CAR : un coup de grave énorme, un métal qui sonne, un grand souffle, et l'accord de la marque en pleine puissance */
+      R.finChargement(q);
       oscil(master,'sine',70,28,q,1.8,1.4,.003,1.8,0,.45);oscil(master,'sine',140,50,q,.4,.7,.003,.4,0,.2);
       souffle(master,q,.7,'lowpass',12000,300,.8,.6,.001,.7,0,.4);souffle(master,q,.02,'highpass',3000,0,1,.4,.001,.015,0,0);
       [1,2.76,5.4,8.93].forEach(function(r,i){oscil(master,'sine',190*r,190*r,q,0,.16/(i+1),.002,1.7-.3*i,i%2?.4:-.4,.5);});
@@ -703,6 +707,19 @@
       master.gain.setTargetAtTime(0,q+2.2,.3);
     };
     return R;
+  }
+  /* ===== LE COUP DE L'APPUI PRÉ-RENDU (2026-11-08, OPTI ULTIME : « le toucher à 167 ms : SON.suite/boum/scintille ») =====
+     `boum` + `scintille` fabriquent ~150 nœuds audio au moment de l'appui (167 ms sur le Mac ×4) : l'image du film saute. En INTRO_AP, ils sont RENDUS HORS LIGNE dans la phase chargement (OfflineAudioContext, la même construction, le même bus
+     compresseur → réglage), l'appui ne fait plus que couper le lit du chargement (`finChargement`) et lancer UN tampon. `BUM.buf` prêt ; BUM.err : repli sur l'ancien chemin (nœuds au toucher). */
+  const BUM={pr:false,buf:null,err:false};
+  function bumPrerend(){
+    if(BUM.pr||!INTRO_AP||SANS_SON||!SND.sfx||!(VOL.sfx>0)||typeof OfflineAudioContext==='undefined')return;
+    BUM.pr=true;const a9=performance.now();
+    const sr=(preAC&&preAC.sampleRate)||48000,O=new OfflineAudioContext(2,Math.ceil(sr*5.6),sr),r=construitSon(O,0,O.destination);
+    r.boum(.02);r.scintille(.02);
+    const fin=function(b){BUM.buf=b;try{if(window.__ccNote)window.__ccNote('chargement','coup de l\'appui pré-rendu en '+Math.round(performance.now()-a9)+' ms ('+b.duration.toFixed(1)+' s)');}catch(e){}};
+    const ko=function(){BUM.err=true;};
+    try{const pr=O.startRendering();if(pr&&pr.then)pr.then(fin,ko);else O.oncomplete=function(ev){fin(ev.renderedBuffer);};}catch(e){BUM.err=true;}
   }
   let dSon=.2; /* la marge (s) entre le toucher et le départ du son : de quoi construire le son sans que l'image ne saccade (réglée sur la durée mesurée) */
   function son(geste){
@@ -733,7 +750,7 @@
     try{if(typeof openGarage==='function'&&!IS_MOBILE)openGarage();}catch(e){}
   }
   function reveler(){ /* à l'instant où l'écran noir casse : le voile n'est plus l'écran titre, il ne prend plus les touchers */
-    window.__introCouvre=false;window.__introPause=false;if(revele)return;revele=true;
+    window.__introCouvre=false;window.__introPause=false;window.__guetTient=false;if(revele)return;revele=true;
     try{if(window.__ccNote&&IK.n)window.__ccNote('intro',IK.n+' images, pire '+Math.round(IK.mx)+' ms, images > 20 ms : '+IK.k+(IK.l.length?' ('+IK.l.join(' · ')+')':''));}catch(e){} /* (2026-11-08) le critère de Sacha : K = 0 */
     try{if(window.__ccChargeTout)window.__ccChargeTout();}catch(e){} /* (2026-11-05, passe perf mobile 2, A2.b) ce qui reste du chargement se fait d'un trait avant que le jeu paraisse */
     sp.id=''; /* ⚠ retire l'id AVANT tout : start() et les écrans d'accueil se gardent par `getElementById('splash')` ; et la règle CSS #splash part avec lui. z-index 1000 : les éclats volent PAR-DESSUS tout (la plaque du 1er accueil s'ouvre ~0,85 s après, à 200+) */
@@ -775,7 +792,9 @@
     if(!lance||fini||tapT!==null||pretT===null)return;
     tapT=(performance.now()-tLance)/1000-latV;passee=true;
     try{if(iAC&&iAC.state!=='running')acReveil(iAC);}catch(e){}
-    try{if(SON){SON.suite();SON.boum(iAC.currentTime+.02);SON.scintille(iAC.currentTime+.02);}}catch(e){}
+    try{if(SON){SON.suite();
+      if(INTRO_AP&&BUM.buf&&VOL9){SON.finChargement(iAC.currentTime+.02);const sb=iAC.createBufferSource();sb.buffer=BUM.buf;sb.connect(VOL9);sb.start(iAC.currentTime+.02);} /* (INTRO_AP) le coup pré-rendu : UN nœud */
+      else{SON.boum(iAC.currentTime+.02);SON.scintille(iAC.currentTime+.02);}}}catch(e){}
     try{ouvrir();}catch(e){}
     INTROSON.on=true;INTROSON.t0=0; /* le ciel, dessous, reste sans vent jusqu'à l'accueil */
     /* (2026-11-02 nuit, Léo : « la musique commence trop tôt et se coupe direct, puis une autre démarre au ciel » puis « elle ne se lance qu'en fondu à partir du moment où le menu ciel a chargé ») la musique ne part plus pendant « PRESENTS » :
@@ -845,7 +864,7 @@
     if(!iAC||!VOL9||SANS_SON)return;
     for(const k of [idx,idx+1]){if(SONS_DEMO[k]||(k>idx&&tl<1.4))continue;try{const r=construitSon(iAC,t0a+k*PERIODE_DEMO(),VOL9);r.suite();SONS_DEMO[k]=r;}catch(e){}}
   }
-  function rendu(t){const a9=performance.now();try{rendu0(t);}finally{const d9=performance.now()-a9;if(d9>=40&&window.__ccSondeTache){try{window.__ccSondeTache('rendu',a9,d9);}catch(_){}}}} /* (2026-11-07, OPTI ULTIME : « image boucle 373 ms : quelle étape ? ») la sonde du serpent nomme l'image du film qui dépasse 40 ms */
+  function rendu(t){const a9=performance.now();try{rendu0(t);}finally{const d9=performance.now()-a9;IK.rd=d9;if(d9>=40&&window.__ccSondeTache){try{window.__ccSondeTache('rendu',a9,d9);}catch(_){}}}} /* (2026-11-07, OPTI ULTIME : « image boucle 373 ms : quelle étape ? ») la sonde du serpent nomme l'image du film qui dépasse 40 ms */
   function rendu0(t){
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
     if(casse){dEclats(g,t-tCasse);return;}
@@ -862,7 +881,7 @@
     if(fini)return;
     raf=requestAnimationFrame(boucle);
     if(manuel)return;
-    if(lance&&!revele&&!doux){const d9=now-IK.prev;if(IK.prev&&d9<2000){IK.n++;if(d9>IK.mx)IK.mx=d9;if(d9>20){IK.k++;if(IK.l.length<6)IK.l.push(((now-tLance)/1000).toFixed(1)+'s '+Math.round(d9));}}IK.prev=now;} /* (2026-11-08) les images du film : le pire intervalle, combien dépassent 20 ms (écrit par `reveler`) */
+    if(lance&&!revele&&!doux){const d9=now-IK.prev;if(IK.prev&&d9<2000){IK.n++;if(d9>IK.mx)IK.mx=d9;if(d9>20){IK.k++;if(IK.l.length<6)IK.l.push(((now-tLance)/1000).toFixed(1)+'s '+Math.round(d9)+' (rendu d\'avant '+Math.round(IK.rd||0)+')');}}IK.prev=now;} /* (2026-11-08) les images du film : le pire intervalle, combien dépassent 20 ms (écrit par `reveler`) */
     if(!casse){const t=PCI_ON?pciTaille(now):tailleEcran();if(t[0]!==W||t[1]!==H)remesure();} /* l'écran a changé de taille sans que `resize` nous le dise (cadre du volet, rotation) : tout se refait à la bonne taille (vu le 23/10 : logo énorme, coupé à droite) */
     if(!lance){try{attente();}catch(e){}return;}
     try{
@@ -902,6 +921,7 @@
     if(INTRO_AP){ /* (2026-11-08) tout ce que le film paierait à son départ se paie ICI, sous le serpent : la boule (géométrie + 660 vignettes en bitmap d'un bloc), le contexte audio */
       try{const e9=ETS.boule||(ETS.boule=crea('boule-geo',geoLabSphere));if(!e9.pciT0)crea('boule-init',function(){pciInit(e9,true);});}catch(e){}
       try{if(!preAC&&!SANS_SON&&SND.sfx&&VOL.sfx>0)preAC=crea('AudioContext',function(){return new (window.AudioContext||window.webkitAudioContext)();});}catch(e){preAC=null;}
+      try{bumPrerend();}catch(e){BUM.err=true;}
     }
     chauffeFaite=true;
   }
@@ -962,6 +982,7 @@
       if(PREB.on&&PREB.W&&PREB.dep&&!PREB.fait)return 'depart-avance';
       if(typeof PHQ!=='undefined'&&PHQ.q.length&&garageOn&&!gEl.classList.contains('quiet'))return 'photos'; /* la file des photos ne se vide que garage ouvert (photoTour) : sinon elle attend le menu, pas le film */
       if(litEnCours&&!LIT)return 'lit';
+      if(BUM.pr&&!BUM.buf&&!BUM.err)return 'coup-appui';
       const e=ETS.boule;if(!e)return 'boule';
       if(!e.pciT0){try{pciInit(e,true);}catch(x){}return 'boule';}
       if(e.pciBm&&(e.pciBmOk|0)<e.pciBm.length)return 'bitmaps';
@@ -976,9 +997,13 @@
   function introPartir(manque){
     if(lance||fini||pretIntro)return;pretIntro=true;introNote(manque);
     try{ouvrir();}catch(e){} /* le son du jeu (initAudio) se prépare ICI, sous le serpent : plus au toucher */
-    if(INTRO_AP===2&&!touchRetenu)return; /* mode 2 : le film attend le toucher (le clic ou une touche appelle lancer) */
-    if(touchRetenu)lancer(true);else essaiAuto(0);
+    /* (2026-11-08) LE JEU SE TAIT UN INSTANT AVANT LE FILM : la boucle du jeu (donc ses rendus 3D, mis en file au processeur graphique) s'arrête INTRO_DRAIN ms avant que le film ne dessine sa 1re image — mesuré sur le Mac ×4 :
+       400-500 ms d'intervalle entre la 1re et la 2e image du film (rendu d'avant : 3 ms ; sans le son : le même), le temps que la file graphique se vide. `?introdrain=0` = sans cet arrêt. */
+    const go=function(){if(INTRO_AP===2&&!touchRetenu)return; /* mode 2 : le film attend le toucher (le clic ou une touche appelle lancer) */
+      if(touchRetenu)lancer(true);else essaiAuto(0);};
+    if(INTRO_DRAIN>0){window.__introCouvre=true;setTimeout(go,INTRO_DRAIN);}else go();
   }
+  const INTRO_DRAIN=(function(){const m=/[?&]introdrain=(\d+)/.exec(location.search);return m?+m[1]:400;})();
   function introPoll(){
     if(lance||fini||pretIntro)return;
     const manque=introPrete();
