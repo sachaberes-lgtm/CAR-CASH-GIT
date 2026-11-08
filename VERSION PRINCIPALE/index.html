@@ -17361,7 +17361,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
   let rPlancher=0,rPlafond=0; // (2026-10-18, 2e tour) le plancher des rayons quand la map a ses modules (voir MODC_ON) : on serre tout, jamais sous 1,35 × le rayon tenable
   const arc=(aDeg,R,n,dy=0)=>{R=Math.max(R,rPlancher);n=Math.max(n,Math.ceil(Math.abs(aDeg)/12));const a=aDeg*Math.PI/180,st=a/n,ch=2*R*Math.sin(Math.abs(st)/2);
     for(let k=0;k<n;k++){phi+=st/2;P.addScaledVector(dir(),ch);P.y+=dy/n;phi+=st/2;push();}
-    approx+=Math.abs(a)*R;};
+    approx+=Math.abs(a)*R;HCAP.push(approx,phi);};
   // (route v3c) une « droite » qui n'en est pas une : un arc léger de a° sur l mètres — la piste ne va plus jamais tout droit
   const courbe=(l,dy,aDeg,n)=>{let a=Math.max(4,Math.abs(aDeg));const s9=aDeg<0?-1:1;if(a>=(GEN_V2?BRIQUE.angMin:8)&&rPlafond&&l/(a*Math.PI/180)>rPlafond)a=l/rPlafond*57.2958;arc(s9*a,l/(a*Math.PI/180),n||2,dy);}; /* (2026-11-05, LE DIRECTEUR DE RYTHME) rPlafond : une « courbe » d'au moins 8° ne dépasse jamais 3,3 × le rayon tenable — à haut palier ses mètres (× LV) grandissaient plus vite que le rayon tenable, la courbe devenait une droite ; sous 8° (le tablier du pont), c'est une droite voulue */
   // (2026-09-26, user : « enlève les loopings » dans la VILLE) : le niveau ville n'en a plus aucun (motif ET signature de fin)
@@ -17420,7 +17420,14 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
      côté qui la ramène) : une longue traversée ; 'libre' — comme avant ; 'boucle' — une latéralité franche : elle s'enroule (la spirale de la ville).
      Il ne fait que PENCHER le seuil des tirages de côté (sgn, et le côté des modules qui suivaient `hand`) : aucun tirage de plus. */
   const PLN=rh?(function(u){return u<.42?'axe':u<.7?'libre':'boucle';})(rh()):null,capB=rh?(40+rh()*60)*Math.PI/180:0,hB=rh&&rh()<.5?-1:1,phiAx=phi;
-  const thrH=(b,a9)=>{if(!PLN||PLN==='libre')return b;if(PLN==='boucle')return Math.min(.92,Math.max(.08,b+hB*.3));
+  /* ===== LA ROUTE NE S'ENROULE PLUS SUR ELLE-MÊME (2026-11-08, Sacha : « dans la ville la route fait parfois une boucle et se superpose de manière très serrée ») =====
+     MESURÉ (banc, 40 graines de ville) : 23 pistes sur 40 repassaient À MOINS DE 90 M DE LEUR PROPRE ROUTE, dans le même sens (jusqu'à 0 m : une hélice) ; toutes
+     avaient plus de ~370° de cap cumulé sur 1,5 km. Rien ne bornait ce cumul : virages, esses et modules tiraient leur côté sans regarder d'où l'on venait.
+     ENROULEMENT = le cap gagné sur les dernières 1500 m. Si un virage (a° : ceux des modules, 90° sinon) mènerait le cap cumulé au-delà de 170° d'un côté, le tirage prend l'autre côté
+     (97 %) : le seuil seul change, aucun tirage de plus. */
+  const enroul=()=>{const n=HCAP.length;if(n<2)return 0;let k=n-2;while(k>0&&HCAP[k]>approx-1500)k-=2;return phi-HCAP[k+1<n?k+1:n-1];};
+  const thrG=(b,a9)=>{if(!PLN)return -1;const w=enroul()*57.2958,a=a9||90,pP=Math.abs(w+a),pM=Math.abs(w-a);if(Math.max(pP,pM)<=170)return -1;return pP<pM?.97:.03;}; /* un virage de a° du côté + finirait à w+a°, du côté − à w−a° : si l'un des deux dépasse 170° de cap cumulé, on prend celui qui défait */
+  const thrH=(b,a9)=>{const g9=thrG(b,a9);if(g9>=0)return g9; /* le garde-fou d'enroulement l'emporte sur le plan */ if(!PLN||PLN==='libre')return b;if(PLN==='boucle')return Math.min(.92,Math.max(.08,b+hB*.3));
     if(a9){const ep=Math.abs(phi+a9/57.3-phiAx),em=Math.abs(phi-a9/57.3-phiAx);return ep<em?.88:.12;} // un GRAND virage (a9°) : le côté qui finit le plus près de l'axe
     const e=(phi-phiAx)/capB;return Math.min(.94,Math.max(.06,b-.45*Math.max(-1,Math.min(1,e))-(Math.abs(e)>1?.25*Math.sign(e):0)));};
   if(typeof window!=='undefined')window.__villePlan=PLN?{plan:PLN,cap:Math.round(capB*57.3),kMC:+kMC.toFixed(2)}:null; // (banc) le plan de la dernière piste générée
@@ -17576,7 +17583,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     for(let k=0;k<n;k++){const a=82+rf()*12;arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.04);sg=-sg;if(k<n-1)straight((25+rf()*30)*LV,-2*LV,1);}straight(110*LV,-4*LV,2);};
   const mPont=()=>{const sg=rf()<thrH(.5)?1:-1,L1=(110+rf()*30)*LV,Lp=(160+rf()*80)*LV,L2=(120+rf()*30)*LV;straight(50*LV,-2*LV,1);
     courbe(L1,L1*.09,sg*(14+rf()*10),3);courbe(Lp,0,-sg*4,3);courbe(L2,-L2*.13,sg*(16+rf()*12),3);straight(70*LV,-3*LV,1);};
-  const mParking=()=>{const sg=rf()<thrH(.5+hand*.22,360)?1:-1,R=(2.4+rf()*.4)*rP,a=330+rf()*60; /* (2026-11-05, « spirales trop serrées ») 1,8-2,1 rP × 400-460° → 2,4-2,8 rP × 330-390° */straight(70*LV,-3*LV,1);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.09);straight(110*LV,-4*LV,2);return {fig:'parking'};}; /* fig : une spirale DÉCLARÉE (la note ne la compte pas comme une spirale subie) */
+  const mParking=()=>{const sg=rf()<thrH(.5+hand*.22,330)?1:-1,R=(2.4+rf()*.4)*rP,a=290+rf()*60; /* (2026-11-05, « spirales trop serrées ») 1,8-2,1 rP × 400-460° → 2,4-2,8 rP × 330-390° ; 2026-11-08 : 290-350°, jamais un tour complet */straight(70*LV,-3*LV,1);arc(sg*a,R,Math.ceil(a/10),-a/57.3*R*.09);straight(110*LV,-4*LV,2);return {fig:'parking'};}; /* fig : une spirale DÉCLARÉE (la note ne la compte pas comme une spirale subie) */
   const mEscalier=()=>{const n=3+(rf()<.5?1:0);let sg=rf()<thrH(.5)?1:-1;straight(50*LV,-2*LV,1);
     for(let k=0;k<n;k++){const l=(60+rf()*25)*LV;if(GEN_V2){courbe(l,l*(.12+rf()*.03),sg*(28+rf()*12),2);straight((55+rf()*30)*LV,-1*LV,1);} /* (LA GÉNÉRATION PROPRE) des marches qui tournent du MÊME côté (28-40°), un palier droit entre deux : plus de zigzag de petits lobes */else{courbe(l,l*(.12+rf()*.03),sg*(22+rf()*12),2);courbe((55+rf()*30)*LV,-1*LV,-sg*(14+rf()*8),2);sg=-sg;}}
     {const l=(170+rf()*50)*LV;courbe(l,-l*(.24+rf()*.04),sg*(45+rf()*25),4);}straight(70*LV,-3*LV,1);}; /* (2026-11-05) des marches qui tournent (22-34°), une chute qui tourne (45-70°) */
@@ -17739,10 +17746,30 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
 }
 /* ===== LE MEILLEUR-DE-N (2026-11-05, LE DIRECTEUR DE RYTHME — voir route-rythme.js) ===== genCtrl dessine N zones sur des flux dérivés d'UN tirage de `rnd` et garde celle
    que rythmeNote préfère (virages/km, pas de droite de 5 s, pas de spirale subie, pas de coude). Le parc et les pistes dessinées n'en tirent qu'une ; `?rythme=0` aussi. */
+/* ===== LA ROUTE QUI SE RECOUPE (2026-11-08, Sacha : « dans la ville la route fait parfois une boucle et se superpose de manière très serrée ») =====
+   MESURÉ (banc, 80 graines de ville) : 16 routes sur 80 repassaient à moins de 90 m d'elles-mêmes, dans le même sens et à moins de 150 m d'altitude (une hélice, un
+   lacet qui se replie sur le précédent). Le meilleur-de-N ne le voyait pas : sa fiche ne regarde que la forme locale. Ce MALUS compte la longueur de route qui a, plus de
+   300 m plus loin sur la piste, un morceau PARALLÈLE (cap à 29° près, dans un sens ou l'autre) à moins de 90 m en plan et 150 m en hauteur : 0,03 par mètre. Un croisement franc
+   ou un pont à 150 m+ ne coûte rien. Aucun tirage `rnd`. */
+function routeRecoupe(ctrl){
+  const P=[];let s=0;P.push({x:ctrl[0].x,z:ctrl[0].z,y:ctrl[0].y,s:0});
+  for(let i=1;i<ctrl.length;i++){const a=ctrl[i-1],b=ctrl[i],d=Math.hypot(b.x-a.x,b.z-a.z),n=Math.max(1,Math.ceil(d/12));for(let k=1;k<=n;k++){s+=d/n;P.push({x:a.x+(b.x-a.x)*k/n,z:a.z+(b.z-a.z)*k/n,y:a.y+(b.y-a.y)*k/n,s:s});}}
+  const m=P.length;if(m<8)return 0;const H=new Float64Array(m);
+  for(let i=0;i<m;i++){const a=P[Math.max(0,i-1)],b=P[Math.min(m-1,i+1)];H[i]=Math.atan2(b.x-a.x,b.z-a.z);}
+  const G=new Map(),C=90;
+  for(let i=0;i<m;i++){const k=Math.floor(P[i].x/C)*100003+Math.floor(P[i].z/C);let l=G.get(k);if(!l)G.set(k,l=[]);l.push(i);}
+  let mal=0;
+  for(let i=0;i<m;i++){const p=P[i],cx=Math.floor(p.x/C),cz=Math.floor(p.z/C);let hit=false;
+    for(let dx=-1;dx<=1&&!hit;dx++)for(let dz=-1;dz<=1&&!hit;dz++){const l=G.get((cx+dx)*100003+cz+dz);if(!l)continue;
+      for(const j of l){if(j<=i||P[j].s-p.s<300)continue;const q=P[j];if(Math.abs(q.y-p.y)>150)continue;if(Math.hypot(q.x-p.x,q.z-p.z)>90)continue;
+        let a=Math.abs(H[i]-H[j])%Math.PI;a=Math.min(a,Math.PI-a);if(a<.5){hit=true;break;}}}
+    if(hit)mal+=12;}
+  return mal*.03;
+}
 function genCtrl(rnd,startPos,startPhi){
   const c=typeof LVL!=='undefined'&&LVL.cur,park=typeof PARK!=='undefined'&&PARK.on,id=c?(c.id==='espace'?'espace':c.id==='ville'?(c.crypto?'crypto':'ville'):'nuages'):'nuages';
   const n=park||!c?1:RYTHME.N;if(n<=1)return genCtrl1(rnd,startPos,startPhi);
-  return rythmeMeilleur(rnd,n,id,function(r9){return genCtrl1(r9,startPos,startPhi);},{assez:1}).ctrl;}
+  return rythmeMeilleur(rnd,n,id,function(r9){return genCtrl1(r9,startPos,startPhi);},{assez:1,malus:(id==='ville'||id==='crypto')?routeRecoupe:null}).ctrl;}
 /* ---- LES CRÊTES AVEUGLES (2026-09-25, user : « on va vers le haut puis la route descend, donc on ne voit pas
    devant ») ---------------------------------------------------------------------------------------------------
    Une crête, c'est un point de contrôle où la pente CASSE vers le bas : ça montait (ou c'était plat) et ça plonge.
