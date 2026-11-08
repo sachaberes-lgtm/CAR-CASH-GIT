@@ -85394,11 +85394,10 @@ function goImmersive(){
     tapT=(performance.now()-tLance)/1000-latV;passee=true;
     try{if(iAC&&iAC.state!=='running')acReveil(iAC);}catch(e){}
     try{if(SON){SON.suite();SON.boum(iAC.currentTime+.02);SON.scintille(iAC.currentTime+.02);}}catch(e){}
-    try{ouvrir();}catch(e){}
     INTROSON.on=true;INTROSON.t0=0; /* le ciel, dessous, reste sans vent jusqu'à l'accueil */
     /* (2026-11-02 nuit, Léo : « la musique commence trop tôt et se coupe direct, puis une autre démarre au ciel » puis « elle ne se lance qu'en fondu à partir du moment où le menu ciel a chargé ») la musique ne part plus pendant « PRESENTS » :
        là, seuls les morceaux en fichiers pouvaient partir, les autres étaient mis en attente (pbjLobby, `fixes`) puis un autre partait à l'accueil. Elle part UNE fois, au ciel (`reveler`), avec le fondu du lobby (4 s) et la montée d'INTROSON. */
-    setTimeout(function(){window.__introCouvre=false;},150);
+    setTimeout(function(){try{ouvrir();}catch(e){}window.__introCouvre=false;},950); /* (2026-11-08, Sacha : « surtout l'explosion de la planète ») le jeu ne reprend la main (ni son réveil, ni le garage) qu'APRÈS l'explosion (0,7 s) : avant, il se remettait à dessiner à 150 ms, en plein dedans */
     ouvreQuandPret();
   }
   /* (2026-11-02, Léo : « ça saccade ») LE VOILE S'OUVRE QUAND LE JEU EST CALME. Mesuré sur son Mac (Safari, cadre 1226 × 566) : de l'appui à +10 s, le ciel se construit sous le voile par images de 0,2 à 1,3 s, puis ~20 i/s ;
@@ -85558,11 +85557,11 @@ function goImmersive(){
      Désormais il attend, derrière le noir et l'anneau de chargement : la page chargée (`load`), la chauffe du son et de la boule faite, puis 40 images de suite sans accroc (< 26 ms chacune). Plafond 14 s (réseau lent : on part quand même). `?calme=0` = l'ancien départ. */
   const CALME_ON=!/[?&]calme=0/.test(location.search)&&!DEPART_LENT;
   let calmeBons=0,calmePrec=0,calmeT0=performance.now();
-  if(CALME_ON){if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher/.test(location.search))window.__introCouvre=true; /* le jeu ne dessine rien derrière le noir pendant l'attente (sinon ses images lourdes empêchent la page d'être calme) */const echant=function(now){if(lance||fini)return;if(calmePrec&&!document.hidden&&now-calmePrec<26)calmeBons++;else calmeBons=0;calmePrec=document.hidden?0:now;requestAnimationFrame(echant);};requestAnimationFrame(echant);}
+  if(CALME_ON){const echant=function(now){if(lance||fini)return;if(calmePrec&&!document.hidden&&now-calmePrec<40)calmeBons++;else calmeBons=0;calmePrec=document.hidden?0:now;requestAnimationFrame(echant);};requestAnimationFrame(echant);}
   function pageCalme(){
     if(!CALME_ON||performance.now()-calmeT0>14000)return true;
     if(document.readyState!=='complete'||!chauffeOk)return false;
-    return calmeBons>=40;
+    return (window.__imagesJeu|0)>=3&&calmeBons>=40; /* le jeu a lié ses programmes ET dessiné ses premières images (c'est ça, la chauffe qui gelait l'explosion) */
   }
   function essaiAuto(n){ /* attendre que le DOM soit prêt, la police du film chargée et la fenêtre visible */
     if(lance||fini)return;
