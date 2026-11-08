@@ -123,13 +123,28 @@
   };
   /* ---- une course : JOUER / REJOUER, le pilote, des actions toutes les CFG.pouv s, la mort forcée ---- */
   var armePilote=function(){try{window.dbgAuto(true,0,{vol:true,nit:CFG.nit,saut:CFG.saut});}catch(e){echec('dbgAuto : '+(e&&e.message));}};
+  /* LE DÉPART PAR LE CHEMIN DU BOUTON (2026-11-08, OPTI ULTIME : sur le build 39 le voile blanc du serpent restait sur la course) : JOUER / REJOUER sont CLIQUÉS une seule fois (mHit → mTap : goImmersive, classiqueJouer,
+     m2Rejoue, ecranWipe, rejoueAttend… tout ce que fait le joueur). Le départ d'une course sur iPhone attend la chauffe (departAttend, jusqu'à 20 s, voile blanc) : l'ancien banc recliquait toutes les 14 s et appelait
+     dbgJouer (classiqueJouer SANS goImmersive) PENDANT cette attente — un 2e départ qui relevait le voile avant que le 1er le repose. Désormais : un clic, puis on attend (60 s) ; on ne reclique que si RIEN n'est en cours
+     (ni volet, ni voile, ni lâcher, ni chute en cours de lâcher ; CHUTE.on seul = le décor du menu) depuis 15 s. Une fois la course lancée, le voile doit se lever seul en 6 s : sinon c'est noté (« voile resté ») et levé par voileSerpent(false) comme le fait le jeu. */
+  var voileOn=function(){var v=document.getElementById('voileSerpent');return !!(v&&v.classList.contains('on'));};
+  var enCours=function(){try{return !!(ecranWipe._on||voileOn()||GAR.go||(typeof CHUTE!=='undefined'&&CHUTE.go));}catch(e){return false;}};
   var demarre=async function(premier){
-    var ok=false;
-    for(var i=0;i<30&&!ok;i++){modale();
-      if(premier&&i%4===0){clic('[data-m="play"].mPlay')||clic('#mHome [data-m="play"]')||clic('[data-m="play"]');}
-      else if(!premier&&i%3===0){clic('[data-m="replay"]');}
-      if(i===9||i===20){try{note('dbgJouer → '+JSON.stringify(window.dbgJouer()));}catch(e){}}
-      ok=await jusque(enCourse,3.5);}
+    var ok=false,t0=performance.now(),derAct=0,essais=0;
+    while(!ok&&performance.now()-t0<150000){
+      modale();
+      if(!enCours()&&performance.now()-derAct>15000&&!enCourse()){ /* rien ne se passe : (re)cliquer le bouton */
+        essais++;derAct=performance.now();
+        var b=premier?(clic('#mHome [data-m="play"]')||clic('[data-m="play"].mPlay')||clic('[data-m="play"]')):clic('#mDead [data-m="replay"]')||clic('[data-m="replay"]');
+        note((premier?'JOUER':'REJOUER')+' cliqué (essai '+essais+', '+(b?'bouton trouvé':'bouton introuvable')+') · '+etatBrut());
+        if(essais===3&&premier){try{note('dbgJouer (dernier recours) → '+JSON.stringify(window.dbgJouer()));}catch(e){}}}
+      ok=await jusque(enCourse,2,250,'course lancée');
+      if(!ok&&(performance.now()-t0)/1000>=30&&Math.round((performance.now()-t0)/1000)%30<2)note('départ en cours depuis '+Math.round((performance.now()-t0)/1000)+' s · volet '+!!ecranWipe._on+' · voile '+voileOn()+' · GAR.go '+!!GAR.go+' · CHUTE.go '+!!CHUTE.go+' · CHUTE.on '+!!CHUTE.on+' · '+etatBrut());}
+    if(ok){ /* la course tourne : le voile blanc doit être parti */
+      var t1=performance.now();
+      while(voileOn()&&performance.now()-t1<6000)await att(250);
+      if(voileOn()){note('⚠ voile resté sur la course après '+Math.round(performance.now()-t1)+' ms (départ '+(premier?'JOUER':'REJOUER')+') : levé par voileSerpent(false)',true);try{voileSerpent(false);}catch(e){}}
+      else note((premier?'JOUER':'REJOUER')+' : course lancée en '+Math.round((performance.now()-t0)/100)/10+' s, voile levé');}
     return ok;};
   var cles=['n','a','v','m','x'],figI=0;
   var actionCourse=function(){ /* UNE action : une figure si la caisse est en l'air, sinon le pouvoir suivant */
