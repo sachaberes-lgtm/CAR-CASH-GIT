@@ -96,27 +96,31 @@ function fmtGta(v){
    un seul rAF pour toutes les plaques, aucun objet alloué par image). Les grands montants tiennent : quand le NOMBRE de signes change, la police
    descend par crans jusqu'à ce que la plaque tienne dans son cadre et dans l'écran (soldeFit, une mesure par changement de longueur, pas par image).
    Les messages d'événement gardent leurs unités compactes (fmtC) : seul le SOLDE est précis. */
-function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');} /* (2026-10-18, débogage) TRONQUÉ comme soldeEcrit : 6,6 $ s'écrivait « $ 7 » sur l'écran de fin et « $ 6 » au garage */
+function fmtSolde(x){return CUR()+(LANG==='fr'?' ':'')+Math.max(0,Math.floor(x)).toLocaleString(LOC()).replace(/[\u202f\u00a0,]/g,' ');} /* (2026-11-07, Léo) l'argent s'écrit « 650 000 » dans toutes les langues */ /* (2026-10-18, débogage) TRONQUÉ comme soldeEcrit : 6,6 $ s'écrivait « $ 7 » sur l'écran de fin et « $ 6 » au garage */
 const SOLDE={l:[],on:false,D:700};
 /* (2026-10-31, Léo : « le jeu lag encore un peu sur mobile ») LE BON CRAN DU PREMIER COUP. La police descendait d'un cran (1,5 px) par mesure, jusqu'à
    dix mesures d'affilée, et chaque mesure après une écriture force la mise en page de TOUTE la page : MESURÉ au portail (banc iPhone ×4), 35 à 43 ms
    dans une image quand le solde gagne un chiffre. Désormais la 1re mesure dit de combien c'est trop large, on saute au cran estimé (un de moins, par
    prudence), puis on avance cran par cran dans le bon sens : 2 à 3 mesures. Même cran final qu'avant (le plus gros qui tient, dix crans au plus). */
+/* (2026-11-08, la monnaie) le compte du garage n'a plus de plaque : ses chiffres flottent et ne doivent pas passer sous l'ŒIL (#gOeil)
+   qui partage sa rangée — le bord droit à ne pas franchir est alors le bord gauche de l'œil (6 px d'air), sinon le bord de l'écran. */
+function soldeBord(p,r){let x=VP.w-4;if(p.id==='gCompteur'){const o=document.getElementById('gOeil');if(o){const q=o.getBoundingClientRect();if(q.width>0&&q.left>r.left&&q.top<r.bottom&&q.bottom>r.top)x=Math.min(x,q.left-6);}}return x;}
 function soldeFit(el,xMin){const p=el.parentElement;if(!p)return true;el.style.fontSize='';const x0=xMin||4; /* xMin : le bord gauche à ne pas franchir (en course, la colonne des barres) */
   const fs0=parseFloat(getComputedStyle(el).fontSize)||14,F=function(n){return Math.max(7,fs0-1.5*n);};
-  let nMax=10;for(let n=1;n<10;n++)if(F(n)<=7){nMax=n;break;} /* le cran où l'on s'arrêtait sans remesurer (police à 7 px, ou le 10e) */
+  const nL=p.id==='gCompteur'?16:10; /* (2026-11-08) le compte du garage part 1,7 fois plus gros (la monnaie) : six crans de plus pour tenir avant l'œil */
+  let nMax=nL;for(let n=1;n<nL;n++)if(F(n)<=7){nMax=n;break;} /* le cran où l'on s'arrêtait sans remesurer (police à 7 px, ou le 10e) */
   let r=null;const tient=function(){r=p.getBoundingClientRect();if(r.width<1)return null; /* caché : on réessaiera à la prochaine écriture */
-    return el.scrollWidth<=el.clientWidth+1&&p.scrollWidth<=p.clientWidth+1&&r.right<=VP.w-4&&r.left>=x0;}; /* le chiffre lui-même peut se rogner (overflow:hidden) : on le mesure aussi */
+    return el.scrollWidth<=el.clientWidth+1&&p.scrollWidth<=p.clientWidth+1&&r.right<=soldeBord(p,r)&&r.left>=x0;}; /* le chiffre lui-même peut se rogner (overflow:hidden) : on le mesure aussi */
   let t=tient();if(t===null)return false;if(t)return true;
   let k=1;if(el.scrollWidth>0)k=Math.min(k,el.clientWidth/el.scrollWidth);if(p.scrollWidth>0)k=Math.min(k,p.clientWidth/p.scrollWidth);
-  if(r.right>VP.w-4)k=Math.min(k,(VP.w-4-r.left)/r.width);if(r.left<x0)k=Math.min(k,(r.right-x0)/r.width);
+  const xb=soldeBord(p,r);if(r.right>xb)k=Math.min(k,(xb-r.left)/r.width);if(r.left<x0)k=Math.min(k,(r.right-x0)/r.width);
   let n=Math.max(1,Math.min(nMax,Math.ceil((fs0-fs0*Math.max(0,k))/1.5)-1));
   const pose=function(m){el.style.fontSize=F(m)+'px';};
   pose(n);if(n>=nMax)return true;t=tient();if(t===null)return false;
   if(t){while(n>1){pose(n-1);const t2=tient();if(t2===null)return false;if(!t2){pose(n);break;}n--;}return true;} /* il tient : un cran plus gros tient-il aussi ? */
   while(n<nMax){n++;pose(n);if(n>=nMax)return true;t=tient();if(t===null)return false;if(t)return true;}
   return true;}
-function soldeTxt(el,v){const t=fmtSolde(v);el._sl=LANG;if(el.textContent!==t){el.textContent=t;if(el._sn!==t.length){el._sn=t.length;if(!soldeFit(el))el._sn=-1;}}}
+function soldeTxt(el,v){metalMaj();const t=fmtSolde(v);el._sl=LANG;if(el.textContent!==t){el.textContent=t;if(el._sn!==t.length){el._sn=t.length;if(!soldeFit(el))el._sn=-1;}}}
 function soldeEcrit(el,v,net){if(!el)return;v=Math.max(0,Math.floor(v));
   if(el._sv==null||net||REDUCED_MOTION){el._sv=el._sc=v;soldeTxt(el,v);return;}
   if(el._sn===-1){const n9=performance.now();if(!(n9-(el._sr||0)<500)){el._sr=n9;if(soldeFit(el))el._sn=el.textContent.length;}} /* la plaque était cachée au dernier changement de longueur : on remesure, deux fois par seconde au plus */
@@ -151,7 +155,7 @@ function fmtC(v){
 // LE COMPTEUR AU MENU : la seule repeinte vivait DANS la boucle, sous le gate de simulation — au menu
 // elle ne tournait jamais et le HUD gardait le « $00000000 » écrit en dur dans le HTML. Tout passe
 // désormais par ici (init, départ, reset, changement de langue) : un seul écrivain, plus d'oubli.
-function paintMoney(){try{elMoney.innerHTML=fmtGta(money);loop._money=money;}catch(e){}try{cashSnap();}catch(e){}}
+function paintMoney(){try{metalMaj();}catch(e){}try{elMoney.innerHTML=fmtGta(money);loop._money=money;}catch(e){}try{cashSnap();}catch(e){}}
 /* LE COMPTEUR D'ARGENT DU TÉLÉPHONE (#cashHud, 2026-09-29) — le total de la partie DÉFILE vers `money` (on voit l'argent entrer, comme dans
    GTA), et chaque gain s'additionne dans un « +$ » sous lui tant que ça tombe (1,8 s après le dernier) ; en FRÉNÉSIE il passe à l'or et dit
    « ×3 ». On n'écrit le DOM que quand le texte change. `cashSnap` (via paintMoney : départ, reset, langue) recale sans défilement. */
@@ -159,19 +163,64 @@ const CASH={el:null,v:null,d:null,disp:0,last:0,delta:0,dT:0,tv:'',td:'',k:false
 function cashTxt(v){v=Math.max(0,v);
   const e=Math.floor(v+1e-6);
   if(v<10&&v-e>.004){const t=v.toFixed(2);return LANG==='fr'?t.replace('.',','):t;} // la mise de départ (1,61) garde ses centimes
-  return e.toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
+  return e.toLocaleString(LOC()).replace(/[\u202f\u00a0,]/g,' ');}
 /* (2026-11-07, finition du HUD) LES CENTIMES EN PETIT : « 8 » puis <small>,21</small> — t vient de toLocaleString / toFixed (chiffres, espaces, une virgule ou un point) : rien d'autre n'entre dans le HTML */
 function cashPose(el,t){const m=/^(\d[\d ]*)([.,]\d+)$/.exec(t);if(m)el.innerHTML=m[1]+'<small>'+m[2]+'</small>';else el.textContent=t;}
+function monnaiePop(){const i=CASH.el&&CASH.el.querySelector('.mOr');if(!i||i.classList.contains('pop'))return;i.classList.add('pop');setTimeout(function(){i.classList.remove('pop');},330);} /* (2026-11-07, Léo : « rends-le encore plus juicy ») le symbole saute et brille à chaque gain */
+/* ===== L'ARGENT QUI ÉVOLUE (2026-11-07, Léo : « plus tu en as, plus ça peut évoluer ») =====
+   Le métal de l'argent suit la fortune (le compte, plus la partie en cours) : CENTIME → EURO → OR → SAPHIR → ÉMERAUDE → RUBIS → LÉGENDAIRE
+   (5 k, 100 k, 1 M, 10 M, 100 M, 1 Md). Il se pose sur <html data-metal> : chiffres, symbole et prix en argent du jeu (--cash) en prennent
+   la couleur (monnaie.css). Monter d'un cran se fête une fois. `?metal=or` force un métal (bancs). */
+const METAUX=[[5e3,'centime','CENTIME'],[1e5,'euro','EURO'],[1e6,'or','OR'],[1e7,'saphir','SAPHIR'],[1e8,'emeraude','ÉMERAUDE'],[1e9,'rubis','RUBIS'],[Infinity,'legendaire','LÉGENDAIRE']]; /* (2026-11-08, Léo : « ajoute saphir avant émeraude, légendaire à un milliard ») */ /* (2026-11-07, Léo : « un centime brillant comme la Honte, puis un euro comme sur la route, puis or, émeraude, rouge, multicolore légendaire ») */
+const METAL_FORCE=(function(){try{return new URLSearchParams(location.search).get('metal');}catch(e){return null;}})();
+/* `?metal=demo` : les sept paliers défilent tout seuls (2,5 s chacun), le compte du garage montre une somme de chaque palier — pour VOIR l'argent évoluer */
+let METAL_DEMO=null;
+function metalDemo(){if(METAL_DEMO)return;let k=-1;const S=[1250,48000,650000,4200000,48000000,520000000,1250000000];
+  const pas=function(){k=(k+1)%METAUX.length;const h=document.documentElement,av=h.dataset.metal;h.dataset.metal=METAUX[k][1];
+    try{const b=document.querySelector('#gCompteur b');if(b){b.textContent=fmtSolde(S[k]);soldeFit(b);}}catch(e){}
+    try{const v=document.querySelector('#cashHud .chV span');if(v)v.textContent=cashTxt(S[k]);}catch(e){}
+    try{monnaiePop();if(av)trickMsg(TR('TON ARGENT PASSE EN ')+TR(METAUX[k][2])+' !',1);}catch(e){}};
+  pas();METAL_DEMO=setInterval(pas,2500);}
+/* (2026-11-08, Léo : « mission gagner 100 000, sans euro, de la couleur métal adaptée ») L'ARGENT ÉCRIT DANS UN TEXTE : plus de symbole,
+   le montant prend la couleur du palier qu'il représente (100 000 = l'or, 5 000 000 = le saphir…) — classes .moArg.mo-<palier> (monnaie.css). */
+function metalDe(v){let k=0;while(v>=METAUX[k][0])k++;return METAUX[k][1];}
+function moArg(v,t){return '<span class="moArg mo-'+metalDe(v)+'">'+(t==null?cashTxt(v):t)+'</span>';}
+function moDans(h,v){let f=0;return String(h).replace(/<[^>]*>|\d[\d ,.]*\d|\d/g,function(x){if(x[0]==='<'||f)return x;f=1;return moArg(v,x);});} /* les balises sont sautées (« m2Nw » a un 2) */ /* le 1er nombre du texte (HTML) prend la couleur du palier de v */
+/* (2026-11-08, Léo : « dans le shop, pas très bien retranscrit, un peu petit, pas très joli ») LES PRIX DE LA BOUTIQUE : une dizaine de
+   fabriques écrivent « ⓒ 30 000 » (le glyphe U+E000 de fmtSolde). Une seule passe, sur la boutique seulement (#gBq), remplace le glyphe et
+   son nombre par l'OBJET du palier de ce prix (.moIc) et le nombre à sa couleur (.moArg) — 30 000 en argent, 1 000 000 en saphir.
+   Le solde (#gBqArg) est laissé au CSS (il défile à chaque image : on ne le recoupe pas). Un MutationObserver, une passe par image au plus. */
+const MO_RE=/\s?(\d[\d   ,.]*\d|\d)|(\d[\d   ,.]*\d|\d)\s?/g;
+let MO_OBS=null;
+function moDeco(root){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){const e=n.parentElement;return n.nodeValue.indexOf('')>=0&&e&&!e.closest('#gBqArg,.moArg,[aria-hidden="true"] svg')?1:3;}});
+  const L=[];while(w.nextNode())L.push(w.currentNode);
+  L.forEach(function(n){const s=n.nodeValue,f=document.createDocumentFragment();let m,last=0,ok=false;MO_RE.lastIndex=0;
+    while((m=MO_RE.exec(s))){ok=true;f.appendChild(document.createTextNode(s.slice(last,m.index)));const num=m[1]||m[2],k=metalDe(+num.replace(/\D/g,'')||0);
+      const i=document.createElement('i');i.className='moIc mo-'+k;i.setAttribute('aria-hidden','true');const b=document.createElement('span');b.className='moArg mo-'+k;b.textContent=num;
+      f.appendChild(i);f.appendChild(b);last=MO_RE.lastIndex;}
+    if(ok){f.appendChild(document.createTextNode(s.slice(last)));n.parentNode.replaceChild(f,n);}});}
+function moObs(){if(MO_OBS)return;const r=document.getElementById('gBq');if(!r||typeof MutationObserver!=='function')return;let att=0;
+  MO_OBS=new MutationObserver(function(){if(att)return;att=1;requestAnimationFrame(function(){att=0;moDeco(r);});});
+  MO_OBS.observe(r,{childList:true,subtree:true,characterData:true});moDeco(r);}
+function metalMaj(){
+  if(!MO_OBS)moObs();
+  if(METAL_FORCE==='demo'){metalDemo();return;}
+  let v=0;try{v=bank()+(document.body.classList.contains('play')?Math.max(0,money||0):0);}catch(e){}
+  let k=0;while(v>=METAUX[k][0])k++;
+  if(METAL_FORCE){const f=METAUX.findIndex(function(m){return m[1]===METAL_FORCE;});if(f>=0)k=f;}
+  const h=document.documentElement,n=METAUX[k][1],av=h.dataset.metal;if(av===n)return;h.dataset.metal=n;
+  const ka=METAUX.findIndex(function(m){return m[1]===av;});
+  if(av&&k>ka){try{monnaiePop();trickMsg(TR('TON ARGENT PASSE EN ')+TR(METAUX[k][2])+' !',1);}catch(e){}}}
 function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
   if(!CASH.v){CASH.v=e.querySelector('.chV span');CASH.d=null;} /* (2026-10-14, Sacha) le « +$ » sous le total est ÉTEINT (le « +1 » flotte à côté de la caisse, piece1Plus) : CASH.d nul = plus aucune écriture */
   const kv=Math.round(CASH.disp*100); // (débogage 29/09) on ne FORMATE que si la valeur affichée a bougé d'un centime : cashTxt (toLocaleString) tournait à chaque image
-  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,VP.w*.58);}}}
+  if(force||kv!==CASH.kv){CASH.kv=kv;const t=cashTxt(CASH.disp);if(force||t!==CASH.tv){if(!force&&CASH.disp>(CASH.dPrec||0))monnaiePop();CASH.dPrec=CASH.disp;metalMaj();CASH.tv=t;cashPose(CASH.v,t);if(CASH.vn!==t.length){CASH.vn=t.length;if(document.body.classList.contains('play'))soldeFit(CASH.v,VP.w*.58);}}}
   if(!CASH.d)return;
   const vu=CASH.dT>0&&CASH.delta>0;
   if(vu){const x3=FLOW.lv===4,kd=Math.round(CASH.delta*100)*2+(x3?1:0);
-    if(kd!==CASH.kd2){CASH.kd2=kd;const td='+€ '+cashTxt(CASH.delta)+(x3?' ×3':'');if(td!==CASH.td){CASH.td=td;CASH.d.textContent=td;}}
+    if(kd!==CASH.kd2){CASH.kd2=kd;const td='+'+CUR()+' '+cashTxt(CASH.delta)+(x3?' ×3':'');if(td!==CASH.td){CASH.td=td;CASH.d.textContent=td;}}
     if(x3!==CASH.d.classList.contains('x3'))CASH.d.classList.toggle('x3',x3);}
   if(vu!==CASH.d.classList.contains('vu'))CASH.d.classList.toggle('vu',vu);
 }
