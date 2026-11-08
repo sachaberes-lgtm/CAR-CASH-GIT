@@ -142,5 +142,5 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{display:fl
   #gFigSel .fsCase{width:46px;height:40px}
 }
 #gFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08) anneau rentré comme la boutique : plus de liseré mordu, plus d animation */
+#bqFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08) la grande case (56 × 48) : anneau rentré, plus de liseré mordu — (2026-11-08, Léo : « un truc noir en haut de l'écran avec des codes ») remise DANS la balise : posée après </style>, elle s'affichait en texte en haut de l'écran */
 </style>
-#bqFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08) la grande case (56 × 48) : anneau rentré, plus de liseré mordu */
