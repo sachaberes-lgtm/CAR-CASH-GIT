@@ -73467,11 +73467,15 @@ function buildGarageRoom(){
     cl('N',.045,.16,10,x+.46,y+.54,z);lt('R',[[.07,.62],[.07,.66],[.03,.69],[0,.69]],10,x+.46,y,z);   // l'allumeur
     cl('O',.055,.14,12,x+.12,y-.24,z+.32,Math.PI/2);cl('A',.07,.24,10,x+.3,y-.24,z-.33,0,0,Math.PI/2);}; // filtre à huile, démarreur
 
-  /* ===== MUR DU FOND : le GRAND CACHE-CAR en or massif (2026-10-26, Sacha : « enlève le bureau et tout son bazar, mets un énorme
-     cache-car en or, brillant, 3D, qui prenne toute la longueur du mur, en face du portail en flamme ») — plus d'établi, plus
-     d'outils, plus d'affiche ni d'horloge : à leur place, « CASH CAR » en pixels dorés massifs, en relief sur une plaque de fer
-     en retrait (comme le panneau de la porte, mais trois fois plus grand) — la SURPRISE quand on retourne la caméra. ===== */
-  {const POLICE3D={C:['.###.','#....','#....','#....','#....','#....','.###.'],A:['.###.','#...#','#...#','#####','#...#','#...#','#...#'],
+  /* ===== MUR DU FOND : l'ENSEIGNE CASH CAR, or laqué (2026-11-08, Léo : « redesign du logo derrière la voiture, plus propre, pas de petit cube,
+     immense, qui rentre pile sur l'arrière, presque compressé, cassé métallique, un élément fort du garage, effet de surprise : lumineux,
+     shader cohérent avec le garage, doré laqué, optimisé ») — remplace les lettres en petits cubes. SEPT dessins en tout : une plaque de
+     laque sombre qui porte le halo doré, quatre tranches de métal derrière les lettres (l'épaisseur), et la face — lettres ANGULAIRES serrées
+     (coins coupés, comme une tôle pliée), dégradé d'or à ligne d'horizon, biseau éclairé en haut à gauche, éclats de facettes, vernis brillant.
+     Un seul petit shader : un éclat de lumière chaude qui traverse la face toutes les 5,5 s (uT9, mis à jour dans garage-rendu). Trois toiles,
+     aucune géométrie à part des 7 plans : rien à compiler de plus, rien de lourd. ⚠ `?enseigne=ancien` : les petits cubes d'avant. ===== */
+  if(/[?&]enseigne=ancien\b/.test(location.search)){
+   const POLICE3D={C:['.###.','#....','#....','#....','#....','#....','.###.'],A:['.###.','#...#','#...#','#####','#...#','#...#','#...#'],
      S:['.####','#....','.###.','....#','....#','....#','####.'],H:['#...#','#...#','#...#','#####','#...#','#...#','#...#'],
      R:['####.','#...#','#...#','####.','#.#..','#..#.','#...#']};
    /* (2026-11-01, Sacha : « les lettres beaucoup plus gold et beaucoup plus massives, comme le bouton JOUER ») PX reste fixé par
@@ -73488,7 +73492,69 @@ function buildGarageRoom(){
          for(let pcol=0;pcol<5;pcol++)if(ligne[pcol]==='#')
            cb(k,PX*.97,PY*.97,EPAIS,xDebut+(col+pcol)*PX+PX/2,yMilieu+hauteur/2-row*PY-PY/2,zFace+EPAIS/2);}
        col+=5;if(c<mot.length-1)col+=1;}
-     if(mi<MOTS.length-1)col+=3;});}
+     if(mi<MOTS.length-1)col+=3;});
+  }else{
+   const a=13,b=65,T=13,B=97,Mi=55,c=10,TR=22,LW=78,GAP=8,GM=44;
+   const LET={C:[[[b,T],[a+c,T],[a,T+c],[a,B-c],[a+c,B],[b,B]]],
+     A:[[[a,110],[a,T+c],[a+c,T],[b-c,T],[b,T+c],[b,110]],[[a,68],[b,68]]],
+     S:[[[b,T+14],[b-c,T],[a+c,T],[a,T+c],[a,Mi-c],[a+c,Mi],[b-c,Mi],[b,Mi+c],[b,B-c],[b-c,B],[a+c,B],[a,B-14]]],
+     H:[[[a,0],[a,110]],[[b,0],[b,110]],[[a,Mi],[b,Mi]]],
+     R:[[[a,110],[a,T],[b-c,T],[b,T+c],[b,Mi-c],[b-c,Mi],[a,Mi]],[[36,Mi],[b,110]]]};
+   /* DEUX mises en page, une seule visible : la LIGNE (21 m, pleine largeur) pour un écran large, la PILE (CASH au-dessus de CAR, 7 m) pour le
+      téléphone debout — vu d'au fond de l'atelier, une ligne de 21 m sortait de l'image (« ASH CA » seulement). Une toile de chaque, 7 plans chacune. */
+   const MIS={ligne:{UW:640,UH:160,K:20.96/640,FW:2048,mots:[['CASH',5,25],['CAR',5+336+44,25]],cy:3.2,pw:21.7,ph:5.45},
+              pile:{UW:360,UH:270,K:4.2/240,FW:1024,sx:1.6,mots:[['CASH',12,15],['CAR',55,145]],cy:2.95,pw:10.5,ph:4.8}};
+   const tracer=function(x,s,ox,oy,mo){                                                   // le MASQUE des lettres (blanc plein) à l'échelle s
+     x.save();x.setTransform(s,0,0,s,ox,oy);x.lineJoin='miter';x.lineCap='butt';x.miterLimit=10;x.lineWidth=TR;x.strokeStyle='#fff';
+     mo.mots.forEach(function(w){let px=w[1];const m=w[0];for(let k=0;k<m.length;k++){x.save();x.translate(px,w[2]);x.beginPath();x.rect(-2,-2,LW+4,114);x.clip();
+       LET[m[k]].forEach(function(q){x.beginPath();x.moveTo(q[0][0],q[0][1]);for(let n=1;n<q.length;n++)x.lineTo(q[n][0],q[n][1]);x.stroke();});x.restore();px+=LW+GAP;}});x.restore();};
+   const cv9=function(w,h){const q=document.createElement('canvas');q.width=w;q.height=h;return q;};
+   const tx9=function(q){const t=new THREE.CanvasTexture(q);t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());return t;};
+   const uT9={value:0};
+   const eclat=function(sh){sh.uniforms.uT9=uT9;
+     sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nuniform float uT9;')
+       .replace('#include <dithering_fragment>','#include <dithering_fragment>\n'+
+         'float d9=vUv.x*3.2+vUv.y*1.1;float p9=mod(uT9*1.6,8.8)-.6;float e9=exp(-pow((d9-p9)*3.4,2.));'+                // l'éclat qui traverse (2,7 s de passage, 2,8 s de pause)
+         'float r9=.5+.5*sin(uT9*1.7+vUv.x*5.);gl_FragColor.rgb=gl_FragColor.rgb*(.94+.06*r9)+vec3(1.,.82,.42)*e9*.8+vec3(1.,.55,.12)*e9*e9*.25;');};
+   const zF=-hd,ENS={u:uT9};GAR.enseigne=ENS;
+   Object.keys(MIS).forEach(function(nom){const mo=MIS[nom],UW=mo.UW,UH=mo.UH,K=mo.K,FW=mo.FW,FH=FW*UH/UW,fs=FW/UW,fy=(UH-110)/2*fs,gp=new THREE.Group();gp.visible=nom==='pile';g.add(gp);ENS[nom]=gp;
+    const oy9=0;                                                                           // (chaque mot porte déjà son décalage)
+    // --- LA FACE : or laqué
+    const fc=cv9(FW,FH),fx9=fc.getContext('2d');
+    {const mk=cv9(FW,FH),mx=mk.getContext('2d');tracer(mx,fs,0,oy9*fs,mo);
+     const d1=cv9(FW,FH),dx1=d1.getContext('2d');dx1.drawImage(mk,0,0);dx1.globalCompositeOperation='source-atop';   /* (source-atop : une seule passe par mot sans effacer l'autre) */
+     const y0=0,y1=FH;
+     mo.mots.forEach(function(w){const ya=(w[2]+(nom==='ligne'?oy9:0))*fs,gr=dx1.createLinearGradient(0,ya,0,ya+110*fs);   // l'or à LIGNE D'HORIZON, PAR MOT (ciel clair, ligne sombre, sol chaud)
+       gr.addColorStop(0,'#fff6bd');gr.addColorStop(.22,'#ffd445');gr.addColorStop(.46,'#e9a416');gr.addColorStop(.5,'#6b3d04');gr.addColorStop(.54,'#d58f12');gr.addColorStop(.78,'#ffcf4a');gr.addColorStop(1,'#fff0a0');
+       dx1.fillStyle=gr;dx1.fillRect(0,ya-2,FW,110*fs+4);});
+     dx1.globalCompositeOperation='source-atop';
+     const nE=7;for(let n=0;n<nE;n++){const X=FW*(.04+n*.14),X2=X+FW*.12;dx1.fillStyle=n%2?'rgba(255,250,200,.2)':'rgba(70,30,0,.2)';       // les FACETTES cassées, en diagonale
+       dx1.beginPath();dx1.moveTo(X+FW*.04,y0);dx1.lineTo(X+FW*.13,y0);dx1.lineTo(X2-FW*.05,y1);dx1.lineTo(X-FW*.06,y1);dx1.closePath();dx1.fill();}
+     const vg=dx1.createLinearGradient(0,y0,0,y1*.5);vg.addColorStop(0,'rgba(255,255,255,.34)');vg.addColorStop(1,'rgba(255,255,255,0)');dx1.fillStyle=vg;dx1.fillRect(0,y0,FW,y1*.5);   // le VERNIS
+     fx9.drawImage(d1,0,0);
+     const bis=function(dx,dy,col,al){const t=cv9(FW,FH),tx=t.getContext('2d');tx.drawImage(mk,0,0);tx.globalCompositeOperation='destination-out';tx.drawImage(mk,dx,dy);   // le BISEAU
+       tx.globalCompositeOperation='source-in';tx.fillStyle=col;tx.globalAlpha=al;tx.fillRect(0,0,FW,FH);fx9.globalCompositeOperation='source-atop';fx9.drawImage(t,0,0);};
+     const e=fs/3.2;bis(1.6*e,1.6*e,'#ffffff',.95);bis(-1.6*e,-1.6*e,'#3a1c00',.9);bis(3.2*e,3.2*e,'#fff2a8',.5);bis(-3.2*e,-3.2*e,'#7a4306',.55);
+     fx9.globalCompositeOperation='source-over';}
+    const mF=new THREE.MeshBasicMaterial({map:tx9(fc),alphaTest:.5,fog:false});mF.onBeforeCompile=eclat;
+    // --- L'ÉPAISSEUR : le même dessin, quatre fois, du bronze au brun sombre, de plus en plus au fond
+    const SW=FW/2,SH=FH/2,sc=cv9(SW,SH),sx9=sc.getContext('2d');tracer(sx9,SW/UW,0,oy9*SW/UW,mo);const tS=tx9(sc);
+    [[.12,0x2a1802],[.22,0x4a2a04],[.32,0x6e4208],[.42,0x93600c]].forEach(function(q){const m=new THREE.Mesh(PL,new THREE.MeshBasicMaterial({map:tS,color:q[1],alphaTest:.5,fog:false}));
+      m.scale.set(UW*K*(mo.sx||1),UH*K,1);m.position.set(0,mo.cy,zF+q[0]);gp.add(m);});
+    const fm=new THREE.Mesh(PL,mF);fm.scale.set(UW*K*(mo.sx||1),UH*K,1);fm.position.set(0,mo.cy,zF+.54);gp.add(fm);
+    // --- LA PLAQUE : laque nuit, filet d'or, et le halo des lettres qui déborde sur le mur
+    {const PW=nom==='ligne'?1024:512,PH=nom==='ligne'?256:Math.round(512*mo.ph/mo.pw),pc=cv9(PW,PH),px9=pc.getContext('2d');
+     const pg=px9.createLinearGradient(0,0,0,PH);pg.addColorStop(0,'#1a1430');pg.addColorStop(.5,'#0d0a1c');pg.addColorStop(1,'#07050f');px9.fillStyle=pg;px9.fillRect(0,0,PW,PH);
+     const msk=cv9(PW,PH),mk9=msk.getContext('2d'); // (le plan des lettres fait UW×K m ; la plaque mo.pw × mo.ph)
+     const sx=PW/mo.pw,sy=PH/mo.ph,ss=K*sx;                                              // pixels par unité de dessin
+     mk9.save();mk9.translate(PW/2,0);mk9.scale(mo.sx||1,1);mk9.translate(-PW/2,0);tracer(mk9,ss,PW/2-UW*ss/2*1,PH/2-UH*K*sy/2+oy9*ss,mo);mk9.restore();
+     px9.save();px9.shadowColor='rgba(255,170,30,.9)';px9.shadowBlur=PW/22;px9.globalAlpha=.55;px9.drawImage(msk,0,0);px9.restore();
+     px9.save();px9.shadowColor='rgba(255,120,20,.8)';px9.shadowBlur=PW/10;px9.globalAlpha=.35;px9.drawImage(msk,0,0);px9.restore();
+     const mg=PW/100;px9.strokeStyle='#e8a91c';px9.lineWidth=PW/200;px9.strokeRect(mg,mg,PW-2*mg,PH-2*mg);px9.strokeStyle='#fff0a0';px9.lineWidth=PW/700;px9.strokeRect(mg,mg,PW-2*mg,PH-2*mg);
+     px9.strokeStyle='rgba(232,169,28,.5)';px9.lineWidth=PW/500;px9.strokeRect(mg*2,mg*2,PW-4*mg,PH-4*mg);
+     const pm=new THREE.Mesh(PL,new THREE.MeshBasicMaterial({map:tx9(pc),fog:false}));pm.scale.set(mo.pw,mo.ph,1);pm.position.set(0,mo.cy,zF+.04);gp.add(pm);}
+   });
+  }
 
   // ===== MUR GAUCHE : pneus, servante, compresseur, cric, et tout ce qui roule =====
   for(const st of [[-9.6,-7.2,5],[-9.6,-5.1,4],[-9.4,7.4,6]]){                        // les piles de pneus, une jante sur chacune
@@ -78948,6 +79014,7 @@ function garageRender(dt){ // la caisse sur son plateau, la caméra tourne à 36
   if(GAR.flick){const b9=Math.sin(t9*13.7)*Math.sin(t9*4.3)+Math.sin(t9*31.1)*.4;
     const on9=b9>-.55||Math.random()<.02;
     GAR.flick.t.visible=on9;GAR.flick.h.visible=on9;}
+  if(GAR.enseigne){const E9=GAR.enseigne;E9.u.value=t9;const large=camera.aspect>1.15; /* l'image réelle (le cadre téléphone de l'ordi reste debout même dans une fenêtre large) */if(E9.ligne.visible!==large){E9.ligne.visible=large;E9.pile.visible=!large;}} // (2026-11-08) l'éclat qui traverse l'enseigne CASH CAR du mur du fond ; ligne pleine largeur en paysage, pile CASH/CAR en portrait
   for(let i=0;i<GAR.neons.length;i++) // le néon respire (le tube rose bat un peu plus fort que le $)
     GAR.neons[i].material.opacity=.8+.2*Math.sin(t9*(2.1+i*1.7)+i)+(Math.random()<.006?-.5:0);
   if(GAR.drop){GAR.drop.rotation.z=Math.sin(t9*.83)*.045;GAR.drop.rotation.x=Math.cos(t9*.61)*.035;} // la baladeuse balance
