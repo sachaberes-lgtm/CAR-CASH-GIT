@@ -5,7 +5,7 @@
 // Vert si : un seul AudioContext temps réel · au plus UNE musique (même fichier jamais deux fois, jamais <audio> + boucle ensemble
 // sur le même morceau) · aucune musique de course sur l'accueil · liaisons stables d'une course à l'autre · 0 erreur console,
 // 0 promesse rejetée.
-//   node outils/banc-son/fumee-son.mjs [--fois 1] [--colonne 0|portrait] [--simu] [--frenesie] [--chance] [--courses N] [--course 30] [--w 844 --h 390] [--url "&colonne=portrait"] [--jeu 9830] [--port 9831]
+//   node outils/banc-son/fumee-son.mjs [--fois 1] [--colonne 0|portrait] [--simu] [--frenesie] [--chance] [--bon] [--courses N] [--course 30] [--w 844 --h 390] [--url "&colonne=portrait"] [--jeu 9830] [--port 9831]
 // UN banc à la fois sur la machine (vérifier `uptime` avant). Le jeu est servi par ce script (python3 -m http.server), tué à la sortie.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 const a = process.argv.slice(2);
 const opt = (k, d) => { const i = a.indexOf('--' + k); return i >= 0 ? a[i + 1] : d; };
 const W = +opt('w', 844), H = +opt('h', 390), FOIS = +opt('fois', 1), COURSE = +opt('course', 30), JEU = +opt('jeu', 9830), PORT = +opt('port', 9831);
-const NCOURSES = +opt('courses', 2), PLUS = opt('url', ''), MOBILE = a.includes('--mobile'), FREN = a.includes('--frenesie'), CHANCE = a.includes('--chance');
+const NCOURSES = +opt('courses', 2), PLUS = opt('url', ''), MOBILE = a.includes('--mobile'), FREN = a.includes('--frenesie'), CHANCE = a.includes('--chance'), BON = a.includes('--bon');
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const ICI = path.dirname(fileURLToPath(import.meta.url));
 const SONDE = fs.readFileSync(path.join(ICI, 'sonde.js'), 'utf8');
@@ -168,6 +168,28 @@ for (let tour = 1; tour <= FOIS; tour++) {
       log(`[${tour}] seconde chance : ${JSON.stringify(j)} · course ${t0 && t0.titre} → lobby ${tl && tl.titre} (${tl && tl.phase}) → reprise ${t1 && t1.titre} (${t1 && t1.phase}) · repartie ${ok}`);
       if (!ok) pb.push('seconde chance : la course ne repart pas (' + JSON.stringify(j) + ')');
       else if (t0 && t1 && t0.titre !== t1.titre) pb.push(`seconde chance : le morceau CHANGE (${t0.titre} → ${t1.titre}) alors que la course continue`);
+      await c.ev('dbgAuto(true,0)'); await sleep(3000);
+    }
+    if (BON) { /* --bon (2026-11-08) : un BON de la machine → à la mort, la RÉANIMATION AUTOMATIQUE (pas d'écran de mort, seconde-chance.js chanceAuto) :
+         pendant la caisse en miettes, AUCUN lobby ne doit partir ; la course repart sur le MÊME morceau ; une seule musique */
+      const t0 = (await releve(c)).pouce;
+      await c.ev(`(function(){window.__bonJ=[];var t0=performance.now();window.__bonIv=setInterval(function(){try{var s=dbgState(),e=dbgChance(),p=POUCE_JEU.etat(),o=document.getElementById('overlay');
+        window.__bonJ.push({t:Math.round(performance.now()-t0),go:s.gameOver,mode:s.mode,auto:e.auto,used:e.used,ov:o?getComputedStyle(o).display:'?',ph:p.phase,ti:p.titre,niv:p.niveau});}catch(x){window.__bonJ.push({t:Math.round(performance.now()-t0),err:x.message});}},150);})()`);
+      await c.ev(`(function(){try{dbgChance('bon',1);dbgAuto(false);}catch(e){}try{return dbgDauphin('boom');}catch(e){return e.message}})()`);
+      if (!await attends(c, '(function(){try{return dbgState().gameOver}catch(e){return false}})()', 30000)) pb.push('bon : la mort n\'arrive pas');
+      const rev = await attends(c, '(function(){try{var s=dbgState();return s.started&&!s.gameOver&&s.mode!=="boom"}catch(e){return false}})()', 25000);
+      await sleep(4500); await c.ev('clearInterval(window.__bonIv)');
+      const J = await c.ev('window.__bonJ');
+      const lob = J.filter(x => x.ph === 'lobby' || x.ph === 'charge'), ouv = J.filter(x => x.go && x.ov === 'flex');
+      log(`[${tour}] bon : journal ${J.length} relevés · mort→reprise ${rev ? 'OK' : 'RATÉE'} · lobby vu ${lob.length} fois${lob.length ? ' (' + lob[0].t + ' ms, ' + lob[0].ti + ')' : ''} · écran de mort ouvert ${ouv.length} relevés`);
+      log(`[${tour}] bon : ` + J.filter((x, i) => i % 3 === 0).map(x => `${x.t}:${x.go ? 'MORT' : 'vif'}/${x.mode}/${x.auto ? 'auto' : '-'}/${x.ov}/${x.ph}${x.niv != null ? '@' + x.niv : ''}`).join(' '));
+      if (!rev) pb.push('bon : la réanimation automatique ne vient pas (' + JSON.stringify(J.slice(-3)) + ')');
+      if (lob.length) pb.push(`bon : le LOBBY (${lob[0].ti}) joue pendant la réanimation automatique (dès ${lob[0].t} ms, ${lob.length} relevés) — la musique alors qu'on est mort`);
+      if (ouv.length) pb.push('bon : l\'écran de mort s\'est ouvert malgré le bon');
+      const R1 = await releve(c); juge('reprise automatique', R1, { musMax: 1 }, pb);
+      log(`[${tour}] bon : après la reprise · musiques ${JSON.stringify(musiques(R1))} · pouce ${JSON.stringify(R1.pouce)} · chance ${JSON.stringify(await c.ev('(function(){var e=dbgChance();return {used:e.used,auto:e.auto,bons:e.bons}})()'))}`);
+      if (rev && R1.pouce && !(R1.pouce.actif && R1.pouce.phase === 'course')) pb.push(`bon : après la réanimation, Pouce bleu n'est pas en course (${R1.pouce.phase})`);
+      if (rev && t0 && R1.pouce && R1.pouce.titre && t0.titre !== R1.pouce.titre) pb.push(`bon : le morceau CHANGE (${t0.titre} → ${R1.pouce.titre}) alors que la course continue`);
       await c.ev('dbgAuto(true,0)'); await sleep(3000);
     }
     /* la mort */
