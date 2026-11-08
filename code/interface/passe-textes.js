@@ -162,14 +162,14 @@ function cashTxt(v){v=Math.max(0,v);
   return e.toLocaleString(LOC()).replace(/[\u202f\u00a0,]/g,' ');}
 function monnaiePop(){const i=CASH.el&&CASH.el.querySelector('.mOr');if(!i||i.classList.contains('pop'))return;i.classList.add('pop');setTimeout(function(){i.classList.remove('pop');},330);} /* (2026-11-07, Léo : « rends-le encore plus juicy ») le symbole saute et brille à chaque gain */
 /* ===== L'ARGENT QUI ÉVOLUE (2026-11-07, Léo : « plus tu en as, plus ça peut évoluer ») =====
-   Le métal de l'argent suit la fortune (le compte, plus la partie en cours) : CENTIME → EURO → OR → ÉMERAUDE → RUBIS → LÉGENDAIRE, aux crans
-   des prix du garage (1 500 → 50 M). Il se pose sur <html data-metal> : chiffres, symbole et prix en argent du jeu (--cash) en prennent
+   Le métal de l'argent suit la fortune (le compte, plus la partie en cours) : CENTIME → EURO → OR → SAPHIR → ÉMERAUDE → RUBIS → LÉGENDAIRE
+   (5 k, 100 k, 1 M, 10 M, 100 M, 1 Md). Il se pose sur <html data-metal> : chiffres, symbole et prix en argent du jeu (--cash) en prennent
    la couleur (monnaie.css). Monter d'un cran se fête une fois. `?metal=or` force un métal (bancs). */
-const METAUX=[[5e3,'centime','CENTIME'],[1e5,'euro','EURO'],[1e6,'or','OR'],[1e7,'emeraude','ÉMERAUDE'],[5e7,'rubis','RUBIS'],[Infinity,'legendaire','LÉGENDAIRE']]; /* (2026-11-07, Léo : « un centime brillant comme la Honte, puis un euro comme sur la route, puis or, émeraude, rouge, multicolore légendaire ») */
+const METAUX=[[5e3,'centime','CENTIME'],[1e5,'euro','EURO'],[1e6,'or','OR'],[1e7,'saphir','SAPHIR'],[1e8,'emeraude','ÉMERAUDE'],[1e9,'rubis','RUBIS'],[Infinity,'legendaire','LÉGENDAIRE']]; /* (2026-11-08, Léo : « ajoute saphir avant émeraude, légendaire à un milliard ») */ /* (2026-11-07, Léo : « un centime brillant comme la Honte, puis un euro comme sur la route, puis or, émeraude, rouge, multicolore légendaire ») */
 const METAL_FORCE=(function(){try{return new URLSearchParams(location.search).get('metal');}catch(e){return null;}})();
-/* `?metal=demo` : les cinq paliers défilent tout seuls (2,5 s chacun), le compte du garage montre une somme de chaque palier — pour VOIR l'argent évoluer */
+/* `?metal=demo` : les sept paliers défilent tout seuls (2,5 s chacun), le compte du garage montre une somme de chaque palier — pour VOIR l'argent évoluer */
 let METAL_DEMO=null;
-function metalDemo(){if(METAL_DEMO)return;let k=-1;const S=[1250,48000,650000,4200000,32000000,250000000];
+function metalDemo(){if(METAL_DEMO)return;let k=-1;const S=[1250,48000,650000,4200000,48000000,520000000,1250000000];
   const pas=function(){k=(k+1)%METAUX.length;const h=document.documentElement,av=h.dataset.metal;h.dataset.metal=METAUX[k][1];
     try{const b=document.querySelector('#gCompteur b');if(b)b.textContent=fmtSolde(S[k]);}catch(e){}
     try{const v=document.querySelector('#cashHud .chV span');if(v)v.textContent=cashTxt(S[k]);}catch(e){}

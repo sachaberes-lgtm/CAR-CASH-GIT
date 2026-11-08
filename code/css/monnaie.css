@@ -1,166 +1,103 @@
 <style id="monnaie">
-/* ===== LA MONNAIE DU JEU ET L'ARGENT QUI ÉVOLUE (2026-11-07, Léo : « le sketch en monnaie, dorée en 3D » ; « l'argent, plus tu en as, plus ça évolue ») =====
-   · la monnaie est UNE PIÈCE 3D (2026-11-07, Léo : « fais juste une pièce 3D, qui changera de matière par palier ») : UN GLYPHE (U+E000, assets/fonts/monnaie.woff2) ajouté aux cinq polices par unicode-range : CUR() l'écrit partout ;
-   · au compteur de course c'est l'IMAGE de la pièce 3D (tranche cannelée, rebord, bossage), dans le métal du moment (assets/monnaie/sym-*.png), qui saute à chaque gain ;
-   · <html data-metal> (metalMaj, passe-textes.js) : CENTIME → EURO → OR → ÉMERAUDE → RUBIS → LÉGENDAIRE. Les compteurs prennent le métal en relief
-     (bandes dures façon pixel, corps extrudé, contour d'encre), les prix en argent du jeu (--cash) sa couleur ;
-   · le VRAI argent (offres en €) passe en ROSE NÉON pour ne plus se confondre. */
+/* ===== LA MONNAIE DU JEU ET L'ARGENT QUI ÉVOLUE (2026-11-07/08, Léo : « le sketch en monnaie » ; « l'argent, plus tu en as, plus ça évolue » ;
+   08/11 : « refonte pièce et couleurs et pierres précieuses, tout ne fait pas cohérent, inspire-toi de Minecraft et Clash Royale ») =====
+   · UNE FAMILLE EN PIXEL : un objet par palier (assets/monnaie/sym-*.png), même contour, même lumière en haut à gauche —
+     CENTIME, EURO, OR = la même pièce frappée de la spirale d'or φ (« le 6 couché comme la courbe ») ; SAPHIR, ÉMERAUDE, RUBIS = des
+     pierres taillées ; LÉGENDAIRE = le diamant irisé couronné d'or (dès 1 milliard). Le glyphe U+E000 (assets/fonts/monnaie.woff2,
+     ajouté aux cinq polices par unicode-range) reste pour l'argent écrit dans les textes (CUR()).
+   · SIX TONS PAR PALIER (--O contour, --D, --S, --M, --L, --H), les MÊMES pour l'objet et pour les chiffres : c'est la cohérence.
+   · LES CHIFFRES MONTENT AVEC TOI (comme les raretés de Clash Royale) : 1 deux tons → 2 trois tons + relief → 3 quatre tons, reflet,
+     halo → 4-6 la taille en facettes + éclats → 6 la pierre bat → 7 cristal irisé, liseré d'or.
+   · OPTIMISÉ : en course, le reflet ne court pas (le compteur ne se repeint que quand le montant change) ; seul le légendaire irise.
+   · le VRAI argent (offres en €) est en ROSE NÉON pour ne pas se confondre. */
 @font-face{font-family:'Press Start 2P';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
 @font-face{font-family:'CC Silkscreen';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
 @font-face{font-family:'CC Jersey';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
 @font-face{font-family:'CC Sixtyfour';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
 @font-face{font-family:'CC Jacquard';font-style:normal;font-weight:400;font-display:block;src:url('./assets/fonts/monnaie.woff2') format('woff2');unicode-range:U+E000;}
-html{--mL:#ffe2b4;--mM:#d68f44;--mS:#8e5418;--mX:#3e2208;--mH:rgba(214,143,68,.4);--mImg:url('./assets/monnaie/sym-centime.png');--vraiEur:#ff5fd2}
-html[data-metal="euro"]{--mL:#ffffff;--mM:#dfe4ee;--mS:#a9b2c4;--mX:#b8860b;--mH:rgba(255,205,80,.45);--mImg:url('./assets/monnaie/sym-euro.png')}
-html[data-metal="or"]{--mL:#fff4b0;--mM:#ffc928;--mS:#e08a00;--mX:#7a4200;--mH:rgba(255,200,60,.55);--mImg:url('./assets/monnaie/sym-or.png')}
-html[data-metal="emeraude"]{--mL:#d8ffe2;--mM:#3ee08a;--mS:#12955a;--mX:#06401f;--mH:rgba(60,230,140,.5);--mImg:url('./assets/monnaie/sym-emeraude.png')}
-html[data-metal="rubis"]{--mL:#ffd0d6;--mM:#ff3b4e;--mS:#b0102a;--mX:#4a0010;--mH:rgba(255,60,80,.5);--mImg:url('./assets/monnaie/sym-rubis.png')}
-html[data-metal="legendaire"]{--mL:#ffffff;--mM:#f3d9ff;--mS:#b9c8ff;--mX:#5a3a9a;--mH:rgba(230,200,255,.85);--mImg:url('./assets/monnaie/sym-legendaire.png')}
-html[data-metal]{--cash:var(--mM)}
-/* les compteurs d'argent : le métal en relief */
-html #cashHud .chV span,html #moneyTxt,html #gCompteur b,html #gBqArg,html #mBankV,html #mCash{
-  background:linear-gradient(180deg,var(--mL) 0 22%,var(--mM) 22% 58%,var(--mS) 58% 100%)!important;
-  -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;
-  filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 0 8px var(--mH))!important}
-html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){
-  background:linear-gradient(100deg,#ffffff 0%,#ffd6f6 14%,#d6c4ff 28%,#b4f2ff 42%,#c8ffe0 56%,#fff7c2 70%,#ffd6f6 85%,#ffffff 100%) 0 0/200% 100%!important;
-  -webkit-background-clip:text!important;background-clip:text!important;animation:mDiam 2.4s linear infinite}
-@keyframes mDiam{to{background-position:-200% 0}} /* LÉGENDAIRE (Léo : « plus lumineux et plus flou, pas un bonnet rasta ») : des pastels fondus qui glissent, pas des bandes */
-html #moneyTxt .cts{-webkit-text-fill-color:var(--mL);color:var(--mL)}
-/* le symbole 3D du compteur de course */
-#cashHud .chV i.mOr{display:inline-block;width:1.5em;height:1.3em;font-size:var(--f6);align-self:center;margin-right:.1em;
-  background:var(--mImg) center/contain no-repeat;-webkit-background-clip:border-box;background-clip:border-box;
-  filter:drop-shadow(0 0 5px var(--mH));transform-origin:50% 60%}
+/* « CC Vide » : U+E000 sans trait ni largeur — là où l'IMAGE du palier remplace le glyphe plat (garage, écran de mort) */
+@font-face{font-family:'CC Vide';src:url('./assets/fonts/monnaie-vide.woff2') format('woff2');unicode-range:U+E000}
+
+/* --- les sept paliers : six tons + la lueur (--g) + l'objet --- */
+html,html[data-metal="centime"]{--O:#3a1606;--D:#7a3410;--S:#b05a24;--M:#e0823c;--L:#ffb070;--H:#ffe0b8;--g:rgba(224,130,60,0);--mImg:url('./assets/monnaie/sym-centime.png');--vraiEur:#ff5fd2}
+html[data-metal="euro"]{--O:#161c30;--D:#46506c;--S:#7884a2;--M:#aeb9d2;--L:#dde4f2;--H:#ffffff;--g:rgba(220,230,255,0);--mImg:url('./assets/monnaie/sym-euro.png')}
+html[data-metal="or"]{--O:#4a2200;--D:#9a5200;--S:#d88a00;--M:#ffc21a;--L:#ffe56a;--H:#fffbd0;--g:rgba(255,200,40,.55);--mImg:url('./assets/monnaie/sym-or.png')}
+html[data-metal="saphir"]{--O:#040c36;--D:#0a2a8a;--S:#1446c8;--M:#2a7bff;--L:#7ab8ff;--H:#e6f2ff;--g:rgba(60,140,255,.55);--mImg:url('./assets/monnaie/sym-saphir.png')}
+html[data-metal="emeraude"]{--O:#03240f;--D:#08602e;--S:#109446;--M:#26cc66;--L:#7dffaa;--H:#e6fff0;--g:rgba(40,230,120,.6);--mImg:url('./assets/monnaie/sym-emeraude.png')}
+html[data-metal="rubis"]{--O:#2a000e;--D:#78021f;--S:#b80c32;--M:#f0284e;--L:#ff7a90;--H:#ffe4ea;--g:rgba(255,40,80,.7);--mImg:url('./assets/monnaie/sym-rubis.png')}
+html[data-metal="legendaire"]{--O:#2a0a3a;--D:#b8790a;--S:#8fb0ff;--M:#bfe6ff;--L:#eaf8ff;--H:#ffffff;--g:rgba(255,220,255,.8);--mImg:url('./assets/monnaie/sym-legendaire.png')}
+html[data-metal]{--cash:var(--M)}
+
+/* --- LA FACE DES CHIFFRES (--fond) et LEUR RELIEF (--relief), palier par palier --- */
+html{--reflet:linear-gradient(105deg,transparent 0 44%,rgba(255,255,255,.75) 47% 53%,transparent 56%) 120% 0/300% 100%;
+  --bandes4:linear-gradient(180deg,var(--H) 0 14%,var(--L) 14% 36%,var(--M) 36% 64%,var(--S) 64%) 0 0/100% 100%;
+  --facette:linear-gradient(135deg,var(--L) 0 38%,transparent 38%) 0 0/100% 100%;
+  --encre3:drop-shadow(3px 0 0 var(--O)) drop-shadow(-3px 0 0 var(--O)) drop-shadow(0 -3px 0 var(--O)) drop-shadow(0 3px 0 var(--O));
+  --fond:linear-gradient(180deg,var(--M) 0 55%,var(--S) 55%);
+  --relief:drop-shadow(2px 0 0 var(--O)) drop-shadow(-2px 0 0 var(--O)) drop-shadow(0 -2px 0 var(--O)) drop-shadow(0 2px 0 var(--O)) drop-shadow(0 2px 0 var(--O))}
+html[data-metal="euro"]{--fond:linear-gradient(180deg,var(--L) 0 30%,var(--M) 30% 62%,var(--S) 62%);
+  --relief:drop-shadow(0 2px 0 var(--D)) drop-shadow(2px 0 0 var(--O)) drop-shadow(-2px 0 0 var(--O)) drop-shadow(0 -2px 0 var(--O)) drop-shadow(0 2px 0 var(--O)) drop-shadow(0 2px 0 var(--O))}
+html[data-metal="or"]{--fond:var(--reflet),var(--bandes4);
+  --relief:drop-shadow(0 2px 0 var(--D)) drop-shadow(0 2px 0 var(--D)) var(--encre3) drop-shadow(0 0 10px var(--g))}
+html:is([data-metal="saphir"],[data-metal="emeraude"],[data-metal="rubis"]){--fond:var(--reflet),var(--facette),var(--bandes4);
+  --relief:drop-shadow(0 2px 0 var(--D)) drop-shadow(0 2px 0 var(--D)) var(--encre3) drop-shadow(0 0 12px var(--g))}
+html[data-metal="rubis"]{--relief:drop-shadow(0 2px 0 var(--D)) drop-shadow(0 2px 0 var(--D)) drop-shadow(0 2px 0 var(--D)) var(--encre3) drop-shadow(0 0 16px var(--g))}
+html[data-metal="legendaire"]{--fond:linear-gradient(180deg,rgba(255,255,255,.85) 0 14%,rgba(255,255,255,.25) 14% 36%,transparent 36% 64%,rgba(60,20,120,.3) 64%) 0 0/100% 100%,linear-gradient(100deg,#ff7ac4,#ffb86b,#fff36b,#6bffb0,#5fd8ff,#9f86ff,#ff7ac4,#ffb86b,#fff36b) 0 0/300% 100%;
+  --relief:drop-shadow(2px 0 0 #ffc21a) drop-shadow(-2px 0 0 #ffc21a) drop-shadow(0 -2px 0 #ffe56a) drop-shadow(0 2px 0 #d88a00) drop-shadow(0 2px 0 var(--D)) drop-shadow(0 2px 0 var(--D)) drop-shadow(2px 0 0 var(--O)) drop-shadow(-2px 0 0 var(--O)) drop-shadow(0 -2px 0 var(--O)) drop-shadow(0 2px 0 var(--O)) drop-shadow(0 0 18px var(--g))}
+
+/* les compteurs : la face, puis le relief (sur le bloc), puis l'animation du palier */
+html body :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html body #mob #mDead.m5 .mCashL>b#mCash::before{
+  background:var(--fond)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;animation:none}
+html body :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#mBankV),html body.touch.play #cashHud .chV span,html body #mob #mDead .mCashL>b#mCash{filter:var(--relief)!important}
+html body #mob #mDead.m5 .mCashL>b#mCash{background:none!important}
+html #moneyTxt .cts{-webkit-text-fill-color:var(--L);color:var(--L)}
+/* le reflet qui passe (or et plus) — hors course seulement */
+html:is([data-metal="or"],[data-metal="saphir"],[data-metal="emeraude"],[data-metal="rubis"]) body :is(#moneyTxt,#gBqArg,#mBankV,#mCash),
+html:is([data-metal="or"],[data-metal="saphir"],[data-metal="emeraude"],[data-metal="rubis"]) body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),
+html:is([data-metal="or"],[data-metal="saphir"],[data-metal="emeraude"],[data-metal="rubis"]) body:not(.play) #cashHud .chV span{animation:mReflet 2.8s steps(14) infinite}
+@keyframes mReflet{0%,58%{background-position:120% 0}100%{background-position:-20% 0}}
+/* le légendaire irise (le seul qui bouge en course) */
+html[data-metal="legendaire"] body :is(#cashHud .chV span,#moneyTxt,#gBqArg,#mBankV,#mCash),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash::before{animation:mIris 3.5s linear infinite}
+@keyframes mIris{from{background-position:0 0,0 0}to{background-position:0 0,-300% 0}}
+
+/* --- L'OBJET du compteur de course : pixel net, saute à chaque gain --- */
+#cashHud .chV i.mOr{display:inline-block;position:relative;width:1.3em;height:1.3em;font-size:var(--f6);align-self:center;margin-right:.2em;color:transparent;
+  background:var(--mImg) center/contain no-repeat;-webkit-background-clip:border-box;background-clip:border-box;image-rendering:pixelated;
+  filter:drop-shadow(0 0 5px var(--g));transform-origin:50% 60%}
 #cashHud .chV i.mOr.pop{animation:mOrPop .32s cubic-bezier(.2,1.6,.4,1)}
-@keyframes mOrPop{0%{transform:scale(1) rotate(0)}35%{transform:scale(1.4) rotate(-8deg);filter:drop-shadow(0 0 10px var(--mH)) brightness(1.5)}100%{transform:scale(1) rotate(0)}}
-/* le vrai argent (€) en rose néon */
+@keyframes mOrPop{0%{transform:scale(1) rotate(0)}35%{transform:scale(1.4) rotate(-8deg)}100%{transform:scale(1) rotate(0)}}
+/* le rubis bat comme un cœur ; le légendaire flotte */
+html[data-metal="rubis"] #cashHud .chV i.mOr:not(.pop){animation:mBat 1.6s ease-in-out infinite}
+@keyframes mBat{0%,70%,100%{transform:scale(1)}80%{transform:scale(1.12)}90%{transform:scale(.97)}}
+html[data-metal="legendaire"] #cashHud .chV i.mOr:not(.pop){animation:mFlotteObj 2.4s ease-in-out infinite}
+@keyframes mFlotteObj{50%{transform:translateY(-2px) rotate(-4deg)}}
+/* les éclats en pixel (étoile à quatre branches) : 1 au saphir, 2 de l'émeraude au légendaire */
+#cashHud .chV i.mOr::before,#cashHud .chV i.mOr::after{content:none;position:absolute;width:2px;height:2px;background:#fff;opacity:0;
+  box-shadow:0 -2px #fff,0 2px #fff,-2px 0 #fff,2px 0 #fff,0 -4px var(--L),0 4px var(--L),-4px 0 var(--L),4px 0 var(--L);animation:mScint 1.8s steps(4) infinite}
+html:is([data-metal="saphir"],[data-metal="emeraude"],[data-metal="rubis"],[data-metal="legendaire"]) #cashHud .chV i.mOr::after{content:'';right:-3px;top:-3px}
+html:is([data-metal="emeraude"],[data-metal="rubis"],[data-metal="legendaire"]) #cashHud .chV i.mOr::before{content:'';left:-4px;bottom:0;animation-delay:.9s}
+@keyframes mScint{0%,100%{opacity:0;transform:scale(.4)}40%{opacity:1;transform:scale(1)}70%{opacity:0;transform:scale(.6)}}
+@media (prefers-reduced-motion:reduce){html body :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),#cashHud .chV i.mOr,#cashHud .chV i.mOr::before,#cashHud .chV i.mOr::after{animation:none!important}}
+
+/* --- LE COMPTE DU GARAGE (Léo : « plus de rectangle derrière, de bons gros chiffres 3D posés dans l'air ») : plus de plaque, ils flottent --- */
+html #gCompteur{background:none!important;box-shadow:none!important;clip-path:none!important;height:auto!important;padding:0 6px!important;overflow:visible!important}
+html body #gCompteur b{font-size:calc(var(--f4) * 1.7);letter-spacing:2px;transform:none!important;padding:2px 0 8px;font-family:'CC Vide','Press Start 2P',monospace!important;white-space:nowrap!important;animation:mFlotte 3.6s ease-in-out infinite}
+html:is([data-metal="or"],[data-metal="saphir"],[data-metal="emeraude"],[data-metal="rubis"]) body #gCompteur b{animation:mReflet 2.8s steps(14) infinite,mFlotte 3.6s ease-in-out infinite}
+html[data-metal="legendaire"] body #gCompteur b{animation:mIris 3.5s linear infinite,mFlotte 3.6s ease-in-out infinite}
+@keyframes mFlotte{50%{translate:0 -3px}}
+html #gCompteur b::before{content:'';display:inline-block;vertical-align:-.28em;width:1.3em;height:1.3em;margin-right:.25em;
+  background:var(--mImg) center/contain no-repeat;-webkit-background-clip:border-box;background-clip:border-box;image-rendering:pixelated}
+/* --- L'ÉCRAN DE MORT : le montant y est écrit chiffre par chiffre (.m6D > i/u), l'objet du palier à la place du glyphe --- */
+html #mDead .mCashL b#mCash{transform:none!important;padding:2px 4px 8px}
+html #mDead .mCashL b#mCash.clac{animation:mClac .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes mClac{0%{scale:1}30%{scale:1.22}100%{scale:1}}
+html body #mob #mDead.m5 .mCashL>b#mCash>.m6X{font-family:'CC Vide','Press Start 2P',monospace!important;display:inline-block;vertical-align:-.12em;width:1.15em;height:1.15em;margin:0 .12em;
+  background:var(--mImg) center/contain no-repeat!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;image-rendering:pixelated;animation:none!important}
+/* --- LA BOUTIQUE est claire et son compte petit : la face seule, un filet de contour, la lueur --- */
+html body #gBqArg{filter:drop-shadow(1px 0 0 var(--O)) drop-shadow(-1px 0 0 var(--O)) drop-shadow(0 1px 0 var(--O)) drop-shadow(0 -1px 0 var(--O)) drop-shadow(0 0 3px var(--g))!important}
+
+/* --- le vrai argent (€) en rose néon --- */
 html .gT em.eur,html #gBqPan .bqK .bqKp.eur,html #bqAile .baP.eur,html #gStrip.fnBande .fnP.eur,
 html body #garage:not(.menu):not(.vitrine) #gAct>#gEquip.achat .gEqP.eur{color:var(--vraiEur)!important;text-shadow:0 1px 0 rgba(7,5,15,.95),0 0 8px rgba(255,95,210,.45)}
 html #gBqPan .trK .trTx .bqKp.eur{background:var(--vraiEur)!important;color:#fff!important}
-@media (prefers-reduced-motion:reduce){html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){animation:none}}
-/* LE COMPTE DU GARAGE (2026-11-07, Léo : « enlève le rectangle derrière, de bons gros chiffres 3D posés dans l'air qui évoluent avec la
-   richesse, un peu plus grand, pas trop ») : plus de plaque, les chiffres flottent ; corps extrudé plus profond, ombre portée au loin. */
-html #gCompteur{background:none!important;box-shadow:none!important;clip-path:none!important;height:auto!important;padding:0 6px!important;overflow:visible!important}
-html #gCompteur b{font-size:calc(var(--f4) * 1.7);letter-spacing:2px;transform:none!important;padding:2px 0 8px;animation:mFlotte 3.6s ease-in-out infinite;
-  filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 0 10px var(--mH)) drop-shadow(0 12px 8px rgba(0,0,0,.35))!important}
-html[data-metal="legendaire"] #gCompteur b{animation:mDiam 2.4s linear infinite,mFlotte 3.6s ease-in-out infinite}
-@keyframes mFlotte{50%{translate:0 -3px}}
-@media (prefers-reduced-motion:reduce){html #gCompteur b{animation:none}}
-/* L'ÉCRAN DE MORT ET LE COMPTEUR DE COURSE : le même relief, plus profond — l'argent est le héros de ces deux écrans */
-html #mDead .mCashL b#mCash{transform:none!important;padding:2px 4px 8px;
-  filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 0 14px var(--mH)) drop-shadow(0 12px 8px rgba(0,0,0,.35))!important}
-html #mDead .mCashL b#mCash.clac{animation:mClac .5s cubic-bezier(.2,1.6,.4,1)}
-@keyframes mClac{0%{scale:1}30%{scale:1.22}100%{scale:1}}
-html body.touch.play #cashHud .chV span{filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 0 10px var(--mH)) drop-shadow(0 6px 6px rgba(0,0,0,.35))!important}
-/* l'écran de mort v6 écrit le montant chiffre par chiffre (.m6D > i/u qui roulent) : le métal se pose sur CHAQUE chiffre */
-html body #mob #mDead.m5 .mCashL>b#mCash{text-shadow:none!important;color:transparent!important;background:none!important}
-html body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html body #mob #mDead.m5 .mCashL>b#mCash>.m6X,html body #mob #mDead.m5 .mCashL>b#mCash::before{
-  background:linear-gradient(180deg,var(--mL) 0 22%,var(--mM) 22% 58%,var(--mS) 58% 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
-html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6X,html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash::before{
-  background:linear-gradient(100deg,#ffffff 0%,#ffd6f6 14%,#d6c4ff 28%,#b4f2ff 42%,#c8ffe0 56%,#fff7c2 70%,#ffd6f6 85%,#ffffff 100%) 0 0/200% 100%;-webkit-background-clip:text;background-clip:text;animation:mDiam 2.4s linear infinite}
-/* la BOUTIQUE est claire et son compte est petit (11 px) : l'encre et le relief le noircissaient (Léo : « bizarrement entouré de noir »).
-   Ici : le métal seul, un filet d'ombre de sa couleur et une lueur douce. */
-html #gBqArg{filter:drop-shadow(0 1px 0 var(--mX)) drop-shadow(0 0 3px var(--mH))!important}
-
-/* L'AURA DES DERNIERS PALIERS (2026-11-07, Léo : « plus d'aura pour les derniers ») : émeraude, rubis et légendaire rayonnent — une lueur
-   large qui respire autour de la pièce et des chiffres. */
-html:is([data-metal="emeraude"],[data-metal="rubis"],[data-metal="legendaire"]) #cashHud .chV i.mOr{animation:mAura 2.2s ease-in-out infinite}
-html:is([data-metal="emeraude"],[data-metal="rubis"],[data-metal="legendaire"]) #cashHud .chV i.mOr.pop{animation:mOrPop .32s cubic-bezier(.2,1.6,.4,1),mAura 2.2s ease-in-out infinite}
-@keyframes mAura{0%,100%{filter:drop-shadow(0 0 6px var(--mH)) drop-shadow(0 0 14px var(--mH))}50%{filter:drop-shadow(0 0 10px var(--mH)) drop-shadow(0 0 26px var(--mH)) brightness(1.12)}}
-html:is([data-metal="emeraude"],[data-metal="rubis"],[data-metal="legendaire"]) :is(#cashHud .chV span,#gCompteur b,#mBankV,#moneyTxt){
-  filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 0 12px var(--mH)) drop-shadow(0 0 26px var(--mH))!important}
-@keyframes mRgb{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){html #cashHud .chV i.mOr,html #cashHud .chV i.mOr::before{animation:none!important}}
-/* LA VRAIE PIÈCE 3D AUX GRANDES PLACES (2026-11-07, Léo : « en jeu, c'est pas les mêmes pièces ») : au compte du garage et sur l'écran de
-   mort, le glyphe plat de la police est effacé (police « CC Vide » : U+E000 sans trait ni largeur) et remplacé par l'image vernie du palier. */
-@font-face{font-family:'CC Vide';src:url('./assets/fonts/monnaie-vide.woff2') format('woff2');unicode-range:U+E000}
-html #gCompteur b{font-family:'CC Vide','Press Start 2P',monospace!important;white-space:nowrap!important}
-html #gCompteur b::before{content:'';display:inline-block;vertical-align:-.28em;width:1.5em;height:1.3em;margin-right:.15em;
-  background:var(--mImg) center/contain no-repeat;-webkit-background-clip:border-box;background-clip:border-box}
-html body #mob #mDead.m5 .mCashL>b#mCash>.m6X{font-family:'CC Vide','Press Start 2P',monospace!important;display:inline-block;vertical-align:-.12em;width:1.25em;height:1.1em;margin:0 .08em;
-  background:var(--mImg) center/contain no-repeat!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;animation:none!important}
-/* DES CHIFFRES D'UNE SEULE COULEUR (2026-11-07, Léo : « les numéros doivent être unicolores, adaptés à leur métal ou pierre précieuse,
-   flashy mais solides : euro argent, centime bronze… ») : plus de dégradé en bandes, la couleur PLEINE du palier ; le relief (corps
-   extrudé, contour d'encre) et l'aura restent. Le légendaire passe d'une couleur pleine à l'autre (RGB). Cette règle vient en dernier et gagne. */
-html{--mC:#ec9440}
-html[data-metal="euro"]{--mC:#eef2fa}
-html[data-metal="or"]{--mC:#ffcf1f}
-html[data-metal="emeraude"]{--mC:#22f07f}
-html[data-metal="rubis"]{--mC:#ff2a4d}
-html[data-metal="legendaire"]{--mC:#ff5adf}
-html[data-metal] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal] body #mob #mDead.m5 .mCashL>b#mCash::before{
-  background:none!important;color:var(--mC)!important;-webkit-text-fill-color:var(--mC)!important;animation:none}
-html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash::before{animation:mRgbTxt 2.4s linear infinite!important}
-html[data-metal="legendaire"] #gCompteur b{animation:mRgbTxt 2.4s linear infinite,mFlotte 3.6s ease-in-out infinite!important}
-html[data-metal] #gCompteur b{animation:mFlotte 3.6s ease-in-out infinite}
-@keyframes mRgbTxt{0%,100%{color:#ff5adf;-webkit-text-fill-color:#ff5adf}17%{color:#ff4d4d;-webkit-text-fill-color:#ff4d4d}33%{color:#ffc02e;-webkit-text-fill-color:#ffc02e}50%{color:#3dff8a;-webkit-text-fill-color:#3dff8a}67%{color:#33d6ff;-webkit-text-fill-color:#33d6ff}83%{color:#8f6bff;-webkit-text-fill-color:#8f6bff}}
-html #moneyTxt .cts{-webkit-text-fill-color:var(--mC);color:var(--mC)}
-@media (prefers-reduced-motion:reduce){html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){animation:none!important}}
-/* L'EURO EN VRAI ARGENT (2026-11-07, Léo : « l'euro est ignoble, vraies lettres argentées brillantes, nettes ») : du chrome à bandes
-   franches (blanc, gris clair, la ligne d'horizon sombre, le reflet du bas), corps extrudé gris acier — plus le blanc plat ni l'or. */
-html[data-metal="euro"]{--mX:#3c4356;--mH:rgba(220,230,255,.45)}
-html[data-metal="euro"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="euro"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="euro"] body #mob #mDead.m5 .mCashL>b#mCash::before{
-  background:linear-gradient(180deg,#ffffff 0 30%,#dfe4ec 30% 52%,#8e97aa 52% 70%,#f2f5fa 70% 84%,#c3cad8 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-/* LE BRONZE ET L'OR BRILLANTS (2026-11-07, Léo : « le bronze / l'or pas assez brillants ») : même métal net que l'euro, à bandes franches. */
-html[data-metal="centime"]{--mX:#4a2208;--mH:rgba(240,150,70,.5)}
-html[data-metal="centime"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="centime"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="centime"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(180deg,#fff2dc 0 30%,#f4a654 30% 52%,#8a4612 52% 70%,#ffcf94 70% 84%,#c8702a 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-html[data-metal="or"]{--mX:#6a3a00;--mH:rgba(255,205,60,.6)}
-html[data-metal="or"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="or"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="or"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(180deg,#fffce6 0 30%,#ffd51f 30% 52%,#b06a00 52% 70%,#ffeb8a 70% 84%,#e59c00 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-html:not([data-metal]) :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){background:linear-gradient(180deg,#fff2dc 0 30%,#f4a654 30% 52%,#8a4612 52% 70%,#ffcf94 70% 84%,#c8702a 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-/* LE LÉGENDAIRE = UNE PIÈCE RGB DANS UNE FLAMME RGB (2026-11-07, Léo : « le dernier, juste une pièce RGB avec une flamme RGB ») :
-   la pièce arc-en-ciel pleine, une flamme qui danse derrière, et le tout passe par toutes les teintes. */
-html[data-metal="legendaire"] #cashHud .chV i.mOr{position:relative;background:none!important;animation:mAura 2.2s ease-in-out infinite,mRgb 2.4s linear infinite}
-html[data-metal="legendaire"] #cashHud .chV i.mOr::after{content:'';position:absolute;inset:0;background:url('./assets/monnaie/sym-legendaire.png') center/contain no-repeat}
-html[data-metal="legendaire"] #cashHud .chV i.mOr.pop{animation:mOrPop .32s cubic-bezier(.2,1.6,.4,1),mRgb 2.4s linear infinite}
-/* (2026-11-07, Léo : « enlève la flamme RGB pour l'instant ») la flamme (assets/monnaie/flamme-rgb.png) est retirée de l'écran */
-@keyframes mRgb{from{filter:drop-shadow(0 0 8px var(--mH)) hue-rotate(0deg)}to{filter:drop-shadow(0 0 8px var(--mH)) hue-rotate(360deg)}}
-html[data-metal="legendaire"] #gCompteur b::before{animation:mRgbSeul 2.4s linear infinite}
-@keyframes mRgbSeul{from{filter:hue-rotate(0deg)}to{filter:hue-rotate(360deg)}}
-/* LES CHIFFRES DES PIERRES ET DU LÉGENDAIRE (2026-11-07, Léo : « les numéros pareil ») : le même métal net à bandes franches que l'euro,
-   le bronze et l'or ; le légendaire tourne dans toutes les teintes. */
-html[data-metal="emeraude"]{--mX:#053a1c}
-html[data-metal="emeraude"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="emeraude"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="emeraude"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(180deg,#eafff2 0 30%,#2bf08a 30% 52%,#0a7a40 52% 70%,#9affc8 70% 84%,#18b85e 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-html[data-metal="rubis"]{--mX:#40000c}
-html[data-metal="rubis"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="rubis"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="rubis"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(180deg,#ffe8ec 0 30%,#ff3355 30% 52%,#8a0018 52% 70%,#ff9aaa 70% 84%,#d0102e 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-html[data-metal="legendaire"]{--mX:#3a0828}
-html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(180deg,#fff0f4 0 30%,#ff3b8a 30% 52%,#7a1050 52% 70%,#ffa0cc 70% 84%,#e0206e 84% 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){animation:mRgbChiffres 2.4s linear infinite!important}
-html[data-metal="legendaire"] #gCompteur b{animation:mRgbChiffres 2.4s linear infinite,mFlotte 3.6s ease-in-out infinite!important}
-@keyframes mRgbChiffres{from{filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 0 12px var(--mH)) drop-shadow(0 0 26px var(--mH)) hue-rotate(0deg)}to{filter:drop-shadow(0 2px 0 var(--mX)) drop-shadow(0 2px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 0 12px var(--mH)) drop-shadow(0 0 26px var(--mH)) hue-rotate(360deg)}}
-/* UNE SEULE COULEUR + UN REFLET (2026-11-07, Léo : « les numéros d'une seule couleur, des reflets stylés si besoin, mais pas de bande
-   blanche ») : la couleur pleine du palier et, toutes les 3,5 s, un reflet étroit (la couleur éclaircie, jamais blanc) qui traverse en biais. */
-html[data-metal="centime"]{--mC:#e98a3a}
-html[data-metal="centime"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="centime"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="centime"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(110deg,var(--mC) 0 42%,color-mix(in srgb,var(--mC) 40%,#fff) 50%,var(--mC) 58% 100%) 0 0/300% 100%!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-html[data-metal="euro"]{--mC:#c9d1df}
-html[data-metal="euro"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="euro"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="euro"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(110deg,var(--mC) 0 42%,color-mix(in srgb,var(--mC) 40%,#fff) 50%,var(--mC) 58% 100%) 0 0/300% 100%!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-html[data-metal="or"]{--mC:#ffc81a}
-html[data-metal="or"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="or"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="or"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(110deg,var(--mC) 0 42%,color-mix(in srgb,var(--mC) 40%,#fff) 50%,var(--mC) 58% 100%) 0 0/300% 100%!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-html[data-metal="emeraude"]{--mC:#1fe07a}
-html[data-metal="emeraude"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="emeraude"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="emeraude"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(110deg,var(--mC) 0 42%,color-mix(in srgb,var(--mC) 40%,#fff) 50%,var(--mC) 58% 100%) 0 0/300% 100%!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-html[data-metal="rubis"]{--mC:#ff2448}
-html[data-metal="rubis"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="rubis"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="rubis"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(110deg,var(--mC) 0 42%,color-mix(in srgb,var(--mC) 40%,#fff) 50%,var(--mC) 58% 100%) 0 0/300% 100%!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-html[data-metal="legendaire"]{--mC:#ff3b8a}
-html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal="legendaire"] body #mob #mDead.m5 .mCashL>b#mCash::before{background:linear-gradient(110deg,var(--mC) 0 42%,color-mix(in srgb,var(--mC) 40%,#fff) 50%,var(--mC) 58% 100%) 0 0/300% 100%!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-html[data-metal] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u){animation:mReflet 2.8s ease-in-out infinite}
-html[data-metal] #gCompteur b{animation:mReflet 2.8s ease-in-out infinite,mFlotte 3.6s ease-in-out infinite}
-html[data-metal="legendaire"] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){animation:mReflet 2.8s ease-in-out infinite,mRgbChiffres 2.4s linear infinite!important}
-html[data-metal="legendaire"] #gCompteur b{animation:mReflet 2.8s ease-in-out infinite,mRgbChiffres 2.4s linear infinite,mFlotte 3.6s ease-in-out infinite!important}
-@keyframes mReflet{0%,60%{background-position:100% 0}100%{background-position:0 0}}
-@media (prefers-reduced-motion:reduce){html[data-metal] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){animation:none!important}}
-/* L'EURO : chiffres ARGENT cerclés d'OR (2026-11-07, Léo : « les numéros argentés ne vont pas avec, fais des contours dorés ») — comme la
-   pièce : cœur d'argent, couronne d'or. */
-html[data-metal="euro"] body.touch.play #cashHud .chV span,html[data-metal="euro"] body #cashHud .chV span,html[data-metal="euro"] body #gCompteur b,html[data-metal="euro"] body #moneyTxt,html[data-metal="euro"] body #gBqArg,html[data-metal="euro"] body #mBankV,html[data-metal="euro"] body #mob #mDead.m5 .mCashL>b#mCash{filter:drop-shadow(0 2px 0 #6a4300) drop-shadow(0 2px 0 #6a4300) drop-shadow(2px 0 0 #f2b630) drop-shadow(-2px 0 0 #f2b630) drop-shadow(0 2px 0 #f2b630) drop-shadow(0 -2px 0 #f2b630) drop-shadow(1px 0 0 #3a2400) drop-shadow(-1px 0 0 #3a2400) drop-shadow(0 1px 0 #3a2400) drop-shadow(0 -1px 0 #3a2400) drop-shadow(0 0 10px rgba(255,200,70,.45))!important}
-/* PLUS DE RELIEF, PLUS JUICY, EN RESTANT LÉGER (2026-11-07, Léo : « les chiffres de l'argent : la police pixel, mais 3D stylée, optimisée, rendu
-   juicy ») : corps extrudé plus épais (4 px de la teinte sombre du métal + l'ombre d'encre dessous), reflet plus vif et plus fréquent.
-   OPTIMISÉ : en course, le reflet ne court pas (le compteur ne se repeint que quand le montant change) ; seul le légendaire garde sa teinte qui tourne. */
-html[data-metal]:not([data-metal="euro"]) body.touch.play #cashHud .chV span,html[data-metal]:not([data-metal="euro"]) body #cashHud .chV span,html[data-metal]:not([data-metal="euro"]) body #gCompteur b,html[data-metal]:not([data-metal="euro"]) body #moneyTxt,html[data-metal]:not([data-metal="euro"]) body #mBankV,html[data-metal]:not([data-metal="euro"]) body #mob #mDead.m5 .mCashL>b#mCash{filter:drop-shadow(0 1px 0 var(--mX)) drop-shadow(0 1px 0 var(--mX)) drop-shadow(0 1px 0 var(--mX)) drop-shadow(0 1px 0 var(--mX)) drop-shadow(2px 0 0 var(--jInk,#1c0430)) drop-shadow(-2px 0 0 var(--jInk,#1c0430)) drop-shadow(0 2px 0 var(--jInk,#1c0430)) drop-shadow(0 -2px 0 var(--jInk,#1c0430)) drop-shadow(0 3px 0 var(--jInk,#1c0430)) drop-shadow(0 0 10px var(--mH))!important}
-html[data-metal] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash){--reflet:color-mix(in srgb,var(--mC) 40%,#fff)}
-@keyframes mReflet{0%,55%{background-position:100% 0}100%{background-position:0 0}}
-html[data-metal] body.play #cashHud .chV span{animation:none!important}
-html[data-metal="legendaire"] body.play #cashHud .chV span{animation:mRgbChiffres 2.4s linear infinite!important}
-/* DES FACETTES (2026-11-07, Léo : « plus de facettes peut-être ») : chaque chiffre est taillé comme une pierre, trois faces de LA MÊME
-   couleur (claire en haut, pleine au milieu, sombre en bas) en coupes nettes, et le reflet passe par-dessus. */
-html[data-metal][data-metal] :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),html[data-metal][data-metal] body #mob #mDead.m5 .mCashL>b#mCash>.m6D>:is(i,u),html[data-metal][data-metal] body #mob #mDead.m5 .mCashL>b#mCash::before{
-  background:linear-gradient(110deg,transparent 0 42%,rgba(255,255,255,.5) 50%,transparent 58% 100%) 100% 0/300% 100%,linear-gradient(160deg,color-mix(in srgb,var(--mC) 72%,#fff) 0 36%,var(--mC) 36% 62%,color-mix(in srgb,var(--mC) 78%,#000) 62% 100%) 0 0/100% 100%!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important}
-@keyframes mReflet{0%,55%{background-position:100% 0,0 0}100%{background-position:0 0,0 0}}
 </style>
