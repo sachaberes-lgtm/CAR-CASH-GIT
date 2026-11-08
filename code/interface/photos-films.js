@@ -91,13 +91,18 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   const W=PHOTO_W,H=PHOTO_H,SS=PHOTO_SS,RW=W*SS,RH=H*SS;
   photoStudio();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
-  if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin) — (2026-10-16) en RAFALE, posée une fois par photoRafale
+  /* LA RONDE (2026-11-08, Sacha : « la rotation des voitures est saccadée ») : les 24 poses de la fenêtre d'achat (shopTourne) sont la MÊME caisse vue sous 24 azimuts —
+     la rebâtir à chaque pose (100 à 140 ms, MESURÉ au banc : l'essentiel d'une pose) faisait un à-coup toutes les 150 ms. `rd` : la ronde en cours pour cette caisse ;
+     `saute` : la caisse montée par la pose d'avant est encore là, intacte (mêmes pièces, une reconstruction en aurait de neuves) — on ne la rebâtit pas, et on ne la
+     remet pas non plus : photoRondeFin rend la caisse d'avant UNE fois, à la fin. */
+  const rd=(az9!=null&&!aile&&PHOTO.ronde&&PHOTO.ronde.i===i)?PHOTO.ronde:null,saute=!!(rd&&rd.kids&&rd.kids.length===carGroup.children.length&&rd.kids.every(function(o,k){return o===carGroup.children[k];}));
+  if(!PHOTO.chaine&&!rd)PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin) — (2026-10-16) en RAFALE, posée une fois par photoRafale
   PHOTO_USINE=!(aile&&aile.avec); /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) — (2026-11-07) sauf la caisse du JOUEUR qui porte une aile (aile.avec) : sa peinture à lui */
   const sig9=phdbSig();let url=null,asy=false;
   try{
     if(aile&&aile.peint){const pv=SHOP.prev;SHOP.prev={cat:'peinture',i:aile.j};try{buildCar(CARS[i]);}finally{SHOP.prev=pv;}aile=null;} /* (2026-11-07, Sacha : « les peintures en boule, c'est nul, trouve autre chose ») LA CAISSE DU JOUEUR DANS UNE PEINTURE (boutique-peinture.js, bqPeintFile) : la même photo qu'une caisse du catalogue (son angle, son reflet), sous SA clé */
     else if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
-    else buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
+    else if(!saute)buildCar(CARS[i]);if(rd){rd.kids=carGroup.children.slice();rd.sale=true;}T9.caisse=performance.now()-T9.t0;
     PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile){photoAiles();if(!aile.avec)photoSeulesAiles();} /* (2026-11-07, Sacha : « présente correctement les ailes avec la voiture du joueur ») aile.avec : la caisse reste, elle porte l'aile (boutique-classique.js, bcAileFile) */
     carGroup.updateMatrixWorld(true);
     // LA BOÎTE de ce qu'on voit (maillages visibles seulement : les halos cachés gonfleraient le cadre)
@@ -155,12 +160,16 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   }catch(e){console.warn('photo',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
   PHOTO_USINE=false; /* la caisse qu'on rend après la photo reprend sa peinture */
   if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
-  if(!PHOTO.chaine){const av=PHOTO.avant;buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);} // on rend la caisse qu'on regardait (au garage : la feuilletée) — (2026-10-16) en RAFALE, photoRafale la rend une fois à la fin
+  if(!PHOTO.chaine&&!rd){const av=PHOTO.avant;buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);} // on rend la caisse qu'on regardait (au garage : la feuilletée) — (2026-10-16) en RAFALE, photoRafale la rend une fois à la fin
   T9.total=performance.now()-T9.t0;
   if(url)PHOTO.cache[ck]=url;
   if(cb&&!asy)cb(url);
   return url;
 }
+function photoRonde(i){const o=PHOTO.ronde; /* ouvre la ronde de la caisse i : retient la caisse qu'on regardait (celle d'une ronde encore ouverte, si l'on enchaîne deux fenêtres) */
+  return PHOTO.ronde={i:i,av:o?o.av:carGroup.userData.lvl,kids:null,sale:o?o.sale:false};}
+function photoRondeFin(r){if(!r||PHOTO.ronde!==r)return; /* la ronde est finie (ou la fenêtre fermée) : la caisse d'avant revient, une seule fois */
+  PHOTO.ronde=null;if(!r.sale)return;const av=r.av;try{buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);}catch(e){console.warn('photoRondeFin',e);}}
 window.dbgAiles=function(id){ /* (banc, 2026-10-16, LES AILES VIVANTES) porter une aile et compter ce qui BOUGE : groupes animés, pièces animées, groupes VIDÉS (la soudure ne doit en vider aucun) */
   if(id)window.dbgHab('aile',id);const L=[];
   for(const w of [carWingL,carWingR]){if(!w)continue;let gb=0,pb=0,vides=0,maillages=0;w.traverse(function(o){if(o.isMesh)maillages++;if(o!==w&&o.userData.bouge){if(o.isGroup){gb++;if(!o.children.length)vides++;}else pb++;}});L.push({enfants:w.children.length,maillages:maillages,groupes:gb,pieces:pb,vides:vides});}

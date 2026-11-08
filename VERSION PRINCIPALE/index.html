@@ -2494,9 +2494,7 @@ body.touch #overlay[data-ecran="dead"]::before{opacity:.9}
   background:radial-gradient(90% 60% at 50% 42%,rgba(255,62,200,.30),transparent 70%),var(--matrice),linear-gradient(180deg,#221044,#0d0820)}
 .shPhoto{position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:36/20}
 .shPhoto::before{content:'';position:absolute;left:4%;right:4%;top:18%;bottom:4%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,62,200,.24),transparent)} /* (2026-09-30) plus de barre rose sous la caisse : une lueur large, derrière (l'ombre et le reflet sont dans la photo) */
-.shPhoto.big::after{content:'';position:absolute;left:50%;top:55%;width:130%;aspect-ratio:1;translate:-50% -50%;z-index:-1;
-  background:repeating-conic-gradient(from 0deg,rgba(255,62,200,.16) 0 6deg,transparent 6deg 18deg);-webkit-mask:radial-gradient(closest-side,#000 25%,transparent 72%);mask:radial-gradient(closest-side,#000 25%,transparent 72%);
-  animation:k4Rayons 40s linear infinite}
+/* (2026-11-08, Sacha : « enlève les barres en forme de cercle derrière ») les rayons tournants derrière la caisse de la fenêtre d'achat sont retirés (@keyframes k4Rayons reste : l'offre à la une en a besoin) */
 .shPhoto.big{isolation:isolate}
 @keyframes k4Rayons{0%{rotate:0deg}100%{rotate:360deg}}
 .shPhoto img{position:relative;width:112%;max-width:none;height:auto;animation:k4Flotte 2.4s var(--ease) infinite alternate}
@@ -2980,7 +2978,7 @@ body.voletSort .mscr.on,body.voletSort .mscr.on>*,body.voletSort #mDead.on>.mOve
 
 /* ============================================ « RÉDUIRE LES ANIMATIONS » =========================================== */
 @media (prefers-reduced-motion:reduce){
-  .pb-gold,#tPanel .tp.go,.mscr.on>.mPlay,.mBadge.on,.shUne,.mObj.pret,.mObj.rec,#gCompteur .pxi,.mChev .pxi,.gT .gTv,.shPhoto img,.hMot3 .hMotCv,.shPhoto.big::after,#gEclat.on,#mDead .mCashL b.clac{animation:none!important}
+  .pb-gold,#tPanel .tp.go,.mscr.on>.mPlay,.mBadge.on,.shUne,.mObj.pret,.mObj.rec,#gCompteur .pxi,.mChev .pxi,.gT .gTv,.shPhoto img,.hMot3 .hMotCv,#gEclat.on,#mDead .mCashL b.clac{animation:none!important}
   .mscr.on,.mscr.on.avant,.mscr.on.retour{animation:k4Voile var(--t-fast) linear both!important}
   .mscr.on>*,#mDead.on>.mOver{animation:none!important}
   #wipe::before{display:none}
@@ -4625,6 +4623,9 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--neoM) 60%,transparent)}
 .spCarte .shPhoto{margin:0 -8px}
 .spCarte .shPhoto img{width:108%}
+.spCarte .shPhoto canvas.spTour{position:relative;width:108%;max-width:none;height:auto;animation:k4Flotte 2.4s var(--ease) infinite alternate} /* la ronde (shopTourne) : la toile dessine la pose et son fondu — même cadre, même flottement que la photo fixe qu'elle remplace */
+html[data-palier="0"] .spCarte .shPhoto canvas.spTour,html[data-palier="1"] .spCarte .shPhoto canvas.spTour,html[data-reduced-motion="1"] .spCarte .shPhoto canvas.spTour{animation:none}
+@media (prefers-reduced-motion:reduce){.spCarte .shPhoto canvas.spTour{animation:none}}
 .spNom{font-family:var(--pix);font-weight:400;font-size:var(--f6);line-height:1.4;letter-spacing:1px;color:var(--tx);
   text-shadow:0 3px 0 var(--txO),0 0 16px rgba(255,62,200,.45)}
 .spDesc{font-family:var(--pix);font-size:var(--f1);line-height:1.7;font-weight:400;color:var(--tx2)}
@@ -4644,6 +4645,7 @@ html[data-reduced-motion="1"] body.touch #airPie,html[data-reduced-motion="1"] b
 /* ACHETER touché : la plaque s'éteint le temps de la réponse ; « bientôt » : la note le dit, en ambre */
 #shPop.attend .spOui{opacity:.7}
 #shPop.refus .spNote{color:var(--neoA)}
+.spNote:empty{display:none} /* rien à dire sous les plaques : pas de place réservée (le refus de l'achat remplit la note) */
 /* COUCHÉ (le cadre de l'ordi, 844 × 390) : la photo à gauche, la décision à droite, les deux plaques côte à côte */
 @media (orientation:landscape) and (max-height:540px){
   .spCarte{max-width:700px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);column-gap:18px;row-gap:8px;align-items:start;
@@ -53546,13 +53548,18 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   const W=PHOTO_W,H=PHOTO_H,SS=PHOTO_SS,RW=W*SS,RH=H*SS;
   photoStudio();
   const par=carGroup.parent,pos=carGroup.position.clone(),rot=carGroup.rotation.clone(),sc=carGroup.scale.clone(),vis=carGroup.visible;
-  if(!PHOTO.chaine)PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin) — (2026-10-16) en RAFALE, posée une fois par photoRafale
+  /* LA RONDE (2026-11-08, Sacha : « la rotation des voitures est saccadée ») : les 24 poses de la fenêtre d'achat (shopTourne) sont la MÊME caisse vue sous 24 azimuts —
+     la rebâtir à chaque pose (100 à 140 ms, MESURÉ au banc : l'essentiel d'une pose) faisait un à-coup toutes les 150 ms. `rd` : la ronde en cours pour cette caisse ;
+     `saute` : la caisse montée par la pose d'avant est encore là, intacte (mêmes pièces, une reconstruction en aurait de neuves) — on ne la rebâtit pas, et on ne la
+     remet pas non plus : photoRondeFin rend la caisse d'avant UNE fois, à la fin. */
+  const rd=(az9!=null&&!aile&&PHOTO.ronde&&PHOTO.ronde.i===i)?PHOTO.ronde:null,saute=!!(rd&&rd.kids&&rd.kids.length===carGroup.children.length&&rd.kids.every(function(o,k){return o===carGroup.children[k];}));
+  if(!PHOTO.chaine&&!rd)PHOTO.avant=carGroup.userData.lvl; // la caisse montée avant la photo (voir la fin) — (2026-10-16) en RAFALE, posée une fois par photoRafale
   PHOTO_USINE=!(aile&&aile.avec); /* (2026-11-02) la caisse photographiée en teinte D'ORIGINE (voir cosm) — (2026-11-07) sauf la caisse du JOUEUR qui porte une aile (aile.avec) : sa peinture à lui */
   const sig9=phdbSig();let url=null,asy=false;
   try{
     if(aile&&aile.peint){const pv=SHOP.prev;SHOP.prev={cat:'peinture',i:aile.j};try{buildCar(CARS[i]);}finally{SHOP.prev=pv;}aile=null;} /* (2026-11-07, Sacha : « les peintures en boule, c'est nul, trouve autre chose ») LA CAISSE DU JOUEUR DANS UNE PEINTURE (boutique-peinture.js, bqPeintFile) : la même photo qu'une caisse du catalogue (son angle, son reflet), sous SA clé */
     else if(aile){const pv=SHOP.prev;SHOP.prev={cat:'aile',i:aile.j};try{buildCar(CARS[i]);if(!carWingL&&i)buildCar(CARS[0]);}finally{SHOP.prev=pv;}} // une caisse sans ailes (gabarit `none`) : la 1re de la gamme les porte
-    else buildCar(CARS[i]);T9.caisse=performance.now()-T9.t0;
+    else if(!saute)buildCar(CARS[i]);if(rd){rd.kids=carGroup.children.slice();rd.sale=true;}T9.caisse=performance.now()-T9.t0;
     PHOTO.scene.add(carGroup);carGroup.position.set(0,0,0);carGroup.rotation.set(0,PHOTO_ROT,0);carGroup.scale.set(1,1,1);carGroup.visible=true;photoPropre();if(aile){photoAiles();if(!aile.avec)photoSeulesAiles();} /* (2026-11-07, Sacha : « présente correctement les ailes avec la voiture du joueur ») aile.avec : la caisse reste, elle porte l'aile (boutique-classique.js, bcAileFile) */
     carGroup.updateMatrixWorld(true);
     // LA BOÎTE de ce qu'on voit (maillages visibles seulement : les halos cachés gonfleraient le cadre)
@@ -53610,12 +53617,16 @@ function carPhoto(i,cb,aile,az9){ /* (2026-10-25) az9 : une pose de la VUE GARAG
   }catch(e){console.warn('photo',e);if(asy&&PHOTO.att)delete PHOTO.att[ck];asy=false;}
   PHOTO_USINE=false; /* la caisse qu'on rend après la photo reprend sa peinture */
   if(par)par.add(carGroup);carGroup.position.copy(pos);carGroup.rotation.copy(rot);carGroup.scale.copy(sc);carGroup.visible=vis;
-  if(!PHOTO.chaine){const av=PHOTO.avant;buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);} // on rend la caisse qu'on regardait (au garage : la feuilletée) — (2026-10-16) en RAFALE, photoRafale la rend une fois à la fin
+  if(!PHOTO.chaine&&!rd){const av=PHOTO.avant;buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);} // on rend la caisse qu'on regardait (au garage : la feuilletée) — (2026-10-16) en RAFALE, photoRafale la rend une fois à la fin
   T9.total=performance.now()-T9.t0;
   if(url)PHOTO.cache[ck]=url;
   if(cb&&!asy)cb(url);
   return url;
 }
+function photoRonde(i){const o=PHOTO.ronde; /* ouvre la ronde de la caisse i : retient la caisse qu'on regardait (celle d'une ronde encore ouverte, si l'on enchaîne deux fenêtres) */
+  return PHOTO.ronde={i:i,av:o?o.av:carGroup.userData.lvl,kids:null,sale:o?o.sale:false};}
+function photoRondeFin(r){if(!r||PHOTO.ronde!==r)return; /* la ronde est finie (ou la fenêtre fermée) : la caisse d'avant revient, une seule fois */
+  PHOTO.ronde=null;if(!r.sale)return;const av=r.av;try{buildCar(CARS[(av!=null&&av>=0&&av<CARS.length)?av:equippedCar()]);}catch(e){console.warn('photoRondeFin',e);}}
 window.dbgAiles=function(id){ /* (banc, 2026-10-16, LES AILES VIVANTES) porter une aile et compter ce qui BOUGE : groupes animés, pièces animées, groupes VIDÉS (la soudure ne doit en vider aucun) */
   if(id)window.dbgHab('aile',id);const L=[];
   for(const w of [carWingL,carWingR]){if(!w)continue;let gb=0,pb=0,vides=0,maillages=0;w.traverse(function(o){if(o.isMesh)maillages++;if(o!==w&&o.userData.bouge){if(o.isGroup){gb++;if(!o.children.length)vides++;}else pb++;}});L.push({enfants:w.children.length,maillages:maillages,groupes:gb,pieces:pb,vides:vides});}
@@ -53887,7 +53898,7 @@ function shopRender(){
    L'ACHAT passe par l'App Store (StoreKit, avec le compte développeur) : `shopPaye(i)` est la SEULE porte à brancher — elle rend une
    promesse tenue quand Apple a encaissé, et alors seulement `shopDonne(i)` pose la caisse. Tant qu'elle n'est pas branchée, ACHETER
    le DIT dans la fenêtre (« BIENTÔT DISPONIBLE ») et ne donne jamais rien. Déjà à toi : ÉQUIPER (l'atelier s'ouvre sur elle). */
-Object.assign(I18N,{"ÉQUIPER":"EQUIP","Achat unique, via ton compte App Store. À toi pour toujours.":"One-time purchase through your App Store account. Yours forever.",
+Object.assign(I18N,{"ÉQUIPER":"EQUIP",
   "Elle t'attend à l'atelier.":"It's waiting for you in the garage.","Les achats ouvriront à la sortie sur l'App Store.":"Purchases open when the game launches on the App Store.","INDISPONIBLE":"UNAVAILABLE","L'achat est indisponible pour le moment.":"Buying is unavailable right now."});
 const SPOP={el:null,src:null,i:-1,t:0};
 function shopPaye(cle){return achatsPaye(cle);} /* (2026-11-07, achats App Store) `cle` = l'index d'une caisse OU 'peinture:<id>' ; LA porte de StoreKit, branchée dans achats-store.js sur window.ccAchat : la promesse n'est tenue QUE quand Apple a encaissé (sans l'app : rejet 'storekit') — jamais avant */
@@ -53946,7 +53957,7 @@ function shopPop(src){
        :'<div class="spPrix">'+'<em>'+prixTxt(i,u.eur)+'</em></div>')
     +'<div class="spBtns"><div class="pbtn pb-gold spOui" role="button" data-sp="oui">'+pxi(a?'coche':'panier')+'<span>'+sansAcc(TR(a?'ÉQUIPER':'ACHETER'))+'</span></div>'
     +'<div class="pbtn pb-cyan spNon" role="button" data-sp="non">'+pxi('gauche')+'<span>'+TR('ANNULER')+'</span></div></div>'
-    +'<small class="spNote">'+TR(a?"Elle t'attend à l'atelier.":"Achat unique, via ton compte App Store. À toi pour toujours.")+'</small></div>';
+    +'<small class="spNote">'+(a?TR("Elle t'attend à l'atelier."):'')+'</small></div>'; /* (2026-11-08, Sacha : « enlève la ligne achat unique via compte Apple Store ») rien sous les plaques tant que la caisse n'est pas à toi (la note vide se cache ; le refus de l'achat la remplit) */
   el.setAttribute('aria-labelledby','spNom');
   // LA CARTE SORT DE LA PAGE : mesurée à sa place, puis au centre — le trajet se joue de l'une à l'autre
   const r=src.getBoundingClientRect();
@@ -53967,26 +53978,56 @@ function shopPopVise(r){ // pose --dx/--dy/--s : l'écart entre la vignette `r` 
 }
 /* LA VUE GARAGE (2026-10-25, Sacha : « quand on clique sur une voiture, il faut qu'elle se mette à tourner, qu'on la voie comme dans le garage ») :
    la photo de la fenêtre d'achat devient un plateau tournant — STN poses de la même caisse (carPhoto, 4e argument = l'azimut), prises une par une
-   entre deux images, cadrées pour tous les angles ; dès que la première est prête la caisse tourne (une pose manquante est sautée), et on peut
-   la faire pivoter au doigt / à la souris (elle reprend sa ronde au lâcher). Fermer la fenêtre arrête tout (le jeton SPOP.tour). */
-const STN=12;
+   entre deux images, cadrées pour tous les angles ; dès que la première est prête la caisse tourne, et on peut la faire pivoter au doigt / à la
+   souris (elle reprend sa ronde au lâcher). Fermer la fenêtre arrête tout (le jeton SPOP.tour).
+   LA RONDE FLUIDE (2026-11-08, Sacha : « la rotation des voitures est saccadée, il faut que ce soit fluide ») : douze poses (une tous les 30°) posées
+   tour à tour dans une <img> faisaient un SAUT toutes les 0,75 s. Désormais 32 poses (11°), prises en ordre ÉPARPILLÉ (0, 7, 14, 21, 28, 3… : même
+   incomplète, la ronde couvre tout le tour) et DESSINÉES dans une toile à chaque image : la pose d'avant et celle d'après se fondent l'une dans
+   l'autre selon l'angle exact (un fondu LINÉAIRE en alpha prémultiplié, « lighter » : la caisse ne devient jamais transparente à mi-chemin) ;
+   plus d'un cran de poses manquantes entre les deux : la plus proche, sans fondu. */
+const STN=32;
 function shopTourne(i,el){
   const host=el.querySelector('.shPhoto.big');if(!host)return;
-  const T=SPOP.tour={i:i,F:[],a:0,v:0,drag:null,shown:-1,t0:performance.now(),stop:false};
+  const P=2*Math.PI,W=PHOTO_W,H=PHOTO_H;
+  const T=SPOP.tour={i:i,I:[],n:0,a:0,v:0,drag:null,stop:false,cv:null,cx:null,cle:''};
   const vit=function(){return SPOP.tour===T&&!T.stop&&el.classList.contains('on');};
-  const az=function(k){return PHOTO_AZ+k*2*Math.PI/STN;};
-  let k=0;(function suite(){if(!vit()||k>=STN)return;const n=k++;try{carPhoto(i,function(u){if(u)T.F[n]=u;},null,az(n));}catch(e){}setTimeout(suite,90);})();
+  const az=function(k){return PHOTO_AZ+k*P/STN;};
+  const recoit=function(n,u){const im=new Image();im.onload=function(){if(!T.I[n])T.n++;T.I[n]=im;};im.src=u;}; /* la pose n'entre dans la ronde qu'une fois DÉCODÉE */
+  const ro=photoRonde(i);
+  let q=0;(function suite(){ /* les poses déjà gardées (2e ouverture) arrivent d'un coup ; une neuve se prend, puis on rend la main */
+    while(vit()&&q<STN){const n=(q++*7)%STN;let sync=false;
+      try{carPhoto(i,function(u){sync=true;if(u)recoit(n,u);},null,az(n));}catch(e){sync=false;}
+      if(!sync){setTimeout(suite,40);return;}}
+    photoRondeFin(ro); /* toutes prises, ou fenêtre fermée : la caisse d'avant revient */
+  })();
   host.style.touchAction='none';host.style.cursor='grab';
   host.addEventListener('pointerdown',function(e){T.drag={x:e.clientX,a:T.a};T.v=0;try{host.setPointerCapture(e.pointerId);}catch(_){}host.style.cursor='grabbing';});
   host.addEventListener('pointermove',function(e){if(!T.drag)return;const na=T.drag.a-(e.clientX-T.drag.x)*.012;T.v=(na-T.a);T.a=na;});
   const lache=function(){T.drag=null;host.style.cursor='grab';};
   host.addEventListener('pointerup',lache);host.addEventListener('pointercancel',lache);
   const calme=document.documentElement.getAttribute('data-reduced-motion')==='1';
+  const adopte=function(){ /* la toile prend la place de la photo fixe (et de la voiture d'attente), à la 1re pose prête */
+    const cv=T.cv=document.createElement('canvas');cv.width=W;cv.height=H;cv.className='spTour';cv.setAttribute('aria-hidden','true');T.cx=cv.getContext('2d');
+    const at=host.querySelector('.shAttente');if(at)at.remove();const im=host.querySelector('img');
+    host.insertBefore(cv,host.firstChild);if(im)im.remove();};
+  const dessine=function(){
+    const p=(((T.a%P)+P)%P)/(P/STN),b=Math.floor(p);let lo=-1,dl=0,hi=-1,dh=0; /* lo : la pose prête à l'instant ou juste avant ; hi : celle d'après */
+    for(let d=0;d<STN;d++){const k=((b-d)%STN+STN)%STN;if(T.I[k]){lo=k;dl=p-(b-d);break;}}
+    for(let d=0;d<STN;d++){const k=(b+1+d)%STN;if(T.I[k]){hi=k;dh=b+1+d-p;break;}}
+    if(lo<0)return;
+    const g=dl+dh;let A=lo,B=hi,w=0;
+    if(g<=2.01)w=dl/g;else if(dh<dl)A=hi; /* trop de poses manquantes : la plus proche, sans fondu */
+    const cle=A+':'+(w>0?B:'-')+':'+Math.round(w*400);if(cle===T.cle)return;T.cle=cle;
+    const cx=T.cx;cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,W,H);
+    cx.globalCompositeOperation='source-over';cx.globalAlpha=1-w;cx.drawImage(T.I[A],0,0,W,H);
+    if(w>0){cx.globalCompositeOperation='lighter';cx.globalAlpha=w;cx.drawImage(T.I[B],0,0,W,H);}
+    cx.globalAlpha=1;cx.globalCompositeOperation='source-over';};
   let t9=performance.now();
-  (function tour(t){if(!vit())return;const dt=Math.min(.05,(t-t9)/1000);t9=t;
-    if(!T.drag){if(Math.abs(T.v)>.002){T.a+=T.v;T.v*=.94;}else if(!calme)T.a+=dt*.7;} /* l'élan du lâcher, puis la ronde (un tour en 9 s) */
-    const P=2*Math.PI,n=Math.round(((T.a%P)+P)%P/(P/STN))%STN;let j=n;for(let d=0;d<STN;d++){const a=(n+d)%STN,b=(n-d+STN)%STN;if(T.F[a]){j=a;break;}if(T.F[b]){j=b;break;}}
-    if(T.F[j]&&j!==T.shown){T.shown=j;let im=host.querySelector('img');if(!im){const at=host.querySelector('.shAttente');if(at)at.remove();im=document.createElement('img');im.alt='';host.insertBefore(im,host.firstChild);}if(im.src!==T.F[j])im.src=T.F[j];}
+  (function tour(t){if(!vit()){T.I.length=0;T.cv=null;T.cx=null;return;} /* fermée : les poses décodées sont lâchées */
+    const dt=Math.min(.05,(t-t9)/1000);t9=t;
+    if(!T.drag){if(Math.abs(T.v)>.002){T.a+=T.v*dt*60;T.v*=Math.pow(.94,dt*60);}else if(!calme)T.a+=dt*.7;} /* l'élan du lâcher, puis la ronde (un tour en 9 s) */
+    if(!T.cv&&T.n>0)adopte();
+    if(T.cv)dessine();
     requestAnimationFrame(tour);})(t9);
 }
 function shopPopFerme(){
