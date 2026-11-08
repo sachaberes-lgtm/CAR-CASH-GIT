@@ -84882,6 +84882,21 @@ function goImmersive(){
     if(!W||!H)return;
     g.setTransform(S,0,0,S,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.fillStyle='#000';g.fillRect(0,0,W,H);
   }
+  function bouleInit(e){ /* (2026-11-08) sorti de dBoule pour pouvoir être fait AVANT le film (voir bouleChauffe) : les tableaux de la boule et ses vignettes en ImageBitmap */
+    const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=.8+Math.pow(Math.abs(e.py[i]),.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);e.pciL=new Uint8Array(e.n);e.pciP=[];
+    if(typeof createImageBitmap==='function')e.sprH.forEach(function(L,ci){L.forEach(function(cc,st){try{e.pciP.push(createImageBitmap(cc).then(function(b){if(e.sprH[ci][st]===cc)e.sprH[ci][st]=b;},function(){}));}catch(x){}});});
+  }
+  function bouleChauffe(fin){ /* (2026-11-08, Sacha : « pas de latence au lancement ») les 660 vignettes de la boule passent en ImageBitmap puis sont dessinées UNE fois (envoi à la carte graphique), dans le noir de l'attente : au film, plus d'envoi ni de conversion à la volée */
+    try{
+      const e=ETS.boule||(ETS.boule=geoLabSphere());if(!PCI_ON){fin();return;}if(!e.pciT0)bouleInit(e);
+      Promise.all(e.pciP||[]).then(function(){try{
+        if(lance||fini||casse){fin();return;}
+        g.setTransform(1,0,0,1,0,0);g.globalAlpha=.02;
+        e.sprH.forEach(function(L){L.forEach(function(sp9){g.drawImage(sp9,0,0,2,2);});});
+        g.globalAlpha=1;g.fillStyle='#000';g.fillRect(0,0,cv.width,cv.height);
+      }catch(x){}fin();},function(){fin();});
+    }catch(x){fin();}
+  }
   function dBoule(c,t,e){
     const dtf=bTP===null?0:borne(t-bTP,0,.1);bTP=t;
     if(!bDown){bYaw+=bVy*dtf;bPit+=bVp*dtf;const f=Math.exp(-dtf*2.5);bVy*=f;bVp*=f;bPit*=Math.exp(-dtf*.8);}
@@ -84900,8 +84915,7 @@ function goImmersive(){
     c.globalCompositeOperation='source-over';
     if(pasSon!==Math.floor(t*2.2)){pasSon=Math.floor(t*2.2);if(t>3&&tp===null&&pasSon%2===0){try{if(SON&&!filmMuet&&iAC&&SON.dr)SON.note(iAC.currentTime+.02,pasSon>>1);}catch(x){}}} /* une cloche tous les deux pas (le tempo de l'ancienne onde de couleurs) */
     if(PCI_ON){if(ea>0){ /* (passe perf PC, voir LE FILM SANS TRAVAIL REFAIT) le même dessin au bit près : mêmes expressions, même ordre (les points de derrière, puis ceux de devant, par i croissant) */
-      if(!e.pciT0){const T0=new Float64Array(e.n);for(let i=0;i<e.n;i++)T0[i]=.8+Math.pow(Math.abs(e.py[i]),.9)*3.2;e.pciT0=T0;e.pciQ=new Float64Array(e.n*4);e.pciZ=new Int8Array(e.n);e.pciL=new Uint8Array(e.n);
-        if(typeof createImageBitmap==='function')e.sprH.forEach(function(L,ci){L.forEach(function(cc,st){try{createImageBitmap(cc).then(function(b){if(e.sprH[ci][st]===cc)e.sprH[ci][st]=b;},function(){});}catch(x){}});});} /* les vignettes en ImageBitmap (mêmes pixels) dès qu'elles sont prêtes */
+      if(!e.pciT0)bouleInit(e); /* les vignettes en ImageBitmap (mêmes pixels) dès qu'elles sont prêtes */
       const T0=e.pciT0,Q=e.pciQ,Z=e.pciZ,LV=e.pciL,gr=1+.6*borne(s/.7,0,1);
       for(let i=0;i<e.n;i++){
         const k=borne((t-T0[i])/.55,0,1);if(k<=0){Z[i]=-1;continue;}
@@ -85435,6 +85449,7 @@ function goImmersive(){
   /* ---- LA BOUCLE, l'attente du toucher, et le lancement ---- */
   let TPS=[]; /* (banc) la durée de chaque étape de `prepare`, en ms */
   function etape(nom,f){const a=performance.now();f();TPS.push(nom+' '+(performance.now()-a).toFixed(1));}
+  let chauffeOk=false,chauffeEnCours=false; /* la chauffe de l'intro (son, boule) est-elle finie */
   let prepEn=''; /* la taille pour laquelle tout est prêt */
   function prepare(){ /* les ressources qui dépendent de la taille ; la police pixel pour le gros logo (apresPolice redessine quand elle est chargée) */
     TPS=[];SNAP=null;SNAPPIX=null;PCI_N.prepares++; /* (la photo du logo se refait à la nouvelle taille) */
@@ -85501,6 +85516,7 @@ function goImmersive(){
     if(lance||fini)return;
     try{if(!SPR.bl||prepEn!==W+'x'+H+'x'+S)prepare();}catch(e){}
     try{irPret();const b0=performance.now(),A=new OfflineAudioContext(2,4800,48000),r=construitSon(A,0,A.destination);r.suite();r.acte3();dSon=Math.min(.6,Math.max(.12,(performance.now()-b0)/1000*.8));}catch(e){} /* (la 1re construction est la plus lente : la marge en tient compte) */
+    if(!chauffeOk&&!chauffeEnCours){chauffeEnCours=true;bouleChauffe(function(){chauffeOk=true;});}else if(!chauffeEnCours)chauffeOk=true;
   }
   function kd(){if(!lance&&!fini)lancer(true);else if(lance&&performance.now()-tLance>600)passer();}
   function pose(e){try{const r=cv.getBoundingClientRect();TOUCH={x:e.clientX-r.left,y:e.clientY-r.top};}catch(x){TOUCH=null;}}
@@ -85539,10 +85555,21 @@ function goImmersive(){
      et du DOM : il part dès qu'elles sont là. L'attente se sonde toutes les 60 ms (au lieu de 250) et le premier essai tombe à 40 ms (au lieu de 500). `?depart=lent` = l'ancien départ (attend `load`). */
   const DEPART_LENT=/[?&]depart=lent\b/.test(location.search);
   const policeFilm=function(){try{return !document.fonts||document.fonts.check('44px "Press Start 2P"');}catch(e){return true;}}; /* SA police seule : les autres polices du jeu n'ont rien à faire dans le film */
+  /* ===== LE FILM NE PART QUE QUAND LA PAGE EST CALME (2026-11-08, Sacha : « les animations au lancement ont encore de la latence : ça peut charger plus longtemps au début, mais pas de latence ») =====
+     Le film partait 40 ms après le DOM, PENDANT que le jeu finissait de se construire dessous (décodage des images, polices, calcul du son) : chaque tâche longue faisait sauter une image de la boule.
+     Désormais il attend, derrière le noir et l'anneau de chargement : la page chargée (`load`), la chauffe du son et de la boule faite, puis 40 images de suite sans accroc (< 26 ms chacune). Plafond 14 s (réseau lent : on part quand même). `?calme=0` = l'ancien départ. */
+  const CALME_ON=!/[?&]calme=0/.test(location.search)&&!DEPART_LENT;
+  let calmeBons=0,calmePrec=0,calmeT0=performance.now();
+  if(CALME_ON){if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher/.test(location.search))window.__introCouvre=true; /* le jeu ne dessine rien derrière le noir pendant l'attente (sinon ses images lourdes empêchent la page d'être calme) */const echant=function(now){if(lance||fini)return;if(calmePrec&&!document.hidden&&now-calmePrec<26)calmeBons++;else calmeBons=0;calmePrec=document.hidden?0:now;requestAnimationFrame(echant);};requestAnimationFrame(echant);}
+  function pageCalme(){
+    if(!CALME_ON||performance.now()-calmeT0>14000)return true;
+    if(document.readyState!=='complete'||!chauffeOk)return false;
+    return calmeBons>=40;
+  }
   function essaiAuto(n){ /* attendre que le DOM soit prêt, la police du film chargée et la fenêtre visible */
     if(lance||fini)return;
     const dom=DEPART_LENT?document.readyState==='complete':document.readyState!=='loading';
-    if(document.hidden||!dom||(n<100&&!(DEPART_LENT?!(document.fonts&&document.fonts.status==='loading'):policeFilm()))||(n<58&&litEnCours&&!LIT)){setTimeout(function(){essaiAuto(n+1);},DEPART_LENT?250:60);return;}
+    if(document.hidden||!dom||!pageCalme()||(n<100&&!(DEPART_LENT?!(document.fonts&&document.fonts.status==='loading'):policeFilm()))||(n<58&&litEnCours&&!LIT)){setTimeout(function(){essaiAuto(n+1);},DEPART_LENT?250:60);return;}
     autoLance();
   }
   if(!DEMO&&!BALADE&&!SIMU_JEU&&!/[?&]depart=toucher\b/.test(location.search))setTimeout(function(){essaiAuto(0);},BOULE?(DEPART_LENT?500:40):1700); /* (?depart=toucher : l'ancien départ au toucher) */
@@ -85555,6 +85582,7 @@ function goImmersive(){
       if(casse&&!vuRev){vuRev=true;sp.id='';sp.style.cssText='position:fixed;inset:0;z-index:1000;display:block;pointer-events:none;overflow:hidden;background:transparent';} /* (banc) le voile transparent : on voit le jeu dessous */
       rendu(t);return{W:W,H:H,S:S};},
     mesure:function(){mesure();prepare();return{W:W,H:H,S:S,etapes:TPS};},
+    calme:function(){return{bons:calmeBons,chauffeIntro:chauffeOk,rs:document.readyState,ms:Math.round(performance.now()-calmeT0)};}, /* (2026-11-08) pourquoi le film attend encore */
     labels:Object.keys(LABELS),
     boule:function(o){if(o.pret!==undefined)pretT=o.pret;if(o.tap!==undefined)tapT=o.tap;}, /* (banc) l'instant où c'est prêt / où l'on appuie */
     toucher:function(x,y){TOUCH=x==null?null:{x:x,y:y};}, /* (banc) l'endroit où l'écran casse */
