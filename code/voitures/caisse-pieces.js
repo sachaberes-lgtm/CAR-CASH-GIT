@@ -117,7 +117,7 @@ function caissePose(pc,p,q){const o=pc[0];
    ⚠ Aucune matière n'est touchée (le `flatShading` d'une matière est un #define : un programme de plus à compiler en pleine partie) :
    seules les géométries changent. Les pièces déjà plates (boîtes, plans), le kit low-poly (`lp`), ce qui épouse le sol (`sol`) et les
    plumes de réacteur (jetGeo) ne bougent pas. Hook : `dbgFacette(false)` rend les caisses d'avant (comparaison au banc). */
-const FACET_SHAPES={poptart:1,requin:1,proto:1,tuner:1};
+const FACET_SHAPES={poptart:1,proto:1,tuner:1};
 const FACETTE={on:true};
 function geoFacette(g){ // la même pièce, taillée : peu de segments, une normale par face — null = déjà plate, on n'y touche pas
   const P=g.parameters||{};let n;

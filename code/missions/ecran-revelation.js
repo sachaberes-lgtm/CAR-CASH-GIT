@@ -25,7 +25,7 @@ function m2ValCourse(m){try{switch(m.k){case 'aura':return Math.round(auraRun)||
 function m2Frac(m,v,t){return t>0?Math.max(0,Math.min(1,v/t)):0;}
 function m2Prog(m,v,t){v=Math.min(v,t); // « 3 / 5 », « 42 000 / 100 000 $ », « 4,2 / 5 S », « 1:12 / 5:00 »
   switch(m.u){case 's':return decFr(Math.floor(v*10)/10,1)+' / '+t+' S';case 'kmh':return m2Nb(v)+' / '+m2Nb(t)+' KM/H';case 'km':return m2Nb(Math.floor(v))+' / '+m2Nb(t)+' KM';
-    case '$':return m2Nb(v)+' / '+m2Nb(t)+' '+CUR();case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
+    case '$':return LANG==='fr'?m2Nb(v)+' / '+m2Nb(t)+' '+CUR():CUR()+m2Nb(v)+' / '+CUR()+m2Nb(t); /* (2026-11-07, finition) en anglais le symbole passe devant, comme fmtSolde partout ailleurs */case 'aura':return fmtAura(v)+' / '+fmtAura(t);case 'mn':return m2Mn(v)+' / '+m2Mn(t);
     case 'b':return v>=t?TR('FAIT'):TR('PAS ENCORE');}
   return m2Nb(v)+' / '+m2Nb(t);}
 function m2RecNom(m){const r=m.r||{};if(r.cash)return '+'+fmtC(r.cash);if(r.car)return TR(r.car);
@@ -151,6 +151,7 @@ function m2Vue(L,s,vu){ // → {ved : la vedette (l'écran de mort seulement, de
     listeTab+=mcLigne(x,k++,s);}
   return {ved:ved?mcVedette(ved,s,!vu):'<div class="mcVide">'+sansAcc(TR('TOUTES LES MISSIONS SONT RÉUSSIES'))+'</div>',listeTab:listeTab,n:prets.length+reste.length,vedM:ved?ved.m:null};}
 function m2Render(vu){ /* (2026-11-03, refonte · 2026-11-05, plus de vedette : voir « L'ÉCRAN DES MISSIONS À LA MORT », aujourdhui.js) la page MISSIONS entière */
+  if(PASS_ON&&typeof gEl!=='undefined'&&gEl&&gEl.classList.contains('missions'))return pvRender(vu); /* (2026-11-07) le pass : toute remise à jour de l'écran MISSIONS passe par LE VISEUR */
   const el=$('gmNoeuds'),sv=$('gmFils');if(!el)return;if(sv)sv.innerHTML='';
   const old=$('gmListe'),d0=old&&old.querySelector('.mcDef'),sc0=d0?d0.scrollTop:0,s0=old&&old.querySelector('.mcPan'),sc1=s0?s0.scrollTop:0;
   const s=m2Etat(),L=m2Lignes(),pal=m2SecPal(),V=m2Vue(L,s,vu);
@@ -306,7 +307,7 @@ function m2AnnonceMort(m){return M2MORT_TOUT||!!(m&&m.r&&m.r.car);}
 function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search); /* l'écran de mort v6 (MORT_FLOT vit dans la coque, hors de portée ici) */
   const s=m2Etat(),L=[];
   for(const id of M2R.run){const m=m2Def(id);if(m&&m2Dispo(m)&&m2AnnonceMort(m)&&L.length<2&&!L.some(function(x){return x.m===m;}))L.push({m:m,ok:1});}
-  if(!flot9)for(const id of s.su){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
+  if(!flot9)for(const id of (PASS_ON?passOrdre():s.su)){const m=m2Def(id);if(!m||!m2Dispo(m)||L.length>=3||L.some(function(x){return x.m===m;}))continue;L.push({m:m,ok:s.ok.indexOf(id)>=0?1:0});}
   /* (2026-11-03, Sacha : « améliorer encore un peu », puis « mission il prend trop de place ») le panneau ne reste plus à moitié vide :
      il se complète avec les missions les plus proches du but (avec leur barre), jusqu'à 2 (couché, le ×2 prend sa place sous le panneau) */
   if(!flot9){const cible=2,C=[];
@@ -331,7 +332,7 @@ function objRenderV2(el){const flot9=!/[?&]mort=ancien\b/.test(location.search);
       if(flot9)P9.push({m:m,a:x.a!=null?x.a:0,v:v,t:t});
       h+=flot9?'<div class="obM obM6">'+ic9+tx9+br9+pg9+'</div>':'<div class="obM">'+ic9+tx9+pg9+'</div>'+br9;}}
   if(flot9&&!L.length)h+='<div class="obM obVide"><span>'+sansAcc(TR('AUCUNE MISSION AVANCÉE'))+'</span></div>';
-  h+='<div class="obFt"><span>'+sansAcc(TR(nP?'À RÉCUPÉRER':'TOUTES LES MISSIONS'))+'</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';
+  h+='<div class="obFt"><span>'+((PASS_ON&&passPresque())?pxi('cadeau')+' ':'')+sansAcc(TR(nP?'À RÉCUPÉRER':'TOUTES LES MISSIONS'))+'</span><span>'+TR('VOIR')+' '+pxi('droite')+'</span></div>';
   el.innerHTML=h;
   const bars=el.querySelectorAll('.obBar i');
   if(flot9){ /* (2026-11-04/05, Sacha : « des animations pour les missions », « les barres qui avancent ») écran de mort v6 : chaque barre PART de où elle
@@ -497,7 +498,7 @@ function m2RevScene(i,texte,id,rf){ /* rf : une rareté imposée (l'essai d'un p
 /* LA CAISSE DANS SA PHOTO : sa boîte (les pixels presque opaques ; le reflet du sol verni, translucide, n'y entre pas), pour poser le
    sol, le projecteur, les phares et la toile sur ELLE et pas sur le cadre — une caisse longue et basse n'a pas ses roues où en a un camion */
 function m2RevBoite(url,cb){const im=new Image();let fait=false;const fin=function(b){if(!fait){fait=true;cb(b);}};
-  im.onload=function(){let b=null;try{const W=144,H=88,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');g.drawImage(im,0,0,W,H);
+  im.onload=function(){let b=null;try{const W=144,H=88,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d',{willReadFrequently:true});g.drawImage(im,0,0,W,H);
     const d=g.getImageData(0,0,W,H).data;let x0=W,x1=-1,y0=H,y1=-1;
     for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(d[(y*W+x)*4+3]>200){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}
     if(x1-x0>8&&y1-y0>4)b={x0:x0/W,x1:(x1+1)/W,y0:y0/H,y1:(y1+1)/H};}catch(e){}fin(b);};

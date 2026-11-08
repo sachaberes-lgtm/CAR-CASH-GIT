@@ -137,6 +137,11 @@ npm run icones       # ressources/icon.svg → assets/icon-only.png (1024, sans 
 ⚠ `VERSION PRINCIPALE/icon.svg` est l'émoji 💰 d'Apple (image protégée : refus App Store). L'icône de l'app est le
 mot-symbole pixel CASH CAR (`ressources/icon.svg`, `ressources/icone-1024.png`).
 
+L'**écran de lancement est NOIR** (Sacha : « enlève l'écran CASH CAR avec des néons au tout début ») : images noires dans
+`Splash.imageset`, fond noir du storyboard, de `capacitor.config.json` et de `natif.js` (5ae44a53), le même noir que la 1re image
+du jeu. `npm run icones` le refait noir lui aussi (`generer-icones.js` ne lit plus la grille néon de `ressources/lancement-2732.png`).
+iOS garde l'ancien écran en cache : supprimer l'app du téléphone avant de réinstaller.
+
 ## Tester sans Xcode ouvert (simulateur)
 
 En version Debug, `natif.js` écrit dans la console de Xcode : `[natif] BILAN RÉSEAU` (doit dire « 0 adresse hors de

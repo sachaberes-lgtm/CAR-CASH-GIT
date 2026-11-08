@@ -6,8 +6,8 @@
    reste du jeu, avec une option ne plus répéter ») : la case NE PLUS ME DEMANDER (.modCoche, posée par modale() quand on lui passe `coche`)
    — une case de 20 px qui se remplit d'or, son mot qui s'allume ; 44 px de haut pour le pouce. ====== */
 #modale .modCoche{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;margin:14px auto 0;padding:0 10px;cursor:pointer;
-  font-family:var(--pix);font-size:10px;line-height:12px;letter-spacing:0;color:#b3b8c4;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-#modale .modCoche .mcBox{flex:0 0 auto;display:grid;place-items:center;width:20px;height:20px;background:#13161d;box-shadow:inset 0 0 0 2px #b3b8c4;transition:background .12s,box-shadow .12s}
+  font-family:var(--pix);font-size:10px;line-height:12px;letter-spacing:0;color:var(--tx2);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+#modale .modCoche .mcBox{flex:0 0 auto;display:grid;place-items:center;width:20px;height:20px;background:#13161d;box-shadow:inset 0 0 0 2px var(--tx2);transition:background .12s,box-shadow .12s}
 #modale .modCoche .mcBox .pxi{--pxs:2;opacity:0;transform:scale(.4);transition:opacity .12s,transform .16s cubic-bezier(.32,.72,0,1)}
 #modale .modCoche.on .mcBox{background:#ffc62b;box-shadow:inset 0 0 0 2px #ffc62b}
 #modale .modCoche.on .mcBox .pxi{opacity:1;transform:none;color:#1d1300}
@@ -80,8 +80,8 @@ html body.touch.play.figVol #tFig{display:flex;position:fixed;z-index:3;gap:var(
      flashe en or et S'ENVOLE vers la chaîne d'aura (où « COMBO ×N +X » est déjà écrit) ; à la chute, rouge, les pastilles tombent.
    · #fhLeg (le rappel, là où étaient les boutons, à côté de NITRO) : ↑ figure 1 · ◄► figure 2. Rien ne s'y touche ; il flashe quand sa figure part.
    Les animations passent par l'API Web Animations (fhAnime : une relance sans remise en page forcée), la courbe est --ease. */
-:root{--fh1:var(--neoC,#00eaff);--fh2:var(--neoM,#ff3ec8);--fh0:var(--or,#ffd75e);--fhO:#ff7a24;--fhVert:var(--neoV,#5ee37a);--fhKo:var(--neoR,#ff4a64);
-  --fhE:var(--encre,#1c0430);--fhB:calc(var(--sB,env(safe-area-inset-bottom,0px)) + 150px);--fhCh:var(--f1,10px);--fhXs:var(--f9,24px);--fhGap:8px;
+:root{--fh1:var(--neoC,var(--neoC));--fh2:var(--neoM,var(--neoM));--fh0:var(--or,var(--or));--fhO:#ff7a24;--fhVert:var(--neoV,var(--neoV));--fhKo:var(--neoR,var(--neoR));
+  --fhE:var(--encre,var(--encre));--fhB:calc(var(--sB,env(safe-area-inset-bottom,0px)) + 150px);--fhCh:var(--f1,10px);--fhXs:var(--f9,24px);--fhGap:8px;
   --fhBord:3px 0 0 var(--fhE),-3px 0 0 var(--fhE),0 3px 0 var(--fhE),0 -3px 0 var(--fhE),3px 3px 0 var(--fhE),-3px 3px 0 var(--fhE),3px -3px 0 var(--fhE),-3px -3px 0 var(--fhE),0 6px 0 var(--fhE);
   --fhBord2:2px 0 0 var(--fhE),-2px 0 0 var(--fhE),0 2px 0 var(--fhE),0 -2px 0 var(--fhE),2px 2px 0 var(--fhE),-2px 2px 0 var(--fhE),2px -2px 0 var(--fhE),-2px -2px 0 var(--fhE),0 4px 0 var(--fhE);
   --fhCoupe:polygon(4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px),0 4px)}
@@ -120,7 +120,7 @@ html body.touch.play.figVol.figDir #fhLeg{display:flex;flex-direction:column;ali
   letter-spacing:1px;line-height:1;color:var(--fc);white-space:nowrap;clip-path:var(--fhCoupe);
   box-shadow:inset 3px 0 0 var(--fc),inset 0 0 0 1px color-mix(in srgb,var(--fc) 45%,transparent),inset 0 3px 0 rgba(255,255,255,.10)}
 .fhL .pxi{--pxs:2;color:var(--fc);margin:0}
-.fhL b{font-weight:400;color:var(--tx,#fff7ee)}
+.fhL b{font-weight:400;color:var(--tx,var(--tx))}
 .fhL.ko{--fc:var(--fhKo)}
 @media (prefers-reduced-motion:reduce){#fh .fhX.max,#fh .fhNom.ko b{animation:none}}
 /* ===== v4 (2026-10-15 soir, Sacha : « retravaille l'HUD des figures, il faut que ce soit parfait : là c'est écrit en double ») — le récit est au-dessus de figNom.
@@ -134,7 +134,7 @@ html body.touch.play.figVol.figDir #fhLeg{display:flex;flex-direction:column;ali
 #fh .fhP.neuf{width:15px;height:15px}
 #fh.paye .fhP{--cc:var(--fh0)}
 #fh.perdu .fhP{--cc:var(--fhKo)}
-#fh .fhX small{font-size:.42em;letter-spacing:1px;vertical-align:.32em;margin-right:.15em;color:var(--tx,#fff7ee);text-shadow:var(--fhBord2)}
+#fh .fhX small{font-size:.42em;letter-spacing:1px;vertical-align:.32em;margin-right:.15em;color:var(--tx,var(--tx));text-shadow:var(--fhBord2)}
 #fh .fhRec{font-family:var(--pix);font-size:var(--fhCh);letter-spacing:1px;line-height:1;text-decoration:none;color:var(--fhE);background:var(--fh0);padding:5px 6px 4px;clip-path:var(--fhCoupe);visibility:hidden}
 #fh .fhRec.on{visibility:visible;animation:fhRecBat .5s steps(2) infinite}
 @keyframes fhRecBat{50%{background:#fff}}
@@ -165,8 +165,8 @@ html.han #fh .fhRec.on::before{content:'';position:absolute;left:0;top:0;right:0
 :is(#fh,#fhLeg) [data-rp=rare]{--rc:#4db8ff;--rk:1.59}
 :is(#fh,#fhLeg) [data-rp=exotique]{--rc:#3ee8a8;--rk:1.85}
 :is(#fh,#fhLeg) [data-rp=epique]{--rc:#c77dff;--rk:1.15}
-:is(#fh,#fhLeg) [data-rp=legendaire]{--rc:#ffd75e;--rk:1.9}
-:is(#fh,#fhLeg) [data-rp=combo]{--rc:#fff7ee;--rk:1}
+:is(#fh,#fhLeg) [data-rp=legendaire]{--rc:var(--or);--rk:1.9}
+:is(#fh,#fhLeg) [data-rp=combo]{--rc:var(--tx);--rk:1}
 #fh .fhNom[data-rp]{--fc:var(--rc)}
 #fh .fhNom[data-rp]:not([data-rp=commun]):not([data-rp=combo]):not([data-rp=legendaire]) b::after{display:none} /* (2026-10-18, débogage) la légendaire en est exclue : cette règle pesait plus lourd que son reflet (plus bas), qui ne s'est jamais allumé */ /* la lèvre claire est calée sur les capitales de Press Start 2P */
 #fh .fhNom[data-rp=epique] b{text-shadow:var(--fhBord),0 0 26px color-mix(in srgb,var(--fc) 95%,transparent),0 0 8px color-mix(in srgb,var(--fc) 60%,transparent)}
@@ -179,11 +179,11 @@ html.han #fh .fhRec.on::before{content:'';position:absolute;left:0;top:0;right:0
 /* la ligne du combo : les maillons */
 #fh .fhLigne{gap:0;min-height:0;align-items:baseline}
 #fh .fhCs{gap:0;align-items:baseline}
-#fh .fhMore{font-family:var(--pix);font-size:var(--fhCh);line-height:1;text-decoration:none;color:var(--tx,#fff7ee);opacity:.7;text-shadow:var(--fhBord2);margin-right:.45em}
+#fh .fhMore{font-family:var(--pix);font-size:var(--fhCh);line-height:1;text-decoration:none;color:var(--tx,var(--tx));opacity:.7;text-shadow:var(--fhBord2);margin-right:.45em}
 #fh .fhMore:empty{display:none}
 #fh .fhM{display:block;font-style:normal;font-weight:400;line-height:1;letter-spacing:1px;white-space:nowrap;color:var(--rc);
   font-size:calc(var(--fhCh) * 1.2 * var(--rk));text-shadow:var(--fhBord2),0 0 12px color-mix(in srgb,var(--rc) 55%,transparent)}
-#fh .fhM+.fhM::before,#fh .fhMore:not(:empty)+.fhCs .fhM:first-child::before{content:'+';display:inline-block;font-size:var(--fhCh);color:var(--tx,#fff7ee);margin:0 .5em;
+#fh .fhM+.fhM::before,#fh .fhMore:not(:empty)+.fhCs .fhM:first-child::before{content:'+';display:inline-block;font-size:var(--fhCh);color:var(--tx,var(--tx));margin:0 .5em;
   vertical-align:.1em;text-shadow:var(--fhBord2)}
 #fh .fhM.trio{box-shadow:0 4px 0 -1px var(--fh0)}
 #fh.perdu .fhM[data-rp]{--rc:var(--fhKo)}

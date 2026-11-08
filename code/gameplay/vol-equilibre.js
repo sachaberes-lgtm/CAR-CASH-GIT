@@ -146,15 +146,24 @@ function veqCamera(dt){ // au sol : la caméra s'enfonce sous le choc de la pose
   if(!window.dbgNoShake)camera.position.addScaledVector(F.n,-VEQ.camA*Math.sin(Math.PI*x)*(1-.4*x));
 }
 function veqNitK(){return VEQ.sautF===flightId?VEQ_K.sautNit:1;} // la pose d'un SAUT NITRO rend moins de nitro
+/* ===== LE DOUBLE-TAP PLUS TOLÉRANT (2026-11-07, Sacha : « mets-toi dans la peau d'un game developer, travaille sur la jouabilité mobile : des petits
+   ajustements qui rendraient le jeu plus fun et maniable ») ===== MESURÉ au banc (Chrome tactile 844×390, l'horloge des appuis lue dans la page) :
+   deux appuis NITRO à 271 et 306 ms d'écart partaient ; à 384 ms et au-delà plus rien — ni bruit ni refus, le 2e appui n'était qu'une nitro de plus.
+   320 ms de début à début, c'est plus serré que le double-tap des systèmes eux-mêmes (Android ~400 ms, iOS ~350, Windows 500) : un pouce pressé, ou
+   qui tient un peu la nitro au 1er appui (> 240 ms), ratait sa figure sans comprendre. Désormais : 1er appui < 300 ms, 2e appui moins de 420 ms
+   après le début du 1er ; le redressement à UN appui (figRedP) attend d'autant (430 ms, il doit laisser passer la fenêtre) ; et la boucle garde la
+   demande 250 ms au lieu de 150 (une image qui gèle 150 ms sur téléphone — un morceau de map qui se bâtit — l'avalait en silence ; même garde pour le
+   GLISSER). Rien d'autre ne change : un appui tenu reste la nitro. `?doubletap=ancien` = les délais du 14/10, pour comparer. */
+const DTAP=/[?&]doubletap=ancien\b/.test(location.search)?{appui:240,entre:320,redresse:330,garde:150}:{appui:300,entre:420,redresse:430,garde:250};
 function veqDoigt(bas){ /* LE DOUBLE-TAP (2026-10-14, Léo : « un trick qui s'actionne quand j'appuie deux fois rapidement sur le booster ») : deux appuis BREFS
-   sur NITRO — le 1er de moins de 240 ms, le 2e moins de 320 ms après le 1er. Lu aux événements (clavier, doigt, souris), joué par la boucle (`VEQ.dReq`). */
+   sur NITRO — le 1er de moins de DTAP.appui ms, le 2e moins de DTAP.entre ms après le début du 1er (voir LE DOUBLE-TAP PLUS TOLÉRANT). Lu aux événements (clavier, doigt, souris), joué par la boucle (`VEQ.dReq`). */
   const n=performance.now();
   if(!bas){VEQ.dUp=n;return;}
-  if(VEQ.dDn>0&&n-VEQ.dDn<320&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<240){VEQ.dDn=0;VEQ.dReq=true;VEQ.dReqT=n;FX2.redP=0;}
+  if(VEQ.dDn>0&&n-VEQ.dDn<DTAP.entre&&VEQ.dUp>=VEQ.dDn&&VEQ.dUp-VEQ.dDn<DTAP.appui){VEQ.dDn=0;VEQ.dReq=true;VEQ.dReqT=n;FX2.redP=0;}
   else{VEQ.dDn=n;if(FIGV2.on&&mode==='fall')FX2.redP=n;} /* (2026-10-14, Sacha : « 1 seul tap permet de redresser la voiture ») — (2026-10-15, L'IMPULSION) le redressement ATTEND
      que la fenêtre du double-tap se ferme (figRedP, 330 ms) : avant, le 1er appui d'un double-tap redressait la figure qu'on voulait EMPILER */
 }
-function figRedP(){if(!FX2.redP||performance.now()-FX2.redP<330)return;FX2.redP=0; // un appui SEUL sur NITRO pendant une figure : la caisse se remet face à la route (FIG.Corps.redresse)
+function figRedP(){if(!FX2.redP||performance.now()-FX2.redP<DTAP.redresse)return;FX2.redP=0; // un appui SEUL sur NITRO pendant une figure : la caisse se remet face à la route (FIG.Corps.redresse)
   if(FIGV2.on&&mode==='fall'&&FX2.corps&&!paused&&!gameOver&&FX2.corps.redresse()){FX2.redresse++;try{if(SONV2)sfx('turbo.mini',{vol:-8});}catch(e){}hap(8);}}
 function veqDouble(){ // le double-tap : au sol, le SAUT NITRO (et sa figure) ; en vol, une FIGURE (enchaînée)
   if(!started||gameOver||paused||introD||(TUTO.on&&!tutoFigOuverte()))return false; // (2026-10-14) fermé pendant l'auto-école… sauf à son étape FIGURE

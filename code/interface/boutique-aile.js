@@ -14,10 +14,18 @@
    Le reste ne change pas : toucher = bqEssaie (le bras pose la pièce), le bouton #gBqBtn achète / équipe (bqAction), les photos viennent
    d'aileFile (bqPhotos). La grille partagée (.bqRail) est vidée tant que le rayon AILES est ouvert : ses cartes cachées ne tiennent pas la
    file du studio photo. Crochet : garBqPanneau appelle bqAileMaj(pan, voulu) à chaque image. Banc : window.dbgBqAile(). */
+/* (2026-11-07, Sacha : « j'aime pas le système des ailes, fais un truc classique » · « ce système est désastreux : quelque chose de plus classique, deux par deux, où tu présentes correctement les ailes avec la voiture du joueur ») LA MOLETTE EST COUPÉE : le rayon AILES passe aux cartes deux par deux de boutique-classique.js (la caisse du joueur qui porte chaque aile). La caméra qui monte voir l'aile (bqAilePov) et le cap trois-quarts arrière (bqAileCap) restent. `?molette=1` = la molette. */
+const BQA_MOLETTE=/[?&]molette=1\b/.test(location.search);
 const BQA={el:null,k:'',essK:'',on:false,pose:0,doigt:0,scT:0,e:0,povS:null,angS:null,vu:'',lay:''};
 const BQA_ANG=2.45; /* le cap de la caisse dans le rayon AILES (GAR_TAB_ANG : 1.2 de profil, 3.5 trois-quarts arrière des traînées) */
 const BQA_POV={debout:{h:1.1,d:.97,ty:.05},couche:{h:.85,d:.98,ty:.05}}; /* la caméra monte (m) : on voit l'aile par-dessus, déployée */
 Object.assign(I18N,{"AILE PRÉCÉDENTE":"PREVIOUS WING","AILE SUIVANTE":"NEXT WING","CHOISIR UNE AILE":"PICK A WING"});
+/* ===== LE MÊME PRINCIPE D'ENTRÉE DANS CHAQUE RAYON (2026-11-07, Sacha : « une boutique pro, game designer senior, chaque type d'item a son propre système ») =====
+   En ouvrant PEINTURES, AILES ou TRAÎNÉES, on REGARDE déjà un objet du rayon : celui qu'on porte (AILES : celui où la molette s'était
+   arrêtée). Avant, tant qu'on n'avait rien touché, le nom flottant et le bouton parlaient encore de la CAISSE (« LA HONTE · ÉQUIPÉE »).
+   Silencieux : shopTab / shopShow posent l'objet sur la caisse sans bras d'atelier, sans son, sans toucher à l'argent. */
+function bqRayonRegarde(cat,k){if(GBQ.cat!==cat||!garageOn||GAR.go)return;
+  try{if(SHOP.tab!==cat)shopTab(cat);if(k){const j=COSM[cat].findIndex(function(d){return cat+':'+d.id===k;});if(j>=0&&SHOP.i[cat]!==j)shopShow(cat,j);}GBQ.ck='';}catch(e){}}
 function bqAileListe(){const L=COSM.aile.slice(),ri=function(d){return Math.max(0,RARETES.findIndex(function(x){return x.id===cosmRar('aile',d);}));},px=function(d){return d.p||d.pk||0;};
   return L.map(function(d,n){return [d,n];}).sort(function(a,b){return (a[0].p===0?-1:0)-(b[0].p===0?-1:0)||ri(a[0])-ri(b[0])||px(a[0])-px(b[0])||a[1]-b[1];}).map(function(e){return e[0];});}
 /* l'état d'une aile, en un mot : ÉQUIPÉE · À TOI · le prix (trop cher : grisé) · MISSION */
@@ -28,7 +36,7 @@ function bqAileHtml(L){const fam=function(d){return cosmRar('aile',d);},nb={},ok
     if(!n||fam(L[n-1])!==f)h+='<div class="baTr" style="--rc:'+ri.c+'" aria-hidden="true"><span class="bqRl">'+pxi(RAR_LOGO[f]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b><em><i>'+(ok[f]|0)+'</i>/'+nb[f]+'</em></div>';
     h+='<button type="button" class="baK'+(shopOwned('aile',d.id)?' a':'')+(s.c==='eq'?' eq':'')+'" data-k="aile:'+d.id+'" data-n="'+n+'" data-rar="'+f+'" style="--rc:'+ri.c+'" aria-label="'+sansAcc(TR(d.n)).replace(/"/g,'')+' · '+String(s.t).replace(/<[^>]*>/g,'').replace(/"/g,'')+'">'
       +'<span class="baPh" data-pha="'+d.id+'"></span>'
-      +'<span class="baTx"><span class="baN">'+sansAcc(TR(d.n))+'</span><span class="baP '+s.c+'">'+(s.c==='eq'||s.c==='acq'?pxi('coche'):s.c.indexOf('pc')===0?pxi('piece'):'')+'<span>'+String(s.t).replace(/</g,'')+'</span></span></span></button>';});
+      +'<span class="baTx"><span class="baN">'+sansAcc(TR(d.n))+'</span><span class="baP '+s.c+'">'+(s.c==='eq'||s.c==='acq'?pxi('coche'):s.c==='defi'?pxi('verrou'):'')+'<span>'+String(s.t).replace(/</g,'')+'</span></span></span></button>';});
   return h;}
 function bqAileReglette(L){return L.map(function(d,n){const f=cosmRar('aile',d);return '<i data-n="'+n+'" class="'+(shopOwned('aile',d.id)?'a':'')+'" style="--rc:'+rarInfo(f).c+'"></i>';}).join('');}
 function bqAileOk(){return garageOn&&!GAR.go&&!ecranWipe._on&&GBQ.on&&GBQ.panOn;}
@@ -75,7 +83,7 @@ function bqAileEl(pan){if(BQA.el&&BQA.el.isConnected)return BQA.el;
 function bqAilePose(){if(!BQA.el||!bqAileOk()||BQA.rgId!=null)return;const k=bqAileMilieu();if(!k)return;bqAileMarque(k);
   if(performance.now()-BQA.doigt<4000&&k.getAttribute('data-k')!==BQA.essK)bqAileEssaie(k);}
 /* l'en-tête suit l'aile du milieu (pendant le défilement aussi) : sa famille, sa place ; le trait de la réglette */
-function bqAileMarque(k){if(!k||!BQA.el)return;const n=+k.getAttribute('data-n'),f=k.getAttribute('data-rar'),N=BQA.el.querySelectorAll('.baK').length,ri=rarInfo(f),key=n+'|'+f+'|'+N+'|'+LANG;
+function bqAileMarque(k){if(!k||!BQA.el)return;BQA.dernier=k.getAttribute('data-k');const n=+k.getAttribute('data-n'),f=k.getAttribute('data-rar'),N=BQA.el.querySelectorAll('.baK').length,ri=rarInfo(f),key=n+'|'+f+'|'+N+'|'+LANG;
   if(BQA.vu===key)return;BQA.vu=key;{const d9=(BQA.L||[])[n],de=BQA.el.querySelector('.baDesc');if(de)de.textContent=d9&&d9.d?TR(d9.d):'';} /* sa phrase : c'est elle qui vend l'aile */BQA.el.querySelector('.baFl.g').classList.toggle('off',n===0);BQA.el.querySelector('.baFl.d').classList.toggle('off',n===N-1);
   const fa=BQA.el.querySelector('.baFam'),L=BQA.L||[],tot=L.filter(function(d){return cosmRar('aile',d)===f;}),a=tot.filter(function(d){return shopOwned('aile',d.id);}).length;
   fa.style.setProperty('--rc',ri.c);fa.innerHTML='<span class="bqRl">'+pxi(RAR_LOGO[f]||'etoile')+'</span><b>'+sansAcc(TR(ri.n))+'</b><em><i>'+a+'</i>/'+tot.length+'</em>';
@@ -101,8 +109,10 @@ function bqAileMaj(pan,voulu){const cat=BQ_CATS.some(function(c){return c[0]===G
   const dt=Math.min(.1,Math.max(0,(performance.now()-(BQA.t||0))/1000));BQA.t=performance.now();
   bqAilePov(on,dt);bqAileCap(on);
   if(pan.getAttribute('data-cat')!==cat)pan.setAttribute('data-cat',cat);
-  pan.classList.toggle('bqAileOn',on);
-  if(!on){if(BQA.on){BQA.on=false;BQA.k='';BQA.essK='';BQA.vu='';}return;}
+  const onM=on&&BQA_MOLETTE; /* la molette : seulement avec ?molette=1 */
+  pan.classList.toggle('bqAileOn',onM);
+  try{aileVitrineMaj(onM,dt);}catch(e){} /* (2026-11-07, Léo) la boîte de verre 3D autour de l'aile essayée (aile-vitrine.js) */
+  if(!onM){if(BQA.on){BQA.on=false;BQA.k='';BQA.essK='';BQA.vu='';}return;}
   const rail=pan.querySelector('.bqRail');if(rail&&rail.firstChild)rail.textContent=''; /* la grille partagée se tait : la molette la remplace */
   const el=bqAileEl(pan),L=bqAileListe(),eqd=shopEqD('aile'),k=L.map(function(d){return d.id+(shopOwned('aile',d.id)?1:0)+(eqd===d?'e':'')+(d.p&&bank()<d.p?'c':'');}).join(',')+':'+LANG;
   const neuf=!BQA.on;BQA.on=true;
@@ -114,8 +124,10 @@ function bqAileMaj(pan,voulu){const cat=BQ_CATS.some(function(c){return c[0]===G
     if(sc!=null){if(bqAileCouche())r.scrollTop=sc;else r.scrollLeft=sc;}}
   /* à l'ouverture : la molette se pose sur l'aile qu'on regarde (celle de l'essai, sinon celle qu'on porte), essayée pour que le bouton parle d'elle */
   const cur=bqCourant(),lay=VP.w+'x'+VP.h+':'+(pan.classList.contains('cote')?1:0);
-  if(neuf||BQA.lay!==lay){BQA.lay=lay;const vis=String(cur).indexOf('aile:')===0?cur:'aile:'+eqd.id,kk=el.querySelector('.baK[data-k="'+vis+'"]');
-    if(kk){if(vis!==cur){BQA.essK=vis;try{bqAileEssaie(kk);}catch(e){}}else BQA.essK=vis;requestAnimationFrame(function(){bqAileVa(kk,false,false);bqAileMarque(kk);});}}
+  if(neuf||BQA.lay!==lay){BQA.lay=lay;const vis=String(cur).indexOf('aile:')===0?cur:(BQA.dernier&&el.querySelector('.baK[data-k="'+BQA.dernier+'"]')?BQA.dernier:'aile:'+eqd.id),kk=el.querySelector('.baK[data-k="'+vis+'"]');
+    /* (2026-11-07, passe finale) en revenant dans le rayon, la molette reprend où on l'avait laissée (BQA.dernier) ; l'aile s'y pose EN SILENCE
+       (bqRayonRegarde : ni bras ni son — avant, chaque entrée rejouait le bras d'atelier et le clic) */
+    if(kk){if(vis!==cur)bqRayonRegarde('aile',vis);BQA.essK=vis;requestAnimationFrame(function(){bqAileVa(kk,false,false);bqAileMarque(kk);});}}
   if(BQA.cur!==cur){BQA.cur=cur;el.querySelectorAll('.baK').forEach(function(x){x.classList.toggle('sel',x.getAttribute('data-k')===cur);});}
   if(performance.now()-BQA.scT<400){const m=bqAileMilieu();if(m)bqAileMarque(m);}
   else if(!BQA.vu){const m=bqAileMilieu();if(m)bqAileMarque(m);}

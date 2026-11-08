@@ -404,7 +404,7 @@ addEventListener('visibilitychange',function(){ if(document.hidden&&started&&!ga
   if(document.hidden)try{enCoursPose();SAVE.flush();}catch(e){} // (2026-09-28) l'appli part en arrière-plan : ce qui attendait le filet de 30 s (record de frénésie, meilleur moteur…) est écrit TOUT DE SUITE — iOS peut la tuer sans prévenir · (2026-09-30) et la PARTIE en cours avec (enCoursPose)
   // (2026-09-30) au retour la partie continue : l'instantané part — SAUF contexte 3D perdu, que suit un rechargement (voir webglcontextlost) : il est alors le seul à porter la partie
   if(!document.hidden){let perdu=false;try{perdu=renderer.getContext().isContextLost();}catch(e){}if(!perdu)enCoursRetire();}
-  if(!document.hidden){loop._pn=0;loop._rebuildT=performance.now();} }); // retour d'onglet : la frame « absente » n'est pas une lenteur
+  if(!document.hidden){loop._pn=0;loop._rebuildT=performance.now();last=performance.now();} }); /* (2026-11-07, finition) `last` repart d'ici : la première image du retour vaut ~0 s au lieu des 50 ms plafonnés (le décor du menu ne saute plus d'un cran) */ // retour d'onglet : la frame « absente » n'est pas une lenteur
 // IMMERSION : plein écran + verrou PORTRAIT + veille désactivée. Les trois exigent un GESTE
 // utilisateur — on les redemande à chaque contact utile, et on ne râle jamais si elles sont refusées.
 let wakeLock=null;

@@ -58,8 +58,10 @@ function traduisGroupe(spec,corps,tout){   // corps : le groupe dont les enfants
   }
 }
 function traduisLangage(spec){traduisGroupe(spec,carBody,carGroup);}
+let MOT_SPEC=null; /* (2026-11-05) la fiche de la caisse en construction : les cotes des LIVRÉES (voir economie/livrees.js) — déclarée ICI, buildCar tourne au chargement avant la boutique */
 function buildCar(spec){
   if(!carFicheOk(spec)){console.warn('CASH CAR : « '+((spec&&spec.name)||'?')+' » n\'a pas de fiche (caisse retirée) — LA HONTE à la place');spec=CARS[0];}
+  MOT_SPEC=spec; // (2026-11-05) les cotes de la caisse pour les LIVRÉES (voir livrees.js)
   // ⚠ LES PIÈCES LOW-POLY SE LIBÈRENT : chaque caisse a SA géométrie (plusieurs milliers de facettes)
   // et ses matières. Sans ce passage, chaque aller-retour au garage laisserait une caisse en VRAM.
   // (2026-09-26, passe fuites) MESURÉ : seules les pièces du kit étaient libérées — une caisse hors kit laissait ~45 géométries sur le GPU,
