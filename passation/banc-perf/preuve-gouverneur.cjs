@@ -181,6 +181,26 @@ console.log('8. paliers de coût GPU de la dose (gouverneur-paliers.js, par imgR
   T.ev['cc:thermique'][0]({ detail: { etat: 2 } }); course(T, 3, 16.7, 12);
   ok('état iOS 2 : la dose passe à 160 (gouverneur-thermique) donc palier 3 tout de suite', T.dbgGouv().D >= 160 && T.dbgGouv().gpu.palier === 3 && T.dprCap() === .8);
 }
+console.log('8b. polyphonie des bruitages sous la chaleur (window.__ccPoly)');
+{
+  const M = monde({ p75: 10 });
+  const P = () => vm.runInContext('window.__ccPoly', M.ctx);
+  ok('défini sur téléphone récent, éteint au départ', P() && P().on === false && P().k === .5 && P().min === .06);
+  M.dbgGouv(110); course(M, 3, 16.7, 12);
+  ok('palier 2 en course : allumé', P().on === true);
+  M.set({ gameOver: true }); course(M, 3, 16.7, 12);
+  ok('mort / menu : éteint (les clics d\'interface ne sont jamais ignorés)', P().on === false);
+  M.set({ gameOver: false }); course(M, 3, 16.7, 12);
+  ok('retour en course : rallumé', P().on === true);
+  const B = monde({ p75: 10 }); B.dbgGouv(70); course(B, 3, 16.7, 12);
+  ok('palier 1 : éteint', B.ctx.window.__ccPoly.on === false);
+  const O = monde({ search: '?mob_poly=0', p75: 10 }); O.dbgGouv(110); course(O, 3, 16.7, 12);
+  ok('?mob_poly=0 : jamais défini', O.ctx.window.__ccPoly === undefined);
+  const X = monde({ search: '?gouv=max', p75: 10 }); X.dbgGouv(110); course(X, 3, 16.7, 12);
+  ok('?gouv=max : jamais défini', X.ctx.window.__ccPoly === undefined);
+  const E = monde({ tel: false, p75: 10 }); course(E, 5, 16.7, 12);
+  ok('ordinateur : jamais défini', E.ctx.window.__ccPoly === undefined);
+}
 console.log('9. remontée vers l\'image de l\'ordinateur (paliers négatifs ; ?mob_raise=1, inactive par défaut)');
 {
   // frais et fluide : la dose tenue à 10, travail de l'image 6 ms → −1 à 60 s, −2 à 120 s, pas de −3

@@ -179,11 +179,16 @@ function play(id,o){
   let cle=id+'#'+v+'#'+base,ab=S.buf[cle];
   if(!ab){const voulu=cle;for(let k=0;k<f.v&&!ab;k++){cle=id+'#'+k+'#'+base;ab=S.buf[cle];}
     if(!ab){if(S.demande&&S.demande(voulu)&&!o.loop)S.att[voulu]={id:id,o:o,t:performance.now()};return null;}} /* (2026-11-05, DEBUG-TOTAL, preuve-boucle-tardive.cjs) PAS de départ en retard pour une BOUCLE : l'appelant a reçu null, il n'aurait aucune poignée pour l'arrêter (le slide qui frotte pour toujours, les rouleaux du Final Spin) — le décodage est lancé quand même, l'appel suivant (tick, chien de garde) la trouvera prête */ // pas encore décodé : demandé en priorité, il partira s'il arrive à temps (LES SONS À LA DEMANDE) ; sinon on se tait plutôt que d'attendre
+  /* (2026-11-08, vitesse-fluide : « le son coûte +4 à +10 ms de processeur par image ») LA POLYPHONIE SOUS LA CHALEUR : `G.__ccPoly` est posé par le gouverneur thermique du jeu (moteur/gouverneur-paliers.js : `on` seulement en course,
+     au palier 2 ou plus, sur téléphone récent ; `?mob_poly=0` = jamais). Allumé : un son de moins de `min` secondes (hors boucle, hors `force`) est IGNORÉ, et la polyphonie de chaque son est ramenée à `k` fois son `max` (au moins 1) —
+     les plus anciennes voix s'effacent comme d'habitude. Éteint ou absent (ordinateur, froid, hors course) : le code d'avant, ligne pour ligne. */
+  const PP=G.__ccPoly;if(PP&&PP.on&&!o.loop&&!o.force&&(ab.duration-(S.off[cle]||0))<PP.min){PP.ign=(PP.ign|0)+1;return null;}
   S.use[cle]=performance.now();S.dern[id]=v;
   const dbC=chef(f,t0);if(dbC===null)return null;
   // la polyphonie de CE son : au-delà de `max`, la plus ancienne voix s'efface (en 15 ms, jamais coupée net)
   const L=S.voix[id]||(S.voix[id]=[]);for(let i=L.length-1;i>=0;i--)if(L[i].fin<now)L.splice(i,1);
-  while(L.length>=f.max){const x=L.shift(),tt=Math.max(now,t0);x.fin=0;S.coupe=Math.max(S.coupe||0,tt+.05);try{x.g.gain.cancelScheduledValues(tt);x.g.gain.setTargetAtTime(0,tt,.005);x.s.stop(tt+.05);}catch(e){}} // à l'instant du NOUVEAU son (débogage 2026-09-29)
+  const mx9=(PP&&PP.on&&!o.loop)?Math.max(1,Math.round(f.max*PP.k)):f.max;
+  while(L.length>=mx9){if(mx9<f.max)PP.cou=(PP.cou|0)+1;const x=L.shift(),tt=Math.max(now,t0);x.fin=0;S.coupe=Math.max(S.coupe||0,tt+.05);try{x.g.gain.cancelScheduledValues(tt);x.g.gain.setTargetAtTime(0,tt,.005);x.s.stop(tt+.05);}catch(e){}} // à l'instant du NOUVEAU son (débogage 2026-09-29)
   try{
     const s=ac.createBufferSource();s.buffer=ab;
     const rate=Math.pow(2,(st-base)/12)*(o.rate||1)*(1+(Math.random()*2-1)*f.rj);
