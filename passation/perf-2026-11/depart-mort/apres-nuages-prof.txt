@@ -1,0 +1,99 @@
+toucher(s) d'intro : 2 · chauffe du menu : {"atelier":true,"divers":38,"moteurs":31,"sur":31,"rendu":true,"apres":-1,"lier":0,"programmes":210,"appels":410,"ms":28.5}
+
+== JOUER (3 s) : pire image 1233 ms · 3 images > 100 ms · 0 programmes liés · occupé 3259 ms / 4271
+   images lentes (t ms depuis le début de page, durée) : [(43680, 1233), (45613, 67), (47563, 267), (47813, 250), (48897, 50)]
+   LoAF 42435 1246 ms []
+   LoAF 47292 276 ms ['FrameRequestCallback loop 250ms (forcé 0)']
+   LoAF 47571 129 ms ['FrameRequestCallback loop 118ms (forcé 6)']
+   LoAF 47701 132 ms []
+   GL lent [48201, 24, 'texImage2D', 'JOUER (3 s)']
+   postes (inclusif ms) : newTrack / piste 185, départ d'avance 185, chauffe niveau / divers 1, rendu three 1125, GC / natif 1306, setSize / DPR 12
+   top inclusif : loop 1896, render 1125, renderer.render 1084, Rt 565, Ct 540, renderBufferDirect 512, garageRender 443, chuteRender 413, It 346, newTrack0G 185, newTrackG 185, newTrack 185, rebuildMenuScene 185, prebDepPrend 185
+   top propre   : (program) 1306, (idle) 1012, At 124, (anonyme) 88, menuCadre 75, project 67, bindVertexArray 65, M 62, updateMorphTargets 56, Wi 54
+
+== MORT 1 (3 s) : pire image 567 ms · 5 images > 100 ms · 0 programmes liés · occupé 3583 ms / 3583
+   images lentes (t ms depuis le début de page, durée) : [(58963, 83), (59413, 67), (60129, 567), (60329, 167), (60446, 117), (60579, 83), (60996, 67), (61413, 67), (61763, 67), (61829, 67), (62079, 83), (62396, 117)]
+   LoAF 58878 88 ms []
+   LoAF 59563 565 ms []
+   LoAF 60165 165 ms ['FrameRequestCallback loop 123ms (forcé 0)']
+   LoAF 60335 110 ms ['FrameRequestCallback loop 103ms (forcé 0)']
+   LoAF 62284 109 ms ['FrameRequestCallback loop 80ms (forcé 32)']
+   LoAF 62428 137 ms []
+   postes (inclusif ms) : départ d'avance 598, rendu three 440, photos / vignettes 257, mort / explosion 113, GC / natif 1591
+   top inclusif : loop 1345, (anonyme) 659, (garbage collector) 622, prebDepTick 598, prebTick 598, prebJob 521, prebAvec 521, prebTravaille 521, render 440, renderer.render 440, pisteRoute 378, engVigRender 257, Rt 216, Ct 216
+   top propre   : (program) 1591, (garbage collector) 622, forPelote 155, pisteRoute 137, traverseVisible 116, billsTick 113, (anonyme) 108, multiplyMatrices 71, mont 70, createObjectURL 64
+
+== ÉCRAN DE MORT 1 (3 s, 8 s après) : pire image 433 ms · 2 images > 100 ms · 0 programmes liés · occupé 1321 ms / 3584
+   images lentes (t ms depuis le début de page, durée) : [(70229, 433), (70562, 117), (72212, 67), (73829, 83), (74095, 67)]
+   LoAF 69794 435 ms []
+   LoAF 70434 141 ms ['FrameRequestCallback loop 21ms (forcé 1)']
+   LoAF 72135 85 ms ['FrameRequestCallback loop 70ms (forcé 1)']
+   LoAF 73743 84 ms []
+   postes (inclusif ms) : rendu three 430, photos / vignettes 302, mort / explosion 1, GC / natif 2262
+   top inclusif : loop 737, render 430, renderer.render 428, engVigRender 302, Rt 263, renderBufferDirect 263, Ct 259, engLit 217, getBufferSubData 160, setup 130, (anonyme) 127, sm.render 125, M 122, determinant 116
+   top propre   : (idle) 2262, (program) 585, getBufferSubData 160, (anonyme) 126, determinant 116, ir 90, engVigRender 85, engPose 54, renderBufferDirect 25, applyMatrix4 21
+
+== REJOUER 1 (3 s) : pire image 533 ms · 4 images > 100 ms · 0 programmes liés · occupé 3266 ms / 5624
+   images lentes (t ms depuis le début de page, durée) : [(78262, 67), (78895, 67), (80762, 67), (81095, 83), (81145, 50), (81645, 433), (82845, 67), (83029, 67), (83329, 67), (83695, 100), (83862, 150), (84378, 67)]
+   LoAF 81203 441 ms []
+   LoAF 83594 97 ms []
+   LoAF 83704 172 ms []
+   LoAF 85137 118 ms []
+   LoAF 86519 546 ms ['TimerHandler:setTimeout  436ms (forcé 0)', 'FrameRequestCallback loop 89ms (forcé 0)']
+   LoAF 87067 106 ms ['FrameRequestCallback loop 17ms (forcé 0)']
+   postes (inclusif ms) : newTrack / piste 405, départ d'avance 405, resetGame 418, rendu three 53, photos / vignettes 726, GC / natif 2358
+   top inclusif : loop 818, engVigRender 726, (anonyme) 469, resetGame 418, buildTrackG 405, newTrack0G 405, newTrackG 405, newTrack 405, prebDepPrend 405, cotonOuvrier 354, nuage8Async 354, nuSymRebuild 354, nuSymMaj 354, buildCoton 354
+   top propre   : (idle) 2358, (program) 2029, engVigRender 388, getBufferSubData 339, createObjectURL 259, Blob 95, bmapPeint 51, memLibereCb 50, updateContactShadow 24, fusMaillage 11
+
+== MORT 2 (3 s) : pire image 1217 ms · 6 images > 100 ms · 0 programmes liés · occupé 6518 ms / 7293
+   images lentes (t ms depuis le début de page, durée) : [(95378, 83), (96111, 67), (96361, 67), (96645, 200), (97078, 67), (97828, 67), (98228, 83), (99028, 67), (99745, 50), (100311, 483), (102028, 333), (102861, 83)]
+   LoAF 95292 83 ms []
+   LoAF 96470 190 ms []
+   LoAF 98134 95 ms []
+   LoAF 99824 497 ms []
+   LoAF 101689 337 ms []
+   LoAF 104388 323 ms []
+   postes (inclusif ms) : départ d'avance 1268, rendu three 15, mort / explosion 32, GC / natif 2343
+   top inclusif : loop 4144, prebDepTick 1268, prebTick 1268, pickupsTick 1046, (anonyme) 717, pisteRoute 685, prebJob 685, prebAvec 685, prebTravaille 685, lookAt 654, updateBoomArt 654, Blob 583, envOuvrier 583, envPrepare 583
+   top propre   : (program) 2343, (idle) 775, lookAt 654, Blob 583, raisinTick 573, nxfDessine 544, rythmeMesure 314, flowTagTick 272, livre 259, juiceScreen 214
+
+== ÉCRAN DE MORT 2 (3 s, 8 s après) : pire image 817 ms · 1 images > 100 ms · 0 programmes liés · occupé 1921 ms / 2996
+   images lentes (t ms depuis le début de page, durée) : [(114377, 817)]
+   LoAF 113557 822 ms ['FrameRequestCallback loop 25ms (forcé 5)']
+   postes (inclusif ms) : départ d'avance 4, rendu three 641, composer / bloom 1, photos / vignettes 431, mort / explosion 3, GC / natif 1075
+   top inclusif : loop 1124, render 641, renderer.render 625, Rt 446, Ct 440, engVigRender 431, renderBufferDirect 389, It 268, engLit 232, getBufferSubData 201, Cr.upload 169, setup 83, (anonyme) 64, engVigRendRT 64
+   top propre   : (idle) 1075, (program) 722, getBufferSubData 201, engVigRender 134, Cr.upload 57, loop 52, Ct 50, setup 46, activeTexture 45, toArray 44
+
+== REJOUER 2 (3 s) : pire image 400 ms · 2 images > 100 ms · 1 programmes liés · occupé 24915 ms / 41551
+   images lentes (t ms depuis le début de page, durée) : [(118160, 400), (119594, 50), (122427, 50), (130893, 67), (141643, 50), (142943, 67), (147693, 83), (147826, 67), (148343, 100), (149743, 67), (152059, 67), (153592, 83)]
+   LoAF 117759 402 ms []
+   LoAF 147600 91 ms []
+   LoAF 148244 96 ms []
+   LoAF 153499 101 ms ['FrameRequestCallback loop 88ms (forcé 1)']
+   LoAF 155817 81 ms ['FrameRequestCallback loop 16ms (forcé 1)']
+   LoAF 156465 119 ms []
+   postes (inclusif ms) : départ d'avance 87, chauffe niveau / divers 17, rendu three 6205, son (décodage, bus) 1, photos / vignettes 5359, mort / explosion 10, GC / natif 16635
+   top inclusif : loop 12599, render 6205, renderer.render 6067, engVigRender 5359, engLit 3916, renderBufferDirect 3549, Rt 3435, Ct 3378, getBufferSubData 2843, It 1531, engPose 932, At 887, Cr.upload 847, setup 808
+   top propre   : (idle) 16635, (program) 12075, getBufferSubData 2843, engVigRender 1080, renderBufferDirect 911, engPose 572, At 487, (anonyme) 398, putImageData 360, loop 348
+
+== MORT 3 (3 s) : pire image 683 ms · 3 images > 100 ms · 0 programmes liés · occupé 2351 ms / 3083
+   images lentes (t ms depuis le début de page, durée) : [(171575, 683), (171975, 67), (172225, 67), (172575, 83), (172775, 117), (173658, 83), (174341, 467), (174725, 67)]
+   LoAF 170885 700 ms []
+   LoAF 171898 81 ms ['FrameRequestCallback loop 16ms (forcé 0)']
+   LoAF 172487 87 ms ['FrameRequestCallback loop 59ms (forcé 0)']
+   LoAF 172670 115 ms ['FrameRequestCallback  86ms (forcé 0)', 'FrameRequestCallback loop 21ms (forcé 0)']
+   LoAF 173569 94 ms ['FrameRequestCallback loop 74ms (forcé 42)']
+   LoAF 173873 474 ms ['FrameRequestCallback loop 464ms (forcé 0)']
+   postes (inclusif ms) : départ d'avance 1195, rendu three 82, photos / vignettes 70, mort / explosion 15, GC / natif 733
+   top inclusif : loop 1821, (anonyme) 1231, prebDepTick 1195, prebTick 1195, prebAvec 1185, prebTravaille 1185, prebJob 1183, pisteRoute 782, normales9 534, createObjectURL 391, cyTravailleur 386, cyAvPart 386, cyBatitG 386, eclEcrit 298
+   top propre   : (idle) 733, normales9 534, createObjectURL 391, (program) 331, eclEcrit 298, (garbage collector) 184, rythmeMesure 102, set 82, qlAuto 64, pisteRoute 60
+
+== ÉCRAN DE MORT 3 (3 s, 8 s après) : pire image 550 ms · 2 images > 100 ms · 0 programmes liés · occupé 1907 ms / 4728
+   images lentes (t ms depuis le début de page, durée) : [(185174, 550), (186358, 183)]
+   LoAF 184628 546 ms []
+   LoAF 186163 191 ms []
+   postes (inclusif ms) : rendu three 219, photos / vignettes 893, GC / natif 2820
+   top inclusif : loop 1136, engVigRender 893, engLit 869, getBufferSubData 546, engPose 323, render 219, renderer.render 219, renderBufferDirect 199, Ct 164, Rt 164, Yi 109, It 98, Cr.setValue 97, setup 85
+   top propre   : (idle) 2820, (program) 771, getBufferSubData 546, engPose 321, uniformMatrix4fv 59, (anonyme) 41, bindVertexArray 29, Gi 28, engVigRender 24, vertexAttribPointer 16
+
+VERDICT : franchi : JOUER (3 s) (3 images, pire 1233 ms), MORT 1 (3 s) (5 images, pire 567 ms), ÉCRAN DE MORT 1 (3 s, 8 s après) (2 images, pire 433 ms), REJOUER 1 (3 s) (4 images, pire 533 ms), MORT 2 (3 s) (6 images, pire 1217 ms), ÉCRAN DE MORT 2 (3 s, 8 s après) (1 images, pire 817 ms), REJOUER 2 (3 s) (2 images, pire 400 ms), MORT 3 (3 s) (3 images, pire 683 ms), ÉCRAN DE MORT 3 (3 s, 8 s après) (2 images, pire 550 ms) · erreurs : aucune · charge machine 41

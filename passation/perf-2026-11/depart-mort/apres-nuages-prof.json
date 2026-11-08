@@ -1,0 +1,3679 @@
+{
+ "date": "2026-11-08 21:51",
+ "carte": "nuages:midi",
+ "cpu": 4,
+ "qs": "",
+ "charge": 41.15380859375,
+ "fenetres": [
+  {
+   "fenetre": "JOUER (3 s)",
+   "duree": 3.0,
+   "pire_image_ms": 1233,
+   "images_sup100": 3,
+   "images_lentes": [
+    [
+     43680,
+     1233,
+     "JOUER (3 s)"
+    ],
+    [
+     45613,
+     67,
+     "JOUER (3 s)"
+    ],
+    [
+     47563,
+     267,
+     "JOUER (3 s)"
+    ],
+    [
+     47813,
+     250,
+     "JOUER (3 s)"
+    ],
+    [
+     48897,
+     50,
+     "JOUER (3 s)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 42435,
+     "d": 1246,
+     "lab": "JOUER (3 s)",
+     "sc": []
+    },
+    {
+     "t": 47292,
+     "d": 276,
+     "lab": "JOUER (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 250ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 47571,
+     "d": 129,
+     "lab": "JOUER (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 118ms (forcé 6)"
+     ]
+    },
+    {
+     "t": 47701,
+     "d": 132,
+     "lab": "JOUER (3 s)",
+     "sc": []
+    }
+   ],
+   "gl_lents": [
+    [
+     48201,
+     24,
+     "texImage2D",
+     "JOUER (3 s)"
+    ]
+   ],
+   "programmes_lies": 0,
+   "total_ms": 4272,
+   "idle_ms": 1012,
+   "postes": [
+    [
+     "newTrack / piste",
+     185,
+     "newTrack"
+    ],
+    [
+     "départ d'avance",
+     185,
+     "prebDepPrend"
+    ],
+    [
+     "chauffe niveau / divers",
+     1,
+     "richPrechauffe"
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     1125,
+     "render"
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     0,
+     "engVigRender"
+    ],
+    [
+     "mort / explosion",
+     0,
+     ""
+    ],
+    [
+     "GC / natif",
+     1306,
+     "(program)"
+    ],
+    [
+     "setSize / DPR",
+     12,
+     "setSize"
+    ]
+   ],
+   "incl_top": [
+    [
+     "loop",
+     1896,
+     "index.html:83302"
+    ],
+    [
+     "render",
+     1125,
+     "three.min.js:6"
+    ],
+    [
+     "renderer.render",
+     1084,
+     "index.html:50628"
+    ],
+    [
+     "Rt",
+     565,
+     "three.min.js:6"
+    ],
+    [
+     "Ct",
+     540,
+     "three.min.js:6"
+    ],
+    [
+     "renderBufferDirect",
+     512,
+     "three.min.js:6"
+    ],
+    [
+     "garageRender",
+     443,
+     "index.html:79545"
+    ],
+    [
+     "chuteRender",
+     413,
+     "index.html:77842"
+    ],
+    [
+     "It",
+     346,
+     "three.min.js:6"
+    ],
+    [
+     "newTrack0G",
+     185,
+     ""
+    ],
+    [
+     "newTrackG",
+     185,
+     ""
+    ],
+    [
+     "newTrack",
+     185,
+     ""
+    ],
+    [
+     "rebuildMenuScene",
+     185,
+     ""
+    ],
+    [
+     "prebDepPrend",
+     185,
+     ""
+    ],
+    [
+     "sous9",
+     185,
+     ""
+    ],
+    [
+     "CHUTE.sous",
+     185,
+     ""
+    ],
+    [
+     "At",
+     170,
+     "three.min.js:6"
+    ],
+    [
+     "Cr.upload",
+     165,
+     "three.min.js:6"
+    ],
+    [
+     "sm.render",
+     132,
+     "index.html:47858"
+    ],
+    [
+     "buildTrackG",
+     118,
+     ""
+    ],
+    [
+     "buildClouds",
+     110,
+     ""
+    ],
+    [
+     "setup",
+     110,
+     "three.min.js:6"
+    ],
+    [
+     "(anonyme)",
+     106,
+     "index.html:83133"
+    ],
+    [
+     "scene.updateMatrixWorld",
+     93,
+     "index.html:12374"
+    ],
+    [
+     "traverseVisible",
+     78,
+     "three.min.js:6"
+    ],
+    [
+     "mkCloud",
+     77,
+     ""
+    ],
+    [
+     "M",
+     76,
+     "three.min.js:6"
+    ],
+    [
+     "menuCadre",
+     75,
+     "index.html:75949"
+    ],
+    [
+     "project",
+     67,
+     "three.min.js:6"
+    ],
+    [
+     "silRuban",
+     67,
+     ""
+    ]
+   ],
+   "self_top": [
+    [
+     "(program)",
+     1306,
+     ":0"
+    ],
+    [
+     "(idle)",
+     1012,
+     ":0"
+    ],
+    [
+     "At",
+     124,
+     "three.min.js:6"
+    ],
+    [
+     "(anonyme)",
+     88,
+     "index.html:83133"
+    ],
+    [
+     "menuCadre",
+     75,
+     "index.html:75949"
+    ],
+    [
+     "project",
+     67,
+     "three.min.js:6"
+    ],
+    [
+     "bindVertexArray",
+     65,
+     ":0"
+    ],
+    [
+     "M",
+     62,
+     "three.min.js:6"
+    ],
+    [
+     "updateMorphTargets",
+     56,
+     "three.min.js:6"
+    ],
+    [
+     "Wi",
+     54,
+     "three.min.js:6"
+    ],
+    [
+     "It",
+     52,
+     "three.min.js:6"
+    ],
+    [
+     "traverseVisible",
+     50,
+     "three.min.js:6"
+    ],
+    [
+     "updatePool",
+     49,
+     "index.html:63031"
+    ],
+    [
+     "multiplyMatrices",
+     39,
+     "three.min.js:6"
+    ],
+    [
+     "render",
+     38,
+     "three.min.js:6"
+    ],
+    [
+     "renderBufferDirect",
+     37,
+     "three.min.js:6"
+    ]
+   ],
+   "retour": "True"
+  },
+  {
+   "fenetre": "MORT 1 (3 s)",
+   "duree": 3.0,
+   "pire_image_ms": 567,
+   "images_sup100": 5,
+   "images_lentes": [
+    [
+     58963,
+     83,
+     "MORT 1 (3 s)"
+    ],
+    [
+     59413,
+     67,
+     "MORT 1 (3 s)"
+    ],
+    [
+     60129,
+     567,
+     "MORT 1 (3 s)"
+    ],
+    [
+     60329,
+     167,
+     "MORT 1 (3 s)"
+    ],
+    [
+     60446,
+     117,
+     "MORT 1 (3 s)"
+    ],
+    [
+     60579,
+     83,
+     "MORT 1 (3 s)"
+    ],
+    [
+     60996,
+     67,
+     "MORT 1 (3 s)"
+    ],
+    [
+     61413,
+     67,
+     "MORT 1 (3 s)"
+    ],
+    [
+     61763,
+     67,
+     "MORT 1 (3 s)"
+    ],
+    [
+     61829,
+     67,
+     "MORT 1 (3 s)"
+    ],
+    [
+     62079,
+     83,
+     "MORT 1 (3 s)"
+    ],
+    [
+     62396,
+     117,
+     "MORT 1 (3 s)"
+    ],
+    [
+     62579,
+     150,
+     "MORT 1 (3 s)"
+    ],
+    [
+     62829,
+     67,
+     "MORT 1 (3 s)"
+    ],
+    [
+     63746,
+     83,
+     "MORT 1 (3 s)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 58878,
+     "d": 88,
+     "lab": "MORT 1 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 59563,
+     "d": 565,
+     "lab": "MORT 1 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 60165,
+     "d": 165,
+     "lab": "MORT 1 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 123ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 60335,
+     "d": 110,
+     "lab": "MORT 1 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 103ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 62284,
+     "d": 109,
+     "lab": "MORT 1 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 80ms (forcé 32)"
+     ]
+    },
+    {
+     "t": 62428,
+     "d": 137,
+     "lab": "MORT 1 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 63666,
+     "d": 88,
+     "lab": "MORT 1 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 36ms (forcé 1)"
+     ]
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 3583,
+   "idle_ms": 0,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     598,
+     "prebDepTick"
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     440,
+     "renderer.render"
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     257,
+     "engVigRender"
+    ],
+    [
+     "mort / explosion",
+     113,
+     "billsTick"
+    ],
+    [
+     "GC / natif",
+     1591,
+     "(program)"
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [
+    [
+     "loop",
+     1345,
+     "index.html:83302"
+    ],
+    [
+     "(anonyme)",
+     659,
+     "three.min.js:6"
+    ],
+    [
+     "(garbage collector)",
+     622,
+     ":0"
+    ],
+    [
+     "prebDepTick",
+     598,
+     ""
+    ],
+    [
+     "prebTick",
+     598,
+     ""
+    ],
+    [
+     "prebJob",
+     521,
+     "index.html:18916"
+    ],
+    [
+     "prebAvec",
+     521,
+     ""
+    ],
+    [
+     "prebTravaille",
+     521,
+     ""
+    ],
+    [
+     "render",
+     440,
+     "three.min.js:6"
+    ],
+    [
+     "renderer.render",
+     440,
+     ""
+    ],
+    [
+     "pisteRoute",
+     378,
+     "index.html:19119"
+    ],
+    [
+     "engVigRender",
+     257,
+     "index.html:51025"
+    ],
+    [
+     "Rt",
+     216,
+     "three.min.js:6"
+    ],
+    [
+     "Ct",
+     216,
+     "three.min.js:6"
+    ],
+    [
+     "renderBufferDirect",
+     214,
+     "three.min.js:6"
+    ],
+    [
+     "genForet",
+     202,
+     "index.html:19617"
+    ],
+    [
+     "It",
+     201,
+     "three.min.js:6"
+    ],
+    [
+     "forPelote",
+     192,
+     "index.html:19651"
+    ],
+    [
+     "foretSol",
+     118,
+     "index.html:20610"
+    ],
+    [
+     "buildForetG",
+     118,
+     ""
+    ],
+    [
+     "prebDecorG",
+     118,
+     ""
+    ],
+    [
+     "traverseVisible",
+     116,
+     "three.min.js:6"
+    ],
+    [
+     "tour",
+     116,
+     ""
+    ],
+    [
+     "lierScene",
+     116,
+     ""
+    ],
+    [
+     "engVigRendRT",
+     114,
+     ""
+    ],
+    [
+     "billsTick",
+     113,
+     "index.html:62983"
+    ],
+    [
+     "refreshMaterialUniforms",
+     107,
+     ""
+    ],
+    [
+     "engLit",
+     87,
+     "index.html:50418"
+    ],
+    [
+     "envOuvrier",
+     76,
+     ""
+    ],
+    [
+     "envPrepare",
+     76,
+     ""
+    ]
+   ],
+   "self_top": [
+    [
+     "(program)",
+     1591,
+     ":0"
+    ],
+    [
+     "(garbage collector)",
+     622,
+     ":0"
+    ],
+    [
+     "forPelote",
+     155,
+     "index.html:19651"
+    ],
+    [
+     "pisteRoute",
+     137,
+     "index.html:19119"
+    ],
+    [
+     "traverseVisible",
+     116,
+     "three.min.js:6"
+    ],
+    [
+     "billsTick",
+     113,
+     "index.html:62983"
+    ],
+    [
+     "(anonyme)",
+     108,
+     "three.min.js:6"
+    ],
+    [
+     "multiplyMatrices",
+     71,
+     "three.min.js:6"
+    ],
+    [
+     "mont",
+     70,
+     "index.html:20611"
+    ],
+    [
+     "createObjectURL",
+     64,
+     ":0"
+    ],
+    [
+     "engVigRender",
+     56,
+     "index.html:51025"
+    ],
+    [
+     "It",
+     48,
+     "three.min.js:6"
+    ],
+    [
+     "foretSol",
+     48,
+     "index.html:20610"
+    ],
+    [
+     "getBufferSubData",
+     38,
+     ":0"
+    ],
+    [
+     "engPose",
+     37,
+     "index.html:50416"
+    ],
+    [
+     "prebJob",
+     25,
+     "index.html:18916"
+    ]
+   ],
+   "retour": "1"
+  },
+  {
+   "fenetre": "ÉCRAN DE MORT 1 (3 s, 8 s après)",
+   "duree": 3.0,
+   "pire_image_ms": 433,
+   "images_sup100": 2,
+   "images_lentes": [
+    [
+     70229,
+     433,
+     "ÉCRAN DE MORT 1 (3 s, 8 s après)"
+    ],
+    [
+     70562,
+     117,
+     "ÉCRAN DE MORT 1 (3 s, 8 s après)"
+    ],
+    [
+     72212,
+     67,
+     "ÉCRAN DE MORT 1 (3 s, 8 s après)"
+    ],
+    [
+     73829,
+     83,
+     "ÉCRAN DE MORT 1 (3 s, 8 s après)"
+    ],
+    [
+     74095,
+     67,
+     "ÉCRAN DE MORT 1 (3 s, 8 s après)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 69794,
+     "d": 435,
+     "lab": "ÉCRAN DE MORT 1 (3 s, 8 s après)",
+     "sc": []
+    },
+    {
+     "t": 70434,
+     "d": 141,
+     "lab": "ÉCRAN DE MORT 1 (3 s, 8 s après)",
+     "sc": [
+      "FrameRequestCallback loop 21ms (forcé 1)"
+     ]
+    },
+    {
+     "t": 72135,
+     "d": 85,
+     "lab": "ÉCRAN DE MORT 1 (3 s, 8 s après)",
+     "sc": [
+      "FrameRequestCallback loop 70ms (forcé 1)"
+     ]
+    },
+    {
+     "t": 73743,
+     "d": 84,
+     "lab": "ÉCRAN DE MORT 1 (3 s, 8 s après)",
+     "sc": []
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 3584,
+   "idle_ms": 2262,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     0,
+     ""
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     430,
+     "render"
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     302,
+     "engVigRender"
+    ],
+    [
+     "mort / explosion",
+     1,
+     "mortSaute"
+    ],
+    [
+     "GC / natif",
+     2262,
+     "(idle)"
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [
+    [
+     "loop",
+     737,
+     ""
+    ],
+    [
+     "render",
+     430,
+     "three.min.js:6"
+    ],
+    [
+     "renderer.render",
+     428,
+     ""
+    ],
+    [
+     "engVigRender",
+     302,
+     "index.html:51025"
+    ],
+    [
+     "Rt",
+     263,
+     "three.min.js:6"
+    ],
+    [
+     "renderBufferDirect",
+     263,
+     "three.min.js:6"
+    ],
+    [
+     "Ct",
+     259,
+     ""
+    ],
+    [
+     "engLit",
+     217,
+     "index.html:50418"
+    ],
+    [
+     "getBufferSubData",
+     160,
+     ":0"
+    ],
+    [
+     "setup",
+     130,
+     ""
+    ],
+    [
+     "(anonyme)",
+     127,
+     "three.min.js:6"
+    ],
+    [
+     "sm.render",
+     125,
+     ""
+    ],
+    [
+     "M",
+     122,
+     "three.min.js:6"
+    ],
+    [
+     "determinant",
+     116,
+     "three.min.js:6"
+    ],
+    [
+     "It",
+     106,
+     "three.min.js:6"
+    ],
+    [
+     "THREE.UnrealBloomPass.render",
+     97,
+     ""
+    ],
+    [
+     "Cr.upload",
+     91,
+     ""
+    ],
+    [
+     "ir",
+     90,
+     "three.min.js:6"
+    ],
+    [
+     "engPose",
+     56,
+     "index.html:50416"
+    ],
+    [
+     "At",
+     33,
+     "three.min.js:6"
+    ],
+    [
+     "applyMatrix4",
+     21,
+     "three.min.js:6"
+    ],
+    [
+     "refreshMaterialUniforms",
+     9,
+     "three.min.js:6"
+    ],
+    [
+     "enable",
+     6,
+     ":0"
+    ],
+    [
+     "z",
+     6,
+     ""
+    ],
+    [
+     "updateMatrix",
+     5,
+     "three.min.js:6"
+    ],
+    [
+     "getWorldDirection",
+     5,
+     ""
+    ],
+    [
+     "lvlPlanete",
+     5,
+     ""
+    ],
+    [
+     "bindVertexArray",
+     4,
+     ":0"
+    ],
+    [
+     "h",
+     4,
+     ""
+    ],
+    [
+     "useProgram",
+     4,
+     ":0"
+    ]
+   ],
+   "self_top": [
+    [
+     "(idle)",
+     2262,
+     ":0"
+    ],
+    [
+     "(program)",
+     585,
+     ":0"
+    ],
+    [
+     "getBufferSubData",
+     160,
+     ":0"
+    ],
+    [
+     "(anonyme)",
+     126,
+     "three.min.js:6"
+    ],
+    [
+     "determinant",
+     116,
+     "three.min.js:6"
+    ],
+    [
+     "ir",
+     90,
+     "three.min.js:6"
+    ],
+    [
+     "engVigRender",
+     85,
+     "index.html:51025"
+    ],
+    [
+     "engPose",
+     54,
+     "index.html:50416"
+    ],
+    [
+     "renderBufferDirect",
+     25,
+     "three.min.js:6"
+    ],
+    [
+     "applyMatrix4",
+     21,
+     "three.min.js:6"
+    ],
+    [
+     "At",
+     11,
+     "three.min.js:6"
+    ],
+    [
+     "refreshMaterialUniforms",
+     9,
+     "three.min.js:6"
+    ],
+    [
+     "enable",
+     6,
+     ":0"
+    ],
+    [
+     "Rt",
+     5,
+     "three.min.js:6"
+    ],
+    [
+     "updateMatrix",
+     5,
+     "three.min.js:6"
+    ],
+    [
+     "bindVertexArray",
+     4,
+     ":0"
+    ]
+   ],
+   "retour": "1"
+  },
+  {
+   "fenetre": "REJOUER 1 (3 s)",
+   "duree": 3.0,
+   "pire_image_ms": 533,
+   "images_sup100": 4,
+   "images_lentes": [
+    [
+     78262,
+     67,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     78895,
+     67,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     80762,
+     67,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     81095,
+     83,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     81145,
+     50,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     81645,
+     433,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     82845,
+     67,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     83029,
+     67,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     83329,
+     67,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     83695,
+     100,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     83862,
+     150,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     84378,
+     67,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     85245,
+     100,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     86462,
+     50,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     87062,
+     533,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     87178,
+     117,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     87278,
+     67,
+     "REJOUER 1 (3 s)"
+    ],
+    [
+     87828,
+     67,
+     "REJOUER 1 (3 s)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 81203,
+     "d": 441,
+     "lab": "REJOUER 1 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 83594,
+     "d": 97,
+     "lab": "REJOUER 1 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 83704,
+     "d": 172,
+     "lab": "REJOUER 1 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 85137,
+     "d": 118,
+     "lab": "REJOUER 1 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 86519,
+     "d": 546,
+     "lab": "REJOUER 1 (3 s)",
+     "sc": [
+      "TimerHandler:setTimeout  436ms (forcé 0)",
+      "FrameRequestCallback loop 89ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 87067,
+     "d": 106,
+     "lab": "REJOUER 1 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 17ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 87200,
+     "d": 84,
+     "lab": "REJOUER 1 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 24ms (forcé 0)"
+     ]
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 5624,
+   "idle_ms": 2358,
+   "postes": [
+    [
+     "newTrack / piste",
+     405,
+     "newTrack"
+    ],
+    [
+     "départ d'avance",
+     405,
+     "prebDepPrend"
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     418,
+     "resetGame"
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     53,
+     "renderer.render"
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     726,
+     "engVigRender"
+    ],
+    [
+     "mort / explosion",
+     0,
+     ""
+    ],
+    [
+     "GC / natif",
+     2358,
+     "(idle)"
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [
+    [
+     "loop",
+     818,
+     ""
+    ],
+    [
+     "engVigRender",
+     726,
+     "index.html:51025"
+    ],
+    [
+     "(anonyme)",
+     469,
+     "three.min.js:6"
+    ],
+    [
+     "resetGame",
+     418,
+     ""
+    ],
+    [
+     "buildTrackG",
+     405,
+     ""
+    ],
+    [
+     "newTrack0G",
+     405,
+     ""
+    ],
+    [
+     "newTrackG",
+     405,
+     ""
+    ],
+    [
+     "newTrack",
+     405,
+     ""
+    ],
+    [
+     "prebDepPrend",
+     405,
+     ""
+    ],
+    [
+     "cotonOuvrier",
+     354,
+     ""
+    ],
+    [
+     "nuage8Async",
+     354,
+     ""
+    ],
+    [
+     "nuSymRebuild",
+     354,
+     ""
+    ],
+    [
+     "nuSymMaj",
+     354,
+     ""
+    ],
+    [
+     "buildCoton",
+     354,
+     ""
+    ],
+    [
+     "buildClouds",
+     354,
+     ""
+    ],
+    [
+     "getBufferSubData",
+     339,
+     ":0"
+    ],
+    [
+     "engLit",
+     339,
+     ""
+    ],
+    [
+     "createObjectURL",
+     259,
+     ":0"
+    ],
+    [
+     "Blob",
+     95,
+     ":0"
+    ],
+    [
+     "render",
+     53,
+     ""
+    ],
+    [
+     "renderer.render",
+     53,
+     ""
+    ],
+    [
+     "bordsTick",
+     51,
+     ""
+    ],
+    [
+     "pisteInstalle",
+     51,
+     ""
+    ],
+    [
+     "bmapPeint",
+     51,
+     "index.html:18501"
+    ],
+    [
+     "memLibereCb",
+     50,
+     "index.html:13807"
+    ],
+    [
+     "update",
+     50,
+     ""
+    ],
+    [
+     "At",
+     50,
+     ""
+    ],
+    [
+     "updateContactShadow",
+     24,
+     "index.html:14421"
+    ],
+    [
+     "fusMaillage",
+     11,
+     "index.html:47675"
+    ],
+    [
+     "caisseSoude",
+     11,
+     ""
+    ]
+   ],
+   "self_top": [
+    [
+     "(idle)",
+     2358,
+     ":0"
+    ],
+    [
+     "(program)",
+     2029,
+     ":0"
+    ],
+    [
+     "engVigRender",
+     388,
+     "index.html:51025"
+    ],
+    [
+     "getBufferSubData",
+     339,
+     ":0"
+    ],
+    [
+     "createObjectURL",
+     259,
+     ":0"
+    ],
+    [
+     "Blob",
+     95,
+     ":0"
+    ],
+    [
+     "bmapPeint",
+     51,
+     "index.html:18501"
+    ],
+    [
+     "memLibereCb",
+     50,
+     "index.html:13807"
+    ],
+    [
+     "updateContactShadow",
+     24,
+     "index.html:14421"
+    ],
+    [
+     "fusMaillage",
+     11,
+     "index.html:47675"
+    ],
+    [
+     "sillageStep",
+     9,
+     "index.html:36415"
+    ],
+    [
+     "cielArcPose",
+     4,
+     "index.html:76389"
+    ],
+    [
+     "(anonyme)",
+     1,
+     "three.min.js:6"
+    ],
+    [
+     "mobGouvTick",
+     1,
+     "index.html:83197"
+    ],
+    [
+     "ecoDebutAchat",
+     1,
+     "index.html:32440"
+    ],
+    [
+     "Cr.upload",
+     1,
+     "three.min.js:6"
+    ]
+   ],
+   "retour": "True"
+  },
+  {
+   "fenetre": "MORT 2 (3 s)",
+   "duree": 3.0,
+   "pire_image_ms": 1217,
+   "images_sup100": 6,
+   "images_lentes": [
+    [
+     95378,
+     83,
+     "MORT 2 (3 s)"
+    ],
+    [
+     96111,
+     67,
+     "MORT 2 (3 s)"
+    ],
+    [
+     96361,
+     67,
+     "MORT 2 (3 s)"
+    ],
+    [
+     96645,
+     200,
+     "MORT 2 (3 s)"
+    ],
+    [
+     97078,
+     67,
+     "MORT 2 (3 s)"
+    ],
+    [
+     97828,
+     67,
+     "MORT 2 (3 s)"
+    ],
+    [
+     98228,
+     83,
+     "MORT 2 (3 s)"
+    ],
+    [
+     99028,
+     67,
+     "MORT 2 (3 s)"
+    ],
+    [
+     99745,
+     50,
+     "MORT 2 (3 s)"
+    ],
+    [
+     100311,
+     483,
+     "MORT 2 (3 s)"
+    ],
+    [
+     102028,
+     333,
+     "MORT 2 (3 s)"
+    ],
+    [
+     102861,
+     83,
+     "MORT 2 (3 s)"
+    ],
+    [
+     103361,
+     50,
+     "MORT 2 (3 s)"
+    ],
+    [
+     104711,
+     317,
+     "MORT 2 (3 s)"
+    ],
+    [
+     104961,
+     83,
+     "MORT 2 (3 s)"
+    ],
+    [
+     106228,
+     1217,
+     "MORT 2 (3 s)"
+    ],
+    [
+     107428,
+     150,
+     "MORT 2 (3 s)"
+    ],
+    [
+     107528,
+     100,
+     "MORT 2 (3 s)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 95292,
+     "d": 83,
+     "lab": "MORT 2 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 96470,
+     "d": 190,
+     "lab": "MORT 2 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 98134,
+     "d": 95,
+     "lab": "MORT 2 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 99824,
+     "d": 497,
+     "lab": "MORT 2 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 101689,
+     "d": 337,
+     "lab": "MORT 2 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 104388,
+     "d": 323,
+     "lab": "MORT 2 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 104870,
+     "d": 86,
+     "lab": "MORT 2 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 105011,
+     "d": 1226,
+     "lab": "MORT 2 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 1209ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 107289,
+     "d": 145,
+     "lab": "MORT 2 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 107439,
+     "d": 93,
+     "lab": "MORT 2 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 19ms (forcé 0)"
+     ]
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 7293,
+   "idle_ms": 775,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     1268,
+     "prebDepTick"
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     15,
+     "renderer.render"
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     0,
+     ""
+    ],
+    [
+     "mort / explosion",
+     32,
+     "explode"
+    ],
+    [
+     "GC / natif",
+     2343,
+     "(program)"
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [
+    [
+     "loop",
+     4144,
+     ""
+    ],
+    [
+     "prebDepTick",
+     1268,
+     ""
+    ],
+    [
+     "prebTick",
+     1268,
+     ""
+    ],
+    [
+     "pickupsTick",
+     1046,
+     ""
+    ],
+    [
+     "(anonyme)",
+     717,
+     ""
+    ],
+    [
+     "pisteRoute",
+     685,
+     "index.html:19119"
+    ],
+    [
+     "prebJob",
+     685,
+     ""
+    ],
+    [
+     "prebAvec",
+     685,
+     ""
+    ],
+    [
+     "prebTravaille",
+     685,
+     ""
+    ],
+    [
+     "lookAt",
+     654,
+     "three.min.js:6"
+    ],
+    [
+     "updateBoomArt",
+     654,
+     ""
+    ],
+    [
+     "Blob",
+     583,
+     ":0"
+    ],
+    [
+     "envOuvrier",
+     583,
+     ""
+    ],
+    [
+     "envPrepare",
+     583,
+     ""
+    ],
+    [
+     "prebPart",
+     583,
+     ""
+    ],
+    [
+     "raisinTick",
+     573,
+     "index.html:59094"
+    ],
+    [
+     "nxfDessine",
+     544,
+     "index.html:82987"
+    ],
+    [
+     "nx3Dessine",
+     544,
+     ""
+    ],
+    [
+     "nx3Tick",
+     544,
+     ""
+    ],
+    [
+     "rythmeMesure",
+     314,
+     "index.html:17470"
+    ],
+    [
+     "rythmeMeilleur",
+     314,
+     ""
+    ],
+    [
+     "genCtrl",
+     314,
+     ""
+    ],
+    [
+     "flowTagTick",
+     272,
+     "index.html:53224"
+    ],
+    [
+     "flowTick",
+     272,
+     ""
+    ],
+    [
+     "livre",
+     259,
+     "index.html:53643"
+    ],
+    [
+     "juiceScreen",
+     214,
+     "index.html:69489"
+    ],
+    [
+     "fruitCroque",
+     214,
+     ""
+    ],
+    [
+     "psiAt9",
+     214,
+     "index.html:19205"
+    ],
+    [
+     "foretTick",
+     153,
+     "index.html:21131"
+    ],
+    [
+     "sillageStep",
+     114,
+     "index.html:36415"
+    ]
+   ],
+   "self_top": [
+    [
+     "(program)",
+     2343,
+     ":0"
+    ],
+    [
+     "(idle)",
+     775,
+     ":0"
+    ],
+    [
+     "lookAt",
+     654,
+     "three.min.js:6"
+    ],
+    [
+     "Blob",
+     583,
+     ":0"
+    ],
+    [
+     "raisinTick",
+     573,
+     "index.html:59094"
+    ],
+    [
+     "nxfDessine",
+     544,
+     "index.html:82987"
+    ],
+    [
+     "rythmeMesure",
+     314,
+     "index.html:17470"
+    ],
+    [
+     "flowTagTick",
+     272,
+     "index.html:53224"
+    ],
+    [
+     "livre",
+     259,
+     "index.html:53643"
+    ],
+    [
+     "juiceScreen",
+     214,
+     "index.html:69489"
+    ],
+    [
+     "psiAt9",
+     214,
+     "index.html:19205"
+    ],
+    [
+     "pisteRoute",
+     157,
+     "index.html:19119"
+    ],
+    [
+     "foretTick",
+     153,
+     "index.html:21131"
+    ],
+    [
+     "sillageStep",
+     114,
+     "index.html:36415"
+    ],
+    [
+     "bmapBoost",
+     76,
+     "index.html:18482"
+    ],
+    [
+     "setFromRotationMatrix",
+     32,
+     "three.min.js:6"
+    ]
+   ],
+   "retour": "1"
+  },
+  {
+   "fenetre": "ÉCRAN DE MORT 2 (3 s, 8 s après)",
+   "duree": 3.0,
+   "pire_image_ms": 817,
+   "images_sup100": 1,
+   "images_lentes": [
+    [
+     114377,
+     817,
+     "ÉCRAN DE MORT 2 (3 s, 8 s après)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 113557,
+     "d": 822,
+     "lab": "ÉCRAN DE MORT 2 (3 s, 8 s après)",
+     "sc": [
+      "FrameRequestCallback loop 25ms (forcé 5)"
+     ]
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 2996,
+   "idle_ms": 1075,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     4,
+     "prebDepTick"
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     641,
+     "render"
+    ],
+    [
+     "composer / bloom",
+     1,
+     "bloomPlieMat"
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     431,
+     "engVigRender"
+    ],
+    [
+     "mort / explosion",
+     3,
+     "mortSaute"
+    ],
+    [
+     "GC / natif",
+     1075,
+     "(idle)"
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [
+    [
+     "loop",
+     1124,
+     "index.html:83302"
+    ],
+    [
+     "render",
+     641,
+     "three.min.js:6"
+    ],
+    [
+     "renderer.render",
+     625,
+     "index.html:50628"
+    ],
+    [
+     "Rt",
+     446,
+     "three.min.js:6"
+    ],
+    [
+     "Ct",
+     440,
+     "three.min.js:6"
+    ],
+    [
+     "engVigRender",
+     431,
+     "index.html:51025"
+    ],
+    [
+     "renderBufferDirect",
+     389,
+     "three.min.js:6"
+    ],
+    [
+     "It",
+     268,
+     "three.min.js:6"
+    ],
+    [
+     "engLit",
+     232,
+     ""
+    ],
+    [
+     "getBufferSubData",
+     201,
+     ":0"
+    ],
+    [
+     "Cr.upload",
+     169,
+     "three.min.js:6"
+    ],
+    [
+     "setup",
+     83,
+     "three.min.js:6"
+    ],
+    [
+     "(anonyme)",
+     64,
+     "index.html:50668"
+    ],
+    [
+     "engVigRendRT",
+     64,
+     ""
+    ],
+    [
+     "THREE.UnrealBloomPass.render",
+     57,
+     "index.html:14279"
+    ],
+    [
+     "Oi",
+     52,
+     "three.min.js:6"
+    ],
+    [
+     "V",
+     47,
+     ""
+    ],
+    [
+     "W",
+     46,
+     "three.min.js:6"
+    ],
+    [
+     "safeSetTexture2D",
+     45,
+     ""
+    ],
+    [
+     "ir",
+     45,
+     "three.min.js:6"
+    ],
+    [
+     "activeTexture",
+     45,
+     ":0"
+    ],
+    [
+     "toArray",
+     45,
+     "three.min.js:6"
+    ],
+    [
+     "Pt",
+     41,
+     "three.min.js:6"
+    ],
+    [
+     "At",
+     40,
+     "three.min.js:6"
+    ],
+    [
+     "cr",
+     38,
+     ""
+    ],
+    [
+     "customProgramCacheKey",
+     32,
+     "three.min.js:6"
+    ],
+    [
+     "getParameters",
+     32,
+     ""
+    ],
+    [
+     "w.onmessage",
+     32,
+     "index.html:15853"
+    ],
+    [
+     "engPose",
+     28,
+     "index.html:50416"
+    ],
+    [
+     "scene.updateMatrixWorld",
+     25,
+     "index.html:12374"
+    ]
+   ],
+   "self_top": [
+    [
+     "(idle)",
+     1075,
+     ":0"
+    ],
+    [
+     "(program)",
+     722,
+     ":0"
+    ],
+    [
+     "getBufferSubData",
+     201,
+     ":0"
+    ],
+    [
+     "engVigRender",
+     134,
+     "index.html:51025"
+    ],
+    [
+     "Cr.upload",
+     57,
+     "three.min.js:6"
+    ],
+    [
+     "loop",
+     52,
+     "index.html:83302"
+    ],
+    [
+     "Ct",
+     50,
+     "three.min.js:6"
+    ],
+    [
+     "setup",
+     46,
+     "three.min.js:6"
+    ],
+    [
+     "activeTexture",
+     45,
+     ":0"
+    ],
+    [
+     "toArray",
+     44,
+     "three.min.js:6"
+    ],
+    [
+     "It",
+     39,
+     "three.min.js:6"
+    ],
+    [
+     "renderBufferDirect",
+     36,
+     "three.min.js:6"
+    ],
+    [
+     "customProgramCacheKey",
+     32,
+     "three.min.js:6"
+    ],
+    [
+     "At",
+     23,
+     "three.min.js:6"
+    ],
+    [
+     "multiplyMatrices",
+     20,
+     "three.min.js:6"
+    ],
+    [
+     "putImageData",
+     18,
+     ":0"
+    ]
+   ],
+   "retour": "1"
+  },
+  {
+   "fenetre": "REJOUER 2 (3 s)",
+   "duree": 3.0,
+   "pire_image_ms": 400,
+   "images_sup100": 2,
+   "images_lentes": [
+    [
+     118160,
+     400,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     119594,
+     50,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     122427,
+     50,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     130893,
+     67,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     141643,
+     50,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     142943,
+     67,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     147693,
+     83,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     147826,
+     67,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     148343,
+     100,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     149743,
+     67,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     152059,
+     67,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     153592,
+     83,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     154809,
+     67,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     154959,
+     67,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     155892,
+     67,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     156142,
+     67,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     156576,
+     100,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     158525,
+     100,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     159109,
+     100,
+     "REJOUER 2 (3 s)"
+    ],
+    [
+     159425,
+     300,
+     "REJOUER 2 (3 s)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 117759,
+     "d": 402,
+     "lab": "REJOUER 2 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 147600,
+     "d": 91,
+     "lab": "REJOUER 2 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 148244,
+     "d": 96,
+     "lab": "REJOUER 2 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 153499,
+     "d": 101,
+     "lab": "REJOUER 2 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 88ms (forcé 1)"
+     ]
+    },
+    {
+     "t": 155817,
+     "d": 81,
+     "lab": "REJOUER 2 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 16ms (forcé 1)"
+     ]
+    },
+    {
+     "t": 156465,
+     "d": 119,
+     "lab": "REJOUER 2 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 158426,
+     "d": 104,
+     "lab": "REJOUER 2 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 17ms (forcé 2)"
+     ]
+    },
+    {
+     "t": 159002,
+     "d": 103,
+     "lab": "REJOUER 2 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 82ms (forcé 26)"
+     ]
+    },
+    {
+     "t": 159125,
+     "d": 299,
+     "lab": "REJOUER 2 (3 s)",
+     "sc": [
+      "TimerHandler:setTimeout  151ms (forcé 36)",
+      "FrameRequestCallback loop 144ms (forcé 21)"
+     ]
+    },
+    {
+     "t": 159503,
+     "d": 109,
+     "lab": "REJOUER 2 (3 s)",
+     "sc": []
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 1,
+   "total_ms": 41551,
+   "idle_ms": 16635,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     87,
+     "prebDepTick"
+    ],
+    [
+     "chauffe niveau / divers",
+     17,
+     "engChauffe"
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     6205,
+     "render"
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     1,
+     "sonTonSuit"
+    ],
+    [
+     "photos / vignettes",
+     5359,
+     "engVigRender"
+    ],
+    [
+     "mort / explosion",
+     10,
+     "mortSaute"
+    ],
+    [
+     "GC / natif",
+     16635,
+     "(idle)"
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [
+    [
+     "loop",
+     12599,
+     "index.html:83302"
+    ],
+    [
+     "render",
+     6205,
+     "three.min.js:6"
+    ],
+    [
+     "renderer.render",
+     6067,
+     "index.html:50628"
+    ],
+    [
+     "engVigRender",
+     5359,
+     "index.html:51025"
+    ],
+    [
+     "engLit",
+     3916,
+     "index.html:50418"
+    ],
+    [
+     "renderBufferDirect",
+     3549,
+     "three.min.js:6"
+    ],
+    [
+     "Rt",
+     3435,
+     "three.min.js:6"
+    ],
+    [
+     "Ct",
+     3378,
+     "three.min.js:6"
+    ],
+    [
+     "getBufferSubData",
+     2843,
+     ":0"
+    ],
+    [
+     "It",
+     1531,
+     "three.min.js:6"
+    ],
+    [
+     "engPose",
+     932,
+     "index.html:50416"
+    ],
+    [
+     "At",
+     887,
+     "three.min.js:6"
+    ],
+    [
+     "Cr.upload",
+     847,
+     "three.min.js:6"
+    ],
+    [
+     "setup",
+     808,
+     "three.min.js:6"
+    ],
+    [
+     "(anonyme)",
+     614,
+     "three.min.js:6"
+    ],
+    [
+     "sm.render",
+     508,
+     "index.html:47858"
+    ],
+    [
+     "M",
+     436,
+     "three.min.js:6"
+    ],
+    [
+     "updateMatrixWorld",
+     361,
+     "three.min.js:6"
+    ],
+    [
+     "putImageData",
+     360,
+     ":0"
+    ],
+    [
+     "engVigRendRT",
+     352,
+     "index.html:50509"
+    ],
+    [
+     "update",
+     323,
+     "three.min.js:6"
+    ],
+    [
+     "scene.onBeforeRender",
+     322,
+     "index.html:71347"
+    ],
+    [
+     "scene.updateMatrixWorld",
+     317,
+     "index.html:12374"
+    ],
+    [
+     "lierScene",
+     297,
+     "index.html:50665"
+    ],
+    [
+     "tour",
+     294,
+     "index.html:50668"
+    ],
+    [
+     "traverseVisible",
+     289,
+     "three.min.js:6"
+    ],
+    [
+     "Er.setValue",
+     286,
+     "three.min.js:6"
+    ],
+    [
+     "h",
+     254,
+     "three.min.js:6"
+    ],
+    [
+     "Cr.setValue",
+     239,
+     "three.min.js:6"
+    ],
+    [
+     "bindVertexArray",
+     233,
+     ":0"
+    ]
+   ],
+   "self_top": [
+    [
+     "(idle)",
+     16635,
+     ":0"
+    ],
+    [
+     "(program)",
+     12075,
+     ":0"
+    ],
+    [
+     "getBufferSubData",
+     2843,
+     ":0"
+    ],
+    [
+     "engVigRender",
+     1080,
+     "index.html:51025"
+    ],
+    [
+     "renderBufferDirect",
+     911,
+     "three.min.js:6"
+    ],
+    [
+     "engPose",
+     572,
+     "index.html:50416"
+    ],
+    [
+     "At",
+     487,
+     "three.min.js:6"
+    ],
+    [
+     "(anonyme)",
+     398,
+     "three.min.js:6"
+    ],
+    [
+     "putImageData",
+     360,
+     ":0"
+    ],
+    [
+     "loop",
+     348,
+     "index.html:83302"
+    ],
+    [
+     "Er.setValue",
+     259,
+     "three.min.js:6"
+    ],
+    [
+     "updateMatrixWorld",
+     233,
+     "three.min.js:6"
+    ],
+    [
+     "bindVertexArray",
+     233,
+     ":0"
+    ],
+    [
+     "traverseVisible",
+     198,
+     "three.min.js:6"
+    ],
+    [
+     "get",
+     187,
+     "three.min.js:6"
+    ],
+    [
+     "update",
+     184,
+     "three.min.js:6"
+    ]
+   ],
+   "retour": "False"
+  },
+  {
+   "fenetre": "MORT 3 (3 s)",
+   "duree": 3.0,
+   "pire_image_ms": 683,
+   "images_sup100": 3,
+   "images_lentes": [
+    [
+     171575,
+     683,
+     "MORT 3 (3 s)"
+    ],
+    [
+     171975,
+     67,
+     "MORT 3 (3 s)"
+    ],
+    [
+     172225,
+     67,
+     "MORT 3 (3 s)"
+    ],
+    [
+     172575,
+     83,
+     "MORT 3 (3 s)"
+    ],
+    [
+     172775,
+     117,
+     "MORT 3 (3 s)"
+    ],
+    [
+     173658,
+     83,
+     "MORT 3 (3 s)"
+    ],
+    [
+     174341,
+     467,
+     "MORT 3 (3 s)"
+    ],
+    [
+     174725,
+     67,
+     "MORT 3 (3 s)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 170885,
+     "d": 700,
+     "lab": "MORT 3 (3 s)",
+     "sc": []
+    },
+    {
+     "t": 171898,
+     "d": 81,
+     "lab": "MORT 3 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 16ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 172487,
+     "d": 87,
+     "lab": "MORT 3 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 59ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 172670,
+     "d": 115,
+     "lab": "MORT 3 (3 s)",
+     "sc": [
+      "FrameRequestCallback  86ms (forcé 0)",
+      "FrameRequestCallback loop 21ms (forcé 0)"
+     ]
+    },
+    {
+     "t": 173569,
+     "d": 94,
+     "lab": "MORT 3 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 74ms (forcé 42)"
+     ]
+    },
+    {
+     "t": 173873,
+     "d": 474,
+     "lab": "MORT 3 (3 s)",
+     "sc": [
+      "FrameRequestCallback loop 464ms (forcé 0)"
+     ]
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 3084,
+   "idle_ms": 733,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     1195,
+     "prebDepTick"
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     82,
+     "renderer.render"
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     70,
+     "engVigRender"
+    ],
+    [
+     "mort / explosion",
+     15,
+     "explode"
+    ],
+    [
+     "GC / natif",
+     733,
+     "(idle)"
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [
+    [
+     "loop",
+     1821,
+     "index.html:83302"
+    ],
+    [
+     "(anonyme)",
+     1231,
+     ""
+    ],
+    [
+     "prebDepTick",
+     1195,
+     ""
+    ],
+    [
+     "prebTick",
+     1195,
+     ""
+    ],
+    [
+     "prebAvec",
+     1185,
+     "index.html:18858"
+    ],
+    [
+     "prebTravaille",
+     1185,
+     ""
+    ],
+    [
+     "prebJob",
+     1183,
+     "index.html:18916"
+    ],
+    [
+     "pisteRoute",
+     782,
+     "index.html:19119"
+    ],
+    [
+     "normales9",
+     534,
+     "index.html:19245"
+    ],
+    [
+     "createObjectURL",
+     391,
+     ":0"
+    ],
+    [
+     "cyTravailleur",
+     386,
+     ""
+    ],
+    [
+     "cyAvPart",
+     386,
+     ""
+    ],
+    [
+     "cyBatitG",
+     386,
+     ""
+    ],
+    [
+     "eclEcrit",
+     298,
+     "index.html:72444"
+    ],
+    [
+     "eclVide",
+     298,
+     ""
+    ],
+    [
+     "campStop",
+     298,
+     ""
+    ],
+    [
+     "endGame",
+     298,
+     ""
+    ],
+    [
+     "(garbage collector)",
+     184,
+     ":0"
+    ],
+    [
+     "genCanyon",
+     169,
+     "index.html:21588"
+    ],
+    [
+     "rythmeMesure",
+     120,
+     "index.html:17470"
+    ],
+    [
+     "set",
+     82,
+     "three.min.js:6"
+    ],
+    [
+     "render",
+     82,
+     "three.min.js:6"
+    ],
+    [
+     "renderer.render",
+     82,
+     ""
+    ],
+    [
+     "engVigRender",
+     70,
+     "index.html:51025"
+    ],
+    [
+     "setClearColor",
+     66,
+     ""
+    ],
+    [
+     "engVigRendRT",
+     66,
+     ""
+    ],
+    [
+     "qlAuto",
+     64,
+     "index.html:15068"
+    ],
+    [
+     "nx3Tick",
+     55,
+     "index.html:82741"
+    ],
+    [
+     "bufferSubData",
+     33,
+     ":0"
+    ],
+    [
+     "update",
+     33,
+     ""
+    ]
+   ],
+   "self_top": [
+    [
+     "(idle)",
+     733,
+     ":0"
+    ],
+    [
+     "normales9",
+     534,
+     "index.html:19245"
+    ],
+    [
+     "createObjectURL",
+     391,
+     ":0"
+    ],
+    [
+     "(program)",
+     331,
+     ":0"
+    ],
+    [
+     "eclEcrit",
+     298,
+     "index.html:72444"
+    ],
+    [
+     "(garbage collector)",
+     184,
+     ":0"
+    ],
+    [
+     "rythmeMesure",
+     102,
+     "index.html:17470"
+    ],
+    [
+     "set",
+     82,
+     "three.min.js:6"
+    ],
+    [
+     "qlAuto",
+     64,
+     "index.html:15068"
+    ],
+    [
+     "pisteRoute",
+     60,
+     "index.html:19119"
+    ],
+    [
+     "nx3Tick",
+     55,
+     "index.html:82741"
+    ],
+    [
+     "genCanyon",
+     49,
+     "index.html:21588"
+    ],
+    [
+     "render",
+     34,
+     "three.min.js:6"
+    ],
+    [
+     "bufferSubData",
+     33,
+     ":0"
+    ],
+    [
+     "setProperty",
+     25,
+     ":0"
+    ],
+    [
+     "loop",
+     23,
+     "index.html:83302"
+    ]
+   ],
+   "retour": "1"
+  },
+  {
+   "fenetre": "ÉCRAN DE MORT 3 (3 s, 8 s après)",
+   "duree": 3.0,
+   "pire_image_ms": 550,
+   "images_sup100": 2,
+   "images_lentes": [
+    [
+     185174,
+     550,
+     "ÉCRAN DE MORT 3 (3 s, 8 s après)"
+    ],
+    [
+     186358,
+     183,
+     "ÉCRAN DE MORT 3 (3 s, 8 s après)"
+    ]
+   ],
+   "loaf": [
+    {
+     "t": 184628,
+     "d": 546,
+     "lab": "ÉCRAN DE MORT 3 (3 s, 8 s après)",
+     "sc": []
+    },
+    {
+     "t": 186163,
+     "d": 191,
+     "lab": "ÉCRAN DE MORT 3 (3 s, 8 s après)",
+     "sc": []
+    }
+   ],
+   "gl_lents": [],
+   "programmes_lies": 0,
+   "total_ms": 4728,
+   "idle_ms": 2820,
+   "postes": [
+    [
+     "newTrack / piste",
+     0,
+     ""
+    ],
+    [
+     "départ d'avance",
+     0,
+     ""
+    ],
+    [
+     "chauffe niveau / divers",
+     0,
+     ""
+    ],
+    [
+     "resetGame",
+     0,
+     ""
+    ],
+    [
+     "startGame/JOUER",
+     0,
+     ""
+    ],
+    [
+     "rendu three",
+     219,
+     "render"
+    ],
+    [
+     "composer / bloom",
+     0,
+     ""
+    ],
+    [
+     "HUD",
+     0,
+     ""
+    ],
+    [
+     "son (décodage, bus)",
+     0,
+     ""
+    ],
+    [
+     "photos / vignettes",
+     893,
+     "engVigRender"
+    ],
+    [
+     "mort / explosion",
+     0,
+     ""
+    ],
+    [
+     "GC / natif",
+     2820,
+     "(idle)"
+    ],
+    [
+     "setSize / DPR",
+     0,
+     ""
+    ]
+   ],
+   "incl_top": [
+    [
+     "loop",
+     1136,
+     "index.html:83302"
+    ],
+    [
+     "engVigRender",
+     893,
+     "index.html:51025"
+    ],
+    [
+     "engLit",
+     869,
+     ""
+    ],
+    [
+     "getBufferSubData",
+     546,
+     ":0"
+    ],
+    [
+     "engPose",
+     323,
+     "index.html:50416"
+    ],
+    [
+     "render",
+     219,
+     ""
+    ],
+    [
+     "renderer.render",
+     219,
+     "index.html:50628"
+    ],
+    [
+     "renderBufferDirect",
+     199,
+     ""
+    ],
+    [
+     "Ct",
+     164,
+     ""
+    ],
+    [
+     "Rt",
+     164,
+     ""
+    ],
+    [
+     "Yi",
+     109,
+     "three.min.js:6"
+    ],
+    [
+     "It",
+     98,
+     ""
+    ],
+    [
+     "Cr.setValue",
+     97,
+     "three.min.js:6"
+    ],
+    [
+     "setup",
+     85,
+     ""
+    ],
+    [
+     "uniformMatrix4fv",
+     59,
+     ":0"
+    ],
+    [
+     "(anonyme)",
+     56,
+     "three.min.js:6"
+    ],
+    [
+     "sm.render",
+     47,
+     "index.html:47858"
+    ],
+    [
+     "M",
+     35,
+     ""
+    ],
+    [
+     "bindVertexArray",
+     29,
+     ":0"
+    ],
+    [
+     "h",
+     29,
+     ""
+    ],
+    [
+     "Gi",
+     28,
+     "three.min.js:6"
+    ],
+    [
+     "vertexAttribPointer",
+     16,
+     ":0"
+    ],
+    [
+     "v",
+     16,
+     ""
+    ],
+    [
+     "Hi",
+     7,
+     "three.min.js:6"
+    ],
+    [
+     "updateBoomArt",
+     4,
+     "index.html:60737"
+    ],
+    [
+     "nuFondTick",
+     4,
+     "index.html:76404"
+    ],
+    [
+     "THREE.UnrealBloomPass.render",
+     4,
+     ""
+    ],
+    [
+     "putImageData",
+     2,
+     ":0"
+    ],
+    [
+     "Cr.upload",
+     1,
+     ""
+    ],
+    [
+     "musicTick",
+     1,
+     "index.html:62606"
+    ]
+   ],
+   "self_top": [
+    [
+     "(idle)",
+     2820,
+     ":0"
+    ],
+    [
+     "(program)",
+     771,
+     ":0"
+    ],
+    [
+     "getBufferSubData",
+     546,
+     ":0"
+    ],
+    [
+     "engPose",
+     321,
+     "index.html:50416"
+    ],
+    [
+     "uniformMatrix4fv",
+     59,
+     ":0"
+    ],
+    [
+     "(anonyme)",
+     41,
+     "three.min.js:6"
+    ],
+    [
+     "bindVertexArray",
+     29,
+     ":0"
+    ],
+    [
+     "Gi",
+     28,
+     "three.min.js:6"
+    ],
+    [
+     "engVigRender",
+     24,
+     "index.html:51025"
+    ],
+    [
+     "vertexAttribPointer",
+     16,
+     ":0"
+    ],
+    [
+     "Yi",
+     15,
+     "three.min.js:6"
+    ],
+    [
+     "loop",
+     13,
+     "index.html:83302"
+    ],
+    [
+     "sm.render",
+     12,
+     "index.html:47858"
+    ],
+    [
+     "renderer.render",
+     8,
+     "index.html:50628"
+    ],
+    [
+     "Hi",
+     7,
+     "three.min.js:6"
+    ],
+    [
+     "updateBoomArt",
+     4,
+     "index.html:60737"
+    ]
+   ],
+   "retour": "1"
+  }
+ ],
+ "erreurs": [],
+ "verdict": "franchi : JOUER (3 s) (3 images, pire 1233 ms), MORT 1 (3 s) (5 images, pire 567 ms), ÉCRAN DE MORT 1 (3 s, 8 s après) (2 images, pire 433 ms), REJOUER 1 (3 s) (4 images, pire 533 ms), MORT 2 (3 s) (6 images, pire 1217 ms), ÉCRAN DE MORT 2 (3 s, 8 s après) (1 images, pire 817 ms), REJOUER 2 (3 s) (2 images, pire 400 ms), MORT 3 (3 s) (3 images, pire 683 ms), ÉCRAN DE MORT 3 (3 s, 8 s après) (2 images, pire 550 ms)"
+}
