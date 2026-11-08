@@ -3,8 +3,8 @@ const { spawnSync } = require('child_process'), fs = require('fs'), path = requi
 const prof = process.argv[2], maps = (process.argv[3] || 'banquise,canyon,crypto,dunes,foret,grotte,jade,ville,vitree,espace,volcan,nuages').split(',');
 const out = path.resolve(__dirname, '..', '..', 'out'); fs.mkdirSync(out, { recursive: true });
 for (const m of maps) {
-  const r = spawnSync('node', [path.join(__dirname, 'course.cjs'), '--prof', prof, '--http', '9861', '--cdp', '9862', '--map', m + ':matin'], { encoding: 'utf8', timeout: 420000 });
-  fs.writeFileSync(path.join(out, 'map-' + m + '.txt'), (r.stdout || '') + (r.stderr || '') + '\n[sortie ' + r.status + ' ' + (r.error ? r.error.message : '') + ']');
+  const r = spawnSync('node', [path.join(__dirname, process.env.SCRIPT || 'course.cjs'), '--prof', prof, '--http', '9881', '--cdp', '9882', '--map', m + ':matin'], { encoding: 'utf8', timeout: 420000 });
+  fs.writeFileSync(path.join(out, (process.env.SCRIPT ? 'gl-' : 'map-') + m + '.txt'), (r.stdout || '') + (r.stderr || '') + '\n[sortie ' + r.status + ' ' + (r.error ? r.error.message : '') + ']');
   console.log(m, 'fini', r.status);
 }
 fs.writeFileSync(path.join(out, 'FINI'), 'ok');

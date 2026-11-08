@@ -5,9 +5,12 @@
 ## Corrigé dans cette chasse
 - `HCAP is not defined` (génération de piste, `arc` / `enroul` dans `code/maps/ville-entree.js`) : introduit par e1c64a63 (v1333), le tableau n'était jamais déclaré. Chaque tracé de piste levait un ReferenceError, rattrapé en `console.warn` (« chargement · piste », « pré-bâti »). Corrigé : `const HCAP=[]` après `let P=…`. Preuve : le banc de course ne relève plus ces warnings.
 
+- Jade : `bufferSubData: srcOffset + length too large` + `Vertex buffer is not big enough` (gouttes d'eau). Cause : `eauPIm` posait `im.count=0` AVANT `setColorAt(0,…)` ; three r128 dimensionne `instanceColor` sur `this.count` → tableau de 0 élément. Corrigé (`code/maps/jade-eau.js:34`). Preuve : la sonde `course-gl.cjs --map jade:matin` donnait 2 erreurs GL, maintenant `GLERR []`.
+- Forêt : `DROIT` / `der` hors de portée de `fMod` (voir le commit).
+
 ## Non résolus
 
-### 1. Erreurs WebGL dont je ne trouve pas l'appel
+### 1. (partiellement résolu — voir plus haut pour Jade) Erreurs WebGL sur la map par défaut, appel introuvable
 - Symptôme : en Chrome headless, la console finit par « WebGL: too many errors, no more errors will be reported » (32 erreurs). Au premier passage (avant le correctif HCAP, piste de secours) : `bufferSubData: srcOffset + length too large` et `Vertex buffer is not big enough for the draw call`. Après le correctif, seul « too many errors » reste visible : les 32 messages précédents ne sont pas livrés au banc.
 - Essayé : une sonde (`outils/banc-course/fait-gl.cjs` → `course-gl.cjs`) qui enveloppe `drawArrays/drawElements/*Instanced/bufferSubData/bufferData/texImage2D` et appelle `getError()` derrière chaque appel. Résultat : zéro erreur attrapée dans le thread principal, alors que Chrome en compte 32.
 - Hypothèses non vérifiées : l'erreur vient d'un `OffscreenCanvas` dans un Worker (il y en a dans `canyon-route.js`, `dunes-1.js`, `jade-singes-dauphins.js`, `nuages-v8.js`, `finition.js`, `silhouettes.js`), ou d'appels que mon enveloppe ne couvre pas (`vertexAttribPointer`, `copyBufferSubData`…), ou c'est un artefact de SwiftShader/headless et rien sur un vrai téléphone. Je ne sais pas laquelle.
