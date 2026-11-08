@@ -120,7 +120,9 @@ html body #gBq .trop .moArg,html body #gBq .cher .moArg{opacity:.75}
 html body #gBqTete .bqArg{background:none!important;box-shadow:none!important;padding:4px 0!important}
 html body #gBqTete .bqArg b#gBqArg{font-size:15px!important;letter-spacing:1px;font-family:'CC Vide','Press Start 2P',monospace!important;white-space:nowrap}
 html body #gBqTete .bqArg b#gBqArg::before{content:'';display:inline-block;width:1.4em;height:1.4em;vertical-align:-.32em;margin-right:.3em;background:var(--mImg) center/contain no-repeat;-webkit-background-clip:border-box;background-clip:border-box;image-rendering:pixelated}
-html body #gBqArg{filter:var(--morelief)!important}
+/* (2026-11-08, Léo : « le contour noir un peu gros sur l'argent et la pièce du shop en haut ; les prix : enlève la pièce, juste le prix ») */
+html body #gBqArg{filter:drop-shadow(1px 0 0 var(--moO)) drop-shadow(-1px 0 0 var(--moO)) drop-shadow(0 -1px 0 var(--moO)) drop-shadow(0 1px 0 var(--moO)) drop-shadow(0 1px 0 var(--moD)) drop-shadow(0 0 6px var(--mog))!important}
+html body #gBq .moIc{display:none}
 
 /* --- le vrai argent (€) en rose néon --- */
 html .gT em.eur,html #gBqPan .bqK .bqKp.eur,html #bqAile .baP.eur,html #gStrip.fnBande .fnP.eur,

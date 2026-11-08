@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1321'; /* v1321 (2026-11-08, Léo : « dans le shop, un peu petit, pas très joli ») : les prix de la boutique portent l'objet de leur palier et sa couleur, sans pastille ; le solde du haut flotte, plus gros */
+const CACHE = 'cashcar-v1322'; /* v1322 (2026-11-08, Léo) : boutique — contour fin sur le solde du haut, les prix sans la pièce (le nombre seul, à la couleur de son palier) */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
