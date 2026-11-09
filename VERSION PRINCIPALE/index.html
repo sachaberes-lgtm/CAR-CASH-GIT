@@ -50991,7 +50991,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
     chauffeRendu(L9);for(const m of L9)scene.remove(m);},
-  function(){premiereFois(0);},function(){premiereFois(1);},function(){premiereFois(2);},function(){premiereFois(3);},function(){premiereFois(4);},function(){premiereFois(5);},function(){premiereFois(6);}, /* (2026-11-07, passe perf 3, P6) LES NAISSANCES DE COURSE dessinées une fois : billets et panneaux du cratère (instanciés à ZÉRO instance, donc jamais dessinés avant la 1re mort), pigeon (compilé seulement) — voir gameplay/premiere-fois.js */
+  function(){premiereFoisEtape(0);},function(){premiereFoisEtape(1);},function(){premiereFoisEtape(2);},function(){premiereFoisEtape(3);},function(){premiereFoisEtape(4);},function(){premiereFoisEtape(5);},function(){premiereFoisEtape(6);}, /* (2026-11-07, passe perf 3, P6) LES NAISSANCES DE COURSE dessinées une fois : billets et panneaux du cratère (instanciés à ZÉRO instance, donc jamais dessinés avant la 1re mort), pigeon (compilé seulement) — voir gameplay/premiere-fois.js */
   function(){jadeChauffeProgs(0);},function(){jadeChauffeProgs(1);},function(){jadeChauffeProgs(2);},function(){jadeChauffeProgs(3);}, // (2026-10-14, passe perf mobile) LE SOLEIL DE JADE : ses 17 programmes compilés au menu, ~4 par étape (jadeChauffeProgs) — plus rien ne naît au portail vers le jade ni au REJOUER tiré sur lui
   function(){engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
     renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}]; // …et son halo et son tampon montent au GPU dès le menu
@@ -73181,7 +73181,7 @@ function premPanneau(o){ /* les panneaux (instances par attributs, `instanceCoun
   try{o.g.instanceCount=1;for(let i=0;i<o.at.length;i++)o.at[i].needsUpdate=true;o.mesh.visible=true;chauffeRendu([o.mesh]);}
   finally{o.g.instanceCount=n0;o.mesh.visible=v0;}
 }
-function premiereFois(k){ /* l'étape k de la liste (une par image) ; vrai s'il y en a encore */
+function premiereFoisEtape(k){ /* (2026-11-09, chasse : renommée, elle masquait premiereFois() de son/musique.js — leconSilence appelait celle-ci sans argument : TypeError et « premier lancement » toujours faux) l'étape k de la liste (une par image) ; vrai s'il y en a encore */
   const L=[
     function(){if(typeof BILL_IM!=='undefined')premInstance(BILL_IM);},
     function(){premPanneau(PAN_VOL);},
@@ -73192,7 +73192,7 @@ function premiereFois(k){ /* l'étape k de la liste (une par image) ; vrai s'il 
     function(){setTimeout(premMoteursTic,1500);}
   ];
   if(!PREM_ON||PREM.fait[k])return k+1<L.length;
-  PREM.fait[k]=1;try{L[k]();}catch(e){console.warn('premiereFois',k,e);}
+  PREM.fait[k]=1;try{L[k]();}catch(e){console.warn('premiereFoisEtape',k,e);}
   return k+1<L.length;
 }
 /* (2026-11-07, P6) LA CARTE MOTEUR et LE MOTEUR DE L'ÉCRAN DE MORT. MESURÉ : au 1er palier de la course (la carte « NOUVEAU MOTEUR » recollée dans l'image) et à
@@ -73234,7 +73234,7 @@ function premMoteursTic(){
 }
 window.dbgPremiere=function(a){
   if(a==='tout'){ /* banc : toute la chauffe d'un coup, sans attendre celle du menu (le Chrome sans fenêtre ne la finit pas) — moteurs de tous les paliers fabriqués puis dessinés */
-    for(let k=0;k<7;k++){PREM.fait[k]=0;premiereFois(k);}
+    for(let k=0;k<7;k++){PREM.fait[k]=0;premiereFoisEtape(k);}
     for(let i=0;i<ENGINE_TIERS.length;i++)engPret(i);
     let g9=0;while(!premMoteurUn()&&++g9<80){}
     PREMM.fini=true;
