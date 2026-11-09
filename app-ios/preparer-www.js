@@ -76,8 +76,16 @@ for(const m of fs.readFileSync(path.join(SRC,'index.html'),'utf8').matchAll(/<sc
   for(const m of s.matchAll(/\b(new Worker|fetch|script)\(\s*['"]([^'"?#]+)/g)){const n=m[2];if(/^[a-z]+:|^\/\/|^\//i.test(n)||!/\.[a-z0-9]+$/i.test(n))continue;
     const a=path.join(SRC,n);if(!fs.existsSync(a)||!fs.statSync(a).isFile()){if(m[1]==='new Worker')meurt('le jeu lance le Worker '+n+', absent de VERSION PRINCIPALE');continue;}
     if(!fs.existsSync(path.join(WWW,n))&&!JAMAIS.test(path.basename(n))&&!ATELIER(n)){fs.mkdirSync(path.dirname(path.join(WWW,n)),{recursive:true});copie(a,path.join(WWW,n));console.log('  + '+n+' (chargé par programme)');}}}
-// l'icône du web : le mot-symbole pixel CASH CAR (icon.svg du jeu = l'émoji 💰 d'Apple, une image protégée : refus App Store)
-fs.copyFileSync(path.join(ICI,'ressources','icon.svg'),path.join(WWW,'icon.svg'));nFic++;
+/* (2026-11-09, Perf 3 / P4-poids) PLUS D'icon.svg DANS L'APP : seul sw.js (absent de l'app) la citait ; l'icône de l'app est dans Assets.xcassets, celles de la page
+   sont les PNG de assets/icons. −0,7 Mo. (Avant : copie de ressources/icon.svg, le mot-symbole, à la racine de www/.) */
+/* (idem) LA MER DE NUAGES EN WEBP SANS PERTE : assets/ciel/mer-cumulus.png (867 Ko, RGBA 512²) → ressources/mer-cumulus.webp (304 Ko, lossless, pixels et alpha identiques
+   vérifiés avec PIL). Seulement si le PNG de VERSION PRINCIPALE est EXACTEMENT celui qui a été converti (sha1 ci-dessous) : sinon le PNG reste et un message le dit. */
+const MC_PNG=path.join(WWW,'assets','ciel','mer-cumulus.png'),MC_SHA1='77765ea42fa2d0c2fafe6a2fc56598ad56d49c0e';
+let MC_WEBP=false;
+if(fs.existsSync(MC_PNG)){
+  if(require('crypto').createHash('sha1').update(fs.readFileSync(MC_PNG)).digest('hex')===MC_SHA1){
+    fs.copyFileSync(path.join(ICI,'ressources','mer-cumulus.webp'),path.join(WWW,'assets','ciel','mer-cumulus.webp'));fs.rmSync(MC_PNG);MC_WEBP=true;}
+  else console.log('  ⚠ mer-cumulus.png a changé : le webp de ressources/ est périmé, le PNG reste (refaire la conversion : voir preparer-www.js)');}
 {let n=fs.readFileSync(path.join(ICI,'natif','natif.js'),'utf8');const k=n.split("'"+MAJ_PROD+"'").length-1;
   if(k!==1){console.error('✗ preparer-www : natif.js doit citer l\'adresse des mises à jour une fois exactement ('+k+')');process.exit(1);}
   /* --banc "<scénario>" (2026-11-07) : app de BANC — natif.js pose localStorage.ccBancAuto et le jeu se joue tout seul (banc-iphone.js) ; www/banc.json en garde la trace.
@@ -165,6 +173,7 @@ une("s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?clien
    l'inventaire reste à 0 adresse réseau (la publication du 07/11 avait échoué ici). */
 une('<meta property="og:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">','','aperçu de lien du site (og:image)');
 une('<meta name="twitter:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">','','aperçu de lien du site (twitter:image)');
+if(MC_WEBP)une("im.src='assets/ciel/mer-cumulus.png'","im.src='assets/ciel/mer-cumulus.webp'",'mer de nuages en webp');
 une("var CC_ADMOB={recompense:''};","var CC_ADMOB={recompense:''}; /* (app iOS) aucune régie : ni AdMob ni AdSense */",'emplacement AdMob éteint');
 /* (2026-11-07) LES PEINTURES EN EUROS reviennent aussi (PEINT_EUR, par shopPaye / StoreKit) : les deux coupes qui les passaient à l'argent du jeu
    (60 000 par euro) sont ôtées. RESTE, par prudence, l'article du pack LA PALETTE : le pack n'est plus vendu (PALETTE_PACK, aucun produit) ;
