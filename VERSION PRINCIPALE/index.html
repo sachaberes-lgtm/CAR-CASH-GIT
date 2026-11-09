@@ -17996,7 +17996,10 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
     fS(90*LVf,-3*LVf,1);return {g:1,fig:'surf',f:ev};};
   const fCouloir=function(){const sg=rf()<.5?1:-1,R=2.6*rP,a=120+rf()*20;fS(60*LVf,-2*LVf,1);fS(4*vD*kT,0,4);const ia=ctrl.length-1;fS(.8*vD*kT,0,1);const ib=ctrl.length-1;fA(sg*a,R,0,-6);const ic=ctrl.length-1;fS(.8*vD*kT,-2,1);const id=ctrl.length-1;fS(80*LVf,-3*LVf,1);
     return {g:1,fig:'couloir',f:[[ia,ib,-sg*1.4],[ic,id,sg*1.4]]};};
-  const mRondPoint=function(){const sg=rf()<thrH(.5+hand*.22,270)?1:-1,R=1.9*rP;straight(1.5*vD,-3*LV,2);arc(sg*270,R,27,0);straight(1.5*vD,-3*LV,2);return {fig:'rondpoint'};};
+  /* (2026-11-09, Sacha : « dans la map city des fois ça fait une boucle trop serrée et il y a presque pas d'espace pour la voiture de passer en dessous ») MESURÉ (outils/banc-routes/croise.cjs, 60 graines × 3 paliers) :
+     le rond-point était PLAT, donc sa sortie recoupait son entrée à 5-11 m de hauteur libre — sur 100 % des routes de ville. Le tour descend désormais d'une pente de 14 % (≈ 0,66 R : 79 m au palier 0, 180 m au 20,
+     jamais moins de 70 m) : la sortie passe EN DESSOUS de l'entrée (la ville vitrée impose 46 m, VIT_SEP). */
+  const mRondPoint=function(){const sg=rf()<thrH(.5+hand*.22,270)?1:-1,R=1.9*rP;straight(1.5*vD,-3*LV,2);arc(sg*270,R,27,-Math.max(70,.14*(270*Math.PI/180)*R));straight(1.5*vD,-3*LV,2);return {fig:'rondpoint'};};
   const mMoon=function(){const sg=rf()<thrH(.5)?1:-1,L1=3*vD,L2=2*vD;straight(50*LV,-2*LV,1);straight(L1,L1*.18,3);straight(L2,-L2*.04,2);arc(sg*90,2*rP,9,-30*LV);straight(60*LV,-3*LV,1);return {g:1,fig:'moon'};};
   const mMiroir=function(){const sg=rf()<thrH(.5+hand*.22)?1:-1,R=1.9*rP;straight(60*LV,-2*LV,1);arc(sg*90,R,9,-6*LV);straight(2*vD,-4*LV,2);arc(-sg*90,R,9,-6*LV);straight(60*LV,-2*LV,1);return {fig:'miroir'};};
   const CLIMAX=!GEN_V2?null:MC==='crypto'?mMoon:MC==='vitree'?mMiroir:MC==='espace'?fCouloir:MC==='ville'?mRondPoint:MODT?fSurf:null;

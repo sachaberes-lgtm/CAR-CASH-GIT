@@ -118,7 +118,7 @@ FIN : le geste de fin, la droite d'arrivée
 |---|---|---|
 | NUAGES | **LE SURF** | trois virages alternés de 70-85° à 2,2 rP ; à chacun la dalle se couche à 75° vers l'intérieur (roulis scripté gauche/droite/gauche), à l'endroit entre deux : on surfe la vague |
 | ESPACE | **LE COULOIR DE LANCEMENT** | 4 s de ligne droite parfaitement plate et à l'endroit (la nitro), puis un balayage de 120-140° à 2,6 rP pris sur la tranche (roulis scripté 80°) : la fronde de sortie. Vitesse puis spectacle |
-| VILLE | **LE ROND-POINT** | 270° à 1,9 rP, plat, entrée et sortie en droite franche de 1,5 s : on lit le rond-point, on le coupe |
+| VILLE | **LE ROND-POINT** | 270° à 1,9 rP, entrée et sortie en droite franche de 1,5 s : on lit le rond-point. ⚠ PLUS PLAT (2026-11-09) : sa sortie recoupe son entrée, il DESCEND de ~0,66 R (pente 14 %, ≥ 70 m) pour que la route passe dessous avec de l'air (plat : 5 m de hauteur libre, sur 100 % des routes). Test : `node outils/banc-routes/croise.cjs` |
 | CRYPTO | **TO THE MOON** | 3 s de rampe droite montante à 18 % qui finit sur une crête (big air), retombée sur 2 s de plat, puis 90° à 2 rP |
 | JADE | **LES TROIS PICS** | trois crêtes en ligne : droite montante 1,5 s, crête à sauter, descente en virage de 50° alterné — le relief de la jade comme module, plus une chaîne de virages |
 | FORÊT | **LA CLAIRIÈRE** | 3,5 s de droite franche (la forêt s'ouvre) puis une épingle de 160° à 1,8 rP à l'entrée du bois |
