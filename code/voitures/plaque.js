@@ -323,7 +323,7 @@ function plqGuette(){if(PLQ.iv)return;PLQ.iv=setInterval(function(){try{
 /* LE PROFIL */
 function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for(const k in (ex.temps||{}))tc+=+ex.temps[k]||0;}catch(e){}
   let own=0,tot=0;try{for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;tot++;if(i===0||carOwned(i))own++;}}catch(e){}
-  let mis=0,misT=0;try{const s=m2Etat();mis=(s.ok||[]).length;misT=M2.length;}catch(e){}
+  let mis=0,misT=0;try{const c9=m2Compte();mis=c9.ok;misT=c9.tot;}catch(e){} /* (2026-11-08, chasse) le MÊME compte que l'écran Missions et la mort (1 / 68 contre 2 / 50 contre 3 / 51) */
   let rang='';try{rang=auraRankName();}catch(e){}
   return [
     ['horloge','TEMPS DANS L\'APP',plqDuree(Math.max(p.tA||0,tc)),'gros'],
@@ -341,7 +341,7 @@ function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for
     ['rotation','MEILLEUR COMBO',d.figRec?'×'+(+d.figRec).toFixed(d.figRec%1?1:0):'—',''],
     ['voiture','CAISSES',own+' / '+tot,''],
     ['cible','MISSIONS',mis+(misT?' / '+misT:''),''],
-    ['flamme','SERIE',((d.jour&&d.jour.n)|0)+' '+TR(((d.jour&&d.jour.n)|0)>1||(LANG!=='fr'&&((d.jour&&d.jour.n)|0)!==1)?'JOURS':'JOUR'),'']];} /* (2026-11-08, sortie du jeu) « 0 DAY » : en anglais, zéro prend le pluriel (« 0 DAYS ») ; en français, « 0 JOUR » reste */
+    ['flamme','SERIE',((d.jour&&d.jour.n)|0)+' '+TR(((d.jour&&d.jour.n)|0)>1||(LANG!=='fr'&&((d.jour&&d.jour.n)|0)!==1)?'JOURS':'JOUR'),'']];}
 function profRemplit(){const g=$p('pfStats');if(!g)return;
   g.innerHTML=profChiffres().map(function(c){return '<div class="pfS '+c[3]+'">'+pxi(c[0])+'<i>'+sansAcc(TR(c[1]))+'</i><b>'+c[2]+'</b></div>';}).join('');
   const e=plqEtat();plqApercu($p('pfCv'),plqModOk(e.m),String(e.x||'').trim());}

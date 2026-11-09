@@ -7571,6 +7571,11 @@ html:not(.c6) #mSet .volRow .volV{flex:none;min-width:54px;text-align:right;marg
 html:not(.c6) #mSet .c6Efface{--nc:var(--neoR);color:var(--neoR);background:transparent;min-height:48px;width:100%;max-width:320px;text-shadow:none;box-shadow:inset 0 0 0 2px var(--neoR)}
 html:not(.c6) #mSet .c6Efface .pxi,html:not(.c6) #mSet .c6Efface .tpL{color:var(--neoR)}
 html:not(.c6) #mSet .c6Efface:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 2px var(--neoR),inset 0 0 26px rgba(255,74,100,.45)}
+/* (2026-11-09, audit visuel) FR : « EFFACER MA PROGRESSION » (22 lettres, 288 px + l'icône + l'écart + 2 × 22 de marge = 365 px) tenait mal dans les 320 px du lingot :
+   l'icône mordait le bord gauche, la dernière lettre le bord droit. Le lingot peut aller à 360 px (la colonne fait 339 à 354 px sur téléphone), marges de 12 px,
+   écart de 10, lettres sans interlettre : 322 px de contenu, ≥ 8 px de vide de chaque côté. L'anglais (« ERASE MY PROGRESS », 223 px) tenait déjà : inchangé. */
+html[lang="fr"]:not(.c6) #mSet .c6Efface{max-width:360px;padding:0 12px;gap:10px}
+html[lang="fr"]:not(.c6) #mSet .c6Efface .tpL{letter-spacing:0}
 @media (orientation:landscape) and (max-height:540px){
   html:not(.c6) #mSet .c6Corps{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:22px;align-items:start}
   html:not(.c6) #mSet .c6Col{display:flex;flex-direction:column;min-width:0}
@@ -9248,6 +9253,15 @@ html.portesHaut:not(.garLeo):not(.poki) body #garage#garage#garage.on.consoleCac
   #prof .pfS{grid-template-columns:minmax(0,1fr);padding:9px 10px 8px}#prof .pfS .pxi{display:none}
   #prof .pfRet{width:56px;min-width:56px;padding:0}#prof .pfRet span{display:none} /* la flèche seule : le lingot garde sa ligne entière */
 }
+/* (2026-11-09, audit visuel : iPhone SE couché 667 × 375) la colonne de gauche ne fait que 221 px et les cartes de chiffres 124 (104 de texte) : en français
+   « CHANGER MA PLAQUE » (172 px) sortait de son lingot et quatre étiquettes finissaient en « … » (TEMPS DANS L'APP, MEILLEUR TEMPS, MEILLEURE AURA,
+   MEILLEUR COMBO). Le lingot passe sur deux lignes (CHANGER MA / PLAQUE), les étiquettes aussi quand il le faut — en français, où la place d'une
+   deuxième ligne est réservée à chaque étiquette pour que les chiffres restent alignés d'une carte à l'autre (la carte garde ses 56 px). À partir
+   de ~780 px de large (844 × 390 : cartes de 162 px) tout tient sur une ligne : rien ne change. */
+@media (orientation:landscape) and (max-height:540px) and (max-width:780px){
+  #prof .pfChg{white-space:normal;line-height:1.2;padding:0 8px}
+  html[lang="fr"] #prof .pfS i:not(.pxi){white-space:normal;overflow:visible;text-overflow:clip;line-height:1.3;min-height:2.6em}
+}
 /* (2026-10-18, Sacha : « regarde comment la version mobile est gérée avec le clavier ») LE CLAVIER DU TÉLÉPHONE OUVERT : il se pose PAR-DESSUS
    la page (couché, il ne reste que ~150 px visibles) — iOS faisait glisser l'écran pour montrer le champ : la plaque coupée, VALIDER sous les
    touches. Tant qu'on écrit, l'atelier se pose sur la partie VISIBLE (plqClavier : top/height = visualViewport) et ne garde que l'essentiel :
@@ -9812,6 +9826,15 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
   html body #mob #mDead.m5.on :is(.mMenu,.mvGar,.mvSet,#mChanceNon){margin-top:var(--m6Pas)!important}
   html body #mob #mDead.m5.on :is(#mDouble,[data-m="replay"],#mChance){margin-top:var(--m6E)!important}
   html body #mob #mDead.m5.on #mChanceNon:not([hidden]){grid-row:6;grid-column:1/-1}
+}
+/* ---------- DEBOUT, PETIT ÉCRAN (2026-11-09, audit visuel : iPhone SE/8 375 × 667) ----------
+   Avec un gain (la ligne ×2 · PUB) la colonne faisait 725 px pour 667 d'écran : REJOUER sortait par le bas (713). La rangée du héros (1,12fr / 1fr)
+   se calait sur la carte AURA et gardait 262 px ; on la laisse à la taille de ses cartes (auto) — l'espace qui reste, s'il en reste, la rattrape —
+   on resserre le haut, le bas et le pas entre étages, et on baisse les touches au plus juste (44 px au toucher, REJOUER 50). 390 × 844 : inchangé. */
+@media (orientation:portrait) and (max-height:700px){
+  html body #mob #mDead.m5.on{--m6Pas:12px;--m6H:44px;--m6Lg:50px;padding-top:calc(var(--sT,0px) + 14px)!important;padding-bottom:calc(var(--sB,0px) + 10px)!important}
+  html body #mob #mDead.m5 .mHero.m5Hero{grid-template-rows:auto auto}
+  html body #mob #mDead.m5 .m6Aura>.m6Graphe{min-height:34px}
 }
 @media (prefers-reduced-motion:reduce){html body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}}
 html[data-reduced-motion="1"] body #mob #mDead.m5 :is(.m6Halo,.m6Ombre,.hMotCv,.m6Barre,.m6Val,.m6Scene,.m6Scene::after,.m6Ligne,.m6Badge,.obM,.obM *){animation:none!important}
@@ -11106,7 +11129,7 @@ html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.eur{color:#7a5300;background:#fff3c
 html.vtOn body #gBq #gBqPan .bqK.vo.vo.trop .bqKp.pc{color:var(--bqGris2,#9a95ad);background:var(--bqFond2,#f1eff6)}
 html.vtOn body #gBq #gBqPan .bqK.vo.vo.trop .bqKp.pc .pxi{opacity:.5}
 html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq{padding-left:0;background:none;box-shadow:none;color:var(--bqGris,#6b6587)}
-html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq::before{content:"";display:block;flex:none;box-sizing:content-box;width:7px;height:3px;margin:0 2px 3px 2px;padding:0;border:solid var(--bqInk,#17132b);border-width:0 0 2px 2px;border-radius:0;background:none;box-shadow:none;transform:rotate(-45deg);position:static}
+html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq::before{content:"";display:block;flex:none;box-sizing:content-box;width:7px;height:3px;margin:0 2px 3px 2px;padding:0;border:solid var(--bqInk,#17132b);border-width:0 0 2px 2px;border-radius:0;background:none;box-shadow:none;transform:rotate(-45deg);position:static;-webkit-mask:none;mask:none}
 html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq.eqp{padding-left:6px;color:#fff;background:var(--bqInk,#17132b)}
 html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp.acq.eqp::before{border-color:#fff}
 html.vtOn body #gBq #gBqPan .bqK.vo.vo .bqKp:is(.defi,.sec){color:#6b3fd0;background:rgba(176,123,255,.10);box-shadow:inset 0 0 0 1.5px rgba(176,123,255,.8);text-shadow:none} /* (2026-11-07) au trait : la rangée de pastilles pleines criait plus fort que les voitures */
@@ -11570,7 +11593,7 @@ html body #gBqPan .pN.pC .pCatt{font-style:normal;opacity:.18;animation:pCatt 1.
 html body #gBqPan .pN.pC .pCatt .pxi{--pxs:2;margin:0;color:var(--bqInk,#17132b)}
 @keyframes pCatt{to{opacity:.07}}
 html body #gBqPan .pN.pC .pCn{display:block;min-width:0;padding:6px 6px 0;font-size:7px;line-height:9px;letter-spacing:.3px;color:var(--bqInk,#17132b);white-space:normal;text-wrap:balance;overflow-wrap:normal;word-break:normal;min-height:18px}
-html body #gBqPan .pN.pC .pCe{align-self:flex-start;display:inline-flex;align-items:center;gap:4px;max-width:calc(100% - 10px);height:18px;margin:5px 5px 6px;padding:0 6px 0 4px;border-radius:5px;
+html body #gBqPan .pN.pC .pCe{box-sizing:border-box;align-self:flex-start;display:inline-flex;align-items:center;gap:4px;max-width:calc(100% - 10px);height:18px;margin:5px 5px 6px;padding:0 6px 0 4px;border-radius:5px;
   font-size:7px;letter-spacing:.3px;line-height:1;white-space:nowrap;overflow:hidden;color:var(--bqInk,#17132b);background:var(--bqFond2,#f1eff6);box-shadow:inset 0 0 0 1px var(--bqFil,#dfdbe9)}
 html body #gBqPan .pN.pC .pCe b{font-weight:400;min-width:0;overflow:hidden;text-overflow:ellipsis}
 html body #gBqPan .pN.pC .pCe .pxi{--pxs:1;flex:none;width:10px;height:10px;margin:0}
@@ -11582,8 +11605,18 @@ html body #gBqPan .pN.pC .pCe.e-eq{color:#fff;background:var(--bqInk,#17132b);bo
 html body #gBqPan .pN.pC .pCe.e-eq .pxi{color:#fff}
 html body #gBqPan .pN.pC .pCe:is(.e-mis,.e-defi){color:#fff;background:var(--bqMis,#b07bff);box-shadow:inset 0 -2px 0 rgba(23,19,43,.18);text-shadow:0 1px 0 rgba(23,19,43,.35)}
 html body #gBqPan .pN.pC .pCe:is(.e-mis,.e-defi) .pxi{color:#fff}
-html body #gBqPan .pN.pC .pCe u{flex:none;display:block;width:18px;height:4px;margin-left:1px;border-radius:2px;background:rgba(255,255,255,.35);overflow:hidden;text-decoration:none}
+html body #gBqPan .pN.pC .pCe u{flex:0 1 18px;min-width:5px;display:block;width:18px;height:4px;margin-left:1px;border-radius:2px;background:rgba(255,255,255,.35);overflow:hidden;text-decoration:none}
 html body #gBqPan .pN.pC .pCe u em{display:block;height:100%;background:#fff}
+/* (2026-11-09, audit visuel) EN : « CHALLENGE » (9 lettres, ≈ 66 px) + sa jauge de 18 px ne tiennent pas dans une carte de 104-109 px — la pastille débordait de la carte
+   de 5 px (max-width calculé en content-box, d'où le border-box ci-dessus) puis rognait le mot (« CHALLEN… »). Le mot garde sa largeur ; en anglais, debout et sur
+   les petits écrans couchés (cartes de 93 à 109 px), la jauge cède sa place (même un trait de 4 px ne dirait plus rien) et la pastille se serre d'un pixel par endroit.
+   En français « DÉFI » garde sa jauge ; en anglais sur grand écran couché (844 × 390 : cartes de 121 px) tout tient, la jauge (qui peut rétrécir de 18 à 5 px
+   plutôt que d'être rognée) y perd au plus 1 px. */
+html body #gBqPan .pN.pC .pCe.e-defi b{flex:none}
+@media (orientation:portrait),(max-width:799px){
+  html[lang="en"] body #gBqPan .pN.pC .pCe.e-defi{letter-spacing:0;gap:3px;padding:0 4px 0 3px}
+  html[lang="en"] body #gBqPan .pN.pC .pCe.e-defi u{display:none}
+}
 
 /* ---------- AILES : en vol, dans un ciel à l'heure de la rareté ---------- */
 #gBqPan.bcOn .bcA .bcRay{display:none}
@@ -19557,6 +19590,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   const FM_NOM=['slalom','corde','racines','toboggan','chicane','balcon'];
   const fmTire=()=>{for(let e=0;e<6;e++){if(!fmPaq.length){const t=fmJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rf9()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)fmPaq.push(x9);}
     const m=fmPaq.shift();if(m===fmLast)continue;return m;}return 0;};
+  const DROIT={allee:1,toboggan:1};let der=''; /* (2026-11-08, chasse) remontés ici : fMod les lit/écrit et ils étaient déclarés dans le bloc VASTE plus bas, hors de sa portée (ReferenceError au 1er toboggan) */
   const fMod=()=>{let m=fmTire();if(GEN_V2&&FM_NOM[m]==='toboggan'&&DROIT[der]){fmPaq.unshift(m);m=fmTire();if(FM_NOM[m]==='toboggan')return;} /* (2026-11-07 soir) pas de toboggan (droit) juste après une pièce droite */const i0=C.length-1;fmLast=m;fmJ[m]();if(GEN_V2&&FM_NOM[m]==='toboggan')der='toboggan';MM.push({i0:i0,i1:C.length-1});MK.push(FM_NOM[m]);fmNext=s+(700+rf9()*400)*kV;};
   // LES VIRAGES : 38-80° (un sur trois SERRÉ), vers la cible quand elle n'est pas devant, sinon en slalom ; une respiration de 40-110 m une fois sur trois
   const virages=n=>{for(let k=0;k<n;k++){const r9=rel(),fort=Math.abs(r9)>.5;
@@ -19618,7 +19652,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
     spirale:()=>{cap();boucle();},
     toboggan:()=>{const l=GEN_V2?(2.2+rnd()*.8)*v9:Math.min((300+rnd()*120)*kV*sf,3.2*v9),s0=s;droite(l);ZM.push([s0,s,.07,1]);}, /* (2026-11-05) jamais plus de 3,2 s */
     cygne:()=>{const sg=sgD(rnd()<.5?-1:1),R=rM*(1.6+rnd()*.4);droite((40+rnd()*60)*kV*sf);arc(aD(sg*(220+rnd()*30)),R,R*(1+rnd()*.2),.05);arc(-sg*(40+rnd()*30),R*2);}};
-  const DROIT={allee:1,toboggan:1},MARQUE={spirale:1,retour:1,toboggan:1},PN=Object.keys(PV).concat(['spirale','cygne','cygne']),paq=[]; /* (SE PERDRE) les pièces qui se recroisent (spirale, col de cygne) sont deux fois plus nombreuses */let der='';
+  const MARQUE={spirale:1,retour:1,toboggan:1},PN=Object.keys(PV).concat(['spirale','cygne','cygne']),paq=[]; /* (SE PERDRE) les pièces qui se recroisent (spirale, col de cygne) sont deux fois plus nombreuses */
   const tire=()=>{for(let e=0;e<8;e++){if(!paq.length){const t=PN.slice();for(let i=t.length-1;i>0;i--){const j=(rnd()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)paq.push(x9);}
     const n=paq.shift();if(n!==der&&!(GEN_V2&&DROIT[n]&&DROIT[der]))return n;}return der==='allee'?'virage':'allee';};
   const piece=n=>{const i0=C.length-1,s0=s,g=rnd()<.33?pente(.02,.04):-pente(.02,.05);zone(g,PV[n]); /* (2026-11-05 soir, Sacha : « j'ai fini en 10 secondes, on doit se PERDRE ») la route MONTE aussi : 33 % des pièces en montée — sinon la route d'en dessous est toujours devant, tout croisement est un raccourci gagnant */if(MARQUE[n])MM.push({i0:i0,i1:C.length-1});MK.push(n);PLAN.push(n+':'+Math.round(s-s0));der=n;};
@@ -30314,8 +30348,8 @@ function sensMouille(dt){ // chaque image de CONDUITE, dans les 2,6 s qui suiven
    (blanc d'écume, aqua, turquoise clair, vert d'eau), qui héritent d'une part de la vitesse de la caisse ; la gerbe se lit comme une NAPPE. */
 const EAUP={L:[],im:null,max:1800,cols:[new THREE.Color(0xf4fbff),new THREE.Color(0xd2f4f6),new THREE.Color(0xa8e6ea),new THREE.Color(0x86d2cf)]};
 function eauPIm(){if(EAUP.im)return EAUP.im;const m=new THREE.MeshLambertMaterial({color:0xffffff,emissive:0x3a6670});m.dispose=function(){};
-  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,EAUP.max);im.count=0;im.frustumCulled=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  im.setColorAt(0,EAUP.cols[0]);im.instanceColor.setUsage(THREE.DynamicDrawUsage); // la teinte par goutte : posée dès la création (le programme se compile une fois, au menu)
+  const im=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),m,EAUP.max);im.setColorAt(0,EAUP.cols[0]);im.count=0; /* (2026-11-08, chasse) la teinte AVANT count=0 : setColorAt dimensionne le tableau sur this.count (three r128) -> un tableau VIDE, des gouttes sans teinte et un tampon invalide à chaque image */im.frustumCulled=false;im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  im.instanceColor.setUsage(THREE.DynamicDrawUsage); // la teinte par goutte : posée dès la création (le programme se compile une fois, au menu)
   scene.add(im);EAUP.im=im;return im;}
 function eauP(x,y,z,vx,vy,vz,sz,l,y0,c){if(EAUP.L.length<EAUP.max)EAUP.L.push({x:x,y:y,z:z,vx:vx,vy:vy,vz:vz,sz:sz,t:0,l:l,y0:y0,c:c===undefined?(Math.random()*4)|0:c});}
 function jadeCouronne(x,y,z,k,vel){eauPIm();eauRide(x,y,z,k);eauRide(x,y,z,k*.6); // L'ENTRÉE : la COURONNE lisse, la nappe qui glisse vers les côtés, les gouttes fines
@@ -49995,7 +50029,7 @@ function plqGuette(){if(PLQ.iv)return;PLQ.iv=setInterval(function(){try{
 /* LE PROFIL */
 function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for(const k in (ex.temps||{}))tc+=+ex.temps[k]||0;}catch(e){}
   let own=0,tot=0;try{for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;tot++;if(i===0||carOwned(i))own++;}}catch(e){}
-  let mis=0,misT=0;try{const s=m2Etat();mis=(s.ok||[]).length;misT=M2.length;}catch(e){}
+  let mis=0,misT=0;try{const c9=m2Compte();mis=c9.ok;misT=c9.tot;}catch(e){} /* (2026-11-08, chasse) le MÊME compte que l'écran Missions et la mort (1 / 68 contre 2 / 50 contre 3 / 51) */
   let rang='';try{rang=auraRankName();}catch(e){}
   return [
     ['horloge','TEMPS DANS L\'APP',plqDuree(Math.max(p.tA||0,tc)),'gros'],
@@ -50013,7 +50047,7 @@ function profChiffres(){const d=SAVE.d,ex=d.ex||{},p=d.prof||{};let tc=0;try{for
     ['rotation','MEILLEUR COMBO',d.figRec?'×'+(+d.figRec).toFixed(d.figRec%1?1:0):'—',''],
     ['voiture','CAISSES',own+' / '+tot,''],
     ['cible','MISSIONS',mis+(misT?' / '+misT:''),''],
-    ['flamme','SERIE',((d.jour&&d.jour.n)|0)+' '+TR(((d.jour&&d.jour.n)|0)>1||(LANG!=='fr'&&((d.jour&&d.jour.n)|0)!==1)?'JOURS':'JOUR'),'']];} /* (2026-11-08, sortie du jeu) « 0 DAY » : en anglais, zéro prend le pluriel (« 0 DAYS ») ; en français, « 0 JOUR » reste */
+    ['flamme','SERIE',((d.jour&&d.jour.n)|0)+' '+TR(((d.jour&&d.jour.n)|0)>1||(LANG!=='fr'&&((d.jour&&d.jour.n)|0)!==1)?'JOURS':'JOUR'),'']];}
 function profRemplit(){const g=$p('pfStats');if(!g)return;
   g.innerHTML=profChiffres().map(function(c){return '<div class="pfS '+c[3]+'">'+pxi(c[0])+'<i>'+sansAcc(TR(c[1]))+'</i><b>'+c[2]+'</b></div>';}).join('');
   const e=plqEtat();plqApercu($p('pfCv'),plqModOk(e.m),String(e.x||'').trim());}
@@ -67819,8 +67853,8 @@ function serieWOuvre(fin){ // fin = ce que jourCommit a versé ({n, casse, s:{c,
   for(let k=1;k<=7;k++){const Lk=serieLot(k),v=k===c?'auj':k<c?'fait':'futur';
     const txt=Lk.cash?String(Lk.cash):Lk.jeton?'×'+Lk.jeton:'';
     cs+='<i class="swC '+v+(Lk.voiture?' voit':'')+'" style="--i:'+k+';--h:'+(Lk.voiture?100:H[k-1])+'"><u class="swBar">'
-      +(Lk.voiture?'<span class="swPortail"><s>?</s></span>':'<b>'+txt+'</b>')+'</u>'+(k<c?'<s class="swOk">'+pxi('coche')+'</s>':'')+'<em>'+(LANG==='en'?'D':'J')+k+'</em></i>';}
-  const ni=serieLot(serieCase(c+1)),pied=sansAcc(TR('REVIENS DEMAIN'))+' : <b>'+sansAcc(serieLotTxt(ni))+'</b>'+(f.casse?'<i>'+sansAcc(TR('SÉRIE PERDUE · ON REPART AU 1ER JOUR'))+'</i>':'');
+      +(Lk.voiture?'<span class="swPortail"><s>?</s></span>':'<b>'+(txt||(Lk.exclu?pxi('pinceau'):''))+'</b>')+'</u>'+(k<c?'<s class="swOk">'+pxi('coche')+'</s>':'')+'<em>'+(LANG==='en'?'D':'J')+k+'</em></i>';}
+  const ni=serieLot(serieCase(c+1)),pied=sansAcc(TR('REVIENS DEMAIN'))+(LANG==='fr'?' : ':': ')+'<b>'+sansAcc(serieLotTxt(ni))+'</b>'+(f.casse?'<i>'+sansAcc(TR('SÉRIE PERDUE · ON REPART AU 1ER JOUR'))+'</i>':'');
   el.innerHTML='<div class="swScene"></div><i class="swAnneau"></i>'
     +'<div class="swBloc"><div class="swG"><div class="swHd"><small>'+sansAcc(TR('SÉRIE DE CONNEXION'))+'</small><b>'+sansAcc(TR('JOUR'))+' '+c+'<i>/ 7</i></b>'+(f.n>7?'<em>'+sansAcc(TR('SÉRIE')+' '+f.n+' '+TR('JOURS'))+'</em>':'')+'</div>'
     +'<div class="swPiste">'+cs+'</div></div><div class="swD">'
@@ -78280,7 +78314,7 @@ function garBqPanneau(dt,t9){try{if(FSTU.on&&FSTU.garage===true&&!FSTU_SANS[carG
     {let mt=nm.querySelector('.bqM2');if(!mt){mt=document.createElement('span');mt.className='bqM2';nm.appendChild(mt);} /* (2026-10-16) SE DÉBLOQUE : la mission, sa jauge — une secrète : rien (son étiquette dit déjà MISSION SECRÈTE) */
       let h9='';if(cur[0]==='v'){const iv=+cur.slice(2),m9=m2DeCaisse(iv);if(m9&&!carUnlockedVrai(iv))h9=m9.f==='secret'?'':m2DebloqueHtml(m9,true);
         if(!h9)h9=shArcHtml(iv,carUnlockedVrai(iv));} /* (2026-10-20, Sacha) le CHAT POP-TART : « + TRAÎNÉE ARC-EN-CIEL INCLUSE » sous son nom (voir shArcHtml) */
-      else{const o9=bqCos(cur),m9=o9&&o9.d&&m2DeHab(o9.cat,o9.d);if(m9&&!shopOwned(o9.cat,o9.d.id))h9=m2DebloqueHtml(m9,true);else if(o9&&o9.cat==='peinture'&&o9.d)h9=peintDefHtml(o9.d);else if(o9&&o9.cat==='trainee'&&o9.d&&o9.d.d)h9='<span class="tDesc">'+sansAcc(TR(o9.d.d))+'</span>';} /* (2026-11-05) une traînée : sa phrase — la caisse ne boost pas sur le plateau, c'est la carte et ces mots qui la vendent */ /* (2026-11-05) une peinture à défi : OU GAGNE-LA, sa jauge */
+      else{const o9=bqCos(cur),m9=o9&&o9.d&&m2DeHab(o9.cat,o9.d);if(m9&&!shopOwned(o9.cat,o9.d.id))h9=m2DebloqueHtml(m9,true);else if(o9&&o9.cat==='peinture'&&o9.d)h9=peintDefHtml(o9.d);else if(o9&&o9.cat==='trainee'&&o9.d&&o9.d.d)h9='<span class="tDesc">'+TR(o9.d.d)+'</span>';} /* (2026-11-05) une traînée : sa phrase — la caisse ne boost pas sur le plateau, c'est la carte et ces mots qui la vendent */ /* (2026-11-05) une peinture à défi : OU GAGNE-LA, sa jauge */
       mt.innerHTML=h9;mt.hidden=!h9;}
     {const L9=bqSkins(cur);sk.classList.toggle('vide',!L9.length);sk.querySelector('.bqSk').innerHTML=L9.map(function(x,n){return '<button class="bqS'+(n===0?' on':'')+'" data-s="'+x.id+'" style="--sc:'+x.c+'"><i></i><span>'+sansAcc(TR(x.n))+'</span></button>';}).join('');}
     rail.querySelectorAll('.bqK,.bcK').forEach(function(el){el.classList.toggle('sel',el.getAttribute('data-k')===cur&&(!el.hasAttribute('data-dir')||GBQ.figDir==null||+el.getAttribute('data-dir')===GBQ.figDir));});

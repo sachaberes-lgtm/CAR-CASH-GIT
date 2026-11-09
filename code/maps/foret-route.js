@@ -196,6 +196,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   const FM_NOM=['slalom','corde','racines','toboggan','chicane','balcon'];
   const fmTire=()=>{for(let e=0;e<6;e++){if(!fmPaq.length){const t=fmJ.map(function(_,i){return i;});for(let i=t.length-1;i>0;i--){const j=(rf9()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)fmPaq.push(x9);}
     const m=fmPaq.shift();if(m===fmLast)continue;return m;}return 0;};
+  const DROIT={allee:1,toboggan:1};let der=''; /* (2026-11-08, chasse) remontés ici : fMod les lit/écrit et ils étaient déclarés dans le bloc VASTE plus bas, hors de sa portée (ReferenceError au 1er toboggan) */
   const fMod=()=>{let m=fmTire();if(GEN_V2&&FM_NOM[m]==='toboggan'&&DROIT[der]){fmPaq.unshift(m);m=fmTire();if(FM_NOM[m]==='toboggan')return;} /* (2026-11-07 soir) pas de toboggan (droit) juste après une pièce droite */const i0=C.length-1;fmLast=m;fmJ[m]();if(GEN_V2&&FM_NOM[m]==='toboggan')der='toboggan';MM.push({i0:i0,i1:C.length-1});MK.push(FM_NOM[m]);fmNext=s+(700+rf9()*400)*kV;};
   // LES VIRAGES : 38-80° (un sur trois SERRÉ), vers la cible quand elle n'est pas devant, sinon en slalom ; une respiration de 40-110 m une fois sur trois
   const virages=n=>{for(let k=0;k<n;k++){const r9=rel(),fort=Math.abs(r9)>.5;
@@ -257,7 +258,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
     spirale:()=>{cap();boucle();},
     toboggan:()=>{const l=GEN_V2?(2.2+rnd()*.8)*v9:Math.min((300+rnd()*120)*kV*sf,3.2*v9),s0=s;droite(l);ZM.push([s0,s,.07,1]);}, /* (2026-11-05) jamais plus de 3,2 s */
     cygne:()=>{const sg=sgD(rnd()<.5?-1:1),R=rM*(1.6+rnd()*.4);droite((40+rnd()*60)*kV*sf);arc(aD(sg*(220+rnd()*30)),R,R*(1+rnd()*.2),.05);arc(-sg*(40+rnd()*30),R*2);}};
-  const DROIT={allee:1,toboggan:1},MARQUE={spirale:1,retour:1,toboggan:1},PN=Object.keys(PV).concat(['spirale','cygne','cygne']),paq=[]; /* (SE PERDRE) les pièces qui se recroisent (spirale, col de cygne) sont deux fois plus nombreuses */let der='';
+  const MARQUE={spirale:1,retour:1,toboggan:1},PN=Object.keys(PV).concat(['spirale','cygne','cygne']),paq=[]; /* (SE PERDRE) les pièces qui se recroisent (spirale, col de cygne) sont deux fois plus nombreuses */
   const tire=()=>{for(let e=0;e<8;e++){if(!paq.length){const t=PN.slice();for(let i=t.length-1;i>0;i--){const j=(rnd()*(i+1))|0,x9=t[i];t[i]=t[j];t[j]=x9;}for(const x9 of t)paq.push(x9);}
     const n=paq.shift();if(n!==der&&!(GEN_V2&&DROIT[n]&&DROIT[der]))return n;}return der==='allee'?'virage':'allee';};
   const piece=n=>{const i0=C.length-1,s0=s,g=rnd()<.33?pente(.02,.04):-pente(.02,.05);zone(g,PV[n]); /* (2026-11-05 soir, Sacha : « j'ai fini en 10 secondes, on doit se PERDRE ») la route MONTE aussi : 33 % des pièces en montée — sinon la route d'en dessous est toujours devant, tout croisement est un raccourci gagnant */if(MARQUE[n])MM.push({i0:i0,i1:C.length-1});MK.push(n);PLAN.push(n+':'+Math.round(s-s0));der=n;};

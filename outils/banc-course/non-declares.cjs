@@ -1,0 +1,56 @@
+/* NON-DÉCLARÉS (2026-11-08, chasse) : cherche dans le JS inline d'un index.html tout identifiant utilisé sans être déclaré (la classe de bug « HCAP is not defined »).
+   Analyse de portée complète (var hissé à la fonction, let/const/class/function au bloc). node non-declares.cjs [index.html] */
+const fs = require('fs'), path = require('path');
+const acorn = require(path.resolve(__dirname, '..', 'vendor', 'acorn.js'));
+const file = path.resolve(process.argv[2] || path.join(__dirname, '..', '..', 'VERSION PRINCIPALE', 'index.html'));
+const html = /.js$/.test(file) ? '<script>' + fs.readFileSync(file, 'utf8') + '</script>' : fs.readFileSync(file, 'utf8');
+const GLOB = new Set(('Object Function Array Number parseFloat parseInt Infinity NaN undefined Boolean String Symbol Date Promise RegExp Error EvalError RangeError ReferenceError SyntaxError TypeError URIError JSON Math Intl ArrayBuffer Uint8Array Int8Array Uint16Array Int16Array Uint32Array Int32Array Float32Array Float64Array Uint8ClampedArray BigInt64Array BigUint64Array DataView Map Set WeakMap WeakSet WeakRef Proxy Reflect globalThis isNaN isFinite decodeURI decodeURIComponent encodeURI encodeURIComponent escape unescape eval BigInt SharedArrayBuffer Atomics '
+  + 'window self document navigator location history screen localStorage sessionStorage indexedDB performance console alert confirm prompt setTimeout clearTimeout setInterval clearInterval requestAnimationFrame cancelAnimationFrame requestIdleCallback cancelIdleCallback queueMicrotask fetch Request Response Headers URL URLSearchParams Blob File FileReader FormData XMLHttpRequest WebSocket Worker SharedWorker MessageChannel BroadcastChannel Image Audio AudioContext webkitAudioContext OfflineAudioContext AudioBuffer AudioWorkletNode GainNode HTMLElement HTMLCanvasElement HTMLImageElement HTMLVideoElement HTMLAudioElement HTMLInputElement HTMLButtonElement HTMLIFrameElement Element Node NodeList Event CustomEvent MouseEvent TouchEvent PointerEvent KeyboardEvent WheelEvent DOMParser DOMMatrix DOMRect DOMException MutationObserver ResizeObserver IntersectionObserver PerformanceObserver OffscreenCanvas CanvasRenderingContext2D WebGLRenderingContext WebGL2RenderingContext ImageData ImageBitmap createImageBitmap Path2D CSS getComputedStyle matchMedia innerWidth innerHeight devicePixelRatio scrollX scrollY pageXOffset pageYOffset visualViewport screenX screenY outerWidth outerHeight addEventListener removeEventListener dispatchEvent postMessage open close focus blur scrollTo scrollBy getSelection atob btoa structuredClone crypto Notification speechSynthesis SpeechSynthesisUtterance caches serviceWorker TextEncoder TextDecoder AbortController AbortSignal ReadableStream WritableStream TransformStream CompressionStream DecompressionStream MediaRecorder MediaStream Gamepad DeviceOrientationEvent DeviceMotionEvent orientation onerror onload onresize ontouchstart Touch TouchList Path2D matchMedia WebAssembly ServiceWorker Storage requestFileSystem name status length frames parent top opener event isSecureContext origin AudioParam AnalyserNode BiquadFilterNode OscillatorNode AudioBufferSourceNode DynamicsCompressorNode ConvolverNode DelayNode WaveShaperNode StereoPannerNode PannerNode MediaElementAudioSourceNode MediaStreamAudioSourceNode ScriptProcessorNode AudioWorklet CanvasGradient CanvasPattern Option HTMLCollection DocumentFragment ShadowRoot CSSStyleSheet Range Selection TreeWalker Text Comment SVGElement StorageEvent ErrorEvent PromiseRejectionEvent ProgressEvent VideoFrame Lock LockManager WakeLock FontFace FontFaceSet ClipboardItem Clipboard ' + 'require module exports process Buffer __dirname').split(/\s+/));
+const reps = new Map(); let nScripts = 0;
+const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi; let m;
+while ((m = re.exec(html))) {
+  if (/\bsrc\s*=/.test(m[1]) || /type\s*=\s*["'](?!module|text\/javascript)/.test(m[1])) continue;
+  const code = m[2]; if (code.trim().length < 20) continue; nScripts++;
+  const lineOff = html.slice(0, m.index + m[0].indexOf('>') + 1).split('\n').length - 1;
+  let ast; try { ast = acorn.parse(code, { ecmaVersion: 'latest', locations: true, sourceType: /module/.test(m[1]) ? 'module' : 'script', allowReturnOutsideFunction: true }); } catch (e) { console.log('SYNTAXE script #' + nScripts + ' (ligne ' + lineOff + ') :', e.message); continue; }
+  const lines = code.split('\n');
+  const Scope = function (p, fn) { this.p = p; this.v = new Set(); this.fn = fn || (p && p.fn); this.isFn = !!fn; };
+  const find = (s, n) => { for (; s; s = s.p) if (s.v.has(n)) return true; return false; };
+  const fnScope = s => { while (!s.isFn) s = s.p; return s; };
+  const patNames = (p, out) => { if (!p) return; switch (p.type) { case 'Identifier': out.push(p.name); break; case 'ObjectPattern': p.properties.forEach(q => patNames(q.type === 'RestElement' ? q.argument : q.value, out)); break; case 'ArrayPattern': p.elements.forEach(e => patNames(e, out)); break; case 'RestElement': patNames(p.argument, out); break; case 'AssignmentPattern': patNames(p.left, out); break; } };
+  /* var hissés : tout `var` sous cette fonction, hors fonctions imbriquées */
+  const hoistVars = (n, s) => { if (!n || typeof n.type !== 'string') return; if (n.type === 'VariableDeclaration' && n.kind === 'var') n.declarations.forEach(d => { const o = []; patNames(d.id, o); o.forEach(x => s.v.add(x)); });
+    if (/^Function/.test(n.type) || n.type === 'ArrowFunctionExpression' || n.type === 'ClassBody') return;
+    for (const k in n) { if (k === 'type' || k === 'loc') continue; const c = n[k]; if (Array.isArray(c)) c.forEach(x => x && typeof x.type === 'string' && hoistVars(x, s)); else if (c && typeof c.type === 'string') hoistVars(c, s); } };
+  /* let/const/class/function des instructions DIRECTES d'un bloc */
+  const hoistBlock = (stmts, s) => stmts.forEach(st => { if (st.type === 'VariableDeclaration' && st.kind !== 'var') st.declarations.forEach(d => { const o = []; patNames(d.id, o); o.forEach(x => s.v.add(x)); }); else if ((st.type === 'FunctionDeclaration' || st.type === 'ClassDeclaration') && st.id) s.v.add(st.id.name); else if (st.type === 'ExportNamedDeclaration' && st.declaration) hoistBlock([st.declaration], s); });
+  const ref = (n, s, assign) => { if (find(s, n.name) || GLOB.has(n.name)) return; const k = n.name; if (!reps.has(k)) reps.set(k, { n: 0, assign: 0, loc: [] }); const r = reps.get(k); r.n++; if (assign) r.assign++; if (r.loc.length < 3) r.loc.push('l.' + (lineOff + n.loc.start.line) + ' : ' + (lines[n.loc.start.line - 1] || '').trim().slice(Math.max(0, n.loc.start.column - 50), n.loc.start.column + 70)); };
+  const patDefaults = (p, s) => { if (!p) return; switch (p.type) { case 'ObjectPattern': p.properties.forEach(q => { if (q.type === 'RestElement') patDefaults(q.argument, s); else { if (q.computed) V(q.key, s); patDefaults(q.value, s); } }); break; case 'ArrayPattern': p.elements.forEach(e => patDefaults(e, s)); break; case 'RestElement': patDefaults(p.argument, s); break; case 'AssignmentPattern': V(p.right, s); patDefaults(p.left, s); break; } };
+  const target = (p, s) => { if (!p) return; switch (p.type) { case 'Identifier': ref(p, s, true); break; case 'MemberExpression': V(p, s); break; case 'ObjectPattern': p.properties.forEach(q => { if (q.type === 'RestElement') target(q.argument, s); else { if (q.computed) V(q.key, s); target(q.value, s); } }); break; case 'ArrayPattern': p.elements.forEach(e => target(e, s)); break; case 'RestElement': target(p.argument, s); break; case 'AssignmentPattern': V(p.right, s); target(p.left, s); break; } };
+  const fnV = (n, s) => { const f = new Scope(s, true); if (n.type === 'FunctionExpression' && n.id) f.v.add(n.id.name); f.v.add('arguments'); n.params.forEach(p => { const o = []; patNames(p, o); o.forEach(x => f.v.add(x)); });
+    n.params.forEach(p => patDefaults(p, f)); if (n.body.type === 'BlockStatement') { hoistVars(n.body, f); hoistBlock(n.body.body, f); n.body.body.forEach(x => V(x, f)); } else V(n.body, f); };
+  function V(n, s) { if (!n) return; switch (n.type) {
+    case 'Program': hoistVars(n, s); hoistBlock(n.body, s); n.body.forEach(x => V(x, s)); return;
+    case 'Identifier': ref(n, s); return;
+    case 'FunctionDeclaration': case 'FunctionExpression': case 'ArrowFunctionExpression': fnV(n, s); return;
+    case 'ClassDeclaration': case 'ClassExpression': { const c = new Scope(s); if (n.id) c.v.add(n.id.name); V(n.superClass, c); n.body.body.forEach(b => { if (b.computed) V(b.key, c); V(b.value, c); if (b.type === 'StaticBlock') b.body.forEach(x => V(x, c)); }); return; }
+    case 'VariableDeclaration': n.declarations.forEach(d => { patDefaults(d.id, s); V(d.init, s); }); return;
+    case 'BlockStatement': { const b = new Scope(s); hoistBlock(n.body, b); n.body.forEach(x => V(x, b)); return; }
+    case 'ForStatement': { const b = new Scope(s); if (n.init && n.init.type === 'VariableDeclaration' && n.init.kind !== 'var') hoistBlock([n.init], b); V(n.init, b); V(n.test, b); V(n.update, b); V(n.body, b); return; }
+    case 'ForInStatement': case 'ForOfStatement': { const b = new Scope(s); if (n.left.type === 'VariableDeclaration') { if (n.left.kind !== 'var') hoistBlock([n.left], b); n.left.declarations.forEach(d => patDefaults(d.id, b)); } else target(n.left, b); V(n.right, b); V(n.body, b); return; }
+    case 'SwitchStatement': { V(n.discriminant, s); const b = new Scope(s); n.cases.forEach(c => hoistBlock(c.consequent, b)); n.cases.forEach(c => { V(c.test, b); c.consequent.forEach(x => V(x, b)); }); return; }
+    case 'CatchClause': { const b = new Scope(s); if (n.param) { const o = []; patNames(n.param, o); o.forEach(x => b.v.add(x)); } V(n.body, b); return; }
+    case 'MemberExpression': V(n.object, s); if (n.computed) V(n.property, s); return;
+    case 'Property': if (n.computed) V(n.key, s); V(n.value, s); return;
+    case 'PropertyDefinition': case 'MethodDefinition': if (n.computed) V(n.key, s); V(n.value, s); return;
+    case 'LabeledStatement': V(n.body, s); return; case 'BreakStatement': case 'ContinueStatement': return;
+    case 'AssignmentExpression': if (n.left.type === 'Identifier' || /Pattern/.test(n.left.type)) target(n.left, s); else V(n.left, s); V(n.right, s); return;
+    case 'UpdateExpression': if (n.argument.type === 'Identifier') ref(n.argument, s, true); else V(n.argument, s); return;
+    case 'MetaProperty': return;
+    default: for (const k in n) { if (k === 'type' || k === 'loc') continue; const c = n[k]; if (Array.isArray(c)) c.forEach(x => x && typeof x.type === 'string' && V(x, s)); else if (c && typeof c.type === 'string') V(c, s); } } }
+  V(ast, new Scope(null, true));
+}
+console.log(nScripts + ' script(s) analysé(s) dans ' + path.basename(file));
+const arr = [...reps.entries()].sort((a, b) => b[1].n - a[1].n);
+console.log(arr.length + ' identifiant(s) non déclaré(s) :');
+for (const [k, r] of arr) { console.log(' - ' + k + ' ×' + r.n + (r.assign ? ' (dont ' + r.assign + ' écritures)' : '')); r.loc.forEach(l => console.log('      ' + l)); }

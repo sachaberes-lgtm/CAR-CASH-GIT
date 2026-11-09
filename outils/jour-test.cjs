@@ -21,7 +21,7 @@ function monde(opt){opt=opt||{};
   const flush={n:0},toasts=[],sons=[];
   const g={location:{search:opt.search||''},SAVE:Object.assign(save,{flush(){flush.n++;},mark(){}}),TUTO:{on:!!opt.tutoOn},SANDBOX:!!opt.sandbox,PARK:{on:!!opt.park},BALADE:!!opt.balade,
     RUNX:{t:opt.t!=null?opt.t:60},ECOD:{k:opt.ecod!=null?opt.ecod:1.5},bank:()=>save.d.bank||0,bankMaxMaj(){if(save.d.bank>save.d.bankMax)save.d.bankMax=save.d.bank;},
-    TR:s=>s,I18N:{},window:{},document:{dispatchEvent(){}},SONV2:true,sfx:id=>sons.push(id),uiClic(){},hap(){},toast:(h,m)=>toasts.push([h,m]),pxi:n=>'['+n+']',fmtC:v=>'$'+Math.round(v),
+    TR:s=>s,I18N:{},window:{},document:{dispatchEvent(){},getElementById(){return null;},querySelector(){return null;},querySelectorAll(){return [];},addEventListener(){}},SONV2:true,sfx:id=>sons.push(id),uiClic(){},hap(){},toast:(h,m)=>toasts.push([h,m]),pxi:n=>'['+n+']',fmtC:v=>'$'+Math.round(v),
     ecoRond:v=>{if(v<100)return Math.max(10,Math.round(v/10)*10);const p=Math.pow(10,Math.floor(Math.log10(v))-1);return Math.round(v/p)*p;},Date:FD,Event:class{}};
   const names=Object.keys(g);
   const F=new Function(...names,CODE+'\nreturn {JOUR,CADO,jourAuj,jourNum,jourEtat,jourPrime,jourMaj,jourCommit,jourTexte,jourFinTexte,cadeauValeur,cadeauEtat,cadeauOuvre,cadeauRecale,cadeauHorlogeOk,win:window,dbgJour:window.dbgJour,dbgCadeau:window.dbgCadeau};');
