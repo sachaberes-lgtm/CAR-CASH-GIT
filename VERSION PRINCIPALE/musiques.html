@@ -48,6 +48,12 @@
   .err{color:#c0262d}
   audio{width:100%;margin-top:8px}
   .aide{color:#888;font-size:13px;margin:4px 0 0}
+  .fav{border:0;background:none;min-height:30px;padding:0 4px;font-size:22px;line-height:1;color:#ccc}
+  .fav:hover{color:#e0a800}
+  .fav.on{color:#e0a800}
+  .filtre{margin-top:12px}
+  .filtre button.on{background:#e0a800;border-color:#e0a800;color:#111;font-weight:700}
+  .vide{color:#888;padding:10px 2px}
 </style>
 </head>
 <body>
@@ -70,7 +76,8 @@
 <div class="page">
 <header>
   <h1>TOUTES LES MUSIQUES DU JEU</h1>
-  <p>Chaque case de 1 à 30 = un palier d'évolution du morceau (en course, le moteur le fait monter). Le point jaune = le palier où la course démarre. LOBBY = la version calme qui joue au menu.</p>
+  <p>Chaque case de 1 à 30 = un palier d'évolution du morceau (en course, le moteur le fait monter). Le point jaune = le palier où la course démarre. LOBBY = la version calme qui joue au menu. ☆ = mettre en favori.</p>
+  <div class="filtre"><button id="btnFav">☆ Seulement mes favoris <span id="nbFav"></span></button></div>
 </header>
 <h2 id="hc">Musiques de course</h2>
 <main id="liste"><p>Chargement de la liste…</p></main>
@@ -115,16 +122,25 @@ function meta(E){
 }
 function carte(E, n){
   const c = document.createElement('div'); c.className = 'carte'; c.id = 'c-' + E.id;
-  c.innerHTML = '<div class="haut"><span class="num">' + n + '</span><span class="nom"></span><button class="lob">LOBBY</button></div><div class="meta"></div><div class="paliers"></div>';
+  c.innerHTML = '<div class="haut"><button class="fav" title="favori"></button><span class="num">' + n + '</span><span class="nom"></span><button class="lob">LOBBY</button></div><div class="meta"></div><div class="paliers"></div>';
   c.querySelector('.nom').textContent = E.titre; c.querySelector('.meta').textContent = meta(E);
+  const f = c.querySelector('.fav'), majF = () => { const on = favoris.has(E.id); f.classList.toggle('on', on); f.textContent = on ? '★' : '☆'; };
+  majF(); f.onclick = () => { if(favoris.has(E.id)) favoris.delete(E.id); else favoris.add(E.id); sauveFavoris(); majF(); compteFav(); if(seulFav) dessine(); };
   c.querySelector('.lob').onclick = () => lobby(E);
   const P = c.querySelector('.paliers'), d = depDe(E);
   for(let p = 1; p <= 30; p++){ const b = document.createElement('button'); b.textContent = p; b.dataset.p = p; if(p === d) { b.className = 'dep'; b.title = 'la course démarre ici'; } b.onclick = () => joue(E, p); P.appendChild(b); }
   return c;
 }
+/* LES FAVORIS (2026-11-09, Léo : « mets-moi une option aussi » → les favoris) : une étoile par morceau, gardée dans ce navigateur (même clé que lobby-musiques.html) */
+const favoris = new Set(); try { JSON.parse(localStorage.getItem('ccFavorisMusiques') || '[]').forEach(id => favoris.add(id)); } catch (e) {}
+const sauveFavoris = () => { try { localStorage.setItem('ccFavorisMusiques', JSON.stringify([...favoris])); } catch (e) {} };
+let seulFav = false;
+function compteFav(){ const n = ALL.filter(E => favoris.has(E.id)).length; $('nbFav').textContent = n ? '(' + n + ')' : ''; }
 function dessine(){
-  const L = $('liste'); L.innerHTML = ''; ALL.forEach((E, i) => L.appendChild(carte(E, i + 1)));
-  $('hc').textContent = 'Musiques de course (' + ALL.length + ')';
+  const L = $('liste'); L.innerHTML = ''; ALL.forEach((E, i) => { if(!seulFav || favoris.has(E.id)) L.appendChild(carte(E, i + 1)); });
+  if(seulFav && !L.children.length){ L.innerHTML = '<p class="vide">Aucun favori pour l’instant : touche ☆ à côté d’une musique.</p>'; }
+  $('hc').textContent = seulFav ? 'Mes favoris' : 'Musiques de course (' + ALL.length + ')';
+  compteFav(); marque();
 }
 function marque(){
   document.querySelectorAll('.carte').forEach(c => { c.classList.remove('joue'); c.querySelectorAll('.paliers button.on, .lob.noir').forEach(b => b.classList.remove('on', 'noir')); });
@@ -177,6 +193,7 @@ function stop(){ jeton++; arretMontee(); PB.fin(false); try{ $('fren').pause(); 
 
 $('montee').onclick = montee; $('stop').onclick = stop; $('moins').onclick = () => pas(-1); $('plus').onclick = () => pas(1);
 $('curseur').oninput = e => { if(!courant || etape !== 'course') return; arretMontee(); palier = +e.target.value; PB.moteur(palier); marque(); };
+$('btnFav').onclick = () => { seulFav = !seulFav; $('btnFav').classList.toggle('on', seulFav); $('btnFav').firstChild.textContent = seulFav ? '★ Toutes les musiques ' : '☆ Seulement mes favoris '; dessine(); };
 $('duree').oninput = e => { $('dval').textContent = e.target.value + ' s'; };
 $('fren').addEventListener('play', () => { if(PB.phase !== 'repos'){ jeton++; arretMontee(); PB.fin(true); courant = null; etape = null; marque(); } });
 setInterval(() => { if(courant) PB.niveau($('vol').value / 100); $('fren').volume = $('vol').value / 100; }, 50);
