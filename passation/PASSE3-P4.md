@@ -66,3 +66,17 @@ Compilé : `xcodebuild -sdk iphonesimulator` → BUILD SUCCEEDED (charge 6, aucu
 | 7 | Minuteries / plugins en continu | plugins : Haptics, Preferences, SplashScreen, StatusBar, CapacitorUpdater (pas de Network ni de Keyboard) ; `autoUpdate:false` ; natif.js : un `setInterval` de 500 ms jusqu'à `__gameReady` (≤ 2 min) puis rien, le pouls et la rAF de comptage seulement en DEBUG ; MAIS `GardeHautParleur` : un `Timer` de 2 s à vie | `Timer.tolerance = 1 s` | iOS regroupe ce réveil avec d'autres (la lecture de la route audio est gratuite, c'est le réveil qui coûte) |
 
 Non touché : le garde `GardeHautParleur` lui-même (il protège un vrai bug du 5/11, son dans l'écouteur).
+
+## Poids de l'app (2026-11-09, branche perf3/P4-poids)
+Mesure sur build46-surmain6-jeu.app (DEBUG simulateur, 55 Mo : public/ 49,9 · App.debug.dylib 3,7 (debug seulement) · Frameworks 1,1 · Assets.car 0,75). public/ : assets 33,6 (audio 29,3 : lobby 13,8, direct 8,4 dont « vrais » 7,2 à ~58 kbps, rendus 4,9, intro 1,5, boucles 0,6) · index.html 6,2 · banques de sons 7,0 (MP3 en base64 dans du JS, +33 %) · icon.svg 0,68 · vendor 0,6. L'app applique déjà les outils du site ; le seul écart est le script du jeu (en ligne dans index.html).
+
+| Levier | Statut | Gain (essai `preparer-www.js --essai`, 47,6 Mo de départ) |
+|---|---|---|
+| plus d'`icon.svg` dans www/ (seul sw.js, absent de l'app, la citait) | commité, par défaut | −0,7 Mo |
+| `mer-cumulus.png` → webp SANS PERTE (pixels et alpha identiques, PIL ; garde sha1 : si le PNG source change, le PNG reste) | commité, par défaut | −0,56 Mo (essai total 47,6 → 46,4) |
+| `--audio-128` : 21 AAC > 150 kbps (lobby, rendus, dark-triad) réencodés en AAC 128 kbps cible (afconvert VBR, ~100-112 kbps réels) | OPTION, À ÉCOUTER | 19,1 → 11,3 Mo : −7,8 Mo (essai 46,4 → 38,6) |
+| banque de sons MP3-base64 → fichiers binaires | NON fait (refonte de sfx.js) | ≈ −1,7 Mo |
+| icônes PNG PWA (assets/icons, 0,6 Mo) | NON fait (le manifeste les cite) | ≈ −0,5 Mo |
+
+`--audio-128` : les trames utiles et les trames d'amorce (afinfo) sont IDENTIQUES avant/après → les boucles gardent leur longueur ; seule l'écoute dira si le timbre passe (musique de lobby surtout). Usage : `node app-ios/preparer-www.js --audio-128 …`. Le jeu et les mises à jour en direct restent compatibles (mêmes noms de fichiers).
+Preuves : `--essai` complet réussi (garde du démarrage, inventaire réseau, marques) avec et sans l'option ; pas de `cap sync` / xcodebuild lancé (seul preparer-www.js a changé, pas le projet Xcode).

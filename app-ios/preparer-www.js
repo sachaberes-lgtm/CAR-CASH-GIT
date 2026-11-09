@@ -227,6 +227,21 @@ relit('après les coupes');
   let n=0,o=0;const pese=d=>{for(const x of fs.readdirSync(d)){const p=path.join(d,x),s=fs.statSync(p);if(s.isDirectory())pese(p);else{n++;o+=s.size;}}};pese(WWW);nFic=n;nOct=o;
   console.log('  copie allégée : '+(av/1048576).toFixed(1)+' → '+(o/1048576).toFixed(1)+' Mo');}
 relit('après l\'allègement');
+/* (2026-11-09, Perf 3 / P4-poids) --audio-128 : LES GROS AAC (> 150 kbps : lobby, rendus de paliers, dark-triad) RÉENCODÉS EN AAC 128 kbps cible (afconvert, VBR : ~100-112 kbps réels).
+   OPTION, À ÉCOUTER avant de la garder. Mêmes nombres de trames utiles, mêmes trames d'amorce (afinfo) : les boucles gardent leur longueur. macOS seulement (afconvert).
+   Mesuré le 09/11 : lobby 13,8 → ~8,3 Mo, rendus 4,9 → ~2,6 Mo, boucles 0,6 → 0,37 Mo (≈ −8 Mo en tout). Un fichier n'est remplacé que s'il rétrécit. */
+if(process.argv.includes('--audio-128')){
+  const kbps=f=>{try{const o=execFileSync('afinfo',[f]).toString(),m=o.match(/bit rate:\s*(\d+)/);return m?+m[1]/1000:0;}catch(e){return 0;}};
+  let n=0,av=0,ap=0;const marche=d=>{for(const x of fs.readdirSync(d)){const f=path.join(d,x);
+    if(fs.statSync(f).isDirectory()){marche(f);continue;}
+    if(!/\.m4a$/i.test(x)||kbps(f)<=150)continue;
+    const t=f+'.tmp.m4a';
+    try{execFileSync('afconvert',[f,t,'-f','m4af','-d','aac','-b','128000','-q','127','-s','3']);}catch(e){fs.rmSync(t,{force:true});continue;}
+    const a=fs.statSync(f).size,b=fs.statSync(t).size;
+    if(b<a){fs.renameSync(t,f);n++;av+=a;ap+=b;}else fs.rmSync(t,{force:true});}};
+  marche(path.join(WWW,'assets','audio'));
+  console.log('  --audio-128 : '+n+' fichiers AAC réencodés, '+(av/1048576).toFixed(1)+' → '+(ap/1048576).toFixed(1)+' Mo');
+  let n2=0,o2=0;const pese=d=>{for(const x of fs.readdirSync(d)){const p=path.join(d,x),st=fs.statSync(p);if(st.isDirectory())pese(p);else{n2++;o2+=st.size;}}};pese(WWW);nFic=n2;nOct=o2;}
 /* (2026-11-07, Perf 3 / P4) --jeu-fichier : LE SCRIPT DU JEU EN FICHIER (jeu.<empreinte>.js) au lieu d'un <script> en ligne de ~5 Mo ré-analysé à CHAQUE
    lancement. Le même outil que le site (outils/publie-script-externe.cjs, vercel-build.sh) : ordre de chargement inchangé, __CC_BUILD__ déjà gravé plus haut,
    numéros de ligne recalés par son en-tête. Option d'ESSAI : à garder dans l'app seulement si la mesure (natif.js « [natif] CHARGEMENT ») le justifie. */
