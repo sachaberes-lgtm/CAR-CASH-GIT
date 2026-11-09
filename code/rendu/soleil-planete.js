@@ -432,6 +432,7 @@ const IS_MOBILE=FORCE_TEL||TEL_NATIF;
    donc la MÊME sur ordi et sur téléphone — ce n'est PAS un allègement, on n'y touche pas pour « améliorer » le PC (ça changerait les couleurs et le halo que Sacha a validés). */
 const LOOK_TEL=FORCE_TEL||TEL_NATIF;
 const ALLEGE=!/[?&]allege=0\b/.test(location.search)&&(TEL_NATIF||/[?&](tel|mobile|allege)=1\b/.test(location.search));
+window.__ccAllege=ALLEGE; /* (2026-11-09, musique figée) pouce-bleu-jeu.js (un fichier à part) y lit « téléphone » (vrai ou ?tel=1) : les 10 morceaux de course y jouent en paliers pré-rendus ; ?musique=live = le direct */
 /* (2026-10-09, Léo : « la capacité d'aller dans cette map avec une voiture, la mobilité comme le main, mais seulement ça : pas de jeu, que la
    voiture dans la map ») LA BALADE — `?map=jade` : la caisse sur la route des PICS DE JADE, sa conduite telle quelle ; ni pièces, ni plots,
    ni score, ni HUD ; la mort n'est qu'un replacement (le bac à sable) ; rien n'est écrit dans la sauvegarde. Voir « LES PICS DE JADE ». */

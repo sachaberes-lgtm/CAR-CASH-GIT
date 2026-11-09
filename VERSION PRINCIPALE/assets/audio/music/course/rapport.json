@@ -1,0 +1,3206 @@
+{
+ "bleu-4830": {
+  "fiche": {
+   "id": "bleu-4830",
+   "titre": "FLAMME DE TONNERRE",
+   "style": "taiko électro : tonnerre de tambours, luth pincé, flûte de bambou",
+   "ton": "ré hirajoshi",
+   "bpm": 134,
+   "mesures": 8,
+   "introMesures": 0,
+   "intro": null,
+   "depart": 1,
+   "moteurs": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "paliers": [
+    1,
+    5,
+    8,
+    11,
+    14,
+    17,
+    20,
+    23,
+    26,
+    30
+   ],
+   "fichiers": [
+    "assets/audio/music/course/bleu-4830/p1.m4a",
+    "assets/audio/music/course/bleu-4830/p2.m4a",
+    "assets/audio/music/course/bleu-4830/p3.m4a",
+    "assets/audio/music/course/bleu-4830/p4.m4a",
+    "assets/audio/music/course/bleu-4830/p5.m4a",
+    "assets/audio/music/course/bleu-4830/p6.m4a",
+    "assets/audio/music/course/bleu-4830/p7.m4a",
+    "assets/audio/music/course/bleu-4830/p8.m4a",
+    "assets/audio/music/course/bleu-4830/p9.m4a",
+    "assets/audio/music/course/bleu-4830/p10.m4a"
+   ],
+   "gains": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "sr": 44100,
+   "N": 631881,
+   "sauts": [
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240
+   ],
+   "boucleS": 14.328,
+   "kbps": 96,
+   "patch": false,
+   "octets": 1787272
+  },
+  "rms": [
+   -23.3,
+   -17.3,
+   -15,
+   -14.4,
+   -13.7,
+   -12.8,
+   -12.2,
+   -11.4,
+   -10.8,
+   -10.2
+  ],
+  "pics": [
+   0.873,
+   0.914,
+   0.921,
+   0.922,
+   0.93,
+   0.925,
+   0.923,
+   0.932,
+   0.935,
+   0.935
+  ],
+  "couture": [
+   0.34,
+   0.14,
+   0.5,
+   0.57,
+   0.46,
+   0.86,
+   0.9,
+   0.83,
+   4.03,
+   3.88
+  ],
+  "ms": [
+   2678,
+   3496,
+   4471,
+   6030,
+   7130,
+   9144,
+   10333,
+   11891,
+   16627,
+   16436
+  ],
+  "validesAAC": [
+   631881,
+   631881,
+   631881,
+   631881,
+   631881,
+   631881,
+   631881,
+   631881,
+   631881,
+   631881
+  ],
+  "N": 631881,
+  "determinisme": {
+   "p": 14,
+   "hash1": "4c4347a4",
+   "hash2": "b9646ac7",
+   "identique": false,
+   "relDiffOnde": 0.00000107,
+   "ecartDbMoyen": 0
+  },
+  "verifs": [
+   {
+    "p": 1,
+    "apple": 631881,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 631881,
+     "attendu": 631881,
+     "exacte": true,
+     "snrDb": 29.8,
+     "snrDebutDb": 24.1,
+     "snrFinDb": 33.4
+    }
+   },
+   {
+    "p": 5,
+    "apple": 631881,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 631881,
+     "attendu": 631881,
+     "exacte": true,
+     "snrDb": 26.8,
+     "snrDebutDb": 25.1,
+     "snrFinDb": 26.4
+    }
+   },
+   {
+    "p": 8,
+    "apple": 631881,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 631881,
+     "attendu": 631881,
+     "exacte": true,
+     "snrDb": 27.6,
+     "snrDebutDb": 23.4,
+     "snrFinDb": 26.2
+    }
+   },
+   {
+    "p": 11,
+    "apple": 631881,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 631881,
+     "attendu": 631881,
+     "exacte": true,
+     "snrDb": 25.5,
+     "snrDebutDb": 24.5,
+     "snrFinDb": 25.4
+    }
+   },
+   {
+    "p": 14,
+    "apple": 631881,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 631881,
+     "attendu": 631881,
+     "exacte": true,
+     "snrDb": 24.6,
+     "snrDebutDb": 22.5,
+     "snrFinDb": 25.8
+    }
+   },
+   {
+    "p": 17,
+    "apple": 631881,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 631881,
+     "attendu": 631881,
+     "exacte": true,
+     "snrDb": 25.1,
+     "snrDebutDb": 25.2,
+     "snrFinDb": 28
+    }
+   },
+   {
+    "p": 20,
+    "apple": 631881,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 631881,
+     "attendu": 631881,
+     "exacte": true,
+     "snrDb": 25.3,
+     "snrDebutDb": 24,
+     "snrFinDb": 25.7
+    }
+   },
+   {
+    "p": 23,
+    "apple": 631881,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 631881,
+     "attendu": 631881,
+     "exacte": true,
+     "snrDb": 23.7,
+     "snrDebutDb": 22.8,
+     "snrFinDb": 25.8
+    }
+   },
+   {
+    "p": 26,
+    "apple": 631881,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 631881,
+     "attendu": 631881,
+     "exacte": true,
+     "snrDb": 23,
+     "snrDebutDb": 23.3,
+     "snrFinDb": 25.7
+    }
+   },
+   {
+    "p": 30,
+    "apple": 631881,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 631881,
+     "attendu": 631881,
+     "exacte": true,
+     "snrDb": 23.9,
+     "snrDebutDb": 22,
+     "snrFinDb": 23.5
+    }
+   }
+  ],
+  "variantes": [
+   {
+    "p": 12,
+    "ecartDbMoyen": 2.64,
+    "ecartDbMax": 3.9,
+    "parMesure": [
+     1.9,
+     1.7,
+     3.6,
+     3.5,
+     1.4,
+     1.6,
+     3.9,
+     3.6
+    ]
+   },
+   {
+    "p": 30,
+    "ecartDbMoyen": 1.76,
+    "ecartDbMax": 2.91,
+    "parMesure": [
+     1.1,
+     1.1,
+     1.5,
+     2.3,
+     1.3,
+     1,
+     2.8,
+     2.9
+    ]
+   }
+  ],
+  "echelle": 1,
+  "secondes": 192
+ },
+ "pal-asphalte": {
+  "fiche": {
+   "id": "pal-asphalte",
+   "titre": "ASPHALTE D’ÉMERAUDE",
+   "style": "techno mélodique de nuit",
+   "ton": "mi mineur",
+   "bpm": 124,
+   "mesures": 8,
+   "introMesures": 0,
+   "intro": null,
+   "depart": 6,
+   "moteurs": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "paliers": [
+    6,
+    9,
+    12,
+    14,
+    17,
+    19,
+    22,
+    24,
+    27,
+    30
+   ],
+   "fichiers": [
+    "assets/audio/music/course/pal-asphalte/p1.m4a",
+    "assets/audio/music/course/pal-asphalte/p2.m4a",
+    "assets/audio/music/course/pal-asphalte/p3.m4a",
+    "assets/audio/music/course/pal-asphalte/p4.m4a",
+    "assets/audio/music/course/pal-asphalte/p5.m4a",
+    "assets/audio/music/course/pal-asphalte/p6.m4a",
+    "assets/audio/music/course/pal-asphalte/p7.m4a",
+    "assets/audio/music/course/pal-asphalte/p8.m4a",
+    "assets/audio/music/course/pal-asphalte/p9.m4a",
+    "assets/audio/music/course/pal-asphalte/p10.m4a"
+   ],
+   "gains": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "sr": 44100,
+   "N": 682839,
+   "sauts": [
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240
+   ],
+   "boucleS": 15.484,
+   "kbps": 96,
+   "patch": true,
+   "octets": 1953049
+  },
+  "rms": [
+   -16.2,
+   -14.8,
+   -13.8,
+   -13.4,
+   -12.7,
+   -12.3,
+   -11.7,
+   -10.8,
+   -9.7,
+   -8.5
+  ],
+  "pics": [
+   0.877,
+   0.896,
+   0.911,
+   0.922,
+   0.928,
+   0.927,
+   0.929,
+   0.925,
+   0.932,
+   0.929
+  ],
+  "couture": [
+   2.05,
+   2.66,
+   2.61,
+   4.26,
+   3.17,
+   0.96,
+   1.82,
+   6.9,
+   6.86,
+   0.79
+  ],
+  "ms": [
+   5874,
+   5494,
+   6691,
+   5821,
+   8160,
+   9201,
+   10149,
+   11256,
+   93233,
+   101756
+  ],
+  "validesAAC": [
+   682839,
+   682839,
+   682839,
+   682839,
+   682839,
+   682839,
+   682839,
+   682839,
+   682839,
+   682839
+  ],
+  "N": 682839,
+  "determinisme": {
+   "p": 17,
+   "hash1": "18b2c046",
+   "hash2": "b124ad29",
+   "identique": false,
+   "relDiffOnde": 0.0439,
+   "ecartDbMoyen": 0.075
+  },
+  "verifs": [
+   {
+    "p": 6,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 23.6,
+     "snrDebutDb": 21.7,
+     "snrFinDb": 22.5
+    }
+   },
+   {
+    "p": 9,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 23.8,
+     "snrDebutDb": 21.5,
+     "snrFinDb": 21.8
+    }
+   },
+   {
+    "p": 12,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 23.1,
+     "snrDebutDb": 23.4,
+     "snrFinDb": 22
+    }
+   },
+   {
+    "p": 14,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 23,
+     "snrDebutDb": 18.2,
+     "snrFinDb": 20.9
+    }
+   },
+   {
+    "p": 17,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 22.9,
+     "snrDebutDb": 18.6,
+     "snrFinDb": 21.6
+    }
+   },
+   {
+    "p": 19,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 22.7,
+     "snrDebutDb": 19,
+     "snrFinDb": 21.8
+    }
+   },
+   {
+    "p": 22,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 23,
+     "snrDebutDb": 23.3,
+     "snrFinDb": 22.7
+    }
+   },
+   {
+    "p": 24,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 23.7,
+     "snrDebutDb": 22.2,
+     "snrFinDb": 22.1
+    }
+   },
+   {
+    "p": 27,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 22.9,
+     "snrDebutDb": 20,
+     "snrFinDb": 21.2
+    }
+   },
+   {
+    "p": 30,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 22.4,
+     "snrDebutDb": 19.7,
+     "snrFinDb": 20.8
+    }
+   }
+  ],
+  "variantes": [
+   {
+    "p": 12,
+    "ecartDbMoyen": 0.71,
+    "ecartDbMax": 1.01,
+    "parMesure": [
+     0.8,
+     1,
+     0.5,
+     0.9,
+     0.7,
+     0.4,
+     0.8,
+     0.6
+    ]
+   },
+   {
+    "p": 30,
+    "ecartDbMoyen": 0.28,
+    "ecartDbMax": 0.39,
+    "parMesure": [
+     0.2,
+     0.3,
+     0.2,
+     0.2,
+     0.4,
+     0.3,
+     0.3,
+     0.3
+    ]
+   }
+  ],
+  "echelle": 1,
+  "secondes": 725
+ },
+ "bleu-7299": {
+  "fiche": {
+   "id": "bleu-7299",
+   "titre": "ENSEIGNE DE JADE",
+   "style": "house néon : pluck de cristal, enseigne qui clignote, basse courte sur les contretemps",
+   "ton": "fa# dorien",
+   "bpm": 124,
+   "mesures": 8,
+   "introMesures": 0,
+   "intro": null,
+   "depart": 1,
+   "moteurs": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "paliers": [
+    1,
+    5,
+    8,
+    11,
+    14,
+    17,
+    20,
+    23,
+    26,
+    30
+   ],
+   "fichiers": [
+    "assets/audio/music/course/bleu-7299/p1.m4a",
+    "assets/audio/music/course/bleu-7299/p2.m4a",
+    "assets/audio/music/course/bleu-7299/p3.m4a",
+    "assets/audio/music/course/bleu-7299/p4.m4a",
+    "assets/audio/music/course/bleu-7299/p5.m4a",
+    "assets/audio/music/course/bleu-7299/p6.m4a",
+    "assets/audio/music/course/bleu-7299/p7.m4a",
+    "assets/audio/music/course/bleu-7299/p8.m4a",
+    "assets/audio/music/course/bleu-7299/p9.m4a",
+    "assets/audio/music/course/bleu-7299/p10.m4a"
+   ],
+   "gains": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "sr": 44100,
+   "N": 682839,
+   "sauts": [
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240
+   ],
+   "boucleS": 15.484,
+   "kbps": 96,
+   "patch": false,
+   "octets": 1955631
+  },
+  "rms": [
+   -26.3,
+   -19.2,
+   -17.4,
+   -16.2,
+   -14.8,
+   -13.6,
+   -13,
+   -12.2,
+   -11.3,
+   -10.5
+  ],
+  "pics": [
+   0.371,
+   0.826,
+   0.893,
+   0.916,
+   0.931,
+   0.934,
+   0.931,
+   0.93,
+   0.93,
+   0.932
+  ],
+  "couture": [
+   0.97,
+   0.05,
+   0.13,
+   0.23,
+   0.71,
+   1.17,
+   1.87,
+   1.68,
+   1.58,
+   1.78
+  ],
+  "ms": [
+   6476,
+   10943,
+   22050,
+   37020,
+   30804,
+   42829,
+   45327,
+   41095,
+   57835,
+   57384
+  ],
+  "validesAAC": [
+   682839,
+   682839,
+   682839,
+   682839,
+   682839,
+   682839,
+   682839,
+   682839,
+   682839,
+   682839
+  ],
+  "N": 682839,
+  "determinisme": {
+   "p": 14,
+   "hash1": "2439057d",
+   "hash2": "7a2388d1",
+   "identique": false,
+   "relDiffOnde": 2.42e-7,
+   "ecartDbMoyen": 0
+  },
+  "verifs": [
+   {
+    "p": 1,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 31.8,
+     "snrDebutDb": 24,
+     "snrFinDb": 29.9
+    }
+   },
+   {
+    "p": 5,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 20.7,
+     "snrDebutDb": 25.7,
+     "snrFinDb": 18.9
+    }
+   },
+   {
+    "p": 8,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 20,
+     "snrDebutDb": 22.5,
+     "snrFinDb": 17.9
+    }
+   },
+   {
+    "p": 11,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 19.4,
+     "snrDebutDb": 22.6,
+     "snrFinDb": 16.5
+    }
+   },
+   {
+    "p": 14,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 19.9,
+     "snrDebutDb": 21.4,
+     "snrFinDb": 23.3
+    }
+   },
+   {
+    "p": 17,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 19.5,
+     "snrDebutDb": 22.8,
+     "snrFinDb": 15.3
+    }
+   },
+   {
+    "p": 20,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 19.2,
+     "snrDebutDb": 18.5,
+     "snrFinDb": 15.3
+    }
+   },
+   {
+    "p": 23,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 19,
+     "snrDebutDb": 17.8,
+     "snrFinDb": 14.4
+    }
+   },
+   {
+    "p": 26,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 19,
+     "snrDebutDb": 17,
+     "snrFinDb": 15.4
+    }
+   },
+   {
+    "p": 30,
+    "apple": 682839,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 682839,
+     "attendu": 682839,
+     "exacte": true,
+     "snrDb": 18.2,
+     "snrDebutDb": 16.8,
+     "snrFinDb": 15.4
+    }
+   }
+  ],
+  "variantes": [
+   {
+    "p": 12,
+    "ecartDbMoyen": 0.62,
+    "ecartDbMax": 1.31,
+    "parMesure": [
+     0.5,
+     0.7,
+     0.3,
+     0.2,
+     0.7,
+     1.3,
+     1,
+     0.3
+    ]
+   },
+   {
+    "p": 30,
+    "ecartDbMoyen": 1.27,
+    "ecartDbMax": 2.26,
+    "parMesure": [
+     0.9,
+     0.6,
+     0.3,
+     0.6,
+     2.3,
+     2.1,
+     2,
+     1.4
+    ]
+   }
+  ],
+  "echelle": 1,
+  "secondes": 991
+ },
+ "bleu-9664": {
+  "fiche": {
+   "id": "bleu-9664",
+   "titre": "MIRAGE",
+   "style": "downtempo de désert : luth pincé, darbouka, trompette bouchée, vent, taqsim, zills",
+   "ton": "ré hijaz",
+   "bpm": 100,
+   "mesures": 8,
+   "introMesures": 0,
+   "intro": null,
+   "depart": 1,
+   "moteurs": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "paliers": [
+    1,
+    5,
+    8,
+    11,
+    14,
+    17,
+    20,
+    23,
+    26,
+    30
+   ],
+   "fichiers": [
+    "assets/audio/music/course/bleu-9664/p1.m4a",
+    "assets/audio/music/course/bleu-9664/p2.m4a",
+    "assets/audio/music/course/bleu-9664/p3.m4a",
+    "assets/audio/music/course/bleu-9664/p4.m4a",
+    "assets/audio/music/course/bleu-9664/p5.m4a",
+    "assets/audio/music/course/bleu-9664/p6.m4a",
+    "assets/audio/music/course/bleu-9664/p7.m4a",
+    "assets/audio/music/course/bleu-9664/p8.m4a",
+    "assets/audio/music/course/bleu-9664/p9.m4a",
+    "assets/audio/music/course/bleu-9664/p10.m4a"
+   ],
+   "gains": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "sr": 44100,
+   "N": 846720,
+   "sauts": [
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240
+   ],
+   "boucleS": 19.2,
+   "kbps": 96,
+   "patch": false,
+   "octets": 2394530
+  },
+  "rms": [
+   -28.8,
+   -21.6,
+   -18.9,
+   -17.8,
+   -17,
+   -15.3,
+   -14,
+   -13.8,
+   -12.8,
+   -11.5
+  ],
+  "pics": [
+   0.603,
+   0.882,
+   0.916,
+   0.931,
+   0.942,
+   0.941,
+   0.935,
+   0.939,
+   0.943,
+   0.927
+  ],
+  "couture": [
+   0.59,
+   0.21,
+   0.43,
+   0.38,
+   0.77,
+   0.65,
+   0.62,
+   1.47,
+   1.66,
+   1.77
+  ],
+  "ms": [
+   16663,
+   50634,
+   81625,
+   92310,
+   97661,
+   74249,
+   72140,
+   50303,
+   56186,
+   54953
+  ],
+  "validesAAC": [
+   846720,
+   846720,
+   846720,
+   846720,
+   846720,
+   846720,
+   846720,
+   846720,
+   846720,
+   846720
+  ],
+  "N": 846720,
+  "determinisme": {
+   "p": 14,
+   "hash1": "5e8f8987",
+   "hash2": "98a19bd",
+   "identique": false,
+   "relDiffOnde": 0.00000114,
+   "ecartDbMoyen": 0
+  },
+  "verifs": [
+   {
+    "p": 1,
+    "apple": 846720,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 846720,
+     "attendu": 846720,
+     "exacte": true,
+     "snrDb": 27.6,
+     "snrDebutDb": 20.4,
+     "snrFinDb": 27.2
+    }
+   },
+   {
+    "p": 5,
+    "apple": 846720,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 846720,
+     "attendu": 846720,
+     "exacte": true,
+     "snrDb": 22.6,
+     "snrDebutDb": 19.3,
+     "snrFinDb": 22.5
+    }
+   },
+   {
+    "p": 8,
+    "apple": 846720,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 846720,
+     "attendu": 846720,
+     "exacte": true,
+     "snrDb": 24.3,
+     "snrDebutDb": 19.7,
+     "snrFinDb": 25.1
+    }
+   },
+   {
+    "p": 11,
+    "apple": 846720,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 846720,
+     "attendu": 846720,
+     "exacte": true,
+     "snrDb": 22.9,
+     "snrDebutDb": 17.3,
+     "snrFinDb": 25
+    }
+   },
+   {
+    "p": 14,
+    "apple": 846720,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 846720,
+     "attendu": 846720,
+     "exacte": true,
+     "snrDb": 21.2,
+     "snrDebutDb": 15.6,
+     "snrFinDb": 23.3
+    }
+   },
+   {
+    "p": 17,
+    "apple": 846720,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 846720,
+     "attendu": 846720,
+     "exacte": true,
+     "snrDb": 21.7,
+     "snrDebutDb": 19.1,
+     "snrFinDb": 21.9
+    }
+   },
+   {
+    "p": 20,
+    "apple": 846720,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 846720,
+     "attendu": 846720,
+     "exacte": true,
+     "snrDb": 21,
+     "snrDebutDb": 17.9,
+     "snrFinDb": 20.1
+    }
+   },
+   {
+    "p": 23,
+    "apple": 846720,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 846720,
+     "attendu": 846720,
+     "exacte": true,
+     "snrDb": 20.4,
+     "snrDebutDb": 18.7,
+     "snrFinDb": 17.7
+    }
+   },
+   {
+    "p": 26,
+    "apple": 846720,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 846720,
+     "attendu": 846720,
+     "exacte": true,
+     "snrDb": 19.7,
+     "snrDebutDb": 17.8,
+     "snrFinDb": 17.2
+    }
+   },
+   {
+    "p": 30,
+    "apple": 846720,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 846720,
+     "attendu": 846720,
+     "exacte": true,
+     "snrDb": 19.5,
+     "snrDebutDb": 18,
+     "snrFinDb": 16.8
+    }
+   }
+  ],
+  "variantes": [
+   {
+    "p": 12,
+    "ecartDbMoyen": 0.96,
+    "ecartDbMax": 1.77,
+    "parMesure": [
+     1,
+     1,
+     1,
+     0.8,
+     1.3,
+     1.8,
+     0.2,
+     0.6
+    ]
+   },
+   {
+    "p": 30,
+    "ecartDbMoyen": 0.49,
+    "ecartDbMax": 0.82,
+    "parMesure": [
+     0.6,
+     0.3,
+     0.4,
+     0.3,
+     0.8,
+     0.8,
+     0.2,
+     0.4
+    ]
+   }
+  ],
+  "echelle": 1,
+  "secondes": 918
+ },
+ "bleu-8338": {
+  "fiche": {
+   "id": "bleu-8338",
+   "titre": "RUBIS ULTRA",
+   "style": "amapiano de luxe : tambour de bois, piano jazz, flûte",
+   "ton": "sol mineur",
+   "bpm": 112,
+   "mesures": 8,
+   "introMesures": 0,
+   "intro": null,
+   "depart": 1,
+   "moteurs": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "paliers": [
+    1,
+    5,
+    8,
+    11,
+    14,
+    17,
+    20,
+    23,
+    26,
+    30
+   ],
+   "fichiers": [
+    "assets/audio/music/course/bleu-8338/p1.m4a",
+    "assets/audio/music/course/bleu-8338/p2.m4a",
+    "assets/audio/music/course/bleu-8338/p3.m4a",
+    "assets/audio/music/course/bleu-8338/p4.m4a",
+    "assets/audio/music/course/bleu-8338/p5.m4a",
+    "assets/audio/music/course/bleu-8338/p6.m4a",
+    "assets/audio/music/course/bleu-8338/p7.m4a",
+    "assets/audio/music/course/bleu-8338/p8.m4a",
+    "assets/audio/music/course/bleu-8338/p9.m4a",
+    "assets/audio/music/course/bleu-8338/p10.m4a"
+   ],
+   "gains": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "sr": 44100,
+   "N": 756000,
+   "sauts": [
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240
+   ],
+   "boucleS": 17.143,
+   "kbps": 96,
+   "patch": true,
+   "octets": 2136679
+  },
+  "rms": [
+   -22.8,
+   -20.4,
+   -16.3,
+   -15.3,
+   -14.5,
+   -13.1,
+   -12.6,
+   -12,
+   -11.5,
+   -10.2
+  ],
+  "pics": [
+   0.699,
+   0.852,
+   0.891,
+   0.903,
+   0.912,
+   0.934,
+   0.936,
+   0.935,
+   0.935,
+   0.935
+  ],
+  "couture": [
+   0.38,
+   0.47,
+   0.22,
+   0.24,
+   0.58,
+   0.41,
+   0.52,
+   0.52,
+   0.35,
+   0.21
+  ],
+  "ms": [
+   2714,
+   3704,
+   4560,
+   6152,
+   6933,
+   10168,
+   11646,
+   12942,
+   13212,
+   16339
+  ],
+  "validesAAC": [
+   756000,
+   756000,
+   756000,
+   756000,
+   756000,
+   756000,
+   756000,
+   756000,
+   756000,
+   756000
+  ],
+  "N": 756000,
+  "determinisme": {
+   "p": 14,
+   "hash1": "6ec4ec63",
+   "hash2": "4dd39253",
+   "identique": false,
+   "relDiffOnde": 1.92e-7,
+   "ecartDbMoyen": 0
+  },
+  "verifs": [
+   {
+    "p": 1,
+    "apple": 756000,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 756000,
+     "attendu": 756000,
+     "exacte": true,
+     "snrDb": 27.6,
+     "snrDebutDb": 19.6,
+     "snrFinDb": 34.6
+    }
+   },
+   {
+    "p": 5,
+    "apple": 756000,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 756000,
+     "attendu": 756000,
+     "exacte": true,
+     "snrDb": 26.3,
+     "snrDebutDb": 25.4,
+     "snrFinDb": 30.2
+    }
+   },
+   {
+    "p": 8,
+    "apple": 756000,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 756000,
+     "attendu": 756000,
+     "exacte": true,
+     "snrDb": 25.2,
+     "snrDebutDb": 24.5,
+     "snrFinDb": 23.8
+    }
+   },
+   {
+    "p": 11,
+    "apple": 756000,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 756000,
+     "attendu": 756000,
+     "exacte": true,
+     "snrDb": 26.7,
+     "snrDebutDb": 21.4,
+     "snrFinDb": 25.9
+    }
+   },
+   {
+    "p": 14,
+    "apple": 756000,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 756000,
+     "attendu": 756000,
+     "exacte": true,
+     "snrDb": 25.9,
+     "snrDebutDb": 20.9,
+     "snrFinDb": 25.8
+    }
+   },
+   {
+    "p": 17,
+    "apple": 756000,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 756000,
+     "attendu": 756000,
+     "exacte": true,
+     "snrDb": 25,
+     "snrDebutDb": 20.5,
+     "snrFinDb": 24.7
+    }
+   },
+   {
+    "p": 20,
+    "apple": 756000,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 756000,
+     "attendu": 756000,
+     "exacte": true,
+     "snrDb": 24.5,
+     "snrDebutDb": 18.7,
+     "snrFinDb": 23.4
+    }
+   },
+   {
+    "p": 23,
+    "apple": 756000,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 756000,
+     "attendu": 756000,
+     "exacte": true,
+     "snrDb": 22.6,
+     "snrDebutDb": 16.9,
+     "snrFinDb": 20
+    }
+   },
+   {
+    "p": 26,
+    "apple": 756000,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 756000,
+     "attendu": 756000,
+     "exacte": true,
+     "snrDb": 22.8,
+     "snrDebutDb": 16.5,
+     "snrFinDb": 20.8
+    }
+   },
+   {
+    "p": 30,
+    "apple": 756000,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 756000,
+     "attendu": 756000,
+     "exacte": true,
+     "snrDb": 21.6,
+     "snrDebutDb": 16.5,
+     "snrFinDb": 21.2
+    }
+   }
+  ],
+  "variantes": [
+   {
+    "p": 12,
+    "ecartDbMoyen": 0.61,
+    "ecartDbMax": 0.78,
+    "parMesure": [
+     0.6,
+     0.6,
+     0.5,
+     0.6,
+     0.5,
+     0.8,
+     0.6,
+     0.7
+    ]
+   },
+   {
+    "p": 30,
+    "ecartDbMoyen": 1.04,
+    "ecartDbMax": 1.97,
+    "parMesure": [
+     0.3,
+     0.5,
+     0.6,
+     2,
+     0.4,
+     0.6,
+     2,
+     2
+    ]
+   }
+  ],
+  "echelle": 1,
+  "secondes": 193
+ },
+ "bleu-6562": {
+  "fiche": {
+   "id": "bleu-6562",
+   "titre": "PLUIE D’ARGENT",
+   "style": "synthwave de luxe sous la pluie : arpège de gouttes, caisse claire à réverbération coupée, sifflet futuriste",
+   "ton": "do♯ mineur",
+   "bpm": 106,
+   "mesures": 8,
+   "introMesures": 0,
+   "intro": null,
+   "depart": 1,
+   "moteurs": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "paliers": [
+    1,
+    5,
+    8,
+    11,
+    14,
+    17,
+    20,
+    23,
+    26,
+    30
+   ],
+   "fichiers": [
+    "assets/audio/music/course/bleu-6562/p1.m4a",
+    "assets/audio/music/course/bleu-6562/p2.m4a",
+    "assets/audio/music/course/bleu-6562/p3.m4a",
+    "assets/audio/music/course/bleu-6562/p4.m4a",
+    "assets/audio/music/course/bleu-6562/p5.m4a",
+    "assets/audio/music/course/bleu-6562/p6.m4a",
+    "assets/audio/music/course/bleu-6562/p7.m4a",
+    "assets/audio/music/course/bleu-6562/p8.m4a",
+    "assets/audio/music/course/bleu-6562/p9.m4a",
+    "assets/audio/music/course/bleu-6562/p10.m4a"
+   ],
+   "gains": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "sr": 44100,
+   "N": 798792,
+   "sauts": [
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240
+   ],
+   "boucleS": 18.113,
+   "kbps": 96,
+   "patch": false,
+   "octets": 2265985
+  },
+  "rms": [
+   -26.9,
+   -23.4,
+   -18.5,
+   -17.3,
+   -15.9,
+   -14.5,
+   -13.7,
+   -12.6,
+   -12,
+   -11.2
+  ],
+  "pics": [
+   0.345,
+   0.702,
+   0.882,
+   0.91,
+   0.924,
+   0.935,
+   0.941,
+   0.941,
+   0.941,
+   0.943
+  ],
+  "couture": [
+   1.5,
+   1.49,
+   1.09,
+   1.11,
+   1.08,
+   1.1,
+   0.94,
+   0.91,
+   0.33,
+   0.45
+  ],
+  "ms": [
+   1832,
+   2757,
+   3085,
+   4389,
+   4762,
+   5606,
+   5914,
+   6421,
+   7086,
+   8232
+  ],
+  "validesAAC": [
+   798792,
+   798792,
+   798792,
+   798792,
+   798792,
+   798792,
+   798792,
+   798792,
+   798792,
+   798792
+  ],
+  "N": 798792,
+  "determinisme": {
+   "p": 14,
+   "hash1": "23df8d5a",
+   "hash2": "83091ea0",
+   "identique": false,
+   "relDiffOnde": 3.66e-7,
+   "ecartDbMoyen": 0
+  },
+  "verifs": [
+   {
+    "p": 1,
+    "apple": 798792,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 798792,
+     "attendu": 798792,
+     "exacte": true,
+     "snrDb": 18.1,
+     "snrDebutDb": 23,
+     "snrFinDb": 16.2
+    }
+   },
+   {
+    "p": 5,
+    "apple": 798792,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 798792,
+     "attendu": 798792,
+     "exacte": true,
+     "snrDb": 17,
+     "snrDebutDb": 19.4,
+     "snrFinDb": 16.3
+    }
+   },
+   {
+    "p": 8,
+    "apple": 798792,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 798792,
+     "attendu": 798792,
+     "exacte": true,
+     "snrDb": 16.1,
+     "snrDebutDb": 17.6,
+     "snrFinDb": 15.8
+    }
+   },
+   {
+    "p": 11,
+    "apple": 798792,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 798792,
+     "attendu": 798792,
+     "exacte": true,
+     "snrDb": 16,
+     "snrDebutDb": 18.1,
+     "snrFinDb": 16.9
+    }
+   },
+   {
+    "p": 14,
+    "apple": 798792,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 798792,
+     "attendu": 798792,
+     "exacte": true,
+     "snrDb": 16.5,
+     "snrDebutDb": 17.9,
+     "snrFinDb": 25.7
+    }
+   },
+   {
+    "p": 17,
+    "apple": 798792,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 798792,
+     "attendu": 798792,
+     "exacte": true,
+     "snrDb": 16.9,
+     "snrDebutDb": 17.9,
+     "snrFinDb": 24.4
+    }
+   },
+   {
+    "p": 20,
+    "apple": 798792,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 798792,
+     "attendu": 798792,
+     "exacte": true,
+     "snrDb": 16.4,
+     "snrDebutDb": 12,
+     "snrFinDb": 24.7
+    }
+   },
+   {
+    "p": 23,
+    "apple": 798792,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 798792,
+     "attendu": 798792,
+     "exacte": true,
+     "snrDb": 16.4,
+     "snrDebutDb": 11.4,
+     "snrFinDb": 24.4
+    }
+   },
+   {
+    "p": 26,
+    "apple": 798792,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 798792,
+     "attendu": 798792,
+     "exacte": true,
+     "snrDb": 15.9,
+     "snrDebutDb": 10.5,
+     "snrFinDb": 18.2
+    }
+   },
+   {
+    "p": 30,
+    "apple": 798792,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 798792,
+     "attendu": 798792,
+     "exacte": true,
+     "snrDb": 15.7,
+     "snrDebutDb": 10.7,
+     "snrFinDb": 17.2
+    }
+   }
+  ],
+  "variantes": [
+   {
+    "p": 12,
+    "ecartDbMoyen": 0.98,
+    "ecartDbMax": 1.44,
+    "parMesure": [
+     0.6,
+     0.6,
+     0.8,
+     1.2,
+     1.4,
+     0.9,
+     1.1,
+     1.1
+    ]
+   },
+   {
+    "p": 30,
+    "ecartDbMoyen": 0.71,
+    "ecartDbMax": 1.07,
+    "parMesure": [
+     0.7,
+     0.2,
+     0.7,
+     0.6,
+     1.1,
+     0.6,
+     1.1,
+     0.7
+    ]
+   }
+  ],
+  "echelle": 1,
+  "secondes": 106
+ },
+ "bleu-1275": {
+  "fiche": {
+   "id": "bleu-1275",
+   "titre": "FEU DE LUXE",
+   "style": "disco funk de luxe : clavinet, basse slap, cordes disco, cuivres laser",
+   "ton": "la majeur",
+   "bpm": 116,
+   "mesures": 16,
+   "introMesures": 0,
+   "intro": null,
+   "depart": 1,
+   "moteurs": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "paliers": [
+    1,
+    5,
+    8,
+    11,
+    14,
+    17,
+    20,
+    23,
+    26,
+    30
+   ],
+   "fichiers": [
+    "assets/audio/music/course/bleu-1275/p1.m4a",
+    "assets/audio/music/course/bleu-1275/p2.m4a",
+    "assets/audio/music/course/bleu-1275/p3.m4a",
+    "assets/audio/music/course/bleu-1275/p4.m4a",
+    "assets/audio/music/course/bleu-1275/p5.m4a",
+    "assets/audio/music/course/bleu-1275/p6.m4a",
+    "assets/audio/music/course/bleu-1275/p7.m4a",
+    "assets/audio/music/course/bleu-1275/p8.m4a",
+    "assets/audio/music/course/bleu-1275/p9.m4a",
+    "assets/audio/music/course/bleu-1275/p10.m4a"
+   ],
+   "gains": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "sr": 44100,
+   "N": 1459862,
+   "sauts": [
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240
+   ],
+   "boucleS": 33.103,
+   "kbps": 96,
+   "patch": false,
+   "octets": 4044468
+  },
+  "rms": [
+   -24.3,
+   -21.5,
+   -18.9,
+   -17.8,
+   -16.4,
+   -14.1,
+   -13.4,
+   -12.7,
+   -11.9,
+   -11.2
+  ],
+  "pics": [
+   0.666,
+   0.902,
+   0.92,
+   0.933,
+   0.94,
+   0.94,
+   0.94,
+   0.941,
+   0.94,
+   0.939
+  ],
+  "couture": [
+   0.38,
+   0.23,
+   0.06,
+   0.14,
+   0.16,
+   0.56,
+   1.28,
+   1.03,
+   0.8,
+   1.5
+  ],
+  "ms": [
+   4677,
+   5444,
+   7093,
+   7465,
+   9087,
+   16269,
+   18247,
+   18614,
+   25369,
+   36499
+  ],
+  "validesAAC": [
+   1459862,
+   1459862,
+   1459862,
+   1459862,
+   1459862,
+   1459862,
+   1459862,
+   1459862,
+   1459862,
+   1459862
+  ],
+  "N": 1459862,
+  "determinisme": {
+   "p": 14,
+   "hash1": "7afd8af4",
+   "hash2": "c686f102",
+   "identique": false,
+   "relDiffOnde": 0.0711,
+   "ecartDbMoyen": 0.028
+  },
+  "verifs": [
+   {
+    "p": 1,
+    "apple": 1459862,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1459862,
+     "attendu": 1459862,
+     "exacte": true,
+     "snrDb": 20.9,
+     "snrDebutDb": 22.2,
+     "snrFinDb": 15.8
+    }
+   },
+   {
+    "p": 5,
+    "apple": 1459862,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1459862,
+     "attendu": 1459862,
+     "exacte": true,
+     "snrDb": 18.6,
+     "snrDebutDb": 17.8,
+     "snrFinDb": 15
+    }
+   },
+   {
+    "p": 8,
+    "apple": 1459862,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1459862,
+     "attendu": 1459862,
+     "exacte": true,
+     "snrDb": 17.9,
+     "snrDebutDb": 18.5,
+     "snrFinDb": 15.1
+    }
+   },
+   {
+    "p": 11,
+    "apple": 1459862,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1459862,
+     "attendu": 1459862,
+     "exacte": true,
+     "snrDb": 16.3,
+     "snrDebutDb": 19.4,
+     "snrFinDb": 13.8
+    }
+   },
+   {
+    "p": 14,
+    "apple": 1459862,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1459862,
+     "attendu": 1459862,
+     "exacte": true,
+     "snrDb": 16.6,
+     "snrDebutDb": 19.8,
+     "snrFinDb": 14.6
+    }
+   },
+   {
+    "p": 17,
+    "apple": 1459862,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1459862,
+     "attendu": 1459862,
+     "exacte": true,
+     "snrDb": 16.3,
+     "snrDebutDb": 19.4,
+     "snrFinDb": 18.4
+    }
+   },
+   {
+    "p": 20,
+    "apple": 1459862,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1459862,
+     "attendu": 1459862,
+     "exacte": true,
+     "snrDb": 15.6,
+     "snrDebutDb": 10.2,
+     "snrFinDb": 19.3
+    }
+   },
+   {
+    "p": 23,
+    "apple": 1459862,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1459862,
+     "attendu": 1459862,
+     "exacte": true,
+     "snrDb": 15.7,
+     "snrDebutDb": 9.7,
+     "snrFinDb": 18.3
+    }
+   },
+   {
+    "p": 26,
+    "apple": 1459862,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1459862,
+     "attendu": 1459862,
+     "exacte": true,
+     "snrDb": 15.7,
+     "snrDebutDb": 9.2,
+     "snrFinDb": 19.5
+    }
+   },
+   {
+    "p": 30,
+    "apple": 1459862,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1459862,
+     "attendu": 1459862,
+     "exacte": true,
+     "snrDb": 15.6,
+     "snrDebutDb": 9.2,
+     "snrFinDb": 12.7
+    }
+   }
+  ],
+  "variantes": [
+   {
+    "p": 12,
+    "ecartDbMoyen": 1.54,
+    "ecartDbMax": 2.21,
+    "parMesure": [
+     1.4,
+     1.6,
+     1.5,
+     1.1,
+     2.2,
+     1.4,
+     2,
+     1.1,
+     1.8,
+     1.9,
+     1.6,
+     1.5,
+     1.4,
+     1.7,
+     1.4,
+     1
+    ]
+   },
+   {
+    "p": 30,
+    "ecartDbMoyen": 1.84,
+    "ecartDbMax": 2.87,
+    "parMesure": [
+     1.7,
+     1.9,
+     2.3,
+     2.1,
+     2.9,
+     1.5,
+     1.6,
+     1.8,
+     1.5,
+     2.6,
+     1.1,
+     2.2,
+     2.4,
+     1.6,
+     1.2,
+     1.2
+    ]
+   }
+  ],
+  "echelle": 1,
+  "secondes": 405
+ },
+ "bleu-2221": {
+  "fiche": {
+   "id": "bleu-2221",
+   "titre": "COBRA ULTRA",
+   "style": "drum & bass venimeuse : le venin (voix en anneau qui glisse), la morsure FM, le sub court",
+   "ton": "si mineur harmonique",
+   "bpm": 172,
+   "mesures": 16,
+   "introMesures": 0,
+   "intro": null,
+   "depart": 1,
+   "moteurs": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "paliers": [
+    1,
+    5,
+    8,
+    11,
+    14,
+    17,
+    20,
+    23,
+    26,
+    30
+   ],
+   "fichiers": [
+    "assets/audio/music/course/bleu-2221/p1.m4a",
+    "assets/audio/music/course/bleu-2221/p2.m4a",
+    "assets/audio/music/course/bleu-2221/p3.m4a",
+    "assets/audio/music/course/bleu-2221/p4.m4a",
+    "assets/audio/music/course/bleu-2221/p5.m4a",
+    "assets/audio/music/course/bleu-2221/p6.m4a",
+    "assets/audio/music/course/bleu-2221/p7.m4a",
+    "assets/audio/music/course/bleu-2221/p8.m4a",
+    "assets/audio/music/course/bleu-2221/p9.m4a",
+    "assets/audio/music/course/bleu-2221/p10.m4a"
+   ],
+   "gains": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "sr": 44100,
+   "N": 984558,
+   "sauts": [
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240
+   ],
+   "boucleS": 22.326,
+   "kbps": 96,
+   "patch": false,
+   "octets": 2728023
+  },
+  "rms": [
+   -25.2,
+   -22.3,
+   -20.2,
+   -18.4,
+   -17.3,
+   -15.2,
+   -14.9,
+   -14.7,
+   -12.2,
+   -9.9
+  ],
+  "pics": [
+   0.259,
+   0.428,
+   0.498,
+   0.609,
+   0.66,
+   0.758,
+   0.832,
+   0.824,
+   0.857,
+   0.927
+  ],
+  "couture": [
+   0.16,
+   0.09,
+   0.07,
+   0.2,
+   2.36,
+   2.75,
+   1.44,
+   2.76,
+   2.94,
+   3.07
+  ],
+  "ms": [
+   2003,
+   2258,
+   2587,
+   3400,
+   3964,
+   4803,
+   4835,
+   4729,
+   6151,
+   7298
+  ],
+  "validesAAC": [
+   984558,
+   984558,
+   984558,
+   984558,
+   984558,
+   984558,
+   984558,
+   984558,
+   984558,
+   984558
+  ],
+  "N": 984558,
+  "determinisme": {
+   "p": 14,
+   "hash1": "ffcb25e3",
+   "hash2": "cc78cbf3",
+   "identique": false,
+   "relDiffOnde": 2.05e-7,
+   "ecartDbMoyen": 0
+  },
+  "verifs": [
+   {
+    "p": 1,
+    "apple": 984558,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 984558,
+     "attendu": 984558,
+     "exacte": true,
+     "snrDb": 29.6,
+     "snrDebutDb": 36.3,
+     "snrFinDb": 34.8
+    }
+   },
+   {
+    "p": 5,
+    "apple": 984558,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 984558,
+     "attendu": 984558,
+     "exacte": true,
+     "snrDb": 25.2,
+     "snrDebutDb": 27.6,
+     "snrFinDb": 31
+    }
+   },
+   {
+    "p": 8,
+    "apple": 984558,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 984558,
+     "attendu": 984558,
+     "exacte": true,
+     "snrDb": 16.2,
+     "snrDebutDb": 28.4,
+     "snrFinDb": 28.2
+    }
+   },
+   {
+    "p": 11,
+    "apple": 984558,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 984558,
+     "attendu": 984558,
+     "exacte": true,
+     "snrDb": 17,
+     "snrDebutDb": 25.2,
+     "snrFinDb": 22.1
+    }
+   },
+   {
+    "p": 14,
+    "apple": 984558,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 984558,
+     "attendu": 984558,
+     "exacte": true,
+     "snrDb": 17.3,
+     "snrDebutDb": 26.5,
+     "snrFinDb": 11.4
+    }
+   },
+   {
+    "p": 17,
+    "apple": 984558,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 984558,
+     "attendu": 984558,
+     "exacte": true,
+     "snrDb": 16.6,
+     "snrDebutDb": 24.3,
+     "snrFinDb": 10.8
+    }
+   },
+   {
+    "p": 20,
+    "apple": 984558,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 984558,
+     "attendu": 984558,
+     "exacte": true,
+     "snrDb": 16.9,
+     "snrDebutDb": 22.5,
+     "snrFinDb": 12.7
+    }
+   },
+   {
+    "p": 23,
+    "apple": 984558,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 984558,
+     "attendu": 984558,
+     "exacte": true,
+     "snrDb": 16.7,
+     "snrDebutDb": 21.8,
+     "snrFinDb": 9
+    }
+   },
+   {
+    "p": 26,
+    "apple": 984558,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 984558,
+     "attendu": 984558,
+     "exacte": true,
+     "snrDb": 16.7,
+     "snrDebutDb": 21.4,
+     "snrFinDb": 8.3
+    }
+   },
+   {
+    "p": 30,
+    "apple": 984558,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 984558,
+     "attendu": 984558,
+     "exacte": true,
+     "snrDb": 15.8,
+     "snrDebutDb": 19.3,
+     "snrFinDb": 8.1
+    }
+   }
+  ],
+  "variantes": [
+   {
+    "p": 12,
+    "ecartDbMoyen": 1.06,
+    "ecartDbMax": 2.02,
+    "parMesure": [
+     0.9,
+     0.3,
+     1.6,
+     1.2,
+     1.6,
+     0.4,
+     2,
+     1.6,
+     0.9,
+     0.4,
+     0.6,
+     0.6,
+     1.2,
+     0.5,
+     1.7,
+     1.5
+    ]
+   },
+   {
+    "p": 30,
+    "ecartDbMoyen": 1.13,
+    "ecartDbMax": 2.05,
+    "parMesure": [
+     1.3,
+     0.9,
+     1,
+     0.8,
+     1.1,
+     2.1,
+     0.9,
+     0.8,
+     1.7,
+     1.2,
+     1,
+     1.4,
+     1.2,
+     2,
+     0.2,
+     0.3
+    ]
+   }
+  ],
+  "echelle": 1,
+  "secondes": 88
+ },
+ "bleu-6104": {
+  "fiche": {
+   "id": "bleu-6104",
+   "titre": "TONNERRE DELUXE",
+   "style": "trap de luxe sous l’orage : piano de velours, clarinette électrisée, gouttes de verre",
+   "ton": "la♭ mineur",
+   "bpm": 148,
+   "mesures": 16,
+   "introMesures": 0,
+   "intro": null,
+   "depart": 1,
+   "moteurs": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "paliers": [
+    1,
+    5,
+    8,
+    11,
+    14,
+    17,
+    20,
+    23,
+    26,
+    30
+   ],
+   "fichiers": [
+    "assets/audio/music/course/bleu-6104/p1.m4a",
+    "assets/audio/music/course/bleu-6104/p2.m4a",
+    "assets/audio/music/course/bleu-6104/p3.m4a",
+    "assets/audio/music/course/bleu-6104/p4.m4a",
+    "assets/audio/music/course/bleu-6104/p5.m4a",
+    "assets/audio/music/course/bleu-6104/p6.m4a",
+    "assets/audio/music/course/bleu-6104/p7.m4a",
+    "assets/audio/music/course/bleu-6104/p8.m4a",
+    "assets/audio/music/course/bleu-6104/p9.m4a",
+    "assets/audio/music/course/bleu-6104/p10.m4a"
+   ],
+   "gains": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "sr": 44100,
+   "N": 1144216,
+   "sauts": [
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240
+   ],
+   "boucleS": 25.946,
+   "kbps": 96,
+   "patch": false,
+   "octets": 3179316
+  },
+  "rms": [
+   -27.5,
+   -22,
+   -19.8,
+   -17.8,
+   -16.3,
+   -15.5,
+   -14.9,
+   -14,
+   -13.1,
+   -12.3
+  ],
+  "pics": [
+   0.487,
+   0.874,
+   0.894,
+   0.905,
+   0.91,
+   0.916,
+   0.919,
+   0.917,
+   0.923,
+   0.928
+  ],
+  "couture": [
+   0.62,
+   0.32,
+   1.36,
+   1.26,
+   0.75,
+   1.11,
+   0.99,
+   1.07,
+   1.42,
+   1.28
+  ],
+  "ms": [
+   3873,
+   6219,
+   6825,
+   9057,
+   9919,
+   12393,
+   14004,
+   16937,
+   21757,
+   23240
+  ],
+  "validesAAC": [
+   1144216,
+   1144216,
+   1144216,
+   1144216,
+   1144216,
+   1144216,
+   1144216,
+   1144216,
+   1144216,
+   1144216
+  ],
+  "N": 1144216,
+  "determinisme": {
+   "p": 14,
+   "hash1": "be0962f",
+   "hash2": "6775622c",
+   "identique": false,
+   "relDiffOnde": 0.00000128,
+   "ecartDbMoyen": 0
+  },
+  "verifs": [
+   {
+    "p": 1,
+    "apple": 1144216,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1144216,
+     "attendu": 1144216,
+     "exacte": true,
+     "snrDb": 27.8,
+     "snrDebutDb": 23.1,
+     "snrFinDb": 30.4
+    }
+   },
+   {
+    "p": 5,
+    "apple": 1144216,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1144216,
+     "attendu": 1144216,
+     "exacte": true,
+     "snrDb": 17.8,
+     "snrDebutDb": 22.7,
+     "snrFinDb": 16.8
+    }
+   },
+   {
+    "p": 8,
+    "apple": 1144216,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1144216,
+     "attendu": 1144216,
+     "exacte": true,
+     "snrDb": 17.2,
+     "snrDebutDb": 22.8,
+     "snrFinDb": 6.2
+    }
+   },
+   {
+    "p": 11,
+    "apple": 1144216,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1144216,
+     "attendu": 1144216,
+     "exacte": true,
+     "snrDb": 18.1,
+     "snrDebutDb": 22.8,
+     "snrFinDb": 8
+    }
+   },
+   {
+    "p": 14,
+    "apple": 1144216,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1144216,
+     "attendu": 1144216,
+     "exacte": true,
+     "snrDb": 17.5,
+     "snrDebutDb": 21.5,
+     "snrFinDb": 7.9
+    }
+   },
+   {
+    "p": 17,
+    "apple": 1144216,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1144216,
+     "attendu": 1144216,
+     "exacte": true,
+     "snrDb": 17.4,
+     "snrDebutDb": 20.6,
+     "snrFinDb": 9.2
+    }
+   },
+   {
+    "p": 20,
+    "apple": 1144216,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1144216,
+     "attendu": 1144216,
+     "exacte": true,
+     "snrDb": 17.3,
+     "snrDebutDb": 21.9,
+     "snrFinDb": 10
+    }
+   },
+   {
+    "p": 23,
+    "apple": 1144216,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1144216,
+     "attendu": 1144216,
+     "exacte": true,
+     "snrDb": 17.4,
+     "snrDebutDb": 23.4,
+     "snrFinDb": 9.6
+    }
+   },
+   {
+    "p": 26,
+    "apple": 1144216,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1144216,
+     "attendu": 1144216,
+     "exacte": true,
+     "snrDb": 17.3,
+     "snrDebutDb": 21.2,
+     "snrFinDb": 13.8
+    }
+   },
+   {
+    "p": 30,
+    "apple": 1144216,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1144216,
+     "attendu": 1144216,
+     "exacte": true,
+     "snrDb": 16.9,
+     "snrDebutDb": 19.5,
+     "snrFinDb": 14.5
+    }
+   }
+  ],
+  "variantes": [
+   {
+    "p": 12,
+    "ecartDbMoyen": 2.72,
+    "ecartDbMax": 5.88,
+    "parMesure": [
+     1.8,
+     1.2,
+     2.1,
+     4.1,
+     2,
+     1.6,
+     2,
+     2.9,
+     2.6,
+     2.1,
+     5.9,
+     2.1,
+     4,
+     2.4,
+     3.1,
+     3.4
+    ]
+   },
+   {
+    "p": 30,
+    "ecartDbMoyen": 3,
+    "ecartDbMax": 6.19,
+    "parMesure": [
+     1,
+     0.8,
+     4.2,
+     5.8,
+     3.6,
+     2.5,
+     0.9,
+     1.8,
+     2.1,
+     2.3,
+     5.2,
+     1.1,
+     3.4,
+     2.2,
+     6.2,
+     5.1
+    ]
+   }
+  ],
+  "echelle": 1,
+  "secondes": 324
+ },
+ "pal-aura-30": {
+  "fiche": {
+   "id": "pal-aura-30",
+   "titre": "AURA · 30 PALIERS",
+   "style": "french touch sombre, aura / dark triad (phonk)",
+   "ton": "mi mineur",
+   "bpm": 122,
+   "mesures": 16,
+   "introMesures": 4,
+   "intro": "assets/audio/music/course/pal-aura-30/intro.m4a",
+   "depart": 6,
+   "moteurs": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "paliers": [
+    6,
+    9,
+    12,
+    14,
+    17,
+    19,
+    22,
+    24,
+    27,
+    30
+   ],
+   "fichiers": [
+    "assets/audio/music/course/pal-aura-30/p1.m4a",
+    "assets/audio/music/course/pal-aura-30/p2.m4a",
+    "assets/audio/music/course/pal-aura-30/p3.m4a",
+    "assets/audio/music/course/pal-aura-30/p4.m4a",
+    "assets/audio/music/course/pal-aura-30/p5.m4a",
+    "assets/audio/music/course/pal-aura-30/p6.m4a",
+    "assets/audio/music/course/pal-aura-30/p7.m4a",
+    "assets/audio/music/course/pal-aura-30/p8.m4a",
+    "assets/audio/music/course/pal-aura-30/p9.m4a",
+    "assets/audio/music/course/pal-aura-30/p10.m4a"
+   ],
+   "gains": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "sr": 44100,
+   "N": 1388066,
+   "sauts": [
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240,
+    10240
+   ],
+   "boucleS": 31.475,
+   "kbps": 96,
+   "patch": true,
+   "octets": 3927415
+  },
+  "rms": [
+   -18.5,
+   -17.4,
+   -16.6,
+   -16.1,
+   -13.6,
+   -12,
+   -10.7,
+   -10.3,
+   -9.9,
+   -9.6
+  ],
+  "pics": [
+   0.74,
+   0.76,
+   0.781,
+   0.785,
+   0.801,
+   0.81,
+   0.814,
+   0.807,
+   0.804,
+   0.811
+  ],
+  "couture": [
+   0.02,
+   0.02,
+   0.04,
+   0.04,
+   0.16,
+   0.26,
+   0.26,
+   0.33,
+   1.36,
+   0.64
+  ],
+  "ms": [
+   14503,
+   17561,
+   21627,
+   28207,
+   49026,
+   56636,
+   73792,
+   75961,
+   94723,
+   118010
+  ],
+  "validesAAC": [
+   1388066,
+   1388066,
+   1388066,
+   1388066,
+   1388066,
+   1388066,
+   1388066,
+   1388066,
+   1388066,
+   1388066
+  ],
+  "N": 1388066,
+  "determinisme": {
+   "p": 17,
+   "hash1": "92d08d6d",
+   "hash2": "c72679ce",
+   "identique": false,
+   "relDiffOnde": 0.00000125,
+   "ecartDbMoyen": 0
+  },
+  "verifs": [
+   {
+    "p": 6,
+    "apple": 1388066,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1388066,
+     "attendu": 1388066,
+     "exacte": true,
+     "snrDb": 25.7,
+     "snrDebutDb": 24.8,
+     "snrFinDb": 23.5
+    }
+   },
+   {
+    "p": 9,
+    "apple": 1388066,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1388066,
+     "attendu": 1388066,
+     "exacte": true,
+     "snrDb": 25.5,
+     "snrDebutDb": 27.4,
+     "snrFinDb": 21.5
+    }
+   },
+   {
+    "p": 12,
+    "apple": 1388066,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1388066,
+     "attendu": 1388066,
+     "exacte": true,
+     "snrDb": 25.2,
+     "snrDebutDb": 23,
+     "snrFinDb": 26.1
+    }
+   },
+   {
+    "p": 14,
+    "apple": 1388066,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1388066,
+     "attendu": 1388066,
+     "exacte": true,
+     "snrDb": 22.1,
+     "snrDebutDb": 17.9,
+     "snrFinDb": 27
+    }
+   },
+   {
+    "p": 17,
+    "apple": 1388066,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1388066,
+     "attendu": 1388066,
+     "exacte": true,
+     "snrDb": 23.4,
+     "snrDebutDb": 18,
+     "snrFinDb": 27.2
+    }
+   },
+   {
+    "p": 19,
+    "apple": 1388066,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1388066,
+     "attendu": 1388066,
+     "exacte": true,
+     "snrDb": 24.1,
+     "snrDebutDb": 16.8,
+     "snrFinDb": 26.6
+    }
+   },
+   {
+    "p": 22,
+    "apple": 1388066,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1388066,
+     "attendu": 1388066,
+     "exacte": true,
+     "snrDb": 24.6,
+     "snrDebutDb": 16.4,
+     "snrFinDb": 26.8
+    }
+   },
+   {
+    "p": 24,
+    "apple": 1388066,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1388066,
+     "attendu": 1388066,
+     "exacte": true,
+     "snrDb": 24.6,
+     "snrDebutDb": 16,
+     "snrFinDb": 26.3
+    }
+   },
+   {
+    "p": 27,
+    "apple": 1388066,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1388066,
+     "attendu": 1388066,
+     "exacte": true,
+     "snrDb": 24.5,
+     "snrDebutDb": 17,
+     "snrFinDb": 24.4
+    }
+   },
+   {
+    "p": 30,
+    "apple": 1388066,
+    "appleExact": true,
+    "chrome": {
+     "longueur": 1388066,
+     "attendu": 1388066,
+     "exacte": true,
+     "snrDb": 24,
+     "snrDebutDb": 15.9,
+     "snrFinDb": 22.1
+    }
+   }
+  ],
+  "variantes": [
+   {
+    "p": 12,
+    "ecartDbMoyen": 0.95,
+    "ecartDbMax": 1.92,
+    "parMesure": [
+     0.3,
+     0.9,
+     0.7,
+     0.5,
+     0.8,
+     0.4,
+     0.8,
+     0.5,
+     0.9,
+     1.5,
+     1,
+     1,
+     1.1,
+     1.6,
+     1.9,
+     1.3
+    ]
+   },
+   {
+    "p": 30,
+    "ecartDbMoyen": 0.31,
+    "ecartDbMax": 0.51,
+    "parMesure": [
+     0.3,
+     0.2,
+     0.2,
+     0.3,
+     0.3,
+     0.2,
+     0.2,
+     0.3,
+     0.4,
+     0.4,
+     0.4,
+     0.2,
+     0.4,
+     0.5,
+     0.4,
+     0.3
+    ]
+   }
+  ],
+  "echelle": 1,
+  "secondes": 1213
+ }
+}
