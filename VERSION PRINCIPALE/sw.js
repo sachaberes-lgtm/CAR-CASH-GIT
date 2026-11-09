@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1369'; /* v1367 (2026-11-09, Léo : « cale bien l'argent, dans la boutique il est coupé, dans le menu décalé ») : les prix de la boutique ne sont plus rognés, plus lisibles sur fond clair et alignés sous le nom ; le compte du garage centré sur la rangée de l'œil */
+const CACHE = 'cashcar-v1371'; /* v1370 (2026-11-09, Sacha : « on revient à un truc le plus optimisé possible ») : annule la v1328 de Léo — les allègements de contenu des maps (Jade sobre, dunes, forêt ×0,8, grottes ×0,75, satellites ÷15) rejouent sur TOUT téléphone, récent compris ; ?sobre=0 = maps pleines. */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

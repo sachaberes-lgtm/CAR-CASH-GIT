@@ -61,7 +61,6 @@ css/etalonnage.css                    # <style id="etalonnage"> : L'ÉTALONNAGE 
 css/achat-boites.css                 # <style id="achatBoites"> : la page ACHAT de l'accueil en BOÎTES (2026-11-07) — chaque caisse dans sa boîte de verre (la vitrine de la boutique), une niche à la couleur de sa rareté, la plaque nom + prix
 css/inventaire-grand.css             # <style id="inventaireGrand"> : L'INVENTAIRE EN GRAND (2026-11-07) — debout le panneau monte jusque sous le nom, VOITURES et AILES deux par rangée (studio de la rareté, plaque du nom, ÉQUIPÉE)
 css/boutique-reprise.css             # <style id="bqReprise"> : LA BOUTIQUE REPRISE (2026-11-07) — peintures sur la caisse du joueur, ailes en vol, la vraie traînée, figures sans boîte
-css/monnaie.css                      # la monnaie du jeu (glyphe U+E000, symbole 3D) et l'argent qui évolue en métal (data-metal)
 page/ecrans-menus.html               # HTML : hub du garage, plaque, moteur atteint, coque mobile (accueil, mort, modes, boutique, réglages, pause)
 page/bibliotheques.html              # <script src> : three.js, figures, sons, post-traitement — et l'ouverture du <script> du jeu
 interface/icones-fenetre.js          # ouverture du jeu (function, 'use strict'), icônes pixel, la fenêtre du jeu
