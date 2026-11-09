@@ -155,6 +155,12 @@ function coinFlush(){const a=coinIM.instanceMatrix;coinIM.count=coinN;
   a.updateRange.offset=0;a.updateRange.count=Math.max(1,coinN)*16;a.needsUpdate=true;coinN=0;
   const a2=coinIM2.instanceMatrix;coinIM2.count=coinN2;
   a2.updateRange.offset=0;a2.updateRange.count=Math.max(1,coinN2)*16;a2.needsUpdate=true;coinN2=0;}
+window.dbgPieces=function(){ /* (banc, 2026-11-09) le bilan des pièces de la piste : combien, 2 €, fruits, séries (entières posées), au km, et la liste des pièces d'une série (dbgPieces(n)) */
+  const c=pickups.filter(function(p){return !p.nitro&&!p.pow&&!p.spin&&p.face===1;}),f=pickups.filter(function(p){return p.nitro&&p.face===1;}),S=serieEtat();
+  const o={pieces:c.length,deux:c.filter(function(p){return p.deux;}).length,fruits:f.length,series:S.tot.filter(function(n){return n>0;}).length,L:Math.round(L),auKm:+(c.length/L*1000).toFixed(1),
+    petites:S.tot.filter(function(n){return n>0&&n<4;}).length,maxSerie:Math.max.apply(null,S.tot.filter(function(n){return n>0;}).concat([0])),zones:runStats.zones|0};
+  const mauvais=pickups.filter(function(p){return !isFinite(p.s)||!isFinite(p.lat)||Math.abs(p.lat)>ROAD_HALF+.01||(p.mesh&&!isFinite(p.mesh.position.x));}).length;o.mauvais=mauvais;
+  return o;};
 function spawnPickups(rnd){
   sceneRetire(pickups.map(function(p){return p.mesh;})); // (chasse aux gels) d'un seul passage : un par un, c'était ~15 ms par portail (voir sceneRetire)
   for(const p of pickups){const m9=p.mesh;if(m9&&m9.userData.pi===1&&!m9.parent)PIECES_LIBRES.push(m9);} // (chasse aux gels) nos pièces, hors scène, se recyclent
@@ -180,12 +186,12 @@ function spawnPickups(rnd){
     return THREE.MathUtils.clamp(lt,-HALF,HALF);
   };
   // pose UNE pièce (mirroir deux faces, saute les trous, s'écarte des obstacles, clamp sur la route)
-  const place=(sp,lt,isN)=>{
+  const place=(sp,lt,isN,deux9)=>{
     if(sp<120||sp>L-50||enTrou(sp,6))return; // (LES TROUS) pas de pièce dans le vide entre deux segments
     frameAt(sp,F);mat4b.makeBasis(F.b,F.n,F.t);
     const cl=dodge(sp,lt);
     const fi=isN?fruitPick():-1; // MÊME fruit sur les deux faces (miroir strict) — tiré hors du rnd seedé
-    const deux=!isN&&Math.random()<.34; // (2026-11-05) une pièce sur trois est une 2 € — tiré hors du rnd seedé, le MÊME sur les deux faces
+    const deux=!isN&&!!deux9; // (2026-11-05) une pièce sur trois est une 2 € ; (2026-11-09) tirée par le fil (motifs entiers en 2 €), la MÊME sur les deux faces
     const lv=isN?fruitLeve(fi):1.3; // les fruits : posés AU-DESSUS du bitume d'après leur vraie taille (voir fruitLeve)
     for(const face of [1,-1]){
       const m=isN?mkFruit(fi):pieceNeuve(); // (chasse aux gels) une pièce recyclée de la piste d'avant, ou neuve — un FANTÔME
@@ -214,37 +220,25 @@ function spawnPickups(rnd){
      ⚠ `rnd` est la suite seedée de la piste : on SCALE des résultats, on n'ajoute ni ne retire
      aucun appel — sinon toute la génération en aval se décale (voir CLAUDE.md). */
   const rich=THREE.MathUtils.clamp(.88+(runStats.zones||0)*.52,.88,3.4); // maigre au départ, généreuse plus tard
-  // les respirations se resserrent quand la route s'enrichit. ⚠ Les motifs s'allongent de STR mais l'AVANCE d'un motif au suivant se
-  // compte sur leur longueur d'ORIGINE (`/STR` ci-dessous) : le NOMBRE de pièces par zone ne bouge pas (l'économie de ce jeu est
-  // calée dessus — mesuré au banc, écart < 2 %), seule leur lisibilité à haute vitesse change.
-  const esp=v=>v/rich;
-  let ss=200;
-  while(ss<L-90){
-    if(rnd()<.24/rich){ss+=esp(120+rnd()*160);continue;} // PORTIONS VIDES : plus rares quand ça s'enrichit
-    const pat=rnd();
-    serieEtat().g=pat<.80?++serieEtat().n:0; // (v5) zigzag, arc, cercle, jackpot : une SÉRIE ; l'éparpillé n'en est pas une
-    if(pat<.30){ // ZIGZAG : serpente franchement d'un bord à l'autre (il FAUT slalomer pour tout prendre)
-      const n=5+((rnd()*4)|0),amp=HALF*(.7+rnd()*.3),ph=1.1+rnd()*1.3,st=(10+rnd()*4)*STR;
-      for(let i=0;i<n;i++)place(ss+i*st,Math.sin(i*ph)*amp,rnd()<.34&&!LIGNE.on);
-      ss+=esp(n*st/STR+70+rnd()*50);
-    }else if(pat<.52){ // ARC : une vague vers un côté puis retour
-      const n=5+((rnd()*4)|0),amp=HALF*(.75+rnd()*.25),sd=rnd()<.5?-1:1,st=(11+rnd()*4)*STR;
-      for(let i=0;i<n;i++){const u=i/(n-1);place(ss+i*st,sd*amp*Math.sin(u*Math.PI),rnd()<.34&&!LIGNE.on);}
-      ss+=esp(n*st/STR+70+rnd()*50);
-    }else if(pat<.70){ // CERCLE : un anneau posé à plat (il faut le contourner pour le boucler)
-      const R=Math.min(HALF,5.5+rnd()*4),n=8+((rnd()*4)|0),Rs=R*STR; // (étiré dans le sens de la route à haute vitesse : une ellipse qu'on lit)
-      for(let i=0;i<n;i++){const th=i/n*6.2832;place(ss+Rs+Rs*Math.sin(th),R*Math.cos(th),false);}
-      ss+=esp(2*R+80+rnd()*50);
-    }else if(pat<.80){ // JACKPOT : RARE — ligne dense, gros combo à rafler d'un coup (la récompense du slalom)
-      const n=12+((rnd()*6)|0),st=6*STR;
-      for(let i=0;i<n;i++)place(ss+i*st,Math.sin(i*.55)*2.4,false);
-      ss+=esp(n*st/STR+140+rnd()*80); // suivi d'un grand vide : le jackpot se paie cher en distance
-    }else{ // ÉPARPILLÉ : deux-trois pièces libres, largement espacées
-      const n=2+((rnd()*3)|0),st=(20+rnd()*18)*STR;
-      for(let i=0;i<n;i++)place(ss+i*st,(rnd()*2-1)*HALF,rnd()<.45&&!LIGNE.on); // (2026-09-29) les fruits vivent sur LA LIGNE PARFAITE (le tirage reste consommé)
-      ss+=esp(n*st/STR+60+rnd()*50);
-    }
-  }
+  /* (2026-11-09, Sacha : « plus de pièces, des générations fun et variées, toutes récupérables d'un coup ») LE FIL DE PIÈCES (voir filPlan,
+     gameplay/pieces-fil.js) remplace les cinq anciens motifs. Il a SON flux `rc`, dérivé du `rnd` de la piste par UN SEUL tirage : la même
+     piste donne les mêmes pièces, et le reste de la fonction (pouvoirs) lit le `rnd` comme avant. Le flux d'or suit la progression
+     (`rich`, voir plus haut) : ×2,2 de l'ancien au départ, ×1,8 vers la zone 2, ×1,2 en fin de partie (le plafond des motifs). Chaque
+     motif est une SÉRIE (numéro posé sans toucher à `rnd`) ; le motif « libre » (3-5 pièces éparses, fruits) n'en est pas une. */
+  const rc9=mulberry32((rnd()*4294967296)>>>0);
+  const plan=filPlan(rc9,{L:L,HALF:HALF,STR:STR,rich:rich,fruits:!LIGNE.on,s0:200,
+    bloque:(sp,lt)=>{ /* un obstacle (flaque, pic de la glace, tremplin) ou un trou : ni pièce, ni trajet de caisse entre deux pièces */
+      if(enTrou(sp,8))return true;
+      for(const o of OILS)if(o.face===1&&Math.abs(o.s-sp)<=o.r+2.6&&Math.abs(o.lat-lt)<=o.r+2.2)return true;
+      if(LVL.cur&&LVL.cur.id==='banquise'){
+        if(BANQ.obst)for(const o of BANQ.obst)if(Math.abs(o.s-sp)<=o.r+3.4&&Math.abs(o.lat-lt)<=o.r+2.4)return true;
+        if(BANQ.kick)for(const k of BANQ.kick)if(sp>=k.s-(k.lg||8)-4&&sp<=k.s+4&&lt>=k.l0-2.5&&lt<=k.l1+2.5)return true;}
+      return false;}});
+  {let g9=0,id9=0;
+   for(const c of plan){
+     if(c.g!==g9){g9=c.g;id9=g9?++serieEtat().n:0;}
+     serieEtat().g=id9;
+     place(c.s,c.l,c.f,c.deux);}}
   serieEtat().g=0; // (v5) hors des motifs, plus de série
   // ---- FRUITS EN VOL — RETIRÉS (2026-09-25, demande du user : « rien à ramasser dans les airs »). Tout se
   // ramasse désormais AU SOL. ⚠ La boucle reste, à vide : `rnd` est la suite seedée de la piste, et
