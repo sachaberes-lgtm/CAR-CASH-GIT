@@ -1,0 +1,5 @@
+toucher(s) d'intro : 4 · chauffe du menu : {"atelier":true,"divers":38,"moteurs":31,"sur":31,"rendu":true,"apres":-1,"lier":0,"programmes":210,"appels":418,"ms":6.7}
+partie 1 : mort→game over 2392 ms · mort→écran de mort affiché 2392 ms · mort→REJOUER cliquable 2392 ms · mort→pré-bâti prêt 20350 ms · REJOUER→partie lancée 1498 ms · géométries 969 · lieu suivant grotte/grt-soir-mine
+partie 2 : mort→game over 2424 ms · mort→écran de mort affiché 2424 ms · mort→REJOUER cliquable 2424 ms · mort→pré-bâti prêt 19058 ms · REJOUER→partie lancée 1125 ms · géométries 574 · lieu suivant foret/foretMatin
+partie 3 : mort→game over 2498 ms · mort→écran de mort affiché 2498 ms · mort→REJOUER cliquable 2498 ms · mort→pré-bâti prêt 8940 ms · REJOUER→partie lancée 1329 ms · géométries 537 · lieu suivant canyon/canyonSoir
+partie 4 : mort→game over 2292 ms · mort→écran de mort affiché 2292 ms · mort→REJOUER cliquable 2292 ms · mort→pré-bâti prêt 6994 ms · REJOUER→partie lancée 1187 ms · géométries 528 · lieu suivant ville/villeOrage_jaune

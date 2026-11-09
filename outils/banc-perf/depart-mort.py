@@ -15,7 +15,7 @@ ICI=os.path.dirname(os.path.abspath(__file__));sys.path.insert(0,ICI)
 from cdp import CDP
 sp=importlib.util.spec_from_file_location('gp',os.path.join(ICI,'garde-perf.py'));gp=importlib.util.module_from_spec(sp);sp.loader.exec_module(gp)
 RACINE=os.path.dirname(os.path.dirname(ICI));VP=os.path.join(RACINE,'VERSION PRINCIPALE')
-OPT={'vp':None,'latence':0,'sans_profil':0,'carte':'nuages:midi','cpu':4,'parties':2,'json':None,'md':None,'qs':'','son':1,'fenetre':3.0,'tas':0}
+OPT={'tel0':0,'vp':None,'latence':0,'sans_profil':0,'carte':'nuages:midi','cpu':4,'parties':2,'json':None,'md':None,'qs':'','son':1,'fenetre':3.0,'tas':0}
 HOOK=r"""(function(){
  var P=window.__D={F:[],on:false,t0:performance.now(),loaf:[],lab:''};
  ['WebGL2RenderingContext','WebGLRenderingContext'].forEach(function(C){var Q=window[C]&&window[C].prototype;if(!Q)return;
@@ -45,7 +45,7 @@ def chrome_demarre(http,port,cpu,carte):
     c.ev("localStorage.clear();localStorage.setItem('cashcarSave',%s);1"%json.dumps(json.dumps(sv)))
     c.call('Page.addScriptToEvaluateOnNewDocument',source=HOOK)
     A=carte.split(':')
-    c.call('Page.navigate',url=base+'/index.html?garde=1&palier=2&tel=1&pistegraine=777&carte=%s&meteo=%s%s'%(A[0],A[1] if len(A)>1 else 'midi',OPT['qs']))
+    c.call('Page.navigate',url=base+'/index.html?garde=1&palier=2&tel=%d&pistegraine=777&carte=%s&meteo=%s%s'%(0 if OPT['tel0'] else 1,A[0],A[1] if len(A)>1 else 'midi',OPT['qs']))
     if not gp.attend(c,"!!window.__gameReady&&typeof dbgState==='function'",240):print('⛔ le jeu ne démarre pas');return None
     t=time.time();n=0
     while time.time()-t<150 and not c.ev(gp.BTN): # un toucher de l'intro seulement tant que l'accueil n'est pas là
@@ -136,6 +136,7 @@ def main():
         if a in('--carte','--json','--md','--qs'):OPT[a[2:]]=av[i+1];i+=2
         elif a in('--cpu','--parties','--son'):OPT[a[2:]]=int(av[i+1]);i+=2
         elif a=='--vp':OPT['vp']=av[i+1];i+=2
+        elif a=='--tel0':OPT['tel0']=1;i+=1
         elif a=='--latence':OPT['latence']=1;i+=1
         elif a=='--sans-profil':OPT['sans_profil']=1;i+=1
         elif a=='--fenetre':OPT['fenetre']=float(av[i+1]);i+=2

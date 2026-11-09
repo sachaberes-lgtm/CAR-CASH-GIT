@@ -43,3 +43,14 @@ Mode `--latence` du banc (`python3 outils/banc-perf/depart-mort.py --latence --p
 | REJOUER tapé → partie lancée | 0,94 à 1,76 s | 0,67 à 1,93 s |
 | géométries en fin de partie | ~520-590 (985 sur la grotte) | ~500-600 (972 sur la grotte) |
 Conclusion : **aucune différence mesurable entre main et le train à cette étape sur ordinateur** ; l'écart de 8-12 s contre 3-3,5 s vu sur le 13 Pro est propre au téléphone (GPU Metal, bridage thermique, rendu audio/PCM de fin, gouverneur mobile) ou à une définition différente de « REJOUER disponible ». Les géométries ~1 300 à la mort vues sur iPhone ne sont pas reproduites non plus (le seul cas haut ici est la grotte, ~980, identique sur main). Les seuls cas lents du pré-bâti sont les grottes (10-32 s) : à surveiller, ils coûtent aussi sur main. Pour trancher, il faut le banc iPhone avec la bissecte par interrupteurs (`?memoire=ancien`, `?premfois=0`, `?menu=max&repos=0`, `?gouv=max&mob_gouv=0`, `?mob_poly=0`, `?grotteworker=0`) : `?premfois=0` (P6) ne touche de toute façon ni l'écran de mort ni le pré-bâti — il ne fait que dessiner d'avance des billets, panneaux, pigeon, quads et moteurs gardés au menu.
+
+## 7. L'écran de mort suit l'horloge réelle (09/11, OPTI ULTIME) — commit `BOOM_REEL`
+Cause (confirmée par le code) : `boomT += dt` avec `dt` plafonné à 50 ms (`moteur/boucle-1.js:21`) ; `endGame()` à `boomT > 1,8` (`moteur/boucle-3-physique.js`). Chaque image > 50 ms ralentit le temps de jeu de l'explosion : durée réelle = 1,8 s × (durée d'image ÷ 50 ms). Sur le 13 Pro : 8,2-9,2 s à la 1re mort, 3,5-8,5 s à la 2e.
+Correctif : `endGame()` aussi quand 2,0 s d'horloge réelle se sont écoulées depuis `explode()` (`boomR0`, `BOOM_REEL_MS` dans `gameplay/premiere-fois.js`) ; `boomT` passe à 1,8 d'un coup (comme `boomSkip`). `?boom=ancien` = avant. Rien d'autre ne dépend de `boomT` que le décor (braises, fumée, lumière, haptique de rebond, plan de caméra) : ni score ni mission de mort.
+Mesure (`--latence`, mort → REJOUER cliquable, 3-4 parties) :
+| | ancien (`?boom=ancien`) | nouveau |
+|---|---|---|
+| ordinateur `?tel=0`, sans bridage | 1,84 s | 1,83 s (identique à l'image près) |
+| `?tel=1` ×4 | 1,89-1,94 s (médiane 1,89) | 1,85-1,97 s (médiane 1,91) |
+| `?tel=1` ×12 (images lourdes) | 2,89-3,31 s (médiane 3,06) | **2,29-2,50 s (médiane 2,41)** |
+À ×12 le plafond est l'horloge (2,0 s) plus une image de ~400 ms ; sur un téléphone à 250 ms par image : ≈ 2,25 s au lieu de 9 s.

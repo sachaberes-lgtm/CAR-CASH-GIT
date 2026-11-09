@@ -1,0 +1,57 @@
+{
+ "vp": "/Users/sachaberes/cash-car/perf3/wt/P6b/VERSION PRINCIPALE",
+ "qs": "&boom=ancien",
+ "carte": "nuages:midi",
+ "cpu": 12,
+ "charge": 2.85595703125,
+ "parties": [
+  {
+   "t0": 37137.79999999702,
+   "go": 3134,
+   "dead": 3134,
+   "btn": 3134,
+   "pret": 14481,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1369,
+   "lieu_suivant": "jade/jade",
+   "geo_fin": 551
+  },
+  {
+   "t0": 62739,
+   "go": 3311,
+   "dead": 3311,
+   "btn": 3311,
+   "pret": 19760,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1240,
+   "lieu_suivant": "foret/foretOrage",
+   "geo_fin": 572
+  },
+  {
+   "t0": 93798.39999999851,
+   "go": 2888,
+   "dead": 2888,
+   "btn": 2888,
+   "pret": 7201,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1183,
+   "lieu_suivant": "ville/villeOrage",
+   "geo_fin": 502
+  },
+  {
+   "t0": 111977.89999999851,
+   "go": 2989,
+   "dead": 2989,
+   "btn": 2989,
+   "pret": 17691,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1060,
+   "lieu_suivant": "grotte/grt-nuit-mine",
+   "geo_fin": 971
+  }
+ ]
+}

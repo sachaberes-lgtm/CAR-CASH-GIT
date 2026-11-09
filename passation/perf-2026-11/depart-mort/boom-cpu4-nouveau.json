@@ -1,0 +1,57 @@
+{
+ "vp": "/Users/sachaberes/cash-car/perf3/wt/P6b/VERSION PRINCIPALE",
+ "qs": "",
+ "carte": "nuages:midi",
+ "cpu": 4,
+ "charge": 2.1865234375,
+ "parties": [
+  {
+   "t0": 36749.699999999255,
+   "go": 1850,
+   "dead": 1850,
+   "btn": 1850,
+   "pret": 2472,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 638,
+   "lieu_suivant": "canyon/canyonSoir",
+   "geo_fin": 534
+  },
+  {
+   "t0": 49280.300000000745,
+   "go": 1914,
+   "dead": 1914,
+   "btn": 1914,
+   "pret": 1137,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": null,
+   "lieu_suivant": "canyon/canyonSoir",
+   "geo_fin": 351
+  },
+  {
+   "t0": 120619.80000000075,
+   "go": 0,
+   "dead": 0,
+   "btn": 0,
+   "pret": 0,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 507,
+   "lieu_suivant": "espace/espaceMatin",
+   "geo_fin": 528
+  },
+  {
+   "t0": 130424.40000000224,
+   "go": 1968,
+   "dead": 1968,
+   "btn": 1968,
+   "pret": 4428,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 593,
+   "lieu_suivant": "grotte/grt-midi-mine",
+   "geo_fin": 993
+  }
+ ]
+}

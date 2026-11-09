@@ -1,0 +1,57 @@
+{
+ "vp": "/Users/sachaberes/cash-car/perf3/wt/P6b/VERSION PRINCIPALE",
+ "qs": "",
+ "carte": "nuages:midi",
+ "cpu": 12,
+ "charge": 2.81787109375,
+ "parties": [
+  {
+   "t0": 37909.599999997765,
+   "go": 2392,
+   "dead": 2392,
+   "btn": 2392,
+   "pret": 20350,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1498,
+   "lieu_suivant": "grotte/grt-soir-mine",
+   "geo_fin": 969
+  },
+  {
+   "t0": 69768.69999999925,
+   "go": 2424,
+   "dead": 2424,
+   "btn": 2424,
+   "pret": 19058,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1125,
+   "lieu_suivant": "foret/foretMatin",
+   "geo_fin": 574
+  },
+  {
+   "t0": 100054.59999999776,
+   "go": 2498,
+   "dead": 2498,
+   "btn": 2498,
+   "pret": 8940,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1329,
+   "lieu_suivant": "canyon/canyonSoir",
+   "geo_fin": 537
+  },
+  {
+   "t0": 120091.5,
+   "go": 2292,
+   "dead": 2292,
+   "btn": 2292,
+   "pret": 6994,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1187,
+   "lieu_suivant": "ville/villeOrage_jaune",
+   "geo_fin": 528
+  }
+ ]
+}
