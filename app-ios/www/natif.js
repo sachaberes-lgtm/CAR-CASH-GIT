@@ -21,6 +21,13 @@
   var dit=function(){if(DEBUG)try{console.log.apply(console,['[natif]'].concat([].slice.call(arguments)));}catch(e){}};
   document.documentElement.classList.add('natif');
 
+
+  var BANC=null; 
+  try{if(BANC)localStorage.setItem('ccBancAuto',JSON.stringify(BANC));else localStorage.removeItem('ccBancAuto');}catch(e){}
+ 
+  var QS=null; 
+  try{if(QS&&!location.search)history.replaceState(null,'',location.pathname+'?'+String(QS).replace(/^[?&]/,''));}catch(e){}
+
  
   try{var st=document.createElement('style');st.id='natifCss';
     st.textContent='html,body{background:#000;overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%;'+
@@ -78,6 +85,8 @@
   var cache=function(){try{if(P.SplashScreen)P.SplashScreen.hide({fadeOutDuration:250});}catch(e){}};
   if(document.readyState!=='loading')setTimeout(cache,60);else document.addEventListener('DOMContentLoaded',function(){setTimeout(cache,60);});
   setTimeout(cache,30000);
+ 
+  document.addEventListener('cc:revele',function(){try{if(P.SerpentNatif)P.SerpentNatif.retire();}catch(e){}});
 
 
 
@@ -175,6 +184,68 @@
       setTimeout(function(){bilanEssai().then(majVerif);},4000);},500);
 
   }
+
+
+
+
+  (function(){
+    var t={dcl:null,pret:null},fini=false;
+    var ms=function(x){return x==null?'?':Math.round(x);};
+    var rapport=function(){
+      if(fini)return;fini=true;
+      var jeu='en ligne',tr='-',du='-',fi=null;
+      try{var R=performance.getEntriesByType('resource');
+        for(var i=0;i<R.length;i++)if(/\/jeu(\.[0-9a-f]+)?\.js(\?|$)/.test(R[i].name)){fi=R[i];break;}
+        if(fi){tr=Math.round(fi.transferSize||0);du=ms(fi.duration);}}catch(e){}
+ 
+      try{var sc=document.querySelector('script[src*="jeu."]');if(sc||fi)jeu='fichier';}catch(e){}
+      var m='jeu '+jeu+' · origine→DCL '+ms(t.dcl)+' ms · origine→prêt '+ms(t.pret)+' ms · DCL→prêt '+ms(t.pret==null||t.dcl==null?null:t.pret-t.dcl)+' ms'+
+        (fi?' · jeu.js transfert '+tr+' o, durée '+du+' ms (début '+ms(fi.startTime)+', fin '+ms(fi.responseEnd)+')':(jeu==='fichier'?' · jeu.js : aucune entrée resource':''));
+      dit('CHARGEMENT '+m);
+      try{if(window.__ccNote)window.__ccNote('chargement',m);}catch(e){}
+    };
+    var pret=function(){if(t.pret!=null)return;t.pret=performance.now();setTimeout(rapport,300);};
+    document.addEventListener('DOMContentLoaded',function(){t.dcl=performance.now();});
+    var v=window.__gameReady;
+    if(v){pret();}
+    else{try{Object.defineProperty(window,'__gameReady',{configurable:true,enumerable:true,get:function(){return v;},set:function(x){v=x;if(x)pret();}});}catch(e){}
+      var n=0,g=setInterval(function(){if(window.__gameReady)pret();if(t.pret!=null||++n>400)clearInterval(g);},50);}
+  })();
+
+
+
+
+
+  (function(){
+    var gardes=[];
+    var efface=function(){try{var M=navigator.mediaSession;if(!M)return;M.metadata=null;M.playbackState='none';
+      ['play','pause','stop','seekbackward','seekforward','seekto','previoustrack','nexttrack'].forEach(function(a){try{M.setActionHandler(a,null);}catch(e){}});}catch(e){}};
+    var decharge=function(){
+      if(gardes.length)return;
+      try{var L=document.querySelectorAll('audio,video');
+        for(var i=0;i<L.length;i++){var el=L[i],src=el.getAttribute('src');
+          if(!src)continue;
+          gardes.push({el:el,src:src,t:el.currentTime||0,jouait:!el.paused});
+          try{el.pause();}catch(e){}
+          el.removeAttribute('src');try{el.load();}catch(e){}}}catch(e){}
+      efface();
+      if(gardes.length)dit('vignette lecture : '+gardes.length+' média(s) déchargé(s)');
+    };
+    var recharge=function(){
+      var G=gardes;gardes=[];
+      G.forEach(function(g){try{
+        if(g.el.getAttribute('src'))return;
+        g.el.setAttribute('src',g.src);g.el.load();
+        if(g.t>0)g.el.addEventListener('loadedmetadata',function f(){g.el.removeEventListener('loadedmetadata',f);try{g.el.currentTime=g.t;}catch(e){}});
+      }catch(e){}});
+      if(G.length)dit('vignette lecture : '+G.length+' média(s) rechargé(s)');
+    };
+    document.addEventListener('visibilitychange',function(){if(document.hidden)decharge();else recharge();});
+    addEventListener('pagehide',decharge);
+    addEventListener('pageshow',function(){if(!document.hidden)recharge();});
+    document.addEventListener('freeze',decharge);
+    window.__ccVignette={decharge:decharge,recharge:recharge};
+  })();
 
  
   if(!DEBUG)return;
