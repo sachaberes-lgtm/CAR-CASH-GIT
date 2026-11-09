@@ -15,7 +15,7 @@ ICI=os.path.dirname(os.path.abspath(__file__));sys.path.insert(0,ICI)
 from cdp import CDP
 sp=importlib.util.spec_from_file_location('gp',os.path.join(ICI,'garde-perf.py'));gp=importlib.util.module_from_spec(sp);sp.loader.exec_module(gp)
 RACINE=os.path.dirname(os.path.dirname(ICI));VP=os.path.join(RACINE,'VERSION PRINCIPALE')
-OPT={'sans_profil':0,'carte':'nuages:midi','cpu':4,'parties':2,'json':None,'md':None,'qs':'','son':1,'fenetre':3.0,'tas':0}
+OPT={'vp':None,'latence':0,'sans_profil':0,'carte':'nuages:midi','cpu':4,'parties':2,'json':None,'md':None,'qs':'','son':1,'fenetre':3.0,'tas':0}
 HOOK=r"""(function(){
  var P=window.__D={F:[],on:false,t0:performance.now(),loaf:[],lab:''};
  ['WebGL2RenderingContext','WebGLRenderingContext'].forEach(function(C){var Q=window[C]&&window[C].prototype;if(!Q)return;
@@ -135,11 +135,13 @@ def main():
         a=av[i]
         if a in('--carte','--json','--md','--qs'):OPT[a[2:]]=av[i+1];i+=2
         elif a in('--cpu','--parties','--son'):OPT[a[2:]]=int(av[i+1]);i+=2
+        elif a=='--vp':OPT['vp']=av[i+1];i+=2
+        elif a=='--latence':OPT['latence']=1;i+=1
         elif a=='--sans-profil':OPT['sans_profil']=1;i+=1
         elif a=='--fenetre':OPT['fenetre']=float(av[i+1]);i+=2
         else:i+=1
     http=gp.libre();port=gp.libre()
-    srv=subprocess.Popen([sys.executable,'-m','http.server',str(http),'--bind','127.0.0.1'],cwd=VP,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    srv=subprocess.Popen([sys.executable,'-m','http.server',str(http),'--bind','127.0.0.1'],cwd=OPT['vp'] or VP,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     prof=tempfile.mkdtemp(prefix='banc-depart-')
     ch=subprocess.Popen([gp.chrome(),'--headless=new','--remote-debugging-port=%d'%port,'--user-data-dir='+prof,'--mute-audio','--autoplay-policy=no-user-gesture-required','about:blank'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     try:
@@ -151,6 +153,7 @@ def main():
         c=chrome_demarre(http,port,OPT['cpu'],OPT['carte'])
         if not c:return 2
         c.call('Emulation.setCPUThrottlingRate',rate=OPT['cpu']);c.pump(1)
+        if OPT['latence']:return latences(c)
         sortie={'date':time.strftime('%Y-%m-%d %H:%M'),'carte':OPT['carte'],'cpu':OPT['cpu'],'qs':OPT['qs'],'charge':os.getloadavg()[0],'fenetres':[]}
         F=sortie['fenetres']
         for p in range(OPT['parties']):
@@ -178,6 +181,37 @@ def main():
                 try:p.kill()
                 except Exception:pass
         shutil.rmtree(prof,ignore_errors=True)
+REC=r"""(function(){var R=window.__LAT={t0:performance.now(),go:null,dead:null,btn:null,pret:null,geo:[],fin:false};
+ function btn(){var e=[].slice.call(document.querySelectorAll('#mDead [data-m="replay"]')).filter(function(x){return x.getBoundingClientRect().width>0})[0];if(!e)return false;var b=e.getBoundingClientRect(),x=b.left+b.width/2,y=b.top+b.height/2,h=document.elementFromPoint(x,y);return h===e||e.contains(h);}
+ function vu(){var d=document.getElementById('mDead');return !!d&&d.classList.contains('on')&&d.getBoundingClientRect().width>0;}
+ (function f(){var n=performance.now()-R.t0;if(R.go===null&&dbgState().gameOver)R.go=Math.round(n);if(R.dead===null&&vu())R.dead=Math.round(n);if(R.btn===null&&btn())R.btn=Math.round(n);if(R.pret===null&&typeof dbgPrebati==='function'&&dbgPrebati().etat==='pret')R.pret=Math.round(n);if(!R.fin)requestAnimationFrame(f);})();return 1;})()"""
+def latences(c):
+    """Mode --latence : mort (dbgBoom) → écran de mort affiché (#mDead.on) → bouton REJOUER cliquable ; N parties. Tout est mesuré DANS la page (rAF), sans profileur."""
+    R=[]
+    for p in range(OPT['parties']):
+        if p==0:
+            jouer(c)
+            if not gp.attend(c,"dbgState().started&&!dbgState().gameOver",60):print('⛔ la partie ne part pas');break
+        c.ev("dbgSable(0);dbgAuto(1,0,{});1");c.pump(6)
+        c.ev("dbgAuto(0);1");c.ev(REC);c.ev("dbgBoom();1")
+        t=time.time()
+        while time.time()-t<45 and c.ev("window.__LAT.btn")is None:c.pump(.25)
+        t=time.time()
+        while time.time()-t<45 and c.ev("window.__LAT.pret")is None:c.pump(.25) # le pré-bâti de la partie suivante est prêt
+        m=json.loads(c.ev("JSON.stringify(Object.assign({},window.__LAT,{fin:true}))"));c.ev("window.__LAT.fin=true;1")
+        # REJOUER tapé : combien de temps jusqu'à la partie lancée ?
+        tt=time.time();rejouer(c)
+        if gp.attend(c,"dbgState().started&&!dbgState().gameOver",60):m['rejouer_a_depart_ms']=round((time.time()-tt)*1000)
+        else:m['rejouer_a_depart_ms']=None
+        try:m['lieu_suivant']=c.ev("(function(){var d=dbgNiveau();return d.lieu+'/'+d.ciel})()")
+        except Exception:m['lieu_suivant']=None
+        try:m['geo_fin']=json.loads(c.ev("JSON.stringify(typeof dbgCout==='function'?dbgCout().geo:null)"))
+        except Exception:m['geo_fin']=None
+        R.append(m);print('partie %d : mort→game over %s ms · mort→écran de mort affiché %s ms · mort→REJOUER cliquable %s ms · mort→pré-bâti prêt %s ms · REJOUER→partie lancée %s ms · géométries %s · lieu suivant %s'%(p+1,m['go'],m['dead'],m['btn'],m['pret'],m.get('rejouer_a_depart_ms'),m['geo_fin'],m.get('lieu_suivant')),flush=True)
+        c.pump(3)
+    out={'vp':OPT['vp'] or VP,'qs':OPT['qs'],'carte':OPT['carte'],'cpu':OPT['cpu'],'charge':os.getloadavg()[0],'parties':R}
+    if OPT['json']:json.dump(out,open(OPT['json'],'w'),indent=1)
+    return 0
 def ecrit_md(s,chemin):
     L=['# Départ et mort — profil des fenêtres de 3 s (%s, CPU ×%d, charge machine %.0f)'%(s['carte'],s['cpu'],s['charge']),'','| fenêtre | pire image (ms) | images > 100 ms | programmes liés | occupé (ms) | postes principaux (inclusif ms) |','|---|---|---|---|---|---|']
     for f in s['fenetres']:

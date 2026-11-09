@@ -1,0 +1,105 @@
+{
+ "vp": "/Users/sachaberes/cash-car/perf3/wt/Mmain/VERSION PRINCIPALE",
+ "qs": "",
+ "carte": "nuages:midi",
+ "cpu": 4,
+ "charge": 23.994140625,
+ "parties": [
+  {
+   "t0": 40972.299999999814,
+   "go": 2418,
+   "dead": 2418,
+   "btn": 2418,
+   "pret": 32385,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 956,
+   "lieu_suivant": "grotte/grt-soir-mine",
+   "geo_fin": 985
+  },
+  {
+   "t0": 85016,
+   "go": 3271,
+   "dead": 3271,
+   "btn": 3271,
+   "pret": 5137,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1761,
+   "lieu_suivant": "canyon/canyonMatin",
+   "geo_fin": 523
+  },
+  {
+   "t0": 102026.59999999963,
+   "go": 2320,
+   "dead": 2320,
+   "btn": 2320,
+   "pret": 9402,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1414,
+   "lieu_suivant": "foret/foretOrage",
+   "geo_fin": 592
+  },
+  {
+   "t0": 122933.40000000037,
+   "go": 2389,
+   "dead": 2389,
+   "btn": 2389,
+   "pret": 7650,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 944,
+   "lieu_suivant": "jade/jade",
+   "geo_fin": 582
+  },
+  {
+   "t0": 140957.90000000037,
+   "go": 2046,
+   "dead": 2046,
+   "btn": 2046,
+   "pret": 4297,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1034,
+   "lieu_suivant": "canyon/canyonMatin",
+   "geo_fin": 532
+  },
+  {
+   "t0": 155695.2999999998,
+   "go": 2233,
+   "dead": 2233,
+   "btn": 2233,
+   "pret": 3115,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1277,
+   "lieu_suivant": "nuages/nuagesNuit",
+   "geo_fin": 540
+  },
+  {
+   "t0": 170467.90000000037,
+   "go": 2123,
+   "dead": 2123,
+   "btn": 2123,
+   "pret": 2895,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1315,
+   "lieu_suivant": "espace/espaceMatin",
+   "geo_fin": 526
+  },
+  {
+   "t0": 184380.59999999963,
+   "go": 2172,
+   "dead": 2172,
+   "btn": 2172,
+   "pret": 1886,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 969,
+   "lieu_suivant": "ville/villeOrage_jaune",
+   "geo_fin": 522
+  }
+ ]
+}

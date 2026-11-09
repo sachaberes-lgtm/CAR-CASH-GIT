@@ -1,0 +1,105 @@
+{
+ "vp": "/Users/sachaberes/cash-car/perfmob/sur-main-5/VERSION PRINCIPALE",
+ "qs": "",
+ "carte": "nuages:midi",
+ "cpu": 4,
+ "charge": 23.248046875,
+ "parties": [
+  {
+   "t0": 52215.699999999255,
+   "go": 2229,
+   "dead": 2229,
+   "btn": 2229,
+   "pret": 4676,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 843,
+   "lieu_suivant": "dunes/dunesNuit",
+   "geo_fin": 518
+  },
+  {
+   "t0": 67351.59999999963,
+   "go": 1974,
+   "dead": 1974,
+   "btn": 1974,
+   "pret": 2102,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1928,
+   "lieu_suivant": "espace/espaceMatin",
+   "geo_fin": 502
+  },
+  {
+   "t0": 82946.89999999944,
+   "go": 2335,
+   "dead": 2335,
+   "btn": 2335,
+   "pret": 7887,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 665,
+   "lieu_suivant": "foret/foretMidi",
+   "geo_fin": 574
+  },
+  {
+   "t0": 101131.89999999944,
+   "go": 2267,
+   "dead": 2267,
+   "btn": 2267,
+   "pret": 3910,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 735,
+   "lieu_suivant": "espace/espaceMatin",
+   "geo_fin": 507
+  },
+  {
+   "t0": 115162.59999999963,
+   "go": 2243,
+   "dead": 2243,
+   "btn": 2243,
+   "pret": 9990,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 923,
+   "lieu_suivant": "grotte/grt-glace-mine",
+   "geo_fin": 972
+  },
+  {
+   "t0": 135621.69999999925,
+   "go": 2174,
+   "dead": 2174,
+   "btn": 2174,
+   "pret": 4791,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1142,
+   "lieu_suivant": "canyon/canyonSoir",
+   "geo_fin": 537
+  },
+  {
+   "t0": 151420.09999999963,
+   "go": 2280,
+   "dead": 2280,
+   "btn": 2280,
+   "pret": 6759,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1070,
+   "lieu_suivant": "foret/foretMatin",
+   "geo_fin": 598
+  },
+  {
+   "t0": 169034.7999999998,
+   "go": 2418,
+   "dead": 2418,
+   "btn": 2418,
+   "pret": 3764,
+   "geo": [],
+   "fin": true,
+   "rejouer_a_depart_ms": 1176,
+   "lieu_suivant": "ville/villeOrage_jaune",
+   "geo_fin": 528
+  }
+ ]
+}

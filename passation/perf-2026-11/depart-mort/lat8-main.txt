@@ -1,0 +1,9 @@
+toucher(s) d'intro : 4 · chauffe du menu : {"atelier":true,"divers":31,"moteurs":31,"sur":31,"rendu":true,"apres":-1,"lier":0,"programmes":211,"appels":408,"ms":161.7}
+partie 1 : mort→game over 2418 ms · mort→écran de mort affiché 2418 ms · mort→REJOUER cliquable 2418 ms · mort→pré-bâti prêt 32385 ms · REJOUER→partie lancée 956 ms · géométries 985 · lieu suivant grotte/grt-soir-mine
+partie 2 : mort→game over 3271 ms · mort→écran de mort affiché 3271 ms · mort→REJOUER cliquable 3271 ms · mort→pré-bâti prêt 5137 ms · REJOUER→partie lancée 1761 ms · géométries 523 · lieu suivant canyon/canyonMatin
+partie 3 : mort→game over 2320 ms · mort→écran de mort affiché 2320 ms · mort→REJOUER cliquable 2320 ms · mort→pré-bâti prêt 9402 ms · REJOUER→partie lancée 1414 ms · géométries 592 · lieu suivant foret/foretOrage
+partie 4 : mort→game over 2389 ms · mort→écran de mort affiché 2389 ms · mort→REJOUER cliquable 2389 ms · mort→pré-bâti prêt 7650 ms · REJOUER→partie lancée 944 ms · géométries 582 · lieu suivant jade/jade
+partie 5 : mort→game over 2046 ms · mort→écran de mort affiché 2046 ms · mort→REJOUER cliquable 2046 ms · mort→pré-bâti prêt 4297 ms · REJOUER→partie lancée 1034 ms · géométries 532 · lieu suivant canyon/canyonMatin
+partie 6 : mort→game over 2233 ms · mort→écran de mort affiché 2233 ms · mort→REJOUER cliquable 2233 ms · mort→pré-bâti prêt 3115 ms · REJOUER→partie lancée 1277 ms · géométries 540 · lieu suivant nuages/nuagesNuit
+partie 7 : mort→game over 2123 ms · mort→écran de mort affiché 2123 ms · mort→REJOUER cliquable 2123 ms · mort→pré-bâti prêt 2895 ms · REJOUER→partie lancée 1315 ms · géométries 526 · lieu suivant espace/espaceMatin
+partie 8 : mort→game over 2172 ms · mort→écran de mort affiché 2172 ms · mort→REJOUER cliquable 2172 ms · mort→pré-bâti prêt 1886 ms · REJOUER→partie lancée 969 ms · géométries 522 · lieu suivant ville/villeOrage_jaune
