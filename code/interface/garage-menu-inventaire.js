@@ -247,10 +247,10 @@ function invOuvre(){
   gEl.classList.remove('aideInv');gEl.classList.add('inv');garLibre._r=null;
   const g=$('ivGrille');if(g){g._k=null;g.scrollTop=0;}invRender();
   if(GAR_TAB_ANG[INV.cat]!=null)garTourneVers(GAR_TAB_ANG[INV.cat]); // (2026-10-24) en tournant, comme les onglets
-  feuilleOuvre($('gInv'),'on');invNoms(g);return true; // la feuille est posée : c'est maintenant que les cases ont leur largeur
+  feuilleOuvre($('gInv'),'on');invNoms(g);try{gModeBoutons();}catch(e){} /* (INT-16) le bouton du bas dit RETOUR */return true; // la feuille est posée : c'est maintenant que les cases ont leur largeur
 }
 function invFerme(sec){
-  if(!INV||!INV.on)return;INV.on=false;const el=$('gInv');
+  if(!INV||!INV.on)return;INV.on=false;const el=$('gInv');try{gModeBoutons();}catch(e){} /* (INT-16) le bouton du bas redevient INVENTAIRE */
   if(gEl)gEl.classList.remove('inv');garLibre._r=null;
   if(sec){if(el)el.classList.remove('on','sortant');return;}
   feuilleFerme(el,'on');

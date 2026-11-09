@@ -754,7 +754,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       {const rj=document.querySelector('#mDead [data-m="replay"]');if(rj){const k9=tq9?'REPRENDRE':'REJOUER',tx=TR(k9);let sp=rj.querySelector('span');if(!sp){sp=document.createElement('span');rj.textContent='';rj.appendChild(sp);}
         sp.textContent=tx;if(sp.dataset.fr)sp.dataset.fr=k9;rj.style.setProperty('--nb',Math.max(7,tx.length));}} // (le texte vit dans son <span> : c'est lui que la règle « tient dans le lingot » dimensionne sur --nb signes) // (2026-09-29) après une leçon QUITTÉE, le lingot relance la leçon : il le dit
       {let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;} // (2026-09-29, audit) la pastille du GARAGE vit aussi ici : le débutant enchaîne REJOUER et ne revoit pas l'accueil
-       const bg=$t('bdGar2');if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);}}
+       const bg=$t('bdGar2');if(bg){if(/[?&]pastille=ancien\b/.test(location.search))bg.textContent=nG||'';else{const h9=nG>0?pxi('panier'):'';if(bg._h9!==h9){bg._h9=h9;bg.innerHTML=h9;}bg.setAttribute('aria-label',nG>0?(LANG==='en'?nG+' to buy':nG+' à ta portée'):'');}bg.classList.toggle('on',nG>0);}} /* (2026-11-07, Opus : jury DIR-26, la suite) la pastille GARAGE de l'écran de mort : un panier, comme à l'accueil */
       const nw=$t('mNew'),E=ENGINE_TIERS[Math.min(ENGINE_TIERS.length-1,Math.max(0,engTier|0))];nw.style.display='none';
       { // LES DEUX CARTES : l'AURA gagnée (et le rang), le MOTEUR atteint (et s'il bat ton record)
         const au=commitExploits._aura||0,rg=commitExploits._rangMonte,eN=engTier>(RUNX.engAvant|0),hx=(typeof engNeon==='function')?engNeon(E.col||0xffd75e):'#'+(E.col||0xffd75e).toString(16).padStart(6,'0'); /* (2026-09-28) le néon du palier, comme la carte moteur de la course (session UHD) : la rouille et l'acier ne font plus une carte boueuse */
@@ -992,16 +992,19 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
         if(el.hidden){el.hidden=false;el.classList.remove('dbOn');void el.offsetWidth;el.classList.add('dbOn');}}
       else if(!el.hidden)el.hidden=true;};
     const monte=function(v){ // le grand chiffre passe de v à 2 v (0,6 s, ease-out), puis claque ; la ligne COMPTE dit le nouveau solde
+      /* (2026-11-07, Opus : jury ECO-08) le ×2 ne double plus que le gain de la course (v), pas la prime de série : le grand chiffre part du TOTAL affiché
+         (RUNX.verse, déjà augmenté de v par dblJoue) moins v, et finit sur ce total. Sans prime, c'est exactement v → 2 v comme avant. */
+      const fin9=(RUNX.verse!=null&&RUNX.verse>=v)?RUNX.verse:2*v,dep9=fin9-v;
       const c9=$t('mCash'),t9=$t('mCashTot');
       if(t9&&t9.firstChild&&t9.firstChild.nodeType===3)t9.firstChild.nodeValue=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank());
       try{if(SONV2)sfx('piece.serie');else rewardSfx('m3',2);}catch(_){}hap([10,30,10,30,24]);
       if(!c9)return;if(mCntT){clearInterval(mCntT);mCntT=0;}
       const v6=!!(c9.closest&&c9.closest('#mDead.m5'));
-      c9.style.setProperty('--n',(v6?fmtSolde(2*v):fmtC(2*v)).length);
-      if(v6)m6Monte(c9,fmtSolde(2*v));
-      if(REDUCED_MOTION){if(v6)m6Pose(c9,2*v,false);else c9.textContent=fmtC(2*v);return;}
+      c9.style.setProperty('--n',(v6?fmtSolde(fin9):fmtC(fin9)).length);
+      if(v6)m6Monte(c9,fmtSolde(fin9));
+      if(REDUCED_MOTION){if(v6)m6Pose(c9,fin9,false);else c9.textContent=fmtC(fin9);return;}
       const t0=performance.now(),D=v6?900:600;
-      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,v*(1+q),true);else c9.textContent=fmtC(Math.round(v*(1+q)));
+      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,dep9+v*q,true);else c9.textContent=fmtC(Math.round(dep9+v*q));
         if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');if(v6&&m6Ici())try{pixBurst(c9,12);}catch(x){}}},v6?16:28);};
     const apres=function(vue,v){if(vue)monte(v);maj();};window.__dblApres=apres;
     const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};

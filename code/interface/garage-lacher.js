@@ -213,12 +213,16 @@ function gModeListeVoitures(m){const eq=SAVE.d.equipped|0,L=[];
   if(m==='inv')L.sort(function(a,b){return (INV_RANG[carRar(b)]-INV_RANG[carRar(a)])||(carOrdre(b)-carOrdre(a));}); // (2026-10-09) les silhouettes de ce qu'on n'a pas (v221-v222) sont retirées le même soir (Léo : « enlève le truc avec les voitures transparentes »)
   else L.sort(function(a,b){if(a===0||b===0)return a===0?-1:1;return ((CAR_UNLOCK[a].p?0:1)-(CAR_UNLOCK[b].p?0:1))||(carPrixOrdre(a)-carPrixOrdre(b));});
   return L;}
+/* ===== L'INVENTAIRE SE QUITTE PAR RETOUR, EN BAS À GAUCHE (2026-11-07, Opus : jury INT-16, règle de Sacha du 15/10 « le RETOUR en bas à gauche sur tous les écrans ») =====
+   Le tiroir ne se fermait que par la croix en HAUT À DROITE. Le bouton INVENTAIRE du bas à gauche (#gvCof) le refermait déjà au toucher : pendant que le
+   tiroir est ouvert il s'écrit « ◀ RETOUR » (gModeBoutons, rappelée par invOuvre / invFerme). La croix reste. `?invretour=ancien` : le libellé d'avant. */
+const INV_RETOUR=!/[?&]invretour=ancien\b/.test(location.search);
 function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=document.getElementById('gShopBas'),r=document.getElementById('gRar'),st=document.getElementById('gStrip');
   if(c)c.classList.toggle('modeOn',m==='inv');if(b)b.classList.toggle('modeOn',m==='shop'||m==='tous');
   if(b){const ret=m==='shop'||m==='tous';if(b._lib==null)b._lib=b.innerHTML;if(ret!==!!b._ret){b._ret=ret;b.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':b._lib;if(!ret){const s9=b.querySelector('span[data-fr]');if(s9)s9.textContent=TR(s9.dataset.fr);}b.setAttribute('aria-label',ret?TR('RETOUR'):TR('Boutique'));} /* (2026-10-12, passe qualité) _lib est figé dans la langue de la 1re visite : on repasse le libellé dans la langue du moment (sinon « BOUTIQUE » en anglais après FR→EN) */
     if(gEl)gEl.classList.toggle('shopRet',ret);} // (2026-10-12) BOUTIQUE devient RETOUR
   if(GATL.on&&m!=='inv')GATL.on=false; // l'atelier fermé n'existe qu'en INVENTAIRE
-  if(c){const ret=m==='inv'&&GATL.on;if(c._lib==null)c._lib=c.innerHTML;if(ret!==!!c._ret){c._ret=ret;c.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':c._lib;c.setAttribute('aria-label',ret?TR('RETOUR'):TR('Inventaire'));}
+  if(c){const ret=(m==='inv'&&GATL.on)||(INV_RETOUR&&!!(INV&&INV.on));if(c._lib==null)c._lib=c.innerHTML; /* (2026-11-07, Opus : jury INT-16) l'inventaire ouvert : le bouton du bas à gauche dit RETOUR (il le referme déjà), comme partout ailleurs */if(ret!==!!c._ret){c._ret=ret;c.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':c._lib;c.setAttribute('aria-label',ret?TR('RETOUR'):TR('Inventaire'));}
     /* (2026-11-05, Opus : jury DIR-04) _lib est figé dans la langue de la 1re visite : « INVENTAIRE » restait en français au retour du garage depuis la mort
        (anglais). Comme la BOUTIQUE juste au-dessus, le libellé repasse par TR à chaque fois qu'il revient. */
     if(!c._ret){const s9=c.querySelector('span[data-fr]');if(s9&&s9.textContent!==TR(s9.dataset.fr))s9.textContent=TR(s9.dataset.fr);}}

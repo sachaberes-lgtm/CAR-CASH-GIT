@@ -73009,12 +73009,16 @@ function gModeListeVoitures(m){const eq=SAVE.d.equipped|0,L=[];
   if(m==='inv')L.sort(function(a,b){return (INV_RANG[carRar(b)]-INV_RANG[carRar(a)])||(carOrdre(b)-carOrdre(a));}); // (2026-10-09) les silhouettes de ce qu'on n'a pas (v221-v222) sont retirées le même soir (Léo : « enlève le truc avec les voitures transparentes »)
   else L.sort(function(a,b){if(a===0||b===0)return a===0?-1:1;return ((CAR_UNLOCK[a].p?0:1)-(CAR_UNLOCK[b].p?0:1))||(carPrixOrdre(a)-carPrixOrdre(b));});
   return L;}
+/* ===== L'INVENTAIRE SE QUITTE PAR RETOUR, EN BAS À GAUCHE (2026-11-07, Opus : jury INT-16, règle de Sacha du 15/10 « le RETOUR en bas à gauche sur tous les écrans ») =====
+   Le tiroir ne se fermait que par la croix en HAUT À DROITE. Le bouton INVENTAIRE du bas à gauche (#gvCof) le refermait déjà au toucher : pendant que le
+   tiroir est ouvert il s'écrit « ◀ RETOUR » (gModeBoutons, rappelée par invOuvre / invFerme). La croix reste. `?invretour=ancien` : le libellé d'avant. */
+const INV_RETOUR=!/[?&]invretour=ancien\b/.test(location.search);
 function gModeBoutons(){const m=gModeM(),c=document.getElementById('gvCof'),b=document.getElementById('gShopBas'),r=document.getElementById('gRar'),st=document.getElementById('gStrip');
   if(c)c.classList.toggle('modeOn',m==='inv');if(b)b.classList.toggle('modeOn',m==='shop'||m==='tous');
   if(b){const ret=m==='shop'||m==='tous';if(b._lib==null)b._lib=b.innerHTML;if(ret!==!!b._ret){b._ret=ret;b.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':b._lib;if(!ret){const s9=b.querySelector('span[data-fr]');if(s9)s9.textContent=TR(s9.dataset.fr);}b.setAttribute('aria-label',ret?TR('RETOUR'):TR('Boutique'));} /* (2026-10-12, passe qualité) _lib est figé dans la langue de la 1re visite : on repasse le libellé dans la langue du moment (sinon « BOUTIQUE » en anglais après FR→EN) */
     if(gEl)gEl.classList.toggle('shopRet',ret);} // (2026-10-12) BOUTIQUE devient RETOUR
   if(GATL.on&&m!=='inv')GATL.on=false; // l'atelier fermé n'existe qu'en INVENTAIRE
-  if(c){const ret=m==='inv'&&GATL.on;if(c._lib==null)c._lib=c.innerHTML;if(ret!==!!c._ret){c._ret=ret;c.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':c._lib;c.setAttribute('aria-label',ret?TR('RETOUR'):TR('Inventaire'));}
+  if(c){const ret=(m==='inv'&&GATL.on)||(INV_RETOUR&&!!(INV&&INV.on));if(c._lib==null)c._lib=c.innerHTML; /* (2026-11-07, Opus : jury INT-16) l'inventaire ouvert : le bouton du bas à gauche dit RETOUR (il le referme déjà), comme partout ailleurs */if(ret!==!!c._ret){c._ret=ret;c.innerHTML=ret?pxi('gauche')+'<span data-fr="RETOUR">'+TR('RETOUR')+'</span>':c._lib;c.setAttribute('aria-label',ret?TR('RETOUR'):TR('Inventaire'));}
     /* (2026-11-05, Opus : jury DIR-04) _lib est figé dans la langue de la 1re visite : « INVENTAIRE » restait en français au retour du garage depuis la mort
        (anglais). Comme la BOUTIQUE juste au-dessus, le libellé repasse par TR à chaque fois qu'il revient. */
     if(!c._ret){const s9=c.querySelector('span[data-fr]');if(s9&&s9.textContent!==TR(s9.dataset.fr))s9.textContent=TR(s9.dataset.fr);}}
@@ -78742,10 +78746,10 @@ function invOuvre(){
   gEl.classList.remove('aideInv');gEl.classList.add('inv');garLibre._r=null;
   const g=$('ivGrille');if(g){g._k=null;g.scrollTop=0;}invRender();
   if(GAR_TAB_ANG[INV.cat]!=null)garTourneVers(GAR_TAB_ANG[INV.cat]); // (2026-10-24) en tournant, comme les onglets
-  feuilleOuvre($('gInv'),'on');invNoms(g);return true; // la feuille est posée : c'est maintenant que les cases ont leur largeur
+  feuilleOuvre($('gInv'),'on');invNoms(g);try{gModeBoutons();}catch(e){} /* (INT-16) le bouton du bas dit RETOUR */return true; // la feuille est posée : c'est maintenant que les cases ont leur largeur
 }
 function invFerme(sec){
-  if(!INV||!INV.on)return;INV.on=false;const el=$('gInv');
+  if(!INV||!INV.on)return;INV.on=false;const el=$('gInv');try{gModeBoutons();}catch(e){} /* (INT-16) le bouton du bas redevient INVENTAIRE */
   if(gEl)gEl.classList.remove('inv');garLibre._r=null;
   if(sec){if(el)el.classList.remove('on','sortant');return;}
   feuilleFerme(el,'on');
@@ -85360,7 +85364,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
       {const rj=document.querySelector('#mDead [data-m="replay"]');if(rj){const k9=tq9?'REPRENDRE':'REJOUER',tx=TR(k9);let sp=rj.querySelector('span');if(!sp){sp=document.createElement('span');rj.textContent='';rj.appendChild(sp);}
         sp.textContent=tx;if(sp.dataset.fr)sp.dataset.fr=k9;rj.style.setProperty('--nb',Math.max(7,tx.length));}} // (le texte vit dans son <span> : c'est lui que la règle « tient dans le lingot » dimensionne sur --nb signes) // (2026-09-29) après une leçon QUITTÉE, le lingot relance la leçon : il le dit
       {let nG=shopAPortee();for(let i=0;i<CARS.length;i++){const p9=carPrice(i);if(p9&&!carUnlockedVrai(i)&&p9<=bank())nG++;} // (2026-09-29, audit) la pastille du GARAGE vit aussi ici : le débutant enchaîne REJOUER et ne revoit pas l'accueil
-       const bg=$t('bdGar2');if(bg){bg.textContent=nG||'';bg.classList.toggle('on',nG>0);}}
+       const bg=$t('bdGar2');if(bg){if(/[?&]pastille=ancien\b/.test(location.search))bg.textContent=nG||'';else{const h9=nG>0?pxi('panier'):'';if(bg._h9!==h9){bg._h9=h9;bg.innerHTML=h9;}bg.setAttribute('aria-label',nG>0?(LANG==='en'?nG+' to buy':nG+' à ta portée'):'');}bg.classList.toggle('on',nG>0);}} /* (2026-11-07, Opus : jury DIR-26, la suite) la pastille GARAGE de l'écran de mort : un panier, comme à l'accueil */
       const nw=$t('mNew'),E=ENGINE_TIERS[Math.min(ENGINE_TIERS.length-1,Math.max(0,engTier|0))];nw.style.display='none';
       { // LES DEUX CARTES : l'AURA gagnée (et le rang), le MOTEUR atteint (et s'il bat ton record)
         const au=commitExploits._aura||0,rg=commitExploits._rangMonte,eN=engTier>(RUNX.engAvant|0),hx=(typeof engNeon==='function')?engNeon(E.col||0xffd75e):'#'+(E.col||0xffd75e).toString(16).padStart(6,'0'); /* (2026-09-28) le néon du palier, comme la carte moteur de la course (session UHD) : la rouille et l'acier ne font plus une carte boueuse */
@@ -85598,16 +85602,19 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
         if(el.hidden){el.hidden=false;el.classList.remove('dbOn');void el.offsetWidth;el.classList.add('dbOn');}}
       else if(!el.hidden)el.hidden=true;};
     const monte=function(v){ // le grand chiffre passe de v à 2 v (0,6 s, ease-out), puis claque ; la ligne COMPTE dit le nouveau solde
+      /* (2026-11-07, Opus : jury ECO-08) le ×2 ne double plus que le gain de la course (v), pas la prime de série : le grand chiffre part du TOTAL affiché
+         (RUNX.verse, déjà augmenté de v par dblJoue) moins v, et finit sur ce total. Sans prime, c'est exactement v → 2 v comme avant. */
+      const fin9=(RUNX.verse!=null&&RUNX.verse>=v)?RUNX.verse:2*v,dep9=fin9-v;
       const c9=$t('mCash'),t9=$t('mCashTot');
       if(t9&&t9.firstChild&&t9.firstChild.nodeType===3)t9.firstChild.nodeValue=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(bank());
       try{if(SONV2)sfx('piece.serie');else rewardSfx('m3',2);}catch(_){}hap([10,30,10,30,24]);
       if(!c9)return;if(mCntT){clearInterval(mCntT);mCntT=0;}
       const v6=!!(c9.closest&&c9.closest('#mDead.m5'));
-      c9.style.setProperty('--n',(v6?fmtSolde(2*v):fmtC(2*v)).length);
-      if(v6)m6Monte(c9,fmtSolde(2*v));
-      if(REDUCED_MOTION){if(v6)m6Pose(c9,2*v,false);else c9.textContent=fmtC(2*v);return;}
+      c9.style.setProperty('--n',(v6?fmtSolde(fin9):fmtC(fin9)).length);
+      if(v6)m6Monte(c9,fmtSolde(fin9));
+      if(REDUCED_MOTION){if(v6)m6Pose(c9,fin9,false);else c9.textContent=fmtC(fin9);return;}
       const t0=performance.now(),D=v6?900:600;
-      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,v*(1+q),true);else c9.textContent=fmtC(Math.round(v*(1+q)));
+      mCntT=setInterval(function(){const k=Math.min(1,(performance.now()-t0)/D),q=1-Math.pow(1-k,3);if(v6)m6Pose(c9,dep9+v*q,true);else c9.textContent=fmtC(Math.round(dep9+v*q));
         if(k>=1){clearInterval(mCntT);mCntT=0;c9.classList.remove('clac');void c9.offsetWidth;c9.classList.add('clac');if(v6&&m6Ici())try{pixBurst(c9,12);}catch(x){}}},v6?16:28);};
     const apres=function(vue,v){if(vue)monte(v);maj();};window.__dblApres=apres;
     const sourd=function(){return !!(TCTL.mortT&&performance.now()-TCTL.mortT<600);};
