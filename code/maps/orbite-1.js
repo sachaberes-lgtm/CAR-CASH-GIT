@@ -24,10 +24,13 @@
            la balise ; ce sont les PASSANTS au bord de la route, une partie du CHAMP, et les TRAINS — des files de 20 à 26 satellites
            alignés qui GLISSENT dans le ciel (mouvement dans le vertex shader, apparition/disparition en fondu aux deux bouts), leurs
            panneaux tournent en phase décalée : l'éclat du soleil COURT le long du train (le « collier de perles » de Starlink).
-       [1] LES GROS DÉBRIS : satellite mort à l'aile brisée, étage de fusée (blanc, bande noire, tuyère), grand pan de panneau
-           arraché, petit satellite d'or à quatre ailes — variantes EMPILÉES dans les mêmes sommets (`satEmpile`, `SAT_MAT_E`).
-       [2] LES ÉCLATS : un seul prisme irrégulier (36 sommets) dont la MATIÈRE change par instance — éclat de cellule, lambeau d'or,
-           tige d'argent, écaille de peinture — pour le champ lointain et les deux anneaux de débris (le syndrome de Kessler).
+       [1] LES GROS DÉBRIS (refonte du 2026-11-09 : de la FERRAILLE, grise, désaturée) : satellite mort (bus éventré, panneau cassé), étage de
+           fusée (blanc terni, bande noire, tuyère), pan de panneau arraché à bord déchiré (`satDalle`), réservoir arraché et ses entretoises —
+           variantes EMPILÉES dans les mêmes sommets (`satEmpile`, `SAT_MAT_E`), ≤ 250 sommets chacune. Quelques dizaines de pièces (`SAT_MAX[1]`).
+       [2] LES ÉCLATS : un seul prisme irrégulier (36 sommets) dont la MATIÈRE change par instance — plaque de panneau mort (verre éteint
+           quadrillé), tôle d'alu, entretoise, lambeau d'isolant terni ; la moitié perd son 4e coin (un triangle) — pour le champ lointain et
+           les deux anneaux de débris. Quelques centaines au plus (`SAT_MAX[2]`). Jamais d'or, de bleu vif ni de rose : les pièces ≥ 10
+           sont désaturées dans le shader (`.42`), seul l'éclairage de l'espace leur laisse une dominante froide.
      Chaque panneau solaire est un MIROIR : quand il renvoie le soleil vers l'œil, il FLAMBE. `GLINT` pose une étoile à quatre
      branches (+ diagonales, + halo) sur chaque Starlink au moment de l'éclat — le « flare » des vraies photos de satellites ; elle
      partage les tampons d'instances du maillage [0] (zéro copie) et coûte 0 pixel hors éclat.
@@ -58,13 +61,26 @@ const ORB={actif:false,lune:false,peinte:false,sol:new THREE.Vector3(0,1,0),haut
 /* LA LUNE EST SUPPRIMÉE DU CODE (2026-10-24, Sacha : « retire lune ») : plus de toile, de shader, de visage ni de pinceau (≈ 170 lignes ; l'historique git les garde). Sa DIRECTION (`ORB.dm`) continue de piloter la clé froide : voir orbiteTick. */
 /* ---- LES MAILLAGES : des pièces (boîtes, cylindres, prismes) fusionnées en UN tampon, chaque sommet porte sa PIÈCE et sa VARIANTE ----
    Les normales ne sont PAS stockées : le shader les tire des dérivées (des facettes franches, comme les rochers d'avant). */
-const SAT_P={ARRAY:0,COQUE:1,CELL:2,DOS:3,OR:4,ARG:5,BALISE:6,BLANC:7,NOIR:8,TUYERE:9};
+const SAT_P={ARRAY:0,COQUE:1,CELL:2,DOS:3,OR:4,ARG:5,BALISE:6,BLANC:7,NOIR:8,TUYERE:9,FER:10,CELM:11,CARB:12,ISOL:13}; // 10-13 : la FERRAILLE des débris (tôle d'alu nue, cellule morte, tôle noircie, isolant terni) — des gris, voir le shader
 function satPiece(g,part,vg,fn){ // une pièce : géométrie non indexée, sa pièce (nombre, ou tableau par FACE de 6 sommets), sa variante (-1 = toutes)
   g=g.index?g.toNonIndexed():g;if(fn)fn(g);return {g:g,part:part,vg:vg==null?-1:vg};}
 function satBoite(sx,sy,sz,x,y,z,part,vg,rz,rx){ // une boîte (faces +x −x +y −y +z −z), tournée autour de z puis de x, posée en (x,y,z)
   return satPiece(new THREE.BoxGeometry(sx,sy,sz),part,vg,function(g){if(rx)g.rotateX(rx);if(rz)g.rotateZ(rz);g.translate(x,y,z);});}
 function satCyl(rt,rb,h,seg,x,y,z,part,vg,ouvert,rz){ // un cylindre couché le long de x (rz = π/2 par défaut)
   return satPiece(new THREE.CylinderGeometry(rt,rb,h,seg,1,!!ouvert),part,vg,function(g){g.rotateZ(rz==null?Math.PI/2:rz);g.translate(x,y,z);});}
+function satDalle(poly,th,partH,partB,vg,x,y,z,rz,rx){ /* une DALLE IRRÉGULIÈRE (une tôle arrachée, pas un rectangle) : un polygone du plan xz épaissi de `th`, posé en (x,y,z) ;
+     le DESSUS prend `partH` (ses uv couvrent la boîte du polygone : le quadrillage des cellules), le dessous et la tranche `partB`. Renvoie DEUX pièces. L'ordre des points
+     est redressé (aire positive : la face du dessus regarde en +y, les tranches vers l'extérieur — sinon le culling les jette). */
+  let a=0;for(let i=0;i<poly.length;i++){const p=poly[i],q=poly[(i+1)%poly.length];a+=p[0]*q[1]-q[0]*p[1];}
+  const pl=a<0?poly.slice().reverse():poly,n=pl.length,h=th/2;
+  let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const p of pl){x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);z0=Math.min(z0,p[1]);z1=Math.max(z1,p[1]);}
+  const uv=p=>[(p[0]-x0)/(x1-x0||1),(p[1]-z0)/(z1-z0||1)],V=(i,up)=>[pl[i][0],up?h:-h,pl[i][1]],T=[],UT=[],B=[],UB=[];
+  for(let i=1;i<n-1;i++){T.push(...V(0,1),...V(i+1,1),...V(i,1));UT.push(...uv(pl[0]),...uv(pl[i+1]),...uv(pl[i]));   // le dessus
+    B.push(...V(0,0),...V(i,0),...V(i+1,0));UB.push(...uv(pl[0]),...uv(pl[i]),...uv(pl[i+1]));}                       // le dessous
+  for(let i=0;i<n;i++){const j=(i+1)%n;B.push(...V(i,0),...V(i,1),...V(j,1),...V(i,0),...V(j,1),...V(j,0));UB.push(0,0,0,1,1,1,0,0,1,1,1,0);} // la tranche
+  const mk=(P,U)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));return g;};
+  const fn=function(g){if(rx)g.rotateX(rx);if(rz)g.rotateZ(rz);g.translate(x,y,z);};
+  return [satPiece(mk(T,UT),partH,vg,fn),satPiece(mk(B,UB),partB,vg,fn)];}
 function satFusion(pieces){
   let n=0;for(const p of pieces)n+=p.g.attributes.position.count;
   const P=new Float32Array(n*3),U=new Float32Array(n*2),A=new Float32Array(n),G=new Float32Array(n);let o=0;
@@ -103,24 +119,28 @@ function geoStarlink(){ // [0] LE STARLINK : x = l'axe des ailes, y = la face de
   L.push(satBoite(.11,.016,.016,.215,0,0,P.ARG),satBoite(.74,.009,.26,.63,0,0,SAT_AILE)); // le mât et l'aile A
   L.push(satBoite(.11,.016,.016,-.215,0,0,P.ARG,1),satBoite(.74,.009,.26,-.63,0,0,SAT_AILE,1)); // l'aile B (v2 mini seulement)
   return satFusion(L);}
-function geoDebris(){ // [1] LES GROS DÉBRIS — 0 satellite mort · 1 étage de fusée · 2 pan de panneau · 3 petit satellite d'or
-  const P=SAT_P,C=P.COQUE,L=[];
-  // 0 : le SATELLITE MORT — l'aile cassée en deux, pliée, l'isolant arraché qui pend
-  L.push(satBoite(.34,.06,.17,0,0,0,[C,C,P.ARRAY,C,C,C],0),satBoite(.12,.03,.10,-.07,-.045,.02,P.OR,0,.3));
-  L.push(satBoite(.32,.009,.26,.40,.035,0,SAT_AILE,0,.22),satBoite(.26,.009,.19,.66,.02,.03,SAT_AILE,0,-.75,.2));
-  L.push(satBoite(.26,.012,.012,-.28,.03,.05,P.ARG,0,-.5));
-  // 1 : L'ÉTAGE DE FUSÉE — blanc, une bande noire, la coiffe, une grosse tuyère sombre
+const SAT_AILE_MORT=[SAT_P.FER,SAT_P.FER,SAT_P.CELM,SAT_P.FER,SAT_P.FER,SAT_P.FER]; // un panneau MORT : cellules éteintes dessus (verre presque noir), dos et cadre en tôle nue
+function geoDebris(){ /* [1] LES GROS DÉBRIS (refonte 2026-11-09, Sacha : « trop de couleur, ça devrait être des débris de satellite ») — de la FERRAILLE : gris, noir, verre éteint.
+     0 satellite mort (bus éventré, bloc de travers, mât tordu, panneau cassé en deux) · 1 étage de fusée · 2 pan de panneau arraché (bord déchiré) · 3 réservoir arraché et ses entretoises.
+     Chaque variante tient dans ≤ 250 sommets (N = la plus longue) et dans la sphère de rayon 0,9 (la pose se fie à ce rayon pour le dégagement de la route). */
+  const P=SAT_P,C=P.COQUE,F=P.FER,K=P.CARB,I=P.ISOL,L=[];
+  // 0 : le SATELLITE MORT — un bus cubique dont une face est arrachée (l'isolant pend), un bloc d'instruments de travers, un mât tordu, un panneau plié puis cassé
+  L.push(satBoite(.32,.26,.26,0,0,0,[C,K,C,C,I,C],0),satBoite(.16,.14,.14,.03,.19,.04,F,0,.35,.2));
+  L.push(satBoite(.30,.022,.022,-.38,.05,.03,F,0,-.35),satBoite(.14,.024,.024,.23,0,0,F,0));
+  L.push(satBoite(.42,.009,.24,.50,.03,0,SAT_AILE_MORT,0,.15),satBoite(.22,.009,.18,.74,-.10,.02,SAT_AILE_MORT,0,-.9,.15));
+  // 1 : L'ÉTAGE DE FUSÉE — peinture blanche ternie, une bande noire, la coiffe, une grosse tuyère sombre
   L.push(satCyl(.20,.20,1.05,8,.05,0,0,P.BLANC,1),satCyl(.203,.203,.14,8,.34,0,0,P.NOIR,1,true));                 // 8 pans : à l'échelle où on le voit, un cylindre (et 1/5 de sommets en moins)
   L.push(satCyl(.07,.20,.18,8,.665,0,0,P.BLANC,1,true,-Math.PI/2),satCyl(.24,.11,.34,8,-.64,0,0,P.TUYERE,1,true)); // la coiffe OUVERTE : sa base est cachée dans l'étage
-  // 2 : LE PAN DE PANNEAU ARRACHÉ — deux segments encore liés par la charnière, un lambeau d'or
-  L.push(satBoite(.52,.009,.27,0,0,0,SAT_AILE,2),satBoite(.40,.009,.27,.40,.10,0,SAT_AILE,2,.62),satBoite(.09,.02,.07,-.22,.01,.08,P.OR,2,.4));
-  // 3 : LE PETIT SATELLITE D'OR — un cube d'isolant, quatre ailes en croix, une antenne
-  L.push(satBoite(.22,.22,.22,0,0,0,P.OR,3));
-  L.push(satBoite(.40,.008,.16,.33,0,0,SAT_AILE,3),satBoite(.40,.008,.16,-.33,0,0,SAT_AILE,3));
-  L.push(satBoite(.16,.008,.40,0,0,.33,SAT_AILE,3,0,0),satBoite(.16,.008,.40,0,0,-.33,SAT_AILE,3));
-  L.push(satCyl(.07,.012,.05,7,0,.14,0,P.ARG,3,false,0),satBoite(.012,.16,.012,.07,.19,.07,P.ARG,3));
+  // 2 : LE PAN DE PANNEAU ARRACHÉ — un segment encore droit, un second à bord DÉCHIRÉ plié à la charnière, un longeron et un lambeau d'isolant
+  L.push(satBoite(.52,.009,.27,-.12,0,0,SAT_AILE_MORT,2),satBoite(.30,.014,.014,-.18,-.01,.148,F,2),satBoite(.09,.02,.07,-.30,.02,.10,I,2,.4));
+  L.push(...satDalle([[0,-.135],[.30,-.12],[.44,-.02],[.38,.10],[.17,.135],[0,.135]],.009,P.CELM,F,2,.14,.02,0,.55));
+  // 3 : LE RÉSERVOIR ARRACHÉ — une sphère facettée, deux entretoises cassées, une tôle déchirée
+  L.push(satPiece(new THREE.SphereGeometry(.20,7,4),F,3,function(g){g.translate(-.10,0,0);}));
+  L.push(satBoite(.50,.03,.03,.28,.05,0,F,3,.25),satBoite(.36,.03,.03,.10,-.12,.08,F,3,-.5,.3));
+  L.push(...satDalle([[0,-.10],[.16,-.12],[.22,0],[.12,.12],[0,.10]],.012,F,K,3,-.38,-.20,.0,.9,1.1));
   return satEmpile(L);}
-function geoEclat(){ // [2] L'ÉCLAT : un prisme irrégulier ; dessus −1, dessous −2, tranches −3 → la MATIÈRE vient de l'instance (voir SAT_MAT)
+function geoEclat(){ /* [2] L'ÉCLAT : un prisme irrégulier ; dessus −1, dessous −2, tranches −3 → la MATIÈRE vient de l'instance (voir SAT_MAT).
+     Les sommets du 4e COIN portent aVg = −2 : le vertex shader les rabat sur le 3e coin pour la moitié des éclats — un TRIANGLE, un éclat de plus (cassé net, pas un carré). */
   const b=[[-1,-.62],[.92,-.84],[.66,.74],[-.78,.9]],h=[.07,.05,.09,.06],P=[],U=[];
   const v=(i,up)=>[b[i][0],up?h[i]:-h[i]*.6,b[i][1]];
   const tri=(a,b2,c,u)=>{P.push(...a,...b2,...c);U.push(...u);};
@@ -130,8 +150,10 @@ function geoEclat(){ // [2] L'ÉCLAT : un prisme irrégulier ; dessus −1, dess
   for(let i=0;i<4;i++){const j=(i+1)%4;tri(v(i,0),v(i,1),v(j,1),[0,0,0,1,1,1]);tri(v(i,0),v(j,1),v(j,0),[0,0,1,1,1,0]);} // les tranches
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(U,2));
   const A=new Float32Array(36);for(let i=0;i<36;i++)A[i]=i<6?-1:(i<12?-2:-3);
-  g.setAttribute('aPart',new THREE.BufferAttribute(A,1));g.setAttribute('aVg',new THREE.BufferAttribute(new Float32Array(36).fill(-1),1));return g;}
-const SAT_MAX=!ALLEGE?[340,300,2000]:mapsSobres()?[23,19,130]:[230,190,1300]; /* (2026-11-08) le téléphone RÉCENT : les satellites du téléphone d'avant le 24/10 (voir LES MAPS PLEINES) */ // Starlink (passants + champ + trains) · gros débris · éclats (champ + anneaux) — (2026-09-30, Sacha : « plus de satellites dans l'espace ») 120/140 → 230/190 (téléphone), 204/220 → 340/300 ; le niveau HARDCORE y prend ses obstacles EN PREMIER
+  const G=new Float32Array(36).fill(-1);for(let i=0;i<36;i++)if(P[i*3]===b[3][0]&&P[i*3+2]===b[3][1])G[i]=-2; // le 4e coin (haut et bas, toutes les facettes qui s'y touchent)
+  g.setAttribute('aPart',new THREE.BufferAttribute(A,1));g.setAttribute('aVg',new THREE.BufferAttribute(G,1));return g;}
+const DEB_P=[.30,.20,.28,.22],ECL_P=[.24,.38,.22,.16]; /* (2026-11-09) la part de chaque variante : gros débris (satellite mort, étage, pan, réservoir) · éclats (panneau mort, tôle, entretoise, isolant terni) */
+const SAT_MAX=!ALLEGE?[340,56,340]:mapsSobres()?[23,10,60]:[230,36,220]; /* (2026-11-09, Sacha : « refonte des débris dans l'espace : quelques-uns, léger, bien optimisé ») les DÉBRIS passent de 300/2000 (ordi), 190/1300 (téléphone), 19/130 (sobre) à quelques dizaines de pièces et quelques centaines d'éclats : un ciel de ferraille clairsemée, pas une nuée de confettis. Les Starlink gardent leur compte. */ /* (2026-11-08) le téléphone RÉCENT : les satellites du téléphone d'avant le 24/10 (voir LES MAPS PLEINES) */ // Starlink (passants + champ + trains) · gros débris · éclats (champ + anneaux) — (2026-09-30, Sacha : « plus de satellites dans l'espace ») 120/140 → 230/190 (téléphone), 204/220 → 340/300 ; le niveau HARDCORE y prend ses obstacles EN PREMIER
 const SAT_PASS=!ALLEGE?44:mapsSobres()?3:30,SAT_TRAINS=!ALLEGE?[5,26]:mapsSobres()?[1,2]:[3,20]; /* (2026-10-25) le vrai téléphone seulement : l'ordi en édition 'mobile' (l'ancien drapeau mobile sans TEL_NATIF) retrouve ses valeurs d'avant le 24/10 */ /* (2026-10-24, Sacha : « 90 % des satellites en moins », téléphone seulement : 230/190/1300, 30 passants, 3 trains de 20) */ // passants au bord de la route ; trains × satellites par train — (2026-09-30) 18/26 → 30/44 passants, 2/3 → 3/5 trains
 const SAT_U={uT:{value:0},uSol:{value:ORB.cle},uTerre:{value:new THREE.Vector3(0,-1,0)},uFog:{value:new THREE.Color(0,0,0)},uOp:{value:0},uForce:{value:0}}; // uForce : (dev) tous les éclats allumés
 const SAT_VS=['attribute vec4 aRot,aVar;uniform float uT;',
@@ -159,7 +181,8 @@ const SAT_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},
     '  vec2 uvv=m<.5?aU01.xy:(m<1.5?aU01.zw:(m<2.5?aU23.xy:aU23.zw));',
     '#else',
     '  vec3 pos=position;vec2 uvv=uv;float pt=aPart;if(aVg>-.5&&abs(aVg-m)>.5)sc=0.;',              // les sommets des AUTRES variantes : repliés
-    '  if(pt<-.5)pt=m<.5?(pt>-1.5?2.:(pt>-2.5?3.:5.)):(m<1.5?4.:(m<2.5?5.:7.));',                  // l ÉCLAT : sa matière vient de l instance
+    '  if(pt<-.5){pt=pt>-1.5?(m<.5?11.:(m<2.5?10.:13.)):(pt>-2.5?(m>2.5?12.:10.):(m<2.5?10.:13.));', // l ÉCLAT : sa matière vient de l instance — panneau mort · tôle nue · entretoise · isolant terni
+    '    if(aVg<-1.5&&aVar.x>.5)pos.xz=mix(pos.xz,vec2(.66,.74),.88);}',                                // la moitié des éclats perd son 4e coin : un TRIANGLE
     '#endif',
     '  vec3 l=rotA(mat3(instanceMatrix)*pos*sc,aRot.xyz,aVar.y+uT*aRot.w);',                       // la ROTATION PROPRE, après l échelle
     '  vec4 mv=modelViewMatrix*vec4(l+instanceMatrix[3].xyz+off,1.);vVP=mv.xyz;vLoc=pos;vUv=uvv;vTon=aVar.x;vPh=aVar.y;vPart=pt;',
@@ -182,7 +205,13 @@ const SAT_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},
     '  else if(p==6.){float b=step(.93,fract(uT*(vDg>.5?2.4:.55)+vPh*.16));alb=vec3(.2);emi=mix(vec3(1.,.10,.06),vec3(.12,1.,.35),step(.5,fract(vPh)))*(.35+6.*b);}', // la BALISE : un éclair toutes les 2 s
     '  else if(p==7.){alb=vec3(.66,.67,.69);ks=.35;sh=30.;met=0.;rf=.03;}',                              // la peinture blanche de l étage
     '  else if(p==8.){alb=vec3(.035,.035,.045);ks=.5;sh=40.;met=0.;rf=.05;}',
-    '  else if(p==9.){alb=vec3(.24,.20,.17);ks=.8;sh=35.;met=.6;rf=.2;}',                                // la tuyère : métal brûlé
+    '  else if(p==9.){alb=vec3(.22,.21,.20);ks=.8;sh=35.;met=.6;rf=.2;}',                                // la tuyère : métal brûlé
+    // LA FERRAILLE des débris (2026-11-09, Sacha : « trop de couleur, plutôt des débris de satellite ») : que des GRIS — et le calcul est désaturé plus bas
+    '  else if(p==10.){alb=vec3(.52,.53,.55);ks=.7;sh=34.;met=.6;rf=.12;}',                              // la tôle d aluminium nue : un gris d acier
+    '  else if(p==11.){vec2 g=abs(fract(vUv*vec2(34.,9.))-.5);float ln=smoothstep(.44,.495,max(g.x,g.y));alb=mix(vec3(.055,.060,.075),vec3(.30,.31,.33),ln*.6);ks=.9;sh=70.;met=0.;rf=.08;}', // la cellule MORTE : du verre éteint, presque noir, quadrillé de gris
+    '  else if(p==12.){alb=vec3(.10,.095,.09);ks=.3;sh=22.;met=.2;rf=.03;}',                             // la tôle noircie, brûlée
+    '  else if(p==13.){vec3 q=mat3(.8,.36,-.48,-.6,.48,-.64,0.,.8,.6)*vLoc*60.+vPh*3.;N=normalize(N+.36*(h3(floor(q))-.5)+.18*(h3(floor(q*2.3+7.))-.5));', // l isolant terni : des facettes froissées, un gris chaud — plus d or
+    '    alb=vec3(.40,.37,.33);ks=1.;sh=40.;met=.5;rf=.25;}',
     '  alb*=.86+.28*vTon;',
     '  float d=dot(N,uSol),dif=max(d,0.),w=clamp(d*.6+.4,0.,1.),fr=pow(1.-max(dot(N,V),0.),5.);',
     '  vec3 H=normalize(uSol+V),sunC=vec3(1.,.97,.92),tint=mix(vec3(1.),alb,met);',
@@ -196,6 +225,11 @@ const SAT_MAT=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},
     '  col+=vec3(1.,.92,.78)*pow(1.-max(dot(Nv,normalize(-vVP)),0.),3.)*.14*smoothstep(-.2,.5,d);',        // le liseré côté soleil
     '  col+=emi;',
     '  if(vDg>.5){float fz=pow(1.-max(dot(Nv,normalize(-vVP)),0.),2.);col+=vec3(1.,.28,.10)*(.30+1.3*fz)*(.65+.35*sin(uT*6.+vPh*3.));col+=alb*.45;}', // (2026-09-30) L OBSTACLE se lit dans le noir : liseré rouge qui pulse, coque éclaircie
+    '#ifdef EMPILE',                                                                                     // les GROS DÉBRIS et les ÉCLATS (pièces ≥ 10) : l éclairage reste, la couleur s éteint — de l acier, pas des confettis
+    '  col=mix(vec3(dot(col,vec3(.30,.59,.11))),col,.42);if(p>9.5)col+=(.35+alb)*.05;',
+    '#else',
+    '  if(p>9.5)col=mix(vec3(dot(col,vec3(.30,.59,.11))),col,.42)+(.35+alb)*.05;',
+    '#endif',
     '  col=mix(col,uFog,smoothstep(1800.,7500.,length(vVP)));',                                             // le lointain se noie dans le noir bleuté
     '  gl_FragColor=vec4(mix(uFog,col,uOp),1.);}'].join('\n')});
 const SAT_MAT_E=new THREE.ShaderMaterial({fog:false,extensions:{derivatives:true},uniforms:SAT_U,defines:{EMPILE:''}, // les gros débris : le même code, chemin des variantes EMPILÉES

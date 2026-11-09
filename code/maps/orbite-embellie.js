@@ -11,7 +11,7 @@
      portail. Mars et Jupiter gardent leurs peintures et gagnent le volume et le limbe.
    · LA POUSSIÈRE COSMIQUE (pilier 4 + 5) : des grains de glace qui FILENT autour de la caméra (un seul `LineSegments`, tout dans le vertex shader : la boîte de poussière
      est enroulée autour de la caméra, la traînée s'étire avec la vitesse) — c'est ce qui dit la vitesse dans un décor qui ne défile pas. Jamais dans le couloir de jeu :
-     un cône autour de l'axe de la caméra reste vide. De temps en temps un grain d'or ou de rose (le clin d'œil CASH).
+     un cône autour de l'axe de la caméra reste vide. (2026-11-09, Sacha : « trop de couleur » : les rares grains d'or et de rose sont retirés, la poussière est un blanc froid / neutre.)
    ⚠ Piste IDENTIQUE : aucun tirage dans le `rnd` de la piste. La poussière naît de `mulberry32(0x0C0510F)` ; la Terre de `planetesAlea(2161)`.
    ⚠ Hors orbite : tout est gardé par `uOrb` / `uSpace` (0 ailleurs) — le menu et les autres cartes rendent EXACTEMENT ce qu'ils rendaient.
    Paliers : orbPous [220,420,700] (grains), orbVed [0,1,1] (étoiles-vedettes), orbQ [0,1,1] (l'aube et la coquille d'atmosphère).
@@ -103,7 +103,7 @@ const POUS=(function(){
       '  float cone=v.z<0.?smoothstep(.42,.80,length(v.xy)/fw):1.;',                                           /* le COULOIR de jeu reste vide : un cône autour de l\'axe de la caméra */
       '  float fade=(1.-smoothstep(.62,1.,max(max(abs(rel.x),abs(rel.y)),abs(rel.z))/B))*smoothstep(5.,16.,fw);',  /* un grain qui frôle la caméra s\'éteint : pas de long trait blanc en travers de l\'écran */
       '  float tw=.62+.38*sin(uT*(1.4+aS.y*3.)+aS.z*40.),k=aS.w;',
-      '  vec3 c=k<.62?vec3(.56,.70,1.):(k<.90?vec3(1.,.88,.68):(fract(aS.x*7.3)<.5?vec3(1.,.82,.34):vec3(1.,.38,.70)));', /* glace bleue · glace chaude · un grain d\'OR ou de ROSE, rare */
+      '  vec3 c=k<.70?vec3(.70,.78,.96):vec3(.94,.93,.90);',                                                  /* (2026-11-09, Sacha : « trop de couleur ») de la poussière GRISE : un blanc froid, un blanc neutre — plus de grains d\'or ni de rose */
       '  vC=c*(.45+.95*aS.x*aS.x)*uOp*cone*fade*tw*(1.-.75*aE);',                                             /* la tête brille, la queue s\'éteint */
       '  gl_Position=projectionMatrix*vec4(mat3(viewMatrix)*q,1.);}'].join('\n'),
     fragmentShader:'varying vec3 vC;void main(){gl_FragColor=vec4(vC,1.);}'});
