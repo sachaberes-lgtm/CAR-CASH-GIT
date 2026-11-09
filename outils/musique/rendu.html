@@ -1,0 +1,59 @@
+<!doctype html><meta charset="utf-8"><title>rendu des paliers</title>
+<script src="/musique-paliers.js"></script>
+<script src="/assets/audio/music/ameliorees/rythmique.js"></script>
+<script>
+/* LA PAGE DE RENDU (2026-11-09, chaîne de la musique de course figée) : rend les paliers d'un morceau « tout » HORS LIGNE avec les fonctions du jeu
+   (palLitMorceau, palRendPalier de musique-paliers.js), sur le texte PATCHÉ par RYTHMIQUE.urlPage quand le jeu le patche (asphalte, aura). Les tableaux
+   partent vers le serveur de l'outil (POST /__sauve) ; la page ne rend que des chiffres. Appelée par rendre-paliers.mjs. */
+(function () {
+  const SR = 44100;
+  const hache = F => { const u = new Int32Array(F.buffer, F.byteOffset, F.length); let h = 2166136261 >>> 0; for (let i = 0; i < u.length; i++) { h ^= u[i] & 255; h = Math.imul(h, 16777619) >>> 0; h ^= (u[i] >>> 8) & 255; h = Math.imul(h, 16777619) >>> 0; h ^= (u[i] >>> 16) & 255; h = Math.imul(h, 16777619) >>> 0; h ^= u[i] >>> 24; h = Math.imul(h, 16777619) >>> 0; } return h.toString(16); };
+  const donnees = b => { const N = b.length, F = new Float32Array(2 * N); F.set(b.getChannelData(0), 0); F.set(b.getChannelData(Math.min(1, b.numberOfChannels - 1)), N); return F; };
+  const stats = (F, N) => { let pk = 0, e = 0; for (let i = 0; i < 2 * N; i++) { const v = Math.abs(F[i]); if (v > pk) pk = v; e += F[i] * F[i]; }
+    const rms = Math.sqrt(e / (2 * N)); // la couture : le saut entre le dernier et le premier échantillon, rapporté à la variation moyenne d'un échantillon au suivant
+    let d = 0; for (let i = 1; i < N; i++) d += Math.abs(F[i] - F[i - 1]); d /= (N - 1);
+    const saut = Math.max(Math.abs(F[N - 1] - F[0]), Math.abs(F[2 * N - 1] - F[N]));
+    return { pic: pk, rmsDb: 20 * Math.log10(rms + 1e-12), couture: saut / (d + 1e-12) }; };
+  const envoie = async (nom, F) => { const r = await fetch('/__sauve?f=' + encodeURIComponent(nom), { method: 'POST', body: F.buffer.slice(F.byteOffset, F.byteOffset + F.byteLength) }); if (!r.ok) throw new Error('sauve ' + nom); };
+  function fft(re, im) { const n = re.length; for (let i = 1, j = 0; i < n; i++) { let b = n >> 1; for (; j & b; b >>= 1) j ^= b; j ^= b; if (i < j) { let t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; } }
+    for (let l = 2; l <= n; l <<= 1) { const a = -2 * Math.PI / l, wr = Math.cos(a), wi = Math.sin(a); for (let i = 0; i < n; i += l) { let cr = 1, ci = 0; for (let j = 0; j < l / 2; j++) { const u = i + j, v = i + j + l / 2, xr = re[v] * cr - im[v] * ci, xi = re[v] * ci + im[v] * cr; re[v] = re[u] - xr; im[v] = im[u] - xi; re[u] += xr; im[u] += xi; const t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t; } } } }
+  const BORDS = [60, 120, 240, 480, 960, 1920, 3840, 7680, 15360];
+  function bandes(L, R, d, len) { /* l'énergie (dB) par octave d'une fenêtre de 2^15 échantillons prise à d (mono) */
+    const n = 32768, re = new Float64Array(n), im = new Float64Array(n); for (let i = 0; i < n; i++) { const k = d + i; if (k >= len) break; re[i] = 0.5 * (L[k] + R[k]) * (0.5 - 0.5 * Math.cos(2 * Math.PI * i / n)); } fft(re, im);
+    const out = []; for (let b = 0; b < BORDS.length - 1; b++) { let e = 0; for (let k = Math.ceil(BORDS[b] * n / SR); k < Math.floor(BORDS[b + 1] * n / SR); k++) e += re[k] * re[k] + im[k] * im[k]; out.push(10 * Math.log10(e + 1e-12)); } return out; }
+  const ecartBandes = (A, B) => { let s = 0; for (let i = 0; i < A.length; i++) s += Math.abs(A[i] - B[i]); return s / A.length; };
+  async function variantes(M, p) { // deux tours de la boucle à la suite : le 2e est-il le 1er ? (une phrase sur deux qui change = la boucle est plus longue)
+    const mes = 240 / M.bpm, n = M.mesures, W = Math.max(2, Math.ceil(4.5 / mes)), m0 = n * Math.ceil(W / n) - W, total = (W + 2 * n) * mes;
+    const ctx = new OfflineAudioContext(2, Math.ceil((total + 0.05) * SR), SR), alea = palAlea(palGraine(M)), kit = M.preparer(ctx, ctx.destination, alea) || {};
+    M.jouer(ctx, kit, p, 0, m0, W + 2 * n, alea); const t = await ctx.startRendering(), a = Math.round(W * mes * SR), N = Math.round(n * mes * SR);
+    const l0 = t.getChannelData(0), l1 = t.getChannelData(Math.min(1, t.numberOfChannels - 1)), nb = n, mb = Math.round(mes * SR), ec = [];
+    for (let k = 0; k < nb; k++) ec.push(ecartBandes(bandes(l0, l1, a + k * mb, a + N), bandes(l0, l1, a + N + k * mb, a + 2 * N)));   /* par mesure : le 2e tour a-t-il, par octave, la même énergie que le 1er ? */
+    return { p, ecartDbMoyen: +(ec.reduce((x, y) => x + y, 0) / ec.length).toFixed(2), ecartDbMax: +Math.max(...ec).toFixed(2), parMesure: ec.map(x => +x.toFixed(1)) };
+  }
+  window.rendre = async function (spec) {
+    const url = await RYTHMIQUE.urlPage(spec.fichier), M = await palLitMorceau(url);
+    if (spec.mesures) M.mesures = spec.mesures;
+    const out = { id: spec.id, titre: M.titre, bpm: M.bpm, ton: M.ton, style: M.style, mesures: M.mesures, introMesures: M.intro | 0, patch: url !== spec.fichier, paliers: [], N: Math.round(M.mesures * 240 / M.bpm * SR) };
+    for (const p of spec.paliers) {
+      const t0 = performance.now(), b = await palRendPalier(M, p, SR), F = donnees(b);
+      if (b.length !== out.N) throw new Error('longueur ' + b.length + ' ≠ ' + out.N);
+      const s = stats(F, b.length); await envoie(spec.id + '-p' + p, F);
+      out.paliers.push(Object.assign({ p, ms: Math.round(performance.now() - t0), hash: hache(F) }, s));
+    }
+    if (out.introMesures > 0) { const b = await palRendPalier(M, 0, SR), F = donnees(b); await envoie(spec.id + '-intro', F); out.intro = { N: b.length, pic: stats(F, b.length).pic, rmsDb: stats(F, b.length).rmsDb }; }
+    if (spec.det) { const p = spec.det, b2 = await palRendPalier(M, p, SR), F2 = donnees(b2), h1 = out.paliers.find(x => x.p === p), F1 = await (await fetch('/__tmp/' + spec.id + '-p' + p + '.f32')).arrayBuffer().then(x => new Float32Array(x)), N = b2.length;
+      let num = 0, den = 0; for (let i = 0; i < 2 * N; i++) { const d = F1[i] - F2[i]; num += d * d; den += F1[i] * F1[i]; }
+      const ec = []; for (let k = 0; k < M.mesures; k++) { const d = k * Math.round(240 / M.bpm * SR); ec.push(ecartBandes(bandes(F1.subarray(0, N), F1.subarray(N), d, N), bandes(F2.subarray(0, N), F2.subarray(N), d, N))); }
+      out.determinisme = { p, hash1: h1 && h1.hash, hash2: hache(F2), identique: !!h1 && h1.hash === hache(F2), relDiffOnde: +Math.sqrt(num / (den + 1e-18)).toExponential(2), ecartDbMoyen: +(ec.reduce((x, y) => x + y, 0) / ec.length).toFixed(3) }; }
+    if (spec.variantes) { out.variantes = []; for (const p of spec.variantes) out.variantes.push(await variantes(M, p)); }
+    return out;
+  };
+  window.verifierDecodage = async function (fichier, brut, echelle) { /* le .m4a décodé par Chrome = la boucle rendue (longueur exacte, alignement, SNR, SNR près de la couture) */
+    const ab = await (await fetch('/' + fichier)).arrayBuffer(), ctx = new OfflineAudioContext(2, 1, SR), b = await ctx.decodeAudioData(ab);
+    const R0 = new Float32Array(await (await fetch('/__tmp/' + brut + '.f32')).arrayBuffer()), N = R0.length / 2, L0 = R0.subarray(0, N), R1 = R0.subarray(N), d0 = b.getChannelData(0), d1 = b.getChannelData(1);
+    const snr = (a0, a1) => { let e = 0, x = 0; for (let i = a0; i < a1 && i < b.length; i++) { const u = L0[i] * echelle, v = d0[i]; e += (u - v) * (u - v); x += u * u; } return 10 * Math.log10((x + 1e-18) / (e + 1e-18)); };
+    return { longueur: b.length, attendu: N, exacte: b.length === N, snrDb: +snr(0, N).toFixed(1), snrDebutDb: +snr(0, 4096).toFixed(1), snrFinDb: +snr(N - 4096, N).toFixed(1) };
+  };
+  window.pret = true;
+})();
+</script>
