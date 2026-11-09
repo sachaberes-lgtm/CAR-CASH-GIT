@@ -87996,7 +87996,7 @@ try{if(window.POUCE_JEU&&POUCE_JEU.joue())POUCE_JEU.fin(true);}catch(e){} /* (20
     if(!el)return;
     if(mCntT)clearInterval(mCntT);
     const v6=!!(el.closest&&el.closest('#mDead.m5')),tot=v6?$t('mCashTot'):null,sol=bank(),
-      cpt=function(x){if(tot&&tot.firstChild&&tot.firstChild.nodeType===3)tot.firstChild.nodeValue=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(Math.round(x));};
+      cpt=function(x){if(tot&&tot.firstChild&&tot.firstChild.nodeType===3)tot.firstChild.nodeValue=TR('COMPTE')+(LANG==='fr'?' : ':': ')+fmtSolde(x);}; /* (2026-11-09, debug iOS) plus de Math.round : le gain est TRONQUÉ (v9), le compte arrondi finissait 1 au-dessus (+311 puis COMPTE 312) ; fmtSolde tronque déjà */
     if(v6){el.classList.remove('m6Cpt');el.style.removeProperty('--k');m6Monte(el,fmtSolde(Math.max(0,to)));}
     if(to<=0||direct){if(v6)m6Pose(el,Math.max(0,to),false);else el.textContent=fmtC(Math.max(0,to));return;} // direct : on REVIENT sur l'écran (réglages, garage) — le compte ne se rejoue pas
     if(v6)m6Pose(el,0,false);else el.textContent=fmtC(0);let t0=0;const D=v6?M6_CPT:750,T0=performance.now()+(REDUCED_MOTION?0:360); // (2026-09-28) le ticket entre à 390 ms (section 21) : le compte part avec lui, en même temps que les notes (320 ms)
