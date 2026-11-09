@@ -397,7 +397,13 @@ function prebLieDecor(W){ // le monde bâti d'avance (forêt, grotte, glacier) :
   finally{scene.children=kids;}
   return true;}
 function prebLieFx(){ // les effets de la forêt, créés tels que la chauffe du menu les crée (foretFx : cachés, dans la scène, objets du module — partagés avec le pré-bâti) puis compilés en doux
+  /* (2026-11-09, debug) UN SEUL JEU DE MATIÈRES : si le pré-bâti de la forêt a pris sa photo du module AVANT que ses matières existent (session froide), le fantôme
+     crée les siennes (A) et les effets créés ici en auraient fait d'autres (B) ; au passage FORET.mats devient A, foretTick ne met plus à jour les uniformes de B
+     (uBoxL, uBat) : lucioles et pollen tournaient autour de l'origine, chauves-souris jamais vues, pour toute la session. Les deux états prennent le même jeu. */
+  const G9=PREB.W&&PREB.W.mods&&PREB.W.mods[0]&&PREB.W.mods[0][0]===FORET?PREB.W.mods[0][1]:null;
+  if(G9&&!FORET.mats&&G9.mats)FORET.mats=G9.mats;
   const fx=foretFx(),lum=scene.children.filter(function(o){return o.isLight;}),kids=scene.children;
+  if(G9&&!G9.mats)G9.mats=FORET.mats;
   try{scene.children=lum.concat([fx.pap,fx.luc,fx.fol,fx.lune,fx.halo,fx.loup]);compileDoux(scene,camera);}finally{scene.children=kids;}
   return true;}
 function prebLie(c){ // (prebTick) vrai : ce pas a travaillé, le pré-bâti attend l'image suivante
@@ -411,7 +417,7 @@ function prebLie(c){ // (prebTick) vrai : ce pas a travaillé, le pré-bâti att
   if(tr>10)return false; // l'image est déjà lourde
   const p9=prebPisteDe(c.t);let w=false;
   try{
-    if(p9==='jade'){if(JADE_CHP.fait<4){const k9=JADE_CHP.fait;let encore=false;LIER.doux=true;try{encore=jadeChauffeProgs(k9,PLIE.j);}finally{LIER.doux=false;} // un MORCEAU du lot par pas (un seul pas pour la mer entière faisait attendre la puce 120-170 ms à froid)
+    if(p9==='jade'){if(JADE_CHP.fait<4){const k9=JADE_CHP.fait;if(PLIE.jk!==k9){PLIE.jk=k9;PLIE.j=0;} /* (2026-11-09, debug) le morceau `j` appartient à SON lot : la chauffe du menu (écran de fin) a pu finir ce lot entre deux courses, le suivant repart de son 1er morceau */let encore=false;LIER.doux=true;try{encore=jadeChauffeProgs(k9,PLIE.j);}finally{LIER.doux=false;} // un MORCEAU du lot par pas (un seul pas pour la mer entière faisait attendre la puce 120-170 ms à froid)
       if(encore)PLIE.j++;else{PLIE.j=0;JADE_CHP.fait=Math.max(JADE_CHP.fait,k9+1);}PLIE.lots++;w=true;}}
     else if(p9==='foret'&&!FORET.fx.pap)w=prebLieFx(); // les effets de la forêt (papillons, lucioles, follets, lune, loup) naissent à la 1re image du monde neuf (foretFx) : créés et compilés d'avance
     else if(PREB.W&&PREB.fait&&!PREB.dep&&c.t===PREB.t&&PREB.W.piste===p9)w=prebLieDecor(PREB.W);

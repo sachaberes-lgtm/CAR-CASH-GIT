@@ -15,7 +15,7 @@
      passe jamais dans un tronc ;
    · les autres croisements restent des paris : pas de fil, on voit la route, on décide.
    `?sans=foretsentiers` = la forêt sans fils. Banc : `dbgSentiers()` (les fils, les fruits posés et pris) ; `node outils/banc-routes/foret.cjs sentiers palier n`. */
-const FOR_SENT={on:typeof location!=='undefined'&&/[?&]foretsentiers=1/.test(location.search), /* (2026-11-05 soir) COUPÉS par défaut : Sacha a fini la forêt en 10 s et veut s'y PERDRE — un fil de fruits rend le raccourci évident et gagnant à coup sûr ; `?foretsentiers=1` les rend */ vk0:1.55,vk1:1.1,bascule:.45,pop:5.3,dv:6,air:30,pente:.48,ang:[0,8,16,26],ang2:[0,14],lac:[-30,30],cos:.6,latMax:14,robMin:0,gainMin:180,esp:900,rayon:24,pas:.18,fruits:['ORANGE','MANGUE','MELON','POMME'],pow:['n','v','x','n']};
+const FOR_SENT={on:typeof location!=='undefined'&&/[?&]foretsentiers=1\b/.test(location.search), /* (2026-11-05 soir) COUPÉS par défaut : Sacha a fini la forêt en 10 s et veut s'y PERDRE — un fil de fruits rend le raccourci évident et gagnant à coup sûr ; `?foretsentiers=1` les rend */ vk0:1.55,vk1:1.1,bascule:.45,pop:5.3,dv:6,air:30,pente:.48,ang:[0,8,16,26],ang2:[0,14],lac:[-30,30],cos:.6,latMax:14,robMin:0,gainMin:180,esp:900,rayon:24,pas:.18,fruits:['ORANGE','MANGUE','MELON','POMME'],pow:['n','v','x','n']};
 function* foretSentiersCalc(){ /* un générateur : il rend la main à l'échéance JF.lim (le pré-bâti) */
   FORET.sent=[];FORET.sentZ=[];
   if(!FOR_SENT.on||PARK.on||!(NP>300))return;
