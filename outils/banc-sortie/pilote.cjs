@@ -10,10 +10,11 @@ const fs = require('fs');
 const { serveur, portLibre, lanceChrome, tueChrome, CDP, dormir, tmp } = require('../banc-trainees/cdp.cjs');
 const A = {}; for (let i = 2; i < process.argv.length; i += 2) A[process.argv[i].replace(/^--/, '')] = process.argv[i + 1];
 const JEU = path.resolve(A.jeu || path.join(__dirname, '..', '..', 'VERSION PRINCIPALE'));
-const W = +(A.w || 390), H = +(A.h || 844), P_HTTP = +(A.http || 9811), P_CDP = +(A.cdp || 9812);
+let P_HTTP, P_CDP;
+const W = +(A.w || 390), H = +(A.h || 844), P0_HTTP = +(A.http || 9811), P0_CDP = +(A.cdp || 9812);
 const SORTIE = path.resolve(A.sortie || path.join(require('os').tmpdir(), 'pilote-sortie')); fs.mkdirSync(SORTIE, { recursive: true });
 const COL = A.colonne === '1';
-const TACTILE = W < 700;
+const TACTILE = Math.min(W, H) < 700;
 const SAVE0 = { v: 2, sfx: false, mus: false, vox: false };
 
 /* un CDP qui garde aussi les évènements */
@@ -38,7 +39,9 @@ function depouille(c, depuis) {
 }
 
 (async () => {
-  for (const p of [P_HTTP, P_CDP]) if (!portLibre(p)) { console.error('port occupé :', p); process.exit(2); }
+  /* les bancs des autres sessions occupent souvent les mêmes ports : on cherche les deux suivants libres */
+  const libre = d => { for (let p = d; p < d + 80; p++) if (portLibre(p)) return p; console.error('aucun port libre depuis', d); process.exit(2); };
+  P_HTTP = libre(P0_HTTP); P_CDP = libre(P0_CDP === P_HTTP ? P0_CDP + 1 : P0_CDP); if (P_CDP === P_HTTP) P_CDP = libre(P_HTTP + 1);
   const srv = await serveur(JEU, P_HTTP), prof = tmp();
   const { ch, pg } = await lanceChrome(P_CDP, prof, W, H);
   const c = new CDPE(pg.webSocketDebuggerUrl); await c.ok;
@@ -82,6 +85,11 @@ function depouille(c, depuis) {
           if(tx.indexOf(t.replace(/\\s+/g,''))>=0&&q.width>20&&q.height>14&&q.bottom>0&&q.top<innerHeight&&s.visibility!=='hidden'&&s.display!=='none')return Math.round(q.left+q.width/2)+','+Math.round(q.top+q.height/2);}return '';})()`);
         if (!r) console.log('[b] bouton introuvable :', v); else { const o = await decal(); const [x, y] = r.split(',').map(Number); const gx = Math.round(o.x + x * o.k), gy = Math.round(o.y + y * o.k); console.log('[b]', v, '→', gx, gy, '(échelle', o.k.toFixed(2) + ')'); await tap(gx, gy); } }
       else if (k === 'u') { const t1 = Date.now(); while (Date.now() - t1 < +v * 1000 && await ev(`!!document.getElementById('splash')&&getComputedStyle(document.getElementById('splash')).display!=='none'`)) await dormir(500); console.log('[u] écran-titre parti après', Math.round((Date.now() - t1) / 1000), 's'); }
+      else if (k === 's') { /* s:<s> toucher le centre toutes les 3 s tant que l'écran-titre est là (l'intro n'accepte un toucher qu'une fois la page calme) */
+        const t1 = Date.now(); let n = 0; const W2 = Math.round(W / 2), H2 = Math.round(H / 2);
+        for (let i = 0; i < 80 && !(await ev(`!!document.getElementById('splash')`)); i++) await dormir(500); /* la page n'est pas toujours construite quand le pas démarre */
+        while (Date.now() - t1 < +v * 1000 && await ev(`!!document.getElementById('splash')&&getComputedStyle(document.getElementById('splash')).display!=='none'`)) { await tap(W2, H2); n++; await dormir(3000); }
+        console.log('[s] écran-titre parti après', Math.round((Date.now() - t1) / 1000), 's,', n, 'touchers'); }
       else if (k === 'd') { const t1 = Date.now(); while (Date.now() - t1 < +v * 1000 && !(await ev(`!!(window.dbgState&&dbgState().gameOver)`))) await dormir(500); console.log('[d] écran de fin :', await ev(`!!(window.dbgState&&dbgState().gameOver)`), 'après', Math.round((Date.now() - t1) / 1000), 's'); }
       else if (k === 'e') { const t1 = Date.now(); while (Date.now() - t1 < +v * 1000 && !(await ev(`!!(window.dbgState&&dbgState().started)`))) await dormir(500); console.log('[e] course partie :', await ev(`!!(window.dbgState&&dbgState().started)`), 'après', Math.round((Date.now() - t1) / 1000), 's'); }
     }
