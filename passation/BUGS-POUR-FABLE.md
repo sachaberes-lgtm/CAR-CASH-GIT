@@ -19,5 +19,14 @@
 ### 2. `genParis` n'existe nulle part
 - `code/moteur/piste-prebati.js:95` appelle `genParis()` quand `pi==='paris'`. La fonction est introuvable dans tout le dépôt. Chemin du banc `dbgGenBilan1` seulement, et Paris est retiré du jeu (la sauvegarde l'accepte encore : `sauvegarde.js:72`, `carrSel.id`). Je ne l'ai pas touché : je ne sais pas si Paris doit revenir ou si le chemin doit être supprimé.
 
+### 3. `outils/jour-test.cjs` : 8 cas KO sur 88 (primes de la série)
+- Le test attend l'ancienne table de primes (25 · 40 · 55 · 70 · 85 · 100) et un cadeau « prêt » dès le départ ; le jeu paie maintenant des lots (`code/missions/aujourdhui.js:27`, 150 · 250 · jeton · 400 · 600 · jeton · peinture). Je ne sais pas si le test est périmé (probable) ou si une règle du cadeau/jour a régressé : à trancher avec la règle voulue par Sacha. Je n'ai pas touché au jeu pour ça. (`eco-debut-test.cjs` : périmé aussi, remis d'aplomb — 0 KO.)
+
+### 4. L'avertissement « WebGL: too many errors » (nuages, espace, grotte) est un heisenbug
+- Reproductible sans sonde (2 courses sur 2 en nuages), absent dès que la sonde GL enveloppe TOUTES les méthodes du contexte et appelle getError() derrière chacune. Aucun des 32 messages n'est livré individuellement au banc. Piste : erreurs dans un contexte hors thread principal, ou erreurs asynchrones liées au timing. Non résolu.
+
+### 5. Compteur « COLLECTE TOUTES LES VOITURES 1 / 23 » alors que le garage dit 52 caisses
+- `m2Col('voiture').tot` exclut volontairement les caisses de mission et celles payées en euros (design documenté dans `defis-moteur.js:81-83`). Je le crois voulu, mais l'affichage peut surprendre : décision de Sacha.
+
 ## À vérifier par un œil humain (je ne peux pas juger)
 - Tout ce qui est « beau » ou « bien équilibré » : réglages de feeling, difficulté, rythme des pistes, contraste réel sur un écran de téléphone. Mes bancs mesurent des exceptions et des tailles, pas le plaisir de jeu.

@@ -4,13 +4,13 @@ const fs=require('fs'),path=require('path');const SRC=fs.readFileSync(process.ar
 const i=SRC.indexOf('const ECO_ANCIEN='),j=SRC.indexOf('// LANGUE & DEVISE (2026-09-03)');
 const code=SRC.slice(i,j);
 const denomLine=/function denom\(\)\{[^\n]*?\}/.exec(SRC)[0].replace(/\}\s*\/\/.*$/,'}');
-const COSM={peinture:[{id:'usine',p:0},{id:'menthe',p:2500},{id:'minuit',p:5000},{id:'or',mis:4}],aile:[{id:'x',p:3000}],trainee:[{id:'menthe',p:2000}]};
+const COSM={peinture:[{id:'usine',p:0},{id:'menthe',p:2500},{id:'minuit',p:5000},{id:'or',mis:4}],aile:[{id:'x',p:3000}],trainee:[{id:'menthe',p:2500}]};
 function monde(save,search,cousinOn){
-  const f=new Function('SAVE','COSM','bank','cousin','location','window','DENOMS','engTier','ECO3',
+  const f=new Function('SAVE','COSM','bank','cousin','location','window','DENOMS','engTier','ECO3','qDev','CARS','CAR_UNLOCK','carRetiree',
     code+'\n'+denomLine+'\nreturn {ECOD,ecoDebutMaj,ecoDebutEtat,denom,dbg:window.dbgEcoDebut};');
-  const win={};return f(save,COSM,()=>save.d.bank||0,()=>!!cousinOn,{search:search||''},win,[3,3,3,4],0,{gain:.25});
+  const win={};return f(save,COSM,()=>save.d.bank||0,()=>!!cousinOn,{search:search||''},win,[3,3,3,4],0,{gain:.25},re=>re.test(search||''),[{name:'A'}],[{p:9000}],()=>false);
 }
-const neuf=()=>({d:{bank:0,owned:[],figs:['tonneau'],shop:{own:[]},ex:{runs:0}}});
+const neuf=()=>({d:{bank:0,owned:[],figs:['tailwhip'],shop:{own:[]},ex:{runs:0}}});
 let ko=0;const t=(nom,ok)=>{console.log((ok?'OK  ':'KO  ')+nom);if(!ok)ko++;};
 let m=monde(neuf());m.ecoDebutMaj();t('joueur neuf : actif, k=1.5, denom x1.5',m.ECOD.k===1.5&&m.ECOD.raison==='actif'&&Math.abs(m.denom()-3*.25*1.5)<1e-9);
 let s=neuf();s.d.bank=2499;m=monde(s);m.ecoDebutMaj();t('banque 2499 : encore actif',m.ECOD.k===1.5);
