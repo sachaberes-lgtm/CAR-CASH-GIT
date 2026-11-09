@@ -10,7 +10,7 @@
    Sacha : « vider l'historique de sw.js » — 272 Ko de notes que chaque joueur retéléchargeait à chaque version). ICI, UNE SEULE
    LIGNE : à chaque version on REMPLACE la ligne `const CACHE` ci-dessous (numéro +1, une note courte), sans garder l'ancienne en
    commentaire ; le détail d'une version va dans sa section du journal. */
-const CACHE = 'cashcar-v1375'; /* v1375 (2026-11-09, Sacha : « retravaille la terre dans le niveau espace, là c'est juste une boule bleue ») LA TERRE DE L'ORBITE REPEINTE : vrais continents (côtes déchiquetées, plateau continental turquoise), biomes, chaînes de montagnes enneigées, calottes polaires ; toile 1024×512 (512×256 sur téléphone), teinte du globe 0x8a98b0 (l'ancienne 0x55708c grisait les terres). */
+const CACHE = 'cashcar-v1376'; /* v1376 (2026-11-09, Sacha : « les flèches sont mal gérées ») LE GESTE DE CÔTÉ : une vraie paire ◄ ► (pictogramme gd) à la place des deux demi-disques du dessin fleches, dans le dock, le rappel du vol, la boutique. */ /* v1375 (2026-11-09, Sacha : « retravaille la terre dans le niveau espace, là c'est juste une boule bleue ») LA TERRE DE L'ORBITE REPEINTE : vrais continents (côtes déchiquetées, plateau continental turquoise), biomes, chaînes de montagnes enneigées, calottes polaires ; toile 1024×512 (512×256 sur téléphone), teinte du globe 0x8a98b0 (l'ancienne 0x55708c grisait les terres). */
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
