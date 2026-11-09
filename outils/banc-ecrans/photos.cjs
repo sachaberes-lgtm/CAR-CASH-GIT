@@ -63,11 +63,15 @@ const ETAPES = [
   const rapport = {};
   for (const fmt of FMTS) {
     const [W, H, TYPE] = FORMATS[fmt], PC = TYPE === 'pc';
+    for (let i = 0; i < 30 && !portLibre(P_CDP); i++) await dormir(1000); /* le format précédent a rendu son port ? */
     const { ch, pg } = await lanceChrome(P_CDP, prof + fmt, W, H);
     const c = new CDP(pg.webSocketDebuggerUrl); await c.ok;
     const erreurs = [];
     c.ws.addEventListener('message', e => { try { const m = JSON.parse(e.data); if (m.method === 'Runtime.exceptionThrown') erreurs.push((m.params.exceptionDetails.exception && m.params.exceptionDetails.exception.description || m.params.exceptionDetails.text || '').slice(0, 300)); if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') erreurs.push('console: ' + m.params.args.map(a => a.value || a.description || '').join(' ').slice(0, 300)); } catch (_) {} });
-    const fin = () => { try { c.close(); } catch (e) {} tueChrome(ch); };
+    const fin = () => { try { c.close(); } catch (e) {} tueChrome(ch);
+      /* (2026-11-08) Windows : tueChrome rate parfois des fils orphelins qui gardent le port de débogage, et le format suivant ne trouve plus « son » Chrome :
+         on tue ceux qui portent CE port-là (et lui seul), puis on attend qu'il soit libre */
+      if (process.platform === 'win32') try { require('child_process').execSync('powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"Name=\'chrome.exe\'\\" | Where-Object { $_.CommandLine -match \'remote-debugging-port=' + P_CDP + ' \' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"', { stdio: 'ignore' }); } catch (e) {} };
     try {
       await c.send('Page.enable'); await c.send('Runtime.enable'); await c.send('Network.enable');
       await c.send('Network.setBypassServiceWorker', { bypass: true }); await c.send('Network.setCacheDisabled', { cacheDisabled: true });
