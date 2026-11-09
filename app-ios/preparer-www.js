@@ -171,6 +171,11 @@ une("s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?clien
 /* (2026-11-07, LES PETITES POLITESSES) l'APERÇU DE LIEN du site (Open Graph / Twitter) cite l'icône par son adresse complète : un lien
    collé dans un message n'a pas d'autre moyen de la trouver. Dans l'app il ne sert à rien : les deux balises sont retirées pour que
    l'inventaire reste à 0 adresse réseau (la publication du 07/11 avait échoué ici). */
+/* (2026-11-09, Perf 3 / P4-poids, GO d'OPTI ULTIME) LES ICÔNES ET LE MANIFESTE DU WEB (PWA) HORS DE L'APP : l'icône de l'app est dans Assets.xcassets ; l'onglet, l'écran d'accueil du navigateur
+   et l'installation PWA n'existent pas sous Capacitor. Retirés de www/ (assets/icons 0,5 Mo + manifest.webmanifest), le site les garde. */
+une('<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/icon-32.png">\n','','icône d\'onglet (PWA)');
+une('<link rel="manifest" href="manifest.webmanifest">\n','','manifeste PWA');
+une('<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">\n','','icône d\'écran d\'accueil (PWA)');
 une('<meta property="og:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">','','aperçu de lien du site (og:image)');
 une('<meta name="twitter:image" content="https://car-cash-git.vercel.app/jouer/assets/icons/icon-512.png">','','aperçu de lien du site (twitter:image)');
 if(MC_WEBP)une("im.src='assets/ciel/mer-cumulus.png'","im.src='assets/ciel/mer-cumulus.webp'",'mer de nuages en webp');
@@ -227,20 +232,32 @@ relit('après les coupes');
   let n=0,o=0;const pese=d=>{for(const x of fs.readdirSync(d)){const p=path.join(d,x),s=fs.statSync(p);if(s.isDirectory())pese(p);else{n++;o+=s.size;}}};pese(WWW);nFic=n;nOct=o;
   console.log('  copie allégée : '+(av/1048576).toFixed(1)+' → '+(o/1048576).toFixed(1)+' Mo');}
 relit('après l\'allègement');
-/* (2026-11-09, Perf 3 / P4-poids) --audio-128 : LES GROS AAC (> 150 kbps : lobby, rendus de paliers, dark-triad) RÉENCODÉS EN AAC 128 kbps cible (afconvert, VBR : ~100-112 kbps réels).
-   OPTION, À ÉCOUTER avant de la garder. Mêmes nombres de trames utiles, mêmes trames d'amorce (afinfo) : les boucles gardent leur longueur. macOS seulement (afconvert).
-   Mesuré le 09/11 : lobby 13,8 → ~8,3 Mo, rendus 4,9 → ~2,6 Mo, boucles 0,6 → 0,37 Mo (≈ −8 Mo en tout). Un fichier n'est remplacé que s'il rétrécit. */
-if(process.argv.includes('--audio-128')){
-  const kbps=f=>{try{const o=execFileSync('afinfo',[f]).toString(),m=o.match(/bit rate:\s*(\d+)/);return m?+m[1]/1000:0;}catch(e){return 0;}};
-  let n=0,av=0,ap=0;const marche=d=>{for(const x of fs.readdirSync(d)){const f=path.join(d,x);
+/* (2026-11-09, Perf 3 / P4-poids, GO d'OPTI ULTIME) 1. LES RENDUS PÉRIMÉS RETIRÉS : paliers/rendus/nuit-de-velours et neon-noir (4,9 Mo) ne sont plus ceux de la page (110 bpm fa mineur ≠ 92 bpm mi♭, 4 mesures ≠ 8) et ne
+   sont pas dans le lot figé du téléphone. Pouce bleu (pouce-bleu-jeu.js) ne range un morceau « paliers » que si PALIERS_RENDUS en a la fiche : sans fiche, il disparaît de la liste (pas de rendu en direct).
+   Seules ces deux fiches/dossiers partent ; ce qu'une autre branche ajoute à rendus/ (musique figée) reste. Étapes volontairement sans échec si le dossier est déjà absent.
+   2. LES GROS AAC EN 128 kbps PAR DÉFAUT (lobby, boucles : > 150 kbps → afconvert AAC 128 kbps cible, VBR, ~100-112 kbps réels ; mêmes trames utiles et d'amorce : les boucles gardent leur longueur).
+   Un fichier n'est remplacé que s'il rétrécit. macOS seulement (afconvert) ; `--audio-188` garde les fichiers d'origine (écoute A/B : ~/cash-car/perf3/ecoute/). */
+{const RT=path.join(WWW,'assets','audio','music','paliers','rendus'),RETIRE=['nuit-de-velours','neon-noir'];let go=0;
+  for(const id of RETIRE){const d=path.join(RT,id);if(fs.existsSync(d)){fs.rmSync(d,{recursive:true,force:true});go++;}}
+  const IX=path.join(RT,'index.js');
+  if(fs.existsSync(IX)){const t=fs.readFileSync(IX,'utf8'),m=t.match(/^([\s\S]*?)window\.PALIERS_RENDUS\s*=\s*(\{[\s\S]*\})\s*;?\s*$/);
+    if(!m)meurt('rendus/index.js : forme inattendue, les rendus périmés ne peuvent pas être retirés de la liste');
+    const o=JSON.parse(m[2]);let n=0;for(const id of RETIRE)if(id in o){delete o[id];n++;}
+    fs.writeFileSync(IX,m[1]+'window.PALIERS_RENDUS='+JSON.stringify(o)+';\n');
+}
+  console.log('  rendus périmés retirés : '+go+' dossier(s)');}
+{const kbps=f=>{try{const o=execFileSync('afinfo',[f]).toString(),m=o.match(/bit rate:\s*(\d+)/);return m?+m[1]/1000:0;}catch(e){return 0;}};
+  if(process.argv.includes('--audio-188'))console.log('  AAC gardés à leur débit d\'origine (--audio-188)');
+  else{let n=0,av=0,ap=0;const marche=d=>{for(const x of fs.readdirSync(d)){const f=path.join(d,x);
     if(fs.statSync(f).isDirectory()){marche(f);continue;}
     if(!/\.m4a$/i.test(x)||kbps(f)<=150)continue;
     const t=f+'.tmp.m4a';
     try{execFileSync('afconvert',[f,t,'-f','m4af','-d','aac','-b','128000','-q','127','-s','3']);}catch(e){fs.rmSync(t,{force:true});continue;}
     const a=fs.statSync(f).size,b=fs.statSync(t).size;
     if(b<a){fs.renameSync(t,f);n++;av+=a;ap+=b;}else fs.rmSync(t,{force:true});}};
-  marche(path.join(WWW,'assets','audio'));
-  console.log('  --audio-128 : '+n+' fichiers AAC réencodés, '+(av/1048576).toFixed(1)+' → '+(ap/1048576).toFixed(1)+' Mo');
+    marche(path.join(WWW,'assets','audio'));
+    console.log('  AAC > 150 kbps réencodés en 128 kbps : '+n+' fichiers, '+(av/1048576).toFixed(1)+' → '+(ap/1048576).toFixed(1)+' Mo');}
+  fs.rmSync(path.join(WWW,'assets','icons'),{recursive:true,force:true});fs.rmSync(path.join(WWW,'manifest.webmanifest'),{force:true});
   let n2=0,o2=0;const pese=d=>{for(const x of fs.readdirSync(d)){const p=path.join(d,x),st=fs.statSync(p);if(st.isDirectory())pese(p);else{n2++;o2+=st.size;}}};pese(WWW);nFic=n2;nOct=o2;}
 /* (2026-11-07, Perf 3 / P4) --jeu-fichier : LE SCRIPT DU JEU EN FICHIER (jeu.<empreinte>.js) au lieu d'un <script> en ligne de ~5 Mo ré-analysé à CHAQUE
    lancement. Le même outil que le site (outils/publie-script-externe.cjs, vercel-build.sh) : ordre de chargement inchangé, __CC_BUILD__ déjà gravé plus haut,
