@@ -3,8 +3,10 @@
    I18N_FR : le FRANÇAIS AFFICHÉ quand il diffère de la clé (la clé reste la phrase d'origine, le code ne bouge pas). Écrire ici avec
    les accents : majPix les retire tout seul des mots en capitales rendus en pixel.
    ========================================================================================================================== */
-var I18N_FR={'GAME OVER':'PERDU','RAPIDE':'BASSE','NETTE':'HAUTE','MONTE':'MONTER','PLONGE':'PLONGER','HOME':'ACCUEIL'}; // var : hissée, TR() peut tourner avant cette ligne sans toucher une zone morte
-Object.assign(I18N,{'SAUVEGARDE':'SAVE DATA','RAPIDE':'LOW','NETTE':'HIGH','LOCALE':'LOCAL','VERSION':'VERSION'});
+var I18N_FR={'GAME OVER':'PERDU','RAPIDE':'BASSE','NETTE':'MOYENNE','MONTE':'MONTER','PLONGE':'PLONGER','HOME':'ACCUEIL'}; // var : hissée, TR() peut tourner avant cette ligne sans toucher une zone morte
+/* (2026-11-08, sortie du jeu, TEL-N04) LE RÉGLAGE IMAGE A TROIS CRANS, DONC TROIS MOTS : RAPIDE → BASSE · LOW, NETTE → MOYENNE · MEDIUM, HAUTE → HAUTE · HIGH.
+   « NETTE » se lisait « HAUTE » comme le cran du dessus (BASSE → HAUTE → HAUTE) : le joueur touchait la ligne sans voir de changement. */
+Object.assign(I18N,{'SAUVEGARDE':'SAVE DATA','RAPIDE':'LOW','NETTE':'MEDIUM','LOCALE':'LOCAL','VERSION':'VERSION'});
 Object.assign(I18N,{'Tu pourras changer dans les réglages.':'You can change this in the settings.','Virages aidés, 3 vies':'Assisted turns, 3 lives','Sans aide, une seule vie':'No assists, one life','TOUCHE POUR JOUER':'TAP TO PLAY'}); // (2026-10-14, charte 6 · accueil) le choix FACILE / NORMAL en cartes, l'invitation du splash
 /* ⚠ LES CAPITALES ACCENTUÉES NE PASSENT PAS EN PIXEL (2026-09-24) : la police dessine « É » comme un « é »
    minuscule — « RÉGLAGES » s'affichait « RéGLAGES » dans le panneau de pause. Tout ce qui passe par TR()
