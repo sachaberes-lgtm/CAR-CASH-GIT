@@ -22,6 +22,8 @@ const med = a => { const s = a.slice().sort((x, y) => x - y); return s[Math.floo
     /* ⚠ des délais RÉELS (chauffe des tôles, mondes d'avance : 15 s) bornent le départ : on alterne quelques images à la main et une pause. Le rendu logiciel est lent et le temps du jeu avec : on le fait avancer À LA MAIN (dbgStep, dt fixe) ; dbgCamReprise énorme = une image longue ne remet pas la caméra à zéro */
     await c.ev('window.dbgCamReprise=1e9;1', 4000);
     await dormir(3000); console.error('  dbgJouer :', await c.ev('JSON.stringify(window.dbgJouer())', 8000));
+    const tape = async (x, y) => { for (const t of ['mousePressed', 'mouseReleased']) await c.send('Input.dispatchMouseEvent', { type: t, x, y, button: 'left', clickCount: 1 }); };
+    await dormir(1500); await tape(Math.round(W / 2), Math.round(H * (H > W ? .935 : .88))); /* JOUER */
     const lis = async () => JSON.parse(await c.ev('JSON.stringify(window.dbgCamTaille())', 20000));
     let ok = false, o = null;
     for (let i = 0; i < 400 && !ok; i++) { try { await c.ev('window.dbgStep(8,50);1', 120000); await dormir(300); o = await lis(); if (i % 20 === 0) console.error('  …', i * 8, 'images', JSON.stringify(o)); if (o.started && o.mode === 'drive' && o.d < 9) ok = true; } catch (e) { console.error('  err', e.message); } }
