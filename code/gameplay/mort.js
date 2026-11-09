@@ -257,12 +257,10 @@ window.dbgExplo=function(c){const v=+PT_U.uVc.value.length().toFixed(1),m=mode;
   return {avant:m,v:v,volutes:VOLU.filter(function(p){return p.on;}).length,dards:DARD.filter(function(p){return p.on;}).length,debris:debris.length};};
 function explode(cause){
   /* ===== LE BOUCLIER D'ABORD (24/10, relecture : « un choc pendant le bouclier est ignoré ») =====
-     Le bouclier de la seconde chance passait APRÈS les remises à zéro du demi-tour, du frottement contre le mur et de la glisse : un choc
-     « ignoré » pendant les 3 s de reprise coupait quand même le demi-tour en cours et vidait l'aura du SLIDE (à chaque image contre la
-     paroi). Une chute protégée passe par respawn, qui fait ces remises lui-même. */
+     Le bouclier de la seconde chance passait APRÈS les remises à zéro du demi-tour, de la glisse : un choc
+     « ignoré » pendant les 3 s de reprise coupait quand même le demi-tour en cours. Une chute protégée passe par respawn, qui fait ces remises lui-même. */
   if(chanceProtege(cause)){IMP.frais=-1;return;} /* (2026-11-08, GP-19) l'impact que l'appelant vient de préparer (impMur, impPrep) est refusé avec le choc : il ne reste pas armé 250 ms pour la mort suivante */ // (2026-10-14) LA SECONDE CHANCE : le bouclier de la reprise (voir CHANCE)
   dmtCoupe();
-  try{slideRaz();}catch(e){} // (SLIDE) le frottement part avec la caisse
   try{bkSkateRaz();}catch(e){} // (ICE SKATE) la glisse aussi
   RALENTI.t=0; // (passe qualité) le ralenti de la frénésie s'arrête net à l'explosion : sinon le plan de la mort passait à ×0,3 et l'écran de fin arrivait 2× plus tard
   if(!(gameOver||mode==='boom'))hautVide(); // (vague 2) la caisse explose : plus AUCUNE voix (carte, niveau, geste) — seule « CHAÎNE PERDUE » peut parler

@@ -106,7 +106,6 @@
         if(raseT>.6&&!raseAnn){raseAnn=true;hap(12);try{chaineAuraMuette('RASE-BORD',40,'rase');}catch(e){}} // (2026-09-29, Sacha) ne s'écrit plus
         if(Math.random()<dt*14){DRIFT_V.set(Math.sign(lat)*CARS[level].w*.5,.1,-.3);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkBlue,DRIFT_V,1,4);}}
       else{raseT=0;raseAnn=false;}
-      slideTick(dt); // (2026-10-14 soir) LA FIGURE SLIDE (voir SLD)
       // ---- DRIFT : FREIN + BRAQUAGE à bonne vitesse = le train arrière décroche ----
       // (mobile OK : le frein = tirer le pad vers le bas, déjà mappé sur ArrowDown)
       // Le CAP part plus vite que la TRAJECTOIRE (psi grimpe) mais la caisse continue de filer
@@ -131,7 +130,7 @@
       // point de respawn sûr
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
       // BORD : si la voiture dépasse le côté de la route, elle bascule et tombe dans le vide.
-      if(cyCouloirIci()&&Math.abs(lat)>ROAD_HALF-1.15){murCote(dt,'paroi');slideContact();} // (2026-10-14, CANYON) LE COULOIR des Étroits : les parois touchent la route — même mur que Paris
+      if(cyCouloirIci()&&Math.abs(lat)>ROAD_HALF-1.15){murCote(dt,'paroi');} // (2026-10-14, CANYON) LE COULOIR des Étroits : les parois touchent la route — même mur que Paris
       else if(banqOk())bkCongere(dt); // (2026-10-18, GLACIER) LA CONGÈRE : au-delà de la glace, la neige profonde — on s'enfonce, on ralentit, on ne meurt pas (était : le mur murCote, où la caisse restait collée)
       else if(Math.abs(lat)>ROAD_HALF){
         const out=Math.sign(lat);

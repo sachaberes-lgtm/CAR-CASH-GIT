@@ -74,7 +74,7 @@ function pauseSon(id,o){const C=window.CCSON,n=++PSON.n;if(UI_SON)UI_SON.t=perfo
    retard (décodé au moment du play) : le logo du départ, le plein de nitro, les pouvoirs, l'entrée en frénésie, l'explosion… On les met en file dès que le
    son existe (SONS_TITRE au premier geste, pour la gerbe du titre) et avant chaque départ (SONS_COURSE : au lâcher, à resetGame, au portail). Déjà décodé : rien. */
 const SONS_FIXES=['explosion','explosion.loin','mort.vide','mort.enseigne','mort.compteFin','defaite','victoire','pwr.fin','pwr.bientot','frenesie.entre','frenesie.sort','triade.revele','triade.meurt','triade.renait','nitro.plein','nitro.sec','moteur.palier','moteur.cylindre','portail','portail.proche','depart.logo','pad']; /* le noyau d'une course, gardé décodé comme `pre:1` (une course de 3 min sans portail évinçait l'explosion avant la mort) */
-const SONS_COURSE=['nitro.vide','nitro.pleine','turbo.mini','pwr.a','pwr.m','pwr.n','pwr.double','pwr.x','frenesie.arme','frenesie.record','frenesie.pose','frenesie.cash','pose.lourde','pose.cheveu','aura.perdue','aura.record','aura.encaisse1','aura.encaisse2','flow.perdu','flow.1','piece.recolte','piece.serie','respawn','chute','decollage','debris.tole','cratere','drift.charge','virage','air.regain','plus.vite','argent.palier','argent.gros','citron.zap','foudre.eclair','tonnerre','fig.bigair','fig.monstre','fig.jackpot','fig.essoreuse','fig.slide','fig.slide.debut','fig.slide.fin','jeu.miracule','jeu.palierVitesse','raccourci','report','fronde','combo.frappe','garage.lacher','nuage.entre'];
+const SONS_COURSE=['nitro.vide','nitro.pleine','turbo.mini','pwr.a','pwr.m','pwr.n','pwr.double','pwr.x','frenesie.arme','frenesie.record','frenesie.pose','frenesie.cash','pose.lourde','pose.cheveu','aura.perdue','aura.record','aura.encaisse1','aura.encaisse2','flow.perdu','flow.1','piece.recolte','piece.serie','respawn','chute','decollage','debris.tole','cratere','drift.charge','virage','air.regain','plus.vite','argent.palier','argent.gros','citron.zap','foudre.eclair','tonnerre','fig.bigair','fig.monstre','fig.jackpot','fig.essoreuse','fig.slide','jeu.miracule','jeu.palierVitesse','raccourci','report','fronde','combo.frappe','garage.lacher','nuage.entre'];
 const SONS_TITRE=['riche.bon','riche.gemme','riche.verre','riche.piece','riche.petit','riche.fleurs','riche.coeur','riche.bouchon','riche.coup','riche.combo','fourgon.billets','pluie.billets','garage.tole','garage.bascule','ui.jouer'];
 const SONS_SPIN=['spin.levier','spin.jeton','spin.roule','spin.tease','spin.piece','spin.gain','spin.jackpot','spin.ouvre']; /* à l'ouverture de la machine : son premier tirage n'avait ni levier ni jeton */
 function sonsChauffe(L,fixe){try{if(SONV2&&window.CCSON&&window.CCSON.chauffe)window.CCSON.chauffe(L,!!fixe);}catch(e){}}
@@ -130,54 +130,7 @@ function sonCombo(cle,neuf){
 }
 window.dbgSonJoue=function(id,o){ // (banc) joue un son de la banque par le vrai lecteur : vrai = une voix est partie · dbgSonJoue('combo','PST') = sonCombo
   if(id==='combo'){sonCombo(o,true);return true;}if(id==='figSnd'){figSnd(o);return true;}
-  if(id==='slide'){if(o.e!=='lire')sonSlide(o.e,o.k);return {boucle:!!SLDS.h,k:SLDS.k,garde:!!SLDS.iv};} // dbgSonJoue('slide',{e:'debut',k:.6}) : l'état de la boucle après l'appel
   return !!sfx(id,Object.assign({force:true},o||{}));};
-/* (2026-10-14, session SON ; la figure : GENERAL, slideTick) LE SON DU SLIDE. `sonSlide(etat,k)` — 'debut' puis 'tick' à chaque image de
-   frottement (k = vitesse / vmax, 0 à 1,3), 'fin' au lâcher (paiement ou perte), 'paye' avec l'aura versée. La BOUCLE de meulage suit k en
-   direct : volume de −14 à −3 dB, lecture de ×0,8 à ×1,25 (plus vite = plus aigu). Sous le moteur, au-dessus du vent. ⚠ Une boucle ne
-   s'arrête pas toute seule : si les 'tick' cessent sans 'fin' (pause, appli cachée), le chien de garde la coupe à 0,35 s ; le 'tick'
-   suivant la relance. */
-const SLDS={h:null,k:0,vu:0,essai:0,iv:0};
-function sldDb(k){return -14+11*Math.min(1,k);}
-function sldRate(k){return .8+.45*Math.min(1,k);}
-function sonSlideStop(tc){if(SLDS.h){try{SLDS.h.stop(tc||.06);}catch(e){}SLDS.h=null;}if(SLDS.iv){clearInterval(SLDS.iv);SLDS.iv=0;}}
-/* LE FROTTEMENT PROPRE (2026-11-02 nuit, Léo : « au bord de la route, ça fait un frottement bizarre à l'audio » → « un son propre ») la boucle était un MP3 de 2 s : le MP3 ajoute un blanc
-   au début et à la fin, la boucle sautait toutes les 2 s (un hoquet dans le raclement) ; et en longeant le bord, chaque micro-décollage relançait le choc du début. Le frottement est désormais FABRIQUÉ en
-   direct (aucune couture) : un souffle de métal (bande autour de 1,6 kHz, large, sans résonance) sur un corps grave (sous 380 Hz), un léger grain à 9 Hz ; il suit la vitesse comme avant (niveau sldDb,
-   hauteur sldRate) et s'éteint en 0,25 s. Le choc du début ne rejoue pas si le dernier frottement date de moins de 0,6 s. `?slide=ancien` rend la boucle d'avant. */
-const SLIDE_SYNTH=!/[?&]slide=ancien\b/.test(location.search);
-let SLDN=null,SLDS_FIN=-1e9;
-function sldSynth(k){
-  const bus=window.CCSON&&CCSON.bus&&CCSON.bus('fx');if(!AC||!bus)return null;
-  const a=AC,t=a.currentTime,lin=function(db){return Math.pow(10,(db-8)/20)*.38;}; /* −8 : le niveau de la boucle dans la banque ; ×0,38 : MESURÉ hors ligne, le bruit filtré (−12 dB RMS) ramené au niveau du fichier (−24 dB RMS), grain compris */
-  if(!SLDN){const n=a.sampleRate*2|0,b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;SLDN=b;}
-  const src=a.createBufferSource();src.buffer=SLDN;src.loop=true;
-  const bp=a.createBiquadFilter();bp.type='bandpass';bp.Q.value=.9;bp.frequency.value=1600*sldRate(k);
-  const hs=a.createBiquadFilter();hs.type='highshelf';hs.frequency.value=4000;hs.gain.value=-9; /* pas de sifflement */
-  const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=380;lp.Q.value=.5;
-  const gA=a.createGain(),gB=a.createGain();gA.gain.value=1;gB.gain.value=1.5;
-  const grain=a.createGain();grain.gain.value=.85;const o=a.createOscillator(),og=a.createGain();o.frequency.value=9;og.gain.value=.15;o.connect(og);og.connect(grain.gain);
-  const out=a.createGain();out.gain.setValueAtTime(0,t);out.gain.setTargetAtTime(lin(sldDb(k)),t,.04);
-  src.connect(bp);bp.connect(hs);hs.connect(gA);src.connect(lp);lp.connect(gB);gA.connect(grain);gB.connect(grain);grain.connect(out);out.connect(bus);
-  src.start(t);o.start(t);let fini=false;
-  return {
-    gain:function(db,tc){if(!fini)try{out.gain.setTargetAtTime(lin(db),a.currentTime,tc||.08);}catch(e){}},
-    rate:function(r,tc){if(!fini)try{bp.frequency.setTargetAtTime(1600*r,a.currentTime,tc||.08);}catch(e){}},
-    stop:function(tc){if(fini)return;fini=true;const n=a.currentTime;try{out.gain.cancelScheduledValues(n);out.gain.setTargetAtTime(0,n,Math.max(.02,tc||.06));src.stop(n+Math.max(.02,tc||.06)*8);o.stop(n+Math.max(.02,tc||.06)*8);}catch(e){}
-      setTimeout(function(){try{out.disconnect();}catch(e){}},Math.max(.02,tc||.06)*8000+200);}
-  };}
-function sonSlideBoucle(k){const n=performance.now();if(n-SLDS.essai<400)return;SLDS.essai=n;
-  SLDS.h=SLIDE_SYNTH?sldSynth(k):sfx('fig.slide',{loop:true,force:true,vol:sldDb(k),rate:sldRate(k)});
-  if(SLDS.h&&!SLDS.iv)SLDS.iv=setInterval(function(){if(performance.now()-SLDS.vu>350)sonSlideStop(.08);},200);}
-function sonSlide(etat,k){
-  if(!SONV2)return;
-  if(etat==='paye'){sfx('fig.slide.paye',{st:sonPd(Math.min(9,2+Math.floor((+k||0)/80)))});return;} // k = l'aura versée : un gros slide sonne un degré plus haut
-  k=Math.max(0,Math.min(1.3,+k||0));SLDS.vu=performance.now();
-  if(etat==='debut'){sonSlideStop(.03);SLDS.essai=0;if(!SLIDE_SYNTH||performance.now()-SLDS_FIN>600)sfx('fig.slide.debut',{vol:-6+5*Math.min(1,k)});sonSlideBoucle(k);SLDS.k=k;return;}
-  if(etat==='tick'){if(!SLDS.h){sonSlideBoucle(k);SLDS.k=k;return;}
-    if(Math.abs(k-SLDS.k)>.02){SLDS.k=k;SLDS.h.gain(sldDb(k),.08);SLDS.h.rate(sldRate(k),.08);}return;}
-  if(etat==='fin'){const eu=!!SLDS.h,k0=SLDS.k;sonSlideStop(SLIDE_SYNTH?.08:.06);if(eu&&(!SLIDE_SYNTH||performance.now()-SLDS_FIN>600))sfx('fig.slide.fin',{vol:-8+5*Math.min(1,k0),rate:.85+.3*Math.min(1,k0)});SLDS_FIN=performance.now();} /* (synthé : setTargetAtTime .08 ≈ 0,25 s pour s'éteindre) */
-}
 /* ---- LES SAMPLES DANS LE MIXAGE (2026-09-28, console de son) ----
    ⚠ SUR IPHONE `HTMLAudio.volume` EST EN LECTURE SEULE : l'annonceur y sortait à 100 % du fichier (−8 LUFS, ~5 dB au-dessus du
    réglage), SANS sa doublure démon ni ses échos d'or (écartés par VOL_LOCKED), et les curseurs VOIX / EFFETS n'y pouvaient rien ;

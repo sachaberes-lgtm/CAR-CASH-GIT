@@ -1401,9 +1401,6 @@ html.telCadre{--ccT:0px;--ccB:21px;--ccL:47px;--ccR:47px}
   /* -- (2026-10-15 : l'étiquette du DAUPHIN est partie avec les dauphins ; ses couleurs restent, --auraRose sert ailleurs) LE DAUPHIN (2026-09-25) : l'étiquette qui dit POURQUOI l'aura monte. En vol la caméra CENTRE la caisse : on s'affiche
      au-dessus d'elle, SOUS la pilule du FLOW et le camembert, jamais dessus. Lecture seule (aucun geste). -- */
   :root{--dol:var(--dol);--dolNom:#ffffff;--dolOmbre:var(--encre);--auraRose:var(--aura);--auraOmbre:var(--auraOmbre)}
-  #slideHud{position:fixed;left:50%;top:max(22vh,calc(env(safe-area-inset-top,0px) + 150px));transform:translateX(-50%);z-index:7;pointer-events:none;
-    font:14px/1 var(--pix);color:var(--or);text-shadow:0 2px 0 #3a1a00;opacity:0;transition:opacity .12s}
-  body:not(.play) #slideHud{display:none}
   /* ---- L'AURA v2 — LA CHAÎNE (2026-09-26) : le compteur TOUJOURS visible, et la chaîne en cours dessous — points, multiplicateur,
      temps restant, et les trois derniers gestes AVEC leurs points. À GAUCHE, sous la pastille FLOW : à droite vit le chrono de vol. ---- */
   #auraV2{position:fixed;left:calc(var(--ccL,env(safe-area-inset-left,0px)) + 14px);top:calc(var(--ccT,env(safe-area-inset-top,0px)) + 84px);z-index:6;
@@ -29403,56 +29400,12 @@ function plaTick(dt,sim){
   U.uAmb9.value.set(hemi.color.r,hemi.color.g,hemi.color.b).multiplyScalar(hemi.intensity*.9);
   U.uGnd9.value.set(hemi.groundColor.r,hemi.groundColor.g,hemi.groundColor.b).multiplyScalar(hemi.intensity);
 }
-/* LA FIGURE SLIDE (2026-10-14 soir, Sacha via PILOTAGE : « quand on vient VRAIMENT de frotter contre le bord de la route, ça doit faire
-   des ÉTINCELLES et rapporter de l'AURA en fonction de la VITESSE et de la DURÉE »). ⚠ Le jeu n'avait AUCUN contact avec le bord :
-   le dépasser fait tomber la caisse. Le frottement, c'est donc le FLANC qui déborde de la route quand les roues tiennent encore
-   (|lat| + demi-largeur > ROAD_HALF), plus serré que le RASE-BORD (80 % de la demi-route), plus les parois (murCote : couloirs du canyon…).
-   · Tant qu'on frotte : étincelles OR au point de contact, côté bord, plus denses avec la vitesse ; l'aura MONTE (SLD.base + SLD.v × vitesse
-     / vmax, par seconde) dans une petite étiquette « SLIDE +X » en haut (jamais au centre) ; la caisse perd un peu de vitesse (SLD.frein,
-     la sanction : il n'y en avait pas au bord).
-   · À la fin (SLD.lache s sans contact) : payée dans la CHAÎNE d'aura comme un geste (famille 'slide', brut) si on a frotté au moins
-     SLD.tMin s. Explosion, replacement ou partie neuve : perdue (slideRaz).
-   · Les COMBOS À TROIS sont des trios de figures d'un même VOL : un geste au sol n'y entre pas.
-   · Le son : `sonSlide(etat,k)` ('debut' | 'tick' | 'fin', k = vitesse/vmax), livré par la session SON — muet tant qu'il n'existe pas.
-   `?slide=0` l'éteint. Banc : dbgSlide() · dbgSlide('force',kmh) colle la caisse au bord à cette vitesse · dbgSlide('stop'). */
+/* ===== LES PAROIS : LE COUP D'ÉPAULE (2026-11-09, Sacha : « supprime complètement le slide » — la figure SLIDE du frottement des roues au bord de la route,
+   ses étincelles, son étiquette, son aura et son son sont retirés ; reste le seul choc des parois (façades, couloirs du canyon)) ===== */
 const MURC={psiK:0,psiR:0,chocT:0,murT:0,murAnn:0}; /* (2026-10-23, Paris retiré) l'état du coup d'épaule d'une paroi (était dans PARIS) */
-const SLD={on:!/[?&]slide=0\b/.test(location.search),base:20,v:120,frein:.12,tMin:.35,lache:.15,kmhMin:40,
-  t:0,hors:0,aura:0,cote:1,mur:0,etiq:null,force:0,son:false,k:0};
-/* ===== HUD DE COURSE : N'ÉCRIRE QUE CE QUI CHANGE (2026-10-24, passe perf PC : « le navigateur passe ~4,6 ms par image dans le DOM ») =====
-   `textContent=` remplace le nœud texte MÊME à valeur égale (mutation du DOM → recalcul de style, mise en page et peinture de
-   l'étiquette), là où un style inline réécrit à l'identique ne coûte presque rien à Chrome. L'étiquette « SLIDE +X » se réécrivait à
-   chaque image de frottement. `?pchud=0` rend l'ancienne écriture, pour l'A/B. */
-const PCH_ON=!/[?&]pchud=0\b/.test(location.search);
-function slideRaz(){SLD.t=0;SLD.hors=0;SLD.aura=0;SLD.mur=0;if(SLD.son){SLD.son=false;try{sonSlide('fin',0);}catch(e){}}if(SLD.etiq)SLD.etiq.style.opacity='0';}
-function slideEtiq(){let e=SLD.etiq;if(!e){e=SLD.etiq=document.createElement('div');e.id='slideHud';e.setAttribute('aria-hidden','true');document.body.appendChild(e);}return e;}
-function slideTick(dt){ // boucle de conduite, chaque image, après le RASE-BORD
-  if(!SLD.on)return;
-  const w=CARS[level].w*.5,va=Math.abs(vA),kmh=va*3.6*SPD;
-  if(SLD.force>0){lat=(Math.sign(lat)||1)*(ROAD_HALF-w+.12);vA=Math.sign(vA||1)*SLD.force/(3.6*SPD);graceT=Math.max(graceT,.2);}
-  SLD.mur=Math.max(0,SLD.mur-dt);
-  const bord=Math.abs(lat)+w>ROAD_HALF-.02&&Math.abs(lat)<ROAD_HALF,contact=!introD&&!PARK.on&&hopY<=.05&&kmh>SLD.kmhMin&&(bord||SLD.mur>0);
-  if(contact){
-    SLD.hors=0;SLD.t+=dt;SLD.cote=Math.sign(lat)||1;
-    const k=SLD.k=Math.max(0,Math.min(1.3,kmh/Math.max(1,vmaxShow())));
-    SLD.aura+=(SLD.base+SLD.v*k)*dt;
-    if(!SLD.mur)vA*=1-SLD.frein*dt; // la sanction : le flanc frotte (les façades de Paris ont la leur)
-    if(Math.random()<dt*(14+46*k)){DRIFT_V.set(SLD.cote*w,.15,(Math.random()-.5)*CARS[level].l*.6);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkGold,DRIFT_V,1+(k>.6?1:0),5+9*k);}
-    try{if(!SLD.son){SLD.son=true;sonSlide('debut',k);}else sonSlide('tick',k);}catch(e){}
-    if(SLD.t>=SLD.tMin){const e=slideEtiq();if(!PCH_ON){e.textContent='SLIDE +'+Math.round(SLD.aura);e.style.opacity='1';}else{const t9='SLIDE +'+Math.round(SLD.aura);if(e._t!==t9){e._t=t9;e.textContent=t9;}if(e.style.opacity!=='1')e.style.opacity='1';}} /* (2026-10-24, passe perf PC) le texte n'est remplacé que s'il change (voir PCH_ON) */
-    return;}
-  if(SLD.t<=0)return;
-  SLD.hors+=dt;if(SLD.hors<SLD.lache)return;
-  const n=Math.round(SLD.aura),ok=SLD.t>=SLD.tMin&&n>0;slideRaz();
-  if(ok){try{chaineAura('SLIDE',n,'slide',true,false);}catch(e){}try{sonSlide('paye',n);}catch(e){}hap([8,20,8]);} // (SON) 'paye' : le tchak du paiement ; 'fin' (slideRaz) : la queue du crissement
-}
-function slideContact(){SLD.mur=.12;} // le crochet des MURS : une paroi qui touche le flanc ce tour-ci (Paris, les couloirs du CANYON…) — à rappeler à chaque image de contact
-window.slideContact=slideContact;
-window.dbgSlide=function(k,v){if(k==='force')SLD.force=+v||200;if(k==='stop'){SLD.force=0;lat=0;vL=0;}
-  return {on:SLD.on,t:+SLD.t.toFixed(2),aura:Math.round(SLD.aura),k:+SLD.k.toFixed(2),force:SLD.force,lat:+lat.toFixed(2),bord:+ROAD_HALF.toFixed(2),kmh:Math.round(Math.abs(vA)*3.6*SPD),mode:mode,vmax:Math.round(vmaxShow()),chaine:Math.round(CHA.pts||0),auraRun:Math.round(auraRun)};};
 function murCote(dt,cause){ // LES FAÇADES SONT DES MURS : un CHOC par contact (vitesse perdue selon l'angle), puis on FROTTE (étincelles) — de face à pleine vitesse, on s'encastre
   const out=Math.sign(lat)||1,lim=ROAD_HALF-1.15;lat=out*lim;
   const into=vL*driveDir*out;if(into<=0)return;
-  SLD.mur=.12; // (SLIDE) la façade frotte : la figure le sait
   const va=Math.abs(vA),a=Math.asin(Math.min(1,into/Math.max(1,va))),kmh=va*3.6*SPD,now=performance.now();
   if(a>.52&&kmh>200){impMur(out);explode(cause||'facade');return;} // (2026-10-15) L'IMPACT : la paroi est le bord de la route
   try{impMini(out,a,kmh,into);}catch(e){} // (2026-10-15 soir) L'IMPACT EN MINIATURE : le coup d'épaule, au premier contact (voir IMPM)
@@ -61742,12 +61695,10 @@ window.dbgExplo=function(c){const v=+PT_U.uVc.value.length().toFixed(1),m=mode;
   return {avant:m,v:v,volutes:VOLU.filter(function(p){return p.on;}).length,dards:DARD.filter(function(p){return p.on;}).length,debris:debris.length};};
 function explode(cause){
   /* ===== LE BOUCLIER D'ABORD (24/10, relecture : « un choc pendant le bouclier est ignoré ») =====
-     Le bouclier de la seconde chance passait APRÈS les remises à zéro du demi-tour, du frottement contre le mur et de la glisse : un choc
-     « ignoré » pendant les 3 s de reprise coupait quand même le demi-tour en cours et vidait l'aura du SLIDE (à chaque image contre la
-     paroi). Une chute protégée passe par respawn, qui fait ces remises lui-même. */
+     Le bouclier de la seconde chance passait APRÈS les remises à zéro du demi-tour, de la glisse : un choc
+     « ignoré » pendant les 3 s de reprise coupait quand même le demi-tour en cours. Une chute protégée passe par respawn, qui fait ces remises lui-même. */
   if(chanceProtege(cause)){IMP.frais=-1;return;} /* (2026-11-08, GP-19) l'impact que l'appelant vient de préparer (impMur, impPrep) est refusé avec le choc : il ne reste pas armé 250 ms pour la mort suivante */ // (2026-10-14) LA SECONDE CHANCE : le bouclier de la reprise (voir CHANCE)
   dmtCoupe();
-  try{slideRaz();}catch(e){} // (SLIDE) le frottement part avec la caisse
   try{bkSkateRaz();}catch(e){} // (ICE SKATE) la glisse aussi
   RALENTI.t=0; // (passe qualité) le ralenti de la frénésie s'arrête net à l'explosion : sinon le plan de la mort passait à ×0,3 et l'écran de fin arrivait 2× plus tard
   if(!(gameOver||mode==='boom'))hautVide(); // (vague 2) la caisse explose : plus AUCUNE voix (carte, niveau, geste) — seule « CHAÎNE PERDUE » peut parler
@@ -64234,7 +64185,7 @@ function pauseSon(id,o){const C=window.CCSON,n=++PSON.n;if(UI_SON)UI_SON.t=perfo
    retard (décodé au moment du play) : le logo du départ, le plein de nitro, les pouvoirs, l'entrée en frénésie, l'explosion… On les met en file dès que le
    son existe (SONS_TITRE au premier geste, pour la gerbe du titre) et avant chaque départ (SONS_COURSE : au lâcher, à resetGame, au portail). Déjà décodé : rien. */
 const SONS_FIXES=['explosion','explosion.loin','mort.vide','mort.enseigne','mort.compteFin','defaite','victoire','pwr.fin','pwr.bientot','frenesie.entre','frenesie.sort','triade.revele','triade.meurt','triade.renait','nitro.plein','nitro.sec','moteur.palier','moteur.cylindre','portail','portail.proche','depart.logo','pad']; /* le noyau d'une course, gardé décodé comme `pre:1` (une course de 3 min sans portail évinçait l'explosion avant la mort) */
-const SONS_COURSE=['nitro.vide','nitro.pleine','turbo.mini','pwr.a','pwr.m','pwr.n','pwr.double','pwr.x','frenesie.arme','frenesie.record','frenesie.pose','frenesie.cash','pose.lourde','pose.cheveu','aura.perdue','aura.record','aura.encaisse1','aura.encaisse2','flow.perdu','flow.1','piece.recolte','piece.serie','respawn','chute','decollage','debris.tole','cratere','drift.charge','virage','air.regain','plus.vite','argent.palier','argent.gros','citron.zap','foudre.eclair','tonnerre','fig.bigair','fig.monstre','fig.jackpot','fig.essoreuse','fig.slide','fig.slide.debut','fig.slide.fin','jeu.miracule','jeu.palierVitesse','raccourci','report','fronde','combo.frappe','garage.lacher','nuage.entre'];
+const SONS_COURSE=['nitro.vide','nitro.pleine','turbo.mini','pwr.a','pwr.m','pwr.n','pwr.double','pwr.x','frenesie.arme','frenesie.record','frenesie.pose','frenesie.cash','pose.lourde','pose.cheveu','aura.perdue','aura.record','aura.encaisse1','aura.encaisse2','flow.perdu','flow.1','piece.recolte','piece.serie','respawn','chute','decollage','debris.tole','cratere','drift.charge','virage','air.regain','plus.vite','argent.palier','argent.gros','citron.zap','foudre.eclair','tonnerre','fig.bigair','fig.monstre','fig.jackpot','fig.essoreuse','fig.slide','jeu.miracule','jeu.palierVitesse','raccourci','report','fronde','combo.frappe','garage.lacher','nuage.entre'];
 const SONS_TITRE=['riche.bon','riche.gemme','riche.verre','riche.piece','riche.petit','riche.fleurs','riche.coeur','riche.bouchon','riche.coup','riche.combo','fourgon.billets','pluie.billets','garage.tole','garage.bascule','ui.jouer'];
 const SONS_SPIN=['spin.levier','spin.jeton','spin.roule','spin.tease','spin.piece','spin.gain','spin.jackpot','spin.ouvre']; /* à l'ouverture de la machine : son premier tirage n'avait ni levier ni jeton */
 function sonsChauffe(L,fixe){try{if(SONV2&&window.CCSON&&window.CCSON.chauffe)window.CCSON.chauffe(L,!!fixe);}catch(e){}}
@@ -64290,54 +64241,7 @@ function sonCombo(cle,neuf){
 }
 window.dbgSonJoue=function(id,o){ // (banc) joue un son de la banque par le vrai lecteur : vrai = une voix est partie · dbgSonJoue('combo','PST') = sonCombo
   if(id==='combo'){sonCombo(o,true);return true;}if(id==='figSnd'){figSnd(o);return true;}
-  if(id==='slide'){if(o.e!=='lire')sonSlide(o.e,o.k);return {boucle:!!SLDS.h,k:SLDS.k,garde:!!SLDS.iv};} // dbgSonJoue('slide',{e:'debut',k:.6}) : l'état de la boucle après l'appel
   return !!sfx(id,Object.assign({force:true},o||{}));};
-/* (2026-10-14, session SON ; la figure : GENERAL, slideTick) LE SON DU SLIDE. `sonSlide(etat,k)` — 'debut' puis 'tick' à chaque image de
-   frottement (k = vitesse / vmax, 0 à 1,3), 'fin' au lâcher (paiement ou perte), 'paye' avec l'aura versée. La BOUCLE de meulage suit k en
-   direct : volume de −14 à −3 dB, lecture de ×0,8 à ×1,25 (plus vite = plus aigu). Sous le moteur, au-dessus du vent. ⚠ Une boucle ne
-   s'arrête pas toute seule : si les 'tick' cessent sans 'fin' (pause, appli cachée), le chien de garde la coupe à 0,35 s ; le 'tick'
-   suivant la relance. */
-const SLDS={h:null,k:0,vu:0,essai:0,iv:0};
-function sldDb(k){return -14+11*Math.min(1,k);}
-function sldRate(k){return .8+.45*Math.min(1,k);}
-function sonSlideStop(tc){if(SLDS.h){try{SLDS.h.stop(tc||.06);}catch(e){}SLDS.h=null;}if(SLDS.iv){clearInterval(SLDS.iv);SLDS.iv=0;}}
-/* LE FROTTEMENT PROPRE (2026-11-02 nuit, Léo : « au bord de la route, ça fait un frottement bizarre à l'audio » → « un son propre ») la boucle était un MP3 de 2 s : le MP3 ajoute un blanc
-   au début et à la fin, la boucle sautait toutes les 2 s (un hoquet dans le raclement) ; et en longeant le bord, chaque micro-décollage relançait le choc du début. Le frottement est désormais FABRIQUÉ en
-   direct (aucune couture) : un souffle de métal (bande autour de 1,6 kHz, large, sans résonance) sur un corps grave (sous 380 Hz), un léger grain à 9 Hz ; il suit la vitesse comme avant (niveau sldDb,
-   hauteur sldRate) et s'éteint en 0,25 s. Le choc du début ne rejoue pas si le dernier frottement date de moins de 0,6 s. `?slide=ancien` rend la boucle d'avant. */
-const SLIDE_SYNTH=!/[?&]slide=ancien\b/.test(location.search);
-let SLDN=null,SLDS_FIN=-1e9;
-function sldSynth(k){
-  const bus=window.CCSON&&CCSON.bus&&CCSON.bus('fx');if(!AC||!bus)return null;
-  const a=AC,t=a.currentTime,lin=function(db){return Math.pow(10,(db-8)/20)*.38;}; /* −8 : le niveau de la boucle dans la banque ; ×0,38 : MESURÉ hors ligne, le bruit filtré (−12 dB RMS) ramené au niveau du fichier (−24 dB RMS), grain compris */
-  if(!SLDN){const n=a.sampleRate*2|0,b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;SLDN=b;}
-  const src=a.createBufferSource();src.buffer=SLDN;src.loop=true;
-  const bp=a.createBiquadFilter();bp.type='bandpass';bp.Q.value=.9;bp.frequency.value=1600*sldRate(k);
-  const hs=a.createBiquadFilter();hs.type='highshelf';hs.frequency.value=4000;hs.gain.value=-9; /* pas de sifflement */
-  const lp=a.createBiquadFilter();lp.type='lowpass';lp.frequency.value=380;lp.Q.value=.5;
-  const gA=a.createGain(),gB=a.createGain();gA.gain.value=1;gB.gain.value=1.5;
-  const grain=a.createGain();grain.gain.value=.85;const o=a.createOscillator(),og=a.createGain();o.frequency.value=9;og.gain.value=.15;o.connect(og);og.connect(grain.gain);
-  const out=a.createGain();out.gain.setValueAtTime(0,t);out.gain.setTargetAtTime(lin(sldDb(k)),t,.04);
-  src.connect(bp);bp.connect(hs);hs.connect(gA);src.connect(lp);lp.connect(gB);gA.connect(grain);gB.connect(grain);grain.connect(out);out.connect(bus);
-  src.start(t);o.start(t);let fini=false;
-  return {
-    gain:function(db,tc){if(!fini)try{out.gain.setTargetAtTime(lin(db),a.currentTime,tc||.08);}catch(e){}},
-    rate:function(r,tc){if(!fini)try{bp.frequency.setTargetAtTime(1600*r,a.currentTime,tc||.08);}catch(e){}},
-    stop:function(tc){if(fini)return;fini=true;const n=a.currentTime;try{out.gain.cancelScheduledValues(n);out.gain.setTargetAtTime(0,n,Math.max(.02,tc||.06));src.stop(n+Math.max(.02,tc||.06)*8);o.stop(n+Math.max(.02,tc||.06)*8);}catch(e){}
-      setTimeout(function(){try{out.disconnect();}catch(e){}},Math.max(.02,tc||.06)*8000+200);}
-  };}
-function sonSlideBoucle(k){const n=performance.now();if(n-SLDS.essai<400)return;SLDS.essai=n;
-  SLDS.h=SLIDE_SYNTH?sldSynth(k):sfx('fig.slide',{loop:true,force:true,vol:sldDb(k),rate:sldRate(k)});
-  if(SLDS.h&&!SLDS.iv)SLDS.iv=setInterval(function(){if(performance.now()-SLDS.vu>350)sonSlideStop(.08);},200);}
-function sonSlide(etat,k){
-  if(!SONV2)return;
-  if(etat==='paye'){sfx('fig.slide.paye',{st:sonPd(Math.min(9,2+Math.floor((+k||0)/80)))});return;} // k = l'aura versée : un gros slide sonne un degré plus haut
-  k=Math.max(0,Math.min(1.3,+k||0));SLDS.vu=performance.now();
-  if(etat==='debut'){sonSlideStop(.03);SLDS.essai=0;if(!SLIDE_SYNTH||performance.now()-SLDS_FIN>600)sfx('fig.slide.debut',{vol:-6+5*Math.min(1,k)});sonSlideBoucle(k);SLDS.k=k;return;}
-  if(etat==='tick'){if(!SLDS.h){sonSlideBoucle(k);SLDS.k=k;return;}
-    if(Math.abs(k-SLDS.k)>.02){SLDS.k=k;SLDS.h.gain(sldDb(k),.08);SLDS.h.rate(sldRate(k),.08);}return;}
-  if(etat==='fin'){const eu=!!SLDS.h,k0=SLDS.k;sonSlideStop(SLIDE_SYNTH?.08:.06);if(eu&&(!SLIDE_SYNTH||performance.now()-SLDS_FIN>600))sfx('fig.slide.fin',{vol:-8+5*Math.min(1,k0),rate:.85+.3*Math.min(1,k0)});SLDS_FIN=performance.now();} /* (synthé : setTargetAtTime .08 ≈ 0,25 s pour s'éteindre) */
-}
 /* ---- LES SAMPLES DANS LE MIXAGE (2026-09-28, console de son) ----
    ⚠ SUR IPHONE `HTMLAudio.volume` EST EN LECTURE SEULE : l'annonceur y sortait à 100 % du fichier (−8 LUFS, ~5 dB au-dessus du
    réglage), SANS sa doublure démon ni ses échos d'or (écartés par VOL_LOCKED), et les curseurs VOIX / EFFETS n'y pouvaient rien ;
@@ -70491,7 +70395,6 @@ function respawn(){
      descente (POSE_F) : la partie suivante finissait et PAYAIT l'ancienne figure au départ, et POSE_F resté posé refusait le saut nitro,
      le décollage au manche et les figures au sol du GLISSER jusqu'au vol suivant (preuve-reste-figure.cjs). */
   POSE_F=null;try{frCoupe();}catch(e){}
-  try{slideRaz();}catch(e){} // (SLIDE) replacé : le frottement en cours est perdu
   try{bkSkateRaz();BKV.yaw=0;BKV.gl=0;BKV.gk=0;}catch(e){} // (ICE SKATE) la glisse aussi · (2026-10-15 soir) et la glissade sur le verglas
   SVOL.t=0;SVOL.k=0; // (2026-10-14, session SON) replacé : la tension du vol ne survit pas
   for(const t9 of SILS)t9.init=false;rainbowCoupe();nfeuCoupe(); // (2026-09-26) pas de ruban tendu jusqu'au point de replacement
@@ -70625,9 +70528,8 @@ function portailPasse(){
     // (2026-09-26) …et la CHAÎNE est ENCAISSÉE comme à une pose : avant, l'argent de la mallette disparaissait sans un mot et le HUD restait affiché
     if(chain>0)runStats.tricks++; // (2026-09-29) les figures ne rapportent plus d'argent : la figure du vol compte, rien n'est versé (l'aura ouverte, elle, continue sa chaîne)
     chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;}
-  else if(mode==='drive'){ /* (2026-11-09, debug) AU SOL, CE QUI EST GAGNÉ EST PAYÉ AVANT LA PISTE NEUVE : newTrack0 coupe le SLIDE (slideRaz) et la figure de route (frCoupe) depuis c0452aab —
-    un portail n'est pas un échec. Le slide qui frotte encore se paie comme à son lâcher (slideTick) ; la figure de route déjà PLANTÉE s'encaisse comme au décollage (frDecolle). */
-    try{if(SLD.t>=SLD.tMin&&SLD.aura>0){const n9=Math.round(SLD.aura);slideRaz();chaineAura('SLIDE',n9,'slide',true,false);try{sonSlide('paye',n9);}catch(e){}}}catch(e){}
+  else if(mode==='drive'){ /* (2026-11-09, debug) AU SOL, CE QUI EST GAGNÉ EST PAYÉ AVANT LA PISTE NEUVE : newTrack0 coupe la figure de route (frCoupe) depuis c0452aab —
+    un portail n'est pas un échec. La figure de route déjà PLANTÉE s'encaisse comme au décollage (frDecolle). */
     try{if(FR.on&&FR.r&&FR.r.paye)frEncaisse();}catch(e){}}
   flashEcran('rgba(255,79,216,.6)'); // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
   portalSnd();if(!SONV2)boostSnd();shake=.5; /* (console de son) `portail` porte tout le passage : plus le souffle d'un pad dessous */
@@ -71624,7 +71526,7 @@ function* newTrack0G(){
   if(!leger9)computeMinimap();
   try{musicSuitLieu();}catch(e){} // LA MUSIQUE PAR MONDE : change si le lieu en réclame une autre
   if(!leger9){spawnPickups(mulberry32(sd^0x9e3779b9));try{foretSentiersPose();}catch(e){window.__forSentErr=e;}} /* (2026-11-05, LES SENTIERS DE LUCIOLES) les fils de la forêt : après les pièces */
-  dmtCoupe();POSE_F=null;hopY=0;hopV=0;try{frCoupe();}catch(e){}try{slideRaz();}catch(e){}sonsChauffe(SONS_COURSE);s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;loop._camDriveT=0; // (2026-09-28) la caméra repart de sa place sur la NOUVELLE piste (la coupe se cache sous le flash du portail)
+  dmtCoupe();POSE_F=null;hopY=0;hopV=0;try{frCoupe();}catch(e){}sonsChauffe(SONS_COURSE);s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;loop._camDriveT=0; // (2026-09-28) la caméra repart de sa place sur la NOUVELLE piste (la coupe se cache sous le flash du portail)
   if(vA<20)vA=20;
   mode='drive';
   campDebut(); // (2026-09-27) la zone qui commence : l'orage repart, la caisse-nuage se range, l'événement rare se pose
@@ -84447,7 +84349,6 @@ function loop(now){
         if(raseT>.6&&!raseAnn){raseAnn=true;hap(12);try{chaineAuraMuette('RASE-BORD',40,'rase');}catch(e){}} // (2026-09-29, Sacha) ne s'écrit plus
         if(Math.random()<dt*14){DRIFT_V.set(Math.sign(lat)*CARS[level].w*.5,.1,-.3);carGroup.localToWorld(DRIFT_V);sparkBurst(sparkBlue,DRIFT_V,1,4);}}
       else{raseT=0;raseAnn=false;}
-      slideTick(dt); // (2026-10-14 soir) LA FIGURE SLIDE (voir SLD)
       // ---- DRIFT : FREIN + BRAQUAGE à bonne vitesse = le train arrière décroche ----
       // (mobile OK : le frein = tirer le pad vers le bas, déjà mappé sur ArrowDown)
       // Le CAP part plus vite que la TRAJECTOIRE (psi grimpe) mais la caisse continue de filer
@@ -84472,7 +84373,7 @@ function loop(now){
       // point de respawn sûr
       if(side>0&&F.n.y>.5&&Math.abs(lat)<ROAD_HALF-2&&Math.abs(psi)<.5)safeS=s;
       // BORD : si la voiture dépasse le côté de la route, elle bascule et tombe dans le vide.
-      if(cyCouloirIci()&&Math.abs(lat)>ROAD_HALF-1.15){murCote(dt,'paroi');slideContact();} // (2026-10-14, CANYON) LE COULOIR des Étroits : les parois touchent la route — même mur que Paris
+      if(cyCouloirIci()&&Math.abs(lat)>ROAD_HALF-1.15){murCote(dt,'paroi');} // (2026-10-14, CANYON) LE COULOIR des Étroits : les parois touchent la route — même mur que Paris
       else if(banqOk())bkCongere(dt); // (2026-10-18, GLACIER) LA CONGÈRE : au-delà de la glace, la neige profonde — on s'enfonce, on ralentit, on ne meurt pas (était : le mur murCote, où la caisse restait collée)
       else if(Math.abs(lat)>ROAD_HALF){
         const out=Math.sign(lat);
@@ -86300,7 +86201,7 @@ function togglePause(){ if(!started||gameOver)return;
       let d9=0;try{if(SONV2&&!document.hidden)d9=.42;if(SONV2){window.CCSON.annuleFutur(d9);window.CCSON.stopJeu();}}catch(e){}try{instruCoupe(0);}catch(e){} /* (2026-10-07) la phrase du nitro se tait TOUT DE SUITE (le clic ⏸ et la feuille, eux, sonnent jusqu'au bout) */ /* (débogage son 2026-09-29) les queues longues (explosion, fanfare, scène moteur) ne repartent plus pendant le 3-2-1 */
       if(BUSOUT)BUSOUT.gain.setTargetAtTime(0,T8+d9,.012);togglePause._t=setTimeout(function(){try{if(paused&&AC.state==='running')AC.suspend();}catch(e){}},70+d9*1000);}
     else{busPlein();if(SND.sfx||musGraphe())acReveil(AC);} } }catch(e){} // (2026-10-14, session SON) musique branchée : SON coupé, le contexte doit quand même se réveiller (les effets restent fermés par musWaSon)
-  if(paused){fxStop();deathStop();try{sonSlideStop(.02);}catch(e){}try{MV.mute(false);}catch(e){}} /* (2026-11-05, DEBUG-TOTAL) la voix du SLIDE (sldSynth, hors banque : stopJeu ne la voit pas) et le MOTEUR VIVANT (?moteurvivant=1) n'étaient pas dans la liste ci-dessus : ils chantaient pendant la feuille de pause et repartaient une fraction de seconde au REPRENDRE, sur l'image gelée */ // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
+  if(paused){fxStop();deathStop();try{MV.mute(false);}catch(e){}} /* (2026-11-05, DEBUG-TOTAL) le MOTEUR VIVANT (?moteurvivant=1) n'était pas dans la liste ci-dessus : il chantait pendant la feuille de pause et repartait une fraction de seconde au REPRENDRE, sur l'image gelée */ // (2026-09-26) les voix et les samples sont des HTMLAudio : suspendre le contexte ne les arrêtait pas — (2026-09-28) le son de MORT non plus : une pause pendant l'explosion le laissait hurler par-dessus le panneau
   musicPause(paused); // la musique ne passe plus par l'AudioContext : elle se met en pause elle-même
 }
 // applique la résolution adaptative (reconfigure le renderer et le canvas des speed-lines)
