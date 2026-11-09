@@ -47,3 +47,24 @@ Lecture : le build 10 divise la durée du serpent par 1,6 et le pire trou par 2,
 
 ## Bissection Mac du chargement : SANS VERDICT (bruit)
 7 variantes (avant, serpent-fluide seule, perf3-main de base, ?gouv=max, ?img=max, ?menu=max, les trois) puis rejeu à charge 38-55 : menu touchable « avant » 18,4/18,9 puis 21,9/21,6 s, perf3-main 22,2/22,5 s ; ScriptDuration 13,1-15,3 s partout. Les écarts sont dans le bruit de charge ; aucun levier désigné sur Mac. On tranche sur l'appareil avec les builds `--qs` (`preparer-www.js --qs "&gouv=max"`). Builds conservés pour réinstallation : `~/cash-car/perf3/builds/build<N>.app`.
+
+## PUBLIÉ le 9/11 : 6c70ae92 (v1368)
+Merge no-ff de `perf3-sur-main-6` dans `origin/main` (+ main f36577dd v1367 arrivé entre-temps), cache v1368, par OPTI ULTIME sur le « Oui, publie » de Sacha. 4 gardes + garde-démarrage OK, fumée `?tel=1` verte. Détail des fusions et des conflits résolus : `passation/FUSION-MAIN.md`.
+
+### Interrupteurs de secours (URL ; chacun ramène le comportement d'AVANT son levier)
+| Interrupteur | Levier coupé |
+|---|---|
+| `?intro=sous` | intro : tout prêt avant le film (INTRO_APRES) |
+| `?grotteworker=0` | grotte creusée dans un travailleur (retour sur le fil principal) |
+| `?repos=0` | menus : repos à 15 puis 10 i/s sans geste |
+| `?shoppre=0` | boutique : photos des caisses prises d'avance (SHPRE) |
+| `?boom=ancien` | écran de mort : fin de l'explosion à l'horloge réelle |
+| `?img=max` | image téléphone : tout au maximum |
+| `?gouv=max` | gouverneur thermique : plein régime (pas de dose) |
+| `?mob_poly=0` | polyphonie des bruitages sous la chaleur |
+| `?segments=0` | niveau bâti en segments (P3) |
+| `?brumepoly=0` | brume en polygone circonscrit |
+| `?imgsans=i` | levier image (i) |
+| `?memoire=ancien` | mémoire : budgets d'avant |
+| `?premfois=0` | première fois : chauffe des portails |
+Autres déjà documentés : `?menu=max`, `?menucull=0`, `?cielprise=ancien`, `?feu=ancien`, `?mob_gouv=0`, `?mob_g30=0`, `?tranches=0`, `?imgplus=g|j` (à demander), `?prebati=0`.
