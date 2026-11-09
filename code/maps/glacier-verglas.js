@@ -389,4 +389,53 @@ window.dbgBanq=function(k,o){
     sol:BANQ.sol&&{nx:BANQ.sol.nx,nz:BANQ.sol.nz,C:BANQ.sol.C,morceaux:BANQ.solM&&BANQ.solM.length,vus:BANQ.solM&&BANQ.solM.filter(function(m){return m.visible;}).length},
     cur:BANQ.cur&&{aur:+BANQ.cur.aur.toFixed(2),neige:+BANQ.cur.neige.toFixed(2),alp:+BANQ.cur.alp.toFixed(2)},L:Math.round(L),yMin:Math.round(trackMinY),y0:pts[0]&&Math.round(pts[0].y)};};
 
+/* ===== L'AUDIT DU GLACIER (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+   `dbgGlacier()` : lecture seule, en chiffres, ce que la génération a posé contre la piste — passé au banc des maps en `--audit="dbgGlacier()"` :
+   · `route` : deux bouts de piste à plus de 300 m de piste l'un de l'autre qui passent à moins de 2 demi-largeurs + 10 m en plan (un vrai repli, pas le bruit du banc) ;
+   · `couloir` : un cristal qui monte au-dessus du plan de la glace (+ 0,3 m) dans le couloir (demi-largeur + 1 m), et `congere` : dans la bande de neige où l'on
+     roule encore (jusqu'à BK_CG.w + 1,5 m au-delà de la glace : la physique de conduite n'y lit aucun pic, la caisse les traverserait) — par famille de pose (P.ou) ;
+   · `neige` : le maillage de la neige (ses vrais triangles) qui crève la dalle de verglas (au-dessus de sa face, sur toute sa largeur) ;
+   · `pieds` : un sommet ou un milieu d'arête de base d'un cristal au-dessus du maillage de la neige (le pic « pend ») ;
+   · `becs` : le cap qui tourne sur la retombée de chaque tremplin, et ce qui l'encombre ;
+   · `sig` : la signature de la piste et du décor (même graine → même signature). */
+window.dbgGlacier=function(o){
+  o=o||{};if(!BANQ.root||!BANQ.sol)return 'pas de glacier';
+  const S=BANQ.sol,ds=L/(NP-1),RH=ROAD_HALF,G=BANQ.picG,R={L:Math.round(L),RH:RH,ms:BANQ.ms,tp:BANQ.tp,n:BANQ.n,pres:BANQ.pres,essais:BANQ.essais,plan:BANQ.plan};
+  const solM=(x,z)=>{const fx=(x-S.x0)/S.C,fz=(z-S.z0)/S.C;if(fx<0||fz<0||fx>S.nx-1.001||fz>S.nz-1.001)return null;const i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*S.nx,H=S.h; /* le triangle du maillage (bkSolMorceau : a, a+w, a+1 puis a+1, a+w, a+w+1) */
+    return u+v<=1?H[k]+u*(H[k+1]-H[k])+v*(H[k+S.nx]-H[k]):H[k+S.nx+1]+(1-u)*(H[k+S.nx]-H[k+S.nx+1])+(1-v)*(H[k+1]-H[k+S.nx+1]);};
+  const cristaux=(x,z,cb)=>{if(!G)return;const A9=G.G.get(Math.floor(x/G.CG)*100003+Math.floor(z/G.CG));if(A9)for(const P of A9){if((x-P.cx)**2+(z-P.cz)**2>P.r2)continue;const h=bkPrimH(P,x,z);if(h>-1e8)cb(P,h);}};
+  { /* 1. la piste contre elle-même */
+    const st=Math.max(1,Math.round(4/ds)),sep=Math.round(300/ds);let n=0,mn=1e9,ex=null;
+    for(let i=0;i<NP;i+=st)for(let j=i+sep;j<NP;j+=st){const d=Math.hypot(pts[i].x-pts[j].x,pts[i].z-pts[j].z);const dy=Math.abs(pts[i].y-pts[j].y);if(dy<30&&d<mn){mn=d;ex={s1:Math.round(i*ds),s2:Math.round(j*ds),dh:Math.round(d),dy:Math.round(dy)};}if(d<2*RH+10&&dy<30)n++;}
+    R.route={replis:n,plusPresAPlat:ex,pres:BANQ.pres};} /* (un repli : en plan sous 2 demi-largeurs + 10 m ET à moins de 30 m de haut — à 45°, deux lacets à 200 m l'un de l'autre sont à 200 m de haut) */
+  { /* 2. le couloir et la congère */
+    const st=Math.max(1,Math.round(3/ds)),W2=RH+BK_CG.w+1.5,C={},K={},exC=[],exK=[];let nC=0,nK=0;
+    for(let i=0;i<NP;i+=st){const p=pts[i],b=B[i];
+      for(let l=-W2;l<=W2+.01;l+=2.5){const la=Math.abs(l),x=p.x+b.x*l,z=p.z+b.z*l,y=p.y+b.y*l;
+        cristaux(x,z,function(P,h){const m=h-(y+.3);if(m<=0)return;const ou=P.ou||'?';
+          if(la<=RH+1){nC++;C[ou]=(C[ou]||0)+1;if(exC.length<8)exC.push({s:Math.round(i*ds),lat:Math.round(l),m:+m.toFixed(1),ou:ou,H:Math.round(P.H)});}
+          else{nK++;K[ou]=(K[ou]||0)+1;if(exK.length<8)exK.push({s:Math.round(i*ds),lat:Math.round(l),m:+m.toFixed(1),ou:ou,H:Math.round(P.H)});}});}}
+    R.couloir={n:nC,par:C,ex:exC};R.congere={n:nK,par:K,ex:exK};}
+  { /* 3. la neige contre la dalle de verglas (bkVerglasPose : W = RH + 1,2, à +0,06 m du plan) */
+    const st=Math.max(1,Math.round(5/ds)),W=RH+1.2;let n=0,t=0,pire=-1e9,ex=[];
+    const F9={p:new THREE.Vector3(),t:new THREE.Vector3(),n:new THREE.Vector3(),b:new THREE.Vector3()};for(let i=0;i<NP;i+=st){frameAt(i*ds,F9);for(let q=-1;q<=1.001;q+=.05){const l=q*W,x=F9.p.x+F9.b.x*l,z=F9.p.z+F9.b.z*l,y=F9.p.y+F9.b.y*l+F9.n.y*.06,h=solM(x,z);if(h==null)continue;t++;const m=h-y;if(m>pire)pire=m;
+      if(m>-.02){n++;if(ex.length<8)ex.push({s:Math.round(i*ds),lat:Math.round(l),m:+m.toFixed(2)});}}}
+    R.neige={essais:t,percees:n,pire:+pire.toFixed(2),ex:ex};}
+  { /* 4. les pieds des cristaux contre le maillage de la neige */
+    let n=0,fl=0,pire=0;const par={},ex=[];
+    for(const P of BANQ.pics){n++;let f=0;const V=P.V;for(let i=0;i<P.n;i++){const a=V[i],b9=V[(i+1)%P.n];for(const w of [[a[0],a[1],a[2]],[(a[0]+b9[0])/2,(a[1]+b9[1])/2,(a[2]+b9[2])/2]]){const h=solM(w[0],w[2]);if(h==null)continue;f=Math.max(f,w[1]-h);}}
+      if(f>.3){fl++;par[P.ou||'?']=(par[P.ou||'?']||0)+1;if(f>pire)pire=f;if(ex.length<8)ex.push({x:Math.round(P.cx),z:Math.round(P.cz),f:+f.toFixed(1),ou:P.ou,H:Math.round(P.H)});}}
+    R.pieds={n:n,flottants:fl,pire:+pire.toFixed(1),par:par,ex:ex};}
+  { /* 5. les tremplins : le cap sur leur retombée, et les pics de la piste qui l'encombrent */
+    const cap=i=>Math.atan2(T[i].x,T[i].z);R.becs=(BANQ.kick||[]).map(function(k){const i0=Math.min(NP-1,Math.round(k.s/ds));let dm=0;
+      for(let s9=k.s;s9<Math.min(L-1,k.s+BK_BEC.retombe);s9+=10){const i=Math.min(NP-1,Math.round(s9/ds));let d=cap(i)-cap(i0);d=Math.atan2(Math.sin(d),Math.cos(d));dm=Math.max(dm,Math.abs(d));}
+      let hors=0;{const t=T[i0],th=Math.hypot(t.x,t.z)||1,ux=t.x/th,uz=t.z/th,c9=(k.l0+k.l1)/2,b0=B[i0],X=pts[i0].x+b0.x*c9,Z=pts[i0].z+b0.z*c9; /* la ligne droite de la lèvre : sa distance en plan au bord de la piste, de 100 à 450 m */
+        for(let D9=100;D9<=450;D9+=25){const x=X+ux*D9,z=Z+uz*D9;let bd=1e18,bj=i0;for(let j=i0;j<Math.min(NP,i0+Math.round(700/ds));j+=2){const q=(pts[j].x-x)**2+(pts[j].z-z)**2;if(q<bd){bd=q;bj=j;}}const bh=Math.hypot(B[bj].x,B[bj].z)||1,dl=Math.abs((x-pts[bj].x)*B[bj].x+(z-pts[bj].z)*B[bj].z)/bh;hors=Math.max(hors,dl-RH*bh);}}
+      let gene=0;for(const q of BANQ.obst||[])if(q.s>k.s&&q.s<k.s+BK_BEC.retombe)gene++;return {s:Math.round(k.s),l0:Math.round(k.l0),l1:Math.round(k.l1),capMax:Math.round(dm*57.3),hors:Math.round(hors),gene:gene,reste:Math.round(L-k.s)};});}
+  { /* 6. la signature */
+    let h=0;const st=Math.max(1,Math.round(50/ds));for(let i=0;i<NP;i+=st)h=(h*31+Math.round(pts[i].x*10)+Math.round(pts[i].y*7)+Math.round(pts[i].z*3))|0;
+    let hp=0;for(const P of BANQ.pics)hp=(hp*31+Math.round(P.cx)+Math.round(P.cz)*3+Math.round(P.H)*7)|0;
+    R.sig={route:h,pics:hp,nPics:BANQ.pics.length,nBecs:(BANQ.kick||[]).length,deco:BANQ.deco};}
+  return R;};
+
 /* <<<FIN BANQUISE>>> */

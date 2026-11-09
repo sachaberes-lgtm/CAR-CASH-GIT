@@ -93,69 +93,85 @@ function* buildBanqG(seed){ // ses rendez-vous (JF.lim) ne rendent la main qu'au
   const proches=(x,z,R,cb)=>{const r=Math.ceil(R/HB),bx=Math.floor(x/HB),bz=Math.floor(z/HB);for(let dx=-r;dx<=r;dx++)for(let dz=-r;dz<=r;dz++){const a=grille.get((bx+dx)*100003+bz+dz);if(a)for(let j=0;j<a.length;j++)cb(a[j]);}};
   const lat9=i=>{const t=T[i],hl=Math.hypot(t.x,t.z)||1;return [-t.z/hl,t.x/hl];};
   // une grappe ne doit JAMAIS crever la dalle, ni ses bords, ni l'air de la caméra (14 m de chaque côté) : 5 m d'air au moins
-  const libre=(L9,Wx)=>{let cx=0,cz=0,r=0;for(const P of L9){cx+=P.cx;cz+=P.cz;}cx/=L9.length;cz/=L9.length;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-cx,P.cz-cz)+P.r);
-    let ok=true;const W9=Wx||ROAD_HALF+14,LAT9=[-W9,-ROAD_HALF,-ROAD_HALF*.5,0,ROAD_HALF*.5,ROAD_HALF,W9];
-    if(bkSolD(cx,cz)<r+W9+90)proches(cx,cz,r+W9,function(j){ /* (loin de toute route, rien à vérifier : la distance de la grille suffit, marge 90 m) */if(!ok)return;const p=pts[j],ex=p.x-cx,ez=p.z-cz;if(ex*ex+ez*ez>(r+W9)*(r+W9))return;const l9=lat9(j);
-      for(let q=0;q<7;q++){const l=LAT9[q],x=p.x+l9[0]*l,z=p.z+l9[1]*l;if((x-cx)**2+(z-cz)**2>r*r)continue;
-        for(const P of L9){if((x-P.cx)**2+(z-P.cz)**2>P.r2)continue;if(bkPrimH(P,x,z)>p.y-THICK-5){ok=false;return;}}}});
+  /* ===== LE DÉCOR CONTRE LA PISTE PENCHÉE (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+     MESURÉ (dbgGlacier, midi, graines 1-5) : 491 à 1 389 points du couloir de conduite (demi-largeur + 1 m) sous un cristal qui monte jusqu'à 15 m AU-DESSUS
+     de la glace — les haies du bord surtout, des pics où l'on glisse et des séracs. La règle d'avant lisait la piste à plat : sept points en travers
+     (lat9 : l'horizontale perpendiculaire), comparés à la hauteur de l'AXE. Or la piste roule dans les virages (le dévers, jusqu'à 26°) : son bord bas
+     est jusqu'à 40 m sous l'axe — un pic « 10 m sous l'axe » s'y dressait de 30 m sur la glace ; et entre deux des sept points (49 m), rien n'était lu.
+     Désormais les points suivent le VRAI repère de la piste (B, comme la dalle de verglas) à leur vraie hauteur, tous les 2,5 m du travers sous la grappe ;
+     `mg` : l'air demandé hors de la dalle (THICK + 5 par défaut, comme avant). */
+  const libre=(L9,Wx,mg)=>{let cx=0,cz=0,r=0;for(const P of L9){cx+=P.cx;cz+=P.cz;}cx/=L9.length;cz/=L9.length;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-cx,P.cz-cz)+P.r);
+    let ok=true;const W9=Wx||ROAD_HALF+14,WD=ROAD_HALF+1.2,MG=mg==null?THICK+5:mg;
+    if(bkSolD(cx,cz)<r+W9+90)proches(cx,cz,r+W9,function(j){ /* (loin de toute route, rien à vérifier : la distance de la grille suffit, marge 90 m) */if(!ok)return;const p=pts[j],ex=p.x-cx,ez=p.z-cz;if(ex*ex+ez*ez>(r+W9)*(r+W9))return;const b=B[j],bh=b.x*b.x+b.z*b.z;if(bh<1e-6)return;
+      const lc=(-ex*b.x-ez*b.z)/bh,lr=r/Math.sqrt(bh),l0=Math.max(-W9,lc-lr),l1=Math.min(W9,lc+lr); /* le travers de la piste sous la grappe */
+      for(let l=l0;l<=l1+.01;l+=2.5){const x=p.x+b.x*l,z=p.z+b.z*l,y=p.y+b.y*l-(Math.abs(l)<=WD?THICK+5:MG);if((x-cx)**2+(z-cz)**2>r*r)continue;
+        for(const P of L9){if((x-P.cx)**2+(z-P.cz)**2>P.r2)continue;if(bkPrimH(P,x,z)>y){ok=false;return;}}}});
     return ok;};
   const PH=[],KN={},KF={},cle=(x,z,c)=>Math.floor(x/c)*100003+Math.floor(z/c);
-  const pose=(L9,phys,loin)=>{for(const P of L9){const C=loin?1500:600,k=cle(P.cx,P.cz,C),D9=loin?KF:KN;(D9[k]||(D9[k]={L:[],x:(Math.floor(P.cx/C)+.5)*C,z:(Math.floor(P.cz/C)+.5)*C,r:C*.71})).L.push(P);if(phys)PH.push(P);}};
+  const pose=(L9,phys,loin,ou)=>{for(const P of L9){P.ou=ou||''; /* (2026-11-07) ou : la famille de pose, lue par dbgGlacier */const C=loin?1500:600,k=cle(P.cx,P.cz,C),D9=loin?KF:KN;(D9[k]||(D9[k]={L:[],x:(Math.floor(P.cx/C)+.5)*C,z:(Math.floor(P.cz/C)+.5)*C,r:C*.71})).L.push(P);if(phys)PH.push(P);}};
   // ---- 1. LES PICS OÙ L'ON GLISSE : des dômes et des pyramides de glace au bord de la route (pente ≤ 1 : 45° au plus) ----
   let nG=0,nS=0,nA=0,nL=0;
   {let sd=fr()<.5?-1:1;for(let s9=380+fr()*120;s9<L-220;s9+=(105+fr()*115)/KP/(DZ?DZ.pic.n:1)){const i=Math.round(s9/ds);if(fr()<.7)sd=-sd;
     let H=(34+fr()*96)*(DZ?DZ.pic.h:1);const pente=.55+fr()*.40,nv=1+((fr()*3)|0),lat=ROAD_HALF+24+H/pente*.5+fr()*120,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
-    for(let e=0;e<3;e++){const L9=bkGrappe(x,z,bkSolH(x,z)-1.5,H,pente,nv,fr,0);if(libre(L9)){pose(L9,true,false);nG++;break;}H*=.68;}}}
+    for(let e=0;e<3;e++){const L9=bkGrappe(x,z,bkSolH(x,z)-1.5,H,pente,nv,fr,0);if(libre(L9)){pose(L9,true,false,'glisse');nG++;break;}H*=.68;}}}
   if(performance.now()>JF.lim)yield;
   // ---- 2. LES SÉRACS : des éclats de glace semés sur la neige, quelques-uns SOUS la route (on les frôle en plongeant) ----
   for(let s9=300+fr()*60;s9<L-150;s9+=(44+fr()*56)/KP/(DZ?DZ.ser:1)){const i=Math.round(s9/ds),sd=fr()<.5?-1:1,sous=fr()<.25,lat=sous?fr()*ROAD_HALF:ROAD_HALF+10+fr()*170,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;
-    const H=sous?3+fr()*7:4+fr()*13,L9=bkGrappe(x,z,bkSolH(x,z)-.8,H,.6+fr()*.55,(fr()*3)|0,fr,0);if(libre(L9)){pose(L9,true,false);nS++;}}
+    const H=sous?3+fr()*7:4+fr()*13,L9=bkGrappe(x,z,bkSolH(x,z)-.8,H,.6+fr()*.55,(fr()*3)|0,fr,0);if(libre(L9)){pose(L9,true,false,'serac');nS++;}}
   if(performance.now()>JF.lim)yield;
   // ---- 3. LES AIGUILLES : des flèches de 110 à 420 m, trop raides pour y glisser (on y meurt) ----
   {let sd=fr()<.5?-1:1;for(let s9=200+fr()*200;s9<L;s9+=(115+fr()*120)/KP/(DZ?DZ.aig.n:1)){const i=Math.min(NP-1,Math.round(s9/ds));sd=-sd;
     const H=(110+fr()*310)*(DZ?DZ.aig.h:1),lat=230+fr()*640,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;if(bkSolD(x,z)<200)continue;
-    const L9=bkGrappe(x,z,bkSolH(x,z)-6,H,2.2+fr()*1.8,3+((fr()*5)|0),fr,1);if(libre(L9)){pose(L9,true,false);nA++;}}}
+    const L9=bkGrappe(x,z,bkSolH(x,z)-6,H,2.2+fr()*1.8,3+((fr()*5)|0),fr,1);if(libre(L9)){pose(L9,true,false,'aiguille');nA++;}}}
   if(performance.now()>JF.lim)yield;
   // ---- 4. LES GÉANTS : l'horizon de glace (400 m à 1,3 km de haut, de 1,1 à 3,6 km de la route) — décor, sans physique ----
   {const KL=PAL_BK('banqLoin',1);for(let s9=0;s9<L+600;s9+=230/KL*(DZ?DZ.gea.pas:1)){const i=Math.min(NP-1,Math.round(s9/ds));for(const sd of [-1,1]){if(fr()<.12)continue;
     const lat=1100+fr()*2500,l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;if(bkSolD(x,z)<900)continue;
-    const H=(380+fr()*920)*(DZ?DZ.gea.h:1);pose(bkGrappe(x,z,bkSolH(x,z)-20,H,1.4+fr()*1.5,3+((fr()*5)|0),fr,2,420),false,true);nL++;}}
+    const H=(380+fr()*920)*(DZ?DZ.gea.h:1);pose(bkGrappe(x,z,bkSolH(x,z)-20,H,1.4+fr()*1.5,3+((fr()*5)|0),fr,2,420),false,true,'geant');nL++;}}
    // l'avant et l'arrière de la descente : le grand amphithéâtre au loin, dans l'axe
    for(const fin of [0,1]){const i=fin?NP-1:0,t=T[i],hl=Math.hypot(t.x,t.z)||1,dx=t.x/hl*(fin?1:-1),dz=t.z/hl*(fin?1:-1);
      const nA9=DZ?DZ.amph.n:7;for(let k=0;k<nA9;k++){const a=(DZ?(k-(nA9-1)/2)*2.24/nA9:(k-3)*.32)+(fr()-.5)*.2,c=Math.cos(a),s9=Math.sin(a),d=(2400+fr()*1800)*(DZ?DZ.amph.d:1),x=pts[i].x+(dx*c-dz*s9)*d,z=pts[i].z+(dz*c+dx*s9)*d;
-       const H=600+fr()*900;pose(bkGrappe(x,z,bkSolH(x,z)-40,H,1.5+fr()*1.2,4+((fr()*4)|0),fr,2,520),false,true);nL++;}}}
+       const H=600+fr()*900;pose(bkGrappe(x,z,bkSolH(x,z)-40,H,1.5+fr()*1.2,4+((fr()*4)|0),fr,2,520),false,true,'amphi');nL++;}}}
   if(performance.now()>JF.lim)yield;
   /* ---- 4 ter (2026-10-20, LE DÉCOR AU HASARD) LES PIÈCES NEUVES : le monument, les orgues, les portes de glace (le flux dz2 ; mêmes cristaux, même matière) ---- */
   let nM9=0;
   if(DZ){const lieu=(f,lat0,lat1,dMin,e9)=>{for(let e=0;e<(e9||20);e++){const i=Math.max(0,Math.min(NP-1,Math.round((f+(e?(dz2()-.5)*.3:0))*(NP-1)))),l9=lat9(i),sd=dz2()<.5?-1:1,lat=lat0+dz2()*(lat1-lat0),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;if(bkSolD(x,z)>=dMin)return [x,z,i,sd];}return null;};
     if(DZ.mon==='cirque'){const o=lieu(.25+dz2()*.5,620,900,480);if(o){const R9=130+dz2()*60,n=8+((dz2()*7)|0),a0=dz2()*6.283;
-      for(let k=0;k<n;k++){const an=a0+k/n*6.2832,x=o[0]+Math.cos(an)*R9,z=o[1]+Math.sin(an)*R9;if(bkSolD(x,z)<300)continue;const L9=bkGrappe(x,z,bkSolH(x,z)-6,(160+dz2()*220)*(.8+.4*Math.abs(Math.sin(an*1.5))),2.6+dz2()*1.4,2+((dz2()*3)|0),dz2,1);if(libre(L9)){pose(L9,true,false);nM9++;}}}}
+      for(let k=0;k<n;k++){const an=a0+k/n*6.2832,x=o[0]+Math.cos(an)*R9,z=o[1]+Math.sin(an)*R9;if(bkSolD(x,z)<300)continue;const L9=bkGrappe(x,z,bkSolH(x,z)-6,(160+dz2()*220)*(.8+.4*Math.abs(Math.sin(an*1.5))),2.6+dz2()*1.4,2+((dz2()*3)|0),dz2,1);if(libre(L9)){pose(L9,true,false,'cirque');nM9++;}}}}
     else if(DZ.mon==='cathédrale'){const o=lieu(.2+dz2()*.6,800,1150,650);if(o){const n=3+((dz2()*3)|0);
-      for(let k=0;k<n;k++){const an=dz2()*6.283,r9=k?60+dz2()*90:0,x=o[0]+Math.cos(an)*r9,z=o[1]+Math.sin(an)*r9;const L9=bkGrappe(x,z,bkSolH(x,z)-10,(k?450:700)+dz2()*250,3+dz2()*1.5,3+((dz2()*3)|0),dz2,1);if(libre(L9)){pose(L9,true,false);nM9++;}}}}
+      for(let k=0;k<n;k++){const an=dz2()*6.283,r9=k?60+dz2()*90:0,x=o[0]+Math.cos(an)*r9,z=o[1]+Math.sin(an)*r9;const L9=bkGrappe(x,z,bkSolH(x,z)-10,(k?450:700)+dz2()*250,3+dz2()*1.5,3+((dz2()*3)|0),dz2,1);if(libre(L9)){pose(L9,true,false,'cathedrale');nM9++;}}}}
     for(let r=0;r<DZ.org;r++){const f0=.12+dz2()*.7,sd=dz2()<.5?-1:1,lg=300+dz2()*220,i0=Math.round(f0*(NP-1)),lat=ROAD_HALF+120+dz2()*50;
       for(let s9=i0*ds;s9<Math.min(L-200,i0*ds+lg);s9+=30+dz2()*16){const i=Math.round(s9/ds),l9=lat9(i),x=pts[i].x+l9[0]*sd*lat,z=pts[i].z+l9[1]*sd*lat;if(bkSolD(x,z)<ROAD_HALF+100)continue;
-        const L9=bkGrappe(x,z,bkSolH(x,z)-3,40+dz2()*55,5+dz2()*2,(dz2()*2)|0,dz2,1);if(libre(L9)){pose(L9,true,false);nM9++;}}}
+        const L9=bkGrappe(x,z,bkSolH(x,z)-3,40+dz2()*55,5+dz2()*2,(dz2()*2)|0,dz2,1);if(libre(L9)){pose(L9,true,false,'orgue');nM9++;}}}
     for(let k=0;k<DZ.porte;k++){const o=lieu(.1+dz2()*.8,180,320,160);if(!o)continue;const t9=T[o[2]],hl=Math.hypot(t9.x,t9.z)||1,ux=t9.x/hl,uz=t9.z/hl,H=60+dz2()*55,w=H*(.55+dz2()*.25),yb=bkSolH(o[0],o[1])-4,L9=[];
       for(const sg of [-1,1])L9.push(bkPrim(o[0]+ux*sg*w,o[1]+uz*sg*w,yb,H,H/4.2,6,-ux*sg*w*.92,-uz*sg*w*.92,dz2()*6.28,dz2,1)); /* deux lames penchées l'une vers l'autre (sommet décalé de lx, lz) : elles se touchent en haut */
-      if(libre(L9)){pose(L9,true,false);nM9++;}}}
+      if(libre(L9)){pose(L9,true,false,'porte');nM9++;}}}
   BANQ.n.decoNeuf=nM9;
   if(performance.now()>JF.lim)yield;
   /* ---- 4 ter bis (2026-10-28, Léo : « le principe de la map, c'est de zigzaguer et passer sans cogner les bords… mets juste des pics de glace sur les côtés de la route et laisse la route en verglas ») LES BORDS : deux haies d'aiguilles de glace le long de la dalle, de chaque côté, du départ à l'arrivée (flux à part : rien d'autre ne bouge) ---- */
   {const rb=mulberry32((seed^0xB07DE5)>>>0),pas=ALLEGE?46:30;let nB=0;
-    for(const sd of [-1,1])for(let s9=90+rb()*pas;s9<L-60;s9+=pas*(.7+rb()*.7)){const i=Math.min(NP-1,Math.round(s9/ds)),l9=lat9(i),p=pts[i];
-      for(let e=0;e<4;e++){const pente=1.9+rb()*1.3,lat0=ROAD_HALF+3+e*7,xa=p.x+l9[0]*sd*(lat0+10),za=p.z+l9[1]*sd*(lat0+10),H=Math.max(14,p.y-bkSolH(xa,za))+22+rb()*70,lat=lat0+H/pente*.45,x=p.x+l9[0]*sd*lat,z=p.z+l9[1]*sd*lat;
-        const L9=bkGrappe(x,z,bkSolH(x,z)-1.5,H,pente,(rb()*2)|0,rb,0);if(libre(L9,ROAD_HALF+2)){pose(L9,true,false);nB++;break;}}}
-    BANQ.n.bords=nB;}
+    for(const sd of [-1,1])for(let s9=90+rb()*pas;s9<L-60;s9+=pas*(.7+rb()*.7)){const i=Math.min(NP-1,Math.round(s9/ds)),b9=B[i],l9=[b9.x,b9.z],p=pts[i]; /* (2026-11-07) le travers de la piste PENCHÉE (B, comme la dalle), plus l'horizontale de l'axe */
+      for(let e=0;e<4;e++){const pente=1.9+rb()*1.3,lat0=ROAD_HALF+BK_CG.w+3+e*7,xa=p.x+l9[0]*sd*(lat0+10),za=p.z+l9[1]*sd*(lat0+10),H=Math.max(14,p.y-bkSolH(xa,za))+22+rb()*70,lat=lat0+H/pente*.45,x=p.x+l9[0]*sd*lat,z=p.z+l9[1]*sd*lat;
+        const L9=bkGrappe(x,z,bkSolH(x,z)-1.5,H,pente,(rb()*2)|0,rb,0);if(libre(L9,ROAD_HALF+BK_CG.w+2,1)){pose(L9,true,false,'bord');nB++;break;}}}
+    BANQ.n.bords=nB;} /* (2026-11-07, Sacha : « génération aléatoire parfaite ») LES HAIES AU-DELÀ DE LA CONGÈRE : on ROULE dans la neige du bord jusqu'à BK_CG.w m de la glace (bkCongere : la caisse y freine, sans mourir) et la conduite n'y lit aucun pic — MESURÉ (dbgGlacier, midi, graines 1-5) : 10 000 à 12 000 points de cette bande sous une aiguille des haies, jusqu'à 25 m au-dessus de la caisse, qui les traversait. Les haies partent désormais après la bande (BK_CG.w + 3 m), et rien n'y dépasse de la neige (libre, 1 m d'air, sur BK_CG.w + 2 m : la caisse et sa demi-largeur) */
   if(performance.now()>JF.lim)yield;
   // ---- 4 bis (v4). LA PISTE : LES BECS DE GLACE, puis LES PICS SUR LA PISTE, en figures ----
   BANQ.obst=[];BANQ.kick=[];
   {const fr=mulberry32((seed^0xB0B57AC)>>>0) /* (2026-10-22, DEBUGGING : LA PISTE a SON flux — les multiplicateurs du DÉCOR AU HASARD (pics, séracs, aiguilles, géants, amphithéâtre) changent le NOMBRE de tirages de `fr` des sections 1-4 : MESURÉ, même pistegraine, 16 pics sur la piste avec le décor contre 14 sans (23 contre 15), et les pièces qui les évitent — le décor rebattait les obstacles de la route) */,RH=ROAD_HALF,kRH=RH/61.6,O=BANQ.obst,KK=BANQ.kick,ou=(s9,la)=>{const i=Math.max(0,Math.min(NP-1,Math.round(s9/ds))),p=pts[i],b=B[i];return [p.x+b.x*la,p.y+b.y*la,p.z+b.z*la];};
     const libreK=(s9,la,r,ov)=>{for(const k of KK){if(s9>k.s-k.lg-60&&s9<k.s+260&&la+r>k.l0-8&&la-r<k.l1+8)return false;if(BK_RETOMBE&&s9+r>k.s&&s9-r<k.s+BK_BEC.retombe)return false;} /* (2026-10-18) 60 m d'approche dégagés devant la rampe (au banc, on percutait un pic en visant le tremplin), et sa retombée : 260 m (à 45°, on vole loin) — (2026-10-19) puis BK_BEC.retombe m sur TOUTE la largeur (voir BK_RETOMBE) */if(!ov)for(const o of O)if(Math.abs(o.s-s9)<o.r+r+8&&Math.abs(o.lat-la)<o.r+r+8)return false;return true;}; // ni sur un bec ni dans sa retombée, ni collé à un autre pic
     let gdPic=true; /* (2026-10-25) faux = la figure en cours n'a aucun pic */const pic=(s9,la,H,pente,ov)=>{if(!gdPic)return false;{const i=Math.max(3,Math.min(NP-4,Math.round(s9/ds))),a=pts[i-3],c=pts[i+3];pente+=Math.max(0,(a.y-c.y)/Math.max(1,Math.hypot(a.x-c.x,a.z-c.z)));} /* (2026-10-18) + la PENTE de la piste : à 45°, le flanc aval d'un pic à 55° (1,4) devenait presque parallèle à la glace — une lame basse de 30 à 50 m qu'on croyait franchir et qui tuait (« des problèmes de collision avec la glace ») ; sa face aval garde désormais, par rapport à la piste, la raideur qu'elle aurait sur le plat */const R=H/pente;if(Math.abs(la)>RH-R*.35-3||!libreK(s9,la,R,ov))return false;const q=ou(s9,la);
-      const L9=bkGrappe(q[0],q[2],q[1]-.4,H,pente,(fr()*3)|0,fr,1.4,Math.max(9,R*1.1)); /* (pied profond : sur la pente raide, le côté aval ne flotte pas) fam 1,4 : une aiguille pour la physique, mais COIFFÉE DE NEIGE (BK_PIC_FS) */pose(L9,true,false);let r=0;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-q[0],P.cz-q[2])+P.r);
+      const L9=bkGrappe(q[0],q[2],q[1]-.4,H,pente,(fr()*3)|0,fr,1.4,Math.max(9,R*1.1)); /* (pied profond : sur la pente raide, le côté aval ne flotte pas) fam 1,4 : une aiguille pour la physique, mais COIFFÉE DE NEIGE (BK_PIC_FS) */pose(L9,true,false,'piste');let r=0;for(const P of L9)r=Math.max(r,Math.hypot(P.cx-q[0],P.cz-q[2])+P.r);
       O.push({s:s9,lat:la,L9:L9,r:r,x:q[0],z:q[2]});return true;};
+    /* ===== LA RETOMBÉE SUR LA PISTE (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+       MESURÉ (dbgGlacier, midi, graines 1-5) : sur 17 tremplins, 5 lançaient la caisse dans une ligne droite qui SORTAIT de la piste de 40 à 58 m avant 450 m
+       (le cap ne tournait que de 29 à 53° — la règle des 31° sur 260 m ne voyait ni où le virage emmenait le bord, ni la place du tremplin dans la largeur).
+       hors9 : de 100 à 450 m après la lèvre, la plus grande distance en plan entre la ligne droite du tremplin (son milieu c) et le bord de la piste
+       (négative : dedans). Le tremplin cherche sa place plus loin (comme pour le cap) tant qu'elle n'est pas à 8 m dedans au moins. */
+    const hors9=(sL,c)=>{const i0=Math.max(0,Math.min(NP-1,Math.round(sL/ds))),t=T[i0],th=Math.hypot(t.x,t.z)||1,ux=t.x/th,uz=t.z/th,b0=B[i0],X=pts[i0].x+b0.x*c,Z=pts[i0].z+b0.z*c;let h=-1e9,bj=i0;
+      for(let D9=100;D9<=450;D9+=25){const x=X+ux*D9,z=Z+uz*D9;let bd=1e18;for(let j=bj;j<Math.min(NP,i0+Math.round(700/ds));j+=2){const q=(pts[j].x-x)**2+(pts[j].z-z)**2;if(q<bd){bd=q;bj=j;}}
+        const bh=Math.hypot(B[bj].x,B[bj].z)||1;h=Math.max(h,Math.abs((x-pts[bj].x)*B[bj].x+(z-pts[bj].z)*B[bj].z)/bh-RH*bh);}return h;};
     const bec=(s9,c,w)=>{{const cap9=s=>{const t0=T[Math.min(NP-1,Math.round((s+BK_BEC.lg)/ds))],t1=T[Math.min(NP-1,Math.round((s+BK_BEC.lg+BK_BEC.droit)/ds))];return Math.abs(Math.atan2(t0.x*t1.z-t0.z*t1.x,t0.x*t1.x+t0.z*t1.z));};
-      let o=0;while(o<=240&&cap9(s9+o)>.55)o+=30;if(o>240)return;s9+=o;} /* (2026-10-18) jamais devant un virage : à 45°, un vol couvre 250-450 m — posé avant une courbe, il retombait à côté de la piste ; on cherche la portion presque droite (< 31° de cap sur BK_BEC.droit m) jusqu'à 240 m plus loin */c=THREE.MathUtils.clamp(c,-RH+w/2+6,RH-w/2-6);KK.push({s:s9+BK_BEC.lg,l0:c-w/2,l1:c+w/2,lg:BK_BEC.lg,h:BK_BEC.h});return s9+BK_BEC.lg;}; // (2026-10-18) s = la LÈVRE du tremplin ; sa rampe monte sur les lg m d'avant
+      c=THREE.MathUtils.clamp(c,-RH+w/2+6,RH-w/2-6);let o=0;while(o<=240&&(cap9(s9+o)>.55||hors9(s9+o+BK_BEC.lg,c)>-8))o+=30;if(o>240)return;s9+=o;} /* (2026-10-18) jamais devant un virage : à 45°, un vol couvre 250-450 m — posé avant une courbe, il retombait à côté de la piste ; on cherche la portion presque droite (< 31° de cap sur BK_BEC.droit m) jusqu'à 240 m plus loin */c=THREE.MathUtils.clamp(c,-RH+w/2+6,RH-w/2-6);KK.push({s:s9+BK_BEC.lg,l0:c-w/2,l1:c+w/2,lg:BK_BEC.lg,h:BK_BEC.h});return s9+BK_BEC.lg;}; // (2026-10-18) s = la LÈVRE du tremplin ; sa rampe monte sur les lg m d'avant
     /* (2026-10-18, Sacha : « moins d'obstacles sur la route ») une figure tous les ~0,6-1 km (0,3-0,5 avant) et moins de pics dans chacune (fourche 3-5,
        champ 5-7, îlot 2-3) — ~4 × moins de pics ; (« les tremplins doivent être plus beaux, gros et visibles ») un TREMPLIN avant deux figures sur trois,
        et un tremplin seul au milieu d'une longue descente sur deux (voir BK_BEC) */

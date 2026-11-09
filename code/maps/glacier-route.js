@@ -301,11 +301,27 @@ function banqSol(){
     const lim=plan(k,x0+i*C,z0+j*C,1)-.8;if(H[k]>lim)H[k]=lim;}}
   else{const W9=ROAD_HALF+.5,rr=Math.ceil(W9/C);for(let ii=0;ii<NP;ii+=Math.max(1,Math.round(6/(L/(NP-1))))){const p=pts[ii],ci=Math.round((p.x-x0)/C),cj=Math.round((p.z-z0)/C),lim=p.y-.8; // sous la glace : juste sous la surface (la piste EST le sol)
     for(let b=-rr;b<=rr;b++)for(let a=-rr;a<=rr;a++){const i=ci+a,j=cj+b;if(i<0||j<0||i>=nx||j>=nz)continue;const x=x0+i*C,z=z0+j*C;if((x-p.x)**2+(z-p.z)**2>W9*W9)continue;const k=i+j*nx;if(H[k]>lim)H[k]=lim;}}}
+  /* ===== LA NEIGE SOUS LA DALLE, TRIANGLE PAR TRIANGLE (2026-11-07, Sacha : « génération aléatoire parfaite ») =====
+     MESURÉ (dbgGlacier, midi, graines 1-5, sur les vrais triangles du maillage) : 531 à 1 911 points de la dalle de verglas SOUS la neige, de quelques
+     centimètres à 16 m. La sûreté ne règle que les nœuds à moins d'une demi-largeur de l'axe ; or les cases font 34 à 40 m : un triangle qui chevauche le
+     bord mêle un nœud tenu sous la glace et un nœud du bourrelet (ou, entre deux lacets à 200 m l'un de l'autre, un nœud calé sur la piste du DESSUS, 200 m
+     plus haut) — l'interpolation crève la dalle près de ses bords. Désormais, sur toute la largeur de la dalle (tous les ~4 m, le long de B comme
+     bkVerglasPose), le triangle du maillage (bkSolMorceau : la même diagonale) qui passe au-dessus de la glace − 0,8 m descend ses trois nœuds d'autant
+     (on ne fait que baisser : le reste du manteau ne bouge pas). La physique (banqSurf) lit la même grille. */
+  if(BK_RECALE){const W=ROAD_HALF+1.2,st=Math.max(1,Math.round(3/(L/(NP-1)))),nl=Math.max(2,Math.ceil(2*W/4));
+    for(let ii=0;ii<NP;ii+=st){const p=pts[ii],b=B[ii];if(!b)continue;
+      for(let q=0;q<=nl;q++){const l=-W+2*W*q/nl,x=p.x+b.x*l,z=p.z+b.z*l,lim=p.y+b.y*l-.8,fx=(x-x0)/C,fz=(z-z0)/C;if(fx<0||fz<0||fx>nx-1.001||fz>nz-1.001)continue;
+        const i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*nx;let k1,k2,k3,w1,w2,w3;
+        if(u+v<=1){k1=k;k2=k+1;k3=k+nx;w1=1-u-v;w2=u;w3=v;}else{k1=k+nx+1;k2=k+nx;k3=k+1;w1=u+v-1;w2=1-u;w3=1-v;}
+        const e=H[k1]*w1+H[k2]*w2+H[k3]*w3-lim;if(e>0){H[k1]-=e;H[k2]-=e;H[k3]-=e;}}}}
   tqm('surete');
   return BANQ.sol={x0:x0,z0:z0,C:C,nx:nx,nz:nz,h:H,d:D,MARG:MARG,gBil:gBil,GY:GY,GD:GD};
 }
 function bkSolH(x,z){const S=BANQ.sol;if(!S)return -1e9;const fx=Math.max(0,Math.min(S.nx-1.001,(x-S.x0)/S.C)),fz=Math.max(0,Math.min(S.nz-1.001,(z-S.z0)/S.C)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*S.nx,n=S.nx,A=S.h;
   return (A[k]*(1-u)+A[k+1]*u)*(1-v)+(A[k+n]*(1-u)+A[k+n+1]*u)*v;}
+/* (2026-11-07) la neige telle que le MAILLAGE la dessine (les triangles de bkSolMorceau, pas le bilinéaire de bkSolH) : sur une pente de 45° en cases de 34-40 m, les deux diffèrent de plusieurs mètres */
+function bkSolTri(x,z){const S=BANQ.sol;if(!S)return -1e9;const fx=Math.max(0,Math.min(S.nx-1.001,(x-S.x0)/S.C)),fz=Math.max(0,Math.min(S.nz-1.001,(z-S.z0)/S.C)),i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*S.nx,n=S.nx,A=S.h;
+  return u+v<=1?A[k]+u*(A[k+1]-A[k])+v*(A[k+n]-A[k]):A[k+n+1]+(1-u)*(A[k+n]-A[k+n+1])+(1-v)*(A[k+1]-A[k+n+1]);}
 function bkSolD(x,z){const S=BANQ.sol;if(!S)return 1e9;const fx=(x-S.x0)/S.C,fz=(z-S.z0)/S.C;if(fx<0||fz<0||fx>S.nx-1.001||fz>S.nz-1.001)return S.gBil(S.GD,x,z);
   const i=fx|0,j=fz|0,u=fx-i,v=fz-j,k=i+j*S.nx,n=S.nx,A=S.d;return (A[k]*(1-u)+A[k+1]*u)*(1-v)+(A[k+n]*(1-u)+A[k+n+1]*u)*v;}
 /* ---------------- LES PICS DE GLACE : des pyramides dont chaque facette est un VRAI plan ----------------
@@ -329,7 +345,7 @@ function bkPrim(x,z,yb,H,R,n,lx,lz,rot,rg,fam,prof){
      suit la pente (à 45°, le côté aval d'une base plate flottait) ; hors de la neige (les géants de l'horizon), un rayon de base plus bas, dans la brume.
      Aucun tirage de plus dans le cristal. La facette aval devient plus raide — la physique lit les mêmes plans (F, by). */
   let bm=by;
-  if(BK_RECALE&&BANQ.sol){const MG=BANQ.sol.MARG,sous=(x9,z9)=>bkSolD(x9,z9)<MG?bkSolH(x9,z9)-6:null;
+  if(BK_RECALE&&BANQ.sol){const MG=BANQ.sol.MARG,sous=(x9,z9)=>bkSolD(x9,z9)<MG?Math.min(bkSolH(x9,z9),bkSolTri(x9,z9))-6:null; /* (2026-11-07) sous la neige DESSINÉE aussi : MESURÉ, 5 cristaux sur ~350 (graines 4, 5) pendaient jusqu'à 23 m au-dessus des triangles du maillage, là où le bilinéaire les croyait enterrés */
     for(const v of V){const h9=sous(v[0],v[2]);v[1]=Math.min(by,h9!=null?h9:by-Rb);}
     for(let e=0;e<2;e++)for(let i=0;i<n;i++){const a=V[i],b=V[(i+1)%n],h9=sous((a[0]+b[0])/2,(a[2]+b[2])/2);if(h9==null)continue;const ex=(a[1]+b[1])/2-h9;if(ex>0){a[1]-=ex;b[1]-=ex;}}
     for(const v of V)if(v[1]<bm)bm=v[1];}
