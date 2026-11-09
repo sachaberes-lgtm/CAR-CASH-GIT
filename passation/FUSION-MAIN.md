@@ -30,3 +30,17 @@ Le merge de main 7c93ca1a (v1353) dans sur-main-3 donne deux vrais conflits de c
 - **Fumée son sur sur-main-6 (9ff96a98)** : `?tel=1` VERT (charge 38) · `?tel=1` VERT (charge 27) · bureau VERT (charge 8) → 3/3.
 - **P4 splash 6106f111** repris (14a11d37, app-ios seulement : LaunchScreen.storyboard = vue noire unie, Splash.imageset retiré) ; `xcodebuild -sdk iphonesimulator` BUILD SUCCEEDED, 0 erreur. Les commits perf3/P4 (vignette « En lecture », natif 91ac0084) restent sur leur branche.
 - **P5 7ff71e7f** (photos d'avance SHPRE coupées au palier 2, seulement garage ouvert 10 s sans geste) repris sans conflit (0ae72dd0) ; --verifier 304, 4 gardes OK. Pas de nouvelle fumée (changement de menus seul) ; aucun build depuis.
+
+## SUR-MAIN-6 sur origin/main c46b0a4f (v1364) — 9/11
+- Merge de main (45 commits : sortie du jeu v1361-1364) : 4 conflits. `code/maps/jade-eau.js` : le correctif de main (`setColorAt` AVANT `count=0`, tableau d'instanceColor non vide) + `dormeEau(im)` du train. `code/page/debut-corps.html` : hunk 1 = côté train (CAPS par genre, plafond 80, écriture lente 20 s) + `!window.Capacitor&&` de main (INT-N07) ; hunk 2 = les CINQ touchers de main (INT-07) + le `pagehide` du train. `sw.js` = main v1364 + 1 = **v1365**. `index.html` régénéré (`--depuis-morceaux`, 304 morceaux).
+- Vérifié : `--verifier`, garde-allège, burn-out, charte, démarrage OK. Fumée son b2392bd6 : `?tel=1` VERT (charge 3) · bureau VERT (charge 3). P5 7ff71e7f inclus.
+
+## RECETTE DE PUBLICATION (à ne lancer qu'au signal d'OPTI ULTIME / OUI de Sacha — PAS de push avant)
+1. `git fetch origin` ; repartir d'`origin/main` du moment dans un worktree neuf (`git worktree add ../publi -b publi-perf3 origin/main`).
+2. `git merge --no-ff perf3-sur-main-6` (jamais de force, jamais de rebase publié). Conflits connus : `sw.js` (prendre celui de main), `index.html` (le régénérer), `debut-corps.html` (voir ci-dessus), `jade-eau.js`, `JeuViewController.swift` (union : pas de redéfinition de `prefersHomeIndicatorAutoHidden`, `viewDidAppear` du serpent), `intro-161.js` / fichiers CRLF (côté serpent-fluide-main).
+3. `sw.js` : `CACHE` = celui de main + 1, UNE seule fois pour tout le train. Si main bouge entre-temps, refusionner puis re-incrémenter par-dessus main.
+4. `node code/assembler.cjs --depuis-morceaux` puis `--verifier` ; `grep '^<<<<<<<'` sur index.html et code/ (aucun marqueur).
+5. Compiler les `<script>` d'index.html (`vm.Script`) — le seul échec toléré est le faux positif connu du motif regex (présent sur main) ; deux sessions avec la même `const` dans l'IIFE ne se voient pas à la fusion.
+6. Gardes : `garde-allege.sh`, `garde-burnout.sh`, `garde-charte.sh`, `node outils/garde-demarrage.cjs`, puis `garde-perf.py` palier 2 (p2) contre la base ; machine calme (charge < 8), un seul banc sous `verrou-banc.sh`.
+7. Fumée son `?tel=1` ×2 + bureau ×1 (une à la fois) ; `xcodebuild -sdk iphonesimulator` si app-ios touché ; `cd app-ios && npm run sync` sans « motif introuvable ».
+8. Tout est local jusque-là. Le push d'`origin/main` publie (Vercel) : seulement sur le OUI explicite de Sacha relayé par OPTI ULTIME. Rappel : un hook post-commit pousse les BRANCHES de session (jamais main) — la branche `publi-perf3` partira donc seule sur origin, c'est normal.
