@@ -66275,6 +66275,7 @@ function m2CarAMoi(i){if(carRetiree(i))return false;if(carOwned(i))return true;i
   const u=CAR_UNLOCK[i];if(!u)return true;if(u.k==='mis'||u.p||u.k==='premium'||u.eur)return false;return carStat(u.k)>=u.v;}
 function m2HabAMoi(cat,d){if(cat==='figure')return d.id==='tailwhip'||(Array.isArray(SAVE.d.figs)&&SAVE.d.figs.indexOf(d.id)>=0);
   if(d.pack==='chat'&&m2Chat())return true;if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.def&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+d.id)>=0;}
+function m2ChatEuro(){try{const i=chatPackI();return i>=0&&carEuros(i);}catch(e){return false;}} /* la caisse du chat se paie-t-elle en € ? (chatPackI : economie/boutique.js) */
 function m2Chat(){for(let i=0;i<CARS.length;i++)if(CARS[i]&&CARS[i].shape==='poptart')return m2CarAMoi(i)||(function(){try{return carUnlockedVrai(i);}catch(e){return false;}})();return false;}
 /* les objets que donnent les missions : hors des « toutes » (« les objets gagnés par mission ne comptent PAS dans toutes ») — les
    couleurs SECRÈTES de la palette aussi (elles se gagnent par leur mission secrète) */
@@ -66286,7 +66287,7 @@ function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
   /* (2026-11-05, Opus : jury ECO-05) le lot « toutes » (LE TRÔNE CENTRAL, colall, toutall) ne compte plus ce qui se paie en € (impossible tant que StoreKit
    n'existe pas) ; dans l'app, preparer-www.js les passe à l'argent du jeu : ils y comptent de nouveau. */
   if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a=m2CarAMoi(i);if(a)n++;if(!R.car[CARS[i].name]&&(!carEuros(i)||a)){tot++;if(a)nT++;}}}
-  else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)&&(!d.eur||d.def||a)){tot++;if(a)nT++;}}} /* (2026-11-07, chasse ECO-N01) `d.def` : une peinture en € qui se gagne par son défi reste dans le lot, sinon colall était réussie d'office sur le web */
+  else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)&&(!d.eur||d.def||a)&&!(d.pack==='chat'&&!a&&m2ChatEuro())){tot++;if(a)nT++;}}} /* (2026-11-08, sortie ECO-N02) l'ARC-EN-CIEL (pack du chat) ne vient qu'avec la caisse du chat : tant qu'elle se paie en € et n'est pas à toi, il est hors du lot, comme les caisses en € de la voiture (sinon « toutes les traînées » et « tous les objets » étaient impossibles) */ /* (2026-11-07, chasse ECO-N01) `d.def` : une peinture en € qui se gagne par son défi reste dans le lot, sinon colall était réussie d'office sur le web */
   return {n:n,tot:tot,nT:nT};}
 /* (2026-10-22) LES RARES À TOI : celles qui s'achètent (les rares gagnées par mission ne comptent pas — LA DOLORÈS se débloque en les ayant toutes) */
 function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carRar(i)!=='rare'||R.car[CARS[i].name])continue;tot++;if(m2CarAMoi(i))n++;}return {n:n,tot:tot};}
