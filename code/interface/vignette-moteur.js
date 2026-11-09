@@ -48,7 +48,7 @@ function engLit(w,h,ctx){
       if(st!==gl.WAIT_FAILED){gl.bindBuffer(gl.PIXEL_PACK_BUFFER,ENG_PBO.b);gl.getBufferSubData(gl.PIXEL_PACK_BUFFER,0,engEndBuf);gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);engPose(ENG_PBO.ctx,w,h);}
     }
     renderer.setRenderTarget(engRT); // la nouvelle lecture part vers le tampon GPU…
-    gl.bindBuffer(gl.PIXEL_PACK_BUFFER,ENG_PBO.b);gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,0);gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);
+    gl.bindBuffer(gl.PIXEL_PACK_BUFFER,ENG_PBO.b);gl.bufferData(gl.PIXEL_PACK_BUFFER,w*h*4,gl.STREAM_READ);gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,0);gl.bindBuffer(gl.PIXEL_PACK_BUFFER,null);
     renderer.setRenderTarget(null);
     ENG_PBO.f=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);ENG_PBO.ctx=ctx; // …et on la ramassera au prochain passage
     return true;
