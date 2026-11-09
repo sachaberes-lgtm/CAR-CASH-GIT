@@ -193,7 +193,9 @@ const CAM_HEROS={on:true,ref:86,dMin:.88,dMax:1,kick:16,accK:200,tau:.6,acc:0,v0
    (135 pt sur 390 : elle remplit l'écran), 27 % avant. Cibles : portrait ≈ 30 % (sol .84 → .92), paysage ≈ 11 % (sol 1 → .70, ≈ 95 pt).
    Le facteur glisse de l'un à l'autre avec POR (la rotation reste fluide) : paysage = clés `pay*`, portrait plein = clés `sol` / `vol` / `brasVol`.
    Le vol suit le sol (même rapport qu'avant : vol = 0,83 × sol en portrait). `?sans=proche` = l'ancienne caméra (1 partout) · `dbgCamProche({...})` règle en direct. */
-const CAM_PROCHE={on:!/[?&]sans=([^&]*,)?proche(,|&|$)/.test(location.search),sol:.92,vol:.77,brasVol:.88,paySol:.70,payVol:.70,payBrasVol:.80};
+/* (2026-11-09, Sacha : « en portrait on est toujours proche ») le portrait recule : sol ×.92 → ×1.20 (la caisse ≈ 30 % → ≈ 23 % de la largeur), vol et bras au même rapport. `?camp=1.35` règle la distance portrait au téléphone (sol = 1.35, vol ×.84, bras ×.956) sans republier. */
+const CAM_PORX=(location.search.match(/[?&]camp=([0-9.]+)/)||[])[1],CAM_PX=CAM_PORX&&isFinite(+CAM_PORX)?+CAM_PORX:1.20;
+const CAM_PROCHE={on:!/[?&]sans=([^&]*,)?proche(,|&|$)/.test(location.search),sol:CAM_PX,vol:+(CAM_PX*.84).toFixed(3),brasVol:+(CAM_PX*.956).toFixed(3),paySol:.70,payVol:.70,payBrasVol:.80};
 function camProche(k){if(!CAM_PROCHE.on)return 1;const pay=CAM_PROCHE['pay'+k.charAt(0).toUpperCase()+k.slice(1)];return pay+POR*(CAM_PROCHE[k]-pay);} // k : 'sol' | 'vol' | 'brasVol' — pay* en paysage, la clé elle-même en portrait plein
 window.dbgCamProche=function(o){if(o)Object.assign(CAM_PROCHE,o);return Object.assign({},CAM_PROCHE,{POR:POR});};
 /* ===== LA CAMÉRA DYNAMIQUE (2026-11-09, Sacha : « la caméra est trop près du sol : trouve un autre moyen, qui varie avec le vertical / horizontal, la vitesse, l'air time, le nitro ») =====
