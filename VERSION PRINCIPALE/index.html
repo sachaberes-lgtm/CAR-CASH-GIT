@@ -83772,7 +83772,7 @@ window.dbgHC=function(){return {feuN:GAR.feuN|0,mc:MC.n,mcTris:Math.round(MC.t),
    3 : en plus UN cran de l'échelle QL de moins (une fois par épisode) ; 0 ou 1 : le modèle reprend la main.
    Banc : `dbgGouv()` rend {D, seuilHaut, seuilBas, actif, thermo, pourquoi} ; `dbgGouv(n)` pose la dose ; `dbgThermique(n)` simule l'événement. */
 const MOB_GOUV=CAD30_REC&&!/[?&]mob_gouv=0\b/.test(location.search);
-const MOB_G={course60:1,course30:.5,menu:.3,repos:.25,haut:160,tiede:50,g30:/[?&]mob_g30=1\b/.test(location.search),bas:40,max:230,trou:1,perime:600,cle:'cashcarMobGouv'}; /* tout se règle ici (secondes équivalentes, par seconde réelle) */
+const MOB_G={course60:1,course30:.5,menu:.3,repos:.25,haut:160,tiede:50,g30:!/[?&]mob_g30=0\b/.test(location.search),bas:40,max:230,trou:1,perime:600,cle:'cashcarMobGouv'}; /* tout se règle ici (secondes équivalentes, par seconde réelle) */
 const MOB_S={D:0,actif:false,thermo:0,t:0,sauveT:0,q3:false};
 function mobGouvEval(){ /* l'hystérésis : haut → entre, bas → sort, entre les deux on garde */
   if(MOB_S.D>=MOB_G.haut)MOB_S.actif=true;else if(MOB_S.D<MOB_G.bas)MOB_S.actif=false;}
@@ -83787,6 +83787,12 @@ function mobReactif(){if(MOB_GOUV&&!MOB_S.actif&&MOB_S.D>=MOB_G.tiede){MOB_S.act
    p99 35-68 ms, alors que la batterie monte à 38 °C. Toutes les séances qui jouent les 60-100 premières secondes à 60 i/s s'effondrent à 5-13 i/s aux minutes 3-5 (la chaleur des premières minutes
    à 60 déclenche la bride d'iOS), même quand le gouverneur cale ensuite sur 30. `?mob_g30=1` = le gouverneur est TOUJOURS actif en course : 30 calées dès le départ (INACTIF par défaut :
    c'est un choix de fluidité, Sacha tranche). */
+/* ===== LE 30 DÈS LE DÉPART, PAR DÉFAUT (2026-11-07, vitesse-fluide : lecture du build 6 sur le 13 Pro, palier 2) =====
+   MESURÉ (boîte noire, lignes `fluide`) : le p50 suit le TEMPS, pas la vitesse — l'effondrement arrive au palier moteur 0-2 (pas 16) : jade 191 s p50 16 → 38 ms au calage (dose 47),
+   espace 504-520 s p50 53 → 83 ms (12 i/s) MALGRÉ le 30 calé et les crans de qualité 9-11. Même constat que la séance du 26/10 (branche mobile-perf) : jouer les premières minutes à 60 chauffe la
+   puce, iOS bride, et caler sur 30 ensuite est trop tard ; calé dès la 1re seconde, 7 min tiennent à 30 stables. Le palier 16 n'est que le moment où Sacha a ressenti la bride (plusieurs minutes de jeu).
+   Désormais le gouverneur est TOUJOURS actif en course sur téléphone récent (TEL_NATIF, palier 2) : 30 calées dès le départ. Règle du 7/11 : sur vrai téléphone le palier 2 peut perdre de l'image
+   (ici : de la cadence). `?mob_g30=0` = la dose de chaleur d'avant (calage à 160, ou 50 si la cadence réactive cale) ; `?mob_gouv=0` = plus de gouverneur du tout. L'ordinateur n'est pas touché. */
 function mobChaud(){return MOB_GOUV&&(MOB_G.g30||MOB_S.thermo>=2||MOB_S.actif);} /* vrai : le gouverneur veut le téléphone calé sur 30 */
 function mobGouvSauve(){try{localStorage.setItem(MOB_G.cle,JSON.stringify({D:+MOB_S.D.toFixed(1),a:MOB_S.actif?1:0,t:Date.now()}));}catch(e){}}
 function mobGouvCharge(){try{const o=JSON.parse(localStorage.getItem(MOB_G.cle)||'null');if(!o||!(o.D>0))return;
@@ -83801,7 +83807,8 @@ function mobGouvTick(now){ /* en tête de cadSaute (donc à CHAQUE image d'écra
   else if(paused||gameOver)v=-MOB_G.repos;
   else v=MOB_G.menu;
   MOB_S.D=Math.max(0,Math.min(MOB_G.max,MOB_S.D+v*d));mobGouvEval();
-  if(now-MOB_S.sauveT>5000){MOB_S.sauveT=now;mobGouvSauve();}}
+  if(now-MOB_S.sauveT>5000){MOB_S.sauveT=now;mobGouvSauve();}
+  mobPalTick(now);} /* (2026-11-07) la dose pose les paliers de coût GPU — voir moteur/gouverneur-paliers.js */
 function mobThermo(n){ /* l'état thermique d'iOS (0 nominal · 1 fair · 2 serious · 3 critical) */
   n=Math.max(0,Math.min(3,n|0));MOB_S.thermo=n;
   if(n>=2){MOB_S.D=Math.max(MOB_S.D,n===3?MOB_G.haut+30:MOB_G.haut);MOB_S.actif=true;mobGouvSauve();}
@@ -83811,9 +83818,9 @@ if(MOB_GOUV){mobGouvCharge();
   window.addEventListener('cc:thermique',function(e){mobThermo(+(e&&e.detail&&e.detail.etat));});
   window.addEventListener('pagehide',mobGouvSauve);
   document.addEventListener('visibilitychange',function(){if(document.hidden)mobGouvSauve();});}
-window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB_G.max,+n||0));mobGouvEval();mobGouvSauve();} /* (banc) pose la dose */
+window.dbgGouv=function(n){if(n!=null&&MOB_GOUV){MOB_S.D=Math.max(0,Math.min(MOB_G.max,+n||0));mobGouvEval();mobGouvSauve();MOB_P.chg=-1e9;} /* (banc) pose la dose */
   const pq=!MOB_GOUV?(CAD30_REC?'coupé (?mob_gouv=0)':'hors téléphone récent'):MOB_S.thermo>=2?'état thermique iOS '+MOB_S.thermo:MOB_S.actif?'dose au-dessus du seuil bas':'froid';
-  return {D:+MOB_S.D.toFixed(1),seuilHaut:MOB_G.haut,seuilBas:MOB_G.bas,actif:mobChaud(),thermo:MOB_S.thermo,pourquoi:pq};};
+  return {D:+MOB_S.D.toFixed(1),seuilHaut:MOB_G.haut,seuilBas:MOB_G.bas,actif:mobChaud(),thermo:MOB_S.thermo,pourquoi:pq,g30:MOB_G.g30,gpu:MOB_GOUV?window.dbgGouvPaliers():null};};
 window.dbgThermique=function(n){if(MOB_GOUV)mobThermo(+n);return MOB_S.thermo;}; /* (banc) simule l'événement 'cc:thermique' */
 
 /* ===== LE GOUVERNEUR PILOTE L'IMAGE PAR PALIERS : BAISSE À CHAUD, REMONTE À FRAIS (2026-11-07, vitesse-fluide) =====
@@ -83886,19 +83893,21 @@ window.dbgGouvPaliers=function(){const B=MOB_P.b;return {actif:MOB_PALS,palier:M
    MESURÉ (iPhone 13 Pro, dans l'app, niveau 9) : après 3 à 5 minutes de jeu le téléphone s'effondre de 55 à 8-13 i/s, calage sur 30 compris. Le gouverneur (mobChaud) sait QUAND
    le téléphone est chaud ; ce morceau lui donne de quoi ALLÉGER le travail par image. Seuls des effets d'AFFICHAGE changent (traits de vent, feu de pixels de la nitro, redessin de
    l'éclair du bouton NITRO, cadence de la carte du moteur) : ni physique, ni collision, ni vitesse, ni gain d'argent, ni aura, ni chaîne, ni compteur.
-   L'INTERRUPTEUR : `?mobh_chaud=1` l'active, `?mobh_chaud=0` le coupe (INACTIF PAR DÉFAUT : il change l'image, Sacha tranche après essai). Inactif ou téléphone froid :
+   L'INTERRUPTEUR : `?mobh_chaud=1` l'active, `?mobh_chaud=0` le coupe (ACTIF PAR DÉFAUT depuis le 07/11 à dose >= 100, voir plus bas ; il change l'image). Inactif ou téléphone froid :
    mobhChaud() est faux et chaque site retombe sur l'ancien chemin, ligne pour ligne. Seulement sur un vrai téléphone (TEL_NATIF, jamais le drapeau d'interface).
    Les réglages sont tous ici : vent (nombre de traits ×, une image dessinée sur N), feu nitro (×), éclair NITRO (ms mini entre deux redessins), carte moteur (ms mini). */
-const MOBH_ACTIF=(function(){const m=location.search.match(/[?&]mobh_chaud=([01])\b/);return m?m[1]==='1':false;})();
-const MOBH_R={vent:.7,ventPas:2,ventCap:.14,feu:.6,nx3Ms:66,engMs:100};
-function mobhChaud(){return TEL_NATIF&&MOBH_ACTIF&&mobChaud();} /* vrai : le téléphone est chaud ET l'essai est demandé */
+/* (2026-11-07, vitesse-fluide : « active par défaut le régime chaud à dose > 100 ») ACTIF PAR DÉFAUT à partir du palier 2 du gouverneur (dose >= MOBH_R.dose, ou état iOS >= 2) ; `?mobh_chaud=1` = chaud dès que le gouverneur dit chaud
+   (donc dès le départ, le 30 étant calé d'office), `?mobh_chaud=0` = jamais, `?gouv=max` = jamais (comme avant). */
+const MOBH_M=location.search.match(/[?&]mobh_chaud=([01])\b/),MOBH_ACTIF=MOBH_M?MOBH_M[1]==='1':true,MOBH_FORCE=!!MOBH_M&&MOBH_M[1]==='1';
+const MOBH_R={dose:100,vent:.7,ventPas:2,ventCap:.14,feu:.6,nx3Ms:66,engMs:100};
+function mobhChaud(){if(!TEL_NATIF||!MOBH_ACTIF)return false;if(MOBH_FORCE)return mobChaud();return MOB_PALS&&(MOB_S.thermo>=2||MOB_S.D>=MOBH_R.dose);} /* vrai : le téléphone est chaud ET l'essai est demandé */
 let MOBH_ventN=0,MOBH_ventDt=0,MOBH_nx3T=0,MOBH_nx3D=-9;
 function mobhVentSaute(dt){ /* vrai : cette image-ci, le vent ne se redessine pas (le calque garde l'image d'avant, aucun effacement) ; dt s'accumule pour la suivante */
   if(!mobhChaud()){MOBH_ventN=0;MOBH_ventDt=0;return false;}
   MOBH_ventDt+=dt;if((++MOBH_ventN)%MOBH_R.ventPas!==0)return true;
   return false;}
 function mobhVentDt(){const d=MOBH_ventDt;MOBH_ventDt=0;return d;} /* le temps écoulé depuis le dernier dessin (le vent lisse la vitesse de la caméra avec lui) */
-window.dbgMobh=function(){return {actif:MOBH_ACTIF,tel:!!TEL_NATIF,chaud:mobChaud(),regime:mobhChaud(),reglages:MOBH_R};};
+window.dbgMobh=function(){return {actif:MOBH_ACTIF,force:MOBH_FORCE,tel:!!TEL_NATIF,chaud:mobChaud(),regime:mobhChaud(),reglages:MOBH_R};};
 function loop(now){
   loop._raf=requestAnimationFrame(loop); /* (2026-11-07, finition) l'identifiant : dbgStep annule l'image qu'un appel manuel programme (il empilait n boucles) */
   if(chargementTick(now)){loop._pn=now;last=now;return;} /* (2026-11-05, passe perf mobile 2, A2.a) le chargement sous la boule : une étape par image, sans dessiner — voir CHARGEMENT */
