@@ -32,5 +32,13 @@
 - Graine 13, tremplin 4 (s≈3899) : tue encore le pilote auto à volant gelé (2/3 en midi) ; route en S après la lèvre (+19° puis −23°), non couvert par le nouveau garde. Graine 10, tremplin 0 (lip 1822) : tue à mains lâchées avant et après, autre mécanisme (flanc « raide .32 », vol de 2,5 s).
 - Le seuil `BK_BEC.ecart`=79 m à 190 m est empirique (calé sur 47 tremplins) ; ~20 % des tremplins ont bougé de +30 à +200 m, l'effet sur la jouabilité (feel) n'a PAS été regardé à l'œil. `?sans=glaceecart` rend l'ancien garde. Le pilote `dbgAuto` garde le volant du décollage en vol : peut-être un artefact du banc (`dbgAuto(vol:1)`).
 
+### 7. Franchissements de portail (audit de 206 passages, 201 franchis, 0 exception)
+- **D1 gel de 3,3-3,9 s à la 1re entrée en jade/forêt, cache de shaders GPU vide** (joueur neuf, 1er portail) : ~22-31 programmes liés en synchrone en course (`getProgramInfoLog` 3,7 s ; `vignette-moteur.js:247-249`, `jade-vol.js:297`) ; la liaison parallèle (`compileDoux`) n'existe que hors course. Confié à un agent (branche `debug/chauffe`) : voir son résultat. Sur iPhone/Safari (pas de KHR_parallel_shader_compile) le coût réel n'est PAS mesuré.
+- **D2 banquise : 1,1-1,6 s à chaque 1re entrée, même à chaud** (+7 à +10 programmes à l'entrée, non préchauffée comme jade) ; cause non vérifiée.
+- **D3 avertissement Chrome « READ-usage buffer was written, then fenced » ×127 après une mort** : `vignette-moteur.js:46-52` (PBO `engVigRender`) ; la ligne corrigée par 898faf5c ne suffit pas, l'avertissement persiste (sans effet visible).
+- **L1 jade/nuit : le pilote auto reste en vol 60 s (jauge d'AIR pleine, se remplit dans l'eau, `jade-3.js:387,449`)** : à confirmer, un joueur peut-il planer sans fin loin du portail ?
+- Mémoire : `renderer.info.memory.geometries` monte de ~25 par zone sur les chaînes A-B-A-B, fuite NON démontrée (la vitesse monte aussi).
+- Non testé : iPhone/Safari/Metal, son, passage pendant l'explosion/seconde chance, parc Freestyle, jade balade, auto-école, pré-bâti pas fini au passage.
+
 ## À vérifier par un œil humain (je ne peux pas juger)
 - Tout ce qui est « beau » ou « bien équilibré » : réglages de feeling, difficulté, rythme des pistes, contraste réel sur un écran de téléphone. Mes bancs mesurent des exceptions et des tailles, pas le plaisir de jeu.
