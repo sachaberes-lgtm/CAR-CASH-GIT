@@ -10304,7 +10304,7 @@ html body #garage.atelierInv.figTab:not(.menu):not(.vitrine) #gFigBar{display:fl
   #gFigSel .fsCase{width:46px;height:40px}
 }
 #gFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08) anneau rentré comme la boutique : plus de liseré mordu, plus d animation */
-#bqFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08) la grande case (56 × 48) : anneau rentré, plus de liseré mordu — (2026-11-08, Léo : « un truc noir en haut de l'écran avec des codes ») remise DANS la balise : posée après </style>, elle s'affichait en texte en haut de l'écran */
+#bqFigSel .fsIn .fgIl{transform:scale(.72)} /* (2026-11-08) la grande case (56 × 48) : anneau rentré, plus de liseré mordu — (2026-11-08, Léo : « un truc noir en haut de l'écran avec des codes ») remise DANS la balise : posée après la fermeture de la balise style, elle s'affichait en texte en haut de l'écran */
 </style>
 <style id="paufinageBoutons">
 /* ===== LE PAUFINAGE DES BOUTONS (2026-11-07, Sacha : « paufine la disposition des boutons de chaque écran, leurs optimisation, leurs
@@ -19145,6 +19145,59 @@ function prebRetient(tok,suite){ /* le passage du portail : le travail d'avance 
     if(!PREB.W||PREB.fait||performance.now()-t0>PREBF.voileMax*1000){PREB.tenuMs=Math.round(performance.now()-t0);suite();return;}
     requestAnimationFrame(pas);};
   requestAnimationFrame(pas);return true;}
+/* ===== LES PROGRAMMES DE LA MAP D'EN FACE SE LIENT D'AVANCE (2026-11-09, audit des 206 franchissements de portail : « le jeu gèle 3 à 4 s au 1er portail ») =====
+   MESURÉ (banc transit, ordinateur, cache disque de shaders GPU VIDE — c'est ce que vit un joueur NEUF à son 1er portail) : 3,1-3,8 s d'image figée en entrant dans la jade, 2,2-2,8 s dans la
+   forêt (7 mesures) — +21 puis +10 programmes liés D'UN COUP, EN COURSE (getProgramInfoLog : l'attente de la liaison) : 1,7-2,8 s dans la 1re image du monde neuf, 1,2-1,9 s dans la chauffe du monde
+   neuf (CHAUFFE_R.t). Chauffe du menu FINIE (banc `--fini=1`) : 0 programme neuf au portail, pire image 117-183 ms. MESURÉ APRÈS (18 passages à froid, ordinateur et ?tel=1) : pire image 50-317 ms (médiane 134),
+   un seul écart > 250 ms ; à chaud : pas de différence. Cause : la chauffe du menu (chauffeDivers) n'était pas finie —
+   `departAttend` lâche la course après 20 s et, à froid, la chauffe attend d'abord la liaison des programmes du ciel (45 s sur ce PC, ~26 s sur l'iPhone de Léo) — et elle ne tourne JAMAIS
+   en course (`engChauffe` : au menu et à l'écran de fin seulement). Ce qu'elle n'avait pas fait naissait donc au 1er portail, d'un bloc, sans parallélisme.
+   Désormais, en course, dès que la map d'en face est connue (le tirage du portail) et tant que la liaison parallèle existe (LIER.X) :
+   · LA JADE : ce que la chauffe du menu en aurait fait (`jadeChauffeProgs`, 4 lots de ~4 programmes, sur des maillages d'essai aux MÊMES matières) est lancé EN DOUX (LIER.doux : les
+     programmes se lient côté pilote, ensemble, le fil principal ne les attend pas), un lot par pas ;
+   · LA FORÊT : ses effets (papillons, lucioles, follets, lune, loup — foretFx, qui naissait à la 1re image du monde neuf) sont créés et compilés d'avance, comme la chauffe du menu les crée ;
+   · LA FORÊT, LA GROTTE, LE GLACIER (bâtis d'avance sur la route fantôme) : le pré-bâti fini, les OBJETS RÉELS du monde neuf (W.scn, W.decorTM : ce que le passage va installer) sont
+     compilés en doux, un à un dans un budget par pas, la scène réduite à ses lumières et à l'objet (comme chauffeRendu) : mêmes objets, mêmes lumières, donc les programmes mêmes du passage.
+   UN PAS TOUTES LES 120 ms AU PLUS, jamais dans une image déjà lourde (> 10 ms) : la puce traduit les shaders sur son fil à elle, les rafales la feraient attendre. Le suivi des liaisons
+   (lierPret) n'est demandé qu'une demi-seconde après le dernier pas : posée tout de suite, sa question attendrait la file de la puce (MESURÉ : 30-70 ms figées).
+   Au passage, les matières du monde neuf retrouvent leur programme (même clé) déjà lié. Le filet : si le passage arrive avant la fin, ce qui n'est pas lancé se compile comme avant, ce qui
+   l'est n'attend que son reste. `?prelie=0` = comme avant ; `dbgPrelie()` : l'état.
+   PAS COUVERT (même remède possible, chacun avec sa `…Chauffe` du menu) : le canyon, les dunes, Crypto City (0,65-0,9 s à froid), la voiture-fantôme (campChauffe) et ce qui naît en course à un
+   moment aléatoire (pigeons, traces, pads) ; sans KHR_parallel_shader_compile (LIER.X nul : vieux Safari, ?lier=0) rien ne change. */
+const PLIE={on:!/[?&]prelie=0\b/.test(location.search),sd:0,j:0,Q:null,i:0,fait:false,err:'',n:0,ms:0,max:0,lots:0,objets:0,tL:0,tP:0,log:[]};
+function prebPisteDe(t){try{const C=SF_CARTES[t.carte],M=C.m[t.meteo];return SF_NIV[M.niv||C.base].piste||'';}catch(e){return '';}} // le genre de piste d'un tirage (jade, foret…), sans bâtir la map
+function prebLieDecor(W){ // le monde bâti d'avance (forêt, grotte, glacier) : ses objets réels compilés en doux, un à un jusqu'à 2,5 ms — vrai si ce pas a travaillé
+  if(PLIE.sd!==PREB.sd){PLIE.sd=PREB.sd;PLIE.Q=(W.scn||[]).concat(W.decorTM||[]).filter(function(o){return o&&!o.parent;});PLIE.i=0;PLIE.fait=false;} // (la graine du travail en cours dit s'il s'agit du même monde : W lui-même n'est pas gardé)
+  if(PLIE.fait)return false;
+  if(PLIE.i>=PLIE.Q.length){PLIE.fait=true;PLIE.Q=[];PLIE.i=0;return false;} // (les objets ne sont plus retenus une fois compilés)
+  const kids=scene.children,lum=kids.filter(function(o){return o.isLight;}),lim=performance.now()+2.5;
+  try{while(PLIE.i<PLIE.Q.length){const o=PLIE.Q[PLIE.i++];PLIE.objets++;scene.children=lum.concat([o]);compileDoux(scene,camera);if(performance.now()>lim)break;}}
+  finally{scene.children=kids;}
+  return true;}
+function prebLieFx(){ // les effets de la forêt, créés tels que la chauffe du menu les crée (foretFx : cachés, dans la scène, objets du module — partagés avec le pré-bâti) puis compilés en doux
+  const fx=foretFx(),lum=scene.children.filter(function(o){return o.isLight;}),kids=scene.children;
+  try{scene.children=lum.concat([fx.pap,fx.luc,fx.fol,fx.lune,fx.halo,fx.loup]);compileDoux(scene,camera);}finally{scene.children=kids;}
+  return true;}
+function prebLie(c){ // (prebTick) vrai : ce pas a travaillé, le pré-bâti attend l'image suivante
+  if(!PLIE.on||PLIE.err)return false;
+  if(!LIER.init)lierInit();
+  if(!LIER.X)return false; // sans liaison parallèle (vieux Safari, ?lier=0) : tout comme avant
+  const now=performance.now();
+  if(PLIE.tL>PLIE.tP&&now-PLIE.tL>500){PLIE.tP=now;lierPret();} // le suivi des liaisons lancées : UNE question, une demi-seconde après le dernier pas de la série (voir plus haut)
+  if(now-PLIE.tL<120)return false; // un pas toutes les 120 ms au plus
+  const tr=typeof QLR!=='undefined'&&QLR.t0?now-QLR.t0:8;
+  if(tr>10)return false; // l'image est déjà lourde
+  const p9=prebPisteDe(c.t);let w=false;
+  try{
+    if(p9==='jade'){if(JADE_CHP.fait<4){const k9=JADE_CHP.fait;let encore=false;LIER.doux=true;try{encore=jadeChauffeProgs(k9,PLIE.j);}finally{LIER.doux=false;} // un MORCEAU du lot par pas (un seul pas pour la mer entière faisait attendre la puce 120-170 ms à froid)
+      if(encore)PLIE.j++;else{PLIE.j=0;JADE_CHP.fait=Math.max(JADE_CHP.fait,k9+1);}PLIE.lots++;w=true;}}
+    else if(p9==='foret'&&!FORET.fx.pap)w=prebLieFx(); // les effets de la forêt (papillons, lucioles, follets, lune, loup) naissent à la 1re image du monde neuf (foretFx) : créés et compilés d'avance
+    else if(PREB.W&&PREB.fait&&!PREB.dep&&c.t===PREB.t&&PREB.W.piste===p9)w=prebLieDecor(PREB.W);
+  }catch(e){PLIE.err=String(e&&e.message||e);console.warn('prelie',e);try{window.__ccNote('panne','prélie · '+PLIE.err);}catch(_){}w=false;}
+  if(w){const t1=performance.now(),d9=t1-now;PLIE.tL=t1;PLIE.n++;PLIE.ms+=d9;if(d9>PLIE.max)PLIE.max=d9;chauffeGrace(); // (une étape de chauffe est un chargement : la qualité auto ne la lit pas comme une puce à genoux)
+    PLIE.log.push([Math.round(now),Math.round(d9*10)/10,p9,LIER.att.length]);if(PLIE.log.length>16)PLIE.log.shift();}
+  return w;}
+window.dbgPrelie=function(){return {on:PLIE.on,err:PLIE.err,pas:PLIE.n,ms:Math.round(PLIE.ms),max:Math.round(PLIE.max),lots:PLIE.lots,jade:JADE_CHP.fait,objets:PLIE.objets,reste:PLIE.Q?PLIE.Q.length-PLIE.i:0,fait:PLIE.fait,enCours:LIER.att.length,log:PLIE.log};};
 function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier, travailler
   PREB.cam=false; // (voir sous9 : resetGame l'a lu dans cette image, ou rien ne l'a lu)
   if(!started||gameOver){prebDepTick(now);return;}
@@ -19159,6 +19212,7 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   if(mode!=='drive'&&mode!=='fall')return;
   if(now-PREB.tNeuf<700)return; // le monde neuf vient d'entrer : il s'installe d'abord
   const c=prebCible();
+  if(c&&prebLie(c))return; /* (2026-11-09) les programmes de la map d'en face se lient d'avance (voir PLIE) */
   if(!PREB.W){if(c&&c.t!==PREB.non&&PREB.echecs<3&&(L-s)/Math.max(20,PREB.v||60)<(PREB_AVANCE_LOURD[c.t.carte]||PREB_AVANCE)*prebAvanceK())prebPart(c);return;} // (l'image suivante travaille) · (2026-11-07) prebAvanceK : plus tôt à grande vitesse
   if(!c||c.t!==PREB.t||c.z!==PREB.z){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'zone');return;} // (un palier gagné en route ne change rien : la piste garde celui du départ)
   if(PREB.fait)return;
@@ -31511,16 +31565,19 @@ function jadeChauffeLots(){const M9=jadeMats();return [
   [['arb','I',M9.arb],['vrM','M',M9.vrM],['vrXM','M',M9.vrXM],['vrPM','M',M9.vrPM]],              // la forêt peinte ; la Porte du ciel et les monuments de près
   [['vrOM','M',M9.vrOM],['chute','M',JADE_CHUTE_M],['rayon','M',JADE_RAYON_M],['brume','I',JADE_BRUME_M]], // le monument de loin, les cascades, les rayons, la brume
   [['mer','E',null]]];}                                                                           // la mer (peau, sillon, bulles, écume, brume d'eau, rides, couronnes), la grue, l'écume des chutes
-function jadeChauffeProgs(k){const lots=jadeChauffeLots();if(k>=lots.length)return;
-  const L9=[],tmp=[],vu=[];let box=null;
+function jadeChauffeProgs(k,j){const lots=jadeChauffeLots();if(k>=lots.length)return false; /* (2026-11-09, les programmes d'en face en course, voir PLIE) `j` : UN morceau du lot (un élément, ou l'un des 4 morceaux de la mer) — absent : le lot entier, comme au menu ; rend vrai s'il reste un morceau après celui-ci */
+  const L9=[],tmp=[],vu=[],tout=j==null;let box=null;
   try{box=new THREE.BoxGeometry(1,1,1);
     if(lots[k][0][1]==='E'){
-      try{grueGeos();tmp.push(grueChauffe());}catch(e){}
-      try{if(!JADE_CHP.lam)JADE_CHP.lam=new THREE.MeshLambertMaterial({color:0xf4f8fa,emissive:0x2a3238});const im=new THREE.InstancedMesh(box,JADE_CHP.lam,1);im.setMatrixAt(0,JADE_CHP.m.identity());tmp.push(im);}catch(e){}
-      try{const eau=[jadePeau(),sillonMesh(),jadeBullesIm(),eauPIm(),eauBIm()];eauRide(0,-1e5,0,0);eauCouronne(0,-1e5,0,{r0:1,r1:2,h:1,fl:0,d:1,fx:0,fz:0});
-        for(const r9 of EAUR.L)eau.push(r9.m);for(const r9 of COUR.L)eau.push(r9.m);
+      if(tout||j===0){try{grueGeos();tmp.push(grueChauffe());}catch(e){}
+        try{if(!JADE_CHP.lam)JADE_CHP.lam=new THREE.MeshLambertMaterial({color:0xf4f8fa,emissive:0x2a3238});const im=new THREE.InstancedMesh(box,JADE_CHP.lam,1);im.setMatrixAt(0,JADE_CHP.m.identity());tmp.push(im);}catch(e){}}
+      if(tout||j>0)try{const eau=[];
+        if(tout||j===1)eau.push(jadePeau(),sillonMesh());
+        if(tout||j===2)eau.push(jadeBullesIm(),eauPIm(),eauBIm());
+        if(tout||j===3){eauRide(0,-1e5,0,0);eauCouronne(0,-1e5,0,{r0:1,r1:2,h:1,fl:0,d:1,fx:0,fz:0});
+          for(const r9 of EAUR.L)eau.push(r9.m);for(const r9 of COUR.L)eau.push(r9.m);}
         for(const o of eau){if(!o||o.parent!==scene||L9.indexOf(o)>=0)continue;vu.push([o,o.visible]);o.visible=true;L9.push(o);}}catch(e){}}
-    else for(const q of lots[k]){if(!q[2])continue;let o;
+    else for(const q of (tout?lots[k]:[lots[k][j]])){if(!q||!q[2])continue;let o;
       if(q[1]==='I'){o=new THREE.InstancedMesh(box,q[2],1);o.setMatrixAt(0,JADE_CHP.m.identity());}else o=new THREE.Mesh(box,q[2]);tmp.push(o);}
     camera.getWorldDirection(JADE_CHP.v);
     for(const o of tmp){o.frustumCulled=false;o.position.copy(camera.position).addScaledVector(JADE_CHP.v,30);scene.add(o);L9.push(o);}
@@ -31528,7 +31585,8 @@ function jadeChauffeProgs(k){const lots=jadeChauffeLots();if(k>=lots.length)retu
   catch(e){console.warn('jadeChauffeProgs',e);}
   finally{for(const o of tmp){scene.remove(o);if(o.isInstancedMesh&&o.dispose)o.dispose();}if(box)box.dispose();for(const v of vu)v[0].visible=v[1];
     if(lots[k][0][1]==='E')try{for(const r9 of EAUR.L){r9.t=9;r9.m.visible=false;}for(const r9 of COUR.L){r9.t=9;r9.m.visible=false;}}catch(e){}
-    JADE_CHP.fait=Math.max(JADE_CHP.fait,k+1);} }
+    if(tout)JADE_CHP.fait=Math.max(JADE_CHP.fait,k+1);}
+  return !tout&&(lots[k][0][1]==='E'?j<3:j+1<lots[k].length);}
 window.dbgJadeProgs=function(){ // (banc) les programmes du jade attendus et déjà compilés — au portail ville → jade, `liens` ne doit pas bouger
   const L=[],nb=function(m){const p=m&&renderer.properties.get(m);return p&&p.programs?(p.programs.size!==undefined?p.programs.size:1):0;};
   try{for(const lot of jadeChauffeLots())for(const q of lot)if(q[1]!=='E')L.push({nom:q[0],genre:q[1]==='I'?'instancie':'seul',programmes:nb(q[2])});
@@ -51069,7 +51127,7 @@ function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image
   function(){if(!TRACE.pos)traceInit();const p=mkPigeon();scene.add(p);renderer.compile(scene,camera);scene.remove(p);},
   function(){const L9=[];for(let i=0;i<FRUIT_DEFS.length;i++){const m=mkFruit(i);scene.add(m);L9.push(m);}const pd=new THREE.Mesh(padGeo,PAD_MAT);scene.add(pd);L9.push(pd); // (2026-09-29) LA LIGNE PARFAITE pose ses fruits et ses pads EN COURSE : leurs programmes et leurs géométries sont prêts dès le menu
     chauffeRendu(L9);for(const m of L9)scene.remove(m);},
-  function(){premiereFois(0);},function(){premiereFois(1);},function(){premiereFois(2);},function(){premiereFois(3);},function(){premiereFois(4);},function(){premiereFois(5);},function(){premiereFois(6);}, /* (2026-11-07, passe perf 3, P6) LES NAISSANCES DE COURSE dessinées une fois : billets et panneaux du cratère (instanciés à ZÉRO instance, donc jamais dessinés avant la 1re mort), pigeon (compilé seulement) — voir gameplay/premiere-fois.js */
+  function(){premiereFoisEtape(0);},function(){premiereFoisEtape(1);},function(){premiereFoisEtape(2);},function(){premiereFoisEtape(3);},function(){premiereFoisEtape(4);},function(){premiereFoisEtape(5);},function(){premiereFoisEtape(6);}, /* (2026-11-07, passe perf 3, P6) LES NAISSANCES DE COURSE dessinées une fois : billets et panneaux du cratère (instanciés à ZÉRO instance, donc jamais dessinés avant la 1re mort), pigeon (compilé seulement) — voir gameplay/premiere-fois.js */
   function(){jadeChauffeProgs(0);},function(){jadeChauffeProgs(1);},function(){jadeChauffeProgs(2);},function(){jadeChauffeProgs(3);}, // (2026-10-14, passe perf mobile) LE SOLEIL DE JADE : ses 17 programmes compilés au menu, ~4 par étape (jadeChauffeProgs) — plus rien ne naît au portail vers le jade ni au REJOUER tiré sur lui
   function(){engCarteQuad.visible=engHalo.visible=true;renderer.compile(engVigQuadScene,engVigQuadCam);engCarteQuad.visible=engHalo.visible=false; // (vague 2) le recollage de la carte MOTEUR (sinon son programme naît au 1er palier)
     renderer.initTexture(engHaloMat.map);renderer.setRenderTarget(engRTc);renderer.setRenderTarget(null);}]; // …et son halo et son tampon montent au GPU dès le menu
@@ -66073,9 +66131,31 @@ const CAM_HEROS={on:true,ref:86,dMin:.88,dMax:1,kick:16,accK:200,tau:.6,acc:0,v0
    (135 pt sur 390 : elle remplit l'écran), 27 % avant. Cibles : portrait ≈ 30 % (sol .84 → .92), paysage ≈ 11 % (sol 1 → .70, ≈ 95 pt).
    Le facteur glisse de l'un à l'autre avec POR (la rotation reste fluide) : paysage = clés `pay*`, portrait plein = clés `sol` / `vol` / `brasVol`.
    Le vol suit le sol (même rapport qu'avant : vol = 0,83 × sol en portrait). `?sans=proche` = l'ancienne caméra (1 partout) · `dbgCamProche({...})` règle en direct. */
-const CAM_PROCHE={on:!/[?&]sans=([^&]*,)?proche(,|&|$)/.test(location.search),sol:.92,vol:.77,brasVol:.88,paySol:.70,payVol:.70,payBrasVol:.80};
+/* (2026-11-09, Sacha : « en portrait on est toujours proche ») le portrait recule : sol ×.92 → ×1.20 (la caisse ≈ 30 % → ≈ 23 % de la largeur), vol et bras au même rapport. `?camp=1.35` règle la distance portrait au téléphone (sol = 1.35, vol ×.84, bras ×.956) sans republier. */
+const CAM_PORX=(location.search.match(/[?&]camp=([0-9.]+)/)||[])[1],CAM_PX=CAM_PORX&&isFinite(+CAM_PORX)?+CAM_PORX:1.20;
+const CAM_PROCHE={on:!/[?&]sans=([^&]*,)?proche(,|&|$)/.test(location.search),sol:CAM_PX,vol:+(CAM_PX*.84).toFixed(3),brasVol:+(CAM_PX*.956).toFixed(3),paySol:.70,payVol:.70,payBrasVol:.80};
 function camProche(k){if(!CAM_PROCHE.on)return 1;const pay=CAM_PROCHE['pay'+k.charAt(0).toUpperCase()+k.slice(1)];return pay+POR*(CAM_PROCHE[k]-pay);} // k : 'sol' | 'vol' | 'brasVol' — pay* en paysage, la clé elle-même en portrait plein
 window.dbgCamProche=function(o){if(o)Object.assign(CAM_PROCHE,o);return Object.assign({},CAM_PROCHE,{POR:POR});};
+/* ===== LA CAMÉRA DYNAMIQUE (2026-11-09, Sacha : « la caméra est trop près du sol : trouve un autre moyen, qui varie avec le vertical / horizontal, la vitesse, l'air time, le nitro ») =====
+   TROUVÉ : `camH` partait de `camBack*.40`, et `camBack` contenait déjà camProche('sol') — le facteur de proximité s'appliquait donc DEUX fois à la hauteur
+   (paysage .70² = .49 : l'angle d'élévation tombait de 22° à 15°, la caméra à ~1 m, hauteur de toit, vue rasante). Désormais DISTANCE et ANGLE sont séparés :
+   · la distance (camBack, camProche) fixe la TAILLE de la caisse — inchangée (≈ 30 % de la largeur en portrait, ≈ 11 % en paysage) ;
+   · l'ANGLE d'élévation (camH = camBack × tan angle) vient d'ici : `pay` ° en paysage → `por` ° en portrait plein (glisse avec POR), puis
+     − `vit` ° à haute vitesse (0 à .6 de la croisière → plein à 1,4) et − `nitro` ° sous nitro, le tout lissé (`tau` s) ;
+   · plancher `hMin` m : la caméra ne rase jamais le sol ;
+   · paysage : la visée descend de `viseBas` m (la caisse ne glisse pas vers le bas de l'image quand la caméra monte) ;
+   · en VOL : la hauteur de la poursuite ×`volPay` (paysage) → ×`volPor` (portrait), pour que le décollage ne PLONGE pas l'angle (21° → 26° au sol).
+   `?sans=dyn` = la caméra d'avant · `dbgCamDyn({pay,por,vit,nitro,hMin,viseBas,volPay,volPor,on})` règle en direct et lit `deg` (angle) / `elev` (réel). */
+const CAM_DYN={on:!/[?&]sans=([^&]*,)?dyn(,|&|$)/.test(location.search),pay:26,por:35,vit:3,nitro:2,tau:.5,hMin:1.7,viseBas:1.0,volPay:1.22,volPor:1.1,v:0,n:0,deg:26,elev:0};
+function camDynBase(){const D=CAM_DYN;return D.pay+POR*(D.por-D.pay);}
+function camDynHauteur(dt,back,extra,r,boostK){ // la hauteur de la caméra de route : back × tan(angle) + les termes propres à la caisse, jamais sous hMin
+  const D=CAM_DYN,k=1-Math.exp(-Math.min(dt,.1)/D.tau);
+  D.v+=(THREE.MathUtils.clamp((r-.6)/.8,0,1)-D.v)*k;D.n+=(THREE.MathUtils.clamp(boostK,0,1)-D.n)*k;
+  D.deg=camDynBase()-D.vit*D.v-D.nitro*D.n;
+  const h=Math.max(D.hMin,back*Math.tan(D.deg*Math.PI/180)+extra);D.elev=Math.atan2(h,back)*57.2958;return h;}
+function camDynViseBas(){return CAM_DYN.on?CAM_DYN.viseBas*(1-POR):0;} // paysage seulement : en portrait la visée est déjà basse
+function camDynVolHaut(bigAir){if(!CAM_DYN.on)return 1;const D=CAM_DYN;return 1+(D.volPay+POR*(D.volPor-D.volPay)-1)*(1-.5*bigAir);} // la poursuite de vol monte, moins sur un gros air (où elle est déjà haute)
+window.dbgCamDyn=function(o){if(o)Object.assign(CAM_DYN,o);return Object.assign({},CAM_DYN,{POR:POR,base:camDynBase()});};
 window.dbgCamTaille=function(){try{const c=carGroup.position.clone().project(camera),d=camera.position.distanceTo(carGroup.position);
   return {mode,started:!!started,POR:+POR.toFixed(2),fov:+camera.fov.toFixed(1),asp:+camera.aspect.toFixed(3),d:+d.toFixed(2),taille:+volTaille(d,camera.fov).toFixed(3),centre:[+c.x.toFixed(2),+c.y.toFixed(2)]};}catch(e){return e.message;}}; /* (banc, 2026-11-08) la taille de la caisse à l'écran = son rayon / (distance × tan(fov/2)), comme dbgCamVol : la part de la HAUTEUR de l'image qu'elle couvre (en paysage comme en portrait). ⚠ pas la boîte englobante de carGroup : elle compte les jets et les traînées */
 function camTailleOn(){return CAM_TAILLE.on&&POR>.5;}
@@ -73259,7 +73339,7 @@ function premPanneau(o){ /* les panneaux (instances par attributs, `instanceCoun
   try{o.g.instanceCount=1;for(let i=0;i<o.at.length;i++)o.at[i].needsUpdate=true;o.mesh.visible=true;chauffeRendu([o.mesh]);}
   finally{o.g.instanceCount=n0;o.mesh.visible=v0;}
 }
-function premiereFois(k){ /* l'étape k de la liste (une par image) ; vrai s'il y en a encore */
+function premiereFoisEtape(k){ /* (2026-11-09, chasse : renommée, elle masquait premiereFois() de son/musique.js — leconSilence appelait celle-ci sans argument : TypeError et « premier lancement » toujours faux) l'étape k de la liste (une par image) ; vrai s'il y en a encore */
   const L=[
     function(){if(typeof BILL_IM!=='undefined')premInstance(BILL_IM);},
     function(){premPanneau(PAN_VOL);},
@@ -73270,7 +73350,7 @@ function premiereFois(k){ /* l'étape k de la liste (une par image) ; vrai s'il 
     function(){setTimeout(premMoteursTic,1500);}
   ];
   if(!PREM_ON||PREM.fait[k])return k+1<L.length;
-  PREM.fait[k]=1;try{L[k]();}catch(e){console.warn('premiereFois',k,e);}
+  PREM.fait[k]=1;try{L[k]();}catch(e){console.warn('premiereFoisEtape',k,e);}
   return k+1<L.length;
 }
 /* (2026-11-07, P6) LA CARTE MOTEUR et LE MOTEUR DE L'ÉCRAN DE MORT. MESURÉ : au 1er palier de la course (la carte « NOUVEAU MOTEUR » recollée dans l'image) et à
@@ -73312,7 +73392,7 @@ function premMoteursTic(){
 }
 window.dbgPremiere=function(a){
   if(a==='tout'){ /* banc : toute la chauffe d'un coup, sans attendre celle du menu (le Chrome sans fenêtre ne la finit pas) — moteurs de tous les paliers fabriqués puis dessinés */
-    for(let k=0;k<7;k++){PREM.fait[k]=0;premiereFois(k);}
+    for(let k=0;k<7;k++){PREM.fait[k]=0;premiereFoisEtape(k);}
     for(let i=0;i<ENGINE_TIERS.length;i++)engPret(i);
     let g9=0;while(!premMoteurUn()&&++g9<80){}
     PREMM.fini=true;
@@ -84417,7 +84497,7 @@ function loop(now){
         ct9=camTailleOn(),H9=CAM_HEROS.on,vCam9=(ct9||H9)?Math.min(speedKmh,CAM_TAILLE.recMax/.0018):speedKmh,bCam9=H9?camBoost*CAM_HEROS.boost:ct9?camBoost*CAM_TAILLE.boost:camBoost, /* (CAM_HEROS) la nitro ne recule plus la caméra ; couché aussi, la vitesse n'éloigne plus au-delà de recMax */
         dz9=H9?CAM_HEROS.dolly(loop._fovB):1,hz9=H9?1-CAM_HEROS.bas*THREE.MathUtils.clamp(speedKmh/Math.max(1,vCroisiere())-.6,0,1):1, /* (CAM_HEROS) le VERTIGO : la caméra avance quand le champ s'ouvre · elle descend à haute vitesse */ // (2026-09-30) CAM_TAILLE : en portrait la vitesse n'éloigne plus la caméra au-delà de recMax (NITROOO ×2,6 l'envoyait à 9 m de haut)
         camBack=(3.6+CARS[level].l*.42+hC9*1.6+vCam9*.0018+bCam9*1.6)*(1-POR*.28)*dz9*(H9?1+(CAM_HEROS.recP-1)*POR:1)*camGlacierM(0)*camProche('sol'), /* (CAM_HEROS) debout, un pas en arrière : le champ resserré suffit à grossir la caisse */ // le recul suit la LONGUEUR de la caisse : la Combi et la Bulle cadrées pareil
-       camH=(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9*camGlacierM(1)*camProche('sol'); // (2026-11-07, LA CAMÉRA DE PRÈS EN PORTRAIT) ×camProche : même facteur que le recul · (2026-10-19) ×camGlacierM : la vue qui plonge du glacier
+       camH=CAM_DYN.on?camDynHauteur(dt,camBack,(hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*camProche('sol'),speedKmh/Math.max(1,vCroisiere()),camBoost)*camGlacierM(1):(camBack*.40+hC9*.9+vCam9*.0012+bCam9*.25)*(1+POR*.70)*hz9*camGlacierM(1)*camProche('sol'); /* (2026-11-09, LA CAMÉRA DYNAMIQUE) la hauteur n'est plus camBack×.40×camProche² (le facteur de proximité s'appliquait DEUX fois : en paysage ×.49, l'angle tombait de 22° à 15°, la caméra rasait le sol) : l'ANGLE d'élévation est un réglage à part (CAM_DYN), qui varie avec POR, la vitesse et la nitro */  // (2026-11-07, LA CAMÉRA DE PRÈS EN PORTRAIT) ×camProche : même facteur que le recul · (2026-10-19) ×camGlacierM : la vue qui plonge du glacier
         const lean9=steer*(TCTL.incl?.2:.065); /* (2026-10-27, Léo) INCLINAISON : la caméra penche plus franchement avec le téléphone (≈11° au plein braquage, .065 = 3,7° sinon) : le monde suit la main, on sent le volant */ camLean=(loop._viseR==null||loop._viseR>=1)?lean9:camLean+(lean9-camLean)*(1-Math.exp(-dt*10));camSwing=0;camKick=0; // (conduite v3) la caméra penche avec toi (était .035) — (2026-10-17) à la POSE la penche (éteinte en vol) revient en ~0,1 s au lieu d'une image (jusqu'à 3,7°, volant tenu) ; ensuite elle colle au volant comme avant
         // (conduite v6) la caméra se place derrière un axe MI-ROUTE MI-CAISSE : avant, elle suivait le cap de la caisse et la clouait au
         // centre de l'image (mesuré : 0 % d'écart à l'écran à 15 m du centre) — on voyait le décor coulisser, pas la caisse bouger.
@@ -84457,7 +84537,7 @@ function loop(now){
         // PORTRAIT : on vise plus BAS (F.n 1,05 → 0,50) — la caméra pique du nez, donc la caisse
         // REMONTE dans le cadre au lieu de sortir par le bas. Reculer/monter/viser bas se règlent
         // ENSEMBLE : sans cette ligne, camBack et camH seuls laissaient une caisse minuscule en bas.
-        tmp2.copy(carGroup.position).addScaledVector(dmtCamDir(fwdW,F.n),8.5+POR*1.2).addScaledVector(F.n,1.05-POR*.55-(H9?CAM_HEROS.vise*POR:0)).addScaledVector(F.b,cLag9*.5); /* (CAM_HEROS) debout, la visée descend : la caisse remonte */ // la visée prend une partie du retard : la caisse sort un peu du centre de l'image
+        tmp2.copy(carGroup.position).addScaledVector(dmtCamDir(fwdW,F.n),8.5+POR*1.2).addScaledVector(F.n,1.05-POR*.55-(H9?CAM_HEROS.vise*POR:0)-camDynViseBas()).addScaledVector(F.b,cLag9*.5); /* (CAM_HEROS) debout, la visée descend : la caisse remonte */ // la visée prend une partie du retard : la caisse sort un peu du centre de l'image
         /* (route v2) LE REGARD SUIT LA ROUTE : la visée se tire à 35 % vers un point de la piste 35 m DEVANT (à la même
            distance du bord que la caisse). Dans une courbe, l'œil part vers la sortie du virage au lieu de fixer l'axe de
            la caisse — on voit où l'on va. */
@@ -84715,7 +84795,7 @@ function loop(now){
          depuis une bosse. La visée de conduite emporte son pivot, puis fond vers la caisse comme avant. */
       if(!(loop._camAirT>0)&&loop._vise)loop._vise.applyQuaternion(CAM_ROUTE.q);
       {const n9=performance.now();if(n9-(CAMV.t||0)>400){CAMV.zoom=0;CAMV.vtg=0;CAMV.p0ok=false;CAMV.s0=THREE.MathUtils.clamp(volTaille(camera.position.distanceTo(fallPos),camera.fov),.1,.4);}CAMV.t=n9;} // 1re image du vol : un coup de zoom PARFAIT en cours ne survit pas au décollage · la TAILLE de la caisse au sol, mesurée à l'instant du décollage
-      {const pr9=camProche('vol');tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16)*pr9).addScaledVector(FLY_U,(3.5+bigAir*2.4)*(1+POR*.12)*pr9);} /* (LA CAMÉRA DE PRÈS EN PORTRAIT) recul ET hauteur ×camProche('vol') : même angle, plus près */ // derrière la trajectoire, au-dessus de la caisse — « au-dessus » = vers le HAUT DE LA CAISSE (vol libre), pas vers le ciel
+      {const pr9=camProche('vol');tmp2.copy(fallPos).addScaledVector(tmp,-(9.0-bigAir*2.6)*(1-POR*.16)*pr9).addScaledVector(FLY_U,(3.5+bigAir*2.4)*(1+POR*.12)*pr9*camDynVolHaut(bigAir));} /* (LA CAMÉRA DE PRÈS EN PORTRAIT) recul ET hauteur ×camProche('vol') : même angle, plus près */ // derrière la trajectoire, au-dessus de la caisse — « au-dessus » = vers le HAUT DE LA CAISSE (vol libre), pas vers le ciel
       /* (bord v2) LE SUIVI SANS À-COUP : l'ancien `camera.position.lerp(cible)` suivait une cible qui file — à la 1re image de vol la caméra
          passait d'un coup de « roule AVEC la caisse » (conduite : écart lissé) à « reste presque sur place » : la caisse s'échappait. On
          lisse l'ÉCART caisse→caméra, et la TRAÎNE que produisait l'ancien lerp (l'avance de la caisse, `fallVel·SPD·dtF`) s'installe en

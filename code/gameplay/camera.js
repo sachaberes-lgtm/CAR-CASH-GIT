@@ -193,9 +193,31 @@ const CAM_HEROS={on:true,ref:86,dMin:.88,dMax:1,kick:16,accK:200,tau:.6,acc:0,v0
    (135 pt sur 390 : elle remplit l'écran), 27 % avant. Cibles : portrait ≈ 30 % (sol .84 → .92), paysage ≈ 11 % (sol 1 → .70, ≈ 95 pt).
    Le facteur glisse de l'un à l'autre avec POR (la rotation reste fluide) : paysage = clés `pay*`, portrait plein = clés `sol` / `vol` / `brasVol`.
    Le vol suit le sol (même rapport qu'avant : vol = 0,83 × sol en portrait). `?sans=proche` = l'ancienne caméra (1 partout) · `dbgCamProche({...})` règle en direct. */
-const CAM_PROCHE={on:!/[?&]sans=([^&]*,)?proche(,|&|$)/.test(location.search),sol:.92,vol:.77,brasVol:.88,paySol:.70,payVol:.70,payBrasVol:.80};
+/* (2026-11-09, Sacha : « en portrait on est toujours proche ») le portrait recule : sol ×.92 → ×1.20 (la caisse ≈ 30 % → ≈ 23 % de la largeur), vol et bras au même rapport. `?camp=1.35` règle la distance portrait au téléphone (sol = 1.35, vol ×.84, bras ×.956) sans republier. */
+const CAM_PORX=(location.search.match(/[?&]camp=([0-9.]+)/)||[])[1],CAM_PX=CAM_PORX&&isFinite(+CAM_PORX)?+CAM_PORX:1.20;
+const CAM_PROCHE={on:!/[?&]sans=([^&]*,)?proche(,|&|$)/.test(location.search),sol:CAM_PX,vol:+(CAM_PX*.84).toFixed(3),brasVol:+(CAM_PX*.956).toFixed(3),paySol:.70,payVol:.70,payBrasVol:.80};
 function camProche(k){if(!CAM_PROCHE.on)return 1;const pay=CAM_PROCHE['pay'+k.charAt(0).toUpperCase()+k.slice(1)];return pay+POR*(CAM_PROCHE[k]-pay);} // k : 'sol' | 'vol' | 'brasVol' — pay* en paysage, la clé elle-même en portrait plein
 window.dbgCamProche=function(o){if(o)Object.assign(CAM_PROCHE,o);return Object.assign({},CAM_PROCHE,{POR:POR});};
+/* ===== LA CAMÉRA DYNAMIQUE (2026-11-09, Sacha : « la caméra est trop près du sol : trouve un autre moyen, qui varie avec le vertical / horizontal, la vitesse, l'air time, le nitro ») =====
+   TROUVÉ : `camH` partait de `camBack*.40`, et `camBack` contenait déjà camProche('sol') — le facteur de proximité s'appliquait donc DEUX fois à la hauteur
+   (paysage .70² = .49 : l'angle d'élévation tombait de 22° à 15°, la caméra à ~1 m, hauteur de toit, vue rasante). Désormais DISTANCE et ANGLE sont séparés :
+   · la distance (camBack, camProche) fixe la TAILLE de la caisse — inchangée (≈ 30 % de la largeur en portrait, ≈ 11 % en paysage) ;
+   · l'ANGLE d'élévation (camH = camBack × tan angle) vient d'ici : `pay` ° en paysage → `por` ° en portrait plein (glisse avec POR), puis
+     − `vit` ° à haute vitesse (0 à .6 de la croisière → plein à 1,4) et − `nitro` ° sous nitro, le tout lissé (`tau` s) ;
+   · plancher `hMin` m : la caméra ne rase jamais le sol ;
+   · paysage : la visée descend de `viseBas` m (la caisse ne glisse pas vers le bas de l'image quand la caméra monte) ;
+   · en VOL : la hauteur de la poursuite ×`volPay` (paysage) → ×`volPor` (portrait), pour que le décollage ne PLONGE pas l'angle (21° → 26° au sol).
+   `?sans=dyn` = la caméra d'avant · `dbgCamDyn({pay,por,vit,nitro,hMin,viseBas,volPay,volPor,on})` règle en direct et lit `deg` (angle) / `elev` (réel). */
+const CAM_DYN={on:!/[?&]sans=([^&]*,)?dyn(,|&|$)/.test(location.search),pay:26,por:35,vit:3,nitro:2,tau:.5,hMin:1.7,viseBas:1.0,volPay:1.22,volPor:1.1,v:0,n:0,deg:26,elev:0};
+function camDynBase(){const D=CAM_DYN;return D.pay+POR*(D.por-D.pay);}
+function camDynHauteur(dt,back,extra,r,boostK){ // la hauteur de la caméra de route : back × tan(angle) + les termes propres à la caisse, jamais sous hMin
+  const D=CAM_DYN,k=1-Math.exp(-Math.min(dt,.1)/D.tau);
+  D.v+=(THREE.MathUtils.clamp((r-.6)/.8,0,1)-D.v)*k;D.n+=(THREE.MathUtils.clamp(boostK,0,1)-D.n)*k;
+  D.deg=camDynBase()-D.vit*D.v-D.nitro*D.n;
+  const h=Math.max(D.hMin,back*Math.tan(D.deg*Math.PI/180)+extra);D.elev=Math.atan2(h,back)*57.2958;return h;}
+function camDynViseBas(){return CAM_DYN.on?CAM_DYN.viseBas*(1-POR):0;} // paysage seulement : en portrait la visée est déjà basse
+function camDynVolHaut(bigAir){if(!CAM_DYN.on)return 1;const D=CAM_DYN;return 1+(D.volPay+POR*(D.volPor-D.volPay)-1)*(1-.5*bigAir);} // la poursuite de vol monte, moins sur un gros air (où elle est déjà haute)
+window.dbgCamDyn=function(o){if(o)Object.assign(CAM_DYN,o);return Object.assign({},CAM_DYN,{POR:POR,base:camDynBase()});};
 window.dbgCamTaille=function(){try{const c=carGroup.position.clone().project(camera),d=camera.position.distanceTo(carGroup.position);
   return {mode,started:!!started,POR:+POR.toFixed(2),fov:+camera.fov.toFixed(1),asp:+camera.aspect.toFixed(3),d:+d.toFixed(2),taille:+volTaille(d,camera.fov).toFixed(3),centre:[+c.x.toFixed(2),+c.y.toFixed(2)]};}catch(e){return e.message;}}; /* (banc, 2026-11-08) la taille de la caisse à l'écran = son rayon / (distance × tan(fov/2)), comme dbgCamVol : la part de la HAUTEUR de l'image qu'elle couvre (en paysage comme en portrait). ⚠ pas la boîte englobante de carGroup : elle compte les jets et les traînées */
 function camTailleOn(){return CAM_TAILLE.on&&POR>.5;}
