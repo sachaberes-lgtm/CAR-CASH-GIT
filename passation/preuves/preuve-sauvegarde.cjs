@@ -258,7 +258,12 @@ console.log('I  effacer / restaurer : le miroir natif non lu, l\'onglet passif')
   verifie(b4.store.cashcarSave===riche,'I4 web ?demo=1 : le gel n\'écrase pas la clé présente');
   /* I5 : le gel INTERNE (miroir plus riche semé au démarrage) n'écrit rien par-dessus le miroir qu'il vient de semer (E4 le vérifie aussi) */
   const cap5=fauxCap(riche);const b5=boot({},{cap:cap5});await sleep();await sleep();
-  verifie(b5.S.natif===2&&b5.store.cashcarSave===riche&&cap5.P.sets.length===0&&b5.reloads.n===1,'I5 la restauration du miroir au démarrage ne réécrit pas le miroir (sets '+cap5.P.sets.length+')');}
+  verifie(b5.S.natif===2&&b5.store.cashcarSave===riche&&cap5.P.sets.length===0&&b5.reloads.n===1,'I5 la restauration du miroir au démarrage ne réécrit pas le miroir (sets '+cap5.P.sets.length+')');
+  /* I6-I7 : bornes de san() (sortie du jeu) : un score du Top 10 à 1e300 ; la clé réservée __proto__ dans les compteurs des missions */
+  const b6=boot({cashcarSave:'{"v":2,"gamme":3,"eco":3,"leaders":[{"n":"AB","s":1e300},{"n":"CD","s":12}],"m2":{"v":1,"c":{"met":{"__proto__":["matin"],"nuages":["matin"]},"sc":{"__proto__":3,"neige":3}}}}'});
+  verifie(b6.S.d.leaders.every(e=>e.s<=1e30)&&b6.S.d.leaders.length===2,'I6 Top 10 : un score à 1e300 est borné à 1e30',JSON.stringify(b6.S.d.leaders));
+  const met6=b6.S.d.m2.c.met||{},sc6=b6.S.d.m2.c.sc||{};
+  verifie(Object.getPrototypeOf(Object.getPrototypeOf(met6))===null&&Object.getPrototypeOf(Object.getPrototypeOf(sc6))===null&&Array.isArray(met6.nuages)&&sc6.neige===3,'I7 compteurs de missions : __proto__ refusé, les clés saines passent');}
 
 console.log('');
 if(KO.length){console.log('PREUVE KO — '+KO.join(' ; '));process.exit(1);}
