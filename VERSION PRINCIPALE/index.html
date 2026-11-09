@@ -7564,6 +7564,11 @@ html:not(.c6) #mSet .volRow .volV{flex:none;min-width:54px;text-align:right;marg
 html:not(.c6) #mSet .c6Efface{--nc:var(--neoR);color:var(--neoR);background:transparent;min-height:48px;width:100%;max-width:320px;text-shadow:none;box-shadow:inset 0 0 0 2px var(--neoR)}
 html:not(.c6) #mSet .c6Efface .pxi,html:not(.c6) #mSet .c6Efface .tpL{color:var(--neoR)}
 html:not(.c6) #mSet .c6Efface:is(:active,.appui){transform:skewX(var(--sk)) translateY(2px);box-shadow:inset 0 0 0 2px var(--neoR),inset 0 0 26px rgba(255,74,100,.45)}
+/* (2026-11-09, audit visuel) FR : « EFFACER MA PROGRESSION » (22 lettres, 288 px + l'icône + l'écart + 2 × 22 de marge = 365 px) tenait mal dans les 320 px du lingot :
+   l'icône mordait le bord gauche, la dernière lettre le bord droit. Le lingot peut aller à 360 px (la colonne fait 339 à 354 px sur téléphone), marges de 12 px,
+   écart de 10, lettres sans interlettre : 322 px de contenu, ≥ 8 px de vide de chaque côté. L'anglais (« ERASE MY PROGRESS », 223 px) tenait déjà : inchangé. */
+html[lang="fr"]:not(.c6) #mSet .c6Efface{max-width:360px;padding:0 12px;gap:10px}
+html[lang="fr"]:not(.c6) #mSet .c6Efface .tpL{letter-spacing:0}
 @media (orientation:landscape) and (max-height:540px){
   html:not(.c6) #mSet .c6Corps{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:22px;align-items:start}
   html:not(.c6) #mSet .c6Col{display:flex;flex-direction:column;min-width:0}
