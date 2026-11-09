@@ -337,6 +337,56 @@ const PREB_AVANCE=20; // (s) la map d'en face commence quand le portail est à m
    sa préparation d'avance dure ~16-22 s de route en tranches fines (la plus lourde de toutes) ; partie à 20 s du portail, elle n'était pas finie au passage
    et le reste se bâtissait D'UN BLOC dans l'image du portail (3,4-3,8 s figées, au banc ; 1,5 s encore en partant à 45 s). Elle part à 75 s : en pratique dès le début de la map d'avant. */
 const PREB_AVANCE_LOURD={grotte:75};
+/* ===== LES PROGRAMMES DE LA MAP D'EN FACE SE LIENT D'AVANCE (2026-11-09, audit des 206 franchissements de portail : « le jeu gèle 3 à 4 s au 1er portail ») =====
+   MESURÉ (banc transit, ordinateur, cache disque de shaders GPU VIDE — c'est ce que vit un joueur NEUF à son 1er portail) : 3,7 s d'image figée en entrant dans la jade, 2,4-2,8 s dans la
+   forêt — +21 puis +10 programmes liés D'UN COUP, EN COURSE (getProgramInfoLog : l'attente de la liaison) : 1,7-2,5 s dans la 1re image du monde neuf, 1,2-1,9 s dans la chauffe du monde
+   neuf (CHAUFFE_R.t). Chauffe du menu FINIE (banc `--fini=1`) : 0 programme neuf au portail, pire image 117-183 ms. Cause : la chauffe du menu (chauffeDivers) n'était pas finie —
+   `departAttend` lâche la course après 20 s et, à froid, la chauffe attend d'abord la liaison des programmes du ciel (45 s sur ce PC, ~26 s sur l'iPhone de Léo) — et elle ne tourne JAMAIS
+   en course (`engChauffe` : au menu et à l'écran de fin seulement). Ce qu'elle n'avait pas fait naissait donc au 1er portail, d'un bloc, sans parallélisme.
+   Désormais, en course, dès que la map d'en face est connue (le tirage du portail) et tant que la liaison parallèle existe (LIER.X) :
+   · LA JADE : ce que la chauffe du menu en aurait fait (`jadeChauffeProgs`, 4 lots de ~4 programmes, sur des maillages d'essai aux MÊMES matières) est lancé EN DOUX (LIER.doux : les
+     programmes se lient côté pilote, ensemble, le fil principal ne les attend pas), un lot par pas ;
+   · LA FORÊT : ses effets (papillons, lucioles, follets, lune, loup — foretFx, qui naissait à la 1re image du monde neuf) sont créés et compilés d'avance, comme la chauffe du menu les crée ;
+   · LA FORÊT, LA GROTTE, LE GLACIER (bâtis d'avance sur la route fantôme) : le pré-bâti fini, les OBJETS RÉELS du monde neuf (W.scn, W.decorTM : ce que le passage va installer) sont
+     compilés en doux, un à un dans un budget par pas, la scène réduite à ses lumières et à l'objet (comme chauffeRendu) : mêmes objets, mêmes lumières, donc les programmes mêmes du passage.
+   UN PAS TOUTES LES 120 ms AU PLUS, jamais dans une image déjà lourde (> 10 ms) : la puce traduit les shaders sur son fil à elle, les rafales la feraient attendre. Le suivi des liaisons
+   (lierPret) n'est demandé qu'une demi-seconde après le dernier pas : posée tout de suite, sa question attendrait la file de la puce (MESURÉ : 30-70 ms figées).
+   Au passage, les matières du monde neuf retrouvent leur programme (même clé) déjà lié. Le filet : si le passage arrive avant la fin, ce qui n'est pas lancé se compile comme avant, ce qui
+   l'est n'attend que son reste. `?prelie=0` = comme avant ; `dbgPrelie()` : l'état. */
+const PLIE={on:!/[?&]prelie=0\b/.test(location.search),sd:0,j:0,Q:null,i:0,fait:false,err:'',n:0,ms:0,max:0,lots:0,objets:0,tL:0,tP:0,log:[]};
+function prebPisteDe(t){try{const C=SF_CARTES[t.carte],M=C.m[t.meteo];return SF_NIV[M.niv||C.base].piste||'';}catch(e){return '';}} // le genre de piste d'un tirage (jade, foret…), sans bâtir la map
+function prebLieDecor(W){ // le monde bâti d'avance (forêt, grotte, glacier) : ses objets réels compilés en doux, un à un jusqu'à 2,5 ms — vrai si ce pas a travaillé
+  if(PLIE.sd!==PREB.sd){PLIE.sd=PREB.sd;PLIE.Q=(W.scn||[]).concat(W.decorTM||[]).filter(function(o){return o&&!o.parent;});PLIE.i=0;PLIE.fait=false;} // (la graine du travail en cours dit s'il s'agit du même monde : W lui-même n'est pas gardé)
+  if(PLIE.fait)return false;
+  if(PLIE.i>=PLIE.Q.length){PLIE.fait=true;PLIE.Q=[];PLIE.i=0;return false;} // (les objets ne sont plus retenus une fois compilés)
+  const kids=scene.children,lum=kids.filter(function(o){return o.isLight;}),lim=performance.now()+2.5;
+  try{while(PLIE.i<PLIE.Q.length){const o=PLIE.Q[PLIE.i++];PLIE.objets++;scene.children=lum.concat([o]);compileDoux(scene,camera);if(performance.now()>lim)break;}}
+  finally{scene.children=kids;}
+  return true;}
+function prebLieFx(){ // les effets de la forêt, créés tels que la chauffe du menu les crée (foretFx : cachés, dans la scène, objets du module — partagés avec le pré-bâti) puis compilés en doux
+  const fx=foretFx(),lum=scene.children.filter(function(o){return o.isLight;}),kids=scene.children;
+  try{scene.children=lum.concat([fx.pap,fx.luc,fx.fol,fx.lune,fx.halo,fx.loup]);compileDoux(scene,camera);}finally{scene.children=kids;}
+  return true;}
+function prebLie(c){ // (prebTick) vrai : ce pas a travaillé, le pré-bâti attend l'image suivante
+  if(!PLIE.on||PLIE.err)return false;
+  if(!LIER.init)lierInit();
+  if(!LIER.X)return false; // sans liaison parallèle (vieux Safari, ?lier=0) : tout comme avant
+  const now=performance.now();
+  if(PLIE.tL>PLIE.tP&&now-PLIE.tL>500){PLIE.tP=now;lierPret();} // le suivi des liaisons lancées : UNE question, une demi-seconde après le dernier pas de la série (voir plus haut)
+  if(now-PLIE.tL<120)return false; // un pas toutes les 120 ms au plus
+  const tr=typeof QLR!=='undefined'&&QLR.t0?now-QLR.t0:8;
+  if(tr>10)return false; // l'image est déjà lourde
+  const p9=prebPisteDe(c.t);let w=false;
+  try{
+    if(p9==='jade'){if(JADE_CHP.fait<4){const k9=JADE_CHP.fait;let encore=false;LIER.doux=true;try{encore=jadeChauffeProgs(k9,PLIE.j);}finally{LIER.doux=false;} // un MORCEAU du lot par pas (un seul pas pour la mer entière faisait attendre la puce 120-170 ms à froid)
+      if(encore)PLIE.j++;else{PLIE.j=0;JADE_CHP.fait=Math.max(JADE_CHP.fait,k9+1);}PLIE.lots++;w=true;}}
+    else if(p9==='foret'&&!FORET.fx.pap)w=prebLieFx(); // les effets de la forêt (papillons, lucioles, follets, lune, loup) naissent à la 1re image du monde neuf (foretFx) : créés et compilés d'avance
+    else if(PREB.W&&PREB.fait&&!PREB.dep&&c.t===PREB.t&&PREB.W.piste===p9)w=prebLieDecor(PREB.W);
+  }catch(e){PLIE.err=String(e&&e.message||e);console.warn('prelie',e);try{window.__ccNote('panne','prélie · '+PLIE.err);}catch(_){}w=false;}
+  if(w){const t1=performance.now(),d9=t1-now;PLIE.tL=t1;PLIE.n++;PLIE.ms+=d9;if(d9>PLIE.max)PLIE.max=d9;chauffeGrace(); // (une étape de chauffe est un chargement : la qualité auto ne la lit pas comme une puce à genoux)
+    PLIE.log.push([Math.round(now),Math.round(d9*10)/10,p9,LIER.att.length]);if(PLIE.log.length>16)PLIE.log.shift();}
+  return w;}
+window.dbgPrelie=function(){return {on:PLIE.on,err:PLIE.err,pas:PLIE.n,ms:Math.round(PLIE.ms),max:Math.round(PLIE.max),lots:PLIE.lots,jade:JADE_CHP.fait,objets:PLIE.objets,reste:PLIE.Q?PLIE.Q.length-PLIE.i:0,fait:PLIE.fait,enCours:LIER.att.length,log:PLIE.log};};
 function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier, travailler
   PREB.cam=false; // (voir sous9 : resetGame l'a lu dans cette image, ou rien ne l'a lu)
   if(!started||gameOver){prebDepTick(now);return;}
@@ -350,6 +400,7 @@ function prebTick(now){ // à chaque image (fin de loop) : commencer, vérifier,
   if(mode!=='drive'&&mode!=='fall')return;
   if(now-PREB.tNeuf<700)return; // le monde neuf vient d'entrer : il s'installe d'abord
   const c=prebCible();
+  if(c&&prebLie(c))return; /* (2026-11-09) les programmes de la map d'en face se lient d'avance (voir PLIE) */
   if(!PREB.W){if(c&&c.t!==PREB.non&&PREB.echecs<3&&(L-s)/Math.max(20,PREB.v||60)<(PREB_AVANCE_LOURD[c.t.carte]||PREB_AVANCE))prebPart(c);return;} // (l'image suivante travaille)
   if(!c||c.t!==PREB.t||c.z!==PREB.z){prebAnnule(!c?'cible':c.t!==PREB.t?'map':'zone');return;} // (un palier gagné en route ne change rien : la piste garde celui du départ)
   if(PREB.fait)return;
