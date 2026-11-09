@@ -14,7 +14,7 @@
   html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv{flex:0 1 auto!important;height:auto!important;min-height:110px;max-height:none!important;align-content:start}}
 /* 2. VOITURES ET AILES, DEUX PAR RANGÉE. Une case = un petit studio : la lumière de la rareté (--rr) qui tombe d'en haut, un sol éclairé
       sous la caisse, la grande photo (pour une aile : ta caisse qui la porte), une plaque d'encre avec le nom, cousue d'un filet de la
-      rareté. La pente de l'atelier (--sk) reste : la photo et les mots sont redressés (un pixel penché bave). Tout est à toi ici : plus
+      rareté. Les cases sont DROITES (plus de pente, voir « les cases droites » plus bas). Tout est à toi ici : plus
       de coche à chaque case ; l'équipée dit ÉQUIPÉE en cyan (à la place du petit losange d'or). */
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:max-content;align-content:start;gap:12px 12px;padding:10px 20px 16px}
 /* (MESURÉ) une case étirée dans sa rangée ignorait son rapport : les rangées tombaient à 8 px et les cases se chevauchaient — align-self:start */
@@ -30,17 +30,25 @@ html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.g
   filter:drop-shadow(0 6px 5px rgba(3,1,9,.6))}
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT.ill .gIc{top:calc((100% - 30px) / 2 - 18px)}
 html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT>.rarLogo{top:7px;right:10px}
+/* LES CASES DROITES (2026-11-08, Sacha : « ici mets pas les fenêtres de voiture penchées, mets-les droites » · « pareil pour les ailes ») : les cases des voitures
+   et des ailes ne prennent plus la pente de l'atelier (le skewX de .gT, de .gT.on) — des rectangles droits ; la photo, l'icône d'aile, le logo de rareté,
+   le nom et la pastille ÉQUIPÉE n'ont donc plus rien à redresser. Les onglets et les boutons gardent leur pente. */
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT,
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT.on{transform:none}
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT>img,
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT .gIc,
+html body #garage.atelierInv:not(.menu):not(.vitrine) #gStrip.gModeInv.ivDeux>.gT>.rarLogo{transform:none}
 /* la plaque */
 #garage.atelierInv #gStrip.ivDeux .ivPl{position:absolute;left:0;right:0;bottom:0;height:30px;display:flex;align-items:center;justify-content:center;padding:0 12px;box-sizing:border-box;
   background:linear-gradient(180deg,rgba(9,7,20,.86),rgba(7,5,15,.97));box-shadow:inset 0 1px 0 color-mix(in srgb,var(--rr,#5ee6ff) 70%,transparent),inset 0 2px 0 rgba(255,255,255,.04)}
 #garage.atelierInv #gStrip.ivDeux .ivNom{display:block;width:100%;overflow:hidden;white-space:nowrap;text-align:center;font-weight:400;font-size:var(--f1);line-height:1.25;letter-spacing:.04em;color:#fff;
-  text-shadow:0 1px 0 rgba(3,1,9,.9);transform:skewX(var(--skI))}
+  text-shadow:0 1px 0 rgba(3,1,9,.9)}
 #garage.atelierInv #gStrip.ivDeux .ivNom.n7{font-size:var(--f0)}
 #garage.atelierInv #gStrip.ivDeux .ivNom.deux{white-space:normal;line-height:1.3;text-wrap:balance}
 #garage.atelierInv #gStrip.ivDeux .gT.on .ivNom{color:var(--neoC,#5ee6ff)}
 /* ÉQUIPÉE */
 #garage.atelierInv #gStrip.ivDeux .ivEq{position:absolute;left:12px;top:7px;z-index:2;display:flex;align-items:center;gap:4px;padding:3px 6px 2px;background:var(--neoC,#5ee6ff);color:#07050f;font-style:normal;
-  transform:skewX(var(--skI));box-shadow:0 0 10px rgba(94,230,255,.55)}
+  box-shadow:0 0 10px rgba(94,230,255,.55)}
 #garage.atelierInv #gStrip.ivDeux .ivEq .pxi{--pxs:1;margin:0}
 #garage.atelierInv #gStrip.ivDeux .ivEq>span{font-weight:400;font-size:var(--f0);line-height:1;white-space:nowrap}
 /* hors de cette grille, la plaque n'existe pas (la bande du garage, la boutique du jour) */

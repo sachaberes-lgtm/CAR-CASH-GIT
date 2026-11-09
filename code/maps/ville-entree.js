@@ -46,8 +46,7 @@ function genCtrl1(rnd,startPos,startPhi){ /* (2026-11-05, LE DIRECTEUR DE RYTHME
      droites : de petits virages de liaison. Résultat banc : ~51 % de la piste en virage, plus longue droite 978 → 336 m. */
   const level=0;
   const ctrl=[];
-  let P=startPos.clone(),phi=startPhi,approx=0;
-  const HCAP=[]; /* (2026-11-08, chasse) historique du cap (longueur cumulée, cap) à chaque arc, lu par enroul() ; non déclaré, chaque tracé de piste levait ReferenceError */
+  let P=startPos.clone(),phi=startPhi,approx=0;const HCAP=[0,startPhi]; /* (2026-11-08, débogage) l'historique du cap pour le garde-fou d'enroulement (e1c64a63) : il n'était déclaré nulle part — « HCAP is not defined » cassait la génération des nuages, de l'espace, de la ville, de Crypto City et de la vitrée (pas de course, menu sans piste) */
   const dir=()=>new THREE.Vector3(Math.sin(phi),0,Math.cos(phi));
   const push=()=>ctrl.push(P.clone());
   push();

@@ -35,7 +35,7 @@ let chrome=null;
 async function lanceChrome(){
   const udd=opt.profil?path.join(os.tmpdir(),'cc-banc-'+opt.profil):fs.mkdtempSync(path.join(os.tmpdir(),'cc-banc-'));fs.mkdirSync(udd,{recursive:true});
   chrome=spawn(CHROME,['--headless=new','--remote-debugging-port='+CDP,'--user-data-dir='+udd,'--no-first-run','--no-default-browser-check','--window-size=1280,800',
-    '--mute-audio','--autoplay-policy=no-user-gesture-required','--enable-precise-memory-info','--use-angle=d3d11','--ignore-gpu-blocklist','--enable-gpu-rasterization',
+    '--mute-audio','--autoplay-policy=no-user-gesture-required','--enable-precise-memory-info',(process.platform==='darwin'?'--use-angle=metal':'--use-angle=d3d11'),'--ignore-gpu-blocklist','--enable-gpu-rasterization',
     '--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows','about:blank'],{stdio:'ignore'});
   for(let i=0;i<150;i++){try{await getJson('http://127.0.0.1:'+CDP+'/json/version');return;}catch(e){await dort(200);}}
   throw new Error('Chrome ne répond pas sur '+CDP);
@@ -158,6 +158,7 @@ const SC={
       for(const s of S){const o=await p.ev("(function(s){const R=dbgRoute();const i=Math.max(1,Math.min(R.NP-2,Math.round(s/R.L*(R.NP-1))));const p=R.pts[i],t=R.T[i],n=R.Nn[i];return {p:[p.x-t.x*40+n.x*18,p.y-t.y*40+n.y*18,p.z-t.z*40+n.z*18],c:[p.x+t.x*60,p.y+t.y*60,p.z+t.z*60],haut:[p.x,p.y+300,p.z+.01],bas:[p.x,p.y,p.z]};})("+s+")");
         vues.push({p:o.p,c:o.c,nom:'s'+s});if(opt.haut==='1')vues.push({p:o.haut,c:o.bas,nom:'s'+s+'-dessus',fov:70});}}
     if(opt.hud!=='1')await p.ev("(function(){for(const id of ['hud','garage','mobCtl','bNitro']){const e=document.getElementById(id);if(e)e.style.display='none';}})()"); /* les captures nues : sans le HUD ni les boutons */
+    await p.ev("(function(){try{serieWFerme();}catch(e){}for(const id of ['serieW','mvW']){const e=document.getElementById(id);if(e)e.style.display='none';}})()"); /* (2026-11-08) la série de connexion couvrait les photos d'un profil persistant */
     const faits=[];for(const v of vues){await p.ev("dbgAudit('vue',{p:"+JSON.stringify(v.p)+",c:"+JSON.stringify(v.c)+",fov:"+(v.fov||60)+"})");await dort(400);
       const f=path.join(OUT,'vue-'+CARTE+'-'+(METEO||'x')+'-g'+g+'-'+v.nom+'.png');await p.photo(f);faits.push(f);log('capture :',f);}
     log('VUES · '+faits.length+' captures · erreurs '+p.erreurs.length,p.erreurs.slice(0,4));await fermePage(p);},

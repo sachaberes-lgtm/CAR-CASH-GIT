@@ -19,7 +19,7 @@ function bcEtat(cat,d,k){const a=bqA(k);let eq=false;try{eq=a&&shopEqD(cat).id==
   if(eq)return {c:'eq',h:pxi('coche')+'<b>'+bcT('ÉQUIPÉE')+'</b>',t:bcT('ÉQUIPÉE')};
   if(a)return {c:'a',h:pxi('coche')+'<b>'+bcT('À TOI')+'</b>',t:bcT('À TOI')};
   if(d.pack==='chat')return {c:'eur',h:'<b>'+bcT('PACK CHAT')+'</b>',t:bcT('PACK CHAT')};
-  if(d.eur)return {c:'eur',h:'<b>'+eurTxt(d.eur)+'</b>',t:eurTxt(d.eur)};
+  if(d.eur){const px9=prixTxt(cat+':'+d.id,d.eur);return {c:'eur',h:'<b>'+px9+'</b>',t:px9};}
   if(d.p)return {c:'pc'+(bank()<d.p?' cher':''),h:'<b>'+bqPxT(d.p)+'</b>' /* le prix porte déjà son « € » (fmtSolde) : pas de pièce en plus */,t:bqPxT(d.p)};
   let j='';try{const m=m2DeHab(cat,d);if(m){const t=m2Seuil(m);j='<u><em style="width:'+Math.round(100*m2Frac(m,m2Val(m),t))+'%"></em></u>';}}catch(e){}
   return {c:'mis',h:pxi('verrou')+'<b>'+bcT('MISSION')+'</b>'+j,t:bcT('MISSION')};}

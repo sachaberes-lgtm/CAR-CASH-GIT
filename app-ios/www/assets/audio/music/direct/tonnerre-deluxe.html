@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tonnerre Deluxe — course, 30 paliers</title>
+<style>
+:root{--fond:#fff;--tx:#17141c;--tx2:#8a8494;--fil:#e4e1ea;--acc:#5b4bd6}
+@media (prefers-color-scheme:dark){:root{--fond:#0b090d;--tx:#f2f0f7;--tx2:#9a94a8;--fil:#2a2633;--acc:#8d7dff}}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--fond);color:var(--tx);font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:grid;place-items:center;padding:16px}
+.boite{width:100%;max-width:560px;border:1px solid var(--fil);border-radius:20px;padding:24px;display:grid;gap:18px}
+h1{margin:0;font-size:22px}.sous{color:var(--tx2);font-size:13px;margin-top:4px}
+.rang{display:flex;gap:16px;align-items:center}
+#play{width:72px;height:72px;border-radius:50%;border:0;background:var(--tx);color:var(--fond);font-weight:700;cursor:pointer;flex:none}
+.pals{display:grid;gap:6px;flex:1}#speed{width:100%}#mot{font-weight:700;font-size:18px}
+#ce{color:var(--tx2);font-size:13px;min-height:36px}
+</style></head><body>
+<div class="boite">
+  <div><h1>TONNERRE DELUXE · COURSE · 30 PALIERS</h1><div class="sous">écrit à la main, sans le générateur · 148 BPM (demi-temps) · la♭ mineur · la trap de luxe sous l’orage : le piano de velours, la clarinette qui s’électrise, les gouttes de verre, le tonnerre qui monte — en 30 moteurs</div></div>
+  <div class="rang"><button id="play">PLAY</button><div class="pals"><div id="mot">Moteur 1 / 30</div><input type="range" id="speed" min="0" max="100" step="any" value="0" aria-label="Moteur"></div></div>
+  <div id="ce"></div>
+</div>
+
+
+<!-- ======================= LE MORCEAU (format CASH CAR « morceau à paliers ») =======================
+     (2026-11-03, pôle SON, sous-artiste de TONNERRE DELUXE ; Léo : « une version premium de toutes les musiques, la nouvelle DA, mais sans perdre l'identité ; 20 bangers différents »).
+     CE QUI RESTE DE L'ORIGINAL (le générateur : lo-fi, la♭ mineur, 88-102 BPM) : les huit accords (do♯m9 · mi♭7sus · la♭m9 · mi maj9 | la♭m9 · mi maj9 · si maj9 · mi♭7sus), un piano doux, une
+     clarinette qui chante en tête, les gouttes de verre qui tombent sur les notes de l'accord, une basse courte.
+     CE QUI EST NEUF : une trap de luxe à 148 BPM qui se ressent en DEMI-TEMPS (la caisse claire sur le 3 seulement, jamais de 2-et-4), des charleys continus avec des rouleaux (triolets puis 32e),
+     des 808 COURTS (0,3 s) qui glissent, et le TONNERRE : un grondement lointain dès le moteur 1, des éclairs (craquements de bruit) à partir de 8, une clarinette ÉLECTRISÉE (carré filtré, souffle,
+     le filtre qui s'ouvre au lieu d'une scie) à partir de 9, un coup de tonnerre à chaque grande phrase (14), des cordes en spiccato (18), des accords-éclairs (20), le tutti (28-30).
+     Le thème a QUATRE versions (A, son rétrograde, son inversée, un mélange), joué sur 16 mesures ; les gouttes, le piano, les 808 et les kicks sont tirés mesure par mesure : deux phrases ne
+     reviennent jamais à l'identique. Les frappes sont des tampons pré-calculés (aucun filtre en direct par coup de charley), de sorte que le moteur 30 tient en vrai.
+     Ce bloc ne touche JAMAIS à la page : pas de document, window, setInterval, Math.random, ni ctx.currentTime. -->
+<script id="morceau">
+const MORCEAU = (function () {
+  const BPM = 148, SD = 60 / BPM / 4, MES = 16 * SD;
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  const hh = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };   /* un tirage répétable (pas de Math.random) */
+
+  // LA GRILLE (la♭ mineur), une phrase de 16 mesures, un accord toutes les 2 mesures :
+  // do♯m9 · mi♭7sus · la♭m9 · mi maj9 | la♭m9 · mi maj9 · si maj9 · mi♭7sus  (les accords du générateur d'origine)
+  const ROOTS = [37, 39, 44, 40, 44, 40, 47, 39];
+  const CHORDS = [[52, 59, 63, 68], [51, 58, 61, 68], [54, 59, 63, 70], [54, 59, 63, 68], [58, 63, 66, 71], [56, 63, 66, 71], [58, 63, 66, 73], [58, 63, 68, 73]];
+  // LE PIANO : six dessins de 16 pas (rang dans l'accord 0-3, « . » = silence), tirés mesure par mesure
+  const PPAT = ['0.2..3..1.2...3.', '1..3.2..0..3.1..', '0...2.3.1...3.2.', '3.1..2.0..3..1.2', '0.1...2.3..0.1..', '2..0.3...1.2..0.'];
+  // LE THÈME (la clarinette électrisée) : [pas sur 256, note, durée en doubles croches], huit blocs de 2 mesures, un par accord
+  const THEME_A = [[2, 75, 3], [5, 73, 3], [8, 71, 4], [14, 73, 2], [16, 76, 6], [24, 75, 8],
+    [34, 75, 3], [37, 73, 2], [40, 70, 6], [48, 68, 4], [52, 70, 4], [56, 73, 8],
+    [66, 71, 3], [69, 75, 3], [72, 78, 6], [80, 76, 4], [84, 75, 4], [88, 71, 8],
+    [96, 76, 4], [100, 78, 4], [104, 80, 6], [112, 78, 4], [116, 75, 4], [120, 76, 8],
+    [130, 80, 3], [133, 78, 3], [136, 75, 6], [144, 71, 4], [148, 75, 4], [152, 78, 8],
+    [162, 80, 4], [166, 78, 2], [168, 76, 6], [176, 75, 4], [180, 71, 4], [184, 68, 8],
+    [192, 78, 6], [198, 75, 2], [200, 71, 4], [204, 75, 4], [208, 78, 4], [212, 80, 4], [216, 82, 8],
+    [224, 80, 6], [230, 78, 2], [232, 75, 6], [240, 73, 4], [244, 70, 4], [248, 68, 8]];
+  const bloc = (T, b) => T.filter(n => n[0] >= b * 32 && n[0] < b * 32 + 32);
+  const retro = T => { const out = []; for (let b = 0; b < 8; b++) { const B = bloc(T, b), ps = B.map(n => n[1]).reverse(); B.forEach((n, i) => out.push([n[0], ps[i], n[2]])); } return out; };
+  const inverse = T => { const out = []; for (let b = 0; b < 8; b++) { const B = bloc(T, b), piv = B[0][1], set = B.map(n => n[1]);
+    B.forEach(n => { const cible = 2 * piv - n[1]; let best = set[0]; set.forEach(s => { if (Math.abs(s - cible) < Math.abs(best - cible)) best = s; }); out.push([n[0], best, n[2]]); }); } return out; };
+  const THEME_R = retro(THEME_A), THEME_I = inverse(THEME_A), THEME_AR = THEME_A.filter(n => n[0] < 128).concat(THEME_R.filter(n => n[0] >= 128));
+  const MELOS = [THEME_A, THEME_R, THEME_I, THEME_AR];
+
+  const QUAND = { piano: 1, pad: 1, goutte: 1, rumble: 1, kick: 1, hats: 2, b808: 3, snare: 4, voix: 5, eclair: 8, lead: 9, ouverts: 9, roll: 10, riser: 13, boom: 14, crash: 14, toms: 16, lead2: 17, cordes: 18, stab: 20, octave: 21, final: 28, tutti: 29 };
+  const ENTRE = { 1: 'L’orage au loin : le piano de velours, les gouttes de verre, un grondement qui monte et retombe, la grosse caisse du cœur.', 2: '+ le charley, en croches', 3: '+ les 808, courts (0,3 s)', 4: '+ la caisse claire, sur le 3 seulement : le demi-temps',
+    5: '+ les voix de brume, les charleys en doubles croches', 6: '+ les kicks syncopés', 7: 'Le piano se remplit', 8: '+ les éclairs (craquements dans la salle), les rim shots fantômes', 9: 'LA CLARINETTE ÉLECTRISÉE : le thème entre, le filtre qui s’ouvre, le souffle',
+    10: '+ les rouleaux de charley (triolets), le clap', 11: 'Le piano roule ses accords', 12: '+ les 808 glissent', 13: '+ la montée de fin de phrase', 14: 'LE COUP DE TONNERRE à chaque grande phrase', 15: 'La clarinette passe en octave sur la fin',
+    16: '+ les toms de tonnerre en fin de phrase', 17: '+ la seconde voix de la clarinette, les rouleaux en 32e', 18: 'LES CORDES : un spiccato nerveux, un accord sur deux', 20: '+ les accords-éclairs', 21: '+ la clarinette double à l’octave',
+    22: 'Les kicks se densifient', 24: 'Le piano double à l’octave', 26: 'Les éclairs se répondent en écho', 28: 'LE FINAL : tout est frappé, le tonnerre toutes les 8 mesures', 29: 'Le tutti', 30: 'Le sommet : la clarinette chante par-dessus tout l’orage.' };
+  const PALIERS30 = Array.from({ length: 30 }, (_, k) => ENTRE[k + 1] || (k < 14 ? 'Le grondement monte d’un cran.' : 'Tout pousse d’un cran : plus serré, plus fort.'));
+  const BASE = { piano: .7, pad: .5, goutte: .5, rumble: .5, kick: .75, hats: .32, ouverts: .24, b808: .55, snare: .55, voix: .4, eclair: .55, lead: .5, lead2: .3, roll: .3, riser: .34, boom: .6, crash: .36, toms: .5, cordes: .34, stab: .4 };
+  const niv = (id, p) => { const e = QUAND[id] || 1; if (p < e) return 0; const r = Math.min(1, (p - e) / 6), g = .72 + .28 * (p - 1) / 29; return (BASE[id] || .3) * (.82 + .18 * r) * g; };
+  const FILTRE_PAD = p => Math.min(3800, 600 * Math.pow(1.08, p - 1));
+  const POMPE = p => Math.max(.5, .82 - .01 * p);
+  /* LA GROSSE CAISSE : trap, syncopée, elle change toutes les deux mesures */
+  const KICKS = (m, p) => { const k = [0], d = m >> 1, r1 = hh(d, 1), r2 = hh(d, 2), r3 = hh(d, 3);
+    if (p < 3) { if (p >= 2 && m % 2 === 1) k.push(10); return k; }
+    k.push(r1 > .5 ? 10 : 11);
+    if (p >= 6 && r2 > .4) k.push(r3 > .5 ? 6 : 7);
+    if (p >= 12 && r3 > .35) k.push(r1 > .5 ? 14 : 13);
+    if (p >= 22 && r2 > .5) k.push(3);
+    if (p >= 26 && r1 > .3) k.push(15);
+    return k; };
+
+  function preparer(ctx, sortie, alea) {
+    const G = v => { const g = ctx.createGain(); g.gain.value = v; return g; };
+    const F = (type, f, q) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q != null) b.Q.value = q; return b; };
+    const chaine = (...n) => { for (let i = 0; i < n.length - 1; i++) n[i].connect(n[i + 1]); return n[n.length - 1]; };
+    const courbe = k => { const c = new Float32Array(2048); for (let i = 0; i < 2048; i++) { const x = i / 1023.5 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); } return c; };
+    const impulsion = (len, dec, lp) => { const n = Math.floor(ctx.sampleRate * len), b = ctx.createBuffer(2, n, ctx.sampleRate);
+      for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let y = 0; const a = Math.exp(-2 * Math.PI * lp / ctx.sampleRate);
+        for (let i = 0; i < n; i++) { y = (1 - a) * (alea() * 2 - 1) + a * y; d[i] = y * Math.pow(1 - i / n, dec); } } return b; };
+    const master = G(.5), chaud = ctx.createWaveShaper(); chaud.curve = courbe(1.15); chaud.oversample = '2x';
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 2.2; comp.attack.value = .012; comp.release.value = .18;
+    const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -3; lim.ratio.value = 20; lim.attack.value = .001; lim.release.value = .1; lim.knee.value = 0;
+    // le grave est tenu : passe-haut à 34 Hz, un petit creux dans la boue 230-320 Hz
+    const boue = F('peaking', 270, .9); boue.gain.value = -2.5;
+    chaine(master, F('highpass', 34, .7), boue, chaud, comp, lim, sortie);
+    const salle = ctx.createConvolver(); salle.buffer = impulsion(3, 2.2, 2600); const envoiSalle = G(1); chaine(envoiSalle, salle, F('highpass', 260, .7), G(.32), master);
+    // l'écho pointé (3 doubles croches), stéréo
+    const dG = ctx.createDelay(2), dD = ctx.createDelay(2); dG.delayTime.value = SD * 3; dD.delayTime.value = SD * 3;
+    const fb = G(.34), echoIn = G(1), echoSort = G(0), pG = ctx.createStereoPanner(), pD = ctx.createStereoPanner(); pG.pan.value = -.7; pD.pan.value = .7;
+    chaine(echoIn, F('lowpass', 4000, .7), F('highpass', 300, .7), dG); dG.connect(dD); dD.connect(fb); fb.connect(dG); dG.connect(pG); dD.connect(pD); pG.connect(echoSort); pD.connect(echoSort); echoSort.connect(master); echoSort.connect(envoiSalle);
+    const pompe = G(1); pompe.connect(master);
+    const ids = ['piano', 'pad', 'goutte', 'rumble', 'kick', 'hats', 'ouverts', 'b808', 'snare', 'voix', 'eclair', 'lead', 'lead2', 'roll', 'riser', 'boom', 'crash', 'toms', 'cordes', 'stab'], bus = {};
+    const PUMP = ['pad', 'voix', 'cordes', 'stab'];
+    ids.forEach(id => { bus[id] = G(0); bus[id].connect(PUMP.indexOf(id) >= 0 ? pompe : master); });
+    const envoi = (id, v) => { const g = G(v); bus[id].connect(g); g.connect(envoiSalle); };
+    envoi('piano', .3); envoi('pad', .45); envoi('goutte', .75); envoi('rumble', .25); envoi('snare', .4); envoi('voix', .7); envoi('eclair', .6); envoi('lead', .42); envoi('lead2', .45); envoi('riser', .3); envoi('boom', .3); envoi('crash', .3); envoi('toms', .3); envoi('cordes', .3); envoi('stab', .35);
+    { const dub = (id, v) => { const g = G(v); bus[id].connect(g); g.connect(echoIn); }; dub('goutte', .6); dub('piano', .25); dub('lead', .45); dub('eclair', .5); dub('stab', .3); dub('voix', .25); }
+    const filtrePad = F('lowpass', 600, .7); filtrePad.connect(bus.pad);
+    const kickSat = ctx.createWaveShaper(); kickSat.curve = courbe(1.5); kickSat.connect(bus.kick);
+    const sat808 = ctx.createWaveShaper(); sat808.curve = courbe(2.2); sat808.connect(bus.b808);
+    // LES FRAPPES SONT DES TAMPONS pré-calculés une fois (aucun filtre en direct à chaque coup)
+    const SR = ctx.sampleRate, norm = d => { let mx = 0; for (let i = 0; i < d.length; i++) mx = Math.max(mx, Math.abs(d[i])); if (mx > 0) for (let i = 0; i < d.length; i++) d[i] /= mx; return d; };
+    const tampon = (len, fn) => { const n = Math.floor(SR * len), b = ctx.createBuffer(1, n, SR), d = b.getChannelData(0); fn(d, n); norm(d); const f = Math.min(n, Math.floor(SR * .004)); for (let i = 0; i < f; i++) d[n - 1 - i] *= i / f; return b; };
+    const diff = (d, k) => { for (let j = 0; j < k; j++) { let pr = 0; for (let i = 0; i < d.length; i++) { const x = d[i]; d[i] = x - pr; pr = x; } } };
+    const passeBande = (d, a1, a2) => { let y1 = 0, y2 = 0; for (let i = 0; i < d.length; i++) { y1 += a1 * (d[i] - y1); y2 += a2 * (d[i] - y2); d[i] = y1 - y2; } };
+    const B = {};
+    B.hat = tampon(.06, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.exp(-i / SR / .009); diff(d, 2); });
+    B.hatO = tampon(.3, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.exp(-i / SR / .07) * Math.min(1, i / SR / .003); diff(d, 2); });
+    // la caisse claire de trap : un claquement sec, un corps court, très peu de queue
+    B.snare = tampon(.26, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1); passeBande(d, .7, .12); for (let i = 0; i < n; i++) { const t = i / SR; d[i] = d[i] * 2.2 * Math.exp(-t / .06) + .9 * Math.sin(2 * Math.PI * (210 + 90 * Math.exp(-t / .015)) * t) * Math.exp(-t / .05); } });
+    B.clap = tampon(.28, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1); passeBande(d, .5, .07); for (let i = 0; i < n; i++) { const t = i / SR, rafale = t < .04 ? (Math.floor(t / .013) % 2 === 0 ? 1 : .5) : 0; d[i] *= rafale * 1.2 + Math.exp(-t / .06) * .8; } });
+    B.rim = tampon(.05, (d, n) => { for (let i = 0; i < n; i++) { const t = i / SR; d[i] = Math.sin(2 * Math.PI * (1900 - 700 * Math.min(1, t / .03)) * t) * Math.exp(-t / .01) + .5 * (alea() * 2 - 1) * Math.exp(-t / .003); } });
+    B.crash = tampon(2.6, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.exp(-i / SR / .6) * Math.min(1, i / SR / .004); diff(d, 2); });
+    B.riser = tampon(1.5, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.pow(i / n, 2.1); diff(d, 1); });
+    // le grondement : du bruit brun passé dans un filtre très bas, long de 3 s (il gonfle et retombe dans l'enveloppe)
+    B.rumble = tampon(3, (d, n) => { let y = 0, z = 0; for (let i = 0; i < n; i++) { y += .02 * ((alea() * 2 - 1) - y); z += .09 * (y - z); d[i] = z * (.6 + .4 * Math.sin(i / SR * 11)); } });
+    // l'éclair : des craquements qui se rapprochent, puis un claquement large, tout en bruit
+    B.eclair = tampon(.9, (d, n) => { for (let i = 0; i < n; i++) d[i] = 0; const pts = []; for (let k = 0; k < 14; k++) pts.push(Math.floor(SR * (.012 * k * (1 + .3 * alea()))));
+      pts.forEach((s, k) => { const L = Math.floor(SR * (.004 + .01 * alea())); for (let i = 0; i < L && s + i < n; i++) d[s + i] += (alea() * 2 - 1) * Math.exp(-i / L * 5) * (1 - k / 18); });
+      for (let i = 0; i < n; i++) { const t = i / SR; if (t > .17) d[i] += (alea() * 2 - 1) * Math.exp(-(t - .17) / .09) * .9; } diff(d, 1); });
+    B.breath = tampon(1.2, (d, n) => { for (let i = 0; i < n; i++) d[i] = alea() * 2 - 1; passeBande(d, .5, .05); });
+    B.click = tampon(.012, (d, n) => { for (let i = 0; i < n; i++) d[i] = (alea() * 2 - 1) * Math.exp(-i / SR / .002); });
+    return { bus, pompe, filtrePad, kickSat, sat808, echoSort, B, master };
+  }
+
+  function jouer(ctx, kit, p, t0, m0, n, alea) {
+    p = Math.max(1, Math.min(30, p | 0));
+    const b = kit.bus, B = kit.B, A = id => p >= QUAND[id];
+    for (const id in b) b[id].gain.setValueAtTime(niv(id, p), t0);
+    kit.master.gain.setTargetAtTime(.56 + .42 * Math.pow((p - 1) / 29, 1.2), t0, .5);
+    kit.filtrePad.frequency.setTargetAtTime(FILTRE_PAD(p), t0, .4); kit.echoSort.gain.setValueAtTime(p >= 5 ? .42 + (p >= 26 ? .12 : 0) : .25, t0);
+    const osc = (type, f, dt) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; if (dt) o.detune.value = dt; return o; };
+    const filt = (type, f, q) => { const x = ctx.createBiquadFilter(); x.type = type; x.frequency.value = f; x.Q.value = q; return x; };
+    const gain = v => { const g = ctx.createGain(); g.gain.value = v; return g; };
+    const env = (g, t, pic, a, dur) => { g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(.0002, pic), t + a); g.gain.exponentialRampToValueAtTime(.0001, t + dur); };
+    const frappe = (buf, t, dest, v, rate, pan) => { const s = ctx.createBufferSource(), g = gain(v); s.buffer = buf; if (rate) s.playbackRate.value = rate; s.connect(g);
+      if (pan) { const pn = ctx.createStereoPanner(); pn.pan.value = pan; g.connect(pn); pn.connect(dest); } else g.connect(dest); s.start(t); };
+
+    // ---- les instruments ----
+    // le piano de velours : un sinus + son octave et sa douzième qui meurent vite, un petit tic de marteau ; la queue dure ~1,3 s
+    const piano = (t, midi, v, pan) => { const f = mtof(midi), g = gain(0), g2 = gain(0), o = osc('sine', f), o2 = osc('triangle', f * 2), o3 = osc('sine', f * 3.01), pn = ctx.createStereoPanner(); pn.pan.value = pan || 0;
+      const k = Math.max(.35, 1 - (midi - 60) / 50); env(g, t, v * k, .003, 1.3 - .4 * (midi - 48) / 40); env(g2, t, v * k * .42, .003, .38); o.connect(g); o2.connect(g2); o3.connect(g2); g2.connect(g); g.connect(pn); pn.connect(b.piano);
+      o.start(t); o2.start(t); o3.start(t); o.stop(t + 1.4); o2.stop(t + .42); o3.stop(t + .42); };
+    // la goutte de verre : un sinus qui PLONGE de 2,3 fois sa hauteur en 40 ms, et sa queue de cloche
+    const goutte = (t, midi, v, pan) => { const f = mtof(midi), g = gain(0), g2 = gain(0), o = osc('sine', f), o2 = osc('sine', f * 2.76), pn = ctx.createStereoPanner(); pn.pan.value = pan;
+      o.frequency.setValueAtTime(f * 2.3, t); o.frequency.exponentialRampToValueAtTime(f, t + .04); env(g, t, v, .003, 1.4); env(g2, t, v * .25, .003, .5); o.connect(g); o2.connect(g2); g2.connect(g); g.connect(pn); pn.connect(b.goutte); o.start(t); o2.start(t); o.stop(t + 1.45); o2.stop(t + .55); };
+    // la nappe : des scies désaccordées dans un filtre qui s'ouvre avec le moteur, deux mesures par accord
+    const nappe = (t, accord, dur) => { const g = gain(0), v = p >= 12 ? .052 : .042; g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + .8); g.gain.setValueAtTime(v, t + dur - .2); g.gain.linearRampToValueAtTime(.0001, t + dur + .8);
+      accord.concat(p >= 12 ? [accord[0] + 12] : []).forEach(m => [-8, 8].forEach(dt => { const o = osc('sawtooth', mtof(m), dt), x = filt('lowpass', 1500, .6); o.connect(x); x.connect(g); o.start(t); o.stop(t + dur + .9); })); g.connect(kit.filtrePad); };
+    // la voix de brume : une scie dans trois filtres de formants (un « a » qui se ferme en « o »), trois notes de l'accord
+    const brume = (t, accord, dur) => { const g = gain(0), v = p >= 14 ? .05 : .04; g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + 1); g.gain.setValueAtTime(v, t + dur - .3); g.gain.linearRampToValueAtTime(.0001, t + dur + .7);
+      accord.slice(1, 4).forEach((m, k) => { const o = osc('sawtooth', mtof(m + 12), (k - 1) * 7), pn = ctx.createStereoPanner(); pn.pan.value = (k - 1) * .6; o.connect(pn);
+        [[800, 400, 4], [1150, 800, 5], [2800, 2600, 6]].forEach(([f1, f2, q]) => { const x = filt('bandpass', f1, q); x.frequency.setValueAtTime(f1, t); x.frequency.linearRampToValueAtTime(f2, t + dur); pn.connect(x); x.connect(g); }); o.start(t); o.stop(t + dur + .8); }); g.connect(b.voix); };
+    // LA CLARINETTE ÉLECTRISÉE : un carré dans un filtre qui s'OUVRE après l'attaque (le « wah » de l'orage), un coup d'archet de souffle, un petit plongeon de hauteur au départ,
+    // un vibrato qui n'arrive qu'après ; la fin est une descente douce (constante de temps 0,12 s), jamais une coupure
+    const clarinette = (t, midi, len, v, dest, prev) => { const dur = SD * len, f = mtof(midi), g = gain(0), o = osc('square', f), o2 = osc('sine', f * 2), g2 = gain(.2), x = filt('lowpass', f * 1.6, 3.2), lfo = osc('sine', 5), lg = gain(0), fin = t + Math.max(.1, dur - .04);
+      const f0 = prev ? mtof(prev) : f * .94; [o, o2].forEach(y => { y.frequency.setValueAtTime(f0, t); y.frequency.setTargetAtTime(y === o ? f : f * 2, t, .035); });
+      x.frequency.setValueAtTime(f * 1.6, t); x.frequency.exponentialRampToValueAtTime(Math.min(f * 7, 9000), t + .14); x.frequency.setTargetAtTime(f * 3.2, t + .16, .25);
+      g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + .045); g.gain.setValueAtTime(v, fin); g.gain.setTargetAtTime(.0001, fin, .12);
+      lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(11, t + Math.min(.55, dur * .7)); lfo.connect(lg); lg.connect(o.detune); lg.connect(o2.detune);
+      o.connect(x); o2.connect(g2); g2.connect(x); x.connect(g); g.connect(dest); o.start(t); o2.start(t); lfo.start(t); const fe = fin + .8; o.stop(fe); o2.stop(fe); lfo.stop(fe);
+      if (dur > .2) frappe(B.breath, t, dest, v * .22, 1, 0); };
+    const dessous = (m, accord) => { const pcs = accord.map(x => x % 12); for (const d of [4, 3, 5, 7]) if (pcs.indexOf(((m - d) % 12 + 12) % 12) >= 0) return m - d; return m - 5; };
+    // le spiccato des cordes : deux scies désaccordées, une note courte et nette, dans un filtre qui claque
+    const corde = (t, midi, v) => { const g = gain(0), x = filt('lowpass', 3200, .8); x.frequency.setValueAtTime(4200, t); x.frequency.exponentialRampToValueAtTime(1100, t + SD * 1.8); env(g, t, v, .006, SD * 2);
+      [-9, 9].forEach(dt => { const o = osc('sawtooth', mtof(midi), dt); o.connect(x); o.start(t); o.stop(t + SD * 2.1); }); x.connect(g); g.connect(b.cordes); };
+    // l'accord-éclair : trois triangles + un carré dans un filtre qui claque
+    const stab = (t, accord) => { const g = gain(0), x = filt('lowpass', 3000, .9); x.frequency.setValueAtTime(5200, t); x.frequency.exponentialRampToValueAtTime(900, t + SD * 1.6); env(g, t, .11, .003, SD * 1.7);
+      accord.slice(0, 4).forEach(m => { const o = osc('triangle', mtof(m + 12)); o.connect(x); o.start(t); o.stop(t + SD * 1.8); }); x.connect(g); g.connect(b.stab); };
+    // la basse : un 808 COURT (0,3 s) qui peut glisser vers une autre note ; un octave de triangle pour qu'on l'entende au téléphone
+    const b808 = (t, midi, glide, v) => { const f = mtof(midi), g = gain(0), o = osc('sine', f), o2 = osc('triangle', f * 2), g2 = gain(.2);
+      if (glide) o.frequency.setValueAtTime(f, t), o.frequency.exponentialRampToValueAtTime(mtof(midi + glide), t + .2);
+      env(g, t, v, .004, .3); o.connect(g); o2.connect(g2); g2.connect(g); g.connect(kit.sat808); o.start(t); o2.start(t); o.stop(t + .32); o2.stop(t + .32); };
+    const kick = (t, court) => { const o = osc('sine', 140), g = gain(0); o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(48, t + .05);
+      env(g, t, .9, .002, court ? .13 : .2); o.connect(g); g.connect(kit.kickSat); o.start(t); o.stop(t + .22); frappe(B.click, t, b.kick, .5, 1, 0);
+      if (p >= 4) { kit.pompe.gain.setValueAtTime(POMPE(p), t); kit.pompe.gain.linearRampToValueAtTime(1, t + SD * 3.2); } };
+    // le tom de tonnerre : un sinus qui descend, un grain de bruit
+    const tom = (t, f0) => { const o = osc('sine', f0), g = gain(0); o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * .5, t + .22); env(g, t, .7, .003, .26); o.connect(g); g.connect(b.toms); o.start(t); o.stop(t + .28); frappe(B.click, t, b.toms, .4, .7, 0); };
+    // le coup de tonnerre : un boum de sinus qui plonge, et le grondement long derrière
+    const boum = t => { const o = osc('sine', 95), g = gain(0); o.frequency.setValueAtTime(95, t); o.frequency.exponentialRampToValueAtTime(30, t + .5); env(g, t, .9, .004, .55); o.connect(g); g.connect(b.boom); o.start(t); o.stop(t + .6); };
+    const rumble = (t, dur, v) => { const s = ctx.createBufferSource(), g = gain(0), x = filt('lowpass', 160, .8); s.buffer = B.rumble; g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + dur * .45); g.gain.linearRampToValueAtTime(.0001, t + dur);
+      s.connect(x); x.connect(g); g.connect(b.rumble); s.start(t); s.stop(t + Math.min(2.99, dur + .05)); };
+    const riser = (t, dur) => { const s = ctx.createBufferSource(), x = filt('bandpass', 3500, .8), g = gain(0); s.buffer = B.riser; x.frequency.setValueAtTime(3500, t); x.frequency.exponentialRampToValueAtTime(10000, t + dur);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.45, t + dur * .9); g.gain.exponentialRampToValueAtTime(.0001, t + dur + .4); s.connect(x); x.connect(g); g.connect(b.riser); s.start(t); s.stop(t + 1.49); };
+
+    // ---- les mesures ----
+    for (let m = m0; m < m0 + n; m++) {
+      const tm = t0 + (m - m0) * MES, bar = m % 16, cy = Math.floor(m / 16), ci = bar >> 1, accord = CHORDS[ci], root = ROOTS[ci], d2 = m >> 1;
+      const kicks = KICKS(m, p), ppat = PPAT[Math.floor(hh(m, 7) * 6)];
+      if (bar % 2 === 0) nappe(tm, accord, MES * 2);
+      if (A('voix') && bar % 2 === 0) brume(tm, accord, MES * 2);
+      if (bar % 4 === 0) rumble(tm, 3, p < 3 ? .5 : .7);
+      if (A('boom') && bar === 0 && (cy % 2 === 0 || p >= 28)) { boum(tm); frappe(B.crash, tm, b.crash, .8, 1, 0); rumble(tm + .1, 3, 1.2); }
+      if (p >= 28 && bar === 8) { boum(tm); frappe(B.crash, tm, b.crash, .6, 1.1, 0); }
+      if (A('riser') && (bar === 7 || bar === 15)) riser(tm + MES * .1, MES * .9);
+      // le thème de la clarinette (QUATRE versions qui se relaient ; la fin monte d'une octave un cycle sur deux)
+      if (A('lead')) { const melo = MELOS[cy % 4], haut = (cy & 1) === 1;
+        melo.forEach(([st, nt, ln], k) => { if (Math.floor(st / 16) !== bar) return; const t = tm + (st % 16) * SD, nn = nt + ((haut && st >= 192) || (p >= 15 && st >= 224) ? 12 : 0), pv = k > 0 && st - (melo[k - 1][0] + melo[k - 1][2]) <= 1 ? melo[k - 1][1] : null;
+          clarinette(t, nn, ln, .12, b.lead, pv);
+          if (A('lead2')) clarinette(t, dessous(nn, accord), ln, .075, b.lead2, null);
+          if (A('octave')) clarinette(t, nn + 12, ln, .04, b.lead2, null);
+          if (p >= 26 && ln >= 6) clarinette(t + SD * 3, nn + 7 > 88 ? nn - 5 : nn + 7, ln - 3, .035, b.lead2, null); }); }
+      // les éclairs : des craquements dans la salle, de plus en plus fréquents, chacun d'un côté
+      if (A('eclair') && hh(m, 31) > (p < 14 ? .72 : p < 22 ? .55 : .35)) { const i = Math.floor(hh(m, 32) * 14) + 1, t = tm + i * SD; frappe(B.eclair, t, b.eclair, .55 + .35 * hh(m, 33), .9 + .3 * hh(m, 34), (hh(m, 35) - .5) * 1.7); if (p >= 26) frappe(B.eclair, t + SD * 3, b.eclair, .3, 1.2, -(hh(m, 35) - .5) * 1.7); }
+      // les gouttes de verre, tirées mesure par mesure (de plus en plus nombreuses)
+      for (let k = 0; k < 4; k++) { if (hh(m, 40 + k) > (p < 4 ? .2 : p < 12 ? .3 : .45)) continue; const i = [2, 5, 9, 13][k] + Math.floor(hh(m, 50 + k) * 2); const q = accord[Math.floor(hh(m, 60 + k) * 4)] + 24 + (hh(m, 70 + k) > .7 ? 12 : 0); goutte(tm + i * SD, q, .26 + .1 * hh(m, 80 + k), (hh(m, 90 + k) - .5) * 1.5); }
+      // les accords-éclairs et les cordes
+      if (A('cordes')) { const S = [accord[0] + 12, accord[1] + 12, accord[2] + 12, accord[3] + 12, accord[2] + 12, accord[1] + 12, accord[3] + 12, accord[2] + 12]; if ((d2 & 1) === 0 || p >= 24) for (let k = 0; k < 8; k++) if (hh(m, 100 + k) > .15) corde(tm + k * 2 * SD, S[k], .06 + .01 * (k % 4 === 0)); }
+      // les rouleaux de charley
+      const tri = A('roll') && bar % 2 === 1 && p >= 10, tr32 = p >= 17 && bar % 4 === 3;
+      if (tri) { const nb = 6, pas = SD * 4 / 6; for (let k = 0; k < nb; k++) frappe(B.hat, tm + 12 * SD + k * pas, b.roll, .35 + .5 * k / nb, 1 + .03 * k, 0); }
+      if (tr32) { const nb = 8, pas = SD * .5; for (let k = 0; k < nb; k++) frappe(B.hat, tm + 8 * SD + k * pas, b.roll, .3 + .55 * k / nb, 1 + .05 * k, 0); }
+      for (let i = 0; i < 16; i++) {
+        const t = tm + i * SD;
+        // — le piano : un dessin par mesure ; à partir de 11 la main gauche (la racine) et l'accord roulé sur le 3 ; à partir de 24, l'octave
+        { const c = ppat[i], dense = p < 4 ? (i === 0 || i === 6 || i === 10) : p < 7 ? c !== '.' && i % 2 === 0 || i === 0 : c !== '.';
+          if (dense) { const k = c !== '.' ? +c : Math.floor(hh(m, i + 110) * 4), mn = accord[k] + (p >= 7 && k < 2 && hh(m, i + 115) > .6 ? 12 : 0);
+            piano(t + (i % 2 ? SD * .05 : 0), mn, (i === 0 ? 1 : .62) * (p < 3 ? .8 : .95) * .5, (hh(m, i + 120) - .5) * .5); if (p >= 24 && i % 2 === 0) piano(t, mn + 12, .17, (hh(m, i + 120) - .5) * .5); }
+          if (p >= 11 && i === 0) piano(t, root + 12, .5, -.1);
+          if (p >= 11 && i === 8 && (bar & 1) === 0) accord.forEach((x, kk) => piano(t + kk * SD * .12, x, .3, (kk - 1.5) * .25)); }
+        // — la basse et la grosse caisse
+        if (kicks.indexOf(i) >= 0) {
+          const avec808 = A('b808') && (i === 0 || kicks.indexOf(i) >= 1);
+          kick(t, avec808);
+          if (avec808) { const gl = p >= 12 && i !== 0 && hh(m, i + 130) > .55 ? [5, 7, 12][Math.floor(hh(m, i + 140) * 3)] : 0; b808(t, root, gl, i === 0 ? .8 : .6); }
+        }
+        if (p >= 23 && i === 14 && bar % 2 === 1 && kicks.indexOf(14) < 0) kick(t, true);
+        if (A('final') && bar % 4 === 3 && i >= 12 && i % 2 === 0 && kicks.indexOf(i) < 0) kick(t, true);
+        // — la caisse claire en DEMI-TEMPS : seulement sur le 3 (le pas 8), des fantômes en rim, un clap par-dessus dès 10
+        if (A('snare')) {
+          if (i === 8) { frappe(B.snare, t, b.snare, 1, 1 + (hh(m, i) - .5) * .05, 0); if (p >= 10) frappe(B.clap, t + .005, b.snare, .5, 1, .15); }
+          if (p >= 14 && bar % 8 === 7 && i === 15) frappe(B.snare, t, b.snare, .55, 1.1, 0);
+          if (p >= 8 && (i === 3 || i === 6 || i === 11 || i === 14) && hh(m, i + 150) > .55) frappe(B.rim, t, b.snare, .38 + .2 * hh(m, i + 160), .95 + .2 * hh(m, i + 170), (hh(m, i + 180) - .5) * .8);
+        }
+        // — les charleys : continus, les doubles croches tirées au sort ; les rouleaux prennent la place de la fin de mesure
+        if (A('hats') && !(tri && i >= 12) && !(tr32 && i >= 8 && i < 12)) {
+          const on = p < 5 ? i % 2 === 0 : (i % 2 === 0 || hh(m, i + 60) < (p < 12 ? .5 : .72));
+          if (on) frappe(B.hat, t, b.hats, (i % 4 === 0 ? .52 : i % 2 === 0 ? .36 : .2) * (.8 + .4 * hh(m, i + 9)), 1 + (hh(m, i + 9) - .5) * .06, 0); }
+        if (A('ouverts') && i === (bar % 2 ? 14 : 6) && p >= 9) frappe(B.hatO, t, b.ouverts, .5, 1, .25);
+        if (A('stab') && (hh(d2, 11) > .5 ? [3, 10] : [6, 11]).concat(p >= 28 ? [14] : []).indexOf(i) >= 0 && (p >= 24 || bar % 2 === 0)) stab(t, accord);
+        if (A('toms') && bar % 4 === 3 && i >= 12) tom(t, [260, 210, 170, 135][i - 12]);
+      }
+    }
+  }
+
+  return {
+    titre: 'TONNERRE DELUXE', bpm: BPM, mesures: 16, intro: 0, pas: 0.6, moteurs: Array(30).fill(1), ton: 'la♭ mineur', auteur: 'Claude Code (pôle SON), écrit à la main pour Léo',
+    style: 'trap de luxe sous l’orage : piano de velours, clarinette électrisée, gouttes de verre', introTxt: '', paliers: PALIERS30, preparer, jouer };
+})();
+</script>
+
+
+<!-- ======================= L'ÉCOUTE (libre : ce que voit celui qui ouvre le fichier) ======================= -->
+<script>
+(function () {
+  let ctx = null, kit = null, p = 1, m = 0, tNext = 0, iv = 0;
+  let graine = 61040; const alea = () => { graine = (graine * 1664525 + 1013904223) >>> 0; return graine / 4294967296; };
+  const mes = 240 / MORCEAU.bpm;
+  const ce = document.getElementById('ce'), play = document.getElementById('play'), jg = document.getElementById('speed'), mot = document.getElementById('mot');
+  const maj = () => { mot.textContent = 'Moteur ' + p + ' / 30'; ce.textContent = 'Moteur ' + p + ' · ' + MORCEAU.paliers[p - 1]; };
+  jg.addEventListener('input', () => { p = Math.max(1, Math.min(30, 1 + Math.round(+jg.value / 100 * 29))); maj(); });
+  play.onclick = () => {
+    if (iv) { clearInterval(iv); iv = 0; ctx.close(); ctx = null; play.textContent = 'PLAY'; maj(); return; }
+    ctx = new (window.AudioContext || window.webkitAudioContext)(); kit = MORCEAU.preparer(ctx, ctx.destination, alea);
+    m = 0; tNext = ctx.currentTime + 0.1; play.textContent = 'STOP';
+    iv = setInterval(() => { while (tNext < ctx.currentTime + 0.4) { MORCEAU.jouer(ctx, kit, p, tNext, m++, 1, alea); tNext += mes; } maj(); }, 60);
+  };
+  maj();
+})();
+</script>
+</body></html>

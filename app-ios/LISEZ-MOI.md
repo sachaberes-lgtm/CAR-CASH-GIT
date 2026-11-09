@@ -11,6 +11,7 @@ qui affiche le jeu dans une vue web, sans navigateur autour). Le jeu n'est **pas
 | La colle native (chargée en premier, inerte hors de l'app) | `natif/natif.js` |
 | Le projet Xcode | `ios/App/App.xcodeproj` (Swift Package Manager, pas de CocoaPods) |
 | Le contrôleur plein écran + la garde des liens | `ios/App/App/JeuViewController.swift` |
+| Les achats intégrés (StoreKit 2, plugin « Achats ») | `ios/App/App/Achats.swift` · pont JS `natif/achats.js` · test `ios/App/Produits.storekit` |
 | Le manifeste de confidentialité exigé par Apple | `ios/App/App/PrivacyInfo.xcprivacy` |
 | Les images sources de l'icône et de l'écran de lancement | `ressources/` (→ `assets/` → `Assets.xcassets`) |
 | **iOS minimum** | **16.4** (depuis le 2026-11-05, jury IOS-10) |
@@ -29,7 +30,7 @@ qui affiche le jeu dans une vue web, sans navigateur autour). Le jeu n'est **pas
   de `capacitor.config.json` n'a aucun module installé : il est inerte (gardé, sans effet).
 - **L'écran de lancement attend le jeu** (IOS-20) : `launchAutoHide:false` ; c'est `natif.js` qui l'efface à `DOMContentLoaded`
   (après l'exécution du grand script), avec un filet à 30 s. Avant, il partait seul à 4 s et un iPhone lent montrait un fond violet nu.
-- **Une version native = un numéro de version** (IOS-19) : `publier-maj.js` met `natifMin` = `MARKETING_VERSION`, et l'app ne compare
+- **Une version native = un numéro de version** (IOS-19) : `publier-maj.js` met `natifMin` = `MARKETING_VERSION` par défaut (sauf si `--natif-min` est donné ; obligatoire pour une édition avec achats), et l'app ne compare
   que ce numéro (`getBuiltinVersion`, pas le numéro de build). Donc **chaque envoi qui change le natif** (un module Capacitor, une
   autorisation, `Info.plist`, Swift) **monte `MARKETING_VERSION`** (1.0.0 → 1.0.1 → 1.1.0) ; monter seulement le build ne suffit pas :
   une mise à jour en direct qui a besoin du nouveau natif irait aussi sur les anciens.
@@ -67,6 +68,9 @@ Le jeu embarqué (`www/`) se remplace par internet : les joueurs n'ont rien à t
 - **Publier** : `node publier-maj.js` (commit local sur `app-maj`, rien d'envoyé), puis `node publier-maj.js --envoyer`
   **seulement sur le oui de Sacha** (tous les iPhone la prennent). Ce qui part est l'ÉDITION APP STORE (preparer-www.js et
   toutes ses coupes), jamais le jeu web tel quel.
+  ⚠ **`--natif-min <x.y.z>` est OBLIGATOIRE tant que l'édition contient les achats** (`achats.js`, plugin StoreKit) : donner la version du
+  premier binaire App Store qui a le plugin Achats. Sans lui `publier-maj.js` refuse (par défaut il viserait `MARKETING_VERSION`, le
+  build 1 sans plugin, qui recevrait une boutique en € sans caisse). Test : `node outils/publier-maj-test.cjs`.
 - **Filet de sécurité (vérifié au simulateur le 14/10)** : une version qui ne démarre pas n'envoie pas de feu vert → au bout de
   60 s (`appReadyTimeout`) le module revient seul à la version d'avant, et `natif.js` la note dans `ccMajRefus` : elle n'est
   plus jamais retentée sur ce téléphone.
@@ -75,7 +79,7 @@ Le jeu embarqué (`www/`) se remplace par internet : les joueurs n'ont rien à t
 - **Règle d'Apple** : corriger, équilibrer, ajouter du contenu (caisses, cartes, musiques) : oui. Changer la nature du jeu,
   ajouter des achats ou de la pub, rallumer ce que l'édition App Store coupe : non (l'app peut être retirée).
 - **Essai au simulateur** : `node preparer-www.js --maj http://localhost:8765/`, build simulateur, puis
-  `node publier-maj.js --local <dossier> --maj http://localhost:8765/ --jeu <un VERSION PRINCIPALE modifié>` et
+  `node publier-maj.js --local <dossier> --maj http://localhost:8765/ --natif-min 1.1.0 --jeu <un VERSION PRINCIPALE modifié>` et
   `python3 -m http.server 8765 --directory <dossier>`. Pour appliquer : passer sur une autre app puis revenir (un arrêt forcé
   par `simctl terminate` ne déclenche pas l'arrière-plan). Remettre ensuite `node preparer-www.js` sans `--maj`.
 
@@ -147,3 +151,27 @@ iOS garde l'ancien écran en cache : supprimer l'app du téléphone avant de ré
 En version Debug, `natif.js` écrit dans la console de Xcode : `[natif] BILAN RÉSEAU` (doit dire « 0 adresse hors de
 l'app »), `[natif] POULS` (images/s, état du son, état du jeu) et toute erreur JS. La version App Store (Release)
 n'écrit rien.
+
+## Tester les achats intégrés (StoreKit 2, 2026-11-07)
+
+Le plugin natif `ios/App/App/Achats.swift` (jsName `Achats`, enregistré dans `JeuViewController.capacitorDidLoad()`) fait les
+achats ; `natif/achats.js` l'expose au jeu (`window.ccAchat`). Tout est **non consommable** (caisses en €, peintures à prix).
+**Rien n'est donné sans une transaction vérifiée** par StoreKit.
+
+- **La liste des produits** vient du jeu : `node app-ios/outils/produits-store.mjs` (le jeu servi d'abord :
+  `cd "VERSION PRINCIPALE" && python3 -m http.server 8931 --bind 127.0.0.1`) écrit `ios/App/Produits.storekit` et
+  `outils/produits.csv` (`id,nom,type,prix_eur` : la liste à créer dans App Store Connect › Achats intégrés, type
+  **Non consommable**). Après un changement de prix ou une caisse/peinture en plus : relancer, puis `--verifier`
+  (exit 1 si un fichier ne suit plus le jeu).
+- **Le test dans le simulateur** : ouvrir `ios/App/App.xcodeproj` et lancer avec **▶ dans Xcode**, scheme **App** (le scheme
+  partagé `xcshareddata/xcschemes/App.xcscheme` pointe déjà vers `../Produits.storekit`). Les achats sont alors simulés par
+  Xcode (aucun argent, menu Debug › StoreKit › Manage Transactions pour rembourser, approuver une demande d'achat, effacer).
+  Si Xcode n'affiche pas les produits : **Product › Scheme › Edit Scheme… › Run › Options › StoreKit Configuration** →
+  choisir `Produits.storekit` (le chemin du scheme n'a pas pu être vérifié hors de Xcode).
+- ⚠ **Seul Xcode ▶ applique le `.storekit`.** Une app lancée par `xcrun simctl launch` (ou depuis l'écran d'accueil du
+  simulateur) parle au vrai App Store de bac à sable : sans produits créés dans App Store Connect, la liste est vide.
+- ⚠ `Produits.storekit` n'est dans **aucune cible** (ni Sources, ni Resources) : il ne part jamais dans l'archive. Ne pas
+  cocher « Target Membership » si Xcode le propose.
+- **Sur un vrai iPhone** : TestFlight (bac à sable d'Apple, comptes testeurs), une fois les produits créés et « Prêts à
+  soumettre » dans App Store Connect. Les premiers achats intégrés doivent partir **avec** une version de l'app soumise à
+  la revue.

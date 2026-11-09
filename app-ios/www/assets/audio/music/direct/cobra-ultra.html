@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cobra Ultra — 30 paliers</title>
+<style>
+:root{--fond:#fff;--tx:#17141c;--tx2:#8a8494;--fil:#e4e1ea;--acc:#b0780a}
+@media (prefers-color-scheme:dark){:root{--fond:#0b090d;--tx:#f2f0f7;--tx2:#9a94a8;--fil:#2a2633;--acc:#e8b04a}}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--fond);color:var(--tx);font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:grid;place-items:center;padding:16px}
+.boite{width:100%;max-width:560px;border:1px solid var(--fil);border-radius:20px;padding:24px;display:grid;gap:18px}
+h1{margin:0;font-size:22px}.sous{color:var(--tx2);font-size:13px;margin-top:4px}
+.rang{display:flex;gap:16px;align-items:center}
+#play{width:72px;height:72px;border-radius:50%;border:0;background:var(--tx);color:var(--fond);font-weight:700;cursor:pointer;flex:none}
+.pals{display:grid;gap:6px;flex:1}#speed{width:100%}#mot{font-weight:700;font-size:18px}
+#ce{color:var(--tx2);font-size:13px;min-height:36px}
+</style></head><body>
+<div class="boite">
+  <div><h1>COBRA ULTRA · 30 PALIERS</h1><div class="sous">écrit à la main, sans le générateur · 172 BPM · si mineur harmonique · drum & bass venimeuse : le VENIN (une voix en anneau qui glisse), la morsure, le sub court — en 30 moteurs</div></div>
+  <div class="rang"><button id="play">PLAY</button><div class="pals"><div id="mot">Moteur 1 / 30</div><input type="range" id="speed" min="0" max="100" step="any" value="0" aria-label="Moteur"></div></div>
+  <div id="ce"></div>
+</div>
+
+<!-- ======================= LE MORCEAU (format CASH CAR « morceau à paliers ») =======================
+     (2026-11-03, pôle SON ; Léo : « refonte totale de Cobra Ultra : aucune inspiration de ce que l'on a déjà créé, juste la rigueur et le concept du jeu »)
+     CONCEPT : la caisse mythique — rapide, élégante, venimeuse. DRUM & BASS à 172 BPM (le plus rapide du jeu : rien d'autre ne tourne au-dessus de 148), en si mineur HARMONIQUE
+     (la sensible la# = le venin : elle revient comme une langue de serpent à la fin de chaque phrase). Genre absent des autres morceaux : un break de drum & bass qui roule, un sub court, une basse FM qui mord.
+     SIGNATURE : LE VENIN — une voix inventée : un sinus et un anneau (le sinus multiplié par un second sinus à 2,003 fois sa fréquence : timbre creux, métallique, jamais une scie), qui GLISSE d'une note à la suivante
+     (le reptile qui ondule) et se referme doucement. Autour : la MORSURE (un petit coup de basse FM qui s'ouvre puis se ferme en un souffle), le SUB court, la BRUME (une nappe de sinus/triangles),
+     les ÉCAILLES (des tics dans le grave du stéréo), le SOUFFLE (un sifflement qui passe d'une oreille à l'autre).
+     LE PLAN (un arrangeur, pas un empilement) : 1-8 liquide et suspendu (demi-temps) ; 9-14 le venin chante, le break se met en place ; 15 LE DROP (le break plein) ; 18-26 les coups d'arrêt (tout se tait avant la reprise) ;
+     25-30 la charge : la puissance vient du break, du sub saturé, des impacts et du registre — pas de nouveaux instruments.
+     CHARGE : TOUTES les frappes (grosse caisse, caisse claire, charleys, tics, roulements, riser, impact, crash, souffle) sont des tampons calculés UNE fois dans preparer() ;
+     une seule source par couche et par mesure ; aucun filtre par coup. Les notes (sub, morsure, venin, nappe) sont des oscillateurs. Au 30 : une centaine d'oscillateurs, moins de dix sources de bruit par mesure.
+     Ce bloc ne touche JAMAIS à la page : pas de document, window, setInterval, Math.random, ni ctx.currentTime (sauf le LFO créé dans preparer). -->
+<script id="morceau">
+const MORCEAU = (function () {
+  const BPM = 172, SD = 60 / BPM / 4, MES = 16 * SD;
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+  const TAU = 6.283185307179586;
+
+  /* LA GRILLE (si mineur harmonique), 16 mesures : Bm9 · Gmaj9 · Em9 · F#7(b9) puis Bm9 · Dmaj9 · Em9 · F#7(b9) — l'accord change toutes les deux mesures, la sensible la# est dans F#7(b9) */
+  const ROOTS = [35, 35, 31, 31, 28, 28, 30, 30, 35, 35, 38, 38, 28, 28, 30, 30];
+  const BM9 = [59, 62, 66, 69, 73], GM9 = [55, 59, 62, 66, 69], EM9 = [52, 55, 59, 62, 66], FS7 = [54, 58, 61, 64, 67], DM9 = [54, 57, 61, 64, 66];
+  const CH = [BM9, BM9, GM9, GM9, EM9, EM9, FS7, FS7, BM9, BM9, DM9, DM9, EM9, EM9, FS7, FS7];
+
+  /* LE THÈME DU VENIN : [pas sur 16, note, durée en doubles croches], une ligne par mesure. La phrase A (mesures 0-7) descend et monte ; la phrase B (8-15) répond plus haut, avec la sensible tenue à la fin */
+  const THEME = [
+    [[0, 83, 2], [2, 78, 4], [8, 76, 3], [11, 74, 5]],
+    [[0, 71, 4], [4, 74, 4], [8, 78, 8]],
+    [[0, 79, 6], [6, 78, 2], [8, 74, 4], [12, 71, 4]],
+    [[0, 74, 4], [4, 79, 4], [8, 83, 8]],
+    [[0, 81, 6], [6, 79, 2], [8, 76, 8]],
+    [[0, 71, 4], [4, 76, 4], [8, 79, 4], [12, 78, 4]],
+    [[0, 82, 6], [6, 85, 2], [8, 79, 4], [12, 78, 4]],
+    [[0, 76, 4], [4, 73, 4], [8, 70, 8]],
+    [[0, 83, 8], [8, 81, 4], [12, 78, 4]],
+    [[0, 81, 4], [4, 78, 2], [6, 74, 2], [8, 78, 4], [12, 81, 4]],
+    [[0, 86, 6], [6, 85, 2], [8, 81, 8]],
+    [[0, 85, 4], [4, 81, 4], [8, 78, 4], [12, 76, 4]],
+    [[0, 83, 6], [6, 81, 2], [8, 79, 8]],
+    [[0, 76, 4], [4, 79, 4], [8, 83, 4], [12, 86, 4]],
+    [[0, 85, 4], [4, 82, 4], [8, 79, 4], [12, 76, 4]],
+    [[0, 78, 8], [8, 82, 8]]
+  ];
+
+  /* LES SUBS (court, net) : [pas, durée, demi-tons au-dessus de la racine]. Clairsemé avant le drop, qui roule après */
+  const SUB_CLAIR = [[[0, 4, 0], [10, 2, 0]], [[0, 4, 0], [11, 2, 0]], [[0, 4, 0], [10, 2, 0], [14, 2, 12]], [[0, 4, 0], [6, 2, 0], [10, 2, 0]]];
+  const SUB_ROULE = [
+    [[0, 3, 0], [3, 1, 12], [6, 2, 0], [10, 3, 0], [13, 2, 7]],
+    [[0, 3, 0], [4, 2, 0], [7, 1, 12], [10, 3, 0], [14, 2, 0]],
+    [[0, 2, 0], [2, 2, 0], [6, 3, 0], [10, 2, 0], [12, 1, 12], [14, 2, 5]],
+    [[0, 3, 0], [3, 2, 0], [8, 3, 0], [11, 2, 12], [14, 2, 0]]
+  ];
+  /* LA MORSURE (basse FM, deux octaves au-dessus de la racine) : clairsemée, puis un riff, puis un roulement en doubles croches */
+  const MOR_CLAIR = [[[14, 2, 0]], [[6, 1, 0], [14, 2, 0]], [[14, 2, 12]], [[10, 2, 0], [14, 2, 7]]];
+  const MOR_RIFF = [
+    [[2, 2, 0], [6, 1, 0], [7, 1, 12], [11, 2, 0], [14, 2, 7]],
+    [[2, 2, 0], [5, 1, 0], [10, 2, 12], [13, 1, 7], [14, 2, 0]],
+    [[2, 2, 7], [6, 2, 0], [9, 1, 0], [11, 2, 12], [14, 2, 0]],
+    [[2, 1, 0], [3, 1, 0], [6, 2, 0], [10, 2, 0], [12, 1, 12], [14, 2, 7]]
+  ];
+  const MOR_ROULE = [
+    [[0, 1, 0], [2, 1, 0], [3, 1, 12], [6, 1, 0], [7, 1, 0], [10, 1, 0], [11, 1, 12], [14, 1, 0], [15, 1, 7]],
+    [[0, 1, 0], [3, 1, 0], [4, 1, 12], [7, 1, 0], [8, 1, 0], [10, 1, 7], [12, 1, 0], [14, 1, 12], [15, 1, 0]],
+    [[0, 1, 7], [2, 1, 0], [4, 1, 0], [6, 1, 12], [8, 1, 0], [11, 1, 0], [12, 1, 12], [14, 1, 0], [15, 1, 5]],
+    [[0, 1, 0], [1, 1, 12], [3, 1, 0], [6, 1, 0], [9, 1, 12], [10, 1, 0], [13, 1, 0], [14, 1, 7], [15, 1, 12]]
+  ];
+  /* LES GROSSES CAISSES (pas) : en demi-temps avant le drop, pleines après, doublées à la charge */
+  const KICKS = {
+    demi: [[0, 10], [0, 9], [0, 10], [0, 6, 10]],
+    plein: [[0, 10], [0, 6, 10], [0, 10, 14], [0, 3, 10]],
+    charge: [[0, 2, 10], [0, 6, 8, 10], [0, 3, 10, 12], [0, 2, 7, 10]]
+  };
+  const SNARES = { demi: [[8], [8], [8, 15], [8]], plein: [[4, 12], [4, 12], [4, 12, 15], [4, 12]] };
+  const GHOSTS = [[7, 9, 14], [9, 11, 15], [6, 10, 13], [7, 14]];
+
+  /* LES MOMENTS : première mesure (moteur) de chaque couche */
+  const QB = { brume: 1, pouls: 1, souffle: 1, ecailles: 2, hat: 3, sub: 4, kick: 5, snare: 6, morsure: 8, venin: 9, ghost: 11, riser: 14, roll: 14, impact: 15, ombre: 16, crash: 17, toile: 23, unis: 26, cri: 29 };
+  const ENTRE = {
+    1: 'Le lobby : la brume (une nappe de sinus), le pouls du sub, le souffle du serpent qui passe d’une oreille à l’autre.',
+    2: 'Les écailles : de petits tics dans le stéréo.',
+    3: 'Le charley fermé, en croches, très doux.',
+    4: 'Le sub court qui répond au pouls.',
+    5: 'La grosse caisse, en demi-temps.',
+    6: 'La caisse claire, en demi-temps : le break se pose.',
+    7: 'La brume s’ouvre : le filtre de la nappe monte (rien d’ajouté).',
+    8: 'La morsure : un petit coup de basse FM, rare.',
+    9: 'LE VENIN chante : la voix en anneau qui glisse, une mesure sur deux.',
+    10: 'Les charleys passent en doubles croches.',
+    11: 'Les caisses claires fantômes.',
+    12: 'Le venin chante toutes les mesures.',
+    13: 'Le repos : les charleys et les fantômes se retirent, le venin respire.',
+    14: 'Le riser et le roulement de caisse claire avant la reprise.',
+    15: 'LE DROP : le break plein de la drum & bass, le sub qui roule, le riff de la morsure, l’impact sur le premier temps.',
+    16: 'L’ombre : le venin double une octave plus bas.',
+    17: 'Les charleys ouverts sur les contretemps et la cymbale à chaque phrase.',
+    18: 'Le premier COUP D’ARRÊT : à la dernière mesure tout se tait, il reste la brume et le venin.',
+    19: 'Le repos : l’ombre se retire, le break respire.',
+    20: 'La morsure roule en doubles croches.',
+    21: 'Le roulement de caisse claire avant chaque coup d’arrêt.',
+    22: 'Le venin monte d’une octave sur sa seconde phrase, le vibrato s’accélère.',
+    23: 'La toile : un voile aigu de sinus autour de l’accord.',
+    24: 'Le repos avant la charge : la toile et les fills se retirent.',
+    25: 'LA CHARGE : la grosse caisse double, le break tranche, la saturation douce serre le sub et la caisse claire.',
+    26: 'L’unisson : une seconde voix du venin sur les mêmes notes, légèrement désaccordée.',
+    27: 'BREAKDOWN ET DROP : deux mesures de silence rythmique avec le riser, puis l’impact lourd.',
+    28: 'L’ouverture : le stéréo s’élargit, la cymbale revient au milieu de la phrase, le filtre est grand ouvert.',
+    29: 'LE CRI : le venin saute d’une octave, plus brillant, plus vibrant.',
+    30: 'TOUT : les quatre voix du serpent ensemble, le compresseur serré, le break à fond.'
+  };
+  const PALIERS30 = Array.from({ length: 30 }, (_, k) => ENTRE[k + 1] || 'Tout pousse d’un cran.');
+
+  /* LES NIVEAUX : chaque couche a un bus, réglé à chaque mesure */
+  const BASE = { brume: .5, pouls: .9, souffle: .38, ecailles: .4, hat: .62, sub: .62, kick: .74, snare: .85, ghost: .5, morsure: .42, venin: .55, ombre: .3, unis: .36, cri: .36, toile: .34, riser: .4, crash: .6, impact: .95, roll: .55 };
+  function niv(id, p) {
+    const q = QB[id]; if (p < q) return 0;
+    let v = BASE[id];
+    if (id === 'pouls' && p >= 5) return 0;
+    if (id === 'ecailles' && p >= 21) return 0;
+    if (id === 'souffle') v *= p <= 14 ? 1 : .55;
+    if (id === 'ombre' && p === 19) return 0;
+    if (id === 'toile' && p === 24) return 0;
+    if (id === 'brume') v *= p >= 25 ? .7 : p >= 15 ? .8 : 1;
+    if (id === 'impact') v *= p >= 27 ? 1.25 : 1;
+    if (id === 'venin') v *= p >= 22 ? 1.1 : 1;
+    return v * Math.min(1, .62 + .2 * (p - q));
+  }
+  const FILTRE_PAD = p => p >= 28 ? 7000 : Math.min(5200, 900 * Math.pow(1.075, p - 1));
+  const FILTRE_MOR = p => p < 15 ? 1300 : p >= 25 ? 3600 : 1700 + 190 * (p - 15);
+  const POMPE = p => p < 15 ? .9 : p >= 28 ? .42 : p >= 25 ? .52 : Math.max(.62, .78 - .012 * (p - 15));
+  const SATURE = p => p < 15 ? .12 : p < 25 ? .2 : Math.min(.62, .38 + .05 * (p - 25));
+  const MAITRE = [0.2547, 0.2051, 0.182, 0.1572, 0.1598, 0.1411, 0.1442, 0.1526, 0.1561, 0.1605, 0.1667, 0.1625, 0.1704, 0.1774, 0.1916, 0.1916, 0.1926, 0.2002, 0.207, 0.2063, 0.2076, 0.2059, 0.2083, 0.2106, 0.2494, 0.2838, 0.3108, 0.4137, 0.5198, 0.659];
+
+  function preparer(ctx, sortie, alea) {
+    const sr = ctx.sampleRate, N = Math.round(MES * sr), at = pos => Math.round(pos * SD * sr);
+    const G = v => { const g = ctx.createGain(); g.gain.value = v; return g; };
+    const F = (type, f, q) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q != null) b.Q.value = q; return b; };
+    const courbe = k => { const c = new Float32Array(2048); for (let i = 0; i < 2048; i++) { const x = i / 1023.5 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); } return c; };
+    const fondu = (d, n) => { const m = Math.min(n, d.length); for (let i = 0; i < m; i++) d[d.length - 1 - i] *= i / m; };
+
+    /* ---- les frappes : calculées une fois, mesure par mesure ---- */
+    const kickAt = (d, s, v) => { const L = Math.floor(.34 * sr); let ph = 0; for (let i = 0; i < L && s + i < d.length; i++) { const t = i / sr; ph += TAU * (46 + 150 * Math.exp(-t / .022)) / sr; let x = Math.sin(ph) * Math.exp(-t / .115); if (t < .004) x += (alea() * 2 - 1) * .5 * (1 - t / .004); d[s + i] += Math.tanh(1.5 * x) * v; } };
+    const snareAt = (d, s, v) => { const L = Math.floor(.28 * sr), a = Math.exp(-TAU * 1500 / sr); let y = 0; for (let i = 0; i < L && s + i < d.length; i++) { const t = i / sr, x = alea() * 2 - 1; y = a * y + (1 - a) * x; const h = x - y, body = Math.sin(TAU * (175 + 60 * Math.exp(-t / .02)) * t) * Math.exp(-t / .05) * .55; d[s + i] += Math.tanh(1.7 * (h * Math.exp(-t / .105) * 1.05 + body * 1.1)) * v; } };
+    const hatAt = (d, s, v, ouvert) => { const L = Math.floor((ouvert ? .38 : .11) * sr), a = Math.exp(-TAU * 7500 / sr), dec = ouvert ? .1 : .018; let y = 0; for (let i = 0; i < L && s + i < d.length; i++) { const t = i / sr, x = alea() * 2 - 1; y = a * y + (1 - a) * x; d[s + i] += (x - y) * Math.exp(-t / dec) * v; } };
+    const T = { kick: {}, snare: {}, ghost: [], hat: {}, ecailles: [], roll: {} };
+    ['demi', 'plein', 'charge'].forEach(f => { T.kick[f] = []; for (let v = 0; v < 4; v++) { const b = ctx.createBuffer(1, N, sr), d = b.getChannelData(0); KICKS[f][v].forEach((ps, i) => kickAt(d, at(ps), i === 0 ? 1 : .8)); fondu(d, 700); T.kick[f].push(b); } });
+    ['demi', 'plein'].forEach(f => { T.snare[f] = []; for (let v = 0; v < 4; v++) { const b = ctx.createBuffer(1, N, sr), d = b.getChannelData(0); SNARES[f][v].forEach((ps, i) => snareAt(d, at(ps), ps === 15 ? .5 : 1)); fondu(d, 700); T.snare[f].push(b); } });
+    for (let v = 0; v < 4; v++) { const b = ctx.createBuffer(1, N, sr), d = b.getChannelData(0); GHOSTS[v].forEach(ps => snareAt(d, at(ps), .32)); fondu(d, 700); T.ghost.push(b); }
+    /* charleys : en croches, en doubles croches, en doubles croches avec les ouverts sur les contretemps */
+    [['h8', 2], ['h16', 1], ['h16o', 1]].forEach(([nom, pas]) => { T.hat[nom] = []; for (let v = 0; v < 2; v++) { const b = ctx.createBuffer(1, N, sr), d = b.getChannelData(0);
+      for (let ps = 0; ps < 16; ps += pas) { const fort = ps % 4 === 0, contre = ps % 4 === 2; let vel = fort ? .55 : contre ? .85 : .38; if (nom === 'h8') vel = fort ? .8 : .55; if (v === 1 && ps % 8 === 5) vel *= .5;
+        hatAt(d, at(ps), vel, nom === 'h16o' && contre && !(v === 1 && ps === 14)); } fondu(d, 700); T.hat[nom].push(b); } });
+    /* écailles : des tics dans le stéréo */
+    for (let v = 0; v < 4; v++) { const b = ctx.createBuffer(2, N, sr), dL = b.getChannelData(0), dR = b.getChannelData(1), pos = [[1, 6, 12], [3, 9, 14], [2, 7, 11], [5, 10, 15]][v];
+      pos.forEach((ps, i) => { const s = at(ps), L = Math.floor(.012 * sr), a = Math.exp(-TAU * 5000 / sr), pan = i % 2 ? .8 : .2; let y = 0; for (let j = 0; j < L && s + j < N; j++) { const x = alea() * 2 - 1; y = a * y + (1 - a) * x; const h = (x - y) * Math.exp(-j / sr / .004) * .6; dL[s + j] += h * (1 - pan); dR[s + j] += h * pan; } }); T.ecailles.push(b); }
+    /* roulements de caisse claire : en croches puis en doubles croches, qui montent */
+    [['A', 2, 8], ['B', 1, 16]].forEach(([nom, pas, nb]) => { const b = ctx.createBuffer(1, N, sr), d = b.getChannelData(0); for (let i = 0; i < nb; i++) snareAt(d, at(i * pas), .22 + .78 * i / (nb - 1)); fondu(d, 700); T.roll[nom] = b; });
+    /* le riser (deux mesures), le souffle (deux mesures), l'impact, la cymbale */
+    const balaye = (len, f0, f1, q, courbeEnv, expo) => { const n = Math.floor(len * sr), b = ctx.createBuffer(1, n, sr), d = b.getChannelData(0); let low = 0, band = 0, pic = 1e-6;
+      for (let i = 0; i < n; i++) { const u = i / n, f = f0 * Math.pow(f1 / f0, Math.pow(u, expo)), g = 2 * Math.sin(Math.PI * Math.min(f, sr / 6) / sr), x = alea() * 2 - 1; low += g * band; const high = x - low - band / q; band += g * high; d[i] = band * courbeEnv(u); pic = Math.max(pic, Math.abs(d[i])); }
+      for (let i = 0; i < n; i++) d[i] /= pic; fondu(d, 900); return b; };
+    T.riser = balaye(2 * MES, 300, 9000, 2.2, u => u * u, 1.6);
+    T.souffle = balaye(2 * MES, 1800, 5200, 9, u => Math.sin(Math.PI * u) * .9, 1);
+    T.impact = (() => { const n = Math.floor(2.2 * sr), b = ctx.createBuffer(1, n, sr), d = b.getChannelData(0); let ph = 0, y = 0; const a = Math.exp(-TAU * 400 / sr);
+      for (let i = 0; i < n; i++) { const t = i / sr; ph += TAU * (28 + 42 * Math.exp(-t / .12)) / sr; y = a * y + (1 - a) * (alea() * 2 - 1); d[i] = Math.tanh(1.4 * Math.sin(ph) * Math.exp(-t / .75) + y * 2 * Math.exp(-t / .5) * .5 + (alea() * 2 - 1) * Math.exp(-t / .03) * .5) * .9; } fondu(d, 900); return b; })();
+    T.crash = (() => { const n = Math.floor(2.6 * sr), b = ctx.createBuffer(1, n, sr), d = b.getChannelData(0), a = Math.exp(-TAU * 4200 / sr); let y = 0;
+      for (let i = 0; i < n; i++) { const t = i / sr, x = alea() * 2 - 1; y = a * y + (1 - a) * x; d[i] = (x - y) * Math.min(1, t / .004) * Math.exp(-t / .7) * .8; } fondu(d, 900); return b; })();
+
+    /* ---- le graphe ---- */
+    const master = G(.25), comp = ctx.createDynamicsCompressor(), lim = ctx.createDynamicsCompressor();
+    comp.threshold.value = -14; comp.knee.value = 8; comp.ratio.value = 2.2; comp.attack.value = .008; comp.release.value = .12;
+    lim.threshold.value = -4; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = .002; lim.release.value = .08;
+    master.connect(comp); comp.connect(lim); lim.connect(sortie);
+    const bus = {}; Object.keys(BASE).forEach(id => { bus[id] = G(0); });
+    /* la nappe : brume -> filtre -> trémolo lent -> pompe -> master */
+    const filtrePad = F('lowpass', 900, .5), trem = G(.88), pumpPad = G(1), pumpLead = G(1);
+    bus.brume.connect(filtrePad); bus.toile.connect(filtrePad); filtrePad.connect(trem); trem.connect(pumpPad); pumpPad.connect(master);
+    const lfo = ctx.createOscillator(), lfoG = G(.1); lfo.type = 'sine'; lfo.frequency.value = .22; lfo.connect(lfoG); lfoG.connect(trem.gain); lfo.start(ctx.currentTime);
+    /* le vibrato du venin */
+    const vib = ctx.createOscillator(), vibG = G(10); vib.type = 'sine'; vib.frequency.value = 5.4; vib.connect(vibG); vib.start(ctx.currentTime);
+    /* le venin : bus -> sorties -> pompe -> master + salle + écho */
+    const leadOut = G(1); ['venin', 'ombre', 'unis', 'cri'].forEach(id => bus[id].connect(leadOut)); leadOut.connect(pumpLead); pumpLead.connect(master);
+    const impl = (len, dec, lp) => { const n = Math.floor(sr * len), b = ctx.createBuffer(2, n, sr), a = Math.exp(-TAU * lp / sr);
+      for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); let y = 0; for (let i = 0; i < n; i++) { y = (1 - a) * (alea() * 2 - 1) + a * y; d[i] = y * Math.pow(1 - i / n, dec); } } return b; };
+    const conv = ctx.createConvolver(); conv.buffer = impl(2.1, 3, 4200); const revRet = G(.5); conv.connect(revRet); revRet.connect(master);
+    const sendLead = G(.34), sendPad = G(.24); leadOut.connect(sendLead); sendLead.connect(conv); trem.connect(sendPad); sendPad.connect(conv);
+    const echo = ctx.createDelay(1), echoFb = G(.36), echoLp = F('lowpass', 3200, .5), echoSend = G(.28), echoRet = G(.5);
+    leadOut.connect(echoSend); echoSend.connect(echo); echo.delayTime.value = 3 * SD; echo.connect(echoLp); echoLp.connect(echoFb); echoFb.connect(echo); echoLp.connect(echoRet); echoRet.connect(master);
+    /* la puissance : sub, grosse caisse, caisses claires, morsure, impact -> saturation douce en parallèle */
+    const punch = G(1), dry = G(1), sat = ctx.createWaveShaper(), satG = G(.12); sat.curve = courbe(3.2); sat.oversample = '2x';
+    const filtreMor = F('lowpass', 1300, .8); bus.morsure.connect(filtreMor); filtreMor.connect(punch);
+    ['sub', 'pouls', 'kick', 'snare', 'ghost', 'roll', 'impact'].forEach(id => bus[id].connect(punch));
+    punch.connect(dry); dry.connect(master); punch.connect(sat); sat.connect(satG); satG.connect(master);
+    const snareSend = G(.22); bus.snare.connect(snareSend); snareSend.connect(conv);
+    /* l'air : charleys, tics, riser, cymbale, souffle */
+    const air = G(1); ['hat', 'ecailles', 'riser', 'crash', 'souffle'].forEach(id => bus[id].connect(air)); air.connect(master);
+    return { bus, master, comp, lim, filtrePad, filtreMor, pumpPad, pumpLead, dry, satG, vibG, T, echo, lastMidi: 0, lastFin: -9 };
+  }
+
+  function jouer(ctx, kit, p, t0, m0, n, alea) {
+    p = Math.max(1, Math.min(30, p | 0)); n = n || 1;
+    const b = kit.bus;
+    for (const id in b) b[id].gain.setValueAtTime(niv(id, p), t0);
+    kit.master.gain.setTargetAtTime(MAITRE[p - 1], t0, .4);
+    kit.comp.threshold.setValueAtTime(p >= 30 ? -17 : p >= 25 ? -14 - .5 * (p - 24) : -14, t0); kit.comp.ratio.setValueAtTime(p >= 30 ? 3.2 : p >= 25 ? 2.2 + .15 * (p - 24) : 2.2, t0);
+    kit.filtrePad.frequency.setTargetAtTime(FILTRE_PAD(p), t0, .4); kit.filtreMor.frequency.setTargetAtTime(FILTRE_MOR(p), t0, .2);
+    kit.dry.gain.setValueAtTime(1 - SATURE(p) * .55, t0); kit.satG.gain.setValueAtTime(SATURE(p) * .55, t0);
+    kit.vibG.gain.setValueAtTime(p < 22 ? 9 : p < 29 ? 17 : 26, t0);
+    for (let k = 0; k < n; k++) barre(ctx, kit, p, t0 + k * MES, m0 + k, alea);
+  }
+
+  function barre(ctx, kit, p, t0, m, alea) {
+    const b = kit.bus, T = kit.T, A = id => p >= QB[id];
+    const bi = m & 15, cyc = m >> 4, v = (bi + (cyc & 1)) & 3, racine = ROOTS[bi], accord = CH[bi];
+    const arret = (p >= 18 && p <= 26) ? bi === 15 : (p >= 27 ? bi >= 14 : false);
+    const repos13 = p === 13, repos24 = p === 24;
+    if (arret) { b.brume.gain.setValueAtTime(niv('brume', p) * .5, t0); b.toile.gain.setValueAtTime(niv('toile', p) * .5, t0); }
+    const roulB = bi === 15 && ((p >= 14 && p <= 17) || p >= 21), roulA = p >= 27 && bi === 14;
+    const osc = (type, f) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; return o; };
+    const frappe = (buf, t, dest, pan) => { const s = ctx.createBufferSource(); s.buffer = buf; if (pan) { const pn = ctx.createStereoPanner(); pn.pan.value = pan; s.connect(pn); pn.connect(dest); } else s.connect(dest); s.start(t); };
+    const enveloppe = (g, t, pic, att, dur, rel) => { g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(.0002, pic), t + att); g.gain.setValueAtTime(Math.max(.0002, pic), t + Math.max(att, dur)); g.gain.exponentialRampToValueAtTime(.0001, t + Math.max(att, dur) + rel); };
+
+    /* la pompe : à chaque grosse caisse, la nappe et le venin s'effacent un instant */
+    const pompe = t => { [kit.pumpPad, kit.pumpLead].forEach(g => { g.gain.setValueAtTime(POMPE(p), t); g.gain.linearRampToValueAtTime(1, t + .17); }); };
+
+    /* LA BATTERIE (tampons : une source par couche) */
+    const famK = p < 15 ? 'demi' : p >= 25 ? 'charge' : 'plein', famS = p < 15 ? 'demi' : 'plein';
+    if (A('kick') && !arret) { frappe(T.kick[famK][v], t0, b.kick); KICKS[famK][v].forEach(ps => pompe(t0 + ps * SD)); }
+    if (A('snare') && !arret && !roulB) frappe(T.snare[famS][v], t0, b.snare);
+    if (A('ghost') && !arret && !repos13 && p >= 11) frappe(T.ghost[v], t0, b.ghost);
+    if (A('hat') && !arret) frappe(T.hat[p < 10 || repos13 ? 'h8' : (p >= 17 && p !== 19 && !repos24) ? 'h16o' : 'h16'][(bi >> 2) & 1], t0, b.hat);
+    if (A('ecailles') && p < 21) frappe(T.ecailles[v], t0, b.ecailles);
+    if (roulB) frappe(T.roll.B, t0, b.roll); if (roulA) frappe(T.roll.A, t0, b.roll);
+    if (A('riser') && bi === 14) frappe(T.riser, t0, b.riser);
+    if (A('impact') && bi === 0 && m > 0) frappe(T.impact, t0, b.impact);
+    if (A('crash') && (bi === 0 || (p >= 28 && bi === 8)) && m > 0) frappe(T.crash, t0, b.crash);
+    if (bi % 4 === 0 && p <= 17) frappe(T.souffle, t0, b.souffle, (cyc + (bi >> 2)) % 2 ? .6 : -.6);
+
+    /* LA BRUME : une nappe de sinus et de triangles, tenue deux mesures */
+    if (bi % 2 === 0) { const dur = 2 * MES; accord.forEach((mi, i) => { const f = mtof(mi), a = osc('sine', f), c = osc('triangle', f * 1.0025), g = ctx.createGain(); enveloppe(g, t0, .17 - .012 * i, .4, dur - .15, .5); a.connect(g); c.connect(g); g.connect(b.brume); a.start(t0); c.start(t0); a.stop(t0 + dur + .6); c.stop(t0 + dur + .6); }); }
+    /* LA TOILE (23+) : un voile aigu de sinus autour de l'accord */
+    if (A('toile') && bi % 2 === 0) { const dur = 2 * MES; [accord[2] + 24, accord[3] + 24, accord[4] + 12].forEach((mi, i) => { const a = osc('sine', mtof(mi)), c = osc('sine', mtof(mi) * 1.004), g = ctx.createGain(), pn = ctx.createStereoPanner(); pn.pan.value = (i - 1) * (p >= 28 ? .8 : .45); enveloppe(g, t0, .08, .6, dur - .2, .6); a.connect(g); c.connect(g); g.connect(pn); pn.connect(b.toile); a.start(t0); c.start(t0); a.stop(t0 + dur + .7); c.stop(t0 + dur + .7); }); }
+    /* LE POULS (lobby) : lub-dub */
+    if (A('pouls') && p < 5 && bi % 2 === 0) [[0, 52, .9], [3, 46, .55]].forEach(([ps, f, vel]) => { const o = osc('sine', f), g = ctx.createGain(), t = t0 + ps * SD; enveloppe(g, t, vel, .005, .1, .16); o.connect(g); g.connect(b.pouls); o.start(t); o.stop(t + .4); });
+
+    /* LE SUB : court, net (une onde et son octave discrète) */
+    if (A('sub') && !arret) { const motifs = p >= 15 ? SUB_ROULE : SUB_CLAIR; motifs[v].forEach(([ps, dl, dm]) => { const t = t0 + ps * SD, dur = Math.max(.07, dl * SD * .9), mi = racine + dm, o = osc('sine', mtof(mi)), h = osc('sine', mtof(mi + 12)), g = ctx.createGain(), gh = G2(ctx, .22); enveloppe(g, t, 1, .004, dur * .65, .07); o.connect(g); h.connect(gh); gh.connect(g); g.connect(b.sub); o.start(t); h.start(t); o.stop(t + dur + .12); h.stop(t + dur + .12); }); }
+    /* LA MORSURE : un coup de basse FM qui s'ouvre et se referme */
+    if (A('morsure') && !arret) { const mot = p >= 20 ? MOR_ROULE : p >= 15 ? MOR_RIFF : MOR_CLAIR; mot[v].forEach(([ps, dl, dm]) => { const t = t0 + ps * SD, dur = Math.max(.05, dl * SD * .85), f = mtof(racine + 24 + dm), c = osc('sine', f), mo = osc('sine', f * 1.004), mg = ctx.createGain(), g = ctx.createGain();
+      mg.gain.setValueAtTime(f * 3.2, t); mg.gain.exponentialRampToValueAtTime(f * .7, t + .1); mo.connect(mg); mg.connect(c.frequency); enveloppe(g, t, .9, .003, dur, .06); c.connect(g); g.connect(b.morsure); c.start(t); mo.start(t); c.stop(t + dur + .1); mo.stop(t + dur + .1); }); }
+
+    /* LE VENIN : la voix en anneau, qui glisse — et ses doublures */
+    const notes = THEME[bi].map(x => x.slice());
+    if (cyc & 1) { const dn = notes[notes.length - 1]; if (bi % 4 === 3 && dn[1] + 12 <= 95) dn[1] += 12; }
+    if ((cyc & 3) >= 2 && bi % 4 === 0 && notes[0][2] >= 4) { notes[0][0] += 2; notes[0][2] = Math.max(1, notes[0][2] - 2); }
+    const joue = (id, voix) => notes.forEach(([ps, mi0, len]) => {
+      let base = mi0; if (p >= 22 && bi >= 8 && base <= 79) base += 12;
+      const t = t0 + ps * SD, dur = Math.max(.08, len * SD * .93), prevB = (t - kit.lastFin < .15 && kit.lastMidi) ? kit.lastMidi : base - 1, k = Math.pow(2, voix.dm / 12), f = mtof(base) * k, fp = mtof(prevB) * k, gl = Math.min(.09, dur * .4);
+      const c = osc('sine', fp), g = ctx.createGain(), fl = ctx.createBiquadFilter(), pn = ctx.createStereoPanner();
+      fl.type = 'lowpass'; fl.frequency.value = voix.fc; fl.Q.value = .8; pn.pan.value = Math.max(-1, Math.min(1, voix.pan * (p >= 28 ? 1.8 : 1)));
+      c.frequency.setValueAtTime(fp, t); c.frequency.exponentialRampToValueAtTime(f, t + gl);
+      if (voix.det) c.detune.value = voix.det; kit.vibG.connect(c.detune);
+      if (voix.ring > 0) { const mo = osc('sine', fp * voix.ratio), mg = ctx.createGain(), gR = ctx.createGain(), gD = ctx.createGain();
+        mo.frequency.setValueAtTime(fp * voix.ratio, t); mo.frequency.exponentialRampToValueAtTime(f * voix.ratio, t + gl); if (voix.det) mo.detune.value = voix.det; kit.vibG.connect(mo.detune);
+        gD.gain.value = 1 - .55 * voix.ring; gR.gain.value = 0; mg.gain.value = voix.ring * 1.15; mo.connect(mg); mg.connect(gR.gain); c.connect(gD); c.connect(gR); gD.connect(fl); gR.connect(fl); mo.start(t); mo.stop(t + dur + .35); }
+      else c.connect(fl);
+      enveloppe(g, t, voix.lvl, .014, dur, .22 + .02 * Math.min(len, 8)); fl.connect(g); g.connect(pn); pn.connect(b[id]); c.start(t); c.stop(t + dur + .35);
+      if (id === 'venin') { kit.lastMidi = base; kit.lastFin = t + dur; }
+    });
+    const impair = p >= 12 || (bi & 1) === 0;
+    if (A('venin') && impair) {
+      joue('venin', { dm: 0, ring: .9, ratio: 2.003, fc: 4600, pan: 0, lvl: .9 });
+      if (A('ombre') && p !== 19) joue('ombre', { dm: -12, ring: 0, fc: 2200, pan: -.2, lvl: .7 });
+      if (A('unis')) joue('unis', { dm: 0, ring: .85, ratio: 3.011, fc: 5200, pan: .3, det: 9, lvl: .7 });
+      if (A('cri') && p >= 29) joue('cri', { dm: 12, ring: .7, ratio: 2.003, fc: 8200, pan: -.3, lvl: .55, cri: 1 });
+    }
+  }
+  function G2(ctx, v) { const g = ctx.createGain(); g.gain.value = v; return g; }
+
+  return {
+    titre: 'COBRA ULTRA', bpm: BPM, mesures: 16, intro: 0, pas: 0.6, moteurs: Array(30).fill(1), ton: 'si mineur harmonique', auteur: 'Claude Code (pôle SON), écrit à la main pour Léo',
+    style: 'drum & bass venimeuse : le venin (voix en anneau qui glisse), la morsure FM, le sub court', introTxt: '', paliers: PALIERS30, preparer, jouer };
+})();
+</script>
+
+<!-- ======================= L'ÉCOUTE (libre : ce que voit celui qui ouvre le fichier) ======================= -->
+<script>
+(function () {
+  let ctx = null, kit = null, p = 1, m = 0, tNext = 0, iv = 0;
+  let graine = 17200; const alea = () => { graine = (graine * 1664525 + 1013904223) >>> 0; return graine / 4294967296; };
+  const mes = 240 / MORCEAU.bpm;
+  const ce = document.getElementById('ce'), play = document.getElementById('play'), jg = document.getElementById('speed'), mot = document.getElementById('mot');
+  const maj = () => { mot.textContent = 'Moteur ' + p + ' / 30'; ce.textContent = 'Moteur ' + p + ' · ' + MORCEAU.paliers[p - 1]; };
+  jg.addEventListener('input', () => { p = Math.max(1, Math.min(30, 1 + Math.round(+jg.value / 100 * 29))); maj(); });
+  play.onclick = () => {
+    if (iv) { clearInterval(iv); iv = 0; ctx.close(); ctx = null; play.textContent = 'PLAY'; maj(); return; }
+    ctx = new (window.AudioContext || window.webkitAudioContext)(); kit = MORCEAU.preparer(ctx, ctx.destination, alea);
+    m = 0; tNext = ctx.currentTime + 0.1; play.textContent = 'STOP';
+    iv = setInterval(() => { while (tNext < ctx.currentTime + 0.4) { MORCEAU.jouer(ctx, kit, p, tNext, m++, 1, alea); tNext += mes; } maj(); }, 60);
+  };
+  maj();
+})();
+</script>
+</body></html>

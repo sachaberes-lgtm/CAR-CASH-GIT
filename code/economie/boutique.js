@@ -6,13 +6,13 @@
    L'ACHAT passe par l'App Store (StoreKit, avec le compte développeur) : `shopPaye(i)` est la SEULE porte à brancher — elle rend une
    promesse tenue quand Apple a encaissé, et alors seulement `shopDonne(i)` pose la caisse. Tant qu'elle n'est pas branchée, ACHETER
    le DIT dans la fenêtre (« BIENTÔT DISPONIBLE ») et ne donne jamais rien. Déjà à toi : ÉQUIPER (l'atelier s'ouvre sur elle). */
-Object.assign(I18N,{"ÉQUIPER":"EQUIP","Achat unique, via ton compte App Store. À toi pour toujours.":"One-time purchase through your App Store account. Yours forever.",
+Object.assign(I18N,{"ÉQUIPER":"EQUIP",
   "Elle t'attend à l'atelier.":"It's waiting for you in the garage.","Les achats ouvriront à la sortie sur l'App Store.":"Purchases open when the game launches on the App Store.","INDISPONIBLE":"UNAVAILABLE","L'achat est indisponible pour le moment.":"Buying is unavailable right now."});
 const SPOP={el:null,src:null,i:-1,t:0};
-function shopPaye(i){return Promise.reject(new Error('storekit'));} // `i` = l'index d'une caisse OU 'palette' (PALETTE_PACK.produit) — (2026-10-14, palette) puis palDonne() ; ⚠ LA porte de StoreKit : tenir la promesse QUAND Apple a encaissé — jamais avant
-function shopDonne(i){ // la caisse payée en vrai argent : posée dans `owned`, sans toucher à la banque du jeu
+function shopPaye(cle){return achatsPaye(cle);} /* (2026-11-07, achats App Store) `cle` = l'index d'une caisse OU 'peinture:<id>' ; LA porte de StoreKit, branchée dans achats-store.js sur window.ccAchat : la promesse n'est tenue QUE quand Apple a encaissé (sans l'app : rejet 'storekit') — jamais avant */
+function shopDonne(i,calme){ // la caisse payée en vrai argent : posée dans `owned`, sans toucher à la banque du jeu ; `calme` (synchro, RESTAURER) : sans la fête
   if(!Array.isArray(SAVE.d.owned))SAVE.d.owned=[];
-  if(SAVE.d.owned.indexOf(i)<0){SAVE.d.owned.push(i);carWas[i]=true;try{feteCaisse(i);}catch(e){}} /* (2026-10-23) la fête de sa rareté */
+  if(SAVE.d.owned.indexOf(i)<0){SAVE.d.owned.push(i);carWas[i]=true;if(!calme)try{feteCaisse(i);}catch(e){}} /* (2026-10-23) la fête de sa rareté */
   SAVE.flush();
 }
 function spDuree(){const v=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--t-slow'));return document.documentElement.getAttribute('data-reduced-motion')==='1'?0:(v>0?v:420);}
@@ -34,8 +34,12 @@ function shopPopEl(){
     shopPaye(i).then(function(){
       shopDonne(i);el.classList.remove('attend');try{if(SONV2)sfx('ui.achat');else uiClic('');}catch(_){}hap([12,40,12,40,30]);/* (2026-10-14, session SON) 'ok' n'est pas un rôle d'uiClic (il retombait sur ui.tap, un 2e appui) : une caisse ACHETÉE sonne le tiroir-caisse, comme tout achat du garage — et le toast d'après se tait */try{pixBurst(b,18);}catch(_){}
       try{shopRender();}catch(_){}shopPopFerme();toast(pxi('coche')+' '+insec(TR(CARS[i].name))+' — '+TR('À TOI'),true);
-    },function(){ // pas encore branché : on le DIT, dans la fenêtre, et rien n'est donné
-      el.classList.remove('attend');el.classList.add('refus');uiClic('refus');hap([10,40,10]);
+    },function(e){ // annulé / en attente : rien n'est donné, le bouton reste utilisable ; sinon (web, pas branché, échec) on le DIT, dans la fenêtre, et rien n'est donné
+      const m=achatsMotif(e);if(m==='occupe'){el.classList.remove('attend');b.classList.remove('off');return;} /* un autre achat est en vol : celui-là finira seul ; le bouton redevient utilisable (ni « attend » ni « off » ne restent posés) */
+      el.classList.remove('attend');
+      if(m==='annule'||m==='attente'){b.classList.remove('off');if(m==='attente'){uiClic('refus');hap([10,40,10]);toast(pxi('panier')+' '+TR("EN ATTENTE D'ACCORD"));}return;}
+      if(window.ccAchat)b.classList.remove('off'); /* dans l'app un échec se retente */
+      el.classList.add('refus');uiClic('refus');hap([10,40,10]);
       const s=b.querySelector('span');if(s)s.textContent=sansAcc(TR('INDISPONIBLE'));
       const n=el.querySelector('.spNote');if(n)n.textContent=TR("L'achat est indisponible pour le moment.");
     });
@@ -58,10 +62,10 @@ function shopPop(src){
     +'<b class="spNom" id="spNom">'+insec(TR(CARS[i].name))+'</b>'+arc
     +'<span class="spDesc">'+(LANG==='fr'?CARS[i].desc:TR(CARS[i].desc))+'</span>'
     +(a?'<div class="spPrix aToi">'+pxi('coche')+'<b>'+sansAcc(TR('À TOI'))+'</b></div>'
-       :'<div class="spPrix">'+'<em>'+eurTxt(u.eur)+'</em></div>')
+       :'<div class="spPrix">'+'<em>'+prixTxt(i,u.eur)+'</em></div>')
     +'<div class="spBtns"><div class="pbtn pb-gold spOui" role="button" data-sp="oui">'+pxi(a?'coche':'panier')+'<span>'+sansAcc(TR(a?'ÉQUIPER':'ACHETER'))+'</span></div>'
     +'<div class="pbtn pb-cyan spNon" role="button" data-sp="non">'+pxi('gauche')+'<span>'+TR('ANNULER')+'</span></div></div>'
-    +'<small class="spNote">'+TR(a?"Elle t'attend à l'atelier.":"Achat unique, via ton compte App Store. À toi pour toujours.")+'</small></div>';
+    +'<small class="spNote">'+(a?TR("Elle t'attend à l'atelier."):'')+'</small></div>'; /* (2026-11-08, Sacha : « enlève la ligne achat unique via compte Apple Store ») rien sous les plaques tant que la caisse n'est pas à toi (la note vide se cache ; le refus de l'achat la remplit) */
   el.setAttribute('aria-labelledby','spNom');
   // LA CARTE SORT DE LA PAGE : mesurée à sa place, puis au centre — le trajet se joue de l'une à l'autre
   const r=src.getBoundingClientRect();
@@ -82,26 +86,56 @@ function shopPopVise(r){ // pose --dx/--dy/--s : l'écart entre la vignette `r` 
 }
 /* LA VUE GARAGE (2026-10-25, Sacha : « quand on clique sur une voiture, il faut qu'elle se mette à tourner, qu'on la voie comme dans le garage ») :
    la photo de la fenêtre d'achat devient un plateau tournant — STN poses de la même caisse (carPhoto, 4e argument = l'azimut), prises une par une
-   entre deux images, cadrées pour tous les angles ; dès que la première est prête la caisse tourne (une pose manquante est sautée), et on peut
-   la faire pivoter au doigt / à la souris (elle reprend sa ronde au lâcher). Fermer la fenêtre arrête tout (le jeton SPOP.tour). */
-const STN=12;
+   entre deux images, cadrées pour tous les angles ; dès que la première est prête la caisse tourne, et on peut la faire pivoter au doigt / à la
+   souris (elle reprend sa ronde au lâcher). Fermer la fenêtre arrête tout (le jeton SPOP.tour).
+   LA RONDE FLUIDE (2026-11-08, Sacha : « la rotation des voitures est saccadée, il faut que ce soit fluide ») : douze poses (une tous les 30°) posées
+   tour à tour dans une <img> faisaient un SAUT toutes les 0,75 s. Désormais 32 poses (11°), prises en ordre ÉPARPILLÉ (0, 7, 14, 21, 28, 3… : même
+   incomplète, la ronde couvre tout le tour) et DESSINÉES dans une toile à chaque image : la pose d'avant et celle d'après se fondent l'une dans
+   l'autre selon l'angle exact (un fondu LINÉAIRE en alpha prémultiplié, « lighter » : la caisse ne devient jamais transparente à mi-chemin) ;
+   plus d'un cran de poses manquantes entre les deux : la plus proche, sans fondu. */
+const STN=32;
 function shopTourne(i,el){
   const host=el.querySelector('.shPhoto.big');if(!host)return;
-  const T=SPOP.tour={i:i,F:[],a:0,v:0,drag:null,shown:-1,t0:performance.now(),stop:false};
+  const P=2*Math.PI,W=PHOTO_W,H=PHOTO_H;
+  const T=SPOP.tour={i:i,I:[],n:0,a:0,v:0,drag:null,stop:false,cv:null,cx:null,cle:''};
   const vit=function(){return SPOP.tour===T&&!T.stop&&el.classList.contains('on');};
-  const az=function(k){return PHOTO_AZ+k*2*Math.PI/STN;};
-  let k=0;(function suite(){if(!vit()||k>=STN)return;const n=k++;try{carPhoto(i,function(u){if(u)T.F[n]=u;},null,az(n));}catch(e){}setTimeout(suite,90);})();
+  const az=function(k){return PHOTO_AZ+k*P/STN;};
+  const recoit=function(n,u){const im=new Image();im.onload=function(){if(!T.I[n])T.n++;T.I[n]=im;};im.src=u;}; /* la pose n'entre dans la ronde qu'une fois DÉCODÉE */
+  const ro=photoRonde(i);
+  let q=0;(function suite(){ /* les poses déjà gardées (2e ouverture) arrivent d'un coup ; une neuve se prend, puis on rend la main */
+    while(vit()&&q<STN){const n=(q++*7)%STN;let sync=false;
+      try{carPhoto(i,function(u){sync=true;if(u)recoit(n,u);},null,az(n));}catch(e){sync=false;}
+      if(!sync){setTimeout(suite,40);return;}}
+    photoRondeFin(ro); /* toutes prises, ou fenêtre fermée : la caisse d'avant revient */
+  })();
   host.style.touchAction='none';host.style.cursor='grab';
   host.addEventListener('pointerdown',function(e){T.drag={x:e.clientX,a:T.a};T.v=0;try{host.setPointerCapture(e.pointerId);}catch(_){}host.style.cursor='grabbing';});
   host.addEventListener('pointermove',function(e){if(!T.drag)return;const na=T.drag.a-(e.clientX-T.drag.x)*.012;T.v=(na-T.a);T.a=na;});
   const lache=function(){T.drag=null;host.style.cursor='grab';};
   host.addEventListener('pointerup',lache);host.addEventListener('pointercancel',lache);
   const calme=document.documentElement.getAttribute('data-reduced-motion')==='1';
+  const adopte=function(){ /* la toile prend la place de la photo fixe (et de la voiture d'attente), à la 1re pose prête */
+    const cv=T.cv=document.createElement('canvas');cv.width=W;cv.height=H;cv.className='spTour';cv.setAttribute('aria-hidden','true');T.cx=cv.getContext('2d');
+    const at=host.querySelector('.shAttente');if(at)at.remove();const im=host.querySelector('img');
+    host.insertBefore(cv,host.firstChild);if(im)im.remove();};
+  const dessine=function(){
+    const p=(((T.a%P)+P)%P)/(P/STN),b=Math.floor(p);let lo=-1,dl=0,hi=-1,dh=0; /* lo : la pose prête à l'instant ou juste avant ; hi : celle d'après */
+    for(let d=0;d<STN;d++){const k=((b-d)%STN+STN)%STN;if(T.I[k]){lo=k;dl=p-(b-d);break;}}
+    for(let d=0;d<STN;d++){const k=(b+1+d)%STN;if(T.I[k]){hi=k;dh=b+1+d-p;break;}}
+    if(lo<0)return;
+    const g=dl+dh;let A=lo,B=hi,w=0;
+    if(g<=2.01)w=dl/g;else if(dh<dl)A=hi; /* trop de poses manquantes : la plus proche, sans fondu */
+    const cle=A+':'+(w>0?B:'-')+':'+Math.round(w*400);if(cle===T.cle)return;T.cle=cle;
+    const cx=T.cx;cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,W,H);
+    cx.globalCompositeOperation='source-over';cx.globalAlpha=1-w;cx.drawImage(T.I[A],0,0,W,H);
+    if(w>0){cx.globalCompositeOperation='lighter';cx.globalAlpha=w;cx.drawImage(T.I[B],0,0,W,H);}
+    cx.globalAlpha=1;cx.globalCompositeOperation='source-over';};
   let t9=performance.now();
-  (function tour(t){if(!vit())return;const dt=Math.min(.05,(t-t9)/1000);t9=t;
-    if(!T.drag){if(Math.abs(T.v)>.002){T.a+=T.v;T.v*=.94;}else if(!calme)T.a+=dt*.7;} /* l'élan du lâcher, puis la ronde (un tour en 9 s) */
-    const P=2*Math.PI,n=Math.round(((T.a%P)+P)%P/(P/STN))%STN;let j=n;for(let d=0;d<STN;d++){const a=(n+d)%STN,b=(n-d+STN)%STN;if(T.F[a]){j=a;break;}if(T.F[b]){j=b;break;}}
-    if(T.F[j]&&j!==T.shown){T.shown=j;let im=host.querySelector('img');if(!im){const at=host.querySelector('.shAttente');if(at)at.remove();im=document.createElement('img');im.alt='';host.insertBefore(im,host.firstChild);}if(im.src!==T.F[j])im.src=T.F[j];}
+  (function tour(t){if(!vit()){T.I.length=0;T.cv=null;T.cx=null;return;} /* fermée : les poses décodées sont lâchées */
+    const dt=Math.min(.05,(t-t9)/1000);t9=t;
+    if(!T.drag){if(Math.abs(T.v)>.002){T.a+=T.v*dt*60;T.v*=Math.pow(.94,dt*60);}else if(!calme)T.a+=dt*.7;} /* l'élan du lâcher, puis la ronde (un tour en 9 s) */
+    if(!T.cv&&T.n>0)adopte();
+    if(T.cv)dessine();
     requestAnimationFrame(tour);})(t9);
 }
 function shopPopFerme(){
@@ -212,7 +246,7 @@ const PEINT_CAT=[ /* [id, nom, rareté, aspect, description, défi] */
   ['bolide','ROUGE BOLIDE','commun',{c:0xe3242b},"Le rouge des grandes marques. Sans le cheval, avec l'arrogance.",{k:'sc:cerise',v:50,t:'Croque 50 cerises.'}],
   ['emeute','ORANGE ÉMEUTE','commun',{c:0xff6b14},"Visible depuis l'espace. C'est le but.",{k:'sc:orange',v:50,t:'Croque 50 oranges.'}],
   ['taxi','JAUNE TAXI','commun',{c:0xffc61a},"Tout le monde te fait signe. Tu ne t'arrêtes pas.",{k:'sc:citron',v:50,t:'Ramasse 50 citrons.'}],
-  ['billet','VERT BILLET','commun',{c:0x1c9a4c},'La couleur préférée de ton banquier.',{k:'gagne',v:100000,t:'Gagne 100 000 € au total.'}],
+  ['billet','VERT BILLET','commun',{c:0x1c9a4c},'La couleur préférée de ton banquier.',{k:'gagne',v:100000,t:'Gagne 100 000 au total.'}],
   ['lagon','LAGON','commun',{c:0x109a94},"L'eau des îles où tu dépenses tes primes."],
   ['azur','AZUR','commun',{c:0x2b8cff},'Le ciel sans un nuage. Le tien.',{k:'sc:myrtille',v:50,t:'Croque 50 myrtilles.'}],
   ['minuit','BLEU MINUIT','commun',{c:0x2b43c4},'Le bleu des néons de la ville, à trois heures du matin.',{k:'sc:nuit',v:10,t:'Joue 10 niveaux de nuit.'}],
@@ -265,7 +299,7 @@ const PEINT_CAT=[ /* [id, nom, rareté, aspect, description, défi] */
   ['graffiti','GRAFFITI','epique',{mot:'graffiti'},'Le mur du parking, bombé sur ta carrosserie. Signé, daté, illégal.',{k:'tours',v:5,t:'Frôle 5 tours dans un seul saut.'}],
   ['popart','POP ART','epique',{mot:'popart'},"Trames, bulles et BOOM ! Ta caisse sort tout droit d'une BD."],
   ['vagues','GRANDE VAGUE','epique',{mot:'vagues'},'Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.',{k:'prof',v:'prof',t:'Descends au fond de la mer de Jade.'}],
-  ['cash','PLEIN AUX AS','epique',{mot:'cash'},"Des euros d'or sur fond vert billet. Discret ? Non.",{k:'gagne',v:1000000,t:'Gagne 1 000 000 € au total.'}],
+  ['cash','PLEIN AUX AS','epique',{mot:'cash'},"Des euros d'or sur fond vert billet. Discret ? Non.",{k:'gagne',v:1000000,t:'Gagne 1 000 000 au total.'}],
   /* … les pelages et la nature */
   ['tigre','TIGRE','epique',{mot:'tigre'},'Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.'],
   ['leopard','LÉOPARD','epique',{mot:'leopard'},'Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles.'],
@@ -288,7 +322,7 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOR","PEINTURE":"PAI
   "ROUGE BOLIDE":"RACING RED","Le rouge des grandes marques. Sans le cheval, avec l'arrogance.":"The red of the big brands. Without the horse, with the arrogance.","Croque 50 cerises.":"Eat 50 cherries.",
   "ORANGE ÉMEUTE":"RIOT ORANGE","Visible depuis l'espace. C'est le but.":"Visible from space. That's the point.","Croque 50 oranges.":"Eat 50 oranges.",
   "JAUNE TAXI":"TAXI YELLOW","Tout le monde te fait signe. Tu ne t'arrêtes pas.":"Everyone waves at you. You don't stop.","Ramasse 50 citrons.":"Pick up 50 lemons.",
-  "VERT BILLET":"CASH GREEN","La couleur préférée de ton banquier.":"Your banker's favorite color.","Gagne 100 000 € au total.":"Earn €100,000 in total.",
+  "VERT BILLET":"CASH GREEN","La couleur préférée de ton banquier.":"Your banker's favorite color.","Gagne 100 000 au total.":"Earn 100,000 in total.",
   "LAGON":"LAGOON","L'eau des îles où tu dépenses tes primes.":"The water of the islands where you spend your bonuses.",
   "AZUR":"AZURE","Le ciel sans un nuage. Le tien.":"A sky without a single cloud. Yours.","Croque 50 myrtilles.":"Eat 50 blueberries.",
   "BLEU MINUIT":"MIDNIGHT BLUE","Le bleu des néons de la ville, à trois heures du matin.":"The blue of city neons at three in the morning.","Joue 10 niveaux de nuit.":"Play 10 levels at night.",
@@ -334,7 +368,7 @@ Object.assign(I18N,{"LA PALETTE":"THE PALETTE","COULEUR":"COLOR","PEINTURE":"PAI
   "GRAFFITI":"GRAFFITI","Le mur du parking, bombé sur ta carrosserie. Signé, daté, illégal.":"The car-park wall, sprayed on your bodywork. Signed, dated, illegal.","Frôle 5 tours dans un seul saut.":"Skim 5 towers in a single jump.",
   "POP ART":"POP ART","Trames, bulles et BOOM ! Ta caisse sort tout droit d'une BD.":"Halftones, bubbles and BOOM! Your car jumped straight out of a comic.",
   "GRANDE VAGUE":"GREAT WAVE","Les vagues des estampes japonaises, en écailles. Le calme avant ta nitro.":"The waves of Japanese prints, in scales. The calm before your nitro.","Descends au fond de la mer de Jade.":"Dive to the bottom of the Jade Sea.",
-  "PLEIN AUX AS":"LOADED","Des euros d'or sur fond vert billet. Discret ? Non.":"Gold euros on cash green. Subtle? No.","Gagne 1 000 000 € au total.":"Earn €1,000,000 in total.",
+  "PLEIN AUX AS":"LOADED","Des euros d'or sur fond vert billet. Discret ? Non.":"Gold euros on cash green. Subtle? No.","Gagne 1 000 000 au total.":"Earn 1,000,000 in total.",
   "TIGRE":"TIGER","Orange brûlé, rayures noires. Le roi de la jungle a troqué ses griffes contre des pneus.":"Burnt orange, black stripes. The king of the jungle traded his claws for tires.",
   "LÉOPARD":"LEOPARD","Des rosettes noires sur fond doré. Tu ne chasses pas : tu doubles.":"Black rosettes on gold. You don't hunt: you overtake.",
   "ZÈBRE":"ZEBRA","Noir sur blanc ou blanc sur noir ? Personne ne sait. Toi, tu fonces.":"Black on white or white on black? Nobody knows. You just floor it.",
@@ -425,9 +459,9 @@ const MOTIFS={
       motTore(x,function(){x.fillStyle='rgba(255,255,255,.85)';x.fillRect(cx-r*1.4,cy-.8,r*2.8,1.6);x.fillRect(cx-.8,cy-r*1.4,1.6,r*2.8);});}}},
   cash:{s:.45,c:0x1d7f45,f:function(x,R){x.fillStyle='#1d7f45';x.fillRect(0,0,MOT_W,MOT_W);
     x.strokeStyle='rgba(255,255,255,.07)';x.lineWidth=10;for(let k=-5;k<5;k++){x.beginPath();x.moveTo(k*128,0);x.lineTo(k*128+MOT_W,MOT_W);x.stroke();} // le guillochage du billet
-    x.font='900 92px "Arial Black",Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
+    x.font='92px "Press Start 2P",monospace';x.textAlign='center';x.textBaseline='middle';x.lineJoin='round';
     for(let b=0;b<4;b++)for(let a=0;a<4;a++){const cx=(a+.5+(b&1)*.5)*128,cy=(b+.5)*128,ro=(R()-.5)*.5;
-      motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(ro);x.lineWidth=10;x.strokeStyle='#0c4425';x.strokeText('€',0,4);x.fillStyle='#ffd23a';x.fillText('€',0,4);x.restore();});}}}};
+      motTore(x,function(){x.save();x.translate(cx,cy);x.rotate(ro);x.lineWidth=10;x.strokeStyle='#0c4425';x.strokeText('\uE000',0,4);x.fillStyle='#ffd23a';x.fillText('\uE000',0,4);x.restore();});}}}};
 /* ===== LES LIVRÉES « STICKERS » ET LES LÉGENDAIRES (2026-11-05, le nuancier v3) =====
    Six toiles épiques de plus (mêmes règles que les pelages : 512 px raccordées, un tirage fixe par id) et les six légendaires. Une légendaire a
    `anim` (la clé de son programme dans MOT_ANIM, posé par motGreffe) ; sa toile `f` ne sert qu'à la pastille des listes. */

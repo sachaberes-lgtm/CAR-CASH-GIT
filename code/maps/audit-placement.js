@@ -5,7 +5,7 @@
 window.dbgAudit=function(k,o){
   o=o||{};
   if(k==='vue'){if(started&&!gameOver&&!paused)togglePause();camera.position.fromArray(o.p);camera.up.set(0,1,0);camera.lookAt(new THREE.Vector3().fromArray(o.c));camera.fov=o.fov||60;camera.updateProjectionMatrix();camera.updateMatrixWorld();
-    skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);try{if(typeof banqTick==='function'&&BANQ.root)banqTick(0);}catch(e){}if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'ok';}
+    if(acesPass)acesPass.uniforms.uSpeed.value=0; /* (2026-11-08, banc beauté) la photo sans le flou de vitesse resté de la course */skyDome.position.copy(camera.position);skyU.uCam.value.copy(camera.position);try{if(typeof banqTick==='function'&&BANQ.root)banqTick(0);}catch(e){}if(POST_ON&&composer)composer.render();else renderer.render(scene,camera);return 'ok';}
   if(k==='aller'){SF.force={carte:o.carte,meteo:o.meteo||null,teinte:o.teinte||null};return classiqueJouer();} /* le JOUER sur la map demandée (banc) */
   if(k==='fins'){ /* les maillages hauts et fins (colonnes, aiguilles) : nom, boîte, matière — pour traquer ce qui dépasse */
     const out=[],bx=new THREE.Box3(),sz=new THREE.Vector3(),ce=new THREE.Vector3();scene.updateMatrixWorld(true);

@@ -29,7 +29,7 @@ html body.touch #pwrChip .pw{width:calc(var(--hudColW) / var(--hudK))!important;
 html body.touch #campChip{min-width:calc(var(--hudColW) / var(--hudK));box-sizing:border-box}
 html body.touch.play #cashHud{min-width:var(--hudColW)}
 /* ---- 2. LA CHAÎNE : sa barre finit au bout de la barre du FLOW (la longueur du flow = 34 px d'icône + --ajK de la barre de boost ; ÷ --hudK : l'aura est zoomée) ---- */
-html body.touch #avCh .avBar{width:calc((34px + (100vw - var(--ccL,env(safe-area-inset-left,0px)) - var(--ccR,env(safe-area-inset-right,0px)) - 214px) * var(--ajK,.8)) / var(--hudK))}
+/* (2026-11-08, Sacha : « cette barre est trop longue, je te l ai dit 3 fois ») la barre de la chaîne ne dépend plus de la barre du FLOW : plus de largeur en vw, elle fait la largeur de la plaque « 90 ×2 » (socle-4-aura.css : width:0;min-width:100%) */
 /* ---- 3. LES CENTIMES EN PETIT (cashEcrit : « 8 » puis <small>,21</small>) — le dégradé et le cerne d'encre du nombre les couvrent (ils sont dans le même span) ---- */
 #cashHud .chV span small{font-size:.6em;letter-spacing:-1px;margin-left:-.1em}
 /* ---- 4. L'ENTRÉE EN SCÈNE, complétée : l'argent de la droite (après le ⏸, avant l'aura), la flamme NITRO du bas ---- */
@@ -48,7 +48,6 @@ html body #cashHud.b1 .chV{animation-name:hfCashA}html body #cashHud.b2 .chV{ani
 #nxVit.on b,#nxVit.bleu b,#nxVit.inf b{animation:hfVit .28s var(--ease)}
 /* ---- 6. LE PAYSAGE : la barre de la chaîne au bout du flow couché ---- */
 @media (orientation:landscape) and (max-height:540px){
-  html body.touch #avCh .avBar{width:calc((34px + (min(50vw,440px) - 34px) * var(--ajK,.8)) / var(--hudK))}
 }
 /* ---- 7. (2026-11-07, Sacha : « la barre X2 est trop grosse, l'argent est trop proche du pause ») le × de la chaîne en 21 px (il en faisait 30, le double de ses points), sa barre à 5 px ; l'argent démarre 22 px sous le ⏸ (hudColMesure) — ce top ne sert que le temps de la 1re mesure ---- */
 html body.touch #avX{font-size:21px}

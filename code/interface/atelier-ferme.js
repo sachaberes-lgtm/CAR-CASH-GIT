@@ -670,7 +670,7 @@ function shopShow(cat,i){
   }
   const bt=$('gEquip'),bb=$('gBuy'),row=$('gBuyRow');
   if(row)row.style.display=(!a&&(d.p||d.eur))?'':'none';
-  if(bb){bb.dataset.bout='';if(!a&&d.eur){bb.innerHTML='<span>'+TR('ACHETER')+'</span><b class="gPrix">'+eurTxt(d.eur)+'</b>';bb.dataset.px=eurTxt(d.eur);bb.dataset.eur='1';bb.classList.remove('pauvre');} /* (2026-10-16) une peinture en EUROS */ else if(!a&&d.p){const peut=bank()>=d.p;bb.innerHTML=gPrixHtml(peut,d.p);bb.dataset.px=fmtC(d.p);bb.dataset.eur='';bb.classList.toggle('pauvre',!peut);}}
+  if(bb){bb.dataset.bout='';if(!a&&d.eur){bb.innerHTML='<span>'+TR('ACHETER')+'</span><b class="gPrix">'+prixTxt(cat+':'+d.id,d.eur)+'</b>';bb.dataset.px=prixTxt(cat+':'+d.id,d.eur);bb.dataset.eur='1';bb.classList.remove('pauvre');} /* (2026-10-16) une peinture en EUROS */ else if(!a&&d.p){const peut=bank()>=d.p;bb.innerHTML=gPrixHtml(peut,d.p);bb.dataset.px=fmtC(d.p);bb.dataset.eur='';bb.classList.toggle('pauvre',!peut);}}
   if(bt){
     bt.style.display=(!a&&(d.p||d.eur))?'none':'';
     bt.disabled=false;
