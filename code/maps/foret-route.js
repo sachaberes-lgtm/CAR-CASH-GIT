@@ -94,7 +94,7 @@ try{Object.assign(PAL.B,{foretArbres:[.42,.66,1],foretRayon:[900,1250,1650],fore
    2,9/km, pistes de 15-17 km. `?foret=serre` = la pelote d'avant. */
 const FORET_LARGE=typeof location==='undefined'||!/[?&]foret=serre\b/.test(location.search);
 const FORET_HASARD=typeof location==='undefined'||!/[?&]sans=([^&]*,)?forethasard(,|&|$)/.test(location.search); // (2026-10-19) LA FORÊT AU HASARD (voir le dessin de forPelote) — `?sans=forethasard` = la recette d'avant, à l'identique
-const FOR_PORTAIL=typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretportail(,|&|$)/.test(location.search),FOR_PORT_D=110,FOR_PORT_PEN=20,FOR_PORT_K=.3; // (2026-11-09) LE PORTAIL À DISTANCE (voir la note de forPelote) — `?sans=foretportail` = la note d'avant
+const FOR_PORTAIL=typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretportail(,|&|$)/.test(location.search),FOR_PORT_D=110,FOR_PORT_PEN=20,FOR_PORT_K=.3,FOR_PORT_PLUS=typeof location==='undefined'||/[?&]sans=([^&]*,)?foretportailplus(,|&|$)/.test(location.search)?0:8; // (2026-11-09) LE PORTAIL À DISTANCE (voir la note de forPelote) — `?sans=foretportail` = la note d'avant
 const FOR_MODULES=typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretmodules(,|&|$)/.test(location.search); // (2026-10-20) SIX MODULES (voir fToboggan) — `?sans=foretmodules` = le paquet d'avant (slalom, corde, racines)
 const FOR_DECOR=typeof location==='undefined'||!/[?&]sans=([^&]*,)?foretdecor(,|&|$)/.test(location.search); // (2026-10-20) LE DÉCOR AU HASARD (voir forDecoTire) — `?sans=foretdecor` = le décor d'avant, au tirage près
 /* ===== LA FORÊT VASTE (2026-11-05, Sacha : « refonte totale de la map forêt : elle est beaucoup trop petite, trop tassée, les virages trop condensés ;
@@ -122,7 +122,9 @@ function* genForet(rnd){ // (LE PRÉ-BÂTI) un générateur : il rend la main en
   let kR=(40+.3*vP9)/63,kV=vP9/70;try{if(typeof rayonPalier==='function')kR=rayonPalier()/63;if(typeof vPalier==='function')kV=vPalier()/70;}catch(e){}
   kR=Math.max(1,Math.min(2.8,kR||1));kV=Math.max(1,Math.min(3.2,kV||1));
   const gr=mulberry32((rnd()*4294967296)>>>0);let best=null,ne=0;
-  const notes9=[],dports9=[];for(let e=0;e<8;e++){if(e)yield;const r=forPelote(gr,kR,kV);ne++;notes9.push(+r.note.toFixed(1));dports9.push(r.dPort);if(!best||r.note<best.note)best=r;if(r.note<1)break;}
+  const notes9=[],dports9=[];let brut=null,nMax=8; /* (2026-11-09, le portail) brut : l'essai qu'on aurait gardé sans le malus du portail — s'il passe tout près, 8 essais de plus (même flux `gr`) cherchent un essai propre aussi bien noté */
+  for(let e=0;e<nMax;e++){if(e)yield;const r=forPelote(gr,kR,kV);ne++;notes9.push(+r.note.toFixed(1));dports9.push(r.dPort);if(!best||r.note<best.note)best=r;if(!brut||r.noteBrut<brut.noteBrut)brut=r;if(r.note<1)break;
+    if(e===7&&FOR_PORTAIL&&FOR_PORT_PLUS&&brut.dPort<FOR_PORT_D)nMax=8+FOR_PORT_PLUS;}
   RYTHME.der={carte:'foret',note:best.note,notes:notes9,dports:dports9,fiche:best.fiche}; /* (2026-11-05, LE DIRECTEUR DE RYTHME) dbgRythme() */
   for(const m of best.mods||[])MODMARK.push(m); // (2026-10-18) LES MODULES DE CHAQUE MAP : ceux de l'essai gardé (voir fSlalom)
   FORET.Q=best.Q;FORET.plg=[];FORET.boucles=best.BO;FORET.noeuds=best.NO;FORET.plan=best.plan;FORET.axe=best.axe;FORET.pel={cxs:best.cxs,dsM:best.dsM,note:+best.note.toFixed(2),essais:ne,portD:best.dPort,croise:best.croise,dyMin:best.dyMin,L:Math.round(best.L),mk:best.mk};
@@ -441,13 +443,15 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
     for(let i=0;i<nD;i+=2){if(Math.abs(D[3*i+2]-q.s)<330)continue;if(Math.hypot(D[3*i]-q.x,D[3*i+1]-q.z)<200){note+=3;break;}}}
   /* LE PORTAIL D'ARRIVÉE (2026-11-09, banc des maps, forêt : la route recoupée passait à 59 m et 69 m du portail, graines 10 et 42 — son nuage de cubes (flotteurs jusqu'à 71 m du centre)
      s'étalait sur la chaussée 2 km avant l'arrivée). Le portail est posé à L−25, son centre 20 m (PCUBE.H) au-dessus du bitume : on mesure, sur le relevé fin et en 3D, la route d'avant
-     L−300 la plus proche de ce centre (`dPort`) ; sous FOR_PORT_D (110 m : le nuage plus une dalle de marge) l'essai est noté plus bas — le meilleur des 8 le laisse alors à un autre.
-     Aucun tirage `rnd` ; `?sans=foretportail` = la note d'avant (la mesure reste faite, pour le banc). */
-  let dPort=1e9;
+     L−300 la plus proche de ce centre (`dPort`) ; sous FOR_PORT_D (110 m : le nuage plus une dalle de marge) l'essai est noté plus bas — le meilleur des essais le laisse alors à un autre ; et si le meilleur essai BRUT (sans ce malus) passait tout près, genForet en tire 8 de plus (FOR_PORT_PLUS,
+     le même flux `gr`) pour trouver un essai propre aussi bien noté : MESURÉ (400 graines, paliers 0 / 10 / 27) 6 % des graines au palier 0 (4 % au 10, 0,25 % au 27) s'approchaient à moins de 110 m (dès 30 m) ;
+     avec le malus seul leur note montait de 5,6 à 10,7, avec les 8 essais de plus elle reste à 5,6 et plus aucune ne passe sous 110 m. Les autres graines refont exactement la même piste.
+     Aucun tirage `rnd` ; `?sans=foretportail` = la note d'avant (la mesure reste faite, pour le banc), `?sans=foretportailplus` = le malus seul. */
+  let dPort=1e9,noteBrut=note;
   {let hP=20;try{hP=PCUBE.H;}catch(e){}
    const xp=x-Math.sin(phi)*25,zp=z-Math.cos(phi)*25,yp=yS9(L-25)+hP;
    for(let i=0;i<nD;i++){const s9=D[3*i+2];if(s9>=L-300)break;const dx=D[3*i]-xp,dz=D[3*i+1]-zp,dy=yS9(s9)-yp,d9=Math.sqrt(dx*dx+dy*dy+dz*dz);if(d9<dPort)dPort=d9;}
-   if(FOR_PORTAIL&&dPort<FOR_PORT_D)note+=FOR_PORT_PEN+(FOR_PORT_D-dPort)*FOR_PORT_K;}
+   noteBrut=note;if(FOR_PORTAIL&&dPort<FOR_PORT_D)note+=FOR_PORT_PEN+(FOR_PORT_D-dPort)*FOR_PORT_K;}
   // ---- LES POINTS DE CONTRÔLE ----
   const yS=yS9;
   if(AXE){const c9=Math.cos(AXE),s9=Math.sin(AXE),ro=p=>{const x9=p[0]*c9+p[1]*s9;p[1]=p[1]*c9-p[0]*s9;p[0]=x9;}; // (2026-10-19, LA FORÊT AU HASARD) le plan dessiné face à +z TOURNE EN BLOC autour du départ
@@ -457,7 +461,7 @@ function forPelote(rnd,kR,kV){kV=Math.min(kV,kR*1.15); // (les longueurs suivent
   const BO9=BO.map(o=>({e:new THREE.Vector3(o.e.x,yS(o.e.s),o.e.z),sg:o.sg,R:o.R}));
   let dsM=0;for(const m of CR)for(const p of m)dsM=Math.max(dsM,D[3*p[1]+2]-D[3*p[0]+2]);
   const CXS=CR.map(m=>{let sk=0,fw=0;for(const p of m){const d9=D[3*p[1]+2]-D[3*p[0]+2];if(d9>sk){sk=d9;fw=yA(p[0])>yA(p[1])?1:-1;}}return [Math.round(sk),fw];}); /* (2026-11-05) pour chaque croisement : la route sautée (m) et le sens — +1 un RACCOURCI (la route d'en dessous est devant), −1 un PIÈGE (elle est derrière) */
-  return {cxs:CXS,dsM:Math.round(dsM),ctrl:ctrl,Q:Q,BO:BO9,note:note,fiche:fr9,croise:CR.length,dyMin:Math.round(dyMin),dPort:Math.round(dPort),L:L,NO:NO,mods:MM,mk:MK,plan:PLAN,axe:AXE};}
+  return {cxs:CXS,dsM:Math.round(dsM),ctrl:ctrl,Q:Q,BO:BO9,note:note,fiche:fr9,croise:CR.length,dyMin:Math.round(dyMin),dPort:+dPort.toFixed(1),noteBrut:noteBrut,L:L,NO:NO,mods:MM,mk:MK,plan:PLAN,axe:AXE};}
 /* ---------------- L'ATELIER DES ARBRES : un petit maillage indexé (position, normale, aA, aC, aB) ----------------
    aA = (partie, occlusion, hasard, hauteur relative) · aC = la couleur de base · aB = (écorce, mousse).
    Parties : 0 écorce · 1 feuilles · 2 aiguilles · 3 peint (chaumière, champignon) · 4 fenêtre (luit la nuit) · 5 VISAGE (luit la nuit)
