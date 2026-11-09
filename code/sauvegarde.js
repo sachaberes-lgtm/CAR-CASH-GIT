@@ -235,7 +235,22 @@ const SAVE={
     if(!(this.natif===1&&!ec))this.flush();
   },
   mark(){this.dirty=true;},
-  natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
+  _n:0, // la valeur de `natif` (l'accesseur ci-dessous)
+  /* ===== LE GEL EST DÉFINITIF : IL ÉCRIT (2026-11-08, sortie du jeu, agent C : ECO-10 + ECO-N06) =====
+     `natif` : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas). Les appelants (TOUT EFFACER dans
+     moteur/mobile-tactile.js, ENTRER UN CODE là et dans interface/menu-logo.js) posent `SAVE.natif=2` JUSTE AVANT de recharger : l'état de SAVE.d est alors définitif.
+     Mais leur `SAVE.flush()` ne suffisait pas : (1) tant que le miroir natif n'était pas lu (natif 1) il n'écrit pas le miroir — l'ancienne sauvegarde y restait, et le
+     rechargement la RESTAURAIT par-dessus l'effacement ; (2) dans un onglet PASSIF (garage-menu-inventaire.js) il est remplacé par une fonction vide — rien ne s'écrivait,
+     le rechargement rendait l'ancienne sauvegarde. Passer à 2 DEPUIS L'EXTÉRIEUR écrit donc SAVE.d tel quel, localStorage ET miroir, et lève le témoin « miroir non
+     confirmé ». Le gel INTERNE (le miroir semé au démarrage) passe par `_n` : il n'écrit rien par-dessus ce qu'il vient de semer. */
+  get natif(){return this._n;},
+  set natif(v){const avant=this._n;this._n=v;if(v===2&&avant!==2)this.fige();},
+  fige(){if(this.neuf||!this.d)return;
+    try{this.d.v=this.V;const s=JSON.stringify(this.d);
+      try{localStorage[this.K]=s;this.dirty=false;}catch(e){}
+      try{localStorage.removeItem(this.K+'_natif');}catch(e){}
+      try{if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences)window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}
+    }catch(e){}},
   flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
@@ -275,10 +290,11 @@ if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferen
   try{window.Capacitor.Plugins.Preferences.get({key:SAVE.K}).then(function(r){
     /* ===== LE MIROIR ILLISIBLE NE SE SÈME PAS (24/10, débogage sortie iOS : « aucune progression perdue ») ===== semé tel quel, il rechargeait la page sur un localStorage
        tout aussi illisible, qui relisait le miroir, rechargeait… à l'infini : appli inutilisable. Illisible = vide (le flush qui suit écrit une sauvegarde saine) */
+    if(SAVE._n===2)return; /* (2026-11-08, ECO-10) un EFFACEMENT ou une RESTAURATION par code a gelé la sauvegarde PENDANT la lecture (natif=2 posé de l'extérieur, qui a déjà écrit le miroir) : cette réponse, plus vieille, ne doit rien restaurer */
     const mv9=!!(r&&r.value&&(function(){try{const x9=JSON.parse(r.value);return !!x9&&typeof x9==='object';}catch(e){return false;}})());
     const lr9=l9?(+(l9.ex&&l9.ex.runs)||0):0,mr9=mv9?(function(){try{return +((JSON.parse(r.value).ex||{}).runs)||0;}catch(e){return 0;}})():0;
     if(mv9&&lr9>0&&lr9>=mr9){SAVE.natif=0;raz9();SAVE.flush();} /* le local a de vraies parties (jouées après l'échec de lecture) ET au moins autant que le miroir : on le garde, il rattrape le miroir. (2026-11-03, relecture de l'audit) Un miroir PLUS RICHE (100 parties contre 1 jouée depuis l'échec) l'emporte : avant, le local pauvre l'écrasait */
-    else if(mv9){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
+    else if(mv9){SAVE._n=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
       if(ok){raz9();location.reload();}else SAVE.natif=1;}
     else{SAVE.natif=0;raz9();SAVE.flush();}
   }).catch(function(){});}catch(e){}
