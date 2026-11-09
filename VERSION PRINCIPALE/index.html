@@ -2021,7 +2021,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
      d'une seconde, onglet visible). Rien ne part sur internet. LIRE : RÉGLAGES › toucher la ligne « VERSION … » (elle affiche « · ⚠ n »
      quand il y a quelque chose), ou `?erreurs=1`, ou `dbgErreurs()` ; COPIER pour l'envoyer à Claude, VIDER après correction. */
   (function(){
-    var CLE='cashcarErr',L=null,attente=0,attT=0,dern='',dernT=0,MAXO=20000,CAPS={serpent:25,fluide:40,memoire:15,contexte:10,grotte:12,attente:8}; /* (union) plafonds de banc-iphone-2 + la ligne « grotte » de vitesse-fluide + « attente » du serpent */
+    var CLE='cashcarErr',L=null,attente=0,attT=0,dern='',dernT=0,MAXO=20000,CAPS={serpent:25,fluide:40,memoire:15,contexte:10,grotte:12,attente:8},VRAIS={erreur:1,promesse:1,boucle:1,panne:1,son:1,contexte:1}; /* (2026-11-09, debug) VRAIS : les genres qui sont une PANNE (ils posent « ⚠ » sur la ligne VERSION) ; les mesures (serpent, fluide, gel — une image > 1 s —, memoire, chargement, intro, banc…) écrivent à chaque session et posaient le « ⚠ » partout sur le web, ce qui rendait le raccourci à un toucher permanent */ /* (union) plafonds de banc-iphone-2 + la ligne « grotte » de vitesse-fluide + « attente » du serpent */
     var lit=function(){if(L)return L;try{L=JSON.parse(localStorage.getItem(CLE)||'[]');if(!Array.isArray(L))L=[];}catch(_){L=[];}return L;};
     var ecrit=function(){clearTimeout(attT);attente=0;attT=0;try{ /* (2026-11-07, OPTI ULTIME : « 30 Ko réécrits à chaque ligne = on fausse la mesure ») plafond de MAXO octets : les plus anciennes lignes `fluide`/`vivant` partent d'abord, puis les autres sondes ; jamais gel, contexte, memoire, banc */
       var s9=JSON.stringify(L),i9,k9;
@@ -2040,7 +2040,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
           var cp=CAPS[genre];if(cp){var k9=0,j9;for(j9=L.length-1;j9>=0;j9--)if(L[j9].g===genre&&++k9>cp)L.splice(j9,1);}} /* (2026-11-06) les sondes (« serpent », « fluide ») ne chassent pas les vraies erreurs : un plafond par genre */
         var lent=genre==='fluide'||genre==='vivant'; /* les lignes qui reviennent toutes les 4 s s'écrivent au plus toutes les 20 s ; une autre ligne ramène l'écriture à 0,4 s */
         if(!attente||(!lent&&attT&&attente===2)){clearTimeout(attT);attente=lent?2:1;attT=setTimeout(ecrit,lent?20000:400);}
-        try{var vv=document.getElementById('mvVer');if(!window.Capacitor&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){} /* (2026-11-08, sortie du jeu, INT-N07) jamais dans l'app : la ligne VERSION d'un joueur n'a pas à porter un signe de testeur */
+        try{var vv=document.getElementById('mvVer');if(VRAIS[genre]&&!window.Capacitor&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){} /* (2026-11-08, sortie du jeu, INT-N07) jamais dans l'app : la ligne VERSION d'un joueur n'a pas à porter un signe de testeur */
       }catch(_){}
     };
     window.dbgErreurs=function(vider){lit();if(vider){L=[];ecrit();}return L.slice();};
@@ -2076,7 +2076,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
       var now=Date.now();nt=(now-tt<2500)?nt+1:1;tt=now;if(nt>=5){nt=0;montre();}},true);
     if(/[?&]erreurs=1/.test(location.search))addEventListener('load',function(){setTimeout(montre,1500);});
     /* (INT-N07) le « ⚠ n » ne compte que les notes de CETTE version (un défaut corrigé depuis ne marque plus la ligne pour toujours), et jamais dans l'app */
-    addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer'),n=0,v=(typeof CC_VER==='string'?CC_VER:'?');for(var i=0;i<L.length;i++)if(L[i].v===v)n++;if(n&&!window.Capacitor&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+n;}catch(_){}},3000);});
+    addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer'),n=0,v=(typeof CC_VER==='string'?CC_VER:'?');for(var i=0;i<L.length;i++)if(L[i].v===v&&VRAIS[L[i].g])n++;if(n&&!window.Capacitor&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+n;}catch(_){}},3000);});
   })();
   /* ===== LA SONDE DU SERPENT (2026-11-06, Sacha : « enlève la latence du temps de chargement, le serpent doit toujours être super fluide ») =====
      Le banc Mac a épuisé ce qu'il sait voir (LISEZ-MOI de outils/banc-serpent) : le reste ne se verra que sur Metal. Ce petit guetteur tourne
@@ -19176,7 +19176,13 @@ function prebLieDecor(W){ // le monde bâti d'avance (forêt, grotte, glacier) :
   finally{scene.children=kids;}
   return true;}
 function prebLieFx(){ // les effets de la forêt, créés tels que la chauffe du menu les crée (foretFx : cachés, dans la scène, objets du module — partagés avec le pré-bâti) puis compilés en doux
+  /* (2026-11-09, debug) UN SEUL JEU DE MATIÈRES : si le pré-bâti de la forêt a pris sa photo du module AVANT que ses matières existent (session froide), le fantôme
+     crée les siennes (A) et les effets créés ici en auraient fait d'autres (B) ; au passage FORET.mats devient A, foretTick ne met plus à jour les uniformes de B
+     (uBoxL, uBat) : lucioles et pollen tournaient autour de l'origine, chauves-souris jamais vues, pour toute la session. Les deux états prennent le même jeu. */
+  const G9=PREB.W&&PREB.W.mods&&PREB.W.mods[0]&&PREB.W.mods[0][0]===FORET?PREB.W.mods[0][1]:null;
+  if(G9&&!FORET.mats&&G9.mats)FORET.mats=G9.mats;
   const fx=foretFx(),lum=scene.children.filter(function(o){return o.isLight;}),kids=scene.children;
+  if(G9&&!G9.mats)G9.mats=FORET.mats;
   try{scene.children=lum.concat([fx.pap,fx.luc,fx.fol,fx.lune,fx.halo,fx.loup]);compileDoux(scene,camera);}finally{scene.children=kids;}
   return true;}
 function prebLie(c){ // (prebTick) vrai : ce pas a travaillé, le pré-bâti attend l'image suivante
@@ -19190,7 +19196,7 @@ function prebLie(c){ // (prebTick) vrai : ce pas a travaillé, le pré-bâti att
   if(tr>10)return false; // l'image est déjà lourde
   const p9=prebPisteDe(c.t);let w=false;
   try{
-    if(p9==='jade'){if(JADE_CHP.fait<4){const k9=JADE_CHP.fait;let encore=false;LIER.doux=true;try{encore=jadeChauffeProgs(k9,PLIE.j);}finally{LIER.doux=false;} // un MORCEAU du lot par pas (un seul pas pour la mer entière faisait attendre la puce 120-170 ms à froid)
+    if(p9==='jade'){if(JADE_CHP.fait<4){const k9=JADE_CHP.fait;if(PLIE.jk!==k9){PLIE.jk=k9;PLIE.j=0;} /* (2026-11-09, debug) le morceau `j` appartient à SON lot : la chauffe du menu (écran de fin) a pu finir ce lot entre deux courses, le suivant repart de son 1er morceau */let encore=false;LIER.doux=true;try{encore=jadeChauffeProgs(k9,PLIE.j);}finally{LIER.doux=false;} // un MORCEAU du lot par pas (un seul pas pour la mer entière faisait attendre la puce 120-170 ms à froid)
       if(encore)PLIE.j++;else{PLIE.j=0;JADE_CHP.fait=Math.max(JADE_CHP.fait,k9+1);}PLIE.lots++;w=true;}}
     else if(p9==='foret'&&!FORET.fx.pap)w=prebLieFx(); // les effets de la forêt (papillons, lucioles, follets, lune, loup) naissent à la 1re image du monde neuf (foretFx) : créés et compilés d'avance
     else if(PREB.W&&PREB.fait&&!PREB.dep&&c.t===PREB.t&&PREB.W.piste===p9)w=prebLieDecor(PREB.W);
@@ -21647,7 +21653,7 @@ window.dbgForetEmb=function(o){if(o)Object.assign(FOR_EMB,o);return {emb:Object.
      passe jamais dans un tronc ;
    · les autres croisements restent des paris : pas de fil, on voit la route, on décide.
    `?sans=foretsentiers` = la forêt sans fils. Banc : `dbgSentiers()` (les fils, les fruits posés et pris) ; `node outils/banc-routes/foret.cjs sentiers palier n`. */
-const FOR_SENT={on:typeof location!=='undefined'&&/[?&]foretsentiers=1/.test(location.search), /* (2026-11-05 soir) COUPÉS par défaut : Sacha a fini la forêt en 10 s et veut s'y PERDRE — un fil de fruits rend le raccourci évident et gagnant à coup sûr ; `?foretsentiers=1` les rend */ vk0:1.55,vk1:1.1,bascule:.45,pop:5.3,dv:6,air:30,pente:.48,ang:[0,8,16,26],ang2:[0,14],lac:[-30,30],cos:.6,latMax:14,robMin:0,gainMin:180,esp:900,rayon:24,pas:.18,fruits:['ORANGE','MANGUE','MELON','POMME'],pow:['n','v','x','n']};
+const FOR_SENT={on:typeof location!=='undefined'&&/[?&]foretsentiers=1\b/.test(location.search), /* (2026-11-05 soir) COUPÉS par défaut : Sacha a fini la forêt en 10 s et veut s'y PERDRE — un fil de fruits rend le raccourci évident et gagnant à coup sûr ; `?foretsentiers=1` les rend */ vk0:1.55,vk1:1.1,bascule:.45,pop:5.3,dv:6,air:30,pente:.48,ang:[0,8,16,26],ang2:[0,14],lac:[-30,30],cos:.6,latMax:14,robMin:0,gainMin:180,esp:900,rayon:24,pas:.18,fruits:['ORANGE','MANGUE','MELON','POMME'],pow:['n','v','x','n']};
 function* foretSentiersCalc(){ /* un générateur : il rend la main à l'échéance JF.lim (le pré-bâti) */
   FORET.sent=[];FORET.sentZ=[];
   if(!FOR_SENT.on||PARK.on||!(NP>300))return;
@@ -33336,7 +33342,7 @@ function cashTxt(v){v=Math.max(0,v);
   if(v<10&&v-e>.004){const t=v.toFixed(2);return LANG==='fr'?t.replace('.',','):t;} // la mise de départ (1,61) garde ses centimes
   return e.toLocaleString(LOC()).replace(/[\u202f\u00a0]/g,' ');}
 /* (2026-11-07, finition du HUD) LES CENTIMES EN PETIT : « 8 » puis <small>,21</small> — t vient de toLocaleString / toFixed (chiffres, espaces, une virgule ou un point) : rien d'autre n'entre dans le HTML */
-function cashPose(el,t){const m=/^(\d[\d ]*)([.,]\d+)$/.exec(t);if(m)el.innerHTML=m[1]+'<small>'+m[2]+'</small>';else el.textContent=t;}
+function cashPose(el,t){const m=/^(\d)([.,]\d\d)$/.exec(t);if(m)el.innerHTML=m[1]+'<small>'+m[2]+'</small>';else el.textContent=t;} /* (2026-11-09, debug) SEULS les centimes de la mise (< 10 : « 1,61 ») : en anglais toLocaleString écrit « 48,000 », dont la virgule des milliers passait pour des centimes (48<small>,000</small>) depuis le retour de 9013fbe6 */
 function cashSnap(){CASH.disp=money;CASH.last=money;CASH.delta=0;CASH.dT=0;cashEcrit(true);}
 function cashEcrit(force){
   const e=CASH.el||(CASH.el=document.getElementById('cashHud'));if(!e)return;
@@ -66612,7 +66618,7 @@ window.dbgVol=function(a){
      pose : posée en plein tour (> 52°), c'est la CHUTE — les figures de ce vol quittent la chaîne (`figChute`) et le flow tombe.
    Console : `dbgFig()`. */
 const FIGV2={on:true}; // les figures v2 (la physique) sont les SEULES : plus de lecteur de Léo (?fig=ancien) ni de figures libres (?fig=libre)
-if(window.FIG&&FIG.PHY&&/[?&]elan=0/.test(location.search))FIG.PHY.elan=false; // (2026-10-15 soir, Sacha : « là, on dirait une animation ») L'ÉLAN de figures.js (le coup, la glissade freinée par l'air, le retour souple) ; ?elan=0 = la physique d'avant (prise sèche, planté)
+if(window.FIG&&FIG.PHY&&/[?&]elan=0\b/.test(location.search))FIG.PHY.elan=false; // (2026-10-15 soir, Sacha : « là, on dirait une animation ») L'ÉLAN de figures.js (le coup, la glissade freinée par l'air, le retour souple) ; ?elan=0 = la physique d'avant (prise sèche, planté)
 function figDose(f,bud){return window.FIG&&FIG.PHY&&FIG.PHY.elan?Math.min(f.D*1.35,(bud-.35)*.72):Math.min(f.D,(bud-.3)/.85);} // (LE COUP NET) la durée d'une figure : elle OCCUPE le saut — 72 % du vol qui reste (moins la pose), jusqu'à 1,35 × sa durée de catalogue (avant : bouclée en 0,35 s, puis la caisse à plat les deux tiers du saut)
 const FIG_NB=3; // (2026-10-15, Sacha : « on doit pouvoir sélectionner seulement 2 figures à la fois, pas 3 » — puis le soir, avec la direction ARRIÈRE : « 3, une par geste ») — les EMPLACEMENTS : ↑ avant (1), ↓ arrière (2), ◄► côté (3)
 const FX2={corps:window.FIG&&FIG.Corps?new FIG.Corps():null,slots:[null,null,null],tenus:[false,false,false],ptr:[null,null,null],btOn:[false,false,false],bts:null,
@@ -70413,6 +70419,10 @@ function portailPasse(){
     // (2026-09-26) …et la CHAÎNE est ENCAISSÉE comme à une pose : avant, l'argent de la mallette disparaissait sans un mot et le HUD restait affiché
     if(chain>0)runStats.tricks++; // (2026-09-29) les figures ne rapportent plus d'argent : la figure du vol compte, rien n'est versé (l'aura ouverte, elle, continue sa chaîne)
     chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;}
+  else if(mode==='drive'){ /* (2026-11-09, debug) AU SOL, CE QUI EST GAGNÉ EST PAYÉ AVANT LA PISTE NEUVE : newTrack0 coupe le SLIDE (slideRaz) et la figure de route (frCoupe) depuis c0452aab —
+    un portail n'est pas un échec. Le slide qui frotte encore se paie comme à son lâcher (slideTick) ; la figure de route déjà PLANTÉE s'encaisse comme au décollage (frDecolle). */
+    try{if(SLD.t>=SLD.tMin&&SLD.aura>0){const n9=Math.round(SLD.aura);slideRaz();chaineAura('SLIDE',n9,'slide',true,false);try{sonSlide('paye',n9);}catch(e){}}}catch(e){}
+    try{if(FR.on&&FR.r&&FR.r.paye)frEncaisse();}catch(e){}}
   flashEcran('rgba(255,79,216,.6)'); // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
   portalSnd();if(!SONV2)boostSnd();shake=.5; /* (console de son) `portail` porte tout le passage : plus le souffle d'un pad dessous */
   if(SENS)try{sensHap([22,36,12],3);}catch(e){} // (2026-10-14, sensations · passages) le portail CLAQUE dans la main : un coup lourd puis son écho — le plus gros passage du jeu avait son flash, son souffle et sa secousse, mais pas une vibration (les finales et l'auto-école sortent plus haut : rien)
@@ -86852,8 +86862,8 @@ function goImmersive(){
   function bumPrerend(){
     if(BUM.pr||!INTRO_AP||SANS_SON||!SND.sfx||!(VOL.sfx>0)||typeof OfflineAudioContext==='undefined')return;
     BUM.pr=true;const a9=performance.now();
-    const sr=(preAC&&preAC.sampleRate)||48000,O=new OfflineAudioContext(2,Math.ceil(sr*5.6),sr),r=construitSon(O,0,O.destination);
-    r.boum(.02);r.scintille(.02);
+    const sr=(preAC&&preAC.sampleRate)||48000,O=new OfflineAudioContext(2,Math.ceil(sr*6),sr),r=construitSon(O,0,O.destination);
+    r.suite();r.boum(.02);r.scintille(.02); /* (2026-11-09, debug) r.suite() : LA SALLE (la réverbération) n'est branchée que par `suite` — sans elle, ce que boum et scintille envoient au bus `send` (la queue du hall) se perdait et l'appui sonnait sec au téléphone, pas à l'ordinateur ; 6 s : le dernier tintement (~3,4 s) + 2,4 s de salle */
     const fin=function(b){BUM.buf=b;try{if(window.__ccNote)window.__ccNote('chargement','coup de l\'appui pré-rendu en '+Math.round(performance.now()-a9)+' ms ('+b.duration.toFixed(1)+' s)');}catch(e){}};
     const ko=function(){BUM.err=true;};
     try{const pr=O.startRendering();if(pr&&pr.then)pr.then(fin,ko);else O.oncomplete=function(ev){fin(ev.renderedBuffer);};}catch(e){BUM.err=true;}
@@ -87061,7 +87071,8 @@ function goImmersive(){
       try{bumPrerend();}catch(e){BUM.err=true;}
     }
   }
-  function kd(){if(!lance&&!fini){if(INTRO_AP&&!pretIntro){touchRetenu=true;return;}lancer(true);}else if(lance&&performance.now()-tLance>600)passer();}
+  function retient(){touchRetenu=true;try{if(preAC&&preAC.state!=='running')acReveil(preAC);}catch(e){}} /* (2026-11-09, debug) le toucher retenu RÉVEILLE le contexte audio DANS le geste : Safari iOS refuse resume() hors d'un geste, et le film lancé plus tard (minuterie) programmait tout son son sur une horloge figée, qui partait d'un bloc au toucher de la boule */
+  function kd(){if(!lance&&!fini){if(INTRO_AP&&!pretIntro){retient();return;}lancer(true);}else if(lance&&performance.now()-tLance>600)passer();}
   function pose(e){try{const r=cv.getBoundingClientRect();TOUCH={x:e.clientX-r.left,y:e.clientY-r.top};}catch(x){TOUCH=null;}}
   function remesure(){pciDer=-1e9;if(fini||casse)return;mesure();if(lance){if(PCI_ON&&prepEn===W+'x'+H+'x'+S){PCI_N.prepEvitees++;return;}try{prepare();}catch(e){}}} /* (passe perf PC) un `resize` qui ne change ni la taille ni l'échelle (le zoom du cadre bureau en envoie) ne refait plus tout le film : boule, logo, fracture étaient refaits À L'IDENTIQUE (même règle que `lancer` et `chauffe`) */
 
@@ -87082,7 +87093,7 @@ function goImmersive(){
   sp.addEventListener('click',function(){
     if(BOULE&&bGlisse){bGlisse=false;return;} /* un glissement qui tourne la boule n'est pas un appui */
     try{musicDeverrouille();}catch(e){} /* ⚠ LE geste qui libère la musique pour toute la session (voir le lecteur unique) */
-    if(!lance){if(INTRO_AP&&!pretIntro){touchRetenu=true;return;}lancer(true);}else if(performance.now()-tLance>600)passer(); /* le logo attend : le toucher CASSE l'écran (avant le logo : le film passe) */ /* (INTRO_AP) un toucher avant « tout prêt » est retenu : le film part dès que c'est prêt, avec le son */
+    if(!lance){if(INTRO_AP&&!pretIntro){retient();return;}lancer(true);}else if(performance.now()-tLance>600)passer(); /* le logo attend : le toucher CASSE l'écran (avant le logo : le film passe) */ /* (INTRO_AP) un toucher avant « tout prêt » est retenu : le film part dès que c'est prêt, avec le son */
   });
   function autoLance(){ /* le film part TOUT SEUL : le navigateur dit si le son est permis sans toucher (sinon le film passe muet, la casse sonnera au toucher) */
     if(lance||fini)return;
@@ -87101,7 +87112,7 @@ function goImmersive(){
   /* ===== LE FILM NE PART QUE QUAND LA PAGE EST CALME (2026-11-08, Sacha : « les animations au lancement ont encore de la latence : ça peut charger plus longtemps au début, mais pas de latence ») =====
      Le film partait 40 ms après le DOM, PENDANT que le jeu finissait de se construire dessous (décodage des images, polices, calcul du son) : chaque tâche longue faisait sauter une image de la boule.
      Désormais il attend, derrière le noir et l'anneau de chargement : la page chargée (`load`), la chauffe du son et de la boule faite, puis 40 images de suite sans accroc (< 26 ms chacune). Plafond 14 s (réseau lent : on part quand même). `?calme=0` = l'ancien départ. */
-  const CALME_ON=!/[?&]calme=0/.test(location.search)&&!DEPART_LENT;
+  const CALME_ON=!/[?&]calme=0\b/.test(location.search)&&!DEPART_LENT;
   let calmeBons=0,calmePrec=0,calmeT0=performance.now();
   if(CALME_ON){const echant=function(now){if(lance||fini)return;if(calmePrec&&!document.hidden&&now-calmePrec<40)calmeBons++;else calmeBons=0;calmePrec=document.hidden?0:now;requestAnimationFrame(echant);};requestAnimationFrame(echant);}
   function pageCalme(){
@@ -87148,7 +87159,7 @@ function goImmersive(){
     /* LE JEU SE TAIT UN INSTANT AVANT LE FILM : sa boucle (donc ses rendus 3D, mis en file au processeur graphique) s'arrête INTRO_DRAIN ms avant que le film ne dessine sa 1re image — mesuré sur le Mac ×4 :
        400-500 ms d'intervalle entre la 1re et la 2e image du film (rendu d'avant : 3 ms ; sans le son : le même), le temps que la file graphique se vide. `?introdrain=0` = sans cet arrêt. */
     const go=function(){if(INTRO_AP===2&&!touchRetenu)return; /* mode 2 : le film attend le toucher (le clic ou une touche appelle lancer) */
-      if(touchRetenu)lancer(true);else essaiAuto(0);};
+      if(touchRetenu)lancer(!!(preAC&&preAC.state==='running'));else essaiAuto(0);}; /* (2026-11-09, debug) hors du geste : « avec son » seulement si le contexte tourne vraiment ; sinon le film passe muet et la casse sonne au toucher (son(false)) */
     if(INTRO_DRAIN>0){window.__introCouvre=true;setTimeout(go,INTRO_DRAIN);}else go();
   }
   function introPoll(){

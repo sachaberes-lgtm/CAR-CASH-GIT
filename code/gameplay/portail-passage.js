@@ -81,6 +81,10 @@ function portailPasse(){
     // (2026-09-26) …et la CHAÎNE est ENCAISSÉE comme à une pose : avant, l'argent de la mallette disparaissait sans un mot et le HUD restait affiché
     if(chain>0)runStats.tricks++; // (2026-09-29) les figures ne rapportent plus d'argent : la figure du vol compte, rien n'est versé (l'aura ouverte, elle, continue sa chaîne)
     chain=0;chainVal=0;chainMult=1;chainSeen={};chainHud.style.opacity=0;caseHud.style.opacity=0;caseHud.className='';caseHot=false;}
+  else if(mode==='drive'){ /* (2026-11-09, debug) AU SOL, CE QUI EST GAGNÉ EST PAYÉ AVANT LA PISTE NEUVE : newTrack0 coupe le SLIDE (slideRaz) et la figure de route (frCoupe) depuis c0452aab —
+    un portail n'est pas un échec. Le slide qui frotte encore se paie comme à son lâcher (slideTick) ; la figure de route déjà PLANTÉE s'encaisse comme au décollage (frDecolle). */
+    try{if(SLD.t>=SLD.tMin&&SLD.aura>0){const n9=Math.round(SLD.aura);slideRaz();chaineAura('SLIDE',n9,'slide',true,false);try{sonSlide('paye',n9);}catch(e){}}}catch(e){}
+    try{if(FR.on&&FR.r&&FR.r.paye)frEncaisse();}catch(e){}}
   flashEcran('rgba(255,79,216,.6)'); // l'annonce, c'est « NIVEAU n — LIEU » (lvlAnnonce, couloir des annonces) : une seule voix au centre
   portalSnd();if(!SONV2)boostSnd();shake=.5; /* (console de son) `portail` porte tout le passage : plus le souffle d'un pad dessous */
   if(SENS)try{sensHap([22,36,12],3);}catch(e){} // (2026-10-14, sensations · passages) le portail CLAQUE dans la main : un coup lourd puis son écho — le plus gros passage du jeu avait son flash, son souffle et sa secousse, mais pas une vibration (les finales et l'auto-école sortent plus haut : rien)

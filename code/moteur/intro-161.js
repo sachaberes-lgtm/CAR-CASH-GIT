@@ -724,8 +724,8 @@
   function bumPrerend(){
     if(BUM.pr||!INTRO_AP||SANS_SON||!SND.sfx||!(VOL.sfx>0)||typeof OfflineAudioContext==='undefined')return;
     BUM.pr=true;const a9=performance.now();
-    const sr=(preAC&&preAC.sampleRate)||48000,O=new OfflineAudioContext(2,Math.ceil(sr*5.6),sr),r=construitSon(O,0,O.destination);
-    r.boum(.02);r.scintille(.02);
+    const sr=(preAC&&preAC.sampleRate)||48000,O=new OfflineAudioContext(2,Math.ceil(sr*6),sr),r=construitSon(O,0,O.destination);
+    r.suite();r.boum(.02);r.scintille(.02); /* (2026-11-09, debug) r.suite() : LA SALLE (la réverbération) n'est branchée que par `suite` — sans elle, ce que boum et scintille envoient au bus `send` (la queue du hall) se perdait et l'appui sonnait sec au téléphone, pas à l'ordinateur ; 6 s : le dernier tintement (~3,4 s) + 2,4 s de salle */
     const fin=function(b){BUM.buf=b;try{if(window.__ccNote)window.__ccNote('chargement','coup de l\'appui pré-rendu en '+Math.round(performance.now()-a9)+' ms ('+b.duration.toFixed(1)+' s)');}catch(e){}};
     const ko=function(){BUM.err=true;};
     try{const pr=O.startRendering();if(pr&&pr.then)pr.then(fin,ko);else O.oncomplete=function(ev){fin(ev.renderedBuffer);};}catch(e){BUM.err=true;}
@@ -933,7 +933,8 @@
       try{bumPrerend();}catch(e){BUM.err=true;}
     }
   }
-  function kd(){if(!lance&&!fini){if(INTRO_AP&&!pretIntro){touchRetenu=true;return;}lancer(true);}else if(lance&&performance.now()-tLance>600)passer();}
+  function retient(){touchRetenu=true;try{if(preAC&&preAC.state!=='running')acReveil(preAC);}catch(e){}} /* (2026-11-09, debug) le toucher retenu RÉVEILLE le contexte audio DANS le geste : Safari iOS refuse resume() hors d'un geste, et le film lancé plus tard (minuterie) programmait tout son son sur une horloge figée, qui partait d'un bloc au toucher de la boule */
+  function kd(){if(!lance&&!fini){if(INTRO_AP&&!pretIntro){retient();return;}lancer(true);}else if(lance&&performance.now()-tLance>600)passer();}
   function pose(e){try{const r=cv.getBoundingClientRect();TOUCH={x:e.clientX-r.left,y:e.clientY-r.top};}catch(x){TOUCH=null;}}
   function remesure(){pciDer=-1e9;if(fini||casse)return;mesure();if(lance){if(PCI_ON&&prepEn===W+'x'+H+'x'+S){PCI_N.prepEvitees++;return;}try{prepare();}catch(e){}}} /* (passe perf PC) un `resize` qui ne change ni la taille ni l'échelle (le zoom du cadre bureau en envoie) ne refait plus tout le film : boule, logo, fracture étaient refaits À L'IDENTIQUE (même règle que `lancer` et `chauffe`) */
 
@@ -954,7 +955,7 @@
   sp.addEventListener('click',function(){
     if(BOULE&&bGlisse){bGlisse=false;return;} /* un glissement qui tourne la boule n'est pas un appui */
     try{musicDeverrouille();}catch(e){} /* ⚠ LE geste qui libère la musique pour toute la session (voir le lecteur unique) */
-    if(!lance){if(INTRO_AP&&!pretIntro){touchRetenu=true;return;}lancer(true);}else if(performance.now()-tLance>600)passer(); /* le logo attend : le toucher CASSE l'écran (avant le logo : le film passe) */ /* (INTRO_AP) un toucher avant « tout prêt » est retenu : le film part dès que c'est prêt, avec le son */
+    if(!lance){if(INTRO_AP&&!pretIntro){retient();return;}lancer(true);}else if(performance.now()-tLance>600)passer(); /* le logo attend : le toucher CASSE l'écran (avant le logo : le film passe) */ /* (INTRO_AP) un toucher avant « tout prêt » est retenu : le film part dès que c'est prêt, avec le son */
   });
   function autoLance(){ /* le film part TOUT SEUL : le navigateur dit si le son est permis sans toucher (sinon le film passe muet, la casse sonnera au toucher) */
     if(lance||fini)return;
@@ -973,7 +974,7 @@
   /* ===== LE FILM NE PART QUE QUAND LA PAGE EST CALME (2026-11-08, Sacha : « les animations au lancement ont encore de la latence : ça peut charger plus longtemps au début, mais pas de latence ») =====
      Le film partait 40 ms après le DOM, PENDANT que le jeu finissait de se construire dessous (décodage des images, polices, calcul du son) : chaque tâche longue faisait sauter une image de la boule.
      Désormais il attend, derrière le noir et l'anneau de chargement : la page chargée (`load`), la chauffe du son et de la boule faite, puis 40 images de suite sans accroc (< 26 ms chacune). Plafond 14 s (réseau lent : on part quand même). `?calme=0` = l'ancien départ. */
-  const CALME_ON=!/[?&]calme=0/.test(location.search)&&!DEPART_LENT;
+  const CALME_ON=!/[?&]calme=0\b/.test(location.search)&&!DEPART_LENT;
   let calmeBons=0,calmePrec=0,calmeT0=performance.now();
   if(CALME_ON){const echant=function(now){if(lance||fini)return;if(calmePrec&&!document.hidden&&now-calmePrec<40)calmeBons++;else calmeBons=0;calmePrec=document.hidden?0:now;requestAnimationFrame(echant);};requestAnimationFrame(echant);}
   function pageCalme(){
@@ -1020,7 +1021,7 @@
     /* LE JEU SE TAIT UN INSTANT AVANT LE FILM : sa boucle (donc ses rendus 3D, mis en file au processeur graphique) s'arrête INTRO_DRAIN ms avant que le film ne dessine sa 1re image — mesuré sur le Mac ×4 :
        400-500 ms d'intervalle entre la 1re et la 2e image du film (rendu d'avant : 3 ms ; sans le son : le même), le temps que la file graphique se vide. `?introdrain=0` = sans cet arrêt. */
     const go=function(){if(INTRO_AP===2&&!touchRetenu)return; /* mode 2 : le film attend le toucher (le clic ou une touche appelle lancer) */
-      if(touchRetenu)lancer(true);else essaiAuto(0);};
+      if(touchRetenu)lancer(!!(preAC&&preAC.state==='running'));else essaiAuto(0);}; /* (2026-11-09, debug) hors du geste : « avec son » seulement si le contexte tourne vraiment ; sinon le film passe muet et la casse sonne au toucher (son(false)) */
     if(INTRO_DRAIN>0){window.__introCouvre=true;setTimeout(go,INTRO_DRAIN);}else go();
   }
   function introPoll(){
