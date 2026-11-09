@@ -66,10 +66,12 @@ function fsPuce(){let el=document.getElementById('fsUndo');if(el)return el;el=do
   el.addEventListener('click',function(e){e.stopPropagation();if(!fsVeille())return;fsAnnule();});document.body.appendChild(el);return el;}
 /* (2026-11-08, sortie du jeu, INT-N03) LA PUCE NE SURVIT PAS À SON ÉCRAN : elle est posée sur <body> (position:fixed, z-index 97) et vivait 5 s quoi qu'il arrive —
    RETOUR ou JOUER dans ce délai la laissait au-dessus de l'écran suivant, jusque sur le début de la course, où un toucher remettait les figures d'avant en pleine
-   partie. On retient d'où elle est née (la boutique, l'inventaire, l'atelier) ; tant qu'elle vit, `fsVeille` (toutes les 200 ms, et à son toucher) la range dès que
-   cet écran n'est plus ouvert. Rend vrai si la puce a encore sa raison d'être. */
-function fsVeille(){const C=FSEL.ctx;if(C&&garageOn&&!(C.bq&&!(GBQ.on||GBQ.veut))&&!(C.inv&&!(INV&&INV.on)))return true;fsCache();return false;}
-function fsMontre(id,r,avant){const f=window.FIG&&FIG.par[id];if(!f||!r)return;FSEL.undo={prev:avant,id:id};clearTimeout(FSEL.tm);clearInterval(FSEL.tv);FSEL.ctx={bq:!!(GBQ.on||GBQ.veut),inv:!!(INV&&INV.on)};
+   partie. On retient l'ÉCRAN d'où elle est née (`fsEcran` : atelier ouvert ou non, boutique, feuille de l'inventaire, mode de l'atelier — inventaire, boutique, menu,
+   missions, départ en course) ; tant qu'elle vit, `fsVeille` (toutes les 200 ms, et à son toucher) la range dès que l'écran a changé. Rend vrai si la puce a
+   encore sa raison d'être. */
+function fsEcran(){return (garageOn?'g':'-')+(GBQ.on||GBQ.veut?'b':'-')+(INV&&INV.on?'i':'-')+(gEl?['modeInv','shopMode','menu','missions','quiet','launching','vueSeule'].filter(function(c){return gEl.classList.contains(c);}).join('.'):'');}
+function fsVeille(){if(FSEL.ctx&&fsEcran()===FSEL.ctx)return true;fsCache();return false;}
+function fsMontre(id,r,avant){const f=window.FIG&&FIG.par[id];if(!f||!r)return;FSEL.undo={prev:avant,id:id};clearTimeout(FSEL.tm);clearInterval(FSEL.tv);FSEL.ctx=fsEcran();
   const F=FIG_FAM[r.slot],el=fsPuce(),rem=r.parti&&r.parti!==id&&FIG.par[r.parti]?' · '+sansAcc(TR('REMPLACE'))+' '+sansAcc(TR(FIG.par[r.parti].n)):'';
   el.innerHTML='<span class="fuTx">'+pxi(F[2])+' <b>'+sansAcc(TR(f.n))+'</b> · '+sansAcc(TR(FS_COURT[r.slot]))+rem+'</span><span class="fuBt">'+pxi('gauche')+' '+sansAcc(TR('ANNULER'))+'</span>';
   el.classList.remove('on');void el.offsetWidth;el.classList.add('on');FSEL.tm=setTimeout(fsCache,5000);FSEL.tv=setInterval(fsVeille,200);}
