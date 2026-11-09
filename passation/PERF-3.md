@@ -63,8 +63,8 @@ Merge no-ff de `perf3-sur-main-6` dans `origin/main` (+ main f36577dd v1367 arri
 | `?gouv=max` | gouverneur thermique : plein régime (pas de dose) |
 | `?mob_poly=0` | polyphonie des bruitages sous la chaleur |
 | `?segments=0` | niveau bâti en segments (P3) |
-| `?brumepoly=0` | brume en polygone circonscrit |
-| `?imgsans=i` | levier image (i) |
+| `?brumepoly=0` | brume de la forêt en carré (au lieu du polygone circonscrit à son ellipse) |
+| `?imgsans=i` | photos du ciel/décor en pleine taille (au lieu de réduites : −50 Mo de GPU) |
 | `?memoire=ancien` | mémoire : budgets d'avant |
-| `?premfois=0` | première fois : chauffe des portails |
+| `?premfois=0` | première fois : instance de taille nulle passée par `chauffeRendu` (chauffe des programmes) |
 Autres déjà documentés : `?menu=max`, `?menucull=0`, `?cielprise=ancien`, `?feu=ancien`, `?mob_gouv=0`, `?mob_g30=0`, `?tranches=0`, `?imgplus=g|j` (à demander), `?prebati=0`.
