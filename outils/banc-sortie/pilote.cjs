@@ -14,7 +14,6 @@ const W = +(A.w || 390), H = +(A.h || 844), P_HTTP = +(A.http || 9811), P_CDP = 
 const SORTIE = path.resolve(A.sortie || path.join(require('os').tmpdir(), 'pilote-sortie')); fs.mkdirSync(SORTIE, { recursive: true });
 const TACTILE = W < 700;
 const SAVE0 = { v: 2, sfx: false, mus: false, vox: false };
-if (A.langue) SAVE0.lang = A.langue;
 
 /* un CDP qui garde aussi les évènements */
 class CDPE extends CDP {
@@ -58,7 +57,7 @@ function depouille(c, depuis) {
   try {
     await c.send('Page.enable'); await c.send('Runtime.enable'); await c.send('Network.enable'); await c.send('Log.enable');
     if (TACTILE) { await c.send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 3, mobile: true }); await c.send('Emulation.setTouchEmulationEnabled', { enabled: true }); }
-    await c.send('Page.addScriptToEvaluateOnNewDocument', { source: `try{if(!localStorage.cashcarSave)localStorage.cashcarSave=${JSON.stringify(JSON.stringify(SAVE0))}}catch(e){}` });
+    await c.send('Page.addScriptToEvaluateOnNewDocument', { source: `try{if(!localStorage.cashcarSave)localStorage.cashcarSave=${JSON.stringify(JSON.stringify(SAVE0))};${A.langue?'localStorage.ccLang='+JSON.stringify(A.langue)+';':''}}catch(e){}` });
     const url = `http://localhost:${P_HTTP}/index.html?colonne=0${A.q ? '&' + A.q : ''}`;
     console.log('→', url, `${W}x${H}`, TACTILE ? 'tactile' : 'souris');
     const t0 = Date.now(); await c.send('Page.navigate', { url });
