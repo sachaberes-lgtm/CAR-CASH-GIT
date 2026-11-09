@@ -90,13 +90,14 @@ function flowHudMaj(rest){
     FLOW.seg.forEach(function(i9,j){i9.style.setProperty('--sc',FLOW_CEL[j]);});
     FLOW.zs=h.querySelector('.fZ s');
     h.style.setProperty('--fzL',((FREN.seuil-75)/25*100).toFixed(1)+'%'); // le seuil ne vit qu'à UN endroit (FREN) : le CSS le reçoit
+    h.style.setProperty('--fzP',((FREN.seuil-75)/25).toFixed(3)); // le même seuil en part de cellule (0-1) : la zone rouge se place sur la partie déjà poussée
     document.body.appendChild(h);
     const g=document.createElement('div');g.id='flowGlow';g.setAttribute('aria-hidden','true');document.body.appendChild(g);FLOW.glow=g;FLOW.lvAff=-1;}
   const cur=Math.min(3,Math.floor(FLOW.v/25)),zf=Math.max(0,Math.min(1,(FLOW.v-FREN.seuil)/(100-FREN.seuil)));
   // (2026-09-28, Sacha : « au début la barre ne montre que le cyan, l'or et le rose ; la partie violette et rouge de la DARK TRIAD doit être
   // masquée et commencer à apparaître quand on s'en approche ») : --rv = 0 sous 55, 1 à 75 (et pour de bon une fois la triade révélée)
-  h.style.setProperty('--rv',FLOW.revele?'1':Math.max(0,Math.min(1,(FLOW.v-55)/20)).toFixed(3));
-  for(let j=0;j<4;j++){const i9=FLOW.seg[j];i9.firstChild.style.setProperty('--f',Math.max(0,Math.min(1,(FLOW.v-25*j)/25)).toFixed(3));
+  h.style.setProperty('--rv',Math.max(0,Math.min(1,(FLOW.v-75)/25)).toFixed(3)); /* (2026-11-09, Sacha : « on voit la frénésie trop tôt ») la 4e cellule n'est PLUS poussée entre 55 et 75 : sa largeur EST la jauge (0 à 75, pleine à 100), la zone rouge ne se montre qu'une fois le seuil franchi */
+  for(let j=0;j<4;j++){const i9=FLOW.seg[j];i9.firstChild.style.setProperty('--f',j===3?'1':Math.max(0,Math.min(1,(FLOW.v-25*j)/25)).toFixed(3)); /* 4e cellule : sa largeur porte déjà la progression, son remplissage est plein */
     i9.classList.toggle('cur',j===cur);}
   FLOW.zs.style.setProperty('--f',zf.toFixed(3));
   h.classList.toggle('dansZ',zf>0);h.classList.toggle('fuit',fuit);h.classList.toggle('lache',lache);h.classList.toggle('presque',pres);

@@ -143,10 +143,8 @@ html body #popTxt{color:transparent!important;-webkit-text-fill-color:transparen
   background:linear-gradient(180deg,#fff 0 12%,color-mix(in srgb,var(--pc,var(--or)) 42%,#fff) 12% 40%,var(--pc,var(--or)) 40% 76%,color-mix(in srgb,var(--pc,var(--or)) 66%,var(--inkH)) 76%);
   -webkit-background-clip:text;background-clip:text;filter:var(--contourH) drop-shadow(0 0 14px color-mix(in srgb,var(--pc,var(--or)) 55%,transparent))}
 /* ---------------------------------------------- 10. LA BANDE DU FLOW : LA TRIADE SE MÉRITE -------------------------- */
-/* au départ, trois cellules seulement (cyan, or, rose) ; la 4e — la TRIADE violette et sa zone rouge — naît quand on s'en approche :
-   elle pousse de 0 à sa pleine largeur entre 55 et 75 (--rv, posé par flowHudMaj), pâle puis franche ; révélée, elle reste */
-html body.touch #flowHud:not(.revele) .fSeg>i:nth-child(4){display:block;flex-grow:var(--rv,0);opacity:calc(.25 + var(--rv,0) * .75);min-width:0}
-html body.touch #flowHud .fSeg>i:nth-child(4){transition:flex-grow .2s linear,opacity .2s linear}
+/* au départ, trois cellules seulement (cyan, or, rose) ; la 4e — la TRIADE pâle et sa zone rouge — sort de nulle part, au rythme de la jauge (largeur = --rv ;
+   règle générale en (a'') de charte-5-frenesie.css, valable aussi au toucher) */
 html body.touch #flowHud.ouvre .fSeg>i:nth-child(4){animation:hmOuvre .6s var(--ease)}
 @keyframes hmOuvre{0%{filter:brightness(2.6) saturate(.4)}100%{filter:none}}
 /* ---------------------------------------------- 11. LES FENÊTRES DE DÉFI ET D'ASTUCE ------------------------------- */
