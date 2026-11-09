@@ -272,4 +272,4 @@ document.querySelectorAll('.suite').forEach(bt=>bt.onclick=()=>{
 `;
 }
 if (require.main === module) principal();   /* en bas : MUSIQUES et page() doivent exister avant */
-module.exports = { PROPS, SCENES, rends };
+module.exports = { PROPS, SCENES, rends, Ronron, MUSIQUES, rmsDb, wav, etat, SR, BLOC, COUCHES };

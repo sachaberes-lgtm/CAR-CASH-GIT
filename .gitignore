@@ -69,3 +69,9 @@ AUTRE VERSION/
 outils/banc-routes/sorties/*/*.json
 outils/banc-routes/sorties/*/*.png
 !outils/banc-routes/sorties/*/garde-*.png
+
+# MINI CASH : échantillons rendus (propositions.cjs, lofi.cjs) — regénérables, hors git
+echantillons/
+echantillons-lofi/
+echantillons-coton/
+echantillons-coton2/
