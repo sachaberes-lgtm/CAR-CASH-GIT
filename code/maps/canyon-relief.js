@@ -175,7 +175,7 @@ function canyonTick(dt){
     if(c.cyT)U.uRkT.value.fromArray(c.cyT);if(c.cyW)U.uWS.value.fromArray(c.cyW);if(c.cyX)U.uWD.value.fromArray(c.cyX);if(c.cyH)U.uSkH.value.fromArray(c.cyH);if(c.cyZ)U.uSkZ.value.fromArray(c.cyZ);if(c.cyF)U.uMist.value.fromArray(c.cyF);
     const Q9=c.cyQ||[0,100,0,0];U.uQ.value.set(Q9[0]*(CY.deco?CY.deco.brume:1),Q9[1],Q9[2],Q9[3]); /* (2026-10-20) × la brume du fond tirée */U.uWet.value=Q9[2];U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value; /* l'éclair allume aussi le plafond du ciel */
     {const nu=(LVL.nuit||0)*(mode==='boom'?0:1),sh=c.sunI<.9?1-c.sunI/.9:0,k9=Math.max(nu,sh*.6)*2.4;U.uPhC.value.copy(headSpot.color).multiplyScalar(k9); // les phares, la nuit et sous l'orage
-     if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion);U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}
+     if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;if(LUM.actif)U.uPhD.value.copy(LUM.hF);else U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion); /* (2026-11-09) le repère des phares, à niveau en vol (voir PH_VOL) */U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}
     if(CY.rais){const N9=c.cyN||[0,1,1,0],ru=CY_RAI_M.uniforms;ru.uC.value.copy(sun.color).multiplyScalar(.10*sun.intensity*Math.max(0,SUN_DIR.y-.2)*(1-N9[3]));if(!paused)ru.uT.value=(ru.uT.value+dt)%4096;}}
   // l'ombre des parois sur la caisse
   let ombre=1,prof=0;

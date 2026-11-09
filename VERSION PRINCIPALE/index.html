@@ -14672,7 +14672,15 @@ function carVit(dt){
    la nuit, mesuré sur les 32 couples map × météo) et au drapeau `nuit` du niveau : phares et feux ne MORDENT qu'à la nuit tombante ; le feu du nitro
    éclaire toujours un peu (c'est du feu). Réglages vivants : `LUMK` (dbgLum). */
 const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8};
-const LUM={on:false,nuit:0,hl:0,n:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
+/* ===== LES PHARES EN VOL (2026-11-09, Léo : « il y a des endroits où ça coupe net bizarrement quand je suis en vol et que je ratterris et que la lumière est sur la route ») =====
+   Le faisceau de croisement suivait le NEZ de la caisse. Posée, c'est juste : sa coupure tombe à ~45 m et s'y fond. En vol, le nez plonge (la descente, la pose) : la coupure,
+   vue de plusieurs mètres de haut, tombait à 10-15 m sur le bitume en une BANDE BLANCHE À BORD NET qui glissait vers la caisse (vu au banc : nuages de nuit, plongeon,
+   la bande s'éteint avec `dbgLum({hl:0})`). Désormais, EN VOL, le faisceau se remet à niveau : le cap de la caisse, l'horizon du monde (comme le correcteur d'assiette
+   d'une vraie voiture) — de haut, la route s'allume loin et doucement, puis la lumière revient vers la caisse à mesure qu'elle descend. Au sol, il reprend le repère de la
+   caisse en ~0,2 s. Le cône dans l'air (FAIS) et le faisceau du sable et de la roche (uPhD) suivent le même repère : la lumière et sa route sont d'accord.
+   `LUM.air` : 0 posée → 1 en vol. `?pharesvol=ancien` = avant. */
+const PH_VOL=!/[?&]pharesvol=ancien\b/.test(location.search);
+const LUM={on:false,nuit:0,hl:0,n:0,air:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
   k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
 function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet
   if(LUM.n>=LM_N||cr+cg+cb<.004)return;const W=LUM.W,o=LUM.n*12;W[o]=ax;W[o+1]=ay;W[o+2]=az;W[o+3]=r*r;W[o+4]=bx;W[o+5]=by;W[o+6]=bz;W[o+7]=lob;W[o+8]=cr;W[o+9]=cg;W[o+10]=cb;W[o+11]=sp;LUM.n++;}
@@ -14693,6 +14701,12 @@ function lumTick(dt,kmh){
   LUM.n=0;
   carGroup.getWorldDirection(LUM.hF);LUM.hU.set(0,1,0).applyQuaternion(carGroup.quaternion);LUM.hR.crossVectors(LUM.hF,LUM.hU);
   LUM.k.copy(LUM.hF).negate(); // l'ARRIÈRE de la caisse : le lobe des feux
+  { /* LES PHARES EN VOL (voir PH_VOL) : le repère des phares glisse vers le cap à niveau — les feux arrière, eux, restent sur la caisse (LUM.k, déjà posé) */
+    const v9=PH_VOL&&mode==='fall'?1:0;LUM.air+=(v9-LUM.air)*Math.min(1,dt*(v9?8:12));if(LUM.air<.002)LUM.air=0;
+    if(LUM.air>0){const a=LUM.air,F=LUM.hF,U=LUM.hU,n=Math.hypot(F.x,F.z);
+      if(n>.05){F.set(F.x+(F.x/n-F.x)*a,F.y*(1-a),F.z+(F.z/n-F.z)*a).normalize();U.set(U.x*(1-a),U.y+(1-U.y)*a,U.z*(1-a));
+        LUM.hR.crossVectors(F,U);const r=LUM.hR.length();if(r>1e-3){LUM.hR.multiplyScalar(1/r);U.crossVectors(LUM.hR,F);}
+        else{carGroup.getWorldDirection(F);U.set(0,1,0).applyQuaternion(carGroup.quaternion);LUM.hR.crossVectors(F,U);}}}}
   /* LES PHARES : sur les deux lampes du gabarit (les halos HALO.h) — une caisse sans phares (le chat) n'éclaire pas */
   const sp=CARS[level]||{w:2,l:4.4,h:1.3};
   LUM.hl+=(((boom?0:1)*nu*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3)); // (2026-10-18) × le levé des escamotables (voir CAR_PHK)
@@ -22560,7 +22574,7 @@ function canyonTick(dt){
     if(c.cyT)U.uRkT.value.fromArray(c.cyT);if(c.cyW)U.uWS.value.fromArray(c.cyW);if(c.cyX)U.uWD.value.fromArray(c.cyX);if(c.cyH)U.uSkH.value.fromArray(c.cyH);if(c.cyZ)U.uSkZ.value.fromArray(c.cyZ);if(c.cyF)U.uMist.value.fromArray(c.cyF);
     const Q9=c.cyQ||[0,100,0,0];U.uQ.value.set(Q9[0]*(CY.deco?CY.deco.brume:1),Q9[1],Q9[2],Q9[3]); /* (2026-10-20) × la brume du fond tirée */U.uWet.value=Q9[2];U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value; /* l'éclair allume aussi le plafond du ciel */
     {const nu=(LVL.nuit||0)*(mode==='boom'?0:1),sh=c.sunI<.9?1-c.sunI/.9:0,k9=Math.max(nu,sh*.6)*2.4;U.uPhC.value.copy(headSpot.color).multiplyScalar(k9); // les phares, la nuit et sous l'orage
-     if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion);U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}
+     if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;if(LUM.actif)U.uPhD.value.copy(LUM.hF);else U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion); /* (2026-11-09) le repère des phares, à niveau en vol (voir PH_VOL) */U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}
     if(CY.rais){const N9=c.cyN||[0,1,1,0],ru=CY_RAI_M.uniforms;ru.uC.value.copy(sun.color).multiplyScalar(.10*sun.intensity*Math.max(0,SUN_DIR.y-.2)*(1-N9[3]));if(!paused)ru.uT.value=(ru.uT.value+dt)%4096;}}
   // l'ombre des parois sur la caisse
   let ombre=1,prof=0;
@@ -24235,7 +24249,7 @@ function dunesTick(dt){dnAmb();envPeintTick();dnNuages();
     const Q9=c.dnQ||[0,0,0,0],K9=c.dnK||[.5,1,.25,1];U.uQ.value.set(Q9[0],Q9[1],Q9[2],Q9[3]);U.uK.value.set(K9[0],K9[1]*(D9?D9.vent.rides:1),K9[2],K9[3]);{const R9=DN.reg||{},E9=R9.ex||c.dnE||[1,1,.8,1],P9=R9.sp||c.dnP||[1,.8,.45,1],pm=PAL.b('dnMat',1);U.uEx.value.set(E9[0],E9[1]*pm,E9[2],E9[3]*pm);U.uSp.value.set(P9[0],P9[1],P9[2],P9[3]*pm);} /* (2026-10-21) le grain, les crêtes qui filent, les étincelles, la brume en plans : dnE = [ombre froide, grain, brume lointaine froide, crêtes vives] et dnP = [teinte, quantité] des étincelles ; réduits aux paliers ANCIEN / MOYEN */ {const M9=c.dnM||[.8,.010,1,0];U.uMo.value.set(M9[0],M9[1],QUAL_LOW||!DN_MOSA?0:M9[2]*PAL.b('dnMo',1),M9[3]);} /* (2026-10-22, Léo : « le niveau dune n'est pas au niveau — regarde jade, la grotte, la forêt ») LA MOSAÏQUE du sable : [case de près (m), case par mètre de distance, force, —] */
     U.uFlash.value=CAMP_FLASH||0;skyU.uCyF.value=U.uFlash.value;
     {const nu=(LVL.nuit||0)*(mode==='boom'?0:1),sh=c.sunI<.9?1-c.sunI/.9:0,k9=Math.max(nu,sh*.6)*2.4;U.uPhC.value.copy(headSpot.color).multiplyScalar(k9); // les phares, la nuit et dans la tempête
-     if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion);U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}}
+     if(k9>.001){U.uPhP.value.copy(carGroup.position);U.uPhP.value.y+=1.2;if(LUM.actif)U.uPhD.value.copy(LUM.hF);else U.uPhD.value.set(0,0,1).applyQuaternion(carGroup.quaternion); /* (2026-11-09) le repère des phares, à niveau en vol (voir PH_VOL) */U.uPhD.value.y-=.08;U.uPhD.value.normalize();}}}
   let ombre=1;
   if(DN.on&&DN.O&&started&&!gameOver){const p=carGroup.position,O=DN.O,px=(p.x-(O.x0-O.ts*.5))/O.ts,pz=(p.z-(O.z0-O.ts*.5))/O.ts;
     if(px>0&&pz>0&&px<O.nx&&pz<O.nz){const hs=cyBil(O.h,O.nx,O.nz,1,0,px,pz);ombre=Math.max(0,Math.min(1,(p.y-hs+3)/12));}}
@@ -37052,6 +37066,7 @@ const FAIS_M=new THREE.ShaderMaterial({uniforms:{uC:{value:new THREE.Color(0xdfe
   transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
 FAIS_M.userData.plq=1; /* partagée par toutes les caisses (la règle de LA PLAQUE dans buildCar : jamais libérée, pas de recompilation) */
 const FAIS_G=(function(){const L=13,g=new THREE.CylinderGeometry(1.9,.16,L,18,6,true);g.translate(0,L/2,0);g.rotateX(Math.PI/2);return g;})(); /* l'axe le long de +z (l'avant de la caisse) */
+const FAIS_Q={m:new THREE.Matrix4(),q:new THREE.Quaternion(),x:new THREE.Vector3(),p:new THREE.Quaternion().setFromEuler(new THREE.Euler(.07,0,0))}; /* (2026-11-09) le repère du cône à niveau en vol ; p = son « un peu vers la route » */
 function feuxCaisse(){ /* la caisse posée : ses pièces lumineuses, ses feux-boîtes, ses halos, sa nappe, ses faisceaux — relus depuis l'ORIGINE à chaque fois */
   const D0=FEUXL.d,spec=FEUXL.spec||CARS[level]||{l:4.4},D=D0&&FEUX_SAUF.indexOf(spec.name)>=0?null:D0; /* D : les pièces · D0 : les halos, la nappe, les faisceaux */
   const st={pieces:0,blanc:0,rouge:0,ambre:0,hors:0};
@@ -37119,6 +37134,10 @@ function feuxLed(spec,hlM,tlM){FEUXL.hlM=hlM;FEUXL.tlM=tlM;FEUXL.spec=spec;FEUXL
       const ka=boom?0:D.carte[0]*ph,kr=boom?0:D.carte[1]*(.75+.6*fr),ca=FEUXL.cM[0].userData.c,cr=FEUXL.cM[1].userData.c; /* devant : la nuit seulement (les phares s'éteignent au soleil) · derrière : toujours, et le frein l'embrase */
       FEUXL.cM[0].color.setRGB(ca[0]*ka,ca[1]*ka,ca[2]*ka);FEUXL.cM[1].color.setRGB(cr[0]*kr,cr[1]*kr,cr[2]*kr);}
     if(!FEUXL.fais.length)return;
+    { /* (2026-11-09, LES PHARES EN VOL, voir PH_VOL) le cône suit le repère des phares : à niveau en vol, celui de la caisse au sol — il ne plonge plus dans la route à bord net */
+      const a9=LUM.actif?LUM.air:0;
+      for(const f of FEUXL.fais){if(a9>0){FAIS_Q.m.makeBasis(FAIS_Q.x.copy(LUM.hR).negate(),LUM.hU,LUM.hF);FAIS_Q.q.setFromRotationMatrix(FAIS_Q.m);
+          f.quaternion.copy(carGroup.quaternion).invert().multiply(FAIS_Q.q).multiply(FAIS_Q.p);}else f.quaternion.copy(FAIS_Q.p);}}
     const bq=garageOn&&typeof GBQ!=='undefined'&&(GBQ.on||GBQ.veut);
     FAIS_M.uniforms.uK.value=(mode==='boom'||bq||!FEUXL.d)?0:FEUXL.d.fais*(VIT9.ph==null?1:VIT9.ph)*(CAR_PHK==null?1:CAR_PHK);
     FAIS_M.uniforms.uC.value.setHex(FEUXL.d?FEUXL.d.nappe:FEUX_0.nappe);};}

@@ -562,7 +562,15 @@ function carVit(dt){
    la nuit, mesuré sur les 32 couples map × météo) et au drapeau `nuit` du niveau : phares et feux ne MORDENT qu'à la nuit tombante ; le feu du nitro
    éclaire toujours un peu (c'est du feu). Réglages vivants : `LUMK` (dbgLum). */
 const LUMK={air:[.03,.9],hl:30000,hlC:[1,.70,.40],feu:.45,feuF:2,feuS:.7,feuR:.4,nit:.8,nitS:1.1,nitR:.5,nitL:2.4,mot:.22,tr:.1,trS:.5,trR:.8,trD:[0,12],amb:[.17,.45],nitJ:.35,car:.15,carF:1.8};
-const LUM={on:false,nuit:0,hl:0,n:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
+/* ===== LES PHARES EN VOL (2026-11-09, Léo : « il y a des endroits où ça coupe net bizarrement quand je suis en vol et que je ratterris et que la lumière est sur la route ») =====
+   Le faisceau de croisement suivait le NEZ de la caisse. Posée, c'est juste : sa coupure tombe à ~45 m et s'y fond. En vol, le nez plonge (la descente, la pose) : la coupure,
+   vue de plusieurs mètres de haut, tombait à 10-15 m sur le bitume en une BANDE BLANCHE À BORD NET qui glissait vers la caisse (vu au banc : nuages de nuit, plongeon,
+   la bande s'éteint avec `dbgLum({hl:0})`). Désormais, EN VOL, le faisceau se remet à niveau : le cap de la caisse, l'horizon du monde (comme le correcteur d'assiette
+   d'une vraie voiture) — de haut, la route s'allume loin et doucement, puis la lumière revient vers la caisse à mesure qu'elle descend. Au sol, il reprend le repère de la
+   caisse en ~0,2 s. Le cône dans l'air (FAIS) et le faisceau du sable et de la roche (uPhD) suivent le même repère : la lumière et sa route sont d'accord.
+   `LUM.air` : 0 posée → 1 en vol. `?pharesvol=ancien` = avant. */
+const PH_VOL=!/[?&]pharesvol=ancien\b/.test(location.search);
+const LUM={on:false,nuit:0,hl:0,n:0,air:0,W:null /* Float32Array(LM_N*12), alloué au premier tour : LM_N est déclaré plus bas (avec le shader du bitume) */,hP:[new THREE.Vector3(),new THREE.Vector3()],hF:new THREE.Vector3(),hU:new THREE.Vector3(),hR:new THREE.Vector3(),
   k:new THREE.Vector3(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),q:new THREE.Vector3(),f:0,actif:false,fA:new THREE.Vector3(),fB:new THREE.Vector3(),cc:new THREE.Color()};
 function lumLampe(ax,ay,az,bx,by,bz,r,lob,cr,cg,cb,sp){ // une lampe-segment en coordonnées MONDE (voir LUM_GLSL) : A, B, rayon doux, lobe (1 = vers l'arrière), couleur × intensité, part de reflet
   if(LUM.n>=LM_N||cr+cg+cb<.004)return;const W=LUM.W,o=LUM.n*12;W[o]=ax;W[o+1]=ay;W[o+2]=az;W[o+3]=r*r;W[o+4]=bx;W[o+5]=by;W[o+6]=bz;W[o+7]=lob;W[o+8]=cr;W[o+9]=cg;W[o+10]=cb;W[o+11]=sp;LUM.n++;}
@@ -583,6 +591,12 @@ function lumTick(dt,kmh){
   LUM.n=0;
   carGroup.getWorldDirection(LUM.hF);LUM.hU.set(0,1,0).applyQuaternion(carGroup.quaternion);LUM.hR.crossVectors(LUM.hF,LUM.hU);
   LUM.k.copy(LUM.hF).negate(); // l'ARRIÈRE de la caisse : le lobe des feux
+  { /* LES PHARES EN VOL (voir PH_VOL) : le repère des phares glisse vers le cap à niveau — les feux arrière, eux, restent sur la caisse (LUM.k, déjà posé) */
+    const v9=PH_VOL&&mode==='fall'?1:0;LUM.air+=(v9-LUM.air)*Math.min(1,dt*(v9?8:12));if(LUM.air<.002)LUM.air=0;
+    if(LUM.air>0){const a=LUM.air,F=LUM.hF,U=LUM.hU,n=Math.hypot(F.x,F.z);
+      if(n>.05){F.set(F.x+(F.x/n-F.x)*a,F.y*(1-a),F.z+(F.z/n-F.z)*a).normalize();U.set(U.x*(1-a),U.y+(1-U.y)*a,U.z*(1-a));
+        LUM.hR.crossVectors(F,U);const r=LUM.hR.length();if(r>1e-3){LUM.hR.multiplyScalar(1/r);U.crossVectors(LUM.hR,F);}
+        else{carGroup.getWorldDirection(F);U.set(0,1,0).applyQuaternion(carGroup.quaternion);LUM.hR.crossVectors(F,U);}}}}
   /* LES PHARES : sur les deux lampes du gabarit (les halos HALO.h) — une caisse sans phares (le chat) n'éclaire pas */
   const sp=CARS[level]||{w:2,l:4.4,h:1.3};
   LUM.hl+=(((boom?0:1)*nu*(CAR_PHK==null?1:CAR_PHK))-LUM.hl)*Math.min(1,dt*(boom?12:3)); // (2026-10-18) × le levé des escamotables (voir CAR_PHK)

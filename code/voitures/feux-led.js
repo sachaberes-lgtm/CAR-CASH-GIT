@@ -58,6 +58,7 @@ const FAIS_M=new THREE.ShaderMaterial({uniforms:{uC:{value:new THREE.Color(0xdfe
   transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
 FAIS_M.userData.plq=1; /* partagée par toutes les caisses (la règle de LA PLAQUE dans buildCar : jamais libérée, pas de recompilation) */
 const FAIS_G=(function(){const L=13,g=new THREE.CylinderGeometry(1.9,.16,L,18,6,true);g.translate(0,L/2,0);g.rotateX(Math.PI/2);return g;})(); /* l'axe le long de +z (l'avant de la caisse) */
+const FAIS_Q={m:new THREE.Matrix4(),q:new THREE.Quaternion(),x:new THREE.Vector3(),p:new THREE.Quaternion().setFromEuler(new THREE.Euler(.07,0,0))}; /* (2026-11-09) le repère du cône à niveau en vol ; p = son « un peu vers la route » */
 function feuxCaisse(){ /* la caisse posée : ses pièces lumineuses, ses feux-boîtes, ses halos, sa nappe, ses faisceaux — relus depuis l'ORIGINE à chaque fois */
   const D0=FEUXL.d,spec=FEUXL.spec||CARS[level]||{l:4.4},D=D0&&FEUX_SAUF.indexOf(spec.name)>=0?null:D0; /* D : les pièces · D0 : les halos, la nappe, les faisceaux */
   const st={pieces:0,blanc:0,rouge:0,ambre:0,hors:0};
@@ -125,6 +126,10 @@ function feuxLed(spec,hlM,tlM){FEUXL.hlM=hlM;FEUXL.tlM=tlM;FEUXL.spec=spec;FEUXL
       const ka=boom?0:D.carte[0]*ph,kr=boom?0:D.carte[1]*(.75+.6*fr),ca=FEUXL.cM[0].userData.c,cr=FEUXL.cM[1].userData.c; /* devant : la nuit seulement (les phares s'éteignent au soleil) · derrière : toujours, et le frein l'embrase */
       FEUXL.cM[0].color.setRGB(ca[0]*ka,ca[1]*ka,ca[2]*ka);FEUXL.cM[1].color.setRGB(cr[0]*kr,cr[1]*kr,cr[2]*kr);}
     if(!FEUXL.fais.length)return;
+    { /* (2026-11-09, LES PHARES EN VOL, voir PH_VOL) le cône suit le repère des phares : à niveau en vol, celui de la caisse au sol — il ne plonge plus dans la route à bord net */
+      const a9=LUM.actif?LUM.air:0;
+      for(const f of FEUXL.fais){if(a9>0){FAIS_Q.m.makeBasis(FAIS_Q.x.copy(LUM.hR).negate(),LUM.hU,LUM.hF);FAIS_Q.q.setFromRotationMatrix(FAIS_Q.m);
+          f.quaternion.copy(carGroup.quaternion).invert().multiply(FAIS_Q.q).multiply(FAIS_Q.p);}else f.quaternion.copy(FAIS_Q.p);}}
     const bq=garageOn&&typeof GBQ!=='undefined'&&(GBQ.on||GBQ.veut);
     FAIS_M.uniforms.uK.value=(mode==='boom'||bq||!FEUXL.d)?0:FEUXL.d.fais*(VIT9.ph==null?1:VIT9.ph)*(CAR_PHK==null?1:CAR_PHK);
     FAIS_M.uniforms.uC.value.setHex(FEUXL.d?FEUXL.d.nappe:FEUX_0.nappe);};}
