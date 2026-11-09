@@ -11869,8 +11869,8 @@ html:is([data-metal="emeraude"],[data-metal="rubis"],[data-metal="legendaire"]) 
 @media (prefers-reduced-motion:reduce){html body :is(#cashHud .chV span,#moneyTxt,#gCompteur b,#gBqArg,#mBankV,#mCash),#cashHud .chV i.mOr,#cashHud .chV i.mOr::before,#cashHud .chV i.mOr::after{animation:none!important}}
 
 /* --- LE COMPTE DU GARAGE (Léo : « plus de rectangle derrière, de bons gros chiffres 3D posés dans l'air ») : plus de plaque, ils flottent --- */
-html #gCompteur{background:none!important;box-shadow:none!important;clip-path:none!important;height:auto!important;padding:0 6px!important;overflow:visible!important}
-html body #gCompteur b{font-size:calc(var(--f4) * 1.7);letter-spacing:2px;transform:none!important;padding:2px 0 8px;font-family:'CC Vide','Press Start 2P',monospace!important;white-space:nowrap!important;animation:mFlotte 3.6s ease-in-out infinite}
+html #gCompteur{background:none!important;box-shadow:none!important;clip-path:none!important;height:auto!important;padding:0!important;overflow:visible!important;align-self:center}
+html body #gCompteur b{font-size:calc(var(--f4) * 1.7);letter-spacing:2px;transform:none!important;padding:7px 0 3px;font-family:'CC Vide','Press Start 2P',monospace!important;white-space:nowrap!important;animation:mFlotte 3.6s ease-in-out infinite}
 html:is([data-metal="or"],[data-metal="saphir"],[data-metal="emeraude"],[data-metal="rubis"]) body #gCompteur b{animation:mReflet 2.8s steps(14) infinite,mFlotte 3.6s ease-in-out infinite}
 html[data-metal="legendaire"] body #gCompteur b{animation:mIris 3.5s linear infinite,mFlotte 3.6s ease-in-out infinite}
 @keyframes mFlotte{50%{translate:0 -3px}}
@@ -11912,6 +11912,21 @@ html body #gBqTete .bqArg b#gBqArg::before{content:'';display:inline-block;width
 /* (2026-11-08, Léo : « le contour noir un peu gros sur l'argent et la pièce du shop en haut ; les prix : enlève la pièce, juste le prix ») */
 html body #gBqArg{filter:drop-shadow(1px 0 0 var(--moO)) drop-shadow(-1px 0 0 var(--moO)) drop-shadow(0 -1px 0 var(--moO)) drop-shadow(0 1px 0 var(--moO)) drop-shadow(0 1px 0 var(--moD)) drop-shadow(0 0 6px var(--mog))!important}
 html body #gBq .moIc{display:none}
+/* (2026-11-09, Léo : « dans la boutique, en dessous des voitures, parfois coupé, on le voit mal ; remets tout bien en place ») LE CALAGE :
+   · les cadres des prix (.bqKp, et les <span> des ailes et traînées) coupent ce qui dépasse et sont taillés au ras du texte — le contour
+     du 1er chiffre et le relief du bas étaient rognés : le nombre garde 2 px d'air autour de lui ;
+   · sur le fond clair de la boutique, la face du nombre passe au ton du dessous (l'or et l'argent pâles se lisaient mal). */
+html body #gBq .moArg{display:inline-block;padding:1px 2px 3px;margin-left:-2px;line-height:1.15;vertical-align:middle} /* l'air de 2 px repris à gauche : le 1er chiffre reste aligné sur le nom */
+html body #gBq .bqKp.pc{overflow:visible!important;height:auto!important;min-height:20px;align-items:center;margin-left:0!important}
+html body #gBq .bqK .bqKp.pc{padding-left:2px!important}
+html body #gBq .bqK.hab .bqKp.pc{padding-left:9px!important} /* le prix commence où commence le nom (voitures : 2 px, figures : 9 px) */
+html body #gBq .moArg.mo-centime{--aM:#d0702e}
+html body #gBq .moArg.mo-euro{--aM:#9aa6c2}
+html body #gBq .moArg.mo-or{--aM:#f0a800}
+html body #gBq .moArg.mo-saphir{--aM:#2f74ff}
+html body #gBq .moArg.mo-emeraude{--aM:#17b35a}
+html body #gBq .moArg.mo-rubis{--aM:#e8173f}
+html body #gBq .trop .moArg,html body #gBq .cher .moArg{opacity:.85}
 
 /* --- le vrai argent (€) en rose néon --- */
 html .gT em.eur,html #gBqPan .bqK .bqKp.eur,html #bqAile .baP.eur,html #gStrip.fnBande .fnP.eur,
