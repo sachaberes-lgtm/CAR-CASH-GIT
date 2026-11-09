@@ -28,5 +28,9 @@
 ### 5. Compteur « COLLECTE TOUTES LES VOITURES 1 / 23 » alors que le garage dit 52 caisses
 - `m2Col('voiture').tot` exclut volontairement les caisses de mission et celles payées en euros (design documenté dans `defis-moteur.js:81-83`). Je le crois voulu, mais l'affichage peut surprendre : décision de Sacha.
 
+### 6. Glacier : résidus après le correctif du tremplin (v1365)
+- Graine 13, tremplin 4 (s≈3899) : tue encore le pilote auto à volant gelé (2/3 en midi) ; route en S après la lèvre (+19° puis −23°), non couvert par le nouveau garde. Graine 10, tremplin 0 (lip 1822) : tue à mains lâchées avant et après, autre mécanisme (flanc « raide .32 », vol de 2,5 s).
+- Le seuil `BK_BEC.ecart`=79 m à 190 m est empirique (calé sur 47 tremplins) ; ~20 % des tremplins ont bougé de +30 à +200 m, l'effet sur la jouabilité (feel) n'a PAS été regardé à l'œil. `?sans=glaceecart` rend l'ancien garde. Le pilote `dbgAuto` garde le volant du décollage en vol : peut-être un artefact du banc (`dbgAuto(vol:1)`).
+
 ## À vérifier par un œil humain (je ne peux pas juger)
 - Tout ce qui est « beau » ou « bien équilibré » : réglages de feeling, difficulté, rythme des pistes, contraste réel sur un écran de téléphone. Mes bancs mesurent des exceptions et des tailles, pas le plaisir de jeu.
