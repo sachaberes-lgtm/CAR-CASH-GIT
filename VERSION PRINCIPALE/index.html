@@ -2032,7 +2032,7 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
         if(e){e.n++;e.t=t;e.v=v;if(ou)e.o=String(ou).slice(0,160);}
         else{L.push({k:cle,g:genre,m:msg,o:ou?String(ou).slice(0,160):'',n:1,t0:t,t:t,v:v,d:window.__gameReady?1:0});if(L.length>30)L.splice(0,L.length-30);}
         if(!attente){attente=1;setTimeout(ecrit,400);}
-        try{var vv=document.getElementById('mvVer');if(vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){}
+        try{var vv=document.getElementById('mvVer');if(!window.Capacitor&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠';}catch(_){} /* (2026-11-08, sortie du jeu, INT-N07) jamais dans l'app : la ligne VERSION d'un joueur n'a pas à porter un signe de testeur */
       }catch(_){}
     };
     window.dbgErreurs=function(vider){lit();if(vider){L=[];ecrit();}return L.slice();};
@@ -2059,9 +2059,15 @@ function apresPolice(f){f();try{const F=document.fonts;if(F&&F.load&&!F.check('1
       document.body.appendChild(o);
     };
     window.__ccBoite=montre;
-    document.addEventListener('click',function(ev){var t=ev.target;if(t&&t.id==='mvVer')montre();},true);
+    /* (2026-11-08, sortie du jeu, INT-07) UN TOUCHER SUR LA LIGNE VERSION N'OUVRE PLUS UN ÉCRAN TECHNIQUE PLEIN ÉCRAN : il faut CINQ touchers en moins de 2,5 s entre deux (comme
+       les options développeur d'un téléphone) — sauf quand le « ⚠ n » est là, signe qu'il y a quelque chose à lire : un seul suffit, comme avant. */
+    var nt=0,tt=0;
+    document.addEventListener('click',function(ev){var t=ev.target;if(!t||t.id!=='mvVer')return;
+      if(/⚠/.test(t.textContent)){montre();return;}
+      var now=Date.now();nt=(now-tt<2500)?nt+1:1;tt=now;if(nt>=5){nt=0;montre();}},true);
     if(/[?&]erreurs=1/.test(location.search))addEventListener('load',function(){setTimeout(montre,1500);});
-    addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer');if(L.length&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+L.length;}catch(_){}},3000);});
+    /* (INT-N07) le « ⚠ n » ne compte que les notes de CETTE version (un défaut corrigé depuis ne marque plus la ligne pour toujours), et jamais dans l'app */
+    addEventListener('load',function(){setTimeout(function(){try{lit();var vv=document.getElementById('mvVer'),n=0,v=(typeof CC_VER==='string'?CC_VER:'?');for(var i=0;i<L.length;i++)if(L[i].v===v)n++;if(n&&!window.Capacitor&&vv&&!/⚠/.test(vv.textContent))vv.textContent+=' · ⚠ '+n;}catch(_){}},3000);});
   })();
   addEventListener('error',function(e){
     if(!e.message)return;
@@ -9732,7 +9738,10 @@ html body #mob #mDead.m5 #mObj.m6Joue>.obM.ok:not(.sec)>:is(.pxi,em){animation:m
 /* ---------- COUCHÉ (844 × 390, le téléphone de Sacha) : TROIS BANDES ----------
    en haut le RÉSULTAT (titre, puis l'argent, et à sa droite le badge et le compte) ; au milieu MOTEUR | AURA | MISSIONS, même haut ; en
    bas ⌂ GARAGE RÉGLAGES sous MOTEUR | AURA. La dernière colonne = un tiers exact : les MISSIONS, le ×2, REJOUER, l'un sous l'autre. */
-@media (orientation:landscape){
+/* (2026-11-08, sortie du jeu, banc 1280 × 720 en `?colonne=0`) la mise en page COUCHÉE est celle d'un écran couché de moins de 540 px de haut (le seuil de charte-5-frenesie.css,
+   là où `#mob` perd son max-width de 460 px) : plus haut (un moniteur, une tablette), la colonne reste étroite et trois bandes y entraient en se chevauchant
+   (« MISSIONS » sous son compteur, « PARTIE / MOY. / RECORD » collés) — on y prend la mise en page DEBOUT, juste plus bas. */
+@media (orientation:landscape) and (max-height:540px){
   html body #mob #mDead.m5.on{grid-template-columns:var(--m6H) minmax(0,1fr) minmax(0,1fr) calc((100% - 2 * var(--m6E)) / 3);grid-template-rows:auto auto auto minmax(0,1fr) auto auto;
     grid-template-areas:"over over over over" "cause cause cause cause" "cash cash cash cash" "hero hero hero mis" "hero hero hero mis" "home gar set rej"}
   html body #mob #mDead.m5.on.m6Dbl{grid-template-areas:"over over over over" "cause cause cause cause" "cash cash cash cash" "hero hero hero mis" "hero hero hero dbl" "home gar set rej"}
@@ -9779,7 +9788,7 @@ html body #mob #mDead.m5 #mObj .obM.ok:not(.sec)>em{max-width:none}
 /* ---------- DEBOUT : une colonne, centrée ; les panneaux pleine largeur (le visuel à droite), puis les touches, en trois étages ----------
    (2026-11-03, Sacha : « moteur et aura beaucoup trop grands par rapport aux boutons ») les touches prennent leur vraie taille — 56 px,
    le ×2 52, le lingot 64 et son libellé en grand — et les deux panneaux se partagent ce qui reste. */
-@media (orientation:portrait){
+@media (orientation:portrait),(orientation:landscape) and (min-height:541px){
   /* les tailles suivent la HAUTEUR UTILE (l'écran moins l'encoche et la barre du bas) : 844 → 56 / 52 / 64 ; iPhone à encoche (763) → 50 / 47 / 58 */
   html body #mob #mDead.m5{--m6Av:calc(100vh - var(--sT,0px) - var(--sB,0px))}
   html body #mob #mDead.m5.on{--m6H:clamp(48px,calc(var(--m6Av) * .066),56px);--m6Lg:clamp(54px,calc(var(--m6Av) * .076),64px);--m6D:clamp(44px,calc(var(--m6Av) * .062),52px);
@@ -10141,6 +10150,7 @@ html body #garage #gAct>#gBqBtn .bqBtnT small{max-width:100%;overflow:hidden;tex
 #gFigSel .fsCase{width:56px;height:48px}
 #gFigSel .fsJoy{left:calc(50% - 42px)}
 #gFigSel .fsNom{font-size:9px;line-height:11px;min-height:0;max-height:22px;white-space:normal;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:break-word}
+@media (max-width:380px){#gFigSel .fsNom{font-size:8px;letter-spacing:-.4px}} /* (2026-11-08, sortie du jeu, banc 360 × 640 en anglais) « FRONTFLIP » (9 lettres) se coupait en « FRONTFLI / P » : la case des petits écrans ne fait que 72 px, le nom passe à 8 px */
 #gFigSel.arme .fsHex.cible{opacity:1}
 #gFigSel .fsHex.cible .fsCase{background:#fff}
 #gFigSel .fsHex.cible .fsNom{color:#fff}
@@ -11884,7 +11894,7 @@ html #gBqPan .trK .trTx .bqKp.eur{background:var(--vraiEur)!important;color:#fff
 </nav>
 <div id="gHomeMini" role="button" tabindex="0" aria-label="Accueil"><b class="hmFond" aria-hidden="true"></b><i class="pxi pxi-maison" aria-hidden="true"></i></div>
 <div id="gTourne" role="slider" tabindex="0" aria-label="Tourner le garage" aria-valuemin="-180" aria-valuemax="180" aria-valuenow="0"><i class="gtZone"></i><i class="gtRail"></i><i class="gtFill"></i><i class="gtPouce"></i></div>
-<div id="modale" role="dialog" aria-modal="true" aria-labelledby="modT"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off"></textarea><div class="modB"></div></div></div>
+<div id="modale" role="dialog" aria-modal="true" aria-labelledby="modT"><div class="modIn"><h3 id="modT"></h3><div id="modX"></div><textarea id="modC" rows="3" spellcheck="false" autocomplete="off" aria-labelledby="modT"></textarea><div class="modB"></div></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <!-- (2026-10-17, Sacha) LA PLAQUE D'IMMATRICULATION : l'atelier de la plaque (#plq, au premier accueil puis depuis le profil) et le PROFIL du
      joueur (#prof, le petit trophée du garage, #gProf) — voir PLQ dans le script -->
@@ -32651,8 +32661,10 @@ Object.assign(I18N,{"Ton nom pour le record":"Your name for the record","Volume 
    I18N_FR : le FRANÇAIS AFFICHÉ quand il diffère de la clé (la clé reste la phrase d'origine, le code ne bouge pas). Écrire ici avec
    les accents : majPix les retire tout seul des mots en capitales rendus en pixel.
    ========================================================================================================================== */
-var I18N_FR={'GAME OVER':'PERDU','RAPIDE':'BASSE','NETTE':'HAUTE','MONTE':'MONTER','PLONGE':'PLONGER','HOME':'ACCUEIL'}; // var : hissée, TR() peut tourner avant cette ligne sans toucher une zone morte
-Object.assign(I18N,{'SAUVEGARDE':'SAVE DATA','RAPIDE':'LOW','NETTE':'HIGH','LOCALE':'LOCAL','VERSION':'VERSION'});
+var I18N_FR={'GAME OVER':'PERDU','RAPIDE':'BASSE','NETTE':'MOYENNE','MONTE':'MONTER','PLONGE':'PLONGER','HOME':'ACCUEIL'}; // var : hissée, TR() peut tourner avant cette ligne sans toucher une zone morte
+/* (2026-11-08, sortie du jeu, TEL-N04) LE RÉGLAGE IMAGE A TROIS CRANS, DONC TROIS MOTS : RAPIDE → BASSE · LOW, NETTE → MOYENNE · MEDIUM, HAUTE → HAUTE · HIGH.
+   « NETTE » se lisait « HAUTE » comme le cran du dessus (BASSE → HAUTE → HAUTE) : le joueur touchait la ligne sans voir de changement. */
+Object.assign(I18N,{'SAUVEGARDE':'SAVE DATA','RAPIDE':'LOW','NETTE':'MEDIUM','LOCALE':'LOCAL','VERSION':'VERSION'});
 Object.assign(I18N,{'Tu pourras changer dans les réglages.':'You can change this in the settings.','Virages aidés, 3 vies':'Assisted turns, 3 lives','Sans aide, une seule vie':'No assists, one life','TOUCHE POUR JOUER':'TAP TO PLAY'}); // (2026-10-14, charte 6 · accueil) le choix FACILE / NORMAL en cartes, l'invitation du splash
 /* ⚠ LES CAPITALES ACCENTUÉES NE PASSENT PAS EN PIXEL (2026-09-24) : la police dessine « É » comme un « é »
    minuscule — « RÉGLAGES » s'affichait « RéGLAGES » dans le panneau de pause. Tout ce qui passe par TR()
@@ -50479,11 +50491,12 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
   // de l'image suivante reste celle de la vraie scène.
   const kids=scene.children,sm=renderer.shadowMap,sa=sm.autoUpdate,sn=sm.needsUpdate;
   if(que){scene.children=kids.filter(function(o){return o.isLight||que.indexOf(o)>=0;});sm.autoUpdate=false;sm.needsUpdate=false;}
+  const vis=[],cul=[],off=[],caches9=[];let ob9=null,cib9; /* (2026-11-08, RND-N07) hissés AVANT le try : le finally rend la scène en l'état même si un dessin lève (onBeforeRender, visibilités, frustumCulled, cible) */
   try{
   if(que)renderer.compile(scene,camera); // le sous-arbre compilé SEUL (compile() parcourt aussi le caché) — pas toute la scène
   // Un objet CACHÉ dont la matière n'a encore jamais été compilée reste caché : on prépare le dessin de ce qui existe, on ne compile
   // rien d'inutile (mesuré : 4 programmes au 1er portail pour des objets qui ne s'affichent jamais — 100-400 ms perdus sur iPhone).
-  const vis=[],cul=[],off=[],vus=new Set(),sansP=[],caches9=[];
+  const vus=new Set(),sansP=[];
   /* (2026-09-28, chasse aux gels) UN DESSIN PAR COUPLE (matière, géométrie). L'état de pipeline de la puce ne dépend que du programme, de la
      disposition des sommets, du mélange et de la cible ; la géométrie monte au GPU une fois : dessiner les 2 000-4 000 PIÈCES d'une piste
      (une géométrie, une matière) ne préparait rien de plus que d'en dessiner UNE. MESURÉ : ~4 700 appels de dessin → ~450 à chaque chauffe. */
@@ -50504,13 +50517,13 @@ function chauffeRendu(que){ try{ // `que` (chasse aux gels) : ne dessiner QUE ce
         let ok=etat.get(p);if(ok===undefined){try{ok=!!g9.getProgramParameter(p.program,K9);}catch(e){ok=true;}etat.set(p,ok);}
         if(!ok){m.visible=false;caches9.push(m);}}});
     CHAUFFE_R.saute+=caches9.length;}
-  const ob9=scene.onBeforeRender;scene.onBeforeRender=function(){}; // pisteLoin remettrait ses visibilités pendant le rendu
-  const cible=renderer.getRenderTarget(),t9=performance.now();renderer.setRenderTarget(CHAUFFE_R.rt);renderer.render(scene,camera);renderer.setRenderTarget(cible);
+  ob9=scene.onBeforeRender;scene.onBeforeRender=function(){}; // pisteLoin remettrait ses visibilités pendant le rendu
+  const cible=renderer.getRenderTarget(),t9=performance.now();cib9=cible;renderer.setRenderTarget(CHAUFFE_R.rt);renderer.render(scene,camera);renderer.setRenderTarget(cible);
   CHAUFFE_R.appels=renderer.info.render.calls;CHAUFFE_R.ms=+(performance.now()-t9).toFixed(1); // (dev) dbgChauffe()
-  scene.onBeforeRender=ob9;
+  }finally{if(ob9)scene.onBeforeRender=ob9;if(cib9!==undefined)renderer.setRenderTarget(cib9);
   for(const o of vis)o.visible=false;for(const o of off)o.visible=true;for(const o of cul)o.frustumCulled=true;
   for(const m of caches9)m.visible=true;
-  }finally{if(que){scene.children=kids;sm.autoUpdate=sa;sm.needsUpdate=sn;}}
+  if(que){scene.children=kids;sm.autoUpdate=sa;sm.needsUpdate=sn;}}
 }catch(e){console.warn('chauffeRendu',e);} }
 function chauffeDivers(k){ // (2026-09-28, chasse aux gels) UNE étape par image (elles tenaient toutes dans la même : ~1,8 s d'un bloc au chargement, MESURÉ) — rend vrai s'il en reste
   const E=[
@@ -60926,7 +60939,7 @@ function explode(cause){
      Le bouclier de la seconde chance passait APRÈS les remises à zéro du demi-tour, du frottement contre le mur et de la glisse : un choc
      « ignoré » pendant les 3 s de reprise coupait quand même le demi-tour en cours et vidait l'aura du SLIDE (à chaque image contre la
      paroi). Une chute protégée passe par respawn, qui fait ces remises lui-même. */
-  if(chanceProtege(cause))return; // (2026-10-14) LA SECONDE CHANCE : le bouclier de la reprise (voir CHANCE)
+  if(chanceProtege(cause)){IMP.frais=-1;return;} /* (2026-11-08, GP-19) l'impact que l'appelant vient de préparer (impMur, impPrep) est refusé avec le choc : il ne reste pas armé 250 ms pour la mort suivante */ // (2026-10-14) LA SECONDE CHANCE : le bouclier de la reprise (voir CHANCE)
   dmtCoupe();
   try{slideRaz();}catch(e){} // (SLIDE) le frottement part avec la caisse
   try{bkSkateRaz();}catch(e){} // (ICE SKATE) la glisse aussi
@@ -64730,7 +64743,7 @@ const SAVE={
     c.equipped=Math.min(CARS.length-1,Math.max(0,Math.round(+d.equipped)||0)); // borné sur la gamme : un index périmé ne passe pas
     if(Array.isArray(d.leaders))c.leaders=d.leaders
       .filter(e=>e&&typeof e.n==='string'&&isFinite(+e.s))
-      .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.max(0,Math.round(+e.s))}));
+      .slice(0,10).map(e=>({n:e.n.slice(0,8),s:Math.min(1e30,Math.max(0,Math.round(+e.s)))})); /* (2026-11-08, sortie) borné comme `best` : un score à 1e300 importé s'écrivait en notation scientifique dans le Top 10 */
     c.sfx=d.sfx!==false;c.vox=d.vox!==false;c.mus=d.mus!==false;c.vib=d.vib!==false; // (2026-09-28) VIBRATIONS : leur propre interrupteur
     if(d.facile===1||d.facile===true)c.facile=1;else if(d.facile===0||d.facile===false)c.facile=0; // (2026-09-29) MODE FACILE : absent = jamais choisi (le 1er JOUER le propose)
     c.figG=d.figG==='glisse'?'glisse':'tap'; // (2026-10-15) LA FIGURE AU GLISSÉ
@@ -64869,8 +64882,8 @@ const SAVE={
       /* (2026-10-25, Sacha : « palier 10 de chaque musique ») les morceaux de Pouce bleu joués jusqu'au palier 10 : leurs ids ont un tiret (bleu-12, pal-asphalte), L9 les jetterait */
       if(Array.isArray(cc.pg))o9.c.pg=[...new Set(cc.pg.filter(function(x){return typeof x==='string'&&/^[a-zA-Z0-9]{2,16}$/.test(x);}))].slice(0,160);if(cc.pgv===1)o9.c.pgv=1; /* (2026-11-07, chasse ECO-N03) les peintures gagnées par leur défi (boutique.js) et le témoin de reprise */
       if(Array.isArray(cc.musP10))o9.c.musP10=[...new Set(cc.musP10.filter(function(x){return typeof x==='string'&&/^[a-z0-9-]{2,40}$/.test(x);}))].slice(0,80);
-      if(cc.met&&typeof cc.met==='object')for(const k of Object.keys(cc.met).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.met||(o9.c.met={}))[k]=L9(cc.met[k],12);
-      if(cc.sc&&typeof cc.sc==='object')for(const k of Object.keys(cc.sc).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k))(o9.c.sc||(o9.c.sc={}))[k]=N9(cc.sc[k],1e9);}
+      if(cc.met&&typeof cc.met==='object')for(const k of Object.keys(cc.met).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k)&&k!=='__proto__')(o9.c.met||(o9.c.met={}))[k]=L9(cc.met[k],12); /* (2026-11-08) `__proto__` passe la regex : il changeait le prototype de `met` */
+      if(cc.sc&&typeof cc.sc==='object')for(const k of Object.keys(cc.sc).slice(0,40))if(/^[a-z0-9_]{2,16}$/.test(k)&&k!=='__proto__')(o9.c.sc||(o9.c.sc={}))[k]=N9(cc.sc[k],1e9);}
     /* (2026-11-07) LE PASS : ids a-z0-9, compteurs entiers bornés ; un code importé ne tire rien qu'il ne saurait dire */
     c.pass=null;if(d.pass&&typeof d.pass=='object'&&d.pass.v===1){const p9=d.pass,I9=/^[a-z0-9]{2,12}$/,n9=function(x,hi){x=Math.round(+x);return isFinite(x)?Math.max(0,Math.min(hi,x)):0;},A9=function(a,i){return Array.isArray(a)?a[i]:undefined;};
       c.pass={v:1,sl:[0,1,2].map(function(i){const x=A9(p9.sl,i);return typeof x==='string'&&I9.test(x)?x:'';}),cp:[0,1,2].map(function(i){return n9(A9(p9.cp,i),1e7);}),tir:n9(p9.tir,1e6),np:n9(p9.np,1e7),hab:n9(p9.hab,1e4),car:n9(p9.car,1e4),nh:n9(p9.nh,200)||12,nc:n9(p9.nc,200)||25,dep:n9(p9.dep,1e4),dc:n9(p9.dc,1e4),nbH:n9(p9.nbH,1e3),nbC:n9(p9.nbC,1e3),rj:n9(p9.rj,1e6),rn:n9(p9.rn,99),fo:typeof p9.fo==='string'&&I9.test(p9.fo)?p9.fo:'',lh:typeof p9.lh==='string'&&/^[a-z_]{0,10}$/.test(p9.lh)?p9.lh:'',ech:Array.isArray(p9.ech)?p9.ech.filter(function(x){return typeof x==='string'&&I9.test(x);}).slice(0,6):[]};}
@@ -64918,7 +64931,22 @@ const SAVE={
     if(!(this.natif===1&&!ec))this.flush();
   },
   mark(){this.dirty=true;},
-  natif:0, // (2026-09-30) le miroir natif : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas)
+  _n:0, // la valeur de `natif` (l'accesseur ci-dessous)
+  /* ===== LE GEL EST DÉFINITIF : IL ÉCRIT (2026-11-08, sortie du jeu, agent C : ECO-10 + ECO-N06) =====
+     `natif` : 0 libre · 1 suspendu (on attend la lecture du secours) · 2 restauration en cours, plus AUCUNE écriture (voir plus bas). Les appelants (TOUT EFFACER dans
+     moteur/mobile-tactile.js, ENTRER UN CODE là et dans interface/menu-logo.js) posent `SAVE.natif=2` JUSTE AVANT de recharger : l'état de SAVE.d est alors définitif.
+     Mais leur `SAVE.flush()` ne suffisait pas : (1) tant que le miroir natif n'était pas lu (natif 1) il n'écrit pas le miroir — l'ancienne sauvegarde y restait, et le
+     rechargement la RESTAURAIT par-dessus l'effacement ; (2) dans un onglet PASSIF (garage-menu-inventaire.js) il est remplacé par une fonction vide — rien ne s'écrivait,
+     le rechargement rendait l'ancienne sauvegarde. Passer à 2 DEPUIS L'EXTÉRIEUR écrit donc SAVE.d tel quel, localStorage ET miroir, et lève le témoin « miroir non
+     confirmé ». Le gel INTERNE (le miroir semé au démarrage) passe par `_n` : il n'écrit rien par-dessus ce qu'il vient de semer. */
+  get natif(){return this._n;},
+  set natif(v){const avant=this._n;this._n=v;if(v===2&&avant!==2)this.fige();},
+  fige(){if(this.neuf||!this.d)return;
+    try{this.d.v=this.V;const s=JSON.stringify(this.d);
+      try{localStorage[this.K]=s;this.dirty=false;}catch(e){}
+      try{localStorage.removeItem(this.K+'_natif');}catch(e){}
+      try{if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferences)window.Capacitor.Plugins.Preferences.set({key:this.K,value:s});}catch(e){}
+    }catch(e){}},
   flush(){if(this.natif===2||this.neuf)return;try{this.d.v=this.V;const s=JSON.stringify(this.d);try{localStorage[this.K]=s;this.dirty=false;if(this.natif===1)localStorage[this.K+'_natif']='1';}catch(e){} /* (2026-11-03, audit p3) TÉMOIN « miroir non confirmé » : écrite pendant que le secours n'est pas lu, cette sauvegarde (peut-être vierge) ne doit pas passer pour la vraie au lancement suivant (voir plus bas) */ /* (2026-10-14, chasse aux bugs) localStorage plein/refusé : le miroir natif doit partir quand même (avant, l'exception sautait Preferences.set) ; `dirty` reste levé, le filet de 30 s réessaie */
     // P0-03 : miroir natif sous Capacitor — NSUserDefaults (Preferences) survit aux purges WKWebView.
     // Le web n'a pas ce plugin : la garde saute et on reste sur localStorage seul.
@@ -64958,10 +64986,11 @@ if(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Preferen
   try{window.Capacitor.Plugins.Preferences.get({key:SAVE.K}).then(function(r){
     /* ===== LE MIROIR ILLISIBLE NE SE SÈME PAS (24/10, débogage sortie iOS : « aucune progression perdue ») ===== semé tel quel, il rechargeait la page sur un localStorage
        tout aussi illisible, qui relisait le miroir, rechargeait… à l'infini : appli inutilisable. Illisible = vide (le flush qui suit écrit une sauvegarde saine) */
+    if(SAVE._n===2)return; /* (2026-11-08, ECO-10) un EFFACEMENT ou une RESTAURATION par code a gelé la sauvegarde PENDANT la lecture (natif=2 posé de l'extérieur, qui a déjà écrit le miroir) : cette réponse, plus vieille, ne doit rien restaurer */
     const mv9=!!(r&&r.value&&(function(){try{const x9=JSON.parse(r.value);return !!x9&&typeof x9==='object';}catch(e){return false;}})());
     const lr9=l9?(+(l9.ex&&l9.ex.runs)||0):0,mr9=mv9?(function(){try{return +((JSON.parse(r.value).ex||{}).runs)||0;}catch(e){return 0;}})():0;
     if(mv9&&lr9>0&&lr9>=mr9){SAVE.natif=0;raz9();SAVE.flush();} /* le local a de vraies parties (jouées après l'échec de lecture) ET au moins autant que le miroir : on le garde, il rattrape le miroir. (2026-11-03, relecture de l'audit) Un miroir PLUS RICHE (100 parties contre 1 jouée depuis l'échec) l'emporte : avant, le local pauvre l'écrasait */
-    else if(mv9){SAVE.natif=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
+    else if(mv9){SAVE._n=2;let ok=false;try{localStorage[SAVE.K]=r.value;ok=localStorage[SAVE.K]===r.value;}catch(e){}
       if(ok){raz9();location.reload();}else SAVE.natif=1;}
     else{SAVE.natif=0;raz9();SAVE.flush();}
   }).catch(function(){});}catch(e){}
@@ -66776,6 +66805,7 @@ function m2CarAMoi(i){if(carRetiree(i))return false;if(carOwned(i))return true;i
   const u=CAR_UNLOCK[i];if(!u)return true;if(u.k==='mis'||u.p||u.k==='premium'||u.eur)return false;return carStat(u.k)>=u.v;}
 function m2HabAMoi(cat,d){if(cat==='figure')return d.id==='tailwhip'||(Array.isArray(SAVE.d.figs)&&SAVE.d.figs.indexOf(d.id)>=0);
   if(d.pack==='chat'&&m2Chat())return true;if(!d.p&&!d.mis&&!d.mis2&&!d.pack&&!d.sec&&!d.eur&&!d.def&&!d.serie)return true;return SAVE.d.shop.own.indexOf(cat+':'+d.id)>=0;}
+function m2ChatEuro(){try{const i=chatPackI();return i>=0&&carEuros(i);}catch(e){return false;}} /* la caisse du chat se paie-t-elle en € ? (chatPackI : economie/boutique.js) */
 function m2Chat(){for(let i=0;i<CARS.length;i++)if(CARS[i]&&CARS[i].shape==='poptart')return m2CarAMoi(i)||(function(){try{return carUnlockedVrai(i);}catch(e){return false;}})();return false;}
 /* les objets que donnent les missions : hors des « toutes » (« les objets gagnés par mission ne comptent PAS dans toutes ») — les
    couleurs SECRÈTES de la palette aussi (elles se gagnent par leur mission secrète) */
@@ -66787,7 +66817,7 @@ function m2Col(cat){const R=m2Reco();let n=0,tot=0,nT=0;
   /* (2026-11-05, Opus : jury ECO-05) le lot « toutes » (LE TRÔNE CENTRAL, colall, toutall) ne compte plus ce qui se paie en € (impossible tant que StoreKit
    n'existe pas) ; dans l'app, preparer-www.js les passe à l'argent du jeu : ils y comptent de nouveau. */
   if(cat==='voiture'){for(let i=0;i<CARS.length;i++){if(carRetiree(i))continue;const a=m2CarAMoi(i);if(a)n++;if(!R.car[CARS[i].name]&&(!carEuros(i)||a)){tot++;if(a)nT++;}}}
-  else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)&&(!d.eur||d.def||a)){tot++;if(a)nT++;}}} /* (2026-11-07, chasse ECO-N01) `d.def` : une peinture en € qui se gagne par son défi reste dans le lot, sinon colall était réussie d'office sur le web */
+  else{const L=COSM[cat]||[];for(const d of L){const a=m2HabAMoi(cat,d);if(a)n++;if(!m2HabReco(cat,d)&&(!d.eur||d.def||a)&&!(d.pack==='chat'&&!a&&m2ChatEuro())){tot++;if(a)nT++;}}} /* (2026-11-08, sortie ECO-N02) l'ARC-EN-CIEL (pack du chat) ne vient qu'avec la caisse du chat : tant qu'elle se paie en € et n'est pas à toi, il est hors du lot, comme les caisses en € de la voiture (sinon « toutes les traînées » et « tous les objets » étaient impossibles) */ /* (2026-11-07, chasse ECO-N01) `d.def` : une peinture en € qui se gagne par son défi reste dans le lot, sinon colall était réussie d'office sur le web */
   return {n:n,tot:tot,nT:nT};}
 /* (2026-10-22) LES RARES À TOI : celles qui s'achètent (les rares gagnées par mission ne comptent pas — LA DOLORÈS se débloque en les ayant toutes) */
 function m2Rares(){const R=m2Reco();let n=0,tot=0;for(let i=0;i<CARS.length;i++){if(carRetiree(i)||carRar(i)!=='rare'||R.car[CARS[i].name])continue;tot++;if(m2CarAMoi(i))n++;}return {n:n,tot:tot};}
@@ -67294,7 +67324,9 @@ function m2Clic(e){const t=e.target;if(!t||!t.closest)return;
        un 2e toucher sur la MÊME ligne dans les 3 s la retire, comme avant. `?retire=ancien` : un seul toucher. */
     if(!/[?&]retire=ancien\b/.test(location.search)&&(M2E.arme!==id||performance.now()-(M2E.armeT||0)>3000)){
       M2E.arme=id;M2E.armeT=performance.now();document.querySelectorAll('#gmListe .m2L.m2Arme').forEach(function(e9){e9.classList.remove('m2Arme');});
-      row.classList.add('m2Arme');try{toast(sansAcc(TR('TOUCHE ENCORE POUR RETIRER')));}catch(x){}uiClic('');hap(6);return;}
+      row.classList.add('m2Arme');try{toast(sansAcc(TR('TOUCHE ENCORE POUR RETIRER')));}catch(x){}uiClic('');hap(6);
+      try{uiGarde(450);}catch(x){} /* (2026-11-08, sortie du jeu, INT-N05) le 2e toucher d'un DOUBLE-TAP (< 450 ms) est avalé : il retirait la mission avant qu'on ait pu lire « TOUCHE ENCORE » */
+      return;}
     M2E.arme=null;
     if(!s.mq)s.mq=[];if(s.mq.indexOf(id)<0)s.mq.push(id);SAVE.flush();uiClic('off');hap(10);m2Render(true);return;}
   /* (2026-11-05, Opus : jury INT-05) une mission EN COURS ne se suit plus, mais son toucher n'est pas une faute : plus le son du refus, un toucher neutre */
@@ -70744,7 +70776,7 @@ function newTrack0(){
   if(!leger9)computeMinimap();
   try{musicSuitLieu();}catch(e){} // LA MUSIQUE PAR MONDE : change si le lieu en réclame une autre
   if(!leger9){spawnPickups(mulberry32(sd^0x9e3779b9));try{foretSentiersPose();}catch(e){window.__forSentErr=e;}} /* (2026-11-05, LES SENTIERS DE LUCIOLES) les fils de la forêt : après les pièces */
-  dmtCoupe();sonsChauffe(SONS_COURSE);s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;loop._camDriveT=0; // (2026-09-28) la caméra repart de sa place sur la NOUVELLE piste (la coupe se cache sous le flash du portail)
+  dmtCoupe();POSE_F=null;hopY=0;hopV=0;try{frCoupe();}catch(e){}try{slideRaz();}catch(e){}sonsChauffe(SONS_COURSE);s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;loop._camDriveT=0; // (2026-09-28) la caméra repart de sa place sur la NOUVELLE piste (la coupe se cache sous le flash du portail)
   if(vA<20)vA=20;
   mode='drive';
   campDebut(); // (2026-09-27) la zone qui commence : l'orage repart, la caisse-nuage se range, l'événement rare se pose
@@ -74371,7 +74403,7 @@ function garageFamilles(r){
     st.innerHTML=(shop&&!L.length)?'<div class="gVide">'+sansAcc(TR('TOUT EST A TOI'))+'</div>':L.map(function(i){const u=CAR_UNLOCK[i],ouv=carUnlockedVrai(i);
       const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?prixTxt(i,u.eur):u&&u.k==='mis'?sansAcc(TR(m2Secrete(i)?'SECRÈTE':'MISSION')):''); // (la police pixel n'a pas de ✓ : l'icône pixel) · (2026-09-29) la caisse des MISSIONS en cours dit où on en est : « 1 / 3 »
       const sec9=!ouv&&m2Secrete(i);
-      return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':String(CARS[i].name).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+'">'
+      return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':(LANG==='fr'?String(CARS[i].name):TR(String(CARS[i].name))).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+'">' /* (2026-11-08, sortie du jeu) le nom lu par VoiceOver suit la langue (il restait « LE LOUP » en anglais) */
         +'<i class="gTl"></i><i class="gTv"></i><em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em></div>';}).join(''); // (charte v5) l'argent du JEU en vert billet, le vrai argent (€) en or
     st.querySelectorAll('.gT').forEach(function(el){const i=+el.getAttribute('data-car');
       photoFile(i,function(url){const v=el.querySelector('.gTv');if(v)v.remove();if(!el.querySelector('img')){const im=document.createElement('img');im.alt='';im.src=url;el.insertBefore(im,el.firstChild);}});});}
@@ -74437,7 +74469,7 @@ function gStripModeVoitures(){
       const et=ouv?(i===eq?'':pxi('coche')):(u&&u.p?fmtC(u.p):u&&u.eur?prixTxt(i,u.eur):u&&u.k==='mis'?sansAcc(TR(m2Secrete(i)?'SECRÈTE':'MISSION')):'');
       const sec9=!ouv&&m2Secrete(i);
       const iv9=m==='inv'?';--rr:'+rarInfo(carRar(i)).c:'',pl9=m==='inv'?ivPlaque(sansAcc(TR(CARS[i].name)),i===eq):''; /* (L'INVENTAIRE EN GRAND) la plaque du nom et la lumière de la rareté — voir inventaire-grand.css */
-      return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':String(CARS[i].name).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+iv9+'">'
+      return '<div class="gT'+(ouv?'':' lock')+(sec9?' m2sec':'')+(i===eq?' eq':'')+'" data-car="'+i+'" role="button" aria-label="'+(sec9?'? ? ?':(LANG==='fr'?String(CARS[i].name):TR(String(CARS[i].name))).replace(/"/g,''))+'" style="--rc:'+ri.c+lg9+iv9+'">'
         +'<i class="gTl"></i><i class="gTv"></i>'+rarLogo(i)+'<em'+(!ouv&&u&&!u.p&&u.eur?' class="eur"':!ouv&&u&&u.k==='carnet'?' class="def"':'')+'>'+et+'</em>'+pl9+'</div>';}).join('');
     ivDeux(st,m==='inv');
      // (2026-10-14, charte 6, ordre de Sacha) plus de blocs « ? BIENTÔT » : un testeur y voit un jeu inachevé
@@ -80332,12 +80364,19 @@ function fsRafraichis(garde){GBQ.rk='';GBQ.figDir=null;GBQ.vu=-1;try{BQFS.k='';}
   try{if(garageOn&&SHOP.tab==='figure'&&!(INV&&INV.on)){GFS.k='';const st=$('gStrip');if(st)st._r=null;gStripHabits('figure',SHOP.i.figure);gFigSelMaj();}}catch(e){console.warn('fsRafraichis atelier',e);}} /* l'atelier : sa bande et ses cases */
 /* ANNULER : la puce, le temps qu'elle vit, et le retour en arrière */
 function fsPuce(){let el=document.getElementById('fsUndo');if(el)return el;el=document.createElement('button');el.id='fsUndo';el.type='button';el.setAttribute('role','status');
-  el.addEventListener('click',function(e){e.stopPropagation();fsAnnule();});document.body.appendChild(el);return el;}
-function fsMontre(id,r,avant){const f=window.FIG&&FIG.par[id];if(!f||!r)return;FSEL.undo={prev:avant,id:id};clearTimeout(FSEL.tm);
+  el.addEventListener('click',function(e){e.stopPropagation();if(!fsVeille())return;fsAnnule();});document.body.appendChild(el);return el;}
+/* (2026-11-08, sortie du jeu, INT-N03) LA PUCE NE SURVIT PAS À SON ÉCRAN : elle est posée sur <body> (position:fixed, z-index 97) et vivait 5 s quoi qu'il arrive —
+   RETOUR ou JOUER dans ce délai la laissait au-dessus de l'écran suivant, jusque sur le début de la course, où un toucher remettait les figures d'avant en pleine
+   partie. On retient l'ÉCRAN d'où elle est née (`fsEcran` : atelier ouvert ou non, boutique, feuille de l'inventaire, mode de l'atelier — inventaire, boutique, menu,
+   missions, départ en course) ; tant qu'elle vit, `fsVeille` (toutes les 200 ms, et à son toucher) la range dès que l'écran a changé. Rend vrai si la puce a
+   encore sa raison d'être. */
+function fsEcran(){return (garageOn?'g':'-')+(GBQ.on||GBQ.veut?'b':'-')+(INV&&INV.on?'i':'-')+(gEl?['modeInv','shopMode','menu','missions','quiet','launching','vueSeule'].filter(function(c){return gEl.classList.contains(c);}).join('.'):'');}
+function fsVeille(){if(FSEL.ctx&&fsEcran()===FSEL.ctx)return true;fsCache();return false;}
+function fsMontre(id,r,avant){const f=window.FIG&&FIG.par[id];if(!f||!r)return;FSEL.undo={prev:avant,id:id};clearTimeout(FSEL.tm);clearInterval(FSEL.tv);FSEL.ctx=fsEcran();
   const F=FIG_FAM[r.slot],el=fsPuce(),rem=r.parti&&r.parti!==id&&FIG.par[r.parti]?' · '+sansAcc(TR('REMPLACE'))+' '+sansAcc(TR(FIG.par[r.parti].n)):'';
   el.innerHTML='<span class="fuTx">'+pxi(F[2])+' <b>'+sansAcc(TR(f.n))+'</b> · '+sansAcc(TR(FS_COURT[r.slot]))+rem+'</span><span class="fuBt">'+pxi('gauche')+' '+sansAcc(TR('ANNULER'))+'</span>';
-  el.classList.remove('on');void el.offsetWidth;el.classList.add('on');FSEL.tm=setTimeout(fsCache,5000);}
-function fsCache(){const el=document.getElementById('fsUndo');if(el)el.classList.remove('on');FSEL.undo=null;}
+  el.classList.remove('on');void el.offsetWidth;el.classList.add('on');FSEL.tm=setTimeout(fsCache,5000);FSEL.tv=setInterval(fsVeille,200);}
+function fsCache(){clearTimeout(FSEL.tm);clearInterval(FSEL.tv);FSEL.ctx=null;const el=document.getElementById('fsUndo');if(el)el.classList.remove('on');FSEL.undo=null;}
 function fsAnnule(){const U=FSEL.undo;if(!U)return;fsCache();
   SAVE.d.figEq3=U.prev.map(function(x){return x||'';});SAVE.d.figEq=figEquipees().slice(0,2);SAVE.flush();FX2.cle='';delete FSEL.pick[U.id];
   try{if(SONV2)sfx('ui.off');}catch(e){}hap(6);fsRafraichis(true);
@@ -83046,7 +83085,7 @@ function loop(now){
   dt=ralentiDt(dt); // (2026-09-29) …SAUF le ralenti de la FRÉNÉSIE, demandé par Sacha (voir RALENTI) — le dt RÉEL reste celui des mesures de perf ci-dessus
   const t=now/1000;
   let speedKmh=0;
-  try{ if(running&&!paused&&!gameOver&&!BANC_FIGE){ // (banc ?banc=1) BANC_FIGE : la simulation s'arrête, le rendu continue
+  try{ if(running&&!paused&&!gameOver&&!BANC_FIGE){loop._fr=(loop._fr|0)+1; // (banc ?banc=1) BANC_FIGE : la simulation s'arrête, le rendu continue
     // OVERDRIVE : passé le niveau 6, le jeu passe la surmultipliée — +8 %/niveau, jusqu'à +50 %
     // ⚠ JEU DE PROGRESSION : la VITESSE vient du MOTEUR, pas de la caisse équipée — sinon équiper une
     // caisse débloquée ferait démarrer la partie à 400 km/h et il n'y aurait plus rien à gagner.
@@ -84506,7 +84545,14 @@ function loop(now){
       if(feverGlow.className!==(feverArmed?'armed':''))feverGlow.className=feverArmed?'armed':'';}
     if(comboT>0){comboT-=dt;if(comboT<=0)combo=0;}
     if(msgT>0){msgT-=dt;if(msgT<=0)elMsg.style.opacity=0;}
-  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;} /* (2026-11-03, audit p4) UN ÉTAT NON FINI NE DOIT PAS BLOQUER LA PARTIE : un NaN dans s/vA fait jeter frameAt (pts[NaN]) AVANT le test de bord, la caméra, le HUD et endGame — chaque image rejoue la même exception (muette après la 1re), la physique d'avant le point d'erreur continue et aucune mort ne vient. Vitesse, côté, cap non finis → remis à 0 ; position le long du ruban non finie (irrécupérable) → fin de partie normale (endGame, gardée par !gameOver donc jamais deux fois). Sans exception, rien de tout ça ne tourne. */try{if(started&&running&&!gameOver){if(!Number.isFinite(vA))vA=0;if(!Number.isFinite(vL))vL=0;if(!Number.isFinite(lat))lat=0;if(!Number.isFinite(psi))psi=0;if(!Number.isFinite(s)){try{window.__ccNote('boucle','état non fini (s) : fin de partie');}catch(_){}endGame();}}}catch(e2){console.error('loop secours',e2);}}
+    /* (2026-11-08, sortie du jeu, GP-05) LA POSITION OU LA VITESSE DE VOL NON FINIE FINIT LA PARTIE : un NaN dans fallPos / fallVel / carGroup.position ne lève AUCUNE exception (le filet du catch ne le voit donc jamais) : la caméra et le quaternion de la caisse devenaient NaN et l'écran restait vide jusqu'à la mort par `airDepasse`, 6 s plus tard. Six additions par image, une seule comparaison. */
+    {const pN9=carGroup.position;if(!gameOver&&mode!=='boom'&&!Number.isFinite(pN9.x+pN9.y+pN9.z+(mode==='fall'?fallPos.x+fallPos.y+fallPos.z+fallVel.x+fallVel.y+fallVel.z:0))){try{window.__ccNote('boucle','position ou vitesse non finie : fin de partie');}catch(_){}endGame();}}
+  } }catch(err){window.__loopErr=err.message+' | '+(err.stack||'').split('\n').slice(0,3).join(' ¶ ');try{window.__ccNote('boucle',err.message,(err.stack||'').split('\n').slice(1,3).join(' ¶ '));}catch(_){} /* (2026-10-27) la BOÎTE NOIRE */if(!loop._warned){console.error('loop error',err);loop._warned=true;} /* (2026-11-03, audit p4) UN ÉTAT NON FINI NE DOIT PAS BLOQUER LA PARTIE : un NaN dans s/vA fait jeter frameAt (pts[NaN]) AVANT le test de bord, la caméra, le HUD et endGame — chaque image rejoue la même exception (muette après la 1re), la physique d'avant le point d'erreur continue et aucune mort ne vient. Vitesse, côté, cap non finis → remis à 0 ; position le long du ruban non finie (irrécupérable) → fin de partie normale (endGame, gardée par !gameOver donc jamais deux fois). Sans exception, rien de tout ça ne tourne. */try{if(started&&running&&!gameOver){if(!Number.isFinite(vA))vA=0;if(!Number.isFinite(vL))vL=0;if(!Number.isFinite(lat))lat=0;if(!Number.isFinite(psi))psi=0;if(!Number.isFinite(s)){try{window.__ccNote('boucle','état non fini (s) : fin de partie');}catch(_){}endGame();}
+    /* (2026-11-08, sortie du jeu, GP-01 / GP-N02) UNE EXCEPTION QUI SE RÉPÈTE FINIT LA PARTIE. Un seul try couvre toute la simulation : une exception à chaque image (loop._fr compte les images de simulation) rejouait la même erreur sans que rien n'avance — pire en 'boom' : `endGame` (boucle-3-physique.js, `boomT>1.8`) n'était jamais atteint, l'explosion restait figée et la pause est refusée en 'boom' (init.js), il fallait recharger la page. 60 images de suite en erreur (1 s) : fin de partie normale (endGame est gardée contre le double appel et verse ce qui est gagné). Une erreur isolée, ou une image saine entre deux, ne compte pas. */
+    if(!gameOver){loop._errSuite=(loop._errFr===loop._fr-1)?(loop._errSuite|0)+1:1;loop._errFr=loop._fr;if(loop._errSuite>=60){loop._errSuite=0;try{window.__ccNote('boucle','60 images de suite en erreur : fin de partie');}catch(_){}endGame();}}
+    }}catch(e2){console.error('loop secours',e2);}}
+    /* (2026-11-08, GP-11) la PAUSE ne laisse pas la caisse éteinte : le clignotement du bouclier de la seconde chance (chanceTick, dans la porte de simulation) se figeait sur une image sans caisse */
+    if(paused&&started&&!gameOver&&mode!=='boom'&&CHANCE.inv>0&&!RESU.actif&&!carGroup.visible)carGroup.visible=true;
   // ciel : dôme, soleil « 1.61 », lueur d'horizon et rayons crépusculaires suivent la caméra
   try{vhdBascule((!garageOn||(!!gEl&&!gEl.classList.contains('quiet')&&!GAR.go))&&(!started||(gameOver&&!!PAL.b('vhdMort',1)&&!PCM_ON)||MENUV.retour)&&!(typeof stallOn!=='undefined'&&stallOn));}catch(e){loopWarnN('vitrine HD',e);} // (2026-09-28) l'ACCUEIL en haute définition — tant que la vitrine tourne (voir VHD) — (2026-10-10, Léo : « assure-toi que la voiture soit de bonne qualité dans le menu ciel et tout ») depuis le 30/09 l'accueil EST le garage (mode menu, le ciel) : `!garageOn` éteignait la HD sur tout l'accueil et le garage — mesuré : DPR 1, ombre 1024, aniso 4, la qualité de course. Allumée désormais au menu et à l'atelier, hors course (ni le garage « quiet » du départ rapide, ni l'envol GAR.go)
   if(garageOn)try{garageRender(dt);}catch(e){loopWarnN('garage',e);}

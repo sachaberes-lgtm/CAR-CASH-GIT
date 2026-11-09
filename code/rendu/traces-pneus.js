@@ -122,7 +122,7 @@ function newTrack0(){
   if(!leger9)computeMinimap();
   try{musicSuitLieu();}catch(e){} // LA MUSIQUE PAR MONDE : change si le lieu en réclame une autre
   if(!leger9){spawnPickups(mulberry32(sd^0x9e3779b9));try{foretSentiersPose();}catch(e){window.__forSentErr=e;}} /* (2026-11-05, LES SENTIERS DE LUCIOLES) les fils de la forêt : après les pièces */
-  dmtCoupe();sonsChauffe(SONS_COURSE);s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;loop._camDriveT=0; // (2026-09-28) la caméra repart de sa place sur la NOUVELLE piste (la coupe se cache sous le flash du portail)
+  dmtCoupe();POSE_F=null;hopY=0;hopV=0;try{frCoupe();}catch(e){}try{slideRaz();}catch(e){}sonsChauffe(SONS_COURSE);s=0;lat=0;psi=0;side=1;driveDir=1;prevTvalid=false;safeS=0;loop._camDriveT=0; // (2026-09-28) la caméra repart de sa place sur la NOUVELLE piste (la coupe se cache sous le flash du portail)
   if(vA<20)vA=20;
   mode='drive';
   campDebut(); // (2026-09-27) la zone qui commence : l'orage repart, la caisse-nuage se range, l'événement rare se pose

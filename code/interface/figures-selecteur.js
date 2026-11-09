@@ -63,12 +63,19 @@ function fsRafraichis(garde){GBQ.rk='';GBQ.figDir=null;GBQ.vu=-1;try{BQFS.k='';}
   try{if(garageOn&&SHOP.tab==='figure'&&!(INV&&INV.on)){GFS.k='';const st=$('gStrip');if(st)st._r=null;gStripHabits('figure',SHOP.i.figure);gFigSelMaj();}}catch(e){console.warn('fsRafraichis atelier',e);}} /* l'atelier : sa bande et ses cases */
 /* ANNULER : la puce, le temps qu'elle vit, et le retour en arrière */
 function fsPuce(){let el=document.getElementById('fsUndo');if(el)return el;el=document.createElement('button');el.id='fsUndo';el.type='button';el.setAttribute('role','status');
-  el.addEventListener('click',function(e){e.stopPropagation();fsAnnule();});document.body.appendChild(el);return el;}
-function fsMontre(id,r,avant){const f=window.FIG&&FIG.par[id];if(!f||!r)return;FSEL.undo={prev:avant,id:id};clearTimeout(FSEL.tm);
+  el.addEventListener('click',function(e){e.stopPropagation();if(!fsVeille())return;fsAnnule();});document.body.appendChild(el);return el;}
+/* (2026-11-08, sortie du jeu, INT-N03) LA PUCE NE SURVIT PAS À SON ÉCRAN : elle est posée sur <body> (position:fixed, z-index 97) et vivait 5 s quoi qu'il arrive —
+   RETOUR ou JOUER dans ce délai la laissait au-dessus de l'écran suivant, jusque sur le début de la course, où un toucher remettait les figures d'avant en pleine
+   partie. On retient l'ÉCRAN d'où elle est née (`fsEcran` : atelier ouvert ou non, boutique, feuille de l'inventaire, mode de l'atelier — inventaire, boutique, menu,
+   missions, départ en course) ; tant qu'elle vit, `fsVeille` (toutes les 200 ms, et à son toucher) la range dès que l'écran a changé. Rend vrai si la puce a
+   encore sa raison d'être. */
+function fsEcran(){return (garageOn?'g':'-')+(GBQ.on||GBQ.veut?'b':'-')+(INV&&INV.on?'i':'-')+(gEl?['modeInv','shopMode','menu','missions','quiet','launching','vueSeule'].filter(function(c){return gEl.classList.contains(c);}).join('.'):'');}
+function fsVeille(){if(FSEL.ctx&&fsEcran()===FSEL.ctx)return true;fsCache();return false;}
+function fsMontre(id,r,avant){const f=window.FIG&&FIG.par[id];if(!f||!r)return;FSEL.undo={prev:avant,id:id};clearTimeout(FSEL.tm);clearInterval(FSEL.tv);FSEL.ctx=fsEcran();
   const F=FIG_FAM[r.slot],el=fsPuce(),rem=r.parti&&r.parti!==id&&FIG.par[r.parti]?' · '+sansAcc(TR('REMPLACE'))+' '+sansAcc(TR(FIG.par[r.parti].n)):'';
   el.innerHTML='<span class="fuTx">'+pxi(F[2])+' <b>'+sansAcc(TR(f.n))+'</b> · '+sansAcc(TR(FS_COURT[r.slot]))+rem+'</span><span class="fuBt">'+pxi('gauche')+' '+sansAcc(TR('ANNULER'))+'</span>';
-  el.classList.remove('on');void el.offsetWidth;el.classList.add('on');FSEL.tm=setTimeout(fsCache,5000);}
-function fsCache(){const el=document.getElementById('fsUndo');if(el)el.classList.remove('on');FSEL.undo=null;}
+  el.classList.remove('on');void el.offsetWidth;el.classList.add('on');FSEL.tm=setTimeout(fsCache,5000);FSEL.tv=setInterval(fsVeille,200);}
+function fsCache(){clearTimeout(FSEL.tm);clearInterval(FSEL.tv);FSEL.ctx=null;const el=document.getElementById('fsUndo');if(el)el.classList.remove('on');FSEL.undo=null;}
 function fsAnnule(){const U=FSEL.undo;if(!U)return;fsCache();
   SAVE.d.figEq3=U.prev.map(function(x){return x||'';});SAVE.d.figEq=figEquipees().slice(0,2);SAVE.flush();FX2.cle='';delete FSEL.pick[U.id];
   try{if(SONV2)sfx('ui.off');}catch(e){}hap(6);fsRafraichis(true);
